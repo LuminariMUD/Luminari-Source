@@ -13,6 +13,7 @@
 #include "character/guild_services.h"
 #include "character/evolutions.h"
 #include "combat/fight.h"
+#include "combat/combat_state.h"
 #include "comm.h"
 #include "constants.h"
 #include "db.h"
@@ -35,6 +36,7 @@
 #include "spec_rol_darkhold.h"
 #include "spec_rol_conversion.h"
 #include "spec_rol_totem.h"
+#include "point_update_periodic.h"
 
 #include <limits.h>
 
@@ -1820,7 +1822,7 @@ static int rol_alert_combat_turn(struct char_data *caller)
 
   for (helper = character_list; helper != NULL; helper = helper->next)
     if (rol_alert_helper_can_answer(helper, caller, victim, profile->max_distance))
-      HUNTING(helper) = victim;
+      set_hunting_target(helper, victim);
 
   caller->mob_specials.rol_alert_fired = true;
   return TRUE;
@@ -1900,7 +1902,7 @@ static struct char_data *rol_yggdrasil_juiciest(struct char_data *caller)
   return juiciest;
 }
 
-EVENTFUNC(event_rol_yggdrasil_release)
+MUD_EVENT_CALLBACK(event_rol_yggdrasil_release)
 {
   struct mud_event_data *event = event_obj;
   struct char_data *victim;
@@ -1916,7 +1918,7 @@ EVENTFUNC(event_rol_yggdrasil_release)
   return 0;
 }
 
-EVENTFUNC(event_rol_barbazu_bloodloss)
+MUD_EVENT_CALLBACK(event_rol_barbazu_bloodloss)
 {
   struct mud_event_data *event = event_obj;
   struct char_data *victim;
@@ -2210,7 +2212,7 @@ static void rol_death_balor_burst(struct char_data *ch)
       continue;
     rol_death_heat_blind(victim);
     damage_amount = AFF_FLAGGED(victim, AFF_ELEMENT_PROT) ? 150 : 250;
-    GET_HIT(victim) -= damage_amount;
+    combat_apply_raw_damage(victim, ch, damage_amount, DAM_FIRE, INT_MIN);
     update_pos(victim);
     if (GET_HIT(victim) < -10)
       die(victim, ch);
@@ -2342,7 +2344,7 @@ static void rol_death_weevil_fire(struct char_data *ch)
     act("You are intensely burned by the explosion!", FALSE, victim, NULL, NULL, TO_CHAR);
     damage_amount =
         rol_weevil_death_adjust_damage(damage_amount, AFF_FLAGGED(victim, AFF_ELEMENT_PROT));
-    GET_HIT(victim) -= damage_amount;
+    combat_apply_raw_damage(victim, ch, damage_amount, DAM_FIRE, INT_MIN);
     if (GET_HIT(victim) < -10)
       die(victim, ch);
   }
@@ -2955,7 +2957,7 @@ int rol_travel_portal(struct char_data *ch, void *me, int cmd, const char *argum
 
   if (profile->kind == ROL_TRAVEL_PORTAL_WATERDEEP && GET_LEVEL(ch) < LVL_IMMORT)
   {
-    GET_HIT(ch) = MAX(0, GET_HIT(ch) - MAX(0, GET_OBJ_VAL(obj, 1)));
+    combat_apply_raw_damage(ch, NULL, MAX(0, GET_OBJ_VAL(obj, 1)), DAM_RESERVED_DBC, 0);
     update_pos(ch);
   }
   else if (profile->kind == ROL_TRAVEL_PORTAL_SHAMAN_SPORES)
@@ -3096,7 +3098,7 @@ int rol_bloodstone_portal(struct char_data *ch, void *me, int cmd, const char *a
     return TRUE;
   }
 
-  GET_HIT(ch) -= hit_loss;
+  combat_apply_raw_damage(ch, NULL, hit_loss, DAM_RESERVED_DBC, INT_MIN);
   GET_MOVE(ch) = MAX(0, GET_MOVE(ch) - rand_number(1, 30));
   update_pos(ch);
   send_to_char(ch, "You feel weakened by your passage through the portal.\r\n");
@@ -3133,7 +3135,7 @@ int rol_magic_pool(struct char_data *ch, void *me, int cmd, const char *argument
 
   damage_amount = MAX(0, GET_OBJ_VAL(obj, 1));
   if (GET_LEVEL(ch) < LVL_IMMORT)
-    GET_HIT(ch) = MAX(0, GET_HIT(ch) - damage_amount);
+    combat_apply_raw_damage(ch, NULL, damage_amount, DAM_RESERVED_DBC, 0);
 
   act("$n slowly fades out of existence.", FALSE, ch, NULL, NULL, TO_ROOM);
   char_from_room(ch);
@@ -3470,23 +3472,16 @@ static room_rnum rol_guild_guard_teleport_destination(struct char_data *victim)
   return selected;
 }
 
+/* End all combat involving a character the guild guard has intervened for. */
 static void rol_guild_guard_stop_victim_combat(struct char_data *victim)
 {
-  struct char_data *fighter;
-  struct char_data *next;
-
   if (victim == NULL)
     return;
 
   if (FIGHTING(victim) != NULL)
     stop_fighting(victim);
 
-  for (fighter = combat_list; fighter != NULL; fighter = next)
-  {
-    next = fighter->next_fighting;
-    if (FIGHTING(fighter) == victim)
-      stop_fighting(fighter);
-  }
+  combat_state_stop_attackers(victim);
 }
 
 static int rol_guild_guard_protection(struct char_data *guard, struct char_data *victim)
@@ -3892,7 +3887,7 @@ static void rol_lich_energy_drain_stun(struct char_data *victim)
     return;
   }
 
-  remaining = stun_event->pEvent != NULL ? event_time(stun_event->pEvent) : 0;
+  remaining = mud_event_is_live(stun_event) ? mud_event_remaining(stun_event) : 0;
   duration = rol_lich_energy_drain_stun_duration(remaining);
   change_event_duration(victim, eSTUNNED, duration);
 }
@@ -4434,7 +4429,7 @@ int rol_sister_knight(struct char_data *ch, void *me, int cmd, const char *argum
 
   for (helper = character_list; helper != NULL; helper = helper->next)
     if (rol_sister_knight_can_answer(helper, caller, victim))
-      HUNTING(helper) = victim;
+      set_hunting_target(helper, victim);
 
   PROC_FIRED(caller) = TRUE;
   return TRUE;
@@ -6275,7 +6270,7 @@ static int rol_command_sentinel_room(struct char_data *ch, struct room_data *roo
         ch, NULL, NULL, TO_ROOM);
     send_to_char(ch, "A powerful bolt of bright red energy blasts you backwards several feet!\r\n");
     damage_amount = rol_command_sentinel_glyph_damage(ch);
-    GET_HIT(ch) = MAX(1, GET_HIT(ch) - damage_amount);
+    combat_apply_raw_damage(ch, NULL, damage_amount, DAM_RESERVED_DBC, 1);
     return TRUE;
   default:
     return FALSE;
@@ -6874,17 +6869,14 @@ static bool rol_banana_attacker_is_aggressive(struct char_data *attacker, struct
          (MOB_FLAGGED(attacker, MOB_AGGR_GOOD) && IS_GOOD(victim));
 }
 
+/* Stop the aggressive mobs attacking ch when the banana grants mercy. */
 static void rol_banana_stop_merciful_attackers(struct char_data *ch)
 {
   struct char_data *attacker;
-  struct char_data *next_attacker;
 
-  for (attacker = combat_list; attacker != NULL; attacker = next_attacker)
-  {
-    next_attacker = attacker->next_fighting;
+  for (attacker = character_list; attacker != NULL; attacker = attacker->next)
     if (FIGHTING(attacker) == ch && !rol_banana_attacker_is_aggressive(attacker, ch))
       stop_fighting(attacker);
-  }
 }
 
 static void rol_banana_apply_sleep(struct char_data *ch)
@@ -6970,10 +6962,10 @@ static int rol_banana_move(struct obj_data *obj, struct char_data *ch, int cmd)
     act("$n slips on a banana peel, falls, and passes out when $s head hits the ground!", TRUE, ch,
         0, 0, TO_ROOM);
     rol_banana_apply_sleep(ch);
-    GET_HIT(ch) = MAX(1, GET_HIT(ch) - 15);
+    combat_apply_raw_damage(ch, NULL, 15, DAM_FORCE, 1);
     return TRUE;
   case ROL_BANANA_PEEL_FALL:
-    GET_HIT(ch) = MAX(1, GET_HIT(ch) - dexterity_roll);
+    combat_apply_raw_damage(ch, NULL, dexterity_roll, DAM_FORCE, 1);
     act("You slip on a banana peel and fall over with a shriek and a thump!", TRUE, ch, 0, 0,
         TO_CHAR);
     act("$n slips on a banana peel, shrieks, and falls over!", TRUE, ch, 0, 0, TO_ROOM);
@@ -7683,7 +7675,7 @@ static int rol_weapon_holy_hit(struct char_data *ch, struct obj_data *obj, int s
   return TRUE;
 }
 
-static int rol_weapon_holy_pulse(struct char_data *ch, struct obj_data *obj, int slot)
+static int rol_weapon_holy_sustain(struct char_data *ch, struct obj_data *obj, int slot)
 {
   if (IS_EVIL(ch) || IS_NEUTRAL(ch))
     return rol_weapon_holy_reject(ch, obj, slot);
@@ -7941,7 +7933,7 @@ static int rol_weapon_moonblade_command(struct char_data *ch, struct obj_data *o
   for (target = world[IN_ROOM(ch)].people; target != NULL; target = target->next_in_room)
     if (target == ch || (GROUP(ch) != NULL && GROUP(target) == GROUP(ch)))
       rol_weapon_cast(ch, obj, target, SPELL_BARKSKIN, 30);
-  GET_OBJ_SPECTIMER(obj, 0) = 168;
+  point_update_object_spec_timer_set(obj, 0, 168);
   return TRUE;
 }
 
@@ -7986,7 +7978,7 @@ static int rol_weapon_elemental_command(struct char_data *ch, struct obj_data *o
   act("$n speaks words of power to $p, and a small prismatic elemental swirls into being!", FALSE,
       ch, obj, victim, TO_ROOM);
   set_fighting(summoned, victim);
-  GET_OBJ_SPECTIMER(obj, 0) = ROL_WEAPON_CALLED_COOLDOWN_HOURS;
+  point_update_object_spec_timer_set(obj, 0, ROL_WEAPON_CALLED_COOLDOWN_HOURS);
   return TRUE;
 }
 
@@ -8036,7 +8028,8 @@ static int rol_weapon_necromancer_command(struct char_data *ch, struct obj_data 
       TO_ROOM);
   GET_OBJ_TIMER(corpse) =
       GET_OBJ_TIMER(corpse) > INT_MAX - 1000 ? INT_MAX : GET_OBJ_TIMER(corpse) + 1000;
-  GET_OBJ_SPECTIMER(obj, 0) = ROL_WEAPON_CALLED_COOLDOWN_HOURS;
+  point_update_object_sync(corpse);
+  point_update_object_spec_timer_set(obj, 0, ROL_WEAPON_CALLED_COOLDOWN_HOURS);
   return TRUE;
 }
 
@@ -8407,8 +8400,8 @@ static int rol_balor_whip(struct spec_event_context *context, struct char_data *
   return TRUE;
 }
 
-static int rol_balor_weapon_pulse(struct spec_event_context *context, struct char_data *ch,
-                                  struct obj_data *obj)
+static int rol_balor_weapon_enforce_owner(struct spec_event_context *context, struct char_data *ch,
+                                          struct obj_data *obj)
 {
   if (rol_balor_weapon_owner_allowed(ch, true))
     return TRUE;
@@ -8464,8 +8457,8 @@ static int rol_gelugon_freeze_spear(struct char_data *ch, struct obj_data *obj,
   return TRUE;
 }
 
-static int rol_gelugon_freeze_spear_pulse(struct spec_event_context *context, struct char_data *ch,
-                                          struct obj_data *obj)
+static int rol_gelugon_freeze_spear_enforce_owner(struct spec_event_context *context,
+                                                  struct char_data *ch, struct obj_data *obj)
 {
   if (ch == NULL || (obj->worn_by != ch && obj->carried_by != ch))
     return FALSE;
@@ -8495,7 +8488,7 @@ static struct char_data *rol_weapon_object_owner(struct obj_data *obj)
   return NULL;
 }
 
-static int rol_astral_forged_pulse(struct obj_data *obj)
+static int rol_astral_forged_refresh_bonus(struct obj_data *obj)
 {
   struct char_data *wearer;
   room_rnum room;
@@ -8587,7 +8580,7 @@ static void rol_torin_restore_prototype(struct obj_data *obj)
     affect_total(wearer);
 }
 
-static int rol_torin_general_pulse(struct spec_event_context *context, struct obj_data *obj)
+static int rol_torin_general_enforce_owner(struct spec_event_context *context, struct obj_data *obj)
 {
   struct char_data *owner;
 
@@ -8610,7 +8603,7 @@ static int rol_torin_general_pulse(struct spec_event_context *context, struct ob
   return TRUE;
 }
 
-static int rol_weapon_seelie_staff_pulse(struct char_data *ch, struct obj_data *obj)
+static int rol_weapon_seelie_staff_restore_preparation(struct char_data *ch, struct obj_data *obj)
 {
   int threshold;
 
@@ -8624,12 +8617,12 @@ static int rol_weapon_seelie_staff_pulse(struct char_data *ch, struct obj_data *
   if (GET_HIT(ch) <= 15)
     (void)damage(ch, ch, 20, -1, DAM_MENTAL, FALSE);
   else
-    GET_HIT(ch) -= 15;
+    combat_apply_raw_damage(ch, NULL, 15, DAM_MENTAL, INT_MIN);
   return TRUE;
 }
 
-static int rol_weapon_bhaal_pulse(struct char_data *ch, struct obj_data *obj,
-                                  enum rol_weapon_effect effect)
+static int rol_weapon_bhaal_grant_boon(struct char_data *ch, struct obj_data *obj,
+                                       enum rol_weapon_effect effect)
 {
   static const int mage_spells[] = {SPELL_STRENGTH,     SPELL_HASTE,  SPELL_DETECT_INVIS,
                                     SPELL_DETECT_MAGIC, SPELL_SHIELD, SPELL_FLY};
@@ -8722,7 +8715,7 @@ static int rol_weapon_phase6_command(struct spec_event_context *context,
     rol_weapon_extra_attacks(ch, obj, victim, attacks,
                              rol_weapon_slot(ch, obj) == WEAR_WIELD_OFFHAND ? ATTACK_TYPE_OFFHAND
                                                                             : ATTACK_TYPE_PRIMARY);
-    GET_OBJ_SPECTIMER(obj, 0) = 24;
+    point_update_object_spec_timer_set(obj, 0, 24);
     return TRUE;
   }
   if (profile->effect == ROL_WEAPON_UM_FADE && !str_cmp(argument, "fade out"))
@@ -8731,7 +8724,7 @@ static int rol_weapon_phase6_command(struct spec_event_context *context,
       return TRUE;
     rol_weapon_cast(ch, obj, ch, SPELL_DETECT_INVIS, 35);
     rol_weapon_cast(ch, obj, ch, SPELL_INVISIBLE, 35);
-    GET_OBJ_SPECTIMER(obj, 0) = 24;
+    point_update_object_spec_timer_set(obj, 0, 24);
     return TRUE;
   }
   if (profile->effect == ROL_WEAPON_UM_MAGEBANE && !str_cmp(argument, "mage defend"))
@@ -8739,7 +8732,7 @@ static int rol_weapon_phase6_command(struct spec_event_context *context,
     if (GET_OBJ_SPECTIMER(obj, 0) > 0)
       return TRUE;
     rol_weapon_cast(ch, obj, ch, SPELL_GLOBE_OF_INVULN, 35);
-    GET_OBJ_SPECTIMER(obj, 0) = 24;
+    point_update_object_spec_timer_set(obj, 0, 24);
     return TRUE;
   }
   if (profile->effect == ROL_WEAPON_UM_WOUNDHEALER && !str_cmp(argument, "wound heal"))
@@ -8747,7 +8740,7 @@ static int rol_weapon_phase6_command(struct spec_event_context *context,
     if (GET_OBJ_SPECTIMER(obj, 0) > 0)
       return TRUE;
     rol_weapon_cast(ch, obj, ch, SPELL_HEAL, 35);
-    GET_OBJ_SPECTIMER(obj, 0) = 24;
+    point_update_object_spec_timer_set(obj, 0, 24);
     return TRUE;
   }
   if (profile->effect == ROL_WEAPON_UM_UNDEAD_TRIDENT && !str_cmp(argument, "undead army"))
@@ -8762,7 +8755,7 @@ static int rol_weapon_phase6_command(struct spec_event_context *context,
     add_follower(zombie, ch);
     SET_BIT_AR(AFF_FLAGS(zombie), AFF_CHARM);
     load_mtrigger(zombie);
-    GET_OBJ_SPECTIMER(obj, 0) = 168;
+    point_update_object_spec_timer_set(obj, 0, 168);
     return TRUE;
   }
   if (profile->effect == ROL_WEAPON_UM_FLAME_NORTH && !str_cmp(argument, "flame on"))
@@ -8780,7 +8773,7 @@ static int rol_weapon_phase6_command(struct spec_event_context *context,
   return FALSE;
 }
 
-static int rol_weapon_oblivion_pulse(struct char_data *ch, struct obj_data *obj)
+static int rol_weapon_oblivion_invoke(struct char_data *ch, struct obj_data *obj)
 {
   struct char_data *victim;
   int amount;
@@ -8805,7 +8798,7 @@ static int rol_weapon_oblivion_pulse(struct char_data *ch, struct obj_data *obj)
   if (GET_HIT(ch) <= 15 || affected_by_spell(ch, SPELL_HEROISM))
     return FALSE;
   rol_weapon_cast(ch, obj, ch, SPELL_HEROISM, 60);
-  GET_HIT(ch) -= 15;
+  combat_apply_raw_damage(ch, NULL, 15, DAM_MENTAL, INT_MIN);
   act("Your $p sends a shock through your arm, sharpening your thoughts.", FALSE, ch, obj, NULL,
       TO_CHAR);
   return TRUE;
@@ -9073,7 +9066,7 @@ static int rol_weapon_hit(struct spec_event_context *context,
     {
       result = rol_weapon_damage(ch, victim, 200, DAM_NEGATIVE);
       rol_weapon_mark_target_invalidation(context, result);
-      GET_OBJ_SPECTIMER(obj, 1) = 24;
+      point_update_object_spec_timer_set(obj, 1, 24);
     }
     return TRUE;
   case ROL_WEAPON_UM_MAGEBANE:
@@ -9087,13 +9080,13 @@ static int rol_weapon_hit(struct spec_event_context *context,
     if (GET_OBJ_SPECTIMER(obj, 0) == 0 && !AFF_FLAGGED(ch, AFF_HASTE))
     {
       rol_weapon_cast(ch, obj, ch, SPELL_HASTE, 15);
-      GET_OBJ_SPECTIMER(obj, 0) = 24;
+      point_update_object_spec_timer_set(obj, 0, 24);
     }
     if (!context->critical || (!IS_NPC(ch) && GET_OBJ_SPECTIMER(obj, 1) > 0))
       return FALSE;
     rol_weapon_cast(ch, obj, victim, IS_NPC(ch) ? SPELL_CHAIN_LIGHTNING : SPELL_LIGHTNING_BOLT, 35);
     if (!IS_NPC(ch))
-      GET_OBJ_SPECTIMER(obj, 1) = 24;
+      point_update_object_spec_timer_set(obj, 1, 24);
     return TRUE;
   case ROL_WEAPON_UM_WOUNDHEALER:
     if (rand_number(0, 10) != 0 || (!IS_NPC(ch) && GET_OBJ_SPECTIMER(obj, 1) > 0))
@@ -9104,7 +9097,7 @@ static int rol_weapon_hit(struct spec_event_context *context,
     if (!AFF_FLAGGED(ch, AFF_BLACKMANTLE))
       GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + (IS_NPC(ch) ? amount : amount / 2));
     if (!IS_NPC(ch))
-      GET_OBJ_SPECTIMER(obj, 1) = 1;
+      point_update_object_spec_timer_set(obj, 1, 1);
     return TRUE;
   case ROL_WEAPON_UM_FLAME_NORTH:
     if (!OBJ_FLAGGED(obj, ITEM_GLOW) || !context->critical ||
@@ -9112,7 +9105,7 @@ static int rol_weapon_hit(struct spec_event_context *context,
       return FALSE;
     rol_weapon_cast(ch, obj, victim, SPELL_FLAME_STRIKE, 35);
     if (!IS_NPC(ch))
-      GET_OBJ_SPECTIMER(obj, 1) = 24;
+      point_update_object_spec_timer_set(obj, 1, 24);
     return TRUE;
   case ROL_WEAPON_GREYCLOAK_PESTILENCE:
     if (rand_number(0, 15) != 0)
@@ -9508,36 +9501,36 @@ int rol_weapon_proc_typed(struct spec_event_context *context)
       return rol_weapon_phase6_command(context, profile, ch, obj);
     }
   }
-  if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
+  if (context->event == SPEC_EVENT_OBJECT_AUTOMATIC)
   {
     if (profile->effect == ROL_WEAPON_UM2_ASTRAL_FORGED)
-      return rol_astral_forged_pulse(obj);
+      return rol_astral_forged_refresh_bonus(obj);
     if (profile->effect == ROL_WEAPON_UM2_TORIN_GENERAL ||
         profile->effect == ROL_WEAPON_UM2_TORIN_CHAIN_LIGHTNING)
-      return rol_torin_general_pulse(context, obj);
+      return rol_torin_general_enforce_owner(context, obj);
     if (ch == NULL)
       return FALSE;
     if (profile->effect == ROL_WEAPON_SEELIE_STAFF)
-      return rol_weapon_seelie_staff_pulse(ch, obj);
+      return rol_weapon_seelie_staff_restore_preparation(ch, obj);
     if (profile->effect == ROL_WEAPON_BHAAL_MAGE || profile->effect == ROL_WEAPON_BHAAL_PRIEST)
-      return rol_weapon_bhaal_pulse(ch, obj, profile->effect);
+      return rol_weapon_bhaal_grant_boon(ch, obj, profile->effect);
     if (profile->effect == ROL_WEAPON_TF_OBLIVION)
-      return rol_weapon_oblivion_pulse(ch, obj);
+      return rol_weapon_oblivion_invoke(ch, obj);
     if (profile->effect == ROL_WEAPON_BALOR_WHIP ||
         profile->effect == ROL_WEAPON_BALOR_LIGHTNING_SWORD)
     {
       if (obj->worn_by != ch && obj->carried_by != ch)
         return FALSE;
-      return rol_balor_weapon_pulse(context, ch, obj);
+      return rol_balor_weapon_enforce_owner(context, ch, obj);
     }
     if (profile->effect == ROL_WEAPON_GELUGON_FREEZE_SPEAR)
-      return rol_gelugon_freeze_spear_pulse(context, ch, obj);
+      return rol_gelugon_freeze_spear_enforce_owner(context, ch, obj);
     if (spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID ||
         (slot = rol_weapon_slot(ch, obj)) < 0)
       return FALSE;
     if (profile->effect == ROL_WEAPON_HOLY)
     {
-      (void)rol_weapon_holy_pulse(ch, obj, slot);
+      (void)rol_weapon_holy_sustain(ch, obj, slot);
       return TRUE;
     }
     if (profile->effect == ROL_WEAPON_KOR_BATTLEAXE)

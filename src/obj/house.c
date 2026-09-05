@@ -25,6 +25,7 @@
 #include "dgscript/dg_scripts.h" /* for load_otriggers() */
 #include "olc/genzon.h"          /* for real_zone_by_thing() */
 #include "perfmon.h"
+#include "point_update_periodic.h"
 
 #define MAX_BAG_ROWS 5
 
@@ -1369,6 +1370,7 @@ static struct obj_data *Obj_from_store(struct obj_file_elem object, int *locatio
   [taeller] = object.extra_flags[taeller];
   GET_OBJ_WEIGHT(obj) = object.weight;
   GET_OBJ_TIMER(obj) = object.timer;
+  point_update_object_sync(obj);
   for (taeller = 0; taeller < AF_ARRAY_MAX; taeller++)
     GET_OBJ_AFFECT(obj)
   [taeller] = object.bitvector[taeller];

@@ -20,6 +20,6 @@ struct obj_data *create_potion(int spell_num, struct char_data *ch);
 struct obj_data *create_multi_spell_potion(int *spell_nums, int num_spells, struct char_data *ch);
 
 ACMD_DECL(do_brew);
-EVENTFUNC(event_brewing);
+MUD_EVENT_CALLBACK(event_brewing);
 
 #endif /* BREW_H */

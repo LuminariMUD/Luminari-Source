@@ -161,6 +161,7 @@ void add_completed_quest(struct char_data *ch, qst_vnum vnum);
 void remove_completed_quest(struct char_data *ch, qst_vnum vnum);
 void quest_timeout(struct char_data *ch, int index);
 void check_timed_quests(void);
+void check_timed_quests_one(struct char_data *ch);
 SPECIAL_DECL(questmaster);
 ACMD_DECL(do_quest);
 ACMD_DECL(do_questline);

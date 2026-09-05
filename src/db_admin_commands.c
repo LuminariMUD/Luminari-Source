@@ -16,7 +16,6 @@
 #include "comm.h"
 #include "mysql.h"
 #include "db_init.h"
-#include "pubsub/pubsub.h"
 
 /* ===== HELPER FUNCTIONS ===== */
 
@@ -29,7 +28,7 @@ static void show_detailed_database_info(struct char_data *ch, char *system)
   }
 
   const char *systems[] = {"player", "object", "wilderness", "crafting", "housing",
-                           "ai",     "help",   "region",     "vessels",  "pubsub"};
+                           "ai",     "help",   "region",     "vessels"};
   const size_t num_systems = sizeof(systems) / sizeof(systems[0]);
   size_t i;
 
@@ -66,9 +65,6 @@ static void show_detailed_database_info(struct char_data *ch, char *system)
         verified = table_exists("region_data");
       else if (!str_cmp(systems[i], "vessels"))
         verified = verify_vessel_system_tables();
-      else if (!str_cmp(systems[i], "pubsub"))
-        verified = table_exists("pubsub_topics");
-
       send_to_char(ch, "\tc%-12s System:\tn %s\r\n", systems[i],
                    verified ? "\tg[VERIFIED]\tn" : "\tr[MISSING]\tn");
     }
@@ -173,19 +169,17 @@ static void show_detailed_database_info(struct char_data *ch, char *system)
   }
   else if (!str_cmp(system, "pubsub"))
   {
-    const char *pubsub_tables[] = {"pubsub_topics",
-                                   "pubsub_subscriptions",
-                                   "pubsub_messages",
-                                   "pubsub_message_metadata",
-                                   "pubsub_message_fields",
-                                   "pubsub_messages_v3",
-                                   "pubsub_message_metadata_v3",
-                                   "pubsub_message_fields_v3",
-                                   "pubsub_message_tags_v3"};
+    const char *pubsub_tables[] = {
+        "pubsub_topics",          "pubsub_player_settings",     "pubsub_subscriptions",
+        "pubsub_messages",        "pubsub_message_metadata",    "pubsub_message_fields",
+        "pubsub_messages_v3",     "pubsub_message_metadata_v3", "pubsub_message_fields_v3",
+        "pubsub_message_tags_v3", "pubsub_message_stats_v3",    "pubsub_filters_v3"};
     for (i = 0; (size_t)i < sizeof(pubsub_tables) / sizeof(pubsub_tables[0]); i++)
     {
       send_to_char(ch, "  - %s\r\n", pubsub_tables[i]);
     }
+    send_to_char(ch, "\r\nThese tables contain deprecated, preserved data. The PubSub runtime is "
+                     "retired and does not read, write, or initialize them.\r\n");
   }
   else
   {
@@ -316,7 +310,6 @@ ACMD(do_db_init_system)
     send_to_char(ch, "  db_init_system vessels    - Initialize vessel system tables\r\n");
     send_to_char(ch, "  db_init_system help       - Initialize help system tables\r\n");
     send_to_char(ch, "  db_init_system region     - Initialize region system tables\r\n");
-    send_to_char(ch, "  db_init_system pubsub     - Initialize PubSub messaging tables\r\n");
     send_to_char(ch, "  db_init_system all        - Initialize all systems\r\n");
     return;
   }
@@ -415,26 +408,10 @@ ACMD(do_db_init_system)
 
   if (!str_cmp(arg, "pubsub"))
   {
-    send_to_char(ch, "Initializing PubSub messaging tables...\r\n");
-    log("PubSub system initialization started by %s", GET_NAME(ch));
-
-    int result = pubsub_db_create_tables();
-    if (result != PUBSUB_SUCCESS)
-    {
-      send_to_char(ch, "PubSub base schema initialization failed: %s\r\n",
-                   pubsub_error_string(result));
-      return;
-    }
-
-    result = pubsub_db_create_v3_tables();
-    if (result != PUBSUB_SUCCESS)
-    {
-      send_to_char(ch, "PubSub V3 schema initialization failed: %s\r\n",
-                   pubsub_error_string(result));
-      return;
-    }
-
-    send_to_char(ch, "PubSub messaging tables initialized.\r\n");
+    send_to_char(ch, "The PubSub runtime is retired. Its database tables are deprecated and "
+                     "are never initialized by the running game.\r\n");
+    send_to_char(ch, "Restore missing legacy tables from lib/pubsub_v3_schema.sql only when "
+                     "recovering archived data.\r\n");
     return;
   }
 
@@ -539,8 +516,7 @@ ACMD(do_db_info)
                    {"Housing", "housing"},
                    {"Help", "help"},
                    {"Region (wildedit)", "region"},
-                   {"Vessels", "vessels"},
-                   {"PubSub", "pubsub"}};
+                   {"Vessels", "vessels"}};
     const size_t num_systems = sizeof(systems) / sizeof(systems[0]);
     size_t i;
 
@@ -567,12 +543,11 @@ ACMD(do_db_info)
         verified = table_exists("region_data");
       else if (!str_cmp(key, "vessels"))
         verified = verify_vessel_system_tables();
-      else if (!str_cmp(key, "pubsub"))
-        verified = table_exists("pubsub_topics");
-
       send_to_char(ch, "%-22s %s\r\n", systems[i].label,
                    verified ? "\tg[VERIFIED]\tn" : "\tr[MISSING]\tn");
     }
+
+    send_to_char(ch, "%-22s \ty[DEPRECATED DATA]\tn\r\n", "Legacy PubSub");
 
     return;
   }

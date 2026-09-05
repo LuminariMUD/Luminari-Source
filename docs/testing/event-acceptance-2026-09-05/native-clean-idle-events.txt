@@ -1,0 +1,129 @@
+Reusing the development MUD on port 4103.
+
+>>> eventdebug
+432/432H 1160/1160V [smw] (news) (motd)
+Event Debug Summary
+--------------------------------------------------------------------------------
+Backend: scheduler
+Pulse: 2941
+Display width: 80
+Live events: 42461
+High-water events: 43467
+Registry mismatch: 0
+Stale-owner outcomes: 0
+Live events by owner
+  none: 421
+  character: 41421
+  room: 196
+  object: 399
+  vessel: 8
+  service: 16
+Runtime services
+  mode: named scheduled events
+  live/configured: 14/14
+  callbacks: 586
+  schedule failures: 0
+Scheduler queues
+  types: 263 (sealed)
+  ready: 0
+  oldest overdue: 0 pulses
+  wheel L0: 9189
+  wheel L1: 33260
+  wheel L2: 12
+  wheel L3: 0
+  wheel L4: 0
+  overflow: 0
+  owner records: 42040
+  timed ingress: main thread only
+Scheduler lifecycle
+  scheduled: 58140
+  callbacks: 1028258
+  completed: 8851
+  cancelled: 6828
+  failed: 0
+  rescheduled: 1018518
+  late callbacks: 24886
+  missed: 0
+  skipped: 1964
+  coalesced: 0
+Scheduler structural work
+  cascade slots: 2986
+  cascaded: 1441805
+  largest cascade: 16876
+  overflow promotions: 0
+  large advances: 0
+  events reclassified: 0
+Admission rejections
+  global limit: 0
+  type limit: 0
+  invalid owner: 0
+  owner limit: 0
+  owner/type limit: 0
+Combat encounters
+  mode: six-second semantic
+  active: 0 encounters / 0 participants
+  scheduled events: 0
+  created/ended/merged: 1/1/0
+  callbacks: 3
+  semantic rounds/turns: 3/6
+  intents sent/held: 0/0
+  action/reaction spend: 12/0
+  comparison mismatch: 0
+  admission/stale: 0/0
+Primary activities
+  active/high-water: 0/0
+  started/completed: 0/0
+  cancelled/paused/resumed: 0/0/0
+  delayed/rejected: 0/0
+  stale callbacks: 0
+Character owners
+  mode: scheduled
+  members/scheduled/mismatch: 732/732/0
+  owner callbacks: 91020
+  d20/devices/quests: 45202/9084/3631
+Autonomous mobile agendas
+  mode: scheduled
+  active/cooling: 38909/0
+  spec/echo/scavenge: 2150/1292/9
+  patrol/hunt/wander: 101/0/37189
+  posture/room/combat: 26/523/30
+  resource recovery: 1
+  agenda callbacks: 837162
+  capacity/rejected: 65536/0
+Discovery registries
+  DG time members m/o/r: 1/0/9
+  DG time mismatch m/o/r: 0/0/0
+  DG time visited m/o/r: 3/0/27
+  DG time executed m/o/r: 0/0/27
+  trail locations/mismatch: 0/0
+  trail cleanup runs/visited/removed: 3/0/0
+Worker ingress (I3)
+  status: offline
+  depth: 0/0
+  high-water: 0
+  rejected: 0
+  wake failures: 0
+Worker ingress (AI)
+  status: online
+  depth: 0/256
+  high-water: 0
+  accepted/processed: 0/0
+  rejected: 0
+  wake/schedule failures: 0/0
+Domain event bus
+  status: online
+  sealed: yes
+  types: 9
+  handlers: 15
+  subscriptions live/high: 0/0
+  publications: 222928
+  handler calls: 668204
+  sub deliveries/cancels: 0/0
+  rejected chains: 0
+  max depth: 1
+Use 'eventdebug help' for filters.
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> @checkpoint native_idle_start
+# checkpoint epoch=1788600902 label=native_idle_start
+dev character login smoke: @wait must be between 1 and 60 seconds

@@ -1,0 +1,235 @@
+Reusing the development MUD on port 4103.
+
+>>> shipgoto 2
+432/432H 1160/1160V [smw] (news) (motd)
+[70040] The Bridge of AcceptanceEventCutter [ Indoors Vehicle ]  [Inside] ( None )
+This is the command center of AcceptanceEventCutter. Navigation       [.]
+charts cover the walls, and the ship's wheel stands prominently        |
+at the center. Through the windows, you can see the vast expanse      [&]
+beyond.
+[ Exits: N ]
+Aboard AcceptanceEventCutter (slot 2).
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> setwaypoint acceptance_home
+.'
+432/432H 1160/1160V [smw] (news) (motd) setwaypoint acceptance_home
+Waypoint 'acceptance_home' created at position (-66.0, 92.0, 0.0).
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> createroute acceptance_route
+.'
+432/432H 1160/1160V [smw] (news) (motd) createroute acceptance_route
+Route 'acceptance_route' created (ID: 1).
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> addtoroute acceptance_route acceptance_home
+.'
+432/432H 1160/1160V [smw] (news) (motd) addtoroute acceptance_route acceptance_home
+432/432H 1160/1160V [smw] (news) (motd)
+Waypoint 'acceptance_home' added to route 'acceptance_route' at position 1.
+You are now able to treat injuries again.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> speed 2
+.'
+432/432H 1160/1160V [smw] (news) (motd) speed 2
+Slow ahead. Speed set to 2.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> setsail west
+.'
+432/432H 1160/1160V [smw] (news) (motd) setsail west
+The harsh weather conditions slow your progress!
+The vessel moves west across the wilderness.
+Current position: (-67, 92, 0)
+Speed affected by terrain and weather: 75%
+The vessel struggles against the severe storm!
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> shipstatus
+.'
+432/432H 1160/1160V [smw] (news) (motd) shipstatus
+=== Ship Status ===
+Ship Name: AcceptanceEventCutter
+Ship ID: AC
+== Position ==
+Coordinates: (-67, 92)
+Elevation/Depth: 0
+Terrain: Shallow Water
+== Navigation ==
+Heading: 270 degrees
+Speed: 1 / 10
+== Hull Integrity ==
+Forward: 5/5
+Port: 5/5
+Starboard: 5/5
+Rear: 5/5
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> setroute acceptance_route
+.'
+432/432H 1160/1160V [smw] (news) (motd) setroute acceptance_route
+Route 'acceptance_route' assigned to autopilot (1 waypoints).
+Use 'autopilot on' to begin navigation.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> autopilot on
+.'
+432/432H 1160/1160V [smw] (news) (motd) autopilot on
+Autopilot engaged on route 'acceptance_route'.
+The vessel's autopilot has been engaged.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> eventdebug owner vessel 3
+.'
+432/432H 1160/1160V [smw] (news) (motd) eventdebug owner vessel 3
+432/432H 1160/1160V [smw] (news) (motd)
+Event Queue
+--------------------------------------------------------------------------------
+Matched: 1
+Showing: 1
+Payloads: redacted
+#48334 vessel.greyhawk.agenda
+  state: queued
+  due pulses: 2
+  due seconds: 0.2
+  owner: vessel
+  owner id: 3
+  generation: 3
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> @wait 10
+Paused the local test session for 10 second(s).
+.'
+
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> autopilot status
+432/432H 1160/1160V [smw] (news) (motd)
+--- Autopilot Status ---
+State: Route Complete
+Route: acceptance_route (1 waypoints)
+Progress: Waypoint 1 of 1
+Current Target: acceptance_home (-66.0, 92.0)
+Distance: 1.0
+Position: (-67.0, 92.0, 0.0)
+Movement Steps: 0
+Waypoint Arrivals: 1
+Route Completions: 1
+-------------------------
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> shipstatus
+.'
+432/432H 1160/1160V [smw] (news) (motd) shipstatus
+=== Ship Status ===
+Ship Name: AcceptanceEventCutter
+Ship ID: AC
+== Position ==
+Coordinates: (-67, 92)
+Elevation/Depth: 0
+Terrain: Shallow Water
+== Navigation ==
+Heading: 270 degrees
+Speed: 1 / 10
+== Hull Integrity ==
+Forward: 5/5
+Port: 5/5
+Starboard: 5/5
+Rear: 5/5
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> eventdebug owner vessel 3
+.'
+432/432H 1160/1160V [smw] (news) (motd) eventdebug owner vessel 3
+432/432H 1160/1160V [smw] (news) (motd)
+Event Queue
+--------------------------------------------------------------------------------
+Matched: 1
+Showing: 1
+Payloads: redacted
+#48334 vessel.greyhawk.agenda
+  state: queued
+  due pulses: 2
+  due seconds: 0.2
+  owner: vessel
+  owner id: 3
+  generation: 3
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> autopilot off
+.'
+432/432H 1160/1160V [smw] (news) (motd) autopilot off
+Autopilot disengaged.
+The vessel's autopilot has been disengaged.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> delroute acceptance_route
+.'
+432/432H 1160/1160V [smw] (news) (motd) delroute acceptance_route
+Route 'acceptance_route' deleted.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> delwaypoint acceptance_home
+.'
+432/432H 1160/1160V [smw] (news) (motd) delwaypoint acceptance_home
+432/432H 1160/1160V [smw] (news) (motd)
+Waypoint 'acceptance_home' deleted.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> shippurge 2
+.'
+432/432H 1160/1160V [smw] (news) (motd) shippurge 2
+~~~~~~~~~~*~~::::,,,,
+~~~~~~~~~~~~~~~CCCXC,
+~~~~~~~~~~~~~~~CCCCCC
+~~~~~~~~~~~~~~~CCCCCX
+~~~~~~~~~~~~~~~CCCCCC
+ ~~~~~~~~~~~~~CCCCX,
+ ~~~~~~~~~~~~~:::,|:
+  ~~~~~~~~~~~~::::+
+   ~~~~~~~~~~~::::
+    ~~~~~~~~~~:::
+      ~~~~~~~~~
+ Current Location  : (-67, 92)
+ Weather           : 141
+[ Exits: N E S W ]
+[70002] AcceptanceEventCutter is moored here. ..It has a soft glowing aura! ..It emits a faint humming sound!
+Purged ship 2 'AcceptanceEventCutter': reclaimed 2 rooms and released 0 vehicles.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> vedit delete 2
+.'
+432/432H 1160/1160V [smw] (news) (motd) vedit delete 2
+Prototype 2 deleted.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> eventdebug owner vessel 3
+.'
+432/432H 1160/1160V [smw] (news) (motd) eventdebug owner vessel 3
+432/432H 1160/1160V [smw] (news) (motd)
+Event Queue
+--------------------------------------------------------------------------------
+Matched: 0
+Showing: 0
+Payloads: redacted
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> goto 3001
+.'
+432/432H 1160/1160V [smw] (news) (motd) goto 3001
+[ 3001] The Temple Of Midgen [ No-Mob Indoors Peaceful ]  [Inside] ( None )
+You are in the southern end of the temple hall in the Temple of       [.]
+Midgen. The temple has been constructed from giant marble blocks,      | +
+eternal in appearance, and most of the walls are covered by       [.]-[&]-[.]
+ancient wall paintings picturing Gods, giants and peasants. Large      |
+steps lead down through the grand temple gate, descending the     [.] [|] [.]
+huge mound upon which the temple is built and ends on the temple
+square below. To the west, you see the Reading Room. The donation
+room is in a small alcove to your east.
+[ Exits: N E S W U ]
+[3034] An automatic teller machine has been installed in the wall here.
+[3013] [10] [T3018] A lady trainer stands here offering her services to new adventurers.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+PASS: Aster ran 21 game command(s) and logged out cleanly (17s).

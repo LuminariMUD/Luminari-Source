@@ -150,6 +150,30 @@ void Test_i3_reconnect_backoff_is_bounded(CuTest *tc)
   CuAssertIntEquals(tc, 1, i3_reconnect_backoff(0, 1));
 }
 
+void Test_i3_ingress_stats_report_depth_high_water_and_rejections(CuTest *tc)
+{
+  static const char *notification = "{\"jsonrpc\":\"2.0\",\"method\":\"tell_received\",\"params\":{"
+                                    "\"from_user\":\"Tester\",\"from_mud\":\"Elsewhere\","
+                                    "\"to_user\":\"Nobody\",\"message\":\"hello\"}}";
+  struct i3_ingress_stats stats;
+
+  i3_get_ingress_stats(&stats);
+  CuAssertTrue(tc, !stats.available);
+
+  i3_test_setup();
+  i3_client->max_queue_size = 1;
+  CuAssertIntEquals(tc, 0, i3_parse_response(notification));
+  CuAssertIntEquals(tc, 0, i3_parse_response(notification));
+  i3_get_ingress_stats(&stats);
+  CuAssertTrue(tc, stats.available);
+  CuAssertIntEquals(tc, 1, (int)stats.depth);
+  CuAssertIntEquals(tc, 1, (int)stats.capacity);
+  CuAssertTrue(tc, stats.high_water == 1U);
+  CuAssertTrue(tc, stats.rejections == 1U);
+  CuAssertTrue(tc, stats.wake_failures == 0U);
+  i3_test_cleanup();
+}
+
 void Test_i3_fragmented_large_mudlist_response(CuTest *tc)
 {
   json_object *root;

@@ -10,6 +10,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "movement/door_state.h"
 #include "screen.h"
 #include "dg_scripts.h"
 #include "utils.h"
@@ -38,7 +39,7 @@ struct wld_command_info
   int subcmd;
 };
 
-void wld_log(room_data *room, const char *format, ...);
+void wld_log(room_data *room, const char *format, ...) __attribute__((format(printf, 2, 3)));
 void act_to_room(char *str, room_data *room);
 WCMD(do_wasound);
 WCMD(do_wecho);
@@ -60,13 +61,15 @@ WCMD(do_wlog);
 void wld_log(room_data *room, const char *format, ...)
 {
   va_list args;
-  char output[MAX_STRING_LENGTH] = {'\0'};
+  char message[MAX_STRING_LENGTH] = {'\0'};
 
-  snprintf(output, sizeof(output), "Room %d :: %s", room->number, format);
-
+  /* See obj_log(): expand the caller's format against its own arguments before
+     attaching the prefix, so the message is never re-parsed as a format. */
   va_start(args, format);
-  script_vlog(output, args);
+  vsnprintf(message, sizeof(message), format, args);
   va_end(args);
+
+  script_log("Room %d :: %s", room->number, message);
 }
 
 /* sends str to room */
@@ -208,6 +211,7 @@ WCMD(do_wrecho)
 
 WCMD(do_wdoor)
 {
+  struct door_state_operation operation = {0};
   char target[MAX_INPUT_LENGTH] = {'\0'}, direction[MAX_INPUT_LENGTH] = {'\0'};
   char field[MAX_INPUT_LENGTH] = {'\0'}, *value;
   char choices[256] = {'\0'};
@@ -247,6 +251,7 @@ WCMD(do_wdoor)
     return;
   }
 
+  door_state_begin(&operation, real_room(rm->number), dir, false, DOMAIN_DOOR_GAMEPLAY);
   newexit = rm->dir_option[dir];
 
   /* purge exit */
@@ -303,6 +308,7 @@ WCMD(do_wdoor)
       break;
     }
   }
+  door_state_finish(&operation);
 }
 
 WCMD(do_wteleport)

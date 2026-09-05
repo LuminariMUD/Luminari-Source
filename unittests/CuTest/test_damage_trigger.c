@@ -10,6 +10,8 @@
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/dgscript/dg_olc.h"
 #include "../../src/dgscript/dg_scripts.h"
+#include "../../src/event_debug.h"
+#include "../../src/event_runtime.h"
 #include "../../src/combat/fight.h"
 #include "../../src/handler.h"
 #include "../../src/magic/spells.h"
@@ -40,7 +42,6 @@ struct damage_trigger_fixture
   struct char_data *saved_mob_proto;
   struct index_data **saved_trig_index;
   struct trig_data *saved_trigger_list;
-  struct char_data *saved_combat_list;
   room_rnum saved_top_of_world;
   zone_rnum saved_top_of_zone_table;
   mob_rnum saved_top_of_mobt;
@@ -76,7 +77,6 @@ static bool damage_trigger_fixture_begin(struct damage_trigger_fixture *fixture)
   fixture->saved_trig_index = trig_index;
   fixture->saved_top_of_trigt = top_of_trigt;
   fixture->saved_trigger_list = trigger_list;
-  fixture->saved_combat_list = combat_list;
 
   fixture->room.number = 100;
   fixture->room.zone = 0;
@@ -144,9 +144,6 @@ static void damage_trigger_fixture_end(struct damage_trigger_fixture *fixture)
   clear_char_event_list(&fixture->victim);
   FIGHTING(&fixture->actor) = NULL;
   FIGHTING(&fixture->victim) = NULL;
-  fixture->actor.next_fighting = NULL;
-  fixture->victim.next_fighting = NULL;
-  combat_list = fixture->saved_combat_list;
   fixture->actor.last_attacker = NULL;
   fixture->victim.last_attacker = NULL;
   fixture->actor.next_in_room = NULL;
@@ -433,13 +430,21 @@ void Test_damage_trigger_default_and_return_contract(CuTest *tc)
 void Test_damage_trigger_wait_result_is_synchronous(CuTest *tc)
 {
   struct damage_trigger_fixture fixture;
+  struct event_debug_filter filter;
+  struct event_debug_snapshot snapshot;
   struct trig_data *trigger;
+  struct event_runtime_handle cancelled_handle;
   unsigned long saved_pulse;
   long wait_pulses;
+  size_t returned_count;
   int hit_points_after_damage;
   int result;
 
+  saved_pulse = pulse;
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   event_init();
+  CuAssertTrue(tc, dg_wait_runtime_init());
   CuAssertTrue(tc, damage_trigger_fixture_begin(&fixture));
   CuAssertTrue(
       tc, damage_trigger_fixture_add(&fixture, "Wait before return", "u", 100, "wait 1\nreturn 3"));
@@ -448,15 +453,22 @@ void Test_damage_trigger_wait_result_is_synchronous(CuTest *tc)
   hit_points_after_damage = GET_HIT(&fixture.victim);
   CuAssertIntEquals(tc, 17, result);
   CuAssertIntEquals(tc, 83, hit_points_after_damage);
-  CuAssertPtrNotNull(tc, GET_TRIG_WAIT(trigger));
+  CuAssertTrue(tc, dg_trigger_wait_is_live(trigger));
+  memset(&filter, 0, sizeof(filter));
+  filter.owner_set = true;
+  filter.owner.kind = GAME_EVENT_OWNER_CHARACTER;
+  filter.owner.runtime_id = (uint64_t)(uintptr_t)&fixture.victim;
+  filter.type_contains = "dg.";
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
+  CuAssertIntEquals(tc, 1, (int)returned_count);
+  CuAssertStrEquals(tc, "dg.trigger.wait", snapshot.type_name);
 
-  saved_pulse = pulse;
-  wait_pulses = event_time(GET_TRIG_WAIT(trigger));
+  wait_pulses = dg_trigger_wait_remaining(trigger);
   pulse += wait_pulses;
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, hit_points_after_damage, GET_HIT(&fixture.victim));
-  CuAssertTrue(tc, GET_TRIG_WAIT(trigger) == NULL);
-  pulse = saved_pulse;
+  CuAssertTrue(tc, !dg_trigger_wait_is_live(trigger));
+  CuAssertPtrEquals(tc, NULL, GET_TRIG_WAIT_DATA(trigger));
   damage_trigger_fixture_end(&fixture);
 
   CuAssertTrue(tc, damage_trigger_fixture_begin(&fixture));
@@ -468,15 +480,53 @@ void Test_damage_trigger_wait_result_is_synchronous(CuTest *tc)
   CuAssertIntEquals(tc, 5, result);
   CuAssertIntEquals(tc, 95, hit_points_after_damage);
 
-  saved_pulse = pulse;
-  wait_pulses = event_time(GET_TRIG_WAIT(trigger));
+  wait_pulses = dg_trigger_wait_remaining(trigger);
   pulse += wait_pulses;
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, hit_points_after_damage, GET_HIT(&fixture.victim));
-  CuAssertTrue(tc, GET_TRIG_WAIT(trigger) == NULL);
-  pulse = saved_pulse;
+  CuAssertTrue(tc, !dg_trigger_wait_is_live(trigger));
+  CuAssertPtrEquals(tc, NULL, GET_TRIG_WAIT_DATA(trigger));
+  damage_trigger_fixture_end(&fixture);
+
+  CuAssertTrue(tc, damage_trigger_fixture_begin(&fixture));
+  CuAssertTrue(
+      tc, damage_trigger_fixture_add(&fixture, "Cancelled wait", "u", 100, "wait 100\nreturn 9"));
+  trigger = TRIGGERS(SCRIPT(&fixture.victim));
+  CuAssertIntEquals(
+      tc, 17,
+      damage(&fixture.actor, &fixture.victim, 17, TYPE_HIT, DAM_BLUDGEON, ATTACK_TYPE_PRIMARY));
+  cancelled_handle = GET_TRIG_WAIT_HANDLE(trigger);
+  CuAssertTrue(tc, event_runtime_handle_is_live(cancelled_handle));
+  damage_trigger_fixture_end(&fixture);
+  CuAssertTrue(tc, !event_runtime_handle_is_live(cancelled_handle));
+  event_free_all();
+
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  CuAssertTrue(tc, damage_trigger_fixture_begin(&fixture));
+  CuAssertTrue(tc,
+               damage_trigger_fixture_add(&fixture, "Filtered wait", "u", 100, "wait 1\nreturn 3"));
+  trigger = TRIGGERS(SCRIPT(&fixture.victim));
+  CuAssertIntEquals(
+      tc, 17,
+      damage(&fixture.actor, &fixture.victim, 17, TYPE_HIT, DAM_BLUDGEON, ATTACK_TYPE_PRIMARY));
+  CuAssertTrue(tc, dg_trigger_wait_is_live(trigger));
+  memset(&filter, 0, sizeof(filter));
+  filter.owner_set = true;
+  filter.owner.kind = GAME_EVENT_OWNER_CHARACTER;
+  filter.owner.runtime_id = (uint64_t)(uintptr_t)&fixture.victim;
+  filter.type_contains = "dg.";
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
+  CuAssertIntEquals(tc, 1, (int)returned_count);
+  CuAssertStrEquals(tc, "dg.trigger.wait", snapshot.type_name);
+  wait_pulses = dg_trigger_wait_remaining(trigger);
+  pulse += wait_pulses;
+  event_test_advance();
+  CuAssertTrue(tc, !dg_trigger_wait_is_live(trigger));
+  CuAssertPtrEquals(tc, NULL, GET_TRIG_WAIT_DATA(trigger));
   damage_trigger_fixture_end(&fixture);
   event_free_all();
+  pulse = saved_pulse;
 }
 
 void Test_damage_trigger_scope_and_zero_damage_contract(CuTest *tc)

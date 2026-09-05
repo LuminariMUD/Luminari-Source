@@ -1,0 +1,163 @@
+Reusing the development MUD on port 4101.
+
+>>> copyover
+Copyover recovery complete.
+
+>>> eventdebug
+432/432H 1160/1160V [smw] (news) (motd)
+Event Debug Summary
+--------------------------------------------------------------------------------
+Backend: scheduler
+Pulse: 4
+Display width: 80
+Live events: 16
+High-water events: 16
+Registry mismatch: 0
+Stale-owner outcomes: 0
+Live events by owner
+  character: 1
+  service: 15
+Runtime services
+  mode: named scheduled events
+  live/configured: 14/14
+  callbacks: 0
+  schedule failures: 0
+Scheduler queues
+  types: 273 (sealed)
+  ready: 0
+  oldest overdue: 0 pulses
+  wheel L0: 5
+  wheel L1: 8
+  wheel L2: 3
+  wheel L3: 0
+  wheel L4: 0
+  overflow: 0
+  owner records: 16
+  timed ingress: main thread only
+Scheduler lifecycle
+  scheduled: 16
+  callbacks: 0
+  completed: 0
+  cancelled: 0
+  failed: 0
+  rescheduled: 0
+  late callbacks: 0
+  missed: 0
+  skipped: 0
+  coalesced: 0
+Scheduler structural work
+  cascade slots: 0
+  cascaded: 0
+  largest cascade: 0
+  overflow promotions: 0
+  large advances: 0
+  events reclassified: 0
+Admission rejections
+  global limit: 0
+  type limit: 0
+  invalid owner: 0
+  owner limit: 0
+  owner/type limit: 0
+Combat encounters
+  mode: six-second semantic
+  active: 0 encounters / 0 participants
+  scheduled events: 0
+  created/ended/merged: 0/0/0
+  callbacks: 0
+  semantic rounds/turns: 0/0
+  intents sent/held: 0/0
+  action/reaction spend: 0/0
+  comparison mismatch: 0
+  admission/stale: 0/0
+Primary activities
+  active/high-water: 0/0
+  started/completed: 0/0
+  cancelled/paused/resumed: 0/0/0
+  delayed/rejected: 0/0
+  stale callbacks: 0
+Character owners
+  mode: scheduled
+  members/scheduled/mismatch: 1/1/0
+  owner callbacks: 0
+  d20/devices/quests: 0/0/0
+Autonomous mobile agendas
+  mode: scheduled
+  active/cooling: 0/0
+  spec/echo/scavenge: 0/0/0
+  patrol/hunt/wander: 0/0/0
+  posture/room/combat: 0/0/0
+  resource recovery: 0
+  agenda callbacks: 0
+  capacity/rejected: 65536/0
+Discovery registries
+  DG time members m/o/r: 0/0/0
+  DG time mismatch m/o/r: 0/0/0
+  DG time visited m/o/r: 0/0/0
+  DG time executed m/o/r: 0/0/0
+  trail locations/mismatch: 0/0
+  trail cleanup runs/visited/removed: 0/0/0
+Worker ingress (I3)
+  status: online
+  depth: 0/1000
+  high-water: 0
+  rejected: 0
+  wake failures: 0
+Worker ingress (AI)
+  status: online
+  depth: 0/256
+  high-water: 0
+  accepted/processed: 0/0
+  rejected: 0
+  wake/schedule failures: 0/0
+Domain event bus
+  status: online
+  sealed: yes
+  types: 9
+  handlers: 15
+  subscriptions live/high: 0/0
+  publications: 18
+  handler calls: 21
+  sub deliveries/cancels: 0/0
+  rejected chains: 0
+  max depth: 1
+Use 'eventdebug help' for filters.
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> ready rest on entry dummy
+.'
+432/432H 1160/1160V [smw] (news) (motd) ready rest on entry dummy
+432/432H 1160/1160V [smw] (news) (motd)
+You ready 'rest' for when dummy enters.
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> load mob 3001
+.'
+432/432H 1160/1160V [smw] (news) (motd) load mob 3001
+Your readied action triggers as a training dummy enters.
+You create a training dummy.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> @wait 1
+Paused the local test session for 1 second(s).
+.'
+You sit down and rest your tired bones.
+
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> ready
+432/432H 1160/1160V [smw] (news) (motd)
+You have no readied action.
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> stand
+.'
+432/432H 1160/1160V [smw] (news) (motd) stand
+You stop resting, and stand up.
+432/432H 1160/1160V [s-w] (news) (motd) 432/432H 1160/1160V [s-w] (news) (motd)
+
+>>> purge dummy
+.'
+432/432H 1160/1160V [s-w] (news) (motd) purge dummy
+Okay.
+432/432H 1160/1160V [s-w] (news) (motd) 432/432H 1160/1160V [s-w] (news) (motd)
+PASS: Aster survived copyover, completed the post-copyover checks, and logged out cleanly (6s).

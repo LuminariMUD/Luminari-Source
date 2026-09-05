@@ -58,10 +58,13 @@ Requires: the establish camp feat (any class; 3 ranks of survival)
 Action:   Standard and Move Action
 Check:    survival against a difficulty set by terrain and weather
 
-You clear a site, set your gear and get a fire going. You and any grouped
-companions in the room recover hitpoints and movement 50 percent faster while
-sleeping, reclining, resting or sitting in the camp, and the campsite becomes
-your return point, so quitting from camp brings you back to it.
+You spend about six seconds clearing a site, setting your gear and getting a
+fire going. Use activity to inspect, pause, resume or cancel the work. Moving
+ends the attempt, damage delays it, and entering combat pauses it until the
+fight ends. You and any grouped companions in the room recover hitpoints and
+movement 50 percent faster while sleeping, reclining, resting or sitting in
+the camp, and the campsite becomes your return point, so quitting from camp
+brings you back to it.
 
 Camps cannot be pitched indoors, on or under water, while flying, or during
 combat. Rough ground such as desert, marsh, mountains and the deep underdark
@@ -73,6 +76,26 @@ ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('CAMP', 'CAMP');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('CAMP', 'ESTABLISH-CAMP');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('ACTIVITY', 'Primary Activity
+
+Usage: activity
+       activity cancel
+       activity pause
+       activity resume
+
+Shows your current timed activity, progress, occupied capabilities, traits and
+the clock that will request its next step. Informational and communication
+commands remain available during an activity. Incompatible actions report the
+conflict instead of silently interrupting your work.
+
+See also: CAMP, ACTIONS, COOLDOWNS', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('ACTIVITY', 'ACTIVITY');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('ACTIVITY', 'PRIMARY-ACTIVITY');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('GARROTE', 'Garrote
@@ -135,6 +158,8 @@ WHERE help_tag = 'CALM' AND keyword NOT IN ('CALM', 'PACIFY');
 DELETE FROM help_keywords
 WHERE help_tag = 'CAMP' AND keyword NOT IN ('CAMP', 'ESTABLISH-CAMP');
 DELETE FROM help_keywords
+WHERE help_tag = 'ACTIVITY' AND keyword NOT IN ('ACTIVITY', 'PRIMARY-ACTIVITY');
+DELETE FROM help_keywords
 WHERE help_tag = 'GARROTE' AND keyword NOT IN ('GARROTE', 'STRANGLE');
 DELETE FROM help_keywords
 WHERE help_tag = 'SHADOW' AND keyword NOT IN ('SHADOW', 'TAIL');
@@ -146,6 +171,8 @@ DELETE FROM help_keywords
 WHERE UPPER(keyword) = 'CALM' AND BINARY help_tag <> 'CALM';
 DELETE FROM help_keywords
 WHERE UPPER(keyword) = 'CAMP' AND BINARY help_tag <> 'CAMP';
+DELETE FROM help_keywords
+WHERE UPPER(keyword) = 'ACTIVITY' AND BINARY help_tag <> 'ACTIVITY';
 DELETE FROM help_keywords
 WHERE UPPER(keyword) = 'GARROTE' AND BINARY help_tag <> 'GARROTE';
 DELETE FROM help_keywords

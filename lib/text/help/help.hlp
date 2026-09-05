@@ -623,7 +623,11 @@ action can enter the action queue only after a non-mutating availability check
 validates their current arguments. Commands without a safe advance check are
 not queued; retry those commands after the required action becomes available.
 
-QUEUE displays pending actions. QUEUE CLEAR removes all pending actions.
+The queue is first-in, first-out and holds at most 10 commands. During combat,
+one queued command is considered at the start of each six-second turn. If the
+first command still lacks its required action, it remains at the front. Queued
+commands do not drain between turns. QUEUE displays pending actions, and QUEUE
+CLEAR removes all pending actions.
 
 See also: ACTIONS, ATTACK-QUEUE, COMBAT
 #0
@@ -4560,16 +4564,39 @@ Requires: the establish camp feat (any class; 3 ranks of survival)
 Action:   Standard and Move Action
 Check:    survival against a difficulty set by terrain and weather
 
-You clear a site, set your gear and get a fire going. You and any grouped
-companions in the room recover hitpoints and movement 50 percent faster while
-sleeping, reclining, resting or sitting in the camp, and the campsite becomes
-your return point, so quitting from camp brings you back to it.
+You spend about six seconds clearing a site, setting your gear and getting a
+fire going. Use activity to inspect, pause, resume or cancel the work. Moving
+ends the attempt, damage delays it, and entering combat pauses it until the
+fight ends. The camp remains in the room for a time. Anyone there recovers
+hitpoints and movement 50 percent faster while sleeping, reclining, resting
+or sitting. The campsite becomes the return point for you and grouped
+companions present when it is completed, so quitting from camp brings you
+back to it.
 
 Camps cannot be pitched indoors, on or under water, while flying, or during
 combat. Rough ground such as desert, marsh, mountains and the deep underdark
 raises the difficulty, as does rain or a lightning storm.
 
 See also: FEAT INFO ESTABLISH CAMP, SURVEY, HARVEST, WILDERNESS
+#0
+ACTIVITY PRIMARY-ACTIVITY
+
+Primary Activity
+
+Usage: activity
+       activity cancel
+       activity pause
+       activity resume
+
+Shows your current timed activity, progress, occupied capabilities, traits and
+the clock that will request its next step. Informational and communication
+commands remain available during an activity. Incompatible actions report the
+conflict instead of silently interrupting your work.
+
+Timed casting also appears here. Use activity cancel or abort to stop a cast.
+Casting cannot be paused and continues on its normal clock during combat.
+
+See also: CAMP, ACTIONS, COOLDOWNS, CASTING-TIME
 #0
 %ACTOR.CANBESEEN% %CANBESEEN% CANBESEEN
 
@@ -4706,15 +4733,22 @@ See also:  RECHARGE EPIC-SPELLS
 #0
 CASTING-TIME
 
-Casting time refers to the nature of spells that can't be completed in an insant.
+More powerful spells generally take longer to cast. QUICK-CHANT can reduce
+casting time. Use activity to see the progress of a timed cast, or abort
+(or activity cancel) to cancel it. Casting cannot be paused.
 
-Generally speaking, spells as they get more powerful, take more time to cast.
-This is reflected by "casting time."  If an opponent knocks you down, or somehow
-breaks your CONCENTRATION while casting, you will not be able to complete the spell.
+Moving interrupts a timed cast. Losing the target, being knocked down, or
+other disabling conditions may also stop it; existing spell exceptions apply.
+Positive damage received while casting requests a concentration check, even
+outside combat. A failed check ends the cast immediately. Misses and damage
+reduced to zero do not request this check.
 
-Casting time can be reduced by QUICK-CHANT.
+Starting a cast under adverse conditions still uses the initial concentration
+check. Progress messages alone do not cause additional concentration rolls.
+Cancelling or being interrupted does not refund resources already spent.
+Instant spells have no extended casting period to interrupt.
 
-See also:  QUICK-CHANT CASTING CONCENTRATION
+See also: QUICK-CHANT CASTING CONCENTRATION ACTIVITY ABORT
 #0
 CAT-FALL CATFALL POWER-CATFALL PSIONIC-POWER-CATFALL
 
@@ -6547,25 +6581,23 @@ Combat may also be initiated via a CM, trip for example : trip <name>.  This
 command will initiate combat with a trip CM.
  
 Combat Rounds:
-The combat round lasts 6 seconds, divided into 3 2-second phases.  The attacks 
-in your attack rotation (help ATTACKS) are divided up between these phases in 
-the following way:
- 
-Phase 1: attacks 1, 4, 7
-Phase 2: attacks 2, 5, 8
-Phase 3: attacks 3, 6, 9
+One encounter round lasts 6 seconds. Everyone whose turn is ready acts from
+highest initiative to lowest. Ties use Dexterity and then a stable final order.
+Someone joining a fight becomes eligible on the encounter's next round; joining
+or merging fights never grants an extra early turn.
  
 You can check the number of attacks you have in your rotation by using the ATTACKS 
 command.  The number of attacks available is directly based on your Base Attack
 Bonus (BAB), which increases based on your class and level.
  
 Actions in Combat:
-Combat is directly affected by the actions you have available.  If you have 
-both a standard action and a move action available, you will automatically 
-perform a full attack every combat round, utilizing your entire attack rotation.
-If you have only a standard action, then only attacks in the first phase will be 
-performed.  If your character has neither a move nor a standard action, no 
-attacks will be made in this round.  See 'help ACTIONS' for more information.
+Your reaction allowance refreshes before initiative begins each round. At the
+start of your turn, due standard, move, and swift actions recover. One valid queued
+command is attempted first.
+Any actions it spends are unavailable to your automatic attack. If both your
+standard and move actions remain, you perform your full attack rotation. With
+only a standard action, you perform the first attack portion. With no standard
+action, you make no automatic attack. See 'help ACTIONS' and 'help ACTION-QUEUE'.
  
 Combat Modes:
 There are a number of combat modes available that change the way you fight.  
@@ -6972,19 +7004,21 @@ miss completely.  Note that concealment caps at 50%.
 #0
 CONCENTRATION
 
-Usage:  automatic
+Usage: automatic
 
-Concentration affects your ability to complete the "CASTING-TIME" of spells
-despite distractions such as GRAPPLED or TAUNT.  In addition, a higher
-concentration rating is needed to complete more difficult spells.
+Concentration helps you cast under distractions such as combat, GRAPPLED,
+TAUNT and intimidation. More difficult spells require higher concentration.
 
-Concentration is also your ability to resist extremely distracting skills
-and attacks.
+While a timed spell is being cast, each positive damage event requests one
+concentration check. Larger amounts of damage are harder to withstand. This
+also applies outside combat. Preventing all damage avoids that check, so
+protecting an ally who is casting can help them complete their spell.
 
-So far concentration help resist:
-TAUNT
+Failure interrupts the cast. Casting progress alone does not repeat the roll.
+The existing alchemist and shadowdancer exemptions from concentration failure
+remain in effect. Concentration also helps resist distracting skills like TAUNT.
 
-See also:  TAUNT CASTING-TIME GRAPPLED
+See also: TAUNT CASTING-TIME GRAPPLED ACTIVITY
 #0
 CONCUSSION-BLAST POWER-CONCUSSION-BLAST PSIONIC-POWER-CONCUSSION-BLAST
 
@@ -16960,7 +16994,7 @@ INFRAVISION SPELL-INFRAVISION
 INITIATIVE
 
 	c-----------------------------------------------------------------	n
-	c>Usage:           	W Automatic 	n
+	c>Usage:           	W initiative 	n
 	c>Prereqs:         	W Dex 13+ 	n
 	c>Duration:        	W N/A 	n
 	c>Target(s):       	W N/A 	n
@@ -16968,15 +17002,14 @@ INITIATIVE
 	c>Cooldown:        	W N/A 	n
 	c>Description:	n
 	n
-	nGeneral:  Initiative determines who gets the first strike in opening combat.
-	nIt is determined by a diceroll of 1d20 + Dexterity + Bonuses VS the same
-	nfor the opponent.
+	nGeneral: Initiative determines combat turn order. It is rolled as 1d20 plus
+	nDexterity and other bonuses when a combatant enters an encounter.
 	n
-	nIf you take the initiative skill, you will get a +8 bonus to your initiative
-	ncheck and if the opponent tries to get a drop on you and you win your check,
-	nyou'll get a bonus attack.
+	nUse INITIATIVE while fighting to see the current encounter round, the time
+	nuntil the next round, and all visible combatants in their scheduled turn
+	norder. Your own name is highlighted in green when color is enabled.
 	n
-	YSee also:	n SKILLS COMBAT
+	YSee also:	n COMBAT ACTIONS
 	n
 #0
 INNATE INNATES
@@ -26389,6 +26422,57 @@ Example:
 
 See also: BOARDS
 #0
+READY READIED-ACTION
+
+Usage: ready attack <target> on casting
+       ready attack <target> on entry
+       ready attack <target> on door open <direction>
+       ready <command> on entry [target]
+       ready <command> on door open <direction>
+       ready
+       ready cancel
+
+A readied attack spends your standard action now to prepare one normal melee
+strike. HIT and KILL are accepted in place of ATTACK. It expires when your next
+combat turn begins, or after six seconds outside semantic combat. Cancelling,
+replacing, or losing the opportunity does not refund the action. The strike
+costs no second action and does not execute a queued special attack.
+
+ON CASTING watches the named, visible caster in your room. When they begin a
+timed spell, your attack is queued before that spell can complete. A hit uses
+the normal damage and concentration rules; it does not automatically interrupt
+casting. A miss or successful concentration check lets the spell continue.
+You need only name the caster, and do not need to identify their spell. Instant
+spells cannot trigger this reaction. A cancelled spell cannot redirect a queued
+attack to a replacement spell.
+
+ON ENTRY waits for the named target to arrive. ON DOOR OPEN watches a visible,
+closed door; its attack target must already be visible in your room. Opening
+from either side triggers it, including scripted openings. Unlocking, zone
+resets and builder edits do not. The door does not reveal a target beyond it.
+
+The attack runs at the next native event boundary, about a tenth of a second
+later. You must still be able to act, see and reach the target, and use a melee
+weapon or unarmed attack. Normal defenses and PvP restrictions apply.
+
+Command readiness supports SAY, EMOTE, LOOK, REST, STAND, SIT, OPEN and CLOSE.
+These commands run through the normal interpreter and retain their usual costs
+and requirements. Other combat commands and aliases cannot be readied. With no
+entry filter, a noncombat command triggers on the next arrival.
+
+Moving, dying, logging out, or READY CANCEL removes readiness. A bound attack
+target moving, dying or being extracted also cancels it. Replacing or redirecting
+a watched exit cancels it. Closing the door after it triggers cancels pending
+execution even if it reopens. Only one action can be readied at a time. READY
+shows it. Readied actions do not survive copyover or reboot.
+
+Examples:
+  ready attack mage on casting
+  ready attack guard on entry
+  ready say Hold the doorway! on door open north
+
+See also: COMBAT, INITIATIVE, CONCENTRATION, CASTING-TIME
+#0
 BOOT REBOOT RESTART STARTING STARTUP
 
 A reboot is a scheduled clean-up of the Realms. A reboot can only be done by 
@@ -32517,13 +32601,10 @@ immediately stabilizes, halting further bleeding and loss of hit points.
 
 See also: CANTRIPS, MEDICINE, CURE-LIGHT
 #0
-; ACCONVERT ANALYZEWORLD BOARDFIND COMTEST DATABASE DB_INIT_SYSTEM EFFECTSADMIN EXPORTMAP EXPORTWORLDMAP FORTEST HELPGEN IEDIT MATERIALADMIN MEDTEST MEMTEST OBJCHECK OBJLIST OLISTAPPLIES PERFMON PUBSUBQUEUE PUBSUBTOPIC QUITLOG REDESC REGENADMIN RELOCK REPLACE RESETPASSWORD RESOURCEADMIN ROOMVNUM SAVEEVERYTHING SAVEMOBS SAVEOBJSTODB SETMATERIALS SETROOMDESC SETROOMFLAGS SETROOMNAME SETROOMSECT SETTESTCHAR SETTESTKIT SETTIME SETWEATHER SETWORLDSECT SHOPLIST SHOPSTAT SHOWWEAROFF SHUTDOW SHUTDOWN
+; ACCONVERT ANALYZEWORLD BOARDFIND COMTEST DATABASE DB_INIT_SYSTEM EFFECTSADMIN EXPORTMAP EXPORTWORLDMAP FORTEST HELPGEN IEDIT MATERIALADMIN MEDTEST MEMTEST OBJCHECK OBJLIST OLISTAPPLIES PERFMON QUITLOG REDESC REGENADMIN RELOCK REPLACE RESETPASSWORD RESOURCEADMIN ROOMVNUM SAVEEVERYTHING SAVEMOBS SAVEOBJSTODB SETMATERIALS SETROOMDESC SETROOMFLAGS SETROOMNAME SETROOMSECT SETTESTCHAR SETTESTKIT SETTIME SETWEATHER SETWORLDSECT SHOPLIST SHOPSTAT SHOWWEAROFF SHUTDOW SHUTDOWN
 
 Topic  : Staff, Builder, and Administrator Toolset
 Usage  : ; <message>
-         pubsub
-         pubsubtopic
-         pubsubqueue
          perfmon
          quitlog
          relock
@@ -32578,7 +32659,6 @@ Usage  : ; <message>
 
 STAFF TOOLS & WORLD EDITORS:
 - ; (wiznet)        : Immortal communication broadcast channel.
-- pubsub tools      : PubSub diagnostic event bus inspections.
 - perfmon           : Server performance and frame tick profiling monitor.
 - resourceadmin     : Wilderness resource density and regeneration manager.
 - setroom*          : Instant room modification commands (name, desc, flags, sector).
@@ -32595,9 +32675,6 @@ STAFF-ADMIN-COMMANDS TALENTO TEDIT TERRAINAPI TESTARTIFACT VNUM VSTAT WIZNET ZPU
 
 Topic  : Staff, Builder, and Administrator Toolset
 Usage  : ; <message>
-         pubsub
-         pubsubtopic
-         pubsubqueue
          perfmon
          quitlog
          relock
@@ -32652,7 +32729,6 @@ Usage  : ; <message>
 
 STAFF TOOLS & WORLD EDITORS:
 - ; (wiznet)        : Immortal communication broadcast channel.
-- pubsub tools      : PubSub diagnostic event bus inspections.
 - perfmon           : Server performance and frame tick profiling monitor.
 - resourceadmin     : Wilderness resource density and regeneration manager.
 - setroom*          : Instant room modification commands (name, desc, flags, sector).

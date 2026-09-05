@@ -135,8 +135,6 @@ assert_sql "
       'player_quest_progress',
       'player_supply_orders',
       'supply_orders_available',
-      'pubsub_player_settings',
-      'pubsub_subscriptions',
       'player_levelups',
       'player_levels',
       'vessel_hunter_encounters',
@@ -144,7 +142,7 @@ assert_sql "
     )
     AND TABLE_TYPE='BASE TABLE'
     AND ENGINE='InnoDB';
-" "20"
+" "18"
 assert_sql "
   SELECT CONCAT(sender, '|', receiver, '|', subject, '|', message)
   FROM player_mail WHERE subject='legacy subject';
@@ -181,8 +179,6 @@ assert_sql "
     UNION ALL SELECT 'player_quest_progress', 'character_name'
     UNION ALL SELECT 'player_supply_orders', 'player_name'
     UNION ALL SELECT 'supply_orders_available', 'player_name'
-    UNION ALL SELECT 'pubsub_player_settings', 'player_name'
-    UNION ALL SELECT 'pubsub_subscriptions', 'player_name'
     UNION ALL SELECT 'vessel_bounty_hunts', 'target_player'
   ) AS expected
   WHERE EXISTS (
@@ -193,7 +189,7 @@ assert_sql "
       AND indexes.COLUMN_NAME=expected.column_name
       AND indexes.SEQ_IN_INDEX=1
   );
-" "18"
+" "16"
 
 sql -e "
   INSERT INTO account_data (name, password)
@@ -255,7 +251,8 @@ sql -e "
   INSERT INTO pubsub_player_settings (player_name, max_subscriptions)
     VALUES ('Sourcechar', 19);
   INSERT INTO pubsub_subscriptions (topic_id, player_name, status)
-    VALUES (@topic_id, 'Sourcechar', 1);
+    VALUES (@topic_id, 'Sourcechar', 1),
+           (@topic_id, 'Sourcechar', 2);
   INSERT INTO player_levelups (character_name, event_payload)
     VALUES ('Sourcechar', 'new level history payload');
   INSERT INTO player_levels (char_name, event_payload)
@@ -327,11 +324,6 @@ state_payload_before=$(sql -e "
     (SELECT CONCAT_WS(':', idnum, supply_orders_available,
              DATE_FORMAT(last_updated, '%Y-%m-%d %H:%i:%s'))
        FROM supply_orders_available WHERE player_name='Sourcechar'),
-    (SELECT CONCAT_WS(':', setting_id, max_subscriptions)
-       FROM pubsub_player_settings WHERE player_name='Sourcechar'),
-    (SELECT CONCAT_WS(':', subscription_id, topic_id, status,
-             DATE_FORMAT(subscribed_at, '%Y-%m-%d %H:%i:%s'))
-       FROM pubsub_subscriptions WHERE player_name='Sourcechar'),
     (SELECT CONCAT_WS(':', id, event_payload)
        FROM player_levelups WHERE character_name='Sourcechar'),
     (SELECT CONCAT_WS(':', id, event_payload)
@@ -344,6 +336,16 @@ hunt_payload_before=$(sql -e "
     next_eligible_at, ended_at, end_reason), 256)
   FROM vessel_bounty_hunts
   WHERE target_player='Sourcechar';
+")
+deprecated_pubsub_before=$(sql -e "
+  SELECT SHA2(CONCAT_WS('|',
+    (SELECT CONCAT_WS(':', setting_id, player_name, max_subscriptions)
+       FROM pubsub_player_settings WHERE player_name='Sourcechar'),
+    (SELECT GROUP_CONCAT(CONCAT_WS(':', subscription_id, topic_id, player_name, status,
+             DATE_FORMAT(subscribed_at, '%Y-%m-%d %H:%i:%s'))
+             ORDER BY subscription_id SEPARATOR ';')
+       FROM pubsub_subscriptions WHERE player_name='Sourcechar')
+  ), 256);
 ")
 
 # The runtime preflight uses locking aggregate reads to protect old/new name
@@ -394,10 +396,6 @@ sql -e "
   UPDATE supply_orders_available
     SET player_name='Targetchar', last_updated=last_updated
     WHERE LOWER(player_name)=LOWER('Sourcechar');
-  UPDATE pubsub_player_settings SET player_name='Targetchar'
-    WHERE LOWER(player_name)=LOWER('Sourcechar');
-  UPDATE pubsub_subscriptions SET player_name='Targetchar'
-    WHERE LOWER(player_name)=LOWER('Sourcechar');
   UPDATE player_levelups SET character_name='Targetchar'
     WHERE LOWER(character_name)=LOWER('Sourcechar');
   UPDATE player_levels SET char_name='Targetchar'
@@ -430,10 +428,6 @@ assert_sql "
     (SELECT COUNT(*) FROM player_supply_orders
        WHERE LOWER(player_name)=LOWER('Sourcechar')) +
     (SELECT COUNT(*) FROM supply_orders_available
-       WHERE LOWER(player_name)=LOWER('Sourcechar')) +
-    (SELECT COUNT(*) FROM pubsub_player_settings
-       WHERE LOWER(player_name)=LOWER('Sourcechar')) +
-    (SELECT COUNT(*) FROM pubsub_subscriptions
        WHERE LOWER(player_name)=LOWER('Sourcechar')) +
     (SELECT COUNT(*) FROM player_levelups
        WHERE LOWER(character_name)=LOWER('Sourcechar')) +
@@ -516,11 +510,6 @@ state_payload_after=$(sql -e "
     (SELECT CONCAT_WS(':', idnum, supply_orders_available,
              DATE_FORMAT(last_updated, '%Y-%m-%d %H:%i:%s'))
        FROM supply_orders_available WHERE player_name='Targetchar'),
-    (SELECT CONCAT_WS(':', setting_id, max_subscriptions)
-       FROM pubsub_player_settings WHERE player_name='Targetchar'),
-    (SELECT CONCAT_WS(':', subscription_id, topic_id, status,
-             DATE_FORMAT(subscribed_at, '%Y-%m-%d %H:%i:%s'))
-       FROM pubsub_subscriptions WHERE player_name='Targetchar'),
     (SELECT CONCAT_WS(':', id, event_payload)
        FROM player_levelups WHERE character_name='Targetchar'),
     (SELECT CONCAT_WS(':', id, event_payload)
@@ -534,14 +523,26 @@ hunt_payload_after=$(sql -e "
   FROM vessel_bounty_hunts
   WHERE target_player='Targetchar';
 ")
+deprecated_pubsub_after=$(sql -e "
+  SELECT SHA2(CONCAT_WS('|',
+    (SELECT CONCAT_WS(':', setting_id, player_name, max_subscriptions)
+       FROM pubsub_player_settings WHERE player_name='Sourcechar'),
+    (SELECT GROUP_CONCAT(CONCAT_WS(':', subscription_id, topic_id, player_name, status,
+             DATE_FORMAT(subscribed_at, '%Y-%m-%d %H:%i:%s'))
+             ORDER BY subscription_id SEPARATOR ';')
+       FROM pubsub_subscriptions WHERE player_name='Sourcechar')
+  ), 256);
+")
 [[ "$mail_payload_before" == "$mail_payload_after" ]] ||
   fail "mail identity, subject, message, or date changed during key migration"
 [[ "$mail_state_before" == "$mail_state_after" ]] ||
   fail "mail read/deleted relationships changed during key migration"
 [[ "$state_payload_before" == "$state_payload_after" ]] ||
-  fail "loot, quest, crafting, pubsub, or level payload changed during key migration"
+  fail "loot, quest, crafting, or level payload changed during key migration"
 [[ "$hunt_payload_before" == "$hunt_payload_after" ]] ||
   fail "bounty-hunter lifecycle payload changed during key migration"
+[[ "$deprecated_pubsub_before" == "$deprecated_pubsub_after" ]] ||
+  fail "deprecated pubsub data changed during character rename"
 assert_sql "
   SELECT CONCAT(
     (SELECT COUNT(*) FROM player_mail WHERE sender='Targetchar' AND subject='sent'), '|',

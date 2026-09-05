@@ -42,6 +42,14 @@
 #include "graph.h"
 #include "perfmon.h"
 #include "mob/mob_act.h"
+#include "active_world.h"
+#include "character_periodic.h"
+#include "point_update_periodic.h"
+#include "affected_owners.h"
+#include "domain_event_runtime.h"
+#include "combat/combat_encounters.h"
+#include "combat/combat_state.h"
+#include "vessels/vessels_rol.h"
 
 /* local file scope variables */
 static int extractions_pending = 0;
@@ -73,7 +81,10 @@ void affected_registry_sync(struct char_data *ch)
     affected_character_list = ch;
     ch->affected_registered = true;
     affected_character_count++;
+    affected_character_owner_sync(ch);
   }
+  else if (ch->affected != NULL)
+    affected_character_owner_sync(ch);
   else if (ch->affected == NULL && ch->affected_registered)
   {
     affected_registry_remove(ch);
@@ -98,6 +109,7 @@ void affected_registry_detach(struct char_data *ch)
 
 void affected_registry_remove(struct char_data *ch)
 {
+  affected_character_owner_forget(ch);
   if (ch == NULL || !ch->affected_registered)
     return;
   if (affected_iteration_active && affected_iteration_next == ch)
@@ -143,6 +155,12 @@ void affected_registry_iteration_end(void)
 {
   affected_iteration_next = NULL;
   affected_iteration_active = false;
+  affected_character_owner_refill();
+}
+
+bool affected_registry_iteration_in_progress(void)
+{
+  return affected_iteration_active;
 }
 
 size_t affected_registry_count(void)
@@ -171,6 +189,17 @@ size_t affected_registry_validate(void)
 #ifdef LUMINARI_CUTEST
 void affected_registry_reset_for_test(void)
 {
+  struct char_data *ch;
+  struct char_data *next;
+
+  for (ch = affected_character_list; ch != NULL; ch = next)
+  {
+    next = ch->affected_next;
+    affected_character_owner_forget(ch);
+    ch->affected_next = NULL;
+    ch->affected_prev = NULL;
+    ch->affected_registered = false;
+  }
   affected_character_list = NULL;
   affected_iteration_next = NULL;
   affected_character_count = 0;
@@ -194,7 +223,6 @@ static bool character_is_pending_extraction(const struct char_data *ch)
 static void prepare_pending_extraction_references(void)
 {
   struct char_data *ch;
-  struct char_data *next_ch;
 
   for (ch = character_list; ch; ch = ch->next)
   {
@@ -207,14 +235,9 @@ static void prepare_pending_extraction_references(void)
     if (character_is_pending_extraction(ACCOMPANYING(ch)))
       ACCOMPANYING(ch) = NULL;
     if (character_is_pending_extraction(HUNTING(ch)))
-      HUNTING(ch) = NULL;
+      set_hunting_target(ch, NULL);
     if (character_is_pending_extraction(CASTING_TCH(ch)))
       resetCastingData(ch);
-  }
-
-  for (ch = combat_list; ch; ch = next_ch)
-  {
-    next_ch = ch->next_fighting;
     if (character_is_pending_extraction(FIGHTING(ch)))
       stop_fighting(ch);
   }
@@ -1402,6 +1425,18 @@ void affect_total(struct char_data *ch)
     update_msdp_affects(ch);
 }
 
+static bool affect_changes_mobile_reactions(const struct affected_type *af)
+{
+  return af->spell == SPELL_CAMOUFLAGE || IS_SET_AR(af->bitvector, AFF_INVISIBLE) ||
+         IS_SET_AR(af->bitvector, AFF_HIDE) || IS_SET_AR(af->bitvector, AFF_BLIND) ||
+         IS_SET_AR(af->bitvector, AFF_SLEEP) || IS_SET_AR(af->bitvector, AFF_STUN) ||
+         IS_SET_AR(af->bitvector, AFF_PARALYZED) || IS_SET_AR(af->bitvector, AFF_DAZED) ||
+         IS_SET_AR(af->bitvector, AFF_CHARM) || IS_SET_AR(af->bitvector, AFF_NAUSEATED) ||
+         IS_SET_AR(af->bitvector, AFF_DETECT_INVIS) || IS_SET_AR(af->bitvector, AFF_INFRAVISION) ||
+         IS_SET_AR(af->bitvector, AFF_ULTRAVISION) || IS_SET_AR(af->bitvector, AFF_TRUE_SIGHT) ||
+         IS_SET_AR(af->bitvector, AFF_MAGE_FLAME);
+}
+
 /* Insert an affect_type with an explicit runtime source owner. */
 void affect_to_char_source(struct char_data *ch, struct affected_type *af, long source_id)
 {
@@ -1421,6 +1456,7 @@ void affect_to_char_source(struct char_data *ch, struct affected_type *af, long 
   affected_alloc->next = ch->affected;
   ch->affected = affected_alloc;
   affected_registry_sync(ch);
+  character_periodic_sync(ch);
 
   /*affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);*/
   affect_modify_ar(ch, af->location, 0, af->bitvector, TRUE);
@@ -1440,6 +1476,8 @@ void affect_to_char_source(struct char_data *ch, struct affected_type *af, long 
   }
 
   affect_total(ch);
+  if (affect_changes_mobile_reactions(af))
+    active_world_reconsider_character(ch);
 }
 
 /* Insert an ordinary, unowned affect_type in a char_data structure. */
@@ -1500,6 +1538,7 @@ void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
   REMOVE_FROM_LIST(af, ch->affected, next);
   free_affect(af);
   affected_registry_sync(ch);
+  character_periodic_sync(ch);
 
   if (removes_repulsion)
     clear_repulsion_lists(ch);
@@ -1509,6 +1548,8 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
 {
   struct affected_type *temp = NULL;
   bool removes_repulsion;
+  bool changes_reactions;
+  bool removes_flight;
   // bool is_ac_new = false;
 
   if (ch->affected == NULL)
@@ -1518,6 +1559,8 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   }
 
   removes_repulsion = IS_SET_AR(af->bitvector, AFF_REPULSION);
+  changes_reactions = affect_changes_mobile_reactions(af);
+  removes_flight = IS_SET_AR(af->bitvector, AFF_FLYING) || IS_SET_AR(af->bitvector, AFF_LEVITATE);
 
   // if (!IS_NPC(ch) && af->location == APPLY_AC_NEW)
   // is_ac_new = true;
@@ -1562,6 +1605,13 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   affected_registry_sync(ch);
 
   affect_total(ch);
+
+  character_periodic_sync(ch);
+  if (changes_reactions)
+    active_world_reconsider_character(ch);
+  if (removes_flight && world != NULL && IN_ROOM(ch) != NOWHERE && IN_ROOM(ch) <= top_of_world &&
+      char_should_fall(ch, FALSE) && !char_has_mud_event(ch, eFALLING))
+    attach_mud_event(new_mud_event(eFALLING, ch, "20"), 5);
 
   if (removes_repulsion && !AFF_FLAGGED(ch, AFF_REPULSION))
     clear_repulsion_lists(ch);
@@ -1866,6 +1916,8 @@ void char_from_room(struct char_data *ch)
     exit(1);
   }
 
+  ch->domain_previous_room = IN_ROOM(ch);
+
   if (FIGHTING(ch) != NULL)
     stop_fighting(ch);
 
@@ -2036,6 +2088,9 @@ void char_to_room(struct char_data *ch, room_rnum room)
     world[room].people = ch;
     IN_ROOM(ch) = room;
 
+    domain_event_runtime_character_moved(ch, ch->domain_previous_room, room, -1);
+    ch->domain_previous_room = NOWHERE;
+
     /* Trigger lazy regeneration for wilderness rooms (Phase 6) */
     if (is_wilderness_room && !IS_NPC(ch))
     {
@@ -2142,6 +2197,7 @@ void obj_to_char(struct obj_data *object, struct char_data *ch)
       // log("T10: %s", object->short_description);
       MSDPFlush(ch->desc, eMSDP_INVENTORY);
     }
+    point_update_object_sync(object);
     // log("T11: %s", object->short_description);
   }
   else
@@ -2215,6 +2271,7 @@ void obj_to_bag(struct char_data *ch, struct obj_data *object, int bagnum)
       update_msdp_inventory(ch);
       MSDPFlush(ch->desc, eMSDP_INVENTORY);
     }
+    point_update_object_sync(object);
   }
   else
     log("SYSERR: NULL obj (%p) or char (%p) passed to obj_to_bag.", object, ch);
@@ -2608,6 +2665,7 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
 
   /* artifact: claim, bind, and apply level-scaled bonuses */
   artifact_on_equip(ch, obj, pos);
+  character_periodic_sync(ch);
 }
 
 struct obj_data *unequip_char(struct char_data *ch, int pos)
@@ -2672,6 +2730,7 @@ struct obj_data *unequip_char(struct char_data *ch, int pos)
   }
   affect_total(ch);
 
+  character_periodic_sync(ch);
   return (obj);
 }
 
@@ -2797,6 +2856,9 @@ void obj_to_room(struct obj_data *object, room_rnum room)
 
     /* Falling objects are not implemented yet; retain float-message side effects. */
     (void)obj_should_fall(object);
+    rol_ship_note_object_placed(object);
+    point_update_object_sync(object);
+    (void)domain_event_runtime_object_moved(object, NOWHERE, room);
   }
 }
 
@@ -2805,6 +2867,7 @@ void obj_from_room(struct obj_data *object)
 {
   struct obj_data *temp;
   struct char_data *t, *tempch;
+  room_rnum previous_room;
 
   if (!object || IN_ROOM(object) == NOWHERE)
   {
@@ -2824,12 +2887,14 @@ void obj_from_room(struct obj_data *object)
     }
   }
 
+  previous_room = IN_ROOM(object);
   REMOVE_FROM_LIST(object, world[IN_ROOM(object)].contents, next_content);
 
   if (ROOM_FLAGGED(IN_ROOM(object), ROOM_HOUSE))
     SET_BIT_AR(ROOM_FLAGS(IN_ROOM(object)), ROOM_HOUSE_CRASH);
   IN_ROOM(object) = NOWHERE;
   object->next_content = NULL;
+  (void)domain_event_runtime_object_moved(object, previous_room, NOWHERE);
 }
 
 /* put an object in an object (quaint)  */
@@ -2871,6 +2936,7 @@ void obj_to_obj(struct obj_data *obj, struct obj_data *obj_to)
     if (tmp_obj->carried_by)
       IS_CARRYING_W(tmp_obj->carried_by) += GET_OBJ_WEIGHT(obj);
   }
+  point_update_object_sync(obj);
 }
 
 /* remove an object from an object */
@@ -2936,6 +3002,7 @@ void extract_obj(struct obj_data *obj)
   if (!obj)
     return;
 
+  rol_ship_note_object_extracted(obj);
   autoproc_registry_remove(obj);
   PERF_note_object_extracted(GET_OBJ_VNUM(obj), obj->perf_origin_zone_vnum,
                              (enum perf_entity_reason)obj->perf_create_reason);
@@ -2971,6 +3038,7 @@ void extract_obj(struct obj_data *obj)
     extract_obj(obj->contains);
 
   REMOVE_FROM_LIST(obj, object_list, next);
+  obj->object_list_member = false;
 
   /* Remove object from rnum hash table */
   remove_obj_from_rnum_hash(obj);
@@ -2992,29 +3060,13 @@ void extract_obj(struct obj_data *obj)
   if (SCRIPT(obj))
     extract_script(&obj->script);
 
-  if (obj->events != NULL)
-  {
-    if (obj->events->iSize > 0)
-    {
-      struct event *pEvent;
-
-      /* Beginner's Note: Reset simple_list iterator before use to prevent
-       * cross-contamination from previous iterations. Without this reset,
-       * if simple_list was used elsewhere and not completed, it would
-       * continue from where it left off instead of starting fresh. */
-      simple_list(NULL);
-
-      while ((pEvent = simple_list(obj->events)) != NULL)
-        event_cancel(pEvent);
-    }
-    free_list(obj->events);
-    obj->events = NULL;
-  }
+  clear_obj_event_list(obj);
 
   if (GET_OBJ_RNUM(obj) == NOTHING ||
       obj->proto_script != obj_proto[GET_OBJ_RNUM(obj)].proto_script)
     free_proto_script(&obj->proto_script);
 
+  point_update_object_forget(obj);
   free_obj(obj);
 }
 
@@ -3022,7 +3074,10 @@ static void update_object(struct obj_data *obj, int use)
 {
   /* dont update objects with a timer trigger */
   if (!SCRIPT_CHECK(obj, OTRIG_TIMER) && (GET_OBJ_TIMER(obj) > 0))
+  {
     GET_OBJ_TIMER(obj) -= use;
+    point_update_object_sync(obj);
+  }
   if (obj->contains)
     update_object(obj->contains, use);
   if (obj->next_content)
@@ -3091,6 +3146,11 @@ void extract_char_final(struct char_data *ch)
     PERF_note_mobile_extracted(GET_MOB_VNUM(ch), ch->perf_origin_zone_vnum,
                                (enum perf_entity_reason)ch->perf_create_reason);
 
+  domain_event_runtime_character_extracted(ch, 0U);
+  combat_encounter_forget_character(ch, COMBAT_ENCOUNTER_DEPARTURE_EXTRACTED);
+  character_periodic_forget(ch);
+  point_update_character_forget(ch);
+  active_world_forget_character(ch);
   mobile_activity_forget_character(ch);
   remove_all_rol_elemental_embodiments(ch);
 
@@ -3215,14 +3275,7 @@ void extract_char_final(struct char_data *ch)
   clear_projectile_mode(ch);
 
   if (!extraction_batch_active)
-  {
-    for (k = combat_list; k; k = temp)
-    {
-      temp = k->next_fighting;
-      if (FIGHTING(k) == ch)
-        stop_fighting(k);
-    }
-  }
+    combat_state_stop_attackers(ch);
 
   /* Clear the action queue */
   clear_action_queue(GET_QUEUE(ch));
@@ -3237,7 +3290,7 @@ void extract_char_final(struct char_data *ch)
         continue;
       /* If "temp" is hunting our extracted char, stop the hunt. */
       if (HUNTING(temp) == ch)
-        HUNTING(temp) = NULL;
+        set_hunting_target(temp, NULL);
       /* If "temp" has allocated memory data and our ch is a PC, forget the
        * extracted character (if he/she is remembered) */
       if (!IS_NPC(ch) && GET_POS(ch) == POS_DEAD && MEMORY(temp))
@@ -3288,50 +3341,7 @@ void extract_char_final(struct char_data *ch)
   PERF_prof_sect_init(&pr_events, "extract.events");
   PERF_prof_sect_enter(pr_events);
   /* Cancel all events associated with this character */
-  if (ch->events != NULL)
-  {
-    if (ch->events->iSize > 0)
-    {
-      struct event *pEvent = NULL;
-      struct item_data *pItem = NULL;
-      struct item_data *pNextItem = NULL;
-      struct list_data *temp_list = NULL;
-
-      /* Create a temporary list to hold events that need to be cancelled */
-      temp_list = create_list();
-
-      /* First pass: collect all events into temporary list */
-      pItem = ch->events->pFirstItem;
-      while (pItem)
-      {
-        pNextItem = pItem->pNextItem; /* Cache next pointer */
-        pEvent = (struct event *)pItem->pContent;
-
-        if (pEvent && event_is_queued(pEvent))
-          add_to_list(pEvent, temp_list);
-
-        pItem = pNextItem;
-      }
-
-      /* Second pass: cancel the collected events using safe iteration */
-      pItem = temp_list->pFirstItem;
-      while (pItem)
-      {
-        pNextItem = pItem->pNextItem; /* Cache next pointer before event_cancel */
-        pEvent = (struct event *)pItem->pContent;
-
-        if (pEvent)
-          event_cancel(pEvent);
-
-        pItem = pNextItem;
-      }
-
-      /* Clean up the temporary list */
-      free_list(temp_list);
-    }
-    free_list(ch->events);
-    ch->events = NULL;
-  }
+  clear_char_event_list(ch);
   PERF_prof_sect_exit(pr_events);
 
   PERF_prof_sect_init(&pr_finalize, "extract.finalize");

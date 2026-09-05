@@ -94,7 +94,7 @@ SPECIAL(ogremoch)
             }
             else
             {
-              HUNTING(i) = ch;
+              set_hunting_target(i, ch);
               hunt_victim(i);
             }
           }

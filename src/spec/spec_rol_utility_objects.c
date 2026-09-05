@@ -23,6 +23,7 @@
 #include "spec_cooldown.h"
 #include "spec_dispatch.h"
 #include "spec_rol_utility_objects.h"
+#include "point_update_periodic.h"
 
 #define ROL_GOODBERRY_VNUM 2000876
 #define ROL_LOOT_BLOCKER_VNUM 2000897
@@ -223,7 +224,7 @@ bool rol_utility_acheron_platform_room_allowed(int current_vnum, int destination
          abs(destination_vnum - current_vnum) > 3;
 }
 
-EVENTFUNC(event_rol_spiderhaunt_maggots)
+MUD_EVENT_CALLBACK(event_rol_spiderhaunt_maggots)
 {
   struct mud_event_data *event_data;
   struct char_data *ch;
@@ -344,12 +345,13 @@ static int rol_utility_acheron_relocate(struct obj_data *obj)
     obj_from_room(obj);
     obj_to_room(obj, destination);
     send_to_room(destination, "A planar portal shimmers into existence.\r\n");
-    GET_OBJ_SPECTIMER(obj, 0) = GET_OBJ_VNUM(obj) == ROL_ACHERON_PLATFORM_PORTAL_VNUM ? 3 : 1;
+    point_update_object_spec_timer_set(
+        obj, 0, GET_OBJ_VNUM(obj) == ROL_ACHERON_PLATFORM_PORTAL_VNUM ? 3 : 1);
     return TRUE;
   }
 
   log("SYSERR: RoL Acheron portal %d found no available relocation room", GET_OBJ_VNUM(obj));
-  GET_OBJ_SPECTIMER(obj, 0) = 1;
+  point_update_object_spec_timer_set(obj, 0, 1);
   return FALSE;
 }
 
@@ -401,7 +403,7 @@ static int rol_utility_hyssk_skeleton(struct char_data *ch, struct obj_data *obj
 static int rol_utility_tattered_cloak(struct spec_event_context *context, struct char_data *ch,
                                       struct obj_data *obj)
 {
-  if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
+  if (context->event == SPEC_EVENT_OBJECT_AUTOMATIC)
   {
     if (ch != NULL && obj->worn_by == ch)
       GET_OBJ_VAL(obj, 3) = MIN(144, GET_OBJ_VAL(obj, 3) + 1);
@@ -537,6 +539,7 @@ static int rol_utility_loot_sweep(struct obj_data *obj)
     if (GET_OBJ_TIMER(corpse) <= 0 || GET_OBJ_TIMER(corpse) > ROL_LOOT_DECAY_TICKS)
       GET_OBJ_TIMER(corpse) = ROL_LOOT_DECAY_TICKS;
     SET_BIT_AR(GET_OBJ_EXTRA(corpse), ITEM_MAGIC);
+    point_update_object_sync(corpse);
   }
 
   return TRUE;
@@ -549,6 +552,7 @@ static int rol_utility_orchid_decay(struct obj_data *obj)
 
   SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_DECAY);
   GET_OBJ_TIMER(obj) = ROL_BLACK_ORCHID_DECAY_HOURS;
+  point_update_object_sync(obj);
   return FALSE;
 }
 
@@ -701,7 +705,7 @@ static int rol_utility_child_sacrifice(struct spec_event_context *context, struc
   }
   else
   {
-    GET_HIT(ch) -= damage_amount;
+    combat_apply_raw_damage(ch, NULL, damage_amount, DAM_RESERVED_DBC, INT_MIN);
     update_pos(ch);
   }
 
@@ -1198,7 +1202,7 @@ int rol_utility_object_typed(struct spec_event_context *context)
       GET_OBJ_VNUM(obj) == ROL_SMOKE_STUN_SHIELD_VNUM && context->actor != NULL)
     return rol_utility_smoke_shield(context, context->actor, obj);
 
-  if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
+  if (context->event == SPEC_EVENT_OBJECT_AUTOMATIC)
   {
     if (rol_utility_acheron_portal_vnum(GET_OBJ_VNUM(obj)) &&
         GET_OBJ_VNUM(obj) != ROL_ACHERON_ENTRANCE_PORTAL_VNUM)

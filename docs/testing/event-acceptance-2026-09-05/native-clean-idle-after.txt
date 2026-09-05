@@ -1,0 +1,126 @@
+Reusing the development MUD on port 4103.
+
+>>> eventdebug
+432/432H 1160/1160V [smw] (news) (motd)
+Event Debug Summary
+--------------------------------------------------------------------------------
+Backend: scheduler
+Pulse: 4427
+Display width: 80
+Live events: 42457
+High-water events: 43467
+Registry mismatch: 0
+Stale-owner outcomes: 0
+Live events by owner
+  none: 397
+  character: 41439
+  room: 195
+  object: 402
+  vessel: 8
+  service: 16
+Runtime services
+  mode: named scheduled events
+  live/configured: 14/14
+  callbacks: 867
+  schedule failures: 0
+Scheduler queues
+  types: 263 (sealed)
+  ready: 0
+  oldest overdue: 0 pulses
+  wheel L0: 17445
+  wheel L1: 24999
+  wheel L2: 13
+  wheel L3: 0
+  wheel L4: 0
+  overflow: 0
+  owner records: 42060
+  timed ingress: main thread only
+Scheduler lifecycle
+  scheduled: 63959
+  callbacks: 1521156
+  completed: 12330
+  cancelled: 9172
+  failed: 0
+  rescheduled: 1507816
+  late callbacks: 32169
+  missed: 0
+  skipped: 2968
+  coalesced: 0
+Scheduler structural work
+  cascade slots: 4496
+  cascaded: 2155382
+  largest cascade: 16956
+  overflow promotions: 0
+  large advances: 0
+  events reclassified: 0
+Admission rejections
+  global limit: 0
+  type limit: 0
+  invalid owner: 0
+  owner limit: 0
+  owner/type limit: 0
+Combat encounters
+  mode: six-second semantic
+  active: 0 encounters / 0 participants
+  scheduled events: 0
+  created/ended/merged: 1/1/0
+  callbacks: 3
+  semantic rounds/turns: 3/6
+  intents sent/held: 0/0
+  action/reaction spend: 12/0
+  comparison mismatch: 0
+  admission/stale: 0/0
+Primary activities
+  active/high-water: 0/0
+  started/completed: 0/0
+  cancelled/paused/resumed: 0/0/0
+  delayed/rejected: 0/0
+  stale callbacks: 0
+Character owners
+  mode: scheduled
+  members/scheduled/mismatch: 679/679/0
+  owner callbacks: 125039
+  d20/devices/quests: 62160/12474/4986
+Autonomous mobile agendas
+  mode: scheduled
+  active/cooling: 38961/0
+  spec/echo/scavenge: 2150/1292/7
+  patrol/hunt/wander: 101/0/37280
+  posture/room/combat: 26/63/30
+  resource recovery: 0
+  agenda callbacks: 1249862
+  capacity/rejected: 65536/0
+Discovery registries
+  DG time members m/o/r: 1/0/9
+  DG time mismatch m/o/r: 0/0/0
+  DG time visited m/o/r: 5/0/45
+  DG time executed m/o/r: 0/0/45
+  trail locations/mismatch: 0/0
+  trail cleanup runs/visited/removed: 5/0/0
+Worker ingress (I3)
+  status: offline
+  depth: 0/0
+  high-water: 0
+  rejected: 0
+  wake failures: 0
+Worker ingress (AI)
+  status: online
+  depth: 0/256
+  high-water: 0
+  accepted/processed: 0/0
+  rejected: 0
+  wake/schedule failures: 0/0
+Domain event bus
+  status: online
+  sealed: yes
+  types: 9
+  handlers: 15
+  subscriptions live/high: 0/0
+  publications: 263062
+  handler calls: 826938
+  sub deliveries/cancels: 0/0
+  rejected chains: 0
+  max depth: 1
+Use 'eventdebug help' for filters.
+432/432H 1160/1160V [smw] (news) (motd)
+PASS: Aster ran 1 game command(s) and logged out cleanly (3s).

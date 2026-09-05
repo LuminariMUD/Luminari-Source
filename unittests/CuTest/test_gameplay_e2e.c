@@ -6,9 +6,17 @@
 #include "../../src/utils.h"
 #include "../../src/act.h"
 #include "../../src/actionqueues.h"
+#include "../../src/actions.h"
+#include "../../src/ready_action.h"
+#include "../../src/activity_manager.h"
+#include "../../src/domain_event_runtime.h"
+#include "../../src/domain_event_types.h"
+#include "../../src/domain_event_world.h"
+#include "../../src/event_runtime.h"
 #include "../../src/bardic_performance.h"
 #include "../../src/craft/craft.h"
 #include "../../src/db.h"
+#include "../../src/comm.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/combat/fight.h"
 #include "../../src/olc/genwld.h"
@@ -17,17 +25,151 @@
 #include "../../src/mob/mob_utils.h"
 #include "../../src/quest/missions.h"
 #include "../../src/movement/movement.h"
+#include "../../src/movement/door_state.h"
 #include "../../src/character/perks.h"
 #include "../../src/net/protocol.h"
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
 #include "../../src/spec/spec_binding.h"
+#include "../../src/mud_event.h"
+#include "../../src/dgscript/dg_event.h"
 
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+static void verify_gameplay_charge_load(CuTest *tc, unsigned int format, int elapsed, int charisma,
+                                        int interval, const char *expected)
+{
+  struct player_index_element index[1] = {0};
+  struct player_index_element *saved_table = player_table;
+  int saved_top = top_of_p_table;
+  struct char_data *loaded = new_char();
+  struct mud_event_data *event;
+  char directory[PATH_MAX];
+  char filename[MAX_FILEPATH];
+  char name[32];
+  FILE *file;
+  int result;
+  bool restored = false;
+  unsigned long saved_pulse = pulse;
+
+  snprintf(name, sizeof(name), "Zzev%ld", (long)getpid());
+  index[0].name = name;
+  index[0].id = 4245;
+  player_table = index;
+  top_of_p_table = 0;
+  CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
+  CuAssertIntEquals(tc, 0, chdir("lib"));
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
+  file = fopen(filename, "w");
+  CuAssertPtrNotNull(tc, file);
+  fprintf(file, "Name: %s\nId  : 4245\nLevl: 7\nEvn2: %u\n%d 2 4245 1 %lld 3", name, format,
+          eCHANNELENERGY, (long long)time(NULL) - elapsed);
+  if (format == MUD_EVENT_DURABLE_FORMAT_VERSION)
+    fprintf(file, " %d", interval);
+  fprintf(file, "\n-1\nCha : %d\n", charisma);
+  fclose(file);
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  result = load_char(name, loaded);
+  event = char_has_mud_event(loaded, eCHANNELENERGY);
+  if (event != NULL)
+    restored = event->sVariables != NULL && !strcmp(event->sVariables, expected);
+  unlink(filename);
+  CuAssertIntEquals(tc, 0, chdir(directory));
+  free_char(loaded);
+  event_free_all();
+  pulse = saved_pulse;
+  player_table = saved_table;
+  top_of_p_table = saved_top;
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertTrue(tc, restored);
+}
+
+void Test_gameplay_load_recovers_charges_after_effective_stats(CuTest *tc)
+{
+  verify_gameplay_charge_load(tc, 1U, 2, 18, 0, "uses:2");
+}
+
+void Test_gameplay_load_recovers_charges_at_saved_equipped_cadence(CuTest *tc)
+{
+  verify_gameplay_charge_load(tc, MUD_EVENT_DURABLE_FORMAT_VERSION, SECS_PER_MUD_DAY / 8 + 2, 10,
+                              (SECS_PER_MUD_DAY / 8) * PASSES_PER_SEC, "uses:1");
+}
+
+void Test_gameplay_save_captures_charge_cadence_before_unequipping(CuTest *tc)
+{
+  struct player_index_element index[1] = {0};
+  struct player_index_element *saved_table = player_table;
+  int saved_top = top_of_p_table;
+  struct char_data *ch = new_char();
+  struct obj_data *item;
+  char directory[PATH_MAX];
+  char filename[MAX_FILEPATH];
+  char name[32];
+  char line[MAX_INPUT_LENGTH];
+  FILE *file;
+  long long owner, remaining, epoch, cadence;
+  long long saved_cadence = -1;
+  unsigned int schema;
+  int type, uses;
+  int equipped_charisma;
+  bool saved;
+  unsigned long saved_pulse = pulse;
+
+  snprintf(name, sizeof(name), "Zzcd%ld", (long)getpid());
+  index[0].name = name;
+  index[0].id = 4246;
+  index[0].level = 7;
+  player_table = index;
+  top_of_p_table = 0;
+  ch->player.name = strdup(name);
+  GET_PFILEPOS(ch) = 0;
+  GET_IDNUM(ch) = 4246;
+  GET_LEVEL(ch) = 7;
+  GET_REAL_CHA(ch) = 10;
+  affect_total(ch);
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  item = create_obj();
+  item->affected[0].location = APPLY_CHA;
+  item->affected[0].modifier = 10;
+  equip_char(ch, item, WEAR_NECK_1);
+  equipped_charisma = GET_CHA(ch);
+  attach_mud_event(new_mud_event(eCHANNELENERGY, ch, "uses:3"), PASSES_PER_SEC);
+
+  CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
+  CuAssertIntEquals(tc, 0, chdir("lib"));
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
+  saved = save_char_checked(ch, 0);
+  file = fopen(filename, "r");
+  if (file != NULL)
+  {
+    while (fgets(line, sizeof(line), file) != NULL)
+      if (sscanf(line, "%d %u %lld %lld %lld %d %lld", &type, &schema, &owner, &remaining, &epoch,
+                 &uses, &cadence) == 7 &&
+          type == eCHANNELENERGY && owner == 4246)
+        saved_cadence = cadence;
+    fclose(file);
+  }
+  unlink(filename);
+  CuAssertIntEquals(tc, 0, chdir(directory));
+  unequip_char(ch, WEAR_NECK_1);
+  extract_obj(item);
+  free_char(ch);
+  event_free_all();
+  pulse = saved_pulse;
+  player_table = saved_table;
+  top_of_p_table = saved_top;
+  CuAssertTrue(tc, saved);
+  CuAssertIntEquals(tc, 20, equipped_charisma);
+  CuAssertTrue(tc, saved_cadence == (SECS_PER_MUD_DAY / 8) * PASSES_PER_SEC);
+}
 
 struct gameplay_fixture
 {
@@ -97,6 +239,87 @@ static const char *test_source_root(void)
 
   root = getenv("LUMINARI_TEST_ROOT");
   return root != NULL && *root != '\0' ? root : ".";
+}
+
+static bool player_file_has_cooldown_checkpoint(const char *filename)
+{
+  FILE *file;
+  char line[MAX_INPUT_LENGTH];
+  long long checkpoint;
+  bool found;
+
+  file = fopen(filename, "r");
+  if (file == NULL)
+    return false;
+  found = false;
+  while (fgets(line, sizeof(line), file) != NULL)
+  {
+    if (sscanf(line, "CkAt: %lld", &checkpoint) == 1 && checkpoint > 0)
+    {
+      found = true;
+      break;
+    }
+  }
+  if (fclose(file) != 0)
+    return false;
+  return found;
+}
+
+static bool rewrite_player_cooldown_checkpoint(const char *filename, int64_t checkpoint)
+{
+  FILE *input;
+  FILE *output;
+  char line[MAX_STRING_LENGTH];
+  char temp_filename[MAX_FILEPATH + 16];
+  bool saw_checkpoint;
+  bool write_ok;
+
+  if (snprintf(temp_filename, sizeof(temp_filename), "%s.cooldown", filename) >=
+      (int)sizeof(temp_filename))
+    return false;
+
+  input = fopen(filename, "r");
+  if (input == NULL)
+    return false;
+  output = fopen(temp_filename, "w");
+  if (output == NULL)
+  {
+    fclose(input);
+    return false;
+  }
+
+  saw_checkpoint = false;
+  write_ok = true;
+  while (fgets(line, sizeof(line), input) != NULL)
+  {
+    if (strncmp(line, "CkAt:", 5) == 0)
+    {
+      if (fprintf(output, "CkAt: %" PRId64 "\n", checkpoint) < 0)
+      {
+        write_ok = false;
+        break;
+      }
+      saw_checkpoint = true;
+      continue;
+    }
+    if (fputs(line, output) == EOF)
+    {
+      write_ok = false;
+      break;
+    }
+  }
+
+  if (ferror(input) || fflush(output) != 0)
+    write_ok = false;
+  if (fclose(input) != 0)
+    write_ok = false;
+  if (fclose(output) != 0)
+    write_ok = false;
+  if (write_ok && saw_checkpoint && rename(temp_filename, filename) == 0)
+    return true;
+
+  unlink(temp_filename);
+  return false;
 }
 
 static bool rewrite_psychic_sundering_as_legacy(const char *filename)
@@ -276,9 +499,6 @@ static void begin_gameplay_fixture(struct gameplay_fixture *fixture)
   fixture->rooms[1].sector_type = SECT_INSIDE;
   fixture->rooms[1].name = "End-to-end destination";
   fixture->rooms[1].description = "A second production-linked test room.\r\n";
-  fixture->rooms[0].trail_tracks = calloc(1, sizeof(*fixture->rooms[0].trail_tracks));
-  fixture->rooms[1].trail_tracks = calloc(1, sizeof(*fixture->rooms[1].trail_tracks));
-
   fixture->exits[0].key = NOTHING;
   fixture->exits[0].to_room = 1;
   fixture->exits[1].key = NOTHING;
@@ -300,6 +520,7 @@ static void begin_gameplay_fixture(struct gameplay_fixture *fixture)
   top_of_zone_table = 0;
   mob_index = fixture->mobile_index;
   top_of_mobt = 0;
+  movement_trail_registry_shutdown();
 
   initialize_test_npc(&fixture->actor, "fixture actor", 0);
   initialize_test_npc(&fixture->victim, "fixture victim", 0);
@@ -323,10 +544,7 @@ static void end_gameplay_fixture(struct gameplay_fixture *fixture)
     affect_remove_no_total(&fixture->victim, fixture->victim.affected);
   clear_repulsion_lists(&fixture->actor);
   clear_repulsion_lists(&fixture->victim);
-  if (fixture->rooms[0].trail_tracks != NULL)
-    free_trail_data_list(fixture->rooms[0].trail_tracks);
-  if (fixture->rooms[1].trail_tracks != NULL)
-    free_trail_data_list(fixture->rooms[1].trail_tracks);
+  movement_trail_registry_shutdown();
 
   world = fixture->saved_world;
   top_of_world = fixture->saved_top_of_world;
@@ -602,7 +820,8 @@ void Test_gameplay_e2e_staff_all_feats_melee_rotation_executes(CuTest *tc)
   struct gameplay_fixture fixture;
   struct char_data *staff;
   int expected_attacks;
-  int attempted_attacks;
+  int compatibility_attempts;
+  int semantic_attempts;
   int remaining_hit_points;
   int i;
 
@@ -655,11 +874,15 @@ void Test_gameplay_e2e_staff_all_feats_melee_rotation_executes(CuTest *tc)
   SET_BIT_AR(PRF_FLAGS(staff), PRF_CONDENSED);
   init_condensed_combat_data(staff);
 #define NORMAL_ATTACK_ROUTINE 0
+  perform_attacks(staff, NORMAL_ATTACK_ROUTINE, 0);
+  semantic_attempts = CNDNSD(staff)->num_times_attacking;
+  init_condensed_combat_data(staff);
+  GET_HIT(&fixture.victim) = 100000;
   perform_attacks(staff, NORMAL_ATTACK_ROUTINE, 1);
   perform_attacks(staff, NORMAL_ATTACK_ROUTINE, 2);
   perform_attacks(staff, NORMAL_ATTACK_ROUTINE, 3);
 #undef NORMAL_ATTACK_ROUTINE
-  attempted_attacks = CNDNSD(staff)->num_times_attacking;
+  compatibility_attempts = CNDNSD(staff)->num_times_attacking;
   remaining_hit_points = GET_HIT(&fixture.victim);
 
   FIGHTING(staff) = NULL;
@@ -672,7 +895,8 @@ void Test_gameplay_e2e_staff_all_feats_melee_rotation_executes(CuTest *tc)
   end_gameplay_fixture(&fixture);
 
   CuAssertTrue(tc, expected_attacks > 0);
-  CuAssertIntEquals(tc, expected_attacks, attempted_attacks);
+  CuAssertIntEquals(tc, expected_attacks, semantic_attempts);
+  CuAssertIntEquals(tc, expected_attacks, compatibility_attempts);
   CuAssertTrue(tc, remaining_hit_points < 100000);
 }
 
@@ -849,6 +1073,7 @@ void Test_gameplay_e2e_npc_movement_does_not_retain_trails(CuTest *tc)
 void Test_gameplay_e2e_movement_trails_refresh_and_remain_bounded(CuTest *tc)
 {
   struct gameplay_fixture fixture;
+  const struct trail_data_list *trails;
   struct trail_data *trail;
   char name[32];
   size_t trail_count;
@@ -856,26 +1081,27 @@ void Test_gameplay_e2e_movement_trails_refresh_and_remain_bounded(CuTest *tc)
 
   begin_gameplay_fixture(&fixture);
 
-  movement_trail_record(fixture.rooms[0].trail_tracks, "repeat walker", "human", DIR_NONE, NORTH,
-                        100);
-  movement_trail_record(fixture.rooms[0].trail_tracks, "repeat walker", "human", DIR_NONE, NORTH,
-                        200);
+  movement_trail_record_at_room(&fixture.rooms[0], "repeat walker", "human", DIR_NONE, NORTH, 100);
+  movement_trail_record_at_room(&fixture.rooms[0], "repeat walker", "human", DIR_NONE, NORTH, 200);
+  trails = movement_trails_at_room(&fixture.rooms[0]);
   trail_count = count_live_movement_trails();
   CuAssertIntEquals(tc, 1, (int)trail_count);
-  CuAssertIntEquals(tc, 200, (int)fixture.rooms[0].trail_tracks->head->age);
+  CuAssertPtrNotNull(tc, trails);
+  CuAssertIntEquals(tc, 200, (int)trails->head->age);
 
   for (i = 0; i < TRAIL_MAX_PER_ROOM + 5; i++)
   {
     snprintf(name, sizeof(name), "walker %d", i);
-    movement_trail_record(fixture.rooms[0].trail_tracks, name, "human", DIR_NONE, NORTH, 300 + i);
+    movement_trail_record_at_room(&fixture.rooms[0], name, "human", DIR_NONE, NORTH, 300 + i);
   }
+  trails = movement_trails_at_room(&fixture.rooms[0]);
   trail_count = count_live_movement_trails();
-  trail = fixture.rooms[0].trail_tracks->head;
+  trail = trails->head;
 
   CuAssertIntEquals(tc, TRAIL_MAX_PER_ROOM, (int)trail_count);
   CuAssertTrue(tc, trail != NULL);
   CuAssertIntEquals(tc, 300 + TRAIL_MAX_PER_ROOM + 4, (int)trail->age);
-  CuAssertTrue(tc, fixture.rooms[0].trail_tracks->tail != NULL);
+  CuAssertTrue(tc, trails->tail != NULL);
 
   end_gameplay_fixture(&fixture);
 }
@@ -978,7 +1204,7 @@ void Test_gameplay_e2e_winters_war_march_failed_save_slow_expires(CuTest *tc)
   forced_failure.duration = 1;
   affect_to_char(bard, &forced_failure);
 
-  test_pulse_bard_winters_war_march(bard);
+  test_apply_bard_winters_war_march_verse(bard);
 
   slow_duration = -1;
   for (effect = fixture.victim.affected; effect; effect = effect->next)
@@ -993,7 +1219,7 @@ void Test_gameplay_e2e_winters_war_march_failed_save_slow_expires(CuTest *tc)
   character_list = &fixture.victim;
   affected_registry_attach(&fixture.victim);
   for (update = 0; update < 4; update++)
-    affect_update();
+    affect_update_character_one(&fixture.victim);
   slow_removed = !affected_by_spell(&fixture.victim, AFFECT_BARD_WINTERS_WAR_MARCH);
   affected_registry_detach(&fixture.victim);
   character_list = saved_character_list;
@@ -1026,6 +1252,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   int load_result;
   int loaded_level;
   int loaded_gold;
+  int loaded_mission_cooldown;
   int loaded_race;
   int loaded_boarding;
   int legacy_loaded_boarding;
@@ -1041,6 +1268,8 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   bool changed_directory;
   bool filename_ready;
   bool legacy_file_ready;
+  bool cooldown_checkpoint_written;
+  bool cooldown_checkpoint_backdated;
   char original_directory[PATH_MAX];
   char lib_directory[PATH_MAX];
   char filename[MAX_FILEPATH];
@@ -1069,6 +1298,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   GET_LEVEL(source) = 7;
   GET_REAL_RACE(source) = RACE_YUAN_TI;
   GET_GOLD(source) = 12345;
+  GET_MISSION_COOLDOWN(source) = 10;
   SET_ABILITY(source, ABILITY_BOARDING, 9);
   GET_FACTION_STANDING(source, 1) = 111;
   GET_FACTION_STANDING(source, 2) = -222;
@@ -1099,6 +1329,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   load_result = -1;
   loaded_level = -1;
   loaded_gold = -1;
+  loaded_mission_cooldown = -1;
   loaded_race = RACE_UNDEFINED;
   loaded_boarding = -1;
   legacy_loaded_boarding = -1;
@@ -1111,6 +1342,8 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   loaded_supremacy_migrated = false;
   loaded_stones_endurance_preserved = false;
   legacy_file_ready = false;
+  cooldown_checkpoint_written = false;
+  cooldown_checkpoint_backdated = false;
   restore_result = 0;
 
   if (getcwd(original_directory, sizeof(original_directory)) != NULL &&
@@ -1123,11 +1356,16 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
     if (filename_ready)
     {
       save_char(source, TRUE);
-      load_result = load_char(player_name, loaded);
+      cooldown_checkpoint_written = player_file_has_cooldown_checkpoint(filename);
+      cooldown_checkpoint_backdated =
+          rewrite_player_cooldown_checkpoint(filename, (int64_t)time(NULL) - 120);
+      if (cooldown_checkpoint_backdated)
+        load_result = load_char(player_name, loaded);
       if (load_result >= 0)
       {
         loaded_level = GET_LEVEL(loaded);
         loaded_gold = GET_GOLD(loaded);
+        loaded_mission_cooldown = GET_MISSION_COOLDOWN(loaded);
         loaded_race = GET_REAL_RACE(loaded);
         loaded_boarding = GET_ABILITY(loaded, ABILITY_BOARDING);
         loaded_faction_one = GET_FACTION_STANDING(loaded, 1);
@@ -1163,10 +1401,13 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   CuAssertTrue(tc, changed_directory);
   CuAssertIntEquals(tc, 0, restore_result);
   CuAssertTrue(tc, filename_ready);
+  CuAssertTrue(tc, cooldown_checkpoint_written);
+  CuAssertTrue(tc, cooldown_checkpoint_backdated);
   CuAssertTrue(tc, load_result >= 0);
   CuAssertTrue(tc, loaded_name_matches);
   CuAssertIntEquals(tc, 7, loaded_level);
   CuAssertIntEquals(tc, 12345, loaded_gold);
+  CuAssertIntEquals(tc, 0, loaded_mission_cooldown);
   CuAssertIntEquals(tc, RACE_YUAN_TI, loaded_race);
   CuAssertIntEquals(tc, 9, loaded_boarding);
   CuAssertTrue(tc, legacy_file_ready);
@@ -1572,8 +1813,6 @@ void Test_gameplay_e2e_actual_minimal_world_parse(CuTest *tc)
       free_proto_script(&parsed_world[i].proto_script);
       spec_binding_free(&parsed_world[i].spec_binding);
       free_room_strings(&parsed_world[i]);
-      if (parsed_world[i].trail_tracks != NULL)
-        free_trail_data_list(parsed_world[i].trail_tracks);
     }
   }
   free(parsed_world);
@@ -1587,4 +1826,170 @@ void Test_gameplay_e2e_actual_minimal_world_parse(CuTest *tc)
   CuAssertIntEquals(tc, 4, room_count);
   CuAssertTrue(tc, rooms_match);
   CuAssertTrue(tc, exits_match);
+}
+
+struct ready_combat_trace
+{
+  int hits;
+  int lost;
+};
+
+static void ready_combat_damage(const struct domain_event_context *context, void *data)
+{
+  struct ready_combat_trace *trace = data;
+  const struct domain_character_damaged *damage = context->payload;
+
+  if (damage->amount > 0)
+  {
+    trace->hits++;
+    trace->lost += damage->amount;
+  }
+}
+
+static void verify_readied_cast_outcome(CuTest *tc, int outcome)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct char_data *saved_characters = character_list;
+  struct spell_info_type saved_spell = spell_info[SPELL_CURE_LIGHT];
+  int saved_mode = CONFIG_SPELLCASTING_TIME_MODE;
+  unsigned long saved_pulse = pulse;
+  struct domain_event_subscription_config config = {0};
+  struct domain_event_subscription_handle subscription;
+  struct ready_combat_trace trace = {0};
+  struct attack_action_data *queued;
+  struct ready_action_latency latency;
+  unsigned int tick;
+  struct primary_activity_snapshot cast;
+
+  begin_gameplay_fixture(&f);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  event_init();
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.player.name = "watcher";
+  f.victim.player.name = "caster";
+  f.actor.next = &f.victim;
+  character_list = &f.actor;
+  f.rooms[0].light = 1;
+  GET_HITROLL(&f.actor) = outcome == 2 ? -100 : 100;
+  GET_DAMROLL(&f.actor) = outcome == 1 ? 20 : 100;
+  if (outcome == 1)
+    GET_LEVEL(&f.victim) = 100;
+  GET_CLASS(&f.actor) = CLASS_WARRIOR;
+  CLASS_LEVEL((&f.actor), CLASS_WARRIOR) = 10;
+  GET_CLASS(&f.victim) = CLASS_CLERIC;
+  GET_HIT(&f.victim) = GET_MAX_HIT(&f.victim) = 100000;
+  GET_ATTACK_QUEUE(&f.actor) = create_attack_queue();
+  CONFIG_SPELLCASTING_TIME_MODE = 1;
+  memset(&spell_info[SPELL_CURE_LIGHT], 0, sizeof(spell_info[SPELL_CURE_LIGHT]));
+  spell_info[SPELL_CURE_LIGHT].name = "cure light";
+  spell_info[SPELL_CURE_LIGHT].min_position = POS_FIGHTING;
+  spell_info[SPELL_CURE_LIGHT].targets = TAR_CHAR_ROOM;
+  spell_info[SPELL_CURE_LIGHT].routines = MAG_POINTS;
+  spell_info[SPELL_CURE_LIGHT].time = 1;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  config.type = DOMAIN_EVENT_CHARACTER_DAMAGED;
+  config.topic.role = DOMAIN_EVENT_TOPIC_SUBJECT;
+  config.topic.entity = domain_event_character_handle(&f.victim);
+  config.owner = domain_event_character_handle(&f.actor);
+  config.identity = "test.ready.damage";
+  config.handler = ready_combat_damage;
+  config.handler_context = &trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &config, &subscription));
+  if (outcome == 6)
+  {
+    f.exits[0].exit_info = EX_ISDOOR | EX_CLOSED;
+    do_ready(&f.actor, "attack caster on door open north", 0, 0);
+  }
+  else
+    do_ready(&f.actor, outcome == 5 ? "attack caster on entry" : "attack caster on casting", 0, 0);
+  CuAssertPtrNotNull(tc, f.actor.ready_action);
+  if (outcome == 5)
+    domain_event_runtime_character_moved(&f.victim, 1, 0, SOUTH);
+  CuAssertIntEquals(tc, 1, cast_spell(&f.victim, &f.victim, NULL, SPELL_CURE_LIGHT, 0));
+  CuAssertTrue(tc, IS_CASTING(&f.victim));
+  if (outcome == 6)
+    door_state_update(0, NORTH, EX_CLOSED, 0, false, DOMAIN_DOOR_GAMEPLAY);
+  if (outcome == 4)
+    SET_BIT_AR(AFF_FLAGS(&f.actor), AFF_BLIND);
+  queued = calloc(1U, sizeof(*queued));
+  queued->attack_type = AA_KICK;
+  queued->argument = strdup("caster");
+  enqueue_attack(GET_ATTACK_QUEUE(&f.actor), queued);
+  circle_srandom(1234);
+  pulse += outcome == 3 ? 2 * PASSES_PER_SEC : 1;
+  event_test_advance();
+  CuAssertPtrEquals(tc, NULL, f.actor.ready_action);
+  CuAssertIntEquals(tc, outcome == 2 || outcome == 4 ? 0 : 1, trace.hits);
+  CuAssertIntEquals(tc, 1, pending_attacks(&f.actor));
+  if (outcome == 0 || outcome == 3 || outcome == 5 || outcome == 6)
+  {
+    CuAssertTrue(tc, trace.lost >= 80);
+    CuAssertTrue(tc, !IS_CASTING(&f.victim));
+  }
+  else
+    CuAssertTrue(tc, IS_CASTING(&f.victim));
+  CuAssertTrue(tc, !is_action_available(&f.actor, atSTANDARD, false));
+  ready_action_latency_read(&latency);
+  CuAssertTrue(tc, latency.callbacks == 1U);
+  stop_fighting(&f.actor);
+  stop_fighting(&f.victim);
+  for (tick = 0; tick < 3 * PASSES_PER_SEC; tick++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+  CuAssertTrue(tc, !primary_activity_snapshot(&f.victim, &cast));
+  CuAssertTrue(tc, !IS_CASTING(&f.victim));
+  domain_event_runtime_shutdown();
+  event_free_all();
+  free_attack_queue(GET_ATTACK_QUEUE(&f.actor));
+  GET_ATTACK_QUEUE(&f.actor) = NULL;
+  if (f.actor.events != NULL)
+    free_list(f.actor.events);
+  if (f.victim.events != NULL)
+    free_list(f.victim.events);
+  CONFIG_SPELLCASTING_TIME_MODE = saved_mode;
+  spell_info[SPELL_CURE_LIGHT] = saved_spell;
+  character_list = saved_characters;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&f);
+}
+
+void Test_gameplay_readied_strike_damage_interrupts_real_timed_cast(CuTest *tc)
+{
+  verify_readied_cast_outcome(tc, 0);
+}
+
+void Test_gameplay_readied_strike_successful_concentration_preserves_cast(CuTest *tc)
+{
+  verify_readied_cast_outcome(tc, 1);
+}
+
+void Test_gameplay_readied_strike_miss_preserves_cast(CuTest *tc)
+{
+  verify_readied_cast_outcome(tc, 2);
+}
+
+void Test_gameplay_readied_strike_precedes_cast_when_both_deadlines_are_overdue(CuTest *tc)
+{
+  verify_readied_cast_outcome(tc, 3);
+}
+
+void Test_gameplay_readied_strike_rechecks_visibility_at_execution(CuTest *tc)
+{
+  verify_readied_cast_outcome(tc, 4);
+}
+
+void Test_gameplay_readied_entry_strike_uses_single_reserved_attack(CuTest *tc)
+{
+  verify_readied_cast_outcome(tc, 5);
+}
+
+void Test_gameplay_readied_door_strike_uses_single_reserved_attack(CuTest *tc)
+{
+  verify_readied_cast_outcome(tc, 6);
 }

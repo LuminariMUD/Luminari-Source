@@ -140,9 +140,7 @@ struct spatial_system visual_system = {.system_name = "Visual",
                                        .modifiers = &weather_terrain_modifier_strategy,
                                        .enabled = TRUE,
                                        .global_range_multiplier = 1.0f,
-                                       .global_intensity_multiplier = 1.0f,
-                                       .pubsub_topic = "visual_wilderness",
-                                       .pubsub_handler = "visual_stimulus_handler"};
+                                       .global_intensity_multiplier = 1.0f};
 
 /*
  * Visual Stimulus Strategy Implementation
@@ -171,14 +169,13 @@ static int visual_calculate_intensity(struct spatial_context *ctx)
     distance_factor = 1.0f / (1.0f + (ctx->distance / 100.0f));
   }
 
-  /* Base intensity starts at 1.0 and is modified by distance */
-  ctx->base_intensity = distance_factor;
+  ctx->distance_attenuation = distance_factor;
 
   spatial_debug("Visual intensity calculated: %.3f (distance: %.1f, factor: %.3f)",
-                ctx->base_intensity, ctx->distance, distance_factor);
+                ctx->base_intensity * ctx->distance_attenuation, ctx->distance, distance_factor);
 
-  spatial_log("SPATIAL: Base intensity for visual: %.6f at distance %.2f", ctx->base_intensity,
-              ctx->distance);
+  spatial_log("SPATIAL: Visual intensity %.6f from source %.6f at distance %.2f",
+              ctx->base_intensity * ctx->distance_attenuation, ctx->base_intensity, ctx->distance);
 
   return SPATIAL_SUCCESS;
 }
@@ -708,21 +705,22 @@ int spatial_visual_init(void)
   return SPATIAL_SUCCESS;
 }
 
-/*
- * Test function - simulate a ship passing by
- */
-int spatial_visual_test_ship_passing(int ship_x, int ship_y, const char *ship_desc)
+/* Deliver one event-driven sight to eligible active wilderness players. */
+int spatial_visual_emit(int source_x, int source_y, int source_z, const char *description,
+                        float intensity, int range)
 {
   struct spatial_context *ctx;
   struct char_data *ch;
+  struct descriptor_data *descriptor;
   int processed_count = 0;
 
-  if (!ship_desc)
+  if (!description)
   {
     return SPATIAL_ERROR_INVALID_PARAM;
   }
 
-  spatial_log("Testing ship passing at (%d, %d): %s", ship_x, ship_y, ship_desc);
+  spatial_log("Emitting visual event at (%d, %d, %d): %s", source_x, source_y, source_z,
+              description);
 
   /* Create properly initialized context */
   ctx = spatial_create_context();
@@ -733,18 +731,22 @@ int spatial_visual_test_ship_passing(int ship_x, int ship_y, const char *ship_de
   }
 
   /* Set source information */
-  ctx->source_x = ship_x;
-  ctx->source_y = ship_y;
-  ctx->source_z = 0; /* Sea level */
-  ctx->source_description = strdup(ship_desc);
-  ctx->base_intensity = 1.0;
+  ctx->source_x = source_x;
+  ctx->source_y = source_y;
+  ctx->source_z = source_z;
+  ctx->source_description = strdup(description);
+  ctx->base_intensity = intensity;
 
-  /* Process for all wilderness players */
-  for (ch = character_list; ch; ch = ch->next)
+  /* Only connected observers can receive a sight; do not traverse the NPC population. */
+  for (descriptor = descriptor_list; descriptor; descriptor = descriptor->next)
   {
-    if (IS_NPC(ch) || !ch->desc)
+    ch = descriptor->character;
+    if (ch == NULL || IS_NPC(ch) || IN_ROOM(ch) == NOWHERE || IN_ROOM(ch) > top_of_world)
       continue;
     if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+      continue;
+    /* The publication radius is in map coordinates; altitude affects line of sight. */
+    if (hypot((double)X_LOC(ch) - source_x, (double)Y_LOC(ch) - source_y) > range)
       continue;
 
     /* Set observer information */
@@ -754,7 +756,7 @@ int spatial_visual_test_ship_passing(int ship_x, int ship_y, const char *ship_de
     ctx->observer_z = get_modified_elevation(X_LOC(ch), Y_LOC(ch));
     ctx->active_system = &visual_system;
 
-    spatial_log("Testing visual for player %s at (%d, %d, %d)", GET_NAME(ch), ctx->observer_x,
+    spatial_log("Processing visual for player %s at (%d, %d, %d)", GET_NAME(ch), ctx->observer_x,
                 ctx->observer_y, ctx->observer_z);
 
     /* Process visual stimulus */
@@ -776,7 +778,7 @@ int spatial_visual_test_ship_passing(int ship_x, int ship_y, const char *ship_de
   /* Cleanup */
   spatial_free_context(ctx);
 
-  spatial_log("Ship passing test processed for %d players", processed_count);
+  spatial_log("Visual event processed for %d players", processed_count);
   return SPATIAL_SUCCESS;
 }
 

@@ -29,6 +29,9 @@
 #include "olc/genzon.h" /* for real_zone_by_thing */
 #include "act.h"
 #include "modify.h"
+#include "domain_event_world.h"
+#include "event_runtime.h"
+#include "point_update_periodic.h"
 
 /* Enable this to debug DG script parameter corruption issues */
 /* #define SCRIPT_DEBUG */
@@ -72,8 +75,15 @@ static struct cmdlist_element *find_case(struct trig_data *trig, struct cmdlist_
 static struct cmdlist_element *find_done(struct cmdlist_element *cl);
 static struct char_data *find_char_by_uid_in_lookup_table(long uid);
 static struct obj_data *find_obj_by_uid_in_lookup_table(long uid);
-static EVENTFUNC(trig_wait_event);
-static void cleanup_trig_wait_event(struct event *event);
+static struct game_event_result trig_wait_event(const struct game_event_context *context);
+static void cleanup_trig_wait_event(void *event_obj);
+
+static game_event_type_id_t dg_wait_event_type;
+#ifdef LUMINARI_CUTEST
+static uint64_t test_wait_resume_count;
+static uint64_t test_deferred_trigger_free_count;
+static bool test_fail_next_wait_schedule;
+#endif
 
 /* Return pointer to first occurrence of string ct in cs, or NULL if not
  * present.  Case insensitive. All of ct must be found in cs for it to be
@@ -665,153 +675,406 @@ obj_data *get_obj_by_room(room_data *room, char *name)
   return NULL;
 }
 
-/* checks every PULSE_SCRIPT for random triggers */
-void script_trigger_check(void)
+bool dg_random_trigger_run_one(void *owner, int owner_type)
 {
   char_data *ch;
   obj_data *obj;
   struct room_data *room;
   struct script_data *sc;
-  uint64_t acted;
-  uint64_t eligible;
-  uint64_t visited;
 
-  acted = 0;
-  visited = 0;
-  eligible = dg_random_registry_count(MOB_TRIGGER);
-  for (ch = dg_random_registry_iteration_begin(MOB_TRIGGER); ch != NULL;
-       ch = dg_random_registry_iteration_next())
+  if (owner == NULL)
+    return false;
+  switch (owner_type)
   {
-    visited++;
+  case MOB_TRIGGER:
+    ch = owner;
     sc = SCRIPT(ch);
-    if (IN_ROOM(ch) != NOWHERE &&
-        (!is_empty(world[IN_ROOM(ch)].zone) || IS_SET(SCRIPT_TYPES(sc), MTRIG_GLOBAL)))
+    if (sc != NULL && IN_ROOM(ch) != NOWHERE &&
+        (IS_SET(SCRIPT_TYPES(sc), MTRIG_GLOBAL) || !is_empty(world[IN_ROOM(ch)].zone)))
     {
       random_mtrigger(ch);
-      acted++;
+      return true;
     }
-  }
-  dg_random_registry_iteration_end();
-  PERF_note_sweep(PERF_SWEEP_DG_MOBILE_RANDOM, visited, eligible, acted);
-
-  acted = 0;
-  visited = 0;
-  eligible = dg_random_registry_count(OBJ_TRIGGER);
-  for (obj = dg_random_registry_iteration_begin(OBJ_TRIGGER); obj != NULL;
-       obj = dg_random_registry_iteration_next())
-  {
-    visited++;
+    break;
+  case OBJ_TRIGGER:
+    obj = owner;
     random_otrigger(obj);
-    acted++;
-  }
-  dg_random_registry_iteration_end();
-  PERF_note_sweep(PERF_SWEEP_DG_OBJECT_RANDOM, visited, eligible, acted);
-
-  acted = 0;
-  visited = 0;
-  eligible = dg_random_registry_count(WLD_TRIGGER);
-  for (room = dg_random_registry_iteration_begin(WLD_TRIGGER); room != NULL;
-       room = dg_random_registry_iteration_next())
-  {
-    visited++;
+    return true;
+  case WLD_TRIGGER:
+    room = owner;
     sc = SCRIPT(room);
-    if (!is_empty(room->zone) || IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL))
+    if (sc != NULL && (IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL) || !is_empty(room->zone)))
     {
       random_wtrigger(room);
-      acted++;
+      return true;
     }
+    break;
   }
-  dg_random_registry_iteration_end();
-  PERF_note_sweep(PERF_SWEEP_DG_ROOM_RANDOM, visited, eligible, acted);
+  return false;
+}
+
+
+bool dg_time_trigger_run_one(void *owner, int owner_type)
+{
+  char_data *ch;
+  obj_data *obj;
+  struct room_data *room;
+  struct script_data *sc;
+
+  if (owner == NULL)
+    return false;
+  switch (owner_type)
+  {
+  case MOB_TRIGGER:
+    ch = owner;
+    sc = SCRIPT(ch);
+    if (sc == NULL || !IS_SET(SCRIPT_TYPES(sc), MTRIG_TIME) || world == NULL ||
+        !VALID_ROOM_RNUM(IN_ROOM(ch)) ||
+        (is_empty(world[IN_ROOM(ch)].zone) && !IS_SET(SCRIPT_TYPES(sc), MTRIG_GLOBAL)))
+      return false;
+    time_mtrigger(ch);
+    return true;
+  case OBJ_TRIGGER:
+    obj = owner;
+    sc = SCRIPT(obj);
+    if (sc == NULL || !IS_SET(SCRIPT_TYPES(sc), OTRIG_TIME))
+      return false;
+    time_otrigger(obj);
+    return true;
+  case WLD_TRIGGER:
+    room = owner;
+    sc = SCRIPT(room);
+    if (sc == NULL || !IS_SET(SCRIPT_TYPES(sc), WTRIG_TIME) ||
+        (is_empty(room->zone) && !IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL)))
+      return false;
+    time_wtrigger(room);
+    return true;
+  default:
+    return false;
+  }
 }
 
 void check_time_triggers(void)
 {
-  char_data *ch, *next_ch;
-  obj_data *obj;
-  struct room_data *room = NULL;
-  room_rnum nr;
-  struct script_data *sc;
+  void *owner;
+  int owner_type;
+  bool executed;
 
-  for (ch = character_list; ch; ch = next_ch)
+  for (owner_type = MOB_TRIGGER; owner_type <= WLD_TRIGGER; owner_type++)
   {
-    next_ch = ch->next; /* Cache next char before potential script extraction */
-
-    if (SCRIPT(ch))
+    for (owner = dg_time_registry_iteration_begin(owner_type); owner != NULL;
+         owner = dg_time_registry_iteration_next())
     {
-      sc = SCRIPT(ch);
-
-      if (IS_SET(SCRIPT_TYPES(sc), WTRIG_TIME) &&
-          (!is_empty(world[IN_ROOM(ch)].zone) || IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL)))
-        time_mtrigger(ch);
+      executed = dg_time_trigger_run_one(owner, owner_type);
+      dg_time_registry_note_dispatch(owner_type, executed);
     }
-  }
-
-  for (obj = object_list; obj; obj = obj->next)
-  {
-    if (SCRIPT(obj))
-    {
-      sc = SCRIPT(obj);
-
-      if (IS_SET(SCRIPT_TYPES(sc), OTRIG_TIME))
-        time_otrigger(obj);
-    }
-  }
-
-  for (nr = 0; nr <= top_of_world; nr++)
-  {
-    if (SCRIPT(&world[nr]))
-    {
-      room = &world[nr];
-      sc = SCRIPT(room);
-
-      if (IS_SET(SCRIPT_TYPES(sc), WTRIG_TIME) &&
-          (!is_empty(room->zone) || IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL)))
-        time_wtrigger(room);
-    }
+    dg_time_registry_iteration_end();
   }
 }
 
-static EVENTFUNC(trig_wait_event)
+static struct game_event_owner dg_wait_owner(void *go, int type)
 {
-  struct wait_event_data *wait_event_obj = (struct wait_event_data *)event_obj;
+  struct domain_entity_handle entity = domain_entity_handle_none();
+  struct game_event_owner owner = game_event_owner_none();
+  room_rnum room;
+
+  if (go == NULL)
+    return owner;
+  switch (type)
+  {
+  case MOB_TRIGGER:
+    entity = domain_event_character_handle(go);
+    owner.kind = GAME_EVENT_OWNER_CHARACTER;
+    break;
+  case OBJ_TRIGGER:
+    entity = domain_event_object_handle(go);
+    owner.kind = GAME_EVENT_OWNER_OBJECT;
+    break;
+  case WLD_TRIGGER:
+    room = real_room(((struct room_data *)go)->number);
+    entity = domain_event_room_handle(room);
+    owner.kind = GAME_EVENT_OWNER_ROOM;
+    break;
+  default:
+    return game_event_owner_none();
+  }
+  if (!domain_entity_handle_is_valid(entity))
+    return game_event_owner_none();
+  owner.runtime_id = entity.runtime_id;
+  owner.generation = entity.generation;
+  return owner;
+}
+
+static void detach_trig_wait(struct wait_event_data *wait_event_obj)
+{
+  trig_data *trig;
+
+  if (wait_event_obj == NULL || (trig = wait_event_obj->trigger) == NULL ||
+      GET_TRIG_WAIT_DATA(trig) != wait_event_obj)
+    return;
+  GET_TRIG_WAIT_HANDLE(trig) = EVENT_RUNTIME_HANDLE_NONE;
+  GET_TRIG_WAIT_DATA(trig) = NULL;
+}
+
+static void resume_trig_wait(struct wait_event_data *wait_event_obj)
+{
   trig_data *trig;
   void *go;
   int type;
 
+  if (wait_event_obj == NULL || wait_event_obj->trigger == NULL ||
+      GET_TRIG_WAIT_DATA(wait_event_obj->trigger) != wait_event_obj)
+    return;
   trig = wait_event_obj->trigger;
   go = wait_event_obj->go;
   type = wait_event_obj->type;
-
-  free(wait_event_obj);
-  GET_TRIG_WAIT(trig) = NULL;
-
-  /* Owner teardown extracts attached scripts, and trigger extraction cancels
-   * GET_TRIG_WAIT. Reaching this callback therefore proves the owner remains
-   * valid without scanning every character, object, or room. */
+  detach_trig_wait(wait_event_obj);
+  wait_event_obj->trigger = NULL;
 
   {
     struct script_call_args restart_args = {&go, trig, type, TRIG_RESTART};
+#ifdef LUMINARI_CUTEST
+    test_wait_resume_count++;
+#endif
     script_driver(&restart_args);
   }
+}
 
-  /* Do not reenqueue*/
+static struct game_event_result trig_wait_event(const struct game_event_context *context)
+{
+  struct wait_event_data *wait_event_obj = context != NULL ? context->payload : NULL;
+
+#ifdef LUMINARI_CUTEST
+  if (context != NULL && wait_event_obj != NULL && wait_event_obj->free_trigger_on_dispatch &&
+      wait_event_obj->trigger != NULL &&
+      GET_TRIG_WAIT_DATA(wait_event_obj->trigger) == wait_event_obj &&
+      GET_TRIG_WAIT_HANDLE(wait_event_obj->trigger).id == context->event_id)
+  {
+    free_trigger(wait_event_obj->trigger);
+    return game_event_result_complete();
+  }
+#endif
+  /* Owner teardown extracts attached scripts, and trigger extraction cancels
+   * GET_TRIG_WAIT_HANDLE. Reaching this callback therefore proves the owner remains
+   * valid without scanning every character, object, or room. */
+  if (wait_event_obj != NULL && wait_event_obj->trigger != NULL &&
+      GET_TRIG_WAIT_DATA(wait_event_obj->trigger) == wait_event_obj &&
+      GET_TRIG_WAIT_HANDLE(wait_event_obj->trigger).id == context->event_id)
+    resume_trig_wait(wait_event_obj);
+  return game_event_result_complete();
+}
+
+
+static void cleanup_trig_wait_event(void *event_obj)
+{
+  struct wait_event_data *wait_event_obj = event_obj;
+  struct trig_data *trig;
+  bool destroy_trigger;
+
+  if (wait_event_obj == NULL)
+    return;
+  trig = wait_event_obj->trigger;
+  destroy_trigger = wait_event_obj->destroy_trigger_after_cleanup;
+  detach_trig_wait(wait_event_obj);
+  free(wait_event_obj);
+  if (destroy_trigger && trig != NULL)
+  {
+#ifdef LUMINARI_CUTEST
+    test_deferred_trigger_free_count++;
+#endif
+    free_trigger(trig);
+  }
+}
+
+
+static bool schedule_trig_wait(struct trig_data *trig, void *go, int type, long when,
+                               struct game_event_owner owner, bool free_trigger_on_dispatch)
+{
+  struct wait_event_data *wait_event_obj;
+  struct event_runtime_handle new_runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
+  enum game_scheduler_status status;
+  bool replacing_wait;
+
+  if (trig == NULL || !game_event_owner_is_valid(owner))
+    return false;
+  replacing_wait = GET_TRIG_WAIT_DATA(trig) != NULL;
+  if (replacing_wait && dg_trigger_wait_is_dispatching(trig))
+  {
+    log("SYSERR: unable to replace a DG wait while its prior event is dispatching.");
+    return false;
+  }
+  when = MAX(when, 1L);
+  CREATE(wait_event_obj, struct wait_event_data, 1);
+  wait_event_obj->trigger = trig;
+  wait_event_obj->go = go;
+  wait_event_obj->type = type;
+#ifdef LUMINARI_CUTEST
+  wait_event_obj->free_trigger_on_dispatch = free_trigger_on_dispatch;
+#else
+  (void)free_trigger_on_dispatch;
+#endif
+#ifdef LUMINARI_CUTEST
+  if (test_fail_next_wait_schedule)
+    test_fail_next_wait_schedule = false;
+  else
+#endif
+  {
+    if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER)
+    {
+      if (!dg_wait_runtime_init())
+        status = GAME_SCHEDULER_REGISTRATION_CLOSED;
+      else
+        status = event_runtime_schedule_owned_after(dg_wait_event_type, owner, (game_tick_t)when,
+                                                    wait_event_obj, &new_runtime_handle);
+      if (status != GAME_SCHEDULER_OK)
+        new_runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
+    }
+    else
+    {
+      status = GAME_SCHEDULER_INVALID_ARGUMENT;
+    }
+  }
+  if (event_runtime_handle_is_none(new_runtime_handle))
+  {
+    free(wait_event_obj);
+    return false;
+  }
+
+  if (replacing_wait)
+  {
+    dg_trigger_wait_cancel(trig);
+    if (GET_TRIG_WAIT_DATA(trig) != NULL)
+    {
+      if (!event_runtime_handle_is_none(new_runtime_handle))
+        (void)event_runtime_cancel(new_runtime_handle);
+      log("SYSERR: unable to replace a DG wait because its prior event did not cancel.");
+      return false;
+    }
+  }
+
+  GET_TRIG_WAIT_DATA(trig) = wait_event_obj;
+  GET_TRIG_WAIT_HANDLE(trig) = new_runtime_handle;
+  return true;
+}
+
+bool dg_wait_runtime_init(void)
+{
+  struct game_event_type_config config;
+  const char *registered_name;
+  enum game_scheduler_status status;
+
+  if (!event_runtime_is_initialized())
+    return false;
+  registered_name = event_runtime_type_name(dg_wait_event_type);
+  if (registered_name != NULL && !strcmp(registered_name, "dg.trigger.wait"))
+    return true;
+  dg_wait_event_type = 0U;
+  memset(&config, 0, sizeof(config));
+  config.name = "dg.trigger.wait";
+  config.handler = trig_wait_event;
+  config.cleanup = cleanup_trig_wait_event;
+  config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  config.requires_owner = true;
+  status = event_runtime_register_type(&config, &dg_wait_event_type);
+  if (status != GAME_SCHEDULER_OK)
+  {
+    log("SYSERR: unable to register native event type 'dg.trigger.wait' (status %d).", status);
+    return false;
+  }
+  return true;
+}
+
+bool dg_trigger_wait_is_live(const struct trig_data *trig)
+{
+  if (trig == NULL)
+    return false;
+  if (!event_runtime_handle_is_none(GET_TRIG_WAIT_HANDLE(trig)))
+    return event_runtime_handle_is_live(GET_TRIG_WAIT_HANDLE(trig));
+  return false;
+}
+
+bool dg_trigger_wait_is_dispatching(const struct trig_data *trig)
+{
+  struct game_event_snapshot snapshot;
+
+  if (trig == NULL)
+    return false;
+  if (!event_runtime_handle_is_none(GET_TRIG_WAIT_HANDLE(trig)))
+  {
+    if (event_runtime_inspect(GET_TRIG_WAIT_HANDLE(trig), &snapshot) != GAME_SCHEDULER_OK)
+      return false;
+    return snapshot.state == GAME_EVENT_STATE_DISPATCHING ||
+           snapshot.state == GAME_EVENT_STATE_CANCEL_PENDING;
+  }
+  return false;
+}
+
+long dg_trigger_wait_remaining(const struct trig_data *trig)
+{
+  game_tick_t remaining;
+
+  if (trig == NULL)
+    return 0;
+  if (!event_runtime_handle_is_none(GET_TRIG_WAIT_HANDLE(trig)))
+  {
+    if (event_runtime_remaining(GET_TRIG_WAIT_HANDLE(trig), &remaining) != GAME_SCHEDULER_OK)
+      return 0;
+    return remaining > LONG_MAX ? LONG_MAX : (long)remaining;
+  }
   return 0;
 }
 
-static void cleanup_trig_wait_event(struct event *event)
+void dg_trigger_wait_cancel(struct trig_data *trig)
 {
-  struct wait_event_data *wait_event_obj;
-
-  if (event == NULL || event->event_obj == NULL)
+  if (trig == NULL)
     return;
-
-  wait_event_obj = (struct wait_event_data *)event->event_obj;
-  if (wait_event_obj->trigger != NULL && GET_TRIG_WAIT(wait_event_obj->trigger) == event)
-    GET_TRIG_WAIT(wait_event_obj->trigger) = NULL;
-
-  free(wait_event_obj);
+  if (!event_runtime_handle_is_none(GET_TRIG_WAIT_HANDLE(trig)))
+    (void)event_runtime_cancel(GET_TRIG_WAIT_HANDLE(trig));
 }
+
+#ifdef LUMINARI_CUTEST
+static struct game_event_owner dg_wait_test_owner(void)
+{
+  struct game_event_owner owner = game_event_owner_none();
+
+  owner.kind = GAME_EVENT_OWNER_SERVICE;
+  owner.runtime_id = UINT64_C(0x44475741);
+  owner.generation = 1U;
+  return owner;
+}
+
+bool dg_wait_schedule_for_test(struct trig_data *trig, long when)
+{
+  return schedule_trig_wait(trig, NULL, WLD_TRIGGER, when, dg_wait_test_owner(), false);
+}
+
+bool dg_wait_schedule_inflight_free_for_test(struct trig_data *trig, long when)
+{
+  return schedule_trig_wait(trig, NULL, WLD_TRIGGER, when, dg_wait_test_owner(), true);
+}
+
+void dg_wait_fail_next_schedule_for_test(void)
+{
+  test_fail_next_wait_schedule = true;
+}
+
+void dg_wait_reset_telemetry_for_test(void)
+{
+  test_wait_resume_count = 0U;
+  test_deferred_trigger_free_count = 0U;
+  test_fail_next_wait_schedule = false;
+}
+
+uint64_t dg_wait_resume_count_for_test(void)
+{
+  return test_wait_resume_count;
+}
+
+uint64_t dg_wait_deferred_free_count_for_test(void)
+{
+  return test_deferred_trigger_free_count;
+}
+#endif
 
 static void do_stat_trigger(struct char_data *ch, trig_data *trig)
 {
@@ -931,10 +1194,10 @@ static void script_stat(char_data *ch, struct script_data *sc)
                  buf1, GET_TRIG_NARG(t),
                  ((GET_TRIG_ARG(t) && *GET_TRIG_ARG(t)) ? GET_TRIG_ARG(t) : "None"));
 
-    if (GET_TRIG_WAIT(t))
+    if (dg_trigger_wait_is_live(t))
     {
       send_to_char(ch, "    \tCWait:\tn %ld\tC, Current line: \tn%s\r\n",
-                   event_time(GET_TRIG_WAIT(t)),
+                   dg_trigger_wait_remaining(t),
                    t->curr_state ? t->curr_state->cmd : "End of Script");
       send_to_char(ch, "  \tCVariables: \tn%s\r\n", GET_TRIG_VARS(t) ? "" : "None");
 
@@ -1027,6 +1290,9 @@ void add_trigger(struct script_data *sc, trig_data *t, int loc)
 
   SCRIPT_TYPES(sc) |= GET_TRIG_TYPE(t);
   dg_random_registry_sync(sc);
+  dg_time_registry_sync(sc);
+  if (sc->owner_type == OBJ_TRIGGER)
+    point_update_object_sync(sc->owner);
 
   t->next_in_world = trigger_list;
   trigger_list = t;
@@ -1264,6 +1530,9 @@ static int remove_trigger(struct script_data *sc, char *name)
     for (i = TRIGGERS(sc); i; i = i->next)
       SCRIPT_TYPES(sc) |= GET_TRIG_TYPE(i);
     dg_random_registry_sync(sc);
+    dg_time_registry_sync(sc);
+    if (sc->owner_type == OBJ_TRIGGER)
+      point_update_object_sync(sc->owner);
 
     return 1;
   }
@@ -1844,7 +2113,7 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
                          struct cmdlist_element *cl)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'}, *arg;
-  struct wait_event_data *wait_event_obj;
+  struct game_event_owner owner;
   long when = 0, hr = 0, min = 0, ntime = 0;
   char c = '\0';
 
@@ -1899,18 +2168,15 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
     }
   }
 
-  CREATE(wait_event_obj, struct wait_event_data, 1);
-  wait_event_obj->trigger = trig;
-  wait_event_obj->go = go;
-  wait_event_obj->type = type;
-
-  GET_TRIG_WAIT(trig) =
-      event_create_with_cleanup(trig_wait_event, wait_event_obj, when, cleanup_trig_wait_event);
-  if (GET_TRIG_WAIT(trig) == NULL)
+  owner = dg_wait_owner(go, type);
+  if (!game_event_owner_is_valid(owner))
   {
-    free(wait_event_obj);
+    script_log("Trigger: %s, VNum %d. wait has no valid runtime owner.", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig));
     return;
   }
+  if (!schedule_trig_wait(trig, go, type, when, owner, false))
+    return;
 
   trig->curr_state = cl->next;
 }

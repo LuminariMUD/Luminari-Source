@@ -28,6 +28,7 @@
 #include "craft/alchemy.h"
 #include "character/race.h"
 #include "transport.h"
+#include "../character_periodic.h"
 #include "dgscript/dg_scripts.h"
 #include "wilderness/wilderness.h"
 #include "graph.h"
@@ -880,6 +881,7 @@ ACMDU(do_walkto_full)
   }
 
   GET_WALKTO_LOC(ch) = landmark;
+  character_periodic_sync(ch);
   send_to_char(ch, "You begin walking to '%s'.\r\n",
                get_walkto_landmark_name(walkto_vnum_to_list_row(landmark)));
 }
@@ -937,6 +939,7 @@ ACMDU(do_walkto_city)
   }
 
   GET_WALKTO_LOC(ch) = landmark;
+  character_periodic_sync(ch);
   send_to_char(ch, "You begin walking to the %s.\r\n",
                get_walkto_landmark_name(walkto_vnum_to_list_row(landmark)));
 }
@@ -1114,59 +1117,50 @@ ACMD(do_landmarks_city)
 }
 
 
-void process_walkto_actions(void)
+void process_walkto_action(struct char_data *ch)
 {
-  struct descriptor_data *d = NULL;
-  struct char_data *ch = NULL;
   int dir = 0;
   room_rnum destination = NOWHERE;
 
-  for (d = descriptor_list; d; d = d->next)
+  if (ch == NULL || IS_NPC(ch) || ch->player_specials == NULL || !GET_WALKTO_LOC(ch))
+    return;
+  if (ch->desc == NULL || STATE(ch->desc) != CON_PLAYING || IN_ROOM(ch) == NOWHERE)
   {
-    ch = d->character;
-    if (!ch || IS_NPC(ch) || ch->player_specials == NULL)
-      continue;
-    if (!GET_WALKTO_LOC(ch))
-      continue;
-    if (STATE(d) != CON_PLAYING || IN_ROOM(ch) == NOWHERE)
-    {
-      GET_WALKTO_LOC(ch) = 0;
-      continue;
-    }
-    destination = real_room(GET_WALKTO_LOC(ch));
-    if (destination == NOWHERE)
-    {
-      send_to_char(ch,
-                   "Your walk to '%s' has been interrupted because that landmark is no longer "
-                   "available.\r\n",
-                   get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
-      GET_WALKTO_LOC(ch) = 0;
-      continue;
-    }
-    if ((dir = find_first_step(IN_ROOM(ch), destination)) < 0)
-    {
-      send_to_char(ch, "Your walk to '%s' has been interrupted %d.\r\n",
-                   get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))), dir);
-      GET_WALKTO_LOC(ch) = 0;
-      continue;
-    }
-    else
-    {
-      perform_move(ch, dir, 1);
-      if (IN_ROOM(ch) == destination)
-      {
-        send_to_char(ch, "You have arrived at the '%s' landmark.\r\n",
-                     get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
-        GET_WALKTO_LOC(ch) = 0;
-      }
-      else if (GET_WALKTO_LOC(ch))
-      {
-        send_to_char(ch, "You continue walking to '%s'.  Type walkto cancel to stop.\r\n",
-                     get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
-      }
-    }
+    GET_WALKTO_LOC(ch) = 0;
+    return;
+  }
+  destination = real_room(GET_WALKTO_LOC(ch));
+  if (destination == NOWHERE)
+  {
+    send_to_char(ch,
+                 "Your walk to '%s' has been interrupted because that landmark is no longer "
+                 "available.\r\n",
+                 get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
+    GET_WALKTO_LOC(ch) = 0;
+    return;
+  }
+  if ((dir = find_first_step(IN_ROOM(ch), destination)) < 0)
+  {
+    send_to_char(ch, "Your walk to '%s' has been interrupted %d.\r\n",
+                 get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))), dir);
+    GET_WALKTO_LOC(ch) = 0;
+    return;
+  }
+
+  perform_move(ch, dir, 1);
+  if (IN_ROOM(ch) == destination)
+  {
+    send_to_char(ch, "You have arrived at the '%s' landmark.\r\n",
+                 get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
+    GET_WALKTO_LOC(ch) = 0;
+  }
+  else if (GET_WALKTO_LOC(ch))
+  {
+    send_to_char(ch, "You continue walking to '%s'.  Type walkto cancel to stop.\r\n",
+                 get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
   }
 }
+
 
 int walkto_vnum_to_list_row(int vnum)
 {

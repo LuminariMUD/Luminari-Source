@@ -1,6 +1,6 @@
 -- ============================================================================
 -- LuminariMUD Master Database Schema
--- Sources: src/db_init.c, src/pubsub/pubsub_db.c
+-- Sources: src/db_init.c and retained compatibility schemas
 -- This schema captures the runtime expectations baked into the codebase so
 -- freshly cloned environments can provision MySQL/MariaDB consistently.
 -- ============================================================================
@@ -1061,7 +1061,11 @@ CREATE TABLE IF NOT EXISTS ship_crew_roster (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------------------------
--- PubSub Messaging System
+-- DEPRECATED: retired PubSub messaging system
+--
+-- These tables are retained solely to preserve existing production data.
+-- The game runtime does not initialize, read, write, rename, or process them.
+-- Do not drop them without a separately reviewed backup and schema migration.
 -- --------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS pubsub_topics (

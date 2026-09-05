@@ -98,7 +98,11 @@ ACMD_DECL(do_alias);
 enum command_feature_flag
 {
   CMD_FEATURE_NONE = 0,
-  CMD_FEATURE_VESSEL = (1 << 0)
+  CMD_FEATURE_VESSEL = (1 << 0),
+  CMD_FEATURE_ACTIVITY_INFORMATION = (1 << 1),
+  CMD_FEATURE_ACTIVITY_SPEECH = (1 << 2),
+  CMD_FEATURE_ACTIVITY_CONTROL = (1 << 3),
+  CMD_FEATURE_ACTIVITY_MOVEMENT = (1 << 4)
 };
 
 struct command_info

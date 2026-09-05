@@ -4867,7 +4867,7 @@ static bool check_preparation_complete(struct char_data *ch, int class)
  * - PASSES_PER_SEC: Event continues next second
  * - PASSES_PER_SEC/2: Event continues in 0.5 seconds (with Song of Focused Mind)
  */
-EVENTFUNC(event_preparation)
+MUD_EVENT_CALLBACK(event_preparation)
 {
   int class = 0;
   struct char_data *ch = NULL;

@@ -24,6 +24,7 @@
 #include "spec/spec_combat.h"
 #include "spec/spec_context.h"
 #include "spec/spec_rol_pilot.h"
+#include "point_update_periodic.h"
 
 static bool rol_identify(struct char_data *ch, int cmd, const char *argument,
                          const char *description)
@@ -262,7 +263,7 @@ int rol_cemetery_skeletal_hand(struct char_data *ch, void *me, int cmd, const ch
   act("A dark nimbus spreads from $p and surrounds you.", FALSE, ch, obj, NULL, TO_CHAR);
   act("A dark nimbus spreads from $n's $p and surrounds $m.", FALSE, ch, obj, NULL, TO_ROOM);
   call_magic(ch, ch, NULL, SPELL_PROT_FROM_EVIL, 0, MIN(30, GET_LEVEL(ch)), CAST_WEAPON_SPELL);
-  GET_OBJ_SPECTIMER(obj, 0) = 168;
+  point_update_object_spec_timer_set(obj, 0, 168);
   return TRUE;
 }
 
@@ -330,7 +331,7 @@ int rol_cemetery_cloak_meteors(struct char_data *ch, void *me, int cmd, const ch
 
   act("The stars on your $p darken, then streak toward $N!", FALSE, ch, obj, victim, TO_CHAR);
   act("The stars on $n's $p streak toward you!", FALSE, ch, obj, victim, TO_VICT);
-  GET_OBJ_SPECTIMER(obj, 0) = 168;
+  point_update_object_spec_timer_set(obj, 0, 168);
   rol_damage_target(ch, victim, dice(MAX(1, MIN(30, GET_LEVEL(ch))), 10), DAM_FIRE);
   return TRUE;
 }
@@ -405,7 +406,7 @@ int rol_obj_drain(struct char_data *ch, void *me, int cmd, const char *argument)
   amount = dice(30, 10);
   send_to_char(ch, "\tLThe life is slowly drawn out of you.\tn\r\n");
   GET_MOVE(ch) = MAX(0, GET_MOVE(ch) - dice(6, 3));
-  GET_OBJ_SPECTIMER(obj, 0) = 24;
+  point_update_object_spec_timer_set(obj, 0, 24);
   damage(ch, ch, amount, -1, DAM_NEGATIVE, FALSE);
   return TRUE;
 }
@@ -432,7 +433,7 @@ int rol_murlynds_spoon(struct char_data *ch, void *me, int cmd, const char *argu
   act("A grand feast appears around $n's $p, then vanishes.", FALSE, ch, obj, NULL, TO_ROOM);
   gain_condition(ch, HUNGER, 24);
   gain_condition(ch, THIRST, 24);
-  GET_OBJ_SPECTIMER(obj, 0) = 24;
+  point_update_object_spec_timer_set(obj, 0, 24);
   return TRUE;
 }
 

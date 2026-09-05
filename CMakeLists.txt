@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
 project(LuminariMUD VERSION 2.5062 LANGUAGES C)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBEVENT REQUIRED IMPORTED_TARGET libevent_core>=2.1.12)
+
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -442,6 +445,7 @@ set(SRC_C_FILES
     src/obj/act.item.c
     src/combat/act.offensive.c
     src/act.other.c
+    src/ready_action.c
     src/act.social.c
     src/act.wizard.c
     src/actionqueues.c
@@ -510,6 +514,15 @@ set(SRC_C_FILES
     src/dotenv.c
     src/elf_build_id.c
     src/combat/encounters.c
+    src/combat/combat_encounters.c
+    src/combat/combat_damage.c
+    src/combat/combat_damage.h
+    src/combat/combat_death.h
+    src/combat/combat_reactions.c
+    src/combat/combat_reactions.h
+    src/combat/combat_state.c
+    src/combat/combat_state.h
+    src/combat/combat_encounters.h
     src/character/evolutions.c
     src/character/feats.c
     src/combat/fight.c
@@ -520,6 +533,37 @@ set(SRC_C_FILES
     src/olc/genshp.c
     src/olc/genwld.c
     src/olc/genzon.c
+    src/game_scheduler.c
+    src/game_scheduler.h
+    src/event_runtime.c
+    src/event_runtime.h
+    src/event_handle.h
+    src/active_world.c
+    src/active_world.h
+    src/activity_manager.c
+    src/activity_manager.h
+    src/affected_owners.c
+    src/affected_owners.h
+    src/character_periodic.c
+    src/character_periodic.h
+    src/point_update_periodic.c
+    src/point_update_periodic.h
+    src/vessels/vessel_periodic.c
+    src/vessels/vessel_periodic.h
+    src/periodic_owners.c
+    src/periodic_owners.h
+    src/domain_events.c
+    src/domain_events.h
+    src/domain_event_types.c
+    src/domain_event_world.c
+    src/domain_event_world.h
+    src/domain_event_types.h
+    src/domain_event_runtime.c
+    src/domain_event_runtime.h
+    src/event_debug.c
+    src/event_debug.h
+    src/reactor.c
+    src/reactor.h
     src/graph.c
     src/combat/grapple.c
     src/handler.c
@@ -581,7 +625,6 @@ set(SRC_C_FILES
     src/net/msdp_json.h
     src/net/protocol.c
     src/magic/psionics.c
-    src/pubsub/pubsub.c
     src/olc/qedit.c
     src/quest/quest.c
     src/quest/quest_services.c
@@ -725,20 +768,17 @@ set(SRC_C_FILES
     src/movement/movement_validation.c
     src/movement/movement_cost.c
     src/movement/movement_position.c
+    src/movement/door_state.c
     src/movement/movement_doors.c
     src/movement/movement_falling.c
     src/movement/movement_messages.c
     src/movement/movement_tracks.c
     src/movement/movement_events.c
-    src/pubsub/pubsub_handlers.c
-    src/pubsub/pubsub_db.c
-    src/pubsub/pubsub_commands.c
-    src/pubsub/pubsub_queue.c
-    src/pubsub/pubsub_spatial.c
-    src/pubsub/pubsub_event_handlers.c
     src/wilderness/spatial_core.c
     src/wilderness/spatial_visual.c
     src/wilderness/spatial_audio.c
+    src/wilderness/spatial_events.c
+    src/wilderness/spatial_events.h
     src/wilderness/terrain_bridge.c
     src/wilderness/region_hints.c
     src/wilderness/narrative_weaver.c
@@ -839,7 +879,7 @@ if (NOT HAVE_SOCKLEN_T)
 endif()
 
 # Link required libraries
-target_link_libraries(luminari ${EXTRA_LIBS} m pthread)
+target_link_libraries(luminari ${EXTRA_LIBS} m pthread PkgConfig::LIBEVENT)
 
 # Find and link additional libraries
 find_library(CURL_LIBRARY curl)
@@ -905,10 +945,6 @@ if (BUILD_UTILS)
     add_executable(sign util/sign.c)
     add_executable(split util/split.c)
     add_executable(wld2html util/wld2html.c)
-
-    # NOTE: hl_events is NOT built as a standalone utility because it depends on
-    # server internals (pulse, basic_mud_log). The autotools build also excludes it.
-    # The hl_events.c/h files provide an alternative event system for the main server.
 
     # Set output directory for utilities
     set_target_properties(autowiz asciipasswd plrtoascii rebuildAsciiIndex
@@ -1144,7 +1180,6 @@ endif()
 set(HELP_SYNC_SOURCES
     .agents/skills/help-sync/SKILL.md
     .agents/skills/help-sync/agents/openai.yaml
-    docs/ongoing-projects/HELPFILE_SYNCHRONIZATION_DESIGN.md
     scripts/help-sync/catalog.py
     scripts/help-sync/endpoint.py
     scripts/help-sync/help_sync.py
@@ -1192,10 +1227,18 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_transport_production.c
     unittests/CuTest/test_traps_production.c
     unittests/CuTest/test_combat_production.c
+    unittests/CuTest/test_combat_encounters.c
+    unittests/CuTest/test_activity_manager.c
     unittests/CuTest/test_thrown_weapons.c
     unittests/CuTest/test_lists_production.c
     unittests/CuTest/test_mob_autoroll.c
     unittests/CuTest/test_copyover_timer.c
+    unittests/CuTest/test_reactor.c
+    unittests/CuTest/test_game_scheduler.c
+    unittests/CuTest/test_event_runtime.c
+    unittests/CuTest/test_door_events.c
+    unittests/CuTest/test_domain_events.c
+    unittests/CuTest/test_native_event_integration.c
     unittests/CuTest/test_bardic_performance.c
     unittests/CuTest/test_rol_feats.c
     unittests/CuTest/test_unassigned_spells.c
@@ -1288,8 +1331,28 @@ if (BUILD_TESTS)
 
     add_test(NAME production-cutest COMMAND cutest)
     set_tests_properties(production-cutest PROPERTIES
-        ENVIRONMENT "LUMINARI_TEST_ROOT=${CMAKE_CURRENT_SOURCE_DIR}"
+        ENVIRONMENT
+            "LUMINARI_TEST_ROOT=${CMAKE_CURRENT_SOURCE_DIR};LUMINARI_TEST_SPEC_WORLD_ROOT=${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest/fixtures/spec_world_inventory"
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    add_test(NAME demand-driven-event-architecture
+        COMMAND bash
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_demand_driven_architecture.sh)
+    add_test(NAME legacy-event-admission
+        COMMAND bash
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_legacy_event_admission.sh)
+    add_test(NAME native-event-architecture
+        COMMAND bash
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_native_event_architecture.sh)
+    add_test(NAME event-pubsub-retirement
+        COMMAND bash
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_pubsub_retirement.sh)
+    set_tests_properties(
+        demand-driven-event-architecture
+        legacy-event-admission
+        native-event-architecture
+        event-pubsub-retirement
+        PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     add_test(NAME world-tools
         COMMAND Python3::Interpreter -m unittest discover

@@ -50,7 +50,7 @@ static bool spec_event_uses_flow(spec_event_mask event)
   case SPEC_EVENT_COMMAND:
   case SPEC_EVENT_MOBILE_ACTIVITY:
   case SPEC_EVENT_MOBILE_DEATH:
-  case SPEC_EVENT_OBJECT_AUTO_PULSE:
+  case SPEC_EVENT_OBJECT_AUTOMATIC:
     return TRUE;
   default:
     return FALSE;
@@ -415,7 +415,7 @@ int spec_gateway_mobile_death(struct char_data *mob, struct char_data *killer)
   return (spec_dispatch(&context, handler) != 0);
 }
 
-void spec_gateway_object_auto_pulse(struct obj_data *obj)
+void spec_gateway_object_automatic_activity(struct obj_data *obj)
 {
   struct spec_event_context context;
   const struct spec_definition *definition;
@@ -430,25 +430,25 @@ void spec_gateway_object_auto_pulse(struct obj_data *obj)
 
   definition = spec_registry_find_by_handler(handler);
   if (definition != NULL && definition->typed_handler != NULL &&
-      !spec_definition_supports_event(definition, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTO_PULSE))
+      !spec_definition_supports_event(definition, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTOMATIC))
     return;
 
   /* Room and contained objects have no actor; dispatch them once per pulse. */
   if (obj->worn_by == NULL && obj->carried_by == NULL)
   {
-    spec_context_init(&context, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTO_PULSE, obj, NULL, 0,
+    spec_context_init(&context, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTOMATIC, obj, NULL, 0,
                       spec_empty_argument);
     (void)spec_dispatch(&context, handler);
     return;
   }
 
   /* Worn invocation first; a nonzero result skips the carried fallback. */
-  spec_context_init(&context, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTO_PULSE, obj, obj->worn_by, 0,
+  spec_context_init(&context, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTOMATIC, obj, obj->worn_by, 0,
                     spec_empty_argument);
   if (spec_dispatch(&context, handler) != 0)
     return;
 
-  spec_context_init(&context, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTO_PULSE, obj, obj->carried_by,
+  spec_context_init(&context, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTOMATIC, obj, obj->carried_by,
                     0, spec_empty_argument);
   (void)spec_dispatch(&context, handler);
 }

@@ -15,7 +15,6 @@
 #include "helpers.h"
 #include "mysql.h"
 #include "account.h"
-#include "pubsub/pubsub.h"
 #include "net/protocol.h"
 #include "movement/movement_tracks.h"
 #include "vessels/vessels.h"
@@ -29,7 +28,7 @@
 #include <unistd.h>
 
 #define PLAYER_RENAME_PATH_SIZE (MAX_FILEPATH + 64)
-#define PLAYER_RENAME_DB_KEY_COUNT 23
+#define PLAYER_RENAME_DB_KEY_COUNT 21
 #define PLAYER_RENAME_DIGEST_SIZE 32
 
 struct rename_db_key
@@ -151,8 +150,6 @@ static const struct rename_db_key rename_key_template[PLAYER_RENAME_DB_KEY_COUNT
     {"player_quest_progress", "character_name", FALSE, FALSE, TRUE, FALSE, 0, 0, {0}, 0, {0}},
     {"player_supply_orders", "player_name", FALSE, FALSE, TRUE, FALSE, 0, 0, {0}, 0, {0}},
     {"supply_orders_available", "player_name", FALSE, FALSE, TRUE, FALSE, 0, 0, {0}, 0, {0}},
-    {"pubsub_player_settings", "player_name", FALSE, FALSE, TRUE, FALSE, 0, 0, {0}, 0, {0}},
-    {"pubsub_subscriptions", "player_name", FALSE, FALSE, TRUE, FALSE, 0, 0, {0}, 0, {0}},
     {"player_levelups", "character_name", FALSE, FALSE, TRUE, FALSE, 0, 0, {0}, 0, {0}},
     {"player_levels", "char_name", FALSE, FALSE, TRUE, FALSE, 0, 0, {0}, 0, {0}},
     {"vessel_bounties", "player_name", FALSE, FALSE, TRUE, FALSE, 0, 0, {0}, 0, {0}},
@@ -2847,11 +2844,19 @@ static int rename_plan_generated_live_string(struct rename_context *ctx, char **
   return rename_add_live_string(ctx, field, replacement);
 }
 
+static bool rename_prepare_live_trail(struct trail_data *trail, void *context)
+{
+  struct rename_context *ctx = context;
+
+  if (trail->name != NULL && !strcasecmp(trail->name, ctx->old_display_name))
+    return rename_plan_exact_live_string(ctx, &trail->name) != FALSE;
+  return true;
+}
+
 static int rename_prepare_live_strings(struct rename_context *ctx)
 {
   struct char_data *character;
   struct obj_data *object;
-  room_rnum room;
   int i;
 
   for (character = character_list; character; character = character->next)
@@ -2876,15 +2881,8 @@ static int rename_prepare_live_strings(struct rename_context *ctx)
         return FALSE;
   }
 
-  for (room = 0; room <= top_of_world; room++)
-    if (world[room].trail_tracks)
-    {
-      struct trail_data *trail;
-      for (trail = world[room].trail_tracks->head; trail; trail = trail->next)
-        if (trail->name && !strcasecmp(trail->name, ctx->old_display_name))
-          if (!rename_plan_exact_live_string(ctx, &trail->name))
-            return FALSE;
-    }
+  if (!movement_trail_visit_all(rename_prepare_live_trail, ctx))
+    return FALSE;
 
   for (object = object_list; object; object = object->next)
     if (object->name && !strncmp(object->name, "pcorpse ", 8) &&
@@ -2981,9 +2979,6 @@ static void rename_refresh_live_state(struct rename_context *ctx)
   rename_apply_account_refreshes(ctx);
   rename_apply_live_strings(ctx);
   vessel_hunter_handle_player_rename(ctx->old_display_name, ctx->new_display_name);
-
-  pubsub_invalidate_player_cache(ctx->old_display_name);
-  pubsub_invalidate_player_cache(ctx->new_display_name);
 
   if (ctx->victim->desc && ctx->victim->desc->pProtocol)
   {

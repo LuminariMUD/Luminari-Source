@@ -987,6 +987,7 @@ void assign_wilderness_room(room_rnum room, int x, int y)
   /* Here we will set the coordinates, build the descriptions, set the exits, sector type, etc. */
   world[room].coords[0] = x;
   world[room].coords[1] = y;
+  world[room].wilderness_coordinates_set = true;
 
   /* Get the enclosing regions. */
   regions = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);
@@ -1709,7 +1710,7 @@ void show_wilderness_map(struct char_data *ch, int size, int x, int y)
  * and will be safely managed by assign_wilderness_room() when the room
  * is reused. This prevents memory corruption during room recycling.
  */
-EVENTFUNC(event_check_occupied)
+MUD_EVENT_CALLBACK(event_check_occupied)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct room_data *room = NULL;

@@ -21,6 +21,7 @@
 #include "magic/spells.h"
 #include "constants.h"
 #include "combat/fight.h"
+#include "combat/combat_death.h"
 #include "mudlim.h"
 
 /* copied from spell_parser.c: */
@@ -315,6 +316,9 @@ int valid_dg_target(struct char_data *ch, int bitvector)
     return FALSE; /* The rest are gods with nohassle on... */
 }
 
+/* Apply raw damage to a character from a DG script.
+ * A lethal result is resolved through combat_death_apply with the SCRIPT
+ * cause, since a script death has no killer character to attribute. */
 void script_damage(struct char_data *vict, int dam)
 {
   /* Don't damage dead characters */
@@ -328,7 +332,7 @@ void script_damage(struct char_data *vict, int dam)
     return;
   }
 
-  GET_HIT(vict) -= dam;
+  combat_apply_raw_damage(vict, NULL, dam, DAM_RESERVED_DBC, INT_MIN);
   GET_HIT(vict) = MIN(GET_HIT(vict), GET_MAX_HIT(vict));
 
   update_pos(vict);
@@ -339,6 +343,6 @@ void script_damage(struct char_data *vict, int dam)
     if (!IS_NPC(vict))
       mudlog(BRF, 0, TRUE, "%s killed by script at %s", GET_NAME(vict),
              IN_ROOM(vict) == NOWHERE ? "NOWHERE" : world[IN_ROOM(vict)].name);
-    die(vict, NULL);
+    (void)combat_death_apply(vict, NULL, COMBAT_DEATH_SCRIPT);
   }
 }

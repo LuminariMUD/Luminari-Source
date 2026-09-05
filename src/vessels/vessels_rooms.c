@@ -579,6 +579,7 @@ int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
   room.ship = ship;
   room.coords[0] = (int)ship->x;
   room.coords[1] = (int)ship->y;
+  room.wilderness_coordinates_set = true;
 
   /* Set room flags and sector */
   if (template->room_flags & ROOM_VEHICLE)
@@ -1289,6 +1290,7 @@ void update_ship_room_coordinates(struct greyhawk_ship_data *ship)
       /* Update wilderness coordinates */
       world[room].coords[0] = (int)ship->x;
       world[room].coords[1] = (int)ship->y;
+      world[room].wilderness_coordinates_set = true;
       /* Z coordinate maintained separately in ship structure */
 
       /* Keep ship pointer updated */

@@ -1867,7 +1867,7 @@ void Test_spec_rol_deaths_head_initializes_tree_and_grows_carried_seed(CuTest *t
   GET_MOB_RNUM(&fixture.actor) = 0;
   GET_MOB_RNUM(&fixture.target) = 0;
   context.owner_type = SPEC_OWNER_OBJECT;
-  context.event = SPEC_EVENT_OBJECT_AUTO_PULSE;
+  context.event = SPEC_EVENT_OBJECT_AUTOMATIC;
   context.owner = &seed;
   context.actor = NULL;
   CuAssertIntEquals(tc, FALSE, rol_deaths_head_typed(&context));
@@ -2694,7 +2694,7 @@ void Test_spec_rol_undermountain_forged_pulses_and_chain_profile(CuTest *tc)
   IN_ROOM(&fixture.worn) = 0;
   memset(&context, 0, sizeof(context));
   context.owner_type = SPEC_OWNER_OBJECT;
-  context.event = SPEC_EVENT_OBJECT_AUTO_PULSE;
+  context.event = SPEC_EVENT_OBJECT_AUTOMATIC;
   context.owner = &fixture.worn;
   CuAssertIntEquals(tc, TRUE, rol_weapon_proc_typed(&context));
   CuAssertIntEquals(tc, APPLY_HITROLL, fixture.worn.affected[0].location);
@@ -3052,7 +3052,7 @@ void Test_spec_rol_undermountain_lifecycle_profiles_preserve_source_contracts(Cu
   GET_OBJ_RNUM(&fixture.copy) = 0;
   memset(&context, 0, sizeof(context));
   context.owner_type = SPEC_OWNER_OBJECT;
-  context.event = SPEC_EVENT_OBJECT_AUTO_PULSE;
+  context.event = SPEC_EVENT_OBJECT_AUTOMATIC;
   context.owner = &fixture.copy;
   CuAssertIntEquals(tc, FALSE, rol_utility_object_typed(&context));
   CuAssertTrue(tc, OBJ_FLAGGED(&fixture.copy, ITEM_DECAY));
@@ -3072,7 +3072,7 @@ void Test_spec_rol_trahern_combat_profiles_preserve_quake_toss_and_engorge(CuTes
   struct spec_event_context context;
   bool actor_stopped;
   bool target_stopped;
-  struct char_data *saved_combat_list;
+  struct char_data *saved_character_list;
   int denominator;
   int destination;
   int previous_hit;
@@ -3117,10 +3117,10 @@ void Test_spec_rol_trahern_combat_profiles_preserve_quake_toss_and_engorge(CuTes
   context.actor = &fixture.actor;
   context.target = &fixture.target;
 
-  saved_combat_list = combat_list;
-  combat_list = &fixture.actor;
-  fixture.actor.next_fighting = &fixture.target;
-  fixture.target.next_fighting = saved_combat_list;
+  saved_character_list = character_list;
+  fixture.actor.next = &fixture.target;
+  fixture.target.next = saved_character_list;
+  character_list = &fixture.actor;
   FIGHTING(&fixture.actor) = &fixture.target;
   FIGHTING(&fixture.target) = &fixture.actor;
   previous_hit = GET_HIT(&fixture.target);
@@ -3135,7 +3135,9 @@ void Test_spec_rol_trahern_combat_profiles_preserve_quake_toss_and_engorge(CuTes
     stop_fighting(&fixture.actor);
   if (FIGHTING(&fixture.target) != NULL)
     stop_fighting(&fixture.target);
-  combat_list = saved_combat_list;
+  character_list = saved_character_list;
+  fixture.actor.next = NULL;
+  fixture.target.next = NULL;
   if (IN_ROOM(&fixture.target) != 0)
   {
     char_from_room(&fixture.target);
@@ -4156,6 +4158,8 @@ void Test_spec_rol_trade_bandit_preserves_cargo_tolls_and_cleanup_timer(CuTest *
   commands[1].command = "get";
   saved_complete_cmd_info = complete_cmd_info;
   complete_cmd_info = commands;
+  /* The first invocation starts the expiry timer, including command invocations. */
+  before = time(NULL);
   CuAssertIntEquals(tc, TRUE, rol_bandit(&fixture.target, &fixture.actor, 1, ""));
   CuAssertTrue(tc, fixture.actor.mob_specials.rol_bandit_victim_id == 4242);
   CuAssertIntEquals(tc, 50, fixture.actor.mob_specials.rol_bandit_fee_gold);
@@ -4163,7 +4167,6 @@ void Test_spec_rol_trade_bandit_preserves_cargo_tolls_and_cleanup_timer(CuTest *
   fixture.actor.mob_specials.rol_bandit_victim_id = 0;
   fixture.actor.mob_specials.rol_bandit_fee_gold = 0;
 
-  before = time(NULL);
   CuAssertIntEquals(tc, FALSE, rol_bandit(&fixture.actor, &fixture.actor, 0, ""));
   CuAssertTrue(tc, fixture.actor.mob_specials.rol_bandit_expire_at >=
                        before + (10 * SECS_PER_MUD_HOUR));

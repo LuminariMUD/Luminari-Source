@@ -19,6 +19,9 @@ bool has_known_spell_slot(struct char_data *ch, int spellnum);
 /* Consume a known spell slot when mob casts a known spell */
 void consume_known_spell_slot(struct char_data *ch, int spellnum);
 
+bool known_spell_slots_need_recovery(const struct char_data *ch);
+time_t known_spell_slot_recovery_deadline(const struct char_data *ch);
+
 /* Regenerate one random known spell slot for a mob (1 per minute out of combat) */
 void regenerate_known_spell_slot(struct char_data *ch);
 

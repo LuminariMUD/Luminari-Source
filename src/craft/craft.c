@@ -2835,7 +2835,7 @@ SPECIAL(crafting_quest)
 }
 
 /* the event driver for crafting */
-EVENTFUNC(event_crafting)
+MUD_EVENT_CALLBACK(event_crafting)
 {
   struct char_data *ch;
   struct mud_event_data *pMudEvent;

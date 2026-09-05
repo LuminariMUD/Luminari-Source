@@ -68,8 +68,8 @@ table is not an action flag, whatever it is called.
 - Used for stationary guards, shopkeepers, and landmark NPCs
 
 **Code References:**
-- `src/mob/mob_act.c` - Prevents random movement (`mobile_activity()`)
-- `src/mob/mob_act.c` - Position management for sentinels (`mobile_activity()`)
+- `src/mob/mob_act.c` - Prevents random movement (owner-local mobile agenda)
+- `src/mob/mob_act.c` - Position management for sentinels (owner-local mobile agenda)
 - `src/utils.c` - Drag restrictions (`push_attempt()`)
 
 ### MOB_SCAVENGER (Index: 2)
@@ -98,7 +98,7 @@ table is not an action flag, whatever it is called.
 
 **Code References:**
 - `src/combat/fight.c` - Flee trigger check (`damage()`)
-- `src/mob/mob_act.c` - Wimpy behavior handling (`mobile_activity()`)
+- `src/mob/mob_act.c` - Wimpy behavior handling (owner-local mobile agenda)
 
 ### MOB_SENTIENT (Index: 19)
 **Effect:** Marks mobile as sentient/intelligent.
@@ -129,8 +129,8 @@ table is not an action flag, whatever it is called.
 - Used for hostile monsters and aggressive creatures
 
 **Code References:**
-- `src/mob/mob_act.c` - Aggression trigger (`mobile_activity()`)
-- `src/limits.c` - Set during rage/charm effects (`proc_d20_round()`)
+- `src/mob/mob_act.c` - Aggression trigger (owner-local mobile agenda)
+- `src/limits.c` - Set during rage/charm effects (`proc_d20_round_one()`)
 - `src/db.c` - Boot-time validation with alignment aggro flags (`parse_mobile()`)
 
 ### MOB_AGGR_EVIL (Index: 8)
@@ -327,8 +327,8 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - Used for pack tactics and coordinated defense
 
 **Code References:**
-- `src/mob/mob_act.c` - Helper behavior logic (`mobile_activity()`)
-- `src/limits.c` - Removed when mob becomes aggressive (`proc_d20_round()`)
+- `src/mob/mob_act.c` - Helper behavior logic (owner-local mobile agenda)
+- `src/limits.c` - Removed when mob becomes aggressive (`proc_d20_round_one()`)
 
 ### MOB_GUARD (Index: 31)
 **Effect:** Mobile protects citizens and assists them in combat.
@@ -337,7 +337,7 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - Used for city guards and protectors
 
 **Code References:**
-- `src/mob/mob_act.c` - Guard protection logic (`mobile_activity()`)
+- `src/mob/mob_act.c` - Guard protection logic (owner-local mobile agenda)
 - `src/quest/missions.c` - Mission guard assignment (`create_mission_mobs()`)
 
 ### MOB_CITIZEN (Index: 32)
@@ -347,7 +347,7 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - Creates natural guard/citizen relationships
 
 **Code References:**
-- `src/mob/mob_act.c` - Protection checks (`mobile_activity()`)
+- `src/mob/mob_act.c` - Protection checks (owner-local mobile agenda)
 - `src/quest/missions.c` - Citizen designation (`create_mission_mobs()`)
 
 ### MOB_HUNTER (Index: 33)
@@ -357,7 +357,7 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - Used for predators and assassins
 
 **Code References:**
-- `src/mob/mob_act.c` - Hunter behavior trigger (`mobile_activity()`)
+- `src/mob/mob_act.c` - Hunter behavior trigger (owner-local mobile agenda)
 - `src/combat/fight.c` - Hunt initiation (`damage()`)
 
 ### MOB_MOB_ASSIST (Index: 61)

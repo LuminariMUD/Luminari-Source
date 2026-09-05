@@ -318,6 +318,12 @@ static bool vessel_narrative_broadcast(struct greyhawk_ship_data *ship)
   return TRUE;
 }
 
+void vessel_narrative_tick_one(struct greyhawk_ship_data *ship)
+{
+  if (is_valid_ship(ship) && ship->speed > 0 && vessel_has_connected_player(ship))
+    vessel_narrative_broadcast(ship);
+}
+
 /**
  * Periodically narrate occupied moving vessels without touching empty fleets.
  */
@@ -336,11 +342,7 @@ void vessel_narrative_tick(void)
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
     ship = &greyhawk_ships[i];
-    if (!is_valid_ship(ship) || ship->speed <= 0 || !vessel_has_connected_player(ship))
-    {
-      continue;
-    }
-    vessel_narrative_broadcast(ship);
+    vessel_narrative_tick_one(ship);
   }
 }
 

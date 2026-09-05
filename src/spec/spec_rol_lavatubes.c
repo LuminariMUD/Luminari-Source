@@ -7,6 +7,7 @@
 #include "sysdep.h"
 
 #include "structs.h"
+#include "movement/door_state.h"
 #include "utils.h"
 
 #include "act.h"
@@ -157,8 +158,7 @@ static int rol_lavatubes_automaton_unblock(struct char_data *mob)
   if (!rol_lavatubes_room_pair(&upper_room, &lower_room))
     return FALSE;
 
-  REMOVE_BIT(world[upper_room].dir_option[DOWN]->exit_info, EX_BLOCKED);
-  REMOVE_BIT(world[lower_room].dir_option[UP]->exit_info, EX_BLOCKED);
+  door_state_update(upper_room, DOWN, EX_BLOCKED, 0, true, DOMAIN_DOOR_GAMEPLAY);
   return TRUE;
 }
 
@@ -271,9 +271,6 @@ static int rol_lavatubes_unlock_object(struct spec_event_context *context, struc
 static int rol_lavatubes_unlock_door(struct spec_event_context *context, struct char_data *ch,
                                      struct obj_data *key, int door, int slot)
 {
-  struct room_direction_data *back;
-  room_rnum other_room;
-
   if (door < 0 || EXIT(ch, door) == NULL || !EXIT_FLAGGED(EXIT(ch, door), EX_ISDOOR) ||
       !EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) || EXIT(ch, door)->key == NOTHING ||
       rol_lavatubes_actor_has_key(ch, EXIT(ch, door)->key) ||
@@ -301,11 +298,7 @@ static int rol_lavatubes_unlock_door(struct spec_event_context *context, struct 
     act("$n successfully used $p to unlock the door!", TRUE, ch, key, NULL, TO_ROOM);
   }
 
-  other_room = EXIT(ch, door)->to_room;
-  remove_locked_door_flags(IN_ROOM(ch), door);
-  if (VALID_ROOM_RNUM(other_room) && (back = world[other_room].dir_option[rev_dir[door]]) != NULL &&
-      back->to_room == IN_ROOM(ch))
-    remove_locked_door_flags(other_room, rev_dir[door]);
+  door_state_update(IN_ROOM(ch), door, DOOR_LOCK_FLAGS, 0, true, DOMAIN_DOOR_GAMEPLAY);
   return TRUE;
 }
 
@@ -364,13 +357,13 @@ static int rol_lavatubes_automaton_lever(struct char_data *ch, struct obj_data *
   act("$n pulls $p.", TRUE, ch, lever, NULL, TO_ROOM);
   send_to_room(IN_ROOM(ch), "A loud metallic scraping sounds, followed by a clunk.\r\n");
   send_to_room(IN_ROOM(ch), "The trapdoor appears to hang ever so slightly lower.\r\n");
-  REMOVE_BIT(world[upper_room].dir_option[DOWN]->exit_info, EX_BLOCKED);
-  REMOVE_BIT(world[lower_room].dir_option[UP]->exit_info, EX_BLOCKED);
+  door_state_update(upper_room, DOWN, EX_BLOCKED, 0, true, DOMAIN_DOOR_GAMEPLAY);
   return TRUE;
 }
 
 static int rol_lavatubes_automaton_trapdoor(struct char_data *ch, struct room_data *room, int cmd)
 {
+  struct door_state_operation operation = {0};
   struct obj_data *obj;
   room_rnum upper_room;
   room_rnum lower_room;
@@ -390,6 +383,7 @@ static int rol_lavatubes_automaton_trapdoor(struct char_data *ch, struct room_da
       EXIT_FLAGGED(world[upper_room].dir_option[DOWN], EX_BLOCKED))
     return FALSE;
 
+  door_state_begin(&operation, upper_room, DOWN, true, DOMAIN_DOOR_GAMEPLAY);
   SET_BIT(world[upper_room].dir_option[DOWN]->exit_info, EX_CLOSED);
   SET_BIT(world[lower_room].dir_option[UP]->exit_info, EX_CLOSED);
   act("The trapdoor swings shut behind you as you descend!", FALSE, ch, NULL, NULL, TO_CHAR);
@@ -413,6 +407,7 @@ static int rol_lavatubes_automaton_trapdoor(struct char_data *ch, struct room_da
     break;
   }
 
+  door_state_finish(&operation);
   return TRUE;
 }
 

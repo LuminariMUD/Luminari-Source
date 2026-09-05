@@ -38,6 +38,7 @@
 #include "config.h"
 #include "modify.h" /* for do_skillset... */
 #include "perfmon.h"
+#include "event_debug.h"
 #include "quest/quest.h"
 #include "quest/hlquest.h"
 #include "asciimap.h"
@@ -60,6 +61,8 @@
 #include "combat/grapple.h"
 #include "combat/assign_wpn_armor.h"
 #include "bardic_performance.h"
+#include "character_periodic.h"
+#include "point_update_periodic.h"
 #include "magic/spell_prep.h"
 #include "craft/crafts.h" /* NewCraft */
 #include "comms/new_mail.h"
@@ -76,7 +79,6 @@
 #include "net/discord_bridge.h"
 #include "character/evolutions.h"
 #include "character/deities.h"
-#include "pubsub/pubsub.h"
 #include "mudlim.h"
 #include "character/backgrounds.h"
 #include "roleplay.h"
@@ -90,6 +92,7 @@
 #include "obj/spec_artifacts.h"
 #include "net/onboarding.h"
 #include "rol_feats.h"
+#include "activity_manager.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -147,28 +150,189 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     /* directions must come before other commands but after RESERVED */
-    {"north", "n", POS_RECLINING, do_move, 0, SCMD_NORTH, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"east", "e", POS_RECLINING, do_move, 0, SCMD_EAST, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"south", "s", POS_RECLINING, do_move, 0, SCMD_SOUTH, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"west", "w", POS_RECLINING, do_move, 0, SCMD_WEST, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"up", "u", POS_RECLINING, do_move, 0, SCMD_UP, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"down", "d", POS_RECLINING, do_move, 0, SCMD_DOWN, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"northwest", "northw", POS_RECLINING, do_move, 0, SCMD_NW, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"nw", "nw", POS_RECLINING, do_move, 0, SCMD_NW, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"northeast", "northe", POS_RECLINING, do_move, 0, SCMD_NE, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"ne", "ne", POS_RECLINING, do_move, 0, SCMD_NE, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"southeast", "southe", POS_RECLINING, do_move, 0, SCMD_SE, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"se", "se", POS_RECLINING, do_move, 0, SCMD_SE, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"southwest", "southw", POS_RECLINING, do_move, 0, SCMD_SW, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"sw", "sw", POS_RECLINING, do_move, 0, SCMD_SW, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"north",
+     "n",
+     POS_RECLINING,
+     do_move,
+     0,
+     SCMD_NORTH,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_MOVEMENT},
+    {"east",
+     "e",
+     POS_RECLINING,
+     do_move,
+     0,
+     SCMD_EAST,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_MOVEMENT},
+    {"south",
+     "s",
+     POS_RECLINING,
+     do_move,
+     0,
+     SCMD_SOUTH,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_MOVEMENT},
+    {"west",
+     "w",
+     POS_RECLINING,
+     do_move,
+     0,
+     SCMD_WEST,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_MOVEMENT},
+    {"up",
+     "u",
+     POS_RECLINING,
+     do_move,
+     0,
+     SCMD_UP,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_MOVEMENT},
+    {"down",
+     "d",
+     POS_RECLINING,
+     do_move,
+     0,
+     SCMD_DOWN,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_MOVEMENT},
+    {"northwest",
+     "northw",
+     POS_RECLINING,
+     do_move,
+     0,
+     SCMD_NW,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_MOVEMENT},
+    {"nw",
+     "nw",
+     POS_RECLINING,
+     do_move,
+     0,
+     SCMD_NW,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_MOVEMENT},
+    {"northeast",
+     "northe",
+     POS_RECLINING,
+     do_move,
+     0,
+     SCMD_NE,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_MOVEMENT},
+    {"ne",
+     "ne",
+     POS_RECLINING,
+     do_move,
+     0,
+     SCMD_NE,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_MOVEMENT},
+    {"southeast",
+     "southe",
+     POS_RECLINING,
+     do_move,
+     0,
+     SCMD_SE,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_MOVEMENT},
+    {"se",
+     "se",
+     POS_RECLINING,
+     do_move,
+     0,
+     SCMD_SE,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_MOVEMENT},
+    {"southwest",
+     "southw",
+     POS_RECLINING,
+     do_move,
+     0,
+     SCMD_SW,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_MOVEMENT},
+    {"sw",
+     "sw",
+     POS_RECLINING,
+     do_move,
+     0,
+     SCMD_SW,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_MOVEMENT},
     /* now, the main list */
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
-    {"abilities", "abilities", POS_DEAD, do_abilities, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"abilities",
+     "abilities",
+     POS_DEAD,
+     do_abilities,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"abort", "abort", POS_FIGHTING, do_abort, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     //  { "acconvert", "acconvert", POS_DEAD, do_acconvert, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"account", "account", POS_DEAD, do_account, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"activity",
+     "activity",
+     POS_DEAD,
+     do_activity,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION | CMD_FEATURE_ACTIVITY_CONTROL},
     {"accompany",
      "accompany",
      POS_STANDING,
@@ -206,7 +370,17 @@ cpp_extern const struct command_info cmd_info[] = {
     {"aedit", "aed", POS_DEAD, do_oasis_aedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"ai", "ai", POS_DEAD, do_ai, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"alias", "ali", POS_DEAD, do_alias, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"affects", "aff", POS_DEAD, do_affects, 0, SCMD_AFFECTS, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"affects",
+     "aff",
+     POS_DEAD,
+     do_affects,
+     0,
+     SCMD_AFFECTS,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"afk", "afk", POS_DEAD, do_gen_tog, 0, SCMD_AFK, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"aoebombs",
      "aoeb",
@@ -795,7 +969,17 @@ cpp_extern const struct command_info cmd_info[] = {
      {0, 0},
      can_dazzling_display},
     {"cedit", "cedit", POS_DEAD, do_oasis_cedit, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"chat", "chat", POS_SLEEPING, do_gen_comm, 0, SCMD_GOSSIP, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"chat",
+     "chat",
+     POS_SLEEPING,
+     do_gen_comm,
+     0,
+     SCMD_GOSSIP,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
     {"changelog", "cha", POS_DEAD, do_changelog, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"channelenergy",
      "channele",
@@ -938,11 +1122,31 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_NONE,
      {0, 0},
      NULL},
-    {"cooldowns", "coo", POS_DEAD, do_affects, 0, SCMD_COOLDOWNS, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"cooldowns",
+     "coo",
+     POS_DEAD,
+     do_affects,
+     0,
+     SCMD_COOLDOWNS,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"copyover", "copyover", POS_DEAD, do_copyover, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"copyroom", "copyroom", POS_DEAD, do_copyroom, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"credits", "cred", POS_DEAD, do_gen_ps, 0, SCMD_CREDITS, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"ct", "ct", POS_DEAD, do_clantalk, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"ct",
+     "ct",
+     POS_DEAD,
+     do_clantalk,
+     1,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
     {"create", "create", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"checkcraft", "checkcraft", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"compose",
@@ -1069,7 +1273,17 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_STANDARD | ACTION_MOVE,
      {6, 6},
      NULL},
-    {"craftscore", "craftsc", POS_STANDING, do_craft_score, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"craftscore",
+     "craftsc",
+     POS_STANDING,
+     do_craft_score,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"craftmaterials",
      "craftmat",
      POS_DEAD,
@@ -1121,7 +1335,17 @@ cpp_extern const struct command_info cmd_info[] = {
      {6, 0},
      NULL},
     {"copycat", "copycat", POS_FIGHTING, do_copycat, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
-    {"classes", "classes", POS_DEAD, do_class, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"classes",
+     "classes",
+     POS_DEAD,
+     do_class,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"charmiecombatroll",
      "charmiecombatroll",
      POS_DEAD,
@@ -1613,8 +1837,28 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_NONE,
      {0, 0},
      NULL},
-    {"emote", "em", POS_RECLINING, do_echo, 0, SCMD_EMOTE, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {":", ":", POS_RECLINING, do_echo, 1, SCMD_EMOTE, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"emote",
+     "em",
+     POS_RECLINING,
+     do_echo,
+     0,
+     SCMD_EMOTE,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
+    {":",
+     ":",
+     POS_RECLINING,
+     do_echo,
+     1,
+     SCMD_EMOTE,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
     {"enter", "ent", POS_STANDING, do_enter, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"encounter", "enc", POS_RECLINING, do_encounter, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"encounterinfo",
@@ -1630,9 +1874,29 @@ cpp_extern const struct command_info cmd_info[] = {
     {"enlarge", "enlarge", POS_FIGHTING, do_enlarge, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"entertain", "entertain", POS_STANDING, do_entertain, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"epicfeats", "epicfeats", POS_SLEEPING, do_epicfeats, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"equipment", "eq", POS_SLEEPING, do_equipment, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"equipment",
+     "eq",
+     POS_SLEEPING,
+     do_equipment,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"eqstats", "eqst", POS_SLEEPING, do_not_here, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"exits", "ex", POS_RECLINING, do_exits, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"exits",
+     "ex",
+     POS_RECLINING,
+     do_exits,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"examine", "exa", POS_RECLINING, do_examine, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"exchange", "exch", POS_RECLINING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"expertise",
@@ -1676,6 +1940,17 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_STANDARD | ACTION_MOVE,
      {6, 6},
      NULL},
+    {"eventdebug",
+     "eventdebug",
+     POS_DEAD,
+     do_eventdebug,
+     LVL_IMMORT,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"evobreath",
      "evobreath",
      POS_FIGHTING,
@@ -1749,7 +2024,17 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_SWIFT,
      {0, 0},
      NULL},
-    {"feats", "fea", POS_SLEEPING, do_feats, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"feats",
+     "fea",
+     POS_SLEEPING,
+     do_feats,
+     0,
+     0,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"featlisting",
      "featlisting",
      POS_SLEEPING,
@@ -1951,7 +2236,17 @@ cpp_extern const struct command_info cmd_info[] = {
      {0, 0},
      NULL},
     {"gecho", "gecho", POS_DEAD, do_gecho, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"gemote", "gem", POS_SLEEPING, do_gen_comm, 0, SCMD_GEMOTE, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"gemote",
+     "gem",
+     POS_SLEEPING,
+     do_gen_comm,
+     0,
+     SCMD_GEMOTE,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
     {"genmap", "genmap", POS_SLEEPING, do_genmap, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"genriver",
      "genriver",
@@ -2017,9 +2312,29 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_STANDARD,
      {6, 0},
      NULL},
-    {"gossip", "gos", POS_SLEEPING, do_gen_comm, 0, SCMD_GOSSIP, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"gossip",
+     "gos",
+     POS_SLEEPING,
+     do_gen_comm,
+     0,
+     SCMD_GOSSIP,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
     {"gore", "gore", POS_FIGHTING, do_minotaur_gore, 0, 0, TRUE, ACTION_SWIFT, {0, 0}, NULL},
-    {"group", "gr", POS_RECLINING, do_group, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"group",
+     "gr",
+     POS_RECLINING,
+     do_group,
+     1,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"grab", "grab", POS_RECLINING, do_grab, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"granddestiny",
      "grandd",
@@ -2031,10 +2346,50 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_NONE,
      {0, 0},
      NULL},
-    {"grats", "grat", POS_SLEEPING, do_gen_comm, 0, SCMD_GRATZ, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"greport", "grepo", POS_RECLINING, do_greport, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"gsay", "gsay", POS_SLEEPING, do_gsay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"gtell", "gt", POS_SLEEPING, do_gsay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"grats",
+     "grat",
+     POS_SLEEPING,
+     do_gen_comm,
+     0,
+     SCMD_GRATZ,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
+    {"greport",
+     "grepo",
+     POS_RECLINING,
+     do_greport,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
+    {"gsay",
+     "gsay",
+     POS_SLEEPING,
+     do_gsay,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
+    {"gtell",
+     "gt",
+     POS_SLEEPING,
+     do_gsay,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
     {"gain", "gain", POS_RECLINING, do_gain, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"gaseousform",
      "gaseous",
@@ -2093,7 +2448,17 @@ cpp_extern const struct command_info cmd_info[] = {
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
-    {"help", "h", POS_DEAD, do_help, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"help",
+     "h",
+     POS_DEAD,
+     do_help,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"helpsearch", "helps", POS_DEAD, do_helpsearch, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"happyhour", "ha", POS_DEAD, do_happyhour, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"here", "here", POS_RECLINING, do_look, 0, SCMD_HERE, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -2192,7 +2557,17 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_STANDARD,
      {6, 0},
      NULL},
-    {"hp", "hp", POS_DEAD, do_hp, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"hp",
+     "hp",
+     POS_DEAD,
+     do_hp,
+     1,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"hsedit",
      "hsedit",
      POS_DEAD,
@@ -2218,7 +2593,17 @@ cpp_extern const struct command_info cmd_info[] = {
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
-    {"inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"inventory",
+     "i",
+     POS_DEAD,
+     do_inventory,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"identify", "id", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"idea", "ide", POS_DEAD, do_ibt, 0, SCMD_IDEA, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"iedit", "iedit", POS_DEAD, do_iedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -2236,6 +2621,17 @@ cpp_extern const struct command_info cmd_info[] = {
     {"immlist", "imm", POS_DEAD, do_gen_ps, 0, SCMD_IMMLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"immtitle", "immtitle", POS_DEAD, do_immtitle, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"info", "info", POS_SLEEPING, do_gen_ps, 0, SCMD_INFO, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"initiative",
+     "initiative",
+     POS_DEAD,
+     do_initiative,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     /* The explicit artifact invocation channel.  Sorted after "info" so it
      * never shadows it. */
     {"invoke", "invoke", POS_RECLINING, do_artifact_invoke, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -2460,7 +2856,17 @@ cpp_extern const struct command_info cmd_info[] = {
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
-    {"look", "l", POS_RECLINING, do_look, 0, SCMD_LOOK, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"look",
+     "l",
+     POS_RECLINING,
+     do_look,
+     0,
+     SCMD_LOOK,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"list", "lis", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"lore", "lore", POS_RESTING, do_lore, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"land", "land", POS_FIGHTING, do_land, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
@@ -2889,8 +3295,28 @@ cpp_extern const struct command_info cmd_info[] = {
      NULL},
     //{ "objlist", "objlist", POS_DEAD, do_objlist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"obind", "obind", POS_DEAD, do_obind, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"osay", "osay", POS_RECLINING, do_osay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"ooc", "ooc", POS_RECLINING, do_osay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"osay",
+     "osay",
+     POS_RECLINING,
+     do_osay,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
+    {"ooc",
+     "ooc",
+     POS_RECLINING,
+     do_osay,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
     {"outfit", "outfit", POS_RECLINING, do_outfit, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"objcheck", "objc", POS_DEAD, do_objcheck, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
@@ -3192,28 +3618,6 @@ cpp_extern const struct command_info cmd_info[] = {
     {"perfmon", "perfmon", POS_DEAD, do_perfmon, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"priceset", "priceset", POS_RECLINING, do_priceset, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"pets", "pets", POS_RECLINING, do_pets, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"pubsub", "pubs", POS_DEAD, do_pubsub, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"pubsubtopic",
-     "pubsubt",
-     POS_DEAD,
-     do_pubsubtopic,
-     LVL_GRSTAFF,
-     0,
-     TRUE,
-     ACTION_NONE,
-     {0, 0},
-     NULL},
-    {"pubsubqueue",
-     "pubsubq",
-     POS_DEAD,
-     do_pubsubqueue,
-     LVL_IMMORT,
-     0,
-     TRUE,
-     ACTION_NONE,
-     {0, 0},
-     NULL},
-
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"queue", "q", POS_DEAD, do_queue, 0, SCMD_ACTION_QUEUE, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -3271,7 +3675,17 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"rest", "re", POS_RECLINING, do_rest, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"reply", "r", POS_SLEEPING, do_reply, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"reply",
+     "r",
+     POS_SLEEPING,
+     do_reply,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
     {"radiantaura",
      "radiantaura",
      POS_STANDING,
@@ -3303,6 +3717,7 @@ cpp_extern const struct command_info cmd_info[] = {
      {0, 0},
      NULL},
     {"read", "rea", POS_RECLINING, do_read_board, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"ready", "ready", POS_RESTING, do_ready, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     // {"read", "rea", POS_RECLINING, do_look, 0, SCMD_READ, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     {"reforge", "reforge", POS_STANDING, do_reforge_new, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -3355,7 +3770,8 @@ cpp_extern const struct command_info cmd_info[] = {
      TRUE,
      ACTION_NONE,
      {0, 0},
-     NULL},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"restore", "resto", POS_DEAD, do_restore, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"resourceadmin",
      "resadmin",
@@ -3530,7 +3946,17 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_SWIFT,
      {0, 0},
      can_reneweddefense},
-    {"races", "races", POS_DEAD, do_race, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"races",
+     "races",
+     POS_DEAD,
+     do_race,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"racefix", "racefix", POS_DEAD, do_racefix, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"rank", "rank", POS_DEAD, do_rank, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"rpsheet", "rp", POS_DEAD, do_rpsheet, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -3622,9 +4048,29 @@ cpp_extern const struct command_info cmd_info[] = {
     {"salvage", "salv", POS_RECLINING, do_salvage, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sacrifice", "sac", POS_RECLINING, do_sac, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sachp", "sachp", POS_RECLINING, do_sacrifice, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
-    {"say", "s", POS_RECLINING, do_say, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"say",
+     "s",
+     POS_RECLINING,
+     do_say,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
     {"sail", "sail", POS_RECLINING, do_sail, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"score", "sc", POS_DEAD, do_score, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"score",
+     "sc",
+     POS_DEAD,
+     do_score,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"scoreconfig", "scoreconfig", POS_DEAD, do_scoreconfig, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"skore", "sk", POS_DEAD, do_skore, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"scan", "sca", POS_RECLINING, do_scan, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -3641,7 +4087,17 @@ cpp_extern const struct command_info cmd_info[] = {
     {"scribe", "scribe", POS_RESTING, do_scribe, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"scrounge", "scrounge", POS_STANDING, do_scrounge, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sit", "si", POS_RECLINING, do_sit, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"'", "'", POS_RECLINING, do_say, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"'",
+     "'",
+     POS_RECLINING,
+     do_say,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
     {"save", "sav", POS_SLEEPING, do_save, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"saveall", "saveall", POS_DEAD, do_saveall, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"saveeverything",
@@ -3929,8 +4385,28 @@ cpp_extern const struct command_info cmd_info[] = {
      {0, 0},
      NULL},
     {"speak", "speak", POS_RECLINING, do_speak, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"spelllist", "spelllist", POS_RECLINING, do_spelllist, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"spells", "spells", POS_RECLINING, do_spells, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"spelllist",
+     "spelllist",
+     POS_RECLINING,
+     do_spelllist,
+     1,
+     0,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
+    {"spells",
+     "spells",
+     POS_RECLINING,
+     do_spells,
+     1,
+     0,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"specbind", "specbind", POS_DEAD, do_specbind, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"spellrecall",
      "spellrecall",
@@ -4282,12 +4758,19 @@ cpp_extern const struct command_info cmd_info[] = {
      NULL},
     {"summon", "summon", POS_RECLINING, do_summon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"statcap", "statcap", POS_RECLINING, do_statcap, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    /*pubsub*/
-    {"subscribe", "sub", POS_DEAD, do_subscribe, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
-    {"tell", "t", POS_DEAD, do_tell, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"tell",
+     "t",
+     POS_DEAD,
+     do_tell,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_SPEECH},
     {"testartifact",
      "testartifact",
      POS_DEAD,
@@ -4349,7 +4832,17 @@ cpp_extern const struct command_info cmd_info[] = {
      NULL},
     {"throw", "throw", POS_FIGHTING, do_throw, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"title", "title", POS_DEAD, do_title, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"time", "time", POS_DEAD, do_time, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"time",
+     "time",
+     POS_DEAD,
+     do_time,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"tinker", "tinker", POS_STANDING, do_tinker, 0, 0, TRUE, ACTION_NONE, {0, 0}, can_tinker},
     {"toggle", "toggle", POS_DEAD, do_toggle, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"touchspells",
@@ -4488,12 +4981,18 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_NONE,
      {0, 0},
      NULL},
-    {"tnl", "tnl", POS_DEAD, do_tnl, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"tnl",
+     "tnl",
+     POS_DEAD,
+     do_tnl,
+     1,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"todo", "todo", POS_DEAD, do_todo, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    /*pubsub*/
-    {"topics", "topics", POS_DEAD, do_topics, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-
-
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"unholyweapon", "unholyw", POS_DEAD, do_holyweapon, 1, 1, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -4813,7 +5312,8 @@ cpp_extern const struct command_info cmd_info[] = {
      FALSE,
      ACTION_NONE,
      {0, 0},
-     NULL},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"wearlocations",
      "wearlocations",
      POS_RESTING,
@@ -4823,12 +5323,43 @@ cpp_extern const struct command_info cmd_info[] = {
      FALSE,
      ACTION_NONE,
      {0, 0},
-     NULL},
-    {"weather", "weather", POS_RECLINING, do_weather, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"who", "wh", POS_DEAD, do_who, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
+    {"weather",
+     "weather",
+     POS_RECLINING,
+     do_weather,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
+    {"who",
+     "wh",
+     POS_DEAD,
+     do_who,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"whois", "whoi", POS_DEAD, do_whois, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"whoami", "whoami", POS_DEAD, do_gen_ps, 0, SCMD_WHOAMI, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"where", "where", POS_RECLINING, do_where, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"where",
+     "where",
+     POS_RECLINING,
+     do_where,
+     1,
+     0,
+     FALSE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     {"whirlwind",
      "whirl",
      POS_FIGHTING,
@@ -5825,6 +6356,28 @@ bool command_has_queue_preflight(int cmd)
          complete_cmd_info[cmd].command_check_pointer != NULL;
 }
 
+static uint32_t command_activity_capabilities(const struct command_info *command)
+{
+  uint32_t capabilities = 0U;
+
+  if (command == NULL)
+    return PRIMARY_ACTIVITY_CAP_ATTENTION;
+  if (command->feature_flags & CMD_FEATURE_ACTIVITY_MOVEMENT)
+    capabilities |= PRIMARY_ACTIVITY_CAP_MOVEMENT;
+  if (command->feature_flags & CMD_FEATURE_ACTIVITY_SPEECH)
+    capabilities |= PRIMARY_ACTIVITY_CAP_SPEECH;
+  if (IS_SET(command->actions_required, ACTION_STANDARD))
+    capabilities |= PRIMARY_ACTIVITY_CAP_STANDARD;
+  if (IS_SET(command->actions_required, ACTION_MOVE))
+    capabilities |= PRIMARY_ACTIVITY_CAP_MOVE;
+  if (IS_SET(command->actions_required, ACTION_SWIFT))
+    capabilities |= PRIMARY_ACTIVITY_CAP_SWIFT;
+  if (capabilities == 0U &&
+      !(command->feature_flags & (CMD_FEATURE_ACTIVITY_INFORMATION | CMD_FEATURE_ACTIVITY_CONTROL)))
+    capabilities = PRIMARY_ACTIVITY_CAP_ATTENTION;
+  return capabilities;
+}
+
 /* This is the actual command interpreter called from game_loop() in comm.c
  * It makes sure you are the proper level and position to execute the command,
  * then calls the appropriate function. */
@@ -5994,10 +6547,12 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "Sorry, that command hasn't been implemented yet.\r\n");
   else if (IS_NPC(ch) && complete_cmd_info[cmd].minimum_level >= LVL_IMMORT)
     send_to_char(ch, "You can't use immortal commands while switched.\r\n");
-  else if (IS_CASTING(ch) && !command_can_be_used_while_casting(cmd) && !IS_NPC(ch))
+  else if (IS_CASTING(ch) && !command_can_be_used_while_casting(cmd) && !IS_NPC(ch) &&
+           !(complete_cmd_info[cmd].feature_flags & CMD_FEATURE_ACTIVITY_CONTROL))
     send_to_char(ch, "You are too busy casting [you can 'abort' the spell]...\r\n");
   else if (AFF_FLAGGED(ch, AFF_HIDE) && !AFF_FLAGGED(ch, AFF_SNEAK) &&
-           !is_abbrev(complete_cmd_info[cmd].command, "sneak"))
+           !is_abbrev(complete_cmd_info[cmd].command, "sneak") &&
+           !(complete_cmd_info[cmd].feature_flags & CMD_FEATURE_ACTIVITY_CONTROL))
   {
     remove_spell_camouflage(ch);
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
@@ -6005,6 +6560,7 @@ void command_interpreter(struct char_data *ch, char *argument)
                      "before hiding)\r\n");
   }
   else if (AFF_FLAGGED(ch, AFF_HIDE) && AFF_FLAGGED(ch, AFF_SNEAK) &&
+           !(complete_cmd_info[cmd].feature_flags & CMD_FEATURE_ACTIVITY_CONTROL) &&
            !is_abbrev(complete_cmd_info[cmd].command, "hide") &&
            !is_abbrev(complete_cmd_info[cmd].command, "sneak") &&
            !is_abbrev(complete_cmd_info[cmd].command, "look") &&
@@ -6096,6 +6652,7 @@ void command_interpreter(struct char_data *ch, char *argument)
   }
   else if ((char_has_mud_event(ch, eCRAFTING) || char_has_mud_event(ch, eDEVICE_CREATION) ||
             char_has_mud_event(ch, eDEVICE_REPAIR) || char_has_mud_event(ch, eBREWING)) &&
+           !(complete_cmd_info[cmd].feature_flags & CMD_FEATURE_ACTIVITY_CONTROL) &&
            !is_abbrev(complete_cmd_info[cmd].command, "gossip") &&
            !is_abbrev(complete_cmd_info[cmd].command, "gemote") &&
            !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
@@ -6130,6 +6687,14 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "[Available commands: "
                      "gossip/chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/"
                      "idea/class/race/spelllist]\r\n");
+  }
+  else if (!primary_activity_command_admit(
+               ch, complete_cmd_info[cmd].command,
+               command_activity_capabilities(&complete_cmd_info[cmd]),
+               (complete_cmd_info[cmd].feature_flags & CMD_FEATURE_ACTIVITY_INFORMATION) != 0U,
+               (complete_cmd_info[cmd].feature_flags & CMD_FEATURE_ACTIVITY_CONTROL) != 0U))
+  {
+    return;
   }
   else if (GET_POS(ch) < complete_cmd_info[cmd].minimum_position)
     switch (GET_POS(ch))
@@ -6178,7 +6743,7 @@ void command_interpreter(struct char_data *ch, char *argument)
        * admitted to the action queue. */
       return;
     }
-    else if (pending_actions(ch) > MAX_QUEUE_SIZE)
+    else if (pending_actions(ch) >= MAX_QUEUE_SIZE)
     {
       send_to_char(ch, "The action queue is full.\r\n");
     }
@@ -6684,7 +7249,10 @@ static int perform_dupe_check(struct descriptor_data *d)
         mode = UNSWITCH;
       }
       if (k->character)
+      {
         k->character->desc = NULL;
+        character_periodic_sync(k->character);
+      }
       k->character = NULL;
       k->original = NULL;
     }
@@ -6706,6 +7274,7 @@ static int perform_dupe_check(struct descriptor_data *d)
         mode = USURP;
       }
       k->character->desc = NULL;
+      character_periodic_sync(k->character);
       k->character = NULL;
       k->original = NULL;
       write_to_output(k, "\r\nMultiple login detected -- disconnecting.\r\n");
@@ -6778,6 +7347,7 @@ static int perform_dupe_check(struct descriptor_data *d)
   REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_MAILING);
   REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_WRITING);
   STATE(d) = CON_PLAYING;
+  character_periodic_sync(d->character);
   MXPSendTag(d, "<VERSION>");
 
   switch (mode)
@@ -6847,6 +7417,7 @@ static bool perform_new_char_dupe_check(struct descriptor_data *d)
       {
         /* Boot the older one */
         k->character->desc = NULL;
+        character_periodic_sync(k->character);
         k->character = NULL;
         k->original = NULL;
         write_to_output(k, "\r\nMultiple login detected -- disconnecting.\r\n");
@@ -6861,12 +7432,14 @@ static bool perform_new_char_dupe_check(struct descriptor_data *d)
       {
         /* Something went VERY wrong, boot both chars */
         k->character->desc = NULL;
+        character_periodic_sync(k->character);
         k->character = NULL;
         k->original = NULL;
         write_to_output(k, "\r\nMultiple login detected -- disconnecting.\r\n");
         STATE(k) = CON_CLOSE;
 
         d->character->desc = NULL;
+        character_periodic_sync(d->character);
         d->character = NULL;
         d->original = NULL;
         write_to_output(
@@ -6937,6 +7510,7 @@ int enter_player_game(struct descriptor_data *d)
   d->character->next = character_list;
   character_list = d->character;
   affected_registry_attach(d->character);
+  point_update_character_sync(d->character);
   char_to_room(d->character, load_room);
   load_result = Crash_load(d->character);
 
@@ -7020,7 +7594,7 @@ int enter_player_game(struct descriptor_data *d)
 }
 
 /* protocol handling event */
-EVENTFUNC(get_protocols)
+MUD_EVENT_CALLBACK(get_protocols)
 {
   struct descriptor_data *d;
   struct mud_event_data *pMudEvent;
@@ -9126,7 +9700,8 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_ACCOUNT_MENU;
       roleplay_pending_clear(d);
       show_account_menu(d);
-      save_char(d->character, 0);
+      /* extract_char_final() already saved before clearing runtime events.
+       * Saving this menu copy again would erase persisted cooldowns. */
       free_char(d->character);
       break;
 
@@ -9170,6 +9745,7 @@ void nanny(struct descriptor_data *d, char *arg)
       update_player_last_on();
 
       STATE(d) = CON_PLAYING;
+      character_periodic_sync(d->character);
       // MXPSendTag( d, "<VERSION>" ); this is already called in perform_dupe_check() before we get here, shouldn't be needed here.. -Nashak
       if (GET_LEVEL(d->character) == 0)
       {

@@ -15,6 +15,7 @@
 #ifndef _DG_SCRIPTS_H_
 #define _DG_SCRIPTS_H_
 
+#include "event_runtime.h"
 #include "utils.h" /* To make sure ACMD is defined */
 
 #define MOB_TRIGGER 0
@@ -151,23 +152,26 @@ struct trig_var_data
   struct trig_var_data *next;
 };
 
+struct wait_event_data;
+
 /** structure for triggers */
 struct trig_data
 {
-  IDXTYPE nr;                         /**< trigger's rnum                  */
-  byte attach_type;                   /**< mob/obj/wld intentions          */
-  byte data_type;                     /**< type of game_data for trig      */
-  char *name;                         /**< name of trigger                 */
-  long trigger_type;                  /**< type of trigger (for bitvector) */
-  struct cmdlist_element *cmdlist;    /**< top of command list             */
-  struct cmdlist_element *curr_state; /**< ptr to current line of trigger  */
-  int narg;                           /**< numerical argument              */
-  char *arglist;                      /**< argument list                   */
-  int depth;                          /**< depth into nest ifs/whiles/etc  */
-  int loops;                          /**< loop iteration counter          */
-  struct event *wait_event;           /**< event to pause the trigger  */
-  ubyte purged;                       /**< trigger is set to be purged     */
-  struct trig_var_data *var_list;     /**< list of local vars for trigger  */
+  IDXTYPE nr;                                    /**< trigger's rnum                  */
+  byte attach_type;                              /**< mob/obj/wld intentions          */
+  byte data_type;                                /**< type of game_data for trig      */
+  char *name;                                    /**< name of trigger                 */
+  long trigger_type;                             /**< type of trigger (for bitvector) */
+  struct cmdlist_element *cmdlist;               /**< top of command list             */
+  struct cmdlist_element *curr_state;            /**< ptr to current line of trigger  */
+  int narg;                                      /**< numerical argument              */
+  char *arglist;                                 /**< argument list                   */
+  int depth;                                     /**< depth into nest ifs/whiles/etc  */
+  int loops;                                     /**< loop iteration counter          */
+  struct event_runtime_handle wait_event_handle; /**< Native event that pauses the trigger. */
+  struct wait_event_data *wait_event_data;       /**< payload used by room OLC */
+  ubyte purged;                                  /**< trigger is set to be purged     */
+  struct trig_var_data *var_list;                /**< list of local vars for trigger  */
 
   struct trig_data *next;
   struct trig_data *next_in_world; /**< next in the global trigger list */
@@ -191,6 +195,12 @@ struct script_data
   bool random_registered;
   struct script_data *random_next;
   struct script_data *random_prev;
+  struct event_runtime_handle random_event_handle;
+
+  /* Runtime-only time-trigger owner registry metadata. */
+  bool time_registered;
+  struct script_data *time_next;
+  struct script_data *time_prev;
 };
 
 /* The event data for the wait command */
@@ -199,6 +209,10 @@ struct wait_event_data
   struct trig_data *trigger;
   void *go;
   int type;
+  bool destroy_trigger_after_cleanup;
+#ifdef LUMINARI_CUTEST
+  bool free_trigger_on_dispatch;
+#endif
 };
 
 /* used for actor memory triggers */
@@ -310,7 +324,6 @@ obj_data *get_obj_by_room(room_data *room, char *name);
 int trgvar_in_room(room_vnum vnum);
 obj_data *get_obj_in_list(char *name, obj_data *list);
 obj_data *get_object_in_equip(char_data *ch, char *name);
-void script_trigger_check(void);
 void check_time_triggers(void);
 void find_uid_name(char *uid, char *name, size_t nlen);
 void do_sstat_room(struct char_data *ch, room_data *r);
@@ -391,19 +404,46 @@ void extract_trigger(struct trig_data *trig);
 void extract_script(struct script_data **script);
 void dg_script_bind_owner(struct script_data *script, void *owner, int owner_type);
 void dg_random_registry_sync(struct script_data *script);
+void *dg_random_registry_resolve_owner(struct script_data *script);
 void *dg_random_registry_iteration_begin(int owner_type);
 void *dg_random_registry_iteration_next(void);
 void dg_random_registry_iteration_end(void);
 size_t dg_random_registry_count(int owner_type);
 size_t dg_random_registry_validate(int owner_type);
+bool dg_random_trigger_run_one(void *owner, int owner_type);
 #ifdef LUMINARI_CUTEST
 void dg_random_registry_reset_for_test(void);
+bool dg_wait_schedule_for_test(struct trig_data *trig, long when);
+bool dg_wait_schedule_inflight_free_for_test(struct trig_data *trig, long when);
+void dg_wait_fail_next_schedule_for_test(void);
+void dg_wait_reset_telemetry_for_test(void);
+uint64_t dg_wait_resume_count_for_test(void);
+uint64_t dg_wait_deferred_free_count_for_test(void);
+#endif
+void dg_time_registry_sync(struct script_data *script);
+void *dg_time_registry_resolve_owner(struct script_data *script);
+void *dg_time_registry_iteration_begin(int owner_type);
+void *dg_time_registry_iteration_next(void);
+void dg_time_registry_iteration_end(void);
+size_t dg_time_registry_count(int owner_type);
+size_t dg_time_registry_validate(int owner_type);
+uint64_t dg_time_registry_visited(int owner_type);
+uint64_t dg_time_registry_executed(int owner_type);
+void dg_time_registry_note_dispatch(int owner_type, bool executed);
+bool dg_time_trigger_run_one(void *owner, int owner_type);
+#ifdef LUMINARI_CUTEST
+void dg_time_registry_reset_for_test(void);
 #endif
 void extract_script_mem(struct script_memory *sc);
 void free_proto_script(struct trig_proto_list **proto_script);
 void copy_proto_script(const struct trig_proto_list *source, struct trig_proto_list **destination);
 void delete_variables(const char *charname);
 void update_wait_events(struct room_data *to, struct room_data *from);
+bool dg_wait_runtime_init(void);
+bool dg_trigger_wait_is_live(const struct trig_data *trig);
+bool dg_trigger_wait_is_dispatching(const struct trig_data *trig);
+long dg_trigger_wait_remaining(const struct trig_data *trig);
+void dg_trigger_wait_cancel(struct trig_data *trig);
 
 /* from dg_comm.c */
 char *any_one_name(char *argument, char *first_arg);
@@ -478,7 +518,8 @@ void wld_command_interpreter(room_data *room, char *argument);
 #define GET_TRIG_NARG(t) ((t)->narg)
 #define GET_TRIG_ARG(t) ((t)->arglist)
 #define GET_TRIG_VARS(t) ((t)->var_list)
-#define GET_TRIG_WAIT(t) ((t)->wait_event)
+#define GET_TRIG_WAIT_HANDLE(t) ((t)->wait_event_handle)
+#define GET_TRIG_WAIT_DATA(t) ((t)->wait_event_data)
 #define GET_TRIG_DEPTH(t) ((t)->depth)
 #define GET_TRIG_LOOPS(t) ((t)->loops)
 

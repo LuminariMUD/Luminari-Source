@@ -1,6 +1,7 @@
 name: Build & Test
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'src/**'
@@ -9,6 +10,7 @@ on:
       - 'scripts/ci/**'
       - 'scripts/operations/**'
       - 'scripts/development/generate-web-guides.sh'
+      - 'scripts/events/**'
       - 'lib/world/validate-zone.sh'
       - 'lib/world/artifacts/**'
       - 'lib/world/minimal/**'
@@ -33,6 +35,7 @@ on:
       - 'scripts/ci/**'
       - 'scripts/operations/**'
       - 'scripts/development/generate-web-guides.sh'
+      - 'scripts/events/**'
       - 'lib/world/validate-zone.sh'
       - 'lib/world/artifacts/**'
       - 'lib/world/minimal/**'
@@ -71,7 +74,7 @@ jobs:
       - name: Install documentation dependency
         run: |
           sudo apt-get update
-          sudo apt-get install -y autoconf automake build-essential pandoc
+          sudo apt-get install -y autoconf automake build-essential libevent-dev pandoc
 
       - name: Build mobile conversion calculator
         run: |
@@ -147,7 +150,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            autoconf automake build-essential libcurl4-openssl-dev libgd-dev \
+            autoconf automake build-essential libcurl4-openssl-dev libevent-dev libgd-dev \
             libjson-c-dev libmariadb-dev libssl-dev libtool mariadb-client zlib1g-dev
 
       - name: Copy config headers
@@ -177,8 +180,12 @@ jobs:
           test ! -e circle
 
   unit-tests:
-    name: Production-linked tests
+    name: Production-linked tests (${{ matrix.io-driver }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        io-driver: [libevent, select]
     services:
       mariadb:
         image: mariadb:10.11
@@ -203,6 +210,7 @@ jobs:
       LUMINARI_TEST_MYSQL_PORT: '3306'
       LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
       LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
+      LUMINARI_IO_DRIVER: ${{ matrix.io-driver }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -211,7 +219,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            autoconf automake build-essential libcurl4-openssl-dev libgd-dev \
+            autoconf automake build-essential libcurl4-openssl-dev libevent-dev libgd-dev \
             libjson-c-dev libmariadb-dev libssl-dev libtool mariadb-client \
             mariadb-server pandoc ripgrep zlib1g-dev
 
@@ -245,7 +253,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            autoconf automake build-essential clang libcurl4-openssl-dev \
+            autoconf automake build-essential clang libcurl4-openssl-dev libevent-dev \
             libgd-dev libjson-c-dev libmariadb-dev libssl-dev libtool zlib1g-dev
 
       - name: Copy config headers
@@ -285,7 +293,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            autoconf automake build-essential libcurl4-openssl-dev libgd-dev \
+            autoconf automake build-essential libcurl4-openssl-dev libevent-dev libgd-dev \
             libjson-c-dev libmariadb-dev libssl-dev libtool valgrind zlib1g-dev
 
       - name: Copy config headers
@@ -302,7 +310,7 @@ jobs:
 
       - name: Run Valgrind on production-linked tests
         run: |
-          valgrind \
+          LUMINARI_TEST_ROOT="$PWD" valgrind \
             --leak-check=full \
             --show-leak-kinds=definite \
             --errors-for-leak-kinds=definite \
@@ -350,7 +358,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            autoconf automake build-essential libcurl4-openssl-dev \
+            autoconf automake build-essential libcurl4-openssl-dev libevent-dev \
             libgd-dev libjson-c-dev libmariadb-dev libssl-dev libtool mariadb-client zlib1g-dev
 
       - name: Install coverage tool

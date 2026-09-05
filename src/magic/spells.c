@@ -41,6 +41,7 @@
 #include "character/feats.h"
 #include "vessels/routing.h"
 #include "movement/movement_validation.h"
+#include "character_periodic.h"
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
@@ -625,7 +626,7 @@ void perform_dispel(struct char_data *ch, struct char_data *vict, struct obj_dat
   }
 }
 
-EVENTFUNC(event_ice_storm)
+MUD_EVENT_CALLBACK(event_ice_storm)
 {
   struct char_data *ch;
   struct mud_event_data *pMudEvent;
@@ -643,7 +644,7 @@ EVENTFUNC(event_ice_storm)
   return 0;
 }
 
-EVENTFUNC(event_chain_lightning)
+MUD_EVENT_CALLBACK(event_chain_lightning)
 {
   struct char_data *ch;
   struct mud_event_data *pMudEvent;
@@ -664,7 +665,7 @@ EVENTFUNC(event_chain_lightning)
 /* The "return" of the event function is the time until the event is called
  * again. If we return 0, then the event is freed and removed from the list, but
  * any other numerical response will be the delay until the next call */
-EVENTFUNC(event_acid_arrow)
+MUD_EVENT_CALLBACK(event_acid_arrow)
 {
   struct char_data *ch, *victim = NULL;
   struct mud_event_data *pMudEvent;
@@ -721,7 +722,7 @@ EVENTFUNC(event_acid_arrow)
 /* The "return" of the event function is the time until the event is called
  * again. If we return 0, then the event is freed and removed from the list, but
  * any other numerical response will be the delay until the next call */
-EVENTFUNC(event_aqueous_orb)
+MUD_EVENT_CALLBACK(event_aqueous_orb)
 {
   struct char_data *ch, *victim = NULL;
   struct mud_event_data *pMudEvent;
@@ -854,7 +855,7 @@ EVENTFUNC(event_aqueous_orb)
 /* The "return" of the event function is the time until the event is called
  * again. If we return 0, then the event is freed and removed from the list, but
  * any other numerical response will be the delay until the next call */
-EVENTFUNC(event_implode)
+MUD_EVENT_CALLBACK(event_implode)
 {
   struct char_data *ch, *victim = NULL;
   struct mud_event_data *pMudEvent;
@@ -2583,7 +2584,7 @@ ASPELL(spell_salvation) // divination
 /* The "return" of the event function is the time until the event is called
  * again. If we return 0, then the event is freed and removed from the list, but
  * any other numerical response will be the delay until the next call */
-EVENTFUNC(event_moonbeam)
+MUD_EVENT_CALLBACK(event_moonbeam)
 {
   struct char_data *ch, *victim = NULL;
   struct mud_event_data *pMudEvent;
@@ -3838,6 +3839,8 @@ ASPELL(spell_wizard_eye)
   ch->desc->original = ch;
   eye->desc = ch->desc;
   ch->desc = NULL;
+  character_periodic_sync(ch);
+  character_periodic_sync(eye);
 }
 
 ASPELL(psionic_concussive_onslaught)
@@ -3870,7 +3873,7 @@ ASPELL(psionic_concussive_onslaught)
 /* The "return" of the event function is the time until the event is called
  * again. If we return 0, then the event is freed and removed from the list, but
  * any other numerical response will be the delay until the next call */
-EVENTFUNC(event_concussive_onslaught)
+MUD_EVENT_CALLBACK(event_concussive_onslaught)
 {
   struct char_data *ch, *victim = NULL;
   struct mud_event_data *pMudEvent;
@@ -3916,7 +3919,7 @@ EVENTFUNC(event_concussive_onslaught)
   return 0;
 }
 
-EVENTFUNC(event_power_leech)
+MUD_EVENT_CALLBACK(event_power_leech)
 {
   struct char_data *ch, *victim = NULL;
   struct mud_event_data *pMudEvent;
@@ -4048,7 +4051,7 @@ ASPELL(spell_augury)
 /* The "return" of the event function is the time until the event is called
  * again. If we return 0, then the event is freed and removed from the list, but
  * any other numerical response will be the delay until the next call */
-EVENTFUNC(event_spiritual_weapon)
+MUD_EVENT_CALLBACK(event_spiritual_weapon)
 {
   struct char_data *ch, *victim = NULL;
   struct mud_event_data *pMudEvent;
@@ -4158,7 +4161,7 @@ ASPELL(spell_spiritual_weapon)
 /* The "return" of the event function is the time until the event is called
  * again. If we return 0, then the event is freed and removed from the list, but
  * any other numerical response will be the delay until the next call */
-EVENTFUNC(event_dancing_weapon)
+MUD_EVENT_CALLBACK(event_dancing_weapon)
 {
   struct char_data *ch, *victim = NULL;
   struct mud_event_data *pMudEvent;
@@ -4266,7 +4269,7 @@ ASPELL(spell_dancing_weapon)
 /* The "return" of the event function is the time until the event is called
  * again. If we return 0, then the event is freed and removed from the list, but
  * any other numerical response will be the delay until the next call */
-EVENTFUNC(event_holy_javelin)
+MUD_EVENT_CALLBACK(event_holy_javelin)
 {
   struct char_data *ch, *victim = NULL;
   struct mud_event_data *pMudEvent;
@@ -5781,7 +5784,7 @@ static mob_vnum random_call_lycanthrope_vnum(void)
   return selected;
 }
 
-EVENTFUNC(event_rol_call_lycanthrope_charm)
+MUD_EVENT_CALLBACK(event_rol_call_lycanthrope_charm)
 {
   struct mud_event_data *event;
   struct char_data *master;
@@ -5898,7 +5901,7 @@ static void tazriks_hound_disappears(room_rnum room)
     send_to_room(room, "The hellhound disappears in a puff of acrid black smoke.\r\n");
 }
 
-EVENTFUNC(event_rol_tazriks_frenzied_hound)
+MUD_EVENT_CALLBACK(event_rol_tazriks_frenzied_hound)
 {
   struct mud_event_data *event;
   struct char_data *caster;

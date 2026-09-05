@@ -34,6 +34,7 @@
 
 #include "structs.h"
 #include "utils.h"
+#include "domain_events.h"
 
 /* bool is provided by stdbool.h (via bool.h or directly) or C23+ */
 #include <stdbool.h>
@@ -250,6 +251,42 @@ void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *
 void queue_ai_request_retry(const char *prompt, int request_type,
                             int retry_count, /* Retry with backoff */
                             struct char_data *ch, struct char_data *npc);
+void queue_ai_response_for_entities(struct domain_entity_handle player,
+                                    struct domain_entity_handle npc, const char *response,
+                                    const char *backend, const char *cache_key, bool from_cache);
+void queue_ai_request_retry_for_entities(const char *prompt, int request_type, int retry_count,
+                                         struct domain_entity_handle player,
+                                         struct domain_entity_handle npc);
+bool ai_retry_request_async(const char *prompt, int request_type, int retry_count,
+                            struct domain_entity_handle player, struct domain_entity_handle npc);
+
+struct ai_event_ingress_stats
+{
+  bool available;
+  size_t depth;
+  size_t capacity;
+  uint64_t high_water;
+  uint64_t accepted;
+  uint64_t processed;
+  uint64_t rejected;
+  uint64_t wake_failures;
+  uint64_t schedule_failures;
+};
+
+bool ai_events_runtime_init(void);
+bool ai_events_ingress_init(void);
+void ai_events_ingress_shutdown(void);
+int ai_events_ingress_fd(void);
+void ai_events_process_ingress(void);
+void ai_events_get_ingress_stats(struct ai_event_ingress_stats *stats);
+
+#if defined(LUMINARI_CUTEST)
+void ai_event_test_reset_cleanup_count(void);
+int ai_event_test_cleanup_count(void);
+bool ai_service_test_start_waiting_worker(void);
+size_t ai_service_test_active_workers(void);
+void ai_service_test_reset_worker_state(void);
+#endif
 
 /* Async API Functions
  * INTERNAL USE - Called by retry system

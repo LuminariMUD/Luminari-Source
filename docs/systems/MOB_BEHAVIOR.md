@@ -4,7 +4,7 @@
 1. [Overview](#overview)
 2. [System Architecture](#system-architecture)
 3. [Module Organization](#module-organization)
-4. [Main Activity Loop](#main-activity-loop)
+4. [Agenda Execution](#agenda-execution)
 5. [Combat Behaviors](#combat-behaviors)
 6. [Non-Combat Behaviors](#non-combat-behaviors)
 7. [Memory System](#memory-system)
@@ -30,26 +30,28 @@ The LuminariMUD mobile behavior system is a sophisticated AI framework that cont
 
 ## System Architecture
 
-The mob behavior system follows a hierarchical execution model:
+The mob behavior system is demand driven. Each NPC with concrete autonomous
+work owns one scheduled agenda in `src/active_world.c`. The agenda stores reason
+bits and the nearest deadline; dormant NPCs do not receive callbacks merely
+because they exist. Off-screen wandering, patrols, hunts, scripts, and NPC wars
+remain autonomous work and do not depend on player proximity.
 
 ```
-mobile_activity() [Main Loop]
-    |-- Special Procedures (if MOB_SPEC flag)
-    |-- Combat Behaviors (if fighting)
-    |   |-- Racial Behaviors (25% chance)
-    |   |-- Ability Behaviors (25% chance)
-    |   |-- Assigned Spells (25% chance if knows spells)
-    |   `-- Class/Spell Behaviors (remaining)
-    |-- Non-Combat Behaviors
-    |   |-- Spellup/Powerup (6.25% chance for casters/psionicists)
-    |   |-- Mobile Echos
-    |   |-- Scavenging
-    |   |-- Aggression Checks
-    |   |-- Memory Checks
-    |   |-- Helper/Guard Behaviors
-    |   `-- Movement (paths, hunting, random)
-    `-- Position Management
+NPC lifecycle or domain fact
+    `-- derive concrete work reasons and nearest deadline
+        `-- active_world_mobile_agenda [one event for this NPC]
+            `-- mobile_activity_run_scheduled(NPC, due reasons)
+                |-- Special procedure activity
+                |-- Echo or scavenging opportunity
+                |-- Patrol, hunt, or wandering movement
+                |-- Posture repair
+                `-- Bounded room/combat reaction
 ```
+
+Lifecycle and typed domain events wake, alter, or retire the agenda when facts
+change. The scheduler invokes only due owner-local work. A whole-population
+cycle remains available under an explicitly legacy name for runtime rollback;
+it is not the normal gameplay path.
 
 ## Module Organization
 
@@ -57,14 +59,21 @@ The system is divided into several specialized modules:
 
 ### Core Modules
 
-#### mob_act.c/h - Main Coordination
-- **Purpose**: Central activity loop and behavior coordination
-- **Key Function**: `mobile_activity()` - called each game tick
+#### mob_act.c/h - Behavior Execution
+- **Purpose**: Execute requested autonomous responsibilities for one NPC
+- **Key Function**: `mobile_activity_run_scheduled()` - called by the NPC's due agenda
 - **Responsibilities**:
-  - Iterate through all mobs
-  - Coordinate behavior execution
+  - Execute only the requested work reasons
   - Handle special procedures
   - Manage aggression and helper behaviors
+
+#### active_world.c/h - Agenda Ownership
+- **Purpose**: Derive, schedule, wake, and retire one concrete agenda per active NPC
+- **Responsibilities**:
+  - Store explicit work reasons and their nearest deadlines
+  - Resolve owners through generation-aware handles
+  - React to lifecycle and domain facts without population scans
+  - Cancel all owner work safely during extraction or transformation
 
 #### mob_utils.c/h - Utility Functions
 - **Purpose**: Common utility functions used across modules
@@ -126,9 +135,11 @@ The system is divided into several specialized modules:
   - `is_in_memory()` - Check if player is remembered
   - `clearMemory()` - Wipe all memories
 
-## Main Activity Loop
+## Agenda Execution
 
-The `mobile_activity()` function is the heart of the mob AI system, executed each game tick:
+`mobile_activity_run_scheduled()` executes a single NPC's due responsibilities.
+The agenda decides when the NPC needs another callback; the behavior executor
+does not walk the character population or create a recurring class scheduler.
 
 ### Execution Flow
 
@@ -138,29 +149,26 @@ The `mobile_activity()` function is the heart of the mob AI system, executed eac
    - Skip mobs with MOB_NO_AI flag
    - Skip stunned/paralyzed/dazed mobs
 
-2. **Special Procedures**
-   - Execute if MOB_SPEC flag is set
-   - If spec proc returns true, skip to next mob
+2. **Reason-gated recurring work**
+   - `SPEC_ACTIVITY` invokes the assigned special procedure; a consumed action
+     ends this NPC's current agenda callback
+   - `RESOURCE_RECOVERY`, `ECHO`, and `SCAVENGE` run only their named work
+   - `PATROL`, `HUNT`, and `WANDER` select only the requested movement behavior
+   - `POSTURE` returns an eligible sentinel to its default position
 
-3. **Combat Behaviors** (if fighting and level > NEWBIE_LEVEL)
-   - Companion calling (50% chance if appropriate)
-   - 25% chance: Racial behaviors
-   - 25% chance: Ability behaviors
-   - 25% chance: Assigned spells (if knows any)
-   - Remaining: Class behaviors or offensive spells
+3. **Reason-gated room reactions**
+   - `ROOM_REACTION` enables player-aware spellup, aggression, memory revenge,
+     and adjacent-room ranged attacks
+   - `COMBAT_REACTION` enables helper, guard, group-assist, and listen behavior
+   - One-shot lifecycle notifications add these reasons when room state changes
 
-4. **Non-Combat Behaviors**
-   - Companion calling (10% chance if appropriate)
-   - Spellup (6.25% chance for casters)
-   - Mobile echos
-   - Scavenging (10% chance if MOB_SCAVENGER)
-   - Aggression checks
-   - Memory revenge
-   - Helper/guard assistance
-   - Movement (paths, hunting, random)
+4. **Legacy rollback behavior**
+   - `MOBILE_WORK_LEGACY_ALL` retains the former population-cycle combat and
+     chance-driven behavior while the rollback path remains supported
 
-5. **Position Management**
-   - Return to default position if sentinel
+5. **Agenda retirement**
+   - The owner recomputes its remaining reasons after the callback and retires
+     when no recurring or reaction work remains
 
 ## Combat Behaviors
 

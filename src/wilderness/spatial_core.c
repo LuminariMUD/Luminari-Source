@@ -198,15 +198,19 @@ int spatial_process_stimulus(struct spatial_context *ctx, struct spatial_system 
   }
 
   /* Step 5: Calculate final transmission strength */
-  ctx->final_intensity = ctx->base_intensity * (1.0 - obstruction_factor) * range_modifier *
+  ctx->final_intensity = ctx->base_intensity * ctx->distance_attenuation *
+                         (1.0 - obstruction_factor) * range_modifier *
                          system->global_intensity_multiplier;
 
-  spatial_debug("Final intensity: %.3f (base: %.3f, obstruction: %.3f, range_mod: %.3f)",
-                ctx->final_intensity, ctx->base_intensity, obstruction_factor, range_modifier);
+  spatial_debug("Final intensity: %.3f (base: %.3f, attenuation: %.3f, obstruction: %.3f, "
+                "range_mod: %.3f)",
+                ctx->final_intensity, ctx->base_intensity, ctx->distance_attenuation,
+                obstruction_factor, range_modifier);
 
-  spatial_log("SPATIAL: Final intensity calculation: %.6f = %.6f * (1.0 - %.6f) * %.6f * %.6f",
-              ctx->final_intensity, ctx->base_intensity, obstruction_factor, range_modifier,
-              system->global_intensity_multiplier);
+  spatial_log("SPATIAL: Final intensity calculation: %.6f = %.6f * %.6f * (1.0 - %.6f) * "
+              "%.6f * %.6f",
+              ctx->final_intensity, ctx->base_intensity, ctx->distance_attenuation,
+              obstruction_factor, range_modifier, system->global_intensity_multiplier);
   spatial_log("SPATIAL: Threshold check: %.6f > %.6f = %s", ctx->final_intensity,
               SPATIAL_MIN_THRESHOLD,
               (ctx->final_intensity > SPATIAL_MIN_THRESHOLD) ? "PASS" : "FAIL");

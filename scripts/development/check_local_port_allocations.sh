@@ -4,7 +4,7 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/../.." && pwd)"
-port_map="${PORT_MAP_FILE:-/home/aiwithapex/projects/1-PORT-INVENTORY/PORT-MAP.md}"
+port_map="${PORT_MAP_FILE:-$repo_root/../PORT-MAP.md}"
 
 fail()
 {

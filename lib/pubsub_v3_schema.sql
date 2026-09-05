@@ -2,6 +2,9 @@
 -- LuminariMUD PubSub V3 Database Schema
 -- Phase 3.1.4: Enhanced Message Storage and Metadata
 -- Created: August 13, 2025
+-- DEPRECATED: archival compatibility copy only. The game runtime no longer
+-- initializes or accesses these tables. Do not apply this component for new
+-- installations or drop existing tables without a reviewed data migration.
 -- ============================================================================
 
 -- Enhanced Messages Table (alongside existing pubsub_messages)

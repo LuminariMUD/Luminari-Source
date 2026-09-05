@@ -31,6 +31,7 @@
 #include "character/race.h"
 #include "mob/mob_spellslots.h"
 #include "combat/fight.h"
+#include "combat/combat_encounters.h"
 #include "modify.h"
 #include "asciimap.h"
 #include "clan.h"
@@ -2022,6 +2023,61 @@ static void deliver_where_output(struct char_data *ch, struct where_output_buffe
   free(output->data);
 }
 
+#define INITIATIVE_DISPLAY_LIMIT 100U
+
+ACMD(do_initiative)
+{
+  struct combat_encounter_initiative_entry entries[INITIATIVE_DISPLAY_LIMIT];
+  struct combat_encounter_initiative_snapshot snapshot;
+  struct where_output_buffer output = {NULL, 0, 0, FALSE};
+  const char *name;
+  const char *suffix;
+  uint64_t seconds_until_round;
+  size_t index;
+  int name_width;
+  int screen_width;
+
+  if (!combat_encounter_get_initiative(ch, entries, INITIATIVE_DISPLAY_LIMIT, &snapshot))
+  {
+    send_to_char(ch, "You are not part of an active combat encounter.\r\n");
+    return;
+  }
+  if (!snapshot.semantic_rounds)
+  {
+    send_to_char(ch, "Initiative order is unavailable in compatibility combat.\r\n");
+    return;
+  }
+
+  screen_width = IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch);
+  if (screen_width < 40)
+    screen_width = 80;
+  screen_width = MIN(screen_width, 120);
+  seconds_until_round =
+      (snapshot.pulses_until_round + (uint64_t)PASSES_PER_SEC - 1U) / (uint64_t)PASSES_PER_SEC;
+  append_where_output(&output, "Initiative - Round %llu\r\n",
+                      (unsigned long long)snapshot.round_number);
+  append_where_output(&output, "Next round in %llu second%s.\r\n\r\n",
+                      (unsigned long long)seconds_until_round,
+                      seconds_until_round == 1U ? "" : "s");
+  append_where_output(&output, " #  Roll  Combatant\r\n");
+  append_where_output(&output, "--  ----  ---------\r\n");
+  for (index = 0; index < snapshot.entry_count; index++)
+  {
+    name = PERS(entries[index].character, ch);
+    suffix = entries[index].character == ch ? " (you)" : "";
+    name_width = MAX(1, screen_width - 11 - (int)strlen(suffix));
+    append_where_output(&output, "%2zu. %4d  %s%.*s%s%s\r\n", index + 1U, entries[index].initiative,
+                        entries[index].character == ch ? CCGRN(ch, C_SPR) : "", name_width, name,
+                        entries[index].character == ch ? CCNRM(ch, C_SPR) : "", suffix);
+  }
+  if (snapshot.total_participants > snapshot.entry_count)
+    append_where_output(&output, "...and %zu more combatants.\r\n",
+                        snapshot.total_participants - snapshot.entry_count);
+  deliver_where_output(ch, &output);
+}
+
+#undef INITIATIVE_DISPLAY_LIMIT
+
 static void perform_immort_where(struct char_data *ch, const char *arg)
 {
   struct char_data *i;
@@ -2344,254 +2400,254 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
 
   if ((pMudEvent = char_has_mud_event(k, eINTIMIDATE_COOLDOWN)))
     send_to_char(ch, "Intimidate Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTAUNT)))
     send_to_char(ch, "Taunt Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eVANISHED)))
     send_to_char(ch, "Vanish Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eINVISIBLE_ROGUE)))
     send_to_char(ch, "Invisible Rogue Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eRAGE)))
     send_to_char(ch, "Rage Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSACRED_FLAMES)))
     send_to_char(ch, "Sacred Flames Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eINNER_FIRE)))
     send_to_char(ch, "Inner Fire Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eMUTAGEN)))
     send_to_char(ch, "Mutagen/Cognatogen Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, ePSYCHOKINETIC)))
     send_to_char(ch, "Psychokinetic Tincture Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCRIPPLING_CRITICAL)))
     send_to_char(ch, "Crippling Critical Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDEFENSIVE_STANCE)))
     send_to_char(ch, "Defensive Stance Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eINSECTBEING)))
     send_to_char(ch, "Insect Being Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCRYSTALFIST)))
     send_to_char(ch, "Crystal Fist Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCRYSTALBODY)))
     send_to_char(ch, "Crystal Body Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eMASTERMIND)))
     send_to_char(ch, "Mastermind Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTINKER)))
     send_to_char(ch, "Tinker Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_LEVITATE)))
     send_to_char(ch, "Levitate Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_DARKNESS)))
     send_to_char(ch, "Darkness Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_FAERIE_FIRE)))
     send_to_char(ch, "Faerie Fire Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eAASIMAR_HEALING_HANDS)))
     send_to_char(ch, "Healing Hands Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eAASIMAR_LIGHT_BEARER)))
     send_to_char(ch, "Light Bearer Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eLAYONHANDS)))
     send_to_char(ch, "Lay on Hands Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eWHOLENESSOFBODY)))
     send_to_char(ch, "Wholeness of Body Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eRENEWEDVIGOR)))
     send_to_char(ch, "Renewed Vigor Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eRENEWEDDEFENSE)))
     send_to_char(ch, "Renewed Defense Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if (AFF_FLAGGED(ch, AFF_GRAPPLED)) /*no need for message if not grappling*/
     if ((pMudEvent = char_has_mud_event(k, eSTRUGGLE)))
       send_to_char(ch, "Struggle Cooldown - Duration: %d seconds\r\n",
-                   (int)(event_time(pMudEvent->pEvent) / 10));
+                   (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTREATINJURY)))
     send_to_char(ch, "Treat Injuries Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eEMPTYBODY)))
     send_to_char(ch, "Empty Body Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eMUMMYDUST)))
     send_to_char(ch, "Epic Spell Cooldown :  Mummy Dust - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDRAGONKNIGHT)))
     send_to_char(ch, "Epic Spell Cooldown :  Dragon Knight - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eGREATERRUIN)))
     send_to_char(ch, "Epic Spell Cooldown :  Greater Ruin - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eHELLBALL)))
     send_to_char(ch, "Epic Spell Cooldown :  Hellball - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eEPICMAGEARMOR)))
     send_to_char(ch, "Epic Spell Cooldown :  Epic Mage Armor - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eEPICWARDING)))
     send_to_char(ch, "Epic Spell Cooldown :  Epic Warding - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eANIMATEDEAD)))
     send_to_char(ch, "Animate Dead Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSTUNNINGFIST)))
     send_to_char(ch, "Stunning Fist Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSURPRISE_ACCURACY)))
     send_to_char(ch, "Surprise Accuracy Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCOME_AND_GET_ME)))
     send_to_char(ch, "Come and Get Me! Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, ePOWERFUL_BLOW)))
     send_to_char(ch, "Powerful Blow Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDEATHARROW)))
     send_to_char(ch, "Death Arrow Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eQUIVERINGPALM)))
     send_to_char(ch, "Quivering Palm Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eD_ROLL)))
     send_to_char(ch, "Defensive Roll Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eLICH_REJUV)))
     send_to_char(ch, "Lich Rejuvenation Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eLAST_WORD)))
     send_to_char(ch, "Last Word Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, ePURIFY)))
     send_to_char(ch, "Purify Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_ANIMAL)))
     send_to_char(ch, "Call Companion Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_DRAGONMOUNT)))
     send_to_char(ch, "Call Dragon Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_EIDOLON)))
     send_to_char(ch, "Call Eidolon Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_FAMILIAR)))
     send_to_char(ch, "Call Familiar Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_MOUNT)))
     send_to_char(ch, "Call Mount Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSUMMONSHADOW)))
     send_to_char(ch, "Call Shadow Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eIMBUE_ARROW)))
     send_to_char(ch, "Imbue Arrow Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eARROW_SWARM)))
     send_to_char(ch, "Arrow Swarm Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eMANYSHOT)))
     send_to_char(ch, "Manyshot Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSEEKER_ARROW)))
     send_to_char(ch, "Seeker Arrow Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSMITE_EVIL)))
     send_to_char(ch, "Smite Evil Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSMITE_GOOD)))
     send_to_char(ch, "Smite Good Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSMITE_DESTRUCTION)))
     send_to_char(ch, "Smite Destruction Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, ePERFORM)))
     send_to_char(ch, "Perform Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTURN_UNDEAD)))
     send_to_char(ch, "Turn Undead Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSPELLBATTLE)))
     send_to_char(ch, "Spellbattle Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eWILD_SHAPE)))
     send_to_char(ch, "Wild Shape Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSHIELD_RECOVERY)))
     send_to_char(ch, "Shield Recovery Cooldown  - Duration %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eLIGHTNING_ARC)))
     send_to_char(ch, "Lightning Arc Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eACID_DART)))
     send_to_char(ch, "Acid Dart Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eFIRE_BOLT)))
     send_to_char(ch, "Fire Bolt Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eICICLE)))
     send_to_char(ch, "Icicle Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCURSE_TOUCH)))
     send_to_char(ch, "Curse Touch Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDESTRUCTIVE_AURA)))
     send_to_char(ch, "Destructive Aura Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eEVIL_TOUCH)))
     send_to_char(ch, "Evil Touch Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eGOOD_TOUCH)))
     send_to_char(ch, "Good Touch Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eHEALING_TOUCH)))
     send_to_char(ch, "Healing Touch Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCURING_TOUCH)))
     send_to_char(ch, "Curing Touch Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eEYE_OF_KNOWLEDGE)))
     send_to_char(ch, "Eye of Knowledge Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eBLESSED_TOUCH)))
     send_to_char(ch, "Blessed Touch Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCOPYCAT)))
     send_to_char(ch, "Copycat Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eMASS_INVIS)))
     send_to_char(ch, "Mass Invis Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eAURA_OF_PROTECTION)))
     send_to_char(ch, "Aura of Protection Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eBATTLE_RAGE)))
     send_to_char(ch, "Battle Rage Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDRACBREATH)))
     send_to_char(ch, "Draconic Heritage Breath Weapon Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDRACCLAWS)))
     send_to_char(ch, "Draconic Heritage Claws Attack Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDRAGBREATH)))
     send_to_char(ch, "Dragon Heritage Breath Weapon Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCATSCLAWS)))
     send_to_char(ch, "Tabaxi Cats Claws Attack Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
 
   /* Wizard Evoker perk cooldowns */
   if (CONFIG_PERK_SYSTEM && !IS_NPC(k) &&
@@ -2763,61 +2819,61 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
 
   if ((pMudEvent = char_has_mud_event(k, eSLA_STRENGTH)))
     send_to_char(ch, "Strength Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_ENLARGE)))
     send_to_char(ch, "Enlarge Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_INVIS)))
     send_to_char(ch, "Invisibility Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCHANNELSPELL)))
     send_to_char(ch, "Channel Spell Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, ePSIONICFOCUS)))
     send_to_char(ch, "Psionic Focus Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDOUBLEMANIFEST)))
     send_to_char(ch, "Double Manifest Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSHADOWILLUSION)))
     send_to_char(ch, "Shadow Illusion Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSHADOWCALL)))
     send_to_char(ch, "Shadow Call Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSHADOWPOWER)))
     send_to_char(ch, "Shadow Power Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSHADOWJUMP)))
     send_to_char(ch, "Shadow Jump Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTOUCHOFCORRUPTION)))
     send_to_char(ch, "Touch of Corruption Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTOUCHOFUNDEATH)))
     send_to_char(ch, "Touch of Undeath Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCHANNELENERGY)))
     send_to_char(ch, "Channel Energy Cooldown - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eEVOBREATH)))
     send_to_char(ch, "Eidolon Breath Weapon Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSTRENGTHOFHONOR)))
     send_to_char(ch, "Strength of Honor Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCROWNOFKNIGHTHOOD)))
     send_to_char(ch, "Crown of Knighthood Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSOULOFKNIGHTHOOD)))
-    send_to_char(ch, "Crown of Knighthood Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "Soul of Knighthood Cooldown  - Duration: %d seconds\r\n",
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCOSMICUNDERSTANDING)))
     send_to_char(ch, "Cosmic Understanding Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDRAGOONPOINTS)))
     send_to_char(ch, "Dragoon Points Cooldown  - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
 
   if (GET_SETCLOAK_TIMER(ch) > 0)
     send_to_char(ch, "Vampire 'Setcloak' Cooldown - Duration: %d seconds\r\n",
@@ -2855,7 +2911,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
                  GET_KAPAK_SALIVA_HEALING_COOLDOWN(k) * 6);
   if (GET_FIGHT_TO_THE_DEATH_COOLDOWN(k) > 0)
     send_to_char(ch, "Fight to the Death - Duration: %d seconds\r\n",
-                 GET_FIGHT_TO_THE_DEATH_COOLDOWN(k) * 6);
+                 GET_FIGHT_TO_THE_DEATH_COOLDOWN(k));
   if (ch->char_specials.terror_cooldown > 0)
     send_to_char(ch, "Aura of Terror Immunity - Duration: %d seconds\r\n",
                  ch->char_specials.terror_cooldown * 6);
@@ -3221,34 +3277,34 @@ void perform_affects(struct char_data *ch, struct char_data *k)
 
   if ((pMudEvent = char_has_mud_event(k, eVANISH)))
     send_to_char(ch, "\tRVanished!\tn - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eINTIMIDATED)))
     send_to_char(ch, "\tRIntimidated!\tn - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eTAUNTED)))
     send_to_char(ch, "\tRTaunted!\tn - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSTUNNED)))
     send_to_char(ch, "\tRStunned!\tn - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eACIDARROW)))
     send_to_char(ch, "\tRAcid Arrow!\tn - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eAQUEOUSORB)))
     send_to_char(ch, "\tRAqueous Orb!\tn - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eHOLYJAVELIN)))
     send_to_char(ch, "\tRHoly Javelin!\tn - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eIMPLODE)))
     send_to_char(ch, "\tRImplode!\tn - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCONCUSSIVEONSLAUGHT)))
     send_to_char(ch, "\tRConcussive Onslaught!\tn - Duration: %d rounds\r\n",
                  ch->player_specials->concussive_onslaught_duration);
   if ((pMudEvent = char_has_mud_event(k, eMOONBEAM)))
     send_to_char(ch, "\tRMoonbeam!\tn - Duration: %d seconds\r\n",
-                 (int)(event_time(pMudEvent->pEvent) / 10));
+                 (int)(mud_event_remaining(pMudEvent) / 10));
 
   /* Power Strike display */
   if (!IS_NPC(k) && GET_POWER_STRIKE(k) > 0)
@@ -10008,7 +10064,6 @@ ACMD(do_track) {
   send_to_char(ch, "This skill is under construction currently..\r\n");
   return;
 
-  struct event * pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
 
@@ -10049,11 +10104,7 @@ ACMD(do_track) {
 
     simple_list(NULL);
 
-    while ((pEvent = (struct event *) simple_list(world[IN_ROOM(ch)].events)) != NULL) {
-      if (!pEvent->isMudEvent)
-        continue;
-
-      pMudEvent = (struct mud_event_data *) pEvent->event_obj;
+    while ((pMudEvent = simple_list(world[IN_ROOM(ch)].events)) != NULL) {
 
       if (pMudEvent->iId == eTRACKS) {
 
@@ -10084,7 +10135,7 @@ ACMD(do_track) {
  */
 
 /* Event function for tracks, causing decay and eventual removal. */
-EVENTFUNC(event_tracks)
+MUD_EVENT_CALLBACK(event_tracks)
 {
   struct mud_event_data *pMudEvent = NULL;
   char buf[128];

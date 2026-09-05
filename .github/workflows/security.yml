@@ -54,7 +54,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4.37.8
+        uses: github/codeql-action/init@v4.37.9
         with:
           languages: c-cpp
           queries: +security-extended
@@ -62,7 +62,9 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libmariadb-dev libssl-dev zlib1g-dev autoconf automake libtool libgd-dev libcurl4-openssl-dev libjson-c-dev
+          sudo apt-get install -y \
+            autoconf automake build-essential libcurl4-openssl-dev libevent-dev libgd-dev \
+            libjson-c-dev libmariadb-dev libssl-dev libtool zlib1g-dev
 
       - name: Copy config headers
         run: |
@@ -79,7 +81,7 @@ jobs:
         run: make -j"$(nproc)"
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4.37.8
+        uses: github/codeql-action/analyze@v4.37.9
         with:
           category: "/language:c-cpp"
 

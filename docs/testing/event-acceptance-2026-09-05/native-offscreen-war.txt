@@ -1,0 +1,348 @@
+Reusing the development MUD on port 4103.
+
+>>> goto 27500
+432/432H 1160/1160V [smw] (news) (motd)
+[27500] Naved's Zone Description Room [ None ]  [Inside] ( None )
+The city of New Sparta. By Naved. Dump: 27608 Zone 275 is linked
+to the following zones: 276 New Sparta II at 27516 (west ) --->
+27614 276 New Sparta II at 27569 (east ) ---> 27616 276 New           [&]
+Sparta II at 27570 (west ) ---> 27604 276 New Sparta II at 27580
+(north) ---> 27612 276 New Sparta II at 27599 (north) ---> 27600
+276 New Sparta II at 27599 (south) ---> 27601 guildmaster: 72,
+73, 74, 75
+[ Exits: None!]
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> load mob 27585
+.'
+432/432H 1160/1160V [smw] (news) (motd) load mob 27585
+You create the beastly fido.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> load mob 27584
+.'
+432/432H 1160/1160V [smw] (news) (motd) load mob 27584
+You create the janitor.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> set mob fido maxhit 500
+.'
+432/432H 1160/1160V [smw] (news) (motd) set mob fido maxhit 500
+432/432H 1160/1160V [smw] (news) (motd)
+the beastly fido's maxhit set to 500.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> set mob fido hitpoints 500
+.'
+432/432H 1160/1160V [smw] (news) (motd) set mob fido hitpoints 500
+432/432H 1160/1160V [smw] (news) (motd)
+the beastly fido's hitpoints set to 500.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> set mob janitor maxhit 500
+.'
+432/432H 1160/1160V [smw] (news) (motd) set mob janitor maxhit 500
+the janitor's maxhit set to 500.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> set mob janitor hitpoints 500
+.'
+432/432H 1160/1160V [smw] (news) (motd) set mob janitor hitpoints 500
+the janitor's hitpoints set to 500.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> attach mob 9999999 janitor
+.'
+432/432H 1160/1160V [smw] (news) (motd) attach mob 9999999 janitor
+Trigger 9999999 (Acceptance - autonomous offscreen duel) attached to the janitor [27584].
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> goto 3001
+.'
+432/432H 1160/1160V [smw] (news) (motd) goto 3001
+[ 3001] The Temple Of Midgen [ No-Mob Indoors Peaceful ]  [Inside] ( None )
+You are in the southern end of the temple hall in the Temple of       [.]
+Midgen. The temple has been constructed from giant marble blocks,      | +
+eternal in appearance, and most of the walls are covered by       [.]-[&]-[.]
+ancient wall paintings picturing Gods, giants and peasants. Large      |
+steps lead down through the grand temple gate, descending the     [.] [|] [.]
+huge mound upon which the temple is built and ends on the temple
+square below. To the west, you see the Reading Room. The donation
+room is in a small alcove to your east.
+[ Exits: N E S W U ]
+[3034] An automatic teller machine has been installed in the wall here.
+[3013] [10] [T3018] A lady trainer stands here offering her services to new adventurers.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> @wait 30
+Paused the local test session for 30 second(s).
+.'
+
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> eventdebug type combat.encounter
+432/432H 1160/1160V [smw] (news) (motd)
+Event Queue
+--------------------------------------------------------------------------------
+Matched: 1
+Showing: 1
+Payloads: redacted
+#52651 combat.encounter.round
+  state: queued
+  due pulses: 10
+  due seconds: 1.0
+  owner: encounter
+  owner id: 1
+  generation: 1
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> goto 27500
+.'
+432/432H 1160/1160V [smw] (news) (motd) goto 27500
+[27500] Naved's Zone Description Room [ None ]  [Inside] ( None )
+The city of New Sparta. By Naved. Dump: 27608 Zone 275 is linked
+to the following zones: 276 New Sparta II at 27516 (west ) --->
+27614 276 New Sparta II at 27569 (east ) ---> 27616 276 New           [&]
+Sparta II at 27570 (west ) ---> 27604 276 New Sparta II at 27580
+(north) ---> 27612 276 New Sparta II at 27599 (north) ---> 27600
+276 New Sparta II at 27599 (south) ---> 27601 guildmaster: 72,
+73, 74, 75
+[ Exits: None!]
+[27584] [ 1] [T9999999] The janitor is here, fighting the beastly fido!
+[27585] [ 1] The beastly fido is here, fighting the janitor!
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> stat mob janitor
+.'
+432/432H 1160/1160V [smw] (news) (motd) stat mob janitor
+432/432H 1160/1160V [smw] (news) (motd)
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+male MOB 'the janitor'  IDNum: [1000331]
+Loc: [27500/W(0, 0)], Loadroom: [NONE]
+Keyword: janitor
+VNum: [27584], RNum: [3168]
+L-Des: A janitor is walking around, cleaning up.
+D-Des:    What is there to say?  He is cleaning stuff up.  Wow.  What a thrill.
+Mobile Race: Humanoid
+CrntClass: warrior  Lvl: [1]  XP: [78]  Algn: [Lawful Good(900)]
+Character size: Medium  Mounted: None  Ridden By: None
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+Str: [11]  Int: [11]  Wis: [11]  Dex: [11]  Con: [11]  Cha: [11]
+Hit p.:[490/500+1]  PSP p.:[10/10+0]  Move p.:[1000/1000+10]
+Gold: [       42], Bank: [        0] (Total: 42),
+AC: [110/0], Hitroll: [0/-1], Damroll: [0/2], Saving throws: [0/0/0/0/0]
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+Pos: Standing, Fighting: the beastly fido, Attack type: hit, Default position: Standing
+Encounter tier: Unspecified (no tier bonus)
+NPC flags: Mob Zone-Sentinel Memory
+Mob Spec-Proc: None, NPC Bare Hand Dam: 1d2
+Carried: weight: 0, items: 0; Items in: inventory: 0, eq: 0
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  DR: 0, CM%: 0 | Trlx WpnPsn: 0/0/0.
+Stoneskin: 0, Mirror Images: 0, Cloudkill/Inc/Doom: 0/0/0, Spell Resist: 0
+Memming? 0, Praying? 0, Communing? 0, Meditating? 0
+DivLvl: 1  MgcLvl: 1  CstrLvl: 1
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+Master is: <none>, Followers are: <none>
+MEMORY:
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> stat mob fido
+.'
+432/432H 1160/1160V [smw] (news) (motd) stat mob fido
+432/432H 1160/1160V [smw] (news) (motd)
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+neutral MOB 'the beastly fido'  IDNum: [1000323]
+Loc: [27500/W(0, 0)], Loadroom: [NONE]
+Keyword: fido beastly
+VNum: [27585], RNum: [3169]
+L-Des: A beastly fido is here.
+D-Des:    A fido is a small dog that has a foul smell and pieces of rotted meat
+hanging around its teeth.
+Mobile Race: Animal
+CrntClass: rogue  Lvl: [1]  XP: [79]  Algn: [Chaotic Neutral(-200)]
+Character size: Medium  Mounted: None  Ridden By: None
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+Str: [11]  Int: [11]  Wis: [11]  Dex: [11]  Con: [11]  Cha: [11]
+Hit p.:[493/500+1]  PSP p.:[10/10+0]  Move p.:[1000/1000+10]
+Gold: [       46], Bank: [        0] (Total: 46),
+AC: [110/0], Hitroll: [0/-1], Damroll: [0/2], Saving throws: [0/0/0/0/0]
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+Pos: Standing, Fighting: the janitor, Attack type: hit, Default position: Standing
+Encounter tier: Unspecified (no tier bonus)
+NPC flags: Mob Zone-Sentinel Wimpy Classless
+Mob Spec-Proc: None, NPC Bare Hand Dam: 1d2
+Carried: weight: 0, items: 0; Items in: inventory: 0, eq: 0
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+  DR: 0, CM%: 0 | Trlx WpnPsn: 0/0/0.
+Stoneskin: 0, Mirror Images: 0, Cloudkill/Inc/Doom: 0/0/0, Spell Resist: 0
+Memming? 0, Praying? 0, Communing? 0, Meditating? 0
+DivLvl: 1  MgcLvl: 1  CstrLvl: 1
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+Master is: <none>, Followers are: <none>
+MEMORY:
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> purge janitor
+.'
+432/432H 1160/1160V [smw] (news) (motd) purge janitor
+432/432H 1160/1160V [smw] (news) (motd)
+Okay.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> purge fido
+.'
+432/432H 1160/1160V [smw] (news) (motd) purge fido
+432/432H 1160/1160V [smw] (news) (motd)
+Okay.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> goto 3001
+.'
+432/432H 1160/1160V [smw] (news) (motd) goto 3001
+[ 3001] The Temple Of Midgen [ No-Mob Indoors Peaceful ]  [Inside] ( None )
+You are in the southern end of the temple hall in the Temple of       [.]
+Midgen. The temple has been constructed from giant marble blocks,      | +
+eternal in appearance, and most of the walls are covered by       [.]-[&]-[.]
+ancient wall paintings picturing Gods, giants and peasants. Large      |
+steps lead down through the grand temple gate, descending the     [.] [|] [.]
+huge mound upon which the temple is built and ends on the temple
+square below. To the west, you see the Reading Room. The donation
+room is in a small alcove to your east.
+[ Exits: N E S W U ]
+[3034] An automatic teller machine has been installed in the wall here.
+[3013] [10] [T3018] A lady trainer stands here offering her services to new adventurers.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> eventdebug
+.'
+432/432H 1160/1160V [smw] (news) (motd) eventdebug
+432/432H 1160/1160V [smw] (news) (motd)
+Event Debug Summary
+--------------------------------------------------------------------------------
+Backend: scheduler
+Pulse: 1883
+Display width: 80
+Live events: 42420
+High-water events: 43467
+Registry mismatch: 0
+Stale-owner outcomes: 0
+Live events by owner
+  none: 424
+  character: 41379
+  room: 195
+  object: 398
+  vessel: 8
+  service: 16
+Runtime services
+  mode: named scheduled events
+  live/configured: 14/14
+  callbacks: 384
+  schedule failures: 0
+Scheduler queues
+  types: 263 (sealed)
+  ready: 0
+  oldest overdue: 0 pulses
+  wheel L0: 9536
+  wheel L1: 32872
+  wheel L2: 12
+  wheel L3: 0
+  wheel L4: 0
+  overflow: 0
+  owner records: 41996
+  timed ingress: main thread only
+Scheduler lifecycle
+  scheduled: 53656
+  callbacks: 666507
+  completed: 6166
+  cancelled: 5070
+  failed: 0
+  rescheduled: 659607
+  late callbacks: 22113
+  missed: 0
+  skipped: 1799
+  coalesced: 0
+Scheduler structural work
+  cascade slots: 1911
+  cascaded: 928693
+  largest cascade: 16787
+  overflow promotions: 0
+  large advances: 0
+  events reclassified: 0
+Admission rejections
+  global limit: 0
+  type limit: 0
+  invalid owner: 0
+  owner limit: 0
+  owner/type limit: 0
+Combat encounters
+  mode: six-second semantic
+  active: 0 encounters / 0 participants
+  scheduled events: 0
+  created/ended/merged: 1/1/0
+  callbacks: 3
+  semantic rounds/turns: 3/6
+  intents sent/held: 0/0
+  action/reaction spend: 12/0
+  comparison mismatch: 0
+  admission/stale: 0/0
+Primary activities
+  active/high-water: 0/0
+  started/completed: 0/0
+  cancelled/paused/resumed: 0/0/0
+  delayed/rejected: 0/0
+  stale callbacks: 0
+Character owners
+  mode: scheduled
+  members/scheduled/mismatch: 806/806/0
+  owner callbacks: 63877
+  d20/devices/quests: 31670/6367/2557
+Autonomous mobile agendas
+  mode: scheduled
+  active/cooling: 38791/0
+  spec/echo/scavenge: 2150/1277/15
+  patrol/hunt/wander: 101/0/37108
+  posture/room/combat: 26/66/30
+  resource recovery: 1
+  agenda callbacks: 533948
+  capacity/rejected: 65536/0
+Discovery registries
+  DG time members m/o/r: 1/0/9
+  DG time mismatch m/o/r: 0/0/0
+  DG time visited m/o/r: 2/0/18
+  DG time executed m/o/r: 0/0/18
+  trail locations/mismatch: 0/0
+  trail cleanup runs/visited/removed: 2/0/0
+Worker ingress (I3)
+  status: offline
+  depth: 0/0
+  high-water: 0
+  rejected: 0
+  wake failures: 0
+Worker ingress (AI)
+  status: online
+  depth: 0/256
+  high-water: 0
+  accepted/processed: 0/0
+  rejected: 0
+  wake/schedule failures: 0/0
+Domain event bus
+  status: online
+  sealed: yes
+  types: 9
+  handlers: 15
+  subscriptions live/high: 0/0
+  publications: 192528
+  handler calls: 548055
+  sub deliveries/cancels: 0/0
+  rejected chains: 0
+  max depth: 1
+Use 'eventdebug help' for filters.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+PASS: Aster ran 18 game command(s) and logged out cleanly (36s).

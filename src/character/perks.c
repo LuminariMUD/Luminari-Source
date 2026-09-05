@@ -22,6 +22,7 @@
 #include "class.h"
 #include "perks.h"
 #include "combat/assign_wpn_armor.h"
+#include "combat/combat_encounters.h"
 #include "combat/projectiles.h"
 
 /* Undefine NUM_ABILITIES before including spells.h to avoid redefinition warning */
@@ -3600,7 +3601,7 @@ ACMD(do_cataclysmsmite)
 
     /* Deal profane damage (3d10) */
     dam = dice(3, 10);
-    GET_HIT(vict) -= dam;
+    combat_apply_raw_damage(vict, ch, dam, DAM_UNHOLY, INT_MIN);
 
     send_to_char(vict, "\tRYou are engulfed in a burst of profane energy, taking %d damage!\tn\r\n",
                  dam);
@@ -3716,10 +3717,13 @@ bool has_blackguard_relentless_assault(struct char_data *ch)
  */
 bool can_trigger_relentless_assault(struct char_data *ch)
 {
+  bool used;
+
   if (!has_blackguard_relentless_assault(ch))
     return FALSE;
 
-  /* Check if already triggered this round */
+  if (combat_encounter_round_flag_query(ch, COMBAT_ENCOUNTER_ROUND_RELENTLESS_ASSAULT_USED, &used))
+    return !used;
   return (char_has_mud_event(ch, eRELENTLESS_ASSAULT) == NULL);
 }
 
@@ -3740,8 +3744,8 @@ void trigger_relentless_assault(struct char_data *ch)
   /* Grant extra attack (implementation hook needed in combat code) */
   /* TODO: Hook into combat system to grant extra attack */
 
-  /* Set 1-round cooldown */
-  NEW_EVENT(eRELENTLESS_ASSAULT, ch, NULL, 6 * PASSES_PER_SEC); /* 1 round = 6 seconds */
+  if (!combat_encounter_round_flag_mark(ch, COMBAT_ENCOUNTER_ROUND_RELENTLESS_ASSAULT_USED))
+    NEW_EVENT(eRELENTLESS_ASSAULT, ch, NULL, 6 * PASSES_PER_SEC);
 }
 
 /**

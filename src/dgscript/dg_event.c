@@ -25,433 +25,377 @@
 #include "dg_event.h"
 #include "constants.h"
 #include "comm.h" /* For access to the game pulse */
-#include "mud_event.h"
+#include "event_runtime.h"
 #include "perfmon.h"
 #include <limits.h> /* For LONG_MAX used in overflow checks */
 
-/***************************************************************************
- * Begin mud specific event queue functions
- **************************************************************************/
-/* file scope variables */
-/** The mud specific queue of events. */
-static struct dg_queue *event_q = NULL;
-/** Flag to track if we're currently processing events (prevents dangerous operations) */
-static int processing_events = 0;
-/** Counter to track total number of events in the system (resource exhaustion protection) */
-static int total_events = 0;
-/** New events created by callbacks during the current event_process() call. */
-static uint64_t events_created_during_process = 0;
+
+#define NATIVE_EVENT_MAX_EVENTS 262144U
+#define NATIVE_EVENT_MAX_EVENTS_PER_OWNER 1024U
+
+static enum event_backend_kind active_backend = EVENT_BACKEND_UNINITIALIZED;
+static uint64_t stale_owner_outcomes;
+static size_t native_event_high_water;
 
 #if defined(LUMINARI_CUTEST)
-static int event_init_calls = 0;
-static int event_free_all_calls = 0;
+static int event_init_calls;
+static int event_free_all_calls;
 #endif
 
-/** Initializes the main event queue event_q.
- * @post The main event queue, event_q, has been created and initialized.
- */
+static game_tick_t native_scheduler_tick(void *context)
+{
+  (void)context;
+  return (game_tick_t)pulse;
+}
+
+static uint64_t native_scheduler_usec(void *context)
+{
+  (void)context;
+  return PERF_monotonic_usec();
+}
+
+enum event_backend_kind event_backend_current(void)
+{
+  return active_backend;
+}
+
+const char *event_backend_name(void)
+{
+  return active_backend == EVENT_BACKEND_GAME_SCHEDULER ? "scheduler" : "uninitialized";
+}
+
 void event_init(void)
 {
+  struct game_scheduler_config config;
+  enum game_scheduler_status status;
+
 #if defined(LUMINARI_CUTEST)
   event_init_calls++;
 #endif
-
-  if (event_q != NULL)
+  if (active_backend != EVENT_BACKEND_UNINITIALIZED || event_runtime_is_initialized())
   {
-    log("SYSERR: event_init called while the event queue is already initialized");
+    log("SYSERR: event_init called while the native event runtime is already initialized");
     return;
   }
-
-  event_q = queue_init();
-}
-
-/** Creates a named event with no custom cancellation cleanup.
- * @see event_create_named_with_cleanup
- */
-struct event *event_create_named(EVENTFUNC(*func), void *event_obj, long when,
-                                 const char *profile_name)
-{
-  return event_create_named_with_cleanup(func, event_obj, when, profile_name, NULL);
-}
-
-/** Creates a new event 'object' that is then enqueued to the global event_q.
- * @post If the newly created event is valid, it is always added to event_q.
- * @param func The function to be called when this event fires. This function
- * will be passed event_obj when it fires. The function must match the form
- * described by EVENTFUNC.
- * @param event_obj An optional 'something' to be passed to func when this
- * event fires. It is func's job to cast event_obj. If event_obj is not needed,
- * pass in NULL.
- * @param when Number of pulses between firing(s) of this event.
- * @param profile_name Stable callback identity used by PERFMON reports.
- * @param cleanup Optional callback used when a queued event is canceled or
- * freed in bulk. The event function remains responsible for normal completion.
- * @retval event * Returns a pointer to the newly created event, or NULL on error.
- * */
-struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
-                                              const char *profile_name, event_cleanup_func cleanup)
-{
-  struct event *new_event = NULL;
-  long target_time;
-
-  /* Safety check: ensure event_q is initialized */
-  if (!event_q)
+  memset(&config, 0, sizeof(config));
+  config.max_events = NATIVE_EVENT_MAX_EVENTS;
+  config.max_event_types = GAME_SCHEDULER_DEFAULT_MAX_EVENT_TYPES;
+  config.max_events_per_owner = NATIVE_EVENT_MAX_EVENTS_PER_OWNER;
+  config.tick_now = native_scheduler_tick;
+  config.monotonic_usec_now = native_scheduler_usec;
+  status = event_runtime_init(&config);
+  if (status != GAME_SCHEDULER_OK)
   {
-    log("SYSERR: event_create called before event_init()");
-    return NULL;
-  }
-
-  /* CRITICAL: Validate function pointer to prevent crashes.
-   *
-   * BEGINNERS NOTE: A NULL function pointer would crash the game when
-   * event_process() tries to call it. We must catch this error early! */
-  if (!func)
-  {
-    log("SYSERR: event_create called with NULL function pointer");
-    return NULL;
-  }
-
-  /* RESOURCE EXHAUSTION PROTECTION:
-   *
-   * PROBLEM: A malicious user or buggy code could create millions of events,
-   * using up all server memory and causing a crash.
-   *
-   * SOLUTION: Limit the total number of events that can exist at once.
-   * If we hit the limit, refuse to create new events and log a warning. */
-  if (total_events >= MAX_EVENTS)
-  {
-    log("SYSERR: Maximum number of events (%d) reached! Refusing to create new event.", MAX_EVENTS);
-    log("SYSERR: This usually indicates a bug creating too many events.");
-    return NULL;
-  }
-
-  if (when < 1) /* make sure its in the future */
-    when = 1;
-
-  /* FIX FOR INTEGER OVERFLOW:
-   *
-   * PROBLEM: If 'when' and 'pulse' are both very large, adding them
-   * could overflow and wrap around to a small or negative number.
-   * This would cause the event to fire at the wrong time!
-   *
-   * SOLUTION: Check for overflow before doing the addition.
-   * If overflow would occur, cap at maximum safe value. */
-  if (pulse > LONG_MAX || when > LONG_MAX - (long)pulse)
-  {
-    log("WARNING: event_create overflow prevented. Event scheduled for maximum future time.");
-    target_time = LONG_MAX;
-  }
-  else
-  {
-    target_time = when + (long)pulse;
-  }
-
-  CREATE(new_event, struct event, 1);
-  new_event->func = func;
-  new_event->event_obj = event_obj;
-  new_event->q_el = queue_enq(event_q, new_event, target_time);
-  new_event->isMudEvent = FALSE;
-  new_event->cleanup = cleanup;
-  new_event->profile_index = PERF_register_event_callback(profile_name);
-
-  /* Increment our event counter for resource tracking */
-  total_events++;
-  if (processing_events && events_created_during_process < UINT64_MAX)
-    events_created_during_process++;
-
-  return new_event;
-}
-
-/** Removes an event from event_q and frees the event.
- * @param event Pointer to the event to be dequeued and removed.
- */
-void event_cancel(struct event *event)
-{
-  if (!event)
-  {
-    log("SYSERR:  Attempted to cancel a NULL event");
+    log("SYSERR: Unable to initialize native timing-wheel runtime (status %d).", status);
     return;
   }
-
-  /* CRITICAL FIX: Double-free prevention
-   *
-   * PROBLEM EXPLAINED FOR BEGINNERS:
-   * When event_process() runs an event, it sets q_el to NULL (line ~142)
-   * BEFORE calling the event's function. This tells us the event is
-   * currently being processed.
-   *
-   * If an event tries to cancel ITSELF while running (calls event_cancel
-   * on itself), we must NOT free it here because event_process() will
-   * free it when the event function returns (line ~153).
-   *
-   * Freeing the same memory twice (double-free) causes crashes and
-   * memory corruption!
-   *
-   * SOLUTION:
-   * If q_el is NULL, the event is being processed right now.
-   * We only clean up the event_obj but do NOT free the event structure.
-   * event_process() will handle freeing it when done.
-   */
-  if (!event->q_el)
-  {
-    /* Event is currently being processed - DO NOT free the event structure! */
-    log("WARNING: Attempted to cancel an event during its execution.");
-
-    /* IMPORTANT: We only handle mud events here. For non-mud events,
-     * the event function itself is responsible for freeing event_obj.
-     * We just need to prevent event_process() from double-freeing mud events. */
-    if (event->isMudEvent && event->event_obj)
-    {
-      /* For mud events, we free the data and set to NULL to prevent
-       * event_process() from trying to free it again.
-       *
-       * CRITICAL: We must free mud_event_data directly here, NOT call
-       * cleanup_event_obj(), because cleanup_event_obj() would also
-       * free non-mud events which we must NOT do during processing! */
-      struct mud_event_data *mud_event = (struct mud_event_data *)event->event_obj;
-      free_mud_event(mud_event);
-      event->event_obj = NULL;
-    }
-    /* For non-mud events, do NOT touch event_obj - the event function handles it */
-
-    return; /* DO NOT free the event structure - event_process() will do it */
-  }
-
-  /* Event is in the queue and not currently running - safe to fully cancel */
-  queue_deq(event_q, event->q_el);
-
-  if (event->event_obj)
-    cleanup_event_obj(event);
-
-  free(event);
-
-  /* Decrement event counter since we freed an event */
-  total_events--;
-  if (total_events < 0)
-  {
-    log("SYSERR: Event counter went negative! This indicates a serious bug.");
-    total_events = 0; /* Reset to prevent further issues */
-  }
+  active_backend = EVENT_BACKEND_GAME_SCHEDULER;
+  native_event_high_water = 0U;
+  log("Event runtime initialized: scheduler.");
 }
 
-/* The memory freeing routine tied into the mud event system.
- *
- * IMPORTANT FOR BEGINNERS:
- * This function cleans up the data associated with an event when the event
- * is being removed from the system. There are three types of events:
- * 1. Mud Events: Complex events with structured data (freed via free_mud_event)
- * 2. Custom Events: Events with a cleanup hook for owner detachment
- * 3. Simple Events: Basic events with malloc'd data (freed via free)
- *
- * CRITICAL DESIGN NOTE:
- * For non-mud events, we assume event_obj was dynamically allocated (malloc'd).
- * If event_obj points to static or stack memory, calling free() will crash!
- * Currently, ALL non-mud events in the codebase use malloc'd memory, so this
- * is safe. If this changes in the future, we'd need a new flag or callback
- * to handle different memory ownership models.
- */
-void cleanup_event_obj(struct event *event)
+enum game_scheduler_status event_process_scheduler(const struct game_scheduler_budget *budget,
+                                                   struct game_scheduler_dispatch_report *report)
 {
-  struct mud_event_data *mud_event = NULL;
+  enum game_scheduler_status status;
+  size_t depth_before;
+  size_t depth_after;
 
-  /* Safety check - don't try to free NULL pointers */
-  if (!event || !event->event_obj)
-    return;
-
-  if (event->cleanup)
-  {
-    event->cleanup(event);
-  }
-  else if (event->isMudEvent)
-  {
-    /* Mud events have their own cleanup function that knows
-     * how to properly free all the complex data structures */
-    mud_event = (struct mud_event_data *)event->event_obj;
-    free_mud_event(mud_event);
-  }
-  else
-  {
-    free(event->event_obj);
-  }
-
-  event->event_obj = NULL;
+  if (report == NULL || active_backend != EVENT_BACKEND_GAME_SCHEDULER ||
+      !event_runtime_is_initialized())
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
+  memset(report, 0, sizeof(*report));
+  depth_before = event_runtime_event_count();
+  status = event_runtime_advance(budget, report);
+  depth_after = event_runtime_event_count();
+  if (depth_after > native_event_high_water)
+    native_event_high_water = depth_after;
+  PERF_note_event_process((uint64_t)depth_before, (uint64_t)depth_after,
+                          (uint64_t)report->callbacks, 0U);
+  if (status != GAME_SCHEDULER_OK)
+    log("SYSERR: Timing-wheel event dispatch failed with status %d.", status);
+  return status;
 }
 
-/** Process any events whose time has come. Should be called from, and at, every
- * pulse of heartbeat. Re-enqueues multi-use events.
- *
- * BEGINNERS NOTE: This function runs every game pulse (1/10th second) and
- * executes any events that are scheduled to run now. Events can reschedule
- * themselves by returning a positive value (the delay until next run).
- */
-void event_process(void)
+enum game_scheduler_status event_scheduler_next_deadline(game_tick_t *deadline_tick,
+                                                         bool *has_deadline)
 {
-  struct event *the_event = NULL;
-  long new_time = 0;
-  unsigned long target_time;
-  uint64_t callback_start_usec;
-  uint64_t callback_end_usec;
-  uint64_t callback_elapsed_usec;
-  uint64_t callbacks_processed = 0;
-  uint64_t created_during_process;
-  int queue_depth_before;
-  int queue_depth_after;
-
-  /* Safety check: ensure event_q is initialized */
-  if (!event_q)
-  {
-    log("SYSERR: event_process called before event_init()");
-    return; /* No need to clear processing_events - it was never set */
-  }
-
-  /* Set flag to indicate we're processing events.
-   * This prevents dangerous operations like queue_free() during processing. */
-  queue_depth_before = total_events;
-  events_created_during_process = 0;
-  processing_events = 1;
-
-  while ((long)pulse >= queue_key(event_q))
-  {
-    if (!(the_event = (struct event *)queue_head(event_q)))
-    {
-      log("SYSERR: Attempt to get a NULL event");
-      break;
-    }
-
-    /* Set the_event->q_el to NULL so that any functions called beneath
-     * event_process can tell if they're being called beneath the actual
-     * event function.
-     *
-     * IMPORTANT FOR BEGINNERS:
-     * Setting q_el to NULL serves as a flag that this event is currently
-     * being processed. If event_cancel() is called on this event while
-     * it's running, it will see q_el is NULL and know NOT to free the
-     * event structure (to prevent double-free). */
-    the_event->q_el = NULL;
-
-    /* CRITICAL: Validate function pointer before calling.
-     *
-     * BEGINNERS NOTE: Even though we check func in event_create(), we
-     * double-check here for safety. Memory corruption or bugs elsewhere
-     * could potentially null out the function pointer. Better safe than
-     * crashing the entire game! */
-    if (!the_event->func)
-    {
-      log("SYSERR: Event with NULL function pointer detected in event_process!");
-      /* Clean up the broken event */
-      if (the_event->event_obj != NULL)
-        cleanup_event_obj(the_event);
-      free(the_event);
-
-      /* Decrement event counter since we freed a broken event */
-      total_events--;
-      if (total_events < 0)
-      {
-        log("SYSERR: Event counter went negative (broken event)! This indicates a serious bug.");
-        total_events = 0; /* Reset to prevent further issues */
-      }
-
-      continue; /* Skip to next event */
-    }
-
-    /* Time only the callback so queue management remains outside its cost. */
-    callback_start_usec = PERF_monotonic_usec();
-    new_time = (the_event->func)(the_event->event_obj);
-    callback_end_usec = PERF_monotonic_usec();
-    callback_elapsed_usec =
-        callback_end_usec >= callback_start_usec ? callback_end_usec - callback_start_usec : 0;
-    PERF_note_event_callback(the_event->profile_index, callback_elapsed_usec);
-    callbacks_processed++;
-
-    /* Re-enqueue multi-use events when the callback requests another run. */
-    if (new_time > 0)
-    {
-      /* FIX FOR INTEGER OVERFLOW when re-queueing:
-       * Same overflow check as in event_create() */
-      if (pulse > LONG_MAX || new_time > LONG_MAX - (long)pulse)
-      {
-        log("WARNING: event re-queue overflow prevented. Event scheduled for maximum future time.");
-        target_time = LONG_MAX;
-      }
-      else
-      {
-        target_time = new_time + (long)pulse;
-      }
-      the_event->q_el = queue_enq(event_q, the_event, target_time);
-    }
-    else
-    {
-      /* CLEANUP NOTE FOR BEGINNERS:
-       * If the event canceled itself during execution, event_cancel() will
-       * have set event_obj to NULL to prevent double-free. We check for NULL
-       * before trying to free mud events. */
-      if (the_event->isMudEvent && the_event->event_obj != NULL)
-        free_mud_event((struct mud_event_data *)the_event->event_obj);
-
-      /* It is assumed that the_event will already have freed ->event_obj. */
-      free(the_event);
-
-      /* Decrement event counter since we freed an event */
-      total_events--;
-      if (total_events < 0)
-      {
-        log("SYSERR: Event counter went negative in event_process! This indicates a serious bug.");
-        total_events = 0; /* Reset to prevent further issues */
-      }
-    }
-  }
-
-  /* Clear the processing flag - safe to do bulk operations again */
-  queue_depth_after = total_events;
-  created_during_process = events_created_during_process;
-  processing_events = 0;
-  PERF_note_event_process((uint64_t)queue_depth_before, (uint64_t)queue_depth_after,
-                          callbacks_processed, created_during_process);
+  if (deadline_tick == NULL || has_deadline == NULL)
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
+  *deadline_tick = 0U;
+  *has_deadline = false;
+  if (active_backend != EVENT_BACKEND_GAME_SCHEDULER || !event_runtime_is_initialized())
+    return GAME_SCHEDULER_OK;
+  return event_runtime_next_deadline(deadline_tick, has_deadline);
 }
 
-/** Returns the time remaining before the event as how many pulses from now.
- * @param event Check this event for it's scheduled activation time.
- * @retval long Number of pulses before this event will fire. */
-long event_time(struct event *event)
-{
-  long when = 0;
-
-  when = queue_elmt_key(event->q_el);
-
-  return (when - pulse);
-}
-
-/** Frees all events from event_q.
- * WARNING: This function should NEVER be called while event_process() is running!
- * Doing so would cause double-free crashes and memory corruption.
- *
- * BEGINNERS NOTE: This function is typically only called during shutdown or
- * when completely resetting the event system. During normal gameplay, use
- * event_cancel() to remove individual events safely.
- */
 void event_free_all(void)
 {
 #if defined(LUMINARI_CUTEST)
   event_free_all_calls++;
 #endif
-
-  /* CRITICAL SAFETY CHECK:
-   * We must ensure event_process() is not currently running.
-   * If it is, we risk freeing events that are being processed,
-   * causing crashes when event_process() tries to access them.
-   */
-  if (processing_events)
+  if (active_backend == EVENT_BACKEND_UNINITIALIZED)
+    return;
+  if (event_runtime_shutdown() != GAME_SCHEDULER_OK)
   {
-    log("SYSERR: event_free_all() called while events are being processed! Aborting to prevent "
-        "crash.");
+    log("SYSERR: Failed to destroy native timing-wheel runtime.");
     return;
   }
+  active_backend = EVENT_BACKEND_UNINITIALIZED;
+  stale_owner_outcomes = 0U;
+  native_event_high_water = 0U;
+}
 
-  if (event_q == NULL)
+int event_queue_depth(void)
+{
+  struct game_scheduler_stats stats;
+
+  if (!event_runtime_is_initialized())
+    return 0;
+  memset(&stats, 0, sizeof(stats));
+  event_runtime_get_stats(&stats);
+  if (stats.event_count > native_event_high_water)
+    native_event_high_water = stats.event_count;
+  return stats.event_count > (size_t)INT_MAX ? INT_MAX : (int)stats.event_count;
+}
+
+void event_note_stale_owner_outcome(void)
+{
+  if (stale_owner_outcomes < UINT64_MAX)
+    stale_owner_outcomes++;
+}
+
+const char *event_debug_owner_kind_name(enum game_event_owner_kind kind)
+{
+  static const char *const names[GAME_EVENT_OWNER_KIND_COUNT] = {
+      "none",   "world", "descriptor", "character", "room",    "region",
+      "object", "zone",  "encounter",  "vessel",    "service",
+  };
+
+  if (kind < GAME_EVENT_OWNER_NONE || kind >= GAME_EVENT_OWNER_KIND_COUNT)
+    return "unknown";
+  return names[kind];
+}
+
+bool event_debug_parse_owner_kind(const char *name, enum game_event_owner_kind *kind)
+{
+  enum game_event_owner_kind candidate;
+
+  if (name == NULL || kind == NULL)
+    return false;
+  for (candidate = GAME_EVENT_OWNER_NONE; candidate < GAME_EVENT_OWNER_KIND_COUNT; candidate++)
+  {
+    if (!strcasecmp(name, event_debug_owner_kind_name(candidate)) ||
+        (candidate == GAME_EVENT_OWNER_CHARACTER && !strcasecmp(name, "char")) ||
+        (candidate == GAME_EVENT_OWNER_DESCRIPTOR && !strcasecmp(name, "desc")) ||
+        (candidate == GAME_EVENT_OWNER_OBJECT && !strcasecmp(name, "obj")))
+    {
+      *kind = candidate;
+      return true;
+    }
+  }
+  return false;
+}
+
+const char *event_debug_state_name(enum event_debug_state state)
+{
+  switch (state)
+  {
+  case EVENT_DEBUG_QUEUED:
+    return "queued";
+  case EVENT_DEBUG_READY:
+    return "ready";
+  case EVENT_DEBUG_RUNNING:
+    return "running";
+  case EVENT_DEBUG_CANCEL_PENDING:
+    return "cancel-pending";
+  case EVENT_DEBUG_UNKNOWN:
+  default:
+    return "unknown";
+  }
+}
+
+bool event_debug_parse_state(const char *name, enum event_debug_state *state)
+{
+  enum event_debug_state candidate;
+
+  if (name == NULL || state == NULL)
+    return false;
+  for (candidate = EVENT_DEBUG_QUEUED; candidate <= EVENT_DEBUG_UNKNOWN; candidate++)
+  {
+    if (!strcasecmp(name, event_debug_state_name(candidate)) ||
+        (candidate == EVENT_DEBUG_RUNNING && !strcasecmp(name, "dispatching")) ||
+        (candidate == EVENT_DEBUG_CANCEL_PENDING && !strcasecmp(name, "cancel")))
+    {
+      *state = candidate;
+      return true;
+    }
+  }
+  return false;
+}
+
+static enum event_debug_state scheduler_debug_state(enum game_event_state state)
+{
+  switch (state)
+  {
+  case GAME_EVENT_STATE_QUEUED:
+    return EVENT_DEBUG_QUEUED;
+  case GAME_EVENT_STATE_READY:
+    return EVENT_DEBUG_READY;
+  case GAME_EVENT_STATE_DISPATCHING:
+    return EVENT_DEBUG_RUNNING;
+  case GAME_EVENT_STATE_CANCEL_PENDING:
+    return EVENT_DEBUG_CANCEL_PENDING;
+  default:
+    return EVENT_DEBUG_UNKNOWN;
+  }
+}
+
+static bool event_debug_filter_matches(const struct event_debug_filter *filter,
+                                       const struct event_debug_snapshot *snapshot)
+{
+  if (filter == NULL)
+    return true;
+  if (filter->event_id_set && snapshot->event_id != filter->event_id)
+    return false;
+  if (filter->type_contains != NULL && *filter->type_contains != '\0' &&
+      strcasestr(snapshot->type_name, filter->type_contains) == NULL)
+    return false;
+  if (filter->type_equals != NULL && strcmp(snapshot->type_name, filter->type_equals) != 0)
+    return false;
+  if (filter->owner_set &&
+      (snapshot->owner.kind != filter->owner.kind ||
+       snapshot->owner.runtime_id != filter->owner.runtime_id ||
+       (filter->owner_generation_set && snapshot->owner.generation != filter->owner.generation)))
+    return false;
+  if (filter->minimum_remaining_set && snapshot->remaining_pulses < filter->minimum_remaining)
+    return false;
+  if (filter->maximum_remaining_set && snapshot->remaining_pulses > filter->maximum_remaining)
+    return false;
+  if (filter->state_set && snapshot->state != filter->state)
+    return false;
+  return true;
+}
+
+static int event_debug_snapshot_compare(const void *left_pointer, const void *right_pointer)
+{
+  const struct event_debug_snapshot *left = left_pointer;
+  const struct event_debug_snapshot *right = right_pointer;
+
+  if (left->remaining_pulses < right->remaining_pulses)
+    return -1;
+  if (left->remaining_pulses > right->remaining_pulses)
+    return 1;
+  return left->event_id < right->event_id ? -1 : left->event_id > right->event_id;
+}
+
+static void event_debug_consider_snapshot(const struct event_debug_snapshot *candidate,
+                                          struct event_debug_snapshot *snapshots,
+                                          size_t snapshot_capacity, size_t *copied)
+{
+  size_t worst;
+  size_t index;
+
+  if (candidate == NULL || snapshots == NULL || snapshot_capacity == 0 || copied == NULL)
     return;
+  if (*copied < snapshot_capacity)
+  {
+    snapshots[(*copied)++] = *candidate;
+    return;
+  }
+  worst = 0;
+  for (index = 1; index < *copied; index++)
+    if (event_debug_snapshot_compare(&snapshots[worst], &snapshots[index]) < 0)
+      worst = index;
+  if (event_debug_snapshot_compare(candidate, &snapshots[worst]) < 0)
+    snapshots[worst] = *candidate;
+}
 
-  queue_free(event_q);
-  event_q = NULL;
+static void event_debug_snapshot_native(const struct game_event_snapshot *event,
+                                        struct event_debug_snapshot *snapshot)
+{
+  const char *type_name;
+
+  memset(snapshot, 0, sizeof(*snapshot));
+  snapshot->event_id = event->event_id;
+  type_name = event_runtime_type_name(event->event_type);
+  snprintf(snapshot->type_name, sizeof(snapshot->type_name), "%s",
+           type_name != NULL ? type_name : "unknown");
+  snapshot->backend = EVENT_BACKEND_GAME_SCHEDULER;
+  snapshot->state = scheduler_debug_state(event->state);
+  snapshot->remaining_pulses =
+      event->deadline_tick > (game_tick_t)pulse ? event->deadline_tick - (game_tick_t)pulse : 0U;
+  snapshot->owner = event->owner;
+}
+
+size_t event_debug_inspect(const struct event_debug_filter *filter,
+                           struct event_debug_snapshot *snapshots, size_t snapshot_capacity,
+                           size_t *returned_count)
+{
+  struct game_scheduler_stats stats;
+  struct game_event_snapshot *events;
+  struct event_debug_snapshot candidate;
+  size_t event_count;
+  size_t copied;
+  size_t matched;
+  size_t index;
+
+  copied = 0U;
+  matched = 0U;
+  event_count = 0U;
+  events = NULL;
+  memset(&stats, 0, sizeof(stats));
+  if (event_runtime_is_initialized())
+  {
+    event_runtime_get_stats(&stats);
+    if (stats.event_count > 0U)
+      events = calloc(stats.event_count, sizeof(*events));
+    if (events != NULL &&
+        event_runtime_inspect_all(events, stats.event_count, &event_count) == GAME_SCHEDULER_OK)
+    {
+      for (index = 0; index < event_count; index++)
+      {
+        event_debug_snapshot_native(&events[index], &candidate);
+        if (!event_debug_filter_matches(filter, &candidate))
+          continue;
+        matched++;
+        event_debug_consider_snapshot(&candidate, snapshots, snapshot_capacity, &copied);
+      }
+    }
+  }
+  free(events);
+  if (copied > 1U)
+    qsort(snapshots, copied, sizeof(*snapshots), event_debug_snapshot_compare);
+  if (returned_count != NULL)
+    *returned_count = copied;
+  return matched;
+}
+
+void event_debug_get_stats(struct event_debug_stats *stats)
+{
+  size_t owned_count = 0U;
+  size_t kind;
+
+  if (stats == NULL)
+    return;
+  memset(stats, 0, sizeof(*stats));
+  stats->backend = active_backend;
+  stats->current_pulse = pulse;
+  stats->stale_owner_outcomes = stale_owner_outcomes;
+  if (!event_runtime_is_initialized())
+    return;
+  event_runtime_get_stats(&stats->scheduler);
+  stats->scheduler_stats_available = true;
+  stats->live_events = stats->scheduler.event_count;
+  if (stats->live_events > native_event_high_water)
+    native_event_high_water = stats->live_events;
+  stats->high_water_events = native_event_high_water;
+  memcpy(stats->owner_event_counts, stats->scheduler.owner_counts,
+         sizeof(stats->owner_event_counts));
+  for (kind = GAME_EVENT_OWNER_NONE + 1U; kind < GAME_EVENT_OWNER_KIND_COUNT; kind++)
+    owned_count += stats->owner_event_counts[kind];
+  stats->owner_event_counts[GAME_EVENT_OWNER_NONE] =
+      stats->live_events >= owned_count ? stats->live_events - owned_count : 0U;
 }
 
 #if defined(LUMINARI_CUTEST)
@@ -459,6 +403,13 @@ void event_test_reset_lifecycle_counts(void)
 {
   event_init_calls = 0;
   event_free_all_calls = 0;
+}
+
+void event_test_advance(void)
+{
+  struct game_scheduler_dispatch_report report;
+
+  (void)event_process_scheduler(NULL, &report);
 }
 
 int event_test_init_call_count(void)
@@ -470,325 +421,10 @@ int event_test_free_all_call_count(void)
 {
   return event_free_all_calls;
 }
+
+int event_test_select_backend(enum event_backend_kind backend)
+{
+  return backend == EVENT_BACKEND_GAME_SCHEDULER && active_backend == EVENT_BACKEND_UNINITIALIZED &&
+         !event_runtime_is_initialized();
+}
 #endif
-
-/** Boolean function to tell whether an event is queued or not. Does this by
- * checking if event->q_el points to anything but null.
- * @retval int 1 if the event has been queued, 0 if the event has not been
- * queued. */
-int event_is_queued(struct event *event)
-{
-  if (!event)
-    return 0;
-
-  if (event->q_el)
-    return 1;
-  else
-    return 0;
-}
-/***************************************************************************
- * End mud specific event queue functions
- **************************************************************************/
-
-/***************************************************************************
- * Begin generic (abstract) priority queue functions
- **************************************************************************/
-/** Create a new, empty, priority queue and return it.
- * @retval dg_queue * Pointer to the newly created queue structure. */
-struct dg_queue *queue_init(void)
-{
-  struct dg_queue *q = NULL;
-  int i;
-
-  CREATE(q, struct dg_queue, 1);
-
-  /* Initialize all head and tail pointers to NULL to prevent valgrind warnings */
-  for (i = 0; i < NUM_EVENT_QUEUES; i++)
-  {
-    q->head[i] = NULL;
-    q->tail[i] = NULL;
-  }
-
-  return q;
-}
-
-/** Add some 'data' to a priority queue.
- * @pre The paremeter q must have been previously created by queue_init.
- * @post A new q_element is created to hold the data parameter.
- * @param q The existing dg_queue to add an element to.
- * @param data The data to be associated with, and theoretically used, when
- * the element comes up in q. data is wrapped in a new q_element.
- * @param key Indicates where this event should be located in the queue, and
- * when the element should be activated.
- * @retval q_element * Pointer to the created q_element that contains
- * the data. */
-struct q_element *queue_enq(struct dg_queue *q, void *data, long key)
-{
-  struct q_element *qe = NULL, *i = NULL;
-  int bucket = 0;
-
-  /* Safety check for NULL queue */
-  if (!q)
-  {
-    log("SYSERR: queue_enq called with NULL queue");
-    return NULL;
-  }
-
-  CREATE(qe, struct q_element, 1);
-  qe->data = data;
-  qe->key = key;
-  qe->prev = NULL; /* Explicitly initialize to prevent valgrind warnings */
-  qe->next = NULL; /* Explicitly initialize to prevent valgrind warnings */
-
-  /* BUCKETING STRATEGY EXPLAINED FOR BEGINNERS:
-   *
-   * We use the modulo operator (%) to distribute events across buckets.
-   * For example, if NUM_EVENT_QUEUES is 10:
-   * - Event at pulse 103 goes in bucket 3 (103 % 10 = 3)
-   * - Event at pulse 217 goes in bucket 7 (217 % 10 = 7)
-   * - Event at pulse 1000 goes in bucket 0 (1000 % 10 = 0)
-   *
-   * This distributes events evenly and reduces the time needed to find
-   * the right insertion point, since we only search within one bucket. */
-  bucket = key % NUM_EVENT_QUEUES; /* which queue does this go in */
-
-  if (!q->head[bucket])
-  { /* queue is empty */
-    q->head[bucket] = qe;
-    q->tail[bucket] = qe;
-  }
-
-  else
-  {
-    for (i = q->tail[bucket]; i; i = i->prev)
-    {
-      if (i->key < key)
-      { /* found insertion point */
-        if (i == q->tail[bucket])
-          q->tail[bucket] = qe;
-        else
-        {
-          qe->next = i->next;
-          i->next->prev = qe;
-        }
-
-        qe->prev = i;
-        i->next = qe;
-        break;
-      }
-    }
-
-    if (i == NULL)
-    { /* insertion point is front of list */
-      qe->next = q->head[bucket];
-      q->head[bucket] = qe;
-      qe->next->prev = qe;
-    }
-  }
-
-  return qe;
-}
-
-/** Remove queue element qe from the priority queue q.
- * @pre qe->data has been dealt with in some way.
- * @post qe has been freed.
- * @param q Pointer to the queue containing qe.
- * @param qe Pointer to the q_element to remove from q.
- */
-void queue_deq(struct dg_queue *q, struct q_element *qe)
-{
-  int i = 0;
-
-  /* CRITICAL SAFETY CHECK:
-   * Replace assert with proper NULL check for production safety.
-   * Assert only works in debug builds - in production (with NDEBUG),
-   * the assert disappears and we'd crash on NULL pointer access!
-   *
-   * BEGINNERS NOTE:
-   * An 'assert' is a debug-only check that disappears in release builds.
-   * We need real error checking that works in all builds.
-   */
-  if (!qe)
-  {
-    log("SYSERR: queue_deq called with NULL q_element");
-    return;
-  }
-
-  /* Safety check for NULL queue */
-  if (!q)
-  {
-    log("SYSERR: queue_deq called with NULL queue");
-    return;
-  }
-
-  i = qe->key % NUM_EVENT_QUEUES;
-
-  if (qe->prev == NULL)
-    q->head[i] = qe->next;
-  else
-    qe->prev->next = qe->next;
-
-  if (qe->next == NULL)
-    q->tail[i] = qe->prev;
-  else
-    qe->next->prev = qe->prev;
-
-  free(qe);
-}
-
-/** Removes and returns the data of the first element of the priority queue q.
- * @pre pulse must be defined. This is a multi-headed queue, the current
- * head is determined by the current pulse.
- * @post the q->head is dequeued.
- * @param q The queue to return the head of.
- * @retval void * NULL if there is not a currently available head, pointer
- * to any data object associated with the queue element. */
-void *queue_head(struct dg_queue *q)
-{
-  void *dg_data = NULL;
-  int i = 0;
-
-  /* Safety check for NULL queue */
-  if (!q)
-    return NULL;
-
-  i = pulse % NUM_EVENT_QUEUES;
-
-  if (!q->head[i])
-    return NULL;
-
-  dg_data = q->head[i]->data;
-  queue_deq(q, q->head[i]);
-  return dg_data;
-}
-
-/** Returns the key of the head element of the priority queue.
- * @pre pulse must be defined. This is a multi-headed queue, the current
- * head is determined by the current pulse.
- * @param q Queue to check for.
- * @retval long Return the key element of the head q_element. If no head
- * q_element is available, return LONG_MAX. */
-long queue_key(struct dg_queue *q)
-{
-  int i = 0;
-
-  /* Safety check for NULL queue */
-  if (!q)
-    return LONG_MAX;
-
-  i = pulse % NUM_EVENT_QUEUES;
-
-  if (q->head[i])
-    return q->head[i]->key;
-  else
-    return LONG_MAX;
-}
-
-/** Returns the key of queue element qe.
- * @param qe Pointer to the keyed q_element.
- * @retval long Key of qe, or LONG_MAX if qe is NULL.
- *
- * BEGINNERS NOTE: The 'key' represents when this event should fire,
- * measured in game pulses. Lower keys fire sooner.
- */
-long queue_elmt_key(struct q_element *qe)
-{
-  /* Safety check to prevent NULL pointer dereference */
-  if (!qe)
-  {
-    log("WARNING: queue_elmt_key called with NULL q_element");
-    return LONG_MAX; /* Return max value to indicate error */
-  }
-  return qe->key;
-}
-
-/** Free q and all contents.
- * @pre Function requires definition of struct event.
- * @post All items associated with q, including non-abstract data, are freed.
- * @param q The priority queue to free.
- *
- * CRITICAL WARNING FOR BEGINNERS:
- * This function frees ALL events in ALL queue buckets. It should NEVER be
- * called while event_process() is running, as that would cause double-free
- * crashes when event_process() tries to access already-freed memory.
- *
- * This is typically only called during shutdown or complete system reset.
- * For removing individual events during gameplay, use event_cancel() instead.
- */
-void queue_free(struct dg_queue *q)
-{
-  int i = 0;
-  struct q_element *qe = NULL, *next_qe = NULL;
-  struct event *event = NULL;
-
-  /* Safety check for NULL queue */
-  if (!q)
-  {
-    log("WARNING: queue_free called with NULL queue");
-    return;
-  }
-
-  /* CRITICAL: Check if we're processing events right now */
-  if (processing_events)
-  {
-    log("SYSERR: queue_free() called while event_process() is active! This would cause crashes!");
-    log("SYSERR: Stack trace or debugging needed - this should never happen!");
-    /* We could abort here but that might lose player data. Log and hope for the best. */
-    return;
-  }
-
-  /* IMPORTANT: We iterate through all queue buckets (0 to NUM_EVENT_QUEUES-1)
-   * Events are distributed across buckets based on their scheduled time
-   * to improve performance (reduces search time for insertion). */
-  for (i = 0; i < NUM_EVENT_QUEUES; i++)
-  {
-    /* Process each event in this bucket's linked list */
-    for (qe = q->head[i]; qe; qe = next_qe)
-    {
-      /* Save the next pointer BEFORE freeing current element
-       * (once freed, qe->next would be invalid memory!) */
-      next_qe = qe->next;
-
-      /* Extract the event from this queue element */
-      if ((event = (struct event *)qe->data) != NULL)
-      {
-        /* DOUBLE-FREE PREVENTION CHECK:
-         * If q_el is NULL, this event might be currently processing.
-         * However, since queue_free() should NEVER be called during
-         * event_process(), we log an error if we detect this situation. */
-        if (!event->q_el)
-        {
-          log("SYSERR: queue_free() found event with NULL q_el - possible concurrent processing!");
-          /* Continue anyway as we're likely shutting down */
-        }
-
-        /* Free any associated data with this event */
-        if (event->event_obj)
-          cleanup_event_obj(event);
-
-        /* Free the event structure itself */
-        free(event);
-
-        /* Decrement event counter since we freed an event during shutdown */
-        total_events--;
-      }
-      /* Free the queue element that held this event */
-      free(qe);
-    }
-  }
-
-  /* Finally, free the queue structure itself */
-  free(q);
-
-  /* Reset event counter since we freed all events */
-  if (total_events != 0)
-  {
-    log("WARNING: Event counter was %d after freeing all events. Resetting to 0.", total_events);
-    total_events = 0;
-  }
-}
-
-int event_queue_depth(void)
-{
-  return total_events;
-}

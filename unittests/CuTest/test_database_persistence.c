@@ -1068,3 +1068,128 @@ void Test_crash_save_single_and_incremental(CuTest *tc)
 
   free(ch.player.name);
 }
+
+void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  const char *owner_name = "Owner' OR '1'='1";
+  const char *modes[] = {"SET SESSION sql_mode = ''",
+                         "SET SESSION sql_mode = 'NO_BACKSLASH_ESCAPES'"};
+  struct char_data ch;
+  struct player_special_data specials = {0};
+  struct obj_data *obj;
+  struct extra_descr_data *extra;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  FILE *fixture;
+  char serialized[8192];
+  size_t length;
+  size_t mode;
+  bool saved_available;
+  bool matched = true;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+    return;
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+  fixture = tmpfile();
+  if (fixture == NULL)
+  {
+    mysql_close(connection);
+    CuFail(tc, "could not create object-save fixture");
+    return;
+  }
+  saved_conn = conn;
+  saved_available = mysql_available;
+  conn = connection;
+  mysql_available = true;
+  clear_char(&ch);
+  ch.player_specials = &specials;
+  ch.player.name = (char *)owner_name;
+  obj = create_obj();
+  obj->name = strdup("blade'); DROP TABLE player_save_objs; --");
+  obj->short_description = strdup("a 'quoted' blade\\edge");
+  obj->description = strdup("A blade with a \\ mark is here.");
+  obj->action_description = strdup("First 'line'\nSecond \\ line\n");
+  obj->arcane_mark = strdup("Maker's mark");
+  obj->restring_identifier = strdup("Owner's identifier");
+  CREATE(extra, struct extra_descr_data, 1);
+  extra->keyword = strdup("blade's edge");
+  extra->description = strdup("A 'quoted' description with \\ and a newline.\n");
+  obj->ex_description = extra;
+
+  matched =
+      mysql_query(connection, "CREATE TEMPORARY TABLE player_save_objs ("
+                              "idnum INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), "
+                              "serialized_obj TEXT)") == 0 &&
+      mysql_query(connection,
+                  "CREATE TEMPORARY TABLE house_data ("
+                  "idnum INT AUTO_INCREMENT PRIMARY KEY, vnum INT, serialized_obj TEXT)") == 0;
+  for (mode = 0; matched && mode < sizeof(modes) / sizeof(modes[0]); mode++)
+  {
+    matched = mysql_query(connection, modes[mode]) == 0 &&
+              mysql_query(connection, "DELETE FROM player_save_objs") == 0 &&
+              mysql_query(connection, "DELETE FROM house_data") == 0;
+    matched = matched && fflush(fixture) == 0 && ftruncate(fileno(fixture), 0) == 0;
+    rewind(fixture);
+    objsave_save_obj_record_db(obj, &ch, NOWHERE, fixture, 3);
+    fflush(fixture);
+    rewind(fixture);
+    length = fread(serialized, 1, sizeof(serialized) - 1, fixture);
+    /* The file has a final blank line separating objects; the database does not. */
+    if (length == 0 || serialized[length - 1] != '\n')
+      matched = false;
+    else
+      serialized[length - 1] = '\0';
+    if (mysql_query(connection, "SELECT name, serialized_obj FROM player_save_objs") != 0)
+      matched = false;
+    result = mysql_store_result(connection);
+    row = result != NULL ? mysql_fetch_row(result) : NULL;
+    matched = matched && row != NULL && mysql_num_rows(result) == 1 && row[0] != NULL &&
+              row[1] != NULL && strcmp(row[0], owner_name) == 0 && strcmp(row[1], serialized) == 0;
+    if (result != NULL)
+      mysql_free_result(result);
+
+    objsave_save_obj_record_db(obj, NULL, NOWHERE, fixture, 3);
+    if (mysql_query(connection, "SELECT vnum, serialized_obj FROM house_data") != 0)
+      matched = false;
+    result = mysql_store_result(connection);
+    row = result != NULL ? mysql_fetch_row(result) : NULL;
+    matched = matched && row != NULL && mysql_num_rows(result) == 1 && row[0] != NULL &&
+              row[1] != NULL && atoi(row[0]) == (int)NOWHERE && strcmp(row[1], serialized) == 0;
+    if (result != NULL)
+      mysql_free_result(result);
+  }
+
+  /* A full payload buffer must not become a valid but partial database record. */
+  for (mode = 0; mode < 10U; mode++)
+  {
+    CREATE(extra, struct extra_descr_data, 1);
+    extra->keyword = strdup("overflow");
+    CREATE(extra->description, char, 4001U);
+    memset(extra->description, 'x', 4000U);
+    extra->description[4000] = '\0';
+    extra->next = obj->ex_description;
+    obj->ex_description = extra;
+  }
+  objsave_save_obj_record_db(obj, &ch, NOWHERE, fixture, 3);
+  objsave_save_obj_record_db(obj, NULL, NOWHERE, fixture, 3);
+  matched = matched &&
+            query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs", -1) == 1 &&
+            query_single_int(connection, "SELECT COUNT(*) FROM house_data", -1) == 1;
+
+  free(obj->arcane_mark);
+  obj->arcane_mark = NULL;
+  extract_obj(obj);
+  fclose(fixture);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+  CuAssertTrue(tc, matched);
+}

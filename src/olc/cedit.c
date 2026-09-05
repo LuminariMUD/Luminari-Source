@@ -18,6 +18,7 @@
 #include "oasis.h"
 #include "improved-edit.h"
 #include "modify.h"
+#include "vessels/vessel_periodic.h"
 
 #define CHECK_VAR(var) ((var == YES) ? "Yes" : "No")
 #define TOGGLE_VAR(var)                                                                            \
@@ -279,6 +280,7 @@ static void cedit_save_internally(struct descriptor_data *d)
 {
   /* see if we need to reassign spec procs on rooms */
   int reassign = (CONFIG_DTS_ARE_DUMPS != OLC_CONFIG(d)->play.dts_are_dumps);
+  int vessel_system_changed = (CONFIG_VESSEL_SYSTEM != OLC_CONFIG(d)->extra.vessel_system);
   /* Copy the data back from the descriptor to the config_info structure. */
   CONFIG_PK_ALLOWED = OLC_CONFIG(d)->play.pk_allowed;
   CONFIG_PT_ALLOWED = OLC_CONFIG(d)->play.pt_allowed;
@@ -380,6 +382,8 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_ALLOW_CEXCHANGE = OLC_CONFIG(d)->extra.allow_cexchange;
   CONFIG_WILDERNESS_SYSTEM = OLC_CONFIG(d)->extra.wilderness_system;
   CONFIG_VESSEL_SYSTEM = OLC_CONFIG(d)->extra.vessel_system;
+  if (vessel_system_changed)
+    vessel_periodic_feature_changed();
   CONFIG_MELEE_EXP_OPTION = OLC_CONFIG(d)->extra.melee_exp_option;
   CONFIG_SPELL_CAST_EXP_OPTION = OLC_CONFIG(d)->extra.spell_cast_exp_option;
   CONFIG_SPELLCASTING_TIME_MODE = OLC_CONFIG(d)->extra.spellcasting_time_mode;

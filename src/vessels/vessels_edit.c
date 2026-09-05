@@ -15,6 +15,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "vessels.h"
+#include "vessel_periodic.h"
 #include "mysql.h"
 #include "wilderness/wilderness.h"
 
@@ -518,6 +519,7 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
 
   /* Populate the ship slot from the prototype. */
   ship = &greyhawk_ships[slot];
+  vessel_periodic_forget(ship);
   memset(ship, 0, sizeof(*ship));
   ship->active = TRUE;
   ship->shipnum = slot;
@@ -594,6 +596,7 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
   {
     mysql_free_result(result);
     extract_obj(obj);
+    vessel_periodic_forget(ship);
     memset(ship, 0, sizeof(*ship));
     if (ch != NULL)
     {
@@ -614,6 +617,7 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
   {
     vessel_reclaim_interior_rooms(ship, exterior_room);
     extract_obj(obj);
+    vessel_periodic_forget(ship);
     memset(ship, 0, sizeof(*ship));
     mysql_free_result(result);
     if (ch != NULL)
@@ -634,6 +638,7 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
     vessel_reclaim_interior_rooms(ship, evacuation_room);
     extract_obj(obj);
     vessel_delete_persistence(slot);
+    vessel_periodic_forget(ship);
     memset(ship, 0, sizeof(*ship));
     mysql_free_result(result);
     if (ch != NULL)
@@ -660,6 +665,7 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
         "(%d,%d,%d)",
         slot, ship->name, id, (int)ship->x, (int)ship->y, (int)ship->z);
   }
+  vessel_periodic_sync(ship);
   return slot;
 }
 

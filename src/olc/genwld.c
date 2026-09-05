@@ -8,6 +8,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "movement/door_state.h"
 #include "utils.h"
 #include "db.h"
 #include "handler.h"
@@ -26,11 +27,14 @@
 #include "vessels/vessels.h"
 #include "vessels/vessels_moving_rooms.h"
 #include "combat/traps.h"
+#include "affected_owners.h"
+#include "movement/movement_tracks.h"
 
 static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
                                    struct spec_binding *binding_copy,
                                    struct spec_effective_binding *effective_copy);
 static void adjust_room_references_for_insert(room_rnum inserted_room);
+static void clear_new_room_runtime_ownership(struct room_data *room);
 
 static const char *room_persisted_spec_name(const struct room_data *room)
 {
@@ -41,6 +45,21 @@ static const char *room_persisted_spec_name(const struct room_data *room)
   if (room->func != NULL)
     return get_spec_func_name(room->func);
   return NULL;
+}
+
+static void clear_new_room_runtime_ownership(struct room_data *room)
+{
+  if (room == NULL)
+    return;
+  room->event_owner_generation = 0U;
+  room->periodic_event_generation = 0U;
+  room->room_affections = 0L;
+  room->affected_head = NULL;
+  room->affected_next = NULL;
+  room->affected_prev = NULL;
+  room->affected_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+  room->affected_count = 0U;
+  room->affected_registered = false;
 }
 
 static void adjust_room_references_for_insert(room_rnum inserted_room)
@@ -156,6 +175,7 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
     return NOWHERE;
   }
 
+  affected_room_owners_prepare_world_reindex();
   RECREATE(world, struct room_data, top_of_world + 2);
   top_of_world++;
 
@@ -167,6 +187,7 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
       world[i].spec_binding = binding_copy;
       world[i].effective_binding = effective_copy;
       copy_room_strings(&world[i], room);
+      clear_new_room_runtime_ownership(&world[i]);
       found = i;
       break;
     }
@@ -192,6 +213,7 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
     world[0].spec_binding = binding_copy;
     world[0].effective_binding = effective_copy;
     copy_room_strings(&world[0], room);
+    clear_new_room_runtime_ownership(&world[0]);
   }
 
   /* Reindex the wilderness index. */
@@ -218,6 +240,8 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
         W_EXIT(i, j)->to_room += (W_EXIT(i, j)->to_room >= found);
   } while (i > 0);
 
+  affected_room_owners_finish_world_reindex(found, true);
+
   if (persistent)
     add_to_save_list(zone_table[room->zone].number, SL_WLD);
 
@@ -240,6 +264,8 @@ room_rnum add_runtime_room(struct room_data *room)
 
 static int delete_room_internal(room_rnum rnum, bool persistent)
 {
+  struct door_state_operation *incoming = NULL;
+  size_t incoming_count = 0U, incoming_index = 0U;
   room_rnum i;
   zone_rnum zone;
   int j, shop;
@@ -252,6 +278,21 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
   if (rnum <= 0 || rnum > top_of_world) /* Can't delete void yet. */
     return FALSE;
 
+  for (i = 0; i <= top_of_world; i++)
+    for (j = 0; j < NUM_OF_DIRS; j++)
+      if (i != rnum && W_EXIT(i, j) != NULL && W_EXIT(i, j)->to_room == rnum)
+        incoming_count++;
+  if (incoming_count != 0U)
+  {
+    incoming = calloc(incoming_count, sizeof(*incoming));
+    if (incoming == NULL)
+      return FALSE;
+    for (i = 0; i <= top_of_world; i++)
+      for (j = 0; j < NUM_OF_DIRS; j++)
+        if (i != rnum && W_EXIT(i, j) != NULL && W_EXIT(i, j)->to_room == rnum)
+          door_state_begin(&incoming[incoming_index++], i, j, false, DOMAIN_DOOR_EDIT);
+  }
+
   room = &world[rnum];
 
   if (persistent)
@@ -259,6 +300,8 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
 
   /* This is something you might want to read about in the logs. */
   log("GenOLC: delete_room: Deleting room #%d (%s).", room->number, room->name);
+
+  affected_room_owners_remove_room(rnum);
 
   if (r_mortal_start_room == rnum)
   {
@@ -404,6 +447,7 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
     }
   }
   /* Now we actually move the rooms down. */
+  affected_room_owners_prepare_world_reindex();
   for (i = rnum; i < top_of_world; i++)
   {
     world[i] = world[i + 1];
@@ -422,7 +466,11 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
   /* Rebuild the wilderness index. */
   initialize_wilderness_lists();
   vehicle_reindex_room_delete(rnum);
+  affected_room_owners_finish_world_reindex(rnum, false);
 
+  for (incoming_index = 0U; incoming_index < incoming_count; incoming_index++)
+    door_state_finish(&incoming[incoming_index]);
+  free(incoming);
   return TRUE;
 }
 
@@ -618,11 +666,12 @@ int save_rooms(zone_rnum rzone)
         }
       }
 
-      /* Save coordinates, used in wilderness code. */
-      fprintf(sf,
-              "C\n"
-              "%d %d\n",
-              room->coords[0], room->coords[1]);
+      /* Save coordinates only when the room has an explicit wilderness location. */
+      if (room->wilderness_coordinates_set)
+        fprintf(sf,
+                "C\n"
+                "%d %d\n",
+                room->coords[0], room->coords[1]);
 
       if (room->mover)
       {
@@ -770,17 +819,38 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
                                    struct spec_binding *binding_copy,
                                    struct spec_effective_binding *effective_copy)
 {
+  struct door_state_operation doors[NUM_OF_DIRS] = {0};
+  int direction;
   struct trap_data *trap_copy;
+  struct raff_node *affected_head;
+  struct room_data *affected_next;
+  struct room_data *affected_prev;
+  struct event_runtime_handle affected_event_handle;
+  size_t affected_count;
+  bool affected_registered;
+  long room_affections;
+  uint64_t event_owner_generation;
+  uint64_t periodic_event_generation;
+  room_rnum live_room;
 
   trap_copy = copy_trap_list(from->traps);
+  affected_head = to->affected_head;
+  affected_next = to->affected_next;
+  affected_prev = to->affected_prev;
+  affected_event_handle = to->affected_event_handle;
+  affected_count = to->affected_count;
+  affected_registered = to->affected_registered;
+  room_affections = to->room_affections;
+  event_owner_generation = to->event_owner_generation;
+  periodic_event_generation = to->periodic_event_generation;
 
   /* Trail data is runtime state and is never retained across an OLC copy. */
-  if (to->trail_tracks)
-  {
-    free_trail_data_list(to->trail_tracks);
-    to->trail_tracks = NULL;
-  }
-
+  live_room = real_room(to->number);
+  if (live_room != NOWHERE && &world[live_room] == to)
+    movement_trail_registry_forget(to->number);
+  if (live_room != NOWHERE && &world[live_room] == to)
+    for (direction = 0; direction < NUM_OF_DIRS; direction++)
+      door_state_begin(&doors[direction], live_room, direction, false, DOMAIN_DOOR_EDIT);
   free_room_strings(to);
   free_trap_list(to->traps);
   spec_binding_free(&to->spec_binding);
@@ -791,17 +861,22 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   to->traps = trap_copy;
   copy_room_strings(to, from);
   to->events = from->events;
-
-  /* Trail data is runtime data - don't copy it, start fresh */
-  free_trail_data_list(from->trail_tracks);
-  to->trail_tracks = NULL;
+  to->affected_head = affected_head;
+  to->affected_next = affected_next;
+  to->affected_prev = affected_prev;
+  to->affected_event_handle = affected_event_handle;
+  to->affected_count = affected_count;
+  to->affected_registered = affected_registered;
+  to->room_affections = room_affections;
+  to->event_owner_generation = event_owner_generation;
+  to->periodic_event_generation = periodic_event_generation;
 
   /* Don't put people and objects in two locations. Should this be done here? */
   from->people = NULL;
   from->contents = NULL;
   from->events = NULL;
-  from->trail_tracks = NULL;
-
+  for (direction = 0; direction < NUM_OF_DIRS; direction++)
+    door_state_finish(&doors[direction]);
   return TRUE;
 }
 
@@ -829,6 +904,7 @@ int copy_room_strings(struct room_data *dest, struct room_data *source)
 
     CREATE(R_EXIT(dest, i), struct room_direction_data, 1);
     *R_EXIT(dest, i) = *R_EXIT(source, i);
+    R_EXIT(dest, i)->event_identity = 0U;
     if (R_EXIT(source, i)->general_description)
       R_EXIT(dest, i)->general_description = strdup(R_EXIT(source, i)->general_description);
     if (R_EXIT(source, i)->keyword)

@@ -54,28 +54,16 @@ if "$runner" __validate-vessel-tick-row "$invalid_tick_row"; then
   fail "vessel-tick row with impossible sample counts unexpectedly passed"
 fi
 
-source_perf_sections="$test_root/source-perf-sections.txt"
-runner_perf_sections="$test_root/runner-perf-sections.txt"
-sed -nE \
-  's/.*PERF_prof_sect_init\([^,]+, "(vessel_[^"]+)"\);.*/\1/p' \
-  "$repo_root/src/comm.c" | sort -u >"$source_perf_sections"
-awk '
-  /^vessel_perf_sections=\(/ {
-    capture = 1
-    next
-  }
-  capture && /^\)/ {
-    exit
-  }
-  capture {
-    gsub(/^[[:space:]]+|[[:space:]]+$/, "")
-    if (length($0) > 0) {
-      print
-    }
-  }
-' "$runner" | sort -u >"$runner_perf_sections"
-diff -u "$source_perf_sections" "$runner_perf_sections" ||
-  fail "scale-runner profiler contract drifted from the production heartbeat"
+# Archived output parsers remain useful, but a fleet-heartbeat run cannot
+# validate the native per-vessel scheduler. Refuse it before any mutation.
+if "$runner" start >"$test_root/retired-start.txt" 2>&1; then
+  fail "the retired fleet-heartbeat benchmark still starts"
+fi
+grep -q 'fleet-heartbeat benchmark is retired' "$test_root/retired-start.txt" ||
+  fail "retired benchmark does not explain why native measurements are required"
+if "$runner" __run unused unused >"$test_root/retired-run.txt" 2>&1; then
+  fail "the retired internal benchmark still starts"
+fi
 
 runner_snapshot_tables="$test_root/runner-snapshot-tables.txt"
 awk '

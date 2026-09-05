@@ -1,10 +1,10 @@
 # Vessel System Benchmarks
 
-**Version:** 3.27
+**Version:** 3.28
 
 **Evidence snapshot:** August 2, 2026
 
-**Last updated:** August 2, 2026
+**Last updated:** August 31, 2026
 
 This document records measured vessel-system evidence. It intentionally
 separates completed development performance and preflight acceptance from the
@@ -15,8 +15,9 @@ remaining real-player balance, human beta, and staged rollout gates.
 | Measure | Result | Status |
 |---|---:|---|
 | Configured fleet-array entries | 501 | Slot 0 is reserved; active maximum is 500 |
-| Base `greyhawk_ship_data` size | 4,928 bytes | Within 5 KB budget |
-| Base storage for 501 array entries | 2,468,928 bytes (about 2.35 MiB) | Within about 3 MB budget |
+| Base `greyhawk_ship_data` size | 5,104 bytes | Within 5 KiB budget |
+| Base storage for 501 array entries | 2,557,104 bytes (about 2.44 MiB) | Within about 3 MB budget |
+| Phase 7F event-refactor suite on August 31, 2026 | 987 of 987 passing | Current owner/lifecycle gate; repeat 500-ship scale preflight |
 | Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
 | Pre-Phase16 root suite on August 2, 2026 | 277 of 277 passing | Full-scale candidate and current strict Memcheck baseline |
@@ -58,7 +59,7 @@ microbenchmarks do not satisfy this target.
 
 ### Ship Structure
 
-The measured `sizeof(struct greyhawk_ship_data)` is 4,928 bytes.
+The current measured `sizeof(struct greyhawk_ship_data)` is 5,104 bytes.
 
 | Component | Approximate bytes |
 |---|---:|
@@ -69,22 +70,21 @@ The measured `sizeof(struct greyhawk_ship_data)` is 4,928 bytes.
 | Helm permits | 210 |
 | Cargo data | 80 |
 | Crew tiers | 16 |
-| New counters and state fields | 219 |
-| Other fields and padding | 405 |
-| **Total** | **4,928** |
+| Runtime counters, periodic ownership, other fields, and padding | 800 |
+| **Total** | **5,104** |
 
-Recent gameplay and runtime-observability fields account for roughly 412
-bytes, or about 8.4 percent of the structure. Older documentation that
-reported a 1,016-byte ship structure is obsolete.
+The Phase 7F owner pointer, generation, registry links, and flag are included
+in this measurement. Older measurements of 4,928 bytes and the still older
+1,016-byte claim are obsolete for the current tree.
 
 ### Fleet Projection
 
 | Ships | Base bytes | Approximate size |
 |---:|---:|---:|
-| 100 | 492,800 | 481.2 KiB |
-| 250 | 1,232,000 | 1.17 MiB |
-| 500 | 2,464,000 | 2.35 MiB |
-| Fixed 501-entry array | 2,468,928 | 2.35 MiB |
+| 100 | 510,400 | 498.4 KiB |
+| 250 | 1,276,000 | 1.22 MiB |
+| 500 | 2,552,000 | 2.43 MiB |
+| Fixed 501-entry array | 2,557,104 | 2.44 MiB |
 
 The separate vehicle array has a measured element size of 152 bytes. At 1,000
 vehicles, its base storage is 152,000 bytes, or about 148.4 KiB.
@@ -101,7 +101,7 @@ budget.
 
 | Structure | Size |
 |---|---:|
-| `greyhawk_ship_data` | 4,928 bytes |
+| `greyhawk_ship_data` | 5,104 bytes |
 | `vehicle_data` | 152 bytes |
 | Autopilot state | 72 bytes |
 | Route data | 1,840 bytes |

@@ -8,6 +8,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "movement/door_state.h"
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
@@ -180,6 +181,7 @@ void create_ship_connection(room_rnum room1, room_rnum room2, int dir)
 /* Remove a connection between two ship rooms */
 void remove_ship_connection(room_rnum room1, room_rnum room2)
 {
+  struct door_state_operation operations[NUM_OF_DIRS * 2] = {0};
   int dir;
   int removed_count = 0;
 
@@ -193,6 +195,12 @@ void remove_ship_connection(room_rnum room1, room_rnum room2)
 
   VSSL_DEBUG_DOCK("Removing connections between room %d and room %d", world[room1].number,
                   world[room2].number);
+
+  for (dir = 0; dir < NUM_OF_DIRS; dir++)
+  {
+    door_state_begin(&operations[dir], room1, dir, false, DOMAIN_DOOR_EDIT);
+    door_state_begin(&operations[NUM_OF_DIRS + dir], room2, dir, false, DOMAIN_DOOR_EDIT);
+  }
 
   /* Find and remove all connections between these rooms */
   for (dir = 0; dir < NUM_OF_DIRS; dir++)
@@ -232,6 +240,8 @@ void remove_ship_connection(room_rnum room1, room_rnum room2)
 
   VSSL_DEBUG_DOCK("Removed %d connection(s)", removed_count);
   VSSL_DEBUG_EXIT("remove_ship_connection");
+  for (dir = 0; dir < NUM_OF_DIRS * 2; dir++)
+    door_state_finish(&operations[dir]);
 }
 
 /* Initiate docking between two ships */

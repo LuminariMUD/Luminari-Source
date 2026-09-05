@@ -96,7 +96,7 @@ bool char_should_fall(struct char_data *ch, bool silent)
   return falling;
 }
 
-EVENTFUNC(event_falling)
+MUD_EVENT_CALLBACK(event_falling)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;

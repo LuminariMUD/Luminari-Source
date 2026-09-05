@@ -18,6 +18,7 @@
 //ACMD(do_track);
 
 /* functions */
+void set_hunting_target(struct char_data *ch, struct char_data *target);
 void hunt_victim(struct char_data *ch);
 void hunt_loadroom(struct char_data *ch);
 int find_first_step(room_rnum src, room_rnum target);

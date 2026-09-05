@@ -61,7 +61,7 @@ struct obj_data *create_potion(int spell_num, struct char_data *ch);
 struct obj_data *create_multi_spell_potion(int *spell_nums, int num_spells, struct char_data *ch);
 
 /* Mud event for brewing completion */
-EVENTFUNC(event_brewing)
+MUD_EVENT_CALLBACK(event_brewing)
 {
   struct char_data *ch = NULL;
   struct mud_event_data *pMudEvent = NULL;

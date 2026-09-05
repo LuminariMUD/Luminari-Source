@@ -1990,6 +1990,8 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict, stru
                    int spellnum, int casttype);
 void mag_room(int level, struct char_data *ch, struct obj_data *obj, int spellnum, int casttype);
 void rem_room_aff(struct raff_node *raff);
+size_t affect_update_character_one(struct char_data *ch);
+size_t affect_update_room_one(struct room_data *room);
 
 int call_magic(struct char_data *caster, struct char_data *cvict, struct obj_data *ovict,
                int spellnum, int metamagic, int level, int casttype);
@@ -2038,7 +2040,6 @@ int savingthrow(struct char_data *ch, struct char_data *vict, int type, int modi
                 int level, int school);
 int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int modifier,
                      int casttype, int level, int school, int spellnum);
-void affect_update(void);
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier);
 int compute_spell_res(struct char_data *ch, struct char_data *vict, int mod);
 int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum);

@@ -1062,28 +1062,36 @@ void quest_timeout(struct char_data *ch, int index)
   }
 }
 
-/* tick processing - decrement timers on all the in-game quests, if it reaches zero (0) then call quest_timeout() */
-void check_timed_quests(void)
+void check_timed_quests_one(struct char_data *ch)
 {
-  struct char_data *ch, *next_ch;
   int index = 0;
 
-  for (ch = character_list; ch; ch = next_ch)
-  {
-    next_ch = ch->next; /* Cache next char before potential extraction */
+  if (ch == NULL || IS_NPC(ch))
+    return;
 
-    for (index = 0; index < MAX_CURRENT_QUESTS; index++)
-    { /* loop through all the character's quest slots */
-      if (!IS_NPC(ch) && (GET_QUEST(ch, index) != (int)NOTHING) &&
-          (GET_QUEST_TIME(ch, index) != -1))
+  for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+  {
+    if ((GET_QUEST(ch, index) != (int)NOTHING) && (GET_QUEST_TIME(ch, index) != -1))
+    {
+      if (--GET_QUEST_TIME(ch, index) == 0)
       {
-        if (--GET_QUEST_TIME(ch, index) == 0)
-        {
-          quest_timeout(ch, index);
-        }
+        quest_timeout(ch, index);
       }
-    } /* 2nd for-loop, index of char quests */
-  } /* 1st for-loop, character list */
+    }
+  }
+}
+
+/* Tick processing for the legacy global-discovery path. */
+void check_timed_quests(void)
+{
+  struct char_data *ch;
+  struct char_data *next;
+
+  for (ch = character_list; ch != NULL; ch = next)
+  {
+    next = ch->next;
+    check_timed_quests_one(ch);
+  }
 }
 
 /*--------------------------------------------------------------------------*/

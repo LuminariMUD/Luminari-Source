@@ -9,6 +9,7 @@
 #include "sysdep.h"
 
 #include "structs.h"
+#include "movement/door_state.h"
 #include "utils.h"
 #include "act.h"
 #include "comm.h"
@@ -232,18 +233,14 @@ struct slider_row row_4_e_u_d[] = {{155600, DOWN}, {155601, DOWN}, {155610, DOWN
 
 void open_exit(struct slider_row row)
 {
-  REMOVE_BIT(EXITN(row.room, row.door)->exit_info, EX_CLOSED);
-  REMOVE_BIT(EXITN(row.room, row.door)->exit_info, EX_LOCKED);
-  // REMOVE_BIT(EXITN(row.room, row.door)->exit_info, EX_HIDDEN3);
-  SET_BIT(EXITN(row.room, row.door)->exit_info, EX_PICKPROOF);
+  door_state_update(row.room, row.door, EX_CLOSED | EX_LOCKED, EX_PICKPROOF, false,
+                    DOMAIN_DOOR_GAMEPLAY);
 }
 
 void close_exit(struct slider_row row)
 {
-  SET_BIT(EXITN(row.room, row.door)->exit_info, EX_CLOSED);
-  SET_BIT(EXITN(row.room, row.door)->exit_info, EX_LOCKED);
-  // SET_BIT(EXITN(row.room, row.door)->exit_info, EX_HIDDEN3);
-  SET_BIT(EXITN(row.room, row.door)->exit_info, EX_PICKPROOF);
+  door_state_update(row.room, row.door, 0, EX_CLOSED | EX_LOCKED | EX_PICKPROOF, false,
+                    DOMAIN_DOOR_GAMEPLAY);
 }
 
 static void send_to_cube(const char *echo)

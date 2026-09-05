@@ -63,7 +63,7 @@ SPECIAL(cf_trainingmaster)
       {
         if (ch->in_room != i->in_room)
         {
-          HUNTING(i) = enemy;
+          set_hunting_target(i, enemy);
           hunt_victim(i);
         }
         else

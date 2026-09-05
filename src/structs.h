@@ -12,11 +12,12 @@
 #ifndef _STRUCTS_H_
 #define _STRUCTS_H_
 
-#include <inttypes.h>     /* for PRIu32 and SCNu32 */
-#include <stdint.h>       /* for int32_t and uint32_t */
-#include <time.h>         /* for time_t */
-#include <stddef.h>       /* for size_t */
-#include "bool.h"         /* for bool */
+#include <inttypes.h> /* for PRIu32 and SCNu32 */
+#include <stdint.h>   /* for int32_t and uint32_t */
+#include <time.h>     /* for time_t */
+#include <stddef.h>   /* for size_t */
+#include "bool.h"     /* for bool */
+#include "event_handle.h"
 #include "net/protocol.h" /* Kavir Plugin*/
 #include "lists.h"
 
@@ -32,6 +33,10 @@
 // and change the vnums as needed. This ensures all of the vnums used by the
 // code are defined in one place, so you can review and change them easily.
 #include "vnums.h"
+
+struct combat_encounter_data;
+struct combat_encounter_participant;
+struct ready_action;
 
 /** Intended use of this macro is to allow external packages to work with a
  * variety of versions without modifications.  For instance, an IS_CORPSE()
@@ -292,8 +297,9 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define RAFF_SACRED_SPACE (1 << 14)
 #define RAFF_KAPAK_ACID (1 << 15)
 #define RAFF_AIRY_WATER (1 << 16)
+#define RAFF_CAMP (1 << 17)
 /** The total number of Room Affections */
-#define NUM_RAFF 17
+#define NUM_RAFF 18
 
 /* Zone reset states: Used in zone_data.reset_state */
 #define ZONE_RESET_NORMAL 0 /**< Zone is operating normally */
@@ -5904,8 +5910,10 @@ struct trap_data
 /** The Object structure. */
 struct obj_data
 {
-  obj_rnum item_number; /**< The unique id of this object instance. */
-  room_rnum in_room;    /**< What room is the object lying in, or -1? */
+  obj_rnum item_number;               /**< The unique id of this object instance. */
+  room_rnum in_room;                  /**< What room is the object lying in, or -1? */
+  uint64_t event_owner_generation;    /**< Process-local timed-event owner generation. */
+  uint64_t periodic_event_generation; /**< Periodic-owner incarnation. */
 
   struct obj_flag_data obj_flags;                    /**< Object information */
   struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< affects */
@@ -5930,6 +5938,7 @@ struct obj_data
   struct obj_data *next_gitem;    /**< For group loot list   */
   struct obj_data *next_content;  /**< For 'contains' lists   */
   struct obj_data *next;          /**< For the object list */
+  bool object_list_member;        /**< Runtime membership in object_list. */
   struct char_data *sitting_here; /**< For furniture, who is sitting in it */
 
   bool has_spells; // used to keep track if weapon has weapon_spells
@@ -5984,6 +5993,12 @@ struct obj_data
   struct obj_data *autoproc_next;
   struct obj_data *autoproc_prev;
   bool autoproc_registered;
+  struct event_runtime_handle autoproc_event_handle;
+
+  /* Runtime-only mud-hour point-update registry links. */
+  struct obj_data *point_update_next;
+  struct obj_data *point_update_prev;
+  bool point_update_registered;
 
   /* PERFMON lifecycle attribution; runtime-only and never serialized. */
   int perf_origin_zone_vnum;
@@ -6043,6 +6058,7 @@ struct room_direction_data
 
   char *keyword; /**< for interacting (open/close) this direction */
 
+  uint64_t event_identity;          /**< Process-local exit incarnation; never serialized. */
   sh_int /*bitvector_t*/ exit_info; /**< Door, and what type? */
   obj_vnum key;                     /**< Key's vnum (-1 for no key) */
   room_rnum to_room;                /**< Where direction leads, or NOWHERE if not defined */
@@ -6060,11 +6076,12 @@ struct raff_node
   int dc;               // save dc, if specified
   bool special;         // true if a special affect associated with the room affect applies
 
-  struct raff_node *next; /* link to the next node */
+  struct raff_node *next;      /* link to the global room-affect list */
+  struct raff_node *room_next; /* next affect owned by the same room */
+  struct raff_node *room_prev; /* previous affect owned by the same room */
+  bool room_registered;        /* linked into its room's owner list */
 };
 
-/* From trails.h */
-struct trail_data_list;
 struct spec_binding;
 struct spec_effective_binding;
 
@@ -6072,8 +6089,11 @@ struct spec_effective_binding;
 struct room_data
 {
   room_vnum number;                                    /**< Rooms number (vnum) */
+  uint64_t event_owner_generation;                     /**< Runtime room incarnation. */
+  uint64_t periodic_event_generation;                  /**< Periodic-owner incarnation. */
   zone_rnum zone;                                      /**< Room zone (for resetting) */
   int coords[2];                                       /**< Room coordinates (for wilderness) */
+  bool wilderness_coordinates_set;                     /**< Wilderness coordinates are explicit. */
   int sector_type;                                     /**< sector type (move/hide) */
   int minimum_level;                                   /**< Minimum entry level; <= 0 is open */
   int maximum_level;                                   /**< Maximum entry level; <= 0 is open */
@@ -6093,12 +6113,14 @@ struct room_data
   struct obj_data *contents;                        /**< List of items in room */
   struct char_data *people;                         /**< List of NPCs / PCs in room */
 
-  struct list_data *events; // room events
+  struct list_data *events;                          // room events
+  struct raff_node *affected_head;                   /**< Runtime room-affect owner list. */
+  struct room_data *affected_next;                   /**< Runtime affected-room registry link. */
+  struct room_data *affected_prev;                   /**< Runtime affected-room registry link. */
+  struct event_runtime_handle affected_event_handle; /**< Sole room-affect duration event. */
+  size_t affected_count;                             /**< Room-affect nodes owned by this room. */
+  bool affected_registered;                          /**< Runtime affected-room registry state. */
 
-  struct trail_data_list *trail_tracks;
-  // struct trail_data_list *trail_scent;
-  // struct trail_data_list *trail_blood;
-  //// struct trail_data_list *trail_magic;
   struct moving_room_data *mover; /*  if it's a moving room       */
 
   int harvest_material;
@@ -7091,6 +7113,7 @@ struct mob_special_data
       [5]; // used for encounters to track if they've been coerced before (intimidate, bluff, stealth and diplomacy)
   int hunt_type; // for hunts, used to track which hunt entry it is on the huhnt table
   int hunt_cooldown; // for hunts, when hunt expires, this is set to 5 minutes, at which point it will be extracted
+  uint64_t hunt_generation; /* Active-hunt generation this target belongs to. */
   int temp_feat;
   byte spells_known[MAX_SPELLS]; /* Changed from int to byte - saves 6KB per mob! */
 
@@ -7359,12 +7382,18 @@ struct oldNextMove
 /** Master structure for PCs and NPCs. */
 struct char_data
 {
-  int pfilepos;          /**< PC playerfile pos and id number */
-  mob_rnum nr;           /**< NPC real instance number */
-  int coords[2];         /**< Current coordinate location, used in wilderness. */
-  room_rnum in_room;     /**< Current location (real room number) */
-  room_rnum was_in_room; /**< Previous location for linkdead people  */
-  int wait;              /**< wait for how many loops before taking action. */
+  int pfilepos;                       /**< PC playerfile pos and id number */
+  mob_rnum nr;                        /**< NPC real instance number */
+  int coords[2];                      /**< Current coordinate location, used in wilderness. */
+  room_rnum in_room;                  /**< Current location (real room number) */
+  room_rnum was_in_room;              /**< Previous location for linkdead people  */
+  room_rnum domain_previous_room;     /**< Origin retained across char_from/to_room. */
+  uint64_t event_owner_generation;    /**< Runtime character incarnation. */
+  uint64_t domain_event_generation;   /**< Typed-event character incarnation. */
+  uint64_t periodic_event_generation; /**< Periodic-owner incarnation. */
+  int wait;                           /**< Remaining 100 ms action-delay ticks. */
+  uint64_t wait_last_tick;            /**< Last monotonic runtime tick applied to wait. */
+  bool wait_tick_initialized;         /**< Whether wait_last_tick has a valid baseline. */
 
   struct char_player_data player;              /**< General PC/NPC data */
   struct char_ability_data real_abils;         /**< Abilities without modifiers */
@@ -7376,11 +7405,31 @@ struct char_data
   struct player_special_data *player_specials; /**< PC specials		  */
   struct mob_special_data mob_specials;        /**< NPC specials		  */
 
-  struct affected_type *affected;        /**< affected by what spells    */
-  struct char_data *affected_next;       /**< Runtime affected-owner registry link. */
-  struct char_data *affected_prev;       /**< Runtime affected-owner registry link. */
-  bool affected_registered;              /**< Runtime affected-owner registry state. */
-  bool affected_registry_live;           /**< Eligible live-world registry owner. */
+  struct affected_type *affected;                    /**< affected by what spells    */
+  struct char_data *affected_next;                   /**< Runtime affected-owner registry link. */
+  struct char_data *affected_prev;                   /**< Runtime affected-owner registry link. */
+  bool affected_registered;                          /**< Runtime affected-owner registry state. */
+  bool affected_registry_live;                       /**< Eligible live-world registry owner. */
+  struct event_runtime_handle affected_event_handle; /**< Sole affect-duration event. */
+  struct char_data *character_periodic_next;         /**< Character periodic-owner registry link. */
+  struct char_data *character_periodic_prev;         /**< Character periodic-owner registry link. */
+  struct event_runtime_handle character_periodic_event_handle; /**< Nearest maintenance deadline. */
+  unsigned long character_periodic_due_pulse; /**< Intended periodic-event deadline. */
+  bool character_periodic_registered;         /**< Character periodic registry membership. */
+  struct char_data *point_update_next;        /**< Mud-hour player registry link. */
+  struct char_data *point_update_prev;        /**< Mud-hour player registry link. */
+  bool point_update_registered;               /**< Mud-hour player registry membership. */
+  unsigned char active_world_state;           /**< Active, cooling, or dormant state. */
+  uint32_t active_world_work_reasons;         /**< Explicit autonomous work agenda. */
+  unsigned long active_world_fixed_due;       /**< Next fixed-cadence agenda deadline. */
+  unsigned long active_world_wander_due;      /**< Next randomized wander decision. */
+  unsigned long active_world_reaction_due;    /**< Next one-shot local reaction. */
+  unsigned long active_world_resource_due;    /**< Next consumed-resource recovery deadline. */
+  struct event_runtime_handle active_world_event_handle; /**< Earliest autonomous-work deadline. */
+  struct primary_activity *primary_activity;             /**< One intentional timed activity. */
+  struct ready_action *ready_action;                     /**< Ephemeral entity-topic listener. */
+  struct combat_encounter_data *combat_encounter;        /**< Runtime fight-session owner. */
+  struct combat_encounter_participant *combat_encounter_participant; /**< Membership node. */
   struct obj_data *equipment[NUM_WEARS]; /**< Equipment array            */
 
   struct obj_data *carrying;    /**< List head for objects in inventory */
@@ -7476,38 +7525,40 @@ struct roleplay_pending_data
  * is the soul. */
 struct descriptor_data
 {
-  socket_t descriptor;               /**< file descriptor for socket */
-  char host[HOST_LENGTH + 1];        /**< hostname */
-  byte bad_pws;                      /**< number of bad pw attemps this login */
-  byte idle_tics;                    /**< tics idle at password prompt		*/
-  int connected;                     /**< mode of 'connectedness'		*/
-  int desc_num;                      /**< unique num assigned to desc		*/
-  time_t login_time;                 /**< when the person connected		*/
-  char *showstr_head;                /**< for keeping track of an internal str	*/
-  char **showstr_vector;             /**< for paging through texts		*/
-  int showstr_count;                 /**< number of pages to page through	*/
-  int showstr_page;                  /**< which page are we currently showing?	*/
-  char **str;                        /**< for the modify-str system		*/
-  char *backstr;                     /**< backup string for modify-str system	*/
-  size_t max_str;                    /**< maximum size of string in modify-str	*/
-  long mail_to;                      /**< name for mail system			*/
-  int has_prompt;                    /**< is the user at a prompt?             */
-  char inbuf[MAX_RAW_INPUT_LENGTH];  /**< buffer for raw input		*/
-  char last_input[MAX_INPUT_LENGTH]; /**< the last input			*/
-  char small_outbuf[SMALL_BUFSIZE];  /**< standard output buffer		*/
-  char *output;                      /**< ptr to the current output buffer	*/
-  char **history;                    /**< History of commands, for ! mostly.	*/
-  int history_pos;                   /**< Circular array position.		*/
-  int bufptr;                        /**< ptr to end of current output		*/
-  int bufspace;                      /**< space left in the output buffer	*/
-  struct txt_block *large_outbuf;    /**< ptr to large buffer, if we need it */
-  struct txt_q input;                /**< q of unprocessed input		*/
-  struct char_data *character;       /**< linked to char			*/
-  struct char_data *original;        /**< original char if switched		*/
-  struct descriptor_data *snooping;  /**< Who is this char snooping	*/
-  struct descriptor_data *snoop_by;  /**< And who is snooping this char	*/
-  struct descriptor_data *next;      /**< link to next descriptor		*/
-  struct oasis_olc_data *olc;        /**< OLC info */
+  socket_t descriptor;                 /**< file descriptor for socket */
+  char host[HOST_LENGTH + 1];          /**< hostname */
+  byte bad_pws;                        /**< number of bad pw attemps this login */
+  byte idle_tics;                      /**< tics idle at password prompt		*/
+  int connected;                       /**< mode of 'connectedness'		*/
+  uint64_t close_output_deadline_usec; /**< Bounded graceful-close drain deadline. */
+  int desc_num;                        /**< unique num assigned to desc		*/
+  uint64_t event_owner_generation;     /**< Connection-scoped event generation. */
+  time_t login_time;                   /**< when the person connected		*/
+  char *showstr_head;                  /**< for keeping track of an internal str	*/
+  char **showstr_vector;               /**< for paging through texts		*/
+  int showstr_count;                   /**< number of pages to page through	*/
+  int showstr_page;                    /**< which page are we currently showing?	*/
+  char **str;                          /**< for the modify-str system		*/
+  char *backstr;                       /**< backup string for modify-str system	*/
+  size_t max_str;                      /**< maximum size of string in modify-str	*/
+  long mail_to;                        /**< name for mail system			*/
+  int has_prompt;                      /**< is the user at a prompt?             */
+  char inbuf[MAX_RAW_INPUT_LENGTH];    /**< buffer for raw input		*/
+  char last_input[MAX_INPUT_LENGTH];   /**< the last input			*/
+  char small_outbuf[SMALL_BUFSIZE];    /**< standard output buffer		*/
+  char *output;                        /**< ptr to the current output buffer	*/
+  char **history;                      /**< History of commands, for ! mostly.	*/
+  int history_pos;                     /**< Circular array position.		*/
+  int bufptr;                          /**< ptr to end of current output		*/
+  int bufspace;                        /**< space left in the output buffer	*/
+  struct txt_block *large_outbuf;      /**< ptr to large buffer, if we need it */
+  struct txt_q input;                  /**< q of unprocessed input		*/
+  struct char_data *character;         /**< linked to char			*/
+  struct char_data *original;          /**< original char if switched		*/
+  struct descriptor_data *snooping;    /**< Who is this char snooping	*/
+  struct descriptor_data *snoop_by;    /**< And who is snooping this char	*/
+  struct descriptor_data *next;        /**< link to next descriptor		*/
+  struct oasis_olc_data *olc;          /**< OLC info */
 
   protocol_t *pProtocol;    /**< Kavir plugin */
   struct list_data *events; // event system

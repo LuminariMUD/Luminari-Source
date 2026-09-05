@@ -24,6 +24,7 @@
 #include "spec/spec_binding.h"
 #include "spec/spec_registry.h"
 #include "spec/spec_effective_binding.h"
+#include "point_update_periodic.h"
 
 /* local functions */
 static int update_all_objects(struct obj_data *obj);
@@ -81,11 +82,20 @@ static int update_all_objects(struct obj_data *refobj)
     obj->contains = swap.contains;
     obj->next_content = swap.next_content;
     obj->next = swap.next;
+    obj->object_list_member = swap.object_list_member;
     obj->sitting_here = swap.sitting_here;
+    obj->events = swap.events;
+    obj->event_owner_generation = swap.event_owner_generation;
+    obj->periodic_event_generation = swap.periodic_event_generation;
     obj->autoproc_next = NULL;
     obj->autoproc_prev = NULL;
     obj->autoproc_registered = false;
+    obj->autoproc_event_handle = EVENT_RUNTIME_HANDLE_NONE;
     autoproc_registry_sync(obj);
+    obj->point_update_next = swap.point_update_next;
+    obj->point_update_prev = swap.point_update_prev;
+    obj->point_update_registered = swap.point_update_registered;
+    point_update_object_sync(obj);
   }
 
   return count;
@@ -548,16 +558,41 @@ int copy_object_main(struct obj_data *to, struct obj_data *from,
 {
   struct obj_data *autoproc_next;
   struct obj_data *autoproc_prev;
+  struct event_runtime_handle autoproc_event_handle;
+  struct obj_data *point_update_next;
+  struct obj_data *point_update_prev;
+  struct list_data *events;
+  uint64_t event_owner_generation;
+  uint64_t periodic_event_generation;
   bool autoproc_registered;
+  bool point_update_registered;
+  bool object_list_member;
 
   autoproc_next = to->autoproc_next;
   autoproc_prev = to->autoproc_prev;
+  autoproc_event_handle = to->autoproc_event_handle;
+  events = to->events;
+  event_owner_generation = to->event_owner_generation;
+  periodic_event_generation = to->periodic_event_generation;
   autoproc_registered = to->autoproc_registered;
+  point_update_next = to->point_update_next;
+  point_update_prev = to->point_update_prev;
+  point_update_registered = to->point_update_registered;
+  object_list_member = to->object_list_member;
   *to = *from;
   to->autoproc_next = autoproc_next;
   to->autoproc_prev = autoproc_prev;
+  to->autoproc_event_handle = autoproc_event_handle;
+  to->events = events;
+  to->event_owner_generation = event_owner_generation;
+  to->periodic_event_generation = periodic_event_generation;
   to->autoproc_registered = autoproc_registered;
+  to->point_update_next = point_update_next;
+  to->point_update_prev = point_update_prev;
+  to->point_update_registered = point_update_registered;
+  to->object_list_member = object_list_member;
   copy_object_strings(to, from);
+  point_update_object_sync(to);
   return TRUE;
 }
 

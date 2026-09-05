@@ -2,6 +2,7 @@
 // From D&D 5e and PF1e
 
 #include "conf.h"
+#include "character_periodic.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
@@ -621,6 +622,7 @@ ACMDU(do_swindle)
 
   // you can only try once;
   vict->char_specials.swindle_cooldown = 100;
+  character_periodic_sync(vict);
 
   int skill = skill_roll(ch, ABILITY_DECEPTION);
   int dc = skill_roll(vict, ABILITY_INSIGHT);
@@ -728,6 +730,7 @@ ACMDU(do_entertain)
 
   // you can only try once;
   vict->char_specials.entertain_cooldown = 100;
+  character_periodic_sync(vict);
 
   int skill = skill_roll(ch, ABILITY_PERFORM);
   int dc = skill_roll(vict, ABILITY_DISCIPLINE);
@@ -865,6 +868,7 @@ ACMDU(do_tribute)
 
   // you can only try once;
   vict->char_specials.tribute_cooldown = 100;
+  character_periodic_sync(vict);
 
   int skill = skill_roll(ch, ABILITY_PERSUASION);
   int dc = skill_roll(vict, ABILITY_INSIGHT);

@@ -426,7 +426,8 @@ The LuminariMUD codebase demonstrates a mixed documentation state with areas of 
 - `src/wilderness/spatial_core.c/.h` - Core framework and strategy interfaces
 - `src/wilderness/spatial_visual.c` - Complete visual system implementation
 - `src/wilderness/spatial_audio.c` - Complete audio system implementation
-- Integration points: `src/db.c`, `src/pubsub/pubsub_commands.c`, `Makefile.am`
+- Integration points: `src/db.c`, `src/wilderness/spatial_events.c`, and the
+  typed `WorldPhenomenon` domain event
 
 ### Technical Implementation Details
 
@@ -461,11 +462,11 @@ The LuminariMUD codebase demonstrates a mixed documentation state with areas of 
 
 ### Integration Points
 
-#### PubSub System Integration
-**Command Interface:** `pubsub spatial` in `pubsub_commands.c`
-- Tests both visual (ship sighting) and audio (thunder) simultaneously
-- Uses proper coordinate system and context initialization
-- Demonstrates multi-stimulus spatial events
+#### Typed Sensory Event Integration
+**Runtime Interface:** `DOMAIN_EVENT_WORLD_PHENOMENON`
+- Publishes visual and audible facts together or independently
+- Supports wilderness coordinates and bounded room-graph propagation
+- Meteor Swarm is the first migrated production publisher
 
 #### Database Integration
 **Initialization:** `spatial_systems_init()` called in `db.c` startup sequence
@@ -486,7 +487,7 @@ The LuminariMUD codebase demonstrates a mixed documentation state with areas of 
 2. **Visual System** - Complete with distance, terrain, weather, and lighting effects
 3. **Audio System** - Complete with frequency-based propagation and environmental effects
 4. **Integration** - Full MUD integration with startup, commands, and testing
-5. **Testing** - Comprehensive testing via `pubsub spatial` command
+5. **Testing** - Production-linked domain-event, spatial, and gameplay tests
 6. **Distance Calibration** - Realistic dropoff curves for both visual and audio
 7. **Message Quality** - Natural, immersive descriptions with proper directional language
 
@@ -537,10 +538,10 @@ typedef enum {
 // Clear: ≥0.8, Distant: ≥0.5, Muffled: ≥0.3, Echo: ≥0.15, Faint: ≥0.05, Rumble: <0.05
 ```
 
-#### Testing Commands
-```
-pubsub spatial  - Tests both visual (ship) and audio (thunder) systems
-```
+#### Testing
+
+Use the production-linked suite and live gameplay scenarios; the retired
+PubSub staff command no longer exists.
 
 #### Key Functions for Extension
 ```c

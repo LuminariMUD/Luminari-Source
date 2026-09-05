@@ -1,0 +1,15 @@
+Event wakeup repair validation, 2026-09-05
+
+make -j8 test: exit 0; OK (1091 tests)
+Final build: no compiler warnings or errors
+Valgrind --tool=memcheck --leak-check=no --error-exitcode=99 ./cutest:
+  exit 0; OK (1091 tests)
+  ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+make -j8 install: exit 0
+Final local copyover and post-copyover ready test: exit 0
+git diff --check: no errors
+
+The C suite uses LUMINARI_TEST_ROOT and the checked-in spec-world fixture.
+Valgrind does not claim leak freedom: full leak checking was not enabled.
+Local gameplay uses Aster on port 4101, in the small development world.
+Production and CI were not used for validation.

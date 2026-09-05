@@ -10,47 +10,45 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "mud_event.h"
-#include "dgscript/dg_event.h"
 #include "craft/brew.h"
 
 /* External event handler function declarations */
-extern EVENTFUNC(event_countdown);
-extern EVENTFUNC(event_daily_use_cooldown);
-extern EVENTFUNC(get_protocols);
-extern EVENTFUNC(event_whirlwind);
-extern EVENTFUNC(event_casting);
-extern EVENTFUNC(event_preparation);
-extern EVENTFUNC(event_crafting);
-extern EVENTFUNC(event_acid_arrow);
-extern EVENTFUNC(event_implode);
-extern EVENTFUNC(event_ice_storm);
-extern EVENTFUNC(event_chain_lightning);
-extern EVENTFUNC(event_falling);
-extern EVENTFUNC(event_check_occupied);
-extern EVENTFUNC(event_tracks);
-extern EVENTFUNC(event_combat_round);
-extern EVENTFUNC(event_action_cooldown);
-extern EVENTFUNC(event_trap_triggered);
-extern EVENTFUNC(event_craft);
-extern EVENTFUNC(event_copyover);
-extern EVENTFUNC(event_spiritual_weapon);
-extern EVENTFUNC(event_dancing_weapon);
-extern EVENTFUNC(event_holy_javelin);
-extern EVENTFUNC(event_moonbeam);
-extern EVENTFUNC(event_aqueous_orb);
-extern EVENTFUNC(event_concussive_onslaught);
-extern EVENTFUNC(event_power_leech);
-extern EVENTFUNC(event_device_creation);
-extern EVENTFUNC(event_device_progress);
-extern EVENTFUNC(event_radiant_aura);
-extern EVENTFUNC(event_fist_of_four_thunders);
-extern EVENTFUNC(event_rol_yggdrasil_release);
-extern EVENTFUNC(event_rol_barbazu_bloodloss);
-extern EVENTFUNC(event_rol_drow_decay);
-extern EVENTFUNC(event_rol_deaths_head_seed);
-extern EVENTFUNC(event_rol_spiderhaunt_maggots);
-extern EVENTFUNC(event_rol_call_lycanthrope_charm);
-extern EVENTFUNC(event_rol_tazriks_frenzied_hound);
+extern MUD_EVENT_CALLBACK(event_countdown);
+extern MUD_EVENT_CALLBACK(event_daily_use_cooldown);
+extern MUD_EVENT_CALLBACK(get_protocols);
+extern MUD_EVENT_CALLBACK(event_whirlwind);
+extern MUD_EVENT_CALLBACK(event_preparation);
+extern MUD_EVENT_CALLBACK(event_crafting);
+extern MUD_EVENT_CALLBACK(event_acid_arrow);
+extern MUD_EVENT_CALLBACK(event_implode);
+extern MUD_EVENT_CALLBACK(event_ice_storm);
+extern MUD_EVENT_CALLBACK(event_chain_lightning);
+extern MUD_EVENT_CALLBACK(event_falling);
+extern MUD_EVENT_CALLBACK(event_check_occupied);
+extern MUD_EVENT_CALLBACK(event_tracks);
+extern MUD_EVENT_CALLBACK(event_combat_round);
+extern MUD_EVENT_CALLBACK(event_action_cooldown);
+extern MUD_EVENT_CALLBACK(event_trap_triggered);
+extern MUD_EVENT_CALLBACK(event_craft);
+extern MUD_EVENT_CALLBACK(event_copyover);
+extern MUD_EVENT_CALLBACK(event_spiritual_weapon);
+extern MUD_EVENT_CALLBACK(event_dancing_weapon);
+extern MUD_EVENT_CALLBACK(event_holy_javelin);
+extern MUD_EVENT_CALLBACK(event_moonbeam);
+extern MUD_EVENT_CALLBACK(event_aqueous_orb);
+extern MUD_EVENT_CALLBACK(event_concussive_onslaught);
+extern MUD_EVENT_CALLBACK(event_power_leech);
+extern MUD_EVENT_CALLBACK(event_device_creation);
+extern MUD_EVENT_CALLBACK(event_device_progress);
+extern MUD_EVENT_CALLBACK(event_radiant_aura);
+extern MUD_EVENT_CALLBACK(event_fist_of_four_thunders);
+extern MUD_EVENT_CALLBACK(event_rol_yggdrasil_release);
+extern MUD_EVENT_CALLBACK(event_rol_barbazu_bloodloss);
+extern MUD_EVENT_CALLBACK(event_rol_drow_decay);
+extern MUD_EVENT_CALLBACK(event_rol_deaths_head_seed);
+extern MUD_EVENT_CALLBACK(event_rol_spiderhaunt_maggots);
+extern MUD_EVENT_CALLBACK(event_rol_call_lycanthrope_charm);
+extern MUD_EVENT_CALLBACK(event_rol_tazriks_frenzied_hound);
 
 /* The mud_event_index[] with extended data for table-driven handling
  * Format: {name, func, type, completion_msg, recovery_msg, feat, daily_uses} */
@@ -59,7 +57,7 @@ struct mud_event_list mud_event_index[] = {
     {"Null", NULL, -1, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Protocol", get_protocols, EVENT_DESC, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Whirlwind", event_whirlwind, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
-    {"Casting", event_casting, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Retired casting", NULL, -1, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Lay on hands", event_daily_use_cooldown, EVENT_CHAR,
      "You are now able to lay on hands again.", "One of your lay on hands uses has recovered.",
      FEAT_LAYHANDS, 0},

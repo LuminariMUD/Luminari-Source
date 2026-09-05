@@ -13,6 +13,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "movement/door_state.h"
 #include "utils.h"
 #include "db.h"
 #include "comm.h"
@@ -26,6 +27,11 @@
 #include "olc/oasis.h"
 #include "dgscript/dg_scripts.h"
 #include "dgscript/dg_event.h"
+#include "domain_event_runtime.h"
+#include "domain_event_world.h"
+#include "activity_manager.h"
+#include "active_world.h"
+#include "periodic_owners.h"
 #include "act.h"
 #include "ban.h"
 #include "obj/treasure.h"
@@ -36,8 +42,8 @@
 #include "olc/genzon.h"
 #include "olc/genolc.h"
 #include "olc/genobj.h" /* for free_object_strings */
-#include "olc/genwld.h" /* for free_trail_data_list */
-#include "config.h"     /* for the default config values. */
+#include "olc/genwld.h"
+#include "config.h" /* for the default config values. */
 #include "combat/fight.h"
 #include "combat/projectiles.h"
 #include "combat/traps.h"
@@ -58,7 +64,6 @@
 #include "character/perks.h"
 #include "combat/spec_abilities.h"
 #include "help.h"
-#include "pubsub/pubsub.h"
 #include "wilderness/spatial_core.h"
 #include "wilderness/spatial_visual.h"
 #include "wilderness/spatial_audio.h"
@@ -78,6 +83,9 @@
 #include "combat/grapple.h"
 #include "character/race.h"
 #include "vessels/vessels.h"
+#include "vessels/vessel_periodic.h"
+#include "character_periodic.h"
+#include "point_update_periodic.h"
 #include "vessels/vessels_moving_rooms.h"
 #include "magic/spell_prep.h"
 #include "craft/crafts.h" /* NewCraft */
@@ -924,10 +932,10 @@ static void report_effective_spec_bindings(void)
       {
         const struct spec_definition *def = spec_registry_find_by_handler(obj_index[object].func);
         if (def != NULL && def->typed_handler != NULL &&
-            !spec_definition_supports_event(def, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTO_PULSE))
+            !spec_definition_supports_event(def, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTOMATIC))
         {
           log("SYSERR: Object prototype #%d has ITEM_AUTOPROC flag but special procedure '%s' does "
-              "not support auto-pulse.",
+              "not support automatic activity.",
               obj_index[object].vnum, def->canonical_name);
         }
       }
@@ -944,6 +952,7 @@ void destroy_db(void)
   ssize_t cnt = 0, itr = 0;
   struct char_data *chtmp = NULL;
   struct obj_data *objtmp = NULL;
+  enum domain_event_status domain_status;
 
   /* Persist sub-threshold XP and other pending registry changes. */
   artifact_save_if_dirty();
@@ -953,6 +962,11 @@ void destroy_db(void)
   /* Mud events detach themselves from character, object, room, and region
    * owner lists while being freed. Their owners must remain alive until the
    * global event queue has been drained. */
+  runtime_services_shutdown();
+  domain_status = domain_event_runtime_shutdown();
+  if (domain_status != DOMAIN_EVENT_OK)
+    log("SYSERR: Unable to shut down the typed domain-event runtime: %s.",
+        domain_event_status_name(domain_status));
   event_free_all();
 
   /* Active Mobiles & Players */
@@ -1001,6 +1015,9 @@ void destroy_db(void)
     free_obj(objtmp);
   }
 
+  /* The trail registry owns stable-location nodes independently of room storage. */
+  movement_trail_registry_shutdown();
+
   /* Rooms */
   for (cnt = 0; cnt <= top_of_world; cnt++)
   {
@@ -1028,32 +1045,8 @@ void destroy_db(void)
       world[cnt].traps = NULL;
     }
 
-    /* free trail data */
-    if (CONFIG_WILDERNESS_SYSTEM == 2)
-    {
-      if (world[cnt].trail_tracks != NULL)
-        free_trail_data_list(world[cnt].trail_tracks);
-    }
-
     /* freeing room events */
-    if (world[cnt].events != NULL)
-    {
-      if (world[cnt].events->iSize > 0)
-      {
-        struct event *pEvent;
-
-        /* Beginner's Note: Reset simple_list iterator before use to prevent
-         * cross-contamination from previous iterations. Without this reset,
-         * if simple_list was used elsewhere and not completed, it would
-         * continue from where it left off instead of starting fresh. */
-        simple_list(NULL);
-
-        while ((pEvent = simple_list(world[cnt].events)) != NULL)
-          event_cancel(pEvent);
-      }
-      free_list(world[cnt].events);
-      world[cnt].events = NULL;
-    }
+    clear_room_event_list(&world[cnt]);
 
     /* free any assigned scripts */
     if (SCRIPT(&world[cnt]))
@@ -1426,6 +1419,7 @@ void boot_db(void)
   vessel_hunter_boot();
   vessel_merchant_boot();
   vessel_event_boot();
+  vessel_periodic_rebuild();
 
   log("Loading vehicles from database...");
   vehicle_load_all();
@@ -1456,9 +1450,6 @@ void boot_db(void)
     log("Loading clan zone claim info.");
     load_claims();
   }
-
-  log("Initializing PubSub system.");
-  pubsub_init();
 
   log("Initializing spatial system.");
   spatial_init_system();
@@ -2217,17 +2208,6 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
   world[room_nr].name = fread_string(fl, buf2);
   world[room_nr].description = fread_string(fl, buf2);
 
-  /* Initialize trails */
-  CREATE(world[room_nr].trail_tracks, struct trail_data_list, 1);
-  world[room_nr].trail_tracks->head = NULL;
-  world[room_nr].trail_tracks->tail = NULL;
-  //  CREATE(world[room_nr].trail_scent, struct trail_data_list, 1);
-  //  world[room_nr].trail_scent->head = NULL;
-  //  world[room_nr].trail_scent->tail = NULL;
-  //  CREATE(world[room_nr].trail_blood, struct trail_data_list, 1);
-  //  world[room_nr].trail_blood->head = NULL;
-  //  world[room_nr].trail_blood->tail = NULL;
-
   if (!get_line(fl, line))
   {
     log("SYSERR: Expecting roomflags/sector type of room #%d but file ended!", virtual_nr);
@@ -2236,8 +2216,6 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
       free(world[room_nr].name);
     if (world[room_nr].description)
       free(world[room_nr].description);
-    if (world[room_nr].trail_tracks)
-      free(world[room_nr].trail_tracks);
     exit(1);
   }
 
@@ -2251,8 +2229,6 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
       free(world[room_nr].name);
     if (world[room_nr].description)
       free(world[room_nr].description);
-    if (world[room_nr].trail_tracks)
-      free(world[room_nr].trail_tracks);
     exit(1);
   }
   else if ((retval == 3) && (bitwarning == FALSE))
@@ -2312,8 +2288,6 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
       free(world[room_nr].name);
     if (world[room_nr].description)
       free(world[room_nr].description);
-    if (world[room_nr].trail_tracks)
-      free(world[room_nr].trail_tracks);
     exit(1);
   }
 
@@ -2347,8 +2321,6 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
         free(world[room_nr].name);
       if (world[room_nr].description)
         free(world[room_nr].description);
-      if (world[room_nr].trail_tracks)
-        free(world[room_nr].trail_tracks);
       /* Also free any extra descriptions allocated in this loop */
       free_extra_descriptions(world[room_nr].ex_description);
       exit(1);
@@ -2357,7 +2329,10 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
     {
     case 'C': /* Coordinates. */
       get_line(fl, line);
-      sscanf(line, "%d %d", world[room_nr].coords, world[room_nr].coords + 1);
+      if (sscanf(line, "%d %d", world[room_nr].coords, world[room_nr].coords + 1) == 2)
+        world[room_nr].wilderness_coordinates_set = true;
+      else
+        log("SYSERR: Invalid coordinates in room #%d: '%s'", virtual_nr, line);
       break;
     case 'D':
       setup_dir(fl, room_nr, atoi(line + 1));
@@ -2506,8 +2481,6 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
         free(world[room_nr].name);
       if (world[room_nr].description)
         free(world[room_nr].description);
-      if (world[room_nr].trail_tracks)
-        free(world[room_nr].trail_tracks);
       /* Also free any extra descriptions allocated in this loop */
       free_extra_descriptions(world[room_nr].ex_description);
       exit(1);
@@ -4743,6 +4716,7 @@ struct char_data *create_char(void)
   ch->next = character_list;
   character_list = ch;
   affected_registry_attach(ch);
+  point_update_character_sync(ch);
 
   GET_ID(ch) = 0;
 
@@ -4790,6 +4764,7 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   mob->next = character_list;
   character_list = mob;
   affected_registry_attach(mob);
+  point_update_character_sync(mob);
 
   new_mobile_data(mob);
   /* Allocate mobile event list */
@@ -4903,6 +4878,7 @@ struct obj_data *create_obj(void)
   clear_object(obj);
   obj->next = object_list;
   object_list = obj;
+  obj->object_list_member = true;
 
   obj->events = NULL;
   obj->special_abilities = NULL; /* Ornir 19/08/2013 */
@@ -4933,7 +4909,10 @@ void autoproc_registry_sync(struct obj_data *obj)
     autoproc_object_list = obj;
     obj->autoproc_registered = true;
     autoproc_object_count++;
+    periodic_autoproc_sync(obj);
   }
+  else if (eligible)
+    periodic_autoproc_sync(obj);
   else if (!eligible && obj->autoproc_registered)
   {
     autoproc_registry_remove(obj);
@@ -4942,6 +4921,7 @@ void autoproc_registry_sync(struct obj_data *obj)
 
 void autoproc_registry_remove(struct obj_data *obj)
 {
+  periodic_autoproc_forget(obj);
   if (obj == NULL || !obj->autoproc_registered)
     return;
 
@@ -5016,6 +4996,17 @@ size_t autoproc_registry_validate(void)
 #ifdef LUMINARI_CUTEST
 void autoproc_registry_reset_for_test(void)
 {
+  struct obj_data *obj;
+  struct obj_data *next;
+
+  for (obj = autoproc_object_list; obj != NULL; obj = next)
+  {
+    next = obj->autoproc_next;
+    periodic_autoproc_forget(obj);
+    obj->autoproc_next = NULL;
+    obj->autoproc_prev = NULL;
+    obj->autoproc_registered = false;
+  }
   autoproc_object_list = NULL;
   autoproc_iteration_next = NULL;
   autoproc_object_count = 0;
@@ -5117,6 +5108,7 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   *obj = obj_proto[i];
   obj->next = object_list;
   object_list = obj;
+  obj->object_list_member = true;
 
   obj->events = NULL;
 
@@ -5236,6 +5228,7 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   obj->perf_create_reason = (unsigned char)reason;
   PERF_note_object_created(GET_OBJ_VNUM(obj), obj->perf_origin_zone_vnum, reason);
   autoproc_registry_sync(obj);
+  point_update_object_sync(obj);
 
   return (obj);
 }
@@ -5514,13 +5507,18 @@ static bool rol_reset_remove_mobile(room_rnum room, mob_rnum mob_num, bool comba
 
 static void rol_reset_legacy_door(room_rnum room, int direction, int state)
 {
+  struct door_state_operation operation;
+
   if (room == NOWHERE || room > top_of_world || direction < 0 || direction >= DIR_COUNT ||
       !world[room].dir_option[direction])
     return;
-  world[room].dir_option[direction]->exit_info =
-      rol_reset_legacy_door_flags(world[room].dir_option[direction]->exit_info, state);
+  door_state_begin(&operation, room, direction, false, DOMAIN_DOOR_RESET);
+  door_state_apply(
+      &operation, ~0,
+      rol_reset_legacy_door_flags(world[room].dir_option[direction]->exit_info, state));
   if (state & 0x10)
     rol_exit_trap_rearm(room, direction);
+  door_state_finish(&operation);
 }
 
 static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
@@ -6206,6 +6204,8 @@ void reset_zone(zone_rnum zone)
       break;
 
     case 'D': /* set state of door */
+    {
+      int flags;
       if (ZCMD.arg2 < 0 || ZCMD.arg2 >= DIR_COUNT ||
           (world[ZCMD.arg1].dir_option[ZCMD.arg2] == NULL))
       {
@@ -6216,91 +6216,96 @@ void reset_zone(zone_rnum zone)
         // ZCMD.command = '*';
       }
       else
+      {
+        flags = world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info;
         switch (ZCMD.arg3)
         {
         case 0:
-          REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED);
-          REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          REMOVE_BIT(flags, EX_LOCKED);
+          REMOVE_BIT(flags, EX_CLOSED);
           break;
         case 1:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
-          REMOVE_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_EASY);
+          SET_BIT(flags, EX_CLOSED);
+          REMOVE_BIT(flags, EX_LOCKED_EASY);
           break;
         case 2:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_EASY);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          SET_BIT(flags, EX_LOCKED_EASY);
+          SET_BIT(flags, EX_CLOSED);
           break;
         case 3:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_EASY);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_EASY);
+          SET_BIT(flags, EX_CLOSED);
+          SET_BIT(flags, EX_LOCKED_EASY);
+          SET_BIT(flags, EX_HIDDEN_EASY);
           break;
         case 4:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_EASY);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_MEDIUM);
+          SET_BIT(flags, EX_CLOSED);
+          SET_BIT(flags, EX_LOCKED_EASY);
+          SET_BIT(flags, EX_HIDDEN_MEDIUM);
           break;
         case 5:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_EASY);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_HARD);
+          SET_BIT(flags, EX_CLOSED);
+          SET_BIT(flags, EX_LOCKED_EASY);
+          SET_BIT(flags, EX_HIDDEN_HARD);
           break;
         case 6:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_EASY);
+          SET_BIT(flags, EX_CLOSED);
+          SET_BIT(flags, EX_HIDDEN_EASY);
           break;
         case 7:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_MEDIUM);
+          SET_BIT(flags, EX_CLOSED);
+          SET_BIT(flags, EX_HIDDEN_MEDIUM);
           break;
         case 8:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_HARD);
+          SET_BIT(flags, EX_CLOSED);
+          SET_BIT(flags, EX_HIDDEN_HARD);
           break;
         case 9:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_MEDIUM);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_EASY);
+          SET_BIT(flags, EX_CLOSED);
+          SET_BIT(flags, EX_LOCKED_MEDIUM);
+          SET_BIT(flags, EX_HIDDEN_EASY);
           break;
         case 10:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_MEDIUM);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_MEDIUM);
+          SET_BIT(flags, EX_CLOSED);
+          SET_BIT(flags, EX_LOCKED_MEDIUM);
+          SET_BIT(flags, EX_HIDDEN_MEDIUM);
           break;
         case 11:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_MEDIUM);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_HARD);
+          SET_BIT(flags, EX_CLOSED);
+          SET_BIT(flags, EX_LOCKED_MEDIUM);
+          SET_BIT(flags, EX_HIDDEN_HARD);
           break;
         case 12:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_MEDIUM);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          SET_BIT(flags, EX_LOCKED_MEDIUM);
+          SET_BIT(flags, EX_CLOSED);
           break;
         case 13:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_HARD);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_EASY);
+          SET_BIT(flags, EX_CLOSED);
+          SET_BIT(flags, EX_LOCKED_HARD);
+          SET_BIT(flags, EX_HIDDEN_EASY);
           break;
         case 14:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_HARD);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_MEDIUM);
+          SET_BIT(flags, EX_CLOSED);
+          SET_BIT(flags, EX_LOCKED_HARD);
+          SET_BIT(flags, EX_HIDDEN_MEDIUM);
           break;
         case 15:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_HARD);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN_HARD);
+          SET_BIT(flags, EX_CLOSED);
+          SET_BIT(flags, EX_LOCKED_HARD);
+          SET_BIT(flags, EX_HIDDEN_HARD);
           break;
         case 16:
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_LOCKED_HARD);
-          SET_BIT(world[ZCMD.arg1].dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+          SET_BIT(flags, EX_LOCKED_HARD);
+          SET_BIT(flags, EX_CLOSED);
           break;
         }
 
+        door_state_replace(ZCMD.arg1, ZCMD.arg2, flags, DOMAIN_DOOR_RESET);
+      }
       push_result(1);
       tmob = NULL;
       tobj = NULL;
       break;
+    }
 
     case 'T': /* trigger command */
       if (ZCMD.arg1 == MOB_TRIGGER && tmob)
@@ -6948,6 +6953,10 @@ void free_char(struct char_data *ch)
   int i = 0;
   struct alias_data *a = NULL;
 
+  active_world_forget_character(ch);
+  primary_activity_forget_character(ch);
+  character_periodic_forget(ch);
+  point_update_character_forget(ch);
   affected_registry_detach(ch);
 
   /* Free the action queues for ALL characters, not just those with player_specials */
@@ -7194,6 +7203,7 @@ void free_char(struct char_data *ch)
   if (GET_ID(ch) != 0)
     remove_from_lookup_table(GET_ID(ch));
 
+  domain_event_world_forget_character(ch);
   free(ch);
 }
 
@@ -7215,6 +7225,8 @@ void free_obj_special_abilities(struct obj_special_ability *list)
 
 void free_obj(struct obj_data *obj)
 {
+  domain_event_world_forget_object(obj);
+  point_update_object_forget(obj);
   autoproc_registry_remove(obj);
 
   if (GET_OBJ_RNUM(obj) == NOWHERE)
@@ -7457,6 +7469,7 @@ void clear_char(struct char_data *ch)
   GET_PFILEPOS(ch) = -1;
   GET_MOB_RNUM(ch) = NOBODY;
   GET_WAS_IN(ch) = NOWHERE;
+  ch->domain_previous_room = NOWHERE;
   GET_POS(ch) = POS_STANDING;
   ch->mob_specials.default_pos = POS_STANDING;
   ch->events = NULL;

@@ -194,9 +194,9 @@ for the product contract and authoritative release-gate state.
 
 | Resource | Current measurement or limit |
 |---|---:|
-| Base `greyhawk_ship_data` | 4,928 bytes |
+| Base `greyhawk_ship_data` | 5,104 bytes |
 | Maximum fleet | 500 ships |
-| Base maximum-fleet storage | About 2.35 MiB |
+| Base maximum-fleet storage | About 2.43 MiB |
 | Base per-ship budget | At most 5 KB |
 | Base `vehicle_data` | 152 bytes |
 | Maximum vehicles | 1,000 |

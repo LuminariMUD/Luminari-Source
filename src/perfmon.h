@@ -13,6 +13,32 @@
 #include <stdint.h>
 
 #define PERFMON_COPYOVER_SNAPSHOT_FILE "../log/perfmon-pre-copyover.txt"
+#define PERF_EVENT_IDENTITY_SIZE 64
+
+struct PERF_event_summary
+{
+  uint64_t process_calls;
+  uint64_t callbacks;
+  uint64_t current_depth;
+  uint64_t high_water_depth;
+  uint64_t maximum_batch;
+  uint64_t scheduled;
+  uint64_t cancelled;
+  uint64_t rescheduled;
+  size_t registered_profiles;
+  uint64_t overflow_calls;
+};
+
+struct PERF_event_profile_snapshot
+{
+  char identity[PERF_EVENT_IDENTITY_SIZE];
+  uint64_t calls;
+  uint64_t total_usec;
+  uint64_t maximum_usec;
+  uint64_t scheduled;
+  uint64_t cancelled;
+  uint64_t rescheduled;
+};
 
 /* Heartbeat schedule classes retained in slow-pulse flight records. */
 enum perf_schedule_flag
@@ -87,6 +113,7 @@ void PERF_log_pulse(double val);
 
 /** Record the logical heartbeat most recently executed in this outer loop. */
 void PERF_note_heartbeat(uint64_t pulse_number);
+void PERF_note_runtime_advance(uint64_t pulse_number, uint64_t elapsed_ticks);
 
 /** Add one or more schedule-class bits to the current outer-loop context. */
 void PERF_note_schedule(uint64_t schedule_flags);
@@ -115,10 +142,27 @@ uint64_t PERF_monotonic_usec(void);
  */
 int PERF_register_event_callback(const char *identity);
 
+/** Return a stable read-only identity for one callback registry slot. */
+const char *PERF_event_callback_identity(int profile_index);
+
+/** Copy cumulative event telemetry into compact operator-facing records. */
+void PERF_get_event_summary(struct PERF_event_summary *summary);
+size_t PERF_get_event_profiles(struct PERF_event_profile_snapshot *snapshots,
+                               size_t snapshot_capacity);
+
 /**
  * @brief Record one completed event callback invocation
  */
 void PERF_note_event_callback(int profile_index, uint64_t elapsed_usec);
+
+/** Record a successfully admitted event and its requested delay in pulses. */
+void PERF_note_event_scheduled(int profile_index, uint64_t delay_pulses);
+
+/** Record cancellation of a live event. */
+void PERF_note_event_cancelled(int profile_index);
+
+/** Record a callback-requested recurrence and its delay in pulses. */
+void PERF_note_event_rescheduled(int profile_index, uint64_t delay_pulses);
 
 /**
  * @brief Record one event_process() queue pass

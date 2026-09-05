@@ -68,6 +68,7 @@
 #include "mud_event.h"
 #include "character/premadebuilds.h"
 #include "perfmon.h"
+#include "character_periodic.h"
 #include "quest/missions.h"
 #include "character/deities.h"
 #include "character/backgrounds.h"
@@ -1983,6 +1984,8 @@ ACMD(do_switch)
 
     victim->desc = ch->desc;
     ch->desc = NULL;
+    character_periodic_sync(ch);
+    character_periodic_sync(victim);
   }
 }
 
@@ -2036,7 +2039,9 @@ ACMD(do_return)
 
     /* And our body's pointer to descriptor now points to our descriptor. */
     ch->desc->character->desc = ch->desc;
+    character_periodic_sync(ch->desc->character);
     ch->desc = NULL;
+    character_periodic_sync(ch);
   }
 }
 
@@ -6570,6 +6575,7 @@ void perform_do_copyover()
   int playing_count = 0, total_count = 0, saved_count = 0;
   int exec_errno = 0;
   bool exec_attempted = FALSE;
+  bool reactor_prepare_failed = FALSE;
 
   if (realpath("../" EXE_FILE, copyover_executable) == NULL)
   {
@@ -7107,6 +7113,17 @@ void perform_do_copyover()
   disconnect_from_mysql2();
   disconnect_from_mysql3();
 
+  /* Detached AI provider workers must finish before exec so they cannot write
+   * into a replaced scheduler or inherit stale process-owned state. */
+  shutdown_ai_service();
+  COPYOVER_DEBUG("copyover: AI workers and event ingress shut down for copyover");
+
+  /* Stop worker ingress before detaching the main-thread reactor.  This joins
+   * the I3 worker and closes its gateway socket and wake pipe before exec. */
+  extern void i3_shutdown(void);
+  i3_shutdown();
+  COPYOVER_DEBUG("copyover: I3 worker and wake descriptors shut down for copyover");
+
   /* Shutdown Discord bridge before copyover */
   extern void shutdown_discord_bridge(void);
   shutdown_discord_bridge();
@@ -7134,14 +7151,25 @@ void perform_do_copyover()
    * default fatal disposition while boot_db() runs before signal_setup(). */
   if (suspend_checkpoint_timer())
   {
-    log_copyover_phase("EXECL", "Calling execl()");
-    exec_attempted = TRUE;
-    execl(copyover_executable, "luminari", buf2, buf, (char *)NULL);
-    exec_errno = errno;
+    if (prepare_io_reactor_copyover())
+    {
+      log_copyover_phase("EXECL", "Calling execl()");
+      exec_attempted = TRUE;
+      execl(copyover_executable, "luminari", buf2, buf, (char *)NULL);
+      exec_errno = errno;
+    }
+    else
+    {
+      exec_errno = errno != 0 ? errno : EINVAL;
+      reactor_prepare_failed = TRUE;
+      log_copyover_phase("FAILED", "Descriptor policy or reactor quiesce failed");
+    }
 
     /* A successful exec never returns.  Keep the current process protected if
      * exec failed and copyover recovery allows the game loop to continue. */
     resume_checkpoint_timer();
+    if (!restore_io_reactor_after_copyover_failure())
+      log("SYSERR: Copyover failure left the I/O reactor unavailable");
   }
   else
   {
@@ -7156,6 +7184,12 @@ void perform_do_copyover()
     log_execl_failure(exec_errno);
     log_copyover_phase("FAILED", "execl() failed");
     log("SYSERR: do_copyover: execl() failed - %s (errno %d)", strerror(exec_errno), exec_errno);
+  }
+  else if (reactor_prepare_failed)
+  {
+    log("SYSERR: do_copyover: Refusing to exec after descriptor policy or reactor quiesce "
+        "failure - %s (errno %d)",
+        strerror(exec_errno), exec_errno);
   }
   else
   {
@@ -7189,11 +7223,12 @@ void perform_do_copyover()
   copyover_status = COPYOVER_NONE;
 
   /* Don't exit - try to keep the game running */
+  init_ai_service();
   log("Attempting to continue after copyover failure...");
   return;
 }
 
-EVENTFUNC(event_copyover)
+MUD_EVENT_CALLBACK(event_copyover)
 {
   struct mud_event_data *copyover_event = NULL;
   struct descriptor_data *pt = NULL;

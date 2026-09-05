@@ -1,6 +1,6 @@
 /**************************************************************************
  *  File: mob_act.c                                   Part of LuminariMUD *
- *  Usage: Main mobile activity loop and coordination                     *
+ *  Usage: Mobile agenda behavior execution           *
  *  Rewritten by Zusuk                                                    *
  *                                                                         *
  *  All rights reserved.  See license for complete information.           *
@@ -14,6 +14,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "spec/spec_dispatch.h"
+#include "spec/spec_registry.h"
 #include "spec/spec_rol_conversion.h"
 #include "db.h"
 #include "comm.h"
@@ -44,24 +45,147 @@ void npc_offensive_spells(struct char_data *ch);
 void npc_racial_behave(struct char_data *ch);
 bool mob_knows_assigned_spells(struct char_data *ch);
 
-static struct char_data *mobile_activity_cursor = NULL;
-static size_t mobile_activity_nodes_remaining = 0;
-static int mobile_activity_pulses_remaining = 0;
-static bool mobile_activity_cursor_running = false;
 
-static size_t count_mobile_activity_nodes(void)
+static bool mobile_activity_owner_eligible(const struct char_data *ch)
 {
-  struct char_data *ch;
-  size_t count;
-
-  count = 0;
-  for (ch = character_list; ch; ch = ch->next)
-    count++;
-  return count;
+  return ch != NULL && IS_MOB(ch) && world != NULL && IN_ROOM(ch) != NOWHERE &&
+         IN_ROOM(ch) <= top_of_world && !MOB_FLAGGED(ch, MOB_NOTDEADYET) &&
+         !MOB_FLAGGED(ch, MOB_NO_AI);
 }
 
+static bool mobile_has_activity_spec(const struct char_data *ch)
+{
+  SPECIAL_DECL(*handler);
+  const struct spec_definition *definition;
+  mob_rnum rnum;
+
+  if (ch == NULL || !MOB_FLAGGED(ch, MOB_SPEC) || no_specials)
+    return false;
+  rnum = GET_MOB_RNUM(ch);
+  if (rnum > top_of_mobt)
+    return false;
+  handler = mob_index[rnum].func;
+  if (handler == NULL)
+    return false;
+  definition = spec_registry_find_by_handler(handler);
+  return definition == NULL ||
+         spec_definition_supports_event(definition, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY);
+}
+
+static bool mobile_has_scavenge_work(struct char_data *ch)
+{
+  struct obj_data *obj;
+
+  if (ch == NULL || !MOB_FLAGGED(ch, MOB_SCAVENGER) || IN_ROOM(ch) == NOWHERE ||
+      IN_ROOM(ch) > top_of_world)
+    return false;
+  for (obj = world[IN_ROOM(ch)].contents; obj != NULL; obj = obj->next_content)
+    if (GET_OBJ_COST(obj) > 1 && CAN_GET_OBJ(ch, obj))
+      return true;
+  return false;
+}
+
+static bool mobile_resource_recovery_blocked(const struct char_data *ch)
+{
+  return FIGHTING(ch) != NULL || !AWAKE(ch) || IS_CASTING(ch) || AFF_FLAGGED(ch, AFF_STUN) ||
+         AFF_FLAGGED(ch, AFF_PARALYZED) || AFF_FLAGGED(ch, AFF_DAZED) ||
+         char_has_mud_event((struct char_data *)ch, eSTUNNED) || AFF_FLAGGED(ch, AFF_NAUSEATED);
+}
+
+static bool mobile_has_resource_recovery_work(const struct char_data *ch)
+{
+  return mob_spell_slots_need_recovery(ch) || known_spell_slots_need_recovery(ch);
+}
+
+mobile_work_mask mobile_activity_room_reaction_reasons(const struct char_data *ch)
+{
+  if (!mobile_activity_owner_eligible(ch) || FIGHTING(ch))
+    return MOBILE_WORK_NONE;
+  if (MOB_FLAGGED(ch, MOB_AGGRESSIVE) || MOB_FLAGGED(ch, MOB_ROL_AGGR_RACE_EVIL) ||
+      MOB_FLAGGED(ch, MOB_ROL_AGGR_RACE_GOOD) || MOB_FLAGGED(ch, MOB_AGGR_EVIL) ||
+      MOB_FLAGGED(ch, MOB_AGGR_NEUTRAL) || MOB_FLAGGED(ch, MOB_AGGR_GOOD) || MEMORY(ch) != NULL ||
+      MOB_FLAGGED(ch, MOB_ROL_ARCHER) || IS_NPC_CASTER(ch) || IS_PSIONIC(ch) ||
+      mob_has_known_spells((struct char_data *)ch))
+    return MOBILE_WORK_ROOM_REACTION;
+  return MOBILE_WORK_NONE;
+}
+
+mobile_work_mask mobile_activity_combat_reaction_reasons(const struct char_data *ch)
+{
+  if (!mobile_activity_owner_eligible(ch) || FIGHTING(ch))
+    return MOBILE_WORK_NONE;
+  if (MOB_FLAGGED(ch, MOB_HELPER) || MOB_FLAGGED(ch, MOB_GUARD) ||
+      MOB_FLAGGED(ch, MOB_MOB_ASSIST) || MOB_FLAGGED(ch, MOB_LISTEN))
+    return MOBILE_WORK_COMBAT_REACTION;
+  return MOBILE_WORK_NONE;
+}
+
+mobile_work_mask mobile_activity_recurring_reasons(struct char_data *ch)
+{
+  mobile_work_mask reasons = MOBILE_WORK_NONE;
+
+  if (!mobile_activity_owner_eligible(ch))
+    return reasons;
+  if (mobile_has_resource_recovery_work(ch))
+    reasons |= MOBILE_WORK_RESOURCE_RECOVERY;
+  if (FIGHTING(ch))
+    return reasons;
+  if (mobile_has_activity_spec(ch))
+    reasons |= MOBILE_WORK_SPEC_ACTIVITY;
+  if (ECHO_COUNT(ch) > 0 && ECHO_ENTRIES(ch) != NULL)
+    reasons |= MOBILE_WORK_ECHO;
+  if (mobile_has_scavenge_work(ch))
+    reasons |= MOBILE_WORK_SCAVENGE;
+  if (PATH_SIZE(ch) > 0)
+    reasons |= MOBILE_WORK_PATROL;
+  if (MOB_FLAGGED(ch, MOB_HUNTER) && HUNTING(ch) != NULL)
+    reasons |= MOBILE_WORK_HUNT;
+  if (!MOB_FLAGGED(ch, MOB_SENTINEL) && GET_POS(ch) == POS_STANDING && ch->master == NULL &&
+      !vessel_npc_is_on_pilot_duty(ch))
+    reasons |= MOBILE_WORK_WANDER;
+  if (MOB_FLAGGED(ch, MOB_SENTINEL) && GET_MOB_LOADROOM(ch) == IN_ROOM(ch) &&
+      GET_POS(ch) != GET_DEFAULT_POS(ch))
+    reasons |= MOBILE_WORK_POSTURE;
+  return reasons;
+}
+
+long mobile_activity_next_resource_recovery_delay(const struct char_data *ch)
+{
+  time_t now;
+  time_t deadline = 0;
+  time_t candidate;
+  time_t seconds;
+
+  if (!mobile_activity_owner_eligible(ch) || !mobile_has_resource_recovery_work(ch))
+    return 0L;
+  now = time(0);
+  candidate = mob_spell_slot_recovery_deadline(ch);
+  if (candidate > 0)
+    deadline = candidate;
+  candidate = known_spell_slot_recovery_deadline(ch);
+  if (candidate > 0 && (deadline == 0 || candidate < deadline))
+    deadline = candidate;
+  if (deadline <= now)
+    return mobile_resource_recovery_blocked(ch) ? (long)PULSE_MOBILE : 1L;
+  seconds = deadline - now;
+  if (seconds > LONG_MAX / PASSES_PER_SEC)
+    return LONG_MAX;
+  return (long)seconds * PASSES_PER_SEC;
+}
+
+long mobile_activity_next_wander_delay(void)
+{
+  long rounds = 1L;
+
+  while (rounds < 64L && rand_number(0, 2) != 0)
+    rounds++;
+  return rounds * (long)PULSE_MOBILE;
+}
+
+
 static struct char_data *run_mobile_activity(struct char_data *start, size_t node_limit,
-                                             size_t *nodes_visited_out)
+                                             size_t *nodes_visited_out,
+                                             mobile_work_mask requested_work)
 {
   struct char_data *ch = NULL, *next_ch = NULL, *vict = NULL, *tmp_char = NULL;
   struct obj_data *obj = NULL, *best_obj = NULL;
@@ -91,9 +215,6 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     if (!IS_MOB(ch))
       continue;
 
-    if (rol_automatic_race_activity(ch))
-      continue;
-
     if (MOB_FLAGGED(ch, MOB_NO_AI))
       continue;
 
@@ -103,7 +224,7 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
 
     /* Examine call for special procedure */
     /* not the AWAKE() type of checks are inside the spec_procs */
-    if (MOB_FLAGGED(ch, MOB_SPEC) && !no_specials)
+    if ((requested_work & MOBILE_WORK_SPEC_ACTIVITY) && MOB_FLAGGED(ch, MOB_SPEC) && !no_specials)
     {
       mob_rnum = GET_MOB_RNUM(ch); /* Cache the rnum lookup */
       spec_func = mob_index[mob_rnum].func;
@@ -143,68 +264,44 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     if (!AWAKE(ch) || IS_CASTING(ch))
       continue;
 
-    /* Regenerate spell slots for mobs using spell slot system */
-    regenerate_mob_spell_slot(ch);
-
-    /* Regenerate known spell slots for mobs */
-    regenerate_known_spell_slot(ch);
+    if (requested_work & MOBILE_WORK_RESOURCE_RECOVERY)
+    {
+      regenerate_mob_spell_slot(ch);
+      regenerate_known_spell_slot(ch);
+    }
 
     /* If the mob has no specproc, do the default actions */
 
     // entry point for npc race and class behaviour in combat -zusuk
     if (GET_LEVEL(ch) > NEWBIE_LEVEL)
     {
-      if (FIGHTING(ch))
+      if ((requested_work & MOBILE_WORK_ROOM_REACTION) && !FIGHTING(ch))
       {
-        if (dice(1, 4) == 1)
-          npc_racial_behave(ch);
-        else if (dice(1, 4) == 2)
-          npc_ability_behave(ch);
-        else if (dice(1, 4) == 3 && mob_knows_assigned_spells(ch))
-          npc_assigned_spells(ch);
-        else if (IS_NPC_CASTER(ch) || mob_has_known_spells(ch))
+        if (!rand_number(0, 15) && (IS_NPC_CASTER(ch) || mob_has_known_spells(ch)))
         {
-          /* Use specialized wizard AI for wizard and sorcerer mobs */
-          if (GET_CLASS(ch) == CLASS_WIZARD || GET_CLASS(ch) == CLASS_SORCERER)
-            wizard_combat_ai(ch);
-          else
-            npc_offensive_spells(ch);
+          /* Wizards and sorcerers use specialized long-duration pre-buffs. */
+          if (npc_room_has_player(ch))
+          {
+            if (GET_CLASS(ch) == CLASS_WIZARD || GET_CLASS(ch) == CLASS_SORCERER)
+              wizard_cast_prebuff(ch);
+            else
+              npc_spellup(ch);
+          }
         }
-        else
-          npc_class_behave(ch);
-        continue;
-      }
-
-      if (!rand_number(0, 15) && (IS_NPC_CASTER(ch) || mob_has_known_spells(ch)))
-      {
-        /* not in combat - reduced from 12.5% to 6.25% chance */
-        /* Wizards and sorcerers use specialized pre-buffing with long-duration spells */
-        if (npc_room_has_player(ch))
+        else if (!rand_number(0, 15) && IS_PSIONIC(ch))
         {
-          if (GET_CLASS(ch) == CLASS_WIZARD || GET_CLASS(ch) == CLASS_SORCERER)
-            wizard_cast_prebuff(ch);
-          else
-            npc_spellup(ch);
+          if (npc_room_has_player(ch))
+            npc_psionic_powerup(ch);
         }
-      }
-      else if (!rand_number(0, 15) && IS_PSIONIC(ch))
-      {
-        /* not in combat - reduced from 12.5% to 6.25% chance */
-        if (npc_room_has_player(ch))
-          npc_psionic_powerup(ch);
-      }
-      else if (!rand_number(0, 8) && !IS_NPC_CASTER(ch))
-      {
-        /* not in combat, non-caster */
-        ; // this is where we'd put mob AI to use hide skill, etc
       }
     }
 
-    /* send out mobile echos to room or zone */
-    mobile_echos(ch);
+    if (requested_work & MOBILE_WORK_ECHO)
+      mobile_echos(ch);
 
     /* Scavenger (picking up objects) */
-    if (MOB_FLAGGED(ch, MOB_SCAVENGER) && !rand_number(0, 10))
+    if ((requested_work & MOBILE_WORK_SCAVENGE) && MOB_FLAGGED(ch, MOB_SCAVENGER) &&
+        !rand_number(0, 10))
     {
       struct obj_data *room_objs = world[IN_ROOM(ch)].contents;
       if (room_objs) /* Only proceed if there are objects */
@@ -232,7 +329,7 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     }
 
     /* Aggressive Mobs */
-    if (!MOB_FLAGGED(ch, MOB_HELPER) &&
+    if ((requested_work & MOBILE_WORK_ROOM_REACTION) && !MOB_FLAGGED(ch, MOB_HELPER) &&
         (!AFF_FLAGGED(ch, AFF_BLIND) || !AFF_FLAGGED(ch, AFF_CHARM)))
     {
       found = FALSE;
@@ -305,8 +402,9 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     /* Mob Memory */
     found = FALSE;
     /* loop through room, check if each person is in memory */
-    room_people = world[IN_ROOM(ch)].people; /* Re-use cached list if still valid */
-    for (vict = room_people; vict && !found; vict = vict->next_in_room)
+    room_people = world[IN_ROOM(ch)].people;
+    for (vict = (requested_work & MOBILE_WORK_ROOM_REACTION) ? room_people : NULL; vict && !found;
+         vict = vict->next_in_room)
     {
       /* this function cross-references memory-list with vict */
       if (!is_in_memory(ch, vict))
@@ -328,7 +426,8 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
      * use to be here */
 
     /* Helper Mobs */
-    if ((MOB_FLAGGED(ch, MOB_HELPER) || MOB_FLAGGED(ch, MOB_GUARD)) &&
+    if ((requested_work & MOBILE_WORK_COMBAT_REACTION) &&
+        (MOB_FLAGGED(ch, MOB_HELPER) || MOB_FLAGGED(ch, MOB_GUARD)) &&
         !AFF2_FLAGGED(ch, AFF2_ROL_DOCILE) &&
         (!AFF_FLAGGED(ch, AFF_BLIND) || !AFF_FLAGGED(ch, AFF_CHARM)))
     {
@@ -375,7 +474,7 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     }
 
     /* Mob-to-Mob Assistance (for grouped/following mobs with MOB_MOB_ASSIST flag) */
-    if (MOB_FLAGGED(ch, MOB_MOB_ASSIST) &&
+    if ((requested_work & MOBILE_WORK_COMBAT_REACTION) && MOB_FLAGGED(ch, MOB_MOB_ASSIST) &&
         (!AFF_FLAGGED(ch, AFF_BLIND) && !AFF_FLAGGED(ch, AFF_CHARM)))
     {
       found = FALSE;
@@ -413,16 +512,17 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     /* Mob Movement */
 
     /* follow set path for mobile (like patrols) */
-    if (move_on_path(ch))
+    if ((requested_work & MOBILE_WORK_PATROL) && move_on_path(ch))
       continue;
 
     /* hunt a victim, if applicable */
-    if (MOB_FLAGGED(ch, MOB_HUNTER))
+    if ((requested_work & MOBILE_WORK_HUNT) && MOB_FLAGGED(ch, MOB_HUNTER) && HUNTING(ch) != NULL)
       hunt_victim(ch);
 
     /* RoL archers fire one room away when their converted equipment provides
      * a usable ranged weapon and ammunition. */
-    if (MOB_FLAGGED(ch, MOB_ROL_ARCHER) && !FIGHTING(ch) && !ch->master)
+    if ((requested_work & MOBILE_WORK_ROOM_REACTION) && MOB_FLAGGED(ch, MOB_ROL_ARCHER) &&
+        !FIGHTING(ch) && !ch->master)
     {
       /* Crossbows and slings carry a loaded-ammo counter that hit() decrements
        * per shot, and the mob AI has no reload step of its own. Without this a
@@ -430,7 +530,8 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
       auto_reload_weapon(ch, TRUE);
     }
 
-    if (MOB_FLAGGED(ch, MOB_ROL_ARCHER) && !FIGHTING(ch) && !ch->master && can_fire_ammo(ch, TRUE))
+    if ((requested_work & MOBILE_WORK_ROOM_REACTION) && MOB_FLAGGED(ch, MOB_ROL_ARCHER) &&
+        !FIGHTING(ch) && !ch->master && can_fire_ammo(ch, TRUE))
     {
       found = FALSE;
       for (door = 0; door < DIR_COUNT && !found; door++)
@@ -453,8 +554,9 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
 
     /* Converted archers with a throwable anchor, but no usable launcher,
      * use the same one-adjacent-room targeting contract as launcher archers. */
-    if (MOB_FLAGGED(ch, MOB_ROL_ARCHER) && !FIGHTING(ch) && !ch->master &&
-        !can_fire_ammo(ch, TRUE) && (obj = find_equipped_throwable(ch, &where)) != NULL &&
+    if ((requested_work & MOBILE_WORK_ROOM_REACTION) && MOB_FLAGGED(ch, MOB_ROL_ARCHER) &&
+        !FIGHTING(ch) && !ch->master && !can_fire_ammo(ch, TRUE) &&
+        (obj = find_equipped_throwable(ch, &where)) != NULL &&
         set_thrown_projectile_mode(ch, GET_OBJ_VNUM(obj), where))
     {
       found = FALSE;
@@ -478,7 +580,8 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     }
 
     /* (mob-listen) is mob interested in fights nearby*/
-    if (MOB_FLAGGED(ch, MOB_LISTEN) && !ch->master)
+    if ((requested_work & MOBILE_WORK_COMBAT_REACTION) && MOB_FLAGGED(ch, MOB_LISTEN) &&
+        !ch->master)
     {
       for (door = 0; door < DIR_COUNT; door++)
       {
@@ -503,7 +606,7 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     }
 
     /* random movement */
-    if (!vessel_npc_is_on_pilot_duty(ch) && !rand_number(0, 2)) /* Customize frequency. */
+    if ((requested_work & MOBILE_WORK_WANDER) && !vessel_npc_is_on_pilot_duty(ch))
       if (!MOB_FLAGGED(ch, MOB_SENTINEL) && (GET_POS(ch) == POS_STANDING) &&
           ((door = rand_number(0, 18)) < DIR_COUNT) && CAN_GO(ch, door) &&
           !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_NOMOB) &&
@@ -540,8 +643,8 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     // }
 
     /* return mobile to preferred (default) position if necessary */
-    if (GET_POS(ch) != GET_DEFAULT_POS(ch) && MOB_FLAGGED(ch, MOB_SENTINEL) &&
-        GET_MOB_LOADROOM(ch) == IN_ROOM(ch))
+    if ((requested_work & MOBILE_WORK_POSTURE) && GET_POS(ch) != GET_DEFAULT_POS(ch) &&
+        MOB_FLAGGED(ch, MOB_SENTINEL) && GET_MOB_LOADROOM(ch) == IN_ROOM(ch))
     {
       if (GET_DEFAULT_POS(ch) == POS_SITTING)
       {
@@ -593,72 +696,18 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
   return ch;
 }
 
-void mobile_activity(void)
+
+void mobile_activity_run_scheduled(struct char_data *ch, mobile_work_mask reasons)
 {
-  run_mobile_activity(character_list, (size_t)-1, NULL);
+  if (ch != NULL && reasons != MOBILE_WORK_NONE)
+    run_mobile_activity(ch, 1U, NULL, reasons);
 }
 
 void mobile_activity_reset(void)
 {
-  mobile_activity_cursor = NULL;
-  mobile_activity_nodes_remaining = 0;
-  mobile_activity_pulses_remaining = 0;
-  mobile_activity_cursor_running = false;
 }
 
 void mobile_activity_forget_character(struct char_data *ch)
 {
-  if (ch == NULL || mobile_activity_cursor != ch)
-    return;
-
-  mobile_activity_cursor = ch->next;
-  if (!mobile_activity_cursor_running && mobile_activity_nodes_remaining > 0)
-    mobile_activity_nodes_remaining--;
-  if (mobile_activity_cursor == NULL)
-    mobile_activity_nodes_remaining = 0;
-}
-
-void mobile_activity_pulse(int heart_pulse)
-{
-  int cycle_pulse;
-  size_t node_budget;
-  size_t nodes_visited;
-  size_t total_nodes_visited;
-
-  cycle_pulse = heart_pulse % PULSE_MOBILE;
-  if (cycle_pulse < 0)
-    cycle_pulse += PULSE_MOBILE;
-
-  if (cycle_pulse == 0 || mobile_activity_pulses_remaining <= 0)
-  {
-    mobile_activity_cursor = character_list;
-    mobile_activity_nodes_remaining = count_mobile_activity_nodes();
-    mobile_activity_pulses_remaining = PULSE_MOBILE;
-  }
-
-  if (mobile_activity_nodes_remaining > 0 && mobile_activity_cursor != NULL)
-  {
-    node_budget = mobile_activity_nodes_remaining / (size_t)mobile_activity_pulses_remaining;
-    if (mobile_activity_nodes_remaining % (size_t)mobile_activity_pulses_remaining != 0)
-      node_budget++;
-
-    total_nodes_visited = 0;
-    do
-    {
-      nodes_visited = 0;
-      mobile_activity_cursor_running = true;
-      mobile_activity_cursor = run_mobile_activity(
-          mobile_activity_cursor, node_budget - total_nodes_visited, &nodes_visited);
-      mobile_activity_cursor_running = false;
-      total_nodes_visited += nodes_visited;
-    } while (mobile_activity_cursor != NULL && nodes_visited > 0 &&
-             total_nodes_visited < node_budget);
-
-    if (total_nodes_visited >= mobile_activity_nodes_remaining || mobile_activity_cursor == NULL)
-      mobile_activity_nodes_remaining = 0;
-    else
-      mobile_activity_nodes_remaining -= total_nodes_visited;
-  }
-
-  mobile_activity_pulses_remaining--;
+  (void)ch;
 }

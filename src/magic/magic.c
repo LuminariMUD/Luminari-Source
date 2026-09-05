@@ -9,6 +9,7 @@
  **************************************************************************/
 
 #include "conf.h"
+#include "character_periodic.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
@@ -36,17 +37,44 @@
 #include "psionics.h"
 #include "combat/combat_modes.h"
 #include "character/evolutions.h"
-#include "wilderness/spatial_core.h"
-#include "wilderness/spatial_visual.h"
-#include "wilderness/spatial_audio.h"
+#include "domain_event_runtime.h"
+#include "domain_event_types.h"
 #include "wilderness/wilderness.h"
 #include "character/perks.h"
 #include "bardic_performance.h"
 #include "perfmon.h"
+#include "affected_owners.h"
 #include "mysql.h"
+#include "point_update_periodic.h"
 
 // external
 extern struct raff_node *raff_list;
+
+static void publish_coordinate_phenomenon(int source_x, int source_y, int source_z,
+                                          int visual_range, int audio_range, float intensity,
+                                          const char *visual_description,
+                                          const char *audio_description)
+{
+  struct domain_world_phenomenon phenomenon = {0};
+  enum domain_event_status status;
+
+  phenomenon.source_x = source_x;
+  phenomenon.source_y = source_y;
+  phenomenon.source_z = source_z;
+  phenomenon.visual_range = visual_range;
+  phenomenon.audio_range = audio_range;
+  phenomenon.intensity = intensity;
+  phenomenon.channels = (visual_description != NULL ? DOMAIN_WORLD_PHENOMENON_VISUAL : 0U) |
+                        (audio_description != NULL ? DOMAIN_WORLD_PHENOMENON_AUDIBLE : 0U);
+  phenomenon.propagation = DOMAIN_WORLD_PROPAGATE_COORDINATES;
+  phenomenon.audio_frequency = DOMAIN_WORLD_AUDIO_LOW;
+  phenomenon.visual_description = visual_description;
+  phenomenon.audio_description = audio_description;
+  status =
+      DOMAIN_EVENT_PUBLISH(domain_event_runtime_bus(), DOMAIN_EVENT_WORLD_PHENOMENON, &phenomenon);
+  if (status != DOMAIN_EVENT_OK)
+    log("SYSERR: Unable to publish wilderness phenomenon: %s", domain_event_status_name(status));
+}
 
 static int paralyzing_touch_duration(void)
 {
@@ -1338,6 +1366,7 @@ void rem_room_aff(struct raff_node *raff)
   room = raff->room;
   affection = raff->affection;
   spell = raff->spell;
+  affected_room_owner_remove(raff);
   REMOVE_FROM_LIST(raff, raff_list, next)
   free(raff);
 
@@ -1381,116 +1410,85 @@ static void dispatch_affect_wearoff(struct char_data *ch, int spell)
   }
 }
 
-/* affect_update: called from comm.c (causes spells to wear off) */
-void affect_update(void)
+size_t affect_update_character_one(struct char_data *ch)
 {
   struct affected_type *af, *next;
-  struct char_data *i;
-  struct descriptor_data *descriptor;
-  struct raff_node *raff, *next_raff;
   int *wearoff_spells;
-  static int update_count = 0;
   size_t expired_count, wearoff_count, wearoff_index;
-  int char_count = 0, npc_count = 0, pc_count = 0;
-  int affected_chars = 0, processed_affects = 0;
+  size_t processed_affects = 0U;
   int phantom_healing;
   bool update_position_after_expiry;
-  size_t eligible_count;
 
-  update_count++;
+  if (ch == NULL)
+    return 0U;
+  expired_count = 0U;
+  for (af = ch->affected; af; af = af->next)
+    if (af->duration == 0)
+      expired_count++;
 
-  eligible_count = affected_registry_count();
-  for (i = affected_registry_iteration_begin(); i != NULL; i = affected_registry_iteration_next())
+  wearoff_spells = NULL;
+  if (expired_count > 0U)
+    CREATE(wearoff_spells, int, expired_count);
+  wearoff_count = 0U;
+
+  for (af = ch->affected; af; af = next)
   {
-    char_count++;
-    if (IS_NPC(i))
-      npc_count++;
+    processed_affects++;
+    next = af->next;
+    if (af->duration >= 1)
+      af->duration--;
+    else if (af->duration <= -1)
+      ;
     else
-      pc_count++;
+    {
+      phantom_healing = 0;
+      update_position_after_expiry = FALSE;
+      if (af->spell == SPELL_PHANTOM_HEAL && af->location == APPLY_SPECIAL)
+        phantom_healing = MAX(0, af->modifier);
+      if (af->spell == SPELL_DEATH_PACT)
+        update_position_after_expiry = TRUE;
 
-    affected_chars++;
+      if (af->spell > 0 && af->spell < TOP_SPELL_DEFINE &&
+          (!af->next || af->next->spell != af->spell || af->next->duration > 0))
+        wearoff_spells[wearoff_count++] = af->spell;
 
-    expired_count = 0;
-    for (af = i->affected; af; af = af->next)
-      if (af->duration == 0)
-        expired_count++;
-
-    wearoff_spells = NULL;
-    if (expired_count > 0)
-      CREATE(wearoff_spells, int, expired_count);
-    wearoff_count = 0;
-
-    for (af = i->affected; af; af = next)
-    { /* loop his/her aff list */
-      processed_affects++;
-      next = af->next;
-      if (af->duration >= 1) /* duration > 0, decrement */
-        af->duration--;
-      else if (af->duration <= -1) /* unlimited duration */
-        ;
-      else
-      { /* affect wore off! */
-        phantom_healing = 0;
-        update_position_after_expiry = FALSE;
-        if (af->spell == SPELL_PHANTOM_HEAL && af->location == APPLY_SPECIAL)
-          phantom_healing = MAX(0, af->modifier);
-        if (af->spell == SPELL_DEATH_PACT)
-          update_position_after_expiry = TRUE;
-
-        /* Queue one wear-off dispatch for the last adjacent component. The
-         * dispatch happens after traversal because it may mutate this list. */
-        if (af->spell > 0 && af->spell < TOP_SPELL_DEFINE &&
-            (!af->next || af->next->spell != af->spell || af->next->duration > 0))
-          wearoff_spells[wearoff_count++] = af->spell;
-
-        affect_remove(i, af);
-        if (phantom_healing > 0)
-        {
-          GET_HIT(i) = MAX(-10, GET_HIT(i) - phantom_healing);
-          update_pos(i);
-        }
-        else if (update_position_after_expiry)
-          update_pos(i);
+      affect_remove(ch, af);
+      if (phantom_healing > 0)
+      {
+        GET_HIT(ch) = MAX(-10, GET_HIT(ch) - phantom_healing);
+        update_pos(ch);
       }
+      else if (update_position_after_expiry)
+        update_pos(ch);
     }
-
-    for (wearoff_index = 0; wearoff_index < wearoff_count; wearoff_index++)
-      dispatch_affect_wearoff(i, wearoff_spells[wearoff_index]);
-    free(wearoff_spells);
-
-    /* Only update MSDP for player characters with active descriptors */
-    if (!IS_NPC(i) && i->desc)
-      update_msdp_affects(i);
   }
-  affected_registry_iteration_end();
 
-  /* Unaffected connected PCs still need their established MSDP refresh. */
-  for (descriptor = descriptor_list; descriptor != NULL; descriptor = descriptor->next)
-    if (descriptor->character != NULL && !IS_NPC(descriptor->character) &&
-        descriptor->character->affected == NULL)
-      update_msdp_affects(descriptor->character);
+  for (wearoff_index = 0U; wearoff_index < wearoff_count; wearoff_index++)
+    dispatch_affect_wearoff(ch, wearoff_spells[wearoff_index]);
+  free(wearoff_spells);
+  return processed_affects;
+}
 
-  PERF_note_sweep(PERF_SWEEP_AFFECT, (uint64_t)char_count, (uint64_t)eligible_count,
-                  (uint64_t)processed_affects);
+size_t affect_update_room_one(struct room_data *room)
+{
+  struct raff_node *raff;
+  struct raff_node *next;
+  size_t processed = 0U;
 
-  /* update the room affections */
-  for (raff = raff_list; raff; raff = next_raff)
+  if (room == NULL)
+    return 0U;
+  for (raff = room->affected_head; raff != NULL; raff = next)
   {
-    next_raff = raff->next;
+    next = raff->room_next;
+    processed++;
     raff->timer--;
-
     if (raff->timer <= 0)
       rem_room_aff(raff);
   }
-
-  /* Log performance metrics every 100 updates (10 minutes) only if affects processed is high */
-  if (update_count % 100 == 0 && processed_affects > 150000)
-  {
-    log("PERF: affect_update() - Total: %d chars (%d NPCs, %d PCs), Affected: %d, Affects "
-        "processed: %d",
-        char_count, npc_count, pc_count, affected_chars, processed_affects);
-  }
+  return processed;
 }
+
+/* Legacy rollback path: expire every affected owner on the round heartbeat. */
 
 /* Checks for up to 3 vnums (spell reagents) in the player's inventory. If
  * multiple vnums are passed in, the function ANDs the items together as
@@ -5557,6 +5555,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = 1 + (GET_AUGMENT_PSP(ch) / 4);
     SET_BIT_AR(af[0].bitvector, AFF_DAZED);
     GET_NODAZE_COOLDOWN(victim) = NODAZE_COOLDOWN_TIMER;
+    character_periodic_sync(victim);
     to_vict = "An assault on your mind has left you dazed!";
     to_room = "$n suddenly looks shocked and dazed!";
     break;
@@ -6235,6 +6234,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n begins to slow down!";
       to_vict = "You feel yourself slow down!";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_DRAINING_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_VITRIOLIC_BLAST)
     {
@@ -6257,6 +6257,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You are covered in burning acid.";
       to_room = "$n is seared by burning acid!";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_VITRIOLIC_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BRIMSTONE_BLAST)
     {
@@ -6275,6 +6276,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You are covered searing flames!";
       to_room = "$n is covered in searing flames!";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BRIMSTONE_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_FRIGHTFUL_BLAST)
     {
@@ -6306,6 +6308,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n is shaken with fear!";
       to_vict = "You feel shaken and fearful!";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_FRIGHTFUL_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BESHADOWED_BLAST)
     {
@@ -6339,6 +6342,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n seems to be blinded!";
       to_vict = "You have been blinded!";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BESHADOWED_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_HELLRIME_BLAST)
     {
@@ -6363,6 +6367,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n is chilled to the bone!";
       to_vict = "You're so cold it's hard to move!";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_HELLRIME_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BEWITCHING_BLAST)
     {
@@ -6391,6 +6396,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_room = "A look of utter confusion washes over $n's face.";
       to_vict = "You find yourself completely confused and disoriented.";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BEWITCHING_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_NOXIOUS_BLAST)
     {
@@ -6415,9 +6421,11 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = 2;
       SET_BIT_AR(af[0].bitvector, AFF_DAZED);
       GET_NODAZE_COOLDOWN(victim) = NODAZE_COOLDOWN_TIMER;
+      character_periodic_sync(victim);
       to_vict = "An assault on your mind has left you dazed!";
       to_room = "$n suddenly looks shocked and dazed!";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_NOXIOUS_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BINDING_BLAST)
     {
@@ -6446,6 +6454,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n is stunned by the blast!";
       to_vict = "You are stunned by the blast!";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BINDING_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_UTTERDARK_BLAST)
     {
@@ -6482,6 +6491,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n is weakened by the utterdark blast.";
       to_vict = "You are weakened by an utterdark blast.";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_UTTERDARK_BLAST] = 10;
+      character_periodic_sync(victim);
 
       accum_duration = accum_affect = TRUE;
     }
@@ -11812,6 +11822,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
   const char *to_char = NULL, *to_room = NULL;
   int isEffect = FALSE, is_eff_and_dam = FALSE, is_uneffect = FALSE;
   int temp_meta = 0, temp_class, damage_percent = 100, wind_speed = 5;
+  bool meteor_impact_published = false;
   zone_rnum zone;
 
   if (ch == NULL)
@@ -11992,26 +12003,20 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
           ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS) ? "YES" : "NO");
       log("DEBUG: Character coordinates: X_LOC=%d, Y_LOC=%d", X_LOC(ch), Y_LOC(ch));
 
-      /* Phase 1: Distant visual - meteors appearing in the sky */
-      log("DEBUG: Phase 1 - Meteor approach with range 5");
-      spatial_visual_meteor_approach(
-          X_LOC(ch), Y_LOC(ch),
-          "brilliant streaks of crimson and gold fire tear across the starlit heavens", 5);
-
-      /* Phase 2: Audio - whistling approach sounds from high altitude */
-      int meteor_audio_elevation = get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 30;
-      spatial_audio_test_sound_effect(
-          X_LOC(ch), Y_LOC(ch), meteor_audio_elevation,
+      /* Distant visual and audio are one synchronous world fact. */
+      publish_coordinate_phenomenon(
+          X_LOC(ch), Y_LOC(ch), get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 30, 5, 8, 1.5f,
+          "brilliant streaks of crimson and gold fire tear across the starlit heavens",
           "an ominous crescendo of ethereal whistling and deep atmospheric rumbling as the very "
-          "air trembles before celestial wrath",
-          AUDIO_FREQ_LOW, 8);
+          "air trembles before celestial wrath");
 
       /* Phase 3: Close visual - meteors descending toward target */
       log("DEBUG: Phase 3 - Meteor descent with range 3");
-      spatial_visual_meteor_descent(X_LOC(ch), Y_LOC(ch),
-                                    "colossal blazing meteorites plummet through the atmosphere, "
-                                    "trailed by molten starfire crackling with primordial flame",
-                                    3);
+      publish_coordinate_phenomenon(
+          X_LOC(ch), Y_LOC(ch), get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 10, 3, 0, 2.0f,
+          "colossal blazing meteorites plummet through the atmosphere, trailed by molten starfire "
+          "crackling with primordial flame",
+          NULL);
 
       /* Phase 4: Impact audio will be added after damage processing */
     }
@@ -12277,23 +12282,16 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
           mag_damage(level, ch, tch, obj, spellnum, metamagic, 1, casttype);
 
         /* Add meteor swarm impact effects after damage is dealt */
-        if (spellnum == SPELL_METEOR_SWARM &&
+        if (spellnum == SPELL_METEOR_SWARM && !meteor_impact_published &&
             ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
         {
-          /* Impact visual effect - fiery explosions */
-          spatial_visual_meteor_impact(
-              X_LOC(ch), Y_LOC(ch),
+          publish_coordinate_phenomenon(
+              X_LOC(ch), Y_LOC(ch), get_modified_elevation(X_LOC(ch), Y_LOC(ch)), 2, 20, 2.5f,
               "cataclysmic eruptions of azure and crimson flame burst from the earth as celestial "
               "hammers shatter the ground, sending waves of molten rock skyward",
-              2);
-
-          /* Impact audio effect - thunderous crashes from ground level */
-          int ground_audio_elevation = get_modified_elevation(X_LOC(ch), Y_LOC(ch));
-          spatial_audio_test_sound_effect(
-              X_LOC(ch), Y_LOC(ch), ground_audio_elevation,
               "earth-shaking detonations rivaling mountain avalanches as cosmic forces unleash "
-              "devastating fury upon the mortal realm",
-              AUDIO_FREQ_LOW, 20);
+              "devastating fury upon the mortal realm");
+          meteor_impact_published = true;
         }
 
         /* Add shockwave knockdown effect after damage is dealt */
@@ -14417,6 +14415,7 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj, int s
     if (IS_CORPSE(obj))
     {
       GET_OBJ_TIMER(obj) += MAX(1, level * (GET_OBJ_VAL(obj, 4) ? 3 : 1));
+      point_update_object_sync(obj);
       to_char = "A cool stillness settles over $p, slowing its decay.";
     }
     break;
@@ -14424,6 +14423,7 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj, int s
     if (IS_CORPSE(obj))
     {
       GET_OBJ_TIMER(obj) += MAX(1, level * 20);
+      point_update_object_sync(obj);
       to_char = "A dark preservative sheen settles over $p.";
     }
     break;
@@ -14832,6 +14832,8 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     /* set it to a tick duration */
     GET_OBJ_TIMER(tobj) = 2;
     GET_OBJ_TIMER(portal) = 2;
+    point_update_object_sync(tobj);
+    point_update_object_sync(portal);
     /* set it to a normal portal */
     tobj->obj_flags.value[0] = PORTAL_NORMAL;
     portal->obj_flags.value[0] = PORTAL_NORMAL;
@@ -14878,6 +14880,8 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     /* set it to a tick duration */
     GET_OBJ_TIMER(tobj) = 2;
     GET_OBJ_TIMER(portal) = 2;
+    point_update_object_sync(tobj);
+    point_update_object_sync(portal);
     /* set it to a normal portal */
     tobj->obj_flags.value[0] = PORTAL_NORMAL;
     portal->obj_flags.value[0] = PORTAL_NORMAL;
@@ -15226,6 +15230,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
     raff->spell = spellnum;
     raff->next = raff_list;
     raff_list = raff;
+    affected_room_owner_add(raff);
 
     /* set the affection */
     SET_BIT(ROOM_AFFECTIONS(raff->room), aff);

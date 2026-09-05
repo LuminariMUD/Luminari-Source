@@ -1,8 +1,8 @@
 # Spatial Systems Architecture Documentation
 
-**Status:** ✅ COMPLETED - Production Ready  
-**Last Updated:** August 13, 2025  
-**Version:** 1.0  
+**Status:** COMPLETED - Production Ready
+**Last Updated:** August 30, 2026
+**Version:** 1.1
 **Developers:** Implemented via GitHub Copilot collaboration
 
 ---
@@ -56,9 +56,16 @@ src/
 ```
 
 #### Integration Points
-- **Startup**: `spatial_systems_init()` called in `db.c`
-- **Commands**: `pubsub spatial` test command in `pubsub_commands.c`
-- **Build**: Integrated into `Makefile.am` build chain
+- **Startup**: `spatial_init_system()`, `spatial_visual_init()`, and
+  `spatial_audio_init()` are called in `db.c`
+- **Gameplay**: Publishers emit typed `WorldPhenomenon` facts; the spatial
+  subscriber owns visual and audio delivery
+- **Build**: Integrated into the Autotools and CMake source lists
+
+The former database-backed PubSub adapter and its `pubsub spatial` test command
+were retired in Event-Driven Core Phase 6b. The spatial engine is independent
+and remains active behind the native domain-event boundary. See
+[`WORLD_PHENOMENA.md`](WORLD_PHENOMENA.md).
 
 ---
 
@@ -211,25 +218,13 @@ int spatial_systems_init(void) {
 ```
 
 ### Testing Interface
-```c
-// Command: "pubsub spatial" - Tests both systems simultaneously
-// Visual: Ship sighting at observer location
-// Audio: Thunder sound with low frequency (travels far)
 
-// Example usage in pubsub_commands.c
-struct spatial_context visual_ctx = {
-    .stimulus_type = SPATIAL_STIMULUS_VISUAL,
-    .source_x = ch->coords.x, .source_y = ch->coords.y, .source_z = ch->coords.z,
-    .source_description = "a merchant ship sailing"
-};
-
-struct spatial_context audio_ctx = {
-    .stimulus_type = SPATIAL_STIMULUS_AUDIO,
-    .source_x = ch->coords.x, .source_y = ch->coords.y, .source_z = ch->coords.z,
-    .source_description = "rumbling thunder",
-    .audio_frequency = AUDIO_FREQ_LOW
-};
-```
+Use the source-linked test suite for strategy and integration coverage. The
+only public delivery functions are `spatial_visual_emit()` and
+`spatial_audio_emit()`, and they are owned by the native `WorldPhenomenon`
+subscriber. Gameplay publishers use the typed fact rather than calling the
+spatial strategy engine directly. There is no player or staff PubSub command
+surface.
 
 ### Context Processing Flow
 ```c
@@ -294,7 +289,7 @@ static int my_calculate_primary(struct spatial_context *ctx) {
 
 ### Testing Best Practices
 1. **Unit Testing**: Test each strategy independently
-2. **Integration Testing**: Use `pubsub spatial` command for full system testing
+2. **Integration Testing**: Exercise direct spatial API callers in the source-linked suite
 3. **Distance Testing**: Verify realistic intensity curves at various distances
 4. **Environmental Testing**: Test different weather and terrain conditions
 5. **Performance Testing**: Monitor processing time for large observer groups
@@ -377,11 +372,6 @@ int spatial_systems_init(void);                               // System initiali
 int spatial_process_context(struct spatial_context *ctx);     // Process spatial event
 ```
 
-### Test Commands
-```
-pubsub spatial  # Test both visual and audio systems simultaneously
-```
-
 ### Important Constants
 ```c
 #define AUDIO_BASE_RANGE 1500        // Base audio transmission range
@@ -391,5 +381,5 @@ pubsub spatial  # Test both visual and audio systems simultaneously
 ### Contact and Support
 - **Codebase**: `/home/jamie/Luminari-Source/src/spatial_*`
 - **Documentation**: `/home/jamie/Luminari-Source/docs/systems/`
-- **Testing**: Use `pubsub spatial` command in-game
+- **Testing**: Use the source-linked spatial and gameplay tests
 - **Integration**: Systems auto-initialize during MUD startup

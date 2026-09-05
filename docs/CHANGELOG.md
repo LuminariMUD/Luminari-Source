@@ -1,5 +1,844 @@
 # Changelog
 
+## [Unreleased] - August 30, 2026
+
+### Character maintenance owner lifetime
+
+#### Fixed
+
+- Replaced borrowed character pointers in scheduled maintenance payloads with
+  generation-aware domain handles that resolve immediately before dispatch.
+- Detached character maintenance during `free_char()` so duplicate-login
+  cleanup cannot leave a released character in the capacity-refill registry.
+
+#### Tests
+
+- Added a capacity-refill regression covering character release and verified
+  repeated linkdead reconnects under GDB with character-scoped event output.
+
+### Scoped domain subscriptions and ready actions
+
+#### Added
+
+- Added bounded runtime subscriptions keyed by typed, generation-safe entity
+  topics, with independent indexed delivery, deterministic ordering, owner
+  teardown, one-shot support, capacity limits, and readable immortal views.
+- Added `ready <command> on entry [target]`, which listens directly to the
+  current room's entry topic and executes through the normal interpreter at
+  the next safe 100 ms event boundary.
+- Added `eventdebug subscriptions` with player, mobile, object, and room
+  filters. Room views include listeners attached to that room.
+
+#### Tests
+
+- Added adversarial coverage for independent subscribers, stale generations,
+  nested one-shots, cancellation during dispatch, capacity limits, owner
+  cleanup, target filtering, interpreter execution, and compact diagnostics.
+- Passed 1,060 production-linked CuTests, all 19 CTest targets, and Valgrind
+  with zero errors or definite, indirect, or possible leaks.
+
+### Event-driven core final acceptance
+
+#### Added
+
+- Added the player `initiative` command for a compact view of the current
+  encounter round, countdown, rolls, and scheduler turn order. The caller is
+  highlighted in green when color is enabled, and the `i` abbreviation remains
+  assigned to `inventory`.
+
+#### Changed
+
+- Completed the final source/spec/binary audit and accepted the native
+  development implementation while retaining physical rollback deletion behind
+  its external stable-release gate.
+- Removed the `legacy_event` adapter identity from ordinary runtime profiling;
+  the normal binary now contains no rollback adapter name, API, selector, queue,
+  heartbeat body/caller, or whole-mobile loop.
+- Completed native per-type performance telemetry for explicit cancellation,
+  owner cancellation, manual rescheduling, callback recurrence, and callback
+  time.
+- Reconciled the permanent event-system, active-world, core-server, ADR,
+  testing, and release-gate documentation with the native-only ordinary build.
+- Published the final gameplay architecture report and compact immortal test
+  card, including player, mobile, object, room, and DG-script event filters.
+
+#### Tests
+
+- Repeated source contracts and a normal-binary symbol/string audit for one
+  wheel, runtime-only scheduler access, zero ordinary functional rollback
+  surface (apart from the intentional empty `heartbeat()` ABI stub),
+  demand-driven mobile work, and retired PubSub.
+- Extended the production-linked native profiling regression through schedule,
+  callback recurrence, manual reschedule, direct cancellation, owner
+  cancellation, and exactly-once cleanup.
+
+### Native event runtime validation
+
+#### Changed
+
+- Replaced two full event/owner diagnostic traversals in every scheduler
+  dispatch pass with constant-time queue-depth reads; explicit diagnostics
+  retain the complete snapshots.
+- Added native semantic callback profiling so `eventdebug types` reports live
+  counts, schedules, callbacks, recurrences, and callback time for native work.
+- Kept exact semantic lookup and type counts constant-time with respect to the
+  number of live events, preserving useful diagnostics on large worlds.
+
+#### Tests
+
+- Loaded the copied production world with 762 zones, 91,735 rooms, 27,067
+  mobile prototypes, 22,637 object prototypes, and about 42,000 live events.
+- Measured the corrected optimized native product at 2.70% of one core versus
+  3.33% for the rollback loop under the same workload; ready, overdue, failure,
+  stale-owner, and lateness counters remained zero.
+- Verified live player/mobile/object/room and DG-script event filters plus a
+  real descriptor-preserving copyover.
+- Passed all 19 CTest targets and 1,052 CuTests, ASan plus UBSan, strict
+  child-tracing Valgrind, normal and rollback builds, and five syntax modes.
+
+### Native event architecture enforcement
+
+#### Changed
+
+- Added a default-build contract enforcing one physical timing wheel, private
+  scheduler ownership behind `event_runtime`, stable semantic event types,
+  boot-sealed registration, and complete rollback-facade absence from ordinary
+  preprocessing.
+- Registered all four event architecture contracts with CTest and retained
+  them in the authoritative Autotools `make test` path.
+- Made the production-linked named-SpecProc inventory deterministic by using
+  its tracked five-binding fixture instead of the locally installed ignored
+  development world.
+- Documented the optional result limit in `eventdebug scripts`; entity and
+  script diagnostics remain generation-wide, payload-redacted, 80-column by
+  default, and 120-column maximum.
+
+#### Tests
+
+- Added source enforcement for semantic registration, direct scheduler bypass,
+  physical scheduler ownership, one-wheel creation, rollback absence, and the
+  entity/script diagnostic surface.
+- All 1,051 production-linked CuTests and all four event architecture contracts
+  pass in the normal CMake test product.
+
+### Native semantic MUD events
+
+#### Changed
+
+- Registered all 232 usable table-driven MUD event IDs as distinct native,
+  owner-required scheduler types such as `mud.004.lay_on_hands`.
+- Migrated normal MUD-event admission, recurrence, cancellation, remaining-time
+  queries, mutation, durable reconstruction, and terminal cleanup directly to
+  native runtime handles.
+- Preserved one localized admission adapter only when the physical legacy
+  backend is explicitly selected; the frozen compatibility inventory remains
+  four calls across three files until rollback removal.
+- Increased the fixed boot-time type registry capacity from 256 to 512 for the
+  271 current gameplay/service semantic types plus bounded future growth.
+- Made ability cooldowns and other MUD timers visible by exact semantic type in
+  the entity-focused `eventdebug` views.
+
+#### Tests
+
+- Added full MUD type-registration-count and entity-filter diagnostic coverage.
+- Retained dual-backend owner, recurrence, in-flight cancellation, durable
+  restore, elapsed offline cooldown, and combat-transfer tests; all 1,051
+  production-linked tests pass.
+
+### Native DG waits and entity-focused diagnostics
+
+#### Changed
+
+- Registered DG script waits as the native owner-required
+  `dg.trigger.wait` type on the normal scheduler path, preserving authored wait
+  timing, trigger resumption, extraction, OLC replacement, and room reindexing.
+- Added `eventdebug` views for a visible player, mobile, object, or loaded room,
+  plus a `scripts` view that limits the selected entity to DG events.
+- Matched all generations for an entity's live runtime identity so one command
+  shows its events across independently versioned subsystems. Payloads remain
+  redacted and the existing 80/120-column output rules still apply.
+- Retained one owned DG-wait adapter only for the explicitly selected physical
+  legacy backend; the frozen compatibility inventory therefore remains four
+  schedules across three production files until rollback is quarantined.
+
+#### Tests
+
+- Added scheduler and legacy-backend DG wait execution, cancellation, owner,
+  semantic-type, and script-filter inspection coverage.
+- Extended compact help-output coverage for the entity and script forms.
+
+### Native runtime services and persistence batches
+
+#### Changed
+
+- Registered each named runtime service as its own native service-owner event
+  type and registered `service.persistence_batch` as a separate bounded worker.
+- Migrated service cadence recurrence and incremental persistence steps from
+  compatibility handles to native runtime handles with one event per owner.
+- Extended `eventdebug queue` and its filters to include native scheduler
+  events while suppressing duplicate compatibility-wrapper records.
+- Reduced the frozen compatibility inventory to four schedules across three
+  production files.
+
+#### Tests
+
+- Added native service/persistence ownership, lifecycle, recurrence, fallback,
+  and diagnostic inspection coverage.
+- Made scheduler-dependent domain, camp, point-update, and PERFMON fixtures
+  initialize and isolate their own runtime state; all 1,050 tests pass.
+
+### Native concrete-owner gameplay events
+
+#### Changed
+
+- Registered `mobile.autonomous.agenda`, `activity.primary.step`, and
+  `combat.encounter.round` as native owner-required event types.
+- Migrated autonomous-mobile deadlines, wall-clock primary-activity steps, and
+  encounter-owned combat rounds directly to native runtime handles,
+  cancellation, remaining-time queries, recurrence, and cleanup.
+- Preserved demand-driven off-screen mobile work, pause/resume and interruption
+  policy, encounter merge/mutation safety, and the six-second semantic combat
+  cadence. No callback discovers owners through a population scan.
+- Reduced the frozen compatibility inventory to six schedules across four
+  production files.
+
+#### Tests
+
+- Added semantic type-registration assertions and converted mobile deadline
+  tests to inspect native handles.
+- Retained recurrence, cancellation, capacity, activity re-entry, encounter
+  mutation/merge, dormant-population, and exact cadence coverage; all 1,050
+  tests pass.
+- Advanced the compatibility burn-down and demand-driven source gates to lock
+  the native concrete-owner architecture.
+
+### Native mud-hour and vessel agendas
+
+#### Changed
+
+- Registered `world.mud_hour_update`, `vessel.greyhawk.agenda`,
+  `vessel.shared.agenda`, and `vessel.rol.agenda` as native owner-required
+  event types.
+- Migrated the mud-hour point-update service, Greyhawk ship owners, shared
+  vessel services, and fixed-RoL ships directly to native runtime handles,
+  cancellation, and recurrence.
+- Preserved the mud-hour due-owner registries, vessel boundary alignment,
+  feature enable/disable rebuild, callback-time cancellation, capacity refill,
+  fixed-RoL object lifecycle, and heartbeat fallback.
+- Reduced the frozen compatibility inventory to nine schedules across seven
+  production files.
+
+#### Tests
+
+- Added semantic registration and Greyhawk live-event inspection coverage,
+  plus physical legacy-backend fallback checks for point updates and vessels.
+- Retained due-owner selection, extraction-safe object decay, vessel recurrence,
+  feature toggling, generation renewal, and capacity-refill coverage; all 1,050
+  tests pass.
+
+### Native automatic-procedure and DG random-trigger owners
+
+#### Changed
+
+- Registered `object.automatic_procedure` and `dg.random_trigger` as distinct
+  native owner-required event types.
+- Migrated automatic-object and DG mobile/object/room random-trigger handles,
+  scheduling, recurrence, and lifecycle cancellation directly to the process
+  runtime while preserving their six- and thirteen-second cadences.
+- Preserved off-screen gameplay: automatic objects are never player-gated, DG
+  object triggers remain independent of player presence, and DG mobile/room
+  triggers retain their authored `GLOBAL` empty-zone rule.
+- Reduced the frozen compatibility inventory to 13 schedules across 10 files.
+  Each subsystem still falls back independently to its established heartbeat
+  path when the physical legacy timed backend is selected.
+
+#### Tests
+
+- Added sealed-registry and live-event inspection assertions for one automatic
+  object and DG mobile, object, and room owners.
+- Retained recurrence, execution, lifecycle cancellation, admission, and
+  independent rollback coverage; all 1,050 tests pass.
+
+### Native character-maintenance agenda
+
+#### Changed
+
+- Registered `character.maintenance` as one native, owner-required,
+  nearest-deadline event type for walking, PSP recovery, environment/recovery,
+  bardic verses, hints, D20 maintenance, damage/effects, player maintenance,
+  device recovery, and timed quests.
+- Preserved the existing concrete-owner agenda: one eligible character owns one
+  event, and only responsibilities due at that deadline execute. Off-screen NPC
+  work remains independent of player presence.
+- Migrated character maintenance handles, remaining-time queries, lifecycle
+  cancellation, callback recurrence, and capacity refill directly to the native
+  runtime.
+- Reduced the frozen compatibility inventory to 15 schedules across 11 files.
+  The legacy timed backend uses the existing character heartbeat rollback.
+
+#### Tests
+
+- Added sealed-registry and owner-inspection assertions for
+  `character.maintenance`, while retaining exact nearest-deadline, mixed-work,
+  typed-movement admission, capacity-refill, and retirement coverage.
+- Verified the physical legacy queue cannot admit the native agenda and instead
+  selects heartbeat rollback; all 1,050 tests pass.
+
+### Native affected-owner events
+
+#### Changed
+
+- Registered `affected.character.duration` and `affected.room.duration` as
+  distinct boot-time native event types on the process runtime.
+- Migrated character-affect expiry and room-affect expiry/behavior directly to
+  native owner handles while preserving six-second and five-second boundaries,
+  lifecycle refill, cancellation during dispatch, and room OLC/reindex state.
+- Made the queue-depth compatibility query report all events on the scheduler,
+  including native types, rather than only compatibility-adapter records.
+- Reduced the frozen compatibility-adapter inventory from 18 schedules across
+  13 files to 16 schedules across 12 files. The legacy timed backend now uses
+  the existing affected-owner heartbeat rollback instead of adapting these
+  producers back through the old queue.
+
+#### Tests
+
+- Extended production-linked affected-owner coverage to seal the registry,
+  inspect both owner records, and verify their semantic type identities.
+- Retained exact expiry cadence, coincident room behavior ordering, capacity
+  refill, cancellation, and OLC/world-reindex coverage; all 1,050 tests pass.
+
+### Native timed-event runtime foundation
+
+#### Changed
+
+- Moved ownership of the production timing wheel out of the DG compatibility
+  facade and into one process-wide `event_runtime` used by the reactor,
+  compatibility adapter, and future native gameplay event types.
+- Added boot-only semantic type registration, immutable registry sealing,
+  stable type-name inspection, and opaque non-reused native event handles.
+- Sealed the timed-event registry after world and runtime-service bootstrap in
+  normal, syntax-check, and copyover startup paths.
+
+#### Tests
+
+- Added production-linked coverage proving two semantic native event types and
+  the compatibility adapter share one wheel, preserve deadline/FIFO behavior,
+  recur correctly, cancel by generation-aware owner, reject late type
+  registration, invalidate stale handles, and clean payloads exactly once.
+- Retained the frozen inventory of 18 compatibility schedules across 13
+  production files; those callers are the next migration work, not part of
+  this ownership-only tranche.
+
+### Gameplay event intent naming
+
+#### Changed
+
+- Renamed Luminari maintenance, bardic performance, object automatic special
+  events, and RoL content callbacks according to the gameplay responsibility
+  they perform instead of their historical pulse cadence.
+- Marked whole-population mobile and Luminari entry points explicitly as legacy
+  rollback paths; normal scheduling continues to invoke owner-local work.
+- Retained pulse vocabulary only for duration constants, the physical legacy
+  timed-event tick, and reactor/performance pulse measurements.
+
+#### Tests
+
+- Added a source admission contract that rejects new gameplay functions named
+  `pulse_*` or `*_pulse` outside the exact infrastructure allowlist.
+- Retained the object automatic-event flag's numeric value and verified all
+  1,046 production-linked tests after the behavior-preserving rename.
+
+### Demand-driven autonomous world correction
+
+#### Changed
+
+- Replaced full-population NPC admission with explicit autonomous work agendas
+  for special activity, echoes, scavenging opportunities, patrols, active
+  hunts, wandering, posture repair, and one-shot local reactions.
+- Added an explicit bootstrap boundary: world placement does not simulate
+  gameplay arrival, and one final reconciliation derives initial agendas.
+- Replaced character and object domain resolution scans with lifecycle-owned,
+  generation-keyed hash registries.
+- Restricted NPC movement facts to the moving NPC's own arrival behavior;
+  player and pet arrivals retain bounded room and adjacent-room reactions.
+- Added owner-wide event cancellation and made `mtransform` detach and rebuild
+  autonomous scheduling around its legacy whole-character replacement.
+
+#### Fixed
+
+- Prevented stale autonomous callbacks from dereferencing extracted characters
+  by using immutable owner payloads and an external scheduled-mobile registry.
+- Removed a production-world reaction cascade and hidden `character_list`
+  resolution scan that saturated one CPU core despite a bounded event count.
+
+#### Validation
+
+- Passed 1,046 production-linked tests and a copied-world live run with about
+  39,000 autonomous agendas at 2.6% settled CPU, zero ready backlog, zero
+  overdue pulses, zero late callbacks, and zero registry mismatches.
+- Passed all four event-backend/I/O-driver combinations, authoritative
+  `make test-all`, AddressSanitizer, UndefinedBehaviorSanitizer, strict
+  Valgrind with zero lost bytes, and the full copied-world syntax boot.
+
+### Active DG time-trigger and trail discovery
+
+#### Changed
+
+- Replaced mud-hour scans of every character, object, and room for DG time
+  triggers with lifecycle-maintained mobile, object, and room registries.
+- Replaced trail cleanup's full world-room scan with a stable-location registry
+  of rooms that currently contain movement trails. Ordinary rooms use their
+  vnum; wilderness rooms use zone vnum plus coordinates so recycled dynamic
+  room slots cannot carry trails to another place.
+- Preserved time-trigger category ordering, empty-zone/global behavior, trail
+  expiry rules, and safe room identity across world reindexing, OLC edits, and
+  wilderness dynamic-room reuse.
+- Added compact DG-time and trail membership, mismatch, visit, execution, and
+  cleanup counters to `eventdebug`.
+#### Tests
+
+- Added production-linked coverage proving dispatch and cleanup visit only
+  registered owners, survive world-array reindexing, and leave zero registry
+  mismatches.
+- Added a dynamic-wilderness reuse test proving a trail remains at its original
+  coordinate when the allocator reuses the same room vnum elsewhere.
+
+### Legacy event admission freeze
+
+#### Changed
+
+- Froze the remaining opaque compatibility-adapter producer set as a burn-down
+  inventory. New gameplay must register a native owner or service event type;
+  retained rollback code is no longer an extension point.
+
+#### Tests
+
+- Added a normal-suite source contract that rejects new compatibility-adapter
+  producers, raw pointer or queue APIs, private-header leakage, legacy-backend
+  dependencies, and compatibility-heartbeat dependencies.
+
+### Handle-only timed-event API
+
+#### Changed
+
+- Converted the final two raw timed-event producers, AI response delivery and
+  request retry, to opaque-handle scheduling.
+- Moved the compatibility event record, pointer functions, and rollback queue
+  declarations into a private header used only by the facade implementation
+  and its low-level parity tests. Gameplay code now sees only handle APIs.
+
+#### Fixed
+
+- Added explicit nested-payload cleanup for AI events on cancellation,
+  shutdown, failed admission, invalid character state, and normal completion.
+  This also closes missing backend-string cleanup on early response exits.
+
+#### Tests
+
+- Added scheduler/legacy shutdown coverage proving both AI payload destructors
+  run exactly once, and retained the low-level rollback parity tests through
+  the private compatibility header.
+
+### Offline cooldown and charge recovery
+
+#### Changed
+
+- Made all versioned player MUD-event cooldowns and timed states continue
+  against wall time while the character is logged out. Single-use records
+  expire normally; multi-use abilities recover each elapsed use without
+  replaying callback bursts.
+- Advanced saved six-second cooldown counters, staggered bonus slots, moon
+  bonus uses, and full-refresh racial or bloodline pools from a dedicated
+  player-file checkpoint when the character loads.
+- Migrated schema 1 event records on read and write schema 2 by default. The
+  timestamp-free legacy writer remains available only as rollback and cannot
+  reconstruct time that passed while its record was offline.
+
+#### Fixed
+
+- Cleared coupled Spellbattle state when its durable timer expires offline.
+- Made Fight to the Death's ten-minute cooldown advance during ordinary online
+  play instead of only while self-buffing, and report its seconds value without
+  an erroneous six-times multiplier.
+- Preserved active deadlines through copyover while preventing login from
+  replaying world effects, automatic actions, damage, or maintenance loops.
+
+#### Tests
+
+- Added boundary, clock-skew, schema migration, staggered-use, full-expiry,
+  dual-backend restore, and real player-file save/backdate/load coverage.
+
+### Deadline-driven runtime services
+
+#### Changed
+
+- Replaced the default residual 100 ms heartbeat with named service-owned
+  events scheduled at their established cadences, backed by a monotonic runtime
+  tick that advances independently of callback execution.
+- Made queued input and pending actions arm their exact `WAIT_STATE` expiry,
+  moved deferred character extraction to an explicit safe point, and gave
+  persistence batches a dynamic owned event.
+- Retained `LUMINARI_RUNTIME_SERVICES=legacy` for whole-heartbeat rollback and
+  the 100 ms adapter required by the legacy timed-event backend.
+
+#### Operations
+
+- Added compact runtime-service mode, live/configured, callback, and failure
+  counters to `eventdebug`, with named service queue and profile filters.
+
+#### Tests
+
+- Passed 1,034 production-linked tests, the complete local test suite, four
+  runtime/backend syntax boots, ASan/UBSan, strict Valgrind, an isolated live
+  Ornir session, and a same-PID copyover that rebuilt all configured services.
+
+### Primary activities and Establish Camp
+
+#### Added
+
+- Added one typed, lifecycle-owned primary activity per character with explicit
+  progress ownership, capability claims, traits, interruption policy, and
+  generation-safe actor and target resolution.
+- Added `activity` status, cancel, pause, and resume controls with output
+  wrapped for an 80-column client.
+- Added compact primary-activity lifecycle, delay, command-rejection, and stale
+  callback counters to `eventdebug`.
+
+#### Changed
+
+- Migrated the existing `camp` command from immediate resolution to three
+  two-second steps while preserving its Survival roll, action costs, shelter,
+  recovery, and return-point behavior.
+- Kept informational and communication commands responsive during work;
+  movement cancels camp, damage delays it, combat pauses it, and conflicting
+  actions are explicitly rejected.
+
+#### Operations
+
+- Added `LUMINARI_CAMP_ACTIVITY=legacy` as the boot-time rollback to the prior
+  immediate camp command.
+- Extended the database and flat-file help sources with timed camp behavior and
+  the `activity` command, including idempotent exact-keyword verification.
+
+#### Tests
+
+- Added manager lifecycle, command admission, wall-time and semantic-turn,
+  domain interruption, callback re-entry, extraction, 80-column UX, direct
+  camp parity, rollback, sanitizer, Valgrind, boot-matrix, database, and
+  isolated live-MUD coverage.
+
+### Semantic encounter rounds
+
+#### Changed
+
+- Replaced compatibility combat phases by default with one shared six-second
+  encounter round, resolved by initiative, Dexterity, and stable runtime ID.
+- Moved standard, move, swift, reaction, and four once-per-round gates into
+  participant state, including conservative cooldown transfer at combat
+  boundaries and staggered-action coupling.
+- Reset reactions and round flags once before encounter initiative begins, so
+  defenses spent against an earlier combatant cannot refresh at the defender's
+  own turn. Routed Come and Get Me's free counterattack through that same
+  reaction budget.
+- Defined the bounded action queue as a 10-command FIFO with one prevalidated
+  intent dispatched per turn before automatic attacks; semantic combat queues
+  are no longer polled by the connection loop.
+- Coalesced late joins and merged fights onto one encounter clock while
+  retaining not-before eligibility, so a merge cannot grant an early turn.
+- Corrected timing-wheel facade admission to schedule from the live game pulse,
+  preventing a newly created encounter event from firing early after an idle
+  scheduler interval.
+
+#### Operations
+
+- Added `LUMINARI_COMBAT_ROUNDS=compatibility` as the encounter-owned gameplay
+  rollback while `semantic` remains the default.
+- Extended `eventdebug` with semantic round, turn, intent, action, and reaction
+  counters, retaining compact 80-column output.
+
+#### Tests
+
+- Added initiative and tie-break ordering, shared-clock join/merge, action and
+  reaction budgets, staggered coupling, FIFO intent, cooldown transfer,
+  round-flag, callback-join, and full-attack regression coverage.
+- Added idle-clock scheduler and semantic-combat regressions that require the
+  first two participant turns exactly six seconds after encounter admission.
+- Added adversarial initiative-order coverage for reaction and round-flag state
+  triggered before the affected participant's turn.
+
+### Encounter-owned combat scheduling
+
+#### Changed
+
+- Replaced per-character combat clocks with one generation-aware scheduled
+  event per live encounter while retaining the existing combat phase and
+  action-queue implementation.
+- Added safe encounter creation, participant admission, deferred callback
+  mutation, encounter merging with preserved deadlines, immediate departure,
+  terminal teardown, and generation reuse.
+- Published committed character death through the typed domain-event runtime;
+  movement, death, extraction, and direct cleanup now enforce encounter
+  lifecycle without polling combatants.
+
+#### Operations
+
+- Added `LUMINARI_COMBAT_EVENTS=legacy` as the exclusive boot-time rollback to
+  per-character `eCOMBAT_ROUND` events.
+- Added compact encounter mode, population, shared-event, lifecycle, phase,
+  comparison, admission, and stale-owner counters to `eventdebug`.
+
+#### Tests
+
+- Added join-timing, callback mutation, merge fairness, bridge departure,
+  terminal replacement, generation reuse, all-departure, rollback, sanitizer,
+  Valgrind, boot-matrix, database, and live-MUD coverage.
+
+### Immortal event diagnostics
+
+#### Added
+
+- Added the paginated `eventdebug` command for immortals, with compact summary,
+  queue, ID, type, owner, deadline-range, state, callback-profile, and typed
+  domain-event views.
+- Added a payload-free backend-neutral live-event registry so the same safe
+  queue inspection works with scheduler and legacy timed backends.
+
+#### Operations
+
+- Defaulted invalid screen widths to 80 columns and hard-clamped every output
+  line to 120 columns.
+- Exposed wheel occupancy, ready backlog and overdue age, lifecycle/coalescing,
+  capacity rejection, stale-owner, callback timing, domain-handler, and bounded
+  I3 worker-ingress telemetry without displaying event payloads.
+
+#### Tests
+
+- Added dual-backend filtering, lifecycle, width, payload-redaction,
+  scheduler-metric, domain-inspection, I3-ingress, and immortal command-access
+  coverage.
+
+### Mud-hour point-update ownership
+
+#### Changed
+
+- Replaced normal mud-hour `character_list` and `object_list` discovery scans
+  with one aligned service deadline, an all-PC lifecycle registry, and an
+  active timer/trigger/decay/corpse object registry.
+- Preserved weather and time-trigger ordering plus the established global,
+  player, and object routines for conditions, idle rent, artifact burn,
+  cooldowns, timer scripts, decay, and corpses.
+- Made OLC instance editing and DG object transformation detach and rebuild
+  runtime registries without copying intrusive links or admitting editor-only
+  objects.
+
+#### Operations
+
+- Added `LUMINARI_POINT_UPDATE_EVENTS=legacy` as the exclusive boot-time
+  rollback for all three point phases.
+- Added a five-row point-update block to `perfmon entities`, with labels and
+  line widths tested for an 80-column client.
+
+#### Tests
+
+- Added exact-boundary, active-owner, mutation, extraction, startup-fallback,
+  rollback, registry-validation, and readable-output coverage; the 991-test
+  database, sanitizer, and Valgrind gates pass.
+
+### Vessel-owned periodic gameplay
+
+#### Changed
+
+- Replaced Greyhawk fleet sweeps with one bounded nearest-deadline event per
+  valid vessel for autopilot, hunters, combat, crew, upkeep, narrative,
+  weather, encounters, and schedules.
+- Retained genuinely global vessel event, trade-restock, MSDP, and merchant
+  work on one service event.
+- Replaced converted-RoL `object_list` discovery with direct hull lifecycle
+  hooks and one 2.5-second event per loaded canonical ship.
+
+#### Operations
+
+- Added `LUMINARI_VESSEL_EVENTS=legacy` as the all-or-nothing boot-time
+  rollback and compact vessel owner/service telemetry to `perfmon entities`.
+- Wired the existing `cedit` vessel-system kill switch to immediate owner
+  cancellation and rebuild without requiring a process restart.
+- Updated the measured base vessel structure to 5,104 bytes, still within the
+  5 KiB per-vessel and about 3 MiB fleet budgets.
+
+#### Tests
+
+- Added exact cadence, weapon timer, lifecycle generation, capacity refill,
+  startup fallback, fixed-RoL ownership, source-boundary, and readable-output
+  coverage; the 987-test database, sanitizer, and Valgrind gates pass.
+
+### Mixed room and character periodic gameplay
+
+#### Changed
+
+- Moved five-second room-affect behavior onto each affected room's existing
+  nearest-deadline event.
+- Moved five-second Luminari character work and six-second damage/effect work
+  onto each in-world character's existing owner event; connected players also
+  receive the established six-second maintenance routine there.
+- Kept autonomous off-screen NPCs active and added typed `CharacterMoved`
+  admission for characters entering the world.
+
+#### Operations
+
+- Kept `LUMINARI_AFFECT_EVENTS` and `LUMINARI_CHARACTER_EVENTS` independent;
+  each legacy mode restores only its half of mixed heartbeat work.
+- Added compact room-behavior, character Luminari, damage, and player-misc
+  counters to `perfmon entities`, with character rows bounded to 80 columns.
+
+#### Tests
+
+- Added exact five- and six-second owner-boundary, off-screen NPC, connected-player,
+  typed movement, independent rollback, registry, and readable-output coverage.
+
+### Character-owned periodic gameplay
+
+#### Changed
+
+- Replaced global walk-to, connected PSP regeneration, bardic-performance, and
+  hint scans with one nearest-deadline event per relevant character.
+- Preserved the existing gameplay routines and shared 0.7-second, 5-second,
+  11-second, and 300-second cadence boundaries.
+- Added direct login, copyover, switch, disconnect, extraction, walk-start, and
+  performance lifecycle synchronization plus bounded active-owner refill.
+
+#### Operations
+
+- Added `LUMINARI_CHARACTER_EVENTS=legacy` as the boot-time rollback for all
+  four scans and compact character-owner telemetry to `perfmon entities`.
+
+#### Tests
+
+- Added nearest-deadline, gameplay-callback, capacity-refill, lifecycle,
+  registry-validation, and exclusive-heartbeat rollback coverage.
+
+### Native world phenomena and pub/sub retirement
+
+#### Added
+
+- Added the typed `WorldPhenomenon` fact for visual, audible, or combined
+  phenomena with independent ranges and either wilderness-coordinate or
+  bounded room-graph propagation.
+- Added native sensory delivery for distant weather, vessels, creatures, epic
+  spells, terrain events, explosions, and nearby-room combat without a
+  heartbeat scan. Meteor Swarm is the first production publisher.
+
+#### Changed
+
+- Retired the database-backed pub/sub runtime, periodic queue, commands,
+  wilderness adapter, player-rename hooks, and automatic schema setup.
+- Preserved all old pub/sub tables as explicitly deprecated archival data; no
+  drop migration is included.
+
+#### Tests
+
+- Added static retirement and schema-preservation checks and extended the
+  production-linked domain-event suite for the ninth contract and registered
+  sensory subscriber.
+
+### Typed domain-event foundation
+
+#### Added
+
+- Added a boot-sealed, synchronous main-thread domain-event registry with exact
+  payload contracts, deterministic priority/registration order, bounded
+  depth-first nesting, and causal-chain failure diagnostics.
+- Added generation-aware entity handles and resolver boundaries plus eight
+  foundational movement, damage, death, extraction, combat, object, door, and
+  activity fact types.
+- Added per-bus, per-type, and per-handler timing/count diagnostics without
+  retaining or logging borrowed payload data.
+
+#### Changed
+
+- The game now creates the typed registry during normal and syntax-check boot
+  and destroys it before world teardown. No gameplay publishers are enabled in
+  this foundation, and the existing database pub/sub runtime is unchanged.
+
+#### Tests
+
+- Added deterministic order, nested publication, extraction, stale generation,
+  depth/count limit, slow-handler, main-thread, lifecycle, payload, registry,
+  and production-runtime tests; passed 967 production-linked tests across the
+  2x2 timing-backend/I/O-driver matrix.
+
+### Event persistence ownership
+
+#### Added
+
+- Classified all MUD event types as transient, reconstructable, copyover-only,
+  or persisted, with explicit per-type schema, payload, and offline policy.
+- Added versioned player-event records that validate stable player ownership and
+  create fresh process-local scheduler identity during restore.
+
+#### Changed
+
+- Kept all previously saved player cooldowns paused while offline, rebuilt
+  encounter-region reset work from world data at boot, and retained the legacy
+  player-event reader plus a boot-time legacy-writer rollback switch.
+
+#### Fixed
+
+- Prevented character-menu return from overwriting a correctly saved cooldown
+  section after world extraction had cleared runtime events.
+- Rejected malformed, unknown, wrong-schema, wrong-owner, stale, and duplicate
+  durable event records without admitting unsafe callbacks.
+
+#### Tests
+
+- Added exhaustive policy and restore coverage and passed 955 production-linked
+  tests in the 2x2 backend/driver matrix, ASan/UBSan, strict Valgrind, and live
+  full-reboot, logged-in copyover, and legacy rollback sessions.
+
+### Event-driven scheduler/reactor bridge
+
+#### Added
+
+- Armed reactor waits from the nearest compatibility-heartbeat or scheduler
+  deadline and added structural telemetry for cascade and large-advance work.
+- Added explicit compatibility-heartbeat and budgeted scheduler dispatch paths,
+  preventing a scheduler callback from running through both timed backends.
+
+#### Changed
+
+- Bounded scheduler work to 256 callbacks or 5 ms per reactor turn and serviced
+  descriptors before continuing a ready backlog.
+- Retained the 100 ms heartbeat for unmigrated work and accepted the existing
+  timing-wheel geometry after measured threshold, cascade, and workload review.
+
+#### Tests
+
+- Added representative consumer, threshold, churn, long-soak, due-storm, and
+  no-dual-dispatch coverage; passed the 951-test 2x2 backend/driver matrix,
+  ASan/UBSan, strict Valgrind, and a logged-in live copyover session.
+
+### Event-driven core owner and lifecycle foundation
+
+#### Added
+
+- Added typed, generation-aware scheduler owner handles, independent owner
+  indexing, bulk owner cancellation and inspection, per-owner admission limits,
+  and owner lifecycle/rejection telemetry.
+- Added process-local generations and lifecycle-ordered MUD event teardown for
+  characters, objects, descriptors, rooms, and regions while preserving both
+  selectable timed backends.
+
+#### Fixed
+
+- Deferred in-flight MUD payload cleanup until its callback returns and detached
+  owner lists before lifecycle cancellation, preventing teardown from freeing a
+  running callback's payload or touching released owner memory.
+
+#### Tests
+
+- Added dual-backend owner validation, capacity, generation reuse,
+  dispatch-time cancellation, inspection, telemetry, and cleanup-once coverage;
+  accepted the tranche under ASan/UBSan, Valgrind, and GCC static analysis.
+
 ## [Unreleased] - August 23, 2026
 
 ### Yuan-Ti anatomy and tail equipment

@@ -20,9 +20,6 @@
 /* Externals */
 extern struct weather_data weather_info;
 
-/* Define for moon bonus spell regeneration - one spell per 5 minutes */
-#define MOON_BONUS_REGEN_TICKS (5 * 60 * 10) /* 5 minutes in ticks (assuming 10 ticks per second) */
-
 /**
  * Initialize moon bonus spells for a character based on their alignment
  * and the current moon phases

@@ -34,7 +34,7 @@
  *    - new_mud_event(): Creates the event data structure
  *    - attach_mud_event(): Attaches event to an entity and starts timer
  *    - event_countdown(): Executes when the timer expires
- *    - free_mud_event(): Cleans up memory when event is done
+ *    - cleanup_mud_event(): Cleans up memory on every terminal path
  *
  **************************************************************************/
 
@@ -44,8 +44,12 @@
 #include "utils.h"
 #include "db.h"
 #include "dgscript/dg_event.h"
+#include "event_runtime.h"
 #include "constants.h"
 #include "comm.h" /* For access to the game pulse */
+#include "domain_event_runtime.h"
+#include "domain_event_world.h"
+#include "active_world.h"
 #include "lists.h"
 #include "mud_event.h"
 #include "handler.h"
@@ -57,18 +61,487 @@
 
 /* Global List */
 struct list_data *world_events = NULL;
+static uint64_t next_event_owner_generation = 1U;
+static uint64_t world_event_owner_generation = 0;
+static struct mud_event_persistence_policy persistence_policies[eMUD_EVENT_COUNT];
+static bool persistence_policies_initialized = false;
+static game_event_type_id_t mud_event_type_ids[eMUD_EVENT_COUNT];
+#ifdef LUMINARI_CUTEST
+static int mud_event_cleanup_count = 0;
+#endif
 
 /* The mud_event_index[] is defined in mud_event_list.c */
 extern struct mud_event_list mud_event_index[];
 
-/* init_events() is the ideal function for starting global events. This
- * might be the case if you were to move the contents of heartbeat() into
- * the event system */
+#define MUD_EVENT_SEMANTIC_NAME_SIZE 96U
+
+static struct game_event_result mud_event_dispatch(const struct game_event_context *context);
+static void cleanup_mud_event_native(void *event_obj);
+
+static int64_t daily_use_cooldown_ticks(struct char_data *ch, event_id event_type)
+{
+  int daily_uses;
+  int featnum;
+  int nonfeat_daily_uses;
+  int64_t cooldown;
+
+  if (ch == NULL || event_type <= eNULL || event_type >= eMUD_EVENT_COUNT)
+    return 0;
+
+  featnum = mud_event_index[event_type].feat_num;
+  nonfeat_daily_uses = mud_event_index[event_type].daily_uses;
+  if (featnum == FEAT_UNDEFINED)
+    daily_uses = nonfeat_daily_uses;
+  else
+    daily_uses = get_daily_uses(ch, featnum);
+  if (daily_uses <= 0)
+    return 0;
+
+  cooldown = ((int64_t)SECS_PER_MUD_DAY / daily_uses) * PASSES_PER_SEC;
+  return MIN(cooldown, 864000);
+}
+
+static void reconcile_expired_character_event(struct char_data *ch, event_id event_type)
+{
+  if (ch == NULL)
+    return;
+
+  switch (event_type)
+  {
+  case eSPELLBATTLE:
+    SPELLBATTLE(ch) = 0;
+    break;
+  default:
+    break;
+  }
+}
+
+static void initialize_mud_event_persistence_policies(void)
+{
+  size_t i;
+
+  if (persistence_policies_initialized)
+    return;
+
+  for (i = 0; i < (size_t)eMUD_EVENT_COUNT; i++)
+  {
+    persistence_policies[i].storage_class = MUD_EVENT_TRANSIENT;
+    persistence_policies[i].offline_policy = MUD_EVENT_OFFLINE_DISCARD;
+    persistence_policies[i].payload_policy = MUD_EVENT_PAYLOAD_NONE;
+    persistence_policies[i].schema_version = 0U;
+  }
+
+  persistence_policies[eENCOUNTER_REG_RESET].storage_class = MUD_EVENT_RECONSTRUCTABLE;
+  persistence_policies[eENCOUNTER_REG_RESET].offline_policy = MUD_EVENT_OFFLINE_RECONSTRUCT;
+
+#define PERSIST_CHARACTER_EVENT(event_id)                                                          \
+  do                                                                                               \
+  {                                                                                                \
+    persistence_policies[(event_id)].storage_class = MUD_EVENT_PERSISTED;                          \
+    persistence_policies[(event_id)].offline_policy = MUD_EVENT_OFFLINE_ELAPSE;                    \
+    persistence_policies[(event_id)].payload_policy =                                              \
+        mud_event_index[(event_id)].func == event_daily_use_cooldown ? MUD_EVENT_PAYLOAD_USES      \
+                                                                     : MUD_EVENT_PAYLOAD_NONE;     \
+    persistence_policies[(event_id)].schema_version = 2U;                                          \
+  } while (0)
+
+  PERSIST_CHARACTER_EVENT(eINVISIBLE_ROGUE);
+  PERSIST_CHARACTER_EVENT(eVANISHED);
+  PERSIST_CHARACTER_EVENT(eVANISH);
+  PERSIST_CHARACTER_EVENT(eTAUNT);
+  PERSIST_CHARACTER_EVENT(eTAUNTED);
+  PERSIST_CHARACTER_EVENT(eINTIMIDATED);
+  PERSIST_CHARACTER_EVENT(eINTIMIDATE_COOLDOWN);
+  PERSIST_CHARACTER_EVENT(eRAGE);
+  PERSIST_CHARACTER_EVENT(eSACRED_FLAMES);
+  PERSIST_CHARACTER_EVENT(eINNER_FIRE);
+  PERSIST_CHARACTER_EVENT(eMUTAGEN);
+  PERSIST_CHARACTER_EVENT(eCRIPPLING_CRITICAL);
+  PERSIST_CHARACTER_EVENT(eDEFENSIVE_STANCE);
+  PERSIST_CHARACTER_EVENT(eINSECTBEING);
+  PERSIST_CHARACTER_EVENT(eCRYSTALFIST);
+  PERSIST_CHARACTER_EVENT(eCRYSTALBODY);
+  PERSIST_CHARACTER_EVENT(eSLA_STRENGTH);
+  PERSIST_CHARACTER_EVENT(eSLA_ENLARGE);
+  PERSIST_CHARACTER_EVENT(eSLA_INVIS);
+  PERSIST_CHARACTER_EVENT(eSLA_LEVITATE);
+  PERSIST_CHARACTER_EVENT(eSLA_DARKNESS);
+  PERSIST_CHARACTER_EVENT(eSLA_FAERIE_FIRE);
+  PERSIST_CHARACTER_EVENT(eAASIMAR_HEALING_HANDS);
+  PERSIST_CHARACTER_EVENT(eAASIMAR_LIGHT_BEARER);
+  PERSIST_CHARACTER_EVENT(eLAYONHANDS);
+  PERSIST_CHARACTER_EVENT(eTOUCHOFCORRUPTION);
+  PERSIST_CHARACTER_EVENT(eJUDGEMENT);
+  PERSIST_CHARACTER_EVENT(eTRUEJUDGEMENT);
+  PERSIST_CHARACTER_EVENT(eCHILDRENOFTHENIGHT);
+  PERSIST_CHARACTER_EVENT(eVAMPIREENERGYDRAIN);
+  PERSIST_CHARACTER_EVENT(eVAMPIREBLOODDRAIN);
+  PERSIST_CHARACTER_EVENT(eBANE);
+  PERSIST_CHARACTER_EVENT(eMASTERMIND);
+  PERSIST_CHARACTER_EVENT(eDANCINGWEAPON);
+  PERSIST_CHARACTER_EVENT(eSPIRITUALWEAPON);
+  PERSIST_CHARACTER_EVENT(eCHANNELENERGY);
+  PERSIST_CHARACTER_EVENT(eEMPTYBODY);
+  PERSIST_CHARACTER_EVENT(eWHOLENESSOFBODY);
+  PERSIST_CHARACTER_EVENT(eRENEWEDDEFENSE);
+  PERSIST_CHARACTER_EVENT(eRENEWEDVIGOR);
+  PERSIST_CHARACTER_EVENT(eTREATINJURY);
+  PERSIST_CHARACTER_EVENT(eMUMMYDUST);
+  PERSIST_CHARACTER_EVENT(eDRAGONKNIGHT);
+  PERSIST_CHARACTER_EVENT(eGREATERRUIN);
+  PERSIST_CHARACTER_EVENT(eHELLBALL);
+  PERSIST_CHARACTER_EVENT(eEPICMAGEARMOR);
+  PERSIST_CHARACTER_EVENT(eEPICWARDING);
+  PERSIST_CHARACTER_EVENT(eDEATHARROW);
+  PERSIST_CHARACTER_EVENT(eQUIVERINGPALM);
+  PERSIST_CHARACTER_EVENT(eANIMATEDEAD);
+  PERSIST_CHARACTER_EVENT(eSTUNNINGFIST);
+  PERSIST_CHARACTER_EVENT(eSURPRISE_ACCURACY);
+  PERSIST_CHARACTER_EVENT(eCOME_AND_GET_ME);
+  PERSIST_CHARACTER_EVENT(ePOWERFUL_BLOW);
+  PERSIST_CHARACTER_EVENT(eD_ROLL);
+  PERSIST_CHARACTER_EVENT(eLAST_WORD);
+  PERSIST_CHARACTER_EVENT(ePURIFY);
+  PERSIST_CHARACTER_EVENT(eC_ANIMAL);
+  PERSIST_CHARACTER_EVENT(eC_DRAGONMOUNT);
+  PERSIST_CHARACTER_EVENT(eC_EIDOLON);
+  PERSIST_CHARACTER_EVENT(eC_FAMILIAR);
+  PERSIST_CHARACTER_EVENT(eC_MOUNT);
+  PERSIST_CHARACTER_EVENT(eSUMMONSHADOW);
+  PERSIST_CHARACTER_EVENT(eTURN_UNDEAD);
+  PERSIST_CHARACTER_EVENT(eSPELLBATTLE);
+  PERSIST_CHARACTER_EVENT(eDRACBREATH);
+  PERSIST_CHARACTER_EVENT(eDRACCLAWS);
+  PERSIST_CHARACTER_EVENT(eDRAGBREATH);
+  PERSIST_CHARACTER_EVENT(eCATSCLAWS);
+  PERSIST_CHARACTER_EVENT(eARCANEADEPT);
+  PERSIST_CHARACTER_EVENT(eCHANNELSPELL);
+  PERSIST_CHARACTER_EVENT(ePSIONICFOCUS);
+  PERSIST_CHARACTER_EVENT(eDOUBLEMANIFEST);
+  PERSIST_CHARACTER_EVENT(eSHADOWCALL);
+  PERSIST_CHARACTER_EVENT(eSHADOWJUMP);
+  PERSIST_CHARACTER_EVENT(eSHADOWILLUSION);
+  PERSIST_CHARACTER_EVENT(eSHADOWPOWER);
+  PERSIST_CHARACTER_EVENT(eEVOBREATH);
+  PERSIST_CHARACTER_EVENT(eTOUCHOFUNDEATH);
+  PERSIST_CHARACTER_EVENT(eSTRENGTHOFHONOR);
+  PERSIST_CHARACTER_EVENT(eCROWNOFKNIGHTHOOD);
+  PERSIST_CHARACTER_EVENT(eSOULOFKNIGHTHOOD);
+  PERSIST_CHARACTER_EVENT(eINSPIRECOURAGE);
+  PERSIST_CHARACTER_EVENT(eWISDOMOFTHEMEASURE);
+  PERSIST_CHARACTER_EVENT(eFINALSTAND);
+  PERSIST_CHARACTER_EVENT(eKNIGHTHOODSFLOWER);
+  PERSIST_CHARACTER_EVENT(eRALLYINGCRY);
+  PERSIST_CHARACTER_EVENT(eCOSMICUNDERSTANDING);
+  PERSIST_CHARACTER_EVENT(eDRAGOONPOINTS);
+  PERSIST_CHARACTER_EVENT(eROL_CALM);
+  PERSIST_CHARACTER_EVENT(eSMITE_EVIL);
+  PERSIST_CHARACTER_EVENT(eSMITE_GOOD);
+  PERSIST_CHARACTER_EVENT(eSMITE_DESTRUCTION);
+
+#undef PERSIST_CHARACTER_EVENT
+  persistence_policies_initialized = true;
+}
+
+const struct mud_event_persistence_policy *mud_event_persistence_policy(event_id iId)
+{
+  initialize_mud_event_persistence_policies();
+  if (iId < eNULL || iId >= eMUD_EVENT_COUNT)
+    return NULL;
+  return &persistence_policies[iId];
+}
+
+const char *mud_event_storage_class_name(enum mud_event_storage_class storage_class)
+{
+  switch (storage_class)
+  {
+  case MUD_EVENT_TRANSIENT:
+    return "transient";
+  case MUD_EVENT_RECONSTRUCTABLE:
+    return "reconstructable";
+  case MUD_EVENT_COPYOVER_PRESERVED:
+    return "copyover-preserved";
+  case MUD_EVENT_PERSISTED:
+    return "persisted";
+  default:
+    return "invalid";
+  }
+}
+
+const char *mud_event_restore_status_name(enum mud_event_restore_status status)
+{
+  switch (status)
+  {
+  case MUD_EVENT_RESTORE_OK:
+    return "restored";
+  case MUD_EVENT_RESTORE_EXPIRED:
+    return "expired offline";
+  case MUD_EVENT_RESTORE_INVALID_ARGUMENT:
+    return "invalid argument";
+  case MUD_EVENT_RESTORE_INVALID_FORMAT:
+    return "invalid format";
+  case MUD_EVENT_RESTORE_UNKNOWN_TYPE:
+    return "unknown event type";
+  case MUD_EVENT_RESTORE_CLASS_MISMATCH:
+    return "event is not persisted";
+  case MUD_EVENT_RESTORE_SCHEMA_MISMATCH:
+    return "schema mismatch";
+  case MUD_EVENT_RESTORE_OWNER_MISMATCH:
+    return "owner mismatch";
+  case MUD_EVENT_RESTORE_PAYLOAD_MALFORMED:
+    return "malformed payload";
+  case MUD_EVENT_RESTORE_DUPLICATE:
+    return "duplicate event";
+  case MUD_EVENT_RESTORE_ADMISSION_FAILED:
+    return "scheduler admission failed";
+  default:
+    return "unknown restore status";
+  }
+}
+
+bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *pMudEvent,
+                                   int64_t saved_at_epoch, struct mud_event_durable_record *record)
+{
+  const struct mud_event_persistence_policy *policy;
+  long remaining_ticks;
+  int uses;
+
+  if (ch == NULL || pMudEvent == NULL || record == NULL || saved_at_epoch <= 0)
+    return false;
+  policy = mud_event_persistence_policy(pMudEvent->iId);
+  if (policy == NULL || policy->storage_class != MUD_EVENT_PERSISTED ||
+      mud_event_index[pMudEvent->iId].iEvent_Type != EVENT_CHAR || pMudEvent->pStruct != ch ||
+      !mud_event_is_live(pMudEvent) || pMudEvent->owner.kind != GAME_EVENT_OWNER_CHARACTER ||
+      pMudEvent->owner.runtime_id != (uint64_t)(uintptr_t)ch || pMudEvent->owner.generation == 0 ||
+      pMudEvent->owner.generation != ch->event_owner_generation || GET_IDNUM(ch) <= 0)
+    return false;
+
+  remaining_ticks = mud_event_remaining(pMudEvent);
+  /* Ready-but-budget-deferred events still own their outstanding charge debt. */
+  remaining_ticks = MAX(1L, remaining_ticks);
+
+  uses = -1;
+  if (policy->payload_policy == MUD_EVENT_PAYLOAD_USES)
+  {
+    if (pMudEvent->sVariables == NULL || sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1 ||
+        uses <= 0 || uses > MUD_EVENT_MAX_PERSISTED_USES)
+      return false;
+  }
+
+  memset(record, 0, sizeof(*record));
+  record->event_type = pMudEvent->iId;
+  record->schema_version = policy->schema_version;
+  record->owner_id = GET_IDNUM(ch);
+  record->remaining_ticks = remaining_ticks;
+  record->saved_at_epoch = saved_at_epoch;
+  record->payload_value = uses;
+  if (policy->payload_policy == MUD_EVENT_PAYLOAD_USES)
+  {
+    record->recovery_interval_ticks = daily_use_cooldown_ticks(ch, pMudEvent->iId);
+    if (IN_ROOM(ch) == NOWHERE && pMudEvent->restored_recovery_interval_ticks > 0)
+      record->recovery_interval_ticks = pMudEvent->restored_recovery_interval_ticks;
+  }
+  return true;
+}
+
+enum mud_event_restore_status
+mud_event_restore_character_record(struct char_data *ch,
+                                   const struct mud_event_durable_record *record, int64_t now_epoch)
+{
+  const struct mud_event_persistence_policy *policy;
+  struct mud_event_data *restored_event;
+  int64_t remaining_ticks;
+  int64_t elapsed_seconds;
+  int64_t elapsed_ticks;
+  int64_t interval_ticks;
+  int64_t elapsed_after_first;
+  int64_t recovered_uses;
+  int remaining_uses;
+  char payload[64];
+  const char *payload_text;
+
+  if (ch == NULL || record == NULL || now_epoch <= 0)
+    return MUD_EVENT_RESTORE_INVALID_ARGUMENT;
+  if (record->event_type <= eNULL || record->event_type >= eMUD_EVENT_COUNT)
+    return MUD_EVENT_RESTORE_UNKNOWN_TYPE;
+
+  policy = mud_event_persistence_policy(record->event_type);
+  if (policy == NULL || policy->storage_class != MUD_EVENT_PERSISTED ||
+      mud_event_index[record->event_type].iEvent_Type != EVENT_CHAR)
+    return MUD_EVENT_RESTORE_CLASS_MISMATCH;
+  if (record->schema_version == 0U || record->schema_version > policy->schema_version)
+    return MUD_EVENT_RESTORE_SCHEMA_MISMATCH;
+  if (GET_IDNUM(ch) <= 0 || record->owner_id != GET_IDNUM(ch))
+    return MUD_EVENT_RESTORE_OWNER_MISMATCH;
+  if (record->recovery_interval_ticks < 0 || record->recovery_interval_ticks > 864000 ||
+      (policy->payload_policy != MUD_EVENT_PAYLOAD_USES && record->recovery_interval_ticks != 0) ||
+      record->remaining_ticks <= 0 || record->remaining_ticks > LONG_MAX ||
+      record->saved_at_epoch <= 0 ||
+      (record->saved_at_epoch > now_epoch && record->saved_at_epoch - now_epoch > 300))
+    return MUD_EVENT_RESTORE_INVALID_FORMAT;
+  if (char_has_mud_event(ch, record->event_type) != NULL)
+    return MUD_EVENT_RESTORE_DUPLICATE;
+
+  payload_text = NULL;
+  if (policy->payload_policy == MUD_EVENT_PAYLOAD_USES)
+  {
+    if (record->payload_value <= 0 || record->payload_value > MUD_EVENT_MAX_PERSISTED_USES)
+      return MUD_EVENT_RESTORE_PAYLOAD_MALFORMED;
+    snprintf(payload, sizeof(payload), "uses:%d", record->payload_value);
+    payload_text = payload;
+  }
+  else if (record->payload_value != -1)
+  {
+    return MUD_EVENT_RESTORE_PAYLOAD_MALFORMED;
+  }
+
+  remaining_ticks = record->remaining_ticks;
+  if (policy->offline_policy == MUD_EVENT_OFFLINE_ELAPSE)
+  {
+    elapsed_seconds = now_epoch - record->saved_at_epoch;
+    if (elapsed_seconds > 0 && elapsed_seconds > INT64_MAX / PASSES_PER_SEC)
+    {
+      reconcile_expired_character_event(ch, record->event_type);
+      return MUD_EVENT_RESTORE_EXPIRED;
+    }
+    elapsed_ticks = MAX(0, elapsed_seconds) * PASSES_PER_SEC;
+    if (elapsed_ticks >= remaining_ticks && policy->payload_policy == MUD_EVENT_PAYLOAD_USES)
+    {
+      interval_ticks = record->recovery_interval_ticks;
+      if (interval_ticks == 0)
+        interval_ticks = daily_use_cooldown_ticks(ch, record->event_type);
+      if (interval_ticks <= 0)
+      {
+        reconcile_expired_character_event(ch, record->event_type);
+        return MUD_EVENT_RESTORE_EXPIRED;
+      }
+      elapsed_after_first = elapsed_ticks - remaining_ticks;
+      recovered_uses = 1 + elapsed_after_first / interval_ticks;
+      if (recovered_uses >= record->payload_value)
+      {
+        reconcile_expired_character_event(ch, record->event_type);
+        return MUD_EVENT_RESTORE_EXPIRED;
+      }
+      remaining_uses = record->payload_value - (int)recovered_uses;
+      remaining_ticks = interval_ticks - elapsed_after_first % interval_ticks;
+      snprintf(payload, sizeof(payload), "uses:%d", remaining_uses);
+      payload_text = payload;
+    }
+    else
+    {
+      remaining_ticks -= elapsed_ticks;
+    }
+    if (remaining_ticks <= 0 || remaining_ticks > LONG_MAX)
+    {
+      reconcile_expired_character_event(ch, record->event_type);
+      return MUD_EVENT_RESTORE_EXPIRED;
+    }
+  }
+  else if (policy->offline_policy != MUD_EVENT_OFFLINE_PAUSE)
+  {
+    return MUD_EVENT_RESTORE_CLASS_MISMATCH;
+  }
+
+  restored_event = new_mud_event(record->event_type, ch, payload_text);
+  restored_event->restored_recovery_interval_ticks = record->recovery_interval_ticks;
+  attach_mud_event(restored_event, (long)remaining_ticks);
+  if (char_has_mud_event(ch, record->event_type) == NULL)
+    return MUD_EVENT_RESTORE_ADMISSION_FAILED;
+  return MUD_EVENT_RESTORE_OK;
+}
+
+static void mud_event_semantic_name(event_id id, char *name, size_t capacity)
+{
+  const char *source;
+  size_t length;
+  bool separator;
+
+  if (name == NULL || capacity == 0U)
+    return;
+  length = (size_t)snprintf(name, capacity, "mud.%03u.", (unsigned int)id);
+  if (length >= capacity)
+  {
+    name[capacity - 1U] = '\0';
+    return;
+  }
+  source = mud_event_index[id].event_name;
+  separator = false;
+  while (source != NULL && *source != '\0' && length + 1U < capacity)
+  {
+    unsigned char c = (unsigned char)*source++;
+
+    if (isalnum(c))
+    {
+      name[length++] = (char)tolower(c);
+      separator = false;
+    }
+    else if (!separator && length > 0U)
+    {
+      name[length++] = '_';
+      separator = true;
+    }
+  }
+  if (length > 0U && name[length - 1U] == '_')
+    length--;
+  name[length] = '\0';
+}
+
+bool mud_event_runtime_init(void)
+{
+  struct game_event_type_config config;
+  enum game_scheduler_status status;
+  char expected[MUD_EVENT_SEMANTIC_NAME_SIZE];
+  event_id id;
+
+  if (!event_runtime_is_initialized())
+    return false;
+  mud_event_semantic_name(ePROTOCOLS, expected, sizeof(expected));
+  if (mud_event_type_ids[ePROTOCOLS] != 0U &&
+      event_runtime_type_name(mud_event_type_ids[ePROTOCOLS]) != NULL &&
+      !strcmp(event_runtime_type_name(mud_event_type_ids[ePROTOCOLS]), expected))
+  {
+    mud_event_semantic_name((event_id)(eMUD_EVENT_COUNT - 1), expected, sizeof(expected));
+    return mud_event_type_ids[eMUD_EVENT_COUNT - 1] != 0U &&
+           event_runtime_type_name(mud_event_type_ids[eMUD_EVENT_COUNT - 1]) != NULL &&
+           !strcmp(event_runtime_type_name(mud_event_type_ids[eMUD_EVENT_COUNT - 1]), expected);
+  }
+  if (event_runtime_types_are_sealed())
+    return false;
+
+  memset(mud_event_type_ids, 0, sizeof(mud_event_type_ids));
+  memset(&config, 0, sizeof(config));
+  config.handler = mud_event_dispatch;
+  config.cleanup = cleanup_mud_event_native;
+  config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  config.requires_owner = true;
+  for (id = ePROTOCOLS; id < eMUD_EVENT_COUNT; id++)
+  {
+    if (id == eRETIRED_CASTING)
+      continue;
+    mud_event_semantic_name(id, expected, sizeof(expected));
+    config.name = expected;
+    status = event_runtime_register_type(&config, &mud_event_type_ids[id]);
+    if (status != GAME_SCHEDULER_OK)
+    {
+      log("SYSERR: unable to register native MUD event type %d '%s' (status %d).", id, expected,
+          status);
+      return false;
+    }
+  }
+  return true;
+}
+
+/* Initialize MUD-event owner storage and the native per-ID type registry. */
 void init_events(void)
 {
   /* Allocate Event List */
   world_events = create_list();
   size_t i;
+
+  initialize_mud_event_persistence_policies();
+
+  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER && !mud_event_runtime_init())
+    log("SYSERR: Native MUD event types are unavailable during init_events().");
 
   /* Validate registry size vs enum last value to catch drift */
   {
@@ -85,7 +558,7 @@ void init_events(void)
     {
       struct mud_event_list *entry = &mud_event_index[i];
       /* Skip NULL sentinel (index 0) */
-      if (i == eNULL)
+      if (i == eNULL || i == eRETIRED_CASTING)
         continue;
       /* Validate type */
       if (entry->iEvent_Type < EVENT_WORLD || entry->iEvent_Type > EVENT_OBJECT)
@@ -106,7 +579,7 @@ void init_events(void)
 /* The bottom switch() is for any post-event actions, like telling the character they can
  * now access their skill again.
  */
-EVENTFUNC(event_countdown)
+MUD_EVENT_CALLBACK(event_countdown)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
@@ -170,7 +643,7 @@ EVENTFUNC(event_countdown)
     }
     regvnum = (region_vnum *)pMudEvent->pStruct;
     regrnum = real_region(*regvnum);
-    /* log("LOG: EVENT_REGION case in EVENTFUNC(event_countdown): Region VNum %d, RNum %d", *regvnum, regrnum); */
+    /* log("LOG: EVENT_REGION case in MUD_EVENT_CALLBACK(event_countdown): Region VNum %d, RNum %d", *regvnum, regrnum); */
     break;
   default:
     break;
@@ -194,6 +667,9 @@ EVENTFUNC(event_countdown)
   /* Now handle special cases that need more than just a message */
   switch (pMudEvent->iId)
   {
+  case eSTUNNED:
+    active_world_reconsider_character(ch);
+    break;
   case eDARKNESS:
     /* SAFETY: Check that we have a valid room before accessing it.
      * The rnum should have been set in the EVENT_ROOM case above. */
@@ -204,6 +680,7 @@ EVENTFUNC(event_countdown)
     }
     /* Now safe to access the room flags and send messages */
     REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_DARK);
+    active_world_reconsider_character(world[rnum].people);
     send_to_room(rnum, "The dark shroud dissipates.\r\n");
     break;
 
@@ -260,7 +737,9 @@ EVENTFUNC(event_countdown)
       {
         room_vnum eroom_vnum;
         room_rnum eroom_rnum = NOWHERE;
+        bool location_found = false;
         int x, y;
+        int ctr = 0;
 
         if (sscanf(*it, "%d", &eroom_vnum) != 1)
         {
@@ -286,7 +765,6 @@ EVENTFUNC(event_countdown)
 
         /* Find a location in the region where this room will be placed,
              it can not be the same coords as a static room and noone should be at those coordinates. */
-        int ctr = 0;
         do
         {
           /* Generate the random point */
@@ -299,15 +777,24 @@ EVENTFUNC(event_countdown)
             if (world[eroom_rnum].sector_type ==
                 get_modified_sector_type(GET_ROOM_ZONE(eroom_rnum), x, y))
             {
+              location_found = true;
               break;
             }
           }
         } while (++ctr < 128);
 
+        if (!location_found)
+        {
+          world[eroom_rnum].wilderness_coordinates_set = false;
+          log("SYSERR: No valid wilderness location for encounter room %d.", eroom_vnum);
+          continue;
+        }
+
         /* Build the room. */
         /* assign_wilderness_room(eroom_rnum, x, y); */
         world[eroom_rnum].coords[0] = x;
         world[eroom_rnum].coords[1] = y;
+        world[eroom_rnum].wilderness_coordinates_set = true;
       }
       initialize_wilderness_lists();
       free_tokens(tokens); /* Free the tokenized list */
@@ -323,15 +810,13 @@ EVENTFUNC(event_countdown)
   return 0;
 }
 
-EVENTFUNC(event_daily_use_cooldown)
+MUD_EVENT_CALLBACK(event_daily_use_cooldown)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
   /* struct obj_data *obj = NULL; */ /* Unused variable */
   int cooldown = 0;
   int uses = 0;
-  int nonfeat_daily_uses = 0;
-  int featnum = 0;
   char buf[128];
 
   pMudEvent = (struct mud_event_data *)event_obj;
@@ -371,10 +856,6 @@ EVENTFUNC(event_daily_use_cooldown)
     }
   }
 
-  /* Get feat and daily uses from the table */
-  featnum = mud_event_index[pMudEvent->iId].feat_num;
-  nonfeat_daily_uses = mud_event_index[pMudEvent->iId].daily_uses;
-
   /* Send recovery message from table if available */
   if (mud_event_index[pMudEvent->iId].recovery_msg && ch)
   {
@@ -395,75 +876,8 @@ EVENTFUNC(event_daily_use_cooldown)
     snprintf(buf, sizeof(buf), "uses:%d", uses);
     pMudEvent->sVariables = strdup(buf);
 
-    if ((featnum == FEAT_UNDEFINED) && (nonfeat_daily_uses > 0))
-    {
-      /*
-        This is a 'daily' feature that is not controlled by a feat - for example a weapon or armor special ability.
-        In this case, the daily uses must be set above - variable nonfeat_daily_uses.
-      */
-
-      /* CRITICAL FIX: Integer Overflow Prevention
-       * Before: cooldown = (SECS_PER_MUD_DAY / nonfeat_daily_uses) RL_SEC;
-       * Problem: The multiplication could overflow if the division result is large.
-       * Solution: Use long math to avoid overflow, then ensure result fits in int range.
-       *
-       * IMPORTANT: RL_SEC is defined as *PASSES_PER_SEC (which equals *10)
-       * So the original line expands to: (SECS_PER_MUD_DAY / nonfeat_daily_uses) * 10
-       *
-       * Math explanation for beginners:
-       * - SECS_PER_MUD_DAY = 24 * 75 = 1800 (MUD seconds in a MUD day)
-       * - PASSES_PER_SEC = 10 (game ticks per real second)
-       * - If nonfeat_daily_uses is 1: 1800 * 10 = 18000 pulses = 1800 real seconds (30 minutes)
-       * - This converts MUD time to real-time ticks
-       */
-      long temp_cooldown = ((long)SECS_PER_MUD_DAY / nonfeat_daily_uses) RL_SEC;
-
-      /* Clamp to reasonable maximum (1 real-time day) */
-      if (temp_cooldown > 864000)
-      { /* 86400 seconds * 10 ticks/sec */
-        log("WARNING: Cooldown overflow prevented for non-feat daily ability, clamping to 1 day");
-        cooldown = 864000;
-      }
-      else
-      {
-        cooldown = (int)temp_cooldown;
-      }
-    }
-    else if (get_daily_uses(ch, featnum) > 0) /* Fixed: Check > 0 instead of just != 0 */
-    {
-      /* CRITICAL FIX: Division by Zero Check Enhanced
-       * Before: else if (get_daily_uses(ch, featnum))
-       * Problem: Only checked for non-zero, but negative values would still crash
-       * Solution: Explicitly check for positive values
-       *
-       * Also applying the same overflow protection as above
-       */
-      int daily_uses = get_daily_uses(ch, featnum);
-
-      /* Extra safety: Ensure daily_uses is positive */
-      if (daily_uses <= 0)
-      {
-        log("SYSERR: Invalid daily_uses %d for feat %d on character %s", daily_uses, featnum,
-            GET_NAME(ch));
-        cooldown = 0; /* No cooldown if invalid */
-      }
-      else
-      {
-        /* RL_SEC expands to *PASSES_PER_SEC, so we need the parentheses */
-        long temp_cooldown = ((long)SECS_PER_MUD_DAY / daily_uses) RL_SEC;
-
-        /* Clamp to reasonable maximum (1 real-time day) */
-        if (temp_cooldown > 864000)
-        { /* 86400 seconds * 10 ticks/sec */
-          log("WARNING: Cooldown overflow prevented for feat %d, clamping to 1 day", featnum);
-          cooldown = 864000;
-        }
-        else
-        {
-          cooldown = (int)temp_cooldown;
-        }
-      }
-    }
+    cooldown = (int)daily_use_cooldown_ticks(ch, pMudEvent->iId);
+    pMudEvent->restored_recovery_interval_ticks = 0;
   }
 
   return cooldown;
@@ -486,165 +900,217 @@ EVENTFUNC(event_daily_use_cooldown)
  * freed after this function returns. We need the vnum to persist
  * for the entire lifetime of the event!
  */
+static uint64_t ensure_event_owner_generation(uint64_t *generation)
+{
+  if (*generation != 0)
+    return *generation;
+  if (next_event_owner_generation == 0)
+    return 0;
+  *generation = next_event_owner_generation;
+  if (next_event_owner_generation == UINT64_MAX)
+    next_event_owner_generation = 0;
+  else
+    next_event_owner_generation++;
+  return *generation;
+}
+
+static struct game_event_owner make_mud_event_owner(enum game_event_owner_kind kind,
+                                                    uint64_t runtime_id, uint64_t *generation)
+{
+  struct game_event_owner owner;
+
+  owner = game_event_owner_none();
+  owner.kind = kind;
+  owner.runtime_id = runtime_id;
+  owner.generation = ensure_event_owner_generation(generation);
+  return owner;
+}
+
+bool mud_event_is_live(const struct mud_event_data *pMudEvent)
+{
+  if (pMudEvent == NULL)
+    return false;
+  if (!event_runtime_handle_is_none(pMudEvent->runtime_handle))
+    return event_runtime_handle_is_live(pMudEvent->runtime_handle);
+  return false;
+}
+
+long mud_event_remaining(const struct mud_event_data *pMudEvent)
+{
+  game_tick_t remaining;
+
+  if (pMudEvent == NULL)
+    return 0;
+  if (!event_runtime_handle_is_none(pMudEvent->runtime_handle))
+  {
+    if (event_runtime_remaining(pMudEvent->runtime_handle, &remaining) != GAME_SCHEDULER_OK)
+      return 0;
+    return remaining > LONG_MAX ? LONG_MAX : (long)remaining;
+  }
+  return 0;
+}
+
+void mud_event_cancel(struct mud_event_data *pMudEvent)
+{
+  if (pMudEvent == NULL)
+    return;
+  if (!event_runtime_handle_is_none(pMudEvent->runtime_handle))
+    (void)event_runtime_cancel(pMudEvent->runtime_handle);
+}
+
 void attach_mud_event(struct mud_event_data *pMudEvent, long time)
 {
-  struct event *pEvent = NULL;
-
   struct descriptor_data *d = NULL;
   struct char_data *ch = NULL;
   struct room_data *room = NULL;
   struct region_data *region = NULL;
   struct obj_data *obj = NULL;
-
+  enum game_scheduler_status status;
   room_vnum *rvnum = NULL;
   region_vnum *regvnum = NULL;
 
+  room_rnum room_index;
+  region_rnum region_index;
+  int event_type;
+  bool copied_owner_key = false;
+
   if (pMudEvent == NULL)
     return;
+  if (pMudEvent->iId <= eNULL || pMudEvent->iId >= eMUD_EVENT_COUNT)
+    goto admission_failed;
 
-  /* Timed stun is a second status ingress independent of AFF_STUN. */
+  event_type = mud_event_index[pMudEvent->iId].iEvent_Type;
   if (pMudEvent->iId == eSTUNNED && !can_stun((struct char_data *)pMudEvent->pStruct))
-  {
-    free(pMudEvent->sVariables);
-    free(pMudEvent);
-    return;
-  }
+    goto admission_failed;
 
-  /* Create the actual event and set its timer.
-   * event_create() adds it to the global event queue. */
-  pEvent = event_create_named(mud_event_index[pMudEvent->iId].func, pMudEvent, time,
-                              mud_event_index[pMudEvent->iId].event_name);
-  if (pEvent == NULL)
-  {
-    free(pMudEvent->sVariables);
-    free(pMudEvent);
-    return;
-  }
-  pEvent->isMudEvent = TRUE;
-  pMudEvent->pEvent = pEvent;
-
-  /* Add event to the appropriate entity's event list.
-   * Each entity type maintains its own list of active events. */
-  switch (mud_event_index[pMudEvent->iId].iEvent_Type)
+  switch (event_type)
   {
   case EVENT_WORLD:
-    add_to_list(pEvent, world_events);
+    pMudEvent->owner =
+        make_mud_event_owner(GAME_EVENT_OWNER_WORLD, 1U, &world_event_owner_generation);
+    if (world_events == NULL)
+      world_events = create_list();
     break;
   case EVENT_DESC:
     d = (struct descriptor_data *)pMudEvent->pStruct;
-    add_to_list(pEvent, d->events);
+    if (d == NULL)
+      goto admission_failed;
+    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_DESCRIPTOR, (uint64_t)(uintptr_t)d,
+                                            &d->event_owner_generation);
+    if (d->events == NULL)
+      d->events = create_list();
     break;
   case EVENT_CHAR:
     ch = (struct char_data *)pMudEvent->pStruct;
-
+    if (ch == NULL)
+      goto admission_failed;
+    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_CHARACTER, (uint64_t)(uintptr_t)ch,
+                                            &ch->event_owner_generation);
     if (ch->events == NULL)
       ch->events = create_list();
-
-    add_to_list(pEvent, ch->events);
     break;
   case EVENT_OBJECT:
     obj = (struct obj_data *)pMudEvent->pStruct;
-
+    if (obj == NULL)
+      goto admission_failed;
+    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_OBJECT, (uint64_t)(uintptr_t)obj,
+                                            &obj->event_owner_generation);
     if (obj->events == NULL)
       obj->events = create_list();
-
-    add_to_list(pEvent, obj->events);
     break;
   case EVENT_ROOM:
-    /* CRITICAL FIX: The original code had a memory leak here.
-     * pMudEvent->pStruct initially points to a room_vnum passed from the caller.
-     * We need to copy this value to our own allocated memory that we'll manage,
-     * but we must NOT lose the original pointer if it was dynamically allocated.
-     *
-     * For ROOM events, pStruct should contain a room_vnum that was passed in.
-     * We create our own copy because the event system needs to own this memory
-     * for the lifetime of the event. */
-
-    /* Create new memory to store the room vnum for this event */
+    if (pMudEvent->pStruct == NULL)
+      goto admission_failed;
     CREATE(rvnum, room_vnum, 1);
-
-    /* Copy the vnum value from the original pointer to our new memory */
     *rvnum = *((room_vnum *)pMudEvent->pStruct);
-
-    /* Now update pStruct to point to our newly allocated memory.
-     * The original pointer passed in is NOT freed here because we don't
-     * own it - the caller is responsible for their own memory. */
-    pMudEvent->pStruct = rvnum;
-
-    /* BOUNDS CHECK: Ensure the room exists before accessing the world array.
-     * real_room() returns NOWHERE (-1) if the vnum doesn't exist.
-     * Accessing world[-1] would cause memory corruption! */
-    room_rnum room_index = real_room(*rvnum);
+    room_index = real_room(*rvnum);
     if (room_index == NOWHERE)
     {
       log("SYSERR: Attempt to attach event to non-existent room vnum %d!", *rvnum);
-      free(rvnum); /* Clean up the memory we just allocated */
-      /* CRITICAL: We must cancel the event that was already created above!
-       * Otherwise it will fire with invalid data and could crash the game. */
-      event_cancel(pEvent);
-      /* Note: event_cancel will free pMudEvent, so we just return */
-      return;
+      free(rvnum);
+      goto admission_failed;
     }
-
-    /* Now safe to get the room data */
+    pMudEvent->pStruct = rvnum;
+    copied_owner_key = true;
     room = &world[room_index];
-
-    /* log("[DEBUG] Adding Event %s to room %d",mud_event_index[pMudEvent->iId].event_name, room->number); */
-
-    /* Create the event list for this room if it doesn't exist yet */
+    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_ROOM, (uint64_t)(uint32_t)*rvnum + 1U,
+                                            &room->event_owner_generation);
     if (room->events == NULL)
       room->events = create_list();
-
-    /* Add this event to the room's event list */
-    add_to_list(pEvent, room->events);
     break;
   case EVENT_REGION:
-    /* CRITICAL FIX: Same memory management as ROOM events.
-     * We need to copy the region vnum to our own allocated memory
-     * that the event system will manage for the lifetime of the event.
-     *
-     * IMPORTANT: Just like with ROOM events, we don't free the original
-     * pointer because we don't own it - the caller owns that memory. */
-
-    /* Allocate memory for storing the region vnum */
+    if (pMudEvent->pStruct == NULL)
+      goto admission_failed;
     CREATE(regvnum, region_vnum, 1);
-
-    /* Copy the vnum value from the caller's pointer to our memory */
     *regvnum = *((region_vnum *)pMudEvent->pStruct);
-
-    /* Update pStruct to point to our newly allocated memory */
-    pMudEvent->pStruct = regvnum;
-
-    /* Debug logging for region events - comment out when not debugging */
-    /* log("Region event attached: vnum %d (rnum %d) for event %s",
-        *((region_vnum *)pMudEvent->pStruct), real_region(*regvnum),
-        event_name(pMudEvent->iId)); */
-
-    /* SAFETY CHECK: Ensure the region vnum corresponds to a valid region.
-     * real_region() returns NOWHERE (-1) if the vnum doesn't exist. */
-    if (real_region(*regvnum) == NOWHERE)
+    region_index = real_region(*regvnum);
+    if (region_index == NOWHERE)
     {
       log("SYSERR: Attempt to add event to out-of-range region!");
-      /* Clean up the memory we just allocated since we can't use it */
       free(regvnum);
-      /* CRITICAL: Cancel the already-created event to prevent it from
-       * firing with invalid data. event_cancel will free pMudEvent. */
-      event_cancel(pEvent);
-      return;
+      goto admission_failed;
     }
-
-    /* Get the actual region data from the region_table array.
-     * We've already verified the index is valid above. */
-    region = &region_table[real_region(*regvnum)];
-
-    /* Create the event list for this region if it doesn't exist yet */
+    pMudEvent->pStruct = regvnum;
+    copied_owner_key = true;
+    region = &region_table[region_index];
+    pMudEvent->owner =
+        make_mud_event_owner(GAME_EVENT_OWNER_REGION, (uint64_t)(uint32_t)*regvnum + 1U,
+                             &region->event_owner_generation);
     if (region->events == NULL)
       region->events = create_list();
+    break;
+  default:
+    goto admission_failed;
+  }
 
-    /* Add this event to the region's event list */
-    add_to_list(pEvent, region->events);
+  if (!game_event_owner_is_valid(pMudEvent->owner))
+    goto admission_failed;
+  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER)
+  {
+    if (!mud_event_runtime_init())
+      status = GAME_SCHEDULER_REGISTRATION_CLOSED;
+    else
+      status = event_runtime_schedule_owned_after(mud_event_type_ids[pMudEvent->iId],
+                                                  pMudEvent->owner, (game_tick_t)MAX(time, 1L),
+                                                  pMudEvent, &pMudEvent->runtime_handle);
+    if (status != GAME_SCHEDULER_OK)
+      pMudEvent->runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
+  }
+  else
+  {
+    status = GAME_SCHEDULER_INVALID_ARGUMENT;
+  }
+  if (event_runtime_handle_is_none(pMudEvent->runtime_handle))
+    goto admission_failed;
+
+  switch (event_type)
+  {
+  case EVENT_WORLD:
+    add_to_list(pMudEvent, world_events);
+    break;
+  case EVENT_DESC:
+    add_to_list(pMudEvent, d->events);
+    break;
+  case EVENT_CHAR:
+    add_to_list(pMudEvent, ch->events);
+    break;
+  case EVENT_OBJECT:
+    add_to_list(pMudEvent, obj->events);
+    break;
+  case EVENT_ROOM:
+    add_to_list(pMudEvent, room->events);
+    break;
+  case EVENT_REGION:
+    add_to_list(pMudEvent, region->events);
     break;
   }
+  return;
+
+admission_failed:
+  if (copied_owner_key)
+    free(pMudEvent->pStruct);
+  free(pMudEvent->sVariables);
+  free(pMudEvent);
 }
 
 struct mud_event_data *new_mud_event(event_id iId, void *pStruct, const char *sVariables)
@@ -666,176 +1132,162 @@ struct mud_event_data *new_mud_event(event_id iId, void *pStruct, const char *sV
    *   NOTE: For ROOM/REGION events, attach_mud_event() will create
    *   its own copy of this data to prevent memory leaks
    * - sVariables: Our copy of any event-specific data
-   * - pEvent: Will be set when event is attached */
+   * - runtime handle: Set by the native scheduler on attach. */
   pMudEvent->iId = iId;
   pMudEvent->pStruct = pStruct;
   pMudEvent->sVariables = varString;
-  pMudEvent->pEvent = NULL;
+  pMudEvent->runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
+  pMudEvent->owner = game_event_owner_none();
+  pMudEvent->owner_detached = false;
 
   return (pMudEvent);
 }
 
-void free_mud_event(struct mud_event_data *pMudEvent)
+void mud_event_detach_owner(struct mud_event_data *pMudEvent)
 {
-  /* BEGINNER'S GUIDE: This is the cleanup function for MUD events.
-   * It's called when an event completes or is cancelled.
-   *
-   * CRITICAL RESPONSIBILITY: This function must:
-   * 1. Remove the event from the entity's event list
-   * 2. Free all dynamically allocated memory
-   * 3. Handle special cases for ROOM and REGION events
-   *
-   * Memory leaks here will cause the game to eventually crash! */
-
   struct descriptor_data *d = NULL;
   struct char_data *ch = NULL;
   struct room_data *room = NULL;
   struct region_data *region = NULL;
   struct obj_data *obj = NULL;
+  room_rnum room_index;
+  region_rnum region_index;
 
-  room_vnum *rvnum = NULL;
-  region_vnum *regvnum = NULL;
+  if (pMudEvent == NULL || pMudEvent->owner_detached)
+    return;
+  pMudEvent->owner_detached = true;
 
-  /* Remove event from appropriate list based on entity type.
-   * Each entity type (char, room, etc.) maintains its own event list. */
   switch (mud_event_index[pMudEvent->iId].iEvent_Type)
   {
   case EVENT_WORLD:
-    remove_from_list(pMudEvent->pEvent, world_events);
+    remove_from_list(pMudEvent, world_events);
     break;
   case EVENT_DESC:
     d = (struct descriptor_data *)pMudEvent->pStruct;
-    remove_from_list(pMudEvent->pEvent, d->events);
+    if (d != NULL)
+    {
+      remove_from_list(pMudEvent, d->events);
+      if (d->events != NULL && d->events->iSize == 0)
+      {
+        free_list(d->events);
+        d->events = NULL;
+      }
+    }
     break;
   case EVENT_CHAR:
     ch = (struct char_data *)pMudEvent->pStruct;
-    remove_from_list(pMudEvent->pEvent, ch->events);
-
-    if (ch->events && ch->events->iSize == 0)
+    if (ch != NULL)
     {
-      free_list(ch->events);
-      ch->events = NULL;
+      remove_from_list(pMudEvent, ch->events);
+      if (ch->events != NULL && ch->events->iSize == 0)
+      {
+        free_list(ch->events);
+        ch->events = NULL;
+      }
     }
     break;
   case EVENT_OBJECT:
     obj = (struct obj_data *)pMudEvent->pStruct;
-    remove_from_list(pMudEvent->pEvent, obj->events);
-
-    if (obj->events && obj->events->iSize == 0)
+    if (obj != NULL)
     {
-      free_list(obj->events);
-      obj->events = NULL;
+      remove_from_list(pMudEvent, obj->events);
+      if (obj->events != NULL && obj->events->iSize == 0)
+      {
+        free_list(obj->events);
+        obj->events = NULL;
+      }
     }
     break;
   case EVENT_ROOM:
-    /* CRITICAL SECTION: Room Event Cleanup
-     *
-     * PROBLEM: Rooms can be deleted/modified by OLC (online creation) while
-     * events are attached to them. We store room VNUMs (virtual numbers)
-     * not pointers, because pointers can become invalid.
-     *
-     * SOLUTION: Always verify the room still exists before accessing it! */
-
-    rvnum = (room_vnum *)pMudEvent->pStruct;
-
-    /* CRITICAL BOUNDS CHECK - THIS PREVENTS CRASHES!
-     * Step 1: Save the vnum value BEFORE freeing the memory
-     * Step 2: Check if the room still exists in the world
-     * Step 3: Free the memory regardless (prevent memory leak)
-     * Step 4: Only access the room if it exists
-     *
-     * real_room() converts a VNUM to an array index (RNUM).
-     * It returns NOWHERE (-1) if the room doesn't exist.
-     * Accessing world[-1] would crash the game! */
-    room_vnum vnum_copy = *rvnum; /* Save vnum before freeing */
-    room_rnum room_index = real_room(vnum_copy);
-
-    /* Always free the allocated memory to prevent leaks */
-    free(pMudEvent->pStruct);
-
-    /* Safety: Only proceed if room exists */
+    if (pMudEvent->pStruct == NULL)
+      break;
+    room_index = real_room(*(room_vnum *)pMudEvent->pStruct);
     if (room_index == NOWHERE)
-    {
-      log("Info: Event for room vnum %d cancelled, but room no longer exists", vnum_copy);
-      break; /* Exit early - can't remove from non-existent room's list */
-    }
-
-    /* Now safe to access the room via world array */
+      break;
     room = &world[room_index];
-
-    /* log("[DEBUG] Removing Event %s from room %d, which has %d events.",mud_event_index[pMudEvent->iId].event_name, room->number, (room->events == NULL ? 0 : room->events->iSize)); */
-
-    remove_from_list(pMudEvent->pEvent, room->events);
-
-    if (room->events && room->events->iSize == 0)
-    { /* Added the null check here. - Ornir*/
+    remove_from_list(pMudEvent, room->events);
+    if (room->events != NULL && room->events->iSize == 0)
+    {
       free_list(room->events);
       room->events = NULL;
     }
     break;
   case EVENT_REGION:
-    /* CRITICAL SECTION: Region Event Cleanup
-     *
-     * BUG HISTORY: The original code had a USE-AFTER-FREE bug!
-     * It freed the memory first, then tried to use the freed memory
-     * in a log message. This caused random crashes.
-     *
-     * CORRECT ORDER:
-     * 1. Get the pointer to the vnum
-     * 2. Copy the vnum value to a local variable
-     * 3. Free the memory
-     * 4. Use the local copy (not the freed memory!)
-     *
-     * This is a classic C programming pitfall that beginners often hit! */
-
-    regvnum = (region_vnum *)pMudEvent->pStruct;
-
-    /* CRITICAL: Copy the vnum BEFORE freeing!
-     * After free(), the memory contents are undefined.
-     * Accessing freed memory is undefined behavior (UB) in C. */
-    region_vnum reg_vnum_copy = *regvnum;
-
-    /* Verify region exists. Regions can be reloaded/deleted dynamically.
-     * real_region() returns NOWHERE if the region doesn't exist.
-     * Accessing region_table[NOWHERE] would be out of bounds! */
-    region_rnum rnum = real_region(reg_vnum_copy);
-
-    /* NOW safe to free the memory */
-    free(pMudEvent->pStruct);
-
-    if (rnum != NOWHERE)
+    if (pMudEvent->pStruct == NULL)
+      break;
+    region_index = real_region(*(region_vnum *)pMudEvent->pStruct);
+    if (region_index != NOWHERE)
     {
-      /* Region exists - safe to remove event from its list */
-      region = &region_table[rnum];
-      remove_from_list(pMudEvent->pEvent, region->events);
-
-      /* Clean up empty event list */
-      if (region->events && region->events->iSize == 0)
+      region = &region_table[region_index];
+      remove_from_list(pMudEvent, region->events);
+      if (region->events != NULL && region->events->iSize == 0)
       {
         free_list(region->events);
         region->events = NULL;
       }
     }
-    else
-    {
-      /* Region no longer exists - this can happen during reload.
-       * We use reg_vnum_copy here, which is safe because we copied it
-       * before freeing the memory. */
-      log("Info: Event for region vnum %d cancelled, but region no longer exists", reg_vnum_copy);
-    }
     break;
   }
+}
 
-  if (pMudEvent->sVariables != NULL)
-    free(pMudEvent->sVariables);
+static struct game_event_result mud_event_dispatch(const struct game_event_context *context)
+{
+  struct mud_event_data *pMudEvent;
+  long next_delay;
 
-  pMudEvent->pEvent->event_obj = NULL;
+  pMudEvent = context != NULL ? context->payload : NULL;
+  if (pMudEvent == NULL || pMudEvent->iId <= eNULL || pMudEvent->iId >= eMUD_EVENT_COUNT ||
+      pMudEvent->runtime_handle.id != context->event_id ||
+      mud_event_index[pMudEvent->iId].func == NULL)
+    return game_event_result_complete();
+
+  next_delay = mud_event_index[pMudEvent->iId].func(pMudEvent);
+  if (next_delay <= 0)
+    return game_event_result_complete();
+  return game_event_result_reschedule_after((game_tick_t)next_delay);
+}
+
+static void cleanup_mud_event_payload(void *event_obj)
+{
+  struct mud_event_data *pMudEvent = event_obj;
+  int event_type;
+
+  if (pMudEvent == NULL)
+    return;
+#ifdef LUMINARI_CUTEST
+  mud_event_cleanup_count++;
+#endif
+
+  event_type = mud_event_index[pMudEvent->iId].iEvent_Type;
+  pMudEvent->runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
+  mud_event_detach_owner(pMudEvent);
+  if ((event_type == EVENT_ROOM || event_type == EVENT_REGION) && pMudEvent->pStruct != NULL)
+    free(pMudEvent->pStruct);
+
+  free(pMudEvent->sVariables);
   free(pMudEvent);
 }
 
+static void cleanup_mud_event_native(void *event_obj)
+{
+  cleanup_mud_event_payload(event_obj);
+}
+
+
+#ifdef LUMINARI_CUTEST
+void mud_event_test_reset_cleanup_count(void)
+{
+  mud_event_cleanup_count = 0;
+}
+
+int mud_event_test_cleanup_count(void)
+{
+  return mud_event_cleanup_count;
+}
+#endif
+
 struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId)
 {
-  struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
   struct iterator_data it;
@@ -849,12 +1301,9 @@ struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId)
     return NULL;
 
 
-  for (pEvent = (struct event *)merge_iterator(&it, ch->events); pEvent != NULL;
-       pEvent = next_in_list(&it))
+  for (pMudEvent = merge_iterator(&it, ch->events); pMudEvent != NULL;
+       pMudEvent = next_in_list(&it))
   {
-    if (!pEvent->isMudEvent)
-      continue;
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
     if (pMudEvent->iId == iId)
     {
       found = TRUE;
@@ -871,7 +1320,6 @@ struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId)
 
 struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId)
 {
-  struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
 
@@ -882,11 +1330,8 @@ struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId)
     return NULL;
 
   simple_list(NULL);
-  while ((pEvent = (struct event *)simple_list(rm->events)) != NULL)
+  while ((pMudEvent = simple_list(rm->events)) != NULL)
   {
-    if (!pEvent->isMudEvent)
-      continue;
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
     if (pMudEvent->iId == iId)
     {
       found = TRUE;
@@ -903,7 +1348,6 @@ struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId)
 
 struct mud_event_data *obj_has_mud_event(struct obj_data *obj, event_id iId)
 {
-  struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
 
@@ -914,11 +1358,8 @@ struct mud_event_data *obj_has_mud_event(struct obj_data *obj, event_id iId)
     return NULL;
 
   simple_list(NULL);
-  while ((pEvent = (struct event *)simple_list(obj->events)) != NULL)
+  while ((pMudEvent = simple_list(obj->events)) != NULL)
   {
-    if (!pEvent->isMudEvent)
-      continue;
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
     if (pMudEvent->iId == iId)
     {
       found = TRUE;
@@ -935,7 +1376,6 @@ struct mud_event_data *obj_has_mud_event(struct obj_data *obj, event_id iId)
 
 struct mud_event_data *region_has_mud_event(struct region_data *reg, event_id iId)
 {
-  struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
 
@@ -946,11 +1386,8 @@ struct mud_event_data *region_has_mud_event(struct region_data *reg, event_id iI
     return NULL;
 
   simple_list(NULL);
-  while ((pEvent = (struct event *)simple_list(reg->events)) != NULL)
+  while ((pMudEvent = simple_list(reg->events)) != NULL)
   {
-    if (!pEvent->isMudEvent)
-      continue;
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
     if (pMudEvent->iId == iId)
     {
       found = TRUE;
@@ -977,7 +1414,6 @@ struct mud_event_data *region_has_mud_event(struct region_data *reg, event_id iI
  */
 struct mud_event_data *world_has_mud_event(event_id iId)
 {
-  struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
 
@@ -992,15 +1428,8 @@ struct mud_event_data *world_has_mud_event(event_id iId)
   /* Search through all world events for one matching the requested ID.
    * We use simple_list() for safe iteration. */
   simple_list(NULL); /* Reset the iterator */
-  while ((pEvent = (struct event *)simple_list(world_events)) != NULL)
+  while ((pMudEvent = simple_list(world_events)) != NULL)
   {
-    /* Skip non-MUD events (shouldn't be any in world_events, but be safe) */
-    if (!pEvent->isMudEvent)
-      continue;
-
-    /* Get the MUD event data from this event */
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
-
     /* Check if this is the event we're looking for */
     if (pMudEvent->iId == iId)
     {
@@ -1019,7 +1448,6 @@ struct mud_event_data *world_has_mud_event(event_id iId)
 
 void event_cancel_specific(struct char_data *ch, event_id iId)
 {
-  struct event *pEvent;
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
 
@@ -1039,11 +1467,8 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
 
   /* Use simple_list for safer iteration when we're going to modify the list */
   simple_list(NULL); /* Reset the simple list iterator */
-  while ((pEvent = (struct event *)simple_list(ch->events)) != NULL)
+  while ((pMudEvent = simple_list(ch->events)) != NULL)
   {
-    if (!pEvent->isMudEvent)
-      continue;
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
     if (pMudEvent->iId == iId)
     {
       found = TRUE;
@@ -1056,8 +1481,8 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
   {
     /* act("event found for $n, attempting to cancel", FALSE, ch, NULL, NULL, TO_ROOM); */
     /* send_to_char(ch, "Event found: %d.\r\n", iId); */
-    if (event_is_queued(pEvent))
-      event_cancel(pEvent);
+    if (mud_event_is_live(pMudEvent))
+      mud_event_cancel(pMudEvent);
   }
   else
   {
@@ -1068,219 +1493,81 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
   return;
 }
 
+static void clear_owned_event_list(struct list_data **owner_events, uint64_t *generation)
+{
+  struct mud_event_data *mud_event;
+  struct item_data *item;
+  struct list_data *pending;
+
+  if (generation != NULL)
+    *generation = 0;
+  if (owner_events == NULL || *owner_events == NULL)
+    return;
+
+  pending = create_list();
+  for (item = (*owner_events)->pFirstItem; item != NULL; item = item->pNextItem)
+  {
+    mud_event = item->pContent;
+    if (mud_event == NULL)
+      continue;
+    mud_event->owner_detached = true;
+    add_to_list(mud_event, pending);
+  }
+
+  free_list(*owner_events);
+  *owner_events = NULL;
+  while (pending->pFirstItem != NULL)
+  {
+    mud_event = pending->pFirstItem->pContent;
+    remove_from_list(mud_event, pending);
+    mud_event_cancel(mud_event);
+  }
+  free_list(pending);
+}
+
 void clear_char_event_list(struct char_data *ch)
 {
-  /* BEGINNER'S GUIDE: This function clears all events from a character.
-   * This is typically called when a character dies or leaves the game.
-   *
-   * CRITICAL SAFETY: We use a TWO-PASS algorithm to prevent crashes:
-   * Pass 1: Collect all events that need to be cancelled
-   * Pass 2: Cancel the collected events
-   *
-   * Why two passes? If we cancel events while iterating the original list,
-   * the cancellation might modify the list we're iterating, causing crashes! */
+  if (ch != NULL)
+    clear_owned_event_list(&ch->events, &ch->event_owner_generation);
+}
 
-  struct event *pEvent = NULL;
-  struct item_data *pItem = NULL;
-  struct item_data *pNextItem = NULL;
-  struct list_data *temp_list = NULL;
+void clear_descriptor_event_list(struct descriptor_data *d)
+{
+  if (d != NULL)
+    clear_owned_event_list(&d->events, &d->event_owner_generation);
+}
 
-  /* Safety check: If character has no event list, nothing to do */
-  if (ch->events == NULL)
-    return;
-
-  /* Double-check: Ensure events list exists and has items */
-  if (!ch->events || ch->events->iSize == 0)
-    return;
-
-  /* Create a temporary list to safely collect events for cancellation.
-   * This is our "staging area" - we'll copy references to events here,
-   * then cancel them all at once. This avoids the dreaded "modifying
-   * a list while iterating it" problem. */
-  temp_list = create_list();
-
-  /* PASS 1: Collect all events that need cancelling
-   * We iterate through the character's events and copy REFERENCES
-   * (not the events themselves) to our temporary list. */
-  pItem = ch->events->pFirstItem;
-  while (pItem)
+void clear_obj_event_list(struct obj_data *obj)
+{
+  if (obj != NULL)
   {
-    /* CRITICAL: Cache the next pointer BEFORE doing anything!
-     * Why? Because if something modifies the list, pItem->pNextItem
-     * might become invalid. By caching it now, we're safe. */
-    pNextItem = pItem->pNextItem;
-    pEvent = (struct event *)pItem->pContent;
-
-    /* IMPORTANT EDGE CASE: Death during event execution
-     * If a character dies WHILE one of their events is executing,
-     * we must NOT cancel the currently-executing event or the game crashes!
-     * event_is_queued() returns FALSE for currently-executing events,
-     * so we only collect events that are queued (waiting to execute). */
-    if (pEvent && event_is_queued(pEvent))
-      add_to_list(pEvent, temp_list);
-
-    pItem = pNextItem;
+    domain_event_world_forget_object(obj);
+    clear_owned_event_list(&obj->events, &obj->event_owner_generation);
   }
-
-  /* PASS 2: Cancel all the collected events
-   * Now that we have a stable list of events to cancel,
-   * we can safely cancel them without worrying about list corruption. */
-  pItem = temp_list->pFirstItem;
-  while (pItem)
-  {
-    /* Again, cache next pointer before cancellation */
-    pNextItem = pItem->pNextItem;
-    pEvent = (struct event *)pItem->pContent;
-
-    if (pEvent)
-      event_cancel(pEvent); /* This will free memory and remove from original list */
-
-    pItem = pNextItem;
-  }
-
-  /* Clean up our temporary list (the events themselves are already freed) */
-  free_list(temp_list);
 }
 
 void clear_room_event_list(struct room_data *rm)
 {
-  /* BEGINNER'S GUIDE: This function clears all events from a room.
-   * Rooms can have events like darkness timers, respawn timers, etc.
-   * This is called when a room is being deleted or reset.
-   *
-   * Like clear_char_event_list, we use a TWO-PASS algorithm for safety. */
-
-  struct event *pEvent = NULL;
-  struct list_data *temp_list = NULL;
-
-  /* Safety check: No event list means nothing to do */
-  if (rm->events == NULL)
-    return;
-
-  /* Safety check: Empty list means nothing to do */
-  if (rm->events->iSize == 0)
-    return;
-
-  /* Create a temporary "staging area" for events to be cancelled.
-   * This prevents list corruption during iteration. */
-  temp_list = create_list();
-
-  /* PASS 1: Collect all events that need cancelling
-   * simple_list() is a special iterator that's safe for list traversal.
-   * Calling it with NULL resets the iterator. */
-  simple_list(NULL); /* Reset the iterator */
-  while ((pEvent = (struct event *)simple_list(rm->events)) != NULL)
+  if (rm != NULL)
   {
-    /* Only collect events that are queued (not currently executing) */
-    if (event_is_queued(pEvent))
-      add_to_list(pEvent, temp_list);
-  }
-  simple_list(NULL); /* Clean up the iterator state */
+    struct domain_event_bus *bus = domain_event_runtime_bus();
+    struct domain_entity_handle owner = domain_entity_handle_none();
 
-  /* PASS 2: Cancel all the collected events
-   * Now we iterate through our temporary list and cancel each event. */
-  simple_list(NULL); /* Reset for the temp list */
-  while ((pEvent = (struct event *)simple_list(temp_list)) != NULL)
-  {
-    event_cancel(pEvent); /* Cancel and free the event */
+    if (bus != NULL && rm->event_owner_generation != 0U)
+    {
+      owner.kind = DOMAIN_ENTITY_ROOM;
+      owner.runtime_id = (uint64_t)rm->number + 1U;
+      owner.generation = rm->event_owner_generation;
+      (void)domain_event_unsubscribe_owner(bus, owner, NULL);
+    }
+    clear_owned_event_list(&rm->events, &rm->event_owner_generation);
   }
-  simple_list(NULL); /* Clean up the iterator state */
-
-  /* Free our temporary list (events are already freed by event_cancel) */
-  free_list(temp_list);
 }
 
 void clear_region_event_list(struct region_data *reg)
 {
-  struct event *pEvent = NULL;
-
-  /* BEGINNER'S GUIDE: This function clears all events from a region.
-   * A region is a collection of rooms/areas in the game world.
-   * This is called when a region is being deleted or reset.
-   *
-   * CRITICAL: We must be very careful here to avoid double-free bugs!
-   * A double-free happens when we try to free the same memory twice,
-   * which causes the game to crash. */
-
-  /* Safety check: If there's no event list, nothing to do */
-  if (reg->events == NULL)
-    return;
-
-  /* Safety check: If the list exists but is empty, nothing to do */
-  if (reg->events->iSize == 0)
-    return;
-
-  /* IMPORTANT ALGORITHM: Process-First-Until-Empty Pattern
-   * Instead of iterating through all items (which can cause problems when
-   * the list is modified during iteration), we repeatedly process just the
-   * FIRST item until the list is empty.
-   *
-   * Why this works:
-   * 1. We always get the first item from the list
-   * 2. When we cancel an event, it removes itself from the list
-   * 3. The "next" first item is what was previously the second item
-   * 4. We continue until no items remain
-   *
-   * This pattern PREVENTS double-free because we never hold pointers
-   * to items that might get freed during the cancellation process. */
-  while (reg->events && reg->events->iSize > 0)
-  {
-    /* Always work with the first event in the list.
-     * After we process it, it will be removed, and the next event
-     * will become the new first event. */
-    pEvent = (struct event *)reg->events->pFirstItem->pContent;
-
-    /* Check if this event is valid and queued (scheduled to run) */
-    if (pEvent && event_is_queued(pEvent))
-    {
-      /* Cancel the event. This does THREE important things:
-       * 1. Stops the event from executing
-       * 2. Calls free_mud_event() to clean up memory
-       * 3. Removes the event from reg->events list
-       *
-       * After this call, pEvent is no longer valid! */
-      event_cancel(pEvent);
-    }
-    else
-    {
-      /* Event exists but is not queued (maybe already executed?) */
-      if (pEvent)
-      {
-        /* Just remove it from the list without canceling */
-        remove_from_list(pEvent, reg->events);
-      }
-      else
-      {
-        /* CORRUPTION HANDLING: The list item exists but has no content.
-         * This shouldn't happen, but we handle it gracefully to prevent crashes.
-         * We manually remove the corrupted item from the linked list. */
-        struct item_data *pItem = reg->events->pFirstItem;
-
-        /* Update the list's first item pointer to skip the corrupted item */
-        reg->events->pFirstItem = pItem->pNextItem;
-
-        /* Fix the backward link of the new first item (if it exists) */
-        if (reg->events->pFirstItem)
-          reg->events->pFirstItem->pPrevItem = NULL;
-        else
-          reg->events->pLastItem = NULL; /* List is now empty */
-
-        /* Update the list size counter */
-        reg->events->iSize--;
-
-        /* Free the corrupted list item structure */
-        free(pItem);
-      }
-    }
-  }
-
-  /* Final cleanup: If the list still exists but is empty, free it.
-   * This saves memory and ensures reg->events is NULL when no events exist. */
-  if (reg->events && reg->events->iSize == 0)
-  {
-    free_list(reg->events);
-    reg->events = NULL;
-  }
+  if (reg != NULL)
+    clear_owned_event_list(&reg->events, &reg->event_owner_generation);
 }
 
 /* ripley's version of change_event_duration
@@ -1288,7 +1575,6 @@ void clear_region_event_list(struct region_data *reg)
  */
 void change_event_duration(struct char_data *ch, event_id iId, long time)
 {
-  struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   struct mud_event_data *pNewMudEvent = NULL;
   bool found = FALSE;
@@ -1299,13 +1585,8 @@ void change_event_duration(struct char_data *ch, event_id iId, long time)
     return;
 
   simple_list(NULL);
-  while ((pEvent = (struct event *)simple_list(ch->events)) != NULL)
+  while ((pMudEvent = simple_list(ch->events)) != NULL)
   {
-    if (!pEvent->isMudEvent)
-      continue;
-
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
-
     if (pMudEvent->iId == iId)
     {
       found = TRUE;
@@ -1323,8 +1604,8 @@ void change_event_duration(struct char_data *ch, event_id iId, long time)
     pNewMudEvent = new_mud_event(iId, ch, sVarCopy);
 
     /* Cancel the old event */
-    if (event_is_queued(pEvent))
-      event_cancel(pEvent);
+    if (mud_event_is_live(pMudEvent))
+      mud_event_cancel(pMudEvent);
 
     /* Now attach the new event */
     attach_mud_event(pNewMudEvent, time);
@@ -1338,7 +1619,6 @@ void change_event_duration(struct char_data *ch, event_id iId, long time)
 /* zusuk: change an event's svariables value */
 void change_event_svariables(struct char_data *ch, event_id iId, char *sVariables)
 {
-  struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   struct mud_event_data *pNewMudEvent = NULL;
   bool found = FALSE;
@@ -1349,16 +1629,11 @@ void change_event_svariables(struct char_data *ch, event_id iId, char *sVariable
     return;
 
   simple_list(NULL);
-  while ((pEvent = (struct event *)simple_list(ch->events)) != NULL)
+  while ((pMudEvent = simple_list(ch->events)) != NULL)
   {
-    if (!pEvent->isMudEvent)
-      continue;
-
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
-
     if (pMudEvent->iId == iId)
     {
-      time = event_time(pMudEvent->pEvent);
+      time = mud_event_remaining(pMudEvent);
       found = TRUE;
       break;
     }
@@ -1371,8 +1646,8 @@ void change_event_svariables(struct char_data *ch, event_id iId, char *sVariable
     pNewMudEvent = new_mud_event(iId, ch, sVariables);
 
     /* Cancel the old event */
-    if (event_is_queued(pEvent))
-      event_cancel(pEvent);
+    if (mud_event_is_live(pMudEvent))
+      mud_event_cancel(pMudEvent);
 
     /* Now attach the new event */
     attach_mud_event(pNewMudEvent, time);

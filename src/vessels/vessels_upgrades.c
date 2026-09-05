@@ -450,42 +450,39 @@ void vessel_pay_insurance(struct greyhawk_ship_data *ship)
  * subsystems. Wear never sinks a ship by itself - it stops at 1 structure
  * per section - but it makes a neglected hull fragile in a fight.
  */
+void vessel_upkeep_tick_one(struct greyhawk_ship_data *ship)
+{
+  if (!is_valid_ship(ship) || ship->speed <= 0)
+    return;
+
+  ship->wear_ticks++;
+  if (ship->wear_ticks < SHIP_WEAR_INTERVAL)
+    return;
+  ship->wear_ticks = 0;
+
+  if (ship->farmor > 0)
+    ship->farmor--;
+  if (ship->rarmor > 0)
+    ship->rarmor--;
+  if (ship->parmor > 0)
+    ship->parmor--;
+  if (ship->sarmor > 0)
+    ship->sarmor--;
+  if (ship->mainsail > 1)
+    ship->mainsail--;
+  if (ship->turnrate > 1)
+    ship->turnrate--;
+
+  VSSL_DEBUG("Ship %d wear tick: armor %d/%d/%d/%d sail %d rudder %d", ship->shipnum, ship->farmor,
+             ship->rarmor, ship->parmor, ship->sarmor, ship->mainsail, ship->turnrate);
+}
+
 void vessel_upkeep_tick(void)
 {
-  struct greyhawk_ship_data *ship;
   int i;
 
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
-  {
-    ship = &greyhawk_ships[i];
-    if (!is_valid_ship(ship) || ship->speed <= 0)
-    {
-      continue; /* Moored ships do not wear */
-    }
-
-    ship->wear_ticks++;
-    if (ship->wear_ticks < SHIP_WEAR_INTERVAL)
-    {
-      continue;
-    }
-    ship->wear_ticks = 0;
-
-    if (ship->farmor > 0)
-      ship->farmor--;
-    if (ship->rarmor > 0)
-      ship->rarmor--;
-    if (ship->parmor > 0)
-      ship->parmor--;
-    if (ship->sarmor > 0)
-      ship->sarmor--;
-    if (ship->mainsail > 1)
-      ship->mainsail--;
-    if (ship->turnrate > 1)
-      ship->turnrate--;
-
-    VSSL_DEBUG("Ship %d wear tick: armor %d/%d/%d/%d sail %d rudder %d", i, ship->farmor,
-               ship->rarmor, ship->parmor, ship->sarmor, ship->mainsail, ship->turnrate);
-  }
+    vessel_upkeep_tick_one(&greyhawk_ships[i]);
 }
 
 /**

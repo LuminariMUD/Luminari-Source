@@ -6,7 +6,7 @@ events, and Phase 17 exterior customization implemented; wilderness tactical
 chart, lookout view, dynamic at-sea narrative, and cosmetics accepted;
 development preflight and schema rehearsal pass; player-data balance, human
 beta, and staged production rollout remain
-**Last Updated**: 2026-08-02
+**Last Updated**: 2026-08-31
 **Scope**: Current behavior reference. For the durable product contract see
 [Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md),
 including its
@@ -65,7 +65,7 @@ and operator controls in one system.
 
 | Tier | Type | Memory | Interior | Use Case |
 |------|------|--------|----------|----------|
-| **Vessel** | Ships, airships, submarines | 4,928-byte base struct | Multi-room | Exploration, cargo, combat |
+| **Vessel** | Ships, airships, submarines | 5,104-byte base struct | Multi-room | Exploration, cargo, combat |
 | **Vehicle** | Carts, wagons, mounts | 152-byte base struct | None | Land travel, cargo, transport |
 
 ### System Components
@@ -73,6 +73,7 @@ and operator controls in one system.
 | Component | Description | Source Files |
 |-----------|-------------|--------------|
 | Core Vessels | Ship management, coordinates, movement | vessels.c, vessels.h |
+| Periodic Ownership | Per-vessel deadlines, global service deadline, rollback | vessel_periodic.c |
 | Tactical Chart | Wilderness terrain, regions, range rings, contacts | vessels_tactical.c |
 | Lookout View | Eight-bearing wilderness samples and visible contacts | vessels_lookout.c |
 | At-Sea Narrative | Contextual descriptions and occupied-hull ambience | vessels_narrative.c |
@@ -99,10 +100,32 @@ and operator controls in one system.
 
 ### Memory Layout
 
-- **Vessel** (`greyhawk_ship_data`): 4,928 bytes, max 500 = about 2.35 MiB
+- **Vessel** (`greyhawk_ship_data`): 5,104 bytes, max 500 = about 2.43 MiB
 - **Autopilot** (`autopilot_data`): 72 bytes (optional, attached to vessel)
 - **Schedule** (`vessel_schedule`): ~32 bytes (optional, attached to vessel)
 - **Vehicle** (`vehicle_data`): 152 bytes, max 1000 = about 148 KB
+
+### Periodic Scheduling
+
+The default `LUMINARI_VESSEL_EVENTS=scheduled` mode gives every valid
+Greyhawk vessel one generation-aware event. It wakes on the next aligned
+0.5-second boundary for autopilot, hunter, combat, crew, upkeep, narrative,
+weather, and encounter work, and also carries that vessel's aligned
+75-second schedule deadline. One service-owned event retains genuinely global
+vessel event, trade-restock, MSDP, and merchant work. Fixed-interior RoL hulls
+receive their own 2.5-second events through direct object lifecycle hooks.
+
+Vessels remain eligible without players aboard. Spawn, persistence load,
+replacement, relinking, sinking, purge, and extraction synchronize ownership
+directly. Saving a changed `cedit` vessel-system setting immediately cancels
+or recreates the service deadline and owner registry. If the service deadline
+cannot be restored, vessel work falls back to the legacy heartbeat.
+The owner registry admits all 501 fleet slots, records capacity
+rejections, and refills a released slot without scanning the world. Set
+`LUMINARI_VESSEL_EVENTS=legacy` before restart to restore all former vessel
+heartbeat paths as one exclusive rollback mode. A failed mandatory service
+event also selects that complete legacy mode; partial scheduled operation is
+not allowed.
 
 ### Wilderness Coordinates
 
@@ -418,7 +441,8 @@ int waypoint_add(struct ship_route *route, float x, float y, float z, const char
 struct waypoint *waypoint_get_current(struct greyhawk_ship_data *ship);
 struct ship_route *route_create(const char *name);
 int route_save(struct ship_route *route);
-void autopilot_tick(void);                            // Called each game tick
+bool autopilot_tick_one(struct greyhawk_ship_data *ship); // Scheduled owner work
+void autopilot_tick(void);                            // Legacy rollback wrapper
 ```
 
 A timed waypoint is a physical stop, not only an autopilot state. Entering its
@@ -1097,7 +1121,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 | Component | Per unit | Maximum | Base total |
 |-----------|----------|---------|------------|
-| Vessel | 4,928 bytes | 500 | About 2.35 MiB |
+| Vessel | 5,104 bytes | 500 | About 2.43 MiB |
 | Vehicle | 152 bytes | 1,000 | About 148 KB |
 | Autopilot | 72 bytes | Optional per vessel | Up to about 36 KB |
 | Schedule | About 32 bytes | Optional per vessel | Up to about 16 KB |
@@ -1106,7 +1130,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 | Structure | Size |
 |-----------|------|
-| `struct greyhawk_ship_data` | 4,928 bytes |
+| `struct greyhawk_ship_data` | 5,104 bytes |
 | `struct vehicle_data` | 152 bytes |
 | `struct waypoint` | 88 bytes |
 | `struct ship_route` | 1840 bytes |
@@ -1528,6 +1552,7 @@ and the trigger was removed.
 |------|---------|
 | `src/vessels/vessels.h` | Structures, constants, prototypes (includes vehicle definitions) |
 | `src/vessels/vessels.c` | Core commands, wilderness movement, terrain system |
+| `src/vessels/vessel_periodic.c` | Bounded vessel owner/service deadlines and rollback selection |
 | `src/vessels/vessels_tactical.c` | Canonical wilderness chart, range rings, regions, and damage-aware contacts |
 | `src/vessels/vessels_lookout.c` | Eight-bearing canonical wilderness lookout and visible-contact roster |
 | `src/vessels/vessels_narrative.c` | Class-, speed-, weather-, depth-, and region-aware at-sea prose |
@@ -1836,6 +1861,9 @@ or keyword count is insufficient once later phases extend the system.
 
 - `shiplist` shows fleet state and wilderness dynamic-room utilization;
   `shiplist summary` keeps the health totals available at fleet scale.
+- `perfmon entities` shows the vessel periodic mode, owner registry,
+  validation mismatches, capacity rejections, owner/service callbacks, fixed
+  RoL ownership, and fast/mud-hour execution counts in an 80-column block.
 - `vmerchant list` shows every configured merchant generation, lifecycle
   state, live hull, cargo mapping, loss count, and reconciliation error.
 - `vessel_bounty_hunts` exposes each hunter's target, generation, active slot,
@@ -1858,7 +1886,7 @@ or keyword count is insufficient once later phases extend the system.
 |------|--------|------------|
 | Fleet-slot and object identity diverge | Commands address the wrong ship or lose the exterior object | Keep one canonical slot identity, validate every boundary, cover legacy and `vedit` paths |
 | Shared wilderness rooms are exhausted | Vessels interfere with all wilderness travelers | Monitor pool pressure, reclaim rooms, and test graceful degradation |
-| Full tick exceeds 25 ms | Game-loop latency at fleet scale | Benchmark all live subsystems together at 500 ships |
+| Due vessel work exceeds 25 ms | Game-loop latency at fleet scale | Benchmark all live subsystems together at 500 ships and inspect owner/service attribution |
 | Persistence or schema migration loses property | Ships, cargo, ownership, or crew are corrupted | Auto-migration, verification and rollback SQL, snapshot rehearsal, lifecycle tests |
 | PvP entry point bypasses consent | Non-consensual property loss | Central `vessel_pvp_permitted()` gate and entry-point coverage |
 | Data-driven economy is exploitable | Infinite profit or cargo duplication | Hard price bounds, atomic claims, copyover tests, and sustained simulations |
