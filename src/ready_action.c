@@ -6,12 +6,15 @@
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
+#include "db.h"
 #include "domain_event_runtime.h"
 #include "domain_event_types.h"
 #include "domain_event_world.h"
 #include "event_runtime.h"
 #include "handler.h"
 #include "interpreter.h"
+#include "constants.h"
+#include "movement/door_state.h"
 
 #define READY_COMMAND_MAX (MAX_INPUT_LENGTH - 1)
 #define READY_TARGET_MAX 80
@@ -25,6 +28,9 @@ struct ready_action
   struct domain_event_subscription_handle death_subscription;
   struct event_runtime_handle execution_handle;
   unsigned int references;
+  int door_direction; /* -1 for entry readiness. */
+  uint64_t exit_identity;
+  struct domain_entity_handle destination;
   char *command;
   char *target;
 };
@@ -37,6 +43,45 @@ struct ready_execution
 };
 
 static game_event_type_id_t ready_execution_event_type;
+
+#define READY_LATENCY_CAPACITY 1024U
+static uint64_t ready_lateness[READY_LATENCY_CAPACITY];
+static uint64_t ready_callbacks;
+
+void ready_action_latency_reset(void)
+{
+  ready_callbacks = 0U;
+  memset(ready_lateness, 0, sizeof(ready_lateness));
+}
+
+static int compare_lateness(const void *left, const void *right)
+{
+  uint64_t a = *(const uint64_t *)left;
+  uint64_t b = *(const uint64_t *)right;
+
+  return (a > b) - (a < b);
+}
+
+void ready_action_latency_read(struct ready_action_latency *stats)
+{
+  uint64_t sorted[READY_LATENCY_CAPACITY];
+  size_t count = MIN(ready_callbacks, READY_LATENCY_CAPACITY);
+
+  if (stats == NULL)
+    return;
+  memset(stats, 0, sizeof(*stats));
+  stats->callbacks = ready_callbacks;
+  stats->samples = count;
+  if (count == 0U)
+    return;
+  memcpy(sorted, ready_lateness, count * sizeof(*sorted));
+  qsort(sorted, count, sizeof(*sorted), compare_lateness);
+  stats->p50 = sorted[(count * 50U + 99U) / 100U - 1U];
+  stats->p95 = sorted[(count * 95U + 99U) / 100U - 1U];
+  stats->p99 = sorted[(count * 99U + 99U) / 100U - 1U];
+  stats->maximum = sorted[count - 1U];
+}
+
 
 static struct game_event_owner ready_owner(struct domain_entity_handle owner)
 {
@@ -120,18 +165,47 @@ static void ready_execution_cleanup(void *payload)
   free(payload);
 }
 
+static bool ready_door_is_live(const struct ready_action *action, struct char_data *ch)
+{
+  struct room_direction_data *exit;
+
+  if (IN_ROOM(ch) == NOWHERE || IN_ROOM(ch) > top_of_world ||
+      !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(ch)), action->room))
+    return false;
+  exit = world[IN_ROOM(ch)].dir_option[action->door_direction];
+  return exit != NULL &&
+         door_state_identity(IN_ROOM(ch), action->door_direction) == action->exit_identity &&
+         domain_entity_handle_equal(domain_event_room_handle(exit->to_room), action->destination) &&
+         (exit->exit_info & EX_ISDOOR) != 0 && !is_exit_hidden(ch, action->door_direction);
+}
+
 static struct game_event_result ready_execution_callback(const struct game_event_context *context)
 {
   struct ready_execution *execution = context != NULL ? context->payload : NULL;
   struct domain_event_bus *bus = domain_event_runtime_bus();
   struct char_data *ch;
 
+  if (context != NULL)
+  {
+    ready_lateness[ready_callbacks % READY_LATENCY_CAPACITY] =
+        context->now_tick > context->deadline_tick ? context->now_tick - context->deadline_tick
+                                                   : 0U;
+    ready_callbacks++;
+  }
   if (execution == NULL || bus == NULL)
     return game_event_result_complete();
   ch = resolve_character(bus, execution->owner);
   if (ch == NULL || ch->ready_action == NULL)
     return game_event_result_complete();
   ch->ready_action->execution_handle = EVENT_RUNTIME_HANDLE_NONE;
+  if (ch->ready_action->door_direction >= 0 &&
+      (!ready_door_is_live(ch->ready_action, ch) ||
+       EXIT_FLAGGED(EXIT(ch, ch->ready_action->door_direction), EX_CLOSED)))
+  {
+    send_to_char(ch, "Your readied action is cancelled: the watched door is no longer open.\r\n");
+    cancel_action(ch->ready_action, false);
+    return game_event_result_complete();
+  }
   cancel_action(ch->ready_action, false);
   if (ch == NULL || GET_POS(ch) <= POS_DEAD || IN_ROOM(ch) == NOWHERE ||
       !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(ch)), execution->room))
@@ -171,6 +245,7 @@ bool ready_action_runtime_init(void)
 
 void ready_action_runtime_shutdown(void)
 {
+  ready_action_latency_reset();
   ready_execution_event_type = 0U;
 }
 
@@ -183,45 +258,78 @@ static bool target_matches(const struct ready_action *action, struct char_data *
   return isname(action->target, entrant->player.name) != 0;
 }
 
-static void ready_entry_handler(const struct domain_event_context *context, void *handler_context)
+static bool queue_ready_execution(struct ready_action *action, struct char_data *owner)
 {
-  const struct domain_character_moved *moved = context->payload;
-  struct ready_action *action = handler_context;
   struct ready_execution *execution;
-  struct char_data *owner;
-  struct char_data *entrant;
-  struct game_event_owner event_owner;
-  struct event_runtime_handle event_handle;
+  struct event_runtime_handle handle = EVENT_RUNTIME_HANDLE_NONE;
 
-  owner = resolve_character(context->bus, action->owner);
-  entrant = resolve_character(context->bus, moved->character);
   if (!event_runtime_handle_is_none(action->execution_handle))
-    return;
-  if (owner == NULL || owner->ready_action != action || entrant == NULL || entrant == owner ||
-      !domain_entity_handle_equal(moved->to_room, action->room) || !target_matches(action, entrant))
-    return;
+    return false;
   execution = calloc(1U, sizeof(*execution));
   if (execution == NULL)
   {
     send_to_char(owner, "You cannot hold that readied action.\r\n");
     cancel_action(action, false);
-    return;
+    return false;
   }
   execution->owner = action->owner;
   execution->room = action->room;
   snprintf(execution->command, sizeof(execution->command), "%s", action->command);
-  event_owner = ready_owner(action->owner);
-  event_handle = EVENT_RUNTIME_HANDLE_NONE;
-  if (event_runtime_schedule_owned_after(ready_execution_event_type, event_owner, 1U, execution,
-                                         &event_handle) != GAME_SCHEDULER_OK)
+  if (event_runtime_schedule_owned_after(ready_execution_event_type, ready_owner(action->owner), 1U,
+                                         execution, &handle) != GAME_SCHEDULER_OK)
   {
     free(execution);
     send_to_char(owner, "Your readied action could not be triggered.\r\n");
     cancel_action(action, false);
+    return false;
+  }
+  action->execution_handle = handle;
+  return true;
+}
+
+static void ready_entry_handler(const struct domain_event_context *context, void *handler_context)
+{
+  const struct domain_character_moved *moved = context->payload;
+  struct ready_action *action = handler_context;
+  struct char_data *owner = resolve_character(context->bus, action->owner);
+  struct char_data *entrant = resolve_character(context->bus, moved->character);
+
+  if (owner == NULL || owner->ready_action != action || entrant == NULL || entrant == owner ||
+      !domain_entity_handle_equal(moved->to_room, action->room) || !target_matches(action, entrant))
+    return;
+  if (queue_ready_execution(action, owner))
+    send_to_char(owner, "Your readied action triggers as %s enters.\r\n", GET_NAME(entrant));
+}
+
+static void ready_door_handler(const struct domain_event_context *context, void *handler_context)
+{
+  const struct domain_door_state_changed *changed = context->payload;
+  struct ready_action *action = handler_context;
+  struct char_data *owner = resolve_character(context->bus, action->owner);
+
+  if (owner == NULL || owner->ready_action != action ||
+      changed->direction != action->door_direction ||
+      !domain_entity_handle_equal(changed->room, action->room))
+    return;
+  if (!ready_door_is_live(action, owner) || changed->cause == DOMAIN_DOOR_EDIT ||
+      changed->exit_identity != action->exit_identity)
+  {
+    cancel_action(action, true);
     return;
   }
-  send_to_char(owner, "Your readied action triggers as %s enters.\r\n", GET_NAME(entrant));
-  action->execution_handle = event_handle;
+  /* Administrative changes cannot trigger a command, including a reset after
+   * a gameplay open has queued one. A close cancels pending execution even if
+   * another open arrives before the callback. */
+  if (changed->cause != DOMAIN_DOOR_GAMEPLAY || (changed->current_state & EX_CLOSED) != 0)
+  {
+    if (!event_runtime_handle_is_none(action->execution_handle))
+      cancel_action(action, true);
+    return;
+  }
+  if ((changed->previous_state & EX_CLOSED) != 0 &&
+      !EXIT_FLAGGED(EXIT(owner, action->door_direction), EX_CLOSED) &&
+      queue_ready_execution(action, owner))
+    send_to_char(owner, "Your readied action triggers as the door opens.\r\n");
 }
 
 static void ready_movement_handler(const struct domain_event_context *context,
@@ -265,12 +373,11 @@ static char *trimmed_copy(const char *start, size_t length, size_t maximum)
   return copy;
 }
 
-static const char *find_entry_clause(const char *argument)
+static const char *find_ready_clause(const char *argument, const char *clause)
 {
-  static const char clause[] = " on entry";
   const char *found = NULL;
   const char *cursor;
-  size_t clause_length = sizeof(clause) - 1U;
+  size_t clause_length = strlen(clause);
 
   for (cursor = argument; *cursor != '\0'; cursor++)
     if (!strncasecmp(cursor, clause, clause_length) &&
@@ -310,6 +417,10 @@ ACMD(do_ready)
   const char *argument_end;
   char first_word[MAX_INPUT_LENGTH];
   size_t clause_length = strlen(" on entry");
+  const char *door_clause;
+  int direction = -1;
+  char direction_name[MAX_INPUT_LENGTH];
+  char extra[MAX_INPUT_LENGTH];
 
   (void)cmd;
   (void)subcmd;
@@ -322,6 +433,9 @@ ACMD(do_ready)
   {
     if (ch->ready_action == NULL)
       send_to_char(ch, "You have no readied action.\r\n");
+    else if (ch->ready_action->door_direction >= 0)
+      send_to_char(ch, "Readied: %s on door open %s\r\n", ch->ready_action->command,
+                   dirs[ch->ready_action->door_direction]);
     else if (ch->ready_action->target != NULL)
       send_to_char(ch, "Readied: %s on entry %s\r\n", ch->ready_action->command,
                    ch->ready_action->target);
@@ -343,10 +457,30 @@ ACMD(do_ready)
     send_to_char(ch, "You cannot ready an action here.\r\n");
     return;
   }
-  clause = find_entry_clause(argument);
+  clause = find_ready_clause(argument, " on entry");
+  door_clause = find_ready_clause(argument, " on door open");
+  if (door_clause != NULL && (clause == NULL || door_clause > clause))
+  {
+    clause = door_clause;
+    clause_length = strlen(" on door open");
+    two_arguments((char *)clause + clause_length, direction_name, sizeof(direction_name), extra,
+                  sizeof(extra));
+    for (direction = 0; direction < DIR_COUNT; direction++)
+      if (*direction_name != '\0' && is_abbrev(direction_name, dirs[direction]))
+        break;
+    if (direction >= DIR_COUNT || *extra != '\0' || EXIT(ch, direction) == NULL ||
+        !EXIT_FLAGGED(EXIT(ch, direction), EX_ISDOOR) || EXIT(ch, direction)->to_room == NOWHERE ||
+        EXIT(ch, direction)->to_room > top_of_world || is_exit_hidden(ch, direction) ||
+        !EXIT_FLAGGED(EXIT(ch, direction), EX_CLOSED))
+    {
+      send_to_char(ch, "You must name a visible, closed door in this room.\r\n");
+      return;
+    }
+  }
   if (clause == NULL)
   {
-    send_to_char(ch, "Usage: ready <command> on entry [target]\r\n");
+    send_to_char(ch, "Usage: ready <command> on entry [target]\r\n       ready <command> on door "
+                     "open <direction>\r\n");
     return;
   }
   action = calloc(1U, sizeof(*action));
@@ -355,19 +489,22 @@ ACMD(do_ready)
     send_to_char(ch, "You cannot ready that action right now.\r\n");
     return;
   }
+  action->door_direction = direction;
   action->command = trimmed_copy(argument, (size_t)(clause - argument), READY_COMMAND_MAX);
   target_start = clause + clause_length;
   while (isspace((unsigned char)*target_start))
     target_start++;
-  if (*target_start != '\0')
+  if (direction < 0 && *target_start != '\0')
     action->target = trimmed_copy(target_start, strlen(target_start), READY_TARGET_MAX);
-  if (action->command == NULL || (*target_start != '\0' && action->target == NULL) ||
+  if (action->command == NULL ||
+      (direction < 0 && *target_start != '\0' && action->target == NULL) ||
       strchr(action->command, '\n') != NULL || strchr(action->command, '\r') != NULL)
   {
     free(action->command);
     free(action->target);
     free(action);
-    send_to_char(ch, "Usage: ready <command> on entry [target]\r\n");
+    send_to_char(ch, "Usage: ready <command> on entry [target]\r\n       ready <command> on door "
+                     "open <direction>\r\n");
     return;
   }
   one_argument(action->command, first_word, sizeof(first_word));
@@ -383,13 +520,28 @@ ACMD(do_ready)
     ready_action_cancel(ch, false);
   action->owner = domain_event_character_handle(ch);
   action->room = domain_event_room_handle(IN_ROOM(ch));
+  if (direction >= 0)
+  {
+    action->exit_identity = door_state_identity(IN_ROOM(ch), direction);
+    action->destination = domain_event_room_handle(EXIT(ch, direction)->to_room);
+    if (action->exit_identity == 0U)
+    {
+      free(action->command);
+      free(action);
+      send_to_char(ch, "You cannot ready that action right now.\r\n");
+      return;
+    }
+  }
   ch->ready_action = action;
-  entry_topic.role = DOMAIN_EVENT_TOPIC_DESTINATION;
+  entry_topic.role = direction >= 0 ? DOMAIN_EVENT_TOPIC_SUBJECT : DOMAIN_EVENT_TOPIC_DESTINATION;
   entry_topic.entity = action->room;
   owner_topic.role = DOMAIN_EVENT_TOPIC_SUBJECT;
   owner_topic.entity = action->owner;
-  if (!add_subscription(action, &action->entry_subscription, DOMAIN_EVENT_CHARACTER_MOVED,
-                        entry_topic, "ready.entry", ready_entry_handler) ||
+  if (!add_subscription(action, &action->entry_subscription,
+                        direction >= 0 ? DOMAIN_EVENT_DOOR_STATE_CHANGED
+                                       : DOMAIN_EVENT_CHARACTER_MOVED,
+                        entry_topic, direction >= 0 ? "ready.door-open" : "ready.entry",
+                        direction >= 0 ? ready_door_handler : ready_entry_handler) ||
       !add_subscription(action, &action->movement_subscription, DOMAIN_EVENT_CHARACTER_MOVED,
                         owner_topic, "ready.owner-moved", ready_movement_handler) ||
       !add_subscription(action, &action->death_subscription, DOMAIN_EVENT_CHARACTER_DIED,
@@ -407,7 +559,10 @@ ACMD(do_ready)
     send_to_char(ch, "You cannot ready that action right now.\r\n");
     return;
   }
-  if (action->target != NULL)
+  if (direction >= 0)
+    send_to_char(ch, "You ready '%s' for when the door %s opens.\r\n", action->command,
+                 dirs[direction]);
+  else if (action->target != NULL)
     send_to_char(ch, "You ready '%s' for when %s enters.\r\n", action->command, action->target);
   else
     send_to_char(ch, "You ready '%s' for the next arrival.\r\n", action->command);

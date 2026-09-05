@@ -2237,12 +2237,13 @@ void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
   affected_owners_reset_for_test();
   affected_registry_reset_for_test();
   event_free_all();
+  /* Validate the fixture's rooms before restoring the caller's world. */
+  CuAssertIntEquals(tc, 0, (int)affected_room_owner_count());
+  CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
   raff_list = saved_raff_list;
   world = saved_world;
   top_of_world = saved_top_of_world;
   pulse = saved_pulse;
-  CuAssertIntEquals(tc, 0, (int)affected_room_owner_count());
-  CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
 }
 
 void TestAffectedRoomOwnerExpiresBeforeCoincidentBehavior(CuTest *tc)
@@ -2393,12 +2394,13 @@ void TestAffectedOwnerAdmissionAndLegacyRollbackAreExclusive(CuTest *tc)
   affected_owners_reset_for_test();
   affected_registry_reset_for_test();
   event_free_all();
+  /* Validate the fixture's rooms before restoring the caller's world. */
+  CuAssertIntEquals(tc, 0, (int)affected_room_owner_count());
+  CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
   raff_list = saved_raff_list;
   world = saved_world;
   top_of_world = saved_top_of_world;
   pulse = saved_pulse;
-  CuAssertIntEquals(tc, 0, (int)affected_room_owner_count());
-  CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
 }
 
 void TestAffectedOwnerCapacityRefillsAfterLifecycleCancellation(CuTest *tc)
@@ -2492,12 +2494,13 @@ void TestAffectedOwnerCapacityRefillsAfterLifecycleCancellation(CuTest *tc)
   affected_owners_reset_for_test();
   affected_registry_reset_for_test();
   event_free_all();
+  /* Validate the fixture's rooms before restoring the caller's world. */
+  CuAssertIntEquals(tc, 0, (int)affected_room_owner_count());
+  CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
   raff_list = saved_raff_list;
   world = saved_world;
   top_of_world = saved_top_of_world;
   pulse = saved_pulse;
-  CuAssertIntEquals(tc, 0, (int)affected_room_owner_count());
-  CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
 }
 
 void TestAffectedRoomOwnersSurviveRoomOLCAndWorldReindex(CuTest *tc)
@@ -2814,6 +2817,8 @@ void TestCharacterPeriodicSchedulesInWorldMixedWorkByOwner(CuTest *tc)
   memset(&specials, 0, sizeof(specials));
   memset(&room, 0, sizeof(room));
   clear_char(&npc);
+  /* Fix the cadence phase independently of earlier runtime fixtures. */
+  npc.periodic_event_generation = 9003U;
   clear_char(&player);
 
   room.number = 1400;

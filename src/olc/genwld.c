@@ -8,6 +8,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "movement/door_state.h"
 #include "utils.h"
 #include "db.h"
 #include "handler.h"
@@ -263,6 +264,8 @@ room_rnum add_runtime_room(struct room_data *room)
 
 static int delete_room_internal(room_rnum rnum, bool persistent)
 {
+  struct door_state_operation *incoming = NULL;
+  size_t incoming_count = 0U, incoming_index = 0U;
   room_rnum i;
   zone_rnum zone;
   int j, shop;
@@ -274,6 +277,21 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
 
   if (rnum <= 0 || rnum > top_of_world) /* Can't delete void yet. */
     return FALSE;
+
+  for (i = 0; i <= top_of_world; i++)
+    for (j = 0; j < NUM_OF_DIRS; j++)
+      if (i != rnum && W_EXIT(i, j) != NULL && W_EXIT(i, j)->to_room == rnum)
+        incoming_count++;
+  if (incoming_count != 0U)
+  {
+    incoming = calloc(incoming_count, sizeof(*incoming));
+    if (incoming == NULL)
+      return FALSE;
+    for (i = 0; i <= top_of_world; i++)
+      for (j = 0; j < NUM_OF_DIRS; j++)
+        if (i != rnum && W_EXIT(i, j) != NULL && W_EXIT(i, j)->to_room == rnum)
+          door_state_begin(&incoming[incoming_index++], i, j, false, DOMAIN_DOOR_EDIT);
+  }
 
   room = &world[rnum];
 
@@ -450,6 +468,9 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
   vehicle_reindex_room_delete(rnum);
   affected_room_owners_finish_world_reindex(rnum, false);
 
+  for (incoming_index = 0U; incoming_index < incoming_count; incoming_index++)
+    door_state_finish(&incoming[incoming_index]);
+  free(incoming);
   return TRUE;
 }
 
@@ -798,6 +819,8 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
                                    struct spec_binding *binding_copy,
                                    struct spec_effective_binding *effective_copy)
 {
+  struct door_state_operation doors[NUM_OF_DIRS] = {0};
+  int direction;
   struct trap_data *trap_copy;
   struct raff_node *affected_head;
   struct room_data *affected_next;
@@ -825,6 +848,9 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   live_room = real_room(to->number);
   if (live_room != NOWHERE && &world[live_room] == to)
     movement_trail_registry_forget(to->number);
+  if (live_room != NOWHERE && &world[live_room] == to)
+    for (direction = 0; direction < NUM_OF_DIRS; direction++)
+      door_state_begin(&doors[direction], live_room, direction, false, DOMAIN_DOOR_EDIT);
   free_room_strings(to);
   free_trap_list(to->traps);
   spec_binding_free(&to->spec_binding);
@@ -849,6 +875,8 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   from->people = NULL;
   from->contents = NULL;
   from->events = NULL;
+  for (direction = 0; direction < NUM_OF_DIRS; direction++)
+    door_state_finish(&doors[direction]);
   return TRUE;
 }
 
@@ -876,6 +904,7 @@ int copy_room_strings(struct room_data *dest, struct room_data *source)
 
     CREATE(R_EXIT(dest, i), struct room_direction_data, 1);
     *R_EXIT(dest, i) = *R_EXIT(source, i);
+    R_EXIT(dest, i)->event_identity = 0U;
     if (R_EXIT(source, i)->general_description)
       R_EXIT(dest, i)->general_description = strdup(R_EXIT(source, i)->general_description);
     if (R_EXIT(source, i)->keyword)

@@ -78,8 +78,17 @@ struct domain_object_moved
   struct domain_entity_handle to_owner;
 };
 
+enum domain_door_change_cause
+{
+  DOMAIN_DOOR_GAMEPLAY = 0,
+  DOMAIN_DOOR_RESET,
+  DOMAIN_DOOR_EDIT
+};
+
 struct domain_door_state_changed
 {
+  uint64_t exit_identity;
+  enum domain_door_change_cause cause;
   struct domain_entity_handle room;
   int direction;
   uint32_t previous_state;

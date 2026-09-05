@@ -2,11 +2,43 @@
 
 Date: 2026-09-05
 
-Scope: `refactor/fight-combat-safety`, HEAD
-`077ab249fdbf4c92a324060862081b849512d3cd`, including the existing local changes
-to active-world, combat, handler, player persistence, and gameplay tests.
-This is a source analysis and local verification report, not a gameplay migration.
-Existing work was preserved. No production deployment or database changes were made.
+Original review: `077ab249fdbf4c92a324060862081b849512d3cd`, including the
+then-existing local changes. Re-reviewed at clean branch HEAD
+`2596c9e464d04ddfc4bc9a863315b1ab34de22a8` on 2026-09-05.
+The original sections record the audit at that revision. Tranche 1 now implements
+the door slice and retirement closure described below; deferred findings remain.
+
+## Branch change review
+
+The new commit physically removes the DG legacy queue/facade, its headers,
+all four remaining adapter admissions, event rollback build switches, heartbeat
+body, and population-loop fallback wrappers. These original findings are closed;
+there is no further supported scheduler rollback retirement to plan.
+
+The native persistence writer now records recovery cadence before equipment and
+affects are temporarily removed for saving. Older event records remain readable
+for migration. This supports equipment-dependent cooldown recovery and is not a
+parallel event system. Preserve these readers and cadence semantics in future work.
+
+Tranche 1 removes the unused `util/hl_events.c/.h`, extends retirement guards
+through `util/`, and reconciles MUD_EVENTS.md and ADR 0002. DoorStateChanged
+now has committed player, NPC, quest, script, reset, edit and special-procedure
+publication. `ready <command> on door open <direction>` consumes gameplay opens
+through native scoped subscriptions and one deferred execution.
+
+The retained player/mover/staff countdowns and four other publisher/contract
+gaps remain. The [mechanism and writer inventory](../systems/EVENT_MECHANISM_INVENTORY.md)
+identifies their owners, cadence, callers and disposition. Both libevent and
+select remain I/O drivers for the same native gameplay scheduler.
+
+The new [full-world acceptance report](../testing/EVENT_CORE_FULL_WORLD_ACCEPTANCE_2026_09_05.md)
+records functional, copyover, offscreen, vessel, sanitizer and Valgrind evidence.
+Those are recorded results, not measurements repeated by this review. Its
+performance verdict remains qualified: late-callback counts do not establish
+lateness magnitude or tail latency, and short RSS samples do not prove a leak trend.
+
+The eight gameplay recommendations below remain applicable. The implemented first
+slice is [Tranche 1: native-event cleanup and door readiness](EVENT_GAMEPLAY_TRANCHE_1_PLAN.md).
 
 ## Assessment
 
@@ -32,8 +64,8 @@ would be a separate design decision.
 | DG waits and random triggers | Native `dg.trigger.wait` and `dg.random_trigger` types, in `dgscript/dg_scripts.c` and `periodic_owners.c`. | Already migrated timing; script trigger dispatch is a separate concern. |
 | Combat, activities, NPC agendas, affects, character maintenance | Native owner events in their respective modules. | Already migrated timing; some gameplay semantics remain cadence-based. |
 | Vessels and point updates | Native vessel agendas and `world.mud_hour_update`; point updates use maintained owner registries. | Already integrated; shared world cadence is sometimes appropriate. |
-| Legacy DG queue and heartbeat | Retained behind the default-disabled rollback build option. Four adapter admissions remain in AI, DG waits, and MUD events and disappear in normal preprocessing. | Explicitly retained fallback, not a hidden normal-runtime engine. Physical retirement is still separate work. |
-| `util/hl_events.c` and `.h` | An entire alternative queue and scheduler remains outside `src/`. No caller/build inclusion found; CMake explicitly says it is excluded. | Remove this obsolete source and the CMake comment advertising it; extend architecture checks to `util/`. It was missed by source guards scoped to `src/`. |
+| Legacy DG queue and heartbeat | Physically removed at `2596c9e46`, including adapters and build switches. | Closed. Keep source-level retirement guards. |
+| `util/hl_events.c` and `.h` | Physically removed in Tranche 1. | Closed. Retired-API and singleton ownership guards cover `src/` and `util/`; an injected utility-tree fixture proves rejection. |
 | Old database PubSub | No `src/pubsub/*.[ch]` runtime sources; no normal build or command wiring. Archival SQL remains. Old object files may still exist locally. | Runtime retired. SQL retention and stale build products are not active event engines. |
 | Crafting, self-buffing, travel, supply refresh | `service.one_second` still calls loops over `descriptor_list`. | Not separate engines, but incomplete owner-level migration. Give active jobs explicit owners and deadlines. |
 | Moving rooms | `service.moving_rooms` invokes `moving_rooms_update()`, which walks `movingRoomList` and decrements counters. | Integrated clock, retained local countdown list. Replace with per-mover deadlines if complete owner-level migration is required. |
@@ -44,21 +76,19 @@ would be a separate design decision.
 | AI and I3 ingress | AI workers hand off native work; I3 has its own network thread/heartbeat and main-thread event consumption. | External I/O queues, not alternate gameplay clocks. Keep world mutation on the main thread. |
 | Lazy timestamps | Resource regeneration, offline recovery, and some cooldown checks compare timestamps on access. | Not schedulers. Preserve lazy evaluation where no autonomous action is needed; document time and persistence policy. |
 
-The repository's ADR 0002 and event-refactor specification deliberately retain
-rollback code. The specification's removal gate includes a stable release
-period, no rollback dependency, and maintainer approval. This audit did not
-establish release/deployment evidence or perform retirement. The unused utility
-scheduler is distinct from that deliberately supported rollback implementation.
+The supported rollback implementation and the orphan utility scheduler are
+physically retired. Archival SQL and old-save readers remain
+intentional data compatibility surfaces; removing them is not necessary to have
+one native event engine.
 
 ## Contracts to complete before expanding consumers
 
-1. **DoorStateChanged is registered but not published.**
-   `domain_event_types.h:13` declares it; `domain_event_types.c` registers it.
-   `movement/movement_doors.c:327` runs DG decision triggers and then mutates
-   doors from line 354 onward. There is no production publication of the fact.
-   Centralize successful door changes, preserve both sides of a door, and emit
-   one logical change with old/new state. Audit scripted and spell-driven changes,
-   not just player commands. Keep vetoes before mutation.
+1. **DoorStateChanged: closed by Tranche 1.**
+   The common door operation captures stable room/exit/destination identities,
+   commits all requested sides, then emits final-state room-scoped facts.
+   Reset/edit causes cannot trigger readiness; removal/replacement invalidates
+   the binding. Command vetoes, containers and no-op writes are covered by tests.
+   See the writer inventory for all producer families and initialization boundaries.
 
 2. **ObjectMoved does not describe inventory transfers.**
    `domain_event_runtime.c:266` accepts room numbers and converts both ends to
@@ -229,26 +259,31 @@ be replaced during infrastructure migration.
 
 ## Verification and limits
 
-- Passed `scripts/events/test_native_event_architecture.sh`.
-- Passed `scripts/events/test_legacy_event_admission.sh`.
-- Passed `scripts/events/test_pubsub_retirement.sh`.
-- Passed `scripts/events/test_demand_driven_architecture.sh`.
-- Existing production-linked `cutest` binary: **1,091 tests passed**, using
-  `LUMINARI_TEST_ROOT` and `LUMINARI_TEST_SPEC_WORLD_ROOT` as configured by
-  `Makefile.am`. An initial direct invocation without the fixture setting had
-  one world-binding inventory failure; the correctly configured rerun passed.
-- Checked the local build configuration: rollback is undefined in `src/conf.h`.
-- Searched timer APIs, raw queue APIs, alternate event sources, time comparisons,
-  threads, service callbacks, publishers, subscribers, and both build manifests.
+At `2596c9e46`, this review reran and passed:
 
-No source changes were made and no fresh build, sanitizer run, production soak,
-or rollback build was performed for this analysis. Passing architecture guards
-does not prove publisher completeness: the orphan utility and retained descriptor
-pollers illustrate their current coverage limits.
+- `scripts/events/test_native_event_architecture.sh`.
+- `scripts/events/test_legacy_event_admission.sh` (now reports retired event API).
+- `scripts/events/test_pubsub_retirement.sh`.
+- `scripts/events/test_demand_driven_architecture.sh`.
+- Existing production-linked `cutest`: **1,081 tests passed**, with
+  `LUMINARI_TEST_ROOT` and `LUMINARI_TEST_SPEC_WORLD_ROOT` set as in `Makefile.am`.
+
+The earlier baseline ran 1,091 tests. The retirement commit removes obsolete
+parity tests and adds/reworks native integration tests; raw count changes do not
+by themselves demonstrate lost behavioral coverage.
+
+Reviewed source/build changes, current publishers and consumers, save cadence,
+service dispatch, retired API checks, and the acceptance report. No fresh build,
+sanitizer run, full-world session or production performance measurement was
+performed in this re-review. No gameplay source was changed.
+
+The original orphan finding illustrated why guards must extend beyond `src/`.
+That gap is now closed. Retained descriptor pollers still show why one native
+scheduler does not mean every feature has owner-driven deadlines.
 
 ## Completion criteria for a future migration
 
-1. Remove the unused utility scheduler and extend guards beyond `src/`.
+1. Completed in Tranche 1: remove the unused utility scheduler and extend guards beyond `src/`.
 2. Track every retained timer, dispatcher, local queue, and lazy timestamp in an
    explicit inventory with an owner and reason. Whitelist infrastructure only.
 3. Replace retained gameplay discovery/countdown loops where owner-driven work
@@ -260,8 +295,8 @@ pollers illustrate their current coverage limits.
 6. Test cancellation, extraction, target loss, visibility, duplicate publication,
    nested reactions, admission failure, logout, copyover, and encounter transitions
    for each migrated consumer.
-7. Retire the explicitly supported rollback build through the project's release
-   process if the goal includes deleting all historical engine implementations.
+7. Keep the completed rollback retirement enforced and reconcile obsolete
+   documentation. Track deadline-lateness acceptance separately from functionality.
 
 Until these distinctions are resolved, the accurate claim is "one normal-runtime
 timer engine", not "every event system and gameplay timer has been superseded".
@@ -276,3 +311,11 @@ timer engine", not "every event system and gameplay timer has been superseded".
 - [Pathfinder magic rules](https://legacy.aonprd.com/coreRulebook/magic.html):
   concentration and counterspelling. These are edition references; the proposed
   MUD interactions and implementation ordering above are design recommendations.
+
+## Tranche 1 delivery evidence
+
+See [Tranche 1 acceptance](../testing/EVENT_GAMEPLAY_TRANCHE_1_ACCEPTANCE_2026_09_05.md)
+for the implemented door slice, full test/build results, memory checks, live
+scenarios and bounded lateness measurements. The remaining gameplay proposals
+retain their rationale; this delivery does not claim that all countdowns or
+DG/special/quest decisions have been converted to domain facts.

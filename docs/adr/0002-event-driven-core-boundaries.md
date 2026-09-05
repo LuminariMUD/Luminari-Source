@@ -1,6 +1,6 @@
 # 2. Event-Driven Core Boundaries
 
-**Status:** Accepted; amended 2026-09-01
+**Status:** Accepted; amended 2026-09-05
 **Date:** 2026-08-30
 **Decision Makers:** LuminariMUD maintainers
 **Technical Story:** Event-Driven Core Refactor
@@ -18,10 +18,10 @@ LuminariMUD uses four explicit boundaries:
 
 - The game scheduler owns delayed and recurring work for a typed,
   generation-aware entity owner. The ordinary product has one timing wheel;
-  the legacy queue is available only in a separately compiled rollback binary.
+  the legacy queue, adapters, and rollback build switches have been removed.
 - The private reactor owns descriptor and signal readiness and arms one wakeup
   from the nearest real deadline. `libevent` is the ordinary product driver;
-  `select()` remains only in the separately compiled rollback binary.
+  `select()` is also supported as an I/O driver over the same native scheduler.
 - The domain-event core synchronously reports typed facts after state changes.
   Its registry is sealed at boot, payloads are immutable and borrowed, entity
   references are resolved generation-aware handles, and nested causal chains
@@ -34,9 +34,9 @@ Activities, combat, regeneration, automatic actions, AI, and active-world work
 now use owner-scheduled callbacks and domain-event wakeups. Autonomous NPCs own
 an agenda only while concrete work exists; spent resources, active behavior,
 and bounded local facts add work, while completion and lifecycle teardown remove
-it. The compatibility heartbeat and its selectors are absent from the ordinary
-binary and remain only in the rollback binary until the stable-release removal
-gate closes.
+it. The compatibility heartbeat, population-loop fallbacks, and their selectors
+have been physically removed. Remaining service-driven feature scans are tracked
+in the event mechanism inventory.
 
 ## Consequences
 
@@ -49,8 +49,8 @@ gate closes.
 
 ### Negative
 
-- Until the removal gate closes, the repository retains an isolated rollback
-  build alongside the native product.
+- New saves are not guaranteed to work in older executables; migration readers
+  are retained, but the legacy save writer is removed.
 - Each publisher and subscriber needs an owning-system audit to prevent dual
   side effects.
 - Hidden synchronous handler chains require strict diagnostics and causal
@@ -90,10 +90,15 @@ publishes it directly. Subsequent phases moved combat, activities, periodic
 owners, autonomous mobiles, automatic procedures, DG triggers, vessels, and
 active trail locations behind explicit ownership. Normal callbacks use stable
 registries or bounded local graphs; population scans remain only in bootstrap,
-staff validation, and boot-selected rollback paths.
+staff validation, and explicitly inventoried service-owned work.
 
 ## References
 
 - [Event-Driven Core Refactor Specification](../ongoing-projects/EVENT_DRIVEN_CORE_REFACTOR_SPEC.md)
 - [MUD Event Systems](../systems/MUD_EVENTS.md)
 - [Core Server Architecture](../systems/CORE_SERVER_ARCHITECTURE.md)
+
+The 2026-09-05 door tranche removes the unused utility scheduler and establishes
+committed, room-scoped door facts. Compound door mutations finish before
+notification; pre-operation DG vetoes retain their decision semantics. Readied
+door commands execute at a subsequent native boundary with owner/exit checks.

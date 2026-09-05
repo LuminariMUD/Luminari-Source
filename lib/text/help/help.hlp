@@ -26413,26 +26413,35 @@ See also: BOARDS
 READY READIED-ACTION
 
 Usage: ready <command> on entry [target]
+       ready <command> on door open <direction>
        ready
        ready cancel
 
-READY listens for someone entering your current room. With no target, the
-first other player or mobile to enter triggers the command. With a target,
-nonmatching arrivals are ignored and the action remains ready. The target
-filters the arrival; include any command target in the command itself.
+READY ON ENTRY listens for someone entering your current room. With no target,
+the first other player or mobile to enter triggers the command. With a target,
+nonmatching arrivals are ignored. The target filters the arrival; include any
+command target in the command itself.
+
+READY ON DOOR OPEN watches one visible, closed door in your current room. A
+successful opening from either side, including a scripted opening, triggers
+it. Unlocking alone does not. Zone resets and builder edits cannot trigger it.
+The command does not automatically target or identify someone on the other side.
 
 The command runs through the normal command interpreter at the next safe event
-boundary, about one tenth of a second later. A readied attack therefore starts
-or joins combat normally and does not wait for the next six-second combat
-round. It does not preempt a command already accepted in the current cycle.
+boundary, about one tenth of a second later. Normal action costs, cooldowns,
+position and targeting rules still apply. It does not preempt a command already
+accepted in the current cycle or grant an extra combat action.
 
-Moving, dying, logging out, or using READY CANCEL removes the action. READY by
-itself shows the currently prepared action. Readied actions do not survive a
-copyover or reboot.
+Moving, dying, logging out, or using READY CANCEL removes the action. Replacing
+or redirecting the watched exit cancels it. Closing the door after it triggers
+cancels the pending command, even if the door reopens before execution. Only one
+action can be readied at a time. READY shows it; another READY replaces it.
+Readied actions do not survive copyover or reboot.
 
 Examples:
   ready say Welcome! on entry
   ready kill guard on entry guard
+  ready say Hold the doorway! on door open north
 
 See also: COMBAT, INITIATIVE
 #0

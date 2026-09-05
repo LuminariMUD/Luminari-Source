@@ -1,4 +1,5 @@
 #include "conf.h"
+#include "ready_action.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
@@ -164,6 +165,7 @@ size_t event_debug_render_help(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "eventdebug state <state> [limit]");
   debug_output_line(&output, "eventdebug types [limit]");
   debug_output_line(&output, "eventdebug domain [type]");
+  debug_output_line(&output, "eventdebug ready [reset]");
   debug_output_line(&output, "eventdebug subscriptions [limit]");
   debug_output_line(&output, "eventdebug subscriptions <kind> <target> [limit]");
   debug_output_line(&output, "eventdebug help");
@@ -832,6 +834,25 @@ ACMD(do_eventdebug)
 
   if (*action == '\0' || !strcasecmp(action, "summary") || !strcasecmp(action, "status"))
     event_debug_render_summary(buffer, sizeof(buffer), width);
+  else if (!strcasecmp(action, "ready"))
+  {
+    struct ready_action_latency stats;
+
+    if (*arg1 != '\0' && strcasecmp(arg1, "reset"))
+    {
+      send_to_char(ch, "Usage: eventdebug ready [reset]\r\n");
+      return;
+    }
+    if (!strcasecmp(arg1, "reset"))
+      ready_action_latency_reset();
+    ready_action_latency_read(&stats);
+    snprintf(buffer, sizeof(buffer),
+             "Ready native deadline lateness (pulses; last 1024 callbacks)\r\n"
+             "Samples: %zu  Callbacks since reset: %" PRIu64 "\r\n"
+             "p50: %" PRIu64 "  p95: %" PRIu64 "  p99: %" PRIu64 "  max: %" PRIu64 "\r\n"
+             "The intentional one-pulse ready delay is excluded.\r\n",
+             stats.samples, stats.callbacks, stats.p50, stats.p95, stats.p99, stats.maximum);
+  }
   else if (!strcasecmp(action, "help"))
     event_debug_render_help(buffer, sizeof(buffer), width);
   else if (!strcasecmp(action, "queue"))

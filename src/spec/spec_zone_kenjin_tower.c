@@ -10,6 +10,7 @@
 
 #include "structs.h"
 #include "utils.h"
+#include "movement/door_state.h"
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
@@ -95,6 +96,8 @@ SPECIAL(kt_twister)
   struct char_data *mob;
   char l_name[256];
   char s_name[256];
+  struct door_state_operation operations[4] = {0};
+  int direction;
   int temp;
 
   if (cmd)
@@ -103,6 +106,8 @@ SPECIAL(kt_twister)
   if (IS_NPC(ch) && !IS_PET(ch))
     return FALSE;
 
+  for (direction = 0; direction < 4; direction++)
+    door_state_begin(&operations[direction], real_room(32901), direction, false, DOMAIN_DOOR_EDIT);
   temp = world[real_room(132901)].dir_option[0]->to_room;
   world[real_room(32901)].dir_option[0]->to_room =
 
@@ -120,7 +125,11 @@ SPECIAL(kt_twister)
   mob = read_mobile(132901, VIRTUAL);
 
   if (!mob)
+  {
+    for (direction = 0; direction < 4; direction++)
+      door_state_finish(&operations[direction]);
     return FALSE;
+  }
 
   char_to_room(mob, real_room(132906));
 
@@ -137,5 +146,7 @@ SPECIAL(kt_twister)
   GET_CLASS(mob) = GET_CLASS(ch);
 
   send_to_char(ch, "You somehow feel \tWsplit\tn in half.\r\n");
+  for (direction = 0; direction < 4; direction++)
+    door_state_finish(&operations[direction]);
   return TRUE;
 }

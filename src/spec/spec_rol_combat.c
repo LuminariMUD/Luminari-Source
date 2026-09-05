@@ -8,6 +8,7 @@
 
 #include "structs.h"
 #include "utils.h"
+#include "movement/door_state.h"
 
 #include "combat/fight.h"
 #include "combat/combat_state.h"
@@ -4470,9 +4471,11 @@ static int rol_monster_vortex_guardian_activity(struct char_data *ch)
 
 static int rol_monster_vortex_guardian_death(struct char_data *ch)
 {
+  struct door_state_operation operation = {0};
   struct obj_data *vortex;
   struct room_direction_data *north_exit;
 
+  door_state_begin(&operation, IN_ROOM(ch), NORTH, false, DOMAIN_DOOR_GAMEPLAY);
   north_exit = world[IN_ROOM(ch)].dir_option[NORTH];
   if (north_exit == NULL)
     log("SYSERR: RoL Vortex Guardian has no northern exit to block in room %d",
@@ -4484,6 +4487,7 @@ static int rol_monster_vortex_guardian_death(struct char_data *ch)
   if (vortex == NULL)
   {
     log("SYSERR: RoL Vortex Guardian cannot load portal %d", ROL_VORTEX_GUARDIAN_PORTAL_VNUM);
+    door_state_finish(&operation);
     return TRUE;
   }
   SET_BIT_AR(GET_OBJ_EXTRA(vortex), ITEM_DECAY);
@@ -4491,6 +4495,7 @@ static int rol_monster_vortex_guardian_death(struct char_data *ch)
   obj_to_room(vortex, IN_ROOM(ch));
   act("With a final blow, $n dissolves and coallesces into\r\n$p.", FALSE, ch, vortex, NULL,
       TO_ROOM);
+  door_state_finish(&operation);
   return TRUE;
 }
 

@@ -768,6 +768,7 @@ set(SRC_C_FILES
     src/movement/movement_validation.c
     src/movement/movement_cost.c
     src/movement/movement_position.c
+    src/movement/door_state.c
     src/movement/movement_doors.c
     src/movement/movement_falling.c
     src/movement/movement_messages.c
@@ -944,10 +945,6 @@ if (BUILD_UTILS)
     add_executable(sign util/sign.c)
     add_executable(split util/split.c)
     add_executable(wld2html util/wld2html.c)
-
-    # NOTE: hl_events is NOT built as a standalone utility because it depends on
-    # server internals (pulse, basic_mud_log). The autotools build also excludes it.
-    # The hl_events.c/h files provide an alternative event system for the main server.
 
     # Set output directory for utilities
     set_target_properties(autowiz asciipasswd plrtoascii rebuildAsciiIndex
@@ -1239,6 +1236,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_reactor.c
     unittests/CuTest/test_game_scheduler.c
     unittests/CuTest/test_event_runtime.c
+    unittests/CuTest/test_door_events.c
     unittests/CuTest/test_domain_events.c
     unittests/CuTest/test_native_event_integration.c
     unittests/CuTest/test_bardic_performance.c

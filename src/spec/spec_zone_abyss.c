@@ -10,6 +10,7 @@
 
 #include "structs.h"
 #include "utils.h"
+#include "movement/door_state.h"
 #include "comm.h"
 #include "interpreter.h"
 #include "db.h"
@@ -26,6 +27,8 @@ static room_vnum calc_room_num(int value)
 /* this proc swaps exits in the rooms in a given area */
 SPECIAL(abyss_randomizer)
 {
+  struct door_state_operation operations[18][6] = {0};
+  int room_index, direction;
   struct char_data *i = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   room_vnum room;
@@ -42,6 +45,10 @@ SPECIAL(abyss_randomizer)
     current_room = real_room(room);
     if (current_room == NOWHERE)
       continue;
+
+    for (direction = 0; direction < 6; direction++)
+      door_state_begin(&operations[room - calc_room_num(1)][direction], current_room, direction,
+                       false, DOMAIN_DOOR_EDIT);
 
     /* Swapping North and South */
     if (world[current_room].dir_option[NORTH] &&
@@ -151,6 +158,10 @@ SPECIAL(abyss_randomizer)
   for (i = character_list; i; i = i->next)
     if (world[ch->in_room].zone == world[i->in_room].zone)
       send_to_char(i, "%s", buf);
+
+  for (room_index = 0; room_index < 18; room_index++)
+    for (direction = 0; direction < 6; direction++)
+      door_state_finish(&operations[room_index][direction]);
 
   return 0;
 }

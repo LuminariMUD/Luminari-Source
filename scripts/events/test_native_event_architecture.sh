@@ -20,16 +20,16 @@ fail()
 # express only semantic type registration and opaque-handle operations.
 scheduler_api_pattern='game_scheduler_(create|shutdown|destroy|register_type|seal_types|types_are_sealed|type_name|type_live_count|current_tick|event_count|schedule|cancel|reschedule|remaining|advance|next_deadline|inspect|get_stats)[[:alnum:]_]*[[:space:]]*\('
 direct_scheduler_users=$(
-  find "$project_root/src" -type f \( -name '*.c' -o -name '*.h' \) -print0 |
+  find "$project_root/src" "$project_root/util" -type f \( -name '*.c' -o -name '*.h' \) -print0 |
     xargs -0 grep -En -- "$scheduler_api_pattern" |
-    grep -Ev '/(game_scheduler|event_runtime)\.[ch]:' || true
+    grep -Ev '/src/(game_scheduler|event_runtime)\.[ch]:' || true
 )
 if [[ -n $direct_scheduler_users ]]; then
   printf '%s\n' "$direct_scheduler_users" >&2
   fail "a production module bypasses the game-facing event runtime"
 fi
 
-grep -Rl --include='*.c' 'struct game_scheduler \*' "$project_root/src" |
+grep -Rl --include='*.c' 'struct game_scheduler \*' "$project_root/src" "$project_root/util" |
   sed "s|^$project_root/||" | sort >"$actual"
 cat >"$expected" <<'EOF'
 src/event_runtime.c

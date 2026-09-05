@@ -10,6 +10,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "movement/door_state.h"
 #include "utils.h"
 #include "screen.h"
 #include "dg_scripts.h"
@@ -1436,6 +1437,7 @@ ACMD(do_mtransform)
 
 ACMD(do_mdoor)
 {
+  struct door_state_operation operation = {0};
   char target[MAX_INPUT_LENGTH] = {'\0'}, direction[MAX_INPUT_LENGTH] = {'\0'};
   char field[MAX_INPUT_LENGTH] = {'\0'};
   char choices[256] = {'\0'};
@@ -1485,6 +1487,7 @@ ACMD(do_mdoor)
     return;
   }
 
+  door_state_begin(&operation, real_room(rm->number), dir, false, DOMAIN_DOOR_GAMEPLAY);
   newexit = rm->dir_option[dir];
 
   /* purge exit */
@@ -1540,6 +1543,7 @@ ACMD(do_mdoor)
       break;
     }
   }
+  door_state_finish(&operation);
 }
 
 ACMD(do_mfollow)

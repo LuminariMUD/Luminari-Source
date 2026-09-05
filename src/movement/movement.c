@@ -11,6 +11,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "movement/door_state.h"
 #include "utils.h"
 #include "comm.h"
 #include "interpreter.h"
@@ -1600,6 +1601,7 @@ ACMD(do_sorcerer_draconic_wings)
 
 ACMD(do_pullswitch)
 {
+  struct door_state_operation operation = {0};
   //- item-switch( command(push/pull), room, dir, unhide/unlock/open)
   room_rnum other_room = NOWHERE;
   struct room_direction_data *back = 0;
@@ -1661,11 +1663,12 @@ ACMD(do_pullswitch)
   {
     if ((back = world[other_room].dir_option[rev_dir[door]]))
     {
-      if (back->to_room != ch->in_room)
+      if (back->to_room != room)
         back = 0;
     }
   }
 
+  door_state_begin(&operation, room, door, true, DOMAIN_DOOR_GAMEPLAY);
   switch (GET_OBJ_VAL(obj, 3))
   {
   case SWITCH_UNHIDE:
@@ -1692,6 +1695,7 @@ ACMD(do_pullswitch)
     send_to_room(ch->in_room, "%s", obj->action_description);
   else
     send_to_room(ch->in_room, "*ka-ching*\r\n");
+  door_state_finish(&operation);
 }
 
 ACMD(do_transposition)

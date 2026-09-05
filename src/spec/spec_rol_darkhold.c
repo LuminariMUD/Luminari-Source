@@ -7,6 +7,7 @@
 #include "sysdep.h"
 
 #include "structs.h"
+#include "movement/door_state.h"
 #include "utils.h"
 
 #include "act.h"
@@ -160,8 +161,8 @@ static int rol_darkhold_passage_skull(struct char_data *ch, struct obj_data *obj
 
   send_to_char(ch, "You hear a high, crystalline note.\r\n");
   act("You hear a high, crystalline note.", FALSE, ch, NULL, NULL, TO_ROOM);
-  REMOVE_BIT(exit->exit_info, EX_BLOCKED);
   send_to_room(room, "The north wall moves aside, revealing a passageway.\r\n");
+  door_state_update(room, NORTH, EX_BLOCKED, 0, false, DOMAIN_DOOR_GAMEPLAY);
   return TRUE;
 }
 
@@ -253,6 +254,7 @@ bool rol_darkhold_monster_profile(int mobile_vnum, bool *shadow_fiend, bool *sha
 
 int rol_darkhold_mobile_death(struct spec_event_context *context, struct char_data *ch)
 {
+  struct door_state_operation operation = {0};
   struct room_direction_data *exit;
   room_rnum room;
 
@@ -268,8 +270,10 @@ int rol_darkhold_mobile_death(struct spec_event_context *context, struct char_da
 
   act("As $n breathes for the last time, you sense something happen nearby.", FALSE, ch, NULL, NULL,
       TO_ROOM);
+  door_state_begin(&operation, room, NORTH, false, DOMAIN_DOOR_GAMEPLAY);
   REMOVE_BIT(exit->exit_info, EX_HIDDEN);
   REMOVE_BIT(exit->exit_info, EX_LOCKED);
+  door_state_finish(&operation);
   return TRUE;
 }
 

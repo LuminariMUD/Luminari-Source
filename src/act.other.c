@@ -15,6 +15,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "movement/door_state.h"
 #include "utils.h"
 #include "comm.h"
 #include "interpreter.h"
@@ -6092,6 +6093,7 @@ int get_hidden_door_dc(struct char_data *ch, int door)
  * the command is available to all.  */
 ACMD(do_search)
 {
+  struct door_state_operation operation = {0};
   int door, found = FALSE;
   //  int val;
   //  struct char_data *i; // for player/mob
@@ -6187,6 +6189,7 @@ ACMD(do_search)
             send_to_char(ch, "roll %d vs. dc %d\r\n", search_roll, search_dc);
             act("You find a secret entrance!", FALSE, ch, 0, 0, TO_CHAR);
             act("$n finds a secret entrance!", FALSE, ch, 0, 0, TO_ROOM);
+            door_state_begin(&operation, IN_ROOM(ch), door, false, DOMAIN_DOOR_GAMEPLAY);
             REMOVE_BIT(EXIT(ch, door)->exit_info, EX_HIDDEN);
             found = TRUE;
           }
@@ -6227,6 +6230,7 @@ ACMD(do_search)
   send_to_char(ch, "Your next action will be delayed up to 6 seconds.\r\n");
   WAIT_STATE(ch, PULSE_VIOLENCE * 1);
   USE_FULL_ROUND_ACTION(ch);
+  door_state_finish(&operation);
 }
 
 /* vanish - epic rogue talent OR Shadow Scout perk ; free action */
@@ -11031,6 +11035,7 @@ ACMD(do_deadly_power)
 
 ACMD(do_pick_lock)
 {
+  struct door_state_operation operation = {0};
   char arg1[200], buf[100];
   int i = 0, dir = 0;
   int skill = 0, roll = 0, lock_dc = 0;
@@ -11163,6 +11168,8 @@ ACMD(do_pick_lock)
     send_to_char(ch, "Success! [%d dc vs %d: %d skill + %d roll]\r\n", lock_dc, skill + roll, skill,
                  roll);
     act("$n succeeds in picking the lock!", TRUE, ch, 0, 0, TO_ROOM);
+    if (!obj)
+      door_state_begin(&operation, IN_ROOM(ch), dir, false, DOMAIN_DOOR_GAMEPLAY);
     UNLOCK_DOOR(IN_ROOM(ch), obj, dir);
     if (is_obj)
       GET_OBJ_VAL(obj, 4) = 0;
@@ -11175,6 +11182,7 @@ ACMD(do_pick_lock)
   }
 
   USE_MOVE_ACTION(ch);
+  door_state_finish(&operation);
 }
 
 ACMDU(do_device)

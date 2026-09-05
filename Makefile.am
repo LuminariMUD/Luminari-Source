@@ -23,6 +23,7 @@ luminari_SOURCES = \
 	src/movement/movement_validation.c \
 	src/movement/movement_cost.c \
 	src/movement/movement_position.c \
+	src/movement/door_state.c \
 	src/movement/movement_doors.c \
 	src/movement/movement_falling.c \
 	src/movement/movement_messages.c \
@@ -404,6 +405,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_reactor.c \
 	unittests/CuTest/test_game_scheduler.c \
 	unittests/CuTest/test_event_runtime.c \
+	unittests/CuTest/test_door_events.c \
 	unittests/CuTest/test_domain_events.c \
 	unittests/CuTest/test_native_event_integration.c \
 	unittests/CuTest/test_bardic_performance.c \
@@ -468,6 +470,7 @@ cutest_test_files = \
 	unittests/CuTest/test_reactor.c \
 	unittests/CuTest/test_game_scheduler.c \
 	unittests/CuTest/test_event_runtime.c \
+	unittests/CuTest/test_door_events.c \
 	unittests/CuTest/test_domain_events.c \
 	unittests/CuTest/test_native_event_integration.c \
 	unittests/CuTest/test_bardic_performance.c \

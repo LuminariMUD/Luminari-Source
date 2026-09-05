@@ -10,6 +10,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "movement/door_state.h"
 #include "screen.h"
 #include "dg_scripts.h"
 #include "utils.h"
@@ -210,6 +211,7 @@ WCMD(do_wrecho)
 
 WCMD(do_wdoor)
 {
+  struct door_state_operation operation = {0};
   char target[MAX_INPUT_LENGTH] = {'\0'}, direction[MAX_INPUT_LENGTH] = {'\0'};
   char field[MAX_INPUT_LENGTH] = {'\0'}, *value;
   char choices[256] = {'\0'};
@@ -249,6 +251,7 @@ WCMD(do_wdoor)
     return;
   }
 
+  door_state_begin(&operation, real_room(rm->number), dir, false, DOMAIN_DOOR_GAMEPLAY);
   newexit = rm->dir_option[dir];
 
   /* purge exit */
@@ -305,6 +308,7 @@ WCMD(do_wdoor)
       break;
     }
   }
+  door_state_finish(&operation);
 }
 
 WCMD(do_wteleport)

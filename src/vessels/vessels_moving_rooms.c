@@ -10,6 +10,7 @@
 
 #include "structs.h"
 #include "utils.h"
+#include "movement/door_state.h"
 #include "comm.h"
 #include "db.h"
 #include "spec/spec_dispatch.h"
@@ -275,6 +276,7 @@ void setup_moving_room(FILE *fl, int rroom, int vroom, char *line)
 
 int unlinkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int cibIdx)
 {
+  struct door_state_operation operations[2] = {0};
   char errStr[128];
 
   if ((ONMdata->oldRoom != NOWHERE) && (ONMdata->oldRoom != ENDMOVING))
@@ -307,6 +309,11 @@ int unlinkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMda
       return 0;
     }
 
+    door_state_begin(&operations[0], real_room(ONMdata->moveRoom), theRoom->inbound_dir, false,
+                     DOMAIN_DOOR_EDIT);
+    door_state_begin(&operations[1], real_room(ONMdata->oldRoom), ONMdata->oldDir, false,
+                     DOMAIN_DOOR_EDIT);
+
     /* log("SPEC(move): all is Ok to unlink the old room..."); */
 
 #ifdef DEBUGMEM
@@ -330,11 +337,14 @@ int unlinkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMda
     /* mudlog(errStr, CMP, LVL_QUEST, TRUE); */
   }
 
+  door_state_finish(&operations[0]);
+  door_state_finish(&operations[1]);
   return 1;
 }
 
 int linkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int cibIdx)
 {
+  struct door_state_operation operation = {0};
   struct room_direction_data *rdd;
   char errStr[100];
 
@@ -354,8 +364,12 @@ int linkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata
               (rdd->keyword == NULL) ? "" : rdd->keyword, rdd->exit_info, rdd->key, rdd->to_room);
       log("%s", errStr);
 
+      door_state_finish(&operation);
       return 0;
     }
+
+    door_state_begin(&operation, real_room(ONMdata->nextRoom), ONMdata->nextDir, false,
+                     DOMAIN_DOOR_EDIT);
 
     /*  check if conn room dir is clean...  */
     if (world[real_room(ONMdata->nextRoom)].dir_option[ONMdata->nextDir] != NULL)
@@ -385,6 +399,7 @@ return 0;
     if (theRoom->from[cibIdx] != ENDMOVING)
     {
       log("SPEC(move_room): theRoom->from[cibIdx] != ENDMOVING");
+      door_state_finish(&operation);
       return 0;
     }
 
@@ -469,6 +484,7 @@ return 0;
     }
   }
 
+  door_state_finish(&operation);
   return 1;
 }
 
