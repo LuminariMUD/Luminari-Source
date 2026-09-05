@@ -7225,6 +7225,7 @@ void free_obj_special_abilities(struct obj_special_ability *list)
 
 void free_obj(struct obj_data *obj)
 {
+  domain_event_world_forget_object(obj);
   point_update_object_forget(obj);
   autoproc_registry_remove(obj);
 
@@ -7266,7 +7267,6 @@ void free_obj(struct obj_data *obj)
   if (GET_ID(obj) != 0)
     remove_from_lookup_table(GET_ID(obj));
 
-  domain_event_world_forget_object(obj);
   free(obj);
 }
 

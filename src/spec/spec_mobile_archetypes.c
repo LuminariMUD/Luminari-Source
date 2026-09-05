@@ -729,7 +729,7 @@ int perform_lichdrain(struct char_data *ch)
   dam = GET_HIT(vict) + 5;
   if (GET_HIT(ch) + dam < GET_MAX_HIT(ch))
     GET_HIT(ch) += dam;
-  GET_HIT(vict) -= dam;
+  combat_apply_raw_damage(vict, ch, dam, DAM_NEGATIVE, INT_MIN);
   USE_FULL_ROUND_ACTION(vict);
   return TRUE;
 }

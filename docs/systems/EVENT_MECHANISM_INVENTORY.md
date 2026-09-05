@@ -78,3 +78,15 @@ pulses. This includes entry and door readiness. The intentional one-pulse delay
 is excluded; cancelled callbacks have no execution sample. Reset/copyover clears
 samples. Pulse resolution cannot establish sub-pulse or end-to-end network
 latency, and these diagnostics are not a production responsiveness SLA.
+
+## Tranche 2: casting ownership
+
+Timed PC/NPC casting now uses `activity.primary.step`; the former casting MUD
+handler and its registration are retired. Activity lifecycle facts are routed
+by actor and include a stable activity ID and terminal reason. Positive damage
+facts request concentration checks; progress does not reroll concentration.
+Object disposal publishes extraction before releasing target data. Instant
+magic remains synchronous and is not a separate scheduler.
+
+Details: `docs/ongoing-projects/EVENT_GAMEPLAY_TRANCHE_2_CASTING.md`.
+The countdown migrations listed above remain open.

@@ -6785,6 +6785,29 @@ struct combat_damage_result combat_damage_apply(struct char_data *ch, struct cha
   return combat_damage_result_from_legacy(ch, victim, dam, result);
 }
 
+/* Existing raw-damage callers retain their own mitigation and death policy. */
+void combat_apply_raw_damage(struct char_data *victim, struct char_data *source, int amount,
+                             int damage_type, int minimum_hit)
+{
+  int previous_hit;
+  int64_t next_hit;
+  int64_t lost;
+
+  if (victim == NULL)
+    return;
+  previous_hit = GET_HIT(victim);
+  next_hit = (int64_t)previous_hit - amount;
+  if (next_hit < minimum_hit)
+    next_hit = minimum_hit;
+  if (next_hit > INT_MAX)
+    next_hit = INT_MAX;
+  GET_HIT(victim) = (int)next_hit;
+  lost = (int64_t)previous_hit - next_hit;
+  if (lost > 0)
+    (void)domain_event_runtime_character_damaged(victim, source,
+                                                 lost > INT_MAX ? INT_MAX : (int)lost, damage_type);
+}
+
 /* Legacy damage() entry point kept for existing call sites.
  * Applies damage through combat_damage_apply and returns only the legacy int:
  * negative if the victim died, zero for no effect (including damage deferred

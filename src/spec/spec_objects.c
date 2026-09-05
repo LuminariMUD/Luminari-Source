@@ -849,7 +849,7 @@ SPECIAL(xvim_normal)
         }
         else
         {
-          GET_HIT(vict) -= dam;
+          combat_apply_raw_damage(vict, ch, dam, DAM_RESERVED_DBC, INT_MIN);
           change_position(vict, POS_SITTING);
         }
         for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
@@ -954,7 +954,7 @@ SPECIAL(xvim_artifact)
         }
         else
         {
-          GET_HIT(vict) -= dam;
+          combat_apply_raw_damage(vict, ch, dam, DAM_RESERVED_DBC, INT_MIN);
           change_position(vict, POS_SITTING);
         }
         for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
@@ -2373,7 +2373,7 @@ SPECIAL(bloodaxe)
 
   int dam = rand_number(8, 8);
 
-  GET_HIT(vict) -= dam;
+  combat_apply_raw_damage(vict, ch, dam, DAM_RESERVED_DBC, INT_MIN);
 
   if (dam < GET_HIT(vict))
   {
@@ -2487,7 +2487,7 @@ SPECIAL(acidsword)
 
   dam = dice(4, 3);
 
-  GET_HIT(vict) -= dam;
+  combat_apply_raw_damage(vict, ch, dam, DAM_RESERVED_DBC, INT_MIN);
 
   if (GET_HIT(vict) > -9)
   {
@@ -2721,7 +2721,7 @@ SPECIAL(snakewhip)
 
   dam = dice(GET_LEVEL(ch), 3);
 
-  GET_HIT(vict) -= dam;
+  combat_apply_raw_damage(vict, ch, dam, DAM_RESERVED_DBC, INT_MIN);
 
   if (GET_HIT(vict) > -9)
   {

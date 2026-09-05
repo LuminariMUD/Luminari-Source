@@ -15518,7 +15518,7 @@ ACMD(do_curtain_call)
     /* Simple hit/miss and damage */
     damage = get_bard_curtain_call_damage_bonus(ch) + dice(1, 4) + 2;
 
-    GET_HIT(victim) -= damage;
+    combat_apply_raw_damage(victim, ch, damage, DAM_FORCE, INT_MIN);
 
     send_to_char(ch, "\tYYour curtain call strikes $N for \tR%d\tn\tY damage!\tn\r\n", damage);
     send_to_char(victim, "\tY$n's curtain call strikes you for \tR%d\tn\tY damage!\tn\r\n", damage);

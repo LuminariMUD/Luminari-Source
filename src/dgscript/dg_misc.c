@@ -332,7 +332,7 @@ void script_damage(struct char_data *vict, int dam)
     return;
   }
 
-  GET_HIT(vict) -= dam;
+  combat_apply_raw_damage(vict, NULL, dam, DAM_RESERVED_DBC, INT_MIN);
   GET_HIT(vict) = MIN(GET_HIT(vict), GET_MAX_HIT(vict));
 
   update_pos(vict);

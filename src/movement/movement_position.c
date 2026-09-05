@@ -385,7 +385,7 @@ int change_position(struct char_data *ch, int new_position)
   /* we will put some general checks for having your position changed */
 
   /* casting */
-  if (char_has_mud_event(ch, eCASTING) && new_position <= POS_SITTING)
+  if (IS_CASTING(ch) && new_position <= POS_SITTING)
   {
     act("$n's spell is interrupted!", FALSE, ch, 0, 0, TO_ROOM);
     send_to_char(ch, "Your spell is aborted!\r\n");

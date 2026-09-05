@@ -97,6 +97,8 @@ struct domain_door_state_changed
 
 struct domain_activity_transitioned
 {
+  uint64_t activity_id;
+  uint32_t end_reason;
   struct domain_entity_handle actor;
   uint32_t activity_type;
   uint32_t previous_state;

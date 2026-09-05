@@ -705,7 +705,7 @@ static int rol_utility_child_sacrifice(struct spec_event_context *context, struc
   }
   else
   {
-    GET_HIT(ch) -= damage_amount;
+    combat_apply_raw_damage(ch, NULL, damage_amount, DAM_RESERVED_DBC, INT_MIN);
     update_pos(ch);
   }
 

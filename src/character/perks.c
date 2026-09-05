@@ -3601,7 +3601,7 @@ ACMD(do_cataclysmsmite)
 
     /* Deal profane damage (3d10) */
     dam = dice(3, 10);
-    GET_HIT(vict) -= dam;
+    combat_apply_raw_damage(vict, ch, dam, DAM_UNHOLY, INT_MIN);
 
     send_to_char(vict, "\tRYou are engulfed in a burst of profane energy, taking %d damage!\tn\r\n",
                  dam);

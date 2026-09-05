@@ -12316,7 +12316,7 @@ ACMDU(do_device)
                 TO_ROOM);
 
             /* Apply damage to the creator */
-            GET_HIT(ch) -= damage;
+            combat_apply_raw_damage(ch, ch, damage, DAM_FORCE, INT_MIN);
 
             /* Apply damage to all party members in the same room */
             struct char_data *tch, *next_tch;
@@ -12328,7 +12328,7 @@ ACMDU(do_device)
                 send_to_char(tch,
                              "\tRYou are caught in the explosion and take %d force damage!\tn\r\n",
                              damage);
-                GET_HIT(tch) -= damage;
+                combat_apply_raw_damage(tch, ch, damage, DAM_FORCE, INT_MIN);
 
                 /* Check if anyone died from the explosion */
                 if (GET_HIT(tch) <= 0)

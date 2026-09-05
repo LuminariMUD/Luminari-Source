@@ -13,7 +13,7 @@ fail()
 }
 
 # Reject the retired API in source, not just in the default preprocessed build.
-pattern='EVENT_BACKEND_LEGACY_QUEUE|LUMINARI_ENABLE_EVENT_ROLLBACK|LUMINARI_EVENT_ROLLBACK_TESTS|DG_EVENT_ROLLBACK_ENABLED|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(|event_create(_[[:alnum:]_]+)?[[:space:]]*\(|event_process_compatibility_pulse[[:space:]]*\(|mobile_activity_run_legacy_(cycle|slice)[[:space:]]*\('
+pattern='\beCASTING\b|\bevent_casting\b|EVENT_BACKEND_LEGACY_QUEUE|LUMINARI_ENABLE_EVENT_ROLLBACK|LUMINARI_EVENT_ROLLBACK_TESTS|DG_EVENT_ROLLBACK_ENABLED|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(|event_create(_[[:alnum:]_]+)?[[:space:]]*\(|event_process_compatibility_pulse[[:space:]]*\(|mobile_activity_run_legacy_(cycle|slice)[[:space:]]*\('
 if find "$project_root/src" "$project_root/util" -type f \( -name '*.c' -o -name '*.h' \) ! -name conf.h -print0 |
     xargs -0 grep -En "$pattern"; then
   fail "retired event architecture has reappeared"

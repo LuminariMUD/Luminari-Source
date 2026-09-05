@@ -987,7 +987,7 @@ SPECIAL(giantslayer)
       act("You fall to your knees in agony!", FALSE, ch, obj, vict, TO_VICT);
       USE_MOVE_ACTION(vict);
       change_position(vict, POS_SITTING);
-      GET_HIT(vict) -= 100;
+      combat_apply_raw_damage(vict, ch, 100, DAM_SLASHING, INT_MIN);
 
       point_update_object_spec_timer_set(obj, 0, 24);
       return 1; // end for

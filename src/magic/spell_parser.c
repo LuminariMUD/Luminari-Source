@@ -41,6 +41,10 @@
 #include "character/perks.h"
 #include "bardic_performance.h"
 
+#include "activity_manager.h"
+#include "domain_event_types.h"
+#include "domain_event_world.h"
+
 #define SINFO spell_info[spellnum]
 
 /* Global Variables definitions, used elsewhere */
@@ -153,7 +157,7 @@ static int mag_pspcost(struct char_data *ch, int spellnum)
 
 /* makes a concentration check for casting, returns TRUE if passed, otherwise
    FALSE = failure and spell should be aborted */
-bool concentration_check(struct char_data *ch, int spellnum)
+static bool concentration_check(struct char_data *ch, int spellnum, int damage)
 {
   /* concentration check */
   int spell_level = spell_info[spellnum].min_level[CASTING_CLASS(ch)];
@@ -199,7 +203,7 @@ bool concentration_check(struct char_data *ch, int spellnum)
   if (has_inquisitor_swift_spellcaster(ch))
     concentration_dc -= 2;
 
-  if (CASTING_CLASS(ch) != CLASS_ALCHEMIST)
+  if (damage == 0 && CASTING_CLASS(ch) != CLASS_ALCHEMIST)
   {
     if (spellnum != SPELL_CURE_DEAFNESS && AFF_FLAGGED(ch, AFF_DEAF) && dice(1, 5) == 1)
     {
@@ -210,12 +214,21 @@ bool concentration_check(struct char_data *ch, int spellnum)
     }
   }
 
-  if (FIGHTING(ch) && !skill_check(ch, ABILITY_CONCENTRATION, concentration_dc) &&
-      CASTING_CLASS(ch) != CLASS_ALCHEMIST && CASTING_CLASS(ch) != CLASS_SHADOW_DANCER)
+  if (damage > 0)
   {
-    send_to_char(ch, "You lost your concentration!\r\n");
+    int64_t damage_dc = (int64_t)concentration_dc + 10 + damage;
+
+    concentration_dc = damage_dc > INT_MAX ? INT_MAX : (int)damage_dc;
+  }
+  if ((damage > 0 || FIGHTING(ch)) && CASTING_CLASS(ch) != CLASS_ALCHEMIST &&
+      CASTING_CLASS(ch) != CLASS_SHADOW_DANCER &&
+      !skill_check(ch, ABILITY_CONCENTRATION, concentration_dc))
+  {
+    send_to_char(ch, damage > 0 ? "The damage breaks your concentration!\r\n"
+                                : "You lost your concentration!\r\n");
     act("$n's concentration is lost, and spell is aborted!", TRUE, ch, 0, 0, TO_ROOM);
-    resetCastingData(ch);
+    if (damage == 0)
+      resetCastingData(ch);
     return FALSE;
   }
   else
@@ -1703,8 +1716,17 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
 
 void resetCastingData(struct char_data *ch)
 {
-  bool was_casting = IS_CASTING(ch);
+  bool was_casting;
+  struct primary_activity_snapshot activity;
 
+  if (ch == NULL)
+    return;
+  if (primary_activity_snapshot(ch, &activity) && activity.type == PRIMARY_ACTIVITY_CASTING)
+  {
+    (void)primary_activity_cancel(ch, PRIMARY_ACTIVITY_END_COMMAND, false);
+    return;
+  }
+  was_casting = IS_CASTING(ch);
   IS_CASTING(ch) = FALSE;
   CASTING_TIME(ch) = 0;
   CASTING_TIME_MAX(ch) = 0;
@@ -1715,6 +1737,16 @@ void resetCastingData(struct char_data *ch)
   GET_DC_BONUS(ch) = 0; // another redundancy, but doesn't hurt.  Also removed in mag_saving_throws
   if (was_casting)
     active_world_reconsider_character(ch);
+}
+
+static void interrupt_casting(struct char_data *ch, enum primary_activity_end_reason reason)
+{
+  struct primary_activity_snapshot snapshot;
+
+  if (primary_activity_snapshot(ch, &snapshot) && snapshot.type == PRIMARY_ACTIVITY_CASTING)
+    (void)primary_activity_cancel(ch, reason, false);
+  else
+    resetCastingData(ch);
 }
 
 int castingCheckOk(struct char_data *ch)
@@ -1728,13 +1760,19 @@ int castingCheckOk(struct char_data *ch)
        compute_spells_circle(ch, GET_CASTING_CLASS(ch), spellnum, metamagic, 0) <= 3))
     still_spell = true;
 
+  if (DEAD(ch))
+  {
+    interrupt_casting(ch, PRIMARY_ACTIVITY_END_DIED);
+    return 0;
+  }
+
   /* position check */
   if (GET_POS(ch) <= POS_SITTING && !still_spell)
   {
     act("$n is unable to continue $s spell in $s current position!", FALSE, ch, 0, 0, TO_ROOM);
     send_to_char(
         ch, "You are unable to continue your spell in your current position! (spell aborted)\r\n");
-    resetCastingData(ch);
+    interrupt_casting(ch, PRIMARY_ACTIVITY_END_RECHECK_FAILED);
     return 0;
   }
 
@@ -1744,7 +1782,7 @@ int castingCheckOk(struct char_data *ch)
   {
     act("$n is unable to continue $s spell!", FALSE, ch, 0, 0, TO_ROOM);
     send_to_char(ch, "You are unable to find the object for your spell! (spell aborted)\r\n");
-    resetCastingData(ch);
+    interrupt_casting(ch, PRIMARY_ACTIVITY_END_TARGET_LOST);
     return 0;
   }
 
@@ -1759,7 +1797,7 @@ int castingCheckOk(struct char_data *ch)
     {
       act("$n is unable to continue $s spell!", FALSE, ch, 0, 0, TO_ROOM);
       send_to_char(ch, "Your target has vanished! (spell aborted)\r\n");
-      resetCastingData(ch);
+      interrupt_casting(ch, PRIMARY_ACTIVITY_END_TARGET_LOST);
       return 0;
     }
 
@@ -1768,7 +1806,7 @@ int castingCheckOk(struct char_data *ch)
     {
       act("$n is unable to continue $s spell!", FALSE, ch, 0, 0, TO_ROOM);
       send_to_char(ch, "You are unable to find the target for your spell! (spell aborted)\r\n");
-      resetCastingData(ch);
+      interrupt_casting(ch, PRIMARY_ACTIVITY_END_TARGET_LOST);
       return 0;
     }
   }
@@ -1777,7 +1815,7 @@ int castingCheckOk(struct char_data *ch)
   {
     send_to_char(ch, "You are too nauseated to continue casting!\r\n");
     act("$n seems to be too nauseated to continue casting!", TRUE, ch, 0, 0, TO_ROOM);
-    resetCastingData(ch);
+    interrupt_casting(ch, PRIMARY_ACTIVITY_END_RECHECK_FAILED);
     return (0);
   }
 
@@ -1787,7 +1825,7 @@ int castingCheckOk(struct char_data *ch)
   {
     send_to_char(ch, "You are unable to continue casting!\r\n");
     act("$n seems to be unable to continue casting!", TRUE, ch, 0, 0, TO_ROOM);
-    resetCastingData(ch);
+    interrupt_casting(ch, PRIMARY_ACTIVITY_END_RECHECK_FAILED);
     return (0);
   }
 
@@ -2285,23 +2323,14 @@ void finishCasting(struct char_data *ch)
   resetCastingData(ch);
 }
 
-MUD_EVENT_CALLBACK(event_casting)
+static long casting_activity_step(struct char_data *ch, void *target, void *context)
 {
-  struct char_data *ch;
-  struct mud_event_data *pMudEvent;
   int x, time_stopped = FALSE;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
-
-  // initialize everything and dummy checks
-  if (event_obj == NULL)
-    return 0;
-  pMudEvent = (struct mud_event_data *)event_obj;
-  ch = (struct char_data *)pMudEvent->pStruct;
-
-  /* we need this or npc's don't have casting time */
-  // if (!IS_NPC(ch) && !IS_PLAYING(ch->desc)) return 0;
-
   int spellnum = CASTING_SPELLNUM(ch);
+
+  (void)target;
+  (void)context;
 
   // is he casting?
   if (!IS_CASTING(ch))
@@ -2321,9 +2350,6 @@ MUD_EVENT_CALLBACK(event_casting)
       return 0;
     else
     {
-      if (!concentration_check(ch, spellnum))
-        return 0;
-
       /* Display time left to finish spell with narrative progress (Phase 5) */
       {
         const char *action_word = NULL;
@@ -2423,7 +2449,6 @@ MUD_EVENT_CALLBACK(event_casting)
         if (!castingCheckOk(ch))
           return 0;
 
-        finishCasting(ch); /* we cleared all our casting checks! */
         return 0;
       }
       else
@@ -2439,10 +2464,70 @@ MUD_EVENT_CALLBACK(event_casting)
       return 0;
     else
     { /* we cleared all our casting checks! */
-      finishCasting(ch);
       return 0;
     }
   }
+}
+
+static bool casting_activity_recheck(struct char_data *ch, void *target, void *context)
+{
+  (void)target;
+  (void)context;
+  return IS_CASTING(ch) && castingCheckOk(ch);
+}
+
+static bool casting_activity_damage(struct char_data *ch,
+                                    const struct domain_character_damaged *damage, void *context)
+{
+  (void)context;
+  return casting_activity_recheck(ch, NULL, NULL) &&
+         concentration_check(ch, CASTING_SPELLNUM(ch), damage->amount);
+}
+
+static void casting_activity_complete(struct char_data *ch, void *target, void *context)
+{
+  (void)target;
+  (void)context;
+  if (IS_CASTING(ch) && castingCheckOk(ch))
+    finishCasting(ch);
+}
+
+static void casting_activity_ended(struct char_data *ch, enum primary_activity_end_reason reason,
+                                   void *context)
+{
+  (void)context;
+  if (reason == PRIMARY_ACTIVITY_END_TARGET_LOST)
+    send_to_char(ch, "Your spell's target has vanished.\r\n");
+  resetCastingData(ch);
+}
+
+/* All timed player and NPC casts use this single native activity owner. */
+static bool start_casting_activity(struct char_data *ch)
+{
+  struct primary_activity_definition definition = {0};
+  struct domain_entity_handle target = domain_event_character_handle(ch);
+
+  if (CASTING_TCH(ch) != NULL)
+    target = domain_event_character_handle(CASTING_TCH(ch));
+  else if (CASTING_TOBJ(ch) != NULL)
+    target = domain_event_object_handle(CASTING_TOBJ(ch));
+  definition.type = PRIMARY_ACTIVITY_CASTING;
+  definition.display_name = "casting";
+  definition.total_steps = MAX(1, CASTING_TIME(ch));
+  definition.step_interval = (IS_NPC(ch) ? 2 : 1) * PASSES_PER_SEC;
+  definition.wall_clock = true;
+  definition.cannot_pause = true;
+  definition.watch_target = true;
+  definition.movement_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.target_loss_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  /* Existing command admission remains authoritative for casting exceptions. */
+  definition.command_response = PRIMARY_ACTIVITY_RESPONSE_IGNORE;
+  definition.timed_step = casting_activity_step;
+  definition.damage_check = casting_activity_damage;
+  definition.recheck = casting_activity_recheck;
+  definition.complete = casting_activity_complete;
+  definition.ended = casting_activity_ended;
+  return primary_activity_start(ch, target, &definition);
 }
 
 /* cast_spell is used generically to cast any spoken spell, assuming we already
@@ -2452,6 +2537,13 @@ MUD_EVENT_CALLBACK(event_casting)
 int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tobj, int spellnum,
                int metamagic)
 {
+  if (ch == NULL)
+    return 0;
+  if (IS_CASTING(ch) || ch->primary_activity != NULL)
+  {
+    send_to_char(ch, "Finish or cancel your current activity before casting.\r\n");
+    return 0;
+  }
   if (GET_LEVEL(ch) >= LVL_IMMORT && !IS_NPC(ch))
   {
     // imms can cast any spell
@@ -2611,12 +2703,6 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
       send_to_char(ch, "This room is much too narrow to focus that magic in.\r\n");
       return 0;
     }
-  }
-
-  if (char_has_mud_event(ch, eCASTING))
-  {
-    send_to_char(ch, "You are already attempting to cast!\r\n");
-    return (0);
   }
 
   /* system to prevent casting an affection if it doesn't benefit the player -zusuk */
@@ -2978,7 +3064,7 @@ will be using for casting this spell */
   }
 
   /* concentration check */
-  if (!concentration_check(ch, spellnum))
+  if (!concentration_check(ch, spellnum, 0))
   {
     return 0;
   }
@@ -3064,13 +3150,11 @@ will be using for casting this spell */
     CASTING_SPELLNUM(ch) = spellnum;
     CASTING_METAMAGIC(ch) = metamagic;
 
-    if (IS_NPC(ch))
+    if (!start_casting_activity(ch))
     {
-      NEW_EVENT(eCASTING, ch, NULL, 2 * PASSES_PER_SEC);
-    }
-    else
-    {
-      NEW_EVENT(eCASTING, ch, NULL, 1 * PASSES_PER_SEC);
+      resetCastingData(ch);
+      send_to_char(ch, "Your casting could not begin.\r\n");
+      return 0;
     }
 
     if (CONFIG_SPELLCASTING_TIME_MODE == 1)
@@ -3087,7 +3171,7 @@ will be using for casting this spell */
  * It's a simplified version of cast_spell that bypasses do_gen_cast overhead. */
 int manifest_power(struct char_data *ch, struct char_data *tch, int powernum, int augment_psp)
 {
-  if (!ch || !IS_NPC(ch))
+  if (!ch || !IS_NPC(ch) || IS_CASTING(ch) || ch->primary_activity != NULL)
     return 0;
 
   if (powernum < PSIONIC_POWER_START || powernum > PSIONIC_POWER_END)
@@ -3115,7 +3199,7 @@ ACMD(do_abort)
   }
 
   send_to_char(ch, "You abort your spell.\r\n");
-  resetCastingData(ch);
+  interrupt_casting(ch, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED);
 }
 
 /* do_gen_cast is the entry point for PC-casted spells.  It parses the arguments,
@@ -3132,6 +3216,12 @@ ACMDU(do_gen_cast)
   int class_num = CLASS_UNDEFINED;
   int circle = 99, school = 0;
   bool perfect_fabricator_active = FALSE; /* Track Perfect Fabricator usage for psionic powers */
+
+  if (IS_CASTING(ch) || ch->primary_activity != NULL)
+  {
+    send_to_char(ch, "Finish or cancel your current activity before casting.\r\n");
+    return;
+  }
 
   if (IS_NPC(ch))
   {

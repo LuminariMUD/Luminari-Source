@@ -377,7 +377,8 @@ void Test_mud_event_native_types_are_entity_filterable(CuTest *tc)
   CuAssertTrue(tc, mud_event_runtime_init());
   memset(&after, 0, sizeof(after));
   event_runtime_get_stats(&after);
-  CuAssertIntEquals(tc, eMUD_EVENT_COUNT - ePROTOCOLS,
+  /* The retired casting ID is reserved but has no native timer type. */
+  CuAssertIntEquals(tc, eMUD_EVENT_COUNT - ePROTOCOLS - 1,
                     (int)(after.registered_type_count - before.registered_type_count));
 
   memset(&character, 0, sizeof(character));

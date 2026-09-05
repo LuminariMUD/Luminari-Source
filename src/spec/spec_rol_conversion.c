@@ -2212,7 +2212,7 @@ static void rol_death_balor_burst(struct char_data *ch)
       continue;
     rol_death_heat_blind(victim);
     damage_amount = AFF_FLAGGED(victim, AFF_ELEMENT_PROT) ? 150 : 250;
-    GET_HIT(victim) -= damage_amount;
+    combat_apply_raw_damage(victim, ch, damage_amount, DAM_FIRE, INT_MIN);
     update_pos(victim);
     if (GET_HIT(victim) < -10)
       die(victim, ch);
@@ -2344,7 +2344,7 @@ static void rol_death_weevil_fire(struct char_data *ch)
     act("You are intensely burned by the explosion!", FALSE, victim, NULL, NULL, TO_CHAR);
     damage_amount =
         rol_weevil_death_adjust_damage(damage_amount, AFF_FLAGGED(victim, AFF_ELEMENT_PROT));
-    GET_HIT(victim) -= damage_amount;
+    combat_apply_raw_damage(victim, ch, damage_amount, DAM_FIRE, INT_MIN);
     if (GET_HIT(victim) < -10)
       die(victim, ch);
   }
@@ -2957,7 +2957,7 @@ int rol_travel_portal(struct char_data *ch, void *me, int cmd, const char *argum
 
   if (profile->kind == ROL_TRAVEL_PORTAL_WATERDEEP && GET_LEVEL(ch) < LVL_IMMORT)
   {
-    GET_HIT(ch) = MAX(0, GET_HIT(ch) - MAX(0, GET_OBJ_VAL(obj, 1)));
+    combat_apply_raw_damage(ch, NULL, MAX(0, GET_OBJ_VAL(obj, 1)), DAM_RESERVED_DBC, 0);
     update_pos(ch);
   }
   else if (profile->kind == ROL_TRAVEL_PORTAL_SHAMAN_SPORES)
@@ -3098,7 +3098,7 @@ int rol_bloodstone_portal(struct char_data *ch, void *me, int cmd, const char *a
     return TRUE;
   }
 
-  GET_HIT(ch) -= hit_loss;
+  combat_apply_raw_damage(ch, NULL, hit_loss, DAM_RESERVED_DBC, INT_MIN);
   GET_MOVE(ch) = MAX(0, GET_MOVE(ch) - rand_number(1, 30));
   update_pos(ch);
   send_to_char(ch, "You feel weakened by your passage through the portal.\r\n");
@@ -3135,7 +3135,7 @@ int rol_magic_pool(struct char_data *ch, void *me, int cmd, const char *argument
 
   damage_amount = MAX(0, GET_OBJ_VAL(obj, 1));
   if (GET_LEVEL(ch) < LVL_IMMORT)
-    GET_HIT(ch) = MAX(0, GET_HIT(ch) - damage_amount);
+    combat_apply_raw_damage(ch, NULL, damage_amount, DAM_RESERVED_DBC, 0);
 
   act("$n slowly fades out of existence.", FALSE, ch, NULL, NULL, TO_ROOM);
   char_from_room(ch);
@@ -6270,7 +6270,7 @@ static int rol_command_sentinel_room(struct char_data *ch, struct room_data *roo
         ch, NULL, NULL, TO_ROOM);
     send_to_char(ch, "A powerful bolt of bright red energy blasts you backwards several feet!\r\n");
     damage_amount = rol_command_sentinel_glyph_damage(ch);
-    GET_HIT(ch) = MAX(1, GET_HIT(ch) - damage_amount);
+    combat_apply_raw_damage(ch, NULL, damage_amount, DAM_RESERVED_DBC, 1);
     return TRUE;
   default:
     return FALSE;
@@ -6962,10 +6962,10 @@ static int rol_banana_move(struct obj_data *obj, struct char_data *ch, int cmd)
     act("$n slips on a banana peel, falls, and passes out when $s head hits the ground!", TRUE, ch,
         0, 0, TO_ROOM);
     rol_banana_apply_sleep(ch);
-    GET_HIT(ch) = MAX(1, GET_HIT(ch) - 15);
+    combat_apply_raw_damage(ch, NULL, 15, DAM_FORCE, 1);
     return TRUE;
   case ROL_BANANA_PEEL_FALL:
-    GET_HIT(ch) = MAX(1, GET_HIT(ch) - dexterity_roll);
+    combat_apply_raw_damage(ch, NULL, dexterity_roll, DAM_FORCE, 1);
     act("You slip on a banana peel and fall over with a shriek and a thump!", TRUE, ch, 0, 0,
         TO_CHAR);
     act("$n slips on a banana peel, shrieks, and falls over!", TRUE, ch, 0, 0, TO_ROOM);
@@ -8617,7 +8617,7 @@ static int rol_weapon_seelie_staff_restore_preparation(struct char_data *ch, str
   if (GET_HIT(ch) <= 15)
     (void)damage(ch, ch, 20, -1, DAM_MENTAL, FALSE);
   else
-    GET_HIT(ch) -= 15;
+    combat_apply_raw_damage(ch, NULL, 15, DAM_MENTAL, INT_MIN);
   return TRUE;
 }
 
@@ -8798,7 +8798,7 @@ static int rol_weapon_oblivion_invoke(struct char_data *ch, struct obj_data *obj
   if (GET_HIT(ch) <= 15 || affected_by_spell(ch, SPELL_HEROISM))
     return FALSE;
   rol_weapon_cast(ch, obj, ch, SPELL_HEROISM, 60);
-  GET_HIT(ch) -= 15;
+  combat_apply_raw_damage(ch, NULL, 15, DAM_MENTAL, INT_MIN);
   act("Your $p sends a shock through your arm, sharpening your thoughts.", FALSE, ch, obj, NULL,
       TO_CHAR);
   return TRUE;

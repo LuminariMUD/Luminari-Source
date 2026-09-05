@@ -15,6 +15,12 @@
 #include "../../src/mud_event.h"
 #include "../../src/net/protocol.h"
 
+#include "../../src/magic/spells.h"
+#include "../../src/magic/spell_prep.h"
+#include "../../src/magic/domains_schools.h"
+#include "../../src/character/class.h"
+#include "../../src/handler.h"
+
 #include <string.h>
 
 static bool activity_source_places_turn_hook_in_semantic_round(void)
@@ -71,6 +77,9 @@ struct activity_test_context
   bool recheck_allowed;
   bool cancel_during_recheck;
   bool pause_during_progress;
+  unsigned int damage_calls;
+  int damage_amount;
+  int damage_type;
 };
 
 struct activity_test_fixture
@@ -85,6 +94,9 @@ struct activity_test_fixture
   unsigned int terminal_transition_calls;
   bool terminal_transition_saw_activity;
   bool terminal_transition_cancelled_activity;
+  uint64_t terminal_id;
+  uint32_t terminal_reason;
+  uint32_t terminal_state;
 };
 
 static bool activity_native_type_is_registered(const char *name)
@@ -121,6 +133,9 @@ static void activity_test_observe_transition(const struct domain_event_context *
       event->current_state != PRIMARY_ACTIVITY_STATE_CANCELLED)
     return;
   fixture->terminal_transition_calls++;
+  fixture->terminal_id = event->activity_id;
+  fixture->terminal_reason = event->end_reason;
+  fixture->terminal_state = event->current_state;
   fixture->terminal_transition_saw_activity = primary_activity_snapshot(&fixture->actor, &snapshot);
   fixture->terminal_transition_cancelled_activity =
       primary_activity_cancel(&fixture->actor, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false);
@@ -555,4 +570,406 @@ void Test_activity_status_wraps_for_default_mud_width(CuTest *tc)
 void Test_primary_activity_turn_hook_is_semantic_only(CuTest *tc)
 {
   CuAssertTrue(tc, activity_source_places_turn_hook_in_semantic_round());
+}
+
+/* Exercise the production cast entry point and native scheduler with real spell data. */
+struct casting_test_fixture
+{
+  struct activity_test_fixture activity;
+  struct room_data rooms[2];
+  struct player_special_data specials[2];
+  struct room_data *saved_world;
+  room_rnum saved_top;
+  int saved_mode;
+  int saved_divine_prep;
+  struct spell_info_type saved_spell;
+};
+
+static void casting_test_begin(CuTest *tc, struct casting_test_fixture *fixture)
+{
+  struct char_data *actor;
+  struct char_data *target;
+
+  memset(fixture, 0, sizeof(*fixture));
+  fixture->saved_world = world;
+  fixture->saved_top = top_of_world;
+  fixture->saved_mode = CONFIG_SPELLCASTING_TIME_MODE;
+  fixture->saved_divine_prep = CONFIG_DIVINE_PREP_TIME;
+  CONFIG_DIVINE_PREP_TIME = 1;
+  world = fixture->rooms;
+  top_of_world = 1;
+  fixture->rooms[0].number = 100;
+  fixture->rooms[1].number = 101;
+  CONFIG_SPELLCASTING_TIME_MODE = 1;
+  activity_test_begin(tc, &fixture->activity);
+  actor = &fixture->activity.actor;
+  target = &fixture->activity.target;
+  actor->player_specials = &fixture->specials[0];
+  target->player_specials = &fixture->specials[1];
+  SET_BIT_AR(MOB_FLAGS(actor), MOB_ISNPC);
+  SET_BIT_AR(MOB_FLAGS(target), MOB_ISNPC);
+  GET_CLASS(actor) = CLASS_CLERIC;
+  GET_LEVEL(actor) = 10;
+  GET_LEVEL(target) = 10;
+  GET_POS(actor) = POS_STANDING;
+  GET_POS(target) = POS_STANDING;
+  GET_HIT(actor) = GET_HIT(target) = 10;
+  GET_MAX_HIT(actor) = GET_MAX_HIT(target) = 100;
+  IN_ROOM(actor) = IN_ROOM(target) = 0;
+  actor->player.short_descr = "the caster";
+  target->player.short_descr = "the target";
+  fixture->saved_spell = spell_info[SPELL_CURE_LIGHT];
+  memset(&spell_info[SPELL_CURE_LIGHT], 0, sizeof(spell_info[SPELL_CURE_LIGHT]));
+  spell_info[SPELL_CURE_LIGHT].name = "cure light";
+  spell_info[SPELL_CURE_LIGHT].min_position = POS_FIGHTING;
+  spell_info[SPELL_CURE_LIGHT].targets = TAR_CHAR_ROOM;
+  spell_info[SPELL_CURE_LIGHT].routines = MAG_POINTS;
+  spell_info[SPELL_CURE_LIGHT].time = 1;
+  spell_info[SPELL_CURE_LIGHT].schoolOfMagic = CONJURATION;
+}
+
+static void casting_test_end(struct casting_test_fixture *fixture)
+{
+  struct char_data *actor = &fixture->activity.actor;
+
+  activity_test_end(&fixture->activity);
+  if (actor->events != NULL)
+  {
+    free_list(actor->events);
+    actor->events = NULL;
+  }
+  domain_event_world_forget_character(actor);
+  domain_event_world_forget_character(&fixture->activity.target);
+  world = fixture->saved_world;
+  top_of_world = fixture->saved_top;
+  CONFIG_SPELLCASTING_TIME_MODE = fixture->saved_mode;
+  CONFIG_DIVINE_PREP_TIME = fixture->saved_divine_prep;
+  spell_info[SPELL_CURE_LIGHT] = fixture->saved_spell;
+}
+
+static void casting_test_advance(unsigned int ticks)
+{
+  unsigned int index;
+
+  for (index = 0U; index < ticks; index++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+}
+
+static void casting_test_start(CuTest *tc, struct casting_test_fixture *fixture)
+{
+  CuAssertIntEquals(tc, 1,
+                    cast_spell(&fixture->activity.actor, &fixture->activity.target, NULL,
+                               SPELL_CURE_LIGHT, METAMAGIC_NONE));
+  CuAssertTrue(tc, IS_CASTING(&fixture->activity.actor));
+}
+
+void Test_casting_activity_completes_once_on_native_clock_in_combat(CuTest *tc)
+{
+  struct casting_test_fixture fixture;
+  struct primary_activity_snapshot snapshot;
+  struct domain_combat_state_changed combat;
+  int healed;
+
+  casting_test_begin(tc, &fixture);
+  casting_test_start(tc, &fixture);
+  CuAssertTrue(tc, primary_activity_snapshot(&fixture.activity.actor, &snapshot));
+  CuAssertIntEquals(tc, PRIMARY_ACTIVITY_CASTING, snapshot.type);
+  CuAssertIntEquals(tc, 2 * PASSES_PER_SEC, snapshot.next_step_pulses);
+  CuAssertTrue(tc, !primary_activity_pause(&fixture.activity.actor, false));
+  combat.character = domain_event_character_handle(&fixture.activity.actor);
+  combat.opponent = domain_event_character_handle(&fixture.activity.target);
+  combat.in_combat = true;
+  FIGHTING(&fixture.activity.actor) = &fixture.activity.target;
+  CuAssertIntEquals(
+      tc, DOMAIN_EVENT_OK,
+      DOMAIN_EVENT_PUBLISH(fixture.activity.bus, DOMAIN_EVENT_COMBAT_STATE_CHANGED, &combat));
+  primary_activity_on_semantic_turn(&fixture.activity.actor);
+  CuAssertIntEquals(tc, 10, GET_HIT(&fixture.activity.target));
+  casting_test_advance(200);
+  healed = GET_HIT(&fixture.activity.target);
+  CuAssertTrue(tc, healed > 10);
+  CuAssertTrue(tc, !IS_CASTING(&fixture.activity.actor));
+  CuAssertIntEquals(tc, 1, fixture.activity.terminal_transition_calls);
+  CuAssertIntEquals(tc, PRIMARY_ACTIVITY_STATE_COMPLETED, fixture.activity.terminal_state);
+  CuAssertTrue(tc, snapshot.id == fixture.activity.terminal_id);
+  casting_test_advance(200);
+  CuAssertIntEquals(tc, healed, GET_HIT(&fixture.activity.target));
+  casting_test_end(&fixture);
+}
+
+void Test_casting_damage_interrupts_outside_combat_and_cannot_resolve_later(CuTest *tc)
+{
+  struct casting_test_fixture fixture;
+  struct domain_character_damaged damage;
+
+  casting_test_begin(tc, &fixture);
+  casting_test_start(tc, &fixture);
+  damage.target = domain_event_character_handle(&fixture.activity.actor);
+  damage.source = domain_event_character_handle(&fixture.activity.target);
+  damage.amount = 0;
+  damage.damage_type = 0;
+  CuAssertIntEquals(
+      tc, DOMAIN_EVENT_OK,
+      DOMAIN_EVENT_PUBLISH(fixture.activity.bus, DOMAIN_EVENT_CHARACTER_DAMAGED, &damage));
+  CuAssertTrue(tc, IS_CASTING(&fixture.activity.actor));
+  damage.amount = 10000; /* Beyond any possible roll, without depending on random state. */
+  CuAssertIntEquals(
+      tc, DOMAIN_EVENT_OK,
+      DOMAIN_EVENT_PUBLISH(fixture.activity.bus, DOMAIN_EVENT_CHARACTER_DAMAGED, &damage));
+  CuAssertTrue(tc, !IS_CASTING(&fixture.activity.actor));
+  CuAssertIntEquals(tc, PRIMARY_ACTIVITY_END_DAMAGED, fixture.activity.terminal_reason);
+  CuAssertIntEquals(tc, 1, fixture.activity.terminal_transition_calls);
+  casting_test_advance(200);
+  CuAssertIntEquals(tc, 10, GET_HIT(&fixture.activity.target));
+  CuAssertIntEquals(
+      tc, DOMAIN_EVENT_OK,
+      DOMAIN_EVENT_PUBLISH(fixture.activity.bus, DOMAIN_EVENT_CHARACTER_DAMAGED, &damage));
+  CuAssertIntEquals(tc, 1, fixture.activity.terminal_transition_calls);
+  casting_test_end(&fixture);
+}
+
+void Test_casting_reset_cancels_owner_and_allows_immediate_recast(CuTest *tc)
+{
+  struct casting_test_fixture fixture;
+  struct primary_activity_snapshot first, second;
+
+  casting_test_begin(tc, &fixture);
+  casting_test_start(tc, &fixture);
+  CuAssertTrue(tc, primary_activity_snapshot(&fixture.activity.actor, &first));
+  resetCastingData(&fixture.activity.actor);
+  CuAssertTrue(tc, !primary_activity_snapshot(&fixture.activity.actor, &second));
+  casting_test_start(tc, &fixture);
+  CuAssertTrue(tc, primary_activity_snapshot(&fixture.activity.actor, &second));
+  CuAssertTrue(tc, first.id != second.id);
+  casting_test_advance(200);
+  CuAssertIntEquals(tc, 2, fixture.activity.terminal_transition_calls);
+  CuAssertTrue(tc, second.id == fixture.activity.terminal_id);
+  casting_test_end(&fixture);
+}
+
+void Test_casting_target_move_and_death_cancel_scoped_activity(CuTest *tc)
+{
+  struct casting_test_fixture fixture;
+  struct domain_character_moved moved;
+  struct domain_character_died died = {0};
+  struct domain_event_topic topic;
+
+  casting_test_begin(tc, &fixture);
+  casting_test_start(tc, &fixture);
+  moved.character = domain_event_character_handle(&fixture.activity.target);
+  moved.from_room = domain_event_room_handle(0);
+  moved.to_room = domain_event_room_handle(1);
+  moved.direction = -1;
+  topic.role = DOMAIN_EVENT_TOPIC_SUBJECT;
+  topic.entity = moved.character;
+  IN_ROOM(&fixture.activity.target) = 1;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH_ROUTED(fixture.activity.bus, DOMAIN_EVENT_CHARACTER_MOVED,
+                                                &topic, 1U, &moved));
+  CuAssertTrue(tc, !IS_CASTING(&fixture.activity.actor));
+  IN_ROOM(&fixture.activity.target) = 0;
+  casting_test_start(tc, &fixture);
+  died.character = moved.character;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH_ROUTED(fixture.activity.bus, DOMAIN_EVENT_CHARACTER_DIED,
+                                                &topic, 1U, &died));
+  CuAssertTrue(tc, !IS_CASTING(&fixture.activity.actor));
+  CuAssertIntEquals(tc, PRIMARY_ACTIVITY_END_TARGET_LOST, fixture.activity.terminal_reason);
+  casting_test_advance(200);
+  CuAssertIntEquals(tc, 10, GET_HIT(&fixture.activity.target));
+  casting_test_end(&fixture);
+}
+
+void Test_casting_movement_and_shutdown_clear_transient_state(CuTest *tc)
+{
+  struct casting_test_fixture fixture;
+  struct domain_character_moved moved;
+
+  casting_test_begin(tc, &fixture);
+  casting_test_start(tc, &fixture);
+  moved.character = domain_event_character_handle(&fixture.activity.actor);
+  moved.from_room = domain_event_room_handle(0);
+  moved.to_room = domain_event_room_handle(1);
+  moved.direction = -1;
+  CuAssertIntEquals(
+      tc, DOMAIN_EVENT_OK,
+      DOMAIN_EVENT_PUBLISH(fixture.activity.bus, DOMAIN_EVENT_CHARACTER_MOVED, &moved));
+  CuAssertTrue(tc, !IS_CASTING(&fixture.activity.actor));
+  CuAssertIntEquals(tc, PRIMARY_ACTIVITY_END_MOVED, fixture.activity.terminal_reason);
+  casting_test_start(tc, &fixture);
+  primary_activity_manager_shutdown();
+  CuAssertTrue(tc, !IS_CASTING(&fixture.activity.actor));
+  CuAssertPtrEquals(tc, NULL, CASTING_TCH(&fixture.activity.actor));
+  CuAssertIntEquals(tc, PRIMARY_ACTIVITY_END_SHUTDOWN, fixture.activity.terminal_reason);
+  casting_test_advance(200);
+  CuAssertIntEquals(tc, 10, GET_HIT(&fixture.activity.target));
+  casting_test_end(&fixture);
+}
+
+void Test_casting_player_spends_prepared_spell_once_and_cancel_does_not_refund(CuTest *tc)
+{
+  struct casting_test_fixture fixture;
+  struct char_data *actor;
+  struct primary_activity_snapshot snapshot;
+
+  casting_test_begin(tc, &fixture);
+  actor = &fixture.activity.actor;
+  REMOVE_BIT_AR(MOB_FLAGS(actor), MOB_ISNPC);
+  CLASS_LEVEL(actor, CLASS_CLERIC) = 10;
+  CASTING_CLASS(actor) = CLASS_CLERIC;
+  collection_add(actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0, 0, 0);
+  casting_test_start(tc, &fixture);
+  CuAssertTrue(tc, primary_activity_snapshot(actor, &snapshot));
+  CuAssertIntEquals(tc, PASSES_PER_SEC, snapshot.next_step_pulses);
+  CuAssertTrue(tc, !is_spell_in_collection(actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0));
+  collection_add(actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0, 0, 0);
+  CuAssertIntEquals(tc, 0, cast_spell(actor, &fixture.activity.target, NULL, SPELL_CURE_LIGHT, 0));
+  CuAssertTrue(tc, is_spell_in_collection(actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0));
+  CuAssertTrue(tc, primary_activity_cancel(actor, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false));
+  casting_test_advance(100);
+  CuAssertIntEquals(tc, 10, GET_HIT(&fixture.activity.target));
+  casting_test_start(tc, &fixture);
+  casting_test_advance(100);
+  CuAssertTrue(tc, !is_spell_in_collection(actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0));
+  CuAssertTrue(tc, GET_HIT(&fixture.activity.target) > 10);
+  clear_collection_by_class(actor, CLASS_CLERIC);
+  clear_prep_queue_by_class(actor, CLASS_CLERIC);
+  casting_test_end(&fixture);
+}
+
+void Test_casting_damage_on_final_deadline_prevents_resolution(CuTest *tc)
+{
+  struct casting_test_fixture fixture;
+  struct domain_character_damaged damage = {0};
+
+  casting_test_begin(tc, &fixture);
+  casting_test_start(tc, &fixture);
+  casting_test_advance(2 * PASSES_PER_SEC);
+  CuAssertIntEquals(tc, 1, CASTING_TIME(&fixture.activity.actor));
+  /* The final tick is due now, but damage commits before scheduler dispatch. */
+  pulse += 10;
+  damage.target = domain_event_character_handle(&fixture.activity.actor);
+  damage.amount = INT_MAX;
+  CuAssertIntEquals(
+      tc, DOMAIN_EVENT_OK,
+      DOMAIN_EVENT_PUBLISH(fixture.activity.bus, DOMAIN_EVENT_CHARACTER_DAMAGED, &damage));
+  event_test_advance();
+  CuAssertIntEquals(tc, 10, GET_HIT(&fixture.activity.target));
+  CuAssertIntEquals(tc, 1, fixture.activity.terminal_transition_calls);
+  CuAssertIntEquals(tc, PRIMARY_ACTIVITY_END_DAMAGED, fixture.activity.terminal_reason);
+  casting_test_end(&fixture);
+}
+
+void Test_casting_existing_concentration_exemptions_survive_damage(CuTest *tc)
+{
+  struct casting_test_fixture fixture;
+  struct domain_character_damaged damage = {0};
+  int classes[] = {CLASS_ALCHEMIST, CLASS_SHADOW_DANCER};
+  size_t index;
+
+  for (index = 0; index < sizeof(classes) / sizeof(classes[0]); index++)
+  {
+    casting_test_begin(tc, &fixture);
+    casting_test_start(tc, &fixture);
+    CASTING_CLASS(&fixture.activity.actor) = classes[index];
+    damage.target = domain_event_character_handle(&fixture.activity.actor);
+    damage.amount = 10000;
+    CuAssertIntEquals(
+        tc, DOMAIN_EVENT_OK,
+        DOMAIN_EVENT_PUBLISH(fixture.activity.bus, DOMAIN_EVENT_CHARACTER_DAMAGED, &damage));
+    CuAssertTrue(tc, IS_CASTING(&fixture.activity.actor));
+    resetCastingData(&fixture.activity.actor);
+    casting_test_end(&fixture);
+  }
+}
+
+void Test_casting_incapacitation_and_extraction_do_not_leave_callbacks(CuTest *tc)
+{
+  struct casting_test_fixture fixture;
+  struct domain_entity_extracted extracted;
+
+  casting_test_begin(tc, &fixture);
+  casting_test_start(tc, &fixture);
+  SET_BIT_AR(AFF_FLAGS(&fixture.activity.actor), AFF_STUN);
+  casting_test_advance(2 * PASSES_PER_SEC);
+  CuAssertTrue(tc, !IS_CASTING(&fixture.activity.actor));
+  CuAssertIntEquals(tc, PRIMARY_ACTIVITY_END_RECHECK_FAILED, fixture.activity.terminal_reason);
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.activity.actor), AFF_STUN);
+  casting_test_start(tc, &fixture);
+  extracted.entity = domain_event_character_handle(&fixture.activity.target);
+  extracted.reason = 0;
+  CuAssertIntEquals(
+      tc, DOMAIN_EVENT_OK,
+      DOMAIN_EVENT_PUBLISH(fixture.activity.bus, DOMAIN_EVENT_ENTITY_EXTRACTED, &extracted));
+  CuAssertTrue(tc, !IS_CASTING(&fixture.activity.actor));
+  casting_test_start(tc, &fixture);
+  primary_activity_forget_character(&fixture.activity.actor);
+  CuAssertTrue(tc, !IS_CASTING(&fixture.activity.actor));
+  casting_test_advance(200);
+  CuAssertIntEquals(tc, 10, GET_HIT(&fixture.activity.target));
+  CuAssertIntEquals(tc, 3, fixture.activity.terminal_transition_calls);
+  casting_test_end(&fixture);
+}
+
+static bool activity_test_damage_context(struct char_data *actor,
+                                         const struct domain_character_damaged *damage, void *data)
+{
+  struct activity_test_context *trace = data;
+
+  (void)actor;
+  trace->damage_calls++;
+  trace->damage_amount = damage->amount;
+  trace->damage_type = damage->damage_type;
+  return true;
+}
+
+void Test_activity_damage_context_is_delivered_once_without_progress_rerolls(CuTest *tc)
+{
+  struct activity_test_fixture fixture;
+  struct primary_activity_definition definition;
+  struct domain_character_damaged damage = {0};
+
+  activity_test_begin(tc, &fixture);
+  definition = activity_test_definition(&fixture);
+  definition.damage_check = activity_test_damage_context;
+  CuAssertTrue(tc, activity_test_start(&fixture, &definition));
+  damage.target = domain_event_character_handle(&fixture.actor);
+  damage.source = domain_event_character_handle(&fixture.target);
+  damage.amount = 7;
+  damage.damage_type = 11;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH(fixture.bus, DOMAIN_EVENT_CHARACTER_DAMAGED, &damage));
+  CuAssertIntEquals(tc, 1, fixture.context.damage_calls);
+  CuAssertIntEquals(tc, 7, fixture.context.damage_amount);
+  CuAssertIntEquals(tc, 11, fixture.context.damage_type);
+  casting_test_advance(30);
+  CuAssertIntEquals(tc, 1, fixture.context.damage_calls);
+  CuAssertIntEquals(tc, 1, fixture.context.completion_calls);
+  activity_test_end(&fixture);
+}
+
+void Test_casting_successful_damage_check_keeps_original_deadline(CuTest *tc)
+{
+  struct casting_test_fixture fixture;
+  struct domain_character_damaged damage = {0};
+  struct primary_activity_snapshot before, after;
+
+  casting_test_begin(tc, &fixture);
+  GET_LEVEL(&fixture.activity.actor) = 100; /* NPC skill bonus guarantees success. */
+  casting_test_start(tc, &fixture);
+  CuAssertTrue(tc, primary_activity_snapshot(&fixture.activity.actor, &before));
+  damage.target = domain_event_character_handle(&fixture.activity.actor);
+  damage.amount = 1;
+  CuAssertIntEquals(
+      tc, DOMAIN_EVENT_OK,
+      DOMAIN_EVENT_PUBLISH(fixture.activity.bus, DOMAIN_EVENT_CHARACTER_DAMAGED, &damage));
+  CuAssertTrue(tc, primary_activity_snapshot(&fixture.activity.actor, &after));
+  CuAssertTrue(tc, before.id == after.id);
+  CuAssertIntEquals(tc, before.next_step_pulses, after.next_step_pulses);
+  casting_test_advance(200);
+  CuAssertIntEquals(tc, PRIMARY_ACTIVITY_STATE_COMPLETED, fixture.activity.terminal_state);
+  casting_test_end(&fixture);
 }

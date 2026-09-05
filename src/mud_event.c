@@ -516,6 +516,8 @@ bool mud_event_runtime_init(void)
   config.requires_owner = true;
   for (id = ePROTOCOLS; id < eMUD_EVENT_COUNT; id++)
   {
+    if (id == eRETIRED_CASTING)
+      continue;
     mud_event_semantic_name(id, expected, sizeof(expected));
     config.name = expected;
     status = event_runtime_register_type(&config, &mud_event_type_ids[id]);
@@ -556,7 +558,7 @@ void init_events(void)
     {
       struct mud_event_list *entry = &mud_event_index[i];
       /* Skip NULL sentinel (index 0) */
-      if (i == eNULL)
+      if (i == eNULL || i == eRETIRED_CASTING)
         continue;
       /* Validate type */
       if (entry->iEvent_Type < EVENT_WORLD || entry->iEvent_Type > EVENT_OBJECT)

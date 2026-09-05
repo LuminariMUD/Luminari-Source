@@ -8,6 +8,8 @@
 
 #include "structs.h"
 #include "utils.h"
+#include "combat/fight.h"
+#include "magic/spells.h"
 
 #include "act.h"
 #include "comm.h"
@@ -535,7 +537,7 @@ MUD_EVENT_CALLBACK(event_rol_deaths_head_seed)
   {
     damage = rand_number(rol_deaths_head_seed_damage_min(growth),
                          rol_deaths_head_seed_damage_max(growth));
-    GET_HIT(owner) -= damage;
+    combat_apply_raw_damage(owner, NULL, damage, DAM_RESERVED_DBC, INT_MIN);
   }
   act("You wince in pain as $p grows inside of you.", FALSE, owner, seed, NULL, TO_CHAR);
   return rol_deaths_head_source_delay_pulses(

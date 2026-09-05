@@ -4593,7 +4593,10 @@ the clock that will request its next step. Informational and communication
 commands remain available during an activity. Incompatible actions report the
 conflict instead of silently interrupting your work.
 
-See also: CAMP, ACTIONS, COOLDOWNS
+Timed casting also appears here. Use activity cancel or abort to stop a cast.
+Casting cannot be paused and continues on its normal clock during combat.
+
+See also: CAMP, ACTIONS, COOLDOWNS, CASTING-TIME
 #0
 %ACTOR.CANBESEEN% %CANBESEEN% CANBESEEN
 
@@ -4730,15 +4733,22 @@ See also:  RECHARGE EPIC-SPELLS
 #0
 CASTING-TIME
 
-Casting time refers to the nature of spells that can't be completed in an insant.
+More powerful spells generally take longer to cast. QUICK-CHANT can reduce
+casting time. Use activity to see the progress of a timed cast, or abort
+(or activity cancel) to cancel it. Casting cannot be paused.
 
-Generally speaking, spells as they get more powerful, take more time to cast.
-This is reflected by "casting time."  If an opponent knocks you down, or somehow
-breaks your CONCENTRATION while casting, you will not be able to complete the spell.
+Moving interrupts a timed cast. Losing the target, being knocked down, or
+other disabling conditions may also stop it; existing spell exceptions apply.
+Positive damage received while casting requests a concentration check, even
+outside combat. A failed check ends the cast immediately. Misses and damage
+reduced to zero do not request this check.
 
-Casting time can be reduced by QUICK-CHANT.
+Starting a cast under adverse conditions still uses the initial concentration
+check. Progress messages alone do not cause additional concentration rolls.
+Cancelling or being interrupted does not refund resources already spent.
+Instant spells have no extended casting period to interrupt.
 
-See also:  QUICK-CHANT CASTING CONCENTRATION
+See also: QUICK-CHANT CASTING CONCENTRATION ACTIVITY ABORT
 #0
 CAT-FALL CATFALL POWER-CATFALL PSIONIC-POWER-CATFALL
 
@@ -6994,19 +7004,21 @@ miss completely.  Note that concealment caps at 50%.
 #0
 CONCENTRATION
 
-Usage:  automatic
+Usage: automatic
 
-Concentration affects your ability to complete the "CASTING-TIME" of spells
-despite distractions such as GRAPPLED or TAUNT.  In addition, a higher
-concentration rating is needed to complete more difficult spells.
+Concentration helps you cast under distractions such as combat, GRAPPLED,
+TAUNT and intimidation. More difficult spells require higher concentration.
 
-Concentration is also your ability to resist extremely distracting skills
-and attacks.
+While a timed spell is being cast, each positive damage event requests one
+concentration check. Larger amounts of damage are harder to withstand. This
+also applies outside combat. Preventing all damage avoids that check, so
+protecting an ally who is casting can help them complete their spell.
 
-So far concentration help resist:
-TAUNT
+Failure interrupts the cast. Casting progress alone does not repeat the roll.
+The existing alchemist and shadowdancer exemptions from concentration failure
+remain in effect. Concentration also helps resist distracting skills like TAUNT.
 
-See also:  TAUNT CASTING-TIME GRAPPLED
+See also: TAUNT CASTING-TIME GRAPPLED ACTIVITY
 #0
 CONCUSSION-BLAST POWER-CONCUSSION-BLAST PSIONIC-POWER-CONCUSSION-BLAST
 

@@ -17,7 +17,6 @@ extern MUD_EVENT_CALLBACK(event_countdown);
 extern MUD_EVENT_CALLBACK(event_daily_use_cooldown);
 extern MUD_EVENT_CALLBACK(get_protocols);
 extern MUD_EVENT_CALLBACK(event_whirlwind);
-extern MUD_EVENT_CALLBACK(event_casting);
 extern MUD_EVENT_CALLBACK(event_preparation);
 extern MUD_EVENT_CALLBACK(event_crafting);
 extern MUD_EVENT_CALLBACK(event_acid_arrow);
@@ -58,7 +57,7 @@ struct mud_event_list mud_event_index[] = {
     {"Null", NULL, -1, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Protocol", get_protocols, EVENT_DESC, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Whirlwind", event_whirlwind, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
-    {"Casting", event_casting, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Retired casting", NULL, -1, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Lay on hands", event_daily_use_cooldown, EVENT_CHAR,
      "You are now able to lay on hands again.", "One of your lay on hands uses has recovered.",
      FEAT_LAYHANDS, 0},

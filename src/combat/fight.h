@@ -40,6 +40,12 @@ struct attack_hit_type
   const char *plural;
 };
 
+/* Commit already-resolved damage and publish its actual HP loss. This does not
+ * perform resistance, combat admission, position updates or death resolution.
+ * Use INT_MIN for no gameplay floor; callers retain their existing death policy. */
+void combat_apply_raw_damage(struct char_data *victim, struct char_data *source, int amount,
+                             int damage_type, int minimum_hit);
+
 /* Functions available in fight.c */
 void init_condensed_combat_data(struct char_data *ch);
 int valid_fight_cond(struct char_data *ch, bool strict);

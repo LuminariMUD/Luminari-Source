@@ -46,12 +46,18 @@ struct primary_activity
   enum primary_activity_response target_loss_response;
   enum primary_activity_response command_response;
   long delay_pulses;
+  bool wall_clock;
+  bool cannot_pause;
+  primary_activity_timed_step timed_step;
+  primary_activity_damage_check damage_check;
   primary_activity_recheck recheck;
   primary_activity_progress progress;
   primary_activity_completion complete;
   primary_activity_ended ended;
   primary_activity_context_cleanup cleanup_context;
   void *context;
+  struct domain_event_subscription_handle target_moved;
+  struct domain_event_subscription_handle target_died;
   struct event_runtime_handle timer_handle;
   bool timer_dispatching;
   bool combat_clock;
@@ -144,17 +150,22 @@ static struct primary_activity *find_activity_by_id(uint64_t id)
 
 static void publish_transition(struct domain_entity_handle actor, enum primary_activity_type type,
                                enum primary_activity_state previous_state,
-                               enum primary_activity_state current_state)
+                               enum primary_activity_state current_state, uint64_t id,
+                               enum primary_activity_end_reason reason)
 {
   struct domain_activity_transitioned event;
+  struct domain_event_topic topic = {DOMAIN_EVENT_TOPIC_SUBJECT, actor};
 
   if (activity_bus == NULL)
     return;
+  event.activity_id = id;
+  event.end_reason = (uint32_t)reason;
   event.actor = actor;
   event.activity_type = (uint32_t)type;
   event.previous_state = (uint32_t)previous_state;
   event.current_state = (uint32_t)current_state;
-  (void)DOMAIN_EVENT_PUBLISH(activity_bus, DOMAIN_EVENT_ACTIVITY_TRANSITIONED, &event);
+  (void)DOMAIN_EVENT_PUBLISH_ROUTED(activity_bus, DOMAIN_EVENT_ACTIVITY_TRANSITIONED, &topic, 1U,
+                                    &event);
 }
 
 static void activity_timer_cleanup(void *event_obj)
@@ -218,9 +229,11 @@ static void finish_activity(struct primary_activity *activity,
   struct domain_entity_handle actor_handle;
   enum primary_activity_type type;
   enum primary_activity_state previous_state;
+  uint64_t id;
 
   if (activity == NULL)
     return;
+  id = activity->id;
   actor_handle = activity->actor;
   type = activity->type;
   previous_state = activity->state;
@@ -233,6 +246,8 @@ static void finish_activity(struct primary_activity *activity,
   strlcpy(name, activity->display_name, sizeof(name));
 
   detach_timer(activity, false);
+  (void)domain_event_unsubscribe(activity_bus, activity->target_moved);
+  (void)domain_event_unsubscribe(activity_bus, activity->target_died);
   activity->state = terminal_state;
   if (actor != NULL && actor->primary_activity == activity)
     actor->primary_activity = NULL;
@@ -251,7 +266,7 @@ static void finish_activity(struct primary_activity *activity,
     ended(actor, reason, context);
   if (cleanup_context != NULL)
     cleanup_context(context);
-  publish_transition(actor_handle, type, previous_state, terminal_state);
+  publish_transition(actor_handle, type, previous_state, terminal_state, id, reason);
 }
 
 static bool activity_recheck_now(struct primary_activity *activity,
@@ -260,11 +275,13 @@ static bool activity_recheck_now(struct primary_activity *activity,
   struct char_data *actor;
   void *target;
   uint64_t id;
+  struct domain_entity_handle actor_handle;
   bool allowed;
 
   if (activity == NULL)
     return false;
   id = activity->id;
+  actor_handle = activity->actor;
   actor = resolve_actor(activity->actor);
   target = resolve_target(activity->target);
   if (actor == NULL || target == NULL)
@@ -273,7 +290,11 @@ static bool activity_recheck_now(struct primary_activity *activity,
     return false;
   }
   allowed = activity->recheck == NULL || activity->recheck(actor, target, activity->context);
-  if (actor->primary_activity != activity || actor->primary_activity->id != id ||
+  actor = resolve_actor(actor_handle);
+  activity = actor != NULL ? actor->primary_activity : NULL;
+  if (activity == NULL || activity->id != id)
+    return false;
+  if (actor == NULL || actor->primary_activity != activity || actor->primary_activity->id != id ||
       activity->state != PRIMARY_ACTIVITY_STATE_ACTIVE)
     return false;
   if (!allowed)
@@ -295,7 +316,8 @@ static bool pause_activity_internal(struct primary_activity *activity, bool noti
   enum primary_activity_state previous_state;
   char name[ACTIVITY_NAME_SIZE];
 
-  if (activity == NULL || activity->state != PRIMARY_ACTIVITY_STATE_ACTIVE)
+  if (activity == NULL || activity->cannot_pause ||
+      activity->state != PRIMARY_ACTIVITY_STATE_ACTIVE)
     return false;
   actor_handle = activity->actor;
   type = activity->type;
@@ -309,7 +331,8 @@ static bool pause_activity_internal(struct primary_activity *activity, bool noti
   activity_stats.paused++;
   if (notify && actor != NULL)
     send_to_char(actor, "You pause %s.\r\n", name);
-  publish_transition(actor_handle, type, previous_state, PRIMARY_ACTIVITY_STATE_PAUSED);
+  publish_transition(actor_handle, type, previous_state, PRIMARY_ACTIVITY_STATE_PAUSED,
+                     activity->id, PRIMARY_ACTIVITY_END_INTERNAL);
   return true;
 }
 
@@ -339,7 +362,7 @@ static bool resume_activity_internal(struct primary_activity *activity, bool not
   }
   activity->paused_by_combat = false;
   activity->state = PRIMARY_ACTIVITY_STATE_ACTIVE;
-  if (FIGHTING(actor) != NULL)
+  if (FIGHTING(actor) != NULL && !activity->wall_clock)
   {
     activity->combat_clock = true;
   }
@@ -357,7 +380,8 @@ static bool resume_activity_internal(struct primary_activity *activity, bool not
   activity_stats.resumed++;
   if (notify)
     send_to_char(actor, "You resume %s.\r\n", name);
-  publish_transition(actor_handle, type, previous_state, PRIMARY_ACTIVITY_STATE_ACTIVE);
+  publish_transition(actor_handle, type, previous_state, PRIMARY_ACTIVITY_STATE_ACTIVE,
+                     activity->id, PRIMARY_ACTIVITY_END_INTERNAL);
   return true;
 }
 
@@ -439,6 +463,7 @@ static bool advance_activity(struct primary_activity *activity, bool recheck)
   struct char_data *actor;
   void *target;
   uint64_t id;
+  struct domain_entity_handle actor_handle;
 
   if (recheck && !activity_recheck_now(activity, PRIMARY_ACTIVITY_END_RECHECK_FAILED))
     return false;
@@ -447,12 +472,33 @@ static bool advance_activity(struct primary_activity *activity, bool recheck)
   if (actor == NULL || target == NULL)
     return false;
   id = activity->id;
+  actor_handle = activity->actor;
+  if (activity->timed_step != NULL)
+  {
+    long delay = activity->timed_step(actor, target, activity->context);
+
+    actor = resolve_actor(actor_handle);
+    activity = actor != NULL ? actor->primary_activity : NULL;
+    if (activity == NULL || activity->id != id)
+      return false;
+    if (delay <= 0)
+    {
+      finish_activity(activity, PRIMARY_ACTIVITY_STATE_COMPLETED, PRIMARY_ACTIVITY_END_COMPLETED,
+                      false);
+      return false;
+    }
+    activity->step_interval = delay;
+    if (activity->completed_steps + 1U < activity->total_steps)
+      activity->completed_steps++;
+    return true;
+  }
   if (activity->completed_steps < activity->total_steps)
     activity->completed_steps++;
   if (activity->progress != NULL && activity->completed_steps < activity->total_steps)
     activity->progress(actor, target, activity->completed_steps, activity->total_steps,
                        activity->context);
-  if (actor->primary_activity == NULL || actor->primary_activity->id != id ||
+  actor = resolve_actor(actor_handle);
+  if (actor == NULL || actor->primary_activity == NULL || actor->primary_activity->id != id ||
       actor->primary_activity->state != PRIMARY_ACTIVITY_STATE_ACTIVE)
     return false;
   if (activity->completed_steps >= activity->total_steps)
@@ -487,20 +533,22 @@ primary_activity_timer(const struct game_event_context *event_context)
     return game_event_result_complete();
   activity->timer_handle = EVENT_RUNTIME_HANDLE_NONE;
   activity->timer_dispatching = true;
-  next_delay = activity->step_interval;
   if (!advance_activity(activity, true))
   {
-    activity = actor->primary_activity;
+    actor = resolve_actor(payload->actor);
+    activity = actor != NULL ? actor->primary_activity : NULL;
     if (activity != NULL && activity->id == payload->activity_id)
       activity->timer_dispatching = false;
     return game_event_result_complete();
   }
-  activity = actor->primary_activity;
+  actor = resolve_actor(payload->actor);
+  activity = actor != NULL ? actor->primary_activity : NULL;
   if (activity != NULL && activity->id == payload->activity_id)
     activity->timer_dispatching = false;
   if (activity == NULL || activity->id != payload->activity_id ||
       activity->state != PRIMARY_ACTIVITY_STATE_ACTIVE || activity->combat_clock)
     return game_event_result_complete();
+  next_delay = activity->step_interval;
   activity->remaining_delay = next_delay;
   activity->timer_handle = payload->event_handle;
   return game_event_result_reschedule_after((game_tick_t)next_delay);
@@ -594,8 +642,20 @@ static void handle_character_damaged(const struct domain_event_context *context,
     return;
   actor = resolve_actor(event->target);
   activity = actor != NULL ? actor->primary_activity : NULL;
-  if (activity != NULL)
-    (void)apply_response(activity, activity->damage_response, PRIMARY_ACTIVITY_END_COMMAND, true);
+  if (activity != NULL && activity->damage_check != NULL)
+  {
+    uint64_t id = activity->id;
+    bool allowed = activity->damage_check(actor, event, activity->context);
+
+    actor = resolve_actor(event->target);
+    if (actor == NULL || actor->primary_activity == NULL || actor->primary_activity->id != id)
+      return;
+    if (!allowed)
+      finish_activity(activity, PRIMARY_ACTIVITY_STATE_CANCELLED, PRIMARY_ACTIVITY_END_DAMAGED,
+                      true);
+  }
+  else if (activity != NULL)
+    (void)apply_response(activity, activity->damage_response, PRIMARY_ACTIVITY_END_DAMAGED, true);
 }
 
 static void handle_character_died(const struct domain_event_context *context, void *handler_context)
@@ -662,7 +722,7 @@ static void handle_combat_state_changed(const struct domain_event_context *conte
   (void)handler_context;
   actor = resolve_actor(event->character);
   activity = actor != NULL ? actor->primary_activity : NULL;
-  if (activity == NULL)
+  if (activity == NULL || activity->wall_clock)
     return;
   if (event->in_combat)
   {
@@ -756,6 +816,38 @@ void primary_activity_manager_shutdown(void)
   shutting_down = false;
 }
 
+static void activity_target_changed(const struct domain_event_context *context, void *data)
+{
+  struct primary_activity *activity = data;
+
+  if (context->type == DOMAIN_EVENT_CHARACTER_DIED)
+    finish_activity(activity, PRIMARY_ACTIVITY_STATE_CANCELLED, PRIMARY_ACTIVITY_END_TARGET_LOST,
+                    true);
+  else if (activity->state == PRIMARY_ACTIVITY_STATE_ACTIVE)
+    (void)activity_recheck_now(activity, PRIMARY_ACTIVITY_END_TARGET_LOST);
+}
+
+static bool watch_activity_target(struct primary_activity *activity)
+{
+  struct domain_event_subscription_config config = {0};
+
+  if (activity->target.kind != DOMAIN_ENTITY_CHARACTER ||
+      domain_entity_handle_equal(activity->target, activity->actor))
+    return true;
+  config.topic.role = DOMAIN_EVENT_TOPIC_SUBJECT;
+  config.topic.entity = activity->target;
+  config.owner = activity->actor;
+  config.handler = activity_target_changed;
+  config.handler_context = activity;
+  config.type = DOMAIN_EVENT_CHARACTER_MOVED;
+  config.identity = "activity.target.moved";
+  if (domain_event_subscribe(activity_bus, &config, &activity->target_moved) != DOMAIN_EVENT_OK)
+    return false;
+  config.type = DOMAIN_EVENT_CHARACTER_DIED;
+  config.identity = "activity.target.died";
+  return domain_event_subscribe(activity_bus, &config, &activity->target_died) == DOMAIN_EVENT_OK;
+}
+
 bool primary_activity_start(struct char_data *actor, struct domain_entity_handle target,
                             const struct primary_activity_definition *definition)
 {
@@ -776,7 +868,7 @@ bool primary_activity_start(struct char_data *actor, struct domain_entity_handle
   actor_handle = domain_event_character_handle(actor);
   if (!domain_entity_handle_is_valid(actor_handle) || resolve_actor(actor_handle) != actor)
     return false;
-  starts_in_combat = FIGHTING(actor) != NULL;
+  starts_in_combat = FIGHTING(actor) != NULL && !definition->wall_clock;
   if (starts_in_combat)
   {
     if (definition->combat_response == PRIMARY_ACTIVITY_RESPONSE_CANCEL ||
@@ -815,6 +907,10 @@ bool primary_activity_start(struct char_data *actor, struct domain_entity_handle
   activity->target_loss_response = definition->target_loss_response;
   activity->command_response = definition->command_response;
   activity->delay_pulses = MAX(1L, definition->delay_pulses);
+  activity->wall_clock = definition->wall_clock;
+  activity->cannot_pause = definition->cannot_pause;
+  activity->timed_step = definition->timed_step;
+  activity->damage_check = definition->damage_check;
   activity->recheck = definition->recheck;
   activity->progress = definition->progress;
   activity->complete = definition->complete;
@@ -842,10 +938,17 @@ bool primary_activity_start(struct char_data *actor, struct domain_entity_handle
   }
   actor->primary_activity = activity;
   activity_list_add(activity);
+  if (definition->watch_target && !watch_activity_target(activity))
+  {
+    finish_activity(activity, PRIMARY_ACTIVITY_STATE_CANCELLED, PRIMARY_ACTIVITY_END_INTERNAL,
+                    false);
+    return false;
+  }
   activity_stats.started++;
   if (activity->state == PRIMARY_ACTIVITY_STATE_PAUSED)
     activity_stats.paused++;
-  publish_transition(actor_handle, definition->type, PRIMARY_ACTIVITY_STATE_NONE, activity->state);
+  publish_transition(actor_handle, definition->type, PRIMARY_ACTIVITY_STATE_NONE, activity->state,
+                     activity->id, PRIMARY_ACTIVITY_END_INTERNAL);
   return true;
 }
 
@@ -976,6 +1079,7 @@ bool primary_activity_snapshot(const struct char_data *actor,
   memset(snapshot, 0, sizeof(*snapshot));
   if (actor == NULL || (activity = actor->primary_activity) == NULL)
     return false;
+  snapshot->id = activity->id;
   snapshot->type = activity->type;
   snapshot->state = activity->state;
   strlcpy(snapshot->display_name, activity->display_name, sizeof(snapshot->display_name));
@@ -1036,6 +1140,8 @@ const char *primary_activity_end_reason_name(enum primary_activity_end_reason re
     return "the target was lost";
   case PRIMARY_ACTIVITY_END_RECHECK_FAILED:
     return "conditions changed";
+  case PRIMARY_ACTIVITY_END_DAMAGED:
+    return "damage interrupted it";
   case PRIMARY_ACTIVITY_END_COMMAND:
     return "another action interrupted it";
   case PRIMARY_ACTIVITY_END_SHUTDOWN:

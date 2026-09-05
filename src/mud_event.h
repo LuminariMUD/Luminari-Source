@@ -75,7 +75,7 @@ typedef enum
   eNULL,                          /*0*/
   ePROTOCOLS,                     /* The Protocol Detection Event */
   eWHIRLWIND,                     /* The Whirlwind Attack */
-  eCASTING,                       //  casting time
+  eRETIRED_CASTING,               /* Reserved ID; casting belongs to primary activities. */
   eLAYONHANDS,                    //  lay on hands
   /*5*/ eTREATINJURY,             //  treat injury
   eTAUNT,                         //  taunt
@@ -401,7 +401,6 @@ MUD_EVENT_CALLBACK(event_countdown);
 MUD_EVENT_CALLBACK(event_daily_use_cooldown);
 MUD_EVENT_CALLBACK(get_protocols);
 MUD_EVENT_CALLBACK(event_whirlwind);
-MUD_EVENT_CALLBACK(event_casting);
 MUD_EVENT_CALLBACK(event_preparing);
 MUD_EVENT_CALLBACK(event_crafting);
 MUD_EVENT_CALLBACK(event_acid_arrow);

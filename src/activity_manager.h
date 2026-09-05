@@ -14,6 +14,7 @@ enum primary_activity_type
   PRIMARY_ACTIVITY_NONE = 0,
   PRIMARY_ACTIVITY_CAMP,
   PRIMARY_ACTIVITY_TEST,
+  PRIMARY_ACTIVITY_CASTING,
   PRIMARY_ACTIVITY_TYPE_COUNT
 };
 
@@ -82,8 +83,16 @@ enum primary_activity_end_reason
   PRIMARY_ACTIVITY_END_RECHECK_FAILED,
   PRIMARY_ACTIVITY_END_COMMAND,
   PRIMARY_ACTIVITY_END_SHUTDOWN,
-  PRIMARY_ACTIVITY_END_INTERNAL
+  PRIMARY_ACTIVITY_END_INTERNAL,
+  PRIMARY_ACTIVITY_END_DAMAGED
 };
+
+/* A timed step returns pulses until the next step, or zero to complete. */
+typedef long (*primary_activity_timed_step)(struct char_data *actor, void *target, void *context);
+struct domain_character_damaged;
+typedef bool (*primary_activity_damage_check)(struct char_data *actor,
+                                              const struct domain_character_damaged *damage,
+                                              void *context);
 
 typedef bool (*primary_activity_recheck)(struct char_data *actor, void *target, void *context);
 typedef void (*primary_activity_progress)(struct char_data *actor, void *target,
@@ -111,6 +120,11 @@ struct primary_activity_definition
   enum primary_activity_response target_loss_response;
   enum primary_activity_response command_response;
   long delay_pulses;
+  bool wall_clock; /* Preserve pulse timing across combat transitions. */
+  bool cannot_pause;
+  bool watch_target; /* Recheck target movement and cancel on target death. */
+  primary_activity_timed_step timed_step;
+  primary_activity_damage_check damage_check;
   primary_activity_recheck recheck;
   primary_activity_progress progress;
   primary_activity_completion complete;
@@ -121,6 +135,7 @@ struct primary_activity_definition
 
 struct primary_activity_snapshot
 {
+  uint64_t id;
   enum primary_activity_type type;
   enum primary_activity_state state;
   char display_name[64];

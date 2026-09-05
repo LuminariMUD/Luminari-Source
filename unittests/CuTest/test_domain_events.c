@@ -26,6 +26,7 @@
 #include "../../src/domain_event_runtime.h"
 #include "../../src/domain_event_world.h"
 #include "../../src/event_runtime.h"
+#include "../../src/activity_manager.h"
 #include "../../src/event_debug.h"
 #include "../../src/ready_action.h"
 #include "../../src/magic/spells.h"
@@ -3590,4 +3591,113 @@ void TestWorldPhenomenonRoomPropagation(CuTest *tc)
 void TestReadyActionFiltersEntryThenRunsThroughInterpreter(CuTest *tc)
 {
   verify_ready_action_filters_entry_then_runs_through_interpreter(tc);
+}
+
+void TestDomainObjectFreeNotifiesActivityBeforeTargetMemoryIsReleased(CuTest *tc)
+{
+  struct char_data actor;
+  struct obj_data *object;
+  struct char_data *saved_characters = character_list;
+  struct primary_activity_definition definition = {0};
+  struct primary_activity_snapshot snapshot;
+
+  clear_char(&actor);
+  actor.player_specials = &dummy_mob;
+  actor.player.name = "object activity owner";
+  character_list = &actor;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  object = calloc(1U, sizeof(*object));
+  CuAssertPtrNotNull(tc, object);
+  GET_OBJ_RNUM(object) = NOWHERE;
+  definition.type = PRIMARY_ACTIVITY_TEST;
+  definition.display_name = "using an object";
+  definition.total_steps = 2;
+  definition.step_interval = 10;
+  definition.target_loss_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  CuAssertTrue(tc, primary_activity_start(&actor, domain_event_object_handle(object), &definition));
+  CuAssertTrue(tc, primary_activity_snapshot(&actor, &snapshot));
+  free_obj(object);
+  CuAssertTrue(tc, !primary_activity_snapshot(&actor, &snapshot));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  domain_event_world_forget_character(&actor);
+  character_list = saved_characters;
+}
+
+struct raw_damage_test_trace
+{
+  int calls;
+  int amount;
+  struct domain_entity_handle source;
+};
+
+static void raw_damage_test_observer(const struct domain_event_context *context, void *data)
+{
+  struct raw_damage_test_trace *trace = data;
+  const struct domain_character_damaged *damage = context->payload;
+
+  trace->calls++;
+  trace->amount = damage->amount;
+  trace->source = damage->source;
+}
+
+void TestDomainRawAndScriptDamagePublishActualLossOnce(CuTest *tc)
+{
+  struct char_data actor;
+  struct char_data *saved_characters = character_list;
+  struct domain_event_subscription_config config = {0};
+  struct domain_event_subscription_handle subscription;
+  struct primary_activity_definition definition = {0};
+  struct primary_activity_snapshot snapshot;
+  struct raw_damage_test_trace trace = {0};
+
+  clear_char(&actor);
+  actor.player_specials = &dummy_mob;
+  actor.player.name = "raw damage target";
+  GET_POS(&actor) = POS_STANDING;
+  GET_HIT(&actor) = 10;
+  GET_MAX_HIT(&actor) = 100;
+  character_list = &actor;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  config.type = DOMAIN_EVENT_CHARACTER_DAMAGED;
+  config.topic.role = DOMAIN_EVENT_TOPIC_SUBJECT;
+  config.topic.entity = domain_event_character_handle(&actor);
+  config.owner = config.topic.entity;
+  config.identity = "test.raw.damage";
+  config.handler = raw_damage_test_observer;
+  config.handler_context = &trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &config, &subscription));
+  combat_apply_raw_damage(&actor, &actor, 50, DAM_FORCE, 1);
+  CuAssertIntEquals(tc, 1, GET_HIT(&actor));
+  CuAssertIntEquals(tc, 1, trace.calls);
+  CuAssertIntEquals(tc, 9, trace.amount);
+  CuAssertTrue(tc, domain_entity_handle_equal(config.owner, trace.source));
+  combat_apply_raw_damage(&actor, NULL, 50, DAM_FORCE, 1);
+  combat_apply_raw_damage(&actor, NULL, 0, DAM_FORCE, INT_MIN);
+  combat_apply_raw_damage(&actor, NULL, -5, DAM_FORCE, INT_MIN);
+  CuAssertIntEquals(tc, 1, trace.calls);
+  CuAssertIntEquals(tc, 6, GET_HIT(&actor));
+  definition.type = PRIMARY_ACTIVITY_TEST;
+  definition.display_name = "damage-sensitive work";
+  definition.total_steps = 2;
+  definition.step_interval = 10;
+  definition.damage_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  CuAssertTrue(tc, primary_activity_start(&actor, config.owner, &definition));
+  script_damage(&actor, 3);
+  CuAssertIntEquals(tc, 3, GET_HIT(&actor));
+  CuAssertIntEquals(tc, 2, trace.calls);
+  CuAssertIntEquals(tc, 3, trace.amount);
+  CuAssertTrue(tc, domain_entity_handle_is_none(trace.source));
+  CuAssertTrue(tc, !primary_activity_snapshot(&actor, &snapshot));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  domain_event_world_forget_character(&actor);
+  character_list = saved_characters;
 }

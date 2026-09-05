@@ -2,6 +2,7 @@
 
 #include "db.h"
 #include "domain_event_runtime.h"
+#include "domain_event_types.h"
 
 #define DOMAIN_WORLD_REGISTRY_BUCKETS 16384U
 
@@ -167,6 +168,12 @@ void domain_event_world_forget_object(struct obj_data *obj)
     owner.kind = DOMAIN_ENTITY_OBJECT;
     owner.runtime_id = (uint64_t)(uintptr_t)obj;
     owner.generation = obj->event_owner_generation;
+    {
+      struct domain_entity_extracted event = {owner, 0U};
+      struct domain_event_topic topic = {DOMAIN_EVENT_TOPIC_SUBJECT, owner};
+
+      (void)DOMAIN_EVENT_PUBLISH_ROUTED(bus, DOMAIN_EVENT_ENTITY_EXTRACTED, &topic, 1U, &event);
+    }
     (void)domain_event_unsubscribe_owner(bus, owner, NULL);
   }
   registry_forget(object_registry, obj);
