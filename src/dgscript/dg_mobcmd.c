@@ -10,6 +10,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "movement/door_state.h"
 #include "utils.h"
 #include "screen.h"
 #include "dg_scripts.h"
@@ -26,22 +27,24 @@
 #include "combat/fight.h"
 #include "obj/shop.h" /* shop keepers and mhunt */
 #include "clan.h"     /* clan system */
+#include "active_world.h"
 
 /* Local file scope functions. */
-static void mob_log(char_data *mob, const char *format, ...);
+static void mob_log(char_data *mob, const char *format, ...) __attribute__((format(printf, 2, 3)));
 
 /* attaches mob's name and vnum to msg and sends it to script_log */
 static void mob_log(char_data *mob, const char *format, ...)
 {
   va_list args;
-  char output[MAX_STRING_LENGTH] = {'\0'};
+  char message[MAX_STRING_LENGTH] = {'\0'};
 
-  snprintf(output, sizeof(output), "Mob (%s, VNum %d):: %s", GET_SHORT(mob), GET_MOB_VNUM(mob),
-           format);
-
+  /* See obj_log(): expand the caller's format first so the mob's short
+     description is logged as data rather than as format directives. */
   va_start(args, format);
-  script_vlog(output, args);
+  vsnprintf(message, sizeof(message), format, args);
   va_end(args);
+
+  script_log("Mob (%s, VNum %d):: %s", GET_SHORT(mob), GET_MOB_VNUM(mob), message);
 }
 
 /* Macro to determine if a mob is permitted to use these commands. */
@@ -1086,7 +1089,7 @@ ACMD(do_mhunt)
   }
   */
 
-  HUNTING(ch) = victim;
+  set_hunting_target(ch, victim);
 }
 
 /* Alert every loaded mobile matching one of the converted RoL helper prototypes. */
@@ -1144,7 +1147,7 @@ ACMD(do_mrolalert)
     if (helper_index == helper_count || !ok_damage_shopkeeper(victim, helper))
       continue;
 
-    HUNTING(helper) = victim;
+    set_hunting_target(helper, victim);
   }
 }
 
@@ -1288,6 +1291,9 @@ ACMD(do_mtransform)
   mob_rnum this_rnum = GET_MOB_RNUM(ch);
   struct char_data *affected_next;
   struct char_data *affected_prev;
+  struct combat_encounter_data *combat_encounter;
+  struct combat_encounter_participant *combat_encounter_participant;
+  uint64_t domain_event_generation;
   int old_origin_zone_vnum;
   int old_create_reason;
   bool affected_registered;
@@ -1355,6 +1361,7 @@ ACMD(do_mtransform)
 
     /* put the mob in the same room as ch so extract will work */
     char_to_room(m, IN_ROOM(ch));
+    active_world_forget_character(m);
 
     memcpy(&tmpmob, m, sizeof(*m));
 
@@ -1376,12 +1383,18 @@ ACMD(do_mtransform)
     affected_next = ch->affected_next;
     affected_prev = ch->affected_prev;
     affected_registered = ch->affected_registered;
+    combat_encounter = ch->combat_encounter;
+    combat_encounter_participant = ch->combat_encounter_participant;
+    domain_event_generation = ch->domain_event_generation;
 
     tmpmob.id = ch->id;
     tmpmob.affected = ch->affected;
     tmpmob.affected_next = affected_next;
     tmpmob.affected_prev = affected_prev;
     tmpmob.affected_registered = affected_registered;
+    tmpmob.combat_encounter = combat_encounter;
+    tmpmob.combat_encounter_participant = combat_encounter_participant;
+    tmpmob.domain_event_generation = domain_event_generation;
     tmpmob.perf_origin_zone_vnum = old_origin_zone_vnum;
     tmpmob.perf_create_reason = (unsigned char)old_create_reason;
     tmpmob.carrying = ch->carrying;
@@ -1407,6 +1420,7 @@ ACMD(do_mtransform)
     IS_CARRYING_N(&tmpmob) = IS_CARRYING_N(ch);
     FIGHTING(&tmpmob) = FIGHTING(ch);
     HUNTING(&tmpmob) = HUNTING(ch);
+    active_world_forget_character(ch);
     memcpy(ch, &tmpmob, sizeof(*ch));
 
     for (pos = 0; pos < NUM_WEARS; pos++)
@@ -1417,11 +1431,13 @@ ACMD(do_mtransform)
 
     ch->nr = this_rnum;
     extract_char(m);
+    active_world_sync_mobile(ch);
   }
 }
 
 ACMD(do_mdoor)
 {
+  struct door_state_operation operation = {0};
   char target[MAX_INPUT_LENGTH] = {'\0'}, direction[MAX_INPUT_LENGTH] = {'\0'};
   char field[MAX_INPUT_LENGTH] = {'\0'};
   char choices[256] = {'\0'};
@@ -1471,6 +1487,7 @@ ACMD(do_mdoor)
     return;
   }
 
+  door_state_begin(&operation, real_room(rm->number), dir, false, DOMAIN_DOOR_GAMEPLAY);
   newexit = rm->dir_option[dir];
 
   /* purge exit */
@@ -1526,6 +1543,7 @@ ACMD(do_mdoor)
       break;
     }
   }
+  door_state_finish(&operation);
 }
 
 ACMD(do_mfollow)

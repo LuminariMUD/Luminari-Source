@@ -18,6 +18,7 @@
 #include "handler.h"
 #include "constants.h"
 #include "vessels.h"
+#include "vessel_periodic.h"
 #include "mud_event.h"
 #include "dgscript/dg_scripts.h"
 #include "wilderness/wilderness.h"
@@ -1378,9 +1379,13 @@ float greyhawk_range(float x1, float y1, float z1, float x2, float y2, float z2)
  */
 void greyhawk_initialize_ships(void)
 {
+  int ship_index;
+
   vessel_dynamic_room_cache_reset();
 
   /* Clear ship array */
+  for (ship_index = 0; ship_index < GREYHAWK_MAXSHIPS; ship_index++)
+    vessel_periodic_forget(&greyhawk_ships[ship_index]);
   memset(greyhawk_ships, 0, sizeof(greyhawk_ships));
 
   /* Clear contact array */

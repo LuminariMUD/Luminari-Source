@@ -11,14 +11,14 @@
 #ifndef MOVEMENT_FALLING_H
 #define MOVEMENT_FALLING_H
 
-/* Include for EVENTFUNC macro */
-#include "dgscript/dg_event.h"
+/* Include for MUD_EVENT_CALLBACK macro */
+#include "mud_event_callback.h"
 
 /* Function declarations for falling mechanics */
 bool obj_should_fall(struct obj_data *obj);
 bool char_should_fall(struct char_data *ch, bool silent);
 
 /* Event function declaration */
-EVENTFUNC(event_falling);
+MUD_EVENT_CALLBACK(event_falling);
 
 #endif /* MOVEMENT_FALLING_H */

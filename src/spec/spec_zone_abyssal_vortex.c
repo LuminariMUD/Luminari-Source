@@ -10,6 +10,7 @@
 
 #include "structs.h"
 #include "utils.h"
+#include "movement/door_state.h"
 #include "comm.h"
 #include "interpreter.h"
 #include "db.h"
@@ -18,6 +19,8 @@
 /* from homeland */
 SPECIAL(abyssal_vortex)
 {
+  struct door_state_operation operations[6] = {0};
+  int direction;
   int temp;
 
   if (cmd)
@@ -28,6 +31,8 @@ SPECIAL(abyssal_vortex)
 
   if (!rand_number(0, 7))
   {
+    for (direction = 0; direction < 6; direction++)
+      door_state_begin(&operations[direction], IN_ROOM(ch), direction, false, DOMAIN_DOOR_EDIT);
     temp = world[ch->in_room].dir_option[0]->to_room;
     world[ch->in_room].dir_option[0]->to_room = world[ch->in_room].dir_option[1]->to_room;
     world[ch->in_room].dir_option[1]->to_room = world[ch->in_room].dir_option[4]->to_room;
@@ -39,6 +44,8 @@ SPECIAL(abyssal_vortex)
     send_to_room(ch->in_room,
                  "\tLThe reality seems to \tCshift\tL as madness descends in the \tcvortex\tn\r\n");
 
+    for (direction = 0; direction < 6; direction++)
+      door_state_finish(&operations[direction]);
     return TRUE;
   }
   return FALSE;

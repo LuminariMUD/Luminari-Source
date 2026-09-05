@@ -35,6 +35,37 @@ argument and command parsing, transport and autopilot behavior, combat,
 spells and skills, MariaDB prepared statements, DG scripts, and world index
 lookups.
 
+### Event Runtime Boot Matrix
+
+Changes to scheduling, the game loop, wait state, persistence cadence, or
+copyover must first syntax-boot the ordinary scheduler-only build. The old
+queue, compatibility heartbeat, and population-loop implementations are not
+compiled into that executable:
+
+```sh
+cmake -S . -B build-native
+cmake --build build-native -j"$(nproc)"
+build-native/bin/luminari -c
+```
+
+The loop-based rollback executable and its build/runtime selectors were
+retired by maintainer decision on 2026-09-05. Test the native scheduler with
+both supported I/O drivers; there is no legacy timing-backend matrix.
+Production-linked tests now exercise native handles directly. Existing player
+save formats remain migration inputs, but older-binary save output is not
+supported. Use the current full-world acceptance report for migration checks.
+
+Run these from a prepared `lib/` data directory or pass its absolute path with
+`-d`. Database-linked tests must use the repository's isolated test fixture;
+do not point a test run at a shared development or production database. A game-
+loop release candidate also requires a logged-in live test and a real copyover
+that verifies descriptor survival, service reconstruction, callback progress,
+handoff cleanup, and port closure.
+
+The complete native architecture acceptance matrix and compact immortal command
+card are maintained in
+[`EVENT_DRIVEN_CORE_ACCEPTANCE.md`](../testing/EVENT_DRIVEN_CORE_ACCEPTANCE.md).
+
 After `make test`, always run:
 
 ```sh
@@ -75,7 +106,7 @@ Phase 00 registry safety and observability is owned by eight production-linked t
 shared fixture source:
 
 - `test_spec_registry_persistence.c` - 10 registry, persistence, loader, and baseline OLC tests;
-- `test_spec_command_pulse.c` - 13 command, activity, auto-pulse, moving-room, and schedule tests;
+- `test_spec_command_pulse.c` - 13 command, activity, automatic-object, moving-room, and schedule tests;
 - `test_spec_combat_secondary.c` - 15 combat-token, ignored-return, shop, quest, and typed-nesting
   tests;
 - `test_spec_registry_validation.c` - 13 immutable metadata, bounds, and boot-failure tests;
@@ -397,6 +428,16 @@ that permits world-data ownership. Clean CI checkouts set
 `unittests/CuTest/fixtures/spec_world_inventory/`. This keeps the parser and
 exact baseline inventory contract reproducible without treating builder-owned
 world data as source-controlled content.
+
+The CMake and Autotools production-linked test entry points always set this
+fixture explicitly. They also run the event architecture contracts under
+`scripts/events/`: native one-wheel ownership and semantic registration,
+demand-driven mobile work, default-build rollback exclusion, and retired
+PubSub exclusion. Run the consolidated event check directly with:
+
+```sh
+scripts/events/test_native_event_architecture.sh
+```
 
 ## Coverage
 

@@ -27,13 +27,18 @@ extern "C"
 #define GAIN_EXP_MODE_TRAP 10
 
 /* limits.c functions */
-void pulse_luminari();
+size_t process_room_affect_activity(struct room_data *room);
+void process_character_environment_and_recovery(struct char_data *ch);
 bool death_check(struct char_data *ch);
 int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6);
 void regen_update(struct char_data *ch);
 int psp_gain(struct char_data *ch);
 int apply_slow_poison_reduction(struct char_data *ch, int damage);
-void regen_psp(void);
+void regen_psp_one(struct char_data *ch);
+void update_damage_and_effects_over_time_one(struct char_data *ch);
+void update_player_misc_one(struct char_data *ch);
+void reconcile_player_offline_cooldowns(struct char_data *ch, int64_t saved_at_epoch,
+                                        int64_t now_epoch);
 int hit_gain(struct char_data *ch);
 int move_gain(struct char_data *ch);
 void set_title(struct char_data *ch, char *title);
@@ -45,7 +50,9 @@ void gain_condition(struct char_data *ch, int condition, int value);
 void check_idling(struct char_data *ch);
 bool save_player_pets(void);
 bool save_char_pets(struct char_data *ch);
-void point_update(void);
+void point_update_global_one(void);
+void point_update_character_one(struct char_data *ch);
+bool point_update_object_one(struct obj_data *obj);
 int increase_gold(struct char_data *ch, int amt);
 int decrease_gold(struct char_data *ch, int deduction);
 int increase_bank(struct char_data *ch, int amt);

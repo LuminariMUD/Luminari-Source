@@ -10,6 +10,7 @@
 
 #include "structs.h"
 #include "utils.h"
+#include "combat/fight.h"
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
@@ -59,7 +60,7 @@ SPECIAL(shar_heart)
   affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
 
   dam = dice(6, 3) + 4;
-  GET_HIT(vict) -= dam;
+  combat_apply_raw_damage(vict, ch, dam, DAM_POISON, INT_MIN);
   return TRUE;
 }
 

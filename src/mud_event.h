@@ -13,8 +13,11 @@
 #ifndef _MUD_EVENT_H_
 #define _MUD_EVENT_H_
 
-#include "dgscript/dg_event.h"
+#include "event_runtime.h"
+#include "mud_event_callback.h"
 
+
+struct char_data;
 struct region_data;
 
 #define EVENT_WORLD 0
@@ -24,6 +27,46 @@ struct region_data;
 #define EVENT_REGION 4
 #define EVENT_OBJECT 5
 
+#define MUD_EVENT_DURABLE_FORMAT_VERSION 2U
+#define MUD_EVENT_MAX_PERSISTED_USES 100000
+
+enum mud_event_storage_class
+{
+  MUD_EVENT_TRANSIENT = 0,
+  MUD_EVENT_RECONSTRUCTABLE,
+  MUD_EVENT_COPYOVER_PRESERVED,
+  MUD_EVENT_PERSISTED
+};
+
+enum mud_event_offline_policy
+{
+  MUD_EVENT_OFFLINE_DISCARD = 0,
+  MUD_EVENT_OFFLINE_RECONSTRUCT,
+  MUD_EVENT_OFFLINE_PAUSE,
+  MUD_EVENT_OFFLINE_ELAPSE
+};
+
+enum mud_event_payload_policy
+{
+  MUD_EVENT_PAYLOAD_NONE = 0,
+  MUD_EVENT_PAYLOAD_USES
+};
+
+enum mud_event_restore_status
+{
+  MUD_EVENT_RESTORE_OK = 0,
+  MUD_EVENT_RESTORE_EXPIRED,
+  MUD_EVENT_RESTORE_INVALID_ARGUMENT,
+  MUD_EVENT_RESTORE_INVALID_FORMAT,
+  MUD_EVENT_RESTORE_UNKNOWN_TYPE,
+  MUD_EVENT_RESTORE_CLASS_MISMATCH,
+  MUD_EVENT_RESTORE_SCHEMA_MISMATCH,
+  MUD_EVENT_RESTORE_OWNER_MISMATCH,
+  MUD_EVENT_RESTORE_PAYLOAD_MALFORMED,
+  MUD_EVENT_RESTORE_DUPLICATE,
+  MUD_EVENT_RESTORE_ADMISSION_FAILED
+};
+
 #define NEW_EVENT(event_id, struct, var, time)                                                     \
   (attach_mud_event(new_mud_event(event_id, struct, var), time))
 
@@ -32,7 +75,7 @@ typedef enum
   eNULL,                          /*0*/
   ePROTOCOLS,                     /* The Protocol Detection Event */
   eWHIRLWIND,                     /* The Whirlwind Attack */
-  eCASTING,                       //  casting time
+  eRETIRED_CASTING,               /* Reserved ID; casting belongs to primary activities. */
   eLAYONHANDS,                    //  lay on hands
   /*5*/ eTREATINJURY,             //  treat injury
   eTAUNT,                         //  taunt
@@ -275,7 +318,7 @@ typedef enum
 struct mud_event_list
 {
   const char *event_name;
-  EVENTFUNC(*func);
+  mud_event_callback_func func;
   int iEvent_Type;
 
   /* Extended fields for centralized handling */
@@ -287,10 +330,32 @@ struct mud_event_list
 
 struct mud_event_data
 {
-  struct event *pEvent; /***< Pointer reference to the event */
-  event_id iId;         /***< General ID reference */
-  void *pStruct;        /***< Pointer to NULL, Descriptor, Character .... */
-  char *sVariables;     /***< String variable */
+  struct event_runtime_handle runtime_handle; /***< Native timed-event identity. */
+  event_id iId;                               /***< General ID reference */
+  void *pStruct;                              /***< Pointer to NULL, Descriptor, Character .... */
+  char *sVariables;                           /***< String variable */
+  struct game_event_owner owner;              /***< Stable scheduler owner handle. */
+  bool owner_detached; /***< Owner list was detached before deferred cleanup. */
+  int64_t restored_recovery_interval_ticks; /* Preserve cadence during offline file edits. */
+};
+
+struct mud_event_persistence_policy
+{
+  enum mud_event_storage_class storage_class;
+  enum mud_event_offline_policy offline_policy;
+  enum mud_event_payload_policy payload_policy;
+  unsigned int schema_version;
+};
+
+struct mud_event_durable_record
+{
+  event_id event_type;
+  unsigned int schema_version;
+  int64_t owner_id;
+  int64_t remaining_ticks;
+  int64_t saved_at_epoch;
+  int payload_value;
+  int64_t recovery_interval_ticks; /* Zero in older records and for one-shot timers. */
 };
 
 /* Externals */
@@ -300,14 +365,27 @@ extern const size_t mud_event_index_count;
 
 /* Local Functions */
 void init_events(void);
+bool mud_event_runtime_init(void);
+const struct mud_event_persistence_policy *mud_event_persistence_policy(event_id iId);
+const char *mud_event_storage_class_name(enum mud_event_storage_class storage_class);
+const char *mud_event_restore_status_name(enum mud_event_restore_status status);
+bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *pMudEvent,
+                                   int64_t saved_at_epoch, struct mud_event_durable_record *record);
+enum mud_event_restore_status mud_event_restore_character_record(
+    struct char_data *ch, const struct mud_event_durable_record *record, int64_t now_epoch);
 struct mud_event_data *new_mud_event(event_id iId, void *pStruct, const char *sVariables);
 void attach_mud_event(struct mud_event_data *pMudEvent, long time);
-void free_mud_event(struct mud_event_data *pMudEvent);
+bool mud_event_is_live(const struct mud_event_data *pMudEvent);
+long mud_event_remaining(const struct mud_event_data *pMudEvent);
+void mud_event_cancel(struct mud_event_data *pMudEvent);
+void mud_event_detach_owner(struct mud_event_data *pMudEvent);
 struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId);
 struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId);      // Ornir
 struct mud_event_data *obj_has_mud_event(struct obj_data *obj, event_id iId);       // Ornir
 struct mud_event_data *region_has_mud_event(struct region_data *reg, event_id iId); // Ornir
 void clear_char_event_list(struct char_data *ch);
+void clear_descriptor_event_list(struct descriptor_data *d);
+void clear_obj_event_list(struct obj_data *obj);
 void clear_room_event_list(struct room_data *rm);
 void clear_region_event_list(struct region_data *reg);
 void change_event_duration(struct char_data *ch, event_id iId, long time);
@@ -319,36 +397,40 @@ void event_cancel_specific(struct char_data *ch, event_id iId);
 #define SET_WAIT(ch, wait) attach_mud_event(new_mud_event(eWAIT, ch, NULL), wait)
 
 /* Events */
-EVENTFUNC(event_countdown);
-EVENTFUNC(event_daily_use_cooldown);
-EVENTFUNC(get_protocols);
-EVENTFUNC(event_whirlwind);
-EVENTFUNC(event_casting);
-EVENTFUNC(event_preparing);
-EVENTFUNC(event_crafting);
-EVENTFUNC(event_acid_arrow);
-EVENTFUNC(event_concussive_onslaught);
-EVENTFUNC(event_power_leech);
-EVENTFUNC(event_implode);
-EVENTFUNC(event_ice_storm);
-EVENTFUNC(event_chain_lightning);
-EVENTFUNC(event_falling);
-EVENTFUNC(event_check_occupied);
-EVENTFUNC(event_tracks);
-EVENTFUNC(event_combat_round);
-EVENTFUNC(event_action_cooldown);
-EVENTFUNC(event_trap_triggered);
-EVENTFUNC(event_preparation);
-EVENTFUNC(event_craft); /* NewCraft */
-EVENTFUNC(event_copyover);
-EVENTFUNC(event_spiritual_weapon);
-EVENTFUNC(event_dancing_weapon);
-EVENTFUNC(event_holy_javelin);
-EVENTFUNC(event_moonbeam);
-EVENTFUNC(event_aqueous_orb);
-EVENTFUNC(event_device_progress);
-EVENTFUNC(event_device_creation);
-EVENTFUNC(event_device_repair);
-EVENTFUNC(event_rol_call_lycanthrope_charm);
-EVENTFUNC(event_rol_tazriks_frenzied_hound);
+MUD_EVENT_CALLBACK(event_countdown);
+MUD_EVENT_CALLBACK(event_daily_use_cooldown);
+MUD_EVENT_CALLBACK(get_protocols);
+MUD_EVENT_CALLBACK(event_whirlwind);
+MUD_EVENT_CALLBACK(event_preparing);
+MUD_EVENT_CALLBACK(event_crafting);
+MUD_EVENT_CALLBACK(event_acid_arrow);
+MUD_EVENT_CALLBACK(event_concussive_onslaught);
+MUD_EVENT_CALLBACK(event_power_leech);
+MUD_EVENT_CALLBACK(event_implode);
+MUD_EVENT_CALLBACK(event_ice_storm);
+MUD_EVENT_CALLBACK(event_chain_lightning);
+MUD_EVENT_CALLBACK(event_falling);
+MUD_EVENT_CALLBACK(event_check_occupied);
+MUD_EVENT_CALLBACK(event_tracks);
+MUD_EVENT_CALLBACK(event_combat_round);
+MUD_EVENT_CALLBACK(event_action_cooldown);
+MUD_EVENT_CALLBACK(event_trap_triggered);
+MUD_EVENT_CALLBACK(event_preparation);
+MUD_EVENT_CALLBACK(event_craft); /* NewCraft */
+MUD_EVENT_CALLBACK(event_copyover);
+MUD_EVENT_CALLBACK(event_spiritual_weapon);
+MUD_EVENT_CALLBACK(event_dancing_weapon);
+MUD_EVENT_CALLBACK(event_holy_javelin);
+MUD_EVENT_CALLBACK(event_moonbeam);
+MUD_EVENT_CALLBACK(event_aqueous_orb);
+MUD_EVENT_CALLBACK(event_device_progress);
+MUD_EVENT_CALLBACK(event_device_creation);
+MUD_EVENT_CALLBACK(event_device_repair);
+MUD_EVENT_CALLBACK(event_rol_call_lycanthrope_charm);
+MUD_EVENT_CALLBACK(event_rol_tazriks_frenzied_hound);
+
+#ifdef LUMINARI_CUTEST
+void mud_event_test_reset_cleanup_count(void);
+int mud_event_test_cleanup_count(void);
+#endif
 #endif /* _MUD_EVENT_H_ */

@@ -277,9 +277,9 @@ location. - Prevents wandering and random movement - Mobile stays in its
 spawn location - Can still be dragged/summoned by magic - Used for
 stationary guards, shopkeepers, and landmark NPCs</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
-Prevents random movement (<code>mobile_activity()</code>) -
+Prevents random movement (owner-local mobile agenda) -
 <code>src/mob/mob_act.c</code> - Position management for sentinels
-(<code>mobile_activity()</code>) - <code>src/utils.c</code> - Drag
+(owner-local mobile agenda) - <code>src/utils.c</code> - Drag
 restrictions (<code>push_attempt()</code>)</p>
 <h3 id="mob_scavenger-index-2">MOB_SCAVENGER (Index: 2)</h3>
 <p><strong>Effect:</strong> Mobile picks up items from the ground. -
@@ -302,8 +302,8 @@ Automatically flees when HP drops below threshold - Used for cowardly
 creatures and civilians - Behavior similar to player wimpy setting</p>
 <p><strong>Code References:</strong> - <code>src/combat/fight.c</code> -
 Flee trigger check (<code>damage()</code>) -
-<code>src/mob/mob_act.c</code> - Wimpy behavior handling
-(<code>mobile_activity()</code>)</p>
+<code>src/mob/mob_act.c</code> - Wimpy behavior handling (owner-local
+mobile agenda)</p>
 <h3 id="mob_sentient-index-19">MOB_SENTIENT (Index: 19)</h3>
 <p><strong>Effect:</strong> Marks mobile as sentient/intelligent. - Used
 for intelligent creatures and humanoids - May affect certain spell
@@ -324,9 +324,9 @@ Flags</h2>
 characters. - Attacks everyone who enters the room - Conflicts with
 MOB_HELPER flag - Used for hostile monsters and aggressive creatures</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
-Aggression trigger (<code>mobile_activity()</code>) -
+Aggression trigger (owner-local mobile agenda) -
 <code>src/limits.c</code> - Set during rage/charm effects
-(<code>proc_d20_round()</code>) - <code>src/db.c</code> - Boot-time
+(<code>proc_d20_round_one()</code>) - <code>src/db.c</code> - Boot-time
 validation with alignment aggro flags (<code>parse_mobile()</code>)</p>
 <h3 id="mob_aggr_evil-index-8">MOB_AGGR_EVIL (Index: 8)</h3>
 <p><strong>Effect:</strong> Mobile attacks evil-aligned characters on
@@ -471,15 +471,15 @@ remembered enemies (<code>hunt_victim()</code>)</p>
 players. - Jumps into combat to help fellow NPCs - Conflicts with
 MOB_AGGRESSIVE flag - Used for pack tactics and coordinated defense</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
-Helper behavior logic (<code>mobile_activity()</code>) -
+Helper behavior logic (owner-local mobile agenda) -
 <code>src/limits.c</code> - Removed when mob becomes aggressive
-(<code>proc_d20_round()</code>)</p>
+(<code>proc_d20_round_one()</code>)</p>
 <h3 id="mob_guard-index-31">MOB_GUARD (Index: 31)</h3>
 <p><strong>Effect:</strong> Mobile protects citizens and assists them in
 combat. - Specifically protects NPCs with MOB_CITIZEN flag - More
 selective than MOB_HELPER - Used for city guards and protectors</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
-Guard protection logic (<code>mobile_activity()</code>) -
+Guard protection logic (owner-local mobile agenda) -
 <code>src/quest/missions.c</code> - Mission guard assignment
 (<code>create_mission_mobs()</code>)</p>
 <h3 id="mob_citizen-index-32">MOB_CITIZEN (Index: 32)</h3>
@@ -487,7 +487,7 @@ Guard protection logic (<code>mobile_activity()</code>) -
 defend this NPC - Used for shopkeepers, quest NPCs, civilians - Creates
 natural guard/citizen relationships</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
-Protection checks (<code>mobile_activity()</code>) -
+Protection checks (owner-local mobile agenda) -
 <code>src/quest/missions.c</code> - Citizen designation
 (<code>create_mission_mobs()</code>)</p>
 <h3 id="mob_hunter-index-33">MOB_HUNTER (Index: 33)</h3>
@@ -496,7 +496,7 @@ enemies. - Aggressively pursues targets across multiple rooms - Combines
 with MOB_MEMORY for persistent pursuit - Used for predators and
 assassins</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
-Hunter behavior trigger (<code>mobile_activity()</code>) -
+Hunter behavior trigger (owner-local mobile agenda) -
 <code>src/combat/fight.c</code> - Hunt initiation
 (<code>damage()</code>)</p>
 <h3 id="mob_mob_assist-index-61">MOB_MOB_ASSIST (Index: 61)</h3>

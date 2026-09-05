@@ -25,21 +25,7 @@ extern struct spatial_system visual_system;
 
 /* Functions */
 int spatial_visual_init(void);
-
-/* Convenience functions for visual events */
-int process_ship_visual_event(int ship_x, int ship_y, const char *ship_description);
-int process_flying_object_visual_event(int x, int y, int altitude, const char *description);
-int process_distant_structure_visual_event(int x, int y, const char *structure_description);
-
-/* Testing functions */
-int spatial_visual_test_ship_passing(int ship_x, int ship_y, const char *ship_desc);
-
-/* Meteor swarm spatial effects */
-/* Meteor visual effects */
-int spatial_visual_meteor_approach(int meteor_x, int meteor_y, const char *meteor_desc,
-                                   int visual_range);
-int spatial_visual_meteor_descent(int meteor_x, int meteor_y, const char *meteor_desc,
-                                  int visual_range);
-int spatial_visual_meteor_impact(int impact_x, int impact_y, const char *impact_desc, int range);
+int spatial_visual_emit(int source_x, int source_y, int source_z, const char *description,
+                        float intensity, int range);
 
 #endif /* _SPATIAL_VISUAL_H_ */

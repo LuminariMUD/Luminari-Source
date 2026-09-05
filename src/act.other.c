@@ -15,6 +15,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "movement/door_state.h"
 #include "utils.h"
 #include "comm.h"
 #include "interpreter.h"
@@ -34,6 +35,7 @@
 #include "character/skill_lists.h"
 #include "character/class.h"
 #include "combat/fight.h"
+#include "combat/combat_death.h"
 #include "combat/projectiles.h"
 #include "comms/mail.h" /* for has_mail() */
 #include "obj/shop.h"
@@ -65,6 +67,7 @@
 #include "constants.h"
 #include "craft/crafting_new.h" /* For golem repair functions */
 #include "olc/genolc.h"
+#include "point_update_periodic.h"
 #include <time.h>
 
 /* some defines for gain/respec */
@@ -1314,6 +1317,7 @@ ACMD(do_imbuearrow)
 
   /* start wear-off timer for the spell placed on the arrow */
   GET_OBJ_TIMER(arrow) = 8; /* should be 8 hours right? */
+  point_update_object_sync(arrow);
 
   USE_MOVE_ACTION(ch);
 
@@ -2347,7 +2351,7 @@ ACMD(do_dismiss)
       if (MOB_FLAGGED(vict, MOB_C_ANIMAL))
       {
         if ((pMudEvent = char_has_mud_event(ch, eC_ANIMAL)) &&
-            event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC))
+            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
         {
           change_event_duration(ch, eC_ANIMAL, (59 * PASSES_PER_SEC));
         }
@@ -2355,7 +2359,7 @@ ACMD(do_dismiss)
       if (MOB_FLAGGED(vict, MOB_C_DRAGON))
       {
         if ((pMudEvent = char_has_mud_event(ch, eC_DRAGONMOUNT)) &&
-            event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC))
+            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
         {
           change_event_duration(ch, eC_DRAGONMOUNT, (59 * PASSES_PER_SEC));
         }
@@ -2363,7 +2367,7 @@ ACMD(do_dismiss)
       else if (MOB_FLAGGED(vict, MOB_C_FAMILIAR))
       {
         if ((pMudEvent = char_has_mud_event(ch, eC_FAMILIAR)) &&
-            event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC))
+            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
         {
           change_event_duration(ch, eC_FAMILIAR, (59 * PASSES_PER_SEC));
         }
@@ -2371,7 +2375,7 @@ ACMD(do_dismiss)
       else if (MOB_FLAGGED(vict, MOB_C_MOUNT))
       {
         if ((pMudEvent = char_has_mud_event(ch, eC_MOUNT)) &&
-            event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC))
+            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
         {
           change_event_duration(ch, eC_MOUNT, (59 * PASSES_PER_SEC));
         }
@@ -2379,7 +2383,7 @@ ACMD(do_dismiss)
       else if (MOB_FLAGGED(vict, MOB_SHADOW))
       {
         if ((pMudEvent = char_has_mud_event(ch, eSUMMONSHADOW)) &&
-            event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC))
+            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
         {
           change_event_duration(ch, eSUMMONSHADOW, (59 * PASSES_PER_SEC));
         }
@@ -2387,7 +2391,7 @@ ACMD(do_dismiss)
       else if (MOB_FLAGGED(vict, MOB_EIDOLON))
       {
         if ((pMudEvent = char_has_mud_event(ch, eC_EIDOLON)) &&
-            event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC))
+            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
         {
           change_event_duration(ch, eC_EIDOLON, (59 * PASSES_PER_SEC));
         }
@@ -5489,6 +5493,9 @@ void perform_player_quit(struct char_data *ch)
   extract_char(ch); /* Char is saved before extracting. */
 }
 
+/* Leave the game.  A character who quits while incapacitated (below
+ * POS_STUNNED) dies instead, resolved as an attrition death since there is no
+ * killer to credit. */
 ACMD(do_quit)
 {
   if (IS_NPC(ch) || !ch->desc)
@@ -5501,7 +5508,7 @@ ACMD(do_quit)
   else if (GET_POS(ch) < POS_STUNNED)
   {
     send_to_char(ch, "You die before your time...\r\n");
-    die(ch, NULL);
+    (void)combat_death_apply(ch, NULL, COMBAT_DEATH_ATTRITION);
   }
   else if (should_prompt_quit_feedback(ch, subcmd))
   {
@@ -6086,6 +6093,7 @@ int get_hidden_door_dc(struct char_data *ch, int door)
  * the command is available to all.  */
 ACMD(do_search)
 {
+  struct door_state_operation operation = {0};
   int door, found = FALSE;
   //  int val;
   //  struct char_data *i; // for player/mob
@@ -6181,6 +6189,7 @@ ACMD(do_search)
             send_to_char(ch, "roll %d vs. dc %d\r\n", search_roll, search_dc);
             act("You find a secret entrance!", FALSE, ch, 0, 0, TO_CHAR);
             act("$n finds a secret entrance!", FALSE, ch, 0, 0, TO_ROOM);
+            door_state_begin(&operation, IN_ROOM(ch), door, false, DOMAIN_DOOR_GAMEPLAY);
             REMOVE_BIT(EXIT(ch, door)->exit_info, EX_HIDDEN);
             found = TRUE;
           }
@@ -6221,6 +6230,7 @@ ACMD(do_search)
   send_to_char(ch, "Your next action will be delayed up to 6 seconds.\r\n");
   WAIT_STATE(ch, PULSE_VIOLENCE * 1);
   USE_FULL_ROUND_ACTION(ch);
+  door_state_finish(&operation);
 }
 
 /* vanish - epic rogue talent OR Shadow Scout perk ; free action */
@@ -9764,28 +9774,19 @@ static const char *const hints[] = {
 
 static const size_t NUM_HINTS = sizeof(hints) / sizeof(hints[0]);
 
-void show_hints(void)
+static void show_hint_index(struct char_data *ch, int roll)
 {
-  int roll = dice(1, NUM_HINTS) - 1;
-  struct char_data *ch = NULL, *next_char = NULL;
-
-  for (ch = character_list; ch; ch = next_char)
-  {
-    next_char = ch->next;
-
-    if (IS_NPC(ch) || !ch->desc)
-      continue;
-
-    if (PRF_FLAGGED(ch, PRF_NOHINT))
-      continue;
-
-    /* player is in a menu */
-    if (PLR_FLAGGED(ch, PLR_WRITING))
-      continue;
-
-    send_to_char(ch, "%s", hints[roll]);
-  }
+  if (ch == NULL || IS_NPC(ch) || !ch->desc || PRF_FLAGGED(ch, PRF_NOHINT) ||
+      PLR_FLAGGED(ch, PLR_WRITING))
+    return;
+  send_to_char(ch, "%s", hints[roll]);
 }
+
+void show_hint_one(struct char_data *ch)
+{
+  show_hint_index(ch, dice(1, NUM_HINTS) - 1);
+}
+
 
 /* moved to do_gen_tog */
 /*
@@ -11034,6 +11035,7 @@ ACMD(do_deadly_power)
 
 ACMD(do_pick_lock)
 {
+  struct door_state_operation operation = {0};
   char arg1[200], buf[100];
   int i = 0, dir = 0;
   int skill = 0, roll = 0, lock_dc = 0;
@@ -11166,6 +11168,8 @@ ACMD(do_pick_lock)
     send_to_char(ch, "Success! [%d dc vs %d: %d skill + %d roll]\r\n", lock_dc, skill + roll, skill,
                  roll);
     act("$n succeeds in picking the lock!", TRUE, ch, 0, 0, TO_ROOM);
+    if (!obj)
+      door_state_begin(&operation, IN_ROOM(ch), dir, false, DOMAIN_DOOR_GAMEPLAY);
     UNLOCK_DOOR(IN_ROOM(ch), obj, dir);
     if (is_obj)
       GET_OBJ_VAL(obj, 4) = 0;
@@ -11178,6 +11182,7 @@ ACMD(do_pick_lock)
   }
 
   USE_MOVE_ACTION(ch);
+  door_state_finish(&operation);
 }
 
 ACMDU(do_device)
@@ -11821,31 +11826,9 @@ ACMDU(do_device)
     /* Start the creation event */
     attach_mud_event(new_mud_event(eDEVICE_CREATION, ch, event_data),
                      creation_time * PASSES_PER_SEC);
-    {
-      struct mud_event_data *ce = char_has_mud_event(ch, eDEVICE_CREATION);
-      if (ce && ce->pEvent)
-      {
-        /* device creation event attached */
-      }
-      else
-      {
-        /* device creation event missing immediately after attach */
-      }
-    }
 
     /* Start progress updates every 10 seconds */
     attach_mud_event(new_mud_event(eDEVICE_PROGRESS, ch, NULL), 10 * PASSES_PER_SEC);
-    {
-      struct mud_event_data *pe = char_has_mud_event(ch, eDEVICE_PROGRESS);
-      if (pe && pe->pEvent)
-      {
-        /* device progress event attached */
-      }
-      else
-      {
-        /* device progress event missing immediately after attach */
-      }
-    }
 
     /* Build spell list for user feedback */
     char spell_list[MAX_STRING_LENGTH * 4];
@@ -12333,7 +12316,7 @@ ACMDU(do_device)
                 TO_ROOM);
 
             /* Apply damage to the creator */
-            GET_HIT(ch) -= damage;
+            combat_apply_raw_damage(ch, ch, damage, DAM_FORCE, INT_MIN);
 
             /* Apply damage to all party members in the same room */
             struct char_data *tch, *next_tch;
@@ -12345,7 +12328,7 @@ ACMDU(do_device)
                 send_to_char(tch,
                              "\tRYou are caught in the explosion and take %d force damage!\tn\r\n",
                              damage);
-                GET_HIT(tch) -= damage;
+                combat_apply_raw_damage(tch, ch, damage, DAM_FORCE, INT_MIN);
 
                 /* Check if anyone died from the explosion */
                 if (GET_HIT(tch) <= 0)
@@ -13196,7 +13179,7 @@ ACMD(do_shadowstep)
 }
 
 
-EVENTFUNC(event_device_progress)
+MUD_EVENT_CALLBACK(event_device_progress)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
@@ -13226,7 +13209,7 @@ EVENTFUNC(event_device_progress)
   }
 
   /* Get time remaining on creation event */
-  long time_remaining_passes = event_time(creation_event->pEvent);
+  long time_remaining_passes = mud_event_remaining(creation_event);
   int time_remaining_seconds = time_remaining_passes / PASSES_PER_SEC;
 
   /* Safety: if time remaining is <= 0, finalize immediately (fallback) */
@@ -13313,7 +13296,7 @@ EVENTFUNC(event_device_progress)
   return 0;
 }
 
-EVENTFUNC(event_device_creation)
+MUD_EVENT_CALLBACK(event_device_creation)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
@@ -13466,7 +13449,7 @@ EVENTFUNC(event_device_creation)
 }
 
 /* Event handler for device repair */
-EVENTFUNC(event_device_repair)
+MUD_EVENT_CALLBACK(event_device_repair)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;

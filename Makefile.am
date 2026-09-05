@@ -6,7 +6,7 @@ SUBDIRS = util
 
 # Additional compiler flags
 # Revert to project defaults: do NOT force global feature defines here.
-AM_CFLAGS = @CSTD_CFLAGS@ @MYFLAGS@
+AM_CFLAGS = @CSTD_CFLAGS@ @MYFLAGS@ @LIBEVENT_CFLAGS@
 
 
 # Main program
@@ -23,6 +23,7 @@ luminari_SOURCES = \
 	src/movement/movement_validation.c \
 	src/movement/movement_cost.c \
 	src/movement/movement_position.c \
+	src/movement/door_state.c \
 	src/movement/movement_doors.c \
 	src/movement/movement_falling.c \
 	src/movement/movement_messages.c \
@@ -30,6 +31,7 @@ luminari_SOURCES = \
 	src/movement/movement_events.c \
 	src/combat/act.offensive.c \
 	src/act.other.c \
+	src/ready_action.c \
 	src/act.social.c \
 	src/act.wizard.c \
 	src/actionqueues.c \
@@ -100,6 +102,15 @@ luminari_SOURCES = \
 	src/elf_build_id.c \
 	src/elf_build_id.h \
 	src/combat/encounters.c \
+	src/combat/combat_encounters.c \
+	src/combat/combat_encounters.h \
+	src/combat/combat_damage.c \
+	src/combat/combat_damage.h \
+	src/combat/combat_death.h \
+	src/combat/combat_reactions.c \
+	src/combat/combat_reactions.h \
+	src/combat/combat_state.c \
+	src/combat/combat_state.h \
 	src/character/evolutions.c \
 	src/character/feats.c \
 	src/character/talents.c \
@@ -112,6 +123,37 @@ luminari_SOURCES = \
 	src/olc/genshp.c \
 	src/olc/genwld.c \
 	src/olc/genzon.c \
+	src/game_scheduler.c \
+	src/game_scheduler.h \
+	src/event_runtime.c \
+	src/event_runtime.h \
+	src/event_handle.h \
+	src/active_world.c \
+	src/active_world.h \
+	src/activity_manager.c \
+	src/activity_manager.h \
+	src/affected_owners.c \
+	src/affected_owners.h \
+	src/character_periodic.c \
+	src/character_periodic.h \
+	src/point_update_periodic.c \
+	src/point_update_periodic.h \
+	src/vessels/vessel_periodic.c \
+	src/vessels/vessel_periodic.h \
+	src/periodic_owners.c \
+	src/periodic_owners.h \
+	src/domain_events.c \
+	src/domain_events.h \
+	src/domain_event_types.c \
+	src/domain_event_world.c \
+	src/domain_event_world.h \
+	src/domain_event_types.h \
+	src/domain_event_runtime.c \
+	src/domain_event_runtime.h \
+	src/event_debug.c \
+	src/event_debug.h \
+	src/reactor.c \
+	src/reactor.h \
 	src/graph.c \
 	src/combat/grapple.c \
 	src/handler.c \
@@ -172,16 +214,11 @@ luminari_SOURCES = \
 	src/net/msdp_json.h \
 	src/net/protocol.c \
 	src/magic/psionics.c \
-	src/pubsub/pubsub.c \
-	src/pubsub/pubsub_handlers.c \
-	src/pubsub/pubsub_db.c \
-	src/pubsub/pubsub_commands.c \
-	src/pubsub/pubsub_queue.c \
-	src/pubsub/pubsub_spatial.c \
-	src/pubsub/pubsub_event_handlers.c \
 	src/wilderness/spatial_core.c \
 	src/wilderness/spatial_visual.c \
 	src/wilderness/spatial_audio.c \
+	src/wilderness/spatial_events.c \
+	src/wilderness/spatial_events.h \
 	src/wilderness/terrain_bridge.c \
 	src/wilderness/region_hints.c \
 	src/wilderness/narrative_weaver.c \
@@ -329,7 +366,7 @@ luminari_SOURCES = \
 	src/zmalloc.c
 
 # Libraries to link
-luminari_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcrypt -lgd -lm -lmariadb -lcurl -lssl -lcrypto -lpthread -ljson-c
+luminari_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ @LIBEVENT_LIBS@ -lcrypt -lgd -lm -lmariadb -lcurl -lssl -lcrypto -lpthread -ljson-c
 
 
 # Unit testing with CuTest and the bundled snprintf fallback
@@ -359,10 +396,18 @@ cutest_SOURCES = \
 	unittests/CuTest/test_transport_production.c \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
+	unittests/CuTest/test_combat_encounters.c \
+	unittests/CuTest/test_activity_manager.c \
 	unittests/CuTest/test_thrown_weapons.c \
 	unittests/CuTest/test_lists_production.c \
 	unittests/CuTest/test_mob_autoroll.c \
 	unittests/CuTest/test_copyover_timer.c \
+	unittests/CuTest/test_reactor.c \
+	unittests/CuTest/test_game_scheduler.c \
+	unittests/CuTest/test_event_runtime.c \
+	unittests/CuTest/test_door_events.c \
+	unittests/CuTest/test_domain_events.c \
+	unittests/CuTest/test_native_event_integration.c \
 	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_rol_feats.c \
 	unittests/CuTest/test_unassigned_spells.c \
@@ -416,10 +461,18 @@ cutest_test_files = \
 	unittests/CuTest/test_transport_production.c \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
+	unittests/CuTest/test_combat_encounters.c \
+	unittests/CuTest/test_activity_manager.c \
 	unittests/CuTest/test_thrown_weapons.c \
 	unittests/CuTest/test_lists_production.c \
 	unittests/CuTest/test_mob_autoroll.c \
 	unittests/CuTest/test_copyover_timer.c \
+	unittests/CuTest/test_reactor.c \
+	unittests/CuTest/test_game_scheduler.c \
+	unittests/CuTest/test_event_runtime.c \
+	unittests/CuTest/test_door_events.c \
+	unittests/CuTest/test_domain_events.c \
+	unittests/CuTest/test_native_event_integration.c \
 	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_rol_feats.c \
 	unittests/CuTest/test_unassigned_spells.c \
@@ -683,7 +736,6 @@ world_tool_support_files = \
 help_sync_sources = \
 	.agents/skills/help-sync/SKILL.md \
 	.agents/skills/help-sync/agents/openai.yaml \
-	docs/ongoing-projects/HELPFILE_SYNCHRONIZATION_DESIGN.md \
 	scripts/help-sync/catalog.py \
 	scripts/help-sync/endpoint.py \
 	scripts/help-sync/help_sync.py \
@@ -742,6 +794,10 @@ EXTRA_DIST = \
 	scripts/development/check_local_port_allocations.sh \
 	scripts/development/dev_create_test_character.sh \
 	scripts/development/dev_kohdee_login_smoke.sh \
+	scripts/events/test_demand_driven_architecture.sh \
+	scripts/events/test_legacy_event_admission.sh \
+	scripts/events/test_native_event_architecture.sh \
+	scripts/events/test_pubsub_retirement.sh \
 	scripts/mariadb/setup_mariadb_sudoers.sh \
 	scripts/mariadb/start_mariadb.sh \
 	scripts/move_bin.sh \
@@ -756,7 +812,6 @@ EXTRA_DIST = \
 	scripts/provision_artifacts.sh \
 	scripts/setup.sh \
 	scripts/test_background_help_entries.sh \
-	scripts/test_pubsub.sh \
 	scripts/vessels/analyze_vessel_memory_samples.sh \
 	scripts/vessels/provision_vessel_campaign.sh \
 	scripts/vessels/provision_vessel_derelict.sh \
@@ -802,6 +857,7 @@ EXTRA_DIST = \
 	sql/components/help_race_myconid_entries.sql \
 	sql/components/help_race_wemic_entries.sql \
 	sql/components/help_race_yuan_ti_entries.sql \
+	sql/components/help_semantic_combat_entries.sql \
 	sql/components/help_trelux_equipment_entries.sql \
 	sql/components/help_specproc_entries.sql \
 	sql/components/help_thrown_weapons_entries.sql \
@@ -823,6 +879,7 @@ EXTRA_DIST = \
 	sql/components/verify_help_race_myconid_entries.sql \
 	sql/components/verify_help_race_wemic_entries.sql \
 	sql/components/verify_help_race_yuan_ti_entries.sql \
+	sql/components/verify_help_semantic_combat_entries.sql \
 	sql/components/verify_help_trelux_equipment_entries.sql \
 	sql/components/verify_help_specproc_entries.sql \
 	sql/components/verify_help_thrown_weapons_entries.sql \
@@ -880,13 +937,18 @@ EXTRA_DIST = \
 # Run unit tests
 test: check test-help-sync test-autorun-supervision test-versioned-binary-install \
 	test-binary-name-static test-healthcheck \
-	test-background-help-entries test-vessel-tooling
-	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" ./cutest
+	test-background-help-entries test-demand-driven-architecture test-event-admission \
+	test-native-event-architecture test-pubsub-retirement test-vessel-tooling
+	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" \
+		LUMINARI_TEST_SPEC_WORLD_ROOT="$(abs_top_srcdir)/unittests/CuTest/fixtures/spec_world_inventory" \
+		./cutest
 
 .PHONY: check-world-docs rol-mob-calculator test-all test-world-tools test-help-sync \
 	test-help-sync-integration test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
 	test-versioned-binary-install test-binary-name-static test-healthcheck \
+	test-demand-driven-architecture test-event-admission test-native-event-architecture \
+	test-pubsub-retirement \
 	test-vessel-tooling
 
 check-world-docs:
@@ -924,6 +986,18 @@ test-character-rename-schema:
 
 test-background-help-entries:
 	./scripts/test_background_help_entries.sh
+
+test-demand-driven-architecture:
+	./scripts/events/test_demand_driven_architecture.sh
+
+test-event-admission:
+	./scripts/events/test_legacy_event_admission.sh
+
+test-native-event-architecture:
+	CC="$(CC)" ./scripts/events/test_native_event_architecture.sh
+
+test-pubsub-retirement:
+	./scripts/events/test_pubsub_retirement.sh
 
 test-autorun-supervision:
 	./scripts/autorun/test_autorun_supervision.sh

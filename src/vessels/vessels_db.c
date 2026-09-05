@@ -18,6 +18,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "vessels.h"
+#include "vessel_periodic.h"
 #include "mysql.h"
 #include "wilderness/wilderness.h"
 
@@ -1664,6 +1665,7 @@ void load_all_ship_interiors(void)
         log("SYSERR: Duplicate active fleet slot %d while restoring vessel persistence", shipnum);
         continue;
       }
+      vessel_periodic_forget(ship);
       memset(ship, 0, sizeof(*ship));
       ship->active = TRUE;
       ship->shipnum = shipnum;
@@ -1683,6 +1685,7 @@ void load_all_ship_interiors(void)
       if (shipnum >= 2)
       {
         log("SYSERR: Dynamic ship %d has no runtime snapshot; leaving it inactive", shipnum);
+        vessel_periodic_forget(ship);
         memset(ship, 0, sizeof(*ship));
         continue;
       }
@@ -1717,6 +1720,7 @@ void load_all_ship_interiors(void)
         {
           free(ship->schedule);
         }
+        vessel_periodic_forget(ship);
         memset(ship, 0, sizeof(*ship));
         continue;
       }

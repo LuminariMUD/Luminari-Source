@@ -125,6 +125,7 @@ struct spatial_context
 
   /* Calculated Values */
   float distance;
+  float distance_attenuation;
   spatial_direction_t direction; /* Direction from observer to source */
   float direction_precision;     /* 0.0-1.0, precision of direction */
   float effective_range;
@@ -233,10 +234,6 @@ struct spatial_system
   int total_processed;
   int successful_transmissions;
   float avg_processing_time_ms;
-
-  /* Integration with PubSub */
-  char *pubsub_topic;
-  char *pubsub_handler;
 };
 
 /* Core Processing Functions */

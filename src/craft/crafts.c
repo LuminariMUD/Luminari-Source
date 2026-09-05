@@ -707,7 +707,7 @@ void show_craft(struct char_data *ch, struct craft_data *craft, int mode)
   }
 }
 
-EVENTFUNC(event_craft)
+MUD_EVENT_CALLBACK(event_craft)
 {
   struct mud_event_data *pMudEvent;
   struct craft_data *craft;

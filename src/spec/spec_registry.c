@@ -74,7 +74,7 @@ static const struct spec_event_contract janitor_events[] = {
     {SPEC_EVENT_MOBILE_ACTIVITY, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE}};
 
 static const struct spec_event_contract pet_object_events[] = {
-    {SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_CARRIED},
+    {SPEC_EVENT_OBJECT_AUTOMATIC, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_CARRIED},
     {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE}};
 
 static const struct spec_event_contract practice_dummy_events[] = {
@@ -129,28 +129,28 @@ static const struct spec_event_contract rol_object_hit_events[] = {
 
 static const struct spec_event_contract rol_weapon_events[] = {
     {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_EQUIPPED},
-    {SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_OBJECT_AUTOMATIC, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_WEAPON_HIT, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_EQUIPPED | SPEC_PLACEMENT_COMBAT},
 };
 
 static const struct spec_event_contract rol_avernus_object_events[] = {
     {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
-    {SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_OBJECT_AUTOMATIC, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_WEAPON_HIT, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_EQUIPPED | SPEC_PLACEMENT_COMBAT},
 };
 
 static const struct spec_event_contract rol_drow_equipment_events[] = {
     {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
-    {SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_OBJECT_AUTOMATIC, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
 };
 
 static const struct spec_event_contract rol_deaths_head_events[] = {
     {SPEC_EVENT_MOBILE_ACTIVITY, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_MOBILE_DEATH, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_MOBILE_HIT, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
-    {SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_OBJECT_AUTOMATIC, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
 };
 
 static const struct spec_event_contract rol_avernus_garden_events[] = {
@@ -162,14 +162,14 @@ static const struct spec_event_contract rol_object_command_events[] = {
     {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
 };
 
-static const struct spec_event_contract rol_object_pulse_events[] = {{
-    SPEC_EVENT_OBJECT_AUTO_PULSE,
+static const struct spec_event_contract rol_object_automatic_events[] = {{
+    SPEC_EVENT_OBJECT_AUTOMATIC,
     SPEC_PROTOTYPE_ITEM_AUTOPROC,
     SPEC_PLACEMENT_EQUIPPED,
 }};
 
-static const struct spec_event_contract rol_room_object_pulse_events[] = {{
-    SPEC_EVENT_OBJECT_AUTO_PULSE,
+static const struct spec_event_contract rol_room_object_automatic_events[] = {{
+    SPEC_EVENT_OBJECT_AUTOMATIC,
     SPEC_PROTOTYPE_ITEM_AUTOPROC,
     SPEC_PLACEMENT_NONE,
 }};
@@ -179,12 +179,12 @@ static const struct spec_event_contract rol_tarrasque_events[] = {
     {SPEC_EVENT_MOBILE_ACTIVITY, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
     {SPEC_EVENT_MOBILE_DEATH, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
-    {SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_OBJECT_AUTOMATIC, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
 };
 
 static const struct spec_event_contract rol_utility_object_events[] = {
     {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
-    {SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_OBJECT_AUTOMATIC, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_DEFENSE_REACTION, SPEC_PROTOTYPE_NONE,
      SPEC_PLACEMENT_EQUIPPED | SPEC_PLACEMENT_COMBAT},
@@ -209,7 +209,7 @@ static const struct spec_event_contract rol_composite_mobile_events[] = {
 
 static const struct spec_event_contract rol_composite_object_events[] = {
     {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
-    {SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_OBJECT_AUTOMATIC, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_WEAPON_HIT, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_EQUIPPED | SPEC_PLACEMENT_COMBAT},
     {SPEC_EVENT_DEFENSE_REACTION, SPEC_PROTOTYPE_NONE,
@@ -449,7 +449,7 @@ static const struct spec_definition spec_definitions[] = {
         .binding_source_mask = SPEC_BIND_WORLD_LEGACY,
         .builder_visibility = SPEC_BUILDER_VISIBLE,
         .category = "World",
-        .description = "Picks up low-value trash during mobile activity pulses.",
+        .description = "Picks up low-value trash during scheduled mobile activity.",
         .legacy_handler = janitor,
         .typed_handler = NULL,
     },
@@ -480,8 +480,8 @@ static const struct spec_definition spec_definitions[] = {
         .binding_source_mask = SPEC_BIND_WORLD_LEGACY,
         .builder_visibility = SPEC_BUILDER_VISIBLE,
         .category = "Companions",
-        .description = "Converts a carried pet object into its matching mobile companion on an "
-                       "automatic object pulse.",
+        .description = "Converts a carried pet object into its matching mobile companion during "
+                       "automatic object activity.",
         .legacy_handler = bought_pet,
         .typed_handler = NULL,
     },
@@ -1009,8 +1009,8 @@ static const struct spec_definition spec_definitions[] = {
         .canonical_name = "obj_drain",
         .display_name = "obj_drain",
         .owner_mask = SPEC_OWNER_OBJECT,
-        .events = rol_object_pulse_events,
-        .event_count = SPEC_ARRAY_SIZE(rol_object_pulse_events),
+        .events = rol_object_automatic_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_object_automatic_events),
         .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
         .builder_visibility = SPEC_BUILDER_VISIBLE,
         .category = "RoL Pilot",
@@ -1225,12 +1225,12 @@ static const struct spec_definition spec_definitions[] = {
         .canonical_name = "RoL Floating Pool",
         .display_name = "RoL Floating Pool",
         .owner_mask = SPEC_OWNER_OBJECT,
-        .events = rol_room_object_pulse_events,
-        .event_count = SPEC_ARRAY_SIZE(rol_room_object_pulse_events),
+        .events = rol_room_object_automatic_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_room_object_automatic_events),
         .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
         .builder_visibility = SPEC_BUILDER_VISIBLE,
         .category = "RoL Conversion",
-        .description = "Moves a converted ethereal pool through eligible exits on auto-pulses.",
+        .description = "Moves a converted ethereal pool during automatic object activity.",
         .legacy_handler = rol_floating_pool,
     },
     {
@@ -2140,7 +2140,7 @@ static spec_owner_mask spec_event_owner_mask(spec_event_mask event)
   case SPEC_EVENT_MOBILE_WAS_HIT:
   case SPEC_EVENT_MOUNT_CHARGE:
     return SPEC_OWNER_MOBILE;
-  case SPEC_EVENT_OBJECT_AUTO_PULSE:
+  case SPEC_EVENT_OBJECT_AUTOMATIC:
   case SPEC_EVENT_ITEM_IDENTIFY:
   case SPEC_EVENT_WEAPON_HIT:
   case SPEC_EVENT_DEFENSE_REACTION:
@@ -2164,7 +2164,7 @@ static spec_prototype_flag_mask spec_event_required_prototype_flags(spec_event_m
   case SPEC_EVENT_MOBILE_HIT:
   case SPEC_EVENT_MOBILE_WAS_HIT:
     return SPEC_PROTOTYPE_MOB_SPEC;
-  case SPEC_EVENT_OBJECT_AUTO_PULSE:
+  case SPEC_EVENT_OBJECT_AUTOMATIC:
     return SPEC_PROTOTYPE_ITEM_AUTOPROC;
   default:
     return SPEC_PROTOTYPE_NONE;
@@ -2623,8 +2623,8 @@ const char *spec_event_name(spec_event_mask event)
     return "mobile activity";
   case SPEC_EVENT_MOBILE_COMBAT_TURN:
     return "mobile combat turn";
-  case SPEC_EVENT_OBJECT_AUTO_PULSE:
-    return "object auto-pulse";
+  case SPEC_EVENT_OBJECT_AUTOMATIC:
+    return "object automatic activity";
   case SPEC_EVENT_ITEM_IDENTIFY:
     return "item identification";
   case SPEC_EVENT_WEAPON_HIT:

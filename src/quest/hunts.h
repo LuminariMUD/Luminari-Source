@@ -99,6 +99,11 @@ void create_hunts(void);
 int select_a_hunt(int level);
 void check_hunt_room(room_rnum room);
 void create_hunt_mob(room_rnum room, int which_hunt);
+void hunt_target_periodic_one(struct char_data *ch);
+#ifdef LUMINARI_CUTEST
+void hunt_target_set_generation_for_test(uint64_t generation);
+uint64_t hunt_target_generation_for_test(void);
+#endif
 SPECIAL_DECL(huntsmaster);
 void award_hunt_materials(struct char_data *ch, int which_hunt);
 void drop_hunt_mob_rewards(struct char_data *ch, struct char_data *hunt_mob);

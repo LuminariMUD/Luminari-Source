@@ -205,7 +205,7 @@ already linked by both systems.
 
 This checkpoint preserves callback bodies, static state, signatures, registry identities,
 assignments, command matching, player-visible messages, costs, rewards, spellbook mutation, pet
-scaling and follower setup, guild rules, and mobile pulse behavior. System documentation now points
+scaling and follower setup, guild rules, and scheduled mobile behavior. System documentation now points
 pet and vendor ownership at the feature files. No player helpfile changed because no command or
 behavior contract changed.
 

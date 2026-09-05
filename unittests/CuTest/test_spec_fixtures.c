@@ -574,8 +574,6 @@ static void spec_test_free_loaded_data(struct spec_test_fixture *fixture)
     spec_binding_free(&fixture->test_world[0].spec_binding);
     spec_effective_binding_free(&fixture->test_world[0].effective_binding);
     free_room_strings(&fixture->test_world[0]);
-    free_trail_data_list(fixture->test_world[0].trail_tracks);
-    fixture->test_world[0].trail_tracks = NULL;
     fixture->room_loaded = false;
   }
 }
@@ -602,11 +600,6 @@ static void spec_test_release_olc_subject(struct spec_test_fixture *fixture)
   case SPEC_TEST_OWNER_ROOM:
     if (fixture->olc.room != NULL)
     {
-      if (CONFIG_WILDERNESS_SYSTEM != 2 && fixture->olc.room->trail_tracks != NULL)
-      {
-        free_trail_data_list(fixture->olc.room->trail_tracks);
-        fixture->olc.room->trail_tracks = NULL;
-      }
       free_room(fixture->olc.room);
       fixture->olc.room = NULL;
     }

@@ -16,7 +16,6 @@
 #include "comm.h"
 #include "mysql.h"
 #include "db_init.h"
-#include "pubsub/pubsub.h"
 
 /* ===== STARTUP INITIALIZATION FUNCTIONS ===== */
 
@@ -184,29 +183,6 @@ void initialize_missing_tables(void)
     log("Initializing help system tables...");
     init_help_system_tables();
     log("Help system tables initialized");
-  }
-
-  /* PubSub system tables */
-  if (!table_exists("pubsub_topics") || !table_exists("pubsub_messages_v3"))
-  {
-    log("Initializing PubSub tables...");
-    int pubsub_ready = TRUE;
-
-    if (pubsub_db_create_tables() != PUBSUB_SUCCESS)
-    {
-      log("SYSERR: Failed to create base PubSub tables during startup initialization");
-      pubsub_ready = FALSE;
-    }
-    if (pubsub_db_create_v3_tables() != PUBSUB_SUCCESS)
-    {
-      log("SYSERR: Failed to create PubSub V3 tables during startup initialization");
-      pubsub_ready = FALSE;
-    }
-
-    if (pubsub_ready)
-    {
-      log("PubSub tables initialized");
-    }
   }
 
   /* Create database procedures if they don't exist */

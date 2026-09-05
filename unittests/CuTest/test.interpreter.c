@@ -65,6 +65,9 @@ void Test_command_dispatch_lookup(CuTest *tc)
 {
   int look_command;
   int help_command;
+  int eventdebug_command;
+  int inventory_command;
+  int initiative_command;
   bool created_command_list;
 
   created_command_list = false;
@@ -76,10 +79,20 @@ void Test_command_dispatch_lookup(CuTest *tc)
 
   look_command = find_command("look");
   help_command = find_command("help");
+  eventdebug_command = find_command("eventdebug");
+  inventory_command = find_command("inventory");
+  initiative_command = find_command("initiative");
 
   CuAssertTrue(tc, look_command >= 0);
   CuAssertTrue(tc, help_command >= 0);
   CuAssertTrue(tc, look_command != help_command);
+  CuAssertTrue(tc, eventdebug_command >= 0);
+  CuAssertIntEquals(tc, LVL_IMMORT, complete_cmd_info[eventdebug_command].minimum_level);
+  CuAssertTrue(tc, inventory_command >= 0);
+  CuAssertTrue(tc, initiative_command >= 0);
+  CuAssertTrue(tc, inventory_command < initiative_command);
+  CuAssertTrue(tc, complete_cmd_info[inventory_command].command_pointer == do_inventory);
+  CuAssertTrue(tc, complete_cmd_info[initiative_command].command_pointer == do_initiative);
   CuAssertIntEquals(tc, -1, find_command("not-a-real-command"));
 
   if (created_command_list)
@@ -317,8 +330,44 @@ void Test_vessel_commands_are_registered_for_runtime_gating(CuTest *tc)
   CuAssertIntEquals(tc, CMD_FEATURE_NONE, complete_cmd_info[board_command].feature_flags);
   CuAssertIntEquals(tc, CMD_FEATURE_NONE, complete_cmd_info[boardcheck_command].feature_flags);
   CuAssertIntEquals(tc, CMD_FEATURE_NONE, complete_cmd_info[boardfind_command].feature_flags);
-  CuAssertIntEquals(tc, CMD_FEATURE_NONE, complete_cmd_info[look_command].feature_flags);
+  CuAssertIntEquals(tc, CMD_FEATURE_ACTIVITY_INFORMATION,
+                    complete_cmd_info[look_command].feature_flags);
   CuAssertIntEquals(tc, CMD_FEATURE_NONE, complete_cmd_info[purge_command].feature_flags);
+
+  if (created_command_list)
+    free_command_list();
+}
+
+void Test_activity_command_metadata_keeps_status_and_communication_responsive(CuTest *tc)
+{
+  static const char *information[] = {
+      "abilities", "cooldowns", "craftscore", "exits", "feats",       "resistances",  "spelllist",
+      "time",      "tnl",       "weather",    "where", "wearapplies", "wearlocations"};
+  static const char *speech[] = {"'", "ct", "emote", "grats", "greport", "say", "tell"};
+  bool created_command_list = false;
+  size_t index;
+  int command;
+
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_command_list = true;
+  }
+  for (index = 0U; index < sizeof(information) / sizeof(information[0]); index++)
+  {
+    command = find_command(information[index]);
+    CuAssertTrue(tc, command >= 0);
+    CuAssertTrue(tc, complete_cmd_info[command].feature_flags & CMD_FEATURE_ACTIVITY_INFORMATION);
+  }
+  for (index = 0U; index < sizeof(speech) / sizeof(speech[0]); index++)
+  {
+    command = find_command(speech[index]);
+    CuAssertTrue(tc, command >= 0);
+    CuAssertTrue(tc, complete_cmd_info[command].feature_flags & CMD_FEATURE_ACTIVITY_SPEECH);
+  }
+  command = find_command("activity");
+  CuAssertTrue(tc, command >= 0);
+  CuAssertTrue(tc, complete_cmd_info[command].feature_flags & CMD_FEATURE_ACTIVITY_CONTROL);
 
   if (created_command_list)
     free_command_list();

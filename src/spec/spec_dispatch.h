@@ -130,7 +130,7 @@ spec_invalidate_mask spec_gateway_mobile_was_hit(struct char_data *mob, struct c
 /** STOP suppresses the ordinary NPC corpse after the handler replaces it. */
 int spec_gateway_mobile_death(struct char_data *mob, struct char_data *killer);
 /** STOP skips the carried-object fallback invocation. */
-void spec_gateway_object_auto_pulse(struct obj_data *obj);
+void spec_gateway_object_automatic_activity(struct obj_data *obj);
 /** Notification-only periodic activity for an explicitly scheduled room binding. */
 void spec_gateway_room_activity(struct room_data *room);
 /** Notification only; relocation state travels through the owner slot. */

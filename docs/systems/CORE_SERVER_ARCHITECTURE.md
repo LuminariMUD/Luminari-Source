@@ -2,7 +2,14 @@
 
 ## Overview
 
-LuminariMUD uses a single-threaded, event-driven server architecture based on the classic CircleMUD/tbaMUD design. The server handles all client connections, game logic, and world simulation in a single main loop that executes approximately 10 times per second (every 0.1 seconds).
+LuminariMUD uses a single-threaded, event-driven server architecture based on
+the classic CircleMUD/tbaMUD design. A private reactor waits for descriptor,
+signal, scheduler, or queued-action deadline readiness; gameplay remains on the
+main thread. Named scheduler services own normal cadence work. The ordinary
+binary contains no compatibility heartbeat or legacy timed-event backend.
+The rollback executable, population-loop entry points, and selection switches
+were retired by maintainer decision on 2026-09-05. If native runtime-service
+admission fails, startup exits rather than falling back.
 
 ## Main Server Components
 
@@ -27,7 +34,8 @@ int main(int argc, char **argv)
 - `-o <file>` - Specify log file
 - `-d <dir>` - Set data directory
 - `-C<socket>` - Copyover recovery mode
-- `-s` - Syntax check mode only
+- `-c` - Syntax check mode only
+- `-s` - Suppress assignment of special procedures
 - `<port>` - Port number to listen on
 
 ### 2. Game Initialization (`init_game()`)
@@ -50,8 +58,9 @@ static void init_game(ush_int local_port)
     if (!fCopyOver)
         mother_desc = init_socket(local_port);
 
-    // 5. Initialize event system
+    // 5. Initialize timed events and seal typed domain-event contracts
     event_init();
+    domain_event_runtime_init();
 
     // 6. Setup character lookup hash table
     init_lookup_table();
@@ -59,17 +68,20 @@ static void init_game(ush_int local_port)
     // 7. Load world data
     boot_db();
 
-    // 8. Setup signal handlers
+    // 8. Admit named runtime services
+    runtime_services_init();
+
+    // 9. Setup signal handlers
     signal_setup();
 
-    // 9. Handle copyover recovery if needed
+    // 10. Handle copyover recovery if needed
     if (fCopyOver)
         copyover_recover();
 
-    // 10. Enter main game loop
+    // 11. Enter main game loop
     game_loop(mother_desc);
 
-    // 11. Shutdown sequence
+    // 12. Shutdown sequence
     // - Save all player data
     // - Close all sockets
     // - Save world state
@@ -91,23 +103,32 @@ void game_loop(socket_t local_mother_desc)
         // 1. Handle no-connection sleep state
         // 2. Setup file descriptor sets
         // 3. Calculate timing for next iteration
-        // 4. Sleep until next pulse
-        // 5. Poll for network activity (select())
+        // 4. Arm the nearest scheduler or queued-wait deadline
+        // 5. Wait for readiness through libevent
         // 6. Accept new connections
         // 7. Handle exceptions and disconnections
         // 8. Process input from all descriptors
         // 9. Execute commands and game logic
         // 10. Process output to all descriptors
-        // 11. Run heartbeat functions
-        // 12. Performance monitoring
+        // 11. Dispatch a bounded scheduler batch
+        // 12. Drain deferred extraction at the explicit safe point
+        // 13. Performance monitoring
     }
 }
 ```
 
 **Timing System:**
-- **Pulse Rate:** 10 pulses per second (0.1 second intervals)
-- **Optimal Time:** `OPT_USEC` microseconds per pulse
-- **Sleep Mechanism:** Precise timing using `select()` with timeout
+- **Runtime resolution:** monotonic 100 ms ticks, without a mandatory 100 ms wake
+- **Sleep mechanism:** reactor readiness plus the nearest scheduler or queued-wait deadline
+- **Timed work:** generation-aware semantic owner events on one timing wheel
+- **Typed facts:** synchronous, bounded domain events from committed state changes
+
+The architecture does not schedule every player command. Commands remain direct
+interpreter work. Timings, regeneration, automatic actions, combat, activities,
+AI, and active-world processing use owner-scheduled work; typed domain facts
+wake only affected owners. Broad discovery scans are absent from normal
+dispatch where ownership is available, and legitimate global maintenance is a
+named service event.
 
 ## Network Architecture
 
@@ -201,53 +222,36 @@ these boundaries:
 - Rollback to the integrated Luminari Web proxy until source-native behavior has
   equivalent security, operations, parser, and client-contract coverage.
 
-## Heartbeat System
+## Runtime Service Scheduling
 
-The heartbeat function runs various game subsystems at different intervals:
+Normal cadence work is admitted as named service-owned events at its established
+interval. Only services required by the selected subsystem modes are scheduled:
 
 ```c
-void heartbeat(int heart_pulse)
-{
-    // Every pulse (0.1 seconds)
-    event_process();                    // Event system
-
-    // Every 0.5 seconds  
-    if (!(heart_pulse % PULSE_DG_SCRIPT))
-        script_trigger_check();         // DG Scripts
-
-    // Every second
-    if (!(heart_pulse % PASSES_PER_SEC)) {
-        msdp_update();                  // Protocol updates
-        travel_tickdown();              // Movement timers
-        craft_update();                 // Crafting system
-        // ... other per-second updates
-    }
-
-    // Every pulse, process a bounded part of the six-second NPC cycle
-    mobile_activity_pulse(heart_pulse); // NPC actions
-
-    // Every 6 seconds
-    if (!(heart_pulse % PULSE_MOBILE))
-        proc_update();                  // Non-mobile special procedures
-
-    // Every 30 seconds  
-    if (!(heart_pulse % PULSE_ZONE))
-        zone_update();                  // Zone resets
-
-    // Every MUD hour (75 seconds default)
-    if (!(heart_pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC))) {
-        weather_and_time(1);            // Weather/time
-        point_update();                 // HP/MP regeneration
-        check_timed_quests();           // Quest timers
-    }
-
-    // Every minute
-    if (!(heart_pulse % PULSE_AUTOSAVE)) {
-        Crash_save_all();               // Player saves
-        House_save_all();               // House saves
-    }
-}
+service.moving_rooms                 // active moving-room list
+service.one_second                   // connected protocol and player work
+service.minute_maintenance           // global state and active-item recovery
+service.zone                         // zone reset scheduler
+service.idle_password                // bounded login descriptors
+service.automatic_procedures         // fixed Avernus garden
+service.hunt_clock                   // hunt singleton
+service.auction                      // auction singleton
+service.minute_persistence           // starts bounded save cycles
+service.hunt_creation                // hunt table creation
+service.mud_hour                     // clock, registries, diplomacy, clans
+service.mud_day                      // clan investment work
+service.usage                        // connected-usage accounting
+service.time_save                    // singleton clock persistence
 ```
+
+Those are the 14 services admitted by a default live boot. The ten former
+rollback-only definitions are removed. Startup admission is all-or-nothing;
+failure prevents startup rather than selecting another gameplay driver.
+
+Named services preserve existing routines and ordering within each cadence.
+Some are legitimate global maintenance or still call bounded connected/active
+owner traversals; the service name does not imply every inner routine is
+owner-local.
 
 ## Signal Handling
 
@@ -527,12 +531,11 @@ registered count, registry capacity, top-16 report limit, and unregistered overf
 rows are ranked by cumulative execution time and include call count, total, average, p50, p95,
 p99, and maximum microseconds.
 
-Mobile activity holds a cursor over the character list and divides the remaining cycle-boundary
-nodes across the remaining pulses in the six-second interval. It counts the list once per interval
-instead of filtering a full traversal on every 100 ms pulse. Extraction advances the cursor before
-the current node leaves the list. Newly inserted head nodes join the next interval. Combat AI runs
-normally, while idle NPC spell-up, psionic power-up, and companion creation require a player in the
-same room so unloaded areas do not create background affects or followers.
+The active-world manager gives every autonomous in-world NPC one owner-scoped deadline distributed
+across the six-second mobile interval. Player proximity does not define activity: patrols,
+wandering, scripts, special procedures, and NPC wars continue off-screen. Movement and combat facts
+re-evaluate only their directly affected owners and rooms; extraction cancels the owner. See
+[`ACTIVE_WORLD.md`](ACTIVE_WORLD.md).
 
 DG Script wait events rely on the attachment lifetime contract: extracting an attached script
 cancels `GET_TRIG_WAIT`, and room relocation updates wait owners. A resumed wait therefore enters
@@ -554,28 +557,42 @@ and class unlocks. Successful writes advance only the saved generations; ordinar
 serialization no longer rewrites account unlock tables. Pet saves use a stable state fingerprint so
 unchanged owners avoid the delete-and-reinsert transaction.
 
-Eligible-owner registries remove three measured global scans: `ITEM_AUTOPROC` objects, DG random
-trigger owners by mobile/object/room type, and affected characters. Registry updates occur at the
-same attach, detach, flag-change, extraction, and OLC replacement boundaries that change
-eligibility. Staff entity reports perform debug full-list validation; normal heartbeat paths do not.
+Eligible-owner registries remove four measured cadence scans: autonomous NPCs, `ITEM_AUTOPROC`
+objects, DG random-trigger owners by mobile/object/room type, and affected characters plus rooms.
+Each eligible affected character owns one round-boundary duration event; all room affects in one
+room share one event. Connected-player MSDP remains connection work and is refreshed by the existing
+one-second descriptor path and immediate affect mutations. Registry updates occur at the same attach,
+detach, flag-change, extraction, and OLC replacement boundaries that change eligibility. Staff entity
+reports perform debug full-list validation; normal scheduled paths do not. See
+[`PERIODIC_OWNER_EVENTS.md`](PERIODIC_OWNER_EVENTS.md) and
+[`AFFECTED_OWNER_EVENTS.md`](AFFECTED_OWNER_EVENTS.md).
+
+The mud-hour point service adds no per-entity event. One aligned deadline makes
+the global/player/object phases due; an intrusive registry contains every PC,
+and another contains only timer, timer-trigger, imbued-missile, decay, and
+corpse objects. Direct lifecycle and mutation hooks maintain both registries.
+This preserves weather/time-trigger ordering and the old owner routines while
+removing normal `character_list` and `object_list` discovery scans. Set
+`LUMINARI_POINT_UPDATE_EVENTS=legacy` at boot for exclusive whole-list
+rollback. See [`MUD_EVENTS.md`](MUD_EVENTS.md).
 
 Combat callback timing separates action queues, attack generation, assist fan-out, specials, and
 backlash. A bounded slow-combat ring stores safe numeric context for callbacks above 100 ms. Per
 round attack and special-procedure limits prevent recursive proc chains from monopolizing the game
 loop and report every truncation.
 
-### Missed-Pulse Recovery
+### Monotonic Runtime Ticks and Rollback
 
-`game_loop()` always executes the current heartbeat. When wall-clock delay requests additional
-heartbeats, it replays them only while the heartbeat batch remains inside one normal 100 ms
-outer-loop budget. Any unreplayed remainder is reported and deliberately discarded rather than
-carried into a self-reinforcing backlog.
+`game_loop()` derives the global runtime tick from `CLOCK_MONOTONIC` elapsed
+time, independently of callback execution. Scheduler deadlines therefore remain
+eligible after a quiet reactor sleep without replaying empty 100 ms turns.
+`WAIT_STATE` consumes the elapsed tick delta, and queued input or a pending
+action adds its exact wait expiry to the reactor timeout.
 
-The global `pulse` value advances only for heartbeats that run. Event deadlines, casting, combat
-rounds, action cooldowns, spell preparation, and vessel heartbeat schedules therefore remain in
-their established logical order, but they run later in wall-clock time during overload. The policy
-favors command and socket responsiveness over wall-clock catch-up; it does not coalesce individual
-callback types.
+The legacy timed-event backend still needs one compatibility tick to advance
+its queue. `LUMINARI_RUNTIME_SERVICES=legacy` restores the whole heartbeat and
+its bounded catch-up behavior. PERFMON records runtime advances separately from
+legacy requested, replayed, and dropped heartbeats.
 
 ### Staff Command
 

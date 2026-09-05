@@ -1,0 +1,177 @@
+Reusing the development MUD on port 4103.
+
+>>> vedit
+432/432H 1160/1160V [smw] (news) (motd)
+Usage:
+  vedit list                      - list all ship prototypes
+  vedit new <class> <name>        - create a prototype (class 0-7)
+  vedit show <id>                 - show one prototype
+  vedit set <id> <field> <value>  - fields: name, class, speed, armor
+  vedit delete <id>               - delete a prototype
+  vedit spawn <id>                - spawn a live ship here from a prototype
+  vedit spawnpublic <id>          - spawn an unclaimed NPC/public ship
+Classes: 0=Raft 1=Boat 2=Ship 3=Warship 4=Airship 5=Submarine 6=Transport 7=Magical
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> goto -66 92
+34m~~~~~~:,:,,,,,,,
+~~~~~~~~~~*~::::,,,,,
+~~~~~~~~~~~~~~CCCXC,,
+~~~~~~~~~~~~~~CCCCCC,
+~~~~~~~~~~~~~~CCCCCX-
+~~~~~~~~~~~~~~CCCCCC,
+ ~~~~~~~~~~~~CCCCX,,
+ ~~~~~~~~~~~~:::,|::
+  ~~~~~~~~~~~::::++
+   ~~~~~~~~~~::::~
+    ~~~~~~~~~::::
+      ~~~~~~~~~
+ Current Location  : (-66, 92)
+ Weather           : 122
+[ Exits: N E S W ]
+[70002] Test Vessel is moored here. ..It has a soft glowing aura! ..It emits a faint humming sound!
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> vedit new 1 Builder Timing Cutter 1788600628
+.'
+432/432H 1160/1160V [smw] (news) (motd) vedit new 1 Builder Timing Cutter 1788600628
+432/432H 1160/1160V [smw] (news) (motd)
+Created Boat prototype 1: 'Builder Timing Cutter 1788600628' (speed 10, armor 5).
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> vedit set 1 speed 8
+.'
+432/432H 1160/1160V [smw] (news) (motd) vedit set 1 speed 8
+432/432H 1160/1160V [smw] (news) (motd)
+Prototype 1 updated: speed = 8.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> vedit show 1
+.'
+432/432H 1160/1160V [smw] (news) (motd) vedit show 1
+Prototype 1: Builder Timing Cutter 1788600628
+  Class : 1 (Boat)
+  Speed : 8
+  Armor : 5 (all four sides at spawn)
+  Cargo : 2000 lbs (fixed per class)
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> vedit spawn 1
+.'
+432/432H 1160/1160V [smw] (news) (motd) vedit spawn 1
+432/432H 1160/1160V [smw] (news) (motd) Spawned 'Builder Timing Cutter 1788600628' (Boat) as ship 2: 4 interior rooms, entrance 70041, bridge 70040.
+
+>>> shipgoto 2
+.'
+432/432H 1160/1160V [smw] (news) (motd) shipgoto 2
+432/432H 1160/1160V [smw] (news) (motd)
+[70040] The Bridge of Builder Timing Cutter 1788600628 [ Indoors Vehicle ]  [Inside] ( None )
+This is the command center of Builder Timing Cutter 1788600628.       [.] [.]
+Navigation charts cover the walls, and the ship's wheel stands         |   |
+prominently at the center. Through the windows, you can see the       [&]-[.]
+vast expanse beyond.                                                   |
+                                                                  [.] [.]
+[ Exits: N E S ]
+Aboard Builder Timing Cutter 1788600628 (slot 2).
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> shipstatus
+.'
+432/432H 1160/1160V [smw] (news) (motd) shipstatus
+=== Ship Status ===
+Ship Name: Builder Timing Cutter 1788600628
+Ship ID: AC
+== Position ==
+Coordinates: (-66, 92)
+Elevation/Depth: 0
+Terrain: Shallow Water
+== Navigation ==
+Heading: 0 degrees
+Speed: 0 / 8
+== Hull Integrity ==
+Forward: 5/5
+Port: 5/5
+Starboard: 5/5
+Rear: 5/5
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> speed 2
+.'
+432/432H 1160/1160V [smw] (news) (motd) speed 2
+432/432H 1160/1160V [smw] (news) (motd)
+Half speed. Speed set to 2.
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> setsail west
+.'
+432/432H 1160/1160V [smw] (news) (motd) setsail west
+The harsh weather conditions slow your progress!
+The vessel moves west across the wilderness.
+Current position: (-67, 92, 0)
+Speed affected by terrain and weather: 80%
+The vessel struggles against the severe storm!
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> shipstatus
+.'
+432/432H 1160/1160V [smw] (news) (motd) shipstatus
+=== Ship Status ===
+Ship Name: Builder Timing Cutter 1788600628
+Ship ID: AC
+== Position ==
+Coordinates: (-67, 92)
+Elevation/Depth: 0
+Terrain: Shallow Water
+== Navigation ==
+Heading: 270 degrees
+Speed: 1 / 8
+== Hull Integrity ==
+Forward: 5/5
+Port: 5/5
+Starboard: 5/5
+Rear: 5/5
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> speed 0
+.'
+432/432H 1160/1160V [smw] (news) (motd) speed 0
+All stop! The vessel comes to a halt.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> shippurge 2
+.'
+432/432H 1160/1160V [smw] (news) (motd) shippurge 2
+~~~~~~~~~~*~~::::,,,,
+~~~~~~~~~~~~~~~CCCXC,
+~~~~~~~~~~~~~~~CCCCCC
+~~~~~~~~~~~~~~~CCCCCX
+~~~~~~~~~~~~~~~CCCCCC
+ ~~~~~~~~~~~~~CCCCX,
+ ~~~~~~~~~~~~~:::,|:
+  ~~~~~~~~~~~~::::+
+   ~~~~~~~~~~~::::
+    ~~~~~~~~~~:::
+      ~~~~~~~~~
+ Current Location  : (-67, 92)
+ Weather           : 119
+[ Exits: N E S W ]
+[70002] Builder Timing Cutter 1788600628 is moored here. ..It has a soft glowing aura! ..It emits a faint humming sound!
+Purged ship 2 'Builder Timing Cutter 1788600628': reclaimed 4 rooms and released 0 vehicles.
+
+>>> vedit delete 1
+.'
+432/432H 1160/1160V [smw] (news) (motd) vedit delete 1
+432/432H 1160/1160V [smw] (news) (motd)
+Prototype 1 deleted.
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> vedit list
+.'
+432/432H 1160/1160V [smw] (news) (motd) vedit list
+ID    Class      Speed Armor Name
+----- ---------- ----- ----- ----------------------------
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+PASS: builder created, tuned, spawned, and sailed a vessel in 2.0 seconds.
+PASS: temporary ship 2 and prototype 1 were removed.
+PASS: Aster completed the vessel builder check and logged out cleanly (6s total).

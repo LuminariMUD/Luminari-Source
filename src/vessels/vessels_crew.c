@@ -340,6 +340,11 @@ static void vessel_db_delete_departed_crew(const int *ship_slots, const int *pos
   }
 }
 
+void vessel_crew_delete_departure(int ship_slot, int position)
+{
+  vessel_db_delete_departed_crew(&ship_slot, &position, 1);
+}
+
 /**
  * Total wage bill per payday for a ship.
  */
@@ -372,6 +377,55 @@ int vessel_crew_wage_batch_for_slot(int ship_slot)
   return (ship_slot - 1) % CREW_WAGE_BATCH_COUNT;
 }
 
+int vessel_crew_wage_begin_tick(void)
+{
+  int current_batch = crew_wage_batch_cursor;
+
+  crew_wage_batch_cursor = (crew_wage_batch_cursor + 1) % CREW_WAGE_BATCH_COUNT;
+  return current_batch;
+}
+
+int vessel_crew_wage_tick_one(struct greyhawk_ship_data *ship, int current_batch)
+{
+  int payroll;
+  int pos;
+
+  if (!is_valid_ship(ship))
+    return -1;
+  payroll = vessel_crew_payroll(ship);
+  if (payroll <= 0)
+    return -1;
+  ship->wage_ticks++;
+  if (ship->wage_ticks < CREW_WAGE_INTERVAL)
+    return -1;
+
+  ship->wage_ticks = CREW_WAGE_INTERVAL;
+  if (vessel_crew_wage_batch_for_slot(ship->shipnum) != current_batch)
+    return -1;
+
+  ship->wage_ticks = 0;
+  ship->wages_owed += payroll;
+  send_to_ship(ship, "The crew's wages come due: %d gold owed (use 'shipwages').",
+               ship->wages_owed);
+  if (ship->wages_owed <= payroll * 3)
+    return -1;
+
+  for (pos = NUM_CREW_POSITIONS - 1; pos >= 0; pos--)
+  {
+    if (ship->crew_tier[pos] == CREW_TIER_NONE)
+      continue;
+    send_to_ship(ship, "The %s has had enough of empty promises and walks off!",
+                 vessel_crew_position_name(pos));
+    log("Info: Ship %d '%s' lost %s to unpaid wages (%d owed)", ship->shipnum, ship->name,
+        vessel_crew_position_name(pos), ship->wages_owed);
+    ship->crew_tier[pos] = CREW_TIER_NONE;
+    ship->wages_owed -= payroll;
+    vessel_apply_crew_bonuses(ship);
+    return pos;
+  }
+  return -1;
+}
+
 /**
  * Wage accrual tick. Runs on the vessel combat/autopilot cadence; every
  * CREW_WAGE_INTERVAL ticks the payroll comes due. Crew whose wages go
@@ -384,69 +438,21 @@ void vessel_crew_wage_tick(void)
   int departed_positions[CREW_WAGE_MAX_BATCH_SHIPS];
   int departed_count;
   int current_batch;
-  int payroll;
   int i;
   int pos;
 
   departed_count = 0;
-  current_batch = crew_wage_batch_cursor;
-  crew_wage_batch_cursor = (crew_wage_batch_cursor + 1) % CREW_WAGE_BATCH_COUNT;
+  current_batch = vessel_crew_wage_begin_tick();
 
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
     ship = &greyhawk_ships[i];
-    if (!is_valid_ship(ship))
+    pos = vessel_crew_wage_tick_one(ship, current_batch);
+    if (pos >= 0 && departed_count < CREW_WAGE_MAX_BATCH_SHIPS)
     {
-      continue;
-    }
-
-    payroll = vessel_crew_payroll(ship);
-    if (payroll <= 0)
-    {
-      continue;
-    }
-
-    ship->wage_ticks++;
-    if (ship->wage_ticks < CREW_WAGE_INTERVAL)
-    {
-      continue;
-    }
-
-    /* Hold a due payroll at the threshold until its bounded batch runs. */
-    ship->wage_ticks = CREW_WAGE_INTERVAL;
-    if (vessel_crew_wage_batch_for_slot(i) != current_batch)
-    {
-      continue;
-    }
-
-    ship->wage_ticks = 0;
-    ship->wages_owed += payroll;
-    send_to_ship(ship, "The crew's wages come due: %d gold owed (use 'shipwages').",
-                 ship->wages_owed);
-
-    /* Three unpaid paydays and the best-paid hand walks at the next port */
-    if (ship->wages_owed > payroll * 3)
-    {
-      for (pos = NUM_CREW_POSITIONS - 1; pos >= 0; pos--)
-      {
-        if (ship->crew_tier[pos] != CREW_TIER_NONE)
-        {
-          send_to_ship(ship, "The %s has had enough of empty promises and walks off!",
-                       vessel_crew_position_name(pos));
-          log("Info: Ship %d '%s' lost %s to unpaid wages (%d owed)", ship->shipnum, ship->name,
-              vessel_crew_position_name(pos), ship->wages_owed);
-          ship->crew_tier[pos] = CREW_TIER_NONE;
-          ship->wages_owed -= payroll; /* one less mouth on the books */
-          vessel_apply_crew_bonuses(ship);
-          if (departed_count < CREW_WAGE_MAX_BATCH_SHIPS)
-          {
-            departed_ships[departed_count] = ship->shipnum;
-            departed_positions[departed_count] = pos;
-            departed_count++;
-          }
-          break;
-        }
-      }
+      departed_ships[departed_count] = ship->shipnum;
+      departed_positions[departed_count] = pos;
+      departed_count++;
     }
   }
 

@@ -6,11 +6,13 @@
 #include "../../src/utils.h"
 #include "../../src/combat/fight.h"
 #include "../../src/db.h"
+#include "../../src/dgscript/dg_event.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/handler.h"
 #include "../../src/magic/spells.h"
 #include "../../src/olc/hedit.h"
 #include "../../src/perfmon.h"
+#include "../../src/point_update_periodic.h"
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -349,7 +351,6 @@ void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
   struct index_data *saved_mob_index;
   struct char_data *saved_mob_proto;
   struct char_data *saved_character_list;
-  struct char_data *saved_combat_list;
   struct char_data *first_target;
   struct char_data *second_target;
   struct char_data *observer;
@@ -378,7 +379,6 @@ void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
   saved_mob_proto = mob_proto;
   saved_top_of_mobt = top_of_mobt;
   saved_character_list = character_list;
-  saved_combat_list = combat_list;
   world = &room;
   top_of_world = 0;
   zone_table = &zone;
@@ -387,7 +387,6 @@ void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
   mob_proto = &mobile_prototype;
   top_of_mobt = 0;
   character_list = NULL;
-  combat_list = NULL;
 
   first_target = perfmon_test_mobile();
   second_target = perfmon_test_mobile();
@@ -401,7 +400,6 @@ void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
   CASTING_TIME_MAX(observer) = 2;
   CASTING_SPELLNUM(observer) = 1;
   CASTING_TCH(observer) = second_target;
-  combat_list = observer;
 
   extract_char(first_target);
   extract_char(second_target);
@@ -413,7 +411,6 @@ void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, GUARDING(observer));
   CuAssertPtrEquals(tc, NULL, HUNTING(observer));
   CuAssertPtrEquals(tc, NULL, FIGHTING(observer));
-  CuAssertPtrEquals(tc, NULL, combat_list);
   CuAssertIntEquals(tc, FALSE, IS_CASTING(observer));
   CuAssertIntEquals(tc, 0, CASTING_TIME(observer));
   CuAssertPtrEquals(tc, NULL, CASTING_TCH(observer));
@@ -428,7 +425,6 @@ void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
   mob_proto = saved_mob_proto;
   top_of_mobt = saved_top_of_mobt;
   character_list = saved_character_list;
-  combat_list = saved_combat_list;
 }
 
 void Test_perfmon_memory_sampling_populates_os_and_allocator_metrics(CuTest *tc)
@@ -650,7 +646,8 @@ void Test_player_live_entry_registers_loaded_timed_affects(CuTest *tc)
   affect_to_char(&player, &affect);
 
   saved_character_list = character_list;
-  player.next = saved_character_list;
+  character_list = NULL;
+  player.next = NULL;
   character_list = &player;
   entry_hook_present =
       perfmon_file_contains("src/interpreter.c", "affected_registry_attach(d->character);");
@@ -658,7 +655,7 @@ void Test_player_live_entry_registers_loaded_timed_affects(CuTest *tc)
   count_before_attach = affected_registry_count();
   affected_registry_attach(&player);
   count_after_attach = affected_registry_count();
-  affect_update();
+  affect_update_character_one(&player);
   still_affected = player.affected != NULL;
   remaining_duration = still_affected ? player.affected->duration : -1;
 
@@ -672,6 +669,46 @@ void Test_player_live_entry_registers_loaded_timed_affects(CuTest *tc)
   CuAssertIntEquals(tc, 1, (int)count_after_attach);
   CuAssertTrue(tc, still_affected);
   CuAssertIntEquals(tc, 1, remaining_duration);
+}
+
+void Test_player_live_entry_registers_for_point_updates(CuTest *tc)
+{
+  struct char_data player;
+  struct char_data *saved_character_list;
+  bool entry_hook_present;
+
+  event_free_all();
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  point_update_periodic_init();
+  clear_char(&player);
+  player.player_specials = &dummy_mob;
+  player.player.short_descr = (char *)"point update player";
+
+  saved_character_list = character_list;
+  character_list = NULL;
+  player.next = NULL;
+  character_list = &player;
+  entry_hook_present =
+      perfmon_file_contains("src/interpreter.c", "point_update_character_sync(d->character);");
+  point_update_character_sync(&player);
+
+  CuAssertTrue(tc, entry_hook_present);
+  CuAssertIntEquals(tc, 1, (int)point_update_character_count());
+  CuAssertIntEquals(tc, 0, (int)point_update_character_registry_validate());
+
+  point_update_character_forget(&player);
+  character_list = saved_character_list;
+  point_update_periodic_reset_for_test();
+  event_free_all();
+}
+
+void Test_world_cleanup_owns_stable_location_trail_registry(CuTest *tc)
+{
+  CuAssertTrue(tc, perfmon_file_contains("src/db.c", "movement_trail_registry_shutdown();"));
+  CuAssertTrue(tc, !perfmon_file_contains("src/structs.h", "trail_tracks"));
 }
 
 void Test_dg_random_registry_tracks_owners_and_safe_removal(CuTest *tc)
@@ -722,6 +759,14 @@ void Test_dg_random_registry_tracks_owners_and_safe_removal(CuTest *tc)
 void Test_perfmon_entity_and_sweep_reports_are_actionable(CuTest *tc)
 {
   char report[16384];
+  const char *character_section;
+  const char *character_section_end;
+  const char *point_section;
+  const char *point_section_end;
+  const char *vessel_section;
+  const char *vessel_section_end;
+  const char *line;
+  const char *line_end;
 
   PERF_reset();
   PERF_note_mobile_created(1234, 12, PERF_ENTITY_ENCOUNTER);
@@ -735,6 +780,58 @@ void Test_perfmon_entity_and_sweep_reports_are_actionable(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(report, "5678"));
   CuAssertPtrNotNull(tc, strstr(report, "Population sweep telemetry"));
   CuAssertPtrNotNull(tc, strstr(report, "autoproc"));
+  character_section = strstr(report, "Character owners:");
+  character_section_end =
+      character_section != NULL ? strstr(character_section, "Point update:") : NULL;
+  CuAssertPtrNotNull(tc, character_section);
+  CuAssertPtrNotNull(tc, character_section_end);
+  CuAssertPtrNotNull(tc, strstr(character_section, "  registry: members="));
+  CuAssertPtrNotNull(tc, strstr(character_section, "  validation: mismatch="));
+  CuAssertPtrNotNull(tc, strstr(character_section, "  capacity: limit="));
+  CuAssertPtrNotNull(tc, strstr(character_section, "  callbacks: owners="));
+  CuAssertPtrNotNull(tc, strstr(character_section, "  work: luminari="));
+  CuAssertPtrNotNull(tc, strstr(character_section, "  work: player-misc="));
+  for (line = character_section; line != NULL && line < character_section_end; line = line_end + 2)
+  {
+    line_end = strstr(line, "\n\r");
+    CuAssertTrue(tc, line_end != NULL && line_end <= character_section_end);
+    if (line_end == NULL || line_end > character_section_end)
+      break;
+    CuAssertTrue(tc, (size_t)(line_end - line) <= 80U);
+  }
+  point_section = character_section_end;
+  point_section_end = point_section != NULL ? strstr(point_section, "Vessel owners:") : NULL;
+  CuAssertPtrNotNull(tc, point_section);
+  CuAssertPtrNotNull(tc, point_section_end);
+  CuAssertPtrNotNull(tc, strstr(point_section, "  registry: players="));
+  CuAssertPtrNotNull(tc, strstr(point_section, "  validation: players="));
+  CuAssertPtrNotNull(tc, strstr(point_section, "  callbacks: service="));
+  CuAssertPtrNotNull(tc, strstr(point_section, "  work: players="));
+  for (line = point_section; line != NULL && line < point_section_end; line = line_end + 2)
+  {
+    line_end = strstr(line, "\n\r");
+    CuAssertTrue(tc, line_end != NULL && line_end <= point_section_end);
+    if (line_end == NULL || line_end > point_section_end)
+      break;
+    CuAssertTrue(tc, (size_t)(line_end - line) <= 80U);
+  }
+  vessel_section = point_section_end;
+  vessel_section_end = vessel_section != NULL ? strstr(vessel_section, "Active world:") : NULL;
+  CuAssertPtrNotNull(tc, vessel_section);
+  CuAssertPtrNotNull(tc, vessel_section_end);
+  CuAssertPtrNotNull(tc, strstr(vessel_section, "  registry: members="));
+  CuAssertPtrNotNull(tc, strstr(vessel_section, "  validation: mismatch="));
+  CuAssertPtrNotNull(tc, strstr(vessel_section, "  callbacks: owners="));
+  CuAssertPtrNotNull(tc, strstr(vessel_section, "  RoL fixed: loaded="));
+  CuAssertPtrNotNull(tc, strstr(vessel_section, "  RoL check: mismatch="));
+  for (line = vessel_section; line != NULL && line < vessel_section_end; line = line_end + 2)
+  {
+    line_end = strstr(line, "\n\r");
+    CuAssertTrue(tc, line_end != NULL && line_end <= vessel_section_end);
+    if (line_end == NULL || line_end > vessel_section_end)
+      break;
+    CuAssertTrue(tc, (size_t)(line_end - line) <= 80U);
+  }
 }
 
 void Test_perfmon_copyover_snapshot_replaces_one_complete_file(CuTest *tc)
@@ -742,6 +839,7 @@ void Test_perfmon_copyover_snapshot_replaces_one_complete_file(CuTest *tc)
   static const char stale_marker[] = "stale snapshot marker\n";
   char snapshot_path[] = "/tmp/luminari-perfmon-snapshot-XXXXXX";
   char temp_path[sizeof(snapshot_path) + 4];
+  struct char_data *saved_character_list;
   ssize_t seed_written;
   int snapshot_fd;
   int write_result;
@@ -758,8 +856,11 @@ void Test_perfmon_copyover_snapshot_replaces_one_complete_file(CuTest *tc)
   close(snapshot_fd);
   CuAssertIntEquals(tc, (int)(sizeof(stale_marker) - 1), (int)seed_written);
 
+  saved_character_list = character_list;
+  character_list = NULL;
   PERF_reset();
   write_result = PERF_write_copyover_snapshot(snapshot_path);
+  character_list = saved_character_list;
   snprintf(temp_path, sizeof(temp_path), "%s.tmp", snapshot_path);
   has_header = perfmon_file_contains(snapshot_path, "pre-copyover PERFMON snapshot");
   has_complete_footer = perfmon_file_contains(snapshot_path, "# snapshot_complete=1");

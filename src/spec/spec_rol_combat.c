@@ -8,8 +8,10 @@
 
 #include "structs.h"
 #include "utils.h"
+#include "movement/door_state.h"
 
 #include "combat/fight.h"
+#include "combat/combat_state.h"
 #include "act.h"
 #include "comm.h"
 #include "db.h"
@@ -27,6 +29,7 @@
 #include "spec/spec_rol_avernus.h"
 #include "spec/spec_rol_conversion.h"
 #include "spec/spec_rol_darkhold.h"
+#include "point_update_periodic.h"
 
 #define ROL_BALOR_WHIP_VNUM 2093227
 #define ROL_BALOR_SWORD_VNUM 2093228
@@ -3403,19 +3406,13 @@ static void rol_monster_area_damage(struct char_data *ch, enum rol_monster_comba
   }
 }
 
+/* Take a monster's victim fully out of combat.
+ * Stops the victim's own attack and every character currently fighting it. */
 static void rol_monster_stop_combat(struct char_data *victim)
 {
-  struct char_data *fighter;
-  struct char_data *next;
-
   if (FIGHTING(victim) != NULL)
     stop_fighting(victim);
-  for (fighter = combat_list; fighter != NULL; fighter = next)
-  {
-    next = fighter->next_fighting;
-    if (FIGHTING(fighter) == victim)
-      stop_fighting(fighter);
-  }
+  combat_state_stop_attackers(victim);
 }
 
 static void rol_monster_air_boss(struct char_data *ch)
@@ -4474,9 +4471,11 @@ static int rol_monster_vortex_guardian_activity(struct char_data *ch)
 
 static int rol_monster_vortex_guardian_death(struct char_data *ch)
 {
+  struct door_state_operation operation = {0};
   struct obj_data *vortex;
   struct room_direction_data *north_exit;
 
+  door_state_begin(&operation, IN_ROOM(ch), NORTH, false, DOMAIN_DOOR_GAMEPLAY);
   north_exit = world[IN_ROOM(ch)].dir_option[NORTH];
   if (north_exit == NULL)
     log("SYSERR: RoL Vortex Guardian has no northern exit to block in room %d",
@@ -4488,6 +4487,7 @@ static int rol_monster_vortex_guardian_death(struct char_data *ch)
   if (vortex == NULL)
   {
     log("SYSERR: RoL Vortex Guardian cannot load portal %d", ROL_VORTEX_GUARDIAN_PORTAL_VNUM);
+    door_state_finish(&operation);
     return TRUE;
   }
   SET_BIT_AR(GET_OBJ_EXTRA(vortex), ITEM_DECAY);
@@ -4495,6 +4495,7 @@ static int rol_monster_vortex_guardian_death(struct char_data *ch)
   obj_to_room(vortex, IN_ROOM(ch));
   act("With a final blow, $n dissolves and coallesces into\r\n$p.", FALSE, ch, vortex, NULL,
       TO_ROOM);
+  door_state_finish(&operation);
   return TRUE;
 }
 
@@ -5055,7 +5056,7 @@ static int rol_monster_zombie_lord_hit(struct char_data *ch)
   GET_MOB_LOADROOM(zombie) = IN_ROOM(ch);
   add_follower(zombie, ch);
   SET_BIT_AR(AFF_FLAGS(zombie), AFF_CHARM);
-  GET_OBJ_SPECTIMER(trident, 0) = 168;
+  point_update_object_spec_timer_set(trident, 0, 168);
   act("$n raises $p and summons an undead warrior!", TRUE, ch, trident, NULL, TO_ROOM);
   return TRUE;
 }

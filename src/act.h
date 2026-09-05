@@ -33,6 +33,9 @@ int hands_available(struct char_data *ch);
 int get_speed(struct char_data *ch, sbyte to_display);
 bool is_locked_race(int race);
 
+/* from ready_action.c */
+ACMD_DECL(do_ready);
+
 /*****************************************************************************
  * Begin general helper defines for all act files
  * These encapsulate some standard "can do this" checks.
@@ -248,6 +251,7 @@ ACMD_DECL(do_statcap);
 ACMD_DECL(do_help);
 ACMD_DECL(do_history);
 ACMD_DECL(do_inventory);
+ACMD_DECL(do_initiative);
 ACMD_DECL(do_levels);
 ACMD_DECL(do_scan);
 ACMD_DECL(do_score);
@@ -853,7 +857,7 @@ int test_animal_companion_level(struct char_data *ch, int level);
 void update_msdp_group(struct char_data *ch);
 void update_msdp_inventory(struct char_data *ch);
 bool wildshape_engine(struct char_data *ch, const char *argument, int mode);
-void show_hints(void);
+void show_hint_one(struct char_data *ch);
 void display_todo(struct char_data *ch, struct char_data *vict);
 void respec_engine(struct char_data *ch, int class, char *arg, bool silent);
 int perform_tailsweep(struct char_data *ch);

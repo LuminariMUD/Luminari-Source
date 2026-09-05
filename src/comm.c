@@ -70,6 +70,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
+#include "combat/combat_encounters.h"
 #include "obj/house.h"
 #include "olc/oasis.h"
 #include "olc/genolc.h"
@@ -100,6 +101,15 @@
 #include "wilderness/wilderness.h"
 #include "magic/spell_prep.h"
 #include "perfmon.h"
+#include "reactor.h"
+#include "event_runtime.h"
+#include "domain_event_runtime.h"
+#include "active_world.h"
+#include "affected_owners.h"
+#include "character_periodic.h"
+#include "point_update_periodic.h"
+#include "periodic_owners.h"
+#include "dotenv.h"
 #include "elf_build_id.h"
 #include "mysql.h"
 #include "net/onboarding.h"
@@ -110,13 +120,13 @@
 #include "bardic_performance.h" /* for the bard performance pulse */
 #include "craft/crafting_new.h"
 #include "ai_service.h"                /* for shutdown_ai_service() */
-#include "pubsub/pubsub.h"             /* for automatic queue processing */
 #include "net/discord_bridge.h"        /* Discord bridge integration */
 #include "wilderness/terrain_bridge.h" /* Terrain bridge API server */
 #include "net/i3_client.h"             /* Intermud3 client */
 #include "vessels/vessels.h"           /* Vessel persistence */
 #include "vessels/vessels_moving_rooms.h"
 #include "vessels/vessels_rol.h"
+#include "vessels/vessel_periodic.h"
 #include "asciimap.h"
 #include "obj/spec_artifacts.h"
 
@@ -127,10 +137,13 @@
 /* Keep socket processing responsive when replaying missed heartbeats. */
 #define HEARTBEAT_CATCHUP_BUDGET_USEC ((uint64_t)OPT_USEC)
 #define HEARTBEAT_CATCHUP_LOG_INTERVAL 60
+#define EVENT_SCHEDULER_CALLBACK_BUDGET 256U
+#define EVENT_SCHEDULER_TIME_BUDGET_USEC UINT64_C(5000)
 #define STAFF_COMMAND_LATENCY_BUDGET_USEC 100000
 #define PERSISTENCE_PULSE_BUDGET_USEC 20000
 #define PERSISTENCE_HARD_LIMIT_USEC 50000
 #define PERSISTENCE_RETRY_PULSES PASSES_PER_SEC
+#define DESCRIPTOR_CLOSE_DRAIN_USEC UINT64_C(1000000)
 
 extern time_t motdmod;
 extern time_t newsmod;
@@ -146,10 +159,11 @@ int buf_switches = 0;                                /* # of switches from small
 int circle_shutdown = 0;                             /* clean shutdown */
 int circle_reboot = 0;                               /* reboot the game after a shutdown */
 static volatile sig_atomic_t shutdown_requested = 0; /* flag for signal-triggered shutdown */
-int no_specials = 0;                                 /* Suppress ass. of special routines */
-int scheck = 0;                                      /* for syntax checking mode */
-FILE *logfile = NULL;                                /* Where to send the log messages. */
-unsigned long pulse = 0;                             /* number of pulses since game start */
+static volatile sig_atomic_t shutdown_signal = 0;
+int no_specials = 0;     /* Suppress ass. of special routines */
+int scheck = 0;          /* for syntax checking mode */
+FILE *logfile = NULL;    /* Where to send the log messages. */
+unsigned long pulse = 0; /* number of pulses since game start */
 ush_int port;
 socket_t mother_desc;
 int next_tick = SECS_PER_MUD_HOUR; /* Tick countdown */
@@ -165,6 +179,7 @@ static byte emergency_unban;             /* signal: SIGUSR2 */
 static int dg_act_check;                 /* toggle for act_trigger */
 static bool fCopyOver;                   /* Are we booting in copyover mode? */
 static char *last_act_message = NULL;
+static struct luminari_reactor *io_reactor = NULL;
 #ifdef CIRCLE_UNIX
 static struct itimerval checkpoint_timer_before_copyover;
 static bool checkpoint_timer_suspended = FALSE;
@@ -178,18 +193,18 @@ static RETSIGTYPE checkpointing(int sig);
 static RETSIGTYPE hupsig(int sig);
 static ssize_t perform_socket_read(socket_t desc, char *read_point, size_t space_left);
 static ssize_t perform_socket_write(socket_t desc, const char *txt, size_t length);
-static void circle_sleep(struct timeval *timeout);
 static int get_from_q(struct txt_q *queue, char *dest, int *aliased);
 static void init_game(ush_int port);
 static void signal_setup(void);
+static bool initialize_io_reactor(void);
 static socket_t init_socket(ush_int port);
 static int new_descriptor(socket_t s);
 static int get_max_players(void);
 static int process_output(struct descriptor_data *t);
 static void retain_unsent_output(struct descriptor_data *t, const char *output, int result);
+static bool descriptor_close_due(struct descriptor_data *d, uint64_t now_usec);
 static int process_input(struct descriptor_data *t);
 static void timediff(struct timeval *diff, struct timeval *a, struct timeval *b);
-static void timeadd(struct timeval *sum, struct timeval *a, struct timeval *b);
 static void flush_queues(struct descriptor_data *d);
 static void nonblock(socket_t s);
 static int perform_subst(struct descriptor_data *t, char *orig, char *subst);
@@ -199,6 +214,20 @@ static void check_idle_passwords(void);
 static void init_descriptor(struct descriptor_data *newd, int desc);
 static void persistence_schedule_minute(int include_crash_and_houses);
 static void persistence_scheduler_step(uint64_t heart_pulse);
+static bool persistence_step_schedule(void);
+static bool runtime_services_init(void);
+static void runtime_services_safe_point(void);
+static void comm_wait_state_advance(struct char_data *ch, uint64_t now_tick);
+static uint64_t comm_wait_state_deadline_usec(const struct char_data *ch,
+                                              uint64_t runtime_epoch_usec);
+static void monotonic_timeval(struct timeval *value);
+static int reactor_poll_fd_sets(struct luminari_reactor *reactor, int max_fd, fd_set *input_set,
+                                fd_set *output_set, fd_set *error_set,
+                                const struct timeval *timeout);
+#ifdef CIRCLE_UNIX
+static void reactor_signal_dispatch(int signal_number, void *context);
+static void preserve_shutdown_signal_handlers(void);
+#endif
 
 static struct in_addr *get_bind_addr(void);
 static int parse_ip(const char *addr, struct in_addr *inaddr);
@@ -211,16 +240,12 @@ static sigfunc *my_signal(int signo, sigfunc *func);
 #endif
 static void msdp_update(void); /* KaVir plugin*/
 void update_msdp_affects(struct char_data *ch);
-void update_damage_and_effects_over_time(void);
 void update_player_last_on(void);
 void check_auto_shutdown(void);
-void update_player_misc(void);
 void check_auto_happy_hour(void);
-void regen_psp(void);
-void process_walkto_actions(void);
 void self_buffing(void);
 void recharge_activated_items(void);
-void check_thirty_seconds(void);
+void process_auction_events(void);
 void craft_update(void);
 
 /* externally defined functions, used locally */
@@ -494,8 +519,33 @@ int main(int argc, char **argv)
 
   if (scheck)
   {
+    enum domain_event_status domain_status;
+
     event_init();
+    domain_status = domain_event_runtime_init();
+    if (domain_status != DOMAIN_EVENT_OK)
+    {
+      log("SYSERR: Unable to initialize the typed domain-event runtime: %s.",
+          domain_event_status_name(domain_status));
+      event_free_all();
+      return EXIT_FAILURE;
+    }
+    active_world_begin_bootstrap();
     boot_world();
+    active_world_end_bootstrap();
+    if (!runtime_services_init())
+    {
+      log("SYSERR: Unable to initialize required native runtime services.");
+      event_free_all();
+      return EXIT_FAILURE;
+    }
+    if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
+        event_runtime_seal_types() != GAME_SCHEDULER_OK)
+    {
+      log("SYSERR: Unable to seal the timed-event type registry.");
+      event_free_all();
+      return EXIT_FAILURE;
+    }
   }
   else
   {
@@ -504,6 +554,7 @@ int main(int argc, char **argv)
     log("Dev port set in utils.h to: %d.", CONFIG_DFLT_DEV_PORT);
   }
 
+  shutdown_ai_service();
   log("Clearing game world.");
   destroy_db();
 
@@ -525,7 +576,6 @@ int main(int argc, char **argv)
     free_strings(&config_info, OASIS_CFG); /* oasis_delete.c */
     free_ibt_lists();                      /* ibt.c */
     free_recent_players();                 /* act.informative.c */
-    shutdown_ai_service();                 /* ai_service.c */
     cleanup_lookup_table();                /* dg_scripts.c */
     free_list(world_events);               /* free up our global lists */
     free_list(global_lists);
@@ -674,6 +724,7 @@ void copyover_recover()
         GET_LOADROOM(d->character) = NOWHERE;
 
       d->connected = CON_PLAYING;
+      character_periodic_sync(d->character);
       look_at_room(d->character, 0);
 
       /* Add to the list of 'recent' players (since last reboot) with copyover flag */
@@ -705,6 +756,8 @@ void copyover_recover()
 /* Init sockets, run game, and cleanup sockets */
 static void init_game(ush_int local_port)
 {
+  enum domain_event_status domain_status;
+
   /* We don't want to restart if we crash before we get up. */
   touch(KILLSCRIPT_FILE);
 
@@ -728,15 +781,39 @@ static void init_game(ush_int local_port)
   }
 
   event_init();
+  domain_status = domain_event_runtime_init();
+  if (domain_status != DOMAIN_EVENT_OK)
+  {
+    log("SYSERR: Unable to initialize the typed domain-event runtime: %s.",
+        domain_event_status_name(domain_status));
+    exit(1);
+  }
+  active_world_begin_bootstrap();
 
   /* set up hash table for find_char() */
   init_lookup_table();
 
   boot_db();
+  if (!runtime_services_init())
+  {
+    log("SYSERR: Unable to initialize required native runtime services.");
+    exit(1);
+  }
+  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
+      event_runtime_seal_types() != GAME_SCHEDULER_OK)
+  {
+    log("SYSERR: Unable to seal the timed-event type registry.");
+    exit(1);
+  }
 
 #if defined(CIRCLE_UNIX) || defined(CIRCLE_MACINTOSH)
+  if (!initialize_io_reactor())
+    exit(1);
   log("Signal trapping.");
   signal_setup();
+#else
+  if (!initialize_io_reactor())
+    exit(1);
 #endif
 
   /* If we made it this far, we will be able to restart without problem. */
@@ -747,6 +824,7 @@ static void init_game(ush_int local_port)
     COPYOVER_DEBUG("init_game: fCopyOver is true, calling copyover_recover()");
     copyover_recover();
   }
+  active_world_end_bootstrap();
 
   /* Initialize Discord bridge */
   log("Initializing Discord bridge.");
@@ -822,7 +900,7 @@ static void init_game(ush_int local_port)
   if (shutdown_requested)
   {
     circle_shutdown = 1;
-    log("Shutdown initiated by signal - performing cleanup...");
+    log("Shutdown initiated by signal %d - performing cleanup...", (int)shutdown_signal);
   }
 
   log("Normal termination of game.");
@@ -1005,32 +1083,166 @@ static int get_max_players(void)
 #endif /* CIRCLE_UNIX */
 }
 
+static void monotonic_timeval(struct timeval *value)
+{
+  uint64_t usec;
+
+  usec = luminari_reactor_monotonic_usec();
+  value->tv_sec = (time_t)(usec / UINT64_C(1000000));
+  value->tv_usec = (suseconds_t)(usec % UINT64_C(1000000));
+}
+
+static void comm_wait_state_advance(struct char_data *ch, uint64_t now_tick)
+{
+  uint64_t elapsed;
+
+  if (ch == NULL)
+    return;
+  if (!ch->wait_tick_initialized || now_tick < ch->wait_last_tick)
+  {
+    ch->wait_last_tick = now_tick;
+    ch->wait_tick_initialized = true;
+    return;
+  }
+  elapsed = now_tick - ch->wait_last_tick;
+  ch->wait_last_tick = now_tick;
+  if (GET_WAIT_STATE(ch) <= 0 || elapsed == 0)
+    return;
+  if (elapsed >= (uint64_t)GET_WAIT_STATE(ch))
+    GET_WAIT_STATE(ch) = 0;
+  else
+    GET_WAIT_STATE(ch) -= (int)elapsed;
+}
+
+static uint64_t comm_wait_state_deadline_usec(const struct char_data *ch,
+                                              uint64_t runtime_epoch_usec)
+{
+  uint64_t deadline_tick;
+  uint64_t baseline_tick;
+
+  if (ch == NULL || GET_WAIT_STATE(ch) <= 0)
+    return UINT64_MAX;
+  baseline_tick = ch->wait_tick_initialized ? ch->wait_last_tick : (uint64_t)pulse;
+  if (baseline_tick > UINT64_MAX - (uint64_t)GET_WAIT_STATE(ch))
+    return UINT64_MAX;
+  deadline_tick = baseline_tick + (uint64_t)GET_WAIT_STATE(ch);
+  if (deadline_tick > (UINT64_MAX - runtime_epoch_usec) / (uint64_t)OPT_USEC)
+    return UINT64_MAX;
+  return runtime_epoch_usec + deadline_tick * (uint64_t)OPT_USEC;
+}
+
+#ifdef LUMINARI_CUTEST
+void comm_wait_state_advance_for_test(struct char_data *ch, uint64_t now_tick)
+{
+  comm_wait_state_advance(ch, now_tick);
+}
+
+uint64_t comm_wait_state_deadline_usec_for_test(const struct char_data *ch,
+                                                uint64_t runtime_epoch_usec)
+{
+  return comm_wait_state_deadline_usec(ch, runtime_epoch_usec);
+}
+#endif
+
+static bool initialize_io_reactor(void)
+{
+  enum luminari_reactor_status status;
+  enum luminari_io_driver driver;
+  const char *configured_driver;
+  bool recognized_driver;
+
+  if (io_reactor != NULL)
+    return TRUE;
+  configured_driver = getenv("LUMINARI_IO_DRIVER");
+  driver = luminari_io_driver_from_string(configured_driver, &recognized_driver);
+  if (!recognized_driver)
+    log("WARNING: Unknown LUMINARI_IO_DRIVER '%s'; using libevent.", configured_driver);
+  io_reactor = luminari_reactor_create(driver, &status);
+  if (io_reactor == NULL)
+  {
+    log("SYSERR: Unable to initialize %s I/O driver (status %d).", luminari_io_driver_name(driver),
+        status);
+    return FALSE;
+  }
+  log("I/O driver initialized: %s (libevent %s).", luminari_io_driver_name(driver),
+      luminari_reactor_library_version());
+  return TRUE;
+}
+
+static int reactor_poll_fd_sets(struct luminari_reactor *reactor, int max_fd, fd_set *input_set,
+                                fd_set *output_set, fd_set *error_set,
+                                const struct timeval *timeout)
+{
+  enum luminari_reactor_status status;
+  uint64_t timeout_usec;
+  int fd;
+
+  status = luminari_reactor_begin_cycle(reactor);
+  if (status != LUMINARI_REACTOR_OK)
+    return -1;
+  for (fd = 0; fd <= max_fd; fd++)
+  {
+    unsigned int interests = 0;
+
+    if (FD_ISSET(fd, input_set))
+      interests |= LUMINARI_REACTOR_READ;
+    if (FD_ISSET(fd, output_set))
+      interests |= LUMINARI_REACTOR_WRITE;
+    if (FD_ISSET(fd, error_set))
+      interests |= LUMINARI_REACTOR_ERROR;
+    if (interests != 0 && luminari_reactor_watch(reactor, fd, interests) != LUMINARI_REACTOR_OK)
+      return -1;
+  }
+  timeout_usec = (uint64_t)timeout->tv_sec * UINT64_C(1000000) + (uint64_t)timeout->tv_usec;
+  status = luminari_reactor_wait(reactor, timeout_usec);
+  if (status != LUMINARI_REACTOR_OK)
+    return -1;
+  FD_ZERO(input_set);
+  FD_ZERO(output_set);
+  FD_ZERO(error_set);
+  for (fd = 0; fd <= max_fd; fd++)
+  {
+    if (luminari_reactor_ready(reactor, fd, LUMINARI_REACTOR_READ))
+      FD_SET(fd, input_set);
+    if (luminari_reactor_ready(reactor, fd, LUMINARI_REACTOR_WRITE))
+      FD_SET(fd, output_set);
+    if (luminari_reactor_ready(reactor, fd, LUMINARI_REACTOR_ERROR))
+      FD_SET(fd, error_set);
+  }
+  return 0;
+}
+
 /* game_loop contains the main loop which drives the entire MUD.  It
  * cycles once every 0.10 seconds and is responsible for accepting new
  * new connections, polling existing connections for input, dequeueing
- * output and sending it out to players, and calling "heartbeat" functions
- * such as mobile_activity(). */
+ * output and sending it out to players. Scheduled services own normal gameplay
+ * deadlines, without a separate heartbeat driver. */
 void game_loop(socket_t local_mother_desc)
 {
-  fd_set input_set, output_set, exc_set, null_set;
-  struct timeval last_time, opt_time, process_time, temp_time;
-  struct timeval before_sleep, now, timeout, perf_start;
+  fd_set input_set, output_set, exc_set;
+  struct timeval before_sleep, now, timeout, perf_start, process_time;
   char comm[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *d = NULL, *next_d = NULL;
-  int missed_pulses = 0, maxdesc = 0, aliased = 0;
-  int requested_missed_pulses = 0;
-  int requested_heartbeats = 0;
-  int replayed_heartbeats = 0;
-  int replayed_missed_pulses = 0;
-  int remaining_backlog = 0;
-  int catchup_budget_exhausted = 0;
-  uint64_t heartbeat_replay_start_usec = 0;
-  uint64_t heartbeat_replay_now_usec = 0;
-  uint64_t heartbeat_replay_elapsed_usec = 0;
+  int maxdesc = 0, aliased = 0;
+  int i3_event_fd = -1;
+  int ai_event_fd = -1;
   uint64_t command_start_usec = 0;
   uint64_t command_end_usec = 0;
   uint64_t command_elapsed_usec = 0;
-  time_t catchup_log_now = 0;
+  uint64_t runtime_epoch_usec = 0;
+  uint64_t runtime_tick_value = 0;
+  uint64_t previous_runtime_tick_value = 0;
+  uint64_t scheduler_deadline_usec = 0;
+  uint64_t wait_deadline_usec = 0;
+  uint64_t before_sleep_usec = 0;
+  uint64_t now_usec = 0;
+  uint64_t wait_timeout_usec = 0;
+  uint64_t scheduler_timeout_usec = 0;
+  game_tick_t scheduler_deadline = 0;
+  bool scheduler_has_deadline = false;
+  struct game_scheduler_budget scheduler_budget;
+  struct game_scheduler_dispatch_report scheduler_report;
+  enum game_scheduler_status scheduler_status;
   char command_name[MAX_INPUT_LENGTH] = {'\0'};
   char command_player[MAX_NAME_LENGTH + 1] = {'\0'};
   int command_level = 0;
@@ -1039,21 +1251,20 @@ void game_loop(socket_t local_mother_desc)
   static time_t last_severe_log_time = 0;
   static time_t last_critical_log_time = 0;
   static int perf_log_suppressed = 0;
-  static time_t last_catchup_log_time = 0;
-  static uint64_t catchup_log_passes = 0;
-  static uint64_t catchup_log_budget_exhausted = 0;
-  static uint64_t catchup_log_max_requested = 0;
-  static uint64_t catchup_log_max_remaining = 0;
+  enum luminari_io_driver io_driver;
 
   /* initialize various time values */
   null_time.tv_sec = 0;
   null_time.tv_usec = 0;
-  opt_time.tv_usec = OPT_USEC;
-  opt_time.tv_sec = 0;
-  FD_ZERO(&null_set);
+  if (!initialize_io_reactor())
+    return;
+  io_driver = luminari_reactor_driver(io_reactor);
 
-  gettimeofday(&last_time, (struct timezone *)0);
-  perf_start = last_time;
+  monotonic_timeval(&perf_start);
+  runtime_epoch_usec =
+      (uint64_t)perf_start.tv_sec * UINT64_C(1000000) + (uint64_t)perf_start.tv_usec;
+  scheduler_budget.max_callbacks = EVENT_SCHEDULER_CALLBACK_BUDGET;
+  scheduler_budget.max_usec = EVENT_SCHEDULER_TIME_BUDGET_USEC;
 
   /* The Main Loop.  The Big Cheese.  The Top Dog.  The Head Honcho.  The.. */
   /* Beginner's Note: Main game loop runs until shutdown is requested.
@@ -1063,57 +1274,6 @@ void game_loop(socket_t local_mother_desc)
    * Checking both ensures clean exit in all cases. */
   while (!circle_shutdown && !shutdown_requested)
   {
-    /* Sleep if we don't have any connections */
-    if (descriptor_list == NULL)
-    {
-      int i3_event_fd;
-      int max_sleep_desc;
-      int select_result;
-
-      log("No connections.  Going to sleep.");
-      FD_ZERO(&input_set);
-      FD_SET(local_mother_desc, &input_set);
-
-      max_sleep_desc = local_mother_desc;
-      i3_event_fd = i3_get_event_fd();
-      if (i3_event_fd >= 0)
-      {
-        FD_SET(i3_event_fd, &input_set);
-        if (i3_event_fd > max_sleep_desc)
-        {
-          max_sleep_desc = i3_event_fd;
-        }
-      }
-
-      /* Add terrain bridge server socket to wake up on API connections */
-      if (terrain_api_is_running())
-      {
-        struct terrain_api_server *terrain_server = get_terrain_api_server();
-        if (terrain_server && terrain_server->server_socket != INVALID_SOCKET)
-        {
-          FD_SET(terrain_server->server_socket, &input_set);
-          if (terrain_server->server_socket > max_sleep_desc)
-            max_sleep_desc = terrain_server->server_socket;
-        }
-      }
-
-      select_result = select(max_sleep_desc + 1, &input_set, (fd_set *)0, (fd_set *)0, NULL);
-      if (select_result < 0)
-      {
-        if (errno == EINTR)
-          log("Waking up to process signal.");
-        else
-          perror("SYSERR: Select coma");
-      }
-      else if (i3_event_fd >= 0 && FD_ISSET(i3_event_fd, &input_set))
-      {
-        i3_process_events();
-      }
-      else
-        log("New connection.  Waking up.");
-      gettimeofday(&last_time, (struct timezone *)0);
-      perf_start = last_time;
-    }
     /* Set up the input, output, and exception sets for select(). */
     FD_ZERO(&input_set);
     FD_ZERO(&output_set);
@@ -1121,6 +1281,50 @@ void game_loop(socket_t local_mother_desc)
     FD_SET(local_mother_desc, &input_set);
 
     maxdesc = local_mother_desc;
+
+    i3_event_fd = i3_get_event_fd();
+    if (i3_event_fd >= 0)
+    {
+      FD_SET(i3_event_fd, &input_set);
+      if (i3_event_fd > maxdesc)
+        maxdesc = i3_event_fd;
+    }
+
+    ai_event_fd = ai_events_ingress_fd();
+    if (ai_event_fd >= 0)
+    {
+      FD_SET(ai_event_fd, &input_set);
+      if (ai_event_fd > maxdesc)
+        maxdesc = ai_event_fd;
+    }
+
+    if (terrain_api_is_running())
+    {
+      struct terrain_api_server *terrain_server = get_terrain_api_server();
+      int terrain_client_index;
+
+      if (terrain_server != NULL && terrain_server->server_socket != INVALID_SOCKET)
+      {
+        FD_SET(terrain_server->server_socket, &input_set);
+        if (terrain_server->server_socket > maxdesc)
+          maxdesc = terrain_server->server_socket;
+      }
+      if (terrain_server != NULL)
+      {
+        for (terrain_client_index = 0; terrain_client_index < terrain_server->max_clients;
+             terrain_client_index++)
+        {
+          socket_t terrain_client_socket = terrain_server->clients[terrain_client_index].socket;
+
+          if (terrain_client_socket == INVALID_SOCKET)
+            continue;
+          FD_SET(terrain_client_socket, &input_set);
+          FD_SET(terrain_client_socket, &exc_set);
+          if (terrain_client_socket > maxdesc)
+            maxdesc = terrain_client_socket;
+        }
+      }
+    }
 
     /* Add Discord bridge sockets to select sets */
     if (discord_bridge)
@@ -1148,7 +1352,8 @@ void game_loop(socket_t local_mother_desc)
         maxdesc = d->descriptor;
 #endif
       FD_SET(d->descriptor, &input_set);
-      FD_SET(d->descriptor, &output_set);
+      if (*(d->output))
+        FD_SET(d->descriptor, &output_set);
       FD_SET(d->descriptor, &exc_set);
     }
 
@@ -1157,7 +1362,7 @@ void game_loop(socket_t local_mother_desc)
      * to sleep until the next 0.1 second tick.  The first step is to
      * calculate how long we took processing the previous iteration. */
 
-    gettimeofday(&before_sleep, (struct timezone *)0); /* current time */
+    monotonic_timeval(&before_sleep);
     timediff(&process_time, &before_sleep, &perf_start);
 
     {
@@ -1236,57 +1441,107 @@ void game_loop(socket_t local_mother_desc)
       }
     }
 
-    /* just in case, re-calculate after PERF logging */
-    gettimeofday(&before_sleep, (struct timezone *)0);
-    timediff(&process_time, &before_sleep, &last_time);
+    /* Derive the runtime tick from monotonic elapsed time. */
+    monotonic_timeval(&before_sleep);
+    before_sleep_usec =
+        (uint64_t)before_sleep.tv_sec * UINT64_C(1000000) + (uint64_t)before_sleep.tv_usec;
+    runtime_tick_value = before_sleep_usec >= runtime_epoch_usec
+                             ? (before_sleep_usec - runtime_epoch_usec) / (uint64_t)OPT_USEC
+                             : 0;
+    pulse = runtime_tick_value > ULONG_MAX ? ULONG_MAX : (unsigned long)runtime_tick_value;
 
-    /* If we were asleep for more than one pass, count missed pulses and sleep
-     * until we're resynchronized with the next upcoming pulse. */
-    if (process_time.tv_sec == 0 && process_time.tv_usec < OPT_USEC)
+    wait_timeout_usec = UINT64_MAX;
+    scheduler_timeout_usec = UINT64_MAX;
+    scheduler_status = event_scheduler_next_deadline(&scheduler_deadline, &scheduler_has_deadline);
+    if (scheduler_status != GAME_SCHEDULER_OK)
     {
-      missed_pulses = 0;
+      log("SYSERR: Unable to query timing-wheel deadline (status %d).", scheduler_status);
+      scheduler_has_deadline = false;
     }
-    else
+    if (scheduler_has_deadline)
     {
-      missed_pulses = process_time.tv_sec * PASSES_PER_SEC;
-      missed_pulses += process_time.tv_usec / OPT_USEC;
-      process_time.tv_sec = 0;
-      process_time.tv_usec = process_time.tv_usec % OPT_USEC;
+      if (scheduler_deadline > (UINT64_MAX - runtime_epoch_usec) / (uint64_t)OPT_USEC)
+        scheduler_deadline_usec = UINT64_MAX;
+      else
+        scheduler_deadline_usec =
+            runtime_epoch_usec + (uint64_t)scheduler_deadline * (uint64_t)OPT_USEC;
+      if (scheduler_deadline_usec <= before_sleep_usec)
+      {
+        scheduler_timeout_usec = 0;
+      }
+      else
+        scheduler_timeout_usec = scheduler_deadline_usec - before_sleep_usec;
     }
-    if (missed_pulses > 0)
+    if (scheduler_timeout_usec < wait_timeout_usec)
+      wait_timeout_usec = scheduler_timeout_usec;
+    for (d = descriptor_list; d; d = d->next)
     {
-      PERF_note_missed_pulses((uint64_t)missed_pulses);
+      bool queued_action;
+
+      if (d->character == NULL || GET_WAIT_STATE(d->character) <= 0)
+        continue;
+      queued_action = STATE(d) == CON_PLAYING && pending_actions(d->character) &&
+                      !combat_encounter_semantic_manages(d->character) && !d->showstr_count &&
+                      !d->str;
+      if (d->input.head == NULL && !queued_action)
+        continue;
+      wait_deadline_usec = comm_wait_state_deadline_usec(d->character, runtime_epoch_usec);
+      if (wait_deadline_usec <= before_sleep_usec)
+      {
+        wait_timeout_usec = 0;
+        break;
+      }
+      if (wait_deadline_usec - before_sleep_usec < wait_timeout_usec)
+        wait_timeout_usec = wait_deadline_usec - before_sleep_usec;
     }
-
-    /* Calculate the time we should wake up */
-    timediff(&temp_time, &opt_time, &process_time);
-    timeadd(&last_time, &before_sleep, &temp_time);
-
-    /* Now keep sleeping until that time has come */
-    gettimeofday(&now, (struct timezone *)0);
-    timediff(&timeout, &last_time, &now);
-
-    /* Go to sleep */
-    do
+    for (d = descriptor_list; d; d = d->next)
     {
-      circle_sleep(&timeout);
-      gettimeofday(&now, (struct timezone *)0);
-      timediff(&timeout, &last_time, &now);
-    } while (timeout.tv_usec || timeout.tv_sec);
+      if (STATE(d) != CON_CLOSE || d->close_output_deadline_usec == 0)
+        continue;
+      if (d->close_output_deadline_usec <= before_sleep_usec)
+      {
+        wait_timeout_usec = 0;
+        break;
+      }
+      if (d->close_output_deadline_usec - before_sleep_usec < wait_timeout_usec)
+        wait_timeout_usec = d->close_output_deadline_usec - before_sleep_usec;
+    }
+    if (wait_timeout_usec == UINT64_MAX)
+      wait_timeout_usec = UINT64_C(60000000);
+    timeout.tv_sec = (time_t)(wait_timeout_usec / UINT64_C(1000000));
+    timeout.tv_usec = (suseconds_t)(wait_timeout_usec % UINT64_C(1000000));
+
+    /* Wait for I/O or the next scheduler deadline. */
+    if (reactor_poll_fd_sets(io_reactor, maxdesc, &input_set, &output_set, &exc_set, &timeout) < 0)
+    {
+      log("SYSERR: %s I/O driver poll failed: %s", luminari_io_driver_name(io_driver),
+          strerror(errno));
+      break;
+    }
+    monotonic_timeval(&now);
+    now_usec = (uint64_t)now.tv_sec * UINT64_C(1000000) + (uint64_t)now.tv_usec;
+    runtime_tick_value =
+        now_usec >= runtime_epoch_usec ? (now_usec - runtime_epoch_usec) / (uint64_t)OPT_USEC : 0;
+    pulse = runtime_tick_value > ULONG_MAX ? ULONG_MAX : (unsigned long)runtime_tick_value;
+    if (runtime_services_enabled() && runtime_tick_value > previous_runtime_tick_value)
+      PERF_note_runtime_advance(runtime_tick_value,
+                                runtime_tick_value - previous_runtime_tick_value);
+    previous_runtime_tick_value = runtime_tick_value;
 
     perf_start = now;
     PERF_prof_reset();
     PERF_PROF_ENTER_SAMPLED(pr_main_loop_, "Main Loop");
 
-    /* Poll (without blocking) for new input, output, and exceptions */
-    if (select(maxdesc + 1, &input_set, &output_set, &exc_set, &null_time) < 0)
-    {
-      perror("SYSERR: Select poll");
-      return;
-    }
     /* If there are new connections waiting, accept them. */
     if (FD_ISSET(local_mother_desc, &input_set))
       new_descriptor(local_mother_desc);
+
+    if (i3_event_fd >= 0 && FD_ISSET(i3_event_fd, &input_set))
+      i3_process_events();
+
+    /* This is also called when the optional wake pipe is unavailable, so a
+     * queued completion can never depend on descriptor setup succeeding. */
+    ai_events_process_ingress();
 
     /* Process Discord bridge */
     if (discord_bridge)
@@ -1349,13 +1604,9 @@ void game_loop(socket_t local_mother_desc)
     {
       next_d = d->next;
 
-      /* Not combined to retain --(d->wait) behavior. -gg 2/20/98 If no wait
-       * state, no subtraction.  If there is a wait state then 1 is subtracted.
-       * Therefore we don't go less than 0 ever and don't require an 'if'
-       * bracket. -gg 2/27/99 */
       if (d->character)
       {
-        GET_WAIT_STATE(d->character) -= (GET_WAIT_STATE(d->character) > 0);
+        comm_wait_state_advance(d->character, (uint64_t)pulse);
 
         if (GET_WAIT_STATE(d->character))
           continue;
@@ -1431,7 +1682,7 @@ void game_loop(socket_t local_mother_desc)
         }
       }
       else if (d->character && STATE(d) == CON_PLAYING && pending_actions(d->character) &&
-               !d->showstr_count && !d->str)
+               !combat_encounter_semantic_manages(d->character) && !d->showstr_count && !d->str)
       {
         d->has_prompt = TRUE;
         execute_next_action(d->character);
@@ -1473,93 +1724,31 @@ void game_loop(socket_t local_mother_desc)
       }
     }
 
-    /* Kick out folks in the CON_CLOSE or CON_DISCONNECT state */
+    /* Hard disconnects close immediately. Graceful closes get one bounded
+     * opportunity to drain output queued after write readiness was sampled. */
     for (d = descriptor_list; d; d = next_d)
     {
       next_d = d->next;
-      if (STATE(d) == CON_CLOSE || STATE(d) == CON_DISCONNECT)
+      if (descriptor_close_due(d, now_usec))
         close_socket(d);
     }
 
-    /* Run the current heartbeat and recover missed pulses within the bounded
-     * wall-clock budget below. */
-    requested_missed_pulses = missed_pulses;
-    requested_heartbeats = requested_missed_pulses + 1;
 
-    if (requested_heartbeats <= 0)
+    scheduler_status = event_scheduler_next_deadline(&scheduler_deadline, &scheduler_has_deadline);
+    if (scheduler_status == GAME_SCHEDULER_OK && scheduler_has_deadline &&
+        scheduler_deadline <= (game_tick_t)pulse)
     {
-      log("SYSERR: **BAD** MISSED_PULSES NONPOSITIVE (%d), TIME GOING BACKWARDS!!",
-          requested_heartbeats);
-      requested_missed_pulses = 0;
-      requested_heartbeats = 1;
+      memset(&scheduler_report, 0, sizeof(scheduler_report));
+      scheduler_status = event_process_scheduler(&scheduler_budget, &scheduler_report);
+      if (scheduler_status != GAME_SCHEDULER_OK)
+        log("SYSERR: Timing-wheel reactor dispatch failed with status %d.", scheduler_status);
     }
 
-    /* Always run the current heartbeat, then replay missed heartbeats only while
-     * the work fits inside one normal outer-loop time budget. Any remainder is
-     * deliberately discarded rather than carried into a self-reinforcing loop;
-     * logical timers advance only for heartbeats that actually run. */
-    replayed_heartbeats = 0;
-    catchup_budget_exhausted = 0;
-    heartbeat_replay_start_usec = PERF_monotonic_usec();
-    while (replayed_heartbeats < requested_heartbeats)
-    {
-      PERF_PROF_ENTER_SAMPLED(pr_heartbeat, "heartbeat");
-      heartbeat(++pulse);
-      PERF_PROF_EXIT(pr_heartbeat);
-      replayed_heartbeats++;
-
-      if (replayed_heartbeats < requested_heartbeats)
-      {
-        heartbeat_replay_now_usec = PERF_monotonic_usec();
-        heartbeat_replay_elapsed_usec =
-            heartbeat_replay_now_usec >= heartbeat_replay_start_usec
-                ? heartbeat_replay_now_usec - heartbeat_replay_start_usec
-                : 0;
-        if (heartbeat_replay_elapsed_usec >= HEARTBEAT_CATCHUP_BUDGET_USEC)
-        {
-          catchup_budget_exhausted = 1;
-          break;
-        }
-      }
-    }
-
-    replayed_missed_pulses = replayed_heartbeats - 1;
-    remaining_backlog = requested_missed_pulses - replayed_missed_pulses;
-    if (remaining_backlog < 0)
-      remaining_backlog = 0;
-
-    if (requested_missed_pulses > 0)
-    {
-      PERF_note_catchup_pass((uint64_t)requested_missed_pulses, (uint64_t)replayed_missed_pulses,
-                             (uint64_t)remaining_backlog, catchup_budget_exhausted);
-
-      if (catchup_log_passes < UINT64_MAX)
-        catchup_log_passes++;
-      if (catchup_budget_exhausted && catchup_log_budget_exhausted < UINT64_MAX)
-        catchup_log_budget_exhausted++;
-      if ((uint64_t)requested_missed_pulses > catchup_log_max_requested)
-        catchup_log_max_requested = (uint64_t)requested_missed_pulses;
-      if ((uint64_t)remaining_backlog > catchup_log_max_remaining)
-        catchup_log_max_remaining = (uint64_t)remaining_backlog;
-
-      catchup_log_now = time(NULL);
-      if (last_catchup_log_time == 0 ||
-          catchup_log_now - last_catchup_log_time >= HEARTBEAT_CATCHUP_LOG_INTERVAL)
-      {
-        log("PERFMON [CATCHUP]: window_passes=%llu budget_exhausted=%llu max_requested=%llu "
-            "max_remaining=%llu latest_requested=%d latest_replayed=%d latest_remaining=%d",
-            (unsigned long long)catchup_log_passes,
-            (unsigned long long)catchup_log_budget_exhausted,
-            (unsigned long long)catchup_log_max_requested,
-            (unsigned long long)catchup_log_max_remaining, requested_missed_pulses,
-            replayed_missed_pulses, remaining_backlog);
-        last_catchup_log_time = catchup_log_now;
-        catchup_log_passes = 0;
-        catchup_log_budget_exhausted = 0;
-        catchup_log_max_requested = 0;
-        catchup_log_max_remaining = 0;
-      }
-    }
+    /* Extraction is an explicit mutation safe point, independent of cadence. */
+    PERF_PROF_ENTER_SAMPLED(pr_extract_pending_safe_point_, "extract_pending_chars");
+    extract_pending_chars();
+    PERF_PROF_EXIT(pr_extract_pending_safe_point_);
+    runtime_services_safe_point();
 
     /* Process terrain bridge API requests */
     terrain_api_process();
@@ -1588,31 +1777,23 @@ void game_loop(socket_t local_mother_desc)
 #endif
     PERF_PROF_EXIT(pr_main_loop_);
   }
+
+#ifdef CIRCLE_UNIX
+  preserve_shutdown_signal_handlers();
+#endif
+  luminari_reactor_destroy(io_reactor);
+  io_reactor = NULL;
 }
 
-/*  This was ported to accomodate the HL objects that were imported */
-void proc_update()
+bool object_auto_proc_run_one(struct obj_data *obj)
 {
-  struct obj_data *obj;
-  size_t acted;
-  size_t visited;
-
-  acted = 0;
-  visited = 0;
-  for (obj = autoproc_registry_iteration_begin(); obj != NULL;
-       obj = autoproc_registry_iteration_next())
-  {
-    visited++;
-    if (GET_OBJ_TYPE(obj) == ITEM_WEAPON && GET_OBJ_VAL(obj, 0) == 0)
-      continue;
-
-    spec_gateway_object_auto_pulse(obj);
-    acted++;
-  }
-  autoproc_registry_iteration_end();
-  PERF_note_sweep(PERF_SWEEP_AUTOPROC, visited, autoproc_registry_count(), acted);
-  rol_avernus_room_pulse();
+  if (obj == NULL || (GET_OBJ_TYPE(obj) == ITEM_WEAPON && GET_OBJ_VAL(obj, 0) == 0))
+    return false;
+  spec_gateway_object_automatic_activity(obj);
+  return true;
 }
+
+/* This was ported to accommodate the HL objects that were imported. */
 
 enum persistence_task
 {
@@ -1712,14 +1893,18 @@ static void persistence_schedule_minute(int include_crash_and_houses)
   {
     if (!persistence_begin_cycle(include_crash_and_houses))
       persistence_scheduler.pending_cycle = 1;
-    return;
   }
-  persistence_scheduler.pending_cycle = 1;
-  if (include_crash_and_houses)
+  else
   {
-    persistence_scheduler.crash_pending = 1;
-    persistence_scheduler.house_pending = 1;
+    persistence_scheduler.pending_cycle = 1;
+    if (include_crash_and_houses)
+    {
+      persistence_scheduler.crash_pending = 1;
+      persistence_scheduler.house_pending = 1;
+    }
   }
+  if (runtime_services_enabled() && persistence_scheduler.active)
+    (void)persistence_step_schedule();
 }
 
 static int persistence_players_complete(void)
@@ -1931,329 +2116,534 @@ void persistence_scheduler_reset_telemetry(void)
   persistence_scheduler.max_operation_usec = 0;
 }
 
-/* here she is, heartbeat function - called every 1/10th of a second */
-void heartbeat(int heart_pulse)
+enum runtime_service_kind
 {
-  static int mins_since_crashsave = 0;
-  static struct PERF_prof_sect *pr_event_process = NULL;
-  static struct PERF_prof_sect *pr_extract_pending_chars = NULL;
-  static struct PERF_prof_sect *pr_vessel_tick = NULL;
-  static struct PERF_prof_sect *pr_vessel_autopilot = NULL;
-  static struct PERF_prof_sect *pr_vessel_hunters = NULL;
-  static struct PERF_prof_sect *pr_vessel_combat = NULL;
-  static struct PERF_prof_sect *pr_vessel_events = NULL;
-  static struct PERF_prof_sect *pr_vessel_crew_wages = NULL;
-  static struct PERF_prof_sect *pr_vessel_upkeep = NULL;
-  static struct PERF_prof_sect *pr_vessel_trade = NULL;
-  static struct PERF_prof_sect *pr_vessel_weather = NULL;
-  static struct PERF_prof_sect *pr_vessel_encounters = NULL;
-  static struct PERF_prof_sect *pr_vessel_msdp = NULL;
-  static struct PERF_prof_sect *pr_vessel_schedules = NULL;
+  RUNTIME_SERVICE_MOVING_ROOMS,
+  RUNTIME_SERVICE_ONE_SECOND,
+  RUNTIME_SERVICE_MINUTE_MAINTENANCE,
+  RUNTIME_SERVICE_ZONE,
+  RUNTIME_SERVICE_IDLE_PASSWORD,
+  RUNTIME_SERVICE_AUTOMATIC_PROCEDURES,
+  RUNTIME_SERVICE_HUNT_CLOCK,
+  RUNTIME_SERVICE_AUCTION,
+  RUNTIME_SERVICE_MINUTE_PERSISTENCE,
+  RUNTIME_SERVICE_HUNT_CREATION,
+  RUNTIME_SERVICE_MUD_HOUR,
+  RUNTIME_SERVICE_MUD_DAY,
+  RUNTIME_SERVICE_USAGE,
+  RUNTIME_SERVICE_TIME_SAVE,
+  RUNTIME_SERVICE_COUNT
+};
 
-  PERF_note_heartbeat(heart_pulse >= 0 ? (uint64_t)heart_pulse : 0);
-  if (!(heart_pulse % PASSES_PER_SEC))
-    PERF_note_schedule(PERF_SCHEDULE_1_SECOND);
-  if (!(heart_pulse % (3 * PASSES_PER_SEC)))
-    PERF_note_schedule(PERF_SCHEDULE_3_SECONDS);
-  if (!(heart_pulse % (5 * PASSES_PER_SEC)))
-    PERF_note_schedule(PERF_SCHEDULE_5_SECONDS);
-  if (!(heart_pulse % (6 * PASSES_PER_SEC)))
-    PERF_note_schedule(PERF_SCHEDULE_6_SECONDS);
-  if (!(heart_pulse % PULSE_DG_SCRIPT))
-    PERF_note_schedule(PERF_SCHEDULE_13_SECONDS);
-  if (!(heart_pulse % (30 * PASSES_PER_SEC)))
-    PERF_note_schedule(PERF_SCHEDULE_30_SECONDS);
-  if (!(heart_pulse % (60 * PASSES_PER_SEC)))
-    PERF_note_schedule(PERF_SCHEDULE_60_SECONDS);
-  if (!(heart_pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
-    PERF_note_schedule(PERF_SCHEDULE_75_SECONDS);
-  if (CONFIG_AUTO_SAVE && !(heart_pulse % PULSE_AUTOSAVE))
-    PERF_note_schedule(PERF_SCHEDULE_AUTOSAVE);
-  if (!(heart_pulse % PULSE_USAGE) || !(heart_pulse % PULSE_TIMESAVE) ||
-      !(heart_pulse % ((60 * PASSES_PER_SEC) * 60 * 2)))
-    PERF_note_schedule(PERF_SCHEDULE_LONG_INTERVAL);
+struct runtime_service
+{
+  enum runtime_service_kind kind;
+  const char *name;
+  long cadence;
+  uint64_t owner_id;
+  game_event_type_id_t event_type;
+  struct event_runtime_handle handle;
+  uint64_t callbacks;
+};
 
-  PERF_prof_sect_init(&pr_event_process, "event_process");
-  PERF_prof_sect_enable_sampling(pr_event_process);
-  PERF_prof_sect_enter(pr_event_process);
-  event_process();
-  PERF_prof_sect_exit(pr_event_process);
+#define RUNTIME_SERVICE_OWNER_BASE UINT64_C(0x52530000)
+#define RUNTIME_SERVICE_ENTRY(kind_name, profile_name, cadence_ticks)                              \
+  {kind_name,                                                                                      \
+   profile_name,                                                                                   \
+   cadence_ticks,                                                                                  \
+   RUNTIME_SERVICE_OWNER_BASE + kind_name,                                                         \
+   0U,                                                                                             \
+   EVENT_RUNTIME_HANDLE_NONE,                                                                      \
+   0}
 
-  if (!(heart_pulse % PULSE_DG_SCRIPT))
+static struct runtime_service runtime_service_table[] = {
+
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MOVING_ROOMS, "service.moving_rooms",
+                          PASSES_PER_SEC * 10),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_ONE_SECOND, "service.one_second", PASSES_PER_SEC),
+
+
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MINUTE_MAINTENANCE, "service.minute_maintenance",
+                          PASSES_PER_SEC * 60),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_ZONE, "service.zone", PULSE_ZONE),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_IDLE_PASSWORD, "service.idle_password", PULSE_IDLEPWD),
+
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_AUTOMATIC_PROCEDURES, "service.automatic_procedures",
+                          PULSE_MOBILE),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_HUNT_CLOCK, "service.hunt_clock", PULSE_VIOLENCE),
+
+
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_AUCTION, "service.auction", PASSES_PER_SEC * 30),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MINUTE_PERSISTENCE, "service.minute_persistence",
+                          PASSES_PER_SEC * 60),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_HUNT_CREATION, "service.hunt_creation",
+                          (60 * PASSES_PER_SEC) * 60 * 2),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MUD_HOUR, "service.mud_hour",
+                          SECS_PER_MUD_HOUR *PASSES_PER_SEC),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MUD_DAY, "service.mud_day",
+                          SECS_PER_MUD_HOUR * 24 * PASSES_PER_SEC),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_USAGE, "service.usage", PULSE_USAGE),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_TIME_SAVE, "service.time_save", PULSE_TIMESAVE),
+};
+
+_Static_assert(sizeof(runtime_service_table) / sizeof(runtime_service_table[0]) ==
+                   RUNTIME_SERVICE_COUNT,
+               "runtime service table must cover every service kind");
+
+static bool runtime_services_initialized;
+static bool runtime_services_scheduled;
+static bool runtime_services_shutting_down;
+static uint64_t runtime_service_schedule_failures;
+static game_event_type_id_t persistence_step_event_type;
+static struct event_runtime_handle persistence_step_handle = EVENT_RUNTIME_HANDLE_NONE;
+static uint64_t persistence_fallback_tick = UINT64_MAX;
+static unsigned long runtime_service_next_crashsave_tick;
+#ifdef LUMINARI_CUTEST
+static bool runtime_services_test_selection_set;
+static bool runtime_services_test_scheduled_selection;
+#endif
+
+static bool runtime_services_configured_scheduled(void)
+{
+#ifdef LUMINARI_CUTEST
+  if (runtime_services_test_selection_set)
+    return runtime_services_test_scheduled_selection;
+#endif
+  return true;
+}
+
+static bool runtime_service_needed(enum runtime_service_kind kind)
+{
+  return kind >= 0 && kind < RUNTIME_SERVICE_COUNT;
+}
+
+static long runtime_service_boundary_delay(const struct runtime_service *service)
+{
+  unsigned long cadence;
+  unsigned long remainder;
+
+  if (service == NULL || service->cadence <= 0)
+    return 0;
+  cadence = (unsigned long)service->cadence;
+  remainder = pulse % cadence;
+  return remainder == 0U ? service->cadence : (long)(cadence - remainder);
+}
+
+static struct game_event_owner runtime_service_owner(const struct runtime_service *service)
+{
+  struct game_event_owner owner = game_event_owner_none();
+
+  owner.kind = GAME_EVENT_OWNER_SERVICE;
+  owner.runtime_id = service != NULL ? service->owner_id : RUNTIME_SERVICE_OWNER_BASE;
+  owner.generation = 1U;
+  return owner;
+}
+
+static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned long now_tick)
+{
+  switch (kind)
   {
-    PERF_PROF_ENTER_SAMPLED(pr_script_trigger_, "script_trigger_check");
-    script_trigger_check();
-    PERF_PROF_EXIT(pr_script_trigger_);
-  }
-
-  // Every 10 Seconds
-  if (!(heart_pulse % (PASSES_PER_SEC * 10)))
-  {
+  case RUNTIME_SERVICE_MOVING_ROOMS:
     moving_rooms_update();
-  }
+    break;
+  case RUNTIME_SERVICE_ONE_SECOND:
+  {
+    unsigned long mud_hour_cadence = (unsigned long)(SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+    unsigned long remaining = mud_hour_cadence - (now_tick % mud_hour_cadence);
 
-  if (!(heart_pulse % PASSES_PER_SEC))
-  { /* EVERY second */
+    PERF_note_schedule(PERF_SCHEDULE_1_SECOND);
     help_sync_poll_reload();
     PERF_PROF_ENTER(pr_msdp_update_, "msdp_update");
     msdp_update();
-    next_tick--;
     PERF_PROF_EXIT(pr_msdp_update_);
+    next_tick = (int)((remaining + PASSES_PER_SEC - 1U) / PASSES_PER_SEC);
     travel_tickdown();
     self_buffing();
     craft_update();
-    /* Process PubSub message queue automatically */
-    pubsub_process_message_queue();
-    /* Process Intermud3 events from the I3 thread */
     i3_process_events();
-    /* Publish I3 presence from the main thread */
     i3_sync_presence();
-    /* Update supply order slots for all online players */
     update_supply_slots_for_all_players();
+    break;
   }
-
-  if (!(heart_pulse % (PASSES_PER_SEC * 5)))
-  {
-    regen_psp();
-  }
-
-  /* Converted RoL ships retain their original 2.5-second movement cadence. */
-  if (!(heart_pulse % (PASSES_PER_SEC * 5 / 2)))
-    rol_ship_activity();
-
-  /* Autopilot vessel movement tick - every AUTOPILOT_TICK_INTERVAL pulses (0.5 sec) */
-  if (CONFIG_VESSEL_SYSTEM && !(heart_pulse % AUTOPILOT_TICK_INTERVAL))
-  {
-    PERF_prof_sect_init(&pr_vessel_tick, "vessel_tick");
-    PERF_prof_sect_enable_sampling(pr_vessel_tick);
-    PERF_prof_sect_enter(pr_vessel_tick);
-
-    PERF_prof_sect_init(&pr_vessel_autopilot, "vessel_autopilot");
-    PERF_prof_sect_enable_sampling(pr_vessel_autopilot);
-    PERF_prof_sect_enter(pr_vessel_autopilot);
-    autopilot_tick();
-    PERF_prof_sect_exit(pr_vessel_autopilot);
-
-    PERF_prof_sect_init(&pr_vessel_hunters, "vessel_hunters");
-    PERF_prof_sect_enable_sampling(pr_vessel_hunters);
-    PERF_prof_sect_enter(pr_vessel_hunters);
-    vessel_hunter_tick();
-    PERF_prof_sect_exit(pr_vessel_hunters);
-
-    PERF_prof_sect_init(&pr_vessel_combat, "vessel_combat");
-    PERF_prof_sect_enable_sampling(pr_vessel_combat);
-    PERF_prof_sect_enter(pr_vessel_combat);
-    vessel_combat_tick();
-    PERF_prof_sect_exit(pr_vessel_combat);
-
-    PERF_prof_sect_init(&pr_vessel_events, "vessel_events");
-    PERF_prof_sect_enable_sampling(pr_vessel_events);
-    PERF_prof_sect_enter(pr_vessel_events);
-    vessel_event_tick();
-    PERF_prof_sect_exit(pr_vessel_events);
-
-    PERF_prof_sect_init(&pr_vessel_crew_wages, "vessel_crew_wages");
-    PERF_prof_sect_enable_sampling(pr_vessel_crew_wages);
-    PERF_prof_sect_enter(pr_vessel_crew_wages);
-    vessel_crew_wage_tick();
-    PERF_prof_sect_exit(pr_vessel_crew_wages);
-
-    PERF_prof_sect_init(&pr_vessel_upkeep, "vessel_upkeep");
-    PERF_prof_sect_enable_sampling(pr_vessel_upkeep);
-    PERF_prof_sect_enter(pr_vessel_upkeep);
-    vessel_upkeep_tick();
-    PERF_prof_sect_exit(pr_vessel_upkeep);
-
-    PERF_prof_sect_init(&pr_vessel_trade, "vessel_trade");
-    PERF_prof_sect_enable_sampling(pr_vessel_trade);
-    PERF_prof_sect_enter(pr_vessel_trade);
-    vessel_trade_restock_tick();
-    PERF_prof_sect_exit(pr_vessel_trade);
-
-    PERF_prof_sect_init(&pr_vessel_weather, "vessel_weather");
-    PERF_prof_sect_enable_sampling(pr_vessel_weather);
-    PERF_prof_sect_enter(pr_vessel_weather);
-    vessel_weather_tick();
-    PERF_prof_sect_exit(pr_vessel_weather);
-
-    PERF_prof_sect_init(&pr_vessel_encounters, "vessel_encounters");
-    PERF_prof_sect_enable_sampling(pr_vessel_encounters);
-    PERF_prof_sect_enter(pr_vessel_encounters);
-    vessel_encounter_tick();
-    PERF_prof_sect_exit(pr_vessel_encounters);
-
-    PERF_prof_sect_init(&pr_vessel_msdp, "vessel_msdp");
-    PERF_prof_sect_enable_sampling(pr_vessel_msdp);
-    PERF_prof_sect_enter(pr_vessel_msdp);
-    vessel_msdp_tick();
-    PERF_prof_sect_exit(pr_vessel_msdp);
-
-    PERF_prof_sect_exit(pr_vessel_tick);
-  }
-
-  if (!(heart_pulse % (int)(PASSES_PER_SEC * 0.75)))
-    process_walkto_actions();
-
-  if (!(heart_pulse % (PASSES_PER_SEC * 60)))
-  { // every minute
+  case RUNTIME_SERVICE_MINUTE_MAINTENANCE:
+    PERF_note_schedule(PERF_SCHEDULE_60_SECONDS);
     PERF_PROF_ENTER_SAMPLED(pr_minute_maintenance_, "minute.maintenance");
     check_auto_shutdown();
     check_auto_happy_hour();
     recharge_activated_items();
     PERF_PROF_EXIT(pr_minute_maintenance_);
-
     PERF_PROF_ENTER_SAMPLED(pr_minute_memory_, "minute.memory_sample");
     PERF_memory_periodic_check();
     PERF_PROF_EXIT(pr_minute_memory_);
-  }
-
-  if (!(heart_pulse % PULSE_ZONE))
-  {
+    break;
+  case RUNTIME_SERVICE_ZONE:
     PERF_PROF_ENTER_SAMPLED(pr_zone_update_, "zone_update");
     zone_update();
     PERF_PROF_EXIT(pr_zone_update_);
-  }
-
-  if (!(heart_pulse % PULSE_IDLEPWD)) /* 15 seconds */
+    break;
+  case RUNTIME_SERVICE_IDLE_PASSWORD:
     check_idle_passwords();
-
-  /* Visit one bounded list segment per pulse so every cycle-boundary mobile
-   * retains its six-second cadence without rescanning the full population. */
-  PERF_PROF_ENTER_SAMPLED(pr_mob_activity_, "mobile_activity");
-  mobile_activity_pulse(heart_pulse);
-  PERF_PROF_EXIT(pr_mob_activity_);
-
-  /* Keep non-mobile special-procedure updates on their established cadence. */
-  if (!(heart_pulse % PULSE_MOBILE))
-  {
-    PERF_PROF_ENTER_SAMPLED(pr_proc_update_, "proc_update");
-    proc_update();
-    PERF_PROF_EXIT(pr_proc_update_);
-  }
-
-  /* this is the rate of a combat round before event-driven combat */
-  if (!(heart_pulse % PULSE_VIOLENCE))
-  {
-    /* Next line removed as part of conversion from pulse to event-based combat */
-    //    perform_violence();
-    PERF_PROF_ENTER_SAMPLED(pr_aff_update_, "affect_update");
-    affect_update(); // affect updates transformed into "rounds"
-    PERF_PROF_EXIT(pr_aff_update_);
-    proc_d20_round(); /* for encounter code */
+    break;
+  case RUNTIME_SERVICE_AUTOMATIC_PROCEDURES:
+    rol_avernus_process_garden_activity();
+    break;
+  case RUNTIME_SERVICE_HUNT_CLOCK:
     hunt_reset_timer--;
-  }
-
-  /*  Pulse_Luminari was built to throw in customized Luminari
-   *  procedures that we want called in a similar manner as the
-   *  other pulses.  The whole concept was created before I had
-   *  a full grasp on the event system, otherwise it would have
-   *  been implemented differently.  -Zusuk
-   */
-  if (!(pulse % PULSE_LUMINARI))
-  { /* 5 sec */
-    PERF_PROF_ENTER_SAMPLED(pr_lum_, "pulse_luminari");
-    pulse_luminari(); // limits.c
-    PERF_PROF_EXIT(pr_lum_);
-  }
-
-  /* last time I checked this was every 11 seconds */
-  if (!(pulse % PULSE_VERSE_INTERVAL))
+    break;
+  case RUNTIME_SERVICE_AUCTION:
+    PERF_note_schedule(PERF_SCHEDULE_30_SECONDS);
+    process_auction_events();
+    break;
+  case RUNTIME_SERVICE_MINUTE_PERSISTENCE:
   {
-    pulse_bardic_performance();
-  }
+    unsigned long autosave_interval;
+    unsigned long first_delay;
+    int include_crash_and_houses = FALSE;
 
-  /* every 300 sec show a random hint if they have it toggled */
-  if (!(pulse % PULSE_HINTS))
-  {
-    show_hints();
-  }
-
-  /* every 6 seconds, update damage and effects over time AND update player misc()*/
-  if (!(heart_pulse % (6 * PASSES_PER_SEC)))
-  {
-    PERF_PROF_ENTER_SAMPLED(pr_upd_, "update_damage_and_effects_over_time");
-    update_damage_and_effects_over_time();
-    PERF_PROF_EXIT(pr_upd_);
-    update_player_misc();
-  }
-
-  /* auction check every 30 seconds */
-  if (!(heart_pulse % (30 * PASSES_PER_SEC)))
-  {
-    check_thirty_seconds();
-  }
-
-  /* save characters and their pets once per minute */
-  if (!(heart_pulse % (60 * PASSES_PER_SEC)))
-  {
-    int include_crash_and_houses;
-
-    include_crash_and_houses = FALSE;
-    if (CONFIG_AUTO_SAVE && ++mins_since_crashsave >= CONFIG_AUTOSAVE_TIME)
+    if (CONFIG_AUTO_SAVE && CONFIG_AUTOSAVE_TIME > 0)
     {
-      mins_since_crashsave = 0;
-      include_crash_and_houses = TRUE;
+      autosave_interval = (unsigned long)CONFIG_AUTOSAVE_TIME * 60U * PASSES_PER_SEC;
+      if (runtime_service_next_crashsave_tick == 0U)
+      {
+        first_delay = autosave_interval > 60U * PASSES_PER_SEC
+                          ? autosave_interval - 60U * PASSES_PER_SEC
+                          : 0U;
+        runtime_service_next_crashsave_tick =
+            now_tick > ULONG_MAX - first_delay ? ULONG_MAX : now_tick + first_delay;
+      }
+      if (now_tick >= runtime_service_next_crashsave_tick)
+      {
+        include_crash_and_houses = TRUE;
+        runtime_service_next_crashsave_tick =
+            now_tick > ULONG_MAX - autosave_interval ? ULONG_MAX : now_tick + autosave_interval;
+      }
     }
     persistence_schedule_minute(include_crash_and_houses);
+    break;
   }
-
-  /* every 2 hours run create hunts */
-  if (!(heart_pulse % ((60 * PASSES_PER_SEC) * 60 * 2)))
-  {
+  case RUNTIME_SERVICE_HUNT_CREATION:
+    PERF_note_schedule(PERF_SCHEDULE_LONG_INTERVAL);
     create_hunts();
-  }
-
-  /* the old skool tick system! */
-  if (!(heart_pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
-  { /* Tick ! */
+    break;
+  case RUNTIME_SERVICE_MUD_HOUR:
+    PERF_note_schedule(PERF_SCHEDULE_75_SECONDS);
     PERF_PROF_ENTER_SAMPLED(pr_ost_, "old skool tick");
-    next_tick = SECS_PER_MUD_HOUR; /* Reset tick coundown */
+    next_tick = SECS_PER_MUD_HOUR;
     weather_and_time(1);
     check_time_triggers();
-    point_update();
-    check_timed_quests();
-    check_diplomacy(); /* Reduce the diplomacy pause for online players */
-    update_clans();    /* Update clan war timers and other periodic clan tasks */
-    if (CONFIG_VESSEL_SYSTEM)
-    {
-      PERF_prof_sect_init(&pr_vessel_schedules, "vessel_schedules");
-      PERF_prof_sect_enable_sampling(pr_vessel_schedules);
-      PERF_prof_sect_enter(pr_vessel_schedules);
-      schedule_tick(); /* Check vessel scheduled departures */
-      PERF_prof_sect_exit(pr_vessel_schedules);
-    }
-
-    /* Clean up old trails once per mud hour */
+    point_update_periodic_dispatch_due();
+    check_diplomacy();
+    update_clans();
     cleanup_all_trails();
-
     PERF_PROF_EXIT(pr_ost_);
-  }
-
-  /* Process clan investments once per mud day (24 mud hours) */
-  if (!(heart_pulse % (SECS_PER_MUD_HOUR * 24 * PASSES_PER_SEC)))
-  {
+    break;
+  case RUNTIME_SERVICE_MUD_DAY:
     process_clan_investments();
     save_clan_investments();
+    break;
+  case RUNTIME_SERVICE_USAGE:
+    PERF_note_schedule(PERF_SCHEDULE_LONG_INTERVAL);
+    record_usage();
+    break;
+  case RUNTIME_SERVICE_TIME_SAVE:
+    PERF_note_schedule(PERF_SCHEDULE_LONG_INTERVAL);
+    save_mud_time(&time_info);
+    break;
+  case RUNTIME_SERVICE_COUNT:
+    break;
+  }
+}
+
+static void runtime_service_cleanup(void *event_obj)
+{
+  struct runtime_service *service = event_obj;
+
+  if (service != NULL)
+    service->handle = EVENT_RUNTIME_HANDLE_NONE;
+}
+
+static struct game_event_result runtime_service_event(const struct game_event_context *context)
+{
+  struct runtime_service *service = context != NULL ? context->payload : NULL;
+
+  if (!runtime_services_initialized || !runtime_services_scheduled ||
+      runtime_services_shutting_down || service == NULL ||
+      service->handle.id != context->event_id || !runtime_service_needed(service->kind))
+    return game_event_result_complete();
+  service->callbacks++;
+  runtime_service_dispatch(service->kind, pulse);
+  return game_event_result_reschedule_after((game_tick_t)runtime_service_boundary_delay(service));
+}
+
+static bool runtime_service_schedule(struct runtime_service *service)
+{
+  if (service == NULL || !event_runtime_handle_is_none(service->handle))
+    return service != NULL;
+  if (!runtime_service_needed(service->kind))
+    return true;
+  if (event_runtime_schedule_owned_after(service->event_type, runtime_service_owner(service),
+                                         (game_tick_t)runtime_service_boundary_delay(service),
+                                         service, &service->handle) != GAME_SCHEDULER_OK)
+  {
+    runtime_service_schedule_failures++;
+    return false;
+  }
+  return true;
+}
+
+static void persistence_step_cleanup(void *event_obj)
+{
+  (void)event_obj;
+  persistence_step_handle = EVENT_RUNTIME_HANDLE_NONE;
+}
+
+static struct game_event_result persistence_step_event(const struct game_event_context *context)
+{
+  if (context == NULL || persistence_step_handle.id != context->event_id ||
+      !runtime_services_enabled() || !persistence_scheduler.active)
+    return game_event_result_complete();
+  persistence_scheduler_step((uint64_t)pulse);
+  return persistence_scheduler.active ? game_event_result_reschedule_after(1U)
+                                      : game_event_result_complete();
+}
+
+static bool runtime_services_register_types(void)
+{
+  struct game_event_type_config config;
+  enum game_scheduler_status status;
+  size_t index;
+
+  if (!event_runtime_is_initialized())
+    return false;
+  for (index = 0; index < RUNTIME_SERVICE_COUNT; index++)
+  {
+    if (event_runtime_type_name(runtime_service_table[index].event_type) != NULL &&
+        !strcmp(event_runtime_type_name(runtime_service_table[index].event_type),
+                runtime_service_table[index].name))
+      continue;
+    runtime_service_table[index].event_type = 0U;
+    memset(&config, 0, sizeof(config));
+    config.name = runtime_service_table[index].name;
+    config.handler = runtime_service_event;
+    config.cleanup = runtime_service_cleanup;
+    config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+    config.max_events = 1U;
+    config.max_events_per_owner = 1U;
+    config.requires_owner = true;
+    status = event_runtime_register_type(&config, &runtime_service_table[index].event_type);
+    if (status != GAME_SCHEDULER_OK)
+    {
+      log("SYSERR: unable to register native service event type '%s' (status %d).",
+          runtime_service_table[index].name, status);
+      return false;
+    }
   }
 
-  persistence_scheduler_step(heart_pulse >= 0 ? (uint64_t)heart_pulse : 0);
-
-  /* 3 minute pulse for record usage */
-  if (!(heart_pulse % PULSE_USAGE))
-    record_usage();
-
-  /* every 30 minutes */
-  if (!(heart_pulse % PULSE_TIMESAVE))
-    save_mud_time(&time_info);
-
-
-  /* Every pulse! Don't want them to stink the place up... */
-  PERF_prof_sect_init(&pr_extract_pending_chars, "extract_pending_chars");
-  PERF_prof_sect_enable_sampling(pr_extract_pending_chars);
-  PERF_prof_sect_enter(pr_extract_pending_chars);
-  extract_pending_chars();
-  PERF_prof_sect_exit(pr_extract_pending_chars);
+  if (event_runtime_type_name(persistence_step_event_type) != NULL &&
+      !strcmp(event_runtime_type_name(persistence_step_event_type), "service.persistence_batch"))
+    return true;
+  persistence_step_event_type = 0U;
+  memset(&config, 0, sizeof(config));
+  config.name = "service.persistence_batch";
+  config.handler = persistence_step_event;
+  config.cleanup = persistence_step_cleanup;
+  config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  config.max_events = 1U;
+  config.max_events_per_owner = 1U;
+  config.requires_owner = true;
+  config.cleanup_on_null_payload = true;
+  status = event_runtime_register_type(&config, &persistence_step_event_type);
+  if (status != GAME_SCHEDULER_OK)
+  {
+    log("SYSERR: unable to register native service event type "
+        "'service.persistence_batch' (status %d).",
+        status);
+    return false;
+  }
+  return true;
 }
+
+static bool persistence_step_schedule(void)
+{
+  struct game_event_owner owner;
+
+  if (!runtime_services_enabled() || !persistence_scheduler.active)
+    return false;
+  if (!event_runtime_handle_is_none(persistence_step_handle))
+    return true;
+  owner = game_event_owner_none();
+  owner.kind = GAME_EVENT_OWNER_SERVICE;
+  owner.runtime_id = RUNTIME_SERVICE_OWNER_BASE + RUNTIME_SERVICE_COUNT;
+  owner.generation = 1U;
+  if (event_runtime_schedule_owned_after(persistence_step_event_type, owner, 1U, NULL,
+                                         &persistence_step_handle) != GAME_SCHEDULER_OK)
+  {
+    runtime_service_schedule_failures++;
+    return false;
+  }
+  return true;
+}
+
+static bool runtime_services_init(void)
+{
+  size_t index;
+
+  if (runtime_services_initialized)
+    return runtime_services_scheduled;
+  runtime_services_initialized = true;
+  runtime_services_shutting_down = false;
+  runtime_services_scheduled = runtime_services_configured_scheduled();
+  if (runtime_services_scheduled && !runtime_services_register_types())
+    runtime_services_scheduled = false;
+  if (runtime_services_scheduled)
+  {
+    for (index = 0; index < RUNTIME_SERVICE_COUNT; index++)
+    {
+      if (!runtime_service_schedule(&runtime_service_table[index]))
+      {
+        log("SYSERR: unable to schedule required native runtime service '%s'.",
+            runtime_service_table[index].name);
+        runtime_services_scheduled = false;
+        runtime_services_shutdown();
+        runtime_services_initialized = true;
+        break;
+      }
+    }
+  }
+  log("Runtime services: %s.",
+      runtime_services_scheduled ? "scheduled by named cadence" : "unavailable");
+  return runtime_services_scheduled;
+}
+
+void runtime_services_shutdown(void)
+{
+  size_t index;
+  struct event_runtime_handle handle;
+
+  if (!runtime_services_initialized)
+    return;
+  runtime_services_shutting_down = true;
+  if (!event_runtime_handle_is_none(persistence_step_handle))
+  {
+    handle = persistence_step_handle;
+    persistence_step_handle = EVENT_RUNTIME_HANDLE_NONE;
+    (void)event_runtime_cancel(handle);
+  }
+  for (index = 0; index < RUNTIME_SERVICE_COUNT; index++)
+  {
+    if (event_runtime_handle_is_none(runtime_service_table[index].handle))
+      continue;
+    handle = runtime_service_table[index].handle;
+    runtime_service_table[index].handle = EVENT_RUNTIME_HANDLE_NONE;
+    (void)event_runtime_cancel(handle);
+  }
+  free(persistence_scheduler.player_ids);
+  persistence_scheduler.player_ids = NULL;
+  persistence_scheduler.player_count = 0;
+  persistence_scheduler.active = 0;
+  persistence_scheduler.pending_cycle = 0;
+  runtime_services_initialized = false;
+  runtime_services_scheduled = false;
+  runtime_services_shutting_down = false;
+  persistence_fallback_tick = UINT64_MAX;
+  runtime_service_next_crashsave_tick = 0U;
+}
+
+bool runtime_services_enabled(void)
+{
+  return runtime_services_initialized && runtime_services_scheduled;
+}
+
+void runtime_services_get_stats(struct runtime_service_stats *stats)
+{
+  size_t index;
+
+  if (stats == NULL)
+    return;
+  memset(stats, 0, sizeof(*stats));
+  stats->initialized = runtime_services_initialized;
+  stats->scheduled = runtime_services_scheduled;
+  stats->schedule_failures = runtime_service_schedule_failures;
+  for (index = 0; index < RUNTIME_SERVICE_COUNT; index++)
+  {
+    if (runtime_service_needed(runtime_service_table[index].kind))
+      stats->configured_services++;
+    if (!event_runtime_handle_is_none(runtime_service_table[index].handle))
+      stats->live_services++;
+    stats->callbacks += runtime_service_table[index].callbacks;
+  }
+  if (!event_runtime_handle_is_none(persistence_step_handle))
+    stats->live_services++;
+}
+
+static void runtime_services_safe_point(void)
+{
+  if (!runtime_services_enabled() || !persistence_scheduler.active ||
+      !event_runtime_handle_is_none(persistence_step_handle) || persistence_fallback_tick == pulse)
+    return;
+  persistence_fallback_tick = pulse;
+  if (!persistence_step_schedule())
+    persistence_scheduler_step((uint64_t)pulse);
+}
+
+#ifdef LUMINARI_CUTEST
+void runtime_services_set_scheduled_for_test(bool scheduled)
+{
+  runtime_services_test_selection_set = true;
+  runtime_services_test_scheduled_selection = scheduled;
+}
+
+void runtime_services_reset_selection_for_test(void)
+{
+  runtime_services_test_selection_set = false;
+  runtime_services_test_scheduled_selection = false;
+}
+
+bool runtime_services_init_for_test(void)
+{
+  return runtime_services_init();
+}
+
+bool runtime_service_named_needed_for_test(const char *name)
+{
+  size_t index;
+
+  if (name == NULL)
+    return false;
+  for (index = 0U; index < RUNTIME_SERVICE_COUNT; index++)
+  {
+    if (!strcmp(runtime_service_table[index].name, name))
+      return runtime_service_needed(runtime_service_table[index].kind);
+  }
+  return false;
+}
+
+bool runtime_services_start_empty_persistence_for_test(void)
+{
+  if (!runtime_services_enabled())
+    return false;
+  free(persistence_scheduler.player_ids);
+  persistence_scheduler.player_ids = NULL;
+  persistence_scheduler.player_count = 0U;
+  persistence_scheduler.character_index = 0U;
+  persistence_scheduler.pet_index = 0U;
+  persistence_scheduler.last_online_index = 0U;
+  persistence_scheduler.artifact_pending = 0;
+  persistence_scheduler.crash_pending = 0;
+  persistence_scheduler.house_pending = 0;
+  persistence_scheduler.pending_cycle = 0;
+  persistence_scheduler.next_task = PERSISTENCE_TASK_CHARACTER;
+  memset(persistence_scheduler.retry_after, 0, sizeof(persistence_scheduler.retry_after));
+  persistence_scheduler.active = 1;
+  return persistence_step_schedule();
+}
+
+bool runtime_services_persistence_pending_for_test(void)
+{
+  return !event_runtime_handle_is_none(persistence_step_handle);
+}
+#endif
+
 
 /* new code to calculate time differences, which works on systems for which
  * tv_usec is unsigned (and thus comparisons for something being < 0 fail).
@@ -2284,19 +2674,6 @@ static void timediff(struct timeval *rslt, struct timeval *a, struct timeval *b)
     }
     else
       rslt->tv_usec = a->tv_usec - b->tv_usec;
-  }
-}
-
-/* Add 2 time values.  Patch sent by "d. hall" to fix 'static' usage. */
-static void timeadd(struct timeval *rslt, struct timeval *a, struct timeval *b)
-{
-  rslt->tv_sec = a->tv_sec + b->tv_sec;
-  rslt->tv_usec = a->tv_usec + b->tv_usec;
-
-  while (rslt->tv_usec >= 1000000)
-  {
-    rslt->tv_usec -= 1000000;
-    rslt->tv_sec++;
   }
 }
 
@@ -3480,7 +3857,32 @@ static void retain_unsent_output(struct descriptor_data *t, const char *output, 
   }
 }
 
+static bool descriptor_close_due(struct descriptor_data *d, uint64_t now_usec)
+{
+  if (d == NULL)
+    return false;
+  if (STATE(d) == CON_DISCONNECT)
+    return true;
+  if (STATE(d) != CON_CLOSE)
+    return false;
+  if (d->output == NULL || *(d->output) == '\0')
+    return true;
+  if (d->close_output_deadline_usec == 0)
+  {
+    d->close_output_deadline_usec = now_usec > UINT64_MAX - DESCRIPTOR_CLOSE_DRAIN_USEC
+                                        ? UINT64_MAX
+                                        : now_usec + DESCRIPTOR_CLOSE_DRAIN_USEC;
+    return false;
+  }
+  return now_usec >= d->close_output_deadline_usec;
+}
+
 #if defined(LUMINARI_CUTEST)
+bool comm_close_due_for_test(struct descriptor_data *d, uint64_t now_usec)
+{
+  return descriptor_close_due(d, now_usec);
+}
+
 void comm_test_retain_unsent_output(struct descriptor_data *t, const char *output, int result)
 {
   retain_unsent_output(t, output, result);
@@ -3963,6 +4365,7 @@ void close_socket(struct descriptor_data *d)
 
     /* If we're switched, this resets the mobile taken. */
     d->character->desc = NULL;
+    character_periodic_sync(d->character);
 
     /* Plug memory leak, from Eric Green. */
     if (!IS_NPC(d->character) && PLR_FLAGGED(d->character, PLR_MAILING) && d->str)
@@ -4001,6 +4404,7 @@ void close_socket(struct descriptor_data *d)
     {
       mudlog(CMP, LVL_IMMORT, TRUE, "Losing player: %s.",
              GET_NAME(d->character) ? GET_NAME(d->character) : "<null>");
+      character_periodic_forget(d->character);
       free_char(d->character);
     }
   }
@@ -4009,7 +4413,10 @@ void close_socket(struct descriptor_data *d)
 
   /* JE 2/22/95 -- part of my unending quest to make switch stable */
   if (d->original && d->original->desc)
+  {
     d->original->desc = NULL;
+    character_periodic_sync(d->original);
+  }
 
   /* Clear the command history. */
   if (d->history)
@@ -4030,22 +4437,7 @@ void close_socket(struct descriptor_data *d)
   ProtocolDestroy(d->pProtocol);
 
   /* Mud Events */
-  if (d->events != NULL)
-  {
-    if (d->events->iSize > 0)
-    {
-      struct event *pEvent;
-
-      /* Use safe iteration - get first item directly to avoid iterator issues */
-      while (d->events->iSize > 0 && d->events->pFirstItem)
-      {
-        pEvent = (struct event *)d->events->pFirstItem->pContent;
-        event_cancel(pEvent);
-      }
-    }
-    free_list(d->events);
-    d->events = NULL;
-  }
+  clear_descriptor_event_list(d);
 
   /*. Kill any OLC stuff .*/
   switch (d->connected)
@@ -4214,8 +4606,6 @@ static RETSIGTYPE reap(int sig __attribute__((unused)))
 {
   while (waitpid(-1, NULL, WNOHANG) > 0)
     ;
-
-  my_signal(SIGCHLD, reap);
 }
 
 /* Dying anyway... */
@@ -4246,11 +4636,35 @@ static RETSIGTYPE hupsig(int sig)
    *
    * The 'volatile sig_atomic_t' type ensures the variable can be safely
    * modified in a signal handler and read in the main program. */
-  log("SYSERR: Received SIGHUP, SIGINT, or SIGTERM [%d].  Initiating graceful shutdown...", sig);
+  shutdown_signal = sig;
   shutdown_requested = 1; /* Set flag for main loop to check */
 
   /* Do NOT call exit() here! That would skip all cleanup code and leak memory.
    * The main game loop will detect shutdown_requested and exit cleanly. */
+}
+
+static void reactor_signal_dispatch(int signal_number, void *context)
+{
+  (void)context;
+  switch (signal_number)
+  {
+  case SIGUSR1:
+    reread_wizlists(signal_number);
+    break;
+  case SIGUSR2:
+    unrestrict_game(signal_number);
+    break;
+  case SIGCHLD:
+    reap(signal_number);
+    break;
+  case SIGHUP:
+  case SIGINT:
+  case SIGTERM:
+    hupsig(signal_number);
+    break;
+  default:
+    break;
+  }
 }
 
 #endif /* CIRCLE_UNIX */
@@ -4287,18 +4701,71 @@ static sigfunc *my_signal(int signo, sigfunc *func)
 }
 #endif /* POSIX */
 
+static void preserve_shutdown_signal_handlers(void)
+{
+  my_signal(SIGINT, hupsig);
+  my_signal(SIGTERM, hupsig);
+}
+
+#ifdef LUMINARI_CUTEST
+bool comm_test_preserve_shutdown_signal_handlers(void)
+{
+  sigfunc *installed_int;
+  sigfunc *installed_term;
+  sigfunc *saved_int;
+  sigfunc *saved_term;
+
+  saved_int = my_signal(SIGINT, SIG_IGN);
+  if (saved_int == SIG_ERR)
+    return false;
+  saved_term = my_signal(SIGTERM, SIG_IGN);
+  if (saved_term == SIG_ERR)
+  {
+    my_signal(SIGINT, saved_int);
+    return false;
+  }
+
+  preserve_shutdown_signal_handlers();
+  installed_int = my_signal(SIGINT, saved_int);
+  installed_term = my_signal(SIGTERM, saved_term);
+  return installed_int == hupsig && installed_term == hupsig;
+}
+#endif
+
 static void signal_setup(void)
 {
 #ifndef CIRCLE_MACINTOSH
   struct itimerval itime;
   struct timeval interval;
+  bool libevent_signals =
+      io_reactor != NULL && luminari_reactor_driver(io_reactor) == LUMINARI_IO_DRIVER_LIBEVENT;
 
-  /* user signal 1: reread wizlists.  Used by autowiz system. */
-  my_signal(SIGUSR1, reread_wizlists);
+  if (libevent_signals)
+  {
+    const int reactor_signals[] = {SIGUSR1, SIGUSR2, SIGHUP, SIGCHLD, SIGINT, SIGTERM};
+    size_t index;
 
-  /* user signal 2: unrestrict game.  Used for emergencies if you lock
-   * yourself out of the MUD somehow. */
-  my_signal(SIGUSR2, unrestrict_game);
+    for (index = 0; index < sizeof(reactor_signals) / sizeof(reactor_signals[0]); index++)
+    {
+      enum luminari_reactor_status status = luminari_reactor_add_signal(
+          io_reactor, reactor_signals[index], reactor_signal_dispatch, NULL);
+      if (status != LUMINARI_REACTOR_OK)
+      {
+        log("SYSERR: Unable to register signal %d with libevent (status %d).",
+            reactor_signals[index], status);
+        exit(1);
+      }
+    }
+  }
+  else
+  {
+    my_signal(SIGUSR1, reread_wizlists);
+    my_signal(SIGUSR2, unrestrict_game);
+    my_signal(SIGHUP, hupsig);
+    my_signal(SIGCHLD, reap);
+    my_signal(SIGINT, hupsig);
+    my_signal(SIGTERM, hupsig);
+  }
 
   /* set up the deadlock-protection so that the MUD aborts itself if it gets
    * caught in an infinite loop for more than 3 minutes. */
@@ -4310,12 +4777,11 @@ static void signal_setup(void)
   if (setitimer(ITIMER_VIRTUAL, &itime, NULL) != 0)
     log("SYSERR: Unable to start the virtual checkpoint timer: %s", strerror(errno));
 
-  /* just to be on the safe side: */
-  my_signal(SIGHUP, hupsig);
-  my_signal(SIGCHLD, reap);
 #endif /* CIRCLE_MACINTOSH */
+#ifdef CIRCLE_MACINTOSH
   my_signal(SIGINT, hupsig);
   my_signal(SIGTERM, hupsig);
+#endif
   my_signal(SIGPIPE, SIG_IGN);
   my_signal(SIGALRM, SIG_IGN);
 }
@@ -4368,6 +4834,70 @@ bool resume_checkpoint_timer(void)
   checkpoint_timer_suspended = FALSE;
 #endif
 
+  return TRUE;
+}
+
+static bool verify_copyover_descriptor_flags(int fd, const char *owner)
+{
+#ifdef CIRCLE_UNIX
+  int descriptor_flags;
+  int status_flags;
+
+  descriptor_flags = fcntl(fd, F_GETFD);
+  status_flags = fcntl(fd, F_GETFL);
+  if (descriptor_flags < 0 || status_flags < 0)
+  {
+    log("SYSERR: Copyover cannot inspect %s descriptor %d: %s", owner, fd, strerror(errno));
+    return FALSE;
+  }
+  if ((status_flags & O_NONBLOCK) == 0)
+  {
+    log("SYSERR: Copyover %s descriptor %d is not O_NONBLOCK", owner, fd);
+    return FALSE;
+  }
+  if ((descriptor_flags & FD_CLOEXEC) != 0)
+  {
+    log("SYSERR: Copyover %s descriptor %d unexpectedly has FD_CLOEXEC", owner, fd);
+    return FALSE;
+  }
+#else
+  (void)fd;
+  (void)owner;
+#endif
+  return TRUE;
+}
+
+bool prepare_io_reactor_copyover(void)
+{
+  struct descriptor_data *d;
+
+  if (!verify_copyover_descriptor_flags(mother_desc, "listener"))
+    return FALSE;
+  for (d = descriptor_list; d != NULL; d = d->next)
+  {
+    if (!verify_copyover_descriptor_flags(d->descriptor, "player"))
+      return FALSE;
+  }
+  if (io_reactor != NULL)
+  {
+    log("Copyover: quiescing %s I/O driver and destroying reactor base.",
+        luminari_io_driver_name(luminari_reactor_driver(io_reactor)));
+    luminari_reactor_destroy(io_reactor);
+    io_reactor = NULL;
+  }
+  return TRUE;
+}
+
+bool restore_io_reactor_after_copyover_failure(void)
+{
+  if (io_reactor != NULL)
+    return TRUE;
+  if (!initialize_io_reactor())
+    return FALSE;
+#if defined(CIRCLE_UNIX) || defined(CIRCLE_MACINTOSH)
+  signal_setup();
+#endif
+  log("Copyover: restored reactor and signal ownership after failed exec.");
   return TRUE;
 }
 
@@ -4949,30 +5479,6 @@ static int open_logfile(const char *filename, FILE *stderr_fp)
   printf("SYSERR: Error opening file '%s': %s\n", filename, strerror(errno));
   return (FALSE);
 }
-
-/* This may not be pretty but it keeps game_loop() neater than if it was inline. */
-#if defined(CIRCLE_WINDOWS)
-
-void circle_sleep(struct timeval *timeout)
-{
-  Sleep(timeout->tv_sec * 1000 + timeout->tv_usec / 1000);
-}
-
-#else
-
-static void circle_sleep(struct timeval *timeout)
-{
-  if (select(0, (fd_set *)0, (fd_set *)0, (fd_set *)0, timeout) < 0)
-  {
-    if (errno != EINTR)
-    {
-      perror("SYSERR: Select sleep");
-      exit(1);
-    }
-  }
-}
-
-#endif /* CIRCLE_WINDOWS */
 
 #define MODE_NORMAL_HIT 0      // Normal damage calculating in hit()
 #define MODE_DISPLAY_PRIMARY 2 // Display damage info primary

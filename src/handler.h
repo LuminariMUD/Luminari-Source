@@ -31,6 +31,7 @@ void affected_registry_remove(struct char_data *ch);
 struct char_data *affected_registry_iteration_begin(void);
 struct char_data *affected_registry_iteration_next(void);
 void affected_registry_iteration_end(void);
+bool affected_registry_iteration_in_progress(void);
 size_t affected_registry_count(void);
 size_t affected_registry_validate(void);
 #ifdef LUMINARI_CUTEST
@@ -157,8 +158,6 @@ int generic_find(const char *arg, bitvector_t bitvector, struct char_data *ch,
 /* prototypes from mobact.c */
 void forget(struct char_data *ch, struct char_data *victim);
 void remember(struct char_data *ch, struct char_data *victim);
-void mobile_activity(void);
-void mobile_activity_pulse(int heart_pulse);
 void mobile_echos(struct char_data *ch);
 void clearMemory(struct char_data *ch);
 

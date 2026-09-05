@@ -54,7 +54,7 @@ a test owner.
 | Test Source | Tests | Contract Owner |
 |-------------|------:|----------------|
 | `unittests/CuTest/test_spec_registry_persistence.c` | 10 | Legacy name inventory, alias/reverse lookup, accessor bounds, world loaders, source inventory, and baseline OLC. |
-| `unittests/CuTest/test_spec_command_pulse.c` | 13 | Command traversal/stop, `no_specials`, mobile activity, object auto-pulse fallback, moving rooms, and heartbeat order. |
+| `unittests/CuTest/test_spec_command_pulse.c` | 13 | Command traversal/stop, `no_specials`, mobile activity, object automatic-activity fallback, moving rooms, and heartbeat order. |
 | `unittests/CuTest/test_spec_combat_secondary.c` | 14 | Identification, hit/reaction/maneuver/charge tokens, ignored returns, combat schedule, and shop/quest nesting. |
 | `unittests/CuTest/test_spec_registry_validation.c` | 13 | Production metadata, canonical/alias integrity, events, masks, bounds, malformed definitions, and pre-world boot failure. |
 | `unittests/CuTest/test_spec_owner_aware_olc.c` | 7 | Exact owner views, strict selection, descriptions/prerequisites, control paths, and unchanged activation flags. |
@@ -89,7 +89,7 @@ inventory without adding builder-owned world files to source control.
 | Effective precedence across all five contribution sources | `TestSpecEffectiveBindingProductionLoaders`, `TestSpecEffectiveBindingProductionPrecedenceAndSecondaries`, and `TestSpecEffectiveBindingReportFollowsNoSpecialsAssignmentGate`. |
 | Exact magic strings and empty-argument calls | The 13 command/pulse tests and 14 combat/secondary tests cover every characterized legacy event token and actor/return shape. |
 | Room, equipped, carried, mobile, and room-object command order | `Test_spec_command_traverses_all_owners_in_order` and stop-at-each-owner coverage. |
-| `MOB_SPEC` and `ITEM_AUTOPROC` gates | Mobile activity/combat activation tests, object auto-pulse gate tests, and OLC no-flag-mutation test. |
+| `MOB_SPEC` and `ITEM_AUTOPROC` gates | Mobile activity/combat activation tests, object automatic-activity gate tests, and OLC no-flag-mutation test. |
 | Normal and `-s` path behavior | Command bypass, mobile suppression, object/moving-room unaffected paths, boot assignment gate, and effective-report mode tests. |
 | Worn/carried auto-proc fallback with null actor and return variants | Worn-once, null-then-carrier, gate, and return-path tests in `test_spec_command_pulse.c`. |
 | Notification-only returns | Identification, weapon, defense, maneuver, charge, and combat-turn tests in `test_spec_combat_secondary.c`. |

@@ -78,7 +78,7 @@ static void zone_yell(struct char_data *ch, const char *buf)
           }
           else
           {
-            HUNTING(i) = vict;
+            set_hunting_target(i, vict);
             hunt_victim(i);
           }
         }
@@ -240,7 +240,7 @@ SPECIAL(naga)
     dam = GET_HIT(vict);
   if (dam < 0)
     dam = 0;
-  GET_HIT(vict) -= dam;
+  combat_apply_raw_damage(vict, ch, dam, DAM_POISON, INT_MIN);
   stop_fighting(vict);
   change_position(vict, POS_SLEEPING);
   /* Would be best to make this an affect that affects your ability to wake up, lasting a couple rounds. */

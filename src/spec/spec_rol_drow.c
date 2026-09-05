@@ -208,7 +208,7 @@ static bool rol_drow_decay_once(struct obj_data *obj)
   return false;
 }
 
-EVENTFUNC(event_rol_drow_decay)
+MUD_EVENT_CALLBACK(event_rol_drow_decay)
 {
   struct mud_event_data *event = event_obj;
   struct obj_data *obj;
@@ -222,7 +222,7 @@ EVENTFUNC(event_rol_drow_decay)
   if (rol_drow_decay_once(obj))
   {
     /* Detach the running event before extraction so object cleanup cannot cancel it twice. */
-    free_mud_event(event);
+    mud_event_detach_owner(event);
     extract_obj(obj);
     return 0;
   }
@@ -251,7 +251,7 @@ int rol_drow_equipment_typed(struct spec_event_context *context)
   if (!rol_drow_equipment_profile(GET_OBJ_VNUM(obj)))
     return FALSE;
 
-  if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
+  if (context->event == SPEC_EVENT_OBJECT_AUTOMATIC)
   {
     if (!obj->rol_drow_decay_initialized)
     {

@@ -40,6 +40,12 @@ struct attack_hit_type
   const char *plural;
 };
 
+/* Commit already-resolved damage and publish its actual HP loss. This does not
+ * perform resistance, combat admission, position updates or death resolution.
+ * Use INT_MIN for no gameplay floor; callers retain their existing death policy. */
+void combat_apply_raw_damage(struct char_data *victim, struct char_data *source, int amount,
+                             int damage_type, int minimum_hit);
+
 /* Functions available in fight.c */
 void init_condensed_combat_data(struct char_data *ch);
 int valid_fight_cond(struct char_data *ch, bool strict);
@@ -83,8 +89,12 @@ void attacks_of_opportunity(struct char_data *victim, int penalty);
 int compute_attack_bonus(struct char_data *ch, struct char_data *victim, int attack_type);
 int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, int penalty,
         int attack_type);
+bool combat_readied_attack_allowed(struct char_data *ch, struct char_data *victim);
+int combat_readied_attack(struct char_data *ch, struct char_data *victim);
 void load_messages(void);
 void perform_violence(struct char_data *ch, int phase);
+bool combat_run_compatibility_phase(struct char_data *ch, unsigned int phase);
+bool combat_run_semantic_round(struct char_data *ch, bool was_hit);
 void raw_kill(struct char_data *ch, struct char_data *killer);
 bool set_fighting(struct char_data *ch, struct char_data *victim);
 int skill_message(int dam, struct char_data *ch, struct char_data *vict, int attacktype,
@@ -137,12 +147,15 @@ int test_get_bard_warbeat_opening_attacks(void);
 struct obj_data *test_get_wielded(struct char_data *ch, int attack_type);
 struct char_data *test_find_divine_sacrifice_defender(struct char_data *victim);
 void test_apply_group_sacred_vengeance(struct char_data *victim);
+bool test_life_shield_can_reflect(struct char_data *attacker, struct char_data *victim, int damage,
+                                  int source);
+struct affected_type *test_find_spell_affect(struct char_data *ch, int spell);
+bool test_attack_number_runs_in_phase(int attack_number, int phase);
 #endif
 
 /* Global variables */
 #ifndef __FIGHT_C__
 extern struct attack_hit_type attack_hit_text[];
-extern struct char_data *combat_list;
 #endif /* __FIGHT_C__ */
 
 #endif /* _FIGHT_H_*/

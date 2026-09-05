@@ -12,6 +12,9 @@
 #include "magic/spells.h"
 #include "constants.h"
 #include "mob_known_spells.h"
+#include "active_world.h"
+
+#define KNOWN_SPELL_SLOT_RECOVERY_SECONDS 60
 
 /* Initialize known spell slots for a mob when it loads */
 void init_known_spell_slots(struct char_data *ch)
@@ -56,6 +59,8 @@ bool has_known_spell_slot(struct char_data *ch, int spellnum)
 /* Consume a known spell slot when mob casts a known spell */
 void consume_known_spell_slot(struct char_data *ch, int spellnum)
 {
+  bool recovery_already_pending;
+
   if (!ch || !IS_NPC(ch))
     return;
 
@@ -66,14 +71,39 @@ void consume_known_spell_slot(struct char_data *ch, int spellnum)
     return;
 
   if (ch->mob_specials.known_spell_slots[spellnum] > 0)
+  {
+    recovery_already_pending = known_spell_slots_need_recovery(ch);
     ch->mob_specials.known_spell_slots[spellnum]--;
+    if (!recovery_already_pending)
+      ch->mob_specials.last_known_slot_regen = time(0);
+    active_world_sync_mobile(ch);
+  }
+}
+
+bool known_spell_slots_need_recovery(const struct char_data *ch)
+{
+  int spellnum;
+
+  if (ch == NULL || !IS_NPC(ch))
+    return false;
+  for (spellnum = 0; spellnum < MAX_SPELLS; spellnum++)
+    if (MOB_KNOWS_SPELL(ch, spellnum) && ch->mob_specials.known_spell_slots[spellnum] < 2)
+      return true;
+  return false;
+}
+
+time_t known_spell_slot_recovery_deadline(const struct char_data *ch)
+{
+  if (!known_spell_slots_need_recovery(ch))
+    return 0;
+  return ch->mob_specials.last_known_slot_regen + KNOWN_SPELL_SLOT_RECOVERY_SECONDS;
 }
 
 /* Regenerate one random known spell slot every 60 seconds out of combat */
 void regenerate_known_spell_slot(struct char_data *ch)
 {
   time_t now = time(0);
-  int regeneration_time = 60; /* 1 minute */
+  int regeneration_time = KNOWN_SPELL_SLOT_RECOVERY_SECONDS;
   int available_slots[MAX_SPELLS] = {0};
   int num_available = 0;
   int i = 0, random_index = 0;

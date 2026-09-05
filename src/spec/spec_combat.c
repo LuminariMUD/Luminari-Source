@@ -7,14 +7,20 @@
 #include "sysdep.h"
 
 #include "structs.h"
+#include "combat/combat_damage.h"
 #include "combat/fight.h"
 #include "spec/spec_combat.h"
 
+/* Damage the actor's current opponent and report the outcome to spec procs.
+ * Routes through combat_damage_apply and maps the structured damage result
+ * onto the spec-facing status so callers can tell applied, deferred, and
+ * fatal damage apart. */
 struct spec_damage_result spec_damage_current_target(struct char_data *actor,
                                                      struct char_data *target, int amount,
                                                      int attack_type, int damage_type,
                                                      int dualwield)
 {
+  struct combat_damage_result damage_result;
   struct spec_damage_result result = {SPEC_DAMAGE_INVALID_CONTEXT, SPEC_CONTEXT_MISSING_CONTEXT, 0};
 
   result.context_result = spec_context_validate_combat_target(actor, target, true);
@@ -26,13 +32,17 @@ struct spec_damage_result spec_damage_current_target(struct char_data *actor,
     return result;
   }
 
-  result.legacy_result = damage(actor, target, amount, attack_type, damage_type, dualwield);
-  if (result.legacy_result < 0)
+  damage_result = combat_damage_apply(actor, target, amount, attack_type, damage_type, dualwield);
+  result.legacy_result = damage_result.legacy_result;
+  if (damage_result.status == COMBAT_DAMAGE_TARGET_DIED)
     result.status = SPEC_DAMAGE_TARGET_INVALIDATED;
-  else if (result.legacy_result == 0)
+  else if (damage_result.status == COMBAT_DAMAGE_NO_EFFECT ||
+           damage_result.status == COMBAT_DAMAGE_QUEUED)
     result.status = SPEC_DAMAGE_NO_EFFECT;
-  else
+  else if (damage_result.status == COMBAT_DAMAGE_APPLIED)
     result.status = SPEC_DAMAGE_APPLIED;
+  else
+    result.status = SPEC_DAMAGE_INVALID_CONTEXT;
 
   return result;
 }

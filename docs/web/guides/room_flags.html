@@ -293,7 +293,7 @@ being placed here by a zone reset, a summon, or a staff
 guild rooms, and quest areas without having to make the exits
 impassable</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
-Wandering destination check (<code>mobile_activity()</code>)</p>
+Wandering destination check (owner-local mobile agenda)</p>
 <h3 id="room_staffroom-index-10">ROOM_STAFFROOM (Index: 10)</h3>
 <p><strong>Effect:</strong> Only staff (LVL_STAFF+) can enter this room.
 - Hard block on entry for non-staff - Used for immortal areas and staff
@@ -384,10 +384,10 @@ blocked - Staff can bypass with appropriate level</p>
 (<code>look_at_room_number()</code>, <code>look_at_room()</code>) -
 <code>src/movement/movement.c</code> - Entry damage/death
 (<code>do_enter()</code>) - <code>src/mob/mob_act.c</code> - NPC
-avoidance (<code>mobile_activity()</code>) -
-<code>src/magic/spells.c</code> - Teleport blocking
-(<code>valid_mortal_tele_dest()</code>) - <code>src/act.other.c</code> -
-Additional teleport checks (<code>do_shadowstep()</code>)</p>
+avoidance (owner-local mobile agenda) - <code>src/magic/spells.c</code>
+- Teleport blocking (<code>valid_mortal_tele_dest()</code>) -
+<code>src/act.other.c</code> - Additional teleport checks
+(<code>do_shadowstep()</code>)</p>
 <h3 id="room_soundproof-index-5">ROOM_SOUNDPROOF (Index: 5)</h3>
 <p><strong>Effect:</strong> Blocks sound-based abilities and prevents
 communication. - Blocks tells, shouts, and speech-based communication -
@@ -529,7 +529,7 @@ anti-tracking zones and rivers</p>
 <code>src/movement/movement_tracks.c</code> - Track skill blocking
 (<code>should_create_tracks()</code>) - <code>src/graph.c</code> -
 Pathfinding restriction - <code>src/mob/mob_act.c</code> - NPC tracking
-limitation (<code>mobile_activity()</code>)</p>
+limitation (owner-local mobile agenda)</p>
 <hr />
 <h2 id="special-room-types">Special Room Types</h2>
 <h3 id="room_house-index-11">ROOM_HOUSE (Index: 11)</h3>

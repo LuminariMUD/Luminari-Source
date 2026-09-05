@@ -75,7 +75,7 @@ bool yan_yell(struct char_data *ch)
           }
           else
           {
-            HUNTING(i) = ch;
+            set_hunting_target(i, ch);
             hunt_victim(i);
           }
           break;
@@ -239,7 +239,7 @@ bool chan_yell(struct char_data *ch)
           }
           else
           {
-            HUNTING(i) = ch;
+            set_hunting_target(i, ch);
             hunt_victim(i);
           }
           break;

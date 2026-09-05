@@ -58,7 +58,7 @@ these contracts until an individually tested migration changes one:
 | Command | Command number and argument | Nonzero consumes the command. |
 | Mobile activity | `cmd == 0`, empty argument | Nonzero skips remaining default AI for that mobile. |
 | Mobile combat turn | `cmd == 0`, empty argument | Return ignored. |
-| Object auto-pulse | `cmd == 0`, empty argument | Nonzero skips the carried-object fallback. |
+| Object automatic activity | `cmd == 0`, empty argument | Nonzero skips the carried-object fallback. |
 | Item identification | `cmd == 0`, `identify` | Return ignored. |
 | Weapon hit | `cmd == 0`, hit token | Return ignored. |
 | Defense reaction | `cmd == 0`, reaction token | Return ignored. |
@@ -73,12 +73,12 @@ Defense reaction tokens are `shieldblock`, `parry`, `glance`, and `dodge`; maneu
 
 Command traversal remains room, equipped objects in wear-slot order, carried objects, mobiles in
 room-list order, then room contents; the first nonzero result stops later owners. On
-`PULSE_MOBILE`, mobile activity runs before object auto-pulses, and a mobile combat callback runs
-after that combatant's attacks and cleave handling. Object auto-pulse may first run with a null actor
+`PULSE_MOBILE`, mobile activity runs before object automatic activity, and a mobile combat callback runs
+after that combatant's attacks and cleave handling. Object automatic activity may first run with a null actor
 and then with `carried_by` only after zero fallthrough. Moving rooms update every ten seconds.
 
 Activation is also caller-specific. Mobile activity and combat turns require `MOB_SPEC`, while
-mobile command dispatch uses the callback slot directly. Periodic object auto-pulse requires
+mobile command dispatch uses the callback slot directly. Automatic object activity requires
 `ITEM_AUTOPROC`; object commands, identification, and combat notifications use the callback slot
 directly. `no_specials` is not a global callback switch: syntax-check mode skips guarded legacy,
 shop, and quest assignment paths and command/mobile-activity dispatch, while world parsing and
@@ -216,9 +216,9 @@ replace combat, affects, artifact ownership, or the legacy callback ABI.
   spaces may be skipped, and only when the rule requests it; case, punctuation, tabs, and trailing
   whitespace remain significant. Treat `SPEC_PHRASE_UNRELATED` as normal fallthrough.
 - `src/spec/spec_cooldown.h` serves only legacy object `spec_timer[]` counters. Slots are
-  `[0, SPEC_TIMER_MAX)`, values are MUD hours decremented by `point_update()`, storage belongs to the
-  instance, and objsave does not persist it. Validate and execute first, then commit a positive
-  duration.
+  `[0, SPEC_TIMER_MAX)`, values are MUD hours decremented by the point-update owner service,
+  storage belongs to the instance, and objsave does not persist it. Validate and execute first,
+  then commit a positive duration.
 - `src/spec/spec_combat.h` applies damage only to a live colocated current opponent. Preserve the
   returned `legacy_result`; after `SPEC_DAMAGE_TARGET_INVALIDATED`, do not dereference the target.
 - `src/spec/spec_effects.h` creates stable negative source identities from a namespace and key, then

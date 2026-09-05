@@ -11,6 +11,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "movement/door_state.h"
 #include "utils.h"
 #include "comm.h"
 #include "interpreter.h"
@@ -51,7 +52,8 @@ static const int flags_door[] = {NEED_CLOSED | NEED_UNLOCKED, NEED_OPEN, NEED_CL
 
 /* Static (internal) function prototypes - will be made non-static after transition */
 static int find_door(struct char_data *ch, const char *type, char *dir, const char *cmdname);
-static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd);
+static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd,
+                       struct door_state_operation *operation);
 
 /* Find door function - locates a door by keyword and/or direction */
 static int find_door(struct char_data *ch, const char *type, char *dir, const char *cmdname)
@@ -317,7 +319,8 @@ void extract_key(struct char_data *ch, obj_vnum key)
     }
 }
 
-static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd)
+static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd,
+                       struct door_state_operation *operation)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
   size_t len;
@@ -351,6 +354,8 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
       if (check_trap(ch, TRAP_TRIGGER_OPEN_DOOR, ch->in_room, 0, door))
         return;
     }
+    if (!obj && operation->count == 0U)
+      door_state_begin(operation, IN_ROOM(ch), door, true, DOMAIN_DOOR_GAMEPLAY);
     OPEN_DOOR(IN_ROOM(ch), obj, door);
     if (back)
       OPEN_DOOR(other_room, obj, rev_dir[door]);
@@ -368,6 +373,8 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
       if (check_trap_trigger_excluding_rol_exit(ch, TRAP_TRIGGER_OPEN_DOOR, ch->in_room, 0, door))
         return;
     }
+    if (!obj && operation->count == 0U)
+      door_state_begin(operation, IN_ROOM(ch), door, true, DOMAIN_DOOR_GAMEPLAY);
     CLOSE_DOOR(IN_ROOM(ch), obj, door);
     if (back)
       CLOSE_DOOR(other_room, obj, rev_dir[door]);
@@ -375,6 +382,8 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
     break;
 
   case SCMD_LOCK:
+    if (!obj && operation->count == 0U)
+      door_state_begin(operation, IN_ROOM(ch), door, true, DOMAIN_DOOR_GAMEPLAY);
     LOCK_DOOR(IN_ROOM(ch), obj, door);
     if (back)
       LOCK_DOOR(other_room, obj, rev_dir[door]);
@@ -392,6 +401,8 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
       if (check_trap(ch, TRAP_TRIGGER_UNLOCK_DOOR, ch->in_room, 0, door))
         return;
     }
+    if (!obj && operation->count == 0U)
+      door_state_begin(operation, IN_ROOM(ch), door, true, DOMAIN_DOOR_GAMEPLAY);
     UNLOCK_DOOR(IN_ROOM(ch), obj, door);
     if (back)
       UNLOCK_DOOR(other_room, obj, rev_dir[door]);
@@ -444,6 +455,8 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
         WAIT_STATE(ch, PULSE_VIOLENCE * 1);
         return;
       }
+      if (!obj && operation->count == 0U)
+        door_state_begin(operation, IN_ROOM(ch), door, true, DOMAIN_DOOR_GAMEPLAY);
       TOGGLE_LOCK(IN_ROOM(ch), obj, door);
       if (back)
         TOGGLE_LOCK(other_room, obj, rev_dir[door]);
@@ -568,6 +581,7 @@ int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int 
 
 ACMD(do_gen_door)
 {
+  struct door_state_operation operation = {0};
   int door = -1;
   obj_vnum keynum;
   char type[MAX_INPUT_LENGTH] = {'\0'}, dir[MAX_INPUT_LENGTH] = {'\0'};
@@ -631,9 +645,9 @@ ACMD(do_gen_door)
              ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOKEY))) && (has_key(ch, keynum)))
     {
       send_to_char(ch, "It is locked, but you have the key.\r\n");
-      do_doorcmd(ch, obj, door, SCMD_UNLOCK);
+      do_doorcmd(ch, obj, door, SCMD_UNLOCK, &operation);
       send_to_char(ch, "*Click*\r\n");
-      do_doorcmd(ch, obj, door, subcmd);
+      do_doorcmd(ch, obj, door, subcmd, &operation);
       ch->char_specials.autodoor_message = true;
       extract_key(ch, keynum);
     }
@@ -656,11 +670,13 @@ ACMD(do_gen_door)
       send_to_char(ch, "You don't seem to have the proper key.\r\n");
     else if (ok_pick(ch, keynum, DOOR_IS_PICKPROOF(ch, obj, door), subcmd, door))
     {
-      do_doorcmd(ch, obj, door, subcmd);
+      do_doorcmd(ch, obj, door, subcmd, &operation);
       ch->char_specials.autodoor_message = true;
       extract_key(ch, keynum);
+      door_state_finish(&operation);
       return;
     }
   }
+  door_state_finish(&operation);
   return;
 }

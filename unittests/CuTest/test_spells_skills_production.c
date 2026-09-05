@@ -24,6 +24,7 @@
 #include "../../src/craft/craft.h"
 #include "../../src/craft/crafts.h"
 #include "../../src/obj/item.h"
+#include "../../src/affected_owners.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -83,11 +84,11 @@ void Test_rol_psionic_regeneration_room_doubles_tick_gain(CuTest *tc)
   world = &room;
   top_of_world = 0;
 
-  regen_psp();
+  regen_psp_one(&ch);
   normal_gain = GET_PSP(&ch) - 10;
   GET_PSP(&ch) = 10;
   SET_BIT_AR(ROOM_FLAGS(0), ROOM_PSP_REGEN);
-  regen_psp();
+  regen_psp_one(&ch);
   accelerated_gain = GET_PSP(&ch) - 10;
 
   descriptor_list = saved_descriptor_list;
@@ -250,6 +251,7 @@ void Test_arcane_mark_staff_character_stat_reports_signature(CuTest *tc)
   struct player_special_data target_specials;
   struct room_data room;
   struct room_data *saved_world;
+  struct char_data *saved_character_list;
   room_rnum saved_top_of_world;
   bool stat_displayed;
 
@@ -288,13 +290,16 @@ void Test_arcane_mark_staff_character_stat_reports_signature(CuTest *tc)
 
   saved_world = world;
   saved_top_of_world = top_of_world;
+  saved_character_list = character_list;
   world = &room;
   top_of_world = 0;
+  character_list = &target;
 
   if (descriptor.pProtocol == NULL)
   {
     world = saved_world;
     top_of_world = saved_top_of_world;
+    character_list = saved_character_list;
     free(GET_ARCANE_MARK(&target));
     GET_ARCANE_MARK(&target) = NULL;
     staff.desc = NULL;
@@ -308,6 +313,7 @@ void Test_arcane_mark_staff_character_stat_reports_signature(CuTest *tc)
 
   world = saved_world;
   top_of_world = saved_top_of_world;
+  character_list = saved_character_list;
   free(GET_ARCANE_MARK(&target));
   GET_ARCANE_MARK(&target) = NULL;
   staff.desc = NULL;
@@ -443,6 +449,8 @@ void Test_warlock_darkness_lasts_fifteen_rounds(CuTest *tc)
   int duration;
   int affection;
   int spell;
+  size_t saved_room_owners;
+  bool room_unregistered;
 
   clear_char(&ch);
   memset(&player_specials, 0, sizeof(player_specials));
@@ -457,6 +465,7 @@ void Test_warlock_darkness_lasts_fifteen_rounds(CuTest *tc)
   saved_world = world;
   saved_top_of_world = top_of_world;
   saved_raff_list = raff_list;
+  saved_room_owners = affected_room_owner_count();
   world = &room;
   top_of_world = 0;
   raff_list = NULL;
@@ -467,7 +476,11 @@ void Test_warlock_darkness_lasts_fifteen_rounds(CuTest *tc)
   duration = darkness == NULL ? -1 : darkness->timer;
   affection = darkness == NULL ? -1 : darkness->affection;
   spell = darkness == NULL ? -1 : darkness->spell;
-  free(darkness);
+  /* Remove both the effect and its room registry entry before the stack room expires. */
+  if (darkness != NULL)
+    rem_room_aff(darkness);
+  room_unregistered = room.affected_head == NULL && !room.affected_registered &&
+                      room.affected_count == 0 && affected_room_owner_count() == saved_room_owners;
   raff_list = saved_raff_list;
   world = saved_world;
   top_of_world = saved_top_of_world;
@@ -475,6 +488,7 @@ void Test_warlock_darkness_lasts_fifteen_rounds(CuTest *tc)
   CuAssertIntEquals(tc, 15, duration);
   CuAssertIntEquals(tc, RAFF_DARKNESS, affection);
   CuAssertIntEquals(tc, WARLOCK_DARKNESS, spell);
+  CuAssertTrue(tc, room_unregistered);
 }
 
 void Test_legacy_crafting_reports_modified_experience(CuTest *tc)
@@ -1398,9 +1412,9 @@ void Test_skill_numbered_affect_expiration_dispatches_wearoff(CuTest *tc)
   ch.next = NULL;
   character_list = &ch;
   affected_registry_attach(&ch);
-  affect_update();
+  affect_update_character_one(&ch);
   remained_for_final_tick = affected_by_spell(&ch, SKILL_BLEEDING_ATTACK);
-  affect_update();
+  affect_update_character_one(&ch);
   removed = !affected_by_spell(&ch, SKILL_BLEEDING_ATTACK);
   announced = strstr(descriptor.output, "The bleeding from the attack stops.") != NULL;
   affected_registry_detach(&ch);
@@ -1447,7 +1461,7 @@ void Test_affect_wearoff_callback_can_remove_the_cached_successor(CuTest *tc)
   ch.next = NULL;
   character_list = &ch;
   affected_registry_attach(&ch);
-  affect_update();
+  affect_update_character_one(&ch);
   affected_registry_detach(&ch);
   character_list = saved_character_list;
 

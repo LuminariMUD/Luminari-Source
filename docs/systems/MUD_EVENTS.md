@@ -1,308 +1,198 @@
-# LuminariMUD Event Systems
+# LuminariMUD event systems
 
-This document explains the complete timing and event infrastructure used by LuminariMUD, covering the base discrete-event queue (“DG event system”) and the higher-level, entity-scoped “MUD event” layer built on top of it.
+Updated: 2026-09-05, native-only runtime and door readiness.
 
-Core source files:
-- [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h)
-- [src/dgscript/dg_event.c](../../src/dgscript/dg_event.c)
-- [src/mud_event.h](../../src/mud_event.h)
-- [src/mud_event.c](../../src/mud_event.c)
-- [src/mud_event_list.c](../../src/mud_event_list.c)
+The game has one process-owned timing wheel. The legacy DG queue, scheduling
+facade, heartbeat fallback, rollback build switches, and old save writer were
+physically removed. The unused `util/hl_events.c/.h` implementation is also
+retired. Neither libevent nor select I/O driver selects another gameplay clock.
 
-Key entry points (clickable declarations):
-- [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28): standard signature for all event functions
-- [C.event_create()](../../src/dgscript/dg_event.c#L61): schedule an event
-- [C.event_process()](../../src/dgscript/dg_event.c#L249): run due events every pulse
-- [C.event_cancel()](../../src/dgscript/dg_event.c#L133): cancel a queued or in-flight event safely
-- [C.cleanup_event_obj()](../../src/dgscript/dg_event.c#L217): free event payloads (MUD or generic)
-- [C.event_time()](../../src/dgscript/dg_event.c#L357): remaining pulses until an event fires
-- [C.event_free_all()](../../src/dgscript/dg_event.c#L374): bulk free of all events (shutdown/reset)
-- [C.attach_mud_event()](../../src/mud_event.c#L437): attach a MUD event to an entity and queue it
-- [C.free_mud_event()](../../src/mud_event.c#L607): remove from entity lists and free payload
-- [C.new_mud_event()](../../src/mud_event.c#L579): allocate a MUD event payload
-- [C.init_events()](../../src/mud_event.c#L66): initialize global world event list
-- [C.event_countdown()](../../src/mud_event.c#L75): generic "countdown" handler with special cases
-- [C.event_daily_use_cooldown()](../../src/mud_event.c#L284): unified daily-use recovery logic
-- [C.change_event_duration()](../../src/mud_event.c#L1216): recreate a specific event with new duration
-- [C.change_event_svariables()](../../src/mud_event.c#L1267): recreate a specific event with new sVariables
-- [C.event_cancel_specific()](../../src/mud_event.c#L947): cancel a specific event by ID for a character
-- [C.mud_event_index[]](../../src/mud_event_list.c#L46): registry mapping of IDs to handlers, types, and metadata
+## Boundaries
 
-## 1. Architecture Overview
+- [event_runtime](../../src/event_runtime.h) is the game-facing API for delayed
+  and recurring work, semantic type registration, inspection, and cancellation.
+- [game_scheduler](../../src/game_scheduler.h) is the private physical wheel.
+  Only event_runtime owns it; gameplay modules do not call it directly.
+- [dg_event](../../src/dgscript/dg_event.h) bridges process initialization,
+  shutdown, deadline inspection, and scheduler advancement. Its historical name
+  does not imply a separate DG event engine.
+- [reactor](../../src/reactor.c) waits for I/O, signals, or the next deadline.
+  Gameplay remains on the main thread for deterministic mutation ordering.
+- [domain_events](../../src/domain_events.h) synchronously publishes immutable,
+  borrowed facts after committed state changes. Pre-operation vetoes and value
+  changes remain typed decision hooks; notifications cannot undo mutations.
 
-- The event system is layered:
-  - Base queue + processing: [src/dgscript/dg_event.c](../../src/dgscript/dg_event.c) and [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h)
-  - Higher-level MUD events with entity-scoped lists and safety/memory semantics: [src/mud_event.c](../../src/mud_event.c) and [src/mud_event.h](../../src/mud_event.h)
-  - Table-driven registry: [src/mud_event_list.c](../../src/mud_event_list.c) binds event IDs to functions, types, messages, and feat metadata
-- Time model:
-  - The game runs on “pulses” (tick frequency). Many helpers express real-life seconds using a macro RL_SEC which multiplies by PASSES_PER_SEC (10 ticks/sec), as discussed in [C.event_daily_use_cooldown()](../../src/mud_event.c#L284)
-  - Events return the number of pulses until they should run again; returning 0 means “do not reschedule”
+Monotonic runtime ticks are 100 ms (`PASSES_PER_SEC` is 10). Deadline-driven
+waiting does not require waking on every tick. Runtime handles are process-local
+identities, not persistence records. Never serialize a handle or raw pointer.
 
-## 2. Base Queue (DG Event System)
+## Native scheduling and ownership
 
-### 2.1 Data Structures and Signatures
+Register a semantic type during boot with a stable name, handler, cleanup,
+owner requirement, lateness policy, and admission limits. Startup seals the
+registry; scheduling continues after sealing, but registration does not.
 
-- Event function signature: [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28)
-- Event structure fields: see [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h) (struct event contains func, event_obj, q_el, isMudEvent)
-- Priority queue (multi-bucket) internals: [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h) and [src/dgscript/dg_event.c](../../src/dgscript/dg_event.c)
-  - Buckets reduce enqueue costs by distributing events based on (key % NUM_EVENT_QUEUES)
+Use `event_runtime_schedule_owned_after()` with a generation-aware owner.
+Callbacks return a completion or rescheduling result. Owner cancellation removes
+queued work and prevents in-flight recurrence; cleanup runs exactly once after
+payload use ends. Re-resolve entity handles after callbacks that can mutate or
+extract entities. Shutdown invalidates all remaining runtime handles.
 
-### 2.2 Lifecycle (Base)
+Existing semantic owners include:
 
-- Create/schedule: [C.event_create()](../../src/dgscript/dg_event.c#L61)
-  - Ensures a minimum delay of 1 pulse
-  - Returns a heap-allocated struct event whose payload is event_obj (type-specific)
-- Process every pulse: [C.event_process()](../../src/dgscript/dg_event.c#L249)
-  - Dequeues due events by current pulse
-  - Sets event->q_el = NULL to mark "currently processing"
-  - Calls the event's function; if it returns > 0, re-enqueues with that delay; otherwise frees
-  - For MUD events, it invokes [C.free_mud_event()](../../src/mud_event.c#L607) if event_obj still present
-- Cancel: [C.event_cancel()](../../src/dgscript/dg_event.c#L133)
-  - If q_el is NULL, the event is being processed; it does not free the event structure (prevents double-free)
-  - For MUD events, calls [C.cleanup_event_obj()](../../src/dgscript/dg_event.c#L217) which delegates to [C.free_mud_event()](../../src/mud_event.c#L607)
-- Query remaining pulses: [C.event_time()](../../src/dgscript/dg_event.c#L357)
+| Type | Implementation |
+| --- | --- |
+| `combat.encounter.round` | `combat/combat_encounters.c` |
+| `activity.primary.step` | `activity_manager.c` |
+| `mobile.autonomous.agenda` | `active_world.c` |
+| `affected.character.duration`, `affected.room.duration` | `affected_owners.c` |
+| `character.maintenance` | `character_periodic.c` |
+| `object.automatic_procedure`, `dg.random_trigger` | `periodic_owners.c` |
+| `dg.trigger.wait` | `dgscript/dg_scripts.c` |
+| `world.mud_hour_update` | `point_update_periodic.c` |
+| `vessel.greyhawk.agenda`, `vessel.shared.agenda` | `vessels/vessel_periodic.c` |
+| `vessel.rol.agenda` | `vessels/vessels_rol.c` |
+| `ai.response.delivery`, `ai.request.retry` | `ai_events.c` |
+| `service.persistence_batch` and coarse world services | `comm.c` |
+| `action.ready.execute` | `ready_action.c` |
 
-### 2.3 Safety Guards (Base)
+Autonomous work is admitted on concrete state changes and retires when complete.
+Some service-owned feature loops remain; see the explicit inventory below. A
+native callback wrapping a scan does not make that scan owner-driven.
 
-- Double-free prevention:
-  - In cancel: detection via q_el == NULL; see comments at [C.event_cancel()](../../src/dgscript/dg_event.c#L133)
-  - In process: only free mud_event payload if not already nulled by cancel; see [C.event_process()](../../src/dgscript/dg_event.c#L249)
-- Global reentrancy guard:
-  - Flag processing_events used to disallow bulk frees during active processing; see [C.event_process()](../../src/dgscript/dg_event.c#L249), [C.event_free_all()](../../src/dgscript/dg_event.c#L374), and queue_free function
+## Table-driven MUD events
 
-## 3. MUD Event Layer
+[mud_event_list.c](../../src/mud_event_list.c) maps IDs to callbacks, owner kinds,
+recovery messages, and feat metadata. Every usable ID registers a native type
+named `mud.<three-digit-id>.<readable-name>`. Entity lists retain MUD payloads,
+not scheduler internals.
 
-The MUD layer adds:
-- Entity-scoped lists (character, object, room, region, world)
-- Central registry of event metadata (names, messages, feat linkage)
-- Memory ownership rules for attached data (especially VNUM copies for rooms/regions)
-- Utility helpers for querying, clearing, and modifying events
+- Create and attach through `new_mud_event()`, `attach_mud_event()`, or `NEW_EVENT`.
+- Implement table callbacks with `MUD_EVENT_CALLBACK`. A positive pulse count
+  recurs; zero terminates. Native cleanup detaches and releases the payload.
+- Query with `char_has_mud_event()`, `mud_event_is_live()`, `mud_event_remaining()`.
+- Cancel with `mud_event_cancel()` or an owner clear helper. Use
+  `mud_event_detach_owner()` when extraction occurs during callback execution.
+- `change_event_duration()` and `change_event_svariables()` recreate the owned
+  work through the same native lifecycle. Respect owned string allocation.
+- Room/region attachments validate and copy their VNUM identity as required by
+  the MUD payload contract. Do not retain temporary room-pointer storage.
 
-### 3.1 Event IDs, Types, and Registry
+Before adding an ID, update the enum and registry together, assign an explicit
+persistence policy, use correct time units, and cover admission, recurrence,
+cancellation, extraction, and restore. Daily-use recovery uses the registry's
+feat/use data and validated `uses:N` payload. Guard division and overflow.
 
-- Event identifiers live in an enum: [src/mud_event.h](../../src/mud_event.h) (see event_id enum)
-- Type tags identify which entity owns the event: EVENT_WORLD, EVENT_DESC, EVENT_CHAR, EVENT_ROOM, EVENT_REGION, EVENT_OBJECT (see [src/mud_event.h](../../src/mud_event.h))
-- Registry table: [C.mud_event_index[]](../../src/mud_event_list.c#L46)
-  - Each row defines: event_name, handler func, type, completion_msg, recovery_msg, feat_num, daily_uses
-  - Example rows span cooldowns, ongoing abilities, spell effects, and daily-use mechanics
+## Persistence and copyover
 
-### 3.2 Creating and Attaching MUD Events
+The registry assigns each event a persisted, reconstructed, or transient policy.
+Persisted player timers use `Evn2` records with durable player identity, event
+schema, remaining ticks, save epoch, validated payload, and recovery cadence.
+The cadence is captured before save bookkeeping temporarily removes equipment
+and affects that change daily uses. Offline file edits preserve restored cadence.
 
-- Allocate payload: [C.new_mud_event()](../../src/mud_event.c#L579)
-  - Duplicates sVariables string if provided (ownership sits with the MUD event)
-- Attach and schedule: [C.attach_mud_event()](../../src/mud_event.c#L437)
-  - Internally calls [C.event_create()](../../src/dgscript/dg_event.c#L61) with handler from registry
-  - Adds the struct event pointer to the owner’s event list (ch->events, obj->events, room->events, region->events, or world_events)
-  - Special memory handling:
-    - For EVENT_ROOM: copies the room VNUM into newly allocated memory and stores that pointer in pStruct; validates room existence; see attach switch case at [C.attach_mud_event()](../../src/mud_event.c#L437)
-    - For EVENT_REGION: same pattern for region VNUM; see [C.attach_mud_event()](../../src/mud_event.c#L437)
-  - Macro helper: [C.NEW_EVENT()](../../src/mud_event.h#L27) wraps allocation + attach
+Restore validates owner, type, schema, payload, duration, and duplicate IDs;
+then it creates a fresh runtime event. Elapsed offline time reduces one-shot
+cooldowns and recovers all due daily charges arithmetically. It never replays a
+burst of world-dependent callbacks. Fully expired timers are not admitted.
 
-### 3.3 Processing and Completion (Common Handlers)
+Older `Evn2` records and `Evnt` sections remain readable migration inputs.
+`Evnt` lacks an elapsed-time checkpoint and resumes its stored duration. There
+is no legacy writer or persistence-format selector. Saved counters also use
+`CkAt` recovery; files without it fall back to `Last` during migration.
 
-- Generic countdown handler: [C.event_countdown()](../../src/mud_event.c#L75)
-  - Emits standard messages defined in registry (completion_msg) if applicable
-  - Handles special cases via switch on event_id:
-    - eDARKNESS (room): removes ROOM_DARK and sends message; see [C.event_countdown()](../../src/mud_event.c#L75)
-    - ePURGEMOB: extracts character from world; see [C.event_countdown()](../../src/mud_event.c#L75)
-    - eQUEST_COMPLETE: parses quest vnum and calls complete_quest; see [C.event_countdown()](../../src/mud_event.c#L75)
-    - eENCOUNTER_REG_RESET (region): tokenizes encounter rooms, repositions them to random valid coords, then reschedules itself with “return 60 RL_SEC”; see [C.event_countdown()](../../src/mud_event.c#L75)
-- Daily-use unified handler: [C.event_daily_use_cooldown()](../../src/mud_event.c#L284)
-  - Reads “uses:N” from sVariables and decrements per completion
-  - Computes reschedule cooldown using either:
-    - Table-provided daily_uses (non-feat abilities)
-    - Character feat-derived daily uses via get_daily_uses
-  - Carefully handles overflow and division by zero; see math and guards at [C.event_daily_use_cooldown()](../../src/mud_event.c#L284)
+Combat, casting, DG waits, AI requests, readied actions, and other transient work
+are not reconstructed from raw handles. Readiness is cleared by logout,
+copyover, and reboot. World-owned reconstructed timers use authoritative saved
+world/database state. Archival PubSub SQL remains data, not executable dispatch.
 
-### 3.4 Freeing MUD Events
+## Domain facts and subscriptions
 
-- Main payload cleanup: [C.free_mud_event()](../../src/mud_event.c#L607)
-  - Removes the event from the owning entity list, with post-cleanup to free empty lists
-  - Room/Region safety:
-    - Rooms: pStruct stores a heap copy of room_vnum; copy it before free, compute room_rnum, free pStruct, and only touch world array if room still exists; see [C.free_mud_event()](../../src/mud_event.c#L607)
-    - Regions: same for region_vnum; copy before free, validate against table, remove safely; see [C.free_mud_event()](../../src/mud_event.c#L607)
-  - Frees sVariables if present
-  - Nulls the event’s event_obj to avoid accidental reuse
+Foundation types are registered in [domain_event_types.c](../../src/domain_event_types.c).
+Runtime publishers use typed payloads and entity-scoped topics. A topic combines
+event type, role, and generation-safe entity identity. Publication uses indexes,
+not a scan of the population or full subscription list.
 
-### 3.5 Entity-Scoped Query Helpers
+Subscriptions have bounded admission, explicit owners, opaque cancellation
+handles, and cleanup. Owner teardown removes its subscriptions. Cancellation
+inside a callback is safe; new subscriptions are not admitted during synchronous
+publication. Nested causality is bounded. Never retain a borrowed fact payload.
 
-- Characters: [C.char_has_mud_event()](../../src/mud_event.c#L764)
-- Rooms: [C.room_has_mud_event()](../../src/mud_event.c#L799)
-- Objects: [C.obj_has_mud_event()](../../src/mud_event.c#L831)
-- Regions: [C.region_has_mud_event()](../../src/mud_event.c#L863)
-- World (global list): [C.world_has_mud_event()](../../src/mud_event.c#L905)
+Movement, damage, death, combat changes, object-room changes, activities, world
+phenomena, and door changes have distinct contracts. The gameplay audit records
+remaining coverage gaps; registration alone is not proof of a complete publisher.
 
-### 3.6 Clearing All Events for an Entity
+## Door mutation boundary
 
-Robust patterns are used to avoid iterator invalidation and double-free:
+[movement/door_state.h](../../src/movement/door_state.h) defines a caller-owned,
+synchronous `door_state_operation`. It has no queue, clock, or global dispatcher.
 
-- Characters: two-pass staging approach; see [C.clear_char_event_list()](../../src/mud_event.c#L998)
-  - Pass 1 copies only queued events into a temporary list (events currently executing are not queued)
-  - Pass 2 cancels each staged event
-- Rooms: same two-pass technique using simple_list iterator; see [C.clear_room_event_list()](../../src/mud_event.c#L1072)
-- Regions: process-first-until-empty pattern to avoid holding stale pointers; see [C.clear_region_event_list()](../../src/mud_event.c#L1120)
+1. `door_state_begin()` captures one exit or a verified reciprocal pair, including
+   stable room identity, process-local exit identity, old flags, and cause.
+2. `door_state_apply()` changes the captured sides together. Existing compound
+   command/special gateways may perform their authored mutations within the same
+   explicitly captured operation, preserving containers and asymmetric rules.
+3. `door_state_finish()` snapshots final state before notifying and emits at most
+   one `DoorStateChanged` fact per changed side, scoped to that room. Finish only
+   after the operation no longer needs raw pointers used by notification handlers.
 
-### 3.7 Modifying Existing Events
+`door_state_update()` and `door_state_replace()` combine these steps for simple
+mutations. Paired mode checks the destination and reciprocal return room; it
+never changes an unrelated reverse exit. No-op writes emit nothing. Failed
+pre-operation decisions do not begin a mutation. Loading occurs without runtime
+notification. Reset and edit causes are distinct from gameplay.
 
-- Change duration: [C.change_event_duration()](../../src/mud_event.c#L1216)
-  - Finds the event, duplicates its sVariables, creates a new event with new time, cancels old, attaches new
-- Change sVariables: [C.change_event_svariables()](../../src/mud_event.c#L1267)
-  - Captures remaining time, creates new event with new sVariables, cancels old, reattaches with preserved time
-- Cancel a specific char event by ID: [C.event_cancel_specific()](../../src/mud_event.c#L947)
-  - Uses event_is_queued guard before calling cancel
+DG removal/retarget and live room replacement invalidate the old exit identity.
+A new exit never inherits the old process-local identity. Observers cannot use
+room/direction alone to treat a replacement exit as the original watched door.
+Containers sharing old door-command macros do not publish room-door facts.
 
-## 4. Table-Driven Registry (mud_event_index)
+## Readied commands
 
-- The registry lives in [C.mud_event_index[]](../../src/mud_event_list.c#L46)
-- Each entry contains:
-  - Name and event handler function (EVENTFUNC)
-  - Event type (which owner list to attach to)
-  - Optional messages: completion_msg (one-shot countdown) and recovery_msg (daily-use)
-  - Feat association: feat_num, or FEAT_UNDEFINED if non-feat
-  - Non-feat daily_uses for items or abilities without feats
-- Special cases use message fields for UX, but core logic sits in the handler implementations
-- Addition of new rows enables features without spreading logic across multiple files
+```text
+ready <command> on entry [target]
+ready <command> on door open <direction>
+ready
+ready cancel
+```
 
-## 5. Important Safety and Memory Practices
+Entry readiness filters arrivals in the owner's current room. The optional
+name filters the arrival only; command targeting remains explicit.
 
-- Never free or modify the struct event directly during execution:
-  - [C.event_process()](../../src/dgscript/dg_event.c#L249) marks in-flight events via q_el = NULL
-  - [C.event_cancel()](../../src/dgscript/dg_event.c#L133) detects in-flight events and avoids double-free
-- Never call [C.event_free_all()](../../src/dgscript/dg_event.c#L374) while processing is active; it is guarded, but treat it as shutdown-only
-- For EVENT_ROOM and EVENT_REGION:
-  - Always store a heap-allocated copy of VNUMs on attach (do not keep pointers to stack or external memory)
-  - On free, copy the VNUM out before freeing the pStruct; then validate real_room/real_region prior to dereferencing world/region_table
-- Only cancel queued events:
-  - Guard with [C.event_is_queued()](../../src/dgscript/dg_event.h#L110) before calling [C.event_cancel()](../../src/dgscript/dg_event.c#L133)
-- sVariables ownership:
-  - Always strdup on creation ([C.new_mud_event()](../../src/mud_event.c#L578))
-  - Always free on payload free ([C.free_mud_event()](../../src/mud_event.c#L607))
+Door readiness requires a visible, closed room door with a valid destination.
+It listens only to that room/direction's gameplay closed-to-open transition.
+Unlock-only, another door, no-op writes, reset, and editor changes cannot trigger
+it. It does not identify or automatically target the person opening the door.
 
-## 6. Timing Semantics and Conversions
+A match queues one `action.ready.execute` callback one tick later. Multiple facts
+cannot queue additional commands while it is pending. Execution revalidates the
+owner, room, exit incarnation/destination, visibility, and open state, then uses
+the normal interpreter and action costs. Closing/replacing the door or moving
+away cancels pending execution, even if the door is reopened before the callback.
+This is deferred command preparation, not a preemptive tabletop interrupt.
 
-- Pulses are internal ticks; event functions return pulses to reschedule
-- Conversion helpers:
-  - RL_SEC multiplies by PASSES_PER_SEC (10 ticks/sec), so “X RL_SEC” equals X seconds × 10
-  - e.g., “return 60 RL_SEC;” means run again in 60 seconds × 10 ticks = 600 pulses; see [C.event_countdown()](../../src/mud_event.c#L75)
-- Daily-use math safeguards in [C.event_daily_use_cooldown()](../../src/mud_event.c#L284):
-  - Use long math to avoid overflow
-  - Clamp to sane maximums (e.g., 1 real day)
-  - Guard against division by zero and negative counts
+Movement, death, extraction, logout, explicit cancel, re-arming, copyover,
+shutdown, and admission failure clean up transient state. Arming alone adds
+subscriptions but no periodic timer or population scan.
 
-## 7. Typical Patterns and Examples
+## Diagnostics and regression checks
 
-- Attach a simple countdown to a character:
-  - Use [C.NEW_EVENT()](../../src/mud_event.h#L27) with an event_id mapped to [C.event_countdown()](../../src/mud_event.c#L75) in the registry
-- Start a daily-use recovery cycle:
-  - Create a MUD event with sVariables “uses:N” and handler [C.event_daily_use_cooldown()](../../src/mud_event.c#L284); it will decrement and reschedule until uses exhaust
-- Room-based timed effects:
-  - Attach EVENT_ROOM events using the VNUM value; the attach logic will copy and validate the room
-  - eDARKNESS removal happens via countdown special case; see [C.event_countdown()](../../src/mud_event.c#L75)
-- Region encounter reset loop:
-  - eENCOUNTER_REG_RESET repositions encounter rooms at randomized valid coordinates per region data and reschedules itself; see [C.event_countdown()](../../src/mud_event.c#L75)
+Immortals use `eventdebug` for native types, live owners, remaining times, pending
+work, and per-type profiles. Entity views support player/mobile/object/room
+filters; script views select `dg.` types. Payloads are redacted. Use
+`eventdebug subscriptions` for `ready.entry`, `ready.door-open`, and owner-lifecycle
+listeners. A pending ready execution is an ordinary native event.
 
-## 8. How to Add a New Event
+Run the native architecture, retired API, PubSub retirement, and demand-driven
+scripts under `scripts/events/`. The retired API guard includes a negative
+utility-tree fixture; source ownership checks cover both `src/` and `util/`.
+Production-linked CuTests exercise door state, real DG commands, readiness,
+owner cancellation, and no-op/paired mutation behavior.
 
-1) Choose an ID:
-- Add a new enumerator to event_id in [src/mud_event.h](../../src/mud_event.h)
+See the [gameplay audit](../ongoing-projects/EVENT_GAMEPLAY_OPPORTUNITIES_AND_AUDIT_2026_09_05.md),
+[retained mechanism inventory](EVENT_MECHANISM_INVENTORY.md), and
+[ADR 0002](../adr/0002-event-driven-core-boundaries.md).
 
-2) Declare handler prototype:
-- Ensure there is an EVENTFUNC prototype like [C.EVENTFUNC()](../../src/mud_event.h#L252) for your function
-
-3) Implement the handler:
-- Implement long my_event_handler(void *event_obj) using [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28) semantics
-- Return value:
-  - > 0: number of pulses until reschedule
-  - 0: do not reschedule, event completes
-
-4) Register in the table:
-- Add a row to [C.mud_event_index[]](../../src/mud_event_list.c#L46) with:
-  - name, your handler function, owner type (EVENT_CHAR/ROOM/etc.), optional messages, feat association or daily_uses
-
-5) Attach it:
-- Use [C.NEW_EVENT()](../../src/mud_event.h#L27) or explicit [C.new_mud_event()](../../src/mud_event.c#L579) + [C.attach_mud_event()](../../src/mud_event.c#L437)
-- For ROOM/REGION, pass a pointer to the VNUM value; attach will copy it into owned memory
-
-6) Manage messages (optional):
-- completion_msg for countdowns
-- recovery_msg for daily-use recoveries
-
-7) Validate memory and lifecycle:
-- If you store additional state in sVariables, strdup on creation and free on completion
-- Avoid touching owner lists directly; rely on attach/free helpers
-
-8) Test cancel and rescheduling:
-- Ensure [C.event_is_queued()](../../src/dgscript/dg_event.h#L110) guards before cancel calls
-- If your handler sometimes needs to loop, return the next delay explicitly
-
-## 9. Utility and Query APIs (MUD Layer)
-
-- Initialize global world event list: [C.init_events()](../../src/mud_event.c#L66)
-- Query event presence:
-  - Characters: [C.char_has_mud_event()](../../src/mud_event.c#L764)
-  - Rooms: [C.room_has_mud_event()](../../src/mud_event.c#L799)
-  - Objects: [C.obj_has_mud_event()](../../src/mud_event.c#L831)
-  - Regions: [C.region_has_mud_event()](../../src/mud_event.c#L863)
-  - World: [C.world_has_mud_event()](../../src/mud_event.c#L905)
-- Cancel specific by ID: [C.event_cancel_specific()](../../src/mud_event.c#L947)
-- Change duration: [C.change_event_duration()](../../src/mud_event.c#L1216)
-- Change sVariables: [C.change_event_svariables()](../../src/mud_event.c#L1267)
-
-## 10. Common Pitfalls and Defenses
-
-- Double-free during execution:
-  - Handled by q_el==NULL guard in [C.event_cancel()](../../src/dgscript/dg_event.c#L133) and checks in [C.event_process()](../../src/dgscript/dg_event.c#L249)
-- Free-then-use in Region/Room cleanup:
-  - Fixed by copying VNUM before freeing and validating indices; see [C.free_mud_event()](../../src/mud_event.c#L607) and [C.free_mud_event()](../../src/mud_event.c#L607)
-- Modifying lists during iteration:
-  - Use two-pass staging for character/room clears: [C.clear_char_event_list()](../../src/mud_event.c#L998), [C.clear_room_event_list()](../../src/mud_event.c#L1072)
-  - Use process-first-until-empty for regions: [C.clear_region_event_list()](../../src/mud_event.c#L1120)
-- Overflows and div-by-zero in cooldown math:
-  - Guarded and clamped in [C.event_daily_use_cooldown()](../../src/mud_event.c#L284)
-- Attaching to invalid rooms/regions:
-  - Attach validates via real_room/real_region and cancels safely if invalid; see [C.attach_mud_event()](../../src/mud_event.c#L437)
-
-## 11. Selected Behavior Details
-
-- eSTRUGGLE completion message only if character is grappled; see [C.event_countdown()](../../src/mud_event.c#L75)
-- ePURGEMOB extracts the character (NPC purge); see [C.event_countdown()](../../src/mud_event.c#L75)
-- eCOLLECT_DELAY triggers perform_collect; see [C.event_countdown()](../../src/mud_event.c#L75)
-- eSPELLBATTLE clears a flag; see [C.event_countdown()](../../src/mud_event.c#L75)
-- eENCOUNTER_REG_RESET flow:
-  - Tokenize VNUM list, skip occupied rooms, attempt placement with valid sector compatibility, update coords, refresh wilderness lists, and reschedule; see [C.event_countdown()](../../src/mud_event.c#L75)
-
-## 12. Operational Notes
-
-- World events:
-  - Global list is created in [C.init_events()](../../src/mud_event.c#L66) and defined at [src/mud_event.c](../../src/mud_event.c#L58)
-  - Query via [C.world_has_mud_event()](../../src/mud_event.c#L905)
-- Descriptor events:
-  - Protocol detection is a descriptor-level event (“Protocol”) in the registry mapped to [C.get_protocols()](../../src/mud_event_list.c#L18)
-- Iteration helpers:
-  - simple_list and merge_iterator are used to safely traverse owner lists where appropriate (see various query functions)
-
-## 13. Quick Reference: Add a Daily-Use Ability
-
-- Registry row: handler [C.event_daily_use_cooldown()](../../src/mud_event.c#L284), type EVENT_CHAR (or EVENT_OBJECT), recovery_msg set, feat_num set (or daily_uses if non-feat)
-- On use:
-  - Create sVariables "uses:N" where N is the number of recoveries remaining for this “chain”
-  - Attach via [C.NEW_EVENT()](../../src/mud_event.h#L27) with initial delay of ((SECS_PER_MUD_DAY / uses_per_day) RL_SEC)
-- On completion:
-  - The handler decrements uses and either reschedules or ends, emitting messages as configured
-
-## 14. Logging and Diagnostics
-
-- System errors and warnings are logged (e.g., invalid room/region, tokenize failures, cooldown clamp warnings)
-- If you see warnings about cancel during execution or queue_free during processing, audit call sites for correct usage
-
-## 15. Checklist Before Merging New Event Code
-
-- Event ID added to enum in [src/mud_event.h](../../src/mud_event.h)
-- Handler implemented with [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28)
-- Row added to [C.mud_event_index[]](../../src/mud_event_list.c#L46) with correct type and messages
-- Attach paths validated for entity type (and VNUM copying for room/region)
-- sVariables allocation and free verified
-- Cancel paths guarded with [C.event_is_queued()](../../src/dgscript/dg_event.h#L110)
-- Reschedule returns are in pulses or using RL_SEC as appropriate
-- Negative/zero divisions guarded, long math used for multiplications
-- Unit/system tests cover attach, process, reschedule, cancel, and free flows
+Readiness deadline diagnostics: `eventdebug ready [reset]` reports bounded
+last-1024 callback p50/p95/p99/maximum lateness in native pulses, excluding
+the intentional one-pulse delay. See the mechanism inventory for limitations.

@@ -980,7 +980,7 @@ const char *build_metamagic_prefix(int metamagic)
 }
 
 /**
- * Builds the metamagic descriptor for event_casting() progress display.
+ * Builds the metamagic descriptor for casting activity progress display.
  *
  * Creates a thematic description for the ongoing casting progress,
  * incorporating active metamagic modifiers. This replaces the simple

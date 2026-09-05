@@ -3455,7 +3455,8 @@ int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_nam
 {
   const char *prefix, *middle, *suffix;
   const char *input;
-  char name[MAX_FILEPATH], *ptr;
+  char name[MAX_FILEPATH];
+  size_t name_len;
 
   if (orig_name == NULL || *orig_name == '\0' || filename == NULL)
   {
@@ -3464,14 +3465,33 @@ int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_nam
     return (0);
   }
 
+  /* Build the sanitised name as we validate, so everything downstream reads
+     from a buffer composed only of characters that passed the whitelist rather
+     than from orig_name itself. Functionally this is the same whitelist as
+     before (alphanumerics, '_' and '-', so no separator or '..' can appear),
+     but the sanitised value is now the one that reaches the path, which is
+     both easier to audit and what static analysis can actually follow.
+     Over-long names are rejected rather than silently truncated: truncation
+     could map two distinct players onto one file. */
+  name_len = 0;
   for (input = orig_name; *input; input++)
   {
-    if (!isalnum((unsigned char)*input) && *input != '_' && *input != '-')
+    unsigned char component = (unsigned char)*input;
+
+    if (!isalnum(component) && component != '_' && component != '-')
     {
       log("SYSERR: Invalid character in player filename component.");
       return (0);
     }
+    if (name_len + 1 >= sizeof(name))
+    {
+      log("SYSERR: Player filename component '%s' exceeds %zu characters.", orig_name,
+          sizeof(name) - 1);
+      return (0);
+    }
+    name[name_len++] = (char)LOWER(component);
   }
+  name[name_len] = '\0';
 
   switch (mode)
   {
@@ -3495,11 +3515,7 @@ int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_nam
     return (0);
   }
 
-  strlcpy(name, orig_name, sizeof(name));
-  for (ptr = name; *ptr; ptr++)
-    *ptr = LOWER(*ptr);
-
-  switch (LOWER(*name))
+  switch (*name)
   {
   case 'a':
   case 'b':

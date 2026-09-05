@@ -20,6 +20,7 @@
 #include "act.h" /* for the do_say command */
 #include "constants.h"
 #include "graph.h"
+#include "active_world.h"
 #include "character/abilities.h"
 #include "combat/fight.h"
 #include "mud_event.h"
@@ -30,6 +31,14 @@
 #include "character/perks.h"
 
 /* local functions */
+void set_hunting_target(struct char_data *ch, struct char_data *target)
+{
+  if (ch == NULL)
+    return;
+  HUNTING(ch) = target;
+  active_world_sync_mobile(ch);
+}
+
 static int VALID_EDGE(room_rnum x, int y);
 static void bfs_enqueue(room_rnum room, int dir);
 static void bfs_dequeue(void);
@@ -455,7 +464,7 @@ void hunt_victim(struct char_data *ch)
             continue;
 
           mem_found = TRUE;
-          HUNTING(ch) = tmp;
+          set_hunting_target(ch, tmp);
           act("'bwargh!', exclaims $n.", FALSE, ch, 0, 0, TO_ROOM);
           break;
         }
@@ -475,7 +484,7 @@ void hunt_victim(struct char_data *ch)
     char actbuf[MAX_INPUT_LENGTH] = "???";
 
     do_say(ch, actbuf, 0, 0);
-    HUNTING(ch) = NULL;
+    set_hunting_target(ch, NULL);
     return;
   }
 
@@ -492,7 +501,7 @@ void hunt_victim(struct char_data *ch)
 
   if (ch->master && vict == ch->master && AFF_FLAGGED(ch, AFF_CHARM))
   {
-    HUNTING(ch) = NULL;
+    set_hunting_target(ch, NULL);
     return;
   }
 
@@ -552,7 +561,7 @@ void hunt_victim(struct char_data *ch)
 
       // snprintf(buf, sizeof(buf), "!?!");
       // do_say(ch, buf, 0, 0);
-      HUNTING(ch) = NULL;
+      set_hunting_target(ch, NULL);
     }
     else
     {

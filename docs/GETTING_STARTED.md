@@ -50,7 +50,10 @@ cd Luminari-Source
 
 The deploy script automatically:
 - Installs missing dependencies and builds the game (Autotools preferred)
-- Provisions the `luminari` database and user, runs the in-code `db_init_system` routines so every table exists (wilderness, vessels, PubSub, help, etc.)
+- Provisions the `luminari` database and user, loads the compatibility schema,
+  and runs the in-code initializers for active systems such as wilderness,
+  vessels, and help. Deprecated PubSub tables may be restored by the schema but
+  are ignored by the runtime.
 - Initializes minimal world data (zones, rooms, mobs, objects) - enabled by default
 - Writes generated credentials to `lib/mysql_config` (mode 600)
 

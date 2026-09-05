@@ -7,6 +7,8 @@
 #ifndef HLQUEST_H
 #define HLQUEST_H
 
+void quest_open_door(room_rnum room, int door);
+
 #ifndef __QUEST_CODE_H
 #define __QUEST_CODE_H
 

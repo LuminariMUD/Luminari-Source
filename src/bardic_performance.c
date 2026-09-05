@@ -16,6 +16,7 @@
 #include "magic/spells.h"
 #include "magic/domains_schools.h"
 #include "bardic_performance.h"
+#include "character_periodic.h"
 #include "combat/fight.h"
 #include "actions.h"
 #include "lists.h"
@@ -249,6 +250,7 @@ void initialize_bardic_performance_state(struct char_data *ch)
   GET_PERFORMING(ch) = PERFORMANCE_NONE;
   GET_SECONDARY_PERFORMING(ch) = PERFORMANCE_NONE;
   ch->char_specials.performance_source_id = 0;
+  character_periodic_sync(ch);
 }
 
 void stop_bardic_performance(struct char_data *ch, bool notify)
@@ -260,6 +262,7 @@ void stop_bardic_performance(struct char_data *ch, bool notify)
   GET_PERFORMING(ch) = PERFORMANCE_NONE;
   GET_SECONDARY_PERFORMING(ch) = PERFORMANCE_NONE;
   reset_performance_crescendo(ch);
+  character_periodic_sync(ch);
 
   if (notify)
   {
@@ -297,6 +300,7 @@ void stop_bardic_performance_slot(struct char_data *ch, int slot, bool notify)
   IS_PERFORMING(ch) = GET_PERFORMING(ch) != PERFORMANCE_NONE;
   if (!IS_PERFORMING(ch))
     reset_performance_crescendo(ch);
+  character_periodic_sync(ch);
 
   if (notify)
   {
@@ -512,6 +516,7 @@ static void normalize_bardic_performance_state(struct char_data *ch)
   IS_PERFORMING(ch) = GET_PERFORMING(ch) != PERFORMANCE_NONE;
   if (!IS_PERFORMING(ch))
     reset_performance_crescendo(ch);
+  character_periodic_sync(ch);
 }
 
 /* will list to the performer which performances are available to them */
@@ -835,6 +840,7 @@ ACMD(do_perform)
 
   IS_PERFORMING(ch) = TRUE;
   reset_performance_crescendo(ch);
+  character_periodic_sync(ch);
 
   if (!IS_NPC(ch))
   {
@@ -1633,7 +1639,7 @@ int process_bardic_performance_slot(struct char_data *ch, int slot)
   return process_bardic_performance_slot_internal(ch, slot, TRUE);
 }
 
-static void pulse_bard_winters_war_march(struct char_data *ch)
+static void apply_bard_winters_war_march_verse(struct char_data *ch)
 {
   struct char_data *tch;
   struct char_data *next_tch;
@@ -1682,7 +1688,7 @@ static void pulse_bard_winters_war_march(struct char_data *ch)
   }
 }
 
-static void pulse_bard_symphonic_resonance(struct char_data *ch)
+static void apply_bard_symphonic_resonance_verse(struct char_data *ch)
 {
   int temp_hp_dice;
   int temp_hp;
@@ -1701,7 +1707,7 @@ static void pulse_bard_symphonic_resonance(struct char_data *ch)
   }
 }
 
-static void pulse_bard_endless_refrain(struct char_data *ch)
+static void apply_bard_endless_refrain_verse(struct char_data *ch)
 {
   int slot_regen;
   int recovered;
@@ -1723,19 +1729,19 @@ static void pulse_bard_endless_refrain(struct char_data *ch)
 }
 
 #ifdef LUMINARI_CUTEST
-void test_pulse_bard_winters_war_march(struct char_data *ch)
+void test_apply_bard_winters_war_march_verse(struct char_data *ch)
 {
-  pulse_bard_winters_war_march(ch);
+  apply_bard_winters_war_march_verse(ch);
 }
 
-void test_pulse_bard_symphonic_resonance(struct char_data *ch)
+void test_apply_bard_symphonic_resonance_verse(struct char_data *ch)
 {
-  pulse_bard_symphonic_resonance(ch);
+  apply_bard_symphonic_resonance_verse(ch);
 }
 
-void test_pulse_bard_endless_refrain(struct char_data *ch)
+void test_apply_bard_endless_refrain_verse(struct char_data *ch)
 {
-  pulse_bard_endless_refrain(ch);
+  apply_bard_endless_refrain_verse(ch);
 }
 
 int test_process_bardic_performance_slot_without_stutter(struct char_data *ch, int slot)
@@ -1752,78 +1758,70 @@ void test_bardic_instrument_modifiers(const struct obj_data *instrument, int ide
 #endif
 
 /* Process every active performer. Linkless players are stopped; NPCs can use this engine directly. */
-void pulse_bardic_performance()
+void advance_bardic_performance(struct char_data *ch)
 {
-  struct char_data *ch;
-  struct char_data *next_ch;
-
-  for (ch = character_list; ch; ch = next_ch)
+  if (ch == NULL || !IS_PERFORMING(ch))
+    return;
+  if (!IS_NPC(ch) && (ch->desc == NULL || !IS_PLAYING(ch->desc)))
   {
-    next_ch = ch->next;
+    stop_bardic_performance(ch, FALSE);
+    return;
+  }
 
-    if (!IS_PERFORMING(ch))
-      continue;
+  normalize_bardic_performance_state(ch);
+  if (!IS_PERFORMING(ch))
+  {
+    character_periodic_sync(ch);
+    return;
+  }
 
-    if (!IS_NPC(ch) && (ch->desc == NULL || !IS_PLAYING(ch->desc)))
+  process_bardic_performance_slot(ch, PERFORMANCE_VAR_PRIMARY);
+
+  if (IS_PERFORMING(ch) && GET_SECONDARY_PERFORMING(ch) != PERFORMANCE_NONE)
+    process_bardic_performance_slot(ch, PERFORMANCE_VAR_SECONDARY);
+
+  /* Tier 3 Spellsinger: Dirge of Dissonance - room-wide sonic damage */
+  if (!IS_NPC(ch) && IS_PERFORMING(ch) && has_bard_dirge_of_dissonance(ch))
+  {
+    struct char_data *tch = NULL, *next_tch = NULL;
+    int dirge_damage = get_bard_dirge_sonic_damage(ch);
+
+    if (dirge_damage > 0)
     {
-      stop_bardic_performance(ch, FALSE);
-      continue;
-    }
+      send_to_char(ch, "\tMYour Dirge of Dissonance fills the room with discordant tones!\tn\r\n");
 
-    normalize_bardic_performance_state(ch);
-    if (!IS_PERFORMING(ch))
-      continue;
-
-    process_bardic_performance_slot(ch, PERFORMANCE_VAR_PRIMARY);
-
-    if (IS_PERFORMING(ch) && GET_SECONDARY_PERFORMING(ch) != PERFORMANCE_NONE)
-      process_bardic_performance_slot(ch, PERFORMANCE_VAR_SECONDARY);
-
-    /* Tier 3 Spellsinger: Dirge of Dissonance - room-wide sonic damage */
-    if (!IS_NPC(ch) && IS_PERFORMING(ch) && has_bard_dirge_of_dissonance(ch))
-    {
-      struct char_data *tch = NULL, *next_tch = NULL;
-      int dirge_damage = get_bard_dirge_sonic_damage(ch);
-
-      if (dirge_damage > 0)
+      /* Damage all enemies in the room */
+      for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
       {
-        send_to_char(ch,
-                     "\tMYour Dirge of Dissonance fills the room with discordant tones!\tn\r\n");
+        int dam;
 
-        /* Damage all enemies in the room */
-        for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+        next_tch = tch->next_in_room;
+
+        /* Skip self, allies, and those not valid AOE targets */
+        if (tch == ch || !aoeOK(ch, tch, -1))
+          continue;
+
+        dam = dice(dirge_damage, 6);
+        if (dam > 0)
         {
-          int dam;
-
-          next_tch = tch->next_in_room;
-
-          /* Skip self, allies, and those not valid AOE targets */
-          if (tch == ch || !aoeOK(ch, tch, -1))
-            continue;
-
-          dam = dice(dirge_damage, 6);
-          if (dam > 0)
-          {
-            send_to_char(tch, "\tRThe discordant sounds assault your senses! [%d damage]\tn\r\n",
-                         dam);
-            damage(ch, tch, dam, -1, DAM_SOUND, FALSE);
-          }
+          send_to_char(tch, "\tRThe discordant sounds assault your senses! [%d damage]\tn\r\n",
+                       dam);
+          damage(ch, tch, dam, -1, DAM_SOUND, FALSE);
         }
       }
     }
-
-    /* Tier 4 Warchanter: room-wide cold damage and slow once per verse. */
-    if (!IS_NPC(ch) && IS_PERFORMING(ch))
-      pulse_bard_winters_war_march(ch);
-
-    /* Tier 4 Spellsinger: Symphonic Resonance - grant temporary HP each verse. */
-    pulse_bard_symphonic_resonance(ch);
-
-    /* Tier 4 Spellsinger: Endless Refrain - recover one Bard slot each verse. */
-    pulse_bard_endless_refrain(ch);
   }
 
-  return;
+  /* Tier 4 Warchanter: room-wide cold damage and slow once per verse. */
+  if (!IS_NPC(ch) && IS_PERFORMING(ch))
+    apply_bard_winters_war_march_verse(ch);
+
+  /* Tier 4 Spellsinger: Symphonic Resonance - grant temporary HP each verse. */
+  apply_bard_symphonic_resonance_verse(ch);
+
+  /* Tier 4 Spellsinger: Endless Refrain - recover one Bard slot each verse. */
+  apply_bard_endless_refrain_verse(ch);
 }
+
 
 /* EOF */

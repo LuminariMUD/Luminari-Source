@@ -53,8 +53,12 @@ This deployment guide covers database setup for:
 db_init_system wilderness   # Resource depletion, conservation, regional effects
 db_init_system region       # Spatial tables, triggers, and indexes
 db_init_system vessels      # Ship persistence tables and procedures
-db_init_system pubsub       # Messaging queues (if you skipped them earlier)
 ```
+
+The old PubSub runtime is retired. Its tables may still exist as deprecated,
+preserved data, but `database init` and `db_init_system` never create or mutate
+them. Restore their definitions from `sql/master_schema.sql` only for archival
+recovery; do not drop production copies without a reviewed backup migration.
 
 ### 2. Verify Installation
 - Inside the MUD use `database verify` to run the integrity checks, or

@@ -63,6 +63,7 @@ their subsystem deployment guides.
 
 ## Operational References
 
+- [Event-driven core release gate](deployment/EVENT_DRIVEN_CORE_RELEASE_GATE.md)
 - [Environment boundaries](environments.md)
 - [Health API contract](api/README_api.md)
 - [Phase 00 security and privacy assessment](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md#security-and-privacy-assessment)

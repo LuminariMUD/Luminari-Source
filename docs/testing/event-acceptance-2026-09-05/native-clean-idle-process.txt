@@ -1,0 +1,151 @@
+Linux 6.17.0-29-generic (jmcl-ubuntu-zbook) 	09/05/26 	_x86_64_	(12 CPU)
+
+11:35:02      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:35:07     1000   2773650    9.20    0.20    0.00    0.00    9.40     6  luminari
+
+11:35:02      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:35:07     1000   2773650      0.40      0.00 1560804 1528800   4.68  luminari
+
+11:35:07      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:35:12     1000   2773650    7.00    0.20    0.00    0.00    7.20     7  luminari
+
+11:35:07      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:35:12     1000   2773650      0.00      0.00 1560804 1528800   4.68  luminari
+
+11:35:12      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:35:17     1000   2773650    4.59    0.00    0.00    0.00    4.59     8  luminari
+
+11:35:12      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:35:17     1000   2773650      0.00      0.00 1560804 1528800   4.68  luminari
+
+11:35:17      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:35:22     1000   2773650    4.00    0.00    0.00    0.00    4.00     1  luminari
+
+11:35:17      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:35:22     1000   2773650      0.00      0.00 1560804 1528800   4.68  luminari
+
+11:35:22      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:35:27     1000   2773650    3.60    0.00    0.00    0.00    3.60     8  luminari
+
+11:35:22      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:35:27     1000   2773650      0.00      0.00 1560804 1528800   4.68  luminari
+
+11:35:27      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:35:32     1000   2773650    2.60    0.00    0.00    0.00    2.60     3  luminari
+
+11:35:27      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:35:32     1000   2773650      0.00      0.00 1560804 1528800   4.68  luminari
+
+11:35:32      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:35:37     1000   2773650    4.40    0.20    0.00    0.00    4.60     3  luminari
+
+11:35:32      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:35:37     1000   2773650      0.40      0.00 1560804 1528800   4.68  luminari
+
+11:35:37      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:35:42     1000   2773650    4.40    0.00    0.00    0.00    4.40     9  luminari
+
+11:35:37      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:35:42     1000   2773650      0.00      0.00 1560804 1528800   4.68  luminari
+
+11:35:42      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:35:47     1000   2773650    4.00    0.20    0.00    0.00    4.20    10  luminari
+
+11:35:42      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:35:47     1000   2773650      0.00      0.00 1560804 1528800   4.68  luminari
+
+11:35:47      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:35:52     1000   2773650    3.80    0.00    0.00    0.20    3.80    10  luminari
+
+11:35:47      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:35:52     1000   2773650      0.00      0.00 1560804 1528800   4.68  luminari
+
+11:35:52      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:35:57     1000   2773650    4.20    0.00    0.00    0.00    4.20    10  luminari
+
+11:35:52      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:35:57     1000   2773650      0.00      0.00 1560804 1528800   4.68  luminari
+
+11:35:57      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:36:02     1000   2773650    1.60    0.00    0.00    0.00    1.60     4  luminari
+
+11:35:57      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:36:02     1000   2773650      0.40      0.00 1560804 1528800   4.68  luminari
+
+11:36:02      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:36:07     1000   2773650    4.00    0.20    0.00    0.00    4.20     5  luminari
+
+11:36:02      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:36:07     1000   2773650      0.00      0.00 1560804 1528800   4.68  luminari
+
+11:36:07      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:36:12     1000   2773650    4.80    0.00    0.00    0.00    4.80     4  luminari
+
+11:36:07      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:36:12     1000   2773650      0.00      0.00 1560804 1528800   4.68  luminari
+
+11:36:12      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:36:17     1000   2773650    3.40    0.00    0.00    0.00    3.40     4  luminari
+
+11:36:12      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:36:17     1000   2773650      0.00      0.00 1560804 1528800   4.68  luminari
+
+11:36:17      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:36:22     1000   2773650    3.80    0.20    0.00    0.00    4.00     4  luminari
+
+11:36:17      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:36:22     1000   2773650      0.00      0.00 1560804 1528800   4.68  luminari
+
+11:36:22      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:36:27     1000   2773650    3.80    0.00    0.00    0.00    3.80     4  luminari
+
+11:36:22      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:36:27     1000   2773650      0.40      0.00 1560804 1528800   4.68  luminari
+
+11:36:27      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:36:32     1000   2773650    2.60    0.00    0.00    0.00    2.60     4  luminari
+
+11:36:27      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:36:32     1000   2773650      0.00      0.00 1560804 1528800   4.68  luminari
+
+11:36:32      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:36:37     1000   2773650    3.40    0.20    0.00    0.00    3.60     6  luminari
+
+11:36:32      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:36:37     1000   2773650      0.00      0.00 1560804 1528800   4.68  luminari
+
+11:36:37      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:36:42     1000   2773650    4.00    0.00    0.00    0.00    4.00     7  luminari
+
+11:36:37      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:36:42     1000   2773650      0.40      0.00 1560804 1528800   4.68  luminari
+
+11:36:42      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:36:47     1000   2773650    9.60    0.20    0.00    0.00    9.80     1  luminari
+
+11:36:42      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:36:47     1000   2773650     22.60      0.00 1561204 1529184   4.68  luminari
+
+11:36:47      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:36:52     1000   2773650    6.20    0.00    0.00    0.00    6.20     6  luminari
+
+11:36:47      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:36:52     1000   2773650      0.40      0.00 1561204 1529184   4.68  luminari
+
+11:36:52      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:36:57     1000   2773650    5.00    0.00    0.00    0.00    5.00     6  luminari
+
+11:36:52      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:36:57     1000   2773650      2.40      0.00 1561356 1529184   4.68  luminari
+
+11:36:57      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+11:37:02     1000   2773650    1.80    0.20    0.00    0.00    2.00     6  luminari
+
+11:36:57      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+11:37:02     1000   2773650      0.00      0.00 1561356 1529184   4.68  luminari
+
+Average:      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+Average:     1000   2773650    4.41    0.07    0.00    0.01    4.48     -  luminari
+
+Average:      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+Average:     1000   2773650      1.14      0.00 1560883 1528864   4.68  luminari

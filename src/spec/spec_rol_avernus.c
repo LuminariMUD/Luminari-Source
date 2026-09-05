@@ -7,6 +7,8 @@
 #include "sysdep.h"
 
 #include "structs.h"
+#include "movement/door_state.h"
+#include "domain_event_world.h"
 #include "utils.h"
 
 #include "act.h"
@@ -546,6 +548,8 @@ static void rol_avernus_stop_combat(struct char_data *victim)
 
 static bool rol_avernus_open_and_move(struct char_data *ch, int direction)
 {
+  struct door_state_operation operation = {0};
+  struct domain_entity_handle actor, source_room;
   struct room_direction_data *exit;
   struct room_direction_data *reverse_exit;
   room_rnum destination;
@@ -553,6 +557,7 @@ static bool rol_avernus_open_and_move(struct char_data *ch, int direction)
   if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)) || direction < 0 || direction >= NUM_OF_DIRS ||
       (exit = EXIT(ch, direction)) == NULL || !VALID_ROOM_RNUM(exit->to_room))
     return false;
+  door_state_begin(&operation, IN_ROOM(ch), direction, true, DOMAIN_DOOR_GAMEPLAY);
   destination = exit->to_room;
   REMOVE_BIT(exit->exit_info, EX_LOCKED);
   REMOVE_BIT(exit->exit_info, EX_LOCKED_EASY);
@@ -568,11 +573,18 @@ static bool rol_avernus_open_and_move(struct char_data *ch, int direction)
     REMOVE_BIT(reverse_exit->exit_info, EX_LOCKED_HARD);
     REMOVE_BIT(reverse_exit->exit_info, EX_CLOSED);
   }
-  return perform_move(ch, direction, 1) != 0;
+  actor = domain_event_character_handle(ch);
+  source_room = domain_event_room_handle(IN_ROOM(ch));
+  door_state_finish(&operation);
+  ch = domain_event_world_resolve_character(actor);
+  return ch != NULL &&
+         domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(ch)), source_room) &&
+         perform_move(ch, direction, 1) != 0;
 }
 
 static void rol_avernus_close_and_lock(struct char_data *ch, int direction)
 {
+  struct door_state_operation operation = {0};
   struct room_direction_data *exit;
   struct room_direction_data *reverse_exit;
   room_rnum destination;
@@ -580,20 +592,24 @@ static void rol_avernus_close_and_lock(struct char_data *ch, int direction)
   if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)) || direction < 0 || direction >= NUM_OF_DIRS ||
       (exit = EXIT(ch, direction)) == NULL || !VALID_ROOM_RNUM(exit->to_room))
     return;
+  door_state_begin(&operation, IN_ROOM(ch), direction, true, DOMAIN_DOOR_GAMEPLAY);
   destination = exit->to_room;
   SET_BIT(exit->exit_info, EX_ISDOOR | EX_CLOSED | EX_LOCKED);
   reverse_exit = world[destination].dir_option[rev_dir[direction]];
   if (reverse_exit != NULL && reverse_exit->to_room == IN_ROOM(ch))
     SET_BIT(reverse_exit->exit_info, EX_ISDOOR | EX_CLOSED | EX_LOCKED);
+  door_state_finish(&operation);
 }
 
 static bool rol_avernus_prison_patrol(struct char_data *ch)
 {
+  struct domain_entity_handle actor;
   unsigned int state;
   int current_vnum;
 
   if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
     return false;
+  actor = domain_event_character_handle(ch);
   state = (unsigned int)ch->mob_specials.proc_fired;
   current_vnum = GET_ROOM_VNUM(IN_ROOM(ch));
 
@@ -605,46 +621,49 @@ static bool rol_avernus_prison_patrol(struct char_data *ch)
     case 2033004:
     case 2033007:
       if ((state & (ROL_AVERNUS_PRISON_FIRST_DOOR | ROL_AVERNUS_PRISON_SECOND_DOOR)) == 0)
-        (void)rol_avernus_open_and_move(ch, EAST);
+        (void)rol_avernus_open_and_move(domain_event_world_resolve_character(actor), EAST);
       else if ((state & ROL_AVERNUS_PRISON_FIRST_DOOR) != 0 &&
                (state & ROL_AVERNUS_PRISON_SECOND_DOOR) == 0)
       {
-        rol_avernus_close_and_lock(ch, EAST);
-        (void)rol_avernus_open_and_move(ch, WEST);
+        rol_avernus_close_and_lock(domain_event_world_resolve_character(actor), EAST);
+        (void)rol_avernus_open_and_move(domain_event_world_resolve_character(actor), WEST);
       }
       else
       {
-        rol_avernus_close_and_lock(ch, WEST);
-        (void)rol_avernus_open_and_move(ch, SOUTH);
+        rol_avernus_close_and_lock(domain_event_world_resolve_character(actor), WEST);
+        (void)rol_avernus_open_and_move(domain_event_world_resolve_character(actor), SOUTH);
         state &= ~(ROL_AVERNUS_PRISON_FIRST_DOOR | ROL_AVERNUS_PRISON_SECOND_DOOR);
         if (current_vnum == 2033001)
           state |= ROL_AVERNUS_PRISON_REVERSE;
       }
-      ch->mob_specials.proc_fired = (int)state;
+      if ((ch = domain_event_world_resolve_character(actor)) != NULL)
+        ch->mob_specials.proc_fired = (int)state;
       return true;
     case 2033002:
     case 2033005:
     case 2033008:
-      (void)rol_avernus_open_and_move(ch, EAST);
-      ch->mob_specials.proc_fired = (int)(state | ROL_AVERNUS_PRISON_SECOND_DOOR);
+      (void)rol_avernus_open_and_move(domain_event_world_resolve_character(actor), EAST);
+      if ((ch = domain_event_world_resolve_character(actor)) != NULL)
+        ch->mob_specials.proc_fired = (int)(state | ROL_AVERNUS_PRISON_SECOND_DOOR);
       return true;
     case 2033003:
     case 2033006:
     case 2033009:
-      (void)rol_avernus_open_and_move(ch, WEST);
-      ch->mob_specials.proc_fired = (int)(state | ROL_AVERNUS_PRISON_FIRST_DOOR);
+      (void)rol_avernus_open_and_move(domain_event_world_resolve_character(actor), WEST);
+      if ((ch = domain_event_world_resolve_character(actor)) != NULL)
+        ch->mob_specials.proc_fired = (int)(state | ROL_AVERNUS_PRISON_FIRST_DOOR);
       return true;
     case 2033012:
     case 2033013:
     case 2033016:
     case 2033017:
-      (void)rol_avernus_open_and_move(ch, EAST);
+      (void)rol_avernus_open_and_move(domain_event_world_resolve_character(actor), EAST);
       return true;
     case 2033010:
     case 2033011:
     case 2033014:
     case 2033015:
-      (void)rol_avernus_open_and_move(ch, SOUTH);
+      (void)rol_avernus_open_and_move(domain_event_world_resolve_character(actor), SOUTH);
       return true;
     default:
       return false;
@@ -654,8 +673,8 @@ static bool rol_avernus_prison_patrol(struct char_data *ch)
   switch (current_vnum)
   {
   case 2033000:
-    (void)rol_avernus_open_and_move(ch, NORTH);
-    rol_avernus_close_and_lock(ch, SOUTH);
+    (void)rol_avernus_open_and_move(domain_event_world_resolve_character(actor), NORTH);
+    rol_avernus_close_and_lock(domain_event_world_resolve_character(actor), SOUTH);
     return true;
   case 2033001:
   case 2033004:
@@ -663,16 +682,17 @@ static bool rol_avernus_prison_patrol(struct char_data *ch)
   case 2033010:
   case 2033013:
   case 2033014:
-    (void)rol_avernus_open_and_move(ch, NORTH);
+    (void)rol_avernus_open_and_move(domain_event_world_resolve_character(actor), NORTH);
     return true;
   case 2033011:
   case 2033012:
   case 2033015:
-    (void)rol_avernus_open_and_move(ch, WEST);
+    (void)rol_avernus_open_and_move(domain_event_world_resolve_character(actor), WEST);
     return true;
   case 2033016:
-    (void)rol_avernus_open_and_move(ch, WEST);
-    ch->mob_specials.proc_fired = (int)(state & ~(unsigned int)ROL_AVERNUS_PRISON_REVERSE);
+    (void)rol_avernus_open_and_move(domain_event_world_resolve_character(actor), WEST);
+    if ((ch = domain_event_world_resolve_character(actor)) != NULL)
+      ch->mob_specials.proc_fired = (int)(state & ~(unsigned int)ROL_AVERNUS_PRISON_REVERSE);
     return true;
   default:
     return false;
@@ -711,6 +731,7 @@ static void rol_avernus_patrol_recover(struct char_data *ch)
 
 static int rol_avernus_patrol_activity(struct char_data *ch, enum rol_avernus_mobile_effect effect)
 {
+  struct domain_entity_handle actor;
   bool moved = false;
   int direction;
 
@@ -720,6 +741,7 @@ static int rol_avernus_patrol_activity(struct char_data *ch, enum rol_avernus_mo
       rol_avernus_patrol_observes_intruder(ch))
     return FALSE;
 
+  actor = domain_event_character_handle(ch);
   if (effect == ROL_AVERNUS_PRISON_PATROL)
     moved = rol_avernus_prison_patrol(ch);
   else
@@ -729,7 +751,7 @@ static int rol_avernus_patrol_activity(struct char_data *ch, enum rol_avernus_mo
       moved = rol_avernus_open_and_move(ch, direction);
   }
   if (!moved)
-    rol_avernus_patrol_recover(ch);
+    rol_avernus_patrol_recover(domain_event_world_resolve_character(actor));
   return FALSE;
 }
 
@@ -1298,7 +1320,7 @@ static bool rol_avernus_has_dagger_follower(const struct char_data *owner,
   return false;
 }
 
-static int rol_avernus_dagger_object_pulse(struct char_data *owner, struct obj_data *obj)
+static int rol_avernus_restore_dancing_dagger(struct char_data *owner, struct obj_data *obj)
 {
   if (!OBJ_FLAGGED(obj, ITEM_HIDDEN))
     return FALSE;
@@ -1425,8 +1447,8 @@ static int rol_avernus_bel_sword_restrict(struct spec_event_context *context,
   return TRUE;
 }
 
-static int rol_avernus_bel_sword_pulse(struct spec_event_context *context, struct char_data *owner,
-                                       struct obj_data *obj)
+static int rol_avernus_enforce_bel_sword_owner(struct spec_event_context *context,
+                                               struct char_data *owner, struct obj_data *obj)
 {
   struct char_data *bel;
   bool punish;
@@ -1537,12 +1559,12 @@ int rol_avernus_object_typed(struct spec_event_context *context)
     if (profile->effect == ROL_AVERNUS_OBJECT_DANCING_DAGGER)
       return rol_avernus_dagger_object_command(context, ch, obj);
     return FALSE;
-  case SPEC_EVENT_OBJECT_AUTO_PULSE:
+  case SPEC_EVENT_OBJECT_AUTOMATIC:
     ch = rol_avernus_object_owner(obj);
     if (profile->effect == ROL_AVERNUS_OBJECT_DANCING_DAGGER)
-      return rol_avernus_dagger_object_pulse(ch, obj);
+      return rol_avernus_restore_dancing_dagger(ch, obj);
     if (profile->effect == ROL_AVERNUS_OBJECT_BEL_SWORD)
-      return rol_avernus_bel_sword_pulse(context, ch, obj);
+      return rol_avernus_enforce_bel_sword_owner(context, ch, obj);
     return FALSE;
   case SPEC_EVENT_ITEM_IDENTIFY:
     if (profile->effect == ROL_AVERNUS_OBJECT_DANCING_DAGGER)
@@ -1658,7 +1680,7 @@ int rol_avernus_garden_typed(struct spec_event_context *context)
   return FALSE;
 }
 
-void rol_avernus_room_pulse(void)
+void rol_avernus_process_garden_activity(void)
 {
   room_rnum garden = real_room(ROL_AVERNUS_GARDEN_FIRST_VNUM);
 

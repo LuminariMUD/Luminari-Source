@@ -38,7 +38,7 @@ The main integration points are:
 | `src/combat/fight.c` | Resistance, combat XP, generic procs, and signature procs |
 | `src/act.comm.c` | Called-effect phrase handling from `say` |
 | `src/act.comm.do_spec_comm.c` | Called-effect phrase handling from `whisper` |
-| `src/limits.c` | Class-oath burn damage during `point_update()` |
+| `src/limits.c` | Class-oath burn damage during the player mud-hour point phase |
 | `src/interpreter.c` | Player, ability, and staff command registration |
 | `src/magic/spells.h` | `SPELL_ARTIFACT_BONUS`, `_PASSIVE`, and `_SURGE` affect identifiers |
 
@@ -271,7 +271,7 @@ Five artifacts require ten levels in a named class:
 
 The gate uses `CLASS_LEVEL()` so it works with LuminariMUD multiclass
 characters. Wearing an artifact without the required depth is allowed, but
-once per `point_update()` it burns the wearer for fire damage equal to 3
+once per player mud-hour point phase it burns the wearer for fire damage equal to 3
 percent of maximum HP, with `5d4` as the floor. Only one burn is applied per
 update even when several equipped artifacts reject the wearer.
 

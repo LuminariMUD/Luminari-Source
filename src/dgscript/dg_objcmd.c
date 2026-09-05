@@ -10,6 +10,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "movement/door_state.h"
 #include "screen.h"
 #include "dg_scripts.h"
 #include "utils.h"
@@ -20,13 +21,14 @@
 #include "constants.h"
 #include "olc/genzon.h"   /* for access to real_zone_by_thing */
 #include "combat/fight.h" /* for die() */
+#include "point_update_periodic.h"
 
 /* Local functions */
 #define OCMD(name)                                                                                 \
   void(name)(obj_data * obj __attribute__((unused)), char *argument __attribute__((unused)),       \
              int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
 
-static void obj_log(obj_data *obj, const char *format, ...);
+static void obj_log(obj_data *obj, const char *format, ...) __attribute__((format(printf, 2, 3)));
 static room_rnum find_obj_target_room(obj_data *obj, char *rawroomstr);
 static OCMD(do_oecho);
 static OCMD(do_ogecho);
@@ -62,14 +64,17 @@ struct obj_command_info
 static void obj_log(obj_data *obj, const char *format, ...)
 {
   va_list args;
-  char output[MAX_STRING_LENGTH] = {'\0'};
+  char message[MAX_STRING_LENGTH] = {'\0'};
 
-  snprintf(output, sizeof(output), "Obj (%s, VNum %d):: %s", obj->short_description,
-           GET_OBJ_VNUM(obj), format);
-
+  /* Expand the caller's format against its own arguments first, then attach
+     the prefix as data. Splicing the prefix into the format string made the
+     object's short description - which a builder controls - act as format
+     directives consuming arguments that were never passed. */
   va_start(args, format);
-  script_vlog(output, args);
+  vsnprintf(message, sizeof(message), format, args);
   va_end(args);
+
+  script_log("Obj (%s, VNum %d):: %s", obj->short_description, GET_OBJ_VNUM(obj), message);
 }
 
 /* returns the real room number that the object or object's carrier is in */
@@ -299,7 +304,10 @@ static OCMD(do_otimer)
   else if (!isdigit(*arg))
     obj_log(obj, "otimer: bad argument");
   else
+  {
     GET_OBJ_TIMER(obj) = atoi(arg);
+    point_update_object_sync(obj);
+  }
 }
 
 /* Transform into a different object. Note: this shouldn't be used with
@@ -333,6 +341,10 @@ static OCMD(do_otransform)
       unequip_char(obj->worn_by, pos);
     }
 
+    autoproc_registry_remove(obj);
+    autoproc_registry_remove(o);
+    point_update_object_forget(obj);
+    point_update_object_forget(o);
     /* move new obj info over to old object and delete new obj */
     memcpy(&tmpobj, o, sizeof(*o));
     tmpobj.in_room = IN_ROOM(obj);
@@ -353,6 +365,8 @@ static OCMD(do_otransform)
       equip_char(wearer, obj, pos);
     }
 
+    autoproc_registry_sync(obj);
+    point_update_object_sync(obj);
     extract_obj(o);
   }
 }
@@ -691,6 +705,7 @@ static OCMD(do_oasound)
 
 static OCMD(do_odoor)
 {
+  struct door_state_operation operation = {0};
   char target[MAX_INPUT_LENGTH] = {'\0'}, direction[MAX_INPUT_LENGTH] = {'\0'};
   char field[MAX_INPUT_LENGTH] = {'\0'}, *value;
   char choices[256] = {'\0'};
@@ -731,6 +746,7 @@ static OCMD(do_odoor)
     return;
   }
 
+  door_state_begin(&operation, real_room(rm->number), dir, false, DOMAIN_DOOR_GAMEPLAY);
   newexit = rm->dir_option[dir];
 
   /* purge exit */
@@ -786,6 +802,7 @@ static OCMD(do_odoor)
       break;
     }
   }
+  door_state_finish(&operation);
 }
 
 static OCMD(do_osetval)
@@ -815,6 +832,7 @@ static OCMD(do_osetval)
     }
 
     GET_OBJ_VAL(obj, position) = new_value;
+    point_update_object_sync(obj);
 
     if (worn_by != NULL)
     {

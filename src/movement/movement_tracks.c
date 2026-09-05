@@ -22,9 +22,258 @@
 #include "act.h"
 #include "character/class.h"
 #include "character/race.h"
+#include "wilderness/wilderness.h"
 /* Include movement system header */
 #include "movement.h"
 #include "movement_tracks.h" /* includes trail data structures */
+
+enum movement_trail_location_kind
+{
+  TRAIL_LOCATION_ROOM = 0,
+  TRAIL_LOCATION_WILDERNESS
+};
+
+struct movement_trail_location
+{
+  enum movement_trail_location_kind kind;
+  room_vnum room_vnum;
+  zone_vnum zone_vnum;
+  int x;
+  int y;
+  struct trail_data_list trails;
+  struct movement_trail_location *next;
+};
+
+#define MOVEMENT_TRAIL_LOCATION_BUCKETS 1024U
+
+static struct movement_trail_location
+    *movement_trail_location_buckets[MOVEMENT_TRAIL_LOCATION_BUCKETS];
+static size_t movement_trail_location_count;
+static uint64_t trail_cleanup_runs;
+static uint64_t trail_locations_visited;
+static uint64_t trail_entries_removed;
+static size_t trail_last_cleanup_locations_visited;
+
+static void movement_trail_free(struct trail_data *trail);
+
+static bool movement_trail_room_is_wilderness(const struct room_data *room)
+{
+  if (room == NULL)
+    return false;
+  if (IS_WILDERNESS_VNUM(room->number))
+    return true;
+  return zone_table != NULL && room->zone != NOWHERE && room->zone <= top_of_zone_table &&
+         ZONE_FLAGGED(room->zone, ZONE_WILDERNESS);
+}
+
+static zone_vnum movement_trail_wilderness_zone(const struct room_data *room)
+{
+  if (room != NULL && zone_table != NULL && room->zone != NOWHERE &&
+      room->zone <= top_of_zone_table)
+    return zone_table[room->zone].number;
+  return WILD_ZONE_VNUM;
+}
+
+static uint32_t movement_trail_hash_mix(uint32_t value)
+{
+  value ^= value >> 16;
+  value *= 0x7feb352dU;
+  value ^= value >> 15;
+  value *= 0x846ca68bU;
+  return value ^ (value >> 16);
+}
+
+static size_t movement_trail_location_bucket(enum movement_trail_location_kind kind,
+                                             room_vnum room_vnum, zone_vnum zone_vnum, int x, int y)
+{
+  uint32_t hash = movement_trail_hash_mix((uint32_t)kind + 1U);
+
+  if (kind == TRAIL_LOCATION_ROOM || room_vnum != NOWHERE)
+    hash ^= movement_trail_hash_mix((uint32_t)room_vnum);
+  else
+  {
+    hash ^= movement_trail_hash_mix((uint32_t)zone_vnum);
+    hash ^= movement_trail_hash_mix((uint32_t)x + 0x9e3779b9U);
+    hash ^= movement_trail_hash_mix((uint32_t)y + 0x85ebca6bU);
+  }
+  return hash % MOVEMENT_TRAIL_LOCATION_BUCKETS;
+}
+
+static bool movement_trail_location_matches(const struct movement_trail_location *location,
+                                            enum movement_trail_location_kind kind,
+                                            room_vnum room_vnum, zone_vnum zone_vnum, int x, int y)
+{
+  if (location->kind != kind)
+    return false;
+  if (kind == TRAIL_LOCATION_ROOM)
+    return location->room_vnum == room_vnum;
+  if (location->room_vnum != room_vnum)
+    return false;
+  if (room_vnum != NOWHERE)
+    return true;
+  return location->zone_vnum == zone_vnum && location->x == x && location->y == y;
+}
+
+static void movement_trail_list_clear(struct trail_data_list *list)
+{
+  struct trail_data *trail;
+  struct trail_data *next;
+
+  if (list == NULL)
+    return;
+  for (trail = list->head; trail != NULL; trail = next)
+  {
+    next = trail->next;
+    movement_trail_free(trail);
+  }
+  list->head = NULL;
+  list->tail = NULL;
+}
+
+static struct movement_trail_location *
+movement_trail_location_for_room(const struct room_data *room, bool create)
+{
+  struct movement_trail_location **head;
+  struct movement_trail_location *location;
+  enum movement_trail_location_kind kind;
+  bool coordinates_set;
+  room_vnum room_vnum;
+  zone_vnum zone_vnum;
+  int x;
+  int y;
+
+  if (room == NULL || room->number == NOWHERE)
+    return NULL;
+  kind = movement_trail_room_is_wilderness(room) ? TRAIL_LOCATION_WILDERNESS : TRAIL_LOCATION_ROOM;
+  coordinates_set = kind == TRAIL_LOCATION_WILDERNESS &&
+                    (IS_WILDERNESS_VNUM(room->number) || room->wilderness_coordinates_set);
+  room_vnum = kind == TRAIL_LOCATION_ROOM || !coordinates_set ? room->number : NOWHERE;
+  zone_vnum = kind == TRAIL_LOCATION_WILDERNESS ? movement_trail_wilderness_zone(room) : NOWHERE;
+  x = coordinates_set ? room->coords[X_COORD] : 0;
+  y = coordinates_set ? room->coords[Y_COORD] : 0;
+  head = &movement_trail_location_buckets[movement_trail_location_bucket(kind, room_vnum, zone_vnum,
+                                                                         x, y)];
+  for (location = *head; location != NULL; location = location->next)
+    if (movement_trail_location_matches(location, kind, room_vnum, zone_vnum, x, y))
+      return location;
+  if (!create)
+    return NULL;
+
+  CREATE(location, struct movement_trail_location, 1);
+  location->kind = kind;
+  location->room_vnum = room_vnum;
+  location->zone_vnum = zone_vnum;
+  location->x = x;
+  location->y = y;
+  location->next = *head;
+  *head = location;
+  movement_trail_location_count++;
+  return location;
+}
+
+void movement_trail_registry_forget(room_vnum vnum)
+{
+  struct movement_trail_location **link;
+  struct movement_trail_location *location;
+  enum movement_trail_location_kind kind;
+  size_t bucket;
+
+  if (vnum == NOWHERE || IS_WILDERNESS_VNUM(vnum))
+    return;
+  for (kind = TRAIL_LOCATION_ROOM; kind <= TRAIL_LOCATION_WILDERNESS; kind++)
+  {
+    bucket = movement_trail_location_bucket(kind, vnum, NOWHERE, 0, 0);
+    for (link = &movement_trail_location_buckets[bucket]; (location = *link) != NULL;
+         link = &location->next)
+    {
+      if (!movement_trail_location_matches(location, kind, vnum, NOWHERE, 0, 0))
+        continue;
+      *link = location->next;
+      movement_trail_list_clear(&location->trails);
+      free(location);
+      if (movement_trail_location_count > 0U)
+        movement_trail_location_count--;
+      return;
+    }
+  }
+}
+
+void movement_trail_registry_shutdown(void)
+{
+  struct movement_trail_location *location;
+  struct movement_trail_location *next;
+  size_t bucket;
+
+  for (bucket = 0U; bucket < MOVEMENT_TRAIL_LOCATION_BUCKETS; bucket++)
+  {
+    for (location = movement_trail_location_buckets[bucket]; location != NULL; location = next)
+    {
+      next = location->next;
+      movement_trail_list_clear(&location->trails);
+      free(location);
+    }
+    movement_trail_location_buckets[bucket] = NULL;
+  }
+  movement_trail_location_count = 0U;
+  trail_cleanup_runs = 0U;
+  trail_locations_visited = 0U;
+  trail_entries_removed = 0U;
+  trail_last_cleanup_locations_visited = 0U;
+}
+
+size_t movement_trail_active_location_count(void)
+{
+  return movement_trail_location_count;
+}
+uint64_t movement_trail_cleanup_runs(void)
+{
+  return trail_cleanup_runs;
+}
+uint64_t movement_trail_locations_visited(void)
+{
+  return trail_locations_visited;
+}
+uint64_t movement_trail_entries_removed(void)
+{
+  return trail_entries_removed;
+}
+size_t movement_trail_last_cleanup_locations_visited(void)
+{
+  return trail_last_cleanup_locations_visited;
+}
+
+size_t movement_trail_registry_validate(void)
+{
+  struct movement_trail_location *location;
+  struct movement_trail_location *other;
+  struct trail_data *trail;
+  size_t actual = 0U;
+  size_t invalid = 0U;
+  size_t bucket;
+
+  for (bucket = 0U; bucket < MOVEMENT_TRAIL_LOCATION_BUCKETS; bucket++)
+    for (location = movement_trail_location_buckets[bucket]; location != NULL;
+         location = location->next)
+    {
+      actual++;
+      if (location->trails.head == NULL || location->trails.tail == NULL ||
+          location->trails.head->prev != NULL || location->trails.tail->next != NULL)
+        invalid++;
+      for (trail = location->trails.head; trail != NULL; trail = trail->next)
+        if ((trail->next != NULL && trail->next->prev != trail) ||
+            (trail->next == NULL && location->trails.tail != trail))
+          invalid++;
+      for (other = location->next; other != NULL; other = other->next)
+        if (movement_trail_location_matches(other, location->kind, location->room_vnum,
+                                            location->zone_vnum, location->x, location->y))
+          invalid++;
+    }
+  if (actual == movement_trail_location_count && invalid == 0U)
+    return 0U;
+  return invalid + (actual > movement_trail_location_count
+                        ? actual - movement_trail_location_count
+                        : movement_trail_location_count - actual);
+}
 
 static void movement_trail_free(struct trail_data *trail)
 {
@@ -148,6 +397,53 @@ void movement_trail_record(struct trail_data_list *list, const char *name, const
   movement_trail_prepend(list, trail);
 }
 
+void movement_trail_record_at_room(const struct room_data *room, const char *name, const char *race,
+                                   int from, int to, time_t age)
+{
+  struct movement_trail_location *location;
+  struct trail_data *trail;
+  struct trail_data *next;
+
+  location = movement_trail_location_for_room(room, true);
+  if (location == NULL)
+    return;
+  for (trail = location->trails.head; trail != NULL; trail = next)
+  {
+    next = trail->next;
+    if (age - trail->age >= TRAIL_PRUNING_THRESHOLD)
+    {
+      movement_trail_unlink(&location->trails, trail);
+      movement_trail_free(trail);
+      trail_entries_removed++;
+    }
+  }
+  movement_trail_record(&location->trails, name, race, from, to, age);
+}
+
+const struct trail_data_list *movement_trails_at_room(const struct room_data *room)
+{
+  struct movement_trail_location *location = movement_trail_location_for_room(room, false);
+
+  return location != NULL ? &location->trails : NULL;
+}
+
+bool movement_trail_visit_all(movement_trail_visitor visitor, void *context)
+{
+  struct movement_trail_location *location;
+  struct trail_data *trail;
+  size_t bucket;
+
+  if (visitor == NULL)
+    return false;
+  for (bucket = 0U; bucket < MOVEMENT_TRAIL_LOCATION_BUCKETS; bucket++)
+    for (location = movement_trail_location_buckets[bucket]; location != NULL;
+         location = location->next)
+      for (trail = location->trails.head; trail != NULL; trail = trail->next)
+        if (!visitor(trail, context))
+          return false;
+  return true;
+}
+
 /**
  * Create tracks in the current room
  *
@@ -158,8 +454,6 @@ void movement_trail_record(struct trail_data_list *list, const char *name, const
 void create_tracks(struct char_data *ch, int dir, int flag)
 {
   struct room_data *room = NULL;
-  struct trail_data *cur = NULL;
-  struct trail_data *next = NULL;
   const char *name;
   const char *race;
   time_t now;
@@ -175,36 +469,7 @@ void create_tracks(struct char_data *ch, int dir, int flag)
     return;
   }
 
-  /* Safety check for trail_tracks */
-  if (!room->trail_tracks)
-  {
-    log("SYSERR: Room %d has NULL trail_tracks, initializing.", room->number);
-    CREATE(room->trail_tracks, struct trail_data_list, 1);
-    room->trail_tracks->head = NULL;
-    room->trail_tracks->tail = NULL;
-  }
-
-  /*
-    Here we create the track structure, set the values and assign it to the room.
-    At the same time, we can prune off any really old trails.  Threshold is set,
-    in seconds, in trails.h.  Eventually this can be adjusted based on weather -
-    rain/snow/wind can all obscure trails.
-  */
-
-  /* First, prune old trails from the list BEFORE adding new ones to avoid corruption */
   now = time(NULL);
-  for (cur = room->trail_tracks->head; cur != NULL;)
-  {
-    next = cur->next;
-    if (now - cur->age >= TRAIL_PRUNING_THRESHOLD)
-    {
-      movement_trail_unlink(room->trail_tracks, cur);
-      movement_trail_free(cur);
-    }
-    /* Always advance to next, whether we removed the current node or not */
-    cur = next;
-  }
-
   name = GET_NAME(ch) ? GET_NAME(ch) : "unknown";
   race = "unknown";
   if (IS_NPC(ch))
@@ -220,91 +485,60 @@ void create_tracks(struct char_data *ch, int dir, int flag)
       race = race_list[race_idx].name;
   }
 
-  movement_trail_record(room->trail_tracks, name, race, flag == TRACKS_IN ? dir : DIR_NONE,
-                        flag == TRACKS_OUT ? dir : DIR_NONE, now);
+  movement_trail_record_at_room(room, name, race, flag == TRACKS_IN ? dir : DIR_NONE,
+                                flag == TRACKS_OUT ? dir : DIR_NONE, now);
 }
 
 /**
- * Clean up old trails in all rooms - called periodically
+ * Clean up old trails in rooms that currently contain trail data.
  * This is typically called from the heartbeat or a periodic event
  */
 void cleanup_all_trails(void)
 {
-  room_rnum room;
+  struct movement_trail_location **link;
+  struct movement_trail_location *location;
   struct trail_data *cur, *next;
   time_t current_time = time(NULL);
   int cleaned = 0;
+  size_t bucket;
 
-  for (room = 0; room <= top_of_world; room++)
+  trail_cleanup_runs++;
+  trail_last_cleanup_locations_visited = 0U;
+  for (bucket = 0U; bucket < MOVEMENT_TRAIL_LOCATION_BUCKETS; bucket++)
   {
-    if (!world[room].trail_tracks || !world[room].trail_tracks->head)
-      continue;
-
-    /* Validate the head pointer is in a reasonable memory range */
-    if ((uintptr_t)world[room].trail_tracks->head < 0x1000 ||
-        (uintptr_t)world[room].trail_tracks->head > (uintptr_t)-0x1000)
+    for (link = &movement_trail_location_buckets[bucket]; (location = *link) != NULL;)
     {
-      log("SYSERR: Room %d has corrupted trail_tracks->head pointer (%p), clearing trails", room,
-          world[room].trail_tracks->head);
-      world[room].trail_tracks->head = NULL;
-      world[room].trail_tracks->tail = NULL;
-      continue;
-    }
-
-    for (cur = world[room].trail_tracks->head; cur != NULL;)
-    {
-      /* Validate cur pointer before dereferencing */
-      if ((uintptr_t)cur < 0x1000 || (uintptr_t)cur > (uintptr_t)-0x1000)
+      trail_last_cleanup_locations_visited++;
+      trail_locations_visited++;
+      for (cur = location->trails.head; cur != NULL;)
       {
-        log("SYSERR: Room %d has corrupted trail node pointer (%p), stopping cleanup", room, cur);
-        /* Clear the entire list as it's corrupted */
-        world[room].trail_tracks->head = NULL;
-        world[room].trail_tracks->tail = NULL;
-        break;
-      }
-
-      next = cur->next;
-      if (current_time - cur->age >= TRAIL_PRUNING_THRESHOLD)
-      {
-        /* Free the trail data */
-        if (cur->name)
-          free(cur->name);
-        if (cur->race)
-          free(cur->race);
-
-        /* Unlink from list using doubly-linked list operations */
-        if (cur->prev != NULL)
+        next = cur->next;
+        if (current_time - cur->age >= TRAIL_PRUNING_THRESHOLD)
         {
-          cur->prev->next = cur->next;
+          movement_trail_unlink(&location->trails, cur);
+          movement_trail_free(cur);
+          cleaned++;
+          cur = next;
         }
         else
         {
-          world[room].trail_tracks->head = cur->next;
+          /* Node was not removed, advance to next node */
+          cur = next;
         }
-
-        if (cur->next != NULL)
-        {
-          cur->next->prev = cur->prev;
-        }
-        else
-        {
-          world[room].trail_tracks->tail = cur->prev;
-        }
-
-        /* Free the structure */
-        free(cur);
-        cleaned++;
-        /* Node was removed, use next which was saved before freeing */
-        cur = next;
       }
-      else
+      if (location->trails.head == NULL)
       {
-        /* Node was not removed, advance to next node */
-        cur = next;
+        *link = location->next;
+        free(location);
+        if (movement_trail_location_count > 0U)
+          movement_trail_location_count--;
+        continue;
       }
+      link = &location->next;
     }
   }
 
+  trail_entries_removed += (uint64_t)cleaned;
   if (cleaned > 0)
     log("Trail cleanup: Removed %d old trail entries.", cleaned);
 }
@@ -318,21 +552,16 @@ void cleanup_all_trails(void)
  */
 size_t count_live_movement_trails(void)
 {
-  room_rnum room;
+  struct movement_trail_location *location;
   struct trail_data *trail;
   size_t trail_count = 0;
+  size_t bucket;
 
-  if (world == NULL)
-    return 0;
-
-  for (room = 0; room <= top_of_world; room++)
-  {
-    if (world[room].trail_tracks == NULL)
-      continue;
-
-    for (trail = world[room].trail_tracks->head; trail != NULL; trail = trail->next)
-      trail_count++;
-  }
+  for (bucket = 0U; bucket < MOVEMENT_TRAIL_LOCATION_BUCKETS; bucket++)
+    for (location = movement_trail_location_buckets[bucket]; location != NULL;
+         location = location->next)
+      for (trail = location->trails.head; trail != NULL; trail = trail->next)
+        trail_count++;
 
   return trail_count;
 }

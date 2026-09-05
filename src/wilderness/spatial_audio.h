@@ -57,9 +57,7 @@ extern struct spatial_system audio_system;
 
 /* Audio system functions */
 int spatial_audio_init(void);
-int spatial_audio_test_thunder(int thunder_x, int thunder_y, const char *thunder_desc);
-int spatial_audio_test_shout(int source_x, int source_y, const char *shout_message);
-int spatial_audio_test_sound_effect(int source_x, int source_y, int source_z,
-                                    const char *sound_desc, int frequency, int range);
+int spatial_audio_emit(int source_x, int source_y, int source_z, const char *sound_desc,
+                       float intensity, int frequency, int range);
 
 #endif /* _SPATIAL_AUDIO_H_ */

@@ -2292,7 +2292,7 @@ ACMD(do_detecttrap)
 }
 
 /* Event handler for trap triggered events - handles both spell and special trap effects */
-EVENTFUNC(event_trap_triggered)
+MUD_EVENT_CALLBACK(event_trap_triggered)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;

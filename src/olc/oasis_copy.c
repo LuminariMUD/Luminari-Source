@@ -10,6 +10,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "movement/door_state.h"
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
@@ -240,6 +241,9 @@ ACMD(do_dig)
   {
     if (W_EXIT(IN_ROOM(ch), dir))
     {
+      struct door_state_operation operation;
+
+      door_state_begin(&operation, IN_ROOM(ch), dir, false, DOMAIN_DOOR_EDIT);
       /* free the old pointers, if any */
       if (W_EXIT(IN_ROOM(ch), dir)->general_description)
         free(W_EXIT(IN_ROOM(ch), dir)->general_description);
@@ -249,6 +253,7 @@ ACMD(do_dig)
       W_EXIT(IN_ROOM(ch), dir) = NULL;
       add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
       send_to_char(ch, "You remove the exit to the %s.\r\n", dirs[dir]);
+      door_state_finish(&operation);
       return;
     }
     send_to_char(ch,
@@ -463,6 +468,7 @@ int buildwalk(struct char_data *ch, int dir)
       {
         OLC_ROOM(d)->coords[0] = new_x;
         OLC_ROOM(d)->coords[1] = new_y;
+        OLC_ROOM(d)->wilderness_coordinates_set = true;
       }
 
       /* Save the new room to memory. redit_save_internally handles adding the

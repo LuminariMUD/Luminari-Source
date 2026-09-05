@@ -5962,9 +5962,10 @@ void assign_feats(void)
   feato(FEAT_ESTABLISH_CAMP, "establish camp", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "pitch a wilderness camp that speeds recovery",
         "With 'camp' you pitch a proper camp outdoors, which requires a survival check against a "
-        "difficulty set by the terrain and the weather.  A camp restores you and any grouped "
-        "companions in the room far faster while resting, reclining or sleeping, and it becomes "
-        "your return point, so quitting from camp brings you back to the campsite.  Camps cannot "
+        "difficulty set by the terrain and the weather.  The camp remains in the room for a time "
+        "and restores anyone there far faster while resting, reclining or sleeping.  It also "
+        "becomes the return point for you and grouped companions present when it is completed.  "
+        "Camps cannot "
         "be pitched indoors, underwater, while flying or while in combat.");
   feato(FEAT_GARROTE, "garrote", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "strangling attack made from concealment",
@@ -6081,7 +6082,7 @@ void assign_feats(void)
   epicfeat(FEAT_CONSTRUCT_IRON_GOLEM);
 
   /* Feats with "Daily Use" Mechanic, make sure to add to
-   * EVENTFUNC(event_daily_use_cooldown) and mud_event.c */
+   * MUD_EVENT_CALLBACK(event_daily_use_cooldown) and mud_event.c */
   dailyfeat(FEAT_QUIVERING_PALM, eQUIVERINGPALM);
   dailyfeat(FEAT_ARROW_OF_DEATH, eDEATHARROW);
   dailyfeat(FEAT_STUNNING_FIST, eSTUNNINGFIST);

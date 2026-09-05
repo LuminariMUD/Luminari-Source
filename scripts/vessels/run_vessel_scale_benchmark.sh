@@ -1968,8 +1968,7 @@ restore_internal()
 
 case "${1:-}" in
   start)
-    shift
-    start_run "$@"
+    fail "The fleet-heartbeat benchmark is retired. Measure native vessel owner events before defining new scale thresholds. Existing status and cleanup commands remain available."
     ;;
   status)
     (($# == 1)) || usage
@@ -1980,8 +1979,7 @@ case "${1:-}" in
     cleanup_run
     ;;
   __run)
-    (($# == 3)) || usage
-    run_benchmark "$2" "$3"
+    fail "The fleet-heartbeat benchmark is retired; no new benchmark work is permitted."
     ;;
   __restore)
     (($# == 2)) || usage

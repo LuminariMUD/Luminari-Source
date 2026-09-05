@@ -23,6 +23,7 @@
 #include "actions.h"
 #include "magic/domains_schools.h"
 #include "character/evolutions.h"
+#include "point_update_periodic.h"
 
 /*****************/
 /* Jot           */
@@ -526,7 +527,7 @@ SPECIAL(ymir_cloak)
                      "\tBAs $n \tBmutters something under his breath  to $p \tBit flashes bright "
                      "blue and sends forth a storm of razor sharp icicles in all directions.\tn",
                      ch, 0, (struct obj_data *)me, SPELL_ICE_STORM);
-      GET_OBJ_SPECTIMER(obj, 0) = 6;
+      point_update_object_spec_timer_set(obj, 0, 6);
       return 1;
     }
   }
@@ -573,7 +574,7 @@ SPECIAL(mistweave)
           FALSE, ch, obj, vict, TO_ROOM);
 
       call_magic(ch, FIGHTING(ch), 0, SPELL_BLINDNESS, 0, 30, CAST_WEAPON_SPELL);
-      GET_OBJ_SPECTIMER(obj, 0) = 24;
+      point_update_object_spec_timer_set(obj, 0, 24);
       return 1;
     }
     else
@@ -641,7 +642,7 @@ SPECIAL(frostbite)
         }
       }
 
-      GET_OBJ_SPECTIMER(obj, 0) = 24;
+      point_update_object_spec_timer_set(obj, 0, 24);
       return 1;
     }
     else
@@ -727,7 +728,7 @@ SPECIAL(vaprak_claws)
 
     for (i = 0; i < VAP_AFFECTS; i++)
       affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
-    GET_OBJ_SPECTIMER(obj, 0) = 24;
+    point_update_object_spec_timer_set(obj, 0, 24);
     return 1; /* success! */
   }
 
@@ -986,9 +987,9 @@ SPECIAL(giantslayer)
       act("You fall to your knees in agony!", FALSE, ch, obj, vict, TO_VICT);
       USE_MOVE_ACTION(vict);
       change_position(vict, POS_SITTING);
-      GET_HIT(vict) -= 100;
+      combat_apply_raw_damage(vict, ch, 100, DAM_SLASHING, INT_MIN);
 
-      GET_OBJ_SPECTIMER(obj, 0) = 24;
+      point_update_object_spec_timer_set(obj, 0, 24);
       return 1; // end for
     }
     else

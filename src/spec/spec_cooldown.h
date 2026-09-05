@@ -28,10 +28,11 @@ struct spec_object_cooldown_state
 /**
  * Read one object-instance spec_timer slot.
  *
- * The clock is point_update(), one tick per MUD hour. Storage belongs to the
- * object instance in a slot from [0, SPEC_TIMER_MAX), is measured in MUD
- * hours, is not serialized by objsave, and resets when the instance is
- * recreated or the server restarts. Values at or below zero are ready.
+ * The point-update owner service advances this once per MUD hour. Storage
+ * belongs to the object instance in a slot from [0, SPEC_TIMER_MAX), is
+ * measured in MUD hours, is not serialized by objsave, and resets when the
+ * instance is recreated or the server restarts. Values at or below zero are
+ * ready.
  */
 struct spec_object_cooldown_state spec_object_cooldown_read(const struct obj_data *obj, int slot);
 

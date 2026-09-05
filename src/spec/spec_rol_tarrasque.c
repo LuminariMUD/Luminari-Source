@@ -11,6 +11,7 @@
 
 #include "act.h"
 #include "combat/fight.h"
+#include "combat/combat_state.h"
 #include "comm.h"
 #include "db.h"
 #include "dgscript/dg_scripts.h"
@@ -73,23 +74,16 @@ static bool rol_tarrasque_target_is_mortal(const struct char_data *target)
   return target != NULL && (!IS_NPC(target) || IS_PET(target)) && GET_LEVEL(target) < LVL_IMMORT;
 }
 
+/* End all combat involving one of the tarrasque's victims. */
 static void rol_tarrasque_stop_attackers(struct char_data *victim)
 {
-  struct char_data *attacker;
-  struct char_data *next;
-
   if (victim == NULL)
     return;
 
   if (FIGHTING(victim) != NULL)
     stop_fighting(victim);
 
-  for (attacker = combat_list; attacker != NULL; attacker = next)
-  {
-    next = attacker->next_fighting;
-    if (FIGHTING(attacker) == victim)
-      stop_fighting(attacker);
-  }
+  combat_state_stop_attackers(victim);
 }
 
 static void rol_tarrasque_sudden_death(struct char_data *victim, struct char_data *killer)
@@ -102,7 +96,7 @@ static void rol_tarrasque_sudden_death(struct char_data *victim, struct char_dat
   die(victim, killer);
 }
 
-static int rol_tarrasque_stomach_pulse(struct obj_data *acid)
+static int rol_tarrasque_apply_stomach_acid(struct obj_data *acid)
 {
   struct char_data *target;
   struct char_data *next;
@@ -417,8 +411,8 @@ int rol_tarrasque_typed(struct spec_event_context *context)
   switch (GET_OBJ_VNUM(obj))
   {
   case ROL_TARRASQUE_STOMACH_ACID_VNUM:
-    if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
-      return rol_tarrasque_stomach_pulse(obj);
+    if (context->event == SPEC_EVENT_OBJECT_AUTOMATIC)
+      return rol_tarrasque_apply_stomach_acid(obj);
     break;
   case ROL_TARRASQUE_CORPSE_VNUM:
     if (context->event == SPEC_EVENT_COMMAND)

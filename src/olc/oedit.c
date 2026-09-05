@@ -37,9 +37,13 @@
 #include "spec/spec_binding.h"
 #include "spec/spec_registry.h"
 #include "spec_menu.h"
+#include "point_update_periodic.h"
 
 /* local functions */
 static void oedit_disp_size_menu(struct descriptor_data *d);
+static struct obj_special_ability *
+iedit_copy_special_abilities(const struct obj_special_ability *source);
+static void iedit_commit_existing(struct obj_data *live, struct obj_data *edited);
 static void oedit_disp_mob_recipient_menu(struct descriptor_data *d);
 static void oedit_setup_new(struct descriptor_data *d);
 static void oedit_disp_container_flags_menu(struct descriptor_data *d);
@@ -2093,7 +2097,6 @@ void oedit_parse(struct descriptor_data *d, char *arg)
   long max_val = 0;
   char *oldtext = NULL;
   struct obj_data *obj;
-  obj_rnum robj;
   // int this_missile = -1;
 
   switch (OLC_MODE(d))
@@ -2210,36 +2213,11 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       }
       else
       {
-        long script_id;
-
         send_to_char(d->character, "\r\nCommitting iedit changes.\r\n");
 
         obj = OLC_IOBJ(d);
-        script_id = GET_ID(obj);
-
-        *obj = *(OLC_OBJ(d));
-
-        GET_ID(obj) = script_id;
-
-        if (GET_OBJ_VNUM(obj) != NOTHING)
-        {
-          /* remove any old scripts */
-
-          if (SCRIPT(obj))
-          {
-            extract_script(&obj->script);
-
-            SCRIPT(obj) = NULL;
-          }
-
-          free_proto_script(&obj->proto_script);
-
-          robj = real_object(GET_OBJ_VNUM(obj));
-
-          copy_proto_script(obj_proto[robj].proto_script, &obj->proto_script);
-
-          assign_obj_triggers(obj);
-        }
+        iedit_commit_existing(obj, OLC_OBJ(d));
+        OLC_OBJ(d) = NULL;
 
         log("OLC: %s iedit a unique #%d", GET_NAME(d->character), GET_OBJ_VNUM(obj));
 
@@ -2489,6 +2467,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
         GET_OBJ_VAL(OLC_OBJ(d), 3) = 0;
     if (number == ITEM_TREASURE_CHEST)
       REMOVE_BIT_AR(GET_OBJ_WEAR(OLC_OBJ(d)), ITEM_WEAR_TAKE); /* chests can't be taken */
+    point_update_object_sync(OLC_OBJ(d));
     break;
 
   case OEDIT_PROF:
@@ -2521,6 +2500,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
           OLC_OBJ(d)->obj_flags.extra_flags[2] = OLC_OBJ(d)->obj_flags.extra_flags[3] = 0;
       oedit_disp_extra_menu(d);
       write_to_output(d, "You've removed all object flags from this object.\r\n");
+      point_update_object_sync(OLC_OBJ(d));
       return;
     }
     else if ((number < 0) || (number > NUM_ITEM_FLAGS))
@@ -2533,6 +2513,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     else
     {
       TOGGLE_BIT_AR(GET_OBJ_EXTRA(OLC_OBJ(d)), (number - 1));
+      point_update_object_sync(OLC_OBJ(d));
       oedit_disp_extra_menu(d);
       return;
     }
@@ -2578,6 +2559,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
 
   case OEDIT_TIMER:
     GET_OBJ_TIMER(OLC_OBJ(d)) = LIMIT(atoi(arg), 0, MAX_OBJ_TIMER);
+    point_update_object_sync(OLC_OBJ(d));
     break;
 
   case OEDIT_LEVEL:
@@ -4002,6 +3984,76 @@ void oedit_string_cleanup(struct descriptor_data *d, int terminator __attribute_
 
 /* this is all iedit stuff */
 
+static struct obj_special_ability *
+iedit_copy_special_abilities(const struct obj_special_ability *source)
+{
+  struct obj_special_ability *copy;
+  struct obj_special_ability *head = NULL;
+  struct obj_special_ability *tail = NULL;
+
+  for (; source != NULL; source = source->next)
+  {
+    CREATE(copy, struct obj_special_ability, 1);
+    *copy = *source;
+    copy->command_word = source->command_word != NULL ? strdup(source->command_word) : NULL;
+    copy->next = NULL;
+    if (tail != NULL)
+      tail->next = copy;
+    else
+      head = copy;
+    tail = copy;
+  }
+  return head;
+}
+
+static void iedit_commit_existing(struct obj_data *live, struct obj_data *edited)
+{
+  struct obj_data runtime;
+  struct obj_special_ability *old_special_abilities;
+  obj_rnum robj;
+
+  if (live == NULL || edited == NULL)
+    return;
+
+  runtime = *live;
+  old_special_abilities = live->special_abilities;
+  autoproc_registry_remove(live);
+  point_update_object_forget(live);
+  if (SCRIPT(live) != NULL)
+    extract_script(&live->script);
+  free_proto_script(&live->proto_script);
+
+  copy_object(live, edited);
+  if (old_special_abilities != edited->special_abilities)
+    free_obj_special_abilities(old_special_abilities);
+  edited->special_abilities = NULL;
+  GET_ID(live) = runtime.id;
+  IN_ROOM(live) = runtime.in_room;
+  live->carried_by = runtime.carried_by;
+  live->worn_by = runtime.worn_by;
+  live->worn_on = runtime.worn_on;
+  live->in_obj = runtime.in_obj;
+  live->contains = runtime.contains;
+  live->next_gitem = runtime.next_gitem;
+  live->next_content = runtime.next_content;
+  live->next = runtime.next;
+  live->sitting_here = runtime.sitting_here;
+  SCRIPT(live) = NULL;
+  live->proto_script = NULL;
+
+  robj = real_object(GET_OBJ_VNUM(live));
+  if (robj != NOTHING)
+  {
+    copy_proto_script(obj_proto[robj].proto_script, &live->proto_script);
+    assign_obj_triggers(live);
+  }
+
+  autoproc_registry_sync(live);
+  point_update_object_sync(live);
+  free_object_strings(edited);
+  free(edited);
+}
+
 void iedit_setup_existing(struct descriptor_data *d, struct obj_data *real_num)
 
 {
@@ -4009,18 +4061,13 @@ void iedit_setup_existing(struct descriptor_data *d, struct obj_data *real_num)
 
   OLC_IOBJ(d) = real_num;
 
-  obj = create_obj();
+  CREATE(obj, struct obj_data, 1);
+  clear_object(obj);
 
   copy_object(obj, real_num);
-  autoproc_registry_sync(obj);
-
-  /* free any assigned scripts */
-
-  if (SCRIPT(obj))
-
-    extract_script(&obj->script);
-
+  obj->special_abilities = iedit_copy_special_abilities(real_num->special_abilities);
   SCRIPT(obj) = NULL;
+  obj->proto_script = NULL;
 
   OLC_OBJ(d) = obj;
 

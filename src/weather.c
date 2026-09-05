@@ -15,6 +15,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
+#include "active_world.h"
 #include "db.h"
 #include "magic/moon_bonus_spells.h" /* For moon bonus spell system */
 
@@ -170,6 +171,9 @@ void reset_dailies()
  */
 static void another_hour(int mode)
 {
+  int previous_sunlight = weather_info.sunlight;
+  struct descriptor_data *descriptor;
+
   time_info.hours++;
 
   if (mode)
@@ -218,6 +222,11 @@ static void another_hour(int mode)
       break;
     }
   }
+  if (mode && previous_sunlight != weather_info.sunlight)
+    for (descriptor = descriptor_list; descriptor != NULL; descriptor = descriptor->next)
+      if (descriptor->character != NULL && IN_ROOM(descriptor->character) != NOWHERE)
+        active_world_reconsider_character(descriptor->character);
+
   if (time_info.hours > 23)
   { /* Changed by HHS due to bug ??? */
     time_info.hours -= 24;

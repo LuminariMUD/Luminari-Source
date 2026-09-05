@@ -38,7 +38,7 @@ uses the procedure name, not the displayed number.
 Prerequisites describe runtime scheduling; selecting a procedure does not set them automatically:
 
 - `MOB_SPEC` enables mobile activity and combat-turn callbacks that require it.
-- `ITEM_AUTOPROC` enables object auto-pulses that require it.
+- `ITEM_AUTOPROC` enables automatic object activity that requires it.
 - `carried`, `equipped`, and `combat` state describe where an event can run.
 - `prerequisites: none` means that event has no registry-level flag or placement requirement.
 
@@ -76,7 +76,7 @@ respectively. While awake and colocated, they use the target rescue mechanic whe
 mobile has an attacker. The fixed mapping and procedure are converter-owned.
 
 `RoL Floating Pool` is object-owned and requires `ITEM_AUTOPROC`. Four converted Ethereal objects
-left in rooms have the source-documented 12 percent chance per object pulse to float through one
+left in rooms have the source-documented 12 percent chance per automatic activity to float through one
 random open cardinal exit. Closed, hidden, blocked, invalid, and `ROOM_NOMOB` destinations are
 excluded. The procedure and its pulse contract are converter-owned.
 
@@ -111,7 +111,7 @@ not assign the procedure to an unrelated object without configuring both values 
 moves that character to a randomly selected loaded room in the same zone. It is intended only for
 converted RoL boundary rooms; attaching it elsewhere turns that room into a randomizing trap.
 
-`RoL Shadow Giant` is mobile-owned and runs on mobile-activity pulses while the giant is fighting.
+`RoL Shadow Giant` is mobile-owned and runs during scheduled mobile activity while the giant is fighting.
 Its source 1-in-21 trigger spooks every player and charmed pet in the room for mental damage and a
 possible short stun. Converted angel identity is retained for the source immunity list. This
 procedure is intended for the converted RoL shadow-giant family rather than general new mobiles.
@@ -156,7 +156,7 @@ source death behavior. The critical prismatic identity maps its unavailable NPC-
 to a documented one-in-20 combat-turn burst. Do not assign this converter-owned procedure to
 unrelated mobiles.
 
-`RoL Lich Energy Drain` is mobile-owned and requires `MOB_SPEC`. On both activity pulses and
+`RoL Lich Energy Drain` is mobile-owned and requires `MOB_SPEC`. During both scheduled activity and
 combat turns, each eligible current opponent or party member has the source one-in-five chance to
 lose all current hit points plus five; target Death Ward maps the source protection-from-undead
 case and leaves the victim at zero instead. The lich receives the victim's former current hit

@@ -19,6 +19,7 @@
 #include "mud_event.h"
 #include "actions.h"
 #include "act.h"
+#include "combat/combat_encounters.h"
 #include "magic/domains_schools.h"
 
 /*  Attack action definitions - Define the relationships between
@@ -83,7 +84,7 @@ void update_msdp_actions(struct char_data *ch)
  *
  * If a player has one of these events, that signifies that they do NOT have
  * that action available. */
-EVENTFUNC(event_action_cooldown)
+MUD_EVENT_CALLBACK(event_action_cooldown)
 {
   struct mud_event_data *pMudEvent;
   struct char_data *ch = NULL;
@@ -140,6 +141,20 @@ EVENTFUNC(event_action_cooldown)
 bool is_action_available(struct char_data *ch, action_type act_type, bool msg_to_char)
 {
   bool result = TRUE;
+
+  if (combat_encounter_action_query(ch, act_type, &result))
+  {
+    if (!result && msg_to_char)
+    {
+      if (act_type == atSTANDARD)
+        send_to_char(ch, "You don't have a standard action.\r\n");
+      else if (act_type == atMOVE)
+        send_to_char(ch, "You don't have a move action.\r\n");
+      else if (act_type == atSWIFT)
+        send_to_char(ch, "You don't have a swift action.\r\n");
+    }
+    return result;
+  }
 
   if (act_type == atSTANDARD)
   {
@@ -217,6 +232,19 @@ void start_skill_cooldown(struct char_data *ch, int skill, int weapon)
 void start_action_cooldown(struct char_data *ch, action_type act_type, int duration)
 {
   char svar[50];
+
+  if (combat_encounter_action_consume(ch, act_type, duration))
+  {
+    if (AFF_FLAGGED(ch, AFF_STAGGERED))
+    {
+      if (act_type == atMOVE)
+        combat_encounter_action_consume(ch, atSTANDARD, duration);
+      else if (act_type == atSTANDARD)
+        combat_encounter_action_consume(ch, atMOVE, duration);
+    }
+    update_msdp_actions(ch);
+    return;
+  }
 
   /* Format the sVariables - Always duration first. */
   snprintf(svar, sizeof(svar), "%d", duration);

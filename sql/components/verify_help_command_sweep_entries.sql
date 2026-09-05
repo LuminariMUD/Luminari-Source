@@ -33,11 +33,13 @@ WHERE (help_tag, UPPER(keyword)) IN (
 SELECT
   'command_sweep_content' AS check_name,
   COUNT(*) AS actual,
-  8 AS expected,
-  IF(COUNT(*) = 8, 'PASS', 'FAIL') AS result
+  10 AS expected,
+  IF(COUNT(*) = 10, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
   SELECT 'action-queue' AS tag, 'non-mutating availability check' AS required_text
+  UNION ALL SELECT 'action-queue', 'holds at most 10 commands'
+  UNION ALL SELECT 'action-queue', 'do not drain between turns'
   UNION ALL SELECT 'autoblast', 'enabled or disabled'
   UNION ALL SELECT 'consumables', 'USESTOREDCONSUMABLES enables or disables'
   UNION ALL SELECT 'spellrecall', 'once per real-world day'

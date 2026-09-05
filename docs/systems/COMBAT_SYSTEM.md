@@ -50,9 +50,9 @@ int get_initiative_modifier(struct char_data *ch);
 
 **Initiative Features:**
 - d20 roll + modifiers (DEX bonus, feats, etc.)
-- Combat list maintains initiative order
-- Event-driven timing based on initiative
-- Multiple combat phases for complex action resolution
+- Encounter participants retain the rolled initiative for the fight
+- One event resolves every due participant in deterministic initiative order
+- Dexterity and runtime identity resolve exact ties
 
 **Known Modifiers:**
 - Dexterity bonus
@@ -63,11 +63,19 @@ int get_initiative_modifier(struct char_data *ch);
 
 ### 3. Combat Round System
 
-Combat uses an event-driven system with multiple phases:
+Each live fight is a `combat_encounter_data` owner with one scheduled event.
+The event wakes once every six seconds, takes the due participant snapshot, and
+resolves turns by descending initiative, descending current Dexterity, and a
+stable runtime-ID tie-break. A participant admitted during resolution waits
+until the next encounter round. Merging fights preserves each participant's
+not-before deadline and then coalesces everyone onto the surviving clock.
 
 ```c
-// perform_violence() is the core combat execution function
-void perform_violence(struct char_data *ch, int phase) {
+// Abbreviated semantic-turn flow; perform_violence() remains the mechanics core.
+void combat_run_semantic_round(struct char_data *ch, bool was_hit) {
+    // Recover due action budgets and refresh reactions before this call.
+    execute_next_action(ch); // At most one validated FIFO intent.
+
     // Handle confused/feared states
     if (AFF_FLAGGED(ch, AFF_CONFUSED)) { /* confusion logic */ }
     if (AFF_FLAGGED(ch, AFF_FEAR)) { /* fear logic */ }
@@ -79,20 +87,29 @@ void perform_violence(struct char_data *ch, int phase) {
     if (!IS_CASTING(ch) && !AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE) &&
         !(AFF_FLAGGED(ch, AFF_GRAPPLED) && /* grapple restrictions */)) {
         // Execute attack routine
-        perform_attacks(ch, NORMAL_ATTACK_ROUTINE, phase);
+        perform_attacks(ch, NORMAL_ATTACK_ROUTINE, PHASE_0);
 
         // Handle cleave attacks
-        if (phase == 1 && HAS_FEAT(ch, FEAT_CLEAVE))
+        if (HAS_FEAT(ch, FEAT_CLEAVE))
             handle_cleave(ch);
     }
 }
 ```
 
-**Combat Phases:**
-- PHASE_0: Full round actions
-- PHASE_1: Primary attacks
-- PHASE_2: Off-hand attacks
-- PHASE_3: Haste/extra attacks
+**Turn budgets:**
+- Standard plus move remaining after the queued intent: full attack rotation
+- Standard only, including staggered combatants: first attack portion
+- No standard action: no automatic attack
+- Swift action: independent budget
+- Reactions: refresh once at the shared round boundary, before initiative
+
+The action queue is bounded to 10 prevalidated FIFO commands. Exactly one head
+intent may dispatch at a semantic turn; the main connection loop does not poll
+or drain it between turns. Durations are rounded up to whole six-second turns.
+
+`LUMINARI_COMBAT_ROUNDS=compatibility` is the boot-time gameplay rollback. It
+keeps encounter ownership but runs the former three two-second phases. The
+semantic mode is the default and the two modes never execute together.
 
 ## Attack System
 

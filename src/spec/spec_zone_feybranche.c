@@ -50,7 +50,7 @@ SPECIAL(feybranche)
         {
           if (GET_MOB_VNUM(i) != 135536)
           {
-            HUNTING(i) = enemy;
+            set_hunting_target(i, enemy);
             hunt_victim(i);
           }
           else

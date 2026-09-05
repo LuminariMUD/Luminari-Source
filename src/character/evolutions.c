@@ -26,6 +26,7 @@
 #include "combat/fight.h"
 #include "olc/oasis.h"
 #include "olc/genolc.h"
+#include "character_periodic.h"
 
 int evolution_sort_info[NUM_EVOLUTIONS];
 struct evolution_info evolution_list[NUM_EVOLUTIONS];
@@ -1548,6 +1549,8 @@ ACMD(do_eidolon)
     ch->desc->original = ch;
     eidolon->desc = ch->desc;
     ch->desc = NULL;
+    character_periodic_sync(ch);
+    character_periodic_sync(eidolon);
   }
   else if (is_abbrev(arg, "mergeforms"))
   {

@@ -11,6 +11,7 @@
 #include <zconf.h>
 
 #include "conf.h"
+#include "character_periodic.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
@@ -780,7 +781,7 @@ void perform_eternalmountaindefense(struct char_data *ch)
     start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
 }
 /* Event handler for Fist of Four Thunders lightning strikes */
-EVENTFUNC(event_fist_of_four_thunders)
+MUD_EVENT_CALLBACK(event_fist_of_four_thunders)
 {
   struct char_data *ch = NULL, *vict = NULL, *next_vict = NULL;
   struct mud_event_data *pMudEvent = NULL;
@@ -2168,6 +2169,7 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict)
       af.spell = SKILL_SHIELD_SLAM;
       SET_BIT_AR(af.bitvector, AFF_DAZED);
       GET_NODAZE_COOLDOWN(vict) = NODAZE_COOLDOWN_TIMER;
+      character_periodic_sync(vict);
       af.duration = 1; /* One round */
       affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
       act("$N appears to be dazed by $n's blow!", FALSE, ch, NULL, vict, TO_NOTVICT);
@@ -3119,7 +3121,7 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
 }
 
 /* this is the event function for whirlwind */
-EVENTFUNC(event_whirlwind)
+MUD_EVENT_CALLBACK(event_whirlwind)
 {
   struct char_data *ch = NULL, *tch = NULL;
   struct mud_event_data *pMudEvent = NULL;
@@ -10155,7 +10157,7 @@ ACMD(do_radiantaura)
  * Event handler for Radiant Aura periodic damage
  * Damages undead in the room every 6 seconds
  */
-EVENTFUNC(event_radiant_aura)
+MUD_EVENT_CALLBACK(event_radiant_aura)
 {
   struct char_data *ch = NULL, *vict = NULL, *next_vict = NULL;
   struct mud_event_data *pMudEvent = NULL;
@@ -10359,6 +10361,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict)
         act("$e is thrown off-blance by your kick at $m!", FALSE, vict, 0, ch, TO_VICT);
         act("$n is thrown off-balance by a kick from $N!", FALSE, vict, 0, ch, TO_NOTVICT);
         vict->char_specials.recently_kicked = 5;
+        character_periodic_sync(vict);
       }
     }
 
@@ -14629,6 +14632,7 @@ void perform_slam(struct char_data *ch, struct char_data *vict)
     else
       damage(ch, vict, 0, SKILL_SLAM, DAM_FORCE, FALSE);
     vict->char_specials.recently_slammed = 3;
+    character_periodic_sync(vict);
   }
   else
   {
@@ -15514,7 +15518,7 @@ ACMD(do_curtain_call)
     /* Simple hit/miss and damage */
     damage = get_bard_curtain_call_damage_bonus(ch) + dice(1, 4) + 2;
 
-    GET_HIT(victim) -= damage;
+    combat_apply_raw_damage(victim, ch, damage, DAM_FORCE, INT_MIN);
 
     send_to_char(ch, "\tYYour curtain call strikes $N for \tR%d\tn\tY damage!\tn\r\n", damage);
     send_to_char(victim, "\tY$n's curtain call strikes you for \tR%d\tn\tY damage!\tn\r\n", damage);

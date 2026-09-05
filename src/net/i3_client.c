@@ -1021,6 +1021,7 @@ static void i3_queue_event(i3_event_t *event)
 
   if (i3_client->event_queue_size >= i3_client->max_queue_size)
   {
+    i3_client->event_ingress_rejections++;
     pthread_mutex_unlock(mutex_ptr);
     i3_free_event(event);
     return;
@@ -1037,6 +1038,8 @@ static void i3_queue_event(i3_event_t *event)
   }
   i3_client->event_queue_tail = event;
   i3_client->event_queue_size++;
+  if ((uint64_t)i3_client->event_queue_size > i3_client->event_ingress_high_water)
+    i3_client->event_ingress_high_water = (uint64_t)i3_client->event_queue_size;
 
   pthread_mutex_unlock(mutex_ptr);
 
@@ -1046,9 +1049,33 @@ static void i3_queue_event(i3_event_t *event)
     if (write(i3_client->event_signal_write_fd, &signal_byte, sizeof(signal_byte)) < 0 &&
         errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)
     {
+      pthread_mutex_lock(mutex_ptr);
+      i3_client->event_ingress_wake_failures++;
+      pthread_mutex_unlock(mutex_ptr);
       i3_error("Unable to signal the main loop for an I3 event: %s", strerror(errno));
     }
   }
+}
+
+void i3_get_ingress_stats(struct i3_ingress_stats *stats)
+{
+  pthread_mutex_t *mutex_ptr;
+
+  if (stats == NULL)
+    return;
+  memset(stats, 0, sizeof(*stats));
+  if (i3_client == NULL || i3_client->event_mutex == NULL)
+    return;
+
+  mutex_ptr = (pthread_mutex_t *)i3_client->event_mutex;
+  pthread_mutex_lock(mutex_ptr);
+  stats->available = true;
+  stats->depth = (size_t)MAX(i3_client->event_queue_size, 0);
+  stats->capacity = (size_t)MAX(i3_client->max_queue_size, 0);
+  stats->high_water = i3_client->event_ingress_high_water;
+  stats->rejections = i3_client->event_ingress_rejections;
+  stats->wake_failures = i3_client->event_ingress_wake_failures;
+  pthread_mutex_unlock(mutex_ptr);
 }
 
 /* Pop command from queue */

@@ -127,10 +127,9 @@ LuminariMUD is the only supported game identity in this repository.
 | `src/comms/` | `mail`, `new_mail`, `boards`, `mysql_boards`, `ibt` |
 | `src/craft/` | `craft*`, `crafting*`, `brew`, `alchemy` |
 | `src/net/` | `protocol`, `discord_bridge`, `i3_*` (intermud3), `onboarding` |
-| `src/pubsub/` | `pubsub*` |
 | `src/obj/` | `act.item.c`, `item.h`, `objsave`, `treasure*`, `spec_artifacts`, `shop`, `trade`, `house` |
 
-Do not nest a second level in src/ .  Fifteen directories is the current state; 104 files in flat.  The genuine MUD-server core belongs at top level.
+Do not nest a second level in src/ . The genuine MUD-server core belongs at top level.
 Membership is by "what is this file's primary job", not by what it touches. Headers resolve from a namespace rooted at `src/`, so a header still in
 `src/` is includable by bare name from any depth. A header inside a feature directory must be path-qualified from outside it (`#include "vessels/vessels.h"`),
 while files within that same directory include it bare. Do not add per-directory `-I` flags to avoid the qualification - the explicit path is what makes

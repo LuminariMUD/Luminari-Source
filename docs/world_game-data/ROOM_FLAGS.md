@@ -103,7 +103,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
   without having to make the exits impassable
 
 **Code References:**
-- `src/mob/mob_act.c` - Wandering destination check (`mobile_activity()`)
+- `src/mob/mob_act.c` - Wandering destination check (owner-local mobile agenda)
 
 ### ROOM_STAFFROOM (Index: 10)
 **Effect:** Only staff (LVL_STAFF+) can enter this room.
@@ -196,7 +196,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 **Code References:**
 - `src/act.informative.c` - Display warnings (`look_at_room_number()`, `look_at_room()`)
 - `src/movement/movement.c` - Entry damage/death (`do_enter()`)
-- `src/mob/mob_act.c` - NPC avoidance (`mobile_activity()`)
+- `src/mob/mob_act.c` - NPC avoidance (owner-local mobile agenda)
 - `src/magic/spells.c` - Teleport blocking (`valid_mortal_tele_dest()`)
 - `src/act.other.c` - Additional teleport checks (`do_shadowstep()`)
 
@@ -347,7 +347,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 **Code References:**
 - `src/movement/movement_tracks.c` - Track skill blocking (`should_create_tracks()`)
 - `src/graph.c` - Pathfinding restriction
-- `src/mob/mob_act.c` - NPC tracking limitation (`mobile_activity()`)
+- `src/mob/mob_act.c` - NPC tracking limitation (owner-local mobile agenda)
 
 ---
 

@@ -25,7 +25,15 @@
 #define SPEC_PULSE_MAX_CALLS 16
 #define SPEC_PULSE_SOURCE_LIMIT (1024L * 1024L)
 
-void proc_update(void);
+static void dispatch_fixture_autoprocs(void)
+{
+  struct obj_data *obj;
+
+  for (obj = autoproc_registry_iteration_begin(); obj != NULL;
+       obj = autoproc_registry_iteration_next())
+    object_auto_proc_run_one(obj);
+  autoproc_registry_iteration_end();
+}
 
 struct spec_pulse_call
 {
@@ -554,7 +562,8 @@ void Test_spec_mobile_activity_handled_callback_skips_default_ai(CuTest *tc)
   spec_pulse_prepare_mobile_activity(&fixture, spec_pulse_record_callback);
   fixture.recorder.return_count = 1;
   fixture.recorder.returns[0] = 1;
-  mobile_activity();
+  mobile_activity_run_scheduled(&fixture.mobiles[0],
+                                MOBILE_WORK_SPEC_ACTIVITY | MOBILE_WORK_POSTURE);
   call = fixture.recorder.calls[0];
   position = (unsigned char)GET_POS(&fixture.mobiles[0]);
   payload_matches = fixture.recorder.call_count == 1 && call.actor == &fixture.mobiles[0] &&
@@ -581,7 +590,8 @@ void Test_spec_mobile_activity_zero_callback_runs_default_ai(CuTest *tc)
   }
 
   spec_pulse_prepare_mobile_activity(&fixture, spec_pulse_record_callback);
-  mobile_activity();
+  mobile_activity_run_scheduled(&fixture.mobiles[0],
+                                MOBILE_WORK_SPEC_ACTIVITY | MOBILE_WORK_POSTURE);
   callback_called = fixture.recorder.call_count == 1;
   position = (unsigned char)GET_POS(&fixture.mobiles[0]);
   spec_pulse_fixture_end(&fixture);
@@ -610,14 +620,16 @@ void Test_spec_mobile_activity_activation_gates(CuTest *tc)
   mobile = &fixture.mobiles[0];
 
   spec_pulse_set_mobile_flags(mobile, false);
-  mobile_activity();
+  mobile_activity_run_scheduled(&fixture.mobiles[0],
+                                MOBILE_WORK_SPEC_ACTIVITY | MOBILE_WORK_POSTURE);
   flag_gate = fixture.recorder.call_count == 0 && GET_POS(mobile) == POS_SITTING;
 
   spec_pulse_recorder_reset(&fixture);
   spec_pulse_set_mobile_flags(mobile, true);
   GET_POS(mobile) = POS_RESTING;
   no_specials = 1;
-  mobile_activity();
+  mobile_activity_run_scheduled(&fixture.mobiles[0],
+                                MOBILE_WORK_SPEC_ACTIVITY | MOBILE_WORK_POSTURE);
   suppression_gate = fixture.recorder.call_count == 0 && MOB_FLAGGED(mobile, MOB_SPEC) &&
                      GET_POS(mobile) == POS_SITTING;
 
@@ -626,7 +638,8 @@ void Test_spec_mobile_activity_activation_gates(CuTest *tc)
   GET_POS(mobile) = POS_RESTING;
   fixture.mob_indexes[0].func = NULL;
   no_specials = 0;
-  mobile_activity();
+  mobile_activity_run_scheduled(&fixture.mobiles[0],
+                                MOBILE_WORK_SPEC_ACTIVITY | MOBILE_WORK_POSTURE);
   missing_callback_gate = fixture.recorder.call_count == 0 && !MOB_FLAGGED(mobile, MOB_SPEC) &&
                           GET_POS(mobile) == POS_SITTING;
   spec_pulse_fixture_end(&fixture);
@@ -636,65 +649,26 @@ void Test_spec_mobile_activity_activation_gates(CuTest *tc)
   CuAssertTrue(tc, missing_callback_gate);
 }
 
-void Test_spec_mobile_activity_scheduler_visits_each_mobile_once_per_cycle(CuTest *tc)
+void Test_spec_mobile_activity_dispatch_only_visits_requested_owner(CuTest *tc)
 {
   struct spec_pulse_fixture fixture;
-  bool setup_ok;
-  bool distributed;
-  int activity_pulse;
 
-  setup_ok = spec_pulse_fixture_begin(&fixture);
-  if (!setup_ok)
+  if (!spec_pulse_fixture_begin(&fixture))
   {
     CuFail(tc, "unable to initialize mobile fixture");
     return;
   }
-
   spec_pulse_prepare_mobile_activity(&fixture, spec_pulse_record_callback);
   spec_pulse_add_second_mobile(&fixture, spec_pulse_record_callback);
   fixture.recorder.return_count = 2;
   fixture.recorder.returns[0] = 1;
   fixture.recorder.returns[1] = 1;
-
-  mobile_activity_pulse(0);
-  distributed = fixture.recorder.call_count == 1;
-  for (activity_pulse = 1; activity_pulse < PULSE_MOBILE; activity_pulse++)
-    mobile_activity_pulse(activity_pulse);
-
-  CuAssertTrue(tc, distributed);
-  CuAssertIntEquals(tc, 2, fixture.recorder.call_count);
-  CuAssertPtrEquals(tc, &fixture.mobiles[0], fixture.recorder.calls[0].actor);
-  CuAssertPtrEquals(tc, &fixture.mobiles[1], fixture.recorder.calls[1].actor);
-  spec_pulse_fixture_end(&fixture);
-}
-
-void Test_spec_mobile_activity_scheduler_forgets_removed_cursor(CuTest *tc)
-{
-  struct spec_pulse_fixture fixture;
-  bool setup_ok;
-  int activity_pulse;
-
-  setup_ok = spec_pulse_fixture_begin(&fixture);
-  if (!setup_ok)
-  {
-    CuFail(tc, "unable to initialize mobile fixture");
-    return;
-  }
-
-  spec_pulse_prepare_mobile_activity(&fixture, spec_pulse_record_callback);
-  spec_pulse_add_second_mobile(&fixture, spec_pulse_record_callback);
-  fixture.recorder.return_count = 2;
-  fixture.recorder.returns[0] = 1;
-  fixture.recorder.returns[1] = 1;
-
-  mobile_activity_pulse(0);
-  mobile_activity_forget_character(&fixture.mobiles[1]);
-  fixture.mobiles[0].next = NULL;
-  fixture.mobiles[0].next_in_room = NULL;
-  for (activity_pulse = 1; activity_pulse < PULSE_MOBILE; activity_pulse++)
-    mobile_activity_pulse(activity_pulse);
-
+  mobile_activity_run_scheduled(&fixture.mobiles[0], MOBILE_WORK_SPEC_ACTIVITY);
   CuAssertIntEquals(tc, 1, fixture.recorder.call_count);
+  CuAssertPtrEquals(tc, &fixture.mobiles[0], fixture.recorder.calls[0].actor);
+  mobile_activity_run_scheduled(&fixture.mobiles[1], MOBILE_WORK_SPEC_ACTIVITY);
+  CuAssertIntEquals(tc, 2, fixture.recorder.call_count);
+  CuAssertPtrEquals(tc, &fixture.mobiles[1], fixture.recorder.calls[1].actor);
   spec_pulse_fixture_end(&fixture);
 }
 
@@ -723,7 +697,7 @@ void Test_spec_proc_update_worn_object_uses_wearer_once(CuTest *tc)
   fixture.recorder.returns[0] = 1;
   object_list = object;
 
-  proc_update();
+  dispatch_fixture_autoprocs();
   call = fixture.recorder.calls[0];
   call_matches = fixture.recorder.call_count == 1 && call.actor == &fixture.actor &&
                  call.owner == object && call.command == 0 && !call.argument_is_null &&
@@ -760,7 +734,7 @@ void Test_spec_proc_update_carried_object_uses_null_then_carrier(CuTest *tc)
   fixture.recorder.return_count = 2;
   fixture.recorder.returns[0] = 0;
   fixture.recorder.returns[1] = 1;
-  proc_update();
+  dispatch_fixture_autoprocs();
   fallback_matches = fixture.recorder.call_count == 2 && fixture.recorder.calls[0].actor == NULL &&
                      fixture.recorder.calls[1].actor == &fixture.actor &&
                      fixture.recorder.calls[0].owner == object &&
@@ -769,12 +743,12 @@ void Test_spec_proc_update_carried_object_uses_null_then_carrier(CuTest *tc)
   spec_pulse_recorder_reset(&fixture);
   fixture.recorder.return_count = 1;
   fixture.recorder.returns[0] = 1;
-  proc_update();
+  dispatch_fixture_autoprocs();
   handled_null_stops = fixture.recorder.call_count == 1 && fixture.recorder.calls[0].actor == NULL;
 
   spec_pulse_recorder_reset(&fixture);
   object->carried_by = NULL;
-  proc_update();
+  dispatch_fixture_autoprocs();
   unowned_runs_once = fixture.recorder.call_count == 1 && fixture.recorder.calls[0].actor == NULL;
   spec_pulse_fixture_end(&fixture);
 
@@ -819,7 +793,7 @@ void Test_spec_proc_update_gates_and_ignores_no_specials(CuTest *tc)
   inert_weapon->next = missing_callback;
   object_list = unflagged;
 
-  proc_update();
+  dispatch_fixture_autoprocs();
   gates_match = fixture.recorder.call_count == 0;
 
   spec_pulse_recorder_reset(&fixture);
@@ -830,7 +804,7 @@ void Test_spec_proc_update_gates_and_ignores_no_specials(CuTest *tc)
   no_specials = 1;
   fixture.recorder.return_count = 1;
   fixture.recorder.returns[0] = 1;
-  proc_update();
+  dispatch_fixture_autoprocs();
   suppression_ignored = fixture.recorder.call_count == 1 &&
                         fixture.recorder.calls[0].actor == &fixture.actor &&
                         fixture.recorder.calls[0].owner == unflagged;
@@ -922,46 +896,89 @@ void Test_spec_moving_rooms_ignores_no_specials(CuTest *tc)
   CuAssertTrue(tc, suppression_ignored);
 }
 
-void Test_spec_heartbeat_preserves_noncombat_proc_schedule(CuTest *tc)
+void Test_spec_native_services_and_movement_admission_are_present(CuTest *tc)
 {
-  char *source;
-  char *moving_gate;
-  char *moving_call;
-  char *one_second_gate;
-  char *mobile_gate;
-  char *mobile_call;
-  char *proc_call;
-  char *violence_gate;
-  bool source_loaded;
-  bool moving_schedule_matches;
-  bool pulse_order_matches;
+  char *source = NULL;
 
-  source = NULL;
-  source_loaded = spec_pulse_read_source("src/comm.c", &source);
-  moving_schedule_matches = false;
-  pulse_order_matches = false;
-  if (source_loaded)
-  {
-    moving_gate = strstr(source, "if (!(heart_pulse % (PASSES_PER_SEC * 10)))");
-    moving_call = moving_gate != NULL ? strstr(moving_gate, "moving_rooms_update();") : NULL;
-    one_second_gate =
-        moving_gate != NULL ? strstr(moving_gate, "if (!(heart_pulse % PASSES_PER_SEC))") : NULL;
-    moving_schedule_matches = moving_gate != NULL && moving_call != NULL &&
-                              one_second_gate != NULL && moving_call < one_second_gate;
-
-    mobile_call = strstr(source, "mobile_activity_pulse(heart_pulse);");
-    mobile_gate =
-        mobile_call != NULL ? strstr(mobile_call, "if (!(heart_pulse % PULSE_MOBILE))") : NULL;
-    proc_call = mobile_gate != NULL ? strstr(mobile_gate, "proc_update();") : NULL;
-    violence_gate =
-        mobile_gate != NULL ? strstr(mobile_gate, "if (!(heart_pulse % PULSE_VIOLENCE))") : NULL;
-    pulse_order_matches = mobile_call != NULL && mobile_gate != NULL && proc_call != NULL &&
-                          violence_gate != NULL && mobile_call < proc_call &&
-                          proc_call < violence_gate;
-  }
+  CuAssertTrue(tc, spec_pulse_read_source("src/comm.c", &source));
+  CuAssertPtrNotNull(tc, strstr(source, "moving_rooms_update();"));
+  CuAssertPtrNotNull(tc, strstr(source, "rol_avernus_process_garden_activity();"));
+  CuAssertPtrEquals(tc, NULL, strstr(source, "mobile_activity_run_legacy_"));
+  CuAssertPtrEquals(tc, NULL, strstr(source, "process_legacy_luminari_maintenance();"));
   free(source);
+  source = NULL;
+  CuAssertTrue(tc, spec_pulse_read_source("src/character_periodic.c", &source));
+  CuAssertPtrNotNull(tc, strstr(source, "DOMAIN_EVENT_CHARACTER_MOVED"));
+  CuAssertPtrNotNull(tc, strstr(source, "character_periodic_sync(ch);"));
+  free(source);
+  source = NULL;
+  CuAssertTrue(tc, spec_pulse_read_source("src/handler.c", &source));
+  CuAssertPtrNotNull(tc, strstr(source, "domain_event_runtime_character_moved("));
+  free(source);
+}
 
-  CuAssertTrue(tc, source_loaded);
-  CuAssertTrue(tc, moving_schedule_matches);
-  CuAssertTrue(tc, pulse_order_matches);
+void Test_spec_vessel_owners_have_native_lifecycle_hooks(CuTest *tc)
+{
+  char *comm_source = NULL;
+  char *periodic_source = NULL;
+  char *rol_source = NULL;
+  char *handler_source = NULL;
+  char *edit_source = NULL;
+  char *combat_source = NULL;
+  bool sources_loaded;
+
+  sources_loaded = spec_pulse_read_source("src/comm.c", &comm_source) &&
+                   spec_pulse_read_source("src/vessels/vessel_periodic.c", &periodic_source) &&
+                   spec_pulse_read_source("src/vessels/vessels_rol.c", &rol_source) &&
+                   spec_pulse_read_source("src/handler.c", &handler_source) &&
+                   spec_pulse_read_source("src/vessels/vessels_edit.c", &edit_source) &&
+                   spec_pulse_read_source("src/vessels/vessels_combat.c", &combat_source);
+  if (sources_loaded)
+  {
+    CuAssertPtrEquals(tc, NULL, strstr(comm_source, "service.vessel_rollback"));
+    CuAssertPtrEquals(tc, NULL, strstr(periodic_source, "LUMINARI_VESSEL_EVENTS"));
+    CuAssertPtrNotNull(tc, strstr(periodic_source, "GAME_EVENT_OWNER_VESSEL"));
+    CuAssertPtrNotNull(tc, strstr(periodic_source, "autopilot_tick_one(ship);"));
+    CuAssertPtrNotNull(tc, strstr(periodic_source, "schedule_tick_one(ship);"));
+    CuAssertPtrNotNull(tc, strstr(rol_source, "rol_ship_owner_event"));
+    CuAssertPtrEquals(tc, NULL, strstr(rol_source, "object_list"));
+    CuAssertPtrNotNull(tc, strstr(handler_source, "rol_ship_note_object_placed(object);"));
+    CuAssertPtrNotNull(tc, strstr(handler_source, "rol_ship_note_object_extracted(obj);"));
+    CuAssertPtrNotNull(tc, strstr(edit_source, "vessel_periodic_sync(ship);"));
+    CuAssertPtrNotNull(tc, strstr(combat_source, "vessel_periodic_forget(ship);"));
+  }
+
+  free(comm_source);
+  free(periodic_source);
+  free(rol_source);
+  free(handler_source);
+  free(edit_source);
+  free(combat_source);
+  CuAssertTrue(tc, sources_loaded);
+}
+
+void Test_spec_character_periodic_control_transfers_resync_owners(CuTest *tc)
+{
+  const char *paths[] = {"src/act.wizard.c", "src/magic/spells.c", "src/character/evolutions.c"};
+  const char *transfer_markers[] = {"victim->desc = ch->desc;", "eye->desc = ch->desc;",
+                                    "eidolon->desc = ch->desc;"};
+  const char *new_owner_syncs[] = {"character_periodic_sync(victim);",
+                                   "character_periodic_sync(eye);",
+                                   "character_periodic_sync(eidolon);"};
+  size_t i;
+
+  for (i = 0; i < sizeof(paths) / sizeof(paths[0]); i++)
+  {
+    char *source = NULL;
+    char *transfer;
+    char *old_owner_sync;
+    char *new_owner_sync;
+
+    CuAssertTrue(tc, spec_pulse_read_source(paths[i], &source));
+    transfer = strstr(source, transfer_markers[i]);
+    old_owner_sync = transfer != NULL ? strstr(transfer, "character_periodic_sync(ch);") : NULL;
+    new_owner_sync = transfer != NULL ? strstr(transfer, new_owner_syncs[i]) : NULL;
+    CuAssertTrue(tc, transfer != NULL && old_owner_sync != NULL && new_owner_sync != NULL);
+    free(source);
+  }
 }

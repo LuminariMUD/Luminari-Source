@@ -169,11 +169,10 @@ static int audio_calculate_intensity(struct spatial_context *ctx)
     }
   }
 
-  /* Base intensity starts at 1.0 and is modified by distance and frequency */
-  ctx->base_intensity = distance_factor;
+  ctx->distance_attenuation = distance_factor;
 
   spatial_log("SPATIAL: Audio intensity calculated: %.6f at distance %.2f (freq: %d)",
-              ctx->base_intensity, ctx->distance, ctx->audio_frequency);
+              ctx->base_intensity * ctx->distance_attenuation, ctx->distance, ctx->audio_frequency);
   spatial_log("SPATIAL: Audio distance calculation: distance=%.2f, factor=%.6f", ctx->distance,
               distance_factor);
 
@@ -857,14 +856,13 @@ int spatial_audio_test_shout(int source_x, int source_y, const char *shout_messa
   return SPATIAL_SUCCESS;
 }
 
-/*
- * Generic sound effect test function
- */
-int spatial_audio_test_sound_effect(int source_x, int source_y, int source_z,
-                                    const char *sound_desc, int frequency, int range)
+/* Deliver one event-driven sound to eligible active wilderness players. */
+int spatial_audio_emit(int source_x, int source_y, int source_z, const char *sound_desc,
+                       float intensity, int frequency, int range)
 {
   struct spatial_context *ctx;
   struct char_data *ch;
+  struct descriptor_data *descriptor;
   int processed_count = 0;
 
   if (!sound_desc)
@@ -872,7 +870,7 @@ int spatial_audio_test_sound_effect(int source_x, int source_y, int source_z,
     return SPATIAL_ERROR_INVALID_PARAM;
   }
 
-  spatial_log("Testing sound effect at (%d, %d, %d): %s", source_x, source_y, source_z, sound_desc);
+  spatial_log("Emitting sound at (%d, %d, %d): %s", source_x, source_y, source_z, sound_desc);
 
   /* Create properly initialized context */
   ctx = spatial_create_context();
@@ -887,16 +885,17 @@ int spatial_audio_test_sound_effect(int source_x, int source_y, int source_z,
   ctx->source_y = source_y;
   ctx->source_z = source_z;
   ctx->source_description = strdup(sound_desc);
-  ctx->base_intensity = 1.0;
+  ctx->base_intensity = intensity;
   ctx->audio_frequency = frequency;
 
   /* Set effective range */
   ctx->effective_range = range;
 
-  /* Process for all wilderness players */
-  for (ch = character_list; ch; ch = ch->next)
+  /* Only connected observers can receive a sound; do not traverse the NPC population. */
+  for (descriptor = descriptor_list; descriptor; descriptor = descriptor->next)
   {
-    if (IS_NPC(ch) || !ch->desc)
+    ch = descriptor->character;
+    if (ch == NULL || IS_NPC(ch) || IN_ROOM(ch) == NOWHERE || IN_ROOM(ch) > top_of_world)
       continue;
     if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
       continue;
@@ -946,6 +945,6 @@ int spatial_audio_test_sound_effect(int source_x, int source_y, int source_z,
   /* Cleanup */
   spatial_free_context(ctx);
 
-  spatial_log("Sound effect test processed for %d players", processed_count);
+  spatial_log("Sound event processed for %d players", processed_count);
   return SPATIAL_SUCCESS;
 }

@@ -7,6 +7,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "movement/door_state.h"
 #include "utils.h"
 #include "comm.h"
 #include "interpreter.h"
@@ -42,6 +43,7 @@ int has_race_kit(int race __attribute__((unused)), int c __attribute__((unused))
 /* this function will have the quest mob open a specific door */
 void quest_open_door(room_rnum room, int door)
 {
+  struct door_state_operation operation = {0};
   room_rnum other_room = NOWHERE;
   struct obj_data *dummy = NULL;
   struct room_direction_data *back = NULL;
@@ -63,6 +65,7 @@ void quest_open_door(room_rnum room, int door)
     }
   }
 
+  door_state_begin(&operation, room, door, true, DOMAIN_DOOR_GAMEPLAY);
   if (EXIT_FLAGGED(world[room].dir_option[door], EX_LOCKED))
     UNLOCK_DOOR(room, dummy, door);
 
@@ -74,6 +77,7 @@ void quest_open_door(room_rnum room, int door)
       UNLOCK_DOOR(other_room, dummy, rev_dir[door]);
     OPEN_DOOR(other_room, dummy, rev_dir[door]);
   }
+  door_state_finish(&operation);
 }
 
 /* this utility function display quest info to a viewer in nice format */

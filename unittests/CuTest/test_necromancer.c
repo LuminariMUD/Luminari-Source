@@ -12,6 +12,7 @@
 #include "../../src/interpreter.h"
 #include "../../src/lists.h"
 #include "../../src/mud_event.h"
+#include "../../src/dgscript/dg_event.h"
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
 #include "../../src/character/evolutions.h"

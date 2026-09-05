@@ -8,6 +8,8 @@
 
 #include "structs.h"
 #include "utils.h"
+#include "combat/fight.h"
+#include "magic/spells.h"
 
 #include "act.h"
 #include "comm.h"
@@ -479,7 +481,7 @@ static bool rol_deaths_head_extract_running_seed(struct mud_event_data *event,
 {
   if (event == NULL || seed == NULL)
     return false;
-  free_mud_event(event);
+  mud_event_detach_owner(event);
   extract_obj(seed);
   return true;
 }
@@ -510,7 +512,7 @@ static bool rol_deaths_head_try_germinate(struct mud_event_data *event, struct o
   return true;
 }
 
-EVENTFUNC(event_rol_deaths_head_seed)
+MUD_EVENT_CALLBACK(event_rol_deaths_head_seed)
 {
   struct mud_event_data *event = event_obj;
   struct obj_data *seed;
@@ -535,7 +537,7 @@ EVENTFUNC(event_rol_deaths_head_seed)
   {
     damage = rand_number(rol_deaths_head_seed_damage_min(growth),
                          rol_deaths_head_seed_damage_max(growth));
-    GET_HIT(owner) -= damage;
+    combat_apply_raw_damage(owner, NULL, damage, DAM_RESERVED_DBC, INT_MIN);
   }
   act("You wince in pain as $p grows inside of you.", FALSE, owner, seed, NULL, TO_CHAR);
   return rol_deaths_head_source_delay_pulses(
@@ -564,7 +566,7 @@ int rol_deaths_head_typed(struct spec_event_context *context)
   if (context->owner_type == SPEC_OWNER_OBJECT)
   {
     seed = context->owner;
-    if (context->event != SPEC_EVENT_OBJECT_AUTO_PULSE ||
+    if (context->event != SPEC_EVENT_OBJECT_AUTOMATIC ||
         !rol_deaths_head_seed_profile(GET_OBJ_VNUM(seed)))
       return FALSE;
     if (!seed->rol_deaths_head_seed_initialized)

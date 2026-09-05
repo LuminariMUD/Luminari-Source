@@ -9,6 +9,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "spec/spec_cooldown.h"
+#include "point_update_periodic.h"
 
 struct spec_object_cooldown_state spec_object_cooldown_read(const struct obj_data *obj, int slot)
 {
@@ -37,6 +38,6 @@ bool spec_object_cooldown_commit(struct obj_data *obj, int slot, int duration_mu
   if (obj == NULL || slot < 0 || slot >= SPEC_TIMER_MAX || duration_mud_hours <= 0)
     return false;
 
-  GET_OBJ_SPECTIMER(obj, slot) = duration_mud_hours;
+  point_update_object_spec_timer_set(obj, slot, duration_mud_hours);
   return true;
 }

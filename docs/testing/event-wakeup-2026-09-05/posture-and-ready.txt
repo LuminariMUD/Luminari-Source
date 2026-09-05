@@ -1,0 +1,135 @@
+Reusing the development MUD on port 4101.
+
+>>> goto 3001
+432/432H 1160/1160V [smw] (news) (motd)
+[ 3001] Hall of Beginnings [ None ]  [Inside] ( None )
+Starlight spills across a circular chamber whose floor resembles
+a tranquil pool of midnight glass. Sigils marking the paths of
+mortal journeys glow along the walls, while a gentle breeze       [.]-[&]-[.]
+whispers of distant adventures. Paths lead west toward the
+arrival platform and east toward the immortal nexus.
+[ Exits: E W ]
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> load mob 3001
+.'
+432/432H 1160/1160V [smw] (news) (motd) load mob 3001
+432/432H 1160/1160V [smw] (news) (motd)
+You create a training dummy.
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> eventdebug mob dummy 5
+.'
+432/432H 1160/1160V [smw] (news) (motd) eventdebug mob dummy 5
+432/432H 1160/1160V [smw] (news) (motd)
+Event Queue
+--------------------------------------------------------------------------------
+Matched: 1
+Showing: 1
+Payloads: redacted
+#30 mobile.autonomous.agenda
+  state: queued
+  due pulses: 58
+  due seconds: 5.8
+  owner: character
+  owner id: 101158390158752
+  generation: 632
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> force dummy sit
+.'
+432/432H 1160/1160V [smw] (news) (motd) force dummy sit
+Okay.
+A training dummy sits down.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> @wait 8
+Paused the local test session for 8 second(s).
+.'
+
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> eventdebug mob dummy 5
+432/432H 1160/1160V [smw] (news) (motd)
+Event Queue
+--------------------------------------------------------------------------------
+Matched: 0
+Showing: 0
+Payloads: redacted
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> force dummy stand
+.'
+432/432H 1160/1160V [smw] (news) (motd) force dummy stand
+Okay.
+A training dummy clambers to his feet.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> eventdebug mob dummy 5
+.'
+432/432H 1160/1160V [smw] (news) (motd) eventdebug mob dummy 5
+Event Queue
+--------------------------------------------------------------------------------
+Matched: 2
+Showing: 2
+Payloads: redacted
+#33 mobile.autonomous.agenda
+  state: queued
+  due pulses: 58
+  due seconds: 5.8
+  owner: character
+  owner id: 101158390158752
+  generation: 632
+#34 mud.046.move_action_cooldown
+  state: queued
+  due pulses: 58
+  due seconds: 5.8
+  owner: character
+  owner id: 101158390158752
+  generation: 5
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> purge dummy
+.'
+432/432H 1160/1160V [smw] (news) (motd) purge dummy
+432/432H 1160/1160V [smw] (news) (motd)
+Okay.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> ready rest on entry dummy
+.'
+432/432H 1160/1160V [smw] (news) (motd) ready rest on entry dummy
+You ready 'rest' for when dummy enters.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> load mob 3001
+.'
+432/432H 1160/1160V [smw] (news) (motd) load mob 3001
+Your readied action triggers as a training dummy enters.
+You create a training dummy.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> @wait 1
+Paused the local test session for 1 second(s).
+.'
+You sit down and rest your tired bones.
+
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> ready
+432/432H 1160/1160V [smw] (news) (motd)
+You have no readied action.
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> stand
+.'
+432/432H 1160/1160V [smw] (news) (motd) stand
+You stop resting, and stand up.
+432/432H 1160/1160V [s-w] (news) (motd) 432/432H 1160/1160V [s-w] (news) (motd)
+
+>>> purge dummy
+.'
+432/432H 1160/1160V [s-w] (news) (motd) purge dummy
+Okay.
+432/432H 1160/1160V [s-w] (news) (motd) 432/432H 1160/1160V [s-w] (news) (motd)
+PASS: Aster ran 15 game command(s) and logged out cleanly (14s).
