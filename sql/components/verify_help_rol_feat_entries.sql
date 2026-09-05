@@ -57,8 +57,8 @@ WHERE (UPPER(keyword) = 'ACCOMPANY' AND BINARY help_tag <> 'ACCOMPANY')
 SELECT
   'rol_feat_content' AS check_name,
   COUNT(*) AS actual,
-  23 AS expected,
-  IF(COUNT(*) = 23, 'PASS', 'FAIL') AS result
+  26 AS expected,
+  IF(COUNT(*) = 26, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
   SELECT 'ACCOMPANY' AS tag, 'any class; 5 ranks of perform' AS required_text
@@ -68,11 +68,14 @@ JOIN (
   UNION ALL SELECT 'ACTIVITY', 'Usage: activity'
   UNION ALL SELECT 'ACTIVITY', 'occupied capabilities'
   UNION ALL SELECT 'ACTIVITY', 'Incompatible actions'
+  UNION ALL SELECT 'ACTIVITY', 'Timed casting also appears here'
+  UNION ALL SELECT 'ACTIVITY', 'Casting cannot be paused'
   UNION ALL SELECT 'CALM', 'any class; charisma 19'
   UNION ALL SELECT 'CALM', 'at least 1 plus your charisma bonus'
   UNION ALL SELECT 'CALM', 'mind-affecting'
   UNION ALL SELECT 'CAMP', 'any class; 3 ranks of survival'
   UNION ALL SELECT 'CAMP', '50 percent faster'
+  UNION ALL SELECT 'CAMP', 'Anyone there recovers'
   UNION ALL SELECT 'CAMP', 'return point'
   UNION ALL SELECT 'CAMP', 'six seconds'
   UNION ALL SELECT 'CAMP', 'Use activity'

@@ -5,6 +5,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
+from tests.rol_reference import reference_run, reference_audit
+
 from wtool_lib.constants import default_repo_root
 from wtool_lib.rol_periodic_profiles import COMPOSED_PROFILE_TARGETS, PROFILE_SOURCES
 from wtool_lib.rol_state_periodic_profiles import (
@@ -981,18 +983,14 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual(188, definitions["tree_spirit"]["line"])
 
   def test_production_inputs_generate_complete_progress_ledgers(self) -> None:
-    self._require_reference_paths(
-        "lib/rol-conversion/runs/phase1-policy2-20260813-special-discovery/run-manifest.json",
-        "lib/rol-conversion/runs/phase2-policy2-20260813-special-discovery/run-manifest.json",
-        "lib/rol-conversion/runs/phase5-policy2-20260813-special-discovery-audit/run-manifest.json",
-        "EXAMPLE/RealmsOfLuminari/areas",
-    )
+    run = reference_run()
+    audit = reference_audit()
     with tempfile.TemporaryDirectory() as temporary:
       output_dir = Path(temporary) / "phase6"
       summary = write_special_reconciliation_bundle(
-          self.root / "lib/rol-conversion/runs/phase1-policy2-20260813-special-discovery",
-          self.root / "lib/rol-conversion/runs/phase2-policy2-20260813-special-discovery",
-          self.root / "lib/rol-conversion/runs/phase5-policy2-20260813-special-discovery-audit",
+          run / "discovery",
+          run / "plan",
+          audit,
           self.root / "EXAMPLE/RealmsOfLuminari",
           output_dir,
           created_at="2026-08-12T02:05:00Z",

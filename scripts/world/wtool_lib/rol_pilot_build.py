@@ -723,6 +723,7 @@ def write_pilot_build_bundle(
       for row in command_evidence["commands"]
   }
   soc = _combine_soc(soc_records, stage_resolve, source_commands)
+  path_mobiles = soc.autonomous_path_mobiles
   muspel_overflow = sum(trigger.vnum // 100 == 20261 for trigger in soc.triggers) - 50
   if muspel_overflow != 17:
     raise RolPilotBuildError(
@@ -779,6 +780,7 @@ def write_pilot_build_bundle(
           attachments=owner_attachments,
           required_action_bits=(binding.required_flag_bits if binding is not None else ()),
           required_affect_bits=(binding.required_affect_bits if binding is not None else ()),
+          scripted_path=destination in path_mobiles,
       )
     elif kind == "obj":
       emitted = emit_object(

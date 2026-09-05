@@ -3337,7 +3337,7 @@ example:  blank all / forget all / uncommune all / discard all
 
 See also:  MEMORIZATION PRAYER CONCOCT
 #0
-AMMO ARCHERY BLAST BOWS FIRE-WEAPONS MISSILES QUIVERS RANGED-WEAPONS SHOOT
+LEGACY-RANGED-WEAPONS
 
 Usage:  fire <target> <optionally direction>
        if <target> is group member or pet, you will assist them...
@@ -6566,63 +6566,63 @@ ANSI COLOR-CODES COLOR-LEVEL COLORCODES COLORCODING COLORS COLOUR-CODES COLOURCO
 See also: 	*, PROMPT, TOGGLE
 Staff: SHOW COLOUR
 #0
-COMBAT COMBAT-PHASE FIGHTING
+COMBAT COMBAT-PHASE COMBAT-ROUNDS FIGHTING
 
-The usual way to gain experience in Luminari is via combat.  Combat in Luminari 
-is multi-layered and is designed for a fast-paced, active experience.  
- 
+The usual way to gain experience in Luminari is via combat.  Combat in Luminari
+is multi-layered and is designed for a fast-paced, active experience.
+
 Initiating Combat:
-Combat can be initiated in a couple ways.  The most usual way to initate combat 
-is to use the kill or hit commands : kill <name> or hit <name>.  This will 
+Combat can be initiated in a couple ways.  The most usual way to initate combat
+is to use the kill or hit commands : kill <name> or hit <name>.  This will
 initiate combat between you and the specified mobile or player.  If
-you have a Combat Maneuver (CM) in the attack queue, that CM will be used 
+you have a Combat Maneuver (CM) in the attack queue, that CM will be used
 instead of a melee attack.
-Combat may also be initiated via a CM, trip for example : trip <name>.  This 
+Combat may also be initiated via a CM, trip for example : trip <name>.  This
 command will initiate combat with a trip CM.
- 
+
 Combat Rounds:
 One encounter round lasts 6 seconds. Everyone whose turn is ready acts from
 highest initiative to lowest. Ties use Dexterity and then a stable final order.
 Someone joining a fight becomes eligible on the encounter's next round; joining
 or merging fights never grants an extra early turn.
- 
-You can check the number of attacks you have in your rotation by using the ATTACKS 
+
+You can check the number of attacks you have in your rotation by using the ATTACKS
 command.  The number of attacks available is directly based on your Base Attack
 Bonus (BAB), which increases based on your class and level.
- 
+
 Actions in Combat:
 Your reaction allowance refreshes before initiative begins each round. At the
-start of your turn, due standard, move, and swift actions recover. One valid queued
-command is attempted first.
+start of your turn, due standard, move, and swift actions recover.
+One valid queued command is attempted first.
 Any actions it spends are unavailable to your automatic attack. If both your
 standard and move actions remain, you perform your full attack rotation. With
 only a standard action, you perform the first attack portion. With no standard
 action, you make no automatic attack. See 'help ACTIONS' and 'help ACTION-QUEUE'.
- 
+
 Combat Modes:
-There are a number of combat modes available that change the way you fight.  
+There are a number of combat modes available that change the way you fight.
 Some modes are always available and some are unlocked by feats.  Knowing when to
 use the different modes is vital for mastering combat.  see 'help COMBAT-MODES'
 for more information.
- 
+
 Attacks of Opportunity:
-Sometimes a combatant in a melee lets his guard down or takes a reckless action. 
-In this case, combatants engaged to this combatant can take advantage of his 
-lapse in defense to attack him for free. These free attacks are called attacks 
+Sometimes a combatant in a melee lets his guard down or takes a reckless action.
+In this case, combatants engaged to this combatant can take advantage of his
+lapse in defense to attack him for free. These free attacks are called attacks
 of opportunity, and are marked 	W[	RAOO	W]	n next to the attack.  Usually, you
 are able to make one Attack of opportunity (AOO) every 6 seconds.  If you have
-the Combat Reflexes feat, however, you may make a number of Attacks of 
+the Combat Reflexes feat, however, you may make a number of Attacks of
 opportunity equal to your dexterity bonus every 6 seconds. See 'help AAO' for
 more information
- 
+
 Combat Maneuvers:
-During combat, you can attempt to perform a number of maneuvers that can hinder 
-or even cripple your foe.  Many of these attacks can be used in place of a 
-melee attack, allowing you to combine different combat maneuvers together to 
+During combat, you can attempt to perform a number of maneuvers that can hinder
+or even cripple your foe.  Many of these attacks can be used in place of a
+melee attack, allowing you to combine different combat maneuvers together to
 stack bonuses on your allies or penalties on your enemies.  Some maneuvers may
-trigger an AOO from your opponents.  See 'help COMBAT-MANEUVERS' for more 
+trigger an AOO from your opponents.  See 'help COMBAT-MANEUVERS' for more
 information.
- 
+
 See Also: COMBAT-MANEUVERS, ATTACK-QUEUE, ACTION-QUEUE, ACTIONS, COMBAT-MODES, AOO
 #0
 ARROWSTORM BANEWEAPON BASTION BLINDINGSPEED BONEARMOR BRUTALFOE BULLRUSH COMBAT-FEATS-AND-STANCES CURTAINCALL DAZZLINGDISPLAY DEADLYAIM DEADLYPOWER DEFENSIVESTRIKE FAITHFULSTRIKE FINALSTAND FLOURISH HARDY HUNTERSMARK MANYSHOT NATURESWRATH NORAGE POWERSTRIKE RALLYINGCRY RECKLESSABANDON SHATTERINGSTRIKE SMASHDEFENSE SPRINT STONESENDURANCE SURPRISEACCURACY SWEEPINGSTRIKE THREATEN VITALSTRIKE WARCRY _TRIP
@@ -10860,7 +10860,7 @@ shape on or off.
 
 	YSee Also:	n ELDRITCH BLAST
 #0
-ELDRITCH-BLAST
+BLAST ELDRITCH-BLAST
 
 	D>Usage:           	W blast (target)	n
 	D>Accumulative:    	W  	n
@@ -16991,26 +16991,21 @@ INFRAVISION SPELL-INFRAVISION
 	YSee also:	n DETECT-INVISIBILITY
 	n
 #0
+INITIATIVE INITIATIVE-ORDER
+
 INITIATIVE
 
-	c-----------------------------------------------------------------	n
-	c>Usage:           	W initiative 	n
-	c>Prereqs:         	W Dex 13+ 	n
-	c>Duration:        	W N/A 	n
-	c>Target(s):       	W N/A 	n
-	c>Restrictions:    	W N/A 	n
-	c>Cooldown:        	W N/A 	n
-	c>Description:	n
-	n
-	nGeneral: Initiative determines combat turn order. It is rolled as 1d20 plus
-	nDexterity and other bonuses when a combatant enters an encounter.
-	n
-	nUse INITIATIVE while fighting to see the current encounter round, the time
-	nuntil the next round, and all visible combatants in their scheduled turn
-	norder. Your own name is highlighted in green when color is enabled.
-	n
-	YSee also:	n COMBAT ACTIONS
-	n
+Usage:
+  initiative
+
+Initiative determines combat turn order. It is rolled as 1d20 plus Dexterity
+and other bonuses when a combatant enters an encounter.
+
+Use INITIATIVE while fighting to see the current encounter round, the time
+until the next round, and visible combatants in their scheduled turn order.
+Your own name is highlighted in green when color is enabled.
+
+See also: COMBAT, ACTIONS
 #0
 INNATE INNATES
 
@@ -26226,7 +26221,7 @@ using the 'touchspells' command.
 Ranged touch attacks are the same, except they use a ranged attack
 roll instead of an unarmed attack roll.
 #0
-AMMO AMMUNITION ARCHERY BLAST BOWS FIRE FIRE-WEAPONS MISSILES QUIVER QUIVERS RANGED-WEAPONS SHOOT
+AMMO AMMUNITION ARCHERY BOWS FIRE FIRE-WEAPONS MISSILES QUIVER QUIVERS RANGED-WEAPONS SHOOT
 
 Ammunition, Launchers, and Quivers
 
@@ -26422,7 +26417,7 @@ Example:
 
 See also: BOARDS
 #0
-READY READIED-ACTION
+READIED-ACTION READY
 
 Usage: ready attack <target> on casting
        ready attack <target> on entry
@@ -26451,9 +26446,10 @@ closed door; its attack target must already be visible in your room. Opening
 from either side triggers it, including scripted openings. Unlocking, zone
 resets and builder edits do not. The door does not reveal a target beyond it.
 
-The attack runs at the next native event boundary, about a tenth of a second
-later. You must still be able to act, see and reach the target, and use a melee
-weapon or unarmed attack. Normal defenses and PvP restrictions apply.
+The attack runs at the next native event boundary,
+about one tenth of a second later. You must still be able to act, see and reach
+the target, and use a melee weapon or unarmed attack. Normal defenses and PvP
+restrictions apply.
 
 Command readiness supports SAY, EMOTE, LOOK, REST, STAND, SIT, OPEN and CLOSE.
 These commands run through the normal interpreter and retain their usual costs
@@ -30407,7 +30403,7 @@ just warriors or wizards. Build in parts where rogues and clerics have a
 special part to play. By the same token, do not assume all anyone wants is
 +damage equipment. 
 #0
-SPEC SPEC-PROC SPECBIND SPECIAL-PROCEDURE SPECIALS SPECPROC
+SPEC SPEC-PROC SPECBIND SPECIAL-PROCEDURE SPECIAL-PROCEDURES SPECIALS SPECPROC SPEC_PROC
 
 SPECIAL PROCEDURES (SPECPROCS)
 
@@ -30725,7 +30721,7 @@ Colossal, 8
 
 See Also: Size-Class Mob-Size
 #0
-SPEC-PROC SPECIAL-PROCEDURES SPECIALS SPECPROC SPEC_PROC
+LEGACY-SPECIAL-PROCEDURES
 
    Special procedures are used to allow certain complex functions to rooms,
 mobs, and objects. They are written by coders and are normally not created

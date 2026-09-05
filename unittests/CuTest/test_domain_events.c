@@ -50,6 +50,8 @@
 #define TEST_EVENT_INNER UINT32_C(0x2002)
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
+extern void update_ship(struct obj_data *ship, room_vnum start, room_vnum end, int movedelay,
+                        int waitdelay);
 
 struct test_payload
 {
@@ -3302,6 +3304,124 @@ void TestPointUpdateObjectDecayRemainsExtractionSafe(CuTest *tc)
   character_list = saved_character_list;
   object_list = saved_object_list;
   pulse = saved_pulse;
+}
+
+void TestLegacyFerryCountdownReconcilesPointUpdateMembership(CuTest *tc)
+{
+  struct room_data room = {0};
+  struct room_data *saved_world = world;
+  struct obj_data *saved_objects = object_list;
+  struct obj_data *ship;
+  room_rnum saved_top = top_of_world;
+  unsigned long saved_pulse = pulse;
+  bool countdown_removed;
+  bool dock_wait_added;
+  bool countdown_retained;
+
+  event_free_all();
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(true);
+  event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER);
+  object_list = NULL;
+  world = &room;
+  top_of_world = 0;
+  room.number = 900;
+  pulse = 100U;
+  event_init();
+  point_update_periodic_init();
+  ship = create_obj();
+  GET_OBJ_TYPE(ship) = ITEM_PORTAL;
+  GET_OBJ_TIMER(ship) = 1;
+  IN_ROOM(ship) = 0;
+  point_update_object_sync(ship);
+
+  update_ship(ship, room.number, room.number, 2, 3);
+  countdown_removed = GET_OBJ_TIMER(ship) == 0 && point_update_object_count() == 0 &&
+                      point_update_object_registry_validate() == 0;
+  update_ship(ship, room.number, room.number, 2, 3);
+  dock_wait_added = GET_OBJ_TIMER(ship) == 3 && point_update_object_count() == 1 &&
+                    point_update_object_registry_validate() == 0;
+  update_ship(ship, room.number, room.number, 2, 3);
+  countdown_retained = GET_OBJ_TIMER(ship) == 2 && point_update_object_count() == 1 &&
+                       point_update_object_registry_validate() == 0;
+
+  IN_ROOM(ship) = NOWHERE;
+  extract_obj(ship);
+  point_update_periodic_reset_for_test();
+  event_free_all();
+  object_list = saved_objects;
+  world = saved_world;
+  top_of_world = saved_top;
+  pulse = saved_pulse;
+  CuAssertTrue(tc, countdown_removed);
+  CuAssertTrue(tc, dock_wait_added);
+  CuAssertTrue(tc, countdown_retained);
+}
+
+static void check_buff_target_cleanup(CuTest *tc, bool scheduled)
+{
+  struct char_data characters[4];
+  struct char_data *connected = &characters[0];
+  struct char_data *linkdead = &characters[1];
+  struct char_data *other = &characters[2];
+  struct char_data *target = &characters[3];
+  struct player_special_data specials[4] = {0};
+  struct descriptor_data descriptor = {0};
+  struct char_data *saved_characters = character_list;
+  unsigned long saved_pulse = pulse;
+  bool cleared_players;
+  bool preserved_other_targets;
+  bool registry_valid;
+  int i;
+
+  event_free_all();
+  point_update_periodic_reset_for_test();
+  for (i = 0; i < 4; i++)
+  {
+    clear_char(&characters[i]);
+    characters[i].player_specials = &specials[i];
+    characters[i].next = i < 3 ? &characters[i + 1] : NULL;
+  }
+  characters[0].desc = &descriptor;
+  descriptor.character = &characters[0];
+  SET_BIT_AR(MOB_FLAGS(&characters[3]), MOB_ISNPC);
+  GET_BUFF_TARGET(connected) = target;
+  GET_BUFF_TARGET(linkdead) = target;
+  GET_BUFF_TARGET(other) = connected;
+  GET_BUFF_TARGET(target) = target;
+  character_list = &characters[0];
+  point_update_periodic_select_for_test(scheduled);
+  event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER);
+  pulse = 100U;
+  event_init();
+  if (scheduled)
+    point_update_periodic_init();
+
+  char_from_buff_targets(target);
+  cleared_players = GET_BUFF_TARGET(connected) == NULL && GET_BUFF_TARGET(linkdead) == NULL;
+  preserved_other_targets =
+      GET_BUFF_TARGET(other) == connected && GET_BUFF_TARGET(target) == target;
+  registry_valid = point_update_events_enabled() == scheduled &&
+                   point_update_character_registry_validate() == 0 &&
+                   point_update_character_count() == (scheduled ? 3U : 0U);
+
+  point_update_periodic_reset_for_test();
+  event_free_all();
+  character_list = saved_characters;
+  pulse = saved_pulse;
+  CuAssertTrue(tc, cleared_players);
+  CuAssertTrue(tc, preserved_other_targets);
+  CuAssertTrue(tc, registry_valid);
+}
+
+void TestBuffTargetCleanupIncludesRegisteredLinkdeadPlayers(CuTest *tc)
+{
+  check_buff_target_cleanup(tc, true);
+}
+
+void TestBuffTargetCleanupWorksBeforePlayerRegistryStartup(CuTest *tc)
+{
+  check_buff_target_cleanup(tc, false);
 }
 
 void TestPointUpdateRemainsUnavailableWhenRegistrationFails(CuTest *tc)

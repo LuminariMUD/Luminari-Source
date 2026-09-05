@@ -27,6 +27,7 @@
 #include "spec_artifacts.h"
 #include "objsave.h"
 #include "perfmon.h"
+#include "point_update_periodic.h"
 
 #define OBJSAVE_DB 1
 
@@ -1980,6 +1981,18 @@ void Crash_save_all(void)
   }
 }
 
+static void objsave_sync_loaded_objects(obj_save_data *loaded)
+{
+  obj_save_data *current;
+
+  /* Saved properties can add or remove work that the prototype registered. */
+  for (current = loaded; current != NULL; current = current->next)
+  {
+    autoproc_registry_sync(current->obj);
+    point_update_object_sync(current->obj);
+  }
+}
+
 /* Parses the object records stored in fl, and returns the first object in a
  * linked list, which also handles location if worn. This list can then be
  * handled by house code, listrent code, autoeq code, etc. */
@@ -2377,6 +2390,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
 
   } // end big while loop
 
+  objsave_sync_loaded_objects(head);
   return head;
 }
 
@@ -2918,6 +2932,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
   }
 
   mysql_free_result(result);
+  objsave_sync_loaded_objects(head);
   return head;
 }
 
@@ -4004,6 +4019,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
   }
 
   mysql_free_result(result);
+  objsave_sync_loaded_objects(head);
   return head;
 }
 
@@ -4718,6 +4734,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
   }
 
   mysql_free_result(result);
+  objsave_sync_loaded_objects(head);
   return head;
 }
 

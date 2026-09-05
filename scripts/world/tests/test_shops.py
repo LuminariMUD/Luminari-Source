@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+import os
+import shlex
+import subprocess
 import tempfile
 import unittest
 
@@ -65,6 +68,64 @@ class ShopParserTests(unittest.TestCase):
     )
     result = self.parse(broken)
     self.assertTrue({"SHP018", "SHP019"} <= {item.code for item in result.findings})
+
+
+class ShopConverterTests(unittest.TestCase):
+  @classmethod
+  def setUpClass(cls) -> None:
+    cls.build = tempfile.TemporaryDirectory(prefix="luminari-shopconv-test-")
+    cls.addClassCleanup(cls.build.cleanup)
+    cls.binary = Path(cls.build.name) / "shopconv"
+    root = Path(__file__).resolve().parents[3]
+    subprocess.run(
+        shlex.split(os.environ.get("CC", "gcc"))
+        + ["-std=gnu2x", "-O1", "-g", "-Wall", "-Wextra", "-Werror",
+           "-D_FORTIFY_SOURCE=3", "-I", str(root / "src")]
+        + shlex.split(os.environ.get("SHOPCONV_TEST_CFLAGS", ""))
+        + [str(root / "util/shopconv.c"), "-o", str(cls.binary)],
+        check=True, capture_output=True, text=True,
+    )
+
+  def convert(self, text: str, name: str = "shop.shp") -> tuple[Path, subprocess.CompletedProcess]:
+    temporary = tempfile.TemporaryDirectory(prefix="luminari-shopconv-input-")
+    self.addCleanup(temporary.cleanup)
+    path = Path(temporary.name) / name
+    path.write_bytes(text.encode("ascii"))
+    result = subprocess.run([str(self.binary), str(path)], capture_output=True, text=True)
+    self.assertEqual(0, result.returncode, result.stderr)
+    return path, result
+
+  def test_empty_messages_and_unterminated_final_newline(self) -> None:
+    original = "#1~\n" + "0\n" * 5 + "1.0\n1.0\n" + "0\n" * 5
+    original += "~\n" * 7 + "0\n" * 9 + "$~"
+    path, _ = self.convert(original)
+    converted = path.read_text(encoding="ascii")
+    self.assertIn("~\n" * 7, converted)
+    self.assertNotIn("(null)", converted)
+    self.assertTrue(converted.endswith("$~\n"))
+    self.assertEqual(original, Path(str(path) + ".bak").read_text(encoding="ascii"))
+
+  def test_crlf_terminators_preserve_multiline_messages(self) -> None:
+    original = "#1~\r\n" + "0\r\n" * 5 + "1.0\r\n1.0\r\n" + "0\r\n" * 5
+    original += "first\r\nsecond~ \r\n" * 7 + "0\r\n" * 9 + "$~\r\n"
+    path, _ = self.convert(original)
+    self.assertEqual(7, path.read_bytes().count(b"first\r\nsecond~\n"))
+
+  def test_invalid_shop_header_restores_original(self) -> None:
+    original = "#invalid~\n$~\n"
+    path, result = self.convert(original)
+    self.assertIn("Invalid shop header", result.stderr)
+    self.assertEqual(original, path.read_text(encoding="ascii"))
+    self.assertFalse(Path(str(path) + ".bak").exists())
+
+  def test_long_filename_is_preserved_in_diagnostics(self) -> None:
+    temporary = tempfile.TemporaryDirectory(prefix="luminari-shopconv-input-")
+    self.addCleanup(temporary.cleanup)
+    path = Path(temporary.name) / ("s" * 160 + ".shp")
+    path.write_text("", encoding="ascii")
+    result = subprocess.run([str(self.binary), str(path)], capture_output=True, text=True)
+    self.assertEqual(1, result.returncode)
+    self.assertIn("beginning of shop file " + str(path), result.stdout)
 
 
 if __name__ == "__main__":

@@ -35,6 +35,10 @@ argument and command parsing, transport and autopilot behavior, combat,
 spells and skills, MariaDB prepared statements, DG scripts, and world index
 lookups.
 
+Global RoL reset removal also covers mixed prototypes, combat guards, pending
+extractions, repeated removals and empty prototypes. Prototype counts include
+guarded and pending mobiles when bounding the global traversal.
+
 ### Event Runtime Boot Matrix
 
 Changes to scheduling, the game loop, wait state, persistence cadence, or
@@ -338,6 +342,17 @@ Before an operational validation of ignored development data, hash
 a failed safety check. Retain only aggregate counts, timing, peak memory, and
 hash evidence in repository documentation; do not add builder-owned files.
 
+When the ignored `EXAMPLE/RealmsOfLuminari` source corpus is installed, corpus
+integration tests create a fresh discovery, plan, pilot selection, and capability
+audit in a temporary directory. They share these inputs within the test process
+and clean them up at exit; historical `lib/rol-conversion/runs/` folders are not
+required. The target fixture starts from the tracked minimal world plus one
+actually converted Hulburg room, exercising canonical identity preservation.
+Current source expectations cover 71,680 records, 69,922 emitted records, all
+333 pilot quests, and the complete special-procedure reconciliation ledgers.
+Only absence of the ignored source corpus permits these integration tests to
+skip; generation or reconciliation failures fail the tests.
+
 Tests use tracked synthetic fixtures plus the tracked artifact and minimal
 bundles. CI cannot validate the ignored builder-owned files under the live
 `lib/world/` type directories; a green workflow verifies the parser, fixtures,
@@ -372,6 +387,31 @@ focused protocol parser harness, the character-rename static checks, and the
 isolated MariaDB schema test. It finishes with `make install`, so the tested
 server is installed as `bin/luminari` and no root-level `luminari` artifact is
 left behind. The `unittests/CuTest` target of the same name delegates here.
+
+The world-tool suite also compiles the maintained `shopconv` utility with
+warnings treated as errors. Its regression fixtures cover empty and multiline
+messages, CRLF and final-line terminators, invalid-header recovery, and complete
+filename diagnostics. Set `SHOPCONV_TEST_CFLAGS` to add sanitizer flags when
+running `scripts/world/tests/test_shops.py`.
+
+The production DG regressions distinguish explicit waits from automatic runaway-loop
+yields: a script that deliberately waits can continue past 100 iterations, while a
+busy loop still stops at the limit. RoL conversion tests also verify that autonomous
+SOC routes suppress ordinary wandering, halt when blocked, and can complete a closed lap.
+
+Saved-object regressions exercise file and isolated house-database restoration with
+flags and values that change both automatic-procedure and mud-hour timer membership.
+The legacy ferry regression checks membership when its countdown expires and restarts
+at a dock, preserving the existing movement and waiting delays.
+Buff-target cleanup covers connected and link-dead players through the maintained
+player registry, with the original full-list fallback before registry startup.
+
+Help-content verification checks that BLAST resolves to eldritch-blast help,
+while FIRE and ammunition keywords resolve to launcher help. Superseded ranged
+and special-procedure articles retain distinct LEGACY- keywords; maintained
+command keywords must not resolve to those old articles. The local burn-in also
+compares each repaired database entry with its help.hlp fallback and verifies
+that repeated content migrations are idempotent.
 
 ## MariaDB Persistence Test
 

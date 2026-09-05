@@ -27,7 +27,7 @@ WHERE (help_tag, UPPER(keyword)) IN (
   ('RANGED-WEAPONS', 'AMMO'),
   ('RANGED-WEAPONS', 'AMMUNITION'),
   ('RANGED-WEAPONS', 'ARCHERY'),
-  ('RANGED-WEAPONS', 'BLAST'),
+  ('eldritch-blast', 'BLAST'),
   ('RANGED-WEAPONS', 'BOWS'),
   ('RANGED-WEAPONS', 'FIRE'),
   ('RANGED-WEAPONS', 'FIRE-WEAPONS'),
@@ -78,7 +78,16 @@ WHERE
     AND help_tag <> 'THROWN-WEAPONS')
   OR
   (UPPER(keyword) IN (
-    'AMMO', 'AMMUNITION', 'ARCHERY', 'BLAST', 'BOWS', 'FIRE', 'FIRE-WEAPONS',
+    'AMMO', 'AMMUNITION', 'ARCHERY', 'BOWS', 'FIRE', 'FIRE-WEAPONS',
     'MISSILES', 'QUIVER', 'QUIVERS', 'RANGED-WEAPONS', 'SHOOT'
   ) AND help_tag <> 'RANGED-WEAPONS')
-  OR (UPPER(keyword) = 'COLLECT' AND help_tag <> 'COLLECT');
+  OR (UPPER(keyword) = 'COLLECT' AND help_tag <> 'COLLECT')
+  OR (UPPER(keyword) = 'BLAST' AND help_tag <> 'eldritch-blast');
+
+-- BLAST is a warlock command, not a synonym for the FIRE launcher command.
+SELECT 'blast_command_content' AS check_name, COUNT(*) AS actual, 1 AS expected,
+  IF(COUNT(*) = 1, 'PASS', 'FAIL') AS result
+FROM help_entries
+WHERE tag = 'eldritch-blast' AND min_level = 0
+  AND LOWER(entry) LIKE '%blast (target)%'
+  AND LOWER(entry) LIKE '%warlock%';

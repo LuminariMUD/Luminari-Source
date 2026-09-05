@@ -61,10 +61,11 @@ Check:    survival against a difficulty set by terrain and weather
 You spend about six seconds clearing a site, setting your gear and getting a
 fire going. Use activity to inspect, pause, resume or cancel the work. Moving
 ends the attempt, damage delays it, and entering combat pauses it until the
-fight ends. You and any grouped companions in the room recover hitpoints and
-movement 50 percent faster while sleeping, reclining, resting or sitting in
-the camp, and the campsite becomes your return point, so quitting from camp
-brings you back to it.
+fight ends. The camp remains in the room for a time. Anyone there recovers
+hitpoints and movement 50 percent faster while sleeping, reclining, resting
+or sitting. The campsite becomes the return point for you and grouped
+companions present when it is completed, so quitting from camp brings you
+back to it.
 
 Camps cannot be pitched indoors, on or under water, while flying, or during
 combat. Rough ground such as desert, marsh, mountains and the deep underdark
@@ -90,7 +91,10 @@ the clock that will request its next step. Informational and communication
 commands remain available during an activity. Incompatible actions report the
 conflict instead of silently interrupting your work.
 
-See also: CAMP, ACTIONS, COOLDOWNS', 0, FALSE)
+Timed casting also appears here. Use activity cancel or abort to stop a cast.
+Casting cannot be paused and continues on its normal clock during combat.
+
+See also: CAMP, ACTIONS, COOLDOWNS, CASTING-TIME', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 

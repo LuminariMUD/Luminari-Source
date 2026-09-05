@@ -5473,20 +5473,28 @@ static bool rol_reset_follow(int mode, room_rnum room, mob_rnum leader_num, mob_
 static bool rol_reset_remove_mobile(room_rnum room, mob_rnum mob_num, bool combat_guard)
 {
   struct char_data *mobile, *next_mobile;
+  int remaining;
   bool removed = FALSE;
 
   if (mob_num == NOBODY || mob_num > top_of_mobt)
     return FALSE;
   if (room == NOWHERE)
   {
+    /* A global removal still succeeds when its prototype has no live instances. */
+    remaining = mob_index[mob_num].number;
+    if (remaining == 0)
+      return TRUE;
     for (mobile = character_list; mobile; mobile = next_mobile)
     {
       next_mobile = mobile->next;
-      if (!IS_NPC(mobile) || MOB_FLAGGED(mobile, MOB_NOTDEADYET) ||
-          GET_MOB_RNUM(mobile) != mob_num || (combat_guard && FIGHTING(mobile)))
+      if (!IS_NPC(mobile) || GET_MOB_RNUM(mobile) != mob_num)
         continue;
-      extract_char(mobile);
-      removed = TRUE;
+      if (!MOB_FLAGGED(mobile, MOB_NOTDEADYET) && !(combat_guard && FIGHTING(mobile)))
+        extract_char(mobile);
+      /* Pending and combat-guarded instances still contribute to the prototype count.
+       * Once all are visited, no later character can match this removal. */
+      if (--remaining == 0)
+        break;
     }
     /* The source global-removal command succeeds even when no instance exists. */
     return TRUE;
@@ -5504,6 +5512,13 @@ static bool rol_reset_remove_mobile(room_rnum room, mob_rnum mob_num, bool comba
   }
   return removed;
 }
+
+#ifdef LUMINARI_CUTEST
+bool test_rol_reset_remove_mobile(room_rnum room, mob_rnum mob_num, bool combat_guard)
+{
+  return rol_reset_remove_mobile(room, mob_num, combat_guard);
+}
+#endif
 
 static void rol_reset_legacy_door(room_rnum room, int direction, int state)
 {

@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
 import unittest
+
+from tests.rol_reference import reference_audit
 
 from wtool_lib.constants import default_repo_root
 from wtool_lib.rol_capability_audit import (
     build_symbolic_inventory,
     classify_transform_diagnostic,
-    write_capability_audit_bundle,
 )
 
 
@@ -18,7 +18,6 @@ class RolCapabilityAuditTests(unittest.TestCase):
   def setUpClass(cls) -> None:
     cls.root = default_repo_root()
     cls.source_root = cls.root / "EXAMPLE/RealmsOfLuminari"
-    cls.plan_dir = cls.root / "lib/rol-conversion/runs/phase2-e6ea7982"
 
   def test_diagnostic_ownership_separates_references_and_generic_gaps(self) -> None:
     self.assertEqual(
@@ -72,20 +71,27 @@ class RolCapabilityAuditTests(unittest.TestCase):
     self.assertTrue(all(row["mapped"] for row in rows))
 
   def test_active_corpus_audit_emits_every_convertible_record(self) -> None:
-    if not self.source_root.is_dir() or not self.plan_dir.is_dir():
-      self.skipTest("ignored RoL corpus or Phase 2 plan is not installed")
-    with tempfile.TemporaryDirectory() as temporary:
-      output_dir = Path(temporary) / "audit"
-      summary = write_capability_audit_bundle(
-          self.plan_dir,
-          self.source_root,
-          output_dir,
-          created_at="2026-08-12T00:00:00Z",
-      )
-      manifest = json.loads((output_dir / "run-manifest.json").read_text(encoding="ascii"))
+    output_dir = reference_audit()
+    summary = json.loads((output_dir / "audit-summary.json").read_text(encoding="ascii"))
+    manifest = json.loads((output_dir / "run-manifest.json").read_text(encoding="ascii"))
 
     self.assertEqual(71_680, summary["source_records"])
-    self.assertEqual(69_920, summary["emitted_records"])
+    self.assertEqual(69_922, summary["emitted_records"])
+    self.assertEqual(
+        {"mob": 12_407, "obj": 10_377, "qst": 5_076, "shp": 453,
+         "wld": 41_354, "zon": 255},
+        summary["emitted_records_by_kind"],
+    )
+    self.assertEqual(4, summary["record_dispositions"]["EXCLUDE"])
+    self.assertEqual(1, summary["record_dispositions"]["KEEP"])
+    actions = [json.loads(line) for line in
+               (output_dir.parent / "plan/reconciliation.jsonl").read_text(encoding="ascii").splitlines()]
+    self.assertEqual(
+        {("obj", "muspel", 59060), ("qst", "moonshae", 26253),
+         ("qst", "moonshae", 26254), ("wld", "quests", 1000)},
+        {(row["source_kind"], row["basename"], row["source_vnum"])
+         for row in actions if row["action"] == "EXCLUDE"},
+    )
     self.assertEqual(0, summary["transform_exceptions"])
     self.assertEqual(0, summary["quest_random_item_ranges"])
     self.assertTrue(manifest["acceptance"]["all_records_disposed"])

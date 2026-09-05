@@ -21,6 +21,8 @@ void point_update_object_spec_timer_set(struct obj_data *obj, int slot, int dura
 bool point_update_periodic_dispatch_due(void);
 
 size_t point_update_character_count(void);
+/* Read-only traversal of live player owners, including link-dead characters. */
+struct char_data *point_update_character_first(void);
 size_t point_update_object_count(void);
 size_t point_update_character_registry_validate(void);
 size_t point_update_object_registry_validate(void);

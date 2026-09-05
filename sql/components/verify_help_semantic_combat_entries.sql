@@ -74,7 +74,11 @@ WHERE tag = 'ready-action'
   AND auto_generated = FALSE
   AND INSTR(entry, 'ready <command> on entry [target]') > 0
   AND INSTR(entry, 'one tenth of a second later') > 0
-  AND INSTR(entry, 'Readied actions do not survive') > 0;
+  AND INSTR(entry, 'Readied actions do not survive') > 0
+  AND INSTR(entry, 'ready attack <target> on casting') > 0
+  AND INSTR(entry, 'ready attack <target> on door open <direction>') > 0
+  AND INSTR(entry, 'spends your standard action now') > 0
+  AND INSTR(entry, 'Other combat commands and aliases cannot be readied') > 0;
 
 SELECT
   'ready_action_keywords' AS check_name,

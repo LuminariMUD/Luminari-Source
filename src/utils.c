@@ -20,6 +20,7 @@
 #include "screen.h"
 #include "magic/spells.h"
 #include "handler.h"
+#include "point_update_periodic.h"
 #include "interpreter.h"
 #include "character/class.h"
 #include "character/race.h"
@@ -4085,8 +4086,12 @@ void char_from_furniture(struct char_data *ch)
 void char_from_buff_targets(struct char_data *ch)
 {
   struct char_data *tch;
+  bool registered_players = point_update_events_enabled();
 
-  for (tch = character_list; tch; tch = tch->next)
+  /* Player membership includes link-dead characters and avoids visiting every NPC
+   * for each extraction. Before registry startup, retain the full-list behavior. */
+  for (tch = registered_players ? point_update_character_first() : character_list; tch;
+       tch = registered_players ? tch->point_update_next : tch->next)
   {
     if (!IS_NPC(tch) && GET_BUFF_TARGET(tch) == ch)
       GET_BUFF_TARGET(tch) = NULL;

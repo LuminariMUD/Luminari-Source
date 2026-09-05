@@ -1,110 +1,180 @@
 ---
 name: burnin
 description: >-
-  Exhaustively qualify a DurisMUD checkout by stopping its server, running every
-  regression and isolated database test, clean-building all maintained code, repairing every
-  finding, then booting and smoke-testing with the configured staff character. Use for an
-  explicit full burn-in or stability pass, not routine focused validation.
+  Fully qualify a LuminariMUD development checkout with clean builds, production-linked
+  regressions, isolated MariaDB tests, memory checks, and a staff login smoke test.
+  Repair findings and leave the healthy MUD running. Use for an explicit full burn-in
+  or stability pass, not routine focused validation.
 ---
 
-# Burn in DurisMUD
+# Burn in LuminariMUD
 
-Drive the checkout to one uninterrupted clean end-to-end pass after the last fix. Do not stop
-merely because one phase passes.
+Complete a clean build, regression, database, and live-runtime pass after the final repair.
+Leave this checkout's healthy development MUD running unless the user asks otherwise.
+Updating this skill does not authorize executing it or resuming a paused burn-in.
 
-## Boundaries
+## Establish the checkout and scope
 
-- Work from the repository root. Read `AGENTS.md`, `README.md`, the root `Makefile`, and the
-  starting/stopping section of `docs/operations/RUNBOOK.md`; inspect the worktree first.
-- Read only the required `.env` fields without printing their values. Unless the user authorizes
-  otherwise, proceed only when `ENVIRONMENT=local`. User authorization overrides this local-only
-  rule. Preserve unrelated changes and all player/runtime data.
-- Treat migration authority separately from burn-in authority. Before mutating any configured
-  runtime database, confirm that the exact target and migration operation are explicitly allowed
-  by the user and repository policy. Never relabel, redirect, or weaken a guard to make a live
-  production target acceptable to a local-only migration tool.
-- Stop the instance under test. Prefer the matching user service or the in-game immortal
-  `shutdown`; otherwise identify the supervisor and child by working directory, command line, and
-  listener before a graceful signal. Never use broad `kill`/`pkill`. Wait for both processes and
-  their ports to close. Treat another checkout owning a required port as a blocker, not as
-  authorization to stop it.
-- Before stopping an authorized production instance, identify its exact production service unit
-  and manager and record the known-good artifact and rollback/start path. After every production
-  stop, restart through that same service path, which must invoke `cycle_mud.sh --production`;
-  never invoke `start_mud.sh --dev` when `ENVIRONMENT=production`. If a later phase fails, restore
-  the known-good artifact and restart the production service before reporting the failure unless
-  the user explicitly requested that it remain stopped.
-- Do not skip an unavailable gate. Diagnose safe prerequisites; if Docker, credentials, or
-  another external dependency remains unavailable, report the burn-in as incomplete.
+- Read `AGENTS.md`, `README.md`, `Makefile.am`, the configured root `Makefile`, and
+  `docs/guides/TESTING_GUIDE.md`. For process and log handling, use
+  `docs/guides/TROUBLESHOOTING_AND_MAINTENANCE.md` and
+  `docs/runbooks/incident-response.md`. Recheck actual targets and helpers when the tree changes.
+- Inspect Git status and preserve unrelated work. Read `APP_ENV` from `lib/.env` without dumping
+  the file. This workflow requires `APP_ENV=development`. The marker alone does not prove that
+  the database or listeners belong to development; verify their actual targets too.
+- Follow the repository prohibition on production code changes. Production access in `lib/.env`
+  does not authorize stopping production, migrating its database, or publishing local repairs.
+  Do not change an environment marker to pass a development guard.
+- Preserve `src/campaign.h`, `src/mud_options.h`, `src/vnums.h`, `lib/mysql_config`, and `lib/.env`.
+  Use their tracked examples only as permitted by `AGENTS.md`. Keep player files, world files,
+  runtime databases, existing releases, and crash evidence intact.
+- Keep logs, test runtimes, and separate build trees in a unique ignored `.burnin-runtime*`
+  directory or an identified temporary directory. Record commands, statuses, and process handles.
+  Never include real passwords, connection secrets, or private player records in the report.
+- A burn-in request authorizes the local stop/build/test/start cycle and narrow repairs within
+  its scope. Reuse existing authorization; ask only for a real unresolved target, destructive
+  change, content conflict, or action beyond that scope. Do not commit, merge, or publish unless
+  requested. On pause, stop this run's test clients and monitors, close its staff login cleanly,
+  and record unfinished gates. Preserve evidence and the user's requested MUD state; do not
+  resume automatically.
 
-## Repair loop
+## Stop only the instance under test
 
-1. With the MUD stopped, complete the migration and compatibility gate before any build.
-   `make test-db` does not satisfy this step; it only qualifies isolated fixtures.
+Use `./scripts/autorun/autorun.sh status` and inspect the actual listener, process executable,
+working directory, supervisor, and `.autorun.state`. A stale state file alone is not proof of a
+running server. The local game port defaults to 4101 and the health listener to loopback 8182;
+check `MUD_PORT`, `lib/etc/config`, and `TERRAIN_API_PORT` for overrides.
 
-   For an allowed local/development runtime target, inspect and apply the checked-in immutable
-   migration prefix, then prove that the configured runtime schema matches the source contract:
+For an autorun-owned development instance:
+
+```bash
+./scripts/autorun/autorun.sh stop
+```
+
+Wait for the verified supervisor, watchdog if present, server child, and its listeners to stop.
+If a direct debugging process or another supervisor owns this checkout, identify that exact
+process and stop it gracefully through its existing control path. Never stop another checkout
+or use broad process-name kills. A conflicting listener requires resolving ownership.
+Use autorun for the subsequent development start, not `luminari.service`.
+
+## Handle Luminari's database contract
+
+The server gets its database connection from `lib/mysql_config`; `DB_*` entries in `lib/.env`
+are not a substitute for tracing `src/mysql.c`. Inspect the configured runtime read-only before
+repairing it, keeping credentials out of command arguments and output.
+
+Luminari initializes missing tables and runs embedded, versioned migrations during startup:
+
+- `src/db_startup_init.c`: `startup_database_init()` and `initialize_missing_tables()`;
+- `src/db_init.c`: `run_database_migrations()`, `run_pet_persistence_migrations()`, and
+  `schema_migrations` bookkeeping;
+- `src/db_init_data.c`: required player-table and pet-persistence verification.
+
+Trace these current requirements and any affected subsystem's checked-in SQL. Recorded migration
+versions are evidence of application, not proof that the current columns, indexes, and engines
+still satisfy the code. Read the relevant `sql/components/verify_*.sql` before executing it and
+inspect returned checks, not just SQL exit status.
+
+Normal local startup includes database initialization and idempotent migration writes; even a
+`-c` syntax boot is not read-only. Qualify pending changes on an isolated fixture or disposable
+copy before using the configured development runtime. Apply only justified, authorized repairs
+with appropriate backups and verification. Already authorized local startup does not need a
+duplicate confirmation merely because it performs its normal initialization.
+
+`sql/master_schema.sql` bootstraps isolated/fresh databases. Do not import it over the runtime
+database or require literal equality with every optional or retired schema in that file.
+There is no separate migration-runner or universal runtime-compatibility command to invoke
+before building. Runtime compatibility must be proven by the current source contracts and boot.
+
+Keep help repairs aligned in both the database and `lib/text/help/help.hlp`. Trace failures in
+help-content verifiers to the current command behavior and authored content before replacing
+entries or keyword ownership. Review deletions, renames, and genuine conflicts explicitly.
+Use the help-sync skill for an explicitly requested cross-environment synchronization; an
+ordinary burn-in does not authorize publishing help to production.
+
+## Build, test, and repair
+
+Read [references/validation.md](references/validation.md) for the exact fixture setup and
+validation commands. A full pass covers:
+
+1. The pinned pre-commit formatting hook and a fresh Autotools server/utility build.
+2. Root `make test-all`, with isolated database persistence and help integration enabled,
+   followed by the supported alternate I/O driver check.
+3. A separate CMake build, ASan/UBSan production tests, bounded protocol fuzzing, and Valgrind.
+4. Installation of the normal Autotools release and proof that no root `luminari` artifact remains.
+
+Inspect complete logs even on exit zero. Negative regression fixtures intentionally produce
+some `SYSERR` and warning messages; trace them to the test that expects them. Repair unexpected
+compiler warnings, test failures, memory errors, crashes, hangs, and credible defects. Keep fixes
+narrow, add a regression for changed behavior, and follow the source style and build-manifest
+rules in `AGENTS.md`.
+
+After a repair, run its focused regression, then repeat the clean build and full validation pass
+against the final source. Recheck runtime compatibility when the repair changes that contract.
+Do not count earlier green results for a different source or executable as the final pass.
+Run independent fixtures concurrently only when they cannot race shared build artifacts or data.
+
+Identify every skip and missing prerequisite. Restore legitimate fixtures or tool dependencies
+where possible; do not weaken tests, fabricate historical conversion plans, or point tests at
+the game database to obtain a pass. If a required gate remains unavailable, finish the safe
+available work and report the burn-in as incomplete with its exact coverage gap.
+
+## Live burn-in and handoff
+
+1. Record byte/inode or timestamp boundaries for root `syslog`, regular files under `log/`, and
+   existing crash evidence under `dumps/`. Follow rotation and newly created files throughout
+   startup, login, and the soak. Use the actual configured log locations if overridden.
+   Autorun copies and renames `syslog` during rotation; a new file can contain old messages.
+   Check the timestamps inside those messages against the observation boundary before treating
+   them as new diagnostics.
+2. Start the installed normal release through autorun, using the verified development port:
 
    ```bash
-   python3 scripts/migration_runner.py inspect
-   python3 scripts/migration_runner.py run
-   ./migrations/verify_runtime_compatibility.sh
+   ./scripts/autorun/autorun.sh
+   ./scripts/operations/healthcheck.sh --wait
+   ./scripts/autorun/autorun.sh status
    ```
 
-   For production, follow `AGENTS.md` and the migration procedure in
-   `docs/operations/RUNBOOK.md`. Qualify migrations on the required disposable clone and require
-   the approved production schema rollout or cutover to be complete; then run the read-only
-   compatibility verifier against production. Do not start a build while the configured runtime
-   target is stale, and do not substitute migration qualification on a clone for advancing the
-   runtime target.
+   Set `MUD_PORT` and the matching `LUMINARI_HEALTH_URL` when the verified configuration requires
+   overrides. Prove the process belongs to this checkout and runs the tested immutable release
+   under `bin/releases/<ELF-build-ID>/`, including the expected Git/build identity. Readiness
+   must report both the MUD and required MariaDB as healthy. Verify that autorun survives the
+   launching terminal/tool session. Local Ollama, I3, and Discord connectivity is not required
+   unless those integrations are the task's subject.
+3. Inspect `scripts/development/dev_kohdee_login_smoke.sh` for the current account-menu,
+   command-capture, and complete character/account logout sequence.
+   It reads `GAME_MASTER_ACCOUNT` and `GAME_MASTER_ACCOUNT_PASSWORD`, supports `DEV_MUD_ACCOUNT`,
+   `DEV_MUD_ACCOUNT_PASSWORD`, and `DEV_MUD_CHARACTER`, and currently defaults to character
+   `Kohdee`. Confirm that the selected existing staff character is idle before selecting it;
+   do not take over an active session, create a character, or elevate one to pass the test.
 
-2. Run every canonical gate and inspect output even when it exits zero:
+   Use a credential-safe Telnet/Expect session against the verified autorun listener, with
+   prompt/response boundaries and secrets excluded from transcripts. The helper's `--commands`
+   mode sends in-game `say` completion markers; use it only when that messaging is explicitly
+   authorized. It reads the port from `lib/etc/config` and can start a separate user service
+   when no listener exists. Invoke it only after autorun is healthy and the ports match;
+   its fallback is not the burn-in startup path.
+4. Randomize a selection of safe inspection commands across player and staff systems. Trace
+   registrations and handlers in `src/interpreter.c` and the owning subsystem first. Candidates
+   include `score`, `inventory`, `equipment`, `time`, `weather`, `who`, `activity`, `show stats`,
+   `eventdebug`, and read-only `perfmon` output. Record exact arguments and verify sensible
+   responses; helper success alone does not prove command correctness. Normal
+   login/logout persistence is expected. Avoid combat, travel, spawning, administration, or
+   changing characters, world state, and configuration during this inspection smoke test.
+5. If repairs affect scheduling, persistence cadence, copyover, or the game loop, follow
+   `docs/testing/EVENT_DRIVEN_CORE_ACCEPTANCE.md` for the additional runtime acceptance, including
+   a real descriptor-survival copyover where required. This is a separate targeted gate, not
+   permission to invoke the helper's mutating vessel scenarios in an ordinary smoke test.
+6. Monitor through at least 60 seconds after clean logout, longer when a changed timer needs it.
+   Recheck readiness, listener ownership, release identity, and supervisor stability. Investigate
+   new crashes, persistence errors, restarts, and unexpected output. If a fix is needed, stop
+   this instance, repair it, repeat validation, and repeat the live pass.
 
-   ```bash
-   ./scripts/format.sh --check
-   make test-all
-   make test-db
-   ```
+Leave the healthy MUD under autorun for the user. Stop only disposable database services and
+other temporary processes created for testing; preserve useful logs and identified backups.
+If validation cannot finish, state whether a healthy development MUD was restored and exactly
+what remains. Honour a user's pause or explicit request to keep it stopped.
 
-   `make test-db` must use its isolated Docker/MySQL fixtures, never the configured game database.
-
-3. Fix every error, warning, crash, hang, flaky result, sanitizer-like symptom, or credible defect
-   encountered. Find the root cause, keep fixes narrow, add or update a focused regression for
-   changed behavior, and do not weaken checks or hide diagnostics. Run the focused check after each
-   repair, then repeat the full affected gate.
-
-4. From a stopped state, prove a completely fresh build:
-
-   ```bash
-   make clean-all
-   make
-   ```
-
-   The root build covers all maintained binaries. Review the entire build output for diagnostics,
-   not just its status. After any repair, repeat the migration/compatibility gate first, followed by
-   the clean build and all canonical gates. Continue until the complete migration, compatibility,
-   test, database-test, and clean-build sequence passes without findings.
-
-## Live burn-in
-
-1. Record current log boundaries. For `ENVIRONMENT=local`, start this checkout with
-   `./scripts/start_mud.sh --dev`. For an authorized `ENVIRONMENT=production` run, start the exact
-   production service identified before shutdown, using the same service manager. Wait for
-   `./scripts/healthcheck.sh` to pass. Throughout boot and the smoke test, follow
-   `logs/duris-console.log` and every current regular file under `logs/log/`, including files created
-   after monitoring begins. Investigate unexpected output as well as obvious warning, error, fatal,
-   assertion, crash, and persistence messages.
-2. Without exposing secrets, log in through the account menu using `GAME_ACCOUNT_NAME`,
-   `GAME_ACCOUNT_PASSWORD`, and `GAME_ACCOUNT_CHARACTER_NAME`. Run a randomized selection of safe,
-   non-destructive player and staff inspection commands across several subsystems; record the exact
-   commands. Avoid combat, movement, administration, or commands that alter players, world state,
-   configuration, or data. Verify sensible responses, a stable connection, a healthy endpoint, and
-   a clean logout.
-3. Keep monitoring through a short post-logout soak. If anything is wrong, capture evidence, stop
-   this exact instance, repair it, and restart the entire repair and live-burn-in loop. Finish only
-   after a full clean pass following the final change; leave the healthy MUD running
-   unless the user requested otherwise.
-
-Report fixes, exact commands and results, log files and observation interval, staff smoke commands,
-final health/runtime state, and any genuine blocker. Never describe a skipped or partial pass as
-clean.
+Report fixes, exact validation commands/results and any skips, evidence locations and observation
+interval, staff character and smoke commands without credentials, and the final port, process,
+release, and health state. A build, health response, or partial suite alone is not a full burn-in.

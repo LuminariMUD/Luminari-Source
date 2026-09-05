@@ -311,7 +311,7 @@ ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
 -- make the maintained result nondeterministic.
 DELETE FROM help_keywords
 WHERE UPPER(keyword) IN (
-  '<SPEC>', 'SPEC', 'SPEC-PROC', 'SPECIAL-PROCEDURE', 'SPECIALS', 'SPECBIND', 'SPECPROC'
+  '<SPEC>', 'SPEC', 'SPEC-PROC', 'SPECIAL-PROCEDURE', 'SPECIALS', 'SPECBIND', 'SPECPROC', 'SPECIAL-PROCEDURES', 'SPEC_PROC'
 );
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPEC');
@@ -320,5 +320,11 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPECI
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPECIALS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPECBIND');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPECPROC');
+
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPECIAL-PROCEDURES');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPEC_PROC');
+/* Retain the historical article under an unambiguous archive keyword. */
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+SELECT tag, 'LEGACY-SPECIAL-PROCEDURES' FROM help_entries WHERE tag = 'specials';
 
 COMMIT;

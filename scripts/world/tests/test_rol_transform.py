@@ -7,6 +7,8 @@ import subprocess
 import tempfile
 import unittest
 
+from tests.rol_reference import reference_run
+
 from wtool_lib.constants import default_repo_root, load_manifest
 from wtool_lib.flags import decode_tokens
 from wtool_lib.hlquests import parse_hlquest_file
@@ -2260,12 +2262,8 @@ class RolTransformTests(unittest.TestCase):
     self.assertIn("dragonscales", " ".join(emitted.diagnostics))
 
   def test_selected_pilot_quests_all_emit_valid_target_records(self) -> None:
-    self._require_reference_paths(
-        "lib/rol-conversion/runs/phase4-select-e6ea7982/pilot-actions.jsonl",
-        "lib/rol-conversion/runs/phase2-e6ea7982/identity-map.jsonl",
-        "EXAMPLE/RealmsOfLuminari/areas/qst",
-    )
-    selection = self.root / "lib/rol-conversion/runs/phase4-select-e6ea7982"
+    run = reference_run()
+    selection = run / "selection"
     actions = [
         json.loads(line)
         for line in (selection / "pilot-actions.jsonl").read_text(encoding="ascii").splitlines()
@@ -2273,7 +2271,7 @@ class RolTransformTests(unittest.TestCase):
     identities = [
         json.loads(line)
         for line in (
-            self.root / "lib/rol-conversion/runs/phase2-e6ea7982/identity-map.jsonl"
+            run / "plan/identity-map.jsonl"
         ).read_text(encoding="ascii").splitlines()
     ]
     identity_map = {
@@ -2291,6 +2289,7 @@ class RolTransformTests(unittest.TestCase):
       return identity_map[(source_kind, vnum)]
 
     emitted_count = 0
+    emitted_by_basename = {}
     for basename in sorted({basename for basename, _ in selected}):
       source_path = self.root / f"EXAMPLE/RealmsOfLuminari/areas/qst/{basename}.qst"
       records, corpus = parse_rol_source_file(
@@ -2298,6 +2297,7 @@ class RolTransformTests(unittest.TestCase):
       )
       self.assertTrue(corpus.complete)
       text = ""
+      emitted_by_basename[basename] = 0
       for record in records:
         destination = selected.get((basename, record.vnum))
         if destination is None:
@@ -2306,6 +2306,7 @@ class RolTransformTests(unittest.TestCase):
         self.assertFalse(any("excluded" in item for item in converted.diagnostics))
         text += converted.text
         emitted_count += 1
+        emitted_by_basename[basename] += 1
       temporary = tempfile.TemporaryDirectory()
       self.addCleanup(temporary.cleanup)
       target_path = Path(temporary.name) / f"{basename}.hlq"
@@ -2314,7 +2315,11 @@ class RolTransformTests(unittest.TestCase):
       self.assertTrue(result.complete)
       self.assertEqual([], result.findings)
 
-    self.assertEqual(57, emitted_count)
+    self.assertEqual(333, emitted_count)
+    self.assertEqual(
+        {"swamp_two": 1, "hulburg": 276, "muspel": 31, "theswamp": 12, "cemetery": 13},
+        emitted_by_basename,
+    )
 
   def test_selected_pilot_shops_all_emit_valid_target_records(self) -> None:
     self._require_reference_paths("EXAMPLE/RealmsOfLuminari/areas/shp")
@@ -2377,7 +2382,41 @@ class RolTransformTests(unittest.TestCase):
     self.assertIn("if %actor.is_pc%", text)
     self.assertIn("mrolzoneecho indoors %self.room.vnum% An indoor echo.", text)
     self.assertIn("wait 4", text)
-    self.assertIn("wait 5 s\n        mrolwalkto 2000101", text)
+    self.assertIn(
+        "wait 5 s\n        while %self.fighting%\n          wait 30 s\n"
+        "        done\n        mrolwalkto 2000101", text
+    )
+
+  def test_autonomous_soc_path_owns_movement_and_preserves_a_closed_lap(self) -> None:
+    path = self._source_record(
+        "soc",
+        b"MOB: 300 PATH\nID: 0\nTYPE: 3\nDELAY: 10\n"
+        b"ROOMS: 100 101 100\nDIRS: 1 3\nDONE\n",
+    )
+    compiled = compile_soc_records([path], 2_030_000, _resolver, {})
+    self.assertEqual({2_000_300}, compiled.autonomous_path_mobiles)
+    source = self._source_record(
+        "mob",
+        b"#300\nwalker~\na walker~\nA walker follows a route.~\n~\n"
+        b"0 0 0 0 S\nX 0 0\n10 0 0 1d1+0 1d1+0\n0 0\n131 131 0 0\n",
+    )
+    for scripted in (False, True):
+      emitted = emit_mobile(source, 2_000_300, scripted_path=scripted)
+      result = parse_mobile_file(
+          self._target_path("mob", emitted.text), "mob/20003.mob", self.manifest, set()
+      )
+      self.assertTrue(result.complete)
+      self.assertEqual([], result.findings)
+      self.assertEqual(scripted, 1 in decode_tokens(result.records[0].action_flags).bits)
+    trigger = parse_trigger_file(
+        self._target_path("trg", compiled.trigger_text.removesuffix("$~\n")),
+        "trg/20300.trg", self.manifest,
+    )
+    self.assertTrue(trigger.complete)
+    self.assertEqual([], trigger.findings)
+    self.assertEqual(2, compiled.trigger_text.count("set rol_path_moved 1"))
+    self.assertIn("if !%rol_path_moved%\n      halt", compiled.trigger_text)
+    self.assertNotIn("return 0", compiled.trigger_text)
 
   def test_all_pilot_soc_compiles_to_valid_target_triggers(self) -> None:
     self._require_reference_paths(
@@ -2442,12 +2481,8 @@ class RolTransformTests(unittest.TestCase):
     )
 
   def test_all_pilot_special_bindings_have_valid_native_or_dg_output(self) -> None:
-    self._require_reference_paths(
-        "lib/rol-conversion/runs/phase4-select-e6ea7982/pilot-special-bindings.jsonl",
-        "lib/rol-conversion/runs/phase2-e6ea7982/identity-map.jsonl",
-        "EXAMPLE/RealmsOfLuminari/areas/wld",
-    )
-    selection = self.root / "lib/rol-conversion/runs/phase4-select-e6ea7982"
+    run = reference_run()
+    selection = run / "selection"
     bindings = [
         json.loads(line)
         for line in (selection / "pilot-special-bindings.jsonl")
@@ -2457,7 +2492,7 @@ class RolTransformTests(unittest.TestCase):
     identities = [
         json.loads(line)
         for line in (
-            self.root / "lib/rol-conversion/runs/phase2-e6ea7982/identity-map.jsonl"
+            run / "plan/identity-map.jsonl"
         )
         .read_text(encoding="ascii")
         .splitlines()

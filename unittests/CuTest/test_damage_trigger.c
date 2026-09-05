@@ -529,6 +529,57 @@ void Test_damage_trigger_wait_result_is_synchronous(CuTest *tc)
   pulse = saved_pulse;
 }
 
+static void damage_trigger_verify_wait_loop(CuTest *tc, bool explicit_wait)
+{
+  struct damage_trigger_fixture fixture;
+  struct trig_data *trigger;
+  const char *body;
+  int saved_pulse;
+  int resumes;
+
+  body = explicit_wait ? "set progress 0\nwhile %progress% < 150\n"
+                         "eval progress %progress% + 1\nglobal progress\nwait 1\ndone\n"
+                         "set finished 1\nglobal finished"
+                       : "set progress 0\nwhile 1\n"
+                         "eval progress %progress% + 1\nglobal progress\ndone\n"
+                         "set finished 1\nglobal finished";
+  saved_pulse = pulse;
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  CuAssertTrue(tc, dg_wait_runtime_init());
+  CuAssertTrue(tc, damage_trigger_fixture_begin(&fixture));
+  CuAssertTrue(tc, damage_trigger_fixture_add(&fixture, "Loop wait budget", "u", 100, body));
+  trigger = TRIGGERS(SCRIPT(&fixture.victim));
+  (void)damage_mtrigger(&fixture.actor, &fixture.victim, 1, TYPE_HIT, DAM_BLUDGEON,
+                        ATTACK_TYPE_PRIMARY);
+  for (resumes = 0; resumes < 200 && dg_trigger_wait_is_live(trigger); resumes++)
+  {
+    pulse += dg_trigger_wait_remaining(trigger);
+    event_test_advance();
+  }
+  CuAssertTrue(tc, !dg_trigger_wait_is_live(trigger));
+  CuAssertStrEquals(tc, explicit_wait ? "150" : "100",
+                    damage_trigger_global(&fixture.victim, "progress"));
+  if (explicit_wait)
+    CuAssertStrEquals(tc, "1", damage_trigger_global(&fixture.victim, "finished"));
+  else
+    CuAssertPtrEquals(tc, NULL, damage_trigger_global(&fixture.victim, "finished"));
+  damage_trigger_fixture_end(&fixture);
+  event_free_all();
+  pulse = saved_pulse;
+}
+
+void Test_dg_explicit_waits_allow_long_lived_loops(CuTest *tc)
+{
+  damage_trigger_verify_wait_loop(tc, true);
+}
+
+void Test_dg_automatic_yields_preserve_runaway_loop_limit(CuTest *tc)
+{
+  damage_trigger_verify_wait_loop(tc, false);
+}
+
 void Test_damage_trigger_scope_and_zero_damage_contract(CuTest *tc)
 {
   struct damage_trigger_fixture fixture;

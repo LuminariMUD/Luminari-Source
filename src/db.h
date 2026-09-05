@@ -512,6 +512,7 @@ extern struct char_data *mob_proto;
 extern mob_rnum top_of_mobt;
 #ifdef LUMINARI_CUTEST
 void test_interpret_mobile_espec(const char *keyword, const char *value, int i, int nr);
+bool test_rol_reset_remove_mobile(room_rnum room, mob_rnum mob_num, bool combat_guard);
 #endif
 
 extern struct index_data *obj_index;

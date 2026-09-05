@@ -128,8 +128,8 @@ WHERE BINARY tag = 'spec-proc'
 SELECT
   'required_keywords' AS check_name,
   COUNT(*) AS actual,
-  6 AS expected,
-  IF(COUNT(*) = 6, 'PASS', 'FAIL') AS result
+  8 AS expected,
+  IF(COUNT(*) = 8, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE (help_tag, keyword) IN (
   ('spec-proc', 'SPEC'),
@@ -137,7 +137,9 @@ WHERE (help_tag, keyword) IN (
   ('spec-proc', 'SPECIAL-PROCEDURE'),
   ('spec-proc', 'SPECIALS'),
   ('spec-proc', 'SPECBIND'),
-  ('spec-proc', 'SPECPROC')
+  ('spec-proc', 'SPECPROC'),
+  ('spec-proc', 'SPECIAL-PROCEDURES'),
+  ('spec-proc', 'SPEC_PROC')
 );
 
 SELECT
@@ -147,6 +149,6 @@ SELECT
   IF(COUNT(*) = 0, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE UPPER(keyword) IN (
-  '<SPEC>', 'SPEC', 'SPEC-PROC', 'SPECIAL-PROCEDURE', 'SPECIALS', 'SPECBIND', 'SPECPROC'
+  '<SPEC>', 'SPEC', 'SPEC-PROC', 'SPECIAL-PROCEDURE', 'SPECIALS', 'SPECBIND', 'SPECPROC', 'SPECIAL-PROCEDURES', 'SPEC_PROC'
 )
 AND BINARY help_tag <> 'spec-proc';

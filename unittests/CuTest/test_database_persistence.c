@@ -15,6 +15,10 @@
 #include "../../src/db_init.h"
 #include "../../src/mudlim.h"
 #include "../../src/magic/spells.h"
+#include "../../src/dgscript/dg_event.h"
+#include "../../src/event_runtime.h"
+#include "../../src/periodic_owners.h"
+#include "../../src/point_update_periodic.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -100,6 +104,159 @@ static MYSQL *open_test_database(void)
   }
 
   return connection;
+}
+
+static void check_restored_object_registries(CuTest *tc, bool database)
+{
+  const char records[] = "#91001\nFlag: 0 0 0 0\nVals: 0 0\n"
+                         "#91002\nFlag: 0 4096 0 0\nType: 14\nVals: 0 1\n";
+  struct obj_data prototypes[2];
+  struct index_data indexes[2] = {0};
+  struct zone_data zone = {0};
+  struct zone_data *saved_zones = zone_table;
+  zone_rnum saved_top_zone = top_of_zone_table;
+  struct obj_data *saved_proto = obj_proto;
+  struct index_data *saved_index = obj_index;
+  struct obj_data *saved_objects = object_list;
+  obj_rnum saved_top = top_of_objt;
+  unsigned long saved_pulse = pulse;
+  MYSQL *saved_conn = conn;
+  MYSQL *connection = NULL;
+  obj_save_data *loaded;
+  obj_save_data *entry;
+  FILE *fixture = NULL;
+  char escaped[sizeof(records) * 2 + 1];
+  char query[sizeof(escaped) + 128];
+  bool removed = false;
+  bool added = false;
+  bool valid;
+  int count = 0;
+  int i;
+
+  if (database)
+  {
+    connection = open_test_database();
+    if (connection == NULL)
+    {
+      CuFail(tc, "could not connect to the explicitly configured test database");
+      return;
+    }
+    if (mysql_query(connection, "CREATE TEMPORARY TABLE house_data (vnum INT, "
+                                "serialized_obj TEXT, idnum INT, creation_date INT)") != 0)
+    {
+      mysql_close(connection);
+      CuFail(tc, "could not create isolated house object fixture");
+      return;
+    }
+    mysql_real_escape_string(connection, escaped, records, strlen(records));
+    snprintf(query, sizeof(query), "INSERT INTO house_data VALUES (900, '%s', 1, 1)", escaped);
+    if (mysql_query(connection, query) != 0)
+    {
+      mysql_close(connection);
+      CuFail(tc, "could not seed isolated house object fixture");
+      return;
+    }
+    conn = connection;
+  }
+  else
+  {
+    fixture = tmpfile();
+    if (fixture == NULL)
+    {
+      CuFail(tc, "could not create saved object fixture");
+      return;
+    }
+    fputs(records, fixture);
+    rewind(fixture);
+  }
+
+  event_free_all();
+  periodic_owners_reset_for_test();
+  autoproc_registry_reset_for_test();
+  point_update_periodic_reset_for_test();
+  object_list = NULL;
+  for (i = 0; i < 2; i++)
+  {
+    clear_object(&prototypes[i]);
+    prototypes[i].item_number = i;
+    prototypes[i].name = (char *)"registry fixture";
+    prototypes[i].short_description = (char *)"a registry fixture";
+    prototypes[i].description = (char *)"A registry fixture is here.";
+    indexes[i].vnum = 91001 + i;
+  }
+  SET_BIT_AR(GET_OBJ_EXTRA(&prototypes[0]), ITEM_AUTOPROC);
+  GET_OBJ_TYPE(&prototypes[0]) = ITEM_MISSILE;
+  GET_OBJ_VAL(&prototypes[0], 1) = 1;
+  obj_proto = prototypes;
+  obj_index = indexes;
+  top_of_objt = 1;
+  zone.number = 910;
+  zone.bot = 91000;
+  zone.top = 91099;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+  periodic_owners_select_for_test(true, false);
+  point_update_periodic_select_for_test(true);
+  event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER);
+  pulse = 100U;
+  event_init();
+  periodic_owners_init();
+  point_update_periodic_init();
+
+  loaded = database ? objsave_parse_objects_db(NULL, 900) : objsave_parse_objects(fixture);
+  for (entry = loaded; entry != NULL; entry = entry->next)
+  {
+    count++;
+    if (GET_OBJ_VNUM(entry->obj) == indexes[0].vnum)
+      removed = !entry->obj->autoproc_registered && !entry->obj->point_update_registered &&
+                event_runtime_handle_is_none(entry->obj->autoproc_event_handle);
+    if (GET_OBJ_VNUM(entry->obj) == indexes[1].vnum)
+      added = entry->obj->autoproc_registered && entry->obj->point_update_registered &&
+              !event_runtime_handle_is_none(entry->obj->autoproc_event_handle);
+  }
+  valid = autoproc_registry_validate() == 0 && point_update_object_registry_validate() == 0 &&
+          autoproc_registry_count() == 1 && periodic_autoproc_scheduled_count() == 1 &&
+          point_update_object_count() == 1;
+  while (loaded != NULL)
+  {
+    entry = loaded;
+    loaded = loaded->next;
+    extract_obj(entry->obj);
+    free(entry);
+  }
+  point_update_periodic_reset_for_test();
+  periodic_owners_reset_for_test();
+  event_free_all();
+  obj_proto = saved_proto;
+  obj_index = saved_index;
+  top_of_objt = saved_top;
+  zone_table = saved_zones;
+  top_of_zone_table = saved_top_zone;
+  object_list = saved_objects;
+  pulse = saved_pulse;
+  conn = saved_conn;
+  if (connection != NULL)
+    mysql_close(connection);
+  if (fixture != NULL)
+    fclose(fixture);
+
+  CuAssertIntEquals(tc, 2, count);
+  CuAssertTrue(tc, removed);
+  CuAssertTrue(tc, added);
+  CuAssertTrue(tc, valid);
+}
+
+void Test_file_object_restore_reconciles_scheduled_work(CuTest *tc)
+{
+  check_restored_object_registries(tc, false);
+}
+
+void Test_database_object_restore_reconciles_scheduled_work(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+
+  if (enabled != NULL && strcmp(enabled, "1") == 0)
+    check_restored_object_registries(tc, true);
 }
 
 static bool create_legacy_pet_temporary_schema(MYSQL *connection)

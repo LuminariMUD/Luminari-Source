@@ -20,6 +20,7 @@
 #include "modify.h"
 #include "graph.h"
 #include "vessels/vessels.h"
+#include "point_update_periodic.h"
 
 /* External vessel data for ship boarding. */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
@@ -136,7 +137,10 @@ void update_ship(struct obj_data *ship, room_vnum start, room_vnum end, int move
   ship->obj_flags.timer--;
 
   if (ship->obj_flags.timer >= 0)
+  {
+    point_update_object_sync(ship);
     return;
+  }
 
   ship->obj_flags.timer = movedelay;
 
@@ -148,8 +152,8 @@ void update_ship(struct obj_data *ship, room_vnum start, room_vnum end, int move
     // turn around ship
     ship->obj_flags.weight = !ship->obj_flags.weight;
     ship->obj_flags.timer = waitdelay;
-    return;
   }
+  point_update_object_sync(ship);
 }
 
 void ship_lookout(struct char_data *ch)

@@ -1025,6 +1025,7 @@ set(WORLD_TOOL_SOURCES
     scripts/world/tests/test_quests.py
     scripts/world/tests/test_reporting.py
     scripts/world/tests/test_rol_baseline.py
+    scripts/world/tests/rol_reference.py
     scripts/world/tests/test_rol_capability_audit.py
     scripts/world/tests/test_rol_discovery.py
     scripts/world/tests/test_rol_graph.py

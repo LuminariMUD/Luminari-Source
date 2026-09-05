@@ -40,7 +40,8 @@ void basic_mud_log(const char *x, ...)
 
 char *fread_string(FILE *fl, const char *error)
 {
-  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[512], *rslt, *point;
+  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[512], *rslt;
+  size_t length;
   int flag;
 
   *buf = '\0';
@@ -60,26 +61,18 @@ char *fread_string(FILE *fl, const char *error)
     else
       strlcat(buf, tmp, sizeof(buf));
 
-    for (point = buf + strlen(buf) - 2; point >= buf && isspace(*point); point--)
-      ;
-    if ((flag = (*point == '~')))
-    {
-      if (*(buf + strlen(buf) - 3) == '\n')
-        *(buf + strlen(buf) - 2) = '\0';
-      else
-        *(buf + strlen(buf) - 2) = '\0';
-    }
+    length = strlen(buf);
+    while (length > 0 && isspace((unsigned char)buf[length - 1]))
+      length--;
+    flag = length > 0 && buf[length - 1] == '~';
+    if (flag)
+      buf[length - 1] = '\0';
   } while (!flag);
 
   /* do the allocate boogie  */
 
-  if (strlen(buf) > 0)
-  {
-    CREATE(rslt, char, strlen(buf) + 1);
-    memcpy(rslt, buf, strlen(buf) + 1);
-  }
-  else
-    rslt = NULL;
+  CREATE(rslt, char, strlen(buf) + 1);
+  memcpy(rslt, buf, strlen(buf) + 1);
   return (rslt);
 }
 
@@ -147,7 +140,7 @@ void do_string(FILE *shop_f, FILE *newshop_f, char *msg)
 
 static int boot_the_shops_conv(FILE *shop_f, FILE *newshop_f, char *filename)
 {
-  char *buf, buf2[150];
+  char *buf, buf2[MEDIUM_STRING + 64];
   int temp, count;
 
   snprintf(buf2, sizeof(buf2), "beginning of shop file %s", filename);
@@ -161,7 +154,7 @@ static int boot_the_shops_conv(FILE *shop_f, FILE *newshop_f, char *filename)
       {
         fprintf(stderr, "Invalid shop header: %s\n", buf);
         free(buf);
-        return 0;
+        return 1;
       }
       snprintf(buf2, sizeof(buf2), "shop #%d in shop file %s", temp, filename);
       fprintf(newshop_f, "#%d~\n", temp);
@@ -198,6 +191,7 @@ static int boot_the_shops_conv(FILE *shop_f, FILE *newshop_f, char *filename)
         free(buf); /* Plug memory leak! */
         return (1);
       }
+      free(buf);
     }
   }
   return (0);

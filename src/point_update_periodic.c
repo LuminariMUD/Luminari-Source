@@ -355,6 +355,10 @@ size_t point_update_character_count(void)
 {
   return character_count;
 }
+struct char_data *point_update_character_first(void)
+{
+  return character_owners;
+}
 size_t point_update_object_count(void)
 {
   return object_count;

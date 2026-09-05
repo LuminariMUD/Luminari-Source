@@ -1884,6 +1884,7 @@ def emit_mobile(
     required_action_bits: tuple[int, ...] = (),
     required_affect_bits: tuple[int, ...] = (),
     calculator: MobileCalculatorClient | None = None,
+    scripted_path: bool = False,
 ) -> TransformResult:
   """Emit one enhanced target mobile record."""
 
@@ -1958,6 +1959,9 @@ def emit_mobile(
   if special_proc is not None:
     target_actions.add(0)
   target_actions.update(required_action_bits)
+  if scripted_path:
+    # Source AFF_PATH excludes ordinary wandering while the autonomous route owns movement.
+    target_actions.add(_manifest_bit(manifest, "mob", "MOB_SENTINEL"))
   automatic_actions, automatic_affects = mobile_automatic_race_flags(record)
   target_actions.update(automatic_actions)
   target_actions.update(MOB_SOURCE_RACE_IDENTITY_ACTIONS.get(race_code, frozenset()))

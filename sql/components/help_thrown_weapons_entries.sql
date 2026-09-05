@@ -101,7 +101,7 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
   ('RANGED-WEAPONS', 'AMMO'),
   ('RANGED-WEAPONS', 'AMMUNITION'),
   ('RANGED-WEAPONS', 'ARCHERY'),
-  ('RANGED-WEAPONS', 'BLAST'),
+  ('eldritch-blast', 'BLAST'),
   ('RANGED-WEAPONS', 'BOWS'),
   ('RANGED-WEAPONS', 'FIRE'),
   ('RANGED-WEAPONS', 'FIRE-WEAPONS'),
@@ -111,5 +111,9 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
   ('RANGED-WEAPONS', 'RANGED-WEAPONS'),
   ('RANGED-WEAPONS', 'SHOOT'),
   ('COLLECT', 'COLLECT');
+
+/* Preserve the superseded ammunition article without competing command keywords. */
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+SELECT tag, 'LEGACY-RANGED-WEAPONS' FROM help_entries WHERE tag = 'blast';
 
 COMMIT;

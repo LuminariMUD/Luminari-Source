@@ -1342,6 +1342,7 @@ def write_phase7_bundle(
   )
 
   attachments: defaultdict[tuple[str, int], list[int]] = defaultdict(list)
+  path_mobiles = soc.autonomous_path_mobiles
   for owner, trigger_ids in soc.attachments.items():
     attachments[("mob", owner)].extend(trigger_ids)
   for owner, trigger_ids in special_compilation.attachments.items():
@@ -1383,6 +1384,7 @@ def write_phase7_bundle(
           attachments=owner_attachments,
           required_action_bits=binding.required_flag_bits if binding is not None else (),
           required_affect_bits=binding.required_affect_bits if binding is not None else (),
+          scripted_path=destination in path_mobiles,
       )
     elif kind == "obj":
       emitted = emit_object(

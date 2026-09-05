@@ -10,6 +10,8 @@
 #include "../../src/movement/movement_validation.h"
 
 #include <string.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 void Test_world_loading_production_real_room_lookup(CuTest *tc)
 {
@@ -146,6 +148,62 @@ void Test_world_loading_production_rol_reset_mobile_chain(CuTest *tc)
   CuAssertTrue(tc, !rol_reset_command_ready(false, 'E', false, true));
   CuAssertTrue(tc, rol_reset_command_ready(true, 'O', true, false));
   CuAssertTrue(tc, !rol_reset_command_ready(true, 'O', false, true));
+}
+
+void Test_world_loading_production_global_removal_counts_guarded_and_pending_mobiles(CuTest *tc)
+{
+  pid_t child;
+  int status;
+
+  /* Keep the extraction queue and stack-backed world fixture inside this child. */
+  child = fork();
+  CuAssertTrue(tc, child >= 0);
+  if (child == 0)
+  {
+    struct char_data characters[7];
+    struct char_data *guarded = &characters[0];
+    struct char_data *pending = &characters[1];
+    struct char_data *first = &characters[2];
+    struct char_data *other = &characters[3];
+    struct char_data *last = &characters[4];
+    struct index_data prototypes[3] = {0};
+    int initial_pending = pending_extractions_count();
+    int i;
+
+    for (i = 0; i < 7; i++)
+    {
+      struct char_data *current = &characters[i];
+
+      clear_char(current);
+      SET_BIT_AR(MOB_FLAGS(current), MOB_ISNPC);
+      GET_MOB_RNUM(current) = i < 3 || i == 4 ? 0 : 1;
+      current->next = i < 6 ? &characters[i + 1] : NULL;
+    }
+    character_list = characters;
+    mob_index = prototypes;
+    top_of_mobt = 2;
+    prototypes[0].number = 4;
+    prototypes[1].number = 3;
+    FIGHTING(guarded) = other;
+    extract_char(pending);
+
+    if (!test_rol_reset_remove_mobile(NOWHERE, 0, true) || MOB_FLAGGED(guarded, MOB_NOTDEADYET) ||
+        MOB_FLAGGED(other, MOB_NOTDEADYET) || !MOB_FLAGGED(first, MOB_NOTDEADYET) ||
+        !MOB_FLAGGED(last, MOB_NOTDEADYET) || pending_extractions_count() != initial_pending + 3)
+      _exit(1);
+    if (!test_rol_reset_remove_mobile(NOWHERE, 0, false) || !MOB_FLAGGED(guarded, MOB_NOTDEADYET) ||
+        pending_extractions_count() != initial_pending + 4)
+      _exit(2);
+    if (!test_rol_reset_remove_mobile(NOWHERE, 0, false) ||
+        !test_rol_reset_remove_mobile(NOWHERE, 2, false) ||
+        test_rol_reset_remove_mobile(NOWHERE, NOBODY, false) ||
+        pending_extractions_count() != initial_pending + 4)
+      _exit(3);
+    _exit(0);
+  }
+  CuAssertTrue(tc, waitpid(child, &status, 0) == child);
+  CuAssertTrue(tc, WIFEXITED(status));
+  CuAssertIntEquals(tc, 0, WEXITSTATUS(status));
 }
 
 void Test_world_loading_production_room_level_entry_contract(CuTest *tc)

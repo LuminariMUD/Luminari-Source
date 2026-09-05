@@ -3573,6 +3573,10 @@ int script_driver_with_status(struct script_call_args *args, struct script_drive
       else if (!strn_cmp(cmd, "wait ", 5))
       {
         process_wait(go, trig, type, cmd, cl);
+        /* Explicit waits bound continuous execution. Automatic loop yields
+         * above must retain the runaway budget across their resumption. */
+        if (dg_trigger_wait_is_live(trig))
+          GET_TRIG_LOOPS(trig) = 0;
         if (status != NULL)
           status->yielded = true;
         depth--;

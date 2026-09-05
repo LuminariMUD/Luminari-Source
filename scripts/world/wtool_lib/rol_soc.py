@@ -85,6 +85,15 @@ class SocCompilation:
   def trigger_text(self) -> str:
     return "".join(trigger.text for trigger in self.triggers) + "$~\n"
 
+  @property
+  def autonomous_path_mobiles(self) -> set[int]:
+    """Owners whose load-trigger route replaces ordinary mobile wandering."""
+    return {
+        trigger.host_mobile_vnum
+        for trigger in self.triggers
+        if trigger.trigger_kind == "PATH"
+    }
+
 
 def build_soc_prototype_comparison(
     records: Iterable[RolRecord], compilation: SocCompilation
@@ -312,28 +321,39 @@ def _path_lines(path: SocPath, resolve: IdentityResolver) -> list[str]:
         f"while %self.room.vnum% != {destination}",
         "  set rol_path_before %self.room.vnum%",
         f"  wait {delay} s",
+        "  while %self.fighting%",
+        "    wait 30 s",
+        "  done",
         f"  mrolwalkto {destination}",
         "  if %self.room.vnum% == %rol_path_before%",
-        "    return 0",
+        "    halt",
         "  end",
         "done",
     ]
 
   delay = max(5, path.delay)
-  lines = ["set rol_path_before %self.room.vnum%"]
+  lines = ["set rol_path_moved 0"]
   for current, destination in zip(rooms, rooms[1:]):
     lines.extend(
         [
             f"if %self.room.vnum% == {current}",
+            "  set rol_path_before %self.room.vnum%",
             f"  wait {delay} s",
+            "  while %self.fighting%",
+            "    wait 30 s",
+            "  done",
             f"  mrolwalkto {destination}",
+            "  if %self.room.vnum% == %rol_path_before%",
+            "    halt",
+            "  end",
+            "  set rol_path_moved 1",
             "end",
         ]
     )
   lines.extend(
       [
-          "if %self.room.vnum% == %rol_path_before%",
-          "  return 0",
+          "if !%rol_path_moved%",
+          "  halt",
           "end",
       ]
   )
