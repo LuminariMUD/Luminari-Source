@@ -1,4 +1,5 @@
 #include "conf.h"
+#include "ready_action.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
@@ -937,6 +938,7 @@ static void prepare_semantic_round(struct combat_encounter_data *encounter)
 
 static bool run_semantic_round(struct combat_encounter_participant *participant)
 {
+  ready_action_on_semantic_turn(participant->character);
   participant->turns_started++;
   participant->intent_dispatched = false;
   announce_recovered_actions(participant);

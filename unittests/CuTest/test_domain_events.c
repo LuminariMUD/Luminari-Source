@@ -396,13 +396,17 @@ void TestDomainEventFoundationContracts(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     domain_event_get_type_stats(bus, DOMAIN_EVENT_ACTIVITY_TRANSITIONED, &stats));
   domain_event_bus_get_stats(bus, &bus_stats);
-  CuAssertIntEquals(tc, 9, (int)bus_stats.registered_type_count);
+  CuAssertIntEquals(tc, 10, (int)bus_stats.registered_type_count);
   CuAssertStrEquals(tc, "ActivityTransitioned", stats.name);
   CuAssertIntEquals(tc, (int)sizeof(struct domain_activity_transitioned), (int)stats.payload_size);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     domain_event_get_type_stats(bus, DOMAIN_EVENT_WORLD_PHENOMENON, &stats));
   CuAssertStrEquals(tc, "WorldPhenomenon", stats.name);
   CuAssertIntEquals(tc, (int)sizeof(struct domain_world_phenomenon), (int)stats.payload_size);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_get_type_stats(bus, DOMAIN_EVENT_CASTING_STARTED, &stats));
+  CuAssertStrEquals(tc, "CastingStarted", stats.name);
+  CuAssertIntEquals(tc, (int)sizeof(struct domain_casting_started), (int)stats.payload_size);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_bus_destroy(bus));
 }
 
@@ -1016,7 +1020,7 @@ void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   CuAssertPtrNotNull(tc, domain_event_runtime_bus());
   domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);
-  CuAssertIntEquals(tc, 9, (int)stats.registered_type_count);
+  CuAssertIntEquals(tc, 10, (int)stats.registered_type_count);
   CuAssertIntEquals(tc, 15, (int)stats.registered_handler_count);
   CuAssertTrue(tc, stats.sealed);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_character_died(&victim, NULL));

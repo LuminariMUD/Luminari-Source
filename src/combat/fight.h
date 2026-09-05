@@ -89,6 +89,8 @@ void attacks_of_opportunity(struct char_data *victim, int penalty);
 int compute_attack_bonus(struct char_data *ch, struct char_data *victim, int attack_type);
 int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, int penalty,
         int attack_type);
+bool combat_readied_attack_allowed(struct char_data *ch, struct char_data *victim);
+int combat_readied_attack(struct char_data *ch, struct char_data *victim);
 void load_messages(void);
 void perform_violence(struct char_data *ch, int phase);
 bool combat_run_compatibility_phase(struct char_data *ch, unsigned int phase);

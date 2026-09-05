@@ -26424,38 +26424,54 @@ See also: BOARDS
 #0
 READY READIED-ACTION
 
-Usage: ready <command> on entry [target]
+Usage: ready attack <target> on casting
+       ready attack <target> on entry
+       ready attack <target> on door open <direction>
+       ready <command> on entry [target]
        ready <command> on door open <direction>
        ready
        ready cancel
 
-READY ON ENTRY listens for someone entering your current room. With no target,
-the first other player or mobile to enter triggers the command. With a target,
-nonmatching arrivals are ignored. The target filters the arrival; include any
-command target in the command itself.
+A readied attack spends your standard action now to prepare one normal melee
+strike. HIT and KILL are accepted in place of ATTACK. It expires when your next
+combat turn begins, or after six seconds outside semantic combat. Cancelling,
+replacing, or losing the opportunity does not refund the action. The strike
+costs no second action and does not execute a queued special attack.
 
-READY ON DOOR OPEN watches one visible, closed door in your current room. A
-successful opening from either side, including a scripted opening, triggers
-it. Unlocking alone does not. Zone resets and builder edits cannot trigger it.
-The command does not automatically target or identify someone on the other side.
+ON CASTING watches the named, visible caster in your room. When they begin a
+timed spell, your attack is queued before that spell can complete. A hit uses
+the normal damage and concentration rules; it does not automatically interrupt
+casting. A miss or successful concentration check lets the spell continue.
+You need only name the caster, and do not need to identify their spell. Instant
+spells cannot trigger this reaction. A cancelled spell cannot redirect a queued
+attack to a replacement spell.
 
-The command runs through the normal command interpreter at the next safe event
-boundary, about one tenth of a second later. Normal action costs, cooldowns,
-position and targeting rules still apply. It does not preempt a command already
-accepted in the current cycle or grant an extra combat action.
+ON ENTRY waits for the named target to arrive. ON DOOR OPEN watches a visible,
+closed door; its attack target must already be visible in your room. Opening
+from either side triggers it, including scripted openings. Unlocking, zone
+resets and builder edits do not. The door does not reveal a target beyond it.
 
-Moving, dying, logging out, or using READY CANCEL removes the action. Replacing
-or redirecting the watched exit cancels it. Closing the door after it triggers
-cancels the pending command, even if the door reopens before execution. Only one
-action can be readied at a time. READY shows it; another READY replaces it.
-Readied actions do not survive copyover or reboot.
+The attack runs at the next native event boundary, about a tenth of a second
+later. You must still be able to act, see and reach the target, and use a melee
+weapon or unarmed attack. Normal defenses and PvP restrictions apply.
+
+Command readiness supports SAY, EMOTE, LOOK, REST, STAND, SIT, OPEN and CLOSE.
+These commands run through the normal interpreter and retain their usual costs
+and requirements. Other combat commands and aliases cannot be readied. With no
+entry filter, a noncombat command triggers on the next arrival.
+
+Moving, dying, logging out, or READY CANCEL removes readiness. A bound attack
+target moving, dying or being extracted also cancels it. Replacing or redirecting
+a watched exit cancels it. Closing the door after it triggers cancels pending
+execution even if it reopens. Only one action can be readied at a time. READY
+shows it. Readied actions do not survive copyover or reboot.
 
 Examples:
-  ready say Welcome! on entry
-  ready kill guard on entry guard
+  ready attack mage on casting
+  ready attack guard on entry
   ready say Hold the doorway! on door open north
 
-See also: COMBAT, INITIATIVE
+See also: COMBAT, INITIATIVE, CONCENTRATION, CASTING-TIME
 #0
 BOOT REBOOT RESTART STARTING STARTUP
 

@@ -6,6 +6,13 @@
 #include "../../src/utils.h"
 #include "../../src/act.h"
 #include "../../src/actionqueues.h"
+#include "../../src/actions.h"
+#include "../../src/ready_action.h"
+#include "../../src/activity_manager.h"
+#include "../../src/domain_event_runtime.h"
+#include "../../src/domain_event_types.h"
+#include "../../src/domain_event_world.h"
+#include "../../src/event_runtime.h"
 #include "../../src/bardic_performance.h"
 #include "../../src/craft/craft.h"
 #include "../../src/db.h"
@@ -18,6 +25,7 @@
 #include "../../src/mob/mob_utils.h"
 #include "../../src/quest/missions.h"
 #include "../../src/movement/movement.h"
+#include "../../src/movement/door_state.h"
 #include "../../src/character/perks.h"
 #include "../../src/net/protocol.h"
 #include "../../src/magic/spells.h"
@@ -1818,4 +1826,170 @@ void Test_gameplay_e2e_actual_minimal_world_parse(CuTest *tc)
   CuAssertIntEquals(tc, 4, room_count);
   CuAssertTrue(tc, rooms_match);
   CuAssertTrue(tc, exits_match);
+}
+
+struct ready_combat_trace
+{
+  int hits;
+  int lost;
+};
+
+static void ready_combat_damage(const struct domain_event_context *context, void *data)
+{
+  struct ready_combat_trace *trace = data;
+  const struct domain_character_damaged *damage = context->payload;
+
+  if (damage->amount > 0)
+  {
+    trace->hits++;
+    trace->lost += damage->amount;
+  }
+}
+
+static void verify_readied_cast_outcome(CuTest *tc, int outcome)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct char_data *saved_characters = character_list;
+  struct spell_info_type saved_spell = spell_info[SPELL_CURE_LIGHT];
+  int saved_mode = CONFIG_SPELLCASTING_TIME_MODE;
+  unsigned long saved_pulse = pulse;
+  struct domain_event_subscription_config config = {0};
+  struct domain_event_subscription_handle subscription;
+  struct ready_combat_trace trace = {0};
+  struct attack_action_data *queued;
+  struct ready_action_latency latency;
+  unsigned int tick;
+  struct primary_activity_snapshot cast;
+
+  begin_gameplay_fixture(&f);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  event_init();
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.player.name = "watcher";
+  f.victim.player.name = "caster";
+  f.actor.next = &f.victim;
+  character_list = &f.actor;
+  f.rooms[0].light = 1;
+  GET_HITROLL(&f.actor) = outcome == 2 ? -100 : 100;
+  GET_DAMROLL(&f.actor) = outcome == 1 ? 20 : 100;
+  if (outcome == 1)
+    GET_LEVEL(&f.victim) = 100;
+  GET_CLASS(&f.actor) = CLASS_WARRIOR;
+  CLASS_LEVEL((&f.actor), CLASS_WARRIOR) = 10;
+  GET_CLASS(&f.victim) = CLASS_CLERIC;
+  GET_HIT(&f.victim) = GET_MAX_HIT(&f.victim) = 100000;
+  GET_ATTACK_QUEUE(&f.actor) = create_attack_queue();
+  CONFIG_SPELLCASTING_TIME_MODE = 1;
+  memset(&spell_info[SPELL_CURE_LIGHT], 0, sizeof(spell_info[SPELL_CURE_LIGHT]));
+  spell_info[SPELL_CURE_LIGHT].name = "cure light";
+  spell_info[SPELL_CURE_LIGHT].min_position = POS_FIGHTING;
+  spell_info[SPELL_CURE_LIGHT].targets = TAR_CHAR_ROOM;
+  spell_info[SPELL_CURE_LIGHT].routines = MAG_POINTS;
+  spell_info[SPELL_CURE_LIGHT].time = 1;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  config.type = DOMAIN_EVENT_CHARACTER_DAMAGED;
+  config.topic.role = DOMAIN_EVENT_TOPIC_SUBJECT;
+  config.topic.entity = domain_event_character_handle(&f.victim);
+  config.owner = domain_event_character_handle(&f.actor);
+  config.identity = "test.ready.damage";
+  config.handler = ready_combat_damage;
+  config.handler_context = &trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &config, &subscription));
+  if (outcome == 6)
+  {
+    f.exits[0].exit_info = EX_ISDOOR | EX_CLOSED;
+    do_ready(&f.actor, "attack caster on door open north", 0, 0);
+  }
+  else
+    do_ready(&f.actor, outcome == 5 ? "attack caster on entry" : "attack caster on casting", 0, 0);
+  CuAssertPtrNotNull(tc, f.actor.ready_action);
+  if (outcome == 5)
+    domain_event_runtime_character_moved(&f.victim, 1, 0, SOUTH);
+  CuAssertIntEquals(tc, 1, cast_spell(&f.victim, &f.victim, NULL, SPELL_CURE_LIGHT, 0));
+  CuAssertTrue(tc, IS_CASTING(&f.victim));
+  if (outcome == 6)
+    door_state_update(0, NORTH, EX_CLOSED, 0, false, DOMAIN_DOOR_GAMEPLAY);
+  if (outcome == 4)
+    SET_BIT_AR(AFF_FLAGS(&f.actor), AFF_BLIND);
+  queued = calloc(1U, sizeof(*queued));
+  queued->attack_type = AA_KICK;
+  queued->argument = strdup("caster");
+  enqueue_attack(GET_ATTACK_QUEUE(&f.actor), queued);
+  circle_srandom(1234);
+  pulse += outcome == 3 ? 2 * PASSES_PER_SEC : 1;
+  event_test_advance();
+  CuAssertPtrEquals(tc, NULL, f.actor.ready_action);
+  CuAssertIntEquals(tc, outcome == 2 || outcome == 4 ? 0 : 1, trace.hits);
+  CuAssertIntEquals(tc, 1, pending_attacks(&f.actor));
+  if (outcome == 0 || outcome == 3 || outcome == 5 || outcome == 6)
+  {
+    CuAssertTrue(tc, trace.lost >= 80);
+    CuAssertTrue(tc, !IS_CASTING(&f.victim));
+  }
+  else
+    CuAssertTrue(tc, IS_CASTING(&f.victim));
+  CuAssertTrue(tc, !is_action_available(&f.actor, atSTANDARD, false));
+  ready_action_latency_read(&latency);
+  CuAssertTrue(tc, latency.callbacks == 1U);
+  stop_fighting(&f.actor);
+  stop_fighting(&f.victim);
+  for (tick = 0; tick < 3 * PASSES_PER_SEC; tick++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+  CuAssertTrue(tc, !primary_activity_snapshot(&f.victim, &cast));
+  CuAssertTrue(tc, !IS_CASTING(&f.victim));
+  domain_event_runtime_shutdown();
+  event_free_all();
+  free_attack_queue(GET_ATTACK_QUEUE(&f.actor));
+  GET_ATTACK_QUEUE(&f.actor) = NULL;
+  if (f.actor.events != NULL)
+    free_list(f.actor.events);
+  if (f.victim.events != NULL)
+    free_list(f.victim.events);
+  CONFIG_SPELLCASTING_TIME_MODE = saved_mode;
+  spell_info[SPELL_CURE_LIGHT] = saved_spell;
+  character_list = saved_characters;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&f);
+}
+
+void Test_gameplay_readied_strike_damage_interrupts_real_timed_cast(CuTest *tc)
+{
+  verify_readied_cast_outcome(tc, 0);
+}
+
+void Test_gameplay_readied_strike_successful_concentration_preserves_cast(CuTest *tc)
+{
+  verify_readied_cast_outcome(tc, 1);
+}
+
+void Test_gameplay_readied_strike_miss_preserves_cast(CuTest *tc)
+{
+  verify_readied_cast_outcome(tc, 2);
+}
+
+void Test_gameplay_readied_strike_precedes_cast_when_both_deadlines_are_overdue(CuTest *tc)
+{
+  verify_readied_cast_outcome(tc, 3);
+}
+
+void Test_gameplay_readied_strike_rechecks_visibility_at_execution(CuTest *tc)
+{
+  verify_readied_cast_outcome(tc, 4);
+}
+
+void Test_gameplay_readied_entry_strike_uses_single_reserved_attack(CuTest *tc)
+{
+  verify_readied_cast_outcome(tc, 5);
+}
+
+void Test_gameplay_readied_door_strike_uses_single_reserved_attack(CuTest *tc)
+{
+  verify_readied_cast_outcome(tc, 6);
 }

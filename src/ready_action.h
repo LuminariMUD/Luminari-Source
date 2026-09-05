@@ -20,6 +20,7 @@ void ready_action_latency_read(struct ready_action_latency *stats);
 
 bool ready_action_runtime_init(void);
 void ready_action_runtime_shutdown(void);
+void ready_action_on_semantic_turn(struct char_data *ch);
 void ready_action_cancel(struct char_data *ch, bool notify);
 
 #endif /* READY_ACTION_H */

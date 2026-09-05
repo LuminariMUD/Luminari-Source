@@ -16,6 +16,9 @@
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/movement/door_state.h"
 #include "../../src/ready_action.h"
+#include "../../src/activity_manager.h"
+#include "../../src/combat/fight.h"
+#include "../../src/combat/combat_encounters.h"
 #include "../../src/olc/genwld.h"
 #include "../../src/quest/hlquest.h"
 
@@ -510,5 +513,231 @@ void TestDoorReadyDoesNotGrantAnExhaustedMoveAction(CuTest *tc)
   event_test_advance();
   CuAssertPtrEquals(tc, NULL, f.owner.ready_action);
   CuAssertTrue(tc, (f.exits[0].exit_info & EX_CLOSED) == 0);
+  door_fixture_end(tc, &f);
+}
+
+/* Tactical readiness uses the same production bus and native timers as doors. */
+static void ready_attack_target(struct door_fixture *f, struct char_data *target,
+                                struct player_special_data *specials)
+{
+  clear_char(target);
+  memset(specials, 0, sizeof(*specials));
+  target->player_specials = specials;
+  target->player.name = "caster";
+  target->player.short_descr = "the caster";
+  SET_BIT_AR(MOB_FLAGS(target), MOB_ISNPC);
+  IN_ROOM(target) = 0;
+  GET_POS(target) = POS_STANDING;
+  GET_HIT(target) = GET_MAX_HIT(target) = 100;
+  GET_HIT(&f->owner) = GET_MAX_HIT(&f->owner) = 100;
+  f->owner.next = target;
+  f->owner.next_in_room = target;
+  f->rooms[0].light = 1;
+}
+
+void TestReadyAttackReservesStandardAndExpiryDoesNotRefund(CuTest *tc)
+{
+  struct door_fixture f;
+  struct char_data target;
+  struct player_special_data specials;
+
+  door_fixture_start(tc, &f);
+  ready_attack_target(&f, &target, &specials);
+  CuAssertTrue(tc, is_action_available(&f.owner, atSTANDARD, false));
+  do_ready(&f.owner, "attack caster on casting", 0, 0);
+  CuAssertPtrNotNull(tc, f.owner.ready_action);
+  CuAssertTrue(tc, !is_action_available(&f.owner, atSTANDARD, false));
+  do_ready(&f.owner, "attack caster on casting", 0, 0);
+  CuAssertPtrNotNull(tc, f.owner.ready_action);
+  ready_action_on_semantic_turn(&f.owner);
+  CuAssertPtrEquals(tc, NULL, f.owner.ready_action);
+  CuAssertTrue(tc, !is_action_available(&f.owner, atSTANDARD, false));
+  door_fixture_end(tc, &f);
+}
+
+void TestReadyAttackEntryDoorAndCastingShareCostAndNativeExpiry(CuTest *tc)
+{
+  static const char *commands[] = {"attack caster on entry", "hit caster on door open north",
+                                   "attack caster on casting"};
+  size_t index;
+
+  for (index = 0; index < 3; index++)
+  {
+    struct door_fixture f;
+    struct char_data target;
+    struct player_special_data specials;
+    unsigned int tick;
+
+    door_fixture_start(tc, &f);
+    ready_attack_target(&f, &target, &specials);
+    do_ready(&f.owner, commands[index], 0, 0);
+    CuAssertPtrNotNull(tc, f.owner.ready_action);
+    CuAssertTrue(tc, !is_action_available(&f.owner, atSTANDARD, false));
+    for (tick = 0; tick < 6 * PASSES_PER_SEC; tick++)
+    {
+      pulse++;
+      event_test_advance();
+    }
+    CuAssertPtrEquals(tc, NULL, f.owner.ready_action);
+    door_fixture_end(tc, &f);
+  }
+}
+
+void TestReadyAttackCancelsWhenWatchedCasterMovesOrIsExtracted(CuTest *tc)
+{
+  struct door_fixture f;
+  struct char_data target;
+  struct player_special_data specials;
+
+  door_fixture_start(tc, &f);
+  ready_attack_target(&f, &target, &specials);
+  do_ready(&f.owner, "attack caster on casting", 0, 0);
+  CuAssertPtrNotNull(tc, f.owner.ready_action);
+  domain_event_runtime_character_moved(&target, 0, 1, NORTH);
+  CuAssertPtrEquals(tc, NULL, f.owner.ready_action);
+  CuAssertTrue(tc, !is_action_available(&f.owner, atSTANDARD, false));
+  door_fixture_end(tc, &f);
+
+  door_fixture_start(tc, &f);
+  ready_attack_target(&f, &target, &specials);
+  do_ready(&f.owner, "attack caster on casting", 0, 0);
+  CuAssertPtrNotNull(tc, f.owner.ready_action);
+  domain_event_runtime_character_extracted(&target, 0U);
+  CuAssertPtrEquals(tc, NULL, f.owner.ready_action);
+  door_fixture_end(tc, &f);
+}
+
+void TestReadyAttackRejectsUnreservedCombatCommands(CuTest *tc)
+{
+  struct door_fixture f;
+
+  door_fixture_start(tc, &f);
+  do_ready(&f.owner, "cast 'fireball' caster on entry", 0, 0);
+  CuAssertPtrEquals(tc, NULL, f.owner.ready_action);
+  do_ready(&f.owner, "murder caster on door open north", 0, 0);
+  CuAssertPtrEquals(tc, NULL, f.owner.ready_action);
+  do_ready(&f.owner, "myattackalias on entry", 0, 0);
+  CuAssertPtrEquals(tc, NULL, f.owner.ready_action);
+  CuAssertTrue(tc, is_action_available(&f.owner, atSTANDARD, false));
+  door_fixture_end(tc, &f);
+}
+
+static void ready_test_cast_complete(struct char_data *actor, void *target, void *data)
+{
+  int *completed = data;
+
+  (void)actor;
+  (void)target;
+  (*completed)++;
+}
+
+static void ready_test_begin_cast(CuTest *tc, struct char_data *target, int *completed)
+{
+  struct primary_activity_definition definition = {0};
+
+  definition.type = PRIMARY_ACTIVITY_CASTING;
+  definition.display_name = "casting";
+  definition.total_steps = 1;
+  definition.step_interval = PASSES_PER_SEC;
+  definition.wall_clock = true;
+  definition.complete = ready_test_cast_complete;
+  definition.context = completed;
+  CuAssertTrue(tc,
+               primary_activity_start(target, domain_event_character_handle(target), &definition));
+}
+
+void TestReadyCastingReactionMatchesCastAndDoesNotSpendAgain(CuTest *tc)
+{
+  struct door_fixture f;
+  struct char_data target;
+  struct player_special_data specials;
+  struct ready_action_latency latency;
+  int completed = 0;
+
+  door_fixture_start(tc, &f);
+  ready_attack_target(&f, &target, &specials);
+  do_ready(&f.owner, "attack caster on casting", 0, 0);
+  CuAssertPtrNotNull(tc, f.owner.ready_action);
+  ready_test_begin_cast(tc, &target, &completed);
+  SET_BIT_AR(AFF_FLAGS(&f.owner), AFF_PARALYZED);
+  pulse++;
+  event_test_advance();
+  CuAssertPtrEquals(tc, NULL, f.owner.ready_action);
+  CuAssertIntEquals(tc, 0, completed);
+  CuAssertIntEquals(tc, 100, GET_HIT(&target));
+  CuAssertTrue(tc, !is_action_available(&f.owner, atSTANDARD, false));
+  ready_action_latency_read(&latency);
+  CuAssertTrue(tc, latency.callbacks == 1U);
+  pulse += 6 * PASSES_PER_SEC - 1;
+  event_test_advance();
+  CuAssertTrue(tc, is_action_available(&f.owner, atSTANDARD, false));
+  CuAssertIntEquals(tc, 1, completed);
+  door_fixture_end(tc, &f);
+}
+
+void TestReadyCastingQueuedReactionCannotFollowReplacementCast(CuTest *tc)
+{
+  struct door_fixture f;
+  struct char_data target;
+  struct player_special_data specials;
+  int completed = 0;
+
+  door_fixture_start(tc, &f);
+  ready_attack_target(&f, &target, &specials);
+  do_ready(&f.owner, "attack caster on casting", 0, 0);
+  CuAssertPtrNotNull(tc, f.owner.ready_action);
+  ready_test_begin_cast(tc, &target, &completed);
+  primary_activity_cancel(&target, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false);
+  ready_test_begin_cast(tc, &target, &completed);
+  pulse++;
+  event_test_advance();
+  CuAssertPtrEquals(tc, NULL, f.owner.ready_action);
+  CuAssertIntEquals(tc, 100, GET_HIT(&target));
+  CuAssertIntEquals(tc, 0, completed);
+  pulse += PASSES_PER_SEC;
+  event_test_advance();
+  CuAssertIntEquals(tc, 1, completed);
+  door_fixture_end(tc, &f);
+}
+
+static bool ready_test_semantic_turn(struct char_data *actor, unsigned int phase, void *data)
+{
+  bool *expired_before_turn = data;
+
+  (void)phase;
+  *expired_before_turn =
+      actor->ready_action == NULL && is_action_available(actor, atSTANDARD, false);
+  return true;
+}
+
+void TestReadyAttackExpiryFollowsNextSemanticTurnAfterCombatAdmission(CuTest *tc)
+{
+  struct door_fixture f;
+  struct char_data target;
+  struct player_special_data specials;
+  bool expired_before_turn = false;
+  unsigned long start;
+
+  door_fixture_start(tc, &f);
+  ready_attack_target(&f, &target, &specials);
+  combat_encounter_test_select_semantic(true);
+  combat_encounter_test_set_phase_callback(ready_test_semantic_turn, &expired_before_turn);
+  start = pulse;
+  do_ready(&f.owner, "attack caster on casting", 0, 0);
+  CuAssertPtrNotNull(tc, f.owner.ready_action);
+  pulse = start + 3 * PASSES_PER_SEC;
+  FIGHTING(&f.owner) = &target;
+  domain_event_runtime_combat_state_changed(&f.owner, &target, true);
+  CuAssertTrue(tc, combat_encounter_join(&f.owner, &target, PASSES_PER_SEC));
+  pulse = start + 6 * PASSES_PER_SEC;
+  event_test_advance();
+  CuAssertPtrNotNull(tc, f.owner.ready_action);
+  pulse = start + 9 * PASSES_PER_SEC;
+  event_test_advance();
+  CuAssertTrue(tc, expired_before_turn);
+  CuAssertPtrEquals(tc, NULL, f.owner.ready_action);
+  combat_encounter_test_set_phase_callback(NULL, NULL);
+  FIGHTING(&f.owner) = NULL;
+  combat_encounter_leave(&f.owner, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
   door_fixture_end(tc, &f);
 }

@@ -90,3 +90,13 @@ magic remains synchronous and is not a separate scheduler.
 
 Details: `docs/ongoing-projects/EVENT_GAMEPLAY_TRANCHE_2_CASTING.md`.
 The countdown migrations listed above remain open.
+
+## Tactical readiness (tranche 3)
+
+`CastingStarted` is a typed fact on the existing domain bus, published only for
+committed timed casting activities. It carries stable caster/target handles
+and the activity ID; it does not create a parallel casting queue. Readiness
+uses the native `action.ready.execute` and `action.ready.expire` types, with
+character owners. Semantic encounter turns expire combat readiness directly.
+Entry, door and casting attacks share one action reservation and single-strike
+path. See the [tranche 3 implementation](../ongoing-projects/EVENT_GAMEPLAY_TRANCHE_3_READIED_ATTACKS.md).

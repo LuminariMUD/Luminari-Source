@@ -666,6 +666,61 @@ static void casting_test_start(CuTest *tc, struct casting_test_fixture *fixture)
   CuAssertTrue(tc, IS_CASTING(&fixture->activity.actor));
 }
 
+struct casting_start_trace
+{
+  unsigned int calls;
+  struct domain_casting_started event;
+};
+
+static void casting_start_observe(const struct domain_event_context *context, void *data)
+{
+  struct casting_start_trace *trace = data;
+
+  trace->calls++;
+  trace->event = *(const struct domain_casting_started *)context->payload;
+}
+
+void Test_casting_start_is_scoped_once_and_identifies_each_committed_cast(CuTest *tc)
+{
+  struct casting_test_fixture fixture;
+  struct casting_start_trace trace = {0};
+  struct domain_event_subscription_config config = {0};
+  struct domain_event_subscription_handle subscription;
+  struct primary_activity_snapshot snapshot;
+  uint64_t first_id;
+
+  casting_test_begin(tc, &fixture);
+  config.type = DOMAIN_EVENT_CASTING_STARTED;
+  config.identity = "test.casting.started";
+  config.topic.role = DOMAIN_EVENT_TOPIC_SUBJECT;
+  config.topic.entity = domain_event_character_handle(&fixture.activity.actor);
+  config.owner = domain_event_character_handle(&fixture.activity.target);
+  config.handler = casting_start_observe;
+  config.handler_context = &trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(fixture.activity.bus, &config, &subscription));
+  casting_test_start(tc, &fixture);
+  CuAssertIntEquals(tc, 1, trace.calls);
+  CuAssertTrue(tc, primary_activity_snapshot(&fixture.activity.actor, &snapshot));
+  CuAssertTrue(tc, trace.event.cast_id == snapshot.id);
+  CuAssertTrue(tc, domain_entity_handle_equal(trace.event.caster, config.topic.entity));
+  CuAssertTrue(tc, domain_entity_handle_equal(trace.event.target, config.owner));
+  CuAssertTrue(tc, domain_entity_handle_equal(trace.event.room, domain_event_room_handle(0)));
+  CuAssertIntEquals(tc, SPELL_CURE_LIGHT, trace.event.spellnum);
+  first_id = trace.event.cast_id;
+  CuAssertIntEquals(tc, 0,
+                    cast_spell(&fixture.activity.actor, &fixture.activity.target, NULL,
+                               SPELL_CURE_LIGHT, METAMAGIC_NONE));
+  CuAssertIntEquals(tc, 1, trace.calls);
+  resetCastingData(&fixture.activity.actor);
+  casting_test_start(tc, &fixture);
+  CuAssertIntEquals(tc, 2, trace.calls);
+  CuAssertTrue(tc, first_id != trace.event.cast_id);
+  casting_test_advance(200);
+  CuAssertIntEquals(tc, 2, trace.calls);
+  casting_test_end(&fixture);
+}
+
 void Test_casting_activity_completes_once_on_native_clock_in_combat(CuTest *tc)
 {
   struct casting_test_fixture fixture;

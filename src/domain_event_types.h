@@ -13,7 +13,8 @@ enum luminari_domain_event_type
   DOMAIN_EVENT_OBJECT_MOVED = 0x1006,
   DOMAIN_EVENT_DOOR_STATE_CHANGED = 0x1007,
   DOMAIN_EVENT_ACTIVITY_TRANSITIONED = 0x1008,
-  DOMAIN_EVENT_WORLD_PHENOMENON = 0x1009
+  DOMAIN_EVENT_WORLD_PHENOMENON = 0x1009,
+  DOMAIN_EVENT_CASTING_STARTED = 0x100a
 };
 
 enum domain_world_phenomenon_channel
@@ -103,6 +104,19 @@ struct domain_activity_transitioned
   uint32_t activity_type;
   uint32_t previous_state;
   uint32_t current_state;
+};
+
+/* A committed timed cast. Consumers must revalidate cast_id before reacting.
+ * This fact does not identify the spell to an observer or authorize an attack.
+ * Handlers enqueue reactions; they must not execute combat inside publication. */
+struct domain_casting_started
+{
+  uint64_t cast_id;
+  struct domain_entity_handle caster;
+  struct domain_entity_handle target;
+  struct domain_entity_handle room;
+  int spellnum;
+  int casting_class;
 };
 
 /* Descriptions are borrowed for synchronous dispatch and are never retained. */

@@ -855,6 +855,8 @@ bool primary_activity_start(struct char_data *actor, struct domain_entity_handle
   struct domain_entity_handle actor_handle;
   void *target_pointer;
   bool starts_in_combat;
+  struct domain_casting_started casting = {0};
+  struct domain_event_topic casting_topics[2];
 
   if (!initialized || shutting_down || actor == NULL || definition == NULL ||
       definition->type <= PRIMARY_ACTIVITY_NONE ||
@@ -945,10 +947,29 @@ bool primary_activity_start(struct char_data *actor, struct domain_entity_handle
     return false;
   }
   activity_stats.started++;
+  if (activity->type == PRIMARY_ACTIVITY_CASTING)
+  {
+    casting.cast_id = activity->id;
+    casting.caster = actor_handle;
+    casting.target = target;
+    casting.room = domain_event_room_handle(IN_ROOM(actor));
+    casting.spellnum = CASTING_SPELLNUM(actor);
+    casting.casting_class = CASTING_CLASS(actor);
+  }
   if (activity->state == PRIMARY_ACTIVITY_STATE_PAUSED)
     activity_stats.paused++;
   publish_transition(actor_handle, definition->type, PRIMARY_ACTIVITY_STATE_NONE, activity->state,
                      activity->id, PRIMARY_ACTIVITY_END_INTERNAL);
+  /* Transition observers may have cancelled or replaced the activity. */
+  actor = resolve_actor(actor_handle);
+  if (casting.cast_id != 0U && actor != NULL && actor->primary_activity != NULL &&
+      actor->primary_activity->id == casting.cast_id)
+  {
+    casting_topics[0] = (struct domain_event_topic){DOMAIN_EVENT_TOPIC_SUBJECT, actor_handle};
+    casting_topics[1] = (struct domain_event_topic){DOMAIN_EVENT_TOPIC_SOURCE, casting.room};
+    (void)DOMAIN_EVENT_PUBLISH_ROUTED(activity_bus, DOMAIN_EVENT_CASTING_STARTED, casting_topics,
+                                      2U, &casting);
+  }
   return true;
 }
 

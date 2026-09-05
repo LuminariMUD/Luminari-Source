@@ -14540,8 +14540,8 @@ int test_apply_bard_frostbite_rider(struct char_data *ch, struct char_data *vict
     #define ATTACK_TYPE_OFFHAND_SNEAK   7  //impromptu sneak attack
    Attack queue will determine what kind of hit this is. */
 #define DAM_MES_LENGTH 20
-int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, int penalty,
-        int attack_type)
+static int resolve_hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
+                       int penalty, int attack_type, bool dispatch_queued_attack)
 {
   int w_type = 0,         /* Weapon type? */
       victim_ac = 0,      /* Target's AC, from compute_ac(). */
@@ -14588,7 +14588,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
               The parameter 'penalty' allows an external procedure to call hit with a to hit modifier
               of some kind - This need not be a penalty, but can rather be a bonus (due to a charge or some
               other buff or situation.)  It is not hit()'s job to determine these bonuses.' */
-  if (pending_attacks(ch))
+  if (dispatch_queued_attack && pending_attacks(ch))
   {
     /* Dequeue the pending attack action.*/
     struct attack_action_data *attack = dequeue_attack(GET_ATTACK_QUEUE(ch));
@@ -15400,6 +15400,44 @@ finalize_projectile:
   }
 
   return hit_result;
+}
+
+int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, int penalty,
+        int attack_type)
+{
+  return resolve_hit(ch, victim, type, dam_type, penalty, attack_type, true);
+}
+
+/* The ready owner already paid for this strike. Do not dispatch the attack
+ * queue, roll opening initiative, or invoke the full attack routine. */
+bool combat_readied_attack_allowed(struct char_data *ch, struct char_data *victim)
+{
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE || DEAD(ch) || GET_POS(ch) < POS_FIGHTING ||
+      !MOB_CAN_FIGHT(ch) || ch->primary_activity != NULL || IS_CASTING(ch) || HAS_WAIT(ch) ||
+      AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_DAZED) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
+      AFF_FLAGGED(ch, AFF_NAUSEATED) || char_has_mud_event(ch, eSTUNNED) ||
+      is_using_ranged_weapon(ch, TRUE))
+    return false;
+  if (victim == NULL)
+    return true; /* Entry readiness binds its target on arrival. */
+  if (ch == victim || IN_ROOM(ch) != IN_ROOM(victim) || DEAD(victim) || !CAN_SEE(ch, victim) ||
+      (AFF_FLAGGED(ch, AFF_CHARM) && ch->master == victim))
+    return false;
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) && ch->next_in_room != victim &&
+      victim->next_in_room != ch)
+    return false;
+  return true;
+}
+
+int combat_readied_attack(struct char_data *ch, struct char_data *victim)
+{
+  if (victim == NULL || !combat_readied_attack_allowed(ch, victim))
+  {
+    if (ch != NULL)
+      send_to_char(ch, "You can no longer make your readied attack.\r\n");
+    return HIT_MISS;
+  }
+  return resolve_hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY, false);
 }
 
 /* ch dual wielding or is trelux */
