@@ -1,9 +1,9 @@
 ![LuminariMUD - a moonlit fantasy harbor, mountain wilderness, and an adventurer overlooking the world](docs/images/luminari-readme-header.webp)
 
 <p align="center">
-  <a href="https://github.com/LuminariMUD/Luminari-Source/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/LuminariMUD/Luminari-Source/test.yml?style=flat-square&amp;label=build%20%26%20test" alt="Build and test workflow status"></a>
-  <a href="https://github.com/LuminariMUD/Luminari-Source/actions/workflows/quality.yml"><img src="https://img.shields.io/github/actions/workflow/status/LuminariMUD/Luminari-Source/quality.yml?style=flat-square&amp;label=code%20quality" alt="Code quality workflow status"></a>
-  <a href="https://github.com/LuminariMUD/Luminari-Source/actions/workflows/security.yml"><img src="https://img.shields.io/github/actions/workflow/status/LuminariMUD/Luminari-Source/security.yml?style=flat-square&amp;label=security" alt="Security workflow status"></a>
+  <a href="https://github.com/LuminariMUD/Luminari-Source/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/LuminariMUD/Luminari-Source/test.yml?branch=master&amp;style=flat-square&amp;label=build%20%26%20test" alt="Build and test workflow status"></a>
+  <a href="https://github.com/LuminariMUD/Luminari-Source/actions/workflows/quality.yml"><img src="https://img.shields.io/github/actions/workflow/status/LuminariMUD/Luminari-Source/quality.yml?branch=master&amp;style=flat-square&amp;label=code%20quality" alt="Code quality workflow status"></a>
+  <a href="https://github.com/LuminariMUD/Luminari-Source/actions/workflows/security.yml"><img src="https://img.shields.io/github/actions/workflow/status/LuminariMUD/Luminari-Source/security.yml?branch=master&amp;style=flat-square&amp;label=security" alt="Security workflow status"></a>
   <a href="docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md"><img src="https://img.shields.io/badge/docs-explore-d4a853?style=flat-square" alt="Explore the documentation"></a>
 </p>
 <p align="center">
@@ -20,51 +20,116 @@ LuminariMUD is a text-based multiplayer game server implementing Pathfinder and
 D&D 3.5 mechanics on the tbaMUD/CircleMUD foundation. The supported server is
 written in GNU C23 and requires MariaDB or MySQL at runtime.
 
-Current version: `2.5062-beta` (tbaMUD 3.64).
+Current source version: `2.5062-beta` (tbaMUD 3.64), declared in
+[configure.ac](configure.ac) and [src/constants.c](src/constants.c).
+
+The game combines character classes, races, feats, spells, and d20 combat with
+quests, crafting, wilderness exploration, and vessels. Builders create content
+in game with Oasis OLC and attach local behavior through DG Scripts and named
+special procedures. MUD clients connect over Telnet; the separate
+[web client](https://github.com/LuminariMUD/luminariweb) provides browser access.
+
+## Requirements
+
+- Linux or a compatible environment, including Ubuntu under WSL2.
+- A C compiler supporting the GNU C23 features checked by `configure`.
+- Autoconf, Automake, and Make; CMake 3.21+ is a supported alternative.
+- MariaDB/MySQL with client development headers, plus crypt, GD, curl, OpenSSL,
+  pthread, and json-c libraries for the standard build.
+- Runtime configuration and world data under `lib/`, plus an initialized
+  database schema, prepared by the setup script below.
 
 ## Quick Start
 
 On Ubuntu, Debian, or WSL2, the repository's one-command setup installs
-dependencies, prepares local configuration and world data, provisions MariaDB,
+dependencies, prepares local configuration and a minimal world, provisions MariaDB,
 builds the server, and installs `bin/luminari`:
 
 ```bash
-./scripts/deployment/deploy.sh
+git clone https://github.com/LuminariMUD/Luminari-Source.git
+cd Luminari-Source
+./scripts/deployment/deploy.sh --dev
 ```
 
-Then start the server:
+Run this fresh-install setup as your normal user with sudo available for package
+and database setup. For local development, decline its optional systemd-service
+prompt and use the repository's autorun supervisor:
 
 ```bash
-./bin/luminari -d lib
+./scripts/autorun/autorun.sh
+./scripts/autorun/autorun.sh status
 ```
 
-The checked-in local runtime configuration defaults to the reserved development
-port 4101. Connect a MUD client to `localhost:4101`. The production systemd
-unit explicitly uses port 4100. The deployment script supports noninteractive,
-development, production, and managed-systemd modes; inspect the exact options
-with `./scripts/deployment/deploy.sh --help`.
+Autorun starts in the background and supervises server restarts. Connect a MUD
+client to `localhost:4101`; stop the local supervisor and server with
+`./scripts/autorun/autorun.sh stop`. For a direct foreground debugging session,
+use `./bin/luminari -d lib` instead of starting autorun.
+
+The compiled default and local autorun game port are 4101; existing runtime
+configuration or `MUD_PORT` for autorun can override them. The loopback health
+listener defaults to port 8182. Once the server is running, check readiness with:
+
+```bash
+./scripts/operations/healthcheck.sh
+```
+
+Production uses game port 4100 through `luminari.service`. Deployment also
+supports noninteractive and managed-service modes; inspect the options with
+`./scripts/deployment/deploy.sh --help`.
+
+Local headers and credentials are untracked: preserve existing `src/campaign.h`,
+`src/mud_options.h`, `src/vnums.h`, `lib/mysql_config`, and `lib/.env`.
+Development tooling that checks the environment requires `APP_ENV=development`
+in `lib/.env`; the tracked [environment example](lib/.env_example) defaults to
+production and must be adapted for a local checkout. Ollama, InterMUD-3, and
+Discord connections are not required for ordinary local development.
 
 For a fresh clone, start with the [onboarding checklist](docs/onboarding.md) or
 the [setup and build guide](docs/guides/SETUP_AND_BUILD_GUIDE.md).
 
-## Development Check
+## Build and Test
 
-Autotools is the preferred incremental build. The authoritative one-command
-test and installation gate is:
+For an already configured checkout, Autotools is the preferred incremental build:
 
 ```bash
+make -j"$(nproc)"
 make test && make install
 ```
 
-`make test` builds the production-linked CuTest suite and shell regressions.
-`make install` activates the tested immutable build under `bin/releases/` and
-removes the root-level `luminari` artifact.
+If `configure` or `Makefile` is missing, run `autoreconf -fvi` and `./configure`
+first. `make test` runs the production-linked CuTest suite and registered shell
+regressions. Always follow it with `make install`, which installs an immutable
+build under `bin/releases/`, updates `bin/luminari`, and removes the root-level
+`luminari` artifact. An already running process continues using its current
+executable until restarted.
+
+The focused protocol parser harness is separate:
+
+```bash
+make -C unittests/CuTest protocol-parser
+```
+
+For CMake, explicitly enable tests in a fresh build directory:
+
+```bash
+cmake -S . -B build -DBUILD_TESTS=ON
+cmake --build build -j"$(nproc)"
+ctest --test-dir build --output-on-failure
+cmake --install build
+```
+
+See the [testing guide](docs/guides/TESTING_GUIDE.md) for fixture, database,
+sanitizer, and subsystem-specific checks. The badges above report the latest
+matching workflow runs on `master`; workflow path filters may skip README-only
+commits.
 
 ## Architecture
 
 One select-based game loop connects player commands, scheduled updates, and a
 shared world. Game systems run inside the server; DG Scripts add behavior to
 rooms, mobiles, and objects, while Oasis OLC lets builders edit the world in game.
+Special-procedure gateways support typed handlers and legacy callbacks under
+`src/spec/` and the owning feature directories.
 
 ```mermaid
 flowchart TB
@@ -76,6 +141,7 @@ flowchart TB
         ticks["Heartbeat and events<br/>Scheduled world updates"]
         game["Game systems<br/>Characters, combat, magic, quests<br/>Wilderness, vessels, crafting"]
         scripts["DG Scripts<br/>Room, mobile, object triggers"]
+        specials["Special procedures<br/>Typed and legacy gateways"]
         olc["Oasis OLC<br/>In-game world editing"]
     end
 
@@ -89,6 +155,8 @@ flowchart TB
     ticks --> game
     commands --> scripts
     ticks --> scripts
+    commands --> specials
+    ticks --> specials
     commands --> olc
     game <-->|"Persist / load"| database
     olc -->|"Save authored content"| world
@@ -100,7 +168,7 @@ flowchart TB
     classDef storage fill:#493d28,stroke:#d4a853,color:#ffffff
     class players,loop entry
     class commands,ticks,game runtime
-    class scripts,olc content
+    class scripts,specials,olc content
     class database,world storage
     style server fill:#f0f5f8,stroke:#7893a7,color:#172c43
 ```
@@ -120,10 +188,11 @@ subsystem dependency. See the [architecture guide](docs/ARCHITECTURE.md) for det
 `-- docs/         # Maintained developer, builder, and operator documentation
 ```
 
-MariaDB stores accounts, characters, help, and subsystem data. Flat files under
+MariaDB/MySQL stores accounts, characters, help, and subsystem data. Flat files under
 `lib/world/` remain the authored room, mobile, object, zone, shop, quest, and
-trigger sources. The server uses a single select-based game loop; DG Scripts
-provide content-local behavior and Oasis OLC provides in-game world editing.
+trigger sources. Help content is maintained in both the database and
+`lib/text/help/help.hlp`. See [environment boundaries](docs/environments.md) for
+local and production data handling.
 
 ## Documentation
 
@@ -142,13 +211,21 @@ and the [builder quickstart](docs/world_game-data/BUILDER_QUICKSTART.md).
 
 ## Project Status
 
-The special-procedure architecture initiative completed Phases 00-02: registry
-safety and observability, call-site gateways, and validated declarative legacy
-assignments. Content extraction, shared mechanics, typed handlers, and
-conditional composition remain planned in the
-[special-procedure refactor PRD](docs/ongoing-projects/spec-todo.md).
+The special-procedure architecture initiative is complete through Phase 07:
+registry validation, event gateways, declarative assignments, source ownership,
+shared helpers, and initial typed handlers are implemented. Legacy callback
+compatibility and single-name world bindings remain supported. Phase 06 retained
+the existing runtime shop/quest wrappers and closed without adding general
+persisted procedure chains or new zone/world hooks.
 
-## LuminariMUD Eco-System
+See the [architecture guide](docs/ARCHITECTURE.md),
+[Phase 06 decisions](docs/testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md), and
+[Phase 07 validation](docs/testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md).
+For broader development history and current work, see the
+[changelog](docs/CHANGELOG.md) and
+[GitHub Issues](https://github.com/LuminariMUD/Luminari-Source/issues).
+
+## LuminariMUD Ecosystem
 
 What we call the "Lumiverse":
 
