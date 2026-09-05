@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scope Guard"
+  short_description: "Avoid Over-Engineering"
+  default_prompt: "Use $scopeguard to autonomously implement features while avoiding over-engineering."
