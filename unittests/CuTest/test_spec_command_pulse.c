@@ -25,7 +25,15 @@
 #define SPEC_PULSE_MAX_CALLS 16
 #define SPEC_PULSE_SOURCE_LIMIT (1024L * 1024L)
 
-void proc_update(void);
+static void dispatch_fixture_autoprocs(void)
+{
+  struct obj_data *obj;
+
+  for (obj = autoproc_registry_iteration_begin(); obj != NULL;
+       obj = autoproc_registry_iteration_next())
+    object_auto_proc_run_one(obj);
+  autoproc_registry_iteration_end();
+}
 
 struct spec_pulse_call
 {
@@ -554,7 +562,8 @@ void Test_spec_mobile_activity_handled_callback_skips_default_ai(CuTest *tc)
   spec_pulse_prepare_mobile_activity(&fixture, spec_pulse_record_callback);
   fixture.recorder.return_count = 1;
   fixture.recorder.returns[0] = 1;
-  mobile_activity_run_legacy_cycle();
+  mobile_activity_run_scheduled(&fixture.mobiles[0],
+                                MOBILE_WORK_SPEC_ACTIVITY | MOBILE_WORK_POSTURE);
   call = fixture.recorder.calls[0];
   position = (unsigned char)GET_POS(&fixture.mobiles[0]);
   payload_matches = fixture.recorder.call_count == 1 && call.actor == &fixture.mobiles[0] &&
@@ -581,7 +590,8 @@ void Test_spec_mobile_activity_zero_callback_runs_default_ai(CuTest *tc)
   }
 
   spec_pulse_prepare_mobile_activity(&fixture, spec_pulse_record_callback);
-  mobile_activity_run_legacy_cycle();
+  mobile_activity_run_scheduled(&fixture.mobiles[0],
+                                MOBILE_WORK_SPEC_ACTIVITY | MOBILE_WORK_POSTURE);
   callback_called = fixture.recorder.call_count == 1;
   position = (unsigned char)GET_POS(&fixture.mobiles[0]);
   spec_pulse_fixture_end(&fixture);
@@ -610,14 +620,16 @@ void Test_spec_mobile_activity_activation_gates(CuTest *tc)
   mobile = &fixture.mobiles[0];
 
   spec_pulse_set_mobile_flags(mobile, false);
-  mobile_activity_run_legacy_cycle();
+  mobile_activity_run_scheduled(&fixture.mobiles[0],
+                                MOBILE_WORK_SPEC_ACTIVITY | MOBILE_WORK_POSTURE);
   flag_gate = fixture.recorder.call_count == 0 && GET_POS(mobile) == POS_SITTING;
 
   spec_pulse_recorder_reset(&fixture);
   spec_pulse_set_mobile_flags(mobile, true);
   GET_POS(mobile) = POS_RESTING;
   no_specials = 1;
-  mobile_activity_run_legacy_cycle();
+  mobile_activity_run_scheduled(&fixture.mobiles[0],
+                                MOBILE_WORK_SPEC_ACTIVITY | MOBILE_WORK_POSTURE);
   suppression_gate = fixture.recorder.call_count == 0 && MOB_FLAGGED(mobile, MOB_SPEC) &&
                      GET_POS(mobile) == POS_SITTING;
 
@@ -626,7 +638,8 @@ void Test_spec_mobile_activity_activation_gates(CuTest *tc)
   GET_POS(mobile) = POS_RESTING;
   fixture.mob_indexes[0].func = NULL;
   no_specials = 0;
-  mobile_activity_run_legacy_cycle();
+  mobile_activity_run_scheduled(&fixture.mobiles[0],
+                                MOBILE_WORK_SPEC_ACTIVITY | MOBILE_WORK_POSTURE);
   missing_callback_gate = fixture.recorder.call_count == 0 && !MOB_FLAGGED(mobile, MOB_SPEC) &&
                           GET_POS(mobile) == POS_SITTING;
   spec_pulse_fixture_end(&fixture);
@@ -636,65 +649,26 @@ void Test_spec_mobile_activity_activation_gates(CuTest *tc)
   CuAssertTrue(tc, missing_callback_gate);
 }
 
-void Test_spec_mobile_activity_scheduler_visits_each_mobile_once_per_cycle(CuTest *tc)
+void Test_spec_mobile_activity_dispatch_only_visits_requested_owner(CuTest *tc)
 {
   struct spec_pulse_fixture fixture;
-  bool setup_ok;
-  bool distributed;
-  int activity_pulse;
 
-  setup_ok = spec_pulse_fixture_begin(&fixture);
-  if (!setup_ok)
+  if (!spec_pulse_fixture_begin(&fixture))
   {
     CuFail(tc, "unable to initialize mobile fixture");
     return;
   }
-
   spec_pulse_prepare_mobile_activity(&fixture, spec_pulse_record_callback);
   spec_pulse_add_second_mobile(&fixture, spec_pulse_record_callback);
   fixture.recorder.return_count = 2;
   fixture.recorder.returns[0] = 1;
   fixture.recorder.returns[1] = 1;
-
-  mobile_activity_run_legacy_slice(0);
-  distributed = fixture.recorder.call_count == 1;
-  for (activity_pulse = 1; activity_pulse < PULSE_MOBILE; activity_pulse++)
-    mobile_activity_run_legacy_slice(activity_pulse);
-
-  CuAssertTrue(tc, distributed);
-  CuAssertIntEquals(tc, 2, fixture.recorder.call_count);
-  CuAssertPtrEquals(tc, &fixture.mobiles[0], fixture.recorder.calls[0].actor);
-  CuAssertPtrEquals(tc, &fixture.mobiles[1], fixture.recorder.calls[1].actor);
-  spec_pulse_fixture_end(&fixture);
-}
-
-void Test_spec_mobile_activity_scheduler_forgets_removed_cursor(CuTest *tc)
-{
-  struct spec_pulse_fixture fixture;
-  bool setup_ok;
-  int activity_pulse;
-
-  setup_ok = spec_pulse_fixture_begin(&fixture);
-  if (!setup_ok)
-  {
-    CuFail(tc, "unable to initialize mobile fixture");
-    return;
-  }
-
-  spec_pulse_prepare_mobile_activity(&fixture, spec_pulse_record_callback);
-  spec_pulse_add_second_mobile(&fixture, spec_pulse_record_callback);
-  fixture.recorder.return_count = 2;
-  fixture.recorder.returns[0] = 1;
-  fixture.recorder.returns[1] = 1;
-
-  mobile_activity_run_legacy_slice(0);
-  mobile_activity_forget_character(&fixture.mobiles[1]);
-  fixture.mobiles[0].next = NULL;
-  fixture.mobiles[0].next_in_room = NULL;
-  for (activity_pulse = 1; activity_pulse < PULSE_MOBILE; activity_pulse++)
-    mobile_activity_run_legacy_slice(activity_pulse);
-
+  mobile_activity_run_scheduled(&fixture.mobiles[0], MOBILE_WORK_SPEC_ACTIVITY);
   CuAssertIntEquals(tc, 1, fixture.recorder.call_count);
+  CuAssertPtrEquals(tc, &fixture.mobiles[0], fixture.recorder.calls[0].actor);
+  mobile_activity_run_scheduled(&fixture.mobiles[1], MOBILE_WORK_SPEC_ACTIVITY);
+  CuAssertIntEquals(tc, 2, fixture.recorder.call_count);
+  CuAssertPtrEquals(tc, &fixture.mobiles[1], fixture.recorder.calls[1].actor);
   spec_pulse_fixture_end(&fixture);
 }
 
@@ -723,7 +697,7 @@ void Test_spec_proc_update_worn_object_uses_wearer_once(CuTest *tc)
   fixture.recorder.returns[0] = 1;
   object_list = object;
 
-  proc_update();
+  dispatch_fixture_autoprocs();
   call = fixture.recorder.calls[0];
   call_matches = fixture.recorder.call_count == 1 && call.actor == &fixture.actor &&
                  call.owner == object && call.command == 0 && !call.argument_is_null &&
@@ -760,7 +734,7 @@ void Test_spec_proc_update_carried_object_uses_null_then_carrier(CuTest *tc)
   fixture.recorder.return_count = 2;
   fixture.recorder.returns[0] = 0;
   fixture.recorder.returns[1] = 1;
-  proc_update();
+  dispatch_fixture_autoprocs();
   fallback_matches = fixture.recorder.call_count == 2 && fixture.recorder.calls[0].actor == NULL &&
                      fixture.recorder.calls[1].actor == &fixture.actor &&
                      fixture.recorder.calls[0].owner == object &&
@@ -769,12 +743,12 @@ void Test_spec_proc_update_carried_object_uses_null_then_carrier(CuTest *tc)
   spec_pulse_recorder_reset(&fixture);
   fixture.recorder.return_count = 1;
   fixture.recorder.returns[0] = 1;
-  proc_update();
+  dispatch_fixture_autoprocs();
   handled_null_stops = fixture.recorder.call_count == 1 && fixture.recorder.calls[0].actor == NULL;
 
   spec_pulse_recorder_reset(&fixture);
   object->carried_by = NULL;
-  proc_update();
+  dispatch_fixture_autoprocs();
   unowned_runs_once = fixture.recorder.call_count == 1 && fixture.recorder.calls[0].actor == NULL;
   spec_pulse_fixture_end(&fixture);
 
@@ -819,7 +793,7 @@ void Test_spec_proc_update_gates_and_ignores_no_specials(CuTest *tc)
   inert_weapon->next = missing_callback;
   object_list = unflagged;
 
-  proc_update();
+  dispatch_fixture_autoprocs();
   gates_match = fixture.recorder.call_count == 0;
 
   spec_pulse_recorder_reset(&fixture);
@@ -830,7 +804,7 @@ void Test_spec_proc_update_gates_and_ignores_no_specials(CuTest *tc)
   no_specials = 1;
   fixture.recorder.return_count = 1;
   fixture.recorder.returns[0] = 1;
-  proc_update();
+  dispatch_fixture_autoprocs();
   suppression_ignored = fixture.recorder.call_count == 1 &&
                         fixture.recorder.calls[0].actor == &fixture.actor &&
                         fixture.recorder.calls[0].owner == unflagged;
@@ -922,174 +896,28 @@ void Test_spec_moving_rooms_ignores_no_specials(CuTest *tc)
   CuAssertTrue(tc, suppression_ignored);
 }
 
-void Test_spec_heartbeat_preserves_noncombat_proc_schedule(CuTest *tc)
+void Test_spec_native_services_and_movement_admission_are_present(CuTest *tc)
 {
-  char *source;
-  char *moving_gate;
-  char *moving_call;
-  char *one_second_gate;
-  char *mobile_gate;
-  char *mobile_call;
-  char *proc_call;
-  char *autoproc_gate;
-  char *avernus_call;
-  char *dg_gate;
-  char *dg_rollback;
-  char *event_process_call;
-  char *violence_gate;
-  char *affected_gate;
-  char *affect_call;
-  char *d20_call;
-  char *character_gate;
-  char *psp_call;
-  char *walk_call;
-  char *bard_call;
-  char *hint_call;
-  bool source_loaded;
-  bool moving_schedule_matches;
-  bool pulse_order_matches;
-  bool character_rollback_matches;
+  char *source = NULL;
 
-  source = NULL;
-  source_loaded = spec_pulse_read_source("src/comm.c", &source);
-  moving_schedule_matches = false;
-  pulse_order_matches = false;
-  character_rollback_matches = false;
-  if (source_loaded)
-  {
-    moving_gate = strstr(source, "if (!(heart_pulse % (PASSES_PER_SEC * 10)))");
-    moving_call = moving_gate != NULL ? strstr(moving_gate, "moving_rooms_update();") : NULL;
-    one_second_gate =
-        moving_gate != NULL ? strstr(moving_gate, "if (!(heart_pulse % PASSES_PER_SEC))") : NULL;
-    moving_schedule_matches = moving_gate != NULL && moving_call != NULL &&
-                              one_second_gate != NULL && moving_call < one_second_gate;
-
-    mobile_call = strstr(source, "mobile_activity_run_legacy_slice(heart_pulse);");
-    mobile_gate =
-        mobile_call != NULL ? strstr(mobile_call, "if (!(heart_pulse % PULSE_MOBILE))") : NULL;
-    proc_call = mobile_gate != NULL ? strstr(mobile_gate, "proc_update();") : NULL;
-    autoproc_gate =
-        mobile_gate != NULL ? strstr(mobile_gate, "if (!periodic_autoproc_enabled())") : NULL;
-    avernus_call =
-        mobile_gate != NULL ? strstr(mobile_gate, "rol_avernus_process_garden_activity();") : NULL;
-    event_process_call = strstr(source, "event_process_compatibility_pulse();");
-    dg_gate = event_process_call != NULL
-                  ? strstr(event_process_call, "if (!(heart_pulse % PULSE_DG_SCRIPT)")
-                  : NULL;
-    dg_rollback = dg_gate != NULL ? strstr(dg_gate, "!periodic_dg_random_enabled()") : NULL;
-    violence_gate =
-        mobile_gate != NULL ? strstr(mobile_gate, "if (!(heart_pulse % PULSE_VIOLENCE))") : NULL;
-    affected_gate = violence_gate != NULL
-                        ? strstr(violence_gate, "if (!affected_owner_events_enabled())")
-                        : NULL;
-    affect_call = affected_gate != NULL ? strstr(affected_gate, "affect_update();") : NULL;
-    d20_call = violence_gate != NULL ? strstr(violence_gate, "proc_d20_round();") : NULL;
-    character_gate = strstr(source, "!character_periodic_events_enabled()");
-    psp_call = character_gate != NULL ? strstr(source, "regen_psp();") : NULL;
-    walk_call = psp_call != NULL ? strstr(psp_call, "process_walkto_actions();") : NULL;
-    bard_call = walk_call != NULL ? strstr(walk_call, "advance_legacy_bardic_performers();") : NULL;
-    hint_call = bard_call != NULL ? strstr(bard_call, "show_hints();") : NULL;
-    character_rollback_matches = character_gate != NULL && psp_call != NULL && walk_call != NULL &&
-                                 bard_call != NULL && hint_call != NULL;
-    pulse_order_matches =
-        mobile_call != NULL && mobile_gate != NULL && autoproc_gate != NULL && proc_call != NULL &&
-        avernus_call != NULL && violence_gate != NULL && affected_gate != NULL &&
-        affect_call != NULL && d20_call != NULL && dg_gate != NULL && dg_rollback != NULL &&
-        mobile_call < proc_call && autoproc_gate < proc_call && proc_call < avernus_call &&
-        avernus_call < violence_gate && affected_gate < affect_call && affect_call < d20_call;
-  }
+  CuAssertTrue(tc, spec_pulse_read_source("src/comm.c", &source));
+  CuAssertPtrNotNull(tc, strstr(source, "moving_rooms_update();"));
+  CuAssertPtrNotNull(tc, strstr(source, "rol_avernus_process_garden_activity();"));
+  CuAssertPtrEquals(tc, NULL, strstr(source, "mobile_activity_run_legacy_"));
+  CuAssertPtrEquals(tc, NULL, strstr(source, "process_legacy_luminari_maintenance();"));
   free(source);
-
-  CuAssertTrue(tc, source_loaded);
-  CuAssertTrue(tc, moving_schedule_matches);
-  CuAssertTrue(tc, pulse_order_matches);
-  CuAssertTrue(tc, character_rollback_matches);
+  source = NULL;
+  CuAssertTrue(tc, spec_pulse_read_source("src/character_periodic.c", &source));
+  CuAssertPtrNotNull(tc, strstr(source, "DOMAIN_EVENT_CHARACTER_MOVED"));
+  CuAssertPtrNotNull(tc, strstr(source, "character_periodic_sync(ch);"));
+  free(source);
+  source = NULL;
+  CuAssertTrue(tc, spec_pulse_read_source("src/handler.c", &source));
+  CuAssertPtrNotNull(tc, strstr(source, "domain_event_runtime_character_moved("));
+  free(source);
 }
 
-void Test_spec_mixed_owner_pulses_have_independent_rollback_gates(CuTest *tc)
-{
-  char *comm_source = NULL;
-  char *limits_source = NULL;
-  char *runtime_source = NULL;
-  char *periodic_source = NULL;
-  char *handler_source = NULL;
-  char *luminari_gate;
-  char *luminari_call;
-  char *affected_term;
-  char *character_term;
-  char *round_gate;
-  char *round_character_term;
-  char *damage_call;
-  char *misc_call;
-  char *room_legacy_gate;
-  char *room_legacy_loop;
-  char *character_legacy_gate;
-  char *character_legacy_loop;
-  bool sources_loaded;
-  bool heartbeat_contract;
-  bool wrapper_contract;
-  bool movement_contract;
-
-  sources_loaded = spec_pulse_read_source("src/comm.c", &comm_source) &&
-                   spec_pulse_read_source("src/limits.c", &limits_source) &&
-                   spec_pulse_read_source("src/domain_event_runtime.c", &runtime_source) &&
-                   spec_pulse_read_source("src/character_periodic.c", &periodic_source) &&
-                   spec_pulse_read_source("src/handler.c", &handler_source);
-  heartbeat_contract = false;
-  wrapper_contract = false;
-  movement_contract = false;
-  if (sources_loaded)
-  {
-    luminari_gate = strstr(comm_source, "if (!(pulse % PULSE_LUMINARI)");
-    luminari_call = luminari_gate != NULL
-                        ? strstr(luminari_gate, "process_legacy_luminari_maintenance();")
-                        : NULL;
-    affected_term =
-        luminari_gate != NULL ? strstr(luminari_gate, "!affected_owner_events_enabled()") : NULL;
-    character_term = luminari_gate != NULL
-                         ? strstr(luminari_gate, "!character_periodic_events_enabled()")
-                         : NULL;
-    round_gate = strstr(comm_source, "if (!(heart_pulse % (6 * PASSES_PER_SEC)) &&");
-    round_character_term =
-        round_gate != NULL ? strstr(round_gate, "!character_periodic_events_enabled()") : NULL;
-    damage_call =
-        round_gate != NULL ? strstr(round_gate, "update_damage_and_effects_over_time();") : NULL;
-    misc_call = round_gate != NULL ? strstr(round_gate, "update_player_misc();") : NULL;
-    heartbeat_contract = luminari_gate != NULL && luminari_call != NULL && affected_term != NULL &&
-                         character_term != NULL && affected_term < luminari_call &&
-                         character_term < luminari_call && round_gate != NULL &&
-                         round_character_term != NULL && damage_call != NULL && misc_call != NULL &&
-                         round_character_term < damage_call && damage_call < misc_call;
-
-    room_legacy_gate = strstr(limits_source, "if (!affected_owner_events_enabled())");
-    room_legacy_loop =
-        room_legacy_gate != NULL ? strstr(room_legacy_gate, "for (raff = raff_list;") : NULL;
-    character_legacy_gate = strstr(limits_source, "if (!character_periodic_events_enabled())");
-    character_legacy_loop = character_legacy_gate != NULL
-                                ? strstr(character_legacy_gate, "for (ch = character_list;")
-                                : NULL;
-    wrapper_contract = room_legacy_gate != NULL && room_legacy_loop != NULL &&
-                       character_legacy_gate != NULL && character_legacy_loop != NULL;
-
-    movement_contract =
-        strstr(runtime_source, "character_periodic_register_handlers(runtime_bus)") != NULL &&
-        strstr(periodic_source, "DOMAIN_EVENT_CHARACTER_MOVED") != NULL &&
-        strstr(periodic_source, "character_periodic_sync(ch);") != NULL &&
-        strstr(handler_source, "domain_event_runtime_character_moved(") != NULL;
-  }
-
-  free(comm_source);
-  free(limits_source);
-  free(runtime_source);
-  free(periodic_source);
-  free(handler_source);
-  CuAssertTrue(tc, sources_loaded);
-  CuAssertTrue(tc, heartbeat_contract);
-  CuAssertTrue(tc, wrapper_contract);
-  CuAssertTrue(tc, movement_contract);
-}
-
-void Test_spec_vessel_owner_pulses_have_lifecycle_and_rollback_gates(CuTest *tc)
+void Test_spec_vessel_owners_have_native_lifecycle_hooks(CuTest *tc)
 {
   char *comm_source = NULL;
   char *periodic_source = NULL;
@@ -1107,8 +935,8 @@ void Test_spec_vessel_owner_pulses_have_lifecycle_and_rollback_gates(CuTest *tc)
                    spec_pulse_read_source("src/vessels/vessels_combat.c", &combat_source);
   if (sources_loaded)
   {
-    CuAssertPtrNotNull(tc, strstr(comm_source, "!vessel_periodic_events_enabled()"));
-    CuAssertPtrNotNull(tc, strstr(periodic_source, "LUMINARI_VESSEL_EVENTS"));
+    CuAssertPtrEquals(tc, NULL, strstr(comm_source, "service.vessel_rollback"));
+    CuAssertPtrEquals(tc, NULL, strstr(periodic_source, "LUMINARI_VESSEL_EVENTS"));
     CuAssertPtrNotNull(tc, strstr(periodic_source, "GAME_EVENT_OWNER_VESSEL"));
     CuAssertPtrNotNull(tc, strstr(periodic_source, "autopilot_tick_one(ship);"));
     CuAssertPtrNotNull(tc, strstr(periodic_source, "schedule_tick_one(ship);"));

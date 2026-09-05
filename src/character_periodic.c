@@ -62,23 +62,7 @@ struct character_periodic_payload
 
 static bool configured_scheduled(void)
 {
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  const char *value;
-
-  value = getenv("LUMINARI_CHARACTER_EVENTS");
-  if (value == NULL || *value == '\0')
-    value = get_env_value("LUMINARI_CHARACTER_EVENTS");
-  if (value == NULL || *value == '\0' || !strcasecmp(value, "scheduled") ||
-      !strcasecmp(value, "active") || !strcasecmp(value, "event"))
-    return true;
-  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") || !strcasecmp(value, "off"))
-    return false;
-  log("WARNING: Unknown LUMINARI_CHARACTER_EVENTS '%s'; using scheduled owner events.", value);
   return true;
-#else
-  return true;
-#endif
 }
 
 static uint64_t ensure_generation(struct char_data *ch)
@@ -691,20 +675,9 @@ void character_periodic_init(void)
   initialized = true;
   shutting_down = false;
   if (requested && !native_ready)
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    log("WARNING: native character-maintenance event type unavailable; using legacy heartbeat.");
-#else
     log("SYSERR: native character-maintenance event type is unavailable.");
-#endif
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  log("Character periodic scheduling: %s (owner limit %zu).",
-      scheduled ? "scheduled" : "legacy heartbeat", admission_limit);
-#else
   log("Character periodic scheduling: %s (owner limit %zu).",
       scheduled ? "scheduled" : "unavailable", admission_limit);
-#endif
   if (!scheduled)
     return;
   for (ch = character_list; ch != NULL; ch = ch->next)

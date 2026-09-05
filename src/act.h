@@ -857,7 +857,6 @@ int test_animal_companion_level(struct char_data *ch, int level);
 void update_msdp_group(struct char_data *ch);
 void update_msdp_inventory(struct char_data *ch);
 bool wildshape_engine(struct char_data *ch, const char *argument, int mode);
-void show_hints(void);
 void show_hint_one(struct char_data *ch);
 void display_todo(struct char_data *ch, struct char_data *vict);
 void respec_engine(struct char_data *ch, int class, char *arg, bool silent);

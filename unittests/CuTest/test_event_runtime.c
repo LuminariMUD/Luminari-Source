@@ -5,7 +5,6 @@
 #include "../../src/structs.h"
 #include "../../src/comm.h"
 #include "../../src/dgscript/dg_event.h"
-#include "../../src/dgscript/dg_event_rollback.h"
 #include "../../src/event_runtime.h"
 #include "../../src/perfmon.h"
 
@@ -48,19 +47,6 @@ static void runtime_payload_cleanup(void *event_payload)
   if (payload->cleanup_count != NULL)
     (*payload->cleanup_count)++;
   free(payload);
-}
-
-static EVENTFUNC(compatibility_trace_handler)
-{
-  struct runtime_payload *payload;
-
-  payload = event_obj;
-  if (payload->trace != NULL && payload->trace->count < RUNTIME_TRACE_CAPACITY)
-    payload->trace->entries[payload->trace->count++] = payload->marker;
-  if (payload->cleanup_count != NULL)
-    (*payload->cleanup_count)++;
-  free(payload);
-  return 0;
 }
 
 static struct runtime_payload *new_runtime_payload(struct runtime_trace *trace, char marker,
@@ -187,7 +173,7 @@ void Test_event_runtime_profiles_native_semantic_callbacks(CuTest *tc)
   pulse = saved_pulse;
 }
 
-void Test_event_runtime_shares_one_sealed_wheel_with_compatibility_adapter(CuTest *tc)
+void Test_event_runtime_shares_one_sealed_wheel_across_semantic_types(CuTest *tc)
 {
   struct game_event_type_config rejected_config;
   struct game_scheduler_dispatch_report report;
@@ -199,15 +185,12 @@ void Test_event_runtime_shares_one_sealed_wheel_with_compatibility_adapter(CuTes
   game_event_type_id_t first_type;
   game_event_type_id_t second_type;
   game_event_type_id_t rejected_type;
-  event_handle_t compatibility_handle;
   int native_cleanups;
-  int compatibility_cleanups;
   unsigned long saved_pulse;
 
   saved_pulse = pulse;
   memset(&trace, 0, sizeof(trace));
   native_cleanups = 0;
-  compatibility_cleanups = 0;
   begin_runtime_test(tc, 100U);
   first_type = register_runtime_type(tc, "test.native.regeneration", false);
   second_type = register_runtime_type(tc, "test.native.autonomous_action", false);
@@ -233,31 +216,22 @@ void Test_event_runtime_shares_one_sealed_wheel_with_compatibility_adapter(CuTes
   CuAssertPtrNotNull(tc, payload);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
                     event_runtime_schedule_after(second_type, 3U, payload, &second_handle));
-  payload = new_runtime_payload(&trace, 'L', 1, &compatibility_cleanups);
-  CuAssertPtrNotNull(tc, payload);
-  compatibility_handle =
-      event_schedule_named(compatibility_trace_handler, payload, 1, "test.compatibility");
-  CuAssertTrue(tc, compatibility_handle != EVENT_HANDLE_NONE);
-
   event_runtime_get_stats(&stats);
-  CuAssertIntEquals(tc, 3, (int)stats.registered_type_count);
-  CuAssertIntEquals(tc, 3, (int)stats.event_count);
+  CuAssertIntEquals(tc, 2, (int)stats.registered_type_count);
+  CuAssertIntEquals(tc, 2, (int)stats.event_count);
   for (pulse = 101U; pulse <= 104U; pulse++)
   {
     memset(&report, 0, sizeof(report));
     CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_advance(NULL, &report));
   }
 
-  CuAssertIntEquals(tc, 4, (int)trace.count);
-  CuAssertIntEquals(tc, 'L', trace.entries[0]);
-  CuAssertIntEquals(tc, 'A', trace.entries[1]);
-  CuAssertIntEquals(tc, 'B', trace.entries[2]);
-  CuAssertIntEquals(tc, 'A', trace.entries[3]);
+  CuAssertIntEquals(tc, 3, (int)trace.count);
+  CuAssertIntEquals(tc, 'A', trace.entries[0]);
+  CuAssertIntEquals(tc, 'B', trace.entries[1]);
+  CuAssertIntEquals(tc, 'A', trace.entries[2]);
   CuAssertIntEquals(tc, 2, native_cleanups);
-  CuAssertIntEquals(tc, 1, compatibility_cleanups);
   CuAssertTrue(tc, !event_runtime_handle_is_live(first_handle));
   CuAssertTrue(tc, !event_runtime_handle_is_live(second_handle));
-  CuAssertTrue(tc, !event_handle_is_live(compatibility_handle));
   event_free_all();
   pulse = saved_pulse;
 }

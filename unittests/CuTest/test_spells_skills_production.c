@@ -83,11 +83,11 @@ void Test_rol_psionic_regeneration_room_doubles_tick_gain(CuTest *tc)
   world = &room;
   top_of_world = 0;
 
-  regen_psp();
+  regen_psp_one(&ch);
   normal_gain = GET_PSP(&ch) - 10;
   GET_PSP(&ch) = 10;
   SET_BIT_AR(ROOM_FLAGS(0), ROOM_PSP_REGEN);
-  regen_psp();
+  regen_psp_one(&ch);
   accelerated_gain = GET_PSP(&ch) - 10;
 
   descriptor_list = saved_descriptor_list;
@@ -1403,9 +1403,9 @@ void Test_skill_numbered_affect_expiration_dispatches_wearoff(CuTest *tc)
   ch.next = NULL;
   character_list = &ch;
   affected_registry_attach(&ch);
-  affect_update();
+  affect_update_character_one(&ch);
   remained_for_final_tick = affected_by_spell(&ch, SKILL_BLEEDING_ATTACK);
-  affect_update();
+  affect_update_character_one(&ch);
   removed = !affected_by_spell(&ch, SKILL_BLEEDING_ATTACK);
   announced = strstr(descriptor.output, "The bleeding from the attack stops.") != NULL;
   affected_registry_detach(&ch);
@@ -1452,7 +1452,7 @@ void Test_affect_wearoff_callback_can_remove_the_cached_successor(CuTest *tc)
   ch.next = NULL;
   character_list = &ch;
   affected_registry_attach(&ch);
-  affect_update();
+  affect_update_character_one(&ch);
   affected_registry_detach(&ch);
   character_list = saved_character_list;
 

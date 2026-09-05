@@ -48,28 +48,12 @@ cmake --build build-native -j"$(nproc)"
 build-native/bin/luminari -c
 ```
 
-During the externally approved rollback-retention period, also build a separate
-rollback executable and syntax-boot its two physical timing backends and both
-runtime-service paths:
-
-```sh
-cmake -S . -B build-rollback -DLUMINARI_ENABLE_EVENT_ROLLBACK=ON
-cmake --build build-rollback -j"$(nproc)"
-LUMINARI_EVENT_BACKEND=scheduler LUMINARI_RUNTIME_SERVICES=scheduled build-rollback/bin/luminari -c
-LUMINARI_EVENT_BACKEND=legacy LUMINARI_RUNTIME_SERVICES=scheduled build-rollback/bin/luminari -c
-LUMINARI_EVENT_BACKEND=scheduler LUMINARI_RUNTIME_SERVICES=legacy build-rollback/bin/luminari -c
-LUMINARI_EVENT_BACKEND=legacy LUMINARI_RUNTIME_SERVICES=legacy build-rollback/bin/luminari -c
-```
-
-The physical backend takes precedence: either command with
-`LUMINARI_EVENT_BACKEND=legacy` exercises the complete legacy heartbeat, even
-when `LUMINARI_RUNTIME_SERVICES=scheduled` is also present. Scheduled services
-require the scheduler backend.
-
-Autotools uses `./configure --enable-event-rollback`; the default is disabled.
-Runtime rollback selectors have no effect in an ordinary build. Selecting the
-physical legacy queue in a rollback build also selects the complete legacy
-heartbeat, because native named services require the native timing wheel.
+The loop-based rollback executable and its build/runtime selectors were
+retired by maintainer decision on 2026-09-05. Test the native scheduler with
+both supported I/O drivers; there is no legacy timing-backend matrix.
+Production-linked tests now exercise native handles directly. Existing player
+save formats remain migration inputs, but older-binary save output is not
+supported. Use the current full-world acceptance report for migration checks.
 
 Run these from a prepared `lib/` data directory or pass its absolute path with
 `-d`. Database-linked tests must use the repository's isolated test fixture;

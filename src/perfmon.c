@@ -38,12 +38,7 @@ static const char *PERF_event_mode_name(bool scheduled)
 {
   if (scheduled)
     return "scheduled";
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  return "rollback";
-#else
   return "unavailable";
-#endif
 }
 
 /* ========================================================================

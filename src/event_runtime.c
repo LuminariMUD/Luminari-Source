@@ -171,14 +171,7 @@ enum game_scheduler_status event_runtime_register_type(const struct game_event_t
   if (profile == NULL)
     return GAME_SCHEDULER_CAPACITY_REACHED;
   profile->handler = config->handler;
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  /* The rollback adapter records the concrete callback name itself. */
-  profile->perf_index =
-      !strcmp(config->name, "legacy_event") ? -1 : PERF_register_event_callback(config->name);
-#else
   profile->perf_index = PERF_register_event_callback(config->name);
-#endif
 #if defined(LUMINARI_CUTEST)
   if (test_registrations_before_failure != SIZE_MAX)
     test_registrations_before_failure--;

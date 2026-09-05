@@ -1428,13 +1428,13 @@ void affect_total(struct char_data *ch)
 static bool affect_changes_mobile_reactions(const struct affected_type *af)
 {
   return af->spell == SPELL_CAMOUFLAGE || IS_SET_AR(af->bitvector, AFF_INVISIBLE) ||
-         IS_SET_AR(af->bitvector, AFF_HIDE) ||
-         IS_SET_AR(af->bitvector, AFF_BLIND) || IS_SET_AR(af->bitvector, AFF_SLEEP) ||
-         IS_SET_AR(af->bitvector, AFF_STUN) || IS_SET_AR(af->bitvector, AFF_PARALYZED) ||
-         IS_SET_AR(af->bitvector, AFF_DAZED) || IS_SET_AR(af->bitvector, AFF_CHARM) ||
-         IS_SET_AR(af->bitvector, AFF_NAUSEATED) || IS_SET_AR(af->bitvector, AFF_DETECT_INVIS) ||
-         IS_SET_AR(af->bitvector, AFF_INFRAVISION) || IS_SET_AR(af->bitvector, AFF_ULTRAVISION) ||
-         IS_SET_AR(af->bitvector, AFF_TRUE_SIGHT) || IS_SET_AR(af->bitvector, AFF_MAGE_FLAME);
+         IS_SET_AR(af->bitvector, AFF_HIDE) || IS_SET_AR(af->bitvector, AFF_BLIND) ||
+         IS_SET_AR(af->bitvector, AFF_SLEEP) || IS_SET_AR(af->bitvector, AFF_STUN) ||
+         IS_SET_AR(af->bitvector, AFF_PARALYZED) || IS_SET_AR(af->bitvector, AFF_DAZED) ||
+         IS_SET_AR(af->bitvector, AFF_CHARM) || IS_SET_AR(af->bitvector, AFF_NAUSEATED) ||
+         IS_SET_AR(af->bitvector, AFF_DETECT_INVIS) || IS_SET_AR(af->bitvector, AFF_INFRAVISION) ||
+         IS_SET_AR(af->bitvector, AFF_ULTRAVISION) || IS_SET_AR(af->bitvector, AFF_TRUE_SIGHT) ||
+         IS_SET_AR(af->bitvector, AFF_MAGE_FLAME);
 }
 
 /* Insert an affect_type with an explicit runtime source owner. */
@@ -1560,8 +1560,7 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
 
   removes_repulsion = IS_SET_AR(af->bitvector, AFF_REPULSION);
   changes_reactions = affect_changes_mobile_reactions(af);
-  removes_flight = IS_SET_AR(af->bitvector, AFF_FLYING) ||
-                  IS_SET_AR(af->bitvector, AFF_LEVITATE);
+  removes_flight = IS_SET_AR(af->bitvector, AFF_FLYING) || IS_SET_AR(af->bitvector, AFF_LEVITATE);
 
   // if (!IS_NPC(ch) && af->location == APPLY_AC_NEW)
   // is_ac_new = true;

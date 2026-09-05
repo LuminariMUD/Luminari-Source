@@ -326,7 +326,7 @@ MOB_HELPER flag - Used for hostile monsters and aggressive creatures</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
 Aggression trigger (owner-local mobile agenda) -
 <code>src/limits.c</code> - Set during rage/charm effects
-(<code>proc_d20_round()</code>) - <code>src/db.c</code> - Boot-time
+(<code>proc_d20_round_one()</code>) - <code>src/db.c</code> - Boot-time
 validation with alignment aggro flags (<code>parse_mobile()</code>)</p>
 <h3 id="mob_aggr_evil-index-8">MOB_AGGR_EVIL (Index: 8)</h3>
 <p><strong>Effect:</strong> Mobile attacks evil-aligned characters on
@@ -473,7 +473,7 @@ MOB_AGGRESSIVE flag - Used for pack tactics and coordinated defense</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
 Helper behavior logic (owner-local mobile agenda) -
 <code>src/limits.c</code> - Removed when mob becomes aggressive
-(<code>proc_d20_round()</code>)</p>
+(<code>proc_d20_round_one()</code>)</p>
 <h3 id="mob_guard-index-31">MOB_GUARD (Index: 31)</h3>
 <p><strong>Effect:</strong> Mobile protects citizens and assists them in
 combat. - Specifically protects NPCs with MOB_CITIZEN flag - More

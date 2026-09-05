@@ -59,46 +59,6 @@ if grep -Eq 'EVENTFUNC|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(|event_handl
     "$default_public_header"; then
   fail "an explicit zero rollback definition exposes the DG rollback facade"
 fi
-# The single-quoted program intentionally leaves dollar expressions to awk.
-# shellcheck disable=SC2016
-unsafe_rollback_guards=$(
-  find "$project_root/src" -type f \( -name '*.c' -o -name '*.h' \) -print0 |
-    xargs -0 awk '
-      function inspect_directive(    normalized, reference_source, reference_count) {
-        if (directive !~ /LUMINARI_ENABLE_EVENT_ROLLBACK/)
-          return
-        normalized = directive
-        gsub(/[[:space:]]/, "", normalized)
-        reference_source = normalized
-        reference_count = gsub(/LUMINARI_ENABLE_EVENT_ROLLBACK/, "", reference_source)
-        if (reference_count != 2 ||
-            (index(directive, "defined(LUMINARI_ENABLE_EVENT_ROLLBACK)") == 0 &&
-             index(directive, "!defined(LUMINARI_ENABLE_EVENT_ROLLBACK)") == 0) ||
-            (index(normalized,
-                   "defined(LUMINARI_ENABLE_EVENT_ROLLBACK)&&LUMINARI_ENABLE_EVENT_ROLLBACK") == 0 &&
-             index(normalized,
-                   "!defined(LUMINARI_ENABLE_EVENT_ROLLBACK)||!LUMINARI_ENABLE_EVENT_ROLLBACK") == 0))
-          print source ":" start_line ":" directive
-      }
-      /^[[:space:]]*#[[:space:]]*(if|ifdef|ifndef|elif)([[:space:]]|$)/ {
-        source = FILENAME
-        start_line = FNR
-        directive = $0
-        while (directive ~ /\\[[:space:]]*$/) {
-          sub(/\\[[:space:]]*$/, "", directive)
-          if ((getline continuation) <= 0)
-            break
-          directive = directive continuation
-        }
-        inspect_directive()
-      }
-    '
-)
-if [[ -n $unsafe_rollback_guards ]]; then
-  printf '%s\n' "$unsafe_rollback_guards" >&2
-  fail "rollback preprocessor guards must treat an explicit zero definition as disabled"
-fi
-
 "${CC:-cc}" -E -P -I"$project_root/src" \
   "$project_root/src/dgscript/dg_event.c" >"$default_dg_event"
 if grep -Eq 'EVENT_BACKEND_LEGACY_QUEUE|legacy_event|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(|event_create(_[[:alnum:]_]+)?[[:space:]]*\(|queue_(init|enq|deq|head|key|free)[[:space:]]*\(' \
@@ -187,7 +147,7 @@ for test_name in \
   Test_event_runtime_owner_cancel_invalidates_handle_and_cleans_once \
   TestActiveWorldDormantPopulationDoesNotCreateScheduledWork \
   Test_primary_activity_scheduler_registers_timer_when_camp_is_unmanaged \
-  Test_event_debug_registry_is_backend_neutral_filterable_and_width_bounded; do
+  Test_event_debug_registry_is_native_filterable_and_width_bounded; do
   grep -REq --include='*.c' "void ${test_name}[[:space:]]*\(" \
     "$project_root/unittests/CuTest" ||
     fail "required production-linked regression '$test_name' is missing"

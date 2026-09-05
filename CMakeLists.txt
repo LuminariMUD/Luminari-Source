@@ -117,8 +117,6 @@ endif()
 # Static analysis is opt-in so normal builds are reproducible regardless of
 # whether clang-tidy happens to be installed on the build machine.
 option(STATIC_ANALYSIS "Enable static analysis with clang-tidy" OFF)
-option(LUMINARI_ENABLE_EVENT_ROLLBACK
-       "Compile the quarantined legacy timed-event queue and heartbeat rollback" OFF)
 
 if(STATIC_ANALYSIS)
     find_program(CLANG_TIDY_EXE NAMES clang-tidy)
@@ -502,7 +500,6 @@ set(SRC_C_FILES
     src/net/discord_bridge.c
     src/dgscript/dg_db_scripts.c
     src/dgscript/dg_event.c
-    src/dgscript/dg_event_rollback.h
     src/dgscript/dg_handler.c
     src/dgscript/dg_misc.c
     src/dgscript/dg_mobcmd.c
@@ -813,7 +810,6 @@ add_dependencies(luminari refresh_build_identity)
 
 # Add compile definitions based on detected features
 target_compile_definitions(luminari PRIVATE
-    $<$<BOOL:${LUMINARI_ENABLE_EVENT_ROLLBACK}>:LUMINARI_ENABLE_EVENT_ROLLBACK>
     $<$<BOOL:${CIRCLE_MYSQL}>:CIRCLE_MYSQL>
     $<$<BOOL:${CIRCLE_UNIX}>:CIRCLE_UNIX>
     $<$<BOOL:${CIRCLE_CRYPT}>:CIRCLE_CRYPT>
@@ -1244,7 +1240,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_game_scheduler.c
     unittests/CuTest/test_event_runtime.c
     unittests/CuTest/test_domain_events.c
-    unittests/CuTest/test_legacy_event_adapter.c
+    unittests/CuTest/test_native_event_integration.c
     unittests/CuTest/test_bardic_performance.c
     unittests/CuTest/test_rol_feats.c
     unittests/CuTest/test_unassigned_spells.c
@@ -1325,8 +1321,7 @@ if (BUILD_TESTS)
         luminari COMPILE_DEFINITIONS)
     target_compile_definitions(cutest PRIVATE
         ${LUMINARI_COMPILE_DEFINITIONS}
-        LUMINARI_CUTEST
-        LUMINARI_EVENT_ROLLBACK_TESTS)
+        LUMINARI_CUTEST)
 
     get_target_property(LUMINARI_COMPILE_OPTIONS luminari COMPILE_OPTIONS)
     if (LUMINARI_COMPILE_OPTIONS)

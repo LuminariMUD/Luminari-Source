@@ -655,7 +655,7 @@ void Test_player_live_entry_registers_loaded_timed_affects(CuTest *tc)
   count_before_attach = affected_registry_count();
   affected_registry_attach(&player);
   count_after_attach = affected_registry_count();
-  affect_update();
+  affect_update_character_one(&player);
   still_affected = player.affected != NULL;
   remaining_duration = still_affected ? player.affected->duration : -1;
 

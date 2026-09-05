@@ -1823,16 +1823,5 @@ void advance_bardic_performance(struct char_data *ch)
   apply_bard_endless_refrain_verse(ch);
 }
 
-void advance_legacy_bardic_performers(void)
-{
-  struct char_data *ch;
-  struct char_data *next_ch;
-
-  for (ch = character_list; ch; ch = next_ch)
-  {
-    next_ch = ch->next;
-    advance_bardic_performance(ch);
-  }
-}
 
 /* EOF */

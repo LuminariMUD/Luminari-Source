@@ -1,0 +1,92 @@
+Reusing the development MUD on port 4103.
+
+>>> treatinjury Aster
+432/432H 1160/1160V [-mw] (news) (motd)
+You skillfully dress the wounds...
+Your injuries are treated by Aster!
+432/432H 1160/1160V [-mw] (news) (motd)
+
+>>> eventdebug player Aster 10
+.'
+432/432H 1160/1160V [-mw] (news) (motd) eventdebug player Aster 10
+432/432H 1160/1160V [-mw] (news) (motd)
+Event Queue
+--------------------------------------------------------------------------------
+Matched: 3
+Showing: 3
+Payloads: redacted
+#44418 character.maintenance
+  state: queued
+  due pulses: 3
+  due seconds: 0.3
+  owner: character
+  owner id: 106441406076288
+  generation: 61385
+#47655 mud.045.standard_action_cooldown
+  state: queued
+  due pulses: 58
+  due seconds: 5.8
+  owner: character
+  owner id: 106441406076288
+  generation: 312
+#47654 mud.005.treat_injury
+  state: queued
+  due pulses: 1498
+  due seconds: 149.8
+  owner: character
+  owner id: 106441406076288
+  generation: 312
+432/432H 1160/1160V [-mw] (news) (motd)
+
+>>> ready look on entry
+.'
+432/432H 1160/1160V [-mw] (news) (motd) ready look on entry
+You ready 'look' for the next arrival.
+432/432H 1160/1160V [-mw] (news) (motd) 432/432H 1160/1160V [-mw] (news) (motd)
+
+>>> copyover
+Copyover recovery complete.
+
+>>> eventdebug player Aster 10
+432/432H 1160/1160V [smw] (news) (motd)
+Event Queue
+--------------------------------------------------------------------------------
+Matched: 2
+Showing: 2
+Payloads: redacted
+#4832 character.maintenance
+  state: queued
+  due pulses: 47
+  due seconds: 4.7
+  owner: character
+  owner id: 101098888994784
+  generation: 61148
+#4833 mud.005.treat_injury
+  state: queued
+  due pulses: 1071
+  due seconds: 107.1
+  owner: character
+  owner id: 101098888994784
+  generation: 32
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> ready
+.'
+432/432H 1160/1160V [smw] (news) (motd) ready
+You have no readied action.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> vedit
+.'
+432/432H 1160/1160V [smw] (news) (motd) vedit
+Usage:
+  vedit list                      - list all ship prototypes
+  vedit new <class> <name>        - create a prototype (class 0-7)
+  vedit show <id>                 - show one prototype
+  vedit set <id> <field> <value>  - fields: name, class, speed, armor
+  vedit delete <id>               - delete a prototype
+  vedit spawn <id>                - spawn a live ship here from a prototype
+  vedit spawnpublic <id>          - spawn an unclaimed NPC/public ship
+Classes: 0=Raft 1=Boat 2=Ship 3=Warship 4=Airship 5=Submarine 6=Transport 7=Magical
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+PASS: Aster survived copyover, completed the post-copyover checks, and logged out cleanly (47s).

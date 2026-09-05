@@ -19,7 +19,6 @@ extern "C"
 extern struct room_data *world;
 extern void clearMemory(struct char_data *ch);
 extern const char *spells[];
-void advance_legacy_bardic_performers(void);
 void advance_bardic_performance(struct char_data *ch);
 bool is_valid_performance(int performance_num);
 int can_perform(struct char_data *ch, int performance_num, bool need_check, bool silent);

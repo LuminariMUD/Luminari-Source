@@ -928,7 +928,7 @@ static void verify_ready_action_filters_entry_then_runs_through_interpreter(CuTe
   CuAssertPtrNotNull(tc, owner.ready_action);
   CuAssertIntEquals(tc, POS_STANDING, GET_POS(&owner));
   pulse++;
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, POS_RESTING, GET_POS(&owner));
   CuAssertPtrEquals(tc, NULL, owner.ready_action);
   domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);
@@ -957,7 +957,7 @@ static void verify_ready_action_filters_entry_then_runs_through_interpreter(CuTe
   CuAssertPtrNotNull(tc, owner.ready_action);
   IN_ROOM(&owner) = NOWHERE;
   pulse++;
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, POS_STANDING, GET_POS(&owner));
   IN_ROOM(&owner) = 0;
 
@@ -967,7 +967,7 @@ static void verify_ready_action_filters_entry_then_runs_through_interpreter(CuTe
   do_ready(&owner, "cancel", 0, 0);
   CuAssertPtrEquals(tc, NULL, owner.ready_action);
   pulse++;
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, POS_STANDING, GET_POS(&owner));
 
   do_ready(&owner, "rest on entry entrant", 0, 0);
@@ -978,7 +978,7 @@ static void verify_ready_action_filters_entry_then_runs_through_interpreter(CuTe
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     domain_event_runtime_character_moved(&owner, NOWHERE, 0, -1));
   pulse++;
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, POS_STANDING, GET_POS(&owner));
   CuAssertPtrEquals(tc, NULL, owner.ready_action);
 
@@ -1077,7 +1077,7 @@ static void process_scheduler_pulses(unsigned long count)
   while (count-- > 0U)
   {
     pulse++;
-    event_process();
+    event_test_advance();
   }
 }
 
@@ -1743,7 +1743,7 @@ void TestPeriodicOwnersScheduleEveryEligibleOwnerAndCancelLifecycle(CuTest *tc)
   event_init();
   periodic_owners_init();
   event_runtime_get_stats(&scheduler_stats);
-  CuAssertIntEquals(tc, 3, (int)scheduler_stats.registered_type_count);
+  CuAssertIntEquals(tc, 2, (int)scheduler_stats.registered_type_count);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_seal_types());
 
   obj = create_obj();
@@ -1781,7 +1781,7 @@ void TestPeriodicOwnersScheduleEveryEligibleOwnerAndCancelLifecycle(CuTest *tc)
   CuAssertStrEquals(tc, "dg.random_trigger", event_runtime_type_name(snapshot.event_type));
 
   pulse += PULSE_DG_SCRIPT;
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 1, (int)periodic_autoproc_callbacks());
   CuAssertIntEquals(tc, 1, (int)periodic_dg_random_callbacks(MOB_TRIGGER));
   CuAssertIntEquals(tc, 1, (int)periodic_dg_random_callbacks(OBJ_TRIGGER));
@@ -1821,7 +1821,7 @@ void TestPeriodicOwnersScheduleEveryEligibleOwnerAndCancelLifecycle(CuTest *tc)
   character_list = saved_characters;
 }
 
-void TestPeriodicOwnerAdmissionAndRollbackGatesAreIndependent(CuTest *tc)
+void TestPeriodicOwnerCapacityAndRegistrationFailureAreIndependent(CuTest *tc)
 {
   struct obj_data first;
   struct obj_data second;
@@ -1866,7 +1866,7 @@ void TestPeriodicOwnerAdmissionAndRollbackGatesAreIndependent(CuTest *tc)
   CuAssertIntEquals(tc, 1, event_queue_depth());
   first_script.owner = NULL;
   pulse += PULSE_DG_SCRIPT;
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, event_runtime_handle_is_none(first_script.random_event_handle));
   CuAssertIntEquals(tc, 0, (int)periodic_dg_random_scheduled_count(OBJ_TRIGGER));
   CuAssertIntEquals(tc, 0, event_queue_depth());
@@ -1885,8 +1885,9 @@ void TestPeriodicOwnerAdmissionAndRollbackGatesAreIndependent(CuTest *tc)
 
   periodic_owners_reset_for_test();
   periodic_owners_select_for_test(true, true);
-  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_LEGACY_QUEUE));
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   event_init();
+  event_runtime_test_fail_registration_after(0U);
   periodic_owners_init();
   SET_BIT_AR(GET_OBJ_EXTRA(&first), ITEM_AUTOPROC);
   first_script.types = OTRIG_RANDOM;
@@ -2155,7 +2156,7 @@ void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
   event_init();
   affected_owners_init();
   event_runtime_get_stats(&scheduler_stats);
-  CuAssertIntEquals(tc, 3, (int)scheduler_stats.registered_type_count);
+  CuAssertIntEquals(tc, 2, (int)scheduler_stats.registered_type_count);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_seal_types());
 
   new_affect(&affect);
@@ -2201,7 +2202,7 @@ void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
   CuAssertStrEquals(tc, "affected.room.duration", event_runtime_type_name(snapshot.event_type));
 
   pulse += PULSE_LUMINARI;
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 1, ch.affected->duration);
   CuAssertIntEquals(tc, 2, raff->timer);
   CuAssertIntEquals(tc, 1, (int)affected_room_behavior_executions());
@@ -2209,20 +2210,20 @@ void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
   CuAssertIntEquals(tc, 2, event_queue_depth());
 
   pulse += PULSE_VIOLENCE - PULSE_LUMINARI;
-  event_process();
+  event_test_advance();
   CuAssertPtrNotNull(tc, ch.affected);
   CuAssertIntEquals(tc, 0, ch.affected->duration);
   CuAssertIntEquals(tc, 1, raff->timer);
   CuAssertIntEquals(tc, 2, event_queue_depth());
 
   pulse += PULSE_LUMINARI - (PULSE_VIOLENCE - PULSE_LUMINARI);
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 2, (int)affected_room_behavior_executions());
   CuAssertIntEquals(tc, 2, (int)affected_room_behavior_nodes_processed());
   CuAssertIntEquals(tc, 1, raff->timer);
 
   pulse += PULSE_VIOLENCE - (PULSE_LUMINARI - (PULSE_VIOLENCE - PULSE_LUMINARI));
-  event_process();
+  event_test_advance();
   CuAssertPtrEquals(tc, NULL, ch.affected);
   CuAssertPtrEquals(tc, NULL, raff_list);
   CuAssertIntEquals(tc, 0, event_queue_depth());
@@ -2279,14 +2280,14 @@ void TestAffectedRoomOwnerExpiresBeforeCoincidentBehavior(CuTest *tc)
   affected_room_owner_add(raff);
 
   pulse += PULSE_LUMINARI - (pulse % PULSE_LUMINARI);
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 1, (int)affected_room_behavior_executions());
   CuAssertIntEquals(tc, 1, (int)affected_room_behavior_nodes_processed());
   CuAssertIntEquals(tc, 1, raff->timer);
   CuAssertIntEquals(tc, 1, event_queue_depth());
 
   pulse += PULSE_LUMINARI;
-  event_process();
+  event_test_advance();
   CuAssertPtrEquals(tc, NULL, raff_list);
   CuAssertIntEquals(tc, 1, (int)affected_room_behavior_executions());
   CuAssertIntEquals(tc, 1, (int)affected_room_behavior_nodes_processed());
@@ -2365,8 +2366,9 @@ void TestAffectedOwnerAdmissionAndLegacyRollbackAreExclusive(CuTest *tc)
   raff_list = NULL;
 
   affected_owners_select_for_test(true);
-  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_LEGACY_QUEUE));
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   event_init();
+  event_runtime_test_fail_registration_after(0U);
   affected_owners_init();
   new_affect(&affect);
   affect.spell = SPELL_ARMOR;
@@ -2383,10 +2385,9 @@ void TestAffectedOwnerAdmissionAndLegacyRollbackAreExclusive(CuTest *tc)
   affected_room_owner_add(raff);
   CuAssertTrue(tc, !affected_owner_events_enabled());
   CuAssertIntEquals(tc, 0, event_queue_depth());
-  affect_update();
-  affect_update();
-  CuAssertPtrEquals(tc, NULL, ch.affected);
-  CuAssertPtrEquals(tc, NULL, raff_list);
+  while (ch.affected != NULL)
+    affect_remove_no_total(&ch, ch.affected);
+  rem_room_aff(raff);
 
   affected_registry_detach(&ch);
   affected_owners_reset_for_test();
@@ -2564,7 +2565,7 @@ void TestAffectedRoomOwnersSurviveRoomOLCAndWorldReindex(CuTest *tc)
   CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
 
   pulse += PULSE_VIOLENCE;
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 1, raff->timer);
 
   affected_room_owners_prepare_world_reindex();
@@ -2582,7 +2583,7 @@ void TestAffectedRoomOwnersSurviveRoomOLCAndWorldReindex(CuTest *tc)
   CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
 
   pulse += PULSE_VIOLENCE;
-  event_process();
+  event_test_advance();
   CuAssertPtrEquals(tc, NULL, raff_list);
   CuAssertIntEquals(tc, 0, event_queue_depth());
   CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
@@ -2639,7 +2640,7 @@ void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
   event_init();
   character_periodic_init();
   event_runtime_get_stats(&scheduler_stats);
-  CuAssertIntEquals(tc, 2, (int)scheduler_stats.registered_type_count);
+  CuAssertIntEquals(tc, 1, (int)scheduler_stats.registered_type_count);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_seal_types());
   character_periodic_sync(&ch);
 
@@ -2729,7 +2730,7 @@ void TestCharacterPeriodicLateCallbackRunsPassedDeadline(CuTest *tc)
   CuAssertIntEquals(tc, 707, (int)ch.character_periodic_due_pulse);
 
   pulse = 709U;
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 0, specials.walkto_location);
   CuAssertIntEquals(tc, 1, (int)character_periodic_walk_executions());
   CuAssertIntEquals(tc, 39, (int)native_event_remaining(tc, ch.character_periodic_event_handle));
@@ -2988,7 +2989,7 @@ void TestCharacterPeriodicTypedMovementAdmitsInWorldOwner(CuTest *tc)
   pulse = saved_pulse;
 }
 
-void TestCharacterPeriodicCapacityRefillsAndLegacyIsExclusive(CuTest *tc)
+void TestCharacterPeriodicCapacityRefillsAndRegistrationFailureIsExplicit(CuTest *tc)
 {
   struct char_data first;
   struct char_data second;
@@ -3038,8 +3039,9 @@ void TestCharacterPeriodicCapacityRefillsAndLegacyIsExclusive(CuTest *tc)
   event_free_all();
 
   character_periodic_select_for_test(true);
-  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_LEGACY_QUEUE));
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   event_init();
+  event_runtime_test_fail_registration_after(0U);
   character_periodic_init();
   first.desc = &first_descriptor;
   character_periodic_sync(&first);
@@ -3162,7 +3164,7 @@ void TestPointUpdateSchedulesOnlyDuePlayersAndObjects(CuTest *tc)
   CuAssertIntEquals(tc, 0, (int)point_update_object_registry_validate());
 
   pulse = SECS_PER_MUD_HOUR * PASSES_PER_SEC;
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 1, (int)point_update_service_callbacks());
   CuAssertIntEquals(tc, 3, HAPPY_TIME);
   CuAssertIntEquals(tc, 10, GET_COND(&player, HUNGER));
@@ -3181,7 +3183,7 @@ void TestPointUpdateSchedulesOnlyDuePlayersAndObjects(CuTest *tc)
   CuAssertTrue(tc, !point_update_periodic_dispatch_due());
 
   pulse += SECS_PER_MUD_HOUR * PASSES_PER_SEC;
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, point_update_periodic_dispatch_due());
   CuAssertIntEquals(tc, 0, GET_OBJ_TIMER(&timed));
   CuAssertIntEquals(tc, 0, GET_OBJ_SPECTIMER(&timed, 0));
@@ -3278,7 +3280,7 @@ void TestPointUpdateObjectDecayRemainsExtractionSafe(CuTest *tc)
   CuAssertIntEquals(tc, 2, (int)point_update_object_count());
 
   pulse = SECS_PER_MUD_HOUR * PASSES_PER_SEC;
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, point_update_periodic_dispatch_due());
   CuAssertPtrEquals(tc, NULL, object_list);
   CuAssertIntEquals(tc, 0, (int)point_update_object_count());
@@ -3292,13 +3294,14 @@ void TestPointUpdateObjectDecayRemainsExtractionSafe(CuTest *tc)
   pulse = saved_pulse;
 }
 
-void TestPointUpdateFallsBackWhenServiceCannotStart(CuTest *tc)
+void TestPointUpdateRemainsUnavailableWhenRegistrationFails(CuTest *tc)
 {
   event_free_all();
   point_update_periodic_reset_for_test();
   point_update_periodic_select_for_test(true);
-  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_LEGACY_QUEUE));
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   event_init();
+  event_runtime_test_fail_registration_after(0U);
   point_update_periodic_init();
 
   CuAssertTrue(tc, !point_update_events_enabled());
@@ -3308,7 +3311,7 @@ void TestPointUpdateFallsBackWhenServiceCannotStart(CuTest *tc)
   event_free_all();
 }
 
-void TestVesselPeriodicSchedulesLoadedOwnersAndKeepsLegacyExclusive(CuTest *tc)
+void TestVesselPeriodicSchedulesLoadedOwners(CuTest *tc)
 {
   const int slot = GREYHAWK_MAXSHIPS - 1;
   struct greyhawk_ship_data saved_ship = greyhawk_ships[slot];
@@ -3348,7 +3351,7 @@ void TestVesselPeriodicSchedulesLoadedOwnersAndKeepsLegacyExclusive(CuTest *tc)
   first_generation = ship->periodic_generation;
 
   pulse += AUTOPILOT_TICK_INTERVAL;
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 1, ship->slot[0].timer);
   CuAssertIntEquals(tc, 1, (int)vessel_periodic_callbacks());
   CuAssertIntEquals(tc, 1, (int)vessel_periodic_service_callbacks());
@@ -3450,7 +3453,7 @@ void TestVesselPeriodicCapacityRefillsAfterOwnerCancellation(CuTest *tc)
   pulse = saved_pulse;
 }
 
-void TestVesselPeriodicFallsBackWhenServiceCannotStart(CuTest *tc)
+void TestVesselPeriodicRemainsUnavailableWhenRegistrationFails(CuTest *tc)
 {
   int saved_vessel_system = CONFIG_VESSEL_SYSTEM;
 
@@ -3458,8 +3461,9 @@ void TestVesselPeriodicFallsBackWhenServiceCannotStart(CuTest *tc)
   vessel_periodic_reset_for_test();
   CONFIG_VESSEL_SYSTEM = 1;
   vessel_periodic_select_for_test(true);
-  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_LEGACY_QUEUE));
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   event_init();
+  event_runtime_test_fail_registration_after(0U);
   vessel_periodic_init();
 
   CuAssertTrue(tc, !vessel_periodic_events_enabled());

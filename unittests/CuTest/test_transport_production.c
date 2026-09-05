@@ -171,7 +171,7 @@ void Test_transport_walkto_cancels_before_pathfinding_after_logout(CuTest *tc)
   GET_WALKTO_LOC(ch) = 103009;
   STATE(&descriptor) = CON_PLAYING;
 
-  process_walkto_actions();
+  process_walkto_action(ch);
 
   descriptor_list = saved_descriptor_list;
   CuAssertIntEquals(tc, 0, GET_WALKTO_LOC(ch));

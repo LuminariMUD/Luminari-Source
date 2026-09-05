@@ -16,10 +16,6 @@
 #include "event_runtime.h"
 #include "mud_event_callback.h"
 
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-#include "dgscript/dg_event_rollback.h"
-#endif
 
 struct char_data;
 struct region_data;
@@ -31,7 +27,7 @@ struct region_data;
 #define EVENT_REGION 4
 #define EVENT_OBJECT 5
 
-#define MUD_EVENT_DURABLE_FORMAT_VERSION 1U
+#define MUD_EVENT_DURABLE_FORMAT_VERSION 2U
 #define MUD_EVENT_MAX_PERSISTED_USES 100000
 
 enum mud_event_storage_class
@@ -335,15 +331,12 @@ struct mud_event_list
 struct mud_event_data
 {
   struct event_runtime_handle runtime_handle; /***< Native timed-event identity. */
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  event_handle_t rollback_handle; /***< Temporary physical-legacy fallback. */
-#endif
-  event_id iId;                  /***< General ID reference */
-  void *pStruct;                 /***< Pointer to NULL, Descriptor, Character .... */
-  char *sVariables;              /***< String variable */
-  struct game_event_owner owner; /***< Stable scheduler owner handle. */
-  bool owner_detached;           /***< Owner list was detached before deferred cleanup. */
+  event_id iId;                               /***< General ID reference */
+  void *pStruct;                              /***< Pointer to NULL, Descriptor, Character .... */
+  char *sVariables;                           /***< String variable */
+  struct game_event_owner owner;              /***< Stable scheduler owner handle. */
+  bool owner_detached; /***< Owner list was detached before deferred cleanup. */
+  int64_t restored_recovery_interval_ticks; /* Preserve cadence during offline file edits. */
 };
 
 struct mud_event_persistence_policy
@@ -362,6 +355,7 @@ struct mud_event_durable_record
   int64_t remaining_ticks;
   int64_t saved_at_epoch;
   int payload_value;
+  int64_t recovery_interval_ticks; /* Zero in older records and for one-shot timers. */
 };
 
 /* Externals */
@@ -375,7 +369,6 @@ bool mud_event_runtime_init(void);
 const struct mud_event_persistence_policy *mud_event_persistence_policy(event_id iId);
 const char *mud_event_storage_class_name(enum mud_event_storage_class storage_class);
 const char *mud_event_restore_status_name(enum mud_event_restore_status status);
-bool mud_event_legacy_persistence_writer_enabled(void);
 bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *pMudEvent,
                                    int64_t saved_at_epoch, struct mud_event_durable_record *record);
 enum mud_event_restore_status mud_event_restore_character_record(

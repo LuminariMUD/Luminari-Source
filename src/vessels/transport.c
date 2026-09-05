@@ -1161,18 +1161,6 @@ void process_walkto_action(struct char_data *ch)
   }
 }
 
-void process_walkto_actions(void)
-{
-  struct descriptor_data *d = NULL;
-
-  for (d = descriptor_list; d; d = d->next)
-  {
-    if (d->character != NULL)
-    {
-      process_walkto_action(d->character);
-    }
-  }
-}
 
 int walkto_vnum_to_list_row(int vnum)
 {

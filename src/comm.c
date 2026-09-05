@@ -216,10 +216,6 @@ static void persistence_schedule_minute(int include_crash_and_houses);
 static void persistence_scheduler_step(uint64_t heart_pulse);
 static bool persistence_step_schedule(void);
 static bool runtime_services_init(void);
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-static bool runtime_services_configured_scheduled(void);
-#endif
 static void runtime_services_safe_point(void);
 static void comm_wait_state_advance(struct char_data *ch, uint64_t now_tick);
 static uint64_t comm_wait_state_deadline_usec(const struct char_data *ch,
@@ -247,10 +243,9 @@ void update_msdp_affects(struct char_data *ch);
 void update_player_last_on(void);
 void check_auto_shutdown(void);
 void check_auto_happy_hour(void);
-void process_walkto_actions(void);
 void self_buffing(void);
 void recharge_activated_items(void);
-void process_auction_and_legacy_device_recovery(void);
+void process_auction_events(void);
 void craft_update(void);
 
 /* externally defined functions, used locally */
@@ -538,12 +533,7 @@ int main(int argc, char **argv)
     active_world_begin_bootstrap();
     boot_world();
     active_world_end_bootstrap();
-    if (!runtime_services_init()
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-        && runtime_services_configured_scheduled()
-#endif
-    )
+    if (!runtime_services_init())
     {
       log("SYSERR: Unable to initialize required native runtime services.");
       event_free_all();
@@ -804,12 +794,7 @@ static void init_game(ush_int local_port)
   init_lookup_table();
 
   boot_db();
-  if (!runtime_services_init()
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-      && runtime_services_configured_scheduled()
-#endif
-  )
+  if (!runtime_services_init())
   {
     log("SYSERR: Unable to initialize required native runtime services.");
     exit(1);
@@ -1231,32 +1216,19 @@ static int reactor_poll_fd_sets(struct luminari_reactor *reactor, int max_fd, fd
  * cycles once every 0.10 seconds and is responsible for accepting new
  * new connections, polling existing connections for input, dequeueing
  * output and sending it out to players. Scheduled services own normal gameplay
- * deadlines; the heartbeat below remains a rollback driver. */
+ * deadlines, without a separate heartbeat driver. */
 void game_loop(socket_t local_mother_desc)
 {
   fd_set input_set, output_set, exc_set;
   struct timeval before_sleep, now, timeout, perf_start, process_time;
   char comm[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *d = NULL, *next_d = NULL;
-  int missed_pulses = 0, maxdesc = 0, aliased = 0;
+  int maxdesc = 0, aliased = 0;
   int i3_event_fd = -1;
   int ai_event_fd = -1;
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  int requested_missed_pulses = 0;
-  int requested_heartbeats = 0;
-  int replayed_heartbeats = 0;
-  int replayed_missed_pulses = 0;
-  int remaining_backlog = 0;
-  int catchup_budget_exhausted = 0;
-  uint64_t heartbeat_replay_start_usec = 0;
-  uint64_t heartbeat_replay_now_usec = 0;
-  uint64_t heartbeat_replay_elapsed_usec = 0;
-#endif
   uint64_t command_start_usec = 0;
   uint64_t command_end_usec = 0;
   uint64_t command_elapsed_usec = 0;
-  uint64_t next_heartbeat_usec = 0;
   uint64_t runtime_epoch_usec = 0;
   uint64_t runtime_tick_value = 0;
   uint64_t previous_runtime_tick_value = 0;
@@ -1264,23 +1236,13 @@ void game_loop(socket_t local_mother_desc)
   uint64_t wait_deadline_usec = 0;
   uint64_t before_sleep_usec = 0;
   uint64_t now_usec = 0;
-  uint64_t heartbeat_timeout_usec = 0;
+  uint64_t wait_timeout_usec = 0;
   uint64_t scheduler_timeout_usec = 0;
   game_tick_t scheduler_deadline = 0;
   bool scheduler_has_deadline = false;
-  bool heartbeat_due = false;
-  bool compatibility_tick_required = false;
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  unsigned long heartbeat_tick = 0;
-#endif
   struct game_scheduler_budget scheduler_budget;
   struct game_scheduler_dispatch_report scheduler_report;
   enum game_scheduler_status scheduler_status;
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  time_t catchup_log_now = 0;
-#endif
   char command_name[MAX_INPUT_LENGTH] = {'\0'};
   char command_player[MAX_NAME_LENGTH + 1] = {'\0'};
   int command_level = 0;
@@ -1289,14 +1251,6 @@ void game_loop(socket_t local_mother_desc)
   static time_t last_severe_log_time = 0;
   static time_t last_critical_log_time = 0;
   static int perf_log_suppressed = 0;
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  static time_t last_catchup_log_time = 0;
-  static uint64_t catchup_log_passes = 0;
-  static uint64_t catchup_log_budget_exhausted = 0;
-  static uint64_t catchup_log_max_requested = 0;
-  static uint64_t catchup_log_max_remaining = 0;
-#endif
   enum luminari_io_driver io_driver;
 
   /* initialize various time values */
@@ -1309,7 +1263,6 @@ void game_loop(socket_t local_mother_desc)
   monotonic_timeval(&perf_start);
   runtime_epoch_usec =
       (uint64_t)perf_start.tv_sec * UINT64_C(1000000) + (uint64_t)perf_start.tv_usec;
-  next_heartbeat_usec = runtime_epoch_usec + (uint64_t)OPT_USEC;
   scheduler_budget.max_callbacks = EVENT_SCHEDULER_CALLBACK_BUDGET;
   scheduler_budget.max_usec = EVENT_SCHEDULER_TIME_BUDGET_USEC;
 
@@ -1488,8 +1441,7 @@ void game_loop(socket_t local_mother_desc)
       }
     }
 
-    /* The runtime tick is derived from monotonic elapsed time, independently
-     * of whether the compatibility heartbeat is active. */
+    /* Derive the runtime tick from monotonic elapsed time. */
     monotonic_timeval(&before_sleep);
     before_sleep_usec =
         (uint64_t)before_sleep.tv_sec * UINT64_C(1000000) + (uint64_t)before_sleep.tv_usec;
@@ -1498,18 +1450,7 @@ void game_loop(socket_t local_mother_desc)
                              : 0;
     pulse = runtime_tick_value > ULONG_MAX ? ULONG_MAX : (unsigned long)runtime_tick_value;
 
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    compatibility_tick_required =
-        event_backend_current() == EVENT_BACKEND_LEGACY_QUEUE || !runtime_services_enabled();
-#else
-    compatibility_tick_required = false;
-#endif
-    heartbeat_timeout_usec =
-        compatibility_tick_required
-            ? (before_sleep_usec >= next_heartbeat_usec ? 0
-                                                        : next_heartbeat_usec - before_sleep_usec)
-            : UINT64_MAX;
+    wait_timeout_usec = UINT64_MAX;
     scheduler_timeout_usec = UINT64_MAX;
     scheduler_status = event_scheduler_next_deadline(&scheduler_deadline, &scheduler_has_deadline);
     if (scheduler_status != GAME_SCHEDULER_OK)
@@ -1531,8 +1472,8 @@ void game_loop(socket_t local_mother_desc)
       else
         scheduler_timeout_usec = scheduler_deadline_usec - before_sleep_usec;
     }
-    if (scheduler_timeout_usec < heartbeat_timeout_usec)
-      heartbeat_timeout_usec = scheduler_timeout_usec;
+    if (scheduler_timeout_usec < wait_timeout_usec)
+      wait_timeout_usec = scheduler_timeout_usec;
     for (d = descriptor_list; d; d = d->next)
     {
       bool queued_action;
@@ -1547,11 +1488,11 @@ void game_loop(socket_t local_mother_desc)
       wait_deadline_usec = comm_wait_state_deadline_usec(d->character, runtime_epoch_usec);
       if (wait_deadline_usec <= before_sleep_usec)
       {
-        heartbeat_timeout_usec = 0;
+        wait_timeout_usec = 0;
         break;
       }
-      if (wait_deadline_usec - before_sleep_usec < heartbeat_timeout_usec)
-        heartbeat_timeout_usec = wait_deadline_usec - before_sleep_usec;
+      if (wait_deadline_usec - before_sleep_usec < wait_timeout_usec)
+        wait_timeout_usec = wait_deadline_usec - before_sleep_usec;
     }
     for (d = descriptor_list; d; d = d->next)
     {
@@ -1559,18 +1500,18 @@ void game_loop(socket_t local_mother_desc)
         continue;
       if (d->close_output_deadline_usec <= before_sleep_usec)
       {
-        heartbeat_timeout_usec = 0;
+        wait_timeout_usec = 0;
         break;
       }
-      if (d->close_output_deadline_usec - before_sleep_usec < heartbeat_timeout_usec)
-        heartbeat_timeout_usec = d->close_output_deadline_usec - before_sleep_usec;
+      if (d->close_output_deadline_usec - before_sleep_usec < wait_timeout_usec)
+        wait_timeout_usec = d->close_output_deadline_usec - before_sleep_usec;
     }
-    if (heartbeat_timeout_usec == UINT64_MAX)
-      heartbeat_timeout_usec = UINT64_C(60000000);
-    timeout.tv_sec = (time_t)(heartbeat_timeout_usec / UINT64_C(1000000));
-    timeout.tv_usec = (suseconds_t)(heartbeat_timeout_usec % UINT64_C(1000000));
+    if (wait_timeout_usec == UINT64_MAX)
+      wait_timeout_usec = UINT64_C(60000000);
+    timeout.tv_sec = (time_t)(wait_timeout_usec / UINT64_C(1000000));
+    timeout.tv_usec = (suseconds_t)(wait_timeout_usec % UINT64_C(1000000));
 
-    /* Wait for I/O, the next scheduler deadline, or a required legacy tick. */
+    /* Wait for I/O or the next scheduler deadline. */
     if (reactor_poll_fd_sets(io_reactor, maxdesc, &input_set, &output_set, &exc_set, &timeout) < 0)
     {
       log("SYSERR: %s I/O driver poll failed: %s", luminari_io_driver_name(io_driver),
@@ -1586,13 +1527,6 @@ void game_loop(socket_t local_mother_desc)
       PERF_note_runtime_advance(runtime_tick_value,
                                 runtime_tick_value - previous_runtime_tick_value);
     previous_runtime_tick_value = runtime_tick_value;
-    heartbeat_due = compatibility_tick_required && now_usec >= next_heartbeat_usec;
-    if (heartbeat_due && (now_usec - next_heartbeat_usec) / OPT_USEC > INT_MAX)
-      missed_pulses = INT_MAX;
-    else
-      missed_pulses = heartbeat_due ? (int)((now_usec - next_heartbeat_usec) / OPT_USEC) : 0;
-    if (missed_pulses > 0)
-      PERF_note_missed_pulses((uint64_t)missed_pulses);
 
     perf_start = now;
     PERF_prof_reset();
@@ -1799,107 +1733,6 @@ void game_loop(socket_t local_mother_desc)
         close_socket(d);
     }
 
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    if (heartbeat_due)
-    {
-      if (runtime_services_enabled())
-      {
-        next_heartbeat_usec += ((uint64_t)missed_pulses + 1U) * (uint64_t)OPT_USEC;
-        event_process_compatibility_pulse();
-      }
-      else
-      {
-        next_heartbeat_usec += ((uint64_t)missed_pulses + 1U) * (uint64_t)OPT_USEC;
-
-        /* Run the current heartbeat and recover missed pulses within the bounded
-       * wall-clock budget below. */
-        requested_missed_pulses = missed_pulses;
-        requested_heartbeats = requested_missed_pulses + 1;
-
-        if (requested_heartbeats <= 0)
-        {
-          log("SYSERR: **BAD** MISSED_PULSES NONPOSITIVE (%d), TIME GOING BACKWARDS!!",
-              requested_heartbeats);
-          requested_missed_pulses = 0;
-          requested_heartbeats = 1;
-        }
-
-        /* Always run the current heartbeat, then replay missed heartbeats only while
-       * the work fits inside one normal outer-loop time budget. Any remainder is
-       * deliberately discarded rather than carried into a self-reinforcing loop;
-       * logical timers advance only for heartbeats that actually run. */
-        replayed_heartbeats = 0;
-        catchup_budget_exhausted = 0;
-        heartbeat_tick = pulse >= (unsigned long)requested_missed_pulses
-                             ? pulse - (unsigned long)requested_missed_pulses - 1U
-                             : 0U;
-        heartbeat_replay_start_usec = PERF_monotonic_usec();
-        while (replayed_heartbeats < requested_heartbeats)
-        {
-          PERF_PROF_ENTER_SAMPLED(pr_heartbeat, "heartbeat");
-          pulse = ++heartbeat_tick;
-          heartbeat((int)pulse);
-          PERF_PROF_EXIT(pr_heartbeat);
-          replayed_heartbeats++;
-
-          if (replayed_heartbeats < requested_heartbeats)
-          {
-            heartbeat_replay_now_usec = PERF_monotonic_usec();
-            heartbeat_replay_elapsed_usec =
-                heartbeat_replay_now_usec >= heartbeat_replay_start_usec
-                    ? heartbeat_replay_now_usec - heartbeat_replay_start_usec
-                    : 0;
-            if (heartbeat_replay_elapsed_usec >= HEARTBEAT_CATCHUP_BUDGET_USEC)
-            {
-              catchup_budget_exhausted = 1;
-              break;
-            }
-          }
-        }
-        pulse = runtime_tick_value > ULONG_MAX ? ULONG_MAX : (unsigned long)runtime_tick_value;
-
-        replayed_missed_pulses = replayed_heartbeats - 1;
-        remaining_backlog = requested_missed_pulses - replayed_missed_pulses;
-        if (remaining_backlog < 0)
-          remaining_backlog = 0;
-
-        if (requested_missed_pulses > 0)
-        {
-          PERF_note_catchup_pass((uint64_t)requested_missed_pulses,
-                                 (uint64_t)replayed_missed_pulses, (uint64_t)remaining_backlog,
-                                 catchup_budget_exhausted);
-
-          if (catchup_log_passes < UINT64_MAX)
-            catchup_log_passes++;
-          if (catchup_budget_exhausted && catchup_log_budget_exhausted < UINT64_MAX)
-            catchup_log_budget_exhausted++;
-          if ((uint64_t)requested_missed_pulses > catchup_log_max_requested)
-            catchup_log_max_requested = (uint64_t)requested_missed_pulses;
-          if ((uint64_t)remaining_backlog > catchup_log_max_remaining)
-            catchup_log_max_remaining = (uint64_t)remaining_backlog;
-
-          catchup_log_now = time(NULL);
-          if (last_catchup_log_time == 0 ||
-              catchup_log_now - last_catchup_log_time >= HEARTBEAT_CATCHUP_LOG_INTERVAL)
-          {
-            log("PERFMON [CATCHUP]: window_passes=%llu budget_exhausted=%llu max_requested=%llu "
-                "max_remaining=%llu latest_requested=%d latest_replayed=%d latest_remaining=%d",
-                (unsigned long long)catchup_log_passes,
-                (unsigned long long)catchup_log_budget_exhausted,
-                (unsigned long long)catchup_log_max_requested,
-                (unsigned long long)catchup_log_max_remaining, requested_missed_pulses,
-                replayed_missed_pulses, remaining_backlog);
-            last_catchup_log_time = catchup_log_now;
-            catchup_log_passes = 0;
-            catchup_log_budget_exhausted = 0;
-            catchup_log_max_requested = 0;
-            catchup_log_max_remaining = 0;
-          }
-        }
-      }
-    }
-#endif
 
     scheduler_status = event_scheduler_next_deadline(&scheduler_deadline, &scheduler_has_deadline);
     if (scheduler_status == GAME_SCHEDULER_OK && scheduler_has_deadline &&
@@ -1961,24 +1794,6 @@ bool object_auto_proc_run_one(struct obj_data *obj)
 }
 
 /* This was ported to accommodate the HL objects that were imported. */
-void proc_update()
-{
-  struct obj_data *obj;
-  size_t acted;
-  size_t visited;
-
-  acted = 0;
-  visited = 0;
-  for (obj = autoproc_registry_iteration_begin(); obj != NULL;
-       obj = autoproc_registry_iteration_next())
-  {
-    visited++;
-    if (object_auto_proc_run_one(obj))
-      acted++;
-  }
-  autoproc_registry_iteration_end();
-  PERF_note_sweep(PERF_SWEEP_AUTOPROC, visited, autoproc_registry_count(), acted);
-}
 
 enum persistence_task
 {
@@ -2303,24 +2118,14 @@ void persistence_scheduler_reset_telemetry(void)
 
 enum runtime_service_kind
 {
-  RUNTIME_SERVICE_DG_RANDOM = 0,
   RUNTIME_SERVICE_MOVING_ROOMS,
   RUNTIME_SERVICE_ONE_SECOND,
-  RUNTIME_SERVICE_PSP,
-  RUNTIME_SERVICE_ROL_SHIP,
-  RUNTIME_SERVICE_VESSEL,
-  RUNTIME_SERVICE_WALK,
   RUNTIME_SERVICE_MINUTE_MAINTENANCE,
   RUNTIME_SERVICE_ZONE,
   RUNTIME_SERVICE_IDLE_PASSWORD,
-  RUNTIME_SERVICE_MOBILE_ACTIVITY,
   RUNTIME_SERVICE_AUTOMATIC_PROCEDURES,
-  RUNTIME_SERVICE_HUNT_CLOCK_AND_ROUND_ROLLBACK,
-  RUNTIME_SERVICE_LUMINARI,
-  RUNTIME_SERVICE_BARDIC,
-  RUNTIME_SERVICE_HINTS,
-  RUNTIME_SERVICE_CHARACTER_SIX_SECOND,
-  RUNTIME_SERVICE_AUCTION_AND_DEVICE_RECOVERY,
+  RUNTIME_SERVICE_HUNT_CLOCK,
+  RUNTIME_SERVICE_AUCTION,
   RUNTIME_SERVICE_MINUTE_PERSISTENCE,
   RUNTIME_SERVICE_HUNT_CREATION,
   RUNTIME_SERVICE_MUD_HOUR,
@@ -2352,33 +2157,23 @@ struct runtime_service
    0}
 
 static struct runtime_service runtime_service_table[] = {
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_DG_RANDOM, "service.dg_random", PULSE_DG_SCRIPT),
+
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MOVING_ROOMS, "service.moving_rooms",
                           PASSES_PER_SEC * 10),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_ONE_SECOND, "service.one_second", PASSES_PER_SEC),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_PSP, "service.psp_rollback", PASSES_PER_SEC * 5),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_ROL_SHIP, "service.rol_ship_rollback",
-                          PASSES_PER_SEC * 5 / 2),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_VESSEL, "service.vessel_rollback",
-                          AUTOPILOT_TICK_INTERVAL),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_WALK, "service.walk_rollback",
-                          (int)(PASSES_PER_SEC * 0.75)),
+
+
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MINUTE_MAINTENANCE, "service.minute_maintenance",
                           PASSES_PER_SEC * 60),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_ZONE, "service.zone", PULSE_ZONE),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_IDLE_PASSWORD, "service.idle_password", PULSE_IDLEPWD),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MOBILE_ACTIVITY, "service.mobile_activity_rollback", 1),
+
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_AUTOMATIC_PROCEDURES, "service.automatic_procedures",
                           PULSE_MOBILE),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_HUNT_CLOCK_AND_ROUND_ROLLBACK,
-                          "service.hunt_clock_round_rollback", PULSE_VIOLENCE),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_LUMINARI, "service.luminari_rollback", PULSE_LUMINARI),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_BARDIC, "service.bardic_rollback", PULSE_VERSE_INTERVAL),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_HINTS, "service.hints_rollback", PULSE_HINTS),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_CHARACTER_SIX_SECOND,
-                          "service.character_six_second_rollback", PASSES_PER_SEC * 6),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_AUCTION_AND_DEVICE_RECOVERY,
-                          "service.auction_device_recovery", PASSES_PER_SEC * 30),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_HUNT_CLOCK, "service.hunt_clock", PULSE_VIOLENCE),
+
+
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_AUCTION, "service.auction", PASSES_PER_SEC * 30),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MINUTE_PERSISTENCE, "service.minute_persistence",
                           PASSES_PER_SEC * 60),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_HUNT_CREATION, "service.hunt_creation",
@@ -2410,84 +2205,16 @@ static bool runtime_services_test_scheduled_selection;
 
 static bool runtime_services_configured_scheduled(void)
 {
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  const char *value;
-
-  if (event_backend_current() != EVENT_BACKEND_GAME_SCHEDULER)
-    return false;
 #ifdef LUMINARI_CUTEST
   if (runtime_services_test_selection_set)
     return runtime_services_test_scheduled_selection;
 #endif
-  value = getenv("LUMINARI_RUNTIME_SERVICES");
-  if (value == NULL || *value == '\0')
-    value = get_env_value("LUMINARI_RUNTIME_SERVICES");
-  if (value == NULL || *value == '\0' || !strcasecmp(value, "scheduled") ||
-      !strcasecmp(value, "event") || !strcasecmp(value, "active"))
-    return true;
-  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") || !strcasecmp(value, "off"))
-    return false;
-  log("WARNING: Unknown LUMINARI_RUNTIME_SERVICES '%s'; using scheduled services.", value);
   return true;
-#else
-  return true;
-#endif
 }
 
 static bool runtime_service_needed(enum runtime_service_kind kind)
 {
-  switch (kind)
-  {
-  case RUNTIME_SERVICE_DG_RANDOM:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    return !periodic_dg_random_enabled();
-#else
-    return false;
-#endif
-  case RUNTIME_SERVICE_PSP:
-  case RUNTIME_SERVICE_WALK:
-  case RUNTIME_SERVICE_BARDIC:
-  case RUNTIME_SERVICE_HINTS:
-  case RUNTIME_SERVICE_CHARACTER_SIX_SECOND:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    return !character_periodic_events_enabled();
-#else
-    return false;
-#endif
-  case RUNTIME_SERVICE_ROL_SHIP:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    return true;
-#else
-    return false;
-#endif
-  case RUNTIME_SERVICE_VESSEL:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    return CONFIG_VESSEL_SYSTEM && !vessel_periodic_events_enabled();
-#else
-    return false;
-#endif
-  case RUNTIME_SERVICE_MOBILE_ACTIVITY:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    return !active_world_enabled();
-#else
-    return false;
-#endif
-  case RUNTIME_SERVICE_LUMINARI:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    return !affected_owner_events_enabled() || !character_periodic_events_enabled();
-#else
-    return false;
-#endif
-  default:
-    return true;
-  }
+  return kind >= 0 && kind < RUNTIME_SERVICE_COUNT;
 }
 
 static long runtime_service_boundary_delay(const struct runtime_service *service)
@@ -2516,15 +2243,6 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
 {
   switch (kind)
   {
-  case RUNTIME_SERVICE_DG_RANDOM:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    PERF_note_schedule(PERF_SCHEDULE_13_SECONDS);
-    PERF_PROF_ENTER_SAMPLED(pr_script_trigger_, "script_trigger_check");
-    script_trigger_check();
-    PERF_PROF_EXIT(pr_script_trigger_);
-#endif
-    break;
   case RUNTIME_SERVICE_MOVING_ROOMS:
     moving_rooms_update();
     break;
@@ -2547,64 +2265,6 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
     update_supply_slots_for_all_players();
     break;
   }
-  case RUNTIME_SERVICE_PSP:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    PERF_note_schedule(PERF_SCHEDULE_5_SECONDS);
-    regen_psp();
-#endif
-    break;
-  case RUNTIME_SERVICE_ROL_SHIP:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    rol_ship_activity();
-#endif
-    break;
-  case RUNTIME_SERVICE_VESSEL:
-  {
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    PERF_PROF_ENTER_SAMPLED(pr_vessel_tick, "vessel_tick");
-    PERF_PROF_ENTER_SAMPLED(pr_vessel_autopilot, "vessel_autopilot");
-    autopilot_tick();
-    PERF_PROF_EXIT(pr_vessel_autopilot);
-    PERF_PROF_ENTER_SAMPLED(pr_vessel_hunters, "vessel_hunters");
-    vessel_hunter_tick();
-    PERF_PROF_EXIT(pr_vessel_hunters);
-    PERF_PROF_ENTER_SAMPLED(pr_vessel_combat, "vessel_combat");
-    vessel_combat_tick();
-    PERF_PROF_EXIT(pr_vessel_combat);
-    PERF_PROF_ENTER_SAMPLED(pr_vessel_events, "vessel_events");
-    vessel_event_tick();
-    PERF_PROF_EXIT(pr_vessel_events);
-    PERF_PROF_ENTER_SAMPLED(pr_vessel_crew_wages, "vessel_crew_wages");
-    vessel_crew_wage_tick();
-    PERF_PROF_EXIT(pr_vessel_crew_wages);
-    PERF_PROF_ENTER_SAMPLED(pr_vessel_upkeep, "vessel_upkeep");
-    vessel_upkeep_tick();
-    PERF_PROF_EXIT(pr_vessel_upkeep);
-    PERF_PROF_ENTER_SAMPLED(pr_vessel_trade, "vessel_trade");
-    vessel_trade_restock_tick();
-    PERF_PROF_EXIT(pr_vessel_trade);
-    PERF_PROF_ENTER_SAMPLED(pr_vessel_weather, "vessel_weather");
-    vessel_weather_tick();
-    PERF_PROF_EXIT(pr_vessel_weather);
-    PERF_PROF_ENTER_SAMPLED(pr_vessel_encounters, "vessel_encounters");
-    vessel_encounter_tick();
-    PERF_PROF_EXIT(pr_vessel_encounters);
-    PERF_PROF_ENTER_SAMPLED(pr_vessel_msdp, "vessel_msdp");
-    vessel_msdp_tick();
-    PERF_PROF_EXIT(pr_vessel_msdp);
-    PERF_PROF_EXIT(pr_vessel_tick);
-#endif
-    break;
-  }
-  case RUNTIME_SERVICE_WALK:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    process_walkto_actions();
-#endif
-    break;
   case RUNTIME_SERVICE_MINUTE_MAINTENANCE:
     PERF_note_schedule(PERF_SCHEDULE_60_SECONDS);
     PERF_PROF_ENTER_SAMPLED(pr_minute_maintenance_, "minute.maintenance");
@@ -2624,74 +2284,15 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
   case RUNTIME_SERVICE_IDLE_PASSWORD:
     check_idle_passwords();
     break;
-  case RUNTIME_SERVICE_MOBILE_ACTIVITY:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    PERF_PROF_ENTER_SAMPLED(pr_mob_activity_, "legacy_mobile_activity");
-    mobile_activity_run_legacy_slice((int)(now_tick % (unsigned long)PULSE_MOBILE));
-    PERF_PROF_EXIT(pr_mob_activity_);
-#endif
-    break;
   case RUNTIME_SERVICE_AUTOMATIC_PROCEDURES:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    if (!periodic_autoproc_enabled())
-    {
-      PERF_PROF_ENTER_SAMPLED(pr_proc_update_, "proc_update");
-      proc_update();
-      PERF_PROF_EXIT(pr_proc_update_);
-    }
-#endif
     rol_avernus_process_garden_activity();
     break;
-  case RUNTIME_SERVICE_HUNT_CLOCK_AND_ROUND_ROLLBACK:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    if (!affected_owner_events_enabled())
-    {
-      PERF_PROF_ENTER_SAMPLED(pr_aff_update_, "affect_update");
-      affect_update();
-      PERF_PROF_EXIT(pr_aff_update_);
-    }
-    if (!character_periodic_events_enabled())
-      proc_d20_round();
-#endif
+  case RUNTIME_SERVICE_HUNT_CLOCK:
     hunt_reset_timer--;
     break;
-  case RUNTIME_SERVICE_LUMINARI:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    PERF_note_schedule(PERF_SCHEDULE_5_SECONDS);
-    PERF_PROF_ENTER_SAMPLED(pr_lum_, "legacy_luminari_maintenance");
-    process_legacy_luminari_maintenance();
-    PERF_PROF_EXIT(pr_lum_);
-#endif
-    break;
-  case RUNTIME_SERVICE_BARDIC:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    advance_legacy_bardic_performers();
-#endif
-    break;
-  case RUNTIME_SERVICE_HINTS:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    show_hints();
-#endif
-    break;
-  case RUNTIME_SERVICE_CHARACTER_SIX_SECOND:
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    PERF_note_schedule(PERF_SCHEDULE_6_SECONDS);
-    PERF_PROF_ENTER_SAMPLED(pr_upd_, "update_damage_and_effects_over_time");
-    update_damage_and_effects_over_time();
-    PERF_PROF_EXIT(pr_upd_);
-    update_player_misc();
-#endif
-    break;
-  case RUNTIME_SERVICE_AUCTION_AND_DEVICE_RECOVERY:
+  case RUNTIME_SERVICE_AUCTION:
     PERF_note_schedule(PERF_SCHEDULE_30_SECONDS);
-    process_auction_and_legacy_device_recovery();
+    process_auction_events();
     break;
   case RUNTIME_SERVICE_MINUTE_PERSISTENCE:
   {
@@ -2730,25 +2331,9 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
     next_tick = SECS_PER_MUD_HOUR;
     weather_and_time(1);
     check_time_triggers();
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    if (!point_update_events_enabled())
-      point_update();
-    if (!character_periodic_events_enabled())
-      check_timed_quests();
-#endif
     point_update_periodic_dispatch_due();
     check_diplomacy();
     update_clans();
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    if (CONFIG_VESSEL_SYSTEM && !vessel_periodic_events_enabled())
-    {
-      PERF_PROF_ENTER_SAMPLED(pr_vessel_schedules, "vessel_schedules");
-      schedule_tick();
-      PERF_PROF_EXIT(pr_vessel_schedules);
-    }
-#endif
     cleanup_all_trails();
     PERF_PROF_EXIT(pr_ost_);
     break;
@@ -2916,14 +2501,8 @@ static bool runtime_services_init(void)
     {
       if (!runtime_service_schedule(&runtime_service_table[index]))
       {
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-        log("WARNING: unable to schedule runtime service '%s'; restoring the legacy heartbeat.",
-            runtime_service_table[index].name);
-#else
         log("SYSERR: unable to schedule required native runtime service '%s'.",
             runtime_service_table[index].name);
-#endif
         runtime_services_scheduled = false;
         runtime_services_shutdown();
         runtime_services_initialized = true;
@@ -2931,14 +2510,8 @@ static bool runtime_services_init(void)
       }
     }
   }
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  log("Runtime services: %s.",
-      runtime_services_scheduled ? "scheduled by named cadence" : "legacy heartbeat");
-#else
   log("Runtime services: %s.",
       runtime_services_scheduled ? "scheduled by named cadence" : "unavailable");
-#endif
   return runtime_services_scheduled;
 }
 
@@ -3071,354 +2644,6 @@ bool runtime_services_persistence_pending_for_test(void)
 }
 #endif
 
-/* here she is, heartbeat function - called every 1/10th of a second */
-void heartbeat(int heart_pulse)
-{
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  static int mins_since_crashsave = 0;
-  static struct PERF_prof_sect *pr_event_process = NULL;
-  static struct PERF_prof_sect *pr_vessel_tick = NULL;
-  static struct PERF_prof_sect *pr_vessel_autopilot = NULL;
-  static struct PERF_prof_sect *pr_vessel_hunters = NULL;
-  static struct PERF_prof_sect *pr_vessel_combat = NULL;
-  static struct PERF_prof_sect *pr_vessel_events = NULL;
-  static struct PERF_prof_sect *pr_vessel_crew_wages = NULL;
-  static struct PERF_prof_sect *pr_vessel_upkeep = NULL;
-  static struct PERF_prof_sect *pr_vessel_trade = NULL;
-  static struct PERF_prof_sect *pr_vessel_weather = NULL;
-  static struct PERF_prof_sect *pr_vessel_encounters = NULL;
-  static struct PERF_prof_sect *pr_vessel_msdp = NULL;
-  static struct PERF_prof_sect *pr_vessel_schedules = NULL;
-
-  /* The named runtime services own all cadence work in scheduled mode. The
-   * legacy queue still needs a 100 ms adapter advance, but must not duplicate
-   * any service callback. */
-  if (runtime_services_enabled())
-  {
-    event_process_compatibility_pulse();
-    return;
-  }
-
-  PERF_note_heartbeat(heart_pulse >= 0 ? (uint64_t)heart_pulse : 0);
-  if (!(heart_pulse % PASSES_PER_SEC))
-    PERF_note_schedule(PERF_SCHEDULE_1_SECOND);
-  if (!(heart_pulse % (3 * PASSES_PER_SEC)))
-    PERF_note_schedule(PERF_SCHEDULE_3_SECONDS);
-  if (!(heart_pulse % (5 * PASSES_PER_SEC)))
-    PERF_note_schedule(PERF_SCHEDULE_5_SECONDS);
-  if (!(heart_pulse % (6 * PASSES_PER_SEC)))
-    PERF_note_schedule(PERF_SCHEDULE_6_SECONDS);
-  if (!(heart_pulse % PULSE_DG_SCRIPT) && !periodic_dg_random_enabled())
-    PERF_note_schedule(PERF_SCHEDULE_13_SECONDS);
-  if (!(heart_pulse % (30 * PASSES_PER_SEC)))
-    PERF_note_schedule(PERF_SCHEDULE_30_SECONDS);
-  if (!(heart_pulse % (60 * PASSES_PER_SEC)))
-    PERF_note_schedule(PERF_SCHEDULE_60_SECONDS);
-  if (!(heart_pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
-    PERF_note_schedule(PERF_SCHEDULE_75_SECONDS);
-  if (CONFIG_AUTO_SAVE && !(heart_pulse % PULSE_AUTOSAVE))
-    PERF_note_schedule(PERF_SCHEDULE_AUTOSAVE);
-  if (!(heart_pulse % PULSE_USAGE) || !(heart_pulse % PULSE_TIMESAVE) ||
-      !(heart_pulse % ((60 * PASSES_PER_SEC) * 60 * 2)))
-    PERF_note_schedule(PERF_SCHEDULE_LONG_INTERVAL);
-
-  PERF_prof_sect_init(&pr_event_process, "event_process");
-  PERF_prof_sect_enable_sampling(pr_event_process);
-  PERF_prof_sect_enter(pr_event_process);
-  event_process_compatibility_pulse();
-  PERF_prof_sect_exit(pr_event_process);
-
-  if (!(heart_pulse % PULSE_DG_SCRIPT) && !periodic_dg_random_enabled())
-  {
-    PERF_PROF_ENTER_SAMPLED(pr_script_trigger_, "script_trigger_check");
-    script_trigger_check();
-    PERF_PROF_EXIT(pr_script_trigger_);
-  }
-
-  // Every 10 Seconds
-  if (!(heart_pulse % (PASSES_PER_SEC * 10)))
-  {
-    moving_rooms_update();
-  }
-
-  if (!(heart_pulse % PASSES_PER_SEC))
-  { /* EVERY second */
-    help_sync_poll_reload();
-    PERF_PROF_ENTER(pr_msdp_update_, "msdp_update");
-    msdp_update();
-    next_tick--;
-    PERF_PROF_EXIT(pr_msdp_update_);
-    travel_tickdown();
-    self_buffing();
-    craft_update();
-    /* Process Intermud3 events from the I3 thread */
-    i3_process_events();
-    /* Publish I3 presence from the main thread */
-    i3_sync_presence();
-    /* Update supply order slots for all online players */
-    update_supply_slots_for_all_players();
-  }
-
-  if (!(heart_pulse % (PASSES_PER_SEC * 5)) && !character_periodic_events_enabled())
-  {
-    regen_psp();
-  }
-
-  /* Converted RoL ships retain their original 2.5-second movement cadence. */
-  if (CONFIG_VESSEL_SYSTEM && !(heart_pulse % (PASSES_PER_SEC * 5 / 2)) &&
-      !vessel_periodic_events_enabled())
-    rol_ship_activity();
-
-  /* Autopilot vessel movement tick - every AUTOPILOT_TICK_INTERVAL pulses (0.5 sec) */
-  if (CONFIG_VESSEL_SYSTEM && !(heart_pulse % AUTOPILOT_TICK_INTERVAL) &&
-      !vessel_periodic_events_enabled())
-  {
-    PERF_prof_sect_init(&pr_vessel_tick, "vessel_tick");
-    PERF_prof_sect_enable_sampling(pr_vessel_tick);
-    PERF_prof_sect_enter(pr_vessel_tick);
-
-    PERF_prof_sect_init(&pr_vessel_autopilot, "vessel_autopilot");
-    PERF_prof_sect_enable_sampling(pr_vessel_autopilot);
-    PERF_prof_sect_enter(pr_vessel_autopilot);
-    autopilot_tick();
-    PERF_prof_sect_exit(pr_vessel_autopilot);
-
-    PERF_prof_sect_init(&pr_vessel_hunters, "vessel_hunters");
-    PERF_prof_sect_enable_sampling(pr_vessel_hunters);
-    PERF_prof_sect_enter(pr_vessel_hunters);
-    vessel_hunter_tick();
-    PERF_prof_sect_exit(pr_vessel_hunters);
-
-    PERF_prof_sect_init(&pr_vessel_combat, "vessel_combat");
-    PERF_prof_sect_enable_sampling(pr_vessel_combat);
-    PERF_prof_sect_enter(pr_vessel_combat);
-    vessel_combat_tick();
-    PERF_prof_sect_exit(pr_vessel_combat);
-
-    PERF_prof_sect_init(&pr_vessel_events, "vessel_events");
-    PERF_prof_sect_enable_sampling(pr_vessel_events);
-    PERF_prof_sect_enter(pr_vessel_events);
-    vessel_event_tick();
-    PERF_prof_sect_exit(pr_vessel_events);
-
-    PERF_prof_sect_init(&pr_vessel_crew_wages, "vessel_crew_wages");
-    PERF_prof_sect_enable_sampling(pr_vessel_crew_wages);
-    PERF_prof_sect_enter(pr_vessel_crew_wages);
-    vessel_crew_wage_tick();
-    PERF_prof_sect_exit(pr_vessel_crew_wages);
-
-    PERF_prof_sect_init(&pr_vessel_upkeep, "vessel_upkeep");
-    PERF_prof_sect_enable_sampling(pr_vessel_upkeep);
-    PERF_prof_sect_enter(pr_vessel_upkeep);
-    vessel_upkeep_tick();
-    PERF_prof_sect_exit(pr_vessel_upkeep);
-
-    PERF_prof_sect_init(&pr_vessel_trade, "vessel_trade");
-    PERF_prof_sect_enable_sampling(pr_vessel_trade);
-    PERF_prof_sect_enter(pr_vessel_trade);
-    vessel_trade_restock_tick();
-    PERF_prof_sect_exit(pr_vessel_trade);
-
-    PERF_prof_sect_init(&pr_vessel_weather, "vessel_weather");
-    PERF_prof_sect_enable_sampling(pr_vessel_weather);
-    PERF_prof_sect_enter(pr_vessel_weather);
-    vessel_weather_tick();
-    PERF_prof_sect_exit(pr_vessel_weather);
-
-    PERF_prof_sect_init(&pr_vessel_encounters, "vessel_encounters");
-    PERF_prof_sect_enable_sampling(pr_vessel_encounters);
-    PERF_prof_sect_enter(pr_vessel_encounters);
-    vessel_encounter_tick();
-    PERF_prof_sect_exit(pr_vessel_encounters);
-
-    PERF_prof_sect_init(&pr_vessel_msdp, "vessel_msdp");
-    PERF_prof_sect_enable_sampling(pr_vessel_msdp);
-    PERF_prof_sect_enter(pr_vessel_msdp);
-    vessel_msdp_tick();
-    PERF_prof_sect_exit(pr_vessel_msdp);
-
-    PERF_prof_sect_exit(pr_vessel_tick);
-  }
-
-  if (!(heart_pulse % (int)(PASSES_PER_SEC * 0.75)) && !character_periodic_events_enabled())
-    process_walkto_actions();
-
-  if (!(heart_pulse % (PASSES_PER_SEC * 60)))
-  { // every minute
-    PERF_PROF_ENTER_SAMPLED(pr_minute_maintenance_, "minute.maintenance");
-    check_auto_shutdown();
-    check_auto_happy_hour();
-    recharge_activated_items();
-    PERF_PROF_EXIT(pr_minute_maintenance_);
-
-    PERF_PROF_ENTER_SAMPLED(pr_minute_memory_, "minute.memory_sample");
-    PERF_memory_periodic_check();
-    PERF_PROF_EXIT(pr_minute_memory_);
-  }
-
-  if (!(heart_pulse % PULSE_ZONE))
-  {
-    PERF_PROF_ENTER_SAMPLED(pr_zone_update_, "zone_update");
-    zone_update();
-    PERF_PROF_EXIT(pr_zone_update_);
-  }
-
-  if (!(heart_pulse % PULSE_IDLEPWD)) /* 15 seconds */
-    check_idle_passwords();
-
-  if (!active_world_enabled())
-  {
-    /* Boot-time rollback path. The scheduled and heartbeat paths are exclusive. */
-    PERF_PROF_ENTER_SAMPLED(pr_mob_activity_, "legacy_mobile_activity");
-    mobile_activity_run_legacy_slice(heart_pulse);
-    PERF_PROF_EXIT(pr_mob_activity_);
-  }
-
-  /* Keep non-mobile special-procedure updates on their established cadence. */
-  if (!(heart_pulse % PULSE_MOBILE))
-  {
-    if (!periodic_autoproc_enabled())
-    {
-      PERF_PROF_ENTER_SAMPLED(pr_proc_update_, "proc_update");
-      proc_update();
-      PERF_PROF_EXIT(pr_proc_update_);
-    }
-    rol_avernus_process_garden_activity();
-  }
-
-  /* this is the rate of a combat round before event-driven combat */
-  if (!(heart_pulse % PULSE_VIOLENCE))
-  {
-    /* Next line removed as part of conversion from pulse to event-based combat */
-    //    perform_violence();
-    if (!affected_owner_events_enabled())
-    {
-      PERF_PROF_ENTER_SAMPLED(pr_aff_update_, "affect_update");
-      affect_update(); // affect updates transformed into "rounds"
-      PERF_PROF_EXIT(pr_aff_update_);
-    }
-    if (!character_periodic_events_enabled())
-      proc_d20_round(); /* legacy character discovery */
-    hunt_reset_timer--;
-  }
-
-  /*  Pulse_Luminari was built to throw in customized Luminari
-   *  procedures that we want called in a similar manner as the
-   *  other pulses.  The whole concept was created before I had
-   *  a full grasp on the event system, otherwise it would have
-   *  been implemented differently.  -Zusuk
-   */
-  if (!(pulse % PULSE_LUMINARI) &&
-      (!affected_owner_events_enabled() || !character_periodic_events_enabled()))
-  { /* 5 sec */
-    PERF_PROF_ENTER_SAMPLED(pr_lum_, "legacy_luminari_maintenance");
-    process_legacy_luminari_maintenance();
-    PERF_PROF_EXIT(pr_lum_);
-  }
-
-  /* last time I checked this was every 11 seconds */
-  if (!(pulse % PULSE_VERSE_INTERVAL) && !character_periodic_events_enabled())
-  {
-    advance_legacy_bardic_performers();
-  }
-
-  /* every 300 sec show a random hint if they have it toggled */
-  if (!(pulse % PULSE_HINTS) && !character_periodic_events_enabled())
-  {
-    show_hints();
-  }
-
-  /* every 6 seconds, update damage and effects over time AND update player misc()*/
-  if (!(heart_pulse % (6 * PASSES_PER_SEC)) && !character_periodic_events_enabled())
-  {
-    PERF_PROF_ENTER_SAMPLED(pr_upd_, "update_damage_and_effects_over_time");
-    update_damage_and_effects_over_time();
-    PERF_PROF_EXIT(pr_upd_);
-    update_player_misc();
-  }
-
-  /* auction check every 30 seconds */
-  if (!(heart_pulse % (30 * PASSES_PER_SEC)))
-  {
-    process_auction_and_legacy_device_recovery();
-  }
-
-  /* save characters and their pets once per minute */
-  if (!(heart_pulse % (60 * PASSES_PER_SEC)))
-  {
-    int include_crash_and_houses;
-
-    include_crash_and_houses = FALSE;
-    if (CONFIG_AUTO_SAVE && ++mins_since_crashsave >= CONFIG_AUTOSAVE_TIME)
-    {
-      mins_since_crashsave = 0;
-      include_crash_and_houses = TRUE;
-    }
-    persistence_schedule_minute(include_crash_and_houses);
-  }
-
-  /* every 2 hours run create hunts */
-  if (!(heart_pulse % ((60 * PASSES_PER_SEC) * 60 * 2)))
-  {
-    create_hunts();
-  }
-
-  /* the old skool tick system! */
-  if (!(heart_pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
-  { /* Tick ! */
-    PERF_PROF_ENTER_SAMPLED(pr_ost_, "old skool tick");
-    next_tick = SECS_PER_MUD_HOUR; /* Reset tick coundown */
-    weather_and_time(1);
-    check_time_triggers();
-    if (point_update_events_enabled())
-      point_update_periodic_dispatch_due();
-    else
-      point_update();
-    if (!character_periodic_events_enabled())
-      check_timed_quests();
-    check_diplomacy(); /* Reduce the diplomacy pause for online players */
-    update_clans();    /* Update clan war timers and other periodic clan tasks */
-    if (CONFIG_VESSEL_SYSTEM && !vessel_periodic_events_enabled())
-    {
-      PERF_prof_sect_init(&pr_vessel_schedules, "vessel_schedules");
-      PERF_prof_sect_enable_sampling(pr_vessel_schedules);
-      PERF_prof_sect_enter(pr_vessel_schedules);
-      schedule_tick(); /* Check vessel scheduled departures */
-      PERF_prof_sect_exit(pr_vessel_schedules);
-    }
-
-    /* Clean up old trails once per mud hour */
-    cleanup_all_trails();
-
-    PERF_PROF_EXIT(pr_ost_);
-  }
-
-  /* A scheduler budget may deliver the deadline just after the aligned pulse. */
-  if (point_update_events_enabled())
-    point_update_periodic_dispatch_due();
-
-  /* Process clan investments once per mud day (24 mud hours) */
-  if (!(heart_pulse % (SECS_PER_MUD_HOUR * 24 * PASSES_PER_SEC)))
-  {
-    process_clan_investments();
-    save_clan_investments();
-  }
-
-  persistence_scheduler_step(heart_pulse >= 0 ? (uint64_t)heart_pulse : 0);
-
-  /* 3 minute pulse for record usage */
-  if (!(heart_pulse % PULSE_USAGE))
-    record_usage();
-
-  /* every 30 minutes */
-  if (!(heart_pulse % PULSE_TIMESAVE))
-    save_mud_time(&time_info);
-
-#else
-  (void)heart_pulse;
-#endif
-}
 
 /* new code to calculate time differences, which works on systems for which
  * tv_usec is unsigned (and thus comparisons for something being < 0 fail).

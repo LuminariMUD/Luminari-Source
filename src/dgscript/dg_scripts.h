@@ -16,15 +16,6 @@
 #define _DG_SCRIPTS_H_
 
 #include "event_runtime.h"
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-#define DG_EVENT_ROLLBACK_ENABLED 1
-#else
-#define DG_EVENT_ROLLBACK_ENABLED 0
-#endif
-#if DG_EVENT_ROLLBACK_ENABLED
-#include "dg_event_rollback.h"
-#endif
 #include "utils.h" /* To make sure ACMD is defined */
 
 #define MOB_TRIGGER 0
@@ -178,12 +169,9 @@ struct trig_data
   int depth;                                     /**< depth into nest ifs/whiles/etc  */
   int loops;                                     /**< loop iteration counter          */
   struct event_runtime_handle wait_event_handle; /**< Native event that pauses the trigger. */
-#if DG_EVENT_ROLLBACK_ENABLED
-  event_handle_t wait_rollback_handle; /**< Temporary legacy-backend fallback. */
-#endif
-  struct wait_event_data *wait_event_data; /**< payload used by room OLC */
-  ubyte purged;                            /**< trigger is set to be purged     */
-  struct trig_var_data *var_list;          /**< list of local vars for trigger  */
+  struct wait_event_data *wait_event_data;       /**< payload used by room OLC */
+  ubyte purged;                                  /**< trigger is set to be purged     */
+  struct trig_var_data *var_list;                /**< list of local vars for trigger  */
 
   struct trig_data *next;
   struct trig_data *next_in_world; /**< next in the global trigger list */
@@ -336,7 +324,6 @@ obj_data *get_obj_by_room(room_data *room, char *name);
 int trgvar_in_room(room_vnum vnum);
 obj_data *get_obj_in_list(char *name, obj_data *list);
 obj_data *get_object_in_equip(char_data *ch, char *name);
-void script_trigger_check(void);
 void check_time_triggers(void);
 void find_uid_name(char *uid, char *name, size_t nlen);
 void do_sstat_room(struct char_data *ch, room_data *r);

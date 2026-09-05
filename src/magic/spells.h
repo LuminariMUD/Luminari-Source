@@ -2040,7 +2040,6 @@ int savingthrow(struct char_data *ch, struct char_data *vict, int type, int modi
                 int level, int school);
 int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int modifier,
                      int casttype, int level, int school, int spellnum);
-void affect_update(void);
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier);
 int compute_spell_res(struct char_data *ch, struct char_data *vict, int mod);
 int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum);

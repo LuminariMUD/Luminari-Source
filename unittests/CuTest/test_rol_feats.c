@@ -274,19 +274,19 @@ void TestCampCommandUsesManagedActivityBeforeApplyingExistingBenefits(CuTest *tc
   CuAssertTrue(tc, !affected_by_spell(&fixture.second, SKILL_CAMP));
 
   pulse += 2 RL_SEC;
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, primary_activity_snapshot(&fixture.lead, &snapshot));
   CuAssertIntEquals(tc, 1, (int)snapshot.completed_steps);
   CuAssertTrue(tc, !affected_by_spell(&fixture.lead, SKILL_CAMP));
 
   pulse += 2 RL_SEC;
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, primary_activity_snapshot(&fixture.lead, &snapshot));
   CuAssertIntEquals(tc, 2, (int)snapshot.completed_steps);
   CuAssertTrue(tc, !affected_by_spell(&fixture.lead, SKILL_CAMP));
 
   pulse += 2 RL_SEC;
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, !primary_activity_snapshot(&fixture.lead, &snapshot));
   CuAssertTrue(tc, ROOM_AFFECTED(0, RAFF_CAMP));
   CuAssertTrue(tc, !affected_by_spell(&fixture.lead, SKILL_CAMP));

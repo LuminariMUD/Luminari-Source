@@ -14,10 +14,6 @@
 enum event_backend_kind
 {
   EVENT_BACKEND_UNINITIALIZED = 0,
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  EVENT_BACKEND_LEGACY_QUEUE = 1,
-#endif
   EVENT_BACKEND_GAME_SCHEDULER = 2
 };
 
@@ -94,6 +90,7 @@ bool event_debug_parse_owner_kind(const char *name, enum game_event_owner_kind *
 bool event_debug_parse_state(const char *name, enum event_debug_state *state);
 
 #if defined(LUMINARI_CUTEST)
+void event_test_advance(void);
 void event_test_reset_lifecycle_counts(void);
 int event_test_init_call_count(void);
 int event_test_free_all_call_count(void);

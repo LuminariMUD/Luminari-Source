@@ -412,8 +412,8 @@ void perform_flee(struct char_data *ch)
    the forced variable is just used for greater invis */
 void appear(struct char_data *ch, bool forced)
 {
-  bool was_hidden = AFF_FLAGGED(ch, AFF_INVISIBLE) || AFF_FLAGGED(ch, AFF_HIDE) ||
-                    AFF_FLAGGED(ch, AFF_SNEAK);
+  bool was_hidden =
+      AFF_FLAGGED(ch, AFF_INVISIBLE) || AFF_FLAGGED(ch, AFF_HIDE) || AFF_FLAGGED(ch, AFF_SNEAK);
 
   if (affected_by_spell(ch, SPELL_INVISIBLE))
     affect_from_char(ch, SPELL_INVISIBLE);

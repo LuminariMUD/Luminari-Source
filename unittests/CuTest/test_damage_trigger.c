@@ -465,7 +465,7 @@ void Test_damage_trigger_wait_result_is_synchronous(CuTest *tc)
 
   wait_pulses = dg_trigger_wait_remaining(trigger);
   pulse += wait_pulses;
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, hit_points_after_damage, GET_HIT(&fixture.victim));
   CuAssertTrue(tc, !dg_trigger_wait_is_live(trigger));
   CuAssertPtrEquals(tc, NULL, GET_TRIG_WAIT_DATA(trigger));
@@ -482,7 +482,7 @@ void Test_damage_trigger_wait_result_is_synchronous(CuTest *tc)
 
   wait_pulses = dg_trigger_wait_remaining(trigger);
   pulse += wait_pulses;
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, hit_points_after_damage, GET_HIT(&fixture.victim));
   CuAssertTrue(tc, !dg_trigger_wait_is_live(trigger));
   CuAssertPtrEquals(tc, NULL, GET_TRIG_WAIT_DATA(trigger));
@@ -501,11 +501,11 @@ void Test_damage_trigger_wait_result_is_synchronous(CuTest *tc)
   CuAssertTrue(tc, !event_runtime_handle_is_live(cancelled_handle));
   event_free_all();
 
-  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_LEGACY_QUEUE));
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   event_init();
   CuAssertTrue(tc, damage_trigger_fixture_begin(&fixture));
   CuAssertTrue(tc,
-               damage_trigger_fixture_add(&fixture, "Rollback wait", "u", 100, "wait 1\nreturn 3"));
+               damage_trigger_fixture_add(&fixture, "Filtered wait", "u", 100, "wait 1\nreturn 3"));
   trigger = TRIGGERS(SCRIPT(&fixture.victim));
   CuAssertIntEquals(
       tc, 17,
@@ -518,10 +518,10 @@ void Test_damage_trigger_wait_result_is_synchronous(CuTest *tc)
   filter.type_contains = "dg.";
   CuAssertIntEquals(tc, 1, (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
   CuAssertIntEquals(tc, 1, (int)returned_count);
-  CuAssertStrEquals(tc, "dg.trigger.wait.rollback", snapshot.type_name);
+  CuAssertStrEquals(tc, "dg.trigger.wait", snapshot.type_name);
   wait_pulses = dg_trigger_wait_remaining(trigger);
   pulse += wait_pulses;
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, !dg_trigger_wait_is_live(trigger));
   CuAssertPtrEquals(tc, NULL, GET_TRIG_WAIT_DATA(trigger));
   damage_trigger_fixture_end(&fixture);

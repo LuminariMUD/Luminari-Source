@@ -32,7 +32,8 @@
 #include <string.h>
 #include <unistd.h>
 
-void Test_gameplay_load_recovers_charges_after_effective_stats(CuTest *tc)
+static void verify_gameplay_charge_load(CuTest *tc, unsigned int format, int elapsed, int charisma,
+                                        int interval, const char *expected)
 {
   struct player_index_element index[1] = {0};
   struct player_index_element *saved_table = player_table;
@@ -57,9 +58,11 @@ void Test_gameplay_load_recovers_charges_after_effective_stats(CuTest *tc)
   CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
   file = fopen(filename, "w");
   CuAssertPtrNotNull(tc, file);
-  fprintf(file, "Name: %s\nId  : 4245\nLevl: 7\nEvn2: %u\n%d 2 4245 1 %lld 3\n-1\nCha : 18\n",
-          name, MUD_EVENT_DURABLE_FORMAT_VERSION, eCHANNELENERGY,
-          (long long)time(NULL) - 2);
+  fprintf(file, "Name: %s\nId  : 4245\nLevl: 7\nEvn2: %u\n%d 2 4245 1 %lld 3", name, format,
+          eCHANNELENERGY, (long long)time(NULL) - elapsed);
+  if (format == MUD_EVENT_DURABLE_FORMAT_VERSION)
+    fprintf(file, " %d", interval);
+  fprintf(file, "\n-1\nCha : %d\n", charisma);
   fclose(file);
   event_free_all();
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
@@ -67,7 +70,7 @@ void Test_gameplay_load_recovers_charges_after_effective_stats(CuTest *tc)
   result = load_char(name, loaded);
   event = char_has_mud_event(loaded, eCHANNELENERGY);
   if (event != NULL)
-    restored = event->sVariables != NULL && !strcmp(event->sVariables, "uses:2");
+    restored = event->sVariables != NULL && !strcmp(event->sVariables, expected);
   unlink(filename);
   CuAssertIntEquals(tc, 0, chdir(directory));
   free_char(loaded);
@@ -77,6 +80,87 @@ void Test_gameplay_load_recovers_charges_after_effective_stats(CuTest *tc)
   top_of_p_table = saved_top;
   CuAssertIntEquals(tc, 0, result);
   CuAssertTrue(tc, restored);
+}
+
+void Test_gameplay_load_recovers_charges_after_effective_stats(CuTest *tc)
+{
+  verify_gameplay_charge_load(tc, 1U, 2, 18, 0, "uses:2");
+}
+
+void Test_gameplay_load_recovers_charges_at_saved_equipped_cadence(CuTest *tc)
+{
+  verify_gameplay_charge_load(tc, MUD_EVENT_DURABLE_FORMAT_VERSION, SECS_PER_MUD_DAY / 8 + 2, 10,
+                              (SECS_PER_MUD_DAY / 8) * PASSES_PER_SEC, "uses:1");
+}
+
+void Test_gameplay_save_captures_charge_cadence_before_unequipping(CuTest *tc)
+{
+  struct player_index_element index[1] = {0};
+  struct player_index_element *saved_table = player_table;
+  int saved_top = top_of_p_table;
+  struct char_data *ch = new_char();
+  struct obj_data *item;
+  char directory[PATH_MAX];
+  char filename[MAX_FILEPATH];
+  char name[32];
+  char line[MAX_INPUT_LENGTH];
+  FILE *file;
+  long long owner, remaining, epoch, cadence;
+  long long saved_cadence = -1;
+  unsigned int schema;
+  int type, uses;
+  int equipped_charisma;
+  bool saved;
+  unsigned long saved_pulse = pulse;
+
+  snprintf(name, sizeof(name), "Zzcd%ld", (long)getpid());
+  index[0].name = name;
+  index[0].id = 4246;
+  index[0].level = 7;
+  player_table = index;
+  top_of_p_table = 0;
+  ch->player.name = strdup(name);
+  GET_PFILEPOS(ch) = 0;
+  GET_IDNUM(ch) = 4246;
+  GET_LEVEL(ch) = 7;
+  GET_REAL_CHA(ch) = 10;
+  affect_total(ch);
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  item = create_obj();
+  item->affected[0].location = APPLY_CHA;
+  item->affected[0].modifier = 10;
+  equip_char(ch, item, WEAR_NECK_1);
+  equipped_charisma = GET_CHA(ch);
+  attach_mud_event(new_mud_event(eCHANNELENERGY, ch, "uses:3"), PASSES_PER_SEC);
+
+  CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
+  CuAssertIntEquals(tc, 0, chdir("lib"));
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
+  saved = save_char_checked(ch, 0);
+  file = fopen(filename, "r");
+  if (file != NULL)
+  {
+    while (fgets(line, sizeof(line), file) != NULL)
+      if (sscanf(line, "%d %u %lld %lld %lld %d %lld", &type, &schema, &owner, &remaining, &epoch,
+                 &uses, &cadence) == 7 &&
+          type == eCHANNELENERGY && owner == 4246)
+        saved_cadence = cadence;
+    fclose(file);
+  }
+  unlink(filename);
+  CuAssertIntEquals(tc, 0, chdir(directory));
+  unequip_char(ch, WEAR_NECK_1);
+  extract_obj(item);
+  free_char(ch);
+  event_free_all();
+  pulse = saved_pulse;
+  player_table = saved_table;
+  top_of_p_table = saved_top;
+  CuAssertTrue(tc, saved);
+  CuAssertIntEquals(tc, 20, equipped_charisma);
+  CuAssertTrue(tc, saved_cadence == (SECS_PER_MUD_DAY / 8) * PASSES_PER_SEC);
 }
 
 struct gameplay_fixture
@@ -1127,7 +1211,7 @@ void Test_gameplay_e2e_winters_war_march_failed_save_slow_expires(CuTest *tc)
   character_list = &fixture.victim;
   affected_registry_attach(&fixture.victim);
   for (update = 0; update < 4; update++)
-    affect_update();
+    affect_update_character_one(&fixture.victim);
   slow_removed = !affected_by_spell(&fixture.victim, AFFECT_BARD_WINTERS_WAR_MARCH);
   affected_registry_detach(&fixture.victim);
   character_list = saved_character_list;

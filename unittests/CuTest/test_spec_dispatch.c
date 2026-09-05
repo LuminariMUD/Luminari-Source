@@ -25,7 +25,6 @@
 #define SPEC_DISPATCH_OBJ_COUNT 4
 #define SPEC_DISPATCH_MAX_CALLS 16
 
-void proc_update(void);
 
 struct spec_dispatch_call
 {
@@ -741,7 +740,8 @@ void Test_spec_proc_update_caches_successor_before_callback(CuTest *tc)
   fixture.objects[0].next = &fixture.objects[1];
   object_list = &fixture.objects[0];
 
-  proc_update();
+  object_auto_proc_run_one(&fixture.objects[0]);
+  object_auto_proc_run_one(&fixture.objects[1]);
   /* Two unowned objects, each invoked exactly once with a null actor. */
   both_objects_pulsed = fixture.call_count == 2 &&
                         spec_dispatch_call_is(&fixture, 0, NULL, &fixture.objects[0], 0, "") &&

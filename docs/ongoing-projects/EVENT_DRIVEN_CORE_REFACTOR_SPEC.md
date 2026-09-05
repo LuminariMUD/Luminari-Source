@@ -1,9 +1,33 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** Native development implementation accepted; physical rollback deletion remains subject to the external release gate
-**Document version:** 1.49
+**Status:** Native-only functional acceptance complete; performance approval qualified
+**Document version:** 1.50
 **Started:** 2026-08-29
 **Last source review:** 2026-09-01
+
+## Maintainer Decision: 2026-09-05
+
+The maintainer explicitly authorized removing the loop-based rollback system
+during migration preparation and confirmed that older-binary compatibility is
+not required. This supersedes the rollback retention gates and reversible
+deployment requirements below; historical phase records remain as history.
+The old physical queue, compatibility scheduling API, heartbeat gameplay body,
+population-loop wrappers, and their build/runtime selectors have been removed.
+The ordinary event-only implementation remains the behavioral reference.
+
+Migration must still read existing player saves. New saves use the current
+versioned format, including the saved equipped-stat cooldown cadence; no old
+save-output mode or older-binary writer is maintained. Database archival-data
+deletion is a separate operation and is not authorized by this runtime change.
+Completion and merge readiness are governed by the current full-world
+acceptance report, not by the earlier development acceptance status.
+
+Vessel integration remains required. Acceptance of its event scheduling does
+not declare the broader vessel feature set complete. Existing per-hull work
+and fleet services must remain operational when the vessel feature is enabled.
+
+## Historical Baseline Before The 2026-09-05 Decision
+
 **Implementation status:** Phases 1 through 10, observability, and the reversible Phase 11 development scope are complete. Native owner handles, named runtime services, elapsed offline cooldown recovery, zero default-build compatibility callers, demand-driven autonomous agendas including exact NPC resource recovery, active DG/trail registries, constant-time domain owner resolution, gameplay intent naming, native DG/MUD/AI jobs, default-disabled rollback quarantine, executable whole-architecture enforcement, comprehensive runtime validation, and the final adversarial audit are accepted. Physical rollback and archival-schema deletion stay subject to their external release gates.
 
 > This remains the controlling planning specification. The Phase 1 scheduler
@@ -1768,6 +1792,20 @@ identity on restore. Schema 1 records migrate on read; schema 2 is current.
 Legacy read/write rollback remains available, although timestamp-free legacy
 records cannot retrospectively elapse. The original Phase 5 gates passed; the
 corrected policy and later evidence are recorded in the Phase 11h validation.
+
+**Acceptance correction 2026-09-05.** The durable section now writes container
+format 2 (`Evn2: 2`); per-event schema 2 is unchanged. A seventh integer stores
+the offline charge-recovery interval in scheduler ticks, captured before
+save-file bookkeeping strips equipment and affects. Multi-use timers retain
+their equipped save-time cadence while offline; after returning to gameplay,
+subsequent live recovery callbacks use current effective stats as before.
+Offline player-file edits preserve the saved cadence until gameplay resumes.
+Container format 1 remains readable, using effective loaded stats when its
+missing historical interval cannot be reconstructed. One-shot timers store a
+zero interval. Negative, oversized, or inappropriate intervals are rejected.
+Earlier binaries cannot read container format 2: reverting only the binary is
+not a safe rollback. Preserve a matched pre-deployment runtime-data/database
+checkpoint and follow the acceptance report's rollback procedure.
 
 ### Phase 6: Typed domain events and pub/sub retirement
 

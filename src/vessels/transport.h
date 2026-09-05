@@ -28,7 +28,6 @@ void enter_transport(struct char_data *ch, int locale, int type, int here);
 int valid_sailing_travel(int here, int i);
 int walkto_vnum_to_list_row(int vnum);
 zone_vnum get_walkto_landmark_region_vnum(const char *selector);
-void process_walkto_actions(void);
 void process_walkto_action(struct char_data *ch);
 
 /* commands */

@@ -4,11 +4,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-/** Generation-safe identity for a timed compatibility event; zero is never live. */
-typedef uint64_t event_handle_t;
-
-#define EVENT_HANDLE_NONE UINT64_C(0)
-
 /** Opaque identity for an event scheduled directly on the native runtime. */
 struct event_runtime_handle
 {

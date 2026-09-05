@@ -41,27 +41,11 @@ point_update_service_event(const struct game_event_context *context);
 
 static bool configured_scheduled(void)
 {
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  const char *value;
-
 #ifdef LUMINARI_CUTEST
   if (test_selection_set)
     return test_scheduled_selection;
 #endif
-  value = getenv("LUMINARI_POINT_UPDATE_EVENTS");
-  if (value == NULL || *value == '\0')
-    value = get_env_value("LUMINARI_POINT_UPDATE_EVENTS");
-  if (value == NULL || *value == '\0' || !strcasecmp(value, "scheduled") ||
-      !strcasecmp(value, "active") || !strcasecmp(value, "event"))
-    return true;
-  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") || !strcasecmp(value, "off"))
-    return false;
-  log("WARNING: Unknown LUMINARI_POINT_UPDATE_EVENTS '%s'; using scheduled events.", value);
   return true;
-#else
-  return true;
-#endif
 }
 
 static long boundary_delay(void)
@@ -306,21 +290,10 @@ void point_update_periodic_init(void)
   shutting_down = false;
   dispatch_due = false;
   if (requested && !scheduled)
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    log("WARNING: native mud-hour point-update event type unavailable; using the legacy "
-        "heartbeat.");
-#else
     log("SYSERR: native mud-hour point-update event type is unavailable.");
-#endif
   else if (scheduled && !schedule_service())
   {
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    log("WARNING: unable to schedule point-update service; using the legacy heartbeat.");
-#else
     log("SYSERR: unable to schedule required native point-update service.");
-#endif
     scheduled = false;
   }
   if (scheduled)
@@ -330,13 +303,7 @@ void point_update_periodic_init(void)
     for (obj = object_list; obj != NULL; obj = obj->next)
       point_update_object_sync(obj);
   }
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  log("Point-update scheduling: %s.",
-      scheduled ? "scheduled (one service event)" : "legacy heartbeat");
-#else
   log("Point-update scheduling: %s.", scheduled ? "scheduled (one service event)" : "unavailable");
-#endif
 }
 
 void point_update_periodic_shutdown(void)

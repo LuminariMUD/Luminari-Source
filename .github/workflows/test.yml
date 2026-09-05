@@ -180,12 +180,11 @@ jobs:
           test ! -e circle
 
   unit-tests:
-    name: Production-linked tests (${{ matrix.event-backend }}, ${{ matrix.io-driver }})
+    name: Production-linked tests (${{ matrix.io-driver }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        event-backend: [scheduler, legacy]
         io-driver: [libevent, select]
     services:
       mariadb:
@@ -211,7 +210,6 @@ jobs:
       LUMINARI_TEST_MYSQL_PORT: '3306'
       LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
       LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
-      LUMINARI_EVENT_BACKEND: ${{ matrix.event-backend }}
       LUMINARI_IO_DRIVER: ${{ matrix.io-driver }}
     steps:
       - name: Checkout

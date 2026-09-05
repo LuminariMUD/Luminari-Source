@@ -11,15 +11,6 @@ AC_SUBST(CSTD_CFLAGS)
 AC_CONFIG_HEADERS([src/conf.h:conf.h.in])
 AC_DEFINE([CIRCLE_UNIX], [1], [Define for Unix-based systems])
 
-AC_ARG_ENABLE([event-rollback],
-  [AS_HELP_STRING([--enable-event-rollback],
-    [compile the quarantined legacy timed-event queue and heartbeat rollback])],
-  [enable_event_rollback=$enableval],
-  [enable_event_rollback=no])
-AS_IF([test "x$enable_event_rollback" = "xyes"],
-  [AC_DEFINE([LUMINARI_ENABLE_EVENT_ROLLBACK], [1],
-    [Define to compile the quarantined legacy event rollback implementation])])
-
 dnl Find the 'more' program
 AC_CHECK_PROGS(MORE, less most more cat)
 

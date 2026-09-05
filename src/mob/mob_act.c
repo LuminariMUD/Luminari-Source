@@ -1,6 +1,6 @@
 /**************************************************************************
  *  File: mob_act.c                                   Part of LuminariMUD *
- *  Usage: Mobile agenda behavior execution and legacy rollback           *
+ *  Usage: Mobile agenda behavior execution           *
  *  Rewritten by Zusuk                                                    *
  *                                                                         *
  *  All rights reserved.  See license for complete information.           *
@@ -45,15 +45,6 @@ void npc_offensive_spells(struct char_data *ch);
 void npc_racial_behave(struct char_data *ch);
 bool mob_knows_assigned_spells(struct char_data *ch);
 
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-static struct char_data *mobile_activity_cursor;
-static size_t mobile_activity_nodes_remaining;
-static int legacy_mobile_activity_slices_remaining;
-static bool mobile_activity_cursor_running;
-#endif
-
-#define MOBILE_WORK_LEGACY_ALL UINT32_MAX
 
 static bool mobile_activity_owner_eligible(const struct char_data *ch)
 {
@@ -191,19 +182,6 @@ long mobile_activity_next_wander_delay(void)
   return rounds * (long)PULSE_MOBILE;
 }
 
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-static size_t count_mobile_activity_nodes(void)
-{
-  struct char_data *ch;
-  size_t count;
-
-  count = 0;
-  for (ch = character_list; ch; ch = ch->next)
-    count++;
-  return count;
-}
-#endif
 
 static struct char_data *run_mobile_activity(struct char_data *start, size_t node_limit,
                                              size_t *nodes_visited_out,
@@ -216,7 +194,6 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
   SPECIAL_DECL(*spec_func);             /* Cache for spec proc function */
   int mob_rnum = 0;                     /* Cache for mob rnum */
   bool disabled = false;
-  bool legacy_dispatch = requested_work == MOBILE_WORK_LEGACY_ALL;
   size_t nodes_visited = 0;
 
   for (ch = start; ch && nodes_visited < node_limit; ch = next_ch)
@@ -236,9 +213,6 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
       continue;
 
     if (!IS_MOB(ch))
-      continue;
-
-    if (legacy_dispatch && rol_automatic_race_activity(ch))
       continue;
 
     if (MOB_FLAGGED(ch, MOB_NO_AI))
@@ -290,7 +264,7 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     if (!AWAKE(ch) || IS_CASTING(ch))
       continue;
 
-    if (legacy_dispatch || (requested_work & MOBILE_WORK_RESOURCE_RECOVERY))
+    if (requested_work & MOBILE_WORK_RESOURCE_RECOVERY)
     {
       regenerate_mob_spell_slot(ch);
       regenerate_known_spell_slot(ch);
@@ -301,28 +275,7 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     // entry point for npc race and class behaviour in combat -zusuk
     if (GET_LEVEL(ch) > NEWBIE_LEVEL)
     {
-      if (legacy_dispatch && FIGHTING(ch))
-      {
-        if (dice(1, 4) == 1)
-          npc_racial_behave(ch);
-        else if (dice(1, 4) == 2)
-          npc_ability_behave(ch);
-        else if (dice(1, 4) == 3 && mob_knows_assigned_spells(ch))
-          npc_assigned_spells(ch);
-        else if (IS_NPC_CASTER(ch) || mob_has_known_spells(ch))
-        {
-          /* Use specialized wizard AI for wizard and sorcerer mobs */
-          if (GET_CLASS(ch) == CLASS_WIZARD || GET_CLASS(ch) == CLASS_SORCERER)
-            wizard_combat_ai(ch);
-          else
-            npc_offensive_spells(ch);
-        }
-        else
-          npc_class_behave(ch);
-        continue;
-      }
-
-      if ((legacy_dispatch || (requested_work & MOBILE_WORK_ROOM_REACTION)) && !FIGHTING(ch))
+      if ((requested_work & MOBILE_WORK_ROOM_REACTION) && !FIGHTING(ch))
       {
         if (!rand_number(0, 15) && (IS_NPC_CASTER(ch) || mob_has_known_spells(ch)))
         {
@@ -339,10 +292,6 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
         {
           if (npc_room_has_player(ch))
             npc_psionic_powerup(ch);
-        }
-        else if (legacy_dispatch && !rand_number(0, 8) && !IS_NPC_CASTER(ch))
-        {
-          ; /* Reserved for future out-of-combat skill behavior. */
         }
       }
     }
@@ -657,8 +606,7 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     }
 
     /* random movement */
-    if ((requested_work & MOBILE_WORK_WANDER) && !vessel_npc_is_on_pilot_duty(ch) &&
-        (!legacy_dispatch || !rand_number(0, 2)))
+    if ((requested_work & MOBILE_WORK_WANDER) && !vessel_npc_is_on_pilot_duty(ch))
       if (!MOB_FLAGGED(ch, MOB_SENTINEL) && (GET_POS(ch) == POS_STANDING) &&
           ((door = rand_number(0, 18)) < DIR_COUNT) && CAN_GO(ch, door) &&
           !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_NOMOB) &&
@@ -748,19 +696,6 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
   return ch;
 }
 
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-void mobile_activity_run_legacy_cycle(void)
-{
-  run_mobile_activity(character_list, (size_t)-1, NULL, MOBILE_WORK_LEGACY_ALL);
-}
-#endif
-
-void mobile_activity_run_one(struct char_data *ch)
-{
-  if (ch != NULL)
-    run_mobile_activity(ch, 1U, NULL, MOBILE_WORK_LEGACY_ALL);
-}
 
 void mobile_activity_run_scheduled(struct char_data *ch, mobile_work_mask reasons)
 {
@@ -770,77 +705,9 @@ void mobile_activity_run_scheduled(struct char_data *ch, mobile_work_mask reason
 
 void mobile_activity_reset(void)
 {
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  mobile_activity_cursor = NULL;
-  mobile_activity_nodes_remaining = 0;
-  legacy_mobile_activity_slices_remaining = 0;
-  mobile_activity_cursor_running = false;
-#endif
 }
 
 void mobile_activity_forget_character(struct char_data *ch)
 {
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  if (ch == NULL || mobile_activity_cursor != ch)
-    return;
-
-  mobile_activity_cursor = ch->next;
-  if (!mobile_activity_cursor_running && mobile_activity_nodes_remaining > 0)
-    mobile_activity_nodes_remaining--;
-  if (mobile_activity_cursor == NULL)
-    mobile_activity_nodes_remaining = 0;
-#else
   (void)ch;
-#endif
 }
-
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-void mobile_activity_run_legacy_slice(int heart_pulse)
-{
-  int cycle_pulse;
-  size_t node_budget;
-  size_t nodes_visited;
-  size_t total_nodes_visited;
-
-  cycle_pulse = heart_pulse % PULSE_MOBILE;
-  if (cycle_pulse < 0)
-    cycle_pulse += PULSE_MOBILE;
-
-  if (cycle_pulse == 0 || legacy_mobile_activity_slices_remaining <= 0)
-  {
-    mobile_activity_cursor = character_list;
-    mobile_activity_nodes_remaining = count_mobile_activity_nodes();
-    legacy_mobile_activity_slices_remaining = PULSE_MOBILE;
-  }
-
-  if (mobile_activity_nodes_remaining > 0 && mobile_activity_cursor != NULL)
-  {
-    node_budget = mobile_activity_nodes_remaining / (size_t)legacy_mobile_activity_slices_remaining;
-    if (mobile_activity_nodes_remaining % (size_t)legacy_mobile_activity_slices_remaining != 0)
-      node_budget++;
-
-    total_nodes_visited = 0;
-    do
-    {
-      nodes_visited = 0;
-      mobile_activity_cursor_running = true;
-      mobile_activity_cursor =
-          run_mobile_activity(mobile_activity_cursor, node_budget - total_nodes_visited,
-                              &nodes_visited, MOBILE_WORK_LEGACY_ALL);
-      mobile_activity_cursor_running = false;
-      total_nodes_visited += nodes_visited;
-    } while (mobile_activity_cursor != NULL && nodes_visited > 0 &&
-             total_nodes_visited < node_budget);
-
-    if (total_nodes_visited >= mobile_activity_nodes_remaining || mobile_activity_cursor == NULL)
-      mobile_activity_nodes_remaining = 0;
-    else
-      mobile_activity_nodes_remaining -= total_nodes_visited;
-  }
-
-  legacy_mobile_activity_slices_remaining--;
-}
-#endif

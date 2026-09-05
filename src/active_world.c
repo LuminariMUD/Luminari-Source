@@ -56,29 +56,11 @@ static bool test_selection;
 
 static bool configured_enabled(void)
 {
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  const char *value;
-
-  if (event_backend_current() != EVENT_BACKEND_GAME_SCHEDULER)
-    return false;
 #ifdef LUMINARI_CUTEST
   if (test_selection_set)
     return test_selection;
 #endif
-  value = getenv("LUMINARI_ACTIVE_WORLD");
-  if (value == NULL || *value == '\0')
-    value = get_env_value("LUMINARI_ACTIVE_WORLD");
-  if (value == NULL || *value == '\0' || !strcasecmp(value, "active") ||
-      !strcasecmp(value, "scheduler") || !strcasecmp(value, "event"))
-    return true;
-  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") || !strcasecmp(value, "off"))
-    return false;
-  log("WARNING: Unknown LUMINARI_ACTIVE_WORLD '%s'; using active scheduling.", value);
   return true;
-#else
-  return true;
-#endif
 }
 
 static bool mobile_is_live(struct char_data *ch)
@@ -546,7 +528,7 @@ void active_world_sync_mobile(struct char_data *ch)
     return;
   old_reasons = ch->active_world_work_reasons;
   new_reasons = old_reasons & (mobile_activity_room_reaction_reasons(ch) |
-                                mobile_activity_combat_reaction_reasons(ch));
+                               mobile_activity_combat_reaction_reasons(ch));
   new_reasons |= mobile_activity_recurring_reasons(ch);
   refresh_deadlines(ch, old_reasons, new_reasons);
   set_reasons(ch, new_reasons);
@@ -794,14 +776,8 @@ enum domain_event_status active_world_register_handlers(struct domain_event_bus 
     return DOMAIN_EVENT_BUSY;
   enabled = requested;
   initialized = true;
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  log("Active-world mobile scheduling: %s (explicit agenda limit %u).",
-      enabled ? "demand driven" : "legacy heartbeat", (unsigned int)admission_limit);
-#else
   log("Active-world mobile scheduling: %s (explicit agenda limit %u).",
       enabled ? "demand driven" : "unavailable", (unsigned int)admission_limit);
-#endif
   if (!enabled)
     return DOMAIN_EVENT_OK;
   for (index = 0U; index < sizeof(handlers) / sizeof(handlers[0]); index++)

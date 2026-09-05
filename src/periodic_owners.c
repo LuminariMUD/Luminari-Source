@@ -37,28 +37,6 @@ static bool test_dg_random_selection;
 static struct game_event_result periodic_autoproc_event(const struct game_event_context *context);
 static struct game_event_result periodic_dg_random_event(const struct game_event_context *context);
 
-static bool configured_scheduled(const char *name)
-{
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  const char *value;
-
-  value = getenv(name);
-  if (value == NULL || *value == '\0')
-    value = get_env_value(name);
-  if (value == NULL || *value == '\0' || !strcasecmp(value, "scheduled") ||
-      !strcasecmp(value, "active") || !strcasecmp(value, "event"))
-    return true;
-  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") || !strcasecmp(value, "off"))
-    return false;
-  log("WARNING: Unknown %s '%s'; using scheduled owner events.", name, value);
-  return true;
-#else
-  (void)name;
-  return true;
-#endif
-}
-
 static uint64_t ensure_owner_generation(uint64_t *generation)
 {
   if (generation == NULL || *generation != 0U)
@@ -344,8 +322,8 @@ void periodic_owners_init(void)
   else
 #endif
   {
-    autoproc_requested = configured_scheduled("LUMINARI_AUTOPROC_EVENTS");
-    dg_random_requested = configured_scheduled("LUMINARI_DG_RANDOM_EVENTS");
+    autoproc_requested = true;
+    dg_random_requested = true;
   }
   autoproc_ready = register_event_type("object.automatic_procedure", periodic_autoproc_event,
                                        PERIODIC_AUTOPROC_MAX_OWNERS, &autoproc_event_type);
@@ -355,31 +333,13 @@ void periodic_owners_init(void)
   dg_random_scheduled = dg_random_requested && dg_random_ready;
   initialized = true;
   if (autoproc_requested && !autoproc_ready)
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    log("WARNING: native automatic-procedure event type unavailable; using legacy heartbeat.");
-#else
     log("SYSERR: native automatic-procedure event type is unavailable.");
-#endif
   if (dg_random_requested && !dg_random_ready)
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    log("WARNING: native DG random-trigger event type unavailable; using legacy heartbeat.");
-#else
     log("SYSERR: native DG random-trigger event type is unavailable.");
-#endif
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  log("ITEM_AUTOPROC scheduling: %s (owner limit %zu).",
-      autoproc_scheduled ? "scheduled" : "legacy heartbeat", autoproc_limit);
-  log("DG random-trigger scheduling: %s (combined owner limit %zu).",
-      dg_random_scheduled ? "scheduled" : "legacy heartbeat", dg_random_limit);
-#else
   log("ITEM_AUTOPROC scheduling: %s (owner limit %zu).",
       autoproc_scheduled ? "scheduled" : "unavailable", autoproc_limit);
   log("DG random-trigger scheduling: %s (combined owner limit %zu).",
       dg_random_scheduled ? "scheduled" : "unavailable", dg_random_limit);
-#endif
 
   if (autoproc_scheduled)
   {

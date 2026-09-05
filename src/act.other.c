@@ -9783,17 +9783,6 @@ void show_hint_one(struct char_data *ch)
   show_hint_index(ch, dice(1, NUM_HINTS) - 1);
 }
 
-void show_hints(void)
-{
-  int roll = dice(1, NUM_HINTS) - 1;
-  struct char_data *ch = NULL, *next_char = NULL;
-
-  for (ch = character_list; ch; ch = next_char)
-  {
-    next_char = ch->next;
-    show_hint_index(ch, roll);
-  }
-}
 
 /* moved to do_gen_tog */
 /*

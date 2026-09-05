@@ -565,32 +565,6 @@ void process_character_environment_and_recovery(struct char_data *ch)
   grapple_cleanup(ch);
 }
 
-void process_legacy_luminari_maintenance(void)
-{
-  struct char_data *ch;
-  struct char_data *next_ch;
-  struct raff_node *raff;
-  struct raff_node *next_raff;
-
-  if (!affected_owner_events_enabled())
-  {
-    for (raff = raff_list; raff != NULL; raff = next_raff)
-    {
-      next_raff = raff->next;
-      room_aff_tick(raff);
-    }
-  }
-
-  if (!character_periodic_events_enabled())
-  {
-    for (ch = character_list; ch != NULL; ch = next_ch)
-    {
-      next_ch = ch->next;
-      process_character_environment_and_recovery(ch);
-    }
-  }
-}
-
 /* When age < 15 return the value p0
  When age is 15..29 calculate the line between p1 & p2
  When age is 30..44 calculate the line between p2 & p3
@@ -1176,17 +1150,6 @@ void regen_psp_one(struct char_data *ch)
     GET_PSP(ch) = GET_MAX_PSP(ch);
 }
 
-void regen_psp(void)
-{
-  struct descriptor_data *d = NULL;
-
-  for (d = descriptor_list; d; d = d->next)
-  {
-    if (!d->character)
-      continue;
-    regen_psp_one(d->character);
-  }
-}
 
 /* psppoint gain pr. game hour */
 /* this isn't used anymore -- Gicker */
@@ -2293,14 +2256,6 @@ void update_player_misc_one(struct char_data *ch)
   }
 }
 
-void update_player_misc(void)
-{
-  struct descriptor_data *d;
-
-  for (d = descriptor_list; d != NULL; d = d->next)
-    update_player_misc_one(d->character);
-}
-
 void proc_d20_round_one(struct char_data *i)
 {
   struct char_data *tch = NULL;
@@ -2576,18 +2531,6 @@ void proc_d20_round_one(struct char_data *i)
 }
 
 // every 6 seconds
-void proc_d20_round(void)
-{
-  struct char_data *ch;
-  struct char_data *next;
-
-  for (ch = character_list; ch != NULL; ch = next)
-  {
-    next = ch->next;
-    proc_d20_round_one(ch);
-  }
-}
-
 void check_device_one(struct char_data *i)
 {
   int artificer_level, max_uses;
@@ -2637,26 +2580,9 @@ void check_device_one(struct char_data *i)
   }
 }
 
-void check_devices(void)
-{
-  struct char_data *ch;
-  struct char_data *next;
-
-  for (ch = character_list; ch != NULL; ch = next)
-  {
-    next = ch->next;
-    check_device_one(ch);
-  }
-}
-
-void process_auction_and_legacy_device_recovery(void)
+void process_auction_events(void)
 {
   check_auction();
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  if (!character_periodic_events_enabled())
-    check_devices();
-#endif
 }
 
 void point_update_global_one(void)
@@ -2813,27 +2739,6 @@ bool point_update_object_one(struct obj_data *obj)
     }
   }
   return true;
-}
-
-/* Legacy rollback path: retain the original whole-world traversal order. */
-void point_update(void)
-{
-  struct char_data *ch;
-  struct char_data *next_ch;
-  struct obj_data *obj;
-  struct obj_data *next_obj;
-
-  point_update_global_one();
-  for (ch = character_list; ch != NULL; ch = next_ch)
-  {
-    next_ch = ch->next;
-    point_update_character_one(ch);
-  }
-  for (obj = object_list; obj != NULL; obj = next_obj)
-  {
-    next_obj = obj->next;
-    point_update_object_one(obj);
-  }
 }
 
 /* Note: amt may be negative */
@@ -3251,18 +3156,6 @@ void update_damage_and_effects_over_time_one(struct char_data *ch)
 
   /* Moon-based bonus spell slot regeneration */
   regenerate_moon_bonus_spell(ch);
-}
-
-void update_damage_and_effects_over_time(void)
-{
-  struct char_data *ch;
-  struct char_data *next_char;
-
-  for (ch = character_list; ch != NULL; ch = next_char)
-  {
-    next_char = ch->next;
-    update_damage_and_effects_over_time_one(ch);
-  }
 }
 
 void check_auto_happy_hour(void)

@@ -779,7 +779,7 @@ void Test_linkless_bard_does_not_retain_room_blocking_state(CuTest *tc)
   IS_PERFORMING(&fixture.bard) = TRUE;
   GET_PERFORMING(&fixture.bard) = 0;
 
-  advance_legacy_bardic_performers();
+  advance_bardic_performance(&fixture.bard);
 
   CuAssertTrue(tc, !IS_PERFORMING(&fixture.bard));
   CuAssertIntEquals(tc, PERFORMANCE_NONE, GET_PERFORMING(&fixture.bard));
@@ -830,7 +830,7 @@ void Test_active_npc_bard_receives_performance_pulses(CuTest *tc)
   fixture.room.people = &npc;
   character_list = &npc;
 
-  advance_legacy_bardic_performers();
+  advance_bardic_performance(&npc);
 
   CuAssertTrue(tc, GET_HIT(&npc) > 1);
   clear_char_event_list(&npc);

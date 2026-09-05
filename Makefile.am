@@ -86,7 +86,6 @@ luminari_SOURCES = \
 	src/net/discord_bridge.c \
 	src/dgscript/dg_db_scripts.c \
 	src/dgscript/dg_event.c \
-	src/dgscript/dg_event_internal.h \
 	src/dgscript/dg_handler.c \
 	src/dgscript/dg_misc.c \
 	src/dgscript/dg_mobcmd.c \
@@ -406,7 +405,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_game_scheduler.c \
 	unittests/CuTest/test_event_runtime.c \
 	unittests/CuTest/test_domain_events.c \
-	unittests/CuTest/test_legacy_event_adapter.c \
+	unittests/CuTest/test_native_event_integration.c \
 	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_rol_feats.c \
 	unittests/CuTest/test_unassigned_spells.c \
@@ -440,7 +439,7 @@ cutest_SOURCES = \
 	unittests/CuTest/AllTests.c \
 	$(luminari_SOURCES)
 
-cutest_CFLAGS = $(AM_CFLAGS) -DLUMINARI_CUTEST -DLUMINARI_EVENT_ROLLBACK_TESTS
+cutest_CFLAGS = $(AM_CFLAGS) -DLUMINARI_CUTEST
 cutest_LDADD = $(luminari_LDADD)
 
 cutest_test_files = \
@@ -470,7 +469,7 @@ cutest_test_files = \
 	unittests/CuTest/test_game_scheduler.c \
 	unittests/CuTest/test_event_runtime.c \
 	unittests/CuTest/test_domain_events.c \
-	unittests/CuTest/test_legacy_event_adapter.c \
+	unittests/CuTest/test_native_event_integration.c \
 	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_rol_feats.c \
 	unittests/CuTest/test_unassigned_spells.c \
@@ -792,7 +791,6 @@ EXTRA_DIST = \
 	scripts/development/check_local_port_allocations.sh \
 	scripts/development/dev_create_test_character.sh \
 	scripts/development/dev_kohdee_login_smoke.sh \
-	src/dgscript/dg_event_rollback.h \
 	scripts/events/test_demand_driven_architecture.sh \
 	scripts/events/test_legacy_event_admission.sh \
 	scripts/events/test_native_event_architecture.sh \

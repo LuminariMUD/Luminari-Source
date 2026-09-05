@@ -48,12 +48,7 @@ static const char *event_debug_mode(bool scheduled)
 {
   if (scheduled)
     return "scheduled";
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  return "rollback";
-#else
   return "unavailable";
-#endif
 }
 
 int event_debug_effective_width(int configured_width)
@@ -198,10 +193,6 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
 {
   struct event_debug_output output;
   struct event_debug_stats event_stats;
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  struct PERF_event_summary perf_stats;
-#endif
   struct domain_event_bus_stats domain_stats;
   struct i3_ingress_stats ingress_stats;
   struct ai_event_ingress_stats ai_ingress_stats;
@@ -212,10 +203,6 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
 
   debug_output_init(&output, buffer, capacity, width);
   event_debug_get_stats(&event_stats);
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  PERF_get_event_summary(&perf_stats);
-#endif
   debug_output_title(&output, "Event Debug Summary");
   debug_output_line(&output, "Backend: %s", event_backend_name());
   debug_output_line(&output, "Pulse: %" PRIu64, event_stats.current_pulse);
@@ -235,19 +222,6 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
                     service_stats.configured_services);
   debug_output_line(&output, "  callbacks: %" PRIu64, service_stats.callbacks);
   debug_output_line(&output, "  schedule failures: %" PRIu64, service_stats.schedule_failures);
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  debug_output_line(&output, "");
-  debug_output_line(&output, "Compatibility adapter");
-  debug_output_line(&output, "  process passes: %" PRIu64, perf_stats.process_calls);
-  debug_output_line(&output, "  callbacks: %" PRIu64, perf_stats.callbacks);
-  debug_output_line(&output, "  max batch: %" PRIu64, perf_stats.maximum_batch);
-  debug_output_line(&output, "  scheduled: %" PRIu64, perf_stats.scheduled);
-  debug_output_line(&output, "  cancelled: %" PRIu64, perf_stats.cancelled);
-  debug_output_line(&output, "  recurrences: %" PRIu64, perf_stats.rescheduled);
-  debug_output_line(&output, "  profiles: %zu", perf_stats.registered_profiles);
-  debug_output_line(&output, "  overflow calls: %" PRIu64, perf_stats.overflow_calls);
-#endif
   if (event_stats.scheduler_stats_available)
   {
     debug_output_line(&output, "");

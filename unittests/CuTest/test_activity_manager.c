@@ -323,12 +323,12 @@ void Test_primary_activity_wall_clock_completes_and_cleans_exactly_once(CuTest *
   CuAssertTrue(tc, activity_test_start(&fixture, &definition));
   CuAssertIntEquals(tc, 1, event_queue_depth());
   pulse += 10U;
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, primary_activity_snapshot(&fixture.actor, &snapshot));
   CuAssertIntEquals(tc, 1, (int)snapshot.completed_steps);
   CuAssertIntEquals(tc, 1, (int)fixture.context.progress_calls);
   pulse += 10U;
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, !primary_activity_snapshot(&fixture.actor, &snapshot));
   CuAssertIntEquals(tc, 1, (int)fixture.context.completion_calls);
   CuAssertIntEquals(tc, 0, (int)fixture.context.ended_calls);
@@ -337,7 +337,7 @@ void Test_primary_activity_wall_clock_completes_and_cleans_exactly_once(CuTest *
   CuAssertTrue(tc, !fixture.terminal_transition_cancelled_activity);
   CuAssertIntEquals(tc, 0, event_queue_depth());
   pulse += 100U;
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 1, (int)fixture.context.completion_calls);
   activity_test_end(&fixture);
 }
@@ -496,7 +496,7 @@ void Test_primary_activity_can_pause_and_resume_from_progress_callback(CuTest *t
   fixture.context.pause_during_progress = true;
   CuAssertTrue(tc, activity_test_start(&fixture, &definition));
   pulse += 10U;
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, primary_activity_snapshot(&fixture.actor, &snapshot));
   CuAssertIntEquals(tc, PRIMARY_ACTIVITY_STATE_PAUSED, snapshot.state);
   CuAssertIntEquals(tc, 1, (int)snapshot.completed_steps);
@@ -506,7 +506,7 @@ void Test_primary_activity_can_pause_and_resume_from_progress_callback(CuTest *t
   CuAssertTrue(tc, primary_activity_resume(&fixture.actor, false));
   CuAssertIntEquals(tc, 1, event_queue_depth());
   pulse += 10U;
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, !primary_activity_snapshot(&fixture.actor, &snapshot));
   CuAssertIntEquals(tc, 1, (int)fixture.context.completion_calls);
   activity_test_end(&fixture);

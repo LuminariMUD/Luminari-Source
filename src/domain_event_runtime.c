@@ -69,8 +69,8 @@ enum domain_event_status domain_event_runtime_init(void)
   character_periodic_init();
   point_update_periodic_init();
   vessel_periodic_init();
-#if (!defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || !LUMINARI_ENABLE_EVENT_ROLLBACK) &&               \
-    !defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#ifndef LUMINARI_CUTEST
+  /* Focused tests may deliberately disable unrelated owner services. */
   if (!periodic_autoproc_enabled() || !periodic_dg_random_enabled() ||
       !affected_owner_events_enabled() || !character_periodic_events_enabled() ||
       !point_update_events_enabled() || (CONFIG_VESSEL_SYSTEM && !vessel_periodic_events_enabled()))

@@ -6,12 +6,10 @@ LuminariMUD uses a single-threaded, event-driven server architecture based on
 the classic CircleMUD/tbaMUD design. A private reactor waits for descriptor,
 signal, scheduler, or queued-action deadline readiness; gameplay remains on the
 main thread. Named scheduler services own normal cadence work. The ordinary
-binary contains no compatibility heartbeat or legacy timed-event backend;
-those remain only in an explicitly compiled rollback executable. If native
-runtime-service admission fails, startup exits rather than falling back.
-Rollback builds use legacy runtime services only when
-`LUMINARI_RUNTIME_SERVICES=legacy` is explicitly selected; admission failure
-does not select them automatically.
+binary contains no compatibility heartbeat or legacy timed-event backend.
+The rollback executable, population-loop entry points, and selection switches
+were retired by maintainer decision on 2026-09-05. If native runtime-service
+admission fails, startup exits rather than falling back.
 
 ## Main Server Components
 
@@ -235,9 +233,9 @@ service.one_second                   // connected protocol and player work
 service.minute_maintenance           // global state and active-item recovery
 service.zone                         // zone reset scheduler
 service.idle_password                // bounded login descriptors
-service.automatic_procedures         // fixed Avernus garden; object rollback off
-service.hunt_clock_round_rollback    // hunt singleton; owner rollback off
-service.auction_device_recovery      // auction singleton; device rollback off
+service.automatic_procedures         // fixed Avernus garden
+service.hunt_clock                   // hunt singleton
+service.auction                      // auction singleton
 service.minute_persistence           // starts bounded save cycles
 service.hunt_creation                // hunt table creation
 service.mud_hour                     // clock, registries, diplomacy, clans
@@ -246,11 +244,9 @@ service.usage                        // connected-usage accounting
 service.time_save                    // singleton clock persistence
 ```
 
-Those are the 14 services admitted by a default live boot. Ten additional
-definitions preserve subsystem rollback, including the 13-second DG random
-scan and six-second whole-mobile cycle; migrated owner systems do not admit
-them. Startup admission is all-or-nothing; failure restores
-`LUMINARI_RUNTIME_SERVICES=legacy` behavior for that boot.
+Those are the 14 services admitted by a default live boot. The ten former
+rollback-only definitions are removed. Startup admission is all-or-nothing;
+failure prevents startup rather than selecting another gameplay driver.
 
 Named services preserve existing routines and ordering within each cadence.
 Some are legitimate global maintenance or still call bounded connected/active

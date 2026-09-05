@@ -216,13 +216,13 @@ void Test_combat_encounter_uses_one_event_and_preserves_compatibility_cadence(Cu
   CuAssertIntEquals(tc, 1, event_queue_depth());
 
   pulse = start_pulse + (2 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 1, (int)trace.count);
   CuAssertPtrEquals(tc, &first, trace.characters[0]);
   CuAssertIntEquals(tc, 1, (int)trace.phases[0]);
 
   pulse = start_pulse + (4 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 3, (int)trace.count);
   CuAssertPtrEquals(tc, &second, trace.characters[1]);
   CuAssertIntEquals(tc, 1, (int)trace.phases[1]);
@@ -272,7 +272,7 @@ void Test_combat_encounter_guards_joins_during_dispatch_only(CuTest *tc)
   CuAssertTrue(tc, combat_encounter_join(&first, &anchor, 2 RL_SEC));
   CuAssertTrue(tc, combat_encounter_join(&before, &anchor, 1 RL_SEC));
   pulse = start_pulse + (1 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, trace.mutation_ran);
   CuAssertTrue(tc, trace.mutation_succeeded);
   CuAssertIntEquals(tc, 1, (int)trace.count);
@@ -281,7 +281,7 @@ void Test_combat_encounter_guards_joins_during_dispatch_only(CuTest *tc)
   FIGHTING(&after) = &anchor;
   CuAssertTrue(tc, combat_encounter_join(&after, &anchor, 1 RL_SEC));
   pulse = start_pulse + (2 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 3, (int)trace.count);
   CuAssertPtrEquals(tc, &first, trace.characters[1]);
   CuAssertPtrEquals(tc, &after, trace.characters[2]);
@@ -290,7 +290,7 @@ void Test_combat_encounter_guards_joins_during_dispatch_only(CuTest *tc)
        current += (1 RL_SEC))
   {
     pulse = current;
-    event_process();
+    event_test_advance();
   }
   for (index = 0U; index < trace.count; index++)
     if (trace.characters[index] == &during)
@@ -298,7 +298,7 @@ void Test_combat_encounter_guards_joins_during_dispatch_only(CuTest *tc)
   CuAssertTrue(tc, !saw_during);
 
   pulse = start_pulse + (7 RL_SEC);
-  event_process();
+  event_test_advance();
   for (index = 0U; index < trace.count; index++)
     if (trace.characters[index] == &during)
       saw_during = true;
@@ -345,7 +345,7 @@ void Test_combat_encounter_merges_during_resolution_without_extra_turn(CuTest *t
   CuAssertIntEquals(tc, 2, event_queue_depth());
 
   pulse = start_pulse + (1 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, trace.mutation_succeeded);
   CuAssertIntEquals(tc, 2, (int)trace.count);
   CuAssertPtrEquals(tc, &first, trace.characters[0]);
@@ -392,7 +392,7 @@ void Test_combat_encounter_callback_can_remove_every_participant(CuTest *tc)
   CuAssertTrue(tc, combat_encounter_join(&second, &first, 1 RL_SEC));
 
   pulse = start_pulse + (1 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, trace.mutation_succeeded);
   CuAssertPtrEquals(tc, NULL, first.combat_encounter);
   CuAssertPtrEquals(tc, NULL, second.combat_encounter);
@@ -469,7 +469,7 @@ void Test_combat_encounter_terminal_session_is_not_revived_from_callback(CuTest 
   CuAssertTrue(tc, combat_encounter_join(&first, &passive, 1 RL_SEC));
 
   pulse = start_pulse + (1 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, trace.mutation_succeeded);
   CuAssertPtrNotNull(tc, first.combat_encounter);
   CuAssertPtrEquals(tc, first.combat_encounter, passive.combat_encounter);
@@ -597,11 +597,11 @@ void Test_combat_semantic_round_batches_due_turns_in_initiative_order(CuTest *tc
   ProtocolDestroy(slower_descriptor.pProtocol);
   slower_descriptor.pProtocol = NULL;
   pulse = start_pulse + (5 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 0, (int)trace.count);
 
   pulse = start_pulse + (6 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 2, (int)trace.count);
   CuAssertPtrEquals(tc, &faster, trace.characters[0]);
   CuAssertPtrEquals(tc, &slower, trace.characters[1]);
@@ -639,10 +639,10 @@ void Test_combat_semantic_round_starts_six_seconds_after_idle_join(CuTest *tc)
   CuAssertTrue(tc, combat_encounter_join(&second, &first, 1 RL_SEC));
 
   pulse = joined_pulse + (5 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 0, (int)trace.count);
   pulse = joined_pulse + (6 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 2, (int)trace.count);
   combat_encounter_get_stats(&stats);
   CuAssertIntEquals(tc, 1, (int)stats.semantic_rounds_resolved);
@@ -695,7 +695,7 @@ void Test_combat_semantic_round_uses_dexterity_and_runtime_id_tiebreaks(CuTest *
   }
 
   pulse = start_pulse + (6 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 3, (int)trace.count);
   CuAssertPtrEquals(tc, &second, trace.characters[0]);
   CuAssertPtrEquals(tc, lower_runtime_id, trace.characters[1]);
@@ -743,7 +743,7 @@ void Test_combat_semantic_round_owns_action_and_reaction_budgets(CuTest *tc)
   CuAssertTrue(tc, combat_encounter_reaction_try_use(&first, 2U, &managed));
 
   pulse = start_pulse + (6 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, combat_encounter_action_query(&first, atSTANDARD, &available));
   CuAssertTrue(tc, available);
   CuAssertTrue(tc, combat_encounter_action_query(&first, atMOVE, &available));
@@ -751,7 +751,7 @@ void Test_combat_semantic_round_owns_action_and_reaction_budgets(CuTest *tc)
   CuAssertTrue(tc, combat_encounter_reaction_try_use(&first, 2U, &managed));
 
   pulse = start_pulse + (12 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, combat_encounter_action_query(&first, atMOVE, &available));
   CuAssertTrue(tc, available);
   combat_encounter_get_stats(&stats);
@@ -785,7 +785,7 @@ void Test_combat_semantic_round_resets_shared_state_before_initiative(CuTest *tc
   CuAssertTrue(tc, combat_encounter_join(&second, &first, 1 RL_SEC));
 
   pulse = start_pulse + (6 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, trace.second_flag_survived);
   CuAssertTrue(tc, trace.second_reaction_remained_spent);
 
@@ -816,7 +816,7 @@ void Test_combat_semantic_round_resets_participant_round_flags(CuTest *tc)
   CuAssertTrue(tc, used);
 
   pulse = start_pulse + (6 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, combat_encounter_round_flag_query(
                        &first, COMBAT_ENCOUNTER_ROUND_DEFLECTIVE_SCREEN_USED, &used));
   CuAssertTrue(tc, !used);
@@ -848,7 +848,7 @@ void Test_combat_semantic_staggered_spend_couples_standard_and_move(CuTest *tc)
   CuAssertTrue(tc, combat_encounter_action_query(&first, atMOVE, &available));
   CuAssertTrue(tc, !available);
   pulse = 11500U + (6 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, combat_encounter_action_query(&first, atSTANDARD, &available));
   CuAssertTrue(tc, available);
   CuAssertTrue(tc, combat_encounter_action_query(&first, atMOVE, &available));
@@ -883,14 +883,14 @@ void Test_combat_semantic_round_defers_callback_joins_to_next_round(CuTest *tc)
   CuAssertTrue(tc, combat_encounter_join(&first, &anchor, 1 RL_SEC));
 
   pulse = start_pulse + (6 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertTrue(tc, trace.mutation_succeeded);
   CuAssertIntEquals(tc, 1, (int)trace.count);
   pulse = start_pulse + (11 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 1, (int)trace.count);
   pulse = start_pulse + (12 RL_SEC);
-  event_process();
+  event_test_advance();
   for (index = 0U; index < trace.count; index++)
     if (trace.characters[index] == &joiner)
       saw_joiner = true;
@@ -953,7 +953,7 @@ void Test_combat_semantic_join_uses_next_shared_round(CuTest *tc)
   FIGHTING(&joiner) = &anchor;
   CuAssertTrue(tc, combat_encounter_join(&joiner, &anchor, 1 RL_SEC));
   pulse = start_pulse + (6 RL_SEC);
-  event_process();
+  event_test_advance();
 
   CuAssertIntEquals(tc, 2, (int)trace.count);
   CuAssertPtrEquals(tc, &joiner, trace.characters[0]);
@@ -1002,14 +1002,14 @@ void Test_combat_semantic_merge_coalesces_offset_clocks(CuTest *tc)
   CuAssertIntEquals(tc, 1, event_queue_depth());
 
   pulse = start_pulse + (6 RL_SEC);
-  event_process();
+  event_test_advance();
   count_after_first_round = trace.count;
   CuAssertIntEquals(tc, 2, (int)count_after_first_round);
   pulse = start_pulse + (8 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, (int)count_after_first_round, (int)trace.count);
   pulse = start_pulse + (12 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 6, (int)trace.count);
   CuAssertIntEquals(tc, 1, event_queue_depth());
 
@@ -1049,12 +1049,12 @@ void Test_combat_semantic_round_dispatches_one_buffered_intent(CuTest *tc)
   execute_next_action(&first);
   CuAssertIntEquals(tc, 2, pending_actions(&first));
   pulse = start_pulse + (6 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 1, pending_actions(&first));
   execute_next_action(&first);
   CuAssertIntEquals(tc, 1, pending_actions(&first));
   pulse = start_pulse + (12 RL_SEC);
-  event_process();
+  event_test_advance();
   CuAssertIntEquals(tc, 0, pending_actions(&first));
   combat_encounter_get_stats(&stats);
   CuAssertIntEquals(tc, 2, (int)stats.intents_dispatched);

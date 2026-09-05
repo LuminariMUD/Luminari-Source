@@ -77,10 +77,6 @@ extern struct mud_event_list mud_event_index[];
 
 static struct game_event_result mud_event_dispatch(const struct game_event_context *context);
 static void cleanup_mud_event_native(void *event_obj);
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-static void cleanup_mud_event_rollback(event_handle_t handle, void *event_obj);
-#endif
 
 static int64_t daily_use_cooldown_ticks(struct char_data *ch, event_id event_type)
 {
@@ -303,14 +299,6 @@ const char *mud_event_restore_status_name(enum mud_event_restore_status status)
   }
 }
 
-bool mud_event_legacy_persistence_writer_enabled(void)
-{
-  const char *format;
-
-  format = getenv("LUMINARI_EVENT_PERSISTENCE_FORMAT");
-  return format != NULL && !strcasecmp(format, "legacy");
-}
-
 bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *pMudEvent,
                                    int64_t saved_at_epoch, struct mud_event_durable_record *record)
 {
@@ -347,6 +335,12 @@ bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *
   record->remaining_ticks = remaining_ticks;
   record->saved_at_epoch = saved_at_epoch;
   record->payload_value = uses;
+  if (policy->payload_policy == MUD_EVENT_PAYLOAD_USES)
+  {
+    record->recovery_interval_ticks = daily_use_cooldown_ticks(ch, pMudEvent->iId);
+    if (IN_ROOM(ch) == NOWHERE && pMudEvent->restored_recovery_interval_ticks > 0)
+      record->recovery_interval_ticks = pMudEvent->restored_recovery_interval_ticks;
+  }
   return true;
 }
 
@@ -379,7 +373,9 @@ mud_event_restore_character_record(struct char_data *ch,
     return MUD_EVENT_RESTORE_SCHEMA_MISMATCH;
   if (GET_IDNUM(ch) <= 0 || record->owner_id != GET_IDNUM(ch))
     return MUD_EVENT_RESTORE_OWNER_MISMATCH;
-  if (record->remaining_ticks <= 0 || record->remaining_ticks > LONG_MAX ||
+  if (record->recovery_interval_ticks < 0 || record->recovery_interval_ticks > 864000 ||
+      (policy->payload_policy != MUD_EVENT_PAYLOAD_USES && record->recovery_interval_ticks != 0) ||
+      record->remaining_ticks <= 0 || record->remaining_ticks > LONG_MAX ||
       record->saved_at_epoch <= 0 ||
       (record->saved_at_epoch > now_epoch && record->saved_at_epoch - now_epoch > 300))
     return MUD_EVENT_RESTORE_INVALID_FORMAT;
@@ -411,7 +407,9 @@ mud_event_restore_character_record(struct char_data *ch,
     elapsed_ticks = MAX(0, elapsed_seconds) * PASSES_PER_SEC;
     if (elapsed_ticks >= remaining_ticks && policy->payload_policy == MUD_EVENT_PAYLOAD_USES)
     {
-      interval_ticks = daily_use_cooldown_ticks(ch, record->event_type);
+      interval_ticks = record->recovery_interval_ticks;
+      if (interval_ticks == 0)
+        interval_ticks = daily_use_cooldown_ticks(ch, record->event_type);
       if (interval_ticks <= 0)
       {
         reconcile_expired_character_event(ch, record->event_type);
@@ -445,6 +443,7 @@ mud_event_restore_character_record(struct char_data *ch,
   }
 
   restored_event = new_mud_event(record->event_type, ch, payload_text);
+  restored_event->restored_recovery_interval_ticks = record->recovery_interval_ticks;
   attach_mud_event(restored_event, (long)remaining_ticks);
   if (char_has_mud_event(ch, record->event_type) == NULL)
     return MUD_EVENT_RESTORE_ADMISSION_FAILED;
@@ -876,6 +875,7 @@ MUD_EVENT_CALLBACK(event_daily_use_cooldown)
     pMudEvent->sVariables = strdup(buf);
 
     cooldown = (int)daily_use_cooldown_ticks(ch, pMudEvent->iId);
+    pMudEvent->restored_recovery_interval_ticks = 0;
   }
 
   return cooldown;
@@ -930,12 +930,7 @@ bool mud_event_is_live(const struct mud_event_data *pMudEvent)
     return false;
   if (!event_runtime_handle_is_none(pMudEvent->runtime_handle))
     return event_runtime_handle_is_live(pMudEvent->runtime_handle);
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  return event_handle_is_live(pMudEvent->rollback_handle);
-#else
   return false;
-#endif
 }
 
 long mud_event_remaining(const struct mud_event_data *pMudEvent)
@@ -950,12 +945,7 @@ long mud_event_remaining(const struct mud_event_data *pMudEvent)
       return 0;
     return remaining > LONG_MAX ? LONG_MAX : (long)remaining;
   }
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  return event_handle_time(pMudEvent->rollback_handle);
-#else
   return 0;
-#endif
 }
 
 void mud_event_cancel(struct mud_event_data *pMudEvent)
@@ -964,11 +954,6 @@ void mud_event_cancel(struct mud_event_data *pMudEvent)
     return;
   if (!event_runtime_handle_is_none(pMudEvent->runtime_handle))
     (void)event_runtime_cancel(pMudEvent->runtime_handle);
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  else if (pMudEvent->rollback_handle != EVENT_HANDLE_NONE)
-    (void)event_handle_cancel(pMudEvent->rollback_handle);
-#endif
 }
 
 void attach_mud_event(struct mud_event_data *pMudEvent, long time)
@@ -1091,21 +1076,9 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
   }
   else
   {
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-    pMudEvent->rollback_handle = event_schedule_owned_named_with_terminal_cleanup(
-        mud_event_index[pMudEvent->iId].func, pMudEvent, time,
-        mud_event_index[pMudEvent->iId].event_name, cleanup_mud_event_rollback, pMudEvent->owner);
-#else
     status = GAME_SCHEDULER_INVALID_ARGUMENT;
-#endif
   }
-  if (event_runtime_handle_is_none(pMudEvent->runtime_handle)
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-      && pMudEvent->rollback_handle == EVENT_HANDLE_NONE
-#endif
-  )
+  if (event_runtime_handle_is_none(pMudEvent->runtime_handle))
     goto admission_failed;
 
   switch (event_type)
@@ -1157,15 +1130,11 @@ struct mud_event_data *new_mud_event(event_id iId, void *pStruct, const char *sV
    *   NOTE: For ROOM/REGION events, attach_mud_event() will create
    *   its own copy of this data to prevent memory leaks
    * - sVariables: Our copy of any event-specific data
-   * - runtime/rollback handles: Set by the selected timed backend on attach. */
+   * - runtime handle: Set by the native scheduler on attach. */
   pMudEvent->iId = iId;
   pMudEvent->pStruct = pStruct;
   pMudEvent->sVariables = varString;
   pMudEvent->runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  pMudEvent->rollback_handle = EVENT_HANDLE_NONE;
-#endif
   pMudEvent->owner = game_event_owner_none();
   pMudEvent->owner_detached = false;
 
@@ -1289,10 +1258,6 @@ static void cleanup_mud_event_payload(void *event_obj)
 
   event_type = mud_event_index[pMudEvent->iId].iEvent_Type;
   pMudEvent->runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  pMudEvent->rollback_handle = EVENT_HANDLE_NONE;
-#endif
   mud_event_detach_owner(pMudEvent);
   if ((event_type == EVENT_ROOM || event_type == EVENT_REGION) && pMudEvent->pStruct != NULL)
     free(pMudEvent->pStruct);
@@ -1306,14 +1271,6 @@ static void cleanup_mud_event_native(void *event_obj)
   cleanup_mud_event_payload(event_obj);
 }
 
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-static void cleanup_mud_event_rollback(event_handle_t handle, void *event_obj)
-{
-  (void)handle;
-  cleanup_mud_event_payload(event_obj);
-}
-#endif
 
 #ifdef LUMINARI_CUTEST
 void mud_event_test_reset_cleanup_count(void)

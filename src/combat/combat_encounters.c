@@ -112,47 +112,19 @@ static void *test_phase_context;
 
 static bool configured_encounter_mode(void)
 {
-  const char *value;
-
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
-    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-  if (event_backend_current() != EVENT_BACKEND_GAME_SCHEDULER)
-    return false;
-#endif
 #ifdef LUMINARI_CUTEST
   if (test_selection_set)
     return test_encounter_mode;
 #endif
-  value = getenv("LUMINARI_COMBAT_EVENTS");
-  if (value == NULL || *value == '\0')
-    value = get_env_value("LUMINARI_COMBAT_EVENTS");
-  if (value == NULL || *value == '\0' || !strcasecmp(value, "encounter") ||
-      !strcasecmp(value, "scheduled") || !strcasecmp(value, "event"))
-    return true;
-  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "character") || !strcasecmp(value, "off"))
-    return false;
-  log("WARNING: Unknown LUMINARI_COMBAT_EVENTS '%s'; using encounter events.", value);
   return true;
 }
 
 static bool configured_semantic_rounds(void)
 {
-  const char *value;
-
 #ifdef LUMINARI_CUTEST
   if (test_semantic_selection_set)
     return test_semantic_rounds;
 #endif
-  value = getenv("LUMINARI_COMBAT_ROUNDS");
-  if (value == NULL || *value == '\0')
-    value = get_env_value("LUMINARI_COMBAT_ROUNDS");
-  if (value == NULL || *value == '\0' || !strcasecmp(value, "semantic") ||
-      !strcasecmp(value, "round") || !strcasecmp(value, "d20"))
-    return true;
-  if (!strcasecmp(value, "compatibility") || !strcasecmp(value, "phased") ||
-      !strcasecmp(value, "legacy"))
-    return false;
-  log("WARNING: Unknown LUMINARI_COMBAT_ROUNDS '%s'; using semantic rounds.", value);
   return true;
 }
 

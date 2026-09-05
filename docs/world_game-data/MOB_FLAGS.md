@@ -130,7 +130,7 @@ table is not an action flag, whatever it is called.
 
 **Code References:**
 - `src/mob/mob_act.c` - Aggression trigger (owner-local mobile agenda)
-- `src/limits.c` - Set during rage/charm effects (`proc_d20_round()`)
+- `src/limits.c` - Set during rage/charm effects (`proc_d20_round_one()`)
 - `src/db.c` - Boot-time validation with alignment aggro flags (`parse_mobile()`)
 
 ### MOB_AGGR_EVIL (Index: 8)
@@ -328,7 +328,7 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 
 **Code References:**
 - `src/mob/mob_act.c` - Helper behavior logic (owner-local mobile agenda)
-- `src/limits.c` - Removed when mob becomes aggressive (`proc_d20_round()`)
+- `src/limits.c` - Removed when mob becomes aggressive (`proc_d20_round_one()`)
 
 ### MOB_GUARD (Index: 31)
 **Effect:** Mobile protects citizens and assists them in combat.

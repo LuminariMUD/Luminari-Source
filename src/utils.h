@@ -292,7 +292,6 @@ size_t sprintbit(bitvector_t vektor, const char *names[], char *result, size_t r
 size_t sprinttype(int type, const char *names[], char *result, size_t reslen);
 bool is_flying(struct char_data *ch);
 bool can_flee_speed(struct char_data *ch);
-void proc_d20_round(void);
 void proc_d20_round_one(struct char_data *ch);
 void check_device_one(struct char_data *ch);
 bool can_fly(struct char_data *ch);

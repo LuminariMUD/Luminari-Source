@@ -1489,32 +1489,6 @@ size_t affect_update_room_one(struct room_data *room)
 }
 
 /* Legacy rollback path: expire every affected owner on the round heartbeat. */
-void affect_update(void)
-{
-  struct char_data *ch;
-  struct raff_node *raff;
-  struct raff_node *next_raff;
-  size_t eligible_count = affected_registry_count();
-  uint64_t char_count = 0U;
-  uint64_t processed_affects = 0U;
-
-  for (ch = affected_registry_iteration_begin(); ch != NULL;
-       ch = affected_registry_iteration_next())
-  {
-    char_count++;
-    processed_affects += affect_update_character_one(ch);
-  }
-  affected_registry_iteration_end();
-  PERF_note_sweep(PERF_SWEEP_AFFECT, char_count, (uint64_t)eligible_count, processed_affects);
-
-  for (raff = raff_list; raff != NULL; raff = next_raff)
-  {
-    next_raff = raff->next;
-    raff->timer--;
-    if (raff->timer <= 0)
-      rem_room_aff(raff);
-  }
-}
 
 /* Checks for up to 3 vnums (spell reagents) in the player's inventory. If
  * multiple vnums are passed in, the function ANDs the items together as

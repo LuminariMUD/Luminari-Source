@@ -68,9 +68,9 @@ awk '
 
 require_capture "$service_needed_body" "runtime_service_needed()" "$runtime_services"
 
-tr '\n' ' ' <"$service_needed_body" |
-  grep -Eq 'case RUNTIME_SERVICE_MOBILE_ACTIVITY:.*LUMINARI_ENABLE_EVENT_ROLLBACK.*return !active_world_enabled\(\);.*return false;' ||
-  fail "whole-mobile rollback service is not quarantined behind the rollback build option"
+if grep -q 'RUNTIME_SERVICE_MOBILE_ACTIVITY' "$runtime_services"; then
+  fail "whole-mobile rollback service must be removed"
+fi
 
 "${CC:-cc}" -E -P -I"$project_root/src" "$runtime_services" >"$default_comm"
 if grep -Eq '^[[:space:]]*mobile_activity_run_legacy_(cycle|slice)[[:space:]]*\(' "$default_comm"; then
@@ -79,8 +79,8 @@ fi
 
 legacy_dispatch_count=$(grep -Eoc 'mobile_activity_run_legacy_(cycle|slice)[[:space:]]*\(' \
   "$runtime_services" || true)
-if [[ $legacy_dispatch_count -ne 2 ]]; then
-  fail "runtime/heartbeat legacy-mobile inventory changed (expected 2, found $legacy_dispatch_count)"
+if [[ $legacy_dispatch_count -ne 0 ]]; then
+  fail "runtime still contains retired mobile dispatch ($legacy_dispatch_count calls)"
 fi
 
 grep -q '"mobile.autonomous.agenda"' "$active_world" ||
