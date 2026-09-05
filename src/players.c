@@ -5435,6 +5435,7 @@ static void load_events_v2(FILE *fl, struct char_data *ch, const char *header,
   long long recovery_interval_ticks;
   int event_type;
   int payload_value;
+  int consumed;
   unsigned int schema_version;
   char trailing;
   char line[MAX_INPUT_LENGTH + 1];
@@ -5458,24 +5459,19 @@ static void load_events_v2(FILE *fl, struct char_data *ch, const char *header,
     if (!strcmp(line, "-1"))
       return;
     recovery_interval_ticks = 0;
-    if (format_version == 1U)
+    consumed = 0;
+    if (sscanf(line, "%d %u %lld %lld %lld %d %n", &event_type, &schema_version, &owner_id,
+               &remaining_ticks, &saved_at_epoch, &payload_value, &consumed) != 6)
     {
-      if (sscanf(line, "%d %u %lld %lld %lld %d %c", &event_type, &schema_version, &owner_id,
-                 &remaining_ticks, &saved_at_epoch, &payload_value, &trailing) != 6)
-      {
-        log("SYSERR: Ignoring malformed durable event record for %s.", GET_NAME(ch));
-        continue;
-      }
+      log("SYSERR: Ignoring malformed durable event record for %s.", GET_NAME(ch));
+      continue;
     }
-    else
+    if (format_version == 1U
+            ? line[consumed] != '\0'
+            : sscanf(line + consumed, "%lld %c", &recovery_interval_ticks, &trailing) != 1)
     {
-      if (sscanf(line, "%d %u %lld %lld %lld %d %lld %c", &event_type, &schema_version, &owner_id,
-                 &remaining_ticks, &saved_at_epoch, &payload_value, &recovery_interval_ticks,
-                 &trailing) != 7)
-      {
-        log("SYSERR: Ignoring malformed durable event record for %s.", GET_NAME(ch));
-        continue;
-      }
+      log("SYSERR: Ignoring malformed durable event record for %s.", GET_NAME(ch));
+      continue;
     }
 
     memset(&record, 0, sizeof(record));

@@ -15,7 +15,7 @@ review-size notice. CodeRabbit skipped its review because the PR exceeded its
 
 `gh pr checks 85` also identified failed sanitizer jobs. All other executable
 checks passed on the original head, but the aggregate CodeQL gate failed on the
-six parser findings. These failures were included in this repair.
+parser and object-save findings. These failures were included in this repair.
 
 The branch was 34 commits behind master. `git rebase --rebase-merges
 origin/master` replayed its history. The two historical merge resolutions kept
@@ -30,8 +30,10 @@ README and header-image additions. No implementation was lost in the rebase.
 The six comments concern event type, schema version, owner ID, remaining ticks,
 save epoch, and payload value, respectively. The old combined condition relied
 on the earlier header-version check to prove that one scanner must execute.
-Each supported format now has an explicit branch whose scanner must return the
-exact field count before any parsed value reaches the pending-record queue.
+The common six fields now use one scanner with an exact return-count check
+before any parsed value reaches the pending-record queue. A separate checked
+scanner reads the current-format recovery interval; version one rejects any
+remaining non-whitespace content.
 Unsupported headers still discard their section, and malformed rows still allow
 later valid rows to load. Neither the persisted format nor gameplay changes.
 
@@ -57,16 +59,33 @@ cleared, and that the registered-room count returns to its prior value. The
 original spell-duration assertions remain. No production cleanup was bypassed
 or sanitizer suppression added.
 
+### CodeQL alerts 860 and 861: object-save SQL construction
+
+The aggregate PR CodeQL gate also included two object-save SQL injection alerts
+that were absent from the review-thread connection. Both player and house
+inserts interpolated serialized object text into query syntax. They now use
+constant prepared statements with separately bound owner/room and payload
+values. Extra descriptions are serialized as raw text before binding, avoiding
+double escaping. A full payload buffer is rejected instead of storing a partial
+record through an otherwise valid prepared statement.
+
+An isolated MariaDB regression test compares stored payloads against the file
+serialization and checks quoted owner names, SQL-looking object names, embedded
+quotes, backslashes, and newlines. It exercises both inserts under normal SQL
+mode and NO_BACKSLASH_ESCAPES, and verifies oversized payloads add no rows.
+
 ## Validation
 
-- `make -j8 test`, followed by `make install`: passed, including 1,126 CuTests
+- `make -j8 test`, followed by `make install`: passed, including 1,127 CuTests
   and the root architecture, lifecycle, help-sync, and tooling checks.
 - CMake with `BUILD_TESTS=ON`, `-O1 -g -fsanitize=address,undefined
   -fno-omit-frame-pointer`, and sanitizer linker flags: production-linked
-  `cutest` passed all 1,126 tests with `ASAN_OPTIONS=detect_leaks=1:halt_on_error=1`
+  `cutest` passed all 1,127 tests with `ASAN_OPTIONS=detect_leaks=1:halt_on_error=1`
   and `UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=1`. As in the CI sanitizer
   job, `LUMINARI_TEST_SKIP_SYNTAX_BOOT=1` excludes the separate boot subprocess.
 - `make -C unittests/CuTest protocol-fuzz FUZZ_SECONDS=15`: passed.
+- The production-linked suite also passed with database tests enabled against
+  an isolated temporary MariaDB instance on loopback port 33385.
 - Pinned pre-commit formatting and hygiene hooks, plus `git diff --check`: passed.
 
 The local development machine lacked libevent development headers. The Ubuntu

@@ -145,18 +145,15 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
                                             bool persist_database)
 {
 #ifdef OBJSAVE_DB
-  static char ins_buf[36767]; /* For MySQL insert - static to avoid stack allocation */
+  static char ins_buf[36767]; /* Serialized payload; bound separately from SQL. */
   static char line_buf[4096]; /* For building MySQL insert statement - reduced size */
 #endif
 
   int counter2, i = 0;
-  size_t x;
   struct extra_descr_data *ex_desc;
   char buf1[4096]; /* Reduced from MAX_STRING_LENGTH */
   struct obj_data *temp = NULL;
   struct obj_special_ability *specab = NULL;
-  char escaped_buf[4096]; /* Reduced from MAX_STRING_LENGTH */
-  char escaped_key[512];  /* Reduced from MAX_STRING_LENGTH */
 
   /* load up the object */
   if (GET_OBJ_VNUM(obj) != NOTHING)
@@ -177,12 +174,7 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
     *buf1 = 0;
 
 #ifdef OBJSAVE_DB
-  if (ch != NULL) /* GHETTTTTOOOOOOOOO */
-    snprintf(ins_buf, sizeof(ins_buf),
-             "insert into player_save_objs (name, serialized_obj) values ('%s', '", GET_NAME(ch));
-  else
-    snprintf(ins_buf, sizeof(ins_buf),
-             "insert into house_data (vnum, serialized_obj) values ('%d', '", house_vnum);
+  ins_buf[0] = '\0';
 #endif
 
   fprintf(fp, "#%d\n", GET_OBJ_VNUM(obj));
@@ -449,6 +441,11 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
     {
       for (ex_desc = obj->ex_description; ex_desc; ex_desc = ex_desc->next)
       {
+#ifdef OBJSAVE_DB
+        char *saved_description;
+        char *saved_keyword;
+#endif
+
         /*. Sanity check to prevent nasty protection faults . */
         if (!*ex_desc->keyword || !*ex_desc->description)
         {
@@ -462,66 +459,23 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
                 "%s~\n",
                 ex_desc->keyword, buf1);
 #ifdef OBJSAVE_DB
-        size_t desc_len = strlen(buf1);
-        size_t key_len = strlen(ex_desc->keyword);
-        size_t desc_needed = (desc_len * 2) + 1;
-        size_t key_needed = (key_len * 2) + 1;
-
-        char *escaped_desc_ptr = escaped_buf;
-        char *escaped_key_ptr = escaped_key;
-        bool heap_desc = false;
-        bool heap_key = false;
-
-        if (desc_needed > sizeof(escaped_buf))
+        saved_description = strndup(buf1, strcspn(buf1, "~"));
+        saved_keyword = strndup(ex_desc->keyword, strcspn(ex_desc->keyword, "~"));
+        if (saved_description == NULL || saved_keyword == NULL)
         {
-          escaped_desc_ptr = (char *)malloc(desc_needed);
-          if (!escaped_desc_ptr)
-          {
-            log("SYSERR: Unable to alloc escaped description buffer (%zu bytes)", desc_needed);
-            continue;
-          }
-          heap_desc = true;
+          free(saved_description);
+          free(saved_keyword);
+          log("SYSERR: Unable to allocate saved object extra description.");
+          extract_obj(temp);
+          return 1;
         }
-
-        if (key_needed > sizeof(escaped_key))
-        {
-          escaped_key_ptr = (char *)malloc(key_needed);
-          if (!escaped_key_ptr)
-          {
-            if (heap_desc)
-              free(escaped_desc_ptr);
-            log("SYSERR: Unable to alloc escaped keyword buffer (%zu bytes)", key_needed);
-            continue;
-          }
-          heap_key = true;
-        }
-
-        mysql_real_escape_string(conn, escaped_desc_ptr, buf1, desc_len);
-        size_t escaped_desc_len = strlen(escaped_desc_ptr);
-        for (x = 0; x < escaped_desc_len; x++)
-        {
-          if (escaped_desc_ptr[x] == '~')
-            escaped_desc_ptr[x] = '\0';
-        }
-
-        mysql_real_escape_string(conn, escaped_key_ptr, ex_desc->keyword, key_len);
-        size_t escaped_key_len = strlen(escaped_key_ptr);
-        for (x = 0; x < escaped_key_len; x++)
-        {
-          if (escaped_key_ptr[x] == '~')
-            escaped_key_ptr[x] = '\0';
-        }
-
         strlcat(ins_buf, "EDes:\n", sizeof(ins_buf));
-        strlcat(ins_buf, escaped_key_ptr, sizeof(ins_buf));
+        strlcat(ins_buf, saved_keyword, sizeof(ins_buf));
         strlcat(ins_buf, "~\n", sizeof(ins_buf));
-        strlcat(ins_buf, escaped_desc_ptr, sizeof(ins_buf));
+        strlcat(ins_buf, saved_description, sizeof(ins_buf));
         strlcat(ins_buf, "~\n", sizeof(ins_buf));
-
-        if (heap_desc)
-          free(escaped_desc_ptr);
-        if (heap_key)
-          free(escaped_key_ptr);
+        free(saved_description);
+        free(saved_keyword);
 #endif
       }
     }
@@ -579,27 +533,30 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
 #ifdef OBJSAVE_DB
   if (persist_database)
   {
+    PREPARED_STMT *statement;
+    const char *query;
     int insert_id;
+    bool saved;
 
-    snprintf(line_buf, sizeof(line_buf), "');");
-    strlcat(ins_buf, line_buf, sizeof(ins_buf));
-    if (ch != NULL)
-    { /* GHETTTTTTTOOOOOOOOO */
-      if (mysql_query(conn, ins_buf))
-      {
-        log("SYSERR: Unable to REPLACE into player_save_objs: %s", mysql_error(conn));
-        extract_obj(temp);
-        return 1;
-      }
-    }
-    else if (mysql_query(conn, ins_buf))
+    query = ch != NULL ? "INSERT INTO player_save_objs (name, serialized_obj) VALUES (?, ?)"
+                       : "INSERT INTO house_data (vnum, serialized_obj) VALUES (?, ?)";
+    statement = mysql_stmt_create(conn);
+    saved = strlen(ins_buf) < sizeof(ins_buf) - 1 && statement != NULL &&
+            mysql_stmt_prepare_query(statement, query) &&
+            (ch != NULL ? mysql_stmt_bind_param_string(statement, 0, GET_NAME(ch))
+                        : mysql_stmt_bind_param_int(statement, 0, house_vnum)) &&
+            mysql_stmt_bind_param_string(statement, 1, ins_buf) &&
+            mysql_stmt_execute_prepared(statement);
+    if (!saved)
     {
-      log("SYSERR: Unable to INSERT into house_data: %s", mysql_error(conn));
+      log("SYSERR: Unable to save complete object record to %s.",
+          ch != NULL ? "player_save_objs" : "house_data");
+      mysql_stmt_cleanup(statement);
       extract_obj(temp);
       return 1;
     }
-
-    insert_id = mysql_insert_id(conn);
+    insert_id = mysql_stmt_insert_id(statement->stmt);
+    mysql_stmt_cleanup(statement);
 
     if (CAN_WEAR(obj, ITEM_WEAR_SHEATH))
     {
