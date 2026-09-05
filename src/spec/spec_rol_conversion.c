@@ -1822,7 +1822,7 @@ static int rol_alert_combat_turn(struct char_data *caller)
 
   for (helper = character_list; helper != NULL; helper = helper->next)
     if (rol_alert_helper_can_answer(helper, caller, victim, profile->max_distance))
-      HUNTING(helper) = victim;
+      set_hunting_target(helper, victim);
 
   caller->mob_specials.rol_alert_fired = true;
   return TRUE;
@@ -4429,7 +4429,7 @@ int rol_sister_knight(struct char_data *ch, void *me, int cmd, const char *argum
 
   for (helper = character_list; helper != NULL; helper = helper->next)
     if (rol_sister_knight_can_answer(helper, caller, victim))
-      HUNTING(helper) = victim;
+      set_hunting_target(helper, victim);
 
   PROC_FIRED(caller) = TRUE;
   return TRUE;

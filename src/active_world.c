@@ -545,7 +545,8 @@ void active_world_sync_mobile(struct char_data *ch)
   if (!initialized || !enabled || ch == NULL || !IS_NPC(ch))
     return;
   old_reasons = ch->active_world_work_reasons;
-  new_reasons = old_reasons & MOBILE_WORK_REACTION_MASK;
+  new_reasons = old_reasons & (mobile_activity_room_reaction_reasons(ch) |
+                                mobile_activity_combat_reaction_reasons(ch));
   new_reasons |= mobile_activity_recurring_reasons(ch);
   refresh_deadlines(ch, old_reasons, new_reasons);
   set_reasons(ch, new_reasons);
@@ -678,6 +679,22 @@ static void wake_adjacent(room_rnum room, bool combat)
         wake_mobile(ch, MOBILE_WORK_ROOM_REACTION);
     }
   }
+}
+
+void active_world_reconsider_character(struct char_data *ch)
+{
+  room_rnum room;
+
+  if (!initialized || !enabled || bootstrap_loading || ch == NULL || world == NULL)
+    return;
+  room = IN_ROOM(ch);
+  if (room == NOWHERE || room > top_of_world)
+    return;
+  active_world_sync_mobile(ch);
+  wake_room(&world[room], false);
+  wake_room(&world[room], true);
+  wake_adjacent(room, false);
+  wake_adjacent(room, true);
 }
 
 static void handle_character_moved(const struct domain_event_context *context,
@@ -815,7 +832,11 @@ void active_world_end_bootstrap(void)
 
   /* Final world state is the sole permitted population discovery pass. */
   for (ch = character_list; ch != NULL; ch = ch->next)
+  {
     active_world_sync_mobile(ch);
+    if (!IS_NPC(ch))
+      active_world_reconsider_character(ch);
+  }
 }
 
 void active_world_shutdown(void)

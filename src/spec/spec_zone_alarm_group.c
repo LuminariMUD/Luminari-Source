@@ -78,7 +78,7 @@ static void zone_yell(struct char_data *ch, const char *buf)
           }
           else
           {
-            HUNTING(i) = vict;
+            set_hunting_target(i, vict);
             hunt_victim(i);
           }
         }

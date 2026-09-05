@@ -9,6 +9,7 @@
  **************************************************************************/
 
 #include "conf.h"
+#include "active_world.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
@@ -91,6 +92,7 @@ void remember(struct char_data *ch, struct char_data *victim)
     tmp->next = MEMORY(ch);
     tmp->id = GET_IDNUM(victim);
     MEMORY(ch) = tmp;
+    active_world_reconsider_character(ch);
   }
 }
 
@@ -117,6 +119,7 @@ void forget(struct char_data *ch, struct char_data *victim)
     prev->next = curr->next;
 
   free(curr);
+  active_world_sync_mobile(ch);
 }
 
 /* erase ch's memory completely, also freeing memory */
@@ -134,6 +137,7 @@ void clearMemory(struct char_data *ch)
   }
 
   MEMORY(ch) = NULL;
+  active_world_sync_mobile(ch);
 }
 
 /* end memory routines */

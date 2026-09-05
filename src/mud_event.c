@@ -47,6 +47,9 @@
 #include "event_runtime.h"
 #include "constants.h"
 #include "comm.h" /* For access to the game pulse */
+#include "domain_event_runtime.h"
+#include "domain_event_world.h"
+#include "active_world.h"
 #include "lists.h"
 #include "mud_event.h"
 #include "handler.h"
@@ -326,8 +329,8 @@ bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *
     return false;
 
   remaining_ticks = mud_event_remaining(pMudEvent);
-  if (remaining_ticks <= 0)
-    return false;
+  /* Ready-but-budget-deferred events still own their outstanding charge debt. */
+  remaining_ticks = MAX(1L, remaining_ticks);
 
   uses = -1;
   if (policy->payload_policy == MUD_EVENT_PAYLOAD_USES)
@@ -663,6 +666,9 @@ MUD_EVENT_CALLBACK(event_countdown)
   /* Now handle special cases that need more than just a message */
   switch (pMudEvent->iId)
   {
+  case eSTUNNED:
+    active_world_reconsider_character(ch);
+    break;
   case eDARKNESS:
     /* SAFETY: Check that we have a valid room before accessing it.
      * The rnum should have been set in the EVENT_ROOM case above. */
@@ -673,6 +679,7 @@ MUD_EVENT_CALLBACK(event_countdown)
     }
     /* Now safe to access the room flags and send messages */
     REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_DARK);
+    active_world_reconsider_character(world[rnum].people);
     send_to_room(rnum, "The dark shroud dissipates.\r\n");
     break;
 
@@ -1574,13 +1581,28 @@ void clear_descriptor_event_list(struct descriptor_data *d)
 void clear_obj_event_list(struct obj_data *obj)
 {
   if (obj != NULL)
+  {
+    domain_event_world_forget_object(obj);
     clear_owned_event_list(&obj->events, &obj->event_owner_generation);
+  }
 }
 
 void clear_room_event_list(struct room_data *rm)
 {
   if (rm != NULL)
+  {
+    struct domain_event_bus *bus = domain_event_runtime_bus();
+    struct domain_entity_handle owner = domain_entity_handle_none();
+
+    if (bus != NULL && rm->event_owner_generation != 0U)
+    {
+      owner.kind = DOMAIN_ENTITY_ROOM;
+      owner.runtime_id = (uint64_t)rm->number + 1U;
+      owner.generation = rm->event_owner_generation;
+      (void)domain_event_unsubscribe_owner(bus, owner, NULL);
+    }
     clear_owned_event_list(&rm->events, &rm->event_owner_generation);
+  }
 }
 
 void clear_region_event_list(struct region_data *reg)

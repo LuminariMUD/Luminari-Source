@@ -22,6 +22,7 @@ void active_world_end_bootstrap(void);
 void active_world_shutdown(void);
 bool active_world_enabled(void);
 void active_world_sync_mobile(struct char_data *ch);
+void active_world_reconsider_character(struct char_data *ch);
 void active_world_forget_character(struct char_data *ch);
 size_t active_world_mobile_count(enum active_world_mobile_state state);
 size_t active_world_mobile_admission_limit(void);

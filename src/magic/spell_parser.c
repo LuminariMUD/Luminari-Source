@@ -8,6 +8,7 @@
 #define __SPELL_PARSER_C__
 
 #include "conf.h"
+#include "active_world.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
@@ -1702,6 +1703,8 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
 
 void resetCastingData(struct char_data *ch)
 {
+  bool was_casting = IS_CASTING(ch);
+
   IS_CASTING(ch) = FALSE;
   CASTING_TIME(ch) = 0;
   CASTING_TIME_MAX(ch) = 0;
@@ -1710,6 +1713,8 @@ void resetCastingData(struct char_data *ch)
   CASTING_TOBJ(ch) = NULL;
   GET_AUGMENT_PSP(ch) = 0;
   GET_DC_BONUS(ch) = 0; // another redundancy, but doesn't hurt.  Also removed in mag_saving_throws
+  if (was_casting)
+    active_world_reconsider_character(ch);
 }
 
 int castingCheckOk(struct char_data *ch)

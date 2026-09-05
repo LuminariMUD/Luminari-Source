@@ -657,6 +657,31 @@ void Test_mud_event_durable_restore_rehydrates_fresh_runtime_identity(CuTest *tc
   pulse = saved_pulse;
 }
 
+void Test_mud_event_save_preserves_overdue_charge_debt(CuTest *tc)
+{
+  struct mud_event_durable_record record;
+  struct player_special_data specials;
+  struct char_data ch;
+  struct mud_event_data *event;
+  unsigned long saved_pulse = pulse;
+
+  event_free_all();
+  pulse = 100U;
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  initialize_persistence_test_character(&ch, &specials, 4244L);
+  attach_mud_event(new_mud_event(eLAYONHANDS, &ch, "uses:3"), 5L);
+  event = char_has_mud_event(&ch, eLAYONHANDS);
+  pulse = 110U;
+  CuAssertIntEquals(tc, 0, (int)mud_event_remaining(event));
+  CuAssertTrue(tc, mud_event_make_durable_record(&ch, event, 1000, &record));
+  CuAssertIntEquals(tc, 3, record.payload_value);
+  CuAssertTrue(tc, record.remaining_ticks == 1);
+  clear_char_event_list(&ch);
+  event_free_all();
+  pulse = saved_pulse;
+}
+
 void Test_mud_event_durable_restore_rejects_invalid_records(CuTest *tc)
 {
   struct mud_event_durable_record record;

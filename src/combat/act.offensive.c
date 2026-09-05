@@ -11,6 +11,7 @@
 #include <zconf.h>
 
 #include "conf.h"
+#include "character_periodic.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
@@ -2168,6 +2169,7 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict)
       af.spell = SKILL_SHIELD_SLAM;
       SET_BIT_AR(af.bitvector, AFF_DAZED);
       GET_NODAZE_COOLDOWN(vict) = NODAZE_COOLDOWN_TIMER;
+      character_periodic_sync(vict);
       af.duration = 1; /* One round */
       affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
       act("$N appears to be dazed by $n's blow!", FALSE, ch, NULL, vict, TO_NOTVICT);
@@ -10359,6 +10361,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict)
         act("$e is thrown off-blance by your kick at $m!", FALSE, vict, 0, ch, TO_VICT);
         act("$n is thrown off-balance by a kick from $N!", FALSE, vict, 0, ch, TO_NOTVICT);
         vict->char_specials.recently_kicked = 5;
+        character_periodic_sync(vict);
       }
     }
 
@@ -14629,6 +14632,7 @@ void perform_slam(struct char_data *ch, struct char_data *vict)
     else
       damage(ch, vict, 0, SKILL_SLAM, DAM_FORCE, FALSE);
     vict->char_specials.recently_slammed = 3;
+    character_periodic_sync(vict);
   }
   else
   {

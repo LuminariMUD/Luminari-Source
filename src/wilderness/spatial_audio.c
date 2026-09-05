@@ -862,6 +862,7 @@ int spatial_audio_emit(int source_x, int source_y, int source_z, const char *sou
 {
   struct spatial_context *ctx;
   struct char_data *ch;
+  struct descriptor_data *descriptor;
   int processed_count = 0;
 
   if (!sound_desc)
@@ -890,10 +891,11 @@ int spatial_audio_emit(int source_x, int source_y, int source_z, const char *sou
   /* Set effective range */
   ctx->effective_range = range;
 
-  /* Process for all wilderness players */
-  for (ch = character_list; ch; ch = ch->next)
+  /* Only connected observers can receive a sound; do not traverse the NPC population. */
+  for (descriptor = descriptor_list; descriptor; descriptor = descriptor->next)
   {
-    if (IS_NPC(ch) || !ch->desc)
+    ch = descriptor->character;
+    if (ch == NULL || IS_NPC(ch) || IN_ROOM(ch) == NOWHERE || IN_ROOM(ch) > top_of_world)
       continue;
     if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
       continue;

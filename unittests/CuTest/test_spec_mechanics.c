@@ -4158,6 +4158,8 @@ void Test_spec_rol_trade_bandit_preserves_cargo_tolls_and_cleanup_timer(CuTest *
   commands[1].command = "get";
   saved_complete_cmd_info = complete_cmd_info;
   complete_cmd_info = commands;
+  /* The first invocation starts the expiry timer, including command invocations. */
+  before = time(NULL);
   CuAssertIntEquals(tc, TRUE, rol_bandit(&fixture.target, &fixture.actor, 1, ""));
   CuAssertTrue(tc, fixture.actor.mob_specials.rol_bandit_victim_id == 4242);
   CuAssertIntEquals(tc, 50, fixture.actor.mob_specials.rol_bandit_fee_gold);
@@ -4165,7 +4167,6 @@ void Test_spec_rol_trade_bandit_preserves_cargo_tolls_and_cleanup_timer(CuTest *
   fixture.actor.mob_specials.rol_bandit_victim_id = 0;
   fixture.actor.mob_specials.rol_bandit_fee_gold = 0;
 
-  before = time(NULL);
   CuAssertIntEquals(tc, FALSE, rol_bandit(&fixture.actor, &fixture.actor, 0, ""));
   CuAssertTrue(tc, fixture.actor.mob_specials.rol_bandit_expire_at >=
                        before + (10 * SECS_PER_MUD_HOUR));

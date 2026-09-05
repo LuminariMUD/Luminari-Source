@@ -6,6 +6,12 @@
 #include "../../src/utils.h"
 #include "../../src/db.h"
 #include "../../src/handler.h"
+#include "../../src/mud_event.h"
+#include "../../src/mudlim.h"
+#include "../../src/graph.h"
+#include "../../src/combat/fight.h"
+#include "../../src/combat/encounters.h"
+#include "../../src/movement/movement_position.h"
 #include "../../src/active_world.h"
 #include "../../src/affected_owners.h"
 #include "../../src/character_periodic.h"
@@ -823,6 +829,10 @@ void TestDomainEventSubscriptionCapacityLimitsAreIndependent(CuTest *tc)
 
 static void verify_ready_action_filters_entry_then_runs_through_interpreter(CuTest *tc)
 {
+  struct obj_data subscription_object;
+  struct subscription_fixture subscription_fixture = {0};
+  struct domain_event_subscription_config subscription_config = {0};
+  struct domain_event_subscription_handle subscription_handle;
   struct room_data room;
   struct room_data *saved_world = world;
   struct char_data owner;
@@ -874,6 +884,27 @@ static void verify_ready_action_filters_entry_then_runs_through_interpreter(CuTe
   event_init();
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_seal_types());
+  clear_object(&subscription_object);
+  subscription_config.type = DOMAIN_EVENT_CHARACTER_MOVED;
+  subscription_config.owner = domain_event_object_handle(&subscription_object);
+  subscription_config.topic.role = DOMAIN_EVENT_TOPIC_DESTINATION;
+  subscription_config.topic.entity = domain_event_room_handle(0);
+  subscription_config.identity = "test.object-cleanup";
+  subscription_config.handler = subscription_handler;
+  subscription_config.cleanup = subscription_cleanup;
+  subscription_config.handler_context = &subscription_fixture;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &subscription_config,
+                                           &subscription_handle));
+  clear_obj_event_list(&subscription_object);
+  CuAssertIntEquals(tc, 1, subscription_fixture.cleanups);
+  subscription_config.owner = domain_event_room_handle(0);
+  subscription_config.identity = "test.room-cleanup";
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &subscription_config,
+                                           &subscription_handle));
+  clear_room_event_list(&room);
+  CuAssertIntEquals(tc, 2, subscription_fixture.cleanups);
   if (complete_cmd_info == NULL)
   {
     create_command_list();
@@ -894,11 +925,12 @@ static void verify_ready_action_filters_entry_then_runs_through_interpreter(CuTe
   CuAssertIntEquals(tc, POS_STANDING, GET_POS(&owner));
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     domain_event_runtime_character_moved(&entrant, NOWHERE, 0, -1));
-  CuAssertPtrEquals(tc, NULL, owner.ready_action);
+  CuAssertPtrNotNull(tc, owner.ready_action);
   CuAssertIntEquals(tc, POS_STANDING, GET_POS(&owner));
   pulse++;
   event_process();
   CuAssertIntEquals(tc, POS_RESTING, GET_POS(&owner));
+  CuAssertPtrEquals(tc, NULL, owner.ready_action);
   domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);
   CuAssertIntEquals(tc, 0, (int)stats.live_subscription_count);
 
@@ -922,12 +954,33 @@ static void verify_ready_action_filters_entry_then_runs_through_interpreter(CuTe
   do_ready(&owner, "rest on entry entrant", 0, 0);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     domain_event_runtime_character_moved(&entrant, NOWHERE, 0, -1));
-  CuAssertPtrEquals(tc, NULL, owner.ready_action);
+  CuAssertPtrNotNull(tc, owner.ready_action);
   IN_ROOM(&owner) = NOWHERE;
   pulse++;
   event_process();
   CuAssertIntEquals(tc, POS_STANDING, GET_POS(&owner));
   IN_ROOM(&owner) = 0;
+
+  do_ready(&owner, "rest on entry entrant", 0, 0);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_moved(&entrant, NOWHERE, 0, -1));
+  do_ready(&owner, "cancel", 0, 0);
+  CuAssertPtrEquals(tc, NULL, owner.ready_action);
+  pulse++;
+  event_process();
+  CuAssertIntEquals(tc, POS_STANDING, GET_POS(&owner));
+
+  do_ready(&owner, "rest on entry entrant", 0, 0);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_moved(&entrant, NOWHERE, 0, -1));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_moved(&owner, 0, NOWHERE, -1));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_moved(&owner, NOWHERE, 0, -1));
+  pulse++;
+  event_process();
+  CuAssertIntEquals(tc, POS_STANDING, GET_POS(&owner));
+  CuAssertPtrEquals(tc, NULL, owner.ready_action);
 
   do_ready(&owner, "say shutdown-cleanup on entry", 0, 0);
   CuAssertPtrNotNull(tc, owner.ready_action);
@@ -1410,6 +1463,8 @@ void TestActiveWorldResourceRecoveryWakesAndRetiresOneOwner(CuTest *tc)
 
 void TestActiveWorldReactionsAndScavengingAreDemandDriven(CuTest *tc)
 {
+  struct index_data mobile_index[1] = {0};
+  struct index_data *saved_mobile_index = mob_index;
   struct room_data room;
   struct char_data player;
   struct player_special_data player_specials;
@@ -1478,6 +1533,8 @@ void TestActiveWorldReactionsAndScavengingAreDemandDriven(CuTest *tc)
   CuAssertIntEquals(tc, 0, (int)active_world_mobile_reason_count(MOBILE_WORK_ROOM_REACTION));
   CuAssertIntEquals(tc, 0, event_queue_depth());
   active_world_end_bootstrap();
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_reason_count(MOBILE_WORK_ROOM_REACTION));
+  process_scheduler_pulses(1U);
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
@@ -1488,6 +1545,31 @@ void TestActiveWorldReactionsAndScavengingAreDemandDriven(CuTest *tc)
   process_scheduler_pulses(1U);
   CuAssertIntEquals(tc, 0, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
   CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  SET_BIT_AR(AFF_FLAGS(&player), AFF_HIDE);
+  appear(&player, true);
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_reason_count(MOBILE_WORK_ROOM_REACTION));
+  process_scheduler_pulses(1U);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  SET_BIT_AR(MOB_FLAGS(&aggressive), MOB_HUNTER);
+  mob_index = mobile_index;
+  do_mhunt(&aggressive, "observer", 0, 0);
+  mob_index = saved_mobile_index;
+  CuAssertPtrEquals(tc, &player, HUNTING(&aggressive));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_reason_count(MOBILE_WORK_HUNT));
+  set_hunting_target(&aggressive, NULL);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  REMOVE_BIT_AR(MOB_FLAGS(&scavenger), MOB_SENTINEL);
+  change_position(&scavenger, POS_SITTING);
+  process_scheduler_pulses(1U);
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_reason_count(MOBILE_WORK_WANDER));
+  change_position(&scavenger, POS_STANDING);
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_reason_count(MOBILE_WORK_WANDER));
+  SET_BIT_AR(MOB_FLAGS(&scavenger), MOB_SENTINEL);
+  active_world_sync_mobile(&scavenger);
+  process_scheduler_pulses(1U);
 
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     domain_event_runtime_character_moved(&scavenger, 0, 0, -1));
@@ -1521,6 +1603,7 @@ void TestActiveWorldReactionsAndScavengingAreDemandDriven(CuTest *tc)
 
 void TestIdleNpcPeriodicWorkIsSeparateFromAutonomousAgenda(CuTest *tc)
 {
+  struct obj_data gear;
   struct room_data room;
   struct char_data mobile;
   struct room_data *saved_world = world;
@@ -1567,6 +1650,38 @@ void TestIdleNpcPeriodicWorkIsSeparateFromAutonomousAgenda(CuTest *tc)
   CuAssertIntEquals(tc, 0, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
 
   GET_HIT(&mobile) = GET_MAX_HIT(&mobile);
+  character_periodic_sync(&mobile);
+  CuAssertIntEquals(tc, 0, (int)character_periodic_owner_count());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  SET_BIT_AR(MOB_FLAGS(&mobile), MOB_ENCOUNTER);
+  mobile.mob_specials.extract_timer = -1;
+  set_expire_cooldown(0);
+  CuAssertIntEquals(tc, 10, mobile.mob_specials.extract_timer);
+  CuAssertIntEquals(tc, 1, (int)character_periodic_owner_count());
+  reset_expire_cooldown(0);
+  CuAssertIntEquals(tc, 0, (int)character_periodic_owner_count());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  mobile.mob_specials.peaceful_timer = -1;
+  mobile.mob_specials.aggro_timer = 1;
+  proc_d20_round_one(&mobile);
+  CuAssertIntEquals(tc, 0, mobile.mob_specials.aggro_timer);
+  CuAssertTrue(tc, MOB_FLAGGED(&mobile, MOB_AGGRESSIVE));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_reason_count(MOBILE_WORK_ROOM_REACTION));
+  REMOVE_BIT_AR(MOB_FLAGS(&mobile), MOB_AGGRESSIVE);
+  active_world_sync_mobile(&mobile);
+  character_periodic_sync(&mobile);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  REMOVE_BIT_AR(MOB_FLAGS(&mobile), MOB_ENCOUNTER);
+
+  clear_object(&gear);
+  HAS_SPELLS(&gear) = true;
+  GET_WEAPON_SPELL(&gear, 0) = SPELL_ARMOR;
+  GET_WEAPON_SPELL_AGG(&gear, 0) = false;
+  GET_EQ(&mobile, WEAR_WIELD_1) = &gear;
+  character_periodic_sync(&mobile);
+  CuAssertIntEquals(tc, 1, (int)character_periodic_owner_count());
+  GET_EQ(&mobile, WEAR_WIELD_1) = NULL;
   character_periodic_sync(&mobile);
   CuAssertIntEquals(tc, 0, (int)character_periodic_owner_count());
   CuAssertIntEquals(tc, 0, event_queue_depth());

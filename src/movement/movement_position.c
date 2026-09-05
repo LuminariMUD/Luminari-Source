@@ -25,6 +25,8 @@
 #include "magic/spell_prep.h"
 #include "movement_position.h"
 #include "config.h"
+#include "active_world.h"
+#include "character_periodic.h"
 
 /* Functions moved from movement.c */
 
@@ -84,7 +86,7 @@ ACMD(do_stand)
     /* Were they sitting in something? */
     char_from_furniture(ch);
     /* Will be sitting after a successful bash and may still be fighting. */
-    GET_POS(ch) = FIGHTING(ch) ? POS_FIGHTING : POS_STANDING;
+    change_position(ch, FIGHTING(ch) ? POS_FIGHTING : POS_STANDING);
     USE_MOVE_ACTION(ch);
 
     if (FIGHTING(ch))
@@ -402,6 +404,8 @@ int change_position(struct char_data *ch, int new_position)
 
   /* this is really all that is going on here :P */
   GET_POS(ch) = new_position;
+  active_world_reconsider_character(ch);
+  character_periodic_sync(ch);
 
   /* we don't have a significant return value yet */
   if (old_position == new_position)

@@ -34,12 +34,20 @@ static void assert_driver_readiness_and_cadence(CuTest *tc, enum luminari_io_dri
   CuAssertIntEquals(tc, 1, (int)write(sockets[1], &marker, sizeof(marker)));
 
   started = luminari_reactor_monotonic_usec();
-  CuAssertIntEquals(tc, LUMINARI_REACTOR_OK, luminari_reactor_wait(reactor, 30000));
+  CuAssertIntEquals(tc, LUMINARI_REACTOR_OK, luminari_reactor_wait(reactor, 1000000));
   elapsed = luminari_reactor_monotonic_usec() - started;
 
   CuAssertTrue(tc, luminari_reactor_ready(reactor, sockets[0], LUMINARI_REACTOR_READ));
-  CuAssertTrue(tc, elapsed >= 20000);
   CuAssertTrue(tc, elapsed < 500000);
+  CuAssertIntEquals(tc, 1, (int)read(sockets[0], &marker, sizeof(marker)));
+  CuAssertIntEquals(tc, LUMINARI_REACTOR_OK, luminari_reactor_begin_cycle(reactor));
+  CuAssertIntEquals(tc, LUMINARI_REACTOR_OK,
+                    luminari_reactor_watch(reactor, sockets[0], LUMINARI_REACTOR_READ));
+  started = luminari_reactor_monotonic_usec();
+  CuAssertIntEquals(tc, LUMINARI_REACTOR_OK, luminari_reactor_wait(reactor, 30000));
+  elapsed = luminari_reactor_monotonic_usec() - started;
+  CuAssertTrue(tc, elapsed >= 20000);
+  CuAssertTrue(tc, !luminari_reactor_ready(reactor, sockets[0], LUMINARI_REACTOR_READ));
   luminari_reactor_destroy(reactor);
   close(sockets[0]);
   close(sockets[1]);

@@ -711,6 +711,7 @@ int spatial_visual_emit(int source_x, int source_y, int source_z, const char *de
 {
   struct spatial_context *ctx;
   struct char_data *ch;
+  struct descriptor_data *descriptor;
   int processed_count = 0;
 
   if (!description)
@@ -736,16 +737,16 @@ int spatial_visual_emit(int source_x, int source_y, int source_z, const char *de
   ctx->source_description = strdup(description);
   ctx->base_intensity = intensity;
 
-  /* Process for all wilderness players */
-  for (ch = character_list; ch; ch = ch->next)
+  /* Only connected observers can receive a sight; do not traverse the NPC population. */
+  for (descriptor = descriptor_list; descriptor; descriptor = descriptor->next)
   {
-    if (IS_NPC(ch) || !ch->desc)
+    ch = descriptor->character;
+    if (ch == NULL || IS_NPC(ch) || IN_ROOM(ch) == NOWHERE || IN_ROOM(ch) > top_of_world)
       continue;
     if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
       continue;
-    if (spatial_calculate_3d_distance(X_LOC(ch), Y_LOC(ch),
-                                      get_modified_elevation(X_LOC(ch), Y_LOC(ch)), source_x,
-                                      source_y, source_z) > range)
+    /* The publication radius is in map coordinates; altitude affects line of sight. */
+    if (hypot((double)X_LOC(ch) - source_x, (double)Y_LOC(ch) - source_y) > range)
       continue;
 
     /* Set observer information */

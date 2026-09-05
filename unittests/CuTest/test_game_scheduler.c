@@ -353,6 +353,32 @@ void Test_game_scheduler_normalizes_deadlines_and_rejects_overflow(CuTest *tc)
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_destroy(scheduler));
 }
 
+void Test_game_scheduler_relative_deadlines_use_clock_before_dispatch(CuTest *tc)
+{
+  struct test_clock clock = {0};
+  struct game_scheduler *scheduler;
+  struct game_event_snapshot snapshot;
+  game_event_type_id_t type;
+  game_event_id_t id;
+  game_tick_t remaining;
+
+  clock.tick = 100U;
+  scheduler = create_test_scheduler(tc, &clock, 4U, true);
+  type = register_test_type(tc, scheduler, "fresh-clock", GAME_EVENT_LATENESS_RUN_ONCE, 0U, 0U);
+  clock.tick = 110U;
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    game_scheduler_schedule_after(scheduler, type, 5U, NULL, &id));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_inspect(scheduler, id, &snapshot));
+  CuAssertTrue(tc, snapshot.deadline_tick == 115U);
+  clock.tick = 113U;
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_remaining(scheduler, id, &remaining));
+  CuAssertTrue(tc, remaining == 2U);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_reschedule_after(scheduler, id, 5U));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_inspect(scheduler, id, &snapshot));
+  CuAssertTrue(tc, snapshot.deadline_tick == 118U);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_destroy(scheduler));
+}
+
 void Test_game_scheduler_places_every_wheel_boundary_and_overflow(CuTest *tc)
 {
   static const game_tick_t delays[] = {0U,

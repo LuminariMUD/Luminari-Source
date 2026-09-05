@@ -126,9 +126,20 @@ static bool is_in_world(const struct char_data *ch)
 static bool npc_has_periodic_work(const struct char_data *ch)
 {
   int index;
+  int slot;
+  struct obj_data *gear;
 
   if (ch == NULL || !IS_NPC(ch) || !is_in_world(ch))
     return false;
+  for (slot = 0; slot < NUM_WEARS; slot++)
+  {
+    gear = GET_EQ(ch, slot);
+    if (gear == NULL || !HAS_SPELLS(gear))
+      continue;
+    for (index = 0; index < MAX_WEAPON_SPELLS; index++)
+      if (GET_WEAPON_SPELL(gear, index) && !GET_WEAPON_SPELL_AGG(gear, index))
+        return true;
+  }
   if (ch->affected != NULL || GET_HIT(ch) != GET_MAX_HIT(ch) || GET_MOVE(ch) != GET_MAX_MOVE(ch) ||
       GET_PSP(ch) != GET_MAX_PSP(ch) || RIDING(ch) != NULL || RIDDEN_BY(ch) != NULL ||
       (GET_POS(ch) == POS_FIGHTING && FIGHTING(ch) == NULL))

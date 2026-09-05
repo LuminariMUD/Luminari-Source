@@ -235,7 +235,7 @@ static void prepare_pending_extraction_references(void)
     if (character_is_pending_extraction(ACCOMPANYING(ch)))
       ACCOMPANYING(ch) = NULL;
     if (character_is_pending_extraction(HUNTING(ch)))
-      HUNTING(ch) = NULL;
+      set_hunting_target(ch, NULL);
     if (character_is_pending_extraction(CASTING_TCH(ch)))
       resetCastingData(ch);
     if (character_is_pending_extraction(FIGHTING(ch)))
@@ -1425,6 +1425,18 @@ void affect_total(struct char_data *ch)
     update_msdp_affects(ch);
 }
 
+static bool affect_changes_mobile_reactions(const struct affected_type *af)
+{
+  return af->spell == SPELL_CAMOUFLAGE || IS_SET_AR(af->bitvector, AFF_INVISIBLE) ||
+         IS_SET_AR(af->bitvector, AFF_HIDE) ||
+         IS_SET_AR(af->bitvector, AFF_BLIND) || IS_SET_AR(af->bitvector, AFF_SLEEP) ||
+         IS_SET_AR(af->bitvector, AFF_STUN) || IS_SET_AR(af->bitvector, AFF_PARALYZED) ||
+         IS_SET_AR(af->bitvector, AFF_DAZED) || IS_SET_AR(af->bitvector, AFF_CHARM) ||
+         IS_SET_AR(af->bitvector, AFF_NAUSEATED) || IS_SET_AR(af->bitvector, AFF_DETECT_INVIS) ||
+         IS_SET_AR(af->bitvector, AFF_INFRAVISION) || IS_SET_AR(af->bitvector, AFF_ULTRAVISION) ||
+         IS_SET_AR(af->bitvector, AFF_TRUE_SIGHT) || IS_SET_AR(af->bitvector, AFF_MAGE_FLAME);
+}
+
 /* Insert an affect_type with an explicit runtime source owner. */
 void affect_to_char_source(struct char_data *ch, struct affected_type *af, long source_id)
 {
@@ -1464,6 +1476,8 @@ void affect_to_char_source(struct char_data *ch, struct affected_type *af, long 
   }
 
   affect_total(ch);
+  if (affect_changes_mobile_reactions(af))
+    active_world_reconsider_character(ch);
 }
 
 /* Insert an ordinary, unowned affect_type in a char_data structure. */
@@ -1534,6 +1548,8 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
 {
   struct affected_type *temp = NULL;
   bool removes_repulsion;
+  bool changes_reactions;
+  bool removes_flight;
   // bool is_ac_new = false;
 
   if (ch->affected == NULL)
@@ -1543,6 +1559,9 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   }
 
   removes_repulsion = IS_SET_AR(af->bitvector, AFF_REPULSION);
+  changes_reactions = affect_changes_mobile_reactions(af);
+  removes_flight = IS_SET_AR(af->bitvector, AFF_FLYING) ||
+                  IS_SET_AR(af->bitvector, AFF_LEVITATE);
 
   // if (!IS_NPC(ch) && af->location == APPLY_AC_NEW)
   // is_ac_new = true;
@@ -1587,6 +1606,13 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   affected_registry_sync(ch);
 
   affect_total(ch);
+
+  character_periodic_sync(ch);
+  if (changes_reactions)
+    active_world_reconsider_character(ch);
+  if (removes_flight && world != NULL && IN_ROOM(ch) != NOWHERE && IN_ROOM(ch) <= top_of_world &&
+      char_should_fall(ch, FALSE) && !char_has_mud_event(ch, eFALLING))
+    attach_mud_event(new_mud_event(eFALLING, ch, "20"), 5);
 
   if (removes_repulsion && !AFF_FLAGGED(ch, AFF_REPULSION))
     clear_repulsion_lists(ch);
@@ -2640,6 +2666,7 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
 
   /* artifact: claim, bind, and apply level-scaled bonuses */
   artifact_on_equip(ch, obj, pos);
+  character_periodic_sync(ch);
 }
 
 struct obj_data *unequip_char(struct char_data *ch, int pos)
@@ -2704,6 +2731,7 @@ struct obj_data *unequip_char(struct char_data *ch, int pos)
   }
   affect_total(ch);
 
+  character_periodic_sync(ch);
   return (obj);
 }
 
@@ -3263,7 +3291,7 @@ void extract_char_final(struct char_data *ch)
         continue;
       /* If "temp" is hunting our extracted char, stop the hunt. */
       if (HUNTING(temp) == ch)
-        HUNTING(temp) = NULL;
+        set_hunting_target(temp, NULL);
       /* If "temp" has allocated memory data and our ch is a PC, forget the
        * extracted character (if he/she is remembered) */
       if (!IS_NPC(ch) && GET_POS(ch) == POS_DEAD && MEMORY(temp))

@@ -7,6 +7,7 @@
 #include <math.h>
 
 #include "conf.h"
+#include "character_periodic.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
@@ -1729,6 +1730,7 @@ void check_random_encounter(struct char_data *ch)
           mob->mob_specials.sentient = encounter_table[j].sentient;
           mob->mob_specials.extract_timer = -1;
           mob->mob_specials.peaceful_timer = -1;
+          character_periodic_sync(mob);
 
           // set stats
           GET_CLASS(mob) = encounter_table[j].char_class;
@@ -1858,6 +1860,7 @@ void set_encounter_peaceful(struct char_data *ch)
       tch->mob_specials.peaceful_timer = 10;
       if (tch->mob_specials.hostile)
         tch->mob_specials.aggro_timer = 5;
+      character_periodic_sync(tch);
     }
   }
 }
@@ -1903,7 +1906,10 @@ void set_encounter_to_peaceful(struct char_data *ch)
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
   {
     if (IS_NPC(tch) && MOB_FLAGGED(tch, MOB_ENCOUNTER))
+    {
       tch->mob_specials.peaceful_timer = 10;
+      character_periodic_sync(tch);
+    }
   }
 }
 
@@ -2323,6 +2329,7 @@ void set_expire_cooldown(room_rnum rnum)
       {
         if (tch->mob_specials.extract_timer == -1)
           tch->mob_specials.extract_timer = 10;
+        character_periodic_sync(tch);
       }
     }
   }
@@ -2343,6 +2350,7 @@ void reset_expire_cooldown(room_rnum rnum)
       {
         if (tch->mob_specials.extract_timer != -1)
           tch->mob_specials.extract_timer = -1;
+        character_periodic_sync(tch);
       }
     }
   }

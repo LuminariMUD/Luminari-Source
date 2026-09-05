@@ -23,6 +23,7 @@ struct ready_action
   struct domain_event_subscription_handle entry_subscription;
   struct domain_event_subscription_handle movement_subscription;
   struct domain_event_subscription_handle death_subscription;
+  struct event_runtime_handle execution_handle;
   unsigned int references;
   char *command;
   char *target;
@@ -70,6 +71,8 @@ static void ready_subscription_cleanup(void *handler_context)
   ch = bus != NULL ? resolve_character(bus, action->owner) : NULL;
   if (ch != NULL && ch->ready_action == action)
     ch->ready_action = NULL;
+  if (!event_runtime_handle_is_none(action->execution_handle))
+    (void)event_runtime_cancel(action->execution_handle);
   free(action->command);
   free(action->target);
   free(action);
@@ -90,6 +93,11 @@ static void cancel_action(struct ready_action *action, bool notify)
   ch = resolve_character(bus, action->owner);
   if (notify && ch != NULL)
     send_to_char(ch, "Your readied action is cancelled.\r\n");
+  if (!event_runtime_handle_is_none(action->execution_handle))
+  {
+    (void)event_runtime_cancel(action->execution_handle);
+    action->execution_handle = EVENT_RUNTIME_HANDLE_NONE;
+  }
   handles[0] = action->entry_subscription;
   handles[1] = action->movement_subscription;
   handles[2] = action->death_subscription;
@@ -121,6 +129,10 @@ static struct game_event_result ready_execution_callback(const struct game_event
   if (execution == NULL || bus == NULL)
     return game_event_result_complete();
   ch = resolve_character(bus, execution->owner);
+  if (ch == NULL || ch->ready_action == NULL)
+    return game_event_result_complete();
+  ch->ready_action->execution_handle = EVENT_RUNTIME_HANDLE_NONE;
+  cancel_action(ch->ready_action, false);
   if (ch == NULL || GET_POS(ch) <= POS_DEAD || IN_ROOM(ch) == NOWHERE ||
       !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(ch)), execution->room))
     return game_event_result_complete();
@@ -183,6 +195,8 @@ static void ready_entry_handler(const struct domain_event_context *context, void
 
   owner = resolve_character(context->bus, action->owner);
   entrant = resolve_character(context->bus, moved->character);
+  if (!event_runtime_handle_is_none(action->execution_handle))
+    return;
   if (owner == NULL || owner->ready_action != action || entrant == NULL || entrant == owner ||
       !domain_entity_handle_equal(moved->to_room, action->room) || !target_matches(action, entrant))
     return;
@@ -207,7 +221,7 @@ static void ready_entry_handler(const struct domain_event_context *context, void
     return;
   }
   send_to_char(owner, "Your readied action triggers as %s enters.\r\n", GET_NAME(entrant));
-  cancel_action(action, false);
+  action->execution_handle = event_handle;
 }
 
 static void ready_movement_handler(const struct domain_event_context *context,

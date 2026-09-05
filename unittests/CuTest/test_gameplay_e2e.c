@@ -9,6 +9,7 @@
 #include "../../src/bardic_performance.h"
 #include "../../src/craft/craft.h"
 #include "../../src/db.h"
+#include "../../src/comm.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/combat/fight.h"
 #include "../../src/olc/genwld.h"
@@ -22,12 +23,61 @@
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
 #include "../../src/spec/spec_binding.h"
+#include "../../src/mud_event.h"
+#include "../../src/dgscript/dg_event.h"
 
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+void Test_gameplay_load_recovers_charges_after_effective_stats(CuTest *tc)
+{
+  struct player_index_element index[1] = {0};
+  struct player_index_element *saved_table = player_table;
+  int saved_top = top_of_p_table;
+  struct char_data *loaded = new_char();
+  struct mud_event_data *event;
+  char directory[PATH_MAX];
+  char filename[MAX_FILEPATH];
+  char name[32];
+  FILE *file;
+  int result;
+  bool restored = false;
+  unsigned long saved_pulse = pulse;
+
+  snprintf(name, sizeof(name), "Zzev%ld", (long)getpid());
+  index[0].name = name;
+  index[0].id = 4245;
+  player_table = index;
+  top_of_p_table = 0;
+  CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
+  CuAssertIntEquals(tc, 0, chdir("lib"));
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
+  file = fopen(filename, "w");
+  CuAssertPtrNotNull(tc, file);
+  fprintf(file, "Name: %s\nId  : 4245\nLevl: 7\nEvn2: %u\n%d 2 4245 1 %lld 3\n-1\nCha : 18\n",
+          name, MUD_EVENT_DURABLE_FORMAT_VERSION, eCHANNELENERGY,
+          (long long)time(NULL) - 2);
+  fclose(file);
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  result = load_char(name, loaded);
+  event = char_has_mud_event(loaded, eCHANNELENERGY);
+  if (event != NULL)
+    restored = event->sVariables != NULL && !strcmp(event->sVariables, "uses:2");
+  unlink(filename);
+  CuAssertIntEquals(tc, 0, chdir(directory));
+  free_char(loaded);
+  event_free_all();
+  pulse = saved_pulse;
+  player_table = saved_table;
+  top_of_p_table = saved_top;
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertTrue(tc, restored);
+}
 
 struct gameplay_fixture
 {

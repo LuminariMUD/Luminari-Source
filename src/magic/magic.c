@@ -9,6 +9,7 @@
  **************************************************************************/
 
 #include "conf.h"
+#include "character_periodic.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
@@ -5580,6 +5581,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = 1 + (GET_AUGMENT_PSP(ch) / 4);
     SET_BIT_AR(af[0].bitvector, AFF_DAZED);
     GET_NODAZE_COOLDOWN(victim) = NODAZE_COOLDOWN_TIMER;
+    character_periodic_sync(victim);
     to_vict = "An assault on your mind has left you dazed!";
     to_room = "$n suddenly looks shocked and dazed!";
     break;
@@ -6258,6 +6260,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n begins to slow down!";
       to_vict = "You feel yourself slow down!";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_DRAINING_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_VITRIOLIC_BLAST)
     {
@@ -6280,6 +6283,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You are covered in burning acid.";
       to_room = "$n is seared by burning acid!";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_VITRIOLIC_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BRIMSTONE_BLAST)
     {
@@ -6298,6 +6302,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You are covered searing flames!";
       to_room = "$n is covered in searing flames!";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BRIMSTONE_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_FRIGHTFUL_BLAST)
     {
@@ -6329,6 +6334,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n is shaken with fear!";
       to_vict = "You feel shaken and fearful!";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_FRIGHTFUL_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BESHADOWED_BLAST)
     {
@@ -6362,6 +6368,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n seems to be blinded!";
       to_vict = "You have been blinded!";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BESHADOWED_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_HELLRIME_BLAST)
     {
@@ -6386,6 +6393,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n is chilled to the bone!";
       to_vict = "You're so cold it's hard to move!";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_HELLRIME_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BEWITCHING_BLAST)
     {
@@ -6414,6 +6422,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_room = "A look of utter confusion washes over $n's face.";
       to_vict = "You find yourself completely confused and disoriented.";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BEWITCHING_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_NOXIOUS_BLAST)
     {
@@ -6438,9 +6447,11 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = 2;
       SET_BIT_AR(af[0].bitvector, AFF_DAZED);
       GET_NODAZE_COOLDOWN(victim) = NODAZE_COOLDOWN_TIMER;
+      character_periodic_sync(victim);
       to_vict = "An assault on your mind has left you dazed!";
       to_room = "$n suddenly looks shocked and dazed!";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_NOXIOUS_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BINDING_BLAST)
     {
@@ -6469,6 +6480,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n is stunned by the blast!";
       to_vict = "You are stunned by the blast!";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_BINDING_BLAST] = 10;
+      character_periodic_sync(victim);
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_UTTERDARK_BLAST)
     {
@@ -6505,6 +6517,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n is weakened by the utterdark blast.";
       to_vict = "You are weakened by an utterdark blast.";
       victim->char_specials.eldritch_blast_cooldowns[ELDRITCH_BLAST_COOLDOWN_UTTERDARK_BLAST] = 10;
+      character_periodic_sync(victim);
 
       accum_duration = accum_affect = TRUE;
     }

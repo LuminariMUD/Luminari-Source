@@ -45,6 +45,7 @@
 #include "rol_feats.h"
 #include "affected_owners.h"
 #include "character_periodic.h"
+#include "active_world.h"
 #include "point_update_periodic.h"
 
 // external functions
@@ -2567,6 +2568,7 @@ void proc_d20_round_one(struct char_data *i)
         {
           SET_BIT_AR(MOB_FLAGS(i), MOB_AGGRESSIVE);
           REMOVE_BIT_AR(MOB_FLAGS(i), MOB_HELPER); // helper and aggro flags conflict
+          active_world_reconsider_character(i);
         }
       }
     }

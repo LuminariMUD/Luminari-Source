@@ -1088,7 +1088,7 @@ ACMD(do_mhunt)
   }
   */
 
-  HUNTING(ch) = victim;
+  set_hunting_target(ch, victim);
 }
 
 /* Alert every loaded mobile matching one of the converted RoL helper prototypes. */
@@ -1146,7 +1146,7 @@ ACMD(do_mrolalert)
     if (helper_index == helper_count || !ok_damage_shopkeeper(victim, helper))
       continue;
 
-    HUNTING(helper) = victim;
+    set_hunting_target(helper, victim);
   }
 }
 

@@ -87,9 +87,16 @@ long top_idnum = 0;
  */
 
 /* local functions */
+struct pending_durable_event
+{
+  struct mud_event_durable_record record;
+  struct pending_durable_event *next;
+};
+
 static void load_dr(FILE *fl, struct char_data *ch);
 static void load_events(FILE *fl, struct char_data *ch);
-static void load_events_v2(FILE *fl, struct char_data *ch, const char *header);
+static void load_events_v2(FILE *fl, struct char_data *ch, const char *header,
+                           struct pending_durable_event **pending);
 static void load_affects(FILE *fl, struct char_data *ch, int affect_file_version);
 static void load_skills(FILE *fl, struct char_data *ch);
 static void load_feats(FILE *fl, struct char_data *ch);
@@ -487,6 +494,9 @@ char *get_name_by_id(long id)
  * if not. */
 int load_char(const char *name, struct char_data *ch)
 {
+  struct pending_durable_event *pending_events = NULL;
+  struct pending_durable_event *pending_event;
+  enum mud_event_restore_status restore_status;
   int id, i, j, parsed;
   int64_t cooldown_saved_at_epoch = 0;
   bool boarding_ability_current = FALSE;
@@ -1184,7 +1194,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Evnt"))
           load_events(fl, ch);
         else if (!strcmp(tag, "Evn2"))
-          load_events_v2(fl, ch, line);
+          load_events_v2(fl, ch, line, &pending_events);
         else if (!strcmp(tag, "Evol"))
           load_evolutions(fl, ch);
         else if (!strcmp(tag, "Ecfp"))
@@ -2121,6 +2131,19 @@ int load_char(const char *name, struct char_data *ch)
   }
 
   affect_total(ch);
+
+  /* Charge intervals depend on effective stats, not partially parsed pfile data. */
+  while (pending_events != NULL)
+  {
+    pending_event = pending_events;
+    pending_events = pending_event->next;
+    restore_status = mud_event_restore_character_record(ch, &pending_event->record,
+                                                        (int64_t)time(NULL));
+    if (restore_status != MUD_EVENT_RESTORE_OK && restore_status != MUD_EVENT_RESTORE_EXPIRED)
+      log("SYSERR: Ignoring durable event %d for %s: %s.", pending_event->record.event_type,
+          GET_NAME(ch), mud_event_restore_status_name(restore_status));
+    free(pending_event);
+  }
 
   if (cooldown_saved_at_epoch <= 0)
     cooldown_saved_at_epoch = (int64_t)ch->player.time.logon;
@@ -5730,10 +5753,11 @@ bool skip_durable_event_section_for_test(FILE *fl)
 }
 #endif
 
-static void load_events_v2(FILE *fl, struct char_data *ch, const char *header)
+static void load_events_v2(FILE *fl, struct char_data *ch, const char *header,
+                           struct pending_durable_event **pending)
 {
   struct mud_event_durable_record record;
-  enum mud_event_restore_status restore_status;
+  struct pending_durable_event *entry;
   unsigned int format_version;
   long long owner_id;
   long long remaining_ticks;
@@ -5743,6 +5767,9 @@ static void load_events_v2(FILE *fl, struct char_data *ch, const char *header)
   unsigned int schema_version;
   char trailing;
   char line[MAX_INPUT_LENGTH + 1];
+
+  while (*pending != NULL)
+    pending = &(*pending)->next;
 
   if (header == NULL || sscanf(header, "%u %c", &format_version, &trailing) != 1 ||
       format_version != MUD_EVENT_DURABLE_FORMAT_VERSION)
@@ -5773,10 +5800,10 @@ static void load_events_v2(FILE *fl, struct char_data *ch, const char *header)
     record.remaining_ticks = remaining_ticks;
     record.saved_at_epoch = saved_at_epoch;
     record.payload_value = payload_value;
-    restore_status = mud_event_restore_character_record(ch, &record, (int64_t)time(NULL));
-    if (restore_status != MUD_EVENT_RESTORE_OK && restore_status != MUD_EVENT_RESTORE_EXPIRED)
-      log("SYSERR: Ignoring durable event %d for %s: %s.", event_type, GET_NAME(ch),
-          mud_event_restore_status_name(restore_status));
+    CREATE(entry, struct pending_durable_event, 1);
+    entry->record = record;
+    *pending = entry;
+    pending = &entry->next;
   }
 
   log("SYSERR: Unterminated durable event section for %s.", GET_NAME(ch));

@@ -510,7 +510,7 @@ SPECIAL(shades)
 
   if (ch->in_room != ch->master->in_room)
   {
-    HUNTING(ch) = ch->master;
+    set_hunting_target(ch, ch->master);
     hunt_victim(ch);
     return TRUE;
   }

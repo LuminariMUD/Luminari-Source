@@ -14,6 +14,9 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "active_world.h"
+#include "character_periodic.h"
+#include "graph.h"
 #include "spec/spec_dispatch.h"
 #include "spec/spec_rol_conversion.h"
 #include "comm.h"
@@ -409,6 +412,9 @@ void perform_flee(struct char_data *ch)
    the forced variable is just used for greater invis */
 void appear(struct char_data *ch, bool forced)
 {
+  bool was_hidden = AFF_FLAGGED(ch, AFF_INVISIBLE) || AFF_FLAGGED(ch, AFF_HIDE) ||
+                    AFF_FLAGGED(ch, AFF_SNEAK);
+
   if (affected_by_spell(ch, SPELL_INVISIBLE))
     affect_from_char(ch, SPELL_INVISIBLE);
 
@@ -464,6 +470,8 @@ void appear(struct char_data *ch, bool forced)
     send_to_char(ch, "You snap into visibility...\r\n");
     act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
   }
+  if (was_hidden)
+    active_world_reconsider_character(ch);
 }
 
 /*  has_dex_bonus_to_ac(attacker, ch)
@@ -1771,6 +1779,7 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
     if (!is_immune_fear(vict, ch, false) && !is_immune_mind_affecting(vict, ch, false))
     {
       ch->char_specials.terror_cooldown = 200;
+      character_periodic_sync(ch);
       if (!savingthrow_full(vict, ch, AFFECT_AURA_OF_TERROR, 0, CAST_INNATE, GET_LEVEL(vict),
                             ENCHANTMENT, AFFECT_AURA_OF_TERROR))
       {
@@ -2455,7 +2464,7 @@ static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
       continue;
     /* If "temp" is hunting our extracted char, stop the hunt. */
     if (HUNTING(temp) == ch)
-      HUNTING(temp) = NULL;
+      set_hunting_target(temp, NULL);
     /* If "temp" has allocated memory data and our ch is a PC, forget the
      * extracted character (if he/she is remembered) */
     if (!IS_NPC(ch) && MEMORY(temp))
@@ -5705,7 +5714,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
     if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_MEMORY))
       forget(ch, victim);
     if (IS_NPC(ch) && HUNTING(ch) == victim)
-      HUNTING(ch) = NULL;
+      set_hunting_target(ch, NULL);
   }
 
   if (IN_ARENA(ch) || IN_ARENA(victim))
@@ -6225,10 +6234,10 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
   {
     if (!IS_NPC(ch))
     {
-      HUNTING(victim) = ch;
+      set_hunting_target(victim, ch);
     }
     else if (IS_PET(ch) && ch->master && IN_ROOM(ch->master) == IN_ROOM(ch) && !IS_NPC(ch->master))
-      HUNTING(victim) = ch->master; // help curb pet-fodder methods
+      set_hunting_target(victim, ch->master); /* help curb pet-fodder methods */
   }
 
   if (!IS_NPC(victim) && (eidolon = get_eidolon_in_room(victim)))
@@ -15281,6 +15290,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       if (!ch->char_specials.banishing_blade_procced_this_round)
       {
         ch->char_specials.banishing_blade_procced_this_round = TRUE;
+        character_periodic_sync(ch);
 
         if (!affected_by_spell(ch, AFFECT_IMMUNITY_BANISHING_BLADE))
         {
@@ -17374,6 +17384,7 @@ void perform_violence(struct char_data *ch, int phase)
   {
     bool had_move_action = is_action_available(ch, atMOVE, FALSE);
     bool had_standard_action = is_action_available(ch, atSTANDARD, FALSE);
+    bool used_encounter_actions = combat_encounter_semantic_manages(ch);
 
     /* handle smash defense */
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_SMASH_DEFENSE) && PRF_FLAGGED(ch, PRF_SMASH_DEFENSE) &&
@@ -17388,7 +17399,9 @@ void perform_violence(struct char_data *ch, int phase)
     }
 #undef NORMAL_ATTACK_ROUTINE
 
-    if (combat_encounter_semantic_manages(ch) && had_standard_action)
+    /* A killing blow can end encounter membership before its cost is charged. */
+    if (used_encounter_actions && had_standard_action && GET_POS(ch) > POS_DEAD &&
+        !MOB_FLAGGED(ch, MOB_NOTDEADYET))
     {
       USE_STANDARD_ACTION(ch);
       if (had_move_action && !AFF_FLAGGED(ch, AFF_STAGGERED))

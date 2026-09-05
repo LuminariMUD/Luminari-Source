@@ -572,15 +572,24 @@ static enum game_scheduler_status normalize_deadline(const struct game_scheduler
   return GAME_SCHEDULER_OK;
 }
 
+static game_tick_t observed_tick(const struct game_scheduler *scheduler)
+{
+  game_tick_t now = scheduler->config.tick_now(scheduler->config.clock_context);
+
+  return now > scheduler->current_tick ? now : scheduler->current_tick;
+}
+
 static enum game_scheduler_status deadline_after(const struct game_scheduler *scheduler,
                                                  game_tick_t delay_ticks,
                                                  game_tick_t *deadline_tick)
 {
+  game_tick_t now = observed_tick(scheduler);
+
   if (delay_ticks == 0)
     delay_ticks = 1U;
-  if (delay_ticks > UINT64_MAX - scheduler->current_tick)
+  if (delay_ticks > UINT64_MAX - now)
     return GAME_SCHEDULER_INVALID_DEADLINE;
-  *deadline_tick = scheduler->current_tick + delay_ticks;
+  *deadline_tick = now + delay_ticks;
   return GAME_SCHEDULER_OK;
 }
 
@@ -1767,16 +1776,18 @@ enum game_scheduler_status game_scheduler_remaining(const struct game_scheduler 
                                                     game_tick_t *remaining_ticks)
 {
   struct game_event *event;
+  game_tick_t now;
 
   if (scheduler == NULL || remaining_ticks == NULL)
     return GAME_SCHEDULER_INVALID_ARGUMENT;
   event = registry_find(scheduler, event_id);
   if (event == NULL)
     return GAME_SCHEDULER_NOT_FOUND;
-  if (event->deadline_tick <= scheduler->current_tick)
+  now = observed_tick(scheduler);
+  if (event->deadline_tick <= now)
     *remaining_ticks = 0;
   else
-    *remaining_ticks = event->deadline_tick - scheduler->current_tick;
+    *remaining_ticks = event->deadline_tick - now;
   return GAME_SCHEDULER_OK;
 }
 

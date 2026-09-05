@@ -1,0 +1,86 @@
+Reusing the development MUD on port 4101.
+
+>>> cast 'invisibility'
+432/432H 1160/1160V [smw] (news) (motd)
+You vanish.
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> load mob 16500
+.'
+432/432H 1160/1160V [smw] (news) (motd) load mob 16500
+432/432H 1160/1160V [smw] (news) (motd)
+You create a small wooden golem.
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> force golem stand
+.'
+432/432H 1160/1160V [smw] (news) (motd) force golem stand
+Okay.
+A small wooden golem stops floating around, and puts his feet on the ground.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> toggle nohassle
+.'
+432/432H 1160/1160V [smw] (news) (motd) toggle nohassle
+Nohassle disabled.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> @wait 2
+Paused the local test session for 2 second(s).
+.'
+
+432/432H 1160/1160V [smw] (news) (motd)
+
+>>> visible
+432/432H 1160/1160V [smw] (news) (motd)
+You are now fully visible.
+432/432H 1160/1160V [smw] (news) (motd)
+An arcane shield springs into being around you!
+You absorb all the damage! (6)
+432/432H 1160/1160V [smw] (news) (motd) >
+<T: Aster TC: perfect (Standing)> <E: a small wooden golem EC: perfect (Standing)>
+432/432H 1160/1160V [smw] (news) (motd) >
+<T: Aster TC: perfect (Standing)> <E: a small wooden golem EC: perfect (Standing)>
+
+>>> @wait 3
+Paused the local test session for 3 second(s).
+.'
+
+432/432H 1160/1160V [smw] (news) (motd) >
+<T: Aster TC: perfect (Standing)> <E: a small wooden golem EC: perfect (Standing)>
+
+Your defensive casting bonus fades.
+Your arcane shield dissipates.
+
+432/432H 1160/1160V [smw] (news) (motd) >
+<T: Aster TC: perfect (Standing)> <E: a small wooden golem EC: perfect (Standing)>
+
+>>> initiative
+432/432H 1160/1160V [smw] (news) (motd) >
+<T: Aster TC: perfect (Standing)> <E: a small wooden golem EC: perfect (Standing)>
+Initiative - Round 1
+Next round in 3 seconds.
+ #  Roll  Combatant
+--  ----  ---------
+ 1.   17  a small wooden golem
+ 2.    8  Aster (you)
+432/432H 1160/1160V [smw] (news) (motd) >
+<T: Aster TC: perfect (Standing)> <E: a small wooden golem EC: perfect (Standing)>
+432/432H 1160/1160V [smw] (news) (motd) >
+<T: Aster TC: perfect (Standing)> <E: a small wooden golem EC: perfect (Standing)>
+
+>>> purge golem
+.'
+432/432H 1160/1160V [smw] (news) (motd) >
+<T: Aster TC: perfect (Standing)> <E: a small wooden golem EC: perfect (Standing)>
+432/432H 1160/1160V [smw] (news) (motd) >
+<T: Aster TC: perfect (Standing)> <E: a small wooden golem EC: perfect (Standing)>
+Okay.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+
+>>> toggle nohassle
+.'
+432/432H 1160/1160V [smw] (news) (motd) toggle nohassle
+Nohassle enabled.
+432/432H 1160/1160V [smw] (news) (motd) 432/432H 1160/1160V [smw] (news) (motd)
+PASS: Aster ran 10 game command(s) and logged out cleanly (10s).

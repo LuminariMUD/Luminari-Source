@@ -10,6 +10,7 @@
 
 #include "structs.h"
 #include "utils.h"
+#include "graph.h"
 
 #include "act.h"
 #include "comm.h"
@@ -1180,7 +1181,7 @@ static void rol_ship_call_helpers(struct char_data *navigator, int ship_index)
           GET_ROOM_ZONE(IN_ROOM(helper)) != GET_ROOM_ZONE(IN_ROOM(navigator)))
         continue;
       if (helper != victim && FIGHTING(helper) == NULL)
-        HUNTING(helper) = victim;
+        set_hunting_target(helper, victim);
     }
   }
 }

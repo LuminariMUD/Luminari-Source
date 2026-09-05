@@ -377,6 +377,7 @@ static enum luminari_reactor_status wait_with_select(struct luminari_reactor *re
         if (FD_ISSET(watch->fd, &error_set))
           watch->ready |= LUMINARI_REACTOR_ERROR;
       }
+      break;
     }
   } while (luminari_reactor_monotonic_usec() < deadline);
   return LUMINARI_REACTOR_OK;
@@ -418,12 +419,7 @@ static enum luminari_reactor_status wait_with_libevent(struct luminari_reactor *
       event_free(timer);
     return LUMINARI_REACTOR_SYSTEM_ERROR;
   }
-  do
-  {
-    result = event_base_loop(reactor->event_base, EVLOOP_ONCE);
-    if (result < 0)
-      break;
-  } while (!reactor->timer_fired);
+  result = event_base_loop(reactor->event_base, EVLOOP_ONCE);
   event_free(timer);
   if (result < 0)
     return LUMINARI_REACTOR_SYSTEM_ERROR;
