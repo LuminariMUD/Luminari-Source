@@ -982,3 +982,99 @@ void Test_durable_event_section_skip_reports_terminator_state(CuTest *tc)
   CuAssertTrue(tc, !skip_durable_event_section_for_test(fixture));
   fclose(fixture);
 }
+
+static void verify_durable_event_parser(CuTest *tc, unsigned int version)
+{
+  struct char_data ch = {0};
+  struct mud_event_durable_record records[2];
+  const char *fields[] = {"17", "2", "9191", "250", "1000", "3", "600"};
+  char header[16];
+  char next_tag[MAX_INPUT_LENGTH + 1];
+  size_t field_count;
+  size_t invalid_field;
+  size_t index;
+  size_t count;
+  FILE *fixture;
+
+  fixture = tmpfile();
+  CuAssertPtrNotNull(tc, fixture);
+  if (fixture == NULL)
+    return;
+  ch.player.name = "parser fixture";
+  field_count = version == 1U ? 6U : 7U;
+  snprintf(header, sizeof(header), "%u", version);
+
+  /* Truncation or a nonnumeric token at every conversion must reject the row. */
+  for (invalid_field = 0; invalid_field < field_count; invalid_field++)
+  {
+    for (index = 0; index < invalid_field; index++)
+      fprintf(fixture, "%s ", fields[index]);
+    fputs("\n", fixture);
+    for (index = 0; index < field_count; index++)
+      fprintf(fixture, "%s ", index == invalid_field ? "invalid" : fields[index]);
+    fputs("\n", fixture);
+  }
+  for (index = 0; index < field_count; index++)
+    fprintf(fixture, "%s ", fields[index]);
+  fputs("trailing-garbage\n", fixture);
+
+  /* Valid rows still load after rejected rows, including signed payloads. */
+  for (index = 0; index < field_count; index++)
+    fprintf(fixture, "%s ", fields[index]);
+  fputs("\n18 1 9292 300 2000 -1", fixture);
+  if (version != 1U)
+    fputs(" 700", fixture);
+  fputs("\n-1\nNext tag\n", fixture);
+  rewind(fixture);
+  memset(records, 0, sizeof(records));
+  count = load_durable_events_for_test(fixture, &ch, header, records, 2U);
+  CuAssertIntEquals(tc, 2, (int)count);
+  CuAssertIntEquals(tc, 17, records[0].event_type);
+  CuAssertIntEquals(tc, 2, records[0].schema_version);
+  CuAssertTrue(tc, records[0].owner_id == 9191 && records[0].remaining_ticks == 250 &&
+                       records[0].saved_at_epoch == 1000 && records[0].payload_value == 3 &&
+                       records[0].recovery_interval_ticks == (version == 1U ? 0 : 600));
+  CuAssertIntEquals(tc, 18, records[1].event_type);
+  CuAssertIntEquals(tc, 1, records[1].schema_version);
+  CuAssertTrue(tc, records[1].owner_id == 9292 && records[1].remaining_ticks == 300 &&
+                       records[1].saved_at_epoch == 2000 && records[1].payload_value == -1 &&
+                       records[1].recovery_interval_ticks == (version == 1U ? 0 : 700));
+  CuAssertTrue(tc, get_line(fixture, next_tag));
+  CuAssertStrEquals(tc, "Next tag", next_tag);
+  fclose(fixture);
+}
+
+void Test_durable_event_parser_checks_every_version_one_field(CuTest *tc)
+{
+  verify_durable_event_parser(tc, 1U);
+}
+
+void Test_durable_event_parser_checks_every_current_version_field(CuTest *tc)
+{
+  verify_durable_event_parser(tc, MUD_EVENT_DURABLE_FORMAT_VERSION);
+}
+
+void Test_durable_event_parser_rejects_unsupported_headers(CuTest *tc)
+{
+  struct char_data ch = {0};
+  const char *headers[] = {NULL, "", "invalid", "0", "3", "1 trailing", "2 trailing"};
+  char next_tag[MAX_INPUT_LENGTH + 1];
+  size_t index;
+  FILE *fixture;
+
+  ch.player.name = "parser fixture";
+  for (index = 0; index < sizeof(headers) / sizeof(headers[0]); index++)
+  {
+    fixture = tmpfile();
+    CuAssertPtrNotNull(tc, fixture);
+    if (fixture == NULL)
+      return;
+    fputs("17 2 9191 250 1000 3 600\n-1\nNext tag\n", fixture);
+    rewind(fixture);
+    CuAssertIntEquals(tc, 0,
+                      (int)load_durable_events_for_test(fixture, &ch, headers[index], NULL, 0U));
+    CuAssertTrue(tc, get_line(fixture, next_tag));
+    CuAssertStrEquals(tc, "Next tag", next_tag);
+    fclose(fixture);
+  }
+}

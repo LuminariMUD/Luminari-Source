@@ -24,6 +24,7 @@
 #include "../../src/craft/craft.h"
 #include "../../src/craft/crafts.h"
 #include "../../src/obj/item.h"
+#include "../../src/affected_owners.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -448,6 +449,8 @@ void Test_warlock_darkness_lasts_fifteen_rounds(CuTest *tc)
   int duration;
   int affection;
   int spell;
+  size_t saved_room_owners;
+  bool room_unregistered;
 
   clear_char(&ch);
   memset(&player_specials, 0, sizeof(player_specials));
@@ -462,6 +465,7 @@ void Test_warlock_darkness_lasts_fifteen_rounds(CuTest *tc)
   saved_world = world;
   saved_top_of_world = top_of_world;
   saved_raff_list = raff_list;
+  saved_room_owners = affected_room_owner_count();
   world = &room;
   top_of_world = 0;
   raff_list = NULL;
@@ -472,7 +476,11 @@ void Test_warlock_darkness_lasts_fifteen_rounds(CuTest *tc)
   duration = darkness == NULL ? -1 : darkness->timer;
   affection = darkness == NULL ? -1 : darkness->affection;
   spell = darkness == NULL ? -1 : darkness->spell;
-  free(darkness);
+  /* Remove both the effect and its room registry entry before the stack room expires. */
+  if (darkness != NULL)
+    rem_room_aff(darkness);
+  room_unregistered = room.affected_head == NULL && !room.affected_registered &&
+                      room.affected_count == 0 && affected_room_owner_count() == saved_room_owners;
   raff_list = saved_raff_list;
   world = saved_world;
   top_of_world = saved_top_of_world;
@@ -480,6 +488,7 @@ void Test_warlock_darkness_lasts_fifteen_rounds(CuTest *tc)
   CuAssertIntEquals(tc, 15, duration);
   CuAssertIntEquals(tc, RAFF_DARKNESS, affection);
   CuAssertIntEquals(tc, WARLOCK_DARKNESS, spell);
+  CuAssertTrue(tc, room_unregistered);
 }
 
 void Test_legacy_crafting_reports_modified_experience(CuTest *tc)

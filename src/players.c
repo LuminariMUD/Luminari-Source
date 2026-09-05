@@ -5458,16 +5458,24 @@ static void load_events_v2(FILE *fl, struct char_data *ch, const char *header,
     if (!strcmp(line, "-1"))
       return;
     recovery_interval_ticks = 0;
-    if ((format_version == 1U &&
-         sscanf(line, "%d %u %lld %lld %lld %d %c", &event_type, &schema_version, &owner_id,
-                &remaining_ticks, &saved_at_epoch, &payload_value, &trailing) != 6) ||
-        (format_version == MUD_EVENT_DURABLE_FORMAT_VERSION &&
-         sscanf(line, "%d %u %lld %lld %lld %d %lld %c", &event_type, &schema_version, &owner_id,
-                &remaining_ticks, &saved_at_epoch, &payload_value, &recovery_interval_ticks,
-                &trailing) != 7))
+    if (format_version == 1U)
     {
-      log("SYSERR: Ignoring malformed durable event record for %s.", GET_NAME(ch));
-      continue;
+      if (sscanf(line, "%d %u %lld %lld %lld %d %c", &event_type, &schema_version, &owner_id,
+                 &remaining_ticks, &saved_at_epoch, &payload_value, &trailing) != 6)
+      {
+        log("SYSERR: Ignoring malformed durable event record for %s.", GET_NAME(ch));
+        continue;
+      }
+    }
+    else
+    {
+      if (sscanf(line, "%d %u %lld %lld %lld %d %lld %c", &event_type, &schema_version, &owner_id,
+                 &remaining_ticks, &saved_at_epoch, &payload_value, &recovery_interval_ticks,
+                 &trailing) != 7)
+      {
+        log("SYSERR: Ignoring malformed durable event record for %s.", GET_NAME(ch));
+        continue;
+      }
     }
 
     memset(&record, 0, sizeof(record));
@@ -5486,6 +5494,28 @@ static void load_events_v2(FILE *fl, struct char_data *ch, const char *header,
 
   log("SYSERR: Unterminated durable event section for %s.", GET_NAME(ch));
 }
+
+#ifdef LUMINARI_CUTEST
+size_t load_durable_events_for_test(FILE *fl, struct char_data *ch, const char *header,
+                                    struct mud_event_durable_record *records, size_t capacity)
+{
+  struct pending_durable_event *pending = NULL;
+  struct pending_durable_event *entry;
+  size_t count = 0;
+
+  load_events_v2(fl, ch, header, &pending);
+  while (pending != NULL)
+  {
+    entry = pending;
+    pending = entry->next;
+    if (count < capacity)
+      records[count] = entry->record;
+    count++;
+    free(entry);
+  }
+  return count;
+}
+#endif
 
 void load_quests(FILE *fl, struct char_data *ch)
 {
