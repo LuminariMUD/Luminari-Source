@@ -6,6 +6,23 @@ The wider unassigned queue is excluded. No production rollout or archival deleti
 
 ## Implementation checkpoint
 
+- First implementation commit: `7a09f5d8a` (committed world operations and Nature).
+- User reaffirmed that migrations must use the existing native event system.
+  Crafting now runs through the existing primary activity manager and
+  event_runtime; no second scheduler is being introduced. Supply refresh uses
+  its existing wall-clock timestamps lazily rather than a descriptor scan.
+  New tests run without descriptor-list membership and verify offline pause/
+  reconstruction and committed-move cancellation. Resize completion uses the
+  originally admitted object, not another inventory object sharing its prototype.
+  The full suite passes 1,145 tests. Buff, transport, mover and staff migration
+  remain in #105; no full-issue completion is claimed.
+- #111 workload and thresholds are declared in
+  [the performance gate](../testing/EVENT_CORE_ASSIGNED_BATCH_PERFORMANCE_GATE.md)
+  before final-revision measurements.
+- #112 local inventory and retention disposition are recorded in the existing
+  [release gate](../deployment/EVENT_DRIVEN_CORE_RELEASE_GATE.md#8-assigned-batch-retention-review-2026-09-06).
+  Production retirement remains gated; this batch does not delete archival data.
+
 - #104: relocation causes and caller-owned operation capture are implemented. Walking
   waits for entry/greet/wall decisions; temporary `at` commands returning to their
   original room are silent. Nested relocation, extraction and stale identities are
