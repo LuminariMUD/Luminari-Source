@@ -1201,6 +1201,14 @@ checks are produced in Step 6.
 
 ## Step 6: combined development rehearsal and branch completion
 
+Step 6 plan-ablation (2026-09-06): regenerate one complete derived evidence chain from the
+hash-verified frozen source and target inputs, then reuse its final candidate for validation,
+syntax boot, runtime checks, sealing, and the disposable apply rehearsal. Reuse the existing
+Phase 7/8 gates, isolated MariaDB preparer, staff-login protocol, and `autorun.sh` overrides; add
+no alternate validator, runtime service, or release mechanism. Keep production and the live
+development world untouched. Record the detailed behavior transcript beside the five logs
+consumed by Phase 8, and update only this non-gated checklist after the seal is complete.
+
 - [ ] 6.1 Generate the baseline/discovery/plan/capability/special evidence required by the final
   rules, then Phase 7 milestones at batches 4/8/12 and an independent final repeat. Reuse valid
   inputs only when their hashes and dependencies still match. The candidate must contain the

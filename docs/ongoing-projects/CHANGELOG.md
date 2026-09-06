@@ -2,6 +2,23 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Realms of Luminari converter integration review
+
+#### Changed
+
+- Split the source parser and transformer into format-owned modules while retaining one shared
+  type layer and byte-identical conversion output.
+- Completed full-corpus armor, remaining object metadata, and weapon disposition reviews with
+  deterministic evidence and explicit conservative fallbacks.
+- Integrated the approved Realms of Luminari player spell kits, including two-focus Master of
+  Elements embodiments and the dire-wolf companion route.
+
+#### Tests
+
+- Added source-to-target, native runtime, class-assignment, help-content, and exact corpus-set
+  regressions for the reviewed armor, object, spell, launcher, ammunition, quiver, and mobile
+  loadout behavior.
+
 ### Character maintenance owner lifetime
 
 #### Fixed
