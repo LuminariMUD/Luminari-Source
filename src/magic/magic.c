@@ -1416,7 +1416,6 @@ size_t affect_update_character_one(struct char_data *ch)
   int *wearoff_spells;
   size_t expired_count, wearoff_count, wearoff_index;
   size_t processed_affects = 0U;
-  int phantom_healing;
   bool update_position_after_expiry;
 
   if (ch == NULL)
@@ -1457,10 +1456,7 @@ size_t affect_update_character_one(struct char_data *ch)
       ;
     else
     {
-      phantom_healing = 0;
       update_position_after_expiry = FALSE;
-      if (af->spell == SPELL_PHANTOM_HEAL && af->location == APPLY_SPECIAL)
-        phantom_healing = MAX(0, af->modifier);
       if (af->spell == SPELL_DEATH_PACT)
         update_position_after_expiry = TRUE;
 
@@ -1469,12 +1465,7 @@ size_t affect_update_character_one(struct char_data *ch)
         wearoff_spells[wearoff_count++] = af->spell;
 
       affect_remove(ch, af);
-      if (phantom_healing > 0)
-      {
-        GET_HIT(ch) = MAX(-10, GET_HIT(ch) - phantom_healing);
-        update_pos(ch);
-      }
-      else if (update_position_after_expiry)
+      if (update_position_after_expiry)
         update_pos(ch);
     }
   }
