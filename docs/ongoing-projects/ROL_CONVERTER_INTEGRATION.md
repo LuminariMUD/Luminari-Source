@@ -419,6 +419,33 @@ room, preserving their existing dispositions. The refreshed `inventory-weapon-au
 matches all 1,418 prior mapping decisions and all 14 name disagreements after comparison by
 source identity; the 57 overrides and 25 fallbacks still require final builder review.
 
+Review of the 59 flagged records found a missing-economy parsing defect. The source loader's
+failed numeric scans leave an E/A/T marker unread, but the converter consumed it as the economy
+row and then treated description prose as directives. Outcome: preserve the following extension
+and diagnose the absent numeric row as `ROLOBJ007`. Non-goals: invent economy values or change
+the existing emitter defaults, balance policy, or source exclusions. Files: `rol_objects.py`,
+the existing transform tests, and this document. Ablation: restore the parser position at the
+marker and leave the economy list empty; reuse the ordinary extension reader.
+
+The new source-to-target regression reproduced a lost extra description before the repair
+(`economy-before.log`, exit 1), then passed with the description and affect retained. A control
+with a valid economy row remains unchanged. Re-parsing all 10,378 active objects changed exactly
+two records (`economy-corpus-review.json`): `citadel.obj` 13035 regains its `book` description,
+and `plane_fire_two.obj` 25190 regains its chef's-hat description. The latter's prose beginning
+with "This" previously became a bogus empty trap directive. The pinned corpus assertion now
+checks its absence: 32 actual trap-bearing records, 29 converted and three inactive/malformed,
+with all 29 converted traps preserved. `current-source-objects.jsonl` and the consolidated
+inventory now reflect this parser, while the original comparison capture remains frozen.
+
+The full world-tool gate also found that the earlier OEDIT spellbook-capacity correction had
+not been propagated to its generated web guide. `generate-web-guides.sh` regenerated that
+three-line HTML change from the authoritative Markdown; no other guide content changed.
+Final `make test-world-tools` passes its constants/documentation checks, all 520 tests without
+skips, and the zone-validation wrapper (`economy-verified-world-tools.log`, exit 0). The source
+file hashes and all 1,418 weapon decisions still match the verified inventory. Formatting and
+ASCII/LF checks pass. Final conversion candidates must be regenerated with this parser; the
+earlier capability/special artifacts are historical evidence, not proof of the repaired output.
+
 This table starts the shared 0.4/113/114 disposition review. Entries marked pending are proposals,
 not accepted behavior or a claim of issue completion. Record-specific evidence is in the review
 JSON files above; procedure-owner and player spell/access matrices still require completion.

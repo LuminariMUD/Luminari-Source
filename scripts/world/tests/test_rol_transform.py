@@ -1478,6 +1478,36 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("key", extras[0]["keyword"])
     self.assertTrue(any(item.code == "ROLOBJ006" for item in corpus.diagnostics))
 
+  def test_missing_object_economy_preserves_following_extensions(self) -> None:
+    for economy in (b"", b"1 2 3\n"):
+      with self.subTest(economy=economy):
+        source_path = self._target_path(
+            "obj",
+            (b"#13035\nbook~\na book~\nA book lies here.~\n~\n"
+             b"12 0 1\n0 0 0\n" + economy +
+             b"E\npage1~\nThe first page remains legible.~\nA\n18 2\n").decode("ascii"),
+        )
+        records, corpus = parse_rol_source_file(
+            source_path, "areas/obj/sample.obj", "obj", "sample"
+        )
+        self.assertTrue(corpus.complete)
+        self.assertEqual([1, 2, 3] if economy else [], records[0].values["economy"])
+        self.assertFalse(any(row["token"] == "T" for row in records[0].directives))
+        emitted = emit_object(records[0], 2013035, _resolver)
+        parsed = parse_object_file(
+            self._target_path("obj", emitted.text), "obj/20000.obj", self.manifest, set()
+        )
+        self.assertFalse(any(finding.severity == "error" for finding in parsed.findings))
+        target = parsed.records[0]
+        self.assertEqual(1, len(target.extra_descriptions))
+        self.assertEqual("page1", target.extra_descriptions[0].keywords)
+        self.assertIn("The first page remains legible.", target.extra_descriptions[0].description)
+        self.assertEqual(1, len(target.affects))
+        self.assertEqual(2, target.affects[0].modifier)
+        self.assertEqual(not bool(economy), any(
+            diagnostic.code == "ROLOBJ007" for diagnostic in corpus.diagnostics
+        ))
+
   def test_emitted_room_repairs_missing_mountain_sector(self) -> None:
     source = self._source_record(
         "wld",
@@ -1794,9 +1824,12 @@ class RolTransformTests(unittest.TestCase):
         excluded += 1
         self.assertIn("inactive/malformed", diagnostics)
 
-    self.assertEqual(33, len(trapped))
+    # The chef's hat (25190) has description prose starting with "This", not
+    # a trap. Its missing economy row must not consume the preceding E marker.
+    self.assertFalse(any(record.vnum == 25190 for record in trapped))
+    self.assertEqual(32, len(trapped))
     self.assertEqual(29, converted)
-    self.assertEqual(4, excluded)
+    self.assertEqual(3, excluded)
 
   def test_emitted_magic_item_caps_source_level_at_target_maximum(self) -> None:
     source = self._source_record(

@@ -140,7 +140,9 @@ def _parse_obj(
       )
 
     rows: list[SourceLine] = []
+    missing_economy = False
     for token in ("FLAGS", "VALUES", "ECONOMY"):
+      row_position = position
       position, line = _next_content(source.lines, position, end)
       if line is None:
         _exclude_record(
@@ -151,8 +153,26 @@ def _parse_obj(
             source.lines[start],
         )
         break
+      if token == "ECONOMY" and line.raw.strip().split()[0] in {b"E", b"A", b"T"}:
+        # Failed source fscanf calls leave the extension marker unread. Keep
+        # the absent economy empty for the existing emitter defaults.
+        position = row_position
+        missing_economy = True
+        _diagnostic(
+            corpus,
+            "ROLOBJ007",
+            "warning",
+            "incomplete source object economy row; preserved the following extension",
+            line,
+            "obj",
+            vnum,
+        )
       rows.append(line)
-      record.directives.append({"token": token, "line": line.number, "field_count": len(_integers(line))})
+      record.directives.append({
+          "token": token,
+          "line": line.number,
+          "field_count": 0 if missing_economy else len(_integers(line)),
+      })
     if not strings_ok:
       _exclude_record(
           corpus,
@@ -165,7 +185,7 @@ def _parse_obj(
     if len(rows) == 3:
       flags = _integers(rows[0])
       values = _integers(rows[1])
-      economy = _integers(rows[2])
+      economy = [] if missing_economy else _integers(rows[2])
       # The three economy fields and the two affect-flag words that follow are
       # each read with their own fscanf(" %d "), so they are whitespace
       # delimited rather than line bound. A record that puts an affect word on
