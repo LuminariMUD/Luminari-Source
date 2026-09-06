@@ -39,6 +39,8 @@ class RolPhase8Tests(unittest.TestCase):
         "scripts/world/wtool_constants.json",
         "src/structs.h",
         "src/combat/assign_wpn_armor.c",
+        "src/magic/magic.c",
+        "unittests/CuTest/test_unassigned_spells.c",
         "bin/rol_mob_calculator",
     ):
       self.assertIn(relative, paths)

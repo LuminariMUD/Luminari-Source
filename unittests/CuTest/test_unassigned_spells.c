@@ -522,6 +522,60 @@ void TestElementalEmbodimentsPreserveProfilesAndLinkedCleanup(CuTest *tc)
   }
 }
 
+void TestElementalEmbodimentExpiryClearsBothEndsWithoutRetickingOtherAffects(CuTest *tc)
+{
+  struct char_data caster;
+  struct char_data target;
+  struct char_data *recipient;
+  struct char_data *expired;
+  struct player_special_data caster_specials;
+  struct player_special_data target_specials;
+  struct affected_type *af;
+  int scenario;
+  bool linked;
+  int remaining_duration;
+
+  for (scenario = 0; scenario < 3; scenario++)
+  {
+    clear_char(&caster);
+    clear_char(&target);
+    memset(&caster_specials, 0, sizeof(caster_specials));
+    memset(&target_specials, 0, sizeof(target_specials));
+    caster.player_specials = &caster_specials;
+    target.player_specials = &target_specials;
+    GET_LEVEL(&caster) = GET_LEVEL(&target) = 20;
+    GET_REAL_RACE(&caster) = GET_REAL_RACE(&target) = RACE_HUMAN;
+    GET_REAL_MAX_HIT(&caster) = GET_MAX_HIT(&caster) = GET_HIT(&caster) = 100;
+    GET_REAL_MAX_HIT(&target) = GET_MAX_HIT(&target) = GET_HIT(&target) = 100;
+    recipient = scenario == 2 ? &caster : &target;
+    expired = scenario == 1 ? &target : &caster;
+    spell_elemental_water_embodiment(20, &caster, recipient, NULL, CAST_SPELL);
+    add_test_affect(expired, SPELL_DARK_WRATH, APPLY_DAMROLL, 1);
+    for (af = expired->affected; af != NULL; af = af->next)
+      if (rol_elemental_embodiment_affect_is_transient(af->spell))
+      {
+        af->duration = 0;
+        break;
+      }
+
+    affect_update_character_one(expired);
+    linked = rol_elemental_embodiment_active(recipient) ||
+             affected_by_spell(&caster, AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN);
+    af = find_test_affect(expired, SPELL_DARK_WRATH, APPLY_DAMROLL);
+    remaining_duration = af == NULL ? -1 : af->duration;
+
+    remove_all_rol_elemental_embodiments(&caster);
+    remove_all_rol_elemental_embodiments(&target);
+    remove_test_affects(&caster);
+    remove_test_affects(&target);
+    remove_from_lookup_table(GET_ID(&caster));
+    if (GET_ID(&target) > 0)
+      remove_from_lookup_table(GET_ID(&target));
+    CuAssertTrue(tc, !linked);
+    CuAssertIntEquals(tc, 9, remaining_duration);
+  }
+}
+
 void TestElementalEmbodimentSharedEligibilityAndTransientIdentity(CuTest *tc)
 {
   struct char_data caster;
