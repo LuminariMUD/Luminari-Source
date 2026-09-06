@@ -274,6 +274,336 @@
       "source_sha256": "875edbf3cb957047d7b90a2401c88559b4f137040a029e6b2f817a78e85416f3",
       "family": "SCALE",
       "rationale": "The Red Dragon armor identity supports dragon-scale armor; no textile or metal construction is stated."
+    },
+    "areas/obj/baldurs.obj:91226": {
+      "source_sha256": "d94f9383c3e82c40ff9bca0611065dce2b1c9051db50e9a252818cdc3c50861f",
+      "family": "LEATHER",
+      "rationale": "The vest itself is leather; fur is only the lining."
+    },
+    "areas/obj/demi.obj:43313": {
+      "source_sha256": "e3da3c30fa0bdaf3dc4168918f0f6cf5cb2468c3509ab08a59ddd4014725e5bd",
+      "family": "CLOTHING",
+      "rationale": "The silver chain suspends a ruby diadem and is jewelry, not chainmail."
+    },
+    "areas/obj/derro.obj:34524": {
+      "source_sha256": "542c757e3f2b1a5c025826c9781a049c96604a02039b7def4e738b470acfa08a",
+      "family": "LEATHER",
+      "rationale": "The tunic itself is leather; fur is only the lining."
+    },
+    "areas/obj/heartlnd.obj:21073": {
+      "source_sha256": "89a881c61610cf71ae12a0bd8fbed46fa1ccaa7201c5aab8e1998d70b9fcc6cc",
+      "family": "FULL_PLATE",
+      "rationale": "The steel helmet is rigid; the iron crown is decoration."
+    },
+    "areas/obj/heartlnd.obj:21119": {
+      "source_sha256": "9c7287f893de39ae48bfe9d74331a980017570fdd09dcd37899e1e545359c259",
+      "family": "LEATHER",
+      "rationale": "The helm is hard leather; fur is only the rim."
+    },
+    "areas/obj/misc_code.obj:472": {
+      "source_sha256": "42bf2a82e607630aec49c12f4e2cc2d02aeb4155411b1407885720530d2646a8",
+      "family": "HIDE",
+      "rationale": "The garment is made from animal hides and fur; patchwork describes its assembly."
+    },
+    "areas/obj/misc_code.obj:488": {
+      "source_sha256": "586fce2c07961033b80e1f2ba585167cdac720aad4e40e6c7f423807c12d7e1c",
+      "family": "HIDE",
+      "rationale": "The cap is cut from an actual human skull, so bone construction takes precedence."
+    },
+    "areas/obj/misc_code.obj:580": {
+      "source_sha256": "7182de3ef0ac9f52326e689fc87be604c8d0aeb2574291d7bd76ce113aa353d9",
+      "family": "LEATHER",
+      "rationale": "The patchwork leggings are explicitly stitched from leather scraps."
+    },
+    "areas/obj/muspel.obj:58753": {
+      "source_sha256": "e1416110606f451dc2d25a7e16090a02cfe33760f9b5e9c46d6aa10911419171",
+      "family": "LEATHER",
+      "rationale": "The leggings are hardened boiled leather; chimera fur is only trim."
+    },
+    "areas/obj/muspel.obj:58851": {
+      "source_sha256": "2a8f71ed21bc8dea577fc42d24f46243fd6a1a151c88cdbfd3c0fe4fabb12fad",
+      "family": "FULL_PLATE",
+      "rationale": "The basinet is a heavy shaped mithral headpiece; crown wording and leather lining are secondary."
+    },
+    "areas/obj/stalag.obj:34816": {
+      "source_sha256": "b6d7e470c0e8cc9cd718255a231f3d8e8ce08c7aa1837d37e9e626edc804dede",
+      "family": "FULL_PLATE",
+      "rationale": "The iron cap is a dented rigid bowl used as protective headgear."
+    },
+    "areas/obj/theswamp.obj:40901": {
+      "source_sha256": "9aa940b7972e6e3ac03a22df3f5eae1981ce6207393721d54e73afaeb62a465d",
+      "family": "HIDE",
+      "rationale": "The armor is an actual turtle-dragon carapace; breast-plate wording describes its use."
+    },
+    "areas/obj/basin_wastes.obj:34020": {
+      "source_sha256": "8f60b9969739b4a47f1c4b0d0e0abd585340ad4dd8de3c08de95bb57ebe67898",
+      "family": "CLOTHING",
+      "rationale": "The kilt is patchwork flannel cloth, not mixed armor pieces."
+    },
+    "areas/obj/caves.obj:80013": {
+      "source_sha256": "b9d7c87ccc79cf1be306f06127028bb39661c9a7b8677200a83c3bb09e97d325",
+      "family": "FULL_PLATE",
+      "rationale": "The leggings are steel; leather appears only in fastening straps."
+    },
+    "areas/obj/citadel.obj:13050": {
+      "source_sha256": "15ee632f01572947958bb50bc62ae1d3d1e20aa85ea3dc1abc5c317041a55ca5",
+      "family": "CLOTHING",
+      "rationale": "The breeches are silk; bare skin is the wearer, not the construction."
+    },
+    "areas/obj/gen-obj.obj:7945": {
+      "source_sha256": "8377052345d8b0fcd18e3535a5b560f77e067d5dd8fad406862d070683dead44",
+      "family": "FULL_PLATE",
+      "rationale": "The bell-shaped bronze helmet is rigid; leather appears only in its chin strap."
+    },
+    "areas/obj/heartln2.obj:21408": {
+      "source_sha256": "a571b13cab8fbe5e3ecc0294319cf139fa5f97db87b88d43fa360b8ccf8b6b44",
+      "family": "FULL_PLATE",
+      "rationale": "The description identifies a full suit of plate mail; breastplate is one component."
+    },
+    "areas/obj/hulburg.obj:59178": {
+      "source_sha256": "67fc0767d5fa35fcfa265b0972a08979aa2ec00e767c0bd846bc1f314da7b695",
+      "family": "HIDE",
+      "rationale": "The light flexible leggings are organic plating from an eye of the deep."
+    },
+    "areas/obj/moonshae.obj:26257": {
+      "source_sha256": "6ba8ba40acda2ab20a72db0a37a65993d55bc221720a0d5cae9856044961006d",
+      "family": "FULL_PLATE",
+      "rationale": "The helm is a solid silver sheet; leather is only trim."
+    },
+    "areas/obj/muspel.obj:58921": {
+      "source_sha256": "5e891390341b07cfd505b1534bebe2f7cc75ae7fbd9137e5745601ce443af1ea",
+      "family": "FULL_PLATE",
+      "rationale": "The helm is forged from dark metal; crown describes flames around its top."
+    },
+    "areas/obj/realm.obj:14075": {
+      "source_sha256": "e42f0ed715f9f1b4b95937649bfbe1d49dabd04440f5a3099a09547768fc5a04",
+      "family": "CHAINMAIL",
+      "rationale": "The silver plates are meshed together, supporting linked medium armor."
+    },
+    "areas/obj/scorn.obj:6149": {
+      "source_sha256": "09335c64bbed8ee86df5f76ddd7979557b764c8e83ee6f1dfd66f38a75146a14",
+      "family": "FULL_PLATE",
+      "rationale": "The suit is rusted metal armor; rotted leather is fastening material."
+    },
+    "areas/obj/snowelf.obj:89473": {
+      "source_sha256": "0eacd7ca75bd3b46b92fbc6d51836ab58d089acfebf7c774d3bb38c954a0efb9",
+      "family": "FULL_PLATE",
+      "rationale": "The bracers are rigid stone pieces; leather appears only in retaining strips."
+    },
+    "areas/obj/soulprison.obj:63749": {
+      "source_sha256": "5e890e03c00cbda7e057e8c45bc02349e2d6082886b6dac2cd314d3ee34f2721",
+      "family": "FULL_PLATE",
+      "rationale": "The ridged helm is metal; padded silk and felt form only the lining."
+    },
+    "areas/obj/stalag.obj:34832": {
+      "source_sha256": "1a1a697c39bd897c034183a874bdff035d0febe423aaa4a37172057494035be3",
+      "family": "FULL_PLATE",
+      "rationale": "The helm is mithril; painted scales are decoration, not construction."
+    },
+    "areas/obj/trollbark.obj:52895": {
+      "source_sha256": "146831fd5f82eff35bac599bc48b11ff5c526377f2338d5523d85dfa9a21ac9d",
+      "family": "CLOTHING",
+      "rationale": "The armband is snake-shaped jewelry; miniature scales are decorative."
+    },
+    "areas/obj/trollbark.obj:52896": {
+      "source_sha256": "2facb5a33926fbd9a62f893e1cc03857226896f3a1f24275e6cb1811731312ff",
+      "family": "CLOTHING",
+      "rationale": "The armband is snake-shaped jewelry; miniature scales are decorative."
+    },
+    "areas/obj/trollbark.obj:52897": {
+      "source_sha256": "48c5083bb96f735bc4800401c41a379a6b0f6dede2b1f0203ee6221da4a9990e",
+      "family": "CLOTHING",
+      "rationale": "The armband is snake-shaped jewelry; miniature scales are decorative."
+    },
+    "areas/obj/undermountain2.obj:93186": {
+      "source_sha256": "7dc349ed4d9e45f27cfa0c1af29a19d324d9d87bb3a39a7a55f65b2d58f6c916",
+      "family": "HIDE",
+      "rationale": "The suit is an umber hulk shell; chitinous plates are organic carapace."
+    },
+    "areas/obj/zhentil.obj:81111": {
+      "source_sha256": "dd305dad3e7b7f702a83f9727cbbfb5abd2768096f04085287ae2b81aeee6215",
+      "family": "FULL_PLATE",
+      "rationale": "The white-gold helm has rigid nose and cheek guards; crown means its top edge."
+    },
+    "areas/obj/astral_tiamat.obj:19918": {
+      "source_sha256": "da0016feb1967263130e17a178d0f479ea5506974012ff5995314647f0b8bdde",
+      "family": "FULL_PLATE",
+      "rationale": "The spiked sleeves have a hard reflective protective surface."
+    },
+    "areas/obj/hulburg.obj:59193": {
+      "source_sha256": "e1b85bd13a99458310cc9b2c1fe09e7661a2e5d2c844961bec7d5c0bea1a11f3",
+      "family": "FULL_PLATE",
+      "rationale": "The large spherical suit retains a rigid protective shell while resizing."
+    },
+    "areas/obj/mithril_hall.obj:6538": {
+      "source_sha256": "1d350161d7601a98430d0e0caa8a065b5165b6c9e88e35fde3eeaa9fb2c782db",
+      "family": "FULL_PLATE",
+      "rationale": "The very heavy spiked body suit is rigid armor."
+    },
+    "areas/obj/plane_fire_two.obj:25160": {
+      "source_sha256": "4a56ad69aa2ebc243bcb3f5741bd1d6cd7eb3b430f13ca67f38c241bd3017594",
+      "family": "PADDED",
+      "rationale": "The turban is thick sturdy fabric, fitting padded head armor."
+    },
+    "areas/obj/av.obj:59926": {
+      "source_sha256": "326cd116483dbbe86c019a9c033d6d4b3b533bbc4869d2d0e2abf8a205180f62",
+      "family": "FULL_PLATE",
+      "rationale": "The massive close-faced steel barbute is a rigid enclosed helmet."
+    },
+    "areas/obj/baldurs.obj:91123": {
+      "source_sha256": "f3ed1b82a3da334197a648ab3624c21c1f396efbb88540aaab6208bf0ec3914d",
+      "family": "FULL_PLATE",
+      "rationale": "The conical helmet is shaped from sturdy steel."
+    },
+    "areas/obj/baldurs.obj:91127": {
+      "source_sha256": "c0ddc88abfb98b9dcb3b9393e63cef66590307e88124a2e79b60afbd4b8e42af",
+      "family": "FULL_PLATE",
+      "rationale": "The bronze helmet rigidly covers the face sides down to the neck."
+    },
+    "areas/obj/clouds.obj:57232": {
+      "source_sha256": "515b728fb99fb5666c5e1a51238d5925fa74bcfc6b1e2d24a295171b80bf2a54",
+      "family": "FULL_PLATE",
+      "rationale": "The massive body suit is constructed as a metal war-armor shell."
+    },
+    "areas/obj/drulak.obj:95569": {
+      "source_sha256": "a031472a2b8d6992b307e661b95f428de33bcff46393b218ef2b68cd8b7fdb8a",
+      "family": "FULL_PLATE",
+      "rationale": "The brass helmet is formed into a skull shape with a rigid spike."
+    },
+    "areas/obj/drulak.obj:95644": {
+      "source_sha256": "4aa33205a7e524630acabd052cc4a546587a0d8a6042a42cd620fbef3175cb91",
+      "family": "CHAINMAIL",
+      "rationale": "The light leggings are meshed from small polished-gold pieces."
+    },
+    "areas/obj/drulak.obj:95847": {
+      "source_sha256": "afd9ba86a1bce3e7908fd1cde1492dc8bc4e98cf8428b9ed731141f439b3722b",
+      "family": "FULL_PLATE",
+      "rationale": "The item is a skull-shaped helmet; the black gem is decoration."
+    },
+    "areas/obj/duskroad.obj:89737": {
+      "source_sha256": "4f97ee7db90d2c4d4c7bd8b7284ca989272ac4d42d29de702b6a3ca4b82cb5af",
+      "family": "FULL_PLATE",
+      "rationale": "The bright-steel visor covers the entire head as a rigid shell."
+    },
+    "areas/obj/foggy_woods.obj:90030": {
+      "source_sha256": "41962e45fb27befcad58ae336b7366f88e0c8ad9496072abc859ba5ccd6fa485",
+      "family": "FULL_PLATE",
+      "rationale": "The steel helmet and visor are rigid; griffon feathers are decoration."
+    },
+    "areas/obj/gen-obj.obj:7941": {
+      "source_sha256": "2ce048f19b64880909f17f16b57e0c383a5f672618442779386fbce80e69d8b7",
+      "family": "CLOTHING",
+      "rationale": "The soft bronze guards are explicitly ornamental rather than functional armor."
+    },
+    "areas/obj/havenport.obj:98306": {
+      "source_sha256": "33f106b6244d6dd0a7130d84f901988875a5b90c8b5795294219405b512bd146",
+      "family": "FULL_PLATE",
+      "rationale": "The battle-worthy helm is thick steel; rubies and roses are decoration."
+    },
+    "areas/obj/icecrag.obj:97051": {
+      "source_sha256": "7a64ce5c4f09e245d0643772583698d4de8c59b31bb4c513c4b41de0b28b01db",
+      "family": "FULL_PLATE",
+      "rationale": "The quenched-steel vambraces are continuous rigid pieces."
+    },
+    "areas/obj/icecrag.obj:97052": {
+      "source_sha256": "7d47ecf2d6c71d35bf5298c66a9ad312010c4a8cc81dfce72061b28ae8ae4855",
+      "family": "FULL_PLATE",
+      "rationale": "The quenched-steel greaves are continuous rigid pieces."
+    },
+    "areas/obj/muspel.obj:58653": {
+      "source_sha256": "d8b1a3c0f6e1d128f90689295ac89d435cc501dfd75971eb9b8b3e2417ab1f4c",
+      "family": "FULL_PLATE",
+      "rationale": "The heavy metal helmet covers the head and has rigid cheek protectors."
+    },
+    "areas/obj/muspel.obj:58710": {
+      "source_sha256": "aa31b2372bb65d6953aa7418ea14f057783ab74953366cd76a0ab37f42575fb9",
+      "family": "FULL_PLATE",
+      "rationale": "The physical helm covers the head and has inset orbs; silvery is only color."
+    },
+    "areas/obj/muspel.obj:58913": {
+      "source_sha256": "900b6657191f6977a2a8048b72ebf8098e24d2be6fade8b2ba12d00a2c935d2e",
+      "family": "FULL_PLATE",
+      "rationale": "The heavy steel suit has articulated joints and maximum coverage."
+    },
+    "areas/obj/newhaven.obj:51110": {
+      "source_sha256": "4139d91dc39d743df9106c2beb32d21c6ec8c278ad8696c92f16486f160c9d94",
+      "family": "FULL_PLATE",
+      "rationale": "The helmet is forged from sheets of steel and white gold."
+    },
+    "areas/obj/rib.obj:9044": {
+      "source_sha256": "1b1330fa816a2d1a1226d346b90061a8f85298f4bbd5b6a2546640a80a0e1ef6",
+      "family": "FULL_PLATE",
+      "rationale": "The battered steel helmet is explicitly heavy protective head armor."
+    },
+    "areas/obj/rib.obj:9108": {
+      "source_sha256": "08acee2bd62ee51454b0cea4932a7e1e94ff8e53bda3838a2e584caa71624f83",
+      "family": "FULL_PLATE",
+      "rationale": "The jagged sleeves have a cast, very heavy metal base."
+    },
+    "areas/obj/rib.obj:9109": {
+      "source_sha256": "9cfad1f46fc01cd1bf82adbf158214c07dd44ddb83e72467a9c6524a4d000fe7",
+      "family": "FULL_PLATE",
+      "rationale": "The jagged leggings have a cast, very heavy metal base."
+    },
+    "areas/obj/scorn.obj:6191": {
+      "source_sha256": "823bf5b4686805503cb93044303701e44030cb7e0d32016adf62abf8423141e6",
+      "family": "FULL_PLATE",
+      "rationale": "The large steel pot helm rigidly covers the whole head."
+    },
+    "areas/obj/scorn.obj:6194": {
+      "source_sha256": "ad877cae9e7645aa7852286681002ab7b37a522b1bbdf4508d0236d616083038",
+      "family": "FULL_PLATE",
+      "rationale": "The armplates are formed from sturdy steel."
+    },
+    "areas/obj/scorn.obj:6195": {
+      "source_sha256": "bbc699125254a9c1daf81c5096af7101b7e8f34c9e53fde99e2ff66d37d803eb",
+      "family": "FULL_PLATE",
+      "rationale": "The steel greaves are articulated rigid leg guards."
+    },
+    "areas/obj/ssrynss.obj:52510": {
+      "source_sha256": "9597afa508cbbdeeb79d8090702c0ed2426fb48b9165c51998c31c648b5bd08d",
+      "family": "FULL_PLATE",
+      "rationale": "Each armplate is forged from a single large piece of mithril."
+    },
+    "areas/obj/sylvan.obj:38020": {
+      "source_sha256": "9f2eab17028fc9a99e98c5d52109014e78c0b1cabf44af77ce4f3fc59641e544",
+      "family": "LIGHT_CHAIN",
+      "rationale": "The leggings are fine linked mithril mesh, matching light chain."
+    },
+    "areas/obj/tenpass.obj:49008": {
+      "source_sha256": "e8d8b6d36a8268d16217becb158ee7e468a10452ed9bede6f737e872605586de",
+      "family": "FULL_PLATE",
+      "rationale": "Dents and pierced holes in the steel suit show a continuous shell."
+    },
+    "areas/obj/trollbark.obj:52827": {
+      "source_sha256": "cbfba96d383c718e601876f4a9051b7fcd2e9d923231477b949e82e78a5bae6a",
+      "family": "FULL_PLATE",
+      "rationale": "The forged brass helm has a continuous surface and rigid crest."
+    },
+    "areas/obj/trollbark.obj:52829": {
+      "source_sha256": "ef2e46d54aca343ea2c4fa2bec68cae917c1fb63231ee83de039f13823bbc036",
+      "family": "FULL_PLATE",
+      "rationale": "The sleeves are brass armplates with a continuous surface."
+    },
+    "areas/obj/undermountain2.obj:93089": {
+      "source_sha256": "5564b5131435346c9feefcea9b2f27122afadea34a06c057dc9b3a7115b44f8a",
+      "family": "FULL_PLATE",
+      "rationale": "The horned helm is a single large piece of steel."
+    },
+    "areas/obj/undermountain2.obj:93194": {
+      "source_sha256": "3ea8677062d9ccaf142bca09014f17667aa459d5576b3ac03053548a39aa25dc",
+      "family": "FULL_PLATE",
+      "rationale": "The forged mithril-steel suit has rigid spiked projections."
+    },
+    "areas/obj/zhentil.obj:81027": {
+      "source_sha256": "78e309f48b63a18f62e936f2d18b6cab375800b2af6ae36d54fbca3a357db592",
+      "family": "FULL_PLATE",
+      "rationale": "The greaves are fashioned from flat metal."
+    },
+    "areas/obj/zhentil.obj:81093": {
+      "source_sha256": "fa00bfa665e1d5a3d230bd3d29f0be6f4eea0bb7121f5ca667af9f3a54e28e1f",
+      "family": "FULL_PLATE",
+      "rationale": "The steel helmet has a deep impact dent, supporting a rigid shell."
     }
   }
 }

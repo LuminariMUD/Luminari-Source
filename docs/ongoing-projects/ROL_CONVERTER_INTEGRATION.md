@@ -2,9 +2,9 @@
 
 Branch: [rol-converter-integration-113-117](https://github.com/LuminariMUD/Luminari-Source/tree/rol-converter-integration-113-117)
 
-Status: paused at the user's request on 2026-09-06 after the verified armor-family checkpoint.
-All five recommendations remain approved. Resume implementation only on an explicit user request;
-the remaining acceptance gates and full integration objective stay open.
+Status: implementation resumed on 2026-09-06. Step 2 armor conversion is complete; the remaining
+object, player-kit, weapon, and release-rehearsal gates stay open. All five recommendations remain
+approved.
 Prepared: 2026-09-06. Inspected branch revision: `7c5677ec132bda12f98b2ba630f372bfb0b46651`.
 Plan-ablation review: 2026-09-06, against all five live issue checklists and current code.
 
@@ -117,6 +117,40 @@ store generated evidence in existing ignored run storage; no new framework or se
 
 ### Resumed implementation (2026-09-06)
 
+- Armor corpus review resumed from `3742d672a`. Outcome: finish Step 2 by reviewing every
+  standard-family rule, conservative fallback, mixed mask, dedicated-tail record and nonstandard
+  wearable against the current source text and native penalties. Non-goals: no Step 3 metadata
+  format, player-kit, weapon, production or final Phase 6 change. Files: extend only the existing
+  source-hashed armor override catalog and the two durable documents; keep generated review proof
+  in the existing ignored evidence root. Proof: source/emission/target round trips, native table
+  contracts, metadata/procedure reconciliation, focused tests and `make test-world-tools`.
+  Plan-ablation retained the current inference tiers and reporting path; no new classifier layer,
+  runtime mechanism, dependency, schema or test framework is needed.
+- The record review adds 66 hashed exceptions, bringing the catalog to 120. These correct cases
+  where secondary words previously won over primary construction: bare skin in silk breeches,
+  leather straps or padding on rigid armor, decorative snake scales/crowns/chains, patchwork
+  cloth or leather, organic carapaces, explicit linked mesh and described rigid metal/stone
+  pieces. The approved conservative rules remain for genuinely unqualified records. All 13
+  remaining fallbacks now have record-specific rationales; examples include immaterial mist,
+  storm and energy armor, a stylish nonfunctional helmet, and generic pieces whose construction
+  is not stated.
+- `armor-family-dispositions.json` is the final Step 2 review packet. It reparses and verifies
+  the frozen inventory hashes, target table and source consumer hashes, all 120 overrides, the
+  procedure ledger and the previous nonstandard-wearable evidence. All 2,527 records parse after
+  emission: 1,166 standard, eight dedicated tail and 1,353 worn. Every row now records the source
+  identity/hash/values, target family constant/index and slot, rule and review rationale, emitted
+  protection/applies, native armor type/check/spell-failure/dexterity/movement values, named
+  losses, effect-owner disposition and emitted hash. Builder review is complete for every row.
+  The final distribution is 866 identity rules, 43 description rules, 59 material rules, 120
+  overrides, 65 placeholders, 13 fallbacks and 1,361 slot-only dispositions. It confirms the
+  approved losses of 101 warmth fields, 25 prestige fields and ten unbound procedure-state
+  fields; all 22 bound armor effects retain their separately reviewed owners. The focused object,
+  transform and Phase 8 suites pass all 166 tests (`armor-review-focused.log`/`.exit`, exit 0).
+  `make test-world-tools` passes all 528 tests with no skips and its wrapper gates
+  (`armor-review-world-tools.log`/`.exit`, exit 0). JSON, diff, ASCII and LF checks pass. Because
+  this final review changes only the source-hashed data catalog and documentation, the unchanged
+  C runtime retains the preceding 1,140-test and install proof; the combined Phase 6 runtime
+  rehearsal remains open.
 - Nonstandard-wearable implementation commit: `f3235b56a`.
 - Standard armor continuation starts from that clean development revision. Outcome: resolve
   real family indices, preserve signed source protection, and use native family penalties;
@@ -781,15 +815,15 @@ Extract `rol_armor_mapping.py` if the emitter and audit need a shared inference 
 Read target `structs.h`, `combat/assign_wpn_armor.c`, `handler.c`, and `db.c` as contracts;
 change runtime code only for a demonstrated acceptance defect that conversion cannot express.
 
-- [ ] 113.1 Resolve disposition before classification. Separate BODY/HEAD/ARMS/LEGS/SHIELD
+- [x] 113.1 Resolve disposition before classification. Separate BODY/HEAD/ARMS/LEGS/SHIELD
   armor, the existing dedicated-tail exception, and other armor-typed wearables. Decide empty
   wear masks, mixed armor/non-armor masks, multi-slot items, placeholders, and cursed shackles
   individually or by a reviewed rule. Preserve tail-ring normalization and takeability.
-- [ ] 113.2 Approve the relationship between source protection and target family penalties.
+- [x] 113.2 Approve the relationship between source protection and target family penalties.
   Choose families from identity/material evidence, never AC magnitude. Explicitly review armor
   check penalty, spell failure, dexterity cap, movement, and proficiency. Preserve source AC
   where intended; do not add `ITEM_SET_STATS_AT_LOAD`, which can replace it with table stats.
-- [ ] 113.3 Implement deterministic family inference: reviewed override, specific-to-general
+- [x] 113.3 Implement deterministic family inference: reviewed override, specific-to-general
   identity keywords, reviewed material fallback, then a named conservative disposition.
   Resolve `(family, slot)` using explicit current target constants/table entries. Reject
   undefined, uninitialized, duplicate-only, and mismatched slot results; canonicalize chain
@@ -799,14 +833,14 @@ change runtime code only for a demonstrated acceptance defect that conversion ca
   apply 17 uses the opposite sign. Do not call the existing armor-apply helper on value 0
   without adapting that convention. Decide scale, rounding, bonus type/stacking, and curses;
   preserve existing applies and prevent double-counted protection.
-- [ ] 113.5 Consume or diagnose source warmth, prestige, and proc values before replacing
+- [x] 113.5 Consume or diagnose source warmth, prestige, and proc values before replacing
   armor slots. Step 3 owns the shared proc/extension mapping. Preserve source record data for
   that mapping rather than destroying inputs or emitting stale values in unrelated target slots.
-- [ ] 113.6 Use existing reporting patterns for a stable audit per record: source identity,
+- [x] 113.6 Use existing reporting patterns for a stable audit per record: source identity,
   slot/values, disposition, inferred family and target constant/index, rule/override, AC result,
   penalties, and named losses.
   Review every fallback and ambiguous/penalized case against the refreshed corpus.
-- [ ] 113.7 Test every supported family/slot, zero/positive/negative protection, curses,
+- [x] 113.7 Test every supported family/slot, zero/positive/negative protection, curses,
   conflicting masks, empty masks, placeholders, overrides, duplicate indices, rings and tail
   gear, existing applies, and stable diagnostics. Parse source fixtures through the real source
   facade, emit, then parse with `objects.py`; verify runtime wear/AC/penalty behavior in step 6.
@@ -851,8 +885,8 @@ selection a gameplay decision even when value-0 protection is preserved.
 
 A dexterity cap of 99 means unlimited. Shield entries 14/15/16/17 have armor-check penalties
 -1/-1/-2/-10, spell failure 5/5/15/50%, and dexterity caps 99/99/99/7 respectively.
-These verified inputs complete the target-table evidence for 113.2. The family/penalty policy
-is approved; source classification and equipped runtime checks remain open.
+These verified inputs complete the target-table evidence for 113.2. The reviewed source
+classification is complete; equipped runtime checks remain part of the combined Step 6 rehearsal.
 
 ## Step 3: remaining object policies (#114)
 
