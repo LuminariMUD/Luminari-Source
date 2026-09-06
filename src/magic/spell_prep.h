@@ -854,6 +854,10 @@ int compute_powers_circle(int class, int spellnum, int metamagic);
      */
 int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic);
 
+/* Find a base-spell resource without consuming it or granting at-will overrides.
+ * The result is not a reservation; recheck/consume at the operation boundary. */
+int spell_prep_base_resource_check(struct char_data *ch, int spellnum);
+
 /**
      * spell_prep_gen_check - Check if spell is available to cast
      * @ch: Character to check

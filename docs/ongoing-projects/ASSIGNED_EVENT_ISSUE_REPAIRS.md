@@ -534,3 +534,26 @@ records concrete source findings: slot extraction can consume moon bonuses,
 HIT_MISS includes rejected operations, and execution must bind the exact ready
 incarnation as well as the exact cast ID. These determine the next implementation
 steps; no counterspell or ally-defense runtime completion is claimed.
+
+## Counterspell resource prerequisite (2026-09-06)
+
+The preparation system now exposes `spell_prep_base_resource_check`, a
+non-consuming query that shares normal extraction's resource selection. It
+returns before moon debit, preparation/innate queue changes, preservation rolls
+and extraction messages. Unlike the general cast-admission helper, it does not
+grant a staff or at-will bypass. Its result is not a reservation: the reaction
+must still revalidate and consume at execution.
+
+The API deliberately accepts only a base spell, matching the #106 decision.
+Tracing the existing metamagic calculation found that Inquisitor Spell Metamastery
+can attach a cooldown while computing circle cost. Exposing arbitrary metamagic
+through a supposedly pure resource probe would therefore be incorrect; the base
+query passes METAMAGIC_NONE throughout that calculation. Normal extraction keeps
+its existing metamagic and preservation behavior.
+
+Validation: `make -j10 test` passed with 1,169 gameplay cases and no compiler
+warnings, followed by successful `make install`. New production-linked tests
+verify repeated probes without debit/output, moon-before-preparation consumption,
+prepared recovery queue insertion, spontaneous exhaustion, and no staff resource
+bypass. Runtime counterspell dispatch, ally-defense facts and the remaining #106
+acceptance cases are still outstanding.

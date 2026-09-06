@@ -59,6 +59,11 @@ from CharacterDamaged.
    resource policy rather than copying a second multiclass/bonus-slot algorithm.
    A probe must not consume slots, update preparation queues, or emit messages.
    At-will effects do not supply an unlimited counterspell resource.
+   The resource prerequisite now provides `spell_prep_base_resource_check` for
+   this query. It accepts no metamagic: existing metamagic circle calculation
+   can itself consume a cooldown. Normal extraction still applies established
+   slot-preservation perks; the counter operation must invoke resource commit
+   once, not force an extra debit when that policy preserves a slot.
 7. Queue execution through the existing native ready event, one pulse later.
    Revalidate owner, readiness incarnation, caster generation, room, perception,
    capability, resource and exact active cast ID. Consume no resource if the

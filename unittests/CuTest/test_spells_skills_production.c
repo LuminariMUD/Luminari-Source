@@ -1972,3 +1972,103 @@ void Test_nature_and_survival_lookup_preserve_one_skill_slot(CuTest *tc)
   SET_ABILITY(&ch, ABILITY_SURVIVAL, 7);
   CuAssertIntEquals(tc, 7, GET_ABILITY(&ch, ABILITY_NATURE));
 }
+
+
+void Test_spell_resource_probe_preserves_preparations_and_moon_bonus(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  int saved_moon = CONFIG_ARCANE_MOON_PHASES;
+  int saved_prep = CONFIG_ARCANE_PREP_TIME;
+  int saved_level = spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_WIZARD];
+  int attempt;
+
+  clear_char(&ch);
+  memset(&specials, 0, sizeof(specials));
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.character = &ch;
+  descriptor.connected = CON_PLAYING;
+  ch.player_specials = &specials;
+  ch.desc = &descriptor;
+  GET_LEVEL(&ch) = 10;
+  CLASS_LEVEL((&ch), CLASS_WIZARD) = 10;
+  ch.real_abils.intel = ch.aff_abils.intel = 18;
+  CONFIG_ARCANE_MOON_PHASES = TRUE;
+  CONFIG_ARCANE_PREP_TIME = 1;
+  spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_WIZARD] = 1;
+  specials.saved.moon_bonus_spells = 1;
+  collection_add(&ch, CLASS_WIZARD, SPELL_MAGIC_MISSILE, 0, 0, 0);
+
+  for (attempt = 0; attempt < 3; attempt++)
+    CuAssertIntEquals(tc, CLASS_WIZARD, spell_prep_base_resource_check(&ch, SPELL_MAGIC_MISSILE));
+  CuAssertIntEquals(tc, 0, specials.saved.moon_bonus_spells_used);
+  CuAssertTrue(tc, is_spell_in_collection(&ch, CLASS_WIZARD, SPELL_MAGIC_MISSILE, 0));
+  CuAssertPtrEquals(tc, NULL, SPELL_PREP_QUEUE(&ch, CLASS_WIZARD));
+  CuAssertStrEquals(tc, "", descriptor.output);
+
+  CuAssertIntEquals(tc, CLASS_WIZARD, spell_prep_gen_extract(&ch, SPELL_MAGIC_MISSILE, 0));
+  CuAssertIntEquals(tc, 1, specials.saved.moon_bonus_spells_used);
+  CuAssertTrue(tc, is_spell_in_collection(&ch, CLASS_WIZARD, SPELL_MAGIC_MISSILE, 0));
+  CuAssertIntEquals(tc, CLASS_WIZARD, spell_prep_base_resource_check(&ch, SPELL_MAGIC_MISSILE));
+  CuAssertIntEquals(tc, CLASS_WIZARD, spell_prep_gen_extract(&ch, SPELL_MAGIC_MISSILE, 0));
+  CuAssertTrue(tc, !is_spell_in_collection(&ch, CLASS_WIZARD, SPELL_MAGIC_MISSILE, 0));
+  CuAssertPtrNotNull(tc, SPELL_PREP_QUEUE(&ch, CLASS_WIZARD));
+  CuAssertIntEquals(tc, CLASS_UNDEFINED, spell_prep_base_resource_check(&ch, SPELL_MAGIC_MISSILE));
+
+  clear_collection_by_class(&ch, CLASS_WIZARD);
+  clear_prep_queue_by_class(&ch, CLASS_WIZARD);
+  ch.desc = NULL;
+  cleanup_test_descriptor(&descriptor);
+  CONFIG_ARCANE_MOON_PHASES = saved_moon;
+  CONFIG_ARCANE_PREP_TIME = saved_prep;
+  spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_WIZARD] = saved_level;
+}
+
+void Test_spell_resource_probe_tracks_spontaneous_exhaustion_without_debit(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  int saved_moon = CONFIG_ARCANE_MOON_PHASES;
+  int saved_prep = CONFIG_ARCANE_PREP_TIME;
+  int saved_level = spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_SORCERER];
+  int slots;
+  int circle;
+  int index;
+
+  clear_char(&ch);
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+  GET_LEVEL(&ch) = 10;
+  CLASS_LEVEL((&ch), CLASS_SORCERER) = 10;
+  ch.real_abils.cha = ch.aff_abils.cha = 18;
+  CONFIG_ARCANE_MOON_PHASES = FALSE;
+  CONFIG_ARCANE_PREP_TIME = 1;
+  spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_SORCERER] = 1;
+  CuAssertTrue(tc, known_spells_add(&ch, CLASS_SORCERER, SPELL_MAGIC_MISSILE, TRUE));
+  circle = compute_spells_circle(&ch, CLASS_SORCERER, SPELL_MAGIC_MISSILE, 0, 0);
+  slots = compute_slots_by_circle(&ch, CLASS_SORCERER, circle);
+  CuAssertTrue(tc, slots > 0);
+  for (index = 0; index < slots; index++)
+  {
+    CuAssertIntEquals(tc, CLASS_SORCERER, spell_prep_base_resource_check(&ch, SPELL_MAGIC_MISSILE));
+    CuAssertIntEquals(tc, index, count_total_slots(&ch, CLASS_SORCERER, circle));
+    CuAssertIntEquals(tc, CLASS_SORCERER, spell_prep_gen_extract(&ch, SPELL_MAGIC_MISSILE, 0));
+    CuAssertIntEquals(tc, index + 1, count_total_slots(&ch, CLASS_SORCERER, circle));
+  }
+  CuAssertIntEquals(tc, CLASS_UNDEFINED, spell_prep_base_resource_check(&ch, SPELL_MAGIC_MISSILE));
+  CuAssertIntEquals(tc, CLASS_UNDEFINED, spell_prep_gen_extract(&ch, SPELL_MAGIC_MISSILE, 0));
+  CuAssertIntEquals(tc, slots, count_total_slots(&ch, CLASS_SORCERER, circle));
+  GET_LEVEL(&ch) = LVL_IMPL;
+  CuAssertIntEquals(tc, CLASS_UNDEFINED, spell_prep_base_resource_check(&ch, SPELL_MAGIC_MISSILE));
+  CuAssertIntEquals(tc, CLASS_UNDEFINED, spell_prep_base_resource_check(NULL, SPELL_MAGIC_MISSILE));
+
+  clear_innate_magic_by_class(&ch, CLASS_SORCERER);
+  clear_known_spells_by_class(&ch, CLASS_SORCERER);
+  CONFIG_ARCANE_MOON_PHASES = saved_moon;
+  CONFIG_ARCANE_PREP_TIME = saved_prep;
+  spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_SORCERER] = saved_level;
+}

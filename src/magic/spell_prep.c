@@ -3223,18 +3223,18 @@ void assign_feat_spell_slots(int ch_class)
  *
  * Returns: Class that had the spell, or CLASS_UNDEFINED if not found
  */
-int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
+static int spell_prep_resource(struct char_data *ch, int spellnum, int metamagic, bool consume)
 {
   int ch_class = CLASS_UNDEFINED, prep_time = INVALID_PREP_TIME, circle = TOP_CIRCLE + 1,
       is_domain = FALSE, i;
 
-  if (DEBUGMODE)
+  if (consume && DEBUGMODE)
   {
     send_to_char(ch, "{entered spell_prep_gen_extract()}    ");
   }
 
   /* Debug logging for metamagic exploit tracking */
-  if (metamagic > 0 && !IS_NPC(ch))
+  if (consume && metamagic > 0 && !IS_NPC(ch))
   {
     log("METAMAGIC_DEBUG: %s extracting spell %d (%s) with metamagic %d", GET_NAME(ch), spellnum,
         spell_name(spellnum), metamagic);
@@ -3277,10 +3277,11 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
     if (is_arcane_spell)
     {
       /* Use a moon bonus spell instead of a regular slot */
-      if (use_moon_bonus_spell(ch))
+      if (!consume || use_moon_bonus_spell(ch))
       {
-        send_to_char(ch, "\tC[Moon Bonus Spell]:\tn You cast this spell using a bonus spell slot "
-                         "granted by the moon phases!\r\n");
+        if (consume)
+          send_to_char(ch, "\tC[Moon Bonus Spell]:\tn You cast this spell using a bonus spell slot "
+                           "granted by the moon phases!\r\n");
         /* Return the class that could cast this spell - we don't remove the actual spell */
         /* Just use the moon bonus and let them keep the spell ready */
         for (i = 0; i < NUM_CLASSES; i++)
@@ -3320,6 +3321,9 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
 
     if (is_spell_in_collection(ch, ch_class, spellnum, check_metamagic))
     {
+      if (!consume)
+        return ch_class;
+
       if (ch_class == CLASS_INQUISITOR && has_inquisitor_supreme_spellcasting(ch) &&
           !char_has_mud_event(ch, eSUPREME_SPELLCASTING_USED))
       {
@@ -3385,6 +3389,9 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
         (compute_slots_by_circle(ch, ch_class, circle) - count_total_slots(ch, ch_class, circle) >
          0))
     {
+      if (!consume)
+        return ch_class;
+
       if (ch_class == CLASS_INQUISITOR && has_inquisitor_supreme_spellcasting(ch) &&
           !char_has_mud_event(ch, eSUPREME_SPELLCASTING_USED))
       {
@@ -3419,6 +3426,19 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
 
   /* No prepared spell found and can't cast spontaneously */
   return CLASS_UNDEFINED;
+}
+
+/* Resource-only admission: no staff/cantrip bypass, debit, messages or random rolls. */
+int spell_prep_base_resource_check(struct char_data *ch, int spellnum)
+{
+  if (ch == NULL || ch->player_specials == NULL || spellnum <= 0 || spellnum > TOP_SPELL_DEFINE)
+    return CLASS_UNDEFINED;
+  return spell_prep_resource(ch, spellnum, METAMAGIC_NONE, false);
+}
+
+int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
+{
+  return spell_prep_resource(ch, spellnum, metamagic, true);
 }
 
 /**
