@@ -1,0 +1,279 @@
+{
+  "overrides": {
+    "areas/obj/beluir.obj:16011": {
+      "source_sha256": "7dce4f7bc5fb398bbc949f598d3da2fb542ddb82153da9a41c43a76c9afa4f5c",
+      "family": "LEATHER",
+      "slot": 4,
+      "rationale": "The extra description identifies a leather cap for the head; remove HOLD and retain TAKE/HEAD."
+    },
+    "areas/obj/beluir.obj:16014": {
+      "source_sha256": "bf7942bfc5a401e2d87ac37e03aeafa059acc419dfdf111b751db553c5318653",
+      "family": "LEATHER",
+      "slot": 3,
+      "rationale": "The extra description identifies a leather vest; remove HOLD and retain TAKE/BODY."
+    },
+    "areas/obj/undermountain2.obj:93222": {
+      "source_sha256": "7d13e3daf42efcd8bce1bef273bcc7bdebf1b4e45775a4b1457aba1287f36423",
+      "family": "LEATHER",
+      "slot": 8,
+      "rationale": "The authored arm slot supports this pair of leather forearm guards; retain TAKE/ARMS and remove the alternate WRIST flag so its armor protection and penalties stay consistent."
+    },
+    "areas/obj/woodbeta.obj:66231": {
+      "source_sha256": "8370ab2140f9ab39876fd5000af405cf0bbc22db7d2000ecb4ee9476c21efb6e",
+      "family": "PIECEMEAL",
+      "slot": 3,
+      "rationale": "The extra description explicitly describes remnants of several armors cobbled together; retain TAKE/BODY and remove HOLD."
+    },
+    "areas/obj/woodbeta.obj:66233": {
+      "source_sha256": "916ef4ac6d9022f9f30971edc4025c1003947c05f0a0bbc94ff2a55c730cfce9",
+      "family": "FULL_PLATE",
+      "slot": 4,
+      "rationale": "The helmet has a dented, cracked solid surface with attached horns, supporting a rigid plate helm; retain TAKE/HEAD and remove HOLD."
+    },
+    "areas/obj/astral_main.obj:19800": {
+      "source_sha256": "7a9d9e12f66838541ea105efc6abf6db0ccac59b03042f3aec995126495cfa8b",
+      "family": "FULL_PLATE",
+      "rationale": "Copper bracers are rigid forearm guards, not cloth or interlinked mail."
+    },
+    "areas/obj/brain.obj:96814": {
+      "source_sha256": "6de3489e3978e944e740ef19b69767ec392ec9f0ef8198ddf52d9211af62ad6b",
+      "family": "FULL_PLATE",
+      "rationale": "The identity describes a physical protective helmet; no cloth, skin, mail, or immaterial construction is stated. Use a rigid helmet family."
+    },
+    "areas/obj/bs3.obj:22431": {
+      "source_sha256": "0238244a47afcfc58c9029ff6d1aa2df622b6743610b167d75da6bc2550bb635",
+      "family": "FULL_PLATE",
+      "rationale": "A cranial defender is head armor with no textile or flexible construction stated; use the rigid helmet family."
+    },
+    "areas/obj/bs3.obj:22432": {
+      "source_sha256": "8407127057ee4fa95e1d99f3a79d050709ed03748863508631f04b87346ca088",
+      "family": "HIDE",
+      "rationale": "The wearable is an actual hollow creature skull, fitting the bone/organic-shell family rather than a textile cap."
+    },
+    "areas/obj/bs3.obj:22433": {
+      "source_sha256": "92c9e38487387ce3266242c2b5aca00308905f107b0243bb04fae60f44254e86",
+      "family": "FULL_PLATE",
+      "rationale": "The identity describes a physical protective helmet; no cloth, skin, mail, or immaterial construction is stated. Use a rigid helmet family."
+    },
+    "areas/obj/bs3.obj:22434": {
+      "source_sha256": "b06173c3ebe3b0a5ecfcebf0e79f39b86af73be8e95fe836aa168cebb6e38b69",
+      "family": "FULL_PLATE",
+      "rationale": "The identity describes a physical protective helmet; no cloth, skin, mail, or immaterial construction is stated. Use a rigid helmet family."
+    },
+    "areas/obj/bs3.obj:22435": {
+      "source_sha256": "cbdd40f13b93fe01a986caf6842f61bc96586bca56a9dfba45fb72ea384b9110",
+      "family": "FULL_PLATE",
+      "rationale": "The identity describes a physical protective helmet; no cloth, skin, mail, or immaterial construction is stated. Use a rigid helmet family."
+    },
+    "areas/obj/bs3.obj:22436": {
+      "source_sha256": "e993d1bde9fe04b89824ebc8e2921070cba09a1c6c06bd5799fe339fb9a1135c",
+      "family": "FULL_PLATE",
+      "rationale": "The identity describes a physical protective helmet; no cloth, skin, mail, or immaterial construction is stated. Use a rigid helmet family."
+    },
+    "areas/obj/bs3.obj:22588": {
+      "source_sha256": "7700f7efa9366834f0c330c4cb577be1e12cb6ad0cf0675c1409562588d33449",
+      "family": "CHAINMAIL",
+      "rationale": "A suit made of barbed rings has explicit linked-ring construction."
+    },
+    "areas/obj/calpalac.obj:46533": {
+      "source_sha256": "39a2f322460814a17bed3faad110c3f9d32fdc9cd6791ffe1099237a4160d163",
+      "family": "HIDE",
+      "rationale": "The description makes the leg guard from living spider bodies; use the organic-shell family, not metal cuisses."
+    },
+    "areas/obj/dark.obj:40706": {
+      "source_sha256": "43824ab1424f25b38aa56f79691e5e7c212fcf812e49a2ec9650510fee6e9e23",
+      "family": "FULL_PLATE",
+      "rationale": "The identity describes a physical protective helmet; no cloth, skin, mail, or immaterial construction is stated. Use a rigid helmet family."
+    },
+    "areas/obj/drider.obj:70604": {
+      "source_sha256": "25cf53c94c9a7b2a1a59f32297e7a1720506f6d61cd42ebe747f65a24bf395ba",
+      "family": "HIDE",
+      "rationale": "The coif consists of living spider bodies; use organic-shell armor rather than cloth or metal mail."
+    },
+    "areas/obj/drider.obj:70605": {
+      "source_sha256": "10217f3d60bc0daf6fce693ccf35c3d130081515cc6ece2244eed09e04b5584d",
+      "family": "HIDE",
+      "rationale": "The suit consists of living spider bodies; use organic-shell armor rather than cloth or metal mail."
+    },
+    "areas/obj/drulak.obj:95559": {
+      "source_sha256": "8ad07ee48d0b200771b9d60b564dc0fcd701a6e92cbdb911fca58b468fc1c123",
+      "family": "FULL_PLATE",
+      "rationale": "The helmet is polished solid stone and described as heavy; use the rigid enclosed helmet family."
+    },
+    "areas/obj/flesh.obj:45160": {
+      "source_sha256": "870bfd3eb8f00888118605601586be7e3df05186b865ddca1a273ea105e8ec20",
+      "family": "HIDE",
+      "rationale": "Despite the legplates name, the description explicitly makes these guards from charred flesh."
+    },
+    "areas/obj/heartlnd.obj:21080": {
+      "source_sha256": "ac2857a63685501dc4d88b3d169142c2399ce1f8a871c2fef7977869cdb8824b",
+      "family": "FULL_PLATE",
+      "rationale": "The identity describes a physical protective helmet; no cloth, skin, mail, or immaterial construction is stated. Use a rigid helmet family."
+    },
+    "areas/obj/heartlnd.obj:21089": {
+      "source_sha256": "ff035e1acee2db28b40a2f577c5935ed420af6e308f287c0debd878c0ca796af",
+      "family": "FULL_PLATE",
+      "rationale": "The identity describes a physical protective helmet; no cloth, skin, mail, or immaterial construction is stated. Use a rigid helmet family."
+    },
+    "areas/obj/hulburg.obj:59354": {
+      "source_sha256": "66854a259790260e6cea478a3da1c011d2a8e948e15ba080a6b22abd83400914",
+      "family": "HIDE",
+      "rationale": "The conical helm is made from petrified worms; use the organic-shell family."
+    },
+    "areas/obj/jotun.obj:96034": {
+      "source_sha256": "f45a9ed628ac313c6b54be1bc2e9e83d1570d9e121378e658ad4c043b2c91853",
+      "family": "FULL_PLATE",
+      "rationale": "The identity describes a physical protective helmet; no cloth, skin, mail, or immaterial construction is stated. Use a rigid helmet family."
+    },
+    "areas/obj/jungle.obj:2603": {
+      "source_sha256": "d6f1e27a17167cb55ce6079cb00f76ba76b3ceff25721704d9feef750be4fb05",
+      "family": "LARGE_SHIELD",
+      "rationale": "The source shield is explicitly a large piece of Tarrasque hide."
+    },
+    "areas/obj/lostswamp.obj:52354": {
+      "source_sha256": "2cd0b71429ccccd1415a99a08b4363f90d6d3c53bd739a71c4a48fcb58647b5d",
+      "family": "HIDE",
+      "rationale": "The wearable is an actual hollow creature skull, fitting the bone/organic-shell family rather than a textile cap."
+    },
+    "areas/obj/misc_code.obj:498": {
+      "source_sha256": "e0e89944e9ae424806695468c7372cb8e5b35662424afb64559633b18563f42e",
+      "family": "FULL_PLATE",
+      "rationale": "The helmet is explicitly hammered from a single sheet of copper."
+    },
+    "areas/obj/misc_code.obj:506": {
+      "source_sha256": "3dcdbb82148a00f1da7b30135312afd58e19cd776c41c74a97c7db804ce06c89",
+      "family": "HIDE",
+      "rationale": "The wearable is an actual hollow creature skull, fitting the bone/organic-shell family rather than a textile cap."
+    },
+    "areas/obj/misc_code.obj:525": {
+      "source_sha256": "dad18560c38adf6feaf8556567e51f6055b14df6d80992f72fec58cec245d783",
+      "family": "PADDED",
+      "rationale": "The description explicitly gives this bodysuit protective padding over vital areas."
+    },
+    "areas/obj/mithril_hall.obj:6510": {
+      "source_sha256": "7e55240873b3ff821fab5be8df7e5cf625884b4d16d3aa71bf8965c9437596cc",
+      "family": "FULL_PLATE",
+      "rationale": "The identity describes a physical protective helmet; no cloth, skin, mail, or immaterial construction is stated. Use a rigid helmet family."
+    },
+    "areas/obj/mithril_hall.obj:6539": {
+      "source_sha256": "9e471c7b6d6e5563bd23ce5fc5883d8aff487c19bb32a4f845ef708a6a9e2049",
+      "family": "FULL_PLATE",
+      "rationale": "The identity describes a physical protective helmet; no cloth, skin, mail, or immaterial construction is stated. Use a rigid helmet family."
+    },
+    "areas/obj/mytheast.obj:81722": {
+      "source_sha256": "19151e4944256af480b1ec900c7dc68b375cf5e91b3f7ea986337b9b9251cdb3",
+      "family": "FULL_PLATE",
+      "rationale": "The vambraces are smooth volcanic glass, a rigid protective shell rather than mail."
+    },
+    "areas/obj/mytheast.obj:81724": {
+      "source_sha256": "2550de8386b09125694b5403d61b3a2e10340f8527a968ed495654b83b346335",
+      "family": "FULL_PLATE",
+      "rationale": "The leg guards are volcanic glass, a rigid protective shell rather than mail."
+    },
+    "areas/obj/necrolab.obj:35600": {
+      "source_sha256": "6f84508fb4b6a09d0bca49e928d3b9782cdbd51b9e105c90b960ce5b6f6856eb",
+      "family": "CLOTHING",
+      "rationale": "These cursed leg shackles are restraints, not protective armor construction. Keep the signed negative source AC, weight and curse flags; neutral family adds no invented armor penalties."
+    },
+    "areas/obj/necrolab.obj:35601": {
+      "source_sha256": "ee9285d031cbfea83630a554c22f0bdfd364d05ed4ae8682d6a5ad71dac04369",
+      "family": "CLOTHING",
+      "rationale": "These cursed leg shackles are restraints, not protective armor construction. Keep the signed negative source AC, weight and curse flags; neutral family adds no invented armor penalties."
+    },
+    "areas/obj/necrolab.obj:35602": {
+      "source_sha256": "84873d6ad6bad39c0f902b7084ac0a40c091358bde83e31db4460cf6add29a70",
+      "family": "CLOTHING",
+      "rationale": "These cursed leg shackles are restraints, not protective armor construction. Keep the signed negative source AC, weight and curse flags; neutral family adds no invented armor penalties."
+    },
+    "areas/obj/necrolab.obj:35603": {
+      "source_sha256": "c5810ae2ecec33ef587e508126e350b18dfc8b1760bbbb83b2546dcf0505dc34",
+      "family": "CLOTHING",
+      "rationale": "These cursed leg shackles are restraints, not protective armor construction. Keep the signed negative source AC, weight and curse flags; neutral family adds no invented armor penalties."
+    },
+    "areas/obj/necrolab.obj:35604": {
+      "source_sha256": "91bd0555a46d35d1312e58978385023873ea4672a67081e4693a7809ba612564",
+      "family": "CLOTHING",
+      "rationale": "These cursed leg shackles are restraints, not protective armor construction. Keep the signed negative source AC, weight and curse flags; neutral family adds no invented armor penalties."
+    },
+    "areas/obj/necrolab.obj:35605": {
+      "source_sha256": "c6df41ae10fa9797d3ad9c64acdadc14e8b41e4968466c54f332924dc99c6e8e",
+      "family": "CLOTHING",
+      "rationale": "These cursed leg shackles are restraints, not protective armor construction. Keep the signed negative source AC, weight and curse flags; neutral family adds no invented armor penalties."
+    },
+    "areas/obj/necrolab.obj:35606": {
+      "source_sha256": "2840298a94ed75e6de3b7d1207e17c9d0c58090c7b096e0dc034116901781d89",
+      "family": "CLOTHING",
+      "rationale": "These cursed leg shackles are restraints, not protective armor construction. Keep the signed negative source AC, weight and curse flags; neutral family adds no invented armor penalties."
+    },
+    "areas/obj/new_cavecity.obj:15109": {
+      "source_sha256": "6ab4f1f3de70f6ca6771121e14a82afa07b91eea8928c28e8fca734f12520473",
+      "family": "FULL_PLATE",
+      "rationale": "The helmet is explicitly forged, well armored and spiked."
+    },
+    "areas/obj/nhavan.obj:20330": {
+      "source_sha256": "8786ec435a43a567101d28e0a3e55502a9b20f592bfbeab2c00eb5eb06a798d3",
+      "family": "FULL_PLATE",
+      "rationale": "The description completely encases the legs in carved azurite; magic permits flexibility but the construction is a solid shell."
+    },
+    "areas/obj/scorn.obj:6095": {
+      "source_sha256": "6e35126d50b4109305f5e3ce62c8ccbd8d93c936c20a1bb0e71983ae9c98dc36",
+      "family": "PADDED",
+      "rationale": "The thick folded corset is expressly built to serve as body armor; padded clothing fits that construction."
+    },
+    "areas/obj/skerttd.obj:99009": {
+      "source_sha256": "132da5e200a7c8163ef107a168003b69bff8d3d52782d6b0c8190b0fdd8c23a7",
+      "family": "SPLINT",
+      "rationale": "The vambraces consist of strips of rough coral, matching rigid strips rather than cloth or rings."
+    },
+    "areas/obj/snowelf.obj:89442": {
+      "source_sha256": "0d5dc0806ccf7f1fe62f39189539a68e9146bf3e22446e3f5bd18a66e0dee0c3",
+      "family": "HIDE",
+      "rationale": "The wearable is an actual hollow creature skull, fitting the bone/organic-shell family rather than a textile cap."
+    },
+    "areas/obj/snowelf.obj:89452": {
+      "source_sha256": "b409bfe9309334704b6fb6bf07df0bab73f5cb0df3c9ad52e38b53fed4be6ee4",
+      "family": "HIDE",
+      "rationale": "The wearable is an actual hollow creature skull, fitting the bone/organic-shell family rather than a textile cap."
+    },
+    "areas/obj/swamp_three.obj:16854": {
+      "source_sha256": "57d18e991ca6ff749902652a87141a5988994ccfcf788caf3833835f872b2e20",
+      "family": "FULL_PLATE",
+      "rationale": "The description explicitly forges the bracers from copper; inset gems decorate rigid forearm guards."
+    },
+    "areas/obj/trollbark.obj:52806": {
+      "source_sha256": "4863359ed7cf72c9b03ff59dad6a53139812bc41b0320b29ed2c9efbf332a479",
+      "family": "FULL_PLATE",
+      "rationale": "The enameled suit has a chestplate and articulated joints; the snake is decorative."
+    },
+    "areas/obj/trollbark.obj:52887": {
+      "source_sha256": "67c124218cc8cbee88dfc1c5460492c315ef672d5ef3acf33b4ac47f136ddf92",
+      "family": "FULL_PLATE",
+      "rationale": "The cracked enameled suit retains its chestplate and articulated joints; damage does not change its armor family."
+    },
+    "areas/obj/undermountain.obj:92097": {
+      "source_sha256": "eef6b73f0afb38b9e43932fdf0de450287f04b77984dbd19dbdfa817bbd93c52",
+      "family": "FULL_PLATE",
+      "rationale": "The identity describes a physical protective helmet; no cloth, skin, mail, or immaterial construction is stated. Use a rigid helmet family."
+    },
+    "areas/obj/undermountain.obj:92098": {
+      "source_sha256": "00a73e5eaa8ad41d98d6cab22e3c13d4a4e5b043caaf92d6f469bb42b1f3bea0",
+      "family": "FULL_PLATE",
+      "rationale": "The identity describes a physical protective helmet; no cloth, skin, mail, or immaterial construction is stated. Use a rigid helmet family."
+    },
+    "areas/obj/undermountain.obj:92099": {
+      "source_sha256": "112f88dd3352a41dd5a25157a7519f2fda79a34599fdd9a5a479ae0abc182b10",
+      "family": "FULL_PLATE",
+      "rationale": "Adamantium leggings are rigid leg armor, with no linked-mail construction stated. Material bonuses remain a separate policy."
+    },
+    "areas/obj/undermountain.obj:92114": {
+      "source_sha256": "01502760a6dc26694d445d505cc225d22b42fcbd2d113189eca0f8999233205d",
+      "family": "SCALE",
+      "rationale": "The Green Dragon armor identity supports dragon-scale armor; no textile or metal construction is stated."
+    },
+    "areas/obj/undermountain.obj:92116": {
+      "source_sha256": "875edbf3cb957047d7b90a2401c88559b4f137040a029e6b2f817a78e85416f3",
+      "family": "SCALE",
+      "rationale": "The Red Dragon armor identity supports dragon-scale armor; no textile or metal construction is stated."
+    }
+  }
+}

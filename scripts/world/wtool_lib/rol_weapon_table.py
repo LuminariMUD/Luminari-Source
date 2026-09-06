@@ -49,7 +49,6 @@ SETWEAPON_FIELDS = (
 )
 
 _DEFINE = re.compile(r"^#define\s+([A-Z][A-Z0-9_]*)\s+(.+?)\s*(?:/\*.*)?$", re.M)
-_SETWEAPON = re.compile(r"\bsetweapon\s*\(", re.S)
 _INT_LITERAL = re.compile(r"^-?\d+$")
 
 
@@ -163,8 +162,8 @@ def _split_arguments(text: str) -> list[str]:
   return arguments
 
 
-def _call_bodies(text: str) -> Iterable[str]:
-  for match in _SETWEAPON.finditer(text):
+def _call_bodies(text: str, function: str = "setweapon") -> Iterable[str]:
+  for match in re.finditer(r"\b" + re.escape(function) + r"\s*\(", text):
     depth = 1
     index = match.end()
     in_string = False

@@ -6,6 +6,7 @@ import re
 from collections.abc import Iterable
 from typing import Any
 
+from .rol_armor_mapping import infer_armor
 from .rol_conversion_types import (
     IdentityResolver,
     RolRecord,
@@ -865,11 +866,6 @@ TARGET_WEAR_TAKE = 0
 TARGET_WEAR_TAIL = 34
 
 
-# Native apply_ac() accepts these armor slots plus dedicated tail gear. Other
-# wearables use an affect; a tail-capable ring is normalized to FINGER first.
-TARGET_ARMOR_WEAR_SLOTS = frozenset({3, 4, 5, 8, 9, TARGET_WEAR_TAIL})
-
-
 OBJECT_WEAR_MAP = {
     0: 0,
     1: 1,
@@ -1698,22 +1694,37 @@ def emit_object(
     )
   values = _object_values(record, source_type, target_type, resolve, diagnostics)
   worn_protection = 0
-  if source_type == 9 and not target_wear & TARGET_ARMOR_WEAR_SLOTS:
-    target_type = 11  # ITEM_WORN: value 0 must not also contribute armor AC.
-    # Value 0 is positive protection, unlike the descending source ARMOR apply.
-    worn_protection = _convert_armor_apply_modifier(-values[0])
-    diagnostics.append(
-        f"converted source nonstandard armor protection {values[0]} to ITEM_WORN "
-        f"APPLY_AC_NEW {worn_protection} with universal bonus type "
-        f"{OBJECT_APPLY_DEFAULT_BONUS_TYPE}; retained normalized wear flags"
-    )
-    values[0] = 0
+  if source_type == 9:
+    armor = infer_armor(record)
+    if armor.disposition == "worn":
+      target_type = 11  # ITEM_WORN: value 0 must not also contribute armor AC.
+      # Value 0 is positive protection, unlike the descending source ARMOR apply.
+      worn_protection = _convert_armor_apply_modifier(-values[0])
+      diagnostics.append(
+          f"converted source nonstandard armor protection {values[0]} to ITEM_WORN "
+          f"APPLY_AC_NEW {worn_protection} with universal bonus type "
+          f"{OBJECT_APPLY_DEFAULT_BONUS_TYPE}; retained normalized wear flags"
+      )
+      values[0] = 0
+    else:
+      diagnostics.append(armor.diagnostic)
+      if armor.disposition == "standard":
+        normalized_wear = {armor.slot} | (target_wear & {TARGET_WEAR_TAKE})
+        if target_wear != normalized_wear:
+          diagnostics.append(
+              f"normalized reviewed mixed armor wear flags {sorted(target_wear)} "
+              f"to {sorted(normalized_wear)}"
+          )
+        target_wear = normalized_wear
     for slot, name in ((1, "warmth"), (2, "prestige")):
       if values[slot]:
         diagnostics.append(
             f"omitted source-only armor {name} {values[slot]}; approved metadata loss"
         )
       values[slot] = 0
+    # Tail armor deliberately has no family; its existing AC exception does
+    # not participate in body penalties. No ordinary slot index is invented.
+    values[1] = armor.armor_index
     # Assigned adapters own their state (e.g. the tattered cloak's recharge
     # counter). An unbound ProcVal is not a spell or ability to synthesize.
     if special_proc is None:

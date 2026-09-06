@@ -15,6 +15,7 @@
 #include "../../src/character/feats.h"
 #include "../../src/character/premadebuilds.h"
 #include "../../src/character/race.h"
+#include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/net/protocol.h"
 
 static void ensure_race_equivalence_registry(void)
@@ -516,6 +517,77 @@ void TestTailSlotRingAndDedicatedGearContract(CuTest *tc)
   CuAssertPtrEquals(tc, &tail_armor, unequip_char(&ch, WEAR_TAIL));
   CuAssertIntEquals(tc, 0, ch.points.armor);
 
+  cleanup_race_equivalence_descriptor(&descriptor);
+}
+
+void TestConvertedArmorFamiliesPreserveAcAndUseNativePenalties(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  struct obj_data armor;
+  const int families[] = {SPEC_ARMOR_TYPE_CLOTHING, SPEC_ARMOR_TYPE_LEATHER,
+                          SPEC_ARMOR_TYPE_CHAINMAIL, SPEC_ARMOR_TYPE_FULL_PLATE};
+  const int checks[] = {0, 0, -5, -6};
+  const int failures[] = {0, 10, 30, 35};
+  const int dex_caps[] = {99, 13, 8, 7};
+  size_t i;
+
+  ensure_race_equivalence_registry();
+  load_armor();
+  init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+  GET_REAL_RACE(&ch) = RACE_YUAN_TI;
+  GET_REAL_SIZE(&ch) = SIZE_MEDIUM;
+  ch.points.size = SIZE_MEDIUM;
+  for (i = 0; i < sizeof(families) / sizeof(families[0]); i++)
+  {
+    init_race_equipment_object(&armor, "converted body armor", ITEM_WEAR_BODY);
+    GET_OBJ_SIZE(&armor) = SIZE_MEDIUM;
+    GET_OBJ_VAL(&armor, 0) = 23;
+    GET_OBJ_VAL(&armor, 1) = families[i];
+    equip_char(&ch, &armor, WEAR_BODY);
+    CuAssertPtrEquals(tc, &armor, GET_EQ(&ch, WEAR_BODY));
+    CuAssertIntEquals(tc, 23, ch.points.armor);
+    CuAssertIntEquals(tc, checks[i], compute_gear_armor_penalty(&ch));
+    CuAssertIntEquals(tc, failures[i], compute_gear_spell_failure(&ch));
+    CuAssertIntEquals(tc, dex_caps[i], compute_gear_max_dex(&ch));
+    if (families[i] == SPEC_ARMOR_TYPE_FULL_PLATE)
+    {
+      CuAssertIntEquals(tc, ARMOR_TYPE_HEAVY, compute_gear_armor_type(&ch));
+      CuAssertTrue(tc, !is_proficient_with_body_armor(&ch));
+      SET_FEAT(&ch, FEAT_ARMOR_PROFICIENCY_HEAVY, 1);
+      CuAssertTrue(tc, is_proficient_with_body_armor(&ch));
+      SET_FEAT(&ch, FEAT_ARMOR_PROFICIENCY_HEAVY, 0);
+    }
+    CuAssertPtrEquals(tc, &armor, unequip_char(&ch, WEAR_BODY));
+    CuAssertIntEquals(tc, 0, ch.points.armor);
+  }
+
+  /* Dedicated tail armor has no family index, and adds no body penalties. */
+  init_race_equipment_object(&armor, "converted tail plates", ITEM_WEAR_TAIL);
+  GET_OBJ_SIZE(&armor) = SIZE_MEDIUM;
+  GET_OBJ_VAL(&armor, 0) = 6;
+  equip_char(&ch, &armor, WEAR_TAIL);
+  CuAssertIntEquals(tc, 6, ch.points.armor);
+  CuAssertIntEquals(tc, ARMOR_TYPE_NONE, compute_gear_armor_type(&ch));
+  CuAssertIntEquals(tc, 0, compute_gear_armor_penalty(&ch));
+  CuAssertIntEquals(tc, 0, compute_gear_spell_failure(&ch));
+  CuAssertIntEquals(tc, 99, compute_gear_max_dex(&ch));
+  CuAssertPtrEquals(tc, &armor, unequip_char(&ch, WEAR_TAIL));
+  CuAssertIntEquals(tc, 0, ch.points.armor);
+
+  GET_REAL_RACE(&ch) = RACE_HUMAN;
+  init_race_equipment_object(&armor, "converted cursed shackles", ITEM_WEAR_LEGS);
+  GET_OBJ_SIZE(&armor) = SIZE_MEDIUM;
+  GET_OBJ_VAL(&armor, 0) = -100;
+  GET_OBJ_VAL(&armor, 1) = SPEC_ARMOR_TYPE_CLOTHING_LEGS;
+  equip_char(&ch, &armor, WEAR_LEGS);
+  CuAssertPtrEquals(tc, &armor, GET_EQ(&ch, WEAR_LEGS));
+  CuAssertIntEquals(tc, -100, ch.points.armor);
+  CuAssertIntEquals(tc, 0, compute_gear_armor_penalty(&ch));
+  CuAssertPtrEquals(tc, &armor, unequip_char(&ch, WEAR_LEGS));
+  CuAssertIntEquals(tc, 0, ch.points.armor);
   cleanup_race_equivalence_descriptor(&descriptor);
 }
 

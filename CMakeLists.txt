@@ -1007,6 +1007,8 @@ set(WORLD_TOOL_SOURCES
     scripts/world/wtool_lib/rol_transform_common.py
     scripts/world/wtool_lib/rol_mobiles.py
     scripts/world/wtool_lib/rol_objects.py
+    scripts/world/wtool_lib/rol_armor_mapping.py
+    scripts/world/wtool_lib/rol_armor_overrides.json
     scripts/world/wtool_lib/rol_rooms.py
     scripts/world/wtool_lib/rol_zones.py
     scripts/world/wtool_lib/rol_shops.py

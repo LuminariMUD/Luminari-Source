@@ -29,17 +29,19 @@ class RolPhase8Tests(unittest.TestCase):
     for name in (
         "conversion_types", "source_common", "transform_common", "source", "transform",
         "mobiles", "objects", "rooms", "zones", "shops", "quests", "soc",
-        "weapon_mapping", "weapon_table", "mobile_identity", "mob_calculator",
+        "weapon_mapping", "weapon_table", "armor_mapping", "mobile_identity", "mob_calculator",
     ):
       self.assertIn(f"scripts/world/wtool_lib/rol_{name}.py", paths)
     for relative in (
         "scripts/world/wtool_lib/rol_weapon_overrides.json",
+        "scripts/world/wtool_lib/rol_armor_overrides.json",
         "scripts/world/rol_conversion_policy.json",
         "scripts/world/rol_source_race_registry.json",
         "scripts/world/wtool_constants.json",
         "scripts/world/wtool_lib/objects.py",
         "src/structs.h",
         "src/combat/assign_wpn_armor.c",
+        "src/combat/assign_wpn_armor.h",
         "src/magic/magic.c",
         "src/net/protocol.c",
         "unittests/CuTest/test_protocol_parser.c",
@@ -88,6 +90,7 @@ class RolPhase8Tests(unittest.TestCase):
       for index, relative in enumerate((
           "scripts/world/wtool_lib/rol_objects.py",
           "scripts/world/wtool_lib/rol_weapon_overrides.json",
+          "scripts/world/wtool_lib/rol_armor_overrides.json",
           "src/net/protocol.c",
       )):
         with self.subTest(input=relative):
