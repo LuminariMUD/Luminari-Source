@@ -69,6 +69,8 @@
 #include "craft/crafting_new.h" /* For golem repair functions */
 #include "olc/genolc.h"
 #include "point_update_periodic.h"
+#include "activity_manager.h"
+#include "domain_event_world.h"
 #include <time.h>
 
 /* some defines for gain/respec */
@@ -6090,148 +6092,136 @@ int get_hidden_door_dc(struct char_data *ch, int door)
   return 0;
 }
 
-/* 'search' command, uses the rogue's search skill, if available, although
- * the command is available to all.  */
-ACMD(do_search)
+static bool search_activity_conditions(struct char_data *ch)
+{
+  return ch != NULL && VALID_ROOM_RNUM(IN_ROOM(ch)) && FIGHTING(ch) == NULL &&
+         !AFF_FLAGGED(ch, AFF_GRAPPLED) && !AFF_FLAGGED(ch, AFF_ENTANGLED) && LIGHT_OK(ch);
+}
+
+/* Apply the atomic result of a full-room search after its work period. */
+static void perform_room_search(struct char_data *ch)
 {
   struct door_state_operation operation = {0};
-  int door, found = FALSE;
-  //  int val;
-  //  struct char_data *i; // for player/mob
-  //  struct char_data *list = world[ch->in_room].people; // for player/mob
-  //  struct obj_data *objlist = world[ch->in_room].contents;
   struct obj_data *obj = NULL;
-  //  struct obj_data *cont = NULL;
-  //  struct obj_data *next_obj = NULL;
+  int door, found = FALSE;
   int search_dc = 0;
   int search_roll = 0;
+
+  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return;
+
+  /* Find hidden treasure chests before exits and room traps, preserving the
+   * established result order and independent chest checks. */
+  for (obj = world[IN_ROOM(ch)].contents; obj; obj = obj->next_content)
+  {
+    if (GET_OBJ_TYPE(obj) != ITEM_TREASURE_CHEST || GET_OBJ_VAL(obj, 3) <= 0)
+      continue;
+    if (skill_check(ch, ABILITY_PERCEPTION, GET_OBJ_VAL(obj, 3)))
+    {
+      GET_OBJ_VAL(obj, 3) = 0;
+      act("You have found $p!", FALSE, ch, obj, 0, TO_CHAR);
+      found = TRUE;
+    }
+  }
+
+  for (door = 0; door < NUM_OF_DIRS && found == FALSE; door++)
+  {
+    if (EXIT(ch, door) && EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN))
+    {
+      search_dc = get_hidden_door_dc(ch, door);
+      search_roll = d20(ch) + compute_ability(ch, ABILITY_PERCEPTION);
+      if (search_roll >= search_dc)
+      {
+        send_to_char(ch, "roll %d vs. dc %d\r\n", search_roll, search_dc);
+        act("You find a secret entrance!", FALSE, ch, 0, 0, TO_CHAR);
+        act("$n finds a secret entrance!", FALSE, ch, 0, 0, TO_ROOM);
+        door_state_begin(&operation, IN_ROOM(ch), door, false, DOMAIN_DOOR_GAMEPLAY);
+        REMOVE_BIT(EXIT(ch, door)->exit_info, EX_HIDDEN);
+        found = TRUE;
+      }
+    }
+  }
+
+  if (!found && search_for_traps(ch))
+    found = TRUE;
+  if (!found)
+    send_to_char(ch, "You don't find anything you didn't see before.\r\n");
+  door_state_finish(&operation);
+}
+
+static bool search_activity_recheck(struct char_data *ch, void *target, void *context)
+{
+  (void)context;
+  return search_activity_conditions(ch) && target == &world[IN_ROOM(ch)];
+}
+
+static void search_activity_complete(struct char_data *ch, void *target, void *context)
+{
+  (void)target;
+  (void)context;
+  perform_room_search(ch);
+}
+
+/* 'search' uses Perception and is available to everyone. */
+ACMD(do_search)
+{
+  struct primary_activity_definition definition = {0};
+
+  (void)cmd;
+  (void)subcmd;
+  skip_spaces_c(&argument);
 
   if (FIGHTING(ch))
   {
     send_to_char(ch, "You can't do that in combat!\r\n");
     return;
   }
-
   if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
   {
     send_to_char(ch, "You are unable to move to make your attempt!\r\n");
     return;
   }
-
   if (!LIGHT_OK(ch))
   {
     send_to_char(ch, "You can't see a thing!\r\n");
     return;
   }
 
-  skip_spaces_c(&argument);
-
-  if (!*argument || true) // we're only doing full room searches right now -- gicker july 12, 2021
+  /* Periodic NPC special procedures retain their immediate scan. */
+  if (IS_NPC(ch))
   {
-    /*
-        for (obj = objlist; obj; obj = obj->next_content) {
-          if (OBJ_FLAGGED(obj, ITEM_HIDDEN)) {
-            SET_BIT(GET_OBJ_SAVED(obj), SAVE_OBJ_EXTRA);
-            REMOVE_BIT(obj->obj_flags.extra_flags, ITEM_HIDDEN);
-            act("You find $P.", FALSE, ch, 0, obj, TO_CHAR);
-            act("$n finds $P.", FALSE, ch, 0, obj, TO_NOTVICT);
-            found = TRUE;
-            break;
-          }
-        }*/
-    /* find a player/mob */
-    /*    if(!found) {
-          for (i = list; i; i = i->next_in_room) {
-            if ((ch != i) && AFF_FLAGGED(i, AFF_HIDE) && (val < ochance)) {
-              affect_from_char(i, SPELL_VACANCY);
-              affect_from_char(i, SPELL_MIRAGE_ARCANA);
-              affect_from_char(i, SPELL_STONE_BLEND);
-              REMOVE_BIT(AFF_FLAGS(i), AFF_HIDE);
-              act("You find $N lurking here!", FALSE, ch, 0, i, TO_CHAR);
-              act("$n finds $N lurking here!", FALSE, ch, 0, i, TO_NOTVICT);
-              act("You have been spotted by $n!", FALSE, ch, 0, i, TO_VICT);
-              found = TRUE;
-              break;
-            }
-          }
-        }
-     */
-    if (!found)
-    {
-      // find a hidden chest
-      if (IN_ROOM(ch) != NOWHERE)
-      {
-        for (obj = world[IN_ROOM(ch)].contents; obj; obj = obj->next_content)
-        {
-          if (GET_OBJ_TYPE(obj) != ITEM_TREASURE_CHEST)
-            continue;
-          if (GET_OBJ_VAL(obj, 3) <= 0)
-            continue;
-          if (skill_check(ch, ABILITY_PERCEPTION, GET_OBJ_VAL(obj, 3)))
-          {
-            GET_OBJ_VAL(obj, 3) = 0;
-            act("You have found $p!", FALSE, ch, obj, 0, TO_CHAR);
-            found = true;
-          }
-        }
-      }
-
-      /* find a hidden door */
-      for (door = 0; door < NUM_OF_DIRS && found == FALSE; door++)
-      {
-        if (EXIT(ch, door) && EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN))
-        {
-          /* Get the DC */
-          search_dc = get_hidden_door_dc(ch, door);
-          search_roll = d20(ch) + compute_ability(ch, ABILITY_PERCEPTION);
-          /* Roll the dice... */
-          if (search_roll >= search_dc)
-          {
-            send_to_char(ch, "roll %d vs. dc %d\r\n", search_roll, search_dc);
-            act("You find a secret entrance!", FALSE, ch, 0, 0, TO_CHAR);
-            act("$n finds a secret entrance!", FALSE, ch, 0, 0, TO_ROOM);
-            door_state_begin(&operation, IN_ROOM(ch), door, false, DOMAIN_DOOR_GAMEPLAY);
-            REMOVE_BIT(EXIT(ch, door)->exit_info, EX_HIDDEN);
-            found = TRUE;
-          }
-        }
-      }
-
-      /* NEW: Search for traps using new trap system */
-      if (!found && search_for_traps(ch))
-      {
-        found = TRUE;
-      }
-    }
-  } /*else {
-    generic_find(argument, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP, ch, &i, &cont);
-    if(cont) {
-      for (obj = cont->contains; obj; obj = next_obj) {
-        next_obj = obj->next_content;
-        if (IS_OBJ_STAT(obj, ITEM_HIDDEN) && (val < ochance)) {
-          SET_BIT(GET_OBJ_SAVED(obj), SAVE_OBJ_EXTRA);
-          REMOVE_BIT(obj->obj_flags.extra_flags, ITEM_HIDDEN);
-          act("You find $P.", FALSE, ch, 0, obj, TO_CHAR);
-          act("$n finds $P.", FALSE, ch, 0, obj, TO_NOTVICT);
-          found = TRUE;
-          break;
-        }
-      }
-    } else {
-      send_to_char("Search what?!?!?!?\r\n", ch);
-      found = TRUE;
-    }
-  } */
-
-  if (!found)
-  {
-    send_to_char(ch, "You don't find anything you didn't see before.\r\n");
+    perform_room_search(ch);
+    WAIT_STATE(ch, PULSE_VIOLENCE);
+    USE_FULL_ROUND_ACTION(ch);
+    return;
   }
 
-  send_to_char(ch, "Your next action will be delayed up to 6 seconds.\r\n");
-  WAIT_STATE(ch, PULSE_VIOLENCE * 1);
+  definition.type = PRIMARY_ACTIVITY_SEARCH;
+  definition.display_name = "searching the area";
+  definition.capabilities = PRIMARY_ACTIVITY_CAP_ATTENTION | PRIMARY_ACTIVITY_CAP_VISION |
+                            PRIMARY_ACTIVITY_CAP_STANDARD | PRIMARY_ACTIVITY_CAP_MOVE;
+  definition.traits = PRIMARY_ACTIVITY_TRAIT_STATIONARY | PRIMARY_ACTIVITY_TRAIT_DISTRACTED |
+                      PRIMARY_ACTIVITY_TRAIT_OBVIOUS;
+  definition.progress_model = PRIMARY_ACTIVITY_PROGRESS_ATOMIC;
+  definition.progress_owner = PRIMARY_ACTIVITY_PROGRESS_CHARACTER;
+  definition.total_steps = 1U;
+  definition.step_interval = PULSE_VIOLENCE;
+  definition.combat_actions_required = ACTION_STANDARD | ACTION_MOVE;
+  definition.movement_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.damage_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.combat_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.target_loss_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.command_response = PRIMARY_ACTIVITY_RESPONSE_REJECT;
+  definition.recheck = search_activity_recheck;
+  definition.complete = search_activity_complete;
+  if (!primary_activity_start(ch, domain_event_room_handle(IN_ROOM(ch)), &definition))
+  {
+    send_to_char(ch, "You are already occupied or cannot begin searching right now.\r\n");
+    return;
+  }
+  send_to_char(ch, "You begin a careful search of the area.\r\n");
+  act("$n begins carefully searching the area.", FALSE, ch, 0, 0, TO_ROOM);
   USE_FULL_ROUND_ACTION(ch);
-  door_state_finish(&operation);
 }
 
 /* vanish - epic rogue talent OR Shadow Scout perk ; free action */

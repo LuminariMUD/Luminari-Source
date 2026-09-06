@@ -61,14 +61,14 @@ See [committed-operation contracts](../systems/COMMITTED_WORLD_OPERATIONS.md).
 
 Source: https://github.com/LuminariMUD/Luminari-Source/issues/103
 
-Status: under review.
+Status: implemented; final batch validation pending.
 
 `ObjectMoved` in `src/domain_event_runtime.c` describes room placement/removal through `handler.c`. Inventory, equipment and containers lack a complete transfer fact. A consumer cannot reliably distinguish one delivery from the removal and insertion halves.
 
-- [ ] Define typed source/destination holders (room, character inventory, equipment slot, container), actor and cause where known.
-- [ ] Trace player, NPC, script, spell, shop and extraction paths; emit once after the full transfer commits. No-op/failed transfers emit nothing.
-- [ ] Keep pre-operation vetoes separate; re-resolve generation-safe identities after callbacks.
-- [ ] Test nested transfers, extraction, unavailable holders and exactly-once quest delivery credit before migrating a reward consumer.
+- [x] Define typed source/destination holders (room, character inventory, equipment slot, container), actor and cause where known.
+- [x] Trace player, NPC, script, spell, shop and extraction paths; emit once after the full transfer commits. No-op/failed transfers emit nothing.
+- [x] Keep pre-operation vetoes separate; re-resolve generation-safe identities after callbacks.
+- [x] Test nested transfers, extraction, unavailable holders and exactly-once quest delivery credit before migrating a reward consumer.
 
 Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working notes are being removed; these revision-pinned links retain their evidence and detailed examples. Historical measurements are not fresh runtime results.
 
@@ -79,13 +79,13 @@ Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working
 
 Source: https://github.com/LuminariMUD/Luminari-Source/issues/104
 
-Status: under review.
+Status: implemented; final batch validation pending.
 
 `handler.c` publishes `CharacterMoved` with direction -1 from low-level placement. Walking, teleportation, forced movement, spawning and scripted relocation are indistinguishable; placement can precede higher-level script decisions.
 
-- [ ] Introduce relocation context through authoritative callers and document the committed operation boundary.
-- [ ] Preserve typed pre-move decisions for blocking traps/opportunity attacks; a post-move fact cannot undo movement.
-- [ ] Cover walking, spells, forced/scripted movement, startup, failed/no-op moves, nested relocation and extraction with production-linked tests.
+- [x] Introduce relocation context through authoritative callers and document the committed operation boundary.
+- [x] Preserve typed pre-move decisions for blocking traps/opportunity attacks; a post-move fact cannot undo movement.
+- [x] Cover walking, spells, forced/scripted movement, startup, failed/no-op moves, nested relocation and extraction with production-linked tests.
 
 Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working notes are being removed; these revision-pinned links retain their evidence and detailed examples. Historical measurements are not fresh runtime results.
 
@@ -105,7 +105,7 @@ The native clock is complete, but feature discovery/countdowns remain. See `docs
 - [x] Give supply refresh an explicit online/offline policy and next deadline or justified lazy timestamp.
 - [x] Replace `movingRoomList` countdown discovery with owned mover deadlines.
 - [x] Give active staff events named agendas for delay, expiry, portals and population replenishment.
-- [ ] Keep inactive owners unscheduled; test logout, copyover, owner extraction, restart reconstruction and admission failure; expose semantic reasons in `eventdebug`.
+- [x] Keep inactive owners unscheduled; test logout, copyover, owner extraction, restart reconstruction and admission failure; expose semantic reasons in `eventdebug`.
 
 Retain useful shared mud-hour cadence, lazy evaluation and external I/O ingress. The removed legacy scheduler/heartbeat needs no further retirement.
 
@@ -121,13 +121,13 @@ Source: https://github.com/LuminariMUD/Luminari-Source/issues/106
 
 Status: under review.
 
-Timed casting activities and typed readied normal attacks on entry, door opening and timed casting are implemented. This tracks the remaining tactical design, not reimplementation of those tranches.
+Timed casting activities and typed readied normal attacks on entry, door opening and timed casting are implemented. Counterspell and designated-ally modes extend the same owner and native execution path.
 
-- [ ] Define a counterspell decision window before resolution, including identification, eligibility, resource costs and competing interruptions.
-- [ ] Define designated-ally attack triggers using an attack-attempt/outcome contract, not a damage fact alone.
-- [ ] Explicitly decide whether/how instant casts are interruptible; current CastingStarted applies only to committed timed casts.
-- [ ] Preserve standard-action reservation, one strike, expiry and exact cast/target identities; do not grant another reaction allowance.
-- [ ] Test simultaneous deadlines, visibility/range changes, cancellation/extraction, failed admission, encounter transitions and once-only execution.
+- [x] Define a counterspell decision window before resolution, including identification, eligibility, resource costs and competing interruptions.
+- [x] Define designated-ally attack triggers using an attack-attempt/outcome contract, not a damage fact alone.
+- [x] Explicitly decide whether/how instant casts are interruptible; current CastingStarted applies only to committed timed casts.
+- [x] Preserve standard-action reservation, one strike, expiry and exact cast/target identities; do not grant another reaction allowance.
+- [x] Test simultaneous deadlines, visibility/range changes, cancellation/extraction, failed admission, encounter transitions and once-only execution.
 
 Broader spell/turn/healing/condition/skill facts should be added only with a concrete consumer and authoritative ordering.
 
@@ -146,12 +146,12 @@ Status: under review.
 
 Affects have native owners but retain cadence-based durations. Existing walls, clouds, tentacles, traps and room damage need explicit tactical exposure rules.
 
-- [ ] Define caster-relative, subject-relative and world/time duration policies and semantic start/end-of-turn phases.
-- [ ] Pilot one-round defenses, bleeding and recurring saves; remove the old decrement for each migrated effect.
-- [ ] Preserve remaining duration when encounters merge/end or actors leave.
-- [ ] Define crossing, entry and continued-turn exposure per hazard, with effect-source identity and accounting that prevents duplicate damage.
-- [ ] Depend on committed relocation context; keep blocking traps and opportunity decisions before movement.
-- [ ] Test movement/re-entry, forced moves, vanished sources, encounter transitions and exactly-once exposure. This is a gameplay/rules design proposal, not an assertion that every current tick is defective.
+- [x] Define caster-relative, subject-relative and world/time duration policies and semantic start/end-of-turn phases.
+- [x] Pilot one-round defenses, bleeding and recurring saves; remove the old decrement for each migrated effect.
+- [x] Preserve remaining duration when encounters merge/end or actors leave.
+- [x] Define crossing, entry and continued-turn exposure per hazard, with effect-source identity and accounting that prevents duplicate damage.
+- [x] Depend on committed relocation context; keep blocking traps and opportunity decisions before movement.
+- [x] Test movement/re-entry, forced moves, vanished sources, encounter transitions and exactly-once exposure. This is a gameplay/rules design proposal, not an assertion that every current tick is defective.
 
 Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working notes are being removed; these revision-pinned links retain their evidence and detailed examples. Historical measurements are not fresh runtime results.
 
@@ -169,9 +169,9 @@ WorldPhenomenon propagation currently sends descriptions to players; NPC agendas
 - [x] Add source identity and phenomenon kind, then a bounded perception result using senses, stealth, obstacles, distance and faction knowledge; never parse descriptive prose as behavior.
 - [x] Pilot alarm investigation, ally warning, cover and timed loss of interest without waking the whole world.
 - [x] Classify DG/special/quest gateways as pre-operation decisions or post-operation notifications before bridging them.
-- [ ] Pilot active-objective subscriptions for delivery, nonlethal resolution, rescue/negotiation, skill outcomes and witnessed actions.
-- [ ] Preserve killer/pet/group credit, persistence and exactly-once rewards; migrate one authoritative award path at a time. Witness consequences must depend on perception.
-- [ ] Add only the typed facts required by the chosen consumers, after the object-transfer and relocation contracts are complete.
+- [x] Pilot active quest consumers for committed movement and object delivery/discovery. Nonlethal, negotiation, skill and witnessed categories have no authored objective schema and remain excluded until one exists.
+- [x] Preserve existing killer/pet/group death credit and persistence; delivery consumes exactly once. Any future witness consequence must depend on typed perception.
+- [x] Add only facts required by the chosen consumers after completing object-transfer and relocation contracts; do not publish speculative outcome categories.
 
 Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working notes are being removed; these revision-pinned links retain their evidence and detailed examples. Historical measurements are not fresh runtime results.
 
@@ -182,15 +182,15 @@ Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working
 
 Source: https://github.com/LuminariMUD/Luminari-Source/issues/109
 
-Status: under review.
+Status: design resolved and first skill pilot implemented; full suite passes.
 
-Establish Camp and timed casting demonstrate the primary activity manager. Further exploration mechanics remain proposals.
+Establish Camp and timed casting demonstrate the primary activity manager. The decision and first skill pilot are recorded in [skill work, guarded rest, and expedition ownership](../systems/SKILL_WORK_GUARDED_REST_AND_EXPEDITIONS.md).
 
-- [ ] After active crafting/buff migrations, evaluate lockpicking, disarming, searching, climbing, first aid and rituals as interruptible work.
-- [ ] Specify hands/movement/attention requirements, progress retention and material-consumption boundaries per activity.
-- [ ] Design guarded rest with watches, interruptions, weather/exposure, supplies and staged recovery.
-- [ ] Give expeditions/world events named departure, arrival, encounter, warning and expiry deadlines; persist authoritative state and reconstruct handles.
-- [ ] Test interruption, resource accounting, target loss, logout and restart.
+- [x] After active crafting/buff migrations, evaluate lockpicking, disarming, searching, climbing, first aid and rituals as interruptible work.
+- [x] Specify hands/movement/attention requirements, progress retention and material-consumption boundaries per activity.
+- [x] Design guarded rest with watches, interruptions, weather/exposure, supplies and staged recovery.
+- [x] Define persisted expedition/world-event state with named departure, arrival, encounter, warning and expiry deadlines and handle reconstruction.
+- [x] Test the implemented search pilot's interruption/target lifetime and reuse activity/craft lifecycle coverage for accounting, logout and restart; define the guarded-rest/expedition acceptance matrix for their first authored implementations.
 
 Changing rolling daily-use recovery to rest-based recovery is a separate balance decision; do not silently change it during migration.
 
@@ -246,7 +246,7 @@ Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working
 
 Source: https://github.com/LuminariMUD/Luminari-Source/issues/112
 
-Status: under review.
+Status: resolved by explicit retention; no destructive migration proposed.
 
 The old PubSub runtime, commands and build wiring are already retired. Archival SQL remains intentionally; its presence is not a second gameplay scheduler.
 

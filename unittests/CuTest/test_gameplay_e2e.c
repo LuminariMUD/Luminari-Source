@@ -4734,3 +4734,74 @@ void Test_gameplay_npc_phenomenon_interest_replaces_expires_and_investigates(CuT
   pulse = saved_pulse;
   end_gameplay_fixture(&fixture);
 }
+
+void Test_gameplay_search_commits_after_owned_work_and_cancels_on_movement(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct primary_activity_snapshot snapshot;
+  struct char_data *saved_characters = character_list;
+  unsigned long saved_pulse = pulse;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player_specials = &specials;
+  fixture.actor.player.name = "search fixture";
+  GET_LEVEL(&fixture.actor) = LVL_IMPL;
+  GET_ABILITY(&fixture.actor, ABILITY_PERCEPTION) = 100;
+  fixture.rooms[0].light = 1;
+  SET_BIT(fixture.exits[0].exit_info, EX_HIDDEN | EX_HIDDEN_EASY);
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &fixture.actor;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  fixture.actor.desc = &descriptor;
+  fixture.actor.next = &fixture.victim;
+  character_list = &fixture.actor;
+
+  event_free_all();
+  active_world_reset_for_test();
+  active_world_select_for_test(false);
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(false);
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(false);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 200U;
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+
+  do_search(&fixture.actor, "", 0, 0);
+  CuAssertTrue(tc, primary_activity_snapshot(&fixture.actor, &snapshot));
+  CuAssertIntEquals(tc, PRIMARY_ACTIVITY_SEARCH, snapshot.type);
+  CuAssertTrue(tc, EXIT_FLAGGED(&fixture.exits[0], EX_HIDDEN));
+  char_from_room(&fixture.actor);
+  char_to_room_cause(&fixture.actor, 1, NULL, DOMAIN_RELOCATION_WALK, NORTH);
+  CuAssertTrue(tc, !primary_activity_snapshot(&fixture.actor, &snapshot));
+  CuAssertTrue(tc, EXIT_FLAGGED(&fixture.exits[0], EX_HIDDEN));
+
+  char_from_room(&fixture.actor);
+  char_to_room_cause(&fixture.actor, 0, NULL, DOMAIN_RELOCATION_WALK, SOUTH);
+  do_search(&fixture.actor, "", 0, 0);
+  CuAssertTrue(tc, primary_activity_snapshot(&fixture.actor, &snapshot));
+  pulse += PULSE_VIOLENCE;
+  event_test_advance();
+  CuAssertTrue(tc, !primary_activity_snapshot(&fixture.actor, &snapshot));
+  CuAssertTrue(tc, !EXIT_FLAGGED(&fixture.exits[0], EX_HIDDEN));
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  active_world_reset_for_test();
+  character_periodic_reset_for_test();
+  point_update_periodic_reset_for_test();
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  ProtocolDestroy(descriptor.pProtocol);
+  fixture.actor.desc = NULL;
+  fixture.actor.next = NULL;
+  character_list = saved_characters;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&fixture);
+}
