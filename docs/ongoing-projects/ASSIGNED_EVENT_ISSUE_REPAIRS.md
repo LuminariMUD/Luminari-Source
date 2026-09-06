@@ -733,3 +733,18 @@ Validation: `make -j10 test` passed all 1,207 gameplay tests without compiler
 warnings; `make install` succeeded afterward. These tests strengthen #106's
 commitment-boundary evidence. The broader counterspell acceptance review,
 #107-109 implementation, final #103-105 audits and #111/#112 gates remain open.
+
+## Turn-relative effect and hazard design checkpoint (2026-09-06)
+
+Traced effect duration, semantic participant turns, bleeding, room clouds, wall
+crossing and player affect persistence. The implementation contract is recorded in
+`docs/systems/TACTICAL_EFFECT_CLOCKS_AND_HAZARDS.md`. It specifies clock ownership,
+start/end phases, residual-time preservation, source identity, bounded exposure
+accounting, pilots and required verification. Existing native owners remain the
+scheduler integration. #107 is not implemented or accepted by this design commit.
+
+The wall missing-caster branch makes a redundant second mag_damage call, but that
+function's null guard returns zero. This was traced further and is not treated as
+a demonstrated duplicate-damage or crash defect. No speculative wall repair was
+made. Next implementation work is the short-defense phase/clock pilot, followed
+by bleeding and recurring-save exposure with their old behavior paths removed.
