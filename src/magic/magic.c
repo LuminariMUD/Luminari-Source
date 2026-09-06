@@ -1472,10 +1472,11 @@ size_t affect_update_character_one(struct char_data *ch)
   return processed_affects;
 }
 
-size_t affect_update_room_one(struct room_data *room)
+static size_t update_room_lifetimes(struct room_data *room, uint64_t round, bool elapsed)
 {
   struct raff_node *raff;
   struct raff_node *next;
+  uint64_t rounds;
   size_t processed = 0U;
 
   if (room == NULL)
@@ -1484,11 +1485,31 @@ size_t affect_update_room_one(struct room_data *room)
   {
     next = raff->room_next;
     processed++;
-    raff->timer--;
-    if (raff->timer <= 0)
+    rounds = 1U;
+    if (elapsed)
+    {
+      rounds = raff->lifetime_initialized && round > raff->lifetime_round
+                   ? round - raff->lifetime_round
+                   : 0U;
+      raff->lifetime_round = MAX(raff->lifetime_round, round);
+      raff->lifetime_initialized = true;
+    }
+    if (raff->timer <= 0 || rounds >= (uint64_t)raff->timer)
       rem_room_aff(raff);
+    else
+      raff->timer -= (int)rounds;
   }
   return processed;
+}
+
+size_t affect_update_room_until(struct room_data *room, uint64_t round)
+{
+  return update_room_lifetimes(room, round, true);
+}
+
+size_t affect_update_room_one(struct room_data *room)
+{
+  return update_room_lifetimes(room, 0U, false);
 }
 
 /* Legacy rollback path: expire every affected owner on the round heartbeat. */

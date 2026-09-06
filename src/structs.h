@@ -6076,6 +6076,8 @@ struct room_direction_data
 struct raff_node
 {
   room_rnum room;       /* location in the world[] array of the room */
+  uint64_t lifetime_round; /* Last accounted world round for this source. */
+  bool lifetime_initialized;
   int timer;            /* how many rounds this affection lasts */
   long affection;       /* which affection does this room have */
   int spell;            /* the spell number */

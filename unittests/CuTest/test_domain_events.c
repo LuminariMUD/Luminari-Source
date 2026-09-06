@@ -3938,3 +3938,99 @@ void TestRelocationPublishesFinalOutcomeAndNestedCause(CuTest *tc)
   world = saved_world;
   top_of_world = saved_top;
 }
+
+static void verify_late_room_affect_clock(CuTest *tc, bool expires, bool add_source)
+{
+  struct raff_node *raff;
+  struct raff_node *fresh = NULL;
+  struct raff_node *saved_raff_list = raff_list;
+  struct room_data room = {0};
+  struct room_data *saved_world = world;
+  room_rnum saved_top_of_world = top_of_world;
+  unsigned long saved_pulse = pulse;
+  unsigned long started;
+
+  room.number = 105;
+  world = &room;
+  top_of_world = 0;
+  raff_list = NULL;
+  event_free_all();
+  affected_owners_reset_for_test();
+  affected_registry_reset_for_test();
+  affected_owners_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = (unsigned long)PULSE_VIOLENCE * PULSE_LUMINARI;
+  started = pulse;
+  event_init();
+  affected_owners_init();
+  CREATE(raff, struct raff_node, 1);
+  raff->room = 0;
+  raff->timer = expires ? 3 : 10;
+  raff->affection = RAFF_FOG;
+  raff->spell = SPELL_ARMOR;
+  raff_list = raff;
+  SET_BIT(room.room_affections, RAFF_FOG);
+  affected_room_owner_add(raff);
+
+  pulse = started + PULSE_VIOLENCE + 1U;
+  event_test_advance();
+  CuAssertIntEquals(tc, expires ? 2 : 9, raff->timer);
+  CuAssertIntEquals(tc, 1, affected_room_behavior_executions());
+
+  /* Two more lifetime boundaries pass, but behavior must not catch up twice. */
+  pulse = started + 3U * PULSE_VIOLENCE + 1U;
+  if (add_source)
+  {
+    CREATE(fresh, struct raff_node, 1);
+    fresh->room = 0;
+    fresh->timer = 10;
+    fresh->affection = RAFF_FOG;
+    fresh->spell = SPELL_ARMOR;
+    fresh->next = raff_list;
+    raff_list = fresh;
+    affected_room_owner_add(fresh);
+  }
+  event_test_advance();
+  CuAssertIntEquals(tc, add_source ? 3 : 2, affected_room_nodes_processed());
+  if (expires)
+  {
+    CuAssertPtrEquals(tc, NULL, raff_list);
+    CuAssertIntEquals(tc, 1, affected_room_behavior_executions());
+    CuAssertIntEquals(tc, 0, event_queue_depth());
+  }
+  else
+  {
+    CuAssertIntEquals(tc, 7, raff->timer);
+    CuAssertIntEquals(tc, 2, affected_room_behavior_executions());
+    CuAssertIntEquals(tc, 1, event_queue_depth());
+    rem_room_aff(raff);
+  }
+  if (fresh != NULL)
+  {
+    CuAssertIntEquals(tc, 10, fresh->timer);
+    rem_room_aff(fresh);
+  }
+  CuAssertIntEquals(tc, 0, affected_room_registry_validate());
+  affected_owners_reset_for_test();
+  affected_registry_reset_for_test();
+  event_free_all();
+  raff_list = saved_raff_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  pulse = saved_pulse;
+}
+
+void TestAffectedRoomLateExpiryRunsBeforeOverdueBehavior(CuTest *tc)
+{
+  verify_late_room_affect_clock(tc, true, false);
+}
+
+void TestAffectedRoomLateLifetimeAdvancesWithoutBehaviorBurst(CuTest *tc)
+{
+  verify_late_room_affect_clock(tc, false, false);
+}
+
+void TestAffectedRoomNewSourceDoesNotInheritOverdueLifetime(CuTest *tc)
+{
+  verify_late_room_affect_clock(tc, false, true);
+}

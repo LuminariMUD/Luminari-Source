@@ -228,3 +228,17 @@ Admission exhaustion currently logs failure and retries through the existing
 affected-owner callback. Its delay behavior and rejection telemetry need the
 final capacity audit; the pilot's successful-admission tests do not prove that
 gate. Recurring saves and movement-hazard source/exposure accounting remain open.
+
+## Room-effect late-dispatch accounting
+
+Room lifetime callbacks now account for every elapsed world-round boundary even
+when the scheduler dispatches after the exact cadence pulse. Behavior callbacks
+still run at most once per dispatch, so a late cloud cannot burst several hazard
+checks at once. Expiry runs before behavior and an effect that expires during
+catch-up cannot execute an overdue hazard action.
+
+The last accounted world round is stored on each room-affect source. A new source
+added while another source's room owner is overdue begins at its admission round
+and does not inherit the older source's elapsed lifetime. Reindexing the room
+owner preserves that source-local clock. This uses the existing native room owner
+and adds no scheduler or world scan.

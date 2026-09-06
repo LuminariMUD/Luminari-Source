@@ -1992,6 +1992,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj, int spellnu
 void rem_room_aff(struct raff_node *raff);
 size_t affect_update_character_one(struct char_data *ch);
 size_t affect_update_room_one(struct room_data *room);
+size_t affect_update_room_until(struct room_data *room, uint64_t round);
 
 int call_magic(struct char_data *caster, struct char_data *cvict, struct obj_data *ovict,
                int spellnum, int metamagic, int level, int casttype);

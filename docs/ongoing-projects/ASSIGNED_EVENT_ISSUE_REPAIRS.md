@@ -841,3 +841,16 @@ Validation: 11 new production-linked cases; final `make -j10 test` passed all
 Admission exhaustion/retry telemetry and remaining lifetime cases still need the
 final #107 audit. Recurring saves, movement hazards, #108/#109 implementation and
 the remaining assigned-batch audit/performance/release gates remain open.
+
+## Room-effect late-dispatch checkpoint (2026-09-06)
+
+Corrected the native room owner so elapsed lifetime boundaries are charged when
+dispatch occurs after an exact cadence pulse. Hazard behavior remains run-once
+per dispatch, and expiry is processed before behavior. Per-source lifetime state
+prevents a newly admitted room affect from inheriting overdue rounds from an
+older source in the same room. Three production-linked regressions cover late
+expiry, non-burst behavior and fresh-source isolation.
+
+This is required timing groundwork for #107's recurring-save pilot. Billowing
+cloud source identity, subject exposure accounting and semantic end-of-turn saves
+remain open.
