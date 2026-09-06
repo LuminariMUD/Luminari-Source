@@ -207,3 +207,10 @@ the subscription count; failed trigger scheduling preserves the preparation but
 does not refund the admitted standard action. The existing semantic-round test
 also runs with counterspell, proving that combat admission cancels its old wall
 expiry and that the reservation expires before the next semantic turn's actions.
+
+Production-linked commitment tests additionally execute DG fight commands that
+teleport either participant or destroy the chosen weapon/ammunition pouch. These
+abort before publication. A real total-defense riposte has a distinct attempt ID;
+a real ranged miss across adjacent rooms publishes once and releases its physical
+projectile. This covers entry mutation and nested/ranged commitment; it does not
+claim an audit of every legacy callback inside damage resolution.

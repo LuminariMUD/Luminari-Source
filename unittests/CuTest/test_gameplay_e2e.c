@@ -41,6 +41,7 @@
 #include "../../src/net/protocol.h"
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
+#include "../../src/character/feats.h"
 #include "../../src/spec/spec_binding.h"
 #include "../../src/mud_event.h"
 #include "../../src/dgscript/dg_event.h"
@@ -3300,6 +3301,7 @@ void Test_gameplay_counterspell_does_not_delay_or_react_to_instant_cast(CuTest *
 struct committed_attack_trace
 {
   unsigned int count;
+  uint64_t first_attempt_id;
   struct domain_attack_committed last;
   struct char_data *forget_attacker;
 };
@@ -3308,15 +3310,40 @@ static void capture_committed_attack(const struct domain_event_context *context,
 {
   struct committed_attack_trace *trace = data;
 
+  if (trace->count == 0U)
+    trace->first_attempt_id =
+        ((const struct domain_attack_committed *)context->payload)->attempt_id;
   trace->count++;
   trace->last = *(const struct domain_attack_committed *)context->payload;
   if (trace->forget_attacker != NULL)
     domain_event_world_forget_character(trace->forget_attacker);
 }
 
+static struct obj_data *attack_test_object(const char *name, int type, int subtype)
+{
+  struct obj_data *object = create_obj();
+
+  object->name = strdup(name);
+  object->short_description = strdup(name);
+  object->description = strdup(name);
+  GET_OBJ_TYPE(object) = type;
+  GET_OBJ_VAL(object, 0) = subtype;
+  GET_OBJ_BOUND_ID(object) = NOBODY;
+  return object;
+}
+
 static void verify_committed_attack_boundary(CuTest *tc, int scenario)
 {
   struct gameplay_fixture f;
+  struct script_data script = {0};
+  struct trig_data trigger = {0};
+  struct cmdlist_element command = {0};
+  struct player_special_data defender_specials = {0};
+  struct obj_data *weapon = NULL;
+  struct domain_entity_handle weapon_handle = {0};
+  struct domain_entity_handle pouch_handle = {0};
+  struct domain_entity_handle projectile_handle = {0};
+  struct domain_event_subscription_handle nested_subscription;
   struct char_data *saved_characters = character_list;
   struct domain_event_subscription_config config = {0};
   struct domain_event_subscription_handle subscription;
@@ -3334,7 +3361,8 @@ static void verify_committed_attack_boundary(CuTest *tc, int scenario)
   f.actor.next = &f.victim;
   character_list = &f.actor;
   f.rooms[0].light = 1;
-  GET_HITROLL(&f.actor) = scenario == 0 ? -100 : 100;
+  f.actor.player.name = "attacker";
+  f.victim.player.name = "target";
   GET_HIT(&f.victim) = GET_MAX_HIT(&f.victim) = 100000;
   if (scenario == 2)
     SET_BIT_AR(ROOM_FLAGS(0), ROOM_PEACEFUL);
@@ -3351,15 +3379,88 @@ static void verify_committed_attack_boundary(CuTest *tc, int scenario)
                     domain_event_subscribe(domain_event_runtime_bus(), &config, &subscription));
   if (scenario == 4)
     trace.forget_attacker = &f.actor;
+  if (scenario == 9 || scenario == 10)
+  {
+    struct obj_data *pouch;
+    struct obj_data *projectile;
+
+    load_weapons();
+    weapon = attack_test_object("bow", ITEM_WEAPON, WEAPON_TYPE_LONG_BOW);
+    pouch = attack_test_object("pouch", ITEM_AMMO_POUCH, 10);
+    projectile = attack_test_object("arrow", ITEM_MISSILE, AMMO_TYPE_ARROW);
+    equip_char(&f.actor, weapon, WEAR_WIELD_1);
+    equip_char(&f.actor, pouch, WEAR_AMMO_POUCH);
+    obj_to_obj(projectile, pouch);
+    weapon_handle = domain_event_object_handle(weapon);
+    pouch_handle = domain_event_object_handle(pouch);
+    projectile_handle = domain_event_object_handle(projectile);
+    if (scenario == 9)
+    {
+      IN_ROOM(&f.victim) = 1;
+      f.actor.next_in_room = NULL;
+      f.rooms[1].people = &f.victim;
+    }
+  }
+  if ((scenario >= 5 && scenario <= 7) || scenario == 10)
+  {
+    script.types = MTRIG_FIGHT;
+    script.trig_list = &trigger;
+    trigger.trigger_type = MTRIG_FIGHT;
+    trigger.narg = 100;
+    trigger.name = (char *)"attack entry mutation";
+    trigger.nr = NOTHING;
+    trigger.cmdlist = &command;
+    command.cmd = scenario == 5    ? (char *)"mteleport target 101"
+                  : scenario == 6  ? (char *)"mgoto 101"
+                  : scenario == 10 ? (char *)"mjunk all.pouch"
+                                   : (char *)"mjunk all.sword";
+    SCRIPT(&f.actor) = &script;
+    FIGHTING(&f.actor) = &f.victim;
+    if (scenario == 7)
+    {
+      load_weapons();
+      weapon = attack_test_object("sword", ITEM_WEAPON, WEAPON_TYPE_LONG_SWORD);
+      equip_char(&f.actor, weapon, WEAR_WIELD_1);
+      weapon_handle = domain_event_object_handle(weapon);
+    }
+  }
+  if (scenario == 8)
+  {
+    REMOVE_BIT_AR(MOB_FLAGS(&f.victim), MOB_ISNPC);
+    f.victim.player_specials = &defender_specials;
+    CLASS_LEVEL((&f.victim), CLASS_WARRIOR) = 10;
+    GET_ABILITY(&f.victim, ABILITY_TOTAL_DEFENSE) = 100;
+    GET_HITROLL(&f.victim) = 100;
+    GET_HIT(&f.actor) = GET_MAX_HIT(&f.actor) = 100000;
+    TOTAL_DEFENSE(&f.victim) = 1;
+    SET_BIT_AR(AFF_FLAGS(&f.victim), AFF_TOTAL_DEFENSE);
+    config.topic = (struct domain_event_topic){DOMAIN_EVENT_TOPIC_SUBJECT, attacker};
+    config.identity = "test.attack.riposte";
+    CuAssertIntEquals(
+        tc, DOMAIN_EVENT_OK,
+        domain_event_subscribe(domain_event_runtime_bus(), &config, &nested_subscription));
+  }
+  /* Equipment setup recalculates hitroll; select the outcome afterward. */
+  GET_HITROLL(&f.actor) = scenario == 0 || scenario == 8 || scenario == 9 ? -100 : 100;
   circle_srandom(1234);
   result = hit(&f.actor, &f.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0,
-               scenario == 3 ? ATTACK_TYPE_RANGED : ATTACK_TYPE_PRIMARY);
-  CuAssertIntEquals(tc, scenario == 2 || scenario == 3 ? 0 : 1, trace.count);
+               scenario == 3 || scenario == 9 || scenario == 10 ? ATTACK_TYPE_RANGED
+                                                                : ATTACK_TYPE_PRIMARY);
+  CuAssertIntEquals(
+      tc,
+      scenario == 2 || scenario == 3 || (scenario >= 5 && scenario <= 7) || scenario == 10 ? 0
+      : scenario == 8                                                                      ? 2
+                                                                                           : 1,
+      trace.count);
   if (trace.count != 0U)
   {
     CuAssertTrue(tc, trace.last.attempt_id != 0U);
-    CuAssertTrue(tc, domain_entity_handle_equal(attacker, trace.last.attacker));
-    CuAssertTrue(tc, domain_entity_handle_equal(defender, trace.last.defender));
+    CuAssertTrue(
+        tc, domain_entity_handle_equal(scenario == 8 ? defender : attacker, trace.last.attacker));
+    CuAssertTrue(
+        tc, domain_entity_handle_equal(scenario == 8 ? attacker : defender, trace.last.defender));
+    if (scenario == 8)
+      CuAssertTrue(tc, trace.last.attempt_id > trace.first_attempt_id);
     CuAssertTrue(tc,
                  domain_entity_handle_equal(domain_event_room_handle(0), trace.last.origin_room));
   }
@@ -3370,6 +3471,43 @@ static void verify_committed_attack_boundary(CuTest *tc, int scenario)
   }
   else
     CuAssertTrue(tc, result > 0 && GET_HIT(&f.victim) < 100000);
+  if (scenario == 5)
+    CuAssertIntEquals(tc, 1, IN_ROOM(&f.victim));
+  if (scenario == 6)
+    CuAssertIntEquals(tc, 1, IN_ROOM(&f.actor));
+  if (scenario == 7)
+  {
+    CuAssertPtrEquals(tc, NULL, GET_EQ(&f.actor, WEAR_WIELD_1));
+    CuAssertPtrEquals(
+        tc, NULL,
+        domain_event_resolve(domain_event_runtime_bus(), weapon_handle, DOMAIN_ENTITY_OBJECT));
+  }
+  if (scenario == 9 || scenario == 10)
+  {
+    struct obj_data *live_projectile =
+        domain_event_resolve(domain_event_runtime_bus(), projectile_handle, DOMAIN_ENTITY_OBJECT);
+    struct obj_data *live_pouch =
+        domain_event_resolve(domain_event_runtime_bus(), pouch_handle, DOMAIN_ENTITY_OBJECT);
+    if (scenario == 9)
+    {
+      CuAssertTrue(tc, live_projectile == NULL || IN_ROOM(live_projectile) == 1);
+      CuAssertPtrNotNull(tc, live_pouch);
+      CuAssertPtrEquals(tc, NULL, live_pouch->contains);
+    }
+    else
+    {
+      CuAssertPtrEquals(tc, NULL, live_projectile);
+      CuAssertPtrEquals(tc, NULL, live_pouch);
+      CuAssertPtrEquals(tc, NULL, GET_EQ(&f.actor, WEAR_AMMO_POUCH));
+    }
+    if (live_projectile != NULL)
+      extract_obj(live_projectile);
+    if (live_pouch != NULL)
+      extract_obj(live_pouch);
+    extract_obj(weapon);
+  }
+  SCRIPT(&f.actor) = NULL;
+  free_varlist(trigger.var_list);
   domain_event_runtime_shutdown();
   event_free_all();
   if (f.actor.events != NULL)
@@ -3635,4 +3773,36 @@ void Test_gameplay_counterspell_failed_native_admission_preserves_action_and_res
 void Test_gameplay_counterspell_failed_trigger_preserves_resource_without_action_refund(CuTest *tc)
 {
   verify_counterspell_reaction(tc, 14);
+}
+
+
+void Test_gameplay_dg_fight_target_teleport_aborts_before_attack_commitment(CuTest *tc)
+{
+  verify_committed_attack_boundary(tc, 5);
+}
+
+void Test_gameplay_dg_fight_attacker_teleport_aborts_before_attack_commitment(CuTest *tc)
+{
+  verify_committed_attack_boundary(tc, 6);
+}
+
+void Test_gameplay_dg_fight_weapon_extraction_aborts_before_attack_commitment(CuTest *tc)
+{
+  verify_committed_attack_boundary(tc, 7);
+}
+
+void Test_gameplay_nested_riposte_has_distinct_committed_attack_identity(CuTest *tc)
+{
+  verify_committed_attack_boundary(tc, 8);
+}
+
+
+void Test_gameplay_ranged_miss_commits_once_and_releases_projectile(CuTest *tc)
+{
+  verify_committed_attack_boundary(tc, 9);
+}
+
+void Test_gameplay_dg_fight_ammunition_extraction_aborts_before_attack_commitment(CuTest *tc)
+{
+  verify_committed_attack_boundary(tc, 10);
 }

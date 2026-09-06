@@ -713,3 +713,23 @@ and successful subsequent `make install`. No gameplay or help behavior changed
 in this checkpoint. Remaining #106 work includes the targeted deep DG/ranged/
 nested-strike audit and completion review; #107-109, final #103-105 audits and
 #111/#112 gates remain open.
+
+## Attack commitment DG and ranged acceptance checkpoint (2026-09-06)
+
+Six production-linked tests now run real DG fight commands, nested total-defense
+ripostes and physical ranged projectiles through the attack commitment boundary.
+DG teleporting either participant, destroying the selected weapon, or destroying
+the ammunition pouch aborts before publication. A nested riposte publishes its
+own attempt identity. A ranged miss across adjacent rooms publishes once and
+releases its projectile from the pouch to the target room or destruction.
+
+The first ranged fixture unexpectedly hit because equipment recalculation cleared
+its artificial hitroll penalty. A GDB hardware watch traced the one-point health
+change to handle_successful_attack/damage_with_projectile; inspecting the roll
+confirmed hitroll zero and a successful attack. The fixture now selects hitroll
+after equipping. No combat mechanics were changed to accommodate the test.
+
+Validation: `make -j10 test` passed all 1,207 gameplay tests without compiler
+warnings; `make install` succeeded afterward. These tests strengthen #106's
+commitment-boundary evidence. The broader counterspell acceptance review,
+#107-109 implementation, final #103-105 audits and #111/#112 gates remain open.
