@@ -132,3 +132,19 @@ Plan ablation: reuse native owner admission, cleanup and generation resolution;
 add no separate timer service, global effect scan or general scripting language.
 Only migrated pilots acquire the new clock metadata. Keep legacy behavior outside
 those pilots until its own authoritative paths are reconciled.
+
+## Turn-clock integration foundation
+
+`combat_encounter_get_turn` exposes a managed character's lifetime turn serial,
+remaining pulses to its next turn, and whether that character is currently
+resolving a turn. During dispatch the next boundary is the following six-second
+turn, including when the current event arrived late. Outside dispatch an overdue
+boundary reports zero remaining pulses. An unmanaged character has no semantic
+snapshot. Pair the serial with a character generation; the serial alone is not a
+world-global identity. Saturation makes the snapshot unavailable rather than
+wrapping and reusing an old phase identity.
+
+The serial resides on char_data and survives membership replacement and merging.
+New mobile instances reset it after copying their prototype. This is runtime
+identity, not a player save field. The snapshot is read-only and owns no event;
+effect duration and behavior migration still need to consume it.

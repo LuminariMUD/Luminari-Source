@@ -399,6 +399,26 @@ static struct combat_encounter_participant *semantic_participant(struct char_dat
   return participant;
 }
 
+bool combat_encounter_get_turn(struct char_data *character,
+                               struct combat_encounter_turn_snapshot *snapshot)
+{
+  struct combat_encounter_participant *participant;
+
+  if (snapshot == NULL)
+    return false;
+  memset(snapshot, 0, sizeof(*snapshot));
+  participant = semantic_participant(character);
+  if (participant == NULL || character->combat_turn_serial == UINT64_MAX)
+    return false;
+  snapshot->turn_serial = character->combat_turn_serial;
+  snapshot->dispatching = participant->dispatching;
+  snapshot->pulses_until_next_turn = participant->dispatching ? COMBAT_ENCOUNTER_ROUND_DELAY
+                                     : participant->next_due > (uint64_t)pulse
+                                         ? participant->next_due - (uint64_t)pulse
+                                         : 0U;
+  return true;
+}
+
 static void import_semantic_state(struct combat_encounter_participant *participant)
 {
   struct mud_event_data *event_data;
@@ -940,6 +960,8 @@ static bool run_semantic_round(struct combat_encounter_participant *participant)
 {
   ready_action_on_semantic_turn(participant->character);
   participant->turns_started++;
+  if (participant->character->combat_turn_serial != UINT64_MAX)
+    participant->character->combat_turn_serial++;
   participant->intent_dispatched = false;
   announce_recovered_actions(participant);
 #ifdef LUMINARI_CUTEST

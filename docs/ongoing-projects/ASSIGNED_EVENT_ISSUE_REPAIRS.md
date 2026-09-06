@@ -748,3 +748,22 @@ function's null guard returns zero. This was traced further and is not treated a
 a demonstrated duplicate-damage or crash defect. No speculative wall repair was
 made. Next implementation work is the short-defense phase/clock pilot, followed
 by bleeding and recurring-save exposure with their old behavior paths removed.
+
+## Character-lifetime turn clock checkpoint (2026-09-06)
+
+Added a character-lifetime semantic turn serial and a read-only next-turn snapshot
+in combat_encounters. The existing participant counter resets on re-admission;
+the new serial survives that boundary and must be paired with character generation
+for effect identity. During a turn callback, the snapshot points to the following
+turn, including late dispatch. New mobiles reset the serial after prototype copy.
+
+The production-linked regression covers overdue dispatch, remaining time, callback
+queries, departure and re-entry. The existing offset-clock merge regression now
+checks both characters' serials and remaining deadlines after merging. This is
+required clock integration for #107, not a completed Defensive Casting migration.
+Its activation, old decrement and PDCt persistence remain unchanged pending the
+actual effect-owner integration.
+
+Validation: the final `make -j10 test` passed 1,208 tests without compiler
+warnings; subsequent `make install` succeeded. #107 implementation and the
+remaining assigned batch are still open.

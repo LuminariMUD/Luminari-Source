@@ -7435,6 +7435,7 @@ struct char_data
   struct event_runtime_handle active_world_event_handle; /**< Earliest autonomous-work deadline. */
   struct primary_activity *primary_activity;             /**< One intentional timed activity. */
   struct ready_action *ready_action;                     /**< Ephemeral entity-topic listener. */
+  uint64_t combat_turn_serial; /**< Semantic turns begun in this character incarnation. */
   struct combat_encounter_data *combat_encounter;        /**< Runtime fight-session owner. */
   struct combat_encounter_participant *combat_encounter_participant; /**< Membership node. */
   struct obj_data *equipment[NUM_WEARS]; /**< Equipment array            */

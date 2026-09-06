@@ -72,6 +72,18 @@ struct combat_encounter_initiative_snapshot
   bool semantic_rounds;
 };
 
+/* Pair turn_serial with the character generation when retaining a phase identity.
+ * During dispatch, pulses_until_next_turn refers to the following turn. */
+struct combat_encounter_turn_snapshot
+{
+  uint64_t turn_serial;
+  uint64_t pulses_until_next_turn;
+  bool dispatching;
+};
+
+bool combat_encounter_get_turn(struct char_data *character,
+                               struct combat_encounter_turn_snapshot *snapshot);
+
 enum domain_event_status combat_encounter_runtime_init(struct domain_event_bus *bus);
 void combat_encounter_runtime_shutdown(void);
 bool combat_encounter_events_enabled(void);

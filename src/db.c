@@ -4764,6 +4764,7 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   clear_char(mob);
 
   *mob = mob_proto[i];
+  mob->combat_turn_serial = 0U;
   mob->next = character_list;
   character_list = mob;
   affected_registry_attach(mob);
