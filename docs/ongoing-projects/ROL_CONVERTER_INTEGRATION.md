@@ -150,6 +150,9 @@ store generated evidence in existing ignored run storage; no new framework or se
   516 tests with no skips (exit 0; `color-world-tools.log` and `.exit`). The final combined
   corpus audit and in-game display verification remain required by step 6.
 - Color commit: `b07140528` (`fix: preserve RoL source color semantics across world formats`).
+  Its literal/truncated color-escape diagnostics are explicitly classified as text normalization
+  in the capability audit; they do not describe a missing generic conversion capability.
+  That reporting owner is also included in the Phase 8 captured code evidence.
 - Full-world planner repair: the existing planner and pilot/release JSONL readers now intern
   repeated immutable candidate strings while retaining independent dictionaries and lists.
   Plan-ablation kept both real readers and one shared decoder hook; no new file, dependency,

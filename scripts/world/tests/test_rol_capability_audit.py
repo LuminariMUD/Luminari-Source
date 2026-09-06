@@ -20,6 +20,11 @@ class RolCapabilityAuditTests(unittest.TestCase):
     cls.source_root = cls.root / "EXAMPLE/RealmsOfLuminari"
 
   def test_diagnostic_ownership_separates_references_and_generic_gaps(self) -> None:
+    for message in (
+        "preserved unknown source color escape '&_' as literal text",
+        "dropped incomplete source color escape '&='",
+    ):
+      self.assertEqual("text-normalization", classify_transform_diagnostic(message))
     self.assertEqual(
         "reference-gap",
         classify_transform_diagnostic("excluded unresolved shop product 10: no identity for obj 10"),
