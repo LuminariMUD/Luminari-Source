@@ -2,8 +2,8 @@
 
 Branch: [rol-converter-integration-113-117](https://github.com/LuminariMUD/Luminari-Source/tree/rol-converter-integration-113-117)
 
-Status: independent implementation and focused validation complete; dependent object/player policies
-await owner decisions, followed by final weapon review and the combined development rehearsal.
+Status: all five recommendations approved by the user on 2026-09-06; work paused at the user's
+request after recording approval. Resume implementation only when the user asks to continue.
 Prepared: 2026-09-06. Inspected branch revision: `7c5677ec132bda12f98b2ba630f372bfb0b46651`.
 Plan-ablation review: 2026-09-06, against all five live issue checklists and current code.
 
@@ -30,6 +30,50 @@ Never edit the customized `src/campaign.h`, `src/mud_options.h`, or `src/vnums.h
 **Proof:** Each issue has an exit gate below. Preserve before/after conversion evidence for the
 mechanical split, test each accepted behavior change, then run the existing full release gates
 against the final candidate. Report commands, results, skipped checks, and unresolved decisions.
+
+## Approved decisions and requested pause (2026-09-06)
+
+The user approved all five recommendations presented in the review and requested that approval
+be recorded here, then work pause. This section supersedes earlier statements that these policy
+choices await approval. Historical implementation-log entries retain their original context.
+Approval establishes the following direction; it does not mark implementation or validation done.
+
+1. **Armor:** Infer appropriate families from source descriptions/materials, preserve standard
+   armor protection, and apply the target families' normal penalties. For protective nonstandard
+   wearables, use the documented signed `ITEM_WORN`/`APPLY_AC_NEW` treatment: divide source
+   protection magnitude by ten, round toward zero, and retain minimum magnitude one for nonzero
+   protection. Use the proposed universal bonus type 23, preserve existing applies without
+   double-counting, and keep harmful/cursed protection harmful. Dedicated-tail and ambiguous
+   wear-mask cases still require the documented record-specific handling and tests.
+2. **Item levels:** Keep converted items permanently at target level 1. The source has no
+   object-level requirement; powerful items therefore gain no new item-level restriction.
+   Magic-item caster levels remain separate. Document and test this accepted policy.
+3. **Old metadata:** Preserve working special effects through their existing supported owners.
+   Record explicit named losses for unsupported warmth/prestige fields, old spellbook
+   bookkeeping, and procedure-state values without assigned procedures instead of inventing
+   replacement abilities. Document the umbrella's source NPC equipment-ranking difference.
+   Complete per-record loss accounting and source/target checks before clearing obsolete fields;
+   this approval does not permit discarding a working effect discovered during that review.
+4. **Player identities:** Provide player-facing kits through existing classes, without new base
+   classes: Shaman through Cleric spirit/totem progression; Elementalist through Wizard elemental
+   specialization; Battlechanter through Bard combat/support progression; Dire Raider through
+   Ranger/Warrior with a dire-wolf companion; and Mercenary as the documented Warrior/Rogue build.
+   This approves the direction. Exact spell levels, prerequisites, specialization restrictions,
+   and companion progression still need to be worked out and documented in the required matrix.
+5. **Weapons:** The user authorizes resolving ambiguous mappings from source descriptions and
+   actual target behavior, documenting each decision. This covers the reviewed 25 fallbacks and
+   14 name/type disagreements, including overlapping cases. Perform the existing per-record
+   review and tests; approval of this approach is not a claim that every current mapping is correct.
+
+**Pause:** Stop after this documentation update. No further conversion, gameplay, database,
+runtime, publication, or release-rehearsal work is authorized to run during the pause. Keep the
+full integration objective and remaining acceptance gates intact for a later user-requested resume.
+The former five-direction approval blocker is resolved. Detailed progression, record-specific
+metadata/nonweapon defaults, implementation, and final Phase 7/8 verification remain work to do;
+no additional external blocker has been established by the current evidence.
+
+Plan-ablation for this update: use this existing document as the approval record; change no
+implementation or review-result files and do not rerun gameplay tests for a documentation edit.
 
 ## Issues and execution order
 
@@ -534,41 +578,40 @@ must not be confused with failed economy scans reusing the source loader's tempo
 The packet retains existing repair/exclusion behavior and identifies pending default/loss
 choices; it does not approve those choices or add a second parser.
 
-This table starts the shared 0.4/113/114 disposition review. Entries marked pending are proposals,
-not accepted behavior or a claim of issue completion. Record-specific evidence is in the review
-JSON files above; procedure-owner and player spell/access matrices still require completion.
+This table records the shared 0.4/113/114 disposition review. The approved-decisions section
+above now governs the accepted policies. Approval is not a claim of issue completion; the review
+JSON files and remaining procedure-owner/player-access matrices must still support implementation.
 
 | Source meaning/evidence | Target representation or proposed disposition | Review/coverage remaining |
 |-------------------------|-----------------------------------------------|---------------------------|
-| Armor value 0 protects when positive; target `handler.c:apply_ac()` accepts body/head/arms/legs/shield and the explicit tail exception. | Preserve standard armor protection independently of family. Infer family from identity/material and apply its real target penalties. Never set load-time table-stat replacement. | Pending family/penalty approval; inspect five mixed masks and eight short numeric base rows before assigning final dispositions. |
-| Nonstandard armor wearables have no value-0 AC runtime effect. There are 13 negative-protection records, including seven shackles numbered 35600-35606. | Proposed `ITEM_WORN` with signed `APPLY_AC_NEW`: divide magnitude by ten, round toward zero, retain minimum magnitude one for nonzero values; use existing universal bonus type 23 and preserve authored applies. | Pending scaling/stacking/curse approval; prevent double-counting and test equip/unequip. Dedicated-tail behavior needs its own disposition. |
-| Source `which.c` labels armor values 1/2 as warmth/prestige; 101/25 records have nonzero values across 105 distinct armor records. Reviewed common armor paths use value 0, and procedure state uses value 3. | Proposed explicit named losses for warmth/prestige; clear obsolete target value slots after disposition. | Source consumer evidence is in `armor-metadata-review.json`; this is a bounded trace, not proof against all dynamic procedures. Loss approval remains pending. |
-| Ten armor records have nonzero value 3, labeled ProcVal; none has an active source procedure binding. Source feature helpers use this slot as mutable state/recharge bits. | Proposed named inert-metadata loss for these ten values. Bound armor procedures (22 records, authored ProcVal zero) retain their existing `Z`/DG owner instead of synthesizing `C` or `S`. | `proc-review.json` records identities and bindings; Phase 6 owner verification passes. Loss approval remains pending. |
-| Source `db.c:read_object()` reads weight/cost/durability, followed by two optional affect words; there is no object-level field. | Proposed permanent target level 1, preserving the existing conversion policy. Magic-item caster level remains separate. | Explicit level-policy approval pending. |
+| Armor value 0 protects when positive; target `handler.c:apply_ac()` accepts body/head/arms/legs/shield and the explicit tail exception. | Preserve standard armor protection independently of family. Infer family from identity/material and apply its real target penalties. Never set load-time table-stat replacement. | Family/penalty policy approved; inspect five mixed masks and eight short numeric base rows before assigning final dispositions. |
+| Nonstandard armor wearables have no value-0 AC runtime effect. There are 13 negative-protection records, including seven shackles numbered 35600-35606. | Approved `ITEM_WORN` with signed `APPLY_AC_NEW`: divide magnitude by ten, round toward zero, retain minimum magnitude one for nonzero values; use existing universal bonus type 23 and preserve authored applies. | Scaling/stacking/curse policy approved; prevent double-counting and test equip/unequip. Dedicated-tail behavior needs its own disposition. |
+| Source `which.c` labels armor values 1/2 as warmth/prestige; 101/25 records have nonzero values across 105 distinct armor records. Reviewed common armor paths use value 0, and procedure state uses value 3. | Approved explicit named losses for unsupported warmth/prestige; clear obsolete target value slots after disposition. | Source consumer evidence is in `armor-metadata-review.json`; this is a bounded trace, not proof against all dynamic procedures. Loss policy approved; per-record disposition and verification remain required. |
+| Ten armor records have nonzero value 3, labeled ProcVal; none has an active source procedure binding. Source feature helpers use this slot as mutable state/recharge bits. | Approved named inert-metadata loss for these ten unbound values. Bound armor procedures (22 records, authored ProcVal zero) retain their existing `Z`/DG owner instead of synthesizing `C` or `S`. | `proc-review.json` records identities and bindings; Phase 6 owner verification passes. Loss policy approved; per-record disposition and verification remain required. |
+| Source `db.c:read_object()` reads weight/cost/durability, followed by two optional affect words; there is no object-level field. | Approved permanent target level 1, preserving the existing conversion policy. Magic-item caster level remains separate. | Level policy approved; durable documentation and regression coverage remain required. |
 | Source loader extensions are extra descriptions, applies, and trap data. Target `db.c` supports `B` (two fields), `C` (seven plus optional command), `K` (five), and `S` (four). | Emit extensions only where a traced source procedure supplies equivalent semantics. Do not treat unsupported trailing source tokens as authored target extensions. | Complete procedure/loader/writer/runtime mapping and capacity tests. |
 | Target `G/H/I` are proficiency/material/size; zero size becomes medium at load. | Retain current inferred weapon metadata; derive nonweapon fields only from reviewed source identity or supported mechanics. | Nonweapon material/size/proficiency rules and defaults pending. |
 | Source `comm.c` recognizes `&&`, `&N`/`&n`, `&+x`, `&-x`, and `&=xy`; unknown forms are printed literally. | Implemented foreground/background/blink through existing target tokens, escaped ampersands, and diagnosed malformed literals. Source black `L/l` maps to target `D/d`. | All 42 exceptional strings are recorded in `color-dispositions.json`; all seven format round trips pass. Final display smoke remains in step 6. |
 | Source `db.c:3297` unconditionally sets `ITEM_LIT` on ships. Twelve active source ships need that implicit bit. | Implemented target boat plus existing `ITEM_MAGLIGHT` mapping, preserving unrelated flags; runtime visibility reads current direct room/inventory/equipment placement. | Emission round trips and production-linked carried/dropped/moved/toggled/equipped/container checks pass. Isolated in-game verification passes (implementation log); final candidate rehearsal remains in step 6. |
 
-Product review requested before dependent behavior changes: armor family penalties and wearable
-AC policy above; permanent item level 1; and player-facing class packages versus explicit
-content-only preservation for the RoL identities. These decisions do not authorize new base-class
-IDs or replace the required per-spell acquisition/balance matrix.
+The user approved armor family penalties and the wearable AC policy, permanent item level 1,
+and player-facing packages through existing classes. These decisions do not authorize new
+base-class IDs or replace the required per-spell acquisition/balance matrix. Honor the pause above.
 
 ### Traced object extension contract
 
 Source `db.c:read_object()` loads E descriptions, A applies, and T trap data; it does not load
 native B/C/K/S blocks. Existing Phase 6 owners preserve assigned procedures separately. The
-following representation review does not approve new losses or synthesize spell effects from
-unbound values.
+following representation review must follow the approved loss policy; it must not synthesize
+spell effects from unbound values or silently discard working behavior.
 
 | Native field | Loader, writer and runtime contract | Selected-source evidence/disposition |
 |--------------|------------------------------------|--------------------------------------|
 | A | `db.c` uses its own six-entry affect counter; omitted bonus type/specific become zero. `olc/genobj.c` writes all four fields. | Preserve mapped applies. Python validation now accepts the same legacy defaults and independently checks capacity. |
-| B | Separate 200-entry `sbinfo` array, two fields: target spell ID and pages. `spellbook_scroll.c` uses stored spell IDs; scribing limits entries, not total pages. | All 31 source type-33 spellbooks lack the private `03 01 03` E keyword used by `memorize.c:find_spell_description()` for learned-spell bitsets. There are no authored book spells to synthesize as B entries in this corpus. Source language/class/total-used-page metadata has no equivalent in this target path and still needs an explicit loss disposition. |
+| B | Separate 200-entry `sbinfo` array, two fields: target spell ID and pages. `spellbook_scroll.c` uses stored spell IDs; scribing limits entries, not total pages. | All 31 source type-33 spellbooks lack the private `03 01 03` E keyword used by `memorize.c:find_spell_description()` for learned-spell bitsets. There are no authored book spells to synthesize as B entries in this corpus. Source language/class/total-used-page metadata has no equivalent in this target path and is covered by the approved bookkeeping-loss policy; record the final affected entries. |
 | C | Seven integers and optional command word; dynamically allocated ability list. `genobj.c` preserves that order; `combat/spec_abilities.c` consumes ability, activation, level and values. | A source proc-state bitmask does not identify a native ability. Keep the resolved special/DG owner unless a reviewed procedure requires a specific extension. |
 | K | Five integers: caster level, target spell ID, remaining/max uses, cooldown. One activation array; repeated K blocks overwrite it. Writer emits only positive level/spell entries. `obj/act.item.c` casts and decrements/recharges uses. | No authored native K data in the source grammar. Existing assigned activation procedures remain their resolved owner. |
-| S | Independent three-entry weapon-spell array: target spell ID, level, probability, combat flag. Writer preserves this order. `fight.c:weapon_spells()` and `idle_weapon_spells()` consume it through the `GET_WEAPON_SPELL_*` macros, casting through `call_magic()`. | Preserve existing weapon-procedure ownership; the six bound nonzero source ProcVal weapons resolve to `RoL Banana` or `RoL Weapon Proc`. The eight unbound nonzero weapon values remain proposed inert metadata. |
+| S | Independent three-entry weapon-spell array: target spell ID, level, probability, combat flag. Writer preserves this order. `fight.c:weapon_spells()` and `idle_weapon_spells()` consume it through the `GET_WEAPON_SPELL_*` macros, casting through `call_magic()`. | Preserve existing weapon-procedure ownership; the six bound nonzero source ProcVal weapons resolve to `RoL Banana` or `RoL Weapon Proc`. The eight unbound nonzero weapon values fall under the approved inert-metadata loss policy. |
 | G/H/I | One integer each: proficiency/material/size; current writer emits all three, and missing or zero size becomes medium. Material affects saves and equipment behavior; proficiency and size affect use. | Source object structure/loader has no corresponding generic fields. Weapon inference already supplies reviewed table values. Nonweapon inference/default decisions remain pending; textual material guesses can change mechanics. |
 
 The selected-source book inventory (`spellbook-review.json`, 31 books and zero private spell
@@ -701,8 +744,8 @@ selection a gameplay decision even when value-0 protection is preserved.
 
 A dexterity cap of 99 means unlimited. Shield entries 14/15/16/17 have armor-check penalties
 -1/-1/-2/-10, spell failure 5/5/15/50%, and dexterity caps 99/99/99/7 respectively.
-These verified inputs complete the target-table evidence for 113.2; family/penalty approval,
-source classification, and equipped runtime checks remain open.
+These verified inputs complete the target-table evidence for 113.2. The family/penalty policy
+is approved; source classification and equipped runtime checks remain open.
 
 ## Step 3: remaining object policies (#114)
 
@@ -768,11 +811,11 @@ Player-visible changes also require both the help database and `lib/text/help/he
 
 | Identity | Initial path to evaluate | Decision required for completion |
 |----------|--------------------------|----------------------------------|
-| Shaman | Cleric spirit/totem progression using the existing totem implementation | Whether this is a player identity; acquisition levels, Wisdom use, spirit kit, and totem progression. Current conversion requires Cleric 21 and does not establish full Shaman progression. |
-| Elementalist | Wizard specialty/perk progression with elemental choice and embodiment | Specialization restrictions, embodiment access, and the minor creation/thunder lance/air blast/earthblood/earth fog/fire fog kit. |
-| Battlechanter | Bard martial/shamanic package | Player access to song of travel and whether a distinct war-performance progression is wanted. |
-| Dire Raider | Ranger/Warrior dire-wolf bond package | Companion acquisition/scaling, mounted interactions, prerequisites, and its spell kit. |
-| Mercenary | Documented disabled-source Warrior/Rogue build | Preserve that disposition unless a concrete requirement warrants enabling or adding something. |
+| Shaman | Cleric spirit/totem progression using the existing totem implementation | Approved player identity through Cleric. Define acquisition levels, Wisdom use, spirit kit, and totem progression; the current Cleric-21 conversion does not establish full progression. |
+| Elementalist | Wizard specialty/perk progression with elemental choice and embodiment | Approved Wizard elemental specialization. Define restrictions, embodiment access, and the minor creation/thunder lance/air blast/earthblood/earth fog/fire fog kit. |
+| Battlechanter | Bard martial/shamanic package | Approved Bard combat/support kit. Specify song-of-travel access and the package progression. |
+| Dire Raider | Ranger/Warrior dire-wolf bond package | Approved Ranger/Warrior dire-wolf kit. Define companion acquisition/scaling, mounted interactions, prerequisites, and its spell kit. |
+| Mercenary | Documented disabled-source Warrior/Rogue build | Approved retention of the documented existing Warrior/Rogue build; no new base class or disabled-source class activation. |
 
 - [ ] 117.4 Assign every accepted spell to explicit class/domain levels and acquisition paths.
   Use `class.c`'s spell assignments and `init_spell_levels()` plus the domain registry, rather
@@ -805,7 +848,8 @@ The native IDs below are defined in `magic/spells.h:686-699`, registered in
 `magic/spell_parser.c:6550-6583`, and dispatched through its manual switch or the native
 damage/affect/area routines. Existing `test_unassigned_spells.c` regressions pass in the
 1,136-test ship validation. Its registration-default checks call only `mag_assign_spells()`;
-they do not prove access after class/domain initialization. No new class access is approved.
+they do not prove access after class/domain initialization. Player-kit direction is approved;
+exact class/spell acquisition assignments remain to be specified.
 
 | Spell (target ID) | Current handler and behavior | Cleanup/verification |
 |-------------------|------------------------------|----------------------|
