@@ -2,7 +2,7 @@
 
 Branch: [rol-converter-integration-113-117](https://github.com/LuminariMUD/Luminari-Source/tree/rol-converter-integration-113-117)
 
-Status: planned; implementation and release validation have not started under this plan.
+Status: mechanical format split verified; object policies and integration validation are in progress.
 Prepared: 2026-09-06. Inspected branch revision: `7c5677ec132bda12f98b2ba630f372bfb0b46651`.
 Plan-ablation review: 2026-09-06, against all five live issue checklists and current code.
 
@@ -14,16 +14,15 @@ development release rehearsal. Each issue remains the source of truth for its re
 completion status. A documented, approved content-only disposition can satisfy an issue that
 explicitly permits it; an unresolved decision or an unexplained loss cannot.
 
-**Non-goals:** This planning task changes no converter, game, database, or world data. Future
-implementation does not include production deployment, the C file organization work in #96,
+**Non-goals:** Implementation does not include production deployment, the C file organization work in #96,
 replacement of the existing weapon classifier, a new conversion framework, or automatic creation
 of new base classes. Existing public interfaces, persistence formats, and worldfile grammars remain
 the implementation path. Any decision that requires expanding that path needs a concrete scope
 revision before work begins. Rehearse world application on a disposable development copy;
 deployment to an existing server needs its own concrete release scope, as #115 requires.
 
-**Files:** This planning task changes only this document. Implementation files and their purposes
-are identified per step below; they are a bounded change map, not a requirement to edit every file.
+**Files:** Implementation files and their purposes are identified per step below; they are a
+bounded change map, not a requirement to edit every file. Update this document as work progresses.
 Never edit the customized `src/campaign.h`, `src/mud_options.h`, or `src/vnums.h`, or change
 `lib/.env` or `lib/mysql_config`. Use existing target constants and supported data fields.
 
@@ -69,6 +68,85 @@ store generated evidence in existing ignored run storage; no new framework or se
 
 ## Current evidence that changes the plan
 
+### Implementation log (2026-09-06)
+
+- Starting revision: `244871397` (`imp plan`), branch `rol-converter-integration-113-117`.
+  Confirmed `APP_ENV=development`; customized headers and credentials remain untouched.
+- Evidence root: `lib/rol-conversion/integration-20260906/` (ignored generated run storage).
+  `baseline-world/` is the frozen development world; `inputs.json` records SHA-256 hashes
+  for 7,224 source/world/policy/constants/calculator files and the starting commit.
+  The installed `EXAMPLE/RealmsOfLuminari` package remains the selected source because existing
+  capability and release tools require that canonical source path.
+- Baseline `make test-world-tools` passed (exit 0); full output and exit status are in
+  `before/world-tools.log` and `before/world-tools.exit` (509 tests, no skips).
+  After extraction, the full command passed again (512 tests, no skips, exit 0;
+  `after/world-tools.log` and `after/world-tools.exit`). Detailed discovery and emission
+  capture is in progress using the existing baseline/discovery/plan/capability machinery.
+- Immediate outcome/files/proof: extract format ownership into the listed flat modules,
+  preserve facade imports and all conversion rules, register both manifests and output evidence,
+  and compare source records, emitted bytes, diagnostics, ledgers, and SOC attachments before/after.
+- Implementation plan-ablation: retain the required mechanical split and existing release gates;
+  use current shared helpers and ignored comparison evidence, with no new conversion framework.
+  Format-only helpers stay with their format. Product decisions remain open until the refreshed
+  disposition and spell matrices support concrete review; they do not block the mechanical split.
+- Extracted all seven parser/format owners, three shared modules, and stable facade exports.
+  The mobile-identity and SOC imports now use shared owners. Both source manifests include
+  the nine new modules. Phase 8 captures those modules plus the actual inference, override,
+  constants, policy, and calculator inputs. Regression tests import each owner first in a fresh
+  interpreter and prove completion rejects changed captured object code or weapon overrides.
+- All 160 original functions, classes, constants, and mappings have exactly one unchanged
+  AST match after the move (`all-definition-comparison.json`; the initial 71-function/class
+  comparison is retained in `ast-comparison.json`). Focused source/transform/weapon/object/Phase 8 tests passed
+  (200 tests); the added import/evidence regressions passed in the 25-test source/Phase 8 run.
+  No conversion rule changed in the mechanical split.
+- Refreshed inventory review is in `review-summary.json`, `armor-review.json`,
+  `weapon-review.json`, `ships-review.json`, and `color-review.json`. Records include source
+  path/hash and target identity. There are 71,680 source records and 10,378 objects; 2,527
+  armor-typed records are accepted by the current parser. Of these, 1,166 carry a standard
+  armor slot, eight additional records are dedicated tail armor, and 1,353 are other wearables.
+  These are parser-level classifications, not approved dispositions; short numeric rows need
+  loader review. The weapon audit has 1,418 rows, 25 fallbacks, 57 overrides, 14 name/type
+  disagreements, and no undefined weapon/ammunition types. All 12 ship records are retained
+  in the lighting review packet. Builder approval is still pending.
+- Source class/spell inventory started with the existing preprocessor helper:
+  `spell-registration-review.json` contains 754 active source class/spell assignments across
+  288 source spell IDs, plus current target registrations and class/domain assignment calls.
+  The source class counts include Shaman 67 and Elementalist 48. Exact-name matches alone
+  cover 507 assignment rows; canonical aliases, shared songs, the six historical unregistered
+  spells, actual initialization/learning behavior, and proposed levels remain to be reconciled.
+  Preprocessed source/target text and the capture command are retained beside that evidence.
+- Pending text questions request the documented armor penalty/AC policy, permanent level 1
+  versus a new evidence-based rule, and existing-class player packages versus content-only
+  preservation. No unanswered question is treated as approval; independent extraction and
+  evidence work continues.
+- The full frozen-world baseline capture is still running in exec session `6477`
+  (Python PID `52656`, command `PYTHONPATH=scripts/world python3
+  lib/rol-conversion/integration-20260906/capture.py before`). Its log is
+  `before/capture.log`. The last checked stage was writing discovery lineage candidates;
+  repeated Trackless Sea identities produce several GiB of valid candidate evidence.
+  The process has a 24 GiB address-space bound so a later materialized JSON load cannot
+  exhaust the shared development host. Poll this same live handle before deciding whether
+  to resume anything; an empty log is not a failed run. After successful baseline capture,
+  preserve its outputs for the final frozen-world release rehearsal. The split comparison was
+  completed independently with the plan's existing reference fixture, as recorded below.
+- Mechanical split comparison completed using `tests/rol_reference.py` against a temporary
+  detached checkout of `244871397` and the extracted implementation. Both used the identical
+  installed source corpus and calculator bytes. `reference-before/`, `reference-after/`, and
+  `reference-comparison.json` retain the evidence: all 71,680 parsed records, 69,922 ordinary
+  emitted records, 12,407 mobile ledgers, source/transform diagnostics, zero transform exceptions,
+  reconciliation actions/exclusions, and identity maps are byte-identical. The existing four-package
+  SOC fixture also matches exactly: 245 source records, 181 triggers, and all attachments.
+  Only the fixture run IDs and their dependent summary hashes differ; test discovery adds the
+  three intended import/evidence regressions (509 before, 512 after; none removed).
+  This satisfies the split's representative-output gate while retaining full-world release
+  validation as a separate, still-required step. The temporary baseline checkout is removed
+  after retaining comparison evidence.
+
+### Pre-implementation observations
+
+The following observations describe the starting code before the mechanical split. Current
+format ownership is recorded above and in step 1; historical counts are retained as baseline evidence.
+
 - [rol_source.py](../../scripts/world/wtool_lib/rol_source.py) owns all seven source grammars,
   shared record types, parser dispatch, and active-corpus loading. Its object parser recognizes
   three source economy fields; source affect words must not become a target level or timer.
@@ -105,7 +183,7 @@ store generated evidence in existing ignored run storage; no new framework or se
   index/dependency closure, conversion-policy version/hash, target constants, calculator binary
   identity, and the frozen development target world. Confirm `APP_ENV=development`. Refresh
   these records if inputs change; historical run directories are not current proof.
-- [ ] 0.2 Run `make test-world-tools` before the split and retain its log and discovered tests.
+- [x] 0.2 Run `make test-world-tools` before the split and retain its log and discovered tests.
   Use existing fixtures and `tests/rol_reference.py` to capture representative output for
   `.mob`, `.obj`, `.wld`, `.zon`, `.shp`, `.qst`, and `.soc`, plus ledger decisions, diagnostics,
   exclusions, and hashes. Build only the baseline/discovery/plan/audit inputs this comparison
@@ -131,6 +209,29 @@ questions have named evidence and a review point. Historical counts such as 2,52
 Never substitute them for a fresh inventory. Keep existing corpus-specific assertions tied to
 their pinned package; do not weaken release gates to make a different package pass.
 
+### Initial object disposition evidence and pending product decisions
+
+This table starts the shared 0.4/113/114 disposition review. Entries marked pending are proposals,
+not accepted behavior or a claim of issue completion. Record-specific evidence is in the review
+JSON files above; procedure-owner and player spell/access matrices still require completion.
+
+| Source meaning/evidence | Target representation or proposed disposition | Review/coverage remaining |
+|-------------------------|-----------------------------------------------|---------------------------|
+| Armor value 0 protects when positive; target `handler.c:apply_ac()` accepts body/head/arms/legs/shield and the explicit tail exception. | Preserve standard armor protection independently of family. Infer family from identity/material and apply its real target penalties. Never set load-time table-stat replacement. | Pending family/penalty approval; inspect five mixed masks and eight short numeric base rows before assigning final dispositions. |
+| Nonstandard armor wearables have no value-0 AC runtime effect. There are 13 negative-protection records, including seven shackles numbered 35600-35606. | Proposed `ITEM_WORN` with signed `APPLY_AC_NEW`: divide magnitude by ten, round toward zero, retain minimum magnitude one for nonzero values; use existing universal bonus type 23 and preserve authored applies. | Pending scaling/stacking/curse approval; prevent double-counting and test equip/unequip. Dedicated-tail behavior needs its own disposition. |
+| Source `which.c` labels armor values 1/2 as warmth/prestige; 101/25 records have nonzero values. | Proposed explicit named losses where source/target consumer review confirms no supported equivalent; clear obsolete target value slots. | Runtime/source-consumer review and loss approval pending. |
+| Ten armor records have nonzero value 3, labeled ProcVal. Source `read_object()` does not interpret that value as a generic spell extension. | Trace each record's actual assigned procedure before selecting existing `Z`/DG ownership or an inert-data loss. A raw ProcVal is not sufficient to synthesize a target `C` or `S` block. | Complete per-procedure review and verify no duplicate effects. |
+| Source `db.c:read_object()` reads weight/cost/durability, followed by two optional affect words; there is no object-level field. | Proposed permanent target level 1, preserving the existing conversion policy. Magic-item caster level remains separate. | Explicit level-policy approval pending. |
+| Source loader extensions are extra descriptions, applies, and trap data. Target `db.c` supports `B` (two fields), `C` (seven plus optional command), `K` (five), and `S` (four). | Emit extensions only where a traced source procedure supplies equivalent semantics. Do not treat unsupported trailing source tokens as authored target extensions. | Complete procedure/loader/writer/runtime mapping and capacity tests. |
+| Target `G/H/I` are proficiency/material/size; zero size becomes medium at load. | Retain current inferred weapon metadata; derive nonweapon fields only from reviewed source identity or supported mechanics. | Nonweapon material/size/proficiency rules and defaults pending. |
+| Source `comm.c` recognizes `&&`, `&N`/`&n`, `&+x`, `&-x`, and `&=xy`; unknown forms are printed literally. | Preserve foreground/background/blink using existing target protocol tokens (`@[bRGB]` and `@-`); normalize escaped ampersands and retain malformed literal forms with diagnostics. | Review 42 exceptional parsed strings and add shared-text round trips. Target `L/l` mean lime, whereas source `L/l` mean black; map source black explicitly to target `D/d`. |
+| Source `db.c:3297` unconditionally sets `ITEM_LIT` on ships. Twelve active source ships need that implicit bit. | Convert to target boat plus existing `ITEM_MAGLIGHT` mapping, preserving unrelated flags. | Emission regression and carried/dropped/moved runtime light checks still required. |
+
+Product review requested before dependent behavior changes: armor family penalties and wearable
+AC policy above; permanent item level 1; and player-facing class packages versus explicit
+content-only preservation for the RoL identities. These decisions do not authorize new base-class
+IDs or replace the required per-spell acquisition/balance matrix.
+
 ## Step 1: split format ownership without behavior changes (#116)
 
 Files: `scripts/world/wtool_lib/`, both `Makefile.am` and `CMakeLists.txt`, and the existing
@@ -150,24 +251,24 @@ world-tool tests. The following flat layout supplies one implementation per form
 | Existing `rol_soc.py` | SOC parser plus the existing trigger compiler and attachments. |
 | Existing `rol_source.py` / `rol_transform.py` | Stable dispatch/reporting and export facades. |
 
-- [ ] 116.1 Inventory actual imports, including mappings and private helpers imported by
+- [x] 116.1 Inventory actual imports, including mappings and private helpers imported by
   `rol_capability_audit.py`, `rol_mobile_identity.py`, tests, and phase orchestration. Preserve
   signatures, returned types, exported names, exception behavior, and diagnostics.
-- [ ] 116.2 Move shared types and only helpers with actual cross-format callers first. Change
+- [x] 116.2 Move shared types and only helpers with actual cross-format callers first. Change
   imports that would create cycles to their owners; retain existing callers of stable facades.
   In particular, mobile identity must not import `rol_source.py` after that facade starts
   importing the mobile format module. Keep existing focused helpers in their current owners.
-- [ ] 116.3 Move each grammar together with its format's conversion logic. Move SOC's imports
+- [x] 116.3 Move each grammar together with its format's conversion logic. Move SOC's imports
   of `RolRecord` and `convert_text` to the shared owners before moving its parser into
   `rol_soc.py`. Preserve one-way imports: shared code imports no format; formats import shared
   code or an explicit format owner; facades import formats. Keep object/mobile affect maps and
   shop/object type-map dependencies explicit. Re-export compatibility names from the facades.
-- [ ] 116.4 Update both converter source manifests for every added/moved module. Extend
+- [x] 116.4 Update both converter source manifests for every added/moved module. Extend
   `rol_phase8._CODE_EVIDENCE_PATHS` to cover the actual output-affecting modules and data,
   including inference/override inputs used by subsequent steps. Reuse the existing evidence
   mechanism: test coverage of these paths and rejection of a changed captured input at completion.
   Preserve CLI arguments, artifact contracts, and ledger behavior; no new dependency scanner.
-- [ ] 116.5 Extend existing import/round-trip tests where necessary. Run all discovered world
+- [x] 116.5 Extend existing import/round-trip tests where necessary. Run all discovered world
   tests and compare the representative before/after conversion output byte for byte. Compare
   diagnostics and action decisions as well. Expected code-evidence hashes and documented
   run-time metadata may differ; emitted world bytes and conversion decisions must not.
