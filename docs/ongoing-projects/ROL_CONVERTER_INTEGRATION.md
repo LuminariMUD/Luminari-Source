@@ -2,8 +2,8 @@
 
 Branch: [rol-converter-integration-113-117](https://github.com/LuminariMUD/Luminari-Source/tree/rol-converter-integration-113-117)
 
-Status: all five recommendations approved by the user on 2026-09-06; work paused at the user's
-request after recording approval. Resume implementation only when the user asks to continue.
+Status: implementation resumed at the user's request on 2026-09-06. All five recommendations
+remain approved; the historical pause below has ended. Remaining acceptance gates stay open.
 Prepared: 2026-09-06. Inspected branch revision: `7c5677ec132bda12f98b2ba630f372bfb0b46651`.
 Plan-ablation review: 2026-09-06, against all five live issue checklists and current code.
 
@@ -65,7 +65,8 @@ Approval establishes the following direction; it does not mark implementation or
    14 name/type disagreements, including overlapping cases. Perform the existing per-record
    review and tests; approval of this approach is not a claim that every current mapping is correct.
 
-**Pause:** Stop after this documentation update. No further conversion, gameplay, database,
+**Historical pause (lifted by the continuation request):** Stop after this documentation update.
+No further conversion, gameplay, database,
 runtime, publication, or release-rehearsal work is authorized to run during the pause. Keep the
 full integration objective and remaining acceptance gates intact for a later user-requested resume.
 The former five-direction approval blocker is resolved. Detailed progression, record-specific
@@ -112,6 +113,54 @@ disposable copy for the apply rehearsal. Keep one implementation behind facade r
 store generated evidence in existing ignored run storage; no new framework or service is needed.
 
 ## Current evidence that changes the plan
+
+### Resumed implementation (2026-09-06)
+
+- Verified clean development checkout at `3ccbdbcd1`; `APP_ENV=development`. The user's
+  continuation request lifts the recorded pause and retains the five approved directions.
+- Current outcome: convert nonstandard armor wearables to `ITEM_WORN` with signed,
+  ten-to-one `APPLY_AC_NEW` protection using universal bonus type 23. Preserve authored
+  applies, wear masks, takeability, and assigned procedure/trigger owners. Standard armor
+  family inference, mixed standard masks, and dedicated-tail disposition remain subsequent
+  required work. A take-only object gains no invented equipment slot.
+- Files/proof: reuse `rol_objects.py`, existing transform and native equipment regressions,
+  Phase 8 evidence, and durable converter documentation. Verify source-to-target round trips,
+  source-hashed corpus dispositions and metadata/procedure contracts, then native equip,
+  stack, curse, and unequip behavior. Plan-ablation: adapt the existing opposite-sign AC
+  helper and append one supported apply; no new module, dependency, schema or runtime
+  mechanism. No source or local customized configuration is changed.
+- Implemented the nonstandard-wearable rule and recorded every changed source record in
+  `worn-dispositions.json` (generator: `worn-review.py`, in the existing evidence root).
+  Revalidated source record hashes, the proc-binding input hashes, and the metadata consumer
+  hashes. Comparing the current parser/emitter with the `3ccbdbcd1` emitter changes exactly
+  1,353 armor objects; all other 9,025 object results are identical. The affected objects
+  include 1,151 protective, five harmful and 197 zero-protection values. All 1,684 authored
+  applies survive independently, and each target stays within the six-apply capacity.
+  All five take-only records keep their masks: 42917 (jewels), 21104 (horns), 59233 (robe),
+  58866 (robe) and 83033 (helm/faceguard). Source identity alone does not invent equip access.
+- Named losses in this subset: 43 nonzero warmth values, eight prestige values and four
+  unbound procedure-state values; categories overlap. Each is recorded with source values,
+  source hash, target identity, emitted values/applies and diagnostics. None of the affected
+  nonzero metadata records has an active source binding. The bound tattered cloak uses
+  `rol_utility_tattered_cloak()`'s value-3 counter; the emitter retains assigned procedure
+  state and `Z`/DG ownership. The existing Phase 6 dispositions (including explicitly
+  excluded source toys and hardwired target callbacks) are retained, not reclassified as losses.
+- The round-trip regression reproduced the old item-type failure before implementation
+  (`worn-before.log`). Signed scale/rounding, authored applies, zero values, normalized rings,
+  takeability, empty/mixed masks, standard/tail boundaries and assigned-owner persistence now
+  pass. `PYTHONPATH=scripts/world python3 -m unittest tests.test_rol_transform
+  tests.test_objects tests.test_rol_phase8` passed 162 tests (`worn-focused.log`/`.exit`).
+  `make -j4 test` passed all 1,139 CuTests and required root checks, followed by successful
+  `make -j4 install` (`worn-cutest.log`/`.exit`, `worn-install.log`/`.exit`, all exit 0).
+  The native test covers multiple worn bonuses, an authored AC apply, harmful equipment,
+  tail-ring use without double-counting and complete AC restoration on unequip. Phase 8
+  captures this existing regression file. The eight optional help-sync database tests remain
+  skipped. No C runtime implementation changed; final candidate and in-game proof remain open.
+- `make test-world-tools` passed all 524 tests with no skips and its constants/documentation
+  and wrapper gates (`worn-world-tools.log`/`.exit`, exit 0). The assigned-owner regression
+  additionally rejects native-parser findings. All file hooks and ASCII/LF checks pass;
+  no compiler warnings or root-level server artifact remain. Step 113.4 is complete; the
+  remaining armor-family/mixed-mask/tail review and final runtime gates remain required.
 
 ### Implementation log (2026-09-06)
 
@@ -596,7 +645,8 @@ JSON files and remaining procedure-owner/player-access matrices must still suppo
 
 The user approved armor family penalties and the wearable AC policy, permanent item level 1,
 and player-facing packages through existing classes. These decisions do not authorize new
-base-class IDs or replace the required per-spell acquisition/balance matrix. Honor the pause above.
+base-class IDs or replace the required per-spell acquisition/balance matrix. Implementation
+resumed on the user's continuation request, as recorded above.
 
 ### Traced object extension contract
 
@@ -687,7 +737,7 @@ change runtime code only for a demonstrated acceptance defect that conversion ca
   Resolve `(family, slot)` using explicit current target constants/table entries. Reject
   undefined, uninitialized, duplicate-only, and mismatched slot results; canonicalize chain
   helmets instead of selecting the duplicate entry. Do not renumber target armor constants.
-- [ ] 113.4 Implement the approved non-armor treatment, using `ITEM_WORN` plus supported
+- [x] 113.4 Implement the approved non-armor treatment, using `ITEM_WORN` plus supported
   `APPLY_AC_NEW` when appropriate. Source armor value 0 is positive for protection; source
   apply 17 uses the opposite sign. Do not call the existing armor-apply helper on value 0
   without adapting that convention. Decide scale, rounding, bonus type/stacking, and curses;

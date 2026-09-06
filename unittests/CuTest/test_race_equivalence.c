@@ -519,6 +519,77 @@ void TestTailSlotRingAndDedicatedGearContract(CuTest *tc)
   cleanup_race_equivalence_descriptor(&descriptor);
 }
 
+void TestConvertedWornArmorStacksAndUnequipsWithoutTailDoubleCounting(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  struct obj_data gloves;
+  struct obj_data cloak;
+  struct obj_data bracelet;
+  struct obj_data ring;
+
+  ensure_race_equivalence_registry();
+  init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  if (descriptor.pProtocol == NULL)
+    return;
+  GET_REAL_RACE(&ch) = RACE_YUAN_TI;
+  GET_REAL_SIZE(&ch) = SIZE_MEDIUM;
+  ch.points.size = SIZE_MEDIUM;
+
+  /* Converted value-0 protection and a separately authored AC apply stack. */
+  init_race_equipment_object(&gloves, "protective gloves", ITEM_WEAR_HANDS);
+  GET_OBJ_TYPE(&gloves) = ITEM_WORN;
+  GET_OBJ_SIZE(&gloves) = SIZE_MEDIUM;
+  gloves.affected[0].location = APPLY_AC_NEW;
+  gloves.affected[0].modifier = 1;
+  gloves.affected[0].bonus_type = BONUS_TYPE_UNIVERSAL;
+  gloves.affected[1].location = APPLY_AC_NEW;
+  gloves.affected[1].modifier = 2;
+  gloves.affected[1].bonus_type = BONUS_TYPE_UNIVERSAL;
+  equip_char(&ch, &gloves, WEAR_HANDS);
+  CuAssertPtrEquals(tc, &gloves, GET_EQ(&ch, WEAR_HANDS));
+  CuAssertIntEquals(tc, 30, ch.points.armor);
+
+  init_race_equipment_object(&cloak, "protective cloak", ITEM_WEAR_ABOUT);
+  GET_OBJ_TYPE(&cloak) = ITEM_WORN;
+  GET_OBJ_SIZE(&cloak) = SIZE_MEDIUM;
+  cloak.affected[0] = gloves.affected[0];
+  equip_char(&ch, &cloak, WEAR_ABOUT);
+  CuAssertIntEquals(tc, 40, ch.points.armor);
+
+  init_race_equipment_object(&bracelet, "harmful bracelet", ITEM_WEAR_WRIST);
+  GET_OBJ_TYPE(&bracelet) = ITEM_WORN;
+  GET_OBJ_SIZE(&bracelet) = SIZE_MEDIUM;
+  bracelet.affected[0] = gloves.affected[0];
+  bracelet.affected[0].modifier = -2;
+  equip_char(&ch, &bracelet, WEAR_WRIST_R);
+  CuAssertIntEquals(tc, 20, ch.points.armor);
+
+  init_race_equipment_object(&ring, "protective tail ring", ITEM_WEAR_FINGER);
+  GET_OBJ_TYPE(&ring) = ITEM_WORN;
+  GET_OBJ_SIZE(&ring) = SIZE_MEDIUM;
+  ring.affected[0] = gloves.affected[0];
+  obj_to_char(&ring, &ch);
+  perform_wear(&ch, &ring, WEAR_TAIL);
+  CuAssertPtrEquals(tc, &ring, GET_EQ(&ch, WEAR_TAIL));
+  CuAssertIntEquals(tc, 0, apply_ac(&ch, WEAR_TAIL));
+  CuAssertIntEquals(tc, 30, ch.points.armor);
+
+  CuAssertPtrEquals(tc, &gloves, unequip_char(&ch, WEAR_HANDS));
+  CuAssertIntEquals(tc, 0, ch.points.armor);
+  CuAssertPtrEquals(tc, &bracelet, unequip_char(&ch, WEAR_WRIST_R));
+  CuAssertIntEquals(tc, 20, ch.points.armor);
+  CuAssertPtrEquals(tc, &ring, unequip_char(&ch, WEAR_TAIL));
+  CuAssertIntEquals(tc, 10, ch.points.armor);
+  CuAssertPtrEquals(tc, &cloak, unequip_char(&ch, WEAR_ABOUT));
+  CuAssertIntEquals(tc, 0, ch.points.armor);
+  cleanup_race_equivalence_descriptor(&descriptor);
+}
+
 void TestTailSlotRestrictionsCoverDirectAndPersistenceEntryPaths(CuTest *tc)
 {
   struct char_data ch;

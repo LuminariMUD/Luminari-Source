@@ -419,6 +419,17 @@ omitted bonus type/specific fields. Each extension still enforces its own capaci
   different sign convention. Other armor values describe warmth/prestige/proc,
   not a target armor-family index. Preserve protection while making the target
   family/slot decision explicitly; AC magnitude alone cannot identify armor.
+- Armor-typed nonstandard wearables become `ITEM_WORN`. Their value-0 protection
+  becomes signed `APPLY_AC_NEW`: divide magnitude by ten, round toward zero,
+  and retain magnitude one for a nonzero value. Universal bonus type 23 stacks
+  with preserved authored applies and other equipment. Clear value 0 to prevent
+  double-counting, including rings worn on tails. Preserve normalized wear flags
+  and takeability; take-only placeholders gain no inferred equipment slot.
+  Standard armor slots, mixed masks containing them, and dedicated-tail armor
+  remain outside this rule and require their separate family/disposition review.
+  Nonstandard warmth/prestige and unbound procedure-state losses are diagnosed
+  per record. Assigned special adapters retain procedure state and effect ownership;
+  for example, the tattered cloak still uses value 3 for its recharge counter.
 - Weapon profiles distinguish melee, launchers, thrown weapons, ammunition and
   quivers. Javelin names alone do not establish throwing intent; thrown darts and
   blowgun ammunition are distinct. Use the classifier audit and reviewed

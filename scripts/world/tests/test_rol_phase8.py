@@ -43,6 +43,7 @@ class RolPhase8Tests(unittest.TestCase):
         "src/magic/magic.c",
         "src/net/protocol.c",
         "unittests/CuTest/test_protocol_parser.c",
+        "unittests/CuTest/test_race_equivalence.c",
         "unittests/CuTest/test_unassigned_spells.c",
         "bin/rol_mob_calculator",
     ):

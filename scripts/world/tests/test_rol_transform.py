@@ -1543,6 +1543,93 @@ class RolTransformTests(unittest.TestCase):
         "restated source armor apply -50 as APPLY_AC_NEW 5", " ".join(emitted.diagnostics)
     )
 
+  def test_nonstandard_armor_preserves_signed_protection_and_authored_applies(self) -> None:
+    for protection, expected in ((0, 0), (1, 1), (9, 1), (19, 1), (20, 2),
+                                 (-1, -1), (-9, -1), (-19, -1), (-20, -2)):
+      with self.subTest(protection=protection):
+        source = self._source_record(
+            "obj",
+            ("#200\nbracer~\na bracer~\nA bracer lies here.~\n~\n"
+             f"9 0 4097\n{protection} 25 -10 8\n1 1 0\n"
+             "A\n17 -15\nA\n1 2\n").encode("ascii"),
+        )
+        original_values = list(source.values["values"])
+        emitted = emit_object(source, 2_000_200, _resolver)
+        result = parse_object_file(
+            self._target_path("obj", emitted.text), "obj/20001.obj", self.manifest, set()
+        )
+        self.assertTrue(result.complete)
+        self.assertFalse(result.findings)
+        obj = result.records[0]
+        self.assertEqual(11, obj.item_type)
+        self.assertEqual([0, 0, 0, 0], obj.values[:4])
+        self.assertEqual({0, 12}, decode_tokens(obj.wear_flags).bits)
+        expected_applies = [(27, 1, 23), (1, 2, 23)]
+        if expected:
+          expected_applies.append((27, expected, 23))
+        self.assertEqual(expected_applies, [
+            (a.location, a.modifier, a.bonus_type) for a in obj.affects
+        ])
+        self.assertEqual(original_values, source.values["values"])
+        for loss in ("warmth 25", "prestige -10", "unbound procedure state 8"):
+          self.assertIn(loss, " ".join(emitted.diagnostics))
+        self.assertEqual(emitted, emit_object(source, 2_000_200, _resolver))
+
+  def test_nonstandard_armor_respects_normalized_slots_and_takeability(self) -> None:
+    for mask in (0, 1, 4, 129, 4097, 16385, (1 << 22) | 3):
+      with self.subTest(mask=mask):
+        source = self._source_record(
+            "obj",
+            ("#200\nwearable~\na wearable~\nA wearable lies here.~\n~\n"
+             f"9 0 {mask}\n5 0 0 0\n1 1 0\n").encode("ascii"),
+        )
+        emitted = emit_object(source, 2_000_200, _resolver)
+        result = parse_object_file(
+            self._target_path("obj", emitted.text), "obj/20001.obj", self.manifest, set()
+        )
+        obj = result.records[0]
+        self.assertEqual(11, obj.item_type)
+        self.assertEqual({b for b in range(22) if mask & (1 << b)},
+                         decode_tokens(obj.wear_flags).bits)
+        self.assertEqual([(27, 1)], [(a.location, a.modifier) for a in obj.affects])
+
+  def test_standard_mixed_and_dedicated_tail_armor_do_not_gain_worn_apply(self) -> None:
+    for mask in (9, 17, 33, 257, 513, 137, (1 << 22) | 1):
+      with self.subTest(mask=mask):
+        source = self._source_record(
+            "obj",
+            ("#200\narmor~\nsome armor~\nSome armor lies here.~\n~\n"
+             f"9 0 {mask}\n19 0 0 0\n1 1 0\n").encode("ascii"),
+        )
+        result = parse_object_file(
+            self._target_path("obj", emit_object(source, 2_000_200, _resolver).text),
+            "obj/20001.obj", self.manifest, set(),
+        )
+        obj = result.records[0]
+        self.assertEqual(9, obj.item_type)
+        self.assertEqual(19, obj.values[0])
+        self.assertFalse(obj.affects)
+
+  def test_nonstandard_armor_preserves_assigned_effect_owners_and_state(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#93175\ncloak~\na cloak~\nA cloak lies here.~\n~\n"
+        b"9 0 1025\n10 0 0 12\n1 1 0\n",
+    )
+    emitted = emit_object(source, 2_093_175, _resolver,
+                          special_proc="RoL Utility Object", attachments=(2_000_001,))
+    result = parse_object_file(
+        self._target_path("obj", emitted.text), "obj/20931.obj", self.manifest,
+        {"rol utility object"},
+    )
+    self.assertTrue(result.complete)
+    self.assertFalse(result.findings)
+    obj = result.records[0]
+    self.assertEqual(11, obj.item_type)
+    self.assertEqual([0, 0, 0, 12], obj.values[:4])
+    self.assertIn("Z\nRoL Utility Object\nT 2000001\n", emitted.text)
+    self.assertEqual([(27, 1)], [(a.location, a.modifier) for a in obj.affects])
+
   def test_emitted_object_keeps_one_point_of_small_source_armor_apply(self) -> None:
     source = self._source_record(
         "obj",
