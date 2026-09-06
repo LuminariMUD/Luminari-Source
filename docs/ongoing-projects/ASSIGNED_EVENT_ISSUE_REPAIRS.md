@@ -245,3 +245,61 @@ Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working
 
 - [EVENT_DRIVEN_CORE_REFACTOR_PHASE11N_GATE_HANDOFF.md](https://github.com/LuminariMUD/Luminari-Source/blob/c7c7d44a7f47e5fc155859eaf359391b827f85ea/docs/ongoing-projects/EVENT_DRIVEN_CORE_REFACTOR_PHASE11N_GATE_HANDOFF.md)
 - [EVENT_DRIVEN_CORE_ROLLBACK_QUARANTINE.md](https://github.com/LuminariMUD/Luminari-Source/blob/c7c7d44a7f47e5fc155859eaf359391b827f85ea/docs/ongoing-projects/EVENT_DRIVEN_CORE_ROLLBACK_QUARANTINE.md)
+
+## Next implementation checkpoint: transport and remaining #105 owners
+
+Crafting/supply commit: `c961729cf`; operational review commit: `b49fcbea6`.
+The latest completed full test has 1,145 passing cases and was followed by
+`make install`. No production process was restarted.
+
+Transport trace:
+
+- `enter_transport` in `vessels/transport.c` moves eligible followers and leader
+  into a free room in the existing transit room pool. `travel_tickdown` scans
+  descriptors once per second to deliver passengers.
+- Destination currently means a room-array index. No travel fields are saved
+  by players.c. A restored player in transit loses the destination and uses the
+  existing emergency return path. `act.informative.c` reads travel_timer for ETA.
+- Carriage/sailing commands charge the fare before transport admission. An
+  unavailable transit room or invalid destination can therefore consume a fare
+  without starting a journey. Admission must precede that charge.
+- A transport job should be a native owned event, separate from primary
+  activity. Reuse event_runtime ownership, cancellation, registration and
+  diagnostics. Do not put the global loop behind another timer or introduce
+  another timing service.
+- Use a stable destination vnum in authoritative trip state, runtime handles
+  for the current passenger/transit/destination incarnations, and a versioned
+  save record for destination, remaining seconds, travel type and locale.
+  Offline time should pause remaining time, matching the current descriptor
+  behavior. Login/reconnect/copyover reconstruct the native deadline.
+- Use a native named `transport.arrival` type. Admit the group before movement
+  and payment; cancel any provisional jobs on failed admission. Capture the
+  eligible follower identities before callbacks. NPC pets follow existing pet
+  movement rather than receiving player-special trip state.
+- Clear trip ownership before arrival notifications; re-resolve the passenger
+  after pets/entry/greet callbacks. A committed move out of the transit room
+  cancels the pending arrival. ETA is calculated from the native deadline.
+- Relevant integration points: domain_event_runtime init/shutdown before type
+  sealing; free_char; close_socket before save; CON_PLAYING transitions in
+  interpreter.c and copyover_recover; players.c load/save; transport ETA display.
+
+Other #105 research retained for the next work:
+
+- Self-buff sequences call timed casting, which already owns primary activity.
+  The sequence must coordinate native wakeups without claiming a second primary
+  activity, granting actions twice, or retaining a raw target pointer. The old
+  slot-skip loop indexes before checking its bound; start sets buffing flags
+  before validating target location. Correct both during migration.
+- Supply refresh is now lazy. The previous inventory's online-only claim was
+  wrong: should_refresh_supply_slots uses time(NULL) and the last refresh time.
+- Moving rooms currently scan movingRoomList every ten seconds and decrement
+  remainingZonePulses. Give each loaded mover a native owned deadline at
+  resetZonePulse * ten seconds, reconstruct after boot, and audit OLC teardown.
+- Staff events have one active global event. Separate named expiry/delay from
+  jackalope population maintenance and prisoner portal/atmosphere agendas,
+  preserving their current mud-hour cadence.
+
+#106-109 remain outstanding beyond the existing quest consumer migration.
+#111 has declared thresholds but no final-revision latency/RSS measurements.
+#112 retains archival SQL; production inventory and retirement approvals are
+not inferred from the empty local database.
