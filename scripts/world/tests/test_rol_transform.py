@@ -807,6 +807,108 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("@RRed@n\nplain", text)
     self.assertEqual([], diagnostics)
 
+  def test_source_foreground_background_and_blink_use_target_palette(self) -> None:
+    cases = {
+        "&+Lblack&+lblack&N": "@Dblack@dblack@n",
+        "&-Ldark background&N": "@[b000]@-dark background@n",
+        "&-rred background&n": "@[b200]red background@n",
+        "&=bWwhite on blue&N": "@[b002]@Wwhite on blue@n",
+        "&=RLblack on blinking red&N": "@[b200]@-@Dblack on blinking red@n",
+        "&&+Rliteral && and @": "&+Rliteral & and @@",
+    }
+    for source, expected in cases.items():
+      with self.subTest(source=source):
+        text, diagnostics = convert_text(source)
+        self.assertEqual(expected, text)
+        self.assertEqual(
+            ["escaped literal '@' as '@@' for the target color parser"] if "@" in source else [],
+            diagnostics,
+        )
+
+  def test_malformed_source_colors_follow_source_literal_and_truncation_rules(self) -> None:
+    for escape in ("&-<", "&_", "&%", "&$", "&c", "&I", "&<", "&g", "&+X", "&=Qx"):
+      with self.subTest(escape=escape):
+        text, diagnostics = convert_text(escape)
+        self.assertEqual(escape, text)
+        self.assertEqual(
+            [f"preserved unknown source color escape {escape!r} as literal text"], diagnostics
+        )
+    for escape in ("&", "&+", "&-", "&=", "&=L"):
+      with self.subTest(escape=escape):
+        text, diagnostics = convert_text("text" + escape)
+        self.assertEqual("text", text)
+        self.assertEqual([f"dropped incomplete source color escape {escape!r}"], diagnostics)
+
+  def test_background_color_text_keeps_target_framing_ascii_and_lf(self) -> None:
+    text, diagnostics = convert_text("&=lW@sign~\r\ncaf\u00e9&N")
+    self.assertEqual("@[b000]@W@@sign-\ncaf?@n", text)
+    self.assertEqual(3, len(diagnostics))
+
+  def test_source_colors_round_trip_through_each_format_owner(self) -> None:
+    label = "&=bWSignal&N && &+Lblack&N &-<"
+    expected = "@[b002]@WSignal@n & @Dblack@n &-<"
+    fixtures = {
+        "wld": f"#100\nRoom~\n{label}~\n1 0 2\nS\n",
+        "mob": (
+            f"#100\nmobile~\na mobile~\n{label}~\n~\n0 0 0 0 S\n"
+            "H 0 0\n1 0 10 1d1+0 1d1+0\n0 0\n131 131 0\n"
+        ),
+        "obj": f"#100\nobject~\nan object~\n{label}~\n~\n11 0 1\n0 0 0 0\n1 1 1\n",
+        "zon": (
+            f"#100\nfile~\n{label}~\n199 30 2 0\n"
+            "0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\nS\n"
+        ),
+        "shp": f"SHOP: 100\nHOURS: 1-23\nROOM: 100\nGREED: 100\nPROFIT: 100\nMBCASH: {label}\n",
+        "qst": f"#100\nM\nquestion~\n{label}~\nS\n",
+        "soc": (
+            "MOB: 100 TRIGGER\nTRIGGER: 23\nFLAG: 165\nCHANCE: 0\nDELAY: 0\n"
+            f"ACTION: 1000\n{label}~\nDONE\n"
+        ),
+    }
+    for kind, data in fixtures.items():
+      with self.subTest(kind=kind):
+        record = self._source_record(kind, data.encode("ascii"))
+        if kind == "wld":
+          emitted = emit_room(record, 2_000_100, 20_001, _resolver).text
+          parsed = parse_room_file(
+              self._target_path(kind, emitted), "wld/20001.wld", self.manifest, False, set()
+          )
+        elif kind == "mob":
+          emitted = emit_mobile(record, 2_000_100).text
+          parsed = parse_mobile_file(
+              self._target_path(kind, emitted), "mob/20001.mob", self.manifest, set()
+          )
+        elif kind == "obj":
+          emitted = emit_object(record, 2_000_100, _resolver).text
+          parsed = parse_object_file(
+              self._target_path(kind, emitted), "obj/20001.obj", self.manifest, set()
+          )
+        elif kind == "zon":
+          emitted = emit_zone(record, 20_001, 2_000_100, _resolver).text
+          path = self._target_path(kind, "")
+          path.write_text(emitted, encoding="ascii")
+          parsed = parse_zone_file(path, "zon/20001.zon", self.manifest, 6)
+        elif kind == "shp":
+          emitted = "CircleMUD v3.0 Shop File~\n" + emit_shop(record, 2_000_100, _resolver).text
+          parsed = parse_shop_file(
+              self._target_path(kind, emitted), "shp/20001.shp", self.manifest
+          )
+        elif kind == "qst":
+          emitted = emit_hlquest(record, 2_000_100, _resolver).text
+          parsed = parse_hlquest_file(
+              self._target_path("hlq", emitted), "hlq/20001.hlq", self.manifest
+          )
+        else:
+          emitted = compile_soc_records(
+              [record], 2_030_000, _resolver, {23: "smile"}
+          ).trigger_text.removesuffix("$~\n")
+          parsed = parse_trigger_file(
+              self._target_path("trg", emitted), "trg/20300.trg", self.manifest
+          )
+        self.assertIn(expected, emitted)
+        self.assertTrue(parsed.complete, parsed.findings)
+        self.assertTrue(parsed.records)
+
   def test_emitted_room_parses_as_modern_target_data(self) -> None:
     source = self._source_record(
         "wld",

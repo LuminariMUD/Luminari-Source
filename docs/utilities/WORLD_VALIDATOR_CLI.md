@@ -389,7 +389,14 @@ namespaces. `rol_source.py` parses source records; `rol_transform.py` emits the
 native representation. The [native serialization reference](../world_game-data/OEDIT_GUIDE.md#native-object-file-serialization)
 describes the target. Keep conversions explicit in the policy and diagnostics.
 
-- Source object text uses tilde strings and RoL `&` color syntax. Source flags
+- Source object text uses tilde strings and RoL `&` color syntax. The shared text
+  converter preserves `&+x` foreground, `&-x` background, and `&=xy` combined colors,
+  including source background blinking, using existing target protocol tokens.
+  Source black `L/l` maps to target `D/d`; target `L/l` would display lime.
+  `&&` becomes a literal ampersand. Unknown complete escapes remain literal and
+  incomplete escapes are dropped as in the source output loop; both are diagnosed.
+  Literal at-sign escaping, ASCII, LF, and tilde framing apply to every format.
+  Source flags
   are decimal words, with type/extra/wear and optional anti flags. Source values
   have eight fields; target records have sixteen. Economy is weight/cost/
   durability, not the target weight/cost/rent/level/timer line. Source whitespace
