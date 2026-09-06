@@ -2,8 +2,8 @@
 
 Branch: [rol-converter-integration-113-117](https://github.com/LuminariMUD/Luminari-Source/tree/rol-converter-integration-113-117)
 
-Status: implementation resumed on 2026-09-06. Step 2 armor conversion is complete; the remaining
-object, player-kit, weapon, and release-rehearsal gates stay open. All five recommendations remain
+Status: implementation resumed on 2026-09-06. Steps 2 and 3 are complete; the remaining
+player-kit, weapon, and release-rehearsal gates stay open. All five recommendations remain
 approved.
 Prepared: 2026-09-06. Inspected branch revision: `7c5677ec132bda12f98b2ba630f372bfb0b46651`.
 Plan-ablation review: 2026-09-06, against all five live issue checklists and current code.
@@ -117,6 +117,36 @@ store generated evidence in existing ignored run storage; no new framework or se
 
 ### Resumed implementation (2026-09-06)
 
+- Step 3 is complete. The final `object-metadata-dispositions.json` packet reparses all 10,378
+  selected objects, checks their frozen source hashes, emits each record with its compiled
+  procedure owner, and target-parses the combined output. Every object remains level 1. The
+  selected source grammar provides no native B/C/K/S payload, so all four marker counts are zero;
+  the 31 source spellbooks clear only unsupported language/class/page bookkeeping and emit no
+  invented spells. Exactly 1,375 target weapons emit one G/H/I field apiece, while every
+  nonweapon omits all three and receives the target loader defaults: no proficiency, undefined
+  material and medium size.
+- The same packet assigns all 323 source object-procedure bindings across 321 records exactly one
+  disposition: 265 special-procedure owners, 19 reconciled native-runtime owners, eight DG
+  attachments and 31 named exclusions. Six nonzero weapon ProcVal records retain their assigned
+  behavior owner; eight unbound weapon states and ten unbound armor states are named losses.
+  Armor also records 101 warmth and 25 prestige losses. No ProcVal is reinterpreted as a B/C/K/S
+  payload, and emitted Z/T ownership matches the target parser.
+- The final review also closes the source `ITEM_WORN` value contract. The source runtime names
+  warmth/prestige in values 1/2, has no generic value-0 consumer, and permits value 3 only through
+  an assigned procedure. The converter therefore neutralizes 34 source-inert value-0 fields so
+  they cannot become target monk-glove enhancements, records three warmth losses, one prestige
+  loss and two unbound value-3 state losses, and retains owned state. The northern Waterdeep
+  umbrella is the sole record with a nonzero warmth-times-prestige product (`-100 * -10 = 1000`):
+  source `RateObject()` scales that product when NPCs compare equipment. Its lost equipment-choice
+  effect is named separately and is not described as player prestige or cold resistance.
+- The final evidence hashes are
+  `9873a85abc1262ce0c58b6428e2fa468bc5082140ab06df93ef3897f9b63040a` for
+  `object-metadata-dispositions.json` and
+  `09c816c6eeae93b45c08548c88ebe783c52fb5b6aea4cc6c74d8e0b1a18d350b` for the human-readable
+  `object-metadata-loss-report.md`. The converter-focused suite passes all 155 tests and
+  `make test-world-tools` passes all 533 tests, with constants, documentation and zone-wrapper
+  gates also passing. Plan-ablation kept the change in the existing emitter, tests and ignored
+  evidence path; no target runtime, extension grammar, schema or inference layer was added.
 - Step 3 starts with the approved fixed object-level policy. The source loader reads only weight,
   cost and rent before two affect words, so none of those fields can become a target use level.
   Every converted prototype emits target level 1; magic-item caster level remains separate in its
@@ -644,7 +674,7 @@ format ownership is recorded above and in step 1; historical counts are retained
   `rol_weapon_mapping.audit()` on the selected corpus. Identify every fallback, override, and
   name/type disagreement. Keep source path, source VNUM, source hash, and emitted target identity
   in the review evidence; a VNUM alone is insufficient when records collide across packages.
-- [ ] 0.4 Build one disposition table for the gaps in #113/#114 from the actual source loader,
+- [x] 0.4 Build one disposition table for the gaps in #113/#114 from the actual source loader,
   its object procedures, the converter, target loader/writer, and runtime consumers. Record
   source meaning, target representation or named loss, rationale, affected records, and existing
   or needed regression coverage. Include armor AC/warmth/prestige/proc, extensions, nonweapon
@@ -732,13 +762,14 @@ JSON files and remaining procedure-owner/player-access matrices must still suppo
 
 | Source meaning/evidence | Target representation or proposed disposition | Review/coverage remaining |
 |-------------------------|-----------------------------------------------|---------------------------|
-| Armor value 0 protects when positive; target `handler.c:apply_ac()` accepts body/head/arms/legs/shield and the explicit tail exception. | Preserve standard armor protection independently of family. Infer family from identity/material and apply its real target penalties. Never set load-time table-stat replacement. | Family/penalty policy approved; inspect five mixed masks and eight short numeric base rows before assigning final dispositions. |
-| Nonstandard armor wearables have no value-0 AC runtime effect. There are 13 negative-protection records, including seven shackles numbered 35600-35606. | Approved `ITEM_WORN` with signed `APPLY_AC_NEW`: divide magnitude by ten, round toward zero, retain minimum magnitude one for nonzero values; use existing universal bonus type 23 and preserve authored applies. | Scaling/stacking/curse policy approved; prevent double-counting and test equip/unequip. Dedicated-tail behavior needs its own disposition. |
-| Source `which.c` labels armor values 1/2 as warmth/prestige; 101/25 records have nonzero values across 105 distinct armor records. Reviewed common armor paths use value 0, and procedure state uses value 3. | Approved explicit named losses for unsupported warmth/prestige; clear obsolete target value slots after disposition. | Source consumer evidence is in `armor-metadata-review.json`; this is a bounded trace, not proof against all dynamic procedures. Loss policy approved; per-record disposition and verification remain required. |
-| Ten armor records have nonzero value 3, labeled ProcVal; none has an active source procedure binding. Source feature helpers use this slot as mutable state/recharge bits. | Approved named inert-metadata loss for these ten unbound values. Bound armor procedures (22 records, authored ProcVal zero) retain their existing `Z`/DG owner instead of synthesizing `C` or `S`. | `proc-review.json` records identities and bindings; Phase 6 owner verification passes. Loss policy approved; per-record disposition and verification remain required. |
+| Armor value 0 protects when positive; target `handler.c:apply_ac()` accepts body/head/arms/legs/shield and the explicit tail exception. | Preserve standard armor protection independently of family. Infer family from identity/material and apply its real target penalties. Never set load-time table-stat replacement. | Complete: `armor-family-dispositions.json` records every family, mixed-mask, short-row and tail decision with source/target hashes and parser proof. |
+| Nonstandard armor wearables have no value-0 AC runtime effect. There are 13 negative-protection records, including seven shackles numbered 35600-35606. | `ITEM_WORN` with signed `APPLY_AC_NEW`: divide magnitude by ten, round toward zero, retain minimum magnitude one for nonzero values; use existing universal bonus type 23 and preserve authored applies. | Complete: focused native equip/unequip coverage proves signed effects and no double-counting; final combined runtime rehearsal remains Step 6. |
+| Source `which.c` labels armor values 1/2 as warmth/prestige; 101/25 records have nonzero values across 105 distinct armor records. Reviewed common armor paths use value 0, and procedure state uses value 3. | Explicit named losses for unsupported warmth/prestige; clear obsolete target value slots after disposition. | Complete: all 126 affected fields have source-hashed loss rows in the armor and final object packets. |
+| Ten armor records have nonzero value 3, labeled ProcVal; none has an active source procedure binding. Source feature helpers use this slot as mutable state/recharge bits. | Named metadata loss for these ten unbound values. Bound armor procedures retain their existing `Z`/DG owner instead of synthesizing `C` or `S`. | Complete: the final object packet verifies each compiled owner and loss against the emitted target record. |
 | Source `db.c:read_object()` reads weight/cost/durability, followed by two optional affect words; there is no object-level field. | Permanent target level 1, preserving the existing conversion policy. Magic-item caster level remains separate. | Complete: the emitter uses a named fixed default; ordinary/magic target-parser round trips verify level 1, exact repeatability, and caster-level separation. |
-| Source loader extensions are extra descriptions, applies, and trap data. Target `db.c` supports `B` (two fields), `C` (seven plus optional command), `K` (five), and `S` (four). | Emit extensions only where a traced source procedure supplies equivalent semantics. Do not treat unsupported trailing source tokens as authored target extensions. | Complete procedure/loader/writer/runtime mapping and capacity tests. |
-| Target `G/H/I` are proficiency/material/size; zero size becomes medium at load. | Retain current inferred weapon metadata; derive nonweapon fields only from reviewed source identity or supported mechanics. | Nonweapon material/size/proficiency rules and defaults pending. |
+| Source loader extensions are extra descriptions, applies, and trap data. Target `db.c` supports `B` (two fields), `C` (seven plus optional command), `K` (five), and `S` (four). | Emit extensions only where a traced source procedure supplies equivalent semantics. Do not treat unsupported trailing source tokens as authored target extensions. | Complete: the combined 10,378-object round trip emits no unsupported B/C/K/S block; independent parser fixtures retain field, capacity and spell-ID validation. |
+| Target `G/H/I` are proficiency/material/size; zero size becomes medium at load. | Retain reviewed weapon-table metadata. Emit no inferred nonweapon G/H/I; native defaults are no proficiency, undefined material and medium size. | Complete: 1,375 weapons emit exactly one G/H/I set and every nonweapon emits none in the combined target-parser proof. |
+| Source `ITEM_WORN` names warmth/prestige in values 1/2. Value 0 has no source runtime consumer; value 3 is meaningful only to an assigned procedure. One umbrella has a nonzero warmth-times-prestige NPC equipment-ranking product. | Clear source-inert value 0 to prevent target monk-glove behavior; name warmth/prestige and unbound value-3 losses; retain owned procedure state. Name the umbrella's source NPC-ranking effect separately. | Complete: 34 inert normalizations, three warmth losses, one prestige loss, two unbound-state losses and the one ranking-effect loss are source-hashed and target-parsed. |
 | Source `comm.c` recognizes `&&`, `&N`/`&n`, `&+x`, `&-x`, and `&=xy`; unknown forms are printed literally. | Implemented foreground/background/blink through existing target tokens, escaped ampersands, and diagnosed malformed literals. Source black `L/l` maps to target `D/d`. | All 42 exceptional strings are recorded in `color-dispositions.json`; all seven format round trips pass. Final display smoke remains in step 6. |
 | Source `db.c:3297` unconditionally sets `ITEM_LIT` on ships. Twelve active source ships need that implicit bit. | Implemented target boat plus existing `ITEM_MAGLIGHT` mapping, preserving unrelated flags; runtime visibility reads current direct room/inventory/equipment placement. | Emission round trips and production-linked carried/dropped/moved/toggled/equipped/container checks pass. Isolated in-game verification passes (implementation log); final candidate rehearsal remains in step 6. |
 
@@ -757,17 +788,19 @@ spell effects from unbound values or silently discard working behavior.
 | Native field | Loader, writer and runtime contract | Selected-source evidence/disposition |
 |--------------|------------------------------------|--------------------------------------|
 | A | `db.c` uses its own six-entry affect counter; omitted bonus type/specific become zero. `olc/genobj.c` writes all four fields. | Preserve mapped applies. Python validation now accepts the same legacy defaults and independently checks capacity. |
-| B | Separate 200-entry `sbinfo` array, two fields: target spell ID and pages. `spellbook_scroll.c` uses stored spell IDs; scribing limits entries, not total pages. | All 31 source type-33 spellbooks lack the private `03 01 03` E keyword used by `memorize.c:find_spell_description()` for learned-spell bitsets. There are no authored book spells to synthesize as B entries in this corpus. Source language/class/total-used-page metadata has no equivalent in this target path and is covered by the approved bookkeeping-loss policy; record the final affected entries. |
-| C | Seven integers and optional command word; dynamically allocated ability list. `genobj.c` preserves that order; `combat/spec_abilities.c` consumes ability, activation, level and values. | A source proc-state bitmask does not identify a native ability. Keep the resolved special/DG owner unless a reviewed procedure requires a specific extension. |
-| K | Five integers: caster level, target spell ID, remaining/max uses, cooldown. One activation array; repeated K blocks overwrite it. Writer emits only positive level/spell entries. `obj/act.item.c` casts and decrements/recharges uses. | No authored native K data in the source grammar. Existing assigned activation procedures remain their resolved owner. |
-| S | Independent three-entry weapon-spell array: target spell ID, level, probability, combat flag. Writer preserves this order. `fight.c:weapon_spells()` and `idle_weapon_spells()` consume it through the `GET_WEAPON_SPELL_*` macros, casting through `call_magic()`. | Preserve existing weapon-procedure ownership; the six bound nonzero source ProcVal weapons resolve to `RoL Banana` or `RoL Weapon Proc`. The eight unbound nonzero weapon values fall under the approved inert-metadata loss policy. |
-| G/H/I | One integer each: proficiency/material/size; current writer emits all three, and missing or zero size becomes medium. Material affects saves and equipment behavior; proficiency and size affect use. | Source object structure/loader has no corresponding generic fields. Weapon inference already supplies reviewed table values. Nonweapon inference/default decisions remain pending; textual material guesses can change mechanics. |
+| B | Separate 200-entry `sbinfo` array, two fields: target spell ID and pages. `spellbook_scroll.c` uses stored spell IDs; scribing limits entries, not total pages. | All 31 source type-33 spellbooks lack the private `03 01 03` E keyword used by `memorize.c:find_spell_description()` for learned-spell bitsets. Their language/class/total/used-page bookkeeping is a named loss, values 0..3 are cleared, and no B entry is invented. |
+| C | Seven integers and optional command word; dynamically allocated ability list. `genobj.c` preserves that order; `combat/spec_abilities.c` consumes ability, activation, level and values. | A source proc-state bitmask does not identify a native ability. All selected behavior stays with its compiled special/DG/native owner; no C block is invented. |
+| K | Five integers: caster level, target spell ID, remaining/max uses, cooldown. One activation array; repeated K blocks overwrite it. Writer emits only positive level/spell entries. `obj/act.item.c` casts and decrements/recharges uses. | The source grammar has no authored native K data. Existing assigned activation procedures remain their compiled owners; no K block is invented. |
+| S | Independent three-entry weapon-spell array: target spell ID, level, probability, combat flag. Writer preserves this order. `fight.c:weapon_spells()` and `idle_weapon_spells()` consume it through the `GET_WEAPON_SPELL_*` macros, casting through `call_magic()`. | Six bound nonzero source weapon ProcVal records keep `RoL Banana` or `RoL Weapon Proc`; eight unbound values are named losses. No mutable ProcVal is reinterpreted as an S spell tuple. |
+| G/H/I | One integer each: proficiency/material/size; current writer emits all three, and missing or zero size becomes medium. Material affects saves and equipment behavior; proficiency and size affect use. | Source objects have no corresponding generic fields. The 1,375 target weapons use reviewed weapon-table values. Every nonweapon omits G/H/I and receives native no-proficiency/undefined-material/medium-size defaults; textual guesses are forbidden. |
 
 The selected-source book inventory (`spellbook-review.json`, 31 books and zero private spell
-entries, with source hashes and target identities) was checked against all parsed records and the live source
-`memorize.c` implementation. Its old prose describes a per-spell string, but the live code uses
-`IS_CSET`/`SET_CBIT` storage; no such private E entry occurs in these world prototypes. Runtime
-player-book data is outside this world-converter input.
+entries, with source hashes and target identities) was checked against all parsed records and the
+live source `memorize.c` implementation. Its old prose describes a per-spell string, but the live
+code uses `IS_CSET`/`SET_CBIT` storage; no such private E entry occurs in these world prototypes.
+Runtime player-book data is outside this world-converter input. The final
+`object-metadata-dispositions.json` packet verifies this disposition with all extension and
+procedure owners against one combined target parse.
 
 ## Step 1: split format ownership without behavior changes (#116)
 
@@ -908,12 +941,12 @@ existing source/transform/object tests, and the relevant source/evidence manifes
   economy fields, or conflate item level with a magic item's separately bounded caster level.
   Test the inputs, bounds, and repeatability the chosen rule actually uses. If level 1 is
   accepted, retain that default with coverage and documentation; no level calculator is needed.
-- [ ] 114.2 Complete the table from 0.4 for target `B` (spellbook), `C` (special abilities),
+- [x] 114.2 Complete the table from 0.4 for target `B` (spellbook), `C` (special abilities),
   `K` (activated spells), `S` (weapon proc spells), and nonweapon `G/H/I` (proficiency,
   material, size). Read source behavior and target loader, `olc/genobj.c`, and runtime consumers.
   Emit only supported semantics; use explicit named losses when no equivalent is approved.
   Preserve extension ordering, field counts, capacities, source spell-ID mapping, and defaults.
-- [ ] 114.3 Audit source weapon/armor proc values and source procedures against existing `Z`
+- [x] 114.3 Audit source weapon/armor proc values and source procedures against existing `Z`
   preservation and DG attachments. Assign each behavior exactly one owner: existing special
   procedure, supported extension/trigger, or an approved named loss. Implement missing accepted
   equivalents without duplicate effects. Retain existing `E/A/Z/T`, trap, and reference behavior.
@@ -928,9 +961,19 @@ existing source/transform/object tests, and the relevant source/evidence manifes
   unrelated flags and boat behavior. Test ships with and without authored light, ordinary boats,
   target parsing, and carried/dropped/moved lighting. Verify the runtime result: emitting the
   flag alone is insufficient proof. Repair only a demonstrated gap in the required light behavior.
-- [ ] 114.6 Extend deterministic fixtures and target-parser round trips for every approved
+- [x] 114.6 Extend deterministic fixtures and target-parser round trips for every approved
   mapping, boundary, and named loss. Verify bounded extension counts and valid spell references.
   Produce a human-readable loss report with source/target identities and affected-record totals.
+
+Completion evidence: `object-metadata-dispositions.json` and
+`object-metadata-loss-report.md` under the ignored `integration-20260906` evidence root contain
+the per-record machine and human views. The combined 10,378-object parse proves fixed level 1,
+zero B/C/K/S emissions, exact procedure/DG owners, one G/H/I set on each of 1,375 weapons and no
+G/H/I on nonweapons. Named losses include 31 spellbook bookkeeping records; 101 armor warmth,
+25 armor prestige and ten armor state records; eight weapon state records; and the reviewed worn
+metadata above. Focused source-to-target fixtures cover spellbooks, owned/unowned weapon and worn
+state, the umbrella ranking effect, target monk-glove collision prevention, and level/caster-level
+separation. The 155-test transform suite and the complete 533-test world-tool gate pass.
 
 Exit: item levels are intentional, every representable extension/metadata/procedure behavior is
 mapped or explicitly disposed of, all listed color forms are reviewed, ship lighting survives,

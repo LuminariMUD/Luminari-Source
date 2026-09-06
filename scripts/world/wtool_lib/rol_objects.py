@@ -335,6 +335,8 @@ _TARGET_MAX_LIQUID = 22
 
 SOURCE_ITEM_TYPE_INSTRUMENT = 32
 SOURCE_ITEM_TYPE_SHIP = 28
+SOURCE_ITEM_TYPE_SPELLBOOK = 33
+SOURCE_ITEM_TYPE_WORN = 11
 SOURCE_EXTRA_LIT = 18
 
 
@@ -1249,6 +1251,41 @@ def _object_values(
   values = (values + [0] * 16)[:16]
   if source_type == SOURCE_ITEM_TYPE_INSTRUMENT:
     values = _instrument_values(record, values, diagnostics)
+  if source_type == SOURCE_ITEM_TYPE_SPELLBOOK:
+    language, class_id, total_pages, used_pages = values[:4]
+    if any((language, class_id, total_pages, used_pages)):
+      diagnostics.append(
+          "omitted source-only spellbook bookkeeping "
+          f"language {language}, class {class_id}, total pages {total_pages}, "
+          f"used pages {used_pages}; no authored spells; approved metadata loss"
+      )
+    values[:4] = [0, 0, 0, 0]
+  if source_type == SOURCE_ITEM_TYPE_WORN:
+    # The source runtime names only warmth and prestige for ITEM_WORN. Its
+    # value[0] is never read, while the target treats a nonzero value[0] on
+    # hand-worn gear as a monk-glove enhancement. Clear the source-inert slot
+    # so a malformed/future record cannot acquire that unrelated mechanic.
+    if values[0]:
+      diagnostics.append(
+          f"omitted source-inert worn value[0] {values[0]}; the target slot is "
+          "a monk-glove enhancement"
+      )
+    values[0] = 0
+    for slot, name in ((1, "warmth"), (2, "prestige")):
+      if values[slot]:
+        diagnostics.append(
+            f"omitted source-only worn {name} {values[slot]}; approved metadata loss"
+        )
+      values[slot] = 0
+    source_values = (list(record.values.get("values", [])) + [0] * 4)[:4]
+    equipment_rating = source_values[1] * source_values[2]
+    if equipment_rating:
+      diagnostics.append(
+          f"omitted source NPC equipment-ranking product {equipment_rating} "
+          "from worn warmth times prestige; source RateObject scales this product "
+          "by character class; not player prestige or cold resistance; approved "
+          "metadata loss"
+      )
   if target_type in {17, 23} and not 0 <= values[2] <= _TARGET_MAX_LIQUID:
     source_liquid = values[2]
     values[2] = _SOURCE_LIQUID_MAP.get(source_liquid, 0)
@@ -1694,6 +1731,29 @@ def emit_object(
         f"{sorted(source_affects & MOB_SOURCE_ONLY_AFFECTS)}"
     )
   values = _object_values(record, source_type, target_type, resolve, diagnostics)
+  if source_type == SOURCE_ITEM_TYPE_WEAPON and values[0]:
+    if special_proc is None:
+      diagnostics.append(
+          f"omitted source-only weapon unbound procedure state {values[0]}; "
+          "approved metadata loss"
+      )
+    else:
+      diagnostics.append(
+          f"consumed source weapon procedure state {values[0]} through assigned "
+          f"special-procedure owner {special_proc}"
+      )
+  if source_type == SOURCE_ITEM_TYPE_WORN and values[3]:
+    if special_proc is None:
+      diagnostics.append(
+          f"omitted source-only worn unbound procedure state {values[3]}; "
+          "approved metadata loss"
+      )
+      values[3] = 0
+    else:
+      diagnostics.append(
+          f"consumed source worn procedure state {values[3]} through assigned "
+          f"special-procedure owner {special_proc}"
+      )
   worn_protection = 0
   if source_type == 9:
     armor = infer_armor(record)
