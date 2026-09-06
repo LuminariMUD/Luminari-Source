@@ -701,6 +701,13 @@ def _validate_full_graph(
       )
 
   wear_slots = manifest["tables"]["wear-slots"]["entries"]
+  wear_by_macro = {
+      entry["macro"]: entry["index"]
+      for entry in manifest["tables"]["obj-wear"]["entries"]
+      if entry.get("macro")
+  }
+  finger_wear = wear_by_macro.get("ITEM_WEAR_FINGER")
+  tail_wear = wear_by_macro.get("ITEM_WEAR_TAIL")
   for zone in zones:
     if not _selected(zone, selected_packages):
       continue
@@ -752,7 +759,8 @@ def _validate_full_graph(
         if obj is not None and 0 <= position < len(wear_slots):
           wear_bits = decode_tokens(obj.wear_flags, len(manifest["tables"]["obj-wear"]["entries"]))
           required = wear_slots[position]["required_wear_index"]
-          if required not in wear_bits.bits:
+          ring_on_tail = required == tail_wear and finger_wear in wear_bits.bits
+          if required not in wear_bits.bits and not ring_on_tail:
             findings.append(
                 Finding(
                     "REF030",
