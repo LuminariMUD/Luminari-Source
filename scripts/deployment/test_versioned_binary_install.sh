@@ -17,6 +17,11 @@ cleanup()
 {
   if [[ "$helper_pid" =~ ^[1-9][0-9]*$ ]]; then
     kill -TERM "$helper_pid" 2>/dev/null || true
+    for attempt in {1..100}; do
+      kill -0 "$helper_pid" 2>/dev/null || break
+      sleep 0.01
+    done
+    kill -KILL "$helper_pid" 2>/dev/null || true
     wait "$helper_pid" 2>/dev/null || true
   fi
   if [[ -d "$test_root" ]] && [[ $(basename "$test_root") == luminari-release-test.* ]]; then
@@ -113,7 +118,15 @@ grep -Fxq "GIT_COMMIT=$commit_one" "$install_root/bin/releases/$build_one/manife
 "$install_root/bin/luminari" &
 helper_pid=$!
 printf '%s\n' "$helper_pid" > "$install_root/.mud.pid"
-active_executable=$(readlink -f "/proc/$helper_pid/exe")
+# The background shell may not have exec'd the helper when $! becomes available.
+# Wait for the executable identity being tested rather than racing the fork/exec.
+active_executable=
+for attempt in {1..200}; do
+  active_executable=$(readlink -f "/proc/$helper_pid/exe" 2>/dev/null || true)
+  [[ "$active_executable" == "$install_root/bin/releases/$build_one/luminari" ]] && break
+  kill -0 "$helper_pid" 2>/dev/null || break
+  sleep 0.01
+done
 [[ "$active_executable" == "$install_root/bin/releases/$build_one/luminari" ]] ||
   fail "the live process did not launch from its immutable release"
 
