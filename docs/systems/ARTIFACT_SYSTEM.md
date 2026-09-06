@@ -1257,10 +1257,27 @@ fresh clone always has the records it looks for.
   VNUM uniqueness is validated at boot.
 - All seventeen artifacts reset into the staging vault. Their contracts state
   an intended acquisition route that live content does not yet implement.
-  This is the one open item, and it is world-building work rather than code.
+  Acquisition content and its contract metadata must be reviewed together.
 
-The content brief for that remaining work is
-[`docs/ongoing-projects/artifact-placement-plan.md`](../ongoing-projects/artifact-placement-plan.md).
+The acquisition handoff is tracked in [#124](https://github.com/LuminariMUD/Luminari-Source/issues/124). Eleven
+contracts remain vault-staged until an acquisition mode is chosen. The declared
+routes for Vengeance, Earthcrier, Wyrmfang, Courage, Icedge and Twilight still need
+matching content; a roster label alone does not make a route available.
+
+### Builder acquisition checks
+
+Choose sources that respect binding timing, class oaths, owner visibility and
+recovery policy. Update `artifact_contracts[]` when the chosen acquisition mode
+changes. Remove competing staging-vault resets and check the provisioning path
+will not restore them on its next run.
+
+Ordinary O/P/G/E reset admission enforces live/durable uniqueness; multiple
+sources compete for the first allowed instance. Do not assume a scripted load
+has the same guard. Use explicit artifact spawn/recovery operations for staff
+work and review any new loading gateway. Verify loose, carried and offline
+instances across reset, logout and reboot, plus alternate-source and recovery
+behavior. Preserve lore/discovery hints without claiming unreleased content is
+already obtainable.
 
 ## Related Documentation
 

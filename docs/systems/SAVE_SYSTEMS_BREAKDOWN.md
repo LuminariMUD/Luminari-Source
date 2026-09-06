@@ -133,6 +133,13 @@ runtime state, and object rows. Legacy rows with a NULL runtime state retain the
 compatibility load path. A nonempty malformed runtime record is rejected rather
 than applied to the follower.
 
+A saved follower is reconstructed as an ordinary mobile with ownership/charm
+state; flags alone do not establish an explicit durable companion category.
+The runtime-state record does not preserve `ePURGEMOB` expiry. Timed affects
+and event-based lifetime are separate: preserving one does not restore the
+other. Track explicit durable categories and temporary expiry in [#119](https://github.com/LuminariMUD/Luminari-Source/issues/119),
+and remaining schema/identity work in [#120](https://github.com/LuminariMUD/Luminari-Source/issues/120).
+
 #### 3. Wilderness System Data
 - **Tables**: `region_data`, `path_data`, `region_index`, `path_index`
 - **Functions**: `load_regions()`, `load_paths()` in `mysql.c`

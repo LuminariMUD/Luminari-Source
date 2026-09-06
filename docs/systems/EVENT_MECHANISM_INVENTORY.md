@@ -3,15 +3,14 @@
 Reviewed 2026-09-05 for the door-readiness tranche on
 `refactor/fight-combat-safety`. This is a source inventory, not a claim that
 all gameplay is demand-driven. See [MUD_EVENTS](MUD_EVENTS.md) for the runtime
-contract and the [gameplay audit](../ongoing-projects/EVENT_GAMEPLAY_OPPORTUNITIES_AND_AUDIT_2026_09_05.md)
-for subsequent design work.
+contract. Remaining owner migrations are tracked in [#105](https://github.com/LuminariMUD/Luminari-Source/issues/105).
 
 ## Timing ownership and retained dispatch
 
 | Mechanism and source | Owner, cadence and callers | Disposition and rationale |
 | --- | --- | --- |
 | `game_scheduler.c`, `event_runtime.c` | One process runtime; main-loop deadline service | Sole gameplay scheduler. Hierarchical wheel, owner handles and bounded dispatch. |
-| `mud_event.c` | Per-character/object/room/world native types admitted by `NEW_EVENT` and related semantic APIs | Retain semantic API; no second queue. Casting/cooldowns already use native ownership. |
+| `mud_event.c` | Per-character/object/room/world native types admitted by `NEW_EVENT` and related semantic APIs | Retain semantic API; no second queue. Cooldowns use native ownership; timed casting uses the activity manager. |
 | `periodic_owners.c`, `character_periodic.c`, `affected_owners.c`, `point_update_periodic.c`, `vessel_periodic.c` | Registered active owners, native typed cadences | Retain. Cadence does not itself imply a legacy scheduler. |
 | Encounter, activity and mobile agendas | Native encounter/activity/mobile owners, their next due reason | Retain. Decisions within an agenda are feature state, not another clock engine. |
 | `craft/crafting_new.c:craft_update` | `service.one_second` in `comm.c`, descriptor scan, active `craft_duration` decrements | Retained migration debt. Follow-up: character-owned completion deadline with interruption/refund policy. Idle descriptors currently incur checks. |
@@ -69,7 +68,7 @@ zone procedure has a new bespoke test.
 ## Diagnostics
 
 `eventdebug subscriptions` exposes `ready.door-open` and the owner lifecycle
-listeners. An armed action adds no periodic callback. One accepted transition
+listeners. An armed action adds no polling callback; readied attacks outside combat own an expiry deadline. One accepted transition
 adds one `action.ready.execute` event for the next pulse.
 
 `eventdebug ready [reset]` reports the last 1024 callback samples, total callbacks
@@ -88,7 +87,7 @@ facts request concentration checks; progress does not reroll concentration.
 Object disposal publishes extraction before releasing target data. Instant
 magic remains synchronous and is not a separate scheduler.
 
-Details: `docs/ongoing-projects/EVENT_GAMEPLAY_TRANCHE_2_CASTING.md`.
+Details: [casting activities](MUD_EVENTS.md#casting-activities).
 The countdown migrations listed above remain open.
 
 ## Tactical readiness (tranche 3)
@@ -99,4 +98,19 @@ and the activity ID; it does not create a parallel casting queue. Readiness
 uses the native `action.ready.execute` and `action.ready.expire` types, with
 character owners. Semantic encounter turns expire combat readiness directly.
 Entry, door and casting attacks share one action reservation and single-strike
-path. See the [tranche 3 implementation](../ongoing-projects/EVENT_GAMEPLAY_TRANCHE_3_READIED_ATTACKS.md).
+path. See the [readied-action contract](MUD_EVENTS.md#readied-actions).
+
+## Remaining publication boundaries
+
+`ObjectMoved` currently covers room removal/placement, not an atomic inventory,
+equipment or container transfer with source/destination holders and actor/cause.
+`CharacterMoved` from low-level placement lacks relocation cause and direction.
+Consumers must not infer complete delivery or provoking movement from these
+facts. Track the contracts in [#103](https://github.com/LuminariMUD/Luminari-Source/issues/103) and [#104](https://github.com/LuminariMUD/Luminari-Source/issues/104).
+DG/special/quest pre-operation decisions must stay before mutation; migrate
+post-operation notifications only after identifying an authoritative publisher.
+
+Runtime latency/RSS acceptance remains qualified; [#111](https://github.com/LuminariMUD/Luminari-Source/issues/111)
+tracks representative measurements. Native pulse lateness is not an end-to-end
+latency measure. Gameplay proposals live in the issue tracker, separately from
+these implemented ownership contracts.

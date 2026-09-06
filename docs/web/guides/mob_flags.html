@@ -178,7 +178,7 @@ reference for mobile behavior flags</p>
     </div>
 
     <div class="breadcrumb">
-        <a href="../index.html">🏠 Home</a> /
+        <a href="../index.html">&#x1F3E0; Home</a> /
         <a href="../index.html#builder-guides">Builder Guides</a> /
         <span style="color: #666;">MOB Flags Reference</span>
     </div>
@@ -362,7 +362,7 @@ similar effects - Used for bosses and unique creatures</p>
 <h3 id="mob_nosleep-index-15">MOB_NOSLEEP (Index: 15)</h3>
 <p><strong>Effect:</strong> Mobile cannot be put to sleep. - Blocks
 sleep spells and effects - Used for elves, undead, constructs -
-Essential for creatures that don’t sleep</p>
+Essential for creatures that don&#x2019;t sleep</p>
 <h3 id="mob_nobash-index-16">MOB_NOBASH (Index: 16)</h3>
 <p><strong>Effect:</strong> Mobile cannot be bashed or knocked down. -
 Prevents shield bash and similar attacks - Used for trees, huge
@@ -428,7 +428,7 @@ blocks - Used for racial guardians and city gates</p>
 <p><strong>Code References:</strong> <code>movement.c:643</code></p>
 <h3 id="mob_block_level-index-57">MOB_BLOCK_LEVEL (Index: 57)</h3>
 <p><strong>Effect:</strong> When blocking, allows lower-level characters
-to pass. - Characters above mob’s level are blocked - Used for
+to pass. - Characters above mob&#x2019;s level are blocked - Used for
 level-gated areas</p>
 <p><strong>Code References:</strong> <code>movement.c:649</code></p>
 <h3 id="mob_block_align-index-58">MOB_BLOCK_ALIGN (Index: 58)</h3>
@@ -513,11 +513,11 @@ and bounty hunters</p>
 <h2 id="companion-summoned-creature-flags">Companion &amp; Summoned
 Creature Flags</h2>
 <h3 id="mob_c_animal-index-26">MOB_C_ANIMAL (Index: 26)</h3>
-<p><strong>Effect:</strong> Mobile is a ranger’s animal companion. -
+<p><strong>Effect:</strong> Mobile is a ranger&#x2019;s animal companion. -
 Summoned via animal companion abilities - Follows companion mechanics -
 Scales with ranger level</p>
 <h3 id="mob_c_familiar-index-27">MOB_C_FAMILIAR (Index: 27)</h3>
-<p><strong>Effect:</strong> Mobile is a wizard’s/sorcerer’s familiar. -
+<p><strong>Effect:</strong> Mobile is a wizard&#x2019;s/sorcerer&#x2019;s familiar. -
 Summoned via find familiar spell - Shares senses with master - Provides
 bonuses to caster</p>
 <h3 id="mob_c_mount-index-28">MOB_C_MOUNT (Index: 28)</h3>
@@ -526,7 +526,7 @@ Summoned via paladin abilities or mount spells - Can be ridden by
 summoner - Scales with character level</p>
 <h3 id="mob_mountable-index-21">MOB_MOUNTABLE (Index: 21)</h3>
 <p><strong>Effect:</strong> Mobile can be mounted and ridden. - Players
-can use ‘mount’ command on this NPC - Not necessarily a summoned mount -
+can use &#x2018;mount&#x2019; command on this NPC - Not necessarily a summoned mount -
 Used for horses, griffons, etc.</p>
 <p><strong>Code References:</strong> - <code>src/act.other.c</code> -
 Mount command checks (<code>do_mount()</code>, <code>do_tame()</code>) -
@@ -550,7 +550,7 @@ demons, celestials</p>
 companion, not magically summoned - Only one per person allowed - Costs
 gold to maintain</p>
 <h3 id="mob_shadow-index-43">MOB_SHADOW (Index: 43)</h3>
-<p><strong>Effect:</strong> Mobile is a shadowdancer’s shadow companion.
+<p><strong>Effect:</strong> Mobile is a shadowdancer&#x2019;s shadow companion.
 - Summoned via shadowdancer abilities - Special shadow-based powers -
 Scales with shadowdancer level</p>
 <h3 id="mob_c_o_t_n-index-85">MOB_C_O_T_N (Index: 85)</h3>
@@ -561,13 +561,13 @@ Vampire-specific summoning</p>
 <p><strong>Effect:</strong> Mobile is a vampire spawn. - Created by
 vampires - Lesser undead servant - Vampire-specific creation</p>
 <h3 id="mob_dragon_knight-index-87">MOB_DRAGON_KNIGHT (Index: 87)</h3>
-<p><strong>Effect:</strong> Mobile is a dragon knight’s mount. - Special
+<p><strong>Effect:</strong> Mobile is a dragon knight&#x2019;s mount. - Special
 draconic mount - Dragon-themed abilities - Class-specific companion</p>
 <h3 id="mob_mummy_dust-index-88">MOB_MUMMY_DUST (Index: 88)</h3>
 <p><strong>Effect:</strong> Mobile created via mummy dust spell. -
 Temporary undead servant - Spell-specific summoning</p>
 <h3 id="mob_eidolon-index-89">MOB_EIDOLON (Index: 89)</h3>
-<p><strong>Effect:</strong> Mobile is a summoner’s eidolon. - Powerful
+<p><strong>Effect:</strong> Mobile is a summoner&#x2019;s eidolon. - Powerful
 customizable companion - Summoner class feature - Highly customizable
 with evolutions</p>
 <h3 id="mob_geniekind-index-93">MOB_GENIEKIND (Index: 93)</h3>
@@ -685,7 +685,7 @@ double-extraction bugs - System flag for cleanup process</p>
 be manually toggled.</p>
 <h3 id="mob_nofight-index-23">MOB_NOFIGHT (Index: 23)</h3>
 <p><strong>Effect:</strong> Mobile will not engage in combat. - Passive
-creatures that won’t fight back - Used for ambient NPCs, decorative
+creatures that won&#x2019;t fight back - Used for ambient NPCs, decorative
 creatures - Different from MOB_NOKILL (which prevents being
 attacked)</p>
 <h3 id="mob_noclass-index-24">MOB_NOCLASS (Index: 24)</h3>
@@ -734,10 +734,10 @@ for powerful casters, bosses</p>
 101)</h3>
 <p><strong>Effect:</strong> The mobile uses the stat modifiers written
 on its prototype instead of the defaults for its category. - Without
-this flag, a mobile’s stats are derived from its level and category at
+this flag, a mobile&#x2019;s stats are derived from its level and category at
 load - With it, the values a builder set in <code>medit</code> are
 applied verbatim - Set it whenever you have deliberately hand-tuned a
-mob’s abilities and do not want them overwritten</p>
+mob&#x2019;s abilities and do not want them overwritten</p>
 <p><strong>Code References:</strong> - <code>src/utils.c</code> - Stat
 application (<code>apply_mob_stat_modifiers()</code>)</p>
 <h3 id="encounter-tier-separate-scalar-field">Encounter Tier (separate
@@ -777,7 +777,7 @@ edit, and autoroll ownership</p>
 <h3 id="mob_no_block_bypass-index-102">MOB_NO_BLOCK_BYPASS (Index:
 102)</h3>
 <p><strong>Effect:</strong> Prevents the Ghost perk and similar
-abilities from slipping past this mobile’s blocking. - Blocking mobiles
+abilities from slipping past this mobile&#x2019;s blocking. - Blocking mobiles
 normally have bypass routes available to certain classes and perks -
 This flag closes them, making the block absolute - Intended for
 gatekeepers and chokepoint guardians that must not be circumvented</p>
@@ -786,7 +786,7 @@ gatekeepers and chokepoint guardians that must not be circumvented</p>
 (<code>do_simple_move()</code>)</p>
 <h3 id="mob_golem-index-103">MOB_GOLEM (Index: 103)</h3>
 <p><strong>Effect:</strong> Marks the mobile as a constructed golem. -
-Used for follower tracking, so a player’s golem is distinguished from
+Used for follower tracking, so a player&#x2019;s golem is distinguished from
 ordinary charmed followers - Enables the golem repair and destroy
 commands to find it - Changes corpse handling on death</p>
 <p><strong>Code References:</strong> - <code>src/act.other.c</code> -
@@ -813,7 +813,7 @@ Teleport target check (<code>spell_teleport()</code>) -
 behaviors during deterministic conversion. -
 <code>MOB_ROL_NICE_THIEF</code> allows stealing but suppresses automatic
 retaliation when caught - <code>MOB_ROL_STAY_SECTOR</code> restricts
-random wandering to the mobile’s current sector -
+random wandering to the mobile&#x2019;s current sector -
 <code>MOB_ROL_DELAY_HUNTER</code> becomes <code>MOB_HUNTER</code> after
 the mobile falls below 90 percent HP - <code>MOB_ROL_ARCHER</code> lets
 an equipped mobile fire a launcher, or throw an eligible wielded weapon
@@ -835,7 +835,7 @@ disappear after four game hours. - <code>MOB_ROL_UMBERHULK</code> equips
 the converted canonical claws when available and retains the
 level-scaled confusion or extra mandible attack during combat. - The
 three automatic-race flags use independent activity and combat hooks.
-They do not consume <code>MOB_SPEC</code> or the prototype’s persistent
+They do not consume <code>MOB_SPEC</code> or the prototype&#x2019;s persistent
 SpecProc slot, so an authored direct procedure continues to run on the
 same mobile. - <code>MOB_ROL_FADE_FAMILIAR</code>,
 <code>MOB_ROL_FADE_MOUNT</code>, and <code>MOB_ROL_FADE_MONSTER</code>
@@ -850,8 +850,8 @@ the 21 converted shaman spirit families. Their source-specific fade
 messages suppress corpses without consuming the persistent SpecProc
 slot, and newly summoned spirits receive the same flag at runtime. -
 <code>MOB_ROL_BLACK_VAPOR_DEATH</code> preserves the Bloodstone undead
-death message while retaining Luminari’s native no-corpse policy for the
-converted undead. It does not consume the mobile’s persistent SpecProc
+death message while retaining Luminari&#x2019;s native no-corpse policy for the
+converted undead. It does not consume the mobile&#x2019;s persistent SpecProc
 slot. - <code>MOB_ROL_ABYSS_FORGED</code> marks only the source demon
 prototypes whose primary and secondary weapons dissolve on death. In the
 target it removes one-handed, off-hand, and two-handed wielded weapons
@@ -907,7 +907,7 @@ No longer functional - Reserved for future use - Do not use</p>
 <td>MOB_SENTINEL</td>
 <td>Sentinel</td>
 <td>Behavior</td>
-<td>Won’t move</td>
+<td>Won&#x2019;t move</td>
 </tr>
 <tr class="odd">
 <td>2</td>
@@ -928,7 +928,7 @@ No longer functional - Reserved for future use - Do not use</p>
 <td>MOB_AWARE</td>
 <td>Aware</td>
 <td>Combat</td>
-<td>Can’t be backstabbed</td>
+<td>Can&#x2019;t be backstabbed</td>
 </tr>
 <tr class="even">
 <td>5</td>
@@ -991,42 +991,42 @@ No longer functional - Reserved for future use - Do not use</p>
 <td>MOB_NOCHARM</td>
 <td>Uncharmable</td>
 <td>Immunity</td>
-<td>Can’t be charmed</td>
+<td>Can&#x2019;t be charmed</td>
 </tr>
 <tr class="odd">
 <td>14</td>
 <td>MOB_NOSUMMON</td>
 <td>Unsummonable</td>
 <td>Immunity</td>
-<td>Can’t be summoned</td>
+<td>Can&#x2019;t be summoned</td>
 </tr>
 <tr class="even">
 <td>15</td>
 <td>MOB_NOSLEEP</td>
 <td>Immune-Sleep</td>
 <td>Immunity</td>
-<td>Can’t be slept</td>
+<td>Can&#x2019;t be slept</td>
 </tr>
 <tr class="odd">
 <td>16</td>
 <td>MOB_NOBASH</td>
 <td>Unbashable</td>
 <td>Immunity</td>
-<td>Can’t be bashed</td>
+<td>Can&#x2019;t be bashed</td>
 </tr>
 <tr class="even">
 <td>17</td>
 <td>MOB_NOBLIND</td>
 <td>Unblindable</td>
 <td>Immunity</td>
-<td>Can’t be blinded</td>
+<td>Can&#x2019;t be blinded</td>
 </tr>
 <tr class="odd">
 <td>18</td>
 <td>MOB_NOKILL</td>
 <td>Unkillable</td>
 <td>Immunity</td>
-<td>Can’t be attacked</td>
+<td>Can&#x2019;t be attacked</td>
 </tr>
 <tr class="even">
 <td>19</td>
@@ -1054,14 +1054,14 @@ No longer functional - Reserved for future use - Do not use</p>
 <td>MOB_NODEAF</td>
 <td>Immune-Deaf</td>
 <td>Immunity</td>
-<td>Can’t be deafened</td>
+<td>Can&#x2019;t be deafened</td>
 </tr>
 <tr class="even">
 <td>23</td>
 <td>MOB_NOFIGHT</td>
 <td>Does-Not-Fight</td>
 <td>Behavior</td>
-<td>Won’t fight</td>
+<td>Won&#x2019;t fight</td>
 </tr>
 <tr class="odd">
 <td>24</td>
@@ -1075,7 +1075,7 @@ No longer functional - Reserved for future use - Do not use</p>
 <td>MOB_NOGRAPPLE</td>
 <td>Ungrappleable</td>
 <td>Immunity</td>
-<td>Can’t be grappled</td>
+<td>Can&#x2019;t be grappled</td>
 </tr>
 <tr class="odd">
 <td>26</td>
@@ -1159,7 +1159,7 @@ No longer functional - Reserved for future use - Do not use</p>
 <td>MOB_NOSTEAL</td>
 <td>No-Steal</td>
 <td>Immunity</td>
-<td>Can’t be stolen from</td>
+<td>Can&#x2019;t be stolen from</td>
 </tr>
 <tr class="odd">
 <td>38</td>
@@ -1334,7 +1334,7 @@ No longer functional - Reserved for future use - Do not use</p>
 <td>MOB_NOCONFUSE</td>
 <td>No-Confuse</td>
 <td>Immunity</td>
-<td>Can’t be confused</td>
+<td>Can&#x2019;t be confused</td>
 </tr>
 <tr class="even">
 <td>63</td>
@@ -1579,7 +1579,7 @@ No longer functional - Reserved for future use - Do not use</p>
 <td>MOB_NOPARALYZE</td>
 <td>Immune-Paralysis</td>
 <td>Immunity</td>
-<td>Can’t be paralyzed</td>
+<td>Can&#x2019;t be paralyzed</td>
 </tr>
 <tr class="odd">
 <td>98</td>
@@ -1801,7 +1801,7 @@ No longer functional - Reserved for future use - Do not use</p>
 <li><strong>City Guard:</strong>
 <ul>
 <li>MOB_SENTINEL + MOB_GUARD + MOB_MEMORY</li>
-<li>Protects citizens, doesn’t wander, remembers criminals</li>
+<li>Protects citizens, doesn&#x2019;t wander, remembers criminals</li>
 </ul></li>
 <li><strong>Aggressive Monster:</strong>
 <ul>
@@ -1827,7 +1827,7 @@ flags</li>
 <li><strong>Ambient NPC:</strong>
 <ul>
 <li>MOB_SENTINEL + MOB_NOKILL + MOB_NOFIGHT</li>
-<li>Decorative NPC that can’t fight and can’t be attacked</li>
+<li>Decorative NPC that can&#x2019;t fight and can&#x2019;t be attacked</li>
 </ul></li>
 </ol>
 <p><strong>Flag Conflicts:</strong> - MOB_AGGRESSIVE conflicts with
@@ -1879,6 +1879,6 @@ summoned</li>
         </div>
     </div>
 
-    <a href="#top" class="back-to-top" title="Back to top">↑</a>
+    <a href="#top" class="back-to-top" title="Back to top">&#x2191;</a>
 </body>
 </html>

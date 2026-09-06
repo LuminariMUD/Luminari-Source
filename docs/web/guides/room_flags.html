@@ -178,7 +178,7 @@ reference for room behavior flags</p>
     </div>
 
     <div class="breadcrumb">
-        <a href="../index.html">🏠 Home</a> /
+        <a href="../index.html">&#x1F3E0; Home</a> /
         <a href="../index.html#builder-guides">Builder Guides</a> /
         <span style="color: #666;">Room Flags Reference</span>
     </div>
@@ -406,7 +406,7 @@ Bardic performance prevention (<code>can_perform()</code>) -
 <h3 id="room_indoors-index-3">ROOM_INDOORS (Index: 3)</h3>
 <p><strong>Effect:</strong> Marks room as indoors for various game
 mechanics. - Affects weather exposure - Influences light calculations
-(indoor rooms don’t go dark at night) - Affects outdoor-only abilities
+(indoor rooms don&#x2019;t go dark at night) - Affects outdoor-only abilities
 and effects - Used for buildings, caves, and sheltered areas</p>
 <p><strong>Code References:</strong> - <code>src/utils.c</code> -
 Weather and outdoor checks (<code>is_room_outdoors()</code>,
@@ -437,18 +437,18 @@ Weather-message filtering (<code>sect_no_weather()</code>)</p>
 <p><strong>Effect:</strong> Doubles the net PSP gained during each
 non-combat regeneration tick. - Applies after the normal PSP, feat,
 position, and psionic-level bonuses - Caps the resulting PSP at the
-character’s maximum - Used by converted Realms of Luminari
+character&#x2019;s maximum - Used by converted Realms of Luminari
 <code>PSPREGEN</code> rooms</p>
 <p><strong>Code References:</strong> - <code>src/limits.c</code> - PSP
 tick acceleration (<code>regen_psp()</code>)</p>
 <h3 id="room_rol_home_reset-index-46">ROOM_ROL_HOME_RESET (Index:
 46)</h3>
-<p><strong>Effect:</strong> Updates an NPC’s remembered home room after
+<p><strong>Effect:</strong> Updates an NPC&#x2019;s remembered home room after
 it successfully walks out of the marked room. - Preserves converted RoL
-<code>home_reset</code> behavior without occupying the room’s
+<code>home_reset</code> behavior without occupying the room&#x2019;s
 special-procedure slot - Applies only to NPCs and only after successful
 movement - Failed or trigger-rejected movement does not retarget the
-NPC’s home</p>
+NPC&#x2019;s home</p>
 <p><strong>Code References:</strong> -
 <code>src/movement/movement.c</code> - Successful-movement integration
 (<code>do_simple_move()</code>) -
@@ -457,7 +457,7 @@ NPC’s home</p>
 <h3 id="room_rol_astral-index-47">ROOM_ROL_ASTRAL (Index: 47)</h3>
 <p><strong>Effect:</strong> Persists that a converted RoL room used the
 source Astral Plane sector. - Preserves room-level Astral identity after
-the source sector maps to the target’s generic Planes sector - Lets
+the source sector maps to the target&#x2019;s generic Planes sector - Lets
 Astral-sensitive converted procedures distinguish mixed-sector source
 zones exactly - Is set automatically by the RoL converter; builders
 should not set it outside imported RoL content</p>
@@ -523,7 +523,7 @@ vision checks (<code>ultra_blind()</code>,
 <h3 id="room_notrack-index-6">ROOM_NOTRACK (Index: 6)</h3>
 <p><strong>Effect:</strong> Prevents tracking abilities from working
 through this room. - Blocks track skill usage - Breaks pathfinding
-algorithms - NPCs won’t track players through these rooms - Used for
+algorithms - NPCs won&#x2019;t track players through these rooms - Used for
 anti-tracking zones and rivers</p>
 <p><strong>Code References:</strong> -
 <code>src/movement/movement_tracks.c</code> - Track skill blocking
@@ -1167,6 +1167,6 @@ manually set by builders</li>
         </div>
     </div>
 
-    <a href="#top" class="back-to-top" title="Back to top">↑</a>
+    <a href="#top" class="back-to-top" title="Back to top">&#x2191;</a>
 </body>
 </html>

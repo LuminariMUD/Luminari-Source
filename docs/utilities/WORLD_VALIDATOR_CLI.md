@@ -382,6 +382,53 @@ Both commands verify the manifests they consume. Phase 6 accounts for direct
 bindings, dynamic registrations, implicit race bindings, handlers, and every
 active `ACT_SPEC` record. Its accepted bundle has no pending binding.
 
+## RoL object-format conversion contract
+
+The source loader and native object loader have different grammars and enum
+namespaces. `rol_source.py` parses source records; `rol_transform.py` emits the
+native representation. The [native serialization reference](../world_game-data/OEDIT_GUIDE.md#native-object-file-serialization)
+describes the target. Keep conversions explicit in the policy and diagnostics.
+
+- Source object text uses tilde strings and RoL `&` color syntax. Source flags
+  are decimal words, with type/extra/wear and optional anti flags. Source values
+  have eight fields; target records have sixteen. Economy is weight/cost/
+  durability, not the target weight/cost/rent/level/timer line. Source whitespace
+  can cross line boundaries, so do not infer field boundaries from presentation.
+- Optional source affect words encode one-based bits 1..64. The source loader
+  clears AFF_HIDE. Type, flag, apply and spell IDs require semantic maps; raw
+  integer passthrough across these namespaces is unsafe.
+- Source extensions are extra descriptions, up to two applies, then at most one
+  six-integer `T` record. Source `T` is not a native DG attachment. Content after
+  that source record can be ignored by the source loader and is diagnosed as
+  `ROLOBJ004`; missing action-description recovery uses `ROLOBJ005`.
+- Source ability modifiers are not a reason for a blanket 4.5 multiplier in the
+  D20 target. Preserve the established direct mapping unless a named conversion
+  policy requires otherwise. Source drink-container weight uses a /4 conversion.
+- Source armor value 0 has positive protective AC, while its AC apply uses a
+  different sign convention. Other armor values describe warmth/prestige/proc,
+  not a target armor-family index. Preserve protection while making the target
+  family/slot decision explicitly; AC magnitude alone cannot identify armor.
+- Weapon profiles distinguish melee, launchers, thrown weapons, ammunition and
+  quivers. Javelin names alone do not establish throwing intent; thrown darts and
+  blowgun ammunition are distinct. Use the classifier audit and reviewed
+  overrides, not renamed enum numbers or ad hoc emitted-file edits.
+- Source ship loading forces light-related behavior beyond file flags. Its boat
+  mapping, exceptional colors, object-level policy and structured extension
+  losses require explicit review before claiming complete object equivalence.
+
+Track armor inference in [#113](https://github.com/LuminariMUD/Luminari-Source/issues/113), other field policies in
+[#114](https://github.com/LuminariMUD/Luminari-Source/issues/114), and weapon release review in [#115](https://github.com/LuminariMUD/Luminari-Source/issues/115).
+Audit counts describe a particular source package; regenerate them for each
+reviewed conversion. Preserve converter source manifests and evidence hashes
+when changing output-affecting code.
+
+The policy's `class_map` converts world/mobile class statistics, not player
+archetype progression. RoL's single-class level-50 kits cannot be equated with
+Luminari's multiclass level-30 classes solely by name. Current converted totem
+support preserves 21 identities using Cleric level 21/Wisdom; it is not a native
+Shaman progression. Player-kit and spell-assignment decisions are tracked in
+[#117](https://github.com/LuminariMUD/Luminari-Source/issues/117).
+
 ## RoL Mobile Conversion Contract
 
 RoL mobile combat rows are not copied directly because the source and target use

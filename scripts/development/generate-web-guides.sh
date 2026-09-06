@@ -50,6 +50,7 @@ for entry in "${GUIDES[@]}"; do
   tmp="$(mktemp)"
   pandoc "$source" \
     -f markdown -t html \
+    --ascii \
     -o "$tmp" \
     --template="$TEMPLATE" \
     --metadata title="$title" \

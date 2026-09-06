@@ -1,6 +1,6 @@
 # LuminariMUD event systems
 
-Updated: 2026-09-05, native-only runtime and door readiness.
+Updated: 2026-09-06, timed casting and tactical readiness contracts.
 
 The game has one process-owned timing wheel. The legacy DG queue, scheduling
 facade, heartbeat fallback, rollback build switches, and old save writer were
@@ -54,7 +54,7 @@ Existing semantic owners include:
 | `vessel.rol.agenda` | `vessels/vessels_rol.c` |
 | `ai.response.delivery`, `ai.request.retry` | `ai_events.c` |
 | `service.persistence_batch` and coarse world services | `comm.c` |
-| `action.ready.execute` | `ready_action.c` |
+| `action.ready.execute`, `action.ready.expire` | `ready_action.c` |
 
 Autonomous work is admitted on concrete state changes and retires when complete.
 Some service-owned feature loops remain; see the explicit inventory below. A
@@ -119,7 +119,7 @@ inside a callback is safe; new subscriptions are not admitted during synchronous
 publication. Nested causality is bounded. Never retain a borrowed fact payload.
 
 Movement, damage, death, combat changes, object-room changes, activities, world
-phenomena, and door changes have distinct contracts. The gameplay audit records
+phenomena, and door changes have distinct contracts. The mechanism inventory records
 remaining coverage gaps; registration alone is not proof of a complete publisher.
 
 ## Door mutation boundary
@@ -147,40 +147,97 @@ A new exit never inherits the old process-local identity. Observers cannot use
 room/direction alone to treat a replacement exit as the original watched door.
 Containers sharing old door-command macros do not publish room-door facts.
 
-## Readied commands
+## Casting activities
+
+Timed PC and NPC casts use `PRIMARY_ACTIVITY_CASTING` and one
+`activity.primary.step` deadline. `activity` inspects the cast; `abort` or
+`activity cancel` cancels it. Casting cannot pause. Initial PC/NPC delays remain
+one/two seconds, with subsequent ten-pulse steps and existing acceleration rules.
+Combat entry does not change that timing or charge a new action per step.
+
+The initial concentration check remains. Actual positive `CharacterDamaged`
+facts request another check using the spell difficulty and existing modifiers,
+plus 10 and the committed damage amount (saturating at INT_MAX). Progress alone
+and zero damage do not reroll concentration. A successful damage check does not
+restart or delay casting. Alchemist/shadowdancer exemptions and the initial
+rather than repeated deafness check remain.
+
+`ActivityTransitioned` is routed on the actor's SUBJECT topic and includes
+`activity_id` and `end_reason`. Cancellation detaches the activity and cancels
+its timer before clearing casting fields. Completion detaches before resolving
+magic, so effects caused by the completed spell cannot interrupt that old cast.
+Character/object target lifetimes use generation-safe handles and extraction
+notifications before data is freed. Re-resolve identities after observers run.
+
+Prepared spells, PSP, NPC slots and action costs retain their authoritative
+consumption sites; cancellation does not refund spent resources. Admission
+rejects an occupied primary activity before spending another cast's resources.
+Instant spells, commanded pet/eidolon casts through `handle_npc_cast`, NPC
+`manifest_power`, items, innate abilities and direct `call_magic` resolution
+remain synchronous. They have no timed activity or interruption interval.
+`eRETIRED_CASTING` reserves the old numeric ID without a handler or timer type.
+
+`CastingStarted` publishes only after a timed casting activity is installed and
+scheduled and still matches its ID after lifecycle observers. It carries caster,
+target, source room, spell and class metadata; this does not grant player spell
+identification. These committed facts are not counterspell decision windows.
+
+## Readied actions
 
 ```text
-ready <command> on entry [target]
-ready <command> on door open <direction>
+ready attack <target> on entry [arrival-name]
+ready attack <target> on door open <direction>
+ready attack <caster> on casting
+ready <noncombat-command> on entry [arrival-name]
+ready <noncombat-command> on door open <direction>
 ready
 ready cancel
 ```
 
-Entry readiness filters arrivals in the owner's current room. The optional
-name filters the arrival only; command targeting remains explicit.
+`attack`, `hit` and `kill` select one normal readied strike. Arming spends a
+standard action; execution does not spend another, and cancellation/expiry does
+not refund it. The strike uses normal hit, damage, defenses and concentration,
+bypassing the special-attack queue and opening full-attack routines. Entry binds
+the target on matching arrival; casting and door targets bind when armed.
 
-Door readiness requires a visible, closed room door with a valid destination.
-It listens only to that room/direction's gameplay closed-to-open transition.
-Unlock-only, another door, no-op writes, reset, and editor changes cannot trigger
-it. It does not identify or automatically target the person opening the door.
+Noncombat commands are limited to say, emote, look, rest, stand, sit, open and
+close, with normal interpreter admission and costs. Arbitrary commands and
+aliases cannot bypass combat action accounting. Entry's optional name filters
+the arrival; it does not rewrite the prepared command's target.
 
-A match queues one `action.ready.execute` callback one tick later. Multiple facts
-cannot queue additional commands while it is pending. Execution revalidates the
-owner, room, exit incarnation/destination, visibility, and open state, then uses
-the normal interpreter and action costs. Closing/replacing the door or moving
-away cancels pending execution, even if the door is reopened before the callback.
-This is deferred command preparation, not a preemptive tabletop interrupt.
+Door readiness requires a visible closed room door and valid destination. Only
+that exit incarnation's gameplay closed-to-open transition qualifies. Unlocks,
+no-ops, reset/edit changes and other doors do not trigger it. Closing/replacing
+the exit or moving away cancels pending execution, even if it reopens later.
 
-Movement, death, extraction, logout, explicit cancel, re-arming, copyover,
-shutdown, and admission failure clean up transient state. Arming alone adds
-subscriptions but no periodic timer or population scan.
+A match queues one native `action.ready.execute` callback one pulse later.
+Execution revalidates owner/target lifetime, room, reach, visibility, position,
+incapacity, activity, weapon eligibility and relevant door state. The normal hit
+path retains peaceful-room and PvP checks. Casting reactions additionally match
+the exact still-live casting activity ID; a replacement cast cannot inherit one.
+Damage can interrupt through concentration but does not automatically cancel.
+
+The one-pulse reaction precedes the initial casting deadline of at least one
+second, even when both are overdue: deadlines sort before insertion sequence.
+This prevents timed magic from completing first solely because dispatch is late.
+Full counterspelling, instant-cast interruption and ally-attacked triggers remain
+separate design work.
+
+Readied attacks expire before action recovery at the owner's next semantic turn.
+For attacks outside semantic combat, `action.ready.expire` imposes a six-second deadline;
+entering combat cancels it and leaving restores one. An owner has at most one
+execution and one outside-combat expiry deadline; armed actors are not polled.
+Cancellation, movement, death, extraction, logout, re-arming, copyover, shutdown
+and admission failure clean up transient subscriptions and deadlines. Entry
+readiness subscribes to departures when armed because bus dispatch forbids new
+subscriptions; a match binds a handle without adding subscriptions in dispatch.
 
 ## Diagnostics and regression checks
 
 Immortals use `eventdebug` for native types, live owners, remaining times, pending
 work, and per-type profiles. Entity views support player/mobile/object/room
 filters; script views select `dg.` types. Payloads are redacted. Use
-`eventdebug subscriptions` for `ready.entry`, `ready.door-open`, and owner-lifecycle
+`eventdebug subscriptions` for `ready.entry`, `ready.door-open`, casting, and owner-lifecycle
 listeners. A pending ready execution is an ordinary native event.
 
 Run the native architecture, retired API, PubSub retirement, and demand-driven
@@ -189,8 +246,7 @@ utility-tree fixture; source ownership checks cover both `src/` and `util/`.
 Production-linked CuTests exercise door state, real DG commands, readiness,
 owner cancellation, and no-op/paired mutation behavior.
 
-See the [gameplay audit](../ongoing-projects/EVENT_GAMEPLAY_OPPORTUNITIES_AND_AUDIT_2026_09_05.md),
-[retained mechanism inventory](EVENT_MECHANISM_INVENTORY.md), and
+See the [retained mechanism inventory](EVENT_MECHANISM_INVENTORY.md), and
 [ADR 0002](../adr/0002-event-driven-core-boundaries.md).
 
 Readiness deadline diagnostics: `eventdebug ready [reset]` reports bounded

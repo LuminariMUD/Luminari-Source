@@ -1,9 +1,17 @@
 # Event-Driven Core Release Gate
 
-This runbook gathers the external evidence required before removing the legacy
-event queue, compatibility heartbeat, `select()` driver, rollback branches,
-legacy persistence writer, or deprecated PubSub schema. It does not authorize
-those removals.
+This runbook retains the production evidence, backup and restore requirements
+for a proposed retirement of archival PubSub schema/data. No database deletion
+has been authorized by the native-event migration.
+
+The legacy queue, heartbeat, rollback branches and old save writer were
+physically removed with maintainer authorization; see the
+[full-world acceptance report](../testing/EVENT_CORE_FULL_WORLD_ACCEPTANCE_2026_09_05.md).
+Both libevent and select remain supported I/O drivers for the same native
+scheduler. Old event-save readers remain migration inputs. Those intentional
+compatibility surfaces are outside the archival SQL proposal below.
+Remaining SQL retention work is tracked in
+[issue #112](https://github.com/LuminariMUD/Luminari-Source/issues/112).
 
 ## 1. Gate ownership
 
@@ -29,22 +37,23 @@ with the record.
 
 ## 2. Required production modes
 
-The observed release must run the scheduler/libevent defaults. Record the
+The observed release must run the native scheduler. Record the selected
+supported I/O driver (libevent or select), the
 effective environment and startup log without recording secrets. The startup
 evidence must include:
 
 ```text
-Event backend initialized: scheduler.
+Event runtime initialized: scheduler.
 Runtime services: scheduled by named cadence.
 I/O driver initialized: libevent (...).
 Active-world mobile scheduling: demand driven (...).
 ```
 
-Owner subsystems must report scheduled or managed modes rather than
-`legacy heartbeat`. A warning that restores the legacy heartbeat, an explicit legacy
-selector, or an operator rollback ends the candidate period. Record the event,
-reason, and corrective release; a new stable period starts only after the
-maintainer accepts the replacement deployment.
+Owner subsystems must report scheduled or managed modes. Native initialization
+failure aborts startup; there is no supported legacy-heartbeat selector or
+fallback. A release replacement during the observation period requires a new
+source/deployment record and maintainer acceptance of the replacement evidence.
+Do not assume an older executable can read newly written saves.
 
 ## 3. Health evidence
 
@@ -88,9 +97,10 @@ Also record successful checks for:
 - graceful shutdown, restart, and signal handling.
 
 Keep timestamped server, event-debug, health, copyover, and process-resource
-logs for the whole period. Record whether any fallback selector was requested,
-whether any automatic fallback occurred, and whether operators believed a
-rollback was necessary even if they did not perform one.
+logs for the whole period. Record deployment interruptions, recovery actions and
+any need to replace the release. Deadline-lateness and long-term RSS acceptance
+remain separate from functional success; see
+[issue #111](https://github.com/LuminariMUD/Luminari-Source/issues/111).
 
 ## 4. PubSub inventory and backup
 
@@ -197,29 +207,29 @@ After the release period and restore rehearsal, submit a separately reviewed
 proposal containing:
 
 - the exact release and production evidence above;
-- an explicit statement that no rollback occurred or remained necessary;
+- an explicit statement that no active reader or recovery procedure needs the
+  proposed archival SQL objects;
 - the complete PubSub object and row inventory;
 - the approved retention decision;
 - a foreign-key-safe object removal order;
 - the tested restore procedure and rehearsal evidence;
-- durable-event file inventory or conversion evidence before removing legacy
-  read support; and
 - explicit maintainer and production-database approval.
 
-Only after every item is approved may the post-release sequence in
-`EVENT_DRIVEN_CORE_REFACTOR_PHASE11_REMOVAL_INVENTORY.md` begin. Each deletion
-slice still requires the complete local, CI, database, copied-world, live-MUD,
-copyover, sanitizer, Valgrind, and soak acceptance gates.
+Only after the concrete SQL object list, retention decision and restore evidence
+are approved may that database deletion proceed. Rehearse the exact proposed
+slice in isolation and verify boot, gameplay, persistence and copyover against
+the resulting schema. Runtime scheduler removal is already complete and is not
+waiting on this data-retention decision.
 
 ## 7. Sign-off
 
 | Decision | Reviewer | UTC timestamp | Evidence link |
 |----------|----------|---------------|---------------|
 | Stable release completed |  |  |  |
-| No rollback dependency |  |  |  |
+| No archival SQL reader/recovery dependency |  |  |  |
 | PubSub backup verified |  |  |  |
 | PubSub restore rehearsed |  |  |  |
 | Retention decision approved |  |  |  |
-| Physical removal approved |  |  |  |
+| Exact SQL object deletion approved |  |  |  |
 
 Any blank row leaves the irreversible gate closed.

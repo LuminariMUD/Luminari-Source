@@ -211,16 +211,15 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[CONVENTIONS.md](CONVENTIONS.md)** - Canonical engineering, build, test, documentation, and operational conventions
 - **[CHANGELOG.md](CHANGELOG.md)** - Recent changes and updates
 
-### Project Documents
-- **[Ongoing projects](ongoing-projects/README_ongoing-projects.md)** -
-  Active work and retained handoffs: production autosave and memory follow-up, artifact placement,
-  AI conversation history, SKORE phases 3-4, event-system merge, and in-game backlogs
-- **[artifact-placement-plan.md](ongoing-projects/artifact-placement-plan.md)** -
-  World-building brief for placing artifacts in player-facing content, the
-  artifact system's one remaining open item
-- **[AI_TODO_IDEAS.md](ongoing-projects/AI_TODO_IDEAS.md)** - AI conversation history implementation plan
-- **[DO_SKORE_PROJECT.md](ongoing-projects/DO_SKORE_PROJECT.md)** - Skore system phases 3-4
-- **[IDEA_LIST.md](ongoing-projects/IDEA_LIST.md)** - Player and staff feature idea backlog
+### System References and Follow-up Work
+
+- **[Event systems](systems/MUD_EVENTS.md)** - Native ownership, casting and readiness contracts
+- **[Event mechanism inventory](systems/EVENT_MECHANISM_INVENTORY.md)** - Retained loops and publication boundaries
+- **[Object serialization](world_game-data/OEDIT_GUIDE.md#native-object-file-serialization)** - Native object-file grammar
+- **[World converter](utilities/WORLD_VALIDATOR_CLI.md#rol-object-format-conversion-contract)** - Source/target mapping boundaries
+- **[Artifact system](systems/ARTIFACT_SYSTEM.md)** - Acquisition constraints and [placement follow-up](https://github.com/LuminariMUD/Luminari-Source/issues/124)
+- **[SKORE system](systems/SKORE_SYSTEM.md)** - Current display controls and [remaining features](https://github.com/LuminariMUD/Luminari-Source/issues/126)
+- **[GitHub issues](https://github.com/LuminariMUD/Luminari-Source/issues)** - Active implementation work and reviewed player proposals
 
 ### Historical Records
 - **[Previous Changelogs](previous_changelogs/)** - Historical development records

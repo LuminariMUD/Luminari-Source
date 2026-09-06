@@ -6,7 +6,7 @@ Enhanced character display system with visual formatting, color coding, and cust
 ## SKORE Command
 **Usage:** `skore [section]`
 - Base command shows full character information
-- Section views: `combat`, `magic`, `stats`
+- Detailed section views: `skore combat`, `skore magic`, `skore stats`
 
 **Features:**
 - Progress bars with health-based colors (green>yellow>orange>red)
@@ -41,13 +41,18 @@ The SKORE system includes six color themes to suit different preferences and acc
 - `colors <on|off>` - Enable/disable colors
 - `borders <on|off>` - Class-themed borders
 - `symbols <on|off>` - Race symbols
+- `template <default|combat|roleplay|explorer|caster>` - Select a layout
+- `order <section> <position>` - Set custom section order (positions 1-8)
 - `reset` - Restore defaults
 
 Preferences auto-save.
 
 ## Context Detection
 
-The SKORE system automatically detects your current activity context and reorders sections accordingly:
+A custom section order takes precedence over a selected non-default template.
+With default order and template, SKORE detects activity context and chooses the
+section order. Invalid saved orders with missing or duplicate sections reset to
+the default. Context priorities are:
 
 - **Combat Context**: When fighting, combat stats appear first, followed by vitals and abilities
 - **Shopping Context**: When in shops, wealth and equipment sections are prioritized
@@ -93,7 +98,7 @@ The magic section now includes active spell effects with visual duration indicat
 - Counter: Test equipped item count accuracy
 
 ### 5. Progress Bars
-- Health bars: Test color transitions (green→yellow→orange→red)
+- Health bars: Test color transitions (green->yellow->orange->red)
 - Experience bar: Verify XP progress display
 
 ### 6. Error Handling
@@ -184,3 +189,7 @@ scoreconfig reset
 - Settings persist
 - Client compatibility
 - Help entries work
+
+Remaining group/social panels, effect grouping and linear screen-reader output
+are tracked in [#126](https://github.com/LuminariMUD/Luminari-Source/issues/126). Disabling color alone does not remove
+ASCII borders or punctuation-dependent information.

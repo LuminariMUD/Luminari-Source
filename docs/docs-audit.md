@@ -89,11 +89,13 @@ intentionally not rewritten.
 - `docs/admin/README_admin.md`
 - `docs/development/README_development.md`
 - `docs/legal/README_legal.md`
-- `docs/ongoing-projects/README_ongoing-projects.md`
 - `docs/utilities/README_utilities.md`
 - `scripts/README_scripts.md`
 - `unittests/README_unittests.md`
 - `util/powershell/README_powershell.md`
+
+The temporary project overview renamed during this audit has since been retired;
+enduring facts belong in reference docs and follow-up work in GitHub issues.
 
 The archived `EXAMPLE/` trees were excluded from active documentation naming because they preserve
 example project snapshots rather than current project entry points.

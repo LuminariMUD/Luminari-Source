@@ -94,7 +94,7 @@ staff validation, and explicitly inventoried service-owned work.
 
 ## References
 
-- [Event-Driven Core Refactor Specification](../ongoing-projects/EVENT_DRIVEN_CORE_REFACTOR_SPEC.md)
+- [Native event-system contracts](../systems/MUD_EVENTS.md)
 - [MUD Event Systems](../systems/MUD_EVENTS.md)
 - [Core Server Architecture](../systems/CORE_SERVER_ARCHITECTURE.md)
 

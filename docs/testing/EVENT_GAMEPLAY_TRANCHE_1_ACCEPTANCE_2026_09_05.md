@@ -121,7 +121,7 @@ these results do not claim unconditional production readiness.
 
 ## Follow-up
 
-Keep the [audit](../ongoing-projects/EVENT_GAMEPLAY_OPPORTUNITIES_AND_AUDIT_2026_09_05.md)
+Keep the [mechanism inventory](../systems/EVENT_MECHANISM_INVENTORY.md)
 open for crafting/self-buffing/transit/supply/mover/staff deadlines, atomic
 inventory facts, richer movement causes, activity routing, casting decision
 windows, perception and full tabletop Ready semantics. This tranche supplies a

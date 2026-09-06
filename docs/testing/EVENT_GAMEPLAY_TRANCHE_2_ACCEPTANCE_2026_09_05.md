@@ -3,7 +3,7 @@
 Branch: `refactor/fight-combat-safety`
 
 Scope and migration rationale:
-`docs/ongoing-projects/EVENT_GAMEPLAY_TRANCHE_2_CASTING.md`.
+[casting activity contracts](../systems/MUD_EVENTS.md#casting-activities).
 
 ## Results
 

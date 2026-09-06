@@ -178,7 +178,7 @@ reference for the object editor</p>
     </div>
 
     <div class="breadcrumb">
-        <a href="../index.html">🏠 Home</a> /
+        <a href="../index.html">&#x1F3E0; Home</a> /
         <a href="../index.html#builder-guides">Builder Guides</a> /
         <span style="color: #666;">OEDIT Guide for Builders</span>
     </div>
@@ -202,6 +202,126 @@ blank line finishes multiline input).</li>
 new values after you <code>Q</code>+<code>Y</code> or
 <code>redit save</code> the zone.</li>
 </ul>
+<h2 id="native-object-file-serialization">Native object-file
+serialization</h2>
+<p>The authoritative reader is <code>parse_object()</code> in <a
+href="https://github.com/LuminariMUD/Luminari-Source/blob/master/src/db.c">db.c</a>;
+the writer is <code>save_objects()</code> in <a
+href="https://github.com/LuminariMUD/Luminari-Source/blob/master/src/olc/genobj.c">genobj.c</a>.
+Menu letters and serialized extension letters are different interfaces.
+Compare both reader and writer before generating files by hand.</p>
+<p>A record starts with <code>#&lt;vnum&gt;</code>, then four
+tilde-terminated strings: keywords, short description, room description
+and action description. Native file color codes use <code>@</code>;
+<code>@@</code> represents a literal at sign. The numeric core
+follows:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Line</th>
+<th>Current writer and accepted compatibility forms</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Type and flags</td>
+<td>Type, four extra-flag words, four wear-flag words, four
+permanent-affect words, and optionally four second-affect words (13 or
+17 fields). Legacy short forms remain readable.</td>
+</tr>
+<tr class="even">
+<td>Values</td>
+<td>Sixteen integers, interpreted by item type; legacy four-value
+records are zero-extended.</td>
+</tr>
+<tr class="odd">
+<td>Economy</td>
+<td>Weight, cost, rent, minimum level, timer. Older three/four-field
+forms are accepted; loaded minimum level is clamped to 1..30.</td>
+</tr>
+</tbody>
+</table>
+<p>Optional extensions follow until the next record or file terminator.
+Unless noted, the extension letter occupies a line and its data follows
+it.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Tag</th>
+<th>Payload</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>A</code></td>
+<td>Apply location, modifier, optional bonus type and specific selector,
+in that order. Older two/three-field forms default missing data. At most
+<code>MAX_OBJ_AFFECT</code> entries (currently 6).</td>
+</tr>
+<tr class="even">
+<td><code>B</code></td>
+<td>Spellbook spell number and page count; separate storage from
+applies.</td>
+</tr>
+<tr class="odd">
+<td><code>C</code></td>
+<td>Special ability, level, activation method, four values, command
+word.</td>
+</tr>
+<tr class="even">
+<td><code>E</code></td>
+<td>Tilde-terminated keywords and extra description.</td>
+</tr>
+<tr class="odd">
+<td><code>G</code>, <code>H</code>, <code>I</code></td>
+<td>Proficiency, material and size respectively; undefined size loads as
+medium.</td>
+</tr>
+<tr class="even">
+<td><code>J</code></td>
+<td>Mobile recipient VNUM.</td>
+</tr>
+<tr class="odd">
+<td><code>K</code></td>
+<td>Activated spell level, spell number, current uses, maximum uses,
+cooldown.</td>
+</tr>
+<tr class="even">
+<td><code>R</code></td>
+<td>Restring identifier on the following line.</td>
+</tr>
+<tr class="odd">
+<td><code>S</code></td>
+<td>Weapon spell number, level, percentage and combat flag; at most
+<code>MAX_WEAPON_SPELLS</code> (currently 3).</td>
+</tr>
+<tr class="even">
+<td><code>T</code></td>
+<td>DG attachment in the script serializer&#x2019;s inline syntax.</td>
+</tr>
+<tr class="odd">
+<td><code>Z</code></td>
+<td>Persisted special-procedure name on the following line.</td>
+</tr>
+<tr class="even">
+<td><code>P</code></td>
+<td>Historical compatibility marker; ignored by the reader.</td>
+</tr>
+</tbody>
+</table>
+<p>A source game&#x2019;s similarly named type, flag, spell or apply number
+does not imply native equivalence. See the <a
+href="https://github.com/LuminariMUD/Luminari-Source/blob/master/docs/utilities/WORLD_VALIDATOR_CLI.md#rol-object-format-conversion-contract">RoL
+conversion contract</a> for its distinct grammar and semantic mapping
+boundaries.</p>
 <h2 id="main-menu-snapshot">Main Menu Snapshot</h2>
 <pre><code>-- Item number : [####]
 1) Keywords               H) Material           T) Spellbook menu
@@ -263,9 +383,9 @@ feeds suggested enhancement output.</li>
 <code>affected_by</code> flags (e.g., <code>SANCTUARY</code>). Use these
 sparingly; they behave like always-on spell affects.</li>
 <li><code>D) Applies menu</code> manages up to
-<code>MAX_OBJ_AFFECT</code> (5) slot entries.
+<code>MAX_OBJ_AFFECT</code> (6) slot entries.
 <ul>
-<li>Choose a slot (1-5) to edit.</li>
+<li>Choose a slot (1-6) to edit.</li>
 <li>Select the apply from the list (<code>STR</code>, <code>DEX</code>,
 <code>AC</code>, <code>FEAT</code>, etc.). Applies that require a
 specific school/skill prompt for a follow-up selection.</li>
@@ -291,7 +411,7 @@ The sequence of prompts varies by item type; set the type first so the
 correct path is taken.</p>
 <p>The full slot-by-slot layout for every type lives in the <a
 href="#object-value-reference">Object Value Reference</a> below. Note
-that the editor’s <code>ValueN</code> labels are one higher than the
+that the editor&#x2019;s <code>ValueN</code> labels are one higher than the
 file-format <code>value[N-1]</code> slot they write. The notes here
 cover the cases that behave unusually:</p>
 <h3 id="weapons-item_weapon">Weapons (<code>ITEM_WEAPON</code>)</h3>
@@ -428,7 +548,7 @@ empty slot.</li>
 <li>Selecting a slot opens the spell-picker. Enter <code>0</code> to
 clear the slot.</li>
 <li>Pages are assigned automatically to at least 1 and default to half
-of the spell’s minimum wizard level (integer division). Builders cannot
+of the spell&#x2019;s minimum wizard level (integer division). Builders cannot
 override pages directly in OEDIT.</li>
 </ul>
 <h2 id="copying-deleting-and-saving">Copying, Deleting, and Saving</h2>
@@ -613,7 +733,7 @@ from magical concealment effects</td>
 <td>ITEM_NODROP</td>
 <td>Cursed item that cannot be dropped, transferred, or removed from
 inventory except by staff with NOHASSLE mode; confers flag to containers
-it’s placed in</td>
+it&#x2019;s placed in</td>
 </tr>
 <tr class="odd">
 <td>16</td>
@@ -627,7 +747,7 @@ transactions at vendor shops</td>
 <td>Quest-Item</td>
 <td>ITEM_QUEST</td>
 <td>Marks item as quest item with special shop handling; costs quest
-points instead of gold when purchased, displays as “qp” in shop
+points instead of gold when purchased, displays as &#x201C;qp&#x201D; in shop
 listings</td>
 </tr>
 <tr class="odd">
@@ -684,7 +804,7 @@ prevention messages</td>
 <td>Anti-Good</td>
 <td>ITEM_ANTI_GOOD</td>
 <td>Prevents good-aligned characters from equipping; item fumbles to
-inventory with message “You try to use [item], but fumble it and let go”
+inventory with message &#x201C;You try to use [item], but fumble it and let go&#x201D;
 (immortals bypass)</td>
 </tr>
 <tr class="even">
@@ -692,7 +812,7 @@ inventory with message “You try to use [item], but fumble it and let go”
 <td>Anti-Evil</td>
 <td>ITEM_ANTI_EVIL</td>
 <td>Prevents evil-aligned characters from equipping; item fumbles to
-inventory with message “You try to use [item], but fumble it and let go”
+inventory with message &#x201C;You try to use [item], but fumble it and let go&#x201D;
 (immortals bypass)</td>
 </tr>
 <tr class="odd">
@@ -700,7 +820,7 @@ inventory with message “You try to use [item], but fumble it and let go”
 <td>Anti-Neutral</td>
 <td>ITEM_ANTI_NEUTRAL</td>
 <td>Prevents neutral-aligned characters from equipping; item fumbles to
-inventory with message “You try to use [item], but fumble it and let go”
+inventory with message &#x201C;You try to use [item], but fumble it and let go&#x201D;
 (immortals bypass)</td>
 </tr>
 <tr class="even">
@@ -708,7 +828,7 @@ inventory with message “You try to use [item], but fumble it and let go”
 <td>Anti-Lawful</td>
 <td>ITEM_ANTI_LAWFUL</td>
 <td>Prevents lawful-aligned characters from equipping; item fumbles to
-inventory with message “You try to use [item], but fumble it and let go”
+inventory with message &#x201C;You try to use [item], but fumble it and let go&#x201D;
 (immortals bypass)</td>
 </tr>
 <tr class="odd">
@@ -716,7 +836,7 @@ inventory with message “You try to use [item], but fumble it and let go”
 <td>Anti-Chaotic</td>
 <td>ITEM_ANTI_CHAOTIC</td>
 <td>Prevents chaotic-aligned characters from equipping; item fumbles to
-inventory with message “You try to use [item], but fumble it and let go”
+inventory with message &#x201C;You try to use [item], but fumble it and let go&#x201D;
 (immortals bypass)</td>
 </tr>
 </tbody>
@@ -922,155 +1042,155 @@ items.</p>
 <td>62</td>
 <td>Wizard-Required</td>
 <td>ITEM_REQ_WIZARD</td>
-<td>Character must have Wizard levels to equip; blocks with message “You
-must have levels as a wizard to use [item]”</td>
+<td>Character must have Wizard levels to equip; blocks with message &#x201C;You
+must have levels as a wizard to use [item]&#x201D;</td>
 </tr>
 <tr class="even">
 <td>63</td>
 <td>Cleric-Required</td>
 <td>ITEM_REQ_CLERIC</td>
-<td>Character must have Cleric levels to equip; blocks with message “You
-must have levels as a cleric to use [item]”</td>
+<td>Character must have Cleric levels to equip; blocks with message &#x201C;You
+must have levels as a cleric to use [item]&#x201D;</td>
 </tr>
 <tr class="odd">
 <td>64</td>
 <td>Rogue-Required</td>
 <td>ITEM_REQ_ROGUE</td>
-<td>Character must have Rogue levels to equip; blocks with message “You
-must have levels as a rogue to use [item]”</td>
+<td>Character must have Rogue levels to equip; blocks with message &#x201C;You
+must have levels as a rogue to use [item]&#x201D;</td>
 </tr>
 <tr class="even">
 <td>65</td>
 <td>Warrior-Required</td>
 <td>ITEM_REQ_WARRIOR</td>
 <td>Character must have Warrior levels to equip; blocks with message
-“You must have levels as a warrior to use [item]”</td>
+&#x201C;You must have levels as a warrior to use [item]&#x201D;</td>
 </tr>
 <tr class="odd">
 <td>66</td>
 <td>Monk-Required</td>
 <td>ITEM_REQ_MONK</td>
-<td>Character must have Monk levels to equip; blocks with message “You
-must have levels as a monk to use [item]”</td>
+<td>Character must have Monk levels to equip; blocks with message &#x201C;You
+must have levels as a monk to use [item]&#x201D;</td>
 </tr>
 <tr class="even">
 <td>67</td>
 <td>Druid-Required</td>
 <td>ITEM_REQ_DRUID</td>
-<td>Character must have Druid levels to equip; blocks with message “You
-must have levels as a druid to use [item]”</td>
+<td>Character must have Druid levels to equip; blocks with message &#x201C;You
+must have levels as a druid to use [item]&#x201D;</td>
 </tr>
 <tr class="odd">
 <td>68</td>
 <td>Berserker-Required</td>
 <td>ITEM_REQ_BERSERKER</td>
 <td>Character must have Berserker levels to equip; blocks with message
-“You must have levels as a berserker to use [item]”</td>
+&#x201C;You must have levels as a berserker to use [item]&#x201D;</td>
 </tr>
 <tr class="even">
 <td>69</td>
 <td>Sorcerer-Required</td>
 <td>ITEM_REQ_SORCERER</td>
 <td>Character must have Sorcerer levels to equip; blocks with message
-“You must have levels as a sorcerer to use [item]”</td>
+&#x201C;You must have levels as a sorcerer to use [item]&#x201D;</td>
 </tr>
 <tr class="odd">
 <td>70</td>
 <td>Paladin-Required</td>
 <td>ITEM_REQ_PALADIN</td>
 <td>Character must have Paladin levels to equip; blocks with message
-“You must have levels as a paladin to use [item]”</td>
+&#x201C;You must have levels as a paladin to use [item]&#x201D;</td>
 </tr>
 <tr class="even">
 <td>71</td>
 <td>Ranger-Required</td>
 <td>ITEM_REQ_RANGER</td>
-<td>Character must have Ranger levels to equip; blocks with message “You
-must have levels as a ranger to use [item]”</td>
+<td>Character must have Ranger levels to equip; blocks with message &#x201C;You
+must have levels as a ranger to use [item]&#x201D;</td>
 </tr>
 <tr class="odd">
 <td>72</td>
 <td>Bard-Required</td>
 <td>ITEM_REQ_BARD</td>
-<td>Character must have Bard levels to equip; blocks with message “You
-must have levels as a bard to use [item]”</td>
+<td>Character must have Bard levels to equip; blocks with message &#x201C;You
+must have levels as a bard to use [item]&#x201D;</td>
 </tr>
 <tr class="even">
 <td>73</td>
 <td>Weaponmaster-Required</td>
 <td>ITEM_REQ_WEAPONMASTER</td>
 <td>Character must have Weaponmaster levels to equip; blocks with
-message “You must have levels as a weaponmaster to use [item]”</td>
+message &#x201C;You must have levels as a weaponmaster to use [item]&#x201D;</td>
 </tr>
 <tr class="odd">
 <td>74</td>
 <td>Arcane-Archer-Required</td>
 <td>ITEM_REQ_ARCANE_ARCHER</td>
 <td>Character must have Arcane Archer levels to equip; blocks with
-message “You must have levels as an arcane archer to use [item]”</td>
+message &#x201C;You must have levels as an arcane archer to use [item]&#x201D;</td>
 </tr>
 <tr class="even">
 <td>75</td>
 <td>Stalwart-Defender-Required</td>
 <td>ITEM_REQ_STALWART_DEFENDER</td>
 <td>Character must have Stalwart Defender levels to equip; blocks with
-message “You must have levels as a stalwart defender to use [item]”</td>
+message &#x201C;You must have levels as a stalwart defender to use [item]&#x201D;</td>
 </tr>
 <tr class="odd">
 <td>76</td>
 <td>Shifter-Required</td>
 <td>ITEM_REQ_SHIFTER</td>
 <td>Character must have Shifter levels to equip; blocks with message
-“You must have levels as a shifter to use [item]”</td>
+&#x201C;You must have levels as a shifter to use [item]&#x201D;</td>
 </tr>
 <tr class="even">
 <td>77</td>
 <td>Duelist-Required</td>
 <td>ITEM_REQ_DUELIST</td>
 <td>Character must have Duelist levels to equip; blocks with message
-“You must have levels as a duelist to use [item]”</td>
+&#x201C;You must have levels as a duelist to use [item]&#x201D;</td>
 </tr>
 <tr class="odd">
 <td>78</td>
 <td>Mystic-Theurge-Required</td>
 <td>ITEM_REQ_MYSTIC_THEURGE</td>
 <td>Character must have Mystic Theurge levels to equip; blocks with
-message “You must have levels as a mystic theurge to use [item]”</td>
+message &#x201C;You must have levels as a mystic theurge to use [item]&#x201D;</td>
 </tr>
 <tr class="even">
 <td>79</td>
 <td>Alchemist-Required</td>
 <td>ITEM_REQ_ALCHEMIST</td>
 <td>Character must have Alchemist levels to equip; blocks with message
-“You must have levels as an alchemist to use [item]”</td>
+&#x201C;You must have levels as an alchemist to use [item]&#x201D;</td>
 </tr>
 <tr class="odd">
 <td>80</td>
 <td>Arcane-Shadow-Required</td>
 <td>ITEM_REQ_ARCANE_SHADOW</td>
 <td>Character must have Arcane Shadow levels to equip; blocks with
-message “You must have levels as an arcane shadow to use [item]”</td>
+message &#x201C;You must have levels as an arcane shadow to use [item]&#x201D;</td>
 </tr>
 <tr class="even">
 <td>81</td>
 <td>Sacred-Fist-Required</td>
 <td>ITEM_REQ_SACRED_FIST</td>
 <td>Character must have Sacred Fist levels to equip; blocks with message
-“You must have levels as a sacred fist to use [item]”</td>
+&#x201C;You must have levels as a sacred fist to use [item]&#x201D;</td>
 </tr>
 <tr class="odd">
 <td>82</td>
 <td>Eldritch-Knight-Required</td>
 <td>ITEM_REQ_ELDRITCH_KNIGHT</td>
 <td>Character must have Eldritch Knight levels to equip; blocks with
-message “You must have levels as an eldritch knight to use [item]”</td>
+message &#x201C;You must have levels as an eldritch knight to use [item]&#x201D;</td>
 </tr>
 <tr class="even">
 <td>96</td>
 <td>Warlock-Only</td>
 <td>ITEM_REQ_WARLOCK</td>
 <td>Character must have Warlock levels to equip; blocks with message
-“You must have levels as a warlock to use [item]”</td>
+&#x201C;You must have levels as a warlock to use [item]&#x201D;</td>
 </tr>
 </tbody>
 </table>
@@ -1273,14 +1393,14 @@ complete STR bonus for damage</td>
 <td>Light weapons only; substitutes Dexterity modifier for Strength in
 damage calculation (uses MAX of DEX or STR bonus); prevents 1.5x/3x STR
 multiplier penalties on two-handed or off-hand; damage bonus capped at
-weapon’s agile value or DEX bonus (whichever is lower)</td>
+weapon&#x2019;s agile value or DEX bonus (whichever is lower)</td>
 </tr>
 <tr class="odd">
 <td>55</td>
 <td>Corrosive</td>
 <td>ITEM_CORROSIVE</td>
 <td>Toggleable ability dealing 1d6 acid damage per strike on hit;
-generates “magical acid drips” visual effect; wielder must
+generates &#x201C;magical acid drips&#x201D; visual effect; wielder must
 activate/deactivate</td>
 </tr>
 <tr class="even">
@@ -1295,8 +1415,8 @@ failure causes (level/2 + 3)d6 holy damage; no effect on non-undead</td>
 <td>57</td>
 <td>Defending</td>
 <td>ITEM_DEFENDING</td>
-<td>Grants armor class bonus equal to weapon’s enhancement value divided
-by 2; multiple defending weapons stack; applies to character’s overall
+<td>Grants armor class bonus equal to weapon&#x2019;s enhancement value divided
+by 2; multiple defending weapons stack; applies to character&#x2019;s overall
 AC calculation</td>
 </tr>
 <tr class="even">
@@ -1306,7 +1426,7 @@ AC calculation</td>
 <td>Toggleable ability dealing necrotic/negative damage; on-hit: 3d6
 damage to target + 1d4 recoil damage to wielder; on-crit: 6d6 damage to
 target; damages both attacker and defender (self-harm penalty);
-generates “black smoke whirls” visual</td>
+generates &#x201C;black smoke whirls&#x201D; visual</td>
 </tr>
 <tr class="odd">
 <td>59</td>
@@ -2197,7 +2317,7 @@ deliberately reactivated and supplied with supported game content.</p>
 <code>ITEM_WEAR_TAIL</code> marks dedicated tail gear: the runtime
 rejects that object in every other slot, even if another wear bit is
 also set. Do not add the tail bit to ordinary rings.
-<code>ITEM_WEAR_FINGER</code> is the game’s ring classification, and
+<code>ITEM_WEAR_FINGER</code> is the game&#x2019;s ring classification, and
 every such ring can already be worn on either a finger or a Yuan-Ti
 tail. If imported data contains both finger and tail bits, the ring rule
 wins and the object remains finger-or-tail gear.</p>
@@ -2220,8 +2340,8 @@ another.</p>
 through <code>Value6</code>.</li>
 </ul>
 <p><code>ValueN</code> in the editor writes <code>value[N-1]</code>. The
-table below uses the file-format numbering. When a prompt says “Value5:
-Enhancement bonus”, that is <code>value[4]</code>.</p>
+table below uses the file-format numbering. When a prompt says &#x201C;Value5:
+Enhancement bonus&#x201D;, that is <code>value[4]</code>.</p>
 <h3 id="the-value-line-in-a-.obj-file">The value line in a
 <code>.obj</code> file</h3>
 <p>The second numeric line of an object record holds the values.
@@ -2486,7 +2606,7 @@ unbreakable)</td>
 </tr>
 <tr class="odd">
 <td>Wearable</td>
-<td>Special worn value (e.g. monk glove enhancement)</td>
+<td>Special worn value (e.g.&#xA0;monk glove enhancement)</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -2532,6 +2652,6 @@ the record was written with only four values.</li>
         </div>
     </div>
 
-    <a href="#top" class="back-to-top" title="Back to top">↑</a>
+    <a href="#top" class="back-to-top" title="Back to top">&#x2191;</a>
 </body>
 </html>

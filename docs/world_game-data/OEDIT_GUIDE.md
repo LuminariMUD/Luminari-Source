@@ -7,6 +7,45 @@
 - String entries use the standard line editor (`~` on a blank line finishes multiline input).
 - All edits target the prototype; mobile/program reloads pick up the new values after you `Q`+`Y` or `redit save` the zone.
 
+## Native object-file serialization
+
+The authoritative reader is `parse_object()` in [db.c](https://github.com/LuminariMUD/Luminari-Source/blob/master/src/db.c); the
+writer is `save_objects()` in [genobj.c](https://github.com/LuminariMUD/Luminari-Source/blob/master/src/olc/genobj.c). Menu letters
+and serialized extension letters are different interfaces. Compare both reader
+and writer before generating files by hand.
+
+A record starts with `#<vnum>`, then four tilde-terminated strings: keywords,
+short description, room description and action description. Native file color
+codes use `@`; `@@` represents a literal at sign. The numeric core follows:
+
+| Line | Current writer and accepted compatibility forms |
+| --- | --- |
+| Type and flags | Type, four extra-flag words, four wear-flag words, four permanent-affect words, and optionally four second-affect words (13 or 17 fields). Legacy short forms remain readable. |
+| Values | Sixteen integers, interpreted by item type; legacy four-value records are zero-extended. |
+| Economy | Weight, cost, rent, minimum level, timer. Older three/four-field forms are accepted; loaded minimum level is clamped to 1..30. |
+
+Optional extensions follow until the next record or file terminator. Unless
+noted, the extension letter occupies a line and its data follows it.
+
+| Tag | Payload |
+| --- | --- |
+| `A` | Apply location, modifier, optional bonus type and specific selector, in that order. Older two/three-field forms default missing data. At most `MAX_OBJ_AFFECT` entries (currently 6). |
+| `B` | Spellbook spell number and page count; separate storage from applies. |
+| `C` | Special ability, level, activation method, four values, command word. |
+| `E` | Tilde-terminated keywords and extra description. |
+| `G`, `H`, `I` | Proficiency, material and size respectively; undefined size loads as medium. |
+| `J` | Mobile recipient VNUM. |
+| `K` | Activated spell level, spell number, current uses, maximum uses, cooldown. |
+| `R` | Restring identifier on the following line. |
+| `S` | Weapon spell number, level, percentage and combat flag; at most `MAX_WEAPON_SPELLS` (currently 3). |
+| `T` | DG attachment in the script serializer's inline syntax. |
+| `Z` | Persisted special-procedure name on the following line. |
+| `P` | Historical compatibility marker; ignored by the reader. |
+
+A source game's similarly named type, flag, spell or apply number does not imply
+native equivalence. See the [RoL conversion contract](https://github.com/LuminariMUD/Luminari-Source/blob/master/docs/utilities/WORLD_VALIDATOR_CLI.md#rol-object-format-conversion-contract)
+for its distinct grammar and semantic mapping boundaries.
+
 ## Main Menu Snapshot
 ```
 -- Item number : [####]
@@ -46,8 +85,8 @@
 
 ### Derived Power
 - `P) Permanent affects` toggles permanent `affected_by` flags (e.g., `SANCTUARY`). Use these sparingly; they behave like always-on spell affects.
-- `D) Applies menu` manages up to `MAX_OBJ_AFFECT` (5) slot entries.
-  - Choose a slot (1-5) to edit.
+- `D) Applies menu` manages up to `MAX_OBJ_AFFECT` (6) slot entries.
+  - Choose a slot (1-6) to edit.
   - Select the apply from the list (`STR`, `DEX`, `AC`, `FEAT`, etc.). Applies that require a specific school/skill prompt for a follow-up selection.
   - Enter the modifier and pick a bonus type (stacking rules). A value of `0/None` clears the slot.
 - The main menu shows an **EQ Rating** and **Suggested affects** after you save and re-enter; use them as guidance, not hard rules.
