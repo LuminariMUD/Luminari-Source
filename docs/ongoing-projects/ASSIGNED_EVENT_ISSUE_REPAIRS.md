@@ -522,3 +522,15 @@ Completion remains unproven for the entire batch. In addition to #106-109 and
 #111/#112, return to the #103/#104 caller audit and verify compound movement/
 transfer boundaries against newly migrated consumers before final sign-off.
 The last #105 lifecycle/diagnostics checklist item also needs a full-batch audit.
+
+## Tactical rules decision checkpoint (2026-09-06)
+
+The #106 implementation contract is now recorded in
+`docs/systems/COUNTERSPELL_AND_ALLY_READINESS.md`. It retains the existing ready
+owner and native event queue, explicitly excludes instant casts from the timed
+counterspell window, specifies identification/resource/competition rules, and
+defines ally defense from a committed attack attempt including misses. It also
+records concrete source findings: slot extraction can consume moon bonuses,
+HIT_MISS includes rejected operations, and execution must bind the exact ready
+incarnation as well as the exact cast ID. These determine the next implementation
+steps; no counterspell or ally-defense runtime completion is claimed.
