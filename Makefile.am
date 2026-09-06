@@ -585,6 +585,15 @@ world_tool_sources = \
 	scripts/world/wtool_lib/rol_state_periodic_profiles.py \
 	scripts/world/wtool_lib/rol_soc.py \
 	scripts/world/wtool_lib/rol_special.py \
+	scripts/world/wtool_lib/rol_conversion_types.py \
+	scripts/world/wtool_lib/rol_source_common.py \
+	scripts/world/wtool_lib/rol_transform_common.py \
+	scripts/world/wtool_lib/rol_mobiles.py \
+	scripts/world/wtool_lib/rol_objects.py \
+	scripts/world/wtool_lib/rol_rooms.py \
+	scripts/world/wtool_lib/rol_zones.py \
+	scripts/world/wtool_lib/rol_shops.py \
+	scripts/world/wtool_lib/rol_quests.py \
 	scripts/world/wtool_lib/rol_source.py \
 	scripts/world/wtool_lib/rol_transform.py \
 	scripts/world/wtool_lib/rooms.py \

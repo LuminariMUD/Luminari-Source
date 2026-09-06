@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -39,6 +41,38 @@ def parse_fixture(kind: str, data: bytes):
 
 
 class RolSourceTests(unittest.TestCase):
+  def test_format_owners_import_independently_and_preserve_facades(self) -> None:
+    owners = {
+        "mob": ("rol_mobiles", "emit_mobile"),
+        "obj": ("rol_objects", "emit_object"),
+        "wld": ("rol_rooms", "emit_room"),
+        "zon": ("rol_zones", "emit_zone"),
+        "shp": ("rol_shops", "emit_shop"),
+        "qst": ("rol_quests", "emit_hlquest"),
+        "soc": ("rol_soc", "compile_soc_records"),
+    }
+    for kind, (owner, emitter) in owners.items():
+      with self.subTest(kind=kind):
+        # A fresh interpreter must import the owner first: cached facade imports
+        # would hide a dependency cycle in normal unittest discovery order.
+        script = f"""
+from wtool_lib import {owner} as owner
+from wtool_lib import rol_source, rol_transform, rol_conversion_types
+assert owner._parse_{kind} is rol_source._parse_{kind}
+assert owner.RolRecord is rol_conversion_types.RolRecord is rol_source.RolRecord
+"""
+        if kind != "soc":
+          script += f"assert owner.{emitter} is rol_transform.{emitter}\n"
+          script += "assert owner.TransformResult is rol_transform.TransformResult\n"
+        result = subprocess.run(
+            [sys.executable, "-c", script],
+            cwd=Path(__file__).resolve().parents[1],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(0, result.returncode, result.stderr)
+
   def test_identity_normalization_strips_legacy_color_and_punctuation(self) -> None:
     self.assertEqual("the old trail", normalize_identity("&+LThe Old-Trail&N\r\n"))
     self.assertEqual("jotunheim", normalize_identity("@WJotunheim@n"))

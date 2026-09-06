@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
+import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
-from typing import Callable, Iterable
+from typing import Iterable
 
 from .flags import encode_bits
-from .rol_source import RolRecord
-from .rol_transform import convert_text
+from .rol_conversion_types import IdentityResolver, RolRecord, RolSourceCorpus
+from .rol_source_common import _INTEGER, _diagnostic, _new_record, _read_tilde, _reference
+from .rol_transform_common import convert_text
+from .source import SourceFile
 
-
-IdentityResolver = Callable[[str, int], int]
 
 NON_COMBAT_ONLY = 1
 COMBAT_ONLY = 2
@@ -771,3 +772,98 @@ def compile_soc_records(
       source_records=len(selected),
       source_actions=source_actions,
   )
+
+
+_SOC_HEADER = re.compile(
+    br"MOB\s*:\s*([+-]?\d+)\s+(PERIODIC|TRIGGER|TIMED|LIST|PATH)\b",
+    re.IGNORECASE,
+)
+
+
+_SOC_LOOSE_HEADER = re.compile(
+    br"MOB\s+([+-]?\d+)\s+(PERIODIC|TRIGGER|TIMED|LIST|PATH)\b",
+    re.IGNORECASE,
+)
+
+
+_SOC_KEYS = frozenset(
+    {
+        "FLAG",
+        "DELAY",
+        "CHANCE",
+        "ACTION",
+        "TRIGGER",
+        "HOUR",
+        "ID",
+        "TYPE",
+        "ROOMS",
+        "DIRS",
+        "DONE",
+        "LISTDONE",
+    }
+)
+
+
+def _parse_soc(
+    source: SourceFile,
+    basename: str,
+    corpus: RolSourceCorpus,
+) -> list[RolRecord]:
+  records: list[RolRecord] = []
+  corpus.file_versions[("soc", "keyword")] += 1
+  headers: list[tuple[int, int, str]] = []
+  for index, line in enumerate(source.lines):
+    cleaned = line.raw.split(b";;", 1)[0].strip()
+    match = _SOC_HEADER.match(cleaned)
+    if match is not None:
+      headers.append((index, int(match.group(1)), match.group(2).decode("ascii").upper()))
+    elif _SOC_LOOSE_HEADER.match(cleaned) is not None:
+      _diagnostic(
+          corpus,
+          "ROLSOC001",
+          "warning",
+          "source SOC loader ignores MOB header without a colon",
+          line,
+          "soc",
+          int(_SOC_LOOSE_HEADER.match(cleaned).group(1)),
+      )
+  for ordinal, (start, vnum, mode) in enumerate(headers):
+    end = headers[ordinal + 1][0] if ordinal + 1 < len(headers) else len(source.lines)
+    record = _new_record(source, basename, "soc", start, end, vnum)
+    record.identity = f"mobile {vnum} {mode.lower()}"
+    record.format_version = mode
+    _reference(record, "mobile", vnum, "soc_mobile", source.lines[start])
+    position = start + 1
+    while position < end:
+      line = source.lines[position]
+      position += 1
+      cleaned = line.raw.split(b";;", 1)[0].strip()
+      if not cleaned:
+        continue
+      if b":" in cleaned:
+        raw_key, raw_value = cleaned.split(b":", 1)
+        key = raw_key.decode("ascii", errors="replace").upper()
+      else:
+        key = cleaned.decode("ascii", errors="replace").upper()
+        raw_value = b""
+      if key not in _SOC_KEYS:
+        record.complete = False
+        _diagnostic(corpus, "ROLSOC001", "error", f"unknown SOC keyword {key!r}", line, "soc", vnum)
+        continue
+      values = [int(value) for value in _INTEGER.findall(raw_value)]
+      record.directives.append({"token": key, "line": line.number, "arguments": values})
+      if key == "LISTDONE" or key == "DONE" and mode != "LIST":
+        break
+      if key == "ROOMS":
+        for value in values:
+          _reference(record, "room", value, "soc_path_room", line)
+      if key == "ACTION":
+        if values:
+          _reference(record, "command", values[0], "soc_action", line)
+        position, argument, ok = _read_tilde(source.lines, position, end)
+        record.directives[-1]["argument"] = argument
+        if not ok:
+          record.complete = False
+          _diagnostic(corpus, "ROLSOC002", "error", "SOC action message is unterminated", line, "soc", vnum)
+    records.append(record)
+  return records
