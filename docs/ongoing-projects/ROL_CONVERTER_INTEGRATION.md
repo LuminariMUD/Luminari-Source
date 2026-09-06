@@ -117,6 +117,14 @@ store generated evidence in existing ignored run storage; no new framework or se
 
 ### Resumed implementation (2026-09-06)
 
+- Step 3 starts with the approved fixed object-level policy. The source loader reads only weight,
+  cost and rent before two affect words, so none of those fields can become a target use level.
+  Every converted prototype emits target level 1; magic-item caster level remains separate in its
+  type-specific values. A focused round-trip checks ordinary and magic items, source affect words,
+  exact repeatability and the target parser. Plan-ablation rejected a level calculator, exception
+  table and runtime change because this fixed policy has no variable input. The focused object,
+  transform and Phase 8 suites pass all 167 tests; `make test-world-tools` passes all 529 tests
+  with no skips and its constants, documentation and zone-wrapper gates.
 - Armor corpus review resumed from `3742d672a`. Outcome: finish Step 2 by reviewing every
   standard-family rule, conservative fallback, mixed mask, dedicated-tail record and nonstandard
   wearable against the current source text and native penalties. Non-goals: no Step 3 metadata
@@ -728,7 +736,7 @@ JSON files and remaining procedure-owner/player-access matrices must still suppo
 | Nonstandard armor wearables have no value-0 AC runtime effect. There are 13 negative-protection records, including seven shackles numbered 35600-35606. | Approved `ITEM_WORN` with signed `APPLY_AC_NEW`: divide magnitude by ten, round toward zero, retain minimum magnitude one for nonzero values; use existing universal bonus type 23 and preserve authored applies. | Scaling/stacking/curse policy approved; prevent double-counting and test equip/unequip. Dedicated-tail behavior needs its own disposition. |
 | Source `which.c` labels armor values 1/2 as warmth/prestige; 101/25 records have nonzero values across 105 distinct armor records. Reviewed common armor paths use value 0, and procedure state uses value 3. | Approved explicit named losses for unsupported warmth/prestige; clear obsolete target value slots after disposition. | Source consumer evidence is in `armor-metadata-review.json`; this is a bounded trace, not proof against all dynamic procedures. Loss policy approved; per-record disposition and verification remain required. |
 | Ten armor records have nonzero value 3, labeled ProcVal; none has an active source procedure binding. Source feature helpers use this slot as mutable state/recharge bits. | Approved named inert-metadata loss for these ten unbound values. Bound armor procedures (22 records, authored ProcVal zero) retain their existing `Z`/DG owner instead of synthesizing `C` or `S`. | `proc-review.json` records identities and bindings; Phase 6 owner verification passes. Loss policy approved; per-record disposition and verification remain required. |
-| Source `db.c:read_object()` reads weight/cost/durability, followed by two optional affect words; there is no object-level field. | Approved permanent target level 1, preserving the existing conversion policy. Magic-item caster level remains separate. | Level policy approved; durable documentation and regression coverage remain required. |
+| Source `db.c:read_object()` reads weight/cost/durability, followed by two optional affect words; there is no object-level field. | Permanent target level 1, preserving the existing conversion policy. Magic-item caster level remains separate. | Complete: the emitter uses a named fixed default; ordinary/magic target-parser round trips verify level 1, exact repeatability, and caster-level separation. |
 | Source loader extensions are extra descriptions, applies, and trap data. Target `db.c` supports `B` (two fields), `C` (seven plus optional command), `K` (five), and `S` (four). | Emit extensions only where a traced source procedure supplies equivalent semantics. Do not treat unsupported trailing source tokens as authored target extensions. | Complete procedure/loader/writer/runtime mapping and capacity tests. |
 | Target `G/H/I` are proficiency/material/size; zero size becomes medium at load. | Retain current inferred weapon metadata; derive nonweapon fields only from reviewed source identity or supported mechanics. | Nonweapon material/size/proficiency rules and defaults pending. |
 | Source `comm.c` recognizes `&&`, `&N`/`&n`, `&+x`, `&-x`, and `&=xy`; unknown forms are printed literally. | Implemented foreground/background/blink through existing target tokens, escaped ampersands, and diagnosed malformed literals. Source black `L/l` maps to target `D/d`. | All 42 exceptional strings are recorded in `color-dispositions.json`; all seven format round trips pass. Final display smoke remains in step 6. |
@@ -894,7 +902,7 @@ Files: `rol_objects.py`, the shared text helper, existing conversion policy/mapp
 needed, `rol_special.py` and reconciliation code only where a reviewed procedure requires it,
 existing source/transform/object tests, and the relevant source/evidence manifests.
 
-- [ ] 114.1 Approve and document an object-level policy: a reproducible mapping into 1..30
+- [x] 114.1 Approve and document an object-level policy: a reproducible mapping into 1..30
   with evidence and explicit exceptions, or an explicit acceptance of permanent level 1.
   The source loader has no object-level field. Do not invent one, confuse affect words with
   economy fields, or conflate item level with a magic item's separately bounded caster level.

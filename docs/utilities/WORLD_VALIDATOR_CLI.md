@@ -415,6 +415,10 @@ omitted bonus type/specific fields. Each extension still enforces its own capaci
 - Source ability modifiers are not a reason for a blanket 4.5 multiplier in the
   D20 target. Preserve the established direct mapping unless a named conversion
   policy requires otherwise. Source drink-container weight uses a /4 conversion.
+- Source prototypes have no object-level field. Every converted object therefore
+  has permanent target level 1; no price, affect, or description inference is
+  applied. A magic item's bounded caster level remains in its type-specific value
+  slot and does not change the object's use level.
 - Source armor value 0 has positive protective AC, while its AC apply uses a
   different sign convention. Other armor values describe warmth/prestige/proc,
   not a target armor-family index. Preserve protection while making the target
@@ -446,8 +450,8 @@ omitted bonus type/specific fields. Each extension still enforces its own capaci
   Converted ships retain boat behavior and receive target `ITEM_MAGLIGHT`.
   Magical item light follows direct room, inventory, and equipment placement;
   containers conceal it, and magical darkness takes precedence.
-- Armor, object-level policy, and structured extension losses still require
-  explicit review before claiming complete object equivalence.
+- Structured extension losses still require explicit review before claiming
+  complete object equivalence.
 
 Track armor inference in [#113](https://github.com/LuminariMUD/Luminari-Source/issues/113), other field policies in
 [#114](https://github.com/LuminariMUD/Luminari-Source/issues/114), and weapon release review in [#115](https://github.com/LuminariMUD/Luminari-Source/issues/115).

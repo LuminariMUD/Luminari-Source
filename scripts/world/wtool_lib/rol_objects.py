@@ -62,6 +62,7 @@ SOURCE_ECONOMY_FIELDS = 3
 
 
 SOURCE_AFFECT_WORDS = 2
+TARGET_CONVERTED_OBJECT_LEVEL = 1
 
 
 def _parse_obj(
@@ -1747,7 +1748,9 @@ def emit_object(
           f"in object value slot {slot}: {error}"
       )
   economy = list(record.values.get("economy", []))
-  economy_defaults = [0, 1, 0, 1, 1]
+  # RoL prototypes have no object-level field. Keep every converted prototype
+  # at the approved target minimum; type-specific caster levels stay in values.
+  economy_defaults = [0, 1, 0, TARGET_CONVERTED_OBJECT_LEVEL, 1]
   economy = economy[:5] + economy_defaults[len(economy[:5]):]
   proficiency = material = size = None
   enhancement = 0

@@ -2030,6 +2030,30 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(34, result.records[0].values[0])
     self.assertIn("capped source magic-item spell level 50", " ".join(emitted.diagnostics))
 
+  def test_converted_object_level_is_permanently_one_and_repeatable(self) -> None:
+    fixtures = (
+        ("ordinary", b"12 0 1\n0 0 0 0\n7 500 2 0 2\n", None),
+        ("magic caster level", b"10 0 1\n30 9 0 0\n7 500 2\n0\n0\n", 30),
+    )
+
+    for ordinal, (name, body, caster_level) in enumerate(fixtures):
+      with self.subTest(name=name):
+        source = self._source_record(
+            "obj",
+            b"#200\nitem~\nan item~\nAn item is here.~\n~\n" + body,
+        )
+        destination_vnum = 2_000_200 + ordinal
+        first = emit_object(source, destination_vnum, _resolver)
+        second = emit_object(source, destination_vnum, _resolver)
+        path = self._target_path("obj", first.text)
+        result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+        self.assertTrue(result.complete)
+        self.assertEqual(first.text, second.text)
+        self.assertEqual(1, result.records[0].level)
+        if caster_level is not None:
+          self.assertEqual(caster_level, result.records[0].values[0])
+
   def test_emitted_magic_item_maps_spells_by_source_name(self) -> None:
     source = self._source_record(
         "obj",
