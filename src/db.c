@@ -13,6 +13,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "vessels/transport_jobs.h"
 #include "movement/door_state.h"
 #include "utils.h"
 #include "db.h"
@@ -6981,6 +6982,7 @@ void free_char(struct char_data *ch)
   struct alias_data *a = NULL;
 
   active_world_forget_character(ch);
+  transport_job_cancel(ch, true);
   primary_activity_forget_character(ch);
   character_periodic_forget(ch);
   point_update_character_forget(ch);

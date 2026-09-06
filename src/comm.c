@@ -63,6 +63,7 @@
  * files that is included is controlled by conf.h for that platform. */
 
 #include "structs.h"
+#include "vessels/transport_jobs.h"
 #include "utils.h"
 #include "spec/spec_dispatch.h"
 #include "spec/spec_rol_avernus.h"
@@ -725,6 +726,7 @@ void copyover_recover()
       d->connected = CON_PLAYING;
       character_periodic_sync(d->character);
       resume_craft_activity(d->character);
+      transport_job_resume(d->character);
       look_at_room(d->character, 0);
 
       /* Add to the list of 'recent' players (since last reboot) with copyover flag */
@@ -2257,7 +2259,6 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
     msdp_update();
     PERF_PROF_EXIT(pr_msdp_update_);
     next_tick = (int)((remaining + PASSES_PER_SEC - 1U) / PASSES_PER_SEC);
-    travel_tickdown();
     self_buffing();
     i3_process_events();
     i3_sync_presence();
@@ -4394,6 +4395,7 @@ void close_socket(struct descriptor_data *d)
         cleanup_supply_slots(link_challenged);
       }
 
+      transport_job_cancel(link_challenged, true);
       save_char(link_challenged, 0);
       mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(link_challenged)), TRUE, "Closing link to: %s.",
              GET_NAME(link_challenged));

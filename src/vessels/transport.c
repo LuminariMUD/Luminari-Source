@@ -28,6 +28,9 @@
 #include "craft/alchemy.h"
 #include "character/race.h"
 #include "transport.h"
+#include "transport_jobs.h"
+#include "domain_event_world.h"
+#include "domain_event_runtime.h"
 #include "../character_periodic.h"
 #include "dgscript/dg_scripts.h"
 #include "wilderness/wilderness.h"
@@ -214,6 +217,19 @@ const char *walkto_landmarks_lumi[][WALKTO_LANDMARKS_FIELDS] = {
     {"0", "", "always last item", ""},
 };
 
+bool transport_locale_valid(int type, int locale)
+{
+  if (locale < 0)
+    return false;
+  if (type == TRAVEL_CARRIAGE || type == TRAVEL_OVERLAND_FLIGHT)
+    return (size_t)locale + 1 < sizeof(carriage_locales_lumi) / sizeof(carriage_locales_lumi[0]);
+  if (type == TRAVEL_SAILING || type == TRAVEL_OVERLAND_FLIGHT_SAIL)
+    return (size_t)locale + 1 < sizeof(sailing_locales_lumi) / sizeof(sailing_locales_lumi[0]);
+  return false;
+}
+
+static bool enter_transport_paid(struct char_data *ch, int locale, int type, int here, int fare);
+
 ACMDU(do_carriage)
 {
   skip_spaces(&argument);
@@ -298,13 +314,8 @@ ACMDU(do_carriage)
               send_to_char(ch, "You are denied entry as you cannot pay the fee of %d.\r\n", cost);
               return;
             }
-            else
-            {
-              send_to_char(ch, "You give the carriage driver your fee of %d.\r\n", cost);
-              GET_GOLD(ch) -= cost;
-            }
           }
-          enter_transport(ch, i, TRAVEL_CARRIAGE, here);
+          (void)enter_transport_paid(ch, i, TRAVEL_CARRIAGE, here, cost);
           return;
         }
       }
@@ -324,7 +335,6 @@ ACMDU(do_sail)
   skip_spaces(&argument);
 
   int i = 0, cost;
-  char buf[200];
   bool found = false;
 
   while (get_sailing_locale_vnum(i) != 0)
@@ -413,30 +423,12 @@ ACMDU(do_sail)
           cost = get_sailing_locale_cost(i);
           if (HAS_FEAT(ch, FEAT_BG_SAILOR))
             cost = 0;
-          if (cost == 0)
+          if (GET_GOLD(ch) < cost)
           {
-            send_to_char(ch, "The sailor waves you aboard free of charge.\r\n");
-          }
-          else if (GET_GOLD(ch) < cost)
-          {
-            send_to_char(ch, "You are denied boarding as you cannot pay the fee of %dmake.\r\n",
-                         cost);
+            send_to_char(ch, "You cannot afford the sailing fare of %d coins.\r\n", cost);
             return;
           }
-          else
-          {
-            send_to_char(ch, "You give the ship's captain your fee of %d.\r\n", cost);
-            GET_GOLD(ch) -= cost;
-          }
-          room_rnum to_room = NOWHERE;
-          snprintf(buf, sizeof(buf), "%d", get_sailing_locale_vnum(i));
-          if ((to_room = find_target_room(ch, buf)) == NOWHERE)
-          {
-            send_to_char(ch,
-                         "There is an error with that destination.  Please report to staff.\r\n");
-            return;
-          }
-          enter_transport(ch, i, TRAVEL_SAILING, here);
+          (void)enter_transport_paid(ch, i, TRAVEL_SAILING, here, cost);
           return;
         }
       }
@@ -458,248 +450,141 @@ int valid_sailing_travel(int here __attribute__((unused)), int i __attribute__((
   return true;
 }
 
-void enter_transport(struct char_data *ch, int locale, int type, int here)
+static bool enter_transport_paid(struct char_data *ch, int locale, int type, int here, int fare)
 {
-  room_rnum cnt;
-  room_rnum taxi = NOWHERE;
-  room_rnum to_room = NOWHERE;
-  struct follow_type *f = NULL;
-  struct char_data *tch = NULL;
-  char air[200], car[200];
+  room_rnum taxi = NOWHERE, destination, index;
+  struct follow_type *f;
+  struct char_data *passenger;
+  struct domain_entity_handle origin, leader, transit, *passengers;
+  struct room_data *transit_room;
+  size_t capacity = 1, count = 0, i;
+  char target[32];
+  const char *name;
 
-  for (cnt = 0; cnt <= top_of_world; cnt++)
-  {
-    if (world[cnt].number < 66700 || world[cnt].number > 66799)
-      continue;
-    if (world[cnt].people)
-      continue;
-    /* found available transport room */
-    taxi = cnt;
-    break;
-  }
-
-  /* transport type handling */
-
-  if (type == TRAVEL_CARRIAGE)
-  {
-    snprintf(car, sizeof(car), "%d", get_carriage_locale_vnum(locale));
-  }
-  else if (type == TRAVEL_SAILING)
-  {
-    snprintf(air, sizeof(air), "%d", get_sailing_locale_vnum(locale));
-  }
-  else if (type == TRAVEL_OVERLAND_FLIGHT)
-  {
-    snprintf(car, sizeof(car), "%d", get_carriage_locale_vnum(locale));
-  }
-  else if (type == TRAVEL_OVERLAND_FLIGHT_SAIL)
-  {
-    snprintf(car, sizeof(car), "%d", get_sailing_locale_vnum(locale));
-  }
-
-  if ((to_room = find_target_room(ch, (type == TRAVEL_SAILING) ? air : car)) == NOWHERE)
-  {
-    send_to_char(ch, "There is an error with that destination.  Please report on the to a staff "
-                     "member. ERRENTCAR001\r\n");
-    return;
-  }
-
+  if (ch == NULL || IS_NPC(ch) || !transport_locale_valid(type, locale) || fare < 0 ||
+      GET_GOLD(ch) < fare || transport_is_transit_room(IN_ROOM(ch)))
+    return false;
+  for (index = 0; index <= top_of_world; index++)
+    if (transport_is_transit_room(index) && world[index].people == NULL)
+    {
+      taxi = index;
+      break;
+    }
   if (taxi == NOWHERE)
   {
-    if (type == TRAVEL_CARRIAGE)
-      send_to_char(ch, "There are no carriages available currently.\r\n");
-    else if (type == TRAVEL_SAILING)
-      send_to_char(ch, "There are no ships available currently.\r\n");
-    else
-      send_to_char(ch, "The skies are too tumultous right now.\r\n");
-    return;
+    send_to_char(ch, "No transport is available right now.\r\n");
+    return false;
   }
-
-  for (f = ch->followers; f; f = f->next)
+  snprintf(target, sizeof(target), "%d",
+           type == TRAVEL_SAILING || type == TRAVEL_OVERLAND_FLIGHT_SAIL
+               ? get_sailing_locale_vnum(locale)
+               : get_carriage_locale_vnum(locale));
+  destination = find_target_room(ch, target);
+  if (destination == NOWHERE)
   {
-    tch = f->follower;
-
-    if (IN_ROOM(tch) != IN_ROOM(ch))
-      continue;
-    if (!is_player_grouped(ch, tch))
-      continue;
-    if (FIGHTING(tch))
-      continue;
-    if (GET_POS(tch) < POS_STANDING)
-      continue;
-    // overland flight is for the caster only
-    if (type == TRAVEL_OVERLAND_FLIGHT && ch != tch)
-      continue;
-    if (type == TRAVEL_OVERLAND_FLIGHT_SAIL && ch != tch)
-      continue;
-
-    if (type == TRAVEL_CARRIAGE)
+    send_to_char(ch, "That transport destination is unavailable. Please report it to staff.\r\n");
+    return false;
+  }
+  for (f = ch->followers; f != NULL; f = f->next)
+    capacity++;
+  passengers = calloc(capacity, sizeof(*passengers));
+  if (passengers == NULL)
+    return false;
+  origin = domain_event_room_handle(IN_ROOM(ch));
+  transit = domain_event_room_handle(taxi);
+  leader = domain_event_character_handle(ch);
+  if (type == TRAVEL_CARRIAGE || type == TRAVEL_SAILING)
+    for (f = ch->followers; f != NULL; f = f->next)
     {
-      act("$n boards a carriage which heads off into the distance.", FALSE, tch, 0, 0, TO_ROOM);
-      send_to_char(tch, "Your group leader ushers you into a nearby carriage.\r\n");
-      send_to_char(tch, "You hop into a carriage and head off towards %s.\r\n\r\n",
-                   get_transport_carriage_name(locale));
+      passenger = f->follower;
+      if (passenger != NULL && !IS_NPC(passenger) && passenger->desc != NULL &&
+          STATE(passenger->desc) == CON_PLAYING && IN_ROOM(passenger) == IN_ROOM(ch) &&
+          is_player_grouped(ch, passenger) && FIGHTING(passenger) == NULL &&
+          GET_POS(passenger) >= POS_STANDING)
+        passengers[count++] = domain_event_character_handle(passenger);
     }
-    else if (type == TRAVEL_SAILING)
+  passengers[count++] = leader;
+  /* Admit every passenger before charging or invoking any movement callback. */
+  for (i = 0; i < count; i++)
+  {
+    passenger = domain_event_world_resolve_character(passengers[i]);
+    if (passenger == NULL ||
+        !transport_job_start(passenger, taxi, destination,
+                             get_travel_time(passenger, 10, locale, here, type), type, locale))
     {
-      act("$n boards a caravel, which pulls anchor and heads for the open sea.", FALSE, tch, 0, 0,
+      while (i > 0)
+      {
+        passenger = domain_event_world_resolve_character(passengers[--i]);
+        transport_job_cancel(passenger, false);
+      }
+      send_to_char(ch, "Your journey could not be scheduled. No fare was charged.\r\n");
+      free(passengers);
+      return false;
+    }
+  }
+  if (fare != 0)
+  {
+    GET_GOLD(ch) -= fare;
+    send_to_char(ch, "You pay the transport fare of %d coins.\r\n", fare);
+  }
+  name = type == TRAVEL_SAILING || type == TRAVEL_OVERLAND_FLIGHT_SAIL
+             ? get_transport_sailing_name(locale)
+             : get_transport_carriage_name(locale);
+  for (i = 0; i < count; i++)
+  {
+    passenger = domain_event_world_resolve_character(passengers[i]);
+    if (passenger == NULL)
+      continue;
+    transit_room = domain_event_resolve(domain_event_runtime_bus(), transit, DOMAIN_ENTITY_ROOM);
+    if (transit_room == NULL ||
+        !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(passenger)), origin))
+    {
+      transport_job_cancel(passenger, false);
+      continue;
+    }
+    taxi = (room_rnum)(transit_room - world);
+    send_to_char(passenger, "You begin your journey to %s.\r\n\r\n", name);
+    if (type == TRAVEL_CARRIAGE)
+      act("$n boards a carriage which heads off into the distance.", FALSE, passenger, NULL, NULL,
           TO_ROOM);
-      send_to_char(tch, "Your group leader ushers you into the ship.\r\n");
-      send_to_char(tch, "You board the caravel and sail off to %s.\r\n\r\n",
-                   get_transport_sailing_name(locale));
-    }
-    else if (type == TRAVEL_OVERLAND_FLIGHT)
-    {
-      act("$n leaps into the air and flies off into the distance.", FALSE, tch, 0, 0, TO_ROOM);
-      send_to_char(tch, "You leap into the air and fly off towards %s.\r\n\r\n",
-                   get_transport_carriage_name(locale));
-    }
-    else if (type == TRAVEL_OVERLAND_FLIGHT_SAIL)
-    {
-      act("$n leaps into the air and flies off into the distance.", FALSE, tch, 0, 0, TO_ROOM);
-      send_to_char(tch, "You leap into the air and fly off towards %s.\r\n\r\n",
-                   get_transport_carriage_name(locale));
-    }
-
-    char_from_room(tch);
-    char_to_room_cause(tch, taxi, ch, DOMAIN_RELOCATION_TRANSPORT, -1);
-    char_pets_to_char_loc(tch);
-    tch->player_specials->destination = to_room;
-    // need to take care of this part still for overland flight spell
-    tch->player_specials->travel_timer = get_travel_time(tch, 10, locale, here, type);
-    tch->player_specials->travel_type = type;
-    tch->player_specials->travel_locale = locale;
-    look_at_room(tch, 0);
-    entry_memory_mtrigger(tch);
-    greet_mtrigger(tch, -1);
-    greet_memory_mtrigger(tch);
+    else if (type == TRAVEL_SAILING)
+      act("$n boards a caravel which sails off into the distance.", FALSE, passenger, NULL, NULL,
+          TO_ROOM);
+    else
+      act("$n leaps into the air and flies off into the distance.", FALSE, passenger, NULL, NULL,
+          TO_ROOM);
+    char_from_room(passenger);
+    char_to_room_cause(passenger, taxi, domain_event_world_resolve_character(leader),
+                       DOMAIN_RELOCATION_TRANSPORT, -1);
+    passenger = domain_event_world_resolve_character(passengers[i]);
+    if (passenger == NULL ||
+        !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(passenger)), transit))
+      continue;
+    char_pets_to_char_loc(passenger);
+    passenger = domain_event_world_resolve_character(passengers[i]);
+    if (passenger == NULL ||
+        !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(passenger)), transit))
+      continue;
+    look_at_room(passenger, 0);
+    entry_memory_mtrigger(passenger);
+    passenger = domain_event_world_resolve_character(passengers[i]);
+    if (passenger == NULL ||
+        !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(passenger)), transit))
+      continue;
+    greet_mtrigger(passenger, -1);
+    passenger = domain_event_world_resolve_character(passengers[i]);
+    if (passenger == NULL ||
+        !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(passenger)), transit))
+      continue;
+    greet_memory_mtrigger(passenger);
   }
-
-  if (type == TRAVEL_CARRIAGE)
-  {
-    act("$n boards a carriage which heads off into the distance.", FALSE, ch, 0, 0, TO_ROOM);
-    send_to_char(ch, "You hop into a carriage and head off towards %s.\r\n\r\n",
-                 get_transport_carriage_name(locale));
-  }
-  else if (type == TRAVEL_SAILING)
-  {
-    act("$n boards a caravel which sails off into the distance.", FALSE, ch, 0, 0, TO_ROOM);
-    send_to_char(ch, "You board the caravel and sail off towards %s.\r\n\r\n",
-                 get_transport_sailing_name(locale));
-  }
-
-  char_from_room(ch);
-  char_to_room_cause(ch, taxi, ch, DOMAIN_RELOCATION_TRANSPORT, -1);
-  char_pets_to_char_loc(ch);
-  ch->player_specials->destination = to_room;
-  ch->player_specials->travel_timer = get_travel_time(ch, 10, locale, here, type);
-  ch->player_specials->travel_type = type;
-  ch->player_specials->travel_locale = locale;
-  look_at_room(ch, 0);
-  entry_memory_mtrigger(ch);
-  greet_mtrigger(ch, -1);
-  greet_memory_mtrigger(ch);
+  free(passengers);
+  return true;
 }
 
-void travel_tickdown(void)
+void enter_transport(struct char_data *ch, int locale, int type, int here)
 {
-  struct char_data *ch = NULL;
-  struct descriptor_data *d = NULL;
-  room_rnum to_room = NOWHERE;
-
-  for (d = descriptor_list; d; d = d->next)
-  {
-    ch = d->character;
-
-    if (!ch || IS_NPC(ch) || !ch->desc)
-      continue;
-
-    if (STATE(ch->desc) != CON_PLAYING)
-      continue;
-    if (IN_ROOM(ch) == NOWHERE)
-      continue;
-
-    if (world[IN_ROOM(ch)].number < 66700 || world[IN_ROOM(ch)].number > 66799)
-      continue;
-
-    if (ch->player_specials->destination == 0 || ch->player_specials->destination == (int)NOWHERE)
-    {
-      to_room = real_room(14100);
-      if (to_room == NOWHERE)
-      {
-        log("SYSERR: travel_tickdown could not resolve the emergency destination.");
-        continue;
-      }
-      char_from_room(ch);
-      char_to_room_cause(ch, to_room, ch, DOMAIN_RELOCATION_TRANSPORT, -1);
-      char_pets_to_char_loc(ch);
-      look_at_room(ch, 0);
-      entry_memory_mtrigger(ch);
-      greet_mtrigger(ch, -1);
-      greet_memory_mtrigger(ch);
-      ch->player_specials->destination = (int)NOWHERE;
-      ch->player_specials->travel_timer = 0;
-      ch->player_specials->travel_type = 0;
-      ch->player_specials->travel_locale = 0;
-
-      continue;
-    }
-    else
-    {
-      ch->player_specials->travel_timer--;
-      if (ch->player_specials->travel_timer < 1)
-      {
-        to_room = (room_rnum)ch->player_specials->destination;
-        if (to_room == NOWHERE || to_room > top_of_world)
-        {
-          log("SYSERR: travel_tickdown found invalid destination rnum %u for %s.", to_room,
-              GET_NAME(ch));
-          to_room = real_room(14100);
-          if (to_room == NOWHERE)
-          {
-            send_to_char(ch,
-                         "Your journey cannot be completed. Please contact a staff member.\r\n");
-            continue;
-          }
-        }
-
-        char_from_room(ch);
-
-        if (ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_WILDERNESS))
-        {
-          //    char_to_coords(ch, world[to_room].coords[0], world[to_room].coords[1], 0);
-          X_LOC(ch) = world[to_room].coords[0];
-          Y_LOC(ch) = world[to_room].coords[1];
-        }
-
-        char_to_room_cause(ch, to_room, ch, DOMAIN_RELOCATION_TRANSPORT, -1);
-        char_pets_to_char_loc(ch);
-        look_at_room(ch, 0);
-        entry_memory_mtrigger(ch);
-        greet_mtrigger(ch, -1);
-        greet_memory_mtrigger(ch);
-
-        if (ch->player_specials->travel_type == TRAVEL_CARRIAGE)
-        {
-          act("$n disembarks a horse-drawn carriage that grinds to a halt before you.", FALSE, ch,
-              0, 0, TO_ROOM);
-          send_to_char(ch, "You hop out of your carriage arriving at the %s.\r\n\r\n",
-                       get_transport_carriage_name(ch->player_specials->travel_locale));
-        }
-        else if (ch->player_specials->travel_type == TRAVEL_SAILING)
-        {
-          act("$n disembarks a caravel that just docked here.", false, ch, 0, 0, TO_ROOM);
-          send_to_char(ch, "You disembark the caravel arriving at %s.\r\n\r\n",
-                       get_transport_sailing_name(ch->player_specials->travel_locale));
-        }
-        ch->player_specials->destination = NOWHERE;
-        ch->player_specials->travel_timer = 0;
-        ch->player_specials->travel_type = 0;
-        ch->player_specials->travel_locale = 0;
-      }
-      continue;
-    }
-  }
+  (void)enter_transport_paid(ch, locale, type, here, 0);
 }
 
 int get_distance(struct char_data *ch, int locale, int here, int type)

@@ -18,6 +18,7 @@
 #include "ready_action.h"
 #include "quest/quest.h"
 #include "vessels/vessel_periodic.h"
+#include "vessels/transport_jobs.h"
 #include "wilderness/spatial_events.h"
 
 static struct domain_event_bus *runtime_bus;
@@ -90,6 +91,8 @@ enum domain_event_status domain_event_runtime_init(void)
   if (status == DOMAIN_EVENT_OK)
     status = character_periodic_register_handlers(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
+    status = transport_jobs_init(runtime_bus);
+  if (status == DOMAIN_EVENT_OK)
     status = quest_register_commit_handlers(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
     status = spatial_event_register_handlers(runtime_bus);
@@ -99,6 +102,7 @@ enum domain_event_status domain_event_runtime_init(void)
     status = domain_event_seal(runtime_bus);
   if (status != DOMAIN_EVENT_OK)
   {
+    transport_jobs_shutdown();
     primary_activity_manager_shutdown();
     active_world_shutdown();
     combat_encounter_runtime_shutdown();
@@ -124,6 +128,7 @@ enum domain_event_status domain_event_runtime_shutdown(void)
 
   if (runtime_bus == NULL)
     return DOMAIN_EVENT_OK;
+  transport_jobs_shutdown();
   primary_activity_manager_shutdown();
   active_world_shutdown();
   combat_encounter_runtime_shutdown();

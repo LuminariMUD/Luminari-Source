@@ -90,8 +90,8 @@ Status: under review.
 The native clock is complete, but feature discovery/countdowns remain. See `docs/systems/EVENT_MECHANISM_INVENTORY.md` for their current owners and cadence.
 
 - [ ] Replace descriptor polling for crafting (`craft_update`) and self-buff sequences with owned activities; preserve cancellation, material costs, timing and offline policy.
-- [ ] Replace transport `travel_tickdown` with passenger/job deadlines; transit need not occupy a passenger's primary activity.
-- [ ] Give supply refresh an explicit online/offline policy and next deadline or justified lazy timestamp.
+- [x] Replace transport `travel_tickdown` with passenger/job deadlines; transit need not occupy a passenger's primary activity.
+- [x] Give supply refresh an explicit online/offline policy and next deadline or justified lazy timestamp.
 - [ ] Replace `movingRoomList` countdown discovery with owned mover deadlines.
 - [ ] Give active staff events named agendas for delay, expiry, portals and population replenishment.
 - [ ] Keep inactive owners unscheduled; test logout, copyover, owner extraction, restart reconstruction and admission failure; expose semantic reasons in `eventdebug`.
@@ -303,3 +303,61 @@ Other #105 research retained for the next work:
 #111 has declared thresholds but no final-revision latency/RSS measurements.
 #112 retains archival SQL; production inventory and retirement approvals are
 not inferred from the empty local database.
+
+## Native transport implementation checkpoint
+
+Transport now uses the existing event_runtime with a named, character-owned
+`transport.arrival` deadline. The descriptor-wide travel_tickdown scan is
+removed. This is background ownership: it can coexist with a primary activity
+without creating another action allowance or scheduler.
+
+- Group jobs are admitted before charging a fare or moving passengers. Failed
+  admission cancels only jobs admitted by that attempt. Passenger and room
+  identities are resolved across callbacks; a replacement room cannot inherit
+  an old trip.
+- Runtime state holds generation-checked passenger, transit and destination
+  handles. The versioned `Trv1` player record stores destination vnum, remaining
+  seconds, transport type and locale. Room-array indexes are not persisted.
+- Disconnect snapshots remaining time and cancels the event. Login, reconnect
+  and copyover reconstruct it. Offline time pauses travel. Old transit saves
+  without trip state retain the existing emergency-return behavior.
+- Committed relocation outside the transit room cancels the journey. Character
+  cleanup and runtime shutdown release jobs through native cancellation. ETA
+  comes from the native deadline. Missing destinations report a staff-assistance
+  message instead of moving into a recycled room.
+- Production-linked tests cover deadline arrival, coexistence with primary
+  activity, offline pause/resume, scripted relocation, destination generation
+  replacement, real player-file load/save, and group fare/admission rollback.
+
+The installer integration test also now waits for its background helper to
+exec the immutable release before inspecting /proc. Its cleanup is bounded;
+this fixes an observed launch race and indefinite wait during validation.
+
+Remaining #105 work is buff coordination, moving rooms and staff events.
+The other outstanding issue work and performance/release gates above remain
+open; transport does not complete the assigned batch.
+
+Buff continuation trace for the next implementation:
+
+- Reuse DOMAIN_EVENT_ACTIVITY_TRANSITIONED. activity_manager.c publishes the
+  terminal transition after detaching ownership and running completion/ended
+  callbacks. A continuation should match the exact casting activity ID and
+  enqueue its next native wakeup, never cast reentrantly from publication.
+- Timed casting already validates target, concentration, interruption and
+  resources through start_casting_activity and do_gen_cast/do_manifest. Buff
+  coordination must keep those entry points authoritative.
+- spell_parser.c currently mutates GET_BUFF_TIMER for augmentation and Fabricate
+  Focus. Remove this duplicate estimate when actual casting completion drives
+  continuation; preserve deliberate inter-spell pacing and rapid-buff policy.
+- GET_BUFF_TARGET is currently a raw character pointer; extraction scans player
+  membership in char_from_buff_targets. Use a stable selected target identity
+  and stop on lost/moved targets rather than silently casting on self. Audit
+  the buff target command, including its unreachable empty-target branch.
+- Validate the slot bound before GET_BUFF indexing. Validate the target before
+  setting IS_BUFFING. Disconnect/restart policy must be explicit; saved buff
+  lists are independent of an active sequence.
+
+Transport checkpoint validation (2026-09-06): final `make -j10 test` passed,
+including 1,151 gameplay cases and the installer/parser/monitor checks, with
+no compiler warnings. `make install` succeeded afterward. No game server was
+restarted. Branch remains `fix/open-issue-repairs`, based on master.

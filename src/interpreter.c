@@ -13,6 +13,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "vessels/transport_jobs.h"
 #include "utils.h"
 #include "spec/spec_dispatch.h"
 #include "comm.h"
@@ -7361,6 +7362,7 @@ static int perform_dupe_check(struct descriptor_data *d)
   STATE(d) = CON_PLAYING;
   character_periodic_sync(d->character);
   resume_craft_activity(d->character);
+  transport_job_resume(d->character);
   MXPSendTag(d, "<VERSION>");
 
   switch (mode)
@@ -9760,6 +9762,7 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_PLAYING;
       character_periodic_sync(d->character);
       resume_craft_activity(d->character);
+      transport_job_resume(d->character);
       // MXPSendTag( d, "<VERSION>" ); this is already called in perform_dupe_check() before we get here, shouldn't be needed here.. -Nashak
       if (GET_LEVEL(d->character) == 0)
       {

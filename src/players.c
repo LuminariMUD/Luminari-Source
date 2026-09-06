@@ -11,6 +11,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "vessels/transport_jobs.h"
 #include "utils.h"
 #include "db.h"
 #include "db_init.h"
@@ -1967,7 +1968,22 @@ int load_char(const char *name, struct char_data *ch)
         break;
 
       case 'T':
-        if (!strcmp(tag, "Tmpl"))
+        if (!strcmp(tag, "Trv1"))
+        {
+          long long destination, seconds, type, locale;
+
+          if (sscanf(line, "%lld %lld %lld %lld", &destination, &seconds, &type, &locale) == 4 &&
+              destination >= 0 && destination <= INT_MAX && seconds >= 0 && seconds <= INT_MAX &&
+              type >= 1 && type <= 4 && locale >= 0 && locale <= INT_MAX &&
+              transport_locale_valid((int)type, (int)locale))
+          {
+            ch->player_specials->destination = (int)destination;
+            ch->player_specials->travel_timer = (int)seconds;
+            ch->player_specials->travel_type = (int)type;
+            ch->player_specials->travel_locale = (int)locale;
+          }
+        }
+        else if (!strcmp(tag, "Tmpl"))
           GET_TEMPLATE(ch) = atoi(line);
         else if (!strcmp(tag, "Tlpt"))
           GET_TALENT_POINTS(ch) = atoi(line);
@@ -3225,6 +3241,11 @@ bool save_char_checked(struct char_data *ch, int mode)
   for (i = 0; i < MAX_OBJ_AFFECT; i++)
     BUFFER_WRITE("%d %d\n", i, GET_CRAFT(ch).motes_required[i]);
   BUFFER_WRITE("-1\n");
+
+  if (transport_locale_valid(ch->player_specials->travel_type, ch->player_specials->travel_locale))
+    BUFFER_WRITE("Trv1: %d %d %d %d\n", ch->player_specials->destination,
+                 transport_remaining_seconds(ch), ch->player_specials->travel_type,
+                 ch->player_specials->travel_locale);
 
   // Save Craft Materials
   BUFFER_WRITE("CrMa:\n");

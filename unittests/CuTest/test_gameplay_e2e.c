@@ -23,6 +23,9 @@
 #include "../../src/combat/fight.h"
 #include "../../src/olc/genwld.h"
 #include "../../src/olc/genobj.h"
+#include "../../src/vessels/transport.h"
+#include "../../src/vessels/transport_jobs.h"
+#include "../../src/vessels/routing.h"
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"
 #include "../../src/mob/mob_utils.h"
@@ -2426,4 +2429,241 @@ void Test_gameplay_object_editor_copy_preserves_live_transfer_state(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_HOLDER_BAG, live.transfer_bag.kind);
   CuAssertIntEquals(tc, 2, live.transfer_bag.slot);
   CuAssertTrue(tc, !live.transfer_disposed && !live.transfer_extracting);
+}
+
+static void verify_native_transport(CuTest *tc, int mode)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct primary_activity_definition activity = {0};
+  unsigned long saved_pulse = pulse;
+  game_event_type_id_t type;
+  size_t live = 99;
+  bool admitted, duplicate_rejected, primary_allowed, paused = true;
+  int i, remaining, destination;
+
+  begin_gameplay_fixture(&f);
+  f.rooms[1].number = 66700;
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.player.name = "transport fixture";
+  for (i = 0; i < MAX_CURRENT_QUESTS; i++)
+    GET_QUEST(&f.actor, i) = NOTHING;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &f.actor;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  f.actor.desc = &descriptor;
+  admitted = transport_job_start(&f.actor, 1, 0, 3, TRAVEL_CARRIAGE, 0);
+  duplicate_rejected = !transport_job_start(&f.actor, 1, 0, 100, TRAVEL_CARRIAGE, 0);
+  char_from_room(&f.actor);
+  char_to_room_cause(&f.actor, 1, &f.actor, DOMAIN_RELOCATION_TRANSPORT, -1);
+  activity.type = PRIMARY_ACTIVITY_TEST;
+  activity.display_name = "passenger activity";
+  activity.total_steps = 100;
+  activity.step_interval = 100 * PASSES_PER_SEC;
+  primary_allowed = primary_activity_start(&f.actor, domain_event_room_handle(1), &activity);
+  pulse += PASSES_PER_SEC;
+  event_test_advance();
+  remaining = transport_remaining_seconds(&f.actor);
+  if (mode == 1)
+  {
+    transport_job_cancel(&f.actor, true);
+    f.actor.desc = NULL;
+    pulse += 20 * PASSES_PER_SEC;
+    event_test_advance();
+    paused = transport_remaining_seconds(&f.actor) == 2 && IN_ROOM(&f.actor) == 1;
+    f.actor.desc = &descriptor;
+    transport_job_resume(&f.actor);
+  }
+  else if (mode == 2)
+  {
+    char_from_room(&f.actor);
+    char_to_room_cause(&f.actor, 0, NULL, DOMAIN_RELOCATION_SCRIPT, -1);
+  }
+  else if (mode == 3)
+    f.rooms[0].event_owner_generation++;
+  pulse += 2 * PASSES_PER_SEC;
+  event_test_advance();
+  destination = IN_ROOM(&f.actor);
+  event_runtime_find_type("transport.arrival", &type);
+  event_runtime_type_live_count(type, &live);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  ProtocolDestroy(descriptor.pProtocol);
+  f.actor.desc = NULL;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&f);
+
+  CuAssertTrue(tc, admitted && duplicate_rejected);
+  CuAssertTrue(tc, primary_allowed);
+  CuAssertIntEquals(tc, 2, remaining);
+  CuAssertTrue(tc, paused);
+  CuAssertIntEquals(tc, mode == 3 ? 1 : 0, destination);
+  CuAssertIntEquals(tc, 0, (int)live);
+  CuAssertPtrEquals(tc, NULL, specials.transport_job);
+  if (mode != 3)
+    CuAssertIntEquals(tc, 0, specials.travel_type);
+}
+
+void Test_gameplay_transport_is_an_owned_deadline_not_a_primary_activity(CuTest *tc)
+{
+  verify_native_transport(tc, 0);
+}
+
+void Test_gameplay_transport_pauses_offline_and_reconstructs_its_deadline(CuTest *tc)
+{
+  verify_native_transport(tc, 1);
+}
+
+void Test_gameplay_transport_cancels_after_scripted_relocation(CuTest *tc)
+{
+  verify_native_transport(tc, 2);
+}
+
+void Test_gameplay_transport_rejects_a_recycled_destination(CuTest *tc)
+{
+  verify_native_transport(tc, 3);
+}
+
+void Test_gameplay_transport_loads_a_versioned_stable_destination(CuTest *tc)
+{
+  struct player_index_element index[1] = {0};
+  struct player_index_element *saved_table = player_table;
+  int saved_top = top_of_p_table;
+  struct char_data *loaded = new_char();
+  char directory[PATH_MAX], filename[MAX_FILEPATH], name[32];
+  FILE *file;
+  int result, destination, remaining, type, locale, directory_restored;
+  bool unscheduled, saved = false;
+  char line[256];
+
+  snprintf(name, sizeof(name), "Zztr%ld", (long)getpid());
+  index[0].name = name;
+  index[0].id = 4247;
+  player_table = index;
+  top_of_p_table = 0;
+  CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
+  CuAssertIntEquals(tc, 0, chdir("lib"));
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
+  file = fopen(filename, "w");
+  CuAssertPtrNotNull(tc, file);
+  fprintf(file, "Name: %s\nId  : 4247\nLevl: 7\nTrv1: 103000 17 1 0\n", name);
+  fclose(file);
+  result = load_char(name, loaded);
+  destination = loaded->player_specials->destination;
+  remaining = transport_remaining_seconds(loaded);
+  type = loaded->player_specials->travel_type;
+  locale = loaded->player_specials->travel_locale;
+  unscheduled = loaded->player_specials->transport_job == NULL;
+  save_char(loaded, 0);
+  file = fopen(filename, "r");
+  if (file != NULL)
+  {
+    while (fgets(line, sizeof(line), file) != NULL)
+      if (strcmp(line, "Trv1: 103000 17 1 0\n") == 0)
+        saved = true;
+    fclose(file);
+  }
+  unlink(filename);
+  directory_restored = chdir(directory);
+  free_char(loaded);
+  player_table = saved_table;
+  top_of_p_table = saved_top;
+
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertIntEquals(tc, 103000, destination);
+  CuAssertIntEquals(tc, 17, remaining);
+  CuAssertIntEquals(tc, TRAVEL_CARRIAGE, type);
+  CuAssertIntEquals(tc, 0, locale);
+  CuAssertTrue(tc, unscheduled && saved);
+  CuAssertIntEquals(tc, 0, directory_restored);
+}
+
+void Test_gameplay_transport_group_admission_precedes_fare_and_departure(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct room_data rooms[3] = {0};
+  struct player_special_data actor_specials = {0}, companion_specials = {0};
+  struct descriptor_data descriptors[2] = {0};
+  struct group_data group = {0};
+  struct follow_type follower = {0};
+  struct char_data *passenger;
+  game_event_type_id_t type;
+  size_t live = 0;
+  bool rolled_back;
+  int i, j, fare, actor_room, companion_room, remaining_gold;
+
+  begin_gameplay_fixture(&f);
+  rooms[0].number = 66700;
+  rooms[0].zone = 0;
+  rooms[0].sector_type = SECT_INSIDE;
+  rooms[0].name = strdup("Private transit");
+  rooms[0].description = strdup("A private transport fixture.\r\n");
+  rooms[1] = f.rooms[0];
+  rooms[1].number = 103000;
+  rooms[2] = f.rooms[1];
+  rooms[2].number = 145387;
+  world = rooms;
+  top_of_world = 2;
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  for (i = 0; i < 2; i++)
+  {
+    passenger = i == 0 ? &f.actor : &f.victim;
+    REMOVE_BIT_AR(MOB_FLAGS(passenger), MOB_ISNPC);
+    passenger->player_specials = i == 0 ? &actor_specials : &companion_specials;
+    passenger->player.name = i == 0 ? "transport leader" : "transport companion";
+    passenger->player.title = "";
+    IN_ROOM(passenger) = 1;
+    for (j = 0; j < MAX_CURRENT_QUESTS; j++)
+      GET_QUEST(passenger, j) = NOTHING;
+    descriptors[i].output = descriptors[i].small_outbuf;
+    descriptors[i].bufspace = SMALL_BUFSIZE - 1;
+    descriptors[i].character = passenger;
+    descriptors[i].pProtocol = ProtocolCreate();
+    descriptors[i].connected = CON_PLAYING;
+    passenger->desc = &descriptors[i];
+    passenger->group = &group;
+  }
+  follower.follower = &f.victim;
+  f.actor.followers = &follower;
+  f.victim.master = &f.actor;
+  GET_GOLD(&f.actor) = 100;
+  fare = get_carriage_locale_cost(1);
+  /* A busy leader makes the second admission fail after the follower was admitted. */
+  transport_job_start(&f.actor, 0, 2, 50, TRAVEL_CARRIAGE, 1);
+  do_carriage(&f.actor, "mosswood village", 0, 0);
+  rolled_back = companion_specials.transport_job == NULL && actor_specials.transport_job != NULL &&
+                GET_GOLD(&f.actor) == 100 && IN_ROOM(&f.actor) == 1 && IN_ROOM(&f.victim) == 1;
+  transport_job_cancel(&f.actor, false);
+  do_carriage(&f.actor, "mosswood village", 0, 0);
+  remaining_gold = GET_GOLD(&f.actor);
+  actor_room = IN_ROOM(&f.actor);
+  companion_room = IN_ROOM(&f.victim);
+  event_runtime_find_type("transport.arrival", &type);
+  event_runtime_type_live_count(type, &live);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  for (i = 0; i < 2; i++)
+    ProtocolDestroy(descriptors[i].pProtocol);
+  f.actor.desc = f.victim.desc = NULL;
+  f.actor.group = f.victim.group = NULL;
+  f.actor.followers = NULL;
+  f.victim.master = NULL;
+  free(rooms[0].name);
+  free(rooms[0].description);
+  end_gameplay_fixture(&f);
+
+  CuAssertTrue(tc, rolled_back);
+  CuAssertIntEquals(tc, 100 - fare, remaining_gold);
+  CuAssertIntEquals(tc, 0, actor_room);
+  CuAssertIntEquals(tc, 0, companion_room);
+  CuAssertIntEquals(tc, 2, (int)live);
 }

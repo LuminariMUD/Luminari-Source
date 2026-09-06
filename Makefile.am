@@ -140,6 +140,8 @@ luminari_SOURCES = \
 	src/point_update_periodic.h \
 	src/vessels/vessel_periodic.c \
 	src/vessels/vessel_periodic.h \
+	src/vessels/transport_jobs.c \
+	src/vessels/transport_jobs.h \
 	src/periodic_owners.c \
 	src/periodic_owners.h \
 	src/domain_events.c \

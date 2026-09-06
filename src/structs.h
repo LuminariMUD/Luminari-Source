@@ -7015,7 +7015,8 @@ struct player_special_data
   char *new_mail_subject;
   char *new_mail_content;
   byte has_eldritch_knight_spell_critical;
-  int destination;            // used for carriage and sailing systems
+  struct transport_job *transport_job; /* Runtime-owned arrival, never serialized. */
+  int destination;                     /* Stable destination vnum for carriage and sailing. */
   int travel_timer;           // used for carriage and sailing systems
   int travel_type;            // used for carriage and sailing systems
   int travel_locale;          // used for carriage and sailing systems
