@@ -24,6 +24,7 @@
 #include "../../src/domain_event_types.h"
 #include "../../src/domain_events.h"
 #include "../../src/domain_event_runtime.h"
+#include "../../src/domain_object_transfer.h"
 #include "../../src/domain_event_world.h"
 #include "../../src/event_runtime.h"
 #include "../../src/activity_manager.h"
@@ -1023,7 +1024,7 @@ void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
   CuAssertPtrNotNull(tc, domain_event_runtime_bus());
   domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);
   CuAssertIntEquals(tc, 10, (int)stats.registered_type_count);
-  CuAssertIntEquals(tc, 15, (int)stats.registered_handler_count);
+  CuAssertIntEquals(tc, 17, (int)stats.registered_handler_count);
   CuAssertTrue(tc, stats.sealed);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_character_died(&victim, NULL));
   domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);
@@ -1585,12 +1586,14 @@ void TestActiveWorldReactionsAndScavengingAreDemandDriven(CuTest *tc)
 
   room.contents = &object;
   IN_ROOM(&object) = 0;
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_object_moved(&object, NOWHERE, 0));
+  domain_object_placed(&object);
   CuAssertIntEquals(tc, 1, (int)active_world_mobile_reason_count(MOBILE_WORK_SCAVENGE));
   CuAssertIntEquals(tc, 1, event_queue_depth());
+  domain_object_detaching(&object);
   room.contents = NULL;
   IN_ROOM(&object) = NOWHERE;
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_object_moved(&object, 0, NOWHERE));
+  object.carried_by = &player;
+  domain_object_placed(&object);
   CuAssertIntEquals(tc, 0, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
   CuAssertIntEquals(tc, 0, (int)active_world_mobile_reason_count(MOBILE_WORK_SCAVENGE));
   CuAssertIntEquals(tc, 0, event_queue_depth());
@@ -3824,4 +3827,110 @@ void TestDomainRawAndScriptDamagePublishActualLossOnce(CuTest *tc)
   event_free_all();
   domain_event_world_forget_character(&actor);
   character_list = saved_characters;
+}
+
+struct relocation_capture
+{
+  unsigned int count;
+  struct domain_character_moved last;
+};
+
+static void capture_relocation(const struct domain_event_context *context, void *data)
+{
+  struct relocation_capture *capture = data;
+
+  capture->count++;
+  capture->last = *(const struct domain_character_moved *)context->payload;
+}
+
+void TestRelocationPublishesFinalOutcomeAndNestedCause(CuTest *tc)
+{
+  struct room_data rooms[3] = {0};
+  struct room_data *saved_world = world;
+  room_rnum saved_top = top_of_world;
+  struct char_data actor, target;
+  struct domain_relocation_operation outer, inner;
+  struct domain_event_subscription_config subscription = {0};
+  struct domain_event_subscription_handle subscription_handle;
+  struct relocation_capture capture = {0};
+  struct domain_entity_handle identity;
+
+  clear_char(&actor);
+  clear_char(&target);
+  rooms[0].number = 100;
+  rooms[1].number = 101;
+  rooms[2].number = 102;
+  world = rooms;
+  top_of_world = 2;
+  event_free_all();
+  domain_event_world_shutdown();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  identity = domain_event_character_handle(&target);
+  subscription.type = DOMAIN_EVENT_CHARACTER_MOVED;
+  subscription.owner = domain_event_character_handle(&actor);
+  subscription.topic.role = DOMAIN_EVENT_TOPIC_SUBJECT;
+  subscription.topic.entity = identity;
+  subscription.identity = "test.relocation-outcome";
+  subscription.handler = capture_relocation;
+  subscription.handler_context = &capture;
+  CuAssertIntEquals(
+      tc, DOMAIN_EVENT_OK,
+      domain_event_subscribe(domain_event_runtime_bus(), &subscription, &subscription_handle));
+
+  IN_ROOM(&target) = 0;
+  domain_relocation_begin(&outer, &target, &target, DOMAIN_RELOCATION_WALK, EAST);
+  IN_ROOM(&target) = 1;
+  domain_relocation_placed(&target, domain_event_room_handle(0), 1, NULL, DOMAIN_RELOCATION_UNKNOWN,
+                           -1);
+  CuAssertIntEquals(tc, 0, capture.count);
+  /* Entry veto rolls provisional placement back; neither half is a fact. */
+  IN_ROOM(&target) = 0;
+  domain_relocation_placed(&target, domain_event_room_handle(1), 0, NULL, DOMAIN_RELOCATION_UNKNOWN,
+                           -1);
+  domain_relocation_finish(&outer);
+  CuAssertIntEquals(tc, 0, capture.count);
+
+  domain_relocation_begin(&outer, &target, &target, DOMAIN_RELOCATION_WALK, EAST);
+  IN_ROOM(&target) = 1;
+  domain_relocation_placed(&target, domain_event_room_handle(0), 1, NULL, DOMAIN_RELOCATION_UNKNOWN,
+                           -1);
+  domain_relocation_finish(&outer);
+  CuAssertIntEquals(tc, 1, capture.count);
+  CuAssertIntEquals(tc, EAST, capture.last.direction);
+  CuAssertIntEquals(tc, DOMAIN_RELOCATION_WALK, capture.last.cause);
+  CuAssertTrue(tc, domain_entity_handle_equal(domain_event_room_handle(0), capture.last.from_room));
+  CuAssertTrue(tc, domain_entity_handle_equal(domain_event_room_handle(1), capture.last.to_room));
+
+  domain_relocation_begin(&outer, &target, &target, DOMAIN_RELOCATION_WALK, WEST);
+  IN_ROOM(&target) = 0;
+  domain_relocation_begin(&inner, &target, &actor, DOMAIN_RELOCATION_SCRIPT, -1);
+  IN_ROOM(&target) = 2;
+  domain_relocation_placed(&target, domain_event_room_handle(0), 2, &actor,
+                           DOMAIN_RELOCATION_SCRIPT, -1);
+  domain_relocation_finish(&inner);
+  CuAssertIntEquals(tc, 1, capture.count);
+  domain_relocation_finish(&outer);
+  CuAssertIntEquals(tc, 2, capture.count);
+  CuAssertIntEquals(tc, DOMAIN_RELOCATION_SCRIPT, capture.last.cause);
+  CuAssertIntEquals(tc, -1, capture.last.direction);
+  CuAssertTrue(
+      tc, domain_entity_handle_equal(domain_event_character_handle(&actor), capture.last.actor));
+  CuAssertTrue(tc, domain_entity_handle_equal(domain_event_room_handle(1), capture.last.from_room));
+  CuAssertTrue(tc, domain_entity_handle_equal(domain_event_room_handle(2), capture.last.to_room));
+
+  domain_relocation_begin(&outer, &target, &actor, DOMAIN_RELOCATION_FORCED, NORTH);
+  domain_event_world_forget_character(&target);
+  /* Address reuse is a different incarnation and cannot finish the old move. */
+  clear_char(&target);
+  CuAssertTrue(tc, !domain_entity_handle_equal(identity, domain_event_character_handle(&target)));
+  domain_relocation_finish(&outer);
+  CuAssertIntEquals(tc, 2, capture.count);
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  domain_event_world_shutdown();
+  world = saved_world;
+  top_of_world = saved_top;
 }

@@ -21,6 +21,7 @@
 #include "account.h"
 #include "magic/spells.h"
 #include "handler.h"
+#include "domain_object_transfer.h"
 #include "comms/mail.h"
 #include "screen.h"
 #include "olc/genolc.h"
@@ -6381,7 +6382,18 @@ static uint32_t command_activity_capabilities(const struct command_info *command
 /* This is the actual command interpreter called from game_loop() in comm.c
  * It makes sure you are the proper level and position to execute the command,
  * then calls the appropriate function. */
+static void command_interpreter_impl(struct char_data *ch, char *argument);
+
 void command_interpreter(struct char_data *ch, char *argument)
+{
+  struct domain_transfer_context context;
+
+  domain_transfer_context_begin(&context, ch, DOMAIN_TRANSFER_COMMAND);
+  command_interpreter_impl(ch, argument);
+  domain_transfer_context_finish(&context);
+}
+
+static void command_interpreter_impl(struct char_data *ch, char *argument)
 {
   int cmd = 0, length = 0;
   char *line = NULL;
@@ -7511,7 +7523,7 @@ int enter_player_game(struct descriptor_data *d)
   character_list = d->character;
   affected_registry_attach(d->character);
   point_update_character_sync(d->character);
-  char_to_room(d->character, load_room);
+  char_to_room_cause(d->character, load_room, NULL, DOMAIN_RELOCATION_RESTORE, -1);
   load_result = Crash_load(d->character);
 
   create_group(d->character);

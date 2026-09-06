@@ -29,6 +29,7 @@
 #include "dgscript/dg_event.h"
 #include "domain_event_runtime.h"
 #include "domain_event_world.h"
+#include "domain_object_transfer.h"
 #include "activity_manager.h"
 #include "active_world.h"
 #include "periodic_owners.h"
@@ -5606,7 +5607,18 @@ static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
   }
 
 /* execute the reset command table of a given zone */
+static void reset_zone_transfer_impl(zone_rnum zone);
+
 void reset_zone(zone_rnum zone)
+{
+  struct domain_transfer_context context;
+
+  domain_transfer_context_begin(&context, NULL, DOMAIN_TRANSFER_RESET);
+  reset_zone_transfer_impl(zone);
+  domain_transfer_context_finish(&context);
+}
+
+static void reset_zone_transfer_impl(zone_rnum zone)
 {
   int cmd_no = 0, jump = 0, total_rooms = 0, num_chests = 0, max_chests = 0;
   bool has_random_chests = false, has_random_traps = false, rol_last_mob_load = false;
@@ -5703,7 +5715,7 @@ void reset_zone(zone_rnum zone)
           Y_LOC(mob) = world[ZCMD.arg3].coords[1];
         }
 
-        char_to_room(mob, ZCMD.arg3);
+        char_to_room_cause(mob, ZCMD.arg3, NULL, DOMAIN_RELOCATION_SPAWN, -1);
         load_mtrigger(mob);
         set_mob_grouping(mob); // attempts to group AFF_GROUP mobs (utils.c)
         tmob = mob;
@@ -7240,6 +7252,8 @@ void free_obj_special_abilities(struct obj_special_ability *list)
 
 void free_obj(struct obj_data *obj)
 {
+  obj->transfer_extracting = true;
+  domain_object_disposed(obj);
   domain_event_world_forget_object(obj);
   point_update_object_forget(obj);
   autoproc_registry_remove(obj);
@@ -7484,7 +7498,7 @@ void clear_char(struct char_data *ch)
   GET_PFILEPOS(ch) = -1;
   GET_MOB_RNUM(ch) = NOBODY;
   GET_WAS_IN(ch) = NOWHERE;
-  ch->domain_previous_room = NOWHERE;
+  memset(&ch->domain_previous_room, 0, sizeof(ch->domain_previous_room));
   GET_POS(ch) = POS_STANDING;
   ch->mob_specials.default_pos = POS_STANDING;
   ch->events = NULL;

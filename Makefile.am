@@ -149,6 +149,8 @@ luminari_SOURCES = \
 	src/domain_event_world.h \
 	src/domain_event_types.h \
 	src/domain_event_runtime.c \
+	src/domain_object_transfer.c \
+	src/domain_object_transfer.h \
 	src/domain_event_runtime.h \
 	src/event_debug.c \
 	src/event_debug.h \
@@ -850,6 +852,7 @@ EXTRA_DIST = \
 	lib/world/vessel_harbor/700.zon \
 	sql/components/character_rename_transactional_schema.sql \
 	sql/components/help_arcane_mark_entries.sql \
+	sql/components/help_nature_survival_entries.sql \
 	sql/components/help_command_sweep_entries.sql \
 	sql/components/help_dg_damage_trigger.sql \
 	sql/components/help_rol_feat_entries.sql \

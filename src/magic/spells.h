@@ -1570,7 +1570,7 @@
 #define ABILITY_BOARDING 27     /* Boarding actions and defense aboard vessels */
 #define ABILITY_SENSE_MOTIVE 28 /* sense motive, matches pfsrd */
 #define ABILITY_INSIGHT ABILITY_SENSE_MOTIVE
-#define ABILITY_SURVIVAL 29 /* survival, matches pfsrd */
+#define ABILITY_SURVIVAL 29 /* Persisted Nature slot; legacy Survival identifier. */
 #define ABILITY_NATURE ABILITY_SURVIVAL
 #define ABILITY_UNUSED_4 30         /* unused, used to be swim */
 #define ABILITY_USE_MAGIC_DEVICE 31 /* use magic device, matches pfsrd */

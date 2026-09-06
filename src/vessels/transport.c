@@ -562,7 +562,7 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
     }
 
     char_from_room(tch);
-    char_to_room(tch, taxi);
+    char_to_room_cause(tch, taxi, ch, DOMAIN_RELOCATION_TRANSPORT, -1);
     char_pets_to_char_loc(tch);
     tch->player_specials->destination = to_room;
     // need to take care of this part still for overland flight spell
@@ -589,7 +589,7 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
   }
 
   char_from_room(ch);
-  char_to_room(ch, taxi);
+  char_to_room_cause(ch, taxi, ch, DOMAIN_RELOCATION_TRANSPORT, -1);
   char_pets_to_char_loc(ch);
   ch->player_specials->destination = to_room;
   ch->player_specials->travel_timer = get_travel_time(ch, 10, locale, here, type);
@@ -631,7 +631,7 @@ void travel_tickdown(void)
         continue;
       }
       char_from_room(ch);
-      char_to_room(ch, to_room);
+      char_to_room_cause(ch, to_room, ch, DOMAIN_RELOCATION_TRANSPORT, -1);
       char_pets_to_char_loc(ch);
       look_at_room(ch, 0);
       entry_memory_mtrigger(ch);
@@ -672,7 +672,7 @@ void travel_tickdown(void)
           Y_LOC(ch) = world[to_room].coords[1];
         }
 
-        char_to_room(ch, to_room);
+        char_to_room_cause(ch, to_room, ch, DOMAIN_RELOCATION_TRANSPORT, -1);
         char_pets_to_char_loc(ch);
         look_at_room(ch, 0);
         entry_memory_mtrigger(ch);

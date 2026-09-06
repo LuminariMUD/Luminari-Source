@@ -1305,7 +1305,7 @@ void define_inquisitor_perks(void)
   perk->effect_value = 2; /* double Survival modifier while tracking */
   perk->effect_modifier = 0;
   perk->special_description = strdup(
-      "Double your Survival modifier when tracking creatures; pairs well with Favored Terrain.");
+      "Double your Nature modifier when tracking creatures; pairs well with Favored Terrain.");
   perk->toggleable = false;
 
   /**************************************************************************
@@ -1367,7 +1367,7 @@ void define_inquisitor_perks(void)
   perk->effect_modifier = 0;
   perk->special_description =
       strdup("Choose one new favored terrain per rank. In favored terrains, you leave no trail "
-             "unless you choose to, and gain +2 per rank to Survival checks.");
+             "unless you choose to, and gain +2 per rank to Nature checks.");
   perk->toggleable = false;
 
   /* Tier 2: Hunter's Endurance (1 rank, 2 points) */
@@ -1445,7 +1445,7 @@ void define_inquisitor_perks(void)
   perk->effect_value = 1;
   perk->effect_modifier = 0;
   perk->special_description = strdup("You can track creatures at extreme distances. Maximum "
-                                     "tracking distance: 50 + (Survival skill * 10) rooms.");
+                                     "tracking distance: 50 + (Nature skill * 10) rooms.");
 
   perk = &perk_list[PERK_INQUISITOR_INSTANT_DEATH];
   perk->id = PERK_INQUISITOR_INSTANT_DEATH;

@@ -232,6 +232,10 @@ extern const char *aq_flags[];    /* names for quest flags (quest.c) */
 extern const char *quest_types[]; /* named for quest types (quest.c) */
 #endif                            /* __QUEST_C__ */
 
+/* Committed movement and transfer consumers. */
+#include "domain_events.h"
+enum domain_event_status quest_register_commit_handlers(struct domain_event_bus *bus);
+
 #endif /* _QUEST_H_ */
 
 /* EOF */

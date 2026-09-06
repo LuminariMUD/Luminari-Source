@@ -20,6 +20,8 @@
 #include "comm.h"
 #include "screen.h"
 #include "quest.h"
+#include "domain_event_types.h"
+#include "domain_event_world.h"
 #include "act.h" /* for do_tell */
 #include "mudlim.h"
 #include "mud_event.h"
@@ -881,7 +883,8 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
   int found = TRUE, index = -1;
   house_rnum house_num = NOWHERE;
 
-  if (IS_NPC(ch))
+  if (ch == NULL || IS_NPC(ch) || ch->player_specials == NULL || aquest_table == NULL ||
+      total_quests == 0)
     return;
 
   for (index = 0; index < MAX_CURRENT_QUESTS; index++)
@@ -1019,6 +1022,7 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
         {
           generic_complete_quest(ch, index);
           extract_obj(object);
+          return; /* One physical delivery cannot be consumed twice. */
         }
       break;
 
@@ -2915,3 +2919,73 @@ void remove_duplicate_quests(struct char_data *ch)
 }
 
 /* EOF */
+
+/* Reward checks run only on the final committed state. Consumers must resolve
+ * again after another handler or a reward has had an opportunity to extract. */
+static void quest_committed_movement(const struct domain_event_context *context, void *data)
+{
+  const struct domain_character_moved *event = context->payload;
+  const int types[] = {AQ_ROOM_FIND, AQ_WILD_FIND, AQ_MOB_FIND, AQ_HOUSE_FIND};
+  struct char_data *ch;
+  size_t i;
+
+  (void)data;
+  for (i = 0; i < sizeof(types) / sizeof(types[0]); i++)
+  {
+    ch = domain_event_world_resolve_character(event->character);
+    if (ch == NULL || IS_NPC(ch) || IN_ROOM(ch) == NOWHERE ||
+        !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(ch)), event->to_room))
+      return;
+    autoquest_trigger_check(ch, NULL, NULL, 0, types[i]);
+  }
+}
+
+static void quest_committed_transfer(const struct domain_event_context *context, void *data)
+{
+  const struct domain_object_moved *event = context->payload;
+  struct char_data *receiver, *actor;
+  struct obj_data *object;
+
+  (void)data;
+  if (event->destination.kind != DOMAIN_HOLDER_INVENTORY &&
+      event->destination.kind != DOMAIN_HOLDER_BAG)
+    return;
+  receiver = domain_event_world_resolve_character(event->destination.entity);
+  object = domain_event_world_resolve_object(event->object);
+  if (receiver == NULL || object == NULL)
+    return;
+  if (event->destination.kind == DOMAIN_HOLDER_INVENTORY && object->carried_by != receiver)
+    return;
+  if (event->destination.kind == DOMAIN_HOLDER_BAG &&
+      (!domain_entity_handle_equal(object->transfer_bag.entity, event->destination.entity) ||
+       object->transfer_bag.slot != event->destination.slot))
+    return;
+  if (!IS_NPC(receiver))
+  {
+    autoquest_trigger_check(receiver, NULL, object, 0, AQ_OBJ_FIND);
+    return;
+  }
+  actor = domain_event_world_resolve_character(event->actor);
+  if (event->destination.kind == DOMAIN_HOLDER_INVENTORY &&
+      event->source.kind == DOMAIN_HOLDER_INVENTORY && actor != NULL && !IS_NPC(actor) &&
+      domain_entity_handle_equal(event->source.entity, event->actor))
+    autoquest_trigger_check(actor, receiver, object, 0, AQ_OBJ_RETURN);
+}
+
+enum domain_event_status quest_register_commit_handlers(struct domain_event_bus *bus)
+{
+  const struct domain_event_handler_config handlers[] = {
+      {DOMAIN_EVENT_CHARACTER_MOVED, "quest.committed-location", 80, quest_committed_movement,
+       NULL},
+      {DOMAIN_EVENT_OBJECT_MOVED, "quest.committed-transfer", 80, quest_committed_transfer, NULL}};
+  enum domain_event_status status;
+  size_t i;
+
+  for (i = 0; i < sizeof(handlers) / sizeof(handlers[0]); i++)
+  {
+    status = domain_event_register_handler(bus, &handlers[i]);
+    if (status != DOMAIN_EVENT_OK)
+      return status;
+  }
+  return DOMAIN_EVENT_OK;
+}

@@ -913,7 +913,7 @@ void Test_spec_native_services_and_movement_admission_are_present(CuTest *tc)
   free(source);
   source = NULL;
   CuAssertTrue(tc, spec_pulse_read_source("src/handler.c", &source));
-  CuAssertPtrNotNull(tc, strstr(source, "domain_event_runtime_character_moved("));
+  CuAssertPtrNotNull(tc, strstr(source, "domain_relocation_placed("));
   free(source);
 }
 

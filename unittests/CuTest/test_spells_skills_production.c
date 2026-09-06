@@ -1953,3 +1953,22 @@ void Test_player_toggle_messages_match_resulting_state(CuTest *tc)
   ch.desc = NULL;
   cleanup_test_descriptor(&descriptor);
 }
+
+void Test_nature_and_survival_lookup_preserve_one_skill_slot(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials = {0};
+
+  clear_char(&ch);
+  ch.player_specials = &specials;
+  CuAssertIntEquals(tc, 29, ABILITY_NATURE);
+  CuAssertIntEquals(tc, ABILITY_NATURE, ABILITY_SURVIVAL);
+  CuAssertIntEquals(tc, ABILITY_NATURE, find_ability_num("nature"));
+  CuAssertIntEquals(tc, ABILITY_NATURE, find_ability_num("SURVIVAL"));
+  CuAssertIntEquals(tc, ABILITY_NATURE, find_ability_num("surv"));
+  CuAssertIntEquals(tc, -1, find_ability_num("survivalist"));
+  CuAssertIntEquals(tc, -1, find_ability_num(""));
+  CuAssertIntEquals(tc, -1, find_ability_num(NULL));
+  SET_ABILITY(&ch, ABILITY_SURVIVAL, 7);
+  CuAssertIntEquals(tc, 7, GET_ABILITY(&ch, ABILITY_NATURE));
+}

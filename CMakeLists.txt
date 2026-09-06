@@ -558,6 +558,8 @@ set(SRC_C_FILES
     src/domain_event_world.c
     src/domain_event_world.h
     src/domain_event_types.h
+    src/domain_object_transfer.c
+    src/domain_object_transfer.h
     src/domain_event_runtime.c
     src/domain_event_runtime.h
     src/event_debug.c

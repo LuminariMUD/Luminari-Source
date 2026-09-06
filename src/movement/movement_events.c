@@ -15,6 +15,7 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
+#include "domain_event_world.h"
 #include "db.h"
 #include "magic/spells.h"
 #include "obj/house.h"
@@ -64,6 +65,8 @@ bool process_movement_events(struct char_data *ch, room_rnum was_in, room_rnum g
   int riding = RIDING(ch) ? 1 : 0;
   int ridden_by = RIDDEN_BY(ch) ? 1 : 0;
   int same_room = 0;
+  bool accepted;
+  struct domain_entity_handle identity = domain_event_character_handle(ch);
 
   /* Check mount/rider same room status */
   if (riding && RIDING(ch)->in_room == ch->in_room)
@@ -72,21 +75,37 @@ bool process_movement_events(struct char_data *ch, room_rnum was_in, room_rnum g
     same_room = 1;
 
   /* Check for walls that might block entry */
-  if (check_wall(ch, rev_dir[dir]))
+  accepted = !check_wall(ch, rev_dir[dir]);
+  ch = domain_event_world_resolve_character(identity);
+  if (ch == NULL || IN_ROOM(ch) != going_to)
+    return FALSE;
+  if (!accepted)
   {
     /* Wall blocks entry - send them back */
     char_from_room(ch);
+    X_LOC(ch) = world[was_in].coords[0];
+    Y_LOC(ch) = world[was_in].coords[1];
     char_to_room(ch, was_in);
     return FALSE;
   }
 
   /* Process room damage effects */
   process_room_damage(ch, going_to, riding, same_room);
+  ch = domain_event_world_resolve_character(identity);
+  if (ch == NULL || IN_ROOM(ch) != going_to)
+    return FALSE;
 
   /* Fire memory and greet triggers */
   entry_memory_mtrigger(ch);
+  ch = domain_event_world_resolve_character(identity);
+  if (ch == NULL || IN_ROOM(ch) != going_to)
+    return FALSE;
 
-  if (!greet_mtrigger(ch, dir))
+  accepted = greet_mtrigger(ch, dir);
+  ch = domain_event_world_resolve_character(identity);
+  if (ch == NULL || IN_ROOM(ch) != going_to)
+    return FALSE;
+  if (!accepted)
   {
     /* Greet trigger prevents entry - send them back */
     char_from_room(ch);
@@ -105,20 +124,35 @@ bool process_movement_events(struct char_data *ch, room_rnum was_in, room_rnum g
   else
   {
     greet_memory_mtrigger(ch);
+    ch = domain_event_world_resolve_character(identity);
+    if (ch == NULL || IN_ROOM(ch) != going_to)
+      return FALSE;
   }
 
   /* Handle NPC quest rooms */
   if (IS_NPC(ch))
     quest_room(ch);
+  ch = domain_event_world_resolve_character(identity);
+  if (ch == NULL || IN_ROOM(ch) != going_to)
+    return FALSE;
 
   /* Check for traps */
   process_trap_detection(ch);
+  ch = domain_event_world_resolve_character(identity);
+  if (ch == NULL || IN_ROOM(ch) != going_to)
+    return FALSE;
 
   /* Process wilderness events */
   process_wilderness_events(ch, was_in);
+  ch = domain_event_world_resolve_character(identity);
+  if (ch == NULL || IN_ROOM(ch) != going_to)
+    return FALSE;
 
   /* Process vampire weaknesses */
   process_vampire_weaknesses(ch);
+  ch = domain_event_world_resolve_character(identity);
+  if (ch == NULL || IN_ROOM(ch) != going_to)
+    return FALSE;
 
   return TRUE;
 }
@@ -133,38 +167,28 @@ bool process_movement_events(struct char_data *ch, room_rnum was_in, room_rnum g
  */
 void process_room_damage(struct char_data *ch, room_rnum room, int riding, int same_room)
 {
-  /* Spike stones damage */
-  if (ROOM_AFFECTED(room, RAFF_SPIKE_STONES))
-  {
-    if (riding && same_room)
-    {
-      /* Mount takes the damage */
-      damage(RIDING(ch), RIDING(ch), dice(4, 4), SPELL_SPIKE_STONES, DAM_EARTH, FALSE);
-      send_to_char(RIDING(ch), "You are impaled by large stone spikes as you enter the room.\r\n");
-    }
-    else
-    {
-      /* Character takes the damage */
-      damage(ch, ch, dice(4, 4), SPELL_SPIKE_STONES, DAM_EARTH, FALSE);
-      send_to_char(ch, "You are impaled by large stone spikes as you enter the room.\r\n");
-    }
-  }
+  struct domain_entity_handle actor = domain_event_character_handle(ch);
+  struct domain_entity_handle victim;
+  struct char_data *target;
+  int i;
+  static const int effects[] = {RAFF_SPIKE_STONES, RAFF_SPIKE_GROWTH};
+  static const int spells[] = {SPELL_SPIKE_STONES, SPELL_SPIKE_GROWTH};
+  static const int dice_count[] = {4, 2};
 
-  /* Spike growth damage */
-  if (ROOM_AFFECTED(room, RAFF_SPIKE_GROWTH))
+  for (i = 0; i < 2; i++)
   {
-    if (riding && same_room)
-    {
-      /* Mount takes the damage */
-      damage(RIDING(ch), RIDING(ch), dice(2, 4), SPELL_SPIKE_GROWTH, DAM_EARTH, FALSE);
-      send_to_char(RIDING(ch), "You are impaled by large spikes as you enter the room.\r\n");
-    }
-    else
-    {
-      /* Character takes the damage */
-      damage(ch, ch, dice(2, 4), SPELL_SPIKE_GROWTH, DAM_EARTH, FALSE);
-      send_to_char(ch, "You are impaled by large spikes as you enter the room.\r\n");
-    }
+    ch = domain_event_world_resolve_character(actor);
+    if (ch == NULL || IN_ROOM(ch) != room)
+      return;
+    if (!ROOM_AFFECTED(room, effects[i]))
+      continue;
+    target = riding && same_room && RIDING(ch) != NULL ? RIDING(ch) : ch;
+    victim = domain_event_character_handle(target);
+    damage(target, target, dice(dice_count[i], 4), spells[i], DAM_EARTH, FALSE);
+    target = domain_event_world_resolve_character(victim);
+    if (target != NULL)
+      send_to_char(target, "You are impaled by large %sspikes as you enter the room.\r\n",
+                   i == 0 ? "stone " : "");
   }
 }
 

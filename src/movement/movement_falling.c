@@ -15,6 +15,8 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
+#include "domain_event_world.h"
+#include "domain_event_runtime.h"
 #include "db.h"
 #include "magic/spells.h"
 #include "constants.h"
@@ -101,6 +103,7 @@ MUD_EVENT_CALLBACK(event_falling)
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
   int height_fallen = 0;
+  struct domain_relocation_operation relocation;
   char buf[50] = {'\0'};
 
   /* This is just a dummy check, but we'll do it anyway */
@@ -125,7 +128,12 @@ MUD_EVENT_CALLBACK(event_falling)
   send_to_char(ch, "AIYEE!!!  You have fallen %d feet!\r\n", height_fallen);
 
   /* already checked if there is a down exit, lets move the char down */
+  domain_relocation_begin(&relocation, ch, NULL, DOMAIN_RELOCATION_FORCED, DOWN);
   do_simple_move(ch, DOWN, FALSE);
+  domain_relocation_finish(&relocation);
+  ch = domain_event_world_resolve_character(relocation.event.character);
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE || char_has_mud_event(ch, eFALLING) != pMudEvent)
+    return 0;
   send_to_char(ch, "You fall into a new area!\r\n");
   act("$n appears from above, arms flailing helplessly as $e falls...", FALSE, ch, 0, 0, TO_ROOM);
   height_fallen += 20; // 20 feet per room right now

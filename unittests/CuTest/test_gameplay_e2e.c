@@ -10,6 +10,7 @@
 #include "../../src/ready_action.h"
 #include "../../src/activity_manager.h"
 #include "../../src/domain_event_runtime.h"
+#include "../../src/domain_object_transfer.h"
 #include "../../src/domain_event_types.h"
 #include "../../src/domain_event_world.h"
 #include "../../src/event_runtime.h"
@@ -24,6 +25,7 @@
 #include "../../src/interpreter.h"
 #include "../../src/mob/mob_utils.h"
 #include "../../src/quest/missions.h"
+#include "../../src/quest/quest.h"
 #include "../../src/movement/movement.h"
 #include "../../src/movement/door_state.h"
 #include "../../src/character/perks.h"
@@ -1992,4 +1994,291 @@ void Test_gameplay_readied_entry_strike_uses_single_reserved_attack(CuTest *tc)
 void Test_gameplay_readied_door_strike_uses_single_reserved_attack(CuTest *tc)
 {
   verify_readied_cast_outcome(tc, 6);
+}
+
+struct gameplay_move_trace
+{
+  int count;
+  struct domain_character_moved event;
+};
+
+static void gameplay_capture_move(const struct domain_event_context *context, void *data)
+{
+  struct gameplay_move_trace *trace = data;
+
+  trace->count++;
+  trace->event = *(const struct domain_character_moved *)context->payload;
+}
+
+void Test_gameplay_movement_fact_waits_for_entry_script_acceptance(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct script_data script = {0};
+  struct trig_data trigger = {0};
+  struct cmdlist_element command = {0};
+  struct domain_event_subscription_config config = {0};
+  struct domain_event_subscription_handle subscription;
+  struct gameplay_move_trace trace = {0};
+  int rejected, accepted, rejected_count, accepted_count, direction, cause;
+  room_rnum rejected_room, accepted_room;
+
+  begin_gameplay_fixture(&f);
+  event_free_all();
+  event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER);
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  config.type = DOMAIN_EVENT_CHARACTER_MOVED;
+  config.topic.role = DOMAIN_EVENT_TOPIC_SUBJECT;
+  config.topic.entity = domain_event_character_handle(&f.actor);
+  config.owner = domain_event_character_handle(&f.victim);
+  config.identity = "test.actual-move";
+  config.handler = gameplay_capture_move;
+  config.handler_context = &trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &config, &subscription));
+  script.types = WTRIG_ENTER;
+  script.trig_list = &trigger;
+  trigger.trigger_type = WTRIG_ENTER;
+  trigger.narg = 100;
+  trigger.name = (char *)"entry veto";
+  trigger.nr = NOTHING;
+  trigger.cmdlist = &command;
+  command.cmd = (char *)"return 0";
+  SCRIPT(&f.rooms[1]) = &script;
+
+  rejected = perform_move(&f.actor, NORTH, FALSE);
+  rejected_room = IN_ROOM(&f.actor);
+  rejected_count = trace.count;
+  SCRIPT(&f.rooms[1]) = NULL;
+  free_varlist(trigger.var_list);
+  accepted = perform_move(&f.actor, NORTH, FALSE);
+  accepted_room = IN_ROOM(&f.actor);
+  accepted_count = trace.count;
+  direction = trace.event.direction;
+  cause = trace.event.cause;
+
+  domain_event_runtime_shutdown();
+  event_free_all();
+  domain_event_world_shutdown();
+  end_gameplay_fixture(&f);
+  CuAssertIntEquals(tc, 0, rejected);
+  CuAssertIntEquals(tc, 0, rejected_room);
+  CuAssertIntEquals(tc, 0, rejected_count);
+  CuAssertIntEquals(tc, 1, accepted);
+  CuAssertIntEquals(tc, 1, accepted_room);
+  CuAssertIntEquals(tc, 1, accepted_count);
+  CuAssertIntEquals(tc, NORTH, direction);
+  CuAssertIntEquals(tc, DOMAIN_RELOCATION_WALK, cause);
+}
+
+struct gameplay_transfer_trace
+{
+  int count;
+  struct domain_object_moved events[16];
+};
+
+static void gameplay_capture_transfer(const struct domain_event_context *context, void *data)
+{
+  struct gameplay_transfer_trace *trace = data;
+
+  if (trace->count < 16)
+    trace->events[trace->count] = *(const struct domain_object_moved *)context->payload;
+  trace->count++;
+}
+
+void Test_gameplay_object_transfer_has_one_complete_holder_fact(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct obj_data *item, *container;
+  struct domain_event_subscription_config config = {0};
+  struct domain_event_subscription_handle subscription;
+  struct gameplay_transfer_trace trace = {0};
+  struct domain_object_transfer_operation operation;
+  bool gave, repeated;
+  int count;
+
+  begin_gameplay_fixture(&f);
+  event_free_all();
+  event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER);
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  item = create_obj();
+  container = create_obj();
+  item->name = strdup("parcel");
+  item->short_description = strdup("a parcel");
+  obj_to_room(item, 0);
+  config.type = DOMAIN_EVENT_OBJECT_MOVED;
+  config.topic.role = DOMAIN_EVENT_TOPIC_SUBJECT;
+  config.topic.entity = domain_event_object_handle(item);
+  config.owner = domain_event_character_handle(&f.actor);
+  config.identity = "test.transfer";
+  config.handler = gameplay_capture_transfer;
+  config.handler_context = &trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &config, &subscription));
+  obj_from_room(item);
+  CuAssertIntEquals(tc, 0, trace.count);
+  obj_to_char(item, &f.actor);
+  gave = perform_give(&f.actor, &f.victim, item);
+  repeated = perform_give(&f.actor, &f.victim, item);
+  obj_from_char(item);
+  obj_to_obj(item, container);
+  obj_from_obj(item);
+  obj_to_room(item, 1);
+  /* A rollback of provisional mutations has no committed transfer. */
+  domain_object_transfer_begin(&operation, item, &f.actor, DOMAIN_TRANSFER_COMMAND);
+  obj_from_room(item);
+  obj_to_char(item, &f.actor);
+  obj_from_char(item);
+  obj_to_room(item, 1);
+  domain_object_transfer_finish(&operation);
+  domain_object_transfer_finish(&operation);
+  count = trace.count;
+  extract_obj(item);
+  extract_obj(container);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  domain_event_world_shutdown();
+  end_gameplay_fixture(&f);
+
+  CuAssertTrue(tc, gave);
+  CuAssertTrue(tc, !repeated);
+  CuAssertIntEquals(tc, 4, count);
+  CuAssertIntEquals(tc, 5, trace.count);
+  CuAssertIntEquals(tc, DOMAIN_HOLDER_ROOM, trace.events[0].source.kind);
+  CuAssertIntEquals(tc, DOMAIN_HOLDER_INVENTORY, trace.events[0].destination.kind);
+  CuAssertIntEquals(tc, DOMAIN_HOLDER_INVENTORY, trace.events[1].source.kind);
+  CuAssertIntEquals(tc, DOMAIN_HOLDER_INVENTORY, trace.events[1].destination.kind);
+  CuAssertIntEquals(tc, DOMAIN_TRANSFER_COMMAND, trace.events[1].cause);
+  CuAssertIntEquals(tc, DOMAIN_HOLDER_CONTAINER, trace.events[2].destination.kind);
+  CuAssertIntEquals(tc, DOMAIN_HOLDER_CONTAINER, trace.events[3].source.kind);
+  CuAssertIntEquals(tc, DOMAIN_HOLDER_ROOM, trace.events[3].destination.kind);
+  CuAssertIntEquals(tc, DOMAIN_TRANSFER_EXTRACT, trace.events[4].cause);
+  CuAssertIntEquals(tc, DOMAIN_HOLDER_NONE, trace.events[4].destination.kind);
+  CuAssertTrue(tc, trace.events[0].transfer_id < trace.events[1].transfer_id);
+}
+
+void Test_gameplay_nested_transfer_and_scoped_extraction(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct obj_data *item;
+  struct bag_data bags = {0};
+  struct domain_event_subscription_config config = {0};
+  struct domain_event_subscription_handle subscription;
+  struct gameplay_transfer_trace trace = {0};
+  struct domain_object_transfer_operation outer, inner;
+  struct domain_entity_handle item_handle;
+  int before_disposal;
+
+  begin_gameplay_fixture(&f);
+  f.actor.bags = &bags;
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  item = create_obj();
+  obj_to_room(item, 0);
+  item_handle = domain_event_object_handle(item);
+  config.type = DOMAIN_EVENT_OBJECT_MOVED;
+  config.topic.role = DOMAIN_EVENT_TOPIC_SUBJECT;
+  config.topic.entity = item_handle;
+  config.owner = domain_event_character_handle(&f.victim);
+  config.identity = "test.nested-transfer";
+  config.handler = gameplay_capture_transfer;
+  config.handler_context = &trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &config, &subscription));
+  domain_object_transfer_begin(&outer, item, &f.actor, DOMAIN_TRANSFER_COMMAND);
+  obj_from_room(item);
+  obj_to_char(item, &f.actor);
+  domain_object_transfer_begin(&inner, item, &f.victim, DOMAIN_TRANSFER_SCRIPT);
+  obj_from_char(item);
+  obj_to_bag(&f.actor, item, 2);
+  obj_to_bag(&f.actor, item, 2);
+  domain_object_transfer_finish(&inner);
+  CuAssertIntEquals(tc, 0, trace.count);
+  domain_object_transfer_finish(&outer);
+  CuAssertIntEquals(tc, 1, trace.count);
+  CuAssertIntEquals(tc, 1, IS_CARRYING_N(&f.actor));
+  CuAssertTrue(tc, item->next_content == NULL);
+  obj_from_bag(&f.actor, item, 2);
+  obj_to_room(item, 1);
+  domain_object_transfer_begin(&outer, item, &f.actor, DOMAIN_TRANSFER_COMMAND);
+  extract_obj(item);
+  before_disposal = trace.count;
+  domain_object_transfer_finish(&outer);
+  domain_object_transfer_finish(&outer);
+  CuAssertPtrEquals(tc, NULL, domain_event_world_resolve_object(item_handle));
+  domain_event_runtime_shutdown();
+  event_free_all();
+  end_gameplay_fixture(&f);
+
+  CuAssertIntEquals(tc, DOMAIN_HOLDER_ROOM, trace.events[0].source.kind);
+  CuAssertIntEquals(tc, DOMAIN_HOLDER_BAG, trace.events[0].destination.kind);
+  CuAssertIntEquals(tc, 2, trace.events[0].destination.slot);
+  CuAssertIntEquals(tc, DOMAIN_TRANSFER_SCRIPT, trace.events[0].cause);
+  CuAssertIntEquals(tc, 2, before_disposal);
+  CuAssertIntEquals(tc, 3, trace.count);
+  CuAssertIntEquals(tc, DOMAIN_TRANSFER_EXTRACT, trace.events[2].cause);
+}
+
+void Test_gameplay_quest_delivery_consumes_one_committed_item_once(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct aq_data quest = {0}, *saved_quests = aquest_table;
+  qst_rnum saved_count = total_quests;
+  struct index_data prototype = {0}, *saved_index = obj_index;
+  obj_rnum saved_top = top_of_objt;
+  struct obj_data object_prototype = {0}, *saved_proto = obj_proto;
+  struct obj_data *item;
+  struct domain_entity_handle item_handle;
+  int i, remaining;
+  bool gave, pending;
+
+  begin_gameplay_fixture(&f);
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.player.name = "delivery fixture";
+  for (i = 0; i < MAX_CURRENT_QUESTS; i++)
+    GET_QUEST(&f.actor, i) = NOTHING;
+  aquest_table = &quest;
+  total_quests = 1;
+  quest.vnum = 700;
+  quest.type = AQ_OBJ_RETURN;
+  quest.target = 900;
+  quest.value[5] = 1;
+  quest.value[6] = 1;
+  prototype.vnum = 900;
+  prototype.number = 1;
+  obj_proto = &object_prototype;
+  obj_index = &prototype;
+  top_of_objt = 0;
+  f.victim.nr = 0;
+  GET_QUEST(&f.actor, 0) = 700;
+  GET_QUEST_COUNTER(&f.actor, 0) = 1;
+  item = create_obj();
+  GET_OBJ_RNUM(item) = 0;
+  item->name = strdup("parcel");
+  item->short_description = strdup("a quest parcel");
+  obj_to_char(item, &f.actor);
+  item_handle = domain_event_object_handle(item);
+  gave = perform_give(&f.actor, &f.victim, item);
+  remaining = GET_QUEST_COUNTER(&f.actor, 0);
+  pending = char_has_mud_event(&f.actor, eQUEST_COMPLETE) != NULL;
+  CuAssertPtrEquals(tc, NULL, domain_event_world_resolve_object(item_handle));
+  domain_event_runtime_shutdown();
+  event_free_all();
+  aquest_table = saved_quests;
+  total_quests = saved_count;
+  obj_index = saved_index;
+  obj_proto = saved_proto;
+  top_of_objt = saved_top;
+  end_gameplay_fixture(&f);
+
+  CuAssertTrue(tc, gave);
+  CuAssertIntEquals(tc, 0, remaining);
+  CuAssertTrue(tc, pending);
 }

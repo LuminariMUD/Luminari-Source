@@ -18,6 +18,7 @@
 #include <stddef.h>   /* for size_t */
 #include "bool.h"     /* for bool */
 #include "event_handle.h"
+#include "domain_event_types.h"
 #include "net/protocol.h" /* Kavir Plugin*/
 #include "lists.h"
 
@@ -5915,6 +5916,12 @@ struct obj_data
   uint64_t event_owner_generation;    /**< Process-local timed-event owner generation. */
   uint64_t periodic_event_generation; /**< Periodic-owner incarnation. */
 
+  struct domain_object_holder transfer_source;
+  struct domain_object_holder transfer_bag;
+  bool transfer_pending;
+  bool transfer_extracting;
+  bool transfer_disposed;
+
   struct obj_flag_data obj_flags;                    /**< Object information */
   struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< affects */
   struct obj_weapon_poison weapon_poison;            /* for weapons, applied poison */
@@ -7387,7 +7394,7 @@ struct char_data
   int coords[2];                      /**< Current coordinate location, used in wilderness. */
   room_rnum in_room;                  /**< Current location (real room number) */
   room_rnum was_in_room;              /**< Previous location for linkdead people  */
-  room_rnum domain_previous_room;     /**< Origin retained across char_from/to_room. */
+  struct domain_entity_handle domain_previous_room; /**< Stable detached origin. */
   uint64_t event_owner_generation;    /**< Runtime character incarnation. */
   uint64_t domain_event_generation;   /**< Typed-event character incarnation. */
   uint64_t periodic_event_generation; /**< Periodic-owner incarnation. */

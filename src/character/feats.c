@@ -458,8 +458,8 @@ void assign_feats(void)
         FEAT_TYPE_INNATE_ABILITY, "+2 to strength, +1 to constitution",
         "Goliaths as a racial adjustment have +2 strength, +1 constitution.");
   feato(FEAT_NATURAL_ATHLETE, "natural athlete", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "+2 to climb, swim and survival skills.",
-        "Goliaths get +2 to climb, swim and survival skills.");
+        "+2 to climb, swim and nature skills.",
+        "Goliaths get +2 to climb, swim and nature skills.");
   feato(FEAT_POWERFUL_BUILD, "powerful build", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Treats weapons as if they were one size smaller when wielding them.  Will impose a -2 "
         "penalty to attack rolls if this modification is in effect.",
@@ -1968,15 +1968,15 @@ void assign_feats(void)
   feato(FEAT_PERSUASIVE, "persuasive", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "+2 to bluff and intimidate skill checks", "+2 to bluff and intimidate skill checks");
   feato(FEAT_SELF_SUFFICIENT, "self sufficient", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-        "+2 to heal and survival skill checks", "+2 to heal and survival skill checks");
+        "+2 to heal and nature skill checks", "+2 to heal and nature skill checks");
   feato(FEAT_STEALTHY, "stealthy", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "+2 to hide and move silently skill checks", "+2 to hide and move silently skill checks");
   feato(FEAT_TOUGHNESS, "toughness", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "+1 hp per level, +(level) hp upon taking", "+1 hp per level, +(level) hp upon taking");
   /* rangers get this for free */
   feato(FEAT_TRACK, "track", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-        "use survival skill to track others (track <target>)",
-        "use survival skill to track others (track <target>)");
+        "use nature skill to track others (track <target>)",
+        "use nature skill to track others (track <target>)");
   feat_prereq_ability(FEAT_TRACK, ABILITY_SURVIVAL, 19);
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -3936,8 +3936,8 @@ void assign_feats(void)
   feato(FEAT_VENOM_IMMUNITY, "venom immunity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "grants immunity to poison", "grants immunity to poison");
   /* unfinished */ feato(FEAT_NATURE_SENSE, "nature sense", TRUE, FALSE, FALSE,
-                         FEAT_TYPE_CLASS_ABILITY, "+2 to lore and survival skills",
-                         "+2 to lore and survival skills");
+                         FEAT_TYPE_CLASS_ABILITY, "+2 to lore and nature skills",
+                         "+2 to lore and nature skills");
   /* unfinished */ feato(FEAT_RESIST_NATURES_LURE, "resist nature's lure", TRUE, FALSE, FALSE,
                          FEAT_TYPE_CLASS_ABILITY,
                          "+4 to resist spells and spell like abilities from fey creatures",
@@ -5961,7 +5961,7 @@ void assign_feats(void)
         "usable a limited number of times per day.");
   feato(FEAT_ESTABLISH_CAMP, "establish camp", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "pitch a wilderness camp that speeds recovery",
-        "With 'camp' you pitch a proper camp outdoors, which requires a survival check against a "
+        "With 'camp' you pitch a proper camp outdoors, which requires a nature check against a "
         "difficulty set by the terrain and the weather.  The camp remains in the room for a time "
         "and restores anyone there far faster while resting, reclining or sleeping.  It also "
         "becomes the return point for you and grouped companions present when it is completed.  "

@@ -36,12 +36,27 @@ enum domain_world_phenomenon_propagation
   DOMAIN_WORLD_PROPAGATE_ROOMS
 };
 
+enum domain_relocation_cause
+{
+  DOMAIN_RELOCATION_UNKNOWN = 0,
+  DOMAIN_RELOCATION_WALK,
+  DOMAIN_RELOCATION_TELEPORT,
+  DOMAIN_RELOCATION_FORCED,
+  DOMAIN_RELOCATION_SCRIPT,
+  DOMAIN_RELOCATION_SPAWN,
+  DOMAIN_RELOCATION_RESTORE,
+  DOMAIN_RELOCATION_STAFF,
+  DOMAIN_RELOCATION_TRANSPORT
+};
+
 struct domain_character_moved
 {
   struct domain_entity_handle character;
   struct domain_entity_handle from_room;
   struct domain_entity_handle to_room;
   int direction;
+  enum domain_relocation_cause cause;
+  struct domain_entity_handle actor;
 };
 
 struct domain_character_damaged
@@ -72,11 +87,45 @@ struct domain_combat_state_changed
   bool in_combat;
 };
 
+enum domain_holder_kind
+{
+  DOMAIN_HOLDER_NONE = 0,
+  DOMAIN_HOLDER_ROOM,
+  DOMAIN_HOLDER_INVENTORY,
+  DOMAIN_HOLDER_EQUIPMENT,
+  DOMAIN_HOLDER_CONTAINER,
+  DOMAIN_HOLDER_BAG
+};
+
+struct domain_object_holder
+{
+  enum domain_holder_kind kind;
+  struct domain_entity_handle entity;
+  int slot; /* Equipment slot or character bag number; otherwise -1. */
+};
+
+enum domain_transfer_cause
+{
+  DOMAIN_TRANSFER_UNKNOWN = 0,
+  DOMAIN_TRANSFER_COMMAND,
+  DOMAIN_TRANSFER_SCRIPT,
+  DOMAIN_TRANSFER_MAGIC,
+  DOMAIN_TRANSFER_SHOP,
+  DOMAIN_TRANSFER_RESET,
+  DOMAIN_TRANSFER_RESTORE,
+  DOMAIN_TRANSFER_EXTRACT
+};
+
 struct domain_object_moved
 {
+  uint64_t transfer_id; /* Process-local committed operation identity. */
   struct domain_entity_handle object;
   struct domain_entity_handle from_owner;
   struct domain_entity_handle to_owner;
+  struct domain_object_holder source;
+  struct domain_object_holder destination;
+  struct domain_entity_handle actor;
+  enum domain_transfer_cause cause;
 };
 
 enum domain_door_change_cause

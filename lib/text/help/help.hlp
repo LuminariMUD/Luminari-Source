@@ -4560,9 +4560,9 @@ Establish Camp
 
 Usage: camp
 
-Requires: the establish camp feat (any class; 3 ranks of survival)
+Requires: the establish camp feat (any class; 3 ranks of nature)
 Action:   Standard and Move Action
-Check:    survival against a difficulty set by terrain and weather
+Check:    nature against a difficulty set by terrain and weather
 
 You spend about six seconds clearing a site, setting your gear and getting a
 fire going. Use activity to inspect, pause, resume or cancel the work. Moving
@@ -11307,7 +11307,7 @@ bribe      - make a sentient hostile mob non-hostile by giving them gold
  
 And of course the party can opt to kill the encounter mobs as well.
 
-Characters with the survival skill can increase or reduce the chance for finding an encounter
+Characters with the nature skill can increase or reduce the chance for finding an encounter
 with an option that can be toggled in the 'prefedit' screen.
 
 It is also possible to avoid encounters using your stealth skill, as long as 'sneak'
@@ -12913,7 +12913,7 @@ fey blood or magic. You are more emotional than most, prone to bouts of joy and 
 The fey bloodline offers a great knowledge of nature as well as enhanced abilities in
 traversing or dealing with nature.  It also offers abilities using fey magic.
  
-NEW CLASS SKILL: Survival
+NEW CLASS SKILL: Nature
 
 BONUS SPELLS: charm person (3rd), hideous laughter (5th), deep slumber (7th),
 poison (9th), feeblemind (11th), true seeing (13th), prismatic spray (15th),
@@ -13373,7 +13373,7 @@ FOLK-HERO
 
 FOLK HERO BACKGROUND
 
-Skill bonuses: +2 Handle Animal and +2 Survival.
+Skill bonuses: +2 Handle Animal and +2 Nature.
 
 Rustic Hospitality: Gain the hometown-only TRIBUTE command. While in your
 hometown, shop purchases cost exactly 10 percent less and shop sales pay
@@ -21333,18 +21333,20 @@ Some guidelines:
 If your name does not meet our standards an immortal staff member will
 contact you in game and offer to rename your character.
 #0
-NATURE-SKILL SKILL-NATURE SKILL-SURVIVAL SURVIVAL-SKILL
+NATURE-SKILL SKILL-NATURE SKILL-SURVIVAL SURVIVAL-SKILL NATURE
 
-   Your nature skill measures your ability to recall lore about terrain, plants
-and animals, the weather, and natural cycles.
+Nature
 
-It is also used to both avoid and attempt tracking.  In order to attempt
-to track someone, you will first need the 'track' feat.
+Nature measures your knowledge of terrain, plants, animals, weather and natural
+cycles, and your practical ability to travel and survive outdoors. It is used
+for tracking and avoiding tracks, wilderness movement costs, natural lore, and
+Establish Camp. Tracking another creature also requires the Track feat.
 
-It will also reduce the number of movement points needed to
-move between rooms.
+Survival is the older name for this same skill. Commands accept both names;
+existing skill ranks and bonuses are unchanged. There is no separate Survival
+skill to train. Establish Camp requires three ranks in Nature.
 
-It can also be used to identify items and creatures. (HELP LORE)
+See also: CAMP, TRACK, LORE
 #0
 NATURES-ALLY-1 NATURES-ALLY-I
 
@@ -22974,7 +22976,7 @@ OUTLANDER
 
 OUTLANDER BACKGROUND
 
-Skill bonuses: +2 Athletics and +2 Survival.
+Skill bonuses: +2 Athletics and +2 Nature.
 
 Wanderer: Gain +5 on FORAGE checks and a one-time increase of 20 maximum
 hit points. The hit-point increase is applied once even if the Background
@@ -25587,7 +25589,7 @@ who rely on society's structures or rules to maintain power.
 	G>Racial Abilities:	n
 	n
 	WStone's Endurance	n  - Can reduce damage of the next attack when activated.
-	WNatural Athlete	n    - +2 to swim, climb and survival skills.
+	WNatural Athlete	n    - +2 to swim, climb and nature skills.
 	WMountain Born	n      - 50% cold resistance.
 	WPowerful Build	n     - Can wield large weapons in one hand at -2 to attacks.
 	n
@@ -34036,15 +34038,10 @@ wilderness and requires vision.
 #0
 SURVIVAL
 
-Survival
+Survival is the legacy name for Nature. Both names refer to the same skill and
+the same trained ranks. Use HELP NATURE-SKILL for its current description.
 
-Survival is used to both avoid and attempt tracking.  In
-order to attempt to track someone, you will first need
-the 'track' feat.
-
-
-Survival skill will also reduce the number of movement points needed
-to move between rooms.
+See also: NATURE-SKILL, CAMP, TRACK
 #0
 POWER-SUSTAINED-FLIGHT SUSTAINED-FLIGHT
 

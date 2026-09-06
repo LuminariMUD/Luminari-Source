@@ -13079,7 +13079,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
       Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
     }
-    char_to_room(mob, IN_ROOM(ch));
+    char_to_room_cause(mob, IN_ROOM(ch), ch, DOMAIN_RELOCATION_SPAWN, -1);
     IS_CARRYING_W(mob) = 0;
     IS_CARRYING_N(mob) = 0;
     SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);

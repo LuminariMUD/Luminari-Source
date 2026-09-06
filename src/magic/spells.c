@@ -1818,7 +1818,7 @@ ASPELL(spell_group_summon)
       Y_LOC(tch) = world[IN_ROOM(ch)].coords[1];
     }
 
-    char_to_room(tch, IN_ROOM(ch));
+    char_to_room_cause(tch, IN_ROOM(ch), ch, DOMAIN_RELOCATION_TELEPORT, -1);
 
     act("$n arrives suddenly.", TRUE, tch, 0, 0, TO_ROOM);
     act("$n has summoned you!", FALSE, ch, 0, tch, TO_VICT);
@@ -2102,7 +2102,7 @@ ASPELL(spell_plane_shift)
     X_LOC(ch) = world[to_room].coords[0];
     Y_LOC(ch) = world[to_room].coords[1];
   }
-  char_to_room(ch, to_room);
+  char_to_room_cause(ch, to_room, ch, DOMAIN_RELOCATION_TELEPORT, -1);
 
   act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
   send_to_char(ch, "You slowly fade back into existence...\r\n");
@@ -2222,7 +2222,7 @@ ASPELL(spell_prismatic_sphere)
     X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
     Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
   }
-  char_to_room(mob, IN_ROOM(ch));
+  char_to_room_cause(mob, IN_ROOM(ch), ch, DOMAIN_RELOCATION_SPAWN, -1);
 
   IS_CARRYING_W(mob) = 0;
   IS_CARRYING_N(mob) = 0;
@@ -2253,7 +2253,7 @@ ASPELL(spell_recall)
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
-  char_to_room(victim, r_mortal_start_room);
+  char_to_room_cause(victim, r_mortal_start_room, ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
@@ -2281,7 +2281,7 @@ ASPELL(spell_luskan_recall)
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
-  char_to_room(victim, real_room(3088));
+  char_to_room_cause(victim, real_room(3088), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
@@ -2309,7 +2309,7 @@ ASPELL(spell_triboar_recall)
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
-  char_to_room(victim, real_room(7000));
+  char_to_room_cause(victim, real_room(7000), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
@@ -2337,7 +2337,7 @@ ASPELL(spell_silverymoon_recall)
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
-  char_to_room(victim, real_room(6118));
+  char_to_room_cause(victim, real_room(6118), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
@@ -2365,7 +2365,7 @@ ASPELL(spell_mirabar_recall)
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
-  char_to_room(victim, real_room(4923));
+  char_to_room_cause(victim, real_room(4923), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
@@ -2394,7 +2394,7 @@ ASPELL(spell_palanthas_recall)
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
-  char_to_room(victim, real_room(2200));
+  char_to_room_cause(victim, real_room(2200), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
@@ -2423,7 +2423,7 @@ ASPELL(spell_sanction_recall)
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
-  char_to_room(victim, real_room(6530));
+  char_to_room_cause(victim, real_room(6530), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
@@ -2452,7 +2452,7 @@ ASPELL(spell_solace_recall)
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
-  char_to_room(victim, real_room(1317));
+  char_to_room_cause(victim, real_room(1317), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
@@ -2573,7 +2573,7 @@ ASPELL(spell_salvation) // divination
     load_broom = real_room(load_broom);
     act("$n disappears in a flash of white light", FALSE, ch, 0, 0, TO_ROOM);
     char_from_room(ch);
-    char_to_room(ch, load_broom);
+    char_to_room_cause(ch, load_broom, ch, DOMAIN_RELOCATION_TELEPORT, -1);
     send_to_char(ch, "As the flash of light disappears you can see the room.\r\n\r\n");
     act("$n appears in a flash of white light", FALSE, ch, 0, 0, TO_ROOM);
     look_at_room(ch, 0);
@@ -3132,7 +3132,7 @@ ASPELL(spell_summon)
     X_LOC(victim) = world[IN_ROOM(ch)].coords[0];
     Y_LOC(victim) = world[IN_ROOM(ch)].coords[1];
   }
-  char_to_room(victim, IN_ROOM(ch));
+  char_to_room_cause(victim, IN_ROOM(ch), ch, DOMAIN_RELOCATION_TELEPORT, -1);
 
   act("$n arrives suddenly.", TRUE, victim, 0, 0, TO_ROOM);
   act("$n has summoned you!", FALSE, ch, 0, victim, TO_VICT);
@@ -3242,7 +3242,7 @@ ASPELL(spell_teleport)
     X_LOC(ch) = world[to_room].coords[0];
     Y_LOC(ch) = world[to_room].coords[1];
   }
-  char_to_room(ch, to_room);
+  char_to_room_cause(ch, to_room, ch, DOMAIN_RELOCATION_TELEPORT, -1);
 
   act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
   send_to_char(ch, "You slowly fade back into existence...\r\n");
@@ -3324,7 +3324,7 @@ ASPELL(spell_shadow_jump)
     X_LOC(ch) = world[to_room].coords[0];
     Y_LOC(ch) = world[to_room].coords[1];
   }
-  char_to_room(ch, to_room);
+  char_to_room_cause(ch, to_room, ch, DOMAIN_RELOCATION_TELEPORT, -1);
 
   act("$n slowly fades in from the shadows.", FALSE, ch, 0, 0, TO_ROOM);
   send_to_char(ch, "You slowly fade back in from the shadows...\r\n");
@@ -3393,7 +3393,7 @@ ASPELL(psionic_psychoportation)
     X_LOC(ch) = world[to_room].coords[0];
     Y_LOC(ch) = world[to_room].coords[1];
   }
-  char_to_room(ch, to_room);
+  char_to_room_cause(ch, to_room, ch, DOMAIN_RELOCATION_TELEPORT, -1);
 
   act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
   send_to_char(ch, "You slowly fade back into existence...\r\n");
@@ -3537,7 +3537,7 @@ ASPELL(spell_resurrect)
     X_LOC(ressed) = world[obj->in_room].coords[0];
     Y_LOC(ressed) = world[obj->in_room].coords[1];
   }
-  char_to_room(ressed, obj->in_room);
+  char_to_room_cause(ressed, obj->in_room, ch, DOMAIN_RELOCATION_TELEPORT, -1);
 
   /* more unused code */
   /*
@@ -3682,7 +3682,7 @@ ASPELL(spell_transport_via_plants)
       X_LOC(ch) = world[to_room].coords[0];
       Y_LOC(ch) = world[to_room].coords[1];
     }
-    char_to_room(ch, to_room);
+    char_to_room_cause(ch, to_room, ch, DOMAIN_RELOCATION_TELEPORT, -1);
 
     look_at_room(ch, 0);
     act("You find your destination, and step out through $p.", FALSE, ch, dest_obj, 0, TO_CHAR);
@@ -3771,7 +3771,7 @@ ASPELL(spell_wall_of_force)
     return;
   }
 
-  char_to_room(mob, IN_ROOM(ch));
+  char_to_room_cause(mob, IN_ROOM(ch), ch, DOMAIN_RELOCATION_SPAWN, -1);
   IS_CARRYING_W(mob) = 0;
   IS_CARRYING_N(mob) = 0;
 
@@ -3828,7 +3828,7 @@ ASPELL(spell_wizard_eye)
     X_LOC(eye) = world[IN_ROOM(ch)].coords[0];
     Y_LOC(eye) = world[IN_ROOM(ch)].coords[1];
   }
-  char_to_room(eye, IN_ROOM(ch));
+  char_to_room_cause(eye, IN_ROOM(ch), ch, DOMAIN_RELOCATION_SPAWN, -1);
   IS_CARRYING_W(eye) = 0;
   IS_CARRYING_N(eye) = 0;
   load_mtrigger(eye);
@@ -5298,7 +5298,7 @@ ASPELL(spell_blink)
     X_LOC(victim) = world[destination].coords[0];
     Y_LOC(victim) = world[destination].coords[1];
   }
-  char_to_room(victim, destination);
+  char_to_room_cause(victim, destination, ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n blinks into existence.", FALSE, victim, NULL, NULL, TO_ROOM);
   send_to_char(victim, "You blink back into existence nearby.\r\n");
   if (!IS_NPC(victim))
@@ -5403,7 +5403,7 @@ ASPELL(spell_spirit_walk)
     X_LOC(ch) = world[destination].coords[0];
     Y_LOC(ch) = world[destination].coords[1];
   }
-  char_to_room(ch, destination);
+  char_to_room_cause(ch, destination, ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("Pale spirit light gathers and resolves into $n.", FALSE, ch, NULL, NULL, TO_ROOM);
   look_at_room(ch, 0);
   entry_memory_mtrigger(ch);
@@ -5854,7 +5854,7 @@ ASPELL(spell_call_lycanthrope)
     X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
     Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
   }
-  char_to_room(mob, IN_ROOM(ch));
+  char_to_room_cause(mob, IN_ROOM(ch), ch, DOMAIN_RELOCATION_SPAWN, -1);
   IS_CARRYING_W(mob) = 0;
   IS_CARRYING_N(mob) = 0;
   GET_GOLD(mob) = 0;

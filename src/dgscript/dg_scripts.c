@@ -30,6 +30,7 @@
 #include "act.h"
 #include "modify.h"
 #include "domain_event_world.h"
+#include "domain_object_transfer.h"
 #include "event_runtime.h"
 #include "point_update_periodic.h"
 
@@ -3064,7 +3065,25 @@ static void dg_letter_value(struct script_data *sc, trig_data *trig, char *cmd)
  * int mode
      TRIG_NEW     just started from dg_triggers.c
      TRIG_RESTART restarted after a 'wait' */
+static int script_driver_impl(struct script_call_args *args, struct script_driver_status *status);
+
 int script_driver_with_status(struct script_call_args *args, struct script_driver_status *status)
+{
+  struct domain_transfer_context context;
+  struct char_data *actor = NULL;
+  int result;
+
+  if (args == NULL || args->go_adress == NULL)
+    return 0;
+  if (args->type == MOB_TRIGGER)
+    actor = *(struct char_data **)args->go_adress;
+  domain_transfer_context_begin(&context, actor, DOMAIN_TRANSFER_SCRIPT);
+  result = script_driver_impl(args, status);
+  domain_transfer_context_finish(&context);
+  return result;
+}
+
+static int script_driver_impl(struct script_call_args *args, struct script_driver_status *status)
 {
   static int depth = 0;
   int ret_val = 1;

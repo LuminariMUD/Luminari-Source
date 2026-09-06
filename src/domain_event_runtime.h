@@ -2,7 +2,26 @@
 #define DOMAIN_EVENT_RUNTIME_H
 
 #include "domain_events.h"
+#include "domain_event_types.h"
 #include "structs.h"
+
+/* Caller-owned synchronous operation. Always finish in reverse begin order.
+ * Nested relocation of the same character folds into the outer final outcome.
+ * A veto returning to the origin is silent. No runtime pointers enter facts. */
+struct domain_relocation_operation
+{
+  struct domain_character_moved event;
+  struct domain_relocation_operation *previous;
+  bool active;
+};
+
+void domain_relocation_begin(struct domain_relocation_operation *operation, struct char_data *ch,
+                             struct char_data *actor, enum domain_relocation_cause cause,
+                             int direction);
+void domain_relocation_finish(struct domain_relocation_operation *operation);
+void domain_relocation_placed(struct char_data *ch, struct domain_entity_handle from_room,
+                              room_rnum to_room, struct char_data *actor,
+                              enum domain_relocation_cause cause, int direction);
 
 enum domain_event_status domain_event_runtime_init(void);
 enum domain_event_status domain_event_runtime_shutdown(void);
@@ -23,7 +42,6 @@ enum domain_event_status domain_event_runtime_character_died_with_cause(struct c
                                                                         uint32_t cause);
 enum domain_event_status domain_event_runtime_character_extracted(struct char_data *ch,
                                                                   uint32_t reason);
-enum domain_event_status domain_event_runtime_object_moved(struct obj_data *obj,
-                                                           room_rnum from_room, room_rnum to_room);
+
 
 #endif /* DOMAIN_EVENT_RUNTIME_H */

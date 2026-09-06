@@ -44,6 +44,8 @@
 
 /* Include movement system header */
 #include "movement.h"
+#include "domain_event_runtime.h"
+#include "domain_event_world.h"
 
 /* Include vessel system for ship interior movement */
 #include "vessels/vessels.h"
@@ -164,6 +166,10 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   struct char_data *other;
   struct char_data **prev;
   bool was_top = TRUE;
+  bool entry_allowed;
+  struct domain_relocation_operation relocation, companion_relocation;
+  struct char_data *moving_companion = NULL;
+
 
   /* Wilderness variables */
   int new_x = 0, new_y = 0;
@@ -878,6 +884,11 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   if (should_create_tracks(ch))
     create_movement_tracks(ch, dir, TRACKS_OUT);
 
+  domain_relocation_begin(&relocation, ch, ch, DOMAIN_RELOCATION_WALK, dir);
+  if (same_room)
+    moving_companion = riding ? RIDING(ch) : (ridden_by ? RIDDEN_BY(ch) : NULL);
+  domain_relocation_begin(&companion_relocation, moving_companion, ch, DOMAIN_RELOCATION_WALK, dir);
+
   /* the actual technical moving of the char */
   char_from_room(ch);
 
@@ -928,7 +939,21 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
    * Assumptions: The character has already truly left the was_in room. If
    * the entry trigger "prevents" movement into the room, it is the triggers
    * job to provide a message to the original was_in room. */
-  if (!entry_mtrigger(ch) || !enter_wtrigger(&world[going_to], ch, dir))
+  entry_allowed = entry_mtrigger(ch);
+  ch = domain_event_world_resolve_character(relocation.event.character);
+  if (ch != NULL && IN_ROOM(ch) == going_to && entry_allowed)
+    entry_allowed = enter_wtrigger(&world[going_to], ch, dir);
+  ch = domain_event_world_resolve_character(relocation.event.character);
+  if (ch == NULL || IN_ROOM(ch) != going_to)
+  {
+    domain_relocation_finish(&companion_relocation);
+    domain_relocation_finish(&relocation);
+    return 0;
+  }
+  moving_companion = domain_event_world_resolve_character(companion_relocation.event.character);
+  riding = moving_companion != NULL && RIDING(ch) == moving_companion;
+  ridden_by = moving_companion != NULL && RIDDEN_BY(ch) == moving_companion;
+  if (!entry_allowed)
   {
     char_from_room(ch);
 
@@ -963,6 +988,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
 
       char_to_room(RIDDEN_BY(ch), ch->in_room);
     }
+    domain_relocation_finish(&companion_relocation);
+    domain_relocation_finish(&relocation);
     return 0;
   }
 
@@ -1011,14 +1038,19 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* Process all post-movement events (walls, damage, triggers, etc) */
   if (!process_movement_events(ch, was_in, going_to, dir))
   {
-    /* Event prevented movement */
+    /* Veto, redirection or extraction: finish from the actual final state. */
+    domain_relocation_finish(&companion_relocation);
+    domain_relocation_finish(&relocation);
     return 0;
   }
 
-  /* At this point, the character is safe and in the room. */
-  rol_update_mobile_home_after_move(ch, was_in, going_to);
-
-  return (1);
+  ch = domain_event_world_resolve_character(relocation.event.character);
+  if (ch != NULL && IN_ROOM(ch) == going_to)
+    rol_update_mobile_home_after_move(ch, was_in, going_to);
+  domain_relocation_finish(&companion_relocation);
+  domain_relocation_finish(&relocation);
+  ch = domain_event_world_resolve_character(relocation.event.character);
+  return ch != NULL && IN_ROOM(ch) == going_to;
 }
 /* END do_simple_move()*/
 
