@@ -27,6 +27,8 @@
 #include "../../src/olc/genobj.h"
 #include "../../src/vessels/transport.h"
 #include "../../src/vessels/transport_jobs.h"
+#include "../../src/quest/staff_events.h"
+#include "../../src/quest/staff_event_agenda.h"
 #include "../../src/vessels/routing.h"
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"
@@ -2878,4 +2880,151 @@ void Test_gameplay_buff_sequence_interrupted_cast_preserves_later_preparation(Cu
 void Test_gameplay_buff_sequence_resolves_selected_target_among_identical_names(CuTest *tc)
 {
   verify_buff_sequence_casting(tc, 2);
+}
+
+static void verify_staff_agenda_lifecycle(CuTest *tc, int mode)
+{
+  struct gameplay_fixture f;
+  struct staffevent_struct saved_staff = staffevent_data;
+  struct char_data *saved_characters = character_list;
+  unsigned long saved_pulse = pulse;
+  game_event_type_id_t type;
+  size_t live = 99;
+  bool active, expired, delayed, cleared;
+  int i;
+
+  begin_gameplay_fixture(&f);
+  character_list = NULL;
+  staffevent_data.event_num = UNDEFINED_EVENT;
+  staffevent_data.ticks_left = staffevent_data.delay = 0;
+  event_free_all();
+  pulse = 10 * PASSES_PER_SEC;
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  CuAssertTrue(tc, set_event_state(THE_PRISONER_EVENT, 2));
+  active = is_event_active() && get_event_time_remaining() == 2 &&
+           staff_event_agenda_seconds() == 2 * SECS_PER_MUD_HOUR - 10;
+  if (mode == 1)
+  {
+    CuAssertIntEquals(tc, EVENT_ERROR_NO_ACTIVE_EVENT, end_staff_event(JACKALOPE_HUNT));
+    CuAssertTrue(tc, is_event_active());
+    CuAssertIntEquals(tc, EVENT_SUCCESS, end_staff_event(THE_PRISONER_EVENT));
+    CuAssertIntEquals(tc, EVENT_ERROR_DELAY_ACTIVE, start_staff_event(JACKALOPE_HUNT));
+    CuAssertTrue(tc, set_event_delay(0));
+    CuAssertTrue(tc, set_event_state(THE_PRISONER_EVENT, 3));
+  }
+  for (i = 0; i < (2 * SECS_PER_MUD_HOUR - 10) * PASSES_PER_SEC; i++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+  expired = mode == 1 ? is_event_active() && get_event_time_remaining() == 1 : !is_event_active();
+  if (mode == 1)
+    end_staff_event(THE_PRISONER_EVENT);
+  delayed = get_event_delay() == STAFF_EVENT_DELAY_CNST;
+  for (i = 0; i < STAFF_EVENT_DELAY_CNST * SECS_PER_MUD_HOUR * PASSES_PER_SEC; i++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+  cleared = get_event_delay() == 0;
+  event_runtime_find_type("staff-event.prisoner-presence", &type);
+  event_runtime_type_live_count(type, &live);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  staffevent_data = saved_staff;
+  character_list = saved_characters;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&f);
+
+  CuAssertTrue(tc, active && expired && delayed && cleared);
+  CuAssertIntEquals(tc, 0, (int)live);
+}
+
+void Test_gameplay_staff_agenda_preserves_hour_phase_and_expires_before_maintenance(CuTest *tc)
+{
+  verify_staff_agenda_lifecycle(tc, 0);
+}
+
+void Test_gameplay_staff_agenda_old_expiry_cannot_end_replacement(CuTest *tc)
+{
+  verify_staff_agenda_lifecycle(tc, 1);
+}
+
+void Test_gameplay_staff_agenda_rejects_start_before_announcement_when_unavailable(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct staffevent_struct saved_staff = staffevent_data;
+  struct descriptor_data descriptor = {0};
+  struct descriptor_data *saved_descriptors = descriptor_list;
+  struct char_data *saved_characters = character_list;
+  event_result_t result;
+  bool silent, inactive;
+
+  begin_gameplay_fixture(&f);
+  event_free_all();
+  event_init();
+  staffevent_data.event_num = UNDEFINED_EVENT;
+  staffevent_data.ticks_left = staffevent_data.delay = 0;
+  character_list = NULL;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &f.actor;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  descriptor_list = &descriptor;
+  f.actor.desc = &descriptor;
+  staff_event_agenda_shutdown();
+  result = start_staff_event(JACKALOPE_HUNT);
+  silent = descriptor.small_outbuf[0] == '\0';
+  inactive = !is_event_active() && character_list == NULL;
+  domain_event_runtime_shutdown();
+  event_free_all();
+  f.actor.desc = NULL;
+  descriptor_list = saved_descriptors;
+  character_list = saved_characters;
+  staffevent_data = saved_staff;
+  ProtocolDestroy(descriptor.pProtocol);
+  end_gameplay_fixture(&f);
+  CuAssertIntEquals(tc, EVENT_ERROR_SCHEDULER, result);
+  CuAssertTrue(tc, silent && inactive);
+}
+
+void Test_gameplay_staff_agenda_shutdown_discards_active_event_and_boot_delay_expires(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct staffevent_struct saved_staff = staffevent_data;
+  unsigned long saved_pulse = pulse;
+  bool admitted, forgotten, delayed, cleared;
+  int i;
+
+  begin_gameplay_fixture(&f);
+  event_free_all();
+  pulse = 0;
+  event_init();
+  staffevent_data.event_num = UNDEFINED_EVENT;
+  staffevent_data.ticks_left = 0;
+  staffevent_data.delay = 3;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  delayed = get_event_delay() == 3;
+  for (i = 0; i < 3 * SECS_PER_MUD_HOUR * PASSES_PER_SEC; i++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+  cleared = get_event_delay() == 0;
+  admitted = set_event_state(THE_PRISONER_EVENT, 10);
+  domain_event_runtime_shutdown();
+  forgotten = !is_event_active();
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  forgotten = forgotten && !is_event_active() && get_event_time_remaining() == 0;
+  domain_event_runtime_shutdown();
+  event_free_all();
+  staffevent_data = saved_staff;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&f);
+  CuAssertTrue(tc, delayed && cleared && admitted && forgotten);
 }

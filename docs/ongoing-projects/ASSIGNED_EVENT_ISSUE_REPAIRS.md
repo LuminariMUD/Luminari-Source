@@ -93,7 +93,7 @@ The native clock is complete, but feature discovery/countdowns remain. See `docs
 - [x] Replace transport `travel_tickdown` with passenger/job deadlines; transit need not occupy a passenger's primary activity.
 - [x] Give supply refresh an explicit online/offline policy and next deadline or justified lazy timestamp.
 - [x] Replace `movingRoomList` countdown discovery with owned mover deadlines.
-- [ ] Give active staff events named agendas for delay, expiry, portals and population replenishment.
+- [x] Give active staff events named agendas for delay, expiry, portals and population replenishment.
 - [ ] Keep inactive owners unscheduled; test logout, copyover, owner extraction, restart reconstruction and admission failure; expose semantic reasons in `eventdebug`.
 
 Retain useful shared mud-hour cadence, lazy evaluation and external I/O ingress. The removed legacy scheduler/heartbeat needs no further retirement.
@@ -466,3 +466,59 @@ Staff-event follow-up checkpoint:
 Remaining assigned scope is still open: staff-event work in #105; #106-109
 beyond the prior committed quest consumers; final #111 measurements; and
 #112 release-gate evidence within the authorized non-production scope.
+
+## Staff-event agenda checkpoint
+
+Removed the staff_event_tick call from point_update_global_one and replaced
+its counters with existing event_runtime types: staff-event.expiry,
+staff-event.delay-ended, staff-event.jackalope-population and
+staff-event.prisoner-presence. Maintenance bodies are separate active-event
+agendas; no whole legacy tick wrapper or global event discovery loop remains.
+
+Deadlines preserve the shared 75-second mud-hour phase. Expiry takes precedence
+over maintenance at the same boundary, and late maintenance executes once.
+The next delay/maintenance wakeup is aligned to the next world-hour boundary.
+Read-side status and ETA use native remaining time rather than stale counters.
+The raw ticks_left field now marks admitted active state/duration; public
+remaining-time accessors are authoritative.
+
+Start admits expiry and maintenance before announcements/spawning. End validates
+the exact active event and clears its ownership before callbacks/cleanup. New
+events remain gated by the cleanup delay. A failed cleanup timer admission logs
+and retains a closed admission gate rather than admitting an immediate new event.
+Native callbacks and spawn batches match the event incarnation; placement
+notifications re-resolve newly spawned mobiles and portals before using them.
+Missing prisoner portal rooms are rejected at start and handled during maintenance
+and cleanup.
+
+Active events are not serialized across reboot/copyover; shutdown cancels their
+agendas. A fresh process retains the initial three-mud-hour startup delay. The
+flat help entry, local development database and new deployable SQL entry describe
+this policy. No production database was modified.
+
+Final validation (2026-09-06): `make -j10 test` passed with 1,167 gameplay
+cases and all invoked integration checks, with no compiler warnings. Coverage
+includes hour alignment, expiry/cooldown, wrong-event termination rejection,
+replacement isolation, admission failure before announcements/spawning, and
+shutdown/startup-delay behavior. `make install` succeeded after the full run.
+No game process was restarted.
+
+Next tactical-work trace (#106):
+
+- ready_action.c already reserves and expires readied normal attacks, subscribes
+  to committed timed CastingStarted, and revalidates the exact activity/cast ID
+  at queued execution. Extend those owners and allowances rather than creating
+  another reaction queue.
+- Counterspell mode exists in combat_modes.c as AFF_COUNTERSPELL, but the spell
+  paths do not consume it; act.wizard.c explicitly describes it as doing nothing.
+  FEAT_IMPROVED_COUNTERSPELL also exists. A new implementation must reconcile
+  these existing surfaces instead of presenting a second incompatible mechanic.
+- Counterspell identification/resources and instant-cast policy require an
+  explicit recorded decision, followed by real casting tests. Designated-ally
+  protection needs a concrete attack-attempt/outcome fact, since damage alone
+  misses attacks that fail or are prevented.
+
+Completion remains unproven for the entire batch. In addition to #106-109 and
+#111/#112, return to the #103/#104 caller audit and verify compound movement/
+transfer boundaries against newly migrated consumers before final sign-off.
+The last #105 lifecycle/diagnostics checklist item also needs a full-batch audit.

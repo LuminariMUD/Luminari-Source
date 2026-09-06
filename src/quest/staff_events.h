@@ -174,6 +174,7 @@ typedef enum
   EVENT_ERROR_PRECONDITION_FAILED = -3, /* Event-specific precondition not met */
   EVENT_ERROR_DELAY_ACTIVE = -4,        /* Inter-event delay still active */
   EVENT_ERROR_INVALID_DATA = -5,        /* Event data corrupted or missing */
+  EVENT_ERROR_SCHEDULER = -7,           /* Native deadline admission failed */
   EVENT_ERROR_NO_ACTIVE_EVENT = -6      /* No event currently active to operate on */
 } event_result_t;
 
@@ -251,7 +252,7 @@ void list_staff_events(struct char_data *ch);
  * @param event_num: Event number to set as active
  * @param duration: Duration in ticks for the event
  */
-void set_event_state(int event_num, int duration);
+bool set_event_state(int event_num, int duration);
 
 /*
  * Check if an event is currently active.
@@ -280,7 +281,7 @@ void clear_event_state(void);
  * Set the inter-event delay timer.
  * @param delay: Delay in ticks before next event can start
  */
-void set_event_delay(int delay);
+bool set_event_delay(int delay);
 
 /*
  * Get the current inter-event delay remaining.
@@ -353,7 +354,6 @@ void check_event_drops(struct char_data *killer, struct char_data *victim);
  * Handles event timers, periodic spawning, environmental effects,
  * and automatic event ending. Called once per mud hour.
  */
-void staff_event_tick();
 
 /*****************************************************************************/
 /* PERFORMANCE OPTIMIZATION FUNCTIONS */

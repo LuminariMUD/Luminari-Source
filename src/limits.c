@@ -2601,8 +2601,6 @@ void point_update_global_one(void)
     set_db_happy_hour(2);
   }
 
-  /* this is the staff event code for regular maintenance */
-  staff_event_tick();
 }
 
 void point_update_character_one(struct char_data *ch)

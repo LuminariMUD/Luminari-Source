@@ -32763,13 +32763,26 @@ These events, in addition to community building, help us iron out Lore for the R
 #0
 STAFF-EVENT STAFFEVENT STAFF_EVENT
 
-Staff-ran events are world-wide quests that combine some aspects of automation along with staff participation.
-To see details just type: staffevent with no argument.
-Staff:
-Staffevent with no argument to list the implemented staff events
-'Staffevent start <index number>' to start the given event
-'Staffevent end <index number>' to end the event (early)
-'Staffevent info <index number>' to view details about the event
+Staff-run events are world-wide quests combining automation and staff participation.
+
+Usage: staffevent
+       staffevent info <index>
+       staffevent start <index>
+       staffevent end <index>
+
+Use staffevent without an argument to list the available events and their status.
+Starting and ending events requires staff access. An event must finish its
+cleanup delay before another event can start. An invalid or unavailable event
+is rejected before it is announced or its initial population is spawned.
+
+Event durations and cleanup delays use mud hours (75 real seconds), aligned to
+the shared world hour. The status display reports the actual time remaining.
+An active event ends on expiry, or staff can end it early using its index.
+Ending a different index does not end the current event.
+
+Active events are not restored after a reboot or copyover. Staff can start a
+new event after the initial three-mud-hour startup delay. Player participation
+and rewards already recorded by their existing systems are unchanged.
 #0
 STAGGERED
 

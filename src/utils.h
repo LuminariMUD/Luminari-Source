@@ -2551,8 +2551,6 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define IS_STAFF_EVENT (staffevent_data.event_num >= 0 && staffevent_data.ticks_left > 0)
 
 #define STAFF_EVENT_NUM staffevent_data.event_num
-#define STAFF_EVENT_TIME staffevent_data.ticks_left
-#define STAFF_EVENT_DELAY staffevent_data.delay
 
 /**********************/
 
