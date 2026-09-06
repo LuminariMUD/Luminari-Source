@@ -1134,18 +1134,26 @@ song of travel, and masterofelements through the authoritative database and logg
 Files: existing `rol_weapon_mapping.py`, `rol_weapon_overrides.json`, and their tests. Update
 the object emitter only for a demonstrated integration defect. Keep the established classifier.
 
-- [ ] 115.1 Regenerate `rol_weapon_mapping.audit()` after object-rule changes, using the exact
+Step 5 plan-ablation (2026-09-06): regenerate the existing audit from the frozen, hash-verified
+source package and close the current review packet in place. Do not add a classifier, combat
+simulation, weapon table, or second report path. Change the override catalog or inference rules
+only when the current source record demonstrates a wrong target; otherwise preserve the already
+tested melee, launcher, ammunition, quiver, and archer contracts. Use the existing Python corpus
+and emitted-parser regressions for conversion proof, and reserve actual wield, fire, throw,
+quiver, and mobile-loadout behavior for the required Step 6 development session.
+
+- [x] 115.1 Regenerate `rol_weapon_mapping.audit()` after object-rule changes, using the exact
   selected source package. Review every fallback, override, and name/type disagreement with
   source text/declared type, rule, target type, and emitted equipment behavior visible together.
-- [ ] 115.2 Revisit historical leads if present: quest 7073-7098; noshow 50403/33033; god 1294;
+- [x] 115.2 Revisit historical leads if present: quest 7073-7098; noshow 50403/33033; god 1294;
   hiltless dagger 21005; and disagreements 1011, 4798, 20112, 20261, 21721, 58634, 58912,
   58916, 59366, 83036, 83217, 91237, 94534, and 94719. Search the refreshed audit for new
   cases as well. Record keep/change/exclude decisions and the builder rationale.
-- [ ] 115.3 Verify throwing intent versus melee javelins, thrown darts versus blowgun ammo,
+- [x] 115.3 Verify throwing intent versus melee javelins, thrown darts versus blowgun ammo,
   quiver capacity, launcher/ammunition compatibility, and conservative archer loadouts without
   eligible ammunition. Retain existing enhancement/durability regressions. Review every override
   against its current source record, rather than treating the historical override counts as fixed.
-- [ ] 115.4 Commit only approved overrides or demonstrated rule fixes, with focused regressions
+- [x] 115.4 Commit only approved overrides or demonstrated rule fixes, with focused regressions
   in `test_rol_weapon_mapping.py` and the existing transform suite. Preserve coverage of the
   actual target tables and emitted-file parsing; use `test_thrown_weapons.c` for runtime
   throwing behavior that changes. Do not add another simulated combat implementation.
@@ -1156,6 +1164,40 @@ the object emitter only for a demonstrated integration defect. Keep the establis
 Exit: no undefined target weapon/ammunition type, unreviewed fallback, stale override, or
 unresolved disagreement remains. Accepted fallbacks may remain with recorded justification.
 Actual emitted equipment works in development and the final conversion evidence passes.
+
+### Step 5 review evidence
+
+The final audit was regenerated from `EXAMPLE/RealmsOfLuminari` after the object-policy work and
+verified all 1,230 selected source files against the frozen input hashes. It contains 1,319 melee
+weapons, 51 launchers, and 48 ammunition records, including five physical missiles retyped as
+weapons. Its tiers are 94 declared, 25 fallback, 1,242 keyword, and 57 override; no target weapon
+or ammunition type is undefined. `inventory-weapon-audit.json` has SHA-256
+`60783fe933c29fe2ad456da245923d3871fe4127c90afeeba0731f39e4e62660`.
+
+`weapon-final-dispositions.json` reviews all 101 distinct records selected by the 25 fallbacks,
+57 overrides, 14 name/type disagreements, and 44 historical leads. Every row includes the source
+path, record hash, text and numeric values, direct references, inferred target and weapon-table
+profile, actual emitted rows/extensions/diagnostics, a keep decision, and its builder rationale.
+The review found zero wrong targets, stale overrides, exclusions, changes, or pending decisions.
+The generic quest/no-show/god records keep their authored verb and handedness; the hiltless dagger
+keeps the native throwable dagger profile; declared ranged types continue to outrank weaker name
+opinions; and all exceptional-object overrides remain explicit pins against their current source
+records. The final packet is deterministic across repeat generation and has SHA-256
+`6617d54bf0af17f203ff5a3605ad68c3979cbb231989fbcfd3d09fb8e95f5166`.
+
+The same packet verifies all 44 quivers as ammo pouches with their source object-count capacity
+retained and their source-kind/corpse slot cleared: 24 archery and 20 throwing. Javelins and thrown
+darts remain melee-by-default weapons eligible for explicit `throw`; only declared type-16 darts
+become blowgun ammunition. All 25 launcher-equipped RoL archer identities have a compatible
+launcher/pouch/ammunition reset chain, four use throwable-only mode (7983, 52811, 52824, 88904),
+and the remaining 13 stay conservatively inactive rather than receiving invented equipment.
+
+The strengthened corpus regression freezes the exact reviewed fallback, disagreement, launcher,
+throwable-only, and inactive sets and proves all 25 launcher archers receive compatible ammunition.
+The weapon-mapping and transform suites pass all 194 tests. No classifier, emitter, override, or
+native throwing behavior changed, so no duplicate combat implementation or new C test was added.
+Checklist 115.5 remains open until the final candidate and live wield/fire/throw/quiver/loadout
+checks are produced in Step 6.
 
 ## Step 6: combined development rehearsal and branch completion
 
