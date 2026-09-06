@@ -2889,8 +2889,6 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
     if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
     {
       casting_time += get_augment_casting_time_adjustment(ch);
-      if (IS_BUFFING(ch))
-        GET_BUFF_TIMER(ch) += get_augment_casting_time_adjustment(ch);
     }
 
     /* Fabricate Focus: metacreativity manual/creation powers manifest 10% faster */
@@ -2906,8 +2904,6 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
         if (reduction > 0)
         {
           casting_time = MAX(0, casting_time * (100 - reduction) / 100);
-          if (IS_BUFFING(ch))
-            GET_BUFF_TIMER(ch) = MAX(0, GET_BUFF_TIMER(ch) * (100 - reduction) / 100);
         }
       }
     }

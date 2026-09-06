@@ -9,6 +9,8 @@
 #include "../../src/actions.h"
 #include "../../src/ready_action.h"
 #include "../../src/activity_manager.h"
+#include "../../src/magic/buff_sequence.h"
+#include "../../src/magic/spell_prep.h"
 #include "../../src/domain_event_runtime.h"
 #include "../../src/domain_object_transfer.h"
 #include "../../src/domain_event_types.h"
@@ -2666,4 +2668,214 @@ void Test_gameplay_transport_group_admission_precedes_fare_and_departure(CuTest 
   CuAssertIntEquals(tc, 0, actor_room);
   CuAssertIntEquals(tc, 0, companion_room);
   CuAssertIntEquals(tc, 2, (int)live);
+}
+
+static void verify_buff_sequence_lifecycle(CuTest *tc, int mode)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct primary_activity_definition activity = {0};
+  game_event_type_id_t type;
+  unsigned long saved_pulse = pulse;
+  size_t pending = 0;
+  bool admitted, stopped, retained;
+  int i;
+
+  begin_gameplay_fixture(&f);
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.player.name = "buff fixture";
+  for (i = 0; i < MAX_CURRENT_QUESTS; i++)
+    GET_QUEST((&f.actor), i) = NOTHING;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &f.actor;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  f.actor.desc = &descriptor;
+  if (spell_info[SPELL_ARMOR].name == NULL || spell_info[SPELL_ARMOR].name == unused_spellname)
+    mag_assign_spells();
+  GET_BUFF((&f.actor), MAX_BUFFS - 1, 0) = SPELL_ARMOR;
+  if (mode == 1)
+    GET_BUFF_TARGET((&f.actor)) = &f.victim;
+  if (mode == 2)
+  {
+    activity.type = PRIMARY_ACTIVITY_TEST;
+    activity.display_name = "existing work";
+    activity.total_steps = 100;
+    activity.step_interval = PASSES_PER_SEC;
+    primary_activity_start(&f.actor, domain_event_character_handle(&f.actor), &activity);
+  }
+  admitted = buff_sequence_start(&f.actor);
+  if (mode == 1)
+  {
+    char_from_room(&f.victim);
+    char_to_room_cause(&f.victim, 1, &f.actor, DOMAIN_RELOCATION_SCRIPT, -1);
+  }
+  if (mode == 3)
+    f.actor.desc = NULL;
+  /* No descriptor_list membership: the native deadline alone drives continuation. */
+  for (i = 0; i < 10 * PASSES_PER_SEC; i++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+  stopped = !IS_BUFFING((&f.actor)) && specials.buff_sequence == NULL;
+  retained = GET_BUFF((&f.actor), MAX_BUFFS - 1, 0) == SPELL_ARMOR;
+  event_runtime_find_type("buff.sequence.next-cast", &type);
+  event_runtime_type_live_count(type, &pending);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  ProtocolDestroy(descriptor.pProtocol);
+  f.actor.desc = NULL;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&f);
+
+  CuAssertIntEquals(tc, mode != 2, admitted);
+  CuAssertTrue(tc, stopped && retained);
+  CuAssertIntEquals(tc, 0, (int)pending);
+}
+
+void Test_gameplay_buff_sequence_handles_sparse_final_slot_without_polling(CuTest *tc)
+{
+  verify_buff_sequence_lifecycle(tc, 0);
+}
+
+void Test_gameplay_buff_sequence_stops_on_selected_target_relocation(CuTest *tc)
+{
+  verify_buff_sequence_lifecycle(tc, 1);
+}
+
+void Test_gameplay_buff_sequence_rejects_admission_during_primary_work(CuTest *tc)
+{
+  verify_buff_sequence_lifecycle(tc, 2);
+}
+
+void Test_gameplay_buff_sequence_stops_offline_but_keeps_saved_list(CuTest *tc)
+{
+  verify_buff_sequence_lifecycle(tc, 3);
+}
+
+static void verify_buff_sequence_casting(CuTest *tc, int mode)
+{
+  struct gameplay_fixture f;
+  struct char_data *actor;
+  struct char_data decoy;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct primary_activity_snapshot snapshot;
+  unsigned long saved_pulse = pulse;
+  int saved_mode = CONFIG_SPELLCASTING_TIME_MODE;
+  int saved_divine_prep = CONFIG_DIVINE_PREP_TIME;
+  int saved_min_level = spell_info[SPELL_CURE_LIGHT].min_level[CLASS_CLERIC];
+  int i, hit_points;
+  bool admitted, casting, pending_spell, stopped;
+  bool interrupt = mode == 1;
+  size_t waiting_events = 99;
+  game_event_type_id_t type;
+
+  begin_gameplay_fixture(&f);
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  actor = &f.actor;
+  REMOVE_BIT_AR(MOB_FLAGS(actor), MOB_ISNPC);
+  actor->player_specials = &specials;
+  actor->player.name = "buffcaster";
+  actor->player.title = "";
+  CLASS_LEVEL(actor, CLASS_CLERIC) = 10;
+  actor->real_abils.wis = actor->aff_abils.wis = 18;
+  GET_SKILL(actor, SPELL_CURE_LIGHT) = 99;
+  GET_HIT(actor) = 10;
+  GET_MAX_HIT(actor) = 100;
+  if (mode == 2)
+  {
+    initialize_test_npc(&decoy, "a guard", 0);
+    decoy.player.name = "guard";
+    decoy.next_in_room = &f.victim;
+    actor->next_in_room = &decoy;
+    f.victim.player.name = "guard";
+    f.victim.player.short_descr = "a guard";
+    GET_BUFF_TARGET(actor) = &f.victim;
+    GET_HIT(&f.victim) = 10;
+    GET_MAX_HIT(&f.victim) = 100;
+  }
+  CONFIG_SPELLCASTING_TIME_MODE = 1;
+  CONFIG_DIVINE_PREP_TIME = 1;
+  for (i = 0; i < MAX_CURRENT_QUESTS; i++)
+    GET_QUEST(actor, i) = NOTHING;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = actor;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  actor->desc = &descriptor;
+  if (spell_info[SPELL_ARMOR].name == NULL || spell_info[SPELL_ARMOR].name == unused_spellname)
+    mag_assign_spells();
+  saved_min_level = spell_info[SPELL_CURE_LIGHT].min_level[CLASS_CLERIC];
+  spell_info[SPELL_CURE_LIGHT].min_level[CLASS_CLERIC] = 1;
+  collection_add(actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0, 0, 0);
+  collection_add(actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0, 0, 0);
+  GET_BUFF(actor, 0, 0) = SPELL_CURE_LIGHT;
+  GET_BUFF(actor, 1, 0) = SPELL_CURE_LIGHT;
+  admitted = buff_sequence_start(actor);
+  for (i = 0; i < PASSES_PER_SEC; i++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+  casting =
+      primary_activity_snapshot(actor, &snapshot) && snapshot.type == PRIMARY_ACTIVITY_CASTING;
+  event_runtime_find_type("buff.sequence.next-cast", &type);
+  event_runtime_type_live_count(type, &waiting_events);
+  if (interrupt)
+    primary_activity_cancel(actor, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false);
+  for (i = 0; i < 30 * PASSES_PER_SEC; i++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+  hit_points = mode == 2 ? GET_HIT(&f.victim) : GET_HIT(actor);
+  pending_spell = is_spell_in_collection(actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0);
+  stopped = !IS_BUFFING(actor) && actor->player_specials->buff_sequence == NULL;
+  domain_event_runtime_shutdown();
+  event_free_all();
+  clear_collection_by_class(actor, CLASS_CLERIC);
+  clear_prep_queue_by_class(actor, CLASS_CLERIC);
+  ProtocolDestroy(descriptor.pProtocol);
+  actor->desc = NULL;
+  actor->next_in_room = &f.victim;
+  CONFIG_SPELLCASTING_TIME_MODE = saved_mode;
+  CONFIG_DIVINE_PREP_TIME = saved_divine_prep;
+  spell_info[SPELL_CURE_LIGHT].min_level[CLASS_CLERIC] = saved_min_level;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&f);
+
+  CuAssertTrue(tc, admitted && casting);
+  CuAssertIntEquals(tc, 0, (int)waiting_events);
+  CuAssertTrue(tc, stopped);
+  CuAssertIntEquals(tc, interrupt, pending_spell);
+  if (interrupt)
+    CuAssertIntEquals(tc, 10, hit_points);
+  else
+    CuAssertTrue(tc, hit_points > 10);
+}
+
+void Test_gameplay_buff_sequence_waits_for_casting_and_spends_each_preparation_once(CuTest *tc)
+{
+  verify_buff_sequence_casting(tc, 0);
+}
+
+void Test_gameplay_buff_sequence_interrupted_cast_preserves_later_preparation(CuTest *tc)
+{
+  verify_buff_sequence_casting(tc, 1);
+}
+
+void Test_gameplay_buff_sequence_resolves_selected_target_among_identical_names(CuTest *tc)
+{
+  verify_buff_sequence_casting(tc, 2);
 }

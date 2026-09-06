@@ -757,7 +757,6 @@ int load_char(const char *name, struct char_data *ch)
       GET_BUFF(ch, i, 0) = 0;
       GET_BUFF(ch, i, 1) = 0;
     }
-    GET_BUFF_TIMER(ch) = 0;
     GET_LAST_ROOM(ch) = 0;
     GET_CURRENT_BUFF_SLOT(ch) = 0;
     IS_BUFFING(ch) = false;

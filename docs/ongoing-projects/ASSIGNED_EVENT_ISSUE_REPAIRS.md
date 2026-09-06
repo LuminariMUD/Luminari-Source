@@ -89,7 +89,7 @@ Status: under review.
 
 The native clock is complete, but feature discovery/countdowns remain. See `docs/systems/EVENT_MECHANISM_INVENTORY.md` for their current owners and cadence.
 
-- [ ] Replace descriptor polling for crafting (`craft_update`) and self-buff sequences with owned activities; preserve cancellation, material costs, timing and offline policy.
+- [x] Replace descriptor polling for crafting (`craft_update`) and self-buff sequences with owned activities; preserve cancellation, material costs, timing and offline policy.
 - [x] Replace transport `travel_tickdown` with passenger/job deadlines; transit need not occupy a passenger's primary activity.
 - [x] Give supply refresh an explicit online/offline policy and next deadline or justified lazy timestamp.
 - [ ] Replace `movingRoomList` countdown discovery with owned mover deadlines.
@@ -361,3 +361,52 @@ Transport checkpoint validation (2026-09-06): final `make -j10 test` passed,
 including 1,151 gameplay cases and the installer/parser/monitor checks, with
 no compiler warnings. `make install` succeeded afterward. No game server was
 restarted. Branch remains `fix/open-issue-repairs`, based on master.
+
+## Buff sequence migration checkpoint
+
+The descriptor-wide self_buffing scan and GET_BUFF_TIMER estimates are removed.
+A character-owned `buff.sequence.next-cast` event admits each next spell through
+do_gen_cast/do_manifest. Timed casts retain their existing primary activity;
+the sequence waits for that exact activity's terminal transition and queues
+the next continuation after completion. It never casts from event publication
+or claims an additional primary activity/action allowance. Instant casts retain
+normal sequence pacing, including rapid-buff and Battle Blessing adjustments.
+
+Active target and owner handles are generation-checked; native wakeups and
+participant subscriptions also match the sequence incarnation. Movement of
+either participant, missing target, interruption, disconnect and shutdown end
+the sequence. Buff lists stay saved; active sequences are not restored after
+restart/copyover. A selected target changed during a sequence applies to the
+next sequence. The legacy selected-target pointer remains protected by existing
+extraction cleanup; active sequences do not retain it.
+
+Sparse lists check bounds before indexing. Admission validates participants and
+busy state before setting active flags. Failed admission does not consume the
+rapid-buff affects. The buff target command's empty-argument reset now works.
+The flat help entry and local development database now describe this policy;
+`sql/components/help_buff_sequence_entry.sql` carries the deployable update.
+
+Native sparse-list/target movement/busy/offline cases and actual prepared-cleric
+casting/interruption tests pass. The sequence has no pending next-cast event
+while casting; the exact activity transition drives continuation. Interrupted
+casting preserves the later prepared spell and does not resolve the first.
+Target disambiguation also passes a real casting test with two identically named
+NPCs. Lookup uses NPC keywords and verifies the ordinal through the same
+character lookup as casting. Final `make -j10 test` passed on 2026-09-06:
+1,158 gameplay tests and all invoked integration checks, with no compiler
+warnings. `make install` succeeded afterward. No game process was restarted.
+
+Moving-room follow-up trace:
+
+- movingRoomList is referenced only by vessels_moving_rooms.[ch]; it is a
+  discovery/countdown list, not an external API consumer. setup_moving_room
+  appends loaded mover metadata and assigns world[rroom].mover.
+- Replace its ten-second global scan with native room-owned recurring deadlines.
+  Preserve resetZonePulse * ten seconds and RUN_ONCE lateness semantics; do not
+  replay a backlog of relocations. The existing spec_gateway_moving_room remains
+  the authored behavior entry point. Treat room index zero as valid.
+- genwld.c free_room_strings does not free mover metadata; OLC copy and deletion
+  require an ownership audit before dropping the global list. copy_room_with_bindings
+  explicitly preserves existing runtime identities/affected-owner state. New
+  mover ownership needs equivalent behavior across array shifts, editor clones
+  and same-vnum replacement.

@@ -63,6 +63,7 @@
  * files that is included is controlled by conf.h for that platform. */
 
 #include "structs.h"
+#include "magic/buff_sequence.h"
 #include "vessels/transport_jobs.h"
 #include "utils.h"
 #include "spec/spec_dispatch.h"
@@ -244,7 +245,6 @@ void update_msdp_affects(struct char_data *ch);
 void update_player_last_on(void);
 void check_auto_shutdown(void);
 void check_auto_happy_hour(void);
-void self_buffing(void);
 void recharge_activated_items(void);
 void process_auction_events(void);
 
@@ -2259,7 +2259,6 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
     msdp_update();
     PERF_PROF_EXIT(pr_msdp_update_);
     next_tick = (int)((remaining + PASSES_PER_SEC - 1U) / PASSES_PER_SEC);
-    self_buffing();
     i3_process_events();
     i3_sync_presence();
     break;
@@ -4395,6 +4394,7 @@ void close_socket(struct descriptor_data *d)
         cleanup_supply_slots(link_challenged);
       }
 
+      buff_sequence_cancel(link_challenged);
       transport_job_cancel(link_challenged, true);
       save_char(link_challenged, 0);
       mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(link_challenged)), TRUE, "Closing link to: %s.",

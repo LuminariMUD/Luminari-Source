@@ -7056,7 +7056,7 @@ struct player_special_data
 
   // for the self buffing system
   int buff_slot;
-  int buff_timer;
+  struct buff_sequence *buff_sequence; /* Runtime-only native continuation. */
   bool is_buffing;
   struct char_data *buff_target;
   char *unstuck;

@@ -1024,7 +1024,7 @@ void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
   CuAssertPtrNotNull(tc, domain_event_runtime_bus());
   domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);
   CuAssertIntEquals(tc, 10, (int)stats.registered_type_count);
-  CuAssertIntEquals(tc, 18, (int)stats.registered_handler_count);
+  CuAssertIntEquals(tc, 19, (int)stats.registered_handler_count);
   CuAssertTrue(tc, stats.sealed);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_character_died(&victim, NULL));
   domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);

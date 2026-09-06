@@ -15,6 +15,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "magic/buff_sequence.h"
 #include "movement/door_state.h"
 #include "utils.h"
 #include "comm.h"
@@ -10182,7 +10183,7 @@ ACMD(do_buff)
                  NOBUFF_MSG);
     return;
   }
-  if (*arg2 && is_abbrev(arg1, "target"))
+  if (is_abbrev(arg1, "target"))
   {
     if (!*arg2)
     {
@@ -10380,9 +10381,11 @@ ACMD(do_buff)
       return;
     }
 
-    IS_BUFFING(ch) = true;
-    GET_BUFF_TIMER(ch) = 1;
-    GET_CURRENT_BUFF_SLOT(ch) = 0;
+    if (!buff_sequence_start(ch))
+    {
+      send_to_char(ch, "Your buff sequence cannot start while busy or without its target.\r\n");
+      return;
+    }
     if (GET_BUFF_TARGET(ch))
     {
       if (IN_ROOM(GET_BUFF_TARGET(ch)) != IN_ROOM(ch))
@@ -10400,9 +10403,7 @@ ACMD(do_buff)
   else if (is_abbrev(arg1, "cancel"))
   {
     // Begin buffing yourself with spells/powers in your list.
-    IS_BUFFING(ch) = false;
-    GET_BUFF_TIMER(ch) = 0;
-    GET_CURRENT_BUFF_SLOT(ch) = 0;
+    buff_sequence_cancel(ch);
     send_to_char(ch, "You cease casting your buffing spells.\r\n");
     affect_from_char(ch, SPELL_MINOR_RAPID_BUFF);
     affect_from_char(ch, SPELL_RAPID_BUFF);

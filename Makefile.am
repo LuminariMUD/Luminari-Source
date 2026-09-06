@@ -140,6 +140,8 @@ luminari_SOURCES = \
 	src/point_update_periodic.h \
 	src/vessels/vessel_periodic.c \
 	src/vessels/vessel_periodic.h \
+	src/magic/buff_sequence.c \
+	src/magic/buff_sequence.h \
 	src/vessels/transport_jobs.c \
 	src/vessels/transport_jobs.h \
 	src/periodic_owners.c \
@@ -855,6 +857,7 @@ EXTRA_DIST = \
 	sql/components/character_rename_transactional_schema.sql \
 	sql/components/help_arcane_mark_entries.sql \
 	sql/components/help_nature_survival_entries.sql \
+	sql/components/help_buff_sequence_entry.sql \
 	sql/components/help_command_sweep_entries.sql \
 	sql/components/help_dg_damage_trigger.sql \
 	sql/components/help_rol_feat_entries.sql \
