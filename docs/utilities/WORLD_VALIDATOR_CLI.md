@@ -434,8 +434,9 @@ omitted bonus type/specific fields. Each extension still enforces its own capaci
   named `SPEC_ARMOR_TYPE_*` constants, keeping source AC, weight and cost. The
   source-hashed armor catalog records exceptions; unreviewed mixed masks and
   changed exception records stop conversion. Dedicated-tail armor retains its
-  native AC exception without an ordinary family. The integration checklist
-  still requires the complete corpus review and runtime release rehearsal;
+  native AC exception without an ordinary family. The completed integration
+  review packet records each corpus decision, native penalty and named loss.
+  The final combined candidate runtime rehearsal remains a separate release gate;
   generated family audit rows alone do not establish content-release approval.
 - Weapon profiles distinguish melee, launchers, thrown weapons, ammunition and
   quivers. Javelin names alone do not establish throwing intent; thrown darts and
