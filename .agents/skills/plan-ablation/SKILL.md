@@ -8,6 +8,9 @@ description: Simplify a coding plan by checking what can be removed while still 
 Review the proposed plan before editing code. Ablation means mentally removing a planned part
 and checking what would fail; it does not require implementing multiple versions.
 
+Check the requested outcome and acceptance criteria before removing work. Do not simplify by
+silently dropping required behavior. State any scope assumption that materially changes the result.
+
 - For each meaningful change, ask: if we omit this, which requirement or concrete correctness
   risk goes unmet? Remove it if there is no concrete answer.
 - Look for a simpler solution using existing code and patterns. Question new abstractions,

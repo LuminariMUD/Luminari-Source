@@ -9,12 +9,13 @@ description: >-
 
 # Luminari Help Sync
 
-Before any help synchronization or sync-system implementation action, read the
-[helpfile synchronization design][design] completely. Treat it and the repository's `AGENTS.md` as
-authoritative. Trace the current source, schema, scripts, and deployment configuration instead of
-relying on stale line numbers or assumed commands.
-
-[design]: ../../../docs/ongoing-projects/HELPFILE_SYNCHRONIZATION_DESIGN.md
+Before any help synchronization or sync-system implementation action, treat this skill and the
+repository's `AGENTS.md` as authoritative. Trace the current source, schema, scripts, and
+deployment configuration instead of relying on stale line numbers or assumed commands. For an
+operation whose safety depends on design decisions, locate and read the maintained design sections
+relevant to that mode. If the design is unavailable, continue read-only discovery and report the
+gap; do not mutate data, production, or synchronization state until the required safety semantics
+are available.
 
 ## Select the operation
 
