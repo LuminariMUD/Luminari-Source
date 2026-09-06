@@ -384,6 +384,37 @@ class RolWeaponMappingTests(unittest.TestCase):
     self.assertEqual(0, report["undefined"])
     self.assertEqual(0, report["undefined_ammo"])
 
+  def test_final_review_categories_have_no_unreviewed_members(self) -> None:
+    self._require_reference_corpus()
+    report = mapping.audit(self.corpus.records)
+    fallbacks = {
+        row["vnum"] for row in report["records"] if row["tier"] == "fallback"
+    }
+    disagreements = {row["vnum"] for row in report["name_disagreements"]}
+    self.assertEqual(
+        {"declared": 94, "fallback": 25, "keyword": 1242, "override": 57},
+        report["tiers"],
+    )
+    self.assertEqual(
+        {
+            1294, 21005, 33033, 50403,
+            7073, 7074, 7075, 7076, 7078, 7079, 7080,
+            7082, 7083, 7084, 7085, 7087, 7088, 7089,
+            7091, 7092, 7093, 7094, 7096, 7097, 7098,
+        },
+        fallbacks,
+    )
+    self.assertEqual(
+        {
+            1011, 4798, 20112, 20261, 21721, 58634, 58912,
+            58916, 59366, 83036, 83217, 91237, 94534, 94719,
+        },
+        disagreements,
+    )
+    self.assertEqual(55, len(mapping.load_overrides()))
+    self.assertEqual(1, len(mapping.load_ranged_overrides()))
+    self.assertEqual(1, len(mapping.load_ammunition_overrides()))
+
   def test_ranged_overrides_are_curated_against_records_that_exist(self) -> None:
     self._require_reference_corpus()
     launchers = {record.vnum for record in self.launchers}
@@ -584,6 +615,14 @@ class RolWeaponMappingTests(unittest.TestCase):
 
     self._require_reference_corpus()
     table = weapon_table()
+    mobiles = {
+        record.vnum: record for record in self.corpus.records if record.kind == "mob"
+    }
+    archers = {
+        vnum
+        for vnum, record in mobiles.items()
+        if int(record.values.get("flags", [0])[0]) & (1 << (17 - 1))
+    }
     emitted: dict[int, tuple[int, list[int]]] = {}
     for record in self.corpus.records:
       if record.kind != "obj":
@@ -608,9 +647,11 @@ class RolWeaponMappingTests(unittest.TestCase):
     }
     pouch_position = EQUIPMENT_POSITION_MAP[23]
     kits = 0
+    compatible_archers: set[int] = set()
     for record in self.corpus.records:
       if record.kind != "zon":
         continue
+      current_mobile = None
       launcher = None
       pouches: list[int] = []
       containers: dict[int, list[int]] = {}
@@ -618,6 +659,7 @@ class RolWeaponMappingTests(unittest.TestCase):
         token = directive["token"]
         arguments = [int(value) for value in directive.get("arguments", [])]
         if token == "M":
+          current_mobile = arguments[1] if len(arguments) >= 2 else None
           launcher, pouches, containers = None, [], {}
         elif token == "E" and len(arguments) >= 4:
           prototype, position = arguments[1], arguments[3]
@@ -649,7 +691,17 @@ class RolWeaponMappingTests(unittest.TestCase):
                 ammo_for[entry[1][0]],
                 f"zone {record.vnum} loads ammo {content} that its launcher cannot fire",
             )
+            if current_mobile in archers:
+              compatible_archers.add(current_mobile)
     self.assertGreater(kits, 0)
+    self.assertEqual(
+        {
+            7984, 7985, 16861, 20093, 20204, 20205, 20211, 20270, 20271,
+            43788, 49008, 50505, 52867, 58809, 63709, 81924, 81925, 81926,
+            83048, 87018, 94531, 94532, 94533, 94534, 96809,
+        },
+        compatible_archers,
+    )
 
   def test_rol_archer_loadouts_cover_launcher_and_throwable_modes(self) -> None:
     self._require_reference_corpus()
@@ -712,8 +764,21 @@ class RolWeaponMappingTests(unittest.TestCase):
     launcher_archers = {vnum for vnum, modes in loadouts.items() if "launcher" in modes}
     inactive_archers = archers - thrown_archers - launcher_archers
     self.assertEqual({7983, 52811, 52824, 88904}, thrown_archers)
-    self.assertEqual(25, len(launcher_archers))
-    self.assertEqual(13, len(inactive_archers))
+    self.assertEqual(
+        {
+            7984, 7985, 16861, 20093, 20204, 20205, 20211, 20270, 20271,
+            43788, 49008, 50505, 52867, 58809, 63709, 81924, 81925, 81926,
+            83048, 87018, 94531, 94532, 94533, 94534, 96809,
+        },
+        launcher_archers,
+    )
+    self.assertEqual(
+        {
+            88, 7986, 19701, 20281, 20969, 50706, 50707,
+            51323, 51324, 51349, 62718, 81715, 81914,
+        },
+        inactive_archers,
+    )
     self.assertTrue(unrelated_throwers)
 
 if __name__ == "__main__":
