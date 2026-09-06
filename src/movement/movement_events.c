@@ -74,21 +74,6 @@ bool process_movement_events(struct char_data *ch, room_rnum was_in, room_rnum g
   else if (ridden_by && RIDDEN_BY(ch)->in_room == ch->in_room)
     same_room = 1;
 
-  /* Check for walls that might block entry */
-  accepted = !check_wall(ch, rev_dir[dir]);
-  ch = domain_event_world_resolve_character(identity);
-  if (ch == NULL || IN_ROOM(ch) != going_to)
-    return FALSE;
-  if (!accepted)
-  {
-    /* Wall blocks entry - send them back */
-    char_from_room(ch);
-    X_LOC(ch) = world[was_in].coords[0];
-    Y_LOC(ch) = world[was_in].coords[1];
-    char_to_room(ch, was_in);
-    return FALSE;
-  }
-
   /* Process room damage effects */
   process_room_damage(ch, going_to, riding, same_room);
   ch = domain_event_world_resolve_character(identity);

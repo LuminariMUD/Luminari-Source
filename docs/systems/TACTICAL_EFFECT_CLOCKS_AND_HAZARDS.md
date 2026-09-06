@@ -1,6 +1,7 @@
 # Tactical effect clocks and hazard exposure
 
-Assigned issue: #107. Status: short-defense, bleeding and billowing-cloud pilots implemented; remaining migration and acceptance open.
+Assigned issue: #107. Status: short-defense, bleeding, billowing-cloud and
+directional-wall pilots implemented; remaining migration and acceptance open.
 Source inspection: fix/open-issue-repairs at d13732245, 2026-09-06.
 
 ## Existing behavior and integration points
@@ -21,12 +22,9 @@ Source inspection: fix/open-issue-repairs at d13732245, 2026-09-06.
 - `limits.c` runs room hazards through room-affect behavior, sometimes with a
   temporary caster mobile. `SPELL_BILLOWING_CLOUD` already has a repeated Fortitude
   save and move-action consequence; it is a suitable recurring-save pilot.
-- `magic/spells.c:check_wall` handles directional crossing damage and blocking.
-  Walking checks the origin wall before relocation; movement entry checks the
-  reverse direction at the destination. These are two possible wall instances,
-  not inherently duplicate calls to one wall. Missing creators use stored level
-  and self-attributed damage. A redundant subsequent null-caster call returns
-  zero in mag_damage_scaled; it is not evidence of double damage or a crash.
+- Directional walls are object sources placed on one authored side of an edge.
+  Passability and damaging exposure have separate operation phases, described
+  below. Missing creators use the wall's stored level and self-attributed damage.
 - `players.c` writes affect values in a versioned text record. Runtime source_id
   is not written. New clock state needs explicit persistence, not struct dumps.
 
@@ -82,8 +80,8 @@ level/DC, rather than requiring a live caster or silently gaining victim stats.
 
 | Hazard | Decision before movement | Committed movement | Continued exposure |
 | --- | --- | --- | --- |
-| Blocking wall/trap | Check/veto before placement | No new arrival damage for a failed move | Only if explicitly authored |
-| Damaging directional wall | Crossing attempt, once per wall instance and traversal | Do not repeat the same crossing | None by default |
+| Blocking wall/trap | Check both sides and veto before placement | No crossing damage for a failed move | Only if explicitly authored |
+| Damaging directional wall | Normal movement legality | Once per wall source and committed edge traversal | None by default |
 | Area cloud | Normal movement legality | First eligible entry in subject's exposure interval | Subject end phase while still inside |
 | Tentacles | Existing grapple/escape decisions remain authoritative | Entry exposure | Subject end phase; same interval accounting |
 
@@ -268,3 +266,29 @@ Native payloads carry character generation, stable room vnum/generation and
 source identity; no room-affect pointer crosses an asynchronous callback. The old
 room-wide Billowing Cloud loop is removed. Other room hazards retain their legacy
 behavior until migrated individually.
+
+## Directional wall crossing pilot
+
+Walking now checks blocking walls on both authored sides of an edge before
+changing the character's room. A destination-side Wall of Force therefore vetoes
+the operation directly; it no longer moves the character and then rolls the
+placement back. A rejected move publishes no CharacterMoved fact and causes no
+crossing damage.
+
+Damaging wall behavior consumes the one committed CharacterMoved fact after all
+entry decisions accept the final destination. WALK and FORCED relocations with a
+real direction inspect the origin-facing and destination-reverse sides. Teleport,
+spawn and other directionless relocation do not invent a crossed edge. Each wall
+object's generation-safe entity handle is the source identity. The handler visits
+each authored object once, so two independently placed walls can both apply while
+one wall cannot apply twice for the same relocation.
+
+Missing casters retain the stored wall level and use the subject as legacy damage
+attribution in one mag_damage call. The prior branch invoked mag_damage once with
+the subject and then evaluated a second null-caster call when the first was
+nonfatal. The null call did not add damage, but it obscured exactly-once
+accounting; the single explicit attribution path replaces it.
+
+Production-linked cases cover distinct source objects on the two edge sides, a
+destination blocking veto with no relocation exposure, forced crossing and a
+source removed before movement. Continued exposure is absent by definition.

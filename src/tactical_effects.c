@@ -798,6 +798,8 @@ static void handle_hazard_movement(const struct domain_event_context *context, v
   struct raff_node *next;
   struct char_data *subject;
   struct domain_entity_handle current_room;
+  struct room_data *from_room;
+  struct room_data *to_room;
 
   (void)data;
   subject = domain_event_resolve(context->bus, event->character, DOMAIN_ENTITY_CHARACTER);
@@ -806,6 +808,17 @@ static void handle_hazard_movement(const struct domain_event_context *context, v
   current_room = domain_event_room_handle(IN_ROOM(subject));
   if (!domain_entity_handle_equal(current_room, event->to_room))
     return;
+  from_room = domain_event_resolve(context->bus, event->from_room, DOMAIN_ENTITY_ROOM);
+  to_room = domain_event_resolve(context->bus, event->to_room, DOMAIN_ENTITY_ROOM);
+  if (from_room != NULL && to_room != NULL)
+  {
+    apply_wall_crossing(subject, (room_rnum)(from_room - world), (room_rnum)(to_room - world),
+                        event->direction);
+    subject = domain_event_resolve(context->bus, event->character, DOMAIN_ENTITY_CHARACTER);
+    if (subject == NULL || IN_ROOM(subject) == NOWHERE ||
+        !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(subject)), event->to_room))
+      return;
+  }
   for (source = world[IN_ROOM(subject)].affected_head; source != NULL; source = next)
   {
     next = source->room_next;

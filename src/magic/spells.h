@@ -2030,10 +2030,18 @@ bool isEpicSpell(int spellnum);
 int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool is_tele);
 
 /* spells.c */
-bool check_wall(struct char_data *victim, int dir);
+bool wall_blocks_movement(struct char_data *victim, room_rnum from_room, room_rnum to_room,
+                          int dir);
+void apply_wall_crossing(struct char_data *victim, room_rnum from_room, room_rnum to_room, int dir);
 void effect_charm(struct char_data *ch, struct char_data *victim, int spellnum, int casttype,
                   int level);
 bool is_wall_spell(int spellnum);
+
+#ifdef LUMINARI_CUTEST
+typedef bool (*wall_crossing_test_callback)(struct domain_entity_handle source,
+                                            struct char_data *victim, void *context);
+void wall_crossing_set_test_callback(wall_crossing_test_callback callback, void *context);
+#endif
 
 /* From magic.c */
 int compute_mag_saves(struct char_data *vict, int type, int modifier);

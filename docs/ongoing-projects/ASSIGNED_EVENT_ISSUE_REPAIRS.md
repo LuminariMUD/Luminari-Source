@@ -28,6 +28,11 @@ The wider unassigned queue is excluded. No production rollout or archival deleti
   original room are silent. Nested relocation, extraction and stale identities are
   covered by contract tests, plus a real entry-trigger veto test. Caller audit and
   final validation are continuing.
+- #107: directional walls now split synchronous passability from committed
+  exposure. Walking checks both edge sides before placement; accepted WALK/FORCED
+  facts apply each generation-safe wall source once. Destination vetoes, distinct
+  sources, forced crossings and vanished sources have production-linked coverage.
+  Tentacle classification and final acceptance remain.
 - #103: typed holder facts and compound transfer capture are implemented for room,
   inventory, equipment, container and character bag paths. Give/get/put/drop/wear/
   remove have operation boundaries. Command, script, magic, shop, reset and restore

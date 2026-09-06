@@ -4471,6 +4471,133 @@ void Test_gameplay_billowing_cloud_preserves_level_thirteen_immunity(CuTest *tc)
   verify_billowing_cloud_exposure(tc, 6);
 }
 
+struct wall_crossing_trace
+{
+  struct char_data *subject;
+  struct domain_entity_handle sources[4];
+  int count;
+};
+
+static bool observe_wall_crossing(struct domain_entity_handle source, struct char_data *subject,
+                                  void *context)
+{
+  struct wall_crossing_trace *trace = context;
+
+  if (subject != trace->subject)
+    return false;
+  if (trace->count < 4)
+    trace->sources[trace->count] = source;
+  trace->count++;
+  return true;
+}
+
+static struct obj_data *create_test_wall(room_rnum room, int dir, int type)
+{
+  struct obj_data *wall = create_obj();
+
+  GET_OBJ_TYPE(wall) = ITEM_WALL;
+  GET_OBJ_VAL(wall, WALL_TYPE) = type;
+  GET_OBJ_VAL(wall, WALL_DIR) = dir;
+  GET_OBJ_VAL(wall, WALL_LEVEL) = 10;
+  GET_OBJ_VAL(wall, WALL_IDNUM) = 999999;
+  wall->name = strdup("test wall");
+  wall->short_description = strdup("a test wall");
+  wall->description = strdup("A test wall crosses the way.");
+  obj_to_room(wall, room);
+  return wall;
+}
+
+void Test_gameplay_wall_crossing_uses_one_committed_fact_per_source(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct wall_crossing_trace trace = {0};
+  struct obj_data *origin_wall;
+  struct obj_data *destination_wall;
+
+  begin_gameplay_fixture(&fixture);
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  trace.subject = &fixture.actor;
+  wall_crossing_set_test_callback(observe_wall_crossing, &trace);
+  origin_wall = create_test_wall(0, NORTH, WALL_TYPE_FIRE);
+  destination_wall = create_test_wall(1, SOUTH, WALL_TYPE_THORNS);
+
+  CuAssertIntEquals(tc, 1, perform_move(&fixture.actor, NORTH, FALSE));
+  CuAssertIntEquals(tc, 1, IN_ROOM(&fixture.actor));
+  CuAssertIntEquals(tc, 2, trace.count);
+  CuAssertTrue(
+      tc, domain_entity_handle_equal(domain_event_object_handle(origin_wall), trace.sources[0]));
+  CuAssertTrue(tc, domain_entity_handle_equal(domain_event_object_handle(destination_wall),
+                                              trace.sources[1]));
+
+  wall_crossing_set_test_callback(NULL, NULL);
+  extract_obj(origin_wall);
+  extract_obj(destination_wall);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  end_gameplay_fixture(&fixture);
+}
+
+void Test_gameplay_blocking_destination_wall_vetoes_before_relocation(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct wall_crossing_trace trace = {0};
+  struct obj_data *wall;
+
+  begin_gameplay_fixture(&fixture);
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  trace.subject = &fixture.actor;
+  wall_crossing_set_test_callback(observe_wall_crossing, &trace);
+  wall = create_test_wall(1, SOUTH, WALL_TYPE_FORCE);
+
+  CuAssertIntEquals(tc, 0, perform_move(&fixture.actor, NORTH, FALSE));
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.actor));
+  CuAssertIntEquals(tc, 0, trace.count);
+
+  wall_crossing_set_test_callback(NULL, NULL);
+  extract_obj(wall);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  end_gameplay_fixture(&fixture);
+}
+
+void Test_gameplay_forced_wall_crossing_honors_vanished_sources(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct wall_crossing_trace trace = {0};
+  struct obj_data *wall;
+
+  begin_gameplay_fixture(&fixture);
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  trace.subject = &fixture.actor;
+  wall_crossing_set_test_callback(observe_wall_crossing, &trace);
+  wall = create_test_wall(0, NORTH, WALL_TYPE_FORCE);
+  extract_obj(wall);
+
+  char_from_room(&fixture.actor);
+  char_to_room_cause(&fixture.actor, 1, &fixture.victim, DOMAIN_RELOCATION_FORCED, NORTH);
+  CuAssertIntEquals(tc, 0, trace.count);
+  char_from_room(&fixture.actor);
+  char_to_room_cause(&fixture.actor, 0, &fixture.victim, DOMAIN_RELOCATION_FORCED, SOUTH);
+  wall = create_test_wall(0, NORTH, WALL_TYPE_FORCE);
+
+  char_from_room(&fixture.actor);
+  char_to_room_cause(&fixture.actor, 1, &fixture.victim, DOMAIN_RELOCATION_FORCED, NORTH);
+  CuAssertIntEquals(tc, 1, trace.count);
+  CuAssertTrue(tc, domain_entity_handle_equal(domain_event_object_handle(wall), trace.sources[0]));
+
+  wall_crossing_set_test_callback(NULL, NULL);
+  extract_obj(wall);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  end_gameplay_fixture(&fixture);
+}
+
 void Test_gameplay_bleeding_critical_native_tick_and_combat_turn_share_one_interval(CuTest *tc)
 {
   verify_bleeding_clock(tc, 7);

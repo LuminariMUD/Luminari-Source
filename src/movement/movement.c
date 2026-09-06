@@ -628,8 +628,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* Check for leave traps using modular function */
   process_leave_traps(ch);
 
-  /* check for magical walls, such as wall of force (also death from wall damage) */
-  if (check_wall(ch, dir)) /* true = wall stopped ch somehow */
+  /* Resolve blocking walls on either side before committing the relocation. */
+  if (wall_blocks_movement(ch, IN_ROOM(ch), going_to, dir))
     return (0);
 
   /* a silly zusuk dummy check */
