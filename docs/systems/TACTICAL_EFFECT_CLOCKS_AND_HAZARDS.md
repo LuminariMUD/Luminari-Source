@@ -177,3 +177,9 @@ expiry before semantic action, combat departure, paused elapsed time, legacy
 player-file loading, residual save/load and expired save/load. Further lifecycle
 and merge/re-entry acceptance, bleeding and recurring-save/hazard migration remain
 open. This module deliberately contains no generalized effect scripting language.
+
+Additional transition coverage verifies refresh through an old deadline, combat
+entry and re-entry with an elapsed remainder, semantic shutdown capture, and
+merged offset encounter clocks. A subject-relative defense follows that subject's
+actual next semantic turn after merging; an elapsed residual remains an elapsed
+interval. These are distinct policies, not two competing expiry callbacks.

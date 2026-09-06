@@ -3845,7 +3845,7 @@ static void verify_tactical_defense_clock(CuTest *tc, int scenario)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   trace.subject = &f.actor;
   combat_encounter_test_set_phase_callback(observe_defense_turn, &trace);
-  if (scenario == 1 || scenario == 2)
+  if (scenario == 1 || scenario == 2 || scenario == 6 || scenario == 7)
   {
     FIGHTING(&f.actor) = &f.victim;
     FIGHTING(&f.victim) = &f.actor;
@@ -3865,13 +3865,44 @@ static void verify_tactical_defense_clock(CuTest *tc, int scenario)
     CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
     tactical_defense_resume(&f.actor);
   }
-  else if (scenario == 2)
+  else if (scenario == 2 || scenario == 6)
   {
     combat_encounter_leave(&f.actor, COMBAT_ENCOUNTER_DEPARTURE_MOVED);
     combat_encounter_leave(&f.victim, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
     FIGHTING(&f.actor) = FIGHTING(&f.victim) = NULL;
     CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
     CuAssertIntEquals(tc, 0, f.actor.defensive_casting_turn);
+    if (scenario == 6)
+    {
+      FIGHTING(&f.actor) = &f.victim;
+      FIGHTING(&f.victim) = &f.actor;
+      CuAssertTrue(tc, combat_encounter_join(&f.actor, &f.victim, 1));
+      CuAssertTrue(tc, combat_encounter_join(&f.victim, &f.actor, 1));
+      CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
+    }
+  }
+  else if (scenario == 4)
+  {
+    CuAssertTrue(tc, tactical_defense_start(&f.actor));
+    pulse += 3 RL_SEC;
+    event_test_advance();
+    CuAssertTrue(tc, has_defensive_casting_active(&f.actor));
+    CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
+  }
+  else if (scenario == 5)
+  {
+    FIGHTING(&f.actor) = &f.victim;
+    FIGHTING(&f.victim) = &f.actor;
+    CuAssertTrue(tc, combat_encounter_join(&f.actor, &f.victim, 1));
+    CuAssertTrue(tc, combat_encounter_join(&f.victim, &f.actor, 1));
+    CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
+  }
+  else if (scenario == 7)
+  {
+    combat_encounter_runtime_shutdown();
+    pulse += 40 RL_SEC;
+    CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
+    tactical_defense_resume(&f.actor);
   }
   pulse += (3 RL_SEC) - 1;
   event_test_advance();
@@ -3976,4 +4007,24 @@ void Test_gameplay_defensive_casting_does_not_restore_expired_saved_interval(CuT
 void Test_gameplay_defensive_casting_live_character_without_descriptor_keeps_expiring(CuTest *tc)
 {
   verify_tactical_defense_clock(tc, 3);
+}
+
+void Test_gameplay_defensive_casting_refresh_replaces_original_expiry(CuTest *tc)
+{
+  verify_tactical_defense_clock(tc, 4);
+}
+
+void Test_gameplay_defensive_casting_combat_entry_does_not_extend_elapsed_interval(CuTest *tc)
+{
+  verify_tactical_defense_clock(tc, 5);
+}
+
+void Test_gameplay_defensive_casting_combat_reentry_does_not_restart_interval(CuTest *tc)
+{
+  verify_tactical_defense_clock(tc, 6);
+}
+
+void Test_gameplay_defensive_casting_shutdown_captures_semantic_residual(CuTest *tc)
+{
+  verify_tactical_defense_clock(tc, 7);
 }

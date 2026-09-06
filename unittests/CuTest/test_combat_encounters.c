@@ -10,6 +10,7 @@
 #include "../../src/actionqueues.h"
 #include "../../src/interpreter.h"
 #include "../../src/combat/combat_encounters.h"
+#include "../../src/tactical_effects.h"
 #include "../../src/combat/fight.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/domain_event_world.h"
@@ -966,13 +967,15 @@ void Test_combat_semantic_join_uses_next_shared_round(CuTest *tc)
   encounter_test_end(saved_pulse);
 }
 
-void Test_combat_semantic_merge_coalesces_offset_clocks(CuTest *tc)
+static void verify_semantic_clock_merge(CuTest *tc, bool with_defense)
 {
   struct char_data first;
   struct char_data first_anchor;
   struct char_data second;
   struct char_data second_anchor;
   struct encounter_test_trace trace;
+  struct player_special_data first_specials = {0};
+  struct player_special_data second_specials = {0};
   struct combat_encounter_turn_snapshot snapshot;
   unsigned long saved_pulse;
   size_t count_after_first_round;
@@ -984,16 +987,26 @@ void Test_combat_semantic_merge_coalesces_offset_clocks(CuTest *tc)
   encounter_test_character(&second_anchor, "second clock anchor");
   saved_pulse = encounter_test_begin_semantic(tc, start_pulse, &trace);
   combat_encounter_test_set_phase_callback(encounter_test_record_phase, &trace);
+  if (with_defense)
+  {
+    first.player_specials = &first_specials;
+    second.player_specials = &second_specials;
+    CuAssertTrue(tc, tactical_effects_init());
+  }
   FIGHTING(&first) = &first_anchor;
   FIGHTING(&first_anchor) = &first;
   CuAssertTrue(tc, combat_encounter_join(&first, &first_anchor, 1 RL_SEC));
   CuAssertTrue(tc, combat_encounter_join(&first_anchor, &first, 1 RL_SEC));
+  if (with_defense)
+    CuAssertTrue(tc, tactical_defense_start(&first));
 
   pulse = start_pulse + (2 RL_SEC);
   FIGHTING(&second) = &second_anchor;
   FIGHTING(&second_anchor) = &second;
   CuAssertTrue(tc, combat_encounter_join(&second, &second_anchor, 1 RL_SEC));
   CuAssertTrue(tc, combat_encounter_join(&second_anchor, &second, 1 RL_SEC));
+  if (with_defense)
+    CuAssertTrue(tc, tactical_defense_start(&second));
   CuAssertIntEquals(tc, 2, event_queue_depth());
 
   pulse = start_pulse + (3 RL_SEC);
@@ -1009,6 +1022,12 @@ void Test_combat_semantic_merge_coalesces_offset_clocks(CuTest *tc)
   pulse = start_pulse + (8 RL_SEC);
   event_test_advance();
   CuAssertIntEquals(tc, (int)count_after_first_round, (int)trace.count);
+  if (with_defense)
+  {
+    CuAssertIntEquals(tc, 0, GET_DEFENSIVE_CASTING_TIMER(&first));
+    CuAssertIntEquals(tc, 1, GET_DEFENSIVE_CASTING_TIMER(&second));
+    CuAssertIntEquals(tc, 4 RL_SEC, tactical_defense_remaining(&second));
+  }
   pulse = start_pulse + (12 RL_SEC);
   event_test_advance();
   CuAssertIntEquals(tc, 6, (int)trace.count);
@@ -1020,11 +1039,25 @@ void Test_combat_semantic_merge_coalesces_offset_clocks(CuTest *tc)
   CuAssertIntEquals(tc, 6 RL_SEC, snapshot.pulses_until_next_turn);
   CuAssertIntEquals(tc, 1, event_queue_depth());
 
+  if (with_defense)
+    CuAssertIntEquals(tc, 0, GET_DEFENSIVE_CASTING_TIMER(&second));
   encounter_test_leave(&first, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
   encounter_test_leave(&first_anchor, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
   encounter_test_leave(&second, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
   encounter_test_leave(&second_anchor, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
   encounter_test_end(saved_pulse);
+  if (with_defense)
+    tactical_effects_shutdown();
+}
+
+void Test_combat_semantic_merge_coalesces_offset_clocks(CuTest *tc)
+{
+  verify_semantic_clock_merge(tc, false);
+}
+
+void Test_combat_semantic_merge_preserves_defense_until_subject_turn(CuTest *tc)
+{
+  verify_semantic_clock_merge(tc, true);
 }
 
 void Test_combat_semantic_round_dispatches_one_buffered_intent(CuTest *tc)

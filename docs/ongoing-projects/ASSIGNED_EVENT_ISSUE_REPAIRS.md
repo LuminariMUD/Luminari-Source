@@ -796,3 +796,21 @@ Validation: final `make -j10 test` passed 1,215 tests without compiler warnings;
 lifecycle/admission/merge acceptance, bleeding and recurring saves, and committed
 hazard exposure. The assigned batch and final measurement/release gates remain
 open; this checkpoint does not mark #107 complete.
+
+## Defensive Casting transition acceptance checkpoint (2026-09-06)
+
+Five additional production-linked cases cover refreshing through the original
+expiry deadline, entering combat with an elapsed interval, leaving/re-entering
+without restarting that interval, shutdown capture of semantic residual time, and
+defense expiry across merged offset encounters. The merge test exercises both
+participants: the original participant expires on its turn, while the absorbed
+participant retains the bonus until its own deferred semantic turn. Elapsed
+intervals retain their wall-time remainder and are not aligned to a later turn.
+
+Validation: `make -j10 test` passed all 1,220 tests without compiler warnings;
+`make install` succeeded. No production behavior or help changed in this
+checkpoint. Admission/lifetime edge cases still require the final #107 audit.
+Next implementation is Bleeding Critical's end-of-turn damage and duration as one
+owner, excluding the migrated nodes from both legacy duration and AFF_BLEED
+behavior processing. The separate SKILL_BLEEDING_ATTACK regeneration path is not
+implicitly included in that pilot.
