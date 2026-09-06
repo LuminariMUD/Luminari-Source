@@ -1174,6 +1174,9 @@ def main() -> int:
         cflags_match = re.search(
             r"(?m)^CFLAGS\s*=\s*(.*)$", (repo / "Makefile").read_text(encoding="utf-8")
         )
+        competing_muds = subprocess.run(
+            ["pgrep", "-a", "luminari"], capture_output=True, check=False, text=True
+        ).stdout.splitlines()
         provenance = {
             "source_sha": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip(),
             "source_dirty_diff_sha": hashlib.sha256(
@@ -1187,6 +1190,8 @@ def main() -> int:
             "kernel": os.uname().release,
             "machine": os.uname().machine,
             "cpu_count": os.cpu_count(),
+            "initial_load_average": os.getloadavg(),
+            "competing_mud_processes": competing_muds,
             "cpu_model": next(
                 (
                     line.split(":", 1)[1].strip()
