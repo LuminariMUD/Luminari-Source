@@ -1209,6 +1209,13 @@ no alternate validator, runtime service, or release mechanism. Keep production a
 development world untouched. Record the detailed behavior transcript beside the five logs
 consumed by Phase 8, and update only this non-gated checklist after the seal is complete.
 
+The first fresh Phase 7 attempt failed closed before writing a milestone because its legacy
+excluded-record repair table still claimed mobile 51348 and object 7067. Current discovery and
+planning correctly classify both as `KEEP`: the mobile policy owns the exact position repair and
+the object parser recovers the intact base rows after the omitted empty string. The duplicate
+Phase 7 claims were removed, while its four genuine incomplete-record `EXCLUDE`-to-`ADD` repairs
+and drift checks remain. A focused Phase 7 regression freezes that ownership boundary.
+
 - [ ] 6.1 Generate the baseline/discovery/plan/capability/special evidence required by the final
   rules, then Phase 7 milestones at batches 4/8/12 and an independent final repeat. Reuse valid
   inputs only when their hashes and dependencies still match. The candidate must contain the

@@ -67,18 +67,6 @@ _SOC_OWNER_EXCLUSIONS = frozenset(
     }
 )
 _SOURCE_RECORD_REPAIRS = {
-    "mob:51348:areas/mob/llyrath.mob:692": {
-        "destination_vnum": 2_051_348,
-        "kind": "mob",
-        "source_vnum": 51_348,
-        "repair": "restore the omitted 131 131 1 position row used by adjacent llyrath mobiles",
-    },
-    "obj:7067:areas/obj/quest_1.obj:9": {
-        "destination_vnum": 2_007_067,
-        "kind": "obj",
-        "source_vnum": 7_067,
-        "repair": "synthesize the omitted empty action-description field before the intact base rows",
-    },
     "obj:59060:areas/obj/muspel.obj:4041": {
         "destination_vnum": 2_059_060,
         "kind": "obj",
@@ -285,13 +273,7 @@ def _repair_source_record(record: RolRecord) -> RolRecord:
       for directive in record.directives
       if directive.get("token") != "EXCLUDED_SOURCE_RECORD"
   ]
-  if record.record_id == "mob:51348:areas/mob/llyrath.mob:692":
-    values["base_rows"] = [*values.get("base_rows", []), ["131", "131", "1"]]
-    directives.append({"token": "POSITION", "line": record.end_line, "field_count": 3})
-  elif record.record_id == "obj:7067:areas/obj/quest_1.obj:9":
-    if values.get("item_type") != 18 or len(values.get("values", [])) != 4:
-      raise RolPhase7Error("quest key 7067 no longer has its intact reparsed base rows")
-  elif record.record_id == "obj:59060:areas/obj/muspel.obj:4041":
+  if record.record_id == "obj:59060:areas/obj/muspel.obj:4041":
     values.update(
         {
             "item_type": 13,

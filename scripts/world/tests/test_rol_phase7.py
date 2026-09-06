@@ -6,6 +6,7 @@ import tempfile
 import unittest
 
 from wtool_lib.rol_phase7 import (
+    _SOURCE_RECORD_REPAIRS,
     _bound_trigger_text,
     _clear_rol_namespace,
     _ensure_index_entry,
@@ -19,6 +20,10 @@ from wtool_lib.rol_phase7 import (
 
 
 class RolPhase7Tests(unittest.TestCase):
+  def test_format_owned_repairs_are_not_reprocessed_as_exclusions(self) -> None:
+    self.assertNotIn("mob:51348:areas/mob/llyrath.mob:692", _SOURCE_RECORD_REPAIRS)
+    self.assertNotIn("obj:7067:areas/obj/quest_1.obj:9", _SOURCE_RECORD_REPAIRS)
+
   def test_namespace_clear_removes_only_generated_rol_records(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
       world = Path(temporary)
