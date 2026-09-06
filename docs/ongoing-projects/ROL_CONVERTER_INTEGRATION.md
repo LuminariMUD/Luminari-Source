@@ -175,9 +175,14 @@ store generated evidence in existing ignored run storage; no new framework or se
   Production-linked movement/drop/flag/equipment regression is added to `test_spec_mechanics.c`;
   `make -j4 test` passed 1,136 CuTests plus its required checks, then `make -j4 install`
   succeeded (both exit 0; `ship-cutest.log`, `ship-install.log`, and their `.exit` files).
-  No compiler warnings or root server artifact remained. Container concealment was then
-  added to the same regression; that final assertion and hook formatting require another
-  validation run. Isolated in-game verification is still pending.
+  Final validation including container concealment passed another 1,136 CuTests and installation
+  (exit 0; `ship-final-cutest.log`, `ship-final-install.log`, and their `.exit` files).
+  All file hooks, including clang-format, passed. No compiler warnings or root server artifact
+  remained. The first world-tool run skipped the six calculator tests because the utility binary
+  was absent (513 tests, one skipped class). After `make -C util rol_mob_calculator`, the complete
+  `make test-world-tools` passed all 518 tests with no skips (`ship-world-tools-complete.log`
+  and `.exit`, exit 0). The root test command's eight optional help-sync MariaDB tests remain
+  skipped; they are not ship-light verification. Isolated in-game verification is still pending.
 
 ### Pre-implementation observations
 
@@ -262,7 +267,7 @@ JSON files above; procedure-owner and player spell/access matrices still require
 | Source loader extensions are extra descriptions, applies, and trap data. Target `db.c` supports `B` (two fields), `C` (seven plus optional command), `K` (five), and `S` (four). | Emit extensions only where a traced source procedure supplies equivalent semantics. Do not treat unsupported trailing source tokens as authored target extensions. | Complete procedure/loader/writer/runtime mapping and capacity tests. |
 | Target `G/H/I` are proficiency/material/size; zero size becomes medium at load. | Retain current inferred weapon metadata; derive nonweapon fields only from reviewed source identity or supported mechanics. | Nonweapon material/size/proficiency rules and defaults pending. |
 | Source `comm.c` recognizes `&&`, `&N`/`&n`, `&+x`, `&-x`, and `&=xy`; unknown forms are printed literally. | Preserve foreground/background/blink using existing target protocol tokens (`@[bRGB]` and `@-`); normalize escaped ampersands and retain malformed literal forms with diagnostics. | Review 42 exceptional parsed strings and add shared-text round trips. Target `L/l` mean lime, whereas source `L/l` mean black; map source black explicitly to target `D/d`. |
-| Source `db.c:3297` unconditionally sets `ITEM_LIT` on ships. Twelve active source ships need that implicit bit. | Convert to target boat plus existing `ITEM_MAGLIGHT` mapping, preserving unrelated flags. | Emission regression and carried/dropped/moved runtime light checks still required. |
+| Source `db.c:3297` unconditionally sets `ITEM_LIT` on ships. Twelve active source ships need that implicit bit. | Implemented target boat plus existing `ITEM_MAGLIGHT` mapping, preserving unrelated flags; runtime visibility reads current direct room/inventory/equipment placement. | Emission round trips and production-linked carried/dropped/moved/toggled/equipped/container checks pass. Isolated in-game verification remains in step 6. |
 
 Product review requested before dependent behavior changes: armor family penalties and wearable
 AC policy above; permanent item level 1; and player-facing class packages versus explicit

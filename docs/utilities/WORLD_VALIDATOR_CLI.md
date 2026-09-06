@@ -419,9 +419,12 @@ describes the target. Keep conversions explicit in the policy and diagnostics.
   quivers. Javelin names alone do not establish throwing intent; thrown darts and
   blowgun ammunition are distinct. Use the classifier audit and reviewed
   overrides, not renamed enum numbers or ad hoc emitted-file edits.
-- Source ship loading forces light-related behavior beyond file flags. Its boat
-  mapping, exceptional colors, object-level policy and structured extension
-  losses require explicit review before claiming complete object equivalence.
+- Source ship loading forces `ITEM_LIT` even when its file omits that flag.
+  Converted ships retain boat behavior and receive target `ITEM_MAGLIGHT`.
+  Magical item light follows direct room, inventory, and equipment placement;
+  containers conceal it, and magical darkness takes precedence.
+- Armor, object-level policy, and structured extension losses still require
+  explicit review before claiming complete object equivalence.
 
 Track armor inference in [#113](https://github.com/LuminariMUD/Luminari-Source/issues/113), other field policies in
 [#114](https://github.com/LuminariMUD/Luminari-Source/issues/114), and weapon release review in [#115](https://github.com/LuminariMUD/Luminari-Source/issues/115).
