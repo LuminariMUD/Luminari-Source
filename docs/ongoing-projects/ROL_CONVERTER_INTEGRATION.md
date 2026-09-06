@@ -182,7 +182,7 @@ store generated evidence in existing ignored run storage; no new framework or se
   was absent (513 tests, one skipped class). After `make -C util rol_mob_calculator`, the complete
   `make test-world-tools` passed all 518 tests with no skips (`ship-world-tools-complete.log`
   and `.exit`, exit 0). The root test command's eight optional help-sync MariaDB tests remain
-  skipped; they are not ship-light verification. Isolated in-game verification is still pending.
+  skipped; they are not ship-light verification. Isolated in-game verification passed below.
 - Ship-light commit: `67a6efa61` (`fix: preserve RoL ship light through object movement`).
 - The current full-world `rol-capability-audit` passed under the same 24 GiB bound
   (`object-policy-audit/`, command log and `.exit`: exit 0, 1m59s, 14,086,520 KiB peak RSS).
@@ -322,6 +322,29 @@ store generated evidence in existing ignored run storage; no new framework or se
   target throwing command; no override or inference behavior changed. Plan-ablation kept
   this to the existing comment and review evidence. All 38 weapon-mapping tests passed
   (`weapon-review-tests.log` and `.exit`, exit 0).
+- Completed the focused isolated ship-light runtime proof (#114.5). Reused
+  `scripts/ci/prepare_test_runtime.sh`, the existing staff-login Expect body, and `autorun.sh`
+  with a private runtime under `/tmp/luminari-rol-light-0ypr9d0_`, MUD port 44109, and an
+  independent local MariaDB at 127.0.0.2:3306. Only the copied staff account/character was used.
+  The unmodified converted source ferry 5731 (`western_realms`, target 2005731) has implicit
+  source light; ordinary reed boat 10740 (target 2010740) provides the non-light control.
+  Syntax boot exited 0 (`light-syntax.log`/`.exit`). Installed binary SHA-256 is recorded in
+  `light-runtime-verification.json`; the successful supervisor and MUD PIDs were 497359 and
+  497487 respectively (authoritative supervisor PID retained in `light-autorun-field.log`).
+  The final login exited 0 (`light-login-verified.log`/`.exit`). Eight asserted `look` responses
+  prove darkness before/with the ordinary boat, illumination with the carried ferry, illumination
+  after moving east and dropping it, darkness west after leaving it, illumination on return east,
+  and darkness after purging the ferry. Creation, drop, and purge responses are also asserted.
+  Fixture calibration is explicit: `room_is_dark()` always lights the Inside sector, so the two
+  Dark/No-Mob/Indoors rooms use Field; the copied staff character's holy light and feat list were
+  cleared to remove independent vision and Aura of Light. The CI greeting is simply `Welcome`,
+  so the private helper copy recognizes that prompt. Earlier calibration transcripts do not count
+  as passing light evidence. No target runtime or source-object change was needed for this smoke.
+  Plan-ablation reused the existing launcher/login path and limited tracked changes to this log.
+  Both isolated services were stopped after the test; the existing development MUD on port 4100
+  remained PID 3638082. This satisfies the focused runtime part of #114.5 alongside its existing
+  authored/implicit-light, flag, parser, and production-linked movement regressions; it does not
+  replace the full final-candidate Phase 7/8 rehearsal in step 6.
 
 ### Pre-implementation observations
 
@@ -470,7 +493,7 @@ JSON files above; procedure-owner and player spell/access matrices still require
 | Source loader extensions are extra descriptions, applies, and trap data. Target `db.c` supports `B` (two fields), `C` (seven plus optional command), `K` (five), and `S` (four). | Emit extensions only where a traced source procedure supplies equivalent semantics. Do not treat unsupported trailing source tokens as authored target extensions. | Complete procedure/loader/writer/runtime mapping and capacity tests. |
 | Target `G/H/I` are proficiency/material/size; zero size becomes medium at load. | Retain current inferred weapon metadata; derive nonweapon fields only from reviewed source identity or supported mechanics. | Nonweapon material/size/proficiency rules and defaults pending. |
 | Source `comm.c` recognizes `&&`, `&N`/`&n`, `&+x`, `&-x`, and `&=xy`; unknown forms are printed literally. | Implemented foreground/background/blink through existing target tokens, escaped ampersands, and diagnosed malformed literals. Source black `L/l` maps to target `D/d`. | All 42 exceptional strings are recorded in `color-dispositions.json`; all seven format round trips pass. Final display smoke remains in step 6. |
-| Source `db.c:3297` unconditionally sets `ITEM_LIT` on ships. Twelve active source ships need that implicit bit. | Implemented target boat plus existing `ITEM_MAGLIGHT` mapping, preserving unrelated flags; runtime visibility reads current direct room/inventory/equipment placement. | Emission round trips and production-linked carried/dropped/moved/toggled/equipped/container checks pass. Isolated in-game verification remains in step 6. |
+| Source `db.c:3297` unconditionally sets `ITEM_LIT` on ships. Twelve active source ships need that implicit bit. | Implemented target boat plus existing `ITEM_MAGLIGHT` mapping, preserving unrelated flags; runtime visibility reads current direct room/inventory/equipment placement. | Emission round trips and production-linked carried/dropped/moved/toggled/equipped/container checks pass. Isolated in-game verification passes (implementation log); final candidate rehearsal remains in step 6. |
 
 Product review requested before dependent behavior changes: armor family penalties and wearable
 AC policy above; permanent item level 1; and player-facing class packages versus explicit
@@ -653,7 +676,7 @@ existing source/transform/object tests, and the relevant source/evidence manifes
   or literal content. Convert or intentionally strip supported presentation effects and report
   unsupported ones. Preserve current literal-`@` escaping, tilde safety, ASCII, and LF. Because
   the helper is shared, verify room/mobile/shop/quest/SOC text as well as object strings.
-- [ ] 114.5 Reproduce source loader-forced ship light: source `ITEM_SHIP` becomes a target
+- [x] 114.5 Reproduce source loader-forced ship light: source `ITEM_SHIP` becomes a target
   boat with the active target `ITEM_MAGLIGHT` flag through the existing flag mapping. Preserve
   unrelated flags and boat behavior. Test ships with and without authored light, ordinary boats,
   target parsing, and carried/dropped/moved lighting. Verify the runtime result: emitting the
