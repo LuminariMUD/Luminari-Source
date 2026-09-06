@@ -163,7 +163,7 @@ size_t event_debug_render_help(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "eventdebug due <max-pulses> [limit]");
   debug_output_line(&output, "eventdebug range <min> <max> [limit]");
   debug_output_line(&output, "eventdebug state <state> [limit]");
-  debug_output_line(&output, "eventdebug types [limit]");
+  debug_output_line(&output, "eventdebug types [limit] [offset]");
   debug_output_line(&output, "eventdebug domain [type]");
   debug_output_line(&output, "eventdebug ready [reset]");
   debug_output_line(&output, "eventdebug subscriptions [limit]");
@@ -477,10 +477,11 @@ size_t event_debug_render_queue(char *buffer, size_t capacity, int width,
   return output.length;
 }
 
-size_t event_debug_render_profiles(char *buffer, size_t capacity, int width, size_t limit)
+size_t event_debug_render_profiles(char *buffer, size_t capacity, int width, size_t limit,
+                                   size_t offset)
 {
   struct event_debug_output output;
-  struct PERF_event_profile_snapshot snapshots[EVENT_DEBUG_MAX_LIMIT];
+  struct PERF_event_profile_snapshot *snapshots;
   size_t total;
   size_t shown;
   size_t index;
@@ -489,15 +490,25 @@ size_t event_debug_render_profiles(char *buffer, size_t capacity, int width, siz
   size_t live;
 
   limit = MIN(MAX(limit, 1U), EVENT_DEBUG_MAX_LIMIT);
-  memset(snapshots, 0, sizeof(snapshots));
-  total = PERF_get_event_profiles(snapshots, limit);
-  shown = MIN(total, limit);
   debug_output_init(&output, buffer, capacity, width);
+  total = PERF_get_event_profiles(NULL, 0U);
+  offset = MIN(offset, total);
+  shown = MIN(total - offset, limit);
   debug_output_title(&output, "Event Callback Types");
   debug_output_line(&output, "Registered: %zu", total);
   debug_output_line(&output, "Showing: %zu", shown);
+  debug_output_line(&output, "Offset: %zu", offset);
   debug_output_line(&output, "Sorted by total callback time.");
-  for (index = 0; index < shown; index++)
+  if (total == 0U)
+    return output.length;
+  snapshots = calloc(total, sizeof(*snapshots));
+  if (snapshots == NULL)
+  {
+    debug_output_line(&output, "Unable to allocate the bounded profile snapshot.");
+    return output.length;
+  }
+  PERF_get_event_profiles(snapshots, total);
+  for (index = offset; index < offset + shown; index++)
   {
     if (event_runtime_find_type(snapshots[index].identity, &event_type) != GAME_SCHEDULER_OK ||
         event_runtime_type_live_count(event_type, &live) != GAME_SCHEDULER_OK)
@@ -523,6 +534,7 @@ size_t event_debug_render_profiles(char *buffer, size_t capacity, int width, siz
     debug_output_line(&output, "  cancelled: %" PRIu64, snapshots[index].cancelled);
     debug_output_line(&output, "  recurrences: %" PRIu64, snapshots[index].rescheduled);
   }
+  free(snapshots);
   return output.length;
 }
 
@@ -999,12 +1011,14 @@ ACMD(do_eventdebug)
   else if (!strcasecmp(action, "types"))
   {
     limit = parse_limit(arg1, 10U);
-    if (limit == 0)
+    value = 0U;
+    if (limit == 0 || (*arg2 != '\0' && (!parse_uint64(arg2, &value) || value > SIZE_MAX)) ||
+        *arg3 != '\0')
     {
-      send_to_char(ch, "Usage: eventdebug types [1-%u]\r\n", EVENT_DEBUG_MAX_LIMIT);
+      send_to_char(ch, "Usage: eventdebug types [1-%u] [offset]\r\n", EVENT_DEBUG_MAX_LIMIT);
       return;
     }
-    event_debug_render_profiles(buffer, sizeof(buffer), width, limit);
+    event_debug_render_profiles(buffer, sizeof(buffer), width, limit, (size_t)value);
   }
   else if (!strcasecmp(action, "domain"))
     event_debug_render_domain(buffer, sizeof(buffer), width, arg1);

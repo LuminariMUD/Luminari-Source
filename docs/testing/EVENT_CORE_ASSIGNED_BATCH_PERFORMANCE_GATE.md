@@ -70,10 +70,27 @@ callbacks rather than only the late subset.
 Each registered event type owns a bounded ring of the latest 1,024 lateness
 samples, plus lifetime sample, late-callback and maximum counts. This keeps the
 measurement cost and memory fixed. Operators can read p50/p95/p99/max and
-stored/seen/late counts with `eventdebug profiles`; `perfmon total` and
+stored/seen/late counts with `eventdebug types`; `perfmon prof` and
 `perfmon csv` expose the same data for capture. The CSV form is the preferred
 artifact for the workloads above. Reset performance counters immediately
 before each measured workload and archive the output immediately afterward.
+When more than 100 types are registered, retrieve successive bounded pages with
+`eventdebug types 100 0`, `eventdebug types 100 100`, and so on until the
+reported offset plus showing count reaches the registered count.
+
+The reproducible development harness runs the declared fixture against a
+private MariaDB copy and isolated listeners:
+
+```console
+scripts/events/run_event_core_performance_gate.py --backend both --profile full
+```
+
+Use `--profile smoke` to validate fixture boot, client coordination, evidence
+capture and threshold parsing. A smoke result cannot satisfy the sustained-RSS
+gate because its steady phase is intentionally shorter than the two ten-minute
+comparison windows. Each run stores provenance, raw phase captures, command
+samples, process memory, server logs and machine-readable verdicts in a new
+ignored `.burnin-runtime-event111-*` directory.
 
 Production-linked tests cover on-time callbacks, a callback dispatched three
 ticks after its deadline, percentile reporting, CSV output, and width-bounded

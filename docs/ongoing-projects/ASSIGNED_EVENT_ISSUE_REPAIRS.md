@@ -258,7 +258,7 @@ The September 5 burn-in recorded one 151.808 ms loop out of 9,654 samples (0.01%
 
 - [x] Agree representative idle and burst workloads and acceptance thresholds before measuring.
 - [ ] Collect per-type deadline lateness, command/network tail latency and sustained RSS trends with build/configuration/workload provenance. Per-type lateness collection is implemented; the declared live workload remains outstanding.
-- [x] Add and test bounded per-type native deadline-lateness p50/p95/p99/max instrumentation in `eventdebug profiles` and `perfmon`; continue to use `eventdebug ready [reset]` only for the separate ready-action decision path.
+- [x] Add and test bounded per-type native deadline-lateness p50/p95/p99/max instrumentation in `eventdebug types` and `perfmon`; continue to use `eventdebug ready [reset]` only for the separate ready-action decision path.
 - [ ] Investigate repeatable DG/extraction tail stalls if reproduced; retain negative findings as measurements.
 - [x] Update the existing acceptance report with the implemented measurement path and explicit remaining limitations.
 
