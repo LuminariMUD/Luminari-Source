@@ -10,6 +10,9 @@
 - When adding or removing a source file, update BOTH `Makefile.am` and `CMakeLists.txt`.
 - All documentation must be valid ASCII, UTF-8, LF line endings.
 - Always trace code; never assume naming conventions.
+- After planning a task and before implementation, read and apply
+  [plan-ablation](.agents/skills/plan-ablation/SKILL.md). Briefly record what can be removed or
+  simplified, update the plan, then proceed. Keep this check brief for small tasks.
 - Helpfiles have to be updated in two places: the database and `lib/text/help/help.hlp`
 - For an explicit request to synchronize help end to end, use the help-sync skill's bounded sync
   workflow without pausing for duplicate confirmation; deletions, renames, and conflicts still
