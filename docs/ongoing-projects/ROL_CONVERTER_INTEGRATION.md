@@ -345,6 +345,36 @@ store generated evidence in existing ignored run storage; no new framework or se
   remained PID 3638082. This satisfies the focused runtime part of #114.5 alongside its existing
   authored/implicit-light, flag, parser, and production-linked movement regressions; it does not
   replace the full final-candidate Phase 7/8 rehearsal in step 6.
+- Completed a focused native-display check of all 42 exceptional-color strings, each rechecked
+  against its source record hash and current `convert_text()` output. The first wire capture
+  demonstrated ANSI background and blink, but also a literal-at-sign gap: source SOC 20061
+  displayed `@@` where the source has `@`. `parse_at()` retains the escape and OLC writes it
+  unchanged; `ProtocolOutput()` previously copied both characters. The fix preserves the existing
+  converter/storage encoding and collapses doubled at-signs only during native output. Corrected
+  the reader's misleading comment. The focused protocol regression first reproduced the defect
+  (29/30 passing), then passed all 30 tests (`color-at-protocol-final.log`), covering adjacent
+  colors, repeated/single at-signs, disabled ANSI and explicit input-length bounds.
+  Phase 8 now captures the protocol implementation/regression and rejects a post-gate change.
+  Scopeguard/plan-ablation retained one native output branch, existing test/evidence owners,
+  and this log; no new parser, converter escape, persistence format or test framework.
+  `make -j4 test` passed all 1,138 production-linked CuTests and required checks, followed by
+  `make -j4 install` (both exit 0; `color-at-cutest.log`/`.exit`, `color-at-install.log`/`.exit`).
+  The eight optional help-sync MariaDB tests remained explicitly skipped. After rebuilding
+  `rol_mob_calculator`, `make test-world-tools` passed 520 tests with no skips (exit 0;
+  `color-world-tools.log`/`.exit`). File hooks passed, no compiler warnings remained, and no
+  root-level server artifact was left.
+  The rebuilt binary passed syntax boot (`color-syntax.log`/`.exit`, exit 0), then ran through
+  `autorun.sh` on isolated port 44109 (supervisor 539248, MUD 539378). The private fixture uses
+  native extra descriptions to avoid room-layout reflow, equal-width lookup keywords to avoid
+  abbreviation collisions, and bounded Expect capture large enough for complete strings.
+  `color-login-verified.log`/`.exit` records the successful staff login (exit 0), and
+  `color-wire-verified/` retains raw native output. `verify-color-wire.py` asserts complete
+  framing for every string, its expected background/blink/black codes and diagnosed literals,
+  plus exactly one at-sign in the original SOC example. All 42 pass; binary/source/wire hashes
+  are retained in `color-runtime-verification.json`. Earlier calibration captures are not final
+  proof. Both disposable services exited after testing; the existing development listener on
+  port 4100 remained PID 3638082. These checks prove native text presentation; the final candidate's
+  actual room/object/quest/SOC contexts and combined smoke remain required in step 6.
 
 ### Pre-implementation observations
 

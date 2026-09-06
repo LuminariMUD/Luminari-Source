@@ -41,6 +41,8 @@ class RolPhase8Tests(unittest.TestCase):
         "src/structs.h",
         "src/combat/assign_wpn_armor.c",
         "src/magic/magic.c",
+        "src/net/protocol.c",
+        "unittests/CuTest/test_protocol_parser.c",
         "unittests/CuTest/test_unassigned_spells.c",
         "bin/rol_mob_calculator",
     ):
@@ -85,6 +87,7 @@ class RolPhase8Tests(unittest.TestCase):
       for index, relative in enumerate((
           "scripts/world/wtool_lib/rol_objects.py",
           "scripts/world/wtool_lib/rol_weapon_overrides.json",
+          "src/net/protocol.c",
       )):
         with self.subTest(input=relative):
           path = root / relative

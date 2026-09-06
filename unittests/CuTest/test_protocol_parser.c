@@ -823,6 +823,33 @@ void TestProtocolParser_UnicodeFallbackHasValidLifetime(CuTest *tc)
   harness_destroy(&harness);
 }
 
+void TestProtocolParser_EscapedAtSignsRenderOnce(CuTest *tc)
+{
+  protocol_harness_t harness;
+  const char *processed;
+  int input_length;
+
+  harness_init(tc, &harness);
+  CuAssertStrEquals(tc, "mail@example @@ @ &c",
+                    ProtocolOutput(&harness.descriptor, "mail@@example @@@@ @ &c", NULL));
+  CuAssertStrEquals(tc, "@\033[0;31mred\033[0;00m@",
+                    ProtocolOutput(&harness.descriptor, "@@\trred\tn@@", NULL));
+  harness.descriptor.pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt = 0;
+  CuAssertStrEquals(tc, "@red\033[0;00m@",
+                    ProtocolOutput(&harness.descriptor, "@@\trred\tn@@", NULL));
+
+  /* A bounded prefix must not consume an escape outside the supplied input. */
+  input_length = 1;
+  processed = ProtocolOutput(&harness.descriptor, "@@tail", &input_length);
+  CuAssertStrEquals(tc, "@", processed);
+  CuAssertIntEquals(tc, 1, input_length);
+  input_length = 2;
+  processed = ProtocolOutput(&harness.descriptor, "@@tail", &input_length);
+  CuAssertStrEquals(tc, "@", processed);
+  CuAssertIntEquals(tc, 1, input_length);
+  harness_destroy(&harness);
+}
+
 void TestProtocolParser_OversizedResponsePaths(CuTest *tc)
 {
   protocol_harness_t harness;
@@ -1378,6 +1405,7 @@ CuSuite *ProtocolParserSuite(void)
   SUITE_ADD_TEST(suite, TestProtocolParser_GracefulTruncationKeepsConnectionUsable);
   SUITE_ADD_TEST(suite, TestProtocolParser_MsspPairLengthIsCheckedBeforeAppend);
   SUITE_ADD_TEST(suite, TestProtocolParser_UnicodeFallbackHasValidLifetime);
+  SUITE_ADD_TEST(suite, TestProtocolParser_EscapedAtSignsRenderOnce);
   SUITE_ADD_TEST(suite, TestProtocolParser_OversizedResponsePaths);
   SUITE_ADD_TEST(suite, TestProtocolParser_MsspResponseIsBounded);
   SUITE_ADD_TEST(suite, TestProtocolParser_SelectedMsdpVariablesCanBeReported);
