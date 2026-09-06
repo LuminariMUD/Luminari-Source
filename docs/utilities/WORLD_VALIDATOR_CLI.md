@@ -389,6 +389,10 @@ namespaces. `rol_source.py` parses source records; `rol_transform.py` emits the
 native representation. The [native serialization reference](../world_game-data/OEDIT_GUIDE.md#native-object-file-serialization)
 describes the target. Keep conversions explicit in the policy and diagnostics.
 
+Native validation counts `A` applies and `B` spellbook entries independently,
+matching the server loader. Legacy two/three-field applies receive zero for
+omitted bonus type/specific fields. Each extension still enforces its own capacity.
+
 - Source object text uses tilde strings and RoL `&` color syntax. The shared text
   converter preserves `&+x` foreground, `&-x` background, and `&=xy` combined colors,
   including source background blinking, using existing target protocol tokens.

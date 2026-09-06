@@ -249,6 +249,27 @@ store generated evidence in existing ignored run storage; no new framework or se
   `class.c:spell_assignment()` likewise records a circle consumed by `init_spell_levels()`;
   target character acquisition still needs the class's actual progression/slot tables.
 
+- Extension-capacity review found two target-validator mismatches with the current native
+  `db.c:parse_object()`: the Python parser shared the A/B counter, and rejected legacy A
+  payloads whose missing fields the native loader now explicitly defaults to zero.
+  Outcome/files/proof: align `objects.py` with those existing loader rules and extend its
+  existing tests with both extension orders, independent capacity overflows, and legacy
+  defaults following a full four-field affect. No source mapping or native grammar change.
+  Plan-ablation: two counters and existing default padding suffice; retain all overflow
+  checks and use the current test file. Baseline regressions reproduced the false failures
+  (`extension-capacity-before.log`, `extension-affect-before.log`). The corrected focused
+  object/transform/Phase 8 run passed 157 tests (`extension-focused.log`, exit 0).
+  Phase 8 captures the target object parser because its findings affect release acceptance.
+  The complete `make test-world-tools` run passed all 519 tests with no skips (exit 0;
+  `extension-world-tools.log` and `.exit`); all file hooks passed. No C runtime change was
+  needed for this correction, so the previous C test/install results remain applicable.
+- Completed the exceptional-color disposition packet (`color-dispositions.json`): all 42
+  parsed strings across 40 records retain source path/hash, exact target text and diagnostics.
+  All requested forms are accounted for; malformed complete forms remain literal and valid
+  background/combined/escaped-ampersand forms use the traced source semantics. The packet has
+  33 diagnostics and canonical ASCII/LF text without embedded tilde framing. Existing shared
+  round trips cover all seven formats. The final display smoke remains part of step 6.
+
 ### Pre-implementation observations
 
 The following observations describe the starting code before the mechanical split. Current
@@ -327,17 +348,38 @@ JSON files above; procedure-owner and player spell/access matrices still require
 | Armor value 0 protects when positive; target `handler.c:apply_ac()` accepts body/head/arms/legs/shield and the explicit tail exception. | Preserve standard armor protection independently of family. Infer family from identity/material and apply its real target penalties. Never set load-time table-stat replacement. | Pending family/penalty approval; inspect five mixed masks and eight short numeric base rows before assigning final dispositions. |
 | Nonstandard armor wearables have no value-0 AC runtime effect. There are 13 negative-protection records, including seven shackles numbered 35600-35606. | Proposed `ITEM_WORN` with signed `APPLY_AC_NEW`: divide magnitude by ten, round toward zero, retain minimum magnitude one for nonzero values; use existing universal bonus type 23 and preserve authored applies. | Pending scaling/stacking/curse approval; prevent double-counting and test equip/unequip. Dedicated-tail behavior needs its own disposition. |
 | Source `which.c` labels armor values 1/2 as warmth/prestige; 101/25 records have nonzero values. | Proposed explicit named losses where source/target consumer review confirms no supported equivalent; clear obsolete target value slots. | Runtime/source-consumer review and loss approval pending. |
-| Ten armor records have nonzero value 3, labeled ProcVal; none has an active source procedure binding. Source feature helpers use this slot as mutable state/recharge bits. | Proposed named inert-metadata loss for these ten values. Bound armor procedures (22 records, authored ProcVal zero) retain their existing `Z`/DG owner instead of synthesizing `C` or `S`. | `proc-review.json` records identities and bindings; loss approval and final Phase 6 owner verification remain pending. |
+| Ten armor records have nonzero value 3, labeled ProcVal; none has an active source procedure binding. Source feature helpers use this slot as mutable state/recharge bits. | Proposed named inert-metadata loss for these ten values. Bound armor procedures (22 records, authored ProcVal zero) retain their existing `Z`/DG owner instead of synthesizing `C` or `S`. | `proc-review.json` records identities and bindings; Phase 6 owner verification passes. Loss approval remains pending. |
 | Source `db.c:read_object()` reads weight/cost/durability, followed by two optional affect words; there is no object-level field. | Proposed permanent target level 1, preserving the existing conversion policy. Magic-item caster level remains separate. | Explicit level-policy approval pending. |
 | Source loader extensions are extra descriptions, applies, and trap data. Target `db.c` supports `B` (two fields), `C` (seven plus optional command), `K` (five), and `S` (four). | Emit extensions only where a traced source procedure supplies equivalent semantics. Do not treat unsupported trailing source tokens as authored target extensions. | Complete procedure/loader/writer/runtime mapping and capacity tests. |
 | Target `G/H/I` are proficiency/material/size; zero size becomes medium at load. | Retain current inferred weapon metadata; derive nonweapon fields only from reviewed source identity or supported mechanics. | Nonweapon material/size/proficiency rules and defaults pending. |
-| Source `comm.c` recognizes `&&`, `&N`/`&n`, `&+x`, `&-x`, and `&=xy`; unknown forms are printed literally. | Preserve foreground/background/blink using existing target protocol tokens (`@[bRGB]` and `@-`); normalize escaped ampersands and retain malformed literal forms with diagnostics. | Review 42 exceptional parsed strings and add shared-text round trips. Target `L/l` mean lime, whereas source `L/l` mean black; map source black explicitly to target `D/d`. |
+| Source `comm.c` recognizes `&&`, `&N`/`&n`, `&+x`, `&-x`, and `&=xy`; unknown forms are printed literally. | Implemented foreground/background/blink through existing target tokens, escaped ampersands, and diagnosed malformed literals. Source black `L/l` maps to target `D/d`. | All 42 exceptional strings are recorded in `color-dispositions.json`; all seven format round trips pass. Final display smoke remains in step 6. |
 | Source `db.c:3297` unconditionally sets `ITEM_LIT` on ships. Twelve active source ships need that implicit bit. | Implemented target boat plus existing `ITEM_MAGLIGHT` mapping, preserving unrelated flags; runtime visibility reads current direct room/inventory/equipment placement. | Emission round trips and production-linked carried/dropped/moved/toggled/equipped/container checks pass. Isolated in-game verification remains in step 6. |
 
 Product review requested before dependent behavior changes: armor family penalties and wearable
 AC policy above; permanent item level 1; and player-facing class packages versus explicit
 content-only preservation for the RoL identities. These decisions do not authorize new base-class
 IDs or replace the required per-spell acquisition/balance matrix.
+
+### Traced object extension contract
+
+Source `db.c:read_object()` loads E descriptions, A applies, and T trap data; it does not load
+native B/C/K/S blocks. Existing Phase 6 owners preserve assigned procedures separately. The
+following representation review does not approve new losses or synthesize spell effects from
+unbound values.
+
+| Native field | Loader, writer and runtime contract | Selected-source evidence/disposition |
+|--------------|------------------------------------|--------------------------------------|
+| A | `db.c` uses its own six-entry affect counter; omitted bonus type/specific become zero. `olc/genobj.c` writes all four fields. | Preserve mapped applies. Python validation now accepts the same legacy defaults and independently checks capacity. |
+| B | Separate 200-entry `sbinfo` array, two fields: target spell ID and pages. `spellbook_scroll.c` uses stored spell IDs; scribing limits entries, not total pages. | All 31 source type-33 spellbooks lack the private `03 01 03` E keyword used by `memorize.c:find_spell_description()` for learned-spell bitsets. There are no authored book spells to synthesize as B entries in this corpus. Source language/class/total-used-page metadata has no equivalent in this target path and still needs an explicit loss disposition. |
+| C | Seven integers and optional command word; dynamically allocated ability list. `genobj.c` preserves that order; `combat/spec_abilities.c` consumes ability, activation, level and values. | A source proc-state bitmask does not identify a native ability. Keep the resolved special/DG owner unless a reviewed procedure requires a specific extension. |
+| K | Five integers: caster level, target spell ID, remaining/max uses, cooldown. One activation array; repeated K blocks overwrite it. Writer emits only positive level/spell entries. `obj/act.item.c` casts and decrements/recharges uses. | No authored native K data in the source grammar. Existing assigned activation procedures remain their resolved owner. |
+| S | Independent three-entry weapon-spell array: target spell ID, level, probability, combat flag. Writer preserves this order. `fight.c:weapon_spells()` and `idle_weapon_spells()` consume it through the `GET_WEAPON_SPELL_*` macros, casting through `call_magic()`. | Preserve existing weapon-procedure ownership; the six bound nonzero source ProcVal weapons resolve to `RoL Banana` or `RoL Weapon Proc`. The eight unbound nonzero weapon values remain proposed inert metadata. |
+| G/H/I | One integer each: proficiency/material/size; current writer emits all three, and missing or zero size becomes medium. Material affects saves and equipment behavior; proficiency and size affect use. | Source object structure/loader has no corresponding generic fields. Weapon inference already supplies reviewed table values. Nonweapon inference/default decisions remain pending; textual material guesses can change mechanics. |
+
+The selected-source book inventory was checked against all parsed records and the live source
+`memorize.c` implementation. Its old prose describes a per-spell string, but the live code uses
+`IS_CSET`/`SET_CBIT` storage; no such private E entry occurs in these world prototypes. Runtime
+player-book data is outside this world-converter input.
 
 ## Step 1: split format ownership without behavior changes (#116)
 
@@ -449,7 +491,7 @@ existing source/transform/object tests, and the relevant source/evidence manifes
   procedure, supported extension/trigger, or an approved named loss. Implement missing accepted
   equivalents without duplicate effects. Retain existing `E/A/Z/T`, trap, and reference behavior.
   Treat loader-ignored trailing source data according to the actual source loader.
-- [ ] 114.4 Inventory and decide all exceptional color forms: `&-L`, `&-<`, `&=`, `&_`, `&%`,
+- [x] 114.4 Inventory and decide all exceptional color forms: `&-L`, `&-<`, `&=`, `&_`, `&%`,
   `&&`, `&$`, `&c`, `&I`, `&<`, and `&g`. Trace valid source escapes and distinguish malformed
   or literal content. Convert or intentionally strip supported presentation effects and report
   unsupported ones. Preserve current literal-`@` escaping, tilde safety, ASCII, and LF. Because

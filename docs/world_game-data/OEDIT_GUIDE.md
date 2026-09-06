@@ -30,7 +30,7 @@ noted, the extension letter occupies a line and its data follows it.
 | Tag | Payload |
 | --- | --- |
 | `A` | Apply location, modifier, optional bonus type and specific selector, in that order. Older two/three-field forms default missing data. At most `MAX_OBJ_AFFECT` entries (currently 6). |
-| `B` | Spellbook spell number and page count; separate storage from applies. |
+| `B` | Spellbook spell number and page count; separate storage from applies, at most `SPELLBOOK_SIZE` entries (currently 200). |
 | `C` | Special ability, level, activation method, four values, command word. |
 | `E` | Tilde-terminated keywords and extra description. |
 | `G`, `H`, `I` | Proficiency, material and size respectively; undefined size loads as medium. |
