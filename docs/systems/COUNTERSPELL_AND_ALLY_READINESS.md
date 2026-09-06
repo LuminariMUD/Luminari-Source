@@ -2,8 +2,8 @@
 
 Design decision for assigned issue #106, 2026-09-06. Implementation baseline:
 `9b086f39f` on `fix/open-issue-repairs`. These are implementation requirements.
-The counterspell command and initial production-linked tests are now implemented;
-designated-ally defense and the full acceptance matrix remain outstanding.
+Counterspell and designated-ally defense commands and their initial
+production-linked tests are implemented. The full acceptance matrix remains open.
 
 ## Existing contracts and simplification
 
@@ -138,6 +138,15 @@ reservation before calling `combat_readied_attack`, preventing self-recursion.
 Normal legality, single-file, charm, death and weapon restrictions still apply.
 Protectors do not acquire awareness from prose or from unseen remote attacks.
 
+The event bus rejects subscription admission while a publication is dispatching.
+Ally readiness therefore admits source-room movement/death/extraction watches
+up front. Character death and extraction now include that room routing topic;
+extraction is published before the character is removed from its room. The watch
+filters by one generation handle, initially the ally and then the claimed attacker.
+Changing the bound handle needs no subscription changes inside dispatch. These
+subscriptions are scoped to active protectors in one room and remain charged to
+the protector's normal ready owner and subscription limits.
+
 ## Ownership and verification requirements
 
 Execution payloads must identify the particular readiness incarnation as well as
@@ -170,6 +179,9 @@ This design resolves the rule choices in #106. Counterspell now uses the existin
 ready owner, resource check, native queued execution and exact-activity cancellation.
 Its initial tests cover real preparation consumption, suppressed spell effect,
 replacement-cast protection, visibility changes, missing resources, overdue
-dispatch, silent/still casting and a real player instant cast. Designated-ally
-runtime implementation and the rest of the listed acceptance matrix remain
-outstanding; the issue is not complete.
+dispatch, silent/still casting and a real player instant cast. Ally-defense tests
+exercise real hit/miss triggers, one reserved strike with the special-attack queue
+untouched, relationship and visibility checks, non-ally admission, and participant
+movement/death/extraction notifications before and after claiming an attacker.
+The rest of the listed acceptance matrix remains outstanding; the issue is not
+complete.

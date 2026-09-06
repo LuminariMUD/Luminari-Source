@@ -373,7 +373,7 @@ enum domain_event_status domain_event_runtime_character_died_with_cause(struct c
                                                                         uint32_t cause)
 {
   struct domain_character_died event;
-  struct domain_event_topic topics[2];
+  struct domain_event_topic topics[3];
   size_t topic_count = 0U;
 
   if (runtime_bus == NULL || ch == NULL)
@@ -383,6 +383,8 @@ enum domain_event_status domain_event_runtime_character_died_with_cause(struct c
   event.cause = cause;
   append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SUBJECT, event.character);
   append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SOURCE, event.killer);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SOURCE,
+               domain_event_room_handle(IN_ROOM(ch)));
   return DOMAIN_EVENT_PUBLISH_ROUTED(runtime_bus, DOMAIN_EVENT_CHARACTER_DIED, topics, topic_count,
                                      &event);
 }
@@ -393,18 +395,19 @@ enum domain_event_status domain_event_runtime_character_extracted(struct char_da
   struct domain_entity_extracted event;
   struct game_event_owner owner;
   enum domain_event_status status;
-  struct domain_event_topic topic;
+  struct domain_event_topic topics[2];
+  size_t topic_count = 0U;
   size_t cancelled;
 
   if (runtime_bus == NULL || ch == NULL)
     return DOMAIN_EVENT_NOT_FOUND;
   event.entity = domain_event_character_handle(ch);
   event.reason = reason;
-  topic.role = DOMAIN_EVENT_TOPIC_SUBJECT;
-  topic.entity = event.entity;
-  status =
-      DOMAIN_EVENT_PUBLISH_ROUTED(runtime_bus, DOMAIN_EVENT_ENTITY_EXTRACTED, &topic,
-                                  domain_entity_handle_is_valid(event.entity) ? 1U : 0U, &event);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SUBJECT, event.entity);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SOURCE,
+               domain_event_room_handle(IN_ROOM(ch)));
+  status = DOMAIN_EVENT_PUBLISH_ROUTED(runtime_bus, DOMAIN_EVENT_ENTITY_EXTRACTED, topics,
+                                       topic_count, &event);
   if (domain_entity_handle_is_valid(event.entity))
   {
     cancelled = 0U;

@@ -630,3 +630,36 @@ Next: subscribe designated-ally readiness to AttackCommitted, switch its watched
 target from ally to attacker when claimed, preserve one reserved strike, and
 complete DG/ranged/nested-strike and lifecycle acceptance coverage. #106 and the
 full assigned batch remain open.
+
+## Designated-ally readiness checkpoint (2026-09-06)
+
+`ready attack on ally <ally> attacked` now admits one visible local group member
+or owned NPC follower and reserves the existing standard action. Its defender-
+scoped AttackCommitted subscription checks the current relationship, visibility,
+melee eligibility and PvP rules, claims the first eligible attacker, and queues
+one normal readied strike. Incoming damage resolves before the reaction. Misses
+can trigger it, and later notifications neither retarget it nor dispatch a queued
+special attack. There is no additional reaction allowance or global scan.
+
+The event bus intentionally rejects subscription admission during publication.
+Consequently target loss is handled through source-room subscriptions admitted
+up front, filtering one generation identity: the ally before the trigger and the
+attacker afterward. Character death and extraction include a source-room topic
+for this concrete consumer. An ally-death notification after the trigger leaves
+the queued retaliation intact; movement, death or extraction of the bound attacker
+cancels it. Old callbacks must match the current bound identity before cancelling.
+
+Validation: `make -j10 test` passed with 1,192 gameplay cases and no compiler
+warnings, followed by successful `make install`. Eleven new production-linked
+cases cover incoming hit/miss, one reserved strike, untouched queued special
+attack, repeated attempts, relationship/visibility changes, rejection before
+action cost, attacker movement/death/extraction, and ally death before versus
+after the trigger. Lifecycle cases explicitly exercise typed notifications and
+identity retirement; they do not prove every deep DG callback/extraction path.
+The flat help, deployable SQL and development READIED-ACTION entry were updated
+and verified. No production change or server restart occurred.
+
+#106 still requires the remaining equal-deadline/competing-counter, admission-
+failure, encounter-transition and deep DG/ranged/nested-strike coverage. Audit
+counterspell verbal perception against AFF_DEAF as part of visibility/senses
+acceptance. #107-109, final #103-105 audits and #111/#112 gates also remain open.

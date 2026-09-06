@@ -1,7 +1,8 @@
--- Counterspell and native ready-action help.
+-- Counterspell and ally-defense native ready-action help.
 START TRANSACTION;
 
-INSERT INTO help_entries (tag, entry, min_level, auto_generated) VALUES ('READIED-ACTION', 'Usage: ready counterspell <target> on casting
+INSERT INTO help_entries (tag, entry, min_level, auto_generated) VALUES ('READIED-ACTION', 'Usage: ready attack on ally <ally> attacked
+       ready counterspell <target> on casting
        ready attack <target> on casting
        ready attack <target> on entry
        ready attack <target> on door open <direction>
@@ -39,6 +40,18 @@ normal effect. An ended or replaced cast consumes no counterspell resource.
 Dispel and Improved Counterspell alternatives are not supported. The old
 counterspell mode now directs you to this explicit READY command.
 
+ON ALLY <ally> ATTACKED watches a visible group member or one of your NPC
+followers in the room. It reserves your standard action for one normal melee
+strike against the first eligible attacker you witness. A committed miss or
+prevented strike can trigger it; rejected commands cannot. You must still see
+the ally and attacker, and the ally relationship must still hold when triggered.
+
+The triggering attack resolves before your queued retaliation. This does not
+redirect damage or grant cover. Once triggered, the reaction watches the bound
+attacker: their departure, death or extraction cancels it. The ally dying after
+the trigger does not erase your already-readied retaliation. Later attacks
+cannot retarget it or grant another strike. Normal melee and PvP rules apply.
+
 ON ENTRY waits for the named target to arrive. ON DOOR OPEN watches a visible,
 closed door; its attack target must already be visible in your room. Opening
 from either side triggers it, including scripted openings. Unlocking, zone
@@ -61,6 +74,7 @@ execution even if it reopens. Only one action can be readied at a time. READY
 shows it. Readied actions do not survive copyover or reboot.
 
 Examples:
+  ready attack on ally companion attacked
   ready counterspell mage on casting
   ready attack mage on casting
   ready attack guard on entry

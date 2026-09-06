@@ -43,6 +43,8 @@ struct ready_action
   bool counterspell;
   int counter_spellnum;
   bool on_casting;
+  bool on_ally;
+  struct domain_entity_handle protected_ally;
   uint64_t cast_id;
   unsigned int references;
   int door_direction; /* -1 for entry readiness. */
@@ -510,6 +512,41 @@ static void ready_casting_handler(const struct domain_event_context *context, vo
                  action->counterspell ? "counterspell" : "attack", GET_NAME(caster));
 }
 
+static bool ready_ally_matches(struct char_data *owner, struct char_data *ally)
+{
+  return owner != NULL && ally != NULL && owner != ally && !DEAD(ally) &&
+         IN_ROOM(owner) == IN_ROOM(ally) && CAN_SEE(owner, ally) &&
+         ((GROUP(owner) != NULL && GROUP(owner) == GROUP(ally)) ||
+          (IS_NPC(ally) && ally->master == owner));
+}
+
+static void ready_ally_attacked(const struct domain_event_context *context, void *data)
+{
+  const struct domain_attack_committed *event = context->payload;
+  struct ready_action *action = data;
+  struct char_data *owner = resolve_character(context->bus, action->owner);
+  struct char_data *ally;
+  struct char_data *attacker;
+
+  if (owner == NULL || owner->ready_action != action ||
+      !event_runtime_handle_is_none(action->execution_handle) ||
+      !domain_entity_handle_equal(action->protected_ally, event->defender) ||
+      !domain_entity_handle_equal(action->room, event->origin_room))
+    return;
+  ally = resolve_character(context->bus, action->protected_ally);
+  attacker = resolve_character(context->bus, event->attacker);
+  if (!ready_ally_matches(owner, ally) || attacker == NULL || attacker == ally ||
+      !combat_readied_attack_allowed(owner, attacker) || !pvp_ok(owner, attacker, false))
+    return;
+
+  /* Room-scoped watches were admitted before publication. Claim the attacker
+   * by identity; no subscription mutation or combat occurs inside dispatch. */
+  action->attack_target = event->attacker;
+  if (queue_ready_execution(action, owner))
+    send_to_char(owner, "Your readied strike triggers as %s attacks your ally.\r\n",
+                 GET_NAME(attacker));
+}
+
 static void ready_target_lost(const struct domain_event_context *context, void *data)
 {
   struct ready_action *action = data;
@@ -519,6 +556,18 @@ static void ready_target_lost(const struct domain_event_context *context, void *
     const struct domain_character_moved *moved = context->payload;
     if (!domain_entity_handle_equal(moved->character, action->attack_target) ||
         domain_entity_handle_equal(moved->from_room, moved->to_room))
+      return;
+  }
+  else if (context->type == DOMAIN_EVENT_CHARACTER_DIED)
+  {
+    const struct domain_character_died *died = context->payload;
+    if (!domain_entity_handle_equal(died->character, action->attack_target))
+      return;
+  }
+  else if (context->type == DOMAIN_EVENT_ENTITY_EXTRACTED)
+  {
+    const struct domain_entity_extracted *extracted = context->payload;
+    if (!domain_entity_handle_equal(extracted->entity, action->attack_target))
       return;
   }
   cancel_action(action, true);
@@ -655,6 +704,8 @@ static bool watch_ready_target(struct ready_action *action)
   struct domain_event_topic topic = {DOMAIN_EVENT_TOPIC_SUBJECT, action->attack_target};
   size_t index;
 
+  if (action->on_ally)
+    topic = (struct domain_event_topic){DOMAIN_EVENT_TOPIC_SOURCE, action->room};
   for (index = 0U; index < 3U; index++)
     if (!add_subscription(action, &action->target_subscriptions[index], types[index], topic,
                           identities[index], ready_target_lost))
@@ -674,10 +725,13 @@ ACMD(do_ready)
   size_t clause_length = strlen(" on entry");
   const char *door_clause;
   const char *cast_clause;
+  const char *ally_clause;
+  char ally_name[MAX_INPUT_LENGTH];
   const char *attack_name;
   char attack_lookup[MAX_INPUT_LENGTH];
   struct char_data *victim = NULL;
   bool on_casting = false;
+  bool on_ally = false;
   bool attack;
   bool counterspell;
   int direction = -1;
@@ -695,6 +749,8 @@ ACMD(do_ready)
   {
     if (ch->ready_action == NULL)
       send_to_char(ch, "You have no readied action.\r\n");
+    else if (ch->ready_action->on_ally)
+      send_to_char(ch, "Readied: attack on ally %s attacked\r\n", ch->ready_action->target);
     else if (ch->ready_action->on_casting)
       send_to_char(ch, "Readied: %s on casting\r\n", ch->ready_action->command);
     else if (ch->ready_action->door_direction >= 0)
@@ -749,6 +805,26 @@ ACMD(do_ready)
     direction = -1;
     on_casting = true;
   }
+  ally_clause = find_ready_clause(argument, " on ally");
+  if (ally_clause != NULL && (clause == NULL || ally_clause > clause))
+  {
+    const char *tail;
+
+    clause = ally_clause;
+    clause_length = strlen(" on ally");
+    direction = -1;
+    on_casting = false;
+    on_ally = true;
+    tail = one_argument((char *)clause + clause_length, ally_name, sizeof(ally_name));
+    tail = one_argument((char *)tail, extra, sizeof(extra));
+    while (isspace((unsigned char)*tail))
+      tail++;
+    if (*ally_name == '\0' || strcasecmp(extra, "attacked") || *tail != '\0')
+    {
+      send_to_char(ch, "Usage: ready attack on ally <ally> attacked\r\n");
+      return;
+    }
+  }
   if (clause == NULL)
   {
     send_to_char(ch, "Usage: ready <command> on entry [target]\r\n       ready <command> on door "
@@ -785,6 +861,16 @@ ACMD(do_ready)
   attack = !strcasecmp(first_word, "attack") || !strcasecmp(first_word, "hit") ||
            !strcasecmp(first_word, "kill");
   counterspell = !strcasecmp(first_word, "counterspell");
+  if (on_ally)
+  {
+    if (!attack || *attack_name != '\0')
+      goto invalid_attack;
+    attack_name = ally_name;
+    free(action->target);
+    action->target = trimmed_copy(ally_name, strlen(ally_name), READY_TARGET_MAX);
+    if (action->target == NULL)
+      goto invalid_attack;
+  }
   if (counterspell && !on_casting)
     goto invalid_attack;
   /* Only explicit noncombat commands retain command readiness. Arbitrary
@@ -810,12 +896,13 @@ ACMD(do_ready)
                        : combat_readied_attack_allowed(ch, NULL)) ||
         !is_action_available(ch, atSTANDARD, true))
       goto invalid_attack;
-    if (on_casting || direction >= 0)
+    if (on_casting || on_ally || direction >= 0)
     {
       strlcpy(attack_lookup, attack_name, sizeof(attack_lookup));
       victim = get_char_vis(ch, attack_lookup, NULL, FIND_CHAR_ROOM);
-      if (victim == NULL || !(counterspell ? counterspell_allowed(ch, victim)
-                                           : combat_readied_attack_allowed(ch, victim)))
+      if (victim == NULL || !(on_ally        ? ready_ally_matches(ch, victim)
+                              : counterspell ? counterspell_allowed(ch, victim)
+                                             : combat_readied_attack_allowed(ch, victim)))
         goto invalid_attack;
       action->attack_target = domain_event_character_handle(victim);
     }
@@ -834,6 +921,9 @@ ACMD(do_ready)
   action->attack = attack;
   action->counterspell = counterspell;
   action->on_casting = on_casting;
+  action->on_ally = on_ally;
+  if (on_ally)
+    action->protected_ally = action->attack_target;
   if (ch->ready_action != NULL)
     ready_action_cancel(ch, false);
   action->owner = domain_event_character_handle(ch);
@@ -853,7 +943,7 @@ ACMD(do_ready)
   ch->ready_action = action;
   entry_topic.role = direction >= 0 ? DOMAIN_EVENT_TOPIC_SUBJECT : DOMAIN_EVENT_TOPIC_DESTINATION;
   entry_topic.entity = action->room;
-  if (on_casting)
+  if (on_casting || on_ally)
   {
     entry_topic.role = DOMAIN_EVENT_TOPIC_SUBJECT;
     entry_topic.entity = action->attack_target;
@@ -861,14 +951,17 @@ ACMD(do_ready)
   owner_topic.role = DOMAIN_EVENT_TOPIC_SUBJECT;
   owner_topic.entity = action->owner;
   if (!add_subscription(action, &action->entry_subscription,
-                        on_casting       ? DOMAIN_EVENT_CASTING_STARTED
+                        on_ally          ? DOMAIN_EVENT_ATTACK_COMMITTED
+                        : on_casting     ? DOMAIN_EVENT_CASTING_STARTED
                         : direction >= 0 ? DOMAIN_EVENT_DOOR_STATE_CHANGED
                                          : DOMAIN_EVENT_CHARACTER_MOVED,
                         entry_topic,
-                        on_casting       ? "ready.casting"
+                        on_ally          ? "ready.ally-attacked"
+                        : on_casting     ? "ready.casting"
                         : direction >= 0 ? "ready.door-open"
                                          : "ready.entry",
-                        on_casting       ? ready_casting_handler
+                        on_ally          ? ready_ally_attacked
+                        : on_casting     ? ready_casting_handler
                         : direction >= 0 ? ready_door_handler
                                          : ready_entry_handler) ||
       !add_subscription(action, &action->movement_subscription, DOMAIN_EVENT_CHARACTER_MOVED,
@@ -907,7 +1000,10 @@ ACMD(do_ready)
     send_to_char(ch, "You spend a standard action to ready one %s.\r\n",
                  counterspell ? "counterspell" : "attack");
   }
-  if (on_casting)
+  if (on_ally)
+    send_to_char(ch, "You ready one strike against the first eligible attacker of %s.\r\n",
+                 action->target);
+  else if (on_casting)
     send_to_char(ch, "You ready '%s' for when that target begins casting.\r\n", action->command);
   else if (direction >= 0)
     send_to_char(ch, "You ready '%s' for when the door %s opens.\r\n", action->command,
@@ -922,7 +1018,8 @@ invalid_attack:
   free(action->command);
   free(action->target);
   free(action);
-  send_to_char(ch, "Ready attack <target> on casting, on entry, or on door open <direction>.\r\n"
-                   "Or ready counterspell <target> on casting.\r\n"
-                   "Casting and door triggers require an eligible, visible target here.\r\n");
+  send_to_char(
+      ch, "Ready attack <target> on casting, on entry, or on door open <direction>.\r\n"
+          "Or ready counterspell <target> on casting, or ready attack on ally <ally> attacked.\r\n"
+          "Casting and door triggers require an eligible, visible target here.\r\n");
 }

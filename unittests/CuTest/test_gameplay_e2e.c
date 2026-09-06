@@ -3306,3 +3306,189 @@ void Test_gameplay_committed_attack_observer_retirement_aborts_borrowed_context(
 {
   verify_committed_attack_boundary(tc, 4);
 }
+
+
+static void verify_ally_readiness(CuTest *tc, int scenario)
+{
+  struct gameplay_fixture f;
+  struct char_data foe;
+  struct player_special_data specials = {0};
+  struct char_data *saved_characters = character_list;
+  unsigned long saved_pulse = pulse;
+  struct domain_event_subscription_config config = {0};
+  struct domain_event_subscription_handle subscription;
+  struct committed_attack_trace retaliation = {0};
+  struct attack_action_data *queued;
+
+  begin_gameplay_fixture(&f);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  event_init();
+  initialize_test_npc(&foe, "the attacker", 0);
+  foe.player.name = "foe";
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.player.name = "protector";
+  f.victim.player.name = "ally";
+  f.victim.master = scenario == 6 ? NULL : &f.actor;
+  f.actor.next = &f.victim;
+  f.victim.next = &foe;
+  character_list = &f.actor;
+  f.victim.next_in_room = &foe;
+  f.rooms[0].light = 1;
+  GET_CLASS(&f.actor) = CLASS_WARRIOR;
+  CLASS_LEVEL((&f.actor), CLASS_WARRIOR) = 10;
+  GET_HITROLL(&f.actor) = 100;
+  GET_DAMROLL(&f.actor) = 20;
+  GET_HITROLL(&foe) = scenario == 1 ? 100 : -100;
+  GET_HIT(&foe) = GET_MAX_HIT(&foe) = 100000;
+  GET_HIT(&f.victim) = GET_MAX_HIT(&f.victim) = 100000;
+  GET_ATTACK_QUEUE(&f.actor) = create_attack_queue();
+  GET_ATTACK_QUEUE(&f.victim) = create_attack_queue();
+  GET_ATTACK_QUEUE(&foe) = create_attack_queue();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  config.type = DOMAIN_EVENT_ATTACK_COMMITTED;
+  config.topic =
+      (struct domain_event_topic){DOMAIN_EVENT_TOPIC_SUBJECT, domain_event_character_handle(&foe)};
+  config.owner = domain_event_character_handle(&f.actor);
+  config.identity = "test.ally.retaliation";
+  config.handler = capture_committed_attack;
+  config.handler_context = &retaliation;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &config, &subscription));
+  do_ready(&f.actor, "attack on ally ally attacked", 0, 0);
+  if (scenario == 6)
+  {
+    CuAssertPtrEquals(tc, NULL, f.actor.ready_action);
+    CuAssertTrue(tc, is_action_available(&f.actor, atSTANDARD, false));
+  }
+  else
+  {
+    CuAssertPtrNotNull(tc, f.actor.ready_action);
+    CuAssertTrue(tc, !is_action_available(&f.actor, atSTANDARD, false));
+    if (scenario == 5)
+      f.victim.master = NULL;
+    if (scenario == 7)
+      SET_BIT_AR(AFF_FLAGS(&f.actor), AFF_BLIND);
+    if (scenario == 10)
+    {
+      domain_event_runtime_character_died(&f.victim, &foe);
+      CuAssertPtrEquals(tc, NULL, f.actor.ready_action);
+    }
+    circle_srandom(1234);
+    (void)hit(&foe, &f.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+    CuAssertIntEquals(tc, 100000, GET_HIT(&foe));
+    if (scenario == 1)
+      CuAssertTrue(tc, GET_HIT(&f.victim) < 100000);
+    else
+      CuAssertIntEquals(tc, 100000, GET_HIT(&f.victim));
+    if (scenario == 2)
+      domain_event_runtime_character_moved(&foe, 0, 1, NORTH);
+    if (scenario == 8)
+      domain_event_runtime_character_died(&foe, NULL);
+    if (scenario == 9)
+      domain_event_runtime_character_extracted(&foe, 0U);
+    if (scenario == 3)
+    {
+      domain_event_runtime_character_died(&f.victim, &foe);
+      domain_event_world_forget_character(&f.victim);
+      CuAssertPtrNotNull(tc, f.actor.ready_action);
+    }
+    if (scenario == 4)
+    {
+      domain_event_runtime_attack_committed(&foe, &f.victim, ATTACK_TYPE_PRIMARY);
+      domain_event_runtime_attack_committed(&f.actor, &f.victim, ATTACK_TYPE_PRIMARY);
+    }
+    queued = calloc(1U, sizeof(*queued));
+    queued->attack_type = AA_KICK;
+    queued->argument = strdup("foe");
+    enqueue_attack(GET_ATTACK_QUEUE(&f.actor), queued);
+    circle_srandom(1234);
+    pulse++;
+    event_test_advance();
+    CuAssertIntEquals(tc, scenario == 2 || scenario == 5 || scenario == 7 || scenario >= 8 ? 0 : 1,
+                      retaliation.count);
+    CuAssertIntEquals(tc, 1, pending_attacks(&f.actor));
+    if (retaliation.count != 0U)
+    {
+      CuAssertTrue(tc, GET_HIT(&foe) < 100000);
+      CuAssertPtrEquals(tc, NULL, f.actor.ready_action);
+    }
+    else
+      CuAssertIntEquals(tc, 100000, GET_HIT(&foe));
+  }
+  ready_action_cancel(&f.actor, false);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  free_attack_queue(GET_ATTACK_QUEUE(&f.actor));
+  free_attack_queue(GET_ATTACK_QUEUE(&f.victim));
+  free_attack_queue(GET_ATTACK_QUEUE(&foe));
+  GET_ATTACK_QUEUE(&f.actor) = GET_ATTACK_QUEUE(&f.victim) = GET_ATTACK_QUEUE(&foe) = NULL;
+  if (f.actor.events != NULL)
+    free_list(f.actor.events);
+  if (f.victim.events != NULL)
+    free_list(f.victim.events);
+  if (foe.events != NULL)
+    free_list(foe.events);
+  f.victim.master = NULL;
+  f.victim.next = NULL;
+  character_list = saved_characters;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&f);
+}
+
+void Test_gameplay_ally_readiness_reacts_to_miss_with_one_reserved_strike(CuTest *tc)
+{
+  verify_ally_readiness(tc, 0);
+}
+
+void Test_gameplay_ally_readiness_reacts_after_the_triggering_damage(CuTest *tc)
+{
+  verify_ally_readiness(tc, 1);
+}
+
+void Test_gameplay_ally_readiness_cancels_when_bound_attacker_leaves(CuTest *tc)
+{
+  verify_ally_readiness(tc, 2);
+}
+
+void Test_gameplay_ally_readiness_survives_ally_death_after_claim(CuTest *tc)
+{
+  verify_ally_readiness(tc, 3);
+}
+
+void Test_gameplay_ally_readiness_claims_once_without_dispatching_queued_attack(CuTest *tc)
+{
+  verify_ally_readiness(tc, 4);
+}
+
+void Test_gameplay_ally_readiness_rechecks_relationship(CuTest *tc)
+{
+  verify_ally_readiness(tc, 5);
+}
+
+void Test_gameplay_ally_readiness_rejects_nonally_before_action_cost(CuTest *tc)
+{
+  verify_ally_readiness(tc, 6);
+}
+
+void Test_gameplay_ally_readiness_requires_visible_attempt(CuTest *tc)
+{
+  verify_ally_readiness(tc, 7);
+}
+
+
+void Test_gameplay_ally_readiness_cancels_on_bound_attacker_death(CuTest *tc)
+{
+  verify_ally_readiness(tc, 8);
+}
+
+void Test_gameplay_ally_readiness_cancels_on_bound_attacker_extraction(CuTest *tc)
+{
+  verify_ally_readiness(tc, 9);
+}
+
+void Test_gameplay_ally_readiness_cancels_on_ally_death_before_claim(CuTest *tc)
+{
+  verify_ally_readiness(tc, 10);
+}
