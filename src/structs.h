@@ -7442,6 +7442,8 @@ struct char_data
   unsigned long active_world_reaction_due;    /**< Next one-shot local reaction. */
   unsigned long active_world_resource_due;    /**< Next consumed-resource recovery deadline. */
   struct event_runtime_handle active_world_event_handle; /**< Earliest autonomous-work deadline. */
+  struct event_runtime_handle phenomenon_interest_event; /**< Temporary perceived-danger owner. */
+  uint64_t phenomenon_interest_id;                       /**< Current phenomenon incarnation. */
   struct primary_activity *primary_activity;             /**< One intentional timed activity. */
   struct ready_action *ready_action;                     /**< Ephemeral entity-topic listener. */
   struct event_runtime_handle bleeding_critical_event;

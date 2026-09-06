@@ -11,6 +11,8 @@
 #include "../../src/tactical_effects.h"
 #include "../../src/combat/combat_encounters.h"
 #include "../../src/activity_manager.h"
+#include "../../src/active_world.h"
+#include "../../src/character_periodic.h"
 #include "../../src/affected_owners.h"
 #include "../../src/magic/buff_sequence.h"
 #include "../../src/magic/spell_prep.h"
@@ -19,6 +21,7 @@
 #include "../../src/domain_event_types.h"
 #include "../../src/domain_event_world.h"
 #include "../../src/event_runtime.h"
+#include "../../src/point_update_periodic.h"
 #include "../../src/bardic_performance.h"
 #include "../../src/craft/craft.h"
 #include "../../src/craft/crafting_new.h"
@@ -36,6 +39,7 @@
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"
 #include "../../src/mob/mob_utils.h"
+#include "../../src/mob/phenomenon_response.h"
 #include "../../src/quest/missions.h"
 #include "../../src/quest/quest.h"
 #include "../../src/movement/movement.h"
@@ -4611,4 +4615,122 @@ void Test_gameplay_bleeding_critical_combat_turn_before_native_tick_shares_inter
 void Test_gameplay_bleeding_critical_leaving_during_action_preserves_due_end_tick(CuTest *tc)
 {
   verify_bleeding_clock(tc, 9);
+}
+
+struct phenomenon_response_trace
+{
+  int started;
+  int cleared;
+};
+
+static void capture_phenomenon_response(struct char_data *observer, bool responding, void *data)
+{
+  struct phenomenon_response_trace *trace = data;
+
+  (void)observer;
+  if (responding)
+    trace->started++;
+  else
+    trace->cleared++;
+}
+
+void Test_gameplay_npc_phenomenon_interest_replaces_expires_and_investigates(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct char_data *saved_characters = character_list;
+  struct domain_phenomenon_perceived perceived = {0};
+  struct phenomenon_response_trace trace = {0};
+  struct event_runtime_handle first_interest;
+  unsigned long saved_pulse = pulse;
+  unsigned long count;
+
+  begin_gameplay_fixture(&fixture);
+  char_from_room(&fixture.victim);
+  char_to_room(&fixture.victim, 1);
+  fixture.actor.next = &fixture.victim;
+  character_list = &fixture.actor;
+  SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_GUARD);
+  SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_SENTINEL);
+
+  event_free_all();
+  active_world_reset_for_test();
+  active_world_select_for_test(false);
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(false);
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(false);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 100U;
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  phenomenon_response_set_test_callback(capture_phenomenon_response, &trace);
+
+  perceived.phenomenon_id = 7001U;
+  perceived.observer = domain_event_character_handle(&fixture.actor);
+  perceived.phenomenon_source = domain_event_character_handle(&fixture.victim);
+  perceived.source_room = domain_event_room_handle(1);
+  perceived.kind = DOMAIN_PHENOMENON_MAGIC_IMPACT;
+  perceived.senses = DOMAIN_WORLD_PHENOMENON_AUDIBLE;
+  perceived.distance = 1U;
+  perceived.intensity = 1.0f;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH(domain_event_runtime_bus(),
+                                         DOMAIN_EVENT_PHENOMENON_PERCEIVED, &perceived));
+  first_interest = fixture.actor.phenomenon_interest_event;
+  CuAssertTrue(tc, !event_runtime_handle_is_none(first_interest));
+  pulse++;
+  event_test_advance();
+  CuAssertIntEquals(tc, 1, trace.started);
+  CuAssertTrue(tc, AFF_FLAGGED(&fixture.actor, AFF_TOTAL_DEFENSE));
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH(domain_event_runtime_bus(),
+                                         DOMAIN_EVENT_PHENOMENON_PERCEIVED, &perceived));
+  CuAssertTrue(
+      tc, event_runtime_handles_equal(first_interest, fixture.actor.phenomenon_interest_event));
+  perceived.phenomenon_id++;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH(domain_event_runtime_bus(),
+                                         DOMAIN_EVENT_PHENOMENON_PERCEIVED, &perceived));
+  CuAssertIntEquals(tc, 1, trace.cleared);
+  CuAssertTrue(tc, !AFF_FLAGGED(&fixture.actor, AFF_TOTAL_DEFENSE));
+  CuAssertTrue(
+      tc, !event_runtime_handles_equal(first_interest, fixture.actor.phenomenon_interest_event));
+  pulse++;
+  event_test_advance();
+  CuAssertIntEquals(tc, 2, trace.started);
+  CuAssertTrue(tc, AFF_FLAGGED(&fixture.actor, AFF_TOTAL_DEFENSE));
+  for (count = 0U; count < 30U * PASSES_PER_SEC; count++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+  CuAssertIntEquals(tc, 2, trace.cleared);
+  CuAssertTrue(tc, event_runtime_handle_is_none(fixture.actor.phenomenon_interest_event));
+  CuAssertTrue(tc, !AFF_FLAGGED(&fixture.actor, AFF_TOTAL_DEFENSE));
+
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_GUARD);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_SENTINEL);
+  SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_LISTEN);
+  perceived.phenomenon_id++;
+  perceived.kind = DOMAIN_PHENOMENON_ALARM;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH(domain_event_runtime_bus(),
+                                         DOMAIN_EVENT_PHENOMENON_PERCEIVED, &perceived));
+  pulse++;
+  event_test_advance();
+  CuAssertIntEquals(tc, 1, IN_ROOM(&fixture.actor));
+  CuAssertIntEquals(tc, 3, trace.started);
+
+  phenomenon_response_set_test_callback(NULL, NULL);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  active_world_reset_for_test();
+  character_periodic_reset_for_test();
+  point_update_periodic_reset_for_test();
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  character_list = saved_characters;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&fixture);
 }

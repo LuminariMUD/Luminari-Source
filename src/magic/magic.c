@@ -40,6 +40,7 @@
 #include "character/evolutions.h"
 #include "domain_event_runtime.h"
 #include "domain_event_types.h"
+#include "domain_event_world.h"
 #include "wilderness/wilderness.h"
 #include "character/perks.h"
 #include "bardic_performance.h"
@@ -51,14 +52,25 @@
 // external
 extern struct raff_node *raff_list;
 
-static void publish_coordinate_phenomenon(int source_x, int source_y, int source_z,
-                                          int visual_range, int audio_range, float intensity,
+static uint64_t next_phenomenon_id = 1U;
+
+static void publish_coordinate_phenomenon(struct char_data *source,
+                                          enum domain_world_phenomenon_kind kind, int source_x,
+                                          int source_y, int source_z, int visual_range,
+                                          int audio_range, float intensity,
                                           const char *visual_description,
                                           const char *audio_description)
 {
   struct domain_world_phenomenon phenomenon = {0};
   enum domain_event_status status;
 
+  if (source == NULL || next_phenomenon_id == 0U)
+    return;
+  phenomenon.phenomenon_id = next_phenomenon_id++;
+  phenomenon.source = domain_event_character_handle(source);
+  phenomenon.source_room = domain_event_room_handle(IN_ROOM(source));
+  phenomenon.kind = kind;
+  phenomenon.source_faction = GET_FACTION(source);
   phenomenon.source_x = source_x;
   phenomenon.source_y = source_y;
   phenomenon.source_z = source_z;
@@ -12030,7 +12042,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
 
       /* Distant visual and audio are one synchronous world fact. */
       publish_coordinate_phenomenon(
-          X_LOC(ch), Y_LOC(ch), get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 30, 5, 8, 1.5f,
+          ch, DOMAIN_PHENOMENON_MAGIC_APPROACH, X_LOC(ch), Y_LOC(ch),
+          get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 30, 5, 8, 1.5f,
           "brilliant streaks of crimson and gold fire tear across the starlit heavens",
           "an ominous crescendo of ethereal whistling and deep atmospheric rumbling as the very "
           "air trembles before celestial wrath");
@@ -12038,7 +12051,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
       /* Phase 3: Close visual - meteors descending toward target */
       log("DEBUG: Phase 3 - Meteor descent with range 3");
       publish_coordinate_phenomenon(
-          X_LOC(ch), Y_LOC(ch), get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 10, 3, 0, 2.0f,
+          ch, DOMAIN_PHENOMENON_MAGIC_APPROACH, X_LOC(ch), Y_LOC(ch),
+          get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 10, 3, 0, 2.0f,
           "colossal blazing meteorites plummet through the atmosphere, trailed by molten starfire "
           "crackling with primordial flame",
           NULL);
@@ -12311,7 +12325,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
             ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
         {
           publish_coordinate_phenomenon(
-              X_LOC(ch), Y_LOC(ch), get_modified_elevation(X_LOC(ch), Y_LOC(ch)), 2, 20, 2.5f,
+              ch, DOMAIN_PHENOMENON_MAGIC_IMPACT, X_LOC(ch), Y_LOC(ch),
+              get_modified_elevation(X_LOC(ch), Y_LOC(ch)), 2, 20, 2.5f,
               "cataclysmic eruptions of azure and crimson flame burst from the earth as celestial "
               "hammers shatter the ground, sending waves of molten rock skyward",
               "earth-shaking detonations rivaling mountain avalanches as cosmic forces unleash "

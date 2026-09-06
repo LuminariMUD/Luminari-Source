@@ -2,6 +2,7 @@
 #include "quest/staff_event_agenda.h"
 #include "vessels/moving_room_events.h"
 #include "magic/buff_sequence.h"
+#include "mob/phenomenon_response.h"
 
 #include "active_world.h"
 #include "utils.h"
@@ -93,6 +94,8 @@ enum domain_event_status domain_event_runtime_init(void)
   if (status == DOMAIN_EVENT_OK)
     status = tactical_effects_register_handlers(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
+    status = phenomenon_response_init(runtime_bus);
+  if (status == DOMAIN_EVENT_OK)
     status = primary_activity_manager_init(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
     status = combat_encounter_runtime_init(runtime_bus);
@@ -129,6 +132,7 @@ enum domain_event_status domain_event_runtime_init(void)
     point_update_periodic_shutdown();
     vessel_periodic_shutdown();
     tactical_effects_shutdown();
+    phenomenon_response_shutdown();
     ready_action_runtime_shutdown();
     if (event_type_transaction &&
         event_runtime_rollback_type_registrations(event_type_checkpoint) != GAME_SCHEDULER_OK)
@@ -158,6 +162,7 @@ enum domain_event_status domain_event_runtime_shutdown(void)
   character_periodic_shutdown();
   point_update_periodic_shutdown();
   vessel_periodic_shutdown();
+  phenomenon_response_shutdown();
   status = domain_event_bus_destroy(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
   {

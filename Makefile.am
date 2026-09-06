@@ -231,6 +231,8 @@ luminari_SOURCES = \
 	src/wilderness/spatial_audio.c \
 	src/wilderness/spatial_events.c \
 	src/wilderness/spatial_events.h \
+	src/mob/phenomenon_response.c \
+	src/mob/phenomenon_response.h \
 	src/wilderness/terrain_bridge.c \
 	src/wilderness/region_hints.c \
 	src/wilderness/narrative_weaver.c \

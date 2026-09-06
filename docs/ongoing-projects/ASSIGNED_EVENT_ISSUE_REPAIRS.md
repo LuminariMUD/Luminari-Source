@@ -33,6 +33,12 @@ The wider unassigned queue is excluded. No production rollout or archival deleti
   facts apply each generation-safe wall source once. Destination vetoes, distinct
   sources, forced crossings and vanished sources have production-linked coverage.
   Tentacle classification and final acceptance remain.
+- #108: `WorldPhenomenon` now carries source, kind, faction and stealth metadata;
+  bounded spatial propagation publishes one typed `PhenomenonPerceived` result
+  per materialized NPC. Listening and guard mobiles own a native interest
+  deadline for warnings, temporary cover and adjacent investigation. The
+  gateway classification and remaining objective-schema boundary are recorded
+  in [NPC phenomenon perception](../systems/NPC_PHENOMENON_PERCEPTION.md).
 - #103: typed holder facts and compound transfer capture are implemented for room,
   inventory, equipment, container and character bag paths. Give/get/put/drop/wear/
   remove have operation boundaries. Command, script, magic, shop, reset and restore
@@ -160,9 +166,9 @@ Status: under review.
 
 WorldPhenomenon propagation currently sends descriptions to players; NPC agendas do not consume a typed perception result. Quest gateways remain direct movement/item/death checks.
 
-- [ ] Add source identity and phenomenon kind, then a bounded perception result using senses, stealth, obstacles, distance and faction knowledge; never parse descriptive prose as behavior.
-- [ ] Pilot alarm investigation, ally warning, cover and timed loss of interest without waking the whole world.
-- [ ] Classify DG/special/quest gateways as pre-operation decisions or post-operation notifications before bridging them.
+- [x] Add source identity and phenomenon kind, then a bounded perception result using senses, stealth, obstacles, distance and faction knowledge; never parse descriptive prose as behavior.
+- [x] Pilot alarm investigation, ally warning, cover and timed loss of interest without waking the whole world.
+- [x] Classify DG/special/quest gateways as pre-operation decisions or post-operation notifications before bridging them.
 - [ ] Pilot active-objective subscriptions for delivery, nonlethal resolution, rescue/negotiation, skill outcomes and witnessed actions.
 - [ ] Preserve killer/pet/group credit, persistence and exactly-once rewards; migrate one authoritative award path at a time. Witness consequences must depend on perception.
 - [ ] Add only the typed facts required by the chosen consumers, after the object-transfer and relocation contracts are complete.

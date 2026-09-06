@@ -4766,6 +4766,8 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   *mob = mob_proto[i];
   mob->combat_turn_serial = 0U;
   mob->bleeding_critical_event = EVENT_RUNTIME_HANDLE_NONE;
+  mob->phenomenon_interest_event = EVENT_RUNTIME_HANDLE_NONE;
+  mob->phenomenon_interest_id = 0U;
   mob->bleeding_critical_due = 0U;
   mob->bleeding_critical_turn = 0U;
   mob->bleeding_critical_version = 0U;
