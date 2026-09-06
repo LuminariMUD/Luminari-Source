@@ -2,7 +2,8 @@
 
 Branch: [rol-converter-integration-113-117](https://github.com/LuminariMUD/Luminari-Source/tree/rol-converter-integration-113-117)
 
-Status: mechanical format split verified; object policies and integration validation are in progress.
+Status: independent implementation and focused validation complete; dependent object/player policies
+await owner decisions, followed by final weapon review and the combined development rehearsal.
 Prepared: 2026-09-06. Inspected branch revision: `7c5677ec132bda12f98b2ba630f372bfb0b46651`.
 Plan-ablation review: 2026-09-06, against all five live issue checklists and current code.
 
