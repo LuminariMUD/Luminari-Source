@@ -430,6 +430,13 @@ omitted bonus type/specific fields. Each extension still enforces its own capaci
   Nonstandard warmth/prestige and unbound procedure-state losses are diagnosed
   per record. Assigned special adapters retain procedure state and effect ownership;
   for example, the tattered cloak still uses value 3 for its recharge counter.
+- Standard armor families now resolve through the native `setarmor()` table and
+  named `SPEC_ARMOR_TYPE_*` constants, keeping source AC, weight and cost. The
+  source-hashed armor catalog records exceptions; unreviewed mixed masks and
+  changed exception records stop conversion. Dedicated-tail armor retains its
+  native AC exception without an ordinary family. The integration checklist
+  still requires the complete corpus review and runtime release rehearsal;
+  generated family audit rows alone do not establish content-release approval.
 - Weapon profiles distinguish melee, launchers, thrown weapons, ammunition and
   quivers. Javelin names alone do not establish throwing intent; thrown darts and
   blowgun ammunition are distinct. Use the classifier audit and reviewed

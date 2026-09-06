@@ -6,6 +6,7 @@ import re
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from tests.rol_reference import reference_run
 
@@ -14,6 +15,9 @@ from wtool_lib.flags import decode_tokens
 from wtool_lib.hlquests import parse_hlquest_file
 from wtool_lib.mobiles import parse_mobile_file
 from wtool_lib.objects import parse_object_file
+from wtool_lib.rol_armor_mapping import (
+    FAMILIES, SHIELDS, armor_table, family_entry, infer_armor, load_overrides,
+)
 from wtool_lib.rol_source import parse_active_rol_corpus, parse_rol_source_file
 from wtool_lib.rol_discovery import extract_source_commands
 from wtool_lib.rol_pilot import PILOT_BASENAMES
@@ -1593,8 +1597,8 @@ class RolTransformTests(unittest.TestCase):
                          decode_tokens(obj.wear_flags).bits)
         self.assertEqual([(27, 1)], [(a.location, a.modifier) for a in obj.affects])
 
-  def test_standard_mixed_and_dedicated_tail_armor_do_not_gain_worn_apply(self) -> None:
-    for mask in (9, 17, 33, 257, 513, 137, (1 << 22) | 1):
+  def test_standard_and_dedicated_tail_armor_do_not_gain_worn_apply(self) -> None:
+    for mask in (9, 17, 33, 257, 513, (1 << 22) | 1):
       with self.subTest(mask=mask):
         source = self._source_record(
             "obj",
@@ -1609,6 +1613,99 @@ class RolTransformTests(unittest.TestCase):
         self.assertEqual(9, obj.item_type)
         self.assertEqual(19, obj.values[0])
         self.assertFalse(obj.affects)
+
+  def test_armor_family_grid_round_trips_without_replacing_protection(self) -> None:
+    emitted_indices = set()
+    for family in FAMILIES + SHIELDS:
+      for slot in ((9,) if family in SHIELDS else (3, 4, 5, 8)):
+        index, entry = family_entry(family, slot)
+        emitted_indices.add(index)
+        for protection in (-17, 0, 23):
+          with self.subTest(family=family, slot=slot, protection=protection):
+            name = family.lower().replace("_", " ")
+            source = self._source_record(
+                "obj",
+                (f"#200\n{name}~\na {name} piece~\nArmor lies here.~\n~\n"
+                 f"9 0 {1 | (1 << slot)}\n{protection} 60 25 14\n7 1234 9\n"
+                 "A\n1 2\n").encode("ascii"),
+            )
+            emitted = emit_object(source, 2_000_200, _resolver)
+            result = parse_object_file(
+                self._target_path("obj", emitted.text), "obj/20001.obj", self.manifest, set()
+            )
+            self.assertTrue(result.complete)
+            self.assertFalse(result.findings)
+            obj = result.records[0]
+            self.assertEqual([protection, index, 0, 0], obj.values[:4])
+            self.assertEqual({0, slot}, decode_tokens(obj.wear_flags).bits)
+            self.assertEqual(slot, entry["wear"])
+            self.assertNotIn(98, decode_tokens(obj.extra_flags).bits)
+            self.assertEqual((7, 1234), (obj.weight, obj.cost))
+            self.assertEqual([(1, 2)], [(a.location, a.modifier) for a in obj.affects])
+    self.assertEqual(set(range(1, 58)) - {26}, emitted_indices)
+    self.assertEqual(57, len(armor_table()))
+    self.assertEqual(231, armor_table()[14]["move_30"])
+    self.assertEqual(25, family_entry("CHAINMAIL", 4)[0])
+    for family, slot in (("CHAIN", 4), ("UNDEFINED", 3), ("LEATHER", 9),
+                         ("SMALL_SHIELD", 3), ("CLOTHING", 34)):
+      with self.assertRaises(ValueError):
+        family_entry(family, slot)
+    with patch("wtool_lib.rol_armor_mapping.armor_table", return_value={3: {"wear": 4}}):
+      with self.assertRaisesRegex(ValueError, "slot-mismatched"):
+        family_entry("LEATHER", 3)
+
+  def test_armor_uses_description_then_material_and_explicit_placeholder_fallbacks(self) -> None:
+    for name, description, expected, tier in (
+        ("red armor", "Made from quilted cloth.", "PADDED", "description"),
+        ("red armor", "Made from steel.", "CHAINMAIL", "material"),
+        ("unknown armor", "", "CLOTHING", "fallback"),
+        ("standard quest item string me", "Made from plate.", "CLOTHING", "placeholder"),
+        ("ch&+rainmail", "", "CHAINMAIL", "identity"),
+    ):
+      source = self._source_record(
+          "obj", (f"#200\n{name}~\n{name}~\nArmor lies here.~\n~\n"
+                  f"9 0 9\n100 0 0 0\n1 1 0\nE\narmor~\n{description}~\n").encode("ascii")
+      )
+      inference = infer_armor(source)
+      self.assertEqual((expected, tier), (inference.family, inference.tier))
+
+  def test_unreviewed_mixed_armor_masks_require_a_disposition(self) -> None:
+    for mask in (137, 25, 273):
+      source = self._source_record(
+          "obj", ("#200\narmor~\narmor~\nArmor lies here.~\n~\n"
+                  f"9 0 {mask}\n10 0 0 0\n1 1 0\n").encode("ascii")
+      )
+      with self.assertRaisesRegex(ValueError, "reviewed disposition"):
+        emit_object(source, 2_000_200, _resolver)
+
+  def test_reviewed_armor_overrides_match_source_and_emit_native_slots(self) -> None:
+    self._require_reference_paths("EXAMPLE/RealmsOfLuminari/areas")
+    records_by_path = {}
+    for key, override in load_overrides().items():
+      relative, vnum = key.rsplit(":", 1)
+      if relative not in records_by_path:
+        path = self.root / "EXAMPLE/RealmsOfLuminari" / relative
+        records, _ = parse_rol_source_file(path, relative, "obj", path.stem)
+        records_by_path[relative] = {r.vnum: r for r in records}
+      source = records_by_path[relative][int(vnum)]
+      with self.subTest(source=source.record_id):
+        inference = infer_armor(source)
+        self.assertEqual(override["family"], inference.family)
+        emitted = emit_object(source, 2_000_000 + source.vnum, _resolver)
+        result = parse_object_file(
+            self._target_path("obj", emitted.text), "obj/20001.obj", self.manifest, set()
+        )
+        self.assertTrue(result.complete)
+        self.assertFalse(result.findings)
+        obj = result.records[0]
+        self.assertEqual({0, inference.slot}, decode_tokens(obj.wear_flags).bits)
+        self.assertEqual(source.values["values"][0], obj.values[0])
+        self.assertEqual(inference.armor_index, obj.values[1])
+        sha256 = source.sha256
+        source.sha256 = "0" * 64
+        with self.assertRaisesRegex(ValueError, "stale armor override"):
+          infer_armor(source)
+        source.sha256 = sha256
 
   def test_nonstandard_armor_preserves_assigned_effect_owners_and_state(self) -> None:
     source = self._source_record(

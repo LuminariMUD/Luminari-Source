@@ -2,8 +2,9 @@
 
 Branch: [rol-converter-integration-113-117](https://github.com/LuminariMUD/Luminari-Source/tree/rol-converter-integration-113-117)
 
-Status: implementation resumed at the user's request on 2026-09-06. All five recommendations
-remain approved; the historical pause below has ended. Remaining acceptance gates stay open.
+Status: paused at the user's request on 2026-09-06 after the verified armor-family checkpoint.
+All five recommendations remain approved. Resume implementation only on an explicit user request;
+the remaining acceptance gates and full integration objective stay open.
 Prepared: 2026-09-06. Inspected branch revision: `7c5677ec132bda12f98b2ba630f372bfb0b46651`.
 Plan-ablation review: 2026-09-06, against all five live issue checklists and current code.
 
@@ -116,6 +117,62 @@ store generated evidence in existing ignored run storage; no new framework or se
 
 ### Resumed implementation (2026-09-06)
 
+- Nonstandard-wearable implementation commit: `f3235b56a`.
+- Standard armor continuation starts from that clean development revision. Outcome: resolve
+  real family indices, preserve signed source protection, and use native family penalties;
+  keep the dedicated-tail exception. Files: shared `rol_armor_mapping.py`, a source-hashed
+  exception catalog, existing object emitter/table-reader/tests, both manifests, and Phase 8.
+  Proof: native table comparison, family/slot round trips, complete source disposition audit,
+  and native equipment regressions. Plan-ablation reuses the weapon reader's C call/constant
+  parsing, resolves named constants without numeric offsets, and adds no runtime mechanism.
+  Nonweapon material/proficiency/size policy remains Step 3's separate decision.
+- Pause requested during armor validation. Finish this checkpoint's verification and save it,
+  then stop until the user explicitly resumes; do not begin another implementation step.
+  Standard armor emission now resolves the 13 body/head/arms/legs families and four shield
+  families by named native constants. It preserves value-0 AC, cost and weight, clears
+  diagnosed warmth/prestige and unbound ProcVal, and does not add load-time stat replacement.
+  The canonical chain helmet is 25, never duplicate entry 26. Eight dedicated-tail items
+  retain `ITEM_ARMOR`, raw signed protection and family index 0 as the explicit no-family
+  exception; no ordinary slot index is assigned to them.
+- The source-hashed catalog contains 54 reviewed exceptions. Its five mixed masks normalize
+  16011 to HEAD/leather, 16014 to BODY/leather, 93222 to ARMS/leather, 66231 to BODY/piecemeal
+  and 66233 to HEAD/full plate. TAKE is retained; the four HOLD alternatives and the bracers'
+  WRIST alternative are removed so wearing uses the selected family's protection/penalties.
+  Unknown mixed or multi-standard masks fail for review. Other exceptions include living
+  spiders as organic armor, volcanic-glass guards as rigid plate, and all seven 35600-35606
+  shackles as neutral clothing-family restraints retaining negative AC and source weight.
+  Each exception records its source path/VNUM/hash and rationale; changed source hashes fail.
+- `armor-family-checkpoint.json` records 2,527 successful bare-object source/emission/target
+  parser round trips: 1,166 standard, eight dedicated tail and 1,353 worn. Standard inference
+  uses 878 identity rules, 61 description rules, 91 material rules, 54 overrides, 65 named
+  placeholder dispositions and 17 conservative fallbacks. This is an implementation checkpoint,
+  not final builder sign-off: the remaining keyword/material/fallback decisions, source
+  metadata/procedure ledger refresh and final in-game rehearsal remain open. Per-record review
+  completion is deliberately false in the checkpoint; do not count the existence of the audit
+  as approval of every result. Final Phase 6 must still attach and verify effect owners.
+- All 57 initialized native entries match the C-table reader's numeric fields, names and
+  constants against `armor-target-contract.json`. This caught the shield movement literals:
+  `setarmor()` passes 999, but `assign_wpn_armor.h` stores unsigned bytes, so native values
+  are 231. The reader now models those field widths, and Phase 8 captures that header.
+  These movement fields have no current consumer; `movement_cost.c` instead checks armor
+  type for fast-movement eligibility. No runtime movement behavior was changed.
+- The first native family test passed AC, family penalties and tail assertions but failed its
+  shackles assertion because the Yuan-Ti fixture cannot equip legs. The corrected fixture
+  uses a Human for that case and explicitly asserts the equipment slot. This was a test
+  fixture correction, not a runtime defect (`armor-family-cutest.log`, 1,139 pass/one failure;
+  the required following install succeeded). The initial Python focused run passed 204 tests
+  (`armor-family-focused.log`/`.exit`); after the byte-width correction, the family-grid and
+  Phase 8 run passed 12 tests (`armor-family-final-focused.log`/`.exit`).
+- Final checkpoint validation: `make -j4 test` passed all 1,140 CuTests and required root
+  checks, followed by `make -j4 install` (both exit 0; `armor-family-final-cutest.log`/`.exit`
+  and `armor-family-final-install.log`/`.exit`). The eight optional help-sync database tests
+  remain explicitly skipped. `make test-world-tools` passed all 528 tests with no skips and
+  its other gates (`armor-family-world-tools.log`/`.exit`, exit 0). File hooks and ASCII/LF
+  checks pass; no compiler warnings or root-level `luminari` artifact remain. Rechecked all
+  2,527 checkpoint source hashes, inference decisions and emitted hashes after final formatting.
+  Work is now stopped at this validated checkpoint. No production change, publication, final
+  candidate run or new implementation step was performed for the pause. On explicit resume,
+  continue the remaining armor corpus/disposition review before marking Step 2 complete.
 - Verified clean development checkout at `3ccbdbcd1`; `APP_ENV=development`. The user's
   continuation request lifts the recorded pause and retains the five approved directions.
 - Current outcome: convert nonstandard armor wearables to `ITEM_WORN` with signed,
