@@ -65,7 +65,7 @@ fi
 readonly PROJECT_ROOT
 
 # MUD Configuration (can be overridden by environment variables)
-readonly MUD_PORT="${MUD_PORT:-4101}"
+readonly MUD_PORT="${MUD_PORT:-4100}"
 readonly MUD_BINARY="${MUD_BINARY:-luminari}"
 readonly BIN_DIR="${BIN_DIR:-bin}"
 readonly LIB_DIR="${LIB_DIR:-lib}"
@@ -1592,7 +1592,7 @@ case "${1:-}" in
         echo "  pause       - Pause autorun"
         echo ""
         echo "Environment variables:"
-        echo "  MUD_PORT    - Port number (local default: 4101; production service: 4100)"
+        echo "  MUD_PORT    - Port number (default: 4100)"
         echo "  MUD_FLAGS   - Server flags (default: -q)"
         echo "  ENABLE_WEBSOCKET - Enable websocket policy (default: false)"
         echo "  ENABLE_FLASH     - Enable flash policy (default: false)"
