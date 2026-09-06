@@ -26416,9 +26416,10 @@ Example:
 
 See also: BOARDS
 #0
-READIED-ACTION READY
+READIED-ACTION READY COUNTERSPELL
 
-Usage: ready attack <target> on casting
+Usage: ready counterspell <target> on casting
+       ready attack <target> on casting
        ready attack <target> on entry
        ready attack <target> on door open <direction>
        ready <command> on entry [target]
@@ -26439,6 +26440,21 @@ casting. A miss or successful concentration check lets the spell continue.
 You need only name the caster, and do not need to identify their spell. Instant
 spells cannot trigger this reaction. A cancelled spell cannot redirect a queued
 attack to a replacement spell.
+
+COUNTERSPELL reserves the same standard action and expiry for one counter.
+You must be an eligible spellcaster with speech and hands available. Watch a
+visible local caster before they start a timed spell. You need a perceptible
+verbal or somatic component and a Spellcraft check above 20 to identify it.
+Failure ends readiness without spending a spell resource. Instant spells and
+psionic powers cannot be countered this way.
+
+A successful identification queues the counter. At execution, you must still
+see the caster and have the identical base spell available as a preparation,
+spontaneous slot or eligible moon bonus. Normal resource-preservation rules
+apply once. The counter cancels that exact spell; it does not cast your spell's
+normal effect. An ended or replaced cast consumes no counterspell resource.
+Dispel and Improved Counterspell alternatives are not supported. The old
+counterspell mode now directs you to this explicit READY command.
 
 ON ENTRY waits for the named target to arrive. ON DOOR OPEN watches a visible,
 closed door; its attack target must already be visible in your room. Opening
@@ -26462,6 +26478,7 @@ execution even if it reopens. Only one action can be readied at a time. READY
 shows it. Readied actions do not survive copyover or reboot.
 
 Examples:
+  ready counterspell mage on casting
   ready attack mage on casting
   ready attack guard on entry
   ready say Hold the doorway! on door open north

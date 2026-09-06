@@ -862,6 +862,7 @@ EXTRA_DIST = \
 	sql/components/help_arcane_mark_entries.sql \
 	sql/components/help_nature_survival_entries.sql \
 	sql/components/help_buff_sequence_entry.sql \
+	sql/components/help_counterspell_readiness.sql \
 	sql/components/help_staff_event_agenda_entry.sql \
 	sql/components/help_command_sweep_entries.sql \
 	sql/components/help_dg_damage_trigger.sql \

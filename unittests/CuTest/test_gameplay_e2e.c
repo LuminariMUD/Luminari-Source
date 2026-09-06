@@ -3028,3 +3028,169 @@ void Test_gameplay_staff_agenda_shutdown_discards_active_event_and_boot_delay_ex
   end_gameplay_fixture(&f);
   CuAssertTrue(tc, delayed && cleared && admitted && forgotten);
 }
+
+
+/* Production command, cast admission, resource debit and native reaction dispatch. */
+static void verify_counterspell_reaction(CuTest *tc, int scenario)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct player_special_data caster_specials = {0};
+  struct char_data *saved_characters = character_list;
+  struct spell_info_type saved_spell = spell_info[SPELL_CURE_LIGHT];
+  int saved_mode = CONFIG_SPELLCASTING_TIME_MODE;
+  int saved_prep = CONFIG_DIVINE_PREP_TIME;
+  int saved_pk = CONFIG_PK_ALLOWED;
+  unsigned long saved_pulse = pulse;
+  struct primary_activity_snapshot original;
+  struct primary_activity_snapshot replacement;
+  bool retained;
+
+  begin_gameplay_fixture(&f);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  event_init();
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.player.name = "watcher";
+  f.victim.player.name = "caster";
+  f.actor.next = &f.victim;
+  character_list = &f.actor;
+  f.rooms[0].light = 1;
+  GET_CLASS(&f.actor) = CLASS_CLERIC;
+  CLASS_LEVEL((&f.actor), CLASS_CLERIC) = 10;
+  GET_ABILITY(&f.actor, ABILITY_SPELLCRAFT) = 100;
+  f.actor.real_abils.wis = f.actor.aff_abils.wis = 18;
+  GET_CLASS(&f.victim) = CLASS_CLERIC;
+  GET_HIT(&f.victim) = 10;
+  GET_MAX_HIT(&f.victim) = 100;
+  CONFIG_SPELLCASTING_TIME_MODE = 1;
+  CONFIG_DIVINE_PREP_TIME = 1;
+  memset(&spell_info[SPELL_CURE_LIGHT], 0, sizeof(spell_info[SPELL_CURE_LIGHT]));
+  spell_info[SPELL_CURE_LIGHT].name = "cure light";
+  spell_info[SPELL_CURE_LIGHT].min_position = POS_FIGHTING;
+  spell_info[SPELL_CURE_LIGHT].min_level[CLASS_CLERIC] = 1;
+  spell_info[SPELL_CURE_LIGHT].targets = TAR_CHAR_ROOM;
+  spell_info[SPELL_CURE_LIGHT].routines = MAG_POINTS;
+  spell_info[SPELL_CURE_LIGHT].time = scenario == 6 ? 0 : 1;
+  if (scenario == 6)
+  {
+    REMOVE_BIT_AR(MOB_FLAGS(&f.victim), MOB_ISNPC);
+    f.victim.player_specials = &caster_specials;
+    CLASS_LEVEL((&f.victim), CLASS_CLERIC) = 10;
+    f.victim.real_abils.wis = f.victim.aff_abils.wis = 18;
+    GET_SKILL(&f.victim, SPELL_CURE_LIGHT) = 99;
+    CONFIG_PK_ALLOWED = TRUE;
+    SET_BIT_AR(PRF_FLAGS(&f.actor), PRF_PVP);
+    SET_BIT_AR(PRF_FLAGS(&f.victim), PRF_PVP);
+    collection_add(&f.victim, CLASS_CLERIC, SPELL_CURE_LIGHT, 0, 0, 0);
+  }
+  if (scenario != 4)
+    collection_add(&f.actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0, 0, 0);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  do_ready(&f.actor, "counterspell caster on casting", 0, 0);
+  CuAssertPtrNotNull(tc, f.actor.ready_action);
+  CuAssertTrue(tc, !is_action_available(&f.actor, atSTANDARD, false));
+  CuAssertIntEquals(tc, 1,
+                    cast_spell(&f.victim, &f.victim, NULL, SPELL_CURE_LIGHT,
+                               scenario == 5 ? METAMAGIC_SILENT | METAMAGIC_STILL : 0));
+  if (scenario != 6)
+    CuAssertTrue(tc, primary_activity_snapshot(&f.victim, &original));
+  else
+    CuAssertTrue(tc, !primary_activity_snapshot(&f.victim, &original));
+  if (scenario == 1)
+    SET_BIT_AR(AFF_FLAGS(&f.actor), AFF_BLIND);
+  if (scenario == 2)
+  {
+    CuAssertTrue(tc, primary_activity_cancel_id(&f.victim, original.id,
+                                                PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false));
+    CuAssertIntEquals(tc, 1, cast_spell(&f.victim, &f.victim, NULL, SPELL_CURE_LIGHT, 0));
+    CuAssertTrue(tc, primary_activity_snapshot(&f.victim, &replacement));
+    CuAssertTrue(tc, replacement.id != original.id);
+    CuAssertTrue(tc, !primary_activity_cancel_id(&f.victim, original.id,
+                                                 PRIMARY_ACTIVITY_END_COUNTERED, false));
+  }
+  if (scenario == 3)
+    pulse += 15U;
+  else
+    pulse++;
+  event_test_advance();
+  retained = is_spell_in_collection(&f.actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0);
+  if (scenario == 0 || scenario == 3)
+  {
+    CuAssertTrue(tc, !IS_CASTING(&f.victim));
+    CuAssertIntEquals(tc, 10, GET_HIT(&f.victim));
+    CuAssertTrue(tc, !retained);
+    CuAssertPtrNotNull(tc, SPELL_PREP_QUEUE(&f.actor, CLASS_CLERIC));
+  }
+  else
+  {
+    CuAssertTrue(tc, IS_CASTING(&f.victim) == (scenario != 6));
+    CuAssertTrue(tc, retained == (scenario != 4));
+    CuAssertPtrEquals(tc, NULL, SPELL_PREP_QUEUE(&f.actor, CLASS_CLERIC));
+  }
+  if (scenario == 5 || scenario == 6)
+  {
+    CuAssertPtrNotNull(tc, f.actor.ready_action);
+    ready_action_cancel(&f.actor, false);
+  }
+  else
+    CuAssertPtrEquals(tc, NULL, f.actor.ready_action);
+  CuAssertTrue(tc, !is_action_available(&f.actor, atSTANDARD, false));
+  domain_event_runtime_shutdown();
+  event_free_all();
+  if (scenario == 6)
+  {
+    clear_collection_by_class(&f.victim, CLASS_CLERIC);
+    clear_prep_queue_by_class(&f.victim, CLASS_CLERIC);
+  }
+  clear_collection_by_class(&f.actor, CLASS_CLERIC);
+  clear_prep_queue_by_class(&f.actor, CLASS_CLERIC);
+  if (f.actor.events != NULL)
+    free_list(f.actor.events);
+  if (f.victim.events != NULL)
+    free_list(f.victim.events);
+  CONFIG_SPELLCASTING_TIME_MODE = saved_mode;
+  CONFIG_DIVINE_PREP_TIME = saved_prep;
+  CONFIG_PK_ALLOWED = saved_pk;
+  spell_info[SPELL_CURE_LIGHT] = saved_spell;
+  character_list = saved_characters;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&f);
+}
+
+void Test_gameplay_counterspell_consumes_one_preparation_and_cancels_real_cast(CuTest *tc)
+{
+  verify_counterspell_reaction(tc, 0);
+}
+
+void Test_gameplay_counterspell_rechecks_visibility_without_spending_spell(CuTest *tc)
+{
+  verify_counterspell_reaction(tc, 1);
+}
+
+void Test_gameplay_counterspell_never_cancels_a_replacement_cast(CuTest *tc)
+{
+  verify_counterspell_reaction(tc, 2);
+}
+
+void Test_gameplay_counterspell_precedes_later_overdue_cast_completion(CuTest *tc)
+{
+  verify_counterspell_reaction(tc, 3);
+}
+
+void Test_gameplay_counterspell_requires_matching_resource(CuTest *tc)
+{
+  verify_counterspell_reaction(tc, 4);
+}
+
+
+void Test_gameplay_counterspell_cannot_observe_silent_still_cast(CuTest *tc)
+{
+  verify_counterspell_reaction(tc, 5);
+}
+
+void Test_gameplay_counterspell_does_not_delay_or_react_to_instant_cast(CuTest *tc)
+{
+  verify_counterspell_reaction(tc, 6);
+}

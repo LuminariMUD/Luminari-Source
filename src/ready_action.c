@@ -18,6 +18,10 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "constants.h"
+#include "character/abilities.h"
+#include "magic/spells.h"
+#include "magic/spell_prep.h"
+#include "mud_event.h"
 #include "movement/door_state.h"
 
 #define READY_COMMAND_MAX (MAX_INPUT_LENGTH - 1)
@@ -36,6 +40,8 @@ struct ready_action
   struct domain_event_subscription_handle target_subscriptions[3];
   struct domain_entity_handle attack_target;
   bool attack;
+  bool counterspell;
+  int counter_spellnum;
   bool on_casting;
   uint64_t cast_id;
   unsigned int references;
@@ -227,6 +233,64 @@ static bool ready_door_is_live(const struct ready_action *action, struct char_da
          (exit->exit_info & EX_ISDOOR) != 0 && !is_exit_hidden(ch, action->door_direction);
 }
 
+/* Countering uses speech and hands; it is neither a weapon strike nor a new cast. */
+static bool counterspell_allowed(struct char_data *owner, struct char_data *caster)
+{
+  if (owner == NULL || IS_NPC(owner) || !IS_CASTER(owner) || IN_ROOM(owner) == NOWHERE ||
+      DEAD(owner) || GET_POS(owner) < POS_FIGHTING || owner->primary_activity != NULL ||
+      IS_CASTING(owner) || HAS_WAIT(owner) || AFF_FLAGGED(owner, AFF_STUN) ||
+      AFF_FLAGGED(owner, AFF_DAZED) || AFF_FLAGGED(owner, AFF_PARALYZED) ||
+      AFF_FLAGGED(owner, AFF_NAUSEATED) || AFF_FLAGGED(owner, AFF_SILENCED) ||
+      AFF_FLAGGED(owner, AFF_GRAPPLED) || AFF_FLAGGED(owner, AFF_PINNED) ||
+      char_has_mud_event(owner, eSTUNNED) || ROOM_FLAGGED(IN_ROOM(owner), ROOM_SOUNDPROOF) ||
+      ROOM_FLAGGED(IN_ROOM(owner), ROOM_PEACEFUL))
+    return false;
+  if (caster == NULL)
+    return true;
+  return caster != owner && !DEAD(caster) && IN_ROOM(owner) == IN_ROOM(caster) &&
+         CAN_SEE(owner, caster) && !(AFF_FLAGGED(owner, AFF_CHARM) && owner->master == caster) &&
+         pvp_ok(owner, caster, false);
+}
+
+static bool counterspell_observable(struct char_data *owner, struct char_data *caster)
+{
+  int metamagic;
+
+  if (!counterspell_allowed(owner, caster) || !IS_CASTING(caster) ||
+      is_spellnum_psionic(CASTING_SPELLNUM(caster)))
+    return false;
+  metamagic = CASTING_METAMAGIC(caster);
+  return !IS_SET(metamagic, METAMAGIC_STILL) ||
+         (!IS_SET(metamagic, METAMAGIC_SILENT) && !AFF_FLAGGED(caster, AFF_SILENCED));
+}
+
+static void execute_counterspell(struct ready_action *action, struct char_data *owner)
+{
+  struct domain_entity_handle owner_handle = action->owner;
+  struct domain_entity_handle caster_handle = action->attack_target;
+  uint64_t cast_id = action->cast_id;
+  int spellnum = action->counter_spellnum;
+  struct primary_activity_snapshot cast;
+  struct char_data *caster;
+  struct domain_event_bus *bus = domain_event_runtime_bus();
+
+  /* Release the reservation before any terminal cast observers can run. */
+  cancel_action(action, false);
+  owner = resolve_character(bus, owner_handle);
+  caster = resolve_character(bus, caster_handle);
+  if (owner == NULL || caster == NULL || !counterspell_observable(owner, caster) ||
+      !primary_activity_snapshot(caster, &cast) || cast.type != PRIMARY_ACTIVITY_CASTING ||
+      cast.id != cast_id || CASTING_SPELLNUM(caster) != spellnum ||
+      spell_prep_base_resource_check(owner, spellnum) == CLASS_UNDEFINED)
+    return;
+  /* Base extraction modifies owned resources and output buffers, with no world
+   * callbacks. The exact-cast cancellation follows in the same execution step. */
+  if (spell_prep_gen_extract(owner, spellnum, METAMAGIC_NONE) == CLASS_UNDEFINED)
+    return;
+  send_to_char(owner, "You counter %s's %s.\r\n", GET_NAME(caster), spell_name(spellnum));
+  (void)primary_activity_cancel_id(caster, cast_id, PRIMARY_ACTIVITY_END_COUNTERED, true);
+}
+
 static struct game_event_result ready_execution_callback(const struct game_event_context *context)
 {
   struct ready_execution *execution = context != NULL ? context->payload : NULL;
@@ -245,7 +309,8 @@ static struct game_event_result ready_execution_callback(const struct game_event
   if (execution == NULL || bus == NULL)
     return game_event_result_complete();
   ch = resolve_character(bus, execution->owner);
-  if (ch == NULL || ch->ready_action == NULL)
+  if (ch == NULL || ch->ready_action == NULL ||
+      ch->ready_action->execution_handle.id != context->event_id)
     return game_event_result_complete();
   ch->ready_action->execution_handle = EVENT_RUNTIME_HANDLE_NONE;
   if (ch->ready_action->door_direction >= 0 &&
@@ -254,6 +319,11 @@ static struct game_event_result ready_execution_callback(const struct game_event
   {
     send_to_char(ch, "Your readied action is cancelled: the watched door is no longer open.\r\n");
     cancel_action(ch->ready_action, false);
+    return game_event_result_complete();
+  }
+  if (ch->ready_action->counterspell)
+  {
+    execute_counterspell(ch->ready_action, ch);
     return game_event_result_complete();
   }
   if (ch->ready_action->attack)
@@ -281,9 +351,10 @@ static struct game_event_result ready_execution_callback(const struct game_event
 
 void ready_action_on_semantic_turn(struct char_data *ch)
 {
-  if (ch != NULL && ch->ready_action != NULL && ch->ready_action->attack)
+  if (ch != NULL && ch->ready_action != NULL &&
+      (ch->ready_action->attack || ch->ready_action->counterspell))
   {
-    send_to_char(ch, "Your readied attack expires as your next turn begins.\r\n");
+    send_to_char(ch, "Your readied action expires as your next turn begins.\r\n");
     cancel_action(ch->ready_action, false);
   }
 }
@@ -297,7 +368,7 @@ static struct game_event_result ready_expiry_callback(const struct game_event_co
       ch->ready_action->expiry_handle.id == context->event_id)
   {
     ch->ready_action->expiry_handle = EVENT_RUNTIME_HANDLE_NONE;
-    send_to_char(ch, "Your readied attack expires.\r\n");
+    send_to_char(ch, "Your readied action expires.\r\n");
     cancel_action(ch->ready_action, false);
   }
   return game_event_result_complete();
@@ -411,9 +482,32 @@ static void ready_casting_handler(const struct domain_event_context *context, vo
       !domain_entity_handle_equal(action->room, event->room) || !CAN_SEE(owner, caster) ||
       !event_runtime_handle_is_none(action->execution_handle))
     return;
+  if (action->counterspell)
+  {
+    struct primary_activity_snapshot cast;
+
+    if (!counterspell_observable(owner, caster) || !primary_activity_snapshot(caster, &cast) ||
+        cast.type != PRIMARY_ACTIVITY_CASTING || cast.id != event->cast_id ||
+        CASTING_SPELLNUM(caster) != event->spellnum)
+      return;
+    if (compute_ability(owner, ABILITY_SPELLCRAFT) + d20(owner) <= 20)
+    {
+      send_to_char(owner, "You cannot identify the spell in time to counter it.\r\n");
+      cancel_action(action, false);
+      return;
+    }
+    if (spell_prep_base_resource_check(owner, event->spellnum) == CLASS_UNDEFINED)
+    {
+      send_to_char(owner, "You have no matching spell resource available to counter it.\r\n");
+      cancel_action(action, false);
+      return;
+    }
+    action->counter_spellnum = event->spellnum;
+  }
   action->cast_id = event->cast_id;
   if (queue_ready_execution(action, owner))
-    send_to_char(owner, "Your readied attack triggers as %s begins casting.\r\n", GET_NAME(caster));
+    send_to_char(owner, "Your readied %s triggers as %s begins casting.\r\n",
+                 action->counterspell ? "counterspell" : "attack", GET_NAME(caster));
 }
 
 static void ready_target_lost(const struct domain_event_context *context, void *data)
@@ -585,6 +679,7 @@ ACMD(do_ready)
   struct char_data *victim = NULL;
   bool on_casting = false;
   bool attack;
+  bool counterspell;
   int direction = -1;
   char direction_name[MAX_INPUT_LENGTH];
   char extra[MAX_INPUT_LENGTH];
@@ -657,7 +752,8 @@ ACMD(do_ready)
   if (clause == NULL)
   {
     send_to_char(ch, "Usage: ready <command> on entry [target]\r\n       ready <command> on door "
-                     "open <direction>\r\n       ready attack <target> on casting\r\n");
+                     "open <direction>\r\n       ready attack <target> on casting\r\n       ready "
+                     "counterspell <target> on casting\r\n");
     return;
   }
   action = calloc(1U, sizeof(*action));
@@ -681,15 +777,19 @@ ACMD(do_ready)
     free(action->target);
     free(action);
     send_to_char(ch, "Usage: ready <command> on entry [target]\r\n       ready <command> on door "
-                     "open <direction>\r\n       ready attack <target> on casting\r\n");
+                     "open <direction>\r\n       ready attack <target> on casting\r\n       ready "
+                     "counterspell <target> on casting\r\n");
     return;
   }
   attack_name = one_argument(action->command, first_word, sizeof(first_word));
   attack = !strcasecmp(first_word, "attack") || !strcasecmp(first_word, "hit") ||
            !strcasecmp(first_word, "kill");
+  counterspell = !strcasecmp(first_word, "counterspell");
+  if (counterspell && !on_casting)
+    goto invalid_attack;
   /* Only explicit noncombat commands retain command readiness. Arbitrary
    * aliases, spells and special attacks cannot bypass action reservation. */
-  if (!attack &&
+  if (!attack && !counterspell &&
       (on_casting || (strcasecmp(first_word, "say") && strcasecmp(first_word, "emote") &&
                       strcasecmp(first_word, "look") && strcasecmp(first_word, "rest") &&
                       strcasecmp(first_word, "stand") && strcasecmp(first_word, "sit") &&
@@ -701,18 +801,21 @@ ACMD(do_ready)
     send_to_char(ch, "Ready an attack, or say, emote, look, rest, stand, sit, open or close.\r\n");
     return;
   }
-  if (attack)
+  if (attack || counterspell)
   {
     while (isspace((unsigned char)*attack_name))
       attack_name++;
     if (*attack_name == '\0' || (on_casting && action->target != NULL) ||
-        !combat_readied_attack_allowed(ch, NULL) || !is_action_available(ch, atSTANDARD, true))
+        !(counterspell ? counterspell_allowed(ch, NULL)
+                       : combat_readied_attack_allowed(ch, NULL)) ||
+        !is_action_available(ch, atSTANDARD, true))
       goto invalid_attack;
     if (on_casting || direction >= 0)
     {
       strlcpy(attack_lookup, attack_name, sizeof(attack_lookup));
       victim = get_char_vis(ch, attack_lookup, NULL, FIND_CHAR_ROOM);
-      if (victim == NULL || !combat_readied_attack_allowed(ch, victim))
+      if (victim == NULL || !(counterspell ? counterspell_allowed(ch, victim)
+                                           : combat_readied_attack_allowed(ch, victim)))
         goto invalid_attack;
       action->attack_target = domain_event_character_handle(victim);
     }
@@ -729,6 +832,7 @@ ACMD(do_ready)
     }
   }
   action->attack = attack;
+  action->counterspell = counterspell;
   action->on_casting = on_casting;
   if (ch->ready_action != NULL)
     ready_action_cancel(ch, false);
@@ -784,7 +888,7 @@ ACMD(do_ready)
     send_to_char(ch, "You cannot ready that action right now.\r\n");
     return;
   }
-  if (attack)
+  if (attack || counterspell)
   {
     struct domain_event_topic departure_topic = {DOMAIN_EVENT_TOPIC_SOURCE, action->room};
 
@@ -800,7 +904,8 @@ ACMD(do_ready)
       return;
     }
     USE_STANDARD_ACTION(ch);
-    send_to_char(ch, "You spend a standard action to ready one attack.\r\n");
+    send_to_char(ch, "You spend a standard action to ready one %s.\r\n",
+                 counterspell ? "counterspell" : "attack");
   }
   if (on_casting)
     send_to_char(ch, "You ready '%s' for when that target begins casting.\r\n", action->command);
@@ -818,5 +923,6 @@ invalid_attack:
   free(action->target);
   free(action);
   send_to_char(ch, "Ready attack <target> on casting, on entry, or on door open <direction>.\r\n"
-                   "Casting and door triggers require a visible target here.\r\n");
+                   "Or ready counterspell <target> on casting.\r\n"
+                   "Casting and door triggers require an eligible, visible target here.\r\n");
 }

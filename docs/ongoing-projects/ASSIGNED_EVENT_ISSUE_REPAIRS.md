@@ -557,3 +557,39 @@ verify repeated probes without debit/output, moon-before-preparation consumption
 prepared recovery queue insertion, spontaneous exhaustion, and no staff resource
 bypass. Runtime counterspell dispatch, ally-defense facts and the remaining #106
 acceptance cases are still outstanding.
+
+## Native counterspell implementation checkpoint (2026-09-06)
+
+`ready counterspell <caster> on casting` now extends the existing ready-action
+owner. It admits the standard-action reservation only after watches and expiry
+are installed, observes a visible local timed cast, requires a perceptible
+component and one Spellcraft check above 20, then queues the native ready event.
+Execution revalidates eligibility, visibility, base resource and the observed
+cast ID before committing resource use and cancelling that exact activity with
+a COUNTERED reason. Extraction retains the existing resource-preservation rules.
+Neither the counter's normal spell effect nor a second casting activity runs.
+
+Ready execution now checks its native event ID before touching the current
+reservation, matching the existing expiry protection. The new activity cancel
+entry point rejects a replaced ID. Old counterspell-mode commands clear the
+inert mode flag and direct players to READY; persisted affect/feat numbers remain
+stable. Speech, hands, incapacitation, room and PvP restrictions apply. Instant
+casts and psionic manifestation do not create an eligible counter opportunity.
+
+Flat READIED-ACTION/READY/COUNTERSPELL help and the matching development database
+entry were updated and verified, with deployable SQL in
+`sql/components/help_counterspell_readiness.sql`. No production change occurred.
+
+Validation: `make -j10 test` passed with 1,176 gameplay cases and no compiler
+warnings, followed by successful `make install`. Seven new production-linked
+reaction cases cover a real timed cast and one preparation, no spell effect after
+countering, visibility loss without debit, same-spell replacement protection,
+overdue native dispatch, no matching resource, silent/still observability and an
+actual player instant cast. The initial instant fixture used an NPC, which cannot
+cast instantly in the existing parser; it was corrected to exercise the real
+player path. No server was restarted.
+
+#106 remains open: implement designated-ally attack facts/reactions, and complete
+the remaining competition, equal-deadline, admission-failure, extraction and
+encounter-transition acceptance cases. The broader assigned-batch scope and
+performance/release gates are unchanged.

@@ -1,8 +1,9 @@
 # Counterspell and designated-ally readiness
 
 Design decision for assigned issue #106, 2026-09-06. Implementation baseline:
-`9b086f39f` on `fix/open-issue-repairs`. These are implementation requirements,
-not a claim that the new commands or tests already exist.
+`9b086f39f` on `fix/open-issue-repairs`. These are implementation requirements.
+The counterspell command and initial production-linked tests are now implemented;
+designated-ally defense and the full acceptance matrix remain outstanding.
 
 ## Existing contracts and simplification
 
@@ -159,5 +160,10 @@ the relevant domain-event tests. Required evidence before issue completion:
 - Help agrees in the flat file and development database, resource and registry
   counts return to baseline, full tests pass and `make install` follows them.
 
-This design resolves the rule choices in #106. Runtime implementation and the
-listed acceptance tests remain outstanding; the issue is not complete.
+This design resolves the rule choices in #106. Counterspell now uses the existing
+ready owner, resource check, native queued execution and exact-activity cancellation.
+Its initial tests cover real preparation consumption, suppressed spell effect,
+replacement-cast protection, visibility changes, missing resources, overdue
+dispatch, silent/still casting and a real player instant cast. Designated-ally
+runtime implementation and the rest of the listed acceptance matrix remain
+outstanding; the issue is not complete.
