@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
+import sys
 from typing import Any, Iterable
 
 from .models import TOOL_VERSION
@@ -57,13 +58,33 @@ def _load_json(path: Path) -> Any:
     raise RolPlanError(f"cannot read planning input {path}: {error}") from error
 
 
+def _intern_candidate_strings(row: dict[str, Any]) -> dict[str, Any]:
+  """Share immutable candidate text across repeated lineage evidence rows.
+
+  Large areas with identical room names repeat the same target hashes and paths
+  millions of times. Keep each mutable dictionary/list independent while avoiding
+  a separate string allocation for each reference to the same target evidence.
+  The pilot/release reader consumes these same candidates in the action ledger.
+  """
+
+  if "record_sha256" in row and "source_file_sha256" in row and "evidence" in row:
+    for key, value in row.items():
+      if isinstance(value, str):
+        row[key] = sys.intern(value)
+    if isinstance(row["evidence"], list):
+      row["evidence"] = [
+          sys.intern(value) if isinstance(value, str) else value for value in row["evidence"]
+      ]
+  return row
+
+
 def _load_jsonl(path: Path) -> list[dict[str, Any]]:
   rows: list[dict[str, Any]] = []
   try:
     with path.open(encoding="ascii") as source:
       for line_number, line in enumerate(source, start=1):
         try:
-          row = json.loads(line)
+          row = json.loads(line, object_hook=_intern_candidate_strings)
         except json.JSONDecodeError as error:
           raise RolPlanError(f"invalid JSONL at {path}:{line_number}: {error}") from error
         if not isinstance(row, dict):
