@@ -3044,6 +3044,9 @@ static void capture_terminal_cast(const struct domain_event_context *context, vo
 static void verify_counterspell_reaction(CuTest *tc, int scenario)
 {
   struct gameplay_fixture f;
+  struct char_data competitor;
+  struct player_special_data competitor_specials = {0};
+  bool competing = scenario == 11 || scenario == 12;
   struct player_special_data specials = {0};
   struct player_special_data caster_specials = {0};
   struct char_data *saved_characters = character_list;
@@ -3057,6 +3060,8 @@ static void verify_counterspell_reaction(CuTest *tc, int scenario)
   struct domain_event_subscription_config observer = {0};
   struct domain_event_subscription_handle subscription;
   struct primary_activity_snapshot replacement;
+  struct domain_event_bus_stats before_admission;
+  struct domain_event_bus_stats after_admission;
   bool retained;
   int metamagic = METAMAGIC_NONE;
 
@@ -3101,6 +3106,20 @@ static void verify_counterspell_reaction(CuTest *tc, int scenario)
   }
   if (scenario != 4)
     collection_add(&f.actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0, 0, 0);
+  if (competing)
+  {
+    initialize_test_npc(&competitor, "the other counterer", 0);
+    REMOVE_BIT_AR(MOB_FLAGS(&competitor), MOB_ISNPC);
+    competitor.player_specials = &competitor_specials;
+    competitor.player.name = "counterer";
+    GET_CLASS(&competitor) = CLASS_CLERIC;
+    CLASS_LEVEL((&competitor), CLASS_CLERIC) = 10;
+    GET_ABILITY(&competitor, ABILITY_SPELLCRAFT) = 100;
+    competitor.real_abils.wis = competitor.aff_abils.wis = 18;
+    f.victim.next = &competitor;
+    f.victim.next_in_room = &competitor;
+    collection_add(&competitor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0, 0, 0);
+  }
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   observer.type = DOMAIN_EVENT_ACTIVITY_TRANSITIONED;
   observer.topic = (struct domain_event_topic){DOMAIN_EVENT_TOPIC_SUBJECT,
@@ -3119,9 +3138,36 @@ static void verify_counterspell_reaction(CuTest *tc, int scenario)
     metamagic = METAMAGIC_STILL;
   else if (scenario == 8)
     metamagic = METAMAGIC_SILENT;
+  if (scenario == 13)
+  {
+    domain_event_bus_get_stats(domain_event_runtime_bus(), &before_admission);
+    ready_action_runtime_shutdown();
+  }
+  if (scenario == 12)
+    do_ready(&competitor, "counterspell caster on casting", 0, 0);
   do_ready(&f.actor, "counterspell caster on casting", 0, 0);
+  if (scenario == 11)
+    do_ready(&competitor, "counterspell caster on casting", 0, 0);
+  if (competing)
+  {
+    CuAssertPtrNotNull(tc, competitor.ready_action);
+    CuAssertTrue(tc, !is_action_available(&competitor, atSTANDARD, false));
+  }
+  if (scenario == 13)
+  {
+    domain_event_bus_get_stats(domain_event_runtime_bus(), &after_admission);
+    CuAssertPtrEquals(tc, NULL, f.actor.ready_action);
+    CuAssertTrue(tc, is_action_available(&f.actor, atSTANDARD, false));
+    CuAssertTrue(tc, is_spell_in_collection(&f.actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0));
+    CuAssertPtrEquals(tc, NULL, SPELL_PREP_QUEUE(&f.actor, CLASS_CLERIC));
+    CuAssertTrue(tc, before_admission.live_subscription_count ==
+                         after_admission.live_subscription_count);
+    goto counterspell_cleanup;
+  }
   CuAssertPtrNotNull(tc, f.actor.ready_action);
   CuAssertTrue(tc, !is_action_available(&f.actor, atSTANDARD, false));
+  if (scenario == 14)
+    ready_action_runtime_shutdown();
   CuAssertIntEquals(tc, 1, cast_spell(&f.victim, &f.victim, NULL, SPELL_CURE_LIGHT, metamagic));
   if (scenario != 6)
     CuAssertTrue(tc, primary_activity_snapshot(&f.victim, &original));
@@ -3141,20 +3187,33 @@ static void verify_counterspell_reaction(CuTest *tc, int scenario)
     CuAssertTrue(tc, !primary_activity_cancel_id(&f.victim, original.id,
                                                  PRIMARY_ACTIVITY_END_COUNTERED, false));
   }
-  if (scenario == 3)
-    pulse += 15U;
+  if (scenario == 3 || scenario == 12)
+    pulse += (CASTING_TIME(&f.victim) + 1U) * PASSES_PER_SEC;
   else
     pulse++;
   event_test_advance();
   retained = is_spell_in_collection(&f.actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0);
-  if (scenario == 0 || scenario == 3 || scenario == 8 || scenario == 10)
+  if (scenario == 0 || scenario == 3 || scenario == 8 || scenario == 10 || competing)
   {
     CuAssertTrue(tc, !IS_CASTING(&f.victim));
     CuAssertTrue(tc, terminal.activity_id == original.id);
     CuAssertIntEquals(tc, PRIMARY_ACTIVITY_STATE_CANCELLED, terminal.current_state);
     CuAssertIntEquals(tc, PRIMARY_ACTIVITY_END_COUNTERED, terminal.end_reason);
-    CuAssertTrue(tc, !retained);
-    CuAssertPtrNotNull(tc, SPELL_PREP_QUEUE(&f.actor, CLASS_CLERIC));
+    if (competing)
+    {
+      CuAssertIntEquals(
+          tc, 1, retained + is_spell_in_collection(&competitor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0));
+      CuAssertIntEquals(tc, 1,
+                        (SPELL_PREP_QUEUE(&f.actor, CLASS_CLERIC) != NULL) +
+                            (SPELL_PREP_QUEUE(&competitor, CLASS_CLERIC) != NULL));
+      CuAssertPtrEquals(tc, NULL, competitor.ready_action);
+      CuAssertTrue(tc, !is_action_available(&competitor, atSTANDARD, false));
+    }
+    else
+    {
+      CuAssertTrue(tc, !retained);
+      CuAssertPtrNotNull(tc, SPELL_PREP_QUEUE(&f.actor, CLASS_CLERIC));
+    }
   }
   else
   {
@@ -3170,12 +3229,21 @@ static void verify_counterspell_reaction(CuTest *tc, int scenario)
   else
     CuAssertPtrEquals(tc, NULL, f.actor.ready_action);
   CuAssertTrue(tc, !is_action_available(&f.actor, atSTANDARD, false));
+counterspell_cleanup:
   domain_event_runtime_shutdown();
   event_free_all();
   if (scenario == 6)
   {
     clear_collection_by_class(&f.victim, CLASS_CLERIC);
     clear_prep_queue_by_class(&f.victim, CLASS_CLERIC);
+  }
+  if (competing)
+  {
+    clear_collection_by_class(&competitor, CLASS_CLERIC);
+    clear_prep_queue_by_class(&competitor, CLASS_CLERIC);
+    if (competitor.events != NULL)
+      free_list(competitor.events);
+    f.victim.next = NULL;
   }
   clear_collection_by_class(&f.actor, CLASS_CLERIC);
   clear_prep_queue_by_class(&f.actor, CLASS_CLERIC);
@@ -3545,4 +3613,26 @@ void Test_gameplay_counterspell_rechecks_hearing_before_resource_debit(CuTest *t
 void Test_gameplay_counterspell_hearing_observer_can_identify_verbal_only_cast(CuTest *tc)
 {
   verify_counterspell_reaction(tc, 10);
+}
+
+
+void Test_gameplay_competing_counterspells_share_deadline_and_spend_one_resource(CuTest *tc)
+{
+  verify_counterspell_reaction(tc, 11);
+}
+
+void Test_gameplay_competing_counterspells_reverse_admission_with_overdue_cast(CuTest *tc)
+{
+  verify_counterspell_reaction(tc, 12);
+}
+
+
+void Test_gameplay_counterspell_failed_native_admission_preserves_action_and_resource(CuTest *tc)
+{
+  verify_counterspell_reaction(tc, 13);
+}
+
+void Test_gameplay_counterspell_failed_trigger_preserves_resource_without_action_refund(CuTest *tc)
+{
+  verify_counterspell_reaction(tc, 14);
 }

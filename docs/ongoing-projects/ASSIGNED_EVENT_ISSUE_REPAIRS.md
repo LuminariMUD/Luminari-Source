@@ -684,3 +684,32 @@ warnings; `make install` followed the run. #106 still needs the remaining
 competition/equal-deadline, admission-failure, encounter-transition and deep
 DG/ranged/nested-strike acceptance work. No assigned issue or release gate is
 being marked complete by this checkpoint.
+
+## Counterspell competition and clock acceptance checkpoint (2026-09-06)
+
+Two additional production-linked scenarios prepare two counterers against one
+real timed cast. They cover both admission orders and equal reaction deadlines,
+including dispatch delayed beyond the complete target casting duration. Exactly
+one preparation enters recovery, one remains available, both reservations finish,
+and the target's exact activity reports cancellation by counterspell. The prior
+single-counter overdue test was strengthened: its old fixed 15-pulse advance did
+not clearly exceed the complete NPC cast duration, so it now advances beyond that
+duration explicitly.
+
+Native readiness-type unavailability tests now cover both admission stages.
+Initial failure leaves no ready owner, restores the live subscription count and
+preserves both the action and preparation. Failure to queue an already-admitted
+counter preserves its preparation while retaining the standard-action cost.
+These exercise scheduling failure cleanup; they are not an allocation-failure
+injection test.
+
+The established ready-attack semantic-round fixture now also admits counterspell.
+It verifies survival past the old wall deadline after combat admission and expiry
+before actions become available at the next semantic turn. This covers the
+counterspell flag's participation in the common ready lifecycle.
+
+Validation: `make -j10 test` passed with 1,201 gameplay tests, no compiler warnings,
+and successful subsequent `make install`. No gameplay or help behavior changed
+in this checkpoint. Remaining #106 work includes the targeted deep DG/ranged/
+nested-strike audit and completion review; #107-109, final #103-105 audits and
+#111/#112 gates remain open.

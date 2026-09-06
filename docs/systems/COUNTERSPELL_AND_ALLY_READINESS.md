@@ -193,3 +193,17 @@ trigger and execution, and hearing observers of verbal-only casts. Successful
 counter tests assert the exact casting activity's CANCELLED/COUNTERED terminal
 event rather than using fixed hit points as evidence; other scheduled activity
 may change hit points independently of spell completion.
+
+Competition tests now admit two real prepared counterers against one timed cast,
+in both admission orders. Both reactions share a deadline; one case delays
+dispatch beyond the cast's full remaining duration. Exactly one preparation
+enters recovery, the other remains prepared, both reservations finish, and the
+same cast reports COUNTERED. The earlier single-counter overdue case now also
+advances beyond the complete NPC casting duration, rather than a fixed 15 pulses.
+
+Unavailable readiness event types exercise native admission and trigger failures:
+failed initial admission preserves the standard action and preparation and restores
+the subscription count; failed trigger scheduling preserves the preparation but
+does not refund the admitted standard action. The existing semantic-round test
+also runs with counterspell, proving that combat admission cancels its old wall
+expiry and that the reservation expires before the next semantic turn's actions.
