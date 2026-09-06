@@ -779,7 +779,7 @@ async def rss_sampler(pid: int, backend: str, phase_ref: list[str], output: Path
             try:
                 await asyncio.wait_for(stop.wait(), timeout=10.0)
             except asyncio.TimeoutError:
-                pass
+                continue
 
 
 async def capture_phase(admin: MudSession, phase: str, output_dir: Path) -> None:
@@ -997,8 +997,7 @@ async def run_backend(
     finally:
         sampler_stop.set()
         if sampler:
-            with contextlib.suppress(Exception):
-                await sampler
+            await asyncio.gather(sampler, return_exceptions=True)
         for session in sessions:
             with contextlib.suppress(Exception):
                 await session.close()

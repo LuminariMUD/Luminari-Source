@@ -33,6 +33,8 @@ void tactical_room_hazard_source_created(struct raff_node *raff);
 void tactical_room_hazard_source_removed(struct raff_node *raff);
 void tactical_room_hazards_enter_combat(struct char_data *ch);
 void tactical_room_hazards_leave_combat(struct char_data *ch);
+void tactical_room_hazards_forget(struct char_data *ch);
+void tactical_room_hazards_rebuild(void);
 bool tactical_room_hazards_on_turn_end(struct char_data *ch);
 uint64_t tactical_room_hazard_exposures(void);
 uint64_t tactical_room_hazard_exposure_rejections(void);

@@ -540,6 +540,9 @@ static bool enter_transport_paid(struct char_data *ch, int locale, int type, int
         !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(passenger)), origin))
     {
       transport_job_cancel(passenger, false);
+      send_to_char(
+          passenger,
+          "Your journey is cancelled because you are no longer at the departure point.\r\n");
       continue;
     }
     taxi = (room_rnum)(transit_room - world);

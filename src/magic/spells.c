@@ -175,6 +175,7 @@ static bool apply_wall_crossings_in_room(struct char_data *victim, room_rnum roo
 {
   struct domain_entity_handle victim_identity;
   struct domain_entity_handle wall_identity;
+  struct domain_entity_handle next_identity;
   struct obj_data *wall;
   struct obj_data *next;
   struct char_data *creator;
@@ -188,6 +189,8 @@ static bool apply_wall_crossings_in_room(struct char_data *victim, room_rnum roo
   for (wall = world[room].contents; wall != NULL; wall = next)
   {
     next = wall->next_content;
+    next_identity =
+        next != NULL ? domain_event_object_handle(next) : (struct domain_entity_handle){0};
     if (!wall_type_valid(wall) || GET_OBJ_VAL(wall, WALL_DIR) != dir ||
         !wall_affects_character(wall, victim, &creator))
       continue;
@@ -213,6 +216,11 @@ static bool apply_wall_crossings_in_room(struct char_data *victim, room_rnum roo
     victim = domain_event_world_resolve_character(victim_identity);
     if (victim == NULL)
       return false;
+    next = domain_entity_handle_is_valid(next_identity)
+               ? domain_event_world_resolve_object(next_identity)
+               : NULL;
+    if (next != NULL && next->in_room != room)
+      next = NULL;
   }
   return true;
 }

@@ -2900,6 +2900,7 @@ static void verify_staff_agenda_lifecycle(CuTest *tc, int mode)
   game_event_type_id_t type;
   size_t live = 99;
   bool active, expired, delayed, cleared;
+  int duration_ticks;
   int i;
 
   begin_gameplay_fixture(&f);
@@ -2910,8 +2911,9 @@ static void verify_staff_agenda_lifecycle(CuTest *tc, int mode)
   pulse = 10 * PASSES_PER_SEC;
   event_init();
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
-  CuAssertTrue(tc, set_event_state(THE_PRISONER_EVENT, 2));
-  active = is_event_active() && get_event_time_remaining() == 2 &&
+  duration_ticks = (2 * SECS_PER_MUD_HOUR - 10) * PASSES_PER_SEC;
+  CuAssertTrue(tc, set_event_state(THE_PRISONER_EVENT, duration_ticks));
+  active = is_event_active() && get_event_time_remaining() == duration_ticks &&
            staff_event_agenda_seconds() == 2 * SECS_PER_MUD_HOUR - 10;
   if (mode == 1)
   {
@@ -2920,18 +2922,21 @@ static void verify_staff_agenda_lifecycle(CuTest *tc, int mode)
     CuAssertIntEquals(tc, EVENT_SUCCESS, end_staff_event(THE_PRISONER_EVENT));
     CuAssertIntEquals(tc, EVENT_ERROR_DELAY_ACTIVE, start_staff_event(JACKALOPE_HUNT));
     CuAssertTrue(tc, set_event_delay(0));
-    CuAssertTrue(tc, set_event_state(THE_PRISONER_EVENT, 3));
+    CuAssertTrue(tc,
+                 set_event_state(THE_PRISONER_EVENT, duration_ticks + STAFF_EVENT_MUD_HOUR_TICKS));
   }
   for (i = 0; i < (2 * SECS_PER_MUD_HOUR - 10) * PASSES_PER_SEC; i++)
   {
     pulse++;
     event_test_advance();
   }
-  expired = mode == 1 ? is_event_active() && get_event_time_remaining() == 1 : !is_event_active();
+  expired = mode == 1
+                ? is_event_active() && get_event_time_remaining() == STAFF_EVENT_MUD_HOUR_TICKS
+                : !is_event_active();
   if (mode == 1)
     end_staff_event(THE_PRISONER_EVENT);
   delayed = get_event_delay() == STAFF_EVENT_DELAY_CNST;
-  for (i = 0; i < STAFF_EVENT_DELAY_CNST * SECS_PER_MUD_HOUR * PASSES_PER_SEC; i++)
+  for (i = 0; i < STAFF_EVENT_DELAY_CNST; i++)
   {
     pulse++;
     event_test_advance();
@@ -4421,6 +4426,25 @@ static void verify_billowing_cloud_exposure(CuTest *tc, int scenario)
     char_to_room_cause(&fixture.actor, 1, NULL, DOMAIN_RELOCATION_WALK, NORTH);
     CuAssertIntEquals(tc, 2, trace.count);
   }
+  else if (scenario == 7)
+  {
+    char_from_room(&fixture.victim);
+    char_to_room_cause(&fixture.victim, 1, NULL, DOMAIN_RELOCATION_WALK, NORTH);
+    FIGHTING(&fixture.actor) = &fixture.victim;
+    FIGHTING(&fixture.victim) = &fixture.actor;
+    CuAssertTrue(tc, combat_encounter_join(&fixture.actor, &fixture.victim, 1));
+    CuAssertTrue(tc, combat_encounter_join(&fixture.victim, &fixture.actor, 1));
+    CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+    CuAssertIntEquals(tc, 0, tactical_room_hazard_exposures());
+    event_free_all();
+    event_init();
+    CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+    CuAssertIntEquals(tc, 2, tactical_room_hazard_exposures());
+    pulse += 6 RL_SEC;
+    event_test_advance();
+    CuAssertIntEquals(tc, 2, trace.count);
+    FIGHTING(&fixture.actor) = FIGHTING(&fixture.victim) = NULL;
+  }
 
   if (second_source != NULL)
     rem_room_aff(second_source);
@@ -4475,9 +4499,15 @@ void Test_gameplay_billowing_cloud_preserves_level_thirteen_immunity(CuTest *tc)
   verify_billowing_cloud_exposure(tc, 6);
 }
 
+void Test_gameplay_billowing_cloud_rebuilds_after_event_runtime_restart(CuTest *tc)
+{
+  verify_billowing_cloud_exposure(tc, 7);
+}
+
 struct wall_crossing_trace
 {
   struct char_data *subject;
+  struct obj_data *extract_after_first;
   struct domain_entity_handle sources[4];
   int count;
 };
@@ -4492,6 +4522,11 @@ static bool observe_wall_crossing(struct domain_entity_handle source, struct cha
   if (trace->count < 4)
     trace->sources[trace->count] = source;
   trace->count++;
+  if (trace->count == 1 && trace->extract_after_first != NULL)
+  {
+    extract_obj(trace->extract_after_first);
+    trace->extract_after_first = NULL;
+  }
   return true;
 }
 
@@ -4597,6 +4632,33 @@ void Test_gameplay_forced_wall_crossing_honors_vanished_sources(CuTest *tc)
 
   wall_crossing_set_test_callback(NULL, NULL);
   extract_obj(wall);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  end_gameplay_fixture(&fixture);
+}
+
+void Test_gameplay_wall_crossing_does_not_dereference_an_extracted_successor(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct wall_crossing_trace trace = {0};
+  struct obj_data *first_wall;
+
+  begin_gameplay_fixture(&fixture);
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  trace.subject = &fixture.actor;
+  trace.extract_after_first = create_test_wall(0, NORTH, WALL_TYPE_THORNS);
+  first_wall = create_test_wall(0, NORTH, WALL_TYPE_FIRE);
+  wall_crossing_set_test_callback(observe_wall_crossing, &trace);
+
+  CuAssertIntEquals(tc, 1, perform_move(&fixture.actor, NORTH, FALSE));
+  CuAssertIntEquals(tc, 1, trace.count);
+  CuAssertTrue(
+      tc, domain_entity_handle_equal(domain_event_object_handle(first_wall), trace.sources[0]));
+
+  wall_crossing_set_test_callback(NULL, NULL);
+  extract_obj(first_wall);
   domain_event_runtime_shutdown();
   event_free_all();
   end_gameplay_fixture(&fixture);

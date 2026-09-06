@@ -455,12 +455,13 @@ static void restore_semantic_action_events(struct combat_encounter_participant *
   uint64_t delay;
   size_t index;
 
-  if (participant == NULL || !participant->semantic_state_imported ||
-      participant->character == NULL || shutting_down)
+  if (participant == NULL || participant->character == NULL)
+    return;
+  tactical_room_hazards_leave_combat(participant->character);
+  if (!participant->semantic_state_imported || shutting_down)
     return;
   tactical_defense_leave_combat(participant->character);
   tactical_bleeding_leave_combat(participant->character);
-  tactical_room_hazards_leave_combat(participant->character);
   for (index = 0U; index < NUM_ACTIONS; index++)
   {
     if (participant->action_ready_turn[index] <= participant->turns_started)
@@ -1491,6 +1492,7 @@ void combat_encounter_runtime_shutdown(void)
       {
         tactical_defense_pause(participant->character);
         tactical_bleeding_pause(participant->character);
+        tactical_room_hazards_forget(participant->character);
       }
     for (participant = encounter->pending_additions; participant != NULL;
          participant = participant->next)
@@ -1500,6 +1502,7 @@ void combat_encounter_runtime_shutdown(void)
       {
         tactical_defense_pause(participant->character);
         tactical_bleeding_pause(participant->character);
+        tactical_room_hazards_forget(participant->character);
       }
   }
   shutting_down = true;

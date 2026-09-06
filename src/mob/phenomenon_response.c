@@ -43,13 +43,14 @@ static bool response_candidate(const struct char_data *observer,
 
 static void clear_interest(struct char_data *observer, struct phenomenon_response_payload *payload)
 {
-  if (observer == NULL || payload == NULL ||
-      observer->phenomenon_interest_event.id != payload->event.id)
+  if (observer == NULL || payload == NULL)
+    return;
+  if (payload->set_cover)
+    REMOVE_BIT_AR(AFF_FLAGS(observer), AFF_TOTAL_DEFENSE);
+  if (observer->phenomenon_interest_event.id != payload->event.id)
     return;
   observer->phenomenon_interest_event = EVENT_RUNTIME_HANDLE_NONE;
   observer->phenomenon_interest_id = 0U;
-  if (payload->set_cover)
-    REMOVE_BIT_AR(AFF_FLAGS(observer), AFF_TOTAL_DEFENSE);
 #ifdef LUMINARI_CUTEST
   if (test_callback != NULL)
     test_callback(observer, false, test_context);

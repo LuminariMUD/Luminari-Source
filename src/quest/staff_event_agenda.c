@@ -78,14 +78,19 @@ void staff_event_agenda_cancel(void)
     }
 }
 
-int staff_event_agenda_hours(bool delay)
+int staff_event_agenda_ticks(bool delay)
 {
   game_tick_t ticks;
 
   if (event_runtime_remaining(timers[delay ? AGENDA_DELAY : AGENDA_EXPIRY], &ticks) !=
       GAME_SCHEDULER_OK)
     return 0;
-  return (int)MIN((game_tick_t)INT_MAX, ticks / STAFF_HOUR_TICKS + (ticks % STAFF_HOUR_TICKS != 0));
+  return (int)MIN((game_tick_t)INT_MAX, ticks);
+}
+
+bool staff_event_agenda_delay_scheduled(void)
+{
+  return !event_runtime_handle_is_none(timers[AGENDA_DELAY]);
 }
 
 int staff_event_agenda_seconds(void)
@@ -97,7 +102,7 @@ int staff_event_agenda_seconds(void)
   return (int)MIN((game_tick_t)INT_MAX, ticks / PASSES_PER_SEC + (ticks % PASSES_PER_SEC != 0));
 }
 
-bool staff_event_agenda_start(int event_num, int hours)
+bool staff_event_agenda_start(int event_num, int ticks)
 {
   uint64_t incarnation;
   struct event_runtime_handle expiry = EVENT_RUNTIME_HANDLE_NONE,
@@ -105,12 +110,11 @@ bool staff_event_agenda_start(int event_num, int hours)
   enum agenda_kind kind;
 
   if (!enabled || active_incarnation != 0 || event_num < 0 || event_num >= NUM_STAFF_EVENTS ||
-      hours < 1)
+      ticks < 1)
     return false;
   incarnation = ++serial;
   kind = event_num == JACKALOPE_HUNT ? AGENDA_POPULATION : AGENDA_PRISONER;
-  if (!schedule(AGENDA_EXPIRY, event_num, incarnation,
-                next_hour() + (game_tick_t)(hours - 1) * STAFF_HOUR_TICKS, &expiry))
+  if (!schedule(AGENDA_EXPIRY, event_num, incarnation, (game_tick_t)ticks, &expiry))
     return false;
   if (!schedule(kind, event_num, incarnation, next_hour(), &agenda))
   {
@@ -124,17 +128,16 @@ bool staff_event_agenda_start(int event_num, int hours)
   return true;
 }
 
-bool staff_event_agenda_delay(int hours)
+bool staff_event_agenda_delay(int ticks)
 {
   struct event_runtime_handle old = timers[AGENDA_DELAY], replacement = EVENT_RUNTIME_HANDLE_NONE;
   uint64_t incarnation = ++serial;
 
-  if (hours > 0 && (!enabled || !schedule(AGENDA_DELAY, UNDEFINED_EVENT, incarnation,
-                                          next_hour() + (game_tick_t)(hours - 1) * STAFF_HOUR_TICKS,
-                                          &replacement)))
+  if (ticks > 0 && (!enabled || !schedule(AGENDA_DELAY, UNDEFINED_EVENT, incarnation,
+                                          (game_tick_t)ticks, &replacement)))
     return false;
   timers[AGENDA_DELAY] = replacement;
-  delay_incarnation = hours > 0 ? incarnation : 0;
+  delay_incarnation = ticks > 0 ? incarnation : 0;
   (void)event_runtime_cancel(old);
   return true;
 }
@@ -164,7 +167,7 @@ static struct game_event_result dispatch(const struct game_event_context *contex
     return game_event_result_complete();
   }
   /* Expiry wins over maintenance even when both become runnable at the same boundary. */
-  if (staff_event_agenda_hours(false) == 0)
+  if (staff_event_agenda_ticks(false) == 0)
     return game_event_result_complete();
   if (wakeup.kind == AGENDA_POPULATION)
     staff_event_maintain_population();

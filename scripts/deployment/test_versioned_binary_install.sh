@@ -17,12 +17,8 @@ cleanup()
 {
   if [[ "$helper_pid" =~ ^[1-9][0-9]*$ ]]; then
     kill -TERM "$helper_pid" 2>/dev/null || true
-    for attempt in {1..100}; do
-      kill -0 "$helper_pid" 2>/dev/null || break
-      sleep 0.01
-    done
-    kill -KILL "$helper_pid" 2>/dev/null || true
     wait "$helper_pid" 2>/dev/null || true
+    helper_pid=""
   fi
   if [[ -d "$test_root" ]] && [[ $(basename "$test_root") == luminari-release-test.* ]]; then
     rm -rf -- "$test_root"

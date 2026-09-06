@@ -27,11 +27,21 @@ The wider unassigned queue is excluded. No production rollout or archival deleti
   still required for an unqualified performance verdict.
 - #112 is resolved by an explicit retention decision. Archival PubSub SQL is
   inert historical data and is not deleted by this repair branch.
-- Final local validation on 2026-09-07 passed all 1,246 production-linked C
+- Final local validation on 2026-09-07 passed all 1,248 production-linked C
   tests plus the shell and Python regression suites. Eight isolated-MariaDB
   integration cases remained opt-in and were skipped by the standard target.
   `make install` activated the resulting development binary; no server was
   restarted.
+
+The post-review repair pass also preserves wall traversal across callback-driven
+object extraction, rebuilds billowing-cloud exposure ownership after an event-runtime
+restart, clears temporary NPC cover when an older interest is replaced, reports
+cancelled transport admission to the passenger, and makes staff-event duration APIs
+consistently use native scheduler ticks. Coordinate phenomena now query the existing
+static wilderness KD tree once and scan the bounded dynamic-room pool once, instead of
+repeating a whole dynamic-pool scan for every coordinate in range. Deployment and
+performance-harness cleanup findings are repaired as well. The final #111 live gate is
+still required after this reviewed source checkpoint is committed.
 
 ## Implementation checkpoint
 

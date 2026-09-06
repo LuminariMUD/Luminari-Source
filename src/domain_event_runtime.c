@@ -116,6 +116,8 @@ enum domain_event_status domain_event_runtime_init(void)
   if (status == DOMAIN_EVENT_OK)
     status = active_world_register_handlers(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
+    tactical_room_hazards_rebuild();
+  if (status == DOMAIN_EVENT_OK)
     status = domain_event_seal(runtime_bus);
   if (status != DOMAIN_EVENT_OK)
   {

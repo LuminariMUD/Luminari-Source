@@ -27,9 +27,12 @@
  * Mandatory delay between staff events for cleanup and system stability.
  * This prevents rapid-fire event starting which could cause memory issues
  * or incomplete cleanup from previous events.
- * DO NOT CHANGE: don't decrease this below 6 ticks for system stability.
+ * Keep six mud hours of cleanup while expressing the API value in native
+ * scheduler ticks.
  */
-#define STAFF_EVENT_DELAY_CNST 6
+#define STAFF_EVENT_MUD_HOUR_TICKS (SECS_PER_MUD_HOUR * PASSES_PER_SEC)
+#define STAFF_EVENT_DELAY_MUD_HOURS 6
+#define STAFF_EVENT_DELAY_CNST (STAFF_EVENT_DELAY_MUD_HOURS * STAFF_EVENT_MUD_HOUR_TICKS)
 
 /*
  * Event data field indices for the staff_events_list array.

@@ -40,6 +40,9 @@ static game_event_type_id_t bleeding_event_type;
 static game_event_type_id_t hazard_event_type;
 static bool bleeding_clock_init(void);
 static bool hazard_clock_init(void);
+static void remove_hazard_exposure(struct raff_node *source,
+                                   struct tactical_hazard_exposure *previous,
+                                   struct tactical_hazard_exposure *exposure);
 static uint64_t next_hazard_source_identity = 1U;
 static size_t hazard_exposure_limit = HAZARD_EXPOSURE_DEFAULT_LIMIT;
 static uint64_t hazard_exposure_count;
@@ -104,15 +107,10 @@ bool tactical_effects_init(void)
 void tactical_effects_shutdown(void)
 {
   struct raff_node *raff;
-  struct tactical_hazard_exposure *exposure;
 
   for (raff = raff_list; raff != NULL; raff = raff->next)
-    for (exposure = raff->hazard_exposures; exposure != NULL; exposure = exposure->next)
-    {
-      if (!event_runtime_handle_is_none(exposure->event))
-        (void)event_runtime_cancel(exposure->event);
-      exposure->event = EVENT_RUNTIME_HANDLE_NONE;
-    }
+    while (raff->hazard_exposures != NULL)
+      remove_hazard_exposure(raff, NULL, raff->hazard_exposures);
   /* Character-periodic teardown pauses owners before the event types disappear. */
   defense_event_type = 0U;
   bleeding_event_type = 0U;
@@ -784,6 +782,28 @@ void tactical_room_hazard_source_created(struct raff_node *source)
   }
 }
 
+void tactical_room_hazards_rebuild(void)
+{
+  struct tactical_hazard_exposure *exposure;
+  struct raff_node *source;
+  struct char_data *subject;
+
+  for (source = raff_list; source != NULL; source = source->next)
+  {
+    while (source->hazard_exposures != NULL)
+      remove_hazard_exposure(source, NULL, source->hazard_exposures);
+    if (!billowing_source_active(source) || world == NULL || source->room == NOWHERE ||
+        source->room > top_of_world)
+      continue;
+    for (subject = world[source->room].people; subject != NULL; subject = subject->next_in_room)
+    {
+      exposure = hazard_exposure(source, subject, true);
+      if (exposure != NULL)
+        (void)schedule_hazard_exposure(source, exposure, subject, false);
+    }
+  }
+}
+
 void tactical_room_hazard_source_removed(struct raff_node *source)
 {
   while (source != NULL && source->hazard_exposures != NULL)
@@ -873,6 +893,35 @@ void tactical_room_hazards_leave_combat(struct char_data *subject)
     exposure = hazard_exposure(source, subject, false);
     if (exposure != NULL)
       (void)schedule_hazard_exposure(source, exposure, subject, true);
+  }
+}
+
+void tactical_room_hazards_forget(struct char_data *subject)
+{
+  struct domain_entity_handle identity;
+  struct tactical_hazard_exposure *exposure;
+  struct tactical_hazard_exposure *next;
+  struct tactical_hazard_exposure *previous;
+  struct raff_node *source;
+
+  if (subject == NULL)
+    return;
+  identity = domain_event_character_handle(subject);
+  if (!domain_entity_handle_is_valid(identity))
+    return;
+  for (source = raff_list; source != NULL; source = source->next)
+  {
+    previous = NULL;
+    for (exposure = source->hazard_exposures; exposure != NULL; exposure = next)
+    {
+      next = exposure->next;
+      if (domain_entity_handle_equal(exposure->subject, identity))
+      {
+        remove_hazard_exposure(source, previous, exposure);
+        continue;
+      }
+      previous = exposure;
+    }
   }
 }
 

@@ -9,6 +9,7 @@
 #include "domain_event_world.h"
 #include "character/abilities.h"
 #include "magic/spells.h"
+#include "wilderness/kdtree.h"
 #include "wilderness/wilderness.h"
 #include "wilderness/spatial_core.h"
 #include "wilderness/spatial_events.h"
@@ -71,7 +72,7 @@ static bool add_perception_candidate(struct perception_candidate *candidates, si
       candidates[index].intensity = MAX(candidates[index].intensity, intensity);
       return true;
     }
-  if (*count >= perception_limit || *count >= SPATIAL_EVENT_MAX_CANDIDATES)
+  if (*count >= perception_limit || *count >= SPATIAL_EVENT_MAX_PERCEPTIONS)
   {
     note_perception_rejection("candidate capacity");
     return false;
@@ -254,73 +255,115 @@ static float coordinate_channel_intensity(struct char_data *observer,
   return intensity;
 }
 
-static void collect_coordinate_perceptions(const struct domain_world_phenomenon *phenomenon,
-                                           struct perception_candidate *candidates,
-                                           size_t *candidate_count)
+static bool collect_coordinate_room(const struct domain_world_phenomenon *phenomenon,
+                                    room_rnum room, int max_range,
+                                    struct perception_candidate *candidates,
+                                    size_t *candidate_count, size_t *examined)
 {
   struct char_data *observer;
-  room_rnum room;
   uint32_t senses;
   float visual_intensity;
   float audio_intensity;
   float distance;
-  int max_range;
   int x;
   int y;
+
+  if (room == NOWHERE || room > top_of_world || !world[room].wilderness_coordinates_set)
+    return true;
+  x = world[room].coords[X_COORD];
+  y = world[room].coords[Y_COORD];
+  distance = hypotf((float)(x - phenomenon->source_x), (float)(y - phenomenon->source_y));
+  if (distance < (float)phenomenon->minimum_range || distance > (float)max_range)
+    return true;
+  for (observer = world[room].people; observer != NULL; observer = observer->next_in_room)
+  {
+    if (!IS_NPC(observer))
+      continue;
+    if (++(*examined) > SPATIAL_EVENT_MAX_CANDIDATES)
+    {
+      note_perception_rejection("examination capacity");
+      return false;
+    }
+    senses = 0U;
+    visual_intensity = 0.0f;
+    audio_intensity = 0.0f;
+    if ((phenomenon->channels & DOMAIN_WORLD_PHENOMENON_VISUAL) != 0U &&
+        distance <= (float)phenomenon->visual_range)
+    {
+      visual_intensity =
+          coordinate_channel_intensity(observer, phenomenon, DOMAIN_WORLD_PHENOMENON_VISUAL);
+      if (visual_intensity > 0.0f)
+        senses |= DOMAIN_WORLD_PHENOMENON_VISUAL;
+    }
+    if ((phenomenon->channels & DOMAIN_WORLD_PHENOMENON_AUDIBLE) != 0U &&
+        distance <= (float)phenomenon->audio_range)
+    {
+      audio_intensity =
+          coordinate_channel_intensity(observer, phenomenon, DOMAIN_WORLD_PHENOMENON_AUDIBLE);
+      if (audio_intensity > 0.0f)
+        senses |= DOMAIN_WORLD_PHENOMENON_AUDIBLE;
+    }
+    if (senses != 0U && !add_perception_candidate(candidates, candidate_count, observer, senses,
+                                                  (unsigned int)ceilf(distance),
+                                                  MAX(visual_intensity, audio_intensity)))
+      return false;
+  }
+  return true;
+}
+
+static void collect_coordinate_perceptions(const struct domain_world_phenomenon *phenomenon,
+                                           struct perception_candidate *candidates,
+                                           size_t *candidate_count)
+{
+  double location[2];
+  double indexed_position[2];
+  struct kdres *indexed_rooms;
+  room_rnum *indexed_room;
+  room_rnum room;
+  int max_range;
   size_t examined = 0U;
 
   max_range = MAX(phenomenon->visual_range, phenomenon->audio_range);
   max_range = MIN(MAX(0, max_range), SPATIAL_EVENT_MAX_COORDINATE_RANGE);
-  for (x = phenomenon->source_x - max_range; x <= phenomenon->source_x + max_range; x++)
-    for (y = phenomenon->source_y - max_range; y <= phenomenon->source_y + max_range; y++)
+  if (kd_wilderness_rooms != NULL)
+  {
+    location[X_COORD] = (double)phenomenon->source_x;
+    location[Y_COORD] = (double)phenomenon->source_y;
+    indexed_rooms = kd_nearest_range(kd_wilderness_rooms, location, (double)max_range + 0.01);
+    if (indexed_rooms == NULL)
     {
-      room = find_room_by_coordinates(x, y);
-      if (room == NOWHERE || room > top_of_world)
-        continue;
-      distance = hypotf((float)(x - phenomenon->source_x), (float)(y - phenomenon->source_y));
-      if (distance < (float)phenomenon->minimum_range || distance > (float)max_range)
-        continue;
-      for (observer = world[room].people; observer != NULL; observer = observer->next_in_room)
-      {
-        if (!IS_NPC(observer))
-          continue;
-        if (++examined > SPATIAL_EVENT_MAX_CANDIDATES)
-        {
-          note_perception_rejection("examination capacity");
-          return;
-        }
-        senses = 0U;
-        visual_intensity = 0.0f;
-        audio_intensity = 0.0f;
-        if ((phenomenon->channels & DOMAIN_WORLD_PHENOMENON_VISUAL) != 0U &&
-            distance <= (float)phenomenon->visual_range)
-        {
-          visual_intensity =
-              coordinate_channel_intensity(observer, phenomenon, DOMAIN_WORLD_PHENOMENON_VISUAL);
-          if (visual_intensity > 0.0f)
-            senses |= DOMAIN_WORLD_PHENOMENON_VISUAL;
-        }
-        if ((phenomenon->channels & DOMAIN_WORLD_PHENOMENON_AUDIBLE) != 0U &&
-            distance <= (float)phenomenon->audio_range)
-        {
-          audio_intensity =
-              coordinate_channel_intensity(observer, phenomenon, DOMAIN_WORLD_PHENOMENON_AUDIBLE);
-          if (audio_intensity > 0.0f)
-            senses |= DOMAIN_WORLD_PHENOMENON_AUDIBLE;
-        }
-        if (senses != 0U && !add_perception_candidate(candidates, candidate_count, observer, senses,
-                                                      (unsigned int)ceilf(distance),
-                                                      MAX(visual_intensity, audio_intensity)))
-          return;
-      }
+      note_perception_rejection("wilderness room index query");
+      return;
     }
+    while (!kd_res_end(indexed_rooms))
+    {
+      indexed_room = kd_res_item(indexed_rooms, indexed_position);
+      if (indexed_room != NULL && !collect_coordinate_room(phenomenon, *indexed_room, max_range,
+                                                           candidates, candidate_count, &examined))
+      {
+        kd_res_free(indexed_rooms);
+        return;
+      }
+      kd_res_next(indexed_rooms);
+    }
+    kd_res_free(indexed_rooms);
+  }
+
+  room = real_room(WILD_DYNAMIC_ROOM_VNUM_START);
+  for (;
+       room != NOWHERE && room <= top_of_world && GET_ROOM_VNUM(room) <= WILD_DYNAMIC_ROOM_VNUM_END;
+       room++)
+    if (ROOM_FLAGGED(room, ROOM_OCCUPIED) &&
+        !collect_coordinate_room(phenomenon, room, max_range, candidates, candidate_count,
+                                 &examined))
+      return;
 }
 
 static void handle_world_phenomenon(const struct domain_event_context *context,
                                     void *handler_context)
 {
   const struct domain_world_phenomenon *phenomenon = context->payload;
-  struct perception_candidate candidates[SPATIAL_EVENT_MAX_CANDIDATES] = {0};
+  struct perception_candidate candidates[SPATIAL_EVENT_MAX_PERCEPTIONS] = {0};
   size_t candidate_count = 0U;
 
   (void)handler_context;

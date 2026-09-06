@@ -582,6 +582,18 @@ static void get_cached_coordinates(int *x_coord, int *y_coord)
 /* EVENT STATE MANAGEMENT FUNCTIONS (M007) */
 /*****************************************************************************/
 
+static int staff_event_mud_hours_to_ticks(int hours)
+{
+  game_tick_t ticks;
+
+  if (hours <= 0)
+    return 0;
+  ticks = (game_tick_t)STAFF_EVENT_MUD_HOUR_TICKS -
+          (game_tick_t)pulse % (game_tick_t)STAFF_EVENT_MUD_HOUR_TICKS;
+  ticks += (game_tick_t)(hours - 1) * (game_tick_t)STAFF_EVENT_MUD_HOUR_TICKS;
+  return (int)MIN((game_tick_t)INT_MAX, ticks);
+}
+
 /*
  * State management functions to reduce tight coupling with global variables.
  * These functions provide a clean abstraction layer for event state operations,
@@ -626,7 +638,7 @@ int get_active_event(void)
  */
 int get_event_time_remaining(void)
 {
-  return staff_event_agenda_hours(false);
+  return staff_event_agenda_ticks(false);
 }
 
 /*
@@ -657,9 +669,9 @@ bool set_event_delay(int delay)
  */
 int get_event_delay(void)
 {
-  int remaining = staff_event_agenda_hours(true);
+  int remaining = staff_event_agenda_ticks(true);
 
-  return remaining > 0 ? remaining : staffevent_data.delay;
+  return remaining > 0 || staff_event_agenda_delay_scheduled() ? remaining : staffevent_data.delay;
 }
 
 /*
@@ -1142,7 +1154,7 @@ event_result_t start_staff_event(int event_num)
     return EVENT_ERROR_DELAY_ACTIVE;
   if (event_num == THE_PRISONER_EVENT && real_room(TP_PORTAL_L_ROOM) == NOWHERE)
     return EVENT_ERROR_PRECONDITION_FAILED;
-  if (!set_event_state(event_num, 1200))
+  if (!set_event_state(event_num, staff_event_mud_hours_to_ticks(1200)))
     return EVENT_ERROR_SCHEDULER;
   incarnation = staff_event_agenda_incarnation();
 
@@ -1294,7 +1306,7 @@ event_result_t end_staff_event(int event_num)
   if (!is_event_active() || get_active_event() != event_num)
     return EVENT_ERROR_NO_ACTIVE_EVENT;
   clear_event_state();
-  if (!set_event_delay(STAFF_EVENT_DELAY_CNST))
+  if (!set_event_delay(staff_event_mud_hours_to_ticks(STAFF_EVENT_DELAY_MUD_HOURS)))
   {
     /* Keep admission closed until staff can repair a failed cleanup deadline. */
     staffevent_data.delay = STAFF_EVENT_DELAY_CNST;
@@ -1487,12 +1499,12 @@ void staff_event_info(struct char_data *ch, const int event_num)
   /* Current Status */
   if (IS_STAFF_EVENT && STAFF_EVENT_NUM == event_num)
   {
-    if (get_event_time_remaining() <= 60) /* Less than 10 minutes */
+    if (get_event_time_remaining() <= 60 * STAFF_EVENT_MUD_HOUR_TICKS)
     {
       status_color = "\tR";
       status_text = "ENDING SOON";
     }
-    else if (get_event_time_remaining() <= 300) /* Less than 50 minutes */
+    else if (get_event_time_remaining() <= 300 * STAFF_EVENT_MUD_HOUR_TICKS)
     {
       status_color = "\tY";
       status_text = "ACTIVE";
@@ -1671,7 +1683,7 @@ void staff_event_info(struct char_data *ch, const int event_num)
                  time_color, hours, mins, secs);
 
     /* Progress bar */
-    int total_duration = 1200; /* Default event duration */
+    int total_duration = 1200 * STAFF_EVENT_MUD_HOUR_TICKS;
     int elapsed = total_duration - get_event_time_remaining();
     int progress = (elapsed * 50) / total_duration; /* 50 character bar */
     int i = 0;
@@ -2878,7 +2890,7 @@ static int test_event_state_management(void)
   TEST_ASSERT_EQUAL(0, get_event_time_remaining(), "Initial time remaining zero");
 
   /* Test 2: Set event state */
-  set_event_state(JACKALOPE_HUNT, 100);
+  failures += !set_event_state(JACKALOPE_HUNT, 100);
   TEST_ASSERT_EQUAL(1, is_event_active(), "Event state set to active");
   TEST_ASSERT_EQUAL(JACKALOPE_HUNT, get_active_event(), "Event number set correctly");
   TEST_ASSERT_EQUAL(100, get_event_time_remaining(), "Event time set correctly");
@@ -2889,7 +2901,7 @@ static int test_event_state_management(void)
   TEST_ASSERT_EQUAL(UNDEFINED_EVENT, get_active_event(), "Event number reset to undefined");
 
   /* Test 4: Event delay management */
-  set_event_delay(50);
+  failures += !set_event_delay(50);
   TEST_ASSERT_EQUAL(50, get_event_delay(), "Event delay set correctly");
 
   return failures;
