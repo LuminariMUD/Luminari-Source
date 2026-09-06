@@ -29,6 +29,9 @@ struct domain_event_bus *domain_event_runtime_bus(void);
 enum domain_event_status domain_event_runtime_character_moved(struct char_data *ch,
                                                               room_rnum from_room,
                                                               room_rnum to_room, int direction);
+enum domain_event_status domain_event_runtime_attack_committed(struct char_data *attacker,
+                                                               struct char_data *defender,
+                                                               int attack_kind);
 enum domain_event_status domain_event_runtime_character_damaged(struct char_data *target,
                                                                 struct char_data *source,
                                                                 int amount, int damage_type);

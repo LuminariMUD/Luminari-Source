@@ -14,7 +14,20 @@ enum luminari_domain_event_type
   DOMAIN_EVENT_DOOR_STATE_CHANGED = 0x1007,
   DOMAIN_EVENT_ACTIVITY_TRANSITIONED = 0x1008,
   DOMAIN_EVENT_WORLD_PHENOMENON = 0x1009,
-  DOMAIN_EVENT_CASTING_STARTED = 0x100a
+  DOMAIN_EVENT_CASTING_STARTED = 0x100a,
+  DOMAIN_EVENT_ATTACK_COMMITTED = 0x100b
+};
+
+/* One legal normal strike has committed, before its combat consequences.
+ * Misses and prevented strikes count; rejected commands do not. Consumers may
+ * queue reactions, never execute combat recursively inside this publication. */
+struct domain_attack_committed
+{
+  uint64_t attempt_id;
+  struct domain_entity_handle attacker;
+  struct domain_entity_handle defender;
+  struct domain_entity_handle origin_room;
+  int attack_kind;
 };
 
 enum domain_world_phenomenon_channel

@@ -16,6 +16,7 @@ enum domain_event_status domain_event_register_foundation_types(struct domain_ev
        sizeof(struct domain_activity_transitioned)},
       {DOMAIN_EVENT_WORLD_PHENOMENON, "WorldPhenomenon", sizeof(struct domain_world_phenomenon)},
       {DOMAIN_EVENT_CASTING_STARTED, "CastingStarted", sizeof(struct domain_casting_started)},
+      {DOMAIN_EVENT_ATTACK_COMMITTED, "AttackCommitted", sizeof(struct domain_attack_committed)},
   };
   size_t index;
 

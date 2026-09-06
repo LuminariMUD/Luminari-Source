@@ -107,10 +107,11 @@ and attacker remain valid and normal melee eligibility still holds. A miss,
 concealment failure, immunity or zero-damage result still counts as an attempt.
 A rejected peaceful-room/PvP/range check or lack of ammunition does not.
 
-Add one typed completed-attempt fact for this concrete consumer. Its payload
+Use one typed AttackCommitted fact for this concrete consumer. Its payload
 contains a monotonic attempt ID, attacker and intended defender generation
-handles, origin room, attack kind, and outcome (hit, miss, prevented, or aborted
-after commitment). Actor/target IDs are historical identity; a stale entity must
+handles, origin room and attack kind. It states that the attempt has committed;
+it does not predict whether the attack will hit. Actor/target IDs are historical
+identity; a stale entity must
 not be dereferenced. Delivery is scoped to the intended defender, not broadcast
 to all NPCs or descriptors. An attack remains observable if the defender dies;
 death or movement of the defended ally cancels future untriggered watches, but
@@ -119,7 +120,12 @@ must not erase a retaliation already bound to a live attacker.
 Place the authoritative commitment marker after legality and required ammunition
 checks and after pre-operation DG decisions, immediately before the attempt's
 combat consequences. Capture handles before invoking callbacks, re-resolve after
-callbacks, and publish exactly once as the attempt unwinds. Nested ripostes or
+callbacks, and publish exactly once before combat consequences. The subscriber
+only queues a reaction; it never attacks inside publication. This lets it bind
+the attacker before a lethal strike removes the ally, without retaining a dead
+ally subscription until an outcome notification. The initially proposed
+completed-attempt fact would need that extra death-deferral mechanism. No outcome
+fact is needed for this consumer. Nested ripostes or
 extra strikes have distinct attempt IDs. A delegated special-action command is
 not itself another ordinary attack: its actual strike path publishes its facts.
 Audit ranged and melee branches rather than putting publication around `hit()`

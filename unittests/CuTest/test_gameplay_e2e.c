@@ -3194,3 +3194,115 @@ void Test_gameplay_counterspell_does_not_delay_or_react_to_instant_cast(CuTest *
 {
   verify_counterspell_reaction(tc, 6);
 }
+
+
+struct committed_attack_trace
+{
+  unsigned int count;
+  struct domain_attack_committed last;
+  struct char_data *forget_attacker;
+};
+
+static void capture_committed_attack(const struct domain_event_context *context, void *data)
+{
+  struct committed_attack_trace *trace = data;
+
+  trace->count++;
+  trace->last = *(const struct domain_attack_committed *)context->payload;
+  if (trace->forget_attacker != NULL)
+    domain_event_world_forget_character(trace->forget_attacker);
+}
+
+static void verify_committed_attack_boundary(CuTest *tc, int scenario)
+{
+  struct gameplay_fixture f;
+  struct char_data *saved_characters = character_list;
+  struct domain_event_subscription_config config = {0};
+  struct domain_event_subscription_handle subscription;
+  struct committed_attack_trace trace = {0};
+  struct domain_entity_handle attacker;
+  struct domain_entity_handle defender;
+  int result;
+
+  begin_gameplay_fixture(&f);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  event_init();
+  GET_ATTACK_QUEUE(&f.actor) = create_attack_queue();
+  GET_ATTACK_QUEUE(&f.victim) = create_attack_queue();
+  f.actor.next = &f.victim;
+  character_list = &f.actor;
+  f.rooms[0].light = 1;
+  GET_HITROLL(&f.actor) = scenario == 0 ? -100 : 100;
+  GET_HIT(&f.victim) = GET_MAX_HIT(&f.victim) = 100000;
+  if (scenario == 2)
+    SET_BIT_AR(ROOM_FLAGS(0), ROOM_PEACEFUL);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  attacker = domain_event_character_handle(&f.actor);
+  defender = domain_event_character_handle(&f.victim);
+  config.type = DOMAIN_EVENT_ATTACK_COMMITTED;
+  config.topic = (struct domain_event_topic){DOMAIN_EVENT_TOPIC_SUBJECT, defender};
+  config.owner = defender;
+  config.identity = "test.attack.committed";
+  config.handler = capture_committed_attack;
+  config.handler_context = &trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &config, &subscription));
+  if (scenario == 4)
+    trace.forget_attacker = &f.actor;
+  circle_srandom(1234);
+  result = hit(&f.actor, &f.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0,
+               scenario == 3 ? ATTACK_TYPE_RANGED : ATTACK_TYPE_PRIMARY);
+  CuAssertIntEquals(tc, scenario == 2 || scenario == 3 ? 0 : 1, trace.count);
+  if (trace.count != 0U)
+  {
+    CuAssertTrue(tc, trace.last.attempt_id != 0U);
+    CuAssertTrue(tc, domain_entity_handle_equal(attacker, trace.last.attacker));
+    CuAssertTrue(tc, domain_entity_handle_equal(defender, trace.last.defender));
+    CuAssertTrue(tc,
+                 domain_entity_handle_equal(domain_event_room_handle(0), trace.last.origin_room));
+  }
+  if (scenario != 1)
+  {
+    CuAssertIntEquals(tc, 0, result);
+    CuAssertIntEquals(tc, 100000, GET_HIT(&f.victim));
+  }
+  else
+    CuAssertTrue(tc, result > 0 && GET_HIT(&f.victim) < 100000);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  if (f.actor.events != NULL)
+    free_list(f.actor.events);
+  if (f.victim.events != NULL)
+    free_list(f.victim.events);
+  free_attack_queue(GET_ATTACK_QUEUE(&f.actor));
+  free_attack_queue(GET_ATTACK_QUEUE(&f.victim));
+  GET_ATTACK_QUEUE(&f.actor) = GET_ATTACK_QUEUE(&f.victim) = NULL;
+  character_list = saved_characters;
+  end_gameplay_fixture(&f);
+}
+
+void Test_gameplay_committed_attack_includes_a_real_miss(CuTest *tc)
+{
+  verify_committed_attack_boundary(tc, 0);
+}
+
+void Test_gameplay_committed_attack_precedes_a_real_hit(CuTest *tc)
+{
+  verify_committed_attack_boundary(tc, 1);
+}
+
+void Test_gameplay_peaceful_rejection_does_not_commit_attack(CuTest *tc)
+{
+  verify_committed_attack_boundary(tc, 2);
+}
+
+void Test_gameplay_missing_projectile_does_not_commit_attack(CuTest *tc)
+{
+  verify_committed_attack_boundary(tc, 3);
+}
+
+void Test_gameplay_committed_attack_observer_retirement_aborts_borrowed_context(CuTest *tc)
+{
+  verify_committed_attack_boundary(tc, 4);
+}

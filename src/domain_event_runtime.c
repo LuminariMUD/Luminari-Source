@@ -297,6 +297,28 @@ enum domain_event_status domain_event_runtime_character_moved(struct char_data *
                                      &event);
 }
 
+enum domain_event_status domain_event_runtime_attack_committed(struct char_data *attacker,
+                                                               struct char_data *defender,
+                                                               int attack_kind)
+{
+  static uint64_t next_attempt_id;
+  struct domain_attack_committed event = {0};
+  struct domain_event_topic topic;
+
+  if (runtime_bus == NULL || attacker == NULL || defender == NULL)
+    return DOMAIN_EVENT_NOT_FOUND;
+  if (next_attempt_id == UINT64_MAX)
+    return DOMAIN_EVENT_INVALID_ARGUMENT;
+  event.attempt_id = ++next_attempt_id;
+  event.attacker = domain_event_character_handle(attacker);
+  event.defender = domain_event_character_handle(defender);
+  event.origin_room = domain_event_room_handle(IN_ROOM(attacker));
+  event.attack_kind = attack_kind;
+  topic = (struct domain_event_topic){DOMAIN_EVENT_TOPIC_SUBJECT, event.defender};
+  return DOMAIN_EVENT_PUBLISH_ROUTED(runtime_bus, DOMAIN_EVENT_ATTACK_COMMITTED, &topic, 1U,
+                                     &event);
+}
+
 enum domain_event_status domain_event_runtime_character_damaged(struct char_data *target,
                                                                 struct char_data *source,
                                                                 int amount, int damage_type)

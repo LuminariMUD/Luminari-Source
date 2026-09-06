@@ -593,3 +593,40 @@ player path. No server was restarted.
 the remaining competition, equal-deadline, admission-failure, extraction and
 encounter-transition acceptance cases. The broader assigned-batch scope and
 performance/release gates are unchanged.
+
+## Committed attack boundary checkpoint (2026-09-06)
+
+The normal `resolve_hit` path now publishes typed AttackCommitted after its
+pre-operation legality checks and DG fight trigger, before combat consequences.
+The payload records a monotonic attempt ID, generation handles for attacker and
+defender, origin room and attack kind. Routing uses the defender subject, allowing
+the planned protector subscription to remain local to one designated ally.
+Queued special-action dispatch returns before this marker; normal nested strikes
+receive their own attempt identities. Hit/miss is not inferred from HIT_MISS,
+which also represents rejected commands.
+
+This revises the initial completed-attempt design: the queued protector must bind
+the attacker before a lethal strike removes the ally. Publishing the commitment
+before consequences achieves that without delaying dead-ally subscription cleanup
+until an outcome fact. Subscribers queue reactions; they do not attack inside
+publication. The reaction still executes after the triggering strike returns.
+
+The new callback boundary captures generation handles before the DG trigger and
+revalidates participants, rooms, weapon identity/selection and projectile holder
+before proceeding. It also revalidates after AttackCommitted observers. An
+observer retiring the attacker therefore cannot leave this path using the old
+borrowed character pointer. This is bounded validation of the new entry boundary,
+not a claim that every older combat callback has been audited.
+
+Validation: `make -j10 test` passed with 1,181 gameplay tests and no compiler
+warnings; `make install` succeeded. Five production-linked cases exercise a real
+miss, real hit, peaceful-room rejection, absent launcher/ammunition, and retirement
+by the publication observer. Foundation registry checks also verify the new
+event's name and payload size. Initial fixture failures were resolved: the type
+registry now contains eleven foundation types, and direct-hit fixtures initialize
+the production-required attack queues.
+
+Next: subscribe designated-ally readiness to AttackCommitted, switch its watched
+target from ally to attacker when claimed, preserve one reserved strike, and
+complete DG/ranged/nested-strike and lifecycle acceptance coverage. #106 and the
+full assigned batch remain open.
