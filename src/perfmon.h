@@ -160,8 +160,7 @@ size_t PERF_get_event_profiles(struct PERF_event_profile_snapshot *snapshots,
 /**
  * @brief Record one completed event callback invocation
  */
-void PERF_note_event_callback(int profile_index, uint64_t elapsed_usec,
-                              uint64_t lateness_ticks);
+void PERF_note_event_callback(int profile_index, uint64_t elapsed_usec, uint64_t lateness_ticks);
 
 /** Record a successfully admitted event and its requested delay in pulses. */
 void PERF_note_event_scheduled(int profile_index, uint64_t delay_pulses);

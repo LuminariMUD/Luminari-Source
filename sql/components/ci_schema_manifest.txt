@@ -12,11 +12,17 @@ apply fix_help_entries_production.sql
 skip fix_narrative_weaver_schema_inconsistencies.sql
 apply help_arcane_mark_entries.sql
 apply help_bardic_instrument_entries.sql
+apply help_billowing_cloud_exposure.sql
+apply help_bleeding_critical_clock.sql
+apply help_buff_sequence_entry.sql
 apply help_character_backgrounds.sql
 apply help_command_sweep_entries.sql
+apply help_counterspell_readiness.sql
+apply help_defensive_casting_clock.sql
 apply help_dg_damage_trigger.sql
 skip help_gdb_binary_path.sql
 apply help_intermud3_entries.sql
+apply help_nature_survival_entries.sql
 apply help_necromancer_entries.sql
 apply help_oedit_values_armor_ac.sql
 apply help_rol_feat_entries.sql
@@ -27,6 +33,7 @@ apply help_race_myconid_entries.sql
 apply help_race_wemic_entries.sql
 apply help_race_yuan_ti_entries.sql
 apply help_semantic_combat_entries.sql
+apply help_staff_event_agenda_entry.sql
 apply help_trelux_equipment_entries.sql
 apply help_specproc_entries.sql
 apply help_sync_schema.sql

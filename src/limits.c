@@ -2577,7 +2577,6 @@ void point_update_global_one(void)
     game_info("Happy hour has ended!");
     set_db_happy_hour(2);
   }
-
 }
 
 void point_update_character_one(struct char_data *ch)

@@ -1591,8 +1591,7 @@ void PERF_note_event_callback(int profile_index, uint64_t elapsed_usec, uint64_t
   if (lateness_ticks > profile->lateness_maximum_ticks)
     profile->lateness_maximum_ticks = lateness_ticks;
   profile->lateness_samples[profile->lateness_sample_index] = lateness_ticks;
-  profile->lateness_sample_index =
-      (profile->lateness_sample_index + 1U) % EVENT_SAMPLE_CAPACITY;
+  profile->lateness_sample_index = (profile->lateness_sample_index + 1U) % EVENT_SAMPLE_CAPACITY;
   if (profile->lateness_sample_count < EVENT_SAMPLE_CAPACITY)
     profile->lateness_sample_count++;
   profile->lateness_samples_seen = saturating_add_u64(profile->lateness_samples_seen, 1);
@@ -3206,9 +3205,9 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
         snprintf(buf + written, n - written,
                  "  cumulative deadline lateness ticks: p50=%.2f p95=%.2f p99=%.2f max=%" PRIu64
                  " samples=%zu/%" PRIu64 " late=%" PRIu64 "\n\r",
-                 lateness_median, lateness_p95, lateness_p99,
-                 profile->lateness_maximum_ticks, profile->lateness_sample_count,
-                 profile->lateness_samples_seen, profile->late_callbacks),
+                 lateness_median, lateness_p95, lateness_p99, profile->lateness_maximum_ticks,
+                 profile->lateness_sample_count, profile->lateness_samples_seen,
+                 profile->late_callbacks),
         n - written);
   }
 
@@ -3241,9 +3240,9 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
         snprintf(buf + written, n - written,
                  "  cumulative deadline lateness ticks: p50=%.2f p95=%.2f p99=%.2f max=%" PRIu64
                  " samples=%zu/%" PRIu64 " late=%" PRIu64 "\n\r",
-                 lateness_median, lateness_p95, lateness_p99,
-                 profile->lateness_maximum_ticks, profile->lateness_sample_count,
-                 profile->lateness_samples_seen, profile->late_callbacks),
+                 lateness_median, lateness_p95, lateness_p99, profile->lateness_maximum_ticks,
+                 profile->lateness_sample_count, profile->lateness_samples_seen,
+                 profile->late_callbacks),
         n - written);
   }
 
@@ -3353,8 +3352,8 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
     written += bounded_format_length(
         snprintf(buf + written, n - written,
                  "%s,%" PRIu64 ",%" PRIu64 ",%.2f,%.2f,%.2f,%.2f,%" PRIu64 ",%zu,%" PRIu64
-                 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64
-                 ",%.2f,%.2f,%.2f,%" PRIu64 ",%zu,%" PRIu64 "\n\r",
+                 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%.2f,%.2f,%.2f,%" PRIu64
+                 ",%zu,%" PRIu64 "\n\r",
                  profile->identity, profile->total_calls, profile->total_usec, average, median, p95,
                  p99, profile->total_max_usec, profile->sample_count, profile->samples_seen,
                  profile->total_scheduled, profile->total_cancelled, profile->total_rescheduled,

@@ -122,8 +122,8 @@ static struct game_event_result run_response(const struct game_event_context *co
   direction = source_room != NULL
                   ? adjacent_direction(IN_ROOM(observer), (room_rnum)(source_room - world))
                   : -1;
-  if (direction >= 0 && MOB_FLAGGED(observer, MOB_LISTEN) &&
-      !MOB_FLAGGED(observer, MOB_SENTINEL) && CAN_GO(observer, direction))
+  if (direction >= 0 && MOB_FLAGGED(observer, MOB_LISTEN) && !MOB_FLAGGED(observer, MOB_SENTINEL) &&
+      CAN_GO(observer, direction))
     (void)perform_move(observer, direction, TRUE);
   observer = domain_event_world_resolve_character(payload->perceived.observer);
   if (observer == NULL || observer->phenomenon_interest_event.id != context->event_id)
@@ -170,8 +170,7 @@ static void handle_perceived(const struct domain_event_context *context, void *h
   owner.runtime_id = perceived->observer.runtime_id;
   owner.generation = perceived->observer.generation;
   if (event_runtime_schedule_owned_after(response_event_type, owner, 1U, payload,
-                                         &observer->phenomenon_interest_event) !=
-      GAME_SCHEDULER_OK)
+                                         &observer->phenomenon_interest_event) != GAME_SCHEDULER_OK)
   {
     free(payload);
     note_admission_rejection();

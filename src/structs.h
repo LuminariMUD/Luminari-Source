@@ -6136,7 +6136,7 @@ struct room_data
   size_t affected_count;                             /**< Room-affect nodes owned by this room. */
   bool affected_registered;                          /**< Runtime affected-room registry state. */
 
-  struct moving_room_data *mover; /*  if it's a moving room       */
+  struct moving_room_data *mover;                /*  if it's a moving room       */
   struct event_runtime_handle moving_room_event; /* Live-room deadline, never editor-owned. */
 
   int harvest_material;
@@ -7027,12 +7027,12 @@ struct player_special_data
   byte has_eldritch_knight_spell_critical;
   struct transport_job *transport_job; /* Runtime-owned arrival, never serialized. */
   int destination;                     /* Stable destination vnum for carriage and sailing. */
-  int travel_timer;           // used for carriage and sailing systems
-  int travel_type;            // used for carriage and sailing systems
-  int travel_locale;          // used for carriage and sailing systems
-  int bane_race;              // used in applyoil command to create a proper bane weapon
-  int bane_subrace;           // used in applyoil command to create a proper bane weapon
-  int augment_psp;            // used when augmenting psionic powers
+  int travel_timer;                    // used for carriage and sailing systems
+  int travel_type;                     // used for carriage and sailing systems
+  int travel_locale;                   // used for carriage and sailing systems
+  int bane_race;                       // used in applyoil command to create a proper bane weapon
+  int bane_subrace;                    // used in applyoil command to create a proper bane weapon
+  int augment_psp;                     // used when augmenting psionic powers
   int temp_attack_roll_bonus; // used when needing to add to an attack roll from outside, and before calling the attack_roll function
   int dam_co_holder_ndice;    // a holder for number of damage dice for psionic_concussive_onslaught
   int dam_co_holder_sdice;    // a holder for size of damage dice for psionic_concussive_onslaught
@@ -7364,8 +7364,8 @@ message to dest room when docking~
 struct moving_room_data
 { /*  all room num are VNUM  */
   /*  current state  */
-  int resetZonePulse;      /* zone pulses per reset         */
-  int currentInbound;      /* current conn room (array idx) */
+  int resetZonePulse; /* zone pulses per reset         */
+  int currentInbound; /* current conn room (array idx) */
 
   /*  constants  */
   room_num destination; /* the target room               */
@@ -7383,7 +7383,6 @@ struct moving_room_data
   char *msg_dest_docking;
 
   struct room_direction_data *dir_option[NUM_OF_DIRS]; /* Directions */
-
 };
 
 struct oldNextMove
@@ -7398,18 +7397,18 @@ struct oldNextMove
 /** Master structure for PCs and NPCs. */
 struct char_data
 {
-  int pfilepos;                       /**< PC playerfile pos and id number */
-  mob_rnum nr;                        /**< NPC real instance number */
-  int coords[2];                      /**< Current coordinate location, used in wilderness. */
-  room_rnum in_room;                  /**< Current location (real room number) */
-  room_rnum was_in_room;              /**< Previous location for linkdead people  */
+  int pfilepos;          /**< PC playerfile pos and id number */
+  mob_rnum nr;           /**< NPC real instance number */
+  int coords[2];         /**< Current coordinate location, used in wilderness. */
+  room_rnum in_room;     /**< Current location (real room number) */
+  room_rnum was_in_room; /**< Previous location for linkdead people  */
   struct domain_entity_handle domain_previous_room; /**< Stable detached origin. */
-  uint64_t event_owner_generation;    /**< Runtime character incarnation. */
-  uint64_t domain_event_generation;   /**< Typed-event character incarnation. */
-  uint64_t periodic_event_generation; /**< Periodic-owner incarnation. */
-  int wait;                           /**< Remaining 100 ms action-delay ticks. */
-  uint64_t wait_last_tick;            /**< Last monotonic runtime tick applied to wait. */
-  bool wait_tick_initialized;         /**< Whether wait_last_tick has a valid baseline. */
+  uint64_t event_owner_generation;                  /**< Runtime character incarnation. */
+  uint64_t domain_event_generation;                 /**< Typed-event character incarnation. */
+  uint64_t periodic_event_generation;               /**< Periodic-owner incarnation. */
+  int wait;                                         /**< Remaining 100 ms action-delay ticks. */
+  uint64_t wait_last_tick;    /**< Last monotonic runtime tick applied to wait. */
+  bool wait_tick_initialized; /**< Whether wait_last_tick has a valid baseline. */
 
   struct char_player_data player;              /**< General PC/NPC data */
   struct char_ability_data real_abils;         /**< Abilities without modifiers */
@@ -7455,7 +7454,7 @@ struct char_data
   uint64_t defensive_casting_due;
   uint64_t defensive_casting_turn;
   uint64_t combat_turn_serial; /**< Semantic turns begun in this character incarnation. */
-  struct combat_encounter_data *combat_encounter;        /**< Runtime fight-session owner. */
+  struct combat_encounter_data *combat_encounter; /**< Runtime fight-session owner. */
   struct combat_encounter_participant *combat_encounter_participant; /**< Membership node. */
   struct obj_data *equipment[NUM_WEARS]; /**< Equipment array            */
 
