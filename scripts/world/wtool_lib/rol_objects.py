@@ -312,6 +312,8 @@ _TARGET_MAX_LIQUID = 22
 
 
 SOURCE_ITEM_TYPE_INSTRUMENT = 32
+SOURCE_ITEM_TYPE_SHIP = 28
+SOURCE_EXTRA_LIT = 18
 
 
 TARGET_ITEM_INSTRUMENT = 38
@@ -1594,6 +1596,9 @@ def emit_object(
   extra_mask = source_flags[1] if len(source_flags) > 1 else 0
   wear_mask = source_flags[2] if len(source_flags) > 2 else 0
   source_extra = _source_mask_bits(extra_mask, 0)
+  if source_type == SOURCE_ITEM_TYPE_SHIP:
+    # The source read_object() force-lights ships even without an authored flag.
+    source_extra.add(SOURCE_EXTRA_LIT)
   source_wear = _source_mask_bits(wear_mask, 0)
   target_extra = _mapped_bits(source_extra, OBJECT_EXTRA_MAP) | set(required_extra_bits)
   target_wear = _mapped_bits(source_wear, OBJECT_WEAR_MAP)

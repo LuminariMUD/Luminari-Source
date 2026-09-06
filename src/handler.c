@@ -1833,22 +1833,8 @@ void check_room_lighting(room_rnum room, struct char_data *ch, bool enter)
       if (GET_OBJ_VAL(GET_EQ(ch, WEAR_LIGHT), 2)) /* Light ON */
         value++;
 
-  /* check for 'magic lights' on worn gear */
-  for (i = 0; i < NUM_WEARS; i++)
-  {
-    obj = GET_EQ(ch, i);
-    if (obj)
-      if (OBJ_FLAGGED(obj, ITEM_MAGLIGHT))
-        value++;
-  }
-  /* check for 'magic lights' in inventory */
-  for (obj = ch->carrying; obj; obj = next_obj)
-  {
-    next_obj = obj->next_content;
-    if (obj)
-      if (OBJ_FLAGGED(obj, ITEM_MAGLIGHT))
-        value++;
-  }
+  /* room_is_dark() reads ITEM_MAGLIGHT from current object locations. Counting
+   * those flags only on character movement leaves stale light after transfers. */
 
   /* check for 'glowing' on worn gear */
   for (i = 0; i < NUM_WEARS; i++)

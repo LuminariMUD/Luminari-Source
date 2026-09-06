@@ -807,6 +807,32 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("@RRed@n\nplain", text)
     self.assertEqual([], diagnostics)
 
+  def test_ships_receive_loader_forced_magical_light_without_changing_other_boats(self) -> None:
+    magic_light = next(
+        row["index"] for row in self.manifest["tables"]["obj-extra"]["entries"]
+        if row["macro"] == "ITEM_MAGLIGHT"
+    )
+    for source_type, extra_flags, lit in ((28, 0, True), (28, 1 << 18, True), (22, 0, False)):
+      with self.subTest(source_type=source_type, extra_flags=extra_flags):
+        source = self._source_record(
+            "obj",
+            (
+                "#100\nboat ship~\na boat~\nA boat floats here.~\n~\n"
+                f"{source_type} {extra_flags | (1 << 8)} 1\n0 0 0 0\n1 10 1\n"
+            ).encode("ascii"),
+        )
+        emitted = emit_object(source, 2_000_100, _resolver)
+        parsed = parse_object_file(
+            self._target_path("obj", emitted.text), "obj/20001.obj", self.manifest, set()
+        )
+        self.assertTrue(parsed.complete)
+        boat = parsed.records[0]
+        self.assertEqual(22, boat.item_type)
+        flags = decode_tokens(boat.extra_flags).bits
+        self.assertEqual(lit, magic_light in flags)
+        self.assertIn(8, flags)
+        self.assertEqual(extra_flags | (1 << 8), source.values["flags"][1])
+
   def test_source_foreground_background_and_blink_use_target_palette(self) -> None:
     cases = {
         "&+Lblack&+lblack&N": "@Dblack@dblack@n",

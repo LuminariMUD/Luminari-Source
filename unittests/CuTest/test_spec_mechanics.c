@@ -2426,6 +2426,71 @@ void Test_spec_rol_utility_magius_staff_toggles_light(CuTest *tc)
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_ship_light_follows_object_and_character_movement(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+
+  spec_mechanics_begin(&fixture);
+  fixture.rooms[0].sector_type = SECT_FIELD;
+  fixture.rooms[1].sector_type = SECT_FIELD;
+  SET_BIT_AR(ROOM_FLAGS(0), ROOM_DARK);
+  SET_BIT_AR(ROOM_FLAGS(1), ROOM_DARK);
+  GET_OBJ_TYPE(&fixture.worn) = ITEM_BOAT;
+  SET_BIT_AR(GET_OBJ_EXTRA(&fixture.worn), ITEM_MAGLIGHT);
+
+  CuAssertTrue(tc, room_is_dark(0));
+  obj_to_room(&fixture.worn, 0);
+  CuAssertTrue(tc, !room_is_dark(0));
+  SET_BIT_AR(ROOM_FLAGS(0), ROOM_MAGICDARK);
+  CuAssertTrue(tc, room_is_dark(0));
+  REMOVE_BIT_AR(ROOM_FLAGS(0), ROOM_MAGICDARK);
+
+  obj_from_room(&fixture.worn);
+  CuAssertTrue(tc, room_is_dark(0));
+  obj_to_char(&fixture.worn, &fixture.actor);
+  CuAssertTrue(tc, !room_is_dark(0));
+  char_from_room(&fixture.actor);
+  char_to_room(&fixture.actor, 1);
+  CuAssertTrue(tc, room_is_dark(0));
+  CuAssertTrue(tc, !room_is_dark(1));
+
+  obj_from_char(&fixture.worn);
+  CuAssertTrue(tc, room_is_dark(1));
+  obj_to_room(&fixture.worn, 1);
+  CuAssertTrue(tc, !room_is_dark(1));
+  char_from_room(&fixture.actor);
+  char_to_room(&fixture.actor, 0);
+  CuAssertTrue(tc, room_is_dark(0));
+  CuAssertTrue(tc, !room_is_dark(1));
+
+  obj_from_room(&fixture.worn);
+  CuAssertTrue(tc, room_is_dark(1));
+  obj_to_room(&fixture.worn, 0);
+  CuAssertTrue(tc, !room_is_dark(0));
+  REMOVE_BIT_AR(GET_OBJ_EXTRA(&fixture.worn), ITEM_MAGLIGHT);
+  CuAssertTrue(tc, room_is_dark(0));
+  fixture.rooms[0].light = 1;
+  CuAssertTrue(tc, !room_is_dark(0));
+  fixture.rooms[0].light = 0;
+  obj_from_room(&fixture.worn);
+
+  SET_BIT_AR(GET_OBJ_EXTRA(&fixture.worn), ITEM_MAGLIGHT);
+  GET_OBJ_TYPE(&fixture.copy) = ITEM_CONTAINER;
+  obj_to_room(&fixture.copy, 0);
+  obj_to_obj(&fixture.worn, &fixture.copy);
+  CuAssertTrue(tc, room_is_dark(0));
+  obj_from_obj(&fixture.worn);
+  obj_from_room(&fixture.copy);
+
+  GET_OBJ_TYPE(&fixture.worn) = ITEM_WORN;
+  spec_mechanics_wear(&fixture, &fixture.worn);
+  CuAssertTrue(tc, !room_is_dark(0));
+  GET_EQ(&fixture.actor, WEAR_FEET) = NULL;
+  fixture.worn.worn_by = NULL;
+  CuAssertTrue(tc, room_is_dark(0));
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_lavatubes_automaton_preserves_exit_pair_cycle(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;
