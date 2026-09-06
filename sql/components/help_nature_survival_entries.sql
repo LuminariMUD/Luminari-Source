@@ -31,17 +31,17 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('CAMP', 'CAMP');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('CAMP', 'ESTABLISH-CAMP');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated) VALUES ('ENCOUNTERS', 'Usage: encounters (depart|escape|distract|intimidate|diplomacy|bluff|bribe)
- 
-The encounters system allows for random encounters as one travels through the wilderness (ascii 
+
+The encounters system allows for random encounters as one travels through the wilderness (ascii
 worldmap) of Lumia.
- 
+
 Currently we only have combat-oriented encounters, but have plans to add non-combat encounters such
 as vendors, skill-tests, treasure and more.
- 
+
 Combat encounters will be loaded based on party level and terrain type of the room entered. Some
-encounters will be hostile, while others you can ignore altogether if you choose (just use the 
+encounters will be hostile, while others you can ignore altogether if you choose (just use the
 ''encounter depart'' command).
- 
+
 When an encounter has been found, the player''s options are as follows:
 depart     - leave a non-hostile encounter peacefully
 escape     - leave a hostile encounter through various means (HELP ESCAPE)
@@ -50,7 +50,7 @@ intimidate - make a sentient hostile mob non-hostile using intimidate skill
 diplomacy  - make a sentient hostile mob non-hostile using diplomacy skill
 bluff      - make a sentient hostile mob non-hostile using bluff skill
 bribe      - make a sentient hostile mob non-hostile by giving them gold
- 
+
 And of course the party can opt to kill the encounter mobs as well.
 
 Characters with the nature skill can increase or reduce the chance for finding an encounter
@@ -66,16 +66,16 @@ INSERT INTO help_entries (tag, entry, min_level, auto_generated) VALUES ('BLOODL
 fey blood or magic. You are more emotional than most, prone to bouts of joy and rage.
 The fey bloodline offers a great knowledge of nature as well as enhanced abilities in
 traversing or dealing with nature.  It also offers abilities using fey magic.
- 
+
 NEW CLASS SKILL: Nature
 
 BONUS SPELLS: charm person (3rd), hideous laughter (5th), deep slumber (7th),
 poison (9th), feeblemind (11th), true seeing (13th), prismatic spray (15th),
 irresistible dance (17th), polymorph (19th).
- 
+
 CLASS FEATS: dodge, improved initiative, lightning reflexes, mobility, point blank shot,
 precise shot, quicken spell, skill focus
- 
+
 The fey bloodline also gives the following bonus abilities:
 +2 to dcs of enchantment spells at sorcerer level 1. (HELP FEY ARCANA)
 Can cause debilitating laughter in a foe at sorcerer level 1. (HELP LAUGHING TOUCH)
@@ -84,7 +84,7 @@ Can go invisible 3 times per day at sorcerer level 9. (HELP FLEETING GLANCE)
 Can roll twice to overcome spell resistence at sorcerer level 15. (HELP FEY MAGIC)
 Gain immunity to poison, +3 damage reduction, animals won''t aggro you
 and can cast shadow walk once per day at sorcerer level 20. (HELP SOUL OF THE FEY)
- 
+
 See Also: SORCERER', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level), auto_generated = VALUES(auto_generated);
 
