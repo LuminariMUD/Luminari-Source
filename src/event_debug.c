@@ -512,6 +512,15 @@ size_t event_debug_render_profiles(char *buffer, size_t capacity, int width, siz
     debug_output_line(&output, "  calls: %" PRIu64, snapshots[index].calls);
     debug_output_line(&output, "  total usec: %" PRIu64, snapshots[index].total_usec);
     debug_output_line(&output, "  max usec: %" PRIu64, snapshots[index].maximum_usec);
+    debug_output_line(&output,
+                      "  lateness ticks p50/p95/p99/max: %" PRIu64 "/%" PRIu64 "/%" PRIu64
+                      "/%" PRIu64,
+                      snapshots[index].lateness_p50_ticks, snapshots[index].lateness_p95_ticks,
+                      snapshots[index].lateness_p99_ticks,
+                      snapshots[index].lateness_maximum_ticks);
+    debug_output_line(&output, "  lateness samples/seen/late: %zu/%" PRIu64 "/%" PRIu64,
+                      snapshots[index].lateness_samples,
+                      snapshots[index].lateness_samples_seen, snapshots[index].late_callbacks);
     debug_output_line(&output, "  scheduled: %" PRIu64, snapshots[index].scheduled);
     debug_output_line(&output, "  cancelled: %" PRIu64, snapshots[index].cancelled);
     debug_output_line(&output, "  recurrences: %" PRIu64, snapshots[index].rescheduled);

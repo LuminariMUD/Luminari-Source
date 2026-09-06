@@ -149,6 +149,12 @@ struct perf_event_callback
   size_t sample_index;
   size_t sample_count;
   uint64_t samples_seen;
+  uint64_t late_callbacks;
+  uint64_t lateness_maximum_ticks;
+  uint64_t lateness_samples[EVENT_SAMPLE_CAPACITY];
+  size_t lateness_sample_index;
+  size_t lateness_sample_count;
+  uint64_t lateness_samples_seen;
 };
 
 struct perf_event_process_stats
@@ -842,6 +848,11 @@ static void reset_event_callback_total_stats(void)
     event_profiles[i].sample_index = 0;
     event_profiles[i].sample_count = 0;
     event_profiles[i].samples_seen = 0;
+    event_profiles[i].late_callbacks = 0;
+    event_profiles[i].lateness_maximum_ticks = 0;
+    event_profiles[i].lateness_sample_index = 0;
+    event_profiles[i].lateness_sample_count = 0;
+    event_profiles[i].lateness_samples_seen = 0;
   }
   event_profile_overflow.total_scheduled = 0;
   event_profile_overflow.total_cancelled = 0;
@@ -852,6 +863,11 @@ static void reset_event_callback_total_stats(void)
   event_profile_overflow.sample_index = 0;
   event_profile_overflow.sample_count = 0;
   event_profile_overflow.samples_seen = 0;
+  event_profile_overflow.late_callbacks = 0;
+  event_profile_overflow.lateness_maximum_ticks = 0;
+  event_profile_overflow.lateness_sample_index = 0;
+  event_profile_overflow.lateness_sample_count = 0;
+  event_profile_overflow.lateness_samples_seen = 0;
 }
 
 static void update_event_process_stats(struct perf_event_process_stats *stats,
@@ -1451,6 +1467,9 @@ size_t PERF_get_event_profiles(struct PERF_event_profile_snapshot *snapshots,
   size_t copied;
   size_t index;
   size_t position;
+  double median;
+  double p95;
+  double p99;
 
   ensure_initialized();
   if (snapshots == NULL || snapshot_capacity == 0)
@@ -1467,6 +1486,15 @@ size_t PERF_get_event_profiles(struct PERF_event_profile_snapshot *snapshots,
     candidate.scheduled = event_profiles[index].total_scheduled;
     candidate.cancelled = event_profiles[index].total_cancelled;
     candidate.rescheduled = event_profiles[index].total_rescheduled;
+    candidate.late_callbacks = event_profiles[index].late_callbacks;
+    candidate.lateness_samples = event_profiles[index].lateness_sample_count;
+    candidate.lateness_samples_seen = event_profiles[index].lateness_samples_seen;
+    candidate.lateness_maximum_ticks = event_profiles[index].lateness_maximum_ticks;
+    calculate_percentile_set(event_profiles[index].lateness_samples,
+                             event_profiles[index].lateness_sample_count, &median, &p95, &p99);
+    candidate.lateness_p50_ticks = (uint64_t)(median + 0.5);
+    candidate.lateness_p95_ticks = (uint64_t)(p95 + 0.5);
+    candidate.lateness_p99_ticks = (uint64_t)(p99 + 0.5);
 
     position = copied;
     while (position > 0 && event_profile_snapshot_before(&candidate, &snapshots[position - 1]))
@@ -1539,7 +1567,7 @@ void PERF_note_event_rescheduled(int profile_index, uint64_t delay_pulses)
   note_event_delay(&total_event_lifecycle_stats, delay_pulses);
 }
 
-void PERF_note_event_callback(int profile_index, uint64_t elapsed_usec)
+void PERF_note_event_callback(int profile_index, uint64_t elapsed_usec, uint64_t lateness_ticks)
 {
   struct perf_event_callback *profile;
 
@@ -1558,6 +1586,16 @@ void PERF_note_event_callback(int profile_index, uint64_t elapsed_usec)
   if (profile->sample_count < EVENT_SAMPLE_CAPACITY)
     profile->sample_count++;
   profile->samples_seen = saturating_add_u64(profile->samples_seen, 1);
+  if (lateness_ticks > 0U)
+    profile->late_callbacks = saturating_add_u64(profile->late_callbacks, 1);
+  if (lateness_ticks > profile->lateness_maximum_ticks)
+    profile->lateness_maximum_ticks = lateness_ticks;
+  profile->lateness_samples[profile->lateness_sample_index] = lateness_ticks;
+  profile->lateness_sample_index =
+      (profile->lateness_sample_index + 1U) % EVENT_SAMPLE_CAPACITY;
+  if (profile->lateness_sample_count < EVENT_SAMPLE_CAPACITY)
+    profile->lateness_sample_count++;
+  profile->lateness_samples_seen = saturating_add_u64(profile->lateness_samples_seen, 1);
 }
 
 void PERF_note_event_process(uint64_t depth_before, uint64_t depth_after,
@@ -3053,6 +3091,9 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
   double median;
   double p95;
   double p99;
+  double lateness_median;
+  double lateness_p95;
+  double lateness_p99;
 
   if (buf == NULL || n == 0)
     return 0;
@@ -3159,6 +3200,16 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
                    profile->pulse_rescheduled),
           n - written);
     }
+    calculate_percentile_set(profile->lateness_samples, profile->lateness_sample_count,
+                             &lateness_median, &lateness_p95, &lateness_p99);
+    written += bounded_format_length(
+        snprintf(buf + written, n - written,
+                 "  cumulative deadline lateness ticks: p50=%.2f p95=%.2f p99=%.2f max=%" PRIu64
+                 " samples=%zu/%" PRIu64 " late=%" PRIu64 "\n\r",
+                 lateness_median, lateness_p95, lateness_p99,
+                 profile->lateness_maximum_ticks, profile->lateness_sample_count,
+                 profile->lateness_samples_seen, profile->late_callbacks),
+        n - written);
   }
 
   profile = &event_profile_overflow;
@@ -3184,6 +3235,16 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
                  is_total ? profile->total_cancelled : profile->pulse_cancelled,
                  is_total ? profile->total_rescheduled : profile->pulse_rescheduled),
         n - written);
+    calculate_percentile_set(profile->lateness_samples, profile->lateness_sample_count,
+                             &lateness_median, &lateness_p95, &lateness_p99);
+    written += bounded_format_length(
+        snprintf(buf + written, n - written,
+                 "  cumulative deadline lateness ticks: p50=%.2f p95=%.2f p99=%.2f max=%" PRIu64
+                 " samples=%zu/%" PRIu64 " late=%" PRIu64 "\n\r",
+                 lateness_median, lateness_p95, lateness_p99,
+                 profile->lateness_maximum_ticks, profile->lateness_sample_count,
+                 profile->lateness_samples_seen, profile->late_callbacks),
+        n - written);
   }
 
   return written;
@@ -3200,6 +3261,9 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
   double median;
   double p95;
   double p99;
+  double lateness_median;
+  double lateness_p95;
+  double lateness_p99;
 
   if (buf == NULL || n == 0)
     return 0;
@@ -3272,7 +3336,10 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
       bounded_format_length(snprintf(buf + written, n - written,
                                      "event_identity,calls,total_usec,average_usec,p50_usec,"
                                      "p95_usec,p99_usec,max_usec,samples_stored,samples_seen,"
-                                     "scheduled,cancelled,rescheduled\n\r"),
+                                     "scheduled,cancelled,rescheduled,late_callbacks,"
+                                     "lateness_p50_ticks,lateness_p95_ticks,lateness_p99_ticks,"
+                                     "lateness_max_ticks,lateness_samples_stored,"
+                                     "lateness_samples_seen\n\r"),
                             n - written);
   top_count = collect_top_event_profiles(top_indices, 1);
   for (i = 0; i < top_count && written < n - 1; i++)
@@ -3281,13 +3348,19 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
     average =
         profile->total_calls > 0 ? (double)profile->total_usec / (double)profile->total_calls : 0.0;
     calculate_percentile_set(profile->samples, profile->sample_count, &median, &p95, &p99);
+    calculate_percentile_set(profile->lateness_samples, profile->lateness_sample_count,
+                             &lateness_median, &lateness_p95, &lateness_p99);
     written += bounded_format_length(
         snprintf(buf + written, n - written,
                  "%s,%" PRIu64 ",%" PRIu64 ",%.2f,%.2f,%.2f,%.2f,%" PRIu64 ",%zu,%" PRIu64
-                 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 "\n\r",
+                 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64
+                 ",%.2f,%.2f,%.2f,%" PRIu64 ",%zu,%" PRIu64 "\n\r",
                  profile->identity, profile->total_calls, profile->total_usec, average, median, p95,
                  p99, profile->total_max_usec, profile->sample_count, profile->samples_seen,
-                 profile->total_scheduled, profile->total_cancelled, profile->total_rescheduled),
+                 profile->total_scheduled, profile->total_cancelled, profile->total_rescheduled,
+                 profile->late_callbacks, lateness_median, lateness_p95, lateness_p99,
+                 profile->lateness_maximum_ticks, profile->lateness_sample_count,
+                 profile->lateness_samples_seen),
         n - written);
   }
 
@@ -3296,13 +3369,19 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
   {
     average = (double)profile->total_usec / (double)profile->total_calls;
     calculate_percentile_set(profile->samples, profile->sample_count, &median, &p95, &p99);
+    calculate_percentile_set(profile->lateness_samples, profile->lateness_sample_count,
+                             &lateness_median, &lateness_p95, &lateness_p99);
     written += bounded_format_length(
         snprintf(buf + written, n - written,
                  "[unregistered overflow],%" PRIu64 ",%" PRIu64 ",%.2f,%.2f,%.2f,%.2f,%" PRIu64
-                 ",%zu,%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 "\n\r",
+                 ",%zu,%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64
+                 ",%.2f,%.2f,%.2f,%" PRIu64 ",%zu,%" PRIu64 "\n\r",
                  profile->total_calls, profile->total_usec, average, median, p95, p99,
                  profile->total_max_usec, profile->sample_count, profile->samples_seen,
-                 profile->total_scheduled, profile->total_cancelled, profile->total_rescheduled),
+                 profile->total_scheduled, profile->total_cancelled, profile->total_rescheduled,
+                 profile->late_callbacks, lateness_median, lateness_p95, lateness_p99,
+                 profile->lateness_maximum_ticks, profile->lateness_sample_count,
+                 profile->lateness_samples_seen),
         n - written);
   }
 

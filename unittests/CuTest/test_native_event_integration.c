@@ -296,6 +296,8 @@ static void verify_event_debug_registry(CuTest *tc, enum event_backend_kind back
     event_debug_render_profiles(output, sizeof(output), widths[width_index], 10U);
     assert_debug_output_width(tc, output, (size_t)widths[width_index]);
     CuAssertPtrNotNull(tc, strstr(output, "  live: 1"));
+    CuAssertPtrNotNull(tc, strstr(output, "lateness ticks"));
+    CuAssertPtrNotNull(tc, strstr(output, "samples/seen/late"));
     event_debug_render_domain(output, sizeof(output), widths[width_index], NULL);
     assert_debug_output_width(tc, output, (size_t)widths[width_index]);
   }

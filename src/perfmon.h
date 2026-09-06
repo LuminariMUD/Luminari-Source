@@ -38,6 +38,13 @@ struct PERF_event_profile_snapshot
   uint64_t scheduled;
   uint64_t cancelled;
   uint64_t rescheduled;
+  uint64_t late_callbacks;
+  uint64_t lateness_p50_ticks;
+  uint64_t lateness_p95_ticks;
+  uint64_t lateness_p99_ticks;
+  uint64_t lateness_maximum_ticks;
+  size_t lateness_samples;
+  uint64_t lateness_samples_seen;
 };
 
 /* Heartbeat schedule classes retained in slow-pulse flight records. */
@@ -153,7 +160,8 @@ size_t PERF_get_event_profiles(struct PERF_event_profile_snapshot *snapshots,
 /**
  * @brief Record one completed event callback invocation
  */
-void PERF_note_event_callback(int profile_index, uint64_t elapsed_usec);
+void PERF_note_event_callback(int profile_index, uint64_t elapsed_usec,
+                              uint64_t lateness_ticks);
 
 /** Record a successfully admitted event and its requested delay in pulses. */
 void PERF_note_event_scheduled(int profile_index, uint64_t delay_pulses);

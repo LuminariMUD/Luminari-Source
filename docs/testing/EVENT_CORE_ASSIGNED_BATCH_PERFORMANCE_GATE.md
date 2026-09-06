@@ -58,3 +58,32 @@ workload and another measurement.
 
 Status: measurement pending on the final repair revision. The prior 2026-09-05
 report remains historical evidence, not acceptance of this branch.
+
+## Instrumentation available on the repair branch
+
+The native event runtime now records deadline lateness for every semantic event
+callback. Lateness is `max(dispatch_tick - deadline_tick, 0)`, in native ticks.
+On the normal ten-pulses-per-second configuration, one tick is 100 ms. On-time
+callbacks are retained as zero-valued samples so percentiles describe all
+callbacks rather than only the late subset.
+
+Each registered event type owns a bounded ring of the latest 1,024 lateness
+samples, plus lifetime sample, late-callback and maximum counts. This keeps the
+measurement cost and memory fixed. Operators can read p50/p95/p99/max and
+stored/seen/late counts with `eventdebug profiles`; `perfmon total` and
+`perfmon csv` expose the same data for capture. The CSV form is the preferred
+artifact for the workloads above. Reset performance counters immediately
+before each measured workload and archive the output immediately afterward.
+
+Production-linked tests cover on-time callbacks, a callback dispatched three
+ticks after its deadline, percentile reporting, CSV output, and width-bounded
+staff diagnostics. This proves the measurement path, but does not substitute
+for the declared multi-client and sustained-memory runs.
+
+## Current decision
+
+The code-level observability gap is closed. The acceptance verdict remains
+qualified until the final branch is run through the declared idle, command,
+DG/extraction and steady-state workloads on an isolated development instance.
+No current-branch command-latency or 60-minute RSS dataset exists, so this
+document does not infer those results from the September 5 burn-in.

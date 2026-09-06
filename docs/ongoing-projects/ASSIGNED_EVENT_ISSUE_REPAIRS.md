@@ -4,6 +4,35 @@ Base: `origin/master` at `55d19e0bd`, branch `fix/open-issue-repairs`.
 Scope: open issues assigned to `jamclaug` on 2026-09-06, #103 through #112.
 The wider unassigned queue is excluded. No production rollout or archival deletion is authorized.
 
+## Current branch outcome
+
+- #103 and #104 implement committed object-transfer and relocation facts with
+  stable identities, causes and operation boundaries.
+- #105 moves crafting, buff sequences, transport arrivals, moving rooms and
+  staff-event agendas onto the native event/activity owners; supply refresh
+  retains its explicit lazy timestamp policy.
+- #106 and #107 implement the authored ready-action and tactical-effect clocks,
+  including counterspell, designated-ally protection, directional walls and
+  bounded environmental exposure.
+- #108 implements bounded typed NPC phenomenon perception and the existing
+  discovery/delivery quest consumers. New objective kinds remain an authored
+  quest-design change rather than an event-core repair.
+- #109 defines the shared activity rules for skill work, guarded rest and
+  expeditions, and migrates room search as the first production skill-work
+  consumer.
+- #110 keeps Nature as the canonical name with Survival as the persisted-slot
+  compatibility alias and supplies the additive help migration.
+- #111 now has per-type bounded scheduler deadline-lateness instrumentation and
+  a declared acceptance workload. Its long live command-latency and RSS run is
+  still required for an unqualified performance verdict.
+- #112 is resolved by an explicit retention decision. Archival PubSub SQL is
+  inert historical data and is not deleted by this repair branch.
+- Final local validation on 2026-09-07 passed all 1,246 production-linked C
+  tests plus the shell and Python regression suites. Eight isolated-MariaDB
+  integration cases remained opt-in and were skipped by the standard target.
+  `make install` activated the resulting development binary; no server was
+  restarted.
+
 ## Implementation checkpoint
 
 - First implementation commit: `7a09f5d8a` (committed world operations and Nature).
@@ -61,7 +90,7 @@ See [committed-operation contracts](../systems/COMMITTED_WORLD_OPERATIONS.md).
 
 Source: https://github.com/LuminariMUD/Luminari-Source/issues/103
 
-Status: implemented; final batch validation pending.
+Status: implemented and validated locally.
 
 `ObjectMoved` in `src/domain_event_runtime.c` describes room placement/removal through `handler.c`. Inventory, equipment and containers lack a complete transfer fact. A consumer cannot reliably distinguish one delivery from the removal and insertion halves.
 
@@ -79,7 +108,7 @@ Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working
 
 Source: https://github.com/LuminariMUD/Luminari-Source/issues/104
 
-Status: implemented; final batch validation pending.
+Status: implemented and validated locally.
 
 `handler.c` publishes `CharacterMoved` with direction -1 from low-level placement. Walking, teleportation, forced movement, spawning and scripted relocation are indistinguishable; placement can precede higher-level script decisions.
 
@@ -96,7 +125,7 @@ Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working
 
 Source: https://github.com/LuminariMUD/Luminari-Source/issues/105
 
-Status: under review.
+Status: implemented and validated locally.
 
 The native clock is complete, but feature discovery/countdowns remain. See `docs/systems/EVENT_MECHANISM_INVENTORY.md` for their current owners and cadence.
 
@@ -119,7 +148,7 @@ Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working
 
 Source: https://github.com/LuminariMUD/Luminari-Source/issues/106
 
-Status: under review.
+Status: implemented and validated locally.
 
 Timed casting activities and typed readied normal attacks on entry, door opening and timed casting are implemented. Counterspell and designated-ally modes extend the same owner and native execution path.
 
@@ -142,7 +171,7 @@ Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working
 
 Source: https://github.com/LuminariMUD/Luminari-Source/issues/107
 
-Status: under review.
+Status: implemented and validated locally.
 
 Affects have native owners but retain cadence-based durations. Existing walls, clouds, tentacles, traps and room damage need explicit tactical exposure rules.
 
@@ -162,7 +191,7 @@ Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working
 
 Source: https://github.com/LuminariMUD/Luminari-Source/issues/108
 
-Status: under review.
+Status: implemented and validated locally within the issue's existing objective types.
 
 WorldPhenomenon propagation currently sends descriptions to players; NPC agendas do not consume a typed perception result. Quest gateways remain direct movement/item/death checks.
 
@@ -221,17 +250,17 @@ Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working
 
 Source: https://github.com/LuminariMUD/Luminari-Source/issues/111
 
-Status: under review.
+Status: instrumentation implemented and validated; final live measurement remains pending.
 
 Functional event-core acceptance passed, but the retained reports explicitly qualify performance. Late-callback counts do not measure lateness magnitude or end-to-end responsiveness, and short RSS samples do not establish a leak trend.
 
 The September 5 burn-in recorded one 151.808 ms loop out of 9,654 samples (0.01%); DG waits accounted for 133.183 ms and extraction for 17.339 ms in that sample. This is a historical investigation lead, not proof of a recurring current defect.
 
-- [ ] Agree representative idle and burst workloads and acceptance thresholds before measuring.
-- [ ] Collect per-type deadline lateness, command/network tail latency and sustained RSS trends with build/configuration/workload provenance.
-- [ ] Use `eventdebug ready [reset]` bounded 1,024-sample pulse p50/p95/p99/max appropriately: it excludes intentional delay and cannot prove sub-pulse or network latency.
+- [x] Agree representative idle and burst workloads and acceptance thresholds before measuring.
+- [ ] Collect per-type deadline lateness, command/network tail latency and sustained RSS trends with build/configuration/workload provenance. Per-type lateness collection is implemented; the declared live workload remains outstanding.
+- [x] Add and test bounded per-type native deadline-lateness p50/p95/p99/max instrumentation in `eventdebug profiles` and `perfmon`; continue to use `eventdebug ready [reset]` only for the separate ready-action decision path.
 - [ ] Investigate repeatable DG/extraction tail stalls if reproduced; retain negative findings as measurements.
-- [ ] Update the existing acceptance report with evidence sufficient for an unqualified verdict or explicit remaining limitations.
+- [x] Update the existing acceptance report with the implemented measurement path and explicit remaining limitations.
 
 Related: #93 concerns the production build profile; this issue concerns runtime acceptance measurements.
 
