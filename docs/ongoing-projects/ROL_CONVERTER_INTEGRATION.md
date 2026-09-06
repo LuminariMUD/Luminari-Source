@@ -375,6 +375,30 @@ store generated evidence in existing ignored run storage; no new framework or se
   proof. Both disposable services exited after testing; the existing development listener on
   port 4100 remained PID 3638082. These checks prove native text presentation; the final candidate's
   actual room/object/quest/SOC contexts and combined smoke remain required in step 6.
+- Color display repair commit: `c67731b4c` (`fix: render escaped at signs once in converted text`).
+- Continued the required warmth/prestige consumer review rather than treating display labels as
+  mechanics. `armor-metadata-review.json` records 105 armor objects with nonzero metadata:
+  101 warmth, 25 prestige, 21 both. All source record hashes/values were revalidated through
+  the current parser; none of these 105 has a binding in the existing active armor-proc packet.
+  Source `handler.c:apply_ac()`, armor valuation in `mobact.c:RateObject()`, identify/acid damage
+  in `magic.c`, and armor restriction/decay in `specs.generic.c` use value 0. The armor procedure
+  reset uses value 3. Character `GET_PRESTIGE` accesses a separate player field; no garment-warmth
+  consumer was identified in the reviewed weather/equipment paths. This bounded source trace
+  supports the proposed metadata loss; it does not approve it or prove absence of all dynamic use.
+  Source `ITEM_WORN` must be reviewed separately: `RateObject()` shares the weapon valuation
+  branch and adds `value[1] * value[2] * damp / 10`. Of 444 source worn objects, three have
+  nonzero warmth/prestige fields: the Ghore silk veil 11600 (`10,0`), northern Waterdeep umbrella
+  3034 (`-100,-10`), and Foggy Woods flannel jacket 90027 (`30,0`). Only the umbrella contributes
+  a nonzero product (1,000 before the character-dependent multiplier); the function is called
+  from equipment-choice and pickup paths. This is an equipment-ranking effect, not a prestige
+  award or cold resistance. Preserve that distinction in the final named-loss review instead of
+  claiming all labeled fields are inert. No conversion or gameplay rule changed in this review.
+  Plan-ablation limited tracked changes to the shared plan; the source/record evidence stays in
+  existing ignored run storage. Step 0.5 is complete because existing policies and unresolved
+  choices are now documented and presented; its completion does not approve dependent choices.
+  Armor/nonstandard AC, level policy, metadata losses/defaults, five player-identity decisions,
+  and final weapon builder review remain open. Final Phase 7/8 candidate evidence is still absent
+  and must be generated after those decisions and their implementation.
 
 ### Pre-implementation observations
 
@@ -432,7 +456,7 @@ format ownership is recorded above and in step 1; historical counts are retained
   source meaning, target representation or named loss, rationale, affected records, and existing
   or needed regression coverage. Include armor AC/warmth/prestige/proc, extensions, nonweapon
   metadata, source colors, and implicit ship lighting; steps 2/3 complete this same table.
-- [ ] 0.5 Record existing policy decisions and identify unresolved owner/builder choices for
+- [x] 0.5 Record existing policy decisions and identify unresolved owner/builder choices for
   armor penalties/curses, non-armor AC scaling/stacking, item levels, named losses, and the five
   player identities. Build the spell/class matrix once in 117.1. Present concrete unresolved
   choices before their implementation; honor decisions already made and continue independent work.
@@ -517,7 +541,7 @@ JSON files above; procedure-owner and player spell/access matrices still require
 |-------------------------|-----------------------------------------------|---------------------------|
 | Armor value 0 protects when positive; target `handler.c:apply_ac()` accepts body/head/arms/legs/shield and the explicit tail exception. | Preserve standard armor protection independently of family. Infer family from identity/material and apply its real target penalties. Never set load-time table-stat replacement. | Pending family/penalty approval; inspect five mixed masks and eight short numeric base rows before assigning final dispositions. |
 | Nonstandard armor wearables have no value-0 AC runtime effect. There are 13 negative-protection records, including seven shackles numbered 35600-35606. | Proposed `ITEM_WORN` with signed `APPLY_AC_NEW`: divide magnitude by ten, round toward zero, retain minimum magnitude one for nonzero values; use existing universal bonus type 23 and preserve authored applies. | Pending scaling/stacking/curse approval; prevent double-counting and test equip/unequip. Dedicated-tail behavior needs its own disposition. |
-| Source `which.c` labels armor values 1/2 as warmth/prestige; 101/25 records have nonzero values. | Proposed explicit named losses where source/target consumer review confirms no supported equivalent; clear obsolete target value slots. | Runtime/source-consumer review and loss approval pending. |
+| Source `which.c` labels armor values 1/2 as warmth/prestige; 101/25 records have nonzero values across 105 distinct armor records. Reviewed common armor paths use value 0, and procedure state uses value 3. | Proposed explicit named losses for warmth/prestige; clear obsolete target value slots after disposition. | Source consumer evidence is in `armor-metadata-review.json`; this is a bounded trace, not proof against all dynamic procedures. Loss approval remains pending. |
 | Ten armor records have nonzero value 3, labeled ProcVal; none has an active source procedure binding. Source feature helpers use this slot as mutable state/recharge bits. | Proposed named inert-metadata loss for these ten values. Bound armor procedures (22 records, authored ProcVal zero) retain their existing `Z`/DG owner instead of synthesizing `C` or `S`. | `proc-review.json` records identities and bindings; Phase 6 owner verification passes. Loss approval remains pending. |
 | Source `db.c:read_object()` reads weight/cost/durability, followed by two optional affect words; there is no object-level field. | Proposed permanent target level 1, preserving the existing conversion policy. Magic-item caster level remains separate. | Explicit level-policy approval pending. |
 | Source loader extensions are extra descriptions, applies, and trap data. Target `db.c` supports `B` (two fields), `C` (seven plus optional command), `K` (five), and `S` (four). | Emit extensions only where a traced source procedure supplies equivalent semantics. Do not treat unsupported trailing source tokens as authored target extensions. | Complete procedure/loader/writer/runtime mapping and capacity tests. |
