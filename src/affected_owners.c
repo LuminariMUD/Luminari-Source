@@ -2,6 +2,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "tactical_effects.h"
 #include "comm.h"
 #include "db.h"
 #include "dotenv.h"
@@ -201,6 +202,7 @@ static struct game_event_result affected_character_event(const struct game_event
     affected_character_owner_refill();
     return game_event_result_complete();
   }
+  tactical_bleeding_sync(ch);
   character_nodes_processed += affect_update_character_one(ch);
   if (!runtime_handle_matches(ch->affected_event_handle, context))
     return game_event_result_complete();
@@ -293,6 +295,7 @@ void affected_character_owner_forget(struct char_data *ch)
 {
   struct event_runtime_handle handle;
 
+  tactical_bleeding_pause(ch);
   if (ch == NULL || event_runtime_handle_is_none(ch->affected_event_handle))
     return;
   handle = ch->affected_event_handle;
@@ -514,7 +517,10 @@ void affected_owners_init(void)
     return;
   for (ch = affected_registry_iteration_begin(); ch != NULL;
        ch = affected_registry_iteration_next())
+  {
     affected_character_owner_sync(ch);
+    tactical_bleeding_sync(ch);
+  }
   affected_registry_iteration_end();
   for (room = affected_room_list; room != NULL; room = room->affected_next)
     affected_room_schedule(room);

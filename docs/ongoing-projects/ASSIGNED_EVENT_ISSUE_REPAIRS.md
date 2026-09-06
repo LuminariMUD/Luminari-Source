@@ -814,3 +814,30 @@ Next implementation is Bleeding Critical's end-of-turn damage and duration as on
 owner, excluding the migrated nodes from both legacy duration and AFF_BLEED
 behavior processing. The separate SKILL_BLEEDING_ATTACK regeneration path is not
 implicitly included in that pilot.
+
+## Bleeding Critical clock pilot checkpoint (2026-09-06)
+
+Migrated ordinary Bleeding Critical damage and duration together onto native
+out-of-combat ticks and the subject's end-of-turn boundary. The original save,
+damage roll, self-attribution and affect_join stacking remain; reapplication
+preserves the pending tick while replacing duration and adding damage. Legacy
+duration and AFF_BLEED callbacks exclude the migrated nodes. Other bleeding
+sources remain outside this pilot.
+
+Damage processing copies values, charges the interval before callbacks and then
+resolves character generation/clock version. Cure or replacement during damage
+cannot expire a replacement or replay the paid interval. Equal native/combat
+deadlines are charged once in either callback order. Leaving combat during an
+action preserves an already-due end tick with a one-pulse deadline.
+
+The real save path temporarily strips affects. It now separately preserves the
+live bleeding clock and writes BlCt residual pulses alongside the existing affect
+record. Registry detach marks the character non-live before owner removal so
+refill cannot re-admit it during detachment. Help agrees in the flat file,
+development database and sql/components/help_bleeding_critical_clock.sql.
+
+Validation: 11 new production-linked cases; final `make -j10 test` passed all
+1,231 tests without compiler warnings, followed by successful `make install`.
+Admission exhaustion/retry telemetry and remaining lifetime cases still need the
+final #107 audit. Recurring saves, movement hazards, #108/#109 implementation and
+the remaining assigned-batch audit/performance/release gates remain open.

@@ -948,6 +948,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_BAG_NAME(ch, 1) = strdup(line);
         else if (!strcmp(tag, "Blst"))
           BLASTING(ch) = atoi(line);
+        else if (!strcmp(tag, "BlCt"))
+          ch->bleeding_critical_pulses = MAX(1, atoi(line));
         else if (!strcmp(tag, "Bag2"))
           GET_BAG_NAME(ch, 2) = strdup(line);
         else if (!strcmp(tag, "Bag3"))
@@ -2338,6 +2340,8 @@ bool save_char_checked(struct char_data *ch, int mode)
   int i = 0, j = 0, id = 0, save_index = FALSE;
   int64_t save_epoch;
   int aff_count = 0, saved_aff_count = 0;
+  int bleeding_remaining = 0;
+  uint64_t bleeding_turn = 0U;
   struct affected_type *aff = NULL;
   struct affected_type tmp_aff[MAX_AFFECT] = {{0}};
   struct damage_reduction_type *tmp_dr = NULL, *cur_dr = NULL;
@@ -2486,6 +2490,8 @@ bool save_char_checked(struct char_data *ch, int mode)
   }
   ch->mute_equip_messages = old_mute_equip_messages;
 
+  bleeding_remaining = tactical_bleeding_remaining(ch);
+  bleeding_turn = ch->bleeding_critical_turn;
   aff_count = 0;
   saved_aff_count = 0;
 
@@ -3714,6 +3720,9 @@ bool save_char_checked(struct char_data *ch, int mode)
     BUFFER_WRITE("-1\n");
   }
 
+  if (bleeding_remaining > 0)
+    BUFFER_WRITE("BlCt: %d\n", bleeding_remaining);
+
   /* Save affects */
   if (tmp_aff[0].spell > 0)
   {
@@ -3879,6 +3888,9 @@ bool save_char_checked(struct char_data *ch, int mode)
     if (tmp_aff[i].spell)
       affect_to_char_source(ch, &tmp_aff[i], tmp_aff[i].source_id);
   }
+
+  if (bleeding_remaining > 0)
+    tactical_bleeding_restore_clock(ch, bleeding_remaining, bleeding_turn);
 
   /* Reapply dr.*/
   if (tmp_dr != NULL)

@@ -1,6 +1,6 @@
 # Tactical effect clocks and hazard exposure
 
-Assigned issue: #107. Status: short-defense pilot implemented; remaining migration and acceptance open.
+Assigned issue: #107. Status: short-defense and bleeding pilots implemented; remaining migration and acceptance open.
 Source inspection: fix/open-issue-repairs at d13732245, 2026-09-06.
 
 ## Existing behavior and integration points
@@ -183,3 +183,48 @@ entry and re-entry with an elapsed remainder, semantic shutdown capture, and
 merged offset encounter clocks. A subject-relative defense follows that subject's
 actual next semantic turn after merging; an elapsed residual remains an elapsed
 interval. These are distinct policies, not two competing expiry callbacks.
+
+## Bleeding Critical pilot
+
+Ordinary ABILITY_BLEEDING_CRITICAL affects (APPLY_NONE, source_id zero, AFF_BLEED,
+finite duration) now have one clock for damage and duration. Native expiry is
+registered as tactical.bleeding-critical.tick; combat uses the subject's end
+boundary after actions, guarded by character generation and participant liveness.
+The old affect-duration traversal and AFF_BLEED damage traversal skip these nodes.
+Other bleeding sources, including SKILL_BLEEDING_ATTACK's regeneration behavior,
+retain their existing processing.
+
+Each tick decrements the affect once, applies its stored damage using existing
+self-attribution, and removes the effect after its final tick. Damage callbacks
+may cure, replace or extract the subject; no affect pointer crosses the damage
+call. A character-generation lookup and clock version distinguish the original
+from a replacement. A due interval is charged before callbacks, so a save or
+replacement callback cannot replay it.
+
+Reapplication retains the pending deadline while adding damage and replacing
+duration through affect_join. This avoids indefinitely postponing damage through
+repeated applications. Curing and creating a new effect admits a new clock.
+Native and semantic boundaries at the same deadline share one paid interval in
+both callback orders. Leaving during an action preserves a due end tick as a
+one-pulse native deadline; it does not postpone that tick for another round.
+
+BlCt stores only the residual pulse interval; the existing affect record stores
+remaining rounds and damage. Player serialization removes/restores affects, so
+save_char_checked separately captures and restores the live clock policy and
+boundary. Only the residual is written to disk, never runtime IDs/turn serials.
+Loaded effects without BlCt begin with a full interval. Removed characters pause;
+live link-dead characters continue. Registry detach now marks the character
+non-live before owner removal, preventing refill from re-admitting a detached
+character's effect owner.
+
+Eleven added production-linked cases cover native and semantic ticks, departure,
+removal/resume, cure/replacement during damage, stacking without tick delay,
+equal-deadline callback orders, leaving during the action, and live/saved residual
+preservation through real player serialization. Native registration allows one
+queued event alongside a cancelled dispatching predecessor; generation/event IDs
+prevent the predecessor from changing its replacement.
+
+Admission exhaustion currently logs failure and retries through the existing
+affected-owner callback. Its delay behavior and rejection telemetry need the
+final capacity audit; the pilot's successful-admission tests do not prove that
+gate. Recurring saves and movement-hazard source/exposure accounting remain open.

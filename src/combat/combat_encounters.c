@@ -459,6 +459,7 @@ static void restore_semantic_action_events(struct combat_encounter_participant *
       participant->character == NULL || shutting_down)
     return;
   tactical_defense_leave_combat(participant->character);
+  tactical_bleeding_leave_combat(participant->character);
   for (index = 0U; index < NUM_ACTIONS; index++)
   {
     if (participant->action_ready_turn[index] <= participant->turns_started)
@@ -1024,6 +1025,11 @@ combat_encounter_round_event(const struct game_event_context *context)
       if (semantic_rounds)
       {
         completed = run_semantic_round(participant);
+        if (completed && participant->active && !participant->departing &&
+            (encounter_bus == NULL ||
+             domain_event_resolve(encounter_bus, participant->character_handle,
+                                  DOMAIN_ENTITY_CHARACTER) == participant->character))
+          completed = tactical_bleeding_on_turn_end(participant->character);
         counter_increment(&cumulative_stats.semantic_turns_resolved);
       }
       else
@@ -1475,13 +1481,19 @@ void combat_encounter_runtime_shutdown(void)
       if (encounter_bus == NULL ||
           domain_event_resolve(encounter_bus, participant->character_handle,
                                DOMAIN_ENTITY_CHARACTER) == participant->character)
+      {
         tactical_defense_pause(participant->character);
+        tactical_bleeding_pause(participant->character);
+      }
     for (participant = encounter->pending_additions; participant != NULL;
          participant = participant->next)
       if (encounter_bus == NULL ||
           domain_event_resolve(encounter_bus, participant->character_handle,
                                DOMAIN_ENTITY_CHARACTER) == participant->character)
+      {
         tactical_defense_pause(participant->character);
+        tactical_bleeding_pause(participant->character);
+      }
   }
   shutting_down = true;
   while ((encounter = encounter_registry) != NULL)

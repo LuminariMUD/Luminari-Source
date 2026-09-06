@@ -46,6 +46,7 @@
 #include "../../src/character/feats.h"
 #include "../../src/spec/spec_binding.h"
 #include "../../src/mud_event.h"
+#include "../../src/mudlim.h"
 #include "../../src/dgscript/dg_event.h"
 
 #include <limits.h>
@@ -3940,7 +3941,7 @@ void Test_gameplay_defensive_casting_combat_departure_preserves_residual_interva
   verify_tactical_defense_clock(tc, 2);
 }
 
-static void verify_defense_persistence(CuTest *tc, int format)
+static void verify_tactical_clock_persistence(CuTest *tc, int format, bool bleeding)
 {
   struct player_index_element index[1] = {0};
   struct player_index_element *saved_table = player_table;
@@ -3950,6 +3951,8 @@ static void verify_defense_persistence(CuTest *tc, int format)
   char directory[PATH_MAX], filename[MAX_FILEPATH], name[32];
   FILE *file;
   int result, remaining, timer;
+  int source_remaining;
+  struct affected_type af;
 
   snprintf(name, sizeof(name), "Zzdf%ld", (long)getpid());
   index[0].name = name;
@@ -3961,8 +3964,21 @@ static void verify_defense_persistence(CuTest *tc, int format)
   GET_PFILEPOS(source) = 0;
   GET_IDNUM(source) = 4250;
   GET_LEVEL(source) = 7;
-  GET_DEFENSIVE_CASTING_TIMER(source) = 1;
-  source->player_specials->saved.defensive_casting_pulses = 17;
+  if (bleeding)
+  {
+    new_affect(&af);
+    af.spell = ABILITY_BLEEDING_CRITICAL;
+    af.duration = 2;
+    af.modifier = 5;
+    SET_BIT_AR(af.bitvector, AFF_BLEED);
+    affect_to_char(source, &af);
+    source->bleeding_critical_pulses = 17;
+  }
+  else
+  {
+    GET_DEFENSIVE_CASTING_TIMER(source) = 1;
+    source->player_specials->saved.defensive_casting_pulses = 17;
+  }
   CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
   CuAssertIntEquals(tc, 0, chdir("lib"));
   CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
@@ -3976,8 +3992,11 @@ static void verify_defense_persistence(CuTest *tc, int format)
     fclose(file);
   }
   result = load_char(name, loaded);
-  remaining = tactical_defense_remaining(loaded);
-  timer = GET_DEFENSIVE_CASTING_TIMER(loaded);
+  remaining = bleeding ? tactical_bleeding_remaining(loaded) : tactical_defense_remaining(loaded);
+  source_remaining =
+      bleeding ? tactical_bleeding_remaining(source) : tactical_defense_remaining(source);
+  timer = bleeding ? (loaded->affected != NULL ? loaded->affected->duration : 0)
+                   : GET_DEFENSIVE_CASTING_TIMER(loaded);
   unlink(filename);
   CuAssertIntEquals(tc, 0, chdir(directory));
   free_char(source);
@@ -3986,22 +4005,24 @@ static void verify_defense_persistence(CuTest *tc, int format)
   top_of_p_table = saved_top;
   CuAssertIntEquals(tc, 0, result);
   CuAssertIntEquals(tc, format == 0 ? 6 RL_SEC : format == 1 ? 17 : 0, remaining);
-  CuAssertIntEquals(tc, format == 2 ? 0 : 1, timer);
+  CuAssertIntEquals(tc, bleeding ? 2 : format == 2 ? 0 : 1, timer);
+  if (format == 1)
+    CuAssertIntEquals(tc, 17, source_remaining);
 }
 
 void Test_gameplay_defensive_casting_loads_legacy_round_timer(CuTest *tc)
 {
-  verify_defense_persistence(tc, 0);
+  verify_tactical_clock_persistence(tc, 0, false);
 }
 
 void Test_gameplay_defensive_casting_round_trips_residual_pulses(CuTest *tc)
 {
-  verify_defense_persistence(tc, 1);
+  verify_tactical_clock_persistence(tc, 1, false);
 }
 
 void Test_gameplay_defensive_casting_does_not_restore_expired_saved_interval(CuTest *tc)
 {
-  verify_defense_persistence(tc, 2);
+  verify_tactical_clock_persistence(tc, 2, false);
 }
 
 void Test_gameplay_defensive_casting_live_character_without_descriptor_keeps_expiring(CuTest *tc)
@@ -4027,4 +4048,232 @@ void Test_gameplay_defensive_casting_combat_reentry_does_not_restart_interval(Cu
 void Test_gameplay_defensive_casting_shutdown_captures_semantic_residual(CuTest *tc)
 {
   verify_tactical_defense_clock(tc, 7);
+}
+
+struct bleeding_clock_trace
+{
+  struct char_data *subject;
+  unsigned int count;
+  unsigned int count_before_action;
+  int last_amount;
+  int mutation;
+  bool leave_on_action;
+};
+
+static void observe_bleeding_damage(const struct domain_event_context *context, void *data)
+{
+  struct bleeding_clock_trace *trace = data;
+  const struct domain_character_damaged *event = context->payload;
+  struct affected_type replacement;
+
+  if (event->damage_type != DAM_BLEEDING)
+    return;
+  trace->count++;
+  trace->last_amount = event->amount;
+  if (trace->count != 1U || trace->mutation == 0)
+    return;
+  affect_from_char(trace->subject, ABILITY_BLEEDING_CRITICAL);
+  if (trace->mutation == 2)
+  {
+    new_affect(&replacement);
+    replacement.spell = ABILITY_BLEEDING_CRITICAL;
+    replacement.duration = 1;
+    replacement.modifier = 7;
+    SET_BIT_AR(replacement.bitvector, AFF_BLEED);
+    affect_to_char(trace->subject, &replacement);
+  }
+}
+
+static bool observe_bleeding_turn(struct char_data *ch, unsigned int phase, void *data)
+{
+  struct bleeding_clock_trace *trace = data;
+
+  (void)phase;
+  if (ch == trace->subject)
+  {
+    trace->count_before_action = trace->count;
+    if (trace->leave_on_action)
+    {
+      struct char_data *opponent = FIGHTING(ch);
+
+      trace->leave_on_action = false;
+      combat_encounter_leave(ch, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
+      combat_encounter_leave(opponent, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
+      FIGHTING(ch) = FIGHTING(opponent) = NULL;
+    }
+  }
+  return true;
+}
+
+static void verify_bleeding_clock(CuTest *tc, int scenario)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct char_data *saved_characters = character_list;
+  struct bleeding_clock_trace trace = {0};
+  struct domain_event_subscription_config config = {0};
+  struct domain_event_subscription_handle subscription;
+  struct affected_type af;
+  unsigned long saved_pulse = pulse;
+
+  begin_gameplay_fixture(&f);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  pulse = 28000U;
+  event_init();
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.next = &f.victim;
+  character_list = &f.actor;
+  GET_HIT(&f.actor) = GET_MAX_HIT(&f.actor) = 100000;
+  affected_registry_attach(&f.actor);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  trace.subject = &f.actor;
+  trace.leave_on_action = scenario == 9;
+  trace.mutation = scenario == 3 ? 1 : scenario == 4 ? 2 : 0;
+  config.type = DOMAIN_EVENT_CHARACTER_DAMAGED;
+  config.owner = domain_event_character_handle(&f.actor);
+  config.topic = (struct domain_event_topic){DOMAIN_EVENT_TOPIC_SUBJECT, config.owner};
+  config.identity = "test.bleeding.clock";
+  config.handler = observe_bleeding_damage;
+  config.handler_context = &trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &config, &subscription));
+  combat_encounter_test_set_phase_callback(observe_bleeding_turn, &trace);
+  if (scenario == 1 || scenario == 2 || scenario == 8 || scenario == 9)
+  {
+    FIGHTING(&f.actor) = &f.victim;
+    FIGHTING(&f.victim) = &f.actor;
+    CuAssertTrue(tc, combat_encounter_join(&f.actor, &f.victim, 1));
+    CuAssertTrue(tc, combat_encounter_join(&f.victim, &f.actor, 1));
+  }
+  new_affect(&af);
+  af.spell = ABILITY_BLEEDING_CRITICAL;
+  af.duration = 2;
+  af.modifier = 5;
+  SET_BIT_AR(af.bitvector, AFF_BLEED);
+  if (scenario == 8)
+    f.actor.bleeding_critical_pulses = 6 RL_SEC;
+  affect_to_char(&f.actor, &af);
+  affect_update_character_one(&f.actor);
+  update_damage_and_effects_over_time_one(&f.actor);
+  CuAssertIntEquals(tc, 0, trace.count);
+  CuAssertIntEquals(tc, 2, f.actor.affected->duration);
+  if (scenario == 7)
+  {
+    FIGHTING(&f.actor) = &f.victim;
+    FIGHTING(&f.victim) = &f.actor;
+    CuAssertTrue(tc, combat_encounter_join(&f.actor, &f.victim, 1));
+    CuAssertTrue(tc, combat_encounter_join(&f.victim, &f.actor, 1));
+  }
+  pulse += 3 RL_SEC;
+  if (scenario == 6)
+  {
+    af.duration = 1;
+    af.modifier = 7;
+    affect_join(&f.actor, &af, false, false, true, false);
+    CuAssertIntEquals(tc, 3 RL_SEC, tactical_bleeding_remaining(&f.actor));
+  }
+  if (scenario == 2)
+  {
+    combat_encounter_leave(&f.actor, COMBAT_ENCOUNTER_DEPARTURE_MOVED);
+    combat_encounter_leave(&f.victim, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
+    FIGHTING(&f.actor) = FIGHTING(&f.victim) = NULL;
+    CuAssertIntEquals(tc, 3 RL_SEC, tactical_bleeding_remaining(&f.actor));
+  }
+  if (scenario == 5)
+  {
+    affected_registry_detach(&f.actor);
+    pulse += 40 RL_SEC;
+    event_test_advance();
+    CuAssertIntEquals(tc, 0, trace.count);
+    CuAssertIntEquals(tc, 3 RL_SEC, tactical_bleeding_remaining(&f.actor));
+    affected_registry_attach(&f.actor);
+  }
+  pulse += 3 RL_SEC;
+  event_test_advance();
+  if (scenario == 9)
+  {
+    CuAssertIntEquals(tc, 0, trace.count);
+    CuAssertIntEquals(tc, 1, tactical_bleeding_remaining(&f.actor));
+    pulse++;
+    event_test_advance();
+  }
+  CuAssertIntEquals(tc, 1, trace.count);
+  CuAssertIntEquals(tc, scenario == 6 ? 12 : 5, trace.last_amount);
+  if (scenario == 1)
+    CuAssertIntEquals(tc, 0, trace.count_before_action);
+  pulse += 6 RL_SEC;
+  event_test_advance();
+  CuAssertIntEquals(tc, scenario == 3 || scenario == 6 ? 1 : 2, trace.count);
+  if (scenario == 4)
+    CuAssertIntEquals(tc, 7, trace.last_amount);
+  if (scenario == 1)
+    CuAssertIntEquals(tc, 1, trace.count_before_action);
+  CuAssertTrue(tc, !affected_by_spell(&f.actor, ABILITY_BLEEDING_CRITICAL));
+  affected_registry_detach(&f.actor);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  if (f.actor.events != NULL)
+    free_list(f.actor.events);
+  if (f.victim.events != NULL)
+    free_list(f.victim.events);
+  character_list = saved_characters;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&f);
+}
+
+void Test_gameplay_bleeding_critical_owns_native_damage_and_duration(CuTest *tc)
+{
+  verify_bleeding_clock(tc, 0);
+}
+
+void Test_gameplay_bleeding_critical_runs_after_subject_actions(CuTest *tc)
+{
+  verify_bleeding_clock(tc, 1);
+}
+
+void Test_gameplay_bleeding_critical_preserves_combat_departure_interval(CuTest *tc)
+{
+  verify_bleeding_clock(tc, 2);
+}
+
+void Test_gameplay_bleeding_critical_cure_during_damage_stops_next_tick(CuTest *tc)
+{
+  verify_bleeding_clock(tc, 3);
+}
+
+void Test_gameplay_bleeding_critical_replacement_during_damage_keeps_new_clock(CuTest *tc)
+{
+  verify_bleeding_clock(tc, 4);
+}
+
+void Test_gameplay_bleeding_critical_removal_preserves_residual_interval(CuTest *tc)
+{
+  verify_bleeding_clock(tc, 5);
+}
+
+void Test_gameplay_bleeding_critical_save_preserves_live_and_loaded_residual(CuTest *tc)
+{
+  verify_tactical_clock_persistence(tc, 1, true);
+}
+
+void Test_gameplay_bleeding_critical_stacking_preserves_the_pending_tick(CuTest *tc)
+{
+  verify_bleeding_clock(tc, 6);
+}
+
+void Test_gameplay_bleeding_critical_native_tick_and_combat_turn_share_one_interval(CuTest *tc)
+{
+  verify_bleeding_clock(tc, 7);
+}
+
+void Test_gameplay_bleeding_critical_combat_turn_before_native_tick_shares_interval(CuTest *tc)
+{
+  verify_bleeding_clock(tc, 8);
+}
+
+void Test_gameplay_bleeding_critical_leaving_during_action_preserves_due_end_tick(CuTest *tc)
+{
+  verify_bleeding_clock(tc, 9);
 }

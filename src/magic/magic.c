@@ -13,6 +13,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "tactical_effects.h"
 #include "comm.h"
 #include "spells.h"
 #include "handler.h"
@@ -1435,6 +1436,8 @@ size_t affect_update_character_one(struct char_data *ch)
   {
     processed_affects++;
     next = af->next;
+    if (tactical_bleeding_affect(af))
+      continue;
     if (af->duration >= 1)
       af->duration--;
     else if (af->duration <= -1)

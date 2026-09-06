@@ -7436,6 +7436,11 @@ struct char_data
   struct event_runtime_handle active_world_event_handle; /**< Earliest autonomous-work deadline. */
   struct primary_activity *primary_activity;             /**< One intentional timed activity. */
   struct ready_action *ready_action;                     /**< Ephemeral entity-topic listener. */
+  struct event_runtime_handle bleeding_critical_event;
+  uint64_t bleeding_critical_due;
+  uint64_t bleeding_critical_turn;
+  uint64_t bleeding_critical_version;
+  int bleeding_critical_pulses;
   struct event_runtime_handle defensive_casting_event;
   uint64_t defensive_casting_due;
   uint64_t defensive_casting_turn;

@@ -13,6 +13,7 @@
 #include <time.h>
 #include "structs.h"
 #include "utils.h"
+#include "tactical_effects.h"
 #include "magic/spells.h"
 #include "comm.h"
 #include "db.h"
@@ -2983,7 +2984,7 @@ void update_damage_and_effects_over_time_one(struct char_data *ch)
   {
     for (affects = ch->affected; affects; affects = affects->next)
     {
-      if (IS_SET_AR(affects->bitvector, AFF_BLEED))
+      if (IS_SET_AR(affects->bitvector, AFF_BLEED) && !tactical_bleeding_affect(affects))
       {
         dam = damage(ch, ch, affects->modifier, TYPE_SUFFERING, DAM_BLEEDING, TYPE_SPECAB_BLEEDING);
 

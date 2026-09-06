@@ -12,6 +12,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "tactical_effects.h"
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
@@ -99,14 +100,15 @@ void affected_registry_attach(struct char_data *ch)
     return;
   ch->affected_registry_live = true;
   affected_registry_sync(ch);
+  tactical_bleeding_sync(ch);
 }
 
 void affected_registry_detach(struct char_data *ch)
 {
   if (ch == NULL)
     return;
-  affected_registry_remove(ch);
   ch->affected_registry_live = false;
+  affected_registry_remove(ch);
 }
 
 void affected_registry_remove(struct char_data *ch)
@@ -1478,6 +1480,7 @@ void affect_to_char_source(struct char_data *ch, struct affected_type *af, long 
   }
 
   affect_total(ch);
+  tactical_bleeding_sync(ch);
   if (affect_changes_mobile_reactions(af))
     active_world_reconsider_character(ch);
 }
@@ -1542,6 +1545,7 @@ void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
   affected_registry_sync(ch);
   character_periodic_sync(ch);
 
+  tactical_bleeding_sync(ch);
   if (removes_repulsion)
     clear_repulsion_lists(ch);
 }
@@ -1609,6 +1613,7 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   affect_total(ch);
 
   character_periodic_sync(ch);
+  tactical_bleeding_sync(ch);
   if (changes_reactions)
     active_world_reconsider_character(ch);
   if (removes_flight && world != NULL && IN_ROOM(ch) != NOWHERE && IN_ROOM(ch) <= top_of_world &&
@@ -1758,6 +1763,8 @@ void affect_join(struct char_data *ch, struct affected_type *af, bool add_dur, b
 {
   struct affected_type *hjp = NULL, *next = NULL;
   bool found = FALSE;
+  int bleeding_remaining = 0;
+  uint64_t bleeding_turn = 0U;
 
   /* increment through all the affections on the character, check for matches */
   for (hjp = ch->affected; !found && hjp; hjp = next)
@@ -1769,6 +1776,11 @@ void affect_join(struct char_data *ch, struct affected_type *af, bool add_dur, b
     if ((hjp->spell == af->spell) && (hjp->location == af->location) &&
         (af->location != APPLY_SKILL || hjp->specific == af->specific))
     {
+      if (tactical_bleeding_affect(hjp) && tactical_bleeding_affect(af))
+      {
+        bleeding_remaining = tactical_bleeding_remaining(ch);
+        bleeding_turn = ch->bleeding_critical_turn;
+      }
       if (add_dur)
         af->duration += hjp->duration;
       else if (avg_dur)
@@ -1781,6 +1793,8 @@ void affect_join(struct char_data *ch, struct affected_type *af, bool add_dur, b
       /* replace! */
       affect_remove(ch, hjp);
       affect_to_char(ch, af);
+      if (bleeding_remaining > 0)
+        tactical_bleeding_restore_clock(ch, bleeding_remaining, bleeding_turn);
       found = TRUE;
     }
   }
@@ -2134,6 +2148,7 @@ void char_to_room_cause(struct char_data *ch, room_rnum room, struct char_data *
 
     /* Master Tracker: refresh proximity alert when entering a room */
     update_master_tracker_alert(ch);
+    tactical_bleeding_sync(ch);
     domain_relocation_placed(ch, previous_room, room, actor, cause, direction);
   }
 }
