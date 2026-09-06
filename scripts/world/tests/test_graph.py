@@ -138,6 +138,28 @@ class FullGraphTests(unittest.TestCase):
       self.assertIn("REF030", codes)
       self.assertNotIn("REF022", codes)
 
+  def test_tail_reset_accepts_runtime_ring_eligibility(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory) / "world"
+      make_world(root)
+      obj = root / "obj/1.obj"
+      obj.write_text(
+          obj.read_text(encoding="ascii").replace(
+              "18 0 0 0 0 1 0 0 0", "11 0 0 0 0 ab 0 0 0"
+          ),
+          encoding="ascii",
+      )
+      zone = root / "zon/1.zon"
+      zone.write_text(
+          zone.read_text(encoding="ascii").replace(
+              "S\n$\n",
+              "M 0 100 1 100 100\nE 0 100 1 43 100\nS\n$\n",
+          ),
+          encoding="ascii",
+      )
+
+      self.assertNotIn("REF030", {item.code for item in self.validate(root).findings})
+
   def test_p_reset_requires_a_container_type(self) -> None:
     with tempfile.TemporaryDirectory() as directory:
       root = Path(directory) / "world"
