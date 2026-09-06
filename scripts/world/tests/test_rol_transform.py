@@ -2054,6 +2054,104 @@ class RolTransformTests(unittest.TestCase):
         if caster_level is not None:
           self.assertEqual(caster_level, result.records[0].values[0])
 
+  def test_spellbook_bookkeeping_is_a_named_loss_not_native_spell_data(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nspellbook~\na spellbook~\nA spellbook is here.~\n~\n"
+        b"33 0 16385\n1 2 80 3\n2 100 1\n0\n0\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(28, result.records[0].item_type)
+    self.assertEqual([0] * 4, result.records[0].values[:4])
+    self.assertEqual([], result.records[0].spellbook)
+    self.assertFalse({"B", "C", "K", "S", "G", "H", "I"} & set(emitted.text.splitlines()))
+    self.assertIn(
+        "spellbook bookkeeping language 1, class 2, total pages 80, used pages 3",
+        " ".join(emitted.diagnostics),
+    )
+
+  def test_weapon_proc_state_has_exactly_one_owner_or_named_loss(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nblade~\na blade~\nA blade is here.~\n~\n"
+        b"5 0 8193\n7 1 6 7\n2 100 1\n0\n0\n",
+    )
+
+    unbound = emit_object(source, 2_000_200, _resolver)
+    owned = emit_object(source, 2_000_200, _resolver, special_proc="RoL Weapon Proc")
+    unbound_result = parse_object_file(
+        self._target_path("obj", unbound.text), "obj/20001.obj", self.manifest, set()
+    )
+    owned_result = parse_object_file(
+        self._target_path("obj", owned.text), "obj/20001.obj", self.manifest,
+        {"RoL Weapon Proc"},
+    )
+
+    self.assertTrue(unbound_result.complete)
+    self.assertTrue(owned_result.complete)
+    self.assertNotEqual(7, unbound_result.records[0].values[0])
+    self.assertIsNone(unbound_result.records[0].spec_proc)
+    self.assertEqual("RoL Weapon Proc", owned_result.records[0].spec_proc)
+    self.assertIn("unbound procedure state 7", " ".join(unbound.diagnostics))
+    self.assertIn(
+        "procedure state 7 through assigned special-procedure owner RoL Weapon Proc",
+        " ".join(owned.diagnostics),
+    )
+
+  def test_worn_source_only_slots_cannot_invent_monk_glove_behavior(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\numbrella~\nan umbrella~\nAn umbrella is here.~\n~\n"
+        b"11 0 129\n7 -100 -10 0\n2 100 1\n0\n0\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+    diagnostics = " ".join(emitted.diagnostics)
+
+    self.assertTrue(result.complete)
+    self.assertEqual(11, result.records[0].item_type)
+    self.assertEqual([0] * 4, result.records[0].values[:4])
+    self.assertIn(7, decode_tokens(result.records[0].wear_flags).bits)
+    self.assertIn("source-inert worn value[0] 7", diagnostics)
+    self.assertIn("source-only worn warmth -100", diagnostics)
+    self.assertIn("source-only worn prestige -10", diagnostics)
+    self.assertIn("NPC equipment-ranking product 1000", diagnostics)
+    self.assertIn("not player prestige or cold resistance", diagnostics)
+
+  def test_worn_proc_state_has_exactly_one_owner_or_named_loss(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nring~\na ring~\nA ring is here.~\n~\n"
+        b"11 0 3\n0 0 0 5\n2 100 1\n0\n0\n",
+    )
+
+    unbound = emit_object(source, 2_000_200, _resolver)
+    owned = emit_object(source, 2_000_200, _resolver, special_proc="RoL Utility Object")
+    unbound_result = parse_object_file(
+        self._target_path("obj", unbound.text), "obj/20001.obj", self.manifest, set()
+    )
+    owned_result = parse_object_file(
+        self._target_path("obj", owned.text), "obj/20001.obj", self.manifest,
+        {"RoL Utility Object"},
+    )
+
+    self.assertTrue(unbound_result.complete)
+    self.assertTrue(owned_result.complete)
+    self.assertEqual(0, unbound_result.records[0].values[3])
+    self.assertEqual(5, owned_result.records[0].values[3])
+    self.assertIn("worn unbound procedure state 5", " ".join(unbound.diagnostics))
+    self.assertIn(
+        "worn procedure state 5 through assigned special-procedure owner RoL Utility Object",
+        " ".join(owned.diagnostics),
+    )
+
   def test_emitted_magic_item_maps_spells_by_source_name(self) -> None:
     source = self._source_record(
         "obj",

@@ -442,6 +442,23 @@ omitted bonus type/specific fields. Each extension still enforces its own capaci
   review packet records each corpus decision, native penalty and named loss.
   The final combined candidate runtime rehearsal remains a separate release gate;
   generated family audit rows alone do not establish content-release approval.
+- Source `ITEM_WORN` values 1/2 are warmth/prestige. The target has no equivalent
+  fields, so conversion clears and diagnoses them. Source value 0 is generically
+  inert and is cleared so hand-worn records cannot acquire the target's unrelated
+  monk-glove enhancement. Value 3 is retained only when an assigned procedure owns
+  it; otherwise it is a named state loss. The northern Waterdeep umbrella's
+  warmth-times-prestige product affected only source NPC `RateObject()` equipment
+  comparisons; its named loss is not player prestige or cold resistance.
+- The source grammar contains no native B/C/K/S extension payload. The selected 31
+  spellbooks contain language/class/page bookkeeping but no authored spell entries;
+  conversion clears that bookkeeping as a named loss and emits no B block. ProcVal
+  state remains with a compiled special/DG/native owner or is named as unbound loss,
+  never synthesized into C, K or S.
+- Emit G/H/I proficiency/material/size only for converted weapons, using their
+  reviewed native weapon-table profile. Source objects have no corresponding generic
+  metadata, so nonweapons emit none and receive the native defaults: no proficiency,
+  undefined material and medium size. Do not infer mechanically active nonweapon
+  metadata from descriptive text.
 - Weapon profiles distinguish melee, launchers, thrown weapons, ammunition and
   quivers. Javelin names alone do not establish throwing intent; thrown darts and
   blowgun ammunition are distinct. Use the classifier audit and reviewed
@@ -450,8 +467,9 @@ omitted bonus type/specific fields. Each extension still enforces its own capaci
   Converted ships retain boat behavior and receive target `ITEM_MAGLIGHT`.
   Magical item light follows direct room, inventory, and equipment placement;
   containers conceal it, and magical darkness takes precedence.
-- Structured extension losses still require explicit review before claiming
-  complete object equivalence.
+- A conversion review must retain per-record extension/procedure/loss evidence before
+  claiming object equivalence. The selected integration packet provides that proof;
+  a changed source package or converter must regenerate it.
 
 Track armor inference in [#113](https://github.com/LuminariMUD/Luminari-Source/issues/113), other field policies in
 [#114](https://github.com/LuminariMUD/Luminari-Source/issues/114), and weapon release review in [#115](https://github.com/LuminariMUD/Luminari-Source/issues/115).
