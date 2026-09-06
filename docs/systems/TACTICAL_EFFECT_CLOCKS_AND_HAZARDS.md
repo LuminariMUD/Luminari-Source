@@ -1,6 +1,6 @@
 # Tactical effect clocks and hazard exposure
 
-Assigned issue: #107. Status: implementation contract; not implemented or accepted.
+Assigned issue: #107. Status: short-defense pilot implemented; remaining migration and acceptance open.
 Source inspection: fix/open-issue-repairs at d13732245, 2026-09-06.
 
 ## Existing behavior and integration points
@@ -148,3 +148,32 @@ The serial resides on char_data and survives membership replacement and merging.
 New mobile instances reset it after copying their prototype. This is runtime
 identity, not a player save field. The snapshot is read-only and owns no event;
 effect duration and behavior migration still need to consume it.
+
+## Defensive Casting pilot
+
+`tactical_effects.c` owns the first migrated feature. A fresh activation in a
+semantic encounter stores the following character turn serial and expires before
+actions are announced. Outside combat one native character-owned expiry runs six
+seconds after activation. The old proc_d20_round_one decrement is removed.
+
+A pre-existing elapsed interval retains its exact remaining time when combat
+starts. It is not stretched to the newly admitted turn boundary. A fresh cast
+inside combat refreshes the feature using the subject-relative rule. Leaving
+combat converts the next semantic deadline to one native residual interval.
+Shutdown captures semantic residuals before destroying participant clocks.
+Character removal pauses/cancels native expiry. Loading a saved character resumes
+the saved interval through character_periodic_sync. A link-dead character still
+in the world keeps its live clock; loss of connection cannot freeze its bonus. Native payloads resolve a
+character generation and match the stored event ID before expiring the bonus.
+
+PDCt now writes both the legacy display-round value and residual pulses. The
+loader accepts old one-value records as full remaining rounds. A two-value record
+with zero residual is expired and must not be restored as a fresh round. Runtime
+event IDs, pulse deadlines and turn serials are never persisted. The deployment
+help component is sql/components/help_defensive_casting_clock.sql.
+
+Production-linked coverage includes exact native expiry, no old decrement,
+expiry before semantic action, combat departure, paused elapsed time, legacy
+player-file loading, residual save/load and expired save/load. Further lifecycle
+and merge/re-entry acceptance, bleeding and recurring-save/hazard migration remain
+open. This module deliberately contains no generalized effect scripting language.

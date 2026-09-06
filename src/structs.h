@@ -6941,7 +6941,8 @@ struct player_special_data_saved
       split_enchantment_cooldown; /**< Timestamp until when split enchantment is available again */
 
   /* Wizard Versatile Caster perks */
-  int defensive_casting_timer;     /**< Rounds remaining for defensive casting AC bonus */
+  int defensive_casting_timer;     /**< Legacy/display rounds for defensive casting AC bonus. */
+  int defensive_casting_pulses;    /**< Paused residual interval; zero for legacy records. */
   time_t arcane_recovery_cooldown; /**< Timestamp until when arcane recovery is available again */
   int spell_shield_timer;          /**< Rounds remaining for spell shield effect (10 DR + 4 AC) */
   time_t
@@ -7435,6 +7436,9 @@ struct char_data
   struct event_runtime_handle active_world_event_handle; /**< Earliest autonomous-work deadline. */
   struct primary_activity *primary_activity;             /**< One intentional timed activity. */
   struct ready_action *ready_action;                     /**< Ephemeral entity-topic listener. */
+  struct event_runtime_handle defensive_casting_event;
+  uint64_t defensive_casting_due;
+  uint64_t defensive_casting_turn;
   uint64_t combat_turn_serial; /**< Semantic turns begun in this character incarnation. */
   struct combat_encounter_data *combat_encounter;        /**< Runtime fight-session owner. */
   struct combat_encounter_participant *combat_encounter_participant; /**< Membership node. */

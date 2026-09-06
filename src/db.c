@@ -4765,6 +4765,9 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
 
   *mob = mob_proto[i];
   mob->combat_turn_serial = 0U;
+  mob->defensive_casting_event = EVENT_RUNTIME_HANDLE_NONE;
+  mob->defensive_casting_due = 0U;
+  mob->defensive_casting_turn = 0U;
   mob->next = character_list;
   character_list = mob;
   affected_registry_attach(mob);

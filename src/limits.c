@@ -2334,14 +2334,6 @@ void proc_d20_round_one(struct char_data *i)
   {
     GET_FRIGHTFUL_PRESENCE_TIMER(i)--;
   }
-  if (GET_DEFENSIVE_CASTING_TIMER(i) > 0)
-  {
-    GET_DEFENSIVE_CASTING_TIMER(i)--;
-    if (GET_DEFENSIVE_CASTING_TIMER(i) <= 0)
-    {
-      send_to_char(i, "Your defensive casting bonus fades.\r\n");
-    }
-  }
   if (GET_SPELL_SHIELD_TIMER(i) > 0)
   {
     GET_SPELL_SHIELD_TIMER(i)--;

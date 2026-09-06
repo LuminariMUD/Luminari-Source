@@ -5,6 +5,7 @@
 
 #include "active_world.h"
 #include "utils.h"
+#include "tactical_effects.h"
 #include "activity_manager.h"
 #include "ai_service.h"
 #include "affected_owners.h"
@@ -72,6 +73,8 @@ enum domain_event_status domain_event_runtime_init(void)
   }
   if (status == DOMAIN_EVENT_OK && !ready_action_runtime_init())
     status = DOMAIN_EVENT_ALLOCATION_FAILED;
+  if (status == DOMAIN_EVENT_OK && !tactical_effects_init())
+    status = DOMAIN_EVENT_ALLOCATION_FAILED;
   affected_owners_init();
   character_periodic_init();
   point_update_periodic_init();
@@ -123,6 +126,7 @@ enum domain_event_status domain_event_runtime_init(void)
     character_periodic_shutdown();
     point_update_periodic_shutdown();
     vessel_periodic_shutdown();
+    tactical_effects_shutdown();
     ready_action_runtime_shutdown();
     if (event_type_transaction &&
         event_runtime_rollback_type_registrations(event_type_checkpoint) != GAME_SCHEDULER_OK)
@@ -155,6 +159,7 @@ enum domain_event_status domain_event_runtime_shutdown(void)
   status = domain_event_bus_destroy(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
   {
+    tactical_effects_shutdown();
     ready_action_runtime_shutdown();
     domain_event_world_shutdown();
     runtime_bus = NULL;

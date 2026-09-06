@@ -13,6 +13,7 @@
 #include "structs.h"
 #include "vessels/transport_jobs.h"
 #include "utils.h"
+#include "tactical_effects.h"
 #include "db.h"
 #include "db_init.h"
 #include "handler.h"
@@ -1621,10 +1622,13 @@ int load_char(const char *name, struct char_data *ch)
         }
         else if (!strcmp(tag, "PDCt"))
         {
-          int timer;
-          if (sscanf(line, "%d", &timer) == 1)
+          int timer, remaining = 0;
+          int fields = sscanf(line, "%d %d", &timer, &remaining);
+          if (fields >= 1)
           {
-            ch->player_specials->saved.defensive_casting_timer = timer;
+            ch->player_specials->saved.defensive_casting_timer =
+                timer > 0 && (fields == 1 || remaining > 0) ? timer : 0;
+            ch->player_specials->saved.defensive_casting_pulses = MAX(0, remaining);
           }
         }
         else if (!strcmp(tag, "PARc"))
@@ -3503,7 +3507,8 @@ bool save_char_checked(struct char_data *ch, int mode)
   /* Save Defensive Casting timer */
   if (ch->player_specials->saved.defensive_casting_timer > 0)
   {
-    BUFFER_WRITE("PDCt: %d\n", ch->player_specials->saved.defensive_casting_timer);
+    BUFFER_WRITE("PDCt: %d %d\n", ch->player_specials->saved.defensive_casting_timer,
+                 tactical_defense_remaining(ch));
   }
 
   /* Save Arcane Recovery cooldown */

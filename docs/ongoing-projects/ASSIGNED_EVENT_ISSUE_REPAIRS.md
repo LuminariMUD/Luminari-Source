@@ -767,3 +767,32 @@ actual effect-owner integration.
 Validation: the final `make -j10 test` passed 1,208 tests without compiler
 warnings; subsequent `make install` succeeded. #107 implementation and the
 remaining assigned batch are still open.
+
+## Defensive Casting clock pilot checkpoint (2026-09-06)
+
+Wizard Defensive Casting now uses the existing native scheduler outside combat
+and its subject's next semantic turn when freshly activated in combat. The old
+proc_d20_round_one decrement is removed. A running elapsed interval is preserved
+on combat admission; leaving combat converts the next turn's residual time into
+a native expiry rather than restarting six seconds. Payloads carry generation
+handles and expire only the current event ID. Shutdown captures semantic clocks
+before membership destruction; character removal pauses/cancels native expiry.
+A link-dead character remaining in world continues to expire normally.
+
+PDCt persists a residual pulse interval alongside the legacy display-round field.
+Old one-field saves still load; an explicitly zero residual cannot resurrect a
+fresh round. No runtime event handle, pulse deadline or turn serial is written.
+New mobile instances clear the runtime clock fields after prototype copying.
+
+Seven production-linked cases cover exact native expiry, the removed decrement,
+expiry before semantic actions, residual combat departure, pause/resume, a live
+character without a descriptor, legacy loading, actual residual save/load and
+expired saved state. Some cases cover multiple invariants. Flat help, development
+DB help and sql/components/help_defensive_casting_clock.sql agree on the rules.
+Both build manifests include the new native owner source.
+
+Validation: final `make -j10 test` passed 1,215 tests without compiler warnings;
+`make install` succeeded afterward. Remaining #107 work includes further
+lifecycle/admission/merge acceptance, bleeding and recurring saves, and committed
+hazard exposure. The assigned batch and final measurement/release gates remain
+open; this checkpoint does not mark #107 complete.

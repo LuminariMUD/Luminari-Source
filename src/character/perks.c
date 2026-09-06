@@ -16,6 +16,7 @@
 #endif
 
 #include "utils.h"
+#include "tactical_effects.h"
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
@@ -18413,8 +18414,8 @@ void activate_defensive_casting(struct char_data *ch)
   if (!has_perk(ch, PERK_WIZARD_DEFENSIVE_CASTING))
     return;
 
-  /* Set timer for 1 round (will be decremented in limits.c or combat) */
-  ch->player_specials->saved.defensive_casting_timer = 1;
+  if (!tactical_defense_start(ch))
+    log("SYSERR: unable to admit Defensive Casting expiry.");
 }
 
 /**

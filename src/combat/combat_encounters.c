@@ -3,6 +3,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "tactical_effects.h"
 #include "comm.h"
 #include "dotenv.h"
 #include "actions.h"
@@ -457,6 +458,7 @@ static void restore_semantic_action_events(struct combat_encounter_participant *
   if (participant == NULL || !participant->semantic_state_imported ||
       participant->character == NULL || shutting_down)
     return;
+  tactical_defense_leave_combat(participant->character);
   for (index = 0U; index < NUM_ACTIONS; index++)
   {
     if (participant->action_ready_turn[index] <= participant->turns_started)
@@ -962,6 +964,7 @@ static bool run_semantic_round(struct combat_encounter_participant *participant)
   participant->turns_started++;
   if (participant->character->combat_turn_serial != UINT64_MAX)
     participant->character->combat_turn_serial++;
+  tactical_defense_on_turn(participant->character);
   participant->intent_dispatched = false;
   announce_recovered_actions(participant);
 #ifdef LUMINARI_CUTEST
@@ -1463,6 +1466,23 @@ void combat_encounter_runtime_shutdown(void)
 
   if (!initialized)
     return;
+  for (encounter = encounter_registry; encounter != NULL; encounter = encounter->registry_next)
+  {
+    struct combat_encounter_participant *participant;
+
+    for (participant = encounter->participants; participant != NULL;
+         participant = participant->next)
+      if (encounter_bus == NULL ||
+          domain_event_resolve(encounter_bus, participant->character_handle,
+                               DOMAIN_ENTITY_CHARACTER) == participant->character)
+        tactical_defense_pause(participant->character);
+    for (participant = encounter->pending_additions; participant != NULL;
+         participant = participant->next)
+      if (encounter_bus == NULL ||
+          domain_event_resolve(encounter_bus, participant->character_handle,
+                               DOMAIN_ENTITY_CHARACTER) == participant->character)
+        tactical_defense_pause(participant->character);
+  }
   shutting_down = true;
   while ((encounter = encounter_registry) != NULL)
     destroy_encounter(encounter, false);

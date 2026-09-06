@@ -8,6 +8,8 @@
 #include "../../src/actionqueues.h"
 #include "../../src/actions.h"
 #include "../../src/ready_action.h"
+#include "../../src/tactical_effects.h"
+#include "../../src/combat/combat_encounters.h"
 #include "../../src/activity_manager.h"
 #include "../../src/magic/buff_sequence.h"
 #include "../../src/magic/spell_prep.h"
@@ -3805,4 +3807,173 @@ void Test_gameplay_ranged_miss_commits_once_and_releases_projectile(CuTest *tc)
 void Test_gameplay_dg_fight_ammunition_extraction_aborts_before_attack_commitment(CuTest *tc)
 {
   verify_committed_attack_boundary(tc, 10);
+}
+
+struct defense_turn_trace
+{
+  struct char_data *subject;
+  bool expired_before_action;
+};
+
+static bool observe_defense_turn(struct char_data *ch, unsigned int phase, void *context)
+{
+  struct defense_turn_trace *trace = context;
+
+  (void)phase;
+  if (ch == trace->subject)
+    trace->expired_before_action = !has_defensive_casting_active(ch);
+  return true;
+}
+
+static void verify_tactical_defense_clock(CuTest *tc, int scenario)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct char_data *saved_characters = character_list;
+  struct defense_turn_trace trace = {0};
+  unsigned long saved_pulse = pulse;
+
+  begin_gameplay_fixture(&f);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  pulse = 24000U;
+  event_init();
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.next = &f.victim;
+  character_list = &f.actor;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  trace.subject = &f.actor;
+  combat_encounter_test_set_phase_callback(observe_defense_turn, &trace);
+  if (scenario == 1 || scenario == 2)
+  {
+    FIGHTING(&f.actor) = &f.victim;
+    FIGHTING(&f.victim) = &f.actor;
+    CuAssertTrue(tc, combat_encounter_join(&f.actor, &f.victim, 1));
+    CuAssertTrue(tc, combat_encounter_join(&f.victim, &f.actor, 1));
+  }
+  CuAssertTrue(tc, tactical_defense_start(&f.actor));
+  CuAssertIntEquals(tc, 4, get_defensive_casting_ac_bonus(&f.actor));
+  proc_d20_round_one(&f.actor);
+  CuAssertTrue(tc, has_defensive_casting_active(&f.actor));
+  pulse += 3 RL_SEC;
+  CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
+  if (scenario == 0)
+  {
+    tactical_defense_pause(&f.actor);
+    pulse += 40 RL_SEC;
+    CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
+    tactical_defense_resume(&f.actor);
+  }
+  else if (scenario == 2)
+  {
+    combat_encounter_leave(&f.actor, COMBAT_ENCOUNTER_DEPARTURE_MOVED);
+    combat_encounter_leave(&f.victim, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
+    FIGHTING(&f.actor) = FIGHTING(&f.victim) = NULL;
+    CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
+    CuAssertIntEquals(tc, 0, f.actor.defensive_casting_turn);
+  }
+  pulse += (3 RL_SEC) - 1;
+  event_test_advance();
+  CuAssertTrue(tc, has_defensive_casting_active(&f.actor));
+  pulse++;
+  event_test_advance();
+  CuAssertTrue(tc, !has_defensive_casting_active(&f.actor));
+  if (scenario == 1)
+    CuAssertTrue(tc, trace.expired_before_action);
+  CuAssertIntEquals(tc, 0, tactical_defense_remaining(&f.actor));
+  tactical_defense_pause(&f.actor);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  if (f.actor.events != NULL)
+    free_list(f.actor.events);
+  if (f.victim.events != NULL)
+    free_list(f.victim.events);
+  character_list = saved_characters;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&f);
+}
+
+void Test_gameplay_defensive_casting_preserves_paused_native_interval(CuTest *tc)
+{
+  verify_tactical_defense_clock(tc, 0);
+}
+
+void Test_gameplay_defensive_casting_expires_before_semantic_action(CuTest *tc)
+{
+  verify_tactical_defense_clock(tc, 1);
+}
+
+void Test_gameplay_defensive_casting_combat_departure_preserves_residual_interval(CuTest *tc)
+{
+  verify_tactical_defense_clock(tc, 2);
+}
+
+static void verify_defense_persistence(CuTest *tc, int format)
+{
+  struct player_index_element index[1] = {0};
+  struct player_index_element *saved_table = player_table;
+  int saved_top = top_of_p_table;
+  struct char_data *source = new_char();
+  struct char_data *loaded = new_char();
+  char directory[PATH_MAX], filename[MAX_FILEPATH], name[32];
+  FILE *file;
+  int result, remaining, timer;
+
+  snprintf(name, sizeof(name), "Zzdf%ld", (long)getpid());
+  index[0].name = name;
+  index[0].id = 4250;
+  index[0].level = 7;
+  player_table = index;
+  top_of_p_table = 0;
+  source->player.name = strdup(name);
+  GET_PFILEPOS(source) = 0;
+  GET_IDNUM(source) = 4250;
+  GET_LEVEL(source) = 7;
+  GET_DEFENSIVE_CASTING_TIMER(source) = 1;
+  source->player_specials->saved.defensive_casting_pulses = 17;
+  CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
+  CuAssertIntEquals(tc, 0, chdir("lib"));
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
+  if (format == 1)
+    CuAssertTrue(tc, save_char_checked(source, 0));
+  else
+  {
+    file = fopen(filename, "w");
+    CuAssertPtrNotNull(tc, file);
+    fprintf(file, "Name: %s\nId  : 4250\nLevl: 7\nPDCt: %s\n", name, format == 0 ? "1" : "1 0");
+    fclose(file);
+  }
+  result = load_char(name, loaded);
+  remaining = tactical_defense_remaining(loaded);
+  timer = GET_DEFENSIVE_CASTING_TIMER(loaded);
+  unlink(filename);
+  CuAssertIntEquals(tc, 0, chdir(directory));
+  free_char(source);
+  free_char(loaded);
+  player_table = saved_table;
+  top_of_p_table = saved_top;
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertIntEquals(tc, format == 0 ? 6 RL_SEC : format == 1 ? 17 : 0, remaining);
+  CuAssertIntEquals(tc, format == 2 ? 0 : 1, timer);
+}
+
+void Test_gameplay_defensive_casting_loads_legacy_round_timer(CuTest *tc)
+{
+  verify_defense_persistence(tc, 0);
+}
+
+void Test_gameplay_defensive_casting_round_trips_residual_pulses(CuTest *tc)
+{
+  verify_defense_persistence(tc, 1);
+}
+
+void Test_gameplay_defensive_casting_does_not_restore_expired_saved_interval(CuTest *tc)
+{
+  verify_defense_persistence(tc, 2);
+}
+
+void Test_gameplay_defensive_casting_live_character_without_descriptor_keeps_expiring(CuTest *tc)
+{
+  verify_tactical_defense_clock(tc, 3);
 }

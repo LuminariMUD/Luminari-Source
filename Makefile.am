@@ -32,6 +32,8 @@ luminari_SOURCES = \
 	src/combat/act.offensive.c \
 	src/act.other.c \
 	src/ready_action.c \
+	src/tactical_effects.c \
+	src/tactical_effects.h \
 	src/act.social.c \
 	src/act.wizard.c \
 	src/actionqueues.c \
@@ -863,6 +865,7 @@ EXTRA_DIST = \
 	sql/components/help_nature_survival_entries.sql \
 	sql/components/help_buff_sequence_entry.sql \
 	sql/components/help_counterspell_readiness.sql \
+	sql/components/help_defensive_casting_clock.sql \
 	sql/components/help_staff_event_agenda_entry.sql \
 	sql/components/help_command_sweep_entries.sql \
 	sql/components/help_dg_damage_trigger.sql \

@@ -446,6 +446,7 @@ set(SRC_C_FILES
     src/combat/act.offensive.c
     src/act.other.c
     src/ready_action.c
+    src/tactical_effects.c
     src/act.social.c
     src/act.wizard.c
     src/actionqueues.c
