@@ -73,6 +73,7 @@ _CODE_EVIDENCE_PATHS = (
     "scripts/world/wtool_lib/rol_identity.py",
     "scripts/world/wtool_lib/rol_inventory.py",
     "scripts/world/wtool_lib/rol_discovery.py",
+    "scripts/world/wtool_lib/rol_capability_audit.py",
     "scripts/world/wtool_lib/source.py",
     "scripts/world/wtool_lib/flags.py",
     "scripts/world/wtool_lib/constants.py",
