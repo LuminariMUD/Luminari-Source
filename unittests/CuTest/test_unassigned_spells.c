@@ -749,6 +749,59 @@ void TestCamouflageHasDistinctStateAndBreaksCleanly(CuTest *tc)
   CuAssertTrue(tc, !AFF_FLAGGED(&ch, AFF_HIDE));
 }
 
+void TestPhantomHealingIsRepaidExactlyOnceOnExpiryOrRemoval(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  struct affected_type *af;
+  int removal;
+  int wounded;
+  int remaining_hit;
+  int repeated_hit;
+  bool remaining_affect;
+
+  mag_assign_spells();
+  for (removal = 0; removal < 3; removal++)
+  {
+    for (wounded = 0; wounded < 2; wounded++)
+    {
+      clear_char(&ch);
+      memset(&specials, 0, sizeof(specials));
+      ch.player_specials = &specials;
+      GET_LEVEL(&ch) = 20;
+      GET_REAL_RACE(&ch) = RACE_HUMAN;
+      GET_REAL_MAX_HIT(&ch) = GET_MAX_HIT(&ch) = 100;
+      GET_HIT(&ch) = 20;
+      spell_phantom_heal(20, &ch, &ch, NULL, CAST_SPELL);
+      af = find_test_affect(&ch, SPELL_PHANTOM_HEAL, APPLY_SPECIAL);
+      CuAssertPtrNotNull(tc, af);
+      CuAssertIntEquals(tc, 50, GET_HIT(&ch));
+      if (wounded)
+        GET_HIT(&ch) = 5;
+
+      if (removal == 0)
+      {
+        af->duration = 0;
+        affect_update_character_one(&ch);
+      }
+      else if (removal == 1)
+        affect_from_char(&ch, SPELL_PHANTOM_HEAL);
+      else
+        spell_dispel_magic(20, &ch, &ch, NULL, CAST_SPELL);
+
+      remaining_hit = GET_HIT(&ch);
+      remaining_affect = affected_by_spell(&ch, SPELL_PHANTOM_HEAL);
+      affect_from_char(&ch, SPELL_PHANTOM_HEAL);
+      affect_update_character_one(&ch);
+      repeated_hit = GET_HIT(&ch);
+      remove_test_affects(&ch);
+      CuAssertTrue(tc, !remaining_affect);
+      CuAssertIntEquals(tc, wounded ? -10 : 20, remaining_hit);
+      CuAssertIntEquals(tc, remaining_hit, repeated_hit);
+    }
+  }
+}
+
 void TestUnseenServantAddsOnlyItsStoredCarryCapacity(CuTest *tc)
 {
   struct char_data ch;

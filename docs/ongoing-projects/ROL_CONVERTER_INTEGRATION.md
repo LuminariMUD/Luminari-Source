@@ -238,16 +238,56 @@ store generated evidence in existing ignored run storage; no new framework or se
   comes from `newbard.c` for Bard and Battlechanter at level 31, not the disabled ordinary
   registration. The six historically unassigned source spells remain present; call lycanthrope
   is a seventh spell with no live source class assignment in this combined inventory.
-  No static target class/domain assignment was found for these 89 IDs. Actual initialized
-  access, the remaining per-handler trace, proposed progression and balance still need review.
+  No static target class/domain assignment was found for these 89 IDs. Proposed progression,
+  balance and final player/content-only dispositions still need review.
 - Corrected the review inventory's level terminology after tracing `sparser.c:SPELL_ADD()`,
   `structs.h:rlevel`, `memorize.c:GetMaxCircle_level()` and `guild.c` learning checks.
   The source registration argument is a spell circle. With this pinned source's mortal cap 50
   and ten circles, ordinary learning starts at `5 * circle - 4`; performance levels are
   separate. Both `source_spell_circle` and `source_learning_level` are now recorded, so source
   circle 10 is not accidentally proposed as target character level 10. Target
-  `class.c:spell_assignment()` likewise records a circle consumed by `init_spell_levels()`;
-  target character acquisition still needs the class's actual progression/slot tables.
+  `class.c:spell_assignment()` instead records a character level: `init_spell_levels()` passes
+  it unchanged through `spell_level()` to `spell_info[].min_level[]`. For example, Wizard
+  second-circle spells are assigned level 3; `compute_spells_circle()` derives their circle
+  with `(min_level + 1) / 2`. Other classes use their own conversions. Domain registration
+  positions are circles, converted to levels by `init_domain_spell_level()`. The static
+  inventory fields now distinguish `assigned_character_level` from source spell circles.
+- Captured all 89 spells after actual class/domain initialization in a separate debugger
+  process using the existing production-linked `cutest` binary. `access-capture.gdb` calls
+  the relevant boot initializers through `init_spell_levels()` and writes
+  `initialized-spell-access.json`, including the binary SHA-256 and initialization sequence.
+  All 3,382 class entries (89 x 38) and 1,424 domain entries (89 x 16) remain `LVL_IMMORT`
+  (31). `spell-class-matrix.json` now includes these arrays and marks initialized access
+  verified; proposed access remains unapproved. Command:
+  `gdb --batch -x lib/rol-conversion/integration-20260906/access-capture.gdb ./cutest`
+  (`access-capture.log`, exit 0). The debugger terminated its own process after capture;
+  it did not attach to the running MUD or change persistence. Ablation: reuse the existing
+  executable and review artifacts; no temporary access assignments or test infrastructure.
+- The historical 75 spells now have per-spell native registration, routine flags, manual
+  dispatch where applicable, implementation references, and behavior notes in
+  `spell-handler-review.json` (generator: `spell-handler-review.py`), joined into the existing
+  class matrix. This traces `call_magic()` through manual, damage, affect, loop, area, group,
+  object and room handlers, including the external consumers for poison, comprehension,
+  carrying capacity, creature/area wards, docility, death pact and breathable water.
+  It records consequential differences: permanent versus temporary age changes, source-scale
+  blessing thresholds, spell-based flight versus source song acquisition, and fire fog's
+  lighting effect. These are current behavior observations, not approved balance choices or
+  a substitute for final runtime rehearsal.
+- Phantom-heal cleanup review found borrowed HP was repaid only on natural expiry; dispel
+  and explicit removal retained it. Outcome: repay stored temporary HP exactly once whenever
+  normal affect removal ends this spell. Non-goals: change healing magnitude, the existing
+  -10 HP floor, player access, or character teardown/loading. Files: `handler.c` owns the
+  shared repayment; `magic.c` loses the expiry-only duplicate; `test_unassigned_spells.c`
+  adds expiry, explicit-removal and self-dispel cases, both with and without intervening
+  damage. Ablation: move the existing logic to `affect_remove()`; no new helper or alternate
+  cleanup framework. Baseline `make test -j8` reproduced expected HP 20 versus actual 50
+  (1,137 passed, one failed; `phantom-baseline-cutest.log`, exit 2), followed by successful
+  `make install`. Final `make test -j8` passed all 1,138 CuTest cases and the other root
+  gates (`phantom-final-cutest.log`, exit 0); subsequent `make install` passed
+  (`phantom-final-install.log`, exit 0). The eight optional help-sync database tests remain
+  skipped. Final compilation has no warnings, formatting hooks pass, and no root-level
+  `luminari` binary remains. Existing Phase 8 evidence already covers all three changed
+  source/test files. Initialized-access capture was refreshed against this tested binary.
 
 - Extension-capacity review found two target-validator mismatches with the current native
   `db.c:parse_object()`: the Python parser shared the A/B counter, and rejected legacy A
