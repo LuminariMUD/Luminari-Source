@@ -183,6 +183,53 @@ store generated evidence in existing ignored run storage; no new framework or se
   `make test-world-tools` passed all 518 tests with no skips (`ship-world-tools-complete.log`
   and `.exit`, exit 0). The root test command's eight optional help-sync MariaDB tests remain
   skipped; they are not ship-light verification. Isolated in-game verification is still pending.
+- Ship-light commit: `67a6efa61` (`fix: preserve RoL ship light through object movement`).
+- The current full-world `rol-capability-audit` passed under the same 24 GiB bound
+  (`object-policy-audit/`, command log and `.exit`: exit 0, 1m59s, 14,086,520 KiB peak RSS).
+  It disposes all 71,680 records and emits all 69,922 convertible ordinary records, including
+  10,377 objects, with zero transform exceptions or unmapped symbol observations. The 19,000
+  diagnostics remain review input; successful emission does not approve object policies or
+  complete special reconciliation. No live target writes occurred.
+- Extended the procedure inventory using the frozen parsed records and discovery's reachable
+  object bindings (`proc-inventory.py`, `proc-inventory.log`, `proc-review.json`). Each row
+  retains source path/hash, target identity, raw proc slot/value, and actual active bindings.
+  All ten nonzero armor ProcVal records and eight of fourteen nonzero weapon ProcVal records
+  have no active source binding. Conversely, 22 armor and 145 weapon records have bindings,
+  most with zero authored ProcVal. Source `specs.include.h:135` and `specs.generic.c:211-380`
+  define these slots as mutable procedure state, including recharge bits, rather than a generic
+  spell identifier. The six bound nonzero weapons already map to `RoL Banana` or `RoL Weapon
+  Proc`; the full Phase 6 ledger now confirms those existing owners as resolved.
+  Proposed inert-metadata losses remain pending review; no spell blocks are synthesized.
+- Reviewed the eight short armor base rows against source `db.c:read_object()` and
+  `GetNewObj()`. `undermountain2.obj` 93407 has three values; the source zero-initializes the
+  missing fourth value, so this alone is not malformed input. The other seven records
+  (98346, 25190, 2829, 10396-10399, with paths in `armor-review.json`) really omit economy
+  integers: their next token is an extension or record header, not a continuation integer.
+  Failed source `fscanf` calls reuse the previous temporary integer; this accidental runtime
+  behavior is not an authored level or proc. Record-specific normalization/loss decisions
+  remain required, particularly 25190 whose missing economy row currently consumes `E`.
+
+- Phase 6 completed successfully (`object-special-reconciliation/`, command log and `.exit`,
+  exit 0): all 1,721 direct bindings, 5,531 data-driven bindings, 247 implicit race bindings,
+  and 848 ACT_SPEC records are resolved; all 795 distinct direct handlers are located.
+  The ledger preserves the existing explicit source exclusions. No live target writes occurred.
+- The fourteen later spell registrations and handlers already exist. Cleanup review found one
+  independent acceptance defect to reproduce: `affect_update_character_one()` removes expired
+  elemental-embodiment affects individually, bypassing the helper that clears the other end
+  of the caster/recipient link. Outcome: natural expiry clears both ends. Non-goals: spell
+  balance and player access remain unchanged. Files: `magic.c` and the existing
+  `test_unassigned_spells.c`. Proof: caster-side, recipient-side, and self-cast expiry, with
+  an unrelated timed affect decremented exactly once, then the root suite and installation.
+  Plan-ablation: reuse the current linked-removal helper before the ordinary expiry loop;
+  no new event, storage, public API, or spell implementation is needed.
+- The expiry regression reproduced exactly one failure in the original runtime (1,136 pass,
+  one failure; `embodiment-before-cutest.log`). The repair clears linked components before
+  ordinary expiry, preserving one decrement for unrelated affects and the original processed
+  affect count. All 1,137 CuTests then passed and `make -j4 install` succeeded (both exit 0;
+  `embodiment-final-cutest.log`, `embodiment-final-install.log`, and `.exit` files).
+  The eight optional help-sync database tests remain skipped. Formatting hooks passed.
+  Phase 8 now captures the changed magic runtime and its regression file; its 11 existing
+  tests pass (`embodiment-phase8-tests.log`). No player acquisition or balance rule changed.
 
 ### Pre-implementation observations
 
@@ -262,7 +309,7 @@ JSON files above; procedure-owner and player spell/access matrices still require
 | Armor value 0 protects when positive; target `handler.c:apply_ac()` accepts body/head/arms/legs/shield and the explicit tail exception. | Preserve standard armor protection independently of family. Infer family from identity/material and apply its real target penalties. Never set load-time table-stat replacement. | Pending family/penalty approval; inspect five mixed masks and eight short numeric base rows before assigning final dispositions. |
 | Nonstandard armor wearables have no value-0 AC runtime effect. There are 13 negative-protection records, including seven shackles numbered 35600-35606. | Proposed `ITEM_WORN` with signed `APPLY_AC_NEW`: divide magnitude by ten, round toward zero, retain minimum magnitude one for nonzero values; use existing universal bonus type 23 and preserve authored applies. | Pending scaling/stacking/curse approval; prevent double-counting and test equip/unequip. Dedicated-tail behavior needs its own disposition. |
 | Source `which.c` labels armor values 1/2 as warmth/prestige; 101/25 records have nonzero values. | Proposed explicit named losses where source/target consumer review confirms no supported equivalent; clear obsolete target value slots. | Runtime/source-consumer review and loss approval pending. |
-| Ten armor records have nonzero value 3, labeled ProcVal. Source `read_object()` does not interpret that value as a generic spell extension. | Trace each record's actual assigned procedure before selecting existing `Z`/DG ownership or an inert-data loss. A raw ProcVal is not sufficient to synthesize a target `C` or `S` block. | Complete per-procedure review and verify no duplicate effects. |
+| Ten armor records have nonzero value 3, labeled ProcVal; none has an active source procedure binding. Source feature helpers use this slot as mutable state/recharge bits. | Proposed named inert-metadata loss for these ten values. Bound armor procedures (22 records, authored ProcVal zero) retain their existing `Z`/DG owner instead of synthesizing `C` or `S`. | `proc-review.json` records identities and bindings; loss approval and final Phase 6 owner verification remain pending. |
 | Source `db.c:read_object()` reads weight/cost/durability, followed by two optional affect words; there is no object-level field. | Proposed permanent target level 1, preserving the existing conversion policy. Magic-item caster level remains separate. | Explicit level-policy approval pending. |
 | Source loader extensions are extra descriptions, applies, and trap data. Target `db.c` supports `B` (two fields), `C` (seven plus optional command), `K` (five), and `S` (four). | Emit extensions only where a traced source procedure supplies equivalent semantics. Do not treat unsupported trailing source tokens as authored target extensions. | Complete procedure/loader/writer/runtime mapping and capacity tests. |
 | Target `G/H/I` are proficiency/material/size; zero size becomes medium at load. | Retain current inferred weapon metadata; derive nonweapon fields only from reviewed source identity or supported mechanics. | Nonweapon material/size/proficiency rules and defaults pending. |
@@ -415,7 +462,7 @@ Player-visible changes also require both the help database and `lib/text/help/he
   per-class counts. Record source name/ID/class/learning level, target ID and aliases, real
   handler/dispatch, current class/domain access, proposed target level/acquisition path,
   prerequisites, balance rationale, and final player-access or content-only disposition.
-- [ ] 117.2 Verify each of the later 14 claimed gaps: heal undead, dark wrath, unholy aura,
+- [x] 117.2 Verify each of the later 14 claimed gaps: heal undead, dark wrath, unholy aura,
   camouflage, cyclone, lich touch, lava burst, ice layer, call lycanthrope, Tazrik's frenzied
   hound, and water/fire/earth/air elemental embodiment. Trace the current registration through
   its actual handler and cleanup behavior; reuse existing implementations and repair only
@@ -456,6 +503,40 @@ Exit: all five identities have explicit outcomes; every audited spell has workin
 access or an approved content-only disposition; acquisition/balance regressions pass; and the
 affected help entries and in-game behavior agree. Deferring a required progression
 decision does not close this issue.
+
+### Later fourteen-spell handler review
+
+The native IDs below are defined in `magic/spells.h:686-699`, registered in
+`magic/spell_parser.c:6550-6583`, and dispatched through its manual switch or the native
+damage/affect/area routines. Existing `test_unassigned_spells.c` regressions pass in the
+1,136-test ship validation. Its registration-default checks call only `mag_assign_spells()`;
+they do not prove access after class/domain initialization. No new class access is approved.
+
+| Spell (target ID) | Current handler and behavior | Cleanup/verification |
+|-------------------|------------------------------|----------------------|
+| Heal undead (599) | `spells.c:spell_heal_undead`; undead-only healing, blackmantle refusal, lich-to-lich rule, HP cap. | Immediate effect; existing lich/blackmantle regression. |
+| Dark wrath (600) | `spell_dark_wrath`; out-of-combat self buff to damage and all three spell saves. | Timed affects; existing bonus/duration regression. |
+| Unholy aura (601) | `spell_unholy_aura`; own spell identity with fire-shield flag, rejects an existing shield. | Timed affect; existing identity/flag regression. |
+| Camouflage (602) | `spell_camouflage`; unmounted self hide, ends fights, distinct affect. | `remove_spell_camouflage` is called by combat, interpreter and unhide paths; existing break-state regression. |
+| Cyclone (603) | `magic.c:mag_areas` and scaled damage; player wind threshold, air damage, Reflex save. | Immediate damage; existing wind-threshold regression. |
+| Lich touch (604) | Native damage plus `mag_affects`; initial damage and separately saved weakness/slow, dragon and elemental/shield rules. | Timed debuffs; existing interaction regression. Separate from `FEAT_LICH_TOUCH` and `RACIAL_LICH_TOUCH`. |
+| Lava burst (605) | Native area/fire damage, then ignition only for a damaged survivor. | Five-tick burning affect; existing survivor/ignition regression. |
+| Ice layer (606) | `spell_ice_layer`; posture/immunity check, Reflex save, damage then knockdown. | Returns on lethal damage; existing immunity regression. |
+| Call lycanthrope (607) | `spell_call_lycanthrope`; flagged prototype selection, one-follower limit, bounded summon level and charm check. | Dedicated character event dismisses or breaks charm; existing bounds/registry regressions. |
+| Tazrik's frenzied hound (608) | `spell_tazriks_frenzied_hound`; three indexed event strikes, eligible-target selection and room identity. | Dedicated character event terminates on exhaustion/no target; existing event-state/registry regressions. |
+| Water embodiment (609) | Shared profile: HP factor 5, size 25%, fire/poison/acid resistance, water breathing. | Shared linked cleanup/profile regression; natural-expiry regression now passes. |
+| Fire embodiment (610) | Shared profile: HP factor 7, size 35%, natural armor 6, poison/fire resistance, shield/haste/flight. | Same shared cleanup and regression. |
+| Earth embodiment (611) | Shared profile: HP factor 7 (the source's live factor), size 50%, poison/cold resistance. | Same shared cleanup and regression. |
+| Air embodiment (612) | Shared profile: HP factor 3, size 15%, natural armor 5, poison/acid resistance, haste/flight. | Same shared cleanup and regression. |
+
+Both summon callbacks are registered as `EVENT_CHAR` in `mud_event_list.c:531-534`;
+`handler.c:extract_char_final()` clears owned events through `clear_char_event_list()`.
+Embodiment effects use paired script IDs and a maintenance affect; explicit removal and
+extraction call the linked cleanup helper, and player serialization excludes these transient
+effects. The shared dispel helper skips them and restores retained affect flags after self-dispel.
+Natural expiry now clears both linked ends before individual affects are removed. The new
+production-linked regression covers expiry on the caster, recipient, and a self-cast link,
+and confirms unrelated affects tick once. Player progression and final in-game checks remain open.
 
 ## Step 5: review final weapon inference output (#115)
 
