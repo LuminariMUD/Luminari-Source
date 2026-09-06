@@ -37,7 +37,7 @@ repos:
       # Build verification (pre-push only)
       - id: check-build
         name: Verify build compiles
-        entry: bash -c 'make -j$(nproc) -q 2>/dev/null || echo "Build check skipped"'
+        entry: bash -c 'make -j"$(nproc)"'
         language: system
         pass_filenames: false
         stages: [pre-push]

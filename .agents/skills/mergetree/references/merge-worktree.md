@@ -12,14 +12,14 @@
 ## 1. Mission and invariants
 
 Merge one worktree's feature branch into the canonical default-branch worktree, normally
-`master` in this repository. Keep the result minimal, reviewable, buildable, tested, committed,
-and published. Use the feature intent as the tiebreaker while preserving compatible target-branch
-behavior.
+`master` in this repository. Keep the result minimal, reviewable, buildable, tested, and committed.
+Publish only when requested. Use the feature intent as the tiebreaker while preserving compatible
+target-branch behavior.
 
-Operate autonomously once the user invokes this skill. Report the plan as a progress update, then
-continue without waiting for routine approval. Stop only for production state, protected or secret
-material, destructive history changes, unresolved intent or semantics, unsafe remote divergence,
-or failures that require a broader design decision.
+Operate autonomously once the user invokes this skill for the requested endpoint. Report the plan as
+a progress update, then continue without waiting for routine approval. Stop only for production
+state, protected or secret material, destructive history changes, unresolved intent or semantics,
+unsafe remote divergence, or failures that require a broader design decision.
 
 Obtain or establish these facts before proceeding: canonical worktree path, source worktree
 path, target branch and ref, source branch and ref, and a one-to-three-sentence feature intent.
@@ -36,7 +36,7 @@ Enforce these invariants:
 - Never delete a branch or worktree, rebase the target, rewrite history, force-update a ref,
   bypass hooks, run `git reset --hard` or `git clean -fd`, or use force-push variants. Ordinary
   non-force fetches, pulls, and pushes for the exact source and target refs are part of this
-  workflow.
+  workflow when synchronization or publication is requested.
 - Do not run `git merge --abort` merely because conflicts exist. Leave the merge state intact and
   stop only when the selected refs or operation are proven unsafe or incorrect.
 - Modify only conflicts and files directly required for semantic integration, compilation,
@@ -61,15 +61,16 @@ Make cleanliness and publication the first gate, before deep feature analysis:
 1. Locate worktrees and refs with `git worktree list --porcelain`, `git rev-parse --show-toplevel`,
    `git branch --show-current`, and `git status --short --branch` in both worktrees. Confirm the
    canonical worktree has the detected default branch checked out.
-2. Fetch the configured remote to refresh tracking refs. A fetch is non-destructive; announce it as
-   progress but do not wait for approval. If it fails, retry only when the failure is transient.
-   Stop when publication cannot be verified.
+2. When synchronization or publication is requested, fetch the configured remote to refresh tracking
+   refs. A fetch is non-destructive; announce it as progress but do not wait for approval. If it
+   fails, retry only when the failure is transient. If publication was requested and cannot be
+   verified, stop that publication step; complete independent local preparation first.
 3. Inspect every tracked and untracked dirty path before acting. Trace its diff, history, ignore
    rules, and relationship to the branch intent.
-   - For coherent intended work, run proportional checks, create a separate human-authored commit
-     on that branch, and publish it before continuing.
-   - For mixed but separable work, stage and commit coherent groups separately. Never hide unrelated
-     work inside the feature merge.
+   - For coherent intended work, run proportional checks and create a separate human-authored commit
+     when committing is requested. Publish only when publication is requested.
+   - For mixed but separable work, stage and commit coherent groups separately when authorized. Never
+     hide unrelated work inside the feature merge.
    - For provably incidental generated state, restore the exact tracked file or remove the
      untracked artifact. Add an appropriate ignore rule in a separate target cleanup when recurrence
      is likely.
@@ -85,18 +86,16 @@ Make cleanliness and publication the first gate, before deep feature analysis:
      unsafe remote divergence, or a state that cannot be captured losslessly after bounded retries.
      Never guess, discard uncertain work, or publish credentials.
 4. Require the source worktree and the selected merge worktree to be clean after preflight. Determine
-   each branch's upstream and compare
-   it with `git rev-list --left-right --count HEAD...@{upstream}`.
-   - If a clean named branch lacks an upstream, publish it with an ordinary `git push -u` to the
-     configured remote.
-   - If it is behind only, update with `git pull --ff-only`.
-   - If it is ahead only, push it normally.
-   - If it has diverged, create unique safety refs, merge the upstream ref without rebasing or
-     rewriting history, resolve and validate that integration, commit it, and push normally.
-   - If the source is detached and its commit is not contained by a remote ref, create a unique,
-     non-overwriting recovery branch at that exact commit and publish the branch before merging it.
-5. Recheck clean status and require `0 0` divergence from both upstreams. Never use force or bypass
-   a non-fast-forward rejection; fetch and repeat the safe synchronization path instead.
+   each branch's upstream and compare it with `git rev-list --left-right --count HEAD...@{upstream}`.
+   - For a local merge, use the reviewed local source and target refs; do not push source or recovery
+     refs merely to make them mergeable.
+   - When publication is requested, update clean named branches with ordinary non-force operations;
+     resolve divergence without rebasing or rewriting history before pushing.
+   - If the source is detached, merge its exact reviewed commit locally. Create a unique recovery
+     branch only when publication is requested and the commit needs a named ref.
+5. Recheck clean status and unresolved paths. When publication is requested, require `0 0` divergence
+   from the upstream target and verify the push. Never use force or bypass a non-fast-forward
+   rejection; fetch and repeat the safe synchronization path instead.
 
 ## 3. Reconnaissance and execution plan
 
@@ -105,7 +104,7 @@ After preflight, perform merge-specific reconnaissance:
 1. Record `git log -5 --oneline --decorate` for both refs. Inspect their merge base, ahead/behind
    relationship, and `git diff --name-status`, `--stat`, and `--check` for `target...source`.
    Summarize; do not paste large logs. Stop if no merge base exists. If the source has no unique
-   commits, verify the target is published and report that it is already integrated instead of
+   commits, verify the requested target state and report that it is already integrated instead of
    manufacturing a merge commit.
 2. Trace every changed subsystem from definitions, includes, call sites, build manifests, tests,
    help files, and documentation. Do not infer behavior from filenames. Resolve shared/core code
@@ -127,9 +126,10 @@ approval gate.
 ## 4. Merge execution
 
 Return to the canonical worktree, or to the isolated merge worktree selected during dirty-state
-preservation, and recheck `pwd`, environment, branch, HEAD, clean status, and upstream publication.
-Recheck that the source ref still names the reviewed, published commit. If either ref changed after
-reconnaissance, repeat the affected analysis automatically before merging.
+preservation, and recheck `pwd`, environment, branch, HEAD, and clean status. Recheck that the
+source ref still names the reviewed commit; when publication is requested, also verify its remote
+publication. If either ref changed after reconnaissance, repeat the affected analysis automatically
+before merging.
 
 If synchronization changed target HEAD, preserve the original safety ref and create a second unique
 safety ref at the updated HEAD. Never move or overwrite the original ref.
@@ -168,27 +168,19 @@ redesign or production/configuration change outside the established merge scope.
 Before verification, require an empty unresolved-path list and use `git diff --check` plus a scan of
 changed text files for conflict markers. Review both the staged diff and merge status.
 
-At roughly 60 percent of available context, if conflicts or substantial validation remain, do not
-commit. Report the safety refs, target and source commits, resolved and unresolved paths, decisions
-made, remaining ambiguities, commands run, and test results so another context can continue without
-reconstructing the merge.
+Before context compaction, record the selected refs, merge state, decisions, completed checks, and
+remaining work. Continue after compaction; context usage alone is not a reason to stop or leave a
+verified merge uncommitted.
 
 ## 6. Verification, publication, and handoff
 
-Choose targeted tests from the changed subsystem, then run the repository's authoritative checks.
-At minimum, unless the user's invocation explicitly requires a narrower check:
-
-```bash
-make clean
-make -j$(nproc)
-make test-all
-```
-
-`make test-all` runs the production-linked CuTest suite, world tools, protocol parser, character
-rename checks, and `make install`; the install also removes the root-level `luminari` artifact. Use
-`autoreconf -fvi && ./configure` only when configuration files are absent or inputs require it.
-MariaDB is required. Save complete test output outside the repository when tool output may truncate,
-and report the command, exit status, and relevant failure details without dumping huge logs.
+Choose verification from the merged changes. For documentation or instruction-only changes, inspect
+the final diff and run affected formatting, link, and skill-metadata checks; do not build or install
+the server. For code changes, run the affected production-linked tests and required build checks.
+Use a clean build and `make test-all` when build inputs, shared behavior, conflict resolution, or the
+request justify them. MariaDB is required for tests that use it. Save complete test output outside
+the repository when tool output may truncate, and report the command, exit status, and relevant
+failure details without dumping huge logs.
 Diagnose and repair in-scope failures autonomously, then rerun the affected and authoritative gates.
 Stop only when a failure requires unavailable external state or a materially broader design choice.
 
@@ -206,13 +198,14 @@ After tests pass:
    summary, and final `git status --short --branch`. Require no merge-introduced dirt and no
    unresolved markers. Pre-existing edits restored from a verified recovery snapshot are reported
    separately and are not a failed merge.
-4. Fetch the configured target remote again. Verify the upstream target is an ancestor of the
-   validated local target, then publish with an ordinary non-force push. If the push is rejected,
-   fetch and repeat the synchronization, conflict-resolution, and validation path; never force.
+4. When publication is requested, fetch the configured target remote again. Verify the upstream
+   target is an ancestor of the validated local target, then publish with an ordinary non-force push.
+   If the push is rejected, fetch and repeat the synchronization, conflict-resolution, and
+   validation path; never force.
 5. Recheck that the target is clean and has `0 0` divergence from its upstream. Report affected
    subsystems, notable resolutions, tests and exact results, assumptions, safety refs, source and
-   merge commits, published target ref, and any focused follow-up review. Flag anything the
-   second-pass review would reject.
+   merge commits, the published target ref when applicable, and any focused follow-up review. Flag
+   anything the second-pass review would reject.
 
 Do not remove safety refs or delete the source branch/worktree. Do not pause for routine handoff
-approval after the validated target has been published.
+approval after the requested endpoint is complete.
