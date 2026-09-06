@@ -6129,6 +6129,7 @@ struct room_data
   bool affected_registered;                          /**< Runtime affected-room registry state. */
 
   struct moving_room_data *mover; /*  if it's a moving room       */
+  struct event_runtime_handle moving_room_event; /* Live-room deadline, never editor-owned. */
 
   int harvest_material;
   int harvest_material_amount;
@@ -7355,7 +7356,6 @@ struct moving_room_data
 { /*  all room num are VNUM  */
   /*  current state  */
   int resetZonePulse;      /* zone pulses per reset         */
-  int remainingZonePulses; /* zone pulses left until reset  */
   int currentInbound;      /* current conn room (array idx) */
 
   /*  constants  */
@@ -7375,7 +7375,6 @@ struct moving_room_data
 
   struct room_direction_data *dir_option[NUM_OF_DIRS]; /* Directions */
 
-  struct moving_room_data *next; /* the next in the list          */
 };
 
 struct oldNextMove

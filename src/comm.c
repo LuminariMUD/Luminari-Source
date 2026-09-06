@@ -126,7 +126,7 @@
 #include "wilderness/terrain_bridge.h" /* Terrain bridge API server */
 #include "net/i3_client.h"             /* Intermud3 client */
 #include "vessels/vessels.h"           /* Vessel persistence */
-#include "vessels/vessels_moving_rooms.h"
+#include "vessels/moving_room_events.h"
 #include "vessels/vessels_rol.h"
 #include "vessels/vessel_periodic.h"
 #include "asciimap.h"
@@ -533,7 +533,7 @@ int main(int argc, char **argv)
     active_world_begin_bootstrap();
     boot_world();
     active_world_end_bootstrap();
-    if (!runtime_services_init())
+    if (!moving_room_events_bootstrap() || !runtime_services_init())
     {
       log("SYSERR: Unable to initialize required native runtime services.");
       event_free_all();
@@ -796,7 +796,7 @@ static void init_game(ush_int local_port)
   init_lookup_table();
 
   boot_db();
-  if (!runtime_services_init())
+  if (!moving_room_events_bootstrap() || !runtime_services_init())
   {
     log("SYSERR: Unable to initialize required native runtime services.");
     exit(1);
@@ -2120,7 +2120,6 @@ void persistence_scheduler_reset_telemetry(void)
 
 enum runtime_service_kind
 {
-  RUNTIME_SERVICE_MOVING_ROOMS,
   RUNTIME_SERVICE_ONE_SECOND,
   RUNTIME_SERVICE_MINUTE_MAINTENANCE,
   RUNTIME_SERVICE_ZONE,
@@ -2160,8 +2159,6 @@ struct runtime_service
 
 static struct runtime_service runtime_service_table[] = {
 
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MOVING_ROOMS, "service.moving_rooms",
-                          PASSES_PER_SEC * 10),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_ONE_SECOND, "service.one_second", PASSES_PER_SEC),
 
 
@@ -2245,9 +2242,6 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
 {
   switch (kind)
   {
-  case RUNTIME_SERVICE_MOVING_ROOMS:
-    moving_rooms_update();
-    break;
   case RUNTIME_SERVICE_ONE_SECOND:
   {
     unsigned long mud_hour_cadence = (unsigned long)(SECS_PER_MUD_HOUR * PASSES_PER_SEC);

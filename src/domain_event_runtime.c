@@ -1,4 +1,5 @@
 #include "domain_event_runtime.h"
+#include "vessels/moving_room_events.h"
 #include "magic/buff_sequence.h"
 
 #include "active_world.h"
@@ -92,6 +93,8 @@ enum domain_event_status domain_event_runtime_init(void)
   if (status == DOMAIN_EVENT_OK)
     status = character_periodic_register_handlers(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
+    status = moving_room_events_init();
+  if (status == DOMAIN_EVENT_OK)
     status = buff_sequences_init(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
     status = transport_jobs_init(runtime_bus);
@@ -105,6 +108,7 @@ enum domain_event_status domain_event_runtime_init(void)
     status = domain_event_seal(runtime_bus);
   if (status != DOMAIN_EVENT_OK)
   {
+    moving_room_events_shutdown();
     buff_sequences_shutdown();
     transport_jobs_shutdown();
     primary_activity_manager_shutdown();
@@ -132,6 +136,7 @@ enum domain_event_status domain_event_runtime_shutdown(void)
 
   if (runtime_bus == NULL)
     return DOMAIN_EVENT_OK;
+  moving_room_events_shutdown();
   buff_sequences_shutdown();
   transport_jobs_shutdown();
   primary_activity_manager_shutdown();

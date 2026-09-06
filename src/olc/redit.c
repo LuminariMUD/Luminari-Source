@@ -259,6 +259,7 @@ void redit_setup_existing(struct descriptor_data *d, int real_num, int mode __at
   CREATE(room, struct room_data, 1);
 
   *room = world[real_num];
+  room->moving_room_event = EVENT_RUNTIME_HANDLE_NONE;
   room->spec_binding = NULL;
   room->effective_binding = NULL;
 

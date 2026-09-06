@@ -92,7 +92,7 @@ The native clock is complete, but feature discovery/countdowns remain. See `docs
 - [x] Replace descriptor polling for crafting (`craft_update`) and self-buff sequences with owned activities; preserve cancellation, material costs, timing and offline policy.
 - [x] Replace transport `travel_tickdown` with passenger/job deadlines; transit need not occupy a passenger's primary activity.
 - [x] Give supply refresh an explicit online/offline policy and next deadline or justified lazy timestamp.
-- [ ] Replace `movingRoomList` countdown discovery with owned mover deadlines.
+- [x] Replace `movingRoomList` countdown discovery with owned mover deadlines.
 - [ ] Give active staff events named agendas for delay, expiry, portals and population replenishment.
 - [ ] Keep inactive owners unscheduled; test logout, copyover, owner extraction, restart reconstruction and admission failure; expose semantic reasons in `eventdebug`.
 
@@ -410,3 +410,59 @@ Moving-room follow-up trace:
   explicitly preserves existing runtime identities/affected-owner state. New
   mover ownership needs equivalent behavior across array shifts, editor clones
   and same-vnum replacement.
+
+## Moving-room deadline checkpoint
+
+Replaced movingRoomList/remainingZonePulses and service.moving_rooms with native
+`moving-room.relocate` events owned by live room identities. Registration uses
+the existing event_runtime; a single startup pass after world loading admits
+loaded movers. There is no repeated discovery or idle global mover service.
+
+Each callback resolves its room and checks the currently attached mover before
+calling spec_gateway_moving_room. Existing callback arguments, return handling
+and no_specials behavior remain intact. Index zero is valid. Deadlines retain
+resetZonePulse * ten seconds; nonpositive resets retain the former minimum
+ten-second cadence. Delayed dispatch performs one relocation and schedules the
+next deadline from that dispatch, without replaying a backlog of moves.
+
+Runtime handles live on room_data, not shared authored mover metadata. OLC
+editor copies clear them, live same-mover edits preserve remaining time, room
+deletion cancels them, and array shifts retain the stable room identity. Copies
+of mover metadata to a different vnum are rejected rather than scheduling the
+source mover under a new owner. The room diagnostic now reports native seconds
+remaining, or -1 when unscheduled. Runtime shutdown cancels the active job list;
+that list contains already-admitted timers and does not discover or count down
+world rooms.
+
+Existing mover metadata is still borrowed by OLC editor copies; this change
+does not make editors owners of live timers or introduce metadata frees into
+that shared lifetime. Metadata allocation/clone ownership remains an existing
+separate concern; timer ownership is explicit and independently cleaned up.
+
+Validation (2026-09-06): final `make -j10 test` passed with 1,163 gameplay
+cases and all invoked integration checks, with no compiler warnings. Coverage
+includes native callbacks, index zero, no_specials, OLC copies, stale identity,
+delayed dispatch, array reindex and replacement during the running callback.
+`make install` succeeded afterward. No game process was restarted.
+
+Staff-event follow-up checkpoint:
+
+- staff_event_tick is still called from point_update_global_one. It decrements
+  the inter-event delay and active duration, ends expired events before running
+  event-specific work, and maintains jackalope populations/prisoner portals.
+- State accessors exist (set_event_state, clear_event_state, set_event_delay,
+  get_event_time_remaining, get_event_delay), but diagnostics and command gates
+  also read STAFF_EVENT_TIME/STAFF_EVENT_DELAY directly. Replace read-side
+  countdown assumptions together with scheduling, including next_tick-based ETA.
+- start_staff_event currently announces before setting duration and performing
+  event-specific setup. Native admission must precede announcements and spawning
+  so allocation failure cannot leave an announced, unscheduled event.
+- Use existing native timers for expiry, inter-event delay, population and
+  portal/environment agendas. Retain the shared mud-hour phase and make restart
+  policy explicit; do not simply put staff_event_tick behind another periodic
+  timer. End-event cleanup sets the delay, so guard callbacks with the event
+  incarnation to prevent old cleanup or expiry affecting a replacement event.
+
+Remaining assigned scope is still open: staff-event work in #105; #106-109
+beyond the prior committed quest consumers; final #111 measurements; and
+#112 release-gate evidence within the authorized non-production scope.

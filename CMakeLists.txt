@@ -550,6 +550,8 @@ set(SRC_C_FILES
     src/point_update_periodic.h
     src/vessels/vessel_periodic.c
     src/vessels/vessel_periodic.h
+    src/vessels/moving_room_events.c
+    src/vessels/moving_room_events.h
     src/magic/buff_sequence.c
     src/magic/buff_sequence.h
     src/vessels/transport_jobs.c
