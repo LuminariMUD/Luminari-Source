@@ -98,6 +98,7 @@ _CODE_EVIDENCE_PATHS = (
     "unittests/CuTest/test_spec_mechanics.c",
     "unittests/CuTest/test_unassigned_spells.c",
     "unittests/CuTest/test_protocol_parser.c",
+    "unittests/CuTest/test_race_equivalence.c",
 )
 _DOCUMENTATION_PATHS = (
     "docs/utilities/WORLD_VALIDATOR_CLI.md",
