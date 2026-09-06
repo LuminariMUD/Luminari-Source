@@ -70,6 +70,7 @@ store generated evidence in existing ignored run storage; no new framework or se
 
 ### Implementation log (2026-09-06)
 
+- Mechanical split commit: `26a789532` (`refactor: separate RoL world format parsers and emitters`).
 - Starting revision: `244871397` (`imp plan`), branch `rol-converter-integration-113-117`.
   Confirmed `APP_ENV=development`; customized headers and credentials remain untouched.
 - Evidence root: `lib/rol-conversion/integration-20260906/` (ignored generated run storage).
@@ -119,16 +120,13 @@ store generated evidence in existing ignored run storage; no new framework or se
   versus a new evidence-based rule, and existing-class player packages versus content-only
   preservation. No unanswered question is treated as approval; independent extraction and
   evidence work continues.
-- The full frozen-world baseline capture is still running in exec session `6477`
-  (Python PID `52656`, command `PYTHONPATH=scripts/world python3
-  lib/rol-conversion/integration-20260906/capture.py before`). Its log is
-  `before/capture.log`. The last checked stage was writing discovery lineage candidates;
-  repeated Trackless Sea identities produce several GiB of valid candidate evidence.
-  The process has a 24 GiB address-space bound so a later materialized JSON load cannot
-  exhaust the shared development host. Poll this same live handle before deciding whether
-  to resume anything; an empty log is not a failed run. After successful baseline capture,
-  preserve its outputs for the final frozen-world release rehearsal. The split comparison was
-  completed independently with the plan's existing reference fixture, as recorded below.
+- Full frozen-world discovery completed with 356,771 references, zero unowned resolutions,
+  and a sealed dependency closure. The original capture (session `6477`, PID `52656`) then
+  exited 1 at the planner's JSONL load with `MemoryError` under its 24 GiB address-space bound
+  (`before/capture.log`). Repeated target candidates make `lineage-candidates.jsonl` 9.4 GiB.
+  Keep the completed baseline/discovery bundles; resume planning from them after reducing
+  duplicate immutable-string allocations in the existing planning/pilot JSONL loaders.
+  The split comparison completed independently with the existing reference fixture below.
 - Mechanical split comparison completed using `tests/rol_reference.py` against a temporary
   detached checkout of `244871397` and the extracted implementation. Both used the identical
   installed source corpus and calculator bytes. `reference-before/`, `reference-after/`, and
@@ -141,6 +139,16 @@ store generated evidence in existing ignored run storage; no new framework or se
   This satisfies the split's representative-output gate while retaining full-world release
   validation as a separate, still-required step. The temporary baseline checkout is removed
   after retaining comparison evidence.
+- Color normalization (#114.4) now maps valid source foreground/background/blink escapes to
+  existing target protocol tokens, fixes source black `L/l` to target `D/d`, and unescapes `&&`.
+  Unknown complete escapes remain literal with diagnostics; incomplete escapes are dropped with
+  diagnostics as the source output loop does. Literal at-signs, tilde framing, ASCII, and LF remain
+  protected. Source-to-target parser round trips now cover color text in all seven formats.
+  Plan-ablation: no target protocol extension is needed; use its existing RGB/background/blink
+  support. Focused transform suite passed 139 tests before the added seven-format round-trip
+  case, which now passes separately. The complete post-color `make test-world-tools` passed
+  516 tests with no skips (exit 0; `color-world-tools.log` and `.exit`). The final combined
+  corpus audit and in-game display verification remain required by step 6.
 
 ### Pre-implementation observations
 
@@ -179,7 +187,7 @@ format ownership is recorded above and in step 1; historical counts are retained
 
 ## Step 0: freeze the baseline and prepare decisions
 
-- [ ] 0.1 Record the implementation starting commit, source-package identity and hashes, active
+- [x] 0.1 Record the implementation starting commit, source-package identity and hashes, active
   index/dependency closure, conversion-policy version/hash, target constants, calculator binary
   identity, and the frozen development target world. Confirm `APP_ENV=development`. Refresh
   these records if inputs change; historical run directories are not current proof.
