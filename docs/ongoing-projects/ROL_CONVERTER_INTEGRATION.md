@@ -149,6 +149,32 @@ store generated evidence in existing ignored run storage; no new framework or se
   case, which now passes separately. The complete post-color `make test-world-tools` passed
   516 tests with no skips (exit 0; `color-world-tools.log` and `.exit`). The final combined
   corpus audit and in-game display verification remain required by step 6.
+- Color commit: `b07140528` (`fix: preserve RoL source color semantics across world formats`).
+- Full-world planner repair: the existing planner and pilot/release JSONL readers now intern
+  repeated immutable candidate strings while retaining independent dictionaries and lists.
+  Plan-ablation kept both real readers and one shared decoder hook; no new file, dependency,
+  storage format, candidate filtering, or alternative planner is needed. The 21 existing
+  planner/pilot/Phase 8 tests pass, including a new regression that compares all loaded values,
+  checks mutable independence, and requires lower peak allocation than ordinary decoding.
+  The real `rol-plan` command succeeded from the sealed discovery under the same 24 GiB
+  bound: exit 0, 3m11s elapsed, 14,201,736 KiB peak RSS (`planner-resume.log` and `.exit`).
+  The complete 71,680-action plan contains ADD=1, EXCLUDE=4, KEEP=70,605, MERGE=1,070;
+  no candidate was discarded. Discovery does not need regeneration for this allocation fix.
+- Ship-light mapping (#114.5) now applies source loader-forced `ITEM_LIT` through the existing
+  flag map to target `ITEM_MAGLIGHT`, including ships without an authored bit. Parser/emitter
+  regression passes for implicit light, authored light, ordinary boats, and unrelated flags.
+  Runtime tracing found `ITEM_MAGLIGHT` was counted only on character entry/exit, leaving
+  transfers and dropped lights stale. The focused fix reads magical-light objects at their
+  actual room/inventory/equipment locations in `room_is_dark()` and removes their old movement
+  counter contribution. Magic-dark precedence and other light counters are preserved.
+  Plan-ablation: use current placement lists and existing visibility checks; no new counter,
+  event subscriber, public API, or vessel-specific lighting implementation is needed.
+  Production-linked movement/drop/flag/equipment regression is added to `test_spec_mechanics.c`;
+  `make -j4 test` passed 1,136 CuTests plus its required checks, then `make -j4 install`
+  succeeded (both exit 0; `ship-cutest.log`, `ship-install.log`, and their `.exit` files).
+  No compiler warnings or root server artifact remained. Container concealment was then
+  added to the same regression; that final assertion and hook formatting require another
+  validation run. Isolated in-game verification is still pending.
 
 ### Pre-implementation observations
 
