@@ -1157,7 +1157,7 @@ quiver, and mobile-loadout behavior for the required Step 6 development session.
   in `test_rol_weapon_mapping.py` and the existing transform suite. Preserve coverage of the
   actual target tables and emitted-file parsing; use `test_thrown_weapons.c` for runtime
   throwing behavior that changes. Do not add another simulated combat implementation.
-- [ ] 115.5 Regenerate the final audit and candidate. Exercise wield, fire, throw, quiver use,
+- [x] 115.5 Regenerate the final audit and candidate. Exercise wield, fire, throw, quiver use,
   and representative mobile loadouts during step 6. Attach the reviewed report and runtime
   results to the issue when implementing; an unchecked audit report is not builder sign-off.
 
@@ -1196,8 +1196,9 @@ The strengthened corpus regression freezes the exact reviewed fallback, disagree
 throwable-only, and inactive sets and proves all 25 launcher archers receive compatible ammunition.
 The weapon-mapping and transform suites pass all 194 tests. No classifier, emitter, override, or
 native throwing behavior changed, so no duplicate combat implementation or new C test was added.
-Checklist 115.5 remains open until the final candidate and live wield/fire/throw/quiver/loadout
-checks are produced in Step 6.
+Checklist 115.5 is complete against the final candidate: the Step 6 staff transcript proves an
+actual launcher/arrow hit, thrown-dart hit, worn quiver, compatible reset-loaded archer equipment,
+and the reviewed item profiles.
 
 ## Step 6: combined development rehearsal and branch completion
 
@@ -1216,38 +1217,111 @@ the object parser recovers the intact base rows after the omitted empty string. 
 Phase 7 claims were removed, while its four genuine incomplete-record `EXCLUDE`-to-`ADD` repairs
 and drift checks remain. A focused Phase 7 regression freezes that ownership boundary.
 
-- [ ] 6.1 Generate the baseline/discovery/plan/capability/special evidence required by the final
+- [x] 6.1 Generate the baseline/discovery/plan/capability/special evidence required by the final
   rules, then Phase 7 milestones at batches 4/8/12 and an independent final repeat. Reuse valid
   inputs only when their hashes and dependencies still match. The candidate must contain the
   complete package/dependency closure required by Phase 8. Use its existing preservation,
   diagnostics, reference, reset, shop, quest, SOC, trap, procedure, and mechanics-isolation checks.
-- [ ] 6.2 Run `make test-world-tools`, then `make test` and `make install`. Capture complete
+- [x] 6.2 Run `make test-world-tools`, then `make test` and `make install`. Capture complete
   logs and exit statuses. `make install` must follow the root tests; do not leave a root-level
   `luminari` artifact. Validate the complete staged candidate and run the read-only development
   persistence gate. Apply the existing Phase 7/8 finding gates and review every changed warning;
   unrelated baseline warnings do not require cleanup. Use fresh logs for the final code/binary.
-- [ ] 6.3 Syntax-boot the staged candidate, then run a bounded staff-login and behavior smoke
+- [x] 6.3 Syntax-boot the staged candidate, then run a bounded staff-login and behavior smoke
   test through `autorun.sh` in an isolated development runtime root on an unused port. Use its
   existing project-root, binary-directory, lib-directory, and port overrides; preserve any
   already running development server. Capture the MUD's own log, converted-zone resets, and
   graceful shutdown, as required by `rol_phase8._code_gates()`.
-- [ ] 6.4 Include armor equip/unequip AC and penalties, tail/ring behavior, item levels,
+- [x] 6.4 Include armor equip/unequip AC and penalties, tail/ring behavior, item levels,
   representable extensions/procs, displayed colors, ship lighting, weapons/ammunition, and
   approved player kits/help in the smoke transcript. Ollama, I3, and Discord availability are
   outside this branch's verification scope. Use no production service or production database.
-- [ ] 6.5 Seal the candidate with the existing `rol-phase8` command and fresh world-tools,
+- [x] 6.5 Seal the candidate with the existing `rol-phase8` command and fresh world-tools,
   CuTest, install, syntax, and runtime logs. Verify output-affecting files and policies are in
   the code evidence and all source/target/binary preconditions match.
-- [ ] 6.6 Rehearse the exact apply-plan on a disposable development lib whose starting world
+- [x] 6.6 Rehearse the exact apply-plan on a disposable development lib whose starting world
   matches the frozen baseline. Keep a verified snapshot of its complete world, then use
   `rol-phase8-apply` and `rol-phase8-completion` to prove the candidate and no-op reapplication.
   Restore the disposable world and compare it with the snapshot. Use existing copy/hash tools;
   the apply tool provides no backup or rollback. Record the actual rehearsal destination.
-- [ ] 6.7 Update durable conversion documentation, release notes, and this checklist with the
+- [x] 6.7 Update durable conversion documentation, release notes, and this checklist with the
   actual decisions, commands/results, evidence locations/hashes, remaining approved losses,
   and commit references. Review each issue's original checklist against that evidence. Keep
   an issue open if its required review or runtime proof is missing. Publish implementation and
   closure evidence when executing the plan; production release remains a separate scope.
+
+### Step 6 completion evidence
+
+The definitive ignored evidence root is
+`lib/rol-conversion/integration-20260906/final-011b33f46`. The frozen target tree is
+`47aa53f738365a786e6bb103274f054cfbbd4b9f873e9355c6a5d3f7140396b7`; its captured
+`etc/config` enables diagonal directions, matching development and the runtime rehearsal. The
+coherent derived chain is Phase 0 `rol-phase0-d4dd3bc79f50b480`, Phase 1
+`rol-phase1-3c3e8c0380d50873`, Phase 2 `rol-phase2-ca271204c9f0bd5d`, capability audit
+`rol-phase5-audit-e0746f4235efbc1f`, and special reconciliation
+`rol-phase6-special-b3effcf5957cc588`. It accounts for all 71,680 source records, 356,771 typed
+references, 88 capabilities, 69,922 emitted records, 7,252 active bindings and 797 source
+handlers, with no transform exception, unmapped symbol, pending binding or live target write.
+The plan remains ADD=1, EXCLUDE=4, KEEP=70,605 and MERGE=1,070.
+
+Phase 7 milestones are `rol-phase7-b4-fb397108aee96f83` (250 packages/70,012 records),
+`rol-phase7-b8-fda92734a83cda67` (254/71,080), and
+`rol-phase7-b12-adc1106cd18f73d0` (258/71,680). The independent batch-12 repeat has the same run
+ID, stable manifest content and output-tree hash
+`333738072d3ef2ae2bf3ff7af8b927af20627819149dc7132ae8a215ced9bf35`. The complete candidate
+tree is `7306dd00a5ac32b718736f1dace57d0d68755cbb2fcfba020461f75f9be64771`, contains 1,206
+generated paths and has zero active errors. Its 11,789 warnings and 73 informational findings are
+inherited; the normalized delta has no new finding and resolves 11 baseline warnings.
+
+The warning review found that the target validator treated tail resets as requiring only
+`ITEM_WEAR_TAIL`, although native `object_can_wear_on_tail()` also accepts finger-wearable rings.
+The runtime transcript had already proved that exact ring path. Commit `8f79b8b06` aligns REF030
+with the native rule and adds a focused positive regression while retaining the incompatible-slot
+test. No converter output or runtime code changed. The initial six-direction evidence and the
+pre-fix tail warning were retained only as superseded ignored diagnostics; all IDs above derive
+from the corrected configuration and validator.
+
+Fresh final logs under `logs/` record 536 passing world-tool tests, 1,146 passing
+production-linked CuTests, successful `make install`, and no root-level `luminari`. The installed
+clean `8f79b8b06` binary has SHA-256
+`c9e4735a0646b879ea11cebb30bc523ce1657d7d5a62f5780c03828c8e5d5b44`. Candidate validation
+and the final syntax boot both pass with `diagonal_dirs=1`. The read-only persistence gate checks
+70 bindings, finds 58 present schema bindings and zero persisted RoL VNUMs, duplicates or missing
+candidate definitions. No database write is part of that gate.
+
+The bounded runtime used `/tmp/luminari-rol-final-hm8h226t`, port 45313 and an isolated
+`rol_final_test` MariaDB instance on `127.0.0.2`; it ran through copied `autorun.sh` overrides and
+did not disturb the existing development server. The MUD log records converted-zone resets,
+entry into the game loop, normal termination and `Done`, with no converted-VNUM boot diagnostic.
+The staff transcript proves heavy-armor AC/penalty changes and restoration, signed worn AC,
+human tail-slot refusal, Yuan-ti dedicated-tail and ring use, level 1 objects, weapon extensions,
+the RoL ship procedure and carried/dropped magical lighting, rendered colors, launcher/arrow fire,
+thrown-dart combat, quiver use and a reset-loaded three-item archer kit. Separate verification
+resolves 14 authoritative database help lookups; all 13 affected entries, 14 keywords and 16
+required content checks pass, and the affected database/file bodies agree.
+
+Phase 8 release `rol-phase8-release-80dfd146cc579483` seals 258 packages, 71,680 records and
+1,206 apply paths with every acceptance gate true. The disposable apply changed 736 paths and
+found 470 already current. Completion `rol-phase8-complete-9fe46e215fc8908b` verifies the exact
+candidate tree, identical post-apply validation, unchanged runtime code and a second apply with
+all 1,206 paths current and zero changes. The rehearsal target was
+`/tmp/luminari-rol-final-hm8h226t/lib`; after completion its full world was restored and compared
+as the exact frozen baseline hash above. The isolated database was then shut down cleanly.
+
+Approved losses remain explicit rather than inferred: 31 spellbook bookkeeping records; 101
+armor warmth, 25 armor prestige and ten unbound armor-state fields; eight unbound weapon-state
+fields; three worn warmth, one worn prestige, two unbound worn-state fields and the umbrella's
+NPC equipment-ranking effect. The 34 inert worn value-0 fields are named normalizations, not
+losses. Phase 7 also retains four exact incomplete-record repairs and three smallest-unit SOC
+exclusions. No spell payload, item level, equipment, class, procedure or cross-world reference is
+fabricated to replace unsupported source meaning.
+
+The closing implementation commits are `10253c3a6`, `be2dab607`, `6ef24cb72`, `fdac630b7`,
+`4f5403695`, `011b33f46`, `28b3cc0fe` and `8f79b8b06`. The permanent converter, testing, artifact,
+world-format and changelog documents were updated before the seal; this checklist is intentionally
+the only non-gated document updated afterward. All original #113-#117 review and runtime gates are
+therefore complete. Applying the accepted bundle to a persistent development or production world
+remains a separate release action.
 
 Exit: all five issue gates pass against the same final revision and candidate, development
 rehearsal/recovery/idempotency evidence is available, affected help entries agree, and the
