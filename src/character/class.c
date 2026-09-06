@@ -3835,6 +3835,123 @@ long int level_exp(struct char_data *ch, int level)
   return exp;
 }
 
+/* Assign converted RoL spells through existing player-class progressions. */
+static void assign_rol_conversion_spell_kits(void)
+{
+  /* Bard and Battlechanter. */
+  spell_assignment(CLASS_BARD, SPELL_MINOR_CREATE, 4);
+  spell_assignment(CLASS_BARD, SPELL_SONG_OF_TRAVEL, 16);
+
+  /* Anti-Paladin. */
+  spell_assignment(CLASS_BLACKGUARD, SPELL_COMMAND_UNDEAD, 6);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_CURSE_OBJ, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_SPECTRAL_HAND, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_TAZRIKS_FRENZIED_HOUND, 12);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_DARK_WRATH, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_UNHOLY_AURA, 15);
+
+  /* Cleric and Shaman. */
+  spell_assignment(CLASS_CLERIC, SPELL_PRESERVE, 3);
+  spell_assignment(CLASS_CLERIC, SPELL_SLOW_POISON, 3);
+  spell_assignment(CLASS_CLERIC, SPELL_COMMAND_UNDEAD, 5);
+  spell_assignment(CLASS_CLERIC, SPELL_CURSE_OBJ, 11);
+  spell_assignment(CLASS_CLERIC, SPELL_FARSEE, 11);
+  spell_assignment(CLASS_CLERIC, SPELL_SOUL_TEMPEST, 13);
+  spell_assignment(CLASS_CLERIC, SPELL_ANCESTRAL_SHIELD, 17);
+  spell_assignment(CLASS_CLERIC, SPELL_GREATER_REALM_OF_PROTECTION, 17);
+  spell_assignment(CLASS_CLERIC, SPELL_SPIRIT_WALK, 17);
+
+  /* Druid. */
+  spell_assignment(CLASS_DRUID, SPELL_PRESERVE, 3);
+  spell_assignment(CLASS_DRUID, SPELL_PROTECTION_FROM_ANIMALS, 3);
+  spell_assignment(CLASS_DRUID, SPELL_CREATE_SPRING, 7);
+  spell_assignment(CLASS_DRUID, SPELL_DUST_DEVIL, 7);
+  spell_assignment(CLASS_DRUID, SPELL_SUFFOCATE, 11);
+  spell_assignment(CLASS_DRUID, SPELL_CYCLONE, 13);
+  spell_assignment(CLASS_DRUID, SPELL_PASS_WITHOUT_TRACE, 13);
+  spell_assignment(CLASS_DRUID, SPELL_MUD_TO_ROCK, 15);
+  spell_assignment(CLASS_DRUID, SPELL_ROCK_TO_MUD, 15);
+  spell_assignment(CLASS_DRUID, SPELL_MOONWELL, 17);
+
+  /* Ranger and Dire Raider. */
+  spell_assignment(CLASS_RANGER, SPELL_COMMAND_UNDEAD, 6);
+  spell_assignment(CLASS_RANGER, SPELL_CREATE_SPRING, 6);
+  spell_assignment(CLASS_RANGER, SPELL_PROTECTION_FROM_ANIMALS, 6);
+  spell_assignment(CLASS_RANGER, SPELL_DUST_DEVIL, 10);
+  spell_assignment(CLASS_RANGER, SPELL_NATURES_BLESSING, 12);
+  spell_assignment(CLASS_RANGER, SPELL_FARSEE, 15);
+  spell_assignment(CLASS_RANGER, SPELL_PASS_WITHOUT_TRACE, 15);
+  spell_assignment(CLASS_RANGER, SPELL_POLTERGEIST, 15);
+
+  /* Sorcerer. */
+  spell_assignment(CLASS_SORCERER, SPELL_VENTRILOQUATE, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_MINOR_CREATE, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_FARSEE, 8);
+
+  /* Wizard specialties, Elementalist, Necromancer and Lich. */
+  spell_assignment(CLASS_WIZARD, SPELL_MINOR_CREATE, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_PRESERVE, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_SHADOW_BOLT, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_VENTRILOQUATE, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_BLACKTHORNS, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_COMMAND_UNDEAD, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_PROT_FROM_UNDEAD, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_AIR_BLAST, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_BLINK, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_MINUTE_METEORS, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_REJUVENATE_MINOR, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_SOUL_BIND, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_COMMAND_HORDE, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_EMBALM, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_FARSEE, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_FUMBLE, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_SPECTRAL_HAND, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_HEAL_UNDEAD, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_SHADOW_BURST, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_SHADOW_MAGIC, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_STUMBLE, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_THUNDER_LANCE, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_AGE, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_ENERVATE, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_NERVE_DANCE, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_REJUVENATE_MAJOR, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_TRANQUILITY, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_BELTYNS_BURNING_BLOOD, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_CAMOUFLAGE, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_CORPSE_GLAMOR, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_ELEMENTAL_WATER_EMBODIMENT, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_ICE_LAYER, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_PHANTASMAL_BLADES, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_PROT_UNDEAD, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_SEQUESTER, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_SHADECHILL, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_SHADOW_FLUX, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_AIRY_WATER, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_BLACKLIGHT_BURST, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_BLACKMANTLE, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_EARTH_FOG, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_ELEMENTAL_AIR_EMBODIMENT, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_FEIGN_DEATH, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_FIRE_FOG, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_MISLEAD, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_PHANTOM_HEAL, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_RAIN_OF_BLOOD, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_SUN_SHADOW, 15);
+  spell_assignment(CLASS_WIZARD, SPELL_CONSTRICTION, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_DEATH_PACT, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_DIMENSION_SHIFT, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_EARTHBLOOD, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_ELEMENTAL_EARTH_EMBODIMENT, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_ELEMENTAL_FIRE_EMBODIMENT, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_FELL_FROST, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_ICE_TOMB, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_LAVA_BURST, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_LICH_TOUCH, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_ROT, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_SANDBLAST, 17);
+  spell_assignment(CLASS_WIZARD, SPELL_SANDSTORM, 17);
+}
+
 /* papa function loaded on game boot to assign all the class data */
 void load_class_list(void)
 {
@@ -9126,6 +9243,8 @@ void load_class_list(void)
          N, M, 6, 0, 1, 5, N, 0, 3, "", "", "");
   classo(CLASS_PLACEHOLDER_2, "placeholder 2", "PL2", "\tCPL2\tn", "v) \tCPlaceholder 2\tn", 20, Y,
          N, M, 6, 0, 1, 5, N, 0, 3, "", "", "");
+
+  assign_rol_conversion_spell_kits();
 }
 
 /* This will check a character to see if the object reference has any anti-class

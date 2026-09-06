@@ -864,6 +864,7 @@ EXTRA_DIST = \
 	sql/components/help_command_sweep_entries.sql \
 	sql/components/help_dg_damage_trigger.sql \
 	sql/components/help_rol_feat_entries.sql \
+	sql/components/help_rol_player_kits.sql \
 	sql/components/help_race_half_illithid_entries.sql \
 	sql/components/help_race_half_ogre_entries.sql \
 	sql/components/help_race_myconid_entries.sql \
@@ -885,6 +886,7 @@ EXTRA_DIST = \
 	sql/components/verify_help_dg_damage_trigger.sql \
 	sql/components/verify_help_necromancer_entries.sql \
 	sql/components/verify_help_rol_feat_entries.sql \
+	sql/components/verify_help_rol_player_kits.sql \
 	sql/components/verify_help_rol_object_trap_entries.sql \
 	sql/components/verify_help_race_half_illithid_entries.sql \
 	sql/components/verify_help_race_half_ogre_entries.sql \

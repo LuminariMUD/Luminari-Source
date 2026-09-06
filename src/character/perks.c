@@ -14787,6 +14787,26 @@ bool can_purchase_perk(struct char_data *ch, int perk_id, int class_id, char *er
     }
   }
 
+  /* Master of Elements requires commitment to two elemental paths. */
+  if (perk_id == PERK_WIZARD_MASTER_OF_ELEMENTS)
+  {
+    int focused_elements = 0;
+
+    if (get_perk_rank(ch, PERK_WIZARD_FOCUSED_ELEMENT_FIRE, class_id) > 0)
+      focused_elements++;
+    if (get_perk_rank(ch, PERK_WIZARD_FOCUSED_ELEMENT_COLD, class_id) > 0)
+      focused_elements++;
+    if (get_perk_rank(ch, PERK_WIZARD_FOCUSED_ELEMENT_LIGHTNING, class_id) > 0)
+      focused_elements++;
+
+    if (focused_elements < 2)
+    {
+      if (error_msg)
+        snprintf(error_msg, error_len, "You must first purchase any two Focused Element perks.");
+      return FALSE;
+    }
+  }
+
   /* Special prerequisite check for Immovable Object - also requires Armor Training III */
   if (perk_id == PERK_FIGHTER_IMMOVABLE_OBJECT)
   {
