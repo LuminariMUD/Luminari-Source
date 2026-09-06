@@ -246,7 +246,6 @@ void check_auto_happy_hour(void);
 void self_buffing(void);
 void recharge_activated_items(void);
 void process_auction_events(void);
-void craft_update(void);
 
 /* externally defined functions, used locally */
 #ifdef __CXREF__
@@ -725,6 +724,7 @@ void copyover_recover()
 
       d->connected = CON_PLAYING;
       character_periodic_sync(d->character);
+      resume_craft_activity(d->character);
       look_at_room(d->character, 0);
 
       /* Add to the list of 'recent' players (since last reboot) with copyover flag */
@@ -2259,10 +2259,8 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
     next_tick = (int)((remaining + PASSES_PER_SEC - 1U) / PASSES_PER_SEC);
     travel_tickdown();
     self_buffing();
-    craft_update();
     i3_process_events();
     i3_sync_presence();
-    update_supply_slots_for_all_players();
     break;
   }
   case RUNTIME_SERVICE_MINUTE_MAINTENANCE:

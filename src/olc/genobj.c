@@ -86,6 +86,11 @@ static int update_all_objects(struct obj_data *refobj)
     obj->sitting_here = swap.sitting_here;
     obj->events = swap.events;
     obj->event_owner_generation = swap.event_owner_generation;
+    obj->transfer_source = swap.transfer_source;
+    obj->transfer_bag = swap.transfer_bag;
+    obj->transfer_pending = swap.transfer_pending;
+    obj->transfer_extracting = swap.transfer_extracting;
+    obj->transfer_disposed = swap.transfer_disposed;
     obj->periodic_event_generation = swap.periodic_event_generation;
     obj->autoproc_next = NULL;
     obj->autoproc_prev = NULL;
@@ -567,6 +572,8 @@ int copy_object_main(struct obj_data *to, struct obj_data *from,
   bool autoproc_registered;
   bool point_update_registered;
   bool object_list_member;
+  struct domain_object_holder transfer_source, transfer_bag;
+  bool transfer_pending, transfer_extracting, transfer_disposed;
 
   autoproc_next = to->autoproc_next;
   autoproc_prev = to->autoproc_prev;
@@ -579,7 +586,17 @@ int copy_object_main(struct obj_data *to, struct obj_data *from,
   point_update_prev = to->point_update_prev;
   point_update_registered = to->point_update_registered;
   object_list_member = to->object_list_member;
+  transfer_source = to->transfer_source;
+  transfer_bag = to->transfer_bag;
+  transfer_pending = to->transfer_pending;
+  transfer_extracting = to->transfer_extracting;
+  transfer_disposed = to->transfer_disposed;
   *to = *from;
+  to->transfer_source = transfer_source;
+  to->transfer_bag = transfer_bag;
+  to->transfer_pending = transfer_pending;
+  to->transfer_extracting = transfer_extracting;
+  to->transfer_disposed = transfer_disposed;
   to->autoproc_next = autoproc_next;
   to->autoproc_prev = autoproc_prev;
   to->autoproc_event_handle = autoproc_event_handle;

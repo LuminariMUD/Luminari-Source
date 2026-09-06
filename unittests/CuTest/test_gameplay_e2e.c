@@ -16,11 +16,13 @@
 #include "../../src/event_runtime.h"
 #include "../../src/bardic_performance.h"
 #include "../../src/craft/craft.h"
+#include "../../src/craft/crafting_new.h"
 #include "../../src/db.h"
 #include "../../src/comm.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/combat/fight.h"
 #include "../../src/olc/genwld.h"
+#include "../../src/olc/genobj.h"
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"
 #include "../../src/mob/mob_utils.h"
@@ -2281,4 +2283,147 @@ void Test_gameplay_quest_delivery_consumes_one_committed_item_once(CuTest *tc)
   CuAssertTrue(tc, gave);
   CuAssertIntEquals(tc, 0, remaining);
   CuAssertTrue(tc, pending);
+}
+
+void Test_gameplay_supply_refresh_is_lazy_and_preserves_existing_offers(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials = {0};
+  struct supply_contract *offers;
+  time_t now = time(NULL), refreshed;
+  int i, count;
+  bool offline_due, fresh_due, unchanged = true;
+
+  clear_char(&ch);
+  ch.player_specials = &specials;
+  GET_CRAFT((&ch)).supply_slots_last_refresh = now - 3601;
+  for (i = 0; i < 5; i++)
+  {
+    GET_CRAFT((&ch)).supply_slot_active[i] = true;
+    GET_CRAFT((&ch)).supply_slots[i].quantity = 10 + i;
+  }
+  /* No descriptor and no global pulse are required to refresh aged offers. */
+  offline_due = should_refresh_supply_slots(&ch);
+  offers = generate_available_contracts(&ch, &count);
+  refreshed = GET_CRAFT((&ch)).supply_slots_last_refresh;
+  fresh_due = should_refresh_supply_slots(&ch);
+  if (offers == NULL || count != 5)
+    unchanged = false;
+  else
+    for (i = 0; i < count; i++)
+      if (offers[i].quantity != 10 + i)
+        unchanged = false;
+  free_contract_list(offers, count);
+
+  CuAssertTrue(tc, offline_due);
+  CuAssertTrue(tc, !fresh_due);
+  CuAssertTrue(tc, refreshed >= now);
+  CuAssertTrue(tc, unchanged);
+  CuAssertTrue(tc, GET_CRAFT((&ch)).supply_slots_next_refresh == refreshed + 3600);
+}
+
+static void verify_owned_craft_lifecycle(CuTest *tc, bool move_instead)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct primary_activity_snapshot snapshot;
+  unsigned long saved_pulse = pulse;
+  bool admitted, active_after, completed;
+  int remaining, paused_remaining, i;
+
+  begin_gameplay_fixture(&f);
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.player.name = "craft fixture";
+  for (i = 0; i < MAX_CURRENT_QUESTS; i++)
+    GET_QUEST(&f.actor, i) = NOTHING;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &f.actor;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  f.actor.desc = &descriptor;
+  /* This descriptor is deliberately absent from descriptor_list. */
+  GET_CRAFT((&f.actor)).crafting_method = SCMD_NEWCRAFT_SURVEY;
+  GET_CRAFT((&f.actor)).craft_duration = 3;
+  resume_craft_activity(&f.actor);
+  admitted =
+      primary_activity_snapshot(&f.actor, &snapshot) && snapshot.type == PRIMARY_ACTIVITY_CRAFT;
+  pulse += PASSES_PER_SEC;
+  event_test_advance();
+  remaining = GET_CRAFT((&f.actor)).craft_duration;
+  if (move_instead)
+  {
+    char_from_room(&f.actor);
+    char_to_room_cause(&f.actor, 1, NULL, DOMAIN_RELOCATION_SCRIPT, -1);
+  }
+  else
+    f.actor.desc = NULL;
+  pulse += PASSES_PER_SEC;
+  event_test_advance();
+  active_after = primary_activity_snapshot(&f.actor, &snapshot);
+  paused_remaining = GET_CRAFT((&f.actor)).craft_duration;
+  f.actor.desc = &descriptor;
+  if (!move_instead)
+  {
+    /* Offline time does not advance CrDu, and login reconstructs an owned timer. */
+    pulse += 20 * PASSES_PER_SEC;
+    event_test_advance();
+    resume_craft_activity(&f.actor);
+    pulse += PASSES_PER_SEC;
+    event_test_advance();
+    pulse += PASSES_PER_SEC;
+    event_test_advance();
+  }
+  completed = specials.surveyed_room && GET_CRAFT((&f.actor)).craft_duration == 0 &&
+              !primary_activity_snapshot(&f.actor, &snapshot);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  ProtocolDestroy(descriptor.pProtocol);
+  f.actor.desc = NULL;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&f);
+
+  CuAssertTrue(tc, admitted);
+  CuAssertIntEquals(tc, 2, remaining);
+  CuAssertTrue(tc, !active_after);
+  CuAssertIntEquals(tc, move_instead ? 0 : 2, paused_remaining);
+  CuAssertIntEquals(tc, !move_instead, completed);
+}
+
+void Test_gameplay_owned_craft_pauses_offline_and_resumes_without_descriptor_scan(CuTest *tc)
+{
+  verify_owned_craft_lifecycle(tc, false);
+}
+
+void Test_gameplay_owned_craft_cancels_on_committed_relocation(CuTest *tc)
+{
+  verify_owned_craft_lifecycle(tc, true);
+}
+
+void Test_gameplay_object_editor_copy_preserves_live_transfer_state(CuTest *tc)
+{
+  struct obj_data source, live;
+
+  clear_object(&source);
+  clear_object(&live);
+  live.transfer_pending = true;
+  live.transfer_source.kind = DOMAIN_HOLDER_ROOM;
+  live.transfer_bag.kind = DOMAIN_HOLDER_BAG;
+  live.transfer_bag.slot = 2;
+  source.transfer_disposed = true;
+  source.transfer_extracting = true;
+  source.transfer_bag.kind = DOMAIN_HOLDER_BAG;
+  source.transfer_bag.slot = 9;
+  copy_object(&live, &source);
+
+  CuAssertTrue(tc, live.transfer_pending);
+  CuAssertIntEquals(tc, DOMAIN_HOLDER_ROOM, live.transfer_source.kind);
+  CuAssertIntEquals(tc, DOMAIN_HOLDER_BAG, live.transfer_bag.kind);
+  CuAssertIntEquals(tc, 2, live.transfer_bag.slot);
+  CuAssertTrue(tc, !live.transfer_disposed && !live.transfer_extracting);
 }

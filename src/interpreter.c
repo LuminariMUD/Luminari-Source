@@ -7360,6 +7360,7 @@ static int perform_dupe_check(struct descriptor_data *d)
   REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_WRITING);
   STATE(d) = CON_PLAYING;
   character_periodic_sync(d->character);
+  resume_craft_activity(d->character);
   MXPSendTag(d, "<VERSION>");
 
   switch (mode)
@@ -9758,6 +9759,7 @@ void nanny(struct descriptor_data *d, char *arg)
 
       STATE(d) = CON_PLAYING;
       character_periodic_sync(d->character);
+      resume_craft_activity(d->character);
       // MXPSendTag( d, "<VERSION>" ); this is already called in perform_dupe_check() before we get here, shouldn't be needed here.. -Nashak
       if (GET_LEVEL(d->character) == 0)
       {
