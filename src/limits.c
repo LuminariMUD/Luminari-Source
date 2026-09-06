@@ -234,8 +234,6 @@ void room_aff_tick(struct raff_node *raff)
 {
   struct room_data *caster_room = NULL;
   struct char_data *caster = NULL;
-  int casttype = CAST_SPELL;
-  int level = DG_SPELL_LEVEL;
 
   switch (raff->spell)
   {
@@ -255,20 +253,6 @@ void room_aff_tick(struct raff_node *raff)
     caster->in_room = real_room(caster_room->number);
     call_magic(caster, NULL, NULL, SPELL_ACID, 0, DG_SPELL_LEVEL, CAST_SPELL);
     extract_char(caster);
-    break;
-  case SPELL_BILLOWING_CLOUD:
-    for (caster = world[raff->room].people; caster; caster = caster->next_in_room)
-    {
-      if (caster && GET_LEVEL(caster) < 13)
-      {
-        if (!savingthrow(caster, caster, SAVING_FORT, 0, casttype, level, CONJURATION))
-        {
-          send_to_char(caster, "You are bogged down by the billowing cloud!\r\n");
-          act("$n is bogged down by the billowing cloud.", TRUE, caster, 0, NULL, TO_ROOM);
-          USE_MOVE_ACTION(caster);
-        }
-      }
-    }
     break;
   case ABILITY_KAPAK_DRACONIAN_DEATH_THROES:
     caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);

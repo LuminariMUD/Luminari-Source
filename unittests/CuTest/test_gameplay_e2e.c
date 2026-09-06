@@ -11,6 +11,7 @@
 #include "../../src/tactical_effects.h"
 #include "../../src/combat/combat_encounters.h"
 #include "../../src/activity_manager.h"
+#include "../../src/affected_owners.h"
 #include "../../src/magic/buff_sequence.h"
 #include "../../src/magic/spell_prep.h"
 #include "../../src/domain_event_runtime.h"
@@ -4261,6 +4262,213 @@ void Test_gameplay_bleeding_critical_save_preserves_live_and_loaded_residual(CuT
 void Test_gameplay_bleeding_critical_stacking_preserves_the_pending_tick(CuTest *tc)
 {
   verify_bleeding_clock(tc, 6);
+}
+
+struct hazard_exposure_trace
+{
+  struct char_data *subject;
+  unsigned int count;
+  uint64_t source_identity;
+};
+
+static bool observe_hazard_exposure(struct raff_node *source, struct char_data *subject,
+                                    void *context)
+{
+  struct hazard_exposure_trace *trace = context;
+
+  if (subject != trace->subject)
+    return false;
+  trace->count++;
+  trace->source_identity = source->source_identity;
+  return true;
+}
+
+static bool skip_hazard_test_actions(struct char_data *subject, unsigned int phase, void *context)
+{
+  (void)subject;
+  (void)phase;
+  (void)context;
+  return true;
+}
+
+static struct raff_node *create_test_billowing_source(CuTest *tc, struct gameplay_fixture *fixture)
+{
+  struct raff_node *source;
+
+  CREATE(source, struct raff_node, 1);
+  source->room = 1;
+  source->timer = 15;
+  source->affection = RAFF_BILLOWING;
+  source->spell = SPELL_BILLOWING_CLOUD;
+  CuAssertTrue(tc, tactical_room_hazard_prepare_source(source, 10));
+  source->next = raff_list;
+  raff_list = source;
+  affected_room_owner_add(source);
+  SET_BIT(fixture->rooms[1].room_affections, RAFF_BILLOWING);
+  tactical_room_hazard_source_created(source);
+  return source;
+}
+
+static void verify_billowing_cloud_exposure(CuTest *tc, int scenario)
+{
+  struct gameplay_fixture fixture;
+  struct char_data *saved_characters = character_list;
+  struct raff_node *saved_raff_list = raff_list;
+  struct raff_node *source;
+  struct raff_node *second_source = NULL;
+  struct hazard_exposure_trace trace = {0};
+  uint64_t rejected_before;
+  unsigned long saved_pulse = pulse;
+
+  begin_gameplay_fixture(&fixture);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  raff_list = NULL;
+  pulse = 32000U;
+  fixture.actor.next = &fixture.victim;
+  character_list = &fixture.actor;
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  trace.subject = &fixture.actor;
+  tactical_effects_set_hazard_test_callback(observe_hazard_exposure, &trace);
+  rejected_before = tactical_room_hazard_exposure_rejections();
+  if (scenario == 3)
+    tactical_effects_set_hazard_exposure_limit_for_test(0U);
+  source = create_test_billowing_source(tc, &fixture);
+  if (scenario == 4)
+    source->timer = 1;
+  if (scenario == 5)
+    second_source = create_test_billowing_source(tc, &fixture);
+  if (scenario == 6)
+    GET_LEVEL(&fixture.actor) = 13;
+
+  char_from_room(&fixture.actor);
+  char_to_room_cause(&fixture.actor, 1, &fixture.victim, DOMAIN_RELOCATION_FORCED, NORTH);
+  if (scenario == 3 || scenario == 6)
+  {
+    CuAssertIntEquals(tc, 0, trace.count);
+    CuAssertIntEquals(tc, 0, tactical_room_hazard_exposures());
+    CuAssertTrue(tc, tactical_room_hazard_exposure_rejections() ==
+                         rejected_before + (scenario == 3 ? 1U : 0U));
+  }
+  else
+  {
+    CuAssertIntEquals(tc, scenario == 5 ? 2 : 1, trace.count);
+    CuAssertTrue(tc, trace.source_identity == source->source_identity);
+    CuAssertIntEquals(tc, scenario == 5 ? 2 : 1, tactical_room_hazard_exposures());
+  }
+
+  if (scenario == 0)
+  {
+    char_from_room(&fixture.actor);
+    char_to_room_cause(&fixture.actor, 0, &fixture.victim, DOMAIN_RELOCATION_FORCED, SOUTH);
+    char_from_room(&fixture.actor);
+    char_to_room_cause(&fixture.actor, 1, &fixture.victim, DOMAIN_RELOCATION_FORCED, NORTH);
+    CuAssertIntEquals(tc, 1, trace.count);
+    pulse += 6 RL_SEC;
+    event_test_advance();
+    CuAssertIntEquals(tc, 2, trace.count);
+    CuAssertTrue(tc, !is_action_available(&fixture.actor, atMOVE, false));
+  }
+  else if (scenario == 1)
+  {
+    char_from_room(&fixture.victim);
+    char_to_room_cause(&fixture.victim, 1, NULL, DOMAIN_RELOCATION_WALK, NORTH);
+    FIGHTING(&fixture.actor) = &fixture.victim;
+    FIGHTING(&fixture.victim) = &fixture.actor;
+    combat_encounter_test_set_phase_callback(skip_hazard_test_actions, NULL);
+    CuAssertTrue(tc, combat_encounter_join(&fixture.actor, &fixture.victim, 1));
+    CuAssertTrue(tc, combat_encounter_join(&fixture.victim, &fixture.actor, 1));
+    pulse += 6 RL_SEC;
+    event_test_advance();
+    CuAssertIntEquals(tc, 2, trace.count);
+    CuAssertTrue(tc, !is_action_available(&fixture.actor, atMOVE, false));
+    combat_encounter_leave(&fixture.actor, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
+    combat_encounter_leave(&fixture.victim, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
+    FIGHTING(&fixture.actor) = FIGHTING(&fixture.victim) = NULL;
+    pulse += 6 RL_SEC;
+    event_test_advance();
+    CuAssertIntEquals(tc, 3, trace.count);
+  }
+  else if (scenario == 2)
+  {
+    rem_room_aff(source);
+    source = NULL;
+    CuAssertIntEquals(tc, 0, tactical_room_hazard_exposures());
+    pulse += 6 RL_SEC;
+    event_test_advance();
+    CuAssertIntEquals(tc, 1, trace.count);
+  }
+  else if (scenario == 4)
+  {
+    pulse += 6 RL_SEC;
+    event_test_advance();
+    CuAssertIntEquals(tc, 1, trace.count);
+    CuAssertPtrEquals(tc, NULL, raff_list);
+    CuAssertIntEquals(tc, 0, tactical_room_hazard_exposures());
+    source = NULL;
+  }
+  else if (scenario == 5)
+  {
+    CuAssertTrue(tc, source->source_identity != second_source->source_identity);
+    char_from_room(&fixture.actor);
+    char_to_room_cause(&fixture.actor, 0, NULL, DOMAIN_RELOCATION_WALK, SOUTH);
+    char_from_room(&fixture.actor);
+    char_to_room_cause(&fixture.actor, 1, NULL, DOMAIN_RELOCATION_WALK, NORTH);
+    CuAssertIntEquals(tc, 2, trace.count);
+  }
+
+  if (second_source != NULL)
+    rem_room_aff(second_source);
+  if (source != NULL)
+    rem_room_aff(source);
+  tactical_effects_set_hazard_test_callback(NULL, NULL);
+  tactical_effects_set_hazard_exposure_limit_for_test(1024U);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  if (fixture.actor.events != NULL)
+    free_list(fixture.actor.events);
+  if (fixture.victim.events != NULL)
+    free_list(fixture.victim.events);
+  character_list = saved_characters;
+  raff_list = saved_raff_list;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&fixture);
+}
+
+void Test_gameplay_billowing_cloud_deduplicates_forced_reentry_and_native_tick(CuTest *tc)
+{
+  verify_billowing_cloud_exposure(tc, 0);
+}
+
+void Test_gameplay_billowing_cloud_moves_native_exposure_to_subject_turn_end(CuTest *tc)
+{
+  verify_billowing_cloud_exposure(tc, 1);
+}
+
+void Test_gameplay_billowing_cloud_vanished_source_cancels_future_exposure(CuTest *tc)
+{
+  verify_billowing_cloud_exposure(tc, 2);
+}
+
+void Test_gameplay_billowing_cloud_rejects_untracked_exposure_at_capacity(CuTest *tc)
+{
+  verify_billowing_cloud_exposure(tc, 3);
+}
+
+void Test_gameplay_billowing_cloud_expiry_wins_at_shared_deadline(CuTest *tc)
+{
+  verify_billowing_cloud_exposure(tc, 4);
+}
+
+void Test_gameplay_billowing_cloud_distinct_sources_keep_distinct_budgets(CuTest *tc)
+{
+  verify_billowing_cloud_exposure(tc, 5);
+}
+
+void Test_gameplay_billowing_cloud_preserves_level_thirteen_immunity(CuTest *tc)
+{
+  verify_billowing_cloud_exposure(tc, 6);
 }
 
 void Test_gameplay_bleeding_critical_native_tick_and_combat_turn_share_one_interval(CuTest *tc)

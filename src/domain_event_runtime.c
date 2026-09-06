@@ -91,6 +91,8 @@ enum domain_event_status domain_event_runtime_init(void)
   if (status == DOMAIN_EVENT_OK)
     status = domain_event_world_register_resolvers(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
+    status = tactical_effects_register_handlers(runtime_bus);
+  if (status == DOMAIN_EVENT_OK)
     status = primary_activity_manager_init(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
     status = combat_encounter_runtime_init(runtime_bus);

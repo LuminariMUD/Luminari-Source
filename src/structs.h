@@ -6073,9 +6073,13 @@ struct room_direction_data
   /* Extra door flags. */
 };
 
+struct tactical_hazard_exposure;
+
 struct raff_node
 {
-  room_rnum room;       /* location in the world[] array of the room */
+  room_rnum room;           /* location in the world[] array of the room */
+  uint64_t source_identity; /* Process-local room-affect source identity. */
+  int source_level;
   uint64_t lifetime_round; /* Last accounted world round for this source. */
   bool lifetime_initialized;
   int timer;            /* how many rounds this affection lasts */
@@ -6089,6 +6093,8 @@ struct raff_node
   struct raff_node *room_next; /* next affect owned by the same room */
   struct raff_node *room_prev; /* previous affect owned by the same room */
   bool room_registered;        /* linked into its room's owner list */
+  struct tactical_hazard_exposure *hazard_exposures;
+  size_t hazard_exposure_count;
 };
 
 struct spec_binding;

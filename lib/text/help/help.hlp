@@ -3176,12 +3176,17 @@ BILLOWING-CLOUD
 	D>Damage Type:     	W N/A 	n
 	D>Description:	n
 	n
-	nThis viscous cloud will severely hamper movement and ability
-	nto react normally while inside of it, effectively forcing a victim
-	nto be unable to perform any action for a round if a fortitude save
-	nis failed.  This spell will not work on victims above 13th level.
+	nThe cloud tests creatures of level 12 or lower when it forms around
+	nthem or when they enter it. A failed Fortitude save consumes a move
+	naction, or a standard action if their move action is already spent.
 	n
-	YSee also:	n SPELLS
+	nA creature that remains inside is tested no more than once per six-
+	nsecond interval. In combat, continued exposure is resolved after that
+	ncreature's eligible turn. Leaving and re-entering during the same
+	ninterval does not cause another save. Each cloud tracks exposure
+	nseparately, and the cloud itself lasts 15 world rounds.
+	n
+	YSee also:	n SPELLS, COMBAT, ACTIONS
 	n
 #0
 BIND TIE-UP TIEUP

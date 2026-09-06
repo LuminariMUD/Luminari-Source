@@ -3,6 +3,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
+#include "actions.h"
 #include "tactical_effects.h"
 #include "combat/combat_encounters.h"
 #include "domain_event_runtime.h"
@@ -12,12 +13,41 @@
 #include "db.h"
 #include "combat/fight.h"
 #include "magic/spells.h"
+#include "magic/domains_schools.h"
 
 #define DEFENSE_ROUND_PULSES (6 * PASSES_PER_SEC)
+#define HAZARD_EXPOSURE_DEFAULT_LIMIT 1024U
+#define HAZARD_REJECTION_LOG_INTERVAL 100U
+
+struct tactical_hazard_exposure
+{
+  struct domain_entity_handle subject;
+  uint64_t next_due;
+  struct event_runtime_handle event;
+  struct tactical_hazard_exposure *next;
+};
+
+struct tactical_hazard_event_payload
+{
+  struct domain_entity_handle subject;
+  room_vnum room;
+  uint64_t room_generation;
+  uint64_t source_identity;
+};
 
 static game_event_type_id_t defense_event_type;
 static game_event_type_id_t bleeding_event_type;
+static game_event_type_id_t hazard_event_type;
 static bool bleeding_clock_init(void);
+static bool hazard_clock_init(void);
+static uint64_t next_hazard_source_identity = 1U;
+static size_t hazard_exposure_limit = HAZARD_EXPOSURE_DEFAULT_LIMIT;
+static uint64_t hazard_exposure_count;
+static uint64_t hazard_exposure_rejections;
+#ifdef LUMINARI_CUTEST
+static tactical_hazard_test_callback hazard_test_callback;
+static void *hazard_test_context;
+#endif
 
 static bool defense_character(struct char_data *ch)
 {
@@ -73,9 +103,20 @@ bool tactical_effects_init(void)
 
 void tactical_effects_shutdown(void)
 {
+  struct raff_node *raff;
+  struct tactical_hazard_exposure *exposure;
+
+  for (raff = raff_list; raff != NULL; raff = raff->next)
+    for (exposure = raff->hazard_exposures; exposure != NULL; exposure = exposure->next)
+    {
+      if (!event_runtime_handle_is_none(exposure->event))
+        (void)event_runtime_cancel(exposure->event);
+      exposure->event = EVENT_RUNTIME_HANDLE_NONE;
+    }
   /* Character-periodic teardown pauses owners before the event types disappear. */
   defense_event_type = 0U;
   bleeding_event_type = 0U;
+  hazard_event_type = 0U;
 }
 
 int tactical_defense_remaining(struct char_data *ch)
@@ -423,7 +464,7 @@ static bool bleeding_clock_init(void)
   const char *registered = event_runtime_type_name(bleeding_event_type);
 
   if (registered != NULL && !strcmp(registered, "tactical.bleeding-critical.tick"))
-    return true;
+    return hazard_clock_init();
   bleeding_event_type = 0U;
   config.name = "tactical.bleeding-critical.tick";
   config.handler = bleeding_tick;
@@ -433,7 +474,8 @@ static bool bleeding_clock_init(void)
   /* One queued event and one cancelled, currently dispatching predecessor. */
   config.max_events_per_owner = 2U;
   config.requires_owner = true;
-  return event_runtime_register_type(&config, &bleeding_event_type) == GAME_SCHEDULER_OK;
+  return event_runtime_register_type(&config, &bleeding_event_type) == GAME_SCHEDULER_OK &&
+         hazard_clock_init();
 }
 
 void tactical_bleeding_restore_clock(struct char_data *ch, int remaining, uint64_t turn)
@@ -453,3 +495,426 @@ void tactical_bleeding_restore_clock(struct char_data *ch, int remaining, uint64
   else
     tactical_bleeding_sync(ch);
 }
+
+static bool billowing_source(const struct raff_node *source)
+{
+  return source != NULL && source->spell == SPELL_BILLOWING_CLOUD && source->source_identity != 0U;
+}
+
+static bool billowing_source_active(const struct raff_node *source)
+{
+  uint64_t round;
+  uint64_t elapsed;
+
+  if (!billowing_source(source) || source->timer <= 0)
+    return false;
+  if (!source->lifetime_initialized)
+    return true;
+  round = (uint64_t)pulse / PULSE_VIOLENCE;
+  elapsed = round > source->lifetime_round ? round - source->lifetime_round : 0U;
+  return elapsed < (uint64_t)source->timer;
+}
+
+static void note_hazard_rejection(const char *reason)
+{
+  hazard_exposure_rejections++;
+  if (hazard_exposure_rejections == 1U ||
+      hazard_exposure_rejections % HAZARD_REJECTION_LOG_INTERVAL == 0U)
+    log("WARNING: billowing-cloud exposure rejected (%s); rejected=%llu.", reason,
+        (unsigned long long)hazard_exposure_rejections);
+}
+
+static void remove_hazard_exposure(struct raff_node *source,
+                                   struct tactical_hazard_exposure *previous,
+                                   struct tactical_hazard_exposure *exposure)
+{
+  if (previous != NULL)
+    previous->next = exposure->next;
+  else
+    source->hazard_exposures = exposure->next;
+  if (!event_runtime_handle_is_none(exposure->event))
+    (void)event_runtime_cancel(exposure->event);
+  if (source->hazard_exposure_count > 0U)
+    source->hazard_exposure_count--;
+  if (hazard_exposure_count > 0U)
+    hazard_exposure_count--;
+  free(exposure);
+}
+
+static struct tactical_hazard_exposure *hazard_exposure(struct raff_node *source,
+                                                        struct char_data *subject, bool admit)
+{
+  struct domain_entity_handle identity;
+  struct tactical_hazard_exposure *exposure;
+  struct tactical_hazard_exposure *next;
+  struct tactical_hazard_exposure *previous = NULL;
+
+  if (!billowing_source(source) || subject == NULL)
+    return NULL;
+  identity = domain_event_character_handle(subject);
+  if (!domain_entity_handle_is_valid(identity))
+    return NULL;
+  for (exposure = source->hazard_exposures; exposure != NULL; exposure = next)
+  {
+    next = exposure->next;
+    if (domain_entity_handle_equal(exposure->subject, identity))
+      return exposure;
+    if (domain_event_world_resolve_character(exposure->subject) == NULL)
+    {
+      remove_hazard_exposure(source, previous, exposure);
+      continue;
+    }
+    previous = exposure;
+  }
+  if (!admit)
+    return NULL;
+  if (source->hazard_exposure_count >= hazard_exposure_limit)
+  {
+    note_hazard_rejection("source capacity");
+    return NULL;
+  }
+  exposure = calloc(1U, sizeof(*exposure));
+  if (exposure == NULL)
+  {
+    note_hazard_rejection("allocation");
+    return NULL;
+  }
+  exposure->subject = identity;
+  exposure->event = EVENT_RUNTIME_HANDLE_NONE;
+  exposure->next = source->hazard_exposures;
+  source->hazard_exposures = exposure;
+  source->hazard_exposure_count++;
+  hazard_exposure_count++;
+  return exposure;
+}
+
+static struct raff_node *hazard_source_in_room(room_rnum room, uint64_t identity)
+{
+  struct raff_node *source;
+
+  if (world == NULL || room == NOWHERE || room > top_of_world || identity == 0U)
+    return NULL;
+  for (source = world[room].affected_head; source != NULL; source = source->room_next)
+    if (source->source_identity == identity && billowing_source_active(source))
+      return source;
+  return NULL;
+}
+
+static void consume_billowing_action(struct char_data *subject, bool continued_turn)
+{
+  action_type action;
+  int duration;
+
+  action = is_action_available(subject, atMOVE, false) ? atMOVE : atSTANDARD;
+  duration = continued_turn && combat_encounter_semantic_manages(subject) ? DEFENSE_ROUND_PULSES + 1
+                                                                          : DEFENSE_ROUND_PULSES;
+  start_action_cooldown(subject, action, duration);
+}
+
+static void apply_billowing_exposure(struct raff_node *source, struct char_data *subject,
+                                     bool continued_turn)
+{
+  struct tactical_hazard_exposure *exposure;
+  struct event_runtime_handle old_event;
+  bool failed;
+
+  if (!billowing_source_active(source) || subject == NULL || GET_LEVEL(subject) >= 13 ||
+      IN_ROOM(subject) != source->room)
+    return;
+  exposure = hazard_exposure(source, subject, true);
+  if (exposure == NULL)
+    return;
+  if (exposure->next_due > (uint64_t)pulse)
+    return;
+  old_event = exposure->event;
+  exposure->event = EVENT_RUNTIME_HANDLE_NONE;
+  exposure->next_due = (uint64_t)pulse + DEFENSE_ROUND_PULSES;
+  if (!event_runtime_handle_is_none(old_event))
+    (void)event_runtime_cancel(old_event);
+#ifdef LUMINARI_CUTEST
+  if (hazard_test_callback != NULL)
+    failed = hazard_test_callback(source, subject, hazard_test_context);
+  else
+#endif
+    /* Preserve the established self-attributed save formula. The casting level
+     * is captured on the source instead of read from mutable caster state. */
+    failed = !savingthrow(subject, subject, SAVING_FORT, 0, CAST_SPELL, source->source_level,
+                          CONJURATION);
+  if (failed)
+  {
+    send_to_char(subject, "You are bogged down by the billowing cloud!\r\n");
+    act("$n is bogged down by the billowing cloud.", TRUE, subject, 0, NULL, TO_ROOM);
+    consume_billowing_action(subject, continued_turn);
+  }
+}
+
+static struct raff_node *resolve_hazard_source(const struct tactical_hazard_event_payload *payload)
+{
+  room_rnum room;
+
+  if (payload == NULL)
+    return NULL;
+  room = real_room(payload->room);
+  if (room == NOWHERE || world[room].event_owner_generation != payload->room_generation)
+    return NULL;
+  return hazard_source_in_room(room, payload->source_identity);
+}
+
+static bool schedule_hazard_exposure(struct raff_node *source,
+                                     struct tactical_hazard_exposure *exposure,
+                                     struct char_data *subject, bool leaving_combat)
+{
+  struct tactical_hazard_event_payload *payload;
+  struct domain_entity_handle room;
+  struct game_event_owner owner = game_event_owner_none();
+  game_tick_t delay;
+
+  if (!billowing_source_active(source) || exposure == NULL || subject == NULL ||
+      hazard_event_type == 0U || (!leaving_combat && combat_encounter_semantic_manages(subject)) ||
+      IN_ROOM(subject) != source->room || GET_POS(subject) <= POS_DEAD)
+    return false;
+  if (!event_runtime_handle_is_none(exposure->event))
+  {
+    if (event_runtime_handle_is_live(exposure->event))
+      return true;
+    exposure->event = EVENT_RUNTIME_HANDLE_NONE;
+  }
+  payload = calloc(1U, sizeof(*payload));
+  if (payload == NULL)
+  {
+    note_hazard_rejection("event allocation");
+    return false;
+  }
+  room = domain_event_room_handle(source->room);
+  payload->subject = exposure->subject;
+  payload->room = GET_ROOM_VNUM(source->room);
+  payload->room_generation = room.generation;
+  payload->source_identity = source->source_identity;
+  owner.kind = GAME_EVENT_OWNER_CHARACTER;
+  owner.runtime_id = exposure->subject.runtime_id;
+  owner.generation = exposure->subject.generation;
+  delay = exposure->next_due > (uint64_t)pulse ? exposure->next_due - (uint64_t)pulse : 1U;
+  if (event_runtime_schedule_owned_after(hazard_event_type, owner, delay, payload,
+                                         &exposure->event) != GAME_SCHEDULER_OK)
+  {
+    exposure->event = EVENT_RUNTIME_HANDLE_NONE;
+    free(payload);
+    note_hazard_rejection("event capacity");
+    return false;
+  }
+  return true;
+}
+
+static struct game_event_result hazard_tick(const struct game_event_context *context)
+{
+  struct tactical_hazard_event_payload *payload = context != NULL ? context->payload : NULL;
+  struct tactical_hazard_exposure *exposure;
+  struct raff_node *source;
+  struct char_data *subject;
+  uint64_t source_identity;
+  room_vnum room;
+
+  source = resolve_hazard_source(payload);
+  subject = payload != NULL ? domain_event_world_resolve_character(payload->subject) : NULL;
+  exposure = source != NULL && subject != NULL ? hazard_exposure(source, subject, false) : NULL;
+  if (exposure == NULL || exposure->event.id != context->event_id)
+    return game_event_result_complete();
+  exposure->event = EVENT_RUNTIME_HANDLE_NONE;
+  if (IN_ROOM(subject) != source->room || combat_encounter_semantic_manages(subject))
+    return game_event_result_complete();
+  source_identity = source->source_identity;
+  room = GET_ROOM_VNUM(source->room);
+  apply_billowing_exposure(source, subject, false);
+  source =
+      real_room(room) != NOWHERE ? hazard_source_in_room(real_room(room), source_identity) : NULL;
+  subject = domain_event_world_resolve_character(payload->subject);
+  exposure = source != NULL && subject != NULL ? hazard_exposure(source, subject, false) : NULL;
+  if (exposure != NULL && IN_ROOM(subject) == source->room)
+    (void)schedule_hazard_exposure(source, exposure, subject, false);
+  return game_event_result_complete();
+}
+
+static bool hazard_clock_init(void)
+{
+  struct game_event_type_config config = {0};
+  const char *registered = event_runtime_type_name(hazard_event_type);
+
+  if (registered != NULL && !strcmp(registered, "tactical.room-hazard.exposure"))
+    return true;
+  hazard_event_type = 0U;
+  config.name = "tactical.room-hazard.exposure";
+  config.handler = hazard_tick;
+  config.cleanup = free;
+  config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  config.max_events = 65536U;
+  config.max_events_per_owner = 64U;
+  config.requires_owner = true;
+  return event_runtime_register_type(&config, &hazard_event_type) == GAME_SCHEDULER_OK;
+}
+
+bool tactical_room_hazard_prepare_source(struct raff_node *source, int level)
+{
+  if (source == NULL || source->spell != SPELL_BILLOWING_CLOUD)
+    return true;
+  if (source->source_identity != 0U)
+    return true;
+  if (next_hazard_source_identity == 0U)
+    return false;
+  source->source_identity = next_hazard_source_identity++;
+  source->source_level = MAX(1, level);
+  return true;
+}
+
+void tactical_room_hazard_source_created(struct raff_node *source)
+{
+  struct tactical_hazard_exposure *exposure;
+  struct char_data *subject;
+  struct char_data *next;
+
+  if (!billowing_source_active(source) || world == NULL || source->room == NOWHERE ||
+      source->room > top_of_world)
+    return;
+  for (subject = world[source->room].people; subject != NULL; subject = next)
+  {
+    next = subject->next_in_room;
+    apply_billowing_exposure(source, subject, false);
+    exposure = hazard_exposure(source, subject, false);
+    if (exposure != NULL)
+      (void)schedule_hazard_exposure(source, exposure, subject, false);
+  }
+}
+
+void tactical_room_hazard_source_removed(struct raff_node *source)
+{
+  while (source != NULL && source->hazard_exposures != NULL)
+    remove_hazard_exposure(source, NULL, source->hazard_exposures);
+}
+
+static void handle_hazard_movement(const struct domain_event_context *context, void *data)
+{
+  const struct domain_character_moved *event = context->payload;
+  struct tactical_hazard_exposure *exposure;
+  struct raff_node *source;
+  struct raff_node *next;
+  struct char_data *subject;
+  struct domain_entity_handle current_room;
+
+  (void)data;
+  subject = domain_event_resolve(context->bus, event->character, DOMAIN_ENTITY_CHARACTER);
+  if (subject == NULL || IN_ROOM(subject) == NOWHERE)
+    return;
+  current_room = domain_event_room_handle(IN_ROOM(subject));
+  if (!domain_entity_handle_equal(current_room, event->to_room))
+    return;
+  for (source = world[IN_ROOM(subject)].affected_head; source != NULL; source = next)
+  {
+    next = source->room_next;
+    if (!billowing_source_active(source))
+      continue;
+    apply_billowing_exposure(source, subject, false);
+    exposure = hazard_exposure(source, subject, false);
+    if (exposure != NULL)
+      (void)schedule_hazard_exposure(source, exposure, subject, false);
+  }
+}
+
+enum domain_event_status tactical_effects_register_handlers(struct domain_event_bus *bus)
+{
+  struct domain_event_handler_config config = {
+      DOMAIN_EVENT_CHARACTER_MOVED, "tactical.room-hazard-entry", 70, handle_hazard_movement, NULL};
+
+  if (bus == NULL)
+    return DOMAIN_EVENT_INVALID_ARGUMENT;
+  return domain_event_register_handler(bus, &config);
+}
+
+void tactical_room_hazards_enter_combat(struct char_data *subject)
+{
+  struct tactical_hazard_exposure *exposure;
+  struct raff_node *source;
+
+  if (subject == NULL || world == NULL || IN_ROOM(subject) == NOWHERE ||
+      IN_ROOM(subject) > top_of_world)
+    return;
+  for (source = world[IN_ROOM(subject)].affected_head; source != NULL; source = source->room_next)
+  {
+    exposure = hazard_exposure(source, subject, false);
+    if (exposure != NULL && !event_runtime_handle_is_none(exposure->event))
+    {
+      (void)event_runtime_cancel(exposure->event);
+      exposure->event = EVENT_RUNTIME_HANDLE_NONE;
+    }
+  }
+}
+
+void tactical_room_hazards_leave_combat(struct char_data *subject)
+{
+  struct tactical_hazard_exposure *exposure;
+  struct raff_node *source;
+
+  if (subject == NULL || world == NULL || IN_ROOM(subject) == NOWHERE ||
+      IN_ROOM(subject) > top_of_world)
+    return;
+  for (source = world[IN_ROOM(subject)].affected_head; source != NULL; source = source->room_next)
+  {
+    exposure = hazard_exposure(source, subject, false);
+    if (exposure != NULL)
+      (void)schedule_hazard_exposure(source, exposure, subject, true);
+  }
+}
+
+bool tactical_room_hazards_on_turn_end(struct char_data *subject)
+{
+  struct domain_entity_handle identity;
+  struct tactical_hazard_exposure *exposure;
+  struct raff_node *source;
+  struct raff_node *next;
+  room_rnum room;
+
+  if (subject == NULL || world == NULL || IN_ROOM(subject) == NOWHERE ||
+      IN_ROOM(subject) > top_of_world)
+    return subject != NULL;
+  identity = domain_event_character_handle(subject);
+  room = IN_ROOM(subject);
+  for (source = world[room].affected_head; source != NULL; source = next)
+  {
+    next = source->room_next;
+    if (!billowing_source_active(source))
+      continue;
+    exposure = hazard_exposure(source, subject, false);
+    if (exposure != NULL && !event_runtime_handle_is_none(exposure->event))
+    {
+      (void)event_runtime_cancel(exposure->event);
+      exposure->event = EVENT_RUNTIME_HANDLE_NONE;
+    }
+    apply_billowing_exposure(source, subject, true);
+    subject = domain_event_world_resolve_character(identity);
+    if (subject == NULL || GET_POS(subject) <= POS_DEAD || IN_ROOM(subject) != room)
+      return false;
+  }
+  return true;
+}
+
+uint64_t tactical_room_hazard_exposures(void)
+{
+  return hazard_exposure_count;
+}
+
+uint64_t tactical_room_hazard_exposure_rejections(void)
+{
+  return hazard_exposure_rejections;
+}
+
+#ifdef LUMINARI_CUTEST
+void tactical_effects_set_hazard_test_callback(tactical_hazard_test_callback callback,
+                                               void *context)
+{
+  hazard_test_callback = callback;
+  hazard_test_context = context;
+}
+
+void tactical_effects_set_hazard_exposure_limit_for_test(size_t limit)
+{
+  hazard_exposure_limit = limit;
+}
+#endif

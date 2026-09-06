@@ -460,6 +460,7 @@ static void restore_semantic_action_events(struct combat_encounter_participant *
     return;
   tactical_defense_leave_combat(participant->character);
   tactical_bleeding_leave_combat(participant->character);
+  tactical_room_hazards_leave_combat(participant->character);
   for (index = 0U; index < NUM_ACTIONS; index++)
   {
     if (participant->action_ready_turn[index] <= participant->turns_started)
@@ -1030,6 +1031,11 @@ combat_encounter_round_event(const struct game_event_context *context)
              domain_event_resolve(encounter_bus, participant->character_handle,
                                   DOMAIN_ENTITY_CHARACTER) == participant->character))
           completed = tactical_bleeding_on_turn_end(participant->character);
+        if (completed && participant->active && !participant->departing &&
+            (encounter_bus == NULL ||
+             domain_event_resolve(encounter_bus, participant->character_handle,
+                                  DOMAIN_ENTITY_CHARACTER) == participant->character))
+          completed = tactical_room_hazards_on_turn_end(participant->character);
         counter_increment(&cumulative_stats.semantic_turns_resolved);
       }
       else
@@ -1205,6 +1211,7 @@ bool combat_encounter_join(struct char_data *character, struct char_data *oppone
   }
   participant = character->combat_encounter_participant;
   activate_participant(participant, initial_delay);
+  tactical_room_hazards_enter_combat(character);
   encounter = merge_root(character->combat_encounter);
   if (encounter != NULL && !encounter->resolving && !ensure_round_event(encounter))
   {

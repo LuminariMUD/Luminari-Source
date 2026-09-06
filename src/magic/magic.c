@@ -1367,6 +1367,7 @@ void rem_room_aff(struct raff_node *raff)
   room = raff->room;
   affection = raff->affection;
   spell = raff->spell;
+  tactical_room_hazard_source_removed(raff);
   affected_room_owner_remove(raff);
   REMOVE_FROM_LIST(raff, raff_list, next)
   free(raff);
@@ -15252,6 +15253,12 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
     raff->affection = aff;
     raff->ch = ch;
     raff->spell = spellnum;
+    if (!tactical_room_hazard_prepare_source(raff, level))
+    {
+      free(raff);
+      send_to_char(ch, "Your spell cannot establish a stable effect here.\r\n");
+      return;
+    }
     raff->next = raff_list;
     raff_list = raff;
     affected_room_owner_add(raff);
@@ -15276,6 +15283,8 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
     act(to_room, TRUE, ch, 0, 0, TO_ROOM);
   else if (to_char != NULL)
     act(to_char, TRUE, ch, 0, 0, TO_ROOM);
+  if (raff != NULL)
+    tactical_room_hazard_source_created(raff);
 }
 
 bool is_spell_mind_affecting(int snum)

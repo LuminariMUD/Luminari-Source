@@ -854,3 +854,28 @@ expiry, non-burst behavior and fresh-source isolation.
 This is required timing groundwork for #107's recurring-save pilot. Billowing
 cloud source identity, subject exposure accounting and semantic end-of-turn saves
 remain open.
+
+## Billowing Cloud exposure checkpoint (2026-09-06)
+
+Migrated Billowing Cloud from the room-wide behavior loop to source-owned,
+per-character exposure intervals. Committed movement handles entry, character-
+owned native events handle continued exposure outside combat, and the subject's
+semantic end phase handles it in combat. One next-due value prevents duplicate
+entry, re-entry and turn checks in the same interval and survives transitions
+between native and semantic timing.
+
+Each cloud has its own identity and a bounded exposure list. Admission failure is
+counted and rejects the untracked exposure. Source removal cancels future events;
+world-lifetime checks make expiry win even when another event at the same deadline
+dispatches first. The old Billowing Cloud case in room_aff_tick is removed, while
+the level threshold, Fortitude save and action consequence remain.
+
+Production-linked coverage includes forced entry, same-interval re-entry, native
+continuation, combat entry and exit, vanished sources, exact-deadline expiry,
+distinct overlapping sources, level immunity and capacity rejection. Flat help,
+development database help and the deployment SQL component describe the rules.
+Crossing hazards, tentacles and final #107 lifecycle/capacity acceptance remain
+open.
+
+Validation: final `make -j10 test` passed all 1,241 tests without compiler
+warnings, followed by successful `make install`.

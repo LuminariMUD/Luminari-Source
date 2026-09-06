@@ -1,6 +1,6 @@
 # Tactical effect clocks and hazard exposure
 
-Assigned issue: #107. Status: short-defense and bleeding pilots implemented; remaining migration and acceptance open.
+Assigned issue: #107. Status: short-defense, bleeding and billowing-cloud pilots implemented; remaining migration and acceptance open.
 Source inspection: fix/open-issue-repairs at d13732245, 2026-09-06.
 
 ## Existing behavior and integration points
@@ -242,3 +242,29 @@ added while another source's room owner is overdue begins at its admission round
 and does not inherit the older source's elapsed lifetime. Reindexing the room
 owner preserves that source-local clock. This uses the existing native room owner
 and adds no scheduler or world scan.
+
+## Billowing Cloud exposure pilot
+
+Each Billowing Cloud room affect now receives a process-local source identity.
+The source owns a bounded list of character-generation exposure records. An
+entry record is admitted and its next interval is marked before the save or
+action consequence runs. If admission fails, the exposure is rejected and
+counted rather than allowed to run repeatedly without accounting.
+
+Committed CharacterMoved facts check only the destination room's active source
+list. A new cloud checks characters already in that room. Leaving and re-entering
+within the same six-second interval does not repeat a check, while distinct cloud
+sources keep distinct interval budgets. Level 13 and higher remains ineligible.
+
+Outside semantic combat, a character-owned native event handles the source's
+next exposure. In combat, continued exposure runs after the subject's action at
+an eligible turn end. The shared next-due deadline arbitrates native, entry and
+semantic callbacks, including transitions in both directions. Expiry is also
+checked from the source's world lifetime, so an encounter callback cannot act at
+a deadline where the room owner has not yet dispatched the source's expiry.
+
+Removing a source cancels its pending exposure events and releases every record.
+Native payloads carry character generation, stable room vnum/generation and
+source identity; no room-affect pointer crosses an asynchronous callback. The old
+room-wide Billowing Cloud loop is removed. Other room hazards retain their legacy
+behavior until migrated individually.
