@@ -89,6 +89,7 @@ _CODE_EVIDENCE_PATHS = (
     "src/handler.c",
     "src/utils.c",
     "src/magic/magic.c",
+    "src/net/protocol.c",
     "src/spec/spec_assign_mobiles.c",
     "src/spec/spec_assign_objects.c",
     "src/spec/spec_registry.c",
@@ -96,6 +97,7 @@ _CODE_EVIDENCE_PATHS = (
     "src/spec/spec_rol_conversion.h",
     "unittests/CuTest/test_spec_mechanics.c",
     "unittests/CuTest/test_unassigned_spells.c",
+    "unittests/CuTest/test_protocol_parser.c",
 )
 _DOCUMENTATION_PATHS = (
     "docs/utilities/WORLD_VALIDATOR_CLI.md",
