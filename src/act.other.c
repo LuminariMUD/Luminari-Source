@@ -1683,6 +1683,15 @@ ACMDU(do_perform) {
 }
  */
 
+bool can_select_dire_wolf_companion(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return FALSE;
+
+  return CLASS_LEVEL(ch, CLASS_RANGER) >= 4 && CLASS_LEVEL(ch, CLASS_WARRIOR) >= 1 &&
+         HAS_FEAT(ch, FEAT_ANIMAL_COMPANION);
+}
+
 static int animal_companion_level(struct char_data *ch, int level)
 {
   if (HAS_FEAT(ch, FEAT_BOON_COMPANION))
@@ -1760,6 +1769,13 @@ void perform_call(struct char_data *ch, int call_type, int level)
     {
       /* Animal companion vnums range from 60-67 (8 choices) */
       mob_num = 60 + rand_number(0, 7);
+    }
+
+    if (mob_num == MOB_DIRE_WOLF && !can_select_dire_wolf_companion(ch))
+    {
+      send_to_char(ch, "A dire-wolf bond requires Ranger level 4, Warrior level 1, and the animal "
+                       "companion ability.\r\n");
+      return;
     }
 
     break;
@@ -1942,6 +1958,13 @@ void perform_call(struct char_data *ch, int call_type, int level)
     return;
   }
 
+  if (call_type == MOB_C_ANIMAL && mob_num == MOB_DIRE_WOLF)
+  {
+    SET_BIT_AR(MOB_FLAGS(mob), MOB_C_ANIMAL);
+    SET_BIT_AR(MOB_FLAGS(mob), MOB_MOUNTABLE);
+    SET_BIT_AR(AFF_FLAGS(mob), AFF_TAMED);
+  }
+
   if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
   {
     X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
@@ -1959,6 +1982,9 @@ void perform_call(struct char_data *ch, int call_type, int level)
     GET_LEVEL(mob) = animal_companion_level(ch, level);
     autoroll_mob(mob, true, true);
     GET_REAL_MAX_HIT(mob) += 20;
+
+    if (mob_num == MOB_DIRE_WOLF)
+      GET_REAL_SIZE(mob) = MIN(SIZE_COLOSSAL, GET_SIZE(ch) + 1);
 
     /* Beast Master perk bonuses */
     if (!IS_NPC(ch))

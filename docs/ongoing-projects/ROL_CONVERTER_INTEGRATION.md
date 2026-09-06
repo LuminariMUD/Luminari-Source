@@ -987,7 +987,7 @@ registration files only where a verified gap needs repair. Reuse `src/spec/spec_
 `test_unassigned_spells.c`, `test_spells_skills_production.c`, and `test_spec_mechanics.c`.
 Player-visible changes also require both the help database and `lib/text/help/help.hlp`.
 
-- [ ] 117.1 Rebuild the entire pinned per-class matrix, including shared-class spells and the
+- [x] 117.1 Rebuild the entire pinned per-class matrix, including shared-class spells and the
   six historically unregistered spells. Deduplicate by canonical target spell ID; do not sum
   per-class counts. Record source name/ID/class/learning level, target ID and aliases, real
   handler/dispatch, current class/domain access, proposed target level/acquisition path,
@@ -997,7 +997,7 @@ Player-visible changes also require both the help database and `lib/text/help/he
   hound, and water/fire/earth/air elemental embodiment. Trace the current registration through
   its actual handler and cleanup behavior; reuse existing implementations and repair only
   demonstrated defects. Do not reopen already implemented handler work from historical prose.
-- [ ] 117.3 Record the five product decisions below with a concrete progression/access table.
+- [x] 117.3 Record the five product decisions below with a concrete progression/access table.
   Use existing class, specialty, feat, perk, companion, and multiclass systems as the initial
   implementation path. A choice to preserve only converted content must be explicit and approved.
 
@@ -1009,22 +1009,22 @@ Player-visible changes also require both the help database and `lib/text/help/he
 | Dire Raider | Ranger/Warrior dire-wolf bond package | Approved Ranger/Warrior dire-wolf kit. Define companion acquisition/scaling, mounted interactions, prerequisites, and its spell kit. |
 | Mercenary | Documented disabled-source Warrior/Rogue build | Approved retention of the documented existing Warrior/Rogue build; no new base class or disabled-source class activation. |
 
-- [ ] 117.4 Assign every accepted spell to explicit class/domain levels and acquisition paths.
+- [x] 117.4 Assign every accepted spell to explicit class/domain levels and acquisition paths.
   Use `class.c`'s spell assignments and `init_spell_levels()` plus the domain registry, rather
   than treating converter mobile class mappings as player access. Implement only the approved
   progression changes. If a full new base class is chosen, amend this plan with its complete
   progression, compatibility, persistence, and testing scope before introducing class IDs.
-- [ ] 117.5 Test approved access after the real class/domain initialization sequence, including
+- [x] 117.5 Test approved access after the real class/domain initialization sequence, including
   immediately below/at acquisition level, eligible/ineligible classes, prerequisites, learning,
   preparation or spontaneous casting, domain restrictions, and multiclass interactions.
   Preserve content-only spells as unavailable to players. Retain valid registration-default
   tests that call only `mag_assign_spells()`; add assertions after full initialization for actual
   class/domain access. Change an old expectation only if behavior at its tested stage changes.
-- [ ] 117.6 Reuse existing handler regressions. Add balance/cleanup cases where new player
+- [x] 117.6 Reuse existing handler regressions. Add balance/cleanup cases where new player
   access or an accepted behavior change introduces a concrete risk: targeting/saves, costs,
   duration/stacking, cooldowns, totems, summons/companions, or embodiment transitions. Exercise
   interactions with affected class features; run the full suite and accepted kits in step 6.
-- [ ] 117.7 Update affected class/spell/feat help entries in the database and `help.hlp`, plus
+- [x] 117.7 Update affected class/spell/feat help entries in the database and `help.hlp`, plus
   relevant durable documentation, using existing editing/verification patterns. Check those
   entries against the development MUD display; a repository-wide help reconciliation is outside
   this issue. Record excluded identities and content-only decisions in the same decision matrix.
@@ -1068,6 +1068,66 @@ effects. The shared dispel helper skips them and restores retained affect flags 
 Natural expiry now clears both linked ends before individual affects are removed. The new
 production-linked regression covers expiry on the caster, recipient, and a self-cast link,
 and confirms unrelated affects tick once. Player progression and final in-game checks remain open.
+
+### Step 4 implementation ablation and locked access policy
+
+Plan-ablation review (2026-09-06): map the 82 spells with live source-class acquisition into
+the seven existing target class lists and retain the seven spells without a live source class as
+content-only. This produces 99 class/spell assignments after canonical-ID and target-class
+deduplication. Do not add class IDs, domains, spell handlers, persistence fields, a second
+specialty system, or new companion prototypes. Reuse Wizard schools and perks, Cleric totems,
+Bard known spells, Ranger companion scaling, and the existing dire-wolf prototype. Make the
+already documented two-Focused-Element prerequisite for Master of Elements executable, use that
+perk as the four embodiment spells' player-access prerequisite, and expose the dire wolf only to
+the approved Ranger 4/Warrior 1 multiclass path. Tests and the focused help entries are sufficient;
+no repository-wide help reconciliation or unrelated class rebalance belongs in this step.
+
+Source circles 1..9 map to the corresponding target full-caster circles; source circle 10 shares
+the target ninth-circle cap. Sorcerer uses its native delayed full-caster levels. Bard uses its
+native six-circle schedule, with song of travel at the level-16 capstone. Ranger and Blackguard
+source circles are compressed into their native four-circle schedules. When several source
+classes collapse into one target class, the earliest mapped source circle wins. No spell receives
+a domain assignment. The complete per-spell levels, prerequisites, handlers, rationale, and final
+dispositions are recorded in the generated matrix named by 117.1.
+
+### Step 4 completion evidence
+
+The five product identities are closed through existing systems, without new class IDs or a
+parallel specialization framework:
+
+| Identity | Final player route | Concrete progression outcome |
+|----------|--------------------|------------------------------|
+| Shaman | Cleric spirit/totem build; Wisdom casting | Preserve 3, command undead 5, farsee 11, soul tempest 13, ancestral shield and spirit walk 17. Existing converted totems bond to Clerics and summon at Cleric 21 using Wisdom, with the existing identity, attempt, and active-spirit limits. |
+| Elementalist | Wizard elemental perk build; Intelligence casting | Minor creation 1, air blast 5, thunder lance 9, earth/fire fog 15, earthblood 17. Focused Element supplies the choice; Master of Elements now really requires two Focused Element perks and gates water embodiment 13, air 15, and earth/fire 17. |
+| Battlechanter | Bard combat/support build; Charisma casting | Minor creation 4 and song of travel 16 use normal Bard known-spell selection and existing performances. Optional Warrior or Cleric levels add theme, not spell eligibility. |
+| Dire Raider | Ranger 4/Warrior 1 dire-wolf bond | Animal Companion can select the existing dire-wolf prototype. Runtime instances are tame, mountable, rider-size plus one, and retain normal companion/Boon Companion/Beast Master scaling. Ranger kit levels are 6/10/12/15 as recorded in the matrix. |
+| Mercenary | Documented Warrior/Rogue multiclass | The source creation-disabled, spell-less class remains excluded; no new class or disabled source path was activated. |
+
+`spell-class-matrix.json` under the ignored evidence root contains all 89 canonical spells,
+132 source acquisition rows, all aliases and handlers, the before/final access, acquisition path,
+prerequisite, balance rationale, and disposition. It closes 82 spells as player-access through 99
+class assignments and closes comprehend languages, wraithform, unseen servant, needle swarm,
+snapping teeth, agility, and call lycanthrope as content-only. No domain was added. Matrix SHA-256:
+`4ba878cb9016c26f42f4d80832f9d6cc7d23737dd3f08cbaf9f3d127be239d7c`.
+The full initialization capture SHA-256 is
+`d27614e12ecd302a8be89b1190d79a32ef9b50b0c20e7f87df8b7a4426ba18b6`;
+its `cutest` binary SHA-256 is
+`8fb5024530290ffdbabca14cbd464c1d97c4c470ad0a2826a2e1c320987bd2b2`.
+
+The root production-linked suite passes all 1,146 tests. New cases assert every class/domain cell
+after `mag_assign_spells()`, `load_class_list()`, and `init_spell_levels()`; all boundary levels;
+eligible and ineligible multiclasses; the Bard known-spell path; Wizard initialization and
+prepared access; Master of Elements purchase and casting prerequisites; the content-only set;
+and Dire Raider bond gates. Existing registration-default and 14-handler behavior/cleanup tests
+remain passing. `make install` installed dirty build ID
+`68019af6011b743316dd0fc857e4311e38250722` and removed the root binary.
+
+`help_rol_player_kits.sql` is idempotent across repeated development application. Its verifier
+passes 13 affected entries, 14 owned keywords, and 16 required content checks. The legacy file
+parses as 2,168 valid entries, and all 13 affected database bodies exactly match their
+`help.hlp` bodies. A live development staff session resolved shaman, elementalist,
+battlechanter, dire-raider, rol-mercenary, rol-spell-kits, animal-companion, water embodiment,
+song of travel, and masterofelements through the authoritative database and logged out cleanly.
 
 ## Step 5: review final weapon inference output (#115)
 
