@@ -663,3 +663,24 @@ and verified. No production change or server restart occurred.
 failure, encounter-transition and deep DG/ranged/nested-strike coverage. Audit
 counterspell verbal perception against AFF_DEAF as part of visibility/senses
 acceptance. #107-109, final #103-105 audits and #111/#112 gates also remain open.
+
+## Counterspell senses acceptance checkpoint (2026-09-06)
+
+Counterspell's verbal perception path now respects AFF_DEAF. Visible somatic
+components still permit identification by a deaf observer. Revalidation at native
+execution also checks the required sense, so losing hearing after identifying a
+verbal-only cast cancels the opportunity without consuming its spell resource.
+The existing visible-caster and speech/room eligibility rules remain in force.
+
+Four additional production-linked cases exercise these combinations, including
+the positive hearing/verbal-only case. Successful counter cases now assert the
+exact activity ID and CANCELLED/COUNTERED terminal fact. A fixed hit-point
+expectation varied by one during the full suite; terminal state directly proves
+countering versus completion without conflating independent health changes.
+Flat help, deployable SQL and development help text describe the senses rule.
+
+Validation: `make -j10 test` passed with 1,196 gameplay tests and no compiler
+warnings; `make install` followed the run. #106 still needs the remaining
+competition/equal-deadline, admission-failure, encounter-transition and deep
+DG/ranged/nested-strike acceptance work. No assigned issue or release gate is
+being marked complete by this checkpoint.

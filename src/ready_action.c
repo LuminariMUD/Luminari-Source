@@ -263,7 +263,8 @@ static bool counterspell_observable(struct char_data *owner, struct char_data *c
     return false;
   metamagic = CASTING_METAMAGIC(caster);
   return !IS_SET(metamagic, METAMAGIC_STILL) ||
-         (!IS_SET(metamagic, METAMAGIC_SILENT) && !AFF_FLAGGED(caster, AFF_SILENCED));
+         (!IS_SET(metamagic, METAMAGIC_SILENT) && !AFF_FLAGGED(caster, AFF_SILENCED) &&
+          !AFF_FLAGGED(owner, AFF_DEAF));
 }
 
 static void execute_counterspell(struct ready_action *action, struct char_data *owner)

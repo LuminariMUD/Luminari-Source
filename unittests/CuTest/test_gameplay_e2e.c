@@ -3030,6 +3030,16 @@ void Test_gameplay_staff_agenda_shutdown_discards_active_event_and_boot_delay_ex
 }
 
 
+static void capture_terminal_cast(const struct domain_event_context *context, void *data)
+{
+  const struct domain_activity_transitioned *event = context->payload;
+
+  if (event->activity_type == PRIMARY_ACTIVITY_CASTING &&
+      (event->current_state == PRIMARY_ACTIVITY_STATE_CANCELLED ||
+       event->current_state == PRIMARY_ACTIVITY_STATE_COMPLETED))
+    *(struct domain_activity_transitioned *)data = *event;
+}
+
 /* Production command, cast admission, resource debit and native reaction dispatch. */
 static void verify_counterspell_reaction(CuTest *tc, int scenario)
 {
@@ -3043,8 +3053,12 @@ static void verify_counterspell_reaction(CuTest *tc, int scenario)
   int saved_pk = CONFIG_PK_ALLOWED;
   unsigned long saved_pulse = pulse;
   struct primary_activity_snapshot original;
+  struct domain_activity_transitioned terminal = {0};
+  struct domain_event_subscription_config observer = {0};
+  struct domain_event_subscription_handle subscription;
   struct primary_activity_snapshot replacement;
   bool retained;
+  int metamagic = METAMAGIC_NONE;
 
   begin_gameplay_fixture(&f);
   domain_event_runtime_shutdown();
@@ -3088,18 +3102,35 @@ static void verify_counterspell_reaction(CuTest *tc, int scenario)
   if (scenario != 4)
     collection_add(&f.actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0, 0, 0);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  observer.type = DOMAIN_EVENT_ACTIVITY_TRANSITIONED;
+  observer.topic = (struct domain_event_topic){DOMAIN_EVENT_TOPIC_SUBJECT,
+                                               domain_event_character_handle(&f.victim)};
+  observer.owner = domain_event_character_handle(&f.actor);
+  observer.identity = "test.counterspell.terminal";
+  observer.handler = capture_terminal_cast;
+  observer.handler_context = &terminal;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &observer, &subscription));
+  if (scenario == 7 || scenario == 8)
+    SET_BIT_AR(AFF_FLAGS(&f.actor), AFF_DEAF);
+  if (scenario == 5)
+    metamagic = METAMAGIC_SILENT | METAMAGIC_STILL;
+  else if (scenario == 7 || scenario == 9 || scenario == 10)
+    metamagic = METAMAGIC_STILL;
+  else if (scenario == 8)
+    metamagic = METAMAGIC_SILENT;
   do_ready(&f.actor, "counterspell caster on casting", 0, 0);
   CuAssertPtrNotNull(tc, f.actor.ready_action);
   CuAssertTrue(tc, !is_action_available(&f.actor, atSTANDARD, false));
-  CuAssertIntEquals(tc, 1,
-                    cast_spell(&f.victim, &f.victim, NULL, SPELL_CURE_LIGHT,
-                               scenario == 5 ? METAMAGIC_SILENT | METAMAGIC_STILL : 0));
+  CuAssertIntEquals(tc, 1, cast_spell(&f.victim, &f.victim, NULL, SPELL_CURE_LIGHT, metamagic));
   if (scenario != 6)
     CuAssertTrue(tc, primary_activity_snapshot(&f.victim, &original));
   else
     CuAssertTrue(tc, !primary_activity_snapshot(&f.victim, &original));
   if (scenario == 1)
     SET_BIT_AR(AFF_FLAGS(&f.actor), AFF_BLIND);
+  if (scenario == 9)
+    SET_BIT_AR(AFF_FLAGS(&f.actor), AFF_DEAF);
   if (scenario == 2)
   {
     CuAssertTrue(tc, primary_activity_cancel_id(&f.victim, original.id,
@@ -3116,10 +3147,12 @@ static void verify_counterspell_reaction(CuTest *tc, int scenario)
     pulse++;
   event_test_advance();
   retained = is_spell_in_collection(&f.actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0);
-  if (scenario == 0 || scenario == 3)
+  if (scenario == 0 || scenario == 3 || scenario == 8 || scenario == 10)
   {
     CuAssertTrue(tc, !IS_CASTING(&f.victim));
-    CuAssertIntEquals(tc, 10, GET_HIT(&f.victim));
+    CuAssertTrue(tc, terminal.activity_id == original.id);
+    CuAssertIntEquals(tc, PRIMARY_ACTIVITY_STATE_CANCELLED, terminal.current_state);
+    CuAssertIntEquals(tc, PRIMARY_ACTIVITY_END_COUNTERED, terminal.end_reason);
     CuAssertTrue(tc, !retained);
     CuAssertPtrNotNull(tc, SPELL_PREP_QUEUE(&f.actor, CLASS_CLERIC));
   }
@@ -3129,7 +3162,7 @@ static void verify_counterspell_reaction(CuTest *tc, int scenario)
     CuAssertTrue(tc, retained == (scenario != 4));
     CuAssertPtrEquals(tc, NULL, SPELL_PREP_QUEUE(&f.actor, CLASS_CLERIC));
   }
-  if (scenario == 5 || scenario == 6)
+  if (scenario == 5 || scenario == 6 || scenario == 7)
   {
     CuAssertPtrNotNull(tc, f.actor.ready_action);
     ready_action_cancel(&f.actor, false);
@@ -3491,4 +3524,25 @@ void Test_gameplay_ally_readiness_cancels_on_bound_attacker_extraction(CuTest *t
 void Test_gameplay_ally_readiness_cancels_on_ally_death_before_claim(CuTest *tc)
 {
   verify_ally_readiness(tc, 10);
+}
+
+
+void Test_gameplay_counterspell_deaf_observer_cannot_identify_verbal_only_cast(CuTest *tc)
+{
+  verify_counterspell_reaction(tc, 7);
+}
+
+void Test_gameplay_counterspell_deaf_observer_can_identify_visible_gestures(CuTest *tc)
+{
+  verify_counterspell_reaction(tc, 8);
+}
+
+void Test_gameplay_counterspell_rechecks_hearing_before_resource_debit(CuTest *tc)
+{
+  verify_counterspell_reaction(tc, 9);
+}
+
+void Test_gameplay_counterspell_hearing_observer_can_identify_verbal_only_cast(CuTest *tc)
+{
+  verify_counterspell_reaction(tc, 10);
 }

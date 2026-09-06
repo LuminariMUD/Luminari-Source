@@ -39,7 +39,8 @@ from CharacterDamaged.
    no counterspell window under this rule. Do not add a hidden delay to them.
 3. Observe the spell through structured casting data. Require local visibility
    and a perceptible component: an audible verbal component or a visible somatic
-   component, accounting for silence, still/silent metamagic and soundproof rooms.
+   component, accounting for deafness, silence, still/silent metamagic and
+   soundproof rooms. Recheck the needed sense at execution before resource debit.
    A spell with neither observable component cannot be identified this way.
 4. Make one identification roll for this reservation and cast ID. Initially use
    the existing game threshold: `compute_ability(ABILITY_SPELLCRAFT) + d20 > 20`,
@@ -185,3 +186,10 @@ untouched, relationship and visibility checks, non-ally admission, and participa
 movement/death/extraction notifications before and after claiming an attacker.
 The rest of the listed acceptance matrix remains outstanding; the issue is not
 complete.
+
+Counterspell perception also has production-linked tests for deaf observers of
+verbal-only casts, deaf observers of visible gestures, hearing loss between
+trigger and execution, and hearing observers of verbal-only casts. Successful
+counter tests assert the exact casting activity's CANCELLED/COUNTERED terminal
+event rather than using fixed hit points as evidence; other scheduled activity
+may change hit points independently of spell completion.

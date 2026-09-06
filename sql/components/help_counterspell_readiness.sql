@@ -29,6 +29,8 @@ COUNTERSPELL reserves the same standard action and expiry for one counter.
 You must be an eligible spellcaster with speech and hands available. Watch a
 visible local caster before they start a timed spell. You need a perceptible
 verbal or somatic component and a Spellcraft check above 20 to identify it.
+Deafness prevents hearing verbal components; visible gestures can still reveal
+a spell. The relevant senses must remain available when the counter executes.
 Failure ends readiness without spending a spell resource. Instant spells and
 psionic powers cannot be countered this way.
 
