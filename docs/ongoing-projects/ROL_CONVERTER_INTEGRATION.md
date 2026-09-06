@@ -269,6 +269,19 @@ store generated evidence in existing ignored run storage; no new framework or se
   background/combined/escaped-ampersand forms use the traced source semantics. The packet has
   33 diagnostics and canonical ASCII/LF text without embedded tilde framing. Existing shared
   round trips cover all seven formats. The final display smoke remains part of step 6.
+- Target-validator correction commit: `8ab23aab5` (`fix: align object extension validation
+  with native loader`).
+- Prepared the pre-final weapon review packet, `weapon-dispositions.json`: 101 distinct
+  source records cover all 25 fallbacks, 57 overrides, 14 name/type disagreements and 44
+  historical leads (categories overlap). Each entry has source path/hash and values, target
+  identity/profile, current rule, and a proposed keep rationale. Builder approval remains
+  false; this packet must be refreshed after final object policy changes.
+  Tracing `do_throw()` through `projectiles.c:is_throwable_weapon()` confirmed that target
+  dagger profiles support throwing. Source 21005 therefore needs no new override merely to
+  throw. Corrected the override catalog's stale explanatory comment claiming there was no
+  target throwing command; no override or inference behavior changed. Plan-ablation kept
+  this to the existing comment and review evidence. All 38 weapon-mapping tests passed
+  (`weapon-review-tests.log` and `.exit`, exit 0).
 
 ### Pre-implementation observations
 
@@ -376,7 +389,8 @@ unbound values.
 | S | Independent three-entry weapon-spell array: target spell ID, level, probability, combat flag. Writer preserves this order. `fight.c:weapon_spells()` and `idle_weapon_spells()` consume it through the `GET_WEAPON_SPELL_*` macros, casting through `call_magic()`. | Preserve existing weapon-procedure ownership; the six bound nonzero source ProcVal weapons resolve to `RoL Banana` or `RoL Weapon Proc`. The eight unbound nonzero weapon values remain proposed inert metadata. |
 | G/H/I | One integer each: proficiency/material/size; current writer emits all three, and missing or zero size becomes medium. Material affects saves and equipment behavior; proficiency and size affect use. | Source object structure/loader has no corresponding generic fields. Weapon inference already supplies reviewed table values. Nonweapon inference/default decisions remain pending; textual material guesses can change mechanics. |
 
-The selected-source book inventory was checked against all parsed records and the live source
+The selected-source book inventory (`spellbook-review.json`, 31 books and zero private spell
+entries, with source hashes and target identities) was checked against all parsed records and the live source
 `memorize.c` implementation. Its old prose describes a per-spell string, but the live code uses
 `IS_CSET`/`SET_CBIT` storage; no such private E entry occurs in these world prototypes. Runtime
 player-book data is outside this world-converter input.
