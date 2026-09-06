@@ -1286,4 +1286,4 @@ already obtainable.
 - `docs/systems/COMMAND_SYSTEM_AND_INTERPRETER.md`
 - `docs/systems/OLC_ONLINE_CREATION_SYSTEM.md`
 - `docs/guides/TESTING_GUIDE.md`
-- `docs/CHANGELOG.md`
+- `docs/ongoing-projects/CHANGELOG.md`

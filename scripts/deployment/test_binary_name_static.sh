@@ -53,7 +53,7 @@ is_allowed_path()
 
   case "$candidate" in
     docs/ongoing-projects/BINARY_RENAME_CIRCLE_TO_LUMINARI.md) return 0 ;;
-    docs/CHANGELOG.md) return 0 ;;
+    docs/ongoing-projects/CHANGELOG.md) return 0 ;;
     docs/previous_changelogs/*) return 0 ;;
     scripts/deployment/test_binary_name_static.sh) return 0 ;;
   esac

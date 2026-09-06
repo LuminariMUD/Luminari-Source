@@ -1,7 +1,7 @@
 # LuminariMUD Developer Guide and API Reference
 
-Use [docs/development.md](../development.md) for the verified build, test,
-source-map, and style entry point. This reference documents the special-procedure
+Use the [development guide](../development/README_development.md) for the verified
+build, test, source-map, and style entry point. This reference documents the special-procedure
 control plane delivered through Phase 02, the Phase 03 behavior extraction, the Phase 04 shared
 mechanics, Phase 05 typed dispatch, and the Phase 06
 composition/lifecycle boundary, and the Phase 07 source consolidation; other subsystem APIs remain
@@ -375,4 +375,4 @@ the
 [Phase 06 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md),
 the
 [Phase 07 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md),
-and [architecture](../ARCHITECTURE.md).
+and [architecture](../systems/ARCHITECTURE.md).

@@ -282,7 +282,7 @@ so a two-argument `I` line fails to parse and aborts the boot. Write `I` with
 three numbers.
 
 This is a source-level bug, not a documentation quirk. It is recorded in
-[known-issues.md](../known-issues.md).
+[known-issues.md](../ongoing-projects/known-issues.md).
 
 ### `L` does not work
 
@@ -292,7 +292,7 @@ always zero. Even when the chance roll passes and a container is somehow found,
 the call that would actually place the treasure is commented out and marked
 `Unfinished`. `L` is dead weight: it will either do nothing or log
 `ZONE ERROR: target obj not found`. Do not use it. Also recorded in
-[known-issues.md](../known-issues.md).
+[known-issues.md](../ongoing-projects/known-issues.md).
 
 ### Unresolvable room references are silenced
 

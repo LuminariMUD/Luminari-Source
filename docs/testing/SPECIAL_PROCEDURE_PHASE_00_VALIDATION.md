@@ -180,9 +180,9 @@ skipped on the final push event; that skip is not evidence of a dependency scan 
    infrastructure exception.
 
 Environment, credential, and loopback boundaries are maintained in
-[environments.md](../environments.md). The managed-service procedure and activation status are in
-[deployment.md](../deployment.md), while durable migration risks remain in
-[Project Considerations](../CONSIDERATIONS.md#special-procedure-architecture-refactor).
+[environments.md](../deployment/environments.md). The managed-service procedure and activation status are in
+[deployment.md](../deployment/DEPLOYMENT_GUIDE.md), while durable migration risks remain in
+[Project Considerations](../development/CONSIDERATIONS.md#special-procedure-architecture-refactor).
 
 ## Reproducible Validation
 

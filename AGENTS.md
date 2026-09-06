@@ -138,7 +138,7 @@ Membership is by "what is this file's primary job", not by what it touches. Head
 while files within that same directory include it bare. Do not add per-directory `-I` flags to avoid the qualification - the explicit path is what makes
 cross-subsystem coupling visible.
 
-Also expect the pre-commit clang-format hook to realign trailing comments on `#include` lines when a longer path shifts the comment column. Accept it, then rebuild and re-test before committing. Historical paths in `docs/CHANGELOG.md` and `docs/previous_changelogs/` are deliberately left stale - they record the tree as it was.
+Also expect the pre-commit clang-format hook to realign trailing comments on `#include` lines when a longer path shifts the comment column. Accept it, then rebuild and re-test before committing. Historical paths in `docs/ongoing-projects/CHANGELOG.md` and `docs/previous_changelogs/` are deliberately left stale - they record the tree as it was.
 
 ### Misc
 - `perfmon.c` - performance monitoring (plain C; older docs mentioning perfmon.cpp/C++11 are obsolete).

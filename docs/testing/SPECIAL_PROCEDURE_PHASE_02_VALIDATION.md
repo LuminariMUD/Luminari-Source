@@ -196,7 +196,7 @@ test "$(rg -l '[^ -~]' \
   docs/guides/OLC_SpecProcs.md \
   docs/guides/DEVELOPER_GUIDE_AND_API.md \
   docs/guides/TESTING_GUIDE.md \
-  docs/ARCHITECTURE.md \
+  docs/systems/ARCHITECTURE.md \
   docs/systems/CORE_SERVER_ARCHITECTURE.md \
   docs/systems/HELP_SYSTEM.md \
   sql/components/help_specproc_entries.sql \

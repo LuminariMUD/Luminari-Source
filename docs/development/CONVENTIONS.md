@@ -95,9 +95,9 @@ compiler passes the required C23 keyword probe.
 
 The enduring architecture and migration lessons are in
 [Project Considerations](CONSIDERATIONS.md#special-procedure-architecture-refactor), with current
-interfaces in the [Developer Guide and API](guides/DEVELOPER_GUIDE_AND_API.md) and completed source
+interfaces in the [Developer Guide and API](../guides/DEVELOPER_GUIDE_AND_API.md) and completed source
 ownership evidence in the
-[Phase 07 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md).
+[Phase 07 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md).
 
 ## Local Configuration and Credentials
 
@@ -167,7 +167,7 @@ ownership evidence in the
 - Keep commits atomic enough to review and revert safely.
 - Review changes against the relevant base commit and preserve existing authored content and
   history.
-- Do not rewrite historical paths in `docs/CHANGELOG.md` or `docs/previous_changelogs/`; those files
+- Do not rewrite historical paths in `docs/ongoing-projects/CHANGELOG.md` or `docs/previous_changelogs/`; those files
   record the tree as it existed.
 
 ## Local Development Tools

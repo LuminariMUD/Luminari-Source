@@ -101,8 +101,9 @@ For manual database creation and schema initialization, use the
 
 `make install` stores the executable and matching debug file under
 `bin/releases/<ELF-build-ID>/`, then atomically points `bin/luminari` at the new
-release. Existing releases remain available for crash analysis. Installation
-refuses to replace a live legacy regular `bin/luminari` during the first upgrade.
+release. Existing releases remain available for crash analysis. Autorun records
+the active executable and build identity for that analysis. Installation refuses
+to replace a live legacy regular `bin/luminari` during the first upgrade.
 
 After testing, verify the installed identity and absence of a root artifact:
 
@@ -132,6 +133,20 @@ Use direct startup for local development. For a supervised local process:
 ./scripts/autorun/autorun.sh stop
 ```
 
+## CI/CD Pipeline
+
+| Workflow | Trigger | Contract |
+|----------|---------|----------|
+| Code Quality | Push or pull request affecting C sources/config | Formatting, targeted static analysis, warning build |
+| Build & Test | Relevant pushes and pull requests | World tools, production tests, sanitizers, Valgrind, coverage, and related gates |
+| Security | Relevant pushes/PRs, manual, twice monthly | Gitleaks, CodeQL, and PR-only dependency review |
+| Integration | Relevant pull requests or manual dispatch | MariaDB schema checks, isolated world/runtime validation, network and health smoke tests |
+| GitHub Pages | Documentation push to `master` or manual dispatch | Publishes the `docs/` tree |
+| Release | Tag matching `v*.*.*` | Builds and creates GitHub release notes |
+
+The release workflow creates GitHub release metadata; it does not update a
+running host. Production deployment remains an explicit operator action.
+
 ## Managed systemd Service
 
 The canonical `luminari.service` starts autorun, tracks the supervisor PID, and
@@ -155,6 +170,12 @@ sudo systemctl status luminari.service --no-pager
 sudo journalctl -u luminari.service -n 200 --no-pager
 sudo systemctl restart luminari.service
 ```
+
+As of the Phase 00 transition on 2026-08-07, the endpoint, probe, and rendered
+unit passed against an isolated local MariaDB runtime. Installing the released
+unit, restarting the production service, and probing production readiness still
+require an approved operator action; local success is not a production
+activation claim.
 
 ## Readiness and Liveness
 
@@ -224,10 +245,11 @@ the crash archive and its matching immutable executable before rebuilding.
 
 ## Related Documentation
 
-- [Deployment and CI/CD overview](../deployment.md)
-- [Environment boundaries](../environments.md)
+- [Event-driven core release gate](EVENT_DRIVEN_CORE_RELEASE_GATE.md)
+- [Phase 00 security and privacy assessment](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md#security-and-privacy-assessment)
+- [Environment boundaries](environments.md)
 - [Database deployment](DATABASE_DEPLOYMENT_GUIDE.md)
 - [Testing guide](../guides/TESTING_GUIDE.md)
 - [Incident response](../runbooks/incident-response.md)
 
-Last updated: 2026-08-07
+Last updated: 2026-09-06

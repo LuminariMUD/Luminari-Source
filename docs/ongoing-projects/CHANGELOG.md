@@ -1674,7 +1674,7 @@ RoL identities to retire. The apply path for this workflow is now disabled.
 - The exact writer behind the August 5 allocator abort remains unproven because
   its original executable and core are unavailable. Production deployment,
   recovery, pet smoke testing, and core-capture verification follow the
-  [incident runbook](runbooks/incident-response.md).
+  [incident runbook](../runbooks/incident-response.md).
 
 ### Artifact bonus stacking
 
@@ -2356,10 +2356,10 @@ backward-compatible extensions.
   lookup, documentation drift, and wrapper status propagation. Synthetic
   fixtures cover all eight formats, normal and mini indexes, legacy forms, and
   malformed boundaries.
-- [World Validator and Lookup CLI](utilities/WORLD_VALIDATOR_CLI.md), the
+- [World Validator and Lookup CLI](../utilities/WORLD_VALIDATOR_CLI.md), the
   permanent command, architecture, exit-status, builder-loop, and CI
-  reference, plus permanent [QST](world_game-data/QUEST_FILE_FORMAT.md) and
-  [HLQ](world_game-data/HLQUEST_FILE_FORMAT.md) format references.
+  reference, plus permanent [QST](../world_game-data/QUEST_FILE_FORMAT.md) and
+  [HLQ](../world_game-data/HLQUEST_FILE_FORMAT.md) format references.
 
 #### Changed
 
@@ -4629,7 +4629,7 @@ At that checkpoint, outstanding work was isolated in
 `docs/project-management-zusuk/vessels/VESSELS_TODO.md`. That workspace was
 later retired; current state is in
 Section 8 of the
-[Vessel System Product Requirements](product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md).
+[Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md).
 
 #### Added
 

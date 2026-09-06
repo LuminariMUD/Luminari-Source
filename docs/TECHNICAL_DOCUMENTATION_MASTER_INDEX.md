@@ -1,7 +1,7 @@
 # LuminariMUD Technical Documentation Master Index
 
-Last Updated: 2026-08-31
-Version: 1.7
+Last Updated: 2026-09-06
+Version: 1.8
 
 ## Documentation Overview
 
@@ -22,13 +22,12 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Essential First Steps
 - **[README.md](../README.md)** - Project overview, quick start, and essential information
-- **[onboarding.md](onboarding.md)** - Fresh-clone developer checklist
+- **[Developer onboarding](development/README_development.md#onboarding)** - Fresh-clone developer checklist
 - **[SETUP_AND_BUILD_GUIDE.md](guides/SETUP_AND_BUILD_GUIDE.md)** - Verified Autotools and CMake setup and build paths
 - **[LUMINARI_OVERVIEW.md](guides/LUMINARI_OVERVIEW.md)** - What LuminariMUD is: the world, its systems, and what makes it distinct (written for players and newcomers to MUDs)
-- **[deployment.md](deployment.md)** - CI/CD, release, managed-service, and rollback boundaries
-- **[DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md)** - Complete setup and deployment instructions
-- **[EVENT_DRIVEN_CORE_RELEASE_GATE.md](deployment/EVENT_DRIVEN_CORE_RELEASE_GATE.md)** - Scheduler/libevent stable-release, rollback-observation, and PubSub backup/restore sign-off procedure
-- **[environments.md](environments.md)** - Development and production configuration boundaries
+- **[DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md)** - Setup, CI/CD, managed services, release storage, and rollback boundaries
+- **[EVENT_DRIVEN_CORE_RELEASE_GATE.md](deployment/EVENT_DRIVEN_CORE_RELEASE_GATE.md)** - Native release evidence and archival PubSub backup/restore and retention sign-off
+- **[environments.md](deployment/environments.md)** - Development and production configuration boundaries
 - **[CONTRIBUTING.md](../CONTRIBUTING.md)** - How to contribute to the project
 - **[CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)** - Community guidelines and expectations
 
@@ -42,7 +41,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ## Architecture & Core Systems
 
 ### System Architecture
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Verified system overview, component boundaries, and data flow
+- **[ARCHITECTURE.md](systems/ARCHITECTURE.md)** - Verified system overview, component boundaries, and data flow
 - **[CORE_SERVER_ARCHITECTURE.md](systems/CORE_SERVER_ARCHITECTURE.md)** - Game loop, networking, and core engine
 - **[MUD_EVENTS.md](systems/MUD_EVENTS.md)** - Timed-event backends, owner lifecycle, persistence, and typed domain-event foundation
 - **[ACTIVE_WORLD.md](systems/ACTIVE_WORLD.md)** - Autonomous NPC owner deadlines and off-screen simulation rules
@@ -61,6 +60,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ### Communication & Protocols
 - **[Operational API Contracts](api/README_api.md)** - Loopback readiness and liveness HTTP contract
 - **[PROTOCOL_SYSTEMS.md](systems/PROTOCOL_SYSTEMS.md)** - Telnet, MSDP, GMCP, and client protocols
+- **[MSDP_VARIABLES.md](systems/MSDP_VARIABLES.md)** - Canonical variable types, payloads, wire encodings, and update behavior
 - **[MUDLET_GUI_PACKAGE.md](systems/MUDLET_GUI_PACKAGE.md)** - Mudlet GUI package
   identity, updates, and web deployment
 - **[WEB_ONBOARDING_SYSTEM.md](systems/WEB_ONBOARDING_SYSTEM.md)** - Versioned MSDP account, character-creation, and role-play presentation for Luminari Web
@@ -120,7 +120,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ## Development Guides
 
 ### Core Development
-- **[development.md](development.md)** - Current daily commands, build gates, and source map
+- **[Development guide](development/README_development.md)** - Current daily commands, build gates, and source map
 - **[DEVELOPER_GUIDE_AND_API.md](guides/DEVELOPER_GUIDE_AND_API.md)** - Comprehensive developer reference
 - **[ADDING_NEW_RACE_GUIDE.md](guides/ADDING_NEW_RACE_GUIDE.md)** - End-to-end
   playable-race ID, registry, creation, mechanics, persistence, help, testing,
@@ -205,11 +205,12 @@ This master index provides a comprehensive guide to all technical documentation 
 ## Project Management
 
 ### Planning & Tracking
-- **[TASK_LIST.md](TASK_LIST.md)** - Current development priorities
+- **[TASK_LIST.md](ongoing-projects/TASK_LIST.md)** - Current development priorities
+- **[known-issues.md](ongoing-projects/known-issues.md)** - Recorded exceptions and technical-debt follow-ups
 - **[docs-audit.md](docs-audit.md)** - Phase 00 transition and vessel documentation audit ledger
-- **[CONSIDERATIONS.md](CONSIDERATIONS.md)** - Durable special-procedure and vessel maintenance lessons
-- **[CONVENTIONS.md](CONVENTIONS.md)** - Canonical engineering, build, test, documentation, and operational conventions
-- **[CHANGELOG.md](CHANGELOG.md)** - Recent changes and updates
+- **[CONSIDERATIONS.md](development/CONSIDERATIONS.md)** - Durable special-procedure and vessel maintenance lessons
+- **[CONVENTIONS.md](development/CONVENTIONS.md)** - Canonical engineering, build, test, documentation, and operational conventions
+- **[CHANGELOG.md](ongoing-projects/CHANGELOG.md)** - Recent changes and updates
 
 ### System References and Follow-up Work
 
@@ -231,19 +232,19 @@ This master index provides a comprehensive guide to all technical documentation 
 ### By Audience
 
 #### For New Developers
-1. README.md
-2. onboarding.md
-3. SETUP_AND_BUILD_GUIDE.md
-4. development.md
-5. ARCHITECTURE.md
-6. CONTRIBUTING.md
+1. [Project overview](../README.md)
+2. [Developer onboarding](development/README_development.md#onboarding)
+3. [Setup and build](guides/SETUP_AND_BUILD_GUIDE.md)
+4. [Daily development commands](development/README_development.md#common-commands)
+5. [Architecture](systems/ARCHITECTURE.md)
+6. [Contributing](../CONTRIBUTING.md)
 
 #### For System Administrators
-1. deployment.md
-2. DEPLOYMENT_GUIDE.md
-3. incident-response.md
-4. DATABASE_INTEGRATION.md
-5. TROUBLESHOOTING_AND_MAINTENANCE.md
+1. [Deployment and CI/CD](deployment/DEPLOYMENT_GUIDE.md)
+2. [Environment boundaries](deployment/environments.md)
+3. [Incident response](runbooks/incident-response.md)
+4. [Database integration](systems/DATABASE_INTEGRATION.md)
+5. [Troubleshooting](guides/TROUBLESHOOTING_AND_MAINTENANCE.md)
 
 #### For Content Builders
 1. OLC_ONLINE_CREATION_SYSTEM.md
@@ -273,7 +274,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - Building guides
 
 #### Advanced
-- ARCHITECTURE.md
+- [Architecture](systems/ARCHITECTURE.md)
 - CORE_SERVER_ARCHITECTURE.md
 - DEVELOPER_GUIDE_AND_API.md
 - PERFORMANCE_OPTIMIZATIONS.md
@@ -301,6 +302,13 @@ This master index provides a comprehensive guide to all technical documentation 
 - `*_GUIDE.md` - How-to guides
 - `*_TODO.md` - Planning documents
 - `*_TASK_LIST.md` - Work tracking
+
+### Documentation Folders
+
+- `systems/` - Architecture and runtime/protocol contracts, including the canonical MSDP reference
+- `development/` - Contributor onboarding, daily commands, conventions, and maintenance considerations
+- `deployment/` - Host setup, environments, CI/CD, release, and deployment operations
+- `ongoing-projects/` - Temporary working changelog, task list, and known-issue notes
 
 ### Documentation Standards
 - All docs use Markdown format

@@ -196,7 +196,7 @@ backup after validating references.
 
 - [Setup and build](SETUP_AND_BUILD_GUIDE.md)
 - [Deployment guide](../deployment/DEPLOYMENT_GUIDE.md)
-- [Environment boundaries](../environments.md)
+- [Environment boundaries](../deployment/environments.md)
 - [Health API contract](../api/README_api.md)
 - [Testing guide](TESTING_GUIDE.md)
 

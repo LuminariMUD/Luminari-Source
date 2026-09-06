@@ -12,7 +12,7 @@ beta, and staged production rollout remain
 including its
 [release-gate state](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md#release-gate-state);
 for what shipped when see
-[CHANGELOG.md](../CHANGELOG.md).
+[CHANGELOG.md](../ongoing-projects/CHANGELOG.md).
 
 ---
 
@@ -34,7 +34,7 @@ for what shipped when see
 14. [Troubleshooting](#troubleshooting)
 15. [Operations](#operations)
 16. [Risk Assessment](#risk-assessment)
-17. [Known Issues](#known-issues)
+17. [Release gates](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md#release-gate-state)
 18. [Development](#development)
 
 ---
@@ -1962,7 +1962,7 @@ For each vessel behavior change:
 - [Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md) -
   Durable requirements, release criteria, and gate state
 - [VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md) - Performance data and memory attribution
-- [CHANGELOG.md](../CHANGELOG.md) - What shipped when
+- [CHANGELOG.md](../ongoing-projects/CHANGELOG.md) - What shipped when
 - [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md) - 30-step manual regression script
 - [0001-unified-vessel-system.md](../adr/0001-unified-vessel-system.md) - Architecture decision and invariants
 - [TECHNICAL_DOCUMENTATION_MASTER_INDEX.md](../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md) - Complete docs index

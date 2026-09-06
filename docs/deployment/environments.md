@@ -101,8 +101,8 @@ The shared development port inventory can be checked from this workspace with:
   locations, owner types, and prototype VNUMs. Keep them bounded, single-line,
   and free of player or account values as later gateway context is added.
 
-See [Deployment and CI/CD](deployment.md), the detailed
-[deployment guide](deployment/DEPLOYMENT_GUIDE.md), and the
-[incident runbook](runbooks/incident-response.md). The targeted Phase 00
+See [Deployment and CI/CD](DEPLOYMENT_GUIDE.md), the detailed
+[deployment guide](DEPLOYMENT_GUIDE.md), and the
+[incident runbook](../runbooks/incident-response.md). The targeted Phase 00
 security and privacy result is recorded in the
-[validation matrix](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md#security-and-privacy-assessment).
+[validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md#security-and-privacy-assessment).

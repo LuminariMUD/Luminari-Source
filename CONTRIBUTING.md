@@ -6,8 +6,8 @@ preserve established compatibility unless the change explicitly migrates it.
 
 ## Before You Start
 
-- Set up the repository with the [onboarding checklist](docs/onboarding.md).
-- Read the [development guide](docs/development.md) and the detailed
+- Set up the repository with the [onboarding checklist](docs/development/README_development.md#onboarding).
+- Read the [development guide](docs/development/README_development.md) and the detailed
   [developer reference](docs/guides/DEVELOPER_GUIDE_AND_API.md).
 - Search existing issues and discuss changes that alter persisted data,
   player-visible mechanics, or deployment behavior.
@@ -80,7 +80,7 @@ world-tool, schema, and subsystem-specific gates.
 - Documentation and helpfiles must be valid ASCII, UTF-8, and LF text.
 - Link to an authoritative document instead of copying the same procedure into
   several files.
-- Historical paths in `docs/CHANGELOG.md` and `docs/previous_changelogs/`
+- Historical paths in `docs/ongoing-projects/CHANGELOG.md` and `docs/previous_changelogs/`
   intentionally record the tree as it existed and should not be rewritten.
 - World data under `lib/world/` is production content. Validate format and
   references with the maintained world tools before submitting changes.

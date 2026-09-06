@@ -46,12 +46,12 @@ legacy warning where they remain linked.
 | Phase 00 implementation summaries | 9 | 9 | Read before consolidation and used for sync |
 | Phase 00 security reports | 9 | 9 | Read before consolidation and used for security/deployment wording |
 
-### Files Created
+### Files Created (Current Locations)
 
-- `docs/ARCHITECTURE.md` - Verified high-level component and data-flow map.
-- `docs/onboarding.md` - Fresh-clone developer checklist.
-- `docs/development.md` - Current daily commands, source map, and build gates.
-- `docs/deployment.md` - CI/CD, release, managed-service, and rollback boundaries.
+- `docs/systems/ARCHITECTURE.md` - Verified high-level component and data-flow map.
+- `docs/development/README_development.md` - Consolidated fresh-clone checklist, daily commands,
+  source map, and build gates.
+- `docs/deployment/DEPLOYMENT_GUIDE.md` - CI/CD, release, managed-service, and rollback boundaries.
 - `docs/api/README_api.md` - Loopback health/readiness HTTP contract.
 - `docs/guides/SETUP_AND_BUILD_GUIDE.md` - Restored source-backed setup/build target referenced by
   deployment help and the web index.
@@ -62,7 +62,7 @@ legacy warning where they remain linked.
 - `README.md`, `CONTRIBUTING.md`, `LICENSE`, and `SECURITY.md` provide concise current entry
   points, repository conventions, ASCII legal text, and an honest unresolved security-policy
   boundary.
-- `docs/environments.md`, `docs/deployment/DEPLOYMENT_GUIDE.md`,
+- `docs/deployment/environments.md`, `docs/deployment/DEPLOYMENT_GUIDE.md`,
   `docs/runbooks/incident-response.md`, and
   `docs/guides/TROUBLESHOOTING_AND_MAINTENANCE.md` contain repository-backed environment, service,
   health, containment, and recovery claims.
@@ -73,7 +73,7 @@ legacy warning where they remain linked.
 - `docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md` registers current entry points, corrects renamed
   overviews, and removes a nonexistent PHP guide from the operator path.
 - `docs/GETTING_STARTED.md`, `docs/admin/FAQ.md`,
-  `docs/systems/OLC_ONLINE_CREATION_SYSTEM.md`, and `docs/CHANGELOG.md` received targeted port,
+  `docs/systems/OLC_ONLINE_CREATION_SYSTEM.md`, and `docs/ongoing-projects/CHANGELOG.md` received targeted port,
   authority, link, naming, and audit corrections.
 - `docs/CODEOWNERS` retains organizational assignments while matching the current `src/combat/`,
   `src/magic/`, `src/vessels/`, `src/dgscript/`, build, and database paths.
@@ -138,15 +138,15 @@ example project snapshots rather than current project entry points.
 | Project state | This report | Phase 00 closeout snapshot retained in Git history | P00 complete; 9 sessions; non-monorepo |
 | Phase manifest | Phase-focused docs | First session `Base Commit` plus `git diff --name-only fced8f85..HEAD` | Authoritative transition manifest established |
 | Phase semantics | Phase 00 docs | Nine implementation records, retained in Git history after consolidation | Read and synchronized |
-| Carryforward inputs | Operations/security docs | `docs/CONSIDERATIONS.md`, `docs/known-issues.md`, and the Phase 00 validation security section | Consolidated without claiming production activation |
+| Carryforward inputs | Operations/security docs | `docs/development/CONSIDERATIONS.md`, `docs/ongoing-projects/known-issues.md`, and the Phase 00 validation security section | Consolidated without claiming production activation |
 | Quick start | `README.md`, onboarding/build docs | `deploy.sh --help`; deploy build/database/world functions inspected | Updated |
 | Build/test commands | Development and contributing docs | `Makefile.am` test/test-all/install targets; dry-run target inspection | Verified |
 | CMake commands | Development/build docs | `CMakeLists.txt` `BUILD_TESTS` and install blocks | Verified |
 | Game port | README, getting started, environments, deployment | `src/config.c`, autorun default, systemd unit, deploy completion output | Local 4101; production 4100 |
 | Health API | API, deployment, environment, runbook docs | `terrain_bridge.c/.h`, healthcheck script, systemd unit, gameplay/shell regressions | Verified |
 | Operational commands | Deployment/runbook docs | Deploy, autorun, healthcheck, process-memory, and world-tool help surfaces | Verified |
-| CI/CD | `docs/deployment.md` | Six workflow trigger/job files plus `.github/dependabot.yml`; pipeline report | Verified |
-| Architecture | `docs/ARCHITECTURE.md` | Current source directories and core entry files asserted present | Verified |
+| CI/CD | `docs/deployment/DEPLOYMENT_GUIDE.md` | Six workflow trigger/job files plus `.github/dependabot.yml`; pipeline report | Verified |
+| Architecture | `docs/systems/ARCHITECTURE.md` | Current source directories and core entry files asserted present | Verified |
 | Special-procedure docs | Developer/architecture/builder/testing docs | Session 09 link/symbol/count audit and Phase 00 validation matrix | Verified current |
 | Code ownership | `docs/CODEOWNERS` | Current filesystem paths checked; owner identities preserved | Updated |
 | Documentation links | Changed Markdown | Local target and fragment resolver | PASS in the transition audit and consolidation pass |
@@ -167,7 +167,7 @@ example project snapshots rather than current project entry points.
 - The approved production release still needs the canonical systemd unit installed/restarted and
   the readiness endpoint probed. Repository policy prohibited that production mutation from this
   development checkout; the local equivalent passed and the exception remains in the
-  [known-issues ledger](known-issues.md).
+  [known-issues ledger](ongoing-projects/known-issues.md).
 - The repository has no single general application rollback command. Current docs state that
   constraint and require identified immutable release, database, world-data, and component-runbook
   evidence before production rollback.
@@ -211,8 +211,8 @@ current evidence.
 | What performance and test evidence exists | [VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md) |
 | How schema install, verification, and rollback work | [VESSEL_SCHEMA_DEPLOYMENT.md](deployment/VESSEL_SCHEMA_DEPLOYMENT.md) |
 | What remains unfinished and who owns it | [Vessel System Product Requirements, Release Gate State](product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md#release-gate-state) |
-| What shipped and when | [CHANGELOG.md](CHANGELOG.md) |
-| Which maintenance lessons should persist | [CONSIDERATIONS.md](CONSIDERATIONS.md#vessel-system) |
+| What shipped and when | [CHANGELOG.md](ongoing-projects/CHANGELOG.md) |
+| Which maintenance lessons should persist | [CONSIDERATIONS.md](development/CONSIDERATIONS.md#vessel-system) |
 
 The temporary vessel workspace was retired after its completed history was verified against the
 permanent documents and its three open gates were moved to the vessel product requirements with

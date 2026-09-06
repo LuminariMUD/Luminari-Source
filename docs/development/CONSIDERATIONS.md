@@ -11,14 +11,14 @@ previously maintained in the retired workflow records.
 **Status:** Phases 00-07 delivered
 
 Durable behavior and evidence live in the
-[Phase 00 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md),
-[Phase 01 gateway matrix](testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md),
-[Phase 02 assignment matrix](testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md),
-[Phase 03 ownership matrix](testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md),
-[Phase 04 mechanics matrix](testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md),
-[Phase 05 typed-handler matrix](testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md),
-[Phase 06 composition/lifecycle audit](testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md), and
-[Phase 07 source-consolidation matrix](testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md).
+[Phase 00 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md),
+[Phase 01 gateway matrix](../testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md),
+[Phase 02 assignment matrix](../testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md),
+[Phase 03 ownership matrix](../testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md),
+[Phase 04 mechanics matrix](../testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md),
+[Phase 05 typed-handler matrix](../testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md),
+[Phase 06 composition/lifecycle audit](../testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md), and
+[Phase 07 source-consolidation matrix](../testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md).
 
 ### Active Concerns
 
@@ -151,8 +151,8 @@ Durable behavior and evidence live in the
 
 **Status:** Gameplay layer implemented; production release not yet approved
 
-Use [VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md) for current behavior and the
-[Vessel System Product Requirements](product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md)
+Use [VESSEL_SYSTEM.md](../systems/VESSEL_SYSTEM.md) for current behavior and the
+[Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md)
 for the product contract and authoritative release-gate state.
 
 ### Active Concerns
@@ -205,7 +205,7 @@ for the product contract and authoritative release-gate state.
 The fixed fleet memory and current complete-tick measurement are within budget.
 Repeat the live gate after relevant behavior changes, and continue treating
 bounded runtime-allocation evidence as `REPORT_ONLY`; see
-[VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md).
+[VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md).
 
 ### Practices That Endure
 
@@ -240,7 +240,7 @@ and MSDP vessel state.
 
 That list describes implemented capability, not production readiness. Current
 release state and the owned exit conditions are maintained in
-[Vessel System Product Requirements](product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md).
+[Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md).
 
 ### Evidence Hygiene
 

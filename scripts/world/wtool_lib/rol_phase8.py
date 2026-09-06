@@ -60,7 +60,7 @@ _CODE_EVIDENCE_PATHS = (
 _DOCUMENTATION_PATHS = (
     "docs/utilities/WORLD_VALIDATOR_CLI.md",
     "docs/guides/TESTING_GUIDE.md",
-    "docs/CHANGELOG.md",
+    "docs/ongoing-projects/CHANGELOG.md",
     "docs/systems/ARTIFACT_SYSTEM.md",
     "docs/world_game-data/ZONE_FILE_FORMAT.md",
     "docs/world_game-data/SHOP_FILE_FORMAT.md",
@@ -828,7 +828,7 @@ def _documentation_audit(repo_root: Path) -> dict[str, Any]:
         }
     )
   canonical_path = repo_root / _DOCUMENTATION_PATHS[0]
-  changelog_path = repo_root / "docs/CHANGELOG.md"
+  changelog_path = repo_root / "docs/ongoing-projects/CHANGELOG.md"
   canonical = canonical_path.read_text(encoding="ascii") if canonical_path.is_file() else ""
   changelog = changelog_path.read_text(encoding="ascii") if changelog_path.is_file() else ""
   canonical_contract_present = all(

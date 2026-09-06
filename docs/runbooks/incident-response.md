@@ -185,7 +185,7 @@ sensitive evidence.
 
 - [Deployment guide](../deployment/DEPLOYMENT_GUIDE.md)
 - [Health API contract](../api/README_api.md)
-- [Environment boundaries](../environments.md)
+- [Environment boundaries](../deployment/environments.md)
 - [Troubleshooting and maintenance](../guides/TROUBLESHOOTING_AND_MAINTENANCE.md)
 
 Last updated: 2026-08-07

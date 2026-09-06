@@ -75,7 +75,7 @@ systemd unit, restart the service, and verify readiness with
 Found while auditing the world-building documentation on 2026-08-04. All four
 are latent source bugs, not documentation errors. They are described from the
 builder's side in
-[ZONE_FILE_FORMAT.md](world_game-data/ZONE_FILE_FORMAT.md).
+[ZONE_FILE_FORMAT.md](../world_game-data/ZONE_FILE_FORMAT.md).
 
 ### Zone reset `case 'I'` and `case 'R'` are unreachable
 

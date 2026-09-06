@@ -2,9 +2,9 @@
 
 Use the maintained operator references:
 
-- [Deployment and CI/CD](../deployment.md)
+- [Deployment and CI/CD](../deployment/DEPLOYMENT_GUIDE.md)
 - [Detailed deployment guide](../deployment/DEPLOYMENT_GUIDE.md)
-- [Environment boundaries](../environments.md)
+- [Environment boundaries](../deployment/environments.md)
 - [Incident response](../runbooks/incident-response.md)
 - [Troubleshooting and maintenance](../guides/TROUBLESHOOTING_AND_MAINTENANCE.md)
 - [Administration FAQ](FAQ.md)

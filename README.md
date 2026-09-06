@@ -84,7 +84,7 @@ in `lib/.env`; the tracked [environment example](lib/.env_example) defaults to
 production and must be adapted for a local checkout. Ollama, InterMUD-3, and
 Discord connections are not required for ordinary local development.
 
-For a fresh clone, start with the [onboarding checklist](docs/onboarding.md) or
+For a fresh clone, start with the [onboarding checklist](docs/development/README_development.md#onboarding) or
 the [setup and build guide](docs/guides/SETUP_AND_BUILD_GUIDE.md).
 
 ## Build and Test
@@ -174,7 +174,7 @@ flowchart TB
 ```
 
 This overview shows the main execution and content paths, rather than every
-subsystem dependency. See the [architecture guide](docs/ARCHITECTURE.md) for details.
+subsystem dependency. See the [architecture guide](docs/systems/ARCHITECTURE.md) for details.
 
 ## Repository Structure
 
@@ -191,16 +191,16 @@ subsystem dependency. See the [architecture guide](docs/ARCHITECTURE.md) for det
 MariaDB/MySQL stores accounts, characters, help, and subsystem data. Flat files under
 `lib/world/` remain the authored room, mobile, object, zone, shop, quest, and
 trigger sources. Help content is maintained in both the database and
-`lib/text/help/help.hlp`. See [environment boundaries](docs/environments.md) for
+`lib/text/help/help.hlp`. See [environment boundaries](docs/deployment/environments.md) for
 local and production data handling.
 
 ## Documentation
 
 - [Documentation index](docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Development commands](docs/development.md)
-- [Deployment and CI/CD](docs/deployment.md)
-- [Environment boundaries](docs/environments.md)
+- [Architecture](docs/systems/ARCHITECTURE.md)
+- [Development commands](docs/development/README_development.md)
+- [Deployment and CI/CD](docs/deployment/DEPLOYMENT_GUIDE.md)
+- [Environment boundaries](docs/deployment/environments.md)
 - [Testing guide](docs/guides/TESTING_GUIDE.md)
 - [Incident response](docs/runbooks/incident-response.md)
 - [Operational API contracts](docs/api/README_api.md)
@@ -218,11 +218,11 @@ compatibility and single-name world bindings remain supported. Phase 06 retained
 the existing runtime shop/quest wrappers and closed without adding general
 persisted procedure chains or new zone/world hooks.
 
-See the [architecture guide](docs/ARCHITECTURE.md),
+See the [architecture guide](docs/systems/ARCHITECTURE.md),
 [Phase 06 decisions](docs/testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md), and
 [Phase 07 validation](docs/testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md).
 For broader development history and current work, see the
-[changelog](docs/CHANGELOG.md) and
+[changelog](docs/ongoing-projects/CHANGELOG.md) and
 [GitHub Issues](https://github.com/LuminariMUD/Luminari-Source/issues).
 
 ## LuminariMUD Ecosystem

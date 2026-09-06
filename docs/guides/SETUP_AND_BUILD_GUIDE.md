@@ -99,7 +99,7 @@ terminal:
 ./scripts/operations/healthcheck.sh
 ```
 
-See [development.md](../development.md) for daily commands,
+See [development.md](../development/README_development.md) for daily commands,
 [TESTING_GUIDE.md](TESTING_GUIDE.md) for all test surfaces, and
 [incident-response.md](../runbooks/incident-response.md) for operational
 diagnosis.

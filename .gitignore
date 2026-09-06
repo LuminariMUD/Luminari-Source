@@ -433,7 +433,7 @@ scripts/world/populate_zone7000_from_aunauroch.py
 **/__pycache__/
 *.py[cod]
 
-# Root-level working changelog (docs/CHANGELOG.md stays tracked)
+# Root-level working changelog (docs/ongoing-projects/CHANGELOG.md stays tracked)
 /changelog
 /changelog.bak
 

@@ -15,7 +15,7 @@ Current behavior is documented in
 [VESSEL_SYSTEM.md](../systems/VESSEL_SYSTEM.md). Current release-gate state is
 maintained in [Section 8](#release-gate-state), measured evidence is in
 [VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md), and completed work is
-recorded in [CHANGELOG.md](../CHANGELOG.md).
+recorded in [CHANGELOG.md](../ongoing-projects/CHANGELOG.md).
 
 ---
 
