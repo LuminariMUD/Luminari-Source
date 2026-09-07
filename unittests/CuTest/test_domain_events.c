@@ -1039,6 +1039,12 @@ void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
   CuAssertIntEquals(tc, 14, (int)stats.registered_type_count);
   CuAssertIntEquals(tc, 24, (int)stats.registered_handler_count);
   CuAssertTrue(tc, stats.sealed);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_NOT_FOUND,
+                    domain_event_runtime_skill_resolved(&victim, (struct domain_entity_handle){0},
+                                                        ABILITY_UNDEFINED, 0, 0, 0, false));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_NOT_FOUND,
+                    domain_event_runtime_skill_resolved(&victim, (struct domain_entity_handle){0},
+                                                        NUM_ABILITIES + 1, 0, 0, 0, false));
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_character_died(&victim, NULL));
   domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);
   CuAssertIntEquals(tc, 1, (int)stats.publications);

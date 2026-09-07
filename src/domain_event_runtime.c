@@ -2,6 +2,7 @@
 #include "quest/staff_event_agenda.h"
 #include "vessels/moving_room_events.h"
 #include "magic/buff_sequence.h"
+#include "magic/spells.h"
 #include "mob/phenomenon_response.h"
 
 #include "active_world.h"
@@ -440,7 +441,8 @@ enum domain_event_status domain_event_runtime_skill_resolved(struct char_data *a
   struct domain_event_topic topics[3];
   size_t topic_count = 0U;
 
-  if (runtime_bus == NULL || actor == NULL || ability <= 0)
+  if (runtime_bus == NULL || actor == NULL || ability <= ABILITY_UNDEFINED ||
+      ability > NUM_ABILITIES)
     return DOMAIN_EVENT_NOT_FOUND;
   if (next_attempt_id == UINT64_MAX)
     return DOMAIN_EVENT_INVALID_ARGUMENT;
