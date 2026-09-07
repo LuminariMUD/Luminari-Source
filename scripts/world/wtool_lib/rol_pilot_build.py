@@ -18,6 +18,7 @@ from .models import TOOL_VERSION, WorldData
 from .reporting import result_payload
 from .rol_discovery import extract_source_commands
 from .rol_pilot import PILOT_BASENAMES
+from .rol_planner import _intern_candidate_strings
 from .rol_skeleton import tree_manifest
 from .rol_soc import SocCompilation, compile_soc_records
 from .rol_source import RolRecord, parse_rol_source_file
@@ -115,7 +116,7 @@ def _load_jsonl(path: Path) -> list[dict[str, Any]]:
     with path.open(encoding="ascii") as source:
       for line_number, line in enumerate(source, start=1):
         try:
-          row = json.loads(line)
+          row = json.loads(line, object_hook=_intern_candidate_strings)
         except json.JSONDecodeError as error:
           raise RolPilotBuildError(
               f"invalid JSONL at {path}:{line_number}: {error}"

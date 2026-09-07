@@ -854,6 +854,7 @@ void perform_call(struct char_data *ch, int call_type, int level);
 #ifdef LUMINARI_CUTEST
 int test_animal_companion_level(struct char_data *ch, int level);
 #endif
+bool can_select_dire_wolf_companion(struct char_data *ch);
 void update_msdp_group(struct char_data *ch);
 void update_msdp_inventory(struct char_data *ch);
 bool wildshape_engine(struct char_data *ch, const char *argument, int mode);

@@ -2906,9 +2906,29 @@ void stop_all_preparations(struct char_data *ch)
  *
  * Returns: TRUE if level requirement met, FALSE otherwise
  */
+bool meets_spell_access_prerequisites(struct char_data *ch, int spellnum)
+{
+  if (!ch || IS_NPC(ch) || GET_LEVEL(ch) >= LVL_IMMORT)
+    return TRUE;
+
+  switch (spellnum)
+  {
+  case SPELL_ELEMENTAL_WATER_EMBODIMENT:
+  case SPELL_ELEMENTAL_FIRE_EMBODIMENT:
+  case SPELL_ELEMENTAL_EARTH_EMBODIMENT:
+  case SPELL_ELEMENTAL_AIR_EMBODIMENT:
+    return has_perk(ch, PERK_WIZARD_MASTER_OF_ELEMENTS);
+  default:
+    return TRUE;
+  }
+}
+
 bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum)
 {
   int min_level = 0;
+
+  if (!meets_spell_access_prerequisites(ch, spellnum))
+    return FALSE;
 
   switch (class)
   {
@@ -3451,6 +3471,9 @@ int spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic)
   /* Staff override - immortals can cast anything for testing */
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     return true;
+
+  if (!meets_spell_access_prerequisites(ch, spellnum))
+    return CLASS_UNDEFINED;
 
   int class = CLASS_UNDEFINED;
 

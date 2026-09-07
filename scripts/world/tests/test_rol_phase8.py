@@ -1,22 +1,108 @@
 from __future__ import annotations
 
 import json
+from contextlib import ExitStack
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 from wtool_lib.flags import encode_bits
 from wtool_lib.rol_phase8 import (
+    _CODE_EVIDENCE_PATHS,
     _action_audit,
+    _code_evidence,
     _documentation_audit,
     _line_format_audit,
     _mechanics_isolation_audit,
     _repeat_evidence,
+    write_phase8_completion,
 )
 
 
 class RolPhase8Tests(unittest.TestCase):
+  def test_code_evidence_captures_format_owners_and_inference_inputs(self) -> None:
+    repo_root = Path(__file__).resolve().parents[3]
+    evidence = _code_evidence(repo_root)
+    paths = {row["path"] for row in evidence["files"]}
+    for name in (
+        "conversion_types", "source_common", "transform_common", "source", "transform",
+        "mobiles", "objects", "rooms", "zones", "shops", "quests", "soc",
+        "weapon_mapping", "weapon_table", "armor_mapping", "mobile_identity", "mob_calculator",
+    ):
+      self.assertIn(f"scripts/world/wtool_lib/rol_{name}.py", paths)
+    for relative in (
+        "scripts/world/wtool_lib/rol_weapon_overrides.json",
+        "scripts/world/wtool_lib/rol_armor_overrides.json",
+        "scripts/world/rol_conversion_policy.json",
+        "scripts/world/rol_source_race_registry.json",
+        "scripts/world/wtool_constants.json",
+        "scripts/world/wtool_lib/objects.py",
+        "src/structs.h",
+        "src/combat/assign_wpn_armor.c",
+        "src/combat/assign_wpn_armor.h",
+        "src/magic/magic.c",
+        "src/net/protocol.c",
+        "unittests/CuTest/test_protocol_parser.c",
+        "unittests/CuTest/test_race_equivalence.c",
+        "unittests/CuTest/test_unassigned_spells.c",
+        "bin/rol_mob_calculator",
+    ):
+      self.assertIn(relative, paths)
+    self.assertEqual(len(paths), len(_CODE_EVIDENCE_PATHS))
+
+  def test_completion_rejects_changed_captured_converter_inputs(self) -> None:
+    with tempfile.TemporaryDirectory() as temporary, ExitStack() as stack:
+      root = Path(temporary)
+      bundle = root / "bundle"
+      (bundle / "validation").mkdir(parents=True)
+      (root / "lib").mkdir()
+      (root / "lib/.env").write_text("APP_ENV=development\n", encoding="ascii")
+      # Real evidence capture and completion hashing; isolate unrelated world,
+      # persistence, and documentation gates already covered by their own suites.
+      for relative in (*_CODE_EVIDENCE_PATHS, "bin/luminari"):
+        path = root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"captured input\n")
+      (bundle / "code-evidence.json").write_text(json.dumps(_code_evidence(root)))
+      validation = {"complete": True, "summary": {}, "findings": []}
+      (bundle / "validation/candidate.json").write_text(json.dumps(validation))
+      replacements = {
+          "default_repo_root": root,
+          "_verify_bundle": {
+              "acceptance": {"ready_to_apply": True},
+              "candidate_tree_sha256": "candidate",
+              "run_id": "release",
+          },
+          "tree_manifest": {"tree_sha256": "candidate"},
+          "load_manifest": {},
+          "resolve_config": None,
+          "validate_indexed_world": None,
+          "result_payload": validation,
+          "apply_phase8_bundle": {"idempotent_no_op": True, "changed_paths": []},
+          "_documentation_audit": {"pass": True},
+      }
+      for name, result in replacements.items():
+        stack.enter_context(patch(f"wtool_lib.rol_phase8.{name}", return_value=result))
+      unchanged = write_phase8_completion(bundle, root / "lib", root / "unchanged")
+      self.assertTrue(unchanged["complete"])
+      for index, relative in enumerate((
+          "scripts/world/wtool_lib/rol_objects.py",
+          "scripts/world/wtool_lib/rol_weapon_overrides.json",
+          "scripts/world/wtool_lib/rol_armor_overrides.json",
+          "src/net/protocol.c",
+      )):
+        with self.subTest(input=relative):
+          path = root / relative
+          path.write_bytes(b"changed after release gates\n")
+          output = root / f"changed-{index}"
+          changed = write_phase8_completion(bundle, root / "lib", output)
+          self.assertFalse(changed["complete"])
+          acceptance = json.loads((output / "acceptance.json").read_text())
+          self.assertFalse(acceptance["runtime_code_unchanged_since_gates"])
+          path.write_bytes(b"captured input\n")
+
   @staticmethod
   def _empty_world(*, zones=None):
     return SimpleNamespace(

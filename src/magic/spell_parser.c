@@ -3600,6 +3600,13 @@ ACMDU(do_gen_cast)
     return;
   }
 
+  if (!meets_spell_access_prerequisites(ch, spellnum))
+  {
+    send_to_char(ch, "You must master at least two focused elements before using elemental "
+                     "embodiment magic.\r\n");
+    return;
+  }
+
   if (isEpicSpell(spellnum) && metamagic)
   {
     send_to_char(ch, "Are you trying to implode the universe?!  Sorry, no metamagic "

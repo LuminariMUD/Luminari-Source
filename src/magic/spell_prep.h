@@ -798,6 +798,16 @@ void stop_all_preparations(struct char_data *ch);
 bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum);
 
 /**
+     * meets_spell_access_prerequisites - Check non-level spell prerequisites
+     * @ch: Character to check
+     * @spellnum: Spell whose additional access rules should be checked
+     *
+     * Returns TRUE for ordinary spells. Elemental embodiment spells require
+     * the Wizard Master of Elements perk when cast by a player.
+     */
+bool meets_spell_access_prerequisites(struct char_data *ch, int spellnum);
+
+/**
      * compute_slots_by_circle - Calculate total spell slots
      * @ch: Character to check
      * @class: Class to calculate for

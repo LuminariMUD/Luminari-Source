@@ -20,6 +20,7 @@ apply help_intermud3_entries.sql
 apply help_necromancer_entries.sql
 apply help_oedit_values_armor_ac.sql
 apply help_rol_feat_entries.sql
+apply help_rol_player_kits.sql
 apply help_rol_object_trap_entries.sql
 apply help_race_half_illithid_entries.sql
 apply help_race_half_ogre_entries.sql
@@ -56,6 +57,7 @@ skip verify_help_dg_damage_trigger.sql
 skip verify_help_intermud3_entries.sql
 skip verify_help_necromancer_entries.sql
 skip verify_help_rol_feat_entries.sql
+skip verify_help_rol_player_kits.sql
 skip verify_help_rol_object_trap_entries.sql
 skip verify_help_race_half_illithid_entries.sql
 skip verify_help_race_half_ogre_entries.sql

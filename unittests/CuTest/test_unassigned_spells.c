@@ -6,12 +6,16 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
+#include "../../src/act.h"
 #include "../../src/character/evolutions.h"
+#include "../../src/character/perks.h"
 #include "../../src/combat/fight.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/handler.h"
 #include "../../src/magic/domains_schools.h"
+#include "../../src/magic/spell_prep.h"
 #include "../../src/magic/spells.h"
+#include "../../src/character/class.h"
 #include "../../src/mud_event.h"
 
 #include <string.h>
@@ -130,6 +134,120 @@ static const struct spell_registration_expectation elemental_embodiment_spells[]
     {SPELL_ELEMENTAL_FIRE_EMBODIMENT, MAG_MANUAL},
     {SPELL_ELEMENTAL_EARTH_EMBODIMENT, MAG_MANUAL},
     {SPELL_ELEMENTAL_AIR_EMBODIMENT, MAG_MANUAL},
+};
+
+struct rol_spell_access_expectation
+{
+  int spellnum;
+  int class_num;
+  int min_level;
+};
+
+static const struct rol_spell_access_expectation rol_spell_access[] = {
+    {SPELL_MINOR_CREATE, CLASS_BARD, 4},
+    {SPELL_SONG_OF_TRAVEL, CLASS_BARD, 16},
+    {SPELL_COMMAND_UNDEAD, CLASS_BLACKGUARD, 6},
+    {SPELL_CURSE_OBJ, CLASS_BLACKGUARD, 10},
+    {SPELL_SPECTRAL_HAND, CLASS_BLACKGUARD, 10},
+    {SPELL_TAZRIKS_FRENZIED_HOUND, CLASS_BLACKGUARD, 12},
+    {SPELL_DARK_WRATH, CLASS_BLACKGUARD, 15},
+    {SPELL_UNHOLY_AURA, CLASS_BLACKGUARD, 15},
+    {SPELL_PRESERVE, CLASS_CLERIC, 3},
+    {SPELL_SLOW_POISON, CLASS_CLERIC, 3},
+    {SPELL_COMMAND_UNDEAD, CLASS_CLERIC, 5},
+    {SPELL_CURSE_OBJ, CLASS_CLERIC, 11},
+    {SPELL_FARSEE, CLASS_CLERIC, 11},
+    {SPELL_SOUL_TEMPEST, CLASS_CLERIC, 13},
+    {SPELL_ANCESTRAL_SHIELD, CLASS_CLERIC, 17},
+    {SPELL_GREATER_REALM_OF_PROTECTION, CLASS_CLERIC, 17},
+    {SPELL_SPIRIT_WALK, CLASS_CLERIC, 17},
+    {SPELL_PRESERVE, CLASS_DRUID, 3},
+    {SPELL_PROTECTION_FROM_ANIMALS, CLASS_DRUID, 3},
+    {SPELL_CREATE_SPRING, CLASS_DRUID, 7},
+    {SPELL_DUST_DEVIL, CLASS_DRUID, 7},
+    {SPELL_SUFFOCATE, CLASS_DRUID, 11},
+    {SPELL_CYCLONE, CLASS_DRUID, 13},
+    {SPELL_PASS_WITHOUT_TRACE, CLASS_DRUID, 13},
+    {SPELL_MUD_TO_ROCK, CLASS_DRUID, 15},
+    {SPELL_ROCK_TO_MUD, CLASS_DRUID, 15},
+    {SPELL_MOONWELL, CLASS_DRUID, 17},
+    {SPELL_COMMAND_UNDEAD, CLASS_RANGER, 6},
+    {SPELL_CREATE_SPRING, CLASS_RANGER, 6},
+    {SPELL_PROTECTION_FROM_ANIMALS, CLASS_RANGER, 6},
+    {SPELL_DUST_DEVIL, CLASS_RANGER, 10},
+    {SPELL_NATURES_BLESSING, CLASS_RANGER, 12},
+    {SPELL_FARSEE, CLASS_RANGER, 15},
+    {SPELL_PASS_WITHOUT_TRACE, CLASS_RANGER, 15},
+    {SPELL_POLTERGEIST, CLASS_RANGER, 15},
+    {SPELL_VENTRILOQUATE, CLASS_SORCERER, 1},
+    {SPELL_MINOR_CREATE, CLASS_SORCERER, 4},
+    {SPELL_FARSEE, CLASS_SORCERER, 8},
+    {SPELL_MINOR_CREATE, CLASS_WIZARD, 1},
+    {SPELL_PRESERVE, CLASS_WIZARD, 1},
+    {SPELL_SHADOW_BOLT, CLASS_WIZARD, 1},
+    {SPELL_VENTRILOQUATE, CLASS_WIZARD, 1},
+    {SPELL_BLACKTHORNS, CLASS_WIZARD, 3},
+    {SPELL_COMMAND_UNDEAD, CLASS_WIZARD, 3},
+    {SPELL_PROT_FROM_UNDEAD, CLASS_WIZARD, 3},
+    {SPELL_AIR_BLAST, CLASS_WIZARD, 5},
+    {SPELL_BLINK, CLASS_WIZARD, 5},
+    {SPELL_MINUTE_METEORS, CLASS_WIZARD, 5},
+    {SPELL_REJUVENATE_MINOR, CLASS_WIZARD, 5},
+    {SPELL_SOUL_BIND, CLASS_WIZARD, 5},
+    {SPELL_COMMAND_HORDE, CLASS_WIZARD, 7},
+    {SPELL_EMBALM, CLASS_WIZARD, 7},
+    {SPELL_FARSEE, CLASS_WIZARD, 7},
+    {SPELL_FUMBLE, CLASS_WIZARD, 7},
+    {SPELL_SPECTRAL_HAND, CLASS_WIZARD, 7},
+    {SPELL_HEAL_UNDEAD, CLASS_WIZARD, 9},
+    {SPELL_SHADOW_BURST, CLASS_WIZARD, 9},
+    {SPELL_SHADOW_MAGIC, CLASS_WIZARD, 9},
+    {SPELL_STUMBLE, CLASS_WIZARD, 9},
+    {SPELL_THUNDER_LANCE, CLASS_WIZARD, 9},
+    {SPELL_AGE, CLASS_WIZARD, 11},
+    {SPELL_ENERVATE, CLASS_WIZARD, 11},
+    {SPELL_NERVE_DANCE, CLASS_WIZARD, 11},
+    {SPELL_REJUVENATE_MAJOR, CLASS_WIZARD, 11},
+    {SPELL_TRANQUILITY, CLASS_WIZARD, 11},
+    {SPELL_BELTYNS_BURNING_BLOOD, CLASS_WIZARD, 13},
+    {SPELL_CAMOUFLAGE, CLASS_WIZARD, 13},
+    {SPELL_CORPSE_GLAMOR, CLASS_WIZARD, 13},
+    {SPELL_ELEMENTAL_WATER_EMBODIMENT, CLASS_WIZARD, 13},
+    {SPELL_ICE_LAYER, CLASS_WIZARD, 13},
+    {SPELL_PHANTASMAL_BLADES, CLASS_WIZARD, 13},
+    {SPELL_PROT_UNDEAD, CLASS_WIZARD, 13},
+    {SPELL_SEQUESTER, CLASS_WIZARD, 13},
+    {SPELL_SHADECHILL, CLASS_WIZARD, 13},
+    {SPELL_SHADOW_FLUX, CLASS_WIZARD, 13},
+    {SPELL_AIRY_WATER, CLASS_WIZARD, 15},
+    {SPELL_BLACKLIGHT_BURST, CLASS_WIZARD, 15},
+    {SPELL_BLACKMANTLE, CLASS_WIZARD, 15},
+    {SPELL_EARTH_FOG, CLASS_WIZARD, 15},
+    {SPELL_ELEMENTAL_AIR_EMBODIMENT, CLASS_WIZARD, 15},
+    {SPELL_FEIGN_DEATH, CLASS_WIZARD, 15},
+    {SPELL_FIRE_FOG, CLASS_WIZARD, 15},
+    {SPELL_MISLEAD, CLASS_WIZARD, 15},
+    {SPELL_PHANTOM_HEAL, CLASS_WIZARD, 15},
+    {SPELL_RAIN_OF_BLOOD, CLASS_WIZARD, 15},
+    {SPELL_SUN_SHADOW, CLASS_WIZARD, 15},
+    {SPELL_CONSTRICTION, CLASS_WIZARD, 17},
+    {SPELL_DEATH_PACT, CLASS_WIZARD, 17},
+    {SPELL_DIMENSION_SHIFT, CLASS_WIZARD, 17},
+    {SPELL_EARTHBLOOD, CLASS_WIZARD, 17},
+    {SPELL_ELEMENTAL_EARTH_EMBODIMENT, CLASS_WIZARD, 17},
+    {SPELL_ELEMENTAL_FIRE_EMBODIMENT, CLASS_WIZARD, 17},
+    {SPELL_FELL_FROST, CLASS_WIZARD, 17},
+    {SPELL_ICE_TOMB, CLASS_WIZARD, 17},
+    {SPELL_LAVA_BURST, CLASS_WIZARD, 17},
+    {SPELL_LICH_TOUCH, CLASS_WIZARD, 17},
+    {SPELL_ROT, CLASS_WIZARD, 17},
+    {SPELL_SANDBLAST, CLASS_WIZARD, 17},
+    {SPELL_SANDSTORM, CLASS_WIZARD, 17},
+};
+
+static const int rol_content_only_spells[] = {
+    SPELL_COMPREHEND_LANGUAGES, SPELL_WRAITHFORM, SPELL_UNSEEN_SERVANT,   SPELL_NEEDLE_SWARM,
+    SPELL_SNAPPING_TEETH,       SPELL_AGILITY,    SPELL_CALL_LYCANTHROPE,
 };
 
 struct elemental_embodiment_expectation
@@ -373,6 +491,251 @@ void TestElementalEmbodimentSpellsAreNativeAndUnassigned(CuTest *tc)
   }
 }
 
+static void initialize_rol_spell_access(void)
+{
+  mag_assign_spells();
+  if (class_list[CLASS_WIZARD].name == NULL)
+    load_class_list();
+  init_spell_levels();
+}
+
+static int expected_rol_spell_level(int spellnum, int class_num)
+{
+  size_t index;
+
+  for (index = 0; index < sizeof(rol_spell_access) / sizeof(rol_spell_access[0]); index++)
+    if (rol_spell_access[index].spellnum == spellnum &&
+        rol_spell_access[index].class_num == class_num)
+      return rol_spell_access[index].min_level;
+
+  return LVL_IMMORT;
+}
+
+static bool first_rol_spell_access(size_t index)
+{
+  size_t prior;
+
+  for (prior = 0; prior < index; prior++)
+    if (rol_spell_access[prior].spellnum == rol_spell_access[index].spellnum)
+      return FALSE;
+
+  return TRUE;
+}
+
+void TestRolSpellKitsHaveExactInitializedClassAccess(CuTest *tc)
+{
+  char message[256];
+  size_t index;
+  size_t content_index;
+  int class_num;
+  int domain_num;
+  int expected_level;
+  int unique_spells = 0;
+
+  CuAssertIntEquals(tc, 99, sizeof(rol_spell_access) / sizeof(rol_spell_access[0]));
+  initialize_rol_spell_access();
+
+  for (index = 0; index < sizeof(rol_spell_access) / sizeof(rol_spell_access[0]); index++)
+  {
+    if (!first_rol_spell_access(index))
+      continue;
+
+    unique_spells++;
+    for (class_num = 0; class_num < NUM_CLASSES; class_num++)
+    {
+      expected_level = expected_rol_spell_level(rol_spell_access[index].spellnum, class_num);
+      snprintf(message, sizeof(message), "%s class %d access",
+               spell_info[rol_spell_access[index].spellnum].name, class_num);
+      CuAssertIntEquals_Msg(tc, message, expected_level,
+                            spell_info[rol_spell_access[index].spellnum].min_level[class_num]);
+    }
+    for (domain_num = 0; domain_num < NUM_DOMAINS; domain_num++)
+      CuAssertIntEquals(tc, LVL_IMMORT,
+                        spell_info[rol_spell_access[index].spellnum].domain[domain_num]);
+  }
+  CuAssertIntEquals(tc, 82, unique_spells);
+
+  for (content_index = 0;
+       content_index < sizeof(rol_content_only_spells) / sizeof(rol_content_only_spells[0]);
+       content_index++)
+  {
+    for (class_num = 0; class_num < NUM_CLASSES; class_num++)
+      CuAssertIntEquals(tc, LVL_IMMORT,
+                        spell_info[rol_content_only_spells[content_index]].min_level[class_num]);
+    for (domain_num = 0; domain_num < NUM_DOMAINS; domain_num++)
+      CuAssertIntEquals(tc, LVL_IMMORT,
+                        spell_info[rol_content_only_spells[content_index]].domain[domain_num]);
+  }
+}
+
+void TestRolSpellKitLevelAndMulticlassBoundaries(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+
+  initialize_rol_spell_access();
+  clear_char(&ch);
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+  ch.player.name = "spell access tester";
+  GET_LEVEL(&ch) = 30;
+
+  CLASS_LEVEL((&ch), CLASS_CLERIC) = 10;
+  CuAssertTrue(tc, !is_min_level_for_spell(&ch, CLASS_CLERIC, SPELL_FARSEE));
+  CLASS_LEVEL((&ch), CLASS_CLERIC) = 11;
+  CuAssertTrue(tc, is_min_level_for_spell(&ch, CLASS_CLERIC, SPELL_FARSEE));
+  CLASS_LEVEL((&ch), CLASS_CLERIC) = 0;
+
+  CLASS_LEVEL((&ch), CLASS_WIZARD) = 8;
+  CuAssertTrue(tc, !is_min_level_for_spell(&ch, CLASS_WIZARD, SPELL_THUNDER_LANCE));
+  CLASS_LEVEL((&ch), CLASS_WIZARD) = 9;
+  CuAssertTrue(tc, is_min_level_for_spell(&ch, CLASS_WIZARD, SPELL_THUNDER_LANCE));
+  CLASS_LEVEL((&ch), CLASS_WIZARD) = 0;
+
+  CLASS_LEVEL((&ch), CLASS_BARD) = 15;
+  CuAssertTrue(tc, !is_min_level_for_spell(&ch, CLASS_BARD, SPELL_SONG_OF_TRAVEL));
+  CLASS_LEVEL((&ch), CLASS_BARD) = 16;
+  CuAssertTrue(tc, is_min_level_for_spell(&ch, CLASS_BARD, SPELL_SONG_OF_TRAVEL));
+  CLASS_LEVEL((&ch), CLASS_BARD) = 0;
+
+  CLASS_LEVEL((&ch), CLASS_RANGER) = 14;
+  CuAssertTrue(tc, !is_min_level_for_spell(&ch, CLASS_RANGER, SPELL_POLTERGEIST));
+  CLASS_LEVEL((&ch), CLASS_RANGER) = 15;
+  CuAssertTrue(tc, is_min_level_for_spell(&ch, CLASS_RANGER, SPELL_POLTERGEIST));
+  CLASS_LEVEL((&ch), CLASS_RANGER) = 0;
+
+  CLASS_LEVEL((&ch), CLASS_BLACKGUARD) = 11;
+  CuAssertTrue(tc, !is_min_level_for_spell(&ch, CLASS_BLACKGUARD, SPELL_TAZRIKS_FRENZIED_HOUND));
+  CLASS_LEVEL((&ch), CLASS_BLACKGUARD) = 12;
+  CuAssertTrue(tc, is_min_level_for_spell(&ch, CLASS_BLACKGUARD, SPELL_TAZRIKS_FRENZIED_HOUND));
+  CLASS_LEVEL((&ch), CLASS_BLACKGUARD) = 0;
+
+  CLASS_LEVEL((&ch), CLASS_WARRIOR) = 30;
+  CuAssertTrue(tc, !is_min_level_for_spell(&ch, CLASS_WARRIOR, SPELL_FARSEE));
+  CuAssertTrue(tc, !is_domain_spell_of_ch(&ch, SPELL_FARSEE));
+}
+
+void TestElementalistEmbodimentsRequireMasterOfElementsForPreparation(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  struct char_perk_data master;
+
+  initialize_rol_spell_access();
+  clear_char(&ch);
+  memset(&specials, 0, sizeof(specials));
+  memset(&master, 0, sizeof(master));
+  ch.player_specials = &specials;
+  ch.player.name = "elementalist";
+  GET_LEVEL(&ch) = 30;
+  CLASS_LEVEL((&ch), CLASS_WIZARD) = 13;
+  init_class(&ch, CLASS_WIZARD, 13);
+
+  CuAssertIntEquals(tc, 99, GET_SKILL(&ch, SPELL_ELEMENTAL_WATER_EMBODIMENT));
+  CuAssertTrue(tc, !meets_spell_access_prerequisites(&ch, SPELL_ELEMENTAL_WATER_EMBODIMENT));
+  CuAssertTrue(tc, !is_min_level_for_spell(&ch, CLASS_WIZARD, SPELL_ELEMENTAL_WATER_EMBODIMENT));
+
+  master.perk_id = PERK_WIZARD_MASTER_OF_ELEMENTS;
+  master.perk_class = CLASS_WIZARD;
+  master.current_rank = 1;
+  specials.saved.perks = &master;
+  CuAssertTrue(tc, meets_spell_access_prerequisites(&ch, SPELL_ELEMENTAL_WATER_EMBODIMENT));
+  CuAssertTrue(tc, is_min_level_for_spell(&ch, CLASS_WIZARD, SPELL_ELEMENTAL_WATER_EMBODIMENT));
+
+  collection_add(&ch, CLASS_WIZARD, SPELL_ELEMENTAL_WATER_EMBODIMENT, METAMAGIC_NONE, 0,
+                 DOMAIN_UNDEFINED);
+  CuAssertIntEquals(tc, CLASS_WIZARD,
+                    spell_prep_gen_check(&ch, SPELL_ELEMENTAL_WATER_EMBODIMENT, METAMAGIC_NONE));
+  clear_collection_by_class(&ch, CLASS_WIZARD);
+  specials.saved.perks = NULL;
+}
+
+void TestBattlechanterSpellUsesBardKnownSpellPath(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+
+  initialize_rol_spell_access();
+  clear_char(&ch);
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+  ch.player.name = "battlechanter";
+  GET_LEVEL(&ch) = 16;
+  GET_CLASS(&ch) = CLASS_BARD;
+  CLASS_LEVEL((&ch), CLASS_BARD) = 16;
+
+  CuAssertIntEquals(tc, 6,
+                    compute_spells_circle(&ch, CLASS_BARD, SPELL_SONG_OF_TRAVEL, METAMAGIC_NONE,
+                                          DOMAIN_UNDEFINED));
+  CuAssertTrue(tc, known_spells_add(&ch, CLASS_BARD, SPELL_SONG_OF_TRAVEL, FALSE));
+  CuAssertTrue(tc, is_a_known_spell(&ch, CLASS_BARD, SPELL_SONG_OF_TRAVEL));
+  clear_known_spells_by_class(&ch, CLASS_BARD);
+}
+
+void TestMasterOfElementsRequiresTwoFocusedElementPerks(CuTest *tc)
+{
+  char error[MAX_STRING_LENGTH];
+  struct char_data ch;
+  struct player_special_data specials;
+  struct char_perk_data fire;
+  struct char_perk_data cold;
+
+  if (get_perk_by_id(PERK_WIZARD_MASTER_OF_ELEMENTS) == NULL)
+    init_perks();
+  if (class_list[CLASS_WIZARD].name == NULL)
+    load_class_list();
+  clear_char(&ch);
+  memset(&specials, 0, sizeof(specials));
+  memset(&fire, 0, sizeof(fire));
+  memset(&cold, 0, sizeof(cold));
+  ch.player_specials = &specials;
+  ch.player.name = "perk tester";
+  GET_LEVEL(&ch) = 1;
+  CLASS_LEVEL((&ch), CLASS_WIZARD) = 1;
+  specials.saved.perk_points[CLASS_WIZARD] = 100;
+
+  CuAssertTrue(tc, !can_purchase_perk(&ch, PERK_WIZARD_MASTER_OF_ELEMENTS, CLASS_WIZARD, error,
+                                      sizeof(error)));
+  CuAssertTrue(tc, strstr(error, "any two Focused Element perks") != NULL);
+
+  fire.perk_id = PERK_WIZARD_FOCUSED_ELEMENT_FIRE;
+  fire.perk_class = CLASS_WIZARD;
+  fire.current_rank = 1;
+  specials.saved.perks = &fire;
+  CuAssertTrue(tc, !can_purchase_perk(&ch, PERK_WIZARD_MASTER_OF_ELEMENTS, CLASS_WIZARD, error,
+                                      sizeof(error)));
+
+  cold.perk_id = PERK_WIZARD_FOCUSED_ELEMENT_COLD;
+  cold.perk_class = CLASS_WIZARD;
+  cold.current_rank = 1;
+  fire.next = &cold;
+  CuAssertTrue(tc, can_purchase_perk(&ch, PERK_WIZARD_MASTER_OF_ELEMENTS, CLASS_WIZARD, error,
+                                     sizeof(error)));
+  specials.saved.perks = NULL;
+}
+
+void TestDireRaiderWolfBondRequiresRangerWarriorMulticlass(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+
+  clear_char(&ch);
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+  ch.player.name = "dire raider";
+  SET_FEAT(&ch, FEAT_ANIMAL_COMPANION, 1);
+
+  CLASS_LEVEL((&ch), CLASS_RANGER) = 3;
+  CLASS_LEVEL((&ch), CLASS_WARRIOR) = 1;
+  CuAssertTrue(tc, !can_select_dire_wolf_companion(&ch));
+  CLASS_LEVEL((&ch), CLASS_RANGER) = 4;
+  CLASS_LEVEL((&ch), CLASS_WARRIOR) = 0;
+  CuAssertTrue(tc, !can_select_dire_wolf_companion(&ch));
+  CLASS_LEVEL((&ch), CLASS_WARRIOR) = 1;
+  CuAssertTrue(tc, can_select_dire_wolf_companion(&ch));
+  CuAssertTrue(tc, ok_call_mob_vnum(MOB_DIRE_WOLF));
+}
+
 void TestCallLycanthropePreservesLevelAndCharmCheckBounds(CuTest *tc)
 {
   CuAssertIntEquals(tc, 1, test_call_lycanthrope_level(1));
@@ -519,6 +882,60 @@ void TestElementalEmbodimentsPreserveProfilesAndLinkedCleanup(CuTest *tc)
 
     remove_from_lookup_table(caster_id);
     remove_from_lookup_table(target_id);
+  }
+}
+
+void TestElementalEmbodimentExpiryClearsBothEndsWithoutRetickingOtherAffects(CuTest *tc)
+{
+  struct char_data caster;
+  struct char_data target;
+  struct char_data *recipient;
+  struct char_data *expired;
+  struct player_special_data caster_specials;
+  struct player_special_data target_specials;
+  struct affected_type *af;
+  int scenario;
+  bool linked;
+  int remaining_duration;
+
+  for (scenario = 0; scenario < 3; scenario++)
+  {
+    clear_char(&caster);
+    clear_char(&target);
+    memset(&caster_specials, 0, sizeof(caster_specials));
+    memset(&target_specials, 0, sizeof(target_specials));
+    caster.player_specials = &caster_specials;
+    target.player_specials = &target_specials;
+    GET_LEVEL(&caster) = GET_LEVEL(&target) = 20;
+    GET_REAL_RACE(&caster) = GET_REAL_RACE(&target) = RACE_HUMAN;
+    GET_REAL_MAX_HIT(&caster) = GET_MAX_HIT(&caster) = GET_HIT(&caster) = 100;
+    GET_REAL_MAX_HIT(&target) = GET_MAX_HIT(&target) = GET_HIT(&target) = 100;
+    recipient = scenario == 2 ? &caster : &target;
+    expired = scenario == 1 ? &target : &caster;
+    spell_elemental_water_embodiment(20, &caster, recipient, NULL, CAST_SPELL);
+    add_test_affect(expired, SPELL_DARK_WRATH, APPLY_DAMROLL, 1);
+    for (af = expired->affected; af != NULL; af = af->next)
+      if (rol_elemental_embodiment_affect_is_transient(af->spell))
+      {
+        af->duration = 0;
+        break;
+      }
+
+    affect_update_character_one(expired);
+    linked = rol_elemental_embodiment_active(recipient) ||
+             affected_by_spell(&caster, AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN);
+    af = find_test_affect(expired, SPELL_DARK_WRATH, APPLY_DAMROLL);
+    remaining_duration = af == NULL ? -1 : af->duration;
+
+    remove_all_rol_elemental_embodiments(&caster);
+    remove_all_rol_elemental_embodiments(&target);
+    remove_test_affects(&caster);
+    remove_test_affects(&target);
+    remove_from_lookup_table(GET_ID(&caster));
+    if (GET_ID(&target) > 0)
+      remove_from_lookup_table(GET_ID(&target));
+    CuAssertTrue(tc, !linked);
+    CuAssertIntEquals(tc, 9, remaining_duration);
   }
 }
 
@@ -693,6 +1110,59 @@ void TestCamouflageHasDistinctStateAndBreaksCleanly(CuTest *tc)
   remove_spell_camouflage(&ch);
   CuAssertTrue(tc, !affected_by_spell(&ch, SPELL_CAMOUFLAGE));
   CuAssertTrue(tc, !AFF_FLAGGED(&ch, AFF_HIDE));
+}
+
+void TestPhantomHealingIsRepaidExactlyOnceOnExpiryOrRemoval(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  struct affected_type *af;
+  int removal;
+  int wounded;
+  int remaining_hit;
+  int repeated_hit;
+  bool remaining_affect;
+
+  mag_assign_spells();
+  for (removal = 0; removal < 3; removal++)
+  {
+    for (wounded = 0; wounded < 2; wounded++)
+    {
+      clear_char(&ch);
+      memset(&specials, 0, sizeof(specials));
+      ch.player_specials = &specials;
+      GET_LEVEL(&ch) = 20;
+      GET_REAL_RACE(&ch) = RACE_HUMAN;
+      GET_REAL_MAX_HIT(&ch) = GET_MAX_HIT(&ch) = 100;
+      GET_HIT(&ch) = 20;
+      spell_phantom_heal(20, &ch, &ch, NULL, CAST_SPELL);
+      af = find_test_affect(&ch, SPELL_PHANTOM_HEAL, APPLY_SPECIAL);
+      CuAssertPtrNotNull(tc, af);
+      CuAssertIntEquals(tc, 50, GET_HIT(&ch));
+      if (wounded)
+        GET_HIT(&ch) = 5;
+
+      if (removal == 0)
+      {
+        af->duration = 0;
+        affect_update_character_one(&ch);
+      }
+      else if (removal == 1)
+        affect_from_char(&ch, SPELL_PHANTOM_HEAL);
+      else
+        spell_dispel_magic(20, &ch, &ch, NULL, CAST_SPELL);
+
+      remaining_hit = GET_HIT(&ch);
+      remaining_affect = affected_by_spell(&ch, SPELL_PHANTOM_HEAL);
+      affect_from_char(&ch, SPELL_PHANTOM_HEAL);
+      affect_update_character_one(&ch);
+      repeated_hit = GET_HIT(&ch);
+      remove_test_affects(&ch);
+      CuAssertTrue(tc, !remaining_affect);
+      CuAssertIntEquals(tc, wounded ? -10 : 20, remaining_hit);
+      CuAssertIntEquals(tc, remaining_hit, repeated_hit);
+    }
+  }
 }
 
 void TestUnseenServantAddsOnlyItsStoredCarryCapacity(CuTest *tc)

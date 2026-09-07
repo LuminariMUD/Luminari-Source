@@ -1305,6 +1305,13 @@ const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *
       }
     }
 #endif /* COLOUR_CHAR */
+    /* parse_at() retains escaped at-signs so worldfile saves remain lossless.
+     * Collapse the escape only when displaying the text. */
+    else if (apData[j] == '@' && apData[j + 1] == '@' && (*apLength <= 0 || j + 1 < *apLength))
+    {
+      Result[i++] = '@';
+      ++j;
+    }
     else if (bUseMXP && apData[j] == '>')
     {
       const char *pCopyFrom = MXPStop;

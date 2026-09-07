@@ -1547,6 +1547,7 @@ void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
 void affect_remove(struct char_data *ch, struct affected_type *af)
 {
   struct affected_type *temp = NULL;
+  int phantom_healing = 0;
   bool removes_repulsion;
   bool changes_reactions;
   bool removes_flight;
@@ -1561,6 +1562,8 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   removes_repulsion = IS_SET_AR(af->bitvector, AFF_REPULSION);
   changes_reactions = affect_changes_mobile_reactions(af);
   removes_flight = IS_SET_AR(af->bitvector, AFF_FLYING) || IS_SET_AR(af->bitvector, AFF_LEVITATE);
+  if (af->spell == SPELL_PHANTOM_HEAL && af->location == APPLY_SPECIAL)
+    phantom_healing = MAX(0, af->modifier);
 
   // if (!IS_NPC(ch) && af->location == APPLY_AC_NEW)
   // is_ac_new = true;
@@ -1605,6 +1608,13 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   affected_registry_sync(ch);
 
   affect_total(ch);
+
+  /* Borrowed vitality ends with the affect, including dispel and explicit removal. */
+  if (phantom_healing > 0)
+  {
+    GET_HIT(ch) = MAX(-10, GET_HIT(ch) - phantom_healing);
+    update_pos(ch);
+  }
 
   character_periodic_sync(ch);
   if (changes_reactions)
@@ -1833,22 +1843,8 @@ void check_room_lighting(room_rnum room, struct char_data *ch, bool enter)
       if (GET_OBJ_VAL(GET_EQ(ch, WEAR_LIGHT), 2)) /* Light ON */
         value++;
 
-  /* check for 'magic lights' on worn gear */
-  for (i = 0; i < NUM_WEARS; i++)
-  {
-    obj = GET_EQ(ch, i);
-    if (obj)
-      if (OBJ_FLAGGED(obj, ITEM_MAGLIGHT))
-        value++;
-  }
-  /* check for 'magic lights' in inventory */
-  for (obj = ch->carrying; obj; obj = next_obj)
-  {
-    next_obj = obj->next_content;
-    if (obj)
-      if (OBJ_FLAGGED(obj, ITEM_MAGLIGHT))
-        value++;
-  }
+  /* room_is_dark() reads ITEM_MAGLIGHT from current object locations. Counting
+   * those flags only on character movement leaves stale light after transfers. */
 
   /* check for 'glowing' on worn gear */
   for (i = 0; i < NUM_WEARS; i++)

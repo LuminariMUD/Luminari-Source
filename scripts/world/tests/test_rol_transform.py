@@ -6,6 +6,7 @@ import re
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from tests.rol_reference import reference_run
 
@@ -14,6 +15,9 @@ from wtool_lib.flags import decode_tokens
 from wtool_lib.hlquests import parse_hlquest_file
 from wtool_lib.mobiles import parse_mobile_file
 from wtool_lib.objects import parse_object_file
+from wtool_lib.rol_armor_mapping import (
+    FAMILIES, SHIELDS, armor_table, family_entry, infer_armor, load_overrides,
+)
 from wtool_lib.rol_source import parse_active_rol_corpus, parse_rol_source_file
 from wtool_lib.rol_discovery import extract_source_commands
 from wtool_lib.rol_pilot import PILOT_BASENAMES
@@ -807,6 +811,134 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("@RRed@n\nplain", text)
     self.assertEqual([], diagnostics)
 
+  def test_ships_receive_loader_forced_magical_light_without_changing_other_boats(self) -> None:
+    magic_light = next(
+        row["index"] for row in self.manifest["tables"]["obj-extra"]["entries"]
+        if row["macro"] == "ITEM_MAGLIGHT"
+    )
+    for source_type, extra_flags, lit in ((28, 0, True), (28, 1 << 18, True), (22, 0, False)):
+      with self.subTest(source_type=source_type, extra_flags=extra_flags):
+        source = self._source_record(
+            "obj",
+            (
+                "#100\nboat ship~\na boat~\nA boat floats here.~\n~\n"
+                f"{source_type} {extra_flags | (1 << 8)} 1\n0 0 0 0\n1 10 1\n"
+            ).encode("ascii"),
+        )
+        emitted = emit_object(source, 2_000_100, _resolver)
+        parsed = parse_object_file(
+            self._target_path("obj", emitted.text), "obj/20001.obj", self.manifest, set()
+        )
+        self.assertTrue(parsed.complete)
+        boat = parsed.records[0]
+        self.assertEqual(22, boat.item_type)
+        flags = decode_tokens(boat.extra_flags).bits
+        self.assertEqual(lit, magic_light in flags)
+        self.assertIn(8, flags)
+        self.assertEqual(extra_flags | (1 << 8), source.values["flags"][1])
+
+  def test_source_foreground_background_and_blink_use_target_palette(self) -> None:
+    cases = {
+        "&+Lblack&+lblack&N": "@Dblack@dblack@n",
+        "&-Ldark background&N": "@[b000]@-dark background@n",
+        "&-rred background&n": "@[b200]red background@n",
+        "&=bWwhite on blue&N": "@[b002]@Wwhite on blue@n",
+        "&=RLblack on blinking red&N": "@[b200]@-@Dblack on blinking red@n",
+        "&&+Rliteral && and @": "&+Rliteral & and @@",
+    }
+    for source, expected in cases.items():
+      with self.subTest(source=source):
+        text, diagnostics = convert_text(source)
+        self.assertEqual(expected, text)
+        self.assertEqual(
+            ["escaped literal '@' as '@@' for the target color parser"] if "@" in source else [],
+            diagnostics,
+        )
+
+  def test_malformed_source_colors_follow_source_literal_and_truncation_rules(self) -> None:
+    for escape in ("&-<", "&_", "&%", "&$", "&c", "&I", "&<", "&g", "&+X", "&=Qx"):
+      with self.subTest(escape=escape):
+        text, diagnostics = convert_text(escape)
+        self.assertEqual(escape, text)
+        self.assertEqual(
+            [f"preserved unknown source color escape {escape!r} as literal text"], diagnostics
+        )
+    for escape in ("&", "&+", "&-", "&=", "&=L"):
+      with self.subTest(escape=escape):
+        text, diagnostics = convert_text("text" + escape)
+        self.assertEqual("text", text)
+        self.assertEqual([f"dropped incomplete source color escape {escape!r}"], diagnostics)
+
+  def test_background_color_text_keeps_target_framing_ascii_and_lf(self) -> None:
+    text, diagnostics = convert_text("&=lW@sign~\r\ncaf\u00e9&N")
+    self.assertEqual("@[b000]@W@@sign-\ncaf?@n", text)
+    self.assertEqual(3, len(diagnostics))
+
+  def test_source_colors_round_trip_through_each_format_owner(self) -> None:
+    label = "&=bWSignal&N && &+Lblack&N &-<"
+    expected = "@[b002]@WSignal@n & @Dblack@n &-<"
+    fixtures = {
+        "wld": f"#100\nRoom~\n{label}~\n1 0 2\nS\n",
+        "mob": (
+            f"#100\nmobile~\na mobile~\n{label}~\n~\n0 0 0 0 S\n"
+            "H 0 0\n1 0 10 1d1+0 1d1+0\n0 0\n131 131 0\n"
+        ),
+        "obj": f"#100\nobject~\nan object~\n{label}~\n~\n11 0 1\n0 0 0 0\n1 1 1\n",
+        "zon": (
+            f"#100\nfile~\n{label}~\n199 30 2 0\n"
+            "0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\nS\n"
+        ),
+        "shp": f"SHOP: 100\nHOURS: 1-23\nROOM: 100\nGREED: 100\nPROFIT: 100\nMBCASH: {label}\n",
+        "qst": f"#100\nM\nquestion~\n{label}~\nS\n",
+        "soc": (
+            "MOB: 100 TRIGGER\nTRIGGER: 23\nFLAG: 165\nCHANCE: 0\nDELAY: 0\n"
+            f"ACTION: 1000\n{label}~\nDONE\n"
+        ),
+    }
+    for kind, data in fixtures.items():
+      with self.subTest(kind=kind):
+        record = self._source_record(kind, data.encode("ascii"))
+        if kind == "wld":
+          emitted = emit_room(record, 2_000_100, 20_001, _resolver).text
+          parsed = parse_room_file(
+              self._target_path(kind, emitted), "wld/20001.wld", self.manifest, False, set()
+          )
+        elif kind == "mob":
+          emitted = emit_mobile(record, 2_000_100).text
+          parsed = parse_mobile_file(
+              self._target_path(kind, emitted), "mob/20001.mob", self.manifest, set()
+          )
+        elif kind == "obj":
+          emitted = emit_object(record, 2_000_100, _resolver).text
+          parsed = parse_object_file(
+              self._target_path(kind, emitted), "obj/20001.obj", self.manifest, set()
+          )
+        elif kind == "zon":
+          emitted = emit_zone(record, 20_001, 2_000_100, _resolver).text
+          path = self._target_path(kind, "")
+          path.write_text(emitted, encoding="ascii")
+          parsed = parse_zone_file(path, "zon/20001.zon", self.manifest, 6)
+        elif kind == "shp":
+          emitted = "CircleMUD v3.0 Shop File~\n" + emit_shop(record, 2_000_100, _resolver).text
+          parsed = parse_shop_file(
+              self._target_path(kind, emitted), "shp/20001.shp", self.manifest
+          )
+        elif kind == "qst":
+          emitted = emit_hlquest(record, 2_000_100, _resolver).text
+          parsed = parse_hlquest_file(
+              self._target_path("hlq", emitted), "hlq/20001.hlq", self.manifest
+          )
+        else:
+          emitted = compile_soc_records(
+              [record], 2_030_000, _resolver, {23: "smile"}
+          ).trigger_text.removesuffix("$~\n")
+          parsed = parse_trigger_file(
+              self._target_path("trg", emitted), "trg/20300.trg", self.manifest
+          )
+        self.assertIn(expected, emitted)
+        self.assertTrue(parsed.complete, parsed.findings)
+        self.assertTrue(parsed.records)
+
   def test_emitted_room_parses_as_modern_target_data(self) -> None:
     source = self._source_record(
         "wld",
@@ -1350,6 +1482,36 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("key", extras[0]["keyword"])
     self.assertTrue(any(item.code == "ROLOBJ006" for item in corpus.diagnostics))
 
+  def test_missing_object_economy_preserves_following_extensions(self) -> None:
+    for economy in (b"", b"1 2 3\n"):
+      with self.subTest(economy=economy):
+        source_path = self._target_path(
+            "obj",
+            (b"#13035\nbook~\na book~\nA book lies here.~\n~\n"
+             b"12 0 1\n0 0 0\n" + economy +
+             b"E\npage1~\nThe first page remains legible.~\nA\n18 2\n").decode("ascii"),
+        )
+        records, corpus = parse_rol_source_file(
+            source_path, "areas/obj/sample.obj", "obj", "sample"
+        )
+        self.assertTrue(corpus.complete)
+        self.assertEqual([1, 2, 3] if economy else [], records[0].values["economy"])
+        self.assertFalse(any(row["token"] == "T" for row in records[0].directives))
+        emitted = emit_object(records[0], 2013035, _resolver)
+        parsed = parse_object_file(
+            self._target_path("obj", emitted.text), "obj/20000.obj", self.manifest, set()
+        )
+        self.assertFalse(any(finding.severity == "error" for finding in parsed.findings))
+        target = parsed.records[0]
+        self.assertEqual(1, len(target.extra_descriptions))
+        self.assertEqual("page1", target.extra_descriptions[0].keywords)
+        self.assertIn("The first page remains legible.", target.extra_descriptions[0].description)
+        self.assertEqual(1, len(target.affects))
+        self.assertEqual(2, target.affects[0].modifier)
+        self.assertEqual(not bool(economy), any(
+            diagnostic.code == "ROLOBJ007" for diagnostic in corpus.diagnostics
+        ))
+
   def test_emitted_room_repairs_missing_mountain_sector(self) -> None:
     source = self._source_record(
         "wld",
@@ -1384,6 +1546,186 @@ class RolTransformTests(unittest.TestCase):
     self.assertIn(
         "restated source armor apply -50 as APPLY_AC_NEW 5", " ".join(emitted.diagnostics)
     )
+
+  def test_nonstandard_armor_preserves_signed_protection_and_authored_applies(self) -> None:
+    for protection, expected in ((0, 0), (1, 1), (9, 1), (19, 1), (20, 2),
+                                 (-1, -1), (-9, -1), (-19, -1), (-20, -2)):
+      with self.subTest(protection=protection):
+        source = self._source_record(
+            "obj",
+            ("#200\nbracer~\na bracer~\nA bracer lies here.~\n~\n"
+             f"9 0 4097\n{protection} 25 -10 8\n1 1 0\n"
+             "A\n17 -15\nA\n1 2\n").encode("ascii"),
+        )
+        original_values = list(source.values["values"])
+        emitted = emit_object(source, 2_000_200, _resolver)
+        result = parse_object_file(
+            self._target_path("obj", emitted.text), "obj/20001.obj", self.manifest, set()
+        )
+        self.assertTrue(result.complete)
+        self.assertFalse(result.findings)
+        obj = result.records[0]
+        self.assertEqual(11, obj.item_type)
+        self.assertEqual([0, 0, 0, 0], obj.values[:4])
+        self.assertEqual({0, 12}, decode_tokens(obj.wear_flags).bits)
+        expected_applies = [(27, 1, 23), (1, 2, 23)]
+        if expected:
+          expected_applies.append((27, expected, 23))
+        self.assertEqual(expected_applies, [
+            (a.location, a.modifier, a.bonus_type) for a in obj.affects
+        ])
+        self.assertEqual(original_values, source.values["values"])
+        for loss in ("warmth 25", "prestige -10", "unbound procedure state 8"):
+          self.assertIn(loss, " ".join(emitted.diagnostics))
+        self.assertEqual(emitted, emit_object(source, 2_000_200, _resolver))
+
+  def test_nonstandard_armor_respects_normalized_slots_and_takeability(self) -> None:
+    for mask in (0, 1, 4, 129, 4097, 16385, (1 << 22) | 3):
+      with self.subTest(mask=mask):
+        source = self._source_record(
+            "obj",
+            ("#200\nwearable~\na wearable~\nA wearable lies here.~\n~\n"
+             f"9 0 {mask}\n5 0 0 0\n1 1 0\n").encode("ascii"),
+        )
+        emitted = emit_object(source, 2_000_200, _resolver)
+        result = parse_object_file(
+            self._target_path("obj", emitted.text), "obj/20001.obj", self.manifest, set()
+        )
+        obj = result.records[0]
+        self.assertEqual(11, obj.item_type)
+        self.assertEqual({b for b in range(22) if mask & (1 << b)},
+                         decode_tokens(obj.wear_flags).bits)
+        self.assertEqual([(27, 1)], [(a.location, a.modifier) for a in obj.affects])
+
+  def test_standard_and_dedicated_tail_armor_do_not_gain_worn_apply(self) -> None:
+    for mask in (9, 17, 33, 257, 513, (1 << 22) | 1):
+      with self.subTest(mask=mask):
+        source = self._source_record(
+            "obj",
+            ("#200\narmor~\nsome armor~\nSome armor lies here.~\n~\n"
+             f"9 0 {mask}\n19 0 0 0\n1 1 0\n").encode("ascii"),
+        )
+        result = parse_object_file(
+            self._target_path("obj", emit_object(source, 2_000_200, _resolver).text),
+            "obj/20001.obj", self.manifest, set(),
+        )
+        obj = result.records[0]
+        self.assertEqual(9, obj.item_type)
+        self.assertEqual(19, obj.values[0])
+        self.assertFalse(obj.affects)
+
+  def test_armor_family_grid_round_trips_without_replacing_protection(self) -> None:
+    emitted_indices = set()
+    for family in FAMILIES + SHIELDS:
+      for slot in ((9,) if family in SHIELDS else (3, 4, 5, 8)):
+        index, entry = family_entry(family, slot)
+        emitted_indices.add(index)
+        for protection in (-17, 0, 23):
+          with self.subTest(family=family, slot=slot, protection=protection):
+            name = family.lower().replace("_", " ")
+            source = self._source_record(
+                "obj",
+                (f"#200\n{name}~\na {name} piece~\nArmor lies here.~\n~\n"
+                 f"9 0 {1 | (1 << slot)}\n{protection} 60 25 14\n7 1234 9\n"
+                 "A\n1 2\n").encode("ascii"),
+            )
+            emitted = emit_object(source, 2_000_200, _resolver)
+            result = parse_object_file(
+                self._target_path("obj", emitted.text), "obj/20001.obj", self.manifest, set()
+            )
+            self.assertTrue(result.complete)
+            self.assertFalse(result.findings)
+            obj = result.records[0]
+            self.assertEqual([protection, index, 0, 0], obj.values[:4])
+            self.assertEqual({0, slot}, decode_tokens(obj.wear_flags).bits)
+            self.assertEqual(slot, entry["wear"])
+            self.assertNotIn(98, decode_tokens(obj.extra_flags).bits)
+            self.assertEqual((7, 1234), (obj.weight, obj.cost))
+            self.assertEqual([(1, 2)], [(a.location, a.modifier) for a in obj.affects])
+    self.assertEqual(set(range(1, 58)) - {26}, emitted_indices)
+    self.assertEqual(57, len(armor_table()))
+    self.assertEqual(231, armor_table()[14]["move_30"])
+    self.assertEqual(25, family_entry("CHAINMAIL", 4)[0])
+    for family, slot in (("CHAIN", 4), ("UNDEFINED", 3), ("LEATHER", 9),
+                         ("SMALL_SHIELD", 3), ("CLOTHING", 34)):
+      with self.assertRaises(ValueError):
+        family_entry(family, slot)
+    with patch("wtool_lib.rol_armor_mapping.armor_table", return_value={3: {"wear": 4}}):
+      with self.assertRaisesRegex(ValueError, "slot-mismatched"):
+        family_entry("LEATHER", 3)
+
+  def test_armor_uses_description_then_material_and_explicit_placeholder_fallbacks(self) -> None:
+    for name, description, expected, tier in (
+        ("red armor", "Made from quilted cloth.", "PADDED", "description"),
+        ("red armor", "Made from steel.", "CHAINMAIL", "material"),
+        ("unknown armor", "", "CLOTHING", "fallback"),
+        ("standard quest item string me", "Made from plate.", "CLOTHING", "placeholder"),
+        ("ch&+rainmail", "", "CHAINMAIL", "identity"),
+    ):
+      source = self._source_record(
+          "obj", (f"#200\n{name}~\n{name}~\nArmor lies here.~\n~\n"
+                  f"9 0 9\n100 0 0 0\n1 1 0\nE\narmor~\n{description}~\n").encode("ascii")
+      )
+      inference = infer_armor(source)
+      self.assertEqual((expected, tier), (inference.family, inference.tier))
+
+  def test_unreviewed_mixed_armor_masks_require_a_disposition(self) -> None:
+    for mask in (137, 25, 273):
+      source = self._source_record(
+          "obj", ("#200\narmor~\narmor~\nArmor lies here.~\n~\n"
+                  f"9 0 {mask}\n10 0 0 0\n1 1 0\n").encode("ascii")
+      )
+      with self.assertRaisesRegex(ValueError, "reviewed disposition"):
+        emit_object(source, 2_000_200, _resolver)
+
+  def test_reviewed_armor_overrides_match_source_and_emit_native_slots(self) -> None:
+    self._require_reference_paths("EXAMPLE/RealmsOfLuminari/areas")
+    records_by_path = {}
+    for key, override in load_overrides().items():
+      relative, vnum = key.rsplit(":", 1)
+      if relative not in records_by_path:
+        path = self.root / "EXAMPLE/RealmsOfLuminari" / relative
+        records, _ = parse_rol_source_file(path, relative, "obj", path.stem)
+        records_by_path[relative] = {r.vnum: r for r in records}
+      source = records_by_path[relative][int(vnum)]
+      with self.subTest(source=source.record_id):
+        inference = infer_armor(source)
+        self.assertEqual(override["family"], inference.family)
+        emitted = emit_object(source, 2_000_000 + source.vnum, _resolver)
+        result = parse_object_file(
+            self._target_path("obj", emitted.text), "obj/20001.obj", self.manifest, set()
+        )
+        self.assertTrue(result.complete)
+        self.assertFalse(result.findings)
+        obj = result.records[0]
+        self.assertEqual({0, inference.slot}, decode_tokens(obj.wear_flags).bits)
+        self.assertEqual(source.values["values"][0], obj.values[0])
+        self.assertEqual(inference.armor_index, obj.values[1])
+        sha256 = source.sha256
+        source.sha256 = "0" * 64
+        with self.assertRaisesRegex(ValueError, "stale armor override"):
+          infer_armor(source)
+        source.sha256 = sha256
+
+  def test_nonstandard_armor_preserves_assigned_effect_owners_and_state(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#93175\ncloak~\na cloak~\nA cloak lies here.~\n~\n"
+        b"9 0 1025\n10 0 0 12\n1 1 0\n",
+    )
+    emitted = emit_object(source, 2_093_175, _resolver,
+                          special_proc="RoL Utility Object", attachments=(2_000_001,))
+    result = parse_object_file(
+        self._target_path("obj", emitted.text), "obj/20931.obj", self.manifest,
+        {"rol utility object"},
+    )
+    self.assertTrue(result.complete)
+    self.assertFalse(result.findings)
+    obj = result.records[0]
+    self.assertEqual(11, obj.item_type)
+    self.assertEqual([0, 0, 0, 12], obj.values[:4])
+    self.assertIn("Z\nRoL Utility Object\nT 2000001\n", emitted.text)
+    self.assertEqual([(27, 1)], [(a.location, a.modifier) for a in obj.affects])
 
   def test_emitted_object_keeps_one_point_of_small_source_armor_apply(self) -> None:
     source = self._source_record(
@@ -1666,9 +2008,12 @@ class RolTransformTests(unittest.TestCase):
         excluded += 1
         self.assertIn("inactive/malformed", diagnostics)
 
-    self.assertEqual(33, len(trapped))
+    # The chef's hat (25190) has description prose starting with "This", not
+    # a trap. Its missing economy row must not consume the preceding E marker.
+    self.assertFalse(any(record.vnum == 25190 for record in trapped))
+    self.assertEqual(32, len(trapped))
     self.assertEqual(29, converted)
-    self.assertEqual(4, excluded)
+    self.assertEqual(3, excluded)
 
   def test_emitted_magic_item_caps_source_level_at_target_maximum(self) -> None:
     source = self._source_record(
@@ -1684,6 +2029,128 @@ class RolTransformTests(unittest.TestCase):
     self.assertTrue(result.complete)
     self.assertEqual(34, result.records[0].values[0])
     self.assertIn("capped source magic-item spell level 50", " ".join(emitted.diagnostics))
+
+  def test_converted_object_level_is_permanently_one_and_repeatable(self) -> None:
+    fixtures = (
+        ("ordinary", b"12 0 1\n0 0 0 0\n7 500 2 0 2\n", None),
+        ("magic caster level", b"10 0 1\n30 9 0 0\n7 500 2\n0\n0\n", 30),
+    )
+
+    for ordinal, (name, body, caster_level) in enumerate(fixtures):
+      with self.subTest(name=name):
+        source = self._source_record(
+            "obj",
+            b"#200\nitem~\nan item~\nAn item is here.~\n~\n" + body,
+        )
+        destination_vnum = 2_000_200 + ordinal
+        first = emit_object(source, destination_vnum, _resolver)
+        second = emit_object(source, destination_vnum, _resolver)
+        path = self._target_path("obj", first.text)
+        result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+        self.assertTrue(result.complete)
+        self.assertEqual(first.text, second.text)
+        self.assertEqual(1, result.records[0].level)
+        if caster_level is not None:
+          self.assertEqual(caster_level, result.records[0].values[0])
+
+  def test_spellbook_bookkeeping_is_a_named_loss_not_native_spell_data(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nspellbook~\na spellbook~\nA spellbook is here.~\n~\n"
+        b"33 0 16385\n1 2 80 3\n2 100 1\n0\n0\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(28, result.records[0].item_type)
+    self.assertEqual([0] * 4, result.records[0].values[:4])
+    self.assertEqual([], result.records[0].spellbook)
+    self.assertFalse({"B", "C", "K", "S", "G", "H", "I"} & set(emitted.text.splitlines()))
+    self.assertIn(
+        "spellbook bookkeeping language 1, class 2, total pages 80, used pages 3",
+        " ".join(emitted.diagnostics),
+    )
+
+  def test_weapon_proc_state_has_exactly_one_owner_or_named_loss(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nblade~\na blade~\nA blade is here.~\n~\n"
+        b"5 0 8193\n7 1 6 7\n2 100 1\n0\n0\n",
+    )
+
+    unbound = emit_object(source, 2_000_200, _resolver)
+    owned = emit_object(source, 2_000_200, _resolver, special_proc="RoL Weapon Proc")
+    unbound_result = parse_object_file(
+        self._target_path("obj", unbound.text), "obj/20001.obj", self.manifest, set()
+    )
+    owned_result = parse_object_file(
+        self._target_path("obj", owned.text), "obj/20001.obj", self.manifest,
+        {"RoL Weapon Proc"},
+    )
+
+    self.assertTrue(unbound_result.complete)
+    self.assertTrue(owned_result.complete)
+    self.assertNotEqual(7, unbound_result.records[0].values[0])
+    self.assertIsNone(unbound_result.records[0].spec_proc)
+    self.assertEqual("RoL Weapon Proc", owned_result.records[0].spec_proc)
+    self.assertIn("unbound procedure state 7", " ".join(unbound.diagnostics))
+    self.assertIn(
+        "procedure state 7 through assigned special-procedure owner RoL Weapon Proc",
+        " ".join(owned.diagnostics),
+    )
+
+  def test_worn_source_only_slots_cannot_invent_monk_glove_behavior(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\numbrella~\nan umbrella~\nAn umbrella is here.~\n~\n"
+        b"11 0 129\n7 -100 -10 0\n2 100 1\n0\n0\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+    diagnostics = " ".join(emitted.diagnostics)
+
+    self.assertTrue(result.complete)
+    self.assertEqual(11, result.records[0].item_type)
+    self.assertEqual([0] * 4, result.records[0].values[:4])
+    self.assertIn(7, decode_tokens(result.records[0].wear_flags).bits)
+    self.assertIn("source-inert worn value[0] 7", diagnostics)
+    self.assertIn("source-only worn warmth -100", diagnostics)
+    self.assertIn("source-only worn prestige -10", diagnostics)
+    self.assertIn("NPC equipment-ranking product 1000", diagnostics)
+    self.assertIn("not player prestige or cold resistance", diagnostics)
+
+  def test_worn_proc_state_has_exactly_one_owner_or_named_loss(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nring~\na ring~\nA ring is here.~\n~\n"
+        b"11 0 3\n0 0 0 5\n2 100 1\n0\n0\n",
+    )
+
+    unbound = emit_object(source, 2_000_200, _resolver)
+    owned = emit_object(source, 2_000_200, _resolver, special_proc="RoL Utility Object")
+    unbound_result = parse_object_file(
+        self._target_path("obj", unbound.text), "obj/20001.obj", self.manifest, set()
+    )
+    owned_result = parse_object_file(
+        self._target_path("obj", owned.text), "obj/20001.obj", self.manifest,
+        {"RoL Utility Object"},
+    )
+
+    self.assertTrue(unbound_result.complete)
+    self.assertTrue(owned_result.complete)
+    self.assertEqual(0, unbound_result.records[0].values[3])
+    self.assertEqual(5, owned_result.records[0].values[3])
+    self.assertIn("worn unbound procedure state 5", " ".join(unbound.diagnostics))
+    self.assertIn(
+        "worn procedure state 5 through assigned special-procedure owner RoL Utility Object",
+        " ".join(owned.diagnostics),
+    )
 
   def test_emitted_magic_item_maps_spells_by_source_name(self) -> None:
     source = self._source_record(

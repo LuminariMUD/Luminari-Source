@@ -146,7 +146,7 @@ def _parse_affect(
         finding(
             "OBJ020",
             "error",
-            f"A extension uses shared slot {slot}; only {maximum} object affects are safe",
+            f"A extension uses slot {slot}; only {maximum} object affects are safe",
             record.span,
             "object",
             record.vnum,
@@ -174,18 +174,9 @@ def _parse_affect(
         )
     )
     return
-  if len(values) < 4:
-    result.findings.append(
-        finding(
-            "OBJ021",
-            "error",
-            f"{len(values)}-integer A payload leaves the stored specific field dependent on stale parser data",
-            line.span,
-            "object",
-            record.vnum,
-        )
-    )
-  padded: list[int | None] = values + [None] * (4 - len(values))
+  # The native loader defaults omitted bonus type to BONUS_TYPE_UNDEFINED (0)
+  # and omitted specific to 0, independently of the previous A payload.
+  padded = values + [0] * (4 - len(values))
   record.affects.append(
       ObjectAffectRecord(
           int(padded[0]),
@@ -295,7 +286,8 @@ def _parse_extensions(
     manifest: dict[str, Any],
     spec_names: set[str],
 ) -> None:
-  shared_slot = 0
+  affect_slot = 0
+  spellbook_slot = 0
   weapon_spell_count = 0
   max_affects = manifest["limits"]["MAX_OBJ_AFFECT"]["value"]
   spellbook_size = manifest["limits"]["SPELLBOOK_SIZE"]["value"]
@@ -321,15 +313,15 @@ def _parse_extensions(
       return
     kind = line.text[0] if line.text else ""
     if kind == "A":
-      _parse_affect(cursor, result, record, shared_slot, max_affects)
-      shared_slot += 1
+      _parse_affect(cursor, result, record, affect_slot, max_affects)
+      affect_slot += 1
     elif kind == "B":
-      if shared_slot >= spellbook_size:
+      if spellbook_slot >= spellbook_size:
         result.findings.append(
             finding(
                 "OBJ023",
                 "error",
-                f"B extension uses shared slot {shared_slot}; spellbooks hold {spellbook_size}",
+                f"B extension uses slot {spellbook_slot}; spellbooks hold {spellbook_size}",
                 line.span,
                 "object",
                 record.vnum,
@@ -343,7 +335,7 @@ def _parse_extensions(
           result.findings.append(
               finding("OBJ024", "error", f"invalid spellbook spell {values[0]}", span, "object", record.vnum)
           )
-      shared_slot += 1
+      spellbook_slot += 1
     elif kind == "C":
       _parse_special_ability(cursor, result, record, manifest)
     elif kind == "E":

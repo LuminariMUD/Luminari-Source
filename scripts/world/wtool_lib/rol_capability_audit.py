@@ -285,7 +285,7 @@ def classify_transform_diagnostic(message: str) -> str:
     return "bounded-adapter"
   if message.startswith(("capped ", "normalized ")):
     return "bounded-normalization"
-  if "non-ASCII" in message or "embedded tilde" in message:
+  if "non-ASCII" in message or "embedded tilde" in message or "source color escape" in message:
     return "text-normalization"
   if (
       "incomplete" in message
