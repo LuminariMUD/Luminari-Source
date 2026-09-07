@@ -1644,6 +1644,7 @@ class RolTransformTests(unittest.TestCase):
             self.assertEqual([(1, 2)], [(a.location, a.modifier) for a in obj.affects])
     self.assertEqual(set(range(1, 58)) - {26}, emitted_indices)
     self.assertEqual(57, len(armor_table()))
+    self.assertIs(armor_table(), armor_table(self.root))
     self.assertEqual(231, armor_table()[14]["move_30"])
     self.assertEqual(25, family_entry("CHAINMAIL", 4)[0])
     for family, slot in (("CHAIN", 4), ("UNDEFINED", 3), ("LEATHER", 9),
@@ -1668,6 +1669,20 @@ class RolTransformTests(unittest.TestCase):
       )
       inference = infer_armor(source)
       self.assertEqual((expected, tier), (inference.family, inference.tier))
+
+  def test_armor_inference_treats_missing_source_strings_as_empty(self) -> None:
+    source = self._source_record(
+        "obj", b"#200\narmor~\narmor~\nArmor lies here.~\n~\n"
+        b"9 0 9\n100 0 0 0\n1 1 0\nE\narmor~\nDescription.~\n"
+    )
+    source.values["strings"]["aliases"] = None
+    source.values["strings"]["short_description"] = None
+    source.values["strings"]["description"] = None
+    next(row for row in source.directives if row["token"] == "E")["description"] = None
+
+    inference = infer_armor(source)
+
+    self.assertEqual(("CLOTHING", "fallback"), (inference.family, inference.tier))
 
   def test_unreviewed_mixed_armor_masks_require_a_disposition(self) -> None:
     for mask in (137, 25, 273):
@@ -2539,7 +2554,8 @@ class RolTransformTests(unittest.TestCase):
         b"#100\nfile~\nPilot~\n199 30 2 64\n"
         b"0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n"
         b"D 0 100 1 8\nD 0 100 2 3\nR 0 100 200 35\nF 2 100 300 301\n"
-        b"M 0 300 1 100\nE 1 200 1 25\nT 0 2 0 0\nX 1 -1 300 1 25\nS\n",
+        b"M 0 300 1 100\nE 1 200 1 25\nT 0 -2 0 0\nT 0 24 0 0\n"
+        b"X 1 -1 300 1 25\nS\n",
     )
     emitted = emit_zone(source, 20_100, 2_000_100, _resolver)
     temporary = tempfile.TemporaryDirectory()
@@ -2551,13 +2567,17 @@ class RolTransformTests(unittest.TestCase):
     self.assertTrue(result.complete)
     self.assertEqual([], result.findings)
     self.assertEqual(
-        ["K", "K", "R", "F", "M", "E", "C", "X"],
+        ["K", "K", "R", "F", "M", "E", "C", "C", "X"],
         [command.command for command in result.records[0].commands],
     )
     self.assertEqual(35, result.records[0].commands[2].probability)
     self.assertEqual(2, result.records[0].commands[3].dependency)
     self.assertEqual(43, result.records[0].commands[5].arguments[2])
-    self.assertEqual(25, result.records[0].commands[7].probability)
+    self.assertEqual(-1, result.records[0].commands[6].arguments[0])
+    self.assertEqual(23, result.records[0].commands[7].arguments[0])
+    self.assertEqual(25, result.records[0].commands[8].probability)
+    self.assertIn("normalized T reset hour -2 to -1", " ".join(emitted.diagnostics))
+    self.assertIn("normalized T reset hour 24 to 23", " ".join(emitted.diagnostics))
     self.assertIn(18, decode_tokens(result.records[0].flags).bits)
 
   def test_emitted_zone_recovers_tail_objects_from_position_24(self) -> None:

@@ -18,13 +18,14 @@ from .models import TOOL_VERSION
 from .reporting import result_payload
 from .rol_phase7 import _runtime_contract, _validation_delta
 from .rol_persistence_check import audit_development_persistence
+from .rol_json import load_jsonl
 from .rol_pilot_build import (
+    RolPilotBuildError,
     _artifact,
     _canonical_json,
     _canonical_line,
     _created_at,
     _load_json,
-    _load_jsonl,
     _sha256_path,
     _verify_bundle,
 )
@@ -74,6 +75,7 @@ _CODE_EVIDENCE_PATHS = (
     "scripts/world/wtool_lib/rol_planner.py",
     "scripts/world/wtool_lib/rol_identity.py",
     "scripts/world/wtool_lib/rol_inventory.py",
+    "scripts/world/wtool_lib/rol_json.py",
     "scripts/world/wtool_lib/rol_discovery.py",
     "scripts/world/wtool_lib/rol_capability_audit.py",
     "scripts/world/wtool_lib/source.py",
@@ -117,6 +119,10 @@ _DOCUMENTATION_PATHS = (
 
 class RolPhase8Error(ValueError):
   """Raised when Phase 8 cannot prove a safe final integration."""
+
+
+def _load_jsonl(path: Path) -> list[dict[str, Any]]:
+  return load_jsonl(path, RolPilotBuildError, "pilot", intern_candidates=True)
 
 
 def _write_jsonl(path: Path, rows: Iterable[dict[str, Any]]) -> int:

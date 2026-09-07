@@ -21,6 +21,10 @@ from wtool_lib.rol_phase7 import (
 
 class RolPhase7Tests(unittest.TestCase):
   def test_format_owned_repairs_are_not_reprocessed_as_exclusions(self) -> None:
+    known_repair = "obj:59060:areas/obj/muspel.obj:4041"
+    self.assertIn(known_repair, _SOURCE_RECORD_REPAIRS)
+    self.assertTrue(all(key.count(":") == 3 for key in _SOURCE_RECORD_REPAIRS))
+    self.assertEqual("obj", _SOURCE_RECORD_REPAIRS[known_repair]["kind"])
     self.assertNotIn("mob:51348:areas/mob/llyrath.mob:692", _SOURCE_RECORD_REPAIRS)
     self.assertNotIn("obj:7067:areas/obj/quest_1.obj:9", _SOURCE_RECORD_REPAIRS)
 

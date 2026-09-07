@@ -2927,9 +2927,6 @@ bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum)
 {
   int min_level = 0;
 
-  if (!meets_spell_access_prerequisites(ch, spellnum))
-    return FALSE;
-
   switch (class)
   {
   case CLASS_CLERIC: /* Domain system - check both domains for best access */
@@ -5483,6 +5480,12 @@ ACMDU(do_gen_preparation)
       send_to_char(ch, "This spell cannot be extended.\r\n");
       return;
     }
+  }
+
+  if (!meets_spell_access_prerequisites(ch, spellnum))
+  {
+    send_to_char(ch, "You have not met the prerequisites for that magic.\r\n");
+    return;
   }
 
   if (!is_min_level_for_spell(ch, class, spellnum))

@@ -127,8 +127,10 @@ class FullGraphTests(unittest.TestCase):
       root = Path(directory) / "world"
       make_world(root)
       zone = root / "zon/1.zon"
+      source = zone.read_text(encoding="ascii")
+      self.assertIn("S\n$\n", source)
       zone.write_text(
-          zone.read_text(encoding="ascii").replace(
+          source.replace(
               "S\n$\n",
               "M 0 100 1 100 100\nE 0 100 1 16 100\nT 0 2 100 100\nS\n$\n",
           ),

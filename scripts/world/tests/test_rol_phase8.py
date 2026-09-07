@@ -23,13 +23,19 @@ from wtool_lib.rol_phase8 import (
 
 class RolPhase8Tests(unittest.TestCase):
   def test_code_evidence_captures_format_owners_and_inference_inputs(self) -> None:
-    repo_root = Path(__file__).resolve().parents[3]
-    evidence = _code_evidence(repo_root)
+    with tempfile.TemporaryDirectory() as temporary:
+      repo_root = Path(temporary)
+      for relative in (*_CODE_EVIDENCE_PATHS, "bin/luminari"):
+        path = repo_root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"captured input\n")
+      evidence = _code_evidence(repo_root)
     paths = {row["path"] for row in evidence["files"]}
     for name in (
         "conversion_types", "source_common", "transform_common", "source", "transform",
         "mobiles", "objects", "rooms", "zones", "shops", "quests", "soc",
         "weapon_mapping", "weapon_table", "armor_mapping", "mobile_identity", "mob_calculator",
+        "json",
     ):
       self.assertIn(f"scripts/world/wtool_lib/rol_{name}.py", paths)
     for relative in (
@@ -95,13 +101,15 @@ class RolPhase8Tests(unittest.TestCase):
       )):
         with self.subTest(input=relative):
           path = root / relative
-          path.write_bytes(b"changed after release gates\n")
-          output = root / f"changed-{index}"
-          changed = write_phase8_completion(bundle, root / "lib", output)
-          self.assertFalse(changed["complete"])
-          acceptance = json.loads((output / "acceptance.json").read_text())
-          self.assertFalse(acceptance["runtime_code_unchanged_since_gates"])
-          path.write_bytes(b"captured input\n")
+          try:
+            path.write_bytes(b"changed after release gates\n")
+            output = root / f"changed-{index}"
+            changed = write_phase8_completion(bundle, root / "lib", output)
+            self.assertFalse(changed["complete"])
+            acceptance = json.loads((output / "acceptance.json").read_text())
+            self.assertFalse(acceptance["runtime_code_unchanged_since_gates"])
+          finally:
+            path.write_bytes(b"captured input\n")
 
   @staticmethod
   def _empty_world(*, zones=None):

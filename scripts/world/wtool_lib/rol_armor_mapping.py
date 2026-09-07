@@ -66,12 +66,20 @@ _MATERIALS = (
 )
 
 
-@lru_cache(maxsize=4)
 def armor_table(root: Path | None = None) -> dict[int, dict[str, int | str]]:
   """Read actual initialized entries, with the same C reader as weapons."""
-  base = root or default_repo_root()
+
+  return _armor_table((root or default_repo_root()).resolve())
+
+
+@lru_cache(maxsize=4)
+def _armor_table(base: Path) -> dict[int, dict[str, int | str]]:
   defines = target_defines(base)
-  source = _strip_comments((base / "src/combat/assign_wpn_armor.c").read_text())
+  source = _strip_comments(
+      (base / "src/combat/assign_wpn_armor.c").read_text(
+          encoding="utf-8", errors="ignore"
+      )
+  )
   table = {}
   for body in _call_bodies(source, "setarmor"):
     args = _split_arguments(body)
@@ -145,6 +153,10 @@ def _text(value: str) -> str:
   return " " + re.sub(r"[^a-z0-9]+", " ", _SOURCE_COLOR.sub("", value).lower()).strip() + " "
 
 
+def _safe_string(value: object) -> str:
+  return "" if value is None else str(value)
+
+
 def _match(text: str, rules: tuple) -> tuple[str, str] | None:
   for family, phrases in rules:
     for phrase in phrases:
@@ -177,9 +189,13 @@ def infer_armor(record: RolRecord) -> ArmorInference:
     tier, rule = "override", override["rationale"]
   else:
     strings = record.values.get("strings", {})
-    identity = _text(strings.get("aliases", "") + " " + strings.get("short_description", ""))
-    details = _text(strings.get("description", "") + " " + " ".join(
-        d.get("description", "") for d in record.directives
+    identity = _text(
+        _safe_string(strings.get("aliases"))
+        + " "
+        + _safe_string(strings.get("short_description"))
+    )
+    details = _text(_safe_string(strings.get("description")) + " " + " ".join(
+        _safe_string(d.get("description")) for d in record.directives
         if d["token"] == "E" and d.get("source_disposition") != "EXCLUDE"
     ))
     if " string me " in identity or " string this " in identity:

@@ -37,6 +37,7 @@ def _mobile_repair_policy() -> dict[tuple[str, int, str], frozenset[str]]:
               key
               for key in (
                   "repair_race_row",
+                  "repair_combat_row",
                   "repair_position_row",
                   "repair_level",
                   "repair_sex",

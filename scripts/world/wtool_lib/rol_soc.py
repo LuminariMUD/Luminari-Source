@@ -815,9 +815,10 @@ def _parse_soc(
   for index, line in enumerate(source.lines):
     cleaned = line.raw.split(b";;", 1)[0].strip()
     match = _SOC_HEADER.match(cleaned)
+    loose_match = _SOC_LOOSE_HEADER.match(cleaned)
     if match is not None:
       headers.append((index, int(match.group(1)), match.group(2).decode("ascii").upper()))
-    elif _SOC_LOOSE_HEADER.match(cleaned) is not None:
+    elif loose_match is not None:
       _diagnostic(
           corpus,
           "ROLSOC001",
@@ -825,7 +826,7 @@ def _parse_soc(
           "source SOC loader ignores MOB header without a colon",
           line,
           "soc",
-          int(_SOC_LOOSE_HEADER.match(cleaned).group(1)),
+          int(loose_match.group(1)),
       )
   for ordinal, (start, vnum, mode) in enumerate(headers):
     end = headers[ordinal + 1][0] if ordinal + 1 < len(headers) else len(source.lines)
@@ -848,11 +849,13 @@ def _parse_soc(
         raw_value = b""
       if key not in _SOC_KEYS:
         record.complete = False
-        _diagnostic(corpus, "ROLSOC001", "error", f"unknown SOC keyword {key!r}", line, "soc", vnum)
+        _diagnostic(
+            corpus, "ROLSOC003", "error", f"unknown SOC keyword {key!r}", line, "soc", vnum
+        )
         continue
       values = [int(value) for value in _INTEGER.findall(raw_value)]
       record.directives.append({"token": key, "line": line.number, "arguments": values})
-      if key == "LISTDONE" or key == "DONE" and mode != "LIST":
+      if key == "LISTDONE" or (key == "DONE" and mode != "LIST"):
         break
       if key == "ROOMS":
         for value in values:

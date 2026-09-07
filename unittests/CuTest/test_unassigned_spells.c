@@ -633,7 +633,7 @@ void TestElementalistEmbodimentsRequireMasterOfElementsForPreparation(CuTest *tc
 
   CuAssertIntEquals(tc, 99, GET_SKILL(&ch, SPELL_ELEMENTAL_WATER_EMBODIMENT));
   CuAssertTrue(tc, !meets_spell_access_prerequisites(&ch, SPELL_ELEMENTAL_WATER_EMBODIMENT));
-  CuAssertTrue(tc, !is_min_level_for_spell(&ch, CLASS_WIZARD, SPELL_ELEMENTAL_WATER_EMBODIMENT));
+  CuAssertTrue(tc, is_min_level_for_spell(&ch, CLASS_WIZARD, SPELL_ELEMENTAL_WATER_EMBODIMENT));
 
   master.perk_id = PERK_WIZARD_MASTER_OF_ELEMENTS;
   master.perk_class = CLASS_WIZARD;

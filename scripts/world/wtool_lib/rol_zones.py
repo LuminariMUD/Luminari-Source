@@ -315,6 +315,12 @@ def _emit_reset(
         raise ValueError("requires dependency, hour, day, and weekday")
       dependency, hour, day, weekday = arguments[:4]
       month = arguments[4] if len(arguments) >= 5 else 0
+      source_hour = hour
+      hour = min(23, max(-1, hour))
+      if hour != source_hour:
+        diagnostics.append(
+            f"normalized T reset hour {source_hour} to {hour} at source line {line}"
+        )
       if day < 0:
         day = 0
       if weekday < 0:

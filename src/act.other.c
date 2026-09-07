@@ -1722,6 +1722,13 @@ void perform_call(struct char_data *ch, int call_type, int level)
     if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
         MOB_FLAGGED(k->follower, call_type))
     {
+      if (call_type == MOB_C_ANIMAL && !IS_NPC(ch) && GET_MOB_VNUM(k->follower) == MOB_DIRE_WOLF &&
+          !can_select_dire_wolf_companion(ch))
+      {
+        send_to_char(ch, "A dire-wolf bond requires Ranger level 4, Warrior level 1, and the "
+                         "animal companion ability.\r\n");
+        return;
+      }
       if (IN_ROOM(ch) == IN_ROOM(k->follower))
       {
         send_to_char(ch, "Your companion has already been summoned!\r\n");

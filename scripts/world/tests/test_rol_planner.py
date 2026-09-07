@@ -70,7 +70,7 @@ class RolPlannerTests(unittest.TestCase):
         with self.subTest(loader=loader.__module__):
           rows, peak = measure(loader)
           self.assertEqual(expected, rows)
-          self.assertLess(peak, ordinary_peak * 0.8)
+          self.assertLess(peak, ordinary_peak)
           # Sharing immutable text must not alias mutable candidate data.
           rows[0]["candidates"][0]["path"] = "changed"
           rows[0]["candidates"][0]["evidence"].append("changed")

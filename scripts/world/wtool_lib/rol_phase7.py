@@ -19,13 +19,14 @@ from .models import TOOL_VERSION
 from .reporting import result_payload
 from .rol_discovery import extract_source_commands
 from .rol_graph import audit_connection_graph
+from .rol_json import load_jsonl
 from .rol_pilot_build import (
+    RolPilotBuildError,
     _artifact,
     _canonical_json,
     _canonical_line,
     _created_at,
     _load_json,
-    _load_jsonl,
     _reset_references,
     _source_records,
     _verify_bundle,
@@ -117,6 +118,10 @@ _COMPOSITE_SPECIALS = {
 
 class RolPhase7Error(ValueError):
   """Raised when a Phase 7 milestone violates a frozen conversion invariant."""
+
+
+def _load_jsonl(path: Path) -> list[dict[str, Any]]:
+  return load_jsonl(path, RolPilotBuildError, "pilot", intern_candidates=True)
 
 
 class _UnionFind:

@@ -157,7 +157,8 @@ int familiar_vnums[] = {
 };
 #define NUM_FAMILIARS 10
 
-#define TOP_OF_C 9
+#define TOP_OF_ANIMALS 9
+#define TOP_OF_FAMILIARS 8
 /****************/
 
 /* make a list of names in order, first animals */
@@ -2281,14 +2282,14 @@ static void animal_companion_menu(struct descriptor_data *d)
                   "\r\n",
                   mgn, nrm);
 
-  for (i = 1; i <= TOP_OF_C; i++)
+  for (i = 1; i <= TOP_OF_ANIMALS; i++)
   {
     write_to_output(d, "%s\r\n", animal_names[i]);
   }
 
   write_to_output(d, "\r\n");
   /* find current animal */
-  for (i = 1; i <= TOP_OF_C; i++)
+  for (i = 1; i <= TOP_OF_ANIMALS; i++)
   {
     if (GET_ANIMAL_COMPANION(d->character) == animal_vnums[i])
     {
@@ -2325,7 +2326,7 @@ static void familiar_menu(struct descriptor_data *d)
                   "\r\n",
                   mgn, nrm);
 
-  for (i = 1; i <= TOP_OF_C; i++)
+  for (i = 1; i <= TOP_OF_FAMILIARS; i++)
   {
     write_to_output(d, "%s\r\n", familiar_names[i]);
   }
@@ -2333,7 +2334,7 @@ static void familiar_menu(struct descriptor_data *d)
   write_to_output(d, "\r\n");
 
   /* find current familiar */
-  for (i = 1; i <= TOP_OF_C; i++)
+  for (i = 1; i <= TOP_OF_FAMILIARS; i++)
   {
     if (GET_FAMILIAR(d->character) == familiar_vnums[i])
     {

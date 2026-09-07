@@ -146,7 +146,7 @@ Cleric can bond a totem at any class level; summoning unlocks at Cleric level
 identities, one active spirit, source-race restrictions, and three attempts per
 seven MUD days.
 
-See also: CLERIC, ROL-SHAMAN-TOTEM, ROL-SPELL-KITS, WISDOM', 0, FALSE)
+See also: CLERIC, ROL-SPELL-KITS, SPECIALS, WISDOM', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 

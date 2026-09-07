@@ -987,6 +987,7 @@ set(WORLD_TOOL_SOURCES
     scripts/world/wtool_lib/rol_discovery.py
     scripts/world/wtool_lib/rol_graph.py
     scripts/world/wtool_lib/rol_inventory.py
+    scripts/world/wtool_lib/rol_json.py
     scripts/world/wtool_lib/rol_mob_calculator.py
     scripts/world/wtool_lib/rol_mobile_identity.py
     scripts/world/wtool_lib/rol_identity.py

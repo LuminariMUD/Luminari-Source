@@ -12,10 +12,10 @@ from typing import Any, Iterable
 
 from .constants import default_repo_root
 from .models import TOOL_VERSION
+from .rol_json import load_jsonl
 from .rol_pilot_build import (
     RolPilotBuildError,
     _identity_resolver,
-    _load_jsonl,
     _source_records,
     _source_zone_flags_by_basename,
     _target_zone_by_basename,
@@ -62,6 +62,10 @@ _NUMBER = re.compile(r"(?<![A-Za-z_])-?\d+")
 
 class RolCapabilityAuditError(ValueError):
   """Raised when the full-corpus audit cannot produce trustworthy evidence."""
+
+
+def _load_jsonl(path: Path) -> list[dict[str, Any]]:
+  return load_jsonl(path, RolPilotBuildError, "pilot", intern_candidates=True)
 
 
 def _canonical_json(data: Any) -> bytes:

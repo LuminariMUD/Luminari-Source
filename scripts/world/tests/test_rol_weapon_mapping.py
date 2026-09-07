@@ -27,6 +27,11 @@ _AMMO_PAIRS = {
     "AMMO_TYPE_STONE": ("SLING",),
     "AMMO_TYPE_DART": ("BLOWGUN",),
 }
+_EXPECTED_LAUNCHER_ARCHERS = frozenset({
+    7984, 7985, 16861, 20093, 20204, 20205, 20211, 20270, 20271,
+    43788, 49008, 50505, 52867, 58809, 63709, 81924, 81925, 81926,
+    83048, 87018, 94531, 94532, 94533, 94534, 96809,
+})
 
 
 def _pairs(ammo_name: str, weapon_name: str) -> bool:
@@ -46,9 +51,19 @@ class RolWeaponMappingTests(unittest.TestCase):
     cls.weapons = []
     cls.launchers = []
     cls.ammunition = []
+    cls.mobiles = {}
+    cls.archers = set()
     if (cls.source_root / "areas").is_dir():
       cls.corpus = parse_active_rol_corpus(cls.source_root, cls.root)
       objects = [record for record in cls.corpus.records if record.kind == "obj"]
+      cls.mobiles = {
+          record.vnum: record for record in cls.corpus.records if record.kind == "mob"
+      }
+      cls.archers = {
+          vnum
+          for vnum, record in cls.mobiles.items()
+          if int(record.values.get("flags", [0])[0]) & (1 << (17 - 1))
+      }
       cls.weapons = [
           record
           for record in objects
@@ -615,14 +630,6 @@ class RolWeaponMappingTests(unittest.TestCase):
 
     self._require_reference_corpus()
     table = weapon_table()
-    mobiles = {
-        record.vnum: record for record in self.corpus.records if record.kind == "mob"
-    }
-    archers = {
-        vnum
-        for vnum, record in mobiles.items()
-        if int(record.values.get("flags", [0])[0]) & (1 << (17 - 1))
-    }
     emitted: dict[int, tuple[int, list[int]]] = {}
     for record in self.corpus.records:
       if record.kind != "obj":
@@ -691,33 +698,18 @@ class RolWeaponMappingTests(unittest.TestCase):
                 ammo_for[entry[1][0]],
                 f"zone {record.vnum} loads ammo {content} that its launcher cannot fire",
             )
-            if current_mobile in archers:
+            if current_mobile in self.archers:
               compatible_archers.add(current_mobile)
     self.assertGreater(kits, 0)
-    self.assertEqual(
-        {
-            7984, 7985, 16861, 20093, 20204, 20205, 20211, 20270, 20271,
-            43788, 49008, 50505, 52867, 58809, 63709, 81924, 81925, 81926,
-            83048, 87018, 94531, 94532, 94533, 94534, 96809,
-        },
-        compatible_archers,
-    )
+    self.assertEqual(_EXPECTED_LAUNCHER_ARCHERS, compatible_archers)
 
   def test_rol_archer_loadouts_cover_launcher_and_throwable_modes(self) -> None:
     self._require_reference_corpus()
     objects = {
         record.vnum: record for record in self.corpus.records if record.kind == "obj"
     }
-    mobiles = {
-        record.vnum: record for record in self.corpus.records if record.kind == "mob"
-    }
-    archers = {
-        vnum
-        for vnum, record in mobiles.items()
-        if int(record.values.get("flags", [0])[0]) & (1 << (17 - 1))
-    }
     table = weapon_table()
-    loadouts: dict[int, set[str]] = {vnum: set() for vnum in archers}
+    loadouts: dict[int, set[str]] = {vnum: set() for vnum in self.archers}
     unrelated_throwers: set[int] = set()
 
     self.assertEqual(108, MOB_ACTION_MAP[17])
@@ -751,7 +743,7 @@ class RolWeaponMappingTests(unittest.TestCase):
             if inference.name in mapping.RANGED_WEAPON_TYPES
             else "throwable" if flags & _WEAPON_FLAG_THROWN else "melee"
         )
-        if current_mobile in archers:
+        if current_mobile in self.archers:
           loadouts[current_mobile].add(mode)
         elif mode == "throwable":
           unrelated_throwers.add(current_mobile)
@@ -762,14 +754,10 @@ class RolWeaponMappingTests(unittest.TestCase):
         if "throwable" in modes and "launcher" not in modes
     }
     launcher_archers = {vnum for vnum, modes in loadouts.items() if "launcher" in modes}
-    inactive_archers = archers - thrown_archers - launcher_archers
+    inactive_archers = self.archers - thrown_archers - launcher_archers
     self.assertEqual({7983, 52811, 52824, 88904}, thrown_archers)
     self.assertEqual(
-        {
-            7984, 7985, 16861, 20093, 20204, 20205, 20211, 20270, 20271,
-            43788, 49008, 50505, 52867, 58809, 63709, 81924, 81925, 81926,
-            83048, 87018, 94531, 94532, 94533, 94534, 96809,
-        },
+        _EXPECTED_LAUNCHER_ARCHERS,
         launcher_archers,
     )
     self.assertEqual(

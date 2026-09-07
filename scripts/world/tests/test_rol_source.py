@@ -5,7 +5,9 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
+from wtool_lib import rol_mobiles
 from wtool_lib.rol_source import (
     RolSourceCorpus,
     _parse_obj,
@@ -115,6 +117,21 @@ assert owner.RolRecord is rol_conversion_types.RolRecord is rol_source.RolRecord
     self.assertFalse(corpus.complete)
     self.assertFalse(records[0].complete)
     self.assertEqual(4, [item.code for item in corpus.diagnostics].count("ROLMOB005"))
+
+  def test_mobile_repair_policy_can_own_combat_row_repairs(self) -> None:
+    policy = (
+        '{"mobile":{"exact_records":[{"basename":"sample","source_vnum":100,'
+        '"source_sha256":"abc","repair_combat_row":true}]}}'
+    )
+    with (
+        patch.object(rol_mobiles, "_MOBILE_REPAIR_POLICY", None),
+        patch.object(rol_mobiles.Path, "read_text", return_value=policy),
+    ):
+      loaded = rol_mobiles._mobile_repair_policy()
+
+    self.assertEqual(
+        frozenset({"repair_combat_row"}), loaded[("sample", 100, "abc")]
+    )
 
   def test_economy_row_gives_back_the_affect_words_it_swallowed(self) -> None:
     # The three economy fields and the two affect words are read with five
@@ -272,6 +289,14 @@ assert owner.RolRecord is rol_conversion_types.RolRecord is rol_source.RolRecord
         ],
     )
     self.assertEqual("LISTDONE", socials[0].directives[-1]["token"])
+
+  def test_unknown_soc_keyword_has_its_own_diagnostic_code(self) -> None:
+    _socials, corpus = parse_fixture(
+        "soc", b"MOB: 300 PERIODIC\nMYSTERY: 1\nDONE\n"
+    )
+
+    self.assertFalse(corpus.complete)
+    self.assertEqual(["ROLSOC003"], [item.code for item in corpus.diagnostics])
 
   def test_summary_is_stable_and_counts_tokens(self) -> None:
     records, corpus = parse_fixture(
