@@ -593,6 +593,7 @@ world_tool_sources = \
 	scripts/world/wtool_lib/rol_objects.py \
 	scripts/world/wtool_lib/rol_armor_mapping.py \
 	scripts/world/wtool_lib/rol_armor_overrides.json \
+	scripts/world/wtool_lib/rol_weapon_overrides.json \
 	scripts/world/wtool_lib/rol_rooms.py \
 	scripts/world/wtool_lib/rol_zones.py \
 	scripts/world/wtool_lib/rol_shops.py \
