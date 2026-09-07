@@ -913,6 +913,7 @@ async def run_backend(
     set_phase("startup")
     sampler_stop = asyncio.Event()
     sampler: asyncio.Task[None] | None = None
+    sampler_failure: BaseException | None = None
     sessions: list[MudSession] = []
     admin: MudSession | None = None
     started = now_utc()
@@ -997,7 +998,9 @@ async def run_backend(
     finally:
         sampler_stop.set()
         if sampler:
-            await asyncio.gather(sampler, return_exceptions=True)
+            sampler_result = (await asyncio.gather(sampler, return_exceptions=True))[0]
+            if isinstance(sampler_result, BaseException):
+                sampler_failure = sampler_result
         for session in sessions:
             with contextlib.suppress(Exception):
                 await session.close()
@@ -1011,6 +1014,8 @@ async def run_backend(
             except subprocess.TimeoutExpired:
                 os.killpg(process.pid, signal.SIGKILL)
                 await asyncio.to_thread(process.wait)
+        if sampler_failure is not None:
+            raise GateFailure(f"{backend}: RSS sampler failed") from sampler_failure
 
     analysis = analyze_backend(output_dir, profile)
     summary = {
