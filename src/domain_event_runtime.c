@@ -403,6 +403,63 @@ enum domain_event_status domain_event_runtime_character_died_with_cause(struct c
                                      &event);
 }
 
+enum domain_event_status
+domain_event_runtime_character_resolved(struct char_data *actor, struct char_data *target,
+                                        enum domain_character_resolution_kind kind, int method)
+{
+  static uint64_t next_resolution_id;
+  struct domain_character_resolved event = {0};
+  struct domain_event_topic topics[3];
+  size_t topic_count = 0U;
+
+  if (runtime_bus == NULL || actor == NULL || target == NULL ||
+      kind < DOMAIN_CHARACTER_RESOLUTION_RESCUED || kind > DOMAIN_CHARACTER_RESOLUTION_NEGOTIATED)
+    return DOMAIN_EVENT_NOT_FOUND;
+  if (next_resolution_id == UINT64_MAX)
+    return DOMAIN_EVENT_INVALID_ARGUMENT;
+  event.resolution_id = ++next_resolution_id;
+  event.actor = domain_event_character_handle(actor);
+  event.target = domain_event_character_handle(target);
+  event.room = domain_event_room_handle(IN_ROOM(actor));
+  event.kind = kind;
+  event.method = method;
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_OWNER, event.actor);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SUBJECT, event.target);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_LOCATION, event.room);
+  return DOMAIN_EVENT_PUBLISH_ROUTED(runtime_bus, DOMAIN_EVENT_CHARACTER_RESOLVED, topics,
+                                     topic_count, &event);
+}
+
+enum domain_event_status domain_event_runtime_skill_resolved(struct char_data *actor,
+                                                             struct domain_entity_handle target,
+                                                             int ability, int roll, int modifier,
+                                                             int difficulty, bool succeeded)
+{
+  static uint64_t next_attempt_id;
+  struct domain_skill_resolved event = {0};
+  struct domain_event_topic topics[3];
+  size_t topic_count = 0U;
+
+  if (runtime_bus == NULL || actor == NULL || ability <= 0)
+    return DOMAIN_EVENT_NOT_FOUND;
+  if (next_attempt_id == UINT64_MAX)
+    return DOMAIN_EVENT_INVALID_ARGUMENT;
+  event.attempt_id = ++next_attempt_id;
+  event.actor = domain_event_character_handle(actor);
+  event.target = target;
+  event.room = domain_event_room_handle(IN_ROOM(actor));
+  event.ability = ability;
+  event.roll = roll;
+  event.modifier = modifier;
+  event.difficulty = difficulty;
+  event.succeeded = succeeded;
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_OWNER, event.actor);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SUBJECT, event.target);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_LOCATION, event.room);
+  return DOMAIN_EVENT_PUBLISH_ROUTED(runtime_bus, DOMAIN_EVENT_SKILL_RESOLVED, topics, topic_count,
+                                     &event);
+}
+
 enum domain_event_status domain_event_runtime_character_extracted(struct char_data *ch,
                                                                   uint32_t reason)
 {

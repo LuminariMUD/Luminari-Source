@@ -16,7 +16,9 @@ enum luminari_domain_event_type
   DOMAIN_EVENT_WORLD_PHENOMENON = 0x1009,
   DOMAIN_EVENT_CASTING_STARTED = 0x100a,
   DOMAIN_EVENT_ATTACK_COMMITTED = 0x100b,
-  DOMAIN_EVENT_PHENOMENON_PERCEIVED = 0x100c
+  DOMAIN_EVENT_PHENOMENON_PERCEIVED = 0x100c,
+  DOMAIN_EVENT_CHARACTER_RESOLVED = 0x100d,
+  DOMAIN_EVENT_SKILL_RESOLVED = 0x100e
 };
 
 /* One legal normal strike has committed, before its combat consequences.
@@ -59,6 +61,13 @@ enum domain_world_phenomenon_kind
   DOMAIN_PHENOMENON_FIRE,
   DOMAIN_PHENOMENON_SMOKE,
   DOMAIN_PHENOMENON_MAGIC_TRACE
+};
+#define NUM_DOMAIN_PHENOMENON_KINDS 7
+
+enum domain_character_resolution_kind
+{
+  DOMAIN_CHARACTER_RESOLUTION_RESCUED = 1,
+  DOMAIN_CHARACTER_RESOLUTION_NEGOTIATED
 };
 
 enum domain_relocation_cause
@@ -228,6 +237,33 @@ struct domain_phenomenon_perceived
   float intensity;
   bool source_known;
 };
+
+/* A nonlethal interaction reached its authoritative committed outcome. */
+struct domain_character_resolved
+{
+  uint64_t resolution_id;
+  struct domain_entity_handle actor;
+  struct domain_entity_handle target;
+  struct domain_entity_handle room;
+  enum domain_character_resolution_kind kind;
+  int method;
+};
+
+/* A completed ability check. target may be a character, object, room, or none. */
+struct domain_skill_resolved
+{
+  uint64_t attempt_id;
+  struct domain_entity_handle actor;
+  struct domain_entity_handle target;
+  struct domain_entity_handle room;
+  int ability;
+  int roll;
+  int modifier;
+  int difficulty;
+  bool succeeded;
+};
+
+const char *domain_world_phenomenon_kind_name(enum domain_world_phenomenon_kind kind);
 
 enum domain_event_status domain_event_register_foundation_types(struct domain_event_bus *bus);
 

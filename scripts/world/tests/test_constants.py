@@ -40,11 +40,13 @@ class ConstantsTests(unittest.TestCase):
   def test_quest_tables_match_source_contract(self) -> None:
     quest_types = self.manifest["tables"]["quest-types"]
     self.assertEqual("src/quest/quest.c:quest_types", quest_types["source_table"])
-    self.assertEqual(25, len(quest_types["entries"]))
+    self.assertEqual(28, len(quest_types["entries"]))
     self.assertEqual("AQ_OBJ_FIND", quest_types["entries"][0]["macro"])
     self.assertEqual("Acquire Object", quest_types["entries"][0]["name"])
     self.assertEqual("AQ_DIALOGUE", quest_types["entries"][24]["macro"])
     self.assertEqual("Dialogue Quest", quest_types["entries"][24]["name"])
+    self.assertEqual("AQ_WITNESS_PHENOMENON", quest_types["entries"][27]["macro"])
+    self.assertEqual("Witness Phenomenon", quest_types["entries"][27]["name"])
 
     quest_flags = self.manifest["tables"]["quest"]
     self.assertEqual(1, quest_flags["serialized_chunks"])
@@ -82,7 +84,7 @@ class ConstantsTests(unittest.TestCase):
         "MAX_QUEST_MSG": 4096,
         "MAX_QUEST_NAME": 40,
         "NUM_AQ_FLAGS": 2,
-        "NUM_AQ_TYPES": 25,
+        "NUM_AQ_TYPES": 28,
         "NUM_CHURCHES": 13,
         "NUM_MISSION_DIFFICULTIES": 6,
         "RACE_LICH": 45,

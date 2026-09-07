@@ -44,6 +44,9 @@
 #include "../../src/quest/quest.h"
 #include "../../src/movement/movement.h"
 #include "../../src/movement/door_state.h"
+#include "../../src/wilderness/kdtree.h"
+#include "../../src/wilderness/spatial_core.h"
+#include "../../src/wilderness/wilderness.h"
 #include "../../src/character/perks.h"
 #include "../../src/net/protocol.h"
 #include "../../src/magic/spells.h"
@@ -2299,6 +2302,135 @@ void Test_gameplay_quest_delivery_consumes_one_committed_item_once(CuTest *tc)
   CuAssertTrue(tc, gave);
   CuAssertIntEquals(tc, 0, remaining);
   CuAssertTrue(tc, pending);
+}
+
+void Test_gameplay_quest_resolution_skill_and_witness_use_committed_facts(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct aq_data quests[4] = {0}, *saved_quests = aquest_table;
+  qst_rnum saved_count = total_quests;
+  struct domain_world_phenomenon phenomenon = {0};
+  struct char_data *saved_character_list = character_list;
+  struct kdtree *saved_wilderness_rooms = kd_wilderness_rooms;
+  bool saved_spatial_system_enabled = spatial_system_enabled;
+  room_rnum indexed_room = 0;
+  double indexed_location[2] = {0.0, 0.0};
+  int i;
+
+  begin_gameplay_fixture(&f);
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.player.name = "objective fixture";
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &f.actor;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  f.actor.desc = &descriptor;
+  for (i = 0; i < MAX_CURRENT_QUESTS; i++)
+    GET_QUEST(&f.actor, i) = NOTHING;
+  aquest_table = quests;
+  total_quests = 4;
+  quests[0].vnum = 710;
+  quests[0].type = AQ_MOB_RESOLVE;
+  quests[0].target = 1;
+  quests[0].value[6] = 1;
+  quests[1].vnum = 711;
+  quests[1].type = AQ_SKILL_SUCCESS;
+  quests[1].target = ABILITY_PERCEPTION;
+  quests[1].value[6] = 1;
+  quests[2].vnum = 712;
+  quests[2].type = AQ_WITNESS_PHENOMENON;
+  quests[2].target = DOMAIN_PHENOMENON_FIRE;
+  quests[2].value[6] = 1;
+  quests[3].vnum = 713;
+  quests[3].type = AQ_DIALOGUE;
+  quests[3].target = 1;
+  quests[3].value[6] = 1;
+  f.victim.nr = 0;
+  for (i = 0; i < 3; i++)
+  {
+    GET_QUEST(&f.actor, i) = quests[i].vnum;
+    GET_QUEST_COUNTER(&f.actor, i) = 1;
+  }
+  f.actor.next = &f.victim;
+  f.victim.next = NULL;
+  character_list = &f.actor;
+
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_resolved(
+                        &f.actor, &f.victim, DOMAIN_CHARACTER_RESOLUTION_RESCUED, SKILL_RESCUE));
+  CuAssertIntEquals(tc, 0, GET_QUEST_COUNTER(&f.actor, 0));
+  GET_QUEST(&f.actor, 0) = quests[3].vnum;
+  GET_QUEST_COUNTER(&f.actor, 0) = 1;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_resolved(&f.actor, &f.victim,
+                                                            DOMAIN_CHARACTER_RESOLUTION_NEGOTIATED,
+                                                            ABILITY_DIPLOMACY));
+  CuAssertIntEquals(tc, 0, GET_QUEST_COUNTER(&f.actor, 0));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_skill_resolved(&f.actor, domain_event_room_handle(0),
+                                                        ABILITY_PERCEPTION, 1, 0, 20, false));
+  CuAssertIntEquals(tc, 1, GET_QUEST_COUNTER(&f.actor, 1));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_skill_resolved(&f.actor, domain_event_room_handle(0),
+                                                        ABILITY_PERCEPTION, 20, 5, 20, true));
+  CuAssertIntEquals(tc, 0, GET_QUEST_COUNTER(&f.actor, 1));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_skill_resolved(&f.actor, domain_event_room_handle(0),
+                                                        ABILITY_PERCEPTION, 20, 5, 20, true));
+  CuAssertIntEquals(tc, 0, GET_QUEST_COUNTER(&f.actor, 1));
+
+  phenomenon.phenomenon_id = 714U;
+  phenomenon.source = domain_event_character_handle(&f.victim);
+  phenomenon.source_room = domain_event_room_handle(0);
+  phenomenon.kind = DOMAIN_PHENOMENON_FIRE;
+  phenomenon.intensity = 1.0f;
+  phenomenon.channels = DOMAIN_WORLD_PHENOMENON_VISUAL;
+  phenomenon.propagation = DOMAIN_WORLD_PROPAGATE_ROOMS;
+  phenomenon.visual_range = 0;
+  phenomenon.minimum_range = 0;
+  phenomenon.visual_description = "A controlled flame flares nearby.";
+  SET_BIT_AR(AFF_FLAGS(&f.actor), AFF_BLIND);
+  CuAssertIntEquals(
+      tc, DOMAIN_EVENT_OK,
+      DOMAIN_EVENT_PUBLISH(domain_event_runtime_bus(), DOMAIN_EVENT_WORLD_PHENOMENON, &phenomenon));
+  CuAssertIntEquals(tc, 1, GET_QUEST_COUNTER(&f.actor, 2));
+  REMOVE_BIT_AR(AFF_FLAGS(&f.actor), AFF_BLIND);
+  f.rooms[0].wilderness_coordinates_set = true;
+  f.rooms[0].coords[X_COORD] = 0;
+  f.rooms[0].coords[Y_COORD] = 0;
+  kd_wilderness_rooms = kd_create(2);
+  CuAssertPtrNotNull(tc, kd_wilderness_rooms);
+  CuAssertIntEquals(tc, 0, kd_insert(kd_wilderness_rooms, indexed_location, &indexed_room));
+  spatial_system_enabled = true;
+  phenomenon.propagation = DOMAIN_WORLD_PROPAGATE_COORDINATES;
+  phenomenon.source_x = 0;
+  phenomenon.source_y = 0;
+  phenomenon.source_z = 0;
+  phenomenon.phenomenon_id++;
+  CuAssertIntEquals(
+      tc, DOMAIN_EVENT_OK,
+      DOMAIN_EVENT_PUBLISH(domain_event_runtime_bus(), DOMAIN_EVENT_WORLD_PHENOMENON, &phenomenon));
+  CuAssertIntEquals(tc, 0, GET_QUEST_COUNTER(&f.actor, 2));
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  kd_free(kd_wilderness_rooms);
+  kd_wilderness_rooms = saved_wilderness_rooms;
+  spatial_system_enabled = saved_spatial_system_enabled;
+  aquest_table = saved_quests;
+  total_quests = saved_count;
+  character_list = saved_character_list;
+  f.actor.next = NULL;
+  f.actor.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  end_gameplay_fixture(&f);
 }
 
 void Test_gameplay_supply_refresh_is_lazy_and_preserves_existing_offers(CuTest *tc)

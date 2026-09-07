@@ -14,9 +14,10 @@ The wider unassigned queue is excluded. No production rollout or archival deleti
 - #106 and #107 implement the authored ready-action and tactical-effect clocks,
   including counterspell, designated-ally protection, directional walls and
   bounded environmental exposure.
-- #108 implements bounded typed NPC phenomenon perception and the existing
-  discovery/delivery quest consumers. New objective kinds remain an authored
-  quest-design change rather than an event-core repair.
+- #108 implements bounded typed NPC phenomenon perception plus committed
+  discovery, delivery, rescue/negotiation and skill-outcome quest consumers.
+  Witness objectives subscribe through the perception result and therefore
+  inherit senses, stealth, obstacle, distance and faction rules.
 - #109 defines the shared activity rules for skill work, guarded rest and
   expeditions, and migrates room search as the first production skill-work
   consumer.
@@ -27,7 +28,7 @@ The wider unassigned queue is excluded. No production rollout or archival deleti
   still required for an unqualified performance verdict.
 - #112 is resolved by an explicit retention decision. Archival PubSub SQL is
   inert historical data and is not deleted by this repair branch.
-- Final local validation on 2026-09-07 passed all 1,248 production-linked C
+- Final local validation on 2026-09-07 passed all 1,249 production-linked C
   tests plus the shell and Python regression suites. Eight isolated-MariaDB
   integration cases remained opt-in and were skipped by the standard target.
   `make install` activated the resulting development binary; no server was
@@ -44,6 +45,13 @@ performance-harness cleanup findings are repaired as well. The final #111 live g
 still required after this reviewed source checkpoint is committed.
 
 ## Implementation checkpoint
+
+Plan ablation for the #108 repair kept the existing quest slots, completion
+guard, synchronous domain bus and spatial propagation pipeline. The branch adds
+only the three target domains required by the issue and the two missing
+committed outcome facts. A general action-event hierarchy, a second objective
+store and a death-credit migration were removed from scope because they add no
+required consumer and would create competing authoritative paths.
 
 - First implementation commit: `7a09f5d8a` (committed world operations and Nature).
 - User reaffirmed that migrations must use the existing native event system.
@@ -74,10 +82,12 @@ still required after this reviewed source checkpoint is committed.
   Tentacle classification and final acceptance remain.
 - #108: `WorldPhenomenon` now carries source, kind, faction and stealth metadata;
   bounded spatial propagation publishes one typed `PhenomenonPerceived` result
-  per materialized NPC. Listening and guard mobiles own a native interest
-  deadline for warnings, temporary cover and adjacent investigation. The
-  gateway classification and remaining objective-schema boundary are recorded
-  in [NPC phenomenon perception](../systems/NPC_PHENOMENON_PERCEPTION.md).
+  per admitted materialized observer. Listening and guard mobiles own a native
+  interest deadline for warnings, temporary cover and adjacent investigation.
+  Appended quest types 25-27 consume committed rescue/negotiation, successful
+  ability checks and witnessed phenomena. Witness candidates are admitted only
+  for a matching active objective. See
+  [NPC phenomenon perception](../systems/NPC_PHENOMENON_PERCEPTION.md).
 - #103: typed holder facts and compound transfer capture are implemented for room,
   inventory, equipment, container and character bag paths. Give/get/put/drop/wear/
   remove have operation boundaries. Command, script, magic, shop, reset and restore
@@ -201,15 +211,15 @@ Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working
 
 Source: https://github.com/LuminariMUD/Luminari-Source/issues/108
 
-Status: implemented and validated locally within the issue's existing objective types.
+Status: implemented and validated locally.
 
 WorldPhenomenon propagation currently sends descriptions to players; NPC agendas do not consume a typed perception result. Quest gateways remain direct movement/item/death checks.
 
 - [x] Add source identity and phenomenon kind, then a bounded perception result using senses, stealth, obstacles, distance and faction knowledge; never parse descriptive prose as behavior.
 - [x] Pilot alarm investigation, ally warning, cover and timed loss of interest without waking the whole world.
 - [x] Classify DG/special/quest gateways as pre-operation decisions or post-operation notifications before bridging them.
-- [x] Pilot active quest consumers for committed movement and object delivery/discovery. Nonlethal, negotiation, skill and witnessed categories have no authored objective schema and remain excluded until one exists.
-- [x] Preserve existing killer/pet/group death credit and persistence; delivery consumes exactly once. Any future witness consequence must depend on typed perception.
+- [x] Pilot active-objective consumers for committed movement, object delivery/discovery, rescue/negotiation, successful ability checks and witnessed phenomena. Append target-typed quest schema without renumbering existing types.
+- [x] Preserve existing killer/pet/group death credit and persistence; delivery consumes exactly once and quest reward scheduling retains its existing once-only guard. Witness credit depends on typed perception.
 - [x] Add only facts required by the chosen consumers after completing object-transfer and relocation contracts; do not publish speculative outcome categories.
 
 Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working notes are being removed; these revision-pinned links retain their evidence and detailed examples. Historical measurements are not fresh runtime results.

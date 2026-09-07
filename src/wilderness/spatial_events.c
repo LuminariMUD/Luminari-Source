@@ -15,6 +15,7 @@
 #include "wilderness/spatial_events.h"
 #include "wilderness/spatial_audio.h"
 #include "wilderness/spatial_visual.h"
+#include "quest/quest.h"
 
 #define SPATIAL_EVENT_MAX_ROOM_RANGE 8
 #define SPATIAL_EVENT_MAX_VISITED_ROOMS 256
@@ -39,14 +40,21 @@ static void note_perception_rejection(const char *reason)
   perception_rejections++;
   if (perception_rejections == 1U ||
       perception_rejections % SPATIAL_EVENT_REJECTION_LOG_INTERVAL == 0U)
-    log("WARNING: spatial NPC perception rejected (%s); rejected=%llu.", reason,
+    log("WARNING: spatial perception rejected (%s); rejected=%llu.", reason,
         (unsigned long long)perception_rejections);
 }
 
-static bool observer_can_use_sense(const struct char_data *observer, uint32_t sense)
+static bool observer_can_use_sense(struct char_data *observer, uint32_t sense,
+                                   enum domain_world_phenomenon_kind kind)
 {
-  if (observer == NULL || !IS_NPC(observer) || GET_POS(observer) <= POS_STUNNED ||
-      MOB_FLAGGED(observer, MOB_NO_AI))
+  if (observer == NULL || GET_POS(observer) <= POS_STUNNED)
+    return false;
+  if (IS_NPC(observer))
+  {
+    if (MOB_FLAGGED(observer, MOB_NO_AI))
+      return false;
+  }
+  else if (observer->desc == NULL || !quest_has_active_witness_objective(observer, kind))
     return false;
   return (((sense & DOMAIN_WORLD_PHENOMENON_VISUAL) != 0U && !AFF_FLAGGED(observer, AFF_BLIND)) ||
           ((sense & DOMAIN_WORLD_PHENOMENON_AUDIBLE) != 0U && !AFF_FLAGGED(observer, AFF_DEAF)));
@@ -54,12 +62,13 @@ static bool observer_can_use_sense(const struct char_data *observer, uint32_t se
 
 static bool add_perception_candidate(struct perception_candidate *candidates, size_t *count,
                                      struct char_data *observer, uint32_t sense,
-                                     unsigned int distance, float intensity)
+                                     unsigned int distance, float intensity,
+                                     enum domain_world_phenomenon_kind kind)
 {
   struct domain_entity_handle identity;
   size_t index;
 
-  if (!observer_can_use_sense(observer, sense))
+  if (!observer_can_use_sense(observer, sense, kind))
     return true;
   identity = domain_event_character_handle(observer);
   if (!domain_entity_handle_is_valid(identity))
@@ -192,10 +201,10 @@ static void deliver_through_rooms(struct domain_event_bus *bus,
     {
       for (ch = world[room].people; ch != NULL; ch = ch->next_in_room)
       {
-        if (IS_NPC(ch))
-          (void)add_perception_candidate(candidates, candidate_count, ch, sense, distance,
-                                         phenomenon->intensity / (float)(distance + 1U));
-        else if (ch->desc != NULL && description != NULL)
+        (void)add_perception_candidate(candidates, candidate_count, ch, sense, distance,
+                                       phenomenon->intensity / (float)(distance + 1U),
+                                       phenomenon->kind);
+        if (!IS_NPC(ch) && ch->desc != NULL && description != NULL)
           send_to_char(ch, "\r\n%s\r\n", description);
       }
     }
@@ -228,7 +237,7 @@ static float coordinate_channel_intensity(struct char_data *observer,
   const char *description;
   float intensity = 0.0f;
 
-  if (!observer_can_use_sense(observer, sense))
+  if (!observer_can_use_sense(observer, sense, phenomenon->kind))
     return 0.0f;
   system = sense == DOMAIN_WORLD_PHENOMENON_VISUAL ? &visual_system : &audio_system;
   description = sense == DOMAIN_WORLD_PHENOMENON_VISUAL ? phenomenon->visual_description
@@ -277,8 +286,6 @@ static bool collect_coordinate_room(const struct domain_world_phenomenon *phenom
     return true;
   for (observer = world[room].people; observer != NULL; observer = observer->next_in_room)
   {
-    if (!IS_NPC(observer))
-      continue;
     if (++(*examined) > SPATIAL_EVENT_MAX_CANDIDATES)
     {
       note_perception_rejection("examination capacity");
@@ -303,9 +310,10 @@ static bool collect_coordinate_room(const struct domain_world_phenomenon *phenom
       if (audio_intensity > 0.0f)
         senses |= DOMAIN_WORLD_PHENOMENON_AUDIBLE;
     }
-    if (senses != 0U && !add_perception_candidate(candidates, candidate_count, observer, senses,
-                                                  (unsigned int)ceilf(distance),
-                                                  MAX(visual_intensity, audio_intensity)))
+    if (senses != 0U &&
+        !add_perception_candidate(candidates, candidate_count, observer, senses,
+                                  (unsigned int)ceilf(distance),
+                                  MAX(visual_intensity, audio_intensity), phenomenon->kind))
       return false;
   }
   return true;

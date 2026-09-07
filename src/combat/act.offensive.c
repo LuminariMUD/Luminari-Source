@@ -1422,6 +1422,8 @@ void perform_rescue(struct char_data *ch, struct char_data *vict)
   set_fighting(tmp_ch, ch);
 
   USE_FULL_ROUND_ACTION(ch);
+  (void)domain_event_runtime_character_resolved(ch, vict, DOMAIN_CHARACTER_RESOLUTION_RESCUED,
+                                                SKILL_RESCUE);
 }
 
 /* charge mechanic */

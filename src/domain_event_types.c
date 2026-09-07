@@ -19,6 +19,9 @@ enum domain_event_status domain_event_register_foundation_types(struct domain_ev
       {DOMAIN_EVENT_ATTACK_COMMITTED, "AttackCommitted", sizeof(struct domain_attack_committed)},
       {DOMAIN_EVENT_PHENOMENON_PERCEIVED, "PhenomenonPerceived",
        sizeof(struct domain_phenomenon_perceived)},
+      {DOMAIN_EVENT_CHARACTER_RESOLVED, "CharacterResolved",
+       sizeof(struct domain_character_resolved)},
+      {DOMAIN_EVENT_SKILL_RESOLVED, "SkillResolved", sizeof(struct domain_skill_resolved)},
   };
   size_t index;
 
@@ -32,4 +35,14 @@ enum domain_event_status domain_event_register_foundation_types(struct domain_ev
       return status;
   }
   return DOMAIN_EVENT_OK;
+}
+
+const char *domain_world_phenomenon_kind_name(enum domain_world_phenomenon_kind kind)
+{
+  static const char *const names[] = {"unspecified", "magic approach", "magic impact", "alarm",
+                                      "fire",        "smoke",          "magic trace"};
+
+  if (kind < DOMAIN_PHENOMENON_UNSPECIFIED || kind >= NUM_DOMAIN_PHENOMENON_KINDS)
+    return "unknown";
+  return names[kind];
 }

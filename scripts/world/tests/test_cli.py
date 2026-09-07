@@ -109,8 +109,9 @@ class CliTests(unittest.TestCase):
     status, stdout, stderr = run_cli(["constants", "list", "quest-types"])
     self.assertEqual(0, status)
     self.assertEqual("", stderr)
-    self.assertEqual(25, len(stdout.splitlines()))
+    self.assertEqual(28, len(stdout.splitlines()))
     self.assertIn("AQ_DIALOGUE", stdout)
+    self.assertIn("AQ_WITNESS_PHENOMENON", stdout)
 
     status, stdout, stderr = run_cli(["constants", "list", "hlquest-entry-types"])
     self.assertEqual(0, status)

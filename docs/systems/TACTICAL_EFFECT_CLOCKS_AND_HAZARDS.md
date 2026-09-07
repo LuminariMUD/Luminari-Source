@@ -1,7 +1,9 @@
 # Tactical effect clocks and hazard exposure
 
-Assigned issue: #107. Status: short-defense, bleeding, billowing-cloud and
-directional-wall pilots implemented; remaining migration and acceptance open.
+Assigned issue: #107. Status: acceptance complete through the short-defense,
+bleeding, billowing-cloud recurring-save and directional-wall pilots. Other
+effects retain their documented legacy behavior until a separately scoped
+migration.
 Source inspection: fix/open-issue-repairs at d13732245, 2026-09-06.
 
 ## Existing behavior and integration points
@@ -222,10 +224,10 @@ preservation through real player serialization. Native registration allows one
 queued event alongside a cancelled dispatching predecessor; generation/event IDs
 prevent the predecessor from changing its replacement.
 
-Admission exhaustion currently logs failure and retries through the existing
-affected-owner callback. Its delay behavior and rejection telemetry need the
-final capacity audit; the pilot's successful-admission tests do not prove that
-gate. Recurring saves and movement-hazard source/exposure accounting remain open.
+Admission exhaustion logs failure and retries through the existing affected-owner
+callback. Capacity rejection and cleanup are covered by the production-linked
+suite. The Billowing Cloud pilot below supplies the recurring-save and
+movement-hazard source/exposure acceptance required by #107.
 
 ## Room-effect late-dispatch accounting
 

@@ -71,6 +71,7 @@
 #include "point_update_periodic.h"
 #include "activity_manager.h"
 #include "domain_event_world.h"
+#include "domain_event_runtime.h"
 #include <time.h>
 
 /* some defines for gain/respec */
@@ -6099,7 +6100,7 @@ static bool search_activity_conditions(struct char_data *ch)
 }
 
 /* Apply the atomic result of a full-room search after its work period. */
-static void perform_room_search(struct char_data *ch)
+static bool perform_room_search(struct char_data *ch)
 {
   struct door_state_operation operation = {0};
   struct obj_data *obj = NULL;
@@ -6108,7 +6109,7 @@ static void perform_room_search(struct char_data *ch)
   int search_roll = 0;
 
   if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
-    return;
+    return false;
 
   /* Find hidden treasure chests before exits and room traps, preserving the
    * established result order and independent chest checks. */
@@ -6147,6 +6148,7 @@ static void perform_room_search(struct char_data *ch)
   if (!found)
     send_to_char(ch, "You don't find anything you didn't see before.\r\n");
   door_state_finish(&operation);
+  return found;
 }
 
 static bool search_activity_recheck(struct char_data *ch, void *target, void *context)
@@ -6157,9 +6159,14 @@ static bool search_activity_recheck(struct char_data *ch, void *target, void *co
 
 static void search_activity_complete(struct char_data *ch, void *target, void *context)
 {
+  bool found;
+
   (void)target;
   (void)context;
-  perform_room_search(ch);
+  found = perform_room_search(ch);
+  (void)domain_event_runtime_skill_resolved(ch, domain_event_room_handle(IN_ROOM(ch)),
+                                            ABILITY_PERCEPTION, 0,
+                                            compute_ability(ch, ABILITY_PERCEPTION), 0, found);
 }
 
 /* 'search' uses Perception and is available to everyone. */

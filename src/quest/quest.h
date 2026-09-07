@@ -11,6 +11,8 @@
 #ifndef _QUEST_H_
 #define _QUEST_H_
 
+#include "domain_event_types.h"
+
 /* Aquest related defines ********************************************* */
 #define AQ_UNDEFINED -1        /* (R) Quest unavailable                   */
 #define AQ_OBJ_FIND 0          /* Player must retreive object             */
@@ -40,8 +42,11 @@
   23 /* Player must kill a number of mobs from a given, comma-separated list of vnums */
 #define AQ_DIALOGUE                                                                                \
   24 // Dialogue Quest player must succeed on a diplomacy, intimidate and/or bluff check
+#define AQ_MOB_RESOLVE 25        /* Player must rescue or negotiate with a mob */
+#define AQ_SKILL_SUCCESS 26      /* Player must succeed at a named ability */
+#define AQ_WITNESS_PHENOMENON 27 /* Player must perceive a typed world phenomenon */
 /************************/
-#define NUM_AQ_TYPES 25 /* Used in qedit functions                 */
+#define NUM_AQ_TYPES 28 /* Used in qedit functions                 */
 /************************/
 /************************/
 
@@ -171,6 +176,8 @@ void set_dialogue_quest_failed(struct char_data *ch, qst_vnum q_vnum);
 void set_dialogue_quest_succeeded(struct char_data *ch, qst_vnum q_vnum);
 bool is_dialogue_alternative_quest(qst_vnum vnum);
 qst_rnum get_dialogue_alternative_quest_rnum(qst_vnum dialogue_quest);
+bool quest_has_active_witness_objective(struct char_data *ch,
+                                        enum domain_world_phenomenon_kind kind);
 
 /* Implemented in qedit.c  */
 void qedit_parse(struct descriptor_data *d, char *arg);
@@ -233,7 +240,6 @@ extern const char *quest_types[]; /* named for quest types (quest.c) */
 #endif                            /* __QUEST_C__ */
 
 /* Committed movement and transfer consumers. */
-#include "domain_events.h"
 enum domain_event_status quest_register_commit_handlers(struct domain_event_bus *bus);
 
 #endif /* _QUEST_H_ */

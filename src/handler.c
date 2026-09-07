@@ -2194,10 +2194,6 @@ void obj_to_char(struct obj_data *object, struct char_data *ch)
     /* artifact ownership tracking */
     artifact_obj_to_char(object, ch);
 
-    /* autoquest system check point -Zusuk */
-    autoquest_trigger_check(ch, NULL, object, 0, AQ_OBJ_FIND);
-    // log("T7: %s", object->short_description);
-
     /* set flag for crash-save system, but not on mobs! */
     if (!IS_NPC(ch))
       SET_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);

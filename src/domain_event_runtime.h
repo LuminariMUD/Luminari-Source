@@ -45,6 +45,13 @@ enum domain_event_status domain_event_runtime_character_died_with_cause(struct c
                                                                         uint32_t cause);
 enum domain_event_status domain_event_runtime_character_extracted(struct char_data *ch,
                                                                   uint32_t reason);
+enum domain_event_status
+domain_event_runtime_character_resolved(struct char_data *actor, struct char_data *target,
+                                        enum domain_character_resolution_kind kind, int method);
+enum domain_event_status domain_event_runtime_skill_resolved(struct char_data *actor,
+                                                             struct domain_entity_handle target,
+                                                             int ability, int roll, int modifier,
+                                                             int difficulty, bool succeeded);
 
 
 #endif /* DOMAIN_EVENT_RUNTIME_H */

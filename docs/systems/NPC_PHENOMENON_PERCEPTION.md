@@ -14,14 +14,18 @@ Source identity is present only when the observer knows it through faction
 membership or unobstructed sight; an audible unknown source does not leak its
 entity handle.
 
-## Bounded discovery
+## Bounded discovery and objective admission
 
 Room propagation visits at most 256 rooms and clamps each channel to eight
 exits. Coordinate propagation clamps the search radius to 32 cells, examines at
-most 1,024 materialized NPC candidates and publishes at most 256 perception
-facts. Blind, deaf, unconscious and `MOB_NO_AI` observers are rejected before
-publication. Capacity and publication failures increment rate-limited
-telemetry. No global character-list scan or dormant-world wakeup occurs.
+most 1,024 materialized candidates and publishes at most 256 perception facts.
+Blind, deaf and unconscious observers are rejected before publication;
+`MOB_NO_AI` also rejects NPCs. A connected player is admitted only while that
+player has an active `AQ_WITNESS_PHENOMENON` objective for the exact phenomenon
+kind. The room graph and materialized coordinate-room pool supply the
+candidates, so this does not add a global character-list scan or wake dormant
+world state. Capacity and publication failures increment rate-limited
+telemetry.
 
 Coordinate discovery currently queries materialized rooms in the bounded cell
 window and then applies the existing elevation, terrain, weather and obstacle
@@ -59,16 +63,41 @@ Every integration must be classified before it is bridged:
 | Dialogue and skill outcomes | Post-operation notification | Publish the resolved skill, DC and outcome, never inferred command text. |
 | Witnessed actions | Perception-derived notification | A consequence requires a `PhenomenonPerceived` result for that witness; the underlying action fact alone is insufficient. |
 
-The current authoritative quest pilots are location discovery from committed
-relocation and item discovery/delivery from committed transfer. Existing
-death/group/pet credit remains authoritative until it is migrated as one award
-path with persistence and exactly-once tests. Rescue, dialogue, general skill
-and witnessed-action objectives require authored quest schema before their
-facts are added; creating unused broad event types would weaken the contract.
+## Outcome-based quest objectives
+
+Three appended quest types preserve every existing persisted type number:
+
+| Type | Authored target | Authoritative input |
+|---|---|---|
+| `AQ_MOB_RESOLVE` (25) | Mobile VNUM | A committed rescue or negotiation in the actor's current room. |
+| `AQ_SKILL_SUCCESS` (26) | Ability number | A successful completed ability check. Dialogue publishes the exact roll, modifier and DC; room search publishes its composite result. |
+| `AQ_WITNESS_PHENOMENON` (27) | Phenomenon kind | `PhenomenonPerceived` for that player with at least one usable sense. |
+
+The quest editor, flat-file documentation, source-derived world-tool manifest
+and semantic validator understand these target domains. Invalid ability or
+phenomenon targets are rejected by the editor and world validation.
+
+Quest consumers run after the relevant operation commits and re-resolve all
+generation-safe handles. Successful `rescue` publishes `CharacterResolved`
+after combat ownership and action cost have changed. Successful dialogue
+publishes both `SkillResolved` and a negotiated `CharacterResolved`; failed
+dialogue publishes only the failed skill result. Completed room search
+publishes its Perception result after the atomic search mutation finishes.
+
+Movement discovery, object discovery/delivery, dialogue, nonlethal resolution,
+skill success and witnessed phenomena now use typed committed facts. The old
+direct object-acquisition call was removed so one transfer cannot advance an
+objective twice. Existing death/group/pet credit remains on its single
+authoritative path, including its persistence and reward behavior. Quest
+completion still uses the existing `eQUEST_COMPLETE` guard, so repeated or
+nested publications cannot schedule the same final reward more than once.
 
 ## Verification contract
 
 Tests cover closed-door visual blocking with audible transmission, faction
 source knowledge, blindness, stealth suppression, bounded admission, duplicate
 deduplication, replacement, temporary defense expiry and adjacent
-investigation through normal movement.
+investigation through normal movement. Production-linked quest coverage checks
+committed nonlethal resolution, failed and successful skill outcomes, and a
+blind witness receiving no credit before a later visible phenomenon succeeds.
+World-tool tests cover the appended type table and target bounds.
