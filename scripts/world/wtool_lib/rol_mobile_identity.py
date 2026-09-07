@@ -10,7 +10,7 @@ import re
 from typing import Any
 
 from .constants import default_repo_root, load_manifest
-from .rol_source import RolRecord, normalize_identity
+from .rol_conversion_types import RolRecord, normalize_identity
 
 
 class MobileConversionError(RuntimeError):

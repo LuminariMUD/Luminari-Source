@@ -33,6 +33,7 @@
 #include "talents.h"
 #include "abilities.h"
 #include "skill_lists.h"
+#include "act.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
@@ -119,8 +120,7 @@ int animal_vnums[] = {
     C_SNOW_LEOPARD, // 65, 6
     C_SKULL_SPIDER, // 66, 7
     C_FIRE_BEETLE,  // 67, 8
-    C_CAYHOUND,     // 68, 9
-    C_DRACAVES,     // 69, 10
+    MOB_DIRE_WOLF,  // 43, 9
     -1              /* end with this */
 };
 #define NUM_ANIMALS 10
@@ -157,14 +157,23 @@ int familiar_vnums[] = {
 };
 #define NUM_FAMILIARS 10
 
-/* DEBUG:  just checking first 8 animals right now -zusuk */
-#define TOP_OF_C 8
+#define TOP_OF_ANIMALS 9
+#define TOP_OF_FAMILIARS NUM_FAMILIARS
 /****************/
 
 /* make a list of names in order, first animals */
 const char *animal_names[] = {
-    "Unknown",  "1) Black Bear",   "2) Boar",         "3) Lion",        "4) Crocodile",
-    "5) Hyena", "6) Snow Leopard", "7) Skull Spider", "8) Fire Beetle", "\n" /* end with this */
+    "Unknown",
+    "1) Black Bear",
+    "2) Boar",
+    "3) Lion",
+    "4) Crocodile",
+    "5) Hyena",
+    "6) Snow Leopard",
+    "7) Skull Spider",
+    "8) Fire Beetle",
+    "9) Dire Wolf (Ranger 4 / Warrior 1)",
+    "\n" /* end with this */
 };
 /* ... now mounts */
 const char *mount_names[] = {
@@ -182,8 +191,9 @@ const char *mount_names[] = {
 };
 /* ... now familiars */
 const char *familiar_names[] = {
-    "Unknown",  "1) Night Hunter", "2) Black Panther", "3) Tiny Mouse",    "4) Eagle",
-    "5) Raven", "6) Imp",          "7) Pixie",         "8) Faerie Dragon", "\n" /* end with this */
+    "Unknown",          "1) Night Hunter",  "2) Black Panther", "3) Tiny Mouse",
+    "4) Eagle",         "5) Raven",         "6) Imp",           "7) Pixie",
+    "8) Faerie Dragon", "9) Pseudo Dragon", "10) Hellhound",    "\n" /* end with this */
 };
 
 /* NOTE: The above static menus should be converted to dynamic menus.
@@ -2273,14 +2283,14 @@ static void animal_companion_menu(struct descriptor_data *d)
                   "\r\n",
                   mgn, nrm);
 
-  for (i = 1; i <= TOP_OF_C; i++)
+  for (i = 1; i <= TOP_OF_ANIMALS; i++)
   {
     write_to_output(d, "%s\r\n", animal_names[i]);
   }
 
   write_to_output(d, "\r\n");
   /* find current animal */
-  for (i = 1; i <= TOP_OF_C; i++)
+  for (i = 1; i <= TOP_OF_ANIMALS; i++)
   {
     if (GET_ANIMAL_COMPANION(d->character) == animal_vnums[i])
     {
@@ -2317,7 +2327,7 @@ static void familiar_menu(struct descriptor_data *d)
                   "\r\n",
                   mgn, nrm);
 
-  for (i = 1; i <= TOP_OF_C; i++)
+  for (i = 1; i <= TOP_OF_FAMILIARS; i++)
   {
     write_to_output(d, "%s\r\n", familiar_names[i]);
   }
@@ -2325,7 +2335,7 @@ static void familiar_menu(struct descriptor_data *d)
   write_to_output(d, "\r\n");
 
   /* find current familiar */
-  for (i = 1; i <= TOP_OF_C; i++)
+  for (i = 1; i <= TOP_OF_FAMILIARS; i++)
   {
     if (GET_FAMILIAR(d->character) == familiar_vnums[i])
     {
@@ -5802,6 +5812,12 @@ void study_parse(struct descriptor_data *d, char *arg)
       {
         write_to_output(d, "Not a valid choice!\r\n");
       }
+      else if (animal_vnums[number] == MOB_DIRE_WOLF &&
+               !can_select_dire_wolf_companion(d->character))
+      {
+        write_to_output(d, "A dire-wolf bond requires Ranger level 4, Warrior level 1, and the "
+                           "animal companion ability.\r\n");
+      }
       else
       {
         GET_ANIMAL_COMPANION(d->character) = animal_vnums[number];
@@ -5828,7 +5844,7 @@ void study_parse(struct descriptor_data *d, char *arg)
         GET_FAMILIAR(d->character) = number;
         write_to_output(d, "Your familiar has been set to OFF.\r\n");
       }
-      else if (number < 0 || number >= NUM_FAMILIARS)
+      else if (number < 0 || number > NUM_FAMILIARS)
       {
         write_to_output(d, "Not a valid choice!\r\n");
       }

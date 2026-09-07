@@ -1416,24 +1416,39 @@ size_t affect_update_character_one(struct char_data *ch)
   int *wearoff_spells;
   size_t expired_count, wearoff_count, wearoff_index;
   size_t processed_affects = 0U;
-  int phantom_healing;
   bool update_position_after_expiry;
 
   if (ch == NULL)
     return 0U;
   expired_count = 0U;
   for (af = ch->affected; af; af = af->next)
+  {
+    processed_affects++;
     if (af->duration == 0)
       expired_count++;
+  }
 
   wearoff_spells = NULL;
   if (expired_count > 0U)
     CREATE(wearoff_spells, int, expired_count);
   wearoff_count = 0U;
 
+  /* Expiring either end of an embodiment must remove its linked components
+   * before individual removal loses the counterpart ID. Restart this read-only
+   * scan after removal because self-cast links can remove later list entries. */
   for (af = ch->affected; af; af = next)
   {
-    processed_affects++;
+    next = af->next;
+    if (af->duration == 0 && rol_elemental_embodiment_affect_is_transient(af->spell))
+    {
+      wearoff_spells[wearoff_count++] = af->spell;
+      remove_rol_elemental_embodiment_affect(ch, af->spell);
+      next = ch->affected;
+    }
+  }
+
+  for (af = ch->affected; af; af = next)
+  {
     next = af->next;
     if (af->duration >= 1)
       af->duration--;
@@ -1441,10 +1456,7 @@ size_t affect_update_character_one(struct char_data *ch)
       ;
     else
     {
-      phantom_healing = 0;
       update_position_after_expiry = FALSE;
-      if (af->spell == SPELL_PHANTOM_HEAL && af->location == APPLY_SPECIAL)
-        phantom_healing = MAX(0, af->modifier);
       if (af->spell == SPELL_DEATH_PACT)
         update_position_after_expiry = TRUE;
 
@@ -1453,12 +1465,7 @@ size_t affect_update_character_one(struct char_data *ch)
         wearoff_spells[wearoff_count++] = af->spell;
 
       affect_remove(ch, af);
-      if (phantom_healing > 0)
-      {
-        GET_HIT(ch) = MAX(-10, GET_HIT(ch) - phantom_healing);
-        update_pos(ch);
-      }
-      else if (update_position_after_expiry)
+      if (update_position_after_expiry)
         update_pos(ch);
     }
   }

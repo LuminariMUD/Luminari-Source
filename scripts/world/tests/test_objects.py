@@ -49,16 +49,37 @@ class ObjectParserTests(unittest.TestCase):
     result = self.parse(object_record(20000, header="5 0 1") + "$\n")
     self.assertIn("OBJ008", {item.code for item in result.findings})
 
-  def test_short_affect_and_weapon_spell_overflow_are_diagnosed(self) -> None:
-    extensions = "A\n1 2\n" + "".join("S\n1 1 1 1\n" for _ in range(4))
+  def test_legacy_affects_use_loader_defaults_and_weapon_spell_overflow_is_diagnosed(self) -> None:
+    extensions = "A\n1 2 3 4\nA\n1 2\nA\n1 2 3\n" + "".join(
+        "S\n1 1 1 1\n" for _ in range(4)
+    )
     result = self.parse(object_record(20000, extensions) + "$\n")
     codes = {item.code for item in result.findings}
-    self.assertTrue({"OBJ021", "OBJ028"} <= codes)
+    self.assertEqual({"OBJ028"}, codes)
+    self.assertEqual(
+        [(3, 4), (0, 0), (3, 0)],
+        [(affect.bonus_type, affect.specific) for affect in result.records[0].affects],
+    )
 
   def test_four_value_vector_gets_source_defaults(self) -> None:
     content = object_record(20000).replace(_VALUES, "1 2 3 4") + "$\n"
     result = self.parse(content)
     self.assertEqual([1, 2, 3, 4] + [0] * 12, result.records[0].values)
+
+  def test_affects_and_spellbook_entries_have_independent_capacity(self) -> None:
+    affect = "A\n1 2 3 0\n"
+    spell = "B\n1 1\n"
+    affects = affect * self.manifest["limits"]["MAX_OBJ_AFFECT"]["value"]
+    spells = spell * self.manifest["limits"]["SPELLBOOK_SIZE"]["value"]
+    for extensions in (affects + spells, spells + affects):
+      with self.subTest(order=extensions[0]):
+        result = self.parse(object_record(20000, extensions) + "$\n")
+        self.assertFalse([item for item in result.findings if item.severity == "error"])
+        for extra, expected_code in ((affect, "OBJ020"), (spell, "OBJ023")):
+          overflow = self.parse(object_record(20000, extensions + extra) + "$\n")
+          self.assertEqual(
+              {expected_code}, {item.code for item in overflow.findings if item.severity == "error"}
+          )
 
 
 if __name__ == "__main__":

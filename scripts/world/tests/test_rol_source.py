@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
+from wtool_lib import rol_mobiles
 from wtool_lib.rol_source import (
     RolSourceCorpus,
     _parse_obj,
@@ -39,6 +43,38 @@ def parse_fixture(kind: str, data: bytes):
 
 
 class RolSourceTests(unittest.TestCase):
+  def test_format_owners_import_independently_and_preserve_facades(self) -> None:
+    owners = {
+        "mob": ("rol_mobiles", "emit_mobile"),
+        "obj": ("rol_objects", "emit_object"),
+        "wld": ("rol_rooms", "emit_room"),
+        "zon": ("rol_zones", "emit_zone"),
+        "shp": ("rol_shops", "emit_shop"),
+        "qst": ("rol_quests", "emit_hlquest"),
+        "soc": ("rol_soc", "compile_soc_records"),
+    }
+    for kind, (owner, emitter) in owners.items():
+      with self.subTest(kind=kind):
+        # A fresh interpreter must import the owner first: cached facade imports
+        # would hide a dependency cycle in normal unittest discovery order.
+        script = f"""
+from wtool_lib import {owner} as owner
+from wtool_lib import rol_source, rol_transform, rol_conversion_types
+assert owner._parse_{kind} is rol_source._parse_{kind}
+assert owner.RolRecord is rol_conversion_types.RolRecord is rol_source.RolRecord
+"""
+        if kind != "soc":
+          script += f"assert owner.{emitter} is rol_transform.{emitter}\n"
+          script += "assert owner.TransformResult is rol_transform.TransformResult\n"
+        result = subprocess.run(
+            [sys.executable, "-c", script],
+            cwd=Path(__file__).resolve().parents[1],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(0, result.returncode, result.stderr)
+
   def test_identity_normalization_strips_legacy_color_and_punctuation(self) -> None:
     self.assertEqual("the old trail", normalize_identity("&+LThe Old-Trail&N\r\n"))
     self.assertEqual("jotunheim", normalize_identity("@WJotunheim@n"))
@@ -81,6 +117,21 @@ class RolSourceTests(unittest.TestCase):
     self.assertFalse(corpus.complete)
     self.assertFalse(records[0].complete)
     self.assertEqual(4, [item.code for item in corpus.diagnostics].count("ROLMOB005"))
+
+  def test_mobile_repair_policy_can_own_combat_row_repairs(self) -> None:
+    policy = (
+        '{"mobile":{"exact_records":[{"basename":"sample","source_vnum":100,'
+        '"source_sha256":"abc","repair_combat_row":true}]}}'
+    )
+    with (
+        patch.object(rol_mobiles, "_MOBILE_REPAIR_POLICY", None),
+        patch.object(rol_mobiles.Path, "read_text", return_value=policy),
+    ):
+      loaded = rol_mobiles._mobile_repair_policy()
+
+    self.assertEqual(
+        frozenset({"repair_combat_row"}), loaded[("sample", 100, "abc")]
+    )
 
   def test_economy_row_gives_back_the_affect_words_it_swallowed(self) -> None:
     # The three economy fields and the two affect words are read with five
@@ -238,6 +289,14 @@ class RolSourceTests(unittest.TestCase):
         ],
     )
     self.assertEqual("LISTDONE", socials[0].directives[-1]["token"])
+
+  def test_unknown_soc_keyword_has_its_own_diagnostic_code(self) -> None:
+    _socials, corpus = parse_fixture(
+        "soc", b"MOB: 300 PERIODIC\nMYSTERY: 1\nDONE\n"
+    )
+
+    self.assertFalse(corpus.complete)
+    self.assertEqual(["ROLSOC003"], [item.code for item in corpus.diagnostics])
 
   def test_summary_is_stable_and_counts_tokens(self) -> None:
     records, corpus = parse_fixture(

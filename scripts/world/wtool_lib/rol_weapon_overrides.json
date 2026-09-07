@@ -83,8 +83,8 @@
  "ammunition_comment": [
   "Overrides for source ITEM_MISSILE records. The value names either an",
   "AMMO_TYPE_* constant, which keeps the record ITEM_MISSILE, or a",
-  "WEAPON_TYPE_* constant, which retypes it to ITEM_WEAPON because the target",
-  "has no throwing command and thrown records are only ever swung there."
+  "WEAPON_TYPE_* constant, which retypes it to ITEM_WEAPON. Target throw",
+  "uses eligible ITEM_WEAPON profiles; launcher ammunition stays ITEM_MISSILE."
  ],
  "ammunition_overrides": {
   "1019": {"target": "AMMO_TYPE_BOLT", "rationale": "SMIR-42 joke rocket, declared Special Flight; kept as ammunition for its launcher, source object 1017"}

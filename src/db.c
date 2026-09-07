@@ -6627,7 +6627,7 @@ char *fread_string(FILE *fl, const char *error)
 
   /* parse_at() converts @ symbols in the text:
    * - Single @ becomes a tab character (\t)
-   * - Double @@ becomes a single @ (escape sequence)
+   * - Double @@ stays escaped until ProtocolOutput() displays a single @
    * This is MUD-specific formatting */
   parse_at(buf);
 
