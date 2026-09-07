@@ -203,7 +203,7 @@ typedef struct descriptor_data descriptor_t;
  *       filename exactly LuminariGUI.mpackage across releases.
  */
 #define MUDLET_PACKAGE                                                                             \
-  "{\"version\":\"5\",\"url\":\"https://luminarimud.com/download/LuminariGUI.mpackage\"}"
+  "{\"version\":\"6\",\"url\":\"https://luminarimud.com/download/LuminariGUI.mpackage\"}"
 
 /******************************************************************************
  *                           PROTOCOL CONSTANTS

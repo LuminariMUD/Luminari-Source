@@ -20,7 +20,7 @@ The server sends:
 
 ```json
 {
-  "version": "5",
+  "version": "6",
   "url": "https://luminarimud.com/download/LuminariGUI.mpackage"
 }
 ```
@@ -52,7 +52,7 @@ package name:
 
 ```c
 #define MUDLET_PACKAGE \
-  "{\"version\":\"5\",\"url\":\"https://luminarimud.com/download/LuminariGUI.mpackage\"}"
+  "{\"version\":\"6\",\"url\":\"https://luminarimud.com/download/LuminariGUI.mpackage\"}"
 ```
 
 The two fields have separate responsibilities:
@@ -146,7 +146,7 @@ A commented-out legacy `PerformHandshake()` implementation also contains a
 | Profile state | Result after receiving the advertisement |
 | --- | --- |
 | `LuminariGUI` is absent | Mudlet downloads and installs it |
-| `LuminariGUI` is present and stored server version is `5` | No download |
+| `LuminariGUI` is present and stored server version is `6` | No download |
 | Present, but stored server version differs | Mudlet replaces it with the advertised build |
 | Server-provided packages are disabled in the profile | Mudlet ignores the advertisement |
 
@@ -158,7 +158,7 @@ Consequently, packages previously installed through this same stable
 
 A manual installation can have the correct `LuminariGUI` package name but lack
 Mudlet's private stored server-package version. In that case Mudlet can perform
-one server-managed replacement when it first receives version `5`. After that
+one server-managed replacement when it first receives version `6`. After that
 replacement, subsequent connections with the same identity and version do not
 download again.
 
@@ -178,7 +178,7 @@ Older LuminariMUD builds advertised a filename such as
 server package identity. Moving to `LuminariGUI.mpackage` can therefore cause
 one final download even when an older GUI is present.
 
-After the stable package has been installed with server version `5`, reconnects
+After the stable package has been installed with server version `6`, reconnects
 do not download it again until the version token changes. If a profile shows
 both the stable package and a legacy version-suffixed package in Mudlet's
 Package Manager, remove the legacy entry and keep `LuminariGUI`.
@@ -235,7 +235,7 @@ unzip -t /tmp/LuminariGUI.mpackage
 ## Flow summary
 
 ```text
-MUDLET_PACKAGE: version "5" + stable LuminariGUI.mpackage URL
+MUDLET_PACKAGE: version "6" + stable LuminariGUI.mpackage URL
   -> runtime auto-download option enabled
   -> Mudlet identified and GMCP enabled
   -> server sends Client.GUI

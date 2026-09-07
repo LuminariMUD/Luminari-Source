@@ -487,7 +487,7 @@ GAUGE_1: [NAME]Health[COLOR]red[VAR]HEALTH[MAX]HEALTH_MAX[END]
 #define COLOUR_ON_BY_DEFAULT true                   // Default color state
 // Mudlet keys packages by URL basename; keep LuminariGUI.mpackage stable.
 #define MUDLET_PACKAGE \
-  "{\"version\":\"5\",\"url\":\"https://luminarimud.com/download/LuminariGUI.mpackage\"}"
+  "{\"version\":\"6\",\"url\":\"https://luminarimud.com/download/LuminariGUI.mpackage\"}"
 ```
 
 > Full wiring of the Mudlet auto-download (config toggle, cedit option, and the
