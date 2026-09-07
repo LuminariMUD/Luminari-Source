@@ -2,6 +2,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "tactical_effects.h"
 #include "comm.h"
 #include "db.h"
 #include "dotenv.h"
@@ -201,15 +202,33 @@ static struct game_event_result affected_character_event(const struct game_event
     affected_character_owner_refill();
     return game_event_result_complete();
   }
+  tactical_bleeding_sync(ch);
   character_nodes_processed += affect_update_character_one(ch);
   if (!runtime_handle_matches(ch->affected_event_handle, context))
     return game_event_result_complete();
   return game_event_result_reschedule_after(PULSE_VIOLENCE);
 }
 
+/* The owner wakes for the earliest of two cadences. A delayed wake may cross
+ * either boundary even when now is not itself divisible by that cadence. */
+static uint64_t room_cadences_due(const struct game_event_context *context, uint64_t cadence)
+{
+  uint64_t first;
+  uint64_t last;
+
+  if (context == NULL || cadence == 0U || context->deadline_tick > context->now_tick)
+    return 0U;
+  first = context->deadline_tick / cadence;
+  if (context->deadline_tick % cadence != 0U)
+    first++;
+  last = context->now_tick / cadence;
+  return last >= first ? last - first + 1U : 0U;
+}
+
 static struct game_event_result affected_room_event(const struct game_event_context *context)
 {
   struct room_data *room = context != NULL ? context->payload : NULL;
+  uint64_t rounds_due = room_cadences_due(context, PULSE_VIOLENCE);
 
   if (room == NULL)
     return game_event_result_complete();
@@ -225,9 +244,9 @@ static struct game_event_result affected_room_event(const struct game_event_cont
     refill_room_capacity();
     return game_event_result_complete();
   }
-  if (pulse % PULSE_VIOLENCE == 0U)
+  if (rounds_due != 0U)
   {
-    room_nodes_processed += affect_update_room_one(room);
+    room_nodes_processed += affect_update_room_until(room, context->now_tick / PULSE_VIOLENCE);
     if (!room->affected_registered || room->affected_head == NULL ||
         event_runtime_handle_is_none(room->affected_event_handle))
     {
@@ -241,7 +260,7 @@ static struct game_event_result affected_room_event(const struct game_event_cont
       return game_event_result_complete();
     }
   }
-  if (pulse % PULSE_LUMINARI == 0U)
+  if (room_cadences_due(context, PULSE_LUMINARI) != 0U)
   {
     room_behavior_executions++;
     room_behavior_nodes_processed += process_room_affect_activity(room);
@@ -293,6 +312,7 @@ void affected_character_owner_forget(struct char_data *ch)
 {
   struct event_runtime_handle handle;
 
+  tactical_bleeding_pause(ch);
   if (ch == NULL || event_runtime_handle_is_none(ch->affected_event_handle))
     return;
   handle = ch->affected_event_handle;
@@ -349,6 +369,11 @@ void affected_room_owner_add(struct raff_node *raff)
   if (raff == NULL || world == NULL || raff->room_registered || raff->room == NOWHERE ||
       raff->room > top_of_world)
     return;
+  if (!raff->lifetime_initialized)
+  {
+    raff->lifetime_round = (uint64_t)pulse / PULSE_VIOLENCE;
+    raff->lifetime_initialized = true;
+  }
   room = &world[raff->room];
   raff->room_prev = NULL;
   raff->room_next = room->affected_head;
@@ -514,7 +539,10 @@ void affected_owners_init(void)
     return;
   for (ch = affected_registry_iteration_begin(); ch != NULL;
        ch = affected_registry_iteration_next())
+  {
     affected_character_owner_sync(ch);
+    tactical_bleeding_sync(ch);
+  }
   affected_registry_iteration_end();
   for (room = affected_room_list; room != NULL; room = room->affected_next)
     affected_room_schedule(room);

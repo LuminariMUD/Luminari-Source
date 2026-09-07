@@ -23,6 +23,9 @@
 #include "modify.h"
 #include "quest/quest.h"
 #include "quest/missions.h"
+#include "constants.h"
+#include "domain_event_types.h"
+#include "magic/spells.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
@@ -372,10 +375,23 @@ static void qedit_disp_menu(struct descriptor_data *d)
   case AQ_MOB_SAVE:
   case AQ_MOB_KILL:
   case AQ_DIALOGUE:
+  case AQ_MOB_RESOLVE:
     snprintf(targetname, sizeof(targetname), "%s",
              real_mobile(quest->target) == NOBODY
                  ? "An unknown mobile"
                  : GET_NAME(&mob_proto[real_mobile(quest->target)]));
+    break;
+
+  case AQ_SKILL_SUCCESS:
+    snprintf(targetname, sizeof(targetname), "%s",
+             quest->target > ABILITY_UNDEFINED && quest->target <= NUM_ABILITIES
+                 ? ability_names[quest->target]
+                 : "An unknown ability");
+    break;
+
+  case AQ_WITNESS_PHENOMENON:
+    snprintf(targetname, sizeof(targetname), "%s",
+             domain_world_phenomenon_kind_name(quest->target));
     break;
 
   case AQ_MOB_MULTI_KILL:
@@ -687,10 +703,21 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       break;
     case '9':
       OLC_MODE(d) = QEDIT_TARGET;
-      write_to_output(
-          d, "Enter target mob/obj vnum (comma-separated for multi types), amount of gold coins, "
-             "or mission "
-             "difficulty (0 easy, 1 normal, 2 tough, 3 challenging, 4 arduous, 5 severe): ");
+      if (OLC_QUEST(d)->type == AQ_SKILL_SUCCESS)
+        write_to_output(d, "Enter ability number (1-%d): ", NUM_ABILITIES);
+      else if (OLC_QUEST(d)->type == AQ_WITNESS_PHENOMENON)
+      {
+        int kind;
+
+        for (kind = DOMAIN_PHENOMENON_MAGIC_APPROACH; kind < NUM_DOMAIN_PHENOMENON_KINDS; kind++)
+          write_to_output(d, "%d) %s\r\n", kind, domain_world_phenomenon_kind_name(kind));
+        write_to_output(d, "Enter phenomenon kind: ");
+      }
+      else
+        write_to_output(
+            d, "Enter target mob/obj vnum (comma-separated for multi types), amount of gold coins, "
+               "or mission difficulty (0 easy, 1 normal, 2 tough, 3 challenging, 4 arduous, 5 "
+               "severe): ");
       break;
     case 'a':
     case 'A':
@@ -979,6 +1006,19 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     }
     if (OLC_QUEST(d)->type == AQ_MOB_MULTI_KILL)
       OLC_QUEST(d)->kill_list = strdup(arg);
+    else if (OLC_QUEST(d)->type == AQ_SKILL_SUCCESS &&
+             (number <= ABILITY_UNDEFINED || number > NUM_ABILITIES))
+    {
+      write_to_output(d, "Ability must be between 1 and %d: ", NUM_ABILITIES);
+      return;
+    }
+    else if (OLC_QUEST(d)->type == AQ_WITNESS_PHENOMENON &&
+             (number <= DOMAIN_PHENOMENON_UNSPECIFIED || number >= NUM_DOMAIN_PHENOMENON_KINDS))
+    {
+      write_to_output(d, "Phenomenon kind must be between %d and %d: ",
+                      DOMAIN_PHENOMENON_MAGIC_APPROACH, DOMAIN_PHENOMENON_MAGIC_TRACE);
+      return;
+    }
     else
       OLC_QUEST(d)->target = number;
 

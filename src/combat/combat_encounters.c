@@ -3,6 +3,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "tactical_effects.h"
 #include "comm.h"
 #include "dotenv.h"
 #include "actions.h"
@@ -399,6 +400,26 @@ static struct combat_encounter_participant *semantic_participant(struct char_dat
   return participant;
 }
 
+bool combat_encounter_get_turn(struct char_data *character,
+                               struct combat_encounter_turn_snapshot *snapshot)
+{
+  struct combat_encounter_participant *participant;
+
+  if (snapshot == NULL)
+    return false;
+  memset(snapshot, 0, sizeof(*snapshot));
+  participant = semantic_participant(character);
+  if (participant == NULL || character->combat_turn_serial == UINT64_MAX)
+    return false;
+  snapshot->turn_serial = character->combat_turn_serial;
+  snapshot->dispatching = participant->dispatching;
+  snapshot->pulses_until_next_turn = participant->dispatching ? COMBAT_ENCOUNTER_ROUND_DELAY
+                                     : participant->next_due > (uint64_t)pulse
+                                         ? participant->next_due - (uint64_t)pulse
+                                         : 0U;
+  return true;
+}
+
 static void import_semantic_state(struct combat_encounter_participant *participant)
 {
   struct mud_event_data *event_data;
@@ -434,9 +455,13 @@ static void restore_semantic_action_events(struct combat_encounter_participant *
   uint64_t delay;
   size_t index;
 
-  if (participant == NULL || !participant->semantic_state_imported ||
-      participant->character == NULL || shutting_down)
+  if (participant == NULL || participant->character == NULL)
     return;
+  tactical_room_hazards_leave_combat(participant->character);
+  if (!participant->semantic_state_imported || shutting_down)
+    return;
+  tactical_defense_leave_combat(participant->character);
+  tactical_bleeding_leave_combat(participant->character);
   for (index = 0U; index < NUM_ACTIONS; index++)
   {
     if (participant->action_ready_turn[index] <= participant->turns_started)
@@ -940,6 +965,9 @@ static bool run_semantic_round(struct combat_encounter_participant *participant)
 {
   ready_action_on_semantic_turn(participant->character);
   participant->turns_started++;
+  if (participant->character->combat_turn_serial != UINT64_MAX)
+    participant->character->combat_turn_serial++;
+  tactical_defense_on_turn(participant->character);
   participant->intent_dispatched = false;
   announce_recovered_actions(participant);
 #ifdef LUMINARI_CUTEST
@@ -999,6 +1027,16 @@ combat_encounter_round_event(const struct game_event_context *context)
       if (semantic_rounds)
       {
         completed = run_semantic_round(participant);
+        if (completed && participant->active && !participant->departing &&
+            (encounter_bus == NULL ||
+             domain_event_resolve(encounter_bus, participant->character_handle,
+                                  DOMAIN_ENTITY_CHARACTER) == participant->character))
+          completed = tactical_bleeding_on_turn_end(participant->character);
+        if (completed && participant->active && !participant->departing &&
+            (encounter_bus == NULL ||
+             domain_event_resolve(encounter_bus, participant->character_handle,
+                                  DOMAIN_ENTITY_CHARACTER) == participant->character))
+          completed = tactical_room_hazards_on_turn_end(participant->character);
         counter_increment(&cumulative_stats.semantic_turns_resolved);
       }
       else
@@ -1174,6 +1212,7 @@ bool combat_encounter_join(struct char_data *character, struct char_data *oppone
   }
   participant = character->combat_encounter_participant;
   activate_participant(participant, initial_delay);
+  tactical_room_hazards_enter_combat(character);
   encounter = merge_root(character->combat_encounter);
   if (encounter != NULL && !encounter->resolving && !ensure_round_event(encounter))
   {
@@ -1441,6 +1480,31 @@ void combat_encounter_runtime_shutdown(void)
 
   if (!initialized)
     return;
+  for (encounter = encounter_registry; encounter != NULL; encounter = encounter->registry_next)
+  {
+    struct combat_encounter_participant *participant;
+
+    for (participant = encounter->participants; participant != NULL;
+         participant = participant->next)
+      if (encounter_bus == NULL ||
+          domain_event_resolve(encounter_bus, participant->character_handle,
+                               DOMAIN_ENTITY_CHARACTER) == participant->character)
+      {
+        tactical_defense_pause(participant->character);
+        tactical_bleeding_pause(participant->character);
+        tactical_room_hazards_forget(participant->character);
+      }
+    for (participant = encounter->pending_additions; participant != NULL;
+         participant = participant->next)
+      if (encounter_bus == NULL ||
+          domain_event_resolve(encounter_bus, participant->character_handle,
+                               DOMAIN_ENTITY_CHARACTER) == participant->character)
+      {
+        tactical_defense_pause(participant->character);
+        tactical_bleeding_pause(participant->character);
+        tactical_room_hazards_forget(participant->character);
+      }
+  }
   shutting_down = true;
   while ((encounter = encounter_registry) != NULL)
     destroy_encounter(encounter, false);

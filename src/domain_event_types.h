@@ -14,7 +14,23 @@ enum luminari_domain_event_type
   DOMAIN_EVENT_DOOR_STATE_CHANGED = 0x1007,
   DOMAIN_EVENT_ACTIVITY_TRANSITIONED = 0x1008,
   DOMAIN_EVENT_WORLD_PHENOMENON = 0x1009,
-  DOMAIN_EVENT_CASTING_STARTED = 0x100a
+  DOMAIN_EVENT_CASTING_STARTED = 0x100a,
+  DOMAIN_EVENT_ATTACK_COMMITTED = 0x100b,
+  DOMAIN_EVENT_PHENOMENON_PERCEIVED = 0x100c,
+  DOMAIN_EVENT_CHARACTER_RESOLVED = 0x100d,
+  DOMAIN_EVENT_SKILL_RESOLVED = 0x100e
+};
+
+/* One legal normal strike has committed, before its combat consequences.
+ * Misses and prevented strikes count; rejected commands do not. Consumers may
+ * queue reactions, never execute combat recursively inside this publication. */
+struct domain_attack_committed
+{
+  uint64_t attempt_id;
+  struct domain_entity_handle attacker;
+  struct domain_entity_handle defender;
+  struct domain_entity_handle origin_room;
+  int attack_kind;
 };
 
 enum domain_world_phenomenon_channel
@@ -36,12 +52,45 @@ enum domain_world_phenomenon_propagation
   DOMAIN_WORLD_PROPAGATE_ROOMS
 };
 
+enum domain_world_phenomenon_kind
+{
+  DOMAIN_PHENOMENON_UNSPECIFIED = 0,
+  DOMAIN_PHENOMENON_MAGIC_APPROACH,
+  DOMAIN_PHENOMENON_MAGIC_IMPACT,
+  DOMAIN_PHENOMENON_ALARM,
+  DOMAIN_PHENOMENON_FIRE,
+  DOMAIN_PHENOMENON_SMOKE,
+  DOMAIN_PHENOMENON_MAGIC_TRACE
+};
+#define NUM_DOMAIN_PHENOMENON_KINDS 7
+
+enum domain_character_resolution_kind
+{
+  DOMAIN_CHARACTER_RESOLUTION_RESCUED = 1,
+  DOMAIN_CHARACTER_RESOLUTION_NEGOTIATED
+};
+
+enum domain_relocation_cause
+{
+  DOMAIN_RELOCATION_UNKNOWN = 0,
+  DOMAIN_RELOCATION_WALK,
+  DOMAIN_RELOCATION_TELEPORT,
+  DOMAIN_RELOCATION_FORCED,
+  DOMAIN_RELOCATION_SCRIPT,
+  DOMAIN_RELOCATION_SPAWN,
+  DOMAIN_RELOCATION_RESTORE,
+  DOMAIN_RELOCATION_STAFF,
+  DOMAIN_RELOCATION_TRANSPORT
+};
+
 struct domain_character_moved
 {
   struct domain_entity_handle character;
   struct domain_entity_handle from_room;
   struct domain_entity_handle to_room;
   int direction;
+  enum domain_relocation_cause cause;
+  struct domain_entity_handle actor;
 };
 
 struct domain_character_damaged
@@ -72,11 +121,45 @@ struct domain_combat_state_changed
   bool in_combat;
 };
 
+enum domain_holder_kind
+{
+  DOMAIN_HOLDER_NONE = 0,
+  DOMAIN_HOLDER_ROOM,
+  DOMAIN_HOLDER_INVENTORY,
+  DOMAIN_HOLDER_EQUIPMENT,
+  DOMAIN_HOLDER_CONTAINER,
+  DOMAIN_HOLDER_BAG
+};
+
+struct domain_object_holder
+{
+  enum domain_holder_kind kind;
+  struct domain_entity_handle entity;
+  int slot; /* Equipment slot or character bag number; otherwise -1. */
+};
+
+enum domain_transfer_cause
+{
+  DOMAIN_TRANSFER_UNKNOWN = 0,
+  DOMAIN_TRANSFER_COMMAND,
+  DOMAIN_TRANSFER_SCRIPT,
+  DOMAIN_TRANSFER_MAGIC,
+  DOMAIN_TRANSFER_SHOP,
+  DOMAIN_TRANSFER_RESET,
+  DOMAIN_TRANSFER_RESTORE,
+  DOMAIN_TRANSFER_EXTRACT
+};
+
 struct domain_object_moved
 {
+  uint64_t transfer_id; /* Process-local committed operation identity. */
   struct domain_entity_handle object;
   struct domain_entity_handle from_owner;
   struct domain_entity_handle to_owner;
+  struct domain_object_holder source;
+  struct domain_object_holder destination;
+  struct domain_entity_handle actor;
+  enum domain_transfer_cause cause;
 };
 
 enum domain_door_change_cause
@@ -122,7 +205,12 @@ struct domain_casting_started
 /* Descriptions are borrowed for synchronous dispatch and are never retained. */
 struct domain_world_phenomenon
 {
+  uint64_t phenomenon_id;
+  struct domain_entity_handle source;
   struct domain_entity_handle source_room;
+  enum domain_world_phenomenon_kind kind;
+  int source_faction;
+  int stealth_dc;
   int source_x;
   int source_y;
   int source_z;
@@ -136,6 +224,46 @@ struct domain_world_phenomenon
   const char *visual_description;
   const char *audio_description;
 };
+
+struct domain_phenomenon_perceived
+{
+  uint64_t phenomenon_id;
+  struct domain_entity_handle phenomenon_source;
+  struct domain_entity_handle source_room;
+  struct domain_entity_handle observer;
+  enum domain_world_phenomenon_kind kind;
+  uint32_t senses;
+  unsigned int distance;
+  float intensity;
+  bool source_known;
+};
+
+/* A nonlethal interaction reached its authoritative committed outcome. */
+struct domain_character_resolved
+{
+  uint64_t resolution_id;
+  struct domain_entity_handle actor;
+  struct domain_entity_handle target;
+  struct domain_entity_handle room;
+  enum domain_character_resolution_kind kind;
+  int method;
+};
+
+/* A completed ability check. target may be a character, object, room, or none. */
+struct domain_skill_resolved
+{
+  uint64_t attempt_id;
+  struct domain_entity_handle actor;
+  struct domain_entity_handle target;
+  struct domain_entity_handle room;
+  int ability;
+  int roll;
+  int modifier;
+  int difficulty;
+  bool succeeded;
+};
+
+const char *domain_world_phenomenon_kind_name(enum domain_world_phenomenon_kind kind);
 
 enum domain_event_status domain_event_register_foundation_types(struct domain_event_bus *bus);
 

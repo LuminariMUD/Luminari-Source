@@ -16,44 +16,6 @@
 #include "spec/spec_dispatch.h"
 #include "vessels_moving_rooms.h"
 
-/*
- *  PDH 11/17/97
- *  moving_rooms_update - each zone pulse, we check if any "movement
- *  rooms" need to be relocated (ie. their pulse timer ran out)
- */
-
-struct moving_room_data *movingRoomList = NULL;
-
-void moving_rooms_update(void)
-{
-  struct moving_room_data *nextRoom = movingRoomList;
-  room_num mover;
-  char errStr[100];
-
-  while (nextRoom != NULL)
-  {
-    nextRoom->remainingZonePulses--;
-    if (nextRoom->remainingZonePulses <= 0)
-    {
-      mover = nextRoom->destination;
-
-      if (real_room(mover) > 0)
-      {
-        spec_gateway_moving_room(world + real_room(mover), nextRoom, mover);
-      }
-      else
-      {
-        sprintf(errStr, "moving_rooms_update: real_room(%d) < 0", mover);
-        log("%s", errStr);
-      }
-
-      nextRoom->remainingZonePulses = nextRoom->resetZonePulse;
-    }
-
-    nextRoom = nextRoom->next;
-  }
-}
-
 /*  read moving room data  */
 void setup_moving_room(FILE *fl, int rroom, int vroom, char *line)
 {
@@ -182,7 +144,7 @@ void setup_moving_room(FILE *fl, int rroom, int vroom, char *line)
  *  PDH 11/17/97
  *  lots of work for each new "moving room"
  *  must set up struct moving_room_data and add to
- *  movingRoomList
+ *  the live room
  */
 #ifdef DEBUGMEM
   CREATE(newRoom, struct moving_room_data, 1, M1);
@@ -191,7 +153,6 @@ void setup_moving_room(FILE *fl, int rroom, int vroom, char *line)
 #endif
 
   newRoom->resetZonePulse = roomInfo[1];
-  newRoom->remainingZonePulses = newRoom->resetZonePulse;
   newRoom->currentInbound = -1;
   newRoom->destination = vroom;
   newRoom->inbound_dir = roomInfo[0];
@@ -255,18 +216,6 @@ void setup_moving_room(FILE *fl, int rroom, int vroom, char *line)
   }
   newRoom->from[j] = ENDMOVING;
   newRoom->fromDir[j] = -1;
-
-  newRoom->next = NULL;
-
-  if (movingRoomList == NULL)
-  {
-    movingRoomList = newRoom;
-  }
-  else
-  {
-    newRoom->next = movingRoomList;
-    movingRoomList = newRoom;
-  }
 
   world[rroom].mover = newRoom;
 

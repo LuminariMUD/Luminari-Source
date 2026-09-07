@@ -73,7 +73,7 @@ JOIN (
   UNION ALL SELECT 'CALM', 'any class; charisma 19'
   UNION ALL SELECT 'CALM', 'at least 1 plus your charisma bonus'
   UNION ALL SELECT 'CALM', 'mind-affecting'
-  UNION ALL SELECT 'CAMP', 'any class; 3 ranks of survival'
+  UNION ALL SELECT 'CAMP', 'any class; 3 ranks of nature'
   UNION ALL SELECT 'CAMP', '50 percent faster'
   UNION ALL SELECT 'CAMP', 'Anyone there recovers'
   UNION ALL SELECT 'CAMP', 'return point'

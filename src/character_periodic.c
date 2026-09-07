@@ -2,6 +2,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "tactical_effects.h"
 #include "comm.h"
 #include "db.h"
 #include "dotenv.h"
@@ -566,6 +567,8 @@ void character_periodic_sync(struct char_data *ch)
     character_periodic_forget(ch);
     return;
   }
+  if (ch->desc != NULL)
+    tactical_defense_resume(ch);
   registry_add(ch);
   if (event_runtime_handle_is_none(ch->character_periodic_event_handle))
   {
@@ -595,6 +598,7 @@ void character_periodic_forget(struct char_data *ch)
 
   if (ch == NULL)
     return;
+  tactical_defense_pause(ch);
   if (dispatching_owner == ch)
     dispatching_owner_forgotten = true;
   if (!event_runtime_handle_is_none(ch->character_periodic_event_handle))

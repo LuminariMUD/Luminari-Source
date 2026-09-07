@@ -63,6 +63,8 @@
  * files that is included is controlled by conf.h for that platform. */
 
 #include "structs.h"
+#include "magic/buff_sequence.h"
+#include "vessels/transport_jobs.h"
 #include "utils.h"
 #include "spec/spec_dispatch.h"
 #include "spec/spec_rol_avernus.h"
@@ -124,7 +126,7 @@
 #include "wilderness/terrain_bridge.h" /* Terrain bridge API server */
 #include "net/i3_client.h"             /* Intermud3 client */
 #include "vessels/vessels.h"           /* Vessel persistence */
-#include "vessels/vessels_moving_rooms.h"
+#include "vessels/moving_room_events.h"
 #include "vessels/vessels_rol.h"
 #include "vessels/vessel_periodic.h"
 #include "asciimap.h"
@@ -243,10 +245,8 @@ void update_msdp_affects(struct char_data *ch);
 void update_player_last_on(void);
 void check_auto_shutdown(void);
 void check_auto_happy_hour(void);
-void self_buffing(void);
 void recharge_activated_items(void);
 void process_auction_events(void);
-void craft_update(void);
 
 /* externally defined functions, used locally */
 #ifdef __CXREF__
@@ -533,7 +533,7 @@ int main(int argc, char **argv)
     active_world_begin_bootstrap();
     boot_world();
     active_world_end_bootstrap();
-    if (!runtime_services_init())
+    if (!moving_room_events_bootstrap() || !runtime_services_init())
     {
       log("SYSERR: Unable to initialize required native runtime services.");
       event_free_all();
@@ -725,6 +725,8 @@ void copyover_recover()
 
       d->connected = CON_PLAYING;
       character_periodic_sync(d->character);
+      resume_craft_activity(d->character);
+      transport_job_resume(d->character);
       look_at_room(d->character, 0);
 
       /* Add to the list of 'recent' players (since last reboot) with copyover flag */
@@ -794,7 +796,7 @@ static void init_game(ush_int local_port)
   init_lookup_table();
 
   boot_db();
-  if (!runtime_services_init())
+  if (!moving_room_events_bootstrap() || !runtime_services_init())
   {
     log("SYSERR: Unable to initialize required native runtime services.");
     exit(1);
@@ -2118,7 +2120,6 @@ void persistence_scheduler_reset_telemetry(void)
 
 enum runtime_service_kind
 {
-  RUNTIME_SERVICE_MOVING_ROOMS,
   RUNTIME_SERVICE_ONE_SECOND,
   RUNTIME_SERVICE_MINUTE_MAINTENANCE,
   RUNTIME_SERVICE_ZONE,
@@ -2158,8 +2159,6 @@ struct runtime_service
 
 static struct runtime_service runtime_service_table[] = {
 
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MOVING_ROOMS, "service.moving_rooms",
-                          PASSES_PER_SEC * 10),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_ONE_SECOND, "service.one_second", PASSES_PER_SEC),
 
 
@@ -2243,9 +2242,6 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
 {
   switch (kind)
   {
-  case RUNTIME_SERVICE_MOVING_ROOMS:
-    moving_rooms_update();
-    break;
   case RUNTIME_SERVICE_ONE_SECOND:
   {
     unsigned long mud_hour_cadence = (unsigned long)(SECS_PER_MUD_HOUR * PASSES_PER_SEC);
@@ -2257,12 +2253,8 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
     msdp_update();
     PERF_PROF_EXIT(pr_msdp_update_);
     next_tick = (int)((remaining + PASSES_PER_SEC - 1U) / PASSES_PER_SEC);
-    travel_tickdown();
-    self_buffing();
-    craft_update();
     i3_process_events();
     i3_sync_presence();
-    update_supply_slots_for_all_players();
     break;
   }
   case RUNTIME_SERVICE_MINUTE_MAINTENANCE:
@@ -4396,6 +4388,8 @@ void close_socket(struct descriptor_data *d)
         cleanup_supply_slots(link_challenged);
       }
 
+      buff_sequence_cancel(link_challenged);
+      transport_job_cancel(link_challenged, true);
       save_char(link_challenged, 0);
       mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(link_challenged)), TRUE, "Closing link to: %s.",
              GET_NAME(link_challenged));

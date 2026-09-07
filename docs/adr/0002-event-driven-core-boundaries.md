@@ -88,9 +88,12 @@ first production publisher/subscriber pair: `WorldPhenomenon` routes sights and
 sounds through coordinate or bounded room-graph propagation, and Meteor Swarm
 publishes it directly. Subsequent phases moved combat, activities, periodic
 owners, autonomous mobiles, automatic procedures, DG triggers, vessels, and
-active trail locations behind explicit ownership. Normal callbacks use stable
-registries or bounded local graphs; population scans remain only in bootstrap,
-staff validation, and explicitly inventoried service-owned work.
+active trail locations behind explicit ownership. Committed relocation, object
+transfer, nonlethal resolution and skill outcomes now feed target-specific quest
+consumers; witnessed objectives require the bounded typed perception result.
+Normal callbacks use stable registries or bounded local graphs; population
+scans remain only in bootstrap, staff validation, and explicitly inventoried
+service-owned work.
 
 ## References
 

@@ -24,6 +24,7 @@
 #include "../../src/domain_event_types.h"
 #include "../../src/domain_events.h"
 #include "../../src/domain_event_runtime.h"
+#include "../../src/domain_object_transfer.h"
 #include "../../src/domain_event_world.h"
 #include "../../src/event_runtime.h"
 #include "../../src/activity_manager.h"
@@ -33,6 +34,7 @@
 #include "../../src/mob/mob_act.h"
 #include "../../src/mob/mob_known_spells.h"
 #include "../../src/mob/mob_spellslots.h"
+#include "../../src/mob/phenomenon_response.h"
 #include "../../src/movement/movement_tracks.h"
 #include "../../src/bardic_performance.h"
 #include "../../src/net/protocol.h"
@@ -398,7 +400,7 @@ void TestDomainEventFoundationContracts(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     domain_event_get_type_stats(bus, DOMAIN_EVENT_ACTIVITY_TRANSITIONED, &stats));
   domain_event_bus_get_stats(bus, &bus_stats);
-  CuAssertIntEquals(tc, 10, (int)bus_stats.registered_type_count);
+  CuAssertIntEquals(tc, 14, (int)bus_stats.registered_type_count);
   CuAssertStrEquals(tc, "ActivityTransitioned", stats.name);
   CuAssertIntEquals(tc, (int)sizeof(struct domain_activity_transitioned), (int)stats.payload_size);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
@@ -409,6 +411,18 @@ void TestDomainEventFoundationContracts(CuTest *tc)
                     domain_event_get_type_stats(bus, DOMAIN_EVENT_CASTING_STARTED, &stats));
   CuAssertStrEquals(tc, "CastingStarted", stats.name);
   CuAssertIntEquals(tc, (int)sizeof(struct domain_casting_started), (int)stats.payload_size);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_get_type_stats(bus, DOMAIN_EVENT_ATTACK_COMMITTED, &stats));
+  CuAssertStrEquals(tc, "AttackCommitted", stats.name);
+  CuAssertIntEquals(tc, (int)sizeof(struct domain_attack_committed), (int)stats.payload_size);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_get_type_stats(bus, DOMAIN_EVENT_CHARACTER_RESOLVED, &stats));
+  CuAssertStrEquals(tc, "CharacterResolved", stats.name);
+  CuAssertIntEquals(tc, (int)sizeof(struct domain_character_resolved), (int)stats.payload_size);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_get_type_stats(bus, DOMAIN_EVENT_SKILL_RESOLVED, &stats));
+  CuAssertStrEquals(tc, "SkillResolved", stats.name);
+  CuAssertIntEquals(tc, (int)sizeof(struct domain_skill_resolved), (int)stats.payload_size);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_bus_destroy(bus));
 }
 
@@ -1022,9 +1036,15 @@ void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   CuAssertPtrNotNull(tc, domain_event_runtime_bus());
   domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);
-  CuAssertIntEquals(tc, 10, (int)stats.registered_type_count);
-  CuAssertIntEquals(tc, 15, (int)stats.registered_handler_count);
+  CuAssertIntEquals(tc, 14, (int)stats.registered_type_count);
+  CuAssertIntEquals(tc, 24, (int)stats.registered_handler_count);
   CuAssertTrue(tc, stats.sealed);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_NOT_FOUND,
+                    domain_event_runtime_skill_resolved(&victim, (struct domain_entity_handle){0},
+                                                        ABILITY_UNDEFINED, 0, 0, 0, false));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_NOT_FOUND,
+                    domain_event_runtime_skill_resolved(&victim, (struct domain_entity_handle){0},
+                                                        NUM_ABILITIES + 1, 0, 0, 0, false));
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_character_died(&victim, NULL));
   domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);
   CuAssertIntEquals(tc, 1, (int)stats.publications);
@@ -1585,12 +1605,14 @@ void TestActiveWorldReactionsAndScavengingAreDemandDriven(CuTest *tc)
 
   room.contents = &object;
   IN_ROOM(&object) = 0;
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_object_moved(&object, NOWHERE, 0));
+  domain_object_placed(&object);
   CuAssertIntEquals(tc, 1, (int)active_world_mobile_reason_count(MOBILE_WORK_SCAVENGE));
   CuAssertIntEquals(tc, 1, event_queue_depth());
+  domain_object_detaching(&object);
   room.contents = NULL;
   IN_ROOM(&object) = NOWHERE;
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_object_moved(&object, 0, NOWHERE));
+  object.carried_by = &player;
+  domain_object_placed(&object);
   CuAssertIntEquals(tc, 0, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
   CuAssertIntEquals(tc, 0, (int)active_world_mobile_reason_count(MOBILE_WORK_SCAVENGE));
   CuAssertIntEquals(tc, 0, event_queue_depth());
@@ -3604,6 +3626,20 @@ void TestVesselPeriodicRemainsUnavailableWhenRegistrationFails(CuTest *tc)
   CONFIG_VESSEL_SYSTEM = saved_vessel_system;
 }
 
+struct phenomenon_perception_capture
+{
+  unsigned int count;
+  struct domain_phenomenon_perceived last;
+};
+
+static void capture_phenomenon_perception(const struct domain_event_context *context, void *data)
+{
+  struct phenomenon_perception_capture *capture = data;
+
+  capture->count++;
+  capture->last = *(const struct domain_phenomenon_perceived *)context->payload;
+}
+
 void TestWorldPhenomenonRoomPropagation(CuTest *tc)
 {
   struct room_data rooms[3];
@@ -3611,25 +3647,38 @@ void TestWorldPhenomenonRoomPropagation(CuTest *tc)
   struct room_direction_data second_exit;
   struct char_data adjacent;
   struct char_data distant;
+  struct char_data source;
+  struct char_data npc_observer;
   struct player_special_data adjacent_specials;
   struct player_special_data distant_specials;
+  struct player_special_data source_specials;
+  struct player_special_data npc_specials;
   struct descriptor_data adjacent_desc;
   struct descriptor_data distant_desc;
   struct room_data *saved_world = world;
   room_rnum saved_top_of_world = top_of_world;
   struct domain_event_bus *bus = create_bus(tc, 4U, 16U, NULL, 100U);
   struct domain_world_phenomenon phenomenon;
+  struct domain_event_handler_config perception_handler = {DOMAIN_EVENT_PHENOMENON_PERCEIVED,
+                                                           "test.phenomenon-perception", 200,
+                                                           capture_phenomenon_perception, NULL};
+  struct phenomenon_perception_capture perceptions = {0};
+  uint64_t rejections_before;
 
   memset(rooms, 0, sizeof(rooms));
   memset(&first_exit, 0, sizeof(first_exit));
   memset(&second_exit, 0, sizeof(second_exit));
   memset(&adjacent_specials, 0, sizeof(adjacent_specials));
   memset(&distant_specials, 0, sizeof(distant_specials));
+  memset(&source_specials, 0, sizeof(source_specials));
+  memset(&npc_specials, 0, sizeof(npc_specials));
   memset(&adjacent_desc, 0, sizeof(adjacent_desc));
   memset(&distant_desc, 0, sizeof(distant_desc));
   memset(&phenomenon, 0, sizeof(phenomenon));
   clear_char(&adjacent);
   clear_char(&distant);
+  clear_char(&source);
+  clear_char(&npc_observer);
 
   rooms[0].number = 100;
   rooms[1].number = 200;
@@ -3662,14 +3711,36 @@ void TestWorldPhenomenonRoomPropagation(CuTest *tc)
   STATE(&distant_desc) = CON_PLAYING;
   rooms[2].people = &distant;
 
+  source.player_specials = &source_specials;
+  source.player.name = "phenomenon source";
+  SET_BIT_AR(MOB_FLAGS(&source), MOB_ISNPC);
+  GET_FACTION(&source) = 7;
+  IN_ROOM(&source) = 0;
+  rooms[0].people = &source;
+
+  npc_observer.player_specials = &npc_specials;
+  npc_observer.player.name = "phenomenon observer";
+  SET_BIT_AR(MOB_FLAGS(&npc_observer), MOB_ISNPC);
+  GET_FACTION(&npc_observer) = 7;
+  IN_ROOM(&npc_observer) = 1;
+  npc_observer.next_in_room = rooms[1].people;
+  rooms[1].people = &npc_observer;
+
   world = rooms;
   top_of_world = 2;
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_register_foundation_types(bus));
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_world_register_resolvers(bus));
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, spatial_event_register_handlers(bus));
+  perception_handler.handler_context = &perceptions;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_register_handler(bus, &perception_handler));
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
 
+  phenomenon.phenomenon_id = 41U;
+  phenomenon.source = domain_event_character_handle(&source);
   phenomenon.source_room = domain_event_room_handle(0);
+  phenomenon.kind = DOMAIN_PHENOMENON_ALARM;
+  phenomenon.source_faction = GET_FACTION(&source);
+  phenomenon.intensity = 1.0f;
   phenomenon.visual_range = 2;
   phenomenon.audio_range = 2;
   phenomenon.minimum_range = 1;
@@ -3682,6 +3753,15 @@ void TestWorldPhenomenonRoomPropagation(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, strstr(adjacent_desc.output, phenomenon.visual_description));
   CuAssertPtrNotNull(tc, strstr(adjacent_desc.output, phenomenon.audio_description));
   CuAssertPtrNotNull(tc, strstr(distant_desc.output, phenomenon.audio_description));
+  CuAssertIntEquals(tc, 1, (int)perceptions.count);
+  CuAssertIntEquals(tc, DOMAIN_WORLD_PHENOMENON_AUDIBLE, (int)perceptions.last.senses);
+  CuAssertIntEquals(tc, 1, (int)perceptions.last.distance);
+  CuAssertIntEquals(tc, DOMAIN_PHENOMENON_ALARM, perceptions.last.kind);
+  CuAssertTrue(tc, perceptions.last.source_known);
+  CuAssertTrue(tc,
+               domain_entity_handle_equal(phenomenon.source, perceptions.last.phenomenon_source));
+  CuAssertTrue(tc, domain_entity_handle_equal(domain_event_character_handle(&npc_observer),
+                                              perceptions.last.observer));
 
   adjacent_desc.output[0] = '\0';
   adjacent_desc.bufptr = 0;
@@ -3696,6 +3776,30 @@ void TestWorldPhenomenonRoomPropagation(CuTest *tc)
                     DOMAIN_EVENT_PUBLISH(bus, DOMAIN_EVENT_WORLD_PHENOMENON, &phenomenon));
   CuAssertPtrNotNull(tc, strstr(adjacent_desc.output, phenomenon.visual_description));
   CuAssertPtrEquals(tc, NULL, strstr(distant_desc.output, phenomenon.visual_description));
+  CuAssertIntEquals(tc, 2, (int)perceptions.count);
+  CuAssertIntEquals(tc, DOMAIN_WORLD_PHENOMENON_VISUAL, (int)perceptions.last.senses);
+
+  SET_BIT_AR(AFF_FLAGS(&npc_observer), AFF_BLIND);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH(bus, DOMAIN_EVENT_WORLD_PHENOMENON, &phenomenon));
+  CuAssertIntEquals(tc, 2, (int)perceptions.count);
+  REMOVE_BIT_AR(AFF_FLAGS(&npc_observer), AFF_BLIND);
+
+  phenomenon.channels = DOMAIN_WORLD_PHENOMENON_AUDIBLE;
+  phenomenon.audio_range = 1;
+  phenomenon.stealth_dc = 1000;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH(bus, DOMAIN_EVENT_WORLD_PHENOMENON, &phenomenon));
+  CuAssertIntEquals(tc, 2, (int)perceptions.count);
+  phenomenon.stealth_dc = 0;
+
+  rejections_before = spatial_event_perception_rejections();
+  spatial_event_set_perception_limit_for_test(0U);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH(bus, DOMAIN_EVENT_WORLD_PHENOMENON, &phenomenon));
+  CuAssertIntEquals(tc, 2, (int)perceptions.count);
+  CuAssertTrue(tc, spatial_event_perception_rejections() > rejections_before);
+  spatial_event_set_perception_limit_for_test(256U);
 
   adjacent_desc.output[0] = '\0';
   adjacent_desc.bufptr = 0;
@@ -3706,6 +3810,9 @@ void TestWorldPhenomenonRoomPropagation(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, strstr(adjacent_desc.output, phenomenon.visual_description));
 
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_bus_destroy(bus));
+  domain_event_world_forget_character(&source);
+  domain_event_world_forget_character(&npc_observer);
+  domain_event_world_shutdown();
   ProtocolDestroy(adjacent_desc.pProtocol);
   ProtocolDestroy(distant_desc.pProtocol);
   world = saved_world;
@@ -3824,4 +3931,206 @@ void TestDomainRawAndScriptDamagePublishActualLossOnce(CuTest *tc)
   event_free_all();
   domain_event_world_forget_character(&actor);
   character_list = saved_characters;
+}
+
+struct relocation_capture
+{
+  unsigned int count;
+  struct domain_character_moved last;
+};
+
+static void capture_relocation(const struct domain_event_context *context, void *data)
+{
+  struct relocation_capture *capture = data;
+
+  capture->count++;
+  capture->last = *(const struct domain_character_moved *)context->payload;
+}
+
+void TestRelocationPublishesFinalOutcomeAndNestedCause(CuTest *tc)
+{
+  struct room_data rooms[3] = {0};
+  struct room_data *saved_world = world;
+  room_rnum saved_top = top_of_world;
+  struct char_data actor, target;
+  struct domain_relocation_operation outer, inner;
+  struct domain_event_subscription_config subscription = {0};
+  struct domain_event_subscription_handle subscription_handle;
+  struct relocation_capture capture = {0};
+  struct domain_entity_handle identity;
+
+  clear_char(&actor);
+  clear_char(&target);
+  rooms[0].number = 100;
+  rooms[1].number = 101;
+  rooms[2].number = 102;
+  world = rooms;
+  top_of_world = 2;
+  event_free_all();
+  domain_event_world_shutdown();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  identity = domain_event_character_handle(&target);
+  subscription.type = DOMAIN_EVENT_CHARACTER_MOVED;
+  subscription.owner = domain_event_character_handle(&actor);
+  subscription.topic.role = DOMAIN_EVENT_TOPIC_SUBJECT;
+  subscription.topic.entity = identity;
+  subscription.identity = "test.relocation-outcome";
+  subscription.handler = capture_relocation;
+  subscription.handler_context = &capture;
+  CuAssertIntEquals(
+      tc, DOMAIN_EVENT_OK,
+      domain_event_subscribe(domain_event_runtime_bus(), &subscription, &subscription_handle));
+
+  IN_ROOM(&target) = 0;
+  domain_relocation_begin(&outer, &target, &target, DOMAIN_RELOCATION_WALK, EAST);
+  IN_ROOM(&target) = 1;
+  domain_relocation_placed(&target, domain_event_room_handle(0), 1, NULL, DOMAIN_RELOCATION_UNKNOWN,
+                           -1);
+  CuAssertIntEquals(tc, 0, capture.count);
+  /* Entry veto rolls provisional placement back; neither half is a fact. */
+  IN_ROOM(&target) = 0;
+  domain_relocation_placed(&target, domain_event_room_handle(1), 0, NULL, DOMAIN_RELOCATION_UNKNOWN,
+                           -1);
+  domain_relocation_finish(&outer);
+  CuAssertIntEquals(tc, 0, capture.count);
+
+  domain_relocation_begin(&outer, &target, &target, DOMAIN_RELOCATION_WALK, EAST);
+  IN_ROOM(&target) = 1;
+  domain_relocation_placed(&target, domain_event_room_handle(0), 1, NULL, DOMAIN_RELOCATION_UNKNOWN,
+                           -1);
+  domain_relocation_finish(&outer);
+  CuAssertIntEquals(tc, 1, capture.count);
+  CuAssertIntEquals(tc, EAST, capture.last.direction);
+  CuAssertIntEquals(tc, DOMAIN_RELOCATION_WALK, capture.last.cause);
+  CuAssertTrue(tc, domain_entity_handle_equal(domain_event_room_handle(0), capture.last.from_room));
+  CuAssertTrue(tc, domain_entity_handle_equal(domain_event_room_handle(1), capture.last.to_room));
+
+  domain_relocation_begin(&outer, &target, &target, DOMAIN_RELOCATION_WALK, WEST);
+  IN_ROOM(&target) = 0;
+  domain_relocation_begin(&inner, &target, &actor, DOMAIN_RELOCATION_SCRIPT, -1);
+  IN_ROOM(&target) = 2;
+  domain_relocation_placed(&target, domain_event_room_handle(0), 2, &actor,
+                           DOMAIN_RELOCATION_SCRIPT, -1);
+  domain_relocation_finish(&inner);
+  CuAssertIntEquals(tc, 1, capture.count);
+  domain_relocation_finish(&outer);
+  CuAssertIntEquals(tc, 2, capture.count);
+  CuAssertIntEquals(tc, DOMAIN_RELOCATION_SCRIPT, capture.last.cause);
+  CuAssertIntEquals(tc, -1, capture.last.direction);
+  CuAssertTrue(
+      tc, domain_entity_handle_equal(domain_event_character_handle(&actor), capture.last.actor));
+  CuAssertTrue(tc, domain_entity_handle_equal(domain_event_room_handle(1), capture.last.from_room));
+  CuAssertTrue(tc, domain_entity_handle_equal(domain_event_room_handle(2), capture.last.to_room));
+
+  domain_relocation_begin(&outer, &target, &actor, DOMAIN_RELOCATION_FORCED, NORTH);
+  domain_event_world_forget_character(&target);
+  /* Address reuse is a different incarnation and cannot finish the old move. */
+  clear_char(&target);
+  CuAssertTrue(tc, !domain_entity_handle_equal(identity, domain_event_character_handle(&target)));
+  domain_relocation_finish(&outer);
+  CuAssertIntEquals(tc, 2, capture.count);
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  domain_event_world_shutdown();
+  world = saved_world;
+  top_of_world = saved_top;
+}
+
+static void verify_late_room_affect_clock(CuTest *tc, bool expires, bool add_source)
+{
+  struct raff_node *raff;
+  struct raff_node *fresh = NULL;
+  struct raff_node *saved_raff_list = raff_list;
+  struct room_data room = {0};
+  struct room_data *saved_world = world;
+  room_rnum saved_top_of_world = top_of_world;
+  unsigned long saved_pulse = pulse;
+  unsigned long started;
+
+  room.number = 105;
+  world = &room;
+  top_of_world = 0;
+  raff_list = NULL;
+  event_free_all();
+  affected_owners_reset_for_test();
+  affected_registry_reset_for_test();
+  affected_owners_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = (unsigned long)PULSE_VIOLENCE * PULSE_LUMINARI;
+  started = pulse;
+  event_init();
+  affected_owners_init();
+  CREATE(raff, struct raff_node, 1);
+  raff->room = 0;
+  raff->timer = expires ? 3 : 10;
+  raff->affection = RAFF_FOG;
+  raff->spell = SPELL_ARMOR;
+  raff_list = raff;
+  SET_BIT(room.room_affections, RAFF_FOG);
+  affected_room_owner_add(raff);
+
+  pulse = started + PULSE_VIOLENCE + 1U;
+  event_test_advance();
+  CuAssertIntEquals(tc, expires ? 2 : 9, raff->timer);
+  CuAssertIntEquals(tc, 1, affected_room_behavior_executions());
+
+  /* Two more lifetime boundaries pass, but behavior must not catch up twice. */
+  pulse = started + 3U * PULSE_VIOLENCE + 1U;
+  if (add_source)
+  {
+    CREATE(fresh, struct raff_node, 1);
+    fresh->room = 0;
+    fresh->timer = 10;
+    fresh->affection = RAFF_FOG;
+    fresh->spell = SPELL_ARMOR;
+    fresh->next = raff_list;
+    raff_list = fresh;
+    affected_room_owner_add(fresh);
+  }
+  event_test_advance();
+  CuAssertIntEquals(tc, add_source ? 3 : 2, affected_room_nodes_processed());
+  if (expires)
+  {
+    CuAssertPtrEquals(tc, NULL, raff_list);
+    CuAssertIntEquals(tc, 1, affected_room_behavior_executions());
+    CuAssertIntEquals(tc, 0, event_queue_depth());
+  }
+  else
+  {
+    CuAssertIntEquals(tc, 7, raff->timer);
+    CuAssertIntEquals(tc, 2, affected_room_behavior_executions());
+    CuAssertIntEquals(tc, 1, event_queue_depth());
+    rem_room_aff(raff);
+  }
+  if (fresh != NULL)
+  {
+    CuAssertIntEquals(tc, 10, fresh->timer);
+    rem_room_aff(fresh);
+  }
+  CuAssertIntEquals(tc, 0, affected_room_registry_validate());
+  affected_owners_reset_for_test();
+  affected_registry_reset_for_test();
+  event_free_all();
+  raff_list = saved_raff_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  pulse = saved_pulse;
+}
+
+void TestAffectedRoomLateExpiryRunsBeforeOverdueBehavior(CuTest *tc)
+{
+  verify_late_room_affect_clock(tc, true, false);
+}
+
+void TestAffectedRoomLateLifetimeAdvancesWithoutBehaviorBurst(CuTest *tc)
+{
+  verify_late_room_affect_clock(tc, false, false);
+}
+
+void TestAffectedRoomNewSourceDoesNotInheritOverdueLifetime(CuTest *tc)
+{
+  verify_late_room_affect_clock(tc, false, true);
 }

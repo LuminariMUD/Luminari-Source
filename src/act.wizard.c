@@ -18,6 +18,8 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
+#include "domain_event_world.h"
+#include "domain_event_runtime.h"
 #include "db.h"
 #include "magic/spells.h"
 #include "obj/house.h"
@@ -474,6 +476,7 @@ room_rnum find_target_room(struct char_data *ch, const char *rawroomstr)
 ACMD(do_at)
 {
   char command[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'};
+  struct domain_relocation_operation relocation;
   room_rnum location, original_loc;
   int orig_x, orig_y; /* Needed if 'at'ing in the wilderness. */
 
@@ -499,6 +502,7 @@ ACMD(do_at)
   orig_x = X_LOC(ch);
   orig_y = Y_LOC(ch);
 
+  domain_relocation_begin(&relocation, ch, ch, DOMAIN_RELOCATION_STAFF, -1);
   char_from_room(ch);
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_WILDERNESS))
@@ -507,19 +511,21 @@ ACMD(do_at)
     Y_LOC(ch) = world[location].coords[1];
   }
 
-  char_to_room(ch, location);
+  char_to_room_cause(ch, location, ch, DOMAIN_RELOCATION_STAFF, -1);
   command_interpreter(ch, command);
 
   /* check if the char is still there */
-  if (IN_ROOM(ch) == location)
+  ch = domain_event_world_resolve_character(relocation.event.character);
+  if (ch != NULL && IN_ROOM(ch) == location)
   {
     char_from_room(ch);
 
     X_LOC(ch) = orig_x;
     Y_LOC(ch) = orig_y;
 
-    char_to_room(ch, original_loc);
+    char_to_room_cause(ch, original_loc, ch, DOMAIN_RELOCATION_STAFF, -1);
   }
+  domain_relocation_finish(&relocation);
 }
 
 ACMD(do_goto)
@@ -591,7 +597,7 @@ ACMD(do_goto)
     Y_LOC(ch) = world[location].coords[1];
   }
 
-  char_to_room(ch, location);
+  char_to_room_cause(ch, location, ch, DOMAIN_RELOCATION_STAFF, -1);
 
   snprintf(buf, sizeof(buf), "$n %s",
            POOFIN(ch) ? POOFIN(ch) : "appears with an ear-splitting bang.");
@@ -632,7 +638,7 @@ ACMD(do_trans)
         Y_LOC(victim) = world[IN_ROOM(ch)].coords[1];
       }
 
-      char_to_room(victim, IN_ROOM(ch));
+      char_to_room_cause(victim, IN_ROOM(ch), ch, DOMAIN_RELOCATION_STAFF, -1);
       act("$n arrives from a puff of smoke.", FALSE, victim, 0, 0, TO_ROOM);
       act("$n has transferred you!", FALSE, ch, 0, victim, TO_VICT);
       look_at_room(victim, 0);
@@ -663,7 +669,7 @@ ACMD(do_trans)
           Y_LOC(victim) = world[IN_ROOM(ch)].coords[1];
         }
 
-        char_to_room(victim, IN_ROOM(ch));
+        char_to_room_cause(victim, IN_ROOM(ch), ch, DOMAIN_RELOCATION_STAFF, -1);
         act("$n arrives from a puff of smoke.", FALSE, victim, 0, 0, TO_ROOM);
         act("$n has transferred you!", FALSE, ch, 0, victim, TO_VICT);
         look_at_room(victim, 0);
@@ -703,7 +709,7 @@ ACMD(do_teleport)
       Y_LOC(victim) = world[target].coords[1];
     }
 
-    char_to_room(victim, target);
+    char_to_room_cause(victim, target, ch, DOMAIN_RELOCATION_STAFF, -1);
     act("$n arrives from a puff of smoke.", FALSE, victim, 0, 0, TO_ROOM);
     act("$n has teleported you!", FALSE, ch, 0, (char *)victim, TO_VICT);
     look_at_room(victim, 0);
@@ -783,7 +789,7 @@ ACMD(do_roomtransfer)
       Y_LOC(victim) = world[destination_room].coords[1];
     }
 
-    char_to_room(victim, destination_room);
+    char_to_room_cause(victim, destination_room, ch, DOMAIN_RELOCATION_STAFF, -1);
     look_at_room(victim, 0);
     enter_wtrigger(&world[IN_ROOM(victim)], victim, -1);
     character_count++;
@@ -1744,7 +1750,7 @@ ACMD(do_stat)
       new_mobile_data(victim);
       if (load_char(buf2, victim) >= 0)
       {
-        char_to_room(victim, 0);
+        char_to_room_cause(victim, 0, ch, DOMAIN_RELOCATION_STAFF, -1);
         if (GET_LEVEL(victim) > GET_LEVEL(ch))
           send_to_char(ch, "Sorry, you can't do that.\r\n");
         else
@@ -2099,7 +2105,7 @@ ACMD(do_load)
         Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
       }
 
-      char_to_room(mob, IN_ROOM(ch));
+      char_to_room_cause(mob, IN_ROOM(ch), ch, DOMAIN_RELOCATION_STAFF, -1);
 
       act("$n makes a quaint, magical gesture with one hand.", TRUE, ch, 0, 0, TO_ROOM);
       act("$n has created $N!", FALSE, ch, 0, mob, TO_ROOM);
@@ -2171,7 +2177,7 @@ ACMD(do_vstat)
       return;
     }
     mob = read_mobile_reason(r_num, REAL, PERF_ENTITY_STAFF);
-    char_to_room(mob, 0);
+    char_to_room_cause(mob, 0, ch, DOMAIN_RELOCATION_STAFF, -1);
     do_stat_character(ch, mob);
     extract_char(mob);
     break;
@@ -5029,7 +5035,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       Y_LOC(vict) = world[rnum].coords[1];
     }
 
-    char_to_room(vict, rnum);
+    char_to_room_cause(vict, rnum, ch, DOMAIN_RELOCATION_STAFF, -1);
     break;
   case 46: /* screenwidth */
     GET_SCREEN_WIDTH(vict) = RANGE(40, 200);
@@ -6915,7 +6921,7 @@ void perform_do_copyover()
         log("SYSERR: copyover: Player %s has invalid room %d, moving to void", GET_NAME(och),
             IN_ROOM(och));
         char_from_room(och);
-        char_to_room(och, 0); /* Move to void/room 0 */
+        char_to_room_cause(och, 0, NULL, DOMAIN_RELOCATION_RESTORE, -1); /* Move to void/room 0 */
       }
 
       GET_LOADROOM(och) = GET_ROOM_VNUM(IN_ROOM(och));

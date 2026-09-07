@@ -120,8 +120,6 @@ void start_flight_to_destination_luminari(struct char_data *ch, const char *zone
     return;
   }
 
-  send_to_char(ch, "You begin flying to %s.\r\n", get_transport_carriage_name(i));
-
   enter_transport(ch, i, TRAVEL_OVERLAND_FLIGHT, GET_ROOM_VNUM(IN_ROOM(ch)));
 }
 

@@ -982,6 +982,15 @@ bool primary_activity_cancel(struct char_data *actor, enum primary_activity_end_
   return true;
 }
 
+bool primary_activity_cancel_id(struct char_data *actor, uint64_t activity_id,
+                                enum primary_activity_end_reason reason, bool notify)
+{
+  if (actor == NULL || actor->primary_activity == NULL || activity_id == 0U ||
+      actor->primary_activity->id != activity_id)
+    return false;
+  return primary_activity_cancel(actor, reason, notify);
+}
+
 bool primary_activity_pause(struct char_data *actor, bool notify)
 {
   return actor != NULL && pause_activity_internal(actor->primary_activity, notify, false);
@@ -1161,6 +1170,8 @@ const char *primary_activity_end_reason_name(enum primary_activity_end_reason re
     return "the target was lost";
   case PRIMARY_ACTIVITY_END_RECHECK_FAILED:
     return "conditions changed";
+  case PRIMARY_ACTIVITY_END_COUNTERED:
+    return "the spell was countered";
   case PRIMARY_ACTIVITY_END_DAMAGED:
     return "damage interrupted it";
   case PRIMARY_ACTIVITY_END_COMMAND:

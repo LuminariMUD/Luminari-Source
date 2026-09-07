@@ -12,6 +12,8 @@
 #ifndef _HANDLER_H_
 #define _HANDLER_H_
 
+#include "domain_event_types.h"
+
 void check_room_lighting(room_rnum room, struct char_data *ch, bool enter);
 
 /* handling the affected-structures */
@@ -108,6 +110,8 @@ struct char_data *get_char_num(mob_rnum nr);
 
 void char_from_room(struct char_data *ch);
 void char_to_room(struct char_data *ch, room_rnum room);
+void char_to_room_cause(struct char_data *ch, room_rnum room, struct char_data *actor,
+                        enum domain_relocation_cause cause, int direction);
 void char_to_coords(struct char_data *ch, int x, int y, int wilderness);
 void extract_char(struct char_data *ch);
 void extract_char_final(struct char_data *ch);

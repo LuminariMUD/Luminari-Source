@@ -233,3 +233,37 @@ waiting on this data-retention decision.
 | Exact SQL object deletion approved |  |  |  |
 
 Any blank row leaves the irreversible gate closed.
+
+## 8. Assigned-batch retention review (2026-09-06)
+
+Disposition for this repair branch: retain archival PubSub SQL and all old
+save readers. No retirement migration is included. This is the reversible
+retention choice for #112; it is not approval to erase production history.
+
+A read-only inventory of the local development schema `luminari` at
+2026-09-06T16:10:40Z found these ten InnoDB tables, each with an exact count of
+zero rows:
+
+- `pubsub_topics`, `pubsub_player_settings`, `pubsub_subscriptions`
+- `pubsub_messages`, `pubsub_message_metadata`, `pubsub_message_fields`
+- `pubsub_messages_v3`, `pubsub_message_metadata_v3`, `pubsub_message_fields_v3`
+- `pubsub_message_tags_v3`
+
+No matching views, routines, triggers or scheduled database events were found.
+Nine foreign-key relationships remain among these tables; the message tables
+also reference themselves through `parent_message_id`. No foreign-key reference
+from another table family appeared in this local inventory.
+
+Source review found no PubSub runtime calls in `src`. The master schema and
+archival V3 component still define the historical objects. The character-rename
+schema test deliberately inserts archival rows and verifies they are unchanged;
+`scripts/events/test_pubsub_retirement.sh` deliberately verifies schema
+retention. Those test dependencies must be revised only as part of an approved
+retirement slice. They are not live gameplay readers. Legacy event-save parsing
+is a separate migration input and remains necessary.
+
+The local result says nothing about production row counts or historical
+installations. Production inventory, stable-release sign-off, approved archive
+storage/retention, a verified full backup and restore rehearsal remain required
+before proposing a drop. No production export, restore rehearsal or deletion
+was performed by this review. The sign-off table above remains open.

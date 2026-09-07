@@ -746,8 +746,8 @@ int spatial_audio_test_thunder(int thunder_x, int thunder_y, const char *thunder
   /* Set source information for thunder */
   ctx->source_x = thunder_x;
   ctx->source_y = thunder_y;
-  ctx->source_z = 100; /* Thunder comes from sky */
-  ctx->source_description = strdup(thunder_desc);
+  ctx->source_z = 100;                            /* Thunder comes from sky */
+  ctx->source_description = (char *)thunder_desc; /* Borrowed for synchronous delivery. */
   ctx->base_intensity = 1.0;
   ctx->audio_frequency = AUDIO_FREQ_LOW; /* Thunder is low frequency */
 
@@ -819,8 +819,8 @@ int spatial_audio_test_shout(int source_x, int source_y, const char *shout_messa
   /* Set source information for shout */
   ctx->source_x = source_x;
   ctx->source_y = source_y;
-  ctx->source_z = 0; /* Ground level */
-  ctx->source_description = strdup(shout_message);
+  ctx->source_z = 0;                               /* Ground level */
+  ctx->source_description = (char *)shout_message; /* Borrowed for synchronous delivery. */
   ctx->base_intensity = 1.0;
   ctx->audio_frequency = AUDIO_FREQ_MID; /* Human voice is mid frequency */
 
@@ -884,7 +884,7 @@ int spatial_audio_emit(int source_x, int source_y, int source_z, const char *sou
   ctx->source_x = source_x;
   ctx->source_y = source_y;
   ctx->source_z = source_z;
-  ctx->source_description = strdup(sound_desc);
+  ctx->source_description = (char *)sound_desc; /* Borrowed for synchronous delivery. */
   ctx->base_intensity = intensity;
   ctx->audio_frequency = frequency;
 

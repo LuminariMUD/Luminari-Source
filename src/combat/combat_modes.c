@@ -147,6 +147,13 @@ ACMD(do_mode)
 
   bool inquisitor_deadly_aim = (mode == MODE_DEADLY_AIM && has_inquisitor_deadly_aim(ch));
 
+  if (mode == MODE_COUNTERSPELL)
+  {
+    disable_combat_mode(ch, mode);
+    send_to_char(
+        ch, "Counterspell requires a reserved action: ready counterspell <target> on casting.\r\n");
+    return;
+  }
   if (argument)
   {
     one_argument(argument, arg, sizeof(arg));

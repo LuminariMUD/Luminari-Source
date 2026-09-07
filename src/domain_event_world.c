@@ -111,7 +111,7 @@ static void *resolve_room(struct domain_entity_handle handle, void *resolver_con
   room_rnum room;
 
   (void)resolver_context;
-  if (handle.runtime_id == 0U || handle.runtime_id - 1U > INT32_MAX)
+  if (world == NULL || handle.runtime_id == 0U || handle.runtime_id - 1U > INT32_MAX)
     return NULL;
   vnum = (room_vnum)(handle.runtime_id - 1U);
   room = real_room(vnum);
@@ -126,12 +126,17 @@ static void *resolve_character(struct domain_entity_handle handle, void *resolve
   return domain_event_world_resolve_character(handle);
 }
 
+struct obj_data *domain_event_world_resolve_object(struct domain_entity_handle handle)
+{
+  if (!domain_entity_handle_is_valid(handle) || handle.kind != DOMAIN_ENTITY_OBJECT)
+    return NULL;
+  return registry_resolve(object_registry, handle.runtime_id, handle.generation);
+}
+
 static void *resolve_object(struct domain_entity_handle handle, void *resolver_context)
 {
   (void)resolver_context;
-  if (handle.runtime_id == 0U)
-    return NULL;
-  return registry_resolve(object_registry, handle.runtime_id, handle.generation);
+  return domain_event_world_resolve_object(handle);
 }
 
 enum domain_event_status domain_event_world_register_resolvers(struct domain_event_bus *bus)
@@ -211,7 +216,7 @@ struct domain_entity_handle domain_event_room_handle(room_rnum room)
 {
   struct domain_entity_handle handle = domain_entity_handle_none();
 
-  if (room == NOWHERE || room > top_of_world)
+  if (world == NULL || room == NOWHERE || room > top_of_world)
     return handle;
   if (world[room].event_owner_generation == 0U)
   {

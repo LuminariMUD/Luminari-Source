@@ -870,6 +870,9 @@ def _validate_quest_scalars(
       quest_types["AQ_MOB_KILL"],
       quest_types["AQ_MOB_SAVE"],
       quest_types["AQ_DIALOGUE"],
+      quest_types["AQ_MOB_RESOLVE"],
+      quest_types["AQ_SKILL_SUCCESS"],
+      quest_types["AQ_WITNESS_PHENOMENON"],
   }
 
   for quest in quests:
@@ -989,6 +992,27 @@ def _validate_quest_scalars(
           "AQ_MOB_MULTI_KILL",
           field_name="quest_type",
       )
+    elif quest.quest_type == quest_types["AQ_SKILL_SUCCESS"]:
+      target = _raw_quest_value(quest, "target")
+      if not 1 <= target <= _limit(manifest, "NUM_ABILITIES"):
+        _quest_finding(
+            findings,
+            quest,
+            "SEM026",
+            f"ability {target} is outside 1..{_limit(manifest, 'NUM_ABILITIES')}",
+            field_name="target",
+        )
+    elif quest.quest_type == quest_types["AQ_WITNESS_PHENOMENON"]:
+      target = _raw_quest_value(quest, "target")
+      maximum = _limit(manifest, "NUM_DOMAIN_PHENOMENON_KINDS") - 1
+      if not 1 <= target <= maximum:
+        _quest_finding(
+            findings,
+            quest,
+            "SEM026",
+            f"phenomenon kind {target} is outside 1..{maximum}",
+            field_name="target",
+        )
 
     if "race_reward" in quest.raw_values:
       race = quest.raw_values["race_reward"]

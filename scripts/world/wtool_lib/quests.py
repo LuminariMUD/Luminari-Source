@@ -368,6 +368,7 @@ def _populate_references(record: QuestRecord, manifest: dict[str, Any]) -> None:
       types["AQ_MOB_KILL"]: "mobile",
       types["AQ_MOB_SAVE"]: "mobile",
       types["AQ_DIALOGUE"]: "mobile",
+      types["AQ_MOB_RESOLVE"]: "mobile",
   }
   record.references.clear()
   _add_reference(

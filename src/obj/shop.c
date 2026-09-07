@@ -17,6 +17,7 @@
 #include "spec/spec_dispatch.h"
 #include "comm.h"
 #include "handler.h"
+#include "domain_object_transfer.h"
 #include "db.h"
 #include "interpreter.h"
 #include "utils.h"
@@ -717,7 +718,20 @@ static int sell_price(struct obj_data *obj, int shop_nr, struct char_data *keepe
   return ((int)price);
 }
 
+static void shopping_buy_transfer_impl(char *arg, struct char_data *ch, struct char_data *keeper,
+                                       int shop_nr);
+
 static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keeper, int shop_nr)
+{
+  struct domain_transfer_context context;
+
+  domain_transfer_context_begin(&context, ch, DOMAIN_TRANSFER_SHOP);
+  shopping_buy_transfer_impl(arg, ch, keeper, shop_nr);
+  domain_transfer_context_finish(&context);
+}
+
+static void shopping_buy_transfer_impl(char *arg, struct char_data *ch, struct char_data *keeper,
+                                       int shop_nr)
 {
   char tempstr[MAX_INPUT_LENGTH] = {'\0'}, tempbuf[MAX_INPUT_LENGTH + 16] = {'\0'};
   struct obj_data *obj, *last_obj = NULL;
@@ -1125,7 +1139,20 @@ static void sort_keeper_objs(struct char_data *keeper, int shop_nr)
   }
 }
 
+static void shopping_sell_transfer_impl(char *arg, struct char_data *ch, struct char_data *keeper,
+                                        int shop_nr);
+
 static void shopping_sell(char *arg, struct char_data *ch, struct char_data *keeper, int shop_nr)
+{
+  struct domain_transfer_context context;
+
+  domain_transfer_context_begin(&context, ch, DOMAIN_TRANSFER_SHOP);
+  shopping_sell_transfer_impl(arg, ch, keeper, shop_nr);
+  domain_transfer_context_finish(&context);
+}
+
+static void shopping_sell_transfer_impl(char *arg, struct char_data *ch, struct char_data *keeper,
+                                        int shop_nr)
 {
   char tempstr[MAX_INPUT_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'},
        tempbuf[MAX_INPUT_LENGTH] = {'\0'};

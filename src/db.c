@@ -13,6 +13,8 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "magic/buff_sequence.h"
+#include "vessels/transport_jobs.h"
 #include "movement/door_state.h"
 #include "utils.h"
 #include "db.h"
@@ -29,6 +31,7 @@
 #include "dgscript/dg_event.h"
 #include "domain_event_runtime.h"
 #include "domain_event_world.h"
+#include "domain_object_transfer.h"
 #include "activity_manager.h"
 #include "active_world.h"
 #include "periodic_owners.h"
@@ -207,7 +210,9 @@ struct player_special_data dummy_mob; /* dummy spec area for mobs	*/
 struct reset_q_type reset_q;          /* queue of zones to be reset	 */
 
 struct staffevent_struct staffevent_data = {
-    -1, 0, 3}; /* first value is event index which starts with 0, -1 means no event */
+    -1, 0,
+    3 * SECS_PER_MUD_HOUR *PASSES_PER_SEC}; /* first value is event index which starts with 0,
+                                               -1 means no event */
 struct happyhour happy_data = {0, 0, 0, 0, 0};
 
 /* declaration of local (file scope) variables */
@@ -4761,6 +4766,17 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   clear_char(mob);
 
   *mob = mob_proto[i];
+  mob->combat_turn_serial = 0U;
+  mob->bleeding_critical_event = EVENT_RUNTIME_HANDLE_NONE;
+  mob->phenomenon_interest_event = EVENT_RUNTIME_HANDLE_NONE;
+  mob->phenomenon_interest_id = 0U;
+  mob->bleeding_critical_due = 0U;
+  mob->bleeding_critical_turn = 0U;
+  mob->bleeding_critical_version = 0U;
+  mob->bleeding_critical_pulses = 0;
+  mob->defensive_casting_event = EVENT_RUNTIME_HANDLE_NONE;
+  mob->defensive_casting_due = 0U;
+  mob->defensive_casting_turn = 0U;
   mob->next = character_list;
   character_list = mob;
   affected_registry_attach(mob);
@@ -5606,7 +5622,18 @@ static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
   }
 
 /* execute the reset command table of a given zone */
+static void reset_zone_transfer_impl(zone_rnum zone);
+
 void reset_zone(zone_rnum zone)
+{
+  struct domain_transfer_context context;
+
+  domain_transfer_context_begin(&context, NULL, DOMAIN_TRANSFER_RESET);
+  reset_zone_transfer_impl(zone);
+  domain_transfer_context_finish(&context);
+}
+
+static void reset_zone_transfer_impl(zone_rnum zone)
 {
   int cmd_no = 0, jump = 0, total_rooms = 0, num_chests = 0, max_chests = 0;
   bool has_random_chests = false, has_random_traps = false, rol_last_mob_load = false;
@@ -5703,7 +5730,7 @@ void reset_zone(zone_rnum zone)
           Y_LOC(mob) = world[ZCMD.arg3].coords[1];
         }
 
-        char_to_room(mob, ZCMD.arg3);
+        char_to_room_cause(mob, ZCMD.arg3, NULL, DOMAIN_RELOCATION_SPAWN, -1);
         load_mtrigger(mob);
         set_mob_grouping(mob); // attempts to group AFF_GROUP mobs (utils.c)
         tmob = mob;
@@ -6969,6 +6996,8 @@ void free_char(struct char_data *ch)
   struct alias_data *a = NULL;
 
   active_world_forget_character(ch);
+  buff_sequence_cancel(ch);
+  transport_job_cancel(ch, true);
   primary_activity_forget_character(ch);
   character_periodic_forget(ch);
   point_update_character_forget(ch);
@@ -7240,6 +7269,8 @@ void free_obj_special_abilities(struct obj_special_ability *list)
 
 void free_obj(struct obj_data *obj)
 {
+  obj->transfer_extracting = true;
+  domain_object_disposed(obj);
   domain_event_world_forget_object(obj);
   point_update_object_forget(obj);
   autoproc_registry_remove(obj);
@@ -7484,7 +7515,7 @@ void clear_char(struct char_data *ch)
   GET_PFILEPOS(ch) = -1;
   GET_MOB_RNUM(ch) = NOBODY;
   GET_WAS_IN(ch) = NOWHERE;
-  ch->domain_previous_room = NOWHERE;
+  memset(&ch->domain_previous_room, 0, sizeof(ch->domain_previous_room));
   GET_POS(ch) = POS_STANDING;
   ch->mob_specials.default_pos = POS_STANDING;
   ch->events = NULL;

@@ -287,7 +287,7 @@ bool is_refine_ready(struct char_data *ch, bool verbose);
 void craft_refine_complete(struct char_data *ch);
 int get_craft_skill_value(struct char_data *ch, int skill_num);
 int craft_material_to_obj_material(int material);
-void craft_resize_complete(struct char_data *ch);
+void craft_resize_complete(struct char_data *ch, struct obj_data *obj);
 char *get_supply_order_item_desc(struct char_data *ch);
 int determine_supply_order_exp(struct char_data *ch);
 void craft_supplyorder_complete(struct char_data *ch);
@@ -380,7 +380,6 @@ void initialize_supply_slots(struct char_data *ch);
 void cleanup_supply_slots(struct char_data *ch);
 void refresh_supply_slots(struct char_data *ch);
 bool should_refresh_supply_slots(struct char_data *ch);
-void update_supply_slots_for_all_players(void);
 
 // Crafting station requirement functions
 bool has_quartermaster_in_room(struct char_data *ch);
@@ -399,5 +398,10 @@ bool can_repair_golem(struct char_data *ch, struct char_data *golem, int *materi
                       int *material_type);
 int get_golem_type_from_vnum(int vnum);
 int get_golem_size_from_vnum(int vnum);
+
+/* Reconstruct active crafting after login/copyover; offline time does not advance work. */
+void resume_craft_activity(struct char_data *ch);
+struct supply_contract *generate_available_contracts(struct char_data *ch, int *num_contracts);
+void free_contract_list(struct supply_contract *contracts, int num_contracts);
 
 #endif // NEWCRAFT_H

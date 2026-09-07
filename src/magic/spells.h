@@ -1570,7 +1570,7 @@
 #define ABILITY_BOARDING 27     /* Boarding actions and defense aboard vessels */
 #define ABILITY_SENSE_MOTIVE 28 /* sense motive, matches pfsrd */
 #define ABILITY_INSIGHT ABILITY_SENSE_MOTIVE
-#define ABILITY_SURVIVAL 29 /* survival, matches pfsrd */
+#define ABILITY_SURVIVAL 29 /* Persisted Nature slot; legacy Survival identifier. */
 #define ABILITY_NATURE ABILITY_SURVIVAL
 #define ABILITY_UNUSED_4 30         /* unused, used to be swim */
 #define ABILITY_USE_MAGIC_DEVICE 31 /* use magic device, matches pfsrd */
@@ -1992,6 +1992,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj, int spellnu
 void rem_room_aff(struct raff_node *raff);
 size_t affect_update_character_one(struct char_data *ch);
 size_t affect_update_room_one(struct room_data *room);
+size_t affect_update_room_until(struct room_data *room, uint64_t round);
 
 int call_magic(struct char_data *caster, struct char_data *cvict, struct obj_data *ovict,
                int spellnum, int metamagic, int level, int casttype);
@@ -2029,10 +2030,18 @@ bool isEpicSpell(int spellnum);
 int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool is_tele);
 
 /* spells.c */
-bool check_wall(struct char_data *victim, int dir);
+bool wall_blocks_movement(struct char_data *victim, room_rnum from_room, room_rnum to_room,
+                          int dir);
+void apply_wall_crossing(struct char_data *victim, room_rnum from_room, room_rnum to_room, int dir);
 void effect_charm(struct char_data *ch, struct char_data *victim, int spellnum, int casttype,
                   int level);
 bool is_wall_spell(int spellnum);
+
+#ifdef LUMINARI_CUTEST
+typedef bool (*wall_crossing_test_callback)(struct domain_entity_handle source,
+                                            struct char_data *victim, void *context);
+void wall_crossing_set_test_callback(wall_crossing_test_callback callback, void *context);
+#endif
 
 /* From magic.c */
 int compute_mag_saves(struct char_data *vict, int type, int modifier);

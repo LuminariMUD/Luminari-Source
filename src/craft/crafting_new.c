@@ -24,6 +24,8 @@
 #include "combat/assign_wpn_armor.h"
 #include "olc/genolc.h"
 #include "crafting_new.h"
+#include "activity_manager.h"
+#include "domain_event_world.h"
 #include "olc/oasis.h"
 #include "character/feats.h"
 #include "character/class.h"
@@ -160,8 +162,9 @@ struct supply_contract *generate_available_contracts(struct char_data *ch, int *
 void free_contract_list(struct supply_contract *contracts, int num_contracts);
 int select_contract_by_id(struct char_data *ch, int contract_id);
 int reject_contract_by_id(struct char_data *ch, int contract_id);
-void update_supply_slots_for_all_players(void);
 
+
+static bool start_craft_activity(struct char_data *ch, int method, int seconds);
 
 void assign_harvest_materials_to_word(void)
 {
@@ -2925,8 +2928,8 @@ void begin_current_craft(struct char_data *ch)
   if (seconds < 1)
     seconds = 1;
 
-  GET_CRAFT(ch).craft_duration = seconds;
-  GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_CREATE;
+  if (!start_craft_activity(ch, SCMD_NEWCRAFT_CREATE, seconds))
+    return;
 
   send_to_char(ch,
                "You begin creating %s. This will take a total of %d minutes and %d seconds.\r\n",
@@ -4705,7 +4708,7 @@ void newcraft_survey(struct char_data *ch, const char *argument __attribute__((u
   if (GET_CRAFT(ch).craft_duration > 0)
   {
     send_to_char(ch, "You cannot survey until you complete your current task. To cancel, type "
-                     "'cancel craft'.\r\n");
+                     "'activity cancel'.\r\n");
     return;
   }
 
@@ -4720,8 +4723,8 @@ void newcraft_survey(struct char_data *ch, const char *argument __attribute__((u
   else
     seconds = SURVEY_BASE_TIME;
 
-  GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_SURVEY;
-  GET_CRAFT(ch).craft_duration = seconds;
+  if (!start_craft_activity(ch, SCMD_NEWCRAFT_SURVEY, seconds))
+    return;
 
   send_to_char(ch, "You begin surveying the immediate area for harvestable materials.\r\n");
   act("$n starts surveying.", FALSE, ch, 0, 0, TO_ROOM);
@@ -4987,7 +4990,7 @@ void newcraft_harvest(struct char_data *ch, const char *argument __attribute__((
   if (GET_CRAFT(ch).craft_duration > 0)
   {
     send_to_char(ch, "You cannot harvest until you complete your current task. To cancel, type "
-                     "'cancel craft'.\r\n");
+                     "'activity cancel'.\r\n");
     return;
   }
 
@@ -5029,8 +5032,8 @@ void newcraft_harvest(struct char_data *ch, const char *argument __attribute__((
     }
   }
 
-  GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_HARVEST;
-  GET_CRAFT(ch).craft_duration = seconds;
+  if (!start_craft_activity(ch, SCMD_NEWCRAFT_HARVEST, seconds))
+    return;
 
   send_to_char(ch, "You begin %s.\r\n", harvesting_messages[world[IN_ROOM(ch)].harvest_material]);
   act("$n starts harvesting.", FALSE, ch, 0, 0, TO_ROOM);
@@ -5474,8 +5477,8 @@ void newcraft_refine(struct char_data *ch, const char *argument)
       return;
     }
 
-    GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_REFINE;
-    GET_CRAFT(ch).craft_duration = 10 * GET_CRAFT(ch).refining_result[1];
+    if (!start_craft_activity(ch, SCMD_NEWCRAFT_REFINE, 10 * GET_CRAFT(ch).refining_result[1]))
+      return;
     send_to_char(ch, "You begin refining %s.\r\n",
                  crafting_materials[GET_CRAFT(ch).refining_result[0]]);
     act("$n starts refining.", FALSE, ch, 0, 0, TO_ROOM);
@@ -5757,168 +5760,252 @@ int craft_misc_type_by_wear_loc(int wear_loc)
   return CRAFT_TYPE_NONE;
 }
 
-void craft_update(void)
+static void craft_activity_progress(struct char_data *ch, void *target, uint32_t completed,
+                                    uint32_t total, void *context)
 {
-  struct descriptor_data *d;
-  struct char_data *ch;
-  int i = 0;
+  int i;
   char buf[200];
 
-  for (d = descriptor_list; d; d = d->next)
+  (void)target;
+  (void)context;
+  GET_CRAFT(ch).craft_duration = (int)(total - completed);
+  if (PRF_FLAGGED(ch, PRF_NO_CRAFT_PROGRESS))
+    return;
+  switch (GET_CRAFT(ch).crafting_method)
   {
-    ch = d->character;
-
-    if (!ch)
-      continue;
-
-    if (GET_CRAFT(ch).craft_duration > 0)
+  case SCMD_NEWCRAFT_CREATE:
+    if (GET_CRAFT(ch).craft_duration % 5 == 0)
     {
-      GET_CRAFT(ch).craft_duration--;
-      GET_CRAFT(ch).craft_duration = MAX(GET_CRAFT(ch).craft_duration, 0);
-
-      if (GET_CRAFT(ch).craft_duration == 0)
-      {
-        switch (GET_CRAFT(ch).crafting_method)
-        {
-        case SCMD_NEWCRAFT_CREATE:
-          craft_create_complete(ch);
-          break;
-        case SCMD_NEWCRAFT_REFINE:
-          craft_refine_complete(ch);
-          break;
-        case SCMD_NEWCRAFT_RESIZE:
-          craft_resize_complete(ch);
-          break;
-        case SCMD_NEWCRAFT_GOLEM:
-          craft_golem_complete(ch);
-          break;
-        case SCMD_NEWCRAFT_SURVEY:
-          if (GET_CRAFT(ch).craft_duration && !PRF_FLAGGED(ch, PRF_NO_CRAFT_PROGRESS))
-          {
-            send_to_char(ch, "Surveying. ");
-            for (i = 0; i < GET_CRAFT(ch).craft_duration; i++)
-              send_to_char(ch, "*");
-            send_to_char(ch, "\r\n");
-          }
-          else
-          {
-            survey_complete(ch);
-          }
-          break;
-        case SCMD_NEWCRAFT_HARVEST:
-          if (GET_CRAFT(ch).craft_duration && !PRF_FLAGGED(ch, PRF_NO_CRAFT_PROGRESS))
-          {
-            if (world[IN_ROOM(ch)].harvest_material_amount <= 0)
-            {
-              send_to_char(ch, "The resource is depleted.\r\n");
-              GET_CRAFT(ch).crafting_method = 0;
-              GET_CRAFT(ch).craft_duration = 0;
-            }
-            else
-            {
-              snprintf(buf, sizeof(buf), "%s",
-                       harvesting_messages[world[IN_ROOM(ch)].harvest_material]);
-              CAP(buf);
-              send_to_char(ch, "%s. ", buf);
-              for (i = 0; i < GET_CRAFT(ch).craft_duration; i++)
-                send_to_char(ch, "*");
-              send_to_char(ch, "\r\n");
-            }
-          }
-          else
-          {
-            harvest_complete(ch);
-          }
-          break;
-        case SCMD_NEWCRAFT_SUPPLYORDER:
-          craft_supplyorder_complete(ch);
-          break;
-        }
-      }
-      else
-      {
-        if (!PRF_FLAGGED(ch, PRF_NO_CRAFT_PROGRESS))
-        {
-          switch (GET_CRAFT(ch).crafting_method)
-          {
-          case SCMD_NEWCRAFT_CREATE:
-            if (GET_CRAFT(ch).craft_duration % 5 == 0)
-            {
-              send_to_char(ch, "Crafting %s. ", GET_CRAFT(ch).short_description);
-              for (i = 0; i < GET_CRAFT(ch).craft_duration; i++)
-                send_to_char(ch, "*");
-              send_to_char(ch, "\r\n");
-            }
-            break;
-          case SCMD_NEWCRAFT_REFINE:
-            send_to_char(ch, "Refining %s. ", crafting_materials[GET_CRAFT(ch).refining_result[0]]);
-            for (i = 0; i < GET_CRAFT(ch).craft_duration; i++)
-              send_to_char(ch, "*");
-            send_to_char(ch, "\r\n");
-            break;
-          case SCMD_NEWCRAFT_SURVEY:
-            send_to_char(ch, "Surveying. ");
-            for (i = 0; i < GET_CRAFT(ch).craft_duration; i++)
-              send_to_char(ch, "*");
-            send_to_char(ch, "\r\n");
-            break;
-          case SCMD_NEWCRAFT_RESIZE:
-            send_to_char(ch, "Resizing. ");
-            for (i = 0; i < GET_CRAFT(ch).craft_duration; i++)
-              send_to_char(ch, "*");
-            send_to_char(ch, "\r\n");
-            break;
-          case SCMD_NEWCRAFT_GOLEM:
-          {
-            const char *golem_type_names[] = {"", "wood", "stone", "iron"};
-            const char *golem_size_names[] = {"small", "medium", "large", "huge"};
-            if (GET_CRAFT(ch).craft_duration % 5 == 0)
-            {
-              send_to_char(ch,
-                           "Constructing a %s %s golem. (Turn on 'no craft progress' in prefedit "
-                           "to hide this)",
-                           golem_size_names[GET_CRAFT(ch).golem_size],
-                           golem_type_names[GET_CRAFT(ch).golem_type]);
-              for (i = 0; i < GET_CRAFT(ch).craft_duration; i++)
-                send_to_char(ch, "*");
-              send_to_char(ch, "\r\n");
-            }
-          }
-          break;
-          case SCMD_NEWCRAFT_HARVEST:
-            if (world[IN_ROOM(ch)].harvest_material_amount <= 0)
-            {
-              send_to_char(ch, "The resource is depleted.\r\n");
-              GET_CRAFT(ch).crafting_method = 0;
-              GET_CRAFT(ch).craft_duration = 0;
-            }
-            else if (GET_CRAFT(ch).craft_duration % 2 == 0)
-            {
-              snprintf(buf, sizeof(buf), "%s",
-                       harvesting_messages[world[IN_ROOM(ch)].harvest_material]);
-              CAP(buf);
-              send_to_char(ch, "%s. ", buf);
-              for (i = 0; i < GET_CRAFT(ch).craft_duration; i++)
-                send_to_char(ch, "*");
-              send_to_char(ch, "\r\n");
-            }
-            break;
-          case SCMD_NEWCRAFT_SUPPLYORDER:
-            if (GET_CRAFT(ch).craft_duration % 5 == 0)
-            {
-              send_to_char(ch, "Supply Order Requistion #%d. ",
-                           GET_CRAFT(ch).supply_num_required -
-                               num_supply_order_requisitions_to_go(ch) + 1);
-              for (i = 0; i < GET_CRAFT(ch).craft_duration; i++)
-                send_to_char(ch, "*");
-              send_to_char(ch, "\r\n");
-            }
-            break;
-          }
-        }
-      }
+      send_to_char(ch, "Crafting %s. ", GET_CRAFT(ch).short_description);
+      for (i = 0; i < GET_CRAFT(ch).craft_duration; i++)
+        send_to_char(ch, "*");
+      send_to_char(ch, "\r\n");
+    }
+    break;
+  case SCMD_NEWCRAFT_REFINE:
+    send_to_char(ch, "Refining %s. ", crafting_materials[GET_CRAFT(ch).refining_result[0]]);
+    for (i = 0; i < GET_CRAFT(ch).craft_duration; i++)
+      send_to_char(ch, "*");
+    send_to_char(ch, "\r\n");
+    break;
+  case SCMD_NEWCRAFT_SURVEY:
+    send_to_char(ch, "Surveying. ");
+    for (i = 0; i < GET_CRAFT(ch).craft_duration; i++)
+      send_to_char(ch, "*");
+    send_to_char(ch, "\r\n");
+    break;
+  case SCMD_NEWCRAFT_RESIZE:
+    send_to_char(ch, "Resizing. ");
+    for (i = 0; i < GET_CRAFT(ch).craft_duration; i++)
+      send_to_char(ch, "*");
+    send_to_char(ch, "\r\n");
+    break;
+  case SCMD_NEWCRAFT_GOLEM:
+  {
+    const char *golem_type_names[] = {"", "wood", "stone", "iron"};
+    const char *golem_size_names[] = {"small", "medium", "large", "huge"};
+    if (GET_CRAFT(ch).craft_duration % 5 == 0)
+    {
+      send_to_char(ch,
+                   "Constructing a %s %s golem. (Turn on 'no craft progress' in prefedit "
+                   "to hide this)",
+                   golem_size_names[GET_CRAFT(ch).golem_size],
+                   golem_type_names[GET_CRAFT(ch).golem_type]);
+      for (i = 0; i < GET_CRAFT(ch).craft_duration; i++)
+        send_to_char(ch, "*");
+      send_to_char(ch, "\r\n");
     }
   }
+  break;
+  case SCMD_NEWCRAFT_HARVEST:
+    if (world[IN_ROOM(ch)].harvest_material_amount <= 0)
+    {
+      send_to_char(ch, "The resource is depleted.\r\n");
+      GET_CRAFT(ch).crafting_method = 0;
+      GET_CRAFT(ch).craft_duration = 0;
+    }
+    else if (GET_CRAFT(ch).craft_duration % 2 == 0)
+    {
+      snprintf(buf, sizeof(buf), "%s", harvesting_messages[world[IN_ROOM(ch)].harvest_material]);
+      CAP(buf);
+      send_to_char(ch, "%s. ", buf);
+      for (i = 0; i < GET_CRAFT(ch).craft_duration; i++)
+        send_to_char(ch, "*");
+      send_to_char(ch, "\r\n");
+    }
+    break;
+  case SCMD_NEWCRAFT_SUPPLYORDER:
+    if (GET_CRAFT(ch).craft_duration % 5 == 0)
+    {
+      send_to_char(ch, "Supply Order Requistion #%d. ",
+                   GET_CRAFT(ch).supply_num_required - num_supply_order_requisitions_to_go(ch) + 1);
+      for (i = 0; i < GET_CRAFT(ch).craft_duration; i++)
+        send_to_char(ch, "*");
+      send_to_char(ch, "\r\n");
+    }
+    break;
+  }
+  if (GET_CRAFT(ch).craft_duration == 0)
+    primary_activity_cancel(ch, PRIMARY_ACTIVITY_END_RECHECK_FAILED, false);
+}
+
+static void craft_activity_complete(struct char_data *ch, void *target, void *context)
+{
+  int method = (int)(intptr_t)context;
+
+  (void)target;
+  GET_CRAFT(ch).craft_duration = 0;
+  switch (method)
+  {
+  case SCMD_NEWCRAFT_CREATE:
+    craft_create_complete(ch);
+    break;
+  case SCMD_NEWCRAFT_REFINE:
+    craft_refine_complete(ch);
+    break;
+  case SCMD_NEWCRAFT_RESIZE:
+    craft_resize_complete(ch, target);
+    break;
+  case SCMD_NEWCRAFT_GOLEM:
+    craft_golem_complete(ch);
+    break;
+  case SCMD_NEWCRAFT_SURVEY:
+    survey_complete(ch);
+    break;
+  case SCMD_NEWCRAFT_HARVEST:
+    harvest_complete(ch);
+    break;
+  case SCMD_NEWCRAFT_SUPPLYORDER:
+    craft_supplyorder_complete(ch);
+    break;
+  }
+}
+
+static bool craft_activity_recheck(struct char_data *ch, void *target, void *context)
+{
+  int method = (int)(intptr_t)context;
+
+  if (ch->desc == NULL || STATE(ch->desc) != CON_PLAYING || FIGHTING(ch) != NULL ||
+      IN_ROOM(ch) == NOWHERE || GET_CRAFT(ch).craft_duration <= 0 ||
+      GET_CRAFT(ch).crafting_method != method)
+    return false;
+  if (method == SCMD_NEWCRAFT_RESIZE)
+    return ((struct obj_data *)target)->carried_by == ch;
+  if (target != &world[IN_ROOM(ch)])
+    return false;
+  if (method == SCMD_NEWCRAFT_HARVEST)
+    return world[IN_ROOM(ch)].harvest_material_amount > 0 &&
+           has_proper_harvesting_tool_equipped(ch);
+  if (method == SCMD_NEWCRAFT_CREATE || method == SCMD_NEWCRAFT_REFINE)
+    return has_crafting_station_in_room(ch, GET_CRAFT(ch).skill_type);
+  if (method == SCMD_NEWCRAFT_SUPPLYORDER)
+    return has_crafting_station_in_room(
+        ch, recipe_skill_to_actual_crafting_skill(GET_CRAFT(ch).skill_type));
+  return true;
+}
+
+static void craft_activity_ended(struct char_data *ch, enum primary_activity_end_reason reason,
+                                 void *context)
+{
+  (void)context;
+  /* Offline work pauses: CrDu remains the authoritative saved remainder.
+   * Ordinary cancellations keep project materials available for reset/refund. */
+  if (reason == PRIMARY_ACTIVITY_END_SHUTDOWN || reason == PRIMARY_ACTIVITY_END_EXTRACTED ||
+      ch->desc == NULL)
+    return;
+  GET_CRAFT(ch).craft_duration = 0;
+  if (GET_CRAFT(ch).crafting_method == SCMD_NEWCRAFT_SURVEY)
+    ch->player_specials->surveyed_room = false;
+}
+
+static bool start_craft_activity(struct char_data *ch, int method, int seconds)
+{
+  struct primary_activity_definition definition = {0};
+  struct primary_activity_snapshot snapshot;
+  struct domain_entity_handle target, actor;
+  struct obj_data *object;
+  int old_method, old_duration;
+
+  if (ch == NULL || IS_NPC(ch) || seconds <= 0 || ch->desc == NULL ||
+      STATE(ch->desc) != CON_PLAYING || IN_ROOM(ch) == NOWHERE || FIGHTING(ch) != NULL ||
+      primary_activity_snapshot(ch, &snapshot))
+    return false;
+  target = domain_event_room_handle(IN_ROOM(ch));
+  if (method == SCMD_NEWCRAFT_RESIZE)
+  {
+    object = find_obj_rnum_in_inventory(ch, GET_CRAFT(ch).craft_obj_rnum);
+    if (object == NULL)
+      return false;
+    target = domain_event_object_handle(object);
+  }
+  switch (method)
+  {
+  case SCMD_NEWCRAFT_CREATE:
+    definition.display_name = "crafting an item";
+    break;
+  case SCMD_NEWCRAFT_REFINE:
+    definition.display_name = "refining materials";
+    break;
+  case SCMD_NEWCRAFT_RESIZE:
+    definition.display_name = "resizing equipment";
+    break;
+  case SCMD_NEWCRAFT_GOLEM:
+    definition.display_name = "constructing a golem";
+    break;
+  case SCMD_NEWCRAFT_SURVEY:
+    definition.display_name = "surveying";
+    break;
+  case SCMD_NEWCRAFT_HARVEST:
+    definition.display_name = "harvesting";
+    break;
+  case SCMD_NEWCRAFT_SUPPLYORDER:
+    definition.display_name = "working on a supply order";
+    break;
+  default:
+    return false;
+  }
+  definition.type = PRIMARY_ACTIVITY_CRAFT;
+  definition.capabilities = PRIMARY_ACTIVITY_CAP_HANDS | PRIMARY_ACTIVITY_CAP_ATTENTION;
+  definition.traits = PRIMARY_ACTIVITY_TRAIT_STATIONARY | PRIMARY_ACTIVITY_TRAIT_HANDS_OCCUPIED;
+  definition.progress_model = PRIMARY_ACTIVITY_PROGRESS_PROGRESSIVE;
+  definition.total_steps = (uint32_t)seconds;
+  definition.step_interval = PASSES_PER_SEC;
+  definition.wall_clock = true;
+  definition.movement_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.combat_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.damage_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.target_loss_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.command_response = PRIMARY_ACTIVITY_RESPONSE_REJECT;
+  definition.recheck = craft_activity_recheck;
+  definition.progress = craft_activity_progress;
+  definition.complete = craft_activity_complete;
+  definition.ended = craft_activity_ended;
+  definition.context = (void *)(intptr_t)method;
+  old_method = GET_CRAFT(ch).crafting_method;
+  old_duration = GET_CRAFT(ch).craft_duration;
+  GET_CRAFT(ch).crafting_method = method;
+  GET_CRAFT(ch).craft_duration = seconds;
+  actor = domain_event_character_handle(ch);
+  if (!primary_activity_start(ch, target, &definition))
+  {
+    GET_CRAFT(ch).crafting_method = old_method;
+    GET_CRAFT(ch).craft_duration = old_duration;
+    send_to_char(ch, "Your crafting task could not be scheduled. Please try again.\r\n");
+    return false;
+  }
+  ch = domain_event_world_resolve_character(actor);
+  return ch != NULL && primary_activity_snapshot(ch, &snapshot) &&
+         snapshot.type == PRIMARY_ACTIVITY_CRAFT;
+}
+
+void resume_craft_activity(struct char_data *ch)
+{
+  struct primary_activity_snapshot snapshot;
+
+  if (ch == NULL || IS_NPC(ch) || GET_CRAFT(ch).craft_duration <= 0 ||
+      primary_activity_snapshot(ch, &snapshot))
+    return;
+  (void)start_craft_activity(ch, GET_CRAFT(ch).crafting_method, GET_CRAFT(ch).craft_duration);
 }
 
 ACMD(do_setmaterial)
@@ -6670,12 +6757,11 @@ struct obj_data *find_obj_rnum_in_inventory(struct char_data *ch, obj_rnum obj_r
   return NULL;
 }
 
-void craft_resize_complete(struct char_data *ch)
+void craft_resize_complete(struct char_data *ch, struct obj_data *obj)
 {
   int skill, cmat, size, dc;
-  struct obj_data *obj = find_obj_rnum_in_inventory(ch, GET_CRAFT(ch).craft_obj_rnum);
 
-  if (!obj)
+  if (obj == NULL || obj->carried_by != ch)
   {
     send_to_char(ch,
                  "There's an issue with your resize project. Please inform a staff member.\r\n");
@@ -7296,8 +7382,8 @@ void newcraft_resize(struct char_data *ch, const char *argument)
       send_to_char(ch, "You need to set you resize object first.\r\n");
       return;
     }
-    GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_RESIZE;
-    GET_CRAFT(ch).craft_duration = 10;
+    if (!start_craft_activity(ch, SCMD_NEWCRAFT_RESIZE, 10))
+      return;
     send_to_char(ch, "You begin resizing %s to %s.\r\n", obj->short_description,
                  sizes[GET_CRAFT(ch).new_size]);
     return;
@@ -8109,7 +8195,8 @@ void start_supply_order(struct char_data *ch)
       return;
     }
 
-    GET_CRAFT(ch).craft_duration = NSUPPLY_ORDER_DURATION;
+    if (!start_craft_activity(ch, SCMD_NEWCRAFT_SUPPLYORDER, NSUPPLY_ORDER_DURATION))
+      return;
     send_to_char(ch, "You begin working on your supply order.\r\n");
   }
 }
@@ -8596,7 +8683,8 @@ void cleanup_supply_slots(struct char_data *ch)
   }
 }
 
-// Check if it's time to refresh supply order slots (1 hour = 3600 seconds)
+/* Supply offers age by wall-clock time, including time spent offline.
+ * Generate lazily on list/status access; active offers are never replaced. */
 bool should_refresh_supply_slots(struct char_data *ch)
 {
   time_t now = time(NULL);
@@ -9151,28 +9239,6 @@ int reject_contract_by_id(struct char_data *ch, int contract_id)
   return 1; // Success
 }
 
-// Called from comm.c every second to check and refresh supply slots for all online players
-void update_supply_slots_for_all_players(void)
-{
-  struct descriptor_data *d;
-  struct char_data *ch;
-
-  for (d = descriptor_list; d; d = d->next)
-  {
-    if (STATE(d) != CON_PLAYING || !(ch = d->character))
-      continue;
-
-    if (IS_NPC(ch))
-      continue;
-
-    // Update this player's online time and check for slot refresh
-    if (should_refresh_supply_slots(ch))
-    {
-      refresh_supply_slots(ch);
-    }
-  }
-}
-
 // Phase 3: Advanced Features Implementation
 
 // Reputation system functions
@@ -9391,6 +9457,9 @@ void show_supply_order_cooldowns(struct char_data *ch)
   {
     return;
   }
+
+  if (should_refresh_supply_slots(ch))
+    refresh_supply_slots(ch);
 
   text_line(ch, "SUPPLY ORDER TIMING INFORMATION", 90, '-', '-');
 
@@ -10096,8 +10165,8 @@ bool begin_golem_craft(struct char_data *ch)
   // Calculate craft time (base 2 minutes per size tier + 1 minute base)
   seconds = CREATE_BASE_TIME + (GET_CRAFT(ch).golem_size * 60);
 
-  GET_CRAFT(ch).crafting_method = SCMD_NEWCRAFT_GOLEM;
-  GET_CRAFT(ch).craft_duration = seconds;
+  if (!start_craft_activity(ch, SCMD_NEWCRAFT_GOLEM, seconds))
+    return false;
   GET_CRAFT(ch).dc = get_golem_base_dc(GET_CRAFT(ch).golem_type, GET_CRAFT(ch).golem_size);
   GET_CRAFT(ch).skill_type = ABILITY_ARCANA; // Use Arcana skill for golem crafting
 
@@ -10417,10 +10486,7 @@ void newcraft_golem(struct char_data *ch, const char *argument)
   }
   else if (is_abbrev(arg1, "start") || is_abbrev(arg1, "begin"))
   {
-    if (begin_golem_craft(ch))
-    {
-      GET_CRAFT(ch).craft_duration = MAX(GET_CRAFT(ch).craft_duration, 1);
-    }
+    (void)begin_golem_craft(ch);
   }
   else
   {

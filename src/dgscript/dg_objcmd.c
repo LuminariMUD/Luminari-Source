@@ -484,7 +484,7 @@ static OCMD(do_oteleport)
         Y_LOC(ch) = world[target].coords[1];
       }
 
-      char_to_room(ch, target);
+      char_to_room_cause(ch, target, NULL, DOMAIN_RELOCATION_SCRIPT, -1);
       char_pets_to_char_loc(ch);
       enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
     }
@@ -512,7 +512,7 @@ static OCMD(do_oteleport)
           Y_LOC(ch) = world[target].coords[1];
         }
 
-        char_to_room(ch, target);
+        char_to_room_cause(ch, target, NULL, DOMAIN_RELOCATION_SCRIPT, -1);
         char_pets_to_char_loc(ch);
         enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
       }
@@ -581,7 +581,7 @@ static OCMD(do_dgoload)
       Y_LOC(mob) = world[rnum].coords[1];
     }
 
-    char_to_room(mob, rnum);
+    char_to_room_cause(mob, rnum, NULL, DOMAIN_RELOCATION_SPAWN, -1);
 
     if (SCRIPT(obj))
     { /* It _should_ have, but it might be detached. */

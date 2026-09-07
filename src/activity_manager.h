@@ -15,6 +15,8 @@ enum primary_activity_type
   PRIMARY_ACTIVITY_CAMP,
   PRIMARY_ACTIVITY_TEST,
   PRIMARY_ACTIVITY_CASTING,
+  PRIMARY_ACTIVITY_CRAFT,
+  PRIMARY_ACTIVITY_SEARCH,
   PRIMARY_ACTIVITY_TYPE_COUNT
 };
 
@@ -84,7 +86,8 @@ enum primary_activity_end_reason
   PRIMARY_ACTIVITY_END_COMMAND,
   PRIMARY_ACTIVITY_END_SHUTDOWN,
   PRIMARY_ACTIVITY_END_INTERNAL,
-  PRIMARY_ACTIVITY_END_DAMAGED
+  PRIMARY_ACTIVITY_END_DAMAGED,
+  PRIMARY_ACTIVITY_END_COUNTERED
 };
 
 /* A timed step returns pulses until the next step, or zero to complete. */
@@ -167,6 +170,9 @@ bool primary_activity_start(struct char_data *actor, struct domain_entity_handle
                             const struct primary_activity_definition *definition);
 bool primary_activity_cancel(struct char_data *actor, enum primary_activity_end_reason reason,
                              bool notify);
+/* Cancel only the observed incarnation; a replacement activity is unaffected. */
+bool primary_activity_cancel_id(struct char_data *actor, uint64_t activity_id,
+                                enum primary_activity_end_reason reason, bool notify);
 bool primary_activity_pause(struct char_data *actor, bool notify);
 bool primary_activity_resume(struct char_data *actor, bool notify);
 bool primary_activity_command_admit(struct char_data *actor, const char *command,

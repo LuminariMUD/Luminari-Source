@@ -139,6 +139,9 @@ This table is checked against `src/quest/quest.h` and the display table in
 | 22 | AQ_GIVE_GOLD | Give Gold | Non-negative gold threshold; return mobile required. |
 | 23 | AQ_MOB_MULTI_KILL | Kill Multi Mob (comma-separated vnums) | Not persistable in the Luminari grammar. |
 | 24 | AQ_DIALOGUE | Dialogue Quest | Mobile VNUM plus dialogue fields. |
+| 25 | AQ_MOB_RESOLVE | Resolve Mob Nonlethally | Mobile VNUM; rescue or successful negotiation. |
+| 26 | AQ_SKILL_SUCCESS | Succeed at Ability | Ability number from `src/magic/spells.h`. |
+| 27 | AQ_WITNESS_PHENOMENON | Witness Phenomenon | Phenomenon kind from `src/domain_event_types.h`; credit requires perception. |
 
 `AQ_UNDEFINED` is `-1`, outside the indexed display table. It is an explicit
 unavailable state and does not by itself produce a validator finding.

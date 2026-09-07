@@ -600,7 +600,7 @@ void TestConvertedRolFeatHelpSourcesAreComplete(CuTest *tc)
   static const char *prerequisite_text[] = {"5 ranks of perform",
                                             "free at level 2",
                                             "charisma 19",
-                                            "3 ranks of survival",
+                                            "3 ranks of nature",
                                             "14 ranks of stealth and BAB 8",
                                             "21 ranks of stealth"};
   size_t i = 0;
