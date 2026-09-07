@@ -24,11 +24,11 @@ from .rol_mobiles import (
     _mobile_row_diagnostic,
     _parse_mob,
 )
-from .rol_objects import SOURCE_AFFECT_WORDS, SOURCE_ECONOMY_FIELDS, _parse_obj
-from .rol_quests import _parse_qst, _quest_arguments
+from .rol_objects import _parse_obj
+from .rol_quests import _parse_qst
 from .rol_rooms import _parse_wld
-from .rol_shops import _SHOP_HEADER, _SHOP_KEYWORDS, _parse_shp
-from .rol_soc import _SOC_HEADER, _SOC_KEYS, _SOC_LOOSE_HEADER, _parse_soc
+from .rol_shops import _parse_shp
+from .rol_soc import _parse_soc
 from .rol_source_common import (
     _HEADER,
     _INTEGER,
@@ -45,10 +45,8 @@ from .rol_source_common import (
     _segment_hash,
     _segments,
 )
-from .rol_zones import _RESET_COMMANDS, _leading_integers, _parse_zon, _reset_references
+from .rol_zones import _parse_zon
 from .source import SourceFile
-
-from .source import SourceLine
 
 
 ROL_SOURCE_SCHEMA_VERSION = 1

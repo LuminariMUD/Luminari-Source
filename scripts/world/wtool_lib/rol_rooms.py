@@ -17,7 +17,7 @@ from .rol_source_common import (
     _segments,
 )
 from .rol_transform_common import (
-    _TARGET_MAX_LEVEL,
+    TARGET_MAX_LEVEL,
     _encoded,
     _mapped_bits,
     _source_mask_bits,
@@ -418,18 +418,18 @@ def emit_room(
               f"source line {directive['line']}"
           )
         minimum_level = -1
-      elif minimum_level > _TARGET_MAX_LEVEL:
+      elif minimum_level > TARGET_MAX_LEVEL:
         raise ValueError(
             f"source room minimum level {minimum_level} exceeds target maximum "
-            f"{_TARGET_MAX_LEVEL} at "
+            f"{TARGET_MAX_LEVEL} at "
             f"source line {directive['line']}"
         )
-      if maximum_level < 1 or maximum_level > _TARGET_MAX_LEVEL:
+      if maximum_level < 1 or maximum_level > TARGET_MAX_LEVEL:
         if maximum_level != -1:
           diagnostics.append(
               f"normalized source room maximum level {maximum_level} to unrestricted at "
               f"source line {directive['line']} because the target maximum level is "
-              f"{_TARGET_MAX_LEVEL}"
+              f"{TARGET_MAX_LEVEL}"
           )
         maximum_level = -1
       if minimum_level > 0 and maximum_level > 0 and minimum_level > maximum_level:

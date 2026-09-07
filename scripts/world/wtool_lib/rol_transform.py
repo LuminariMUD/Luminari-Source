@@ -107,7 +107,6 @@ from .rol_shops import (
 )
 from .rol_transform_common import (
     _SOURCE_COLOR,
-    _TARGET_MAX_LEVEL,
     _directive_rows,
     _encoded,
     _mapped_bits,
