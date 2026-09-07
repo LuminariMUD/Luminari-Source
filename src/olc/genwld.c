@@ -6,6 +6,7 @@
  **************************************************************************/
 
 #include "conf.h"
+#include "vessels/moving_room_events.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "movement/door_state.h"
@@ -51,6 +52,7 @@ static void clear_new_room_runtime_ownership(struct room_data *room)
 {
   if (room == NULL)
     return;
+  room->moving_room_event = EVENT_RUNTIME_HANDLE_NONE;
   room->event_owner_generation = 0U;
   room->periodic_event_generation = 0U;
   room->room_affections = 0L;
@@ -128,6 +130,11 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
 
   if (room == NULL)
     return NOWHERE;
+  if (room->mover != NULL && room->mover->destination != room->number)
+  {
+    log("SYSERR: refusing moving-room metadata copied to a different vnum.");
+    return NOWHERE;
+  }
 
   if ((i = real_room(room->number)) != NOWHERE)
   {
@@ -245,6 +252,8 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
   if (persistent)
     add_to_save_list(zone_table[room->zone].number, SL_WLD);
 
+  if (!moving_room_event_sync(found))
+    log("SYSERR: unable to schedule new moving room #%d.", world[found].number);
   /* Return what array entry we placed the new room in. */
   return found;
 }
@@ -301,6 +310,7 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
   /* This is something you might want to read about in the logs. */
   log("GenOLC: delete_room: Deleting room #%d (%s).", room->number, room->name);
 
+  moving_room_event_forget(rnum);
   affected_room_owners_remove_room(rnum);
 
   if (r_mortal_start_room == rnum)
@@ -826,6 +836,7 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   struct room_data *affected_next;
   struct room_data *affected_prev;
   struct event_runtime_handle affected_event_handle;
+  struct event_runtime_handle moving_room_event;
   size_t affected_count;
   bool affected_registered;
   long room_affections;
@@ -851,6 +862,9 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   if (live_room != NOWHERE && &world[live_room] == to)
     for (direction = 0; direction < NUM_OF_DIRS; direction++)
       door_state_begin(&doors[direction], live_room, direction, false, DOMAIN_DOOR_EDIT);
+  if (live_room != NOWHERE && &world[live_room] == to && to->mover != from->mover)
+    moving_room_event_forget(live_room);
+  moving_room_event = to->moving_room_event;
   free_room_strings(to);
   free_trap_list(to->traps);
   spec_binding_free(&to->spec_binding);
@@ -865,6 +879,7 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   to->affected_next = affected_next;
   to->affected_prev = affected_prev;
   to->affected_event_handle = affected_event_handle;
+  to->moving_room_event = moving_room_event;
   to->affected_count = affected_count;
   to->affected_registered = affected_registered;
   to->room_affections = room_affections;
@@ -877,6 +892,8 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   from->events = NULL;
   for (direction = 0; direction < NUM_OF_DIRS; direction++)
     door_state_finish(&doors[direction]);
+  if (live_room != NOWHERE && &world[live_room] == to && !moving_room_event_sync(live_room))
+    log("SYSERR: unable to schedule edited moving room #%d.", to->number);
   return TRUE;
 }
 
@@ -958,8 +975,9 @@ void dump_moving(struct moving_room_data *mr, struct char_data *ch)
 
   if (mr)
   {
-    snprintf(pdh, sizeof(pdh), "Reset: %d (%d left)\r\n", mr->resetZonePulse,
-             mr->remainingZonePulses);
+    snprintf(pdh, sizeof(pdh),
+             "Reset: %d ten-second units (%d seconds left; -1 means unscheduled)\r\n",
+             mr->resetZonePulse, moving_room_remaining_seconds(real_room(mr->destination)));
     send_to_char(ch, "%s", pdh);
     snprintf(pdh, sizeof(pdh), "Current Inbound Idx: %d\r\n", mr->currentInbound);
     send_to_char(ch, "%s", pdh);

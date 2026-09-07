@@ -32,6 +32,8 @@
 #include "quest/quest.h"
 #include "net/discord_bridge.h"
 #include "obj/spec_artifacts.h"
+#include "domain_event_runtime.h"
+#include "domain_event_world.h"
 
 ACMDU(do_rsay)
 {
@@ -1243,6 +1245,7 @@ ACMD(do_dialogue_quest)
 
   int roll_for = 0, skill_for = 0;
   int skill_dc = -1;
+  int ability = ABILITY_UNDEFINED;
   int index = -1, quest_slot = -1, next_quest = 0;
   qst_rnum rnum = NOTHING, quest = NOTHING;
   struct char_data *target = NULL, *i = NULL;
@@ -1293,6 +1296,7 @@ ACMD(do_dialogue_quest)
       return;
     }
     skill_for = compute_ability(ch, ABILITY_DIPLOMACY);
+    ability = ABILITY_DIPLOMACY;
     snprintf(buf, sizeof(buf),
              "You attempt to convince $N to do your will.\r\n"
              "You roll %d + %d for a total diplomacy skill of %d vs. DC %d.",
@@ -1306,6 +1310,7 @@ ACMD(do_dialogue_quest)
       return;
     }
     skill_for = compute_ability(ch, ABILITY_INTIMIDATE);
+    ability = ABILITY_INTIMIDATE;
     snprintf(buf, sizeof(buf),
              "You attempt to threaten $N into doing your will.\r\n"
              "You roll %d + %d for a total intimidate skill of %d vs. DC %d.",
@@ -1319,6 +1324,7 @@ ACMD(do_dialogue_quest)
       return;
     }
     skill_for = compute_ability(ch, ABILITY_BLUFF);
+    ability = ABILITY_BLUFF;
     snprintf(buf, sizeof(buf),
              "You attempt to beguile $N into doing your will.\r\n"
              "You roll %d + %d for a total bluff skill of %d vs. DC %d.",
@@ -1328,6 +1334,10 @@ ACMD(do_dialogue_quest)
   }
 
   next_quest = aquest_table[quest].dialogue_alternative_quest;
+
+  (void)domain_event_runtime_skill_resolved(ch, domain_event_character_handle(target), ability,
+                                            roll_for, skill_for, skill_dc,
+                                            roll_for + skill_for >= skill_dc);
 
   // success
   if ((roll_for + skill_for) >= skill_dc)
@@ -1344,7 +1354,9 @@ ACMD(do_dialogue_quest)
       act("You succeed in beguiling $N!", FALSE, ch, 0, target, TO_CHAR);
       break;
     }
-    generic_complete_quest(ch, quest_slot);
+    if (domain_event_runtime_character_resolved(ch, target, DOMAIN_CHARACTER_RESOLUTION_NEGOTIATED,
+                                                ability) != DOMAIN_EVENT_OK)
+      generic_complete_quest(ch, quest_slot);
     add_completed_quest(ch, next_quest);
   }
   // failure

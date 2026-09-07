@@ -42,6 +42,7 @@
 #include "vessels/routing.h"
 #include "movement/movement_validation.h"
 #include "character_periodic.h"
+#include "domain_event_world.h"
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
@@ -105,79 +106,139 @@ struct wall_information wallinfo[NUM_WALL_TYPES] = {
      "wall perilous fire", 0},
 };
 
-/* called from movement, etc..  basically make the wall work - we will try
-   to identify the wall creator in this function, if no creator is found,
-   then we will use WALL_LEVEL plus the victim himself as the "creator" */
-bool check_wall(struct char_data *victim, int dir)
+static bool wall_type_valid(const struct obj_data *wall)
 {
-  struct obj_data *wall = NULL;
-  struct char_data *ch = NULL;
-  int level = 0;
-  bool found_player = FALSE; /* you can pass through your own walls */
-  int wall_spellnum = 0;
-  int casttype = CAST_WALL;
+  int type;
 
-  for (wall = world[victim->in_room].contents; wall; wall = wall->next_content)
+  if (wall == NULL || GET_OBJ_TYPE(wall) != ITEM_WALL)
+    return false;
+  type = GET_OBJ_VAL(wall, WALL_TYPE);
+  return type >= 0 && type < NUM_WALL_TYPES;
+}
+
+static bool wall_affects_character(struct obj_data *wall, struct char_data *victim,
+                                   struct char_data **creator)
+{
+  int spellnum;
+
+  *creator = find_char(GET_OBJ_VAL(wall, WALL_IDNUM));
+  if (*creator == NULL)
+    return true;
+  spellnum = wallinfo[GET_OBJ_VAL(wall, WALL_TYPE)].spell_num;
+  return aoeOK(*creator, victim, spellnum);
+}
+
+static struct obj_data *blocking_wall_in_room(struct char_data *victim, room_rnum room, int dir)
+{
+  struct obj_data *wall;
+  struct char_data *creator;
+
+  if (victim == NULL || world == NULL || room == NOWHERE || room > top_of_world || dir < 0 ||
+      dir >= NUM_OF_DIRS)
+    return NULL;
+  for (wall = world[room].contents; wall != NULL; wall = wall->next_content)
+    if (wall_type_valid(wall) && GET_OBJ_VAL(wall, WALL_DIR) == dir &&
+        wallinfo[GET_OBJ_VAL(wall, WALL_TYPE)].stops_movement &&
+        wall_affects_character(wall, victim, &creator))
+      return wall;
+  return NULL;
+}
+
+/* Passability is a pre-move decision. Inspect both authored sides of the edge
+ * before changing rooms so a destination wall never requires a rollback. */
+bool wall_blocks_movement(struct char_data *victim, room_rnum from_room, room_rnum to_room, int dir)
+{
+  struct obj_data *wall;
+
+  wall = blocking_wall_in_room(victim, from_room, dir);
+  if (wall == NULL)
+    wall = blocking_wall_in_room(victim, to_room, rev_dir[dir]);
+  if (wall == NULL)
+    return false;
+  act("You bump into $p.", FALSE, victim, wall, NULL, TO_CHAR);
+  act("$n bumps into $p.", FALSE, victim, wall, NULL, TO_ROOM);
+  return true;
+}
+
+#ifdef LUMINARI_CUTEST
+static wall_crossing_test_callback wall_test_callback;
+static void *wall_test_context;
+
+void wall_crossing_set_test_callback(wall_crossing_test_callback callback, void *context)
+{
+  wall_test_callback = callback;
+  wall_test_context = context;
+}
+#endif
+
+static bool apply_wall_crossings_in_room(struct char_data *victim, room_rnum room, int dir)
+{
+  struct domain_entity_handle victim_identity;
+  struct domain_entity_handle wall_identity;
+  struct domain_entity_handle next_identity;
+  struct obj_data *wall;
+  struct obj_data *next;
+  struct char_data *creator;
+  int level;
+  int spellnum;
+
+  if (victim == NULL || world == NULL || room == NOWHERE || room > top_of_world || dir < 0 ||
+      dir >= NUM_OF_DIRS)
+    return false;
+  victim_identity = domain_event_character_handle(victim);
+  for (wall = world[room].contents; wall != NULL; wall = next)
   {
-    if (GET_OBJ_TYPE(wall) == ITEM_WALL && GET_OBJ_VAL(wall, WALL_DIR) == dir)
+    next = wall->next_content;
+    next_identity =
+        next != NULL ? domain_event_object_handle(next) : (struct domain_entity_handle){0};
+    if (!wall_type_valid(wall) || GET_OBJ_VAL(wall, WALL_DIR) != dir ||
+        !wall_affects_character(wall, victim, &creator))
+      continue;
+    wall_identity = domain_event_object_handle(wall);
+    if (!domain_entity_handle_is_valid(wall_identity))
+      continue;
+#ifdef LUMINARI_CUTEST
+    if (wall_test_callback != NULL)
     {
-      /* find the wall spellnum */
-      wall_spellnum = wallinfo[GET_OBJ_VAL(wall, WALL_TYPE)].spell_num;
+      if (!wall_test_callback(wall_identity, victim, wall_test_context))
+        return false;
+    }
+    else
+#endif
+    {
+      level = creator != NULL ? GET_LEVEL(creator) : GET_OBJ_VAL(wall, WALL_LEVEL);
+      spellnum = wallinfo[GET_OBJ_VAL(wall, WALL_TYPE)].spell_num;
+      if ((CONFIG_PK_ALLOWED || (IS_NPC(victim) && !IS_PET(victim))) &&
+          mag_damage(level + dice(2, 6), creator != NULL ? creator : victim, victim, NULL, spellnum,
+                     0, SAVING_FORT, CAST_WALL) < 0)
+        return false;
+    }
+    victim = domain_event_world_resolve_character(victim_identity);
+    if (victim == NULL)
+      return false;
+    next = domain_entity_handle_is_valid(next_identity)
+               ? domain_event_world_resolve_object(next_identity)
+               : NULL;
+    if (next != NULL && next->in_room != room)
+      next = NULL;
+  }
+  return true;
+}
 
-      /* lets see if we can find the wall creator! */
-      ch = find_char(GET_OBJ_VAL(wall, WALL_IDNUM));
-      if (!ch)
-      {
-        /* player probably logged out, so just use WALL_LEVEL to determine
-         * damage */
-        found_player = FALSE;
-        level = GET_OBJ_VAL(wall, WALL_LEVEL);
-      }
-      else
-      {
-        level = GET_LEVEL(ch);
-        found_player = TRUE;
-      }
+/* Damaging crossings are post-commit notifications. A wall object is one
+ * generation-safe source, and one CharacterMoved fact visits it at most once. */
+void apply_wall_crossing(struct char_data *victim, room_rnum from_room, room_rnum to_room, int dir)
+{
+  struct domain_entity_handle victim_identity;
 
-      /* if we found the player, we can also check if this victim is a friend! */
-      if (found_player && !aoeOK(ch, victim, wall_spellnum))
-        continue; /* pass safely through the wall */
-
-      /* determine special damage, etc based on the WALL_TYPE */
-      switch (GET_OBJ_VAL(wall, WALL_TYPE))
-      {
-      default: /* default damage is 2d6 + level (above) */
-        level += dice(2, 6);
-        break;
-      }
-
-      if (CONFIG_PK_ALLOWED || (IS_NPC(victim) && !IS_PET(victim)))
-      {
-        /* we can add mag_effects, whatever we want here */
-
-        /* the "creator" or caster of the spell was determined above */
-        if (!found_player &&
-            mag_damage(level, victim, victim, NULL, wall_spellnum, 0, SAVING_FORT, casttype) < 0)
-        {
-          return TRUE; /* couldn't find the creator, victim died! */
-        }
-        else if (mag_damage(level, ch, victim, NULL, wall_spellnum, 0, SAVING_FORT, casttype) < 0)
-        {
-          return TRUE; /* he died! */
-        }
-      }
-
-      if (wallinfo[GET_OBJ_VAL(wall, WALL_TYPE)].stops_movement)
-      {
-        act("You bump into $p.", FALSE, victim, wall, 0, TO_CHAR);
-        act("$n bumps into $p.", FALSE, victim, wall, 0, TO_ROOM);
-        return TRUE;
-      }
-
-    } /* end check to see if this is a valid wall */
-  } /* end room search for walls */
-
-  return FALSE;
+  if (victim == NULL || from_room == to_room || dir < 0 || dir >= NUM_OF_DIRS)
+    return;
+  victim_identity = domain_event_character_handle(victim);
+  if (!apply_wall_crossings_in_room(victim, from_room, dir))
+    return;
+  victim = domain_event_world_resolve_character(victim_identity);
+  if (victim != NULL)
+    (void)apply_wall_crossings_in_room(victim, to_room, rev_dir[dir]);
 }
 
 /* this function will load the wall object, assign the appropriate values
@@ -1818,7 +1879,7 @@ ASPELL(spell_group_summon)
       Y_LOC(tch) = world[IN_ROOM(ch)].coords[1];
     }
 
-    char_to_room(tch, IN_ROOM(ch));
+    char_to_room_cause(tch, IN_ROOM(ch), ch, DOMAIN_RELOCATION_TELEPORT, -1);
 
     act("$n arrives suddenly.", TRUE, tch, 0, 0, TO_ROOM);
     act("$n has summoned you!", FALSE, ch, 0, tch, TO_VICT);
@@ -2102,7 +2163,7 @@ ASPELL(spell_plane_shift)
     X_LOC(ch) = world[to_room].coords[0];
     Y_LOC(ch) = world[to_room].coords[1];
   }
-  char_to_room(ch, to_room);
+  char_to_room_cause(ch, to_room, ch, DOMAIN_RELOCATION_TELEPORT, -1);
 
   act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
   send_to_char(ch, "You slowly fade back into existence...\r\n");
@@ -2222,7 +2283,7 @@ ASPELL(spell_prismatic_sphere)
     X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
     Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
   }
-  char_to_room(mob, IN_ROOM(ch));
+  char_to_room_cause(mob, IN_ROOM(ch), ch, DOMAIN_RELOCATION_SPAWN, -1);
 
   IS_CARRYING_W(mob) = 0;
   IS_CARRYING_N(mob) = 0;
@@ -2253,7 +2314,7 @@ ASPELL(spell_recall)
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
-  char_to_room(victim, r_mortal_start_room);
+  char_to_room_cause(victim, r_mortal_start_room, ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
@@ -2281,7 +2342,7 @@ ASPELL(spell_luskan_recall)
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
-  char_to_room(victim, real_room(3088));
+  char_to_room_cause(victim, real_room(3088), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
@@ -2309,7 +2370,7 @@ ASPELL(spell_triboar_recall)
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
-  char_to_room(victim, real_room(7000));
+  char_to_room_cause(victim, real_room(7000), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
@@ -2337,7 +2398,7 @@ ASPELL(spell_silverymoon_recall)
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
-  char_to_room(victim, real_room(6118));
+  char_to_room_cause(victim, real_room(6118), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
@@ -2365,7 +2426,7 @@ ASPELL(spell_mirabar_recall)
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
-  char_to_room(victim, real_room(4923));
+  char_to_room_cause(victim, real_room(4923), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
@@ -2394,7 +2455,7 @@ ASPELL(spell_palanthas_recall)
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
-  char_to_room(victim, real_room(2200));
+  char_to_room_cause(victim, real_room(2200), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
@@ -2423,7 +2484,7 @@ ASPELL(spell_sanction_recall)
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
-  char_to_room(victim, real_room(6530));
+  char_to_room_cause(victim, real_room(6530), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
@@ -2452,7 +2513,7 @@ ASPELL(spell_solace_recall)
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
-  char_to_room(victim, real_room(1317));
+  char_to_room_cause(victim, real_room(1317), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);
@@ -2573,7 +2634,7 @@ ASPELL(spell_salvation) // divination
     load_broom = real_room(load_broom);
     act("$n disappears in a flash of white light", FALSE, ch, 0, 0, TO_ROOM);
     char_from_room(ch);
-    char_to_room(ch, load_broom);
+    char_to_room_cause(ch, load_broom, ch, DOMAIN_RELOCATION_TELEPORT, -1);
     send_to_char(ch, "As the flash of light disappears you can see the room.\r\n\r\n");
     act("$n appears in a flash of white light", FALSE, ch, 0, 0, TO_ROOM);
     look_at_room(ch, 0);
@@ -3132,7 +3193,7 @@ ASPELL(spell_summon)
     X_LOC(victim) = world[IN_ROOM(ch)].coords[0];
     Y_LOC(victim) = world[IN_ROOM(ch)].coords[1];
   }
-  char_to_room(victim, IN_ROOM(ch));
+  char_to_room_cause(victim, IN_ROOM(ch), ch, DOMAIN_RELOCATION_TELEPORT, -1);
 
   act("$n arrives suddenly.", TRUE, victim, 0, 0, TO_ROOM);
   act("$n has summoned you!", FALSE, ch, 0, victim, TO_VICT);
@@ -3242,7 +3303,7 @@ ASPELL(spell_teleport)
     X_LOC(ch) = world[to_room].coords[0];
     Y_LOC(ch) = world[to_room].coords[1];
   }
-  char_to_room(ch, to_room);
+  char_to_room_cause(ch, to_room, ch, DOMAIN_RELOCATION_TELEPORT, -1);
 
   act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
   send_to_char(ch, "You slowly fade back into existence...\r\n");
@@ -3324,7 +3385,7 @@ ASPELL(spell_shadow_jump)
     X_LOC(ch) = world[to_room].coords[0];
     Y_LOC(ch) = world[to_room].coords[1];
   }
-  char_to_room(ch, to_room);
+  char_to_room_cause(ch, to_room, ch, DOMAIN_RELOCATION_TELEPORT, -1);
 
   act("$n slowly fades in from the shadows.", FALSE, ch, 0, 0, TO_ROOM);
   send_to_char(ch, "You slowly fade back in from the shadows...\r\n");
@@ -3393,7 +3454,7 @@ ASPELL(psionic_psychoportation)
     X_LOC(ch) = world[to_room].coords[0];
     Y_LOC(ch) = world[to_room].coords[1];
   }
-  char_to_room(ch, to_room);
+  char_to_room_cause(ch, to_room, ch, DOMAIN_RELOCATION_TELEPORT, -1);
 
   act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
   send_to_char(ch, "You slowly fade back into existence...\r\n");
@@ -3537,7 +3598,7 @@ ASPELL(spell_resurrect)
     X_LOC(ressed) = world[obj->in_room].coords[0];
     Y_LOC(ressed) = world[obj->in_room].coords[1];
   }
-  char_to_room(ressed, obj->in_room);
+  char_to_room_cause(ressed, obj->in_room, ch, DOMAIN_RELOCATION_TELEPORT, -1);
 
   /* more unused code */
   /*
@@ -3682,7 +3743,7 @@ ASPELL(spell_transport_via_plants)
       X_LOC(ch) = world[to_room].coords[0];
       Y_LOC(ch) = world[to_room].coords[1];
     }
-    char_to_room(ch, to_room);
+    char_to_room_cause(ch, to_room, ch, DOMAIN_RELOCATION_TELEPORT, -1);
 
     look_at_room(ch, 0);
     act("You find your destination, and step out through $p.", FALSE, ch, dest_obj, 0, TO_CHAR);
@@ -3771,7 +3832,7 @@ ASPELL(spell_wall_of_force)
     return;
   }
 
-  char_to_room(mob, IN_ROOM(ch));
+  char_to_room_cause(mob, IN_ROOM(ch), ch, DOMAIN_RELOCATION_SPAWN, -1);
   IS_CARRYING_W(mob) = 0;
   IS_CARRYING_N(mob) = 0;
 
@@ -3828,7 +3889,7 @@ ASPELL(spell_wizard_eye)
     X_LOC(eye) = world[IN_ROOM(ch)].coords[0];
     Y_LOC(eye) = world[IN_ROOM(ch)].coords[1];
   }
-  char_to_room(eye, IN_ROOM(ch));
+  char_to_room_cause(eye, IN_ROOM(ch), ch, DOMAIN_RELOCATION_SPAWN, -1);
   IS_CARRYING_W(eye) = 0;
   IS_CARRYING_N(eye) = 0;
   load_mtrigger(eye);
@@ -5298,7 +5359,7 @@ ASPELL(spell_blink)
     X_LOC(victim) = world[destination].coords[0];
     Y_LOC(victim) = world[destination].coords[1];
   }
-  char_to_room(victim, destination);
+  char_to_room_cause(victim, destination, ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n blinks into existence.", FALSE, victim, NULL, NULL, TO_ROOM);
   send_to_char(victim, "You blink back into existence nearby.\r\n");
   if (!IS_NPC(victim))
@@ -5403,7 +5464,7 @@ ASPELL(spell_spirit_walk)
     X_LOC(ch) = world[destination].coords[0];
     Y_LOC(ch) = world[destination].coords[1];
   }
-  char_to_room(ch, destination);
+  char_to_room_cause(ch, destination, ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("Pale spirit light gathers and resolves into $n.", FALSE, ch, NULL, NULL, TO_ROOM);
   look_at_room(ch, 0);
   entry_memory_mtrigger(ch);
@@ -5854,7 +5915,7 @@ ASPELL(spell_call_lycanthrope)
     X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
     Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
   }
-  char_to_room(mob, IN_ROOM(ch));
+  char_to_room_cause(mob, IN_ROOM(ch), ch, DOMAIN_RELOCATION_SPAWN, -1);
   IS_CARRYING_W(mob) = 0;
   IS_CARRYING_N(mob) = 0;
   GET_GOLD(mob) = 0;

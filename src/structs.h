@@ -18,6 +18,7 @@
 #include <stddef.h>   /* for size_t */
 #include "bool.h"     /* for bool */
 #include "event_handle.h"
+#include "domain_event_types.h"
 #include "net/protocol.h" /* Kavir Plugin*/
 #include "lists.h"
 
@@ -5915,6 +5916,12 @@ struct obj_data
   uint64_t event_owner_generation;    /**< Process-local timed-event owner generation. */
   uint64_t periodic_event_generation; /**< Periodic-owner incarnation. */
 
+  struct domain_object_holder transfer_source;
+  struct domain_object_holder transfer_bag;
+  bool transfer_pending;
+  bool transfer_extracting;
+  bool transfer_disposed;
+
   struct obj_flag_data obj_flags;                    /**< Object information */
   struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< affects */
   struct obj_weapon_poison weapon_poison;            /* for weapons, applied poison */
@@ -6066,9 +6073,15 @@ struct room_direction_data
   /* Extra door flags. */
 };
 
+struct tactical_hazard_exposure;
+
 struct raff_node
 {
-  room_rnum room;       /* location in the world[] array of the room */
+  room_rnum room;           /* location in the world[] array of the room */
+  uint64_t source_identity; /* Process-local room-affect source identity. */
+  int source_level;
+  uint64_t lifetime_round; /* Last accounted world round for this source. */
+  bool lifetime_initialized;
   int timer;            /* how many rounds this affection lasts */
   long affection;       /* which affection does this room have */
   int spell;            /* the spell number */
@@ -6080,6 +6093,8 @@ struct raff_node
   struct raff_node *room_next; /* next affect owned by the same room */
   struct raff_node *room_prev; /* previous affect owned by the same room */
   bool room_registered;        /* linked into its room's owner list */
+  struct tactical_hazard_exposure *hazard_exposures;
+  size_t hazard_exposure_count;
 };
 
 struct spec_binding;
@@ -6121,7 +6136,8 @@ struct room_data
   size_t affected_count;                             /**< Room-affect nodes owned by this room. */
   bool affected_registered;                          /**< Runtime affected-room registry state. */
 
-  struct moving_room_data *mover; /*  if it's a moving room       */
+  struct moving_room_data *mover;                /*  if it's a moving room       */
+  struct event_runtime_handle moving_room_event; /* Live-room deadline, never editor-owned. */
 
   int harvest_material;
   int harvest_material_amount;
@@ -6933,7 +6949,8 @@ struct player_special_data_saved
       split_enchantment_cooldown; /**< Timestamp until when split enchantment is available again */
 
   /* Wizard Versatile Caster perks */
-  int defensive_casting_timer;     /**< Rounds remaining for defensive casting AC bonus */
+  int defensive_casting_timer;     /**< Legacy/display rounds for defensive casting AC bonus. */
+  int defensive_casting_pulses;    /**< Paused residual interval; zero for legacy records. */
   time_t arcane_recovery_cooldown; /**< Timestamp until when arcane recovery is available again */
   int spell_shield_timer;          /**< Rounds remaining for spell shield effect (10 DR + 4 AC) */
   time_t
@@ -7008,13 +7025,14 @@ struct player_special_data
   char *new_mail_subject;
   char *new_mail_content;
   byte has_eldritch_knight_spell_critical;
-  int destination;            // used for carriage and sailing systems
-  int travel_timer;           // used for carriage and sailing systems
-  int travel_type;            // used for carriage and sailing systems
-  int travel_locale;          // used for carriage and sailing systems
-  int bane_race;              // used in applyoil command to create a proper bane weapon
-  int bane_subrace;           // used in applyoil command to create a proper bane weapon
-  int augment_psp;            // used when augmenting psionic powers
+  struct transport_job *transport_job; /* Runtime-owned arrival, never serialized. */
+  int destination;                     /* Stable destination vnum for carriage and sailing. */
+  int travel_timer;                    // used for carriage and sailing systems
+  int travel_type;                     // used for carriage and sailing systems
+  int travel_locale;                   // used for carriage and sailing systems
+  int bane_race;                       // used in applyoil command to create a proper bane weapon
+  int bane_subrace;                    // used in applyoil command to create a proper bane weapon
+  int augment_psp;                     // used when augmenting psionic powers
   int temp_attack_roll_bonus; // used when needing to add to an attack roll from outside, and before calling the attack_roll function
   int dam_co_holder_ndice;    // a holder for number of damage dice for psionic_concussive_onslaught
   int dam_co_holder_sdice;    // a holder for size of damage dice for psionic_concussive_onslaught
@@ -7048,7 +7066,7 @@ struct player_special_data
 
   // for the self buffing system
   int buff_slot;
-  int buff_timer;
+  struct buff_sequence *buff_sequence; /* Runtime-only native continuation. */
   bool is_buffing;
   struct char_data *buff_target;
   char *unstuck;
@@ -7346,9 +7364,8 @@ message to dest room when docking~
 struct moving_room_data
 { /*  all room num are VNUM  */
   /*  current state  */
-  int resetZonePulse;      /* zone pulses per reset         */
-  int remainingZonePulses; /* zone pulses left until reset  */
-  int currentInbound;      /* current conn room (array idx) */
+  int resetZonePulse; /* zone pulses per reset         */
+  int currentInbound; /* current conn room (array idx) */
 
   /*  constants  */
   room_num destination; /* the target room               */
@@ -7366,8 +7383,6 @@ struct moving_room_data
   char *msg_dest_docking;
 
   struct room_direction_data *dir_option[NUM_OF_DIRS]; /* Directions */
-
-  struct moving_room_data *next; /* the next in the list          */
 };
 
 struct oldNextMove
@@ -7382,18 +7397,18 @@ struct oldNextMove
 /** Master structure for PCs and NPCs. */
 struct char_data
 {
-  int pfilepos;                       /**< PC playerfile pos and id number */
-  mob_rnum nr;                        /**< NPC real instance number */
-  int coords[2];                      /**< Current coordinate location, used in wilderness. */
-  room_rnum in_room;                  /**< Current location (real room number) */
-  room_rnum was_in_room;              /**< Previous location for linkdead people  */
-  room_rnum domain_previous_room;     /**< Origin retained across char_from/to_room. */
-  uint64_t event_owner_generation;    /**< Runtime character incarnation. */
-  uint64_t domain_event_generation;   /**< Typed-event character incarnation. */
-  uint64_t periodic_event_generation; /**< Periodic-owner incarnation. */
-  int wait;                           /**< Remaining 100 ms action-delay ticks. */
-  uint64_t wait_last_tick;            /**< Last monotonic runtime tick applied to wait. */
-  bool wait_tick_initialized;         /**< Whether wait_last_tick has a valid baseline. */
+  int pfilepos;          /**< PC playerfile pos and id number */
+  mob_rnum nr;           /**< NPC real instance number */
+  int coords[2];         /**< Current coordinate location, used in wilderness. */
+  room_rnum in_room;     /**< Current location (real room number) */
+  room_rnum was_in_room; /**< Previous location for linkdead people  */
+  struct domain_entity_handle domain_previous_room; /**< Stable detached origin. */
+  uint64_t event_owner_generation;                  /**< Runtime character incarnation. */
+  uint64_t domain_event_generation;                 /**< Typed-event character incarnation. */
+  uint64_t periodic_event_generation;               /**< Periodic-owner incarnation. */
+  int wait;                                         /**< Remaining 100 ms action-delay ticks. */
+  uint64_t wait_last_tick;    /**< Last monotonic runtime tick applied to wait. */
+  bool wait_tick_initialized; /**< Whether wait_last_tick has a valid baseline. */
 
   struct char_player_data player;              /**< General PC/NPC data */
   struct char_ability_data real_abils;         /**< Abilities without modifiers */
@@ -7426,9 +7441,20 @@ struct char_data
   unsigned long active_world_reaction_due;    /**< Next one-shot local reaction. */
   unsigned long active_world_resource_due;    /**< Next consumed-resource recovery deadline. */
   struct event_runtime_handle active_world_event_handle; /**< Earliest autonomous-work deadline. */
+  struct event_runtime_handle phenomenon_interest_event; /**< Temporary perceived-danger owner. */
+  uint64_t phenomenon_interest_id;                       /**< Current phenomenon incarnation. */
   struct primary_activity *primary_activity;             /**< One intentional timed activity. */
   struct ready_action *ready_action;                     /**< Ephemeral entity-topic listener. */
-  struct combat_encounter_data *combat_encounter;        /**< Runtime fight-session owner. */
+  struct event_runtime_handle bleeding_critical_event;
+  uint64_t bleeding_critical_due;
+  uint64_t bleeding_critical_turn;
+  uint64_t bleeding_critical_version;
+  int bleeding_critical_pulses;
+  struct event_runtime_handle defensive_casting_event;
+  uint64_t defensive_casting_due;
+  uint64_t defensive_casting_turn;
+  uint64_t combat_turn_serial; /**< Semantic turns begun in this character incarnation. */
+  struct combat_encounter_data *combat_encounter; /**< Runtime fight-session owner. */
   struct combat_encounter_participant *combat_encounter_participant; /**< Membership node. */
   struct obj_data *equipment[NUM_WEARS]; /**< Equipment array            */
 

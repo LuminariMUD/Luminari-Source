@@ -20,6 +20,8 @@
 #include "comm.h"
 #include "screen.h"
 #include "quest.h"
+#include "domain_event_types.h"
+#include "domain_event_world.h"
 #include "act.h" /* for do_tell */
 #include "mudlim.h"
 #include "mud_event.h"
@@ -31,6 +33,8 @@
 #include "modify.h"
 #include "spec/spec_effective_binding.h"
 #include "spec/spec_registry.h"
+#include "constants.h"
+#include "magic/spells.h"
 
 /*-------------------------------------------------------------------*/
 /* External data */
@@ -73,6 +77,9 @@ const char *quest_types[NUM_AQ_TYPES + 1] = {"Acquire Object", /* 0 */
                                              "Give Gold",                     /* 22 */
                                              "Kill Multi Mob (comma-separated vnums)",
                                              "Dialogue Quest",
+                                             "Resolve Mob Nonlethally",
+                                             "Succeed at Ability",
+                                             "Witness Phenomenon",
                                              "\n"};
 
 const char *aq_flags[] = {"REPEATABLE", "REPLACE-OBJ-REWARD", "\n"};
@@ -151,7 +158,8 @@ int is_quest_target_mob(struct char_data *ch, struct char_data *mob)
 
     /* Check if this quest involves this mob */
     if ((QST_TYPE(rnum) == AQ_MOB_FIND || QST_TYPE(rnum) == AQ_MOB_KILL ||
-         QST_TYPE(rnum) == AQ_MOB_SAVE) &&
+         QST_TYPE(rnum) == AQ_MOB_SAVE || QST_TYPE(rnum) == AQ_DIALOGUE ||
+         QST_TYPE(rnum) == AQ_MOB_RESOLVE) &&
         QST_TARGET(rnum) >= 0 && (mob_vnum)QST_TARGET(rnum) == GET_MOB_VNUM(mob))
       return TRUE;
 
@@ -827,16 +835,44 @@ void complete_quest(struct char_data *ch, int index)
  * or completion of a quest-step
  * NOTE: We added the actual completion to an event that
  * will call: void complete_quest() above */
+static bool quest_completion_pending(struct char_data *ch, qst_vnum vnum)
+{
+  struct mud_event_data *event;
+  struct iterator_data iterator;
+  bool found = false;
+
+  if (ch == NULL || ch->events == NULL || ch->events->iSize == 0)
+    return false;
+  for (event = merge_iterator(&iterator, ch->events); event != NULL;
+       event = next_in_list(&iterator))
+  {
+    if (event->iId == eQUEST_COMPLETE && event->sVariables != NULL &&
+        (qst_vnum)atoi(event->sVariables) == vnum)
+    {
+      found = true;
+      break;
+    }
+  }
+  remove_iterator(&iterator);
+  return found;
+}
+
 void generic_complete_quest(struct char_data *ch, int index)
 {
+  qst_vnum vnum;
+
   if (has_duplicate_quest(ch))
     remove_duplicate_quests(ch);
+  if (GET_QUEST(ch, index) == (int)NOTHING)
+    return;
+  vnum = GET_QUEST(ch, index);
+  if (quest_completion_pending(ch, vnum))
+    return;
 
   /* more work to do on this quest! make sure to decrement counter  */
-  if (GET_QUEST(ch, index) != (int)NOTHING && --GET_QUEST_COUNTER(ch, index) > 0)
+  if (--GET_QUEST_COUNTER(ch, index) > 0)
   {
     qst_rnum rnum = -1;
-    qst_vnum vnum = GET_QUEST(ch, index);
 
     rnum = real_quest(vnum);
 
@@ -847,28 +883,12 @@ void generic_complete_quest(struct char_data *ch, int index)
 
     /* the quest is truly complete? */
   }
-  else if (GET_QUEST(ch, index) != (int)NOTHING)
+  else
   {
-    struct mud_event_data *pMudEvent = NULL;
     char buf[128] = {'\0'};
-    qst_vnum event_quest_num = NOTHING;
-
-    if ((pMudEvent = char_has_mud_event(ch, eQUEST_COMPLETE)))
-    {
-      /* grab vnum of quest that is in event */
-      event_quest_num = atoi((char *)pMudEvent->sVariables);
-
-      /* make sure we do not already have an event for this quest! */
-      if (GET_QUEST(ch, index) >= 0 && event_quest_num == (qst_vnum)GET_QUEST(ch, index))
-      {
-        /* get out of here, we are already processing this particular
-           quest completion */
-        return;
-      }
-    }
 
     /* we should be in the clear to tag this player with a completed quest */
-    snprintf(buf, sizeof(buf), "%d", GET_QUEST(ch, index)); /* sending vnum to event of quest */
+    snprintf(buf, sizeof(buf), "%d", vnum); /* sending vnum to event of quest */
     attach_mud_event(new_mud_event(eQUEST_COMPLETE, ch, buf), 1);
   }
 }
@@ -881,7 +901,8 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
   int found = TRUE, index = -1;
   house_rnum house_num = NOWHERE;
 
-  if (IS_NPC(ch))
+  if (ch == NULL || IS_NPC(ch) || ch->player_specials == NULL || aquest_table == NULL ||
+      total_quests == 0)
     return;
 
   for (index = 0; index < MAX_CURRENT_QUESTS; index++)
@@ -1012,6 +1033,30 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
         generic_complete_quest(ch, index);
       break;
 
+    case AQ_DIALOGUE:
+      if (vict != NULL && IS_NPC(vict) && QST_TARGET(rnum) >= 0 &&
+          (mob_vnum)QST_TARGET(rnum) == GET_MOB_VNUM(vict))
+        generic_complete_quest(ch, index);
+      break;
+
+    case AQ_MOB_RESOLVE:
+      if (vict != NULL && IS_NPC(vict) &&
+          (variable == DOMAIN_CHARACTER_RESOLUTION_RESCUED ||
+           variable == DOMAIN_CHARACTER_RESOLUTION_NEGOTIATED) &&
+          QST_TARGET(rnum) >= 0 && (mob_vnum)QST_TARGET(rnum) == GET_MOB_VNUM(vict))
+        generic_complete_quest(ch, index);
+      break;
+
+    case AQ_SKILL_SUCCESS:
+      if (variable > 0 && QST_TARGET(rnum) == variable)
+        generic_complete_quest(ch, index);
+      break;
+
+    case AQ_WITNESS_PHENOMENON:
+      if (variable > DOMAIN_PHENOMENON_UNSPECIFIED && QST_TARGET(rnum) == variable)
+        generic_complete_quest(ch, index);
+      break;
+
     case AQ_OBJ_RETURN:
       if (IS_NPC(vict) && QST_RETURNMOB(rnum) >= 0 &&
           GET_MOB_VNUM(vict) == (mob_vnum)QST_RETURNMOB(rnum))
@@ -1019,6 +1064,7 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
         {
           generic_complete_quest(ch, index);
           extract_obj(object);
+          return; /* One physical delivery cannot be consumed twice. */
         }
       break;
 
@@ -1577,10 +1623,11 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
         send_to_char(ch, "\tcQuest Target:\tn %s\r\n", world[room_rnum].name);
       break;
     }
-    case AQ_MOB_FIND: /* Find Mob */
-    case AQ_MOB_KILL: /* Kill Mob */
-    case AQ_MOB_SAVE: /* Save Mob */
-    case AQ_DIALOGUE: /* Dialogue Quest */
+    case AQ_MOB_FIND:    /* Find Mob */
+    case AQ_MOB_KILL:    /* Kill Mob */
+    case AQ_MOB_SAVE:    /* Save Mob */
+    case AQ_DIALOGUE:    /* Dialogue Quest */
+    case AQ_MOB_RESOLVE: /* Resolve Mob Nonlethally */
     {
       mob_rnum mob_rnum = real_mobile(QST_TARGET(rnum));
       if (mob_rnum != NOBODY)
@@ -1634,6 +1681,14 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
       }
       break;
     }
+    case AQ_SKILL_SUCCESS:
+      if (QST_TARGET(rnum) > ABILITY_UNDEFINED && QST_TARGET(rnum) <= NUM_ABILITIES)
+        send_to_char(ch, "\tcQuest Target:\tn succeed at %s\r\n", ability_names[QST_TARGET(rnum)]);
+      break;
+    case AQ_WITNESS_PHENOMENON:
+      send_to_char(ch, "\tcQuest Target:\tn witness %s\r\n",
+                   domain_world_phenomenon_kind_name(QST_TARGET(rnum)));
+      break;
     /* Skip these quest types as requested */
     case AQ_AUTOCRAFT:
     case AQ_CRAFT:
@@ -1824,10 +1879,24 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     case AQ_MOB_FIND:
     case AQ_MOB_KILL:
     case AQ_MOB_SAVE:
+    case AQ_DIALOGUE:
+    case AQ_MOB_RESOLVE:
       snprintf(targetname, sizeof(targetname), "%s",
                real_mobile(QST_TARGET(rnum)) == NOBODY
                    ? "An unknown mobile"
                    : GET_NAME(&mob_proto[real_mobile(QST_TARGET(rnum))]));
+      break;
+
+    case AQ_SKILL_SUCCESS:
+      snprintf(targetname, sizeof(targetname), "%s",
+               QST_TARGET(rnum) > ABILITY_UNDEFINED && QST_TARGET(rnum) <= NUM_ABILITIES
+                   ? ability_names[QST_TARGET(rnum)]
+                   : "An unknown ability");
+      break;
+
+    case AQ_WITNESS_PHENOMENON:
+      snprintf(targetname, sizeof(targetname), "%s",
+               domain_world_phenomenon_kind_name(QST_TARGET(rnum)));
       break;
 
     default:
@@ -2915,3 +2984,142 @@ void remove_duplicate_quests(struct char_data *ch)
 }
 
 /* EOF */
+
+/* Reward checks run only on the final committed state. Consumers must resolve
+ * again after another handler or a reward has had an opportunity to extract. */
+static void quest_committed_movement(const struct domain_event_context *context, void *data)
+{
+  const struct domain_character_moved *event = context->payload;
+  const int types[] = {AQ_ROOM_FIND, AQ_WILD_FIND, AQ_MOB_FIND, AQ_HOUSE_FIND};
+  struct char_data *ch;
+  size_t i;
+
+  (void)data;
+  for (i = 0; i < sizeof(types) / sizeof(types[0]); i++)
+  {
+    ch = domain_event_world_resolve_character(event->character);
+    if (ch == NULL || IS_NPC(ch) || IN_ROOM(ch) == NOWHERE ||
+        !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(ch)), event->to_room))
+      return;
+    autoquest_trigger_check(ch, NULL, NULL, 0, types[i]);
+  }
+}
+
+static void quest_committed_transfer(const struct domain_event_context *context, void *data)
+{
+  const struct domain_object_moved *event = context->payload;
+  struct char_data *receiver, *actor;
+  struct obj_data *object;
+
+  (void)data;
+  if (event->destination.kind != DOMAIN_HOLDER_INVENTORY &&
+      event->destination.kind != DOMAIN_HOLDER_BAG)
+    return;
+  receiver = domain_event_world_resolve_character(event->destination.entity);
+  object = domain_event_world_resolve_object(event->object);
+  if (receiver == NULL || object == NULL)
+    return;
+  if (event->destination.kind == DOMAIN_HOLDER_INVENTORY && object->carried_by != receiver)
+    return;
+  if (event->destination.kind == DOMAIN_HOLDER_BAG &&
+      (!domain_entity_handle_equal(object->transfer_bag.entity, event->destination.entity) ||
+       object->transfer_bag.slot != event->destination.slot))
+    return;
+  if (!IS_NPC(receiver))
+  {
+    autoquest_trigger_check(receiver, NULL, object, 0, AQ_OBJ_FIND);
+    return;
+  }
+  actor = domain_event_world_resolve_character(event->actor);
+  if (event->destination.kind == DOMAIN_HOLDER_INVENTORY &&
+      event->source.kind == DOMAIN_HOLDER_INVENTORY && actor != NULL && !IS_NPC(actor) &&
+      domain_entity_handle_equal(event->source.entity, event->actor))
+    autoquest_trigger_check(actor, receiver, object, 0, AQ_OBJ_RETURN);
+}
+
+static void quest_committed_resolution(const struct domain_event_context *context, void *data)
+{
+  const struct domain_character_resolved *event = context->payload;
+  struct char_data *actor, *target;
+
+  (void)data;
+  actor = domain_event_world_resolve_character(event->actor);
+  target = domain_event_world_resolve_character(event->target);
+  if (actor == NULL || target == NULL || IS_NPC(actor) || !IS_NPC(target) ||
+      IN_ROOM(actor) == NOWHERE || IN_ROOM(actor) != IN_ROOM(target) ||
+      !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(actor)), event->room))
+    return;
+  autoquest_trigger_check(actor, target, NULL, event->kind, AQ_MOB_RESOLVE);
+  if (event->kind == DOMAIN_CHARACTER_RESOLUTION_NEGOTIATED)
+    autoquest_trigger_check(actor, target, NULL, event->kind, AQ_DIALOGUE);
+}
+
+static void quest_committed_skill(const struct domain_event_context *context, void *data)
+{
+  const struct domain_skill_resolved *event = context->payload;
+  struct char_data *actor;
+
+  (void)data;
+  if (!event->succeeded)
+    return;
+  actor = domain_event_world_resolve_character(event->actor);
+  if (actor == NULL || IS_NPC(actor) || IN_ROOM(actor) == NOWHERE ||
+      !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(actor)), event->room))
+    return;
+  autoquest_trigger_check(actor, NULL, NULL, event->ability, AQ_SKILL_SUCCESS);
+}
+
+static void quest_perceived_phenomenon(const struct domain_event_context *context, void *data)
+{
+  const struct domain_phenomenon_perceived *event = context->payload;
+  struct char_data *observer;
+
+  (void)data;
+  observer = domain_event_world_resolve_character(event->observer);
+  if (observer == NULL || IS_NPC(observer) || event->senses == 0U)
+    return;
+  autoquest_trigger_check(observer, NULL, NULL, event->kind, AQ_WITNESS_PHENOMENON);
+}
+
+bool quest_has_active_witness_objective(struct char_data *ch,
+                                        enum domain_world_phenomenon_kind kind)
+{
+  qst_rnum rnum;
+  int index;
+
+  if (ch == NULL || IS_NPC(ch) || ch->player_specials == NULL || aquest_table == NULL ||
+      kind <= DOMAIN_PHENOMENON_UNSPECIFIED)
+    return false;
+  for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+  {
+    if (GET_QUEST(ch, index) == (int)NOTHING)
+      continue;
+    rnum = real_quest(GET_QUEST(ch, index));
+    if (rnum != NOTHING && QST_TYPE(rnum) == AQ_WITNESS_PHENOMENON && QST_TARGET(rnum) == (int)kind)
+      return true;
+  }
+  return false;
+}
+
+enum domain_event_status quest_register_commit_handlers(struct domain_event_bus *bus)
+{
+  const struct domain_event_handler_config handlers[] = {
+      {DOMAIN_EVENT_CHARACTER_MOVED, "quest.committed-location", 80, quest_committed_movement,
+       NULL},
+      {DOMAIN_EVENT_OBJECT_MOVED, "quest.committed-transfer", 80, quest_committed_transfer, NULL},
+      {DOMAIN_EVENT_CHARACTER_RESOLVED, "quest.committed-resolution", 80,
+       quest_committed_resolution, NULL},
+      {DOMAIN_EVENT_SKILL_RESOLVED, "quest.committed-skill", 80, quest_committed_skill, NULL},
+      {DOMAIN_EVENT_PHENOMENON_PERCEIVED, "quest.perceived-phenomenon", 80,
+       quest_perceived_phenomenon, NULL}};
+  enum domain_event_status status;
+  size_t i;
+
+  for (i = 0; i < sizeof(handlers) / sizeof(handlers[0]); i++)
+  {
+    status = domain_event_register_handler(bus, &handlers[i]);
+    if (status != DOMAIN_EVENT_OK)
+      return status;
+  }
+  return DOMAIN_EVENT_OK;
+}

@@ -523,7 +523,7 @@ class SemanticTests(unittest.TestCase):
         {item.code for item in self.quest_findings(unavailable)}
         & {"SEM023", "SEM024", "SEM025", "SEM026", "SEM027", "SEM028", "SEM029"}
     )
-    invalid_type = quest_record(100, 25, flag_bits={2})
+    invalid_type = quest_record(100, 28, flag_bits={2})
     type_findings = self.quest_findings(invalid_type)
     self.assertEqual(1, sum(item.code == "SEM023" for item in type_findings))
 
@@ -565,6 +565,34 @@ class SemanticTests(unittest.TestCase):
     self.assertTrue(
         any("cannot persist" in item.message for item in self.quest_findings(multi))
     )
+
+    ability_limit = self.manifest["limits"]["NUM_ABILITIES"]["value"]
+    for value in (1, ability_limit):
+      skill = quest_record(
+          106, self.quest_types["AQ_SKILL_SUCCESS"], target=value
+      )
+      self.assertNotIn("SEM026", {item.code for item in self.quest_findings(skill)})
+    for value in (0, ability_limit + 1):
+      skill = quest_record(
+          106, self.quest_types["AQ_SKILL_SUCCESS"], target=value
+      )
+      self.assertIn("SEM026", {item.code for item in self.quest_findings(skill)})
+
+    phenomenon_limit = (
+        self.manifest["limits"]["NUM_DOMAIN_PHENOMENON_KINDS"]["value"] - 1
+    )
+    for value in (1, phenomenon_limit):
+      witness = quest_record(
+          107, self.quest_types["AQ_WITNESS_PHENOMENON"], target=value
+      )
+      self.assertNotIn(
+          "SEM026", {item.code for item in self.quest_findings(witness)}
+      )
+    for value in (0, phenomenon_limit + 1):
+      witness = quest_record(
+          107, self.quest_types["AQ_WITNESS_PHENOMENON"], target=value
+      )
+      self.assertIn("SEM026", {item.code for item in self.quest_findings(witness)})
 
   def test_qst_dialogue_domains_and_alternative_topology(self) -> None:
     base = quest_record(99, self.quest_types["AQ_HOUSE_FIND"])

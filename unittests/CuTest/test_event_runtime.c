@@ -140,6 +140,13 @@ void Test_event_runtime_profiles_native_semantic_callbacks(CuTest *tc)
     memset(&report, 0, sizeof(report));
     CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_advance(NULL, &report));
   }
+  payload = new_runtime_payload(&trace, 'L', 1, &cleanups);
+  CuAssertPtrNotNull(tc, payload);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_schedule_after(event_type, 1U, payload, &handle));
+  pulse = 48U;
+  memset(&report, 0, sizeof(report));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_advance(NULL, &report));
   payload = new_runtime_payload(&trace, 'C', 1, &cleanups);
   CuAssertPtrNotNull(tc, payload);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
@@ -162,11 +169,18 @@ void Test_event_runtime_profiles_native_semantic_callbacks(CuTest *tc)
   copied_profiles = profile_count < 32U ? profile_count : 32U;
   profile = find_runtime_profile(profiles, copied_profiles, "test.native.profiled");
   CuAssertPtrNotNull(tc, profile);
-  CuAssertIntEquals(tc, 2, (int)profile->calls);
-  CuAssertIntEquals(tc, 3, (int)profile->scheduled);
+  CuAssertIntEquals(tc, 3, (int)profile->calls);
+  CuAssertIntEquals(tc, 4, (int)profile->scheduled);
   CuAssertIntEquals(tc, 2, (int)profile->rescheduled);
   CuAssertIntEquals(tc, 2, (int)profile->cancelled);
-  CuAssertIntEquals(tc, 3, cleanups);
+  CuAssertIntEquals(tc, 1, (int)profile->late_callbacks);
+  CuAssertIntEquals(tc, 0, (int)profile->lateness_p50_ticks);
+  CuAssertIntEquals(tc, 3, (int)profile->lateness_p95_ticks);
+  CuAssertIntEquals(tc, 3, (int)profile->lateness_p99_ticks);
+  CuAssertIntEquals(tc, 3, (int)profile->lateness_maximum_ticks);
+  CuAssertIntEquals(tc, 3, (int)profile->lateness_samples);
+  CuAssertIntEquals(tc, 3, (int)profile->lateness_samples_seen);
+  CuAssertIntEquals(tc, 4, cleanups);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_type_live_count(event_type, &live_count));
   CuAssertIntEquals(tc, 0, (int)live_count);
   event_free_all();

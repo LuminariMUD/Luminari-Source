@@ -54,9 +54,9 @@ VALUES ('CAMP', 'Establish Camp
 
 Usage: camp
 
-Requires: the establish camp feat (any class; 3 ranks of survival)
+Requires: the establish camp feat (any class; 3 ranks of nature)
 Action:   Standard and Move Action
-Check:    survival against a difficulty set by terrain and weather
+Check:    nature against a difficulty set by terrain and weather
 
 You spend about six seconds clearing a site, setting your gear and getting a
 fire going. Use activity to inspect, pause, resume or cancel the work. Moving

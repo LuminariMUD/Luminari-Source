@@ -14540,6 +14540,75 @@ int test_apply_bard_frostbite_rider(struct char_data *ch, struct char_data *vict
     #define ATTACK_TYPE_OFFHAND_SNEAK   7  //impromptu sneak attack
    Attack queue will determine what kind of hit this is. */
 #define DAM_MES_LENGTH 20
+/* DG decisions and committed-attempt observers may replace or extract these
+ * entities. Compare generation handles before returning to borrowed combat data. */
+struct attack_entry_identity
+{
+  int attack_kind;
+  struct domain_entity_handle attacker;
+  struct domain_entity_handle defender;
+  struct domain_entity_handle origin;
+  struct domain_entity_handle target_room;
+  struct domain_entity_handle weapon;
+  struct domain_entity_handle projectile;
+};
+
+static bool attack_entry_is_live(struct domain_event_bus *bus,
+                                 const struct attack_entry_identity *identity,
+                                 struct char_data *attacker, struct char_data *defender,
+                                 struct obj_data *weapon, struct obj_data *projectile,
+                                 const struct projectile_attack_context *context)
+{
+  if (bus == NULL)
+    return true;
+  if (domain_event_resolve(bus, identity->attacker, DOMAIN_ENTITY_CHARACTER) != attacker ||
+      domain_event_resolve(bus, identity->defender, DOMAIN_ENTITY_CHARACTER) != defender ||
+      (weapon != NULL &&
+       domain_event_resolve(bus, identity->weapon, DOMAIN_ENTITY_OBJECT) != weapon) ||
+      (projectile != NULL &&
+       domain_event_resolve(bus, identity->projectile, DOMAIN_ENTITY_OBJECT) != projectile))
+    return false;
+  if (context == NULL)
+  {
+    struct obj_data *current_weapon = IS_WILDSHAPED(attacker) || IS_MORPHED(attacker)
+                                          ? NULL
+                                          : get_wielded(attacker, identity->attack_kind);
+
+    if (current_weapon != weapon)
+      return false;
+  }
+  if (context != NULL)
+  {
+    switch (context->original_source)
+    {
+    case PROJECTILE_SOURCE_AMMO_POUCH:
+      if (projectile->in_obj == NULL || projectile->in_obj != GET_EQ(attacker, WEAR_AMMO_POUCH))
+        return false;
+      break;
+    case PROJECTILE_SOURCE_INVENTORY:
+      if (projectile->carried_by != attacker || projectile->in_obj != NULL)
+        return false;
+      break;
+    case PROJECTILE_SOURCE_WIELDED:
+      if (context->anchor_wear_slot < 0 || context->anchor_wear_slot >= NUM_WEARS ||
+          GET_EQ(attacker, context->anchor_wear_slot) != projectile)
+        return false;
+      break;
+    default:
+      return false;
+    }
+    if (is_launcher_attack(context->attack_kind) &&
+        (context->anchor_wear_slot < 0 || context->anchor_wear_slot >= NUM_WEARS ||
+         GET_EQ(attacker, context->anchor_wear_slot) != weapon))
+      return false;
+  }
+  return !DEAD(attacker) && !DEAD(defender) &&
+         domain_entity_handle_equal(identity->origin,
+                                    domain_event_room_handle(IN_ROOM(attacker))) &&
+         domain_entity_handle_equal(identity->target_room,
+                                    domain_event_room_handle(IN_ROOM(defender)));
+}
+
 static int resolve_hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
                        int penalty, int attack_type, bool dispatch_queued_attack)
 {
@@ -14552,6 +14621,8 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
       hit_result = HIT_MISS;
 
   struct affected_type af = {0};
+  struct domain_event_bus *attack_bus = domain_event_runtime_bus();
+  struct attack_entry_identity entry_identity = {0};
   struct projectile_attack_context projectile_context;
   struct projectile_attack_context *active_projectile = NULL;
   struct obj_data *missile = NULL;
@@ -14662,8 +14733,21 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
     }
   }
 
+  if (attack_bus != NULL)
+  {
+    entry_identity.attack_kind = attack_type;
+    entry_identity.attacker = domain_event_character_handle(ch);
+    entry_identity.defender = domain_event_character_handle(victim);
+    entry_identity.origin = domain_event_room_handle(IN_ROOM(ch));
+    entry_identity.target_room = domain_event_room_handle(IN_ROOM(victim));
+    entry_identity.weapon = domain_event_object_handle(wielded);
+    entry_identity.projectile = domain_event_object_handle(missile);
+  }
   /* Activate any scripts on this mob OR PLAYER. */
   fight_mtrigger(ch); // fight trig
+  if (!attack_entry_is_live(attack_bus, &entry_identity, ch, victim, wielded, missile,
+                            active_projectile))
+    return HIT_MISS;
   /* If the mob can't fight, just return an automatic miss. */
   if (!MOB_CAN_FIGHT(ch))
   { /* this mob can't hit */
@@ -14720,6 +14804,13 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
         (ch->next_in_room != victim && victim->next_in_room != ch))
       return (HIT_MISS);
   }
+
+  /* A permitted attempt counts even when repulsion, concealment or the roll
+   * prevents damage. Reactions enqueue here and execute after this strike. */
+  (void)domain_event_runtime_attack_committed(ch, victim, attack_type);
+  if (!attack_entry_is_live(attack_bus, &entry_identity, ch, victim, wielded, missile,
+                            active_projectile))
+    return HIT_MISS;
 
   /* Here is where we start fighting, if we were not fighting before. */
   if (victim != ch)

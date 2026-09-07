@@ -20,6 +20,8 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
+#include "domain_event_world.h"
+#include "domain_event_runtime.h"
 #include "db.h"
 #include "magic/spells.h"
 #include "magic/psionics.h"
@@ -1420,6 +1422,8 @@ void perform_rescue(struct char_data *ch, struct char_data *vict)
   set_fighting(tmp_ch, ch);
 
   USE_FULL_ROUND_ACTION(ch);
+  (void)domain_event_runtime_character_resolved(ch, vict, DOMAIN_CHARACTER_RESOLUTION_RESCUED,
+                                                SKILL_RESCUE);
 }
 
 /* charge mechanic */
@@ -14967,7 +14971,13 @@ ACMD(do_bullrush)
   snprintf(buf, sizeof(buf), "$n shoves $N hard, pushing $N to the %s.", dirs[dir]);
   act(buf, FALSE, ch, 0, vict, TO_NOTVICT);
 
-  perform_move_full(vict, dir, false, false);
+  {
+    struct domain_relocation_operation relocation;
+
+    domain_relocation_begin(&relocation, vict, ch, DOMAIN_RELOCATION_FORCED, dir);
+    perform_move_full(vict, dir, false, false);
+    domain_relocation_finish(&relocation);
+  }
 }
 
 ACMD(do_evoweb)

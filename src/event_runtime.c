@@ -44,8 +44,10 @@ static struct game_event_result event_runtime_dispatch(const struct game_event_c
   finished_usec = PERF_monotonic_usec();
   if (profile->perf_index >= 0)
   {
-    PERF_note_event_callback(profile->perf_index,
-                             finished_usec >= started_usec ? finished_usec - started_usec : 0U);
+    PERF_note_event_callback(
+        profile->perf_index, finished_usec >= started_usec ? finished_usec - started_usec : 0U,
+        context->now_tick > context->deadline_tick ? context->now_tick - context->deadline_tick
+                                                   : 0U);
     if (result.kind == GAME_EVENT_RESULT_RESCHEDULE_AT)
       PERF_note_event_rescheduled(profile->perf_index, delay_until((game_tick_t)result.value));
     else if (result.kind == GAME_EVENT_RESULT_RESCHEDULE_AFTER)

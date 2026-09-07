@@ -10,6 +10,9 @@
 
 /* includes */
 #include "conf.h"
+#include "staff_event_agenda.h"
+#include "domain_event_runtime.h"
+#include "domain_event_world.h"
 #include "sysdep.h"
 #include <time.h>
 #include "structs.h"
@@ -579,6 +582,18 @@ static void get_cached_coordinates(int *x_coord, int *y_coord)
 /* EVENT STATE MANAGEMENT FUNCTIONS (M007) */
 /*****************************************************************************/
 
+static int staff_event_mud_hours_to_ticks(int hours)
+{
+  game_tick_t ticks;
+
+  if (hours <= 0)
+    return 0;
+  ticks = (game_tick_t)STAFF_EVENT_MUD_HOUR_TICKS -
+          (game_tick_t)pulse % (game_tick_t)STAFF_EVENT_MUD_HOUR_TICKS;
+  ticks += (game_tick_t)(hours - 1) * (game_tick_t)STAFF_EVENT_MUD_HOUR_TICKS;
+  return (int)MIN((game_tick_t)INT_MAX, ticks);
+}
+
 /*
  * State management functions to reduce tight coupling with global variables.
  * These functions provide a clean abstraction layer for event state operations,
@@ -590,10 +605,13 @@ static void get_cached_coordinates(int *x_coord, int *y_coord)
  * @param event_num: Event number to set as active
  * @param duration: Duration in ticks for the event
  */
-void set_event_state(int event_num, int duration)
+bool set_event_state(int event_num, int duration)
 {
+  if (!staff_event_agenda_start(event_num, duration))
+    return false;
   STAFF_EVENT_NUM = event_num;
-  STAFF_EVENT_TIME = duration;
+  staffevent_data.ticks_left = duration;
+  return true;
 }
 
 /*
@@ -620,7 +638,7 @@ int get_active_event(void)
  */
 int get_event_time_remaining(void)
 {
-  return STAFF_EVENT_TIME;
+  return staff_event_agenda_ticks(false);
 }
 
 /*
@@ -628,17 +646,21 @@ int get_event_time_remaining(void)
  */
 void clear_event_state(void)
 {
+  staff_event_agenda_cancel();
   STAFF_EVENT_NUM = UNDEFINED_EVENT;
-  STAFF_EVENT_TIME = 0;
+  staffevent_data.ticks_left = 0;
 }
 
 /*
  * Set the inter-event delay timer.
  * @param delay: Delay in ticks before next event can start
  */
-void set_event_delay(int delay)
+bool set_event_delay(int delay)
 {
-  STAFF_EVENT_DELAY = delay;
+  if (!staff_event_agenda_delay(delay))
+    return false;
+  staffevent_data.delay = MAX(0, delay);
+  return true;
 }
 
 /*
@@ -647,7 +669,9 @@ void set_event_delay(int delay)
  */
 int get_event_delay(void)
 {
-  return STAFF_EVENT_DELAY;
+  int remaining = staff_event_agenda_ticks(true);
+
+  return remaining > 0 || staff_event_agenda_delay_scheduled() ? remaining : staffevent_data.delay;
 }
 
 /*
@@ -672,7 +696,7 @@ int get_event_delay(void)
  * - Minimizes function call overhead through batch processing
  * - Wilderness system handles room allocation efficiently
  */
-static void spawn_jackalope_batch(int mob_vnum, int count)
+static void spawn_jackalope_batch(int mob_vnum, int count, uint64_t incarnation)
 {
   int i = 0;       /* Loop counter */
   int x_coord = 0; /* Random X coordinate for spawning */
@@ -685,6 +709,8 @@ static void spawn_jackalope_batch(int mob_vnum, int count)
   /* Spawn the requested number of mobs using cached coordinates for efficiency */
   for (i = 0; i < count; i++)
   {
+    if (incarnation == 0 || incarnation != staff_event_agenda_incarnation())
+      return;
     /* Get coordinates from cache (automatically refills when needed) */
     get_cached_coordinates(&x_coord, &y_coord);
 
@@ -839,8 +865,15 @@ void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord)
   X_LOC(mob) = world[location].coords[0];
   Y_LOC(mob) = world[location].coords[1];
 
-  /* Place the mobile in the target room */
-  char_to_room(mob, location);
+  /* Committed placement can trigger consumers that extract the spawned mobile. */
+  {
+    struct domain_entity_handle spawned = domain_event_character_handle(mob);
+
+    char_to_room_cause(mob, location, NULL, DOMAIN_RELOCATION_SPAWN, -1);
+    mob = domain_event_world_resolve_character(spawned);
+    if (mob == NULL)
+      return;
+  }
 
   /*
    * Trigger Activation:
@@ -856,246 +889,167 @@ void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord)
 /* CORE EVENT LIFECYCLE MANAGEMENT FUNCTIONS */
 /*****************************************************************************/
 
-/*
- * Main event tick function - handles all periodic event operations.
- *
- * This is the heart of the event system's real-time operations, called
- * every mud hour from the game's main update loop (limits.c point_update()).
- * It manages event timers, mob population maintenance, environmental effects,
- * and automatic event termination.
- *
- * Core Responsibilities:
- * 1. Event timer management (countdown and expiration)
- * 2. Inter-event delay countdown for cleanup periods
- * 3. Event-specific periodic tasks (mob spawning, environmental effects)
- * 4. Automatic event termination when time expires
- *
- * System Integration:
- * - Called from limits.c point_update() every mud hour
- * - Interfaces with wilderness system for mob placement
- * - Uses global event state variables (STAFF_EVENT_TIME, etc.)
- * - Coordinates with combat system through mob management
- *
- * Performance Considerations:
- * - Executes every mud hour regardless of player count
- * - Mob counting operations can be expensive with large populations
- * - Random coordinate generation uses system RNG
- * - Network broadcasts to all connected players for environmental effects
- */
-void staff_event_tick()
+/* Called only by the active Jackalope native agenda. */
+void staff_event_maintain_population(void)
 {
-  /* Variables removed - unused in current implementation */
-  struct descriptor_data *pt = NULL; /* Iterator for player connections */
-  struct obj_data *obj = NULL;       /* Object pointer for portal management */
-  bool found = FALSE;                /* Flag for portal existence check */
+  uint64_t incarnation = staff_event_agenda_incarnation();
+  int easy_count = 0, med_count = 0, hard_count = 0;
+  int easy_deficit = 0, med_deficit = 0, hard_deficit = 0;
 
   /*
-   * GLOBAL EVENT TIMER MANAGEMENT
-   * Handle the countdown timers that control event duration and delays
+   * JACKALOPE HUNT TICK OPERATIONS
+   * Maintain optimal Jackalope population across all three tiers.
+   *
+   * Population Control Logic:
+   * - Check current population vs. target (NUM_JACKALOPE_EACH)
+   * - Spawn additional mobs to maintain target population
+   * - Use random coordinates within defined geographic boundaries
+   * - Maintains consistent hunting opportunities throughout event
    */
 
   /*
-   * Inter-Event Delay Countdown:
-   * When no event is active, count down the mandatory delay between events.
-   * This prevents rapid-fire event starting and ensures proper cleanup.
+   * OPTIMIZED JACKALOPE POPULATION MAINTENANCE
+   * Uses single-pass counting to fix critical performance issue (C001).
+   * Replaces 6 character list traversals per tick with 1.
    */
-  if (!IS_STAFF_EVENT && STAFF_EVENT_DELAY > 0)
+
+  /* Single efficient count of all Jackalope types */
+  count_jackalope_mobs(&easy_count, &med_count, &hard_count);
+
+  /* Calculate deficits for each type */
+  easy_deficit = (easy_count < NUM_JACKALOPE_EACH) ? (NUM_JACKALOPE_EACH - easy_count) : 0;
+  med_deficit = (med_count < NUM_JACKALOPE_EACH) ? (NUM_JACKALOPE_EACH - med_count) : 0;
+  hard_deficit = (hard_count < NUM_JACKALOPE_EACH) ? (NUM_JACKALOPE_EACH - hard_count) : 0;
+
+  /*
+   * STREAMLINED JACKALOPE SPAWNING (Addresses M001: Code Duplication)
+   * Use helper function to eliminate repeated coordinate generation logic
+   */
+
+  /* Easy Jackalope Population Maintenance (Levels 1-10) */
+  spawn_jackalope_batch(EASY_JACKALOPE, easy_deficit, incarnation);
+
+  /* Medium Jackalope Population Maintenance (Levels 11-20) */
+  spawn_jackalope_batch(MED_JACKALOPE, med_deficit, incarnation);
+
+  /* Hard Jackalope Population Maintenance (Levels 21+) */
+  spawn_jackalope_batch(HARD_JACKALOPE, hard_deficit, incarnation);
+}
+
+void staff_event_maintain_prisoner(void)
+{
+  struct descriptor_data *pt;
+  struct obj_data *obj;
+  bool found;
+  uint64_t incarnation = staff_event_agenda_incarnation();
+  struct domain_entity_handle portal;
+  room_rnum portal_room = real_room(TP_PORTAL_L_ROOM);
+
+  if (portal_room == NOWHERE)
+    return;
+  /*
+   * THE PRISONER EVENT TICK OPERATIONS
+   * Maintain raid portal and provide atmospheric environmental effects.
+   *
+   * Features:
+   * 1. Portal Management - Ensure portal remains available for players
+   * 2. Environmental Broadcasting - Random atmospheric messages
+   * 3. Immersion Enhancement - Thematic world-wide effects
+   */
+
+  /*
+   * Portal Maintenance:
+   * Ensure the portal to Avernus remains available throughout the event.
+   * The portal may be destroyed or removed, so we check and recreate as needed.
+   */
+  found = FALSE; /* Reset portal found flag */
+
+  /* Search for existing portal in the designated room */
+  for (obj = world[portal_room].contents; obj; obj = obj->next_content)
   {
-    STAFF_EVENT_DELAY--;
+    if (GET_OBJ_VNUM(obj) == THE_PRISONER_PORTAL)
+    {
+      found = TRUE;
+    }
+  }
+
+  /* Portal missing - recreate it */
+  if (!found)
+  {
+    obj = read_object_reason(THE_PRISONER_PORTAL, VIRTUAL, PERF_ENTITY_QUEST);
+    if (obj)
+    {
+      portal = domain_event_object_handle(obj);
+      obj_to_room(obj, portal_room);
+      obj = domain_event_world_resolve_object(portal);
+      if (obj == NULL || incarnation != staff_event_agenda_incarnation())
+        return;
+      /* Notify players in the room about portal manifestation */
+      act("...  $p flickers, shimmers, then manifests before you...", TRUE, 0, obj, 0, TO_ROOM);
+    }
   }
 
   /*
-   * ACTIVE EVENT TIMER MANAGEMENT (Fixed H004: Race Condition)
-   * Use atomic-style decrement and termination logic to prevent
-   * race conditions in event timer management.
+   * Environmental Broadcasting:
+   * Create atmospheric world-wide messages to enhance immersion.
+   * Uses random chance to avoid spam (15/16 chance to skip each tick).
    */
-  if (STAFF_EVENT_TIME > 0)
+  if (rand_number(0, PRISONER_ATMOSPHERIC_CHANCE_SKIP))
+    return; /* Skip environmental effects this tick (93.75% chance) */
+
+  /*
+   * Atmospheric Message Broadcasting:
+   * Send thematic messages to all connected players to create
+   * a sense of cosmic threat and urgency during the event.
+   */
+  switch (rand_number(0, ATMOSPHERIC_MESSAGE_COUNT - 1)) /* Random message selection */
   {
-    /* Atomically decrement and check for termination */
-    if (--STAFF_EVENT_TIME == 0)
-    {
-      /* Event time expired - terminate immediately */
-      end_staff_event(STAFF_EVENT_NUM);
-      return; /* Exit early - no further tick processing needed */
-    }
-
-    /*
-     * EVENT-SPECIFIC PERIODIC OPERATIONS
-     * Each event can define custom behavior that occurs every tick
-     * while the event is active. This enables dynamic content like
-     * mob replenishment, environmental effects, and special mechanics.
-     */
-    switch (STAFF_EVENT_NUM)
-    {
-    case JACKALOPE_HUNT:
-    {
-      int easy_count = 0, med_count = 0, hard_count = 0;
-      int easy_deficit = 0, med_deficit = 0, hard_deficit = 0;
-
-      /*
-       * JACKALOPE HUNT TICK OPERATIONS
-       * Maintain optimal Jackalope population across all three tiers.
-       *
-       * Population Control Logic:
-       * - Check current population vs. target (NUM_JACKALOPE_EACH)
-       * - Spawn additional mobs to maintain target population
-       * - Use random coordinates within defined geographic boundaries
-       * - Maintains consistent hunting opportunities throughout event
-       */
-
-      /*
-       * OPTIMIZED JACKALOPE POPULATION MAINTENANCE
-       * Uses single-pass counting to fix critical performance issue (C001).
-       * Replaces 6 character list traversals per tick with 1.
-       */
-
-      /* Single efficient count of all Jackalope types */
-      count_jackalope_mobs(&easy_count, &med_count, &hard_count);
-
-      /* Calculate deficits for each type */
-      easy_deficit = (easy_count < NUM_JACKALOPE_EACH) ? (NUM_JACKALOPE_EACH - easy_count) : 0;
-      med_deficit = (med_count < NUM_JACKALOPE_EACH) ? (NUM_JACKALOPE_EACH - med_count) : 0;
-      hard_deficit = (hard_count < NUM_JACKALOPE_EACH) ? (NUM_JACKALOPE_EACH - hard_count) : 0;
-
-      /*
-       * STREAMLINED JACKALOPE SPAWNING (Addresses M001: Code Duplication)
-       * Use helper function to eliminate repeated coordinate generation logic
-       */
-
-      /* Easy Jackalope Population Maintenance (Levels 1-10) */
-      spawn_jackalope_batch(EASY_JACKALOPE, easy_deficit);
-
-      /* Medium Jackalope Population Maintenance (Levels 11-20) */
-      spawn_jackalope_batch(MED_JACKALOPE, med_deficit);
-
-      /* Hard Jackalope Population Maintenance (Levels 21+) */
-      spawn_jackalope_batch(HARD_JACKALOPE, hard_deficit);
-    }
+  case 0:
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (IS_PLAYING(pt) && pt->character)
+        send_to_char(pt->character,
+                     "A perpetual haze of green looms on the horizon as \tY\t=The Prisoner's "
+                     "power\tn flares throughout the realms!\r\n");
     break;
-
-    case THE_PRISONER_EVENT:
-      /*
-       * THE PRISONER EVENT TICK OPERATIONS
-       * Maintain raid portal and provide atmospheric environmental effects.
-       *
-       * Features:
-       * 1. Portal Management - Ensure portal remains available for players
-       * 2. Environmental Broadcasting - Random atmospheric messages
-       * 3. Immersion Enhancement - Thematic world-wide effects
-       */
-
-      /*
-       * Portal Maintenance:
-       * Ensure the portal to Avernus remains available throughout the event.
-       * The portal may be destroyed or removed, so we check and recreate as needed.
-       */
-      found = FALSE; /* Reset portal found flag */
-
-      /* Search for existing portal in the designated room */
-      for (obj = world[real_room(TP_PORTAL_L_ROOM)].contents; obj; obj = obj->next_content)
-      {
-        if (GET_OBJ_VNUM(obj) == THE_PRISONER_PORTAL)
-        {
-          found = TRUE;
-        }
-      }
-
-      /* Portal missing - recreate it */
-      if (!found)
-      {
-        obj = read_object_reason(THE_PRISONER_PORTAL, VIRTUAL, PERF_ENTITY_QUEST);
-        if (obj)
-        {
-          obj_to_room(obj, real_room(TP_PORTAL_L_ROOM));
-          /* Notify players in the room about portal manifestation */
-          act("...  $p flickers, shimmers, then manifests before you...", TRUE, 0, obj, 0, TO_ROOM);
-        }
-      }
-
-      /*
-       * Environmental Broadcasting:
-       * Create atmospheric world-wide messages to enhance immersion.
-       * Uses random chance to avoid spam (15/16 chance to skip each tick).
-       */
-      if (rand_number(0, PRISONER_ATMOSPHERIC_CHANCE_SKIP))
-        break; /* Skip environmental effects this tick (93.75% chance) */
-
-      /*
-       * Atmospheric Message Broadcasting:
-       * Send thematic messages to all connected players to create
-       * a sense of cosmic threat and urgency during the event.
-       */
-      switch (rand_number(0, ATMOSPHERIC_MESSAGE_COUNT - 1)) /* Random message selection */
-      {
-      case 0:
-        for (pt = descriptor_list; pt; pt = pt->next)
-          if (IS_PLAYING(pt) && pt->character)
-            send_to_char(pt->character,
-                         "A perpetual haze of green looms on the horizon as \tY\t=The Prisoner's "
-                         "power\tn flares throughout the realms!\r\n");
-        break;
-      case 1:
-        for (pt = descriptor_list; pt; pt = pt->next)
-          if (IS_PLAYING(pt) && pt->character)
-            send_to_char(pt->character, "Booms and echoes of \tY\t=The Prisoner's power\tn resound "
-                                        "throughout the realms!\r\n");
-        break;
-      case 2:
-        for (pt = descriptor_list; pt; pt = pt->next)
-          if (IS_PLAYING(pt) && pt->character)
-            send_to_char(pt->character, "Emanations from the outter planes, via \tY\t=The "
-                                        "Prisoner's power\tn, pulsate through the realms!\r\n");
-        break;
-      case 3:
-        for (pt = descriptor_list; pt; pt = pt->next)
-          if (IS_PLAYING(pt) && pt->character)
-            send_to_char(
-                pt->character,
-                "The \tY\t=power of The Prisoner\tn is causing the very ground to shake!\r\n");
-        break;
-      case 4:
-        for (pt = descriptor_list; pt; pt = pt->next)
-          if (IS_PLAYING(pt) && pt->character)
-            send_to_char(pt->character, "Vicious blasts of mental energy from \tY\t=The "
-                                        "Prisoner\tn penetrate your psyche!\r\n");
-        break;
-      case 5:
-        for (pt = descriptor_list; pt; pt = pt->next)
-          if (IS_PLAYING(pt) && pt->character)
-            send_to_char(pt->character, "Random ebbs and flows of chaotic magic from \tY\t=The "
-                                        "Prisoner\tn manifest nearby!\r\n");
-        break;
-      case 6:
-        for (pt = descriptor_list; pt; pt = pt->next)
-          if (IS_PLAYING(pt) && pt->character)
-            send_to_char(pt->character, "The very gravity of the realms seem to shift as \tY\t=The "
-                                        "Prisoner's power\tn grows!\r\n");
-        break;
-      default:
-        break;
-      }
-
-      break;
-
-    /*
-     * Future events can add their own tick operations here
-     * Template:
-     * case NEW_EVENT:
-     *   // Event-specific tick operations
-     *   break;
-     */
-    default:
-      /* No special tick operations for unhandled events */
-      break;
-    }
+  case 1:
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (IS_PLAYING(pt) && pt->character)
+        send_to_char(pt->character, "Booms and echoes of \tY\t=The Prisoner's power\tn resound "
+                                    "throughout the realms!\r\n");
+    break;
+  case 2:
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (IS_PLAYING(pt) && pt->character)
+        send_to_char(pt->character, "Emanations from the outter planes, via \tY\t=The "
+                                    "Prisoner's power\tn, pulsate through the realms!\r\n");
+    break;
+  case 3:
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (IS_PLAYING(pt) && pt->character)
+        send_to_char(pt->character,
+                     "The \tY\t=power of The Prisoner\tn is causing the very ground to shake!\r\n");
+    break;
+  case 4:
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (IS_PLAYING(pt) && pt->character)
+        send_to_char(pt->character, "Vicious blasts of mental energy from \tY\t=The "
+                                    "Prisoner\tn penetrate your psyche!\r\n");
+    break;
+  case 5:
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (IS_PLAYING(pt) && pt->character)
+        send_to_char(pt->character, "Random ebbs and flows of chaotic magic from \tY\t=The "
+                                    "Prisoner\tn manifest nearby!\r\n");
+    break;
+  case 6:
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (IS_PLAYING(pt) && pt->character)
+        send_to_char(pt->character, "The very gravity of the realms seem to shift as \tY\t=The "
+                                    "Prisoner's power\tn grows!\r\n");
+    break;
+  default:
+    break;
   }
-
-  /*
-   * EVENT TIMER MANAGEMENT COMPLETE
-   * Timer logic has been moved to atomic decrement above (line ~660)
-   * to prevent race conditions and ensure reliable event termination.
-   */
-  /* end staff event timer management */
 }
 
 /*
@@ -1122,11 +1076,12 @@ void staff_event_tick()
  *
  * Global State Changes:
  * - Sets STAFF_EVENT_NUM to active event
- * - Sets STAFF_EVENT_TIME to event duration
+ * - Sets get_event_time_remaining() to event duration
  * - Triggers event-specific world changes (mob spawning, etc.)
  */
 event_result_t start_staff_event(int event_num)
 {
+  uint64_t incarnation;
   struct descriptor_data *pt = NULL; /* Iterator for player connections */
   /* Variables removed - unused in current implementation */
 
@@ -1193,6 +1148,16 @@ event_result_t start_staff_event(int event_num)
     break;
   }
 
+  if (is_event_active())
+    return EVENT_ERROR_ALREADY_RUNNING;
+  if (get_event_delay() > 0)
+    return EVENT_ERROR_DELAY_ACTIVE;
+  if (event_num == THE_PRISONER_EVENT && real_room(TP_PORTAL_L_ROOM) == NOWHERE)
+    return EVENT_ERROR_PRECONDITION_FAILED;
+  if (!set_event_state(event_num, staff_event_mud_hours_to_ticks(1200)))
+    return EVENT_ERROR_SCHEDULER;
+  incarnation = staff_event_agenda_incarnation();
+
   /*
    * WORLD-WIDE EVENT ANNOUNCEMENT:
    * Broadcast the event start to all connected players with comprehensive
@@ -1244,7 +1209,6 @@ event_result_t start_staff_event(int event_num)
    * Individual events can override this in their specific setup below.
    * Note: 48 ticks ≈ 1 real hour
    */
-  set_event_state(event_num, 1200);
 
   /*
    * EVENT-SPECIFIC INITIALIZATION:
@@ -1266,7 +1230,7 @@ event_result_t start_staff_event(int event_num)
      */
 
     /* Optional: Override default event duration for testing */
-    // STAFF_EVENT_TIME = 20; /* Uncomment for short test events */
+    // get_event_time_remaining() = 20; /* Uncomment for short test events */
 
     /*
      * STREAMLINED INITIAL JACKALOPE DEPLOYMENT (Addresses M001: Code Duplication)
@@ -1274,9 +1238,12 @@ event_result_t start_staff_event(int event_num)
      */
 
     /* Deploy initial population of all three Jackalope tiers */
-    spawn_jackalope_batch(EASY_JACKALOPE, NUM_JACKALOPE_EACH); /* Easy Jackalope (Levels 1-10) */
-    spawn_jackalope_batch(MED_JACKALOPE, NUM_JACKALOPE_EACH);  /* Medium Jackalope (Levels 11-20) */
-    spawn_jackalope_batch(HARD_JACKALOPE, NUM_JACKALOPE_EACH); /* Hard Jackalope (Levels 21+) */
+    spawn_jackalope_batch(EASY_JACKALOPE, NUM_JACKALOPE_EACH,
+                          incarnation); /* Easy Jackalope (Levels 1-10) */
+    spawn_jackalope_batch(MED_JACKALOPE, NUM_JACKALOPE_EACH,
+                          incarnation); /* Medium Jackalope (Levels 11-20) */
+    spawn_jackalope_batch(HARD_JACKALOPE, NUM_JACKALOPE_EACH,
+                          incarnation); /* Hard Jackalope (Levels 21+) */
 
     break;
 
@@ -1319,8 +1286,8 @@ event_result_t start_staff_event(int event_num)
  *
  * Global State Changes:
  * - Resets STAFF_EVENT_NUM to UNDEFINED_EVENT
- * - Resets STAFF_EVENT_TIME to 0
- * - Sets STAFF_EVENT_DELAY for cleanup period
+ * - Resets get_event_time_remaining() to 0
+ * - Sets get_event_delay() for cleanup period
  */
 event_result_t end_staff_event(int event_num)
 {
@@ -1334,6 +1301,16 @@ event_result_t end_staff_event(int event_num)
   if (event_num >= NUM_STAFF_EVENTS || event_num < 0)
   {
     return EVENT_ERROR_INVALID_NUM;
+  }
+
+  if (!is_event_active() || get_active_event() != event_num)
+    return EVENT_ERROR_NO_ACTIVE_EVENT;
+  clear_event_state();
+  if (!set_event_delay(staff_event_mud_hours_to_ticks(STAFF_EVENT_DELAY_MUD_HOURS)))
+  {
+    /* Keep admission closed until staff can repair a failed cleanup deadline. */
+    staffevent_data.delay = STAFF_EVENT_DELAY_CNST;
+    log("SYSERR: staff-event cleanup deadline admission failed; new events remain blocked.");
   }
 
   /*
@@ -1381,8 +1358,6 @@ event_result_t end_staff_event(int event_num)
    * and initiate the mandatory inter-event delay period through
    * the state management layer for better modularity.
    */
-  clear_event_state();                     /* Clear active event state */
-  set_event_delay(STAFF_EVENT_DELAY_CNST); /* Start cleanup delay */
 
   /*
    * EVENT-SPECIFIC CLEANUP PROCEDURES:
@@ -1418,6 +1393,9 @@ event_result_t end_staff_event(int event_num)
      * the object list during traversal. Store next pointer before
      * potential extraction to avoid accessing freed memory.
      */
+
+    if (real_room(TP_PORTAL_L_ROOM) == NOWHERE)
+      break;
 
     for (obj = world[real_room(TP_PORTAL_L_ROOM)].contents; obj; obj = obj_next)
     {
@@ -1521,12 +1499,12 @@ void staff_event_info(struct char_data *ch, const int event_num)
   /* Current Status */
   if (IS_STAFF_EVENT && STAFF_EVENT_NUM == event_num)
   {
-    if (STAFF_EVENT_TIME <= 60) /* Less than 10 minutes */
+    if (get_event_time_remaining() <= 60 * STAFF_EVENT_MUD_HOUR_TICKS)
     {
       status_color = "\tR";
       status_text = "ENDING SOON";
     }
-    else if (STAFF_EVENT_TIME <= 300) /* Less than 50 minutes */
+    else if (get_event_time_remaining() <= 300 * STAFF_EVENT_MUD_HOUR_TICKS)
     {
       status_color = "\tY";
       status_text = "ACTIVE";
@@ -1683,9 +1661,9 @@ void staff_event_info(struct char_data *ch, const int event_num)
       ch,
       "\tC╠═══════════════════════════════════════════════════════════════════════════╣\tn\r\n");
 
-  if (STAFF_EVENT_TIME && IS_STAFF_EVENT && STAFF_EVENT_NUM == event_num)
+  if (get_event_time_remaining() && IS_STAFF_EVENT && STAFF_EVENT_NUM == event_num)
   {
-    secs_left = ((STAFF_EVENT_TIME - 1) * SECS_PER_MUD_HOUR) + next_tick;
+    secs_left = staff_event_agenda_seconds();
     hours = secs_left / 3600;
     mins = (secs_left % 3600) / 60;
     secs = secs_left % 60;
@@ -1705,8 +1683,8 @@ void staff_event_info(struct char_data *ch, const int event_num)
                  time_color, hours, mins, secs);
 
     /* Progress bar */
-    int total_duration = 1200; /* Default event duration */
-    int elapsed = total_duration - STAFF_EVENT_TIME;
+    int total_duration = 1200 * STAFF_EVENT_MUD_HOUR_TICKS;
+    int elapsed = total_duration - get_event_time_remaining();
     int progress = (elapsed * 50) / total_duration; /* 50 character bar */
     int i = 0;
 
@@ -1727,9 +1705,9 @@ void staff_event_info(struct char_data *ch, const int event_num)
   }
 
   /* Inter-event delay information */
-  if (STAFF_EVENT_DELAY > 0)
+  if (get_event_delay() > 0)
   {
-    send_to_char(ch, "\tC║ \tWCleanup Delay:\tn  \tY%-57d ticks\tn \tC║\tn\r\n", STAFF_EVENT_DELAY);
+    send_to_char(ch, "\tC║ \tWCleanup Delay:\tn  \tY%-57d ticks\tn \tC║\tn\r\n", get_event_delay());
   }
 
   /* Footer section */
@@ -1822,7 +1800,7 @@ void list_staff_events(struct char_data *ch)
       event_status = "ACTIVE NOW";
       status_color = "\tG\t="; /* Flashing green */
     }
-    else if (STAFF_EVENT_DELAY > 0)
+    else if (get_event_delay() > 0)
     {
       event_status = "COOLDOWN";
       status_color = "\tY";
@@ -1884,7 +1862,7 @@ void list_staff_events(struct char_data *ch)
 
   if (IS_STAFF_EVENT)
   {
-    int secs_left = ((STAFF_EVENT_TIME - 1) * SECS_PER_MUD_HOUR) + next_tick;
+    int secs_left = staff_event_agenda_seconds();
     int hours = secs_left / 3600;
     int mins = (secs_left % 3600) / 60;
 
@@ -1895,14 +1873,14 @@ void list_staff_events(struct char_data *ch)
                  "      \tC║\tn\r\n",
                  hours, mins);
   }
-  else if (STAFF_EVENT_DELAY > 0)
+  else if (get_event_delay() > 0)
   {
     send_to_char(ch, "\tC║ \twNo events active - System in cleanup mode\tn                         "
                      "       \tC║\tn\r\n");
     send_to_char(ch,
                  "\tC║ \tWCooldown:\tn     \tY%d ticks remaining\tn                                "
                  "        \tC║\tn\r\n",
-                 STAFF_EVENT_DELAY);
+                 get_event_delay());
   }
   else
   {
@@ -2190,6 +2168,10 @@ static void handle_start_event_command(struct char_data *ch, const int event_num
         "\tR│ \twThe specified event number is invalid.\tn                         \tR│\tn\r\n");
     send_to_char(
         ch, "\tR└─────────────────────────────────────────────────────────────────┘\tn\r\n\r\n");
+    break;
+
+  case EVENT_ERROR_SCHEDULER:
+    send_to_char(ch, "The event could not be scheduled. Nothing was started.\r\n");
     break;
 
   case EVENT_ERROR_INVALID_DATA:
@@ -2908,7 +2890,7 @@ static int test_event_state_management(void)
   TEST_ASSERT_EQUAL(0, get_event_time_remaining(), "Initial time remaining zero");
 
   /* Test 2: Set event state */
-  set_event_state(JACKALOPE_HUNT, 100);
+  failures += !set_event_state(JACKALOPE_HUNT, 100);
   TEST_ASSERT_EQUAL(1, is_event_active(), "Event state set to active");
   TEST_ASSERT_EQUAL(JACKALOPE_HUNT, get_active_event(), "Event number set correctly");
   TEST_ASSERT_EQUAL(100, get_event_time_remaining(), "Event time set correctly");
@@ -2919,7 +2901,7 @@ static int test_event_state_management(void)
   TEST_ASSERT_EQUAL(UNDEFINED_EVENT, get_active_event(), "Event number reset to undefined");
 
   /* Test 4: Event delay management */
-  set_event_delay(50);
+  failures += !set_event_delay(50);
   TEST_ASSERT_EQUAL(50, get_event_delay(), "Event delay set correctly");
 
   return failures;

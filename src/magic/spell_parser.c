@@ -44,6 +44,7 @@
 #include "activity_manager.h"
 #include "domain_event_types.h"
 #include "domain_event_world.h"
+#include "domain_object_transfer.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -536,6 +537,13 @@ int find_ability_num(char *name)
   char first[MEDIUM_STRING] = {'\0'}, first2[MEDIUM_STRING] = {'\0'},
        tempbuf[MEDIUM_STRING] = {'\0'};
 
+  if (name == NULL || *name == '\0')
+    return -1;
+  /* Nature retains persisted ability slot 29. Survival is its legacy name,
+   * accepted by command parsers without creating a second investment. */
+  if (!strcasecmp(name, "survival"))
+    return ABILITY_NATURE;
+
   /* PHASE 1: Check for exact match first (case-insensitive) */
   for (skindex = 1; skindex < NUM_ABILITIES; skindex++)
   {
@@ -569,6 +577,8 @@ int find_ability_num(char *name)
       return (skindex);
   }
 
+  if (is_abbrev(name, "survival"))
+    return ABILITY_NATURE;
   return (-1);
 }
 
@@ -577,8 +587,25 @@ int find_ability_num(char *name)
  * works -- all come through this function eventually. This is also the entry
  * point for non-spoken or unrestricted spells. Spellnum 0 is legal but silently
  * ignored here, to make callers simpler. */
+static int call_magic_impl(struct char_data *caster, struct char_data *cvict,
+                           struct obj_data *ovict, int spellnum, int metamagic, int level,
+                           int casttype);
+
 int call_magic(struct char_data *caster, struct char_data *cvict, struct obj_data *ovict,
                int spellnum, int metamagic, int level, int casttype)
+{
+  struct domain_transfer_context context;
+  int result;
+
+  domain_transfer_context_begin(&context, caster, DOMAIN_TRANSFER_MAGIC);
+  result = call_magic_impl(caster, cvict, ovict, spellnum, metamagic, level, casttype);
+  domain_transfer_context_finish(&context);
+  return result;
+}
+
+static int call_magic_impl(struct char_data *caster, struct char_data *cvict,
+                           struct obj_data *ovict, int spellnum, int metamagic, int level,
+                           int casttype)
 {
   int savetype = 0, spell_level = 0;
   struct char_data *tmp = NULL;
@@ -2862,8 +2889,6 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
     if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
     {
       casting_time += get_augment_casting_time_adjustment(ch);
-      if (IS_BUFFING(ch))
-        GET_BUFF_TIMER(ch) += get_augment_casting_time_adjustment(ch);
     }
 
     /* Fabricate Focus: metacreativity manual/creation powers manifest 10% faster */
@@ -2879,8 +2904,6 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
         if (reduction > 0)
         {
           casting_time = MAX(0, casting_time * (100 - reduction) / 100);
-          if (IS_BUFFING(ch))
-            GET_BUFF_TIMER(ch) = MAX(0, GET_BUFF_TIMER(ch) * (100 - reduction) / 100);
         }
       }
     }

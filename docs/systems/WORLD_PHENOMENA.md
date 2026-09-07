@@ -8,9 +8,10 @@ airships, flying dragons, major weather, terrain changes, explosions, and
 fighting in a nearby room.
 
 The gameplay owner publishes one immutable fact when the phenomenon occurs.
-The synchronous spatial subscriber then finds eligible active observers and
-delivers the sight or sound. There is no durable message row, string topic,
-subscription list, delivery retry queue, or heartbeat scan.
+The synchronous spatial subscriber then finds eligible active observers,
+delivers player-facing sight or sound, and publishes one typed perception fact
+for each admitted observer. There is no durable message row, string topic,
+delivery retry queue, or heartbeat scan.
 
 ## Contract
 
@@ -30,8 +31,10 @@ subscriber do not retain or log their content.
 ## Propagation
 
 Coordinate mode uses the existing visual/audio strategy engine. It evaluates
-only connected player characters in wilderness zones and applies range,
-elevation, terrain, weather, obstruction, and intensity rules.
+materialized observers in wilderness zones and applies range, elevation,
+terrain, weather, obstruction, and intensity rules. NPCs are admitted for AI
+response; connected players are admitted to typed perception only when an
+active quest requires the exact phenomenon kind.
 
 Room mode performs a bounded breadth-first walk from the generation-validated
 origin room. The maximum accepted radius is eight room hops and each
@@ -40,7 +43,13 @@ audible effects may. `minimum_range` lets a publisher omit the origin room when
 normal local combat or spell messages already cover it.
 
 Both modes run only in response to a publication. They do not poll dormant
-rooms, characters, mobiles, or wilderness coordinates.
+rooms, characters, mobiles, or wilderness coordinates. Candidate and
+publication caps keep each propagation bounded.
+
+`PhenomenonPerceived` records the usable senses, distance, attenuated intensity
+and whether the source is known through faction or sight. NPC behavior and
+witnessed quest objectives consume that typed result; they never infer state
+from the descriptive text.
 
 ## Current Publishers
 

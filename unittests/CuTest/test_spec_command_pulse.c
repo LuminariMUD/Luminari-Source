@@ -10,7 +10,12 @@
 #include "../../src/interpreter.h"
 #include "../../src/mob/mob_act.h"
 #include "../../src/olc/oasis.h"
+#include "../../src/olc/genwld.h"
 #include "../../src/vessels/vessels_moving_rooms.h"
+#include "../../src/vessels/moving_room_events.h"
+#include "../../src/domain_event_runtime.h"
+#include "../../src/event_runtime.h"
+#include "../../src/dgscript/dg_event.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -62,7 +67,6 @@ struct spec_pulse_fixture
   obj_rnum saved_top_of_objt;
   struct char_data *saved_character_list;
   struct obj_data *saved_object_list;
-  struct moving_room_data *saved_moving_rooms;
   struct command_info *saved_complete_cmd_info;
   int saved_no_specials;
 
@@ -73,6 +77,9 @@ struct spec_pulse_fixture
   struct char_data mobiles[SPEC_PULSE_MOBILE_COUNT];
   struct obj_data objects[SPEC_PULSE_OBJECT_COUNT];
   struct moving_room_data moving_room;
+  struct moving_room_data replacement_mover;
+  bool replace_mover_in_callback;
+  bool replacement_admitted;
   struct command_info commands[2];
   struct spec_pulse_recorder recorder;
 
@@ -106,6 +113,14 @@ static SPECIAL_DECL(spec_pulse_record_callback)
       snprintf(call->argument, sizeof(call->argument), "%s", argument);
   }
   active_spec_pulse_fixture->recorder.call_count++;
+  if (active_spec_pulse_fixture->replace_mover_in_callback)
+  {
+    active_spec_pulse_fixture->replace_mover_in_callback = false;
+    moving_room_event_forget(1);
+    world[1].mover = &active_spec_pulse_fixture->replacement_mover;
+    active_spec_pulse_fixture->replacement_admitted = moving_room_event_sync(1);
+  }
+
 
   if (call_index >= 0 && call_index < active_spec_pulse_fixture->recorder.return_count &&
       call_index < SPEC_PULSE_MAX_CALLS)
@@ -146,7 +161,6 @@ static bool spec_pulse_fixture_begin(struct spec_pulse_fixture *fixture)
   fixture->saved_top_of_objt = top_of_objt;
   fixture->saved_character_list = character_list;
   fixture->saved_object_list = object_list;
-  fixture->saved_moving_rooms = movingRoomList;
   fixture->saved_complete_cmd_info = complete_cmd_info;
   fixture->saved_no_specials = no_specials;
 
@@ -167,7 +181,6 @@ static bool spec_pulse_fixture_begin(struct spec_pulse_fixture *fixture)
   top_of_objt = SPEC_PULSE_OBJECT_COUNT - 1;
   character_list = NULL;
   object_list = NULL;
-  movingRoomList = NULL;
   no_specials = 0;
   active_spec_pulse_fixture = fixture;
   return true;
@@ -192,7 +205,6 @@ static void spec_pulse_fixture_end(struct spec_pulse_fixture *fixture)
   top_of_objt = fixture->saved_top_of_objt;
   character_list = fixture->saved_character_list;
   object_list = fixture->saved_object_list;
-  movingRoomList = fixture->saved_moving_rooms;
   complete_cmd_info = fixture->saved_complete_cmd_info;
   no_specials = fixture->saved_no_specials;
 }
@@ -814,85 +826,82 @@ void Test_spec_proc_update_gates_and_ignores_no_specials(CuTest *tc)
   CuAssertTrue(tc, suppression_ignored);
 }
 
+static void advance_mover_seconds(int seconds)
+{
+  int i;
+
+  for (i = 0; i < seconds * PASSES_PER_SEC; i++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+}
+
 void Test_spec_moving_rooms_timer_payload_and_return(CuTest *tc)
 {
   struct spec_pulse_fixture fixture;
-  struct spec_pulse_call first_call;
-  struct spec_pulse_call second_call;
-  bool setup_ok;
-  bool first_tick_waited;
-  bool first_expiry_matches;
-  bool second_expiry_matches;
+  struct spec_pulse_call first_call, second_call;
+  unsigned long saved_pulse = pulse;
+  bool waited, first_matches, second_matches;
 
-  setup_ok = spec_pulse_fixture_begin(&fixture);
-  if (!setup_ok)
-  {
-    CuFail(tc, "unable to initialize moving-room fixture");
-    return;
-  }
-
-  fixture.rooms[1].func = spec_pulse_record_callback;
-  fixture.moving_room.destination = 200;
-  fixture.moving_room.remainingZonePulses = 2;
+  CuAssertTrue(tc, spec_pulse_fixture_begin(&fixture));
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  /* Index zero is a valid mover owner. */
+  fixture.rooms[0].func = spec_pulse_record_callback;
+  fixture.rooms[0].mover = &fixture.moving_room;
+  fixture.moving_room.destination = 100;
+  fixture.moving_room.resetZonePulse = 2;
+  CuAssertTrue(tc, moving_room_event_sync(0));
   fixture.moving_room.resetZonePulse = 5;
-  movingRoomList = &fixture.moving_room;
-
-  moving_rooms_update();
-  first_tick_waited =
-      fixture.recorder.call_count == 0 && fixture.moving_room.remainingZonePulses == 1;
-
-  fixture.recorder.return_count = 1;
-  fixture.recorder.returns[0] = 0;
-  moving_rooms_update();
-  first_call = fixture.recorder.calls[0];
-  first_expiry_matches = fixture.recorder.call_count == 1 && first_call.actor == NULL &&
-                         first_call.owner == &fixture.moving_room && first_call.command == 0 &&
-                         first_call.argument_is_null &&
-                         fixture.moving_room.remainingZonePulses == 5;
-
-  fixture.moving_room.remainingZonePulses = 1;
+  advance_mover_seconds(10);
+  waited = fixture.recorder.call_count == 0 && moving_room_remaining_seconds(0) == 10;
   fixture.recorder.return_count = 2;
+  fixture.recorder.returns[0] = 0;
   fixture.recorder.returns[1] = 1;
-  moving_rooms_update();
+  advance_mover_seconds(10);
+  first_call = fixture.recorder.calls[0];
+  first_matches = fixture.recorder.call_count == 1 && first_call.actor == NULL &&
+                  first_call.owner == &fixture.moving_room && first_call.command == 0 &&
+                  first_call.argument_is_null && moving_room_remaining_seconds(0) == 50;
+  advance_mover_seconds(50);
   second_call = fixture.recorder.calls[1];
-  second_expiry_matches = fixture.recorder.call_count == 2 && second_call.actor == NULL &&
-                          second_call.owner == &fixture.moving_room && second_call.command == 0 &&
-                          second_call.argument_is_null &&
-                          fixture.moving_room.remainingZonePulses == 5;
+  second_matches = fixture.recorder.call_count == 2 && second_call.actor == NULL &&
+                   second_call.owner == &fixture.moving_room && second_call.command == 0 &&
+                   second_call.argument_is_null && moving_room_remaining_seconds(0) == 50;
+  domain_event_runtime_shutdown();
+  event_free_all();
+  pulse = saved_pulse;
   spec_pulse_fixture_end(&fixture);
-
-  CuAssertTrue(tc, first_tick_waited);
-  CuAssertTrue(tc, first_expiry_matches);
-  CuAssertTrue(tc, second_expiry_matches);
+  CuAssertTrue(tc, waited && first_matches && second_matches);
 }
 
 void Test_spec_moving_rooms_ignores_no_specials(CuTest *tc)
 {
   struct spec_pulse_fixture fixture;
-  bool setup_ok;
+  unsigned long saved_pulse = pulse;
   bool suppression_ignored;
 
-  setup_ok = spec_pulse_fixture_begin(&fixture);
-  if (!setup_ok)
-  {
-    CuFail(tc, "unable to initialize moving-room fixture");
-    return;
-  }
-
+  CuAssertTrue(tc, spec_pulse_fixture_begin(&fixture));
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   fixture.rooms[1].func = spec_pulse_record_callback;
+  fixture.rooms[1].mover = &fixture.moving_room;
   fixture.moving_room.destination = 200;
-  fixture.moving_room.remainingZonePulses = 1;
-  fixture.moving_room.resetZonePulse = 7;
-  movingRoomList = &fixture.moving_room;
+  fixture.moving_room.resetZonePulse = 1;
   no_specials = 1;
-
-  moving_rooms_update();
-  suppression_ignored =
-      fixture.recorder.call_count == 1 && fixture.recorder.calls[0].actor == NULL &&
-      fixture.recorder.calls[0].owner == &fixture.moving_room &&
-      fixture.recorder.calls[0].argument_is_null && fixture.moving_room.remainingZonePulses == 7;
+  CuAssertTrue(tc, moving_room_event_sync(1));
+  advance_mover_seconds(10);
+  suppression_ignored = fixture.recorder.call_count == 1 &&
+                        fixture.recorder.calls[0].actor == NULL &&
+                        fixture.recorder.calls[0].owner == &fixture.moving_room &&
+                        fixture.recorder.calls[0].argument_is_null;
+  domain_event_runtime_shutdown();
+  event_free_all();
+  pulse = saved_pulse;
   spec_pulse_fixture_end(&fixture);
-
   CuAssertTrue(tc, suppression_ignored);
 }
 
@@ -901,7 +910,7 @@ void Test_spec_native_services_and_movement_admission_are_present(CuTest *tc)
   char *source = NULL;
 
   CuAssertTrue(tc, spec_pulse_read_source("src/comm.c", &source));
-  CuAssertPtrNotNull(tc, strstr(source, "moving_rooms_update();"));
+  CuAssertPtrNotNull(tc, strstr(source, "moving_room_events_bootstrap()"));
   CuAssertPtrNotNull(tc, strstr(source, "rol_avernus_process_garden_activity();"));
   CuAssertPtrEquals(tc, NULL, strstr(source, "mobile_activity_run_legacy_"));
   CuAssertPtrEquals(tc, NULL, strstr(source, "process_legacy_luminari_maintenance();"));
@@ -913,7 +922,7 @@ void Test_spec_native_services_and_movement_admission_are_present(CuTest *tc)
   free(source);
   source = NULL;
   CuAssertTrue(tc, spec_pulse_read_source("src/handler.c", &source));
-  CuAssertPtrNotNull(tc, strstr(source, "domain_event_runtime_character_moved("));
+  CuAssertPtrNotNull(tc, strstr(source, "domain_relocation_placed("));
   free(source);
 }
 
@@ -981,4 +990,132 @@ void Test_spec_character_periodic_control_transfers_resync_owners(CuTest *tc)
     CuAssertTrue(tc, transfer != NULL && old_owner_sync != NULL && new_owner_sync != NULL);
     free(source);
   }
+}
+
+static void verify_native_mover_lifecycle(CuTest *tc, int mode)
+{
+  struct spec_pulse_fixture fixture;
+  struct room_data editor = {0};
+  struct room_data *reindexed = NULL;
+  struct event_runtime_handle initial;
+  unsigned long saved_pulse = pulse;
+  game_event_type_id_t type;
+  size_t live = 99;
+  int calls;
+  bool editor_unowned = true, deadline_preserved = true;
+
+  CuAssertTrue(tc, spec_pulse_fixture_begin(&fixture));
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  fixture.rooms[1].func = spec_pulse_record_callback;
+  fixture.rooms[1].mover = &fixture.moving_room;
+  fixture.moving_room.destination = 200;
+  fixture.moving_room.resetZonePulse = 1;
+  CuAssertTrue(tc, moving_room_events_bootstrap());
+  initial = fixture.rooms[1].moving_room_event;
+  CuAssertTrue(tc, moving_room_event_sync(1));
+  deadline_preserved = initial.id == fixture.rooms[1].moving_room_event.id;
+  if (mode == 0)
+    fixture.rooms[1].event_owner_generation++;
+  else if (mode == 1)
+  {
+    advance_mover_seconds(3);
+    CuAssertTrue(tc, copy_room(&editor, &fixture.rooms[1]));
+    editor_unowned = event_runtime_handle_is_none(editor.moving_room_event);
+    CuAssertTrue(tc, copy_room(&fixture.rooms[1], &editor));
+    deadline_preserved = deadline_preserved &&
+                         initial.id == fixture.rooms[1].moving_room_event.id &&
+                         moving_room_remaining_seconds(1) == 7;
+  }
+  if (mode == 3)
+  {
+    reindexed = calloc(3, sizeof(*reindexed));
+    CuAssertPtrNotNull(tc, reindexed);
+    reindexed[0] = fixture.rooms[0];
+    reindexed[1].number = 150;
+    reindexed[2] = fixture.rooms[1];
+    world = reindexed;
+    top_of_world = 2;
+  }
+  if (mode == 2)
+  {
+    pulse += 100 * PASSES_PER_SEC;
+    event_test_advance();
+  }
+  else
+    advance_mover_seconds(mode == 1 ? 7 : 10);
+  calls = fixture.recorder.call_count;
+  event_runtime_find_type("moving-room.relocate", &type);
+  event_runtime_type_live_count(type, &live);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  if (reindexed != NULL)
+  {
+    world = fixture.rooms;
+    top_of_world = SPEC_PULSE_ROOM_COUNT - 1;
+    free(reindexed);
+  }
+  free_room_strings(&editor);
+  free_room_strings(&fixture.rooms[1]);
+  pulse = saved_pulse;
+  spec_pulse_fixture_end(&fixture);
+
+  CuAssertTrue(tc, editor_unowned && deadline_preserved);
+  CuAssertIntEquals(tc, mode == 0 ? 0 : 1, calls);
+  CuAssertIntEquals(tc, mode == 0 ? 0 : 1, (int)live);
+}
+
+void Test_spec_native_mover_rejects_recycled_room_identity(CuTest *tc)
+{
+  verify_native_mover_lifecycle(tc, 0);
+}
+
+void Test_spec_native_mover_olc_copy_keeps_only_live_deadline(CuTest *tc)
+{
+  verify_native_mover_lifecycle(tc, 1);
+}
+
+void Test_spec_native_mover_runs_once_after_delayed_dispatch(CuTest *tc)
+{
+  verify_native_mover_lifecycle(tc, 2);
+}
+
+void Test_spec_native_mover_follows_room_identity_after_array_reindex(CuTest *tc)
+{
+  verify_native_mover_lifecycle(tc, 3);
+}
+
+void Test_spec_native_mover_replacement_during_callback_keeps_successor(CuTest *tc)
+{
+  struct spec_pulse_fixture fixture;
+  unsigned long saved_pulse = pulse;
+  game_event_type_id_t type;
+  size_t live = 99;
+  bool replaced;
+
+  CuAssertTrue(tc, spec_pulse_fixture_begin(&fixture));
+  event_free_all();
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  fixture.rooms[1].func = spec_pulse_record_callback;
+  fixture.rooms[1].mover = &fixture.moving_room;
+  fixture.moving_room.destination = fixture.replacement_mover.destination = 200;
+  fixture.moving_room.resetZonePulse = 1;
+  fixture.replacement_mover.resetZonePulse = 2;
+  fixture.replace_mover_in_callback = true;
+  CuAssertTrue(tc, moving_room_event_sync(1));
+  advance_mover_seconds(10);
+  replaced = fixture.replacement_admitted && moving_room_remaining_seconds(1) == 20;
+  advance_mover_seconds(20);
+  replaced = replaced && fixture.recorder.call_count == 2 &&
+             fixture.recorder.calls[1].owner == &fixture.replacement_mover;
+  event_runtime_find_type("moving-room.relocate", &type);
+  event_runtime_type_live_count(type, &live);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  pulse = saved_pulse;
+  spec_pulse_fixture_end(&fixture);
+  CuAssertTrue(tc, replaced);
+  CuAssertIntEquals(tc, 1, (int)live);
 }

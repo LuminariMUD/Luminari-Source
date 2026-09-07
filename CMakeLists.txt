@@ -446,6 +446,7 @@ set(SRC_C_FILES
     src/combat/act.offensive.c
     src/act.other.c
     src/ready_action.c
+    src/tactical_effects.c
     src/act.social.c
     src/act.wizard.c
     src/actionqueues.c
@@ -550,6 +551,14 @@ set(SRC_C_FILES
     src/point_update_periodic.h
     src/vessels/vessel_periodic.c
     src/vessels/vessel_periodic.h
+    src/quest/staff_event_agenda.c
+    src/quest/staff_event_agenda.h
+    src/vessels/moving_room_events.c
+    src/vessels/moving_room_events.h
+    src/magic/buff_sequence.c
+    src/magic/buff_sequence.h
+    src/vessels/transport_jobs.c
+    src/vessels/transport_jobs.h
     src/periodic_owners.c
     src/periodic_owners.h
     src/domain_events.c
@@ -558,6 +567,8 @@ set(SRC_C_FILES
     src/domain_event_world.c
     src/domain_event_world.h
     src/domain_event_types.h
+    src/domain_object_transfer.c
+    src/domain_object_transfer.h
     src/domain_event_runtime.c
     src/domain_event_runtime.h
     src/event_debug.c
@@ -779,6 +790,8 @@ set(SRC_C_FILES
     src/wilderness/spatial_audio.c
     src/wilderness/spatial_events.c
     src/wilderness/spatial_events.h
+    src/mob/phenomenon_response.c
+    src/mob/phenomenon_response.h
     src/wilderness/terrain_bridge.c
     src/wilderness/region_hints.c
     src/wilderness/narrative_weaver.c
@@ -1339,6 +1352,9 @@ if (BUILD_TESTS)
     add_test(NAME demand-driven-event-architecture
         COMMAND bash
             ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_demand_driven_architecture.sh)
+    add_test(NAME event-core-performance-gate
+        COMMAND Python3::Interpreter -m unittest
+            scripts/events/test_event_core_performance_gate.py -v)
     add_test(NAME legacy-event-admission
         COMMAND bash
             ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_legacy_event_admission.sh)
@@ -1350,6 +1366,7 @@ if (BUILD_TESTS)
             ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_pubsub_retirement.sh)
     set_tests_properties(
         demand-driven-event-architecture
+        event-core-performance-gate
         legacy-event-admission
         native-event-architecture
         event-pubsub-retirement

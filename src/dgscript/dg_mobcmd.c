@@ -16,6 +16,8 @@
 #include "dg_scripts.h"
 #include "db.h"
 #include "handler.h"
+#include "domain_event_world.h"
+#include "domain_event_runtime.h"
 #include "interpreter.h"
 #include "comm.h"
 #include "magic/spells.h"
@@ -555,7 +557,7 @@ ACMD(do_mload)
       Y_LOC(mob) = world[rnum].coords[1];
     }
 
-    char_to_room(mob, rnum);
+    char_to_room_cause(mob, rnum, ch, DOMAIN_RELOCATION_SPAWN, -1);
     if (SCRIPT(ch))
     { /* It _should_ have, but it might be detached. */
       char buf[MAX_INPUT_LENGTH] = {'\0'};
@@ -744,7 +746,7 @@ ACMD(do_mgoto)
     Y_LOC(ch) = world[location].coords[1];
   }
 
-  char_to_room(ch, location);
+  char_to_room_cause(ch, location, ch, DOMAIN_RELOCATION_SCRIPT, -1);
   enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
 }
 
@@ -752,6 +754,7 @@ ACMD(do_mgoto)
 ACMDU(do_mat)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct domain_relocation_operation relocation;
   room_rnum location, original;
   int orig_x, orig_y;
 
@@ -782,6 +785,7 @@ ACMDU(do_mat)
   orig_x = X_LOC(ch);
   orig_y = Y_LOC(ch);
 
+  domain_relocation_begin(&relocation, ch, ch, DOMAIN_RELOCATION_SCRIPT, -1);
   char_from_room(ch);
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_WILDERNESS))
@@ -790,19 +794,21 @@ ACMDU(do_mat)
     Y_LOC(ch) = world[location].coords[1];
   }
 
-  char_to_room(ch, location);
+  char_to_room_cause(ch, location, ch, DOMAIN_RELOCATION_SCRIPT, -1);
   command_interpreter(ch, argument);
 
   /* See if 'ch' still exists before continuing! Handles 'at XXXX quit' case. */
-  if (IN_ROOM(ch) == location)
+  ch = domain_event_world_resolve_character(relocation.event.character);
+  if (ch != NULL && IN_ROOM(ch) == location)
   {
     char_from_room(ch);
 
     X_LOC(ch) = orig_x;
     Y_LOC(ch) = orig_y;
 
-    char_to_room(ch, original);
+    char_to_room_cause(ch, original, ch, DOMAIN_RELOCATION_SCRIPT, -1);
   }
+  domain_relocation_finish(&relocation);
 }
 
 /* Lets the mobile transfer people. The all argument transfers everyone in the
@@ -862,7 +868,7 @@ ACMD(do_mteleport)
         }
 
         /* we have to check this carefully! -zusuk */
-        char_to_room(vict, target);
+        char_to_room_cause(vict, target, ch, DOMAIN_RELOCATION_SCRIPT, -1);
         char_pets_to_char_loc(vict);
         enter_wtrigger(&world[IN_ROOM(vict)], vict, -1);
       }
@@ -896,7 +902,7 @@ ACMD(do_mteleport)
       }
 
       /* we have to check this carefully! -zusuk */
-      char_to_room(vict, target);
+      char_to_room_cause(vict, target, ch, DOMAIN_RELOCATION_SCRIPT, -1);
       char_pets_to_char_loc(ch);
       enter_wtrigger(&world[IN_ROOM(vict)], vict, -1);
     }
@@ -1360,7 +1366,7 @@ ACMD(do_mtransform)
     }
 
     /* put the mob in the same room as ch so extract will work */
-    char_to_room(m, IN_ROOM(ch));
+    char_to_room_cause(m, IN_ROOM(ch), ch, DOMAIN_RELOCATION_SPAWN, -1);
     active_world_forget_character(m);
 
     memcpy(&tmpmob, m, sizeof(*m));

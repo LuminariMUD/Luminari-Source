@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <time.h>
 #include "structs.h"
+#include "vessels/transport_jobs.h"
 #include "utils.h"
 #include "comm.h"
 #include "interpreter.h"
@@ -1455,7 +1456,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
                "or closed, with small rain canopies keeping the weather out for the most part.\r\n"
                "Judging by how far you've gone so far, you have about you have \r\n"
                "about %d minutes and %d seconds to go until you get to %s.\r\n",
-               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60,
+               transport_remaining_seconds(ch) / 60, transport_remaining_seconds(ch) % 60,
                get_transport_carriage_name(ch->player_specials->travel_locale));
       if (rm->description)
         free(rm->description);
@@ -1474,7 +1475,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
                "and rhythmic, and you find you sea legs quickly.  Judging by how far you've gone "
                "so far you should arrive in\r\n"
                "about %d minutes and %d seconds to your destination: %s.\r\n",
-               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60,
+               transport_remaining_seconds(ch) / 60, transport_remaining_seconds(ch) % 60,
                get_transport_sailing_name(ch->player_specials->travel_locale));
       if (rm->description)
         free(rm->description);
@@ -1492,7 +1493,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
           "In the distance, your destination beckons forward, a faint outline on the horizon.\r\n"
           "Judging by how far you've gone so far you should arrive in\r\n"
           "about %d minutes and %d seconds to your destination: %s.\r\n",
-          ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60,
+          transport_remaining_seconds(ch) / 60, transport_remaining_seconds(ch) % 60,
           get_transport_zone_entrance_name(ch->player_specials->travel_locale,
                                            TRAVEL_OVERLAND_FLIGHT));
       if (rm->description)
@@ -1511,7 +1512,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
           "In the distance, your destination beckons forward, a faint outline on the horizon.\r\n"
           "Judging by how far you've gone so far you should arrive in\r\n"
           "about %d minutes and %d seconds to your destination: %s.\r\n",
-          ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60,
+          transport_remaining_seconds(ch) / 60, transport_remaining_seconds(ch) % 60,
           get_transport_zone_entrance_name(ch->player_specials->travel_locale,
                                            TRAVEL_OVERLAND_FLIGHT_SAIL));
       if (rm->description)

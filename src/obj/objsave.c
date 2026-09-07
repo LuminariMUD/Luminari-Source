@@ -14,6 +14,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "handler.h"
+#include "domain_object_transfer.h"
 #include "db.h"
 #include "interpreter.h"
 #include "magic/spells.h"
@@ -1023,7 +1024,20 @@ void Crash_listrent(struct char_data *ch, char *name)
  *  0 - successful load, keep char in rent room.
  *  1 - load failure or load of crash items -- put char in temple.
  *  2 - rented equipment lost (no $) */
+static int Crash_load_transfer_impl(struct char_data *ch);
+
 int Crash_load(struct char_data *ch)
+{
+  struct domain_transfer_context context;
+  int result;
+
+  domain_transfer_context_begin(&context, ch, DOMAIN_TRANSFER_RESTORE);
+  result = Crash_load_transfer_impl(ch);
+  domain_transfer_context_finish(&context);
+  return result;
+}
+
+static int Crash_load_transfer_impl(struct char_data *ch)
 {
   int result = 0;
 

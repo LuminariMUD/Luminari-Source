@@ -2551,8 +2551,6 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define IS_STAFF_EVENT (staffevent_data.event_num >= 0 && staffevent_data.ticks_left > 0)
 
 #define STAFF_EVENT_NUM staffevent_data.event_num
-#define STAFF_EVENT_TIME staffevent_data.ticks_left
-#define STAFF_EVENT_DELAY staffevent_data.delay
 
 /**********************/
 
@@ -2951,7 +2949,6 @@ int count_teamwork_feats_available(struct char_data *ch);
 // Buff self
 #define GET_BUFF(ch, i, j) (ch->player_specials->saved.buff_abilities[i][j])
 #define GET_CURRENT_BUFF_SLOT(ch) (ch->player_specials->buff_slot)
-#define GET_BUFF_TIMER(ch) (ch->player_specials->buff_timer)
 #define IS_BUFFING(ch) (ch->player_specials->is_buffing)
 #define GET_BUFF_TARGET(ch) (ch->player_specials->buff_target)
 

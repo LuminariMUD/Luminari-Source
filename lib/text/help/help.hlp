@@ -3176,12 +3176,17 @@ BILLOWING-CLOUD
 	D>Damage Type:     	W N/A 	n
 	D>Description:	n
 	n
-	nThis viscous cloud will severely hamper movement and ability
-	nto react normally while inside of it, effectively forcing a victim
-	nto be unable to perform any action for a round if a fortitude save
-	nis failed.  This spell will not work on victims above 13th level.
+	nThe cloud tests creatures of level 12 or lower when it forms around
+	nthem or when they enter it. A failed Fortitude save consumes a move
+	naction, or a standard action if their move action is already spent.
 	n
-	YSee also:	n SPELLS
+	nA creature that remains inside is tested no more than once per six-
+	nsecond interval. In combat, continued exposure is resolved after that
+	ncreature's eligible turn. Leaving and re-entering during the same
+	ninterval does not cause another save. Each cloud tracks exposure
+	nseparately, and the cloud itself lasts 15 world rounds.
+	n
+	YSee also:	n SPELLS, COMBAT, ACTIONS
 	n
 #0
 BIND TIE-UP TIEUP
@@ -4126,34 +4131,31 @@ define MAX_PROD                     5   /*      with shops before v3.0          
 define MAX_SHOP_OBJ               100   /* "Soft" maximum for list maximums     */
 define MAX_OPER                     4
 #31
-AUTO-BUFF AUTOBUFF BUFF-SELF BUFFING SELF-BUFFING
+AUTO-BUFF AUTOBUFF BUFF-SELF BUFFING SELF-BUFFING BUFF
 
+Usage: buff add <spell or power>
+       buff remove <spell or power>
+       buff <psp> <power>
+       buff list
+       buff target [name|self]
+       buff perform
+       buff cancel
 
-Usage: buffself add (spell / power name)
-       buffself remove (spell / power name)
-       buffself (# psp) (spell / power name)
-       buffself list
-       buffself perform
-       buffself cancel
- 
-This command allows you to create a list of spells and/or psionic
-powers to buff yourself with using just a single command.
- 
-You set up your buff list using the buff add and buff remove commands.
-Typing buff list will show you what buffs you have in your list
-currently.
- 
-Typing buff followed by a # and a psionic power name will
-allow you to assign an amount of augment psp to be used with that
-power when buffing.
- 
-Typing buff perform will start the buffing process, and buff cancel will
-end it prematurely if you desire.
- 
-Currently the buff system does not check if you have a spell/power
-prepared, nor does it account for the quick chant feat and anything else
-that will speed up spellcasting speed. The spell will simply not work
-when buffing if it it not known/prepared.
+Create a saved list of spells and psionic powers, then use buff perform to
+cast them in order. Normal knowledge, preparation, resource and action checks
+apply to each cast. Unavailable spells are skipped; preparations are consumed
+by normal casting, once per attempted cast that reaches that stage.
+
+A timed cast finishes before the next spell begins. Casting speed changes
+apply through normal casting. Instant casts retain the sequence's pacing.
+You cannot start a sequence while another primary activity is in progress.
+
+The selected target is captured when the sequence starts. Changing buff target
+sets the target for your next sequence. With no target, you buff yourself.
+Movement by you or the selected target, target loss, interrupted casting,
+disconnect or restart stops the sequence. Your saved buff list remains intact.
+Use buff perform again when ready. Buff cancel stops further spells; a spell
+already being cast retains the normal casting and interruption rules.
 #0
 BUGS IDEAS TYPOS
 
@@ -4560,9 +4562,9 @@ Establish Camp
 
 Usage: camp
 
-Requires: the establish camp feat (any class; 3 ranks of survival)
+Requires: the establish camp feat (any class; 3 ranks of nature)
 Action:   Standard and Move Action
-Check:    survival against a difficulty set by terrain and weather
+Check:    nature against a difficulty set by terrain and weather
 
 You spend about six seconds clearing a site, setting your gear and getting a
 fire going. Use activity to inspect, pause, resume or cancel the work. Moving
@@ -11307,7 +11309,7 @@ bribe      - make a sentient hostile mob non-hostile by giving them gold
  
 And of course the party can opt to kill the encounter mobs as well.
 
-Characters with the survival skill can increase or reduce the chance for finding an encounter
+Characters with the nature skill can increase or reduce the chance for finding an encounter
 with an option that can be toggled in the 'prefedit' screen.
 
 It is also possible to avoid encounters using your stealth skill, as long as 'sneak'
@@ -12913,7 +12915,7 @@ fey blood or magic. You are more emotional than most, prone to bouts of joy and 
 The fey bloodline offers a great knowledge of nature as well as enhanced abilities in
 traversing or dealing with nature.  It also offers abilities using fey magic.
  
-NEW CLASS SKILL: Survival
+NEW CLASS SKILL: Nature
 
 BONUS SPELLS: charm person (3rd), hideous laughter (5th), deep slumber (7th),
 poison (9th), feeblemind (11th), true seeing (13th), prismatic spray (15th),
@@ -13373,7 +13375,7 @@ FOLK-HERO
 
 FOLK HERO BACKGROUND
 
-Skill bonuses: +2 Handle Animal and +2 Survival.
+Skill bonuses: +2 Handle Animal and +2 Nature.
 
 Rustic Hospitality: Gain the hometown-only TRIBUTE command. While in your
 hometown, shop purchases cost exactly 10 percent less and shop sales pay
@@ -21333,18 +21335,20 @@ Some guidelines:
 If your name does not meet our standards an immortal staff member will
 contact you in game and offer to rename your character.
 #0
-NATURE-SKILL SKILL-NATURE SKILL-SURVIVAL SURVIVAL-SKILL
+NATURE-SKILL SKILL-NATURE SKILL-SURVIVAL SURVIVAL-SKILL NATURE
 
-   Your nature skill measures your ability to recall lore about terrain, plants
-and animals, the weather, and natural cycles.
+Nature
 
-It is also used to both avoid and attempt tracking.  In order to attempt
-to track someone, you will first need the 'track' feat.
+Nature measures your knowledge of terrain, plants, animals, weather and natural
+cycles, and your practical ability to travel and survive outdoors. It is used
+for tracking and avoiding tracks, wilderness movement costs, natural lore, and
+Establish Camp. Tracking another creature also requires the Track feat.
 
-It will also reduce the number of movement points needed to
-move between rooms.
+Survival is the older name for this same skill. Commands accept both names;
+existing skill ranks and bonuses are unchanged. There is no separate Survival
+skill to train. Establish Camp requires three ranks in Nature.
 
-It can also be used to identify items and creatures. (HELP LORE)
+See also: CAMP, TRACK, LORE
 #0
 NATURES-ALLY-1 NATURES-ALLY-I
 
@@ -22974,7 +22978,7 @@ OUTLANDER
 
 OUTLANDER BACKGROUND
 
-Skill bonuses: +2 Athletics and +2 Survival.
+Skill bonuses: +2 Athletics and +2 Nature.
 
 Wanderer: Gain +5 on FORAGE checks and a one-time increase of 20 maximum
 hit points. The hit-point increase is applied once even if the Background
@@ -25587,7 +25591,7 @@ who rely on society's structures or rules to maintain power.
 	G>Racial Abilities:	n
 	n
 	WStone's Endurance	n  - Can reduce damage of the next attack when activated.
-	WNatural Athlete	n    - +2 to swim, climb and survival skills.
+	WNatural Athlete	n    - +2 to swim, climb and nature skills.
 	WMountain Born	n      - 50% cold resistance.
 	WPowerful Build	n     - Can wield large weapons in one hand at -2 to attacks.
 	n
@@ -26417,9 +26421,11 @@ Example:
 
 See also: BOARDS
 #0
-READIED-ACTION READY
+READIED-ACTION READY COUNTERSPELL
 
-Usage: ready attack <target> on casting
+Usage: ready attack on ally <ally> attacked
+       ready counterspell <target> on casting
+       ready attack <target> on casting
        ready attack <target> on entry
        ready attack <target> on door open <direction>
        ready <command> on entry [target]
@@ -26440,6 +26446,35 @@ casting. A miss or successful concentration check lets the spell continue.
 You need only name the caster, and do not need to identify their spell. Instant
 spells cannot trigger this reaction. A cancelled spell cannot redirect a queued
 attack to a replacement spell.
+
+COUNTERSPELL reserves the same standard action and expiry for one counter.
+You must be an eligible spellcaster with speech and hands available. Watch a
+visible local caster before they start a timed spell. You need a perceptible
+verbal or somatic component and a Spellcraft check above 20 to identify it.
+Deafness prevents hearing verbal components; visible gestures can still reveal
+a spell. The relevant senses must remain available when the counter executes.
+Failure ends readiness without spending a spell resource. Instant spells and
+psionic powers cannot be countered this way.
+
+A successful identification queues the counter. At execution, you must still
+see the caster and have the identical base spell available as a preparation,
+spontaneous slot or eligible moon bonus. Normal resource-preservation rules
+apply once. The counter cancels that exact spell; it does not cast your spell's
+normal effect. An ended or replaced cast consumes no counterspell resource.
+Dispel and Improved Counterspell alternatives are not supported. The old
+counterspell mode now directs you to this explicit READY command.
+
+ON ALLY <ally> ATTACKED watches a visible group member or one of your NPC
+followers in the room. It reserves your standard action for one normal melee
+strike against the first eligible attacker you witness. A committed miss or
+prevented strike can trigger it; rejected commands cannot. You must still see
+the ally and attacker, and the ally relationship must still hold when triggered.
+
+The triggering attack resolves before your queued retaliation. This does not
+redirect damage or grant cover. Once triggered, the reaction watches the bound
+attacker: their departure, death or extraction cancels it. The ally dying after
+the trigger does not erase your already-readied retaliation. Later attacks
+cannot retarget it or grant another strike. Normal melee and PvP rules apply.
 
 ON ENTRY waits for the named target to arrive. ON DOOR OPEN watches a visible,
 closed door; its attack target must already be visible in your room. Opening
@@ -26463,6 +26498,8 @@ execution even if it reopens. Only one action can be readied at a time. READY
 shows it. Readied actions do not survive copyover or reboot.
 
 Examples:
+  ready attack on ally companion attacked
+  ready counterspell mage on casting
   ready attack mage on casting
   ready attack guard on entry
   ready say Hold the doorway! on door open north
@@ -32764,13 +32801,26 @@ These events, in addition to community building, help us iron out Lore for the R
 #0
 STAFF-EVENT STAFFEVENT STAFF_EVENT
 
-Staff-ran events are world-wide quests that combine some aspects of automation along with staff participation.
-To see details just type: staffevent with no argument.
-Staff:
-Staffevent with no argument to list the implemented staff events
-'Staffevent start <index number>' to start the given event
-'Staffevent end <index number>' to end the event (early)
-'Staffevent info <index number>' to view details about the event
+Staff-run events are world-wide quests combining automation and staff participation.
+
+Usage: staffevent
+       staffevent info <index>
+       staffevent start <index>
+       staffevent end <index>
+
+Use staffevent without an argument to list the available events and their status.
+Starting and ending events requires staff access. An event must finish its
+cleanup delay before another event can start. An invalid or unavailable event
+is rejected before it is announced or its initial population is spawned.
+
+Event durations and cleanup delays use mud hours (75 real seconds), aligned to
+the shared world hour. The status display reports the actual time remaining.
+An active event ends on expiry, or staff can end it early using its index.
+Ending a different index does not end the current event.
+
+Active events are not restored after a reboot or copyover. Staff can start a
+new event after the initial three-mud-hour startup delay. Player participation
+and rewards already recorded by their existing systems are unchanged.
 #0
 STAGGERED
 
@@ -34036,15 +34086,10 @@ wilderness and requires vision.
 #0
 SURVIVAL
 
-Survival
+Survival is the legacy name for Nature. Both names refer to the same skill and
+the same trained ranks. Use HELP NATURE-SKILL for its current description.
 
-Survival is used to both avoid and attempt tracking.  In
-order to attempt to track someone, you will first need
-the 'track' feat.
-
-
-Survival skill will also reduce the number of movement points needed
-to move between rooms.
+See also: NATURE-SKILL, CAMP, TRACK
 #0
 POWER-SUSTAINED-FLIGHT SUSTAINED-FLIGHT
 
@@ -41029,5 +41074,42 @@ immunity, paralysis immunity, and four stacking ranks of Armor Skin. Myconids
 count as plants and gain four additional hit points per level.
 
 See also: ACCEXP, RACE, RACE-HALF-OGRE
+#0
+DEFENSIVE-CASTING-PERK
+
+The Wizard Versatile Caster perk grants +4 dodge AC after casting a spell.
+
+When activated in combat, the bonus expires at the start of your next turn,
+before your actions become available. Outside combat it lasts six seconds.
+An interval already running outside combat keeps its remaining time if you
+enter combat. Leaving combat preserves the time left until your next turn;
+it does not grant a fresh six seconds. Saved remaining time resumes when your
+character is loaded again. A character still in the world after a lost connection
+keeps its live clock. Casting again refreshes the bonus.
+
+This perk is separate from the Concentration check used to cast defensively.
+
+See also: PERKS, DEFENSIVE-CASTING, COMBAT, INITIATIVE
+#0
+BLEEDING-CRITICAL
+
+Bleeding Critical adds bleeding damage when a critical hit applies the feat.
+Its 2d6 damage is rolled on application and stored for each later tick. Repeated
+applications add their damage and replace the remaining duration, without
+postponing the pending tick. The initial Fortitude save and duration roll retain
+their existing rules.
+
+In combat, each tick happens at the end of the affected character's next turn,
+after that character's actions. Outside combat, ticks are six seconds apart.
+Each tick applies damage and consumes one remaining round; the final tick ends
+the effect. Curing the effect cancels its future ticks.
+
+An elapsed interval already running when combat begins finishes before the
+clock adopts turn-end timing. Leaving combat preserves the time remaining to
+the next tick. Player saves preserve remaining rounds and the partial interval;
+saving does not restart the clock. A character remaining in the world after
+losing its connection continues to bleed normally.
+
+See also: FEATS, CRITICAL, COMBAT, INITIATIVE
 #0
 $~

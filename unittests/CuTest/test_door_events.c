@@ -710,7 +710,7 @@ static bool ready_test_semantic_turn(struct char_data *actor, unsigned int phase
   return true;
 }
 
-void TestReadyAttackExpiryFollowsNextSemanticTurnAfterCombatAdmission(CuTest *tc)
+static void verify_ready_expiry_after_combat_admission(CuTest *tc, bool counterspell)
 {
   struct door_fixture f;
   struct char_data target;
@@ -720,10 +720,16 @@ void TestReadyAttackExpiryFollowsNextSemanticTurnAfterCombatAdmission(CuTest *tc
 
   door_fixture_start(tc, &f);
   ready_attack_target(&f, &target, &specials);
+  if (counterspell)
+  {
+    GET_LEVEL(&f.owner) = 10;
+    CLASS_LEVEL((&f.owner), CLASS_CLERIC) = 10;
+  }
   combat_encounter_test_select_semantic(true);
   combat_encounter_test_set_phase_callback(ready_test_semantic_turn, &expired_before_turn);
   start = pulse;
-  do_ready(&f.owner, "attack caster on casting", 0, 0);
+  do_ready(&f.owner, counterspell ? "counterspell caster on casting" : "attack caster on casting",
+           0, 0);
   CuAssertPtrNotNull(tc, f.owner.ready_action);
   pulse = start + 3 * PASSES_PER_SEC;
   FIGHTING(&f.owner) = &target;
@@ -740,4 +746,15 @@ void TestReadyAttackExpiryFollowsNextSemanticTurnAfterCombatAdmission(CuTest *tc
   FIGHTING(&f.owner) = NULL;
   combat_encounter_leave(&f.owner, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
   door_fixture_end(tc, &f);
+}
+
+
+void TestReadyAttackExpiryFollowsNextSemanticTurnAfterCombatAdmission(CuTest *tc)
+{
+  verify_ready_expiry_after_combat_admission(tc, false);
+}
+
+void TestCounterspellExpiryFollowsNextSemanticTurnAfterCombatAdmission(CuTest *tc)
+{
+  verify_ready_expiry_after_combat_admission(tc, true);
 }

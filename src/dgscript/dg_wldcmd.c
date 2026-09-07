@@ -352,7 +352,7 @@ WCMD(do_wteleport)
         Y_LOC(ch) = world[target].coords[1];
       }
 
-      char_to_room(ch, target);
+      char_to_room_cause(ch, target, NULL, DOMAIN_RELOCATION_SCRIPT, -1);
       char_pets_to_char_loc(ch);
       enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
     }
@@ -372,7 +372,7 @@ WCMD(do_wteleport)
           Y_LOC(ch) = world[target].coords[1];
         }
 
-        char_to_room(ch, target);
+        char_to_room_cause(ch, target, NULL, DOMAIN_RELOCATION_SCRIPT, -1);
         char_pets_to_char_loc(ch);
         enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
       }
@@ -533,7 +533,7 @@ WCMD(do_wload)
       Y_LOC(mob) = world[rnum].coords[1];
     }
 
-    char_to_room(mob, rnum);
+    char_to_room_cause(mob, rnum, NULL, DOMAIN_RELOCATION_SPAWN, -1);
     if (SCRIPT(room))
     { /* It _should_ have, but it might be detached. */
       char buf[MAX_INPUT_LENGTH] = {'\0'};

@@ -13,6 +13,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "tactical_effects.h"
 #include "comm.h"
 #include "spells.h"
 #include "handler.h"
@@ -39,6 +40,7 @@
 #include "character/evolutions.h"
 #include "domain_event_runtime.h"
 #include "domain_event_types.h"
+#include "domain_event_world.h"
 #include "wilderness/wilderness.h"
 #include "character/perks.h"
 #include "bardic_performance.h"
@@ -50,14 +52,25 @@
 // external
 extern struct raff_node *raff_list;
 
-static void publish_coordinate_phenomenon(int source_x, int source_y, int source_z,
-                                          int visual_range, int audio_range, float intensity,
+static uint64_t next_phenomenon_id = 1U;
+
+static void publish_coordinate_phenomenon(struct char_data *source,
+                                          enum domain_world_phenomenon_kind kind, int source_x,
+                                          int source_y, int source_z, int visual_range,
+                                          int audio_range, float intensity,
                                           const char *visual_description,
                                           const char *audio_description)
 {
   struct domain_world_phenomenon phenomenon = {0};
   enum domain_event_status status;
 
+  if (source == NULL || next_phenomenon_id == 0U)
+    return;
+  phenomenon.phenomenon_id = next_phenomenon_id++;
+  phenomenon.source = domain_event_character_handle(source);
+  phenomenon.source_room = domain_event_room_handle(IN_ROOM(source));
+  phenomenon.kind = kind;
+  phenomenon.source_faction = GET_FACTION(source);
   phenomenon.source_x = source_x;
   phenomenon.source_y = source_y;
   phenomenon.source_z = source_z;
@@ -1366,6 +1379,7 @@ void rem_room_aff(struct raff_node *raff)
   room = raff->room;
   affection = raff->affection;
   spell = raff->spell;
+  tactical_room_hazard_source_removed(raff);
   affected_room_owner_remove(raff);
   REMOVE_FROM_LIST(raff, raff_list, next)
   free(raff);
@@ -1435,6 +1449,8 @@ size_t affect_update_character_one(struct char_data *ch)
   {
     processed_affects++;
     next = af->next;
+    if (tactical_bleeding_affect(af))
+      continue;
     if (af->duration >= 1)
       af->duration--;
     else if (af->duration <= -1)
@@ -1469,10 +1485,11 @@ size_t affect_update_character_one(struct char_data *ch)
   return processed_affects;
 }
 
-size_t affect_update_room_one(struct room_data *room)
+static size_t update_room_lifetimes(struct room_data *room, uint64_t round, bool elapsed)
 {
   struct raff_node *raff;
   struct raff_node *next;
+  uint64_t rounds;
   size_t processed = 0U;
 
   if (room == NULL)
@@ -1481,11 +1498,31 @@ size_t affect_update_room_one(struct room_data *room)
   {
     next = raff->room_next;
     processed++;
-    raff->timer--;
-    if (raff->timer <= 0)
+    rounds = 1U;
+    if (elapsed)
+    {
+      rounds = raff->lifetime_initialized && round > raff->lifetime_round
+                   ? round - raff->lifetime_round
+                   : 0U;
+      raff->lifetime_round = MAX(raff->lifetime_round, round);
+      raff->lifetime_initialized = true;
+    }
+    if (raff->timer <= 0 || rounds >= (uint64_t)raff->timer)
       rem_room_aff(raff);
+    else
+      raff->timer -= (int)rounds;
   }
   return processed;
+}
+
+size_t affect_update_room_until(struct room_data *room, uint64_t round)
+{
+  return update_room_lifetimes(room, round, true);
+}
+
+size_t affect_update_room_one(struct room_data *room)
+{
+  return update_room_lifetimes(room, 0U, false);
 }
 
 /* Legacy rollback path: expire every affected owner on the round heartbeat. */
@@ -12005,7 +12042,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
 
       /* Distant visual and audio are one synchronous world fact. */
       publish_coordinate_phenomenon(
-          X_LOC(ch), Y_LOC(ch), get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 30, 5, 8, 1.5f,
+          ch, DOMAIN_PHENOMENON_MAGIC_APPROACH, X_LOC(ch), Y_LOC(ch),
+          get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 30, 5, 8, 1.5f,
           "brilliant streaks of crimson and gold fire tear across the starlit heavens",
           "an ominous crescendo of ethereal whistling and deep atmospheric rumbling as the very "
           "air trembles before celestial wrath");
@@ -12013,7 +12051,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
       /* Phase 3: Close visual - meteors descending toward target */
       log("DEBUG: Phase 3 - Meteor descent with range 3");
       publish_coordinate_phenomenon(
-          X_LOC(ch), Y_LOC(ch), get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 10, 3, 0, 2.0f,
+          ch, DOMAIN_PHENOMENON_MAGIC_APPROACH, X_LOC(ch), Y_LOC(ch),
+          get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 10, 3, 0, 2.0f,
           "colossal blazing meteorites plummet through the atmosphere, trailed by molten starfire "
           "crackling with primordial flame",
           NULL);
@@ -12286,7 +12325,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
             ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
         {
           publish_coordinate_phenomenon(
-              X_LOC(ch), Y_LOC(ch), get_modified_elevation(X_LOC(ch), Y_LOC(ch)), 2, 20, 2.5f,
+              ch, DOMAIN_PHENOMENON_MAGIC_IMPACT, X_LOC(ch), Y_LOC(ch),
+              get_modified_elevation(X_LOC(ch), Y_LOC(ch)), 2, 20, 2.5f,
               "cataclysmic eruptions of azure and crimson flame burst from the earth as celestial "
               "hammers shatter the ground, sending waves of molten rock skyward",
               "earth-shaking detonations rivaling mountain avalanches as cosmic forces unleash "
@@ -13079,7 +13119,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
       Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
     }
-    char_to_room(mob, IN_ROOM(ch));
+    char_to_room_cause(mob, IN_ROOM(ch), ch, DOMAIN_RELOCATION_SPAWN, -1);
     IS_CARRYING_W(mob) = 0;
     IS_CARRYING_N(mob) = 0;
     SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
@@ -15228,6 +15268,12 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
     raff->affection = aff;
     raff->ch = ch;
     raff->spell = spellnum;
+    if (!tactical_room_hazard_prepare_source(raff, level))
+    {
+      free(raff);
+      send_to_char(ch, "Your spell cannot establish a stable effect here.\r\n");
+      return;
+    }
     raff->next = raff_list;
     raff_list = raff;
     affected_room_owner_add(raff);
@@ -15252,6 +15298,8 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
     act(to_room, TRUE, ch, 0, 0, TO_ROOM);
   else if (to_char != NULL)
     act(to_char, TRUE, ch, 0, 0, TO_ROOM);
+  if (raff != NULL)
+    tactical_room_hazard_source_created(raff);
 }
 
 bool is_spell_mind_affecting(int snum)

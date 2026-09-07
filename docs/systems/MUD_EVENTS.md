@@ -1,6 +1,6 @@
 # LuminariMUD event systems
 
-Updated: 2026-09-06, timed casting and tactical readiness contracts.
+Updated: 2026-09-07, committed outcome and perception-backed quest contracts.
 
 The game has one process-owned timing wheel. The legacy DG queue, scheduling
 facade, heartbeat fallback, rollback build switches, and old save writer were
@@ -118,9 +118,19 @@ handles, and cleanup. Owner teardown removes its subscriptions. Cancellation
 inside a callback is safe; new subscriptions are not admitted during synchronous
 publication. Nested causality is bounded. Never retain a borrowed fact payload.
 
-Movement, damage, death, combat changes, object-room changes, activities, world
-phenomena, and door changes have distinct contracts. The mechanism inventory records
-remaining coverage gaps; registration alone is not proof of a complete publisher.
+Movement, damage, death, combat changes, object transfers, activities, world
+phenomena, perception results, doors, committed nonlethal resolutions, completed
+skill checks, casting starts and committed attacks have distinct contracts. The
+mechanism inventory records remaining coverage gaps; registration alone is not
+proof of a complete publisher.
+
+Quest consumers subscribe after commit. Location objectives consume
+`CharacterMoved`; object discovery and delivery consume the single compound
+`ObjectMoved`; rescue and negotiation consume `CharacterResolved`; successful
+ability objectives consume `SkillResolved`; witnessed-phenomenon objectives
+consume `PhenomenonPerceived`. Each consumer re-resolves handles and verifies
+final room/holder state. Existing death, pet and group credit remains on its
+established authoritative path.
 
 ## Door mutation boundary
 

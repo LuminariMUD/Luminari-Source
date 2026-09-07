@@ -1057,7 +1057,7 @@ static void rol_exit_trap_drop_target(struct char_data *ch, room_rnum room)
     X_LOC(ch) = world[destination].coords[0];
     Y_LOC(ch) = world[destination].coords[1];
   }
-  char_to_room(ch, destination);
+  char_to_room_cause(ch, destination, NULL, DOMAIN_RELOCATION_FORCED, -1);
   if (!IS_NPC(ch))
     look_at_room(ch, 0);
 }
@@ -1741,7 +1741,7 @@ static void rol_object_trap_teleport(struct char_data *ch)
     X_LOC(ch) = world[destination].coords[0];
     Y_LOC(ch) = world[destination].coords[1];
   }
-  char_to_room(ch, destination);
+  char_to_room_cause(ch, destination, NULL, DOMAIN_RELOCATION_FORCED, -1);
   act("$n appears with a sharp pop.", FALSE, ch, 0, 0, TO_ROOM);
   look_at_room(ch, 0);
   entry_memory_mtrigger(ch);

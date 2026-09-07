@@ -12,6 +12,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "tactical_effects.h"
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
@@ -47,6 +48,8 @@
 #include "point_update_periodic.h"
 #include "affected_owners.h"
 #include "domain_event_runtime.h"
+#include "domain_object_transfer.h"
+#include "domain_event_world.h"
 #include "combat/combat_encounters.h"
 #include "combat/combat_state.h"
 #include "vessels/vessels_rol.h"
@@ -97,14 +100,15 @@ void affected_registry_attach(struct char_data *ch)
     return;
   ch->affected_registry_live = true;
   affected_registry_sync(ch);
+  tactical_bleeding_sync(ch);
 }
 
 void affected_registry_detach(struct char_data *ch)
 {
   if (ch == NULL)
     return;
-  affected_registry_remove(ch);
   ch->affected_registry_live = false;
+  affected_registry_remove(ch);
 }
 
 void affected_registry_remove(struct char_data *ch)
@@ -1476,6 +1480,7 @@ void affect_to_char_source(struct char_data *ch, struct affected_type *af, long 
   }
 
   affect_total(ch);
+  tactical_bleeding_sync(ch);
   if (affect_changes_mobile_reactions(af))
     active_world_reconsider_character(ch);
 }
@@ -1540,6 +1545,7 @@ void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
   affected_registry_sync(ch);
   character_periodic_sync(ch);
 
+  tactical_bleeding_sync(ch);
   if (removes_repulsion)
     clear_repulsion_lists(ch);
 }
@@ -1607,6 +1613,7 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   affect_total(ch);
 
   character_periodic_sync(ch);
+  tactical_bleeding_sync(ch);
   if (changes_reactions)
     active_world_reconsider_character(ch);
   if (removes_flight && world != NULL && IN_ROOM(ch) != NOWHERE && IN_ROOM(ch) <= top_of_world &&
@@ -1756,6 +1763,8 @@ void affect_join(struct char_data *ch, struct affected_type *af, bool add_dur, b
 {
   struct affected_type *hjp = NULL, *next = NULL;
   bool found = FALSE;
+  int bleeding_remaining = 0;
+  uint64_t bleeding_turn = 0U;
 
   /* increment through all the affections on the character, check for matches */
   for (hjp = ch->affected; !found && hjp; hjp = next)
@@ -1767,6 +1776,11 @@ void affect_join(struct char_data *ch, struct affected_type *af, bool add_dur, b
     if ((hjp->spell == af->spell) && (hjp->location == af->location) &&
         (af->location != APPLY_SKILL || hjp->specific == af->specific))
     {
+      if (tactical_bleeding_affect(hjp) && tactical_bleeding_affect(af))
+      {
+        bleeding_remaining = tactical_bleeding_remaining(ch);
+        bleeding_turn = ch->bleeding_critical_turn;
+      }
       if (add_dur)
         af->duration += hjp->duration;
       else if (avg_dur)
@@ -1779,6 +1793,8 @@ void affect_join(struct char_data *ch, struct affected_type *af, bool add_dur, b
       /* replace! */
       affect_remove(ch, hjp);
       affect_to_char(ch, af);
+      if (bleeding_remaining > 0)
+        tactical_bleeding_restore_clock(ch, bleeding_remaining, bleeding_turn);
       found = TRUE;
     }
   }
@@ -1916,7 +1932,7 @@ void char_from_room(struct char_data *ch)
     exit(1);
   }
 
-  ch->domain_previous_room = IN_ROOM(ch);
+  ch->domain_previous_room = domain_event_room_handle(IN_ROOM(ch));
 
   if (FIGHTING(ch) != NULL)
     stop_fighting(ch);
@@ -1929,17 +1945,6 @@ void char_from_room(struct char_data *ch)
   /* Master Tracker: update alert on leaving to avoid stale state. */
   if (!IS_NPC(ch))
     update_master_tracker_alert(ch);
-
-  if (!IS_NPC(ch))
-  {
-    if (GET_CRAFT(ch).crafting_method == SCMD_NEWCRAFT_SURVEY)
-    {
-      GET_CRAFT(ch).crafting_method = 0;
-      GET_CRAFT(ch).craft_duration = 0;
-      ch->player_specials->surveyed_room = false;
-      send_to_char(ch, "Your surveying is interrupted.\r\n");
-    }
-  }
 
   REMOVE_FROM_LIST(ch, world[IN_ROOM(ch)].people, next_in_room);
   IN_ROOM(ch) = NOWHERE;
@@ -2039,6 +2044,14 @@ static void update_master_tracker_alert(struct char_data *tracker)
 /* place a character in a room */
 void char_to_room(struct char_data *ch, room_rnum room)
 {
+  char_to_room_cause(ch, room, NULL, DOMAIN_RELOCATION_UNKNOWN, -1);
+}
+
+void char_to_room_cause(struct char_data *ch, room_rnum room, struct char_data *actor,
+                        enum domain_relocation_cause cause, int direction)
+{
+  struct domain_entity_handle previous_room;
+
   if (ch == NULL || room == NOWHERE || room > top_of_world)
   {
     log("SYSERR: Illegal value(s) passed to char_to_room. (Room: %d/%d Ch: %p)", room, top_of_world,
@@ -2084,12 +2097,15 @@ void char_to_room(struct char_data *ch, room_rnum room)
       mark_wilderness_room_occupied(room);
     }
 
+    if (IN_ROOM(ch) == room)
+      return;
+
     ch->next_in_room = world[room].people;
     world[room].people = ch;
     IN_ROOM(ch) = room;
 
-    domain_event_runtime_character_moved(ch, ch->domain_previous_room, room, -1);
-    ch->domain_previous_room = NOWHERE;
+    previous_room = ch->domain_previous_room;
+    memset(&ch->domain_previous_room, 0, sizeof(ch->domain_previous_room));
 
     /* Trigger lazy regeneration for wilderness rooms (Phase 6) */
     if (is_wilderness_room && !IS_NPC(ch))
@@ -2101,12 +2117,6 @@ void char_to_room(struct char_data *ch, room_rnum room)
         apply_lazy_regeneration(room, resource_type);
       }
     }
-
-    /* autoquest system check point -Zusuk */
-    autoquest_trigger_check(ch, 0, 0, 0, AQ_ROOM_FIND);
-    autoquest_trigger_check(ch, 0, 0, 0, AQ_WILD_FIND);
-    autoquest_trigger_check(ch, 0, 0, 0, AQ_MOB_FIND);
-    autoquest_trigger_check(ch, 0, 0, 0, AQ_HOUSE_FIND);
 
     /* checks for light, globes of darkness, etc */
     check_room_lighting(room, ch, TRUE);
@@ -2138,6 +2148,8 @@ void char_to_room(struct char_data *ch, room_rnum room)
 
     /* Master Tracker: refresh proximity alert when entering a room */
     update_master_tracker_alert(ch);
+    tactical_bleeding_sync(ch);
+    domain_relocation_placed(ch, previous_room, room, actor, cause, direction);
   }
 }
 
@@ -2162,6 +2174,8 @@ void resize_obj_to_char(struct obj_data *object, struct char_data *ch)
 /* Give an object to a char. */
 void obj_to_char(struct obj_data *object, struct char_data *ch)
 {
+  if (object != NULL && (object->transfer_extracting || (ch != NULL && object->carried_by == ch)))
+    return;
   if (object && ch)
   {
     // log("T1: %s", object->short_description);
@@ -2180,10 +2194,6 @@ void obj_to_char(struct obj_data *object, struct char_data *ch)
     /* artifact ownership tracking */
     artifact_obj_to_char(object, ch);
 
-    /* autoquest system check point -Zusuk */
-    autoquest_trigger_check(ch, NULL, object, 0, AQ_OBJ_FIND);
-    // log("T7: %s", object->short_description);
-
     /* set flag for crash-save system, but not on mobs! */
     if (!IS_NPC(ch))
       SET_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
@@ -2198,7 +2208,7 @@ void obj_to_char(struct obj_data *object, struct char_data *ch)
       MSDPFlush(ch->desc, eMSDP_INVENTORY);
     }
     point_update_object_sync(object);
-    // log("T11: %s", object->short_description);
+    domain_object_placed(object);
   }
   else
     log("SYSERR: NULL obj (%p) or char (%p) passed to obj_to_char.", object, ch);
@@ -2206,8 +2216,15 @@ void obj_to_char(struct obj_data *object, struct char_data *ch)
 
 void obj_to_bag(struct char_data *ch, struct obj_data *object, int bagnum)
 {
-  if (object && ch)
+  if (object != NULL && object->transfer_extracting)
+    return;
+  if (object && ch && ch->bags)
   {
+    if (bagnum < 1 || bagnum > 10)
+      bagnum = 1;
+    if (object->transfer_bag.kind == DOMAIN_HOLDER_BAG && object->transfer_bag.slot == bagnum &&
+        domain_entity_handle_equal(object->transfer_bag.entity, domain_event_character_handle(ch)))
+      return;
     switch (bagnum)
     {
     case 1:
@@ -2255,12 +2272,12 @@ void obj_to_bag(struct char_data *ch, struct obj_data *object, int bagnum)
       ch->bags->bag1 = object;
       break;
     }
+    object->transfer_bag.kind = DOMAIN_HOLDER_BAG;
+    object->transfer_bag.entity = domain_event_character_handle(ch);
+    object->transfer_bag.slot = bagnum >= 1 && bagnum <= 10 ? bagnum : 1;
     IN_ROOM(object) = NOWHERE;
     IS_CARRYING_W(ch) += GET_OBJ_WEIGHT(object);
     IS_CARRYING_N(ch)++;
-
-    /* autoquest system check point -Zusuk */
-    autoquest_trigger_check(ch, NULL, object, 0, AQ_OBJ_FIND);
 
     /* set flag for crash-save system, but not on mobs! */
     if (!IS_NPC(ch))
@@ -2272,6 +2289,7 @@ void obj_to_bag(struct char_data *ch, struct obj_data *object, int bagnum)
       MSDPFlush(ch->desc, eMSDP_INVENTORY);
     }
     point_update_object_sync(object);
+    domain_object_placed(object);
   }
   else
     log("SYSERR: NULL obj (%p) or char (%p) passed to obj_to_bag.", object, ch);
@@ -2287,6 +2305,11 @@ void obj_from_bag(struct char_data *ch, struct obj_data *object, int bagnum)
     return;
   }
 
+  object->transfer_bag.kind = DOMAIN_HOLDER_BAG;
+  object->transfer_bag.entity = domain_event_character_handle(ch);
+  object->transfer_bag.slot = bagnum >= 1 && bagnum <= 10 ? bagnum : 1;
+  domain_object_detaching(object);
+  memset(&object->transfer_bag, 0, sizeof(object->transfer_bag));
   switch (bagnum)
   {
   case 1:
@@ -2343,13 +2366,13 @@ void obj_from_char(struct obj_data *object)
   struct obj_data *temp = NULL;
   struct char_data *ch = NULL;
 
-  ch = object->carried_by;
-
-  if (object == NULL)
+  if (object == NULL || object->carried_by == NULL)
   {
-    log("SYSERR: NULL object passed to obj_from_char.");
+    log("SYSERR: Missing object or inventory owner in obj_from_char.");
     return;
   }
+  ch = object->carried_by;
+  domain_object_detaching(object);
 
   /* group loot system */
   /*
@@ -2547,6 +2570,10 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
   int j;
   room_rnum r_rnum = NOWHERE;
 
+  if (ch == NULL || obj == NULL || obj->transfer_extracting)
+    return;
+  if (pos >= 0 && pos < NUM_WEARS && GET_EQ(ch, pos) == obj)
+    return;
   if (pos < 0 || pos >= NUM_WEARS)
   {
     core_dump();
@@ -2666,6 +2693,7 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
   /* artifact: claim, bind, and apply level-scaled bonuses */
   artifact_on_equip(ch, obj, pos);
   character_periodic_sync(ch);
+  domain_object_placed(obj);
 }
 
 struct obj_data *unequip_char(struct char_data *ch, int pos)
@@ -2680,6 +2708,7 @@ struct obj_data *unequip_char(struct char_data *ch, int pos)
   }
 
   obj = GET_EQ(ch, pos);
+  domain_object_detaching(obj);
 
   /* artifact: strip this artifact's affects before it leaves the slot */
   artifact_on_unequip(ch, obj);
@@ -2836,6 +2865,8 @@ struct char_data *get_char_num(mob_rnum nr)
 /* put an object in a room */
 void obj_to_room(struct obj_data *object, room_rnum room)
 {
+  if (object != NULL && (object->transfer_extracting || IN_ROOM(object) == room))
+    return;
   if (!object || room == NOWHERE || room > top_of_world)
     log("SYSERR: Illegal value(s) passed to obj_to_room. (Room #%d/%d, obj %p)", room, top_of_world,
         object);
@@ -2858,7 +2889,7 @@ void obj_to_room(struct obj_data *object, room_rnum room)
     (void)obj_should_fall(object);
     rol_ship_note_object_placed(object);
     point_update_object_sync(object);
-    (void)domain_event_runtime_object_moved(object, NOWHERE, room);
+    domain_object_placed(object);
   }
 }
 
@@ -2867,12 +2898,11 @@ void obj_from_room(struct obj_data *object)
 {
   struct obj_data *temp;
   struct char_data *t, *tempch;
-  room_rnum previous_room;
 
   if (!object || IN_ROOM(object) == NOWHERE)
   {
     log("SYSERR: NULL object (%p) or obj not in a room (%d) passed to obj_from_room", object,
-        IN_ROOM(object));
+        object != NULL ? IN_ROOM(object) : NOWHERE);
     return;
   }
 
@@ -2887,14 +2917,13 @@ void obj_from_room(struct obj_data *object)
     }
   }
 
-  previous_room = IN_ROOM(object);
+  domain_object_detaching(object);
   REMOVE_FROM_LIST(object, world[IN_ROOM(object)].contents, next_content);
 
   if (ROOM_FLAGGED(IN_ROOM(object), ROOM_HOUSE))
     SET_BIT_AR(ROOM_FLAGS(IN_ROOM(object)), ROOM_HOUSE_CRASH);
   IN_ROOM(object) = NOWHERE;
   object->next_content = NULL;
-  (void)domain_event_runtime_object_moved(object, previous_room, NOWHERE);
 }
 
 /* put an object in an object (quaint)  */
@@ -2908,6 +2937,9 @@ void obj_to_obj(struct obj_data *obj, struct obj_data *obj_to)
         obj, obj, obj_to);
     return;
   }
+
+  if (obj->transfer_extracting || obj->in_obj == obj_to)
+    return;
 
   /* Check for circular containment - prevent object from being placed in its own container hierarchy */
   for (tmp_obj = obj_to; tmp_obj; tmp_obj = tmp_obj->in_obj)
@@ -2937,6 +2969,7 @@ void obj_to_obj(struct obj_data *obj, struct obj_data *obj_to)
       IS_CARRYING_W(tmp_obj->carried_by) += GET_OBJ_WEIGHT(obj);
   }
   point_update_object_sync(obj);
+  domain_object_placed(obj);
 }
 
 /* remove an object from an object */
@@ -2944,11 +2977,12 @@ void obj_from_obj(struct obj_data *obj)
 {
   struct obj_data *temp, *obj_from;
 
-  if (obj->in_obj == NULL)
+  if (obj == NULL || obj->in_obj == NULL)
   {
     log("SYSERR: (%s): trying to illegally extract obj from obj.", __FILE__);
     return;
   }
+  domain_object_detaching(obj);
   obj_from = obj->in_obj;
   temp = obj->in_obj;
   REMOVE_FROM_LIST(obj, obj_from->contains, next_content);
@@ -2983,6 +3017,10 @@ void object_list_new_owner(struct obj_data *list, struct char_data *ch)
 void extract_obj(struct obj_data *obj)
 {
   struct descriptor_data *d = NULL;
+
+  if (obj == NULL || obj->transfer_extracting)
+    return;
+  obj->transfer_extracting = true;
 
   // before we extract it we need to ensure we've removed it from any characters
   // who might be working on it with the outfit command, else some buggy stuff
@@ -3019,6 +3057,12 @@ void extract_obj(struct obj_data *obj)
     obj_from_char(obj);
   else if (obj->in_obj)
     obj_from_obj(obj);
+  else if (obj->transfer_bag.kind == DOMAIN_HOLDER_BAG)
+  {
+    ch = domain_event_world_resolve_character(obj->transfer_bag.entity);
+    if (ch != NULL && ch->bags != NULL)
+      obj_from_bag(ch, obj, obj->transfer_bag.slot);
+  }
 
   if (OBJ_SAT_IN_BY(obj))
   {
@@ -3060,6 +3104,7 @@ void extract_obj(struct obj_data *obj)
   if (SCRIPT(obj))
     extract_script(&obj->script);
 
+  domain_object_disposed(obj);
   clear_obj_event_list(obj);
 
   if (GET_OBJ_RNUM(obj) == NOTHING ||

@@ -13,6 +13,7 @@
 #include <time.h>
 #include "structs.h"
 #include "utils.h"
+#include "tactical_effects.h"
 #include "magic/spells.h"
 #include "comm.h"
 #include "db.h"
@@ -233,8 +234,6 @@ void room_aff_tick(struct raff_node *raff)
 {
   struct room_data *caster_room = NULL;
   struct char_data *caster = NULL;
-  int casttype = CAST_SPELL;
-  int level = DG_SPELL_LEVEL;
 
   switch (raff->spell)
   {
@@ -254,20 +253,6 @@ void room_aff_tick(struct raff_node *raff)
     caster->in_room = real_room(caster_room->number);
     call_magic(caster, NULL, NULL, SPELL_ACID, 0, DG_SPELL_LEVEL, CAST_SPELL);
     extract_char(caster);
-    break;
-  case SPELL_BILLOWING_CLOUD:
-    for (caster = world[raff->room].people; caster; caster = caster->next_in_room)
-    {
-      if (caster && GET_LEVEL(caster) < 13)
-      {
-        if (!savingthrow(caster, caster, SAVING_FORT, 0, casttype, level, CONJURATION))
-        {
-          send_to_char(caster, "You are bogged down by the billowing cloud!\r\n");
-          act("$n is bogged down by the billowing cloud.", TRUE, caster, 0, NULL, TO_ROOM);
-          USE_MOVE_ACTION(caster);
-        }
-      }
-    }
     break;
   case ABILITY_KAPAK_DRACONIAN_DEATH_THROES:
     caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
@@ -2334,14 +2319,6 @@ void proc_d20_round_one(struct char_data *i)
   {
     GET_FRIGHTFUL_PRESENCE_TIMER(i)--;
   }
-  if (GET_DEFENSIVE_CASTING_TIMER(i) > 0)
-  {
-    GET_DEFENSIVE_CASTING_TIMER(i)--;
-    if (GET_DEFENSIVE_CASTING_TIMER(i) <= 0)
-    {
-      send_to_char(i, "Your defensive casting bonus fades.\r\n");
-    }
-  }
   if (GET_SPELL_SHIELD_TIMER(i) > 0)
   {
     GET_SPELL_SHIELD_TIMER(i)--;
@@ -2600,9 +2577,6 @@ void point_update_global_one(void)
     game_info("Happy hour has ended!");
     set_db_happy_hour(2);
   }
-
-  /* this is the staff event code for regular maintenance */
-  staff_event_tick();
 }
 
 void point_update_character_one(struct char_data *ch)
@@ -2993,7 +2967,7 @@ void update_damage_and_effects_over_time_one(struct char_data *ch)
   {
     for (affects = ch->affected; affects; affects = affects->next)
     {
-      if (IS_SET_AR(affects->bitvector, AFF_BLEED))
+      if (IS_SET_AR(affects->bitvector, AFF_BLEED) && !tactical_bleeding_affect(affects))
       {
         dam = damage(ch, ch, affects->modifier, TYPE_SUFFERING, DAM_BLEEDING, TYPE_SPECAB_BLEEDING);
 
@@ -3182,99 +3156,6 @@ void check_auto_happy_hour(void)
 
       game_info("An automated happy hour has started!");
       set_db_happy_hour(1);
-    }
-  }
-}
-
-void self_buffing(void)
-{
-  struct char_data *ch = NULL;
-  struct descriptor_data *d = NULL;
-  int is_spell = false;
-  int spellnum = 0, i = 0;
-  char spellname[200];
-  char buf1[MAX_INPUT_LENGTH] = {'\0'};
-  char buf2[MAX_INPUT_LENGTH * 2] = {'\0'};
-
-  for (d = descriptor_list; d; d = d->next)
-  {
-    ch = d->character;
-
-    if (!ch)
-      continue;
-
-    if (!IS_BUFFING(ch))
-      continue;
-
-    while (GET_BUFF(ch, GET_CURRENT_BUFF_SLOT(ch), 0) == 0 &&
-           GET_CURRENT_BUFF_SLOT(ch) < (MAX_BUFFS + 1))
-    {
-      GET_CURRENT_BUFF_SLOT(ch)++;
-    }
-    if (GET_CURRENT_BUFF_SLOT(ch) >= MAX_BUFFS)
-    {
-      send_to_char(ch, "You finish buffing yourself.\r\n");
-      GET_CURRENT_BUFF_SLOT(ch) = 0;
-      GET_BUFF_TIMER(ch) = 0;
-      IS_BUFFING(ch) = false;
-      affect_from_char(ch, SPELL_MINOR_RAPID_BUFF);
-      affect_from_char(ch, SPELL_RAPID_BUFF);
-      affect_from_char(ch, SPELL_GREATER_RAPID_BUFF);
-    }
-
-    if (GET_BUFF_TIMER(ch) > 0)
-    {
-      if (--GET_BUFF_TIMER(ch) == 0)
-      {
-        spellnum = GET_BUFF(ch, GET_CURRENT_BUFF_SLOT(ch), 0);
-        is_spell = is_spell_or_power(spellnum);
-        send_to_char(ch, "You continue buffing... (buff cancel to stop)\r\n");
-
-        if (IS_AFFECTED(ch, AFF_TIME_STOPPED))
-          GET_BUFF_TIMER(ch) = 1;
-        else if (IS_AFFECTED(ch, AFF_RAPID_BUFF))
-          GET_BUFF_TIMER(ch) = 1;
-        else
-        {
-          GET_BUFF_TIMER(ch) = spell_info[spellnum].time + 1;
-          if (has_perk(ch, PERK_CLERIC_BATTLE_BLESSING) && GET_BUFF_TARGET(ch) == ch)
-            GET_BUFF_TIMER(ch) -= 1;
-        }
-
-        if (is_spell >= 2) // spell or warlock power
-        {
-          snprintf(spellname, sizeof(spellname), " '%s'", spell_info[spellnum].name);
-          if (GET_BUFF_TARGET(ch) && IN_ROOM(GET_BUFF_TARGET(ch)) == IN_ROOM(ch))
-          {
-            snprintf(buf1, sizeof(buf1), "%s", GET_NAME(GET_BUFF_TARGET(ch)));
-            for (i = 0; (size_t)i < strlen(buf1); i++)
-              if (buf1[i] == ' ')
-                buf1[i] = '-';
-            snprintf(buf2, sizeof(buf2), "%s %s", spellname, buf1);
-            do_gen_cast(ch, (const char *)buf2, 0, SCMD_CAST_SPELL);
-          }
-          else
-          {
-            do_gen_cast(ch, (const char *)spellname, 0, SCMD_CAST_SPELL);
-          }
-        }
-        else
-        {
-          int augment = 0;
-          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUGMENT_BUFFS))
-            augment = max_augment_psp_allowed(ch, spellnum);
-          snprintf(spellname, sizeof(spellname), " %d '%s'", augment, spell_info[spellnum].name);
-          do_manifest(ch, (const char *)spellname, 0, SCMD_CAST_PSIONIC);
-        }
-
-        GET_CURRENT_BUFF_SLOT(ch)++;
-      }
-    }
-    else
-    {
-      GET_CURRENT_BUFF_SLOT(ch) = 0;
-      GET_BUFF_TIMER(ch) = 0;
-      IS_BUFFING(ch) = false;
     }
   }
 }

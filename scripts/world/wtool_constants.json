@@ -94,13 +94,17 @@
       "source": "src/structs.h:MAX_WEAPON_SPELLS",
       "value": 3
     },
+    "NUM_ABILITIES": {
+      "source": "src/magic/spells.h:NUM_ABILITIES",
+      "value": 51
+    },
     "NUM_AQ_FLAGS": {
       "source": "src/quest/quest.h:NUM_AQ_FLAGS",
       "value": 2
     },
     "NUM_AQ_TYPES": {
       "source": "src/quest/quest.h:NUM_AQ_TYPES",
-      "value": 25
+      "value": 28
     },
     "NUM_ATTACK_TYPES": {
       "source": "src/structs.h:NUM_ATTACK_TYPES",
@@ -121,6 +125,10 @@
     "NUM_CONT_FLAGS": {
       "source": "src/structs.h:NUM_CONT_FLAGS",
       "value": 4
+    },
+    "NUM_DOMAIN_PHENOMENON_KINDS": {
+      "source": "src/domain_event_types.h:NUM_DOMAIN_PHENOMENON_KINDS",
+      "value": 7
     },
     "NUM_FACTIONS": {
       "source": "src/structs.h:NUM_FACTIONS",
@@ -4323,6 +4331,27 @@
           "index": 24,
           "macro": "AQ_DIALOGUE",
           "name": "Dialogue Quest",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 25,
+          "macro": "AQ_MOB_RESOLVE",
+          "name": "Resolve Mob Nonlethally",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 26,
+          "macro": "AQ_SKILL_SUCCESS",
+          "name": "Succeed at Ability",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 27,
+          "macro": "AQ_WITNESS_PHENOMENON",
+          "name": "Witness Phenomenon",
           "reserved": false
         }
       ],

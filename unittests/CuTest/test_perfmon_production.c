@@ -232,13 +232,17 @@ void Test_perfmon_csv_reports_and_resets_event_counters(CuTest *tc)
 void Test_perfmon_reports_bounded_game_loop_telemetry(CuTest *tc)
 {
   char report[16384];
+  struct PERF_event_profile_snapshot profiles[32];
+  const struct PERF_event_profile_snapshot *profile;
+  size_t profile_count;
+  size_t index;
   int event_profile;
 
   PERF_reset();
   event_profile = PERF_register_event_callback("slow,event\ncallback");
   CuAssertTrue(tc, event_profile >= 0);
-  PERF_note_event_callback(event_profile, 11);
-  PERF_note_event_callback(event_profile, 17);
+  PERF_note_event_callback(event_profile, 11, 0);
+  PERF_note_event_callback(event_profile, 17, 3);
   PERF_note_event_process(5, 3, 2, 1);
   PERF_note_pending_extractions(2, 2, 0);
   PERF_note_catchup_pass(9, 7, 2, 1);
@@ -263,6 +267,27 @@ void Test_perfmon_reports_bounded_game_loop_telemetry(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(report, "# event_profile_report_limit=16"));
   CuAssertPtrNotNull(tc, strstr(report, "# event_profile_overflow_calls=0"));
   CuAssertPtrNotNull(tc, strstr(report, "slow event callback,2,28,14.00,14.00,16.70,16.94,17"));
+  CuAssertPtrNotNull(tc, strstr(report, ",1,1.50,2.85,2.97,3,2,2"));
+
+  memset(profiles, 0, sizeof(profiles));
+  profile_count = PERF_get_event_profiles(profiles, 32U);
+  profile = NULL;
+  for (index = 0U; index < profile_count && index < 32U; index++)
+  {
+    if (!strcmp(profiles[index].identity, "slow event callback"))
+    {
+      profile = &profiles[index];
+      break;
+    }
+  }
+  CuAssertPtrNotNull(tc, profile);
+  CuAssertIntEquals(tc, 1, (int)profile->late_callbacks);
+  CuAssertIntEquals(tc, 2, (int)profile->lateness_p50_ticks);
+  CuAssertIntEquals(tc, 3, (int)profile->lateness_p95_ticks);
+  CuAssertIntEquals(tc, 3, (int)profile->lateness_p99_ticks);
+  CuAssertIntEquals(tc, 3, (int)profile->lateness_maximum_ticks);
+  CuAssertIntEquals(tc, 2, (int)profile->lateness_samples);
+  CuAssertIntEquals(tc, 2, (int)profile->lateness_samples_seen);
 
   PERF_prof_reset();
   PERF_prof_repr_pulse(report, sizeof(report));
@@ -294,7 +319,7 @@ void Test_perfmon_slow_pulse_correlates_schedule_sql_events_and_sections(CuTest 
   PERF_note_sql_query("UPDATE player_data SET account_id=7 WHERE name='hidden'", 2500, 0);
   PERF_sql_scope_restore(previous_category);
   event_profile = PERF_register_event_callback("Combat Round");
-  PERF_note_event_callback(event_profile, 4000);
+  PERF_note_event_callback(event_profile, 4000, 0);
   PERF_note_event_process(2, 1, 1, 0);
   PERF_note_catchup_pass(2, 1, 1, 1);
   PERF_log_pulse(250.0);

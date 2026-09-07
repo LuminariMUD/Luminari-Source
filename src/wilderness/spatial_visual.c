@@ -734,7 +734,7 @@ int spatial_visual_emit(int source_x, int source_y, int source_z, const char *de
   ctx->source_x = source_x;
   ctx->source_y = source_y;
   ctx->source_z = source_z;
-  ctx->source_description = strdup(description);
+  ctx->source_description = (char *)description; /* Borrowed for synchronous delivery. */
   ctx->base_intensity = intensity;
 
   /* Only connected observers can receive a sight; do not traverse the NPC population. */
@@ -810,9 +810,9 @@ int spatial_visual_meteor_approach(int meteor_x, int meteor_y, const char *meteo
   /* Set source information - elevation will be set per observer */
   ctx->source_x = meteor_x;
   ctx->source_y = meteor_y;
-  ctx->source_z = 0; /* Will be updated per observer */
-  ctx->source_description = strdup(meteor_desc);
-  ctx->base_intensity = 1.5; /* High intensity for dramatic meteor approach */
+  ctx->source_z = 0;                             /* Will be updated per observer */
+  ctx->source_description = (char *)meteor_desc; /* Borrowed for synchronous delivery. */
+  ctx->base_intensity = 1.5;                     /* High intensity for dramatic meteor approach */
 
   /* Use extended range for distant meteors */
   ctx->effective_range = visual_range;
@@ -910,9 +910,9 @@ int spatial_visual_meteor_descent(int meteor_x, int meteor_y, const char *meteor
   /* Set source information - elevation will be set per observer */
   ctx->source_x = meteor_x;
   ctx->source_y = meteor_y;
-  ctx->source_z = 0; /* Will be updated per observer */
-  ctx->source_description = strdup(meteor_desc);
-  ctx->base_intensity = 2.0; /* Very intense descending meteors */
+  ctx->source_z = 0;                             /* Will be updated per observer */
+  ctx->source_description = (char *)meteor_desc; /* Borrowed for synchronous delivery. */
+  ctx->base_intensity = 2.0;                     /* Very intense descending meteors */
 
   /* Use closer range for descending meteors */
   ctx->effective_range = visual_range;
@@ -1000,9 +1000,9 @@ int spatial_visual_meteor_impact(int impact_x, int impact_y, const char *impact_
   /* Set source information */
   ctx->source_x = impact_x;
   ctx->source_y = impact_y;
-  ctx->source_z = 0; /* Ground level impact */
-  ctx->source_description = strdup(impact_desc);
-  ctx->base_intensity = 2.5; /* Extremely intense ground impact explosion */
+  ctx->source_z = 0;                             /* Ground level impact */
+  ctx->source_description = (char *)impact_desc; /* Borrowed for synchronous delivery. */
+  ctx->base_intensity = 2.5;                     /* Extremely intense ground impact explosion */
 
   /* Process for all wilderness players within range */
   for (ch = character_list; ch; ch = ch->next)

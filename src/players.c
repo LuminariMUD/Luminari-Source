@@ -11,7 +11,9 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "vessels/transport_jobs.h"
 #include "utils.h"
+#include "tactical_effects.h"
 #include "db.h"
 #include "db_init.h"
 #include "handler.h"
@@ -756,7 +758,6 @@ int load_char(const char *name, struct char_data *ch)
       GET_BUFF(ch, i, 0) = 0;
       GET_BUFF(ch, i, 1) = 0;
     }
-    GET_BUFF_TIMER(ch) = 0;
     GET_LAST_ROOM(ch) = 0;
     GET_CURRENT_BUFF_SLOT(ch) = 0;
     IS_BUFFING(ch) = false;
@@ -947,6 +948,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_BAG_NAME(ch, 1) = strdup(line);
         else if (!strcmp(tag, "Blst"))
           BLASTING(ch) = atoi(line);
+        else if (!strcmp(tag, "BlCt"))
+          ch->bleeding_critical_pulses = MAX(1, atoi(line));
         else if (!strcmp(tag, "Bag2"))
           GET_BAG_NAME(ch, 2) = strdup(line);
         else if (!strcmp(tag, "Bag3"))
@@ -1621,10 +1624,13 @@ int load_char(const char *name, struct char_data *ch)
         }
         else if (!strcmp(tag, "PDCt"))
         {
-          int timer;
-          if (sscanf(line, "%d", &timer) == 1)
+          int timer, remaining = 0;
+          int fields = sscanf(line, "%d %d", &timer, &remaining);
+          if (fields >= 1)
           {
-            ch->player_specials->saved.defensive_casting_timer = timer;
+            ch->player_specials->saved.defensive_casting_timer =
+                timer > 0 && (fields == 1 || remaining > 0) ? timer : 0;
+            ch->player_specials->saved.defensive_casting_pulses = MAX(0, remaining);
           }
         }
         else if (!strcmp(tag, "PARc"))
@@ -1967,7 +1973,22 @@ int load_char(const char *name, struct char_data *ch)
         break;
 
       case 'T':
-        if (!strcmp(tag, "Tmpl"))
+        if (!strcmp(tag, "Trv1"))
+        {
+          long long destination, seconds, type, locale;
+
+          if (sscanf(line, "%lld %lld %lld %lld", &destination, &seconds, &type, &locale) == 4 &&
+              destination >= 0 && destination <= INT_MAX && seconds >= 0 && seconds <= INT_MAX &&
+              type >= 1 && type <= 4 && locale >= 0 && locale <= INT_MAX &&
+              transport_locale_valid((int)type, (int)locale))
+          {
+            ch->player_specials->destination = (int)destination;
+            ch->player_specials->travel_timer = (int)seconds;
+            ch->player_specials->travel_type = (int)type;
+            ch->player_specials->travel_locale = (int)locale;
+          }
+        }
+        else if (!strcmp(tag, "Tmpl"))
           GET_TEMPLATE(ch) = atoi(line);
         else if (!strcmp(tag, "Tlpt"))
           GET_TALENT_POINTS(ch) = atoi(line);
@@ -2319,6 +2340,8 @@ bool save_char_checked(struct char_data *ch, int mode)
   int i = 0, j = 0, id = 0, save_index = FALSE;
   int64_t save_epoch;
   int aff_count = 0, saved_aff_count = 0;
+  int bleeding_remaining = 0;
+  uint64_t bleeding_turn = 0U;
   struct affected_type *aff = NULL;
   struct affected_type tmp_aff[MAX_AFFECT] = {{0}};
   struct damage_reduction_type *tmp_dr = NULL, *cur_dr = NULL;
@@ -2467,6 +2490,8 @@ bool save_char_checked(struct char_data *ch, int mode)
   }
   ch->mute_equip_messages = old_mute_equip_messages;
 
+  bleeding_remaining = tactical_bleeding_remaining(ch);
+  bleeding_turn = ch->bleeding_critical_turn;
   aff_count = 0;
   saved_aff_count = 0;
 
@@ -3226,6 +3251,11 @@ bool save_char_checked(struct char_data *ch, int mode)
     BUFFER_WRITE("%d %d\n", i, GET_CRAFT(ch).motes_required[i]);
   BUFFER_WRITE("-1\n");
 
+  if (transport_locale_valid(ch->player_specials->travel_type, ch->player_specials->travel_locale))
+    BUFFER_WRITE("Trv1: %d %d %d %d\n", ch->player_specials->destination,
+                 transport_remaining_seconds(ch), ch->player_specials->travel_type,
+                 ch->player_specials->travel_locale);
+
   // Save Craft Materials
   BUFFER_WRITE("CrMa:\n");
   for (i = 0; i < NUM_CRAFT_GROUPS; i++)
@@ -3483,7 +3513,8 @@ bool save_char_checked(struct char_data *ch, int mode)
   /* Save Defensive Casting timer */
   if (ch->player_specials->saved.defensive_casting_timer > 0)
   {
-    BUFFER_WRITE("PDCt: %d\n", ch->player_specials->saved.defensive_casting_timer);
+    BUFFER_WRITE("PDCt: %d %d\n", ch->player_specials->saved.defensive_casting_timer,
+                 tactical_defense_remaining(ch));
   }
 
   /* Save Arcane Recovery cooldown */
@@ -3689,6 +3720,9 @@ bool save_char_checked(struct char_data *ch, int mode)
     BUFFER_WRITE("-1\n");
   }
 
+  if (bleeding_remaining > 0)
+    BUFFER_WRITE("BlCt: %d\n", bleeding_remaining);
+
   /* Save affects */
   if (tmp_aff[0].spell > 0)
   {
@@ -3854,6 +3888,9 @@ bool save_char_checked(struct char_data *ch, int mode)
     if (tmp_aff[i].spell)
       affect_to_char_source(ch, &tmp_aff[i], tmp_aff[i].source_id);
   }
+
+  if (bleeding_remaining > 0)
+    tactical_bleeding_restore_clock(ch, bleeding_remaining, bleeding_turn);
 
   /* Reapply dr.*/
   if (tmp_dr != NULL)

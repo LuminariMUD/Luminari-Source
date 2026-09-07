@@ -18,6 +18,8 @@
 #include "screen.h"
 #include "interpreter.h"
 #include "handler.h"
+#include "domain_object_transfer.h"
+#include "domain_event_world.h"
 #include "db.h"
 #include "magic/spells.h"
 #include "constants.h"
@@ -2007,7 +2009,18 @@ void check_room_lighting_special(room_rnum room, struct char_data *ch,
   }
 }
 
+static void perform_put_impl(struct char_data *ch, struct obj_data *obj, struct obj_data *cont);
+
 static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_data *cont)
+{
+  struct domain_object_transfer_operation operation;
+
+  domain_object_transfer_begin(&operation, obj, ch, DOMAIN_TRANSFER_COMMAND);
+  perform_put_impl(ch, obj, cont);
+  domain_object_transfer_finish(&operation);
+}
+
+static void perform_put_impl(struct char_data *ch, struct obj_data *obj, struct obj_data *cont)
 {
   char buf[MEDIUM_STRING] = {'\0'};
   long object_id = obj_script_id(obj);
@@ -2293,8 +2306,21 @@ static void get_check_craft_material(struct char_data *ch, struct obj_data *obj)
 }
 #endif /* USE_NEW_CRAFTING_SYSTEM */
 
+static void perform_get_from_container_impl(struct char_data *ch, struct obj_data *obj,
+                                            struct obj_data *cont, int mode);
+
 static void perform_get_from_container(struct char_data *ch, struct obj_data *obj,
                                        struct obj_data *cont, int mode)
+{
+  struct domain_object_transfer_operation operation;
+
+  domain_object_transfer_begin(&operation, obj, ch, DOMAIN_TRANSFER_COMMAND);
+  perform_get_from_container_impl(ch, obj, cont, mode);
+  domain_object_transfer_finish(&operation);
+}
+
+static void perform_get_from_container_impl(struct char_data *ch, struct obj_data *obj,
+                                            struct obj_data *cont, int mode)
 {
   bool is_corpse = FALSE, is_clan = FALSE;
   int ct = 0;
@@ -2468,7 +2494,20 @@ void get_from_container(struct char_data *ch, struct obj_data *cont, char *arg, 
   }
 }
 
+static int perform_get_from_room_impl(struct char_data *ch, struct obj_data *obj);
+
 static int perform_get_from_room(struct char_data *ch, struct obj_data *obj)
+{
+  struct domain_object_transfer_operation operation;
+  int result;
+
+  domain_object_transfer_begin(&operation, obj, ch, DOMAIN_TRANSFER_COMMAND);
+  result = perform_get_from_room_impl(ch, obj);
+  domain_object_transfer_finish(&operation);
+  return result;
+}
+
+static int perform_get_from_room_impl(struct char_data *ch, struct obj_data *obj)
 {
   if (check_rol_object_trap(ch, obj, ROL_OBJECT_TRAP_EVENT_OBJECT, 0))
     return 0;
@@ -2771,8 +2810,23 @@ static void perform_drop_gold(struct char_data *ch, int amount, byte mode, room_
 #define VANISH(mode)                                                                               \
   ((mode == SCMD_DONATE || mode == SCMD_JUNK) ? "  It vanishes in a puff of smoke!" : "")
 
+static int perform_drop_impl(struct char_data *ch, struct obj_data *obj, byte mode,
+                             const char *sname, room_rnum RDR);
+
 static int perform_drop(struct char_data *ch, struct obj_data *obj, byte mode, const char *sname,
                         room_rnum RDR)
+{
+  struct domain_object_transfer_operation operation;
+  int result;
+
+  domain_object_transfer_begin(&operation, obj, ch, DOMAIN_TRANSFER_COMMAND);
+  result = perform_drop_impl(ch, obj, mode, sname, RDR);
+  domain_object_transfer_finish(&operation);
+  return result;
+}
+
+static int perform_drop_impl(struct char_data *ch, struct obj_data *obj, byte mode,
+                             const char *sname, room_rnum RDR)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
   int value;
@@ -2966,17 +3020,43 @@ ACMD(do_drop)
   }
 }
 
+static bool perform_give_impl(struct char_data *ch, struct char_data *vict, struct obj_data *obj);
+
 bool perform_give(struct char_data *ch, struct char_data *vict, struct obj_data *obj)
 {
-  long object_id = obj_script_id(obj);
+  struct domain_object_transfer_operation operation;
+  bool result;
 
-  if (!give_otrigger(obj, ch, vict))
+  domain_object_transfer_begin(&operation, obj, ch, DOMAIN_TRANSFER_COMMAND);
+  result = perform_give_impl(ch, vict, obj);
+  domain_object_transfer_finish(&operation);
+  return result;
+}
+
+static bool perform_give_impl(struct char_data *ch, struct char_data *vict, struct obj_data *obj)
+{
+  struct domain_entity_handle sender, receiver, object;
+  bool allowed;
+
+  if (ch == NULL || vict == NULL || obj == NULL || obj->carried_by != ch || ch == vict)
     return FALSE;
-  if (!has_obj_by_uid_in_lookup_table(object_id))
+  sender = domain_event_character_handle(ch);
+  receiver = domain_event_character_handle(vict);
+  object = domain_event_object_handle(obj);
+
+  allowed = give_otrigger(obj, ch, vict);
+  ch = domain_event_world_resolve_character(sender);
+  vict = domain_event_world_resolve_character(receiver);
+  obj = domain_event_world_resolve_object(object);
+  if (!allowed || ch == NULL || vict == NULL || obj == NULL || obj->carried_by != ch ||
+      IN_ROOM(ch) != IN_ROOM(vict))
     return FALSE;
-  if (!receive_mtrigger(vict, ch, obj))
-    return FALSE;
-  if (!has_obj_by_uid_in_lookup_table(object_id))
+  allowed = receive_mtrigger(vict, ch, obj);
+  ch = domain_event_world_resolve_character(sender);
+  vict = domain_event_world_resolve_character(receiver);
+  obj = domain_event_world_resolve_object(object);
+  if (!allowed || ch == NULL || vict == NULL || obj == NULL || obj->carried_by != ch ||
+      IN_ROOM(ch) != IN_ROOM(vict))
     return FALSE;
 
   if (OBJ_FLAGGED(obj, ITEM_NODROP) && !PRF_FLAGGED(ch, PRF_NOHASSLE))
@@ -3007,8 +3087,6 @@ bool perform_give(struct char_data *ch, struct char_data *vict, struct obj_data 
   act("$n gives you $p.", FALSE, ch, obj, vict, TO_VICT);
   act("$n gives $p to $N.", TRUE, ch, obj, vict, TO_NOTVICT);
 
-  /* autoquest system check point -Zusuk */
-  autoquest_trigger_check(ch, vict, obj, 0, AQ_OBJ_RETURN);
   return TRUE;
 }
 
@@ -4191,7 +4269,18 @@ int is_wielding_type(struct char_data *ch)
 }
 
 /* the guts of the 'wear' mechanic for equipping gear */
+static void perform_wear_impl(struct char_data *ch, struct obj_data *obj, int where);
+
 void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
+{
+  struct domain_object_transfer_operation operation;
+
+  domain_object_transfer_begin(&operation, obj, ch, DOMAIN_TRANSFER_COMMAND);
+  perform_wear_impl(ch, obj, where);
+  domain_object_transfer_finish(&operation);
+}
+
+static void perform_wear_impl(struct char_data *ch, struct obj_data *obj, int where)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   const char *wear_restriction = NULL;
@@ -4873,7 +4962,20 @@ ACMD(do_grab)
   }
 }
 
+static void perform_remove_impl(struct char_data *ch, int pos, bool forced);
+
 void perform_remove(struct char_data *ch, int pos, bool forced)
+{
+  struct domain_object_transfer_operation operation;
+
+  domain_object_transfer_begin(&operation,
+                               ch != NULL && pos >= 0 && pos < NUM_WEARS ? GET_EQ(ch, pos) : NULL,
+                               ch, DOMAIN_TRANSFER_COMMAND);
+  perform_remove_impl(ch, pos, forced);
+  domain_object_transfer_finish(&operation);
+}
+
+static void perform_remove_impl(struct char_data *ch, int pos, bool forced)
 {
   struct obj_data *obj;
 

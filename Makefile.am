@@ -32,6 +32,8 @@ luminari_SOURCES = \
 	src/combat/act.offensive.c \
 	src/act.other.c \
 	src/ready_action.c \
+	src/tactical_effects.c \
+	src/tactical_effects.h \
 	src/act.social.c \
 	src/act.wizard.c \
 	src/actionqueues.c \
@@ -140,6 +142,14 @@ luminari_SOURCES = \
 	src/point_update_periodic.h \
 	src/vessels/vessel_periodic.c \
 	src/vessels/vessel_periodic.h \
+	src/quest/staff_event_agenda.c \
+	src/quest/staff_event_agenda.h \
+	src/vessels/moving_room_events.c \
+	src/vessels/moving_room_events.h \
+	src/magic/buff_sequence.c \
+	src/magic/buff_sequence.h \
+	src/vessels/transport_jobs.c \
+	src/vessels/transport_jobs.h \
 	src/periodic_owners.c \
 	src/periodic_owners.h \
 	src/domain_events.c \
@@ -149,6 +159,8 @@ luminari_SOURCES = \
 	src/domain_event_world.h \
 	src/domain_event_types.h \
 	src/domain_event_runtime.c \
+	src/domain_object_transfer.c \
+	src/domain_object_transfer.h \
 	src/domain_event_runtime.h \
 	src/event_debug.c \
 	src/event_debug.h \
@@ -219,6 +231,8 @@ luminari_SOURCES = \
 	src/wilderness/spatial_audio.c \
 	src/wilderness/spatial_events.c \
 	src/wilderness/spatial_events.h \
+	src/mob/phenomenon_response.c \
+	src/mob/phenomenon_response.h \
 	src/wilderness/terrain_bridge.c \
 	src/wilderness/region_hints.c \
 	src/wilderness/narrative_weaver.c \
@@ -795,7 +809,9 @@ EXTRA_DIST = \
 	scripts/development/check_local_port_allocations.sh \
 	scripts/development/dev_create_test_character.sh \
 	scripts/development/dev_kohdee_login_smoke.sh \
+	scripts/events/run_event_core_performance_gate.py \
 	scripts/events/test_demand_driven_architecture.sh \
+	scripts/events/test_event_core_performance_gate.py \
 	scripts/events/test_legacy_event_admission.sh \
 	scripts/events/test_native_event_architecture.sh \
 	scripts/events/test_pubsub_retirement.sh \
@@ -850,6 +866,13 @@ EXTRA_DIST = \
 	lib/world/vessel_harbor/700.zon \
 	sql/components/character_rename_transactional_schema.sql \
 	sql/components/help_arcane_mark_entries.sql \
+	sql/components/help_nature_survival_entries.sql \
+	sql/components/help_buff_sequence_entry.sql \
+	sql/components/help_counterspell_readiness.sql \
+	sql/components/help_defensive_casting_clock.sql \
+	sql/components/help_bleeding_critical_clock.sql \
+	sql/components/help_billowing_cloud_exposure.sql \
+	sql/components/help_staff_event_agenda_entry.sql \
 	sql/components/help_command_sweep_entries.sql \
 	sql/components/help_dg_damage_trigger.sql \
 	sql/components/help_rol_feat_entries.sql \
@@ -939,7 +962,8 @@ EXTRA_DIST = \
 test: check test-help-sync test-autorun-supervision test-versioned-binary-install \
 	test-binary-name-static test-healthcheck \
 	test-background-help-entries test-demand-driven-architecture test-event-admission \
-	test-native-event-architecture test-pubsub-retirement test-vessel-tooling
+	test-event-core-performance-gate test-native-event-architecture test-pubsub-retirement \
+	test-vessel-tooling
 	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" \
 		LUMINARI_TEST_SPEC_WORLD_ROOT="$(abs_top_srcdir)/unittests/CuTest/fixtures/spec_world_inventory" \
 		./cutest
@@ -949,7 +973,7 @@ test: check test-help-sync test-autorun-supervision test-versioned-binary-instal
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
 	test-versioned-binary-install test-binary-name-static test-healthcheck \
 	test-demand-driven-architecture test-event-admission test-native-event-architecture \
-	test-pubsub-retirement \
+	test-event-core-performance-gate test-pubsub-retirement \
 	test-vessel-tooling
 
 check-world-docs:
@@ -990,6 +1014,9 @@ test-background-help-entries:
 
 test-demand-driven-architecture:
 	./scripts/events/test_demand_driven_architecture.sh
+
+test-event-core-performance-gate:
+	cd "$(abs_top_srcdir)" && python3 -m unittest scripts/events/test_event_core_performance_gate.py -v
 
 test-event-admission:
 	./scripts/events/test_legacy_event_admission.sh
