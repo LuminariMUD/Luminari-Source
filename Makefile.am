@@ -584,6 +584,7 @@ world_tool_sources = \
 	scripts/world/wtool_lib/rol_discovery.py \
 	scripts/world/wtool_lib/rol_graph.py \
 	scripts/world/wtool_lib/rol_inventory.py \
+	scripts/world/wtool_lib/rol_json.py \
 	scripts/world/wtool_lib/rol_mob_calculator.py \
 	scripts/world/wtool_lib/rol_mobile_identity.py \
 	scripts/world/wtool_lib/rol_identity.py \
@@ -599,6 +600,18 @@ world_tool_sources = \
 	scripts/world/wtool_lib/rol_state_periodic_profiles.py \
 	scripts/world/wtool_lib/rol_soc.py \
 	scripts/world/wtool_lib/rol_special.py \
+	scripts/world/wtool_lib/rol_conversion_types.py \
+	scripts/world/wtool_lib/rol_source_common.py \
+	scripts/world/wtool_lib/rol_transform_common.py \
+	scripts/world/wtool_lib/rol_mobiles.py \
+	scripts/world/wtool_lib/rol_objects.py \
+	scripts/world/wtool_lib/rol_armor_mapping.py \
+	scripts/world/wtool_lib/rol_armor_overrides.json \
+	scripts/world/wtool_lib/rol_weapon_overrides.json \
+	scripts/world/wtool_lib/rol_rooms.py \
+	scripts/world/wtool_lib/rol_zones.py \
+	scripts/world/wtool_lib/rol_shops.py \
+	scripts/world/wtool_lib/rol_quests.py \
 	scripts/world/wtool_lib/rol_source.py \
 	scripts/world/wtool_lib/rol_transform.py \
 	scripts/world/wtool_lib/rooms.py \
@@ -876,6 +889,7 @@ EXTRA_DIST = \
 	sql/components/help_command_sweep_entries.sql \
 	sql/components/help_dg_damage_trigger.sql \
 	sql/components/help_rol_feat_entries.sql \
+	sql/components/help_rol_player_kits.sql \
 	sql/components/help_race_half_illithid_entries.sql \
 	sql/components/help_race_half_ogre_entries.sql \
 	sql/components/help_race_myconid_entries.sql \
@@ -897,6 +911,7 @@ EXTRA_DIST = \
 	sql/components/verify_help_dg_damage_trigger.sql \
 	sql/components/verify_help_necromancer_entries.sql \
 	sql/components/verify_help_rol_feat_entries.sql \
+	sql/components/verify_help_rol_player_kits.sql \
 	sql/components/verify_help_rol_object_trap_entries.sql \
 	sql/components/verify_help_race_half_illithid_entries.sql \
 	sql/components/verify_help_race_half_ogre_entries.sql \

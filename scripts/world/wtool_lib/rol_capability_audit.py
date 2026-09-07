@@ -12,10 +12,10 @@ from typing import Any, Iterable
 
 from .constants import default_repo_root
 from .models import TOOL_VERSION
+from .rol_json import load_jsonl
 from .rol_pilot_build import (
     RolPilotBuildError,
     _identity_resolver,
-    _load_jsonl,
     _source_records,
     _source_zone_flags_by_basename,
     _target_zone_by_basename,
@@ -62,6 +62,10 @@ _NUMBER = re.compile(r"(?<![A-Za-z_])-?\d+")
 
 class RolCapabilityAuditError(ValueError):
   """Raised when the full-corpus audit cannot produce trustworthy evidence."""
+
+
+def _load_jsonl(path: Path) -> list[dict[str, Any]]:
+  return load_jsonl(path, RolPilotBuildError, "pilot", intern_candidates=True)
 
 
 def _canonical_json(data: Any) -> bytes:
@@ -285,7 +289,7 @@ def classify_transform_diagnostic(message: str) -> str:
     return "bounded-adapter"
   if message.startswith(("capped ", "normalized ")):
     return "bounded-normalization"
-  if "non-ASCII" in message or "embedded tilde" in message:
+  if "non-ASCII" in message or "embedded tilde" in message or "source color escape" in message:
     return "text-normalization"
   if (
       "incomplete" in message

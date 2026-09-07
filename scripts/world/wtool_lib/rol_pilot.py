@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .models import TOOL_VERSION
+from .rol_json import load_jsonl
 from .rol_planner import verify_discovery_bundle
 from .rol_skeleton import verify_plan_bundle
 
@@ -69,20 +70,7 @@ def _load_json(path: Path) -> Any:
 
 
 def _load_jsonl(path: Path) -> list[dict[str, Any]]:
-  rows: list[dict[str, Any]] = []
-  try:
-    with path.open(encoding="ascii") as source:
-      for line_number, line in enumerate(source, start=1):
-        try:
-          row = json.loads(line)
-        except json.JSONDecodeError as error:
-          raise RolPilotError(f"invalid JSONL at {path}:{line_number}: {error}") from error
-        if not isinstance(row, dict):
-          raise RolPilotError(f"JSONL row at {path}:{line_number} is not an object")
-        rows.append(row)
-  except OSError as error:
-    raise RolPilotError(f"cannot read pilot input {path}: {error}") from error
-  return rows
+  return load_jsonl(path, RolPilotError, "pilot", intern_candidates=False)
 
 
 def _created_at(value: str | None) -> str:

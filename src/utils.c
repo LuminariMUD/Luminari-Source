@@ -3872,6 +3872,10 @@ bool room_is_daylit(room_rnum room)
  * @retval int FALSE if the room is lit, TRUE if the room is dark. */
 bool room_is_dark(room_rnum room)
 {
+  struct char_data *tch = NULL;
+  struct obj_data *obj = NULL;
+  int wear;
+
   if (!VALID_ROOM_RNUM(room))
   {
     log("room_is_dark: Invalid room rnum %d. (0-%d)", room, top_of_world);
@@ -3887,7 +3891,6 @@ bool room_is_dark(room_rnum room)
   if (ROOM_AFFECTED(room, RAFF_LIGHT))
     return (FALSE);
 
-  struct char_data *tch = NULL;
   for (tch = world[room].people; tch; tch = tch->next_in_room)
   {
     // persons blinded by blinding ray emit light like a sunrod
@@ -3910,6 +3913,25 @@ bool room_is_dark(room_rnum room)
 
   if (world[room].light)
     return (FALSE);
+
+  /* Magical item light follows direct room, inventory, and equipment placement.
+   * This includes the source-forced light on converted RoL ships. Like other
+   * item light, it does not override magical darkness or escape containers. */
+  for (obj = world[room].contents; obj; obj = obj->next_content)
+    if (OBJ_FLAGGED(obj, ITEM_MAGLIGHT))
+      return (FALSE);
+  for (tch = world[room].people; tch; tch = tch->next_in_room)
+  {
+    for (obj = tch->carrying; obj; obj = obj->next_content)
+      if (OBJ_FLAGGED(obj, ITEM_MAGLIGHT))
+        return (FALSE);
+    for (wear = 0; wear < NUM_WEARS; wear++)
+    {
+      obj = GET_EQ(tch, wear);
+      if (obj && OBJ_FLAGGED(obj, ITEM_MAGLIGHT))
+        return (FALSE);
+    }
+  }
 
   if (ROOM_FLAGGED(room, ROOM_DARK))
     return (TRUE);

@@ -389,7 +389,18 @@ namespaces. `rol_source.py` parses source records; `rol_transform.py` emits the
 native representation. The [native serialization reference](../world_game-data/OEDIT_GUIDE.md#native-object-file-serialization)
 describes the target. Keep conversions explicit in the policy and diagnostics.
 
-- Source object text uses tilde strings and RoL `&` color syntax. Source flags
+Native validation counts `A` applies and `B` spellbook entries independently,
+matching the server loader. Legacy two/three-field applies receive zero for
+omitted bonus type/specific fields. Each extension still enforces its own capacity.
+
+- Source object text uses tilde strings and RoL `&` color syntax. The shared text
+  converter preserves `&+x` foreground, `&-x` background, and `&=xy` combined colors,
+  including source background blinking, using existing target protocol tokens.
+  Source black `L/l` maps to target `D/d`; target `L/l` would display lime.
+  `&&` becomes a literal ampersand. Unknown complete escapes remain literal and
+  incomplete escapes are dropped as in the source output loop; both are diagnosed.
+  Literal at-sign escaping, ASCII, LF, and tilde framing apply to every format.
+  Source flags
   are decimal words, with type/extra/wear and optional anti flags. Source values
   have eight fields; target records have sixteen. Economy is weight/cost/
   durability, not the target weight/cost/rent/level/timer line. Source whitespace
@@ -404,17 +415,61 @@ describes the target. Keep conversions explicit in the policy and diagnostics.
 - Source ability modifiers are not a reason for a blanket 4.5 multiplier in the
   D20 target. Preserve the established direct mapping unless a named conversion
   policy requires otherwise. Source drink-container weight uses a /4 conversion.
+- Source prototypes have no object-level field. Every converted object therefore
+  has permanent target level 1; no price, affect, or description inference is
+  applied. A magic item's bounded caster level remains in its type-specific value
+  slot and does not change the object's use level.
 - Source armor value 0 has positive protective AC, while its AC apply uses a
   different sign convention. Other armor values describe warmth/prestige/proc,
   not a target armor-family index. Preserve protection while making the target
   family/slot decision explicitly; AC magnitude alone cannot identify armor.
+- Armor-typed nonstandard wearables become `ITEM_WORN`. Their value-0 protection
+  becomes signed `APPLY_AC_NEW`: divide magnitude by ten, round toward zero,
+  and retain magnitude one for a nonzero value. Universal bonus type 23 stacks
+  with preserved authored applies and other equipment. Clear value 0 to prevent
+  double-counting, including rings worn on tails. Preserve normalized wear flags
+  and takeability; take-only placeholders gain no inferred equipment slot.
+  Standard armor slots, mixed masks containing them, and dedicated-tail armor
+  remain outside this rule and require their separate family/disposition review.
+  Nonstandard warmth/prestige and unbound procedure-state losses are diagnosed
+  per record. Assigned special adapters retain procedure state and effect ownership;
+  for example, the tattered cloak still uses value 3 for its recharge counter.
+- Standard armor families now resolve through the native `setarmor()` table and
+  named `SPEC_ARMOR_TYPE_*` constants, keeping source AC, weight and cost. The
+  source-hashed armor catalog records exceptions; unreviewed mixed masks and
+  changed exception records stop conversion. Dedicated-tail armor retains its
+  native AC exception without an ordinary family. The completed integration
+  review packet records each corpus decision, native penalty and named loss.
+  The final combined candidate runtime rehearsal remains a separate release gate;
+  generated family audit rows alone do not establish content-release approval.
+- Source `ITEM_WORN` values 1/2 are warmth/prestige. The target has no equivalent
+  fields, so conversion clears and diagnoses them. Source value 0 is generically
+  inert and is cleared so hand-worn records cannot acquire the target's unrelated
+  monk-glove enhancement. Value 3 is retained only when an assigned procedure owns
+  it; otherwise it is a named state loss. The northern Waterdeep umbrella's
+  warmth-times-prestige product affected only source NPC `RateObject()` equipment
+  comparisons; its named loss is not player prestige or cold resistance.
+- The source grammar contains no native B/C/K/S extension payload. The selected 31
+  spellbooks contain language/class/page bookkeeping but no authored spell entries;
+  conversion clears that bookkeeping as a named loss and emits no B block. ProcVal
+  state remains with a compiled special/DG/native owner or is named as unbound loss,
+  never synthesized into C, K or S.
+- Emit G/H/I proficiency/material/size only for converted weapons, using their
+  reviewed native weapon-table profile. Source objects have no corresponding generic
+  metadata, so nonweapons emit none and receive the native defaults: no proficiency,
+  undefined material and medium size. Do not infer mechanically active nonweapon
+  metadata from descriptive text.
 - Weapon profiles distinguish melee, launchers, thrown weapons, ammunition and
   quivers. Javelin names alone do not establish throwing intent; thrown darts and
   blowgun ammunition are distinct. Use the classifier audit and reviewed
   overrides, not renamed enum numbers or ad hoc emitted-file edits.
-- Source ship loading forces light-related behavior beyond file flags. Its boat
-  mapping, exceptional colors, object-level policy and structured extension
-  losses require explicit review before claiming complete object equivalence.
+- Source ship loading forces `ITEM_LIT` even when its file omits that flag.
+  Converted ships retain boat behavior and receive target `ITEM_MAGLIGHT`.
+  Magical item light follows direct room, inventory, and equipment placement;
+  containers conceal it, and magical darkness takes precedence.
+- A conversion review must retain per-record extension/procedure/loss evidence before
+  claiming object equivalence. The selected integration packet provides that proof;
+  a changed source package or converter must regenerate it.
 
 Track armor inference in [#113](https://github.com/LuminariMUD/Luminari-Source/issues/113), other field policies in
 [#114](https://github.com/LuminariMUD/Luminari-Source/issues/114), and weapon release review in [#115](https://github.com/LuminariMUD/Luminari-Source/issues/115).

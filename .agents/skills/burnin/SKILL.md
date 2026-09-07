@@ -42,8 +42,8 @@ Updating this skill does not authorize executing it or resuming a paused burn-in
 
 Use `./scripts/autorun/autorun.sh status` and inspect the actual listener, process executable,
 working directory, supervisor, and `.autorun.state`. A stale state file alone is not proof of a
-running server. The local game port defaults to 4101 and the health listener to loopback 8182;
-check `MUD_PORT`, `lib/etc/config`, and `TERRAIN_API_PORT` for overrides.
+running server. Resolve the game and health ports from the current autorun script and configuration
+overrides, then verify actual listener ownership.
 
 For an autorun-owned development instance:
 

@@ -1,9 +1,20 @@
 from __future__ import annotations
 
 from collections import defaultdict
+import json
+from pathlib import Path
+import tempfile
+import tracemalloc
 import unittest
 
-from wtool_lib.rol_planner import build_record_actions, confirmed_lineage_packages
+from wtool_lib.rol_planner import (
+    RolPlanError,
+    _load_jsonl,
+    build_record_actions,
+    confirmed_lineage_packages,
+)
+from wtool_lib.rol_pilot_build import RolPilotBuildError
+from wtool_lib.rol_pilot_build import _load_jsonl as load_pilot_jsonl
 
 
 def source_record(record_id: str, kind: str, vnum: int, basename: str) -> dict:
@@ -28,6 +39,65 @@ def candidate_row(record: dict, candidate: dict | None = None) -> dict:
 
 
 class RolPlannerTests(unittest.TestCase):
+  def test_jsonl_loaders_wrap_non_ascii_input_with_caller_error(self) -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+      path = Path(temporary) / "non-ascii.jsonl"
+      path.write_bytes(b'{"value":"\xff"}\n')
+
+      for loader, error_type in (
+          (_load_jsonl, RolPlanError),
+          (load_pilot_jsonl, RolPilotBuildError),
+      ):
+        with self.subTest(loader=loader.__module__):
+          with self.assertRaisesRegex(
+              error_type, r"invalid ASCII JSONL at .*non-ascii\.jsonl:1:"
+          ):
+            loader(path)
+
+  def test_repeated_lineage_evidence_loads_with_bounded_string_memory(self) -> None:
+    candidate = {
+        "target_type": "room",
+        "target_vnum": 2100100,
+        "path": "wld/21001.wld",
+        "line": 12,
+        "record_sha256": "a" * 64,
+        "source_file_sha256": "b" * 64,
+        "score": 50,
+        "confirmed_seed": False,
+        "evidence": ["exact_normalized_identity"],
+    }
+    with tempfile.TemporaryDirectory() as temporary:
+      path = Path(temporary) / "candidates.jsonl"
+      path.write_text("".join(
+          json.dumps({"source_record_id": f"wld:{index}", "candidates": [candidate] * 40}) + "\n"
+          for index in range(200)
+      ), encoding="ascii")
+
+      def measure(loader):
+        tracemalloc.start()
+        try:
+          rows = loader(path)
+          peak = tracemalloc.get_traced_memory()[1]
+        finally:
+          tracemalloc.stop()
+        return rows, peak
+
+      def ordinary_load(source):
+        with source.open(encoding="ascii") as stream:
+          return [json.loads(line) for line in stream]
+
+      expected, ordinary_peak = measure(ordinary_load)
+      for loader in (_load_jsonl, load_pilot_jsonl):
+        with self.subTest(loader=loader.__module__):
+          rows, peak = measure(loader)
+          self.assertEqual(expected, rows)
+          self.assertLess(peak, ordinary_peak)
+          # Sharing immutable text must not alias mutable candidate data.
+          rows[0]["candidates"][0]["path"] = "changed"
+          rows[0]["candidates"][0]["evidence"].append("changed")
+          self.assertEqual(candidate, rows[0]["candidates"][1])
+          self.assertEqual(candidate, rows[1]["candidates"][0])
+
   def setUp(self) -> None:
     self.policy = {
         "apply": {"permitted_actions": ["KEEP", "PATCH", "ADD", "MERGE", "EXCLUDE"]},

@@ -17,6 +17,7 @@ from .flags import decode_tokens, encode_bits
 from .models import TOOL_VERSION, WorldData
 from .reporting import result_payload
 from .rol_discovery import extract_source_commands
+from .rol_json import load_jsonl
 from .rol_pilot import PILOT_BASENAMES
 from .rol_skeleton import tree_manifest
 from .rol_soc import SocCompilation, compile_soc_records
@@ -110,22 +111,7 @@ def _load_json(path: Path) -> Any:
 
 
 def _load_jsonl(path: Path) -> list[dict[str, Any]]:
-  rows: list[dict[str, Any]] = []
-  try:
-    with path.open(encoding="ascii") as source:
-      for line_number, line in enumerate(source, start=1):
-        try:
-          row = json.loads(line)
-        except json.JSONDecodeError as error:
-          raise RolPilotBuildError(
-              f"invalid JSONL at {path}:{line_number}: {error}"
-          ) from error
-        if not isinstance(row, dict):
-          raise RolPilotBuildError(f"JSONL row at {path}:{line_number} is not an object")
-        rows.append(row)
-  except OSError as error:
-    raise RolPilotBuildError(f"cannot read pilot input {path}: {error}") from error
-  return rows
+  return load_jsonl(path, RolPilotBuildError, "pilot", intern_candidates=True)
 
 
 def _verify_bundle(path: Path, phase: int, stage: str | None = None) -> dict[str, Any]:

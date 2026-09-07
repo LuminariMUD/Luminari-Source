@@ -1,6 +1,7 @@
 # AGENTS.md - guidance to AI Agents when working with code in this repo
 
-**!IMPORTANT NOTE:** remote production (with sudo) can be accessed via details in `lib/.env`
+Production connection details may be present in `lib/.env`. They do not authorize remote actions;
+never print or modify credentials.
 
 ## Critical Rules
 
@@ -18,7 +19,9 @@
   workflow without pausing for duplicate confirmation; deletions, renames, and conflicts still
   require explicit review.
 - When adding or updating features and relevant, make sure to update documentation and helpfiles
-- Check `lib/.env` whether this is dev or production environment.  We don't modify production code.  We do not create new branches / worktress from production.
+- Before local mutation or running the MUD, read only `APP_ENV` from `lib/.env` without printing
+  credentials. Do not edit production code or create branches/worktrees in a production checkout.
+  Production help-content changes follow the help-sync skill and the user's explicit scope.
 - For running the MUD on local/dev, don't use `luminari.service`, use `autorun.sh`
 - It is NOT expected on local/dev for Ollama, I3 and Discord services to work (unless we are specifically working on those features)
 
@@ -138,7 +141,10 @@ Membership is by "what is this file's primary job", not by what it touches. Head
 while files within that same directory include it bare. Do not add per-directory `-I` flags to avoid the qualification - the explicit path is what makes
 cross-subsystem coupling visible.
 
-Also expect the pre-commit clang-format hook to realign trailing comments on `#include` lines when a longer path shifts the comment column. Accept it, then rebuild and re-test before committing. Historical paths in `docs/ongoing-projects/CHANGELOG.md` and `docs/previous_changelogs/` are deliberately left stale - they record the tree as it was.
+When installed, the configured pre-commit hook may reformat changed source or run checks. Inspect
+any resulting diff and rerun affected checks before committing; do not assume hooks are installed.
+Historical paths in `docs/ongoing-projects/CHANGELOG.md` and `docs/previous_changelogs/` are
+deliberately left stale - they record the tree as it was.
 
 ### Misc
 - `perfmon.c` - performance monitoring (plain C; older docs mentioning perfmon.cpp/C++11 are obsolete).
@@ -158,6 +164,8 @@ Also expect the pre-commit clang-format hook to realign trailing comments on `#i
 ## Documentation Map
 
 - `docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md` - master index
-- `docs/CORE_SERVER_ARCHITECTURE.md`, `docs/DEVELOPER_GUIDE_AND_API.md`
-- `docs/guides/SETUP_AND_BUILD_GUIDE.md`, `docs/TESTING_GUIDE.md`
-- `docs/TROUBLESHOOTING_AND_MAINTENANCE.md`
+- `docs/systems/CORE_SERVER_ARCHITECTURE.md`
+- `docs/guides/DEVELOPER_GUIDE_AND_API.md`
+- `docs/guides/SETUP_AND_BUILD_GUIDE.md`
+- `docs/guides/TESTING_GUIDE.md`
+- `docs/guides/TROUBLESHOOTING_AND_MAINTENANCE.md`
