@@ -8,7 +8,7 @@ from .flags import encode_bits
 from .rol_conversion_types import RolRecord
 
 
-_TARGET_MAX_LEVEL = 34
+TARGET_MAX_LEVEL = 34
 
 
 _SOURCE_COLOR = re.compile(r"&&|&[Nn]|&[+-].?|&=.{0,2}|&.?", re.DOTALL)

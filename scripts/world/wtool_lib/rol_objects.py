@@ -28,7 +28,7 @@ from .rol_source_common import (
     _segments,
 )
 from .rol_transform_common import (
-    _TARGET_MAX_LEVEL,
+    TARGET_MAX_LEVEL,
     _directive_rows,
     _encoded,
     _mapped_bits,
@@ -327,7 +327,7 @@ def _parse_obj(
 _TARGET_MAGIC_ITEM_TYPES = frozenset({2, 3, 4, 10})
 
 
-_TARGET_MAX_OBJECT_SPELL_LEVEL = _TARGET_MAX_LEVEL
+_TARGET_MAX_OBJECT_SPELL_LEVEL = TARGET_MAX_LEVEL
 
 
 _TARGET_MAX_LIQUID = 22

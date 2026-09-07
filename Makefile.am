@@ -971,6 +971,9 @@ check-world-docs:
 
 rol-mob-calculator:
 	$(MAKE) -C "$(abs_top_srcdir)/util" rol_mob_calculator
+	$(MKDIR_P) "$(abs_top_builddir)/bin"
+	$(INSTALL_PROGRAM) "$(abs_top_srcdir)/util/rol_mob_calculator" \
+		"$(abs_top_builddir)/bin/rol_mob_calculator"
 
 test-world-tools: check-world-docs rol-mob-calculator
 	cd "$(abs_top_srcdir)" && python3 -m unittest discover -s scripts/world/tests -t scripts/world -v
