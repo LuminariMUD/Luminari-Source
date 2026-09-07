@@ -34,8 +34,14 @@ def load_jsonl(
   rows: list[dict[str, Any]] = []
   object_hook = intern_candidate_strings if intern_candidates else None
   try:
-    with path.open(encoding="ascii") as source:
-      for line_number, line in enumerate(source, start=1):
+    with path.open("rb") as source:
+      for line_number, raw_line in enumerate(source, start=1):
+        try:
+          line = raw_line.decode("ascii")
+        except UnicodeDecodeError as error:
+          raise error_type(
+              f"invalid ASCII JSONL at {path}:{line_number}: {error}"
+          ) from error
         try:
           row = json.loads(line, object_hook=object_hook)
         except json.JSONDecodeError as error:

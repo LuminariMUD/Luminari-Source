@@ -158,7 +158,7 @@ int familiar_vnums[] = {
 #define NUM_FAMILIARS 10
 
 #define TOP_OF_ANIMALS 9
-#define TOP_OF_FAMILIARS 8
+#define TOP_OF_FAMILIARS NUM_FAMILIARS
 /****************/
 
 /* make a list of names in order, first animals */
@@ -191,8 +191,9 @@ const char *mount_names[] = {
 };
 /* ... now familiars */
 const char *familiar_names[] = {
-    "Unknown",  "1) Night Hunter", "2) Black Panther", "3) Tiny Mouse",    "4) Eagle",
-    "5) Raven", "6) Imp",          "7) Pixie",         "8) Faerie Dragon", "\n" /* end with this */
+    "Unknown",          "1) Night Hunter",  "2) Black Panther", "3) Tiny Mouse",
+    "4) Eagle",         "5) Raven",         "6) Imp",           "7) Pixie",
+    "8) Faerie Dragon", "9) Pseudo Dragon", "10) Hellhound",    "\n" /* end with this */
 };
 
 /* NOTE: The above static menus should be converted to dynamic menus.
@@ -5843,7 +5844,7 @@ void study_parse(struct descriptor_data *d, char *arg)
         GET_FAMILIAR(d->character) = number;
         write_to_output(d, "Your familiar has been set to OFF.\r\n");
       }
-      else if (number < 0 || number >= NUM_FAMILIARS)
+      else if (number < 0 || number > NUM_FAMILIARS)
       {
         write_to_output(d, "Not a valid choice!\r\n");
       }
