@@ -41,6 +41,11 @@ Measure both select and libevent. After five minutes of warmup, collect:
   the first ten-minute median and fitted growth no more than 1 MiB/minute.
   Require owner/event/registry counts to return to their expected baseline.
   RSS alone cannot distinguish a live-object leak from allocator retention.
+- DG fixture ownership: capture `dg.trigger.wait` immediately before each
+  100-owner seed, during the workload, and after room cleanup. Require at least
+  90 added waits while active and no more than ten waits above that segment's
+  baseline after cleanup. Total full-world event counts remain diagnostic only
+  because ordinary zone resets legitimately add and remove unrelated owners.
 - Copyover and intentionally blocked diagnostics are separately labelled and
   excluded from steady-state percentiles; their actual pauses remain reported.
 

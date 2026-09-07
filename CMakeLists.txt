@@ -1352,6 +1352,9 @@ if (BUILD_TESTS)
     add_test(NAME demand-driven-event-architecture
         COMMAND bash
             ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_demand_driven_architecture.sh)
+    add_test(NAME event-core-performance-gate
+        COMMAND Python3::Interpreter -m unittest
+            scripts/events/test_event_core_performance_gate.py -v)
     add_test(NAME legacy-event-admission
         COMMAND bash
             ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_legacy_event_admission.sh)
@@ -1363,6 +1366,7 @@ if (BUILD_TESTS)
             ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_pubsub_retirement.sh)
     set_tests_properties(
         demand-driven-event-architecture
+        event-core-performance-gate
         legacy-event-admission
         native-event-architecture
         event-pubsub-retirement

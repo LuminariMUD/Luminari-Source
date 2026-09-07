@@ -541,6 +541,50 @@ def diagnostic_snapshot(text: str) -> dict[str, int | None]:
     }
 
 
+DG_WAIT_IDENTITY = "dg.trigger.wait"
+DG_FIXTURE_OWNER_COUNT = 100
+DG_BACKGROUND_TOLERANCE = 10
+
+
+def dg_fixture_analysis(profile_snapshots: dict[str, dict[str, int]]) -> dict[str, object]:
+    segments: list[dict[str, int | bool | None]] = []
+    missing: list[str] = []
+    for index in range(1, 4):
+        values: dict[str, int | bool | None] = {"segment": index}
+        for stage in ("baseline", "active", "cleanup"):
+            phase = f"dg-{index}" if stage == "active" else f"dg-{index}-{stage}"
+            live = profile_snapshots.get(phase, {}).get(DG_WAIT_IDENTITY)
+            values[f"{stage}_live"] = live
+            if live is None:
+                missing.append(f"{phase}:{DG_WAIT_IDENTITY}")
+        baseline = values["baseline_live"]
+        active = values["active_live"]
+        cleanup = values["cleanup_live"]
+        if all(isinstance(value, int) for value in (baseline, active, cleanup)):
+            assert isinstance(baseline, int)
+            assert isinstance(active, int)
+            assert isinstance(cleanup, int)
+            values["active_delta"] = active - baseline
+            values["cleanup_delta"] = cleanup - baseline
+            values["passed"] = (
+                active - baseline >= DG_FIXTURE_OWNER_COUNT - DG_BACKGROUND_TOLERANCE
+                and cleanup - baseline <= DG_BACKGROUND_TOLERANCE
+            )
+        else:
+            values["active_delta"] = None
+            values["cleanup_delta"] = None
+            values["passed"] = False
+        segments.append(values)
+    return {
+        "identity": DG_WAIT_IDENTITY,
+        "fixture_owner_count": DG_FIXTURE_OWNER_COUNT,
+        "background_tolerance": DG_BACKGROUND_TOLERANCE,
+        "missing_fields": missing,
+        "segments": segments,
+        "passed": not missing and all(bool(segment["passed"]) for segment in segments),
+    }
+
+
 def memory_analysis(path: Path, profile: str) -> dict[str, object]:
     samples: list[tuple[float, float]] = []
     with path.open(encoding="utf-8") as source:
@@ -610,12 +654,21 @@ def analyze_backend(output_dir: Path, profile: str) -> dict[str, object]:
         and int(lateness["worst_max_ticks"]) <= 10
     )
 
-    diagnostic_phases = phases + ("dg-baseline", "dg-1-cleanup", "dg-2-cleanup", "dg-3-cleanup")
+    dg_baselines = tuple(f"dg-{index}-baseline" for index in range(1, 4))
+    dg_cleanups = tuple(f"dg-{index}-cleanup" for index in range(1, 4))
+    diagnostic_phases = phases + dg_baselines + dg_cleanups
     diagnostics: dict[str, dict[str, int | None]] = {}
+    profile_snapshots: dict[str, dict[str, int]] = {}
     for phase in diagnostic_phases:
         diagnostics[phase] = diagnostic_snapshot(
             (output_dir / f"{phase}-event-summary.txt").read_text(encoding="utf-8")
         )
+        profile_snapshots[phase] = {
+            str(entry["identity"]): int(entry["live"])
+            for entry in parse_event_profiles(
+                (output_dir / f"{phase}-event-types.txt").read_text(encoding="utf-8")
+            )
+        }
     required_zero = tuple(key for key in diagnostics["steady"] if key not in {"live_events", "ready"})
     missing = [f"{phase}:{key}" for phase, values in diagnostics.items() for key in required_zero if values[key] is None]
     nonzero = {
@@ -624,13 +677,7 @@ def analyze_backend(output_dir: Path, profile: str) -> dict[str, object]:
         for key in required_zero
         if values[key] not in (None, 0)
     }
-    cleanup_live = [diagnostics[f"dg-{index}-cleanup"]["live_events"] for index in range(1, 4)]
-    baseline_live = diagnostics["dg-baseline"]["live_events"]
-    live_growth = bool(
-        baseline_live is not None
-        and all(value is not None for value in cleanup_live)
-        and max(int(value) for value in cleanup_live) <= int(baseline_live)
-    )
+    dg_fixture = dg_fixture_analysis(profile_snapshots)
     ready_counts = [values["ready"] for values in diagnostics.values()]
     ready_cleared = (
         diagnostics["steady"]["ready"] == 0
@@ -640,11 +687,15 @@ def analyze_backend(output_dir: Path, profile: str) -> dict[str, object]:
         "snapshots": diagnostics,
         "missing_fields": missing,
         "nonzero_failure_fields": nonzero,
-        "dg_baseline_live_events": baseline_live,
-        "dg_cleanup_live_events": cleanup_live,
+        "dg_fixture": dg_fixture,
+        "world_live_events": {
+            "gated": False,
+            "reason": "the full world changes owners during normal zone resets",
+            "counts": {phase: values["live_events"] for phase, values in diagnostics.items()},
+        },
         "maximum_transient_ready": max((int(value) for value in ready_counts if value is not None), default=0),
         "ready_cleared_after_workloads": ready_cleared,
-        "passed": not missing and not nonzero and live_growth and ready_cleared,
+        "passed": not missing and not nonzero and bool(dg_fixture["passed"]) and ready_cleared,
     }
 
     command_values: list[float] = []
@@ -971,11 +1022,10 @@ async def run_backend(
         )
         await capture_phase(admin, "command", output_dir)
         await clear_room(admin, FIXTURE_COMBAT_ROOM, transcript)
-        await capture_phase(admin, "dg-baseline", output_dir)
-
         dg_segment = durations["dg"] // 3
         for segment in range(1, 4):
             await clear_room(admin, FIXTURE_LIFECYCLE_ROOM, transcript)
+            await capture_phase(admin, f"dg-{segment}-baseline", output_dir)
             set_phase(f"dg-{segment}")
             await admin_command(admin, "perfmon reset", transcript)
             await seed_lifecycle(admin, transcript)
