@@ -47,5 +47,33 @@ class DgFixtureAnalysisTests(unittest.TestCase):
         self.assertEqual(result["missing_fields"], ["dg-3-cleanup:dg.trigger.wait"])
 
 
+class ReadyQueueAnalysisTests(unittest.TestCase):
+    def test_transient_current_tick_work_is_allowed_when_steady_state_drains(self) -> None:
+        diagnostics = {
+            "dg-1-cleanup": {"ready": 0},
+            "dg-2-cleanup": {"ready": 0},
+            "dg-3-cleanup": {"ready": 1295},
+            "steady": {"ready": 0},
+        }
+
+        result = GATE.ready_queue_analysis(diagnostics)
+
+        self.assertTrue(result["passed"])
+        self.assertTrue(result["drained_at_steady"])
+        self.assertEqual(1295, result["maximum_transient"])
+
+    def test_retained_ready_work_fails_the_final_snapshot(self) -> None:
+        diagnostics = {
+            "dg-1-cleanup": {"ready": 0},
+            "steady": {"ready": 3},
+        }
+
+        result = GATE.ready_queue_analysis(diagnostics)
+
+        self.assertFalse(result["passed"])
+        self.assertFalse(result["drained_at_steady"])
+        self.assertEqual(3, result["final_ready"])
+
+
 if __name__ == "__main__":
     unittest.main()

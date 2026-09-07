@@ -585,6 +585,20 @@ def dg_fixture_analysis(profile_snapshots: dict[str, dict[str, int]]) -> dict[st
     }
 
 
+def ready_queue_analysis(diagnostics: dict[str, dict[str, int | None]]) -> dict[str, object]:
+    counts = {phase: values.get("ready") for phase, values in diagnostics.items()}
+    final_ready = counts.get("steady")
+    return {
+        "counts": counts,
+        "maximum_transient": max(
+            (int(value) for value in counts.values() if value is not None), default=0
+        ),
+        "final_ready": final_ready,
+        "drained_at_steady": final_ready == 0,
+        "passed": final_ready == 0,
+    }
+
+
 def memory_analysis(path: Path, profile: str) -> dict[str, object]:
     samples: list[tuple[float, float]] = []
     with path.open(encoding="utf-8") as source:
@@ -678,11 +692,7 @@ def analyze_backend(output_dir: Path, profile: str) -> dict[str, object]:
         if values[key] not in (None, 0)
     }
     dg_fixture = dg_fixture_analysis(profile_snapshots)
-    ready_counts = [values["ready"] for values in diagnostics.values()]
-    ready_cleared = (
-        diagnostics["steady"]["ready"] == 0
-        and all(diagnostics[f"dg-{index}-cleanup"]["ready"] == 0 for index in range(1, 4))
-    )
+    ready_queue = ready_queue_analysis(diagnostics)
     diagnostic_result = {
         "snapshots": diagnostics,
         "missing_fields": missing,
@@ -693,9 +703,15 @@ def analyze_backend(output_dir: Path, profile: str) -> dict[str, object]:
             "reason": "the full world changes owners during normal zone resets",
             "counts": {phase: values["live_events"] for phase, values in diagnostics.items()},
         },
-        "maximum_transient_ready": max((int(value) for value in ready_counts if value is not None), default=0),
-        "ready_cleared_after_workloads": ready_cleared,
-        "passed": not missing and not nonzero and bool(dg_fixture["passed"]) and ready_cleared,
+        "ready_queue": ready_queue,
+        "maximum_transient_ready": ready_queue["maximum_transient"],
+        "ready_cleared_after_workloads": ready_queue["drained_at_steady"],
+        "passed": (
+            not missing
+            and not nonzero
+            and bool(dg_fixture["passed"])
+            and bool(ready_queue["passed"])
+        ),
     }
 
     command_values: list[float] = []

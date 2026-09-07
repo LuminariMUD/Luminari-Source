@@ -23,9 +23,10 @@ The wider unassigned queue is excluded. No production rollout or archival deleti
   consumer.
 - #110 keeps Nature as the canonical name with Survival as the persisted-slot
   compatibility alias and supplies the additive help migration.
-- #111 now has per-type bounded scheduler deadline-lateness instrumentation and
-  a declared acceptance workload. Its long live command-latency and RSS run is
-  still required for an unqualified performance verdict.
+- #111 has per-type bounded scheduler deadline-lateness instrumentation and a
+  reproducible acceptance workload. The final full-world run passed command
+  latency, scheduler lateness, sustained RSS, DG ownership and diagnostics on
+  both libevent and select.
 - #112 is resolved by an explicit retention decision. Archival PubSub SQL is
   inert historical data and is not deleted by this repair branch.
 - Final local validation on 2026-09-07 passed all 1,249 production-linked C
@@ -41,8 +42,9 @@ cancelled transport admission to the passenger, and makes staff-event duration A
 consistently use native scheduler ticks. Coordinate phenomena now query the existing
 static wilderness KD tree once and scan the bounded dynamic-room pool once, instead of
 repeating a whole dynamic-pool scan for every coordinate in range. Deployment and
-performance-harness cleanup findings are repaired as well. The final #111 live gate is
-still required after this reviewed source checkpoint is committed.
+performance-harness cleanup findings are repaired as well. The #111 full live gate
+subsequently passed on both supported backends; its provenance and measurements are
+recorded in the linked performance report.
 
 ## Implementation checkpoint
 
@@ -270,19 +272,29 @@ Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working
 
 Source: https://github.com/LuminariMUD/Luminari-Source/issues/111
 
-Status: instrumentation implemented and validated; final live measurement remains pending.
+Status: implemented and validated; the declared full live gate passed on both backends.
 
 Functional event-core acceptance passed, but the retained reports explicitly qualify performance. Late-callback counts do not measure lateness magnitude or end-to-end responsiveness, and short RSS samples do not establish a leak trend.
 
 The September 5 burn-in recorded one 151.808 ms loop out of 9,654 samples (0.01%); DG waits accounted for 133.183 ms and extraction for 17.339 ms in that sample. This is a historical investigation lead, not proof of a recurring current defect.
 
 - [x] Agree representative idle and burst workloads and acceptance thresholds before measuring.
-- [ ] Collect per-type deadline lateness, command/network tail latency and sustained RSS trends with build/configuration/workload provenance. Per-type lateness collection is implemented; the declared live workload remains outstanding.
+- [x] Collect per-type deadline lateness, command/network tail latency and sustained RSS trends with build/configuration/workload provenance.
 - [x] Add and test bounded per-type native deadline-lateness p50/p95/p99/max instrumentation in `eventdebug types` and `perfmon`; continue to use `eventdebug ready [reset]` only for the separate ready-action decision path.
-- [ ] Investigate repeatable DG/extraction tail stalls if reproduced; retain negative findings as measurements.
+- [x] Investigate repeatable DG/extraction tail stalls if reproduced; retain negative findings as measurements. The final run found no repeatable stall: the worst command sample was 18.001 ms, worst scheduler lateness was one tick, and all DG wait owners returned within the declared segment-local cleanup tolerance.
 - [x] Update the existing acceptance report with the implemented measurement path and explicit remaining limitations.
 
 Related: #93 concerns the production build profile; this issue concerns runtime acceptance measurements.
+
+The 2026-09-07 full-world run measured clean source
+`c29603a393b891557461f030a9d368d8cf91fdc9` for 3 hours 54 minutes. Libevent
+and select each completed 4,808 command samples with no timeout. Their p99
+latencies were 0.889 ms and 1.662 ms; worst deadline p99/max were one/one tick.
+Final-to-first RSS median ratios were 1.009176 and 1.008977, with fitted slopes
+of 0.294276 and 0.288524 MiB/min. All failure counters and overdue snapshots
+were zero, both final ready queues drained, and all six DG lifecycle segments
+passed. See [the performance gate](../testing/EVENT_CORE_ASSIGNED_BATCH_PERFORMANCE_GATE.md)
+for the complete provenance, per-cycle counts and analyzer-accounting note.
 
 Source review: `c7c7d44a7f47e5fc155859eaf359391b827f85ea`. The temporary working notes are being removed; these revision-pinned links retain their evidence and detailed examples. Historical measurements are not fresh runtime results.
 
