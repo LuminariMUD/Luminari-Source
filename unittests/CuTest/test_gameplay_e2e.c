@@ -30,6 +30,8 @@
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/combat/fight.h"
 #include "../../src/olc/genwld.h"
+#include "../../src/olc/oasis.h"
+#include "../../src/olc/prefedit.h"
 #include "../../src/olc/genobj.h"
 #include "../../src/vessels/transport.h"
 #include "../../src/vessels/transport_jobs.h"
@@ -5011,8 +5013,9 @@ void Test_gameplay_output_preferences_persist_and_failed_changes_roll_back(CuTes
   char directory[PATH_MAX], filename[MAX_FILEPATH], name[32];
   char failure_directory[] = "/tmp/luminari-output-save-XXXXXX";
   char on[] = "on", off[] = "off";
-  int result;
-  bool restored_reader, restored_sound, retained_map, failure_restored;
+  int result, legacy_result;
+  FILE *legacy_file;
+  bool restored_reader, restored_sound, retained_map, failure_restored, legacy_defaults;
 
   snprintf(name, sizeof(name), "Zzaccess%ld", (long)getpid());
   index[0].name = name;
@@ -5041,6 +5044,14 @@ void Test_gameplay_output_preferences_persist_and_failed_changes_roll_back(CuTes
   restored_reader = PRF_FLAGGED(loaded, PRF_SCREEN_READER);
   restored_sound = PRF_FLAGGED(loaded, PRF_SOUND);
   retained_map = PRF_FLAGGED(loaded, PRF_AUTOMAP) && PRF_FLAGGED(loaded, PRF_DISPHP);
+  free_char(loaded);
+  loaded = new_char();
+  legacy_file = fopen(filename, "w");
+  CuAssertPtrNotNull(tc, legacy_file);
+  fprintf(legacy_file, "Name: %s\nId  : 4251\nLevl: 7\n", name);
+  fclose(legacy_file);
+  legacy_result = load_char(name, loaded);
+  legacy_defaults = !PRF_FLAGGED(loaded, PRF_SCREEN_READER) && !PRF_FLAGGED(loaded, PRF_SOUND);
   unlink(filename);
   CuAssertIntEquals(tc, 0, chdir(directory));
 
@@ -5069,4 +5080,164 @@ void Test_gameplay_output_preferences_persist_and_failed_changes_roll_back(CuTes
   CuAssertTrue(tc, restored_sound);
   CuAssertTrue(tc, retained_map);
   CuAssertTrue(tc, failure_restored);
+  CuAssertIntEquals(tc, 0, legacy_result);
+  CuAssertTrue(tc, legacy_defaults);
+}
+
+void Test_gameplay_screen_reader_hides_actual_prompts_but_keeps_input_instructions(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct descriptor_data descriptor = {0};
+  struct player_special_data specials = {0};
+  char *editor_text = NULL;
+  const char telnet_go_ahead[] = {(char)255, (char)249, '\0'};
+  const char *prompt;
+  bool normal_visible, idle_hidden, combat_hidden, pager_visible, editor_visible;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player_specials = &specials;
+  fixture.actor.player.name = (char *)"Accessibility fixture";
+  fixture.actor.desc = &descriptor;
+  descriptor.character = &fixture.actor;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  STATE(&descriptor) = CON_PLAYING;
+  SET_BIT_AR(PRF_FLAGS(&fixture.actor), PRF_DISPHP);
+  SET_BIT_AR(PRF_FLAGS(&fixture.actor), PRF_AFK);
+  prompt = comm_make_prompt_for_test(&descriptor);
+  normal_visible = strstr(prompt, "100") != NULL && strstr(prompt, "AFK") != NULL;
+  SET_BIT_AR(PRF_FLAGS(&fixture.actor), PRF_SCREEN_READER);
+  idle_hidden = !strcmp(comm_make_prompt_for_test(&descriptor), telnet_go_ahead);
+  FIGHTING(&fixture.actor) = &fixture.victim;
+  FIGHTING(&fixture.victim) = &fixture.actor;
+  combat_hidden = !strcmp(comm_make_prompt_for_test(&descriptor), telnet_go_ahead);
+  descriptor.showstr_count = 2;
+  pager_visible = strstr(comm_make_prompt_for_test(&descriptor), "Return to continue") != NULL;
+  descriptor.showstr_count = 0;
+  descriptor.str = &editor_text;
+  editor_visible = strstr(comm_make_prompt_for_test(&descriptor), "]") != NULL;
+  descriptor.str = NULL;
+  fixture.actor.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, normal_visible);
+  CuAssertTrue(tc, idle_hidden);
+  CuAssertTrue(tc, combat_hidden);
+  CuAssertTrue(tc, pager_visible);
+  CuAssertTrue(tc, editor_visible);
+}
+
+static void verify_screen_reader_room_text(CuTest *tc, bool wilderness)
+{
+  struct gameplay_fixture fixture;
+  struct descriptor_data descriptor = {0};
+  struct player_special_data specials = {0};
+  char *without_map;
+  bool same_text, useful_text;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player_specials = &specials;
+  fixture.actor.player.name = (char *)"Accessibility fixture";
+  fixture.actor.desc = &descriptor;
+  fixture.rooms[0].light = 1;
+  fixture.rooms[0].people = NULL;
+  if (wilderness)
+  {
+    SET_BIT_AR(ZONE_FLAGS(0), ZONE_WILDERNESS);
+    fixture.rooms[0].sector_type = SECT_FIELD;
+  }
+  descriptor.character = &fixture.actor;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  STATE(&descriptor) = CON_PLAYING;
+  look_at_room(&fixture.actor, TRUE);
+  without_map = strdup(descriptor.output);
+  useful_text = wilderness ? strlen(without_map) > strlen(fixture.rooms[0].name) + 20
+                           : strstr(without_map, "A production-linked test room.") != NULL;
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = descriptor.large_outbuf ? LARGE_BUFSIZE - 1 : SMALL_BUFSIZE - 1;
+  SET_BIT_AR(PRF_FLAGS(&fixture.actor), PRF_AUTOMAP);
+  SET_BIT_AR(PRF_FLAGS(&fixture.actor), PRF_SCREEN_READER);
+  look_at_room(&fixture.actor, TRUE);
+  same_text = !strcmp(without_map, descriptor.output);
+  free(without_map);
+  fixture.actor.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  if (descriptor.large_outbuf != NULL)
+  {
+    free(descriptor.large_outbuf->text);
+    free(descriptor.large_outbuf);
+  }
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, useful_text);
+  CuAssertTrue(tc, same_text);
+}
+
+void Test_gameplay_screen_reader_room_output_matches_mapless_description(CuTest *tc)
+{
+  verify_screen_reader_room_text(tc, false);
+}
+
+void Test_gameplay_screen_reader_wilderness_output_matches_mapless_description(CuTest *tc)
+{
+  verify_screen_reader_room_text(tc, true);
+}
+
+void Test_gameplay_prefedit_sound_keeps_capability_and_rolls_back_failed_save(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct descriptor_data descriptor = {0};
+  struct player_special_data specials = {0};
+  char directory[PATH_MAX];
+  char failure_directory[] = "/tmp/luminari-prefedit-save-XXXXXX";
+  bool copied, capability_retained, rolled_back, no_success;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player_specials = &specials;
+  fixture.actor.player.name = (char *)"Accessibility fixture";
+  fixture.actor.desc = &descriptor;
+  descriptor.character = &fixture.actor;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  STATE(&descriptor) = CON_PLAYING;
+  SET_BIT_AR(PRF_FLAGS(&fixture.actor), PRF_SCREEN_READER);
+  SET_BIT_AR(PRF_FLAGS(&fixture.actor), PRF_SOUND);
+  do_oasis_prefedit(&fixture.actor, "", 0, 0);
+  copied = IS_SET_AR(OLC_PREFS(&descriptor)->pref_flags, PRF_SCREEN_READER) &&
+           IS_SET_AR(OLC_PREFS(&descriptor)->pref_flags, PRF_SOUND);
+  OLC_MODE(&descriptor) = PREFEDIT_TOGGLE_MENU;
+  prefedit_parse(&descriptor, "r");
+  capability_retained =
+      !descriptor.pProtocol->bMSP && !IS_SET_AR(OLC_PREFS(&descriptor)->pref_flags, PRF_SOUND);
+  OLC_MODE(&descriptor) = PREFEDIT_CONFIRM_SAVE;
+  CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
+  CuAssertPtrNotNull(tc, mkdtemp(failure_directory));
+  CuAssertIntEquals(tc, 0, chdir(failure_directory));
+  prefedit_parse(&descriptor, "y");
+  CuAssertIntEquals(tc, 0, chdir(directory));
+  rmdir(failure_directory);
+  rolled_back = PRF_FLAGGED(&fixture.actor, PRF_SCREEN_READER) &&
+                PRF_FLAGGED(&fixture.actor, PRF_SOUND) && descriptor.olc != NULL &&
+                OLC_MODE(&descriptor) == PREFEDIT_CONFIRM_SAVE;
+  no_success = strstr(descriptor.output, "Preferences saved.") == NULL;
+  prefedit_parse(&descriptor, "n");
+  fixture.actor.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  if (descriptor.large_outbuf != NULL)
+  {
+    free(descriptor.large_outbuf->text);
+    free(descriptor.large_outbuf);
+  }
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, copied);
+  CuAssertTrue(tc, capability_retained);
+  CuAssertTrue(tc, rolled_back);
+  CuAssertTrue(tc, no_success);
 }

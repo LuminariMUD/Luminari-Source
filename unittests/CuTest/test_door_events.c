@@ -7,6 +7,7 @@
 #include "../../src/act.h"
 #include "../../src/actions.h"
 #include "../../src/comm.h"
+#include "../../src/net/protocol.h"
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"
 #include "../../src/domain_event_runtime.h"
@@ -757,4 +758,43 @@ void TestReadyAttackExpiryFollowsNextSemanticTurnAfterCombatAdmission(CuTest *tc
 void TestCounterspellExpiryFollowsNextSemanticTurnAfterCombatAdmission(CuTest *tc)
 {
   verify_ready_expiry_after_combat_admission(tc, true);
+}
+
+void TestDoorMspCueRequiresSuccessfulOpenAndPlayerConsent(CuTest *tc)
+{
+  struct door_fixture f;
+  struct descriptor_data descriptor = {0};
+  bool locked_silent, opened_sound, repeated_silent, muted_silent;
+
+  door_fixture_start(tc, &f);
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &f.owner;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.pProtocol->bMSP = bool_t_true;
+  STATE(&descriptor) = CON_PLAYING;
+  f.owner.desc = &descriptor;
+  SET_BIT_AR(PRF_FLAGS(&f.owner), PRF_SOUND);
+  do_gen_door(&f.owner, "door north", 0, SCMD_OPEN);
+  locked_silent = strstr(descriptor.output, "!!SOUND(") == NULL;
+  f.exits[0].exit_info = f.exits[1].exit_info = EX_ISDOOR | EX_CLOSED;
+  do_gen_door(&f.owner, "door north", 0, SCMD_OPEN);
+  opened_sound = strstr(descriptor.output, "!!SOUND(luminari-door-open.wav)") != NULL;
+
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  do_gen_door(&f.owner, "door north", 0, SCMD_OPEN);
+  repeated_silent = strstr(descriptor.output, "!!SOUND(") == NULL;
+  f.exits[0].exit_info = f.exits[1].exit_info = EX_ISDOOR | EX_CLOSED;
+  REMOVE_BIT_AR(PRF_FLAGS(&f.owner), PRF_SOUND);
+  do_gen_door(&f.owner, "door north", 0, SCMD_OPEN);
+  muted_silent = strstr(descriptor.output, "!!SOUND(") == NULL;
+  f.owner.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  door_fixture_end(tc, &f);
+  CuAssertTrue(tc, locked_silent);
+  CuAssertTrue(tc, opened_sound);
+  CuAssertTrue(tc, repeated_silent);
+  CuAssertTrue(tc, muted_silent);
 }

@@ -52,6 +52,7 @@ void msdp_mark_map_state_changed(void);
 void send_to_mud(struct char_data *broadcaster, char *message);
 
 #if defined(LUMINARI_CUTEST)
+const char *comm_make_prompt_for_test(struct descriptor_data *d);
 protocol_error_t set_msdp_plain_text_for_test(struct descriptor_data *d, variable_t variable,
                                               const char *value);
 void comm_test_retain_unsent_output(struct descriptor_data *d, const char *output, int result);

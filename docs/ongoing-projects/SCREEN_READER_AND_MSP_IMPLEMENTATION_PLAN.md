@@ -1,6 +1,6 @@
 # Screen-reader setup and optional MSP sound implementation plan
 
-Status: implementation in progress; runtime acceptance remains pending.
+Status: implementation complete; runtime cleanup and real-client acceptance pending.
 Created: 2026-09-08.
 Issue: [#137](https://github.com/LuminariMUD/Luminari-Source/issues/137).
 Source investigation: `5d95d355822c91e7c0a1deaf6fc38f1adbadd26a`.
@@ -28,16 +28,26 @@ Source investigation: `5d95d355822c91e7c0a1deaf6fc38f1adbadd26a`.
   text parity for SCREEN-READER and SOUND. Added an additive SQL migration and
   updated protocol/onboarding documentation. The pre-change local help backup is
   `/tmp/luminari-screen-reader-help-before.json`; production was not accessed.
-- Validation checkpoint: `make test` passed 1,264 production-linked tests and the
-  configured auxiliary checks (eight opt-in database cases skipped); `make install`
-  passed. `make -C unittests/CuTest protocol-parser` passed 31 tests. Actual save/reload and failed-change rollback are included. Logs are under
-  `/tmp/screen-reader-*.log`; final evidence will supersede these interim counts.
-- Changed-line clang-format was used to honor the repository rule against
-  mechanical legacy restyling. The full-file formatting commit hook is skipped
-  for this checkpoint; remaining hygiene hooks still run.
-- Broader recovery/render checks and real-client acceptance remain outstanding.
-  No installed Mudlet, TinTin++, or Orca executable was found in PATH. The required
-  player/client walkthrough is pending; automated checks are not playback proof.
+- Validation: `make test` passed 1,269 production-linked tests and configured
+  auxiliary checks (eight opt-in database cases skipped), followed by `make install`.
+  The final incremental CuTest rerun also passed 1,269 tests. The focused protocol
+  harness passed 31 tests. Added real rendering, prompt, PREFEDIT rollback,
+  legacy-file defaults, creation recovery, and successful-door cue regressions.
+- Live development checks passed for creation with recommended settings both
+  enabled and disabled, unsaved disconnect/retry, room/wilderness output, manual
+  maps, status commands, reconnect, and copyover with negotiated MSP. Captured
+  sound-test wire output and mute behavior; these are not audible playback proof.
+- The exact help migration was applied twice to isolated session-temporary tables;
+  both resulting help texts and all four aliases matched. Development database
+  and flat-file text parity was separately verified.
+- Changed-line clang-format avoided mechanical legacy restyling at the first
+  commit. The subsequent full pre-push formatting and hygiene hooks passed.
+- Final runtime cleanup/revision matching is paused after a concurrent local
+  server-management conflict; see the report before continuing live checks.
+- See [acceptance evidence](../testing/SCREEN_READER_AND_MSP_ACCEPTANCE.md) for
+  tested revisions, limits, remaining client walkthroughs, and rollback notes.
+  No installed Mudlet, TinTin++, or Orca executable was found in PATH; a real
+  player/client walkthrough and audible playback remain required before #137 closes.
 
 ## Outcome and scope
 
@@ -166,7 +176,7 @@ Do not add a new media protocol as a shortcut.
   them in `src/interpreter.h`, and implement them in existing command files.
   Use checked persistence with truthful failure feedback and rollback where
   required by the current save contract. Guard NPCs and missing descriptors.
-- [ ] Ensure PREFEDIT's copied flags and save operation retain both new settings
+- [x] Ensure PREFEDIT's copied flags and save operation retain both new settings
   and cannot override mode behavior accidentally.
 
 Checkpoint: old characters load unchanged; both preferences round-trip; changing
@@ -177,9 +187,9 @@ one does not change the other or unrelated preferences.
 - [x] Add the early terminal connection state using an unused identifier; update
   state names and every relevant dispatch, connection-state check, and creation
   navigation path discovered by reference search.
-- [ ] Accept explicit yes/no answers, repeat the question on invalid input, and
+- [x] Accept explicit yes/no answers, repeat the question on invalid input, and
   preserve the answer across initialization and recommended preferences.
-- [ ] Integrate Back and Start over behavior and the durable boundary described
+- [x] Integrate Back and Start over behavior and the durable boundary described
   above with `character_creation.c`; retain checked save/account-link recovery.
 - [x] Add the structured choice screen and action validation to
   `src/net/onboarding.c`. Follow its versioning contract if the new screen needs
@@ -193,12 +203,12 @@ saved character contains the choice, and resumed creation does not undo it.
 
 ### 3. Complete map and prompt integration
 
-- [ ] Trace all automatic map callers, including room look and movement output.
+- [x] Trace all automatic map callers, including room look and movement output.
   Apply effective mode behavior while leaving explicitly requested maps available.
-- [ ] Preserve normal-room descriptions, wilderness generated descriptions,
+- [x] Preserve normal-room descriptions, wilderness generated descriptions,
   exits, and existing visibility restrictions. Do not reveal hidden navigation
   information or alter in-game blindness mechanics.
-- [ ] Suppress the final gameplay prompt in screen-reader mode, including combat,
+- [x] Suppress the final gameplay prompt in screen-reader mode, including combat,
   wait, and status additions. Preserve pager/editor/creation instructions and
   protocol-level prompt delimiters needed by clients.
 - [x] Make `prompt none` and prompt-emptiness handling consistent for all prompt
@@ -212,9 +222,9 @@ art, and mode off restores the player's underlying map/prompt behavior.
 
 - [x] Correct `SoundSend()` gating and transport selection as specified above;
   inspect explicit in-band sound paths so they cannot bypass player opt-out.
-- [ ] Keep capability reporting accurate and prevent negotiation from overriding
+- [x] Keep capability reporting accurate and prevent negotiation from overriding
   the saved preference. Verify MSP refusal and reconnect/copyover behavior.
-- [ ] Add a short sound-test cue and one gameplay cue. Prefer a successful
+- [x] Add a short sound-test cue and one gameplay cue. Prefer a successful
   player-operated door opening: first trace its authoritative success branch,
   send only to the acting player, and preserve the existing text. Do not attach
   the cue to failed attempts or every movement tick.
@@ -225,7 +235,7 @@ art, and mode off restores the player's underlying map/prompt behavior.
 - [x] Package the two required cues with documented client installation or a
   verified existing public asset location. Do not invent a download URL or
   publish a new hosting service as part of a code change.
-- [ ] Use bounded, known cue names and preserve helper input limits. Missing or
+- [x] Use bounded, known cue names and preserve helper input limits. Missing or
   unsupported assets must not interrupt gameplay; document that server emission
   does not prove playback and give a sound-test troubleshooting procedure.
 
@@ -243,7 +253,7 @@ cues when enabled and remains silent after opt-out and reconnect.
   the help-sync skill only if cross-environment synchronization is requested.
 - [x] Update `docs/systems/PROTOCOL_SYSTEMS.md` and
   `docs/systems/WEB_ONBOARDING_SYSTEM.md` for the final implemented contracts.
-- [ ] Record final validation evidence and remaining usability findings in this
+- [x] Record final validation evidence and remaining usability findings in this
   plan or a linked focused acceptance report. Keep #126/#127 work separate.
 
 ## Verification matrix

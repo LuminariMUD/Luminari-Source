@@ -1476,6 +1476,7 @@ void TestCharacterCreationLifecycleAndWorkflowActionsAreSourceOwned(CuTest *tc)
   GET_CLASS(character) = CLASS_WIZARD;
   GET_PREMADE_BUILD_CLASS(character) = CLASS_WIZARD;
   GET_ALIGNMENT(character) = 500;
+  SET_BIT_AR(PRF_FLAGS(character), PRF_SCREEN_READER);
 
   CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
   CuAssertPtrNotNull(tc, strstr(payload, "\"back\""));
@@ -1537,6 +1538,12 @@ void TestCharacterCreationLifecycleAndWorkflowActionsAreSourceOwned(CuTest *tc)
 
   CuAssertTrue(tc, character_creation_resume(&d));
   CuAssertIntEquals(tc, CON_SETPREFS, STATE(&d));
+  CuAssertTrue(tc, PRF_FLAGGED(character, PRF_SCREEN_READER));
+  nanny(&d, "yes"); /* The injected save failure must undo recommended settings only. */
+  CuAssertIntEquals(tc, CON_SETPREFS, STATE(&d));
+  CuAssertTrue(tc, PRF_FLAGGED(character, PRF_SCREEN_READER));
+  CuAssertTrue(tc, !PRF_FLAGGED(character, PRF_DISPGOLD));
+  CuAssertIntEquals(tc, 0, GET_WIMP_LEV(character));
   CuAssertTrue(tc, !character_creation_can_back(&d));
   CuAssertTrue(tc, character_creation_can_restart(&d));
   CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));

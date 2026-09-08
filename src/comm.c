@@ -3242,6 +3242,13 @@ static char *make_prompt(struct descriptor_data *d)
   return ((char *)ProtocolOutput(d, prompt, &prompt_size));
 }
 
+#ifdef LUMINARI_CUTEST
+const char *comm_make_prompt_for_test(struct descriptor_data *d)
+{
+  return make_prompt(d);
+}
+#endif
+
 /* NOTE: 'txt' must be at most MAX_INPUT_LENGTH big. */
 void write_to_q(const char *txt, struct txt_q *queue, int aliased)
 {
