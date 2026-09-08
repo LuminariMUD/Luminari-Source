@@ -1607,7 +1607,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
    */
 
   /* Show wilderness map if in wilderness zone with automap enabled */
-  if ((!room_dark || can_infra_in_dark) && world_map && PRF_FLAGGED(ch, PRF_AUTOMAP))
+  if ((!room_dark || can_infra_in_dark) && world_map && should_show_automap(ch))
   {
     show_wilderness_map(ch, 21, ch->coords[0], ch->coords[1]);
   }
@@ -1616,7 +1616,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
            ROOM_FLAGGED(IN_ROOM(ch), ROOM_DEATH))
   {
     /* Player wants automap alongside description */
-    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOMAP) && can_see_map(ch))
+    if (!IS_NPC(ch) && should_show_automap(ch) && can_see_map(ch))
     {
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_GUI_MODE))
       {
@@ -1635,7 +1635,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
       }
     }
     /* Wilderness without automap: generate dynamic description */
-    else if (world_map && !PRF_FLAGGED(ch, PRF_AUTOMAP))
+    else if (world_map && !should_show_automap(ch))
     {
       generated_desc = gen_room_description(ch, IN_ROOM(ch));
       send_to_char(ch, "%s", generated_desc);

@@ -776,6 +776,11 @@ help_sync_sources = \
 
 # Extra files to distribute
 EXTRA_DIST = \
+	scripts/development/generate_msp_sounds.py \
+	lib/sounds/README.md \
+	lib/sounds/luminari-test.wav \
+	lib/sounds/luminari-door-open.wav \
+	sql/components/help_screen_reader_msp.sql \
 	$(world_tool_sources) \
 	$(world_tool_support_files) \
 	$(help_sync_sources) \

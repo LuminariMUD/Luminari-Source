@@ -85,6 +85,9 @@ static const struct onboarding_screen_info onboarding_screens[] = {
     {CON_NAME_CNFRM, "name-confirm", "character-creation", "Confirm the name",
      "Did you spell that name the way you meant to?", "confirm", FALSE,
      WEB_ONBOARDING_PROTOCOL_VERSION},
+    {CON_SCREEN_READER, "screen-reader", "character-creation", "Screen-reader output",
+     "Hide automatic ASCII maps and repeated gameplay prompts? Room text remains available.",
+     "choice", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
     {CON_QSEX, "sex", "character-creation", "Choose an identity",
      "Select the sex your character is recorded as.", "choice", FALSE,
      WEB_ONBOARDING_PROTOCOL_VERSION},
@@ -2448,6 +2451,7 @@ static const char *persistence_for_state(int state)
   {
   case CON_GET_NAME:
   case CON_NAME_CNFRM:
+  case CON_SCREEN_READER:
   case CON_QSEX:
   case CON_QRACE:
   case CON_QRACE_HELP:
@@ -4165,6 +4169,14 @@ static void build_choices(struct json_writer *w, struct descriptor_data *d,
 
   switch (screen->state)
   {
+  case CON_SCREEN_READER:
+    build_simple_choice(
+        w, "yes", "Yes, use screen-reader output", "yes", "",
+        "Hide automatic maps and gameplay prompts. Change later with screenreader off.");
+    json_raw(w, ",");
+    build_simple_choice(w, "no", "No, use standard output", "no", "",
+                        "Keep normal displays. Change later with screenreader on.");
+    break;
   case CON_QSEX:
     build_sex_choices(w);
     break;

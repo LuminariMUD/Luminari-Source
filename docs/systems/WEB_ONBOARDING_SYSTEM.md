@@ -536,3 +536,23 @@ If a new `.c` file is added, update both `Makefile.am` and `CMakeLists.txt`.
 | `src/account.c` | Account data, unlocks, membership, and account menu |
 | `src/structs.h` | Descriptor tracking and `CON_*` state definitions |
 | `unittests/CuTest/test_web_onboarding.c` | Production-linked behavior and boundary tests |
+
+## Early screen-reader choice (issue #137)
+
+After name confirmation, `CON_SCREEN_READER` asks a plain yes/no question before
+identity selection. The v2 `screen-reader` choice screen uses wire values `yes`
+and `no`, has draft persistence, and changes `PRF_SCREEN_READER` only. A v1 client
+uses the existing terminal fallback. Back from identity returns to the choice
+without clearing it; Start over follows the existing character cleanup path.
+
+The answer persists at the existing initial character save after alignment.
+Disconnect before that boundary restarts the unsaved creation flow; disconnect
+later resumes the saved creation stage with the preference retained. Initialization
+and recommended preferences preserve the flag. A short status/help introduction
+is emitted after the recommended-preferences save succeeds, before first entry.
+
+While enabled, the preference overrides automatic map and gameplay prompt output
+without changing the underlying map/prompt bits. Turning it off restores their
+configured behavior. Pager/editor instructions remain available. Sound consent is
+independent and defaults off. See the [implementation plan](../ongoing-projects/SCREEN_READER_AND_MSP_IMPLEMENTATION_PLAN.md)
+for validation status and remaining acceptance work.

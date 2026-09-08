@@ -19,6 +19,9 @@
 #include "../../src/utils.h"
 #include "../../src/comm.h"
 #include "../../src/account.h"
+#include "../../src/act.h"
+#include "../../src/interpreter.h"
+#include "../../src/asciimap.h"
 #include "../../src/character/backgrounds.h"
 #include "../../src/character/character_creation.h"
 #include "../../src/character/character_creation_content.h"
@@ -2690,5 +2693,95 @@ void TestRoleplayFactionCommitRollsBackCharacterAndPlayerIndex(CuTest *tc)
   CuAssertIntEquals(tc, 3, index_calls_after_character_failure);
   CuAssertIntEquals(tc, ROLEPLAY_COMMIT_OK, success);
   CuAssertIntEquals(tc, 0, fixture[0].clan);
+  cleanup_editor_descriptor(&d);
+}
+
+/* Accessibility is an output override, not a destructive preference preset. */
+void TestScreenReaderPreservesUnderlyingDisplayPreferences(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+
+  memset(&ch, 0, sizeof(ch));
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+  SET_BIT_AR(PRF_FLAGS(&ch), PRF_AUTOMAP);
+  SET_BIT_AR(PRF_FLAGS(&ch), PRF_DISPHP);
+  SET_BIT_AR(PRF_FLAGS(&ch), PRF_SOUND);
+  CuAssertTrue(tc, should_show_automap(&ch));
+  CuAssertTrue(tc, !is_prompt_empty(&ch));
+
+  SET_BIT_AR(PRF_FLAGS(&ch), PRF_SCREEN_READER);
+  CuAssertTrue(tc, !should_show_automap(&ch));
+  CuAssertTrue(tc, is_prompt_empty(&ch));
+  CuAssertTrue(tc, PRF_FLAGGED(&ch, PRF_AUTOMAP));
+  CuAssertTrue(tc, PRF_FLAGGED(&ch, PRF_DISPHP));
+  CuAssertTrue(tc, PRF_FLAGGED(&ch, PRF_SOUND));
+
+  REMOVE_BIT_AR(PRF_FLAGS(&ch), PRF_SCREEN_READER);
+  CuAssertTrue(tc, should_show_automap(&ch));
+  CuAssertTrue(tc, !is_prompt_empty(&ch));
+  CuAssertTrue(tc, !should_show_automap(NULL));
+}
+
+void TestPromptNoneClearsGoldAndTimeFields(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  char none[] = "none";
+
+  memset(&ch, 0, sizeof(ch));
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+  SET_BIT_AR(PRF_FLAGS(&ch), PRF_DISPGOLD);
+  CuAssertTrue(tc, !is_prompt_empty(&ch));
+  REMOVE_BIT_AR(PRF_FLAGS(&ch), PRF_DISPGOLD);
+  SET_BIT_AR(PRF_FLAGS(&ch), PRF_DISPTIME);
+  CuAssertTrue(tc, !is_prompt_empty(&ch));
+  SET_BIT_AR(PRF_FLAGS(&ch), PRF_DISPGOLD);
+  do_display(&ch, none, 0, 0);
+  CuAssertTrue(tc, is_prompt_empty(&ch));
+  CuAssertTrue(tc, !PRF_FLAGGED(&ch, PRF_DISPGOLD));
+  CuAssertTrue(tc, !PRF_FLAGGED(&ch, PRF_DISPTIME));
+}
+
+void TestScreenReaderCreationChoiceAndBack(CuTest *tc)
+{
+  struct descriptor_data d;
+  struct char_data ch;
+  struct player_special_data specials;
+  char invalid[] = "maybe";
+  char back[] = "back";
+  char yes[] = "yes";
+  char no[] = "no";
+  char payload[WEB_ONBOARDING_MAX_PAYLOAD + 1];
+
+  CuAssertTrue(tc, init_editor_descriptor(&d, &ch, &specials, CON_SCREEN_READER));
+  character_creation_screen_reader_prompt(&d);
+  CuAssertPtrNotNull(tc, strstr(d.output, "yes/no"));
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"screen\":\"screen-reader\""));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"persistence\":\"draft\""));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"wireValue\":\"yes\""));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"wireValue\":\"no\""));
+  CuAssertTrue(tc, json_is_balanced(payload));
+
+  nanny(&d, invalid);
+  CuAssertIntEquals(tc, CON_SCREEN_READER, STATE(&d));
+  CuAssertTrue(tc, !PRF_FLAGGED(&ch, PRF_SCREEN_READER));
+  nanny(&d, yes);
+  CuAssertIntEquals(tc, CON_QSEX, STATE(&d));
+  CuAssertTrue(tc, PRF_FLAGGED(&ch, PRF_SCREEN_READER));
+  nanny(&d, back);
+  CuAssertIntEquals(tc, CON_SCREEN_READER, STATE(&d));
+  CuAssertTrue(tc, PRF_FLAGGED(&ch, PRF_SCREEN_READER));
+  nanny(&d, no);
+  CuAssertIntEquals(tc, CON_QSEX, STATE(&d));
+  CuAssertTrue(tc, !PRF_FLAGGED(&ch, PRF_SCREEN_READER));
+  CuAssertTrue(tc, !PRF_FLAGGED(&ch, PRF_SOUND));
+
+  STATE(&d) = CON_SCREEN_READER;
+  d.web_onboarding_version = 1;
+  CuAssertTrue(tc, !web_onboarding_build_payload(&d, payload, sizeof(payload)));
   cleanup_editor_descriptor(&d);
 }

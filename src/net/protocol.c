@@ -1011,7 +1011,7 @@ const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *
   const char MXPStop[] = ">\033[7z";
   const char LinkStart[] = "\033[1z<send>\033[7z";
   const char LinkStop[] = "\033[1z</send>\033[7z";
-  bool_t bTerminate = false, bUseMXP = false, bUseMSP = false;
+  bool_t bTerminate = false, bUseMXP = false;
 #ifdef COLOUR_CHAR
   bool_t bColourOn = COLOUR_ON_BY_DEFAULT;
 #endif              /* COLOUR_CHAR */
@@ -1028,14 +1028,22 @@ const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *
   if (apLength == NULL)
     apLength = &DataLength;
 
-  /* Strip !!SOUND() triggers if they support MSP or are using sound */
-  if (pProtocol->bMSP || pProtocol->pVariables[eMSDP_SOUND]->ValueInt)
-    bUseMSP = true;
-
   for (; i < MAX_OUTPUT_BUFFER && apData[j] != '\0' && !bTerminate &&
          (*apLength <= 0 || j < *apLength);
        ++j)
   {
+    /* Only trusted in-band triggers with player consent may reach the client. */
+    if (PrefixString("!!SOUND(", &apData[j]) || PrefixString("!!MUSIC(", &apData[j]) ||
+        (!SoundEnabled(apDescriptor) &&
+         (PrefixString("\t!SOUND(", &apData[j]) || PrefixString("\t!MUSIC(", &apData[j]))))
+    {
+      while (apData[j] != '\0' && apData[j] != ')' && apData[j] != '\r' && apData[j] != '\n' &&
+             (*apLength <= 0 || j < *apLength))
+        ++j;
+      if (apData[j] != ')')
+        --j;
+      continue;
+    }
     if (apData[j] == '\t')
     {
       char LocalCopy[8] = {'\0'};
@@ -1318,12 +1326,6 @@ const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *
       while (*pCopyFrom != '\0' && i < MAX_OUTPUT_BUFFER)
         Result[i++] = *pCopyFrom++;
       bUseMXP = false;
-    }
-    else if (bUseMSP && j > 0 && apData[j - 1] == '!' && apData[j] == '!' &&
-             PrefixString("SOUND(", &apData[j + 1]))
-    {
-      /* Avoid accidental triggering of old-style MSP triggers */
-      Result[i++] = '?';
     }
     else /* Just copy the character normally */
     {
@@ -2108,6 +2110,14 @@ protocol_error_t MXPSendTag(descriptor_t *apDescriptor, const char *apTag)
  Sound global functions.
  ******************************************************************************/
 
+/* Resolve consent from the character each time, including after reconnect/copyover. */
+bool_t SoundEnabled(descriptor_t *apDescriptor)
+{
+  return apDescriptor != NULL && apDescriptor->pProtocol != NULL && apDescriptor->pProtocol->bMSP &&
+         apDescriptor->character != NULL && !IS_NPC(apDescriptor->character) &&
+         PRF_FLAGGED(apDescriptor->character, PRF_SOUND);
+}
+
 protocol_error_t SoundSend(descriptor_t *apDescriptor, const char *apTrigger)
 {
   protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
@@ -2116,10 +2126,8 @@ protocol_error_t SoundSend(descriptor_t *apDescriptor, const char *apTrigger)
   if (pProtocol == NULL || apTrigger == NULL)
     return PROTOCOL_ERROR_NULL_POINTER;
 
-  if (!pProtocol->pVariables[eMSDP_SOUND]->ValueInt)
+  if (!SoundEnabled(apDescriptor))
     return PROTOCOL_SUCCESS;
-  if (pProtocol->bMSDP || pProtocol->bGMCP)
-    return MSDPSendPair(apDescriptor, "PLAY_SOUND", apTrigger);
 
   TriggerLength = strnlen(apTrigger, MAX_MSP_TRIGGER_LENGTH + 1);
   if (TriggerLength > MAX_MSP_TRIGGER_LENGTH)

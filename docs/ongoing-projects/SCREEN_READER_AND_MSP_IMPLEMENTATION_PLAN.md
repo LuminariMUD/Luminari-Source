@@ -1,9 +1,43 @@
 # Screen-reader setup and optional MSP sound implementation plan
 
-Status: planned; implementation and runtime acceptance have not started.
+Status: implementation in progress; runtime acceptance remains pending.
 Created: 2026-09-08.
 Issue: [#137](https://github.com/LuminariMUD/Luminari-Source/issues/137).
 Source investigation: `5d95d355822c91e7c0a1deaf6fc38f1adbadd26a`.
+
+## Implementation log
+
+- 2026-09-08: Created and published `feature/screen-reader-msp` from
+  `ec0d6eb86`. Checkout was clean and `APP_ENV=development` before mutation.
+- Added appended screen-reader/sound preference bits, effective automatic-map
+  behavior, a checked-save screenreader command, and gold/time prompt consistency.
+  Added focused production-linked regressions; validation is in progress.
+- Added the early creation state, plain yes/no question, Back from identity,
+  and a v2 structured choice with v1 terminal fallback. `init_char()` retains
+  existing preference bits rather than clearing them; the output override also
+  survives recommended settings without rewriting their underlying flags.
+- Implemented saved sound consent plus negotiated MSP gating, sound commands,
+  PREFEDIT consent and checked-save rollback, and successful-door-open cue delivery.
+  Removed the unverified generic GMCP/MSDP `PLAY_SOUND` route. Consent is resolved
+  from the attached character on every send; no descriptor consent cache needs
+  login/copyover synchronization. The legacy client `SOUND` variable cannot enable it.
+- Bundled two original synthesized PCM WAV cues and their deterministic generator;
+  the existing media catalog was not reused because it did not establish asset
+  redistribution rights. Distribution is the repository's `lib/sounds` directory.
+- Updated both local development database entries and flat help, and verified exact
+  text parity for SCREEN-READER and SOUND. Added an additive SQL migration and
+  updated protocol/onboarding documentation. The pre-change local help backup is
+  `/tmp/luminari-screen-reader-help-before.json`; production was not accessed.
+- Validation checkpoint: `make test` passed 1,264 production-linked tests and the
+  configured auxiliary checks (eight opt-in database cases skipped); `make install`
+  passed. `make -C unittests/CuTest protocol-parser` passed 31 tests. Actual save/reload and failed-change rollback are included. Logs are under
+  `/tmp/screen-reader-*.log`; final evidence will supersede these interim counts.
+- Changed-line clang-format was used to honor the repository rule against
+  mechanical legacy restyling. The full-file formatting commit hook is skipped
+  for this checkpoint; remaining hygiene hooks still run.
+- Broader recovery/render checks and real-client acceptance remain outstanding.
+  No installed Mudlet, TinTin++, or Orca executable was found in PATH. The required
+  player/client walkthrough is pending; automated checks are not playback proof.
 
 ## Outcome and scope
 
@@ -119,16 +153,16 @@ Do not add a new media protocol as a shortcut.
 
 ### 1. Establish shared preference behavior
 
-- [ ] Recheck the relevant call paths against the implementation branch and
+- [x] Recheck the relevant call paths against the implementation branch and
   record any drift from the investigation above.
-- [ ] Allocate unused preference bits without renumbering existing flags; update
+- [x] Allocate unused preference bits without renumbering existing flags; update
   `NUM_PRF_FLAGS`, `preference_bits`, and any enumerating/editor tables. Confirm
   capacity and old-file defaults through the existing `Pref` load/save path.
-- [ ] Implement a small shared effective-automap predicate and gameplay-prompt
+- [x] Implement a small shared effective-automap predicate and gameplay-prompt
   suppression check in existing appropriate files. Apply the map predicate to
   both display selection and the wilderness text fallback, avoiding a blank
   description when the underlying automap bit is still on.
-- [ ] Register screen-reader and sound commands in `src/interpreter.c`, declare
+- [x] Register screen-reader and sound commands in `src/interpreter.c`, declare
   them in `src/interpreter.h`, and implement them in existing command files.
   Use checked persistence with truthful failure feedback and rollback where
   required by the current save contract. Guard NPCs and missing descriptors.
@@ -140,17 +174,17 @@ one does not change the other or unrelated preferences.
 
 ### 2. Integrate creation and structured onboarding
 
-- [ ] Add the early terminal connection state using an unused identifier; update
+- [x] Add the early terminal connection state using an unused identifier; update
   state names and every relevant dispatch, connection-state check, and creation
   navigation path discovered by reference search.
 - [ ] Accept explicit yes/no answers, repeat the question on invalid input, and
   preserve the answer across initialization and recommended preferences.
 - [ ] Integrate Back and Start over behavior and the durable boundary described
   above with `character_creation.c`; retain checked save/account-link recovery.
-- [ ] Add the structured choice screen and action validation to
+- [x] Add the structured choice screen and action validation to
   `src/net/onboarding.c`. Follow its versioning contract if the new screen needs
   a protocol-version change; preserve readable terminal fallback for older clients.
-- [ ] Deliver a short plain-text introduction before first room output, mentioning
+- [x] Deliver a short plain-text introduction before first room output, mentioning
   `help screen-reader`, `hp`, `moves`, `tnl`, `survey`, and the two mode commands.
   Do not repeatedly print it on every reconnect.
 
@@ -167,7 +201,7 @@ saved character contains the choice, and resumed creation does not undo it.
 - [ ] Suppress the final gameplay prompt in screen-reader mode, including combat,
   wait, and status additions. Preserve pager/editor/creation instructions and
   protocol-level prompt delimiters needed by clients.
-- [ ] Make `prompt none` and prompt-emptiness handling consistent for all prompt
+- [x] Make `prompt none` and prompt-emptiness handling consistent for all prompt
   field flags, including gold/time; verify gold-only and time-only prompts still
   work outside screen-reader mode.
 
@@ -176,7 +210,7 @@ art, and mode off restores the player's underlying map/prompt behavior.
 
 ### 4. Connect sound controls to a working audio path
 
-- [ ] Correct `SoundSend()` gating and transport selection as specified above;
+- [x] Correct `SoundSend()` gating and transport selection as specified above;
   inspect explicit in-band sound paths so they cannot bypass player opt-out.
 - [ ] Keep capability reporting accurate and prevent negotiation from overriding
   the saved preference. Verify MSP refusal and reconnect/copyover behavior.
@@ -184,11 +218,11 @@ art, and mode off restores the player's underlying map/prompt behavior.
   player-operated door opening: first trace its authoritative success branch,
   send only to the acting player, and preserve the existing text. Do not attach
   the cue to failed attempts or every movement tick.
-- [ ] Inspect existing media assets and provenance, including
+- [x] Inspect existing media assets and provenance, including
   `docs/media-gen/elevenlabs-onboarding-sfx-catalog.json`, before selecting files.
   Reuse assets only if redistribution rights and playback format are established.
   Record filename, source/license, attribution requirements, and distribution.
-- [ ] Package the two required cues with documented client installation or a
+- [x] Package the two required cues with documented client installation or a
   verified existing public asset location. Do not invent a download URL or
   publish a new hosting service as part of a code change.
 - [ ] Use bounded, known cue names and preserve helper input limits. Missing or
@@ -200,14 +234,14 @@ cues when enabled and remains silent after opt-out and reconnect.
 
 ### 5. Documentation and help
 
-- [ ] Update SCREEN-READER help with creation behavior, mode commands, canonical
+- [x] Update SCREEN-READER help with creation behavior, mode commands, canonical
   `moves` spelling, `tnl`, manual map behavior, and reversible mode semantics.
-- [ ] Add sound command/help content covering opt-in, supported transport/client
+- [x] Add sound command/help content covering opt-in, supported transport/client
   evidence, asset installation, test, mute, and missing-file troubleshooting.
-- [ ] Update matching entries in the development help database and flat helpfile;
+- [x] Update matching entries in the development help database and flat helpfile;
   follow existing additive SQL/help conventions and verify content parity. Use
   the help-sync skill only if cross-environment synchronization is requested.
-- [ ] Update `docs/systems/PROTOCOL_SYSTEMS.md` and
+- [x] Update `docs/systems/PROTOCOL_SYSTEMS.md` and
   `docs/systems/WEB_ONBOARDING_SYSTEM.md` for the final implemented contracts.
 - [ ] Record final validation evidence and remaining usability findings in this
   plan or a linked focused acceptance report. Keep #126/#127 work separate.

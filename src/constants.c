@@ -1349,6 +1349,8 @@ const char *preference_bits[] = {"Brief",
                                  "Auto-Search",
                                  "Sweeping-Strike",
                                  "Verbose-Listings",
+                                 "Screen-Reader",
+                                 "Sound",
                                  "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
@@ -1730,6 +1732,7 @@ const char *connected_types[] = {
     "Board Post Abort",
     "Board Editor",
     "Quit Feedback Prompt",
+    "Screen-reader Setup",
     "\n" /* make sure this matches NUM_CON_STATES */
 };
 CHECK_TABLE_SIZE(connected_types, NUM_CON_STATES + 1);

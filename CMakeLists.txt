@@ -1509,3 +1509,12 @@ message(STATUS "  Install Binary Output: ${INSTALL_BIN_OUTPUT_DIR}")
 message(STATUS "  Install Prefix: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "  Binary Output: ${BIN_OUTPUT_DIR}")
 message(STATUS "========================================")
+
+# Optional sound-pack source and distribution files; no runtime generation required.
+add_custom_target(msp_sound_assets SOURCES
+    scripts/development/generate_msp_sounds.py
+    lib/sounds/README.md
+    lib/sounds/luminari-test.wav
+    lib/sounds/luminari-door-open.wav
+    sql/components/help_screen_reader_msp.sql
+)

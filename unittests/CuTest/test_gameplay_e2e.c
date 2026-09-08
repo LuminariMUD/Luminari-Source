@@ -4999,3 +4999,74 @@ void Test_gameplay_search_commits_after_owned_work_and_cancels_on_movement(CuTes
   pulse = saved_pulse;
   end_gameplay_fixture(&fixture);
 }
+
+void Test_gameplay_output_preferences_persist_and_failed_changes_roll_back(CuTest *tc)
+{
+  struct player_index_element index[1] = {0};
+  struct player_index_element *saved_table = player_table;
+  int saved_top = top_of_p_table;
+  struct char_data *source = new_char();
+  struct char_data *loaded = new_char();
+  struct descriptor_data descriptor = {0};
+  char directory[PATH_MAX], filename[MAX_FILEPATH], name[32];
+  char failure_directory[] = "/tmp/luminari-output-save-XXXXXX";
+  char on[] = "on", off[] = "off";
+  int result;
+  bool restored_reader, restored_sound, retained_map, failure_restored;
+
+  snprintf(name, sizeof(name), "Zzaccess%ld", (long)getpid());
+  index[0].name = name;
+  index[0].id = 4251;
+  index[0].level = 7;
+  player_table = index;
+  top_of_p_table = 0;
+  source->player.name = strdup(name);
+  GET_PFILEPOS(source) = 0;
+  GET_IDNUM(source) = 4251;
+  GET_LEVEL(source) = 7;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.character = source;
+  STATE(&descriptor) = CON_PLAYING;
+  source->desc = &descriptor;
+  SET_BIT_AR(PRF_FLAGS(source), PRF_AUTOMAP);
+  SET_BIT_AR(PRF_FLAGS(source), PRF_DISPHP);
+  CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
+  CuAssertIntEquals(tc, 0, chdir("lib"));
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
+  do_screenreader(source, on, 0, 0);
+  do_sound(source, on, 0, 0);
+  result = load_char(name, loaded);
+  restored_reader = PRF_FLAGGED(loaded, PRF_SCREEN_READER);
+  restored_sound = PRF_FLAGGED(loaded, PRF_SOUND);
+  retained_map = PRF_FLAGGED(loaded, PRF_AUTOMAP) && PRF_FLAGGED(loaded, PRF_DISPHP);
+  unlink(filename);
+  CuAssertIntEquals(tc, 0, chdir(directory));
+
+  /* Exercise the actual checked-save failure without touching another player. */
+  CuAssertPtrNotNull(tc, mkdtemp(failure_directory));
+  CuAssertIntEquals(tc, 0, chdir(failure_directory));
+  do_screenreader(source, off, 0, 0);
+  do_sound(source, off, 0, 0);
+  failure_restored = PRF_FLAGGED(source, PRF_SCREEN_READER) && PRF_FLAGGED(source, PRF_SOUND) &&
+                     strstr(descriptor.output, "previous setting remains") != NULL;
+  CuAssertIntEquals(tc, 0, chdir(directory));
+  rmdir(failure_directory);
+  source->desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  if (descriptor.large_outbuf != NULL)
+  {
+    free(descriptor.large_outbuf->text);
+    free(descriptor.large_outbuf);
+  }
+  free_char(source);
+  free_char(loaded);
+  player_table = saved_table;
+  top_of_p_table = saved_top;
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertTrue(tc, restored_reader);
+  CuAssertTrue(tc, restored_sound);
+  CuAssertTrue(tc, retained_map);
+  CuAssertTrue(tc, failure_restored);
+}

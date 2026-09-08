@@ -20,6 +20,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "interpreter.h"
+#include "net/protocol.h"
 #include "handler.h"
 #include "db.h"
 #include "magic/spells.h"
@@ -8241,10 +8242,110 @@ ACMD(do_utter)
     USE_STANDARD_ACTION(ch);
 }
 
+/* Both output controls use the checked player save and restore on failure. */
+static bool save_output_preference(struct char_data *ch, int flag, bool enabled, const char *label)
+{
+  bool previous = PRF_FLAGGED(ch, flag);
+
+  if (enabled)
+    SET_BIT_AR(PRF_FLAGS(ch), flag);
+  else
+    REMOVE_BIT_AR(PRF_FLAGS(ch), flag);
+  if (save_char_checked(ch, 0))
+    return TRUE;
+
+  if (previous)
+    SET_BIT_AR(PRF_FLAGS(ch), flag);
+  else
+    REMOVE_BIT_AR(PRF_FLAGS(ch), flag);
+  send_to_char(ch, "Unable to save %s; your previous setting remains.\r\n", label);
+  return FALSE;
+}
+
+/* Keep the underlying display choices intact when changing accessibility mode. */
+ACMD(do_screenreader)
+{
+  bool enabled;
+
+  if (ch == NULL || IS_NPC(ch) || ch->desc == NULL)
+    return;
+
+  skip_spaces_c(&argument);
+  if (!*argument || !str_cmp(argument, "status"))
+  {
+    send_to_char(ch,
+                 "Screen-reader mode is %s.\r\n"
+                 "Usage: screenreader on | off | status\r\n"
+                 "While on, automatic maps and gameplay prompts are hidden.\r\n"
+                 "Your map and prompt settings apply again when mode is off.\r\n",
+                 PRF_FLAGGED(ch, PRF_SCREEN_READER) ? "on" : "off");
+    return;
+  }
+  if (str_cmp(argument, "on") && str_cmp(argument, "off"))
+  {
+    send_to_char(ch, "Usage: screenreader on | off | status\r\n");
+    return;
+  }
+
+  enabled = !str_cmp(argument, "on");
+  if (!save_output_preference(ch, PRF_SCREEN_READER, enabled, "screen-reader mode"))
+    return;
+  send_to_char(ch, "Screen-reader mode is %s. Your map and prompt settings are preserved.\r\n",
+               enabled ? "on" : "off");
+}
+
+ACMD(do_sound)
+{
+  bool enabled;
+
+  if (ch == NULL || IS_NPC(ch) || ch->desc == NULL || ch->desc->pProtocol == NULL)
+    return;
+
+  skip_spaces_c(&argument);
+  if (!*argument || !str_cmp(argument, "status"))
+  {
+    send_to_char(ch,
+                 "Sound preference: %s. MSP client capability: %s. Playback: %s.\r\n"
+                 "Usage: sound on | off | status | test\r\n",
+                 PRF_FLAGGED(ch, PRF_SOUND) ? "on" : "off",
+                 ch->desc->pProtocol->bMSP ? "available" : "unavailable",
+                 SoundEnabled(ch->desc) ? "enabled" : "disabled");
+    return;
+  }
+  if (!str_cmp(argument, "test"))
+  {
+    if (!SoundEnabled(ch->desc))
+    {
+      send_to_char(ch, "Sound test needs sound on and an MSP-capable client. See help sound.\r\n");
+      return;
+    }
+    if (SoundSend(ch->desc, "luminari-test.wav") != PROTOCOL_SUCCESS)
+      send_to_char(ch, "The sound test could not be sent.\r\n");
+    else
+      send_to_char(ch,
+                   "Sound test sent. If silent, check your client sound pack; see help sound.\r\n");
+    return;
+  }
+  if (str_cmp(argument, "on") && str_cmp(argument, "off"))
+  {
+    send_to_char(ch, "Usage: sound on | off | status | test\r\n");
+    return;
+  }
+  enabled = !str_cmp(argument, "on");
+  if (!save_output_preference(ch, PRF_SOUND, enabled, "sound"))
+    return;
+  send_to_char(ch, "Sound preference is %s.\r\n", enabled ? "on" : "off");
+  if (enabled && !ch->desc->pProtocol->bMSP)
+    send_to_char(ch, "Your client has not negotiated MSP; playback remains disabled.\r\n");
+}
+
 /* in order to handle issues with the prompt this became a necessary function */
 bool is_prompt_empty(struct char_data *ch)
 {
   bool prompt_is_empty = TRUE;
+
+  if (ch == NULL || IS_NPC(ch) || PRF_FLAGGED(ch, PRF_SCREEN_READER))
+    return TRUE;
 
   if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPAUTO))
     prompt_is_empty = FALSE;
@@ -8263,6 +8364,11 @@ bool is_prompt_empty(struct char_data *ch)
   if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME))
     prompt_is_empty = FALSE;
   if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPACTIONS))
+    prompt_is_empty = FALSE;
+
+  if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPGOLD))
+    prompt_is_empty = FALSE;
+  if (IS_SET_AR(PRF_FLAGS(ch), PRF_DISPTIME))
     prompt_is_empty = FALSE;
 
   return prompt_is_empty;
@@ -8320,6 +8426,8 @@ ACMD(do_display)
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPROOM);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPACTIONS);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPGOLD);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPTIME);
   }
   else
   {
@@ -8333,6 +8441,8 @@ ACMD(do_display)
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPROOM);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPACTIONS);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPGOLD);
+    REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPTIME);
 
     for (i = 0; (size_t)i < strlen(argument); i++)
     {

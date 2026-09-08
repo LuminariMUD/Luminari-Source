@@ -17,6 +17,7 @@
 #include "../../src/conf.h"
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
+#include "../../src/utils.h"
 #include "../../src/comm.h"
 #include "../../src/net/protocol.h"
 #include "../../src/net/onboarding.h"
@@ -1385,10 +1386,65 @@ void TestProtocolParser_MudletPackageUsesStableIdentity(CuTest *tc)
   CuAssert(tc, "Mudlet package version must not be empty", *version != '\0' && *version != '"');
 }
 
+void TestProtocolParser_SoundRequiresConsentAndMsp(CuTest *tc)
+{
+  protocol_harness_t harness;
+  struct char_data ch;
+  struct player_special_data specials;
+  char oversized[130];
+  int length;
+  const char *rendered;
+
+  harness_init(tc, &harness);
+  memset(&ch, 0, sizeof(ch));
+  memset(&specials, 0, sizeof(specials));
+  memset(oversized, 'a', sizeof(oversized) - 1);
+  oversized[sizeof(oversized) - 1] = '\0';
+  ch.player_specials = &specials;
+  ch.desc = &harness.descriptor;
+  harness.descriptor.character = &ch;
+  harness.descriptor.pProtocol->bMSP = bool_t_true;
+  harness.descriptor.pProtocol->pVariables[eMSDP_SOUND]->ValueInt = 1;
+  CuAssertTrue(tc, !SoundEnabled(&harness.descriptor));
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS, SoundSend(&harness.descriptor, "luminari-test.wav"));
+  CuAssertIntEquals(tc, 0, (int)s_output_capture_len);
+
+  SET_BIT_AR(PRF_FLAGS(&ch), PRF_SOUND);
+  harness.descriptor.pProtocol->bMSP = bool_t_false;
+  harness.descriptor.pProtocol->bGMCP = bool_t_true;
+  harness.descriptor.pProtocol->bMSDP = bool_t_true;
+  CuAssertTrue(tc, !SoundEnabled(&harness.descriptor));
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS, SoundSend(&harness.descriptor, "luminari-test.wav"));
+  CuAssertIntEquals(tc, 0, (int)s_output_capture_len);
+
+  harness.descriptor.pProtocol->bMSP = bool_t_true;
+  CuAssertTrue(tc, SoundEnabled(&harness.descriptor));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_INVALID_INPUT, SoundSend(&harness.descriptor, oversized));
+  CuAssertIntEquals(tc, 0, (int)s_output_capture_len);
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS, SoundSend(&harness.descriptor, "luminari-test.wav"));
+  CuAssertStrEquals(tc, "\t!SOUND(luminari-test.wav)", harness.descriptor.output);
+  length = 0;
+  rendered = ProtocolOutput(&harness.descriptor, harness.descriptor.output, &length);
+  CuAssertStrEquals(tc, "!!SOUND(luminari-test.wav)", rendered);
+
+  REMOVE_BIT_AR(PRF_FLAGS(&ch), PRF_SOUND);
+  length = 0;
+  rendered = ProtocolOutput(&harness.descriptor, "before\t!SOUND(luminari-test.wav)after", &length);
+  CuAssertStrEquals(tc, "beforeafter", rendered);
+  length = 0;
+  rendered = ProtocolOutput(&harness.descriptor, "before!!MUSIC(untrusted.wav)after", &length);
+  CuAssertStrEquals(tc, "beforeafter", rendered);
+  length = 0;
+  rendered = ProtocolOutput(&harness.descriptor, "before\t!SOUND(incomplete", &length);
+  CuAssertStrEquals(tc, "before", rendered);
+  harness_destroy(&harness);
+}
+
 CuSuite *ProtocolParserSuite(void)
 {
   CuSuite *suite = CuSuiteNew();
 
+  SUITE_ADD_TEST(suite, TestProtocolParser_SoundRequiresConsentAndMsp);
   SUITE_ADD_TEST(suite, TestProtocolParser_DoubledIacLiteral);
   SUITE_ADD_TEST(suite, TestProtocolParser_NulPaddingIsIgnored);
   SUITE_ADD_TEST(suite, TestProtocolParser_SplitIacIsRetained);

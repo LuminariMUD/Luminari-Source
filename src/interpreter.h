@@ -78,6 +78,8 @@ bool command_can_be_used_while_casting(int cmd);
 
 ACMD_DECL(do_account);
 ACMD_DECL(do_ai);
+ACMD_DECL(do_screenreader);
+ACMD_DECL(do_sound);
 
 /* Database administration commands */
 ACMD_DECL(do_database);
