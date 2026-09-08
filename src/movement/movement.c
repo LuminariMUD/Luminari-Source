@@ -1131,7 +1131,8 @@ int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bo
     for (k = ch->followers; k; k = next)
     {
       next = k->next;
-      if ((IN_ROOM(k->follower) == was_in) && (GET_POS(k->follower) >= POS_STANDING))
+      if (pet_follows_automatically(k->follower) && (IN_ROOM(k->follower) == was_in) &&
+          (GET_POS(k->follower) >= POS_STANDING))
       {
         act("You follow $N.\r\n", FALSE, k->follower, 0, ch, TO_CHAR);
         perform_move(k->follower, dir, 1);
@@ -1390,7 +1391,8 @@ ACMD(do_enter)
       /* Then, any followers should auto-follow (Jamdog 19th June 2006) */
       for (k = ch->followers; k; k = k->next)
       {
-        if ((IN_ROOM(k->follower) == was_in) && (GET_POS(k->follower) >= POS_STANDING))
+        if (pet_follows_automatically(k->follower) && (IN_ROOM(k->follower) == was_in) &&
+            (GET_POS(k->follower) >= POS_STANDING))
         {
           if (!room_level_allows_entry(k->follower, real_dest, true))
             continue;
@@ -1926,7 +1928,7 @@ ACMD(do_lastroom)
   char_to_room(ch, real_room(last_room));
   do_look(ch, "", 0, 0);
 
-  char_pets_to_char_loc(ch);
+  char_pets_to_char_loc(ch, false);
 }
 
 /* undefines */

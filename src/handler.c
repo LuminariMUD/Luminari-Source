@@ -2651,7 +2651,8 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
       if (GET_OBJ_VAL(obj, 2)) /* if light is ON */
         world[IN_ROOM(ch)].light++;
   }
-  else
+  /* Roomless NPCs may be staged with saved equipment before publication. */
+  else if (!IS_NPC(ch))
     log("SYSERR: IN_ROOM(ch) = NOWHERE when equipping char %s.", GET_NAME(ch));
 
   /* apply_obj_affects(ch, obj);*/
@@ -2721,7 +2722,8 @@ struct obj_data *unequip_char(struct char_data *ch, int pos)
       if (GET_OBJ_VAL(obj, 2)) /* if light is ON */
         world[IN_ROOM(ch)].light--;
   }
-  else
+  /* Failed roomless NPC preparation also removes staged equipment. */
+  else if (!IS_NPC(ch))
     log("SYSERR: IN_ROOM(ch) = NOWHERE when unequipping char %s.", GET_NAME(ch));
 
   GET_EQ(ch, pos) = NULL;
@@ -3177,7 +3179,7 @@ void extract_char_final(struct char_data *ch)
   static struct PERF_prof_sect *pr_finalize = NULL;
   int i;
 
-  if (IN_ROOM(ch) == NOWHERE)
+  if (IN_ROOM(ch) == NOWHERE && !IS_NPC(ch))
   {
     log("SYSERR: NOWHERE extracting char %s. (%s, extract_char_final)", GET_NAME(ch), __FILE__);
     exit(1);
@@ -3289,7 +3291,7 @@ void extract_char_final(struct char_data *ch)
   {
     obj = ch->carrying;
     obj_from_char(obj);
-    if (!ch->char_specials.is_charmie)
+    if (IN_ROOM(ch) != NOWHERE)
       obj_to_room(obj, IN_ROOM(ch));
     else
       extract_obj(obj);
@@ -3299,7 +3301,7 @@ void extract_char_final(struct char_data *ch)
   for (i = 0; i < NUM_WEARS; i++)
     if (GET_EQ(ch, i))
     {
-      if (!ch->char_specials.is_charmie)
+      if (IN_ROOM(ch) != NOWHERE)
         obj_to_room(unequip_char(ch, i), IN_ROOM(ch));
       else
       {
@@ -3352,7 +3354,9 @@ void extract_char_final(struct char_data *ch)
 
   PERF_prof_sect_init(&pr_world_remove, "extract.world_remove");
   PERF_prof_sect_enter(pr_world_remove);
-  char_from_room(ch);
+  /* Failed staged summons/restores were never exposed in a room. */
+  if (IN_ROOM(ch) != NOWHERE)
+    char_from_room(ch);
 
   if (IS_NPC(ch))
   {

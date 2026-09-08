@@ -111,13 +111,27 @@ These systems use MySQL database storage exclusively.
 - **Contents**: One base row per saved charmed follower, serialized runtime state,
   and its equipped, carried, and nested objects
 
-`save_char_pets()` replaces the complete snapshot for one owner. It prepares
-every follower row before starting the transaction, then deletes the old linked
-rows and inserts the new pet and object rows in one transaction. A failed delete,
-pet insert, recursive object save, or commit rolls back the whole replacement;
-callers must not treat an in-memory follower as proof that the snapshot was saved.
+`save_char_pets()` replaces the active snapshot for one owner. It prepares
+every follower row before starting the transaction, then replaces active pet and
+object rows together. Stored rows remain intact. Existing `pet_data_id` values
+survive replacement; `owner_id` and `owner_created` bind them to the pfile owner,
+including across a rename. SQL player IDs are not interchangeable with pfile IDs.
+A known query failure rolls back the replacement. An uncertain COMMIT outcome
+still needs reconciliation; a transaction does not make pfiles, world items,
+and SQL jointly crash-atomic.
 
-The startup migration runner checks versions `2026080501` through `2026080504`
+Before copyover closes sockets or writes its handoff file, `save_player_pets()`
+in `src/limits.c` snapshots players in the world, including linkdead owners.
+A failed snapshot cancels copyover and leaves live pets and equipment available
+for retry. NPCs and roomless menu characters are skipped. An incomplete pet
+restore prevents snapshot replacement. Unchanged successful snapshots retain
+the fingerprint shortcut.
+
+Companion call, Mummy Dust, and Dragon Knight cooldown events are preserved by
+the native durable character-event save rather than cancelled before copyover.
+This is separate from each pet's finite lifetime or control-break event.
+
+The startup migration runner checks versions `2026080501` through `2026080506`
 on every boot, including when both tables already exist. Startup verifies the
 InnoDB engines, required column types and nullability, primary keys,
 owner/relation indexes, and migration version before loading world data. A
@@ -128,17 +142,27 @@ Failures use bounded, rate-limited operation, owner, pet VNUM, MariaDB, and
 schema-version context. Do not restore full SQL-payload logging: pet text and
 serialized runtime state belong to player data, not diagnostic output.
 
-`load_char_pets()` rebuilds the follower from its mobile prototype, saved fields,
-runtime state, and object rows. Legacy rows with a NULL runtime state retain the
-compatibility load path. A nonempty malformed runtime record is rejected rather
-than applied to the follower.
+`load_char_pets()` rebuilds active followers from their mobile prototypes, saved
+fields, runtime state, and validated object rows. Keeper retrieval reuses the
+same row decoder. Each pet and its inventory are prepared outside any room;
+keeper retrieval commits the stored-to-active transition before placement,
+following, and mobile load triggers. Known activation/commit failures discard the
+roomless copy and retain the stored record and inventory. Login publishes each
+prepared row separately; whole-owner admission and post-publication callback
+reconciliation remain open. Legacy rows with a NULL runtime state retain the compatibility
+load path. Custom names use the existing name/short/long text fields.
+`pets <pet|#id> name <name>` stages the new strings and restores the old pointers
+on known save failure. Prototype keywords remain available for targeting;
+repeated renaming does not accumulate prior custom names. Saved eidolon identity
+is restored before considering legacy owner-description defaults. Malformed
+records remain saved for recovery; `pets restore` offers a bounded retry and skips already published pet IDs.
 
-A saved follower is reconstructed as an ordinary mobile with ownership/charm
-state; flags alone do not establish an explicit durable companion category.
-The runtime-state record does not preserve `ePURGEMOB` expiry. Timed affects
-and event-based lifetime are separate: preserving one does not restore the
-other. Track explicit durable categories and temporary expiry in [#119](https://github.com/LuminariMUD/Luminari-Source/issues/119),
-and remaining schema/identity work in [#120](https://github.com/LuminariMUD/Luminari-Source/issues/120).
+Timed affects currently retain remaining duration but pause while stored/offline.
+The runtime-state record does not preserve natural/control event deadlines.
+`ePURGEMOB` is the short follower-loss cleanup, not a general natural lifetime.
+Absolute deadlines, expiry gear handling, and uncertain-commit reconciliation
+remain open in `docs/ongoing-projects/PET_SYSTEM_REFACTOR_PLAN.md`. Save/load tests
+do not replace the plan's executable copyover acceptance gate.
 
 #### 3. Wilderness System Data
 - **Tables**: `region_data`, `path_data`, `region_index`, `path_index`

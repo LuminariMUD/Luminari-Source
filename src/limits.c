@@ -1924,25 +1924,20 @@ void recharge_activated_items(void)
   }
 }
 
+/* Include linkdead owners before a process handoff. Menu characters have no
+ * world position and must not replace a roster they have not loaded. */
 bool save_player_pets(void)
 {
-  struct descriptor_data *d = NULL;
-  struct char_data *ch = NULL;
+  struct char_data *ch;
   bool all_saved = true;
 
-  for (d = descriptor_list; d; d = d->next)
+  for (ch = character_list; ch; ch = ch->next)
   {
-    ch = d->character;
-    if (!ch)
+    if (IS_NPC(ch) || IN_ROOM(ch) == NOWHERE)
       continue;
-
-    if (STATE(d) != CON_PLAYING)
-      continue;
-
     if (!save_char_pets(ch))
       all_saved = false;
   }
-
   return all_saved;
 }
 

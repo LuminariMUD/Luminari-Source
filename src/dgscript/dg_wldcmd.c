@@ -353,7 +353,7 @@ WCMD(do_wteleport)
       }
 
       char_to_room_cause(ch, target, NULL, DOMAIN_RELOCATION_SCRIPT, -1);
-      char_pets_to_char_loc(ch);
+      char_pets_to_char_loc(ch, false);
       enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
     }
   }
@@ -373,7 +373,7 @@ WCMD(do_wteleport)
         }
 
         char_to_room_cause(ch, target, NULL, DOMAIN_RELOCATION_SCRIPT, -1);
-        char_pets_to_char_loc(ch);
+        char_pets_to_char_loc(ch, false);
         enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
       }
     }

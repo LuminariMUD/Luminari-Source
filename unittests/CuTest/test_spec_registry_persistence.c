@@ -444,6 +444,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "Player Shop",
                                                "Postmaster",
                                                "Practice Dummy",
+                                               "Pet Keeper",
                                                "Questmaster",
                                                "Receptionist",
                                                "Temple Healer",
@@ -546,7 +547,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 120, expected_count);
+  CuAssertIntEquals(tc, 121, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)

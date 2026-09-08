@@ -19,5 +19,6 @@ int wall(struct char_data *ch, void *me, int cmd, const char *argument);
 int puff(struct char_data *ch, void *me, int cmd, const char *argument);
 int fido(struct char_data *ch, void *me, int cmd, const char *argument);
 int janitor(struct char_data *ch, void *me, int cmd, const char *argument);
+int pet_keeper(struct char_data *ch, void *me, int cmd, const char *argument);
 
 #endif /* LUMINARI_SPEC_MOBILES_H */

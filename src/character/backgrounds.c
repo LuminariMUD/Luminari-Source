@@ -1240,6 +1240,8 @@ ACMD(do_retainer)
   }
   else if (is_abbrev(arg1, "call"))
   {
+    if (!VALID_ROOM_RNUM(IN_ROOM(ch)))
+      return;
     if (is_retainer_in_room(ch))
     {
       send_to_char(ch, "Your retainer is already here.\r\n");
@@ -1252,6 +1254,17 @@ ACMD(do_retainer)
       return;
     }
 
+    if (check_npc_followers(ch, NPC_MODE_SPECIFIC, RETAINER_MOB_VNUM) > 0)
+    {
+      send_to_char(ch, "Your retainer is elsewhere. Use 'summon' to recall them.\r\n");
+      return;
+    }
+    if (!can_add_follower(ch, RETAINER_MOB_VNUM))
+    {
+      send_to_char(ch, "You cannot control another follower right now.\r\n");
+      return;
+    }
+
     retainer = read_mobile(RETAINER_MOB_VNUM, VIRTUAL);
 
     if (!retainer)
@@ -1261,11 +1274,11 @@ ACMD(do_retainer)
       return;
     }
     SET_BIT_AR(AFF_FLAGS(retainer), AFF_CHARM);
-    char_to_room(retainer, IN_ROOM(ch));
-    act("You call forth $N.", TRUE, ch, 0, retainer, TO_CHAR);
-    act("$n calls forth $N.", TRUE, ch, 0, retainer, TO_ROOM);
-    add_follower(retainer, ch);
+    if (!place_pet_follower(ch, retainer))
+      return;
     GET_RETAINER_COOLDOWN(ch) = 100;
+    send_to_char(ch, "You call forth your retainer.\r\n");
+    finish_pet_summon(ch, retainer, false, false);
     return;
   }
   else if (is_abbrev(arg1, "sell"))

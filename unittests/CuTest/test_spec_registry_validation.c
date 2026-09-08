@@ -186,8 +186,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 119, (int)spec_registry_count());
-  CuAssertIntEquals(tc, 98, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 120, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 99, (int)spec_registry_legacy_count());
   CuAssertIntEquals(tc, 21, (int)spec_registry_typed_count());
 
   alias_count = 0;
@@ -266,6 +266,7 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"Practice Dummy", practice_dummy, SPEC_OWNER_MOBILE,
        SPEC_EVENT_MOBILE_ACTIVITY | SPEC_EVENT_MOBILE_COMBAT_TURN,
        SPEC_BINDING_SOURCE_WORLD | SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT},
+      {"Pet Keeper", pet_keeper, SPEC_OWNER_MOBILE, SPEC_EVENT_COMMAND, SPEC_BINDING_SOURCE_WORLD},
       {"Questmaster", questmaster, SPEC_OWNER_MOBILE, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD | SPEC_BINDING_SOURCE_QUEST},
       {"Receptionist", receptionist, SPEC_OWNER_MOBILE, SPEC_EVENT_COMMAND,

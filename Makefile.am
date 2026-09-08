@@ -399,6 +399,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_i3_client_production.c \
 	unittests/CuTest/test_msdp_production.c \
 	unittests/CuTest/test_necromancer.c \
+	unittests/CuTest/test_pet_policy.c \
 	unittests/CuTest/CuTest.c \
 	unittests/CuTest/test_bounds_checking.c \
 	unittests/CuTest/test_help_sync.c \
@@ -467,6 +468,7 @@ cutest_test_files = \
 	unittests/CuTest/test_i3_client_production.c \
 	unittests/CuTest/test_msdp_production.c \
 	unittests/CuTest/test_necromancer.c \
+	unittests/CuTest/test_pet_policy.c \
 	unittests/CuTest/test_artifacts.c \
 	unittests/CuTest/test_artifact_integration.c \
 	unittests/CuTest/test_player_rename.c \
@@ -892,6 +894,7 @@ EXTRA_DIST = \
 	sql/components/help_billowing_cloud_exposure.sql \
 	sql/components/help_staff_event_agenda_entry.sql \
 	sql/components/help_command_sweep_entries.sql \
+	sql/components/help_pet_entries.sql \
 	sql/components/help_dg_damage_trigger.sql \
 	sql/components/help_rol_feat_entries.sql \
 	sql/components/help_rol_player_kits.sql \

@@ -36,6 +36,7 @@
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
+#include "domain_event_world.h"
 #include "interpreter.h"
 #include "constants.h"
 #include "magic/spells.h"
@@ -4499,12 +4500,12 @@ static int artifact_dragon_sight(struct char_data *ch, struct obj_data *obj,
 }
 
 /* Trorxek's Oaken Defender. */
-static int artifact_summon_treant(struct char_data *ch, struct obj_data *obj,
-                                  struct artifact_data *art)
+static int artifact_summon_treant(struct char_data *ch, struct artifact_data *art)
 {
   struct char_data *mob = NULL;
 
-  if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
+  if (!VALID_ROOM_RNUM(IN_ROOM(ch)) || AFF_FLAGGED(ch, AFF_CHARM) ||
+      !can_add_follower(ch, ART_VNUM_OAKEN_DEFENDER))
   {
     send_to_char(ch, "You already command as many as will answer you.\r\n");
     return FALSE;
@@ -4523,17 +4524,15 @@ static int artifact_summon_treant(struct char_data *ch, struct obj_data *obj,
     Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
   }
 
-  char_to_room(mob, IN_ROOM(ch));
   IS_CARRYING_W(mob) = 0;
   IS_CARRYING_N(mob) = 0;
   SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
   GET_LEVEL(mob) = MIN(30, MAX(10, artifact_effect_level(ch, art) - 10));
   autoroll_mob(mob, TRUE, FALSE);
-  add_follower(mob, ch);
-
-  act("\tG$n raises $p and the earth splits as something enormous stands up out of it.\tn", FALSE,
-      ch, obj, NULL, TO_ROOM);
+  if (!place_pet_follower(ch, mob))
+    return FALSE;
   send_to_char(ch, "\tGThe Oaken Defender answers, and puts itself between you and harm.\tn\r\n");
+  finish_pet_summon(ch, mob, false, false);
 
   return TRUE;
 }
@@ -4606,9 +4605,15 @@ static int artifact_charm_room(struct char_data *ch, struct obj_data *obj,
                                struct artifact_data *art)
 {
   struct char_data *vict = NULL, *next_vict = NULL;
+  struct follow_type *link;
+  struct domain_entity_handle owner, targets[ARTIFACT_CHARM_MAX];
   int recruited = 0, cap = 0, hp_cap = 0;
+  int index;
 
-  if (IN_ROOM(ch) == NOWHERE)
+  if (!VALID_ROOM_RNUM(IN_ROOM(ch)) || AFF_FLAGGED(ch, AFF_CHARM))
+    return FALSE;
+  owner = domain_event_character_handle(ch);
+  if (!domain_entity_handle_is_valid(owner))
     return FALSE;
 
   /* How large a thing will answer, scaled by artifact level.  ROL's flat 2000
@@ -4621,13 +4626,7 @@ static int artifact_charm_room(struct char_data *ch, struct obj_data *obj,
    * never more than the follower engine has room for.  ROL had no such limit
    * because it had no pet-slot accounting to overrun. */
   cap = MAX(1, (ARTIFACT_CHARM_MAX * art->level) / ARTIFACT_MAX_LEVEL);
-  cap = MIN(cap, check_npc_followers(ch, NPC_MODE_SPARE, 0));
-
-  if (cap <= 0)
-  {
-    send_to_char(ch, "You already command as many as will answer you.\r\n");
-    return FALSE;
-  }
+  cap = MIN(cap, ARTIFACT_CHARM_MAX);
 
   for (vict = world[IN_ROOM(ch)].people; vict && recruited < cap; vict = next_vict)
   {
@@ -4637,7 +4636,8 @@ static int artifact_charm_room(struct char_data *ch, struct obj_data *obj,
       continue;
     if (!CAN_SEE(ch, vict))
       continue;
-    if (AFF_FLAGGED(vict, AFF_CHARM) || MOB_FLAGGED(vict, MOB_NOCHARM))
+    if (AFF_FLAGGED(vict, AFF_CHARM) || MOB_FLAGGED(vict, MOB_NOCHARM) ||
+        MOB_FLAGGED(vict, MOB_NOTDEADYET))
       continue;
     if (GET_MAX_HIT(vict) > hp_cap)
       continue;
@@ -4645,16 +4645,24 @@ static int artifact_charm_room(struct char_data *ch, struct obj_data *obj,
       continue;
     if (circle_follow(vict, ch))
       continue;
+    if (!can_add_follower_mobile(ch, vict))
+      continue;
 
+    /* Allocate before detaching a social follower. No callbacks run until the
+     * bounded recruitment batch is attached, so room iteration stays valid. */
+    targets[recruited] = domain_event_character_handle(vict);
+    if (!domain_entity_handle_is_valid(targets[recruited]))
+      break;
+    link = calloc(1, sizeof(*link));
+    if (link == NULL)
+      break;
     if (vict->master)
-      stop_follower(vict);
-
+      stop_follower_engine(vict);
+    link->follower = vict;
+    link->next = ch->followers;
+    ch->followers = link;
+    vict->master = ch;
     SET_BIT_AR(AFF_FLAGS(vict), AFF_CHARM);
-    add_follower(vict, ch);
-
-    act("$N falls in behind $n.", FALSE, ch, NULL, vict, TO_NOTVICT);
-    act("You find yourself wanting very much to go where $n is going.", FALSE, ch, NULL, vict,
-        TO_VICT);
     recruited++;
   }
 
@@ -4664,10 +4672,17 @@ static int artifact_charm_room(struct char_data *ch, struct obj_data *obj,
     return FALSE;
   }
 
-  act("\tC$n sounds $p and the note settles into the bones of everything listening.\tn", FALSE, ch,
-      obj, NULL, TO_ROOM);
   send_to_char(ch, "\tCYou sound the horn, and %d answer%s.\tn\r\n", recruited,
                recruited == 1 ? "s" : "");
+  act("\tC$n sounds $p and the note settles into the bones of everything listening.\tn", FALSE, ch,
+      obj, NULL, TO_ROOM);
+  for (index = 0; index < recruited; index++)
+  {
+    ch = domain_event_world_resolve_character(owner);
+    vict = domain_event_world_resolve_character(targets[index]);
+    if (ch != NULL && vict != NULL && vict->master == ch && !MOB_FLAGGED(vict, MOB_NOTDEADYET))
+      finish_pet_summon(ch, vict, false, false);
+  }
 
   return TRUE;
 }
@@ -4811,7 +4826,7 @@ static int artifact_do_effect(struct char_data *ch, struct obj_data *obj, struct
   switch (effect->effect)
   {
   case ART_EFFECT_SUMMON_TREANT:
-    return artifact_summon_treant(ch, obj, art);
+    return artifact_summon_treant(ch, art);
 
   case ART_EFFECT_CREEPING_DOOM:
     act("\tg$n lowers $p and the ground begins to move.\tn", FALSE, ch, obj, NULL, TO_ROOM);
@@ -4934,6 +4949,9 @@ static int artifact_invoke_trigger(struct char_data *ch, const char *speech, int
   const char *target_arg = NULL;
   size_t phrase_len = 0;
   int i = 0, remaining = 0;
+  struct domain_entity_handle owner, source;
+  time_t previous_use;
+  int applied;
 
   if (!ch || IS_NPC(ch) || !speech || !art_index)
     return FALSE;
@@ -5003,6 +5021,32 @@ static int artifact_invoke_trigger(struct char_data *ch, const char *speech, int
       send_to_char(ch, "%s is spent; that power returns in %d minute%s.\r\n", GET_OBJ_SHORT(obj),
                    MAX(1, remaining / 60), (remaining / 60) == 1 ? "" : "s");
       return FALSE;
+    }
+
+    if (effect->effect == ART_EFFECT_SUMMON_TREANT || effect->effect == ART_EFFECT_CHARM)
+    {
+      owner = domain_event_character_handle(ch);
+      source = domain_event_object_handle(obj);
+      if (!domain_entity_handle_is_valid(owner) || !domain_entity_handle_is_valid(source))
+        return FALSE;
+      /* Prevent callback re-entry before announcing a successful acquisition.
+       * A denied/failed creation restores the previous recharge state. */
+      previous_use = art->effect_used[effect->slot];
+      art->effect_used[effect->slot] = time(0);
+      applied = artifact_do_effect(ch, obj, art, effect, target_arg);
+      ch = domain_event_world_resolve_character(owner);
+      obj = domain_event_world_resolve_object(source);
+      art = artifact_by_vnum(effect->vnum);
+      if (art != NULL)
+      {
+        if (!applied)
+          art->effect_used[effect->slot] = previous_use;
+        artifact_mark_dirty();
+        if (applied && ch != NULL && obj != NULL && artifact_of_obj(obj) == art)
+          artifact_grant_xp_obj(ch, obj, ARTIFACT_XP_CALLED_EFFECT);
+        artifact_save_if_dirty();
+      }
+      return applied;
     }
 
     if (!artifact_do_effect(ch, obj, art, effect, target_arg))

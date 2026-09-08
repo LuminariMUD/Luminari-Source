@@ -118,7 +118,7 @@ void transport_arrival(struct char_data *ch, room_rnum destination, int type, in
   ch = domain_event_world_resolve_character(passenger);
   if (ch == NULL || !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(ch)), room))
     return;
-  char_pets_to_char_loc(ch);
+  char_pets_to_char_loc(ch, false);
   ch = domain_event_world_resolve_character(passenger);
   if (ch == NULL || !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(ch)), room))
     return;

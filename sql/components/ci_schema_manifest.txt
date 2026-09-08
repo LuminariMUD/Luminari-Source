@@ -25,6 +25,7 @@ apply help_intermud3_entries.sql
 apply help_nature_survival_entries.sql
 apply help_necromancer_entries.sql
 apply help_oedit_values_armor_ac.sql
+apply help_pet_entries.sql
 apply help_rol_feat_entries.sql
 apply help_rol_player_kits.sql
 apply help_rol_object_trap_entries.sql

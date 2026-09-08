@@ -149,6 +149,9 @@ int bank_typed(struct spec_event_context *context)
  * pet mobile follower, object vnum must match mobile vnum */
 SPECIAL(bought_pet)
 {
+  struct obj_data *obj = (struct obj_data *)me;
+  struct char_data *owner, *pet;
+
   if (cmd)
     return FALSE;
 
@@ -158,20 +161,16 @@ SPECIAL(bought_pet)
     return TRUE;
   }
 
-  struct obj_data *obj = (struct obj_data *)me;
-
-  if (obj->carried_by == 0)
+  if (obj == NULL || obj->carried_by == NULL)
     return FALSE;
 
-  if (IS_NPC(obj->carried_by))
+  owner = obj->carried_by;
+  if (IS_NPC(owner) || world == NULL || IN_ROOM(owner) == NOWHERE || IN_ROOM(owner) > top_of_world)
     return FALSE;
 
-  struct char_data *pet = NULL;
-
-  // if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
-  if (!can_add_follower(ch, GET_OBJ_VNUM(obj)))
+  if (!can_add_follower(owner, GET_OBJ_VNUM(obj)))
   {
-    send_to_char(ch, "Sorry, you already have enough followers.\r\n");
+    send_to_char(owner, "You cannot acquire this pet right now; its token has been retained.\r\n");
     return FALSE;
   }
 
@@ -201,14 +200,8 @@ SPECIAL(bought_pet)
     return TRUE;
   }
 
-  /* clean up */
-  if (obj && obj->carried_by && !IS_NPC(obj->carried_by))
-  {
-    obj_from_char(obj);
-    extract_obj(obj);
-  }
-
-  /* failed to load pet */
+  /* A failed materialization must leave the purchased token recoverable. */
+  send_to_char(owner, "The pet could not be created; its token has been retained.\r\n");
   return FALSE;
 }
 
@@ -645,6 +638,7 @@ SPECIAL(pet_shops)
   char buf[MAX_STRING_LENGTH] = {'\0'}, pet_name[MEDIUM_STRING] = {'\0'};
   room_rnum pet_room;
   struct char_data *pet;
+  int price;
 
   /* Gross. */
   pet_room = IN_ROOM(ch) + 1;
@@ -676,17 +670,21 @@ SPECIAL(pet_shops)
       send_to_char(ch, "You don't have enough gold!\r\n");
       return (TRUE);
     }
-    // if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
+    /* The purchase creates a new instance of this prototype. */
     if (!can_add_follower(ch, GET_MOB_VNUM(pet)))
     {
       send_to_char(ch, "You can't have any more pets!\r\n");
       return (TRUE);
     }
 
-    /* success! */
-    decrease_gold(ch, PET_PRICE(pet));
-
+    price = PET_PRICE(pet);
     pet = read_mobile(GET_MOB_RNUM(pet), REAL);
+    if (pet == NULL)
+    {
+      send_to_char(ch, "That pet is unavailable right now. You have not been charged.\r\n");
+      return TRUE;
+    }
+    decrease_gold(ch, price);
     GET_EXP(pet) = 0;
     SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
     if (GET_LEVEL(pet) <= 10)

@@ -29,6 +29,11 @@
 #include "../../src/comm.h"
 #include "../../src/db.h"
 #include "../../src/handler.h"
+#include "../../src/domain_event_world.h"
+#include "../../src/domain_event_runtime.h"
+#include "../../src/domain_event_types.h"
+#include "../../src/dgscript/dg_event.h"
+#include "../../src/event_runtime.h"
 #include "../../src/interpreter.h"
 #include "../../src/actionqueues.h"
 #include "../../src/combat/fight.h"
@@ -3273,4 +3278,156 @@ void Test_artifact_integration_multi_target_powers_are_capped(CuTest *tc)
   CuAssertTrue(tc, annihilation_cap_at_one >= 1);
   CuAssertTrue(tc, annihilation_cap_at_five > annihilation_cap_at_one);
   CuAssertTrue(tc, ARTIFACT_DOOMBLAST_MAX_TARGETS > 0);
+}
+
+void Test_artifact_recruitment_uses_instance_category_and_preserves_social_follower(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct char_data *owner = &fixture.actor;
+  struct obj_data horn;
+  struct char_data target;
+  struct artifact_data *art;
+  bool recruited, denied, retained, charged;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot artifact fixture");
+    return;
+  }
+  artint_instance(&fixture, &horn, ART_VNUM_HENEKAR);
+  artint_carry(&fixture, &horn);
+  CLASS_LEVEL(owner, CLASS_ROGUE) = 30;
+  fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  art = artifact_by_vnum(ART_VNUM_HENEKAR);
+  art->level = ARTIFACT_MAX_LEVEL;
+  SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+  attach_follower(&fixture.victim, &fixture.actor);
+  artint_make_npc(&target, "social companion", 0);
+  SET_BIT_AR(MOB_FLAGS(&target), MOB_C_ANIMAL);
+  fixture.victim.next_in_room = &target;
+  attach_follower(&target, &fixture.bystander);
+
+  recruited = artifact_speech_trigger(&fixture.actor, "join my quest") &&
+              target.master == &fixture.actor && AFF_FLAGGED(&target, AFF_CHARM);
+  retained = fixture.bystander.followers == NULL && target.events == NULL;
+  charged = art->effect_used[2] > 0;
+  denied = !artifact_speech_trigger(&fixture.actor, "join my quest");
+  art->effect_used[2] = 0;
+  denied = denied && !artifact_speech_trigger(&fixture.actor, "join my quest") &&
+           art->effect_used[2] == 0;
+
+  if (target.master != NULL)
+    stop_follower_engine(&target);
+  target.master = NULL;
+  stop_follower_engine(&fixture.victim);
+  fixture.victim.master = NULL;
+  free_attack_queue(GET_ATTACK_QUEUE(&target));
+  domain_event_world_forget_character(&target);
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  domain_event_world_forget_object(&horn);
+  artint_uncarry(&fixture, &horn);
+  artint_end(&fixture);
+  CuAssertTrue(tc, recruited);
+  CuAssertTrue(tc, retained);
+  CuAssertTrue(tc, charged);
+  CuAssertTrue(tc, denied);
+}
+
+struct artifact_summon_reentry
+{
+  struct char_data *owner;
+  int calls;
+  bool denied;
+};
+
+static void artifact_try_reentrant_summon(const struct domain_event_context *context, void *data)
+{
+  struct artifact_summon_reentry *trace = data;
+  const struct domain_character_moved *moved = context->payload;
+
+  if (moved->cause != DOMAIN_RELOCATION_SPAWN)
+    return;
+  trace->calls++;
+  if (trace->calls == 1)
+    trace->denied = !artifact_speech_trigger(trace->owner, "come oaken defender");
+}
+
+void Test_artifact_defender_creation_retains_failed_recharge_and_blocks_reentry(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct char_data *owner = &fixture.actor;
+  struct obj_data staff;
+  struct char_data prototype, *pet;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  struct artifact_data *art;
+  struct domain_event_subscription_config config = {0};
+  struct domain_event_subscription_handle subscription;
+  struct artifact_summon_reentry trace = {0};
+  int initialized, subscribed;
+  bool failed, acquired, denied;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot artifact fixture");
+    return;
+  }
+  artint_instance(&fixture, &staff, ART_VNUM_TRORXEK);
+  artint_carry(&fixture, &staff);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER);
+  event_init();
+  initialized = domain_event_runtime_init();
+  trace.owner = owner;
+  config.type = DOMAIN_EVENT_CHARACTER_MOVED;
+  config.topic.role = DOMAIN_EVENT_TOPIC_DESTINATION;
+  config.topic.entity = domain_event_room_handle(0);
+  config.owner = domain_event_character_handle(owner);
+  config.identity = "test.artifact.reentry";
+  config.handler = artifact_try_reentrant_summon;
+  config.handler_context = &trace;
+  subscribed = domain_event_subscribe(domain_event_runtime_bus(), &config, &subscription);
+  CLASS_LEVEL(owner, CLASS_DRUID) = 30;
+  fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  art = artifact_by_vnum(ART_VNUM_TRORXEK);
+  mob_proto = NULL;
+  failed = !artifact_speech_trigger(&fixture.actor, "come oaken defender") &&
+           art->effect_used[0] == 0 && fixture.actor.followers == NULL;
+  artint_make_npc(&prototype, "oaken defender", NOWHERE);
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
+  GET_REAL_MAX_MOVE(&prototype) = 100;
+  fixture.mobile_index[0].vnum = ART_VNUM_OAKEN_DEFENDER;
+  mob_proto = &prototype;
+  acquired = artifact_speech_trigger(&fixture.actor, "come oaken defender");
+  pet = fixture.actor.followers != NULL ? fixture.actor.followers->follower : NULL;
+  acquired = acquired && pet != NULL && IS_PET(pet) && IN_ROOM(pet) == 0 && art->effect_used[0] > 0;
+  art->effect_used[0] = 0;
+  denied =
+      !artifact_speech_trigger(&fixture.actor, "come oaken defender") && art->effect_used[0] == 0;
+  if (pet != NULL)
+  {
+    extract_char(pet);
+    extract_pending_chars();
+  }
+  free_attack_queue(GET_ATTACK_QUEUE(&prototype));
+  domain_event_runtime_shutdown();
+  event_free_all();
+  mob_proto = saved_proto;
+  character_list = saved_characters;
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_object(&staff);
+  artint_uncarry(&fixture, &staff);
+  artint_end(&fixture);
+  CuAssertTrue(tc, failed);
+  CuAssertTrue(tc, acquired);
+  CuAssertTrue(tc, denied);
+  CuAssertIntEquals(tc, 1, trace.calls);
+  CuAssertTrue(tc, trace.denied);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, initialized);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, subscribed);
 }

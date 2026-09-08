@@ -42,6 +42,7 @@
 
 #define LOC_INVENTORY 0
 #define MAX_BAG_ROWS 5
+#define PET_OBJECT_BUFFER_SIZE 36767
 
 /* local functions */
 static int Crash_save(struct obj_data *obj, struct char_data *ch, FILE *fp, int location);
@@ -76,8 +77,8 @@ static int Crash_save_pet(struct obj_data *obj, struct char_data *ch, struct cha
                           long int pet_idnum, int location);
 int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch,
                                    struct char_data *owner, long int pet_idnum, int locate);
-void pet_load_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum);
-obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum);
+static obj_save_data *objsave_parse_objects_db_pet(const char *name, long int pet_idnum,
+                                                   enum pet_object_load_status *status);
 int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch,
                                       long int sheath_idnum, int sheath_slot);
 void load_sheath_contents(struct char_data *ch, struct obj_data *sheath, long int idnum);
@@ -1079,25 +1080,28 @@ static int Crash_save(struct obj_data *obj, struct char_data *ch, FILE *fp, int 
 static int Crash_save_pet(struct obj_data *obj, struct char_data *ch, struct char_data *owner,
                           long int pet_idnum, int location)
 {
+  struct obj_data *tmp;
+  int branch_result;
   int result;
 
+  result = TRUE;
   if (obj)
   {
-    if (!Crash_save_pet(obj->next_content, ch, owner, pet_idnum, location))
-      return FALSE;
-    if (!Crash_save_pet(obj->contains, ch, owner, pet_idnum, MIN(0, location) - 1))
-      return FALSE;
+    branch_result = Crash_save_pet(obj->next_content, ch, owner, pet_idnum, location);
+    if (!branch_result)
+      result = FALSE;
+    branch_result = Crash_save_pet(obj->contains, ch, owner, pet_idnum, MIN(0, location) - 1);
+    if (!branch_result)
+      result = FALSE;
 
     /* save a single object to file */
-    result = objsave_save_obj_record_db_pet(obj, ch, owner, pet_idnum, location);
+    if (result && !objsave_save_obj_record_db_pet(obj, ch, owner, pet_idnum, location))
+      result = FALSE;
 
-    // for (tmp = obj->in_obj; tmp; tmp = tmp->in_obj)
-    //   GET_OBJ_WEIGHT(tmp) -= GET_OBJ_WEIGHT(obj);
-
-    if (!result)
-      return FALSE;
+    for (tmp = obj->in_obj; tmp; tmp = tmp->in_obj)
+      GET_OBJ_WEIGHT(tmp) -= GET_OBJ_WEIGHT(obj);
   }
-  return (TRUE);
+  return result;
 }
 
 /* makes sure containers have proper weight for carrying objects with weight value */
@@ -1199,24 +1203,24 @@ static void Crash_calculate_rent(struct obj_data *obj, int *cost)
 bool pet_save_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum)
 {
   int j = 0;
+  int saved;
 
   for (j = 0; j < NUM_WEARS; j++)
     if (GET_EQ(ch, j))
     {
       /* recursive write-to-file function (like bags) */
-      if (!Crash_save_pet(GET_EQ(ch, j), ch, owner, pet_idnum, j + 1))
-      {
-        return false;
-      }
+      saved = Crash_save_pet(GET_EQ(ch, j), ch, owner, pet_idnum, j + 1);
       /* makes sure containers have proper weight for carrying objects with weight value */
-      // Crash_restore_weight(GET_EQ(ch, j));
+      Crash_restore_weight(GET_EQ(ch, j));
+      if (!saved)
+        return false;
     }
 
   /* inventory: recursive write-to-file function (like bags) */
-  if (!Crash_save_pet(ch->carrying, ch, owner, pet_idnum, 0))
-  {
+  saved = Crash_save_pet(ch->carrying, ch, owner, pet_idnum, 0);
+  Crash_restore_weight(ch->carrying);
+  if (!saved)
     return false;
-  }
 
   return true;
 }
@@ -3173,6 +3177,11 @@ static int handle_obj(struct obj_data *temp, struct char_data *ch, int locate,
 
   auto_equip(ch, temp, locate);
 
+  /* auto_equip may put an incompatible item in inventory instead. Its contents
+   * must then follow the inventory path rather than unequipping an empty slot. */
+  if (locate > 0 && (locate > NUM_WEARS || GET_EQ(ch, locate - 1) != temp))
+    locate = LOC_INVENTORY;
+
   /* What to do with a new loaded item:
    * If there's a list with <locate> less than 1 below this: (equipped items
    * are assumed to have <locate>==0 here) then its container has disappeared
@@ -3312,9 +3321,9 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj,
                                    struct char_data *ch __attribute__((unused)),
                                    struct char_data *owner, long int pet_idnum, int locate)
 {
-  static char ins_buf[36767]; /* Serialized object payload; static to avoid stack allocation */
-  static char line_buf[36767];
-  static char buf1[36767];
+  static char ins_buf[PET_OBJECT_BUFFER_SIZE]; /* Static to avoid stack allocation. */
+  static char line_buf[PET_OBJECT_BUFFER_SIZE];
+  static char buf1[PET_OBJECT_BUFFER_SIZE];
 
   int counter2, i = 0;
   struct extra_descr_data *ex_desc;
@@ -3586,20 +3595,80 @@ cleanup:
 #undef TEST_OBJS
 #undef TEST_OBJN
 
-void pet_load_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum)
+static void pet_object_discard_records(obj_save_data *records)
+{
+  obj_save_data *next;
+
+  while (records != NULL)
+  {
+    next = records->next;
+    extract_obj(records->obj);
+    free(records);
+    records = next;
+  }
+}
+
+/* The native format writes contents before their parent, with negative depth. */
+static bool pet_object_graph_valid(struct char_data *ch, const obj_save_data *records)
+{
+  bool pending[MAX_BAG_ROWS + 1] = {false};
+  bool occupied[NUM_WEARS] = {false};
+  int depth, level, slot;
+
+  for (; records != NULL; records = records->next)
+  {
+    if (records->obj == NULL || records->locate < -MAX_BAG_ROWS || records->locate > NUM_WEARS)
+      return false;
+    depth = records->locate < 0 ? -records->locate : 0;
+    for (level = depth + 1; level <= MAX_BAG_ROWS; level++)
+      if (pending[level])
+      {
+        if (level != depth + 1 || (GET_OBJ_TYPE(records->obj) != ITEM_CONTAINER &&
+                                   GET_OBJ_TYPE(records->obj) != ITEM_AMMO_POUCH))
+          return false;
+        pending[level] = false;
+      }
+    if (depth > 0)
+      pending[depth] = true;
+    if (records->locate > 0)
+    {
+      slot = records->locate - 1;
+      if (occupied[slot] || GET_EQ(ch, slot) != NULL)
+        return false;
+      occupied[slot] = true;
+    }
+  }
+  for (level = 1; level <= MAX_BAG_ROWS; level++)
+    if (pending[level])
+      return false;
+  return true;
+}
+
+enum pet_object_load_status pet_load_objs(struct char_data *ch, struct char_data *owner,
+                                          long int pet_idnum)
 {
   obj_save_data *loaded, *current;
   int num_objs = 0, i = 0;
   struct obj_data *cont_row[MAX_BAG_ROWS];
+  enum pet_object_load_status status;
+
+  if (ch == NULL || owner == NULL || GET_NAME(owner) == NULL || pet_idnum <= 0)
+    return PET_OBJECT_LOAD_FAILED;
 
   for (i = 0; i < MAX_BAG_ROWS; i++)
     cont_row[i] = NULL;
 
-  loaded = objsave_parse_objects_db_pet(GET_NAME(owner), pet_idnum);
+  loaded = objsave_parse_objects_db_pet(GET_NAME(owner), pet_idnum, &status);
 
   if (loaded == NULL)
   {
-    return;
+    return status;
+  }
+
+  if (!pet_object_graph_valid(ch, loaded))
+  {
+    pet_object_discard_records(loaded);
+    return PET_OBJECT_LOAD_FAILED;
   }
 
   for (current = loaded; current != NULL; current = current->next)
@@ -3615,45 +3684,208 @@ void pet_load_objs(struct char_data *ch, struct char_data *owner, long int pet_i
     loaded = loaded->next;
     free(current);
   }
+  return status;
 }
 
 
-obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
+/* Pet payload fields share the native format but must reject partial conversions. */
+static bool pet_object_integers(const char *text, int *values, size_t minimum, size_t maximum)
+{
+  size_t count = 0;
+  char *end;
+  long value;
+
+  memset(values, 0, maximum * sizeof(*values));
+  while (*text)
+  {
+    while (isspace((unsigned char)*text))
+      text++;
+    if (*text == '\0')
+      break;
+    if (count == maximum)
+      return false;
+    errno = 0;
+    value = strtol(text, &end, 10);
+    if (end == text || errno == ERANGE || value < INT_MIN || value > INT_MAX ||
+        (*end != '\0' && !isspace((unsigned char)*end)))
+      return false;
+    values[count++] = (int)value;
+    text = end;
+  }
+  return count >= minimum;
+}
+
+static bool pet_object_flags(const char *text, int *flags)
+{
+  char token[128], *end;
+  size_t length, index;
+  unsigned long long value;
+  long long signed_value;
+  int group, bit;
+
+  for (group = 0; group < 4; group++)
+  {
+    while (isspace((unsigned char)*text))
+      text++;
+    length = strcspn(text, " \t\r\n");
+    if (length == 0 || length >= sizeof(token))
+      return false;
+    memcpy(token, text, length);
+    token[length] = '\0';
+    text += length;
+    errno = 0;
+    if (token[0] == '-')
+    {
+      signed_value = strtoll(token, &end, 10);
+      if (*end != '\0' || errno == ERANGE || signed_value < INT_MIN || signed_value > INT_MAX)
+        return false;
+      flags[group] = (int)signed_value;
+    }
+    else if (isdigit((unsigned char)token[0]) || token[0] == '+')
+    {
+      value = strtoull(token, &end, 10);
+      if (end == token || *end != '\0' || errno == ERANGE || value > UINT_MAX)
+        return false;
+      flags[group] = (int)(unsigned int)value;
+    }
+    else
+    {
+      value = 0;
+      for (index = 0; index < length; index++)
+      {
+        if (token[index] >= 'a' && token[index] <= 'z')
+          bit = token[index] - 'a';
+        else if (token[index] >= 'A' && token[index] <= 'F')
+          bit = 26 + token[index] - 'A';
+        else
+          return false;
+        value |= 1ULL << bit;
+      }
+      flags[group] = (int)(unsigned int)value;
+    }
+  }
+  while (isspace((unsigned char)*text))
+    text++;
+  return *text == '\0';
+}
+
+/* Borrow slices of the row buffer, retaining empty lines inside descriptions. */
+static char **pet_object_split_lines(char *text)
+{
+  char **lines, *cursor;
+  size_t count = 2, index = 0;
+
+  for (cursor = text; *cursor; cursor++)
+    if (*cursor == '\n')
+      count++;
+  lines = calloc(count, sizeof(*lines));
+  if (lines == NULL)
+    return NULL;
+  lines[index++] = text;
+  for (cursor = text; *cursor; cursor++)
+    if (*cursor == '\n')
+    {
+      *cursor = '\0';
+      lines[index++] = cursor + 1;
+    }
+  return lines;
+}
+
+static char *pet_object_read_text(char ***position)
+{
+  char **line, **start;
+  char *terminator, *text, *output;
+  size_t length = 0, part;
+
+  start = *position + 1;
+  for (line = start; *line != NULL; line++)
+  {
+    terminator = strchr(*line, '~');
+    if (terminator != NULL)
+    {
+      if (terminator[1] != '\0' && !(terminator[1] == '\r' && terminator[2] == '\0'))
+        return NULL;
+      length += (size_t)(terminator - *line);
+      text = malloc(length + 1);
+      if (text == NULL)
+        return NULL;
+      output = text;
+      while (start != line)
+      {
+        part = strlen(*start);
+        memcpy(output, *start++, part);
+        output += part;
+        *output++ = '\n';
+      }
+      part = (size_t)(terminator - *line);
+      memcpy(output, *line, part);
+      output[part] = '\0';
+      *position = line;
+      return text;
+    }
+    length += strlen(*line) + 1;
+  }
+  return NULL;
+}
+
+static bool pet_object_set_text(char **destination, const char *prototype, char *replacement)
+{
+  if (replacement == NULL)
+    return false;
+  if (*destination != prototype)
+    free(*destination);
+  *destination = replacement;
+  return true;
+}
+
+static obj_save_data *objsave_parse_objects_db_pet(const char *name, long int pet_idnum,
+                                                   enum pet_object_load_status *status)
 {
   obj_save_data *head, *current, *tempsave;
-  char f1[128], f2[128], f3[128], f4[128];
   int t[NUM_OBJ_VAL_POSITIONS], i, nr;
-  struct obj_data *temp;
+  struct obj_data *temp = NULL, *prototype = NULL;
   /* MySql Data Structures */
   MYSQL_RES *result;
   MYSQL_ROW row;
   char buf[1024];
-  char *serialized_obj;
+  char *serialized_obj = NULL;
+  bool parse_failed = false;
+  char *escaped_name;
+  int written;
   int locate;
   int obj_db_idnum = 0;
+  unsigned long *lengths;
 
-  char **lines; /* Storage for tokenized serialization */
-  char **line;  /* Token iterator */
+  char **lines = NULL; /* Storage for tokenized serialization */
+  char **line;         /* Token iterator */
 
-  snprintf(buf, sizeof(buf),
-           "SELECT   serialized_obj "
-           "FROM     pet_save_objs "
-           "WHERE    owner_name = '%s' "
-           "AND      pet_idnum = '%ld' "
-           "ORDER BY creation_date ASC;",
-           name, pet_idnum);
+  *status = PET_OBJECT_LOAD_FAILED;
+  if (conn == NULL)
+    return NULL;
+  escaped_name = mysql_escape_string_alloc(conn, name);
+  if (escaped_name == NULL)
+    return NULL;
+  written = snprintf(buf, sizeof(buf),
+                     "SELECT   serialized_obj "
+                     "FROM     pet_save_objs "
+                     "WHERE    owner_name = '%s' "
+                     "AND      pet_idnum = '%ld' "
+                     "ORDER BY idnum ASC;",
+                     escaped_name, pet_idnum);
+  free(escaped_name);
+  if (written < 0 || (size_t)written >= sizeof(buf))
+    return NULL;
 
   if (mysql_query(conn, buf))
   {
-    log("SYSERR: Unable to SELECT from pet_save_objs: %s", mysql_error(conn));
-    /* Table doesn't exist, so no pet objects to load */
+    log("SYSERR: Pet object query failed (mysql_errno=%u)", mysql_errno(conn));
     return NULL;
   }
 
   if (!(result = mysql_store_result(conn)))
   {
-    log("SYSERR: Unable to SELECT from pet_save_objs: %s", mysql_error(conn));
-    exit(1);
+    log("SYSERR: Pet object result unavailable (mysql_errno=%u)", mysql_errno(conn));
+    return NULL;
   }
 
   head = NULL;
@@ -3668,15 +3900,27 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
     char tag[8];
     int num, j = 0;
 
-    /* Get the data from the row structure. */
-    serialized_obj = strdup(row[0]);
+    obj_save_data *row_start = current;
 
-    lines = tokenize(serialized_obj, "\n");
+    /* Match the native writer's maximum payload, rejecting embedded NULs. */
+    lengths = mysql_fetch_lengths(result);
+    if (lengths == NULL || lengths[0] >= PET_OBJECT_BUFFER_SIZE ||
+        (row[0] != NULL && strlen(row[0]) != lengths[0]))
+      goto malformed;
+
+    /* Get the data from the row structure. */
+    if (row[0] == NULL || *row[0] == '\0' || (serialized_obj = strdup(row[0])) == NULL)
+    {
+      parse_failed = true;
+      break;
+    }
+
+    lines = pet_object_split_lines(serialized_obj);
     if (!lines)
     {
-      log("SYSERR: tokenize() failed in pet_load_objs/obj_from_obj_file");
-      free(serialized_obj);
-      continue; /* Skip this object and try the next one */
+      log("SYSERR: Unable to split saved pet object fields");
+      parse_failed = true;
+      break;
     }
 
     locate = 0;
@@ -3684,17 +3928,22 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
 
     for (line = lines; line && *line; ++line)
     {
+      if (**line == '\0')
+        continue;
       if (**line == '#')
       {
         /* check for false alarm. */
-        if (sscanf(*line, "#%d", &nr) == 1)
+        if (pet_object_integers(*line + 1, &nr, 1, 1))
         {
           /* If we attempt to load an object with a legal VNUM 0-65534, that
            * does not exist, skip it. If the object has a VNUM of NOTHING or
            * NOWHERE, then we assume it doesn't exist on purpose. (Custom Item,
            * Coins, Corpse, etc...) */
-          if (real_object(nr) == NOTHING && nr != (int)NOTHING)
+          if (nr != (int)NOTHING &&
+              (nr < 0 || obj_index == NULL || top_of_objt == (obj_rnum)NOTHING ||
+               real_object(nr) == NOTHING))
           {
+            parse_failed = true;
             log("SYSERR: Prevented loading of non-existant item #%d.", nr);
             /* CRITICAL FIX: Free any existing temp object before continuing */
             if (temp)
@@ -3706,7 +3955,10 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
           }
         }
         else
+        {
+          parse_failed = true;
           continue;
+        }
 
         /* If we already have a temp object, we need to handle it before creating a new one */
         if (temp)
@@ -3738,6 +3990,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         }
         else if (nr < 0)
         {
+          parse_failed = true;
           /* CRITICAL FIX: Free any existing temp object before continuing */
           if (temp)
           {
@@ -3763,6 +4016,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
             temp = read_object(nr, VIRTUAL);
             if (!temp)
             {
+              parse_failed = true;
               log("SYSERR: read_object failed for vnum %d in rent file", nr);
               /* No cleanup needed here as read_object returned NULL */
             }
@@ -3770,6 +4024,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
           }
           else
           {
+            parse_failed = true;
             log("Nonexistent object %d found in rent file.", nr);
             /* MEMORY LEAK FIX: Free any existing temp object before continuing
              * When an object doesn't exist, we skip it but must clean up first */
@@ -3781,7 +4036,11 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
           }
         }
 
-        /* Reset the counter for spellbooks. */
+        prototype =
+            temp != NULL && GET_OBJ_RNUM(temp) != NOTHING ? &obj_proto[GET_OBJ_RNUM(temp)] : NULL;
+
+        /* Each object starts in inventory unless its own fields specify otherwise. */
+        locate = LOC_INVENTORY;
         j = 0;
 
         /* Skip to next line after creating object - properties follow on subsequent lines */
@@ -3793,6 +4052,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
        * the next object */
       if (temp == NULL)
       {
+        parse_failed = true;
         continue;
       }
 
@@ -3803,25 +4063,38 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         continue;
       }
 
+      if (strlen(*line) < 5 || (*line)[4] != ':')
+        goto malformed;
       tag_argument(*line, tag);
-      num = atoi(*line);
+      num = 0;
+      if (!strcmp(tag, "Bind") || !strcmp(tag, "Cost") || !strcmp(tag, "Loc ") ||
+          !strcmp(tag, "Levl") || !strcmp(tag, "Mats") || !strcmp(tag, "Prof") ||
+          !strcmp(tag, "Rent") || !strcmp(tag, "Size") || !strcmp(tag, "Sort") ||
+          !strcmp(tag, "Type") || !strcmp(tag, "Wght"))
+        if (!pet_object_integers(*line, &num, 1, 1))
+          goto malformed;
       /* we need an incrementor here */
 
       switch (*tag)
       {
+      case 'B':
+        if (!strcmp(tag, "Bind"))
+          GET_OBJ_BOUND_ID(temp) = num;
+        else
+          goto malformed;
+        break;
       case 'A':
         if (!strcmp(tag, "ADes"))
         {
-          char error[40];
-          snprintf(error, sizeof(error) - 1, "rent(Ades):%s", temp->name);
-          /* DO NOT free(*line) - will be freed by free_tokens() */
-          ++line;
-          temp->action_description = strdup(*line);
+          if (!pet_object_set_text(&temp->action_description,
+                                   prototype ? prototype->action_description : NULL,
+                                   pet_object_read_text(&line)))
+            goto malformed;
         }
         else if (!strcmp(tag, "Aff "))
         {
-          t[4] = 0;
-          sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
+          if (!pet_object_integers(*line, t, 4, 5) || t[0] < 0 || t[0] >= MAX_OBJ_AFFECT)
+            goto malformed;
           if (t[0] < MAX_OBJ_AFFECT)
           {
             temp->affected[t[0]].location = t[1];
@@ -3832,7 +4105,8 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         }
         else if (!strcmp(tag, "Actv"))
         {
-          sscanf(*line, "%d %d %d %d %d", &t[0], &t[1], &t[2], &t[3], &t[4]);
+          if (!pet_object_integers(*line, t, 5, 5))
+            goto malformed;
           temp->activate_spell[ACT_SPELL_LEVEL] = t[0];
           temp->activate_spell[ACT_SPELL_SPELLNUM] = t[1];
           temp->activate_spell[ACT_SPELL_CURRENT_USES] = t[2];
@@ -3846,47 +4120,56 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         break;
       case 'D':
         if (!strcmp(tag, "Desc"))
-          temp->description = strdup(*line);
+        {
+          if (!pet_object_set_text(&temp->description, prototype ? prototype->description : NULL,
+                                   strdup(*line)))
+            goto malformed;
+        }
         break;
       case 'E':
         if (!strcmp(tag, "EDes"))
         {
-          struct extra_descr_data *new_desc;
-          char error[40];
-          snprintf(error, sizeof(error) - 1, "rent(Edes): %s", temp->name);
-          // if (temp->item_number != NOTHING && // Regular object
-          //     temp->ex_description &&         // with ex_desc == prototype
-          //     (temp->ex_description ==
-          //      obj_proto[real_object(temp->item_number)].ex_description))
-          temp->ex_description = NULL;
-          CREATE(new_desc, struct extra_descr_data, 1);
-          /* DO NOT free(*line) - will be freed by free_tokens() */
-          ++line;
-          new_desc->keyword = strdup(*line);
-          /* DO NOT free(*line) - will be freed by free_tokens() */
-          ++line;
-          new_desc->description = strdup(*line);
-          new_desc->next = temp->ex_description;
-          temp->ex_description = new_desc;
+          struct extra_descr_data *new_desc, **tail;
+          char *keyword, *description;
+
+          keyword = pet_object_read_text(&line);
+          description = keyword != NULL ? pet_object_read_text(&line) : NULL;
+          if (keyword == NULL || description == NULL)
+          {
+            free(keyword);
+            free(description);
+            goto malformed;
+          }
+          new_desc = calloc(1, sizeof(*new_desc));
+          if (new_desc == NULL)
+          {
+            free(keyword);
+            free(description);
+            goto malformed;
+          }
+          new_desc->keyword = keyword;
+          new_desc->description = description;
+          if (prototype != NULL && temp->ex_description == prototype->ex_description)
+            temp->ex_description = NULL;
+          for (tail = &temp->ex_description; *tail != NULL; tail = &(*tail)->next)
+            ;
+          *tail = new_desc;
         }
         break;
       case 'F':
         if (!strcmp(tag, "Flag"))
         {
-          sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
-          GET_OBJ_EXTRA(temp)
-          [0] = asciiflag_conv(f1);
-          GET_OBJ_EXTRA(temp)
-          [1] = asciiflag_conv(f2);
-          GET_OBJ_EXTRA(temp)
-          [2] = asciiflag_conv(f3);
-          GET_OBJ_EXTRA(temp)
-          [3] = asciiflag_conv(f4);
+          if (!pet_object_flags(*line, GET_OBJ_EXTRA(temp)))
+            goto malformed;
         }
         break;
       case 'L':
         if (!strcmp(tag, "Loc "))
+        {
+          if (num < -MAX_BAG_ROWS || num > NUM_WEARS)
+            goto malformed;
           locate = num;
+        }
         else if (!strcmp(tag, "Levl"))
           GET_OBJ_LEVEL(temp) = num;
         break;
@@ -3896,32 +4179,21 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         break;
       case 'N':
         if (!strcmp(tag, "Name"))
-          temp->name = strdup(*line);
+        {
+          if (!pet_object_set_text(&temp->name, prototype ? prototype->name : NULL, strdup(*line)))
+            goto malformed;
+        }
         break;
       case 'P':
         if (!strcmp(tag, "Perm"))
         {
-          sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
-          GET_OBJ_AFFECT(temp)
-          [0] = asciiflag_conv(f1);
-          GET_OBJ_AFFECT(temp)
-          [1] = asciiflag_conv(f2);
-          GET_OBJ_AFFECT(temp)
-          [2] = asciiflag_conv(f3);
-          GET_OBJ_AFFECT(temp)
-          [3] = asciiflag_conv(f4);
+          if (!pet_object_flags(*line, GET_OBJ_AFFECT(temp)))
+            goto malformed;
         }
         if (!strcmp(tag, "Prm2"))
         {
-          sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
-          GET_OBJ2_PERM(temp)
-          [0] = asciiflag_conv(f1);
-          GET_OBJ2_PERM(temp)
-          [1] = asciiflag_conv(f2);
-          GET_OBJ2_PERM(temp)
-          [2] = asciiflag_conv(f3);
-          GET_OBJ2_PERM(temp)
-          [3] = asciiflag_conv(f4);
+          if (!pet_object_flags(*line, GET_OBJ2_PERM(temp)))
+            goto malformed;
         }
         if (!strcmp(tag, "Prof"))
           GET_OBJ_PROF(temp) = num;
@@ -3932,14 +4204,19 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         break;
       case 'S':
         if (!strcmp(tag, "Shrt"))
-          temp->short_description = strdup(*line);
+        {
+          if (!pet_object_set_text(&temp->short_description,
+                                   prototype ? prototype->short_description : NULL, strdup(*line)))
+            goto malformed;
+        }
         else if (!strcmp(tag, "Size"))
           GET_OBJ_SIZE(temp) = num;
         else if (!strcmp(tag, "Sort"))
           GET_OBJ_SORT(temp) = num;
         else if (!strcmp(tag, "Spbk"))
         {
-          sscanf(*line, "%d %d", &t[0], &t[1]);
+          if (!pet_object_integers(*line, t, 2, 2) || j >= SPELLBOOK_SIZE)
+            goto malformed;
           if (j < SPELLBOOK_SIZE)
           {
             if (!temp->sbinfo)
@@ -3955,25 +4232,23 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         }
         else if (!strcmp(tag, "SpAb"))
         {
-          objsave_replace_special_ability(temp, *line);
+          if (!objsave_replace_special_ability(temp, *line))
+            goto malformed;
         }
         break;
       case 'T':
         if (!strcmp(tag, "Type"))
+        {
+          if (num < 0 || num >= NUM_ITEM_TYPES)
+            goto malformed;
           GET_OBJ_TYPE(temp) = num;
+        }
         break;
       case 'W':
         if (!strcmp(tag, "Wear"))
         {
-          sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
-          GET_OBJ_WEAR(temp)
-          [0] = asciiflag_conv(f1);
-          GET_OBJ_WEAR(temp)
-          [1] = asciiflag_conv(f2);
-          GET_OBJ_WEAR(temp)
-          [2] = asciiflag_conv(f3);
-          GET_OBJ_WEAR(temp)
-          [3] = asciiflag_conv(f4);
+          if (!pet_object_flags(*line, GET_OBJ_WEAR(temp)))
+            goto malformed;
         }
         else if (!strcmp(tag, "Wght"))
           GET_OBJ_WEIGHT(temp) = num;
@@ -3981,21 +4256,17 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
       case 'V':
         if (!strcmp(tag, "Vals"))
         {
-          /* Initialize the values. */
-          for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
-            t[i] = 0;
-          sscanf(*line, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &t[0], &t[1], &t[2],
-                 &t[3], &t[4], &t[5], &t[6], &t[7], &t[8], &t[9], &t[10], &t[11], &t[12], &t[13],
-                 &t[14], &t[15]);
+          if (!pet_object_integers(*line, t, 1, NUM_OBJ_VAL_POSITIONS))
+            goto malformed;
           for (i = 0; i < NUM_OBJ_VAL_POSITIONS; i++)
             GET_OBJ_VAL(temp, i) = t[i];
         }
         break;
       default:
-        log("Unknown tag in saved obj: %s", tag);
+        goto malformed;
       }
 
-      /* DO NOT free(*line) here - the lines array will be freed by free_tokens() */
+      /* Lines borrow storage from serialized_obj. */
     }
 
     /* So now if temp is not null, we have an object.
@@ -4031,12 +4302,32 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
       temp = NULL;
     }
 
-    free_tokens(lines);   /* Free the tokenized lines */
+    free(lines);          /* Free the tokenized lines */
     free(serialized_obj); /* Done with this! */
+    lines = NULL;
+    serialized_obj = NULL;
+    if (current == row_start)
+      parse_failed = true;
   }
 
+  goto decoded;
+
+malformed:
+  parse_failed = true;
+decoded:
   mysql_free_result(result);
+  if (parse_failed)
+  {
+    if (lines != NULL)
+      free(lines);
+    free(serialized_obj);
+    if (temp != NULL)
+      extract_obj(temp);
+    pet_object_discard_records(head);
+    return NULL;
+  }
   objsave_sync_loaded_objects(head);
+  *status = head == NULL ? PET_OBJECT_LOAD_EMPTY : PET_OBJECT_LOAD_OK;
   return head;
 }
 

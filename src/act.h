@@ -428,6 +428,8 @@ ACMD_DECL(do_drink);
 ACMD_DECL(do_get);
 ACMD_DECL(do_give);
 ACMD_DECL(do_grab);
+/* do_servant - unseen servant item handling */
+ACMD_DECL(do_servant);
 ACMD_DECL(do_priceset);
 ACMD_DECL(do_put);
 ACMD_DECL(do_remove);

@@ -17,6 +17,7 @@
 #include "db.h"
 #include "db_init.h"
 #include "handler.h"
+#include "domain_event_world.h"
 #include "combat/fight.h"
 #include "pfdefaults.h"
 #include "dgscript/dg_scripts.h"
@@ -62,7 +63,7 @@
 #define PLAYER_AFFECT_FILE_VERSION 1
 #define BOARDING_ABILITY_PFILE_VERSION 1
 
-#define PET_RUNTIME_STATE_VERSION 1
+#define PET_RUNTIME_STATE_VERSION 3
 #define PET_RUNTIME_STATE_INITIAL_SIZE 4096
 #define PET_RUNTIME_STATE_MAX_SIZE 65535
 
@@ -178,6 +179,8 @@ struct pet_runtime_state
   int affect_count;
   bool hired_mercenary;
   bool mercenary_proc_fired;
+  int source_spell;
+  int behavior;
 };
 
 static char *serialize_pet_runtime_state(struct char_data *pet);
@@ -189,7 +192,6 @@ static char *build_pet_keyword_list(const char *saved_keywords, const char *prot
 // external functions
 void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
 bool pet_save_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum);
-void pet_load_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum);
 
 /* New version to build player index for ASCII Player Files. Generate index
  * table for the player file. */
@@ -5935,6 +5937,8 @@ static char *serialize_pet_runtime_state(struct char_data *pet)
   state.alignment = GET_ALIGNMENT(pet);
   state.hired_mercenary = pet_is_hired_mercenary(pet);
   state.mercenary_proc_fired = state.hired_mercenary && PROC_FIRED(pet);
+  state.source_spell = pet->pet_source_spell;
+  state.behavior = pet->pet_behavior;
   for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
     state.saves[i] = GET_REAL_SAVE(pet, i);
   for (i = 0; i < 10; i++)
@@ -5961,6 +5965,8 @@ static char *serialize_pet_runtime_state(struct char_data *pet)
   /* V=version, B=affect bits, M=mobile bits, S=stats, R=saves, L=spell slots,
    * F=feat override, A=timed affect, and E=end. */
   PET_STATE_APPEND("V %d\n", PET_RUNTIME_STATE_VERSION);
+  PET_STATE_APPEND("P %d\n", state.source_spell);
+  PET_STATE_APPEND("H %d\n", state.behavior);
   PET_STATE_APPEND("B %d %d %d %d %d %d %d %d\n", state.extra_aff[0], state.extra_aff[1],
                    state.extra_aff[2], state.extra_aff[3], state.extra_aff2[0], state.extra_aff2[1],
                    state.extra_aff2[2], state.extra_aff2[3]);
@@ -6033,7 +6039,9 @@ static bool pet_state_values_are_valid(const struct pet_runtime_state *state)
       state->size >= NUM_SIZES || state->move < 0 || state->max_move < 0 || state->psp < 0 ||
       state->max_psp < 0 || state->hitroll < SCHAR_MIN || state->hitroll > SCHAR_MAX ||
       state->damroll < SCHAR_MIN || state->damroll > SCHAR_MAX || state->damnodice < 0 ||
-      state->damsizedice < 0 || state->alignment < -1000 || state->alignment > 1000)
+      state->damsizedice < 0 || state->alignment < -1000 || state->alignment > 1000 ||
+      state->source_spell < 0 || state->source_spell >= MAX_SPELLS || state->behavior < 0 ||
+      state->behavior >= NUM_PET_BEHAVIORS)
     return false;
 
   for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
@@ -6063,7 +6071,8 @@ static bool parse_pet_runtime_state(const char *serialized, struct pet_runtime_s
   char *copy, *line, *saveptr;
   size_t serialized_length;
   int consumed, feat, feat_value, hired, proc_fired, version;
-  int saw_version, saw_base, saw_mob, saw_stats, saw_saves, saw_slots, saw_end;
+  int saw_version, saw_base, saw_mob, saw_stats, saw_saves, saw_slots, saw_end, saw_source;
+  bool saw_behavior;
   int affect_values[14];
   int values[20];
 
@@ -6079,6 +6088,9 @@ static bool parse_pet_runtime_state(const char *serialized, struct pet_runtime_s
   init_pet_runtime_state(state);
   saveptr = NULL;
   saw_version = saw_base = saw_mob = saw_stats = saw_saves = saw_slots = saw_end = false;
+  saw_source = false;
+  saw_behavior = false;
+  version = 0;
 
   for (line = strtok_r(copy, "\n", &saveptr); line; line = strtok_r(NULL, "\n", &saveptr))
   {
@@ -6088,9 +6100,27 @@ static bool parse_pet_runtime_state(const char *serialized, struct pet_runtime_s
     if (line[0] == 'V')
     {
       if (saw_version || sscanf(line, "V %d %n", &version, &consumed) != 1 ||
-          !pet_state_line_is_complete(line, consumed) || version != PET_RUNTIME_STATE_VERSION)
+          !pet_state_line_is_complete(line, consumed) || version < 1 ||
+          version > PET_RUNTIME_STATE_VERSION)
         goto parse_failure;
       saw_version = true;
+    }
+    else if (line[0] == 'P')
+    {
+      if (!saw_version || version < 2 || saw_source ||
+          sscanf(line, "P %d %n", &state->source_spell, &consumed) != 1 ||
+          !pet_state_line_is_complete(line, consumed) || state->source_spell < 0 ||
+          state->source_spell >= MAX_SPELLS)
+        goto parse_failure;
+      saw_source = true;
+    }
+    else if (line[0] == 'H')
+    {
+      if (!saw_version || version < 3 || saw_behavior ||
+          sscanf(line, "H %d %n", &state->behavior, &consumed) != 1 ||
+          !pet_state_line_is_complete(line, consumed))
+        goto parse_failure;
+      saw_behavior = true;
     }
     else if (line[0] == 'B')
     {
@@ -6206,6 +6236,7 @@ static bool parse_pet_runtime_state(const char *serialized, struct pet_runtime_s
 
   free(copy);
   if (!saw_version || !saw_base || !saw_mob || !saw_stats || !saw_saves || !saw_slots || !saw_end ||
+      (version >= 2 && !saw_source) || (version >= 3 && !saw_behavior) ||
       !pet_state_values_are_valid(state))
     return false;
 
@@ -6238,6 +6269,8 @@ static void apply_pet_runtime_state(struct char_data *pet, const struct pet_runt
   REMOVE_BIT_AR(MOB_FLAGS(pet), MOB_NOTDEADYET);
 
   GET_REAL_RACE(pet) = state->race;
+  pet->pet_source_spell = state->source_spell;
+  pet->pet_behavior = state->behavior;
   GET_REAL_SIZE(pet) = state->size;
   GET_MOVE(pet) = state->move;
   GET_REAL_MAX_MOVE(pet) = state->max_move;
@@ -6323,6 +6356,89 @@ static char *build_pet_keyword_list(const char *saved_keywords, const char *prot
   return keywords;
 }
 
+/* Names use existing pet text fields. A known save failure restores all live
+ * pointers, so the player never receives success for an unsaved rename. */
+bool pet_set_custom_name(struct char_data *owner, struct char_data *pet, const char *name,
+                         const char **reason)
+{
+  struct char_data *prototype;
+  char *keywords, *short_desc, *long_desc;
+  char *old_keywords, *old_short, *old_long;
+  char normalized[25];
+  size_t length, i;
+  bool letter;
+
+  if (reason)
+    *reason = "Only a loyal pet here can be named.";
+  if (!owner || IS_NPC(owner) || !pet_order_check(owner, pet) || !pet_has_valid_prototype(pet))
+    return false;
+  prototype = &mob_proto[GET_MOB_RNUM(pet)];
+  if (pet == prototype || GET_MOB_VNUM(pet) == MOB_CLONE)
+  {
+    if (reason)
+      *reason = "That creature keeps its existing identity.";
+    return false;
+  }
+  if (reason)
+    *reason = "Use 3-24 ASCII letters, with optional internal apostrophes or hyphens.";
+  if (!name || (length = strlen(name)) < 3 || length > 24)
+    return false;
+  for (i = 0; i < length; i++)
+  {
+    letter = (name[i] >= 'A' && name[i] <= 'Z') || (name[i] >= 'a' && name[i] <= 'z');
+    if (!letter && (i == 0 || i == length - 1 || (name[i] != '\'' && name[i] != '-')))
+      return false;
+  }
+  snprintf(normalized, sizeof(normalized), "%s", name);
+  if (fill_word(normalized) || reserved_word(normalized) || !str_cmp(normalized, "followers") ||
+      !str_cmp(normalized, "restore"))
+  {
+    if (reason)
+      *reason = "That name is reserved by pet commands.";
+    return false;
+  }
+  if (reason)
+    *reason = "The name could not be allocated; nothing changed.";
+  keywords = build_pet_keyword_list(name, prototype->player.name);
+  short_desc = strdup(name);
+  long_desc = malloc(length + sizeof(" is here.\r\n"));
+  if (!keywords || !short_desc || !long_desc)
+  {
+    free(keywords);
+    free(short_desc);
+    free(long_desc);
+    return false;
+  }
+  snprintf(long_desc, length + sizeof(" is here.\r\n"), "%s is here.\r\n", name);
+  old_keywords = pet->player.name;
+  old_short = pet->player.short_descr;
+  old_long = pet->player.long_descr;
+  pet->player.name = keywords;
+  pet->player.short_descr = short_desc;
+  pet->player.long_descr = long_desc;
+  if (!save_char_pets(owner))
+  {
+    pet->player.name = old_keywords;
+    pet->player.short_descr = old_short;
+    pet->player.long_descr = old_long;
+    free(keywords);
+    free(short_desc);
+    free(long_desc);
+    if (reason)
+      *reason = "Your pets could not be saved. The name is unchanged; try again later.";
+    return false;
+  }
+  if (old_keywords != prototype->player.name)
+    free(old_keywords);
+  if (old_short != prototype->player.short_descr)
+    free(old_short);
+  if (old_long != prototype->player.long_descr)
+    free(old_long);
+  if (reason)
+    *reason = NULL;
+  return true;
+}
+
 #ifdef LUMINARI_CUTEST
 char *build_pet_keyword_list_for_test(const char *saved_keywords, const char *prototype_keywords)
 {
@@ -6340,6 +6456,8 @@ struct pet_save_record
 {
   struct char_data *pet;
   char *insert_query;
+  size_t fingerprint_length;
+  long saved_id;
   int pet_vnum;
   struct pet_save_record *next;
 };
@@ -6449,7 +6567,10 @@ static uint64_t pet_save_fingerprint(const struct pet_save_record *records)
   hash = UINT64_C(1469598103934665603);
   for (record = records; record != NULL; record = record->next)
   {
-    hash = pet_hash_string(hash, record->insert_query);
+    /* The trailing SQL identity is represented by the committed live ID below,
+     * so assigning a new row ID does not invalidate an unchanged snapshot. */
+    hash = pet_hash_bytes(hash, record->insert_query, record->fingerprint_length);
+    hash = pet_hash_bytes(hash, &record->pet->pet_data_id, sizeof(record->pet->pet_data_id));
     for (wear = 0; wear < NUM_WEARS; wear++)
     {
       hash = pet_hash_bytes(hash, &wear, sizeof(wear));
@@ -6552,8 +6673,19 @@ static void free_pet_save_records(struct pet_save_record *records)
   }
 }
 
-static struct pet_save_record *
-prepare_pet_save_record(struct char_data *owner, struct char_data *pet, const char *escaped_owner)
+/* Bind saved pets to the pfile owner rather than the reusable owner name.  A
+ * numeric pfile ID alone can be handed to a later character, so the owner's
+ * creation time is stored with it; both must match before a saved row is
+ * treated as this character's pet. */
+void pet_owner_binding(struct char_data *ch, long int *owner_id, long long *owner_created)
+{
+  *owner_id = ch ? (long int)GET_IDNUM(ch) : 0;
+  *owner_created = ch ? (long long)ch->player.time.birth : 0;
+}
+
+static struct pet_save_record *prepare_pet_save_record(struct char_data *owner,
+                                                       struct char_data *pet,
+                                                       const char *escaped_owner, int pet_state)
 {
   struct pet_save_record *record;
   char *escaped_description;
@@ -6570,6 +6702,18 @@ prepare_pet_save_record(struct char_data *owner, struct char_data *pet, const ch
   size_t query_size;
   int pet_vnum;
   int written;
+  long int owner_id;
+  long long owner_created;
+  char pet_id_sql[32];
+
+  pet_owner_binding(owner, &owner_id, &owner_created);
+
+  if (pet->pet_data_id < 0)
+    return NULL;
+  if (pet->pet_data_id > 0)
+    snprintf(pet_id_sql, sizeof(pet_id_sql), "%ld", pet->pet_data_id);
+  else
+    strlcpy(pet_id_sql, "NULL", sizeof(pet_id_sql));
 
   record = NULL;
   escaped_description = NULL;
@@ -6616,17 +6760,17 @@ prepare_pet_save_record(struct char_data *owner, struct char_data *pet, const ch
     goto cleanup;
   }
 
-  written =
-      snprintf(insert_query, query_size,
-               "INSERT INTO pet_data "
-               "(pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, "
-               "vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha, runtime_state) "
-               "VALUES(NULL,'%s','%s','%s','%s','%s','%d','%d','%d','%d','%d','%d','%d','%d','%d',"
-               "'%d','%d','%s')",
-               escaped_owner, escaped_pet_name, escaped_short_desc, escaped_long_desc,
-               escaped_description, pet_vnum, GET_LEVEL(pet), GET_HIT(pet), GET_REAL_MAX_HIT(pet),
-               GET_REAL_STR(pet), GET_REAL_CON(pet), GET_REAL_DEX(pet), GET_REAL_AC(pet),
-               GET_REAL_INT(pet), GET_REAL_WIS(pet), GET_REAL_CHA(pet), escaped_runtime_state);
+  written = snprintf(
+      insert_query, query_size,
+      "INSERT INTO pet_data SET "
+      "owner_name='%s', pet_name='%s', pet_sdesc='%s', pet_ldesc='%s', pet_ddesc='%s', "
+      "vnum=%d, level=%d, hp=%d, max_hp=%d, str=%d, con=%d, dex=%d, ac=%d, intel=%d, "
+      "wis=%d, cha=%d, runtime_state='%s', owner_id=%ld, owner_created=%lld, pet_state=%d, "
+      "pet_data_id=%s",
+      escaped_owner, escaped_pet_name, escaped_short_desc, escaped_long_desc, escaped_description,
+      pet_vnum, GET_LEVEL(pet), GET_HIT(pet), GET_REAL_MAX_HIT(pet), GET_REAL_STR(pet),
+      GET_REAL_CON(pet), GET_REAL_DEX(pet), GET_REAL_AC(pet), GET_REAL_INT(pet), GET_REAL_WIS(pet),
+      GET_REAL_CHA(pet), escaped_runtime_state, owner_id, owner_created, pet_state, pet_id_sql);
   if (written < 0 || (size_t)written >= query_size)
   {
     log_pet_save_failure(owner, pet_vnum, "format pet insert", 0,
@@ -6643,6 +6787,8 @@ prepare_pet_save_record(struct char_data *owner, struct char_data *pet, const ch
   }
   record->pet = pet;
   record->insert_query = insert_query;
+  record->fingerprint_length = (size_t)written - strlen(pet_id_sql);
+  record->saved_id = pet->pet_data_id;
   record->pet_vnum = pet_vnum;
   record->next = NULL;
   insert_query = NULL;
@@ -6664,8 +6810,10 @@ bool save_char_pets(struct char_data *ch)
   struct pet_save_record *records;
   struct pet_save_record *tail;
   struct follow_type *f;
-  char delete_query[256];
+  char delete_query[640];
   char *escaped_owner;
+  long int owner_id;
+  long long owner_created;
   const char *error_detail;
   long int insert_id;
   my_ulonglong raw_insert_id;
@@ -6678,6 +6826,12 @@ bool save_char_pets(struct char_data *ch)
   if (!ch || IS_NPC(ch) || !GET_NAME(ch) || !*GET_NAME(ch))
     return false;
 
+  if (ch->pet_roster_load_state != PET_ROSTER_LOADED)
+  {
+    log("SYSERR: Refusing pet snapshot replacement before complete restore for %s", GET_NAME(ch));
+    return false;
+  }
+
   PERF_PROF_ENTER_SAMPLED(pr_save_pet_, "save.pet");
   previous_sql_category = PERF_sql_scope_set(PERF_SQL_PET);
 
@@ -6689,6 +6843,7 @@ bool save_char_pets(struct char_data *ch)
     return false;
   }
 
+  pet_owner_binding(ch, &owner_id, &owner_created);
   escaped_owner = NULL;
   records = NULL;
   tail = NULL;
@@ -6707,10 +6862,11 @@ bool save_char_pets(struct char_data *ch)
   /* Prepare every pet row before opening the replacement transaction. */
   for (f = ch->followers; f; f = f->next)
   {
-    if (!f->follower || !IS_NPC(f->follower) || !AFF_FLAGGED(f->follower, AFF_CHARM))
+    if (!f->follower || !IS_NPC(f->follower) || !AFF_FLAGGED(f->follower, AFF_CHARM) ||
+        MOB_FLAGGED(f->follower, MOB_NOTDEADYET))
       continue;
 
-    current = prepare_pet_save_record(ch, f->follower, escaped_owner);
+    current = prepare_pet_save_record(ch, f->follower, escaped_owner, PET_STATE_ACTIVE);
     if (!current)
       goto cleanup;
     if (tail)
@@ -6736,16 +6892,23 @@ bool save_char_pets(struct char_data *ch)
   }
   transaction_started = true;
 
-  snprintf(delete_query, sizeof(delete_query), "DELETE FROM pet_save_objs WHERE owner_name = '%s'",
-           escaped_owner);
+  /* Replace only rows this owner binding owns; a differently bound row under the
+   * same reused name is ambiguous and is retained for review. */
+  snprintf(delete_query, sizeof(delete_query),
+           "DELETE FROM pet_save_objs WHERE owner_name = '%s' AND pet_idnum NOT IN "
+           "(SELECT pet_data_id FROM pet_data WHERE owner_name = '%s' AND (pet_state <> %d OR "
+           "(owner_id <> 0 AND (owner_id <> %ld OR owner_created <> %lld))))",
+           escaped_owner, escaped_owner, PET_STATE_ACTIVE, owner_id, owner_created);
   if (mysql_query(conn, delete_query))
   {
     log_pet_save_failure(ch, NOBODY, "delete pet objects", mysql_errno(conn), mysql_error(conn));
     goto rollback;
   }
 
-  snprintf(delete_query, sizeof(delete_query), "DELETE FROM pet_data WHERE owner_name = '%s'",
-           escaped_owner);
+  snprintf(delete_query, sizeof(delete_query),
+           "DELETE FROM pet_data WHERE owner_name = '%s' AND pet_state = %d AND "
+           "(owner_id = 0 OR (owner_id = %ld AND owner_created = %lld))",
+           escaped_owner, PET_STATE_ACTIVE, owner_id, owner_created);
   if (mysql_query(conn, delete_query))
   {
     log_pet_save_failure(ch, NOBODY, "delete pet rows", mysql_errno(conn), mysql_error(conn));
@@ -6760,7 +6923,7 @@ bool save_char_pets(struct char_data *ch)
                            mysql_error(conn));
       goto rollback;
     }
-    raw_insert_id = mysql_insert_id(conn);
+    raw_insert_id = current->saved_id > 0 ? (my_ulonglong)current->saved_id : mysql_insert_id(conn);
     if (raw_insert_id == 0 || raw_insert_id > LONG_MAX)
     {
       log_pet_save_failure(ch, current->pet_vnum, "read pet insert id", 0,
@@ -6768,6 +6931,7 @@ bool save_char_pets(struct char_data *ch)
       goto rollback;
     }
     insert_id = (long int)raw_insert_id;
+    current->saved_id = insert_id;
 
     if (!pet_save_objs(current->pet, ch, insert_id))
     {
@@ -6786,9 +6950,11 @@ bool save_char_pets(struct char_data *ch)
   }
   transaction_started = false;
   success = true;
+  for (current = records; current; current = current->next)
+    current->pet->pet_data_id = current->saved_id;
   cache_entry->used = true;
   cache_entry->owner_id = GET_IDNUM(ch);
-  cache_entry->fingerprint = fingerprint;
+  cache_entry->fingerprint = pet_save_fingerprint(records);
   goto cleanup;
 
 rollback:
@@ -6806,27 +6972,277 @@ cleanup:
   return success;
 }
 
-void load_char_pets(struct char_data *ch)
+/* Restore one saved pet row for its owner.  Both login restore and keeper
+ * retrieval publish a pet through this single path so validation, identity, and
+ * failure handling stay identical. */
+/* A retry after a partial restore must not publish a pet twice.  Live pets keep
+ * their saved row identity, so an already published row is simply skipped. */
+static bool pet_row_already_published(struct char_data *ch, long int pet_idnum)
 {
-  MYSQL_RES *result;
-  MYSQL_ROW row;
+  struct follow_type *follower;
+
+  for (follower = ch->followers; follower; follower = follower->next)
+    if (follower->follower && IS_NPC(follower->follower) &&
+        follower->follower->pet_data_id == pet_idnum)
+      return true;
+  return false;
+}
+
+static struct char_data *prepare_saved_pet_row(struct char_data *ch, MYSQL_ROW row,
+                                               long int owner_id, long long owner_created,
+                                               bool *restore_failed)
+{
   struct pet_runtime_state runtime_state;
   struct char_data *mob = NULL;
-  char query[512];
   char buf[MAX_EXTRA_DESC];
   char desc2[MAX_STRING_LENGTH] = {'\0'};
   char desc3[MAX_STRING_LENGTH] = {'\0'};
   char desc4[MAX_STRING_LENGTH] = {'\0'};
-  char *escaped_name;
   char *pet_keywords;
   const char *prototype_keywords;
   long int pet_idnum = 0;
+  long int row_owner_id;
+  long long row_owner_created;
+  char *id_end;
   bool has_runtime_state;
   bool hired_mercenary;
+
+  if (!row[0])
+  {
+    log("SYSERR: %s: Saved follower for %s has no mobile vnum", __func__, GET_NAME(ch));
+    *restore_failed = true;
+    return NULL;
+  }
+
+  errno = 0;
+  id_end = NULL;
+  pet_idnum = row[15] ? strtol(row[15], &id_end, 10) : 0;
+  if (errno == ERANGE || pet_idnum <= 0 || id_end == NULL || *id_end != '\0')
+  {
+    log("SYSERR: %s: Retaining invalid saved pet identity for %s", __func__, GET_NAME(ch));
+    *restore_failed = true;
+    return NULL;
+  }
+  /* Legacy rows carry no binding and are adopted by the named owner; a row
+   * bound to a different character survives untouched for review. */
+  row_owner_id = row[17] ? strtol(row[17], NULL, 10) : 0;
+  row_owner_created = row[18] ? strtoll(row[18], NULL, 10) : 0;
+  if (row_owner_id != 0 && (row_owner_id != owner_id || row_owner_created != owner_created))
+  {
+    log("Info: %s: Retaining pet row %ld bound to another owner of the name %s", __func__,
+        pet_idnum, GET_NAME(ch));
+    return NULL;
+  }
+
+  if (pet_row_already_published(ch, pet_idnum))
+    return NULL;
+
+  has_runtime_state = row[16] && *row[16] && parse_pet_runtime_state(row[16], &runtime_state);
+  if (row[16] && *row[16] && !has_runtime_state)
+  {
+    log("SYSERR: %s: Retaining invalid follower runtime state for %s (vnum %d)", __func__,
+        GET_NAME(ch), atoi(row[0]));
+    *restore_failed = true;
+    return NULL;
+  }
+
+  mob = read_mobile(atoi(row[0]), VIRTUAL);
+  if (!mob)
+  {
+    *restore_failed = true;
+    return NULL;
+  }
+  mob->pet_data_id = pet_idnum;
+  hired_mercenary = pet_is_hired_mercenary(mob);
+  if (isSummonMob(atoi(row[0])))
+  {
+    if (GET_LEVEL(mob) <= 10)
+    {
+      GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      mob->mob_specials.damnodice =
+          mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      mob->mob_specials.damsizedice =
+          mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+    }
+    else if (GET_LEVEL(mob) <= 20)
+    {
+      GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      mob->mob_specials.damnodice =
+          mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      mob->mob_specials.damsizedice =
+          mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+    }
+    else
+    {
+      GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      mob->mob_specials.damnodice =
+          mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      mob->mob_specials.damsizedice =
+          mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+    }
+  }
+  log("Pet for %s: %s, loaded.", GET_NAME(ch), GET_NAME(mob));
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+  {
+    X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+    Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+  }
+  IS_CARRYING_W(mob) = 0;
+  IS_CARRYING_N(mob) = 0;
+  GET_LEVEL(mob) = row[1] ? atoi(row[1]) : GET_LEVEL(mob);
+  autoroll_mob(mob, TRUE, TRUE);
+  if (row[11] && *row[11])
+  {
+    prototype_keywords = mob->player.name;
+    pet_keywords = build_pet_keyword_list(row[11], prototype_keywords);
+    if (pet_keywords)
+      mob->player.name = pet_keywords;
+  }
+  if (row[12] && *row[12])
+  {
+    snprintf(desc2, sizeof(desc2), "%s", row[12]);
+    mob->player.short_descr = strdup(desc2);
+  }
+  if (row[13] && *row[13])
+  {
+    snprintf(desc3, sizeof(desc3), "%s", row[13]);
+    mob->player.long_descr = strdup(desc3);
+  }
+  if (row[14] && *row[14])
+  {
+    snprintf(desc4, sizeof(desc4), "%s", row[14]);
+    mob->player.description = strdup(desc4);
+  }
+  /*
+   * Clone names are derived from their current owner.  Apply this after
+   * loading saved pet text so a pre-rename owner name cannot overwrite it.
+   */
+  if (GET_MOB_VNUM(mob) == MOB_CLONE)
+  {
+    if (!apply_clone_owner_identity(mob, GET_NAME(ch)))
+      log("SYSERR: Unable to derive clone identity for %s", GET_NAME(ch));
+  }
+  if (has_runtime_state && IS_SET_AR(runtime_state.extra_mob, MOB_EIDOLON))
+    SET_BIT_AR(MOB_FLAGS(mob), MOB_EIDOLON);
+  if (MOB_FLAGGED(mob, MOB_EIDOLON))
+  {
+    set_eidolon_descs(ch);
+    assign_eidolon_evolutions(ch, mob, false);
+    if (GET_EIDOLON_SHORT_DESCRIPTION(ch) && GET_EIDOLON_LONG_DESCRIPTION(ch))
+    {
+      /* Saved pet identity wins over owner defaults on restore. */
+      if (!row[11] || !*row[11])
+      {
+        snprintf(buf, sizeof(buf), "%s eidolon", GET_EIDOLON_SHORT_DESCRIPTION(ch));
+        mob->player.name = strdup(buf);
+      }
+      if (!row[12] || !*row[12])
+        mob->player.short_descr = strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch));
+      if (!row[13] || !*row[13])
+        mob->player.long_descr = strdup(GET_EIDOLON_LONG_DESCRIPTION(ch));
+      if (!row[14] || !*row[14])
+      {
+        snprintf(buf, sizeof(buf), "%s\n", GET_EIDOLON_LONG_DESCRIPTION(ch));
+        mob->player.description = strdup(buf);
+      }
+    }
+  }
+  if (row[4])
+    GET_REAL_STR(mob) = MIN(100, atoi(row[4]));
+  if (row[5])
+    GET_REAL_CON(mob) = MIN(100, atoi(row[5]));
+  if (row[6])
+    GET_REAL_DEX(mob) = MIN(100, atoi(row[6]));
+  if (row[8])
+    GET_REAL_INT(mob) = MIN(100, atoi(row[8]));
+  if (row[9])
+    GET_REAL_WIS(mob) = MIN(100, atoi(row[9]));
+  if (row[10])
+    GET_REAL_CHA(mob) = MIN(100, atoi(row[10]));
+  if (row[7])
+    GET_REAL_AC(mob) = MIN(100, atoi(row[7]));
+  if (row[3])
+    GET_REAL_MAX_HIT(mob) = MAX(1, atoi(row[3]));
+  if (row[2])
+    GET_HIT(mob) = MIN(GET_REAL_MAX_HIT(mob), atoi(row[2]));
+
+  if (has_runtime_state)
+    apply_pet_runtime_state(mob, &runtime_state);
+  else
+  {
+    SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
+    if (hired_mercenary)
+    {
+      SET_BIT_AR(MOB_FLAGS(mob), MOB_MERCENARY);
+      PROC_FIRED(mob) = TRUE;
+    }
+  }
+  affect_total(mob);
+  update_pos(mob);
+  if (GET_POS(mob) == POS_DEAD)
+  {
+    log("SYSERR: %s: Discarding dead saved follower for %s (vnum %d)", __func__, GET_NAME(ch),
+        atoi(row[0]));
+    extract_char(mob);
+    return NULL;
+  }
+  if (pet_load_objs(mob, ch, pet_idnum) == PET_OBJECT_LOAD_FAILED)
+  {
+    *restore_failed = true;
+    extract_char(mob);
+    return NULL;
+  }
+  return mob;
+}
+
+/* Publish only fully decoded pets. Keeper callers must commit activation first. */
+static struct char_data *publish_saved_pet(struct char_data *owner, struct char_data *pet)
+{
+  struct domain_entity_handle owner_handle, pet_handle;
+
+  owner_handle = domain_event_character_handle(owner);
+  pet_handle = domain_event_character_handle(pet);
+  if (!place_pet_follower(owner, pet))
+    return NULL;
+  load_mtrigger(pet);
+  owner = domain_event_world_resolve_character(owner_handle);
+  pet = domain_event_world_resolve_character(pet_handle);
+  if (!owner || !pet || MOB_FLAGGED(pet, MOB_NOTDEADYET) || pet->master != owner)
+    return NULL;
+  if (!GROUP(pet) && GROUP(owner) && GROUP_LEADER(GROUP(owner)) == owner)
+    join_group(pet, GROUP(owner));
+  owner = domain_event_world_resolve_character(owner_handle);
+  pet = domain_event_world_resolve_character(pet_handle);
+  if (!owner || !pet || MOB_FLAGGED(pet, MOB_NOTDEADYET) || pet->master != owner)
+    return NULL;
+  act("$N appears beside you.", true, owner, 0, pet, TO_CHAR);
+  act("$N appears beside $n.", true, owner, 0, pet, TO_ROOM);
+  return pet;
+}
+
+void load_char_pets(struct char_data *ch)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  struct char_data *pet;
+  struct domain_entity_handle owner_handle;
+  char query[512];
+  char *escaped_name;
+  long int owner_id;
+  long long owner_created;
+  bool restore_failed = false;
   enum perf_entity_reason previous_entity_reason;
 
-  if (!ch)
+  if (!ch || IS_NPC(ch))
     return;
+
+  /* A second load could duplicate a successfully or partially published set. */
+  if (ch->pet_roster_load_state != PET_ROSTER_UNLOADED)
+    return;
+  ch->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
 
   if (IN_ROOM(ch) == NOWHERE)
     return;
@@ -6838,6 +7254,8 @@ void load_char_pets(struct char_data *ch)
     return;
   }
 
+  pet_owner_binding(ch, &owner_id, &owner_created);
+
   escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
   if (!escaped_name)
   {
@@ -6846,9 +7264,10 @@ void load_char_pets(struct char_data *ch)
   }
   snprintf(query, sizeof(query),
            "SELECT vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha, pet_name, "
-           "pet_sdesc, pet_ldesc, pet_ddesc, pet_data_id, runtime_state "
-           "FROM pet_data WHERE owner_name='%s'",
-           escaped_name);
+           "pet_sdesc, pet_ldesc, pet_ddesc, pet_data_id, runtime_state, owner_id, "
+           "owner_created FROM pet_data WHERE owner_name='%s' AND pet_state = %d "
+           "ORDER BY pet_data_id",
+           escaped_name, PET_STATE_ACTIVE);
   free(escaped_name);
 
   if (mysql_query(conn, query))
@@ -6864,173 +7283,435 @@ void load_char_pets(struct char_data *ch)
   }
 
   previous_entity_reason = PERF_entity_scope_set(PERF_ENTITY_PET_RESTORE);
+  owner_handle = domain_event_character_handle(ch);
   while ((row = mysql_fetch_row(result)))
   {
-    if (!row[0])
-    {
-      log("SYSERR: %s: Saved follower for %s has no mobile vnum", __func__, GET_NAME(ch));
-      continue;
-    }
-
-    pet_idnum = 0;
-    has_runtime_state = row[16] && *row[16] && parse_pet_runtime_state(row[16], &runtime_state);
-    if (row[16] && *row[16] && !has_runtime_state)
-      log("SYSERR: %s: Ignoring invalid follower runtime state for %s (vnum %d)", __func__,
-          GET_NAME(ch), atoi(row[0]));
-
-    mob = read_mobile(atoi(row[0]), VIRTUAL);
-    if (!mob)
-      continue;
-    hired_mercenary = pet_is_hired_mercenary(mob);
-    if (isSummonMob(atoi(row[0])))
-    {
-      if (GET_LEVEL(mob) <= 10)
-      {
-        GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
-        GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
-        mob->mob_specials.damnodice =
-            mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
-        mob->mob_specials.damsizedice =
-            mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
-      }
-      else if (GET_LEVEL(mob) <= 20)
-      {
-        GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
-        GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
-        mob->mob_specials.damnodice =
-            mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
-        mob->mob_specials.damsizedice =
-            mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
-      }
-      else
-      {
-        GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
-        GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
-        mob->mob_specials.damnodice =
-            mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
-        mob->mob_specials.damsizedice =
-            mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
-      }
-    }
-    log("Pet for %s: %s, loaded.", GET_NAME(ch), GET_NAME(mob));
-    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
-    {
-      X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
-      Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
-    }
-    char_to_room(mob, IN_ROOM(ch));
-    IS_CARRYING_W(mob) = 0;
-    IS_CARRYING_N(mob) = 0;
-    GET_LEVEL(mob) = row[1] ? atoi(row[1]) : GET_LEVEL(mob);
-    autoroll_mob(mob, TRUE, TRUE);
-    if (row[11] && *row[11])
-    {
-      prototype_keywords = mob->player.name;
-      pet_keywords = build_pet_keyword_list(row[11], prototype_keywords);
-      if (pet_keywords)
-        mob->player.name = pet_keywords;
-    }
-    if (row[12] && *row[12])
-    {
-      snprintf(desc2, sizeof(desc2), "%s", row[12]);
-      mob->player.short_descr = strdup(desc2);
-    }
-    if (row[13] && *row[13])
-    {
-      snprintf(desc3, sizeof(desc3), "%s", row[13]);
-      mob->player.long_descr = strdup(desc3);
-    }
-    if (row[14] && *row[14])
-    {
-      snprintf(desc4, sizeof(desc4), "%s", row[14]);
-      mob->player.description = strdup(desc4);
-    }
-    /*
-     * Clone names are derived from their current owner.  Apply this after
-     * loading saved pet text so a pre-rename owner name cannot overwrite it.
-     */
-    if (GET_MOB_VNUM(mob) == MOB_CLONE)
-    {
-      if (!apply_clone_owner_identity(mob, GET_NAME(ch)))
-        log("SYSERR: Unable to derive clone identity for %s", GET_NAME(ch));
-    }
-    if (row[15] && atol(row[15]) > 0)
-    {
-      pet_idnum = atol(row[15]);
-    }
-    if (has_runtime_state && IS_SET_AR(runtime_state.extra_mob, MOB_EIDOLON))
-      SET_BIT_AR(MOB_FLAGS(mob), MOB_EIDOLON);
-    if (MOB_FLAGGED(mob, MOB_EIDOLON))
-    {
-      set_eidolon_descs(ch);
-      assign_eidolon_evolutions(ch, mob, false);
-      if (GET_EIDOLON_SHORT_DESCRIPTION(ch) && GET_EIDOLON_LONG_DESCRIPTION(ch))
-      {
-        snprintf(buf, sizeof(buf), "%s eidolon", GET_EIDOLON_SHORT_DESCRIPTION(ch));
-        mob->player.name = strdup(buf);
-        mob->player.short_descr = strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch));
-        mob->player.long_descr = strdup(GET_EIDOLON_LONG_DESCRIPTION(ch));
-
-        snprintf(buf, sizeof(buf), "%s\n", GET_EIDOLON_LONG_DESCRIPTION(ch));
-        mob->player.description = strdup(buf);
-      }
-    }
-    if (row[4])
-      GET_REAL_STR(mob) = MIN(100, atoi(row[4]));
-    if (row[5])
-      GET_REAL_CON(mob) = MIN(100, atoi(row[5]));
-    if (row[6])
-      GET_REAL_DEX(mob) = MIN(100, atoi(row[6]));
-    if (row[8])
-      GET_REAL_INT(mob) = MIN(100, atoi(row[8]));
-    if (row[9])
-      GET_REAL_WIS(mob) = MIN(100, atoi(row[9]));
-    if (row[10])
-      GET_REAL_CHA(mob) = MIN(100, atoi(row[10]));
-    if (row[7])
-      GET_REAL_AC(mob) = MIN(100, atoi(row[7]));
-    if (row[3])
-      GET_REAL_MAX_HIT(mob) = MAX(1, atoi(row[3]));
-    if (row[2])
-      GET_HIT(mob) = MIN(GET_REAL_MAX_HIT(mob), atoi(row[2]));
-
-    if (has_runtime_state)
-      apply_pet_runtime_state(mob, &runtime_state);
-    else
-    {
-      SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
-      if (hired_mercenary)
-      {
-        SET_BIT_AR(MOB_FLAGS(mob), MOB_MERCENARY);
-        PROC_FIRED(mob) = TRUE;
-      }
-    }
-    affect_total(mob);
-    update_pos(mob);
-    if (GET_POS(mob) == POS_DEAD)
-    {
-      log("SYSERR: %s: Discarding dead saved follower for %s (vnum %d)", __func__, GET_NAME(ch),
-          atoi(row[0]));
-      extract_char(mob);
-      continue;
-    }
-    load_mtrigger(mob);
-    if (MOB_FLAGGED(mob, MOB_NOTDEADYET))
-    {
-      log("SYSERR: %s: Load trigger extracted %s's saved follower (vnum %d)", __func__,
-          GET_NAME(ch), atoi(row[0]));
-      continue;
-    }
-    add_follower(mob, ch);
-    pet_load_objs(mob, ch, pet_idnum);
-    if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
-      join_group(mob, GROUP(ch));
-    act("$N appears beside you.", true, ch, 0, mob, TO_CHAR);
-    act("$N appears beside $n.", true, ch, 0, mob, TO_ROOM);
+    pet = prepare_saved_pet_row(ch, row, owner_id, owner_created, &restore_failed);
+    if (pet && !publish_saved_pet(ch, pet))
+      restore_failed = true;
+    ch = domain_event_world_resolve_character(owner_handle);
+    if (!ch)
+      break;
   }
 
   PERF_entity_scope_restore(previous_entity_reason);
   mysql_free_result(result);
+  if (ch && !restore_failed)
+    ch->pet_roster_load_state = PET_ROSTER_LOADED;
+}
+
+/* ---------------------------------------------------------------------------
+ * Keeper storage: list, store, retrieve.
+ *
+ * Stored rows use the same snapshot and restore paths as ordinary play, so a
+ * reclaimed pet keeps its identity, statistics, effects, and equipment.  Every
+ * durable change runs inside one transaction and the live world is only changed
+ * after the database reports success.
+ * ------------------------------------------------------------------------- */
+
+/* Count the pets this owner currently holds at a keeper.  A negative result
+ * reports a failed query so callers never treat it as spare capacity. */
+int pet_stored_count(struct char_data *owner)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char query[256];
+  char *escaped_owner;
+  long int owner_id;
+  long long owner_created;
+  int count = -1;
+
+  if (!owner || IS_NPC(owner) || !GET_NAME(owner) || !MYSQL_PING_CONN(conn))
+    return -1;
+
+  pet_owner_binding(owner, &owner_id, &owner_created);
+  escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(owner));
+  if (!escaped_owner)
+    return -1;
+  snprintf(query, sizeof(query),
+           "SELECT COUNT(*) FROM pet_data WHERE owner_name = '%s' AND pet_state = %d AND "
+           "(owner_id = 0 OR (owner_id = %ld AND owner_created = %lld))",
+           escaped_owner, PET_STATE_STORED, owner_id, owner_created);
+  free(escaped_owner);
+
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: %s: Unable to count stored pets: %s", __func__, mysql_error(conn));
+    return -1;
+  }
+  result = mysql_store_result(conn);
+  if (!result)
+    return -1;
+  row = mysql_fetch_row(result);
+  if (row && row[0])
+    count = atoi(row[0]);
+  mysql_free_result(result);
+  return count;
+}
+
+/* Show the owner every pet held for them, with the stable ID used to reclaim. */
+void pet_list_stored(struct char_data *owner)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char query[512];
+  char *escaped_owner;
+  long int owner_id;
+  long long owner_created;
+  int listed = 0;
+
+  if (!owner || IS_NPC(owner) || !GET_NAME(owner))
+    return;
+  if (!MYSQL_PING_CONN(conn))
+  {
+    send_to_char(owner, "The keeper cannot reach the stables right now.\r\n");
+    return;
+  }
+
+  pet_owner_binding(owner, &owner_id, &owner_created);
+  escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(owner));
+  if (!escaped_owner)
+  {
+    send_to_char(owner, "The keeper cannot reach the stables right now.\r\n");
+    return;
+  }
+  snprintf(query, sizeof(query),
+           "SELECT pet_data_id, pet_sdesc, pet_name, level, vnum FROM pet_data "
+           "WHERE owner_name = '%s' AND pet_state = %d AND "
+           "(owner_id = 0 OR (owner_id = %ld AND owner_created = %lld)) ORDER BY pet_data_id",
+           escaped_owner, PET_STATE_STORED, owner_id, owner_created);
+  free(escaped_owner);
+
+  if (mysql_query(conn, query) || !(result = mysql_store_result(conn)))
+  {
+    log("SYSERR: %s: Unable to list stored pets: %s", __func__, mysql_error(conn));
+    send_to_char(owner, "The keeper cannot reach the stables right now.\r\n");
+    return;
+  }
+
+  while ((row = mysql_fetch_row(result)))
+  {
+    if (listed == 0)
+      send_to_char(owner, "The keeper is holding:\r\n");
+    listed++;
+    /* The short position is what a player types; the stable ID stays visible so
+     * it can be quoted to staff and remains stable as the list changes. */
+    send_to_char(owner, "  %2d) %s (level %s) [stable ID %s]\r\n", listed,
+                 row[1] && *row[1] ? row[1] : (row[2] && *row[2] ? row[2] : "an unnamed follower"),
+                 row[3] ? row[3] : "?", row[0] ? row[0] : "?");
+  }
+  mysql_free_result(result);
+  if (listed == 0)
+    send_to_char(owner, "The keeper is holding none of your followers.\r\n");
+  else
+  {
+    send_to_char(owner, "%d of %d stable slots used.\r\n", listed, PET_KEEPER_CAPACITY);
+    send_to_char(owner, "Reclaim one with its listed number, for example 'stable reclaim 1'.\r\n");
+  }
+}
+
+/* Resolve a listed keeper position to its stable pet ID.  Positions follow the
+ * same order the listing uses, so what a player reads is what they can type. */
+long int pet_stored_id_at(struct char_data *owner, int position)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char query[512];
+  char *escaped_owner;
+  long int owner_id;
+  long long owner_created;
+  long int pet_id = 0;
+  int index = 0;
+
+  if (!owner || IS_NPC(owner) || !GET_NAME(owner) || position < 1 || !MYSQL_PING_CONN(conn))
+    return 0;
+
+  pet_owner_binding(owner, &owner_id, &owner_created);
+  escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(owner));
+  if (!escaped_owner)
+    return 0;
+  snprintf(query, sizeof(query),
+           "SELECT pet_data_id FROM pet_data WHERE owner_name = '%s' AND pet_state = %d AND "
+           "(owner_id = 0 OR (owner_id = %ld AND owner_created = %lld)) ORDER BY pet_data_id",
+           escaped_owner, PET_STATE_STORED, owner_id, owner_created);
+  free(escaped_owner);
+
+  if (mysql_query(conn, query) || !(result = mysql_store_result(conn)))
+    return 0;
+  while ((row = mysql_fetch_row(result)))
+  {
+    index++;
+    if (index == position)
+    {
+      pet_id = row[0] ? strtol(row[0], NULL, 10) : 0;
+      break;
+    }
+  }
+  mysql_free_result(result);
+  return pet_id;
+}
+
+/* Hand one live pet to the keeper.  The pet only leaves play after its row and
+ * items are committed, so a failed store keeps the original pet and gear. */
+bool pet_store_pet(struct char_data *owner, struct char_data *pet)
+{
+  struct pet_save_record *record;
+  char query[512];
+  char *escaped_owner;
+  const char *error_detail;
+  long int owner_id;
+  long int insert_id;
+  long long owner_created;
+  my_ulonglong raw_insert_id;
+  int wear;
+  bool success = false;
+  bool transaction_started = false;
+
+  if (!owner || IS_NPC(owner) || !GET_NAME(owner) || !pet || !IS_NPC(pet))
+    return false;
+  if (owner->pet_roster_load_state != PET_ROSTER_LOADED)
+  {
+    log("SYSERR: %s: Refusing pet storage before complete restore for %s", __func__,
+        GET_NAME(owner));
+    return false;
+  }
+  if (!MYSQL_PING_CONN(conn))
+  {
+    log_pet_save_failure(owner, GET_MOB_VNUM(pet), "connect", conn ? mysql_errno(conn) : 0,
+                         "database connection unavailable");
+    return false;
+  }
+
+  pet_owner_binding(owner, &owner_id, &owner_created);
+  escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(owner));
+  if (!escaped_owner)
+    return false;
+
+  record = prepare_pet_save_record(owner, pet, escaped_owner, PET_STATE_STORED);
+  if (!record)
+  {
+    free(escaped_owner);
+    return false;
+  }
+
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log_pet_save_failure(owner, record->pet_vnum, "start transaction", mysql_errno(conn),
+                         mysql_error(conn));
+    goto cleanup;
+  }
+  transaction_started = true;
+
+  /* Replace this pet's own rows only; other followers stay untouched. */
+  if (record->saved_id > 0)
+  {
+    snprintf(query, sizeof(query), "DELETE FROM pet_save_objs WHERE pet_idnum = %ld",
+             record->saved_id);
+    if (mysql_query(conn, query))
+    {
+      log_pet_save_failure(owner, record->pet_vnum, "delete pet objects", mysql_errno(conn),
+                           mysql_error(conn));
+      goto rollback;
+    }
+    snprintf(query, sizeof(query),
+             "DELETE FROM pet_data WHERE pet_data_id = %ld AND owner_name = '%s'", record->saved_id,
+             escaped_owner);
+    if (mysql_query(conn, query))
+    {
+      log_pet_save_failure(owner, record->pet_vnum, "delete pet row", mysql_errno(conn),
+                           mysql_error(conn));
+      goto rollback;
+    }
+  }
+
+  if (mysql_query(conn, record->insert_query))
+  {
+    log_pet_save_failure(owner, record->pet_vnum, "insert stored pet row", mysql_errno(conn),
+                         mysql_error(conn));
+    goto rollback;
+  }
+  raw_insert_id = record->saved_id > 0 ? (my_ulonglong)record->saved_id : mysql_insert_id(conn);
+  if (raw_insert_id == 0 || raw_insert_id > LONG_MAX)
+  {
+    log_pet_save_failure(owner, record->pet_vnum, "read pet insert id", 0,
+                         "stored pet INSERT returned an invalid identifier");
+    goto rollback;
+  }
+  insert_id = (long int)raw_insert_id;
+
+  if (!pet_save_objs(pet, owner, insert_id))
+  {
+    error_detail = mysql_error(conn);
+    log_pet_save_failure(owner, record->pet_vnum, "insert stored pet objects", mysql_errno(conn),
+                         error_detail && *error_detail ? error_detail
+                                                       : "pet object serialization failed");
+    goto rollback;
+  }
+
+  if (mysql_query(conn, "COMMIT"))
+  {
+    log_pet_save_failure(owner, record->pet_vnum, "commit transaction", mysql_errno(conn),
+                         mysql_error(conn));
+    goto rollback;
+  }
+  transaction_started = false;
+  pet->pet_data_id = insert_id;
+  /* The pet only leaves play once its row and items are durable.  Its saved
+   * gear is removed with it so ordinary extraction cannot drop a second copy
+   * of every stored item into the room. */
+  for (wear = 0; wear < NUM_WEARS; wear++)
+    if (GET_EQ(pet, wear))
+      extract_obj(unequip_char(pet, wear));
+  while (pet->carrying)
+    extract_obj(pet->carrying);
+  extract_char(pet);
+  success = true;
+  goto cleanup;
+
+rollback:
+  if (mysql_query(conn, "ROLLBACK"))
+    log_pet_save_failure(owner, record->pet_vnum, "rollback transaction", mysql_errno(conn),
+                         mysql_error(conn));
+  transaction_started = false;
+
+cleanup:
+  if (transaction_started && mysql_query(conn, "ROLLBACK"))
+    log_pet_save_failure(owner, record->pet_vnum, "cleanup rollback", mysql_errno(conn),
+                         mysql_error(conn));
+  free_pet_save_records(record);
+  free(escaped_owner);
+  return success;
+}
+
+/* Owner death ends following, so eligible pets are handed to the keeper before
+ * the native follower cleanup runs.  Ownership survives; the pet is reclaimed
+ * later with the same identity.  Storage beyond the keeper's capacity is not
+ * possible, so those pets are released exactly as before. */
+int pet_store_surviving_followers(struct char_data *owner)
+{
+  struct follow_type *follower;
+  struct follow_type *next_follower;
+  struct char_data *pet;
+  int stored_count;
+  int stored = 0;
+
+  if (!owner || IS_NPC(owner) || owner->pet_roster_load_state != PET_ROSTER_LOADED)
+    return 0;
+
+  stored_count = pet_stored_count(owner);
+  if (stored_count < 0)
+    return 0;
+
+  for (follower = owner->followers; follower; follower = next_follower)
+  {
+    next_follower = follower->next;
+    pet = follower->follower;
+    if (!pet || !IS_NPC(pet) || !AFF_FLAGGED(pet, AFF_CHARM) || MOB_FLAGGED(pet, MOB_NOTDEADYET))
+      continue;
+    if (stored_count + stored >= PET_KEEPER_CAPACITY)
+      break;
+    if (!pet_store_pet(owner, pet))
+      continue;
+    stored++;
+  }
+  return stored;
+}
+
+/* Prepare one stored pet outside the world, commit its active state, then
+ * publish it. Known pre-publication failures leave the saved pet stored. */
+struct char_data *pet_retrieve_stored(struct char_data *owner, long int pet_id, const char **reason)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  struct char_data *mob = NULL;
+  char query[640];
+  char *escaped_owner;
+  long int owner_id;
+  long long owner_created;
+  bool restore_failed = false;
+  enum perf_entity_reason previous_entity_reason;
+
+  if (reason)
+    *reason = "The keeper cannot reach the stables right now.";
+  if (!owner || IS_NPC(owner) || !GET_NAME(owner) || pet_id <= 0)
+    return NULL;
+  if (owner->pet_roster_load_state != PET_ROSTER_LOADED || IN_ROOM(owner) == NOWHERE)
+    return NULL;
+  if (!MYSQL_PING_CONN(conn))
+    return NULL;
+
+  pet_owner_binding(owner, &owner_id, &owner_created);
+  escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(owner));
+  if (!escaped_owner)
+    return NULL;
+
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: %s: Unable to start retrieval: %s", __func__, mysql_error(conn));
+    free(escaped_owner);
+    return NULL;
+  }
+
+  snprintf(query, sizeof(query),
+           "SELECT vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha, pet_name, "
+           "pet_sdesc, pet_ldesc, pet_ddesc, pet_data_id, runtime_state, owner_id, owner_created "
+           "FROM pet_data WHERE pet_data_id = %ld AND owner_name = '%s' AND pet_state = %d AND "
+           "(owner_id = 0 OR (owner_id = %ld AND owner_created = %lld)) FOR UPDATE",
+           pet_id, escaped_owner, PET_STATE_STORED, owner_id, owner_created);
+  if (mysql_query(conn, query) || !(result = mysql_store_result(conn)))
+  {
+    log("SYSERR: %s: Unable to read stored pet %ld: %s", __func__, pet_id, mysql_error(conn));
+    goto rollback;
+  }
+
+  row = mysql_fetch_row(result);
+  if (!row || !row[0])
+  {
+    if (reason)
+      *reason = "The keeper is holding no such follower for you.";
+    mysql_free_result(result);
+    goto rollback;
+  }
+  if (!can_add_follower(owner, atoi(row[0])))
+  {
+    if (reason)
+      *reason = "You cannot take responsibility for another follower right now.";
+    mysql_free_result(result);
+    goto rollback;
+  }
+  {
+    previous_entity_reason = PERF_entity_scope_set(PERF_ENTITY_PET_RESTORE);
+    mob = prepare_saved_pet_row(owner, row, owner_id, owner_created, &restore_failed);
+    PERF_entity_scope_restore(previous_entity_reason);
+  }
+  mysql_free_result(result);
+  if (!mob)
+  {
+    if (reason)
+      *reason = "The keeper cannot rouse that follower.";
+    goto rollback;
+  }
+
+  snprintf(query, sizeof(query), "UPDATE pet_data SET pet_state = %d WHERE pet_data_id = %ld",
+           PET_STATE_ACTIVE, pet_id);
+  if (mysql_query(conn, query) || mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: %s: Unable to activate stored pet %ld: %s", __func__, pet_id, mysql_error(conn));
+    extract_char(mob);
+    mob = NULL;
+    goto rollback;
+  }
+  free(escaped_owner);
+  mob = publish_saved_pet(owner, mob);
+  if (reason)
+    *reason = mob ? NULL : "The follower returned, but did not remain after entering the world.";
+  return mob;
+
+rollback:
+  if (mysql_query(conn, "ROLLBACK"))
+    log("SYSERR: %s: Unable to roll back retrieval: %s", __func__, mysql_error(conn));
+  free(escaped_owner);
+  return NULL;
 }
 
 void save_eidolon_descs(struct char_data *ch)

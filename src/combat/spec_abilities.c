@@ -38,6 +38,7 @@
 #include "mud_event.h"
 #include "act.h" //perform_wildshapes
 #include "mudlim.h"
+#include "domain_event_world.h"
 #include "olc/oasis.h" // mob autoroller
 #include "assign_wpn_armor.h"
 #include "character/feats.h"
@@ -793,6 +794,7 @@ ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning)
   struct char_data *mob = NULL;
   mob_vnum mob_num = 0;
   int temp_level = 0;
+  struct domain_entity_handle source;
 
   switch (actmtd)
   {
@@ -805,7 +807,7 @@ ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning)
       break;
     }
 
-    if (!IN_ROOM(ch))
+    if (!VALID_ROOM_RNUM(IN_ROOM(ch)))
       break;
 
     /* start off with some possible fail conditions */
@@ -824,14 +826,6 @@ ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning)
       break;
     }
 
-    /* Display the message for the ability. */
-    act("You bring your $o to your mouth and blow.", FALSE, ch, obj, ch, TO_CHAR);
-    act("$N brings $S $o to $S mouth and blows.", TRUE, ch, obj, ch, TO_ROOM);
-
-    /* Echo to the zone. */
-    send_to_zone("The single clarion note of a horn reverberates throughout the area.\r\n",
-                 world[IN_ROOM(ch)].zone);
-
     if (!(mob = read_mobile(mob_num, VIRTUAL)))
     {
       send_to_char(ch, "You don't quite remember how to make that creature.\r\n");
@@ -844,7 +838,6 @@ ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning)
       Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
     }
 
-    char_to_room(mob, IN_ROOM(ch));
     IS_CARRYING_W(mob) = 0;
     IS_CARRYING_N(mob) = 0;
     SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
@@ -879,16 +872,19 @@ ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning)
       GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
     }
 
-    act("$N glides into the area, seemingly from nowhere!", FALSE, ch, 0, mob, TO_ROOM);
-    act("$N glides into the area, seemingly from nowhere!", FALSE, ch, 0, mob, TO_CHAR);
-
-    load_mtrigger(mob);
-    add_follower(mob, ch);
-
-    if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
-      join_group(mob, GROUP(ch));
-
+    source = domain_event_object_handle(obj);
+    if (!place_pet_follower(ch, mob))
+      return;
+    obj = domain_event_world_resolve_object(source);
+    if (obj == NULL)
+    {
+      extract_char(mob);
+      return;
+    }
     start_item_specab_daily_use_cooldown(obj, ITEM_SPECAB_HORN_OF_SUMMONING);
+    send_to_zone("The single clarion note of a horn reverberates throughout the area.\r\n",
+                 world[IN_ROOM(ch)].zone);
+    finish_pet_summon(ch, mob, true, true);
 
     break;
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
@@ -921,6 +917,7 @@ ITEM_SPECIAL_ABILITY(item_specab_item_summon)
   struct char_data *mob = NULL;
   mob_vnum mob_num = 0;
   int temp_level = 0;
+  struct domain_entity_handle source;
 
   switch (actmtd)
   {
@@ -933,7 +930,7 @@ ITEM_SPECIAL_ABILITY(item_specab_item_summon)
       break;
     }
 
-    if (!IN_ROOM(ch))
+    if (!VALID_ROOM_RNUM(IN_ROOM(ch)))
       break;
 
     /* start off with some possible fail conditions */
@@ -943,9 +940,7 @@ ITEM_SPECIAL_ABILITY(item_specab_item_summon)
       break;
     }
 
-    /*** NOTE!!  Make sure to add the mob's vnum to util.c not_npc_limit() if you
-     *           do not want this mobile to count towards PC's pet limit
-     */
+    /* Dedicated follower exceptions are classified by follower_rules in utils.c. */
     mob_num = specab->value[0]; /* Val 0 is mob VNUM */
 
     // if (check_npc_followers(ch, NPC_MODE_SPECIFIC, mob_num))
@@ -954,14 +949,6 @@ ITEM_SPECIAL_ABILITY(item_specab_item_summon)
       send_to_char(ch, "You can't control more followers!\r\n");
       break;
     }
-
-    /* Display the message for the ability. */
-    act("You raise $o high to invokes its power....", FALSE, ch, obj, ch, TO_CHAR);
-    act("$N raises $S $o high in $S hands, invoking its power...", TRUE, ch, obj, ch, TO_ROOM);
-
-    /* Echo to the zone. */
-    send_to_zone("Thundering sound of conjuring power reverberates throughout the area.\r\n",
-                 world[IN_ROOM(ch)].zone);
 
     if (!(mob = read_mobile(mob_num, VIRTUAL)))
     {
@@ -975,7 +962,6 @@ ITEM_SPECIAL_ABILITY(item_specab_item_summon)
       Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
     }
 
-    char_to_room(mob, IN_ROOM(ch));
     IS_CARRYING_W(mob) = 0;
     IS_CARRYING_N(mob) = 0;
     SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
@@ -1010,16 +996,19 @@ ITEM_SPECIAL_ABILITY(item_specab_item_summon)
       GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
     }
 
-    act("$N glides into the area, seemingly from nowhere!", FALSE, ch, 0, mob, TO_ROOM);
-    act("$N glides into the area, seemingly from nowhere!", FALSE, ch, 0, mob, TO_CHAR);
-
-    load_mtrigger(mob);
-    add_follower(mob, ch);
-
-    if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
-      join_group(mob, GROUP(ch));
-
+    source = domain_event_object_handle(obj);
+    if (!place_pet_follower(ch, mob))
+      return;
+    obj = domain_event_world_resolve_object(source);
+    if (obj == NULL)
+    {
+      extract_char(mob);
+      return;
+    }
     start_item_specab_daily_use_cooldown(obj, ITEM_SPECAB_ITEM_SUMMON);
+    send_to_zone("Thundering sound of conjuring power reverberates throughout the area.\r\n",
+                 world[IN_ROOM(ch)].zone);
+    finish_pet_summon(ch, mob, true, true);
 
     break;
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */

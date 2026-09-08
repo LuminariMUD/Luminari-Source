@@ -281,6 +281,16 @@ struct obj_save_data_t
 };
 typedef struct obj_save_data_t obj_save_data;
 
+enum pet_object_load_status
+{
+  PET_OBJECT_LOAD_FAILED,
+  PET_OBJECT_LOAD_EMPTY,
+  PET_OBJECT_LOAD_OK
+};
+
+enum pet_object_load_status pet_load_objs(struct char_data *pet, struct char_data *owner,
+                                          long int pet_idnum);
+
 /* public procedures in db.c */
 void set_db_happy_hour(int status);
 void boot_db(void);
