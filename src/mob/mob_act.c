@@ -128,10 +128,10 @@ mobile_work_mask mobile_activity_recurring_reasons(struct char_data *ch)
     return reasons;
   if (mobile_has_resource_recovery_work(ch))
     reasons |= MOBILE_WORK_RESOURCE_RECOVERY;
-  if (FIGHTING(ch))
-    return reasons;
   if (mobile_has_activity_spec(ch))
     reasons |= MOBILE_WORK_SPEC_ACTIVITY;
+  if (FIGHTING(ch))
+    return reasons;
   if (ECHO_COUNT(ch) > 0 && ECHO_ENTRIES(ch) != NULL)
     reasons |= MOBILE_WORK_ECHO;
   if (mobile_has_scavenge_work(ch))

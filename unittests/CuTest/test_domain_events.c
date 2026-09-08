@@ -35,6 +35,7 @@
 #include "../../src/mob/mob_known_spells.h"
 #include "../../src/mob/mob_spellslots.h"
 #include "../../src/mob/phenomenon_response.h"
+#include "../../src/spec/spec_rol_conversion.h"
 #include "../../src/movement/movement_tracks.h"
 #include "../../src/bardic_performance.h"
 #include "../../src/net/protocol.h"
@@ -1226,6 +1227,83 @@ void TestActiveWorldSchedulesOnlyConcreteAutonomousWorkWithoutPlayers(CuTest *tc
   pulse = saved_pulse;
   world = saved_world;
   top_of_world = saved_top_of_world;
+  top_of_mobt = saved_top_of_mobt;
+  character_list = saved_characters;
+}
+
+void TestActiveWorldKeepsRolSpecialActivityScheduledDuringCombat(CuTest *tc)
+{
+  struct room_data room;
+  struct char_data mobile;
+  struct char_data opponent;
+  struct index_data mobile_index;
+  struct room_data *saved_world = world;
+  struct char_data *saved_characters = character_list;
+  struct index_data *saved_mob_index = mob_index;
+  room_rnum saved_top_of_world = top_of_world;
+  mob_rnum saved_top_of_mobt = top_of_mobt;
+  unsigned long saved_pulse = pulse;
+  uint64_t callbacks_before;
+  long first_delay;
+
+  memset(&room, 0, sizeof(room));
+  memset(&mobile_index, 0, sizeof(mobile_index));
+  room.number = 100;
+  active_world_prepare_character(&mobile, true, 0);
+  active_world_prepare_character(&opponent, false, 0);
+  mobile.player_specials = &dummy_mob;
+  mobile.player.short_descr = (char *)"RoL combat mobile";
+  SET_BIT_AR(MOB_FLAGS(&mobile), MOB_SPEC);
+  SET_BIT_AR(MOB_FLAGS(&mobile), MOB_SENTINEL);
+  FIGHTING(&mobile) = &opponent;
+  mobile.next_in_room = &opponent;
+  room.people = &mobile;
+  mobile_index.vnum = 2043741;
+  mobile_index.func = rol_monster_combat;
+  world = &room;
+  top_of_world = 0;
+  mob_index = &mobile_index;
+  top_of_mobt = 0;
+  character_list = &mobile;
+
+  event_free_all();
+  active_world_reset_for_test();
+  active_world_select_for_test(true);
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(false);
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(false);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 150U;
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  active_world_begin_bootstrap();
+  active_world_end_bootstrap();
+
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_reason_count(MOBILE_WORK_SPEC_ACTIVITY));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_reason_count(MOBILE_WORK_WANDER));
+  CuAssertIntEquals(tc, 1, event_queue_depth());
+  CuAssertTrue(tc, !event_runtime_handle_is_none(mobile.active_world_event_handle));
+
+  callbacks_before = active_world_mobile_callbacks();
+  first_delay = (long)native_event_remaining(tc, mobile.active_world_event_handle);
+  CuAssertTrue(tc, first_delay > 0L);
+  process_scheduler_pulses((unsigned long)first_delay);
+  CuAssertIntEquals(tc, (int)(callbacks_before + 1U), (int)active_world_mobile_callbacks());
+  CuAssertIntEquals(tc, 1, mobile.mob_specials.proc_fired);
+  CuAssertTrue(tc, !event_runtime_handle_is_none(mobile.active_world_event_handle));
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  active_world_reset_for_test();
+  character_periodic_reset_for_test();
+  point_update_periodic_reset_for_test();
+  FIGHTING(&mobile) = NULL;
+  pulse = saved_pulse;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  mob_index = saved_mob_index;
   top_of_mobt = saved_top_of_mobt;
   character_list = saved_characters;
 }
