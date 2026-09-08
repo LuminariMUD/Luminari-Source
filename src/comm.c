@@ -2732,6 +2732,7 @@ void echo_on(struct descriptor_data *d)
 /* if you want to add strings that have color codes to it, you
    have to use protocolOutput function to parse it
  * note - i just parse the whole string now, add all the color you want */
+/** Build state-specific prompts while preserving protocol delimiters for reader mode. */
 static char *make_prompt(struct descriptor_data *d)
 {
   static char prompt[MAX_PROMPT_LENGTH] = {'\0'};
@@ -3243,6 +3244,7 @@ static char *make_prompt(struct descriptor_data *d)
 }
 
 #ifdef LUMINARI_CUTEST
+/** Expose the real prompt renderer to production-linked output regression tests. */
 const char *comm_make_prompt_for_test(struct descriptor_data *d)
 {
   return make_prompt(d);

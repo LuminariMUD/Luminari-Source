@@ -320,6 +320,7 @@ void extract_key(struct char_data *ch, obj_vnum key)
     }
 }
 
+/** Apply a validated door action and cue only successful door opens for the acting player. */
 static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd,
                        struct door_state_operation *operation)
 {

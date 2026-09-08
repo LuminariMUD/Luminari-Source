@@ -4162,6 +4162,7 @@ static void build_selected_detail(struct json_writer *w, struct descriptor_data 
   }
 }
 
+/** Emit the available choices for a supported structured onboarding screen. */
 static void build_choices(struct json_writer *w, struct descriptor_data *d,
                           const struct onboarding_screen_info *screen)
 {

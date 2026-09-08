@@ -73,6 +73,10 @@ listener defaults to port 8182. Once the server is running, check readiness with
 ./scripts/operations/healthcheck.sh
 ```
 
+Deployment stops if an existing `lib/etc/config` selects another game port,
+including the old generated 4101 default. Set its active `DFLT_PORT` entries to
+`DFLT_PORT = 4100` and rerun deployment; existing configuration is preserved.
+
 Production uses game port 4100 through `luminari.service`. Deployment also
 supports noninteractive and managed-service modes; inspect the options with
 `./scripts/deployment/deploy.sh --help`.

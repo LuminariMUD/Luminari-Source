@@ -31,6 +31,7 @@ bool character_creation_set_stage_checked(struct char_data *ch,
                                           enum character_creation_stage stage);
 bool character_creation_finish_checked(struct char_data *ch);
 
+/** Ask for the initial screen-reader choice and enter its unsaved creation state. */
 void character_creation_screen_reader_prompt(struct descriptor_data *d);
 
 bool character_creation_can_back(const struct descriptor_data *d);

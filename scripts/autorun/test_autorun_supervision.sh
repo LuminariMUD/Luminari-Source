@@ -967,6 +967,63 @@ test_world_initialization_verifies_indexes()
   done
 }
 
+# Existing config must be preserved while unsupported game ports block deployment.
+test_deployment_requires_supported_game_port()
+{
+  local deploy_functions="$test_root/deploy-text-functions.sh"
+  local fixture="$test_root/deploy-text"
+  local setting
+
+  mkdir -p "$fixture/lib/etc"
+  sed -n '/^create_text_files()/,/^}/p' \
+    "$project_root/scripts/deployment/deploy.sh" > "$deploy_functions"
+
+  for setting in 'DFLT_PORT = 4101' 'dflt_port=4101' 'DFLT_PORT = 4200' \
+    $'DFLT_PORT = 4100\nDFLT_PORT = 4101'; do
+    printf '# Existing local configuration\n%s\nmax_playing = 17\n' "$setting" \
+      > "$fixture/lib/etc/config"
+    cp "$fixture/lib/etc/config" "$fixture/config-before"
+    if (
+      PROJECT_ROOT="$fixture"
+      GREEN= RED=
+      print_msg() { echo "$2"; }
+      source "$deploy_functions"
+      create_text_files
+    ) > "$fixture/rejected.log"; then
+      fail "deployment accepted an unsupported game port"
+    fi
+    cmp -s "$fixture/config-before" "$fixture/lib/etc/config" ||
+      fail "deployment changed existing configuration"
+    grep -q 'DFLT_PORT = 4100' "$fixture/rejected.log" ||
+      fail "deployment did not explain how to correct the game port"
+  done
+
+  for setting in 'DFLT_PORT = 4100' 'dflt_port=4100 # game port' 'max_playing = 17'; do
+    printf '%s\n' "$setting" > "$fixture/lib/etc/config"
+    cp "$fixture/lib/etc/config" "$fixture/config-before"
+    (
+      PROJECT_ROOT="$fixture"
+      GREEN= RED=
+      print_msg() { :; }
+      source "$deploy_functions"
+      create_text_files
+    ) || fail "deployment rejected the supported or implicit default game port"
+    cmp -s "$fixture/config-before" "$fixture/lib/etc/config" ||
+      fail "deployment changed supported existing configuration"
+  done
+
+  rm "$fixture/lib/etc/config"
+  (
+    PROJECT_ROOT="$fixture"
+    GREEN= RED=
+    print_msg() { :; }
+    source "$deploy_functions"
+    create_text_files
+  ) || fail "deployment did not create a fresh configuration"
+  grep -q '^DFLT_PORT = 4100$' "$fixture/lib/etc/config" ||
+    fail "fresh deployment did not select game port 4100"
+}
+
 test_compatibility_links
 test_planned_reboot_exit
 test_autorun_startup_and_locking
@@ -978,5 +1035,6 @@ test_watchdog_daemon_recovery
 test_copyover_identity_refresh
 test_systemd_unit_installation
 test_world_initialization_verifies_indexes
+test_deployment_requires_supported_game_port
 
 echo "autorun supervision test: PASS"

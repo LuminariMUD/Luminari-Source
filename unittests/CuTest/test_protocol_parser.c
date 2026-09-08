@@ -1441,6 +1441,7 @@ void TestProtocolParser_SoundRequiresConsentAndMsp(CuTest *tc)
   harness_destroy(&harness);
 }
 
+/** Assemble the production-linked protocol parser and sound-consent regressions. */
 CuSuite *ProtocolParserSuite(void)
 {
   CuSuite *suite = CuSuiteNew();

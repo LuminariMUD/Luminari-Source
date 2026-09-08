@@ -107,6 +107,7 @@ static bool character_creation_commit_player_removal(struct player_removal_trans
   return commit_player_removal_checked(transaction);
 }
 
+/** Identify unsaved creation screens, including the early screen-reader choice. */
 static bool is_core_creation_state(int state)
 {
   switch (state)

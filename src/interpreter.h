@@ -78,7 +78,9 @@ bool command_can_be_used_while_casting(int cmd);
 
 ACMD_DECL(do_account);
 ACMD_DECL(do_ai);
+/** Report or persist the player screen-reader output preference. */
 ACMD_DECL(do_screenreader);
+/** Report or persist optional sound consent and request the bundled test cue. */
 ACMD_DECL(do_sound);
 
 /* Database administration commands */
