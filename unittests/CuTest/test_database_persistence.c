@@ -1324,6 +1324,36 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
       mysql_free_result(result);
   }
 
+  /* Oversized keywords must not become valid but partial database records. */
+  free(extra->keyword);
+  CREATE(extra->keyword, char, 100001U);
+  memset(extra->keyword, 'k', 100000U);
+  extra->keyword[100000] = '\0';
+  objsave_save_obj_record_db(obj, &ch, NOWHERE, fixture, 3);
+  objsave_save_obj_record_db(obj, NULL, NOWHERE, fixture, 3);
+  matched = matched &&
+            query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs", -1) == 1 &&
+            query_single_int(connection, "SELECT COUNT(*) FROM house_data", -1) == 1;
+
+  /* Delimiters still terminate both fields, even with an oversized suffix. */
+  extra->keyword[4] = '~';
+  free(extra->description);
+  extra->description = strdup("visible~discarded");
+  objsave_save_obj_record_db(obj, &ch, NOWHERE, fixture, 3);
+  if (mysql_query(connection,
+                  "SELECT serialized_obj FROM player_save_objs ORDER BY idnum DESC LIMIT 1") != 0)
+    matched = false;
+  result = mysql_store_result(connection);
+  row = result != NULL ? mysql_fetch_row(result) : NULL;
+  matched = matched && row != NULL && row[0] != NULL &&
+            strstr(row[0], "EDes:\nkkkk~\nvisible~\n") != NULL &&
+            strstr(row[0], "discarded") == NULL &&
+            query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs", -1) == 2;
+  if (result != NULL)
+    mysql_free_result(result);
+  matched = matched && mysql_query(connection,
+                                   "DELETE FROM player_save_objs ORDER BY idnum DESC LIMIT 1") == 0;
+
   /* A full payload buffer must not become a valid but partial database record. */
   for (mode = 0; mode < 10U; mode++)
   {

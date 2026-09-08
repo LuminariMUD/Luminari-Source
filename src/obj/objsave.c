@@ -461,8 +461,9 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
                 "%s~\n",
                 ex_desc->keyword, buf1);
 #ifdef OBJSAVE_DB
-        saved_description = strndup(buf1, strcspn(buf1, "~"));
-        saved_keyword = strndup(ex_desc->keyword, strcspn(ex_desc->keyword, "~"));
+        /* Bound temporary copies by the buffers that can actually be saved. */
+        saved_description = strndup(buf1, sizeof(buf1) - 1);
+        saved_keyword = strndup(ex_desc->keyword, sizeof(ins_buf) - 1);
         if (saved_description == NULL || saved_keyword == NULL)
         {
           free(saved_description);
@@ -471,6 +472,8 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
           extract_obj(temp);
           return 1;
         }
+        saved_description[strcspn(saved_description, "~")] = '\0';
+        saved_keyword[strcspn(saved_keyword, "~")] = '\0';
         strlcat(ins_buf, "EDes:\n", sizeof(ins_buf));
         strlcat(ins_buf, saved_keyword, sizeof(ins_buf));
         strlcat(ins_buf, "~\n", sizeof(ins_buf));
