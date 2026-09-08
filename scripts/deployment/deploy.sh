@@ -38,7 +38,7 @@ INIT_WORLD=true
 FORCE_INIT_WORLD=false
 INSTALL_SYSTEMD_ONLY=false
 RESTART_SYSTEMD_SERVICE=false
-MUD_PORT=4101
+MUD_PORT=4100
 DB_HOST="localhost"
 DB_NAME="luminari"
 DB_USER="luminari"
@@ -448,6 +448,18 @@ initialize_world_data() {
 create_text_files() {
     print_msg "$GREEN" "Creating default text files..."
 
+    # Preserve existing configuration, but reject stale or custom game ports.
+    if [[ -f "$PROJECT_ROOT/lib/etc/config" ]] && ! awk -F= '
+        { key = $1; gsub(/[[:space:]]/, "", key) }
+        tolower(key) == "dflt_port" && $2 !~ /^[[:space:]]*4100([[:space:]]*(#.*)?)?$/ {
+            exit 1
+        }
+    ' "$PROJECT_ROOT/lib/etc/config"; then
+        print_msg "$RED" "Existing lib/etc/config has an unsupported DFLT_PORT (including the old 4101 default)."
+        print_msg "$RED" "Set every active DFLT_PORT entry to DFLT_PORT = 4100, then rerun deployment. The file was preserved."
+        return 1
+    fi
+
     mkdir -p "$PROJECT_ROOT"/lib/text/help
     mkdir -p "$PROJECT_ROOT"/lib/etc
 
@@ -636,7 +648,7 @@ siteok_everyone = 1
 nameserver_is_slow = 0
 
 # Port Settings
-DFLT_PORT = 4101
+DFLT_PORT = 4100
 
 # Gameplay Settings
 pk_allowed = 1

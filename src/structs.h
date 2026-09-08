@@ -1391,8 +1391,11 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define PRF_SWEEPING_STRIKE 85 /**< Monk sweeping strike: auto-trip on first flurry attack */
 #define PRF_VERBOSE 86         /**< Show expanded information in staff listings */
 
+#define PRF_SCREEN_READER 87 /**< Suppress automatic maps and gameplay prompts */
+#define PRF_SOUND 88         /**< Player consent to optional sound playback */
+
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 87
+#define NUM_PRF_FLAGS 89
 
 /* Score Color Theme constants */
 #define SCORE_THEME_ENHANCED 0     /**< Enhanced theme with rich colors */
@@ -1722,7 +1725,9 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define CON_BEDIT 85            /**< OLC mode - board editor */
 #define CON_QUIT_REASON 86      /**< Quit feedback prompt */
 
-#define NUM_CON_STATES 87
+#define CON_SCREEN_READER 87 /**< Early character output preference */
+
+#define NUM_CON_STATES 88
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors

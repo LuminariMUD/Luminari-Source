@@ -823,3 +823,26 @@ MSDPFlush(d, eMSDP_HEALTH);  // Send specific variable immediately
 ---
 
 *This documentation reflects the LuminariMUD implementation as verified on 2026-08-05. For implementation details, refer to `protocol.h`, `protocol.c`, and `msdp_json.c`. For integration points, see `comm.c`, `handler.c`, `actions.c`, and `act.other.c`.*
+
+## Optional player sound (issue #137)
+
+`PRF_SOUND` is persistent player consent; it defaults off. `SoundEnabled()` reads
+that flag and the current descriptor's negotiated `bMSP` for every send, including
+after login, reconnect, and copyover. No duplicated descriptor consent cache is
+needed. The legacy client-set MSDP `SOUND` variable is not player authorization.
+
+`SoundSend()` uses MSP only. General GMCP/MSDP support no longer routes sound to
+an unverified `PLAY_SOUND` consumer. The [Mudlet protocol documentation](https://wiki.mudlet.org/w/Manual:Supported_Protocols#MSP)
+documents MSP support; general GMCP negotiation alone does not establish a media
+consumer. Unsupported or opted-out players receive no audio trigger.
+
+Trusted internal `\t!SOUND(...)` output becomes `!!SOUND(...)` in `ProtocolOutput()`.
+Internal triggers are suppressed when playback is disabled. Literal raw SOUND or
+MUSIC tags in ordinary text are stripped to prevent accidental playback. All cues
+retain normal text feedback. PREFEDIT Sound changes the saved preference; MSP
+capability is reported separately and is no longer manually toggled there.
+
+Commands: `sound on`, `sound off`, `sound status`, `sound test`. The bundled
+[sound pack](../../lib/sounds/README.md) supplies the test and successful-door-open
+cues without an automatic download URL. Real-client playback acceptance remains
+tracked in the [implementation plan](../ongoing-projects/SCREEN_READER_AND_MSP_IMPLEMENTATION_PLAN.md).

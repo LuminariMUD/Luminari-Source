@@ -15,7 +15,7 @@ fi
 
 mkdir -p "$LOG_DIR"
 
-PORT=${1:-4101}
+PORT=${1:-4100}
 
 echo "Starting LuminariMUD in GDB debugger..."
 echo ""

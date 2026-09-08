@@ -845,6 +845,7 @@ ACMDU(do_gen_comm)
     case CON_CLOSE:
     case CON_GET_NAME:
     case CON_NAME_CNFRM:
+    case CON_SCREEN_READER:
     case CON_PASSWORD:
     case CON_NEWPASSWD:
     case CON_CNFPASSWD:

@@ -4075,6 +4075,17 @@ cpp_extern const struct command_info cmd_info[] = {
      CMD_FEATURE_ACTIVITY_INFORMATION},
     {"scoreconfig", "scoreconfig", POS_DEAD, do_scoreconfig, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"skore", "sk", POS_DEAD, do_skore, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"sound", "sound", POS_DEAD, do_sound, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"screenreader",
+     "screenreader",
+     POS_DEAD,
+     do_screenreader,
+     0,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL},
     {"scan", "sca", POS_RECLINING, do_scan, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"scopy",
      "scopy",
@@ -8234,8 +8245,7 @@ void nanny(struct descriptor_data *d, char *arg)
         return;
       }
 
-      write_to_output(d, "\r\nWhat is your sex (\t(M\t)/\t(F\t))? ");
-      STATE(d) = CON_QSEX;
+      character_creation_screen_reader_prompt(d);
       break;
     }
     else if (*arg == 'n' || *arg == 'N')
@@ -8447,7 +8457,27 @@ void nanny(struct descriptor_data *d, char *arg)
             }
             break;
        */
+  case CON_SCREEN_READER:
+    if (!strcasecmp(arg, "yes") || !strcasecmp(arg, "y"))
+      SET_BIT_AR(PRF_FLAGS(d->character), PRF_SCREEN_READER);
+    else if (!strcasecmp(arg, "no") || !strcasecmp(arg, "n"))
+      REMOVE_BIT_AR(PRF_FLAGS(d->character), PRF_SCREEN_READER);
+    else
+    {
+      write_to_output(d, "Please enter yes or no.\r\n");
+      character_creation_screen_reader_prompt(d);
+      return;
+    }
+    write_to_output(d, "\r\nType back to change screen-reader output.\r\nWhat is your sex (M/F)? ");
+    STATE(d) = CON_QSEX;
+    break;
+
   case CON_QSEX: /* query sex of new user         */
+    if (!strcasecmp(arg, "back"))
+    {
+      character_creation_back(d);
+      return;
+    }
     switch (*arg)
     {
     case 'm':
@@ -9397,6 +9427,13 @@ void nanny(struct descriptor_data *d, char *arg)
       write_to_output(d, "Those preferences could not be saved. Nothing was changed; try again.");
       return;
     }
+
+    if (PRF_FLAGGED(d->character, PRF_SCREEN_READER))
+      write_to_output(
+          d, "\r\nScreen-reader mode is on. Automatic maps and gameplay prompts are hidden.\r\n"
+             "Use hp, moves, and tnl for status, and survey for wilderness information.\r\n"
+             "Read help screen-reader. Use screenreader off to restore your displays.\r\n"
+             "Optional audio is separate: sound status, sound on, or sound off.\r\n");
 
     mudlog(NRM, LVL_STAFF, TRUE, "%s [%s] new player.", GET_NAME(d->character), d->host);
 

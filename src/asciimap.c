@@ -651,6 +651,13 @@ void perform_map(struct char_data *ch, const char *argument, bool worldmap)
   return;
 }
 
+/* Automatic output respects accessibility without changing saved map settings. */
+bool should_show_automap(struct char_data *ch)
+{
+  return ch != NULL && !IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOMAP) &&
+         !PRF_FLAGGED(ch, PRF_SCREEN_READER);
+}
+
 /* Display a string with the map beside it */
 void str_and_map(char *str, struct char_data *ch, room_vnum target_room)
 {
@@ -668,7 +675,7 @@ void str_and_map(char *str, struct char_data *ch, room_vnum target_room)
 
   worldmap = show_worldmap(ch);
 
-  if (!PRF_FLAGGED(ch, PRF_AUTOMAP) ||
+  if (!should_show_automap(ch) ||
       (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_NOMAP) && GET_LEVEL(ch) < LVL_IMMORT))
   {
     send_to_char(ch, "%s", strfrmt(str, GET_SCREEN_WIDTH(ch), 1, FALSE, FALSE, FALSE));

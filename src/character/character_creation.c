@@ -107,12 +107,14 @@ static bool character_creation_commit_player_removal(struct player_removal_trans
   return commit_player_removal_checked(transaction);
 }
 
+/** Identify unsaved creation screens, including the early screen-reader choice. */
 static bool is_core_creation_state(int state)
 {
   switch (state)
   {
   case CON_GET_NAME:
   case CON_NAME_CNFRM:
+  case CON_SCREEN_READER:
   case CON_QSEX:
   case CON_QRACE:
   case CON_QRACE_HELP:
@@ -164,15 +166,28 @@ bool character_creation_finish_checked(struct char_data *ch)
   return character_creation_set_stage_checked(ch, CHARACTER_CREATION_STAGE_NONE);
 }
 
+/** Ask for the unsaved screen-reader preference before identity selection. */
+void character_creation_screen_reader_prompt(struct descriptor_data *d)
+{
+  write_to_output(d,
+                  "\r\nWould you like screen-reader-friendly output? (yes/no)\r\n"
+                  "This hides automatic ASCII maps and repeated gameplay prompts.\r\n"
+                  "Room text remains available. Change this later with screenreader on or off.\r\n"
+                  "Your choice: ");
+  STATE(d) = CON_SCREEN_READER;
+}
+
+/** Return whether this unsaved creation step supports returning to an earlier choice. */
 bool character_creation_can_back(const struct descriptor_data *d)
 {
   if (d == NULL || d->character == NULL || character_creation_is_active(d->character))
     return FALSE;
 
-  return STATE(d) == CON_QRACE || STATE(d) == CON_QCLASS || STATE(d) == CON_CONFIRM_PREMADE ||
-         STATE(d) == CON_QALIGN;
+  return STATE(d) == CON_QSEX || STATE(d) == CON_QRACE || STATE(d) == CON_QCLASS ||
+         STATE(d) == CON_CONFIRM_PREMADE || STATE(d) == CON_QALIGN;
 }
 
+/** Return to the previous creation choice and clear dependent identity fields. */
 bool character_creation_back(struct descriptor_data *d)
 {
   struct char_data *ch = NULL;
@@ -183,6 +198,9 @@ bool character_creation_back(struct descriptor_data *d)
   ch = d->character;
   switch (STATE(d))
   {
+  case CON_QSEX:
+    character_creation_screen_reader_prompt(d);
+    break;
   case CON_QRACE:
     GET_REAL_RACE(ch) = RACE_UNDEFINED;
     GET_CLASS(ch) = CLASS_UNDEFINED;

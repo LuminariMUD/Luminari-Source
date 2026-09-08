@@ -33,7 +33,7 @@ data has been deleted.
 The acceptance instance uses a private user/network namespace, the retrieved
 world archive, copied runtime files, and a separate local database named
 luminari_phase3_test. Its port 4103 is private to that namespace. The ordinary
-development listener on port 4101 is unchanged. No production connection or
+development listener on the former development port is unchanged. No production connection or
 user-account edits are part of this tranche. Gameplay uses the copied Aster
 agent character.
 
@@ -308,7 +308,7 @@ large-fleet claim. Broader unfinished vessel features remain their own scope.
 No merge, commit, or push was performed in this acceptance goal.
 
 The isolated acceptance server exited cleanly with status zero and its autorun
-stopped. The ordinary port-4101 process retained its original PID and was not
+stopped. The ordinary development process retained its original PID and was not
 restarted or copied over.
 
 ## Migration And Recovery

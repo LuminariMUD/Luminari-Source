@@ -15,6 +15,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "interpreter.h"
+#include "net/protocol.h"
 #include "handler.h"
 #include "db.h"
 #include "magic/spells.h"
@@ -319,6 +320,7 @@ void extract_key(struct char_data *ch, obj_vnum key)
     }
 }
 
+/** Apply a validated door action and cue only successful door opens for the acting player. */
 static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd,
                        struct door_state_operation *operation)
 {
@@ -360,6 +362,8 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
     if (back)
       OPEN_DOOR(other_room, obj, rev_dir[door]);
     send_to_char(ch, "%s", CONFIG_OK);
+    if (!obj && ch->desc != NULL)
+      SoundSend(ch->desc, "luminari-door-open.wav");
     break;
 
   case SCMD_CLOSE:

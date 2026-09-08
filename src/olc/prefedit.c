@@ -25,7 +25,7 @@
 
 /* Internal (static) functions */
 static void prefedit_setup(struct descriptor_data *d, struct char_data *vict);
-static void prefedit_save_to_char(struct descriptor_data *d);
+static bool prefedit_save_to_char(struct descriptor_data *d);
 static void prefedit_disp_main_menu(struct descriptor_data *d);
 static void prefedit_disp_toggles_menu(struct descriptor_data *d);
 static void prefedit_disp_prompt_menu(struct descriptor_data *d);
@@ -62,15 +62,24 @@ static void prefedit_setup(struct descriptor_data *d, struct char_data *vict)
   prefedit_disp_main_menu(d);
 }
 
-static void prefedit_save_to_char(struct descriptor_data *d)
+/** Persist edited preferences, restoring the live values if the checked save fails. */
+static bool prefedit_save_to_char(struct descriptor_data *d)
 {
   int i;
+  int previous_flags[PR_ARRAY_MAX];
+  int previous_wimp, previous_page_length, previous_screen_width, previous_blasting;
   struct char_data *vict;
 
   vict = PREFEDIT_GET_CHAR;
 
   if (vict && vict->desc && IS_PLAYING(vict->desc))
   {
+    memcpy(previous_flags, PRF_FLAGS(vict), sizeof(previous_flags));
+    previous_wimp = GET_WIMP_LEV(vict);
+    previous_page_length = GET_PAGE_LENGTH(vict);
+    previous_screen_width = GET_SCREEN_WIDTH(vict);
+    previous_blasting = BLASTING(vict);
+
     for (i = 0; i < PR_ARRAY_MAX; i++)
       PRF_FLAGS(vict)
     [i] = OLC_PREFS(d)->pref_flags[i];
@@ -81,7 +90,14 @@ static void prefedit_save_to_char(struct descriptor_data *d)
 
     BLASTING(vict) = PRF_FLAGGED(vict, PRF_AUTOBLAST);
 
-    save_char(vict, 0);
+    if (save_char_checked(vict, 0))
+      return TRUE;
+    memcpy(PRF_FLAGS(vict), previous_flags, sizeof(previous_flags));
+    GET_WIMP_LEV(vict) = previous_wimp;
+    GET_PAGE_LENGTH(vict) = previous_page_length;
+    GET_SCREEN_WIDTH(vict) = previous_screen_width;
+    BLASTING(vict) = previous_blasting;
+    send_to_char(d->character, "Unable to save preferences; previous settings remain.\r\n");
   }
   else
   {
@@ -106,6 +122,7 @@ static void prefedit_save_to_char(struct descriptor_data *d)
       send_to_char(d->character, "Unable to save toggles (unknown reason)");
     }
   }
+  return FALSE;
 }
 
 static void prefedit_disp_main_menu(struct descriptor_data *d)
@@ -373,6 +390,7 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
   OLC_MODE(d) = PREFEDIT_EXTRA_TOGGLE_MENU;
 }
 
+/** Show editable preferences alongside the independently negotiated client capabilities. */
 static void prefedit_disp_toggles_menu(struct descriptor_data *d)
 {
   struct char_data *vict;
@@ -527,7 +545,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
       "%sJ%s) 256 Color    %s[%s%3s%s]      %sM%s) MXP      %s[%s%3s%s]\r\n"
       "%sK%s) ANSI         %s[%s%3s%s]      %sN%s) MSDP     %s[%s%3s%s]\r\n"
       "%sL%s) Charset      %s[%s%3s%s]      %sO%s) GMCP     %s[%s%3s%s]\r\n"
-      "%sP%s) UTF-8        %s[%s%3s%s]      %sR%s) MSP      %s[%s%3s%s]\r\n"
+      "%sP%s) UTF-8        %s[%s%3s%s]      %sR%s) Sound    %s[%s%3s%s]\r\n"
       "\r\n",
       CBWHT(d->character, C_NRM),
       /* Line 12 - 256 and mxp */
@@ -552,8 +570,10 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
       CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
       CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt),
       CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-      CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->bMSP),
+      CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_SOUND)),
       CCCYN(d->character, C_NRM));
+  send_to_char(d->character, "MSP client capability: %s. Sound requires both opt-in and MSP.\r\n",
+               d->pProtocol->bMSP ? "available" : "unavailable");
 
   /* Finishing Off */
   send_to_char(d->character, "%sQ%s) Quit toggle preferences...\r\n", CBYEL(d->character, C_NRM),
@@ -648,6 +668,7 @@ static void prefedit_disp_syslog_menu(struct descriptor_data *d)
   OLC_MODE(d) = PREFEDIT_SYSLOG;
 }
 
+/** Apply menu edits and keep the editor open when a checked preference save fails. */
 void prefedit_parse(struct descriptor_data *d, char *arg)
 {
   int number;
@@ -659,7 +680,8 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     {
     case 'y':
     case 'Y':
-      prefedit_save_to_char(d);
+      if (!prefedit_save_to_char(d))
+        return;
       mudlog(CMP, LVL_BUILDER, TRUE, "OLC: %s edits toggles for %s", GET_NAME(d->character),
              GET_NAME(OLC_PREFS(d)->ch));
       send_to_char(d->character, "Preferences saved.\r\n");
@@ -1046,7 +1068,7 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
 
     case 'r':
     case 'R':
-      TOGGLE_VAR(d->pProtocol->bMSP);
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_SOUND);
       break;
 
     case 's':
@@ -1381,9 +1403,14 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
   prefedit_disp_main_menu(d);
 }
 
+/** Restore editable defaults, revoking optional sound consent while retaining reader mode. */
 void prefedit_Restore_Defaults(struct descriptor_data *d)
 {
   /* Let's do toggles one at a time */
+  /* PRF_SOUND      - Off */
+  if (PREFEDIT_FLAGGED(PRF_SOUND))
+    REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_SOUND);
+
   /* PRF_BRIEF      - Off */
   if (PREFEDIT_FLAGGED(PRF_BRIEF))
     REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_BRIEF);

@@ -67,7 +67,7 @@ cd Luminari-Source
 ./bin/luminari -d lib
 ```
 
-The local server should start on port 4101; the production service uses 4100.
+The local server should start on port 4100; the production service uses 4100.
 
 ---
 

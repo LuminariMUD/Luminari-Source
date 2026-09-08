@@ -28,6 +28,11 @@ fi
   fail "character name must contain only letters or hyphens"
 [[ -r "$repo_root/lib/.env" ]] || fail "cannot read lib/.env"
 
+for choice in "${DEV_MUD_SCREEN_READER:-no}" "${DEV_MUD_RECOMMENDED_PREFS:-no}"; do
+  [[ "$choice" == yes || "$choice" == no ]] ||
+    fail "DEV_MUD_SCREEN_READER and DEV_MUD_RECOMMENDED_PREFS must be yes or no"
+done
+
 for command_name in expect nc awk; do
   command -v "$command_name" >/dev/null 2>&1 ||
     fail "required command not found: $command_name"
@@ -82,6 +87,8 @@ MUD_CREATE_ACCOUNT="$test_account" \
 MUD_CREATE_CHARACTER="$test_character" \
 MUD_CREATE_PASSWORD="$test_password" \
 MUD_CREATE_PORT="$mud_port" \
+MUD_CREATE_SCREEN_READER="${DEV_MUD_SCREEN_READER:-no}" \
+MUD_CREATE_RECOMMENDED_PREFS="${DEV_MUD_RECOMMENDED_PREFS:-no}" \
   expect -f /dev/stdin <<'EXPECT'
 proc fail {message} {
   puts stderr "dev test-character creation: $message"
@@ -172,6 +179,12 @@ expect {
 
 send -- "y\r"
 expect {
+  -re {Would you like screen-reader-friendly output[?]} {}
+  timeout { fail "screen-reader setup prompt timeout" }
+}
+
+send -- "$env(MUD_CREATE_SCREEN_READER)\r"
+expect {
   -re {What is your sex} {}
   timeout { fail "sex prompt timeout" }
 }
@@ -219,7 +232,7 @@ expect {
   timeout { fail "preferences prompt timeout" }
 }
 
-send -- "no\r"
+send -- "$env(MUD_CREATE_RECOMMENDED_PREFS)\r"
 expect {
   -re {Please Enter Your Choice} {}
   timeout { fail "roleplay prompt timeout" }

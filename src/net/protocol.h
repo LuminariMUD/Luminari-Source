@@ -1808,73 +1808,24 @@ protocol_error_t MXPSendTag(descriptor_t *apDescriptor, const char *apTag);
 /******************************************************************************
  *                           SOUND FUNCTIONS
  *
- * MUD Sound Protocol (MSP) and MSDP/GMCP sound support functions for
- * audio triggers and sound effects. Provides immersive audio experience
- * for compatible clients.
- *
- * SOUND FEATURES:
- * - Background music and ambient sounds
- * - Action-triggered sound effects (combat, spells, etc.)
- * - Location-based audio (different sounds per area/room)
- * - Volume and loop control
- * - Multiple protocol support (MSP, MSDP, GMCP)
- *****************************************************************************/
+ * MUD Sound Protocol (MSP) sound effects.
+ ******************************************************************************/
+
+/** Whether the attached player has opted in and the client negotiated MSP. */
+bool_t SoundEnabled(descriptor_t *apDescriptor);
 
 /**
- * Send sound trigger to client
+ * Send a bounded MSP trigger through the normal output encoder.
+ * Player PRF_SOUND consent and negotiated MSP are both required. General
+ * MSDP/GMCP support and the legacy SOUND variable do not establish audio
+ * capability or override player consent. Unsupported/muted clients receive
+ * nothing and return PROTOCOL_SUCCESS.
  *
- * Transmits a sound trigger to the client using the best available
- * protocol. Automatically chooses MSDP/GMCP if supported, otherwise
- * falls back to traditional MSP protocol.
+ * Callers supply a trusted sound-pack filename (at most 128 bytes). The client
+ * must have the referenced asset installed; emission does not prove playback.
+ * Internal \t! syntax is converted to !! by ProtocolOutput().
  *
- * PROTOCOL SELECTION:
- * 1. MSDP: If client supports MSDP, send via MSDP SOUND variable
- * 2. GMCP: If client supports GMCP, send via GMCP sound module
- * 3. MSP: Fallback to direct MSP protocol commands
- * 4. None: Silent failure if no sound protocols supported
- *
- * SOUND TRIGGER FORMAT:
- * - Relative path and filename (e.g., "combat/sword_hit.wav")
- * - Client downloads from MUD's sound directory
- * - Supports common audio formats (WAV, MP3, OGG)
- * - Can include volume and loop parameters
- *
- * CLIENT BEHAVIOR:
- * - Client downloads sound files as needed
- * - Files are cached locally for performance
- * - Volume controlled by client settings
- * - Graceful handling if file not found
- *
- * @param apDescriptor Client connection descriptor
- * @param apTrigger Sound file path relative to MUD sound directory
- *
- * @usage Trigger sounds for game events:
- * @code
- *   // Combat sounds
- *   SoundSend(ch->desc, "combat/sword_hit.wav");
- *   SoundSend(victim->desc, "combat/take_damage.wav");
- *
- *   // Spell casting
- *   SoundSend(ch->desc, "magic/fireball.wav");
- *
- *   // Environmental sounds
- *   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_FOREST)) {
- *       SoundSend(ch->desc, "ambient/forest_birds.wav");
- *   }
- *
- *   // Movement sounds
- *   SoundSend(ch->desc, "movement/footsteps_stone.wav");
- *
- *   // Item interactions
- *   SoundSend(ch->desc, "items/door_open.wav");
- *   SoundSend(ch->desc, "items/chest_close.wav");
- * @endcode
- *
- * @note Sound files should be in MUD's public sound directory
- * @note Graceful fallback if client doesn't support sound
- * @note No error if sound file doesn't exist - client handles silently
- * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
- * @see MSDP SOUND variable, MSP protocol documentation
+ * @return PROTOCOL_SUCCESS or a negative protocol_error_t value.
  */
 protocol_error_t SoundSend(descriptor_t *apDescriptor, const char *apTrigger);
 

@@ -80,8 +80,7 @@ the private database snapshot SHA-256 was
 
 The host ran Linux 6.17.0-29-generic on an Intel Core i7-10850H with 12 logical
 CPUs and 32,641,252 KiB RAM. The build used Ubuntu GCC 13.3.0 with `-g -O2` and
-MariaDB 10.11.14. The production MUD remained independently active on port
-4101; each measured backend used its own listener, full-world copy and private
+MariaDB 10.11.14. The production MUD remained independently active on its then-configured port; each measured backend used its own listener, full-world copy and private
 database restored from the same snapshot.
 
 | Backend | Commands / timeouts | p50 / p95 / p99 / max (ms) | Lateness p99 / max (ticks) | First / final RSS median (KiB) | Final ratio | RSS slope (MiB/min) | Result |

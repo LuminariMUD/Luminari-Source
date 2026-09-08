@@ -1,4 +1,4 @@
-Reusing the development MUD on port 4101.
+Reusing the development MUD on the former development port.
 
 >>> copyover
 Copyover recovery complete.
