@@ -72,7 +72,7 @@ The runtime used copied world/player data and the separate local
 port 4103. It booted the same 762-zone, 91,735-room, 27,067-mobile-prototype
 archive used by the earlier event-core acceptance. Only the isolated copy
 received disposable door/trigger edits in rooms 2 and 3. Ordinary development
-port 4101 was not restarted. No production deployment occurred.
+the former development port was not restarted. No production deployment occurred.
 
 | Scenario | Observed result |
 | --- | --- |

@@ -92,7 +92,7 @@ cmake --install build
 ```
 
 The checked-in runtime configuration defaults to the reserved local game port
-4101. While the server runs, verify the loopback health listener from another
+4100. While the server runs, verify the loopback health listener from another
 terminal:
 
 ```bash

@@ -11,5 +11,5 @@ git diff --check: no errors
 
 The C suite uses LUMINARI_TEST_ROOT and the checked-in spec-world fixture.
 Valgrind does not claim leak freedom: full leak checking was not enabled.
-Local gameplay uses Aster on port 4101, in the small development world.
+Local gameplay uses Aster on the former development port, in the small development world.
 Production and CI were not used for validation.

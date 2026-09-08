@@ -44,19 +44,18 @@ require_reservation()
 
 require_reservation 3306
 require_reservation 4100
-require_reservation 4101
 require_reservation 8081
 require_reservation 8181
 require_reservation 8182
 
-require_pattern "compiled local MUD default port 4101" \
-  'DFLT_PORT[[:space:]]*=[[:space:]]*4101;' "$repo_root/src/config.c"
+require_pattern "compiled local MUD default port 4100" \
+  'DFLT_PORT[[:space:]]*=[[:space:]]*4100;' "$repo_root/src/config.c"
 if [[ -e "$repo_root/lib/etc/config" ]]; then
-  require_pattern "runtime local MUD default port 4101" \
-    '^DFLT_PORT[[:space:]]*=[[:space:]]*4101$' "$repo_root/lib/etc/config"
+  require_pattern "runtime local MUD default port 4100" \
+    '^DFLT_PORT[[:space:]]*=[[:space:]]*4100$' "$repo_root/lib/etc/config"
 fi
-require_pattern "autorun local MUD default port 4101" \
-  'MUD_PORT:-4101' "$repo_root/scripts/autorun/autorun.sh"
+require_pattern "autorun local MUD default port 4100" \
+  'MUD_PORT:-4100' "$repo_root/scripts/autorun/autorun.sh"
 require_pattern "production MUD port 4100" \
   'Environment="MUD_PORT=4100"' "$repo_root/luminari.service"
 require_pattern "Discord bridge port 8181" \
@@ -69,6 +68,6 @@ require_pattern "local I3 gateway port 8081" \
   '^#gateway_port 8081$' "$repo_root/lib/i3_config.example"
 
 echo "PASS: Luminari local/dev ports match the shared port inventory."
-echo "      Local listeners: MUD 4101, Discord 8181, terrain/health 8182."
+echo "      Local listeners: MUD 4100, Discord 8181, terrain/health 8182."
 echo "      Dependencies: MariaDB 3306, optional shared I3 gateway 8081."
 echo "      Production MUD remains explicitly assigned to 4100."

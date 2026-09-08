@@ -61,11 +61,11 @@ prompt and use the repository's autorun supervisor:
 ```
 
 Autorun starts in the background and supervises server restarts. Connect a MUD
-client to `localhost:4101`; stop the local supervisor and server with
+client to `localhost:4100`; stop the local supervisor and server with
 `./scripts/autorun/autorun.sh stop`. For a direct foreground debugging session,
 use `./bin/luminari -d lib` instead of starting autorun.
 
-The compiled default and local autorun game port are 4101; existing runtime
+The compiled default and local autorun game port are 4100; existing runtime
 configuration or `MUD_PORT` for autorun can override them. The loopback health
 listener defaults to port 8182. Once the server is running, check readiness with:
 

@@ -38,7 +38,7 @@ INIT_WORLD=true
 FORCE_INIT_WORLD=false
 INSTALL_SYSTEMD_ONLY=false
 RESTART_SYSTEMD_SERVICE=false
-MUD_PORT=4101
+MUD_PORT=4100
 DB_HOST="localhost"
 DB_NAME="luminari"
 DB_USER="luminari"
@@ -636,7 +636,7 @@ siteok_everyone = 1
 nameserver_is_slow = 0
 
 # Port Settings
-DFLT_PORT = 4101
+DFLT_PORT = 4100
 
 # Gameplay Settings
 pk_allowed = 1

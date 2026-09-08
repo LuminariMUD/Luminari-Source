@@ -119,7 +119,7 @@ if [[ "$ENV" == "dev" ]]; then
     echo "1 second delay before starting server..."
     sleep 1
 
-    echo "Starting dev server on port 4101"
+    echo "Starting dev server on port 4100"
 
     cd "$BASE_PATH" && ./checkmud.sh &
     echo ""

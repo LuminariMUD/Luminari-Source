@@ -57,7 +57,7 @@ covers exact packages and manual setup. For player and builder orientation, use
    ```
 
    Run the health check from a second terminal while the server is active.
-   The local game and health ports are 4101 and 8182, respectively. Production
+   The local game and health ports are 4100 and 8182, respectively. Production
    explicitly uses game port 4100 through `luminari.service`.
 
 ### Read Before Editing

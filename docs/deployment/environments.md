@@ -70,7 +70,7 @@ install, restart, or probe production.
 
 | Variable | Default | Consumer |
 |----------|---------|----------|
-| `MUD_PORT` | `4101` | Local autorun game port |
+| `MUD_PORT` | `4100` | Local autorun game port |
 | `MUD_FLAGS` | `-q` | Autorun server flags |
 | `TERRAIN_API_PORT` | `8182` | Loopback Terrain and health listener |
 | `LUMINARI_HEALTH_URL` | `http://127.0.0.1:8182/health` | Readiness script |
