@@ -1,17 +1,25 @@
 # Screen-reader setup and optional MSP sound implementation plan
 
-Status: implementation complete; runtime cleanup and real-client acceptance pending.
+Status: code implementation complete and published; client validation is follow-up work.
 Created: 2026-09-08.
 Issue: [#137](https://github.com/LuminariMUD/Luminari-Source/issues/137).
 Source investigation: `5d95d355822c91e7c0a1deaf6fc38f1adbadd26a`.
 
 ## Implementation log
 
+- 2026-09-08: User clarified completion scope: ensure all code changes are in
+  place, without blocking on real-client testing or runtime cleanup. Verified
+  implementation and regression commits `09d144587` and `fe53ec808` are published
+  on `feature/screen-reader-msp`. No further feature code is required. Client
+  walkthroughs below remain unperformed follow-up validation, not completion gates
+  for this code task. Plan ablation: retain existing implementation and evidence;
+  omit further server operations and testing infrastructure from this closeout.
+
 - 2026-09-08: Created and published `feature/screen-reader-msp` from
   `ec0d6eb86`. Checkout was clean and `APP_ENV=development` before mutation.
 - Added appended screen-reader/sound preference bits, effective automatic-map
   behavior, a checked-save screenreader command, and gold/time prompt consistency.
-  Added focused production-linked regressions; validation is in progress.
+  Added focused production-linked regressions; automated validation passed.
 - Added the early creation state, plain yes/no question, Back from identity,
   and a v2 structured choice with v1 terminal fallback. `init_char()` retains
   existing preference bits rather than clearing them; the output override also
@@ -47,7 +55,7 @@ Source investigation: `5d95d355822c91e7c0a1deaf6fc38f1adbadd26a`.
 - See [acceptance evidence](../testing/SCREEN_READER_AND_MSP_ACCEPTANCE.md) for
   tested revisions, limits, remaining client walkthroughs, and rollback notes.
   No installed Mudlet, TinTin++, or Orca executable was found in PATH; a real
-  player/client walkthrough and audible playback remain required before #137 closes.
+  player/client walkthrough and audible playback remain follow-up validation.
 
 ## Outcome and scope
 
@@ -292,8 +300,8 @@ the existing bug/idea workflow without sending unsolicited external messages.
 
 ## Completion and release boundary
 
-Complete #137 only when the scoped code, development help parity, automated
-checks, and real-client acceptance above have evidence. Audio transport and
+The user-approved code task is complete with scoped code, development help parity,
+and automated checks. Real-client acceptance remains recommended before release. Audio transport and
 asset distribution must both work; negotiation alone is insufficient. Update
 this document with implemented command names and any deviations from the plan.
 

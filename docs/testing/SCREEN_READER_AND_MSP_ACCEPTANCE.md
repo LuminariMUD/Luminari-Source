@@ -69,11 +69,14 @@ are paused pending coordination with the other local session. The synthetic
 to level 31 for copyover testing. Restore or remove only these task fixtures after
 coordination. No final installed/running revision match is claimed.
 
-## Pending acceptance and release
+## Follow-up client validation and release
 
-Do not close #137 until a real tester records client and screen-reader names and
-versions, then completes creation, town/wilderness movement, status queries,
-combat, pager/editor, reconnect and mode changes. Record usability findings.
+The user clarified that this task is complete when all code is in place; the
+following client checks and historical fixture cleanup do not block code completion.
+Implementation and regression commits `09d144587` and `fe53ec808` are published.
+For follow-up validation, record client and screen-reader names and versions,
+then exercise creation, town/wilderness movement, status queries, combat,
+pager/editor, reconnect and mode changes. Record usability findings.
 
 A real MSP-capable client must play both bundled cues, then remain silent after
 mute and reconnect. Test missing-file behavior and document the exact client
