@@ -165,6 +165,7 @@ bool character_creation_finish_checked(struct char_data *ch)
   return character_creation_set_stage_checked(ch, CHARACTER_CREATION_STAGE_NONE);
 }
 
+/** Ask for the unsaved screen-reader preference before identity selection. */
 void character_creation_screen_reader_prompt(struct descriptor_data *d)
 {
   write_to_output(d,
@@ -175,6 +176,7 @@ void character_creation_screen_reader_prompt(struct descriptor_data *d)
   STATE(d) = CON_SCREEN_READER;
 }
 
+/** Return whether this unsaved creation step supports returning to an earlier choice. */
 bool character_creation_can_back(const struct descriptor_data *d)
 {
   if (d == NULL || d->character == NULL || character_creation_is_active(d->character))
@@ -184,6 +186,7 @@ bool character_creation_can_back(const struct descriptor_data *d)
          STATE(d) == CON_CONFIRM_PREMADE || STATE(d) == CON_QALIGN;
 }
 
+/** Return to the previous creation choice and clear dependent identity fields. */
 bool character_creation_back(struct descriptor_data *d)
 {
   struct char_data *ch = NULL;

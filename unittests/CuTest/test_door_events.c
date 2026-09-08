@@ -760,6 +760,7 @@ void TestCounterspellExpiryFollowsNextSemanticTurnAfterCombatAdmission(CuTest *t
   verify_ready_expiry_after_combat_admission(tc, true);
 }
 
+/** Require successful door opening, player consent, and MSP before emitting a cue. */
 void TestDoorMspCueRequiresSuccessfulOpenAndPlayerConsent(CuTest *tc)
 {
   struct door_fixture f;

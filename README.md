@@ -56,7 +56,7 @@ and database setup. For local development, decline its optional systemd-service
 prompt and use the repository's autorun supervisor:
 
 ```bash
-./scripts/autorun/autorun.sh
+MUD_PORT=4100 ./scripts/autorun/autorun.sh
 ./scripts/autorun/autorun.sh status
 ```
 
@@ -65,8 +65,8 @@ client to `localhost:4100`; stop the local supervisor and server with
 `./scripts/autorun/autorun.sh stop`. For a direct foreground debugging session,
 use `./bin/luminari -d lib` instead of starting autorun.
 
-The compiled default and local autorun game port are 4100; existing runtime
-configuration or `MUD_PORT` for autorun can override them. The loopback health
+The game port is 4100, including local development. Keep existing runtime
+configuration and autorun's `MUD_PORT` set to 4100. The loopback health
 listener defaults to port 8182. Once the server is running, check readiness with:
 
 ```bash

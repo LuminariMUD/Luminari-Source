@@ -62,6 +62,7 @@ static void prefedit_setup(struct descriptor_data *d, struct char_data *vict)
   prefedit_disp_main_menu(d);
 }
 
+/** Persist edited preferences, restoring the live values if the checked save fails. */
 static bool prefedit_save_to_char(struct descriptor_data *d)
 {
   int i;
@@ -389,6 +390,7 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
   OLC_MODE(d) = PREFEDIT_EXTRA_TOGGLE_MENU;
 }
 
+/** Show editable preferences alongside the independently negotiated client capabilities. */
 static void prefedit_disp_toggles_menu(struct descriptor_data *d)
 {
   struct char_data *vict;
@@ -666,6 +668,7 @@ static void prefedit_disp_syslog_menu(struct descriptor_data *d)
   OLC_MODE(d) = PREFEDIT_SYSLOG;
 }
 
+/** Apply menu edits and keep the editor open when a checked preference save fails. */
 void prefedit_parse(struct descriptor_data *d, char *arg)
 {
   int number;
@@ -1400,9 +1403,14 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
   prefedit_disp_main_menu(d);
 }
 
+/** Restore editable defaults, revoking optional sound consent while retaining reader mode. */
 void prefedit_Restore_Defaults(struct descriptor_data *d)
 {
   /* Let's do toggles one at a time */
+  /* PRF_SOUND      - Off */
+  if (PREFEDIT_FLAGGED(PRF_SOUND))
+    REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_SOUND);
+
   /* PRF_BRIEF      - Off */
   if (PREFEDIT_FLAGGED(PRF_BRIEF))
     REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_BRIEF);

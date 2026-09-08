@@ -1386,6 +1386,7 @@ void TestProtocolParser_MudletPackageUsesStableIdentity(CuTest *tc)
   CuAssert(tc, "Mudlet package version must not be empty", *version != '\0' && *version != '"');
 }
 
+/** Reject raw or unconsented cues and require MSP independently of legacy sound variables. */
 void TestProtocolParser_SoundRequiresConsentAndMsp(CuTest *tc)
 {
   protocol_harness_t harness;

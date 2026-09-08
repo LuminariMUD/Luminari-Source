@@ -11,6 +11,7 @@ DESTINATION = Path(__file__).resolve().parents[2] / "lib" / "sounds"
 
 
 def write_cue(name, notes):
+    """Write frequency/duration pairs as a mono, 16-bit PCM cue with a fading envelope."""
     samples = []
     for frequency, duration in notes:
         count = round(RATE * duration)
@@ -27,6 +28,7 @@ def write_cue(name, notes):
 
 
 def main():
+    """Reproduce the two bundled cues in the repository sound directory."""
     DESTINATION.mkdir(parents=True, exist_ok=True)
     write_cue("luminari-test.wav", [(523.25, 0.18), (659.25, 0.18), (783.99, 0.24)])
     write_cue("luminari-door-open.wav", [(220.0, 0.10), (440.0, 0.18)])

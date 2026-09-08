@@ -1456,6 +1456,7 @@ void TestPopulatedRaceCatalogStaysWithinTheOnboardingWireBudget(CuTest *tc)
   cleanup_editor_descriptor(&d);
 }
 
+/** Validate creation workflow revisions and preserve reader preference when navigating back. */
 void TestCharacterCreationLifecycleAndWorkflowActionsAreSourceOwned(CuTest *tc)
 {
   struct descriptor_data d;
@@ -2731,6 +2732,7 @@ void TestScreenReaderPreservesUnderlyingDisplayPreferences(CuTest *tc)
   CuAssertTrue(tc, !should_show_automap(NULL));
 }
 
+/** Ensure prompt none clears gold and time fields as well as ordinary status fields. */
 void TestPromptNoneClearsGoldAndTimeFields(CuTest *tc)
 {
   struct char_data ch;
@@ -2752,6 +2754,7 @@ void TestPromptNoneClearsGoldAndTimeFields(CuTest *tc)
   CuAssertTrue(tc, !PRF_FLAGGED(&ch, PRF_DISPTIME));
 }
 
+/** Validate reader choices, identity back navigation, and versioned web onboarding output. */
 void TestScreenReaderCreationChoiceAndBack(CuTest *tc)
 {
   struct descriptor_data d;

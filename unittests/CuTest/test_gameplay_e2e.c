@@ -63,6 +63,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 /* Real player saves also write the index: keep every persistence fixture isolated. */
@@ -74,6 +75,7 @@ static void enter_player_fixture(CuTest *tc, char *temporary_directory)
   CuAssertIntEquals(tc, 0, mkdir("plrfiles/U-Z", 0700));
 }
 
+/** Remove the synthetic player index and return to the original working directory. */
 static int leave_player_fixture(const char *directory, const char *temporary_directory)
 {
   int result;
@@ -87,6 +89,7 @@ static int leave_player_fixture(const char *directory, const char *temporary_dir
   return result;
 }
 
+/** Load charge timing formats from isolated player files and check recovered cadence. */
 static void verify_gameplay_charge_load(CuTest *tc, unsigned int format, int elapsed, int charisma,
                                         int interval, const char *expected)
 {
@@ -149,6 +152,7 @@ void Test_gameplay_load_recovers_charges_at_saved_equipped_cadence(CuTest *tc)
                               (SECS_PER_MUD_DAY / 8) * PASSES_PER_SEC, "uses:1");
 }
 
+/** Preserve charge cadence across real saves without writing the development player index. */
 void Test_gameplay_save_captures_charge_cadence_before_unequipping(CuTest *tc)
 {
   char temporary_directory[] = "/tmp/luminari-player-fixture-XXXXXX";
@@ -2702,6 +2706,7 @@ void Test_gameplay_transport_rejects_a_recycled_destination(CuTest *tc)
   verify_native_transport(tc, 3);
 }
 
+/** Round-trip stable transport destinations using an isolated player and index fixture. */
 void Test_gameplay_transport_loads_a_versioned_stable_destination(CuTest *tc)
 {
   char temporary_directory[] = "/tmp/luminari-player-fixture-XXXXXX";
@@ -4110,6 +4115,7 @@ void Test_gameplay_defensive_casting_combat_departure_preserves_residual_interva
   verify_tactical_defense_clock(tc, 2);
 }
 
+/** Round-trip tactical clocks in isolated player files for active, expired, and legacy cases. */
 static void verify_tactical_clock_persistence(CuTest *tc, int format, bool bleeding)
 {
   char temporary_directory[] = "/tmp/luminari-player-fixture-XXXXXX";
@@ -5028,6 +5034,7 @@ void Test_gameplay_search_commits_after_owned_work_and_cancels_on_movement(CuTes
   end_gameplay_fixture(&fixture);
 }
 
+/** Round-trip output choices, persist muted defaults, and retain choices on failed saves. */
 void Test_gameplay_output_preferences_persist_and_failed_changes_roll_back(CuTest *tc)
 {
   char temporary_directory[] = "/tmp/luminari-player-fixture-XXXXXX";
@@ -5040,9 +5047,10 @@ void Test_gameplay_output_preferences_persist_and_failed_changes_roll_back(CuTes
   char directory[PATH_MAX], filename[MAX_FILEPATH], name[32];
   char failure_directory[] = "/tmp/luminari-output-save-XXXXXX";
   char on[] = "on", off[] = "off";
-  int result, legacy_result;
+  int result, defaults_result, legacy_result;
   FILE *legacy_file;
   bool restored_reader, restored_sound, retained_map, failure_restored, legacy_defaults;
+  bool defaults_muted, defaults_idempotent, defaults_saved;
 
   snprintf(name, sizeof(name), "Zzaccess%ld", (long)getpid());
   index[0].name = name;
@@ -5073,6 +5081,24 @@ void Test_gameplay_output_preferences_persist_and_failed_changes_roll_back(CuTes
   retained_map = PRF_FLAGGED(loaded, PRF_AUTOMAP) && PRF_FLAGGED(loaded, PRF_DISPHP);
   free_char(loaded);
   loaded = new_char();
+
+  /* Restoring defaults revokes consent, even with MSP already negotiated. */
+  descriptor.pProtocol->bMSP = true;
+  do_oasis_prefedit(source, "", 0, 0);
+  prefedit_parse(&descriptor, "d");
+  defaults_muted = !IS_SET_AR(OLC_PREFS(&descriptor)->pref_flags, PRF_SOUND);
+  prefedit_parse(&descriptor, "d");
+  defaults_idempotent = !IS_SET_AR(OLC_PREFS(&descriptor)->pref_flags, PRF_SOUND);
+  prefedit_parse(&descriptor, "q");
+  prefedit_parse(&descriptor, "y");
+  defaults_result = load_char(name, loaded);
+  defaults_saved = descriptor.olc == NULL && !PRF_FLAGGED(loaded, PRF_SOUND) &&
+                   PRF_FLAGGED(loaded, PRF_SCREEN_READER) && descriptor.pProtocol->bMSP &&
+                   !SoundEnabled(&descriptor) &&
+                   !strcmp(ProtocolOutput(&descriptor, "\t!SOUND(luminari-test.wav)", NULL), "");
+  free_char(loaded);
+  loaded = new_char();
+
   legacy_file = fopen(filename, "w");
   CuAssertPtrNotNull(tc, legacy_file);
   fprintf(legacy_file, "Name: %s\nId  : 4251\nLevl: 7\n", name);
@@ -5083,6 +5109,7 @@ void Test_gameplay_output_preferences_persist_and_failed_changes_roll_back(CuTes
   CuAssertIntEquals(tc, 0, leave_player_fixture(directory, temporary_directory));
 
   /* Exercise the actual checked-save failure without touching another player. */
+  SET_BIT_AR(PRF_FLAGS(source), PRF_SOUND);
   CuAssertPtrNotNull(tc, mkdtemp(failure_directory));
   CuAssertIntEquals(tc, 0, chdir(failure_directory));
   do_screenreader(source, off, 0, 0);
@@ -5106,11 +5133,16 @@ void Test_gameplay_output_preferences_persist_and_failed_changes_roll_back(CuTes
   CuAssertTrue(tc, restored_reader);
   CuAssertTrue(tc, restored_sound);
   CuAssertTrue(tc, retained_map);
+  CuAssertTrue(tc, defaults_muted);
+  CuAssertTrue(tc, defaults_idempotent);
+  CuAssertIntEquals(tc, 0, defaults_result);
+  CuAssertTrue(tc, defaults_saved);
   CuAssertTrue(tc, failure_restored);
   CuAssertIntEquals(tc, 0, legacy_result);
   CuAssertTrue(tc, legacy_defaults);
 }
 
+/** Suppress gameplay prompts while preserving telnet delimiters and pager/editor instructions. */
 void Test_gameplay_screen_reader_hides_actual_prompts_but_keeps_input_instructions(CuTest *tc)
 {
   struct gameplay_fixture fixture;
@@ -5156,6 +5188,7 @@ void Test_gameplay_screen_reader_hides_actual_prompts_but_keeps_input_instructio
   CuAssertTrue(tc, editor_visible);
 }
 
+/** Compare reader-mode room output with mapless output using the real room renderer. */
 static void verify_screen_reader_room_text(CuTest *tc, bool wilderness)
 {
   struct gameplay_fixture fixture;
@@ -5205,16 +5238,19 @@ static void verify_screen_reader_room_text(CuTest *tc, bool wilderness)
   CuAssertTrue(tc, same_text);
 }
 
+/** Keep ordinary room descriptions identical to explicit mapless output in reader mode. */
 void Test_gameplay_screen_reader_room_output_matches_mapless_description(CuTest *tc)
 {
   verify_screen_reader_room_text(tc, false);
 }
 
+/** Keep wilderness descriptions identical to explicit mapless output in reader mode. */
 void Test_gameplay_screen_reader_wilderness_output_matches_mapless_description(CuTest *tc)
 {
   verify_screen_reader_room_text(tc, true);
 }
 
+/** Edit consent independently of MSP and restore live preferences after a failed save. */
 void Test_gameplay_prefedit_sound_keeps_capability_and_rolls_back_failed_save(CuTest *tc)
 {
   struct gameplay_fixture fixture;

@@ -8294,6 +8294,7 @@ ACMD(do_screenreader)
                enabled ? "on" : "off");
 }
 
+/** Report or save sound consent; test playback only when the client negotiated MSP. */
 ACMD(do_sound)
 {
   bool enabled;
@@ -8374,6 +8375,7 @@ bool is_prompt_empty(struct char_data *ch)
   return prompt_is_empty;
 }
 
+/** Update the underlying prompt fields, including clearing every field for prompt none. */
 ACMD(do_display)
 {
   size_t i;

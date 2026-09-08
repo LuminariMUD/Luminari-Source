@@ -33,6 +33,7 @@ apply help_race_half_ogre_entries.sql
 apply help_race_myconid_entries.sql
 apply help_race_wemic_entries.sql
 apply help_race_yuan_ti_entries.sql
+apply help_screen_reader_msp.sql
 apply help_semantic_combat_entries.sql
 apply help_staff_event_agenda_entry.sql
 apply help_trelux_equipment_entries.sql

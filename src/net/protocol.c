@@ -1002,6 +1002,7 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
   return (ssize_t)CopyLength;
 }
 
+/** Encode display markup and strip sound triggers that bypass consent or trusted syntax. */
 const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *apLength)
 {
   static char Result[MAX_OUTPUT_BUFFER + 1];
@@ -2118,6 +2119,7 @@ bool_t SoundEnabled(descriptor_t *apDescriptor)
          PRF_FLAGGED(apDescriptor->character, PRF_SOUND);
 }
 
+/** Queue a trusted, bounded MSP cue only for a consenting player with negotiated MSP. */
 protocol_error_t SoundSend(descriptor_t *apDescriptor, const char *apTrigger)
 {
   protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;

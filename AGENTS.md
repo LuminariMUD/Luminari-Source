@@ -5,7 +5,7 @@ never print or modify credentials.
 
 ## Critical Rules
 
-- The MUD game port is 4100 only, including local development. Do not start or configure a different game port based on historical notes or handoff summaries. Use `MUD_PORT=4100 ./autorun.sh`.
+- The MUD game port is 4100 only, including local development. Do not start or configure a different game port based on historical notes or handoff summaries. Use `MUD_PORT=4100 ./scripts/autorun/autorun.sh`.
 
 - NEVER attribute AI (Claude or anybody else) in commits or anywhere else.
 - NEVER modify `src/campaign.h`, `src/mud_options.h`, `src/vnums.h` - they are local, customized configuration (gitignored). Edit the `.example.h` templates instead if a template change is needed. Only copy `.example.h` -> `.h` on a fresh clone where the real headers do not exist yet.
