@@ -7,6 +7,13 @@ Source investigation: `5d95d355822c91e7c0a1deaf6fc38f1adbadd26a`.
 
 ## Implementation log
 
+- 2026-09-08 recovery: corrected a persistence-test isolation bug that overwrote
+  the real development player index. Database account links remained present.
+  Rebuilt 6,303 index entries from existing local character files, verified the
+  dedicated account login, and reran 1,269 tests with the development index hash
+  unchanged. All five affected fixtures now clean up their own filesystem writes.
+  See the acceptance report for the incident and the limits of file recovery.
+
 - 2026-09-08: User clarified completion scope: ensure all code changes are in
   place, without blocking on real-client testing or runtime cleanup. Verified
   implementation and regression commits `09d144587` and `fe53ec808` are published
@@ -35,7 +42,7 @@ Source investigation: `5d95d355822c91e7c0a1deaf6fc38f1adbadd26a`.
 - Updated both local development database entries and flat help, and verified exact
   text parity for SCREEN-READER and SOUND. Added an additive SQL migration and
   updated protocol/onboarding documentation. The pre-change local help backup is
-  `/tmp/luminari-screen-reader-help-before.json`; production was not accessed.
+  `log/screen-reader-help-before.json`; production was not accessed.
 - Validation: `make test` passed 1,269 production-linked tests and configured
   auxiliary checks (eight opt-in database cases skipped), followed by `make install`.
   The final incremental CuTest rerun also passed 1,269 tests. The focused protocol

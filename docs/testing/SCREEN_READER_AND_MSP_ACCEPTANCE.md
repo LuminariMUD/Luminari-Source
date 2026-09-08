@@ -55,19 +55,37 @@ Runtime implementation revision was `09d144587` (clean), ELF build ID
   helper copy skipped only that fixture preflight after verifying autorun was
   already listening; account authentication and creation were exercised normally.
 
-## Final runtime limitation
+## Player-index incident and recovery
 
-After the recorded successful probes, the managed listener on the former development port disappeared
-while another local process attempted server startup on 4100. A later optional
-help smoke invoked the existing helper's automatic development service startup,
-then failed to find the synthetic character in its account menu. This later
-check is not a pass. The task-started development login service was no longer loaded when cleanup
-attempted to stop it.
-Concurrent changes now explicitly require game port 4100 only. Further server changes and synthetic-character cleanup
-are paused pending coordination with the other local session. The synthetic
-`Accessprobe` and `Accessrecs` files remain; `Accessprobe` was temporarily promoted
-to level 31 for copyover testing. Restore or remove only these task fixtures after
-coordination. No final installed/running revision match is claimed.
+The earlier empty account-menu symptom was misdiagnosed during validation.
+The new output-preference persistence test changed into the real development
+`lib` directory while substituting a one-character in-memory player table.
+`save_char_checked()` subsequently saved that table as `lib/plrfiles/index`,
+replacing the real index. Four older persistence fixtures used the same unsafe
+pattern. Passing assertions did not establish safe test isolation.
+
+On 2026-09-08, investigation confirmed that Mosheh's 48 database character links
+remained present, but the index contained only one synthetic test name. Of those
+48 links, 15 had local player files. The cause of the other 33 absent files has
+not been established; index recovery does not restore missing player files.
+
+Stopped local autorun, preserved the damaged index, and reconstructed 6,303 index
+entries from existing player files whose names occur in the development database.
+Retained file IDs, levels, last-login timestamps, clan values, and deletion,
+no-delete and wizlist flag semantics. No database rows or player files were
+modified by index reconstruction. Restarted using `MUD_PORT=4100 ./autorun.sh`.
+The dedicated development account successfully selected Kohdee, entered the world,
+and logged out. All 15 available Mosheh player files are indexed again.
+
+All five fixtures now perform real player/index saves in self-cleaning filesystem
+fixtures instead of the development `lib` directory. This adds no database or
+server environment. The corrected suite passed 1,269 tests, the real development
+index SHA-256 remained unchanged throughout the run, and no fixture directories
+remained. Live account testing continues to use the existing dedicated account
+and development database. The damaged index is retained at `log/player-index-before-recovery` and the
+corrected suite log at `log/player-index-isolation-tests.log`. Keep that recovery
+evidence until the
+user has confirmed their local characters are accessible.
 
 ## Follow-up client validation and release
 
@@ -91,5 +109,5 @@ was deployed. The SQL help artifact is `sql/components/help_screen_reader_msp.sq
 Deployment is separate. Before release, record the accepted revision and client
 results and deploy matching binary, sound assets and help. Rollback uses the
 previous binary and reviewed help restoration; the development pre-change help
-backup is `/tmp/luminari-screen-reader-help-before.json`. Retain appended flag
+backup is `log/screen-reader-help-before.json`. Retain appended flag
 identifiers 87/88 for their assigned meanings; do not reuse them for other features.

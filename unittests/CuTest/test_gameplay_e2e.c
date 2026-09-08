@@ -65,9 +65,32 @@
 #include <string.h>
 #include <unistd.h>
 
+/* Real player saves also write the index: keep every persistence fixture isolated. */
+static void enter_player_fixture(CuTest *tc, char *temporary_directory)
+{
+  CuAssertPtrNotNull(tc, mkdtemp(temporary_directory));
+  CuAssertIntEquals(tc, 0, chdir(temporary_directory));
+  CuAssertIntEquals(tc, 0, mkdir("plrfiles", 0700));
+  CuAssertIntEquals(tc, 0, mkdir("plrfiles/U-Z", 0700));
+}
+
+static int leave_player_fixture(const char *directory, const char *temporary_directory)
+{
+  int result;
+
+  unlink("plrfiles/index");
+  rmdir("plrfiles/U-Z");
+  rmdir("plrfiles");
+  result = chdir(directory);
+  if (result == 0)
+    rmdir(temporary_directory);
+  return result;
+}
+
 static void verify_gameplay_charge_load(CuTest *tc, unsigned int format, int elapsed, int charisma,
                                         int interval, const char *expected)
 {
+  char temporary_directory[] = "/tmp/luminari-player-fixture-XXXXXX";
   struct player_index_element index[1] = {0};
   struct player_index_element *saved_table = player_table;
   int saved_top = top_of_p_table;
@@ -87,7 +110,7 @@ static void verify_gameplay_charge_load(CuTest *tc, unsigned int format, int ela
   player_table = index;
   top_of_p_table = 0;
   CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
-  CuAssertIntEquals(tc, 0, chdir("lib"));
+  enter_player_fixture(tc, temporary_directory);
   CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
   file = fopen(filename, "w");
   CuAssertPtrNotNull(tc, file);
@@ -105,7 +128,7 @@ static void verify_gameplay_charge_load(CuTest *tc, unsigned int format, int ela
   if (event != NULL)
     restored = event->sVariables != NULL && !strcmp(event->sVariables, expected);
   unlink(filename);
-  CuAssertIntEquals(tc, 0, chdir(directory));
+  CuAssertIntEquals(tc, 0, leave_player_fixture(directory, temporary_directory));
   free_char(loaded);
   event_free_all();
   pulse = saved_pulse;
@@ -128,6 +151,7 @@ void Test_gameplay_load_recovers_charges_at_saved_equipped_cadence(CuTest *tc)
 
 void Test_gameplay_save_captures_charge_cadence_before_unequipping(CuTest *tc)
 {
+  char temporary_directory[] = "/tmp/luminari-player-fixture-XXXXXX";
   struct player_index_element index[1] = {0};
   struct player_index_element *saved_table = player_table;
   int saved_top = top_of_p_table;
@@ -169,7 +193,7 @@ void Test_gameplay_save_captures_charge_cadence_before_unequipping(CuTest *tc)
   attach_mud_event(new_mud_event(eCHANNELENERGY, ch, "uses:3"), PASSES_PER_SEC);
 
   CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
-  CuAssertIntEquals(tc, 0, chdir("lib"));
+  enter_player_fixture(tc, temporary_directory);
   CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
   saved = save_char_checked(ch, 0);
   file = fopen(filename, "r");
@@ -183,7 +207,7 @@ void Test_gameplay_save_captures_charge_cadence_before_unequipping(CuTest *tc)
     fclose(file);
   }
   unlink(filename);
-  CuAssertIntEquals(tc, 0, chdir(directory));
+  CuAssertIntEquals(tc, 0, leave_player_fixture(directory, temporary_directory));
   unequip_char(ch, WEAR_NECK_1);
   extract_obj(item);
   free_char(ch);
@@ -2680,6 +2704,7 @@ void Test_gameplay_transport_rejects_a_recycled_destination(CuTest *tc)
 
 void Test_gameplay_transport_loads_a_versioned_stable_destination(CuTest *tc)
 {
+  char temporary_directory[] = "/tmp/luminari-player-fixture-XXXXXX";
   struct player_index_element index[1] = {0};
   struct player_index_element *saved_table = player_table;
   int saved_top = top_of_p_table;
@@ -2696,7 +2721,7 @@ void Test_gameplay_transport_loads_a_versioned_stable_destination(CuTest *tc)
   player_table = index;
   top_of_p_table = 0;
   CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
-  CuAssertIntEquals(tc, 0, chdir("lib"));
+  enter_player_fixture(tc, temporary_directory);
   CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
   file = fopen(filename, "w");
   CuAssertPtrNotNull(tc, file);
@@ -2718,7 +2743,7 @@ void Test_gameplay_transport_loads_a_versioned_stable_destination(CuTest *tc)
     fclose(file);
   }
   unlink(filename);
-  directory_restored = chdir(directory);
+  directory_restored = leave_player_fixture(directory, temporary_directory);
   free_char(loaded);
   player_table = saved_table;
   top_of_p_table = saved_top;
@@ -4087,6 +4112,7 @@ void Test_gameplay_defensive_casting_combat_departure_preserves_residual_interva
 
 static void verify_tactical_clock_persistence(CuTest *tc, int format, bool bleeding)
 {
+  char temporary_directory[] = "/tmp/luminari-player-fixture-XXXXXX";
   struct player_index_element index[1] = {0};
   struct player_index_element *saved_table = player_table;
   int saved_top = top_of_p_table;
@@ -4124,7 +4150,7 @@ static void verify_tactical_clock_persistence(CuTest *tc, int format, bool bleed
     source->player_specials->saved.defensive_casting_pulses = 17;
   }
   CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
-  CuAssertIntEquals(tc, 0, chdir("lib"));
+  enter_player_fixture(tc, temporary_directory);
   CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
   if (format == 1)
     CuAssertTrue(tc, save_char_checked(source, 0));
@@ -4142,7 +4168,7 @@ static void verify_tactical_clock_persistence(CuTest *tc, int format, bool bleed
   timer = bleeding ? (loaded->affected != NULL ? loaded->affected->duration : 0)
                    : GET_DEFENSIVE_CASTING_TIMER(loaded);
   unlink(filename);
-  CuAssertIntEquals(tc, 0, chdir(directory));
+  CuAssertIntEquals(tc, 0, leave_player_fixture(directory, temporary_directory));
   free_char(source);
   free_char(loaded);
   player_table = saved_table;
@@ -5004,6 +5030,7 @@ void Test_gameplay_search_commits_after_owned_work_and_cancels_on_movement(CuTes
 
 void Test_gameplay_output_preferences_persist_and_failed_changes_roll_back(CuTest *tc)
 {
+  char temporary_directory[] = "/tmp/luminari-player-fixture-XXXXXX";
   struct player_index_element index[1] = {0};
   struct player_index_element *saved_table = player_table;
   int saved_top = top_of_p_table;
@@ -5036,7 +5063,7 @@ void Test_gameplay_output_preferences_persist_and_failed_changes_roll_back(CuTes
   SET_BIT_AR(PRF_FLAGS(source), PRF_AUTOMAP);
   SET_BIT_AR(PRF_FLAGS(source), PRF_DISPHP);
   CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
-  CuAssertIntEquals(tc, 0, chdir("lib"));
+  enter_player_fixture(tc, temporary_directory);
   CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
   do_screenreader(source, on, 0, 0);
   do_sound(source, on, 0, 0);
@@ -5053,7 +5080,7 @@ void Test_gameplay_output_preferences_persist_and_failed_changes_roll_back(CuTes
   legacy_result = load_char(name, loaded);
   legacy_defaults = !PRF_FLAGGED(loaded, PRF_SCREEN_READER) && !PRF_FLAGGED(loaded, PRF_SOUND);
   unlink(filename);
-  CuAssertIntEquals(tc, 0, chdir(directory));
+  CuAssertIntEquals(tc, 0, leave_player_fixture(directory, temporary_directory));
 
   /* Exercise the actual checked-save failure without touching another player. */
   CuAssertPtrNotNull(tc, mkdtemp(failure_directory));
