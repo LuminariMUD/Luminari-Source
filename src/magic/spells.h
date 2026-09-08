@@ -2105,6 +2105,7 @@ bool can_spell_be_extended(int spellnum);
 
 /* magic.c */
 bool isSummonMob(int vnum);
+bool is_shambler_summon(int vnum);
 
 sbyte isHighElfCantrip(struct char_data *ch, int spellnum);
 sbyte isLunarMagic(struct char_data *ch, int spellnum);

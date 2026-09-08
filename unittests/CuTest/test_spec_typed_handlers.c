@@ -232,7 +232,7 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
     return;
 
   CuAssertIntEquals(tc, 21, (int)spec_registry_typed_count());
-  CuAssertIntEquals(tc, 98, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 99, (int)spec_registry_legacy_count());
   CuAssertPtrEquals(tc, NULL, (void *)bank_definition->legacy_handler);
   CuAssertPtrEquals(tc, NULL, (void *)cloak_definition->legacy_handler);
   CuAssertPtrNotNull(tc, (void *)bank_definition->typed_handler);

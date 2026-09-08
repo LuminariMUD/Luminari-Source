@@ -229,6 +229,7 @@ void guard_check(struct char_data *ch, struct char_data *vict)
 {
   struct char_data *tch;
   struct char_data *next_tch;
+  bool pet_guard;
 
   if (!ch || !vict)
     return;
@@ -243,7 +244,8 @@ void guard_check(struct char_data *ch, struct char_data *vict)
       continue;
     if (tch == ch || tch == vict)
       continue;
-    if (IS_NPC(tch))
+    pet_guard = pet_guards_owner(tch, vict, ch);
+    if (IS_NPC(tch) && !pet_guard)
       continue;
     if (GET_POS(tch) < POS_FIGHTING)
       continue;
@@ -254,7 +256,7 @@ void guard_check(struct char_data *ch, struct char_data *vict)
       continue;
 
     /* vict = guarded individual, tch = guard */
-    if (GUARDING(tch) == vict)
+    if (GUARDING(tch) == vict || pet_guard)
     {
       /* This MUST be changed.  Skills are obsolete.
          Set to a flat 70% chance for now. */
@@ -2472,6 +2474,8 @@ static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
   }
 
   /* handle pets */
+  if (!IS_NPC(ch) && ch->followers)
+    pet_store_surviving_followers(ch);
   if (ch->followers || ch->master) // handle followers
     die_follower(ch);
   save_char_pets(ch);
@@ -17492,6 +17496,8 @@ void perform_violence(struct char_data *ch, int phase)
           continue;
         if (!IS_NPC(tch) && !PRF_FLAGGED(tch, PRF_AUTOASSIST))
           continue;
+        if (!pet_assists_automatically(tch, ch))
+          continue;
         if (IN_ROOM(ch) != IN_ROOM(tch))
           continue;
         if (FIGHTING(tch))
@@ -17509,7 +17515,8 @@ void perform_violence(struct char_data *ch, int phase)
     // your charmee, even if not grouped, should assist
     for (charmee = world[IN_ROOM(ch)].people; charmee; charmee = charmee->next_in_room)
       if (AFF_FLAGGED(charmee, AFF_CHARM) && charmee->master == ch && !FIGHTING(charmee) &&
-          GET_POS(charmee) == POS_STANDING && CAN_SEE(charmee, ch))
+          GET_POS(charmee) == POS_STANDING && CAN_SEE(charmee, ch) &&
+          pet_assists_automatically(charmee, ch))
         perform_assist(charmee, ch);
     PERF_PROF_EXIT(combat_assist_fanout);
   }

@@ -19,6 +19,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
+#include "mudlim.h"
 #include "magic/spells.h"
 #include "screen.h"
 #include "pfdefaults.h"
@@ -68,6 +69,7 @@
 /* Phase 7: Cascade system integration */
 #ifdef WILDERNESS_RESOURCE_DEPLETION_SYSTEM
 /* #include "wilderness/resource_cascade.h" */ /* Phase 7: Ecological cascade system - disabled for simple implementation */
+
 #endif
 
 /* prototypes of local functions */
@@ -10764,7 +10766,77 @@ ACMD(do_armorinfo)
 /* interface to see your npc army! */
 ACMD(do_pets)
 {
-  check_npc_followers(ch, NPC_MODE_DISPLAY, 0);
+  char target[MAX_INPUT_LENGTH], mode[MAX_INPUT_LENGTH];
+  struct char_data *pet;
+  int behavior, changed = 0;
+  bool group;
+  const char *remainder, *reason;
+
+  remainder = two_arguments(argument, target, sizeof(target), mode, sizeof(mode));
+  if (!*target)
+  {
+    check_npc_followers(ch, NPC_MODE_DISPLAY, 0);
+    if (!IS_NPC(ch) && ch->pet_roster_load_state == PET_ROSTER_LOAD_FAILED)
+      send_to_char(ch, "Some of your saved pets could not be restored. They are still held; "
+                       "use 'pets restore' to try again.\r\n");
+    return;
+  }
+  /* One bounded retry of a failed restore. Saved rows are retained meanwhile,
+   * and pets already published are skipped instead of being recreated. */
+  if (!IS_NPC(ch) && is_abbrev(target, "restore") && !*mode)
+  {
+    if (ch->pet_roster_load_state != PET_ROSTER_LOAD_FAILED)
+    {
+      send_to_char(ch, "Your saved pets are not waiting on a failed restore.\r\n");
+      return;
+    }
+    ch->pet_roster_load_state = PET_ROSTER_UNLOADED;
+    load_char_pets(ch);
+    if (ch->pet_roster_load_state == PET_ROSTER_LOADED)
+      send_to_char(ch, "Your saved pets were restored.\r\n");
+    else
+      send_to_char(ch, "Your saved pets still could not be restored, and are retained.\r\n");
+    return;
+  }
+  if (!str_cmp(mode, "name"))
+  {
+    skip_spaces_c(&remainder);
+    pet = get_pet_command_target(ch, target);
+    if (!pet_set_custom_name(ch, pet, remainder, &reason))
+      send_to_char(ch, "%s\r\n", reason);
+    else
+      send_to_char(ch, "Your pet is now named %s.\r\n", GET_NAME(pet));
+    return;
+  }
+  for (behavior = 0; behavior < NUM_PET_BEHAVIORS; behavior++)
+    if (*mode && is_abbrev(mode, pet_behavior_name(behavior)))
+      break;
+  if (behavior == NUM_PET_BEHAVIORS)
+  {
+    send_to_char(ch, "Usage: pets <pet|followers> <follow|wait|passive|assist|guard>\r\n"
+                     "       pets <pet|#id> name <name>\r\n");
+    return;
+  }
+  if (world == NULL || IN_ROOM(ch) == NOWHERE || IN_ROOM(ch) > top_of_world)
+    return;
+  group = !str_cmp(target, "followers");
+  pet = group ? world[IN_ROOM(ch)].people : get_pet_command_target(ch, target);
+  for (; pet != NULL; pet = group ? pet->next_in_room : NULL)
+  {
+    if (!pet_order_check(ch, pet))
+      continue;
+    pet->pet_behavior = behavior;
+    changed++;
+  }
+  if (changed == 0)
+  {
+    send_to_char(ch, "No loyal pet here can accept that behavior.\r\n");
+    return;
+  }
+  send_to_char(ch, "%d pet%s now set to %s.\r\n", changed, changed == 1 ? "" : "s",
+               pet_behavior_name(behavior));
+  if (!IS_NPC(ch) && !save_char_pets(ch))
+    send_to_char(ch, "The behavior is active, but could not be saved. Try 'save' again later.\r\n");
 }
 
 /* brief display on left side of mobile indicating their toughness */

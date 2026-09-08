@@ -1380,6 +1380,10 @@ void perform_rescue(struct char_data *ch, struct char_data *vict)
     return;
   }
 
+  /* Rescue chooses its opponent independently of the owner's current target. */
+  if (IS_PET(ch) && ch->pet_behavior == PET_BEHAVIOR_GUARD && !pet_guards_owner(ch, vict, tmp_ch))
+    return;
+
   if (attack_roll(ch, vict, ATTACK_TYPE_PRIMARY, FALSE, 1) <= 0)
   {
     send_to_char(ch, "You fail the rescue!\r\n");
@@ -5022,134 +5026,118 @@ ACMD(do_backstab)
   perform_backstab(ch, vict);
 }
 
-/* set this up for lots of redundancy checking due to really annoying crashs issue */
+/* Recheck a selected pet after any earlier order may have changed the world. */
 bool pet_order_check(struct char_data *ch, struct char_data *vict)
 {
-  if (ch && vict && IS_NPC(vict) && vict->master && vict->master == ch &&
-      AFF_FLAGGED(vict, AFF_CHARM) && GET_HIT(vict) >= -9 && GET_POS(vict) > POS_MORTALLYW &&
-      IN_ROOM(ch) != NOWHERE && IN_ROOM(vict) != NOWHERE)
-  {
-    return TRUE;
-  }
-
-  return FALSE;
+  return ch != NULL && vict != NULL && IS_NPC(vict) && vict->master == ch &&
+         AFF_FLAGGED(vict, AFF_CHARM) && !MOB_FLAGGED(vict, MOB_NOTDEADYET) &&
+         !AFF_FLAGGED(ch, AFF_CHARM) && GET_POS(ch) >= POS_RECLINING &&
+         (IS_NPC(ch) ? !MOB_FLAGGED(ch, MOB_NOTDEADYET) : !PLR_FLAGGED(ch, PLR_NOTDEADYET)) &&
+         GET_HIT(vict) > 0 && GET_POS(vict) > POS_STUNNED && IN_ROOM(ch) != NOWHERE &&
+         IN_ROOM(vict) == IN_ROOM(ch);
 }
 
-/* pet order command */
+/* Native orders retain command dispatch, but never retain callback-owned pointers. */
 ACMD(do_order)
 {
-  char name[MAX_INPUT_LENGTH] = {'\0'}, message[MAX_INPUT_LENGTH] = {'\0'};
-  bool found = FALSE;
-  struct char_data *vict = NULL, *next_vict = NULL;
+  char name[MAX_INPUT_LENGTH], message[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH];
+  struct char_data *vict, *pet;
+  struct domain_entity_handle owner, *targets;
+  size_t count, index;
+  bool found = false;
 
+  if (ch == NULL || world == NULL || IN_ROOM(ch) == NOWHERE || IN_ROOM(ch) > top_of_world)
+    return;
   half_chop_c(argument, name, sizeof(name), message, sizeof(message));
-
   if (!*name || !*message)
-    send_to_char(ch, "Order who to do what?\r\n");
-  else if (!(vict = get_char_vis(ch, name, NULL, FIND_CHAR_ROOM)) && !is_abbrev(name, "followers"))
-    send_to_char(ch, "That person isn't here.\r\n");
-  else if (ch == vict)
-    send_to_char(ch, "Why order yourself?\r\n");
-  else
   {
-    if (AFF_FLAGGED(ch, AFF_CHARM))
+    send_to_char(ch, "Order who to do what?\r\n");
+    return;
+  }
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+  {
+    send_to_char(ch, "Your superior would not approve of you giving orders.\r\n");
+    return;
+  }
+
+  /* Parse numbered keywords once; the player-first lookup consumes the prefix. */
+  vict = get_pet_command_target(ch, name);
+  if (vict != NULL)
+  {
+    if (!pet_order_check(ch, vict))
     {
-      send_to_char(ch, "Your superior would not approve of you giving orders.\r\n");
+      send_to_char(ch, "That is not a loyal pet you can order here.\r\n");
       return;
     }
-    if (vict && ch)
+    count = 1;
+  }
+  else
+  {
+    if (!is_abbrev(name, "followers"))
     {
-      char buf[MAX_STRING_LENGTH] = {'\0'};
-
-      snprintf(buf, sizeof(buf), "$N orders you to '%s'", message);
-      act(buf, FALSE, vict, 0, ch, TO_CHAR);
-      act("$n gives $N an order.", FALSE, ch, 0, vict, TO_ROOM);
-
-      if ((vict->master != ch) || !AFF_FLAGGED(vict, AFF_CHARM))
-        act("$n has an indifferent look.", FALSE, vict, 0, 0, TO_ROOM);
-      else
-      {
-        send_to_char(ch, "%s", CONFIG_OK);
-        command_interpreter(vict, message);
-      }
-
-      /* use a move action here -zusuk */
-      USE_SWIFT_ACTION(ch);
+      send_to_char(ch, "That person isn't here.\r\n");
+      return;
+    }
+    count = 0;
+    for (pet = world[IN_ROOM(ch)].people; pet != NULL; pet = pet->next_in_room)
+      if (pet_order_check(ch, pet))
+        count++;
+    if (count == 0)
+    {
+      send_to_char(ch, "Nobody here is a loyal subject of yours!\r\n");
+      return;
+    }
+  }
+  if (!is_action_available(ch, atSWIFT, TRUE))
+    return;
+  targets = calloc(count, sizeof(*targets));
+  if (targets == NULL)
+  {
+    log("SYSERR: Unable to allocate pet order targets");
+    send_to_char(ch, "You cannot organize those orders right now.\r\n");
+    return;
+  }
+  owner = domain_event_character_handle(ch);
+  if (vict != NULL)
+    targets[0] = domain_event_character_handle(vict);
+  else
+  {
+    index = 0;
+    for (pet = world[IN_ROOM(ch)].people; pet != NULL; pet = pet->next_in_room)
+      if (pet_order_check(ch, pet))
+        targets[index++] = domain_event_character_handle(pet);
+  }
+  for (index = 0; index < count; index++)
+    if (!domain_entity_handle_is_valid(owner) || !domain_entity_handle_is_valid(targets[index]))
+    {
+      free(targets);
+      send_to_char(ch, "You cannot organize those orders right now.\r\n");
+      return;
     }
 
-    else if (ch) /* This is order "followers" */
+  snprintf(buf, sizeof(buf), "$n commands, '%s'.", message);
+  act(buf, FALSE, ch, 0, 0, TO_ROOM);
+  ch = domain_event_world_resolve_character(owner);
+  if (ch != NULL)
+  {
+    /* Spend the owner action before callbacks can issue another group order. */
+    USE_SWIFT_ACTION(ch);
+    for (index = 0; index < count; index++)
     {
-      char buf[MAX_STRING_LENGTH] = {'\0'};
-      struct list_data *room_list = NULL;
-
-      snprintf(buf, sizeof(buf), "$n commands, '%s'.", message);
-      act(buf, FALSE, ch, 0, 0, TO_ROOM);
-
-      /* When using a list, we have to make sure to allocate the list as it
-       * uses dynamic memory */
-      room_list = create_list();
-
-      /* first build our list using a lot of silly checks due to crash issues */
-      for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
-      {
-        next_vict = vict->next_in_room;
-
-        if (pet_order_check(ch, vict))
-        {
-          add_to_list(vict, room_list);
-        }
-      }
-
-      /* If our list is empty or has "0" entries, we free it from memory and
-       * bail from this function */
-      if (room_list->iSize == 0)
-      {
-        free_list(room_list);
-        send_to_char(ch, "Nobody here is a loyal subject of yours!\r\n");
-        return;
-      }
-
-      /* resetting the variable, really isn't actually necessary :) */
-      vict = NULL;
-
-      /* Beginner's Note: Reset simple_list iterator before use to prevent
-       * cross-contamination from previous iterations. Without this reset,
-       * if simple_list was used elsewhere and not completed, it would
-       * continue from where it left off instead of starting fresh. */
-      simple_list(NULL);
-
-      /* SHOULD have a clean nice list, now lets loop through it with redundancy
-         due to our silly crash issues from earlier */
-      while ((vict = (struct char_data *)simple_list(room_list)) != NULL)
-      {
-        if (pet_order_check(ch, vict))
-        {
-          found = TRUE;
-          /* here is what we came here to accomplish... */
-          command_interpreter(vict, message);
-        }
-      }
-
-      /* made it! */
-      if (found)
-      {
-        USE_SWIFT_ACTION(ch);
-        send_to_char(ch, "%s", CONFIG_OK);
-      }
-      else
-      {
-        /* it shouldn't be possible to get here, but regardless... */
-        send_to_char(ch, "Nobody here is a loyal subject of yours!\r\n");
-      }
-
-      /* Now that our order is done, let's free out list */
-      if (room_list)
-        free_list(room_list);
-    } /* end order all followers */
-
-  } /* end order */
-
-  /* all done! */
+      ch = domain_event_world_resolve_character(owner);
+      pet = domain_event_world_resolve_character(targets[index]);
+      if (ch == NULL)
+        break;
+      if (!pet_order_check(ch, pet))
+        continue;
+      found = true;
+      command_interpreter(pet, message);
+    }
+    ch = domain_event_world_resolve_character(owner);
+    if (ch != NULL && found)
+      send_to_char(ch, "%s", CONFIG_OK);
+  }
+  free(targets);
 }
 
 ACMD(do_flee)

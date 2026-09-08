@@ -41,6 +41,7 @@ static const char *const spec_mobile_names[] = {
     "Player Shop",
     "Postmaster",
     "Practice Dummy",
+    "Pet Keeper",
     "Questmaster",
     "Receptionist",
     "Temple Healer",
@@ -409,7 +410,7 @@ void Test_spec_owner_olc_selection_parser_is_strict_and_bounded(CuTest *tc)
     return;
   CuAssertStrEquals(tc, "Bank", definition->canonical_name);
 
-  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "18", &definition);
+  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "19", &definition);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_DEFINITION, result);
   CuAssertPtrNotNull(tc, definition);
   if (definition == NULL)

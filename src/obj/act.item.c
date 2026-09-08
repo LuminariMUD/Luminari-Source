@@ -4922,6 +4922,118 @@ ACMD(do_priceset)
   }
 }
 
+/* The unseen servant is a noncombat utility conjuration.  Beyond the carrying
+ * capacity its affect already grants, it handles items for the caster: it
+ * fetches from the room past the caster's own item count and stows things in
+ * carried containers.  It never acts in combat and never fights. */
+ACMD(do_servant)
+{
+  char subcommand[MAX_INPUT_LENGTH];
+  char target[MAX_INPUT_LENGTH];
+  char container_name[MAX_INPUT_LENGTH];
+  struct obj_data *obj;
+  struct obj_data *container;
+  int capacity;
+
+  if (IS_NPC(ch))
+    return;
+  if (!affected_by_spell(ch, SPELL_UNSEEN_SERVANT))
+  {
+    send_to_char(ch, "No unseen servant attends you.\r\n");
+    return;
+  }
+
+  half_chop_c(argument, subcommand, sizeof(subcommand), target, sizeof(target));
+  capacity = MAX(0, get_char_affect_modifier(ch, SPELL_UNSEEN_SERVANT, APPLY_SPECIAL));
+
+  if (!*subcommand)
+  {
+    send_to_char(ch, "Your unseen servant attends you, able to bear %d more pounds for you.\r\n",
+                 capacity);
+    send_to_char(ch, "Usage: servant get <item> | servant put <item> <container>\r\n");
+    return;
+  }
+
+  if (FIGHTING(ch))
+  {
+    send_to_char(ch, "Your unseen servant shrinks from the fighting.\r\n");
+    return;
+  }
+
+  if (is_abbrev(subcommand, "get"))
+  {
+    if (!*target)
+    {
+      send_to_char(ch, "Have your servant fetch what?\r\n");
+      return;
+    }
+    obj = get_obj_in_list_vis(ch, target, NULL, world[IN_ROOM(ch)].contents);
+    if (!obj)
+    {
+      send_to_char(ch, "You do not see that here.\r\n");
+      return;
+    }
+    if (!CAN_WEAR(obj, ITEM_WEAR_TAKE))
+    {
+      act("Your unseen servant cannot lift $p.", FALSE, ch, obj, 0, TO_CHAR);
+      return;
+    }
+    if (IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj) > CAN_CARRY_W(ch))
+    {
+      act("$p is more than your unseen servant can bear for you.", FALSE, ch, obj, 0, TO_CHAR);
+      return;
+    }
+    if (!get_otrigger(obj, ch))
+      return;
+    obj_from_room(obj);
+    obj_to_char(obj, ch);
+    act("Your unseen servant fetches $p and places it in your keeping.", FALSE, ch, obj, 0,
+        TO_CHAR);
+    act("An unseen presence lifts $p and carries it to $n.", TRUE, ch, obj, 0, TO_ROOM);
+    get_check_money(ch, obj);
+    return;
+  }
+
+  if (is_abbrev(subcommand, "put"))
+  {
+    half_chop_c(target, subcommand, sizeof(subcommand), container_name, sizeof(container_name));
+    if (!*subcommand || !*container_name)
+    {
+      send_to_char(ch, "Usage: servant put <item> <container>\r\n");
+      return;
+    }
+    obj = get_obj_in_list_vis(ch, subcommand, NULL, ch->carrying);
+    if (!obj)
+    {
+      send_to_char(ch, "You are not carrying that.\r\n");
+      return;
+    }
+    container = get_obj_in_list_vis(ch, container_name, NULL, ch->carrying);
+    if (!container)
+      container = get_obj_in_list_vis(ch, container_name, NULL, world[IN_ROOM(ch)].contents);
+    if (!container)
+    {
+      send_to_char(ch, "You do not see that container.\r\n");
+      return;
+    }
+    if (GET_OBJ_TYPE(container) != ITEM_CONTAINER)
+    {
+      act("$P is not a container.", FALSE, ch, obj, container, TO_CHAR);
+      return;
+    }
+    if (obj == container)
+    {
+      send_to_char(ch, "Your unseen servant will not attempt that.\r\n");
+      return;
+    }
+    act("Your unseen servant stows $p in $P.", FALSE, ch, obj, container, TO_CHAR);
+    perform_put(ch, obj, container);
+    return;
+  }
+
+  send_to_char(ch, "Usage: servant get <item> | servant put <item> <container>\r\n");
+}
+
 ACMD(do_grab)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};

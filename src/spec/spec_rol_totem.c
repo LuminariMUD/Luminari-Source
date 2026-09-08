@@ -12,6 +12,7 @@
 #include "act.h"
 #include "comm.h"
 #include "db.h"
+#include "domain_event_world.h"
 #include "dgscript/dg_scripts.h"
 #include "handler.h"
 #include "interpreter.h"
@@ -185,7 +186,7 @@ static bool rol_totem_is_held(const struct obj_data *obj, const struct char_data
   }
 }
 
-static void rol_totem_summon(struct char_data *ch, const struct rol_totem_definition *totem)
+static bool rol_totem_summon(struct char_data *ch, const struct rol_totem_definition *totem)
 {
   struct char_data *mob;
   int cleric_level;
@@ -194,7 +195,7 @@ static void rol_totem_summon(struct char_data *ch, const struct rol_totem_defini
   {
     log("SYSERR: RoL shaman totem mobile %d is unavailable", totem->target_vnum);
     send_to_char(ch, "Your spirit cannot answer. Please tell a staff member.\r\n");
-    return;
+    return false;
   }
 
   cleric_level = CLASS_LEVEL(ch, CLASS_CLERIC);
@@ -214,11 +215,11 @@ static void rol_totem_summon(struct char_data *ch, const struct rol_totem_defini
     Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
   }
 
-  char_to_room(mob, IN_ROOM(ch));
-  load_mtrigger(mob);
-  add_follower(mob, ch);
+  if (!place_pet_follower(ch, mob))
+    return false;
   send_to_char(ch, "You feel the presence of an otherworldly being enter the room.\r\n");
-  act("$n coalesces before you.", TRUE, mob, NULL, NULL, TO_ROOM);
+  finish_pet_summon(ch, mob, true, false);
+  return true;
 }
 
 int rol_shaman_totem(struct char_data *ch, void *me, int cmd, const char *argument)
@@ -226,6 +227,8 @@ int rol_shaman_totem(struct char_data *ch, void *me, int cmd, const char *argume
   struct obj_data *obj = me;
   const struct rol_totem_definition *totem;
   int chance;
+  int old_uses, old_window;
+  struct domain_entity_handle owner;
 
   if (cmd == 0 && argument != NULL && !str_cmp(argument, "identify"))
   {
@@ -237,6 +240,8 @@ int rol_shaman_totem(struct char_data *ch, void *me, int cmd, const char *argume
 
   if (ch == NULL || obj == NULL || !CMD_IS("use") || !rol_totem_is_held(obj, ch))
     return FALSE;
+  if (!VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return TRUE;
 
   if ((totem = rol_totem_by_vnum(GET_OBJ_VNUM(obj))) == NULL)
     return FALSE;
@@ -301,6 +306,11 @@ int rol_shaman_totem(struct char_data *ch, void *me, int cmd, const char *argume
   }
 
   send_to_char(ch, "You pray to your spirit totem for aid.\r\n");
+  owner = domain_event_character_handle(ch);
+  if (!domain_entity_handle_is_valid(owner))
+    return TRUE;
+  old_uses = GET_ROL_TOTEM_USES(ch);
+  old_window = GET_ROL_TOTEM_WINDOW(ch);
   if (!rol_shaman_totem_consume_weekly_use(ch, time(NULL)))
   {
     send_to_char(ch, "You may only summon three totems every seven MUD days!\r\n");
@@ -314,7 +324,15 @@ int rol_shaman_totem(struct char_data *ch, void *me, int cmd, const char *argume
     return TRUE;
   }
 
-  rol_totem_summon(ch, totem);
+  if (!rol_totem_summon(ch, totem))
+  {
+    ch = domain_event_world_resolve_character(owner);
+    if (ch != NULL)
+    {
+      GET_ROL_TOTEM_USES(ch) = old_uses;
+      GET_ROL_TOTEM_WINDOW(ch) = old_window;
+    }
+  }
   return TRUE;
 }
 

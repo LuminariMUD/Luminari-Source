@@ -7399,6 +7399,32 @@ struct oldNextMove
   room_num moveRoom;
 };
 
+/* A failed or unfinished restore must never authorize snapshot replacement. */
+enum pet_roster_load_state
+{
+  PET_ROSTER_UNLOADED,
+  PET_ROSTER_LOADED,
+  PET_ROSTER_LOAD_FAILED
+};
+
+/* Saved pets are either following their owner or held at a keeper.  Stored rows
+ * survive ordinary active snapshots so an owner can reclaim the same pet. */
+enum pet_row_state
+{
+  PET_STATE_ACTIVE = 0,
+  PET_STATE_STORED = 1
+};
+
+enum pet_behavior
+{
+  PET_BEHAVIOR_FOLLOW, /* Native following and automatic assistance. */
+  PET_BEHAVIOR_WAIT,
+  PET_BEHAVIOR_PASSIVE,
+  PET_BEHAVIOR_ASSIST,
+  PET_BEHAVIOR_GUARD,
+  NUM_PET_BEHAVIORS
+};
+
 /** Master structure for PCs and NPCs. */
 struct char_data
 {
@@ -7476,8 +7502,12 @@ struct char_data
   struct char_data *next;          /**< Next char_data in the room */
   struct char_data *next_fighting; /**< Next in line to fight */
 
-  struct follow_type *followers; /**< List of characters following */
-  struct char_data *master;      /**< List of character being followed */
+  struct follow_type *followers;                    /**< List of characters following */
+  struct char_data *master;                         /**< List of character being followed */
+  enum pet_roster_load_state pet_roster_load_state; /**< Runtime snapshot replacement guard. */
+  int pet_source_spell; /**< Acquisition spell; zero for legacy/non-spell followers. */
+  enum pet_behavior pet_behavior;
+  long pet_data_id; /**< Stable native pet row ID; zero until the first committed snapshot. */
 
   struct group_data *group; /**< Character's Group */
 

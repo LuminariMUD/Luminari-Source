@@ -4745,7 +4745,13 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   struct char_data *mob;
   zone_rnum origin_zone;
   enum perf_entity_reason reason;
+  bool invalid_index;
 
+  if (mob_proto == NULL || mob_index == NULL || top_of_mobt == NOBODY)
+  {
+    log("SYSERR: Cannot create a mobile before prototypes are available");
+    return NULL;
+  }
   if (type == VIRTUAL)
   {
     if ((i = real_mobile(nr)) == NOBODY)
@@ -4762,10 +4768,20 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   else
     i = nr;
 
+  invalid_index = i == NOBODY || i > top_of_mobt;
+#if !CIRCLE_UNSIGNED_INDEX
+  invalid_index = invalid_index || i < 0;
+#endif
+  if (invalid_index)
+  {
+    log("SYSERR: Cannot create mobile with invalid real index %" PRI_IDX, i);
+    return NULL;
+  }
   CREATE(mob, struct char_data, 1);
   clear_char(mob);
 
   *mob = mob_proto[i];
+  mob->pet_data_id = 0;
   mob->combat_turn_serial = 0U;
   mob->bleeding_critical_event = EVENT_RUNTIME_HANDLE_NONE;
   mob->phenomenon_interest_event = EVENT_RUNTIME_HANDLE_NONE;

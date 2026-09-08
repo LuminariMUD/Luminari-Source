@@ -563,7 +563,7 @@ static bool enter_transport_paid(struct char_data *ch, int locale, int type, int
     if (passenger == NULL ||
         !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(passenger)), transit))
       continue;
-    char_pets_to_char_loc(passenger);
+    char_pets_to_char_loc(passenger, false);
     passenger = domain_event_world_resolve_character(passengers[i]);
     if (passenger == NULL ||
         !domain_entity_handle_equal(domain_event_room_handle(IN_ROOM(passenger)), transit))

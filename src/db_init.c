@@ -125,8 +125,13 @@ void init_core_player_tables(void)
                                 "wis INT NOT NULL, "
                                 "cha INT NOT NULL, "
                                 "runtime_state LONGTEXT DEFAULT NULL, "
+                                "owner_id INT UNSIGNED NOT NULL DEFAULT 0, "
+                                "pet_state TINYINT NOT NULL DEFAULT 0, "
+                                "owner_created BIGINT NOT NULL DEFAULT 0, "
                                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-                                "INDEX idx_pet_owner (owner_name)"
+                                "INDEX idx_pet_owner (owner_name), "
+                                "INDEX idx_pet_owner_binding (owner_id, owner_created), "
+                                "INDEX idx_pet_owner_state (owner_name, pet_state)"
                                 ") ENGINE=InnoDB";
 
   if (mysql_query_safe(conn, create_pet_data))
@@ -1703,6 +1708,29 @@ int run_pet_persistence_migrations(void)
   if (!apply_migration(2026080504, "Promote pet object identifier to primary key",
                        "ALTER TABLE pet_save_objs "
                        "ADD PRIMARY KEY IF NOT EXISTS (idnum)"))
+    return FALSE;
+
+  /* Legacy rows keep owner_id 0 so an existing owner still adopts them once. */
+  if (!apply_migration(2026080505, "Bind saved pets to their pfile owner",
+                       "ALTER TABLE pet_data "
+                       "ADD COLUMN IF NOT EXISTS owner_id INT UNSIGNED NOT NULL DEFAULT 0 "
+                       "AFTER runtime_state, "
+                       "ADD COLUMN IF NOT EXISTS owner_created BIGINT NOT NULL DEFAULT 0 "
+                       "AFTER owner_id, "
+                       "ADD INDEX IF NOT EXISTS idx_pet_owner_binding (owner_id, owner_created)"))
+    return FALSE;
+
+  /* Stored rows stay out of play until an owner reclaims them at a keeper. */
+  if (!apply_migration(2026080506, "Add pet keeper storage state",
+                       "ALTER TABLE pet_data "
+                       "ADD COLUMN IF NOT EXISTS pet_state TINYINT NOT NULL DEFAULT 0 "
+                       "AFTER owner_created, "
+                       "ADD INDEX IF NOT EXISTS idx_pet_owner_state (owner_name, pet_state)"))
+    return FALSE;
+
+  if (!apply_migration(2026090801, "Match pet owner IDs to player IDs",
+                       "ALTER TABLE pet_data "
+                       "MODIFY COLUMN owner_id INT UNSIGNED NOT NULL DEFAULT 0"))
     return FALSE;
 
   return TRUE;

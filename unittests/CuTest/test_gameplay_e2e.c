@@ -39,6 +39,7 @@
 #include "../../src/quest/staff_event_agenda.h"
 #include "../../src/vessels/routing.h"
 #include "../../src/handler.h"
+#include "../../src/obj/vendor.h"
 #include "../../src/interpreter.h"
 #include "../../src/mob/mob_utils.h"
 #include "../../src/mob/phenomenon_response.h"
@@ -54,9 +55,14 @@
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
 #include "../../src/character/feats.h"
+#include "../../src/character/backgrounds.h"
+#include "../../src/combat/spec_abilities.h"
 #include "../../src/spec/spec_binding.h"
+#include "../../src/spec/spec_mobile_archetypes.h"
+#include "../../src/spec/spec_mobiles.h"
 #include "../../src/mud_event.h"
 #include "../../src/mudlim.h"
+#include "../../src/mysql.h"
 #include "../../src/dgscript/dg_event.h"
 
 #include <limits.h>
@@ -222,6 +228,80 @@ void Test_gameplay_save_captures_charge_cadence_before_unequipping(CuTest *tc)
   CuAssertTrue(tc, saved);
   CuAssertIntEquals(tc, 20, equipped_charisma);
   CuAssertTrue(tc, saved_cadence == (SECS_PER_MUD_DAY / 8) * PASSES_PER_SEC);
+}
+
+/* Copyover uses this same mode-zero pfile save and native load path. */
+void Test_gameplay_pet_cooldowns_survive_character_save_and_load(CuTest *tc)
+{
+  const event_id types[] = {eMUMMYDUST,  eDRAGONKNIGHT, eC_ANIMAL,     eC_DRAGONMOUNT,
+                            eC_FAMILIAR, eC_MOUNT,      eSUMMONSHADOW, eC_EIDOLON};
+  struct player_index_element index[1] = {0};
+  struct player_index_element *saved_table = player_table;
+  int saved_top = top_of_p_table;
+  struct char_data *ch = new_char();
+  struct char_data *loaded = new_char();
+  struct mud_event_data *event;
+  const struct mud_event_persistence_policy *policy;
+  char directory[PATH_MAX], filename[MAX_FILEPATH], name[32];
+  unsigned long saved_pulse = pulse;
+  size_t i;
+  long remaining;
+  bool saved, retained = true;
+  int result;
+
+  snprintf(name, sizeof(name), "Zzpetcd%ld", (long)getpid());
+  index[0].name = name;
+  index[0].id = 4247;
+  index[0].level = 7;
+  player_table = index;
+  top_of_p_table = 0;
+  ch->player.name = strdup(name);
+  GET_PFILEPOS(ch) = 0;
+  GET_IDNUM(ch) = 4247;
+  GET_LEVEL(ch) = 7;
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  for (i = 0; i < sizeof(types) / sizeof(types[0]); i++)
+  {
+    policy = mud_event_persistence_policy(types[i]);
+    attach_mud_event(
+        new_mud_event(types[i], ch,
+                      policy->payload_policy == MUD_EVENT_PAYLOAD_USES ? "uses:1" : NULL),
+        300 * PASSES_PER_SEC);
+  }
+  CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
+  CuAssertIntEquals(tc, 0, chdir("lib"));
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
+  saved = save_char_checked(ch, 0);
+  free_char(ch);
+  event_free_all();
+  event_init();
+  result = load_char(name, loaded);
+  for (i = 0; i < sizeof(types) / sizeof(types[0]); i++)
+  {
+    event = char_has_mud_event(loaded, types[i]);
+    if (event == NULL)
+    {
+      retained = false;
+      continue;
+    }
+    remaining = mud_event_remaining(event);
+    retained = retained && remaining > 0 && remaining <= 300 * PASSES_PER_SEC;
+    policy = mud_event_persistence_policy(types[i]);
+    if (policy->payload_policy == MUD_EVENT_PAYLOAD_USES)
+      retained = retained && event->sVariables != NULL && !strcmp(event->sVariables, "uses:1");
+  }
+  unlink(filename);
+  CuAssertIntEquals(tc, 0, chdir(directory));
+  free_char(loaded);
+  event_free_all();
+  pulse = saved_pulse;
+  player_table = saved_table;
+  top_of_p_table = saved_top;
+  CuAssertTrue(tc, saved);
+  CuAssertIntEquals(tc, 0, result);
+  CuAssertTrue(tc, retained);
 }
 
 struct gameplay_fixture
@@ -1078,6 +1158,556 @@ void Test_gameplay_e2e_movement_changes_room(CuTest *tc)
   CuAssertIntEquals(tc, 1, destination);
 }
 
+void Test_gameplay_pet_wait_holds_position_until_explicit_recall(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct follow_type link = {0};
+  struct char_data *saved_characters = character_list;
+  bool waited, automatic, recalled, followed;
+
+  begin_gameplay_fixture(&fixture);
+  fixture.actor.player.name = (char *)"owner";
+  fixture.victim.player.name = (char *)"companion";
+  fixture.victim.master = &fixture.actor;
+  SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+  link.follower = &fixture.victim;
+  fixture.actor.followers = &link;
+  character_list = &fixture.victim;
+
+  do_pets(&fixture.actor, "companion wait", 0, 0);
+  waited = perform_move(&fixture.actor, NORTH, FALSE) == 1 && IN_ROOM(&fixture.victim) == 0;
+  automatic = !char_pets_to_char_loc(&fixture.actor, false) && IN_ROOM(&fixture.victim) == 0;
+  recalled = char_pets_to_char_loc(&fixture.actor, true) && IN_ROOM(&fixture.victim) == 1;
+  do_pets(&fixture.actor, "followers passive", 0, 0);
+  followed = perform_move(&fixture.actor, SOUTH, FALSE) == 1 && IN_ROOM(&fixture.victim) == 0 &&
+             !pet_assists_automatically(&fixture.victim, &fixture.actor);
+
+  fixture.actor.followers = NULL;
+  fixture.victim.master = NULL;
+  character_list = saved_characters;
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, waited);
+  CuAssertTrue(tc, automatic);
+  CuAssertTrue(tc, recalled);
+  CuAssertTrue(tc, followed);
+}
+
+void Test_gameplay_dg_single_target_teleport_moves_the_targets_pets(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct char_data pet;
+  struct char_data *saved_characters = character_list;
+  bool moved;
+
+  begin_gameplay_fixture(&fixture);
+  initialize_test_npc(&pet, "target companion", 0);
+  fixture.actor.player.name = (char *)"teleporter";
+  fixture.victim.player.name = (char *)"target";
+  pet.player.name = (char *)"companion";
+  pet.master = &fixture.victim;
+  SET_BIT_AR(AFF_FLAGS(&pet), AFF_CHARM);
+  fixture.victim.next_in_room = &pet;
+  fixture.actor.next = &fixture.victim;
+  fixture.victim.next = &pet;
+  character_list = &fixture.actor;
+
+  do_mteleport(&fixture.actor, "target 101", 0, 0);
+  moved = IN_ROOM(&fixture.victim) == 1 && IN_ROOM(&pet) == 1 && IN_ROOM(&fixture.actor) == 0;
+
+  pet.master = NULL;
+  fixture.actor.next = NULL;
+  fixture.victim.next = NULL;
+  character_list = saved_characters;
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  domain_event_world_forget_character(&pet);
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, moved);
+}
+
+void Test_gameplay_pet_ids_select_identical_names_without_bypassing_range_or_ownership(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct char_data other;
+  bool selected, denied;
+  char target[96];
+  const char *invalid[] = {"#",   "#0",      "#-2",
+                           "#+2", "#22tail", "#99999999999999999999999999999999999999"};
+  size_t i;
+
+  begin_gameplay_fixture(&fixture);
+  initialize_test_npc(&other, "other companion", 0);
+  other.player.name = fixture.victim.player.name = (char *)"companion";
+  fixture.victim.next_in_room = &other;
+  fixture.victim.master = other.master = &fixture.actor;
+  fixture.victim.pet_data_id = 21;
+  other.pet_data_id = 22;
+  SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+  SET_BIT_AR(AFF_FLAGS(&other), AFF_CHARM);
+  do_pets(&fixture.actor, "#22 wait", 0, 0);
+  selected =
+      other.pet_behavior == PET_BEHAVIOR_WAIT && fixture.victim.pet_behavior == PET_BEHAVIOR_FOLLOW;
+  snprintf(target, sizeof(target), "#21");
+  selected = selected && get_pet_command_target(&fixture.actor, target) == &fixture.victim;
+  denied = true;
+  for (i = 0; i < sizeof(invalid) / sizeof(invalid[0]); i++)
+  {
+    snprintf(target, sizeof(target), "%s", invalid[i]);
+    denied = denied && get_pet_command_target(&fixture.actor, target) == NULL;
+  }
+  snprintf(target, sizeof(target), "#22");
+  other.master = &fixture.victim;
+  denied = denied && get_pet_command_target(&fixture.actor, target) == NULL;
+  other.master = &fixture.actor;
+  IN_ROOM(&other) = 1;
+  denied = denied && get_pet_command_target(&fixture.actor, target) == NULL;
+  IN_ROOM(&other) = 0;
+  SET_BIT_AR(MOB_FLAGS(&other), MOB_NOTDEADYET);
+  denied = denied && get_pet_command_target(&fixture.actor, target) == NULL;
+  REMOVE_BIT_AR(MOB_FLAGS(&other), MOB_NOTDEADYET);
+  REMOVE_BIT_AR(AFF_FLAGS(&other), AFF_CHARM);
+  do_pets(&fixture.actor, "#22 guard", 0, 0);
+  denied = denied && other.pet_behavior == PET_BEHAVIOR_WAIT;
+  fixture.victim.master = other.master = NULL;
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  domain_event_world_forget_character(&other);
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, selected);
+  CuAssertTrue(tc, denied);
+}
+
+void Test_gameplay_pet_behavior_selection_preserves_ownership_and_control(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct char_data other;
+  bool numbered, group, denied, assist;
+
+  begin_gameplay_fixture(&fixture);
+  initialize_test_npc(&other, "other companion", 0);
+  other.player.name = (char *)"companion";
+  fixture.victim.player.name = (char *)"companion";
+  fixture.victim.next_in_room = &other;
+  fixture.victim.master = &fixture.actor;
+  other.master = &fixture.actor;
+  SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+  SET_BIT_AR(AFF_FLAGS(&other), AFF_CHARM);
+
+  do_pets(&fixture.actor, "2.companion wait", 0, 0);
+  numbered =
+      other.pet_behavior == PET_BEHAVIOR_WAIT && fixture.victim.pet_behavior == PET_BEHAVIOR_FOLLOW;
+  do_pets(&fixture.actor, "followers assist", 0, 0);
+  group = other.pet_behavior == PET_BEHAVIOR_ASSIST &&
+          fixture.victim.pet_behavior == PET_BEHAVIOR_ASSIST;
+  assist = pet_assists_automatically(&other, &fixture.actor) &&
+           !pet_assists_automatically(&other, &fixture.victim);
+  other.master = &fixture.victim;
+  do_pets(&fixture.actor, "2.companion guard", 0, 0);
+  denied = other.pet_behavior == PET_BEHAVIOR_ASSIST;
+  SET_BIT_AR(AFF_FLAGS(&fixture.actor), AFF_CHARM);
+  do_pets(&fixture.actor, "followers passive", 0, 0);
+  denied = denied && fixture.victim.pet_behavior == PET_BEHAVIOR_ASSIST;
+
+  fixture.victim.master = NULL;
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  domain_event_world_forget_character(&other);
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, numbered);
+  CuAssertTrue(tc, group);
+  CuAssertTrue(tc, denied);
+  CuAssertTrue(tc, assist);
+}
+
+void Test_gameplay_pet_guard_obeys_rescue_preference_and_owner_boundary(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct char_data pet;
+  struct player_special_data specials = {0};
+  unsigned long rescue_seed;
+  bool allowed, disabled, wrong_owner, passive, pending, elemental_policy;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player_specials = &specials;
+  initialize_test_npc(&pet, "guard", 0);
+  pet.master = &fixture.actor;
+  SET_BIT_AR(AFF_FLAGS(&pet), AFF_CHARM);
+  pet.pet_behavior = PET_BEHAVIOR_GUARD;
+  allowed = pet_guards_owner(&pet, &fixture.actor, &fixture.victim);
+  SET_BIT_AR(PRF_FLAGS(&fixture.actor), PRF_NO_CHARMIE_RESCUE);
+  disabled = !pet_guards_owner(&pet, &fixture.actor, &fixture.victim);
+  REMOVE_BIT_AR(PRF_FLAGS(&fixture.actor), PRF_NO_CHARMIE_RESCUE);
+  wrong_owner = !pet_guards_owner(&pet, &fixture.victim, &fixture.actor);
+  pet.pet_behavior = PET_BEHAVIOR_PASSIVE;
+  passive = !npc_rescue(&pet) && !pet_guards_owner(&pet, &fixture.actor, &fixture.victim);
+  FIGHTING(&fixture.victim) = &fixture.actor;
+  for (rescue_seed = 1; rescue_seed < 100; rescue_seed++)
+  {
+    circle_srandom(rescue_seed);
+    if (rand_number(0, 1) == 0)
+      break;
+  }
+  circle_srandom(rescue_seed);
+  elemental_policy = !solid_elemental(&pet, NULL, 0, "");
+  pet.pet_behavior = PET_BEHAVIOR_WAIT;
+  circle_srandom(rescue_seed);
+  elemental_policy = elemental_policy && !wraith_elemental(&pet, NULL, 0, "");
+  FIGHTING(&fixture.victim) = NULL;
+  circle_srandom((unsigned long)time(NULL));
+  pet.pet_behavior = PET_BEHAVIOR_GUARD;
+  SET_BIT_AR(MOB_FLAGS(&pet), MOB_NOTDEADYET);
+  pending = !pet_guards_owner(&pet, &fixture.actor, &fixture.victim);
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, allowed);
+  CuAssertTrue(tc, disabled);
+  CuAssertTrue(tc, wrong_owner);
+  CuAssertTrue(tc, passive);
+  CuAssertTrue(tc, elemental_policy);
+  CuAssertTrue(tc, pending);
+}
+
+static void verify_golem_completion_resources(CuTest *tc, int mode)
+{
+  struct gameplay_fixture fixture;
+  struct char_data *ch = &fixture.actor;
+  struct player_special_data specials = {0};
+  struct follow_type existing = {0};
+  struct char_data prototype, *golem;
+  struct char_data *saved_prototypes = mob_proto;
+  struct char_data *saved_characters = character_list;
+  int i, wood, bronze, mote;
+  bool created, reset;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player.name = (char *)"constructor";
+  fixture.actor.player_specials = &specials;
+  fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(&fixture.actor) = -1;
+  GET_CRAFT(ch).golem_type = GOLEM_TYPE_WOOD;
+  GET_CRAFT(ch).golem_size = GOLEM_SIZE_SMALL;
+  GET_CRAFT(ch).golem_materials[0][0] = CRAFT_MAT_MAPLE_WOOD;
+  GET_CRAFT(ch).dc = mode == 1 ? 10000 : -10000;
+  GET_CRAFT_MAT(ch, CRAFT_MAT_MAPLE_WOOD) = 100;
+  GET_CRAFT_MAT(ch, CRAFT_MAT_BRONZE) = 100;
+  for (i = 1; i < NUM_CRAFT_MOTES; i++)
+    GET_CRAFT_MOTES(ch, i) = 100;
+  if (mode == 3)
+    GET_CRAFT_MOTES(ch, 1) = 0;
+  initialize_test_npc(&prototype, "wood golem", NOWHERE);
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  prototype.player.name = (char *)"golem";
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
+  GET_REAL_MAX_MOVE(&prototype) = 100;
+  fixture.mobile_index[0].vnum = GOLEM_WOOD_SMALL;
+  mob_proto = mode == 2 ? NULL : &prototype;
+  /* A golem has its own allowance even when the general slot is occupied. */
+  existing.follower = &fixture.victim;
+  fixture.actor.followers = &existing;
+  fixture.victim.master = &fixture.actor;
+  SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+  GET_MOB_RNUM(&fixture.victim) = 0;
+  if (mode == 4)
+    SET_BIT_AR(MOB_FLAGS(&fixture.victim), MOB_GOLEM);
+
+  craft_golem_complete(&fixture.actor);
+  golem = fixture.actor.followers != NULL ? fixture.actor.followers->follower : NULL;
+  if (golem == &fixture.victim)
+    golem = NULL;
+  created = golem != NULL && MOB_FLAGGED(golem, MOB_GOLEM) && IS_PET(golem) &&
+            GET_REAL_RACE(golem) == RACE_TYPE_CONSTRUCT && IN_ROOM(golem) == 0;
+  wood = GET_CRAFT_MAT(ch, CRAFT_MAT_MAPLE_WOOD);
+  bronze = GET_CRAFT_MAT(ch, CRAFT_MAT_BRONZE);
+  mote = GET_CRAFT_MOTES(ch, 1);
+  reset = GET_CRAFT(ch).golem_type == GOLEM_TYPE_NONE;
+  if (golem != NULL)
+  {
+    extract_char(golem);
+    extract_pending_chars();
+  }
+  character_list = saved_characters;
+  fixture.actor.followers = NULL;
+  fixture.victim.master = NULL;
+  mob_proto = saved_prototypes;
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  end_gameplay_fixture(&fixture);
+
+  CuAssertIntEquals(tc, mode == 0, created);
+  CuAssertIntEquals(tc, mode <= 1 ? 50 : 100, wood);
+  CuAssertIntEquals(tc, mode <= 1 ? 90 : 100, bronze);
+  CuAssertTrue(tc, mode == 3 ? mote == 0 : mode <= 1 ? mote < 100 : mote == 100);
+  CuAssertTrue(tc, reset);
+}
+
+void Test_gameplay_golem_completion_consumes_selected_resources_after_creation(CuTest *tc)
+{
+  verify_golem_completion_resources(tc, 0);
+}
+
+void Test_gameplay_failed_golem_ritual_consumes_selected_wood(CuTest *tc)
+{
+  verify_golem_completion_resources(tc, 1);
+}
+
+void Test_gameplay_missing_golem_prototype_retains_resources(CuTest *tc)
+{
+  verify_golem_completion_resources(tc, 2);
+}
+
+void Test_gameplay_golem_completion_rechecks_motes_before_consumption(CuTest *tc)
+{
+  verify_golem_completion_resources(tc, 3);
+}
+
+void Test_gameplay_existing_golem_denies_completion_without_spending(CuTest *tc)
+{
+  verify_golem_completion_resources(tc, 4);
+}
+
+void Test_gameplay_companion_creation_sets_bond_and_preserves_failed_call_cooldown(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct char_data prototype, *pet;
+  struct char_data *saved_prototypes = mob_proto;
+  struct char_data *saved_characters = character_list;
+  bool failed, bonded, recalled;
+
+  begin_gameplay_fixture(&fixture);
+  event_free_all();
+  event_init();
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player.name = (char *)"caller";
+  fixture.actor.player_specials = &specials;
+  fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(&fixture.actor) = -1;
+  GET_FAMILIAR(&fixture.actor) = MOB_DIRE_BADGER;
+  fixture.mobile_index[0].vnum = MOB_DIRE_BADGER;
+  mob_proto = NULL;
+  perform_call(&fixture.actor, MOB_C_FAMILIAR, 10);
+  failed =
+      fixture.actor.followers == NULL && char_has_mud_event(&fixture.actor, eC_FAMILIAR) == NULL;
+  initialize_test_npc(&prototype, "familiar", NOWHERE);
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  prototype.player.name = (char *)"familiar";
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
+  GET_REAL_MAX_MOVE(&prototype) = 100;
+  mob_proto = &prototype;
+  perform_call(&fixture.actor, MOB_C_FAMILIAR, 10);
+  pet = fixture.actor.followers != NULL ? fixture.actor.followers->follower : NULL;
+  bonded = pet != NULL && MOB_FLAGGED(pet, MOB_C_FAMILIAR) && IS_PET(pet) &&
+           char_has_mud_event(&fixture.actor, eC_FAMILIAR) != NULL;
+  recalled = false;
+  if (pet != NULL)
+  {
+    char_from_room(pet);
+    char_to_room(pet, 1);
+    perform_call(&fixture.actor, MOB_C_FAMILIAR, 10);
+    recalled = IN_ROOM(pet) == 0 && fixture.actor.followers->next == NULL;
+    extract_char(pet);
+    extract_pending_chars();
+  }
+  clear_char_event_list(&fixture.actor);
+  if (fixture.actor.events != NULL)
+    free_list(fixture.actor.events);
+  fixture.actor.events = NULL;
+  event_free_all();
+  character_list = saved_characters;
+  mob_proto = saved_prototypes;
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, failed);
+  CuAssertTrue(tc, bonded);
+  CuAssertTrue(tc, recalled);
+}
+
+static void verify_item_pet_acquisition(CuTest *tc, bool horn)
+{
+  struct gameplay_fixture fixture;
+  struct char_data prototype, *pet;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  struct obj_data *item;
+  struct obj_special_ability ability = {0};
+  int kind = horn ? ITEM_SPECAB_HORN_OF_SUMMONING : ITEM_SPECAB_ITEM_SUMMON;
+  int failed_uses, acquired_uses, repeated_uses;
+  bool acquired;
+
+  begin_gameplay_fixture(&fixture);
+  event_free_all();
+  event_init();
+  initialize_special_abilities();
+  item = create_obj();
+  ability.value[0] = RETAINER_MOB_VNUM;
+  fixture.mobile_index[0].vnum = RETAINER_MOB_VNUM;
+  mob_proto = NULL;
+  if (horn)
+    item_specab_horn_of_summoning(&ability, item, &fixture.actor, NULL, ACTMTD_USE);
+  else
+    item_specab_item_summon(&ability, item, &fixture.actor, NULL, ACTMTD_USE);
+  failed_uses = daily_item_specab_uses_remaining(item, kind);
+
+  initialize_test_npc(&prototype, "summoned follower", NOWHERE);
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  prototype.player.name = (char *)"follower";
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
+  GET_REAL_MAX_MOVE(&prototype) = 100;
+  mob_proto = &prototype;
+  if (horn)
+    item_specab_horn_of_summoning(&ability, item, &fixture.actor, NULL, ACTMTD_USE);
+  else
+    item_specab_item_summon(&ability, item, &fixture.actor, NULL, ACTMTD_USE);
+  pet = fixture.actor.followers != NULL ? fixture.actor.followers->follower : NULL;
+  acquired = pet != NULL && IS_PET(pet) && IN_ROOM(pet) == 0;
+  acquired_uses = daily_item_specab_uses_remaining(item, kind);
+  if (horn)
+    item_specab_horn_of_summoning(&ability, item, &fixture.actor, NULL, ACTMTD_USE);
+  else
+    item_specab_item_summon(&ability, item, &fixture.actor, NULL, ACTMTD_USE);
+  repeated_uses = daily_item_specab_uses_remaining(item, kind);
+  if (pet != NULL)
+  {
+    extract_char(pet);
+    extract_pending_chars();
+  }
+  extract_obj(item);
+  event_free_all();
+  mob_proto = saved_proto;
+  character_list = saved_characters;
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, acquired);
+  CuAssertIntEquals(tc, 2, failed_uses);
+  CuAssertIntEquals(tc, 1, acquired_uses);
+  CuAssertIntEquals(tc, 1, repeated_uses);
+}
+
+void Test_gameplay_summoning_horn_accepts_room_zero_and_charges_only_success(CuTest *tc)
+{
+  verify_item_pet_acquisition(tc, true);
+}
+
+void Test_gameplay_summoning_item_accepts_room_zero_and_charges_only_success(CuTest *tc)
+{
+  verify_item_pet_acquisition(tc, false);
+}
+
+void Test_gameplay_retainer_call_preserves_cooldown_and_rejects_remote_duplicate(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct char_data prototype, *pet, *ch = &fixture.actor;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  bool failed, acquired, duplicate;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
+  ch->player_specials = &specials;
+  ch->player.name = (char *)"squire";
+  ch->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(ch) = -1;
+  GET_CHA(ch) = 18;
+  SET_FEAT(ch, FEAT_BG_SQUIRE, 1);
+  fixture.mobile_index[0].vnum = RETAINER_MOB_VNUM;
+  mob_proto = NULL;
+  do_retainer(ch, "call", 0, 0);
+  failed = ch->followers == NULL && GET_RETAINER_COOLDOWN(ch) == 0;
+  initialize_test_npc(&prototype, "retainer", NOWHERE);
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  prototype.player.name = (char *)"retainer";
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
+  GET_REAL_MAX_MOVE(&prototype) = 100;
+  mob_proto = &prototype;
+  do_retainer(ch, "call", 0, 0);
+  pet = ch->followers != NULL ? ch->followers->follower : NULL;
+  acquired = pet != NULL && IS_PET(pet) && GET_RETAINER_COOLDOWN(ch) == 100;
+  duplicate = false;
+  if (pet != NULL)
+  {
+    char_from_room(pet);
+    char_to_room(pet, 1);
+    GET_RETAINER_COOLDOWN(ch) = 0;
+    do_retainer(ch, "call", 0, 0);
+    duplicate = ch->followers->follower == pet && ch->followers->next == NULL &&
+                GET_RETAINER_COOLDOWN(ch) == 0;
+    extract_char(pet);
+    extract_pending_chars();
+  }
+  mob_proto = saved_proto;
+  character_list = saved_characters;
+  domain_event_world_forget_character(ch);
+  domain_event_world_forget_character(&fixture.victim);
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, failed);
+  CuAssertTrue(tc, acquired);
+  CuAssertTrue(tc, duplicate);
+}
+
+void Test_gameplay_innate_animation_sets_source_flag_and_retains_failed_use(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct char_data prototype, *pet, *ch = &fixture.actor;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  bool failed, acquired, duplicate;
+
+  begin_gameplay_fixture(&fixture);
+  event_free_all();
+  event_init();
+  REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
+  ch->player_specials = &specials;
+  ch->player.name = (char *)"animator";
+  ch->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(ch) = -1;
+  GET_LEVEL(ch) = 31;
+  SET_FEAT(ch, FEAT_ANIMATE_DEAD, 2);
+  fixture.mobile_index[0].vnum = MOB_MUMMY;
+  mob_proto = NULL;
+  do_animatedead(ch, "", 0, 0);
+  failed = ch->followers == NULL && char_has_mud_event(ch, eANIMATEDEAD) == NULL;
+  initialize_test_npc(&prototype, "animated mummy", NOWHERE);
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  prototype.player.name = (char *)"mummy";
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
+  GET_REAL_MAX_MOVE(&prototype) = 100;
+  mob_proto = &prototype;
+  do_animatedead(ch, "", 0, 0);
+  pet = ch->followers != NULL ? ch->followers->follower : NULL;
+  acquired = pet != NULL && MOB_FLAGGED(pet, MOB_ANIMATED_DEAD) &&
+             daily_uses_remaining(ch, FEAT_ANIMATE_DEAD) == 1;
+  do_animatedead(ch, "", 0, 0);
+  duplicate = pet != NULL && ch->followers->next == NULL &&
+              daily_uses_remaining(ch, FEAT_ANIMATE_DEAD) == 1;
+  if (pet != NULL)
+  {
+    extract_char(pet);
+    extract_pending_chars();
+  }
+  clear_char_event_list(ch);
+  if (ch->events != NULL)
+    free_list(ch->events);
+  ch->events = NULL;
+  event_free_all();
+  mob_proto = saved_proto;
+  character_list = saved_characters;
+  domain_event_world_forget_character(ch);
+  domain_event_world_forget_character(&fixture.victim);
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, failed);
+  CuAssertTrue(tc, acquired);
+  CuAssertTrue(tc, duplicate);
+}
+
 void Test_gameplay_e2e_movement_trail_statistics_follow_live_world(CuTest *tc)
 {
   struct gameplay_fixture fixture;
@@ -1182,6 +1812,398 @@ void Test_gameplay_e2e_command_dispatch_reaches_movement(CuTest *tc)
   end_gameplay_fixture(&fixture);
 
   CuAssertIntEquals(tc, 1, destination);
+}
+
+static struct char_data *pet_order_test_owner;
+static struct char_data *pet_order_test_other;
+static struct char_data *pet_order_test_last;
+static int pet_order_test_mode;
+static int pet_order_test_dispatches;
+
+/* Exercise callbacks through the real command table and interpreter. */
+ACMD(pet_order_test_command)
+{
+  pet_order_test_last = ch;
+  pet_order_test_dispatches++;
+  if (pet_order_test_dispatches != 1)
+    return;
+  if (pet_order_test_mode == 1)
+  {
+    extract_char(pet_order_test_other);
+    extract_pending_chars();
+    pet_order_test_other = NULL;
+  }
+  else if (pet_order_test_mode == 2)
+  {
+    char_from_room(pet_order_test_owner);
+    char_to_room(pet_order_test_owner, 1);
+  }
+  else if (pet_order_test_mode == 3)
+    REMOVE_BIT_AR(AFF_FLAGS(pet_order_test_other), AFF_CHARM);
+}
+
+static void verify_pet_group_orders(CuTest *tc, int mode, int expected)
+{
+  struct gameplay_fixture fixture;
+  struct char_data *saved_characters = character_list;
+  struct char_data *saved_prototypes = mob_proto;
+  struct char_data prototype;
+  struct command_info saved_command;
+  bool created_command_list, charged_once, selection = true;
+  int command, dispatched, repeated;
+
+  begin_gameplay_fixture(&fixture);
+  event_free_all();
+  event_init();
+  created_command_list = complete_cmd_info == NULL;
+  if (created_command_list)
+    create_command_list();
+  command = find_command("say");
+  saved_command = complete_cmd_info[command];
+  complete_cmd_info[command].command_pointer = pet_order_test_command;
+
+  fixture.actor.player.name = (char *)"owner";
+  fixture.victim.player.name = (char *)"companion";
+  SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+  fixture.victim.master = &fixture.actor;
+  pet_order_test_owner = &fixture.actor;
+  initialize_test_npc(&prototype, "another companion", NOWHERE);
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  prototype.player.name = (char *)"companion";
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = 100; /* Native prototype HP upper bound. */
+  GET_REAL_MAX_HIT(&prototype) = 100;
+  GET_REAL_MAX_MOVE(&prototype) = 100;
+  mob_proto = &prototype;
+  pet_order_test_other = read_mobile(0, REAL);
+  char_to_room(pet_order_test_other, 0);
+  add_follower(pet_order_test_other, &fixture.actor);
+  SET_BIT_AR(AFF_FLAGS(pet_order_test_other), AFF_CHARM);
+  /* The first pet's command changes a later candidate. */
+  fixture.rooms[0].people = &fixture.actor;
+  fixture.actor.next_in_room = &fixture.victim;
+  fixture.victim.next_in_room = pet_order_test_other;
+  pet_order_test_other->next_in_room = NULL;
+  pet_order_test_dispatches = 0;
+  pet_order_test_mode = mode;
+
+  do_order(&fixture.actor, "followers say ready", 0, 0);
+  dispatched = pet_order_test_dispatches;
+  charged_once = !is_action_available(&fixture.actor, atSWIFT, FALSE) &&
+                 complete_cmd_info[find_command("order")].actions_required == ACTION_SWIFT;
+  do_order(&fixture.actor, "followers say again", 0, 0);
+  repeated = pet_order_test_dispatches;
+
+  if (mode == 4 || mode == 5)
+  {
+    pet_order_test_other->pet_data_id = 902;
+    clear_char_event_list(&fixture.actor);
+    do_order(&fixture.actor, mode == 5 ? "#902 say selected" : "2.companion say selected", 0, 0);
+    selection =
+        pet_order_test_dispatches == expected + 1 && pet_order_test_last == pet_order_test_other;
+    clear_char_event_list(&fixture.actor);
+    REMOVE_BIT_AR(AFF_FLAGS(pet_order_test_other), AFF_CHARM);
+    do_order(&fixture.actor, mode == 5 ? "#902 say denied" : "2.companion say denied", 0, 0);
+    selection = selection && pet_order_test_dispatches == expected + 1 &&
+                is_action_available(&fixture.actor, atSWIFT, FALSE);
+  }
+
+  if (pet_order_test_other != NULL)
+  {
+    extract_char(pet_order_test_other);
+    extract_pending_chars();
+  }
+  character_list = saved_characters;
+  pet_order_test_other = NULL;
+  pet_order_test_last = NULL;
+  pet_order_test_owner = NULL;
+  fixture.victim.master = NULL;
+  clear_char_event_list(&fixture.actor);
+  if (fixture.actor.events != NULL)
+  {
+    free_list(fixture.actor.events);
+    fixture.actor.events = NULL;
+  }
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  complete_cmd_info[command] = saved_command;
+  if (created_command_list)
+    free_command_list();
+  event_free_all();
+  end_gameplay_fixture(&fixture);
+  mob_proto = saved_prototypes;
+
+  CuAssertIntEquals(tc, expected, dispatched);
+  CuAssertIntEquals(tc, expected, repeated);
+  CuAssertTrue(tc, charged_once);
+  CuAssertTrue(tc, selection);
+}
+
+void Test_gameplay_pet_group_order_uses_one_owner_action(CuTest *tc)
+{
+  verify_pet_group_orders(tc, 0, 2);
+}
+
+void Test_gameplay_pet_shop_unavailable_stock_preserves_payment(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct char_data prototype;
+  struct char_data *saved_proto = mob_proto;
+  bool created_commands, handled, invalid_index;
+  int remaining_gold;
+
+  begin_gameplay_fixture(&fixture);
+  created_commands = complete_cmd_info == NULL;
+  if (created_commands)
+    create_command_list();
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player_specials = &specials;
+  GET_GOLD(&fixture.actor) = 10000;
+  GET_CHA(&fixture.actor) = 10;
+  fixture.actor.next_in_room = NULL;
+  fixture.rooms[1].people = &fixture.victim;
+  IN_ROOM(&fixture.victim) = 1;
+  fixture.victim.player.name = "puppy";
+  GET_MOB_RNUM(&fixture.victim) = NOBODY;
+  initialize_test_npc(&prototype, "puppy", NOWHERE);
+  GET_MOB_RNUM(&prototype) = 0;
+  mob_proto = &prototype;
+  handled = pet_shops(&fixture.actor, NULL, find_command("buy"), "puppy");
+  remaining_gold = GET_GOLD(&fixture.actor);
+  invalid_index = read_mobile(NOBODY, REAL) == NULL && read_mobile((mob_vnum)-2, REAL) == NULL &&
+                  fixture.mobile_index[0].number == 0;
+  if (created_commands)
+    free_command_list();
+  end_gameplay_fixture(&fixture);
+  mob_proto = saved_proto;
+  CuAssertTrue(tc, handled);
+  CuAssertTrue(tc, invalid_index);
+  CuAssertIntEquals(tc, 10000, remaining_gold);
+}
+
+void Test_gameplay_pet_token_admission_checks_carrier(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct char_data prototype;
+  struct char_data *saved_proto = mob_proto;
+  struct obj_data token = {0};
+  struct index_data object_index = {0};
+  struct index_data *saved_obj_index = obj_index;
+  obj_rnum saved_top = top_of_objt;
+  struct follow_type link = {0};
+  bool retained;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player_specials = &specials;
+  GET_CHA(&fixture.actor) = 10;
+  SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+  fixture.victim.master = &fixture.actor;
+  link.follower = &fixture.victim;
+  fixture.actor.followers = &link;
+  initialize_test_npc(&prototype, "puppy", NOWHERE);
+  GET_MOB_RNUM(&prototype) = 0;
+  mob_proto = &prototype;
+  object_index.vnum = fixture.mobile_index[0].vnum;
+  obj_index = &object_index;
+  top_of_objt = 0;
+  GET_OBJ_RNUM(&token) = 0;
+  token.carried_by = &fixture.actor;
+  /* A callback actor can have capacity while the actual token carrier does not. */
+  retained = !bought_pet(&fixture.victim, &token, 0, "") && token.carried_by == &fixture.actor &&
+             fixture.mobile_index[0].number == 0;
+  fixture.actor.followers = NULL;
+  fixture.victim.master = NULL;
+  obj_index = saved_obj_index;
+  top_of_objt = saved_top;
+  mob_proto = saved_proto;
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, retained);
+}
+
+static void verify_native_summon_batch(CuTest *tc, int spell, int expected)
+{
+  struct gameplay_fixture fixture;
+  struct char_data prototypes[4], *pet;
+  struct index_data indexes[4] = {0};
+  struct char_data *saved_proto = mob_proto;
+  struct char_data *saved_characters = character_list;
+  unsigned long seed;
+  int first_count, repeated_count, i, rolled;
+  bool staged_cleaned;
+
+  begin_gameplay_fixture(&fixture);
+  event_free_all();
+  event_init();
+  for (i = 0; i < 4; i++)
+  {
+    initialize_test_npc(&prototypes[i], "summoned creature", NOWHERE);
+    prototypes[i].player.name = "summoned creature";
+    SET_BIT_AR(MOB_FLAGS(&prototypes[i]), MOB_CUSTOM_MOB_STATS);
+    GET_MOB_RNUM(&prototypes[i]) = i;
+    GET_PSP(&prototypes[i]) = GET_REAL_MAX_HIT(&prototypes[i]) = GET_REAL_MAX_MOVE(&prototypes[i]) =
+        100;
+    /* Native spell prototypes: swarm elementals 9412-9415, shambler 9499. */
+    indexes[i].vnum = spell == SPELL_ELEMENTAL_SWARM ? 9412 + i : 9499 + i;
+  }
+  mob_proto = prototypes;
+  mob_index = indexes;
+  top_of_mobt = 3;
+  /* Find a seed yielding the authored maximum after the fail-message roll. */
+  for (seed = 1; seed < 1000; seed++)
+  {
+    circle_srandom(seed);
+    (void)rand_number(2, 6);
+    if (spell == SPELL_ELEMENTAL_SWARM)
+      (void)rand_number(0, 3);
+    rolled = spell == SPELL_ELEMENTAL_SWARM ? dice(2, 4) : dice(1, 4) + 2;
+    if (rolled == expected)
+      break;
+  }
+  circle_srandom(seed);
+  mag_summons(20, &fixture.actor, NULL, spell, 0, 0);
+  first_count = check_npc_followers(&fixture.actor, NPC_MODE_COUNT, 0);
+  mag_summons(20, &fixture.actor, NULL, spell, 0, 0);
+  repeated_count = check_npc_followers(&fixture.actor, NPC_MODE_COUNT, 0);
+  while (fixture.actor.followers != NULL)
+  {
+    extract_char(fixture.actor.followers->follower);
+    extract_pending_chars();
+  }
+  pet = read_mobile(0, REAL);
+  staged_cleaned = pet != NULL && IN_ROOM(pet) == NOWHERE && attach_follower(pet, &fixture.actor);
+  if (pet != NULL)
+  {
+    SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+    extract_char(pet);
+    extract_pending_chars();
+  }
+  staged_cleaned =
+      staged_cleaned && fixture.actor.followers == NULL && character_list == saved_characters;
+  for (i = 0; i < 4; i++)
+    staged_cleaned = staged_cleaned && indexes[i].number == 0;
+  domain_event_world_forget_character(&fixture.actor);
+  event_free_all();
+  end_gameplay_fixture(&fixture);
+  mob_proto = saved_proto;
+  CuAssertIntEquals(tc, expected, first_count);
+  CuAssertIntEquals(tc, expected, repeated_count);
+  CuAssertTrue(tc, staged_cleaned);
+}
+
+void Test_gameplay_shambler_cast_preserves_full_batch_and_staged_cleanup(CuTest *tc)
+{
+  verify_native_summon_batch(tc, SPELL_SHAMBLER, 6);
+}
+
+void Test_gameplay_elemental_swarm_preserves_full_batch_and_staged_cleanup(CuTest *tc)
+{
+  verify_native_summon_batch(tc, SPELL_ELEMENTAL_SWARM, 8);
+}
+
+void Test_gameplay_dismiss_refuses_gear_and_preserves_pets_after_save_failure(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct obj_data gear = {0};
+  struct follow_type link = {0};
+  bool gear_retained, failed_save_retained;
+
+  begin_gameplay_fixture(&fixture);
+  fixture.victim.player.name = "companion";
+  fixture.victim.master = &fixture.actor;
+  SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+  fixture.victim.carrying = &gear;
+  gear.carried_by = &fixture.victim;
+  link.follower = &fixture.victim;
+  fixture.actor.followers = &link;
+  do_dismiss(&fixture.actor, "companion", 0, 0);
+  gear_retained = !MOB_FLAGGED(&fixture.victim, MOB_NOTDEADYET) && fixture.victim.carrying == &gear;
+  fixture.victim.carrying = NULL;
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player.name = "owner";
+  fixture.actor.player_specials = &specials;
+  fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  fixture.victim.pet_data_id = 901;
+  do_dismiss(&fixture.actor, "#901", 0, 0);
+  failed_save_retained = !MOB_FLAGGED(&fixture.victim, MOB_NOTDEADYET) &&
+                         AFF_FLAGGED(&fixture.victim, AFF_CHARM) &&
+                         fixture.victim.master == &fixture.actor;
+  fixture.actor.followers = NULL;
+  fixture.victim.master = NULL;
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, gear_retained);
+  CuAssertTrue(tc, failed_save_retained);
+}
+
+void Test_gameplay_extracting_a_present_charmie_drops_its_assets(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct char_data prototype;
+  struct char_data *charmie;
+  struct char_data *saved_prototypes = mob_proto;
+  struct char_data *saved_characters = character_list;
+  struct obj_data *carried;
+  struct obj_data *equipped;
+  bool assets_dropped;
+
+  begin_gameplay_fixture(&fixture);
+  initialize_test_npc(&prototype, "dismissed charmie", NOWHERE);
+  prototype.player.name = (char *)"charmie";
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = 100;
+  GET_REAL_MAX_HIT(&prototype) = 100;
+  GET_REAL_MAX_MOVE(&prototype) = 100;
+  mob_proto = &prototype;
+  charmie = read_mobile(0, REAL);
+  CuAssertPtrNotNull(tc, charmie);
+  char_to_room(charmie, 0);
+  charmie->char_specials.is_charmie = true;
+  carried = create_obj();
+  equipped = create_obj();
+  obj_to_char(carried, charmie);
+  equip_char(charmie, equipped, WEAR_NECK_1);
+
+  extract_char(charmie);
+  extract_pending_chars();
+  assets_dropped = IN_ROOM(carried) == 0 && carried->carried_by == NULL && IN_ROOM(equipped) == 0 &&
+                   equipped->worn_by == NULL;
+
+  extract_obj(carried);
+  extract_obj(equipped);
+  character_list = saved_characters;
+  mob_proto = saved_prototypes;
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, assets_dropped);
+}
+
+void Test_gameplay_pet_group_order_survives_target_extraction(CuTest *tc)
+{
+  verify_pet_group_orders(tc, 1, 1);
+}
+
+void Test_gameplay_pet_group_order_rechecks_owner_location(CuTest *tc)
+{
+  verify_pet_group_orders(tc, 2, 1);
+}
+
+void Test_gameplay_pet_group_order_rechecks_control(CuTest *tc)
+{
+  verify_pet_group_orders(tc, 3, 1);
+}
+
+void Test_gameplay_pet_id_orders_require_a_loyal_target(CuTest *tc)
+{
+  verify_pet_group_orders(tc, 5, 2);
+}
+
+void Test_gameplay_pet_numbered_orders_require_a_loyal_target(CuTest *tc)
+{
+  verify_pet_group_orders(tc, 4, 2);
 }
 
 void Test_gameplay_e2e_cexchange_preserves_hidden_sneaking(CuTest *tc)
@@ -5032,6 +6054,729 @@ void Test_gameplay_search_commits_after_owned_work_and_cancels_on_movement(CuTes
   character_list = saved_characters;
   pulse = saved_pulse;
   end_gameplay_fixture(&fixture);
+}
+
+/* Keeper storage round trip: store a live pet, keep it out of ordinary active
+ * snapshots, then reclaim the same pet with its saved identity intact. */
+static MYSQL *open_keeper_test_database(void)
+{
+  const char *host = getenv("LUMINARI_TEST_MYSQL_HOST");
+  const char *user = getenv("LUMINARI_TEST_MYSQL_USER");
+  const char *password = getenv("LUMINARI_TEST_MYSQL_PASSWORD");
+  const char *database = getenv("LUMINARI_TEST_MYSQL_DATABASE");
+  const char *port_text = getenv("LUMINARI_TEST_MYSQL_PORT");
+  MYSQL *connection;
+
+  if (host == NULL || user == NULL || password == NULL || database == NULL)
+    return NULL;
+  connection = mysql_init(NULL);
+  if (connection == NULL)
+    return NULL;
+  if (mysql_real_connect(connection, host, user, password, database,
+                         port_text ? (unsigned int)strtoul(port_text, NULL, 10) : 3306, NULL,
+                         0) == NULL)
+  {
+    mysql_close(connection);
+    return NULL;
+  }
+  return connection;
+}
+
+static bool create_keeper_temporary_schema(MYSQL *connection)
+{
+  const char *queries[] = {
+      "CREATE TEMPORARY TABLE pet_data ("
+      "pet_data_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, "
+      "owner_name VARCHAR(50) NOT NULL, pet_name VARCHAR(50), pet_sdesc VARCHAR(255), "
+      "pet_ldesc TEXT, pet_ddesc TEXT, vnum INT NOT NULL, level INT NOT NULL, "
+      "hp INT NOT NULL, max_hp INT NOT NULL, str INT NOT NULL, con INT NOT NULL, "
+      "dex INT NOT NULL, ac INT NOT NULL, intel INT NOT NULL, wis INT NOT NULL, "
+      "cha INT NOT NULL, runtime_state LONGTEXT, owner_id INT UNSIGNED NOT NULL DEFAULT 0, "
+      "owner_created BIGINT NOT NULL DEFAULT 0, pet_state TINYINT NOT NULL DEFAULT 0"
+      ") ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE pet_save_objs ("
+      "idnum INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, pet_idnum BIGINT NOT NULL, "
+      "owner_name VARCHAR(50) NOT NULL, serialized_obj TEXT NOT NULL, "
+      "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB",
+      NULL};
+  int index;
+
+  for (index = 0; queries[index] != NULL; index++)
+    if (mysql_query(connection, queries[index]))
+      return false;
+  return true;
+}
+
+static int keeper_query_int(MYSQL *connection, const char *query)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  int value = -1;
+
+  if (mysql_query(connection, query))
+    return -1;
+  result = mysql_store_result(connection);
+  if (result == NULL)
+    return -1;
+  row = mysql_fetch_row(result);
+  if (row && row[0])
+    value = atoi(row[0]);
+  mysql_free_result(result);
+  return value;
+}
+
+void Test_copyover_pet_preflight_retains_linkdead_pets_on_failure_and_retries(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct char_data prototype, connected, linkdead, menu;
+  struct player_special_data connected_specials = {0}, linkdead_specials = {0}, menu_specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct char_data *pet;
+  struct obj_data *item;
+  struct char_data *saved_prototypes = mob_proto;
+  struct char_data *saved_characters = character_list;
+  MYSQL *saved_conn = conn;
+  bool saved_available = mysql_available;
+  MYSQL *connection;
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  bool initial, failed, retained, retried, restore_blocked;
+  long int pet_id;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+    return;
+  connection = open_keeper_test_database();
+  CuAssertPtrNotNull(tc, connection);
+  CuAssertTrue(tc, create_keeper_temporary_schema(connection));
+  conn = connection;
+  mysql_available = true;
+  begin_gameplay_fixture(&fixture);
+  initialize_test_npc(&prototype, "a copyover companion", NOWHERE);
+  prototype.player.name = (char *)"companion";
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = 100;
+  mob_proto = &prototype;
+  clear_char(&connected);
+  clear_char(&linkdead);
+  clear_char(&menu);
+  menu.player_specials = &menu_specials;
+  connected.player_specials = &connected_specials;
+  linkdead.player_specials = &linkdead_specials;
+  connected.player.name = (char *)"CopyoverConnected";
+  linkdead.player.name = (char *)"CopyoverLinkdead";
+  GET_IDNUM(&connected) = 5301;
+  GET_IDNUM(&linkdead) = 5302;
+  connected.player.time.birth = linkdead.player.time.birth = (time_t)1234;
+  connected.pet_roster_load_state = linkdead.pet_roster_load_state = PET_ROSTER_LOADED;
+  connected.desc = &descriptor;
+  descriptor.character = &connected;
+  STATE(&descriptor) = CON_PLAYING;
+  char_to_room(&connected, 0);
+  char_to_room(&linkdead, 0);
+  /* A roomless, unloaded menu character must not prevent copyover. */
+  connected.next = &linkdead;
+  linkdead.next = &menu;
+  character_list = &connected;
+  pet = read_mobile(0, REAL);
+  char_to_room(pet, 0);
+  add_follower(pet, &linkdead);
+  SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+  GET_HIT(pet) = 71;
+  item = create_obj();
+  GET_OBJ_RNUM(item) = NOTHING;
+  item->name = strdup("keepsake");
+  item->short_description = strdup("a keepsake");
+  item->description = strdup("A keepsake lies here.");
+  obj_to_char(item, pet);
+
+  initial = save_player_pets();
+  pet_id = pet->pet_data_id;
+  GET_HIT(pet) = 63;
+  /* The unchanged connected owner's cache is hit; the changed linkdead
+   * owner's SQL transaction fails. Its previous complete snapshot survives. */
+  mysql_test_fail_nth_query(1);
+  failed = !save_player_pets();
+  mysql_test_clear_query_failure();
+  retained = pet_id > 0 && pet->pet_data_id == pet_id && pet->master == &linkdead &&
+             pet->carrying == item && IN_ROOM(pet) == 0 && !MOB_FLAGGED(pet, MOB_NOTDEADYET) &&
+             connected.desc == &descriptor && STATE(&descriptor) == CON_PLAYING &&
+             keeper_query_int(connection, "SELECT hp FROM pet_data") == 71 &&
+             keeper_query_int(connection, "SELECT COUNT(*) FROM pet_save_objs") == 1;
+  retried = save_player_pets() && pet->pet_data_id == pet_id &&
+            keeper_query_int(connection, "SELECT hp FROM pet_data") == 63 &&
+            keeper_query_int(connection, "SELECT COUNT(*) FROM pet_save_objs") == 1;
+  linkdead.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  restore_blocked = !save_player_pets() && pet->master == &linkdead && pet->carrying == item;
+  linkdead.pet_roster_load_state = PET_ROSTER_LOADED;
+
+  extract_obj(item);
+  extract_char(pet);
+  extract_pending_chars();
+  char_from_room(&connected);
+  char_from_room(&linkdead);
+  domain_event_world_forget_character(&connected);
+  domain_event_world_forget_character(&linkdead);
+  character_list = saved_characters;
+  mob_proto = saved_prototypes;
+  end_gameplay_fixture(&fixture);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+  CuAssertTrue(tc, initial);
+  CuAssertTrue(tc, failed);
+  CuAssertTrue(tc, retained);
+  CuAssertTrue(tc, retried);
+  CuAssertTrue(tc, restore_blocked);
+}
+
+struct keeper_publication_trace
+{
+  long int pet_id;
+  int arrivals;
+  bool published_with_gear;
+};
+
+static void keeper_observe_publication(const struct domain_event_context *context, void *data)
+{
+  struct keeper_publication_trace *trace = data;
+  const struct domain_character_moved *event = context->payload;
+  struct char_data *pet = domain_event_world_resolve_character(event->character);
+
+  if (!pet || pet->pet_data_id != trace->pet_id)
+    return;
+  trace->arrivals++;
+  trace->published_with_gear = pet->carrying != NULL && GET_EQ(pet, WEAR_NECK_1) != NULL;
+}
+
+static void verify_named_pet_keeper_round_trip(CuTest *tc, bool eidolon)
+{
+  struct gameplay_fixture fixture;
+  struct char_data prototype;
+  struct char_data owner;
+  struct char_data keeper;
+  struct player_special_data owner_specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct char_data *pet;
+  struct char_data *reclaimed;
+  struct char_data *saved_prototypes;
+  struct char_data *saved_characters;
+  struct index_data object_index = {0};
+  struct obj_data object_prototype;
+  struct index_data *saved_obj_index;
+  struct obj_data *saved_obj_proto;
+  struct obj_data *item;
+  struct obj_data *keepsake;
+  struct obj_data *necklace;
+  struct affected_type charm_affect;
+  obj_rnum saved_top_objt;
+  const char *enabled;
+  const char *reason;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  bool saved_available;
+  bool schema_created;
+  bool gear_left_with_pet;
+  bool retry_kept_one_copy;
+  bool listed_id_matches;
+  bool stored;
+  bool owns_event_bus = domain_event_runtime_bus() == NULL;
+  bool activation_failures_retained = true;
+  int failure_query, baseline_mobiles;
+  struct keeper_publication_trace trace = {0};
+  struct domain_event_subscription_config observer = {0};
+  struct domain_event_subscription_handle subscription;
+  bool named, name_denials, failed_name_retained;
+  bool stable_failure_message;
+  bool created_command_list;
+  const char *invalid_names[] = {"",          "Ab",        "A-name-that-is-far-too-long",
+                                 "two names", "Bad;name",  "Bad\nname",
+                                 "Bad\tname", "Bad$Name",  "-Name",
+                                 "Name-",     "followers", "restore",
+                                 "self",      "all",       "The",
+                                 "from",      "with",      "room",
+                                 "someone"};
+  size_t name_index;
+  char name_command[96];
+  bool snapshot_kept_storage;
+  bool reclaimed_identity;
+  bool repeat_denied;
+  bool foreign_owner_denied;
+  long int pet_id;
+  int stable_command, stored_count;
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+  connection = open_keeper_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  saved_characters = character_list;
+  conn = connection;
+  mysql_available = true;
+  schema_created = create_keeper_temporary_schema(connection);
+  if (eidolon)
+  {
+    schema_created =
+        schema_created &&
+        mysql_query(connection,
+                    "CREATE TEMPORARY TABLE player_eidolons (idnum INT, "
+                    "owner VARCHAR(50), short_desc VARCHAR(120), long_desc VARCHAR(120))") == 0 &&
+        mysql_query(connection,
+                    "INSERT INTO player_eidolons VALUES "
+                    "(1, 'KeeperOwner', 'an unnamed eidolon', 'An unnamed eidolon waits.')") == 0;
+  }
+
+  begin_gameplay_fixture(&fixture);
+  if (owns_event_bus)
+  {
+    event_free_all();
+    event_init();
+    CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  }
+  saved_prototypes = mob_proto;
+  initialize_test_npc(&prototype, "a stabled companion", NOWHERE);
+  prototype.player.name = (char *)"companion";
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = 100;
+  GET_REAL_MAX_HIT(&prototype) = 100;
+  GET_REAL_MAX_MOVE(&prototype) = 100;
+  if (eidolon)
+    SET_BIT_AR(MOB_FLAGS(&prototype), MOB_EIDOLON);
+  mob_proto = &prototype;
+
+  clear_char(&owner);
+  owner.player_specials = &owner_specials;
+  owner.player.name = (char *)"KeeperOwner";
+  GET_LEVEL(&owner) = 20;
+  GET_POS(&owner) = POS_STANDING;
+  GET_IDNUM(&owner) = eidolon ? 5002 : 5001;
+  owner.player.time.birth = (time_t)1234;
+  owner.pet_roster_load_state = PET_ROSTER_LOADED;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &owner;
+  descriptor.connected = CON_PLAYING;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  owner.desc = &descriptor;
+  char_to_room(&owner, 0);
+  initialize_test_npc(&keeper, "stable keeper", 0);
+  created_command_list = complete_cmd_info == NULL;
+  if (created_command_list)
+    create_command_list();
+  stable_command = find_command("stable");
+
+  saved_obj_index = obj_index;
+  saved_obj_proto = obj_proto;
+  saved_top_objt = top_of_objt;
+  clear_object(&object_prototype);
+  object_prototype.name = (char *)"token";
+  object_prototype.short_description = (char *)"a keeper token";
+  object_prototype.description = (char *)"A keeper token lies here.";
+  object_index.vnum = 900;
+  object_index.number = 0;
+  obj_proto = &object_prototype;
+  obj_index = &object_index;
+  top_of_objt = 0;
+
+  pet = read_mobile(0, REAL);
+  char_to_room(pet, 0);
+  add_follower(pet, &owner);
+  SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+  pet->player.short_descr = strdup("the stabled companion");
+  GET_LEVEL(pet) = 12;
+  new_affect(&charm_affect);
+  charm_affect.spell = SPELL_CHARM_MONSTER;
+  charm_affect.duration = 12;
+  SET_BIT_AR(charm_affect.bitvector, AFF_CHARM);
+  affect_to_char(pet, &charm_affect);
+  item = create_obj();
+  /* A prototype-less item serializes in full, as restrung pet gear does. */
+  GET_OBJ_RNUM(item) = NOTHING;
+  item->name = strdup("token");
+  item->short_description = strdup("a keeper token");
+  item->description = strdup("A keeper token lies here.");
+  GET_OBJ_TYPE(item) = ITEM_CONTAINER;
+  GET_OBJ_VAL(item, 0) = 100;
+  GET_OBJ_WEIGHT(item) = 3;
+  GET_OBJ_BOUND_ID(item) = 424242;
+  keepsake = create_obj();
+  GET_OBJ_RNUM(keepsake) = NOTHING;
+  GET_OBJ_WEIGHT(keepsake) = 7;
+  keepsake->name = strdup("keepsake");
+  keepsake->short_description = strdup("a keeper keepsake");
+  keepsake->description = strdup("A keeper keepsake lies here.");
+  obj_to_obj(keepsake, item);
+  obj_to_char(item, pet);
+  necklace = create_obj();
+  GET_OBJ_RNUM(necklace) = NOTHING;
+  GET_OBJ_TYPE(necklace) = ITEM_WORN;
+  SET_BIT_AR(GET_OBJ_WEAR(necklace), ITEM_WEAR_NECK);
+  necklace->name = strdup("necklace");
+  necklace->short_description = strdup("a keeper necklace");
+  necklace->description = strdup("A keeper necklace lies here.");
+  equip_char(pet, necklace, WEAR_NECK_1);
+
+  GET_REAL_MAX_HIT(pet) = GET_MAX_HIT(pet) = 100;
+  GET_HIT(pet) = 70;
+  do_pets(&owner, "companion name Alder", 0, 0);
+  named = !strcmp(GET_NAME(pet), "Alder") && !strcmp(pet->player.name, "Alder companion");
+  snprintf(name_command, sizeof(name_command), "#%ld name O'Rowan", pet->pet_data_id);
+  do_pets(&owner, name_command, 0, 0);
+  named = named && !strcmp(GET_NAME(pet), "O'Rowan") &&
+          !strcmp(pet->player.name, "O'Rowan companion") &&
+          !strcmp(pet->player.long_descr, "O'Rowan is here.\r\n");
+  name_denials = true;
+  for (name_index = 0; name_index < sizeof(invalid_names) / sizeof(invalid_names[0]); name_index++)
+    name_denials = !pet_set_custom_name(&owner, pet, invalid_names[name_index], &reason) &&
+                   reason != NULL && name_denials;
+  pet->master = NULL;
+  name_denials = !pet_set_custom_name(&owner, pet, "Wrong", &reason) && name_denials;
+  pet->master = &owner;
+  mysql_test_fail_nth_query(1);
+  failed_name_retained = !pet_set_custom_name(&owner, pet, "Unsaved", &reason);
+  mysql_test_clear_query_failure();
+  failed_name_retained = failed_name_retained && !strcmp(GET_NAME(pet), "O'Rowan") &&
+                         !strcmp(pet->player.name, "O'Rowan companion") &&
+                         !strcmp(pet->player.long_descr, "O'Rowan is here.\r\n");
+
+  owner.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  pet_keeper(&owner, &keeper, stable_command, "store companion");
+  stable_failure_message = strstr(descriptor.output, "stays at your side") != NULL &&
+                           strstr(descriptor.output, "is led away to the stables") == NULL;
+  owner.pet_roster_load_state = PET_ROSTER_LOADED;
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+
+  stored = schema_created && pet_store_pet(&owner, pet);
+  pet_id = pet->pet_data_id;
+  /* A stored pet leaves play as part of the commit. */
+  extract_pending_chars();
+  stored_count = pet_stored_count(&owner);
+  /* Stored gear travels with the pet; extraction must not drop a second copy. */
+  gear_left_with_pet = stored && world[0].contents == NULL &&
+                       keeper_query_int(connection, "SELECT COUNT(*) FROM pet_save_objs") == 3;
+
+  /* An ordinary active snapshot must not remove or duplicate stored rows. */
+  snapshot_kept_storage =
+      stored && save_char_pets(&owner) &&
+      keeper_query_int(connection, "SELECT COUNT(*) FROM pet_data WHERE pet_state = 1") == 1 &&
+      keeper_query_int(connection, "SELECT COUNT(*) FROM pet_data WHERE pet_state = 0") == 0;
+
+  /* The listed position resolves to the same stable ID a player would quote. */
+  listed_id_matches = pet_stored_id_at(&owner, 1) == pet_id && pet_stored_id_at(&owner, 2) == 0;
+  trace.pet_id = pet_id;
+  observer.type = DOMAIN_EVENT_CHARACTER_MOVED;
+  observer.topic.role = DOMAIN_EVENT_TOPIC_DESTINATION;
+  observer.topic.entity = domain_event_room_handle(0);
+  observer.owner = domain_event_character_handle(&owner);
+  observer.identity = "test.keeper.committed-arrival";
+  observer.handler = keeper_observe_publication;
+  observer.handler_context = &trace;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &observer, &subscription));
+  baseline_mobiles = mob_index[0].number;
+  /* The last two queries activate the row and commit. Eidolons read owner
+   * descriptions once as well. Fail each after the inventory has decoded. */
+  for (failure_query = eidolon ? 5 : 4; failure_query <= (eidolon ? 6 : 5); failure_query++)
+  {
+    mysql_test_fail_nth_query(failure_query);
+    reclaimed = pet_retrieve_stored(&owner, pet_id, &reason);
+    mysql_test_clear_query_failure();
+    activation_failures_retained = !reclaimed && reason != NULL && activation_failures_retained;
+    extract_pending_chars();
+    activation_failures_retained =
+        activation_failures_retained && owner.followers == NULL && world[0].contents == NULL &&
+        trace.arrivals == 0 && mob_index[0].number == baseline_mobiles &&
+        keeper_query_int(connection, "SELECT COUNT(*) FROM pet_data WHERE pet_state = 1") == 1 &&
+        keeper_query_int(connection, "SELECT COUNT(*) FROM pet_save_objs") == 3;
+  }
+  reason = NULL;
+  reclaimed = stored ? pet_retrieve_stored(&owner, pet_id, &reason) : NULL;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_unsubscribe(domain_event_runtime_bus(), subscription));
+  reclaimed_identity =
+      reclaimed != NULL && reclaimed->master == &owner && reclaimed->pet_data_id == pet_id &&
+      GET_LEVEL(reclaimed) == 12 && GET_HIT(reclaimed) == 70 &&
+      reclaimed->player.short_descr != NULL && !strcmp(reclaimed->player.short_descr, "O'Rowan") &&
+      !strcmp(reclaimed->player.name, "O'Rowan companion") &&
+      !strcmp(reclaimed->player.long_descr, "O'Rowan is here.\r\n") &&
+      keeper_query_int(connection, "SELECT COUNT(*) FROM pet_data WHERE pet_state = 0") == 1 &&
+      reclaimed->carrying != NULL && reclaimed->carrying->name != NULL &&
+      !strcmp(reclaimed->carrying->name, "token") && GET_OBJ_WEIGHT(reclaimed->carrying) == 10 &&
+      GET_OBJ_BOUND_ID(reclaimed->carrying) == 424242 && reclaimed->carrying->contains != NULL &&
+      reclaimed->carrying->contains->name != NULL &&
+      !strcmp(reclaimed->carrying->contains->name, "keepsake") && reclaimed->affected != NULL &&
+      reclaimed->affected->duration == 12 && GET_EQ(reclaimed, WEAR_NECK_1) != NULL &&
+      !strcmp(GET_EQ(reclaimed, WEAR_NECK_1)->name, "necklace");
+
+  /* A retry after a failed restore must not publish a live pet a second time. */
+  owner.pet_roster_load_state = PET_ROSTER_UNLOADED;
+  load_char_pets(&owner);
+  retry_kept_one_copy = owner.followers != NULL && owner.followers->next == NULL &&
+                        owner.pet_roster_load_state == PET_ROSTER_LOADED;
+  owner.pet_roster_load_state = PET_ROSTER_LOADED;
+
+  /* The same row cannot be reclaimed twice, and another owner cannot claim it. */
+  reason = NULL;
+  repeat_denied = pet_retrieve_stored(&owner, pet_id, &reason) == NULL && reason != NULL;
+  mysql_query(connection, "UPDATE pet_data SET pet_state = 1");
+  owner.player.time.birth = (time_t)9999;
+  reason = NULL;
+  foreign_owner_denied = pet_retrieve_stored(&owner, pet_id, &reason) == NULL && reason != NULL;
+
+  if (reclaimed != NULL)
+  {
+    while (reclaimed->carrying)
+      extract_obj(reclaimed->carrying);
+    if (GET_EQ(reclaimed, WEAR_NECK_1))
+      extract_obj(unequip_char(reclaimed, WEAR_NECK_1));
+    extract_char(reclaimed);
+    extract_pending_chars();
+  }
+  domain_event_world_forget_character(&owner);
+  owner.desc = NULL;
+  if (owns_event_bus)
+  {
+    domain_event_runtime_shutdown();
+    event_free_all();
+  }
+  mob_proto = saved_prototypes;
+  obj_index = saved_obj_index;
+  obj_proto = saved_obj_proto;
+  top_of_objt = saved_top_objt;
+  character_list = saved_characters;
+  if (created_command_list)
+    free_command_list();
+  end_gameplay_fixture(&fixture);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+  ProtocolDestroy(descriptor.pProtocol);
+  free(GET_EIDOLON_SHORT_DESCRIPTION((&owner)));
+  free(GET_EIDOLON_LONG_DESCRIPTION((&owner)));
+
+  CuAssertTrue(tc, activation_failures_retained);
+  CuAssertIntEquals(tc, 1, trace.arrivals);
+  CuAssertTrue(tc, trace.published_with_gear);
+  CuAssertTrue(tc, named);
+  CuAssertTrue(tc, name_denials);
+  CuAssertTrue(tc, failed_name_retained);
+  CuAssertTrue(tc, stable_failure_message);
+  CuAssertTrue(tc, schema_created);
+  CuAssertTrue(tc, stored);
+  CuAssertTrue(tc, gear_left_with_pet);
+  CuAssertIntEquals(tc, 1, stored_count);
+  CuAssertTrue(tc, snapshot_kept_storage);
+  CuAssertTrue(tc, reclaimed_identity);
+  CuAssertTrue(tc, listed_id_matches);
+  CuAssertTrue(tc, retry_kept_one_copy);
+  CuAssertTrue(tc, repeat_denied);
+  CuAssertTrue(tc, foreign_owner_denied);
+}
+
+void Test_pet_keeper_stores_and_reclaims_the_same_pet(CuTest *tc)
+{
+  verify_named_pet_keeper_round_trip(tc, false);
+}
+
+void Test_named_eidolon_keeper_restore_preserves_saved_identity(CuTest *tc)
+{
+  verify_named_pet_keeper_round_trip(tc, true);
+}
+
+/* Owner death ends following, but eligible pets stay owned and reclaimable. */
+void Test_owner_death_stores_surviving_pets_within_capacity(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct char_data prototype;
+  struct char_data owner;
+  struct player_special_data owner_specials = {0};
+  struct char_data *first;
+  struct char_data *second;
+  struct char_data *overflow;
+  struct char_data *saved_prototypes;
+  struct char_data *saved_characters;
+  const char *enabled;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  bool saved_available;
+  bool schema_created;
+  bool overflow_retained;
+  int stored;
+  int stored_rows;
+  int overflow_stored;
+  int index;
+  const char *filler_insert =
+      "INSERT INTO pet_data (owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, vnum, "
+      "level, hp, max_hp, str, con, dex, ac, intel, wis, cha, owner_id, owner_created, "
+      "pet_state) VALUES ('DyingOwner', 'filler', 'filler', 'filler', 'filler', 1, 1, 1, 1, "
+      "1, 1, 1, 1, 1, 1, 1, 6001, 4321, 1)";
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+  connection = open_keeper_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  saved_characters = character_list;
+  conn = connection;
+  mysql_available = true;
+  schema_created = create_keeper_temporary_schema(connection);
+
+  begin_gameplay_fixture(&fixture);
+  saved_prototypes = mob_proto;
+  initialize_test_npc(&prototype, "a surviving companion", NOWHERE);
+  prototype.player.name = (char *)"companion";
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = 100;
+  GET_REAL_MAX_HIT(&prototype) = 100;
+  GET_REAL_MAX_MOVE(&prototype) = 100;
+  mob_proto = &prototype;
+
+  clear_char(&owner);
+  owner.player_specials = &owner_specials;
+  owner.player.name = (char *)"DyingOwner";
+  GET_LEVEL(&owner) = 20;
+  GET_POS(&owner) = POS_STANDING;
+  GET_IDNUM(&owner) = 6001;
+  owner.player.time.birth = (time_t)4321;
+  owner.pet_roster_load_state = PET_ROSTER_LOADED;
+  char_to_room(&owner, 0);
+
+  first = read_mobile(0, REAL);
+  char_to_room(first, 0);
+  add_follower(first, &owner);
+  SET_BIT_AR(AFF_FLAGS(first), AFF_CHARM);
+  second = read_mobile(0, REAL);
+  char_to_room(second, 0);
+  add_follower(second, &owner);
+  SET_BIT_AR(AFF_FLAGS(second), AFF_CHARM);
+
+  stored = schema_created ? pet_store_surviving_followers(&owner) : -1;
+  extract_pending_chars();
+  stored_rows = keeper_query_int(connection, "SELECT COUNT(*) FROM pet_data WHERE pet_state = 1");
+
+  /* A full keeper releases the remaining pets exactly as before. */
+  for (index = stored_rows; index >= 0 && index < PET_KEEPER_CAPACITY; index++)
+  {
+    if (mysql_query(connection, filler_insert))
+      break;
+  }
+  overflow = read_mobile(0, REAL);
+  char_to_room(overflow, 0);
+  add_follower(overflow, &owner);
+  SET_BIT_AR(AFF_FLAGS(overflow), AFF_CHARM);
+  overflow_stored = pet_store_surviving_followers(&owner);
+  overflow_retained = overflow_stored == 0 && !MOB_FLAGGED(overflow, MOB_NOTDEADYET);
+  extract_char(overflow);
+  extract_pending_chars();
+
+  mob_proto = saved_prototypes;
+  character_list = saved_characters;
+  end_gameplay_fixture(&fixture);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertTrue(tc, schema_created);
+  CuAssertIntEquals(tc, 2, stored);
+  CuAssertIntEquals(tc, 2, stored_rows);
+  CuAssertTrue(tc, overflow_retained);
+}
+
+/* The unseen servant is a utility conjuration: it handles items for its caster
+ * without fighting, and it does nothing at all without the spell. */
+void Test_unseen_servant_handles_items_only_while_conjured(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct affected_type servant_affect;
+  struct obj_data *crate;
+  struct obj_data *chest;
+  bool denied_without_servant;
+  bool fetched_past_item_count;
+  bool denied_in_combat;
+  bool stowed_in_container;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player_specials = &specials;
+  fixture.actor.player.name = (char *)"servant caster";
+  GET_LEVEL(&fixture.actor) = 10;
+
+  crate = create_obj();
+  GET_OBJ_RNUM(crate) = NOTHING;
+  crate->name = strdup("crate");
+  crate->short_description = strdup("a small crate");
+  crate->description = strdup("A small crate rests here.");
+  SET_BIT_AR(GET_OBJ_WEAR(crate), ITEM_WEAR_TAKE);
+  GET_OBJ_WEIGHT(crate) = 5;
+  obj_to_room(crate, 0);
+
+  do_servant(&fixture.actor, "get crate", 0, 0);
+  denied_without_servant = world[0].contents == crate;
+
+  new_affect(&servant_affect);
+  servant_affect.spell = SPELL_UNSEEN_SERVANT;
+  servant_affect.location = APPLY_SPECIAL;
+  servant_affect.modifier = 100;
+  servant_affect.duration = 10;
+  affect_to_char(&fixture.actor, &servant_affect);
+
+  /* A full pair of hands does not stop the servant from fetching. */
+  IS_CARRYING_N(&fixture.actor) = CAN_CARRY_N(&fixture.actor);
+  do_servant(&fixture.actor, "get crate", 0, 0);
+  fetched_past_item_count = fixture.actor.carrying == crate && world[0].contents == NULL;
+
+  chest = create_obj();
+  GET_OBJ_RNUM(chest) = NOTHING;
+  chest->name = strdup("chest");
+  chest->short_description = strdup("a stout chest");
+  chest->description = strdup("A stout chest rests here.");
+  GET_OBJ_TYPE(chest) = ITEM_CONTAINER;
+  GET_OBJ_VAL(chest, 0) = 100;
+  SET_BIT_AR(GET_OBJ_WEAR(chest), ITEM_WEAR_TAKE);
+  obj_to_char(chest, &fixture.actor);
+
+  FIGHTING(&fixture.actor) = &fixture.victim;
+  do_servant(&fixture.actor, "put crate chest", 0, 0);
+  denied_in_combat = chest->contains == NULL;
+  FIGHTING(&fixture.actor) = NULL;
+
+  do_servant(&fixture.actor, "put crate chest", 0, 0);
+  stowed_in_container = chest->contains == crate;
+
+  while (fixture.actor.carrying != NULL)
+    extract_obj(fixture.actor.carrying);
+  while (world[0].contents != NULL)
+    extract_obj(world[0].contents);
+  while (fixture.actor.affected != NULL)
+    affect_remove(&fixture.actor, fixture.actor.affected);
+  end_gameplay_fixture(&fixture);
+
+  CuAssertTrue(tc, denied_without_servant);
+  CuAssertTrue(tc, fetched_past_item_count);
+  CuAssertTrue(tc, denied_in_combat);
+  CuAssertTrue(tc, stowed_in_container);
 }
 
 /** Round-trip output choices, persist muted defaults, and retain choices on failed saves. */

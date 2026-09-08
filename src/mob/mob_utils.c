@@ -143,14 +143,18 @@ bool npc_switch_opponents(struct char_data *ch, struct char_data *vict)
 #define RESCUE_LOOP 20
 bool npc_rescue(struct char_data *ch)
 {
+  struct char_data *victim = NULL;
+  int loop_counter = 0;
+
   if (!ch)
     return false;
 
   if (ch->master && !IS_NPC(ch->master) && PRF_FLAGGED(ch->master, PRF_NO_CHARMIE_RESCUE))
     return false;
 
-  struct char_data *victim = NULL;
-  int loop_counter = 0;
+  if (IS_PET(ch) && ch->pet_behavior != PET_BEHAVIOR_FOLLOW &&
+      ch->pet_behavior != PET_BEHAVIOR_GUARD)
+    return false;
 
   if (GET_HIT(ch) <= 1)
     return FALSE; /* too weak */
@@ -159,12 +163,17 @@ bool npc_rescue(struct char_data *ch)
   if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master && !rand_number(0, 1) &&
       (GET_MAX_HIT(ch) / GET_HIT(ch)) <= 2)
   {
-    if (FIGHTING(ch->master) && ((GET_MAX_HIT(ch->master) / GET_HIT(ch->master)) <= 3))
+    if (FIGHTING(ch->master) && ((GET_MAX_HIT(ch->master) / MAX(1, GET_HIT(ch->master))) <= 3) &&
+        (!IS_PET(ch) || ch->pet_behavior != PET_BEHAVIOR_GUARD ||
+         pet_guards_owner(ch, ch->master, FIGHTING(ch->master))))
     {
       perform_rescue(ch, ch->master);
       return TRUE;
     }
   }
+
+  if (IS_PET(ch) && ch->pet_behavior == PET_BEHAVIOR_GUARD)
+    return false;
 
   /* determine victim (someone in group, including self) */
   if (GROUP(ch) && GROUP(ch)->members->iSize && !rand_number(0, 1) &&

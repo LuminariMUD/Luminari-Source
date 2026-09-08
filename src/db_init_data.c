@@ -1029,6 +1029,38 @@ static int pet_schema_column_matches(const char *table_name, const char *column_
   return matches;
 }
 
+static int pet_schema_column_is_unsigned(const char *table_name, const char *column_name)
+{
+  char query[192];
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  int matches;
+
+  snprintf(query, sizeof(query), "SHOW COLUMNS FROM `%s` LIKE '%s'", table_name, column_name);
+  if (mysql_query_safe(conn, query))
+  {
+    log("SYSERR: Unable to inspect required unsigned pet column %s.%s: %s", table_name, column_name,
+        mysql_error(conn));
+    return FALSE;
+  }
+
+  result = mysql_store_result_safe(conn);
+  if (!result)
+  {
+    log("SYSERR: Unable to read required unsigned pet column %s.%s: %s", table_name, column_name,
+        mysql_error(conn));
+    return FALSE;
+  }
+
+  row = mysql_fetch_row(result);
+  matches = row && row[1] && strstr(row[1], "unsigned") != NULL;
+  mysql_free_result(result);
+  if (!matches)
+    log("SYSERR: Required pet column %s.%s is not unsigned", table_name, column_name);
+
+  return matches;
+}
+
 static int pet_schema_has_index(const char *table_name, const char *column_name,
                                 int require_primary)
 {
@@ -1154,6 +1186,14 @@ int verify_pet_persistence_schema(void)
     valid = FALSE;
   if (!pet_schema_column_matches("pet_data", "runtime_state", "longtext", NULL, TRUE))
     valid = FALSE;
+  if (!pet_schema_column_matches("pet_data", "owner_id", "int", NULL, FALSE))
+    valid = FALSE;
+  if (!pet_schema_column_is_unsigned("pet_data", "owner_id"))
+    valid = FALSE;
+  if (!pet_schema_column_matches("pet_data", "owner_created", "bigint", NULL, FALSE))
+    valid = FALSE;
+  if (!pet_schema_column_matches("pet_data", "pet_state", "tinyint", NULL, FALSE))
+    valid = FALSE;
   if (!pet_schema_column_matches("pet_save_objs", "owner_name", "varchar(50)", NULL, FALSE))
     valid = FALSE;
   if (!pet_schema_column_matches("pet_save_objs", "pet_idnum", "bigint", NULL, FALSE))
@@ -1165,6 +1205,8 @@ int verify_pet_persistence_schema(void)
   if (!pet_schema_has_primary_key("pet_save_objs"))
     valid = FALSE;
   if (!pet_schema_has_index("pet_data", "owner_name", FALSE))
+    valid = FALSE;
+  if (!pet_schema_has_index("pet_data", "owner_id", FALSE))
     valid = FALSE;
   if (!pet_schema_has_index("pet_save_objs", "owner_name", FALSE))
     valid = FALSE;

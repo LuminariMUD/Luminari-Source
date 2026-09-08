@@ -189,6 +189,9 @@ int get_knowledge_skill_from_creature_type(int race_type);
 bool has_fortune_of_many_bonus(struct char_data *ch);
 bool has_authoritative_bonus(struct char_data *ch);
 bool can_add_follower(struct char_data *ch, int mob_vnum);
+bool can_add_follower_mobile(struct char_data *ch, struct char_data *pet);
+bool can_add_summoned_followers(struct char_data *ch, int mob_vnum, int spell, int count);
+int summoned_follower_flag(int spell);
 bool can_add_follower_by_flag(struct char_data *ch, int flag);
 const char *apply_types_lowercase(int apply_type);
 bool can_learn_blackguard_cruelty(struct char_data *ch, int mercy);
@@ -248,7 +251,18 @@ void auto_sort_obj(struct char_data *ch, struct obj_data *obj);
 void auto_store_obj(struct char_data *ch, struct obj_data *obj);
 int get_bag_number_by_obj_type(struct obj_data *obj);
 const char *get_align_by_num_cnd(int align);
-bool char_pets_to_char_loc(struct char_data *ch);
+bool char_pets_to_char_loc(struct char_data *ch, bool include_waiting);
+bool pet_follows_automatically(struct char_data *pet);
+bool pet_assists_automatically(struct char_data *pet, struct char_data *ally);
+bool pet_guards_owner(struct char_data *pet, struct char_data *owner, struct char_data *attacker);
+const char *pet_behavior_name(int behavior);
+struct char_data *get_pet_command_target(struct char_data *owner, char *target);
+bool pet_order_check(struct char_data *ch, struct char_data *vict);
+/* Takes a staged, roomless NPC; destroys it if placement fails. Admission is the caller's job. */
+bool place_pet_follower(struct char_data *owner, struct char_data *pet);
+/* Runs native load/group/save callbacks after the caller has committed ability costs. */
+void finish_pet_summon(struct char_data *owner, struct char_data *pet, bool run_load_trigger,
+                       bool group_if_leader);
 const char *get_align_by_num(int align);
 int d20(struct char_data *ch);
 bool hide_damage_message(int snum);
@@ -508,6 +522,7 @@ char *UNCAP(char *txt);
 int num_followers_charmed(struct char_data *ch);
 void die_follower(struct char_data *ch);
 void add_follower(struct char_data *ch, struct char_data *leader);
+bool attach_follower(struct char_data *ch, struct char_data *leader);
 void stop_follower(struct char_data *ch);
 void stop_follower_engine(struct char_data *ch);
 bool circle_follow(struct char_data *ch, struct char_data *victim);

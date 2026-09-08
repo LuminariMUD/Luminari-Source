@@ -869,7 +869,7 @@ ACMD(do_mteleport)
 
         /* we have to check this carefully! -zusuk */
         char_to_room_cause(vict, target, ch, DOMAIN_RELOCATION_SCRIPT, -1);
-        char_pets_to_char_loc(vict);
+        char_pets_to_char_loc(vict, false);
         enter_wtrigger(&world[IN_ROOM(vict)], vict, -1);
       }
     }
@@ -903,7 +903,7 @@ ACMD(do_mteleport)
 
       /* we have to check this carefully! -zusuk */
       char_to_room_cause(vict, target, ch, DOMAIN_RELOCATION_SCRIPT, -1);
-      char_pets_to_char_loc(ch);
+      char_pets_to_char_loc(vict, false);
       enter_wtrigger(&world[IN_ROOM(vict)], vict, -1);
     }
   }

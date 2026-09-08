@@ -30,6 +30,10 @@ extern bool restore_pet_runtime_state_for_test(struct char_data *pet, const char
 extern char *build_pet_keyword_list_for_test(const char *saved_keywords,
                                              const char *prototype_keywords);
 extern bool save_char_pets(struct char_data *ch);
+extern void load_char_pets(struct char_data *ch);
+extern bool pet_save_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum);
+extern int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *pet,
+                                          struct char_data *owner, long int pet_idnum, int locate);
 extern void reset_pet_save_cache_for_test(void);
 
 static int query_single_int(MYSQL *connection, const char *query, int fallback);
@@ -317,7 +321,9 @@ static bool create_pet_snapshot_temporary_schema(MYSQL *connection)
       "pet_ldesc TEXT, pet_ddesc TEXT, vnum INT NOT NULL, level INT NOT NULL, "
       "hp INT NOT NULL, max_hp INT NOT NULL, str INT NOT NULL, con INT NOT NULL, "
       "dex INT NOT NULL, ac INT NOT NULL, intel INT NOT NULL, wis INT NOT NULL, "
-      "cha INT NOT NULL, runtime_state LONGTEXT) ENGINE=InnoDB",
+      "cha INT NOT NULL, runtime_state LONGTEXT, owner_id INT UNSIGNED NOT NULL DEFAULT 0, "
+      "owner_created BIGINT NOT NULL DEFAULT 0, pet_state TINYINT NOT NULL DEFAULT 0"
+      ") ENGINE=InnoDB",
       "CREATE TEMPORARY TABLE pet_save_objs ("
       "idnum INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, pet_idnum BIGINT NOT NULL, "
       "owner_name VARCHAR(50) NOT NULL, serialized_obj TEXT NOT NULL) ENGINE=InnoDB",
@@ -357,6 +363,7 @@ static void initialize_pet_save_fixture(struct pet_save_fixture *fixture)
   reset_pet_save_cache_for_test();
   memset(fixture, 0, sizeof(*fixture));
   clear_char(&fixture->owner);
+  fixture->owner.pet_roster_load_state = PET_ROSTER_LOADED;
   clear_char(&fixture->first_pet);
   clear_char(&fixture->second_pet);
   clear_object(&fixture->equipped_object);
@@ -707,6 +714,7 @@ void Test_pet_persistence_legacy_schema_migration_is_idempotent(CuTest *tc)
   int object_rows;
   int linked_rows;
   int runtime_state_null_rows;
+  int max_owner_id_rows;
 
   enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
   if (enabled == NULL || strcmp(enabled, "1") != 0)
@@ -732,8 +740,13 @@ void Test_pet_persistence_legacy_schema_migration_is_idempotent(CuTest *tc)
   first_migration_count =
       query_single_int(connection,
                        "SELECT COUNT(*) FROM schema_migrations WHERE version BETWEEN 2026080501 "
-                       "AND 2026080504",
+                       "AND 2026090801",
                        -1);
+  max_owner_id_rows =
+      mysql_query(connection, "UPDATE pet_data SET owner_id = 4294967295") == 0
+          ? query_single_int(connection,
+                             "SELECT COUNT(*) FROM pet_data WHERE owner_id = 4294967295", -1)
+          : -1;
   pet_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1);
   object_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1);
   linked_rows =
@@ -749,7 +762,7 @@ void Test_pet_persistence_legacy_schema_migration_is_idempotent(CuTest *tc)
   second_migration_count =
       query_single_int(connection,
                        "SELECT COUNT(*) FROM schema_migrations WHERE version BETWEEN 2026080501 "
-                       "AND 2026080504",
+                       "AND 2026090801",
                        -1);
   conn = saved_conn;
   mysql_available = saved_available;
@@ -758,14 +771,15 @@ void Test_pet_persistence_legacy_schema_migration_is_idempotent(CuTest *tc)
   CuAssertTrue(tc, fixture_created);
   CuAssertTrue(tc, first_migration);
   CuAssertTrue(tc, first_verification);
-  CuAssertIntEquals(tc, 4, first_migration_count);
+  CuAssertIntEquals(tc, 7, first_migration_count);
+  CuAssertIntEquals(tc, 1, max_owner_id_rows);
   CuAssertIntEquals(tc, 1, pet_rows);
   CuAssertIntEquals(tc, 1, object_rows);
   CuAssertIntEquals(tc, 1, linked_rows);
   CuAssertIntEquals(tc, 1, runtime_state_null_rows);
   CuAssertTrue(tc, second_migration);
   CuAssertTrue(tc, second_verification);
-  CuAssertIntEquals(tc, 4, second_migration_count);
+  CuAssertIntEquals(tc, 7, second_migration_count);
 }
 
 void Test_pet_persistence_schema_rejects_incompatible_contract(CuTest *tc)
@@ -805,6 +819,401 @@ void Test_pet_persistence_schema_rejects_incompatible_contract(CuTest *tc)
   CuAssertTrue(tc, !verified);
 }
 
+void Test_pet_restore_failure_blocks_snapshot_replacement(CuTest *tc)
+{
+  struct pet_save_fixture fixture;
+  MYSQL *connection, *saved_conn = conn;
+  bool saved_available = mysql_available;
+  bool blocked, retained, empty, failed, malformed, loaded, discarded, runtime_rejected;
+  struct obj_data *saved_objects;
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+    return;
+  connection = open_test_database();
+  CuAssertPtrNotNull(tc, connection);
+  initialize_pet_save_fixture(&fixture);
+  conn = connection;
+  mysql_available = true;
+  retained = create_pet_snapshot_temporary_schema(connection) && reset_old_pet_snapshot(connection);
+  fixture.owner.pet_roster_load_state = PET_ROSTER_UNLOADED;
+  mysql_query_counter_reset();
+  blocked = !save_char_pets(&fixture.owner) && mysql_query_counter_value() == 0;
+  IN_ROOM(&fixture.owner) = 0;
+  mysql_test_fail_nth_query(1);
+  load_char_pets(&fixture.owner);
+  mysql_test_clear_query_failure();
+  mysql_query_counter_reset();
+  blocked = blocked && fixture.owner.pet_roster_load_state == PET_ROSTER_LOAD_FAILED &&
+            !save_char_pets(&fixture.owner) && mysql_query_counter_value() == 0;
+  retained = retained && old_pet_snapshot_is_intact(connection);
+  mysql_query_counter_reset();
+  load_char_pets(&fixture.owner);
+  blocked = blocked && mysql_query_counter_value() == 0;
+  retained =
+      retained &&
+      mysql_query(connection, "UPDATE pet_data SET runtime_state='invalid-versioned-record'") == 0;
+  fixture.owner.pet_roster_load_state = PET_ROSTER_UNLOADED;
+  load_char_pets(&fixture.owner);
+  runtime_rejected = fixture.owner.pet_roster_load_state == PET_ROSTER_LOAD_FAILED &&
+                     fixture.owner.followers == &fixture.first_follower;
+  /* The save fixture uses stack-owned inventory; restore needs an empty actor. */
+  fixture.second_pet.carrying = NULL;
+  retained =
+      retained &&
+      mysql_query(
+          connection,
+          "ALTER TABLE pet_save_objs ADD creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP") == 0;
+  fixture.owner.player.name = (char *)"No Pet's Owner";
+  empty = pet_load_objs(&fixture.second_pet, &fixture.owner, 700) == PET_OBJECT_LOAD_EMPTY;
+  mysql_test_fail_nth_query(1);
+  failed = pet_load_objs(&fixture.second_pet, &fixture.owner, 700) == PET_OBJECT_LOAD_FAILED;
+  mysql_test_clear_query_failure();
+  retained =
+      retained &&
+      mysql_query(connection, "INSERT INTO pet_save_objs (pet_idnum,owner_name,serialized_obj) "
+                              "VALUES (701,'SnapshotOwner','')") == 0;
+  fixture.owner.player.name = (char *)"SnapshotOwner";
+  malformed = pet_load_objs(&fixture.second_pet, &fixture.owner, 701) == PET_OBJECT_LOAD_FAILED;
+  retained = retained &&
+             mysql_query(connection,
+                         "UPDATE pet_save_objs SET serialized_obj='#-1\\nName: restored token\\n' "
+                         "WHERE pet_idnum=701") == 0;
+  loaded = pet_load_objs(&fixture.second_pet, &fixture.owner, 701) == PET_OBJECT_LOAD_OK &&
+           fixture.second_pet.carrying != NULL;
+  while (fixture.second_pet.carrying != NULL)
+    extract_obj(fixture.second_pet.carrying);
+  retained =
+      retained &&
+      mysql_query(connection,
+                  "INSERT INTO pet_save_objs (pet_idnum,owner_name,serialized_obj,creation_date) "
+                  "VALUES (702,'SnapshotOwner','#-1\\nName: staged token\\n','2000-01-01'),"
+                  "(702,'SnapshotOwner','','2000-01-02')") == 0;
+  saved_objects = object_list;
+  discarded = pet_load_objs(&fixture.second_pet, &fixture.owner, 702) == PET_OBJECT_LOAD_FAILED &&
+              fixture.second_pet.carrying == NULL && object_list == saved_objects &&
+              query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs WHERE pet_idnum=702",
+                               -1) == 2;
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+  CuAssertTrue(tc, blocked);
+  CuAssertTrue(tc, retained);
+  CuAssertTrue(tc, empty);
+  CuAssertTrue(tc, failed);
+  CuAssertTrue(tc, malformed);
+  CuAssertTrue(tc, loaded);
+  CuAssertTrue(tc, discarded);
+  CuAssertTrue(tc, runtime_rejected);
+}
+
+static bool pet_test_payload(MYSQL *connection, const char *payload)
+{
+  char *escaped, *query;
+  size_t size;
+  bool success;
+
+  if (mysql_query(connection, "DELETE FROM pet_save_objs") != 0)
+    return false;
+  escaped = mysql_escape_string_alloc(connection, payload);
+  if (escaped == NULL)
+    return false;
+  size = strlen(escaped) + 160;
+  query = malloc(size);
+  if (query == NULL)
+  {
+    free(escaped);
+    return false;
+  }
+  snprintf(query, size,
+           "INSERT INTO pet_save_objs (pet_idnum,owner_name,serialized_obj) "
+           "VALUES (701,'CodecOwner','%s')",
+           escaped);
+  success = mysql_query(connection, query) == 0;
+  free(query);
+  free(escaped);
+  return success;
+}
+
+void Test_pet_object_decoder_validates_fields_and_preserves_text(CuTest *tc)
+{
+  const char *invalid[] = {"#-1\nx\n",
+                           "#999999999999999999999999999999999999\n",
+                           "#-1\nAff : -1 1 2 3 4\n",
+                           "#-1\nAff : 2147483648 1 2 3 4\n",
+                           "#-1\nAff : 0 1\n",
+                           "#-1\nADes:\n",
+                           "#-1\nEDes:\nkey~\n",
+                           "#-1\nActv: 1 2\n",
+                           "#-1\nFlag: 1 2 3\n",
+                           "#-1\nFlag: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 0 0 0\n",
+                           "#-1\nVals: not-a-number\n",
+                           "#-1\nSpbk: 1\n",
+                           "#-1\nType: 999\n",
+                           "#-1\nLoc : -2147483648\n",
+                           "#-1\nLoc : 999999\n",
+                           "#-1\nLoc : -1\n",
+                           "#-1\nLoc : -2\n#-1\nType: 15\n",
+                           "#-1\nLoc : -1\n#-1\n",
+                           "#-1\nLoc : 1\n#-1\nLoc : 1\n"};
+  const char *valid = "#-1\nName: old token\nName: final token\n"
+                      "ADes:\nfirst line\n\nlast line~\n"
+                      "EDes:\nfirst key~\nfirst description\n\nend~\n"
+                      "EDes:\nsecond key~\nsecond description~\n"
+                      "Aff : 0 1 2 3 4\nVals: 1 2\nFlag: 0 0 0 0\n";
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  MYSQL *connection, *saved_conn = conn;
+  struct char_data owner, pet;
+  struct obj_data *saved_objects, *obj;
+  bool rejected = true, text_preserved = true, graph_preserved;
+  size_t index;
+  int pass;
+  char container_payload[256];
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+    return;
+  connection = open_test_database();
+  CuAssertPtrNotNull(tc, connection);
+  clear_char(&owner);
+  clear_char(&pet);
+  owner.player.name = (char *)"CodecOwner";
+  SET_BIT_AR(MOB_FLAGS(&pet), MOB_ISNPC);
+  conn = connection;
+  rejected = create_pet_snapshot_temporary_schema(connection) &&
+             mysql_query(connection, "ALTER TABLE pet_save_objs "
+                                     "ADD creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP") == 0;
+  for (index = 0; index < sizeof(invalid) / sizeof(invalid[0]); index++)
+  {
+    saved_objects = object_list;
+    if (!pet_test_payload(connection, invalid[index]) ||
+        pet_load_objs(&pet, &owner, 701) != PET_OBJECT_LOAD_FAILED || pet.carrying != NULL ||
+        object_list != saved_objects ||
+        query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1) != 1)
+      rejected = false;
+    while (pet.carrying != NULL)
+      extract_obj(pet.carrying);
+  }
+  text_preserved = pet_test_payload(connection, valid);
+  for (pass = 0; pass < 2; pass++)
+  {
+    if (pet_load_objs(&pet, &owner, 701) != PET_OBJECT_LOAD_OK || (obj = pet.carrying) == NULL)
+    {
+      text_preserved = false;
+      break;
+    }
+    text_preserved = text_preserved && !strcmp(obj->name, "final token") &&
+                     obj->action_description != NULL &&
+                     !strcmp(obj->action_description, "first line\n\nlast line") &&
+                     obj->ex_description != NULL && obj->ex_description->next != NULL &&
+                     !strcmp(obj->ex_description->keyword, "first key") &&
+                     !strcmp(obj->ex_description->description, "first description\n\nend") &&
+                     !strcmp(obj->ex_description->next->keyword, "second key");
+    if (pass == 0)
+      text_preserved = text_preserved &&
+                       mysql_query(connection, "DELETE FROM pet_save_objs") == 0 &&
+                       objsave_save_obj_record_db_pet(obj, &pet, &owner, 701, 0) == 1;
+    while (pet.carrying != NULL)
+      extract_obj(pet.carrying);
+  }
+  /* An incompatible worn container falls back to inventory with its contents. */
+  snprintf(container_payload, sizeof(container_payload),
+           "#-1\nName: child\nLoc : -1\n#-1\nName: bag\nType: %d\nLoc : %d\n", ITEM_CONTAINER,
+           WEAR_HEAD + 1);
+  graph_preserved = pet_test_payload(connection, container_payload) &&
+                    pet_load_objs(&pet, &owner, 701) == PET_OBJECT_LOAD_OK &&
+                    pet.carrying != NULL && pet.carrying->contains != NULL &&
+                    !strcmp(pet.carrying->contains->name, "child");
+  /* The recursive writer's row order remains authoritative if timestamps tie
+   * or the wall clock moves backwards during a snapshot. */
+  graph_preserved =
+      graph_preserved && mysql_query(connection, "DELETE FROM pet_save_objs") == 0 &&
+      pet_save_objs(&pet, &owner, 701) &&
+      query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1) == 2 &&
+      mysql_query(connection, "UPDATE pet_save_objs SET creation_date="
+                              "TIMESTAMP('2026-09-08 12:00:00') - INTERVAL idnum SECOND") == 0;
+  while (pet.carrying != NULL)
+    extract_obj(pet.carrying);
+  graph_preserved = graph_preserved && pet_load_objs(&pet, &owner, 701) == PET_OBJECT_LOAD_OK &&
+                    pet.carrying != NULL && pet.carrying->contains != NULL &&
+                    !strcmp(pet.carrying->name, "bag") &&
+                    !strcmp(pet.carrying->contains->name, "child");
+  while (pet.carrying != NULL)
+    extract_obj(pet.carrying);
+  conn = saved_conn;
+  mysql_close(connection);
+  CuAssertTrue(tc, rejected);
+  CuAssertTrue(tc, text_preserved);
+  CuAssertTrue(tc, graph_preserved);
+}
+
+/* A reused character name must not hand an earlier character's saved pets to
+ * the new owner: the pfile identity and its creation time bind each row. */
+void Test_pet_snapshot_binds_saved_rows_to_the_pfile_owner(CuTest *tc)
+{
+  struct pet_save_fixture original;
+  struct pet_save_fixture successor;
+  const char *enabled;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  bool saved_available;
+  bool schema_created;
+  bool saved_original;
+  bool saved_successor;
+  bool foreign_rows_skipped;
+  int bound_rows;
+  int retained_rows;
+  int successor_rows;
+  int retained_objects;
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  conn = connection;
+  mysql_available = true;
+  schema_created = create_pet_snapshot_temporary_schema(connection);
+
+  initialize_pet_save_fixture(&original);
+  GET_IDNUM(&original.owner) = 4001;
+  original.owner.player.time.birth = (time_t)1000;
+  saved_original = schema_created && save_char_pets(&original.owner);
+  bound_rows = query_single_int(
+      connection, "SELECT COUNT(*) FROM pet_data WHERE owner_id = 4001 AND owner_created = 1000",
+      -1);
+
+  /* The same name and reused pfile number, created later: a different owner. */
+  initialize_pet_save_fixture(&successor);
+  GET_IDNUM(&successor.owner) = 4001;
+  successor.owner.player.time.birth = (time_t)2000;
+  saved_successor = save_char_pets(&successor.owner);
+  retained_rows = query_single_int(
+      connection, "SELECT COUNT(*) FROM pet_data WHERE owner_id = 4001 AND owner_created = 1000",
+      -1);
+  successor_rows = query_single_int(
+      connection, "SELECT COUNT(*) FROM pet_data WHERE owner_id = 4001 AND owner_created = 2000",
+      -1);
+  retained_objects =
+      query_single_int(connection,
+                       "SELECT COUNT(*) FROM pet_data AS pet JOIN pet_save_objs AS object "
+                       "ON object.pet_idnum = pet.pet_data_id "
+                       "WHERE pet.owner_created = 1000",
+                       -1);
+
+  /* Only the earlier owner's rows remain, and restore must not adopt them. */
+  foreign_rows_skipped =
+      mysql_query(connection, "DELETE FROM pet_data WHERE owner_created = 2000") == 0;
+  successor.owner.pet_roster_load_state = PET_ROSTER_UNLOADED;
+  successor.owner.followers = NULL;
+  IN_ROOM(&successor.owner) = 0;
+  load_char_pets(&successor.owner);
+  foreign_rows_skipped = foreign_rows_skipped &&
+                         successor.owner.pet_roster_load_state == PET_ROSTER_LOADED &&
+                         successor.owner.followers == NULL &&
+                         query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 2;
+
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertTrue(tc, schema_created);
+  CuAssertTrue(tc, saved_original);
+  CuAssertIntEquals(tc, 2, bound_rows);
+  CuAssertTrue(tc, saved_successor);
+  CuAssertIntEquals(tc, 2, retained_rows);
+  CuAssertIntEquals(tc, 2, successor_rows);
+  CuAssertIntEquals(tc, 3, retained_objects);
+  CuAssertTrue(tc, foreign_rows_skipped);
+}
+
+/* A rename moves only the owner name; the pfile binding still identifies the
+ * pets, and a new character taking the freed name inherits nothing. */
+void Test_pet_rows_follow_a_renamed_owner_and_ignore_the_freed_name(CuTest *tc)
+{
+  struct pet_save_fixture renamed;
+  struct pet_save_fixture newcomer;
+  const char *enabled;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  bool saved_available;
+  bool schema_created;
+  bool saved_before_rename;
+  bool saved_after_rename;
+  bool newcomer_saved;
+  int renamed_rows;
+  int surviving_rows;
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  conn = connection;
+  mysql_available = true;
+  schema_created = create_pet_snapshot_temporary_schema(connection);
+
+  initialize_pet_save_fixture(&renamed);
+  renamed.owner.player.name = (char *)"OldName";
+  GET_IDNUM(&renamed.owner) = 7001;
+  renamed.owner.player.time.birth = (time_t)500;
+  saved_before_rename = schema_created && save_char_pets(&renamed.owner);
+
+  /* This is exactly what src/player_rename.c rewrites for the pet tables. */
+  saved_after_rename =
+      mysql_query(connection, "UPDATE pet_data SET owner_name = 'NewName'") == 0 &&
+      mysql_query(connection, "UPDATE pet_save_objs SET owner_name = 'NewName'") == 0;
+  renamed.owner.player.name = (char *)"NewName";
+  renamed.timed_affect.duration = 30;
+  saved_after_rename = saved_after_rename && save_char_pets(&renamed.owner);
+  renamed_rows = query_single_int(
+      connection, "SELECT COUNT(*) FROM pet_data WHERE owner_name = 'NewName' AND owner_id = 7001",
+      -1);
+
+  /* A different character created with the freed name owns none of them. */
+  initialize_pet_save_fixture(&newcomer);
+  newcomer.owner.player.name = (char *)"OldName";
+  newcomer.owner.followers = NULL;
+  GET_IDNUM(&newcomer.owner) = 7002;
+  newcomer.owner.player.time.birth = (time_t)600;
+  newcomer_saved = save_char_pets(&newcomer.owner);
+  surviving_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1);
+
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertTrue(tc, schema_created);
+  CuAssertTrue(tc, saved_before_rename);
+  CuAssertTrue(tc, saved_after_rename);
+  CuAssertIntEquals(tc, 2, renamed_rows);
+  CuAssertTrue(tc, newcomer_saved);
+  CuAssertIntEquals(tc, 2, surviving_rows);
+}
+
 void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failure(CuTest *tc)
 {
   struct pet_save_fixture fixture;
@@ -813,6 +1222,7 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
   MYSQL *connection;
   MYSQL *saved_conn;
   struct descriptor_data *saved_descriptor_list;
+  struct char_data *saved_characters = character_list;
   bool saved_available;
   bool schema_created;
   bool seeded;
@@ -821,6 +1231,9 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
   bool overflow_rollback_passed;
   bool repeated_saves_passed;
   bool forced_save_result;
+  bool stable_ids_passed;
+  long first_pet_id;
+  long second_pet_id;
   char *oversized_object_name;
   int save_query_count;
   int pet_rows;
@@ -853,6 +1266,8 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
   conn = connection;
   mysql_available = true;
   initialize_pet_save_fixture(&fixture);
+  character_list = &fixture.owner;
+  IN_ROOM(&fixture.owner) = 0;
   schema_created = create_pet_snapshot_temporary_schema(connection);
   seeded = schema_created && reset_old_pet_snapshot(connection);
   saved_descriptor_list = descriptor_list;
@@ -860,6 +1275,9 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
   mysql_query_counter_reset();
   snapshot_saved = seeded && save_player_pets();
   save_query_count = (int)mysql_query_counter_value();
+  first_pet_id = fixture.first_pet.pet_data_id;
+  second_pet_id = fixture.second_pet.pet_data_id;
+  stable_ids_passed = first_pet_id > 0 && second_pet_id > 0 && first_pet_id != second_pet_id;
   descriptor_list = saved_descriptor_list;
   pet_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1);
   object_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1);
@@ -902,6 +1320,8 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
     mysql_test_fail_nth_query((unsigned int)failure_query);
     forced_save_result = save_char_pets(&fixture.owner);
     mysql_test_clear_query_failure();
+    stable_ids_passed = stable_ids_passed && fixture.first_pet.pet_data_id == first_pet_id &&
+                        fixture.second_pet.pet_data_id == second_pet_id;
     if (forced_save_result || !old_pet_snapshot_is_intact(connection))
       rollback_coverage_passed = false;
   }
@@ -932,6 +1352,8 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
   {
     fixture.timed_affect.duration = 120 - (repeat_index % 100);
     repeated_saves_passed = save_char_pets(&fixture.owner);
+    stable_ids_passed = stable_ids_passed && fixture.first_pet.pet_data_id == first_pet_id &&
+                        fixture.second_pet.pet_data_id == second_pet_id;
   }
   repeated_saves_passed =
       repeated_saves_passed &&
@@ -943,6 +1365,7 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
                        -1) == 3;
 
   mysql_test_clear_query_failure();
+  character_list = saved_characters;
   conn = saved_conn;
   mysql_available = saved_available;
   mysql_close(connection);
@@ -961,6 +1384,7 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
   CuAssertTrue(tc, rollback_coverage_passed);
   CuAssertTrue(tc, overflow_rollback_passed);
   CuAssertTrue(tc, repeated_saves_passed);
+  CuAssertTrue(tc, stable_ids_passed);
 }
 
 void Test_pet_snapshot_lifecycle_handles_disconnect_and_follower_removal(CuTest *tc)
@@ -970,11 +1394,13 @@ void Test_pet_snapshot_lifecycle_handles_disconnect_and_follower_removal(CuTest 
   MYSQL *connection;
   MYSQL *saved_conn;
   struct descriptor_data *saved_descriptor_list;
+  struct char_data *saved_characters = character_list;
   bool saved_available;
   bool schema_created;
   bool initial_saved;
-  bool disconnected_skipped;
+  bool disconnected_saved;
   bool detached_saved;
+  bool queued_extraction_saved;
   bool followers_removed;
   int initial_save_queries;
   int disconnected_save_queries;
@@ -1005,6 +1431,8 @@ void Test_pet_snapshot_lifecycle_handles_disconnect_and_follower_removal(CuTest 
   conn = connection;
   mysql_available = true;
   initialize_pet_save_fixture(&fixture);
+  character_list = &fixture.owner;
+  IN_ROOM(&fixture.owner) = 0;
   descriptor_list = &fixture.descriptor;
 
   schema_created = create_pet_snapshot_temporary_schema(connection);
@@ -1015,13 +1443,13 @@ void Test_pet_snapshot_lifecycle_handles_disconnect_and_follower_removal(CuTest 
   initial_object_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1);
 
   STATE(&fixture.descriptor) = CON_DISCONNECT;
+  fixture.timed_affect.duration--;
   mysql_query_counter_reset();
-  disconnected_skipped = save_player_pets();
+  disconnected_saved = save_player_pets();
   disconnected_save_queries = (int)mysql_query_counter_value();
-  disconnected_skipped =
-      disconnected_skipped && disconnected_save_queries == 0 &&
-      query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 2 &&
-      query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1) == 3;
+  disconnected_saved = disconnected_saved && disconnected_save_queries == 9 &&
+                       query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 2 &&
+                       query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1) == 3;
 
   fixture.owner.desc = NULL;
   fixture.descriptor.character = NULL;
@@ -1032,6 +1460,9 @@ void Test_pet_snapshot_lifecycle_handles_disconnect_and_follower_removal(CuTest 
                    query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 2 &&
                    query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1) == 3;
 
+  SET_BIT_AR(MOB_FLAGS(&fixture.first_pet), MOB_NOTDEADYET);
+  queued_extraction_saved = save_char_pets(&fixture.owner) &&
+                            query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 1;
   fixture.owner.followers = NULL;
   mysql_query_counter_reset();
   followers_removed = save_char_pets(&fixture.owner);
@@ -1041,6 +1472,7 @@ void Test_pet_snapshot_lifecycle_handles_disconnect_and_follower_removal(CuTest 
 
   mysql_test_clear_query_failure();
   descriptor_list = saved_descriptor_list;
+  character_list = saved_characters;
   conn = saved_conn;
   mysql_available = saved_available;
   mysql_close(connection);
@@ -1050,9 +1482,10 @@ void Test_pet_snapshot_lifecycle_handles_disconnect_and_follower_removal(CuTest 
   CuAssertIntEquals(tc, 9, initial_save_queries);
   CuAssertIntEquals(tc, 2, initial_pet_rows);
   CuAssertIntEquals(tc, 3, initial_object_rows);
-  CuAssertTrue(tc, disconnected_skipped);
-  CuAssertIntEquals(tc, 0, disconnected_save_queries);
+  CuAssertTrue(tc, disconnected_saved);
+  CuAssertIntEquals(tc, 9, disconnected_save_queries);
   CuAssertTrue(tc, detached_saved);
+  CuAssertTrue(tc, queued_extraction_saved);
   CuAssertIntEquals(tc, 0, detached_save_queries);
   CuAssertTrue(tc, followers_removed);
   CuAssertIntEquals(tc, 4, removal_save_queries);
@@ -1091,6 +1524,8 @@ void Test_follower_runtime_state_round_trip(CuTest *tc)
   source.mob_specials.damsizedice = 8;
   GET_EXP(&source) = 9876;
   GET_ALIGNMENT(&source) = -420;
+  source.pet_source_spell = SPELL_SHAMBLER;
+  source.pet_behavior = PET_BEHAVIOR_GUARD;
   GET_REAL_SAVE(&source, SAVING_WILL) = 11;
   source.mob_specials.spell_slots[3] = 2;
   source.mob_specials.max_spell_slots[3] = 4;
@@ -1159,6 +1594,8 @@ void Test_follower_runtime_state_round_trip(CuTest *tc)
   CuAssertIntEquals(tc, 8, restored.mob_specials.damsizedice);
   CuAssertIntEquals(tc, 0, (int)GET_EXP(&restored));
   CuAssertIntEquals(tc, -420, GET_ALIGNMENT(&restored));
+  CuAssertIntEquals(tc, SPELL_SHAMBLER, restored.pet_source_spell);
+  CuAssertIntEquals(tc, PET_BEHAVIOR_GUARD, restored.pet_behavior);
   CuAssertIntEquals(tc, 11, GET_REAL_SAVE(&restored, SAVING_WILL));
   CuAssertIntEquals(tc, 2, restored.mob_specials.spell_slots[3]);
   CuAssertIntEquals(tc, 4, restored.mob_specials.max_spell_slots[3]);
@@ -1180,6 +1617,65 @@ void Test_follower_runtime_state_rejects_incomplete_data(CuTest *tc)
   CuAssertTrue(tc, MOB_FLAGGED(&follower, MOB_SENTINEL));
   CuAssertTrue(tc, !AFF_FLAGGED(&follower, AFF_CHARM));
   CuAssertPtrEquals(tc, NULL, follower.affected);
+}
+
+void Test_follower_runtime_source_supports_legacy_and_rejects_invalid_source(CuTest *tc)
+{
+  struct char_data source, restored;
+  char *serialized, *line, *next;
+  bool legacy, previous, invalid, invalid_behavior, missing_behavior;
+
+  clear_char(&source);
+  clear_char(&restored);
+  SET_BIT_AR(MOB_FLAGS(&source), MOB_ISNPC);
+  SET_BIT_AR(MOB_FLAGS(&restored), MOB_ISNPC);
+  source.pet_source_spell = SPELL_SHAMBLER;
+  serialized = serialize_pet_runtime_state_for_test(&source);
+  if (serialized == NULL)
+  {
+    CuFail(tc, "could not serialize source marker fixture");
+    return;
+  }
+  line = strstr(serialized, "\nH ");
+  if (line == NULL)
+  {
+    free(serialized);
+    CuFail(tc, "missing behavior marker");
+    return;
+  }
+  line[3] = '9';
+  invalid_behavior = !restore_pet_runtime_state_for_test(&restored, serialized);
+  next = strchr(line + 1, '\n');
+  memmove(line, next, strlen(next) + 1);
+  missing_behavior = !restore_pet_runtime_state_for_test(&restored, serialized);
+  serialized[2] = '2';
+  restored.pet_behavior = PET_BEHAVIOR_WAIT;
+  previous = restore_pet_runtime_state_for_test(&restored, serialized) &&
+             restored.pet_source_spell == SPELL_SHAMBLER &&
+             restored.pet_behavior == PET_BEHAVIOR_FOLLOW;
+  line = strstr(serialized, "\nP ");
+  if (line == NULL)
+  {
+    free(serialized);
+    CuFail(tc, "missing source marker");
+    return;
+  }
+  line[3] = '-';
+  invalid = !restore_pet_runtime_state_for_test(&restored, serialized);
+  /* Reconstruct a complete V1 record by removing the new source record. */
+  next = strchr(line + 1, '\n');
+  memmove(line, next, strlen(next) + 1);
+  serialized[2] = '1';
+  legacy =
+      restore_pet_runtime_state_for_test(&restored, serialized) && restored.pet_source_spell == 0;
+  free(serialized);
+  free_test_affects(&source);
+  free_test_affects(&restored);
+  CuAssertTrue(tc, invalid);
+  CuAssertTrue(tc, invalid_behavior);
+  CuAssertTrue(tc, missing_behavior);
+  CuAssertTrue(tc, previous);
+  CuAssertTrue(tc, legacy);
 }
 
 void Test_crash_save_single_and_incremental(CuTest *tc)

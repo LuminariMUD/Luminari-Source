@@ -117,9 +117,6 @@ bool delete_path(region_vnum vnum);
 /* Local Globals */
 static struct recent_player *recent_list = NULL; /** Global list of recent players */
 
-// external functions
-bool save_char_pets(struct char_data *ch);
-
 ACMD(do_quitlog)
 {
   char arg1[256], arg2[256];
@@ -6633,6 +6630,23 @@ void perform_do_copyover()
     return;
   }
 
+  /* Refuse the handoff before closing sockets or clearing any cooldowns if
+   * an owner's current pets cannot be made durable. Include linkdead owners. */
+  if (!save_player_pets())
+  {
+    log_copyover_phase("FAILED", "Pet persistence failed");
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (d->character && STATE(d) == CON_PLAYING)
+        write_to_descriptor(
+            d->descriptor, "\n\r*** COPYOVER FAILED: Pet state could not be saved. "
+                           "Game continues normally; retry after fixing the save failure. ***\n\r");
+    }
+    close_copyover_diagnostics(0);
+    copyover_status = COPYOVER_NONE;
+    return;
+  }
+
   /* Copyover replaces the process without running comm.c's normal shutdown
    * path. Persist complete vessel state before any descriptor is committed
    * to the handoff file so players cannot recover into missing interiors. */
@@ -6842,17 +6856,8 @@ void perform_do_copyover()
 
       /* and handling we need to do */
 
-      save_char_pets(och);
-
-      /* gonna clear some events for player convenience */
-      if (char_has_mud_event(och, eMUMMYDUST))
-      {
-        event_cancel_specific(och, eMUMMYDUST);
-      }
-      if (char_has_mud_event(och, eDRAGONKNIGHT))
-      {
-        event_cancel_specific(och, eDRAGONKNIGHT);
-      }
+      /* Companion and summon cooldowns stay live for the durable event save.
+       * Preserve the existing reset policy for unrelated epic spells. */
       if (char_has_mud_event(och, eGREATERRUIN))
       {
         event_cancel_specific(och, eGREATERRUIN);
@@ -6868,30 +6873,6 @@ void perform_do_copyover()
       if (char_has_mud_event(och, eEPICWARDING))
       {
         event_cancel_specific(och, eEPICWARDING);
-      }
-      if (char_has_mud_event(och, eC_ANIMAL))
-      {
-        event_cancel_specific(och, eC_ANIMAL);
-      }
-      if (char_has_mud_event(och, eC_DRAGONMOUNT))
-      {
-        event_cancel_specific(och, eC_DRAGONMOUNT);
-      }
-      if (char_has_mud_event(och, eC_FAMILIAR))
-      {
-        event_cancel_specific(och, eC_FAMILIAR);
-      }
-      if (char_has_mud_event(och, eC_MOUNT))
-      {
-        event_cancel_specific(och, eC_MOUNT);
-      }
-      if (char_has_mud_event(och, eSUMMONSHADOW))
-      {
-        event_cancel_specific(och, eSUMMONSHADOW);
-      }
-      if (char_has_mud_event(och, eC_EIDOLON))
-      {
-        event_cancel_specific(och, eC_EIDOLON);
       }
 
       /* end special handling */

@@ -50,6 +50,19 @@ void gain_condition(struct char_data *ch, int condition, int value);
 void check_idling(struct char_data *ch);
 bool save_player_pets(void);
 bool save_char_pets(struct char_data *ch);
+bool pet_set_custom_name(struct char_data *owner, struct char_data *pet, const char *name,
+                         const char **reason);
+void load_char_pets(struct char_data *ch);
+void pet_owner_binding(struct char_data *ch, long int *owner_id, long long *owner_created);
+/* Keeper storage: one owner may hold this many pets out of play. */
+#define PET_KEEPER_CAPACITY 10
+int pet_stored_count(struct char_data *owner);
+bool pet_store_pet(struct char_data *owner, struct char_data *pet);
+struct char_data *pet_retrieve_stored(struct char_data *owner, long int pet_id,
+                                      const char **reason);
+void pet_list_stored(struct char_data *owner);
+int pet_store_surviving_followers(struct char_data *owner);
+long int pet_stored_id_at(struct char_data *owner, int position);
 void point_update_global_one(void);
 void point_update_character_one(struct char_data *ch);
 bool point_update_object_one(struct obj_data *obj);

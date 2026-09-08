@@ -10193,6 +10193,9 @@ int get_golem_vnum(int golem_type, int golem_size)
 
   int base_vnum = 0;
 
+  if (golem_size < 0 || golem_size > 3)
+    return NOBODY;
+
   switch (golem_type)
   {
   case GOLEM_TYPE_WOOD:
@@ -10327,9 +10330,23 @@ void craft_golem_complete(struct char_data *ch)
   int mote_types[NUM_CRAFT_MOTES] = {0}, mote_amounts[NUM_CRAFT_MOTES] = {0};
   int num_mats = 0, num_motes = 0;
   int golem_vnum = NOBODY;
+  int golem_type, golem_size;
   struct char_data *golem = NULL;
+  struct domain_entity_handle owner, created;
   const char *golem_type_names[] = {"", "wood", "stone", "iron"};
   const char *golem_size_names[] = {"small", "medium", "large", "huge"};
+
+  if (ch == NULL || IS_NPC(ch) || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return;
+  golem_type = GET_CRAFT(ch).golem_type;
+  golem_size = GET_CRAFT(ch).golem_size;
+  golem_vnum = get_golem_vnum(golem_type, golem_size);
+  if (golem_vnum == (int)NOBODY || !can_add_follower_by_flag(ch, MOB_GOLEM))
+  {
+    send_to_char(ch, "You cannot complete this golem. Your materials are retained.\r\n");
+    reset_current_golem_craft(ch);
+    return;
+  }
 
   roll = d20(ch);
   dc = GET_CRAFT(ch).dc;
@@ -10343,32 +10360,66 @@ void craft_golem_complete(struct char_data *ch)
   num_motes = get_golem_mote_requirements(GET_CRAFT(ch).golem_type, GET_CRAFT(ch).golem_size,
                                           mote_types, mote_amounts);
 
+  /* Recheck the selected resources at completion, including failed rituals. */
+  if (GET_CRAFT(ch).golem_type == GOLEM_TYPE_WOOD)
+  {
+    material_types[0] = GET_CRAFT(ch).golem_materials[0][0];
+    if (material_types[0] <= 0 || material_types[0] >= NUM_CRAFT_MATS ||
+        craft_group_by_material(material_types[0]) != CRAFT_GROUP_WOOD)
+      goto missing_resources;
+  }
+  for (i = 0; i < num_mats; i++)
+    if (material_types[i] <= 0 || material_types[i] >= NUM_CRAFT_MATS ||
+        GET_CRAFT_MAT(ch, material_types[i]) < material_amounts[i])
+      goto missing_resources;
+  for (i = 0; i < num_motes; i++)
+    if (mote_types[i] <= 0 || mote_types[i] >= NUM_CRAFT_MOTES ||
+        GET_CRAFT_MOTES(ch, mote_types[i]) < mote_amounts[i])
+      goto missing_resources;
+
   if (roll + skill >= dc)
   {
-    // Success! First check if they already have a golem
-    if (has_golem_follower(ch))
+    /* Materialize and reserve ownership before spending resources or callbacks. */
+    golem = read_mobile(golem_vnum, VIRTUAL);
+    if (golem == NULL)
     {
-      send_to_char(ch, "\tRYou already have a golem!\tn You must destroy your current golem before "
-                       "creating a new one.\r\n");
+      send_to_char(ch, "The golem could not be created. Your materials are retained.\r\n");
       reset_current_golem_craft(ch);
       return;
     }
-
-    // Get the appropriate VNUM for this golem
-    golem_vnum = get_golem_vnum(GET_CRAFT(ch).golem_type, GET_CRAFT(ch).golem_size);
-
-    if (golem_vnum == (int)NOBODY)
+    SET_BIT_AR(AFF_FLAGS(golem), AFF_CHARM);
+    SET_BIT_AR(MOB_FLAGS(golem), MOB_GOLEM);
+    GET_REAL_RACE(golem) = RACE_TYPE_CONSTRUCT;
+    if (!attach_follower(golem, ch))
     {
-      send_to_char(ch, "\tRError:\tn Invalid golem type/size combination!\r\n");
+      extract_char(golem);
+      reset_current_golem_craft(ch);
+      send_to_char(ch, "The golem could not be bound. Your materials are retained.\r\n");
+      return;
+    }
+    owner = domain_event_character_handle(ch);
+    created = domain_event_character_handle(golem);
+    if (!domain_entity_handle_is_valid(owner) || !domain_entity_handle_is_valid(created))
+    {
+      extract_char(golem);
       reset_current_golem_craft(ch);
       return;
     }
-
-    // Check if we can add this follower
-    if (!can_add_follower(ch, golem_vnum))
+    X_LOC(golem) = world[IN_ROOM(ch)].coords[0];
+    Y_LOC(golem) = world[IN_ROOM(ch)].coords[1];
+    char_to_room(golem, IN_ROOM(ch));
+    ch = domain_event_world_resolve_character(owner);
+    golem = domain_event_world_resolve_character(created);
+    if (ch == NULL || golem == NULL || golem->master != ch || MOB_FLAGGED(golem, MOB_NOTDEADYET) ||
+        IN_ROOM(golem) != IN_ROOM(ch))
     {
-      send_to_char(ch, "\tRYou cannot control another follower right now!\tn\r\n");
-      reset_current_golem_craft(ch);
+      if (golem != NULL)
+        extract_char(golem);
+      if (ch != NULL)
+      {
+        reset_current_golem_craft(ch);
+        send_to_char(ch, "The golem could not arrive. Your materials are retained.\r\n");
+      }
       return;
     }
 
@@ -10377,18 +10428,7 @@ void craft_golem_complete(struct char_data *ch)
     {
       if (material_types[i] > 0)
       {
-        // For wood golems, the material type was already selected in begin_golem_craft
-        // and is stored in GET_CRAFT(ch).golem_materials[i][0]
-        if (GET_CRAFT(ch).golem_type == GOLEM_TYPE_WOOD && i == 0)
-        {
-          int selected_wood_type = GET_CRAFT(ch).golem_materials[i][0];
-          GET_CRAFT_MAT(ch, selected_wood_type) -= material_amounts[i];
-        }
-        else
-        {
-          // For non-wood materials or secondary materials, consume specific type
-          GET_CRAFT_MAT(ch, material_types[i]) -= material_amounts[i];
-        }
+        GET_CRAFT_MAT(ch, material_types[i]) -= material_amounts[i];
       }
     }
 
@@ -10398,37 +10438,24 @@ void craft_golem_complete(struct char_data *ch)
         GET_CRAFT_MOTES(ch, mote_types[i]) -= mote_amounts[i];
     }
 
-    // Create the golem mob
-    golem = read_mobile(golem_vnum, VIRTUAL);
-
-    if (!golem)
-    {
-      send_to_char(ch, "\tRError:\tn Failed to create golem mob! Contact an administrator.\r\n");
-      reset_current_golem_craft(ch);
-      return;
-    }
-
-    char_to_room(golem, IN_ROOM(ch));
-
-    IS_CARRYING_W(golem) = 0;
-    IS_CARRYING_N(golem) = 0;
-    SET_BIT_AR(AFF_FLAGS(golem), AFF_CHARM);
-    SET_BIT_AR(MOB_FLAGS(golem), MOB_GOLEM);
-    /* Ensure golems are treated as constructs for all immunity checks */
-    GET_REAL_RACE(golem) = RACE_TYPE_CONSTRUCT;
-
     send_to_char(ch, "\tGSuccess!\tn You have successfully constructed a %s %s golem!\r\n",
-                 golem_size_names[GET_CRAFT(ch).golem_size],
-                 golem_type_names[GET_CRAFT(ch).golem_type]);
-    act("$n successfully constructs a golem!", FALSE, ch, 0, 0, TO_ROOM);
-    act("$N springs to life and begins following $n!", FALSE, ch, 0, golem, TO_ROOM);
-
+                 golem_size_names[golem_size], golem_type_names[golem_type]);
+    reset_current_golem_craft(ch);
     load_mtrigger(golem);
-    add_follower(golem, ch);
-
-    // Auto-join group if creator is leading a group
-    if (!GROUP(golem) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+    ch = domain_event_world_resolve_character(owner);
+    golem = domain_event_world_resolve_character(created);
+    if (ch == NULL)
+      return;
+    if (golem != NULL && !MOB_FLAGGED(golem, MOB_NOTDEADYET) && golem->master == ch &&
+        !GROUP(golem) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
       join_group(golem, GROUP(ch));
+    ch = domain_event_world_resolve_character(owner);
+    if (ch != NULL && !save_char_pets(ch))
+      send_to_char(ch, "Your pet state could not be saved. Try 'save' again later.\r\n");
+    golem = domain_event_world_resolve_character(created);
+    if (ch != NULL && golem != NULL && !MOB_FLAGGED(golem, MOB_NOTDEADYET) && golem->master == ch)
+      act("$n constructs $N, who springs to life and follows $m!", FALSE, ch, 0, golem, TO_ROOM);
+    return;
   }
   else
   {
@@ -10448,6 +10475,12 @@ void craft_golem_complete(struct char_data *ch)
     }
   }
 
+  reset_current_golem_craft(ch);
+  return;
+
+missing_resources:
+  send_to_char(ch,
+               "The selected materials or motes are no longer available. Nothing is spent.\r\n");
   reset_current_golem_craft(ch);
 }
 

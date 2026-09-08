@@ -717,6 +717,9 @@ ACMD(do_animatedead)
   struct char_data *mob = NULL;
   mob_vnum mob_num = 0;
 
+  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return;
+
   if (!HAS_FEAT(ch, FEAT_ANIMATE_DEAD))
   {
     send_to_char(ch, "You do not know how to animate dead!\r\n");
@@ -776,23 +779,19 @@ ACMD(do_animatedead)
     Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
   }
 
-  char_to_room(mob, IN_ROOM(ch));
-
   IS_CARRYING_W(mob) = 0;
   IS_CARRYING_N(mob) = 0;
   SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
-
-  act("$n animates a corpse!", FALSE, ch, 0, mob, TO_ROOM);
-  act("You animate a corpse!", FALSE, ch, 0, mob, TO_CHAR);
-  load_mtrigger(mob);
-  add_follower(mob, ch);
-  if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
-    join_group(mob, GROUP(ch));
+  SET_BIT_AR(MOB_FLAGS(mob), MOB_ANIMATED_DEAD);
+  if (!place_pet_follower(ch, mob))
+    return;
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_ANIMATE_DEAD);
 
   USE_STANDARD_ACTION(ch);
+  send_to_char(ch, "You animate a corpse!\r\n");
+  finish_pet_summon(ch, mob, true, true);
 }
 
 ACMD(do_abundantstep)
@@ -1718,14 +1717,18 @@ void perform_call(struct char_data *ch, int call_type, int level)
   struct follow_type *k = NULL, *next = NULL;
   struct char_data *mob = NULL;
   mob_vnum mob_num = NOBODY;
+  struct domain_entity_handle owner, companion;
   /* tests for whether you can actually call a companion */
+
+  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return;
 
   /* companion here already ? */
   for (k = ch->followers; k; k = next)
   {
     next = k->next;
-    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
-        MOB_FLAGGED(k->follower, call_type))
+    if (k->follower != NULL && IS_NPC(k->follower) && !MOB_FLAGGED(k->follower, MOB_NOTDEADYET) &&
+        AFF_FLAGGED(k->follower, AFF_CHARM) && MOB_FLAGGED(k->follower, call_type))
     {
       if (call_type == MOB_C_ANIMAL && !IS_NPC(ch) && GET_MOB_VNUM(k->follower) == MOB_DIRE_WOLF &&
           !can_select_dire_wolf_companion(ch))
@@ -1741,17 +1744,35 @@ void perform_call(struct char_data *ch, int call_type, int level)
       }
       else
       {
-        char_from_room(k->follower);
+        mob = k->follower;
+        if (!VALID_ROOM_RNUM(IN_ROOM(mob)))
+          return;
+        owner = domain_event_character_handle(ch);
+        companion = domain_event_character_handle(mob);
+        if (!domain_entity_handle_is_valid(owner) || !domain_entity_handle_is_valid(companion))
+          return;
+        char_from_room(mob);
+        ch = domain_event_world_resolve_character(owner);
+        mob = domain_event_world_resolve_character(companion);
+        if (ch == NULL || mob == NULL || mob->master != ch || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+          return;
 
         if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
         {
-          X_LOC(k->follower) = world[IN_ROOM(ch)].coords[0];
-          Y_LOC(k->follower) = world[IN_ROOM(ch)].coords[1];
+          X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+          Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
         }
 
-        char_to_room(k->follower, IN_ROOM(ch));
-        act("$n calls $N!", FALSE, ch, 0, k->follower, TO_ROOM);
-        act("You call forth $N!", FALSE, ch, 0, k->follower, TO_CHAR);
+        char_to_room(mob, IN_ROOM(ch));
+        ch = domain_event_world_resolve_character(owner);
+        mob = domain_event_world_resolve_character(companion);
+        if (ch == NULL || mob == NULL || mob->master != ch || MOB_FLAGGED(mob, MOB_NOTDEADYET))
+          return;
+        act("You call forth $N!", FALSE, ch, 0, mob, TO_CHAR);
+        ch = domain_event_world_resolve_character(owner);
+        mob = domain_event_world_resolve_character(companion);
+        if (ch != NULL && mob != NULL && mob->master == ch && !MOB_FLAGGED(mob, MOB_NOTDEADYET))
+          act("$n calls $N!", FALSE, ch, 0, mob, TO_ROOM);
         return;
       }
     }
@@ -1950,10 +1971,13 @@ void perform_call(struct char_data *ch, int call_type, int level)
   if (level >= LVL_IMMORT)
     level = LVL_IMMORT - 1;
 
-  /* passed all the tests, bring on the companion! */
-  /* HAVE to make sure the mobiles for the lists of
-     companions / familiars / etc have the proper
-     MOB_C_x flag set via medit */
+  if (!can_add_follower_by_flag(ch, call_type))
+  {
+    send_to_char(ch, "You cannot control another companion of that kind.\r\n");
+    return;
+  }
+
+  /* The acquisition route supplies the bond, independently of prototype flags. */
   if (!(mob = read_mobile(mob_num, VIRTUAL)))
   {
     send_to_char(ch, "You don't quite remember how to call that creature.\r\n");
@@ -1970,6 +1994,7 @@ void perform_call(struct char_data *ch, int call_type, int level)
     return;
   }
 
+  SET_BIT_AR(MOB_FLAGS(mob), call_type);
   if (call_type == MOB_C_ANIMAL && mob_num == MOB_DIRE_WOLF)
   {
     SET_BIT_AR(MOB_FLAGS(mob), MOB_C_ANIMAL);
@@ -1983,7 +2008,6 @@ void perform_call(struct char_data *ch, int call_type, int level)
     Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
   }
 
-  char_to_room(mob, IN_ROOM(ch));
   IS_CARRYING_W(mob) = 0;
   IS_CARRYING_N(mob) = 0;
 
@@ -2098,13 +2122,29 @@ void perform_call(struct char_data *ch, int call_type, int level)
   affect_total(mob);
 
   SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
-  act("$n calls $N!", FALSE, ch, 0, mob, TO_ROOM);
-  act("You call forth $N!", FALSE, ch, 0, mob, TO_CHAR);
-  load_mtrigger(mob);
-  add_follower(mob, ch);
-  if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
-    join_group(mob, GROUP(ch));
-  save_char_pets(ch);
+  if (!attach_follower(mob, ch))
+  {
+    extract_char(mob);
+    send_to_char(ch, "Your companion could not be bound. Try again.\r\n");
+    return;
+  }
+  owner = domain_event_character_handle(ch);
+  companion = domain_event_character_handle(mob);
+  if (!domain_entity_handle_is_valid(owner) || !domain_entity_handle_is_valid(companion))
+  {
+    extract_char(mob);
+    return;
+  }
+  char_to_room(mob, IN_ROOM(ch));
+  ch = domain_event_world_resolve_character(owner);
+  mob = domain_event_world_resolve_character(companion);
+  if (ch == NULL || mob == NULL || mob->master != ch || MOB_FLAGGED(mob, MOB_NOTDEADYET) ||
+      IN_ROOM(mob) != IN_ROOM(ch))
+  {
+    if (mob != NULL)
+      extract_char(mob);
+    return;
+  }
 
   /* finally attach cooldown, approximately 14 minutes right now */
   if (call_type == MOB_C_ANIMAL)
@@ -2132,9 +2172,29 @@ void perform_call(struct char_data *ch, int call_type, int level)
     attach_mud_event(new_mud_event(eC_EIDOLON, ch, NULL), 4 * SECS_PER_MUD_DAY);
   }
 
+  load_mtrigger(mob);
+  ch = domain_event_world_resolve_character(owner);
+  mob = domain_event_world_resolve_character(companion);
+  if (ch == NULL || mob == NULL || mob->master != ch || MOB_FLAGGED(mob, MOB_NOTDEADYET))
+    return;
+  if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+    join_group(mob, GROUP(ch));
+  ch = domain_event_world_resolve_character(owner);
+  mob = domain_event_world_resolve_character(companion);
+  if (ch == NULL || mob == NULL || mob->master != ch || MOB_FLAGGED(mob, MOB_NOTDEADYET))
+    return;
+  if (!IS_NPC(ch) && !save_char_pets(ch))
+    send_to_char(ch,
+                 "Your companion is active but could not be saved. Try 'save' again later.\r\n");
+
   send_to_char(ch,
                "You can 'call' your companion even if you get separated.  "
                "You can also 'dismiss' your companion to reduce your cooldown drastically.\r\n");
+  act("You call forth $N!", FALSE, ch, 0, mob, TO_CHAR);
+  ch = domain_event_world_resolve_character(owner);
+  mob = domain_event_world_resolve_character(companion);
+  if (ch != NULL && mob != NULL && mob->master == ch)
+    act("$n calls $N!", FALSE, ch, 0, mob, TO_ROOM);
 }
 
 ACMD(do_call)
@@ -2334,134 +2394,151 @@ ACMD(do_purify)
 
   update_pos(vict);
 }
+static bool pet_has_entrusted_gear(struct char_data *pet)
+{
+  int i;
 
-/* this is a temporary command, a simple cheesy way
-   to get rid of your followers in a bind */
+  if (pet->carrying != NULL || pet->bags != NULL)
+    return true;
+  for (i = 0; i < NUM_WEARS; i++)
+    if (GET_EQ(pet, i) != NULL)
+      return true;
+  return false;
+}
+
+static bool pet_can_be_dismissed(struct char_data *owner, struct char_data *pet, bool remote)
+{
+  return pet != NULL && IS_PET(pet) && pet->master == owner && !MOB_FLAGGED(pet, MOB_NOTDEADYET) &&
+         IN_ROOM(pet) != NOWHERE &&
+         (remote ? IN_ROOM(pet) != IN_ROOM(owner) : IN_ROOM(pet) == IN_ROOM(owner));
+}
+
+static void reduce_dismissed_companion_cooldown(struct char_data *ch, struct char_data *pet)
+{
+  static const struct
+  {
+    int flag;
+    int event;
+  } companions[] = {{MOB_C_ANIMAL, eC_ANIMAL},     {MOB_C_DRAGON, eC_DRAGONMOUNT},
+                    {MOB_C_FAMILIAR, eC_FAMILIAR}, {MOB_C_MOUNT, eC_MOUNT},
+                    {MOB_SHADOW, eSUMMONSHADOW},   {MOB_EIDOLON, eC_EIDOLON}};
+  struct mud_event_data *event;
+  size_t i;
+
+  for (i = 0; i < sizeof(companions) / sizeof(companions[0]); i++)
+    if (MOB_FLAGGED(pet, companions[i].flag))
+    {
+      event = char_has_mud_event(ch, companions[i].event);
+      if (event != NULL && mud_event_remaining(event) > 59 * PASSES_PER_SEC)
+        change_event_duration(ch, companions[i].event, 59 * PASSES_PER_SEC);
+    }
+}
+
 ACMD(do_dismiss)
 {
-  struct follow_type *k = NULL, *next = NULL;
-  char buf[MAX_STRING_LENGTH] = {'\0'};
-  char arg[MAX_INPUT_LENGTH] = {'\0'};
-  struct char_data *vict = NULL;
-  int found = 0;
-  struct mud_event_data *pMudEvent = NULL;
+  struct follow_type *link;
+  struct char_data *pet, *vict;
+  struct domain_entity_handle owner, *targets;
+  char arg[MAX_INPUT_LENGTH];
+  size_t count, index;
+  bool remote, saved;
 
+  if (ch == NULL || world == NULL || IN_ROOM(ch) == NOWHERE || IN_ROOM(ch) > top_of_world)
+    return;
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+  {
+    send_to_char(ch, "You cannot dismiss followers while charmed.\r\n");
+    return;
+  }
   one_argument(argument, arg, sizeof(arg));
-
-  if (!*arg)
+  remote = !*arg;
+  vict = remote ? NULL : get_pet_command_target(ch, arg);
+  if (!remote && (vict == NULL || vict->master != ch))
   {
-    send_to_char(ch, "You dismiss your non-present followers.\r\n");
-    snprintf(buf, sizeof(buf), "$n dismisses $s non present followers.");
-    act(buf, FALSE, ch, 0, 0, TO_ROOM);
-
-    for (k = ch->followers; k; k = next)
-    {
-      next = k->next;
-
-      if (IN_ROOM(ch) != IN_ROOM(k->follower))
-      {
-        if (IS_PET(k->follower))
-        {
-          extract_char(k->follower);
-        }
-      }
-    }
-
-    save_char_pets(ch);
-
+    send_to_char(ch, "That is not a follower you can dismiss here.\r\n");
     return;
   }
-
-  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  if (vict != NULL && !IS_PET(vict))
   {
-    send_to_char(ch, "Whom do you want to dismiss?\r\n");
+    /* Preserve ordinary social following without extracting the follower. */
+    stop_follower(vict);
     return;
   }
-
-  /* is this follower the target? */
-  if (vict->master == ch)
+  count = 0;
+  if (vict != NULL)
+    count = 1;
+  else
+    for (link = ch->followers; link != NULL; link = link->next)
+      if (pet_can_be_dismissed(ch, link->follower, true))
+        count++;
+  if (count == 0)
   {
-    /* is this follower charmed? */
-    if (AFF_FLAGGED(vict, AFF_CHARM))
-    {
-      /* is this a special companion?
-       * if so, modify event cooldown (if it exits) */
-      if (MOB_FLAGGED(vict, MOB_C_ANIMAL))
-      {
-        if ((pMudEvent = char_has_mud_event(ch, eC_ANIMAL)) &&
-            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
-        {
-          change_event_duration(ch, eC_ANIMAL, (59 * PASSES_PER_SEC));
-        }
-      }
-      if (MOB_FLAGGED(vict, MOB_C_DRAGON))
-      {
-        if ((pMudEvent = char_has_mud_event(ch, eC_DRAGONMOUNT)) &&
-            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
-        {
-          change_event_duration(ch, eC_DRAGONMOUNT, (59 * PASSES_PER_SEC));
-        }
-      }
-      else if (MOB_FLAGGED(vict, MOB_C_FAMILIAR))
-      {
-        if ((pMudEvent = char_has_mud_event(ch, eC_FAMILIAR)) &&
-            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
-        {
-          change_event_duration(ch, eC_FAMILIAR, (59 * PASSES_PER_SEC));
-        }
-      }
-      else if (MOB_FLAGGED(vict, MOB_C_MOUNT))
-      {
-        if ((pMudEvent = char_has_mud_event(ch, eC_MOUNT)) &&
-            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
-        {
-          change_event_duration(ch, eC_MOUNT, (59 * PASSES_PER_SEC));
-        }
-      }
-      else if (MOB_FLAGGED(vict, MOB_SHADOW))
-      {
-        if ((pMudEvent = char_has_mud_event(ch, eSUMMONSHADOW)) &&
-            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
-        {
-          change_event_duration(ch, eSUMMONSHADOW, (59 * PASSES_PER_SEC));
-        }
-      }
-      else if (MOB_FLAGGED(vict, MOB_EIDOLON))
-      {
-        if ((pMudEvent = char_has_mud_event(ch, eC_EIDOLON)) &&
-            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
-        {
-          change_event_duration(ch, eC_EIDOLON, (59 * PASSES_PER_SEC));
-        }
-      }
-
-      extract_char(vict);
-      found = 1;
-    }
+    send_to_char(ch, "You have no eligible non-present pets to dismiss.\r\n");
+    return;
   }
-
-  if (!found)
-  {
-    if (vict->master == ch)
-    {
-      act("$N is no longer following you.", TRUE, ch, 0, vict, TO_CHAR);
-      act("You is no longer follow $n.", TRUE, ch, 0, vict, TO_CHAR);
-      stop_follower(vict);
-    }
-    else
-    {
-      send_to_char(ch, "Your target is not valid!\r\n");
-      return;
-    }
-  }
+  targets = calloc(count, sizeof(*targets));
+  if (targets == NULL)
+    return;
+  owner = domain_event_character_handle(ch);
+  if (vict != NULL)
+    targets[0] = domain_event_character_handle(vict);
   else
   {
-    act("With a wave of your hand, you dismiss $N.", FALSE, ch, 0, vict, TO_CHAR);
-    act("$n waves at you, indicating your dismissal.", FALSE, ch, 0, vict, TO_VICT);
-    act("With a wave, $n dismisses $N.", TRUE, ch, 0, vict, TO_NOTVICT);
-
-    save_char_pets(ch);
+    index = 0;
+    for (link = ch->followers; link != NULL; link = link->next)
+      if (pet_can_be_dismissed(ch, link->follower, true))
+        targets[index++] = domain_event_character_handle(link->follower);
   }
+
+  /* Validate the whole selection before touching the saved snapshot or world. */
+  for (index = 0; index < count; index++)
+  {
+    pet = domain_event_world_resolve_character(targets[index]);
+    if (!domain_entity_handle_is_valid(owner) || !pet_can_be_dismissed(ch, pet, remote))
+      break;
+    if (pet_has_entrusted_gear(pet))
+    {
+      send_to_char(ch, "Retrieve %s's carried and worn gear before dismissing.\r\n", GET_NAME(pet));
+      break;
+    }
+  }
+  if (index != count)
+  {
+    free(targets);
+    return;
+  }
+
+  /* Saving is synchronous. Exclude the selected pets, then restore their charm
+   * before any gameplay callbacks. A failed save leaves every live pet intact. */
+  for (index = 0; index < count; index++)
+  {
+    pet = domain_event_world_resolve_character(targets[index]);
+    REMOVE_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+  }
+  saved = IS_NPC(ch) || save_char_pets(ch);
+  for (index = 0; index < count; index++)
+  {
+    pet = domain_event_world_resolve_character(targets[index]);
+    SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+  }
+  if (!saved)
+  {
+    send_to_char(ch, "Your pets could not be saved. Nothing was dismissed; try again later.\r\n");
+    free(targets);
+    return;
+  }
+
+  for (index = 0; index < count; index++)
+  {
+    ch = domain_event_world_resolve_character(owner);
+    pet = domain_event_world_resolve_character(targets[index]);
+    if (ch == NULL || !pet_can_be_dismissed(ch, pet, remote))
+      continue;
+    reduce_dismissed_companion_cooldown(ch, pet);
+    send_to_char(ch, "You dismiss %s.\r\n", GET_NAME(pet));
+    extract_char(pet);
+  }
+  free(targets);
 }
 
 ACMD(do_destroygolem)
@@ -3239,7 +3316,8 @@ ACMD(do_respec)
   {
     send_to_char(ch, "You cannot be part of a group, be following someone, or have followers of "
                      "your own to respec.\r\n"
-                     "You can dismiss npc followers with the 'dismiss' command.\r\n");
+                     "Use 'dismiss' for non-present pets, and 'dismiss <name>' for each present "
+                     "npc follower.\r\n");
     return;
   }
 
@@ -10107,7 +10185,7 @@ ACMD(do_summon)
 
   bool found = false;
 
-  found = char_pets_to_char_loc(ch);
+  found = char_pets_to_char_loc(ch, true);
 
   if (!found)
   {

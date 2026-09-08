@@ -484,6 +484,12 @@ void assign_mobiles(void)
   ASSIGNMOB(104306, mercenary);
   ASSIGNMOB(104307, mercenary);
 
+  /* Stablemasters keep players' pets: list, store and reclaim. */
+  ASSIGNMOB(106423, pet_keeper); /* the stablemaster, Ashenport */
+  ASSIGNMOB(106809, pet_keeper); /* Urvon the stablemaster */
+  ASSIGNMOB(108155, pet_keeper); /* Darvar the stablemaster, Nagburim Prime */
+  ASSIGNMOB(118553, pet_keeper); /* the stablemaster, Hardbuckler */
+
   /*Hardbuckler*/
   ASSIGNMOB(118551, bank);
   ASSIGNMOB(118519, receptionist);

@@ -405,3 +405,123 @@ SPECIAL(janitor)
   }
   return (FALSE);
 }
+
+
+/* Pet keeper: the one native place an owner lists, stores, and reclaims pets.
+ * Storage and retrieval reuse the ordinary pet snapshot and restore paths, so a
+ * reclaimed pet keeps its identity, statistics, effects, and equipment. */
+SPECIAL(pet_keeper)
+{
+  char subcommand[MAX_INPUT_LENGTH];
+  char target[MAX_INPUT_LENGTH];
+  struct char_data *keeper = (struct char_data *)me;
+  struct char_data *pet;
+  const char *reason;
+  char *id_end;
+  long int pet_id;
+  int stored;
+
+  if (!ch->desc || IS_NPC(ch) || !CMD_IS("stable"))
+    return (FALSE);
+  if (!keeper || !AWAKE(keeper))
+    return (FALSE);
+
+  two_arguments(argument, subcommand, sizeof(subcommand), target, sizeof(target));
+
+  if (!*subcommand || is_abbrev(subcommand, "list"))
+  {
+    pet_list_stored(ch);
+    return (TRUE);
+  }
+
+  if (is_abbrev(subcommand, "store"))
+  {
+    if (!*target)
+    {
+      send_to_char(ch, "Stable which follower?\r\n");
+      return (TRUE);
+    }
+    pet = get_pet_command_target(ch, target);
+    if (!pet || !IS_NPC(pet) || pet->master != ch || !AFF_FLAGGED(pet, AFF_CHARM))
+    {
+      send_to_char(ch, "%s will only stable your own loyal followers.\r\n", GET_NAME(keeper));
+      return (TRUE);
+    }
+    if (FIGHTING(ch) || FIGHTING(pet))
+    {
+      send_to_char(ch, "Not while there is fighting to be done!\r\n");
+      return (TRUE);
+    }
+    if (RIDING(ch) == pet || RIDDEN_BY(pet) || RIDING(pet))
+    {
+      send_to_char(ch, "Dismount first.\r\n");
+      return (TRUE);
+    }
+    stored = pet_stored_count(ch);
+    if (stored < 0)
+    {
+      send_to_char(ch, "The keeper cannot reach the stables right now.\r\n");
+      return (TRUE);
+    }
+    if (stored >= PET_KEEPER_CAPACITY)
+    {
+      send_to_char(ch, "The stables are full; reclaim a follower first.\r\n");
+      return (TRUE);
+    }
+    if (!pet_store_pet(ch, pet))
+    {
+      act("$N stays at your side; the keeper cannot take responsibility now.", FALSE, ch, 0, pet,
+          TO_CHAR);
+      return (TRUE);
+    }
+    act("$N is led away to the stables.", FALSE, ch, 0, pet, TO_CHAR);
+    act("$N is led away to the stables.", FALSE, ch, 0, pet, TO_ROOM);
+    if (!save_char_pets(ch))
+      send_to_char(ch, "Your remaining followers could not be saved. Try 'save' again later.\r\n");
+    return (TRUE);
+  }
+
+  if (is_abbrev(subcommand, "retrieve") || is_abbrev(subcommand, "reclaim"))
+  {
+    if (!*target)
+    {
+      send_to_char(ch, "Reclaim which stabled follower? Use its listed number.\r\n");
+      return (TRUE);
+    }
+    id_end = NULL;
+    pet_id = strtol(target, &id_end, 10);
+    if (pet_id <= 0 || id_end == NULL || *id_end != '\0')
+    {
+      send_to_char(ch, "Name the stabled follower by its listed number.\r\n");
+      return (TRUE);
+    }
+    if (FIGHTING(ch))
+    {
+      send_to_char(ch, "Not while there is fighting to be done!\r\n");
+      return (TRUE);
+    }
+    /* A listed position is what players read and type; a stable ID still works
+     * so a number quoted from an earlier listing or from staff is accepted. */
+    if (pet_id <= PET_KEEPER_CAPACITY)
+    {
+      long int listed_id = pet_stored_id_at(ch, (int)pet_id);
+
+      if (listed_id > 0)
+        pet_id = listed_id;
+    }
+    reason = NULL;
+    pet = pet_retrieve_stored(ch, pet_id, &reason);
+    if (!pet)
+    {
+      send_to_char(ch, "%s\r\n",
+                   reason ? reason : "The keeper cannot reach the stables right now.");
+      return (TRUE);
+    }
+    if (!save_char_pets(ch))
+      send_to_char(ch, "Your followers could not be saved. Try 'save' again later.\r\n");
+    return (TRUE);
+  }
+
+  send_to_char(ch, "Usage: stable [list | store <follower> | reclaim <number>]\r\n");
+  return (TRUE);
+}

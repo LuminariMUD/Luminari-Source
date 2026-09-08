@@ -34,6 +34,8 @@
 #include "magic/domains_schools.h"
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
+#include "domain_event_world.h"
+#include "mudlim.h"
 #include "craft/alchemy.h"
 #include "character/premadebuilds.h"
 #include "craft/craft.h"
@@ -1115,73 +1117,60 @@ int is_immune_to_crits(struct char_data *attacker, struct char_data *target)
   return FALSE;
 }
 
-/* support function for check_npc_followers(), checks to see if this mobile should be counted
-   towards your npc pet/charmee limit */
-bool not_npc_limit(struct char_data *pet)
+/* Source-specific flags precede broad summon VNUMs; each pet is counted once. */
+enum follower_category
 {
-  bool counts = FALSE;
+  FOLLOWER_GENERAL,
+  FOLLOWER_SUMMON,
+  FOLLOWER_GENIE,
+  FOLLOWER_SHAMBLER
+};
 
-  /* we have a list of flags to reference, then specific VNUMS to check */
+static const struct
+{
+  int flag;
+  mob_vnum vnum;
+  const char *name;
+} follower_rules[] = {
+    {-1, NOBODY, "General"},
+    {-1, NOBODY, "Summon"},
+    {MOB_GENIEKIND, NOBODY, "Genie"},
+    {-1, NOBODY, "Shambler group"},
+    {MOB_C_O_T_N, NOBODY, "Children of the night"},
+    {MOB_VAMP_SPWN, NOBODY, "Vampire spawn"},
+    {MOB_DRAGON_KNIGHT, NOBODY, "Dragon knight"},
+    {MOB_MUMMY_DUST, NOBODY, "Mummy dust"},
+    {MOB_SHADOW, NOBODY, "Shadow"},
+    {MOB_PLANAR_ALLY, NOBODY, "Planar ally"},
+    {MOB_C_ANIMAL, NOBODY, "Animal companion"},
+    {MOB_C_FAMILIAR, NOBODY, "Familiar"},
+    {MOB_C_MOUNT, NOBODY, "Bonded mount"},
+    {MOB_C_DRAGON, NOBODY, "Dragon mount"},
+    {MOB_EIDOLON, NOBODY, "Eidolon"},
+    {MOB_ROL_LYCANTHROPE_SUMMON, NOBODY, "Lycanthrope"},
+    {MOB_ROL_TOTEM_SPIRIT, NOBODY, "Totem spirit"},
+    {MOB_GOLEM, NOBODY, "Golem"},
+    {MOB_MERCENARY, NOBODY, "Mercenary"},
+    {MOB_ANIMATED_DEAD, NOBODY, "Animated dead"},
+    {MOB_ELEMENTAL, NOBODY, "Elemental"},
+    /* Existing artifact exceptions retain their individual prototype limits. */
+    {-1, 101225, "Spirit eagle"},
+    {-1, 132131, "Large spirit eagle"},
+    {-1, 11389, "Fullstaff's horn"},
+    {-1, 132199, "Black stone figurine"},
+};
 
-  /* flags */
-  if (MOB_FLAGGED(pet, MOB_C_O_T_N))
-    counts = TRUE;
-  if (MOB_FLAGGED(pet, MOB_VAMP_SPWN))
-    counts = TRUE;
-  if (MOB_FLAGGED(pet, MOB_DRAGON_KNIGHT))
-    counts = TRUE;
-  if (MOB_FLAGGED(pet, MOB_MUMMY_DUST))
-    counts = TRUE;
-  if (MOB_FLAGGED(pet, MOB_SHADOW))
-    counts = TRUE;
-  /*
-  if (MOB_FLAGGED(pet, MOB_MERCENARY))
-    counts = TRUE;
-  */
-  if (MOB_FLAGGED(pet, MOB_PLANAR_ALLY))
-    counts = TRUE;
-  if (MOB_FLAGGED(pet, MOB_ANIMATED_DEAD))
-    counts = TRUE;
-  if (MOB_FLAGGED(pet, MOB_ELEMENTAL))
-    counts = TRUE;
-  if (MOB_FLAGGED(pet, MOB_C_ANIMAL))
-    counts = TRUE;
-  if (MOB_FLAGGED(pet, MOB_C_FAMILIAR))
-    counts = TRUE;
-  if (MOB_FLAGGED(pet, MOB_C_MOUNT))
-    counts = TRUE;
-  if (MOB_FLAGGED(pet, MOB_EIDOLON))
-    counts = TRUE;
+#define FOLLOWER_RULE_COUNT (sizeof(follower_rules) / sizeof(follower_rules[0]))
 
-  /* vnums */
-  switch (GET_MOB_VNUM(pet))
-  {
-  /* spirit eagle */
-  case 101225:
-    counts = TRUE;
-    break;
-
-  /* large spirit eagle */
-  case 132131:
-    counts = TRUE;
-    break;
-
-  /* Fullstaff's horn */
-  case 11389:
-    counts = TRUE;
-    break;
-
-  /* small figurine carved in black stone */
-  case 132199:
-    counts = TRUE;
-    break;
-
-  default:
-    break;
-  }
-
-  return counts;
-}
+struct follower_count_data
+{
+  int categories[FOLLOWER_RULE_COUNT];
+  int total;
+  int matching_flag;
+  int matching_vnum;
+  int general_limit;
+  int general_used;
+};
 
 bool isGenieKind(int vnum)
 {
@@ -1196,243 +1185,367 @@ bool isGenieKind(int vnum)
   return false;
 }
 
+static mob_vnum follower_vnum(struct char_data *pet)
+{
+  if (pet == NULL || mob_index == NULL || !IS_MOB(pet))
+    return NOBODY;
+  return GET_MOB_VNUM(pet);
+}
+
+static size_t follower_category(struct char_data *pet, mob_vnum vnum)
+{
+  size_t i;
+  int source_flag = summoned_follower_flag(pet->pet_source_spell);
+
+  if (pet->pet_source_spell == SPELL_SHAMBLER ||
+      (pet->pet_source_spell == 0 && is_shambler_summon(vnum)))
+    return FOLLOWER_SHAMBLER;
+  if (source_flag >= 0)
+    for (i = FOLLOWER_GENIE; i < FOLLOWER_RULE_COUNT; i++)
+      if (follower_rules[i].flag == source_flag)
+        return i;
+  for (i = FOLLOWER_GENIE; i < FOLLOWER_RULE_COUNT; i++)
+    if ((follower_rules[i].flag >= 0 && MOB_FLAGGED(pet, follower_rules[i].flag)) ||
+        (vnum != NOBODY && follower_rules[i].vnum == vnum))
+      return i;
+  if (isGenieKind(vnum))
+    return FOLLOWER_GENIE;
+  return isSummonMob(vnum) ? FOLLOWER_SUMMON : FOLLOWER_GENERAL;
+}
+
+static bool is_controlled_follower(struct char_data *owner, struct char_data *pet)
+{
+  return pet != NULL && IS_PET(pet) && pet->master == owner && !MOB_FLAGGED(pet, MOB_NOTDEADYET);
+}
+
+static void count_followers(struct char_data *ch, int flag, mob_vnum vnum,
+                            struct follower_count_data *counts)
+{
+  struct follow_type *link;
+  struct char_data *pet;
+  mob_vnum pet_vnum;
+
+  memset(counts, 0, sizeof(*counts));
+  if (ch == NULL)
+    return;
+  counts->general_limit = 1 + MAX(0, GET_CHA_BONUS(ch));
+  for (link = ch->followers; link != NULL; link = link->next)
+  {
+    pet = link->follower;
+    if (!is_controlled_follower(ch, pet))
+      continue;
+    pet_vnum = follower_vnum(pet);
+    counts->categories[follower_category(pet, pet_vnum)]++;
+    counts->total++;
+    if (flag >= 0 && flag < NUM_MOB_FLAGS && MOB_FLAGGED(pet, flag))
+      counts->matching_flag++;
+    if (vnum != NOBODY && pet_vnum == vnum)
+      counts->matching_vnum++;
+  }
+  counts->general_used =
+      counts->categories[FOLLOWER_GENERAL] + MAX(0, counts->categories[FOLLOWER_SUMMON] - 1);
+}
+
+static int follower_category_limit(struct char_data *ch, size_t category)
+{
+  if (category == FOLLOWER_GENERAL)
+    return 1 + MAX(0, GET_CHA_BONUS(ch));
+  if (category == FOLLOWER_SUMMON)
+    return IS_SUMMONER(ch) ? 2 : 1;
+  if (follower_rules[category].flag == MOB_ANIMATED_DEAD && CLASS_LEVEL(ch, CLASS_NECROMANCER) > 0)
+    return 2;
+  return 1;
+}
+
+static bool follower_category_available(struct char_data *ch, size_t category,
+                                        const struct follower_count_data *counts)
+{
+  if (counts->categories[category] >= follower_category_limit(ch, category))
+    return false;
+  if (category == FOLLOWER_GENERAL ||
+      (category == FOLLOWER_SUMMON && counts->categories[FOLLOWER_SUMMON] > 0))
+    return counts->general_used < counts->general_limit;
+  return true;
+}
+
 bool can_add_follower_by_flag(struct char_data *ch, int flag)
 {
-  struct char_data *pet;
-  struct follow_type *k, *next;
-  int matching_followers = 0;
-  int followers_allowed = 1;
+  struct follower_count_data counts;
+  size_t i;
 
-  if (ch == NULL)
+  if (ch == NULL || flag < 0 || flag >= NUM_MOB_FLAGS)
     return false;
+  count_followers(ch, flag, NOBODY, &counts);
+  for (i = FOLLOWER_GENIE; i < FOLLOWER_RULE_COUNT; i++)
+    if (follower_rules[i].flag == flag)
+      return follower_category_available(ch, i, &counts);
+  /* Preserve the generic flag query for native callers outside the special table. */
+  return counts.matching_flag < 1;
+}
 
-  if (flag == MOB_ANIMATED_DEAD && CLASS_LEVEL(ch, CLASS_NECROMANCER) > 0)
-    followers_allowed = 2;
+bool can_add_follower_mobile(struct char_data *ch, struct char_data *pet)
+{
+  struct follower_count_data counts;
 
-  /* Count current charmed followers with the requested mobile flag. */
-  for (k = ch->followers; k; k = next)
-  {
-    next = k->next;
-
-    pet = k->follower;
-    if (pet != NULL && IS_PET(pet) && MOB_FLAGGED(pet, flag))
-      matching_followers++;
-  }
-
-  return matching_followers < followers_allowed;
+  if (ch == NULL || pet == NULL || !IS_NPC(pet))
+    return false;
+  count_followers(ch, -1, NOBODY, &counts);
+  return follower_category_available(ch, follower_category(pet, follower_vnum(pet)), &counts);
 }
 
 bool can_add_follower(struct char_data *ch, int mob_vnum)
 {
-  struct char_data *pet;
-  struct follow_type *k, *next;
+  mob_rnum rnum;
 
-  int summons_allowed = 1, pets_allowed = 1, mercs_allowed = 1, genie_allowed = 1,
-      golems_allowed = 1;
-
-  if (IS_SUMMONER(ch))
-    summons_allowed++;
-
-  /* loop through followers */
-  for (k = ch->followers; k; k = next)
-  {
-    next = k->next;
-
-    pet = k->follower;
-    if (IS_PET(pet))
-    {
-      if (isGenieKind(mob_vnum))
-      {
-        genie_allowed--;
-      }
-      else if (isSummonMob(mob_vnum))
-      {
-        summons_allowed--;
-      }
-      else if (MOB_FLAGGED(pet, MOB_MERCENARY))
-      {
-        mercs_allowed--;
-      }
-      else if (MOB_FLAGGED(pet, MOB_GOLEM))
-      {
-        golems_allowed--;
-      }
-      else
-      {
-        pets_allowed--;
-      }
-    }
-  }
-
-  struct char_data *mob = read_mobile(mob_vnum, VIRTUAL);
-
-  if (!mob)
-  {
-    send_to_char(ch, "Mob vnum %d not found.\r\n", mob_vnum);
+  if (ch == NULL || mob_proto == NULL || mob_index == NULL || top_of_mobt == (mob_rnum)NOBODY)
     return false;
-  }
-
-  char_to_room(mob, 0);
-
-  // there's probably a better way of doing this, but this will ensure they can only have 1 of each
-  // except in special circumstances. Eg. summoner can have 2 summons instead of 1.
-  if (isGenieKind(mob_vnum))
-  {
-    extract_char(mob);
-    if (genie_allowed > 0)
-      return true;
+  rnum = real_mobile(mob_vnum);
+  if (rnum == NOBODY)
     return false;
-  }
-  else if (isSummonMob(mob_vnum))
-  {
-    extract_char(mob);
-    if (summons_allowed > 0)
-      return true;
-    return false;
-  }
-  else if (MOB_FLAGGED(mob, MOB_MERCENARY))
-  {
-    extract_char(mob);
-    if (mercs_allowed > 0)
-      return true;
-    return false;
-  }
-  else if (MOB_FLAGGED(mob, MOB_GOLEM))
-  {
-    extract_char(mob);
-    if (golems_allowed > 0)
-      return true;
-    return false;
-  }
-  else
-  {
-    extract_char(mob);
-    if (pets_allowed > 0)
-      return true;
-    return false;
-  }
-  extract_char(mob);
-  return false;
+  return can_add_follower_mobile(ch, &mob_proto[rnum]);
 }
 
-/*
-this function is to deal with our follower army! -zusuk
-   in - ch: pc we're dealing with
-   in - mode: what mode are we using, we have display, flag based, total count, specific vnum
-   in - variable: for flag mode, mob_flag...  specific mode, mob_vnum
-   out - count of followers
-   */
-/* reference
-  #define NPC_MODE_DISPLAY 0
-  #define NPC_MODE_FLAG 1
-  #define NPC_MODE_SPECIFIC 2
-  #define NPC_MODE_COUNT 3
-  #define NPC_MODE_SPARE 4
-*/
+int summoned_follower_flag(int spell)
+{
+  switch (spell)
+  {
+  case SPELL_ELEMENTAL_SWARM:
+  case SPELL_SUMMON_CREATURE_7:
+  case SPELL_SUMMON_CREATURE_8:
+  case SPELL_SUMMON_CREATURE_9:
+  case SPELL_SUMMON_NATURES_ALLY_7:
+  case SPELL_SUMMON_NATURES_ALLY_8:
+  case SPELL_SUMMON_NATURES_ALLY_9:
+    return MOB_ELEMENTAL;
+  case SPELL_ANIMATE_DEAD:
+  case SPELL_GREATER_ANIMATION:
+  case WARLOCK_THE_DEAD_WALK:
+    return MOB_ANIMATED_DEAD;
+  case SPELL_MUMMY_DUST:
+    return MOB_MUMMY_DUST;
+  case SPELL_DRAGON_KNIGHT:
+    return MOB_DRAGON_KNIGHT;
+  case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
+    return MOB_C_O_T_N;
+  case ABILITY_CREATE_VAMPIRE_SPAWN:
+    return MOB_VAMP_SPWN;
+  case SPELL_DJINNI_KIND:
+  case SPELL_EFREETI_KIND:
+  case SPELL_MARID_KIND:
+  case SPELL_SHAITAN_KIND:
+    return MOB_GENIEKIND;
+  default:
+    return -1;
+  }
+}
+
+bool can_add_summoned_followers(struct char_data *ch, int mob_vnum, int spell, int count)
+{
+  struct follower_count_data counts;
+  int flag, maximum;
+
+  if (ch == NULL || mob_proto == NULL || mob_index == NULL || top_of_mobt == NOBODY ||
+      real_mobile(mob_vnum) == NOBODY)
+    return false;
+  flag = summoned_follower_flag(spell);
+  maximum = spell == SPELL_ELEMENTAL_SWARM ? 8 : (spell == SPELL_SHAMBLER ? 6 : 1);
+  if (count < 1 || count > maximum)
+    return false;
+  if (spell == SPELL_SHAMBLER)
+  {
+    count_followers(ch, -1, NOBODY, &counts);
+    return follower_category_available(ch, FOLLOWER_SHAMBLER, &counts);
+  }
+  if (flag >= 0)
+    return can_add_follower_by_flag(ch, flag);
+  return can_add_follower(ch, mob_vnum);
+}
+
+/* Native count queries and PETS display use the same accounting as admission. */
 int check_npc_followers(struct char_data *ch, int mode, int variable)
 {
-  struct follow_type *k = NULL, *next = NULL;
-  struct char_data *pet = NULL;
-  int total_count = 0, flag_count = 0, vnum_count = 0, merc_slot = 0, paid_slot = 0, free_slot = 0,
-      summon_slot = 0, spare = 0;
+  struct follower_count_data counts;
+  struct follow_type *link;
+  struct char_data *pet;
+  const char *location;
+  char identity[40];
+  room_rnum room;
+  int number = 0, spare;
 
-  if (mode == NPC_MODE_DISPLAY)
-  {
-    text_line(ch, "\tYPets Charmees NPC Followers\tn", 80, '-', '-');
-  }
-
-  /* loop through followers */
-  for (k = ch->followers; k; k = next)
-  {
-    next = k->next;
-
-    pet = k->follower;
-
-    /* is this a charmee? */
-    if (IS_PET(pet))
-    {
-      /* found a pet!  this is our total # of followers*/
-      total_count++;
-
-      /* we differentiate between npc's that don't take up slots vs every other form of charmee here */
-      if (not_npc_limit(pet))
-        free_slot++;
-      else if (MOB_FLAGGED(pet, MOB_MERCENARY))
-        merc_slot++;
-      else if (isSummonMob(GET_MOB_VNUM(pet)))
-        summon_slot++;
-      else
-        paid_slot++;
-
-      switch (mode)
-      {
-      case NPC_MODE_FLAG:
-        if (MOB_FLAGGED(pet, variable))
-        {
-          flag_count++;
-        }
-        break;
-
-      case NPC_MODE_SPECIFIC:
-        if (GET_MOB_VNUM(pet) == (mob_vnum)variable)
-        {
-          vnum_count++;
-        }
-        break;
-
-      case NPC_MODE_DISPLAY:
-        send_to_char(ch, "\tC%-2d\tw)\tC %-8s \tw-\tC %s \tw-\tC Slot?: %s\r\n", total_count,
-                     GET_NAME(pet), world[IN_ROOM(pet)].name,
-                     not_npc_limit(pet) ? "\tWNo\tn" : "\tRYes\tn");
-        break;
-
-      } /* end switch */
-    } /* end charmee check */
-  } /* end for */
-  (void)merc_slot;
-
-  /* charisma bonus, spare represents our extra slots */
-  if (GET_CHA_BONUS(ch) <= 0)
-    spare = 0;
-  else
-    spare = GET_CHA_BONUS(ch);
-
-  spare++; /* base 1 */
-
-  spare = spare - paid_slot - (MAX(0, summon_slot - 1));
-
-  /* out we go! */
+  if (ch == NULL)
+    return 0;
+  count_followers(ch, mode == NPC_MODE_FLAG ? variable : -1,
+                  mode == NPC_MODE_SPECIFIC ? (mob_vnum)variable : NOBODY, &counts);
+  spare = MAX(0, counts.general_limit - counts.general_used);
   switch (mode)
   {
   case NPC_MODE_FLAG:
-    return flag_count;
-
+    return counts.matching_flag;
   case NPC_MODE_SPECIFIC:
-    return vnum_count;
-
-  case NPC_MODE_DISPLAY:
-    draw_line(ch, 80, '-', '-');
-
-    if (mode == NPC_MODE_DISPLAY)
-    {
-      send_to_char(ch,
-                   "\tCYou have %d pets, %d of them don't take slots, %d do...  your Charisma "
-                   "allows for %d more.  (minimum 1 extra)\tn\r\n",
-                   total_count, free_slot, paid_slot, spare);
-    }
-
-    break;
-
+    return counts.matching_vnum;
   case NPC_MODE_SPARE:
-
-    return (spare);
-
-  } /* end switch */
-
-  return total_count;
+    return spare;
+  case NPC_MODE_DISPLAY:
+    text_line(ch, "\tYPets Charmees NPC Followers\tn", 80, '-', '-');
+    for (link = ch->followers; link != NULL; link = link->next)
+    {
+      pet = link->follower;
+      if (!is_controlled_follower(ch, pet))
+        continue;
+      room = IN_ROOM(pet);
+      location =
+          world != NULL && room != NOWHERE && room <= top_of_world ? world[room].name : "Away";
+      identity[0] = '\0';
+      if (pet->pet_data_id > 0)
+        snprintf(identity, sizeof(identity), " [#%ld]", pet->pet_data_id);
+      send_to_char(ch, "\tC%-2d\tw) %s - %s - %s [%s]%s\tn\r\n", ++number,
+                   GET_NAME(pet) != NULL ? GET_NAME(pet) : "Unnamed pet",
+                   location != NULL ? location : "Away",
+                   follower_rules[follower_category(pet, follower_vnum(pet))].name,
+                   pet_behavior_name(pet->pet_behavior), identity);
+    }
+    draw_line(ch, 80, '-', '-');
+    send_to_char(ch,
+                 "\tC%d pets. General slots: %d/%d used, %d available. "
+                 "Ordinary summons: %d/%d.\tn\r\n"
+                 "The first ordinary summon has its own slot; additional ones use general "
+                 "slots. Other categories have separate limits.\r\n",
+                 counts.total, counts.general_used, counts.general_limit, spare,
+                 counts.categories[FOLLOWER_SUMMON], follower_category_limit(ch, FOLLOWER_SUMMON));
+    break;
+  }
+  return counts.total;
 }
 
-bool char_pets_to_char_loc(struct char_data *ch)
+/* Stable IDs select only the caller's visible NPC in this room. Commands still
+ * enforce their own charm, orderability, combat, and equipment restrictions. */
+struct char_data *get_pet_command_target(struct char_data *owner, char *target)
+{
+  struct char_data *pet;
+  const char *digit;
+  char *end;
+  long int pet_id;
+
+  if (!owner || !target || !*target || !world || !VALID_ROOM_RNUM(IN_ROOM(owner)))
+    return NULL;
+  if (*target != '#')
+    return get_char_room_vis(owner, target, NULL);
+  if (!target[1])
+    return NULL;
+  for (digit = target + 1; *digit; digit++)
+    if (*digit < '0' || *digit > '9')
+      return NULL;
+  errno = 0;
+  pet_id = strtol(target + 1, &end, 10);
+  if (errno == ERANGE || *end || pet_id <= 0)
+    return NULL;
+  for (pet = world[IN_ROOM(owner)].people; pet; pet = pet->next_in_room)
+    if (IS_NPC(pet) && pet->master == owner && pet->pet_data_id == pet_id &&
+        IN_ROOM(pet) == IN_ROOM(owner) && !MOB_FLAGGED(pet, MOB_NOTDEADYET) && CAN_SEE(owner, pet))
+      return pet;
+  return NULL;
+}
+
+const char *pet_behavior_name(int behavior)
+{
+  static const char *names[] = {"follow", "wait", "passive", "assist", "guard"};
+
+  return behavior >= 0 && behavior < NUM_PET_BEHAVIORS ? names[behavior] : "unknown";
+}
+
+bool place_pet_follower(struct char_data *owner, struct char_data *pet)
+{
+  struct domain_entity_handle owner_handle, pet_handle;
+
+  if (pet == NULL || !IS_NPC(pet) || IN_ROOM(pet) != NOWHERE || pet->master != NULL)
+    return false;
+  if (owner == NULL || !VALID_ROOM_RNUM(IN_ROOM(owner)))
+  {
+    extract_char(pet);
+    return false;
+  }
+  owner_handle = domain_event_character_handle(owner);
+  pet_handle = domain_event_character_handle(pet);
+  if (!domain_entity_handle_is_valid(owner_handle) || !domain_entity_handle_is_valid(pet_handle) ||
+      !attach_follower(pet, owner))
+  {
+    extract_char(pet);
+    return false;
+  }
+  SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+  X_LOC(pet) = world[IN_ROOM(owner)].coords[0];
+  Y_LOC(pet) = world[IN_ROOM(owner)].coords[1];
+  char_to_room(pet, IN_ROOM(owner));
+  owner = domain_event_world_resolve_character(owner_handle);
+  pet = domain_event_world_resolve_character(pet_handle);
+  if (owner != NULL && pet != NULL && pet->master == owner && !MOB_FLAGGED(pet, MOB_NOTDEADYET) &&
+      IN_ROOM(pet) == IN_ROOM(owner))
+    return true;
+  if (pet != NULL)
+    extract_char(pet);
+  return false;
+}
+
+void finish_pet_summon(struct char_data *owner, struct char_data *pet, bool run_load_trigger,
+                       bool group_if_leader)
+{
+  struct domain_entity_handle owner_handle, pet_handle;
+
+  if (owner == NULL || pet == NULL || pet->master != owner)
+    return;
+  owner_handle = domain_event_character_handle(owner);
+  pet_handle = domain_event_character_handle(pet);
+  if (run_load_trigger)
+    load_mtrigger(pet);
+  owner = domain_event_world_resolve_character(owner_handle);
+  pet = domain_event_world_resolve_character(pet_handle);
+  if (owner == NULL)
+    return;
+  if (pet != NULL && !MOB_FLAGGED(pet, MOB_NOTDEADYET) && pet->master == owner && !GROUP(pet) &&
+      GROUP(owner) &&
+      ((group_if_leader && GROUP_LEADER(GROUP(owner)) == owner) ||
+       (!IS_NPC(owner) && PRF_FLAGGED(owner, PRF_AUTO_GROUP))))
+    join_group(pet, GROUP(owner));
+  owner = domain_event_world_resolve_character(owner_handle);
+  if (owner != NULL && !IS_NPC(owner) && !save_char_pets(owner))
+    send_to_char(owner, "Your pet state could not be saved. Try 'save' again later.\r\n");
+  pet = domain_event_world_resolve_character(pet_handle);
+  if (owner != NULL && pet != NULL && !MOB_FLAGGED(pet, MOB_NOTDEADYET) && pet->master == owner)
+    act("$n answers $N's call.", FALSE, pet, NULL, owner, TO_ROOM);
+}
+
+bool pet_follows_automatically(struct char_data *pet)
+{
+  return pet != NULL && (!IS_PET(pet) || pet->pet_behavior != PET_BEHAVIOR_WAIT);
+}
+
+bool pet_assists_automatically(struct char_data *pet, struct char_data *ally)
+{
+  if (pet == NULL)
+    return false;
+  if (!IS_PET(pet))
+    return true;
+  if (pet->pet_behavior == PET_BEHAVIOR_FOLLOW)
+    return true;
+  return pet->pet_behavior == PET_BEHAVIOR_ASSIST && pet->master == ally;
+}
+
+bool pet_guards_owner(struct char_data *pet, struct char_data *owner, struct char_data *attacker)
+{
+  if (pet == NULL || owner == NULL || attacker == NULL || !IS_PET(pet) || pet->master != owner ||
+      pet->pet_behavior != PET_BEHAVIOR_GUARD || MOB_FLAGGED(pet, MOB_NOTDEADYET) ||
+      !MOB_CAN_FIGHT(pet) || IN_ROOM(pet) == NOWHERE || IN_ROOM(pet) != IN_ROOM(owner) ||
+      IN_ROOM(pet) != IN_ROOM(attacker))
+    return false;
+  if (!IS_NPC(owner) && PRF_FLAGGED(owner, PRF_NO_CHARMIE_RESCUE))
+    return false;
+  if (!IS_NPC(owner) && PRF_FLAGGED(owner, PRF_CAREFUL_PET) &&
+      (attacker == owner || attacker->master == owner))
+    return false;
+  return CAN_SEE(pet, attacker) && pvp_ok(pet, attacker, false);
+}
+
+bool char_pets_to_char_loc(struct char_data *ch, bool include_waiting)
 {
   bool found = false;
 
@@ -1447,6 +1560,8 @@ bool char_pets_to_char_loc(struct char_data *ch)
     if (!AFF_FLAGGED(tch, AFF_CHARM))
       continue;
     if (tch->master != ch)
+      continue;
+    if (!include_waiting && !pet_follows_automatically(tch))
       continue;
     if (IN_ROOM(tch) == NOWHERE)
       continue;
@@ -3377,23 +3492,37 @@ void die_follower(struct char_data *ch)
  * be following anyone, otherwise core dump.
  * @param ch The character to follow.
  * @param leader The character to be followed. */
-void add_follower(struct char_data *ch, struct char_data *leader)
+/* Link before publishing a staged group. This primitive does not run callbacks. */
+bool attach_follower(struct char_data *ch, struct char_data *leader)
 {
   struct follow_type *k;
 
+  if (ch == NULL || leader == NULL || ch == leader || ch->master != NULL)
+    return false;
+  k = calloc(1, sizeof(*k));
+  if (k == NULL)
+    return false;
+  ch->master = leader;
+  k->follower = ch;
+  k->next = leader->followers;
+  leader->followers = k;
+  return true;
+}
+
+void add_follower(struct char_data *ch, struct char_data *leader)
+{
   if (ch->master)
   {
     core_dump();
     return;
   }
 
-  ch->master = leader;
-
-  CREATE(k, struct follow_type, 1);
-
-  k->follower = ch;
-  k->next = leader->followers;
-  leader->followers = k;
+  if (!attach_follower(ch, leader))
+  {
+    log("SYSERR: Unable to attach follower");
+    /* Preserve the native void API's former CREATE() allocation-failure contract. */
+    abort();
+  }
 
   act("You now follow $N.", FALSE, ch, 0, leader, TO_CHAR);
   if (CAN_SEE(leader, ch))

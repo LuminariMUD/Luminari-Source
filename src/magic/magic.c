@@ -12476,6 +12476,12 @@ static const char *mag_summon_fail_msgs[] = {
     "Your summons go unanswered.\r\n",
 };
 
+bool is_shambler_summon(int vnum)
+{
+  /* The existing shambler prototype also identifies legacy saved batches. */
+  return vnum == 9499;
+}
+
 bool isSummonMob(int vnum)
 {
   switch (vnum)
@@ -12510,7 +12516,6 @@ bool isSummonMob(int vnum)
   case 9413: // earth elemental
   case 9414: // fire elemental
   case 9415: // water elemental
-  case 9499: // shambling mound
   case MOB_CHILDREN_OF_THE_NIGHT_WOLVES:
   case MOB_CHILDREN_OF_THE_NIGHT_RATS:
   case MOB_CHILDREN_OF_THE_NIGHT_BATS:
@@ -12523,7 +12528,7 @@ bool isSummonMob(int vnum)
   case MOB_SHAITAN_KIND:
     return true;
   }
-  return false;
+  return is_shambler_summon(vnum);
 }
 
 int summon_spell_mob_level(int spellnum, int caster_level)
@@ -12637,6 +12642,9 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
                  int savetype __attribute__((unused)), int casttype __attribute__((unused)))
 {
   struct char_data *mob = NULL;
+  struct domain_entity_handle owner, corpse, batch[8] = {0};
+  room_rnum origin;
+  int source_flag;
   struct obj_data *tobj, *next_obj;
   int pfail = 0, msg = 0, fmsg = 0, num = 1, handle_corpse = FALSE, i;
   int mob_level = 0;
@@ -12645,7 +12653,13 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
   bool pets_saved;
   char desc[200];
 
-  if (ch == NULL)
+  if (ch == NULL || world == NULL || IN_ROOM(ch) == NOWHERE || IN_ROOM(ch) > top_of_world)
+    return;
+
+  origin = IN_ROOM(ch);
+  owner = domain_event_character_handle(ch);
+  corpse = domain_event_object_handle(obj);
+  if (!domain_entity_handle_is_valid(owner))
     return;
 
   if (ARCANE_LEVEL(ch) > 0)
@@ -12672,7 +12686,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
      * (prevents random success... see below).
      * The object is extracted and the generic cast messages are displayed.
      */
-    if (!mag_materials(ch, OBJ_CLONE, NOTHING, NOTHING, TRUE, TRUE))
+    if (!mag_materials(ch, OBJ_CLONE, NOTHING, NOTHING, FALSE, FALSE))
       pfail = 102; /* No materials, spell fails. */
     else
       pfail = 0; /* We have the entrails, spell is successfully cast. */
@@ -13042,91 +13056,36 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     return;
   }
 
-  /* new limit cap on certain mobiles */
-  switch (spellnum)
+  if (!can_add_summoned_followers(ch, mob_num, spellnum, num))
   {
-  case SPELL_SUMMON_NATURES_ALLY_9:
-  case SPELL_SUMMON_NATURES_ALLY_8:
-  case SPELL_SUMMON_NATURES_ALLY_7:
-  case SPELL_SUMMON_CREATURE_9: // conjuration
-  case SPELL_SUMMON_CREATURE_8: // conjuration
-  case SPELL_SUMMON_CREATURE_7: // conjuration
-  case SPELL_ELEMENTAL_SWARM:
-    // if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_ELEMENTAL))
-    if (!can_add_follower_by_flag(ch, MOB_ELEMENTAL))
-    {
-      send_to_char(ch, "You can't control more elementals!\r\n");
-      return;
-    }
-    break;
-  case SPELL_ANIMATE_DEAD:
-  case SPELL_GREATER_ANIMATION:
-    // if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_ANIMATED_DEAD))
-    if (!can_add_follower_by_flag(ch, MOB_ANIMATED_DEAD))
-    {
-      send_to_char(ch, "You can't control more undead!\r\n");
-      return;
-    }
-    break;
-  case SPELL_MUMMY_DUST:
-    // if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_MUMMY_DUST))
-    if (!can_add_follower_by_flag(ch, MOB_MUMMY_DUST))
-    {
-      send_to_char(ch, "You can't control more mummies via the mummy dust spell!\r\n");
-      return;
-    }
-    break;
-  case SPELL_DRAGON_KNIGHT:
-    // if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_DRAGON_KNIGHT))
-    if (!can_add_follower_by_flag(ch, MOB_DRAGON_KNIGHT))
-    {
-      send_to_char(ch, "You can't control more dragons via the dragon knight spell!\r\n");
-      return;
-    }
-    break;
-  case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
-    // if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_C_O_T_N))
-    if (!can_add_follower_by_flag(ch, MOB_C_O_T_N))
-    {
-      send_to_char(ch, "You can't control more vampiric minions!\r\n");
-      return;
-    }
-    break;
-  case ABILITY_CREATE_VAMPIRE_SPAWN:
-    // if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_VAMP_SPWN))
-    if (!can_add_follower_by_flag(ch, MOB_VAMP_SPWN))
-    {
-      send_to_char(ch, "You can't control more vampiric spawn!\r\n");
-      return;
-    }
-    break;
-  case SPELL_GENIEKIND:
-    // this is handled in spells.c ASPELL(spell_geniekind)
-    break;
-  default:
-    if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
-    // if (!can_add_follower(ch, mob_num));
-    {
-      send_to_char(ch, "You can't control more followers!\r\n");
-      return;
-    }
-    break;
+    send_to_char(ch, "You cannot control that summon group; use 'pets' to check your limits.\r\n");
+    return;
   }
 
-  /* bring the mob into existence! */
+  /* Allocate the full authored batch before consuming anything or exposing a pet. */
+  source_flag = summoned_follower_flag(spellnum);
   for (i = 0; i < num; i++)
   {
-    if (!(mob = read_mobile_reason(mob_num, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)))
+    mob = read_mobile_reason(mob_num, VIRTUAL, PERF_ENTITY_SPELL_SUMMON);
+    if (mob == NULL)
+      goto summon_failed;
+    batch[i] = domain_event_character_handle(mob);
+    if (!domain_entity_handle_is_valid(batch[i]))
     {
-      send_to_char(ch, "You don't quite remember how to make that creature.\r\n");
-      return;
+      extract_char(mob);
+      goto summon_failed;
     }
-    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
-    {
-      X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
-      Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
-    }
-    char_to_room_cause(mob, IN_ROOM(ch), ch, DOMAIN_RELOCATION_SPAWN, -1);
+    mob->pet_source_spell = spellnum;
+    if (source_flag >= 0)
+      SET_BIT_AR(MOB_FLAGS(mob), source_flag);
+  }
+
+  for (i = 0; i < num; i++)
+  {
+    ch = domain_event_world_resolve_character(owner);
+    mob = domain_event_world_resolve_character(batch[i]);
+    if (ch == NULL || mob == NULL || IN_ROOM(ch) != origin || MOB_FLAGGED(mob, MOB_NOTDEADYET))
+      goto summon_failed;
     IS_CARRYING_W(mob) = 0;
     IS_CARRYING_N(mob) = 0;
     SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
@@ -13414,13 +13373,6 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       send_to_char(ch, "\tG[Greater Summons +1d6 dmg]\tn ");
     }
 
-    act(mag_summon_msgs[msg], FALSE, ch, 0, mob, TO_ROOM);
-    act(mag_summon_to_msgs[msg], FALSE, ch, 0, mob, TO_CHAR);
-    load_mtrigger(mob);
-    add_follower(mob, ch);
-    if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
-      join_group(mob, GROUP(ch));
-
     /* Hardened Constructs I: temp HP = manifester level and +1 AC for shambler */
     if (!IS_NPC(ch) && spellnum == PSIONIC_ECTOPLASMIC_SHAMBLER)
     {
@@ -13498,9 +13450,51 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     }
   }
 
-  /* raise dead type of spells */
+  /* Reserve the complete batch in the native follower list before callbacks. */
+  ch = domain_event_world_resolve_character(owner);
+  if (ch == NULL || IN_ROOM(ch) != origin ||
+      (IS_NPC(ch) ? MOB_FLAGGED(ch, MOB_NOTDEADYET) : PLR_FLAGGED(ch, PLR_NOTDEADYET)))
+    goto summon_failed;
+  if (!can_add_summoned_followers(ch, mob_num, spellnum, num))
+    goto summon_failed;
+  for (i = 0; i < num; i++)
+  {
+    mob = domain_event_world_resolve_character(batch[i]);
+    if (mob == NULL || MOB_FLAGGED(mob, MOB_NOTDEADYET) || !attach_follower(mob, ch))
+      goto summon_failed;
+  }
+  for (i = 0; i < num; i++)
+  {
+    ch = domain_event_world_resolve_character(owner);
+    mob = domain_event_world_resolve_character(batch[i]);
+    if (ch == NULL || IN_ROOM(ch) != origin || mob == NULL || MOB_FLAGGED(mob, MOB_NOTDEADYET))
+      goto summon_failed;
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(origin), ZONE_WILDERNESS))
+    {
+      X_LOC(mob) = world[origin].coords[0];
+      Y_LOC(mob) = world[origin].coords[1];
+    }
+    char_to_room_cause(mob, origin, ch, DOMAIN_RELOCATION_SPAWN, -1);
+  }
+  ch = domain_event_world_resolve_character(owner);
+  if (ch == NULL || IN_ROOM(ch) != origin)
+    goto summon_failed;
+  for (i = 0; i < num; i++)
+  {
+    mob = domain_event_world_resolve_character(batch[i]);
+    if (mob == NULL || MOB_FLAGGED(mob, MOB_NOTDEADYET) || mob->master != ch ||
+        !AFF_FLAGGED(mob, AFF_CHARM) || IN_ROOM(mob) != origin)
+      goto summon_failed;
+  }
+  if (spellnum == SPELL_CLONE && !mag_materials(ch, OBJ_CLONE, NOTHING, NOTHING, TRUE, FALSE))
+    goto summon_failed;
+
+  /* Transfer corpse contents only after the entire group is ready. */
   if (handle_corpse)
   {
+    obj = domain_event_world_resolve_object(corpse);
+    if (obj == NULL || !IS_CORPSE(obj))
+      goto summon_failed;
     for (tobj = obj->contains; tobj; tobj = next_obj)
     {
       next_obj = tobj->next_content;
@@ -13511,11 +13505,55 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
   }
 
   complete_deathless_touch_summon(ch, spellnum, true);
+
+  /* Load triggers see complete, owned pets. Resolve handles after each callback. */
+  for (i = 0; i < num; i++)
+  {
+    ch = domain_event_world_resolve_character(owner);
+    mob = domain_event_world_resolve_character(batch[i]);
+    if (ch == NULL)
+      return;
+    if (mob == NULL || MOB_FLAGGED(mob, MOB_NOTDEADYET) || mob->master != ch)
+      continue;
+    act(mag_summon_msgs[msg], FALSE, ch, 0, mob, TO_ROOM);
+    ch = domain_event_world_resolve_character(owner);
+    mob = domain_event_world_resolve_character(batch[i]);
+    if (ch == NULL)
+      return;
+    if (mob == NULL || MOB_FLAGGED(mob, MOB_NOTDEADYET) || mob->master != ch)
+      continue;
+    act(mag_summon_to_msgs[msg], FALSE, ch, 0, mob, TO_CHAR);
+    mob = domain_event_world_resolve_character(batch[i]);
+    if (mob != NULL && !MOB_FLAGGED(mob, MOB_NOTDEADYET))
+      load_mtrigger(mob);
+    ch = domain_event_world_resolve_character(owner);
+    mob = domain_event_world_resolve_character(batch[i]);
+    if (ch == NULL)
+      return;
+    if (mob != NULL && !MOB_FLAGGED(mob, MOB_NOTDEADYET) && mob->master == ch && !GROUP(mob) &&
+        GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+      join_group(mob, GROUP(ch));
+  }
+  ch = domain_event_world_resolve_character(owner);
+  if (ch == NULL)
+    return;
   pets_saved = IS_NPC(ch) || save_char_pets(ch);
   report_summon_persistence_result(ch, pets_saved);
 
   send_to_char(ch, "You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' "
                    "with no argument to dismiss all your non-present summoned creatures.\r\n");
+  return;
+
+summon_failed:
+  for (i = 0; i < num && i < 8; i++)
+  {
+    mob = domain_event_world_resolve_character(batch[i]);
+    if (mob != NULL && !MOB_FLAGGED(mob, MOB_NOTDEADYET))
+      extract_char(mob);
+  }
+  ch = domain_event_world_resolve_character(owner);
+  if (ch != NULL)
+    send_to_char(ch, "Your summon group could not be completed; its materials were retained.\r\n");
 }
 
 /*----------------------------------------------------------------------------*/

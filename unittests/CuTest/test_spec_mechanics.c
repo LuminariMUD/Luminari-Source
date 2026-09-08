@@ -4310,6 +4310,12 @@ void Test_spec_rol_shaman_totem_preserves_identity_gating_and_usage(CuTest *tc)
   CuAssertIntEquals(tc, 100, rol_shaman_totem_success_chance(actor));
   CuAssertIntEquals(tc, 0, rol_shaman_totem_success_chance(NULL));
 
+  /* A successful prayer with no mobile prototype must not consume the weekly use. */
+  CuAssertIntEquals(tc, TRUE, rol_shaman_totem(actor, &fixture.worn, 1, "totem"));
+  CuAssertIntEquals(tc, 0, GET_ROL_TOTEM_USES(actor));
+  CuAssertIntEquals(tc, 0, GET_ROL_TOTEM_WINDOW(actor));
+  CuAssertPtrEquals(tc, NULL, actor->followers);
+
   first_window = (time_t)100 * SECS_PER_MUD_DAY;
   CuAssertTrue(tc, rol_shaman_totem_consume_weekly_use(actor, first_window));
   CuAssertTrue(tc, rol_shaman_totem_consume_weekly_use(actor, first_window + 1));

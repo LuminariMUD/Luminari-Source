@@ -117,7 +117,12 @@ CREATE TABLE IF NOT EXISTS pet_data (
   pet_ldesc VARCHAR(255) NOT NULL,
   pet_ddesc TEXT NOT NULL,
   runtime_state LONGTEXT DEFAULT NULL,
-  INDEX idx_pet_owner (owner_name)
+  owner_id INT UNSIGNED NOT NULL DEFAULT 0,
+  owner_created BIGINT NOT NULL DEFAULT 0,
+  pet_state TINYINT NOT NULL DEFAULT 0,
+  INDEX idx_pet_owner (owner_name),
+  INDEX idx_pet_owner_binding (owner_id, owner_created),
+  INDEX idx_pet_owner_state (owner_name, pet_state)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS player_eidolons (

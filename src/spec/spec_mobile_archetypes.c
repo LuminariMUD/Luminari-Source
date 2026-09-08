@@ -411,7 +411,7 @@ SPECIAL(wraith)
   }
 
   if (ch->master && ch->in_room == ch->master->in_room)
-    if (FIGHTING(ch->master) && rand_number(0, 1))
+    if (pet_assists_automatically(ch, ch->master) && FIGHTING(ch->master) && rand_number(0, 1))
     {
       perform_assist(ch, ch->master);
       return TRUE;
@@ -434,7 +434,7 @@ SPECIAL(skeleton_zombie)
   }
 
   if (ch->master && ch->in_room == ch->master->in_room)
-    if (FIGHTING(ch->master) && !rand_number(0, 2))
+    if (pet_assists_automatically(ch, ch->master) && FIGHTING(ch->master) && !rand_number(0, 2))
     {
       perform_assist(ch, ch->master);
       return TRUE;
@@ -482,7 +482,7 @@ SPECIAL(totemanimal)
     return FALSE;
 
   if (ch->master && ch->in_room == ch->master->in_room)
-    if (FIGHTING(ch->master))
+    if (pet_assists_automatically(ch, ch->master) && FIGHTING(ch->master))
       perform_assist(ch, ch->master);
   return FALSE;
 }
@@ -534,7 +534,10 @@ SPECIAL(solid_elemental)
 
   if (GET_HIT(ch) > 0)
   {
-    if (ch->master && ch->in_room == ch->master->in_room && !rand_number(0, 1))
+    if (ch->master && ch->in_room == ch->master->in_room &&
+        (!IS_PET(ch) || ch->pet_behavior == PET_BEHAVIOR_FOLLOW ||
+         ch->pet_behavior == PET_BEHAVIOR_GUARD) &&
+        !rand_number(0, 1))
     {
       for (vict = world[ch->in_room].people; vict; vict = vict->next_in_room)
       {
@@ -546,7 +549,8 @@ SPECIAL(solid_elemental)
       }
     }
 
-    if (!FIGHTING(ch) && ch->master && FIGHTING(ch->master) && ch->in_room == ch->master->in_room)
+    if (!FIGHTING(ch) && ch->master && pet_assists_automatically(ch, ch->master) &&
+        FIGHTING(ch->master) && ch->in_room == ch->master->in_room)
     {
       perform_assist(ch, ch->master);
       return TRUE;
@@ -585,7 +589,10 @@ SPECIAL(wraith_elemental)
 
   if (GET_HIT(ch) > 0)
   {
-    if (ch->master && ch->in_room == ch->master->in_room && !rand_number(0, 1))
+    if (ch->master && ch->in_room == ch->master->in_room &&
+        (!IS_PET(ch) || ch->pet_behavior == PET_BEHAVIOR_FOLLOW ||
+         ch->pet_behavior == PET_BEHAVIOR_GUARD) &&
+        !rand_number(0, 1))
     {
       for (vict = world[ch->in_room].people; vict; vict = vict->next_in_room)
       {
@@ -597,7 +604,8 @@ SPECIAL(wraith_elemental)
       }
     }
 
-    if (!FIGHTING(ch) && ch->master && FIGHTING(ch->master) && ch->in_room == ch->master->in_room)
+    if (!FIGHTING(ch) && ch->master && pet_assists_automatically(ch, ch->master) &&
+        FIGHTING(ch->master) && ch->in_room == ch->master->in_room)
     {
       perform_assist(ch, ch->master);
       return TRUE;

@@ -5940,7 +5940,8 @@ int rol_designated_follower(struct char_data *ch, void *me, int cmd, const char 
     leader = follower->master;
     if (IS_NPC(leader) && IN_ROOM(leader) == IN_ROOM(follower) && GET_POS(follower) > POS_SITTING &&
         FIGHTING(follower) == NULL && FIGHTING(leader) != NULL &&
-        !AFF2_FLAGGED(follower, AFF2_ROL_DOCILE) && !MOB_FLAGGED(follower, MOB_NOKILL))
+        pet_assists_automatically(follower, leader) && !AFF2_FLAGGED(follower, AFF2_ROL_DOCILE) &&
+        !MOB_FLAGGED(follower, MOB_NOKILL))
     {
       perform_assist(follower, leader);
       return TRUE;
