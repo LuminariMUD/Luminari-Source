@@ -1,4 +1,5 @@
 #include "domain_event_runtime.h"
+#include "utils.h"
 #include "quest/staff_event_agenda.h"
 #include "vessels/moving_room_events.h"
 #include "magic/buff_sequence.h"
@@ -6,7 +7,6 @@
 #include "mob/phenomenon_response.h"
 
 #include "active_world.h"
-#include "utils.h"
 #include "tactical_effects.h"
 #include "activity_manager.h"
 #include "ai_service.h"
