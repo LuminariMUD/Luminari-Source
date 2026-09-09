@@ -818,6 +818,7 @@ EXTRA_DIST = \
 	unittests/CuTest/fixtures/spec_world_inventory/mob/inventory.mob \
 	unittests/CuTest/fixtures/spec_world_inventory/obj/inventory.obj \
 	unittests/CuTest/fixtures/spec_world_inventory/wld/inventory.wld \
+	unittests/CuTest/fixtures/ashenport_welcome/103003.trg \
 	unittests/CuTest/make-tests.sh \
 	unittests/CuTest/test_protocol_parser.c \
 	autorun-watchdog.sh \
