@@ -5796,7 +5796,7 @@ ASPELL(spell_ice_layer)
 
 static int call_lycanthrope_level(int caster_level)
 {
-  return MIN(40, MAX(1, caster_level - 10));
+  return MIN(40, MAX(1, caster_level));
 }
 
 static int call_lycanthrope_charm_save_target(int charisma)

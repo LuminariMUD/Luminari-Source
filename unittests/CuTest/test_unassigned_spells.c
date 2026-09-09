@@ -739,7 +739,7 @@ void TestDireRaiderWolfBondRequiresRangerWarriorMulticlass(CuTest *tc)
 void TestCallLycanthropePreservesLevelAndCharmCheckBounds(CuTest *tc)
 {
   CuAssertIntEquals(tc, 1, test_call_lycanthrope_level(1));
-  CuAssertIntEquals(tc, 20, test_call_lycanthrope_level(30));
+  CuAssertIntEquals(tc, 30, test_call_lycanthrope_level(30));
   CuAssertIntEquals(tc, 40, test_call_lycanthrope_level(75));
   CuAssertIntEquals(tc, 1, test_call_lycanthrope_charm_save_target(1));
   CuAssertIntEquals(tc, 8, test_call_lycanthrope_charm_save_target(10));
