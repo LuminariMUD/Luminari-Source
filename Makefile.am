@@ -437,6 +437,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_vessel_boarding.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_dg_scripts_production.c \
+	unittests/CuTest/test_ashenport_welcome_trigger.c \
 	unittests/CuTest/test_damage_trigger.c \
 	unittests/CuTest/test_upstream_regressions.c \
 	unittests/CuTest/test_world_loading_production.c \
@@ -503,6 +504,7 @@ cutest_test_files = \
 	unittests/CuTest/test_vessel_boarding.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_dg_scripts_production.c \
+	unittests/CuTest/test_ashenport_welcome_trigger.c \
 	unittests/CuTest/test_damage_trigger.c \
 	unittests/CuTest/test_upstream_regressions.c \
 	unittests/CuTest/test_world_loading_production.c \
@@ -816,6 +818,7 @@ EXTRA_DIST = \
 	unittests/CuTest/fixtures/spec_world_inventory/mob/inventory.mob \
 	unittests/CuTest/fixtures/spec_world_inventory/obj/inventory.obj \
 	unittests/CuTest/fixtures/spec_world_inventory/wld/inventory.wld \
+	unittests/CuTest/fixtures/ashenport_welcome/103003.trg \
 	unittests/CuTest/make-tests.sh \
 	unittests/CuTest/test_protocol_parser.c \
 	autorun-watchdog.sh \
