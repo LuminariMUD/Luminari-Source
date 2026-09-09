@@ -26,7 +26,9 @@
 #include "combat/fight.h"
 #include "utils.h"
 #include "mud_event.h"
-#include "act.h" //perform_wildshapes
+#include "act.h" /* perform_wildshapes */
+#include "actions.h"
+#include "pet_vnums.h"
 #include "mudlim.h"
 #include "olc/oasis.h" // mob autoroller
 #include "combat/assign_wpn_armor.h"
@@ -6971,8 +6973,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[2].bonus_type = BONUS_TYPE_INHERENT;
     af[2].location = APPLY_STR;
 
-    to_vict = "You take on the characteristics of a marid.";
-    to_room = "$n takes on the characteristics of a marid.";
+    to_vict = "You take on the characteristics of a shaitan.";
+    to_room = "$n takes on the characteristics of a shaitan.";
     break;
 
   case SPELL_ACID_SHEATH: // divination
@@ -12479,13 +12481,16 @@ static const char *mag_summon_fail_msgs[] = {
 bool is_shambler_summon(int vnum)
 {
   /* The existing shambler prototype also identifies legacy saved batches. */
-  return vnum == 9499;
+  return vnum == PET_SHAMBLER;
 }
 
 bool isSummonMob(int vnum)
 {
   switch (vnum)
   {
+  case PET_MISLEAD_DECOY:
+  case PET_CELESTIAL_GUARDIAN:
+  case PET_CELESTIAL_HEALER:
   case MOB_ZOMBIE:
   case MOB_GHOUL:
   case MOB_GIANT_SKELETON:
@@ -12505,6 +12510,8 @@ bool isSummonMob(int vnum)
   case MOB_EARTH_ELEMENTAL:
   case MOB_AIR_ELEMENTAL:
   case MOB_WATER_ELEMENTAL:
+  case PET_SKELETAL_MAGE:
+  case PET_LICH:
   case MOB_GHOST:
   case MOB_SPECTRE:
   case MOB_BANSHEE:
@@ -12554,6 +12561,74 @@ int summon_spell_mob_level(int spellnum, int caster_level)
   default:
     return 0;
   }
+}
+
+bool has_elemental_summon_choices(int spellnum)
+{
+  return spellnum == SPELL_ELEMENTAL_SWARM || spellnum == SPELL_SUMMON_CREATURE_7 ||
+         spellnum == SPELL_SUMMON_CREATURE_8 || spellnum == SPELL_SUMMON_CREATURE_9 ||
+         spellnum == SPELL_SUMMON_NATURES_ALLY_7 || spellnum == SPELL_SUMMON_NATURES_ALLY_8 ||
+         spellnum == SPELL_SUMMON_NATURES_ALLY_9;
+}
+
+bool set_pet_summon_choice(struct char_data *ch, int spellnum, const char *argument)
+{
+  static const char *elements[] = {"air", "earth", "fire", "water"};
+  static const char *genies[] = {"djinni", "shaitan", "efreeti", "marid"};
+  static const char *allies[] = {"guardian", "healer"};
+  const char **names;
+  char choice[MAX_INPUT_LENGTH];
+  int i, count;
+
+  ch->char_specials.summon_choice_spell = 0;
+  ch->char_specials.summon_choice = 0;
+  if (!has_elemental_summon_choices(spellnum) && spellnum != SPELL_GENIEKIND &&
+      spellnum != SPELL_PLANAR_ALLY)
+    return true;
+  names = spellnum == SPELL_PLANAR_ALLY ? allies : spellnum == SPELL_GENIEKIND ? genies : elements;
+  count = spellnum == SPELL_PLANAR_ALLY ? 2 : 4;
+  argument = one_argument(argument, choice, sizeof(choice));
+  skip_spaces_c(&argument);
+  if (!*choice)
+    return true;
+  for (i = 0; i < count; i++)
+    if (!*argument && is_abbrev(choice, names[i]))
+    {
+      ch->char_specials.summon_choice_spell = spellnum;
+      ch->char_specials.summon_choice = i + 1;
+      return true;
+    }
+  if (spellnum == SPELL_PLANAR_ALLY)
+  {
+    send_to_char(ch, "Choose guardian or healer; omit the choice for a guardian.\r\n");
+    return false;
+  }
+  send_to_char(ch, "Choose %s, %s, %s, or %s; omit the choice for a random summon.\r\n", names[0],
+               names[1], names[2], names[3]);
+  return false;
+}
+
+mob_vnum pet_summon_choice_mob(struct char_data *ch, int spellnum)
+{
+  static const mob_vnum elements[] = {MOB_AIR_ELEMENTAL, MOB_EARTH_ELEMENTAL, MOB_FIRE_ELEMENTAL,
+                                      MOB_WATER_ELEMENTAL};
+  static const mob_vnum swarm[] = {PET_SWARM_AIR, PET_SWARM_EARTH, PET_SWARM_FIRE, PET_SWARM_WATER};
+  static const mob_vnum genies[] = {MOB_DJINNI_KIND, MOB_SHAITAN_KIND, MOB_EFREETI_KIND,
+                                    MOB_MARID_KIND};
+  int choice;
+
+  if (ch == NULL || ch->char_specials.summon_choice_spell != spellnum)
+    return NOBODY;
+  choice = ch->char_specials.summon_choice - 1;
+  if (choice < 0 || choice >= 4)
+    return NOBODY;
+  if (spellnum == SPELL_PLANAR_ALLY)
+    return choice == 0 ? PET_CELESTIAL_GUARDIAN : choice == 1 ? PET_CELESTIAL_HEALER : NOBODY;
+  if (spellnum == SPELL_GENIEKIND)
+    return genies[choice];
+  if (spellnum == SPELL_ELEMENTAL_SWARM)
+    return swarm[choice];
+  return has_elemental_summon_choices(spellnum) ? elements[choice] : NOBODY;
 }
 
 mob_vnum animated_dead_summon_mob(int spellnum, int caster_level)
@@ -12638,6 +12713,45 @@ void apply_ghost_wolf_mobility(struct char_data *wolf, int caster_level)
     SET_BIT_AR(AFF_FLAGS(wolf), AFF_FLYING);
 }
 
+static int summon_effective_level(struct char_data *ch, int level)
+{
+  if (ARCANE_LEVEL(ch) > 0)
+  {
+    if (IS_GOOD(ch))
+      level += weather_info.moons.solinari_lv;
+    else if (IS_NEUTRAL(ch))
+      level += weather_info.moons.lunitari_lv;
+    else
+      level += weather_info.moons.nuitari_lv;
+  }
+  return level;
+}
+
+/* Called once for the exact corpse of a direct kill, after ordinary loot handling. */
+bool try_auto_raise_corpse(struct char_data *ch, struct obj_data *corpse)
+{
+  int level;
+  mob_vnum vnum;
+
+  if (ch == NULL || IS_NPC(ch) || !PRF_FLAGGED(ch, PRF_AUTORAISE) ||
+      !HAS_REAL_FEAT(ch, FEAT_SUMMON_UNDEAD) || !can_act(ch) || AFF_FLAGGED(ch, AFF_CHARM) ||
+      IS_CASTING(ch) || ch->primary_activity != NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)) ||
+      !corpse_can_be_animated(corpse) || IN_ROOM(corpse) != IN_ROOM(ch) || IS_HOLY(IN_ROOM(ch)) ||
+      ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOMAGIC) || ROOM_AFFECTED(IN_ROOM(ch), RAFF_ANTI_MAGIC) ||
+      !is_action_available(ch, atSWIFT, FALSE))
+    return false;
+  level = get_necromancer_progression_level(ch);
+  vnum = animated_dead_summon_mob(SPELL_ANIMATE_DEAD, summon_effective_level(ch, level));
+  if (!can_add_summoned_followers(ch, vnum, SPELL_ANIMATE_DEAD, 1))
+    return false;
+
+  /* At-will class magic spends no spell slot. An attempted raising spends one swift action. */
+  USE_SWIFT_ACTION(ch);
+  send_to_char(ch, "You reach for the departing life force and attempt to raise the corpse.\r\n");
+  call_magic(ch, NULL, corpse, SPELL_ANIMATE_DEAD, 0, level, CAST_INNATE);
+  return true;
+}
+
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spellnum,
                  int savetype __attribute__((unused)), int casttype __attribute__((unused)))
 {
@@ -12651,6 +12765,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
   //int temp_level = 0;
   mob_vnum mob_num = 0;
   bool pets_saved;
+  bool juggernaut_used = false;
   char desc[200];
 
   if (ch == NULL || world == NULL || IN_ROOM(ch) == NOWHERE || IN_ROOM(ch) > top_of_world)
@@ -12662,18 +12777,22 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
   if (!domain_entity_handle_is_valid(owner))
     return;
 
-  if (ARCANE_LEVEL(ch) > 0)
-  {
-    if (IS_GOOD(ch))
-      level += weather_info.moons.solinari_lv;
-    else if (IS_NEUTRAL(ch))
-      level += weather_info.moons.lunitari_lv;
-    else
-      level += weather_info.moons.nuitari_lv;
-  }
+  level = summon_effective_level(ch, level);
 
   switch (spellnum)
   {
+  case SPELL_PLANAR_ALLY:
+    msg = 3;
+    fmsg = 8;
+    mob_num = pet_summon_choice_mob(ch, spellnum);
+    if (mob_num == NOBODY)
+      mob_num = PET_CELESTIAL_GUARDIAN;
+    break;
+  case SPELL_MISLEAD:
+    msg = 3;
+    fmsg = 8;
+    mob_num = PET_MISLEAD_DECOY;
+    break;
   case SPELL_CLONE:
     msg = 11;
     fmsg = rand_number(2, 6); /* Random fail message. */
@@ -12725,7 +12844,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     }
     __attribute__((fallthrough));
   case SPELL_ANIMATE_DEAD: // necromancy
-    if (obj == NULL || !IS_CORPSE(obj))
+    if (!corpse_can_be_animated(obj))
     {
       act(mag_summon_fail_msgs[7], FALSE, ch, 0, 0, TO_CHAR);
       return;
@@ -12743,7 +12862,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     break;
 
   case ABILITY_CREATE_VAMPIRE_SPAWN: // necromancy
-    if (obj == NULL || !IS_CORPSE(obj))
+    if (!corpse_can_be_animated(obj))
     {
       act(mag_summon_fail_msgs[7], FALSE, ch, 0, 0, TO_CHAR);
       return;
@@ -12761,7 +12880,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     break;
 
   case SPELL_GREATER_ANIMATION: // necromancy
-    if (obj == NULL || !IS_CORPSE(obj))
+    if (!corpse_can_be_animated(obj))
     {
       act(mag_summon_fail_msgs[7], FALSE, ch, 0, 0, TO_CHAR);
       return;
@@ -12801,19 +12920,21 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
   case SPELL_ELEMENTAL_SWARM: // conjuration
     handle_corpse = FALSE;
     fmsg = rand_number(2, 6);
-    mob_num = 9412 + rand_number(0, 3); // 9412-9415
+    mob_num = pet_summon_choice_mob(ch, spellnum);
+    if (mob_num == NOBODY)
+      mob_num = PET_SWARM_AIR + rand_number(0, 3);
     switch (mob_num)
     {
-    case 9412:
+    case PET_SWARM_AIR:
       msg = 7;
       break;
-    case 9413:
+    case PET_SWARM_EARTH:
       msg = 9;
       break;
-    case 9414:
+    case PET_SWARM_FIRE:
       msg = 8;
       break;
-    case 9415:
+    case PET_SWARM_WATER:
       msg = 10;
       break;
     }
@@ -12886,7 +13007,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     handle_corpse = FALSE;
     msg = 25;
     fmsg = rand_number(2, 6);
-    mob_num = 9499;
+    mob_num = PET_SHAMBLER;
     num = dice(1, 4) + 2;
     mob_level = summon_spell_mob_level(spellnum, level);
     break;
@@ -12981,21 +13102,24 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
 
     fmsg = rand_number(2, 6); /* Random fail message. */
 
-    switch (dice(1, 4))
+    mob_num = pet_summon_choice_mob(ch, spellnum);
+    if (mob_num == NOBODY)
+      mob_num = MOB_FIRE_ELEMENTAL + dice(1, 4) - 1;
+    switch (mob_num)
     {
-    case 1:
+    case MOB_FIRE_ELEMENTAL:
       mob_num = MOB_FIRE_ELEMENTAL;
       msg = 8;
       break;
-    case 2:
+    case MOB_EARTH_ELEMENTAL:
       mob_num = MOB_EARTH_ELEMENTAL;
       msg = 9;
       break;
-    case 3:
+    case MOB_AIR_ELEMENTAL:
       mob_num = MOB_AIR_ELEMENTAL;
       msg = 7;
       break;
-    case 4:
+    case MOB_WATER_ELEMENTAL:
       mob_num = MOB_WATER_ELEMENTAL;
       msg = 10;
       break;
@@ -13110,6 +13234,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     case SPELL_GREATER_ANIMATION: // necromancy
       GET_LEVEL(mob) = mob_level;
       autoroll_mob(mob, TRUE, TRUE);
+      if (mob_num == MOB_GHOST || mob_num == MOB_SPECTRE || mob_num == MOB_BANSHEE)
+        SET_BIT_AR(AFF_FLAGS(mob), AFF_IMMATERIAL);
       break;
 
     case SPELL_SUMMON_NATURES_ALLY_7:
@@ -13144,6 +13270,12 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       }
       break;
 
+    case SPELL_MISLEAD:
+      SET_BIT_AR(AFF_FLAGS(mob), AFF_IMMATERIAL);
+      mob->pet_behavior = PET_BEHAVIOR_ASSIST;
+      attach_mud_event(new_mud_event(ePURGEMOB, mob, NULL), 120 * PASSES_PER_SEC);
+      break;
+
     case SPELL_CLONE:
       /* Don't mess up the prototype; use new string copies. */
       mob->player.name = strdup(GET_NAME(ch));
@@ -13172,7 +13304,9 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       GET_MAX_HIT(mob) += hp_bonus;
       GET_HIT(mob) += hp_bonus;
       GET_REAL_AC(mob) += conj_ranks;
+      GET_REAL_HITROLL(mob) += conj_ranks;
       GET_HITROLL(mob) += conj_ranks;
+      GET_REAL_DAMROLL(mob) += conj_ranks;
       GET_DAMROLL(mob) += conj_ranks;
       send_to_char(ch, "\tG[Spell Focus: Conjuration +%d ranks]\tn ", conj_ranks);
     }
@@ -13183,9 +13317,11 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     {
       GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) =
           GET_MAX_HIT(mob) * CONFIG_SUMMON_LEVEL_1_10_HP / 100;
-      GET_REAL_AC(mob) = GET_REAL_AC(mob) * CONFIG_SUMMON_LEVEL_1_10_AC / 100;
-      GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
-      GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      mob->points.armor = GET_REAL_AC(mob) = GET_REAL_AC(mob) * CONFIG_SUMMON_LEVEL_1_10_AC / 100;
+      GET_REAL_HITROLL(mob) = GET_HITROLL(mob) =
+          GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      GET_REAL_DAMROLL(mob) = GET_DAMROLL(mob) =
+          GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
       mob->mob_specials.damnodice =
           mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
       mob->mob_specials.damsizedice =
@@ -13195,9 +13331,11 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     {
       GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) =
           GET_MAX_HIT(mob) * CONFIG_SUMMON_LEVEL_11_20_HP / 100;
-      GET_REAL_AC(mob) = GET_REAL_AC(mob) * CONFIG_SUMMON_LEVEL_11_20_AC / 100;
-      GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
-      GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      mob->points.armor = GET_REAL_AC(mob) = GET_REAL_AC(mob) * CONFIG_SUMMON_LEVEL_11_20_AC / 100;
+      GET_REAL_HITROLL(mob) = GET_HITROLL(mob) =
+          GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      GET_REAL_DAMROLL(mob) = GET_DAMROLL(mob) =
+          GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
       mob->mob_specials.damnodice =
           mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
       mob->mob_specials.damsizedice =
@@ -13207,9 +13345,11 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     {
       GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) =
           GET_MAX_HIT(mob) * CONFIG_SUMMON_LEVEL_21_30_HP / 100;
-      GET_REAL_AC(mob) = GET_REAL_AC(mob) * CONFIG_SUMMON_LEVEL_21_30_AC / 100;
-      GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
-      GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      mob->points.armor = GET_REAL_AC(mob) = GET_REAL_AC(mob) * CONFIG_SUMMON_LEVEL_21_30_AC / 100;
+      GET_REAL_HITROLL(mob) = GET_HITROLL(mob) =
+          GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      GET_REAL_DAMROLL(mob) = GET_DAMROLL(mob) =
+          GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
       mob->mob_specials.damnodice =
           mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
       mob->mob_specials.damsizedice =
@@ -13304,6 +13444,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     case SPELL_SUMMON_NATURES_ALLY_7:
     case SPELL_SUMMON_NATURES_ALLY_8:
     case SPELL_SUMMON_NATURES_ALLY_9:
+    case SPELL_PLANAR_ALLY:
     case SPELL_DJINNI_KIND:
     case SPELL_EFREETI_KIND:
     case SPELL_MARID_KIND:
@@ -13378,15 +13519,10 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     {
       int temp_hp = get_hardened_constructs_temp_hp(ch);
       int ac_bonus = get_hardened_constructs_ac_bonus(ch);
-      if (temp_hp > 0)
-      {
-        GET_HIT(mob) += temp_hp;
-        send_to_char(ch, "\tM[Hardened Constructs] Summon reinforced with %d temporary HP!\tn \r\n",
-                     temp_hp);
-      }
       if (ac_bonus > 0)
       {
-        GET_REAL_AC(mob) += ac_bonus;
+        GET_REAL_AC(mob) += ac_bonus * 10;
+        mob->points.armor += ac_bonus * 10;
       }
 
       /* Hardened Constructs II: +2 AC, DR 2/—, and magic attacks on shambler */
@@ -13395,7 +13531,10 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
         int ac2 = get_hardened_constructs_ii_ac_bonus(ch);
         int dr_amt = get_hardened_constructs_dr_amount(ch);
         if (ac2 > 0)
-          GET_REAL_AC(mob) += ac2;
+        {
+          GET_REAL_AC(mob) += ac2 * 10;
+          mob->points.armor += ac2 * 10;
+        }
         if (dr_amt > 0)
         {
           struct damage_reduction_type *new_dr = NULL;
@@ -13415,14 +13554,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
           GET_DR(mob) = new_dr;
           send_to_char(ch, "\tM[Hardened Constructs II] Summon gains DR %d/—!\tn \r\n", dr_amt);
         }
-        /* Apply AFF_MAGIC_ATTACKS so summon's attacks bypass non-magic DR */
-        struct affected_type af;
-        memset(&af, 0, sizeof(af));
-        af.spell = PSIONIC_ECTOPLASMIC_SHAMBLER;
-        af.duration = -1; /* Permanent until death */
-        af.location = APPLY_NONE;
-        SET_BIT_AR(af.bitvector2, AFF2_MAGIC_ATTACKS);
-        affect_to_char(mob, &af);
+        /* This permanent summon property uses the NPC's native secondary flags. */
+        SET_BIT_AR(AFF2_FLAGS(mob), AFF2_MAGIC_ATTACKS);
         send_to_char(ch, "\tM[Hardened Constructs II] Summon's attacks count as magic!\tn\r\n");
       }
 
@@ -13430,22 +13563,31 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       if (can_use_astral_juggernaut(ch))
       {
         /* Make it Large size (one size larger) */
-        GET_REAL_SIZE(mob) = SIZE_LARGE;
+        GET_REAL_SIZE(mob) = mob->points.size = SIZE_LARGE;
 
         /* Increase combat stats based on manifester level */
         int level_bonus = GET_PSIONIC_LEVEL(ch);
         GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += (level_bonus * 2); /* +2 HP per level */
         GET_HIT(mob) = GET_MAX_HIT(mob);
         GET_REAL_DAMROLL(mob) += (level_bonus / 5); /* +1 damage per 5 levels */
+        GET_DAMROLL(mob) += (level_bonus / 5);
         GET_REAL_HITROLL(mob) += (level_bonus / 5); /* +1 to hit per 5 levels */
-        GET_REAL_AC(mob) += (level_bonus / 5);      /* +1 AC per 5 levels */
+        GET_HITROLL(mob) += (level_bonus / 5);
+        GET_REAL_AC(mob) += (level_bonus / 5) * 10; /* AC is stored in tenths. */
+        mob->points.armor += (level_bonus / 5) * 10;
 
-        /* Mark as used for the day */
-        use_astral_juggernaut(ch);
+        /* Spend the daily use only after the summon commits. */
+        juggernaut_used = true;
         send_to_char(
             ch, "\tM[Astral Juggernaut] Your shambler transforms into a massive construct!\tn\r\n");
         act("$n's ectoplasmic shambler suddenly grows to an enormous size!", FALSE, ch, 0, 0,
             TO_ROOM);
+      }
+      if (temp_hp > 0)
+      {
+        GET_HIT(mob) += temp_hp;
+        send_to_char(ch, "\tM[Hardened Constructs] Summon reinforced with %d temporary HP!\tn \r\n",
+                     temp_hp);
       }
     }
   }
@@ -13493,18 +13635,23 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
   if (handle_corpse)
   {
     obj = domain_event_world_resolve_object(corpse);
-    if (obj == NULL || !IS_CORPSE(obj))
+    if (!corpse_can_be_animated(obj))
       goto summon_failed;
     for (tobj = obj->contains; tobj; tobj = next_obj)
     {
       next_obj = tobj->next_content;
       obj_from_obj(tobj);
-      obj_to_char(tobj, mob);
+      if (IS_INCORPOREAL(mob))
+        obj_to_room(tobj, IN_ROOM(mob));
+      else
+        obj_to_char(tobj, mob);
     }
     extract_obj(obj);
   }
 
   complete_deathless_touch_summon(ch, spellnum, true);
+  if (juggernaut_used)
+    use_astral_juggernaut(ch);
 
   /* Load triggers see complete, owned pets. Resolve handles after each callback. */
   for (i = 0; i < num; i++)

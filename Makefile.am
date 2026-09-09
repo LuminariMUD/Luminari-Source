@@ -14,6 +14,7 @@ bin_PROGRAMS = luminari
 
 # Source files for the main program
 luminari_SOURCES = \
+	src/pet_vnums.h \
 	src/account.c \
 	src/act.comm.c \
 	src/act.comm.do_spec_comm.c \
@@ -778,6 +779,20 @@ help_sync_sources = \
 
 # Extra files to distribute
 EXTRA_DIST = \
+	data/pet-constructs/196.mob \
+	data/pet-planar-allies/197.mob \
+	data/pet-undead/198.mob \
+	data/pet-lycanthropes/195.mob \
+	data/pet-lycanthropes/195.zon \
+	data/pet-illusions/199.mob \
+	data/pet-illusions/199.zon \
+	data/pet-undead/198.zon \
+	data/pet-undead/README.md \
+	data/pet-planar-allies/197.zon \
+	data/pet-planar-allies/README.md \
+	data/pet-constructs/README.md \
+	data/pet-constructs/196.zon \
+	scripts/world/install_pet_constructs.py \
 	scripts/development/generate_msp_sounds.py \
 	lib/sounds/README.md \
 	lib/sounds/luminari-test.wav \

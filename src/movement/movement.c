@@ -184,6 +184,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   if (dir < 0 || dir >= NUM_OF_DIRS)
     return 0;
 
+  mount_cleanup(ch);
+
   /* Ship interior movement handling - delegate to vessel system */
   if (is_in_ship_interior(ch))
   {

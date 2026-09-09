@@ -2216,6 +2216,11 @@ ACMD(do_put)
 
 static int can_take_obj(struct char_data *ch, struct obj_data *obj)
 {
+  if (IS_PET(ch) && IS_INCORPOREAL(ch))
+  {
+    send_to_char(ch, "Your incorporeal form cannot carry physical objects.\r\n");
+    return 0;
+  }
   if (!(CAN_WEAR(obj, ITEM_WEAR_TAKE)))
   {
     act("$p: you can't take that!", FALSE, ch, obj, 0, TO_CHAR);
@@ -2352,11 +2357,17 @@ static void perform_get_from_container_impl(struct char_data *ch, struct obj_dat
   if (GET_CLAN(ch) != NO_CLAN && GET_CLANRANK(ch) != NO_CLANRANK)
     is_clan = TRUE;
 
+  if (IS_PET(ch) && IS_INCORPOREAL(ch))
+  {
+    send_to_char(ch, "Your incorporeal form cannot carry physical objects.\r\n");
+    return;
+  }
+
   if (mode == FIND_OBJ_INV || can_take_obj(ch, obj))
   {
     if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch) && GET_OBJ_TYPE(obj) != ITEM_MONEY)
       act("$p: you can't hold any more items.", FALSE, ch, obj, 0, TO_CHAR);
-    else if (get_otrigger(obj, ch))
+    else if (get_otrigger(obj, ch) && !(IS_PET(ch) && IS_INCORPOREAL(ch)))
     {
       /* if this is getting money from a coprse, check for clan taxes */
       if (is_corpse && is_clan && GET_OBJ_TYPE(obj) == ITEM_MONEY)
@@ -2515,7 +2526,7 @@ static int perform_get_from_room_impl(struct char_data *ch, struct obj_data *obj
   if (check_trap(ch, TRAP_TRIGGER_GET_OBJECT, ch->in_room, obj, 0))
     return 0;
 
-  if (can_take_obj(ch, obj) && get_otrigger(obj, ch))
+  if (can_take_obj(ch, obj) && get_otrigger(obj, ch) && !(IS_PET(ch) && IS_INCORPOREAL(ch)))
   {
     obj_from_room(obj);
     obj_to_char(obj, ch);
@@ -3040,6 +3051,11 @@ static bool perform_give_impl(struct char_data *ch, struct char_data *vict, stru
 
   if (ch == NULL || vict == NULL || obj == NULL || obj->carried_by != ch || ch == vict)
     return FALSE;
+  if (IS_PET(vict) && IS_INCORPOREAL(vict))
+  {
+    send_to_char(ch, "That incorporeal pet cannot carry physical objects.\r\n");
+    return FALSE;
+  }
   sender = domain_event_character_handle(ch);
   receiver = domain_event_character_handle(vict);
   object = domain_event_object_handle(obj);
@@ -3059,6 +3075,8 @@ static bool perform_give_impl(struct char_data *ch, struct char_data *vict, stru
       IN_ROOM(ch) != IN_ROOM(vict))
     return FALSE;
 
+  if (IS_PET(vict) && IS_INCORPOREAL(vict))
+    return FALSE;
   if (OBJ_FLAGGED(obj, ITEM_NODROP) && !PRF_FLAGGED(ch, PRF_NOHASSLE))
   {
     act("You can't let go of $p!!  Yeech!", FALSE, ch, obj, 0, TO_CHAR);
@@ -4378,6 +4396,11 @@ static void perform_wear_impl(struct char_data *ch, struct obj_data *obj, int wh
       "You are already wearing something on your tail.\r\n"};
 
   /* we are looking for some quick exits */
+  if (IS_PET(ch) && IS_INCORPOREAL(ch))
+  {
+    send_to_char(ch, "Your incorporeal form cannot wear physical equipment.\r\n");
+    return;
+  }
   if (IS_ANIMAL(ch))
   {
     send_to_char(ch, "You are animal, how you going to wear that?\r\n");
@@ -4540,7 +4563,8 @@ static void perform_wear_impl(struct char_data *ch, struct obj_data *obj, int wh
   }
 
   /* See if a trigger disallows it */
-  if (!wear_otrigger(obj, ch, where) || (obj->carried_by != ch))
+  if (!wear_otrigger(obj, ch, where) || (obj->carried_by != ch) ||
+      (IS_PET(ch) && IS_INCORPOREAL(ch)))
     return;
 
   wear_message(ch, obj, where);

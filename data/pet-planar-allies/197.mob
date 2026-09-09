@@ -1,0 +1,75 @@
+#19700
+celestial guardian ally~
+a celestial guardian~
+A winged celestial guardian stands ready to assist its summoner.
+~
+This radiant ally serves as a guardian, lending its otherworldly strength
+to the mortal who called it.
+~
+8 144 0 32 131072 0 0 0 1000 E
+15 7 -6 0d0+280 3d8+8
+0 0
+9 9 0
+Str: 24
+Dex: 14
+Int: 12
+Wis: 20
+Con: 14
+Cha: 16
+Race: 13
+SubRace 1: 2
+Class: 3
+Size: 5
+DR_MOD: 5
+E
+#19701
+celestial healer ally~
+a celestial healer~
+A winged celestial healer stands ready to assist its summoner.
+~
+This radiant ally serves as a healer, lending its otherworldly strength
+to the mortal who called it.
+~
+8 144 0 32 131072 0 0 0 1000 E
+15 13 0 0d0+190 1d6+2
+0 0
+9 9 0
+Str: 14
+Dex: 14
+Int: 12
+Wis: 20
+Con: 14
+Cha: 16
+Race: 13
+SubRace 1: 2
+Class: 1
+Size: 5
+DR_MOD: 0
+KnownSpell: 3
+KnownSpell: 15
+KnownSpell: 421
+E
+#19702
+xvim nightmare horse steed~
+a nightmare steed~
+A coal-black nightmare steed paws at the ground in a wreath of smoke.
+~
+This powerful outsider resembles a great black horse. Smoke curls from its
+nostrils and its eyes burn with a baleful red light.
+~
+8 0 0 0 0 0 0 0 -1000 E
+15 8 -5 0d0+200 2d8+6
+0 0
+9 9 0
+Str: 22
+Dex: 18
+Int: 13
+Wis: 13
+Con: 20
+Cha: 16
+Race: 13
+SubRace 1: 0
+Class: 3
+Size: 6
+E
+$~

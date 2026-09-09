@@ -417,34 +417,12 @@ void affliction_tick(struct char_data *ch)
 /* dummy check mostly, checks to see if mount/rider got separated */
 void mount_cleanup(struct char_data *ch)
 {
-  if (RIDING(ch))
-  {
-    if (RIDDEN_BY(RIDING(ch)) != ch)
-    {
-      /* dismount both of these guys */
-      dismount_char(ch);
-      dismount_char(RIDDEN_BY(RIDING(ch)));
-    }
-    else if (IN_ROOM(RIDING(ch)) != IN_ROOM(ch))
-    {
-      /* not in same room?  dismount 'em */
-      dismount_char(ch);
-    }
-  }
-  else if (RIDDEN_BY(ch))
-  {
-    if (RIDING(RIDDEN_BY(ch)) != ch)
-    {
-      /* dismount both of these guys */
-      dismount_char(ch);
-      dismount_char(RIDING(RIDDEN_BY(ch)));
-    }
-    else if (IN_ROOM(RIDDEN_BY(ch)) != IN_ROOM(ch))
-    {
-      /* not in same room?  dismount 'em */
-      dismount_char(ch);
-    }
-  }
+  if (ch == NULL)
+    return;
+  if ((RIDING(ch) != NULL && (RIDDEN_BY(RIDING(ch)) != ch || IN_ROOM(RIDING(ch)) != IN_ROOM(ch))) ||
+      (RIDDEN_BY(ch) != NULL &&
+       (RIDING(RIDDEN_BY(ch)) != ch || IN_ROOM(RIDDEN_BY(ch)) != IN_ROOM(ch))))
+    dismount_char(ch);
 }
 
 /* a tick counter that checks for room-based hazards, like

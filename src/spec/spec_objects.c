@@ -46,6 +46,7 @@
 #include "spec/spec_cooldown.h"
 #include "spec/spec_phrase.h"
 #include "point_update_periodic.h"
+#include "pet_vnums.h"
 
 /*****************************************/
 /****  object procs general functions ****/
@@ -886,6 +887,8 @@ SPECIAL(xvim_normal)
 SPECIAL(xvim_artifact)
 {
   int num = (dice(1, 4) + 2), dam, i = 0;
+  mob_rnum nightmare;
+  struct char_data *tch = NULL, *vict, *pet = NULL;
 
   if (!ch)
     return FALSE;
@@ -896,7 +899,7 @@ SPECIAL(xvim_artifact)
     return TRUE;
   }
 
-  struct char_data *tch = NULL, *vict = FIGHTING(ch), *pet = NULL;
+  vict = FIGHTING(ch);
 
   if (!cmd && vict)
   {
@@ -992,36 +995,31 @@ SPECIAL(xvim_artifact)
 
   if (!strcmp(argument, "nightmare") && CMD_IS("whisper"))
   {
-    if (mob_index[real_mobile(100505)].number < 1)
+    nightmare = mob_index != NULL && top_of_mobt != (mob_rnum)NOBODY
+                    ? real_mobile(PET_XVIM_NIGHTMARE)
+                    : NOBODY;
+    if (nightmare == NOBODY || !can_add_follower(ch, mob_index[nightmare].vnum) ||
+        mob_index[nightmare].number >= 1)
     {
-      act("\tLAs you whisper '\tmnightmare\tL' to your \trsword\tL, a \twthick\tW fog"
-          "\tLforms in the area\r\naround you.  When it finally fades, the "
-          "horrid visage of a \tmNightmare\tL\r\nstands before you.\tn",
-          1, ch, 0, FIGHTING(ch), TO_CHAR);
-      act("\tLAs $n whispers something to $s \trsword\tL, a \twthick\tW fog\r\n"
-          "\tLforms in the area around you.  When it finally fades, the "
-          "horrid visage\r\nof a \tmNightmare\tL stands before you.\tn",
-          1, ch, 0, FIGHTING(ch), TO_ROOM);
-      pet = read_mobile(real_mobile(100505), REAL);
-
-      if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
-      {
-        X_LOC(pet) = world[ch->in_room].coords[0];
-        Y_LOC(pet) = world[ch->in_room].coords[1];
-      }
-
-      char_to_room(pet, ch->in_room);
-      add_follower(pet, ch);
-      GET_MAX_HIT(pet) = GET_HIT(ch) = GET_LEVEL(ch) * 10 + dice(GET_LEVEL(ch), 6);
-      SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+      send_to_char(ch, "Your call cannot bring forth a nightmare now.\r\n");
       return TRUE;
     }
-    else
-    {
-      send_to_char(ch, "\tLAs you whisper '\tmnightmare\tL' to your \trsword\tL, nothing seems to "
-                       "happen.\tn\r\n");
+    pet = read_mobile(nightmare, REAL);
+    if (pet == NULL)
       return TRUE;
-    }
+    GET_MAX_HIT(pet) = GET_HIT(pet) = GET_LEVEL(ch) * 10 + dice(GET_LEVEL(ch), 6);
+    if (!place_pet_follower(ch, pet))
+      return TRUE;
+    act("\tLAs you whisper '\tmnightmare\tL' to your \trsword\tL, a \twthick\tW fog"
+        "\tLforms in the area\r\naround you.  When it finally fades, the "
+        "horrid visage of a \tmNightmare\tL\r\nstands before you.\tn",
+        1, ch, 0, FIGHTING(ch), TO_CHAR);
+    act("\tLAs $n whispers something to $s \trsword\tL, a \twthick\tW fog\r\n"
+        "\tLforms in the area around you.  When it finally fades, the "
+        "horrid visage\r\nof a \tmNightmare\tL stands before you.\tn",
+        1, ch, 0, FIGHTING(ch), TO_ROOM);
+    finish_pet_summon(ch, pet, FALSE, FALSE);
+    return TRUE;
   }
   return FALSE;
 }
@@ -1734,39 +1732,34 @@ SPECIAL(whisperwind)
       return TRUE;
     }
 
-    if (check_npc_followers(ch, NPC_MODE_SPECIFIC, SPIRIT_EAGLE) <= 0)
+    if (check_npc_followers(ch, NPC_MODE_SPECIFIC, SPIRIT_EAGLE) <= 0 &&
+        can_add_follower(ch, SPIRIT_EAGLE))
     {
-      act("\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, "
-          "a \tWghostly mist \tcswirls\r\n"
-          "in the area around you.  When it finally dissipates, the "
-          "spirit of the\r\nblade has come to your calling in the "
-          "form of a majestic \tBeagle\tc.",
-          1, ch, whisperwind, NULL, TO_CHAR);
-      act("\tcAs $n whispers something to $s \tWmoon\tCblade\tc, "
-          "a \tWghostly mist \tcswirls\r\n"
-          "in the area around $m.  When it finally dissipates, the "
-          "spirit of the \r\nblade has come to $s calling in the "
-          "form of a majestic \tBeagle\tc.",
-          1, ch, whisperwind, NULL, TO_ROOM);
-
       pet = read_mobile(real_mobile(SPIRIT_EAGLE), REAL);
       if (pet)
       {
-        if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
-        {
-          X_LOC(pet) = world[ch->in_room].coords[0];
-          Y_LOC(pet) = world[ch->in_room].coords[1];
-        }
-
-        char_to_room(pet, ch->in_room);
-        add_follower(pet, ch);
-        SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
-
         GET_LEVEL(pet) = GET_LEVEL(ch);
         GET_MAX_HIT(pet) = GET_MAX_HIT(ch);
         GET_HIT(pet) = GET_MAX_HIT(pet);
 
+        if (!place_pet_follower(ch, pet))
+          return TRUE;
+
         point_update_object_spec_timer_set(whisperwind, 1, 72);
+
+        act("\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, "
+            "a \tWghostly mist \tcswirls\r\n"
+            "in the area around you.  When it finally dissipates, the "
+            "spirit of the\r\nblade has come to your calling in the "
+            "form of a majestic \tBeagle\tc.",
+            1, ch, whisperwind, NULL, TO_CHAR);
+        act("\tcAs $n whispers something to $s \tWmoon\tCblade\tc, "
+            "a \tWghostly mist \tcswirls\r\n"
+            "in the area around $m.  When it finally dissipates, the "
+            "spirit of the \r\nblade has come to $s calling in the "
+            "form of a majestic \tBeagle\tc.",
+            1, ch, whisperwind, NULL, TO_ROOM);
+        finish_pet_summon(ch, pet, FALSE, FALSE);
 
         return TRUE;
       }
@@ -1951,39 +1944,34 @@ SPECIAL(ancient_moonblade)
       return TRUE;
     }
 
-    if (check_npc_followers(ch, NPC_MODE_SPECIFIC, LARGE_SPIRIT_EAGLE) <= 0)
+    if (check_npc_followers(ch, NPC_MODE_SPECIFIC, LARGE_SPIRIT_EAGLE) <= 0 &&
+        can_add_follower(ch, LARGE_SPIRIT_EAGLE))
     {
-      act("\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, "
-          "a \tWghostly mist \tcswirls\r\n"
-          "in the area around you.  When it finally dissipates, the "
-          "spirit of the\r\nblade has come to your calling in the "
-          "form of a majestic \tBeagle\tc.",
-          1, ch, whisperwind, NULL, TO_CHAR);
-      act("\tcAs $n whispers something to $s \tWmoon\tCblade\tc, "
-          "a \tWghostly mist \tcswirls\r\n"
-          "in the area around $m.  When it finally dissipates, the "
-          "spirit of the \r\nblade has come to $s calling in the "
-          "form of a majestic \tBeagle\tc.",
-          1, ch, whisperwind, NULL, TO_ROOM);
-
       pet = read_mobile(real_mobile(LARGE_SPIRIT_EAGLE), REAL);
       if (pet)
       {
-        if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
-        {
-          X_LOC(pet) = world[ch->in_room].coords[0];
-          Y_LOC(pet) = world[ch->in_room].coords[1];
-        }
-
-        char_to_room(pet, ch->in_room);
-        add_follower(pet, ch);
-        SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
-
         GET_LEVEL(pet) = GET_LEVEL(ch);
         GET_MAX_HIT(pet) = GET_MAX_HIT(ch);
         GET_HIT(pet) = GET_MAX_HIT(pet);
 
+        if (!place_pet_follower(ch, pet))
+          return TRUE;
+
         point_update_object_spec_timer_set(whisperwind, 1, 72);
+
+        act("\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, "
+            "a \tWghostly mist \tcswirls\r\n"
+            "in the area around you.  When it finally dissipates, the "
+            "spirit of the\r\nblade has come to your calling in the "
+            "form of a majestic \tBeagle\tc.",
+            1, ch, whisperwind, NULL, TO_CHAR);
+        act("\tcAs $n whispers something to $s \tWmoon\tCblade\tc, "
+            "a \tWghostly mist \tcswirls\r\n"
+            "in the area around $m.  When it finally dissipates, the "
+            "spirit of the \r\nblade has come to $s calling in the "
+            "form of a majestic \tBeagle\tc.",
+            1, ch, whisperwind, NULL, TO_ROOM);
+        finish_pet_summon(ch, pet, FALSE, FALSE);
 
         return TRUE;
       }

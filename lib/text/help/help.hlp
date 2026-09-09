@@ -773,7 +773,7 @@ Example:
 
 See also: SET, PROMOTION
 #31
-ADVANCED-SPELL-COMMANDS ASSISTBLAST BREATHOFWINTER CONJURE CONSERVATION CONTAINAOES DESTROYGOLEM DISCHARGE EARTHSHAKER ELEMENTALEMBODIMENT ELEMENTALMASTERY FEYMAGIC FIRESNAKE INNERFIRE IRRESISTABLEMAGIC MASSCUREWOUNDS MASTEROFELEMENTS MIDNIGHTEDICT PERSISTENTSPELL PLANARSOUL SPIRITUALWEAPON TOUCHSPELLS TRANSPOSITION
+ADVANCED-SPELL-COMMANDS ASSISTBLAST BREATHOFWINTER CONJURE CONSERVATION CONTAINAOES DISCHARGE EARTHSHAKER ELEMENTALEMBODIMENT ELEMENTALMASTERY FEYMAGIC FIRESNAKE INNERFIRE IRRESISTABLEMAGIC MASSCUREWOUNDS MASTEROFELEMENTS MIDNIGHTEDICT PERSISTENTSPELL PLANARSOUL SPIRITUALWEAPON TOUCHSPELLS TRANSPOSITION
 
 Topic  : Advanced Magic Commands, Spells, and AoE Controls
 Usage  : arcanemark
@@ -1252,13 +1252,18 @@ Animate Dead turns a corpse in the room into a permanent charmed undead follower
 and transfers the corpse contents to that follower. The corpse is consumed only
 after a follower is successfully created.
 
+Only eligible NPC corpses can be animated. Player corpses and corpses created
+from summoned followers or artificial minions are rejected. Their contents stay
+available for normal looting. A consumed corpse cannot be used again.
+
 There is a 10 percent summon failure chance. Holy rooms reject the spell. An
 invalid corpse, holy-room rejection, random failure, follower-cap rejection, or
 mobile-load failure leaves the corpse in place.
 
-Animated-undead limit:
-  Characters without Necromancer levels may control one animated undead.
-  Necromancers may control exactly two animated undead in total.
+Animated-undead control capacity is 2 points, or 4 with Necromancer levels.
+Zombie, ghoul, ghost, and skeletal mage cost 1 point each. Giant skeleton,
+mummy, spectre, banshee, wight, and lich cost 2 points each. Use PETS to see
+control points in use. Mage and lich are selected through ANIMATEDEAD.
 
 The effective level selects the creature:
   below 10  zombie
@@ -1279,27 +1284,86 @@ persistence system; heed any warning that asks you to save again.
 See also: CLASS-NECROMANCER, SUMMON-UNDEAD, GREATER-ANIMATION,
 TOUCH-OF-UNDEATH, ANIMATEDEAD
 #0
+AUTORAISE
+
+AUTOMATIC RAISING
+
+Usage: autoraise
+
+Autoraise is off by default. Necromancers with Summon Undead (level 2) can
+use this command to turn it on or off. Losing the ability prevents raising;
+you can still turn the preference off. Save normally to retain the setting.
+
+When you directly kill an eligible NPC, automatic raising can attempt Animate
+Dead on that kill's exact corpse. Your pets' kills do not trigger it. It never
+searches for an older corpse. Normal autoloot and autogold happen first; if
+autosacrifice removes the corpse, there is no raising attempt.
+
+An attempt uses one available swift action and no prepared or spontaneous
+spell slot. The normal 10 percent animation failure chance still applies;
+failure spends the swift action but leaves the corpse. Busy, incapacitated,
+charmed, or action-exhausted characters do not attempt raising. Holy and
+anti-magic locations also prevent it.
+
+The normal Animate Dead caster-level tier and control costs apply. Full
+capacity or a missing prototype prevents the attempt without spending an
+action. Player corpses, summoned-follower corpses, and artificial minion
+corpses cannot be raised. A consumed corpse cannot be used a second time.
+
+The result is an ordinary owned undead follower: use PETS and ORDER to control
+it and DISMISS to release it. It has the normal permanent animation lifetime,
+and any loot still in the corpse transfers to it. The raising preference
+never grants extra control capacity or an extra daily-use pool.
+
+See also: ANIMATE-DEAD, ANIMATEDEAD, CLASS-NECROMANCER, PETS, SWIFT-ACTION
+#0
 ANIMATEDEAD
 
 ANIMATEDEAD COMMAND
 
 Usage:
-  animatedead
+  animatedead [zombie|ghoul|skeleton|mummy|mage|lich]
 
-This is a separate daily class ability, not the Animate Dead corpse spell. It
-takes no argument, uses a standard action, and does not target or consume a
-corpse. You gain one daily use per rank of the Animate Dead feat.
+This is a separate daily class ability, not the Animate Dead corpse spell.
+Necromancer level 2 grants one rank of Animate Dead. Existing Necromancers
+receive this grant on their next login. Each feat rank provides one daily use.
+It uses a standard action and does not target or consume a corpse.
 
-The command creates a charmed undead follower from composite caster level:
+This is the native corpse-free host acquisition ability: the body arrives
+already animated, with no loose corpse to store, trade, or repeatedly animate.
+With no form specified, composite caster level selects the highest tier:
   below 10  zombie
   10-19     ghoul
-  20-29     giant skeleton
+  20-29     giant skeleton (select with skeleton)
   30+       mummy
+Additional selectable forms do not replace the default tiers:
+  mage      caster level 10; level-10 skeletal mage with Magic Missile and
+            Ray of Enfeeblement
+  lich      caster level 25; level-25 lich with Magic Missile, Vampiric Touch,
+            Haste, and Dispel Magic
+These casters have two slots per known spell with normal mobile recovery.
+For example: order lich cast 'haste' <ally>.
 
-Holy rooms and the animated-undead follower cap can reject the command. To cast
-the corpse spell instead, use cast 'animate dead' <corpse>.
+You can select any form whose caster-level threshold you have reached,
+including a lesser form when you cannot afford an elite form's control cost.
 
-See also: ANIMATE-DEAD, CLASS-NECROMANCER
+Animated-undead control capacity is 2 points, or 4 with Necromancer levels.
+Zombie, ghoul, ghost, and skeletal mage cost 1 point each. Giant skeleton,
+mummy, spectre, banshee, wight, and lich cost 2 points each. Use PETS to see
+control points in use. Mage and lich are selected through ANIMATEDEAD.
+
+Holy rooms and the animated-undead follower cap can reject the command.
+Invalid or locked choices, missing creatures, and full control capacity do not
+spend a daily use. A successful call spends one use; dismissing the creature
+does not refund it. Repeated logins do not add uses or clear the cooldown.
+
+The follower has no natural expiry. It uses ordinary PETS, ORDER, and DISMISS
+commands and can carry and wear equipment. Retrieve its gear before dismissal.
+Its corpse cannot be animated again. It shares capacity with corpse animation;
+it does not create a separate roster. To cast the corpse spell instead, use
+cast 'animate dead' <corpse>.
+
+See also: ANIMATE-DEAD, CLASS-NECROMANCER, PETS, DISMISS
 #0
 ANTI
 
@@ -4490,24 +4554,36 @@ bolts of lightning that strike everyone in the area.
 See also: SPELLS
 	n
 #0
-CALL-LYCANTHROPE LYCANTHROPE
+CALL-LYCANTHROPE LYCANTHROPE MOONCALL
 
-Usage: cast 'call lycanthrope'
-Duration: Volatile; first charm check after 30 seconds
+Usage: hold mooncall; use mooncall self
+Source: mooncall wand, Training Halls Shop
 School of Magic: Conjuration
-Target(s): No target
 
-Call lycanthrope opens a black door and brings through either the converted
-werewolf or weretiger summon. The creature's level is the caster's level minus
-10, with a minimum of 1 and a maximum of 40. Its hit points scale from that
-level and Constitution. A caster can control only one called lycanthrope.
+Call Lycanthrope remains content-only: it is not granted to a class or domain.
+The Training Halls Shop sells one-charge mooncall wands at a base price of
+5,000 gold, before shop modifiers. Hold the wand and USE MOONCALL SELF.
+The native DC 20 Use Magic Device check supplies access without a class grant.
+A failed activation check leaves the charge intact.
 
-The creature is charmed and follows the caster. After 30 seconds, an idle
-lycanthrope returns through the door. A fighting lycanthrope tests the caster's
-Charisma: success maintains the charm for another 30 seconds, while failure
-breaks the charm and turns the creature against its former master.
+A successful call spends one charge and opens a black door, bringing through
+a werewolf or weretiger. Its level is your character level minus 10, bounded
+from 1 to 40. Its hit points scale with that level and Constitution. You may
+control one called lycanthrope; it has its own control category. Missing
+prototypes or an occupied lycanthrope slot leave the wand charge intact.
+There is no separate call cooldown. A new call uses another charge, or three
+Arcane Apotheosis points through the normal wand-powering ability.
 
-See also: CHARM, FOLLOWERS, SUMMONING
+The creature follows and accepts orders while charmed. After 30 seconds, an
+idle lycanthrope leaves. A fighting lycanthrope checks your Charisma every
+30 seconds: success maintains control, while failure breaks the charm and
+turns it against you. This is a risky charm, not a loyal class companion.
+
+It can carry and wear physical equipment subject to its anatomy. Retrieve
+carried and worn gear before DISMISS. Expiry and death use ordinary pet gear
+handling; do not depend on a volatile summon to safeguard your possessions.
+
+See also: USE, PETS, ORDER, DISMISS, CHARM
 #0
 CALL-TO-MIND POWER-CALL-TO-MIND PSIONIC-POWER-CALL-TO-MIND
 
@@ -5240,7 +5316,8 @@ use general slots. Companion bonds, mercenaries, golems, genies, and special
 summons use their own limits. An animal companion is not also an ordinary
 summon just because it shares a creature type with one.
 
-Animation allows one undead, or two for a necromancer. Epic summons such as
+Animation uses 2 control points, or 4 for a necromancer. Lesser undead cost 1
+point and elite undead cost 2; see ANIMATE-DEAD for form costs. Epic summons such as
 Mummy Dust have separate allowances. An authored multi-creature spell can
 produce its whole group; this does not grant unlimited repeated casts.
 
@@ -10329,9 +10406,29 @@ See Also: DRAGON BOND, DRAGON KIN, DRAGON CHAMPION
 #0
 DRAGON-MOUNT
 
-Usage: call 'dragon'
+Usage: call dragon
 
-This ability allows you to call your own personal dragon mount.
+Dragon Riders gain Dragon Bond at class level 1. Select your mount type with
+STUDY, then CALL DRAGON. All ten standard dragon types are available: black,
+blue, green, red, white, brass, bronze, copper, silver, and gold. Use MOUNT to
+ride it and DISMOUNT to get off.
+
+You may control one bonded dragon mount. A fresh call costs no money or
+materials and creates a mount at your overall level, capped at 25. It starts
+a four-MUD-day call cooldown (two real hours). A missing prototype does not
+start that cooldown. The bond has no timed expiry.
+
+CALL recalls your existing dragon without changing its stats or restoring
+resources. Retrieve its carried and worn gear before DISMISS; dismissal
+reduces the remaining call cooldown to at most 59 seconds.
+
+Dragon Rider mounted bond bonuses require your own controlled dragon mount,
+with you actually riding it in the same room. A different rider, a broken
+control bond, separation, or a dying mount does not supply those bonuses.
+United We Stand applies its native bonuses to both rider and dragon while
+that riding bond is valid. Riding a different creature does not create a bond.
+
+See also: STUDY, MOUNT, DISMOUNT, PETS
 #0
 BLACK-DRAGON BLUE-DRAGON BRASS-DRAGON BRONZE-DRAGON COPPER-DRAGON DRAGONS GOLD-DRAGON GREEN-DRAGON RED-DRAGON SILVER-DRAGON WHITE-DRAGON
 
@@ -11108,22 +11205,28 @@ ELEMENTAL-AIR-EMBODIMENT, FIRE-SHIELD, HASTE
 #0
 ELEMENTAL-SWARM
 
------------------------------------------------------------------------
-	D>Usage:	n            cast 'elemental swarm'
-	D>Accumulative:	n     No 
-	D>Duration:	n         Instantaneous
-	D>School of Magic:	n  None
-	D>Target(s):	n        N/A
-	D>Magic Resist:	n     No
-	D>Saving Throw:	n     N/A
-	D>Damage Type:	n      N/A
-	D>Description:	n
- 
-This spell opens a portal to an elemental plane and summons elementals
-from it.  When the spell is complete, 2d4 elementals appear, ready to
-do the bidding of the caster.
- 
-	YSee also:	n SPELLS
+Usage: cast 'elemental swarm' [air|earth|fire|water]
+
+Druids gain this ninth-circle Conjuration spell at level 17. It uses normal
+preparation and casting actions, with no separate material or daily-use cost.
+
+The spell summons 2d4 elementals of the chosen kind, up to eight in one cast.
+Omitting the choice selects a random kind. Their level follows caster level,
+capped at 20. Only one elemental or elemental-swarm batch can be controlled
+at a time; every member must be released before another batch is admitted.
+
+A missing chosen prototype or full allowance rejects casting before spending
+the prepared spell. Admission is checked again at completion; normal costs
+apply to interruption or changes after casting starts.
+
+The elementals follow you and accept orders, including group combat orders.
+They have no timed summon expiry and remain until death or removal. Standard
+NPC carrying and equipment checks apply. Recover their gear before dismissal.
+Use PETS to find their IDs and dismiss #<id> for each member. Named and ID
+commands require visibility; air elementals can require detect invisibility.
+
+See also: SUMMON-CHOICES, PETS, ORDER, DISMISS
+
 #0
 ELEMENTAL ELEMENTAL-WATER-EMBODIMENT EMBODIMENT SPELL SPELL-ELEMENTAL-WATER-EMBODIMENT WATER
 
@@ -13888,35 +13991,47 @@ See also: SOCIALS, EMOTE
 #0
 GENIEKIND SPELL-GENIEKIND
 
-	D>Usage:           	W cast 'geniekind' (djinni|efreeti|marid|shaitan)	n
-	D>Accumulative:    	W  	n
-	D>Duration:        	W 1 minute per level 	n
-	D>School of Magic: 	W Conjuration 	n
-	D>Target(s):       	W Self Only 	n
-	D>Magic Resist:    	W  	n
-	D>Saving Throw:    	W  	n
-	D>Damage Type:     	W  	n
-	D>Description:	n
-	n
-	nThis spell will conjure forth a specified kind of genie as well as bestow the
-	ncaster with certain benefits based on the type of genie conjured.  If no kind is
-	nspecified, the choice will be random.  You may only benefit from an summon one kind
-	nof genie at a time. The different kinds are:
-	n
-	n
-	ndjinni  - summons a djinni which casts lightning bolt and wind wall and also bestows 
-	n          resist 20 to air and electric damage and +2 to dex.
-	nefreeti - summons an efreeti which casts fireball and bestows resist 20 to fire damage, 
-	n          +2 to int and offers 1d6 fire damage on your melee attacks.
-	nmarid   - summons a marid which casts cure critic, water breathe and water walk.  Also bestows 
-	n          resist 20 to water and cold damage and +2 to con plus lets you breathe and walk on water.
-	nshaitan - summons a shaitan which casts stone skin. Also bestows resist 20 on earth and acid 
-	n          damage and +2 to strength.
-	n
-	nAll bonuses are of type inherent.
-	n
-	YSee also:	n SPELLS
-	n
+Usage: cast 'geniekind' [djinni|efreeti|marid|shaitan]
+
+Available to Wizards, Clerics, and Druids at level 9, Sorcerers at level 10,
+and Summoners at level 13 through their normal spell access. Casting uses a
+prepared spell or spontaneous slot and normal casting time/actions. There is
+no separate gold, material, or daily-use cost. Omitting a choice selects one
+randomly; unknown choices are rejected before casting.
+
+The four choices provide distinct allies and inherent caster benefits:
+
+Djinni: lightning bolt and wind wall; resistance 20 to air and electricity,
++2 Dexterity, and flight.
+Efreeti: fireball; resistance 20 to fire, +2 Intelligence, and added fire
+damage on melee attacks.
+Marid: cure critic, water breathe, and water walk; resistance 20 to water and
+cold, +2 Constitution, water breathing, and walking on water.
+Shaitan: stone skin; resistance 20 to earth and acid, and +2 Strength.
+
+Only one genie can be controlled at a time, using its separate genie allowance.
+A full allowance or unavailable chosen genie rejects the cast before spending
+the spell. Existing genie benefits are preserved when admission fails.
+
+Genies follow and obey ordinary ORDER commands, use equipment allowed by their
+body, and remain until death or removal; they have no timed summon expiry.
+Retrieve their carried and worn equipment before using DISMISS.
+Their known spells have two slots each, recovering one random spent slot per
+minute out of combat. Ordered casting spends a slot and the pet's standard
+action. The owner also spends the normal swift action for ORDER.
+
+Caster benefits have a base duration of 16,000 rounds (26 hours 40 minutes),
+subject to applicable spell-duration modifiers. They are separate from the
+pet's lifetime: dismissing the genie does not remove them. A successful new
+geniekind cast replaces the previous kind's benefits.
+
+Examples:
+  cast 'geniekind' marid
+  order marid cast 'cure critic' Yourname
+  order shaitan cast 'stone skin' Yourname
+
+See also: SUMMON-CHOICES, PETS, ORDER, DISMISS
+
 #0
 DELETEPATH GENMAP GENRIVER
 
@@ -14363,13 +14478,23 @@ Usage:
   cast 'greater animation' <corpse>
 
 Greater Animation turns a corpse in the room into a permanent charmed undead
-follower and transfers the corpse contents to that follower. The corpse is
-consumed only after a follower is successfully created.
+follower. Ghost, spectre, and banshee are incorporeal: they cannot get, receive,
+or wear physical objects, and the corpse contents remain on the ground. Wights
+can carry equipment and receive the corpse contents. The corpse is consumed
+only after a follower is successfully created.
+
+Only eligible NPC corpses can be animated. Player corpses and corpses created
+from summoned followers or artificial minions are rejected. Their contents stay
+available for normal looting. A consumed corpse cannot be used again.
 
 There is a 10 percent summon failure chance. Holy rooms reject the spell. An
 invalid corpse, holy-room rejection, random failure, follower-cap rejection, or
-mobile-load failure leaves the corpse in place. Non-Necromancers may control one
-animated undead; Necromancers may control exactly two in total.
+mobile-load failure leaves the corpse in place.
+
+Animated-undead control capacity is 2 points, or 4 with Necromancer levels.
+Zombie, ghoul, ghost, and skeletal mage cost 1 point each. Giant skeleton,
+mummy, spectre, banshee, wight, and lich cost 2 points each. Use PETS to see
+control points in use. Mage and lich are selected through ANIMATEDEAD.
 
 The effective level selects the creature:
   below 20  ghost
@@ -20820,14 +20945,26 @@ MIRROR-IMAGE MIRRORIMAGE SPELL-MIRROR-IMAGE
 MISLEAD SPELL-MISLEAD
 
 Usage: cast 'mislead'
-Duration: Temporary
 School of Magic: Illusion
 Target(s): Self only
 
-Mislead wraps the caster in deceptive shadows, concealing the caster from
-pursuit and preventing ordinary tracking while the effect lasts.
+Mislead conceals the caster from pursuit and ordinary tracking while its
+shadow effect lasts. It also creates one illusory double for two minutes of
+live game time, using the spell's normal class access and spell/action costs.
+Missing prototypes or an existing double reject a new cast before spending
+its spell. There is no separate daily use or dismissal refund.
 
-See also: ILLUSION, PASS-WITHOUT-TRACE, TRACK
+The double follows and assists its owner automatically. It is owned but
+cannot accept ORDER commands or behavior changes. Its attacks deal illusion
+damage, retain normal pet owner credit, and obey player-combat protections.
+CHARMIECOMBATROLL supplies optional owner-visible combat details.
+
+An illusory double cannot get, receive, or wear physical equipment. Use PETS
+to inspect it and DISMISS decoy to release it. It has a separate one-double
+allowance. Its live expiry does not depend on the caster's shadow effect.
+Death leaves no reusable body; ordinary pet cleanup handles dismissal.
+
+See also: ILLUSION, PASS-WITHOUT-TRACE, TRACK, PETS, DISMISS
 #0
 MISSILE-STORM
 
@@ -21217,18 +21354,50 @@ Displays the message of the day.  Contains important information regarding the
 status of the MUD.  You should be sure to read it when you login.  If you miss 
 it at login, just use this command!
 #0
+CALL
+
+Usage: call <companion|familiar|mount|dragon|shadow|eidolon|cohort>
+
+CALL uses your class abilities to summon a bonded follower. Select a form with
+STUDY when required. New summons use the ability's normal level rules and
+cooldown; unavailable forms do not create a replacement.
+
+If your existing bonded pet is elsewhere, CALL brings that same pet to you.
+It retains its level, statistics, injuries, movement, PSP, identity, equipment,
+and existing cooldown. Repeating CALL does not reroll it or refill resources,
+even if your call level or bonuses have changed. Calling a mounted pet first
+clears its riding relationship; it does not bring another rider along.
+
+CALL will not relocate a creature owned by somebody else. An ordinary respec
+requires you to dismiss your followers first; a rejected respec leaves their
+state intact. Retrieve equipment before dismissing a pet.
+
+See also: STUDY, PETS, DISMISS, DRAGON-MOUNT, MOUNT
+#0
 MOUNT
 
-Usage:  mount <intended mount>
+Usage: mount <creature>
 
-Mount is the command corresponding to the ability mount.  The higher the skill, the
-higher level the mount you can effectively use.  The intended mount target must
-be a "mountable" mobile or player.
+Mounting uses the Ride ability. Mortal riders need a mountable NPC at least
+one size larger than themselves. Both rider and mount must have physical
+substance, and the mount must be awake and able to carry a rider. You cannot
+mount a creature controlled by another owner or an already occupied mount.
 
-Also having a high mount ability will reduce the chance that an unTAMEd mobile will
-BUCK you off.
+Ride skill determines whether you can mount and remain on an untamed creature.
+A failed riding check or successful mounting spends a move action. Rejected
+size, control, or physical-form checks do not spend that action.
 
-See also:  TAME BUCK DIS
+Riding does not make the creature your pet and does not grant ORDER rights.
+Use DISMOUNT to get off. Separation clears the riding relationship; it does
+not transfer pet ownership. Recall spells dismount you before teleporting;
+your mount stays behind and retains its owner. Ordinary mounted travel moves
+both creatures together. TAME reduces the risk of being bucked off.
+
+Mounted Combat permits one Ride check per round to block an attack against
+the rider. Legendary Rider adds one attempt. Attempts reset each round rather
+than accumulating, and a separated mount cannot supply mounted defenses.
+
+See also: RIDE, TAME, BUCK, DISMOUNT, CHARMEE
 #0
 MOVE-ACTION MOVE_ACTION
 
@@ -21519,6 +21688,9 @@ Note:  See CHARMEE help file for important info.
 	n
 See also: SPELLS CHARMEE
 	n
+
+Choose air, earth, fire, or water: cast 'natures ally ix' water.
+Omit the choice for a random element. See SUMMON-CHOICES for details.
 #0
 NATURES-ALLY-5 NATURES-ALLY-V
 
@@ -21579,6 +21751,9 @@ Note:  See CHARMEE help file for important info.
 	n
 See also: SPELLS CHARMEE
 	n
+
+Choose air, earth, fire, or water: cast 'natures ally vii' water.
+Omit the choice for a random element. See SUMMON-CHOICES for details.
 #0
 NATURES-ALLY-8 NATURES-ALLY-VIII
 
@@ -21599,6 +21774,9 @@ Note:  See CHARMEE help file for important info.
 	n
 See also: SPELLS CHARMEE
 	n
+
+Choose air, earth, fire, or water: cast 'natures ally viii' water.
+Omit the choice for a random element. See SUMMON-CHOICES for details.
 #0
 NATURES-BLESSING SPELL-NATURES-BLESSING
 
@@ -22968,10 +23146,18 @@ Usage: order <character> <command>
 Order a loyal charmed NPC in your room, or use FOLLOWERS for all eligible pets
 there. Use a numbered keyword, such as 2.companion, to select among matching names.
 An assigned pet ID from PETS also works: order #123 stand.
+A named or ID-selected pet must be visible to you. Invisible pets may require
+detect invisibility; group orders still reach eligible pets in your room.
 
 An accepted order uses one swift action, including an order to the whole group.
 Wait for that action to recover before ordering again. Each pet still obeys the
 normal action costs, ability restrictions, and cooldowns of its command.
+
+Pets with known spells can cast them when ordered, for example:
+  order healer cast 'cure critic' Yourname
+Each known spell has two slots. Casting uses one slot and the pet's standard
+action. One spent slot recovers each minute out of combat. An invalid target
+does not spend a spell slot. Eidolon at-will abilities retain their own rules.
 
 Pets that leave, lose your control, become incapacitated, or are removed before
 their turn in a group order are skipped. Orders do not continue remotely if you
@@ -29134,22 +29320,30 @@ SHADOW-WALK SPELL-SHADOW-WALK
 #0
 SHAMBLER
 
-	D-----------------------------------------------------------------	n
-	D>Usage:	n            cast 'shambler'
-	D>Accumulative:	n     No 
-	D>Duration:	n         Instantaneous
-	D>School of Magic:	n  None
-	D>Target(s):	n        N/A
-	D>Magic Resist:	n     No
-	D>Saving Throw:	n     N/A
-	D>Damage Type:	n      N/A
-	D>Description:	n
- 
-This spell creates 1d4+2 shambling mounds.  The creatures willingly aid
-you in combat or battle.  The shamblers have resistance to fire as
-normal shambling mounds only if the terrain is rainy, marshy, or damp.
- 
-	YSee also:	n SPELLS
+Usage: cast 'shambler'
+
+Druids gain this ninth-circle Conjuration spell at level 17. It uses normal
+preparation and casting actions, with no corpse, separate material payment,
+or daily-use cooldown.
+
+One cast creates 1d4+2 shambling mounds: three to six plant melee allies.
+Their level follows caster level, capped at 20. The whole group uses a separate
+shambler allowance. Every member must be released before another batch is
+admitted; this allowance is separate from elemental and genie limits.
+
+A missing prototype or existing shambler group rejects casting before spending
+the prepared spell. Admission is checked again at completion; normal costs
+apply to interruption or changes after casting starts.
+
+Shamblers follow and obey ordinary orders, including order followers kill
+<target>. They have no timed summon expiry and remain until death or removal.
+Standard NPC carrying and equipment checks apply. Recover their gear before
+dismissal. Use PETS and dismiss #<id> to release each member of a batch.
+
+The psionic ectoplasmic shambler is a different power and creature.
+
+See also: SUMMON-CHOICES, PETS, ORDER, DISMISS
+
 #0
 SHAPE-CHANGING SHAPECHANGE
 
@@ -33980,6 +34174,9 @@ Note:  See CHARMEE help file for important info.
 	n
 	YSee also:	n SPELLS CHARMEE
 	n
+
+Choose air, earth, fire, or water: cast 'summon creature ix' water.
+Omit the choice for a random element. See SUMMON-CHOICES for details.
 #0
 SUMMON-CREATURE-5 SUMMON-CREATURE-V
 
@@ -34034,12 +34231,15 @@ SUMMON-CREATURE-7 SUMMON-CREATURE-VII
 	D>Damage Type:     	W N/A 	n
 	D>Description:	n
 	n
-This spell conjures a loyal elemental of a random element.
+This spell conjures a loyal elemental of a chosen element (random if no choice is supplied).
 	n
 See the CHARMEE help file for important info.
 	n
 	YSee also:	n SPELLS CHARMEE
 	n
+
+Choose air, earth, fire, or water: cast 'summon creature vii' water.
+Omit the choice for a random element. See SUMMON-CHOICES for details.
 #0
 SUMMON-CREATURE-8 SUMMON-CREATURE-VIII
 
@@ -34060,6 +34260,9 @@ Note:  See CHARMEE help file for important info.
 	n
 	YSee also:	n SPELLS CHARMEE
 	n
+
+Choose air, earth, fire, or water: cast 'summon creature viii' water.
+Omit the choice for a random element. See SUMMON-CHOICES for details.
 #0
 COMMUNAL-SUMMON COMMUNAL-SUMMON-MOUNT DISMOUNT MOUNT MOUNTS SUMMON-MOUNT
 
@@ -38034,7 +38237,7 @@ BUG IDEA TYPO                   - Tell us what YOU think!
 WIZHELP COMMANDS SOCIALS        - See what you can do.
 QUIT SAVE                       - If you decide to leave us.
 #0
-APPLIES ARMORLISTFULL AURAREADING AUTOBCHECK AUTOGROUP AUTOPREP AUTOSEARCH AVATAROFELEMENTS AVATAROFWAR BID BLOODDRAIN BOARDCHECK BONUSES BREPLY CAREFULPET CHARMIECOMBATROLL CLANINVEST DAMAGEREDUCTION DEVOTE ENCOUNTERINFO ENTERTAIN FAVOREDENEMIES FAVOREDTERRAIN FLIGHTLIST FORGEAS GLORYSCALL GOALS GOLEMREPAIR GRANDDESTINY ICERABBIT INSIDE INSPIRECOURAGE LASTROOM LISTRACES MAXHP MYPERKS NOCHARMIERESCUES NOFOLLOW OSAY OUTSIDE PERFECTADAPTATION PERKS POSTCOMBATBRIEF PUSHSWITCH QUICKCHANT QUICKMIND RELAY SACHP
+APPLIES ARMORLISTFULL AURAREADING AUTOBCHECK AUTOGROUP AUTOPREP AUTOSEARCH AVATAROFELEMENTS AVATAROFWAR BID BLOODDRAIN BOARDCHECK BONUSES BREPLY CAREFULPET CHARMIECOMBATROLL CLANINVEST DAMAGEREDUCTION DEVOTE ENCOUNTERINFO ENTERTAIN FAVOREDENEMIES FAVOREDTERRAIN FLIGHTLIST FORGEAS GLORYSCALL GOALS GRANDDESTINY ICERABBIT INSIDE INSPIRECOURAGE LASTROOM LISTRACES MAXHP MYPERKS NOCHARMIERESCUES NOFOLLOW OSAY OUTSIDE PERFECTADAPTATION PERKS POSTCOMBATBRIEF PUSHSWITCH QUICKCHANT QUICKMIND RELAY SACHP
 
 Topic  : General Utility Commands & Companion Toggles
 Usage  : autogroup
@@ -41404,5 +41607,163 @@ available to converted content, but no player class or domain grants them.
 
 See also: SHAMAN, ELEMENTALIST, BATTLECHANTER, DIRE-RAIDER, ROL-MERCENARY,
 SPELLS, PREPARE, STUDY
+#0
+GOLEM-MAINTENANCE GOLEMREPAIR DESTROYGOLEM
+
+GOLEM MAINTENANCE
+
+Usage: golemrepair <golem>
+       destroygolem <golem>
+
+Material recipes create dedicated constructs in small, medium, large, and huge
+sizes. Wood favors accurate attacks and agility; stone gains armor, durability,
+and damage reduction 5; iron gains heavier melee damage and damage reduction 8.
+They retain native construct defenses. Each uses the ordinary one-golem allowance,
+has no natural expiry, and supports ordinary equipment, ORDER, and DISMISS.
+Acquisition still requires the recipe's class feat, materials, motes, crafting
+time, and Arcana check. No additional daily cooldown is added.
+
+These commands require the motes crafting system to be enabled.
+Repair requires your controlled golem to be alive, present, and out of combat.
+You must also be out of combat. A successful Arcana check restores all missing
+hit points; a failed check still consumes the repair materials.
+
+Each started 10 percent of missing health costs 10 percent of the recipe's
+primary material requirement. Even one lost hit point requires materials.
+Wood repairs require enough units of a single wood type. Full-health golems
+need no repair. Golems pending destruction cannot be repaired or dismantled.
+
+Destroygolem recovers half of the original recipe materials and removes the
+golem. Repeating the command cannot recover materials from the same golem.
+Retrieve equipment before dismantling. To release it without material recovery,
+use DISMISS instead.
+
+Crafting completion retains materials and motes if the required creature is
+unavailable or your golem allowance is full. An otherwise valid failed ritual
+consumes its authored materials and motes. Crafted golem corpses cannot be
+animated, including after control is lost.
+
+See also: CRAFT, PETS, DISMISS
+#0
+BONE-GOLEM
+
+BONE GOLEM
+
+Usage: craft create golem animate <corpse>
+
+Bind an eligible room corpse into a medium bone construct. This requires the
+motes crafting system and either Construct Wood Golem or Summon Greater Undead
+(Necromancer level 9). It uses the ordinary one-golem allowance, shared with
+wood, stone, and iron constructs.
+
+The ritual costs 40 bone and 6 of each of the eight mote types. It takes a
+standard action and a move action, with an Arcana check against DC 25.
+A failed check spends those reagents and actions but leaves the corpse and its
+contents intact. Successful binding consumes the corpse exactly once and moves
+its contents to the golem. Missing prototypes, full capacity, missing resources,
+and ineligible corpses spend nothing.
+
+Player corpses and corpses marked as summoned or artificial minions cannot be
+used. The corpse must be present in the room. You must be able to act, free of
+charm, out of combat, and not casting or performing another activity. Holy and
+antimagic rooms prevent the ritual. There is no additional daily cooldown.
+
+The bone golem is an agile melee construct with damage reduction 3 and native
+construct defenses. It is permanent until death or removal and cannot become
+another animation source. Use PETS, ORDER, and DISMISS normally. It can carry
+and wear equipment; retrieve all gear before dismissal or dismantling.
+
+GOLEMREPAIR uses bone, charging 4 units per started 10 percent of missing HP.
+DESTROYGOLEM recovers 20 bone once, with no corpse or mote refund. Repair and
+dismantling use the same control and lifecycle rules as material golems.
+
+See also: GOLEM-MAINTENANCE, PETS, ANIMATE-DEAD, CLASS-NECROMANCER
+#0
+SUMMON-CHOICES
+
+SUMMON CHOICES
+
+Optional choices:
+  cast 'summon creature vii' air
+  cast 'natures ally vii' earth
+  cast 'elemental swarm' water
+  cast 'geniekind' marid
+
+Summon Creature VII, VIII, IX and Natures Ally VII, VIII, IX accept air, earth,
+fire, or water. Elemental Swarm accepts the same choices and creates 2d4 of the
+selected elemental, up to eight in one cast. Shambler retains its separate
+three-to-six plant batch. Repeated casts cannot bypass the control limits.
+
+Geniekind accepts djinni, efreeti, marid, or shaitan. Marid supplies healing and
+water utility, djinni wind/lightning, efreeti fire offense, and shaitan stone
+protection. See GENIEKIND for the caster benefits. An unavailable chosen genie
+or a full genie allowance rejects the cast before spending its spell. Admission
+is checked again at completion; rejection preserves existing genie benefits.
+
+Omitting a choice retains the random selection. Unknown choices are rejected
+before casting begins. Your choice belongs to your cast and is discarded when
+it ends or is cancelled; another caster cannot change it.
+
+Native sources: Wizards and Clerics receive Summon Creature VII/VIII/IX at
+levels 13/15/17; Sorcerers at 14/16/18. Druids receive Natures Ally VII/VIII/IX
+at 13/15/17, and Elemental Swarm and Shambler at 17. Summoners with Summon
+Monster can invoke Summon Creature VII/VIII/IX at will from levels 13/15/17.
+Other class or domain routes follow their normal spell lists.
+
+You may control one elemental or one elemental-swarm batch at a time, plus a
+separate shambler batch. Release every member of a batch before calling another.
+A missing chosen prototype or full allowance rejects casting before a prepared
+spell is spent. Once casting begins, normal interruption and failure costs
+apply; admission is checked again at completion if the world has changed.
+The high Summon Creature and Natures Ally spells retain their normal summon
+failure roll. Choices add no separate material payment or daily cooldown.
+
+These elemental and plant pets follow the caster, accept ordinary orders, and
+have no timed summon expiry. Death and dismissal remove them. They use standard
+NPC carrying and equipment rules; recover their gear before dismissal. Air
+elementals can be invisible: a named or ID-selected pet must be visible to you
+for orders or dismissal. Detect invisibility can provide the needed sight.
+
+Choices use the spell's normal class access, preparation or at-will rules,
+action costs, failure chance, pet lifetime, and equipment rules. They do not
+add a daily cooldown or a separate control allowance. Use PETS to inspect the
+roster, ORDER to command a controlled pet, and DISMISS to release it after
+retrieving its equipment.
+
+See also: GENIEKIND, ELEMENTAL-SWARM, SHAMBLER, CHARMEE, PETS
+#0
+PLANAR-ALLY
+
+PLANAR ALLY
+
+Usage: cast 'planar ally' [guardian|healer]
+
+Available to Clerics at level 11 and Summoners at level 16 through their normal
+spell access and preparation rules. It uses a prepared spell and normal casting
+time/actions. There is no extra item payment or daily-use cooldown.
+
+Guardian (default): a flying celestial melee ally with strong armor, heavier
+attacks, and damage reduction 5.
+Healer: a flying celestial support ally with cure critic, bless, and remove
+paralysis. Each known spell has two slots; the native mobile recovery system
+restores one random missing slot per minute while out of combat.
+
+Both are level-15 outsiders with native angel defenses. They share a separate
+one-planar-ally allowance: choosing another role does not grant another slot.
+Use PETS to inspect the roster. An unavailable prototype or full allowance
+rejects casting before spending the prepared spell. Once casting begins, normal
+interruption and spell-consumption rules apply, including later world changes.
+
+The ally is permanent until death or removal. It is owned, follows the caster,
+and supports ordinary ORDER commands, equipment, and DISMISS. Retrieve carried
+and worn equipment before dismissal. Summoned provenance prevents its corpse
+from being used for another animation. Usual pet PvP protections apply.
+
+Examples:
+  cast 'planar ally' guardian
+  cast 'planar ally' healer
+  order healer cast 'cure critic' <name>
+
+See also: PETS, ORDER, DISMISS, SUMMON-CHOICES
 #0
 $~

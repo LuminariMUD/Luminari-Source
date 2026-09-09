@@ -14,6 +14,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "pet_vnums.h"
 #include "db.h"
 #include "comm.h"
 #include "modify.h"
@@ -1142,6 +1143,7 @@ static const struct
     {MOB_MUMMY_DUST, NOBODY, "Mummy dust"},
     {MOB_SHADOW, NOBODY, "Shadow"},
     {MOB_PLANAR_ALLY, NOBODY, "Planar ally"},
+    {-1, PET_MISLEAD_DECOY, "Illusory decoy"},
     {MOB_C_ANIMAL, NOBODY, "Animal companion"},
     {MOB_C_FAMILIAR, NOBODY, "Familiar"},
     {MOB_C_MOUNT, NOBODY, "Bonded mount"},
@@ -1213,6 +1215,25 @@ static size_t follower_category(struct char_data *pet, mob_vnum vnum)
   return isSummonMob(vnum) ? FOLLOWER_SUMMON : FOLLOWER_GENERAL;
 }
 
+/* Lesser forms trade strength for numbers; other pet categories still count heads. */
+static int follower_control_cost(size_t category, mob_vnum vnum)
+{
+  if (follower_rules[category].flag != MOB_ANIMATED_DEAD)
+    return 1;
+  switch (vnum)
+  {
+  case PET_LICH:
+  case MOB_GIANT_SKELETON:
+  case MOB_MUMMY:
+  case MOB_SPECTRE:
+  case MOB_BANSHEE:
+  case MOB_WIGHT:
+    return 2;
+  default:
+    return 1;
+  }
+}
+
 static bool is_controlled_follower(struct char_data *owner, struct char_data *pet)
 {
   return pet != NULL && IS_PET(pet) && pet->master == owner && !MOB_FLAGGED(pet, MOB_NOTDEADYET);
@@ -1224,6 +1245,7 @@ static void count_followers(struct char_data *ch, int flag, mob_vnum vnum,
   struct follow_type *link;
   struct char_data *pet;
   mob_vnum pet_vnum;
+  size_t category;
 
   memset(counts, 0, sizeof(*counts));
   if (ch == NULL)
@@ -1235,7 +1257,8 @@ static void count_followers(struct char_data *ch, int flag, mob_vnum vnum,
     if (!is_controlled_follower(ch, pet))
       continue;
     pet_vnum = follower_vnum(pet);
-    counts->categories[follower_category(pet, pet_vnum)]++;
+    category = follower_category(pet, pet_vnum);
+    counts->categories[category] += follower_control_cost(category, pet_vnum);
     counts->total++;
     if (flag >= 0 && flag < NUM_MOB_FLAGS && MOB_FLAGGED(pet, flag))
       counts->matching_flag++;
@@ -1252,8 +1275,8 @@ static int follower_category_limit(struct char_data *ch, size_t category)
     return 1 + MAX(0, GET_CHA_BONUS(ch));
   if (category == FOLLOWER_SUMMON)
     return IS_SUMMONER(ch) ? 2 : 1;
-  if (follower_rules[category].flag == MOB_ANIMATED_DEAD && CLASS_LEVEL(ch, CLASS_NECROMANCER) > 0)
-    return 2;
+  if (follower_rules[category].flag == MOB_ANIMATED_DEAD)
+    return CLASS_LEVEL(ch, CLASS_NECROMANCER) > 0 ? 4 : 2;
   return 1;
 }
 
@@ -1286,11 +1309,17 @@ bool can_add_follower_by_flag(struct char_data *ch, int flag)
 bool can_add_follower_mobile(struct char_data *ch, struct char_data *pet)
 {
   struct follower_count_data counts;
+  size_t category;
+  mob_vnum vnum;
 
   if (ch == NULL || pet == NULL || !IS_NPC(pet))
     return false;
   count_followers(ch, -1, NOBODY, &counts);
-  return follower_category_available(ch, follower_category(pet, follower_vnum(pet)), &counts);
+  vnum = follower_vnum(pet);
+  category = follower_category(pet, vnum);
+  return follower_category_available(ch, category, &counts) &&
+         counts.categories[category] + follower_control_cost(category, vnum) <=
+             follower_category_limit(ch, category);
 }
 
 bool can_add_follower(struct char_data *ch, int mob_vnum)
@@ -1309,6 +1338,8 @@ int summoned_follower_flag(int spell)
 {
   switch (spell)
   {
+  case SPELL_PLANAR_ALLY:
+    return MOB_PLANAR_ALLY;
   case SPELL_ELEMENTAL_SWARM:
   case SPELL_SUMMON_CREATURE_7:
   case SPELL_SUMMON_CREATURE_8:
@@ -1343,6 +1374,7 @@ bool can_add_summoned_followers(struct char_data *ch, int mob_vnum, int spell, i
 {
   struct follower_count_data counts;
   int flag, maximum;
+  size_t category;
 
   if (ch == NULL || mob_proto == NULL || mob_index == NULL || top_of_mobt == NOBODY ||
       real_mobile(mob_vnum) == NOBODY)
@@ -1355,6 +1387,15 @@ bool can_add_summoned_followers(struct char_data *ch, int mob_vnum, int spell, i
   {
     count_followers(ch, -1, NOBODY, &counts);
     return follower_category_available(ch, FOLLOWER_SHAMBLER, &counts);
+  }
+  if (flag == MOB_ANIMATED_DEAD)
+  {
+    count_followers(ch, -1, NOBODY, &counts);
+    for (category = FOLLOWER_GENIE; category < FOLLOWER_RULE_COUNT; category++)
+      if (follower_rules[category].flag == flag)
+        return counts.categories[category] + follower_control_cost(category, mob_vnum) <=
+               follower_category_limit(ch, category);
+    return false;
   }
   if (flag >= 0)
     return can_add_follower_by_flag(ch, flag);
@@ -1371,6 +1412,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable)
   char identity[40];
   room_rnum room;
   int number = 0, spare;
+  size_t category;
 
   if (ch == NULL)
     return 0;
@@ -1412,6 +1454,12 @@ int check_npc_followers(struct char_data *ch, int mode, int variable)
                  "slots. Other categories have separate limits.\r\n",
                  counts.total, counts.general_used, counts.general_limit, spare,
                  counts.categories[FOLLOWER_SUMMON], follower_category_limit(ch, FOLLOWER_SUMMON));
+    for (category = FOLLOWER_GENIE; category < FOLLOWER_RULE_COUNT; category++)
+      if (follower_rules[category].flag == MOB_ANIMATED_DEAD)
+        send_to_char(ch,
+                     "Animated-undead control: %d/%d points. "
+                     "Lesser forms cost 1; elite forms cost 2.\r\n",
+                     counts.categories[category], follower_category_limit(ch, category));
     break;
   }
   return counts.total;
@@ -1446,11 +1494,24 @@ struct char_data *get_pet_command_target(struct char_data *owner, char *target)
   return NULL;
 }
 
+bool is_illusory_pet(struct char_data *pet)
+{
+  return pet != NULL && IS_NPC(pet) &&
+         (pet->pet_source_spell == SPELL_MISLEAD || follower_vnum(pet) == PET_MISLEAD_DECOY);
+}
+
 const char *pet_behavior_name(int behavior)
 {
   static const char *names[] = {"follow", "wait", "passive", "assist", "guard"};
 
   return behavior >= 0 && behavior < NUM_PET_BEHAVIORS ? names[behavior] : "unknown";
+}
+
+bool corpse_can_be_animated(struct obj_data *corpse)
+{
+  return corpse != NULL && IS_CORPSE(corpse) && GET_OBJ_VAL(corpse, 4) == 0 &&
+         !CORPSE_ANIMATION_BLOCKED(corpse) &&
+         (corpse->name == NULL || !isname("pcorpse", corpse->name));
 }
 
 bool place_pet_follower(struct char_data *owner, struct char_data *pet)
@@ -1473,6 +1534,7 @@ bool place_pet_follower(struct char_data *owner, struct char_data *pet)
     return false;
   }
   SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+  pet->char_specials.is_charmie = true;
   X_LOC(pet) = world[IN_ROOM(owner)].coords[0];
   Y_LOC(pet) = world[IN_ROOM(owner)].coords[1];
   char_to_room(pet, IN_ROOM(owner));
@@ -7062,10 +7124,9 @@ int get_poison_save_mod(struct char_data *ch, struct char_data *victim)
     bonus += 2;
   if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
     bonus -= 4;
-  if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE))
-    bonus += get_evolution_appearance_save_bonus(ch);
-  else if (HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE))
-    bonus += get_evolution_appearance_save_bonus(ch);
+  if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE) ||
+      HAS_EVOLUTION(victim, EVOLUTION_CELESTIAL_APPEARANCE))
+    bonus += get_evolution_appearance_save_bonus(victim);
 
   bonus += HAS_FEAT(ch, FEAT_POISON_SAVE_BONUS);
 
@@ -7856,9 +7917,12 @@ bool can_disease(struct char_data *ch)
     return false;
   if (IS_CONSTRUCT(ch))
     return false;
-  if (IS_UNDEAD(ch))
+  /* Undead-looking outsider eidolons earn immunity at level 12. */
+  if (IS_UNDEAD(ch) && !(IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OUTSIDER &&
+                         HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE)))
     return false;
-  if (HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE) &&
+  if ((HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE) ||
+       HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE)) &&
       get_evolution_appearance_save_bonus(ch) == 100)
     return false;
 
@@ -8008,9 +8072,12 @@ bool can_poison(struct char_data *ch)
     return false;
   if (IS_CONSTRUCT(ch))
     return false;
-  if (IS_UNDEAD(ch))
+  /* Undead-looking outsider eidolons earn immunity at level 12. */
+  if (IS_UNDEAD(ch) && !(IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OUTSIDER &&
+                         HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE)))
     return false;
-  if (HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE) &&
+  if ((HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE) ||
+       HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE)) &&
       get_evolution_appearance_save_bonus(ch) == 100)
     return false;
 
@@ -10830,36 +10897,19 @@ bool can_npc_command(struct char_data *ch)
 
 bool is_riding_dragon_mount(struct char_data *ch)
 {
-  if (!ch)
-    return false;
+  struct char_data *mount;
 
-  if (IS_NPC(ch))
+  if (ch == NULL || IS_NPC(ch) || IN_ROOM(ch) == NOWHERE)
     return false;
-
-  if (!RIDING(ch))
-    return false;
-
-  if (!is_dragon_rider_mount(RIDING(ch)))
-    return false;
-
-  if (IN_ROOM(ch) != IN_ROOM(RIDING(ch)))
-    return false;
-
-  return true;
+  mount = RIDING(ch);
+  return is_dragon_rider_mount(mount) && mount->master == ch && AFF_FLAGGED(mount, AFF_CHARM) &&
+         RIDDEN_BY(mount) == ch && IN_ROOM(mount) == IN_ROOM(ch) && GET_HIT(mount) > 0 &&
+         !MOB_FLAGGED(mount, MOB_NOTDEADYET);
 }
 
 bool is_dragon_rider_mount(struct char_data *ch)
 {
-  if (!ch)
-    return false;
-
-  if (!IS_NPC(ch))
-    return false;
-
-  if (GET_MOB_VNUM(ch) >= 40401 && GET_MOB_VNUM(ch) <= 40410)
-    return true;
-
-  return false;
+  return ch != NULL && IS_NPC(ch) && MOB_FLAGGED(ch, MOB_C_DRAGON);
 }
 
 int get_encumbrance_mod(struct char_data *ch)
@@ -10926,6 +10976,9 @@ bool ok_call_mob_vnum(int mob_num)
     return true;
 
   if (mob_num == MOB_NUM_EIDOLON)
+    return true;
+
+  if (mob_num >= PET_DRAGON_MOUNT_FIRST && mob_num <= PET_DRAGON_MOUNT_LAST)
     return true;
 
   if (mob_num >= 40400 && mob_num <= 40410)

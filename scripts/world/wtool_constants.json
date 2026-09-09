@@ -172,7 +172,7 @@
     },
     "NUM_SPELLS": {
       "source": "src/magic/spells.h:NUM_SPELLS",
-      "value": 613
+      "value": 614
     },
     "NUM_SUB_RACES": {
       "source": "src/structs.h:NUM_SUB_RACES",
@@ -2274,7 +2274,7 @@
           "index": 36,
           "macro": "MOB_PLANAR_ALLY",
           "name": "Planar-Ally",
-          "reserved": true
+          "reserved": false
         },
         {
           "aliases": [],

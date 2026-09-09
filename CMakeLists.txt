@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5062 LANGUAGES C)
+project(LuminariMUD VERSION 2.5063 LANGUAGES C)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBEVENT REQUIRED IMPORTED_TARGET libevent_core>=2.1.12)
@@ -808,7 +808,7 @@ set(SRC_C_FILES
     # src/net/i3_test.c
 )
 
-set(SRC_FILES ${SRC_C_FILES} ${BUILD_IDENTITY_HEADER})
+set(SRC_FILES ${SRC_C_FILES} ${BUILD_IDENTITY_HEADER} src/pet_vnums.h)
 set_source_files_properties(${BUILD_IDENTITY_HEADER} PROPERTIES GENERATED TRUE)
 
 # ========== Build main executable FIRST ==========
@@ -974,6 +974,20 @@ find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
 
 # Keep this list synchronized with world_tool_sources in Makefile.am.
 set(WORLD_TOOL_SOURCES
+    scripts/world/install_pet_constructs.py
+    data/pet-constructs/196.mob
+    data/pet-planar-allies/197.mob
+    data/pet-undead/198.mob
+    data/pet-lycanthropes/195.mob
+    data/pet-lycanthropes/195.zon
+    data/pet-illusions/199.mob
+    data/pet-illusions/199.zon
+    data/pet-undead/198.zon
+    data/pet-undead/README.md
+    data/pet-planar-allies/197.zon
+    data/pet-planar-allies/README.md
+    data/pet-constructs/README.md
+    data/pet-constructs/196.zon
     scripts/world/generate_rol_periodic_profiles.py
     scripts/world/generate_rol_state_periodic_profiles.py
     scripts/world/wtool.py

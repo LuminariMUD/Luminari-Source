@@ -35,6 +35,7 @@ void Test_pvp_policy_blocks_combat_damage_and_player_controlled_pets(CuTest *tc)
   struct char_data monster;
   struct char_data attacker_pet;
   struct char_data defender_pet;
+  struct char_data *illusion = &attacker_pet;
   struct player_special_data attacker_specials;
   struct player_special_data defender_specials;
   struct room_data room;
@@ -88,6 +89,12 @@ void Test_pvp_policy_blocks_combat_damage_and_player_controlled_pets(CuTest *tc)
   CuAssertTrue(tc, pvp_ok(&attacker, &monster, FALSE));
   CuAssertTrue(tc, pvp_ok(&monster, &defender, FALSE));
   CuAssertTrue(tc, !pvp_ok(&attacker_pet, &defender, FALSE));
+  attacker_pet.pet_source_spell = SPELL_MISLEAD;
+  SET_BIT_AR(AFF_FLAGS(&attacker_pet), AFF_CHARM);
+  CuAssertTrue(tc, is_illusory_pet(&attacker_pet));
+  CuAssertTrue(tc, IS_PET(illusion));
+  CuAssertTrue(tc, !pet_order_check(&attacker, &attacker_pet));
+  CuAssertTrue(tc, !pvp_ok(&attacker_pet, &defender, FALSE));
   CuAssertTrue(tc, !pvp_ok(&attacker, &defender_pet, FALSE));
   CuAssertTrue(tc, !pvp_ok(&attacker_pet, &defender_pet, FALSE));
   CuAssertTrue(tc, pvp_ok(&attacker, &attacker_pet, FALSE));
@@ -107,6 +114,7 @@ void Test_pvp_policy_blocks_combat_damage_and_player_controlled_pets(CuTest *tc)
   CuAssertTrue(tc, !set_fighting(&attacker, &defender));
   CuAssertPtrEquals(tc, NULL, FIGHTING(&attacker));
   CuAssertIntEquals(tc, 0, damage(&attacker, &defender, 25, TYPE_UNDEFINED, DAM_SLICE, FALSE));
+  CuAssertIntEquals(tc, 0, damage(illusion, &defender, 25, TYPE_UNDEFINED, DAM_SLICE, FALSE));
   CuAssertIntEquals(tc, 100, GET_HIT(&defender));
 
   SET_BIT_AR(ROOM_FLAGS(0), ROOM_ARENA);

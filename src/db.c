@@ -7155,7 +7155,10 @@ void free_char(struct char_data *ch)
     }
 
     if (ch->player_specials)
+    {
       free(ch->player_specials);
+      ch->player_specials = NULL;
+    }
 
     if (ch->bags)
       free(ch->bags);
@@ -7263,6 +7266,9 @@ void free_char(struct char_data *ch)
   if (GET_ID(ch) != 0)
     remove_from_lookup_table(GET_ID(ch));
 
+  /* Affect cleanup can reschedule descriptor-owned periodic work after the
+   * early teardown pass.  Detach again at the final release boundary. */
+  character_periodic_forget(ch);
   domain_event_world_forget_character(ch);
   free(ch);
 }

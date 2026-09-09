@@ -1,0 +1,3506 @@
+Pet Phase 1: elemental and plant summon workflows, 2026-09-09
+
+Development checkout, port 4100, existing autorun and login smoke tooling.
+Summoner 30 and Druid 30 used native casting, with ordinary Druid preparation.
+
+Summoner: all four Summon Creature VII choices acquired, ordered into combat,
+and dismissed. Air required the owner's native detect invisibility spell.
+An earlier cast hit the existing summon-failure roll; the successful run uses
+bounded retries and verifies each chosen form plus an empty roster on dismissal.
+Successful IDs: air 47345907, earth 47345908, fire 47345909, water 47345910.
+
+Druid: all four Natures Ally VII choices acquired and dismissed. The initial
+script also tried true seeing, which is not a Druid spell; that rejected command
+is retained in the transcript. Existing detect invisibility remained available.
+The fourth nature spell required completing its ordinary preparation queue.
+Successful IDs: air 47345911, earth 47345912, fire 47345913, water 47345914.
+Initial batches: three water elementals 47345915-47345917 and five shamblers
+47345918-47345922. Repeated casts preserved the existing pets but consumed their
+prepared spells, exposing the admission timing defect fixed in this batch.
+
+Fixed-build acceptance: six water elementals 47345923-47345928 and six shamblers
+47345929-47345934. Both batches accepted group combat orders. Repeated casts
+returned the full-allowance message immediately; the native COMMUNE display
+still contained the spare prepared elemental swarm and shambler spells.
+All batch members were dismissed by ID, and the isolated dummy was removed.
+
+The cast preflight now reuses native choice/capacity checks for high elemental
+summons, Elemental Swarm, and Shambler. Completion-time checks remain in place.
+The existing source-linked batch tests cover maximum eight-elemental and
+six-shambler batches, all high summon tiers, per-cast choices, occupied and
+missing-prototype preflight denials, and staged cleanup. The live swarm sample
+was six; the maximum-eight claim relies on that production-linked regression.
+
+Validation: isolated MariaDB 127.0.0.1:33379, pet_baseline.
+LUMINARI_TEST_MYSQL_ENABLE=1 make -j$(nproc) test: OK (1354 tests).
+make install passed; no compiler warnings; no root luminari binary.
+Running release: 092eae044ae3fcaa08bf07eea9070e66f21286a7.
+Pre-commit passed. Updated ORDER, SUMMON-CHOICES, ELEMENTAL-SWARM, and SHAMBLER
+help agrees between the development database, flat file, and tracked SQL.
+Documented untimed pet lifetimes are source-traced, not elapsed-duration tests.
+Broader lifecycle/equipment and class progression/respec acceptance remains open.
+
+
+
+Summoner elemental choices with visibility
+==========================================
+Reusing the development MUD on port 4100.
+
+>>> goto 100501
+[ Petaccept [127.0.0.1] has connected. ]
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+[ Petaccept un-renting and entering game. ]
+[ Petaccept (level 30) has 62 objects (max 99999). ]
+An air elemental appears beside Petaccept.
+Petaccept has entered the game.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am goto 100501
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+[100501] Random Encounter Distrobution Zone [ None ]  [Inside] ( None )
+You are in an unfinished room.
+                                                                  [&]
+[ Exits: None!]
+[53] [16] *A tornado-like air elemental is spinning here.
+[30] [PC] [Humn] Petaccept is standing here.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+
+>>> trans Petaccept
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am trans Petaccept
+Petaccept disappears in a mushroom cloud.
+Petaccept arrives from a puff of smoke.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+
+>>> purge dummy
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am purge dummy
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+Nothing here by that name.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+
+>>> load mob 100508
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am load mob 100508
+You create a practice dummy.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+
+>>> set mob dummy level 30
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am set mob dummy level 30
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+a practice dummy's level set to 30.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+
+>>> set mob dummy maxhit 15000
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am set mob dummy maxhit 15000
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+a practice dummy's maxhit set to 15000.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+
+>>> set mob dummy hitpoints 15000
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am set mob dummy hitpoints 15000
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+a practice dummy's hitpoints set to 15000.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+
+>>> @wait 8
+Paused the local test session for 8 second(s).
+Kohdee disappears in a puff of smoke.
+
+Kohdee appears with an ear-splitting bang.
+
+
+
+94/260H 790/2500V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_1_DONE__.'
+
+
+
+94/260H 790/2500V [smw] (news) (motd)
+
+Kohdee has transferred you!
+
+Random Encounter Distrobution Zone [Inside] ( None )
+
+You are in an unfinished room.
+
+
+
+
+
+
+
+                                                                  [&]
+
+
+
+
+
+
+
+
+
+[ Exits: None!]
+
+[PC] [Humn] Kohdee is standing here.
+
+
+
+94/260H 790/2500V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_2_DONE__.'
+
+
+
+94/260H 790/2500V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_3_DONE__.'
+
+
+
+94/260H 790/2500V [smw] (news) (motd)
+
+Kohdee makes a quaint, magical gesture with one hand.
+
+Kohdee has created a practice dummy!
+
+
+
+94/260H 790/2500V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_4_DONE__.'
+
+
+
+94/260H 790/2500V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_5_DONE__.'
+
+
+
+94/260H 790/2500V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_6_DONE__.'
+
+
+
+94/260H 790/2500V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_7_DONE__.'
+
+
+
+94/260H 790/2500V [smw] (news) (motd) cast 'detect invisibility' Petaccept
+94/260H 790/2500V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+94/260H 790/2500V [s-w] (news) (motd)
+
+Casting: detect invisibility .
+
+A flicker of insight touches your mind...
+
+You complete your spell...Your eyes tingle, now sensitive to invisibility.
+
+
+
+94/260H 790/2500V [s-w] (news) (motd)
+
+>>> dismiss elemental
+95/260H 820/2500V [smw] (news) (motd)
+You dismiss an air elemental.
+An air elemental is no longer serving you!
+[Group] an air elemental has left the group.
+95/260H 820/2500V [smw] (news) (motd)
+
+>>> pets
+.'
+95/260H 820/2500V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+95/260H 820/2500V [smw] (news) (motd) 95/260H 820/2500V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+95/260H 820/2500V [smw] (news) (motd) cast 'summon creature vii' air
+95/260H 820/2500V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+95/260H 820/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii ..........
+
+A faint rift begins to form in reality...
+
+
+
+96/260H 850/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii .........
+
+A faint rift begins to form in reality...
+
+
+
+96/260H 850/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii ........
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+96/260H 850/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+96/260H 850/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii ......
+
+Extraplanar energy pours through the opening...
+
+
+
+96/260H 850/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii .....
+
+Extraplanar energy pours through the opening...
+
+
+
+96/260H 850/2500V [smw] (news) (motd)
+
+Casting: summon creature vii ....
+
+Reality bends dangerously around you!
+
+
+
+96/260H 850/2500V [smw] (news) (motd)
+
+Casting: summon creature vii ...
+
+Reality bends dangerously around you!
+
+
+
+96/260H 850/2500V [smw] (news) (motd)
+
+Casting: summon creature vii ..
+
+The planar connection stabilizes!
+
+
+
+96/260H 850/2500V [smw] (news) (motd)
+
+Casting: summon creature vii .
+
+The planar connection stabilizes!
+
+You complete your spell...You make a magical gesture, you feel a strong breeze.
+
+[Group] an air elemental joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+96/260H 850/2500V [smw] (news) (motd)
+
+>>> pets
+96/260H 850/2500V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) an air elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345907]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+96/260H 850/2500V [smw] (news) (motd)
+
+>>> order elemental kill dummy
+.'
+96/260H 850/2500V [smw] (news) (motd) order elemental kill dummy
+An air elemental barely grazes a practice dummy as it thrashes it.
+An air elemental slowly fades into existence.
+Okay.
+96/260H 850/2500V [sm-] (news) (motd) 96/260H 850/2500V [sm-] (news) (motd)
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+96/260H 850/2500V [sm-] (news) (motd)
+
+A practice dummy barely grazes an air elemental as it hits it.
+
+An air elemental barely avoids a blow from a practice dummy!
+
+A practice dummy practices shadow-boxing while an air elemental takes a break.
+
+An air elemental barely grazes a practice dummy as it thrashes it.
+
+An air elemental barely grazes a practice dummy as it thrashes it.
+
+An air elemental barely grazes a practice dummy as it thrashes it.
+
+An air elemental barely grazes a practice dummy as it thrashes it.
+
+
+
+98/260H 910/2500V [smw] (news) (motd)
+
+>>> peace
+00m as reality ripples, chanting 'summon creature vii'.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+The air around Petaccept ripples strangely...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+The air around Petaccept ripples strangely...
+Massive rifts tear through the air momentarily!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+A faint rift begins to form near Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+A faint rift begins to form near Petaccept...
+Massive rifts tear through the air momentarily!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+Extraplanar energy swirls around Petaccept...
+Massive rifts tear through the air momentarily!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+Extraplanar energy swirls around Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+Reality distorts visibly around Petaccept!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+Reality distorts visibly around Petaccept!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+The rift around Petaccept stabilizes!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+The rift around Petaccept stabilizes!
+The boundaries between planes grow dangerously thin!
+Petaccept completes 'summon creature vii' and the fabric of reality shifts.
+As Petaccept makes a strange magical gesture, you feel a strong breeze.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+Petaccept commands, 'kill dummy'.
+An air elemental barely grazes a practice dummy as it thrashes it.
+An air elemental slowly fades into existence.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+A practice dummy barely grazes an air elemental as it hits it.
+An air elemental barely avoids a blow from a practice dummy!
+A practice dummy practices shadow-boxing while an air elemental takes a break.
+An air elemental barely grazes a practice dummy as it thrashes it.
+An air elemental barely grazes a practice dummy as it thrashes it.
+An air elemental barely grazes a practice dummy as it thrashes it.
+An air elemental barely grazes a practice dummy as it thrashes it.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am peace
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+Everything is quite peaceful now.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:4am
+
+>>> dismiss elemental
+As Kohdee makes a strange arcane gesture, a golden light descends
+from the heavens stopping all the fighting.
+Everything is quite peaceful now.
+98/260H 910/2500V [smw] (news) (motd)
+98/260H 910/2500V [smw] (news) (motd) dismiss elemental
+98/260H 910/2500V [smw] (news) (motd)
+You dismiss an air elemental.
+An air elemental is no longer serving you!
+[Group] an air elemental has left the group.
+98/260H 910/2500V [smw] (news) (motd)
+
+>>> pets
+.'
+98/260H 910/2500V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+98/260H 910/2500V [smw] (news) (motd) 98/260H 910/2500V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+98/260H 910/2500V [smw] (news) (motd) cast 'summon creature vii' earth
+98/260H 910/2500V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+98/260H 910/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii ..........
+
+A faint rift begins to form in reality...
+
+
+
+98/260H 910/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii .........
+
+A faint rift begins to form in reality...
+
+
+
+98/260H 910/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii ........
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+98/260H 910/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+98/260H 910/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii ......
+
+Extraplanar energy pours through the opening...
+
+
+
+98/260H 910/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii .....
+
+Extraplanar energy pours through the opening...
+
+
+
+98/260H 910/2500V [smw] (news) (motd)
+
+Casting: summon creature vii ....
+
+Reality bends dangerously around you!
+
+
+
+99/260H 940/2500V [smw] (news) (motd)
+
+Casting: summon creature vii ...
+
+Reality bends dangerously around you!
+
+
+
+99/260H 940/2500V [smw] (news) (motd)
+
+Casting: summon creature vii ..
+
+The planar connection stabilizes!
+
+
+
+99/260H 940/2500V [smw] (news) (motd)
+
+Casting: summon creature vii .
+
+The planar connection stabilizes!
+
+You complete your spell...You make a magical gesture, you feel a sudden shift in the earth.
+
+[Group] an earth elemental joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+99/260H 940/2500V [smw] (news) (motd)
+
+>>> pets
+100/260H 970/2500V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) an earth elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345908]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+100/260H 970/2500V [smw] (news) (motd)
+
+>>> order elemental kill dummy
+.'
+100/260H 970/2500V [smw] (news) (motd) order elemental kill dummy
+100/260H 970/2500V [sm-] (news) (motd)
+A practice dummy tries to hit an earth elemental who easily avoids the blow.
+Okay.
+100/260H 970/2500V [sm-] (news) (motd) 100/260H 970/2500V [sm-] (news) (motd)
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+100/260H 970/2500V [sm-] (news) (motd)
+
+A practice dummy barely grazes an earth elemental as it hits it.
+
+A practice dummy barely grazes an earth elemental as it hits it.
+
+A practice dummy tries to hit an earth elemental who easily avoids the blow.
+
+An earth elemental barely grazes a practice dummy as it crushes it.
+
+An earth elemental barely grazes a practice dummy as it crushes it.
+
+An earth elemental barely grazes a practice dummy as it crushes it.
+
+An earth elemental barely grazes a practice dummy as it crushes it.
+
+
+
+101/260H 1000/2500V [smw] (news) (motd)
+
+>>> peace
+am
+A faint rift begins to form near Petaccept...
+The ground trembles as raw power builds!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+A faint rift begins to form near Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Extraplanar energy swirls around Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Extraplanar energy swirls around Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Reality distorts visibly around Petaccept!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Reality distorts visibly around Petaccept!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+The rift around Petaccept stabilizes!
+Extraplanar winds howl through invisible doorways!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+The rift around Petaccept stabilizes!
+Massive rifts tear through the air momentarily!
+Petaccept completes 'summon creature vii' and the fabric of reality shifts.
+As Petaccept makes a strange magical gesture, you feel a sudden shift in the earth.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Petaccept commands, 'kill dummy'.
+A practice dummy tries to hit an earth elemental who easily avoids the blow.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+A practice dummy barely grazes an earth elemental as it hits it.
+A practice dummy barely grazes an earth elemental as it hits it.
+A practice dummy tries to hit an earth elemental who easily avoids the blow.
+An earth elemental barely grazes a practice dummy as it crushes it.
+An earth elemental barely grazes a practice dummy as it crushes it.
+An earth elemental barely grazes a practice dummy as it crushes it.
+An earth elemental barely grazes a practice dummy as it crushes it.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am peace
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Everything is quite peaceful now.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+
+>>> dismiss elemental
+As Kohdee makes a strange arcane gesture, a golden light descends
+from the heavens stopping all the fighting.
+Everything is quite peaceful now.
+101/260H 1000/2500V [smw] (news) (motd)
+101/260H 1000/2500V [smw] (news) (motd) dismiss elemental
+101/260H 1000/2500V [smw] (news) (motd)
+You dismiss an earth elemental.
+An earth elemental is no longer serving you!
+[Group] an earth elemental has left the group.
+101/260H 1000/2500V [smw] (news) (motd)
+
+>>> pets
+.'
+101/260H 1000/2500V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+101/260H 1000/2500V [smw] (news) (motd) 101/260H 1000/2500V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+101/260H 1000/2500V [smw] (news) (motd) cast 'summon creature vii' fire
+101/260H 1000/2500V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+101/260H 1000/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii ..........
+
+A faint rift begins to form in reality...
+
+
+
+101/260H 1000/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii .........
+
+A faint rift begins to form in reality...
+
+
+
+101/260H 1000/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii ........
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+101/260H 1000/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+102/260H 1030/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii ......
+
+Extraplanar energy pours through the opening...
+
+
+
+102/260H 1030/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii .....
+
+Extraplanar energy pours through the opening...
+
+
+
+102/260H 1030/2500V [smw] (news) (motd)
+
+Casting: summon creature vii ....
+
+Reality bends dangerously around you!
+
+
+
+102/260H 1030/2500V [smw] (news) (motd)
+
+Casting: summon creature vii ...
+
+Reality bends dangerously around you!
+
+
+
+102/260H 1030/2500V [smw] (news) (motd)
+
+Casting: summon creature vii ..
+
+The planar connection stabilizes!
+
+
+
+102/260H 1030/2500V [smw] (news) (motd)
+
+Casting: summon creature vii .
+
+The planar connection stabilizes!
+
+You complete your spell...You make a magical gesture, you feel a searing heat.
+
+[Group] a fire elemental joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+102/260H 1030/2500V [smw] (news) (motd)
+
+>>> pets
+102/260H 1030/2500V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a fire elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345909]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+102/260H 1030/2500V [smw] (news) (motd)
+
+>>> order elemental kill dummy
+.'
+102/260H 1030/2500V [smw] (news) (motd) order elemental kill dummy
+102/260H 1030/2500V [sm-] (news) (motd)
+A practice dummy practices shadow-boxing while a fire elemental takes a break.
+Okay.
+102/260H 1030/2500V [sm-] (news) (motd) 102/260H 1030/2500V [sm-] (news) (motd)
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+102/260H 1030/2500V [sm-] (news) (motd)
+
+A fire elemental barely grazes a practice dummy as it hits it.
+
+A fire elemental barely grazes a practice dummy as it hits it.
+
+A fire elemental barely grazes a practice dummy as it hits it.
+
+A fire elemental barely grazes a practice dummy as it hits it.
+
+A practice dummy practices shadow-boxing while a fire elemental takes a break.
+
+A practice dummy tries to hit a fire elemental who easily avoids the blow.
+
+A fire elemental barely avoids a blow from a practice dummy!
+
+
+
+102/260H 1030/2500V [smw] (news) (motd)
+
+>>> peace
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+A faint rift begins to form near Petaccept...
+Extraplanar winds howl through invisible doorways!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Extraplanar energy swirls around Petaccept...
+Reality itself seems to warp and twist!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Extraplanar energy swirls around Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Reality distorts visibly around Petaccept!
+The boundaries between planes grow dangerously thin!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Reality distorts visibly around Petaccept!
+Massive rifts tear through the air momentarily!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+The rift around Petaccept stabilizes!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+The rift around Petaccept stabilizes!
+Petaccept completes 'summon creature vii' and the fabric of reality shifts.
+As Petaccept makes a strange magical gesture, you feel a searing heat.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Petaccept commands, 'kill dummy'.
+A practice dummy practices shadow-boxing while a fire elemental takes a break.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+A fire elemental barely grazes a practice dummy as it hits it.
+A fire elemental barely grazes a practice dummy as it hits it.
+A fire elemental barely grazes a practice dummy as it hits it.
+A fire elemental barely grazes a practice dummy as it hits it.
+A practice dummy practices shadow-boxing while a fire elemental takes a break.
+A practice dummy tries to hit a fire elemental who easily avoids the blow.
+A fire elemental barely avoids a blow from a practice dummy!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am peace
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Everything is quite peaceful now.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+
+>>> dismiss elemental
+As Kohdee makes a strange arcane gesture, a golden light descends
+from the heavens stopping all the fighting.
+Everything is quite peaceful now.
+103/260H 1060/2500V [smw] (news) (motd)
+103/260H 1060/2500V [smw] (news) (motd) dismiss elemental
+103/260H 1060/2500V [smw] (news) (motd)
+You dismiss a fire elemental.
+A fire elemental is no longer serving you!
+[Group] a fire elemental has left the group.
+103/260H 1060/2500V [smw] (news) (motd)
+
+>>> pets
+.'
+103/260H 1060/2500V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+103/260H 1060/2500V [smw] (news) (motd) 103/260H 1060/2500V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+103/260H 1060/2500V [smw] (news) (motd) cast 'summon creature vii' water
+103/260H 1060/2500V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+103/260H 1060/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii ..........
+
+A faint rift begins to form in reality...
+
+
+
+103/260H 1060/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii .........
+
+A faint rift begins to form in reality...
+
+
+
+103/260H 1060/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii ........
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+103/260H 1060/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+103/260H 1060/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii ......
+
+Extraplanar energy pours through the opening...
+
+
+
+103/260H 1060/2500V [s-w] (news) (motd)
+
+Casting: summon creature vii .....
+
+Extraplanar energy pours through the opening...
+
+
+
+103/260H 1060/2500V [smw] (news) (motd)
+
+Casting: summon creature vii ....
+
+Reality bends dangerously around you!
+
+
+
+103/260H 1060/2500V [smw] (news) (motd)
+
+Casting: summon creature vii ...
+
+Reality bends dangerously around you!
+
+
+
+103/260H 1060/2500V [smw] (news) (motd)
+
+Casting: summon creature vii ..
+
+The planar connection stabilizes!
+
+
+
+103/260H 1060/2500V [smw] (news) (motd)
+
+Casting: summon creature vii .
+
+The planar connection stabilizes!
+
+You complete your spell...You make a magical gesture, you feel the dust swirl.
+
+[Group] a water elemental joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+104/260H 1090/2500V [smw] (news) (motd)
+
+>>> pets
+104/260H 1090/2500V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345910]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+104/260H 1090/2500V [smw] (news) (motd)
+
+>>> order elemental kill dummy
+.'
+104/260H 1090/2500V [smw] (news) (motd) order elemental kill dummy
+104/260H 1090/2500V [sm-] (news) (motd)
+A water elemental barely grazes a practice dummy as it mauls it.
+Okay.
+104/260H 1090/2500V [sm-] (news) (motd) 104/260H 1090/2500V [sm-] (news) (motd)
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+104/260H 1090/2500V [sm-] (news) (motd)
+
+A practice dummy practices shadow-boxing while a water elemental takes a break.
+
+A water elemental barely avoids a blow from a practice dummy!
+
+A water elemental barely avoids a blow from a practice dummy!
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental mauls at a practice dummy, missing wildly!
+
+
+
+104/260H 1090/2500V [smw] (news) (motd)
+
+>>> peace
+A faint rift begins to form near Petaccept...
+Massive rifts tear through the air momentarily!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+A faint rift begins to form near Petaccept...
+Massive rifts tear through the air momentarily!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Extraplanar energy swirls around Petaccept...
+The boundaries between planes grow dangerously thin!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Extraplanar energy swirls around Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Reality distorts visibly around Petaccept!
+Extraplanar winds howl through invisible doorways!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Reality distorts visibly around Petaccept!
+The boundaries between planes grow dangerously thin!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+The rift around Petaccept stabilizes!
+Extraplanar winds howl through invisible doorways!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+The rift around Petaccept stabilizes!
+Petaccept completes 'summon creature vii' and the fabric of reality shifts.
+As Petaccept makes a strange magical gesture, you feel the dust swirl.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Petaccept commands, 'kill dummy'.
+A water elemental barely grazes a practice dummy as it mauls it.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+A practice dummy practices shadow-boxing while a water elemental takes a break.
+A water elemental barely avoids a blow from a practice dummy!
+A water elemental barely avoids a blow from a practice dummy!
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental mauls at a practice dummy, missing wildly!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am peace
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Everything is quite peaceful now.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+
+>>> dismiss elemental
+As Kohdee makes a strange arcane gesture, a golden light descends
+from the heavens stopping all the fighting.
+Everything is quite peaceful now.
+104/260H 1090/2500V [smw] (news) (motd)
+104/260H 1090/2500V [smw] (news) (motd) dismiss elemental
+104/260H 1090/2500V [smw] (news) (motd)
+You dismiss a water elemental.
+A water elemental is no longer serving you!
+[Group] a water elemental has left the group.
+104/260H 1090/2500V [smw] (news) (motd)
+
+>>> pets
+.'
+104/260H 1090/2500V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+104/260H 1090/2500V [smw] (news) (motd) 104/260H 1090/2500V [smw] (news) (motd)
+
+>>> purge dummy
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am purge dummy
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+Okay.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:5am
+
+>>> pets
+.'
+104/260H 1090/2500V [smw] (news) (motd)
+Kohdee disintegrates a practice dummy.
+104/260H 1090/2500V [smw] (news) (motd)
+104/260H 1090/2500V [smw] (news) (motd) pets
+104/260H 1090/2500V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+104/260H 1090/2500V [smw] (news) (motd)
+PASS: Kohdee ran 1 game command(s) and logged out cleanly (114s).
+
+
+Druid preparation and original admission behavior
+=================================================
+Reusing the development MUD on port 4100.
+
+>>> settestchar Petaccept race human classes druid:30
+[ Petaccept [127.0.0.1] has connected. ]
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am
+[ Petaccept un-renting and entering game. ]
+[ Petaccept (level 30) has 62 objects (max 99999). ]
+Petaccept has entered the game.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am settestchar Petaccept race human classes druid:30
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am
+Race set to Human with classes: druid (L30)
+Character overall level: 30
+Racial feats applied: 1
+Class feats applied for all levels.
+Class skills set to level 30.
+HP: 260, MV: 2500, PSP: 160
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am
+
+>>> set Petaccept class druid
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am set Petaccept class druid
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am
+Okay.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am
+
+>>> set Petaccept wis 30
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am set Petaccept wis 30
+Petaccept's wis set to 30.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am
+
+>>> set Petaccept cha 30
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am set Petaccept cha 30
+Petaccept's cha set to 30.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am
+
+>>> goto 100501
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am goto 100501
+[100501] Random Encounter Distrobution Zone [ None ]  [Inside] ( None )
+You are in an unfinished room.
+                                                                  [&]
+[ Exits: None!]
+[30] [PC] [Humn] Petaccept is standing here.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am
+
+>>> trans Petaccept
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am trans Petaccept
+Petaccept disappears in a mushroom cloud.
+Petaccept arrives from a puff of smoke.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6am
+
+>>> uncommune all
+Staff has set your race to Human and classes to:
+  - druid (Level 30)
+Your overall level is now 30.
+Your class skills have been set to 30.
+Your stats have been updated.
+260/260H 2500/250V [smw] (news) (motd)
+260/260H 2500/250V [smw] (news) (motd)
+260/260H 2499/250V [smw] (news) (motd)
+260/260H 2499/250V [smw] (news) (motd)
+260/260H 2499/250V [smw] (news) (motd)
+Kohdee disappears in a puff of smoke.
+Kohdee appears with an ear-splitting bang.
+260/260H 2499/250V [smw] (news) (motd)
+260/260H 2499/250V [smw] (news) (motd)
+Kohdee has transferred you!
+Random Encounter Distrobution Zone [Inside] ( None )
+You are in an unfinished room.
+                                                                  [&]
+[ Exits: None!]
+[PC] [Humn] Kohdee is standing here.
+260/260H 2499/250V [smw] (news) (motd)
+260/260H 2499/250V [smw] (news) (motd) uncommune all
+260/260H 2499/250V [smw] (news) (motd)
+You uncommune everything you had communed for.
+260/260H 2499/250V [smw] (news) (motd)
+
+>>> uncommune all
+.'
+260/260H 2499/250V [smw] (news) (motd) uncommune all
+There is nothing in your preparation queue or spell collection to uncommune!
+260/260H 2499/250V [smw] (news) (motd) 260/260H 2499/250V [smw] (news) (motd)
+
+>>> rest
+.'
+260/260H 2499/250V [smw] (news) (motd) rest
+You sit down and rest your tired bones.
+260/260H 2499/250V [smw] (news) (motd) 260/260H 2499/250V [smw] (news) (motd)
+
+>>> commune 'true seeing'
+.'
+260/260H 2499/250V [smw] (news) (motd) commune 'true seeing'
+That spell is beyond your grasp!
+260/260H 2499/250V [smw] (news) (motd) 260/260H 2499/250V [smw] (news) (motd)
+
+>>> commune 'natures ally vii'
+.'
+260/260H 2499/250V [smw] (news) (motd) commune 'natures ally vii'
+You start to commune for natures ally vii.
+You continue your communions.
+260/260H 2499/250V [smw] (news) (motd) 260/260H 2499/250V [smw] (news) (motd)
+
+>>> commune 'natures ally vii'
+.'
+260/260H 2499/250V [smw] (news) (motd) commune 'natures ally vii'
+You start to commune for natures ally vii.
+You continue your communions.
+260/260H 2499/250V [smw] (news) (motd) 260/260H 2499/250V [smw] (news) (motd)
+
+>>> commune 'natures ally vii'
+.'
+260/260H 2499/250V [smw] (news) (motd) commune 'natures ally vii'
+260/260H 2499/250V [smw] (news) (motd)
+You start to commune for natures ally vii.
+You continue your communions.
+260/260H 2499/250V [smw] (news) (motd) 260/260H 2499/250V [smw] (news) (motd)
+
+>>> commune 'natures ally vii'
+.'
+260/260H 2499/250V [smw] (news) (motd) commune 'natures ally vii'
+You start to commune for natures ally vii.
+You continue your communions.
+260/260H 2499/250V [smw] (news) (motd) 260/260H 2499/250V [smw] (news) (motd)
+
+>>> commune 'elemental swarm'
+.'
+260/260H 2499/250V [smw] (news) (motd) commune 'elemental swarm'
+You start to commune for elemental swarm.
+You continue your communions.
+260/260H 2499/250V [smw] (news) (motd) 260/260H 2499/250V [smw] (news) (motd)
+
+>>> commune 'elemental swarm'
+.'
+260/260H 2499/250V [smw] (news) (motd) commune 'elemental swarm'
+You start to commune for elemental swarm.
+You continue your communions.
+260/260H 2499/250V [smw] (news) (motd) 260/260H 2499/250V [smw] (news) (motd)
+
+>>> commune 'shambler'
+.'
+260/260H 2499/250V [smw] (news) (motd) commune 'shambler'
+You start to commune for shambler.
+You continue your communions.
+260/260H 2499/250V [smw] (news) (motd) 260/260H 2499/250V [smw] (news) (motd)
+
+>>> commune 'shambler'
+.'
+260/260H 2499/250V [smw] (news) (motd) commune 'shambler'
+You start to commune for shambler.
+You continue your communions.
+260/260H 2499/250V [smw] (news) (motd) 260/260H 2499/250V [smw] (news) (motd)
+
+>>> @wait 60
+Paused the local test session for 60 second(s).
+.'
+
+
+
+260/260H 2499/250V [smw] (news) (motd)
+
+You finish communing for shambler.
+
+
+
+260/260H 2496/250V [smw] (news) (motd)
+
+You finish communing for shambler.
+
+
+
+260/260H 2492/250V [smw] (news) (motd)
+
+You finish communing for elemental swarm.
+
+
+
+260/260H 2489/250V [smw] (news) (motd)
+
+Your shapechanges refresh to:  10!
+
+
+
+260/260H 2489/250V [smw] (news) (motd)
+
+>>> @wait 60
+Paused the local test session for 60 second(s).
+You finish communing for elemental swarm.
+
+
+
+260/260H 2485/250V [smw] (news) (motd)
+
+You finish communing for natures ally vii.
+
+
+
+260/260H 2483/250V [smw] (news) (motd)
+
+You finish communing for natures ally vii.
+
+
+
+260/260H 2481/250V [smw] (news) (motd)
+
+You finish communing for natures ally vii.
+
+
+
+260/260H 2478/250V [smw] (news) (motd)
+
+>>> commune
+260/260H 2476/250V [smw] (news) (motd)
+---------------------------Spell Collection for Druid---------------------------
+9th:    shambler x2
+        elemental swarm x2
+7th:    natures ally vii x3
+--------------------------Preparation Queue for Druid---------------------------
+     natures ally vii [7th circle] [ 3 seconds]
+----------------------Total Preparation Time Remaining: 3-----------------------
+Available: 8 1st, 8 2nd, 7 3rd, 7 4th, 7 5th, 6 6th, 1 7th, 5 8th, 1 9th
+--------------------------------------------------------------------------------
+You continue your communions.
+260/260H 2476/250V [smw] (news) (motd)
+
+>>> stand
+.'
+260/260H 2476/250V [smw] (news) (motd) stand
+You stop resting, and stand up.
+Your preparations are aborted!
+260/260H 2476/250V [s-w] (news) (motd) 260/260H 2476/250V [s-w] (news) (motd)
+
+>>> @wait 12
+Paused the local test session for 12 second(s).
+.'
+
+
+
+260/260H 2476/250V [s-w] (news) (motd) cast 'true seeing' Petaccept
+260/260H 2476/250V [s-w] (news) (motd)
+
+You do not know that Spell!
+
+
+
+260/260H 2476/250V [s-w] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+cast 'natures ally vii' air
+260/260H 2474/250V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+260/260H 2474/250V [s-w] (news) (motd)
+
+Casting: natures ally vii .........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2474/250V [s-w] (news) (motd)
+
+[HINT]: LuminariMUD is considered a 'younger' MUD and is under heavy and constant development.  If you run into a bug, our policy is to simply report the bug using the BUG command.  Example, BUG SUBMIT <header>, then use the in-game text editor that pops up to write details about the bug, then you can type /s to save the submission.  [use nohint or prefedit to deactivate this]
+
+
+
+260/260H 2473/250V [s-w] (news) (motd)
+
+Casting: natures ally vii ........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2473/250V [s-w] (news) (motd)
+
+Casting: natures ally vii .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2473/250V [s-w] (news) (motd)
+
+Casting: natures ally vii ......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2473/250V [s-w] (news) (motd)
+
+Casting: natures ally vii .....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2473/250V [s-w] (news) (motd)
+
+Casting: natures ally vii ....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2473/250V [smw] (news) (motd)
+
+Casting: natures ally vii ...
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2472/250V [smw] (news) (motd)
+
+Casting: natures ally vii ..
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2472/250V [smw] (news) (motd)
+
+Casting: natures ally vii .
+
+The planar connection stabilizes!
+
+You complete your spell...You make a magical gesture, you feel a strong breeze.
+
+[Group] an air elemental joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+260/260H 2472/250V [smw] (news) (motd)
+
+>>> pets
+260/260H 2470/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) an air elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345911]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2470/250V [smw] (news) (motd)
+
+>>> dismiss elemental
+.'
+260/260H 2470/250V [smw] (news) (motd) dismiss elemental
+260/260H 2470/250V [smw] (news) (motd) You dismiss an air elemental.
+An air elemental is no longer serving you!
+[Group] an air elemental has left the group.
+
+>>> pets
+.'
+260/260H 2470/250V [smw] (news) (motd) pets
+260/260H 2470/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2470/250V [smw] (news) (motd) 260/260H 2470/250V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+260/260H 2470/250V [smw] (news) (motd) cast 'natures ally vii' earth
+260/260H 2470/250V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+260/260H 2470/250V [s-w] (news) (motd)
+
+Casting: natures ally vii .........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2470/250V [s-w] (news) (motd)
+
+Casting: natures ally vii ........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2470/250V [s-w] (news) (motd)
+
+Casting: natures ally vii .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2470/250V [s-w] (news) (motd)
+
+Casting: natures ally vii ......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2470/250V [s-w] (news) (motd)
+
+Casting: natures ally vii .....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2469/250V [s-w] (news) (motd)
+
+Casting: natures ally vii ....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2469/250V [smw] (news) (motd)
+
+Casting: natures ally vii ...
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2469/250V [smw] (news) (motd)
+
+Casting: natures ally vii ..
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2469/250V [smw] (news) (motd)
+
+Casting: natures ally vii .
+
+The planar connection stabilizes!
+
+You complete your spell...You make a magical gesture, you feel a sudden shift in the earth.
+
+[Group] an earth elemental joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+260/260H 2469/250V [smw] (news) (motd)
+
+>>> pets
+260/260H 2468/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) an earth elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345912]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2468/250V [smw] (news) (motd)
+
+>>> dismiss elemental
+.'
+260/260H 2467/250V [smw] (news) (motd) dismiss elemental
+You dismiss an earth elemental.
+An earth elemental is no longer serving you!
+[Group] an earth elemental has left the group.
+260/260H 2467/250V [smw] (news) (motd) 260/260H 2467/250V [smw] (news) (motd)
+
+>>> pets
+.'
+260/260H 2467/250V [smw] (news) (motd) pets
+260/260H 2467/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2467/250V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+260/260H 2467/250V [smw] (news) (motd) cast 'natures ally vii' fire
+260/260H 2467/250V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+260/260H 2467/250V [s-w] (news) (motd)
+
+Casting: natures ally vii .........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2467/250V [s-w] (news) (motd)
+
+Casting: natures ally vii ........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2467/250V [s-w] (news) (motd)
+
+Casting: natures ally vii .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2467/250V [s-w] (news) (motd)
+
+Casting: natures ally vii ......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2467/250V [s-w] (news) (motd)
+
+Casting: natures ally vii .....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2466/250V [s-w] (news) (motd)
+
+Casting: natures ally vii ....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2466/250V [smw] (news) (motd)
+
+Casting: natures ally vii ...
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2466/250V [smw] (news) (motd)
+
+Casting: natures ally vii ..
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2466/250V [smw] (news) (motd)
+
+Casting: natures ally vii .
+
+The planar connection stabilizes!
+
+You complete your spell...You make a magical gesture, you feel a searing heat.
+
+[Group] a fire elemental joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+260/260H 2466/250V [smw] (news) (motd)
+
+>>> pets
+260/260H 2464/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a fire elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345913]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2464/250V [smw] (news) (motd)
+
+>>> dismiss elemental
+.'
+260/260H 2464/250V [smw] (news) (motd) dismiss elemental
+260/260H 2464/250V [smw] (news) (motd)
+You dismiss a fire elemental.
+A fire elemental is no longer serving you!
+[Group] a fire elemental has left the group.
+260/260H 2464/250V [smw] (news) (motd)
+
+>>> pets
+.'
+260/260H 2464/250V [smw] (news) (motd) pets
+260/260H 2464/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2464/250V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+260/260H 2464/250V [smw] (news) (motd) cast 'natures ally vii' water
+260/260H 2464/250V [smw] (news) (motd)
+
+You are not ready to cast that Spell... (help preparation, or the meta-magic modification might be too high)
+
+
+
+260/260H 2464/250V [smw] (news) (motd)
+
+>>> pets
+260/260H 2461/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2461/250V [smw] (news) (motd)
+
+>>> rest
+.'
+260/260H 2461/250V [smw] (news) (motd) rest
+You sit down and rest your tired bones.
+260/260H 2461/250V [smw] (news) (motd) 260/260H 2461/250V [smw] (news) (motd)
+
+>>> commune 'natures ally vii'
+.'
+260/260H 2461/250V [smw] (news) (motd) commune 'natures ally vii'
+260/260H 2461/250V [smw] (news) (motd)
+You start to commune for natures ally vii.
+You continue your communions.
+260/260H 2461/250V [smw] (news) (motd)
+
+>>> @wait 30
+Paused the local test session for 30 second(s).
+.'
+
+
+
+260/260H 2461/250V [smw] (news) (motd)
+
+You finish communing for natures ally vii.
+
+
+
+260/260H 2459/250V [smw] (news) (motd)
+
+You finish communing for natures ally vii.
+
+
+
+260/260H 2456/250V [smw] (news) (motd)
+
+>>> stand
+260/260H 2455/250V [s-w] (news) (motd)
+You stop resting, and stand up.
+Your preparations are aborted!
+260/260H 2455/250V [s-w] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+260/260H 2455/250V [s-w] (news) (motd) cast 'natures ally vii' water
+260/260H 2455/250V [--w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+260/260H 2455/250V [--w] (news) (motd)
+
+Casting: natures ally vii .........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2455/250V [--w] (news) (motd)
+
+Casting: natures ally vii ........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2455/250V [--w] (news) (motd)
+
+Casting: natures ally vii .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2455/250V [--w] (news) (motd)
+
+Casting: natures ally vii ......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2454/250V [--w] (news) (motd)
+
+Casting: natures ally vii .....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2454/250V [--w] (news) (motd)
+
+Casting: natures ally vii ....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2454/250V [smw] (news) (motd)
+
+Casting: natures ally vii ...
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2454/250V [smw] (news) (motd)
+
+Casting: natures ally vii ..
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2454/250V [smw] (news) (motd)
+
+Casting: natures ally vii .
+
+The planar connection stabilizes!
+
+You complete your spell...You make a magical gesture, you feel the dust swirl.
+
+[Group] a water elemental joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+260/260H 2453/250V [smw] (news) (motd)
+
+>>> pets
+260/260H 2452/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345914]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2452/250V [smw] (news) (motd)
+
+>>> dismiss elemental
+.'
+260/260H 2452/250V [smw] (news) (motd) dismiss elemental
+You dismiss a water elemental.
+A water elemental is no longer serving you!
+[Group] a water elemental has left the group.
+260/260H 2452/250V [smw] (news) (motd) 260/260H 2452/250V [smw] (news) (motd)
+
+>>> pets
+.'
+260/260H 2452/250V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2452/250V [smw] (news) (motd) 260/260H 2452/250V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+260/260H 2452/250V [smw] (news) (motd) cast 'elemental swarm' water
+260/260H 2452/250V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+260/260H 2452/250V [s-w] (news) (motd)
+
+Casting: elemental swarm ............
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2452/250V [s-w] (news) (motd)
+
+Casting: elemental swarm ...........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2451/250V [s-w] (news) (motd)
+
+Casting: elemental swarm ..........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2451/250V [s-w] (news) (motd)
+
+Casting: elemental swarm .........
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2451/250V [s-w] (news) (motd)
+
+Casting: elemental swarm ........
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2451/250V [s-w] (news) (motd)
+
+Casting: elemental swarm .......
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2451/250V [smw] (news) (motd)
+
+Casting: elemental swarm ......
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2450/250V [smw] (news) (motd)
+
+Casting: elemental swarm .....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2450/250V [smw] (news) (motd)
+
+Casting: elemental swarm ....
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2450/250V [smw] (news) (motd)
+
+Casting: elemental swarm ...
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2450/250V [smw] (news) (motd)
+
+Casting: elemental swarm ..
+
+The planar connection stabilizes!
+
+
+
+260/260H 2450/250V [smw] (news) (motd)
+
+Casting: elemental swarm .
+
+The planar connection stabilizes!
+
+You complete your spell...You make a magical gesture, you feel the dust swirl.
+
+[Group] a water elemental joins the group.
+
+You make a magical gesture, you feel the dust swirl.
+
+[Group] a water elemental joins the group.
+
+You make a magical gesture, you feel the dust swirl.
+
+[Group] a water elemental joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+260/260H 2449/250V [smw] (news) (motd)
+
+>>> pets
+260/260H 2449/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345915]
+2 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345916]
+3 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345917]
+--------------------------------------------------------------------------------
+3 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2449/250V [smw] (news) (motd)
+
+>>> commune
+.'
+260/260H 2449/250V [smw] (news) (motd) commune
+260/260H 2449/250V [smw] (news) (motd)
+---------------------------Spell Collection for Druid---------------------------
+9th:    shambler x2
+        elemental swarm
+7th:    natures ally vii
+--------------------------Preparation Queue for Druid---------------------------
+      elemental swarm [9th circle] [17 seconds]
+     natures ally vii [7th circle] [12 seconds]
+     natures ally vii [7th circle] [12 seconds]
+     natures ally vii [7th circle] [12 seconds]
+     natures ally vii [7th circle] [12 seconds]
+----------------------Total Preparation Time Remaining: 65----------------------
+Available: 8 1st, 8 2nd, 7 3rd, 7 4th, 7 5th, 6 6th, 5 8th, 1 9th
+--------------------------------------------------------------------------------
+260/260H 2449/250V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+260/260H 2449/250V [smw] (news) (motd) cast 'elemental swarm' air
+260/260H 2449/250V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+260/260H 2449/250V [s-w] (news) (motd)
+
+Casting: elemental swarm ............
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2449/250V [s-w] (news) (motd)
+
+Casting: elemental swarm ...........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2448/250V [s-w] (news) (motd)
+
+Casting: elemental swarm ..........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2448/250V [s-w] (news) (motd)
+
+Casting: elemental swarm .........
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2448/250V [s-w] (news) (motd)
+
+Casting: elemental swarm ........
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2448/250V [s-w] (news) (motd)
+
+Casting: elemental swarm .......
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2448/250V [smw] (news) (motd)
+
+Casting: elemental swarm ......
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2447/250V [smw] (news) (motd)
+
+Casting: elemental swarm .....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2447/250V [smw] (news) (motd)
+
+Casting: elemental swarm ....
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2447/250V [smw] (news) (motd)
+
+Casting: elemental swarm ...
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2447/250V [smw] (news) (motd)
+
+Casting: elemental swarm ..
+
+The planar connection stabilizes!
+
+
+
+260/260H 2447/250V [smw] (news) (motd)
+
+Casting: elemental swarm .
+
+The planar connection stabilizes!
+
+You complete your spell...You cannot control that summon group; use 'pets' to check your limits.
+
+
+
+260/260H 2446/250V [smw] (news) (motd)
+
+>>> commune
+260/260H 2446/250V [smw] (news) (motd)
+---------------------------Spell Collection for Druid---------------------------
+9th:    shambler x2
+7th:    natures ally vii
+--------------------------Preparation Queue for Druid---------------------------
+      elemental swarm [9th circle] [17 seconds]
+      elemental swarm [9th circle] [17 seconds]
+     natures ally vii [7th circle] [12 seconds]
+     natures ally vii [7th circle] [12 seconds]
+     natures ally vii [7th circle] [12 seconds]
+     natures ally vii [7th circle] [12 seconds]
+----------------------Total Preparation Time Remaining: 82----------------------
+Available: 8 1st, 8 2nd, 7 3rd, 7 4th, 7 5th, 6 6th, 5 8th, 1 9th
+--------------------------------------------------------------------------------
+260/260H 2446/250V [smw] (news) (motd)
+
+>>> pets
+.'
+260/260H 2446/250V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345915]
+2 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345916]
+3 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345917]
+--------------------------------------------------------------------------------
+3 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2446/250V [smw] (news) (motd) 260/260H 2446/250V [smw] (news) (motd)
+
+>>> pets
+.'
+260/260H 2445/250V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345915]
+2 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345916]
+3 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345917]
+--------------------------------------------------------------------------------
+3 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2445/250V [smw] (news) (motd) 260/260H 2445/250V [smw] (news) (motd)
+
+>>> dismiss #47345915
+.'
+260/260H 2445/250V [smw] (news) (motd) dismiss #47345915
+260/260H 2445/250V [smw] (news) (motd)
+You dismiss a water elemental.
+A water elemental is no longer serving you!
+[Group] a water elemental has left the group.
+260/260H 2445/250V [smw] (news) (motd) 260/260H 2445/250V [smw] (news) (motd)
+
+>>> dismiss #47345916
+.'
+260/260H 2445/250V [smw] (news) (motd) dismiss #47345916
+260/260H 2445/250V [smw] (news) (motd)
+You dismiss a water elemental.
+A water elemental is no longer serving you!
+[Group] a water elemental has left the group.
+260/260H 2445/250V [smw] (news) (motd) 260/260H 2445/250V [smw] (news) (motd)
+
+>>> dismiss #47345917
+.'
+260/260H 2445/250V [smw] (news) (motd) dismiss #47345917
+260/260H 2445/250V [smw] (news) (motd)
+You dismiss a water elemental.
+A water elemental is no longer serving you!
+[Group] a water elemental has left the group.
+260/260H 2445/250V [smw] (news) (motd) 260/260H 2445/250V [smw] (news) (motd)
+
+>>> pets
+.'
+260/260H 2445/250V [smw] (news) (motd) pets
+260/260H 2445/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2445/250V [smw] (news) (motd) 260/260H 2445/250V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+260/260H 2445/250V [smw] (news) (motd) cast 'shambler'
+260/260H 2445/250V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+260/260H 2445/250V [s-w] (news) (motd)
+
+Casting: shambler .........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2445/250V [s-w] (news) (motd)
+
+Casting: shambler ........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2445/250V [s-w] (news) (motd)
+
+Casting: shambler .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2445/250V [s-w] (news) (motd)
+
+Casting: shambler ......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2444/250V [s-w] (news) (motd)
+
+Casting: shambler .....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2444/250V [s-w] (news) (motd)
+
+Casting: shambler ....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2444/250V [smw] (news) (motd)
+
+Casting: shambler ...
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2444/250V [smw] (news) (motd)
+
+Casting: shambler ..
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2444/250V [smw] (news) (motd)
+
+Casting: shambler .
+
+The planar connection stabilizes!
+
+You complete your spell...A shambling mound skulks into the area, seemingly from nowhere!
+
+[Group] a shambling mound joins the group.
+
+A shambling mound skulks into the area, seemingly from nowhere!
+
+[Group] a shambling mound joins the group.
+
+A shambling mound skulks into the area, seemingly from nowhere!
+
+[Group] a shambling mound joins the group.
+
+A shambling mound skulks into the area, seemingly from nowhere!
+
+[Group] a shambling mound joins the group.
+
+A shambling mound skulks into the area, seemingly from nowhere!
+
+[Group] a shambling mound joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+260/260H 2443/250V [smw] (news) (motd)
+
+>>> pets
+260/260H 2442/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345918]
+2 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345919]
+3 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345920]
+4 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345921]
+5 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345922]
+--------------------------------------------------------------------------------
+5 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2442/250V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+260/260H 2442/250V [smw] (news) (motd) cast 'shambler'
+260/260H 2442/250V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+260/260H 2442/250V [s-w] (news) (motd)
+
+Casting: shambler .........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2442/250V [s-w] (news) (motd)
+
+Casting: shambler ........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2442/250V [s-w] (news) (motd)
+
+Casting: shambler .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2442/250V [s-w] (news) (motd)
+
+Casting: shambler ......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2442/250V [s-w] (news) (motd)
+
+Casting: shambler .....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2441/250V [s-w] (news) (motd)
+
+Casting: shambler ....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2441/250V [smw] (news) (motd)
+
+Casting: shambler ...
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2441/250V [smw] (news) (motd)
+
+Casting: shambler ..
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2441/250V [smw] (news) (motd)
+
+Casting: shambler .
+
+The planar connection stabilizes!
+
+You complete your spell...You cannot control that summon group; use 'pets' to check your limits.
+
+
+
+260/260H 2441/250V [smw] (news) (motd)
+
+>>> commune
+260/260H 2439/250V [smw] (news) (motd)
+---------------------------Spell Collection for Druid---------------------------
+7th:    natures ally vii
+--------------------------Preparation Queue for Druid---------------------------
+             shambler [9th circle] [17 seconds]
+             shambler [9th circle] [17 seconds]
+      elemental swarm [9th circle] [17 seconds]
+      elemental swarm [9th circle] [17 seconds]
+     natures ally vii [7th circle] [12 seconds]
+     natures ally vii [7th circle] [12 seconds]
+     natures ally vii [7th circle] [12 seconds]
+     natures ally vii [7th circle] [12 seconds]
+---------------------Total Preparation Time Remaining: 116----------------------
+Available: 8 1st, 8 2nd, 7 3rd, 7 4th, 7 5th, 6 6th, 5 8th, 1 9th
+--------------------------------------------------------------------------------
+260/260H 2439/250V [smw] (news) (motd)
+
+>>> pets
+.'
+260/260H 2439/250V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345918]
+2 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345919]
+3 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345920]
+4 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345921]
+5 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345922]
+--------------------------------------------------------------------------------
+5 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2439/250V [smw] (news) (motd) 260/260H 2439/250V [smw] (news) (motd)
+
+>>> pets
+.'
+260/260H 2439/250V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345918]
+2 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345919]
+3 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345920]
+4 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345921]
+5 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345922]
+--------------------------------------------------------------------------------
+5 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2439/250V [smw] (news) (motd) 260/260H 2439/250V [smw] (news) (motd)
+
+>>> dismiss #47345918
+.'
+260/260H 2439/250V [smw] (news) (motd) dismiss #47345918
+260/260H 2439/250V [smw] (news) (motd)
+You dismiss a shambling mound.
+A shambling mound is no longer serving you!
+[Group] a shambling mound has left the group.
+260/260H 2439/250V [smw] (news) (motd) 260/260H 2439/250V [smw] (news) (motd)
+
+>>> dismiss #47345919
+.'
+260/260H 2439/250V [smw] (news) (motd) dismiss #47345919
+260/260H 2439/250V [smw] (news) (motd)
+You dismiss a shambling mound.
+A shambling mound is no longer serving you!
+[Group] a shambling mound has left the group.
+260/260H 2439/250V [smw] (news) (motd) 260/260H 2439/250V [smw] (news) (motd)
+
+>>> dismiss #47345920
+.'
+260/260H 2439/250V [smw] (news) (motd) dismiss #47345920
+260/260H 2439/250V [smw] (news) (motd)
+You dismiss a shambling mound.
+A shambling mound is no longer serving you!
+[Group] a shambling mound has left the group.
+260/260H 2439/250V [smw] (news) (motd) 260/260H 2439/250V [smw] (news) (motd)
+
+>>> dismiss #47345921
+.'
+260/260H 2439/250V [smw] (news) (motd) dismiss #47345921
+You dismiss a shambling mound.
+A shambling mound is no longer serving you!
+[Group] a shambling mound has left the group.
+260/260H 2439/250V [smw] (news) (motd) 260/260H 2439/250V [smw] (news) (motd)
+
+>>> dismiss #47345922
+.'
+260/260H 2439/250V [smw] (news) (motd) dismiss #47345922
+You dismiss a shambling mound.
+A shambling mound is no longer serving you!
+[Group] a shambling mound has left the group.
+260/260H 2439/250V [smw] (news) (motd) 260/260H 2439/250V [smw] (news) (motd)
+
+>>> pets
+.'
+260/260H 2439/250V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2439/250V [smw] (news) (motd) 260/260H 2439/250V [smw] (news) (motd)
+
+>>> pets
+.'
+260/260H 2439/250V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2439/250V [smw] (news) (motd) 260/260H 2439/250V [smw] (news) (motd)
+PASS: Kohdee ran 1 game command(s) and logged out cleanly (326s).
+
+
+Installed build copyover
+========================
+Reusing the development MUD on port 4100.
+
+>>> copyover
+Copyover recovery complete.
+
+>>> pets
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/8 used, 8 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm
+PASS: Kohdee survived copyover, completed the post-copyover checks, and logged out cleanly (48s).
+
+
+Fixed admission, group combat, retained spells, dismissal
+=========================================================
+Reusing the development MUD on port 4100.
+
+>>> goto 100501
+[ Petaccept [127.0.0.1] has connected. ]
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm
+[ Petaccept un-renting and entering game. ]
+[ Petaccept (level 30) has 62 objects (max 99999). ]
+Petaccept has entered the game.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm goto 100501
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm
+[100501] Random Encounter Distrobution Zone [ None ]  [Inside] ( None )
+You are in an unfinished room.
+                                                                  [&]
+[ Exits: None!]
+[30] [PC] [Humn] Petaccept is standing here.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm
+
+>>> trans Petaccept
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm trans Petaccept
+Petaccept disappears in a mushroom cloud.
+Petaccept arrives from a puff of smoke.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm
+
+>>> load mob 100508
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm load mob 100508
+You create a practice dummy.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm
+
+>>> set mob dummy level 30
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm set mob dummy level 30
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm
+a practice dummy's level set to 30.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm
+
+>>> set mob dummy maxhit 15000
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm set mob dummy maxhit 15000
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm
+a practice dummy's maxhit set to 15000.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm
+
+>>> set mob dummy hitpoints 15000
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm set mob dummy hitpoints 15000
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm
+a practice dummy's hitpoints set to 15000.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:12pm
+
+>>> uncommune all
+Kohdee disappears in a puff of smoke.
+Kohdee appears with an ear-splitting bang.
+260/260H 2439/2500V [smw] (news) (motd)
+260/260H 2439/2500V [smw] (news) (motd)
+Kohdee has transferred you!
+Random Encounter Distrobution Zone [Inside] ( None )
+You are in an unfinished room.
+                                                                  [&]
+[ Exits: None!]
+[PC] [Humn] Kohdee is standing here.
+260/260H 2439/2500V [smw] (news) (motd)
+260/260H 2439/2500V [smw] (news) (motd)
+Kohdee makes a quaint, magical gesture with one hand.
+Kohdee has created a practice dummy!
+260/260H 2439/2500V [smw] (news) (motd)
+260/260H 2439/2500V [smw] (news) (motd)
+260/260H 2439/2500V [smw] (news) (motd)
+260/260H 2439/2500V [smw] (news) (motd)
+260/260H 2439/2500V [smw] (news) (motd) uncommune all
+260/260H 2439/2500V [smw] (news) (motd)
+You uncommune everything you were attempting to commune for.
+260/260H 2439/2500V [smw] (news) (motd)
+
+>>> uncommune all
+.'
+260/260H 2439/2500V [smw] (news) (motd) uncommune all
+You uncommune everything you had communed for.
+260/260H 2439/2500V [smw] (news) (motd) 260/260H 2439/2500V [smw] (news) (motd)
+
+>>> rest
+.'
+260/260H 2439/2500V [smw] (news) (motd) rest
+You sit down and rest your tired bones.
+260/260H 2439/2500V [smw] (news) (motd) 260/260H 2439/2500V [smw] (news) (motd)
+
+>>> commune 'elemental swarm'
+.'
+260/260H 2439/2500V [smw] (news) (motd) commune 'elemental swarm'
+You start to commune for elemental swarm.
+You continue your communions.
+260/260H 2439/2500V [smw] (news) (motd) 260/260H 2439/2500V [smw] (news) (motd)
+
+>>> commune 'elemental swarm'
+.'
+260/260H 2439/2500V [smw] (news) (motd) commune 'elemental swarm'
+You start to commune for elemental swarm.
+You continue your communions.
+260/260H 2439/2500V [smw] (news) (motd) 260/260H 2439/2500V [smw] (news) (motd)
+
+>>> commune 'shambler'
+.'
+260/260H 2439/2500V [smw] (news) (motd) commune 'shambler'
+You start to commune for shambler.
+You continue your communions.
+260/260H 2439/2500V [smw] (news) (motd) 260/260H 2439/2500V [smw] (news) (motd)
+
+>>> commune 'shambler'
+.'
+260/260H 2439/2500V [smw] (news) (motd) commune 'shambler'
+You start to commune for shambler.
+You continue your communions.
+260/260H 2439/2500V [smw] (news) (motd) 260/260H 2439/2500V [smw] (news) (motd)
+
+>>> @wait 60
+Paused the local test session for 60 second(s).
+.'
+
+
+
+260/260H 2439/2500V [smw] (news) (motd)
+
+You finish communing for shambler.
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+You finish communing for shambler.
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+You finish communing for elemental swarm.
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+>>> @wait 25
+Paused the local test session for 25 second(s).
+You finish communing for elemental swarm.
+
+Your communions are complete.
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+>>> commune
+260/260H 2500/2500V [smw] (news) (motd)
+---------------------------Spell Collection for Druid---------------------------
+9th:    shambler x2
+        elemental swarm x2
+--------------------------Preparation Queue for Druid---------------------------
+There is nothing in your preparation queue!
+--------------------------------------------------------------------------------
+Available: 8 1st, 8 2nd, 7 3rd, 7 4th, 7 5th, 6 6th, 5 7th, 5 8th, 1 9th
+--------------------------------------------------------------------------------
+You continue your communions.
+You have nothing in your preparation queue for this class to prepare!
+260/260H 2500/2500V [smw] (news) (motd)
+
+>>> stand
+.'
+260/260H 2500/2500V [smw] (news) (motd) stand
+260/260H 2500/2500V [s-w] (news) (motd)
+You stop resting, and stand up.
+260/260H 2500/2500V [s-w] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+260/260H 2500/2500V [s-w] (news) (motd) cast 'elemental swarm' water
+260/260H 2500/2500V [--w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+260/260H 2500/2500V [--w] (news) (motd)
+
+Casting: elemental swarm ............
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2500/2500V [--w] (news) (motd)
+
+Casting: elemental swarm ...........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2500/2500V [--w] (news) (motd)
+
+Casting: elemental swarm ..........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2500/2500V [--w] (news) (motd)
+
+Casting: elemental swarm .........
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2500/2500V [--w] (news) (motd)
+
+Casting: elemental swarm ........
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2500/2500V [--w] (news) (motd)
+
+Casting: elemental swarm .......
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+Casting: elemental swarm ......
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+Casting: elemental swarm .....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+Casting: elemental swarm ....
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+Casting: elemental swarm ...
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+Casting: elemental swarm ..
+
+The planar connection stabilizes!
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+Casting: elemental swarm .
+
+The planar connection stabilizes!
+
+You complete your spell...You make a magical gesture, you feel the dust swirl.
+
+[Group] a water elemental joins the group.
+
+You make a magical gesture, you feel the dust swirl.
+
+[Group] a water elemental joins the group.
+
+You make a magical gesture, you feel the dust swirl.
+
+[Group] a water elemental joins the group.
+
+You make a magical gesture, you feel the dust swirl.
+
+[Group] a water elemental joins the group.
+
+You make a magical gesture, you feel the dust swirl.
+
+[Group] a water elemental joins the group.
+
+You make a magical gesture, you feel the dust swirl.
+
+[Group] a water elemental joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+>>> pets
+260/260H 2500/2500V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345923]
+2 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345924]
+3 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345925]
+4 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345926]
+5 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345927]
+6 ) a water elemental - Random Encounter Distrobution Zone - Elemental [follow] [#47345928]
+--------------------------------------------------------------------------------
+6 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2500/2500V [smw] (news) (motd)
+
+>>> order followers kill dummy
+.'
+260/260H 2500/2500V [smw] (news) (motd) order followers kill dummy
+260/260H 2500/2500V [sm-] (news) (motd) A water elemental ducks under a practice dummy's fist as it takes a swing at it.
+A practice dummy barely grazes a water elemental as it hits it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A practice dummy practices shadow-boxing while a water elemental takes a break.
+A water elemental barely grazes a practice dummy as it mauls it.
+Okay.
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+260/260H 2500/2500V [sm-] (news) (motd)
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental ducks under a practice dummy's fist as it takes a swing at it.
+
+A water elemental barely avoids a blow from a practice dummy!
+
+A practice dummy barely grazes a water elemental as it hits it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+A water elemental barely grazes a practice dummy as it mauls it.
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+>>> peace
+0m
+As Petaccept makes a strange magical gesture, you feel the dust swirl.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+Petaccept commands, 'kill dummy'.
+A water elemental ducks under a practice dummy's fist as it takes a swing at it.
+A practice dummy barely grazes a water elemental as it hits it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A practice dummy practices shadow-boxing while a water elemental takes a break.
+A water elemental barely grazes a practice dummy as it mauls it.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental ducks under a practice dummy's fist as it takes a swing at it.
+A water elemental barely avoids a blow from a practice dummy!
+A practice dummy barely grazes a water elemental as it hits it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+A water elemental barely grazes a practice dummy as it mauls it.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm peace
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+Everything is quite peaceful now.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+
+>>> @wait 2
+Paused the local test session for 2 second(s).
+As Kohdee makes a strange arcane gesture, a golden light descends
+
+from the heavens stopping all the fighting.
+
+
+
+Everything is quite peaceful now.
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_18_DONE__.'
+
+
+
+260/260H 2500/2500V [smw] (news) (motd) cast 'elemental swarm' water
+260/260H 2500/2500V [smw] (news) (motd)
+
+Your chosen summon is unavailable or its control allowance is full.
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+>>> commune
+260/260H 2500/2500V [smw] (news) (motd)
+---------------------------Spell Collection for Druid---------------------------
+9th:    shambler x2
+        elemental swarm
+--------------------------Preparation Queue for Druid---------------------------
+      elemental swarm [9th circle] [17 seconds]
+----------------------Total Preparation Time Remaining: 17----------------------
+Available: 8 1st, 8 2nd, 7 3rd, 7 4th, 7 5th, 6 6th, 5 7th, 5 8th, 1 9th
+--------------------------------------------------------------------------------
+260/260H 2500/2500V [smw] (news) (motd)
+
+>>> dismiss #47345923
+.'
+260/260H 2500/2500V [smw] (news) (motd) dismiss #47345923
+260/260H 2500/2500V [smw] (news) (motd) You dismiss a water elemental.
+A water elemental is no longer serving you!
+[Group] a water elemental has left the group.
+
+>>> dismiss #47345924
+.'
+260/260H 2500/2500V [smw] (news) (motd) dismiss #47345924
+You dismiss a water elemental.
+A water elemental is no longer serving you!
+[Group] a water elemental has left the group.
+260/260H 2500/2500V [smw] (news) (motd) 260/260H 2500/2500V [smw] (news) (motd)
+
+>>> dismiss #47345925
+.'
+260/260H 2500/2500V [smw] (news) (motd) dismiss #47345925
+260/260H 2500/2500V [smw] (news) (motd)
+You dismiss a water elemental.
+A water elemental is no longer serving you!
+[Group] a water elemental has left the group.
+260/260H 2500/2500V [smw] (news) (motd) 260/260H 2500/2500V [smw] (news) (motd)
+
+>>> dismiss #47345926
+.'
+260/260H 2500/2500V [smw] (news) (motd) dismiss #47345926
+260/260H 2500/2500V [smw] (news) (motd)
+You dismiss a water elemental.
+A water elemental is no longer serving you!
+[Group] a water elemental has left the group.
+260/260H 2500/2500V [smw] (news) (motd) 260/260H 2500/2500V [smw] (news) (motd)
+
+>>> dismiss #47345927
+.'
+260/260H 2500/2500V [smw] (news) (motd) dismiss #47345927
+You dismiss a water elemental.
+A water elemental is no longer serving you!
+[Group] a water elemental has left the group.
+260/260H 2500/2500V [smw] (news) (motd) 260/260H 2500/2500V [smw] (news) (motd)
+
+>>> dismiss #47345928
+.'
+260/260H 2500/2500V [smw] (news) (motd) dismiss #47345928
+You dismiss a water elemental.
+A water elemental is no longer serving you!
+[Group] a water elemental has left the group.
+260/260H 2500/2500V [smw] (news) (motd) 260/260H 2500/2500V [smw] (news) (motd)
+
+>>> pets
+.'
+260/260H 2500/2500V [smw] (news) (motd) pets
+260/260H 2500/2500V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2500/2500V [smw] (news) (motd) 260/260H 2500/2500V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+260/260H 2500/2500V [smw] (news) (motd) cast 'shambler'
+260/260H 2500/2500V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+260/260H 2500/2500V [s-w] (news) (motd)
+
+Casting: shambler .........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2500/2500V [s-w] (news) (motd)
+
+Casting: shambler ........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2500/2500V [s-w] (news) (motd)
+
+Casting: shambler .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2500/2500V [s-w] (news) (motd)
+
+Casting: shambler ......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2500/2500V [s-w] (news) (motd)
+
+Casting: shambler .....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2500/2500V [s-w] (news) (motd)
+
+Casting: shambler ....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+Casting: shambler ...
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+Casting: shambler ..
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+Casting: shambler .
+
+The planar connection stabilizes!
+
+You complete your spell...A shambling mound skulks into the area, seemingly from nowhere!
+
+[Group] a shambling mound joins the group.
+
+A shambling mound skulks into the area, seemingly from nowhere!
+
+[Group] a shambling mound joins the group.
+
+A shambling mound skulks into the area, seemingly from nowhere!
+
+[Group] a shambling mound joins the group.
+
+A shambling mound skulks into the area, seemingly from nowhere!
+
+[Group] a shambling mound joins the group.
+
+A shambling mound skulks into the area, seemingly from nowhere!
+
+[Group] a shambling mound joins the group.
+
+A shambling mound skulks into the area, seemingly from nowhere!
+
+[Group] a shambling mound joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+>>> pets
+260/260H 2500/2500V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345929]
+2 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345930]
+3 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345931]
+4 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345932]
+5 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345933]
+6 ) a shambling mound - Random Encounter Distrobution Zone - Shambler group [follow] [#47345934]
+--------------------------------------------------------------------------------
+6 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2500/2500V [smw] (news) (motd)
+
+>>> order followers kill dummy
+.'
+260/260H 2500/2500V [smw] (news) (motd) order followers kill dummy
+260/260H 2500/2500V [sm-] (news) (motd) A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound ducks under a practice dummy's fist as it takes a swing at it.
+A shambling mound barely avoids a blow from a practice dummy!
+A practice dummy barely grazes a shambling mound as it hits it.
+A practice dummy barely grazes a shambling mound as it hits it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+Okay.
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+260/260H 2500/2500V [sm-] (news) (motd)
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A practice dummy barely grazes a shambling mound as it hits it.
+
+A practice dummy tries to hit a shambling mound who easily avoids the blow.
+
+A practice dummy practices shadow-boxing while a shambling mound takes a break.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound thrashes madly at a practice dummy, missing it!
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+A shambling mound barely grazes a practice dummy as it thrashes it.
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+>>> peace
+0;33mA shambling mound barely avoids a blow from a practice dummy!
+A practice dummy barely grazes a shambling mound as it hits it.
+A practice dummy barely grazes a shambling mound as it hits it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A practice dummy barely grazes a shambling mound as it hits it.
+A practice dummy tries to hit a shambling mound who easily avoids the blow.
+A practice dummy practices shadow-boxing while a shambling mound takes a break.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound thrashes madly at a practice dummy, missing it!
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+A shambling mound barely grazes a practice dummy as it thrashes it.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm peace
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2pm
+Everything is quite peaceful now.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2pm
+
+>>> @wait 2
+Paused the local test session for 2 second(s).
+As Kohdee makes a strange arcane gesture, a golden light descends
+
+from the heavens stopping all the fighting.
+
+
+
+Everything is quite peaceful now.
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_29_DONE__.'
+
+
+
+260/260H 2500/2500V [smw] (news) (motd) cast 'shambler'
+260/260H 2500/2500V [smw] (news) (motd)
+
+Your chosen summon is unavailable or its control allowance is full.
+
+
+
+260/260H 2500/2500V [smw] (news) (motd)
+
+>>> commune
+260/260H 2500/2500V [smw] (news) (motd)
+---------------------------Spell Collection for Druid---------------------------
+9th:    shambler
+        elemental swarm
+--------------------------Preparation Queue for Druid---------------------------
+             shambler [9th circle] [17 seconds]
+      elemental swarm [9th circle] [17 seconds]
+----------------------Total Preparation Time Remaining: 34----------------------
+Available: 8 1st, 8 2nd, 7 3rd, 7 4th, 7 5th, 6 6th, 5 7th, 5 8th, 1 9th
+--------------------------------------------------------------------------------
+260/260H 2500/2500V [smw] (news) (motd)
+
+>>> dismiss #47345929
+.'
+260/260H 2500/2500V [smw] (news) (motd) dismiss #47345929
+260/260H 2500/2500V [smw] (news) (motd)
+You dismiss a shambling mound.
+A shambling mound is no longer serving you!
+[Group] a shambling mound has left the group.
+260/260H 2500/2500V [smw] (news) (motd)
+
+>>> dismiss #47345930
+.'
+260/260H 2500/2500V [smw] (news) (motd) dismiss #47345930
+You dismiss a shambling mound.
+A shambling mound is no longer serving you!
+[Group] a shambling mound has left the group.
+260/260H 2500/2500V [smw] (news) (motd) 260/260H 2500/2500V [smw] (news) (motd)
+
+>>> dismiss #47345931
+.'
+260/260H 2500/2500V [smw] (news) (motd) dismiss #47345931
+260/260H 2500/2500V [smw] (news) (motd)
+You dismiss a shambling mound.
+A shambling mound is no longer serving you!
+[Group] a shambling mound has left the group.
+260/260H 2500/2500V [smw] (news) (motd) 260/260H 2500/2500V [smw] (news) (motd)
+
+>>> dismiss #47345932
+.'
+260/260H 2500/2500V [smw] (news) (motd) dismiss #47345932
+You dismiss a shambling mound.
+A shambling mound is no longer serving you!
+[Group] a shambling mound has left the group.
+260/260H 2500/2500V [smw] (news) (motd) 260/260H 2500/2500V [smw] (news) (motd)
+
+>>> dismiss #47345933
+.'
+260/260H 2500/2500V [smw] (news) (motd) dismiss #47345933
+260/260H 2500/2500V [smw] (news) (motd)
+You dismiss a shambling mound.
+A shambling mound is no longer serving you!
+[Group] a shambling mound has left the group.
+260/260H 2500/2500V [smw] (news) (motd) 260/260H 2500/2500V [smw] (news) (motd)
+
+>>> dismiss #47345934
+.'
+260/260H 2500/2500V [smw] (news) (motd) dismiss #47345934
+260/260H 2500/2500V [smw] (news) (motd)
+You dismiss a shambling mound.
+A shambling mound is no longer serving you!
+[Group] a shambling mound has left the group.
+260/260H 2500/2500V [smw] (news) (motd) 260/260H 2500/2500V [smw] (news) (motd)
+
+>>> pets
+.'
+260/260H 2500/2500V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2500/2500V [smw] (news) (motd) 260/260H 2500/2500V [smw] (news) (motd)
+
+>>> purge dummy
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2pm purge dummy
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2pm
+Okay.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2pm
+PASS: Kohdee ran 1 game command(s) and logged out cleanly (153s).
+
+
+Authoritative help checks
+=========================
+Reusing the development MUD on port 4100.
+PASS help ORDER -> order
+PASS help SUMMON-CHOICES -> summon-choices
+PASS help ELEMENTAL-SWARM -> elemental-swarm
+PASS help SHAMBLER -> shambler
+PASS: Kohdee verified 4 authoritative help keyword(s) and logged out cleanly (4s).

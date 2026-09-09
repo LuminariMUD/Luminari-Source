@@ -35,6 +35,7 @@
 #include "item.h"
 #include "character/backgrounds.h"
 #include "clan_economy.h"
+#include "account.h"
 #include "spec/spec_effective_binding.h"
 #include "spec/spec_registry.h"
 
@@ -776,7 +777,7 @@ static void shopping_buy_transfer_impl(char *arg, struct char_data *ch, struct c
       return;
     }
   }
-  if (OBJ_FLAGGED(obj, ITEM_ACCOUNT_EXP) && !IS_NPC(ch))
+  else if (OBJ_FLAGGED(obj, ITEM_ACCOUNT_EXP) && !IS_NPC(ch))
   {
     if (GET_OBJ_COST(obj) > get_account_experience(ch) && !IS_STAFF(ch))
     {
@@ -903,7 +904,7 @@ static void shopping_buy_transfer_impl(char *arg, struct char_data *ch, struct c
 
       goldamt += GET_OBJ_COST(obj);
       if (!IS_STAFF(ch))
-        change_account_experience(ch, -GET_OBJ_COST(obj));
+        change_account_xp(ch, -GET_OBJ_COST(obj));
 
       /* this is the homeland pet code, it basically converts
          an object to a living mobile upon purchase */

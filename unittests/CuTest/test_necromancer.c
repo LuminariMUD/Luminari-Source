@@ -53,6 +53,47 @@ void Test_necromancer_arcane_progression_advances_only_preferred_class(CuTest *t
   CuAssertIntEquals(tc, 0, compute_bonus_caster_level(&ch, CLASS_CLERIC));
 }
 
+void Test_necromancer_corpse_free_animation_grant_preserves_daily_cooldown(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  struct class_feat_assign *assignment;
+  int grants = 0;
+
+  if (class_list[CLASS_NECROMANCER].name == NULL)
+    load_class_list();
+  if (feat_list[FEAT_ANIMATE_DEAD].name == NULL)
+    assign_feats();
+  for (assignment = class_list[CLASS_NECROMANCER].featassign_list; assignment != NULL;
+       assignment = assignment->next)
+  {
+    if (assignment->feat_num == FEAT_ANIMATE_DEAD && assignment->level_received == 2)
+      grants++;
+  }
+  CuAssertIntEquals(tc, 1, grants);
+  setup_necromancer_character(&ch, &player_specials);
+  CLASS_LEVEL((&ch), CLASS_NECROMANCER) = 1;
+  init_class(&ch, CLASS_NECROMANCER, 1);
+  CuAssertIntEquals(tc, 0, HAS_REAL_FEAT(&ch, FEAT_ANIMATE_DEAD));
+  CLASS_LEVEL((&ch), CLASS_NECROMANCER) = 2;
+  init_class(&ch, CLASS_NECROMANCER, 2);
+  CuAssertIntEquals(tc, 1, HAS_REAL_FEAT(&ch, FEAT_ANIMATE_DEAD));
+  event_free_all();
+  event_init();
+  start_daily_use_cooldown(&ch, FEAT_ANIMATE_DEAD);
+  init_class(&ch, CLASS_NECROMANCER, 2);
+  CuAssertIntEquals(tc, 1, HAS_REAL_FEAT(&ch, FEAT_ANIMATE_DEAD));
+  CuAssertIntEquals(tc, 0, daily_uses_remaining(&ch, FEAT_ANIMATE_DEAD));
+  SET_FEAT(&ch, FEAT_ANIMATE_DEAD, 2);
+  init_class(&ch, CLASS_NECROMANCER, 2);
+  CuAssertIntEquals(tc, 2, HAS_REAL_FEAT(&ch, FEAT_ANIMATE_DEAD));
+  CuAssertIntEquals(tc, 1, daily_uses_remaining(&ch, FEAT_ANIMATE_DEAD));
+  clear_char_event_list(&ch);
+  if (ch.events != NULL)
+    free_list(ch.events);
+  event_free_all();
+}
+
 void Test_necromancer_divine_progression_advances_only_preferred_class(CuTest *tc)
 {
   struct char_data ch;
@@ -522,26 +563,23 @@ static void setup_animated_dead_follower(struct char_data *pet, struct follow_ty
 
 void Test_necromancer_animated_undead_admission_has_exact_boundaries(CuTest *tc)
 {
-  struct char_data ch;
-  struct char_data first_pet;
-  struct char_data second_pet;
+  struct char_data ch, pets[4];
   struct player_special_data player_specials;
-  struct follow_type first_link;
-  struct follow_type second_link;
+  struct follow_type links[4];
+  int i;
 
   setup_necromancer_character(&ch, &player_specials);
-  setup_animated_dead_follower(&first_pet, &first_link, &ch, NULL);
-  setup_animated_dead_follower(&second_pet, &second_link, &ch, &first_link);
-
-  ch.followers = NULL;
+  for (i = 0; i < 4; i++)
+    setup_animated_dead_follower(&pets[i], &links[i], &ch, i > 0 ? &links[i - 1] : NULL);
   CLASS_LEVEL((&ch), CLASS_NECROMANCER) = 0;
+  ch.followers = &links[0];
   CuAssertTrue(tc, can_add_follower_by_flag(&ch, MOB_ANIMATED_DEAD));
-  ch.followers = &first_link;
+  ch.followers = &links[1];
   CuAssertTrue(tc, !can_add_follower_by_flag(&ch, MOB_ANIMATED_DEAD));
-
   CLASS_LEVEL((&ch), CLASS_NECROMANCER) = 2;
+  ch.followers = &links[2];
   CuAssertTrue(tc, can_add_follower_by_flag(&ch, MOB_ANIMATED_DEAD));
-  ch.followers = &second_link;
+  ch.followers = &links[3];
   CuAssertTrue(tc, !can_add_follower_by_flag(&ch, MOB_ANIMATED_DEAD));
 }
 

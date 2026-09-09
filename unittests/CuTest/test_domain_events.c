@@ -3168,6 +3168,7 @@ void TestCharacterPeriodicCapacityRefillsAndRegistrationFailureIsExplicit(CuTest
 
 void TestCharacterPeriodicFreeCharDetachesOwnerBeforeRelease(CuTest *tc)
 {
+  struct affected_type affect;
   struct char_data *first;
   struct char_data *second;
   struct descriptor_data first_descriptor;
@@ -3197,6 +3198,11 @@ void TestCharacterPeriodicFreeCharDetachesOwnerBeforeRelease(CuTest *tc)
   character_periodic_init();
   character_periodic_sync(first);
   character_periodic_sync(second);
+
+  new_affect(&affect);
+  affect.spell = SPELL_ARMOR;
+  affect.duration = 10;
+  affect_to_char(first, &affect);
 
   CuAssertIntEquals(tc, 2, (int)character_periodic_owner_count());
   CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());

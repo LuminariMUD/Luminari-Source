@@ -358,3 +358,42 @@ void Test_pet_policy_admits_whole_authored_batches_and_rejects_repeat_casts(CuTe
   CuAssertTrue(tc, repeat);
   CuAssertTrue(tc, independent);
 }
+
+void Test_pet_policy_elite_undead_cost_two_control_points(CuTest *tc)
+{
+  struct pet_policy_fixture fixture;
+  mob_rnum mummy, lesser;
+  bool lesser_allowed, elite_denied, two_elites, mixed_full, source_cost;
+
+  begin_pet_policy_fixture(&fixture, 1);
+  mummy = real_mobile(MOB_MUMMY);
+  lesser = real_mobile(RETAINER_MOB_VNUM);
+  SET_BIT_AR(MOB_FLAGS(&fixture.prototypes[mummy]), MOB_ANIMATED_DEAD);
+  SET_BIT_AR(MOB_FLAGS(&fixture.prototypes[lesser]), MOB_ANIMATED_DEAD);
+  GET_MOB_RNUM(&fixture.pets[0]) = lesser;
+  SET_BIT_AR(MOB_FLAGS(&fixture.pets[0]), MOB_ANIMATED_DEAD);
+  lesser_allowed = can_add_follower(&fixture.owner, RETAINER_MOB_VNUM);
+  elite_denied = !can_add_follower(&fixture.owner, MOB_MUMMY) &&
+                 !can_add_summoned_followers(&fixture.owner, MOB_MUMMY, SPELL_ANIMATE_DEAD, 1);
+  CLASS_LEVEL((&fixture.owner), CLASS_NECROMANCER) = 1;
+  GET_MOB_RNUM(&fixture.pets[0]) = mummy;
+  two_elites = can_add_follower(&fixture.owner, MOB_MUMMY);
+  fixture.links[0].next = &fixture.links[1];
+  GET_MOB_RNUM(&fixture.pets[1]) = mummy;
+  SET_BIT_AR(MOB_FLAGS(&fixture.pets[1]), MOB_ANIMATED_DEAD);
+  two_elites = two_elites && !can_add_follower(&fixture.owner, MOB_MUMMY) &&
+               !can_add_follower(&fixture.owner, RETAINER_MOB_VNUM);
+  GET_MOB_RNUM(&fixture.pets[1]) = lesser;
+  mixed_full = can_add_follower(&fixture.owner, RETAINER_MOB_VNUM) &&
+               !can_add_follower(&fixture.owner, MOB_MUMMY);
+  /* Source attribution also charges elite cost when prototype flags are absent. */
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.pets[0]), MOB_ANIMATED_DEAD);
+  fixture.pets[0].pet_source_spell = SPELL_ANIMATE_DEAD;
+  source_cost = !can_add_summoned_followers(&fixture.owner, MOB_MUMMY, SPELL_ANIMATE_DEAD, 1);
+  end_pet_policy_fixture(&fixture);
+  CuAssertTrue(tc, lesser_allowed);
+  CuAssertTrue(tc, elite_denied);
+  CuAssertTrue(tc, two_elites);
+  CuAssertTrue(tc, mixed_full);
+  CuAssertTrue(tc, source_cost);
+}

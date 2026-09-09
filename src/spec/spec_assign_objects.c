@@ -10,6 +10,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
+#include "pet_vnums.h"
 
 #include "character/vampire_cloak.h"
 #include "comms/boards.h"
@@ -214,6 +215,10 @@ void assign_objects(void)
   // ASSIGNOBJ(120010, md_carpet); // obj #120010 doesn't exist
 
   /* purchased pet objects */
+  ASSIGNOBJ(PET_MERC_HUMAN_ROGUE, bought_pet);
+  ASSIGNOBJ(PET_MERC_DWARVEN_WARRIOR, bought_pet);
+  ASSIGNOBJ(PET_MERC_LIGHT_ARMORED, bought_pet);
+  ASSIGNOBJ(PET_MERC_PROFESSIONAL_SOLDIER, bought_pet);
   ASSIGNOBJ(118190, bought_pet);
   ASSIGNOBJ(103670, bought_pet);
   ASSIGNOBJ(103671, bought_pet);

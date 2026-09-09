@@ -61,6 +61,7 @@ int get_char_affect_modifier(struct char_data *ch, int spellnum, int location);
 
 // riding
 void dismount_char(struct char_data *ch);
+void mount_cleanup(struct char_data *ch);
 void mount_char(struct char_data *ch, struct char_data *mount);
 
 /* utility */

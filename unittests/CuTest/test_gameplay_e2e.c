@@ -1,4 +1,5 @@
 #include "CuTest.h"
+#include "test_spec_fixtures.h"
 
 #include "../../src/conf.h"
 #include "../../src/sysdep.h"
@@ -29,6 +30,7 @@
 #include "../../src/comm.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/combat/fight.h"
+#include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/olc/genwld.h"
 #include "../../src/olc/oasis.h"
 #include "../../src/olc/prefedit.h"
@@ -40,8 +42,10 @@
 #include "../../src/vessels/routing.h"
 #include "../../src/handler.h"
 #include "../../src/obj/vendor.h"
+#include "../../src/obj/shop.h"
 #include "../../src/interpreter.h"
 #include "../../src/mob/mob_utils.h"
+#include "../../src/mob/mob_known_spells.h"
 #include "../../src/mob/phenomenon_response.h"
 #include "../../src/quest/missions.h"
 #include "../../src/quest/quest.h"
@@ -53,11 +57,16 @@
 #include "../../src/character/perks.h"
 #include "../../src/net/protocol.h"
 #include "../../src/magic/spells.h"
+#include "../../src/magic/domains_schools.h"
 #include "../../src/character/class.h"
+#include "../../src/character/premadebuilds.h"
 #include "../../src/character/feats.h"
+#include "../../src/character/evolutions.h"
 #include "../../src/character/backgrounds.h"
 #include "../../src/combat/spec_abilities.h"
 #include "../../src/spec/spec_binding.h"
+#include "../../src/spec/spec_dispatch.h"
+#include "../../src/spec/spec_objects.h"
 #include "../../src/spec/spec_mobile_archetypes.h"
 #include "../../src/spec/spec_mobiles.h"
 #include "../../src/mud_event.h"
@@ -242,6 +251,7 @@ void Test_gameplay_pet_cooldowns_survive_character_save_and_load(CuTest *tc)
   struct char_data *loaded = new_char();
   struct mud_event_data *event;
   const struct mud_event_persistence_policy *policy;
+  char temporary_directory[] = "/tmp/luminari-player-fixture-XXXXXX";
   char directory[PATH_MAX], filename[MAX_FILEPATH], name[32];
   unsigned long saved_pulse = pulse;
   size_t i;
@@ -271,7 +281,7 @@ void Test_gameplay_pet_cooldowns_survive_character_save_and_load(CuTest *tc)
         300 * PASSES_PER_SEC);
   }
   CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
-  CuAssertIntEquals(tc, 0, chdir("lib"));
+  enter_player_fixture(tc, temporary_directory);
   CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
   saved = save_char_checked(ch, 0);
   free_char(ch);
@@ -293,7 +303,7 @@ void Test_gameplay_pet_cooldowns_survive_character_save_and_load(CuTest *tc)
       retained = retained && event->sVariables != NULL && !strcmp(event->sVariables, "uses:1");
   }
   unlink(filename);
-  CuAssertIntEquals(tc, 0, chdir(directory));
+  CuAssertIntEquals(tc, 0, leave_player_fixture(directory, temporary_directory));
   free_char(loaded);
   event_free_all();
   pulse = saved_pulse;
@@ -1390,7 +1400,7 @@ static void verify_golem_completion_resources(CuTest *tc, int mode)
   GET_CRAFT(ch).golem_type = GOLEM_TYPE_WOOD;
   GET_CRAFT(ch).golem_size = GOLEM_SIZE_SMALL;
   GET_CRAFT(ch).golem_materials[0][0] = CRAFT_MAT_MAPLE_WOOD;
-  GET_CRAFT(ch).dc = mode == 1 ? 10000 : -10000;
+  GET_CRAFT(ch).dc = mode == 1 || mode == 5 || mode == 6 || mode == 8 ? 10000 : -10000;
   GET_CRAFT_MAT(ch, CRAFT_MAT_MAPLE_WOOD) = 100;
   GET_CRAFT_MAT(ch, CRAFT_MAT_BRONZE) = 100;
   for (i = 1; i < NUM_CRAFT_MOTES; i++)
@@ -1398,13 +1408,16 @@ static void verify_golem_completion_resources(CuTest *tc, int mode)
   if (mode == 3)
     GET_CRAFT_MOTES(ch, 1) = 0;
   initialize_test_npc(&prototype, "wood golem", NOWHERE);
+  GET_REAL_RACE(&prototype) = mode == 7 || mode == 8 ? RACE_TYPE_ANIMAL : RACE_TYPE_CONSTRUCT;
   SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
   prototype.player.name = (char *)"golem";
   GET_MOB_RNUM(&prototype) = 0;
   GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
   GET_REAL_MAX_MOVE(&prototype) = 100;
-  fixture.mobile_index[0].vnum = GOLEM_WOOD_SMALL;
-  mob_proto = mode == 2 ? NULL : &prototype;
+  fixture.mobile_index[0].vnum = PET_GOLEM_WOOD_SMALL;
+  mob_proto = mode == 2 || mode == 5 ? NULL : &prototype;
+  if (mode == 6)
+    fixture.mobile_index[0].vnum = PET_GOLEM_WOOD_SMALL + GOLEM_SIZE_LARGE;
   /* A golem has its own allowance even when the general slot is occupied. */
   existing.follower = &fixture.victim;
   fixture.actor.followers = &existing;
@@ -1419,7 +1432,8 @@ static void verify_golem_completion_resources(CuTest *tc, int mode)
   if (golem == &fixture.victim)
     golem = NULL;
   created = golem != NULL && MOB_FLAGGED(golem, MOB_GOLEM) && IS_PET(golem) &&
-            GET_REAL_RACE(golem) == RACE_TYPE_CONSTRUCT && IN_ROOM(golem) == 0;
+            golem->char_specials.is_charmie && GET_REAL_RACE(golem) == RACE_TYPE_CONSTRUCT &&
+            IN_ROOM(golem) == 0;
   wood = GET_CRAFT_MAT(ch, CRAFT_MAT_MAPLE_WOOD);
   bronze = GET_CRAFT_MAT(ch, CRAFT_MAT_BRONZE);
   mote = GET_CRAFT_MOTES(ch, 1);
@@ -1457,6 +1471,10 @@ void Test_gameplay_failed_golem_ritual_consumes_selected_wood(CuTest *tc)
 void Test_gameplay_missing_golem_prototype_retains_resources(CuTest *tc)
 {
   verify_golem_completion_resources(tc, 2);
+  verify_golem_completion_resources(tc, 5);
+  verify_golem_completion_resources(tc, 6);
+  verify_golem_completion_resources(tc, 7);
+  verify_golem_completion_resources(tc, 8);
 }
 
 void Test_gameplay_golem_completion_rechecks_motes_before_consumption(CuTest *tc)
@@ -1469,6 +1487,1398 @@ void Test_gameplay_existing_golem_denies_completion_without_spending(CuTest *tc)
   verify_golem_completion_resources(tc, 4);
 }
 
+void Test_gameplay_craft_c_abbreviates_check_not_create(CuTest *tc)
+{
+  struct char_data crafter;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+
+  clear_char(&crafter);
+  crafter.player_specials = &specials;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &crafter;
+  descriptor.pProtocol = ProtocolCreate();
+  crafter.desc = &descriptor;
+  newcraft_create(&crafter, "c");
+  CuAssertPtrNotNull(tc, strstr(descriptor.output, "This craft is not yet ready to begin"));
+  CuAssertPtrEquals(tc, NULL, strstr(descriptor.output, "See HELP CRAFTING"));
+  ProtocolDestroy(descriptor.pProtocol);
+}
+
+static bool verify_authored_constructs(const char *sandbox, char *error, size_t error_size)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct char_data *ch = &fixture.actor, *pet;
+  struct obj_data *corpse, *loot;
+  struct domain_entity_handle corpse_handle;
+  struct follow_type occupied = {0};
+  struct descriptor_data feedback = {0};
+  FILE *file;
+  char path[PATH_MAX], line[256];
+  int i, type, size, vnum, mode, needed, material;
+  bool bone_refund_reported;
+
+  (void)sandbox;
+  snprintf(path, sizeof(path), "%s/data/pet-constructs/196.mob", test_source_root());
+  file = fopen(path, "r");
+  if (file == NULL)
+    return false;
+  begin_gameplay_fixture(&fixture);
+  mob_proto = calloc(19, sizeof(*mob_proto));
+  mob_index = calloc(19, sizeof(*mob_index));
+  if (mob_proto == NULL || mob_index == NULL)
+    return false;
+  for (i = 0; i < 13; i++)
+  {
+    if (!get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 ||
+        vnum != PET_GOLEM_WOOD_SMALL + i)
+      return false;
+    parse_mobile(file, vnum);
+  }
+  fclose(file);
+  snprintf(path, sizeof(path), "%s/data/pet-planar-allies/197.mob", test_source_root());
+  file = fopen(path, "r");
+  if (file == NULL)
+    return false;
+  for (i = 0; i < 3; i++)
+  {
+    if (!get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 ||
+        vnum != PET_CELESTIAL_GUARDIAN + i)
+      return false;
+    parse_mobile(file, vnum);
+  }
+  fclose(file);
+  if (GET_MOB_VNUM(&mob_proto[15]) != PET_XVIM_NIGHTMARE ||
+      !isname("nightmare", mob_proto[15].player.name) ||
+      GET_REAL_RACE(&mob_proto[15]) != RACE_TYPE_OUTSIDER || GET_SIZE(&mob_proto[15]) != SIZE_LARGE)
+    return false;
+  snprintf(path, sizeof(path), "%s/data/pet-undead/198.mob", test_source_root());
+  file = fopen(path, "r");
+  if (file == NULL)
+    return false;
+  for (i = 0; i < 2; i++)
+  {
+    if (!get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 || vnum != PET_SKELETAL_MAGE + i)
+      return false;
+    parse_mobile(file, vnum);
+  }
+  fclose(file);
+  snprintf(path, sizeof(path), "%s/data/pet-illusions/199.mob", test_source_root());
+  file = fopen(path, "r");
+  if (file == NULL || !get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 ||
+      vnum != PET_MISLEAD_DECOY)
+    return false;
+  parse_mobile(file, vnum);
+  fclose(file);
+  REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
+  ch->player_specials = &specials;
+  ch->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(ch) = -1;
+  for (type = GOLEM_TYPE_WOOD; type <= GOLEM_TYPE_IRON; type++)
+  {
+    for (size = GOLEM_SIZE_SMALL; size <= GOLEM_SIZE_HUGE; size++)
+    {
+      GET_CRAFT(ch).golem_type = type;
+      GET_CRAFT(ch).golem_size = size;
+      GET_CRAFT(ch).golem_materials[0][0] = CRAFT_MAT_MAPLE_WOOD;
+      GET_CRAFT(ch).dc = -10000;
+      for (i = 1; i < NUM_CRAFT_MATS; i++)
+        GET_CRAFT_MAT(ch, i) = 10000;
+      for (i = 1; i < NUM_CRAFT_MOTES; i++)
+        GET_CRAFT_MOTES(ch, i) = 10000;
+      craft_golem_complete(ch);
+      pet = ch->followers != NULL ? ch->followers->follower : NULL;
+      if (pet == NULL || !IS_PET(pet) || GET_REAL_RACE(pet) != RACE_TYPE_CONSTRUCT ||
+          GET_SIZE(pet) != SIZE_SMALL + size || GET_GOLD(pet) != 0 ||
+          get_golem_type_from_vnum(GET_MOB_VNUM(pet)) != type ||
+          get_golem_size_from_vnum(GET_MOB_VNUM(pet)) != size ||
+          GET_CRAFT_MAT(ch, type == GOLEM_TYPE_WOOD    ? CRAFT_MAT_MAPLE_WOOD
+                            : type == GOLEM_TYPE_STONE ? CRAFT_MAT_STONE
+                                                       : CRAFT_MAT_IRON) >= 10000)
+      {
+        snprintf(error, error_size, "authored golem acquisition failed for type %d size %d", type,
+                 size);
+        return false;
+      }
+      if (GET_DR_MOD(pet) != (type == GOLEM_TYPE_WOOD ? 0 : type == GOLEM_TYPE_STONE ? 5 : 8))
+        return false;
+      extract_char(pet);
+      extract_pending_chars();
+    }
+  }
+  snprintf(error, error_size, "corpse construct acquisition/resource/lifecycle contract failed");
+  event_free_all();
+  event_init();
+  CONFIG_CRAFTING_SYSTEM = CRAFTING_SYSTEM_MOTES;
+  corpse = create_obj();
+  corpse->name = strdup("corpse");
+  corpse->short_description = strdup("a corpse");
+  GET_OBJ_TYPE(corpse) = ITEM_CONTAINER;
+  GET_OBJ_VAL(corpse, 3) = 1;
+  obj_to_room(corpse, 0);
+  corpse_handle = domain_event_object_handle(corpse);
+  loot = create_obj();
+  obj_to_obj(loot, corpse);
+  occupied.follower = &fixture.victim;
+  SET_BIT_AR(MOB_FLAGS(&fixture.victim), MOB_GOLEM);
+  SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+  fixture.victim.master = ch;
+  for (mode = 0; mode < 7; mode++)
+  {
+    SET_FEAT(ch, FEAT_CONSTRUCT_WOOD_GOLEM, mode == 0 ? 0 : 1);
+    GET_OBJ_VAL(corpse, 4) = mode == 1 ? 123 : 0;
+    CORPSE_ANIMATION_BLOCKED(corpse) = mode == 2;
+    ch->followers = mode == 3 ? &occupied : NULL;
+    top_of_mobt = mode == 4 ? 11 : 12;
+    GET_CRAFT_MAT(ch, CRAFT_MAT_BONE) = mode == 5 ? 0 : 100;
+    for (i = 1; i < NUM_CRAFT_MOTES; i++)
+      GET_CRAFT_MOTES(ch, i) = mode == 6 ? 0 : 100;
+    newcraft_create(ch, "golem animate corpse");
+    if (ch->followers != (mode == 3 ? &occupied : NULL) ||
+        domain_event_world_resolve_object(corpse_handle) != corpse || corpse->contains != loot ||
+        GET_CRAFT_MAT(ch, CRAFT_MAT_BONE) != (mode == 5 ? 0 : 100) ||
+        !is_action_available(ch, atSTANDARD, false))
+      return false;
+  }
+  ch->followers = NULL;
+  fixture.victim.master = NULL;
+  top_of_mobt = 12;
+  GET_CRAFT_MAT(ch, CRAFT_MAT_BONE) = 100;
+  for (i = 1; i < NUM_CRAFT_MOTES; i++)
+    GET_CRAFT_MOTES(ch, i) = 100;
+  SET_ABILITY(ch, ABILITY_ARCANA, 0);
+  newcraft_create(ch, "create golem animate corpse");
+  if (ch->followers != NULL || GET_CRAFT_MAT(ch, CRAFT_MAT_BONE) != 60 ||
+      GET_CRAFT_MOTES(ch, 1) != 94 || corpse->contains != loot ||
+      is_action_available(ch, atSTANDARD, false))
+    return false;
+  clear_char_event_list(ch);
+  SET_ABILITY(ch, ABILITY_ARCANA, 100);
+  SET_FEAT(ch, FEAT_CONSTRUCT_WOOD_GOLEM, 0);
+  SET_FEAT(ch, FEAT_SUMMON_GREATER_UNDEAD, 1);
+  GET_CRAFT_MAT(ch, CRAFT_MAT_BONE) = 100;
+  for (i = 1; i < NUM_CRAFT_MOTES; i++)
+    GET_CRAFT_MOTES(ch, i) = 100;
+  newcraft_create(ch, "golem animate corpse");
+  pet = ch->followers != NULL ? ch->followers->follower : NULL;
+  if (pet == NULL || !IS_PET(pet) || GET_MOB_VNUM(pet) != PET_GOLEM_BONE ||
+      GET_REAL_RACE(pet) != RACE_TYPE_CONSTRUCT || GET_DR_MOD(pet) != 3 || pet->carrying != loot ||
+      domain_event_world_resolve_object(corpse_handle) != NULL ||
+      GET_CRAFT_MAT(ch, CRAFT_MAT_BONE) != 60 || GET_CRAFT_MOTES(ch, 1) != 94)
+    return false;
+  GET_HIT(pet)--;
+  if (!can_repair_golem(ch, pet, &needed, &material) || needed != 4 || material != CRAFT_MAT_BONE)
+    return false;
+  do_destroygolem(ch, "bone", 0, 0);
+  if (MOB_FLAGGED(pet, MOB_NOTDEADYET) || pet->carrying != loot ||
+      GET_CRAFT_MAT(ch, CRAFT_MAT_BONE) != 60)
+    return false;
+  obj_from_char(loot);
+  obj_to_room(loot, 0);
+  feedback.output = feedback.small_outbuf;
+  feedback.bufspace = SMALL_BUFSIZE - 1;
+  feedback.character = ch;
+  feedback.pProtocol = ProtocolCreate();
+  ch->desc = &feedback;
+  do_destroygolem(ch, "bone", 0, 0);
+  bone_refund_reported = strstr(feedback.output, "20 bone") != NULL;
+  ch->desc = NULL;
+  ProtocolDestroy(feedback.pProtocol);
+  do_destroygolem(ch, "bone", 0, 0);
+  if (!bone_refund_reported || GET_CRAFT_MAT(ch, CRAFT_MAT_BONE) != 80 ||
+      GET_CRAFT_MOTES(ch, 1) != 94)
+    return false;
+  extract_pending_chars();
+  top_of_mobt = 14;
+  CONFIG_SUMMON_LEVEL_11_20_HP = 100;
+  for (i = 0; i < 2; i++)
+  {
+    set_pet_summon_choice(ch, SPELL_PLANAR_ALLY, i == 0 ? "guardian" : "healer");
+    mag_summons(15, ch, NULL, SPELL_PLANAR_ALLY, 0, CAST_SPELL);
+    pet = ch->followers != NULL ? ch->followers->follower : NULL;
+    if (pet == NULL || !IS_PET(pet) || !MOB_FLAGGED(pet, MOB_PLANAR_ALLY) ||
+        GET_MOB_VNUM(pet) != (mob_vnum)(PET_CELESTIAL_GUARDIAN + i) ||
+        GET_REAL_RACE(pet) != RACE_TYPE_OUTSIDER || GET_GOLD(pet) != 0 ||
+        (i == 0 && GET_DR_MOD(pet) != 5) ||
+        (i == 1 && (!MOB_KNOWS_SPELL(pet, SPELL_CURE_CRITIC) ||
+                    !MOB_KNOWS_SPELL(pet, SPELL_REMOVE_PARALYSIS))))
+    {
+      snprintf(error, error_size, "authored planar ally %d failed acquisition or role checks", i);
+      return false;
+    }
+    mag_summons(15, ch, NULL, SPELL_PLANAR_ALLY, 0, CAST_SPELL);
+    if (ch->followers->follower != pet || ch->followers->next != NULL)
+      return false;
+    if (cast_spell(ch, NULL, NULL, SPELL_PLANAR_ALLY, 0) != 0)
+      return false;
+    if (i == 1)
+    {
+      int cast_index;
+      struct descriptor_data feedback = {0};
+
+      ch->player.name = (char *)"petcaller";
+      feedback.output = feedback.small_outbuf;
+      feedback.bufspace = SMALL_BUFSIZE - 1;
+      feedback.character = ch;
+      feedback.pProtocol = ProtocolCreate();
+      ch->desc = &feedback;
+      GET_MAX_HIT(ch) = GET_REAL_MAX_HIT(ch) = 200;
+      if (complete_cmd_info == NULL)
+        create_command_list();
+      if (spell_info[SPELL_CURE_CRITIC].name == NULL ||
+          spell_info[SPELL_CURE_CRITIC].name == unused_spellname)
+        mag_assign_spells();
+      if (!npc_can_cast(pet, SPELL_CURE_CRITIC) || npc_can_cast(pet, SPELL_MAGIC_MISSILE))
+        return false;
+      clear_char_event_list(ch);
+      do_order(ch, "healer cast 'cure critic' absent", 0, 0);
+      if (pet->mob_specials.known_spell_slots[SPELL_CURE_CRITIC] != 2 ||
+          !is_action_available(pet, atSTANDARD, false) ||
+          strstr(feedback.output, "find the target") == NULL)
+        return false;
+      for (cast_index = 0; cast_index < 3; cast_index++)
+      {
+        clear_char_event_list(ch);
+        clear_char_event_list(pet);
+        GET_HIT(ch) = 20;
+        do_order(ch, "healer cast 'cure critic' petcaller", 0, 0);
+        if ((cast_index < 2 && GET_HIT(ch) <= 20) || (cast_index == 2 && GET_HIT(ch) != 20) ||
+            pet->mob_specials.known_spell_slots[SPELL_CURE_CRITIC] != MAX(0, 1 - cast_index))
+        {
+          snprintf(error, error_size, "ordered healer cast %d failed: hp=%d slots=%d: %.300s",
+                   cast_index, GET_HIT(ch), pet->mob_specials.known_spell_slots[SPELL_CURE_CRITIC],
+                   feedback.output);
+          return false;
+        }
+        if (cast_index < 2 && is_action_available(pet, atSTANDARD, false))
+          return false;
+      }
+      if (npc_can_cast(pet, SPELL_CURE_CRITIC) ||
+          strstr(feedback.output, "Your pet cannot cast that spell") == NULL)
+        return false;
+      clear_char_event_list(ch);
+      ch->desc = NULL;
+      ProtocolDestroy(feedback.pProtocol);
+    }
+    extract_char(pet);
+    extract_pending_chars();
+  }
+  top_of_mobt = 17;
+  SET_FEAT(ch, FEAT_ANIMATE_DEAD, 3);
+  GET_LEVEL(ch) = 9;
+  do_animatedead(ch, "mage", 0, 0);
+  do_animatedead(ch, "lich", 0, 0);
+  if (ch->followers != NULL || daily_uses_remaining(ch, FEAT_ANIMATE_DEAD) != 3)
+    return false;
+  GET_LEVEL(ch) = 31;
+  top_of_mobt = 15;
+  do_animatedead(ch, "mage", 0, 0);
+  do_animatedead(ch, "lich", 0, 0);
+  if (ch->followers != NULL || daily_uses_remaining(ch, FEAT_ANIMATE_DEAD) != 3)
+    return false;
+  top_of_mobt = 17;
+  for (i = 0; i < 2; i++)
+  {
+    do_animatedead(ch, i == 0 ? "mage" : "lich", 0, 0);
+    pet = ch->followers != NULL ? ch->followers->follower : NULL;
+    if (pet == NULL || !IS_PET(pet) || !MOB_FLAGGED(pet, MOB_ANIMATED_DEAD) ||
+        GET_MOB_VNUM(pet) != (mob_vnum)(PET_SKELETAL_MAGE + i) ||
+        GET_REAL_RACE(pet) != RACE_TYPE_UNDEAD || IS_INCORPOREAL(pet) ||
+        !MOB_KNOWS_SPELL(pet, SPELL_MAGIC_MISSILE) ||
+        !MOB_KNOWS_SPELL(pet, i == 0 ? SPELL_RAY_OF_ENFEEBLEMENT : SPELL_HASTE) ||
+        daily_uses_remaining(ch, FEAT_ANIMATE_DEAD) != 2 - i)
+    {
+      snprintf(error, error_size, "undead spellcaster %d acquisition or role failure", i);
+      return false;
+    }
+    /* A lich cannot fit beside a lesser caster; two liches cannot fit either. */
+    do_animatedead(ch, "lich", 0, 0);
+    if (ch->followers->follower != pet || ch->followers->next != NULL ||
+        daily_uses_remaining(ch, FEAT_ANIMATE_DEAD) != 2 - i)
+      return false;
+    consume_known_spell_slot(pet, SPELL_MAGIC_MISSILE);
+    consume_known_spell_slot(pet, SPELL_MAGIC_MISSILE);
+    if (has_known_spell_slot(pet, SPELL_MAGIC_MISSILE))
+      return false;
+    extract_char(pet);
+    extract_pending_chars();
+    clear_char_event_list(ch);
+    /* Restore only the consumed daily-use count after clearing fixture action events. */
+    SET_FEAT(ch, FEAT_ANIMATE_DEAD, 2 - i);
+  }
+  top_of_mobt = 18;
+  mag_summons(15, ch, NULL, SPELL_MISLEAD, 0, CAST_SPELL);
+  pet = ch->followers != NULL ? ch->followers->follower : NULL;
+  if (pet == NULL || !IS_PET(pet) || !is_illusory_pet(pet) || !IS_INCORPOREAL(pet) ||
+      pet_order_check(ch, pet) || pet->pet_behavior != PET_BEHAVIOR_ASSIST ||
+      char_has_mud_event(pet, ePURGEMOB) == NULL)
+  {
+    snprintf(error, error_size, "mislead decoy ownership, orderability, or expiry setup failed");
+    return false;
+  }
+  mag_summons(15, ch, NULL, SPELL_MISLEAD, 0, CAST_SPELL);
+  if (ch->followers->follower != pet || ch->followers->next != NULL ||
+      cast_spell(ch, ch, NULL, SPELL_MISLEAD, 0) != 0)
+    return false;
+  pulse += 120 * PASSES_PER_SEC;
+  event_test_advance();
+  extract_pending_chars();
+  if (ch->followers != NULL)
+  {
+    snprintf(error, error_size, "mislead decoy did not expire");
+    return false;
+  }
+  return true;
+}
+
+void Test_gameplay_authored_construct_prototypes_load_and_complete_all_recipes(CuTest *tc)
+{
+  char error[512] = {0};
+  const int legacy[] = {GOLEM_WOOD_SMALL, GOLEM_STONE_SMALL, GOLEM_IRON_SMALL};
+  int type, size;
+  struct class_spell_assign *assignment;
+  int cleric_level = 0, summoner_level = 0;
+
+  if (class_list[CLASS_CLERIC].name == NULL)
+    load_class_list();
+  for (assignment = class_list[CLASS_CLERIC].spellassign_list; assignment != NULL;
+       assignment = assignment->next)
+    if (assignment->spell_num == SPELL_PLANAR_ALLY)
+      cleric_level = assignment->level;
+  for (assignment = class_list[CLASS_SUMMONER].spellassign_list; assignment != NULL;
+       assignment = assignment->next)
+    if (assignment->spell_num == SPELL_PLANAR_ALLY)
+      summoner_level = assignment->level;
+  CuAssertIntEquals(tc, 11, cleric_level);
+  CuAssertIntEquals(tc, 16, summoner_level);
+  CuAssertIntEquals(tc, MOB_PLANAR_ALLY, summoned_follower_flag(SPELL_PLANAR_ALLY));
+  for (type = 0; type < 3; type++)
+    for (size = 0; size < 4; size++)
+    {
+      CuAssertIntEquals(tc, type + 1, get_golem_type_from_vnum(legacy[type] + size));
+      CuAssertIntEquals(tc, size, get_golem_size_from_vnum(legacy[type] + size));
+    }
+  CuAssert(tc, error, spec_test_run_isolated(verify_authored_constructs, error, sizeof(error)));
+}
+
+void Test_gameplay_golem_minor_repairs_cost_materials_and_pending_destruction_cannot_pay(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct char_data *ch = &fixture.actor, *golem = &fixture.victim;
+  int needed = 0, material = 0, unit_cost, saved_system;
+  bool empty_denied, small_repair, next_increment, pending_denied, no_reward;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
+  ch->player_specials = &specials;
+  golem->master = ch;
+  SET_BIT_AR(AFF_FLAGS(golem), AFF_CHARM);
+  SET_BIT_AR(MOB_FLAGS(golem), MOB_GOLEM);
+  GET_MOB_RNUM(golem) = 0;
+  fixture.mobile_index[0].vnum = PET_GOLEM_WOOD_SMALL;
+  GET_REAL_MAX_HIT(golem) = 100;
+  GET_HIT(golem) = GET_MAX_HIT(golem) - 1;
+  unit_cost = get_golem_repair_material_cost(GOLEM_TYPE_WOOD, GOLEM_SIZE_SMALL);
+  empty_denied = !can_repair_golem(ch, golem, &needed, &material);
+  GET_CRAFT_MAT(ch, CRAFT_MAT_MAPLE_WOOD) = 100;
+  small_repair = can_repair_golem(ch, golem, &needed, &material) && needed == unit_cost &&
+                 material == CRAFT_MAT_MAPLE_WOOD;
+  GET_HIT(golem) = GET_MAX_HIT(golem) * 89 / 100;
+  next_increment = can_repair_golem(ch, golem, &needed, &material) && needed == 2 * unit_cost;
+  SET_BIT_AR(MOB_FLAGS(golem), MOB_NOTDEADYET);
+  pending_denied = !can_repair_golem(ch, golem, &needed, &material);
+  saved_system = CONFIG_CRAFTING_SYSTEM;
+  CONFIG_CRAFTING_SYSTEM = CRAFTING_SYSTEM_MOTES;
+  do_destroygolem(ch, "victim", 0, 0);
+  do_destroygolem(ch, "victim", 0, 0);
+  no_reward =
+      GET_CRAFT_MAT(ch, CRAFT_MAT_MAPLE_WOOD) == 100 && GET_CRAFT_MAT(ch, CRAFT_MAT_BRONZE) == 0;
+  CONFIG_CRAFTING_SYSTEM = saved_system;
+  REMOVE_BIT_AR(MOB_FLAGS(golem), MOB_NOTDEADYET);
+  golem->master = NULL;
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, empty_denied);
+  CuAssertTrue(tc, small_repair);
+  CuAssertTrue(tc, next_increment);
+  CuAssertTrue(tc, pending_denied);
+  CuAssertTrue(tc, no_reward);
+}
+
+void Test_gameplay_bonded_recall_preserves_existing_pet_state(CuTest *tc)
+{
+  const int roles[] = {MOB_C_ANIMAL, MOB_C_FAMILIAR, MOB_C_MOUNT,
+                       MOB_C_DRAGON, MOB_SHADOW,     MOB_EIDOLON};
+  const int classes[] = {CLASS_DRUID,       CLASS_WIZARD,        CLASS_PALADIN,
+                         CLASS_DRAGONRIDER, CLASS_SHADOW_DANCER, CLASS_SUMMONER};
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct follow_type link = {0};
+  struct char_data rider;
+  struct obj_data *gear;
+  struct char_data *pet;
+  bool preserved = true, loyal = true, controlled = true, denied_respec, wrong_owner;
+  size_t i;
+
+  begin_gameplay_fixture(&f);
+  pet = &f.victim;
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  GET_LEVEL(&f.actor) = 10;
+  GET_PFILEPOS(&f.actor) = -1;
+  GET_PREMADE_BUILD_CLASS(&f.actor) = CLASS_UNDEFINED;
+  initialize_test_npc(&rider, "left behind rider", 1);
+  GET_MOB_RNUM(pet) = 0;
+  pet->master = &f.actor;
+  SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+  link.follower = pet;
+  f.actor.followers = &link;
+  GET_LEVEL(pet) = 7;
+  GET_HIT(pet) = 17;
+  GET_MOVE(pet) = 19;
+  GET_PSP(pet) = 11;
+  GET_REAL_MAX_HIT(pet) = 100;
+  pet->pet_data_id = 42;
+  gear = create_obj();
+  obj_to_char(gear, pet);
+  for (i = 0; i < sizeof(roles) / sizeof(roles[0]); i++)
+  {
+    SET_BIT_AR(MOB_FLAGS(pet), roles[i]);
+    GET_CLASS(&f.actor) = classes[i];
+    GET_LEVEL(&f.actor) = 11;
+    CLASS_LEVEL((&f.actor), classes[i]) = 6;
+    advance_level(&f.actor, classes[i]);
+    char_from_room(pet);
+    char_to_room(pet, 1);
+    mount_char(&rider, pet);
+    SET_FEAT(&f.actor, FEAT_BOON_COMPANION, 1);
+    perform_call(&f.actor, roles[i], 30);
+    perform_call(&f.actor, roles[i], 30);
+    do_unfollow(pet, "", 0, 0);
+    do_follow(pet, "self", 0, 0);
+    loyal = loyal && pet->master == &f.actor && f.actor.followers == &link &&
+            AFF_FLAGGED(pet, AFF_CHARM);
+    controlled = controlled && pet_order_check(&f.actor, pet) && !pet_order_check(&rider, pet);
+    REMOVE_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+    controlled = controlled && !pet_order_check(&f.actor, pet);
+    SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+    preserved = preserved && IN_ROOM(pet) == 0 && pet->master == &f.actor &&
+                f.actor.followers == &link && link.next == NULL && GET_LEVEL(pet) == 7 &&
+                GET_HIT(pet) == 17 && GET_MOVE(pet) == 19 && GET_PSP(pet) == 11 &&
+                GET_REAL_MAX_HIT(pet) == 100 && pet->pet_data_id == 42 && gear->carried_by == pet &&
+                RIDING(&rider) == NULL && RIDDEN_BY(pet) == NULL;
+    REMOVE_BIT_AR(MOB_FLAGS(pet), roles[i]);
+    CLASS_LEVEL((&f.actor), classes[i]) = 0;
+  }
+  f.actor.desc = &descriptor;
+  descriptor.character = &f.actor;
+  do_respec(&f.actor, "wizard", 0, 0);
+  denied_respec = GET_LEVEL(&f.actor) == 11 && f.actor.followers == &link &&
+                  pet->master == &f.actor && GET_HIT(pet) == 17 && gear->carried_by == pet;
+  f.actor.desc = NULL;
+  SET_BIT_AR(MOB_FLAGS(pet), MOB_C_FAMILIAR);
+  char_from_room(pet);
+  char_to_room(pet, 1);
+  pet->master = &rider;
+  perform_call(&f.actor, MOB_C_FAMILIAR, 30);
+  wrong_owner = IN_ROOM(pet) == 1 && pet->master == &rider;
+  f.actor.followers = NULL;
+  pet->master = NULL;
+  extract_obj(gear);
+  domain_event_world_forget_character(&f.actor);
+  domain_event_world_forget_character(pet);
+  end_gameplay_fixture(&f);
+  CuAssertTrue(tc, preserved);
+  CuAssertTrue(tc, loyal);
+  CuAssertTrue(tc, controlled);
+  CuAssertTrue(tc, denied_respec);
+  CuAssertTrue(tc, wrong_owner);
+}
+
+void Test_gameplay_pet_damage_feedback_honors_owner_preferences_and_presence(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct char_data owner;
+  struct char_data *pet;
+  bool correct = true;
+  int illusion, mode;
+
+  begin_gameplay_fixture(&f);
+  initialize_test_npc(&owner, "pet owner", NOWHERE);
+  REMOVE_BIT_AR(MOB_FLAGS(&owner), MOB_ISNPC);
+  owner.player_specials = &specials;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &owner;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  owner.desc = &descriptor;
+  char_to_room(&owner, 0);
+  pet = &f.actor;
+  pet->master = &owner;
+  SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+  for (illusion = 0; illusion < 2; illusion++)
+  {
+    pet->pet_source_spell = illusion ? SPELL_MISLEAD : 0;
+    for (mode = 0; mode < 4; mode++)
+    {
+      char_from_room(&owner);
+      char_to_room(&owner, mode == 2 ? 1 : 0);
+      GET_POS(&owner) = mode == 3 ? POS_SLEEPING : POS_STANDING;
+      if (mode == 0)
+        REMOVE_BIT_AR(PRF_FLAGS(&owner), PRF_CHARMIE_COMBATROLL);
+      else
+        SET_BIT_AR(PRF_FLAGS(&owner), PRF_CHARMIE_COMBATROLL);
+      descriptor.output[0] = '\0';
+      descriptor.bufptr = 0;
+      descriptor.bufspace = SMALL_BUFSIZE - 1;
+      GET_HIT(&f.victim) = GET_MAX_HIT(&f.victim) = 1000;
+      damage(pet, &f.victim, 7, TYPE_HIT, DAM_FORCE, FALSE);
+      correct = correct && GET_HIT(&f.victim) == 993 &&
+                ((strstr(descriptor.output, "[7]") != NULL) == (mode == 1));
+    }
+  }
+  pet->master = NULL;
+  char_from_room(&owner);
+  owner.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  clear_char_event_list(&f.actor);
+  clear_char_event_list(&f.victim);
+  domain_event_world_forget_character(&owner);
+  end_gameplay_fixture(&f);
+  CuAssertTrue(tc, correct);
+}
+
+void Test_gameplay_natural_pet_attacks_bypass_only_eligible_damage_reduction(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct damage_reduction_type magic = {0}, material = {0}, physical = {0};
+  struct char_data *pet, *target;
+  struct obj_data *weapon;
+  int ordinary, enchanted, evolved, mixed_first, mixed_last, unavoidable;
+  int matching_physical, mismatched_physical, saved_damage_types;
+
+  begin_gameplay_fixture(&f);
+  pet = &f.actor;
+  target = &f.victim;
+  magic.amount = 8;
+  magic.max_damage = -1;
+  magic.bypass_cat[0] = DR_BYPASS_CAT_MAGIC;
+  magic.bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+  material.amount = 5;
+  material.max_damage = -1;
+  material.bypass_cat[0] = DR_BYPASS_CAT_MATERIAL;
+  material.bypass_val[0] = MATERIAL_SILVER;
+  material.bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+  GET_DR(target) = &magic;
+  ordinary = apply_damage_reduction(pet, target, NULL, 20, false);
+  SET_BIT_AR(AFF2_FLAGS(pet), AFF2_MAGIC_ATTACKS);
+  enchanted = apply_damage_reduction(pet, target, NULL, 20, false);
+  REMOVE_BIT_AR(AFF2_FLAGS(pet), AFF2_MAGIC_ATTACKS);
+  HAS_REAL_EVOLUTION(pet, EVOLUTION_MAGIC_ATTACKS) = 1;
+  evolved = apply_damage_reduction(pet, target, NULL, 20, false);
+  magic.next = &material;
+  mixed_first = apply_damage_reduction(pet, target, NULL, 20, false);
+  magic.next = NULL;
+  material.next = &magic;
+  GET_DR(target) = &material;
+  mixed_last = apply_damage_reduction(pet, target, NULL, 20, false);
+  material.bypass_cat[0] = DR_BYPASS_CAT_NONE;
+  unavoidable = apply_damage_reduction(pet, target, NULL, 20, false);
+  weapon = create_obj();
+  GET_OBJ_TYPE(weapon) = ITEM_WEAPON;
+  GET_OBJ_VAL(weapon, 0) = 0;
+  saved_damage_types = weapon_list[0].damageTypes;
+  weapon_list[0].damageTypes = DAMAGE_TYPE_BLUDGEONING;
+  physical.amount = 6;
+  physical.max_damage = -1;
+  physical.bypass_cat[0] = DR_BYPASS_CAT_DAMTYPE;
+  physical.bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+  physical.bypass_val[0] = DR_DAMTYPE_BLUDGEONING;
+  GET_DR(target) = &physical;
+  matching_physical = apply_damage_reduction(pet, target, weapon, 20, false);
+  physical.bypass_val[0] = DR_DAMTYPE_SLASHING;
+  mismatched_physical = apply_damage_reduction(pet, target, weapon, 20, false);
+  weapon_list[0].damageTypes = saved_damage_types;
+  extract_obj(weapon);
+  GET_DR(target) = NULL;
+  end_gameplay_fixture(&f);
+  CuAssertIntEquals(tc, 12, ordinary);
+  CuAssertIntEquals(tc, 20, enchanted);
+  CuAssertIntEquals(tc, 20, evolved);
+  CuAssertIntEquals(tc, 15, mixed_first);
+  CuAssertIntEquals(tc, 15, mixed_last);
+  CuAssertIntEquals(tc, 15, unavoidable);
+  CuAssertIntEquals(tc, 20, matching_physical);
+  CuAssertIntEquals(tc, 14, mismatched_physical);
+}
+
+static void interrupt_juggernaut_arrival(const struct domain_event_context *context, void *data)
+{
+  const struct domain_character_moved *event = context->payload;
+  struct char_data *pet = domain_event_world_resolve_character(event->character);
+  bool *interrupted = data;
+
+  if (pet != NULL && pet->pet_source_spell == PSIONIC_ECTOPLASMIC_SHAMBLER)
+  {
+    *interrupted = true;
+    extract_char(pet);
+  }
+}
+
+void Test_gameplay_juggernaut_failed_publication_retains_daily_use(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct char_data prototype, *pet, *owner;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  struct domain_event_subscription_config observer = {0};
+  struct domain_event_subscription_handle subscription;
+  bool interrupted = false, retained, spent, denied;
+  int boosted[4] = {0}, ordinary[4] = {0};
+
+  begin_gameplay_fixture(&f);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  event_init();
+  owner = &f.actor;
+  REMOVE_BIT_AR(MOB_FLAGS(owner), MOB_ISNPC);
+  owner->player_specials = &specials;
+  owner->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(owner) = -1;
+  CLASS_LEVEL(owner, CLASS_PSIONICIST) = 20;
+  add_char_perk(owner, PERK_PSIONICIST_ASTRAL_JUGGERNAUT, CLASS_PSIONICIST);
+  add_char_perk(owner, PERK_PSIONICIST_HARDENED_CONSTRUCTS_I, CLASS_PSIONICIST);
+  add_char_perk(owner, PERK_PSIONICIST_HARDENED_CONSTRUCTS_II, CLASS_PSIONICIST);
+  f.mobile_index[0].vnum = MOB_ECTOPLASMIC_SHAMBLER;
+  initialize_test_npc(&prototype, "shambler", NOWHERE);
+  prototype.player.name = (char *)"shambler";
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = GET_PSP(&prototype) = 100;
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  mob_proto = &prototype;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  observer.type = DOMAIN_EVENT_CHARACTER_MOVED;
+  observer.topic.role = DOMAIN_EVENT_TOPIC_DESTINATION;
+  observer.topic.entity = domain_event_room_handle(0);
+  observer.owner = domain_event_character_handle(owner);
+  observer.identity = "test.juggernaut.interrupted-arrival";
+  observer.handler = interrupt_juggernaut_arrival;
+  observer.handler_context = &interrupted;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &observer, &subscription));
+  circle_srandom(421);
+  mag_summons(20, owner, NULL, PSIONIC_ECTOPLASMIC_SHAMBLER, 0, CAST_SPELL);
+  extract_pending_chars();
+  retained = interrupted && owner->followers == NULL && can_use_astral_juggernaut(owner);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_unsubscribe(domain_event_runtime_bus(), subscription));
+  circle_srandom(421);
+  mag_summons(20, owner, NULL, PSIONIC_ECTOPLASMIC_SHAMBLER, 0, CAST_SPELL);
+  pet = owner->followers != NULL ? owner->followers->follower : NULL;
+  spent = pet != NULL && GET_SIZE(pet) == SIZE_LARGE &&
+          char_has_mud_event(owner, eASTRAL_JUGGERNAUT_USED) != NULL;
+  circle_srandom(421);
+  mag_summons(20, owner, NULL, PSIONIC_ECTOPLASMIC_SHAMBLER, 0, CAST_SPELL);
+  denied = pet != NULL && owner->followers->follower == pet && owner->followers->next == NULL;
+  if (pet != NULL)
+  {
+    boosted[0] = GET_HITROLL(pet);
+    boosted[1] = GET_DAMROLL(pet);
+    boosted[2] = GET_AC(pet);
+    boosted[3] = GET_MAX_HIT(pet);
+    CuAssertIntEquals(tc, 20, GET_HIT(pet) - GET_MAX_HIT(pet));
+    CuAssertTrue(tc, AFF2_FLAGGED(pet, AFF2_MAGIC_ATTACKS));
+    CuAssertPtrNotNull(tc, GET_DR(pet));
+    CuAssertIntEquals(tc, 2, GET_DR(pet)->amount);
+    GET_HIT(pet) = 1;
+    affect_total(pet);
+    affect_total(pet);
+    CuAssertIntEquals(tc, boosted[0], GET_HITROLL(pet));
+    CuAssertIntEquals(tc, boosted[1], GET_DAMROLL(pet));
+    CuAssertIntEquals(tc, boosted[2], GET_AC(pet));
+    CuAssertIntEquals(tc, boosted[3], GET_MAX_HIT(pet));
+    CuAssertIntEquals(tc, SIZE_LARGE, GET_SIZE(pet));
+    CuAssertIntEquals(tc, 1, GET_HIT(pet));
+    extract_char(pet);
+  }
+  extract_pending_chars();
+  circle_srandom(421);
+  mag_summons(20, owner, NULL, PSIONIC_ECTOPLASMIC_SHAMBLER, 0, CAST_SPELL);
+  pet = owner->followers != NULL ? owner->followers->follower : NULL;
+  CuAssertPtrNotNull(tc, pet);
+  ordinary[0] = GET_HITROLL(pet);
+  ordinary[1] = GET_DAMROLL(pet);
+  ordinary[2] = GET_AC(pet);
+  ordinary[3] = GET_MAX_HIT(pet);
+  CuAssertIntEquals(tc, 20, GET_HIT(pet) - GET_MAX_HIT(pet));
+  extract_char(pet);
+  extract_pending_chars();
+  remove_all_perks(owner);
+  circle_srandom(421);
+  mag_summons(20, owner, NULL, PSIONIC_ECTOPLASMIC_SHAMBLER, 0, CAST_SPELL);
+  pet = owner->followers != NULL ? owner->followers->follower : NULL;
+  CuAssertPtrNotNull(tc, pet);
+  CuAssertIntEquals(tc, GET_AC(pet) + 30, ordinary[2]);
+  CuAssertIntEquals(tc, GET_MAX_HIT(pet), GET_HIT(pet));
+  extract_char(pet);
+  extract_pending_chars();
+  clear_char_event_list(owner);
+  if (owner->events != NULL)
+    free_list(owner->events);
+  remove_all_perks(owner);
+  domain_event_world_forget_character(owner);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  mob_proto = saved_proto;
+  character_list = saved_characters;
+  end_gameplay_fixture(&f);
+  CuAssertTrue(tc, retained);
+  CuAssertTrue(tc, spent);
+  CuAssertTrue(tc, denied);
+  CuAssertIntEquals(tc, ordinary[0] + 4, boosted[0]);
+  CuAssertIntEquals(tc, ordinary[1] + 4, boosted[1]);
+  CuAssertIntEquals(tc, ordinary[2] + 40, boosted[2]);
+  CuAssertIntEquals(tc, ordinary[3] + 40, boosted[3]);
+}
+
+static void verify_nature_summon_scaling(CuTest *tc, int mob_level, int scaling)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct char_data prototype, *pet;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  int base[3], improved[3], recalculated[3];
+  int mode, i;
+  int saved_scaling[] = {CONFIG_SUMMON_LEVEL_1_10_HIT_DAM,  CONFIG_SUMMON_LEVEL_11_20_HIT_DAM,
+                         CONFIG_SUMMON_LEVEL_21_30_HIT_DAM, CONFIG_SUMMON_LEVEL_1_10_AC,
+                         CONFIG_SUMMON_LEVEL_11_20_AC,      CONFIG_SUMMON_LEVEL_21_30_AC};
+
+  begin_gameplay_fixture(&f);
+  CONFIG_SUMMON_LEVEL_1_10_HIT_DAM = CONFIG_SUMMON_LEVEL_11_20_HIT_DAM =
+      CONFIG_SUMMON_LEVEL_21_30_HIT_DAM = scaling;
+  CONFIG_SUMMON_LEVEL_1_10_AC = CONFIG_SUMMON_LEVEL_11_20_AC = CONFIG_SUMMON_LEVEL_21_30_AC =
+      scaling;
+  event_free_all();
+  event_init();
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(&f.actor) = -1;
+  f.mobile_index[0].vnum = MOB_DIRE_BADGER;
+  initialize_test_npc(&prototype, "badger", NOWHERE);
+  prototype.player.name = (char *)"badger";
+  GET_LEVEL(&prototype) = mob_level;
+  GET_REAL_HITROLL(&prototype) = GET_HITROLL(&prototype) = 4;
+  GET_REAL_DAMROLL(&prototype) = GET_DAMROLL(&prototype) = 6;
+  GET_REAL_AC(&prototype) = prototype.points.armor = 100;
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = GET_PSP(&prototype) = 100;
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  mob_proto = &prototype;
+  for (mode = 0; mode < 2; mode++)
+  {
+    if (mode == 1)
+      add_char_perk(&f.actor, PERK_RANGER_SPELL_FOCUS_CONJURATION_I, CLASS_RANGER);
+    circle_srandom(421);
+    mag_summons(10, &f.actor, NULL, SPELL_SUMMON_NATURES_ALLY_1, 0, CAST_SPELL);
+    pet = f.actor.followers != NULL ? f.actor.followers->follower : NULL;
+    CuAssertPtrNotNull(tc, pet);
+    if (mode == 0)
+    {
+      affect_total(pet);
+      base[0] = GET_HITROLL(pet);
+      base[1] = GET_DAMROLL(pet);
+      base[2] = GET_REAL_AC(pet);
+    }
+    else
+    {
+      improved[0] = GET_HITROLL(pet);
+      improved[1] = GET_DAMROLL(pet);
+      improved[2] = GET_REAL_AC(pet);
+      GET_HIT(pet) = 1;
+      affect_total(pet);
+      affect_total(pet);
+      recalculated[0] = GET_HITROLL(pet);
+      recalculated[1] = GET_DAMROLL(pet);
+      recalculated[2] = GET_REAL_AC(pet);
+      CuAssertIntEquals(tc, 1, GET_HIT(pet));
+    }
+    extract_char(pet);
+    extract_pending_chars();
+    clear_char_event_list(&f.actor);
+  }
+  remove_all_perks(&f.actor);
+  event_free_all();
+  domain_event_world_forget_character(&f.actor);
+  mob_proto = saved_proto;
+  character_list = saved_characters;
+  end_gameplay_fixture(&f);
+  CONFIG_SUMMON_LEVEL_1_10_HIT_DAM = saved_scaling[0];
+  CONFIG_SUMMON_LEVEL_11_20_HIT_DAM = saved_scaling[1];
+  CONFIG_SUMMON_LEVEL_21_30_HIT_DAM = saved_scaling[2];
+  CONFIG_SUMMON_LEVEL_1_10_AC = saved_scaling[3];
+  CONFIG_SUMMON_LEVEL_11_20_AC = saved_scaling[4];
+  CONFIG_SUMMON_LEVEL_21_30_AC = saved_scaling[5];
+  for (i = 0; i < 3; i++)
+  {
+    CuAssertIntEquals(tc, base[i] + scaling / 100, improved[i]);
+    CuAssertIntEquals(tc, improved[i], recalculated[i]);
+  }
+}
+
+void Test_gameplay_nature_summon_combat_bonuses_survive_recalculation_without_stacking(CuTest *tc)
+{
+  int level;
+
+  for (level = 5; level <= 25; level += 10)
+  {
+    verify_nature_summon_scaling(tc, level, 100);
+    verify_nature_summon_scaling(tc, level, 200);
+  }
+}
+
+void Test_gameplay_alpha_bond_saves_survive_recalculation_without_stacking(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct char_data prototype, *pet;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  int base[3], improved[3], recalculated[3], recalled[3];
+  const int saves[] = {SAVING_FORT, SAVING_REFL, SAVING_WILL};
+  int mode, i;
+
+  begin_gameplay_fixture(&f);
+  event_free_all();
+  event_init();
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(&f.actor) = -1;
+  GET_ANIMAL_COMPANION(&f.actor) = MOB_DIRE_BADGER;
+  f.mobile_index[0].vnum = MOB_DIRE_BADGER;
+  initialize_test_npc(&prototype, "badger", NOWHERE);
+  prototype.player.name = (char *)"badger";
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = GET_PSP(&prototype) = 100;
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  mob_proto = &prototype;
+  for (mode = 0; mode < 2; mode++)
+  {
+    if (mode == 1)
+      add_char_perk(&f.actor, PERK_RANGER_ALPHA_BOND, CLASS_RANGER);
+    circle_srandom(421);
+    perform_call(&f.actor, MOB_C_ANIMAL, 10);
+    pet = f.actor.followers != NULL ? f.actor.followers->follower : NULL;
+    CuAssertPtrNotNull(tc, pet);
+    for (i = 0; i < 3; i++)
+      if (mode == 0)
+        base[i] = GET_SAVE(pet, saves[i]);
+      else
+        improved[i] = GET_SAVE(pet, saves[i]);
+    if (mode == 1)
+    {
+      affect_total(pet);
+      affect_total(pet);
+      for (i = 0; i < 3; i++)
+        recalculated[i] = GET_SAVE(pet, saves[i]);
+      char_from_room(pet);
+      char_to_room(pet, 1);
+      perform_call(&f.actor, MOB_C_ANIMAL, 20);
+      for (i = 0; i < 3; i++)
+        recalled[i] = GET_SAVE(pet, saves[i]);
+    }
+    extract_char(pet);
+    extract_pending_chars();
+    clear_char_event_list(&f.actor);
+  }
+  remove_all_perks(&f.actor);
+  event_free_all();
+  domain_event_world_forget_character(&f.actor);
+  mob_proto = saved_proto;
+  character_list = saved_characters;
+  end_gameplay_fixture(&f);
+  for (i = 0; i < 3; i++)
+  {
+    CuAssertIntEquals(tc, base[i] + 3, improved[i]);
+    CuAssertIntEquals(tc, improved[i], recalculated[i]);
+    CuAssertIntEquals(tc, improved[i], recalled[i]);
+  }
+}
+
+static bool verify_authored_lycanthropes(const char *sandbox, char *error, size_t error_size)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct char_data *owner = &fixture.actor, *pet;
+  struct obj_data *wand;
+  FILE *file;
+  char path[PATH_MAX], line[256];
+  int i, vnum;
+
+  (void)sandbox;
+  begin_gameplay_fixture(&fixture);
+  event_free_all();
+  event_init();
+  mob_proto = calloc(2, sizeof(*mob_proto));
+  mob_index = calloc(2, sizeof(*mob_index));
+  if (mob_proto == NULL || mob_index == NULL)
+    return false;
+  snprintf(path, sizeof(path), "%s/data/pet-lycanthropes/195.mob", test_source_root());
+  file = fopen(path, "r");
+  if (file == NULL)
+    return false;
+  for (i = 0; i < 2; i++)
+  {
+    if (!get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 || vnum != PET_LYCAN_WEREWOLF + i)
+      return false;
+    parse_mobile(file, vnum);
+    if (!MOB_FLAGGED(&mob_proto[i], MOB_ROL_LYCANTHROPE_SUMMON))
+      return false;
+  }
+  fclose(file);
+  top_of_mobt = 1;
+  REMOVE_BIT_AR(MOB_FLAGS(owner), MOB_ISNPC);
+  owner->player_specials = &specials;
+  owner->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(owner) = -1;
+  GET_LEVEL(owner) = 20;
+  SET_SKILL(owner, ABILITY_USE_MAGIC_DEVICE, 100);
+  if (spell_info[SPELL_CALL_LYCANTHROPE].name == NULL ||
+      spell_info[SPELL_CALL_LYCANTHROPE].name == unused_spellname)
+    mag_assign_spells();
+  obj_proto = calloc(1, sizeof(*obj_proto));
+  obj_index = calloc(1, sizeof(*obj_index));
+  if (obj_proto == NULL || obj_index == NULL)
+    return false;
+  snprintf(path, sizeof(path), "%s/data/pet-lycanthropes/195.obj", test_source_root());
+  file = fopen(path, "r");
+  if (file == NULL || !get_line(file, line) || sscanf(line, "#%d", &vnum) != 1 ||
+      vnum != PET_LYCAN_CALL_WAND)
+    return false;
+  parse_object(file, vnum);
+  fclose(file);
+  top_of_objt = 0;
+  wand = read_object(PET_LYCAN_CALL_WAND, VIRTUAL);
+  if (wand == NULL || GET_OBJ_TYPE(wand) != ITEM_WAND ||
+      GET_OBJ_VAL(wand, 3) != SPELL_CALL_LYCANTHROPE || GET_OBJ_VAL(wand, 2) != 1)
+    return false;
+  equip_char(owner, wand, WEAR_HOLD_1);
+  for (i = 0; i < 2; i++)
+    REMOVE_BIT_AR(MOB_FLAGS(&mob_proto[i]), MOB_ROL_LYCANTHROPE_SUMMON);
+  do_use(owner, "mooncall self", 0, SCMD_USE);
+  if (GET_OBJ_VAL(wand, 2) != 1 || owner->followers != NULL)
+    return false;
+  for (i = 0; i < 2; i++)
+  {
+    REMOVE_BIT_AR(MOB_FLAGS(&mob_proto[1 - i]), MOB_ROL_LYCANTHROPE_SUMMON);
+    SET_BIT_AR(MOB_FLAGS(&mob_proto[i]), MOB_ROL_LYCANTHROPE_SUMMON);
+    GET_OBJ_VAL(wand, 2) = 1;
+    do_use(owner, "mooncall self", 0, SCMD_USE);
+    pet = owner->followers != NULL ? owner->followers->follower : NULL;
+    if (GET_OBJ_VAL(wand, 2) != 0 || pet == NULL || !IS_PET(pet) ||
+        GET_MOB_VNUM(pet) != (mob_vnum)(PET_LYCAN_WEREWOLF + i) ||
+        GET_RACE(pet) != RACE_TYPE_LYCANTHROPE || !pet_order_check(owner, pet) ||
+        pet->pet_source_spell != SPELL_CALL_LYCANTHROPE || GET_GOLD(pet) != 0 ||
+        char_has_mud_event(pet, eROL_CALL_LYCANTHROPE_CHARM) == NULL)
+    {
+      snprintf(error, error_size, "authored lycanthrope %d acquisition failed", i);
+      return false;
+    }
+    GET_OBJ_VAL(wand, 2) = 1;
+    do_use(owner, "mooncall self", 0, SCMD_USE);
+    if (GET_OBJ_VAL(wand, 2) != 1 || owner->followers->follower != pet ||
+        owner->followers->next != NULL)
+      return false;
+    pulse += 30 * PASSES_PER_SEC;
+    event_test_advance();
+    extract_pending_chars();
+    if (owner->followers != NULL)
+      return false;
+  }
+  return true;
+}
+
+void Test_gameplay_authored_lycanthropes_acquire_and_expire(CuTest *tc)
+{
+  char error[512] = {0};
+
+  CuAssert(tc, error, spec_test_run_isolated(verify_authored_lycanthropes, error, sizeof(error)));
+}
+
+void Test_gameplay_lycanthrope_admission_expiry_and_control_break(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct char_data prototype, *pet, *owner;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  struct domain_entity_handle pet_handle;
+  unsigned long saved_pulse = pulse;
+  bool missing, charmed, owned, denied, resolved;
+  int mode;
+  unsigned long seed;
+
+  for (mode = 0; mode < 4; mode++)
+  {
+    begin_gameplay_fixture(&fixture);
+    event_free_all();
+    event_init();
+    owner = &fixture.actor;
+    initialize_test_npc(&prototype, "summoned lycanthrope", NOWHERE);
+    SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+    GET_MOB_RNUM(&prototype) = 0;
+    GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = 100;
+    mob_proto = &prototype;
+    spell_call_lycanthrope(20, owner, NULL, NULL, 0);
+    missing = owner->followers == NULL && !can_call_lycanthrope(owner) &&
+              cast_spell(owner, owner, NULL, SPELL_CALL_LYCANTHROPE, 0) == 0 &&
+              !IS_CASTING(owner) && owner->primary_activity == NULL;
+    SET_BIT_AR(MOB_FLAGS(&prototype), MOB_ROL_LYCANTHROPE_SUMMON);
+    SET_BIT_AR(AFF_FLAGS(owner), AFF_CHARM);
+    spell_call_lycanthrope(20, owner, NULL, NULL, 0);
+    charmed = owner->followers == NULL && !can_call_lycanthrope(owner) &&
+              cast_spell(owner, owner, NULL, SPELL_CALL_LYCANTHROPE, 0) == 0 &&
+              !IS_CASTING(owner) && owner->primary_activity == NULL;
+    REMOVE_BIT_AR(AFF_FLAGS(owner), AFF_CHARM);
+    spell_call_lycanthrope(20, owner, NULL, NULL, 0);
+    pet = owner->followers != NULL ? owner->followers->follower : NULL;
+    owned = pet != NULL && IS_PET(pet) && pet->char_specials.is_charmie &&
+            pet->pet_source_spell == SPELL_CALL_LYCANTHROPE &&
+            char_has_mud_event(pet, eROL_CALL_LYCANTHROPE_CHARM) != NULL;
+    spell_call_lycanthrope(20, owner, NULL, NULL, 0);
+    denied = pet != NULL && owner->followers->follower == pet && owner->followers->next == NULL &&
+             cast_spell(owner, owner, NULL, SPELL_CALL_LYCANTHROPE, 0) == 0 && !IS_CASTING(owner) &&
+             owner->primary_activity == NULL;
+    resolved = false;
+    if (pet != NULL)
+    {
+      pet_handle = domain_event_character_handle(pet);
+      if (mode != 0)
+      {
+        if (mode == 1)
+        {
+          char_from_room(pet);
+          char_to_room(pet, 1);
+        }
+        FIGHTING(pet) = &fixture.victim;
+        GET_CHA(owner) = mode == 3 ? 30 : 1;
+        GET_HIT(owner) = GET_MAX_HIT(owner) = GET_REAL_MAX_HIT(owner) = 10000;
+        for (seed = 1; seed < 1000; seed++)
+        {
+          circle_srandom(seed);
+          if (rand_number(1, 20) < 20)
+            break;
+        }
+        circle_srandom(seed);
+      }
+      pulse += 30 * PASSES_PER_SEC;
+      event_test_advance();
+      extract_pending_chars();
+      pet = domain_event_world_resolve_character(pet_handle);
+      if (mode == 0)
+        resolved = pet == NULL && owner->followers == NULL;
+      else if (mode == 1)
+        resolved = pet != NULL && pet->master == NULL && !AFF_FLAGGED(pet, AFF_CHARM) &&
+                   owner->followers == NULL && FIGHTING(pet) == NULL &&
+                   pet->char_specials.is_charmie && IN_ROOM(pet) == 1;
+      else if (mode == 2)
+        resolved = pet != NULL && pet->master == NULL && !AFF_FLAGGED(pet, AFF_CHARM) &&
+                   owner->followers == NULL && FIGHTING(pet) == owner &&
+                   char_has_mud_event(pet, eROL_CALL_LYCANTHROPE_CHARM) == NULL;
+      else
+        resolved = pet != NULL && pet->master == owner && AFF_FLAGGED(pet, AFF_CHARM) &&
+                   FIGHTING(pet) == &fixture.victim &&
+                   char_has_mud_event(pet, eROL_CALL_LYCANTHROPE_CHARM) != NULL;
+      if (pet != NULL)
+        extract_char(pet);
+      extract_pending_chars();
+    }
+    domain_event_world_forget_character(owner);
+    event_free_all();
+    mob_proto = saved_proto;
+    character_list = saved_characters;
+    pulse = saved_pulse;
+    end_gameplay_fixture(&fixture);
+    CuAssertTrue(tc, missing);
+    CuAssertTrue(tc, charmed);
+    CuAssertTrue(tc, owned);
+    CuAssertTrue(tc, denied);
+    CuAssertTrue(tc, resolved);
+  }
+}
+
+void Test_gameplay_mercenary_recruited_hit_points_survive_recalculation(CuTest *tc)
+{
+  const int classes[] = {CLASS_WARRIOR, CLASS_ROGUE, CLASS_WIZARD};
+  const int expected[] = {90, 60, 40};
+  struct gameplay_fixture fixture;
+  struct char_data *pet;
+  int i, pass;
+
+  for (i = 0; i < 3; i++)
+  {
+    begin_gameplay_fixture(&fixture);
+    pet = &fixture.actor;
+    pet->master = &fixture.victim;
+    SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+    GET_CLASS(pet) = classes[i];
+    GET_REAL_CON(pet) = pet->aff_abils.con = 10;
+    GET_REAL_MAX_HIT(pet) = GET_MAX_HIT(pet) = 100;
+    GET_HIT(pet) = 17;
+    CuAssertIntEquals(tc, TRUE, mercenary(pet, pet, 0, ""));
+    for (pass = 0; pass < 2; pass++)
+    {
+      affect_total(pet);
+      CuAssertIntEquals(tc, expected[i], GET_REAL_MAX_HIT(pet));
+      CuAssertIntEquals(tc, expected[i], GET_MAX_HIT(pet));
+      CuAssertIntEquals(tc, 17, GET_HIT(pet));
+      CuAssertIntEquals(tc, FALSE, mercenary(pet, pet, 0, ""));
+    }
+    pet->master = NULL;
+    end_gameplay_fixture(&fixture);
+  }
+}
+
+void Test_gameplay_eidolon_appearance_protects_defender_from_poison_and_disease(CuTest *tc)
+{
+  const int appearances[] = {EVOLUTION_UNDEAD_APPEARANCE, EVOLUTION_CELESTIAL_APPEARANCE};
+  const int levels[] = {1, 6, 7, 11, 12, 20};
+  struct gameplay_fixture fixture;
+  struct char_data *attacker, *pet;
+  int appearance, index, baseline, expected;
+
+  for (appearance = 0; appearance < 2; appearance++)
+  {
+    for (index = 0; index < 6; index++)
+    {
+      begin_gameplay_fixture(&fixture);
+      attacker = &fixture.actor;
+      pet = &fixture.victim;
+      GET_REAL_RACE(pet) = RACE_TYPE_OUTSIDER;
+      GET_LEVEL(pet) = levels[index];
+      baseline = get_poison_save_mod(attacker, pet);
+      HAS_REAL_EVOLUTION(pet, appearances[appearance]) = 1;
+      expected = levels[index] >= 12 ? 100 : levels[index] >= 7 ? 4 : 2;
+      CuAssertIntEquals(tc, baseline + expected, get_poison_save_mod(attacker, pet));
+      CuAssertIntEquals(tc, levels[index] < 12, can_poison(pet));
+      CuAssertIntEquals(tc, levels[index] < 12, can_disease(pet));
+      HAS_REAL_EVOLUTION(pet, appearances[appearance]) = 0;
+      HAS_REAL_EVOLUTION(attacker, appearances[appearance]) = 1;
+      CuAssertIntEquals(tc, baseline, get_poison_save_mod(attacker, pet));
+      CuAssertTrue(tc, can_poison(pet));
+      CuAssertTrue(tc, can_disease(pet));
+      GET_REAL_RACE(pet) = RACE_TYPE_UNDEAD;
+      HAS_REAL_EVOLUTION(pet, appearances[appearance]) = 1;
+      CuAssertTrue(tc, !can_poison(pet));
+      CuAssertTrue(tc, !can_disease(pet));
+      end_gameplay_fixture(&fixture);
+    }
+  }
+}
+
+void Test_gameplay_eidolon_progression_bonuses_survive_recalculation(CuTest *tc)
+{
+  const int forms[] = {EIDOLON_BASE_FORM_AVIAN, EIDOLON_BASE_FORM_BIPED,
+                       EIDOLON_BASE_FORM_QUADRUPED, EIDOLON_BASE_FORM_SERPENTINE,
+                       EIDOLON_BASE_FORM_TAURIC};
+  const int strength[] = {4, 6, 6, 4, 4};
+  const int dexterity[] = {6, 4, 6, 6, 2};
+  const int constitution[] = {4, 4, 4, 4, 6};
+  struct gameplay_fixture fixture;
+  struct player_special_data player_specials;
+  struct char_data *owner, *pet;
+  int selection, bonus, pass, form;
+
+  for (selection = 0; selection < 20; selection++)
+  {
+    form = selection / 4;
+    begin_gameplay_fixture(&fixture);
+    memset(&player_specials, 0, sizeof(player_specials));
+    owner = &fixture.actor;
+    pet = &fixture.victim;
+    REMOVE_BIT_AR(MOB_FLAGS(owner), MOB_ISNPC);
+    owner->player_specials = &player_specials;
+    GET_EIDOLON_BASE_FORM(owner) = forms[form];
+    SET_FEAT(owner, FEAT_GRAND_EIDOLON, (selection & 1) != 0);
+    SET_FEAT(owner, FEAT_EPIC_EIDOLON, (selection & 2) != 0);
+    bonus = ((selection & 1) ? 2 : 0) + ((selection & 2) ? 4 : 0);
+    GET_REAL_INT(pet) = GET_REAL_WIS(pet) = GET_REAL_CHA(pet) = 10;
+    GET_REAL_STR(pet) = GET_REAL_DEX(pet) = GET_REAL_CON(pet) = 10;
+    GET_HIT(pet) = 17;
+    GET_MOVE(pet) = 19;
+
+    assign_eidolon_evolutions(owner, pet, false);
+    for (pass = 0; pass < 2; pass++)
+    {
+      affect_total(pet);
+      CuAssertIntEquals(tc, 10 + bonus, GET_INT(pet));
+      CuAssertIntEquals(tc, 10 + bonus, GET_WIS(pet));
+      CuAssertIntEquals(tc, 10 + bonus, GET_CHA(pet));
+      CuAssertIntEquals(tc, 10 + strength[form] + bonus, GET_STR(pet));
+      CuAssertIntEquals(tc, 10 + dexterity[form] + bonus, GET_DEX(pet));
+      CuAssertIntEquals(tc, 10 + constitution[form] + bonus, GET_CON(pet));
+      CuAssertIntEquals(tc, form != 2, HAS_REAL_FEAT(pet, FEAT_IRON_WILL));
+      CuAssertIntEquals(tc, form == 1 || form == 2 || form == 4,
+                        HAS_REAL_FEAT(pet, FEAT_GREAT_FORTITUDE));
+      CuAssertIntEquals(tc, form != 1 && form != 4, HAS_REAL_FEAT(pet, FEAT_LIGHTNING_REFLEXES));
+      CuAssertIntEquals(tc, 17, GET_HIT(pet));
+      CuAssertIntEquals(tc, 19, GET_MOVE(pet));
+    }
+    end_gameplay_fixture(&fixture);
+  }
+}
+
+void Test_gameplay_necromancer_calls_and_recalls_undead_cohort(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct char_data prototype, *owner, *pet;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  MYSQL *saved_connection = conn;
+  bool denied, acquired, recalled = false;
+
+  begin_gameplay_fixture(&fixture);
+  event_free_all();
+  event_init();
+  conn = NULL;
+  owner = &fixture.actor;
+  REMOVE_BIT_AR(MOB_FLAGS(owner), MOB_ISNPC);
+  owner->player_specials = &specials;
+  owner->player.name = (char *)"cohortcaller";
+  owner->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(owner) = -1;
+  GET_CLASS(owner) = CLASS_NECROMANCER;
+  GET_LEVEL(owner) = CLASS_LEVEL(owner, CLASS_NECROMANCER) = 1;
+  do_call(owner, "cohort", 0, 0);
+  denied = owner->followers == NULL && char_has_mud_event(owner, eC_EIDOLON) == NULL;
+  if (class_list[CLASS_NECROMANCER].name == NULL)
+    load_class_list();
+  process_class_level_feats(owner, CLASS_NECROMANCER);
+  GET_LEVEL(owner) = CLASS_LEVEL(owner, CLASS_NECROMANCER) = 12;
+  KNOWS_EVOLUTION(owner, EVOLUTION_UNDEAD_APPEARANCE) = 1;
+  GET_EIDOLON_BASE_FORM(owner) = EIDOLON_BASE_FORM_BIPED;
+  initialize_test_npc(&prototype, "cohort", NOWHERE);
+  prototype.player.name = (char *)"cohort";
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_REAL_RACE(&prototype) = RACE_TYPE_OUTSIDER;
+  GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = GET_PSP(&prototype) = 100;
+  fixture.mobile_index[0].vnum = MOB_NUM_EIDOLON;
+  mob_proto = &prototype;
+  do_call(owner, "cohort", 0, 0);
+  pet = owner->followers != NULL ? owner->followers->follower : NULL;
+  acquired = pet != NULL && IS_PET(pet) && MOB_FLAGGED(pet, MOB_EIDOLON) && GET_LEVEL(pet) == 12 &&
+             HAS_EVOLUTION(pet, EVOLUTION_UNDEAD_APPEARANCE) && !can_poison(pet) &&
+             !can_disease(pet) && char_has_mud_event(owner, eC_EIDOLON) != NULL;
+  if (pet != NULL)
+  {
+    GET_HIT(pet) = 17;
+    GET_MOVE(pet) = 19;
+    char_from_room(pet);
+    char_to_room(pet, 1);
+    do_call(owner, "cohort", 0, 0);
+    do_call(owner, "cohort", 0, 0);
+    recalled = owner->followers->follower == pet && owner->followers->next == NULL &&
+               IN_ROOM(pet) == IN_ROOM(owner) && GET_HIT(pet) == 17 && GET_MOVE(pet) == 19;
+    extract_char(pet);
+    extract_pending_chars();
+  }
+  clear_char_event_list(owner);
+  if (owner->events != NULL)
+    free_list(owner->events);
+  owner->events = NULL;
+  domain_event_world_forget_character(owner);
+  event_free_all();
+  mob_proto = saved_proto;
+  character_list = saved_characters;
+  conn = saved_connection;
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, denied);
+  CuAssertTrue(tc, acquired);
+  CuAssertTrue(tc, recalled);
+}
+
+void Test_gameplay_dragonrider_calls_every_authored_mount_and_recalls_without_refresh(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials;
+  struct char_data prototype, *owner, *pet;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  MYSQL *saved_connection = conn;
+  int type;
+  bool denied = true, acquired = true, recalled = true;
+
+  if (class_list[CLASS_DRAGONRIDER].name == NULL)
+    load_class_list();
+  for (type = 1; type < NUM_DRAGON_TYPES; type++)
+  {
+    memset(&specials, 0, sizeof(specials));
+    begin_gameplay_fixture(&fixture);
+    event_free_all();
+    event_init();
+    conn = NULL;
+    owner = &fixture.actor;
+    REMOVE_BIT_AR(MOB_FLAGS(owner), MOB_ISNPC);
+    owner->player_specials = &specials;
+    owner->player.name = (char *)"dragoncaller";
+    owner->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+    GET_PFILEPOS(owner) = -1;
+    GET_CLASS(owner) = CLASS_DRAGONRIDER;
+    GET_LEVEL(owner) = CLASS_LEVEL(owner, CLASS_DRAGONRIDER) = 1;
+    process_class_level_feats(owner, CLASS_DRAGONRIDER);
+    GET_LEVEL(owner) = 10;
+    GET_DRAGON_RIDER_DRAGON_TYPE(owner) = type;
+    fixture.mobile_index[0].vnum = PET_DRAGON_MOUNT_FIRST + type - 1;
+    mob_proto = NULL;
+    do_call(owner, "dragon", 0, 0);
+    denied =
+        denied && owner->followers == NULL && char_has_mud_event(owner, eC_DRAGONMOUNT) == NULL;
+    initialize_test_npc(&prototype, "dragon", NOWHERE);
+    prototype.player.name = (char *)"dragon";
+    GET_MOB_RNUM(&prototype) = 0;
+    GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = GET_PSP(&prototype) = 100;
+    mob_proto = &prototype;
+    do_call(owner, "dragon", 0, 0);
+    pet = owner->followers != NULL ? owner->followers->follower : NULL;
+    acquired = acquired && pet != NULL && IS_PET(pet) && MOB_FLAGGED(pet, MOB_C_DRAGON) &&
+               GET_LEVEL(pet) == 10 &&
+               GET_MOB_VNUM(pet) == (mob_vnum)(PET_DRAGON_MOUNT_FIRST + type - 1) &&
+               char_has_mud_event(owner, eC_DRAGONMOUNT) != NULL;
+    if (pet != NULL)
+    {
+      GET_HIT(pet) = 17;
+      GET_MOVE(pet) = 19;
+      GET_PSP(pet) = 11;
+      GET_LEVEL(owner) = 20;
+      char_from_room(pet);
+      char_to_room(pet, 1);
+      do_call(owner, "dragon", 0, 0);
+      do_call(owner, "dragon", 0, 0);
+      recalled = recalled && owner->followers->follower == pet && owner->followers->next == NULL &&
+                 IN_ROOM(pet) == IN_ROOM(owner) && GET_LEVEL(pet) == 10 && GET_HIT(pet) == 17 &&
+                 GET_MOVE(pet) == 19 && GET_PSP(pet) == 11;
+      extract_char(pet);
+      extract_pending_chars();
+    }
+    clear_char_event_list(owner);
+    if (owner->events != NULL)
+      free_list(owner->events);
+    owner->events = NULL;
+    domain_event_world_forget_character(owner);
+    event_free_all();
+    mob_proto = saved_proto;
+    character_list = saved_characters;
+    conn = saved_connection;
+    end_gameplay_fixture(&fixture);
+  }
+  CuAssertTrue(tc, denied);
+  CuAssertTrue(tc, acquired);
+  CuAssertTrue(tc, recalled);
+}
+
 void Test_gameplay_companion_creation_sets_bond_and_preserves_failed_call_cooldown(CuTest *tc)
 {
   struct gameplay_fixture fixture;
@@ -1476,7 +2886,8 @@ void Test_gameplay_companion_creation_sets_bond_and_preserves_failed_call_cooldo
   struct char_data prototype, *pet;
   struct char_data *saved_prototypes = mob_proto;
   struct char_data *saved_characters = character_list;
-  bool failed, bonded, recalled;
+  bool failed, bonded, recalled, blocked_corpse = false;
+  struct obj_data *corpse;
 
   begin_gameplay_fixture(&fixture);
   event_free_all();
@@ -1510,8 +2921,14 @@ void Test_gameplay_companion_creation_sets_bond_and_preserves_failed_call_cooldo
     char_to_room(pet, 1);
     perform_call(&fixture.actor, MOB_C_FAMILIAR, 10);
     recalled = IN_ROOM(pet) == 0 && fixture.actor.followers->next == NULL;
-    extract_char(pet);
+    /* Failed saving must not allow a released called pet to supply another summon. */
+    stop_follower(pet);
+    raw_kill(pet, &fixture.victim);
     extract_pending_chars();
+    corpse = fixture.rooms[0].contents;
+    blocked_corpse = corpse != NULL && IS_CORPSE(corpse) && !corpse_can_be_animated(corpse);
+    if (corpse != NULL)
+      extract_obj(corpse);
   }
   clear_char_event_list(&fixture.actor);
   if (fixture.actor.events != NULL)
@@ -1526,6 +2943,7 @@ void Test_gameplay_companion_creation_sets_bond_and_preserves_failed_call_cooldo
   CuAssertTrue(tc, failed);
   CuAssertTrue(tc, bonded);
   CuAssertTrue(tc, recalled);
+  CuAssertTrue(tc, blocked_corpse);
 }
 
 static void verify_item_pet_acquisition(CuTest *tc, bool horn)
@@ -1658,7 +3076,8 @@ void Test_gameplay_innate_animation_sets_source_flag_and_retains_failed_use(CuTe
   struct player_special_data specials = {0};
   struct char_data prototype, *pet, *ch = &fixture.actor;
   struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
-  bool failed, acquired, duplicate;
+  struct follow_type lesser = {0};
+  bool failed, partial_capacity, acquired, duplicate, rejected_choices, lesser_choice;
 
   begin_gameplay_fixture(&fixture);
   event_free_all();
@@ -1681,6 +3100,16 @@ void Test_gameplay_innate_animation_sets_source_flag_and_retains_failed_use(CuTe
   GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
   GET_REAL_MAX_MOVE(&prototype) = 100;
   mob_proto = &prototype;
+  /* A mummy needs two points; the one remaining point must not spend a daily use. */
+  SET_BIT_AR(MOB_FLAGS(&fixture.victim), MOB_ANIMATED_DEAD);
+  SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+  fixture.victim.master = ch;
+  lesser.follower = &fixture.victim;
+  ch->followers = &lesser;
+  do_animatedead(ch, "", 0, 0);
+  partial_capacity = ch->followers == &lesser && daily_uses_remaining(ch, FEAT_ANIMATE_DEAD) == 2;
+  ch->followers = NULL;
+  fixture.victim.master = NULL;
   do_animatedead(ch, "", 0, 0);
   pet = ch->followers != NULL ? ch->followers->follower : NULL;
   acquired = pet != NULL && MOB_FLAGGED(pet, MOB_ANIMATED_DEAD) &&
@@ -1693,6 +3122,27 @@ void Test_gameplay_innate_animation_sets_source_flag_and_retains_failed_use(CuTe
     extract_char(pet);
     extract_pending_chars();
   }
+  do_animatedead(ch, "dragon", 0, 0);
+  do_animatedead(ch, "zombie extra", 0, 0);
+  do_animatedead(ch, "ghoul", 0, 0); /* Missing selected prototype. */
+  GET_LEVEL(ch) = 9;
+  do_animatedead(ch, "mummy", 0, 0);
+  rejected_choices = ch->followers == NULL && daily_uses_remaining(ch, FEAT_ANIMATE_DEAD) == 1;
+  GET_LEVEL(ch) = 31;
+  fixture.mobile_index[0].vnum = MOB_GHOUL;
+  ch->followers = &lesser;
+  fixture.victim.master = ch;
+  do_animatedead(ch, "ghoul", 0, 0);
+  pet = ch->followers != &lesser ? ch->followers->follower : NULL;
+  lesser_choice = pet != NULL && GET_MOB_VNUM(pet) == MOB_GHOUL && IS_PET(pet) &&
+                  pet->char_specials.is_charmie && daily_uses_remaining(ch, FEAT_ANIMATE_DEAD) == 0;
+  if (pet != NULL)
+  {
+    extract_char(pet);
+    extract_pending_chars();
+  }
+  ch->followers = NULL;
+  fixture.victim.master = NULL;
   clear_char_event_list(ch);
   if (ch->events != NULL)
     free_list(ch->events);
@@ -1704,8 +3154,11 @@ void Test_gameplay_innate_animation_sets_source_flag_and_retains_failed_use(CuTe
   domain_event_world_forget_character(&fixture.victim);
   end_gameplay_fixture(&fixture);
   CuAssertTrue(tc, failed);
+  CuAssertTrue(tc, partial_capacity);
   CuAssertTrue(tc, acquired);
   CuAssertTrue(tc, duplicate);
+  CuAssertTrue(tc, rejected_choices);
+  CuAssertTrue(tc, lesser_choice);
 }
 
 void Test_gameplay_e2e_movement_trail_statistics_follow_live_world(CuTest *tc)
@@ -2023,16 +3476,216 @@ void Test_gameplay_pet_token_admission_checks_carrier(CuTest *tc)
   CuAssertTrue(tc, retained);
 }
 
-static void verify_native_summon_batch(CuTest *tc, int spell, int expected)
+static void interrupt_purchased_pet_arrival(const struct domain_event_context *context, void *data)
+{
+  const struct domain_character_moved *event = context->payload;
+  struct char_data *pet = domain_event_world_resolve_character(event->character);
+  bool *controlled_arrival = data;
+
+  if (pet != NULL && IS_NPC(pet))
+  {
+    *controlled_arrival = IS_PET(pet) && pet->char_specials.is_charmie;
+    extract_char(pet);
+  }
+}
+
+static void verify_pet_shop_payment_and_recovery(CuTest *tc, int currency, bool producing)
 {
   struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct account_data account = {0};
+  struct char_data prototype, *pet;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  struct index_data object_index = {0}, *saved_obj_index = obj_index;
+  obj_rnum saved_top = top_of_objt;
+  struct obj_data *token, *stock_token;
+  struct obj_data object_prototype = {0}, *saved_object_proto = obj_proto;
+  struct domain_entity_handle token_handle;
+  struct domain_event_subscription_config observer = {0};
+  struct domain_event_subscription_handle subscription;
+  bool purchased, owned, retained, controlled_arrival = false;
+  struct shop_data shop = {0}, *saved_shops = shop_index;
+  int saved_top_shop = top_shop;
+  obj_vnum products[] = {NOTHING, NOTHING};
+  room_vnum shop_rooms[] = {100, NOWHERE};
+  struct follow_type occupied = {0};
+  char buy_argument[] = "token";
+  int buy_command, paid_balance;
+  bool missing_denied, capacity_denied, stock_preserved;
+
+  begin_gameplay_fixture(&fixture);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  event_init();
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player_specials = &specials;
+  descriptor.character = &fixture.actor;
+  descriptor.account = &account;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  fixture.actor.desc = &descriptor;
+  account.experience = currency == ITEM_ACCOUNT_EXP ? 10000 : 0;
+  fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(&fixture.actor) = -1;
+  GET_CHA(&fixture.actor) = 10;
+  GET_REAL_STR(&fixture.actor) = fixture.actor.aff_abils.str = 18;
+  GET_REAL_DEX(&fixture.actor) = fixture.actor.aff_abils.dex = 18;
+  fixture.actor.player.name = (char *)"petbuyer";
+  GET_GOLD(&fixture.actor) = currency == 0 ? 10000 : 0;
+  GET_QUESTPOINTS(&fixture.actor) = currency == ITEM_QUEST ? 10000 : 0;
+  initialize_test_npc(&prototype, "purchased companion", NOWHERE);
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = GET_PSP(&prototype) = 100;
+  mob_proto = &prototype;
+  object_index.vnum = fixture.mobile_index[0].vnum;
+  object_index.number = 1;
+  object_index.func = bought_pet;
+  obj_proto = &object_prototype;
+  obj_index = &object_index;
+  top_of_objt = 0;
+  token = create_obj();
+  GET_OBJ_RNUM(token) = 0;
+  token->name = strdup("token");
+  token->short_description = strdup("a companion token");
+  GET_OBJ_TYPE(token) = ITEM_PET;
+  GET_OBJ_COST(token) = 1000;
+  if (currency == ITEM_QUEST)
+    SET_BIT_AR(GET_OBJ_EXTRA(token), ITEM_QUEST);
+  else if (currency == ITEM_ACCOUNT_EXP)
+    SET_BIT_AR(GET_OBJ_EXTRA(token), ITEM_ACCOUNT_EXP);
+  clear_object(&object_prototype);
+  GET_OBJ_RNUM(&object_prototype) = 0;
+  object_prototype.name = token->name;
+  object_prototype.short_description = token->short_description;
+  object_prototype.obj_flags = token->obj_flags;
+  if (producing)
+    products[0] = 0;
+  stock_token = token;
+  obj_to_char(token, &fixture.victim);
+  GET_MOB_RNUM(&fixture.victim) = 0;
+  shop.keeper = 0;
+  shop.in_room = shop_rooms;
+  shop.producing = products;
+  shop.profit_buy = 1.0;
+  shop.close1 = 24;
+  shop.lastsort = 1;
+  shop_index = &shop;
+  top_shop = 0;
+  if (complete_cmd_info == NULL)
+    create_command_list();
+  buy_command = find_command("buy");
+  mob_proto = NULL;
+  shop_keeper(&fixture.actor, &fixture.victim, buy_command, buy_argument);
+  missing_denied = GET_GOLD(&fixture.actor) == (currency == 0 ? 10000 : 0) &&
+                   GET_QUESTPOINTS(&fixture.actor) == (currency == ITEM_QUEST ? 10000 : 0) &&
+                   account.experience == (currency == ITEM_ACCOUNT_EXP ? 10000 : 0) &&
+                   token->carried_by == &fixture.victim;
+  mob_proto = &prototype;
+  fixture.victim.master = &fixture.actor;
+  SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+  occupied.follower = &fixture.victim;
+  fixture.actor.followers = &occupied;
+  shop_keeper(&fixture.actor, &fixture.victim, buy_command, buy_argument);
+  capacity_denied = GET_GOLD(&fixture.actor) == (currency == 0 ? 10000 : 0) &&
+                    GET_QUESTPOINTS(&fixture.actor) == (currency == ITEM_QUEST ? 10000 : 0) &&
+                    account.experience == (currency == ITEM_ACCOUNT_EXP ? 10000 : 0) &&
+                    token->carried_by == &fixture.victim;
+  fixture.actor.followers = NULL;
+  fixture.victim.master = NULL;
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+  token_handle = domain_event_object_handle(token);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  observer.type = DOMAIN_EVENT_CHARACTER_MOVED;
+  observer.topic.role = DOMAIN_EVENT_TOPIC_DESTINATION;
+  observer.topic.entity = domain_event_room_handle(0);
+  observer.owner = domain_event_character_handle(&fixture.actor);
+  observer.identity = "test.pet-purchase.interrupted-arrival";
+  observer.handler = interrupt_purchased_pet_arrival;
+  observer.handler_context = &controlled_arrival;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(domain_event_runtime_bus(), &observer, &subscription));
+  shop_keeper(&fixture.actor, &fixture.victim, buy_command, buy_argument);
+  if (producing)
+  {
+    token = fixture.actor.carrying;
+    token_handle = domain_event_object_handle(token);
+  }
+  paid_balance = currency == ITEM_ACCOUNT_EXP ? account.experience
+                 : currency == ITEM_QUEST     ? GET_QUESTPOINTS(&fixture.actor)
+                                              : GET_GOLD(&fixture.actor);
+  retained = paid_balance > 0 && paid_balance < 10000;
+  extract_pending_chars();
+  retained = retained && controlled_arrival && fixture.actor.followers == NULL &&
+             domain_event_world_resolve_object(token_handle) == token && token != NULL &&
+             token->carried_by == &fixture.actor;
+  stock_preserved = !producing || (token != stock_token && fixture.victim.carrying == stock_token &&
+                                   stock_token->carried_by == &fixture.victim &&
+                                   stock_token->next_content == NULL && object_index.number == 2);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_unsubscribe(domain_event_runtime_bus(), subscription));
+  spec_gateway_object_automatic_activity(token);
+  purchased = fixture.actor.followers != NULL &&
+              GET_GOLD(&fixture.actor) == (currency == 0 ? paid_balance : 0) &&
+              GET_QUESTPOINTS(&fixture.actor) == (currency == ITEM_QUEST ? paid_balance : 0) &&
+              account.experience == (currency == ITEM_ACCOUNT_EXP ? paid_balance : 0);
+  pet = fixture.actor.followers != NULL ? fixture.actor.followers->follower : NULL;
+  owned = pet != NULL && pet->master == &fixture.actor && IS_PET(pet) &&
+          pet->char_specials.is_charmie && IN_ROOM(pet) == IN_ROOM(&fixture.actor) &&
+          domain_event_world_resolve_object(token_handle) == NULL;
+  stock_preserved = stock_preserved && object_index.number == (producing ? 1 : 0) &&
+                    (producing || fixture.victim.carrying == NULL);
+  if (producing)
+    extract_obj(stock_token);
+  free(object_prototype.name);
+  free(object_prototype.short_description);
+  if (pet != NULL)
+    extract_char(pet);
+  extract_pending_chars();
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_runtime_shutdown();
+  event_free_all();
+  obj_index = saved_obj_index;
+  obj_proto = saved_object_proto;
+  top_of_objt = saved_top;
+  mob_proto = saved_proto;
+  character_list = saved_characters;
+  shop_index = saved_shops;
+  top_shop = saved_top_shop;
+  ProtocolDestroy(descriptor.pProtocol);
+  fixture.actor.desc = NULL;
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, stock_preserved);
+  CuAssertTrue(tc, purchased);
+  CuAssertTrue(tc, owned);
+  CuAssertTrue(tc, retained);
+  CuAssertTrue(tc, missing_denied);
+  CuAssertTrue(tc, capacity_denied);
+}
+
+void Test_gameplay_pet_purchase_commits_token_and_establishes_summon_ownership(CuTest *tc)
+{
+  verify_pet_shop_payment_and_recovery(tc, 0, false);
+  verify_pet_shop_payment_and_recovery(tc, 0, true);
+  verify_pet_shop_payment_and_recovery(tc, ITEM_QUEST, false);
+  verify_pet_shop_payment_and_recovery(tc, ITEM_QUEST, true);
+  verify_pet_shop_payment_and_recovery(tc, ITEM_ACCOUNT_EXP, false);
+  verify_pet_shop_payment_and_recovery(tc, ITEM_ACCOUNT_EXP, true);
+}
+
+static void verify_native_summon_batch(CuTest *tc, int spell, int expected, bool selected)
+{
+  struct gameplay_fixture fixture;
+  struct descriptor_data feedback = {0};
   struct char_data prototypes[4], *pet;
   struct index_data indexes[4] = {0};
   struct char_data *saved_proto = mob_proto;
   struct char_data *saved_characters = character_list;
   unsigned long seed;
   int first_count, repeated_count, i, rolled;
-  bool staged_cleaned;
+  bool staged_cleaned, correct_form = true, full_denied, missing_denied;
 
   begin_gameplay_fixture(&fixture);
   event_free_all();
@@ -2046,32 +3699,60 @@ static void verify_native_summon_batch(CuTest *tc, int spell, int expected)
     GET_PSP(&prototypes[i]) = GET_REAL_MAX_HIT(&prototypes[i]) = GET_REAL_MAX_MOVE(&prototypes[i]) =
         100;
     /* Native spell prototypes: swarm elementals 9412-9415, shambler 9499. */
-    indexes[i].vnum = spell == SPELL_ELEMENTAL_SWARM ? 9412 + i : 9499 + i;
+    indexes[i].vnum = spell == SPELL_ELEMENTAL_SWARM ? PET_SWARM_AIR + i
+                      : spell == SPELL_SHAMBLER      ? PET_SHAMBLER + i
+                                                     : MOB_FIRE_ELEMENTAL + i;
   }
   mob_proto = prototypes;
   mob_index = indexes;
   top_of_mobt = 3;
+  if (selected)
+    set_pet_summon_choice(&fixture.actor, spell, "water");
   /* Find a seed yielding the authored maximum after the fail-message roll. */
   for (seed = 1; seed < 1000; seed++)
   {
     circle_srandom(seed);
     (void)rand_number(2, 6);
-    if (spell == SPELL_ELEMENTAL_SWARM)
+    if (spell == SPELL_ELEMENTAL_SWARM && !selected)
       (void)rand_number(0, 3);
-    rolled = spell == SPELL_ELEMENTAL_SWARM ? dice(2, 4) : dice(1, 4) + 2;
+    rolled = spell == SPELL_ELEMENTAL_SWARM ? dice(2, 4)
+             : spell == SPELL_SHAMBLER      ? dice(1, 4) + 2
+                                            : rand_number(0, 101) >= 10;
     if (rolled == expected)
       break;
   }
   circle_srandom(seed);
   mag_summons(20, &fixture.actor, NULL, spell, 0, 0);
   first_count = check_npc_followers(&fixture.actor, NPC_MODE_COUNT, 0);
+  feedback.output = feedback.small_outbuf;
+  feedback.bufspace = SMALL_BUFSIZE - 1;
+  feedback.character = &fixture.actor;
+  feedback.pProtocol = ProtocolCreate();
+  fixture.actor.desc = &feedback;
+  full_denied = cast_spell(&fixture.actor, NULL, NULL, spell, 0) == 0 &&
+                fixture.actor.primary_activity == NULL &&
+                strstr(feedback.output, "control allowance is full") != NULL;
   mag_summons(20, &fixture.actor, NULL, spell, 0, 0);
   repeated_count = check_npc_followers(&fixture.actor, NPC_MODE_COUNT, 0);
   while (fixture.actor.followers != NULL)
   {
+    if (selected)
+      correct_form = correct_form &&
+                     GET_MOB_VNUM(fixture.actor.followers->follower) ==
+                         (spell == SPELL_ELEMENTAL_SWARM ? PET_SWARM_WATER : MOB_WATER_ELEMENTAL);
     extract_char(fixture.actor.followers->follower);
     extract_pending_chars();
   }
+  top_of_mobt = -1;
+  feedback.small_outbuf[0] = '\0';
+  feedback.bufptr = 0;
+  feedback.bufspace = SMALL_BUFSIZE - 1;
+  missing_denied = cast_spell(&fixture.actor, NULL, NULL, spell, 0) == 0 &&
+                   fixture.actor.primary_activity == NULL &&
+                   strstr(feedback.output, "chosen summon is unavailable") != NULL;
+  top_of_mobt = 3;
+  fixture.actor.desc = NULL;
+  ProtocolDestroy(feedback.pProtocol);
   pet = read_mobile(0, REAL);
   staged_cleaned = pet != NULL && IN_ROOM(pet) == NOWHERE && attach_follower(pet, &fixture.actor);
   if (pet != NULL)
@@ -2091,16 +3772,102 @@ static void verify_native_summon_batch(CuTest *tc, int spell, int expected)
   CuAssertIntEquals(tc, expected, first_count);
   CuAssertIntEquals(tc, expected, repeated_count);
   CuAssertTrue(tc, staged_cleaned);
+  CuAssertTrue(tc, correct_form);
+  CuAssertTrue(tc, full_denied);
+  CuAssertTrue(tc, missing_denied);
 }
 
 void Test_gameplay_shambler_cast_preserves_full_batch_and_staged_cleanup(CuTest *tc)
 {
-  verify_native_summon_batch(tc, SPELL_SHAMBLER, 6);
+  verify_native_summon_batch(tc, SPELL_SHAMBLER, 6, false);
 }
 
 void Test_gameplay_elemental_swarm_preserves_full_batch_and_staged_cleanup(CuTest *tc)
 {
-  verify_native_summon_batch(tc, SPELL_ELEMENTAL_SWARM, 8);
+  verify_native_summon_batch(tc, SPELL_ELEMENTAL_SWARM, 8, false);
+  verify_native_summon_batch(tc, SPELL_ELEMENTAL_SWARM, 8, true);
+}
+
+void Test_gameplay_geniekind_denials_preserve_existing_benefits(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct affected_type previous;
+  struct char_data prototype;
+  struct char_data *saved_proto = mob_proto;
+  struct follow_type link = {0};
+  bool missing_retained, full_retained, missing_cast_denied, full_cast_denied;
+
+  begin_gameplay_fixture(&f);
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.desc = &descriptor;
+  descriptor.character = &f.actor;
+  initialize_test_npc(&prototype, "genie", NOWHERE);
+  mob_proto = &prototype;
+  f.mobile_index[0].vnum = MOB_DJINNI_KIND;
+  new_affect(&previous);
+  previous.spell = SPELL_DJINNI_KIND;
+  previous.location = APPLY_SPECIAL;
+  previous.duration = 17;
+  affect_to_char(&f.actor, &previous);
+  set_pet_summon_choice(&f.actor, SPELL_GENIEKIND, "marid");
+  missing_cast_denied = cast_spell(&f.actor, NULL, NULL, SPELL_GENIEKIND, 0) == 0;
+  spell_geniekind(20, &f.actor, NULL, NULL, CAST_SPELL);
+  missing_retained = affected_by_spell(&f.actor, SPELL_DJINNI_KIND) &&
+                     !affected_by_spell(&f.actor, SPELL_MARID_KIND) &&
+                     f.actor.affected->duration == 17 && f.actor.followers == NULL;
+  set_pet_summon_choice(&f.actor, SPELL_GENIEKIND, "djinni");
+  link.follower = &f.victim;
+  f.actor.followers = &link;
+  f.victim.master = &f.actor;
+  SET_BIT_AR(AFF_FLAGS(&f.victim), AFF_CHARM);
+  SET_BIT_AR(MOB_FLAGS(&f.victim), MOB_GENIEKIND);
+  full_cast_denied = cast_spell(&f.actor, NULL, NULL, SPELL_GENIEKIND, 0) == 0;
+  spell_geniekind(20, &f.actor, NULL, NULL, CAST_SPELL);
+  full_retained = f.actor.affected->duration == 17 && f.actor.followers == &link;
+  f.actor.followers = NULL;
+  f.victim.master = NULL;
+  affect_from_char(&f.actor, SPELL_DJINNI_KIND);
+  f.actor.desc = NULL;
+  domain_event_world_forget_character(&f.actor);
+  end_gameplay_fixture(&f);
+  mob_proto = saved_proto;
+  CuAssertTrue(tc, missing_cast_denied);
+  CuAssertTrue(tc, missing_retained);
+  CuAssertTrue(tc, full_cast_denied);
+  CuAssertTrue(tc, full_retained);
+}
+
+void Test_gameplay_elemental_choices_are_owned_by_each_cast_and_preserve_limits(CuTest *tc)
+{
+  struct char_data first = {0}, second = {0};
+  struct player_special_data specials = {0};
+  const int spells[] = {SPELL_SUMMON_CREATURE_7,     SPELL_SUMMON_CREATURE_8,
+                        SPELL_SUMMON_CREATURE_9,     SPELL_SUMMON_NATURES_ALLY_7,
+                        SPELL_SUMMON_NATURES_ALLY_8, SPELL_SUMMON_NATURES_ALLY_9};
+  size_t i;
+
+  first.player_specials = &specials;
+  for (i = 0; i < sizeof(spells) / sizeof(spells[0]); i++)
+  {
+    CuAssertTrue(tc, set_pet_summon_choice(&first, spells[i], "air"));
+    CuAssertTrue(tc, set_pet_summon_choice(&second, spells[i], "earth"));
+    CuAssertIntEquals(tc, MOB_AIR_ELEMENTAL, pet_summon_choice_mob(&first, spells[i]));
+    CuAssertIntEquals(tc, MOB_EARTH_ELEMENTAL, pet_summon_choice_mob(&second, spells[i]));
+    verify_native_summon_batch(tc, spells[i], 1, true);
+  }
+  CuAssertTrue(tc, set_pet_summon_choice(&first, SPELL_GENIEKIND, "marid"));
+  CuAssertTrue(tc, set_pet_summon_choice(&second, SPELL_GENIEKIND, "efreeti"));
+  CuAssertIntEquals(tc, MOB_MARID_KIND, pet_summon_choice_mob(&first, SPELL_GENIEKIND));
+  CuAssertIntEquals(tc, MOB_EFREETI_KIND, pet_summon_choice_mob(&second, SPELL_GENIEKIND));
+  CuAssertTrue(tc, !set_pet_summon_choice(&first, SPELL_GENIEKIND, "not-a-genie"));
+  CuAssertIntEquals(tc, NOBODY, pet_summon_choice_mob(&first, SPELL_GENIEKIND));
+  set_pet_summon_choice(&first, SPELL_GENIEKIND, "djinni");
+  resetCastingData(&first);
+  CuAssertIntEquals(tc, NOBODY, pet_summon_choice_mob(&first, SPELL_GENIEKIND));
+  CuAssertIntEquals(tc, NOBODY, pet_summon_choice_mob(&second, SPELL_ELEMENTAL_SWARM));
 }
 
 void Test_gameplay_dismiss_refuses_gear_and_preserves_pets_after_save_failure(CuTest *tc)
@@ -2140,7 +3907,7 @@ void Test_gameplay_dismiss_refuses_gear_and_preserves_pets_after_save_failure(Cu
   CuAssertTrue(tc, failed_save_retained);
 }
 
-void Test_gameplay_extracting_a_present_charmie_drops_its_assets(CuTest *tc)
+static void verify_expiring_pet_assets(CuTest *tc, int mode)
 {
   struct gameplay_fixture fixture;
   struct char_data prototype;
@@ -2148,10 +3915,15 @@ void Test_gameplay_extracting_a_present_charmie_drops_its_assets(CuTest *tc)
   struct char_data *saved_prototypes = mob_proto;
   struct char_data *saved_characters = character_list;
   struct obj_data *carried;
-  struct obj_data *equipped;
+  struct obj_data *equipped, *nested, *object;
+  struct domain_entity_handle pet_handle;
+  unsigned long saved_pulse = pulse;
+  int dropped_count = 0;
   bool assets_dropped;
 
   begin_gameplay_fixture(&fixture);
+  event_free_all();
+  event_init();
   initialize_test_npc(&prototype, "dismissed charmie", NOWHERE);
   prototype.player.name = (char *)"charmie";
   GET_MOB_RNUM(&prototype) = 0;
@@ -2162,23 +3934,58 @@ void Test_gameplay_extracting_a_present_charmie_drops_its_assets(CuTest *tc)
   charmie = read_mobile(0, REAL);
   CuAssertPtrNotNull(tc, charmie);
   char_to_room(charmie, 0);
+  pet_handle = domain_event_character_handle(charmie);
   charmie->char_specials.is_charmie = true;
   carried = create_obj();
   equipped = create_obj();
+  GET_OBJ_TYPE(carried) = ITEM_CONTAINER;
+  nested = create_obj();
+  obj_to_obj(nested, carried);
   obj_to_char(carried, charmie);
   equip_char(charmie, equipped, WEAR_NECK_1);
 
-  extract_char(charmie);
+  if (mode == 0)
+    extract_char(charmie);
+  else
+  {
+    SET_BIT_AR(MOB_FLAGS(charmie), MOB_C_ANIMAL);
+    SET_BIT_AR(AFF_FLAGS(charmie), AFF_CHARM);
+    CuAssertTrue(tc, attach_follower(charmie, &fixture.actor));
+    char_from_room(&fixture.actor);
+    char_to_room(&fixture.actor, 1);
+    if (mode == 1)
+      attach_mud_event(new_mud_event(ePURGEMOB, charmie, NULL), 12 * PASSES_PER_SEC);
+    else
+      stop_follower(charmie);
+    pulse += 12 * PASSES_PER_SEC;
+    event_test_advance();
+  }
   extract_pending_chars();
   assets_dropped = IN_ROOM(carried) == 0 && carried->carried_by == NULL && IN_ROOM(equipped) == 0 &&
-                   equipped->worn_by == NULL;
+                   equipped->worn_by == NULL && nested->in_obj == carried &&
+                   carried->contains == nested && fixture.actor.followers == NULL &&
+                   domain_event_world_resolve_character(pet_handle) == NULL;
+  for (object = fixture.rooms[0].contents; object != NULL; object = object->next_content)
+    dropped_count++;
 
   extract_obj(carried);
   extract_obj(equipped);
+  domain_event_world_forget_character(&fixture.actor);
+  event_free_all();
+  pulse = saved_pulse;
   character_list = saved_characters;
   mob_proto = saved_prototypes;
   end_gameplay_fixture(&fixture);
   CuAssertTrue(tc, assets_dropped);
+  CuAssertIntEquals(tc, 2, dropped_count);
+}
+
+void Test_gameplay_extracting_a_present_charmie_drops_its_assets(CuTest *tc)
+{
+  int mode;
+
+  for (mode = 0; mode < 3; mode++)
+    verify_expiring_pet_assets(tc, mode);
 }
 
 void Test_gameplay_pet_group_order_survives_target_extraction(CuTest *tc)
@@ -6233,6 +8040,7 @@ struct keeper_publication_trace
   long int pet_id;
   int arrivals;
   bool published_with_gear;
+  bool reject_arrival;
 };
 
 static void keeper_observe_publication(const struct domain_event_context *context, void *data)
@@ -6245,6 +8053,8 @@ static void keeper_observe_publication(const struct domain_event_context *contex
     return;
   trace->arrivals++;
   trace->published_with_gear = pet->carrying != NULL && GET_EQ(pet, WEAR_NECK_1) != NULL;
+  if (trace->reject_arrival)
+    extract_char(pet);
 }
 
 static void verify_named_pet_keeper_round_trip(CuTest *tc, bool eidolon)
@@ -6255,6 +8065,7 @@ static void verify_named_pet_keeper_round_trip(CuTest *tc, bool eidolon)
   struct char_data keeper;
   struct player_special_data owner_specials = {0};
   struct descriptor_data descriptor = {0};
+  struct account_data account = {0};
   struct char_data *pet;
   struct char_data *reclaimed;
   struct char_data *saved_prototypes;
@@ -6280,6 +8091,7 @@ static void verify_named_pet_keeper_round_trip(CuTest *tc, bool eidolon)
   bool stored;
   bool owns_event_bus = domain_event_runtime_bus() == NULL;
   bool activation_failures_retained = true;
+  bool publication_failure_retained;
   int failure_query, baseline_mobiles;
   struct keeper_publication_trace trace = {0};
   struct domain_event_subscription_config observer = {0};
@@ -6295,11 +8107,13 @@ static void verify_named_pet_keeper_round_trip(CuTest *tc, bool eidolon)
                                  "from",      "with",      "room",
                                  "someone"};
   size_t name_index;
-  char name_command[96];
-  bool snapshot_kept_storage;
+  char name_command[96], respec_error[256], dismissal_error[512] = {0};
+  bool snapshot_kept_storage, respec_preserved_storage;
+  int owner_class = eidolon ? CLASS_SUMMONER : CLASS_WIZARD;
   bool reclaimed_identity;
   bool repeat_denied;
   bool foreign_owner_denied;
+  bool dismissed_and_reacquired = !eidolon;
   long int pet_id;
   int stable_command, stored_count;
 
@@ -6349,13 +8163,23 @@ static void verify_named_pet_keeper_round_trip(CuTest *tc, bool eidolon)
   GET_REAL_MAX_HIT(&prototype) = 100;
   GET_REAL_MAX_MOVE(&prototype) = 100;
   if (eidolon)
+  {
     SET_BIT_AR(MOB_FLAGS(&prototype), MOB_EIDOLON);
+    fixture.mobile_index[0].vnum = MOB_NUM_EIDOLON;
+  }
   mob_proto = &prototype;
 
   clear_char(&owner);
   owner.player_specials = &owner_specials;
   owner.player.name = (char *)"KeeperOwner";
   GET_LEVEL(&owner) = 20;
+  GET_PFILEPOS(&owner) = -1;
+  GET_REAL_RACE(&owner) = RACE_HUMAN;
+  GET_CLASS(&owner) = owner_class;
+  CLASS_LEVEL((&owner), owner_class) = 20;
+  GET_EXP(&owner) = 12345;
+  if (class_list[owner_class].name == NULL)
+    load_class_list();
   GET_POS(&owner) = POS_STANDING;
   GET_IDNUM(&owner) = eidolon ? 5002 : 5001;
   owner.player.time.birth = (time_t)1234;
@@ -6363,6 +8187,7 @@ static void verify_named_pet_keeper_round_trip(CuTest *tc, bool eidolon)
   descriptor.output = descriptor.small_outbuf;
   descriptor.bufspace = SMALL_BUFSIZE - 1;
   descriptor.character = &owner;
+  descriptor.account = &account;
   descriptor.connected = CON_PLAYING;
   descriptor.pProtocol = ProtocolCreate();
   CuAssertPtrNotNull(tc, descriptor.pProtocol);
@@ -6427,6 +8252,8 @@ static void verify_named_pet_keeper_round_trip(CuTest *tc, bool eidolon)
 
   GET_REAL_MAX_HIT(pet) = GET_MAX_HIT(pet) = 100;
   GET_HIT(pet) = 70;
+  GET_MOVE(pet) = 19;
+  GET_PSP(pet) = 11;
   do_pets(&owner, "companion name Alder", 0, 0);
   named = !strcmp(GET_NAME(pet), "Alder") && !strcmp(pet->player.name, "Alder companion");
   snprintf(name_command, sizeof(name_command), "#%ld name O'Rowan", pet->pet_data_id);
@@ -6472,6 +8299,22 @@ static void verify_named_pet_keeper_round_trip(CuTest *tc, bool eidolon)
       keeper_query_int(connection, "SELECT COUNT(*) FROM pet_data WHERE pet_state = 1") == 1 &&
       keeper_query_int(connection, "SELECT COUNT(*) FROM pet_data WHERE pet_state = 0") == 0;
 
+  /* Respec changes the owner while the stored pet keeps its own state. */
+  do_respec(&owner, eidolon ? "summoner" : "wizard", 0, 0);
+  respec_preserved_storage =
+      GET_LEVEL(&owner) == 1 && GET_CLASS(&owner) == owner_class &&
+      CLASS_LEVEL((&owner), owner_class) == 1 && GET_EXP(&owner) == 12345 &&
+      HAS_FEAT(&owner, eidolon ? FEAT_EIDOLON : FEAT_SUMMON_FAMILIAR) && owner.followers == NULL &&
+      pet_stored_id_at(&owner, 1) == pet_id &&
+      keeper_query_int(connection, "SELECT COUNT(*) FROM pet_data WHERE pet_state = 1") == 1 &&
+      keeper_query_int(connection, "SELECT COUNT(*) FROM pet_save_objs") == 3;
+
+  snprintf(respec_error, sizeof(respec_error),
+           "respec class=%d level=%d ranks=%d xp=%ld feat=%d followers=%d stored=%ld: %.100s",
+           GET_CLASS(&owner), GET_LEVEL(&owner), CLASS_LEVEL((&owner), owner_class),
+           GET_EXP(&owner), HAS_FEAT(&owner, eidolon ? FEAT_EIDOLON : FEAT_SUMMON_FAMILIAR),
+           owner.followers != NULL, pet_stored_id_at(&owner, 1), descriptor.output);
+
   /* The listed position resolves to the same stable ID a player would quote. */
   listed_id_matches = pet_stored_id_at(&owner, 1) == pet_id && pet_stored_id_at(&owner, 2) == 0;
   trace.pet_id = pet_id;
@@ -6500,14 +8343,29 @@ static void verify_named_pet_keeper_round_trip(CuTest *tc, bool eidolon)
         keeper_query_int(connection, "SELECT COUNT(*) FROM pet_data WHERE pet_state = 1") == 1 &&
         keeper_query_int(connection, "SELECT COUNT(*) FROM pet_save_objs") == 3;
   }
+  trace.reject_arrival = true;
+  reason = NULL;
+  reclaimed = pet_retrieve_stored(&owner, pet_id, &reason);
+  extract_pending_chars();
+  publication_failure_retained =
+      reclaimed == NULL && reason != NULL && owner.followers == NULL && world[0].contents == NULL &&
+      mob_index[0].number == baseline_mobiles &&
+      keeper_query_int(connection, "SELECT COUNT(*) FROM pet_data WHERE pet_state = 1") == 1 &&
+      keeper_query_int(connection, "SELECT COUNT(*) FROM pet_data WHERE pet_state = 0") == 0 &&
+      keeper_query_int(connection, "SELECT COUNT(*) FROM pet_save_objs") == 3 &&
+      save_char_pets(&owner) &&
+      keeper_query_int(connection, "SELECT COUNT(*) FROM pet_data WHERE pet_state = 1") == 1;
+  trace.reject_arrival = false;
+  trace.arrivals = 0;
   reason = NULL;
   reclaimed = stored ? pet_retrieve_stored(&owner, pet_id, &reason) : NULL;
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     domain_event_unsubscribe(domain_event_runtime_bus(), subscription));
   reclaimed_identity =
       reclaimed != NULL && reclaimed->master == &owner && reclaimed->pet_data_id == pet_id &&
-      GET_LEVEL(reclaimed) == 12 && GET_HIT(reclaimed) == 70 &&
-      reclaimed->player.short_descr != NULL && !strcmp(reclaimed->player.short_descr, "O'Rowan") &&
+      GET_LEVEL(reclaimed) == 12 && GET_HIT(reclaimed) == 70 && GET_MOVE(reclaimed) == 19 &&
+      GET_PSP(reclaimed) == 11 && reclaimed->player.short_descr != NULL &&
+      !strcmp(reclaimed->player.short_descr, "O'Rowan") &&
       !strcmp(reclaimed->player.name, "O'Rowan companion") &&
       !strcmp(reclaimed->player.long_descr, "O'Rowan is here.\r\n") &&
       keeper_query_int(connection, "SELECT COUNT(*) FROM pet_data WHERE pet_state = 0") == 1 &&
@@ -6540,9 +8398,47 @@ static void verify_named_pet_keeper_round_trip(CuTest *tc, bool eidolon)
       extract_obj(reclaimed->carrying);
     if (GET_EQ(reclaimed, WEAR_NECK_1))
       extract_obj(unequip_char(reclaimed, WEAR_NECK_1));
-    extract_char(reclaimed);
+    if (eidolon)
+    {
+      owner.player.time.birth = (time_t)1234;
+      mysql_query(connection, "UPDATE pet_data SET pet_state = 0");
+      do_dismiss(&owner, "companion", 0, 0);
+      extract_pending_chars();
+      dismissed_and_reacquired = owner.followers == NULL &&
+                                 keeper_query_int(connection, "SELECT COUNT(*) FROM pet_data") == 0;
+      do_call(&owner, "eidolon", 0, 0);
+      reclaimed = owner.followers != NULL ? owner.followers->follower : NULL;
+      dismissed_and_reacquired =
+          dismissed_and_reacquired && reclaimed != NULL && reclaimed->master == &owner &&
+          IS_PET(reclaimed) && MOB_FLAGGED(reclaimed, MOB_EIDOLON) && GET_LEVEL(reclaimed) == 1 &&
+          reclaimed->pet_data_id > 0 && reclaimed->pet_data_id != pet_id &&
+          char_has_mud_event(&owner, eC_EIDOLON) != NULL &&
+          keeper_query_int(connection, "SELECT COUNT(*) FROM pet_data WHERE pet_state = 0") == 1;
+      do_call(&owner, "eidolon", 0, 0);
+      dismissed_and_reacquired = dismissed_and_reacquired && owner.followers != NULL &&
+                                 owner.followers->follower == reclaimed &&
+                                 owner.followers->next == NULL;
+      snprintf(dismissal_error, sizeof(dismissal_error),
+               "fresh eidolon: present=%d level=%d id=%ld old=%ld cooldown=%d: %.300s",
+               reclaimed != NULL, reclaimed ? GET_LEVEL(reclaimed) : -1,
+               reclaimed ? reclaimed->pet_data_id : 0, pet_id,
+               char_has_mud_event(&owner, eC_EIDOLON) != NULL, descriptor.output);
+    }
+    if (reclaimed != NULL)
+      extract_char(reclaimed);
     extract_pending_chars();
   }
+  clear_char_event_list(&owner);
+  if (owner.events != NULL)
+  {
+    free_list(owner.events);
+    owner.events = NULL;
+  }
+  while (owner.affected != NULL)
+    affect_remove_no_total(&owner, owner.affected);
+  remove_all_perks(&owner);
+  free(GET_TITLE(&owner));
+  free(GET_IMM_TITLE(&owner));
   domain_event_world_forget_character(&owner);
   owner.desc = NULL;
   if (owns_event_bus)
@@ -6565,7 +8461,10 @@ static void verify_named_pet_keeper_round_trip(CuTest *tc, bool eidolon)
   free(GET_EIDOLON_SHORT_DESCRIPTION((&owner)));
   free(GET_EIDOLON_LONG_DESCRIPTION((&owner)));
 
+  CuAssert(tc, dismissal_error, dismissed_and_reacquired);
+  CuAssert(tc, respec_error, respec_preserved_storage);
   CuAssertTrue(tc, activation_failures_retained);
+  CuAssertTrue(tc, publication_failure_retained);
   CuAssertIntEquals(tc, 1, trace.arrivals);
   CuAssertTrue(tc, trace.published_with_gear);
   CuAssertTrue(tc, named);
@@ -6887,6 +8786,35 @@ void Test_gameplay_output_preferences_persist_and_failed_changes_roll_back(CuTes
   CuAssertTrue(tc, legacy_defaults);
 }
 
+/* Both full-prompt aliases restore the fields cleared by their off aliases. */
+void Test_gameplay_prompt_all_restores_gold_and_time_after_none(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  const char *enable[] = {"all", "on"};
+  const char *disable[] = {"none", "off"};
+  bool restored = true, cleared = true;
+  size_t i;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player_specials = &specials;
+  for (i = 0; i < sizeof(enable) / sizeof(enable[0]); i++)
+  {
+    do_display(&fixture.actor, disable[i], 0, 0);
+    cleared = cleared && is_prompt_empty(&fixture.actor) &&
+              !PRF_FLAGGED(&fixture.actor, PRF_DISPGOLD) &&
+              !PRF_FLAGGED(&fixture.actor, PRF_DISPTIME);
+    do_display(&fixture.actor, enable[i], 0, 0);
+    restored = restored && !is_prompt_empty(&fixture.actor) &&
+               PRF_FLAGGED(&fixture.actor, PRF_DISPGOLD) &&
+               PRF_FLAGGED(&fixture.actor, PRF_DISPTIME);
+  }
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, cleared);
+  CuAssertTrue(tc, restored);
+}
+
 /** Suppress gameplay prompts while preserving telnet delimiters and pager/editor instructions. */
 void Test_gameplay_screen_reader_hides_actual_prompts_but_keeps_input_instructions(CuTest *tc)
 {
@@ -7048,4 +8976,1145 @@ void Test_gameplay_prefedit_sound_keeps_capability_and_rolls_back_failed_save(Cu
   CuAssertTrue(tc, capability_retained);
   CuAssertTrue(tc, rolled_back);
   CuAssertTrue(tc, no_success);
+}
+
+static void verify_artifact_pet_acquisition(CuTest *tc, int mode, int artifact)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct char_data prototype, *pet;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  struct obj_data sword = {0};
+  struct index_data sword_index = {0};
+  struct index_data *saved_obj_index = obj_index;
+  struct follow_type existing = {0};
+  bool created_commands, handled, created, repeat_denied;
+  int owner_hp, cooldown;
+  mob_vnum pet_vnum = artifact == 0 ? PET_XVIM_NIGHTMARE : artifact == 1 ? 101225 : 132131;
+  obj_vnum sword_vnum = artifact == 0 ? 100501 : artifact == 1 ? 109802 : 132118;
+  const char *word = artifact == 0 ? "nightmare" : "wind";
+  SPECIAL_DECL(*summon) = artifact == 0   ? xvim_artifact
+                          : artifact == 1 ? whisperwind
+                                          : ancient_moonblade;
+
+  begin_gameplay_fixture(&fixture);
+  created_commands = complete_cmd_info == NULL;
+  if (created_commands)
+    create_command_list();
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player.name = (char *)"nightmareowner";
+  fixture.actor.player_specials = &specials;
+  fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(&fixture.actor) = -1;
+  GET_LEVEL(&fixture.actor) = 10;
+  GET_CHA(&fixture.actor) = 10;
+  GET_HIT(&fixture.actor) = 17;
+  sword_index.vnum = sword_vnum;
+  obj_index = &sword_index;
+  GET_OBJ_RNUM(&sword) = 0;
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &sword;
+  initialize_test_npc(&prototype, "nightmare", NOWHERE);
+  prototype.player.name = (char *)"nightmare";
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
+  GET_REAL_MAX_MOVE(&prototype) = 100;
+  mob_proto = &prototype;
+  fixture.mobile_index[0].vnum = mode == 1 ? 1 : pet_vnum;
+  if (mode == 2)
+  {
+    existing.follower = &fixture.victim;
+    fixture.actor.followers = &existing;
+    fixture.victim.master = &fixture.actor;
+    GET_MOB_RNUM(&fixture.victim) = 0;
+    SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+  }
+  handled = summon(&fixture.actor, &sword, find_command("whisper"), word);
+  owner_hp = GET_HIT(&fixture.actor);
+  pet = fixture.actor.followers != NULL ? fixture.actor.followers->follower : NULL;
+  if (pet == &fixture.victim)
+    pet = NULL;
+  created = pet != NULL && IS_PET(pet) && IN_ROOM(pet) == 0 && GET_HIT(pet) == GET_MAX_HIT(pet) &&
+            (artifact == 0 ? GET_HIT(pet) >= 110 && GET_HIT(pet) <= 160
+                           : GET_HIT(pet) == GET_MAX_HIT(&fixture.actor));
+  cooldown = GET_OBJ_SPECTIMER(&sword, 1);
+  summon(&fixture.actor, &sword, find_command("whisper"), word);
+  repeat_denied = fixture.mobile_index[0].number == (mode == 0 ? 1 : 0);
+  if (pet != NULL)
+    extract_char(pet);
+  extract_pending_chars();
+  fixture.actor.followers = NULL;
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  character_list = saved_characters;
+  mob_proto = saved_proto;
+  point_update_object_forget(&sword);
+  obj_index = saved_obj_index;
+  if (created_commands)
+    free_command_list();
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, handled);
+  CuAssertIntEquals(tc, 17, owner_hp);
+  CuAssertIntEquals(tc, mode == 0, created);
+  CuAssertTrue(tc, repeat_denied);
+  CuAssertIntEquals(tc, mode == 0 && artifact != 0 ? 72 : 0, cooldown);
+}
+
+void Test_gameplay_xvim_nightmare_preserves_owner_hp_and_enforces_admission(CuTest *tc)
+{
+  verify_artifact_pet_acquisition(tc, 0, 0);
+  verify_artifact_pet_acquisition(tc, 1, 0);
+  verify_artifact_pet_acquisition(tc, 2, 0);
+}
+
+void Test_gameplay_moonblade_pets_commit_cooldown_only_after_admission(CuTest *tc)
+{
+  int artifact, mode;
+
+  for (artifact = 1; artifact <= 2; artifact++)
+    for (mode = 0; mode <= 2; mode++)
+      verify_artifact_pet_acquisition(tc, mode, artifact);
+}
+
+static void interrupt_quest_follower_arrival(const struct domain_event_context *context, void *data)
+{
+  const struct domain_character_moved *event = context->payload;
+  struct char_data *pet = domain_event_world_resolve_character(event->character);
+  bool *interrupted = data;
+
+  if (pet != NULL && GET_MOB_VNUM(pet) == RETAINER_MOB_VNUM)
+  {
+    *interrupted = true;
+    extract_char(pet);
+  }
+}
+
+static void verify_quest_pet_reward_admission(CuTest *tc, int mode)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct aq_data quest = {0}, *saved_quests = aquest_table;
+  qst_rnum saved_count = total_quests;
+  struct char_data prototype, *pet;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  struct follow_type existing = {0};
+  struct descriptor_data descriptor = {0};
+  struct domain_event_subscription_config observer = {0};
+  struct domain_event_subscription_handle subscription;
+  bool retained, completed, duplicate_denied, waited_message;
+  bool interrupted = false, subscription_active = false;
+  bool owns_event_bus = false;
+  int gold, points, saved_move_gain;
+  int class_num = mode == 5 ? CLASS_WARRIOR : CLASS_WIZARD;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player.name = (char *)"questpetowner";
+  fixture.actor.player_specials = &specials;
+  fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(&fixture.actor) = -1;
+  GET_CHA(&fixture.actor) = 10;
+  GET_LEVEL(&fixture.actor) = 30;
+  GET_EXP(&fixture.actor) = 1;
+  saved_move_gain = class_list[class_num].move_gain;
+  class_list[class_num].move_gain = 1;
+  GET_GOLD(&fixture.actor) = 0;
+  aquest_table = &quest;
+  total_quests = 1;
+  quest.vnum = 700;
+  quest.done = (char *)"Your service is complete.";
+  quest.follower_reward = RETAINER_MOB_VNUM;
+  quest.obj_reward = NOTHING;
+  quest.race_reward = mode == 4 ? RACE_LICH : mode == 5 ? RACE_VAMPIRE : RACE_UNDEFINED;
+  quest.next_quest = NOTHING;
+  quest.gold_reward = 100;
+  quest.value[0] = 10;
+  GET_QUEST(&fixture.actor, 0) = quest.vnum;
+  GET_QUEST_COUNTER(&fixture.actor, 0) = 0;
+  initialize_test_npc(&prototype, "quest follower", NOWHERE);
+  prototype.player.name = (char *)"follower";
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
+  GET_REAL_MAX_MOVE(&prototype) = 100;
+  mob_proto = &prototype;
+  fixture.mobile_index[0].vnum = mode == 2 ? 1 : RETAINER_MOB_VNUM;
+  if (mode == 1)
+  {
+    existing.follower = &fixture.victim;
+    fixture.actor.followers = &existing;
+    fixture.victim.master = &fixture.actor;
+    SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+  }
+  if (mode == 3)
+    IN_ROOM(&fixture.actor) = NOWHERE;
+  if (mode == 6)
+  {
+    descriptor.output = descriptor.small_outbuf;
+    descriptor.bufspace = SMALL_BUFSIZE - 1;
+    descriptor.character = &fixture.actor;
+    descriptor.pProtocol = ProtocolCreate();
+    fixture.actor.desc = &descriptor;
+    if (domain_event_runtime_bus() == NULL)
+    {
+      event_free_all();
+      event_init();
+      owns_event_bus = true;
+      CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+    }
+    observer.type = DOMAIN_EVENT_CHARACTER_MOVED;
+    observer.topic.role = DOMAIN_EVENT_TOPIC_DESTINATION;
+    observer.topic.entity = domain_event_room_handle(0);
+    observer.owner = domain_event_character_handle(&fixture.actor);
+    observer.identity = "test.quest-follower.interrupted-arrival";
+    observer.handler = interrupt_quest_follower_arrival;
+    observer.handler_context = &interrupted;
+    subscription_active = domain_event_subscribe(domain_event_runtime_bus(), &observer,
+                                                 &subscription) == DOMAIN_EVENT_OK;
+    CuAssertTrue(tc, subscription_active);
+  }
+
+  complete_quest(&fixture.actor, 0);
+  if (mode == 6)
+    extract_pending_chars();
+  waited_message =
+      mode != 6 || (interrupted && strstr(descriptor.output, "quest reward must wait") != NULL);
+  retained = mode == 0 || (mode >= 4 && mode <= 5) ||
+             (GET_QUEST(&fixture.actor, 0) == (int)quest.vnum &&
+              GET_NUM_QUESTS(&fixture.actor) == 0 && GET_GOLD(&fixture.actor) == 0 &&
+              GET_QUESTPOINTS(&fixture.actor) == 0 && fixture.mobile_index[0].number == 0);
+  if (subscription_active)
+  {
+    CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                      domain_event_unsubscribe(domain_event_runtime_bus(), subscription));
+    subscription_active = false;
+  }
+  if ((mode > 0 && mode < 4) || mode == 6)
+  {
+    fixture.actor.followers = NULL;
+    fixture.victim.master = NULL;
+    fixture.mobile_index[0].vnum = RETAINER_MOB_VNUM;
+    IN_ROOM(&fixture.actor) = 0;
+    complete_quest(&fixture.actor, 0);
+  }
+  pet = fixture.actor.followers != NULL ? fixture.actor.followers->follower : NULL;
+  completed = pet != NULL && IS_PET(pet) && IN_ROOM(pet) == 0 &&
+              GET_QUEST(&fixture.actor, 0) == (int)NOTHING &&
+              is_complete(&fixture.actor, quest.vnum) && GET_NUM_QUESTS(&fixture.actor) == 1;
+  if (mode >= 4 && mode <= 5)
+    completed = completed && GET_REAL_RACE(&fixture.actor) == quest.race_reward &&
+                CLASS_LEVEL((&fixture.actor), class_num) == 1;
+  gold = GET_GOLD(&fixture.actor);
+  points = GET_QUESTPOINTS(&fixture.actor);
+  complete_quest(&fixture.actor, 0);
+  duplicate_denied = fixture.mobile_index[0].number == 1 && GET_GOLD(&fixture.actor) == gold &&
+                     GET_QUESTPOINTS(&fixture.actor) == points;
+  if (pet != NULL)
+    extract_char(pet);
+  extract_pending_chars();
+  fixture.actor.followers = NULL;
+  free(specials.saved.completed_quests);
+  fixture.actor.desc = NULL;
+  if (descriptor.pProtocol)
+    ProtocolDestroy(descriptor.pProtocol);
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  if (owns_event_bus)
+  {
+    domain_event_runtime_shutdown();
+    event_free_all();
+  }
+  character_list = saved_characters;
+  mob_proto = saved_proto;
+  aquest_table = saved_quests;
+  total_quests = saved_count;
+  end_gameplay_fixture(&fixture);
+  class_list[class_num].move_gain = saved_move_gain;
+  if (mode >= 4 && mode <= 5)
+    free(GET_TITLE(&fixture.actor));
+  CuAssertTrue(tc, retained);
+  CuAssertTrue(tc, waited_message);
+  CuAssertTrue(tc, completed);
+  CuAssertTrue(tc, gold >= 100 && points >= 10);
+  CuAssertTrue(tc, duplicate_denied);
+}
+
+void Test_gameplay_quest_pet_rewards_wait_for_admission_and_retry_once(CuTest *tc)
+{
+  int mode;
+
+  for (mode = 0; mode <= 6; mode++)
+    verify_quest_pet_reward_admission(tc, mode);
+}
+
+void Test_gameplay_incorporeal_pets_reject_physical_objects(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct obj_data *item, *bag;
+  bool denied_give, denied_get, denied_container, denied_wear, physical_give;
+  char get_item[] = "parcel", get_bag_item[] = "parcel bag";
+
+  begin_gameplay_fixture(&f);
+  f.victim.master = &f.actor;
+  SET_BIT_AR(AFF_FLAGS(&f.victim), AFF_CHARM);
+  SET_BIT_AR(AFF_FLAGS(&f.victim), AFF_IMMATERIAL);
+  item = create_obj();
+  item->name = strdup("parcel");
+  item->short_description = strdup("a parcel");
+  GET_OBJ_TYPE(item) = ITEM_ARMOR;
+  SET_BIT_AR(GET_OBJ_WEAR(item), ITEM_WEAR_TAKE);
+  SET_BIT_AR(GET_OBJ_WEAR(item), ITEM_WEAR_HEAD);
+  obj_to_char(item, &f.actor);
+  denied_give = !perform_give(&f.actor, &f.victim, item) && item->carried_by == &f.actor;
+  obj_from_char(item);
+  obj_to_room(item, 0);
+  do_get(&f.victim, get_item, 0, 0);
+  denied_get = item->in_room == 0;
+  obj_from_room(item);
+  bag = create_obj();
+  bag->name = strdup("bag");
+  bag->short_description = strdup("a bag");
+  GET_OBJ_TYPE(bag) = ITEM_CONTAINER;
+  obj_to_char(bag, &f.victim);
+  obj_to_obj(item, bag);
+  do_get(&f.victim, get_bag_item, 0, 0);
+  denied_container = item->in_obj == bag;
+  obj_from_obj(item);
+  obj_to_char(item, &f.victim);
+  perform_wear(&f.victim, item, WEAR_HEAD);
+  denied_wear = item->carried_by == &f.victim && GET_EQ(&f.victim, WEAR_HEAD) == NULL;
+  obj_from_char(item);
+  obj_to_char(item, &f.actor);
+  REMOVE_BIT_AR(AFF_FLAGS(&f.victim), AFF_IMMATERIAL);
+  physical_give = perform_give(&f.actor, &f.victim, item) && item->carried_by == &f.victim;
+  extract_obj(item);
+  extract_obj(bag);
+  f.victim.master = NULL;
+  domain_event_world_forget_character(&f.actor);
+  domain_event_world_forget_character(&f.victim);
+  end_gameplay_fixture(&f);
+  CuAssertTrue(tc, denied_give);
+  CuAssertTrue(tc, denied_get);
+  CuAssertTrue(tc, denied_container);
+  CuAssertTrue(tc, denied_wear);
+  CuAssertTrue(tc, physical_give);
+}
+
+void Test_gameplay_dragon_rider_recognizes_only_its_controlled_bonded_mount(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct char_data other;
+  bool bonded, unrelated, separated, unlinked, uncontrolled, wrong_owner, pending;
+  int rider_base, mount_base, rider_bonus, mount_bonus;
+
+  begin_gameplay_fixture(&f);
+  initialize_test_npc(&other, "other owner", 0);
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  GET_MOB_RNUM(&f.victim) = 0;
+  SET_BIT_AR(MOB_FLAGS(&f.victim), MOB_C_DRAGON);
+  SET_BIT_AR(AFF_FLAGS(&f.victim), AFF_CHARM);
+  f.victim.master = &f.actor;
+  mount_char(&f.actor, &f.victim);
+  bonded = is_dragon_rider_mount(&f.victim) && is_riding_dragon_mount(&f.actor);
+  GET_DAMROLL(&f.actor) = GET_DAMROLL(&f.victim) = 10;
+  rider_base = compute_damage_bonus(&f.actor, NULL, NULL, TYPE_HIT, 0, 0, ATTACK_TYPE_PRIMARY);
+  mount_base = compute_damage_bonus(&f.victim, NULL, NULL, TYPE_HIT, 0, 0, ATTACK_TYPE_PRIMARY);
+  SET_FEAT(&f.actor, FEAT_UNITED_WE_STAND, 1);
+  rider_bonus = compute_damage_bonus(&f.actor, NULL, NULL, TYPE_HIT, 0, 0, ATTACK_TYPE_PRIMARY);
+  mount_bonus = compute_damage_bonus(&f.victim, NULL, NULL, TYPE_HIT, 0, 0, ATTACK_TYPE_PRIMARY);
+
+  REMOVE_BIT_AR(MOB_FLAGS(&f.victim), MOB_C_DRAGON);
+  unrelated = !is_dragon_rider_mount(&f.victim) && !is_riding_dragon_mount(&f.actor);
+  SET_BIT_AR(MOB_FLAGS(&f.victim), MOB_C_DRAGON);
+  IN_ROOM(&f.victim) = 1;
+  separated = !is_riding_dragon_mount(&f.actor);
+  IN_ROOM(&f.victim) = 0;
+  RIDDEN_BY(&f.victim) = NULL;
+  unlinked = !is_riding_dragon_mount(&f.actor);
+  RIDDEN_BY(&f.victim) = &f.actor;
+  REMOVE_BIT_AR(AFF_FLAGS(&f.victim), AFF_CHARM);
+  uncontrolled = !is_riding_dragon_mount(&f.actor);
+  SET_BIT_AR(AFF_FLAGS(&f.victim), AFF_CHARM);
+  f.victim.master = &other;
+  wrong_owner = !is_riding_dragon_mount(&f.actor);
+  f.victim.master = &f.actor;
+  SET_BIT_AR(MOB_FLAGS(&f.victim), MOB_NOTDEADYET);
+  pending = !is_riding_dragon_mount(&f.actor);
+  REMOVE_BIT_AR(MOB_FLAGS(&f.victim), MOB_NOTDEADYET);
+  dismount_char(&f.actor);
+  f.victim.master = NULL;
+  end_gameplay_fixture(&f);
+  CuAssertTrue(tc, bonded);
+  CuAssertIntEquals(tc, 4, rider_bonus - rider_base);
+  CuAssertIntEquals(tc, 4, mount_bonus - mount_base);
+  CuAssertTrue(tc, unrelated);
+  CuAssertTrue(tc, separated);
+  CuAssertTrue(tc, unlinked);
+  CuAssertTrue(tc, uncontrolled);
+  CuAssertTrue(tc, wrong_owner);
+  CuAssertTrue(tc, pending);
+}
+
+static void verify_mounted_charge_damage(CuTest *tc, bool lance, bool spirited)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct char_data mount;
+  struct obj_data *weapon = NULL;
+  int ordinary, mounted, on_foot;
+  bool stale_cleared;
+
+  begin_gameplay_fixture(&f);
+  event_free_all();
+  event_init();
+  initialize_test_npc(&mount, "charge mount", 0);
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.victim.player.name = "victim";
+  GET_REAL_DAMROLL(&f.actor) = GET_DAMROLL(&f.actor) = 20;
+  SET_FEAT(&f.actor, FEAT_SPIRITED_CHARGE, spirited);
+  if (lance)
+  {
+    if (weapon_list[WEAPON_TYPE_LANCE].name == NULL)
+      load_weapons();
+    weapon = create_obj();
+    GET_OBJ_TYPE(weapon) = ITEM_WEAPON;
+    GET_OBJ_VAL(weapon, 0) = WEAPON_TYPE_LANCE;
+    equip_char(&f.actor, weapon, WEAR_WIELD_1);
+  }
+  FIGHTING(&f.actor) = &f.victim;
+  mount_char(&f.actor, &mount);
+  circle_srandom(421);
+  ordinary = compute_hit_damage(&f.actor, &f.victim, TYPE_HIT, 10, MODE_NORMAL_HIT, false,
+                                ATTACK_TYPE_PRIMARY, DAM_BLUDGEON);
+  do_charge(&f.actor, "victim", 0, 0);
+  circle_srandom(421);
+  mounted = compute_hit_damage(&f.actor, &f.victim, TYPE_HIT, 10, MODE_NORMAL_HIT, false,
+                               ATTACK_TYPE_PRIMARY, DAM_BLUDGEON);
+  dismount_char(&f.actor);
+  circle_srandom(421);
+  on_foot = compute_hit_damage(&f.actor, &f.victim, TYPE_HIT, 10, MODE_NORMAL_HIT, false,
+                               ATTACK_TYPE_PRIMARY, DAM_BLUDGEON);
+  mount_char(&f.actor, &mount);
+  IN_ROOM(&mount) = 1;
+  affect_from_char(&f.actor, SKILL_CHARGE);
+  do_charge(&f.actor, "victim", 0, 0);
+  stale_cleared = RIDING(&f.actor) == NULL && RIDDEN_BY(&mount) == NULL;
+  if (weapon != NULL)
+    extract_obj(weapon);
+  clear_char_event_list(&f.actor);
+  event_free_all();
+  domain_event_world_forget_character(&f.actor);
+  domain_event_world_forget_character(&f.victim);
+  end_gameplay_fixture(&f);
+  CuAssertTrue(tc, ordinary > 0);
+  CuAssertIntEquals(tc, ordinary * (lance && spirited ? 3 : 2), mounted);
+  CuAssertIntEquals(tc, ordinary, on_foot);
+  CuAssertTrue(tc, stale_cleared);
+}
+
+void Test_gameplay_spirited_charge_requires_a_current_mount(CuTest *tc)
+{
+  verify_mounted_charge_damage(tc, false, true);
+  verify_mounted_charge_damage(tc, true, false);
+  verify_mounted_charge_damage(tc, true, true);
+}
+
+void Test_gameplay_mounted_combat_negates_one_hit_only_while_riding(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct char_data mount;
+  bool blocked, spent, dismounted;
+
+  begin_gameplay_fixture(&f);
+  event_free_all();
+  event_init();
+  initialize_test_npc(&mount, "combat mount", 0);
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  GET_HIT(&f.actor) = GET_MAX_HIT(&f.actor) = GET_REAL_MAX_HIT(&f.actor) = 100000;
+  GET_HITROLL(&f.victim) = 20;
+  GET_DAMROLL(&f.victim) = 20;
+  FIGHTING(&f.actor) = &f.victim;
+  FIGHTING(&f.victim) = &f.actor;
+  SET_ABILITY(&f.actor, ABILITY_RIDE, 100);
+  SET_FEAT(&f.actor, FEAT_MOUNTED_COMBAT, 1);
+  mount_char(&f.actor, &mount);
+  MOUNTED_BLOCKS_LEFT(&f.actor) = 1;
+  circle_srandom(421);
+  combat_readied_attack(&f.victim, &f.actor);
+  blocked = GET_HIT(&f.actor) == 100000 && MOUNTED_BLOCKS_LEFT(&f.actor) == 0;
+  circle_srandom(421);
+  combat_readied_attack(&f.victim, &f.actor);
+  spent = GET_HIT(&f.actor) < 100000 && MOUNTED_BLOCKS_LEFT(&f.actor) == 0;
+  GET_HIT(&f.actor) = 100000;
+  MOUNTED_BLOCKS_LEFT(&f.actor) = 1;
+  dismount_char(&f.actor);
+  circle_srandom(421);
+  combat_readied_attack(&f.victim, &f.actor);
+  dismounted = GET_HIT(&f.actor) < 100000 && MOUNTED_BLOCKS_LEFT(&f.actor) == 1;
+  clear_char_event_list(&f.actor);
+  clear_char_event_list(&f.victim);
+  event_free_all();
+  domain_event_world_forget_character(&f.actor);
+  domain_event_world_forget_character(&f.victim);
+  end_gameplay_fixture(&f);
+  CuAssertTrue(tc, blocked);
+  CuAssertTrue(tc, spent);
+  CuAssertTrue(tc, dismounted);
+}
+
+void Test_gameplay_mounted_combat_blocks_reset_without_accumulating(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct char_data mount;
+  int ordinary, legendary, repeated, missing_base, repeated_missing_base, separated;
+
+  begin_gameplay_fixture(&f);
+  event_free_all();
+  event_init();
+  initialize_test_npc(&mount, "combat mount", 0);
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  GET_ATTACK_QUEUE(&f.actor) = create_attack_queue();
+  GET_HIT(&f.actor) = GET_MAX_HIT(&f.actor) = 100000;
+  GET_HIT(&f.victim) = GET_MAX_HIT(&f.victim) = 100000;
+  FIGHTING(&f.actor) = &f.victim;
+  mount_char(&f.actor, &mount);
+  SET_FEAT(&f.actor, FEAT_MOUNTED_COMBAT, 1);
+  MOUNTED_BLOCKS_LEFT(&f.actor) = 9;
+  perform_violence(&f.actor, 1);
+  ordinary = MOUNTED_BLOCKS_LEFT(&f.actor);
+  SET_FEAT(&f.actor, FEAT_LEGENDARY_RIDER, 1);
+  perform_violence(&f.actor, 1);
+  legendary = MOUNTED_BLOCKS_LEFT(&f.actor);
+  perform_violence(&f.actor, 1);
+  repeated = MOUNTED_BLOCKS_LEFT(&f.actor);
+  SET_FEAT(&f.actor, FEAT_MOUNTED_COMBAT, 0);
+  perform_violence(&f.actor, 1);
+  missing_base = MOUNTED_BLOCKS_LEFT(&f.actor);
+  perform_violence(&f.actor, 1);
+  repeated_missing_base = MOUNTED_BLOCKS_LEFT(&f.actor);
+  IN_ROOM(&mount) = 1;
+  perform_violence(&f.actor, 1);
+  separated = MOUNTED_BLOCKS_LEFT(&f.actor);
+  dismount_char(&f.actor);
+  free_attack_queue(GET_ATTACK_QUEUE(&f.actor));
+  GET_ATTACK_QUEUE(&f.actor) = NULL;
+  clear_char_event_list(&f.actor);
+  clear_char_event_list(&f.victim);
+  event_free_all();
+  domain_event_world_forget_character(&f.actor);
+  domain_event_world_forget_character(&f.victim);
+  end_gameplay_fixture(&f);
+  CuAssertIntEquals(tc, 1, ordinary);
+  CuAssertIntEquals(tc, 2, legendary);
+  CuAssertIntEquals(tc, 2, repeated);
+  CuAssertIntEquals(tc, 1, missing_base);
+  CuAssertIntEquals(tc, 1, repeated_missing_base);
+  CuAssertIntEquals(tc, 0, separated);
+}
+
+void Test_gameplay_mounted_travel_and_recall_clear_only_separated_riding(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  room_rnum saved_start = r_mortal_start_room;
+  bool traveled, returned, recalled, retained_owner, stale_cleared;
+
+  begin_gameplay_fixture(&f);
+  event_free_all();
+  event_init();
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  SET_FEAT(&f.actor, FEAT_MOUNTED_COMBAT, 1);
+  mount_char(&f.actor, &f.victim);
+  traveled = perform_move(&f.actor, NORTH, false) == 1 && IN_ROOM(&f.actor) == 1 &&
+             IN_ROOM(&f.victim) == 1 && RIDING(&f.actor) == &f.victim &&
+             RIDDEN_BY(&f.victim) == &f.actor;
+  returned = perform_move(&f.actor, SOUTH, false) == 1 && IN_ROOM(&f.actor) == 0 &&
+             IN_ROOM(&f.victim) == 0 && RIDING(&f.actor) == &f.victim;
+  f.victim.master = &f.actor;
+  SET_BIT_AR(AFF_FLAGS(&f.victim), AFF_CHARM);
+  r_mortal_start_room = 1;
+  spell_recall(10, &f.actor, &f.actor, NULL, CAST_SPELL);
+  recalled = IN_ROOM(&f.actor) == 1 && IN_ROOM(&f.victim) == 0 && RIDING(&f.actor) == NULL &&
+             RIDDEN_BY(&f.victim) == NULL;
+  retained_owner = f.victim.master == &f.actor && AFF_FLAGGED(&f.victim, AFF_CHARM);
+  /* A stale link from any other separation must not affect the next movement. */
+  mount_char(&f.actor, &f.victim);
+  stale_cleared = perform_move(&f.actor, SOUTH, false) == 1 && RIDING(&f.actor) == NULL &&
+                  RIDDEN_BY(&f.victim) == NULL;
+  r_mortal_start_room = saved_start;
+  f.victim.master = NULL;
+  dismount_char(&f.actor);
+  clear_char_event_list(&f.actor);
+  clear_char_event_list(&f.victim);
+  event_free_all();
+  domain_event_world_forget_character(&f.actor);
+  domain_event_world_forget_character(&f.victim);
+  end_gameplay_fixture(&f);
+  CuAssertTrue(tc, traveled);
+  CuAssertTrue(tc, returned);
+  CuAssertTrue(tc, recalled);
+  CuAssertTrue(tc, retained_owner);
+  CuAssertTrue(tc, stale_cleared);
+}
+
+void Test_gameplay_mount_cleanup_preserves_unrelated_reciprocal_links(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct char_data other;
+  bool valid, separated, stale_rider, stale_mount;
+
+  begin_gameplay_fixture(&f);
+  initialize_test_npc(&other, "other rider", 0);
+  mount_char(&f.actor, &f.victim);
+  mount_cleanup(&f.actor);
+  valid = RIDING(&f.actor) == &f.victim && RIDDEN_BY(&f.victim) == &f.actor &&
+          f.actor.master == NULL && f.victim.master == NULL;
+  IN_ROOM(&f.victim) = 1;
+  mount_cleanup(&f.actor);
+  separated = RIDING(&f.actor) == NULL && RIDDEN_BY(&f.victim) == NULL;
+  IN_ROOM(&f.victim) = 0;
+  mount_char(&other, &f.victim);
+  RIDING(&f.actor) = &f.victim;
+  mount_cleanup(&f.actor);
+  stale_rider =
+      RIDING(&f.actor) == NULL && RIDING(&other) == &f.victim && RIDDEN_BY(&f.victim) == &other;
+  dismount_char(&other);
+  mount_char(&f.actor, &other);
+  RIDDEN_BY(&f.victim) = &f.actor;
+  mount_cleanup(&f.victim);
+  stale_mount =
+      RIDDEN_BY(&f.victim) == NULL && RIDING(&f.actor) == &other && RIDDEN_BY(&other) == &f.actor;
+  dismount_char(&f.actor);
+  dismount_char(NULL);
+  mount_cleanup(NULL);
+  end_gameplay_fixture(&f);
+  CuAssertTrue(tc, valid);
+  CuAssertTrue(tc, separated);
+  CuAssertTrue(tc, stale_rider);
+  CuAssertTrue(tc, stale_mount);
+}
+
+void Test_gameplay_mount_restrictions_and_riding_do_not_grant_ownership(CuTest *tc)
+{
+  struct gameplay_fixture f;
+  struct player_special_data specials = {0};
+  struct char_data owner;
+  bool denied = true, mounted, dismounted;
+  int mode;
+
+  begin_gameplay_fixture(&f);
+  event_free_all();
+  event_init();
+  initialize_test_npc(&owner, "horse owner", 0);
+  REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
+  f.actor.player_specials = &specials;
+  f.actor.points.size = GET_REAL_SIZE(&f.actor) = SIZE_MEDIUM;
+  SET_ABILITY(&f.actor, ABILITY_RIDE, 100);
+  f.victim.points.size = GET_REAL_SIZE(&f.victim) = SIZE_LARGE;
+  GET_LEVEL(&f.victim) = 1;
+  f.victim.player.name = (char *)"horse";
+  SET_BIT_AR(MOB_FLAGS(&f.victim), MOB_MOUNTABLE);
+  SET_BIT_AR(AFF_FLAGS(&f.victim), AFF_TAMED);
+  for (mode = 0; mode < 5; mode++)
+  {
+    if (mode == 0)
+      SET_BIT_AR(AFF_FLAGS(&f.victim), AFF_IMMATERIAL);
+    if (mode == 1)
+    {
+      f.victim.master = &owner;
+      SET_BIT_AR(AFF_FLAGS(&f.victim), AFF_CHARM);
+    }
+    if (mode == 2)
+      GET_POS(&f.victim) = POS_SLEEPING;
+    if (mode == 3)
+      SET_BIT_AR(MOB_FLAGS(&f.victim), MOB_NOTDEADYET);
+    if (mode == 4)
+      f.victim.points.size = GET_REAL_SIZE(&f.victim) = SIZE_MEDIUM;
+    do_mount(&f.actor, "horse", 0, 0);
+    denied = denied && RIDING(&f.actor) == NULL && RIDDEN_BY(&f.victim) == NULL &&
+             is_action_available(&f.actor, atMOVE, false);
+    REMOVE_BIT_AR(AFF_FLAGS(&f.victim), AFF_IMMATERIAL);
+    REMOVE_BIT_AR(AFF_FLAGS(&f.victim), AFF_CHARM);
+    REMOVE_BIT_AR(MOB_FLAGS(&f.victim), MOB_NOTDEADYET);
+    f.victim.master = NULL;
+    GET_POS(&f.victim) = POS_STANDING;
+    f.victim.points.size = GET_REAL_SIZE(&f.victim) = SIZE_LARGE;
+  }
+  do_mount(&f.actor, "horse", 0, 0);
+  mounted = RIDING(&f.actor) == &f.victim && RIDDEN_BY(&f.victim) == &f.actor &&
+            f.victim.master == NULL && !pet_order_check(&f.actor, &f.victim);
+  do_dismount(&f.actor, "", 0, 0);
+  dismounted = RIDING(&f.actor) == NULL && RIDDEN_BY(&f.victim) == NULL;
+  clear_char_event_list(&f.actor);
+  event_free_all();
+  end_gameplay_fixture(&f);
+  CuAssertTrue(tc, denied);
+  CuAssertTrue(tc, mounted);
+  CuAssertTrue(tc, dismounted);
+}
+
+static void verify_corpse_animation_eligibility(CuTest *tc, int mode, bool charged, int *stats)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data player_specials;
+  struct char_data *owner;
+  struct char_data prototype, *pet;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  struct obj_data *corpse, *loot;
+  struct domain_entity_handle corpse_handle;
+  unsigned long seed;
+  bool created, retained, loot_retained, charge_retained, immaterial = FALSE;
+  int spellnum = mode >= 5 ? SPELL_GREATER_ANIMATION : SPELL_ANIMATE_DEAD;
+  int level = mode >= 5 ? 15 + (mode - 5) * 5 : 1;
+
+  begin_gameplay_fixture(&fixture);
+  memset(&player_specials, 0, sizeof(player_specials));
+  owner = &fixture.actor;
+  REMOVE_BIT_AR(MOB_FLAGS(owner), MOB_ISNPC);
+  owner->player_specials = &player_specials;
+  GET_PFILEPOS(owner) = -1;
+  owner->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  owner->char_specials.deathless_touch = charged;
+  event_free_all();
+  event_init();
+  initialize_test_npc(&prototype, "animated zombie", NOWHERE);
+  prototype.player.name = (char *)"zombie";
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = 100;
+  fixture.mobile_index[0].vnum = animated_dead_summon_mob(spellnum, level);
+  mob_proto = &prototype;
+  corpse = create_obj();
+  corpse->name = strdup(mode == 2 ? "pcorpse victim" : "corpse");
+  corpse->short_description = strdup("a corpse");
+  GET_OBJ_TYPE(corpse) = ITEM_CONTAINER;
+  GET_OBJ_VAL(corpse, 3) = 1;
+  GET_OBJ_VAL(corpse, 4) = mode == 1 ? 123 : 0;
+  CORPSE_ANIMATION_BLOCKED(corpse) = mode == 3;
+  if (mode == 4)
+    GET_OBJ_TYPE(corpse) = ITEM_TRASH;
+  obj_to_room(corpse, 0);
+  loot = create_obj();
+  obj_to_obj(loot, corpse);
+  corpse_handle = domain_event_object_handle(corpse);
+  for (seed = 1; seed < 1000; seed++)
+  {
+    circle_srandom(seed);
+    (void)rand_number(2, 6);
+    if (mode >= 5)
+      (void)summon_spell_mob_level(spellnum, level);
+    if (rand_number(0, 101) >= 10)
+      break;
+  }
+  circle_srandom(seed);
+  mag_summons(level, &fixture.actor, corpse, spellnum, 0, CAST_SPELL);
+  pet = fixture.actor.followers != NULL ? fixture.actor.followers->follower : NULL;
+  created = pet != NULL && IS_PET(pet) && MOB_FLAGGED(pet, MOB_ANIMATED_DEAD);
+  charge_retained = owner->char_specials.deathless_touch;
+  if (pet != NULL && stats != NULL)
+  {
+    affect_total(pet);
+    affect_total(pet);
+    stats[0] = GET_STR(pet);
+    stats[1] = GET_DEX(pet);
+    stats[2] = GET_CON(pet);
+    stats[3] = GET_REAL_AC(pet);
+    stats[4] = GET_MAX_HIT(pet);
+    stats[5] = GET_LEVEL(pet);
+  }
+  corpse = domain_event_world_resolve_object(corpse_handle);
+  retained = corpse != NULL;
+  if (pet != NULL)
+    immaterial = IS_INCORPOREAL(pet);
+  if (mode >= 5 && mode <= 7)
+    loot_retained = loot->in_room == 0 && loot->carried_by == NULL;
+  else
+    loot_retained = mode == 0 || mode == 8 ? loot->carried_by == pet : loot->in_obj == corpse;
+  if (corpse != NULL)
+    extract_obj(corpse);
+  if (pet != NULL)
+    extract_char(pet);
+  extract_pending_chars();
+  if (mode == 0 || mode >= 5)
+    extract_obj(loot);
+  domain_event_world_forget_character(&fixture.actor);
+  event_free_all();
+  mob_proto = saved_proto;
+  character_list = saved_characters;
+  end_gameplay_fixture(&fixture);
+  CuAssertIntEquals(tc, mode == 0 || mode >= 5, created);
+  CuAssertIntEquals(tc, mode > 0 && mode < 5, retained);
+  CuAssertIntEquals(tc, mode >= 5 && mode <= 7, immaterial);
+  CuAssertTrue(tc, loot_retained);
+  CuAssertIntEquals(tc, charged && mode > 0 && mode < 5, charge_retained);
+}
+
+void Test_gameplay_animation_rejects_player_and_blocked_corpses_without_taking_loot(CuTest *tc)
+{
+  int mode, i;
+  int ordinary[6] = {0}, empowered[6] = {0};
+
+  for (mode = 0; mode <= 8; mode++)
+    verify_corpse_animation_eligibility(tc, mode, true, NULL);
+  for (mode = 0; mode <= 5; mode += 5)
+  {
+    verify_corpse_animation_eligibility(tc, mode, false, ordinary);
+    verify_corpse_animation_eligibility(tc, mode, true, empowered);
+    for (i = 0; i < 3; i++)
+      CuAssertIntEquals(tc, ordinary[i] + 2, empowered[i]);
+    CuAssertIntEquals(tc, ordinary[3] + 20, empowered[3]);
+    CuAssertIntEquals(tc, ordinary[4] + ordinary[5], empowered[4]);
+    CuAssertIntEquals(tc, ordinary[5], empowered[5]);
+  }
+}
+
+void Test_gameplay_pet_death_preserves_corpse_loot_but_blocks_reanimation(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct char_data prototype, *pet;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  struct obj_data *loot, *corpse;
+  bool blocked, retained, dismounted;
+
+  begin_gameplay_fixture(&fixture);
+  event_free_all();
+  event_init();
+  initialize_test_npc(&prototype, "summoned beast", NOWHERE);
+  prototype.player.name = (char *)"beast";
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = 100;
+  mob_proto = &prototype;
+  pet = read_mobile(0, REAL);
+  CuAssertTrue(tc, place_pet_follower(&fixture.actor, pet));
+  loot = create_obj();
+  obj_to_char(loot, pet);
+  /* A control break must not make a summoned pet eligible for raising. */
+  stop_follower(pet);
+  mount_char(&fixture.actor, pet);
+  raw_kill(pet, &fixture.victim);
+  extract_pending_chars();
+  dismounted = RIDING(&fixture.actor) == NULL;
+  corpse = fixture.rooms[0].contents;
+  blocked = corpse != NULL && IS_CORPSE(corpse) && !corpse_can_be_animated(corpse);
+  retained = corpse != NULL && loot->in_obj == corpse;
+  if (corpse != NULL)
+    extract_obj(corpse);
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  event_free_all();
+  mob_proto = saved_proto;
+  character_list = saved_characters;
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, blocked);
+  CuAssertTrue(tc, retained);
+  CuAssertTrue(tc, dismounted);
+}
+
+static void verify_auto_raise_admission(CuTest *tc, int mode)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct char_data prototypes[2], *pet;
+  struct index_data indexes[2] = {0};
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  struct spell_info_type saved_spell = spell_info[SPELL_ANIMATE_DEAD];
+  struct follow_type full_roster[2] = {0};
+  struct char_data existing[2];
+  struct obj_data *corpse;
+  struct domain_entity_handle corpse_handle;
+  unsigned long seed;
+  bool attempted, created, retained, charged;
+  int i;
+
+  begin_gameplay_fixture(&fixture);
+  event_free_all();
+  event_init();
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player.name = (char *)"autoraiseowner";
+  fixture.actor.player_specials = &specials;
+  fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(&fixture.actor) = -1;
+  CLASS_LEVEL((&fixture.actor), CLASS_NECROMANCER) = 2;
+  SET_FEAT(&fixture.actor, FEAT_SUMMON_UNDEAD, mode == 2 ? 0 : 1);
+  if (mode != 1)
+    SET_BIT_AR(PRF_FLAGS(&fixture.actor), PRF_AUTORAISE);
+  GET_LEVEL(&fixture.actor) = 2;
+  for (i = 0; i < 2; i++)
+  {
+    initialize_test_npc(&prototypes[i], "animated undead", NOWHERE);
+    prototypes[i].player.name = (char *)"undead";
+    SET_BIT_AR(MOB_FLAGS(&prototypes[i]), MOB_CUSTOM_MOB_STATS);
+    GET_MOB_RNUM(&prototypes[i]) = i;
+    GET_PSP(&prototypes[i]) = GET_REAL_MAX_HIT(&prototypes[i]) = GET_REAL_MAX_MOVE(&prototypes[i]) =
+        100;
+    indexes[i].vnum = i == 0 ? (mode == 8 ? 1 : MOB_ZOMBIE) : MOB_MUMMY;
+  }
+  mob_proto = prototypes;
+  mob_index = indexes;
+  top_of_mobt = 1;
+  memset(&spell_info[SPELL_ANIMATE_DEAD], 0, sizeof(spell_info[SPELL_ANIMATE_DEAD]));
+  spell_info[SPELL_ANIMATE_DEAD].name = "animate dead";
+  spell_info[SPELL_ANIMATE_DEAD].routines = MAG_SUMMONS;
+  spell_info[SPELL_ANIMATE_DEAD].schoolOfMagic = NECROMANCY;
+  corpse = create_obj();
+  corpse->name = strdup("corpse");
+  corpse->short_description = strdup("a corpse");
+  GET_OBJ_TYPE(corpse) = ITEM_CONTAINER;
+  GET_OBJ_VAL(corpse, 3) = 1;
+  GET_OBJ_VAL(corpse, 4) = mode == 3 ? 123 : 0;
+  CORPSE_ANIMATION_BLOCKED(corpse) = mode == 4;
+  obj_to_room(corpse, 0);
+  corpse_handle = domain_event_object_handle(corpse);
+  if (mode == 5)
+  {
+    /* Two elite undead use all four Necromancer control points. */
+    for (i = 0; i < 2; i++)
+    {
+      initialize_test_npc(&existing[i], "mummy", 0);
+      GET_MOB_RNUM(&existing[i]) = 1;
+      SET_BIT_AR(MOB_FLAGS(&existing[i]), MOB_ANIMATED_DEAD);
+      SET_BIT_AR(AFF_FLAGS(&existing[i]), AFF_CHARM);
+      existing[i].master = &fixture.actor;
+      full_roster[i].follower = &existing[i];
+      full_roster[i].next = i == 0 ? &full_roster[1] : NULL;
+    }
+    fixture.actor.followers = &full_roster[0];
+  }
+  if (mode == 6)
+    USE_SWIFT_ACTION(&fixture.actor);
+  for (seed = 1; seed < 1000; seed++)
+  {
+    circle_srandom(seed);
+    (void)rand_number(2, 6);
+    if ((rand_number(0, 101) < 10) == (mode == 7))
+      break;
+  }
+  circle_srandom(seed);
+  attempted = try_auto_raise_corpse(&fixture.actor, corpse);
+  charged = !is_action_available(&fixture.actor, atSWIFT, FALSE);
+  pet = fixture.actor.followers != NULL && fixture.actor.followers != &full_roster[0]
+            ? fixture.actor.followers->follower
+            : NULL;
+  created = pet != NULL && IS_PET(pet);
+  corpse = domain_event_world_resolve_object(corpse_handle);
+  retained = corpse != NULL;
+  if (corpse != NULL)
+    extract_obj(corpse);
+  if (pet != NULL)
+    extract_char(pet);
+  extract_pending_chars();
+  fixture.actor.followers = NULL;
+  clear_char_event_list(&fixture.actor);
+  if (fixture.actor.events != NULL)
+    free_list(fixture.actor.events);
+  fixture.actor.events = NULL;
+  domain_event_world_forget_character(&fixture.actor);
+  event_free_all();
+  spell_info[SPELL_ANIMATE_DEAD] = saved_spell;
+  mob_proto = saved_proto;
+  character_list = saved_characters;
+  end_gameplay_fixture(&fixture);
+  CuAssertIntEquals(tc, mode == 0 || mode == 7, attempted);
+  CuAssertIntEquals(tc, mode == 0, created);
+  CuAssertIntEquals(tc, mode != 0, retained);
+  CuAssertIntEquals(tc, mode == 0 || mode == 6 || mode == 7, charged);
+}
+
+void Test_gameplay_auto_raise_requires_opt_in_eligible_corpse_and_control_capacity(CuTest *tc)
+{
+  int mode;
+
+  for (mode = 0; mode <= 8; mode++)
+    verify_auto_raise_admission(tc, mode);
+}
+
+static void verify_auto_raise_direct_kill(CuTest *tc, int mode)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct char_data prototype, *victim, *pet;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  struct spell_info_type saved_spell = spell_info[SPELL_ANIMATE_DEAD];
+  struct obj_data *older, *obj;
+  struct domain_entity_handle older_handle;
+  bool charged, older_retained, deathless_raised = true, illusion_credit = true;
+  int saved_max_gain = CONFIG_MAX_EXP_GAIN;
+  int saved_exp_multiplier = CONFIG_EXPERIENCE_MULTIPLIER;
+  char credit_error[160];
+
+  begin_gameplay_fixture(&fixture);
+  snprintf(credit_error, sizeof(credit_error), "illusion credit mode %d", mode);
+  event_free_all();
+  event_init();
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player.name = (char *)"killraiser";
+  fixture.actor.player_specials = &specials;
+  fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(&fixture.actor) = -1;
+  GET_LEVEL(&fixture.actor) = 2;
+  CLASS_LEVEL((&fixture.actor), CLASS_NECROMANCER) = 2;
+  SET_FEAT(&fixture.actor, FEAT_SUMMON_UNDEAD, 1);
+  SET_BIT_AR(PRF_FLAGS(&fixture.actor), PRF_AUTORAISE);
+  initialize_test_npc(&prototype, "a beast", NOWHERE);
+  prototype.player.name = (char *)"beast";
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_LEVEL(&prototype) = 1;
+  GET_EXP(&prototype) = 0;
+  GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = 100;
+  fixture.mobile_index[0].vnum = MOB_ZOMBIE;
+  mob_proto = &prototype;
+  memset(&spell_info[SPELL_ANIMATE_DEAD], 0, sizeof(spell_info[SPELL_ANIMATE_DEAD]));
+  spell_info[SPELL_ANIMATE_DEAD].name = "animate dead";
+  spell_info[SPELL_ANIMATE_DEAD].routines = MAG_SUMMONS;
+  spell_info[SPELL_ANIMATE_DEAD].schoolOfMagic = NECROMANCY;
+  older = create_obj();
+  older->name = strdup("corpse");
+  older->short_description = strdup("an older corpse");
+  GET_OBJ_TYPE(older) = ITEM_CONTAINER;
+  GET_OBJ_VAL(older, 3) = 1;
+  obj_to_room(older, 0);
+  older_handle = domain_event_object_handle(older);
+  victim = read_mobile(0, REAL);
+  char_to_room(victim, 0);
+  if (mode == 1)
+    GET_REAL_RACE(victim) = RACE_TYPE_UNDEAD;
+  if (mode == 2)
+    victim->pet_source_spell = SPELL_SUMMON_CREATURE_1;
+  if (mode == 3)
+  {
+    fixture.victim.master = &fixture.actor;
+    SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+  }
+  if (mode == 4)
+    SET_BIT_AR(PRF_FLAGS(&fixture.actor), PRF_AUTOSAC);
+  if (mode >= 6)
+  {
+    CONFIG_MAX_EXP_GAIN = 1000;
+    CONFIG_EXPERIENCE_MULTIPLIER = 100;
+    GET_CLASS(&fixture.actor) = CLASS_NECROMANCER;
+    GET_EXP(&fixture.actor) = 0;
+    GET_EXP(victim) = 3000;
+    fixture.victim.master = &fixture.actor;
+    fixture.victim.pet_source_spell = SPELL_MISLEAD;
+    SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+    if (mode == 7)
+    {
+      char_from_room(&fixture.actor);
+      char_to_room(&fixture.actor, 1);
+    }
+    if (mode == 8)
+      REMOVE_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
+    illusion_credit = !pet_order_check(&fixture.actor, &fixture.victim);
+  }
+  circle_srandom(1);
+  if (mode == 5)
+  {
+    REMOVE_BIT_AR(PRF_FLAGS(&fixture.actor), PRF_AUTORAISE);
+    damage(&fixture.actor, victim, 10000, ABILITY_DEATHLESS_TOUCH, DAM_FORCE, FALSE);
+  }
+  else if (mode >= 6)
+  {
+    damage(&fixture.victim, victim, 10000, TYPE_HIT, DAM_FORCE, FALSE);
+    snprintf(credit_error, sizeof(credit_error),
+             "illusion mode %d: owner xp %ld, target hp %d, dead %d", mode, GET_EXP(&fixture.actor),
+             GET_HIT(victim), !!MOB_FLAGGED(victim, MOB_NOTDEADYET));
+    illusion_credit = illusion_credit && ((GET_EXP(&fixture.actor) > 0) == (mode == 6)) &&
+                      MOB_FLAGGED(victim, MOB_NOTDEADYET);
+  }
+  else
+    dam_killed_vict(mode == 3 ? &fixture.victim : &fixture.actor, victim);
+  extract_pending_chars();
+  if (mode == 5)
+  {
+    deathless_raised = fixture.actor.char_specials.deathless_touch;
+    for (obj = fixture.rooms[0].contents; obj != NULL; obj = obj->next_content)
+      if (obj != older && corpse_can_be_animated(obj))
+        break;
+    if (obj == NULL)
+      deathless_raised = false;
+    else
+    {
+      circle_srandom(1);
+      mag_summons(1, &fixture.actor, obj, SPELL_ANIMATE_DEAD, 0, CAST_SPELL);
+      pet = fixture.actor.followers != NULL ? fixture.actor.followers->follower : NULL;
+      deathless_raised = deathless_raised && pet != NULL && IS_PET(pet) &&
+                         MOB_FLAGGED(pet, MOB_ANIMATED_DEAD) &&
+                         !fixture.actor.char_specials.deathless_touch;
+    }
+  }
+  charged = !is_action_available(&fixture.actor, atSWIFT, FALSE);
+  older_retained = domain_event_world_resolve_object(older_handle) != NULL;
+  while (fixture.actor.followers != NULL)
+  {
+    pet = fixture.actor.followers->follower;
+    extract_char(pet);
+    extract_pending_chars();
+  }
+  while ((obj = fixture.rooms[0].contents) != NULL)
+    extract_obj(obj);
+  clear_char_event_list(&fixture.actor);
+  if (fixture.actor.events != NULL)
+    free_list(fixture.actor.events);
+  fixture.actor.events = NULL;
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  event_free_all();
+  spell_info[SPELL_ANIMATE_DEAD] = saved_spell;
+  mob_proto = saved_proto;
+  character_list = saved_characters;
+  CONFIG_MAX_EXP_GAIN = saved_max_gain;
+  CONFIG_EXPERIENCE_MULTIPLIER = saved_exp_multiplier;
+  end_gameplay_fixture(&fixture);
+  CuAssertIntEquals(tc, mode == 0, charged);
+  CuAssertTrue(tc, older_retained);
+  CuAssertTrue(tc, deathless_raised);
+  CuAssert(tc, credit_error, illusion_credit);
+}
+
+void Test_gameplay_auto_raise_uses_only_the_direct_kills_new_corpse(CuTest *tc)
+{
+  int mode;
+
+  for (mode = 0; mode <= 8; mode++)
+    verify_auto_raise_direct_kill(tc, mode);
+}
+
+void Test_gameplay_autoraise_toggle_requires_the_native_class_ability(CuTest *tc)
+{
+  struct char_data owner;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+
+  clear_char(&owner);
+  owner.player_specials = &specials;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &owner;
+  descriptor.pProtocol = ProtocolCreate();
+  owner.desc = &descriptor;
+  do_gen_tog(&owner, "", 0, SCMD_AUTORAISE);
+  CuAssertTrue(tc, !PRF_FLAGGED(&owner, PRF_AUTORAISE));
+  CuAssertPtrNotNull(tc, strstr(descriptor.output, "Summon Undead ability"));
+  SET_FEAT(&owner, FEAT_SUMMON_UNDEAD, 1);
+  do_gen_tog(&owner, "", 0, SCMD_AUTORAISE);
+  CuAssertTrue(tc, PRF_FLAGGED(&owner, PRF_AUTORAISE));
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  SET_FEAT(&owner, FEAT_SUMMON_UNDEAD, 0);
+  do_gen_tog(&owner, "", 0, SCMD_AUTORAISE);
+  CuAssertTrue(tc, !PRF_FLAGGED(&owner, PRF_AUTORAISE));
+  CuAssertPtrNotNull(tc, strstr(descriptor.output, "Summon Undead ability"));
+  ProtocolDestroy(descriptor.pProtocol);
 }

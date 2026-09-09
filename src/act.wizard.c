@@ -12921,6 +12921,10 @@ ACMD(do_settestchar)
   /* Clear all class data first */
   for (i = 0; i < NUM_CLASSES; i++)
   {
+    clear_prep_queue_by_class(vict, i);
+    clear_collection_by_class(vict, i);
+    clear_innate_magic_by_class(vict, i);
+    clear_known_spells_by_class(vict, i);
     CLASS_LEVEL(vict, i) = 0;
   }
 
@@ -12945,12 +12949,6 @@ ACMD(do_settestchar)
     int class_num = class_list_tmp[i];
     int class_level = class_levels_tmp[i];
 
-    /* Clear existing spell state so slots/known are fully available */
-    clear_prep_queue_by_class(vict, class_num);
-    clear_collection_by_class(vict, class_num);
-    clear_innate_magic_by_class(vict, class_num);
-    clear_known_spells_by_class(vict, class_num);
-
     /* For spontaneous casters, grant all spells they can learn up to their class level */
     switch (class_num)
     {
@@ -12965,7 +12963,7 @@ ACMD(do_settestchar)
     case CLASS_BARD:
     case CLASS_SUMMONER:
     case CLASS_INQUISITOR:
-      for (j = 0; j <= TOP_SPELL_DEFINE; j++)
+      for (j = 0; j < MAX_SPELLS; j++)
       {
         if (spell_info[j].min_level[class_num] > 0 &&
             spell_info[j].min_level[class_num] < LVL_IMMORT &&
@@ -13007,7 +13005,7 @@ ACMD(do_settestchar)
             /* Fallback: scan spell list if no curated entry fits */
             if (!picked)
             {
-              for (j = 0; j <= TOP_SPELL_DEFINE; j++)
+              for (j = 0; j < MAX_SPELLS; j++)
               {
                 if (spell_info[j].min_level[class_num] > 0 &&
                     spell_info[j].min_level[class_num] < LVL_IMMORT &&

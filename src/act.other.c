@@ -18,6 +18,7 @@
 #include "magic/buff_sequence.h"
 #include "movement/door_state.h"
 #include "utils.h"
+#include "pet_vnums.h"
 #include "comm.h"
 #include "interpreter.h"
 #include "net/protocol.h"
@@ -713,9 +714,10 @@ ACMDU(do_handleanimal)
 /* innate animate dead ability */
 ACMD(do_animatedead)
 {
-  int uses_remaining = 0;
+  int uses_remaining = 0, required_level = 0;
   struct char_data *mob = NULL;
   mob_vnum mob_num = 0;
+  char form[MAX_INPUT_LENGTH];
 
   if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
     return;
@@ -756,16 +758,58 @@ ACMD(do_animatedead)
     return;
   }
 
-  /* success! */
-
-  if (CASTER_LEVEL(ch) >= 30)
-    mob_num = MOB_MUMMY;
-  else if (CASTER_LEVEL(ch) >= 20)
-    mob_num = MOB_GIANT_SKELETON;
-  else if (CASTER_LEVEL(ch) >= 10)
-    mob_num = MOB_GHOUL;
-  else
+  argument = one_argument(argument, form, sizeof(form));
+  skip_spaces_c(&argument);
+  if (*argument)
+  {
+    send_to_char(ch, "Usage: animatedead [zombie|ghoul|skeleton|mummy|mage|lich]\r\n");
+    return;
+  }
+  if (!*form)
+    mob_num = animated_dead_summon_mob(SPELL_ANIMATE_DEAD, CASTER_LEVEL(ch));
+  else if (!str_cmp(form, "zombie"))
     mob_num = MOB_ZOMBIE;
+  else if (!str_cmp(form, "ghoul"))
+  {
+    mob_num = MOB_GHOUL;
+    required_level = 10;
+  }
+  else if (!str_cmp(form, "skeleton"))
+  {
+    mob_num = MOB_GIANT_SKELETON;
+    required_level = 20;
+  }
+  else if (!str_cmp(form, "mummy"))
+  {
+    mob_num = MOB_MUMMY;
+    required_level = 30;
+  }
+  else if (!str_cmp(form, "mage"))
+  {
+    mob_num = PET_SKELETAL_MAGE;
+    required_level = 10;
+  }
+  else if (!str_cmp(form, "lich"))
+  {
+    mob_num = PET_LICH;
+    required_level = 25;
+  }
+  else
+  {
+    send_to_char(ch, "Usage: animatedead [zombie|ghoul|skeleton|mummy|mage|lich]\r\n");
+    return;
+  }
+  if (CASTER_LEVEL(ch) < required_level)
+  {
+    send_to_char(ch, "Your caster level is too low to animate that form.\r\n");
+    return;
+  }
+
+  if (!can_add_summoned_followers(ch, mob_num, SPELL_ANIMATE_DEAD, 1))
+  {
+    send_to_char(ch, "That undead requires more control points than you have available.\r\n");
+    return;
+  }
 
   if (!(mob = read_mobile(mob_num, VIRTUAL)))
   {
@@ -790,7 +834,7 @@ ACMD(do_animatedead)
     start_daily_use_cooldown(ch, FEAT_ANIMATE_DEAD);
 
   USE_STANDARD_ACTION(ch);
-  send_to_char(ch, "You animate a corpse!\r\n");
+  send_to_char(ch, "You call an undead follower!\r\n");
   finish_pet_summon(ch, mob, true, true);
 }
 
@@ -1728,7 +1772,8 @@ void perform_call(struct char_data *ch, int call_type, int level)
   {
     next = k->next;
     if (k->follower != NULL && IS_NPC(k->follower) && !MOB_FLAGGED(k->follower, MOB_NOTDEADYET) &&
-        AFF_FLAGGED(k->follower, AFF_CHARM) && MOB_FLAGGED(k->follower, call_type))
+        k->follower->master == ch && AFF_FLAGGED(k->follower, AFF_CHARM) &&
+        MOB_FLAGGED(k->follower, call_type))
     {
       if (call_type == MOB_C_ANIMAL && !IS_NPC(ch) && GET_MOB_VNUM(k->follower) == MOB_DIRE_WOLF &&
           !can_select_dire_wolf_companion(ch))
@@ -1751,6 +1796,7 @@ void perform_call(struct char_data *ch, int call_type, int level)
         companion = domain_event_character_handle(mob);
         if (!domain_entity_handle_is_valid(owner) || !domain_entity_handle_is_valid(companion))
           return;
+        dismount_char(mob);
         char_from_room(mob);
         ch = domain_event_world_resolve_character(owner);
         mob = domain_event_world_resolve_character(companion);
@@ -1827,13 +1873,11 @@ void perform_call(struct char_data *ch, int call_type, int level)
       return;
     }
 
-    /* For NPCs without a selection, randomly pick from valid dragon types */
-    /* Dragon mounts use vnums 1240-1249. */
-    if (!(mob_num = (GET_DRAGON_RIDER_DRAGON_TYPE(ch) + 1239)))
-    {
-      /* Dragon types are 1-10, so vnum is (1-10) + 1239 = 1240-1249 */
-      mob_num = 1240 + rand_number(0, 9);
-    }
+    /* Heritage choices map directly to the authored dragon mounts. */
+    if (GET_DRAGON_RIDER_DRAGON_TYPE(ch) <= 0)
+      mob_num = rand_number(PET_DRAGON_MOUNT_FIRST, PET_DRAGON_MOUNT_LAST);
+    else if (GET_DRAGON_RIDER_DRAGON_TYPE(ch) < NUM_DRAGON_TYPES)
+      mob_num = PET_DRAGON_MOUNT_FIRST + GET_DRAGON_RIDER_DRAGON_TYPE(ch) - 1;
 
     break;
   case MOB_C_FAMILIAR:
@@ -2025,6 +2069,8 @@ void perform_call(struct char_data *ch, int call_type, int level)
     /* Beast Master perk bonuses */
     if (!IS_NPC(ch))
     {
+      int save_bonus = get_ranger_companion_save_bonus(ch);
+
       /* Enhanced Companion I & II and Primal Avatar: HP bonuses */
       int hp_bonus = get_ranger_companion_hp_bonus(ch);
       if (hp_bonus > 0)
@@ -2046,12 +2092,12 @@ void perform_call(struct char_data *ch, int call_type, int level)
         GET_REAL_HITROLL(mob) += tohit_bonus;
       }
 
-      /* Alpha Bond: +3 to all saves and immunity to fear */
-      if (HAS_FEAT(ch, PERK_RANGER_ALPHA_BOND))
+      /* Base saves retain Alpha Bond through affect recalculation. */
+      if (save_bonus > 0)
       {
-        GET_SAVE(mob, SAVING_FORT) += 3;
-        GET_SAVE(mob, SAVING_REFL) += 3;
-        GET_SAVE(mob, SAVING_WILL) += 3;
+        GET_REAL_SAVE(mob, SAVING_FORT) += save_bonus;
+        GET_REAL_SAVE(mob, SAVING_REFL) += save_bonus;
+        GET_REAL_SAVE(mob, SAVING_WILL) += save_bonus;
         /* Fear immunity is checked via ranger_companion_immune_fear() in is_immune_fear() */
       }
     }
@@ -2121,6 +2167,7 @@ void perform_call(struct char_data *ch, int call_type, int level)
 
   affect_total(mob);
 
+  mob->char_specials.is_charmie = true;
   SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
   if (!attach_follower(mob, ch))
   {
@@ -2513,13 +2560,15 @@ ACMD(do_dismiss)
   for (index = 0; index < count; index++)
   {
     pet = domain_event_world_resolve_character(targets[index]);
-    REMOVE_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+    if (pet != NULL)
+      REMOVE_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
   }
   saved = IS_NPC(ch) || save_char_pets(ch);
   for (index = 0; index < count; index++)
   {
     pet = domain_event_world_resolve_character(targets[index]);
-    SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+    if (pet != NULL)
+      SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
   }
   if (!saved)
   {
@@ -2567,7 +2616,7 @@ ACMD(do_destroygolem)
   }
 
   /* Check if this is actually a golem */
-  if (!MOB_FLAGGED(golem, MOB_GOLEM))
+  if (!IS_NPC(golem) || !MOB_FLAGGED(golem, MOB_GOLEM) || MOB_FLAGGED(golem, MOB_NOTDEADYET))
   {
     send_to_char(ch, "That's not a golem!\r\n");
     return;
@@ -2587,18 +2636,20 @@ ACMD(do_destroygolem)
     return;
   }
 
-  act("You carefully dismantle $N, recovering some of the materials used in its construction.",
-      FALSE, ch, 0, golem, TO_CHAR);
-  act("$n carefully dismantles $N, breaking it down into component materials.", TRUE, ch, 0, golem,
-      TO_ROOM);
+  if (pet_has_entrusted_gear(golem))
+  {
+    send_to_char(ch, "Retrieve the golem's carried and worn gear before dismantling it.\r\n");
+    return;
+  }
 
-  /* Recover materials (50% of original cost) before extracting the golem */
+  /* Commit recovery and extraction before room messages can run scripts. */
   recover_golem_materials(ch, golem, 50);
-
-  /* Remove the golem */
   extract_char(golem);
-
   save_char_pets(ch);
+  send_to_char(ch,
+               "You carefully dismantle the golem, recovering some construction materials.\r\n");
+  act("$n carefully dismantles a golem, breaking it down into component materials.", TRUE, ch, 0, 0,
+      TO_ROOM);
 }
 
 /* Inquisitor True Seeing perk command: detect invisibility (rank 1) or true seeing (rank 2). */
@@ -3079,6 +3130,22 @@ ACMD(do_mount)
   else if (!IS_NPC(vict) && GET_LEVEL(ch) < LVL_IMMORT)
   {
     send_to_char(ch, "Ehh... no.\r\n");
+    return;
+  }
+  else if (vict == ch || IS_INCORPOREAL(ch) || IS_INCORPOREAL(vict))
+  {
+    send_to_char(ch, "You need a separate, physical mount and a solid riding form.\r\n");
+    return;
+  }
+  else if (GET_HIT(vict) <= 0 || GET_POS(vict) < POS_FIGHTING ||
+           (IS_NPC(vict) && MOB_FLAGGED(vict, MOB_NOTDEADYET)))
+  {
+    send_to_char(ch, "That creature is not ready to carry a rider.\r\n");
+    return;
+  }
+  else if (IS_PET(vict) && vict->master != ch)
+  {
+    send_to_char(ch, "That creature is controlled by someone else.\r\n");
     return;
   }
   else if (RIDING(ch) || RIDDEN_BY(ch))
@@ -8493,6 +8560,8 @@ ACMD(do_display)
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPROOM);
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);
     SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPACTIONS);
+    SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPGOLD);
+    SET_BIT_AR(PRF_FLAGS(ch), PRF_DISPTIME);
   }
   else if (!str_cmp(argument, "off") || !str_cmp(argument, "none"))
   {
@@ -8745,6 +8814,8 @@ ACMD(do_gen_tog)
        "attack.\r\n",
        "Sweeping strike enabled. You will now automatically attempt a trip on the first flurry of "
        "blows attack each round.\r\n"},
+      {"Automatic raising disabled.\r\n",
+       "Automatic raising enabled: eligible direct kills can use a swift action to animate.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -9063,6 +9134,16 @@ ACMD(do_gen_tog)
     break;
   case SCMD_AUTOSEARCH:
     result = PRF_TOG_CHK(ch, PRF_AUTOSEARCH);
+    break;
+  case SCMD_AUTORAISE:
+    if (!HAS_REAL_FEAT(ch, FEAT_SUMMON_UNDEAD))
+    {
+      REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_AUTORAISE);
+      send_to_char(
+          ch, "You need the Necromancer's Summon Undead ability to enable automatic raising.\r\n");
+      return;
+    }
+    result = PRF_TOG_CHK(ch, PRF_AUTORAISE);
     break;
   case SCMD_SWEEPING_STRIKE:
     if (!has_perk(ch, PERK_MONK_SWEEPING_STRIKE))

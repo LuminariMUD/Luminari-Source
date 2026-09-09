@@ -1,0 +1,1530 @@
+Pet Phase 1: planar guardian and genie choices, 2026-09-09
+
+Development checkout, port 4100, existing autorun/login smoke tooling.
+Petaccept used native Summoner casts after disposable character setup.
+
+Guardian: acquired 47345899, ordered melee against the isolated practice dummy,
+observed attacks and defenses, then dismissed. Authored prototype/DR/capacity
+checks remain in the production-linked suite.
+Genies: djinni 47345900, efreeti 47345901, marid 47345902, shaitan 47345903.
+Verified one-genie rejection, lightning bolt, fireball, marid healing, and
+all four dismissals. Retried shaitan with its actual spell name, stone skin,
+and verified the protective effect. Marid and shaitan were reacquired after
+logout/login without resetting character access.
+
+The first genie attempt exposed test-character setup defects: old-class spell
+collections were retained, and skill IDs were added as known spells. The excess
+entries crowded spells out during reload. settestchar now clears all class spell
+state and restricts spell enumeration to the native spell range. The corrected
+saved character has 110 known spells, all Summoner spells, including geniekind,
+with zero skill IDs. This is test setup validation, not normal respec coverage.
+The initial incorrect stoneskin command is retained in the final transcript;
+the corrected stone skin command and successful effect follow separately.
+
+Corrected shaitan's caster and room messages, which previously said marid.
+GENIEKIND help now documents native class access, cost/control, abilities,
+equipment/dismissal, spell slots, and the separate caster/pet lifetimes. The
+16,000-round caster duration and untimed pet lifetime are source-traced, not
+an elapsed-duration live test. Long duration/lifecycle coverage remains open.
+
+Validation: isolated MariaDB 127.0.0.1:33379, pet_baseline.
+LUMINARI_TEST_MYSQL_ENABLE=1 make -j$(nproc) test: OK (1354 tests).
+make install passed; no compiler warnings or root luminari binary.
+Pre-commit passed. GENIEKIND database/flat-file/tracked SQL text matches.
+No production access or remote changes were used.
+
+
+
+Guardian acquisition, combat, dismissal
+======================================
+Reusing the development MUD on port 4100.
+
+>>> goto 100501
+[ Petaccept [127.0.0.1] has connected. ]
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+[ Petaccept un-renting and entering game. ]
+[ Petaccept (level 30) has 62 objects (max 99999). ]
+A celestial healer appears beside Petaccept.
+Petaccept has entered the game.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm goto 100501
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+[100501] Random Encounter Distrobution Zone [ None ]  [Inside] ( None )
+You are in an unfinished room.
+                                                                  [&]
+[ Exits: None!]
+[19701] [15] (Blue Aura) A winged celestial healer stands ready to assist its summoner.
+[30] [PC] [Humn] Petaccept is standing here.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+
+>>> trans Petaccept
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm trans Petaccept
+Petaccept disappears in a mushroom cloud.
+Petaccept arrives from a puff of smoke.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+
+>>> load mob 100508
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm load mob 100508
+You create a practice dummy.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+
+>>> set mob dummy level 30
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm set mob dummy level 30
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+a practice dummy's level set to 30.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+
+>>> set mob dummy maxhit 15000
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm set mob dummy maxhit 15000
+a practice dummy's maxhit set to 15000.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+
+>>> set mob dummy hitpoints 15000
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm set mob dummy hitpoints 15000
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+a practice dummy's hitpoints set to 15000.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+
+>>> dismiss healer
+Kohdee disappears in a puff of smoke.
+Kohdee appears with an ear-splitting bang.
+80/260H 310/2500V [smw] (news) (motd)
+80/260H 310/2500V [smw] (news) (motd)
+Kohdee has transferred you!
+Random Encounter Distrobution Zone [Inside] ( None )
+You are in an unfinished room.
+                                                                  [&]
+[ Exits: None!]
+[PC] [Humn] Kohdee is standing here.
+A winged celestial healer stands ready to assist its summoner.
+80/260H 310/2500V [smw] (news) (motd)
+80/260H 310/2500V [smw] (news) (motd)
+Kohdee makes a quaint, magical gesture with one hand.
+Kohdee has created a practice dummy!
+80/260H 310/2500V [smw] (news) (motd)
+80/260H 310/2500V [smw] (news) (motd)
+80/260H 310/2500V [smw] (news) (motd)
+80/260H 310/2500V [smw] (news) (motd)
+80/260H 310/2500V [smw] (news) (motd) dismiss healer
+80/260H 310/2500V [smw] (news) (motd)
+You dismiss a celestial healer.
+A celestial healer is no longer serving you!
+[Group] a celestial healer has left the group.
+80/260H 310/2500V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+80/260H 310/2500V [smw] (news) (motd) cast 'planar ally' guardian
+80/260H 310/2500V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+80/260H 310/2500V [s-w] (news) (motd)
+
+Casting: planar ally ............
+
+A faint rift begins to form in reality...
+
+
+
+80/260H 310/2500V [s-w] (news) (motd)
+
+Casting: planar ally ...........
+
+A faint rift begins to form in reality...
+
+
+
+80/260H 310/2500V [s-w] (news) (motd)
+
+Casting: planar ally ..........
+
+A faint rift begins to form in reality...
+
+
+
+80/260H 310/2500V [s-w] (news) (motd)
+
+Casting: planar ally .........
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+81/260H 340/2500V [s-w] (news) (motd)
+
+Casting: planar ally ........
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+81/260H 340/2500V [s-w] (news) (motd)
+
+Casting: planar ally .......
+
+Extraplanar energy pours through the opening...
+
+
+
+81/260H 340/2500V [smw] (news) (motd)
+
+Casting: planar ally ......
+
+Extraplanar energy pours through the opening...
+
+
+
+81/260H 340/2500V [smw] (news) (motd)
+
+Casting: planar ally .....
+
+Extraplanar energy pours through the opening...
+
+
+
+81/260H 340/2500V [smw] (news) (motd)
+
+Casting: planar ally ....
+
+Reality bends dangerously around you!
+
+
+
+81/260H 340/2500V [smw] (news) (motd)
+
+Casting: planar ally ...
+
+Reality bends dangerously around you!
+
+
+
+81/260H 340/2500V [smw] (news) (motd)
+
+Casting: planar ally ..
+
+The planar connection stabilizes!
+
+
+
+81/260H 340/2500V [smw] (news) (motd)
+
+Casting: planar ally .
+
+The planar connection stabilizes!
+
+You complete your spell...You conjure a celestial guardian from a cloud of thick blue smoke!
+
+[Group] a celestial guardian joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+81/260H 340/2500V [smw] (news) (motd)
+
+>>> pets
+81/260H 340/2500V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a celestial guardian - Random Encounter Distrobution Zone - Planar ally [follow] [#47345899]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+81/260H 340/2500V [smw] (news) (motd)
+
+>>> order guardian kill dummy
+.'
+81/260H 340/2500V [smw] (news) (motd) order guardian kill dummy
+81/260H 340/2500V [sm-] (news) (motd)
+A practice dummy fails to do any harm to a celestial guardian!
+Okay.
+81/260H 340/2500V [sm-] (news) (motd)
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+81/260H 340/2500V [sm-] (news) (motd)
+
+A celestial guardian barely avoids a blow from a practice dummy!
+
+A celestial guardian ducks under a practice dummy's fist as it takes a swing at it.
+
+A practice dummy practices shadow-boxing while a celestial guardian takes a break.
+
+A celestial guardian barely grazes a practice dummy as it hits it.
+
+A celestial guardian barely grazes a practice dummy as it hits it.
+
+A celestial guardian barely grazes a practice dummy as it hits it.
+
+
+
+82/260H 370/2500V [smw] (news) (motd)
+
+>>> peace
+[0;37m632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+A faint rift begins to form near Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+Extraplanar energy swirls around Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+Extraplanar energy swirls around Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+Extraplanar energy swirls around Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+Reality distorts visibly around Petaccept!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+Reality distorts visibly around Petaccept!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+The rift around Petaccept stabilizes!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+The rift around Petaccept stabilizes!
+Petaccept completes 'planar ally' and the fabric of reality shifts.
+A celestial guardian appears from a cloud of thick blue smoke!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+Petaccept commands, 'kill dummy'.
+A practice dummy fails to do any harm to a celestial guardian!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+A celestial guardian barely avoids a blow from a practice dummy!
+A celestial guardian ducks under a practice dummy's fist as it takes a swing at it.
+A practice dummy practices shadow-boxing while a celestial guardian takes a break.
+A celestial guardian barely grazes a practice dummy as it hits it.
+A celestial guardian barely grazes a practice dummy as it hits it.
+A celestial guardian barely grazes a practice dummy as it hits it.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm peace
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+Everything is quite peaceful now.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:1pm
+
+>>> dismiss guardian
+As Kohdee makes a strange arcane gesture, a golden light descends
+from the heavens stopping all the fighting.
+Everything is quite peaceful now.
+82/260H 370/2500V [smw] (news) (motd)
+82/260H 370/2500V [smw] (news) (motd) dismiss guardian
+82/260H 370/2500V [smw] (news) (motd)
+You dismiss a celestial guardian.
+A celestial guardian is no longer serving you!
+[Group] a celestial guardian has left the group.
+82/260H 370/2500V [smw] (news) (motd)
+
+
+
+Installed build copyover
+========================
+Reusing the development MUD on port 4100.
+
+>>> copyover
+Copyover recovery complete.
+
+>>> pets
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/8 used, 8 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+PASS: Kohdee survived copyover, completed the post-copyover checks, and logged out cleanly (70s).
+
+
+Four native genie choices
+=========================
+Reusing the development MUD on port 4100.
+
+>>> settestchar Petaccept race human classes summoner:30
+[ Petaccept [127.0.0.1] has connected. ]
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+[ Petaccept un-renting and entering game. ]
+[ Petaccept (level 30) has 62 objects (max 99999). ]
+Petaccept has entered the game.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm settestchar Petaccept race human classes summoner:30
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Race set to Human with classes: summoner (L30)
+Character overall level: 30
+Racial feats applied: 1
+Class feats applied for all levels.
+Class skills set to level 30.
+HP: 260, MV: 2500, PSP: 160
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+
+>>> set Petaccept class summoner
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm set Petaccept class summoner
+Okay.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+
+>>> set Petaccept cha 30
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm set Petaccept cha 30
+Petaccept's cha set to 30.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+
+>>> goto 100501
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm goto 100501
+[100501] Random Encounter Distrobution Zone [ None ]  [Inside] ( None )
+You are in an unfinished room.
+                                                                  [&]
+[ Exits: None!]
+[30] [PC] [Humn] Petaccept is standing here.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+
+>>> trans Petaccept
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm trans Petaccept
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Petaccept disappears in a mushroom cloud.
+Petaccept arrives from a puff of smoke.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+
+>>> load mob 100508
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm load mob 100508
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+You create a practice dummy.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+
+>>> set mob dummy level 30
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm set mob dummy level 30
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+a practice dummy's level set to 30.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+
+>>> set mob dummy maxhit 15000
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm set mob dummy maxhit 15000
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+a practice dummy's maxhit set to 15000.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+
+>>> set mob dummy hitpoints 15000
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm set mob dummy hitpoints 15000
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+a practice dummy's hitpoints set to 15000.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+Staff has set your race to Human and classes to:
+
+  - summoner (Level 30)
+
+Your overall level is now 30.
+
+Your class skills have been set to 30.
+
+Your stats have been updated.
+
+
+
+260/260H 2500/250V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_1_DONE__.'
+
+
+
+260/260H 2499/250V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_2_DONE__.'
+
+
+
+260/260H 2499/250V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_3_DONE__.'
+
+
+
+260/260H 2499/250V [smw] (news) (motd)
+
+Kohdee disappears in a puff of smoke.
+
+Kohdee appears with an ear-splitting bang.
+
+
+
+260/260H 2499/250V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_4_DONE__.'
+
+
+
+260/260H 2499/250V [smw] (news) (motd)
+
+Kohdee has transferred you!
+
+Random Encounter Distrobution Zone [Inside] ( None )
+
+You are in an unfinished room.
+
+
+
+
+
+
+
+                                                                  [&]
+
+
+
+
+
+
+
+
+
+[ Exits: None!]
+
+[PC] [Humn] Kohdee is standing here.
+
+
+
+260/260H 2499/250V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_5_DONE__.'
+
+
+
+260/260H 2499/250V [smw] (news) (motd)
+
+Kohdee makes a quaint, magical gesture with one hand.
+
+Kohdee has created a practice dummy!
+
+
+
+260/260H 2499/250V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_6_DONE__.'
+
+
+
+260/260H 2499/250V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_7_DONE__.'
+
+
+
+260/260H 2499/250V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_8_DONE__.'
+
+
+
+260/260H 2499/250V [smw] (news) (motd)
+
+Kohdee says, '__MUD_SMOKE_COMMAND_9_DONE__.'
+
+
+
+260/260H 2499/250V [smw] (news) (motd) cast 'geniekind' djinni
+260/260H 2499/250V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+260/260H 2499/250V [s-w] (news) (motd)
+
+Casting: geniekind .........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2499/250V [s-w] (news) (motd)
+
+Casting: geniekind ........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2499/250V [s-w] (news) (motd)
+
+Casting: geniekind .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2499/250V [s-w] (news) (motd)
+
+Casting: geniekind ......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2498/250V [s-w] (news) (motd)
+
+Casting: geniekind .....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2498/250V [s-w] (news) (motd)
+
+Casting: geniekind ....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2498/250V [smw] (news) (motd)
+
+Casting: geniekind ...
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2498/250V [smw] (news) (motd)
+
+Casting: geniekind ..
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2498/250V [smw] (news) (motd)
+
+Casting: geniekind .
+
+The planar connection stabilizes!
+
+You complete your spell...You take on the characteristics of a djinni.
+
+You make a magical gesture, you feel a sudden shift in the earth.
+
+[Group] a whirling djinni joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+260/260H 2497/250V [smw] (news) (motd)
+
+>>> pets
+260/260H 2496/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a whirling djinni - Random Encounter Distrobution Zone - Genie [follow] [#47345900]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2496/250V [smw] (news) (motd)
+
+>>> @wait 2
+Paused the local test session for 2 second(s).
+.'
+
+
+
+260/260H 2496/250V [smw] (news) (motd) cast 'geniekind' marid
+260/260H 2496/250V [smw] (news) (motd)
+
+Your chosen genie is unavailable or your genie allowance is full.
+
+
+
+260/260H 2496/250V [smw] (news) (motd)
+
+>>> order djinni cast 'lightning bolt' dummy
+260/260H 2496/250V [sm-] (news) (motd)
+A practice dummy wavers under the impact of the lightning bolt sent by a whirling djinni!
+Okay.
+260/260H 2496/250V [sm-] (news) (motd)
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+260/260H 2496/250V [sm-] (news) (motd)
+
+A whirling djinni misses a practice dummy with its wild blast!  What luck a practice dummy seems to have!
+
+A practice dummy barely grazes a whirling djinni as it hits it.
+
+A practice dummy barely grazes a whirling djinni as it hits it.
+
+A practice dummy nicks a whirling djinni as it hits it.
+
+
+
+260/260H 2495/250V [smw] (news) (motd)
+
+>>> peace
+me:8pm
+Extraplanar energy swirls around Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Extraplanar energy swirls around Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Reality distorts visibly around Petaccept!
+The air grows thick with otherworldly energy.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Reality distorts visibly around Petaccept!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+The rift around Petaccept stabilizes!
+Petaccept completes 'geniekind' and the fabric of reality shifts.
+Petaccept takes on the characteristics of a djinni.
+You make a magical gesture, you feel a sudden shift in the earth.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Petaccept commands, 'cast 'lightning bolt' dummy'.
+A practice dummy wavers under the impact of the lightning bolt sent by a whirling djinni!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+A whirling djinni misses a practice dummy with its wild blast!  What luck a practice dummy seems to have!
+A practice dummy barely grazes a whirling djinni as it hits it.
+A practice dummy barely grazes a whirling djinni as it hits it.
+A practice dummy nicks a whirling djinni as it hits it.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm peace
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Everything is quite peaceful now.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+
+>>> dismiss djinni
+As Kohdee makes a strange arcane gesture, a golden light descends
+from the heavens stopping all the fighting.
+Everything is quite peaceful now.
+260/260H 2494/250V [smw] (news) (motd)
+260/260H 2494/250V [smw] (news) (motd) dismiss djinni
+260/260H 2494/250V [smw] (news) (motd)
+You dismiss a whirling djinni.
+A whirling djinni is no longer serving you!
+[Group] a whirling djinni has left the group.
+260/260H 2494/250V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+260/260H 2494/250V [smw] (news) (motd) cast 'geniekind' efreeti
+260/260H 2494/250V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+260/260H 2494/250V [s-w] (news) (motd)
+
+Casting: geniekind .........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2494/250V [s-w] (news) (motd)
+
+Casting: geniekind ........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2494/250V [s-w] (news) (motd)
+
+Casting: geniekind .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2493/250V [s-w] (news) (motd)
+
+Casting: geniekind ......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2493/250V [s-w] (news) (motd)
+
+Casting: geniekind .....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2493/250V [s-w] (news) (motd)
+
+Casting: geniekind ....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2493/250V [smw] (news) (motd)
+
+Casting: geniekind ...
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2493/250V [smw] (news) (motd)
+
+Casting: geniekind ..
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2492/250V [smw] (news) (motd)
+
+Casting: geniekind .
+
+The planar connection stabilizes!
+
+You complete your spell...You take on the characteristics of an efreeti.
+
+You make a magical gesture, you feel the dust swirl.
+
+[Group] a raging efreeti joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+260/260H 2492/250V [smw] (news) (motd)
+
+>>> pets
+260/260H 2491/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a raging efreeti - Random Encounter Distrobution Zone - Genie [follow] [#47345901]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2491/250V [smw] (news) (motd)
+
+>>> order efreeti cast 'fireball' dummy
+.'
+260/260H 2491/250V [smw] (news) (motd) order efreeti cast 'fireball' dummy
+260/260H 2491/250V [sm-] (news) (motd)
+A raging efreeti hurls a bead of flame which explodes into a conflagration!
+A raging efreeti smirks as its fireball explodes into the face of a practice dummy!
+Okay.
+260/260H 2491/250V [sm-] (news) (motd) 260/260H 2491/250V [sm-] (news) (motd)
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+260/260H 2491/250V [sm-] (news) (motd)
+
+A practice dummy barely grazes a raging efreeti as it hits it.
+
+A practice dummy is scorched by the flaming shield surrounding a raging efreeti!
+
+A raging efreeti barely avoids a blow from a practice dummy!
+
+A raging efreeti ducks under a practice dummy's fist as it takes a swing at it.
+
+A raging efreeti barely grazes a practice dummy as it blasts it.
+
+A raging efreeti barely grazes a practice dummy as it blasts it.
+
+
+
+260/260H 2490/250V [smw] (news) (motd)
+
+>>> peace
+;36mA faint rift begins to form near Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Extraplanar energy swirls around Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Extraplanar energy swirls around Petaccept...
+Shadowy glimpses of another plane flicker at the edges of vision.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Reality distorts visibly around Petaccept!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Reality distorts visibly around Petaccept!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+The rift around Petaccept stabilizes!
+Petaccept completes 'geniekind' and the fabric of reality shifts.
+Petaccept takes on the characteristics of an efreeti.
+You make a magical gesture, you feel the dust swirl.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Petaccept commands, 'cast 'fireball' dummy'.
+A raging efreeti hurls a bead of flame which explodes into a conflagration!
+A raging efreeti smirks as its fireball explodes into the face of a practice dummy!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+A practice dummy barely grazes a raging efreeti as it hits it.
+A practice dummy is scorched by the flaming shield surrounding a raging efreeti!
+A raging efreeti barely avoids a blow from a practice dummy!
+A raging efreeti ducks under a practice dummy's fist as it takes a swing at it.
+A raging efreeti barely grazes a practice dummy as it blasts it.
+A raging efreeti barely grazes a practice dummy as it blasts it.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm peace
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Everything is quite peaceful now.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+
+>>> dismiss efreeti
+As Kohdee makes a strange arcane gesture, a golden light descends
+from the heavens stopping all the fighting.
+Everything is quite peaceful now.
+260/260H 2489/250V [smw] (news) (motd)
+260/260H 2489/250V [smw] (news) (motd) dismiss efreeti
+260/260H 2489/250V [smw] (news) (motd)
+You dismiss a raging efreeti.
+A raging efreeti is no longer serving you!
+[Group] a raging efreeti has left the group.
+260/260H 2489/250V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+260/260H 2489/250V [smw] (news) (motd) cast 'geniekind' marid
+260/260H 2489/250V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+260/260H 2489/250V [s-w] (news) (motd)
+
+Casting: geniekind .........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2489/250V [s-w] (news) (motd)
+
+Casting: geniekind ........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 2489/250V [s-w] (news) (motd)
+
+Casting: geniekind .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2489/250V [s-w] (news) (motd)
+
+Casting: geniekind ......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 2488/250V [s-w] (news) (motd)
+
+Casting: geniekind .....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2488/250V [s-w] (news) (motd)
+
+Casting: geniekind ....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 2488/250V [smw] (news) (motd)
+
+Casting: geniekind ...
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2488/250V [smw] (news) (motd)
+
+Casting: geniekind ..
+
+Reality bends dangerously around you!
+
+
+
+260/260H 2488/250V [smw] (news) (motd)
+
+Casting: geniekind .
+
+The planar connection stabilizes!
+
+You complete your spell...You take on the characteristics of a marid.
+
+A powerful blue-green marid skulks into the area, seemingly from nowhere!
+
+[Group] a powerful blue-green marid joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+260/290H 2487/250V [smw] (news) (motd)
+
+>>> pets
+260/290H 2486/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a powerful blue-green marid - Random Encounter Distrobution Zone - Genie [follow] [#47345902]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/290H 2486/250V [smw] (news) (motd)
+
+>>> set Petaccept hitpoints 40
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Petaccept forges a link to his eidolon as summoning energy swirls, as reality ripples, chanting 'geniekind'.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+The air around Petaccept ripples strangely...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+The air around Petaccept ripples strangely...
+Shadowy glimpses of another plane flicker at the edges of vision.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+A faint rift begins to form near Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+A faint rift begins to form near Petaccept...
+A small rift in reality sparks and vanishes.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Extraplanar energy swirls around Petaccept...
+Shadowy glimpses of another plane flicker at the edges of vision.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Extraplanar energy swirls around Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Reality distorts visibly around Petaccept!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+Reality distorts visibly around Petaccept!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+The rift around Petaccept stabilizes!
+Petaccept completes 'geniekind' and the fabric of reality shifts.
+Petaccept takes on the characteristics of a marid.
+A powerful blue-green marid skulks into the area, seemingly from nowhere!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm set Petaccept hitpoints 40
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+Petaccept's hitpoints set to 40.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+
+>>> order marid cast 'cure critic' Petaccept
+.'
+260/290H 2486/250V [smw] (news) (motd)
+40/290H 2486/250V [smw] (news) (motd) order marid cast 'cure critic' Petaccept
+74/290H 250/250V [sm-] (news) (motd)
+A powerful blue-green marid cures critical wounds on you.
+[Aura of Desecration: -11 healing] Okay.
+74/290H 250/250V [sm-] (news) (motd)
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+74/290H 250/250V [sm-] (news) (motd)
+
+>>> peace
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+Petaccept commands, 'cast 'cure critic' Petaccept'.
+A powerful blue-green marid cures critical wounds on Petaccept.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm peace
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+Everything is quite peaceful now.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+
+>>> dismiss marid
+As Kohdee makes a strange arcane gesture, a golden light descends
+from the heavens stopping all the fighting.
+Everything is quite peaceful now.
+74/290H 250/250V [smw] (news) (motd)
+74/290H 250/250V [smw] (news) (motd) dismiss marid
+74/290H 250/250V [smw] (news) (motd)
+You dismiss a powerful blue-green marid.
+A powerful blue-green marid is no longer serving you!
+[Group] a powerful blue-green marid has left the group.
+74/290H 250/250V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+74/290H 250/250V [smw] (news) (motd) cast 'geniekind' shaitan
+74/290H 250/250V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+74/290H 250/250V [s-w] (news) (motd)
+
+Casting: geniekind .........
+
+A faint rift begins to form in reality...
+
+
+
+74/290H 250/250V [s-w] (news) (motd)
+
+Casting: geniekind ........
+
+A faint rift begins to form in reality...
+
+
+
+74/290H 250/250V [s-w] (news) (motd)
+
+Casting: geniekind .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+74/290H 250/250V [s-w] (news) (motd)
+
+Casting: geniekind ......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+74/290H 250/250V [s-w] (news) (motd)
+
+Casting: geniekind .....
+
+Extraplanar energy pours through the opening...
+
+
+
+74/290H 250/250V [s-w] (news) (motd)
+
+Casting: geniekind ....
+
+Extraplanar energy pours through the opening...
+
+
+
+74/290H 250/250V [smw] (news) (motd)
+
+Casting: geniekind ...
+
+Reality bends dangerously around you!
+
+
+
+74/290H 250/250V [smw] (news) (motd)
+
+Casting: geniekind ..
+
+Reality bends dangerously around you!
+
+
+
+74/290H 250/250V [smw] (news) (motd)
+
+Casting: geniekind .
+
+The planar connection stabilizes!
+
+You complete your spell...You take on the characteristics of a shaitan.
+
+You make a magical gesture, you feel a searing heat.
+
+[Group] a hulking shaitan joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+74/260H 250/250V [smw] (news) (motd)
+
+>>> pets
+75/260H 250/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a hulking shaitan - Random Encounter Distrobution Zone - Genie [follow] [#47345903]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+75/260H 250/250V [smw] (news) (motd)
+
+>>> order shaitan cast 'stoneskin' Petaccept
+.'
+75/260H 250/250V [smw] (news) (motd) order shaitan cast 'stoneskin' Petaccept
+75/260H 250/250V [sm-] (news) (motd)
+No spell exists by that name.
+Okay.
+75/260H 250/250V [sm-] (news) (motd)
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+75/260H 250/250V [sm-] (news) (motd)
+
+>>> peace
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+Petaccept forges a link to his eidolon as summoning energy swirls, as reality ripples, chanting 'geniekind'.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+The air around Petaccept ripples strangely...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+The air around Petaccept ripples strangely...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+A faint rift begins to form near Petaccept...
+The torches flicker as magical energies gather.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+A faint rift begins to form near Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+Extraplanar energy swirls around Petaccept...
+The torches flicker as magical energies gather.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+Extraplanar energy swirls around Petaccept...
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+Reality distorts visibly around Petaccept!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+Reality distorts visibly around Petaccept!
+A small rift in reality sparks and vanishes.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+The rift around Petaccept stabilizes!
+A chill wind sweeps through despite no apparent source.
+Petaccept completes 'geniekind' and the fabric of reality shifts.
+Petaccept takes on the characteristics of a shaitan.
+You make a magical gesture, you feel a searing heat.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+Petaccept commands, 'cast 'stoneskin' Petaccept'.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm peace
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+Everything is quite peaceful now.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+
+>>> dismiss shaitan
+As Kohdee makes a strange arcane gesture, a golden light descends
+from the heavens stopping all the fighting.
+Everything is quite peaceful now.
+76/260H 250/250V [smw] (news) (motd)
+76/260H 250/250V [smw] (news) (motd) dismiss shaitan
+76/260H 250/250V [smw] (news) (motd)
+You dismiss a hulking shaitan.
+A hulking shaitan is no longer serving you!
+[Group] a hulking shaitan has left the group.
+76/260H 250/250V [smw] (news) (motd)
+
+>>> purge dummy
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm purge dummy
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+Okay.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:9pm
+
+>>> pets
+.'
+76/260H 250/250V [smw] (news) (motd)
+Kohdee disintegrates a practice dummy.
+76/260H 250/250V [smw] (news) (motd)
+76/260H 250/250V [smw] (news) (motd) pets
+76/260H 250/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+76/260H 250/250V [smw] (news) (motd)
+PASS: Kohdee ran 1 game command(s) and logged out cleanly (105s).
+
+
+Geniekind after login
+=====================
+Reusing the development MUD on port 4100.
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+cast 'geniekind' marid
+76/260H 250/2500V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+76/260H 250/2500V [s-w] (news) (motd)
+
+Casting: geniekind .........
+
+A faint rift begins to form in reality...
+
+
+
+77/260H 280/2500V [s-w] (news) (motd)
+
+Casting: geniekind ........
+
+A faint rift begins to form in reality...
+
+
+
+77/260H 280/2500V [s-w] (news) (motd)
+
+Casting: geniekind .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+77/260H 280/2500V [s-w] (news) (motd)
+
+Casting: geniekind ......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+77/260H 280/2500V [s-w] (news) (motd)
+
+Casting: geniekind .....
+
+Extraplanar energy pours through the opening...
+
+
+
+77/260H 280/2500V [s-w] (news) (motd)
+
+Casting: geniekind ....
+
+Extraplanar energy pours through the opening...
+
+
+
+77/260H 280/2500V [smw] (news) (motd)
+
+Casting: geniekind ...
+
+Reality bends dangerously around you!
+
+
+
+77/260H 280/2500V [smw] (news) (motd)
+
+Casting: geniekind ..
+
+Reality bends dangerously around you!
+
+
+
+77/260H 280/2500V [smw] (news) (motd)
+
+Casting: geniekind .
+
+The planar connection stabilizes!
+
+You complete your spell...You take on the characteristics of a marid.
+
+A powerful blue-green marid skulks into the area, seemingly from nowhere!
+
+[Group] a powerful blue-green marid joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+77/290H 280/2500V [smw] (news) (motd)
+
+>>> pets
+78/290H 310/2500V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a powerful blue-green marid - Random Encounter Distrobution Zone - Genie [follow] [#47345904]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+78/290H 310/2500V [smw] (news) (motd)
+
+>>> dismiss marid
+.'
+78/290H 310/2500V [smw] (news) (motd) dismiss marid
+You dismiss a powerful blue-green marid.
+A powerful blue-green marid is no longer serving you!
+[Group] a powerful blue-green marid has left the group.
+78/290H 310/2500V [smw] (news) (motd) 78/290H 310/2500V [smw] (news) (motd)
+PASS: Kohdee ran 1 game command(s) and logged out cleanly (22s).
+
+
+Shaitan stone skin after login
+==============================
+Reusing the development MUD on port 4100.
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+cast 'geniekind' shaitan
+78/290H 310/2500V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+78/290H 310/2500V [s-w] (news) (motd)
+
+Casting: geniekind .........
+
+A faint rift begins to form in reality...
+
+
+
+78/290H 310/2500V [s-w] (news) (motd)
+
+Casting: geniekind ........
+
+A faint rift begins to form in reality...
+
+
+
+79/290H 340/2500V [s-w] (news) (motd)
+
+Casting: geniekind .......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+79/290H 340/2500V [s-w] (news) (motd)
+
+Casting: geniekind ......
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+79/290H 340/2500V [s-w] (news) (motd)
+
+Casting: geniekind .....
+
+Extraplanar energy pours through the opening...
+
+
+
+79/290H 340/2500V [s-w] (news) (motd)
+
+Casting: geniekind ....
+
+Extraplanar energy pours through the opening...
+
+
+
+79/290H 340/2500V [smw] (news) (motd)
+
+Casting: geniekind ...
+
+Reality bends dangerously around you!
+
+
+
+80/290H 370/2500V [smw] (news) (motd)
+
+Casting: geniekind ..
+
+Reality bends dangerously around you!
+
+
+
+80/290H 370/2500V [smw] (news) (motd)
+
+Casting: geniekind .
+
+The planar connection stabilizes!
+
+You complete your spell...You take on the characteristics of a shaitan.
+
+You make a magical gesture, you feel a searing heat.
+
+[Group] a hulking shaitan joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+80/260H 370/2500V [smw] (news) (motd)
+
+>>> pets
+81/260H 400/2500V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a hulking shaitan - Random Encounter Distrobution Zone - Genie [follow] [#47345905]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+81/260H 400/2500V [smw] (news) (motd)
+
+>>> order shaitan cast 'stone skin' Petaccept
+.'
+81/260H 400/2500V [smw] (news) (motd) order shaitan cast 'stone skin' Petaccept
+Your skin becomes hard as stone.
+Okay.
+81/260H 400/2500V [sm-] (news) (motd) 81/260H 400/2500V [sm-] (news) (motd)
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+81/260H 400/2500V [sm-] (news) (motd)
+
+>>> dismiss shaitan
+81/260H 400/2500V [smw] (news) (motd)
+You dismiss a hulking shaitan.
+A hulking shaitan is no longer serving you!
+[Group] a hulking shaitan has left the group.
+81/260H 400/2500V [smw] (news) (motd)
+PASS: Kohdee ran 1 game command(s) and logged out cleanly (29s).
+
+
+Authoritative help checks
+=========================
+Reusing the development MUD on port 4100.
+PASS help GENIEKIND -> geniekind
+PASS help SPELL-GENIEKIND -> geniekind
+PASS help SUMMON-CHOICES -> summon-choices
+PASS: Kohdee verified 3 authoritative help keyword(s) and logged out cleanly (4s).

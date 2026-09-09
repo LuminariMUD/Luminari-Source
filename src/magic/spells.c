@@ -2172,76 +2172,50 @@ ASPELL(spell_plane_shift)
   greet_memory_mtrigger(ch);
 }
 
-#define GENIE_DJINNI 1
-#define GENIE_EFREETI 2
-#define GENIE_MARID 3
-#define GENIE_SHAITAN 4
-
 ASPELL(spell_geniekind)
 {
-  char arg[MAX_INPUT_LENGTH] = {'\0'};
-  int geniekind = 0;
+  static const mob_vnum choices[] = {MOB_DJINNI_KIND, MOB_SHAITAN_KIND, MOB_EFREETI_KIND,
+                                     MOB_MARID_KIND};
+  mob_vnum selected;
+  int kind_spell;
 
   if (IS_NPC(ch) || !ch->desc)
     return;
 
-  if (!can_add_follower_by_flag(ch, MOB_GENIEKIND))
+  selected = pet_summon_choice_mob(ch, SPELL_GENIEKIND);
+  if (selected == NOBODY)
+    selected = choices[rand_number(0, 3)];
+  switch (selected)
   {
-    send_to_char(ch, "You already have a geniekind follower.\r\n");
+  case MOB_DJINNI_KIND:
+    kind_spell = SPELL_DJINNI_KIND;
+    break;
+  case MOB_EFREETI_KIND:
+    kind_spell = SPELL_EFREETI_KIND;
+    break;
+  case MOB_MARID_KIND:
+    kind_spell = SPELL_MARID_KIND;
+    break;
+  case MOB_SHAITAN_KIND:
+    kind_spell = SPELL_SHAITAN_KIND;
+    break;
+  default:
+    return;
+  }
+  if (AFF_FLAGGED(ch, AFF_CHARM) || IN_ROOM(ch) == NOWHERE ||
+      !can_add_summoned_followers(ch, selected, kind_spell, 1))
+  {
+    send_to_char(ch, "Your chosen genie is unavailable or your genie allowance is full.\r\n");
     return;
   }
 
-  one_argument(cast_arg3, arg, sizeof(arg));
-
-  if (is_abbrev(arg, "djinni"))
-  {
-    geniekind = GENIE_DJINNI;
-  }
-  else if (is_abbrev(arg, "efreeti"))
-  {
-    geniekind = GENIE_EFREETI;
-  }
-  else if (is_abbrev(arg, "marid"))
-  {
-    geniekind = GENIE_MARID;
-  }
-  else if (is_abbrev(arg, "shaitan"))
-  {
-    geniekind = GENIE_SHAITAN;
-  }
-  else
-  {
-    geniekind = dice(1, 4);
-  }
-
-  // clear all geniekind affects so we aren't stacking multiple kinds.
+  /* Replace genie benefits only after the selected form passes admission. */
   affect_from_char(ch, SPELL_DJINNI_KIND);
   affect_from_char(ch, SPELL_EFREETI_KIND);
   affect_from_char(ch, SPELL_MARID_KIND);
   affect_from_char(ch, SPELL_SHAITAN_KIND);
-
-  switch (geniekind)
-  {
-  case GENIE_DJINNI:
-    mag_affects(CASTER_LEVEL(ch), ch, ch, 0, SPELL_DJINNI_KIND, 0, CAST_SPELL, 0);
-    mag_summons(CASTER_LEVEL(ch), ch, 0, SPELL_DJINNI_KIND, 0, CAST_SPELL);
-    break;
-  case GENIE_EFREETI:
-    mag_affects(CASTER_LEVEL(ch), ch, ch, 0, SPELL_EFREETI_KIND, 0, CAST_SPELL, 0);
-    mag_summons(CASTER_LEVEL(ch), ch, 0, SPELL_EFREETI_KIND, 0, CAST_SPELL);
-    break;
-  case GENIE_MARID:
-    mag_affects(CASTER_LEVEL(ch), ch, ch, 0, SPELL_MARID_KIND, 0, CAST_SPELL, 0);
-    mag_summons(CASTER_LEVEL(ch), ch, 0, SPELL_MARID_KIND, 0, CAST_SPELL);
-    break;
-  case GENIE_SHAITAN:
-    mag_affects(CASTER_LEVEL(ch), ch, ch, 0, SPELL_SHAITAN_KIND, 0, CAST_SPELL, 0);
-    mag_summons(CASTER_LEVEL(ch), ch, 0, SPELL_SHAITAN_KIND, 0, CAST_SPELL);
-    break;
-  default:
-    send_to_char(ch, "You were unable to summon any kind of genie.\r\n");
-    break;
-  }
+  mag_affects(CASTER_LEVEL(ch), ch, ch, 0, kind_spell, 0, CAST_SPELL, 0);
+  mag_summons(CASTER_LEVEL(ch), ch, 0, kind_spell, 0, CAST_SPELL);
 }
 
 ASPELL(spell_polymorph)
@@ -2312,6 +2286,7 @@ ASPELL(spell_recall)
   }
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
+  dismount_char(victim);
   char_from_room(victim);
   char_to_room_cause(victim, r_mortal_start_room, ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
@@ -2340,6 +2315,7 @@ ASPELL(spell_luskan_recall)
   }
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
+  dismount_char(victim);
   char_from_room(victim);
   char_to_room_cause(victim, real_room(3088), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
@@ -2368,6 +2344,7 @@ ASPELL(spell_triboar_recall)
   }
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
+  dismount_char(victim);
   char_from_room(victim);
   char_to_room_cause(victim, real_room(7000), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
@@ -2396,6 +2373,7 @@ ASPELL(spell_silverymoon_recall)
   }
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
+  dismount_char(victim);
   char_from_room(victim);
   char_to_room_cause(victim, real_room(6118), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
@@ -2424,6 +2402,7 @@ ASPELL(spell_mirabar_recall)
   }
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
+  dismount_char(victim);
   char_from_room(victim);
   char_to_room_cause(victim, real_room(4923), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
@@ -2453,6 +2432,7 @@ ASPELL(spell_palanthas_recall)
   }
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
+  dismount_char(victim);
   char_from_room(victim);
   char_to_room_cause(victim, real_room(2200), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
@@ -2482,6 +2462,7 @@ ASPELL(spell_sanction_recall)
   }
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
+  dismount_char(victim);
   char_from_room(victim);
   char_to_room_cause(victim, real_room(6530), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
@@ -2511,6 +2492,7 @@ ASPELL(spell_solace_recall)
   }
 
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
+  dismount_char(victim);
   char_from_room(victim);
   char_to_room_cause(victim, real_room(1317), ch, DOMAIN_RELOCATION_TELEPORT, -1);
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
@@ -5822,6 +5804,20 @@ static int call_lycanthrope_charm_save_target(int charisma)
   return MIN(20, MAX(1, charisma - 2));
 }
 
+bool can_call_lycanthrope(struct char_data *ch)
+{
+  mob_rnum index;
+
+  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)) || AFF_FLAGGED(ch, AFF_CHARM) ||
+      mob_proto == NULL || mob_index == NULL ||
+      !can_add_follower_by_flag(ch, MOB_ROL_LYCANTHROPE_SUMMON))
+    return false;
+  for (index = 0; index <= top_of_mobt; index++)
+    if (MOB_FLAGGED(&mob_proto[index], MOB_ROL_LYCANTHROPE_SUMMON))
+      return true;
+  return false;
+}
+
 static mob_vnum random_call_lycanthrope_vnum(void)
 {
   mob_rnum index;
@@ -5888,15 +5884,16 @@ MUD_EVENT_CALLBACK(event_rol_call_lycanthrope_charm)
 ASPELL(spell_call_lycanthrope)
 {
   struct char_data *mob;
+  struct domain_entity_handle owner_handle, pet_handle;
   mob_vnum mob_vnum;
   int hit_points;
   int mob_level;
 
-  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
     return;
-  if (!can_add_follower_by_flag(ch, MOB_ROL_LYCANTHROPE_SUMMON))
+  if (!can_call_lycanthrope(ch))
   {
-    send_to_char(ch, "You cannot control more than one lycanthrope at a time!\r\n");
+    send_to_char(ch, "No lycanthrope is available or you cannot control another one.\r\n");
     return;
   }
 
@@ -5909,12 +5906,6 @@ ASPELL(spell_call_lycanthrope)
     return;
   }
 
-  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
-  {
-    X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
-    Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
-  }
-  char_to_room_cause(mob, IN_ROOM(ch), ch, DOMAIN_RELOCATION_SPAWN, -1);
   IS_CARRYING_W(mob) = 0;
   IS_CARRYING_N(mob) = 0;
   GET_GOLD(mob) = 0;
@@ -5928,14 +5919,22 @@ ASPELL(spell_call_lycanthrope)
   hit_points = MAX(1, dice(mob_level, 20) + GET_CON_BONUS(mob) * mob_level);
   GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) = GET_HIT(mob) = hit_points;
 
-  act("A black door opens in space and $N leaps through!", FALSE, ch, NULL, mob, TO_ROOM);
-  act("A black door opens in space and $N leaps through!", FALSE, ch, NULL, mob, TO_CHAR);
-  SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
-  load_mtrigger(mob);
-  add_follower(mob, ch);
-  if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
-    join_group(mob, GROUP(ch));
+  mob->pet_source_spell = SPELL_CALL_LYCANTHROPE;
+  if (!place_pet_follower(ch, mob))
+    return;
+  owner_handle = domain_event_character_handle(ch);
+  pet_handle = domain_event_character_handle(mob);
   NEW_EVENT(eROL_CALL_LYCANTHROPE_CHARM, mob, NULL, 30 * PASSES_PER_SEC);
+  act("A black door opens in space and $N leaps through!", FALSE, ch, NULL, mob, TO_ROOM);
+  ch = domain_event_world_resolve_character(owner_handle);
+  mob = domain_event_world_resolve_character(pet_handle);
+  if (ch == NULL || mob == NULL || MOB_FLAGGED(mob, MOB_NOTDEADYET) || mob->master != ch)
+    return;
+  act("A black door opens in space and $N leaps through!", FALSE, ch, NULL, mob, TO_CHAR);
+  ch = domain_event_world_resolve_character(owner_handle);
+  mob = domain_event_world_resolve_character(pet_handle);
+  if (ch != NULL && mob != NULL && !MOB_FLAGGED(mob, MOB_NOTDEADYET))
+    finish_pet_summon(ch, mob, true, true);
 }
 
 static bool tazriks_event_state(const char *state, room_vnum *room, int *strike)

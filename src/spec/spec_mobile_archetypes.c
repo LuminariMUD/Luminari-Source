@@ -894,7 +894,7 @@ SPECIAL(mercenary)
     }
 
     hit = dice(GET_LEVEL(ch), (1 + GET_CON_BONUS(ch))) + GET_LEVEL(ch) * base;
-    GET_MAX_HIT(ch) = hit;
+    GET_REAL_MAX_HIT(ch) = GET_MAX_HIT(ch) = hit;
     if (GET_HIT(ch) > hit)
       GET_HIT(ch) = hit;
     PROC_FIRED(ch) = TRUE;

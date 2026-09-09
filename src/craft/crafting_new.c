@@ -25,6 +25,7 @@
 #include "olc/genolc.h"
 #include "crafting_new.h"
 #include "activity_manager.h"
+#include "actions.h"
 #include "domain_event_world.h"
 #include "olc/oasis.h"
 #include "character/feats.h"
@@ -4590,6 +4591,16 @@ void newcraft_create(struct char_data *ch, const char *argument)
     newcraft_golem(ch, arg2);
     return;
   }
+  else if (is_abbrev(arg1, "check"))
+  {
+    check_current_craft(ch, TRUE);
+    return;
+  }
+  else if (is_abbrev(arg1, "create"))
+  {
+    newcraft_create(ch, arg2);
+    return;
+  }
   else if (is_abbrev(arg1, "itemtype") || is_abbrev(arg1, "type"))
   {
     set_crafting_itemtype(ch, arg2);
@@ -4685,10 +4696,6 @@ void newcraft_create(struct char_data *ch, const char *argument)
   else if (is_abbrev(arg1, "reset"))
   {
     reset_current_craft(ch, arg2, TRUE, TRUE);
-  }
-  else if (is_abbrev(arg1, "check"))
-  {
-    check_current_craft(ch, TRUE);
   }
   else if (is_abbrev(arg1, "start") || is_abbrev(arg1, "begin"))
   {
@@ -9763,6 +9770,9 @@ int get_golem_base_dc(int golem_type, int golem_size)
   case GOLEM_TYPE_IRON:
     base_dc += 20; // Iron golems are hardest
     break;
+  case GOLEM_TYPE_BONE:
+    base_dc += 5;
+    break;
   default:
     base_dc += 0; // Default to wood golem DC
     break;
@@ -9806,6 +9816,10 @@ int get_golem_material_requirements(int golem_type, int golem_size, int *materia
     base_material_amount = 50; // Small iron golem needs 100 units of iron
     secondary_material_amount = 10;
     break;
+  case GOLEM_TYPE_BONE:
+    primary_material = CRAFT_MAT_BONE;
+    base_material_amount = 20;
+    break;
   default:
     return 0;
   }
@@ -9847,6 +9861,7 @@ int get_golem_mote_requirements(int golem_type, int golem_size, int *mote_types,
   switch (golem_type)
   {
   case GOLEM_TYPE_WOOD:
+  case GOLEM_TYPE_BONE:
     base_motes = 5;
     break;
   case GOLEM_TYPE_STONE:
@@ -10188,7 +10203,7 @@ bool begin_golem_craft(struct char_data *ch)
  */
 int get_golem_vnum(int golem_type, int golem_size)
 {
-  // VNUMs: Wood 16500-16503, Stone 16504-16507, Iron 16508-16511
+  /* Dedicated recipe prototypes; legacy IDs remain recognized below. */
   // Each type has 4 sizes: small(0), medium(1), large(2), huge(3)
 
   int base_vnum = 0;
@@ -10199,13 +10214,13 @@ int get_golem_vnum(int golem_type, int golem_size)
   switch (golem_type)
   {
   case GOLEM_TYPE_WOOD:
-    base_vnum = GOLEM_WOOD_SMALL;
+    base_vnum = PET_GOLEM_WOOD_SMALL;
     break;
   case GOLEM_TYPE_STONE:
-    base_vnum = GOLEM_STONE_SMALL;
+    base_vnum = PET_GOLEM_STONE_SMALL;
     break;
   case GOLEM_TYPE_IRON:
-    base_vnum = GOLEM_IRON_SMALL;
+    base_vnum = PET_GOLEM_IRON_SMALL;
     break;
   default:
     return NOBODY;
@@ -10220,11 +10235,16 @@ int get_golem_vnum(int golem_type, int golem_size)
  */
 int get_golem_type_from_vnum(int vnum)
 {
-  if (vnum >= GOLEM_WOOD_SMALL && vnum <= GOLEM_WOOD_HUGE)
+  if (vnum == PET_GOLEM_BONE)
+    return GOLEM_TYPE_BONE;
+  if ((vnum >= GOLEM_WOOD_SMALL && vnum <= GOLEM_WOOD_HUGE) ||
+      (vnum >= PET_GOLEM_WOOD_SMALL && vnum <= PET_GOLEM_WOOD_HUGE))
     return GOLEM_TYPE_WOOD;
-  else if (vnum >= GOLEM_STONE_SMALL && vnum <= GOLEM_STONE_HUGE)
+  else if ((vnum >= GOLEM_STONE_SMALL && vnum <= GOLEM_STONE_HUGE) ||
+           (vnum >= PET_GOLEM_STONE_SMALL && vnum <= PET_GOLEM_STONE_HUGE))
     return GOLEM_TYPE_STONE;
-  else if (vnum >= GOLEM_IRON_SMALL && vnum <= GOLEM_IRON_HUGE)
+  else if ((vnum >= GOLEM_IRON_SMALL && vnum <= GOLEM_IRON_HUGE) ||
+           (vnum >= PET_GOLEM_IRON_SMALL && vnum <= PET_GOLEM_IRON_HUGE))
     return GOLEM_TYPE_IRON;
 
   return -1;
@@ -10238,19 +10258,26 @@ int get_golem_size_from_vnum(int vnum)
   int golem_type = get_golem_type_from_vnum(vnum);
   int base_vnum = 0;
 
+  if (vnum == PET_GOLEM_BONE)
+    return GOLEM_SIZE_MEDIUM;
+
   if (golem_type < 0)
     return -1;
 
   switch (golem_type)
   {
   case GOLEM_TYPE_WOOD:
-    base_vnum = GOLEM_WOOD_SMALL;
+    base_vnum = vnum >= PET_GOLEM_WOOD_SMALL && vnum <= PET_GOLEM_WOOD_HUGE ? PET_GOLEM_WOOD_SMALL
+                                                                            : GOLEM_WOOD_SMALL;
     break;
   case GOLEM_TYPE_STONE:
-    base_vnum = GOLEM_STONE_SMALL;
+    base_vnum = vnum >= PET_GOLEM_STONE_SMALL && vnum <= PET_GOLEM_STONE_HUGE
+                    ? PET_GOLEM_STONE_SMALL
+                    : GOLEM_STONE_SMALL;
     break;
   case GOLEM_TYPE_IRON:
-    base_vnum = GOLEM_IRON_SMALL;
+    base_vnum = vnum >= PET_GOLEM_IRON_SMALL && vnum <= PET_GOLEM_IRON_HUGE ? PET_GOLEM_IRON_SMALL
+                                                                            : GOLEM_IRON_SMALL;
     break;
   default:
     return -1;
@@ -10287,7 +10314,6 @@ void recover_golem_materials(struct char_data *ch, struct char_data *golem, int 
 {
   extern int get_golem_type_from_vnum(int vnum);
   extern int get_golem_size_from_vnum(int vnum);
-  extern const char *material_name[];
 
   int golem_type, golem_size, golem_vnum;
   int material_types[3] = {0}, material_amounts[3] = {0};
@@ -10317,7 +10343,7 @@ void recover_golem_materials(struct char_data *ch, struct char_data *golem, int 
       if (recovered > 0)
       {
         GET_CRAFT_MAT(ch, material_types[i]) += recovered;
-        send_to_char(ch, "  %d %s\r\n", recovered, material_name[material_types[i]]);
+        send_to_char(ch, "  %d %s\r\n", recovered, crafting_materials[material_types[i]]);
       }
     }
   }
@@ -10330,6 +10356,7 @@ void craft_golem_complete(struct char_data *ch)
   int mote_types[NUM_CRAFT_MOTES] = {0}, mote_amounts[NUM_CRAFT_MOTES] = {0};
   int num_mats = 0, num_motes = 0;
   int golem_vnum = NOBODY;
+  mob_rnum golem_rnum;
   int golem_type, golem_size;
   struct char_data *golem = NULL;
   struct domain_entity_handle owner, created;
@@ -10341,7 +10368,10 @@ void craft_golem_complete(struct char_data *ch)
   golem_type = GET_CRAFT(ch).golem_type;
   golem_size = GET_CRAFT(ch).golem_size;
   golem_vnum = get_golem_vnum(golem_type, golem_size);
-  if (golem_vnum == (int)NOBODY || !can_add_follower_by_flag(ch, MOB_GOLEM))
+  golem_rnum = real_mobile(golem_vnum);
+  if (golem_vnum == (int)NOBODY || mob_proto == NULL || golem_rnum == NOBODY ||
+      GET_REAL_RACE(&mob_proto[golem_rnum]) != RACE_TYPE_CONSTRUCT ||
+      !can_add_follower_by_flag(ch, MOB_GOLEM))
   {
     send_to_char(ch, "You cannot complete this golem. Your materials are retained.\r\n");
     reset_current_golem_craft(ch);
@@ -10389,6 +10419,7 @@ void craft_golem_complete(struct char_data *ch)
     }
     SET_BIT_AR(AFF_FLAGS(golem), AFF_CHARM);
     SET_BIT_AR(MOB_FLAGS(golem), MOB_GOLEM);
+    golem->char_specials.is_charmie = true;
     GET_REAL_RACE(golem) = RACE_TYPE_CONSTRUCT;
     if (!attach_follower(golem, ch))
     {
@@ -10484,6 +10515,130 @@ missing_resources:
   reset_current_golem_craft(ch);
 }
 
+static bool has_bone_golem_resources(struct char_data *ch)
+{
+  int i, materials[3] = {0}, amounts[3] = {0};
+  int motes[NUM_CRAFT_MOTES] = {0}, mote_amounts[NUM_CRAFT_MOTES] = {0};
+  int count;
+
+  get_golem_material_requirements(GOLEM_TYPE_BONE, GOLEM_SIZE_MEDIUM, materials, amounts);
+  if (GET_CRAFT_MAT(ch, materials[0]) < amounts[0])
+    return false;
+  count = get_golem_mote_requirements(GOLEM_TYPE_BONE, GOLEM_SIZE_MEDIUM, motes, mote_amounts);
+  for (i = 0; i < count; i++)
+    if (GET_CRAFT_MOTES(ch, motes[i]) < mote_amounts[i])
+      return false;
+  return true;
+}
+
+static void spend_bone_golem_resources(struct char_data *ch)
+{
+  int i, materials[3] = {0}, amounts[3] = {0};
+  int motes[NUM_CRAFT_MOTES] = {0}, mote_amounts[NUM_CRAFT_MOTES] = {0};
+  int count;
+
+  get_golem_material_requirements(GOLEM_TYPE_BONE, GOLEM_SIZE_MEDIUM, materials, amounts);
+  GET_CRAFT_MAT(ch, materials[0]) -= amounts[0];
+  count = get_golem_mote_requirements(GOLEM_TYPE_BONE, GOLEM_SIZE_MEDIUM, motes, mote_amounts);
+  for (i = 0; i < count; i++)
+    GET_CRAFT_MOTES(ch, motes[i]) -= mote_amounts[i];
+  USE_STANDARD_ACTION(ch);
+  USE_MOVE_ACTION(ch);
+}
+
+static void animate_bone_golem(struct char_data *ch, const char *argument)
+{
+  struct obj_data *corpse, *item, *next;
+  struct char_data *golem;
+  struct domain_entity_handle corpse_handle, owner;
+  mob_rnum prototype;
+  int roll, skill, dc;
+  char name[MAX_INPUT_LENGTH];
+
+  if (ch == NULL || IS_NPC(ch) || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return;
+  if (CONFIG_CRAFTING_SYSTEM != CRAFTING_SYSTEM_MOTES)
+  {
+    send_to_char(ch, "Golem crafting is not enabled on this server.\r\n");
+    return;
+  }
+  if (!HAS_REAL_FEAT(ch, FEAT_CONSTRUCT_WOOD_GOLEM) &&
+      !HAS_REAL_FEAT(ch, FEAT_SUMMON_GREATER_UNDEAD))
+  {
+    send_to_char(
+        ch, "You need Construct Wood Golem or Summon Greater Undead to bind a bone golem.\r\n");
+    return;
+  }
+  if (!can_act(ch) || FIGHTING(ch) || AFF_FLAGGED(ch, AFF_CHARM) || IS_CASTING(ch) ||
+      ch->primary_activity != NULL || IS_HOLY(IN_ROOM(ch)) ||
+      ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOMAGIC) || ROOM_AFFECTED(IN_ROOM(ch), RAFF_ANTI_MAGIC))
+  {
+    send_to_char(ch, "You cannot perform the bone-binding ritual here or while occupied.\r\n");
+    return;
+  }
+  if (!is_action_available(ch, atSTANDARD, true) || !is_action_available(ch, atMOVE, true))
+    return;
+  one_argument(argument, name, sizeof(name));
+  corpse = get_obj_in_list_vis(ch, name, NULL, world[IN_ROOM(ch)].contents);
+  if (!*name || !corpse_can_be_animated(corpse))
+  {
+    send_to_char(ch, "Select an eligible corpse here: craft create golem animate <corpse>.\r\n");
+    return;
+  }
+  prototype = real_mobile(PET_GOLEM_BONE);
+  if (mob_proto == NULL || prototype == NOBODY ||
+      GET_REAL_RACE(&mob_proto[prototype]) != RACE_TYPE_CONSTRUCT ||
+      !can_add_follower_by_flag(ch, MOB_GOLEM))
+  {
+    send_to_char(
+        ch, "The construct is unavailable or your golem allowance is full. Nothing is spent.\r\n");
+    return;
+  }
+  if (!has_bone_golem_resources(ch))
+  {
+    send_to_char(ch, "The ritual requires 40 bone and 6 of each mote type.\r\n");
+    return;
+  }
+  dc = get_golem_base_dc(GOLEM_TYPE_BONE, GOLEM_SIZE_MEDIUM);
+  roll = d20(ch);
+  skill = get_craft_skill_value(ch, ABILITY_ARCANA);
+  if (roll + skill < dc)
+  {
+    spend_bone_golem_resources(ch);
+    send_to_char(ch,
+                 "Your Arcana check (%d + %d vs %d) fails. The reagents are spent; "
+                 "the corpse remains.\r\n",
+                 roll, skill, dc);
+    return;
+  }
+  golem = read_mobile(PET_GOLEM_BONE, VIRTUAL);
+  if (golem == NULL)
+    return;
+  corpse_handle = domain_event_object_handle(corpse);
+  owner = domain_event_character_handle(ch);
+  SET_BIT_AR(MOB_FLAGS(golem), MOB_GOLEM);
+  if (!place_pet_follower(ch, golem))
+    return;
+  ch = domain_event_world_resolve_character(owner);
+  corpse = domain_event_world_resolve_object(corpse_handle);
+  if (ch == NULL || !corpse_can_be_animated(corpse) || IN_ROOM(corpse) != IN_ROOM(ch) ||
+      !has_bone_golem_resources(ch))
+  {
+    extract_char(golem);
+    return;
+  }
+  spend_bone_golem_resources(ch);
+  for (item = corpse->contains; item != NULL; item = next)
+  {
+    next = item->next_content;
+    obj_from_obj(item);
+    obj_to_char(item, golem);
+  }
+  extract_obj(corpse);
+  send_to_char(ch, "You bind the corpse's bones into a loyal bone golem.\r\n");
+  finish_pet_summon(ch, golem, true, true);
+}
+
 void newcraft_golem(struct char_data *ch, const char *argument)
 {
   char arg1[200], arg2[MAX_INPUT_LENGTH];
@@ -10498,10 +10653,15 @@ void newcraft_golem(struct char_data *ch, const char *argument)
     send_to_char(ch, "  craft golem show - Display current golem project\r\n");
     send_to_char(ch, "  craft golem reset - Reset golem project\r\n");
     send_to_char(ch, "  craft golem start - Begin construction\r\n");
+    send_to_char(ch, "  craft create golem animate <corpse> - Bind a bone golem\r\n");
     return;
   }
 
-  if (is_abbrev(arg1, "type"))
+  if (is_abbrev(arg1, "animate"))
+  {
+    animate_bone_golem(ch, arg2);
+  }
+  else if (is_abbrev(arg1, "type"))
   {
     set_golem_type(ch, arg2);
   }
@@ -10578,6 +10738,8 @@ int get_golem_repair_material_type(int golem_type)
     return CRAFT_MAT_STONE;
   case GOLEM_TYPE_IRON:
     return CRAFT_MAT_IRON;
+  case GOLEM_TYPE_BONE:
+    return CRAFT_MAT_BONE;
   default:
     return -1;
   }
@@ -10593,7 +10755,9 @@ bool can_repair_golem(struct char_data *ch, struct char_data *golem, int *materi
   int golem_vnum, golem_type, golem_size;
   int missing_hp, repair_percent;
 
-  if (!ch || !golem || !IS_NPC(golem) || !MOB_FLAGGED(golem, MOB_GOLEM))
+  if (!ch || !golem || !material_needed || !material_type || !IS_PET(golem) ||
+      !MOB_FLAGGED(golem, MOB_GOLEM) || MOB_FLAGGED(golem, MOB_NOTDEADYET) ||
+      GET_MAX_HIT(golem) <= 0)
     return false;
 
   /* Must be out of combat */
@@ -10636,8 +10800,10 @@ bool can_repair_golem(struct char_data *ch, struct char_data *golem, int *materi
   }
 
   /* Calculate repair percentage and material cost */
-  repair_percent = (missing_hp * 100) / GET_MAX_HIT(golem);
-  *material_needed = (repair_percent / 10) * get_golem_repair_material_cost(golem_type, golem_size);
+  /* Charge each started ten-percent increment, including minor damage. */
+  repair_percent = (missing_hp * 100LL + GET_MAX_HIT(golem) - 1) / GET_MAX_HIT(golem);
+  *material_needed =
+      ((repair_percent + 9) / 10) * get_golem_repair_material_cost(golem_type, golem_size);
   *material_type = get_golem_repair_material_type(golem_type);
 
   /* Check if player has enough materials */

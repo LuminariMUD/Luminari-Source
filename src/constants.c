@@ -39,7 +39,7 @@
  *   - CMakeLists.txt (project VERSION for CMake build)
  *   - README.md (documentation)
  * When updating version, update ALL locations above. */
-cpp_extern const char *const luminari_version = "LuminariMUD 2.5062-beta (tbaMUD 3.64)";
+cpp_extern const char *const luminari_version = "LuminariMUD 2.5063-beta (tbaMUD 3.64)";
 cpp_extern const char *const luminari_build_git_commit = LUMINARI_BUILD_GIT_COMMIT;
 cpp_extern const bool luminari_build_git_dirty = LUMINARI_BUILD_GIT_DIRTY != 0;
 
@@ -1351,6 +1351,7 @@ const char *preference_bits[] = {"Brief",
                                  "Verbose-Listings",
                                  "Screen-Reader",
                                  "Sound",
+                                 "Auto-Raise",
                                  "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 

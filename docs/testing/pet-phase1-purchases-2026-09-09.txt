@@ -1,0 +1,80 @@
+Pet Phase 1 purchase acceptance - 2026-09-09
+================================================
+
+Reference comparison
+--------------------
+
+- RealmsOfLuminari 4f945b0e0c0485178d1dbf531d82db91ef1060be:
+  src/specs.room.c:pet_shops provides the native room purchase route.
+- Duris c27968e8ffa34f7baa38e0f27d653debb7b8cad4:
+  src/specs/specs.room.c:pet_shops provides the corresponding room purchase
+  route.
+- Luminari uses src/obj/shop.c for stock and currency handling and
+  src/obj/vendor.c:bought_pet for paid-token conversion and ownership.  It
+  preserves the shared gold behavior and additionally supports quest points
+  and account experience.
+
+Production-linked regression evidence
+-------------------------------------
+
+The existing purchase regression in unittests/CuTest/test_gameplay_e2e.c
+exercises gold, quest-point, and account-experience payment with both finite
+and producing stock.  It covers insufficient funds, full-capacity denial,
+paid-token retention, retry, stock accounting, ownership, and duplicate-charge
+and duplicate-pet prevention.
+
+The final isolated MariaDB run completed with OK (1354 tests):
+
+  /tmp/pet-phase1-account-xp-fix-test-rerun.log
+
+The immediately preceding run reached the full-world syntax-check alarm while
+another full MUD was running.  With the competing server stopped, the unchanged
+test reran cleanly.  This was resource contention during world loading, not a
+functional failure.
+
+Live acceptance on port 4100
+----------------------------
+
+- Gold: zero-balance denial did not spend currency; a 1000-gold producing-stock
+  token created an owned General-role rogue; full-capacity denial retained the
+  remaining balance; order and dismissal succeeded; producing stock remained
+  available.
+- Quest points: the same denial, successful purchase, ownership, capacity,
+  order, dismissal, and producing-stock checks succeeded with a temporary
+  quest-point flag.
+- Account experience: the same checks succeeded with a temporary
+  account-experience flag.  The initial live pass exposed that shop.c used the
+  in-memory-only change_account_experience helper.  The final build uses
+  account.c:change_account_xp, and two 1000-XP purchases persisted the database
+  balance from 2000 to the recorded baseline of 0.
+- Disconnect and reconnect after the paid workflow remained healthy.  The
+  original crash was delayed until unrelated movement caused the periodic
+  owner registry to traverse a freed temporary character.
+
+Relevant scratch logs:
+
+  /tmp/pet-phase1-purchase-repro-live2.log
+  /tmp/pet-phase1-purchase-trans-fix-live.log
+  /tmp/pet-phase1-purchase-qp-live-final.log
+  /tmp/pet-phase1-purchase-accexp-fixed-live.log
+  /tmp/pet-phase1-reconnect-fixed-live.log
+
+Corrections made
+----------------
+
+- src/db.c repeats character_periodic_forget at the final free_char release
+  boundary.  Affect cleanup can otherwise re-register a descriptor-owned
+  temporary character after the early teardown pass.
+- TestCharacterPeriodicFreeCharDetachesOwnerBeforeRelease now frees a character
+  with a real affect, reproducing that late re-registration path.
+- src/obj/shop.c debits account-experience purchases through the existing
+  persistent account helper.
+
+Cleanup
+-------
+
+The temporary quest-point and account-experience flags were removed from live
+object 104300.  lib/world/obj/1043.obj was restored byte-for-byte to SHA-256
+b47d0028d58609d6d8cfde748d07b4d08f3a101ffc6521c34b4254397fdb2bfc.
+Petaccept has no pets, account experience and quest points are back at 0, and
+the original saved gold (3572) and room (100501) were restored.

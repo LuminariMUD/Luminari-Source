@@ -43,6 +43,7 @@ lib/text/help/help.hlp text eol=lf -whitespace
 *.lib binary
 *.o binary
 *.obj binary
+data/pet-lycanthropes/*.obj text diff merge eol=lf
 *.pch binary
 *.pdb binary
 *.zip binary

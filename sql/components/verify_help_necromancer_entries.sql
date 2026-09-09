@@ -3,20 +3,20 @@
 SELECT
   'entry_count' AS check_name,
   COUNT(*) AS actual,
-  9 AS expected,
-  IF(COUNT(*) = 9, 'PASS', 'FAIL') AS result
+  10 AS expected,
+  IF(COUNT(*) = 10, 'PASS', 'FAIL') AS result
 FROM help_entries
 WHERE tag IN (
   'class-necromancer', 'animate-dead', 'greater-animation',
   'touch-of-undeath', 'bone-armor', 'undead-cohort',
-  'tough-as-bone', 'essence-of-undeath', 'animatedead'
+  'tough-as-bone', 'essence-of-undeath', 'animatedead', 'autoraise'
 );
 
 SELECT
   'required_keywords' AS check_name,
   COUNT(*) AS actual,
-  23 AS expected,
-  IF(COUNT(*) = 23, 'PASS', 'FAIL') AS result
+  24 AS expected,
+  IF(COUNT(*) = 24, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE (help_tag, keyword) IN (
   ('class-necromancer', 'CLASS-NECROMANCER'),
@@ -41,19 +41,20 @@ WHERE (help_tag, keyword) IN (
   ('undead-cohort', 'COHORT'),
   ('tough-as-bone', 'TOUGH-AS-BONE'),
   ('essence-of-undeath', 'ESSENCE-OF-UNDEATH'),
-  ('animatedead', 'ANIMATEDEAD')
+  ('animatedead', 'ANIMATEDEAD'),
+  ('autoraise', 'AUTORAISE')
 );
 
 SELECT
   'player_manual_entries' AS check_name,
   COUNT(*) AS actual,
-  9 AS expected,
-  IF(COUNT(*) = 9, 'PASS', 'FAIL') AS result
+  10 AS expected,
+  IF(COUNT(*) = 10, 'PASS', 'FAIL') AS result
 FROM help_entries
 WHERE tag IN (
   'class-necromancer', 'animate-dead', 'greater-animation',
   'touch-of-undeath', 'bone-armor', 'undead-cohort',
-  'tough-as-bone', 'essence-of-undeath', 'animatedead'
+  'tough-as-bone', 'essence-of-undeath', 'animatedead', 'autoraise'
 )
 AND min_level = 0
 AND auto_generated = FALSE;
@@ -69,8 +70,8 @@ WHERE help_tag = 'animatedead' AND LOWER(keyword) IN ('animate', 'animate-dead')
 SELECT
   'content_contracts' AS check_name,
   SUM(INSTR(LOWER(h.entry), LOWER(expected_content.required_text)) > 0) AS actual,
-  20 AS expected,
-  IF(SUM(INSTR(LOWER(h.entry), LOWER(expected_content.required_text)) > 0) = 20,
+  30 AS expected,
+  IF(SUM(INSTR(LOWER(h.entry), LOWER(expected_content.required_text)) > 0) = 30,
      'PASS', 'FAIL') AS result,
   GROUP_CONCAT(
     IF(INSTR(LOWER(h.entry), LOWER(expected_content.required_text)) > 0,
@@ -82,10 +83,11 @@ FROM (
   UNION ALL SELECT 'class-necromancer', 'four plus Intelligence'
   UNION ALL SELECT 'class-necromancer', '8  Medium Armor'
   UNION ALL SELECT 'animate-dead', '10 percent summon failure chance'
-  UNION ALL SELECT 'animate-dead', 'exactly two animated undead'
+  UNION ALL SELECT 'animate-dead', 'control capacity is 2 points, or 4'
   UNION ALL SELECT 'animate-dead', 'prepared spell or spontaneous spell slot'
   UNION ALL SELECT 'greater-animation', '10 percent summon failure chance'
   UNION ALL SELECT 'greater-animation', 'final follower level also scales'
+  UNION ALL SELECT 'greater-animation', 'corpse contents remain on the ground'
   UNION ALL SELECT 'touch-of-undeath', 'whether the touch attack hits or misses'
   UNION ALL SELECT 'touch-of-undeath', 'selected preferred spellcasting class'
   UNION ALL SELECT 'touch-of-undeath', '1d4+1 rounds'
@@ -98,5 +100,14 @@ FROM (
   UNION ALL SELECT 'essence-of-undeath', 'physical ability drain'
   UNION ALL SELECT 'animatedead', 'separate daily class ability'
   UNION ALL SELECT 'animatedead', 'does not target or consume'
+  UNION ALL SELECT 'animatedead', 'Necromancer level 2 grants one rank'
+  UNION ALL SELECT 'animatedead', 'no natural expiry'
+  UNION ALL SELECT 'animatedead', 'level-10 skeletal mage'
+  UNION ALL SELECT 'animatedead', 'level-25 lich'
+  UNION ALL SELECT 'animatedead', 'does not refund'
+  UNION ALL SELECT 'autoraise', 'off by default'
+  UNION ALL SELECT 'autoraise', 'one available swift action'
+  UNION ALL SELECT 'autoraise', 'exact corpse'
+  UNION ALL SELECT 'autoraise', 'extra control capacity'
 ) AS expected_content
 LEFT JOIN help_entries AS h ON h.tag = expected_content.tag;
