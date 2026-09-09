@@ -41,6 +41,7 @@
 #include "character/backgrounds.h"
 #include "character/perks.h"
 #include "spec/spec_dispatch.h"
+#include "domain_event_world.h"
 
 SPECIAL(bank)
 {
@@ -151,6 +152,7 @@ SPECIAL(bought_pet)
 {
   struct obj_data *obj = (struct obj_data *)me;
   struct char_data *owner, *pet;
+  struct domain_entity_handle owner_handle, pet_handle, token_handle;
 
   if (cmd)
     return FALSE;
@@ -179,24 +181,28 @@ SPECIAL(bought_pet)
   /* found matching vnum for obejct, loaded pet succesfully */
   if (pet)
   {
-    if (ZONE_FLAGGED(GET_ROOM_ZONE(obj->carried_by->in_room), ZONE_WILDERNESS))
+    owner_handle = domain_event_character_handle(owner);
+    pet_handle = domain_event_character_handle(pet);
+    token_handle = domain_event_object_handle(obj);
+    if (!place_pet_follower(owner, pet))
+      return FALSE;
+    owner = domain_event_world_resolve_character(owner_handle);
+    pet = domain_event_world_resolve_character(pet_handle);
+    obj = domain_event_world_resolve_object(token_handle);
+    if (owner == NULL || pet == NULL || obj == NULL || obj->carried_by != owner)
     {
-      X_LOC(pet) = world[obj->carried_by->in_room].coords[0];
-      Y_LOC(pet) = world[obj->carried_by->in_room].coords[1];
+      if (pet != NULL)
+        extract_char(pet);
+      return FALSE;
     }
 
-    char_to_room(pet, obj->carried_by->in_room);
-    add_follower(pet, obj->carried_by);
-    SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
-
-    /* success message */
-    send_to_char(obj->carried_by, "You have acquired a companion.\r\n");
-
-    /* get rid of the purchased object */
+    /* Commit the token only after successful placement. */
     obj_from_char(obj);
     extract_obj(obj);
-
-    /* bingo */
+    owner = domain_event_world_resolve_character(owner_handle);
+    pet = domain_event_world_resolve_character(pet_handle);
+    if (owner != NULL && pet != NULL)
+      finish_pet_summon(owner, pet, true, true);
     return TRUE;
   }
 

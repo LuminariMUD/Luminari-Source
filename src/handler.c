@@ -4156,17 +4156,18 @@ void join_group(struct char_data *ch, struct group_data *group)
 /* mount related stuff */
 void dismount_char(struct char_data *ch)
 {
-  if (RIDING(ch))
-  {
-    RIDDEN_BY(RIDING(ch)) = NULL;
-    RIDING(ch) = NULL;
-  }
+  struct char_data *mount, *rider;
 
-  if (RIDDEN_BY(ch))
-  {
-    RIDING(RIDDEN_BY(ch)) = NULL;
-    RIDDEN_BY(ch) = NULL;
-  }
+  if (ch == NULL)
+    return;
+  mount = RIDING(ch);
+  rider = RIDDEN_BY(ch);
+  RIDING(ch) = NULL;
+  RIDDEN_BY(ch) = NULL;
+  if (mount != NULL && RIDDEN_BY(mount) == ch)
+    RIDDEN_BY(mount) = NULL;
+  if (rider != NULL && RIDING(rider) == ch)
+    RIDING(rider) = NULL;
 }
 
 void mount_char(struct char_data *ch, struct char_data *mount)

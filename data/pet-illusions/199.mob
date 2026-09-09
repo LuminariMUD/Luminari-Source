@@ -1,0 +1,23 @@
+#19900
+illusory decoy double~
+an illusory double~
+A wavering illusory double mirrors its summoner's movements.
+~
+Shadows and light form a translucent figure without physical substance.
+~
+8 128 0 32 0 0 0 0 0 E
+10 12 -8 0d0+60 1d6+0
+0 0
+9 9 0
+Str: 10
+Dex: 16
+Int: 10
+Wis: 10
+Con: 10
+Cha: 10
+Race: 7
+Class: 3
+Size: 5
+DR_MOD: 0
+E
+$~

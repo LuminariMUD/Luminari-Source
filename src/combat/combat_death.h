@@ -21,6 +21,7 @@ struct combat_death_result
 {
   struct domain_entity_handle victim;
   struct domain_entity_handle killer;
+  struct domain_entity_handle corpse; /* Exact NPC corpse, or an invalid handle if none. */
   enum combat_death_cause cause;
   bool processed;
 };

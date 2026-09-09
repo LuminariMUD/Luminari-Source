@@ -46,7 +46,7 @@ struct ready_action;
  * on an older version. You are supposed to compare this with the macro
  * LUMINARIMUD_VERSION() in utils.h.
  * It is read as Major/Minor/Patchlevel - MMmmPP (hex values)
- * Current: 0x03071C = 3.7.28 (corresponds to display version 2.5062-beta)
+ * Current: 0x03071C = 3.7.28 (corresponds to display version 2.5063-beta)
  * See also: src/constants.c (luminari_version string) */
 #define _LUMINARIMUD 0x03071C
 
@@ -1116,7 +1116,7 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define MOB_HUNTER 33      /* will track down foes & memory targets */
 #define MOB_LISTEN 34      /* will enter room if hearing fighting */
 #define MOB_LIT 35         /* light up mob */
-#define MOB_PLANAR_ALLY 36 /* is a planar ally (currently unused) */
+#define MOB_PLANAR_ALLY 36 /* Controlled planar ally. */
 #define MOB_NOSTEAL 37     /* Can't steal from mob*/
 #define MOB_INFO_KILL 38   /* mob, when killed, sends a message in game to everyone */
 /* we added a bunch of filler flags due to incompatible zone files */
@@ -1395,7 +1395,8 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define PRF_SOUND 88         /**< Player consent to optional sound playback */
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 89
+#define PRF_AUTORAISE 89 /**< Opt in to raising eligible direct kills. */
+#define NUM_PRF_FLAGS 90
 
 /* Score Color Theme constants */
 #define SCORE_THEME_ENHANCED 0     /**< Enhanced theme with rich colors */
@@ -6410,6 +6411,8 @@ struct char_special_data
   int castingTime;              // casting time (remaining)
   int castingTimeMax;           // original casting time (for progress calc)
   int castingSpellnum;          // spell casting
+  int summon_choice_spell;      /* Spell owning the pending pet choice. */
+  int summon_choice;            /* Zero is random; otherwise a validated choice. */
   int castingMetamagic;         // spell metamagic
   int castingClass;             // spell casting class
   struct char_data *castingTCH; // target char of spell

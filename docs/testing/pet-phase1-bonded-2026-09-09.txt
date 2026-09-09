@@ -1,0 +1,1304 @@
+Local development acceptance, game port 4100, 2026-09-09.
+Character: Petaccept; class setup uses the existing staff settestchar command.
+Initial passes include denied attempts; only explicit successful command output proves behavior.
+The first two transcripts precede the dragon call-range fix. Later dragon transcripts use
+ELF build ID be334fb836c49848d7aec61732c7d1358c55bfb3.
+The first dragon session ended at a paged help lookup; separate help and fresh-call sessions follow.
+
+SOURCE: pet-phase1-bonded-live.log
+Reusing the development MUD on port 4100.
+
+>>> trans Petaccept
+[ Petaccept [127.0.0.1] has connected. ]
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+[ Petaccept un-renting and entering game. ]
+[ Petaccept (level 1) has 62 objects (max 99999). ]
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am trans Petaccept
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+Petaccept arrives from a puff of smoke.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+ACCEPTANCE CLASS=druid ROLE=companion
+
+>>> settestchar Petaccept race human classes druid:10
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am settestchar Petaccept race human classes druid:10
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+Race set to Human with classes: druid (L10)
+Character overall level: 10
+Racial feats applied: 1
+Class feats applied for all levels.
+Class skills set to level 10.
+HP: 130, MV: 830, PSP: 3
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+
+[score output omitted]
+
+>>> call companion
+.'
+130/130H 830/150V [smw] (news) (motd) call companion
+130/130H 830/150V [smw] (news) (motd)
+You have to select your companion via the 'study' command.
+130/130H 830/150V [smw] (news) (motd)
+
+>>> pets
+.'
+130/130H 830/150V [smw] (news) (motd) pets
+130/130H 830/150V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+130/100H 830/150V [smw] (news) (motd)
+ACCEPTANCE CLASS=wizard ROLE=familiar
+
+>>> settestchar Petaccept race human classes wizard:10
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am settestchar Petaccept race human classes wizard:10
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+Race set to Human with classes: wizard (L10)
+Character overall level: 10
+Racial feats applied: 1
+Class feats applied for all levels.
+Class skills set to level 10.
+HP: 80, MV: 150, PSP: 60
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+
+[score output omitted]
+
+>>> call familiar
+.'
+80/80H 150/150V [smw] (news) (motd) call familiar
+80/80H 150/150V [smw] (news) (motd)
+You have to select your companion via the 'study' command.
+80/80H 150/150V [smw] (news) (motd)
+
+>>> pets
+.'
+80/80H 150/150V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+80/80H 150/150V [smw] (news) (motd) 80/80H 150/150V [smw] (news) (motd)
+ACCEPTANCE CLASS=paladin ROLE=mount
+
+>>> settestchar Petaccept race human classes paladin:10
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am settestchar Petaccept race human classes paladin:10
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+Race set to Human with classes: paladin (L10)
+Character overall level: 10
+Racial feats applied: 1
+Class feats applied for all levels.
+Class skills set to level 10.
+HP: 120, MV: 150, PSP: 60
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+
+[score output omitted]
+
+>>> call mount
+.'
+120/120H 150/150V [smw] (news) (motd) call mount
+[Group] a brilliant white heavy warhorse joins the group.
+You can 'call' your companion even if you get separated.  You can also 'dismiss' your companion to reduce your cooldown drastically.
+You call forth a brilliant white heavy warhorse!
+120/120H 150/150V [smw] (news) (motd) 120/120H 150/150V [smw] (news) (motd)
+
+>>> pets
+.'
+120/120H 150/150V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a brilliant white heavy warhorse - Staff Board Room - Bonded mount [follow] [#47345887]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+120/120H 150/150V [smw] (news) (motd) 120/120H 150/150V [smw] (news) (motd)
+
+>>> order #47345887 stand
+.'
+120/120H 150/150V [smw] (news) (motd) order #47345887 stand
+120/120H 150/150V [sm-] (news) (motd)
+Okay.
+120/120H 150/150V [sm-] (news) (motd) 120/120H 150/150V [sm-] (news) (motd)
+
+>>> call mount
+.'
+120/120H 150/150V [sm-] (news) (motd) call mount
+Your companion has already been summoned!
+120/120H 150/150V [sm-] (news) (motd) 120/120H 150/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+120/120H 150/150V [sm-] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a brilliant white heavy warhorse - Staff Board Room - Bonded mount [follow] [#47345887]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+120/120H 150/150V [sm-] (news) (motd) 120/120H 150/150V [sm-] (news) (motd)
+
+>>> dismiss #47345887
+.'
+120/120H 150/150V [sm-] (news) (motd) dismiss #47345887
+120/120H 150/150V [sm-] (news) (motd)
+You dismiss a brilliant white heavy warhorse.
+A brilliant white heavy warhorse is no longer serving you!
+[Group] a brilliant white heavy warhorse has left the group.
+120/120H 150/150V [sm-] (news) (motd) 120/120H 150/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+120/120H 150/150V [sm-] (news) (motd) pets
+120/120H 150/150V [sm-] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+120/120H 150/150V [sm-] (news) (motd)
+ACCEPTANCE CLASS=summoner ROLE=eidolon
+
+>>> settestchar Petaccept race human classes summoner:10
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+Petaccept calls a brilliant white heavy warhorse!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+Petaccept commands, 'stand'.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am settestchar Petaccept race human classes summoner:10
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+Race set to Human with classes: summoner (L10)
+Character overall level: 10
+Racial feats applied: 1
+Class feats applied for all levels.
+Class skills set to level 10.
+HP: 100, MV: 150, PSP: 60
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+
+[score output omitted]
+
+>>> call eidolon
+.'
+100/100H 150/150V [sm-] (news) (motd) call eidolon
+[Group] an amorphous eidolon joins the group.
+You can 'call' your companion even if you get separated.  You can also 'dismiss' your companion to reduce your cooldown drastically.
+You call forth an amorphous eidolon!
+100/100H 150/150V [sm-] (news) (motd) 100/100H 150/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+100/100H 150/150V [sm-] (news) (motd) pets
+100/100H 150/150V [sm-] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) an amorphous eidolon - Staff Board Room - Eidolon [follow] [#47345888]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+100/100H 150/150V [sm-] (news) (motd) 100/100H 150/150V [sm-] (news) (motd)
+
+>>> order #47345888 stand
+.'
+100/100H 150/150V [sm-] (news) (motd) order #47345888 stand
+You must wait for the required action before trying that command.
+100/100H 150/150V [sm-] (news) (motd) 100/100H 150/150V [sm-] (news) (motd)
+
+>>> call eidolon
+.'
+[INFO] Welcome Petaccept as the newest adventurer to LuminariMUD.
+100/100H 150/150V [sm-] (news) (motd) call eidolon
+100/100H 150/150V [sm-] (news) (motd)
+Your companion has already been summoned!
+100/100H 150/150V [sm-] (news) (motd) 100/100H 150/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+100/100H 150/150V [sm-] (news) (motd) pets
+100/100H 150/150V [sm-] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) an amorphous eidolon - Staff Board Room - Eidolon [follow] [#47345888]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+100/100H 150/150V [sm-] (news) (motd) 100/100H 150/150V [sm-] (news) (motd)
+
+>>> dismiss #47345888
+.'
+100/100H 150/150V [sm-] (news) (motd) dismiss #47345888
+100/100H 150/150V [sm-] (news) (motd)
+You dismiss an amorphous eidolon.
+An amorphous eidolon is no longer serving you!
+[Group] an amorphous eidolon has left the group.
+100/100H 150/150V [sm-] (news) (motd) 100/100H 150/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+100/100H 150/150V [sm-] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+100/100H 150/150V [sm-] (news) (motd) 100/100H 150/150V [sm-] (news) (motd)
+ACCEPTANCE CLASS=necromancer ROLE=cohort
+
+>>> settestchar Petaccept race human classes necromancer:10
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+Petaccept calls an amorphous eidolon!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+[INFO] Welcome Petaccept as the newest adventurer to LuminariMUD.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am settestchar Petaccept race human classes necromancer:10
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+Race set to Human with classes: necromancer (L10)
+Character overall level: 10
+Racial feats applied: 1
+Class feats applied for all levels.
+Class skills set to level 10.
+HP: 80, MV: 150, PSP: 60
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+
+[score output omitted]
+
+>>> call cohort
+.'
+80/80H 150/150V [sm-] (news) (motd) call cohort
+You must wait longer before you can use this ability again.
+80/80H 150/150V [sm-] (news) (motd) 80/80H 150/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+80/80H 150/150V [sm-] (news) (motd) pets
+80/80H 150/150V [sm-] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/4 points. Lesser forms cost 1; elite forms cost 2.
+80/80H 150/150V [sm-] (news) (motd) 80/80H 150/150V [sm-] (news) (motd)
+ACCEPTANCE CLASS=shadowdancer ROLE=shadow
+
+>>> settestchar Petaccept race human classes shadowdancer:10
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am settestchar Petaccept race human classes shadowdancer:10
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+Race set to Human with classes: shadowdancer (L10)
+Character overall level: 10
+Racial feats applied: 1
+Class feats applied for all levels.
+Class skills set to level 10.
+HP: 100, MV: 150, PSP: 60
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+
+[score output omitted]
+
+>>> call shadow
+.'
+100/100H 150/150V [sm-] (news) (motd) call shadow
+[Group] a shadow joins the group.
+You can 'call' your companion even if you get separated.  You can also 'dismiss' your companion to reduce your cooldown drastically.
+You call forth a shadow!
+100/100H 150/150V [sm-] (news) (motd) 100/100H 150/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+100/100H 150/150V [sm-] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a shadow - Staff Board Room - Shadow [follow] [#47345889]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+100/100H 150/150V [sm-] (news) (motd) 100/100H 150/150V [sm-] (news) (motd)
+
+>>> order #47345889 stand
+.'
+The hooded woman looks at you and adjusts the cloak draped over her hair.
+100/100H 150/150V [sm-] (news) (motd) order #47345889 stand
+You must wait for the required action before trying that command.
+100/100H 150/150V [sm-] (news) (motd) 100/100H 150/150V [sm-] (news) (motd)
+
+>>> call shadow
+.'
+100/100H 150/150V [sm-] (news) (motd) call shadow
+100/100H 150/150V [sm-] (news) (motd)
+Your companion has already been summoned!
+100/100H 150/150V [sm-] (news) (motd) 100/100H 150/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+100/100H 150/150V [sm-] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a shadow - Staff Board Room - Shadow [follow] [#47345889]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+100/100H 150/150V [sm-] (news) (motd) 100/100H 150/150V [sm-] (news) (motd)
+
+>>> dismiss #47345889
+.'
+100/100H 150/150V [sm-] (news) (motd) dismiss #47345889
+100/100H 150/150V [sm-] (news) (motd)
+You dismiss a shadow.
+A shadow is no longer serving you!
+[Group] a shadow has left the group.
+100/100H 150/150V [sm-] (news) (motd) 100/100H 150/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+100/100H 150/150V [sm-] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+100/100H 150/150V [sm-] (news) (motd) 100/100H 150/150V [sm-] (news) (motd)
+ACCEPTANCE CLASS=dragonrider ROLE=dragon
+
+>>> settestchar Petaccept race human classes dragonrider:10
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+Petaccept calls a shadow!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am settestchar Petaccept race human classes dragonrider:10
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+Race set to Human with classes: dragonrider (L10)
+Character overall level: 10
+Racial feats applied: 1
+Class feats applied for all levels.
+Class skills set to level 10.
+HP: 120, MV: 150, PSP: 60
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:2am
+
+[score output omitted]
+
+>>> call dragon
+.'
+120/120H 150/150V [sm-] (news) (motd) call dragon
+You have to select your dragon mount type via the 'study' command.
+120/120H 150/150V [sm-] (news) (motd) 120/120H 150/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+120/120H 150/150V [sm-] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+120/120H 150/150V [sm-] (news) (motd) 120/120H 150/150V [sm-] (news) (motd)
+PASS: Kohdee ran 1 game command(s) and logged out cleanly (13s).
+
+SOURCE: pet-phase1-bonded-selected-live.log
+Reusing the development MUD on port 4100.
+
+>>> trans Petaccept
+[ Petaccept [127.0.0.1] has connected. ]
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+[ Petaccept un-renting and entering game. ]
+[ Petaccept (level 10) has 62 objects (max 99999). ]
+Petaccept has entered the game.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am trans Petaccept
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+Petaccept disappears in a mushroom cloud.
+Petaccept arrives from a puff of smoke.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+ACCEPTANCE CLASS=druid ROLE=companion
+
+>>> settestchar Petaccept race human classes druid:10
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am settestchar Petaccept race human classes druid:10
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+Race set to Human with classes: druid (L10)
+Character overall level: 10
+Racial feats applied: 1
+Class feats applied for all levels.
+Class skills set to level 10.
+HP: 100, MV: 1500, PSP: 60
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+
+>>> interactive dialog
+er to be noteworthy. Arched doorways lead off
+to other areas in the God Simplex and a simple staircase
+in the southwest corner leads upwards.
+[ Exits: N E S W U ]
+A large bulletin board labeled 'HELP' is mounted on the wall here.
+A bench has been placed against the wall here, providing seating for several individuals.
+[PC] [Humn] Kohdee is standing here.
+120/120H 150/1500V [smw] (news) (motd)
+Kohdee says, '__MUD_SMOKE_COMMAND_1_DONE__.'
+120/120H 150/1500V [smw] (news) (motd)
+Staff has set your race to Human and classes to:
+  - druid (Level 10)
+Your overall level is now 10.
+Your class skills have been set to 10.
+Your stats have been updated.
+100/100H 1500/150V [smw] (news) (motd)
+Kohdee says, '__MUD_SMOKE_COMMAND_2_DONE__.'
+100/100H 1500/150V [smw] (news) (motd) study
+-- Study Menu
+ 0) Skills*
+ 1) Ability Score Boosts*
+ 2) Feats*
+ 3) Known Spells*
+ 4) Known Psionic Powers*
+ 5) Choose Familiar*
+ 6) Animal Companion
+ 7) Ranger Favored Enemy*
+ 8) Domain Selection*
+ 9) Wizard School Selection*
+ A) Preferred Caster Classes (Prestige)
+ B) Sorcerer Bloodline Selection*
+ C) Alchemist Discoveries Selection*
+ D) Paladin Mercies*
+ E) Blackguard Cruelties*
+ F) Summoner Eidolons
+ G) Racial Abilities Selection*
+ H) Necromancer Casting Type*
+ I) Languages*
+ J) Dragon Riders*
+ R) Reset Character*
+ Q) Quit
+* - An asterisk indicates you don't have access to this option.  (You are using premade build, options are limited!)
+Enter Choice : 6
+-- Druid/Ranger Animal Companion Menu
+1) Black Bear
+2) Boar
+3) Lion
+4) Crocodile
+5) Hyena
+6) Snow Leopard
+7) Skull Spider
+8) Fire Beetle
+9) Dire Wolf (Ranger 4 / Warrior 1)
+Currently No Companion Selected
+You can select 0 (Zero) to deselect the current companion.
+ Q) Quit
+Enter Choice : 1
+You have selected 1) Black Bear.
+-- Druid/Ranger Animal Companion Menu
+1) Black Bear
+2) Boar
+3) Lion
+4) Crocodile
+5) Hyena
+6) Snow Leopard
+7) Skull Spider
+8) Fire Beetle
+9) Dire Wolf (Ranger 4 / Warrior 1)
+Current Companion:  1) Black Bear
+You can select 0 (Zero) to deselect the current companion.
+ Q) Quit
+Enter Choice : q
+-- Study Menu
+ 0) Skills*
+ 1) Ability Score Boosts*
+ 2) Feats*
+ 3) Known Spells*
+ 4) Known Psionic Powers*
+ 5) Choose Familiar*
+ 6) Animal Companion
+ 7) Ranger Favored Enemy*
+ 8) Domain Selection*
+ 9) Wizard School Selection*
+ A) Preferred Caster Classes (Prestige)
+ B) Sorcerer Bloodline Selection*
+ C) Alchemist Discoveries Selection*
+ D) Paladin Mercies*
+ E) Blackguard Cruelties*
+ F) Summoner Eidolons
+ G) Racial Abilities Selection*
+ H) Necromancer Casting Type*
+ I) Languages*
+ J) Dragon Riders*
+ R) Reset Character*
+ Q) Quit
+* - An asterisk indicates you don't have access to this option.  (You are using premade build, options are limited!)
+Enter Choice :
+You are now able to 'call mount' again.
+You can currently study as much as you want per level.
+Do you wish to save your changes? : y
+100/100H 1500/150V [smw] (news) (motd)
+Your choices have been finalized!
+100/100H 1499/150V [smw] (news) (motd)
+
+>>> call companion
+.'
+100/100H 1499/150V [smw] (news) (motd) call companion
+100/100H 1499/150V [smw] (news) (motd)
+[Group] a black bear joins the group.
+You can 'call' your companion even if you get separated.  You can also 'dismiss' your companion to reduce your cooldown drastically.
+You call forth a black bear!
+100/100H 1499/150V [smw] (news) (motd)
+
+>>> pets
+.'
+100/100H 1499/150V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a black bear - Staff Board Room - Animal companion [follow] [#47345890]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+100/100H 1499/150V [smw] (news) (motd) 100/100H 1499/150V [smw] (news) (motd)
+
+>>> order #47345890 stand
+.'
+100/100H 1499/150V [smw] (news) (motd) order #47345890 stand
+100/100H 1499/150V [sm-] (news) (motd)
+Okay.
+100/100H 1499/150V [sm-] (news) (motd) 100/100H 1499/150V [sm-] (news) (motd)
+
+>>> call companion
+.'
+100/100H 1499/150V [sm-] (news) (motd) call companion
+Your companion has already been summoned!
+100/100H 1499/150V [sm-] (news) (motd) 100/100H 1499/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+100/100H 1499/150V [sm-] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a black bear - Staff Board Room - Animal companion [follow] [#47345890]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+100/100H 1499/150V [sm-] (news) (motd) 100/100H 1499/150V [sm-] (news) (motd)
+
+>>> dismiss #47345890
+.'
+You are now able to 'call eidolon' again.
+100/100H 1499/150V [sm-] (news) (motd) dismiss #47345890
+100/100H 1499/150V [sm-] (news) (motd)
+You dismiss a black bear.
+A black bear is no longer serving you!
+[Group] a black bear has left the group.
+100/100H 1499/150V [sm-] (news) (motd) 100/100H 1499/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+100/100H 1499/150V [sm-] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+100/100H 1499/150V [sm-] (news) (motd) 100/100H 1499/150V [sm-] (news) (motd)
+ACCEPTANCE CLASS=wizard ROLE=familiar
+
+>>> settestchar Petaccept race human classes wizard:10
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+Petaccept starts adjusting his skill-set.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+Petaccept stops his study session.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+Petaccept says, '__MUD_SMOKE_DIALOG_DONE__.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+Petaccept calls a black bear!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+Petaccept commands, 'stand'.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am settestchar Petaccept race human classes wizard:10
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+Race set to Human with classes: wizard (L10)
+Character overall level: 10
+Racial feats applied: 1
+Class feats applied for all levels.
+Class skills set to level 10.
+HP: 80, MV: 150, PSP: 60
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+
+>>> interactive dialog
+.'
+100/100H 1499/150V [sm-] (news) (motd)
+Staff has set your race to Human and classes to:
+  - wizard (Level 10)
+Your overall level is now 10.
+Your class skills have been set to 10.
+Your stats have been updated.
+80/80H 150/150V [sm-] (news) (motd)
+Kohdee says, '__MUD_SMOKE_COMMAND_10_DONE__.'
+80/80H 150/150V [sm-] (news) (motd) study
+-- Study Menu
+ 0) Skills*
+ 1) Ability Score Boosts*
+ 2) Feats*
+ 3) Known Spells*
+ 4) Known Psionic Powers*
+ 5) Choose Familiar
+ 6) Animal Companion*
+ 7) Ranger Favored Enemy*
+ 8) Domain Selection*
+ 9) Wizard School Selection*
+ A) Preferred Caster Classes (Prestige)
+ B) Sorcerer Bloodline Selection*
+ C) Alchemist Discoveries Selection*
+ D) Paladin Mercies*
+ E) Blackguard Cruelties*
+ F) Summoner Eidolons
+ G) Racial Abilities Selection*
+ H) Necromancer Casting Type*
+ I) Languages*
+ J) Dragon Riders*
+ R) Reset Character*
+ Q) Quit
+* - An asterisk indicates you don't have access to this option.  (You are using premade build, options are limited!)
+Enter Choice : 5
+-- Familiar Menu
+1) Night Hunter
+2) Black Panther
+3) Tiny Mouse
+4) Eagle
+5) Raven
+6) Imp
+7) Pixie
+8) Faerie Dragon
+9) Pseudo Dragon
+10) Hellhound
+Currently No Familiar Selected
+You can select 0 (Zero) to deselect the current familiar.
+ Q) Quit
+Enter Choice : 1
+You have selected 1) Night Hunter.
+-- Familiar Menu
+1) Night Hunter
+2) Black Panther
+3) Tiny Mouse
+4) Eagle
+5) Raven
+6) Imp
+7) Pixie
+8) Faerie Dragon
+9) Pseudo Dragon
+10) Hellhound
+Current Familiar:  1) Night Hunter
+You can select 0 (Zero) to deselect the current familiar.
+ Q) Quit
+Enter Choice : q
+-- Study Menu
+ 0) Skills*
+ 1) Ability Score Boosts*
+ 2) Feats*
+ 3) Known Spells*
+ 4) Known Psionic Powers*
+ 5) Choose Familiar
+ 6) Animal Companion*
+ 7) Ranger Favored Enemy*
+ 8) Domain Selection*
+ 9) Wizard School Selection*
+ A) Preferred Caster Classes (Prestige)
+ B) Sorcerer Bloodline Selection*
+ C) Alchemist Discoveries Selection*
+ D) Paladin Mercies*
+ E) Blackguard Cruelties*
+ F) Summoner Eidolons
+ G) Racial Abilities Selection*
+ H) Necromancer Casting Type*
+ I) Languages*
+ J) Dragon Riders*
+ R) Reset Character*
+ Q) Quit
+* - An asterisk indicates you don't have access to this option.  (You are using premade build, options are limited!)
+Enter Choice : q
+You can currently study as much as you want per level.
+Do you wish to save your changes? : y
+80/80H 150/150V [sm-] (news) (motd)
+Your choices have been finalized!
+80/80H 150/150V [sm-] (news) (motd)
+
+>>> call familiar
+.'
+80/80H 150/150V [sm-] (news) (motd) call familiar
+80/80H 150/150V [sm-] (news) (motd)
+[Group] a night hunter joins the group.
+You can 'call' your companion even if you get separated.  You can also 'dismiss' your companion to reduce your cooldown drastically.
+You call forth a night hunter!
+80/80H 150/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+80/80H 150/150V [sm-] (news) (motd) pets
+80/80H 150/150V [sm-] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a night hunter - Staff Board Room - Familiar [follow] [#47345891]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+80/80H 150/150V [sm-] (news) (motd)
+
+>>> order #47345891 stand
+.'
+80/80H 150/150V [sm-] (news) (motd) order #47345891 stand
+80/80H 150/150V [sm-] (news) (motd)
+You must wait for the required action before trying that command.
+80/80H 150/150V [sm-] (news) (motd)
+
+>>> call familiar
+.'
+80/80H 150/150V [sm-] (news) (motd) call familiar
+80/80H 150/150V [sm-] (news) (motd)
+Your companion has already been summoned!
+80/80H 150/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+80/80H 150/150V [sm-] (news) (motd) pets
+80/80H 150/150V [sm-] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a night hunter - Staff Board Room - Familiar [follow] [#47345891]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+80/80H 150/150V [sm-] (news) (motd)
+
+>>> dismiss #47345891
+.'
+80/80H 150/150V [sm-] (news) (motd) dismiss #47345891
+80/80H 150/150V [sm-] (news) (motd)
+You dismiss a night hunter.
+A night hunter is no longer serving you!
+[Group] a night hunter has left the group.
+80/80H 150/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+80/80H 150/150V [sm-] (news) (motd) pets
+80/80H 150/150V [sm-] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+80/80H 150/150V [sm-] (news) (motd)
+ACCEPTANCE CLASS=necromancer ROLE=cohort
+
+>>> settestchar Petaccept race human classes necromancer:10
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+Petaccept starts adjusting his skill-set.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+Petaccept stops his study session.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+Petaccept says, '__MUD_SMOKE_DIALOG_DONE__.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+Petaccept calls a night hunter!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am settestchar Petaccept race human classes necromancer:10
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+Race set to Human with classes: necromancer (L10)
+Character overall level: 10
+Racial feats applied: 1
+Class feats applied for all levels.
+Class skills set to level 10.
+HP: 80, MV: 150, PSP: 60
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+
+>>> call cohort
+.'
+80/80H 150/150V [sm-] (news) (motd)
+Staff has set your race to Human and classes to:
+  - necromancer (Level 10)
+Your overall level is now 10.
+Your class skills have been set to 10.
+Your stats have been updated.
+80/80H 150/150V [sm-] (news) (motd)
+80/80H 150/150V [sm-] (news) (motd) call cohort
+80/80H 150/150V [sm-] (news) (motd)
+[Group] an amorphous eidolon joins the group.
+You can 'call' your companion even if you get separated.  You can also 'dismiss' your companion to reduce your cooldown drastically.
+You call forth an amorphous eidolon!
+80/80H 150/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+80/80H 150/150V [sm-] (news) (motd) pets
+80/80H 150/150V [sm-] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) an amorphous eidolon - Staff Board Room - Eidolon [follow] [#47345892]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/4 points. Lesser forms cost 1; elite forms cost 2.
+80/80H 150/150V [sm-] (news) (motd)
+
+>>> order #47345892 stand
+.'
+80/80H 150/150V [sm-] (news) (motd) order #47345892 stand
+You must wait for the required action before trying that command.
+80/80H 150/150V [sm-] (news) (motd) 80/80H 150/150V [sm-] (news) (motd)
+
+>>> call cohort
+.'
+80/80H 150/150V [sm-] (news) (motd) call cohort
+Your companion has already been summoned!
+80/80H 150/150V [sm-] (news) (motd) 80/80H 150/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+80/80H 150/150V [sm-] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) an amorphous eidolon - Staff Board Room - Eidolon [follow] [#47345892]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/4 points. Lesser forms cost 1; elite forms cost 2.
+80/80H 150/150V [sm-] (news) (motd) 80/80H 150/150V [sm-] (news) (motd)
+
+>>> dismiss #47345892
+.'
+80/80H 150/150V [sm-] (news) (motd) dismiss #47345892
+80/80H 150/150V [sm-] (news) (motd)
+You dismiss an amorphous eidolon.
+An amorphous eidolon is no longer serving you!
+[Group] an amorphous eidolon has left the group.
+80/80H 150/150V [sm-] (news) (motd) 80/80H 150/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+80/80H 150/150V [sm-] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/4 points. Lesser forms cost 1; elite forms cost 2.
+80/80H 150/150V [sm-] (news) (motd) 80/80H 150/150V [sm-] (news) (motd)
+ACCEPTANCE CLASS=dragonrider ROLE=dragon
+
+>>> settestchar Petaccept race human classes dragonrider:10
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+Petaccept calls an amorphous eidolon!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am settestchar Petaccept race human classes dragonrider:10
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+Race set to Human with classes: dragonrider (L10)
+Character overall level: 10
+Racial feats applied: 1
+Class feats applied for all levels.
+Class skills set to level 10.
+HP: 120, MV: 150, PSP: 60
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:3am
+
+>>> interactive dialog
+.'
+80/80H 150/150V [sm-] (news) (motd)
+Staff has set your race to Human and classes to:
+  - dragonrider (Level 10)
+Your overall level is now 10.
+Your class skills have been set to 10.
+Your stats have been updated.
+120/120H 150/150V [sm-] (news) (motd)
+Kohdee says, '__MUD_SMOKE_COMMAND_26_DONE__.'
+120/120H 150/150V [sm-] (news) (motd) study
+-- Study Menu
+ 0) Skills*
+ 1) Ability Score Boosts*
+ 2) Feats*
+ 3) Known Spells*
+ 4) Known Psionic Powers*
+ 5) Choose Familiar*
+ 6) Animal Companion*
+ 7) Ranger Favored Enemy*
+ 8) Domain Selection*
+ 9) Wizard School Selection*
+ A) Preferred Caster Classes (Prestige)
+ B) Sorcerer Bloodline Selection*
+ C) Alchemist Discoveries Selection*
+ D) Paladin Mercies*
+ E) Blackguard Cruelties*
+ F) Summoner Eidolons
+ G) Racial Abilities Selection*
+ H) Necromancer Casting Type*
+ I) Languages*
+ J) Dragon Riders
+ R) Reset Character*
+ Q) Quit
+* - An asterisk indicates you don't have access to this option.  (You are using premade build, options are limited!)
+Enter Choice : j
+-- Dragon Rider
+1) Dragon Mount Type: unchosen (unchosen)
+2) Dragon Bond Type:  unchosen
+Q) Exit this menu.
+Please select a dragon mount type:
+ 1) black        (acid damage type)
+ 2) blue         (electric damage type)
+ 3) green        (poison damage type)
+ 4) red          (fire damage type)
+ 5) white        (cold damage type)
+ 6) brass        (fire damage type)
+ 7) bronze       (electric damage type)
+ 8) copper       (acid damage type)
+ 9) silver       (cold damage type)
+10) gold         (fire damage type)
+Q) Quit
+Enter Choice: 1
+Choose the 'black' dragon type with 'acid' elemental damage? (Y/N): y
+You've selected the 'black' dragon mount type with 'acid' elemental damage.
+-- Dragon Rider
+1) Dragon Mount Type: black (acid)
+2) Dragon Bond Type:  unchosen
+Q) Exit this menu.
+-- Study Menu
+ 0) Skills*
+ 1) Ability Score Boosts*
+ 2) Feats*
+ 3) Known Spells*
+ 4) Known Psionic Powers*
+ 5) Choose Familiar*
+ 6) Animal Companion*
+ 7) Ranger Favored Enemy*
+ 8) Domain Selection*
+ 9) Wizard School Selection*
+ A) Preferred Caster Classes (Prestige)
+ B) Sorcerer Bloodline Selection*
+ C) Alchemist Discoveries Selection*
+ D) Paladin Mercies*
+ E) Blackguard Cruelties*
+ F) Summoner Eidolons
+ G) Racial Abilities Selection*
+ H) Necromancer Casting Type*
+ I) Languages*
+ J) Dragon Riders
+ R) Reset Character*
+ Q) Quit
+* - An asterisk indicates you don't have access to this option.  (You are using premade build, options are limited!)
+Enter Choice : q
+You can currently study as much as you want per level.
+Do you wish to save your changes? : y
+120/120H 150/150V [smw] (news) (motd)
+Your choices have been finalized!
+120/120H 150/150V [smw] (news) (motd)
+
+>>> call dragon
+.'
+120/120H 150/150V [smw] (news) (motd) call dragon
+120/120H 150/150V [smw] (news) (motd)
+This call type is not completely set up. Please inform a staff member.
+120/120H 150/150V [smw] (news) (motd)
+
+>>> pets
+.'
+120/120H 150/150V [smw] (news) (motd) pets
+120/120H 150/150V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+120/120H 150/150V [smw] (news) (motd)
+PASS: Kohdee ran 1 game command(s) and logged out cleanly (13s).
+
+SOURCE: pet-phase1-dragon-live.log
+Reusing the development MUD on port 4100.
+
+>>> trans Petaccept
+[ Petaccept [127.0.0.1] has connected. ]
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8am
+[ Petaccept un-renting and entering game. ]
+[ Petaccept (level 10) has 62 objects (max 99999). ]
+Petaccept has entered the game.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8am trans Petaccept
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8am
+Petaccept disappears in a mushroom cloud.
+Petaccept arrives from a puff of smoke.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8am
+
+>>> settestchar Petaccept race human classes dragonrider:10
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8am settestchar Petaccept race human classes dragonrider:10
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8am
+Race set to Human with classes: dragonrider (L10)
+Character overall level: 10
+Racial feats applied: 1
+Class feats applied for all levels.
+Class skills set to level 10.
+HP: 120, MV: 1500, PSP: 60
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:8am
+
+>>> call dragon
+Kohdee has transferred you!
+Staff Board Room [Inside] ( None )
+This room is dominated by a large board, where the                    [.]
+messages of the titans of the realm are recorded. Its                  | +
+surface is hung with small white pieces of paper with             [.] [.] [.]
+writing on them and the smallest breeze sends them all             | + | - |
+fluttering like the wings of a thousand birds. The rest       [.]-[&]-[.]-[.]
+of the room is decorated in bright colors, with                  - |   |
+finely-woven tapestries hung on the walls to keep out             [.] [.]
+drafts. Chairs and benches are scattered throughout the
+room to allow the titans to sit and discuss things that
+they consider to be noteworthy. Arched doorways lead off
+to other areas in the God Simplex and a simple staircase
+in the southwest corner leads upwards.
+[ Exits: N E S W U ]
+A large bulletin board labeled 'HELP' is mounted on the wall here.
+A bench has been placed against the wall here, providing seating for several individuals.
+[PC] [Humn] Kohdee is standing here.
+120/120H 150/1500V [smw] (news) (motd)
+120/120H 150/1500V [smw] (news) (motd)
+Staff has set your race to Human and classes to:
+  - dragonrider (Level 10)
+Your overall level is now 10.
+Your class skills have been set to 10.
+Your stats have been updated.
+120/120H 1500/150V [smw] (news) (motd)
+120/120H 1500/150V [smw] (news) (motd) call dragon
+120/120H 1500/150V [smw] (news) (motd)
+[Group] a sleek black dragon mount joins the group.
+You can 'call' your companion even if you get separated.  You can also 'dismiss' your companion to reduce your cooldown drastically.
+You call forth a sleek black dragon mount!
+120/120H 1500/150V [smw] (news) (motd)
+
+>>> pets
+.'
+120/120H 1500/150V [smw] (news) (motd) pets
+120/120H 1500/150V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a sleek black dragon mount - Staff Board Room - Dragon mount [follow] [#47345893]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+120/120H 1500/150V [smw] (news) (motd)
+
+>>> order #47345893 stand
+.'
+120/120H 1500/150V [smw] (news) (motd) order #47345893 stand
+120/120H 1498/150V [sm-] (news) (motd)
+Okay.
+120/120H 1498/150V [sm-] (news) (motd)
+
+>>> call dragon
+.'
+120/120H 1498/150V [sm-] (news) (motd) call dragon
+120/120H 1498/150V [sm-] (news) (motd)
+Your companion has already been summoned!
+120/120H 1498/150V [sm-] (news) (motd)
+
+>>> mount dragon
+.'
+120/120H 1498/150V [sm-] (news) (motd) mount dragon
+120/120H 1498/150V [s--] (news) (motd)
+You mount a sleek black dragon mount.
+120/120H 1498/150V [s--] (news) (motd)
+
+>>> north
+.'
+120/120H 1498/150V [s--] (news) (motd) north
+120/120H 1498/150V [s--] (news) (motd)
+You ride a sleek black dragon mount north.
+Staff Inn [Inside] ( None )
+The Inn of the Gods is a small room, holding only a shelf
+with many small precious stones on it. When a God comes
+to rent his belongings, his essence is stored in the                  [.]
+stones. The Immortal Board Room is to the south.                       | +
+                                                                  [&] [.] [.]
+                                                                   | + | - |
+                                                              [.]-[.]-[.]-[.]
+                                                                 - |   |
+                                                                  [.] [.]
+[ Exits: S ]
+The Immortal Innkeeper is organizing her books here.
+120/120H 1498/150V [s--] (news) (motd)
+
+>>> dismount
+.'
+120/120H 1498/150V [s--] (news) (motd) dismount
+You dismount a sleek black dragon mount.
+120/120H 1498/150V [s--] (news) (motd) 120/120H 1498/150V [s--] (news) (motd)
+
+>>> order #47345893 rest
+.'
+120/120H 1498/150V [s--] (news) (motd) order #47345893 rest
+120/120H 1497/150V [sm-] (news) (motd)
+A sleek black dragon mount sits down and rests.
+Okay.
+120/120H 1497/150V [sm-] (news) (motd)
+
+>>> south
+.'
+120/120H 1497/150V [sm-] (news) (motd) south
+120/120H 1490/150V [sm-] (news) (motd)
+You leave south.
+Staff Board Room [Inside] ( None )
+This room is dominated by a large board, where the                    [.]
+messages of the titans of the realm are recorded. Its                  | +
+surface is hung with small white pieces of paper with             [.] [.] [.]
+writing on them and the smallest breeze sends them all             | + | - |
+fluttering like the wings of a thousand birds. The rest       [.]-[&]-[.]-[.]
+of the room is decorated in bright colors, with                  - |   |
+finely-woven tapestries hung on the walls to keep out             [.] [.]
+drafts. Chairs and benches are scattered throughout the
+room to allow the titans to sit and discuss things that
+they consider to be noteworthy. Arched doorways lead off
+to other areas in the God Simplex and a simple staircase
+in the southwest corner leads upwards.
+[ Exits: N E S W U ]
+A large bulletin board labeled 'HELP' is mounted on the wall here.
+A bench has been placed against the wall here, providing seating for several individuals.
+[PC] [Humn] Kohdee is standing here.
+120/120H 1490/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+120/120H 1490/150V [sm-] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a sleek black dragon mount - Staff Inn - Dragon mount [follow] [#47345893]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+120/120H 1490/150V [sm-] (news) (motd) 120/120H 1490/150V [sm-] (news) (motd)
+
+>>> call dragon
+.'
+120/120H 1490/150V [sm-] (news) (motd) call dragon
+You call forth a sleek black dragon mount!
+120/120H 1490/150V [sm-] (news) (motd) 120/120H 1490/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+120/120H 1490/150V [sm-] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a sleek black dragon mount - Staff Board Room - Dragon mount [follow] [#47345893]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+120/120H 1490/150V [sm-] (news) (motd) 120/120H 1490/150V [sm-] (news) (motd)
+
+>>> dismiss #47345893
+.'
+120/120H 1490/150V [sm-] (news) (motd) dismiss #47345893
+120/120H 1490/150V [sm-] (news) (motd)
+You dismiss a sleek black dragon mount.
+A sleek black dragon mount is no longer serving you!
+[Group] a sleek black dragon mount has left the group.
+120/120H 1490/150V [sm-] (news) (motd) 120/120H 1490/150V [sm-] (news) (motd)
+
+>>> pets
+.'
+120/120H 1490/150V [sm-] (news) (motd) pets
+120/120H 1490/150V [sm-] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+120/120H 1490/150V [sm-] (news) (motd) 120/120H 1490/150V [sm-] (news) (motd)
+
+>>> call dragon
+.'
+120/120H 1490/150V [sm-] (news) (motd) call dragon
+You must wait longer before you can use this ability again.
+120/120H 1490/150V [sm-] (news) (motd) 120/120H 1490/150V [sm-] (news) (motd)
+
+SOURCE: pet-phase1-dragon-fresh-live.log
+Reusing the development MUD on port 4100.
+
+>>> call dragon
+120/120H 1475/150V [smw] (news) (motd)
+[Group] a sleek black dragon mount joins the group.
+You can 'call' your companion even if you get separated.  You can also 'dismiss' your companion to reduce your cooldown drastically.
+You call forth a sleek black dragon mount!
+120/120H 1475/150V [smw] (news) (motd)
+
+>>> pets
+.'
+120/120H 1475/150V [smw] (news) (motd) pets
+120/120H 1475/150V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a sleek black dragon mount - Staff Board Room - Dragon mount [follow] [#47345894]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+120/120H 1475/150V [smw] (news) (motd)
+
+>>> call dragon
+.'
+120/120H 1474/150V [smw] (news) (motd) call dragon
+Your companion has already been summoned!
+120/120H 1474/150V [smw] (news) (motd) 120/120H 1474/150V [smw] (news) (motd)
+
+>>> dismiss dragon
+.'
+120/120H 1474/150V [smw] (news) (motd) dismiss dragon
+You dismiss a sleek black dragon mount.
+A sleek black dragon mount is no longer serving you!
+[Group] a sleek black dragon mount has left the group.
+120/120H 1474/150V [smw] (news) (motd) 120/120H 1474/150V [smw] (news) (motd)
+
+>>> pets
+.'
+120/120H 1474/150V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+120/120H 1474/150V [smw] (news) (motd) 120/120H 1474/150V [smw] (news) (motd)
+PASS: Petaccept ran 5 game command(s) and logged out cleanly (5s).
+
+SOURCE: pet-phase1-dragon-help-staff-live.log
+Reusing the development MUD on port 4100.
+PASS help DRAGON-MOUNT -> dragon-mount
+PASS: Kohdee verified 1 authoritative help keyword(s) and logged out cleanly (3s).

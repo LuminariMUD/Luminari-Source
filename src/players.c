@@ -7198,6 +7198,21 @@ static struct char_data *prepare_saved_pet_row(struct char_data *ch, MYSQL_ROW r
   return mob;
 }
 
+static void discard_unpublished_saved_pet(struct char_data *pet)
+{
+  int wear;
+
+  if (!pet)
+    return;
+  for (wear = 0; wear < NUM_WEARS; wear++)
+    if (GET_EQ(pet, wear))
+      extract_obj(unequip_char(pet, wear));
+  while (pet->carrying)
+    extract_obj(pet->carrying);
+  if (!MOB_FLAGGED(pet, MOB_NOTDEADYET))
+    extract_char(pet);
+}
+
 /* Publish only fully decoded pets. Keeper callers must commit activation first. */
 static struct char_data *publish_saved_pet(struct char_data *owner, struct char_data *pet)
 {
@@ -7206,18 +7221,27 @@ static struct char_data *publish_saved_pet(struct char_data *owner, struct char_
   owner_handle = domain_event_character_handle(owner);
   pet_handle = domain_event_character_handle(pet);
   if (!place_pet_follower(owner, pet))
+  {
+    discard_unpublished_saved_pet(pet);
     return NULL;
+  }
   load_mtrigger(pet);
   owner = domain_event_world_resolve_character(owner_handle);
   pet = domain_event_world_resolve_character(pet_handle);
   if (!owner || !pet || MOB_FLAGGED(pet, MOB_NOTDEADYET) || pet->master != owner)
+  {
+    discard_unpublished_saved_pet(pet);
     return NULL;
+  }
   if (!GROUP(pet) && GROUP(owner) && GROUP_LEADER(GROUP(owner)) == owner)
     join_group(pet, GROUP(owner));
   owner = domain_event_world_resolve_character(owner_handle);
   pet = domain_event_world_resolve_character(pet_handle);
   if (!owner || !pet || MOB_FLAGGED(pet, MOB_NOTDEADYET) || pet->master != owner)
+  {
+    discard_unpublished_saved_pet(pet);
     return NULL;
+  }
   act("$N appears beside you.", true, owner, 0, pet, TO_CHAR);
   act("$N appears beside $n.", true, owner, 0, pet, TO_ROOM);
   return pet;
@@ -7556,6 +7580,8 @@ bool pet_store_pet(struct char_data *owner, struct char_data *pet)
   }
   transaction_started = false;
   pet->pet_data_id = insert_id;
+  /* Keeper transitions change the active snapshot outside save_char_pets(). */
+  pet_save_cache_entry(GET_IDNUM(owner))->used = false;
   /* The pet only leaves play once its row and items are durable.  Its saved
    * gear is removed with it so ordinary extraction cannot drop a second copy
    * of every stored item into the room. */
@@ -7617,8 +7643,48 @@ int pet_store_surviving_followers(struct char_data *owner)
   return stored;
 }
 
+static bool restore_stored_pet_after_publication_failure(struct char_data *owner, long int pet_id,
+                                                         const char *escaped_owner,
+                                                         long int owner_id, long long owner_created)
+{
+  char query[640];
+  bool transaction_started = false;
+
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: %s: Unable to start recovery for stored pet %ld: %s", __func__, pet_id,
+        mysql_error(conn));
+    return false;
+  }
+  transaction_started = true;
+  snprintf(query, sizeof(query),
+           "UPDATE pet_data SET pet_state = %d WHERE pet_data_id = %ld AND owner_name = '%s' "
+           "AND pet_state = %d AND "
+           "(owner_id = 0 OR (owner_id = %ld AND owner_created = %lld))",
+           PET_STATE_STORED, pet_id, escaped_owner, PET_STATE_ACTIVE, owner_id, owner_created);
+  if (mysql_query(conn, query) || mysql_affected_rows(conn) != 1)
+  {
+    log("SYSERR: %s: Unable to restore stored pet %ld for %s: %s", __func__, pet_id,
+        GET_NAME(owner), mysql_error(conn));
+    goto rollback;
+  }
+  if (mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: %s: Unable to commit recovery for stored pet %ld: %s", __func__, pet_id,
+        mysql_error(conn));
+    goto rollback;
+  }
+  return true;
+
+rollback:
+  if (transaction_started && mysql_query(conn, "ROLLBACK"))
+    log("SYSERR: %s: Unable to roll back recovery for stored pet %ld: %s", __func__, pet_id,
+        mysql_error(conn));
+  return false;
+}
+
 /* Prepare one stored pet outside the world, commit its active state, then
- * publish it. Known pre-publication failures leave the saved pet stored. */
+ * publish it. Any publication failure restores the saved pet to storage. */
 struct char_data *pet_retrieve_stored(struct char_data *owner, long int pet_id, const char **reason)
 {
   MYSQL_RES *result;
@@ -7628,6 +7694,7 @@ struct char_data *pet_retrieve_stored(struct char_data *owner, long int pet_id, 
   char *escaped_owner;
   long int owner_id;
   long long owner_created;
+  bool restored;
   bool restore_failed = false;
   enum perf_entity_reason previous_entity_reason;
 
@@ -7701,10 +7768,22 @@ struct char_data *pet_retrieve_stored(struct char_data *owner, long int pet_id, 
     mob = NULL;
     goto rollback;
   }
-  free(escaped_owner);
   mob = publish_saved_pet(owner, mob);
+  if (!mob)
+  {
+    restored = restore_stored_pet_after_publication_failure(owner, pet_id, escaped_owner, owner_id,
+                                                            owner_created);
+    free(escaped_owner);
+    if (reason)
+      *reason = restored ? "The follower could not enter the world and remains with the keeper."
+                         : "The keeper could not finish returning that follower; contact staff.";
+    return NULL;
+  }
+  free(escaped_owner);
+  /* An empty cached roster must not suppress a later dismissal save. */
+  pet_save_cache_entry(GET_IDNUM(owner))->used = false;
   if (reason)
-    *reason = mob ? NULL : "The follower returned, but did not remain after entering the world.";
+    *reason = NULL;
   return mob;
 
 rollback:

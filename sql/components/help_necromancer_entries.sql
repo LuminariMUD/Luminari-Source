@@ -70,13 +70,18 @@ Animate Dead turns a corpse in the room into a permanent charmed undead follower
 and transfers the corpse contents to that follower. The corpse is consumed only
 after a follower is successfully created.
 
+Only eligible NPC corpses can be animated. Player corpses and corpses created
+from summoned followers or artificial minions are rejected. Their contents stay
+available for normal looting. A consumed corpse cannot be used again.
+
 There is a 10 percent summon failure chance. Holy rooms reject the spell. An
 invalid corpse, holy-room rejection, random failure, follower-cap rejection, or
 mobile-load failure leaves the corpse in place.
 
-Animated-undead limit:
-  Characters without Necromancer levels may control one animated undead.
-  Necromancers may control exactly two animated undead in total.
+Animated-undead control capacity is 2 points, or 4 with Necromancer levels.
+Zombie, ghoul, ghost, and skeletal mage cost 1 point each. Giant skeleton,
+mummy, spectre, banshee, wight, and lich cost 2 points each. Use PETS to see
+control points in use. Mage and lich are selected through ANIMATEDEAD.
 
 The effective level selects the creature:
   below 10  zombie
@@ -113,13 +118,23 @@ Usage:
   cast ''greater animation'' <corpse>
 
 Greater Animation turns a corpse in the room into a permanent charmed undead
-follower and transfers the corpse contents to that follower. The corpse is
-consumed only after a follower is successfully created.
+follower. Ghost, spectre, and banshee are incorporeal: they cannot get, receive,
+or wear physical objects, and the corpse contents remain on the ground. Wights
+can carry equipment and receive the corpse contents. The corpse is consumed
+only after a follower is successfully created.
+
+Only eligible NPC corpses can be animated. Player corpses and corpses created
+from summoned followers or artificial minions are rejected. Their contents stay
+available for normal looting. A consumed corpse cannot be used again.
 
 There is a 10 percent summon failure chance. Holy rooms reject the spell. An
 invalid corpse, holy-room rejection, random failure, follower-cap rejection, or
-mobile-load failure leaves the corpse in place. Non-Necromancers may control one
-animated undead; Necromancers may control exactly two in total.
+mobile-load failure leaves the corpse in place.
+
+Animated-undead control capacity is 2 points, or 4 with Necromancer levels.
+Zombie, ghoul, ghost, and skeletal mage cost 1 point each. Giant skeleton,
+mummy, spectre, banshee, wight, and lich cost 2 points each. Use PETS to see
+control points in use. Mage and lich are selected through ANIMATEDEAD.
 
 The effective level selects the creature:
   below 20  ghost
@@ -301,22 +316,48 @@ INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('animatedead', 'ANIMATEDEAD COMMAND
 
 Usage:
-  animatedead
+  animatedead [zombie|ghoul|skeleton|mummy|mage|lich]
 
-This is a separate daily class ability, not the Animate Dead corpse spell. It
-takes no argument, uses a standard action, and does not target or consume a
-corpse. You gain one daily use per rank of the Animate Dead feat.
+This is a separate daily class ability, not the Animate Dead corpse spell.
+Necromancer level 2 grants one rank of Animate Dead. Existing Necromancers
+receive this grant on their next login. Each feat rank provides one daily use.
+It uses a standard action and does not target or consume a corpse.
 
-The command creates a charmed undead follower from composite caster level:
+This is the native corpse-free host acquisition ability: the body arrives
+already animated, with no loose corpse to store, trade, or repeatedly animate.
+With no form specified, composite caster level selects the highest tier:
   below 10  zombie
   10-19     ghoul
-  20-29     giant skeleton
+  20-29     giant skeleton (select with skeleton)
   30+       mummy
+Additional selectable forms do not replace the default tiers:
+  mage      caster level 10; level-10 skeletal mage with Magic Missile and
+            Ray of Enfeeblement
+  lich      caster level 25; level-25 lich with Magic Missile, Vampiric Touch,
+            Haste, and Dispel Magic
+These casters have two slots per known spell with normal mobile recovery.
+For example: order lich cast ''haste'' <ally>.
 
-Holy rooms and the animated-undead follower cap can reject the command. To cast
-the corpse spell instead, use cast ''animate dead'' <corpse>.
+You can select any form whose caster-level threshold you have reached,
+including a lesser form when you cannot afford an elite form''s control cost.
 
-See also: ANIMATE-DEAD, CLASS-NECROMANCER', 0, FALSE)
+Animated-undead control capacity is 2 points, or 4 with Necromancer levels.
+Zombie, ghoul, ghost, and skeletal mage cost 1 point each. Giant skeleton,
+mummy, spectre, banshee, wight, and lich cost 2 points each. Use PETS to see
+control points in use. Mage and lich are selected through ANIMATEDEAD.
+
+Holy rooms and the animated-undead follower cap can reject the command.
+Invalid or locked choices, missing creatures, and full control capacity do not
+spend a daily use. A successful call spends one use; dismissing the creature
+does not refund it. Repeated logins do not add uses or clear the cooldown.
+
+The follower has no natural expiry. It uses ordinary PETS, ORDER, and DISMISS
+commands and can carry and wear equipment. Retrieve its gear before dismissal.
+Its corpse cannot be animated again. It shares capacity with corpse animation;
+it does not create a separate roster. To cast the corpse spell instead, use
+cast ''animate dead'' <corpse>.
+
+See also: ANIMATE-DEAD, CLASS-NECROMANCER, PETS, DISMISS', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 
@@ -324,5 +365,40 @@ DELETE FROM help_keywords
 WHERE help_tag = 'animatedead' AND LOWER(keyword) IN ('animate', 'animate-dead');
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('animatedead', 'ANIMATEDEAD');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('autoraise', 'AUTOMATIC RAISING
+
+Usage: autoraise
+
+Autoraise is off by default. Necromancers with Summon Undead (level 2) can
+use this command to turn it on or off. Losing the ability prevents raising;
+you can still turn the preference off. Save normally to retain the setting.
+
+When you directly kill an eligible NPC, automatic raising can attempt Animate
+Dead on that kill''s exact corpse. Your pets'' kills do not trigger it. It never
+searches for an older corpse. Normal autoloot and autogold happen first; if
+autosacrifice removes the corpse, there is no raising attempt.
+
+An attempt uses one available swift action and no prepared or spontaneous
+spell slot. The normal 10 percent animation failure chance still applies;
+failure spends the swift action but leaves the corpse. Busy, incapacitated,
+charmed, or action-exhausted characters do not attempt raising. Holy and
+anti-magic locations also prevent it.
+
+The normal Animate Dead caster-level tier and control costs apply. Full
+capacity or a missing prototype prevents the attempt without spending an
+action. Player corpses, summoned-follower corpses, and artificial minion
+corpses cannot be raised. A consumed corpse cannot be used a second time.
+
+The result is an ordinary owned undead follower: use PETS and ORDER to control
+it and DISMISS to release it. It has the normal permanent animation lifetime,
+and any loot still in the corpse transfers to it. The raising preference
+never grants extra control capacity or an extra daily-use pool.
+
+See also: ANIMATE-DEAD, ANIMATEDEAD, CLASS-NECROMANCER, PETS, SWIFT-ACTION', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('autoraise', 'AUTORAISE');
 
 COMMIT;

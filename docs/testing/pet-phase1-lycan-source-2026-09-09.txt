@@ -1,0 +1,616 @@
+Local development acceptance, game port 4100, 2026-09-09.
+Petaccept is a disposable player character configured with native rogue class skills.
+Wands are purchased from the installed shop, not staff-loaded.
+Low Charisma makes the existing volatile control check fail in the combat case.
+
+SOURCE: pet-phase1-lycan-source-stock-live.log
+Reusing the development MUD on port 4100.
+
+>>> goto 14125
+[ Petaccept [127.0.0.1] has connected. ]
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+[ Petaccept un-renting and entering game. ]
+[ Petaccept (level 30) has 62 objects (max 99999). ]
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm goto 14125
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+[14125] Training Halls Shop [ None ]  [Inside] ( None )
+For a shop, there does not appear to be much for sale.
+Most of the walls are barren wooden planks with empty
+hooks screwed into them. The window on the eastern wall       [.]
+is tied open and is letting in some sea breeze. A wooden       | -
+counter with shelving has been built into the floor near  [.] [.] [&]
+the western wall. A couple of potions have been placed on  |   |   |
+the top shelf. A lock box is securely mounted onto an     [.]-[.]-[.]
+iron bracket on top of the counter. The only exit from         |
+this room is back south through the open doorway.         [.]-[.]-[.]
+[ Exits: S ]
+[14116] [ 1] [TRIGS] A fatigued looking shopkeeper sits on a stool behind the counter.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+
+>>> trans Petaccept
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm trans Petaccept
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+Petaccept arrives from a puff of smoke.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+
+>>> settestchar Petaccept race human classes rogue:30
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm settestchar Petaccept race human classes rogue:30
+Race set to Human with classes: rogue (L30)
+Character overall level: 30
+Racial feats applied: 1
+Class feats applied for all levels.
+Class skills set to level 30.
+HP: 260, MV: 2500, PSP: 160
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+
+>>> set Petaccept cha 1
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm set Petaccept cha 1
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+Petaccept's cha set to 3.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+
+>>> set Petaccept gold 0
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm set Petaccept gold 0
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+Petaccept's gold set to 0.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+
+>>> list
+Kohdee has transferred you!
+Training Halls Shop [Inside] ( None )
+For a shop, there does not appear to be much for sale.
+Most of the walls are barren wooden planks with empty
+hooks screwed into them. The window on the eastern wall       [.]
+is tied open and is letting in some sea breeze. A wooden       | -
+counter with shelving has been built into the floor near  [.] [.] [&]
+the western wall. A couple of potions have been placed on  |   |   |
+the top shelf. A lock box is securely mounted onto an     [.]-[.]-[.]
+iron bracket on top of the counter. The only exit from         |
+this room is back south through the open doorway.         [.]-[.]-[.]
+[ Exits: S ]
+[PC] [Humn] Kohdee is standing here.
+A fatigued looking shopkeeper sits on a stool behind the counter.
+260/260H 1500/2500V [smw] (news) (motd)
+260/260H 1500/2500V [smw] (news) (motd)
+Staff has set your race to Human and classes to:
+  - rogue (Level 30)
+Your overall level is now 30.
+Your class skills have been set to 30.
+Your stats have been updated.
+260/260H 2500/250V [smw] (news) (motd)
+260/260H 2500/250V [smw] (news) (motd)
+260/260H 2500/250V [smw] (news) (motd)
+260/260H 2500/250V [smw] (news) (motd) list
+260/260H 2500/250V [smw] (news) (motd)
+ ##   Available   Item                                               Cost
+----------------------------------------------------------------------------
+  1)  Unlimited   A mooncall wand                                    5428
+  2)  Unlimited   An iron staff of cure critic                        922
+  3)  Unlimited   A grey wand of invisibility                          54
+  4)  Unlimited   A yellow potion of see invisible                     32
+You can type 'identify <item name>' to view the stats of an item in inventory.
+260/260H 2500/250V [smw] (news) (motd)
+
+>>> buy mooncall
+.'
+260/260H 2500/250V [smw] (news) (motd) buy mooncall
+Marella tells you, 'You are too poor!'
+Marella shakes her head at you.
+260/260H 2500/250V [smw] (news) (motd) 260/260H 2500/250V [smw] (news) (motd)
+
+>>> inventory
+.'
+260/260H 2500/250V [smw] (news) (motd) inventory
+You are carrying:
+a small iron shield
+an iron long sword
+a pair of leather leggings
+a pair of leather sleeves
+a suit of studded leather armor
+a suit of light scalemail armor
+a small leather quiver
+a leather backpack
+Use the 'bags' command to see what is in your bags. See help files for: GET, PUT and SORT.
+260/260H 2500/250V [smw] (news) (motd) 260/260H 2500/250V [smw] (news) (motd)
+
+>>> set Petaccept gold 20000
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+Marella shakes her head at Petaccept.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm set Petaccept gold 20000
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+Petaccept's gold set to 20000.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+
+>>> buy 2 mooncall
+.'
+260/260H 2500/250V [smw] (news) (motd)
+260/260H 2500/250V [smw] (news) (motd) buy 2 mooncall
+260/260H 2500/250V [smw] (news) (motd)
+Marella tells you, 'That'll be 10856 coins, thanks.'
+You now have a mooncall wand (x 2).
+260/260H 2500/250V [smw] (news) (motd)
+
+>>> inventory
+.'
+260/260H 2500/250V [smw] (news) (motd) inventory
+You are carrying:
+( 2) a mooncall wand
+a small iron shield
+an iron long sword
+a pair of leather leggings
+a pair of leather sleeves
+a suit of studded leather armor
+a suit of light scalemail armor
+a small leather quiver
+a leather backpack
+Use the 'bags' command to see what is in your bags. See help files for: GET, PUT and SORT.
+260/260H 2500/250V [smw] (news) (motd) 260/260H 2500/250V [smw] (news) (motd)
+
+>>> goto 100501
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+Petaccept buys a mooncall wand (x 2).
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm goto 100501
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+[100501] Random Encounter Distrobution Zone [ None ]  [Inside] ( None )
+You are in an unfinished room.
+                                                                  [&]
+[ Exits: None!]
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+
+>>> trans Petaccept
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm trans Petaccept
+Petaccept arrives from a puff of smoke.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+
+>>> load mob 100508
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm load mob 100508
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+You create a practice dummy.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+
+>>> set mob dummy level 30
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm set mob dummy level 30
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+a practice dummy's level set to 30.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+
+>>> set mob dummy maxhit 15000
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm set mob dummy maxhit 15000
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+a practice dummy's maxhit set to 15000.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+
+>>> set mob dummy hitpoints 15000
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm set mob dummy hitpoints 15000
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+a practice dummy's hitpoints set to 15000.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+
+>>> hold mooncall
+.'
+260/260H 2500/250V [smw] (news) (motd)
+Kohdee disappears in a puff of smoke.
+260/260H 2500/250V [smw] (news) (motd)
+Kohdee has transferred you!
+Random Encounter Distrobution Zone [Inside] ( None )
+You are in an unfinished room.
+                                                                  [&]
+[ Exits: None!]
+[PC] [Humn] Kohdee is standing here.
+260/260H 2500/250V [smw] (news) (motd)
+260/260H 2500/250V [smw] (news) (motd)
+Kohdee makes a quaint, magical gesture with one hand.
+Kohdee has created a practice dummy!
+260/260H 2499/250V [smw] (news) (motd)
+260/260H 2499/250V [smw] (news) (motd)
+260/260H 2499/250V [smw] (news) (motd)
+260/260H 2499/250V [smw] (news) (motd)
+260/260H 2499/250V [smw] (news) (motd) hold mooncall
+260/260H 2499/250V [smw] (news) (motd)
+You grab a mooncall wand.
+260/260H 2499/250V [smw] (news) (motd)
+
+>>> use mooncall self
+.'
+260/260H 2499/250V [smw] (news) (motd) use mooncall self
+You point a mooncall wand at yourself.
+A black door opens in space and a sly weretiger leaps through!
+[Group] a sly weretiger joins the group.
+A sly weretiger answers Petaccept's call.
+260/260H 2499/250V [-mw] (news) (motd) 260/260H 2499/250V [-mw] (news) (motd)
+
+>>> pets
+.'
+260/260H 2499/250V [-mw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a sly weretiger - Random Encounter Distrobution Zone - Lycanthrope [follow] [#47345895]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2499/250V [-mw] (news) (motd) 260/260H 2499/250V [-mw] (news) (motd)
+
+>>> remove mooncall
+.'
+260/260H 2499/250V [-mw] (news) (motd) remove mooncall
+You stop using a mooncall wand.
+260/260H 2499/250V [-mw] (news) (motd) 260/260H 2499/250V [-mw] (news) (motd)
+
+>>> drop mooncall
+.'
+260/260H 2499/250V [-mw] (news) (motd) drop mooncall
+You drop a mooncall wand.
+260/260H 2499/250V [-mw] (news) (motd) 260/260H 2499/250V [-mw] (news) (motd)
+
+>>> hold mooncall
+.'
+[INFO] Welcome Petaccept as the newest adventurer to LuminariMUD.
+260/260H 2499/250V [-mw] (news) (motd) hold mooncall
+You grab a mooncall wand.
+260/260H 2499/250V [-mw] (news) (motd) 260/260H 2499/250V [-mw] (news) (motd)
+
+>>> use mooncall self
+.'
+260/260H 2499/250V [-mw] (news) (motd) use mooncall self
+260/260H 2499/250V [-mw] (news) (motd)
+No lycanthrope is available or you cannot control another one.
+260/260H 2499/250V [-mw] (news) (motd) 260/260H 2499/250V [-mw] (news) (motd)
+
+>>> @wait 31
+Paused the local test session for 31 second(s).
+.'
+
+
+
+260/260H 2499/250V [-mw] (news) (motd)
+
+The hooded woman looks at you and adjusts the cloak draped over her hair.
+
+
+
+260/260H 2499/250V [-mw] (news) (motd)
+
+The hooded woman says, 'My name is Nahalia and I am here to welcome you to LuminariMUD.'
+
+
+
+260/260H 2498/250V [-mw] (news) (motd)
+
+Nahalia says, 'If you would like to go through a tutorial type EAST or E for short and type HELP MOVEMENT for more information on how to get from room to room.'
+
+
+
+260/260H 2498/250V [smw] (news) (motd)
+
+NOTE: We highly recommend going through the tutorial even if you are experienced
+
+Because you will get some bonus experience and items.
+
+
+
+260/260H 2498/250V [smw] (news) (motd)
+
+Nahalia says, 'If you are already experienced with LuminariMUD, ENTER PORTAL to Mosswood.'
+
+
+
+260/260H 2497/250V [smw] (news) (motd)
+
+LuminariMUD is heavily based on the Pathfinder open gaming system for mechanics, for more info about this gaming system please visit: http://www.d20pfsrd.com/
+
+
+
+260/260H 2497/250V [smw] (news) (motd)
+
+Before moving forward you should set your stats via the STUDY command.
+
+
+
+260/260H 2496/250V [smw] (news) (motd)
+
+A sly weretiger slips back through a black door as the charm expires.
+
+A sly weretiger is no longer serving you!
+
+[Group] a sly weretiger has left the group.
+
+
+
+260/260H 2493/250V [smw] (news) (motd)
+
+>>> pets
+260/260H 2493/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 2493/250V [smw] (news) (motd)
+
+>>> use mooncall self
+.'
+260/260H 2493/250V [smw] (news) (motd) use mooncall self
+You point a mooncall wand at yourself.
+A black door opens in space and a fierce werewolf leaps through!
+[Group] a fierce werewolf joins the group.
+A fierce werewolf answers Petaccept's call.
+260/260H 2493/250V [-mw] (news) (motd) 260/260H 2493/250V [-mw] (news) (motd)
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+260/260H 2493/250V [-mw] (news) (motd)
+
+>>> order lycanthrope kill dummy
+260/260H 2492/250V [sm-] (news) (motd)
+A fierce werewolf ducks under a practice dummy's fist as it takes a swing at him.
+Okay.
+260/260H 2492/250V [sm-] (news) (motd)
+
+>>> @wait 30
+Paused the local test session for 30 second(s).
+.'
+
+
+
+260/260H 2492/250V [sm-] (news) (motd)
+
+A fierce werewolf barely grazes a practice dummy as he hits it.
+
+A fierce werewolf barely grazes a practice dummy as he hits it.
+
+A fierce werewolf barely grazes a practice dummy as he hits it.
+
+A fierce werewolf barely grazes a practice dummy as he hits it.
+
+A practice dummy tries to hit a fierce werewolf who easily avoids the blow.
+
+A practice dummy tries to hit a fierce werewolf who easily avoids the blow.
+
+A practice dummy practices shadow-boxing while a fierce werewolf takes a break.
+
+
+
+260/260H 2490/250V [smw] (news) (motd)
+
+A fierce werewolf barely grazes a practice dummy as he hits it.
+
+A fierce werewolf barely grazes a practice dummy as he hits it.
+
+A fierce werewolf barely grazes a practice dummy as he hits it.
+
+A fierce werewolf barely grazes a practice dummy as he hits it.
+
+A fierce werewolf barely avoids a blow from a practice dummy!
+
+A practice dummy practices shadow-boxing while a fierce werewolf takes a break.
+
+A fierce werewolf barely avoids a blow from a practice dummy!
+
+
+
+260/260H 2489/250V [smw] (news) (motd)
+
+A fierce werewolf barely grazes a practice dummy as he hits it.
+
+A fierce werewolf barely grazes a practice dummy as he hits it.
+
+A fierce werewolf barely grazes a practice dummy as he hits it.
+
+A fierce werewolf barely grazes a practice dummy as he hits it.
+
+A practice dummy tries to hit a fierce werewolf who easily avoids the blow.
+
+A practice dummy practices shadow-boxing while a fierce werewolf takes a break.
+
+A practice dummy barely grazes a fierce werewolf as it hits him.
+
+
+
+260/260H 2488/250V [smw] (news) (motd)
+
+A fierce werewolf is no longer serving you!
+
+[Group] a fierce werewolf has left the group.
+
+A fierce werewolf breaks free of the charm and turns on you with a furious snarl!
+
+A fierce werewolf barely hits you.
+
+
+
+246/260H 2487/250V [smw] (news) (motd) >
+
+<T: Petaccept TC: excellent (Standing)> <E: a fierce werewolf EC: excellent (Standing)>
+
+
+
+You wound a fierce werewolf with your hit.
+
+Your well placed attack cripples a fierce werewolf!
+
+You wound a fierce werewolf with your hit.
+
+You wildly punch at the air, missing a fierce werewolf.
+
+You swing your fist at a fierce werewolf, but miss him!
+
+A fierce werewolf hits you hard.
+
+A fierce werewolf nicks you as he hits you.
+
+A fierce werewolf nicks you as he hits you.
+
+A fierce werewolf hits you hard.
+
+
+
+185/260H 2486/250V [--w] (news) (motd) >
+
+<T: Petaccept TC: fair (Standing)> <E: a fierce werewolf EC: fair (Standing)>
+
+>>> pets
+185/260H 2486/250V [--w] (news) (motd) >
+<T: Petaccept TC: fair (Standing)> <E: a fierce werewolf EC: fair (Standing)>
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/1 used, 1 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+185/260H 2486/250V [--w] (news) (motd) >
+<T: Petaccept TC: fair (Standing)> <E: a fierce werewolf EC: fair (Standing)>
+185/260H 2486/250V [--w] (news) (motd) >
+<T: Petaccept TC: fair (Standing)> <E: a fierce werewolf EC: fair (Standing)>
+
+>>> peace
+00 Gold:90064 PrepTime: [smw] Time:6pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+Petaccept commands, 'kill dummy'.
+A fierce werewolf ducks under a practice dummy's fist as it takes a swing at him.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+A fierce werewolf barely grazes a practice dummy as he hits it.
+A fierce werewolf barely grazes a practice dummy as he hits it.
+A fierce werewolf barely grazes a practice dummy as he hits it.
+A fierce werewolf barely grazes a practice dummy as he hits it.
+A practice dummy tries to hit a fierce werewolf who easily avoids the blow.
+A practice dummy tries to hit a fierce werewolf who easily avoids the blow.
+A practice dummy practices shadow-boxing while a fierce werewolf takes a break.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+A fierce werewolf barely grazes a practice dummy as he hits it.
+A fierce werewolf barely grazes a practice dummy as he hits it.
+A fierce werewolf barely grazes a practice dummy as he hits it.
+A fierce werewolf barely grazes a practice dummy as he hits it.
+A fierce werewolf barely avoids a blow from a practice dummy!
+A practice dummy practices shadow-boxing while a fierce werewolf takes a break.
+A fierce werewolf barely avoids a blow from a practice dummy!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+A fierce werewolf barely grazes a practice dummy as he hits it.
+A fierce werewolf barely grazes a practice dummy as he hits it.
+A fierce werewolf barely grazes a practice dummy as he hits it.
+A fierce werewolf barely grazes a practice dummy as he hits it.
+A practice dummy tries to hit a fierce werewolf who easily avoids the blow.
+A practice dummy practices shadow-boxing while a fierce werewolf takes a break.
+A practice dummy barely grazes a fierce werewolf as it hits him.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+A fierce werewolf breaks free of the charm and turns on Petaccept with a furious snarl!
+A fierce werewolf barely hits Petaccept.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm
+Petaccept wounds a fierce werewolf with his hit.
+A well placed attack from Petaccept cripples a fierce werewolf!
+Petaccept wounds a fierce werewolf with his hit.
+Petaccept practices shadow-boxing while a fierce werewolf takes a break.
+A fierce werewolf barely avoids a blow from Petaccept!
+A fierce werewolf hits Petaccept hard.
+A fierce werewolf nicks Petaccept as he hits him.
+A fierce werewolf nicks Petaccept as he hits him.
+A fierce werewolf hits Petaccept hard.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm peace
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm
+Everything is quite peaceful now.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm
+
+>>> purge lycanthrope
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm purge lycanthrope
+Okay.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm
+
+>>> purge dummy
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm purge dummy
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm
+Okay.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm
+
+>>> purge mooncall
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm purge mooncall
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm
+Okay.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm
+
+>>> remove mooncall
+.'
+185/260H 2486/250V [--w] (news) (motd) >
+<T: Petaccept TC: fair (Standing)> <E: a fierce werewolf EC: fair (Standing)>
+As Kohdee makes a strange arcane gesture, a golden light descends
+from the heavens stopping all the fighting.
+Everything is quite peaceful now.
+185/260H 2486/250V [--w] (news) (motd)
+185/260H 2486/250V [--w] (news) (motd)
+Kohdee disintegrates a fierce werewolf.
+185/260H 2486/250V [--w] (news) (motd)
+185/260H 2486/250V [--w] (news) (motd)
+Kohdee disintegrates a practice dummy.
+185/260H 2486/250V [--w] (news) (motd)
+185/260H 2486/250V [--w] (news) (motd)
+Kohdee destroys a mooncall wand.
+185/260H 2486/250V [--w] (news) (motd)
+185/260H 2486/250V [--w] (news) (motd) remove mooncall
+185/260H 2486/250V [--w] (news) (motd)
+You stop using a mooncall wand.
+186/260H 2485/250V [--w] (news) (motd)
+
+>>> drop mooncall
+.'
+186/260H 2485/250V [--w] (news) (motd) drop mooncall
+You drop a mooncall wand.
+186/260H 2485/250V [--w] (news) (motd) 186/260H 2485/250V [--w] (news) (motd)
+
+>>> purge mooncall
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm
+Petaccept stops using a mooncall wand.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm
+Petaccept drops a mooncall wand.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm purge mooncall
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm
+Okay.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:7pm
+PASS: Kohdee ran 1 game command(s) and logged out cleanly (79s).
+
+SOURCE: pet-phase1-lycan-source-help-live.log
+Reusing the development MUD on port 4100.
+PASS help CALL-LYCANTHROPE -> CALL-LYCANTHROPE
+PASS help LYCANTHROPE -> CALL-LYCANTHROPE
+PASS help MOONCALL -> CALL-LYCANTHROPE
+PASS: Kohdee verified 3 authoritative help keyword(s) and logged out cleanly (4s).
+
+SOURCE: pet-phase1-lycan-source-stock-copyover.log
+Reusing the development MUD on port 4100.
+
+>>> copyover
+Copyover recovery complete.
+
+>>> pets
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/8 used, 8 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:6pm
+PASS: Kohdee survived copyover, completed the post-copyover checks, and logged out cleanly (42s).

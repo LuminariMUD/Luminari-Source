@@ -1438,6 +1438,8 @@ void perform_charge(struct char_data *ch, struct char_data *vict)
   struct affected_type af[CHARGE_AFFECTS];
   int i = 0;
 
+  mount_cleanup(ch);
+
   if (AFF_FLAGGED(ch, AFF_CHARGING))
   {
     send_to_char(ch, "You are already charging!\r\n");
@@ -5029,8 +5031,8 @@ ACMD(do_backstab)
 /* Recheck a selected pet after any earlier order may have changed the world. */
 bool pet_order_check(struct char_data *ch, struct char_data *vict)
 {
-  return ch != NULL && vict != NULL && IS_NPC(vict) && vict->master == ch &&
-         AFF_FLAGGED(vict, AFF_CHARM) && !MOB_FLAGGED(vict, MOB_NOTDEADYET) &&
+  return ch != NULL && vict != NULL && IS_NPC(vict) && !is_illusory_pet(vict) &&
+         vict->master == ch && AFF_FLAGGED(vict, AFF_CHARM) && !MOB_FLAGGED(vict, MOB_NOTDEADYET) &&
          !AFF_FLAGGED(ch, AFF_CHARM) && GET_POS(ch) >= POS_RECLINING &&
          (IS_NPC(ch) ? !MOB_FLAGGED(ch, MOB_NOTDEADYET) : !PLR_FLAGGED(ch, PLR_NOTDEADYET)) &&
          GET_HIT(vict) > 0 && GET_POS(vict) > POS_STUNNED && IN_ROOM(ch) != NOWHERE &&

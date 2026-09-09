@@ -1,6 +1,8 @@
 #ifndef NEWCRAFT_H
 #define NEWCRAFT_H
 
+#include "pet_vnums.h"
+
 #include <stdbool.h>
 #include <time.h>    // For time_t type
 #include "structs.h" // For struct definitions
@@ -103,8 +105,9 @@
 #define GOLEM_TYPE_WOOD 1
 #define GOLEM_TYPE_STONE 2
 #define GOLEM_TYPE_IRON 3
+#define GOLEM_TYPE_BONE 4
 
-#define NUM_GOLEM_TYPES 4
+#define NUM_GOLEM_TYPES 5
 
 /* Golem Sizes */
 #define GOLEM_SIZE_SMALL 0
@@ -353,6 +356,7 @@ void newcraft_supplyorder(struct char_data *ch, const char *argument);
 void newcraft_equipment(struct char_data *ch, const char *argument);
 void newcraft_show_tools(struct char_data *ch, const char *argument);
 void newcraft_golem(struct char_data *ch, const char *argument);
+void newcraft_create(struct char_data *ch, const char *argument);
 void craft_golem_complete(struct char_data *ch);
 void set_golem_type(struct char_data *ch, const char *arg);
 void set_golem_size(struct char_data *ch, const char *arg);

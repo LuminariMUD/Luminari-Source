@@ -1,0 +1,288 @@
+#19600
+small wood golem construct~
+a small wood golem~
+A small wood golem waits for its owner's orders.
+~
+Its light wooden limbs move quickly, built for accurate strikes.
+~
+8 128 0 160 0 0 0 0 0 E
+10 12 4 0d0+90 1d6+4
+0 0
+9 9 0
+Str: 16
+Dex: 16
+Int: 3
+Wis: 10
+Con: 10
+Cha: 3
+Race: 7
+Class: 3
+Size: 4
+DR_MOD: 0
+E
+#19601
+medium wood golem construct~
+a medium wood golem~
+A medium wood golem waits for its owner's orders.
+~
+Its light wooden limbs move quickly, built for accurate strikes.
+~
+8 128 0 160 0 0 0 0 0 E
+12 10 2 0d0+150 2d6+6
+0 0
+9 9 0
+Str: 20
+Dex: 16
+Int: 3
+Wis: 10
+Con: 10
+Cha: 3
+Race: 7
+Class: 3
+Size: 5
+DR_MOD: 0
+E
+#19602
+large wood golem construct~
+a large wood golem~
+A large wood golem waits for its owner's orders.
+~
+Its light wooden limbs move quickly, built for accurate strikes.
+~
+8 128 0 160 0 0 0 0 0 E
+14 8 0 0d0+210 3d6+8
+0 0
+9 9 0
+Str: 24
+Dex: 16
+Int: 3
+Wis: 10
+Con: 10
+Cha: 3
+Race: 7
+Class: 3
+Size: 6
+DR_MOD: 0
+E
+#19603
+huge wood golem construct~
+a huge wood golem~
+A huge wood golem waits for its owner's orders.
+~
+Its light wooden limbs move quickly, built for accurate strikes.
+~
+8 128 0 160 0 0 0 0 0 E
+16 6 -2 0d0+270 4d6+10
+0 0
+9 9 0
+Str: 28
+Dex: 16
+Int: 3
+Wis: 10
+Con: 10
+Cha: 3
+Race: 7
+Class: 3
+Size: 7
+DR_MOD: 0
+E
+#19604
+small stone golem construct~
+a small stone golem~
+A small stone golem waits for its owner's orders.
+~
+Thick stone plates and a broad frame absorb incoming blows.
+~
+8 128 0 160 0 0 0 0 0 E
+15 15 -2 0d0+150 1d6+6
+0 0
+9 9 0
+Str: 16
+Dex: 8
+Int: 3
+Wis: 10
+Con: 10
+Cha: 3
+Race: 7
+Class: 3
+Size: 4
+DR_MOD: 5
+E
+#19605
+medium stone golem construct~
+a medium stone golem~
+A medium stone golem waits for its owner's orders.
+~
+Thick stone plates and a broad frame absorb incoming blows.
+~
+8 128 0 160 0 0 0 0 0 E
+17 13 -4 0d0+210 2d6+8
+0 0
+9 9 0
+Str: 20
+Dex: 8
+Int: 3
+Wis: 10
+Con: 10
+Cha: 3
+Race: 7
+Class: 3
+Size: 5
+DR_MOD: 5
+E
+#19606
+large stone golem construct~
+a large stone golem~
+A large stone golem waits for its owner's orders.
+~
+Thick stone plates and a broad frame absorb incoming blows.
+~
+8 128 0 160 0 0 0 0 0 E
+19 11 -6 0d0+270 3d6+10
+0 0
+9 9 0
+Str: 24
+Dex: 8
+Int: 3
+Wis: 10
+Con: 10
+Cha: 3
+Race: 7
+Class: 3
+Size: 6
+DR_MOD: 5
+E
+#19607
+huge stone golem construct~
+a huge stone golem~
+A huge stone golem waits for its owner's orders.
+~
+Thick stone plates and a broad frame absorb incoming blows.
+~
+8 128 0 160 0 0 0 0 0 E
+21 9 -8 0d0+330 4d6+12
+0 0
+9 9 0
+Str: 28
+Dex: 8
+Int: 3
+Wis: 10
+Con: 10
+Cha: 3
+Race: 7
+Class: 3
+Size: 7
+DR_MOD: 5
+E
+#19608
+small iron golem construct~
+a small iron golem~
+A small iron golem waits for its owner's orders.
+~
+Heavy iron fists and reinforced armor make it a powerful assault construct.
+~
+8 128 0 160 0 0 0 0 0 E
+20 15 -4 0d0+180 1d6+10
+0 0
+9 9 0
+Str: 20
+Dex: 10
+Int: 3
+Wis: 10
+Con: 10
+Cha: 3
+Race: 7
+Class: 3
+Size: 4
+DR_MOD: 8
+E
+#19609
+medium iron golem construct~
+a medium iron golem~
+A medium iron golem waits for its owner's orders.
+~
+Heavy iron fists and reinforced armor make it a powerful assault construct.
+~
+8 128 0 160 0 0 0 0 0 E
+22 13 -6 0d0+240 2d6+12
+0 0
+9 9 0
+Str: 24
+Dex: 10
+Int: 3
+Wis: 10
+Con: 10
+Cha: 3
+Race: 7
+Class: 3
+Size: 5
+DR_MOD: 8
+E
+#19610
+large iron golem construct~
+a large iron golem~
+A large iron golem waits for its owner's orders.
+~
+Heavy iron fists and reinforced armor make it a powerful assault construct.
+~
+8 128 0 160 0 0 0 0 0 E
+24 11 -8 0d0+300 3d6+14
+0 0
+9 9 0
+Str: 28
+Dex: 10
+Int: 3
+Wis: 10
+Con: 10
+Cha: 3
+Race: 7
+Class: 3
+Size: 6
+DR_MOD: 8
+E
+#19611
+huge iron golem construct~
+a huge iron golem~
+A huge iron golem waits for its owner's orders.
+~
+Heavy iron fists and reinforced armor make it a powerful assault construct.
+~
+8 128 0 160 0 0 0 0 0 E
+26 9 -10 0d0+360 4d6+16
+0 0
+9 9 0
+Str: 32
+Dex: 10
+Int: 3
+Wis: 10
+Con: 10
+Cha: 3
+Race: 7
+Class: 3
+Size: 7
+DR_MOD: 8
+E
+#19612
+bone golem construct~
+a bone golem~
+A bone golem flexes its serrated arms, awaiting orders.
+~
+Interlocking ribs protect this agile construct's core. Its sharpened arm bones
+are fashioned for close combat rather than the weight of an iron golem.
+~
+8 128 0 160 0 0 0 0 0 E
+15 8 -1 0d0+210 3d6+5
+0 0
+9 9 0
+Str: 20
+Dex: 16
+Int: 3
+Wis: 10
+Con: 10
+Cha: 3
+Race: 7
+Class: 3
+Size: 5
+DR_MOD: 3
+E
+$~

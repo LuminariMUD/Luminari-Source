@@ -1022,7 +1022,7 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob, bool
     }
     break;
   case EIDOLON_BASE_FORM_QUADRUPED:
-    HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
+    HAS_REAL_FEAT(mob, FEAT_GREAT_FORTITUDE) = true;
     HAS_REAL_FEAT(mob, FEAT_LIGHTNING_REFLEXES) = true;
     if (!from_db)
     {
@@ -1042,7 +1042,7 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob, bool
     }
     break;
   case EIDOLON_BASE_FORM_TAURIC:
-    HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
+    HAS_REAL_FEAT(mob, FEAT_GREAT_FORTITUDE) = true;
     HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
     if (!from_db)
     {
@@ -1060,9 +1060,9 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob, bool
       GET_REAL_STR(mob) += 2;
       GET_REAL_CON(mob) += 2;
       GET_REAL_DEX(mob) += 2;
-      (mob)->aff_abils.intel += 2;
-      (mob)->aff_abils.wis += 2;
-      (mob)->aff_abils.cha += 2;
+      GET_REAL_INT(mob) += 2;
+      GET_REAL_WIS(mob) += 2;
+      GET_REAL_CHA(mob) += 2;
     }
   }
   if (HAS_REAL_FEAT(ch, FEAT_EPIC_EIDOLON))
@@ -1072,9 +1072,9 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob, bool
       GET_REAL_STR(mob) += 4;
       GET_REAL_CON(mob) += 4;
       GET_REAL_DEX(mob) += 4;
-      (mob)->aff_abils.intel += 4;
-      (mob)->aff_abils.wis += 4;
-      (mob)->aff_abils.cha += 4;
+      GET_REAL_INT(mob) += 4;
+      GET_REAL_WIS(mob) += 4;
+      GET_REAL_CHA(mob) += 4;
     }
   }
 }

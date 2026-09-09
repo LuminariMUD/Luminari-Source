@@ -1,0 +1,151 @@
+Pet Phase 1 final acceptance - 2026-09-09
+=========================================
+
+Scope
+-----
+
+This is the delivery evidence record for the remaining Phase 1 workflows.  It
+does not add a new implementation phase or checklist.  Scopeguard and
+plan-ablation kept the work to observed failures and the shortest existing
+player paths.  Offline expiry, restart durability, and persistence redesign
+remain Phase 2 work.
+
+Pinned reference reconciliation
+-------------------------------
+
+The comparison used these fixed inputs:
+
+- RealmsOfLuminari 4f945b0e0c0485178d1dbf531d82db91ef1060be
+- Duris c27968e8ffa34f7baa38e0f27d653debb7b8cad4
+
+RealmsOfLuminari keeper, claim, follow, and order behavior maps to the native
+pet keeper, saved owner identity, pets restore, call/recall, dismiss, and order
+paths.  Production-linked keeper tests cover same-pet reclaim, name and gear
+retention, failed-save rollback, respec, fresh reacquisition, linkdead copyover,
+and owner death.  Native order tests distinguish ownership, following,
+visibility, loyalty, range, and orderability.
+
+RealmsOfLuminari elementalist choices map to native Summoner elemental choices
+and Druid swarm/plant spells.  Its mount and necromancy roles map to native
+class call/recall, mounted movement/combat, corpse animation, and undead cohort
+paths.  Live results are in pet-phase1-elemental-plant-2026-09-09.txt and
+pet-phase1-bonded-2026-09-09.txt.
+
+Duris necromancy.c forms, raising, hosts, and constructs map to the authored
+native undead and construct prototypes, weighted animated-undead allowance,
+autoraise, single-use corpses, host spells, golem crafting, repair, and
+dismantling.  Duris sillusionist.c and PLR3_PET_DAMAGE map to the native Mislead
+decoy and pet-damage preference.  The final production suite verified the
+decoy as owned, incorporeal, expiring, and non-orderable, and verified feedback
+only for an eligible present owner with the preference enabled.
+
+Production-linked acceptance
+----------------------------
+
+The final root suite exercised the production sources, including:
+
+- all authored construct recipes, corpse conversion, failed-roll consumption,
+  missing-prototype and admission retention, repair, one-time dismantling, and
+  the documented craft create golem animate corpse command;
+- bonded recall without stat or resource refill, Boon Companion, familiar
+  benefits, ranger bonuses, eidolon evolutions, undead cohort progression,
+  mercenary hit points, and respec/keeper round trips;
+- lesser and elite animated forms, spellcasting forms, weighted capacity,
+  incorporeal equipment rejection, Deathless Touch, eligible direct-kill
+  autoraise, blocked/player/used/summoned corpses, and anti-farming ownership;
+- artifact, moonblade, totem, spell, feat, class, corpse, purchase, and quest
+  award admission before non-intentional resource commitment;
+- pet ownership, loyal orders, non-orderable illusions, damage attribution,
+  owner feedback, PvP protection, dismissal, expiry, death, transfer,
+  separation/recovery, nested gear, and failed-save safety; and
+- mount anatomy, size, ability and control restrictions, riding, travel,
+  combat, dismount, recall, extraction, and the rule that riding grants no
+  ownership or command rights.
+
+The quest award is production-linked through complete_quest and covers valid,
+missing, full-roster, invalid, retry, duplicate, and race-change cases.  The
+installed world has no authored follower-reward quest to run live.  Adding an
+unrelated quest solely as a test fixture would create new game content outside
+Phase 1; the actual quest resolution handler is therefore the bounded proof.
+
+The final isolated MariaDB run completed with:
+
+  OK (1354 tests)
+
+Log: /tmp/pet-phase1-final-test.log
+
+Live acceptance on port 4100
+----------------------------
+
+Existing committed transcripts cover intended-class acquisition and control
+for animal companion, familiar, paladin mount, dragon mount, shadow, eidolon,
+all elemental and genie choices, Planar Ally choices, and Call Lycanthrope.
+They also cover mounted travel/recall/dismissal and native help checks:
+
+  docs/testing/pet-phase1-bonded-2026-09-09.txt
+  docs/testing/pet-phase1-elemental-plant-2026-09-09.txt
+  docs/testing/pet-phase1-genies-2026-09-09.txt
+  docs/testing/pet-phase1-ordered-spells-2026-09-09.txt
+  docs/testing/pet-phase1-lycan-source-2026-09-09.txt
+
+Additional bounded live sessions verified:
+
+- Necromancer call cohort acquired the undead-appearance eidolon role, accepted
+  orders, and dismissed.  Psionicist manifest ectoplasmic shambler and Cleric
+  Mummy Dust acquired, accepted orders, and dismissed.
+- Innate animate dead acquired a zombie.  Autoraise acquired a ghoul from the
+  eligible direct kill; its generated gear was dropped before dismissal.
+  Greater animation acquired an incorporeal ghost.  All ended at zero pets.
+- With the existing development golem mode temporarily enabled, the documented
+  craft create golem animate corpse command converted an eligible corpse to a
+  bone golem.  Orders, a material-funded repair, and single-use dismantling
+  succeeded.  The receipt identified the recovered material as bone.  All
+  temporary materials, corpses, config, currency, and followers were restored
+  or removed.
+- Actual Tyranny (100501) summoned the dedicated nightmare steed (19702).
+  Actual Whisperwind (109802) and the ancient moonblade (132118) summoned their
+  spirit eagles.  Actual totem 2000716 bonded a level-30 Human Cleric and
+  summoned the spirit wolf.  Each source object was removed; the three visible
+  pets were dismissed locally, and the invisible totem spirit was verified
+  through saved recovery then dismissed through the supported remote path.
+
+Scratch logs for the added sessions:
+
+  /tmp/pet-phase1-class-roles-live.log
+  /tmp/pet-phase1-psionic-epic-live.log
+  /tmp/pet-phase1-epic-live.log
+  /tmp/pet-phase1-undead-hosts-live.log
+  /tmp/pet-phase1-undead-raising-animation-live.log
+  /tmp/pet-phase1-autoraise-gear-cleanup.log
+  /tmp/pet-phase1-greater-animation-live.log
+  /tmp/pet-phase1-construct-live.log
+  /tmp/pet-phase1-source-routes-live.log
+  /tmp/pet-phase1-totem-cleanup.log
+
+Corrections made in the final batch
+-----------------------------------
+
+- free_char now detaches character-periodic ownership again at the final
+  release boundary, closing the affected temporary-login use-after-free.
+- Account-experience shop purchases use the persistent account debit helper.
+- The documented optional craft create prefix reaches the existing golem
+  dispatcher, and dismantling reports the actual crafting material name.
+- Tyranny now calls a dedicated reset-free authored nightmare prototype rather
+  than an unrelated occupied world mobile.
+
+Final build and cleanup
+-----------------------
+
+make install completed without compiler warnings and installed release
+05055b879500da249bc4a28a30249d33cc1ca3ca.  It removed the root-level luminari
+artifact.  The installed pet world records matched the tracked sources and the
+strict world validator reported no findings.
+
+No help text changed: the golem command spelling was already the documented
+syntax, the refund fix corrects that existing output, and the artifact source
+description lives with the reset-free prototype documentation.  Previously
+changed pet topics remain synchronized in the development help database and
+lib/text/help/help.hlp.  The live authoritative help check passed BONE-GOLEM,
+PLANAR-ALLY, PETS, and ANIMATE-DEAD.  Final live cleanup left Petaccept with
+zero pets, no temporary source objects or materials, the recorded 3572 gold,
+and nohassle disabled.  The development MUD remained healthy on port 4100.

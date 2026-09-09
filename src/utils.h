@@ -257,6 +257,7 @@ bool pet_assists_automatically(struct char_data *pet, struct char_data *ally);
 bool pet_guards_owner(struct char_data *pet, struct char_data *owner, struct char_data *attacker);
 const char *pet_behavior_name(int behavior);
 struct char_data *get_pet_command_target(struct char_data *owner, char *target);
+bool is_illusory_pet(struct char_data *pet);
 bool pet_order_check(struct char_data *ch, struct char_data *vict);
 /* Takes a staged, roomless NPC; destroys it if placement fails. Admission is the caller's job. */
 bool place_pet_follower(struct char_data *owner, struct char_data *pet);
@@ -1619,7 +1620,10 @@ void char_from_furniture(struct char_data *ch);
   ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON)                    \
        ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].weaponFlags, flag)                               \
        : 0)
-#define HAS_DAMAGE_TYPE(obj, flag)  (GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, flag) : 0)
+#define HAS_DAMAGE_TYPE(obj, flag)                                                                 \
+  (((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON))                  \
+       ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, flag)                               \
+       : 0)
 #define GET_ENHANCEMENT_BONUS(obj)                                                                 \
   (((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ||                \
     (GET_OBJ_TYPE(obj) == ITEM_ARMOR) || (GET_OBJ_TYPE(obj) == ITEM_MISSILE))                      \
@@ -2008,6 +2012,9 @@ int ACTUAL_BAB(struct char_data *ch);
 
 /** Defines if an obj is a corpse. */
 #define IS_CORPSE(obj) (GET_OBJ_TYPE(obj) == ITEM_CONTAINER && GET_OBJ_VAL((obj), 3) == 1)
+/* Corpse value 6 persists summon provenance without changing ordinary loot behavior. */
+#define CORPSE_ANIMATION_BLOCKED(obj) GET_OBJ_VAL((obj), 6)
+bool corpse_can_be_animated(struct obj_data *corpse);
 
 /** Defines if an obj is a corpse. */
 #define IS_DECAYING_PORTAL(obj) (GET_OBJ_TYPE(obj) == ITEM_PORTAL && OBJ_FLAGGED(obj, ITEM_DECAY))

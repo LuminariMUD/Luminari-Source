@@ -566,6 +566,35 @@ void remove_completed_quest(struct char_data *ch, qst_vnum vnum)
 }
 
 /* called when a quest is completed! */
+/* Race rewards reset the owner before the newly admitted follower's load trigger. */
+static void respec_quest_owner(struct char_data *ch, int class_num,
+                               struct domain_entity_handle pet_handle)
+{
+  struct char_data *pet = domain_event_world_resolve_character(pet_handle);
+  struct follow_type *reserved = NULL;
+
+  /* The race-reward preflight requires no existing followers. Keep only this reward. */
+  if (pet != NULL && pet->master == ch && ch->followers != NULL && ch->followers->follower == pet &&
+      ch->followers->next == NULL)
+  {
+    reserved = ch->followers;
+    ch->followers = NULL;
+    pet->master = NULL;
+  }
+  respec_engine(ch, class_num, NULL, TRUE);
+  if (reserved == NULL)
+    return;
+  pet = domain_event_world_resolve_character(pet_handle);
+  if (pet != NULL && !MOB_FLAGGED(pet, MOB_NOTDEADYET) && pet->master == NULL)
+  {
+    reserved->next = ch->followers;
+    ch->followers = reserved;
+    pet->master = ch;
+  }
+  else
+    free(reserved);
+}
+
 void complete_quest(struct char_data *ch, int index)
 {
   qst_rnum rnum = -1;
@@ -574,6 +603,7 @@ void complete_quest(struct char_data *ch, int index)
   int happy_qp = 0, happy_gold = 0, happy_exp = 0;
   struct descriptor_data *pt = NULL;
   struct char_data *mob = NULL;
+  struct domain_entity_handle pet_handle = {0};
 
   /* dummy check */
   if (GET_QUEST(ch, index) == (int)NOTHING)
@@ -622,15 +652,28 @@ void complete_quest(struct char_data *ch, int index)
     }
   }
 
-  /* is the race reward follower (if there is one) valid?  the full processing is below
-       this is "pre-flight" */
+  /* Admit and place the follower before committing any quest rewards. */
   if (QST_FOLLOWER(rnum) != (int)NOBODY)
   {
+    if (!VALID_ROOM_RNUM(IN_ROOM(ch)) || AFF_FLAGGED(ch, AFF_CHARM) ||
+        !can_add_follower(ch, QST_FOLLOWER(rnum)))
+    {
+      send_to_char(ch, "Your quest reward must wait until its follower can join you.\r\n");
+      return;
+    }
     if (!(mob = read_mobile_reason(QST_FOLLOWER(rnum), VIRTUAL, PERF_ENTITY_QUEST)))
     {
       send_to_char(ch, "Report to staff:  quest follower invalid.\r\n");
       return;
     }
+    IS_CARRYING_W(mob) = 0;
+    IS_CARRYING_N(mob) = 0;
+    if (!place_pet_follower(ch, mob))
+    {
+      send_to_char(ch, "Your quest reward must wait until its follower can join you.\r\n");
+      return;
+    }
+    pet_handle = domain_event_character_handle(mob);
   }
 
   /* Quest complete! */
@@ -714,7 +757,7 @@ void complete_quest(struct char_data *ch, int index)
       /* Zhentil Keep - hometwon system not implemented yet */
       // GET_HOMETOWN(ch) = 3;
 
-      respec_engine(ch, CLASS_WARRIOR, NULL, TRUE);
+      respec_quest_owner(ch, CLASS_WARRIOR, pet_handle);
       GET_EXP(ch) = 0;
       GET_ALIGNMENT(ch) = -1000;
 
@@ -747,7 +790,7 @@ void complete_quest(struct char_data *ch, int index)
       /* Zhentil Keep - hometwon system not implemented yet */
       // GET_HOMETOWN(ch) = 3;
 
-      respec_engine(ch, CLASS_WIZARD, NULL, TRUE);
+      respec_quest_owner(ch, CLASS_WIZARD, pet_handle);
       GET_EXP(ch) = 0;
       GET_ALIGNMENT(ch) = -1000;
 
@@ -780,36 +823,6 @@ void complete_quest(struct char_data *ch, int index)
     }
   }
 
-  /* is there a follower reward for this quest?  "pre-flight" was checked above */
-  if (QST_FOLLOWER(rnum) != (int)NOBODY)
-  {
-    if (!mob)
-    {
-      send_to_char(ch, "Report to staff:  quest follower invalid (2).\r\n");
-      return;
-    }
-
-    /* should be good, do all the work! */
-    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
-    {
-      X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
-      Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
-    }
-    char_to_room(mob, IN_ROOM(ch));
-    IS_CARRYING_W(mob) = 0;
-    IS_CARRYING_N(mob) = 0;
-    SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
-
-    act("$N approaches you and quickly falls into line.", FALSE, ch, 0, mob, TO_CHAR);
-    act("You approach $n and quickly fall into line.", FALSE, ch, 0, mob, TO_VICT);
-    act("$N approaches $n and quickly falls into line.", FALSE, ch, 0, mob, TO_ROOM);
-
-    load_mtrigger(mob);
-    add_follower(mob, ch);
-    if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
-      join_group(mob, GROUP(ch));
-  }
-
   /* end rewards */
 
   /* handle throwing quest in history and repeatable quests */
@@ -829,6 +842,10 @@ void complete_quest(struct char_data *ch, int index)
     set_quest(ch, rnum, index);
     send_to_char(ch, "\tW***The next stage of your quest awaits:\tn\r\n\r\n%s\r\n", QST_INFO(rnum));
   }
+  /* Load triggers may extract either participant; quest rewards are already committed. */
+  mob = domain_event_world_resolve_character(pet_handle);
+  if (mob != NULL)
+    finish_pet_summon(ch, mob, TRUE, TRUE);
 }
 
 /* this function is called upon completion of a quest

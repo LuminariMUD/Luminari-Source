@@ -697,9 +697,10 @@
 #define SPELL_ELEMENTAL_FIRE_EMBODIMENT 610
 #define SPELL_ELEMENTAL_EARTH_EMBODIMENT 611
 #define SPELL_ELEMENTAL_AIR_EMBODIMENT 612
+#define SPELL_PLANAR_ALLY 613
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 613
+#define NUM_SPELLS 614
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -1918,6 +1919,7 @@ ASPELL(spell_unholy_aura);
 ASPELL(spell_camouflage);
 ASPELL(spell_ice_layer);
 ASPELL(spell_call_lycanthrope);
+bool can_call_lycanthrope(struct char_data *ch);
 ASPELL(spell_tazriks_frenzied_hound);
 ASPELL(spell_elemental_water_embodiment);
 ASPELL(spell_elemental_fire_embodiment);
@@ -1974,10 +1976,14 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj, int spell
                 int casttype, int metamagic);
 void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spellnum, int metamagic,
                int savetype, int casttype);
+bool try_auto_raise_corpse(struct char_data *ch, struct obj_data *corpse);
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spellnum, int savetype,
                  int casttype);
 int summon_spell_mob_level(int spellnum, int caster_level);
 mob_vnum animated_dead_summon_mob(int spellnum, int caster_level);
+bool has_elemental_summon_choices(int spellnum);
+bool set_pet_summon_choice(struct char_data *ch, int spellnum, const char *argument);
+mob_vnum pet_summon_choice_mob(struct char_data *ch, int spellnum);
 bool summon_spell_rejects_holy_room(int spellnum);
 void apply_ghost_wolf_mobility(struct char_data *wolf, int caster_level);
 void mag_points(int level, struct char_data *ch, struct char_data *victim, struct obj_data *obj,

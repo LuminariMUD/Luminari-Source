@@ -14,6 +14,7 @@
 #include "utils.h"
 #include "interpreter.h"
 #include "spells.h"
+#include "pet_vnums.h"
 #include "handler.h"
 #include "comm.h"
 #include "db.h"
@@ -38,6 +39,7 @@
 #include "mudlim.h"
 #include "metamagic_science.h"
 #include "mob/mob_spellslots.h"
+#include "mob/mob_known_spells.h"
 #include "character/perks.h"
 #include "bardic_performance.h"
 
@@ -1498,6 +1500,14 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument)
   int potion_level = GET_OBJ_VAL(obj, 0);
   char *temp_argument = argument;
 
+  /* Source-only summoning wands retain their charge on denied admission. */
+  if (GET_OBJ_TYPE(obj) == ITEM_WAND && GET_OBJ_VAL(obj, 3) == SPELL_CALL_LYCANTHROPE &&
+      !can_call_lycanthrope(ch))
+  {
+    send_to_char(ch, "No lycanthrope is available or you cannot control another one.\r\n");
+    return;
+  }
+
   /* Parse metamagic first if the character has the appropriate feat */
   if (GET_OBJ_TYPE(obj) == ITEM_WAND || GET_OBJ_TYPE(obj) == ITEM_STAFF)
   {
@@ -1758,6 +1768,8 @@ void resetCastingData(struct char_data *ch)
   CASTING_TIME(ch) = 0;
   CASTING_TIME_MAX(ch) = 0;
   CASTING_SPELLNUM(ch) = 0;
+  ch->char_specials.summon_choice_spell = 0;
+  ch->char_specials.summon_choice = 0;
   CASTING_TCH(ch) = NULL;
   CASTING_TOBJ(ch) = NULL;
   GET_AUGMENT_PSP(ch) = 0;
@@ -2570,6 +2582,64 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
   {
     send_to_char(ch, "Finish or cancel your current activity before casting.\r\n");
     return 0;
+  }
+  if (has_elemental_summon_choices(spellnum) || spellnum == SPELL_SHAMBLER)
+  {
+    static const char *choices[] = {"air", "earth", "fire", "water"};
+    mob_vnum summon =
+        spellnum == SPELL_SHAMBLER ? PET_SHAMBLER : pet_summon_choice_mob(ch, spellnum);
+
+    if (summon == NOBODY)
+    {
+      set_pet_summon_choice(ch, spellnum, choices[rand_number(0, 3)]);
+      summon = pet_summon_choice_mob(ch, spellnum);
+    }
+    if (!can_add_summoned_followers(ch, summon, spellnum, 1))
+    {
+      send_to_char(ch, "Your chosen summon is unavailable or its control allowance is full.\r\n");
+      return 0;
+    }
+  }
+  if (spellnum == SPELL_MISLEAD &&
+      (AFF_FLAGGED(ch, AFF_CHARM) ||
+       !can_add_summoned_followers(ch, PET_MISLEAD_DECOY, spellnum, 1)))
+  {
+    send_to_char(ch, "Your illusory decoy is unavailable or already present.\r\n");
+    return 0;
+  }
+  if (spellnum == SPELL_CALL_LYCANTHROPE && !can_call_lycanthrope(ch))
+  {
+    send_to_char(ch, "No lycanthrope is available or you cannot control another one.\r\n");
+    return 0;
+  }
+  if (spellnum == SPELL_GENIEKIND)
+  {
+    static const char *choices[] = {"djinni", "shaitan", "efreeti", "marid"};
+    mob_vnum genie = pet_summon_choice_mob(ch, spellnum);
+
+    if (genie == NOBODY)
+    {
+      set_pet_summon_choice(ch, spellnum, choices[rand_number(0, 3)]);
+      genie = pet_summon_choice_mob(ch, spellnum);
+    }
+    if (AFF_FLAGGED(ch, AFF_CHARM) || !can_add_summoned_followers(ch, genie, SPELL_DJINNI_KIND, 1))
+    {
+      send_to_char(ch, "Your chosen genie is unavailable or your genie allowance is full.\r\n");
+      return 0;
+    }
+  }
+  if (spellnum == SPELL_PLANAR_ALLY)
+  {
+    mob_vnum ally = pet_summon_choice_mob(ch, spellnum);
+
+    if (ally == NOBODY)
+      ally = PET_CELESTIAL_GUARDIAN;
+    if (AFF_FLAGGED(ch, AFF_CHARM) || !can_add_summoned_followers(ch, ally, spellnum, 1))
+    {
+      send_to_char(ch,
+                   "Your chosen planar ally is unavailable or your ally allowance is full.\r\n");
+      return 0;
+    }
   }
   if (GET_LEVEL(ch) >= LVL_IMMORT && !IS_NPC(ch))
   {
@@ -4214,7 +4284,19 @@ return;
     }
   }
 
-  cast_spell(ch, tch, tobj, spellnum, metamagic);
+  if (!set_pet_summon_choice(ch, spellnum, cast_arg3))
+    return;
+  {
+    struct domain_entity_handle owner = domain_event_character_handle(ch);
+
+    cast_spell(ch, tch, tobj, spellnum, metamagic);
+    ch = domain_event_world_resolve_character(owner);
+    if (ch != NULL && !IS_CASTING(ch))
+    {
+      ch->char_specials.summon_choice_spell = 0;
+      ch->char_specials.summon_choice = 0;
+    }
+  }
 }
 
 /* assignment */
@@ -5222,6 +5304,8 @@ void mag_assign_spells(void)
          MAG_SUMMONS, NULL, 11, 23, CONJURATION, FALSE);
   spello(SPELL_ELEMENTAL_SWARM, "elemental swarm", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
          MAG_SUMMONS, NULL, 12, 23, CONJURATION, FALSE);
+  spello(SPELL_PLANAR_ALLY, "planar ally", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS,
+         NULL, 12, 23, CONJURATION, FALSE);
   spello(SPELL_GATE, "gate", 51, 36, 1, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 9, 23,
          CONJURATION, FALSE);
   spello(SPELL_SHAMBLER, "shambler", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9,
@@ -6549,7 +6633,8 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
          TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, "Your unseen servant fades away.", 2, 2,
          CONJURATION, FALSE);
   spello(SPELL_MISLEAD, "mislead", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE,
-         MAG_AFFECTS, "The misleading shadows around you disperse.", 2, 2, ILLUSION, FALSE);
+         MAG_AFFECTS | MAG_SUMMONS, "The misleading shadows around you disperse.", 2, 2, ILLUSION,
+         FALSE);
   spello(SPELL_SEQUESTER, "sequester", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "You no longer feel cut off from distant magic.", 4, 4, ILLUSION, FALSE);
   spello(SPELL_DIMENSION_SHIFT, "dimension shift", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
@@ -7590,11 +7675,8 @@ void handle_npc_cast(struct char_data *ch, char *argument, int subcmd __attribut
   if (!IS_NPC(ch))
     return;
 
-  if (MOB_FLAGGED(ch, MOB_EIDOLON))
-  {
-    if (ch->master && IN_ROOM(ch) == IN_ROOM(ch->master))
-      out_to = ch->master;
-  }
+  if (IS_PET(ch) && IN_ROOM(ch) == IN_ROOM(ch->master))
+    out_to = ch->master;
 
   if (MOB_FLAGGED(ch, MOB_EIDOLON))
   {
@@ -7640,28 +7722,15 @@ void handle_npc_cast(struct char_data *ch, char *argument, int subcmd __attribut
     return;
   }
 
-  if (eidolon_spell_is_at_will(ch, spellnum))
+  if (eidolon_spell_is_at_will(ch, spellnum) || has_known_spell_slot(ch, spellnum))
     casttype = CAST_INNATE;
 
-  // We will need to add more checks if we expand the list of spells that mobs can cast found in the
-  // npc_can_cast function
-  if (IS_SET(SINFO.targets, TAR_IGNORE))
-  {
-    call_magic(ch, ch, 0, spellnum, 0, GET_LEVEL(ch), casttype);
-    return;
-  }
-
-  if (IS_SET(SINFO.targets, TAR_SELF_ONLY))
-  {
-    call_magic(ch, ch, 0, spellnum, 0, GET_LEVEL(ch), casttype);
-    return;
-  }
-
+  /* Keep targetless spells on their native area/mass targeting path. */
   if (target_arg != NULL)
   {
     skip_spaces(&target_arg);
   }
-  if (target_arg == NULL)
+  if (IS_SET(SINFO.targets, TAR_IGNORE | TAR_SELF_ONLY) || target_arg == NULL)
   {
     victim = ch;
   }
@@ -7685,13 +7754,14 @@ void handle_npc_cast(struct char_data *ch, char *argument, int subcmd __attribut
     return;
   }
 
-  if (SINFO.violent == TRUE && !aoeOK(ch, victim, spellnum))
+  if (!IS_SET(SINFO.targets, TAR_IGNORE | TAR_SELF_ONLY) && SINFO.violent == TRUE &&
+      !aoeOK(ch, victim, spellnum))
   {
     send_to_char(out_to, "That spell cannot be cast on a friendly target.\r\n");
     return;
   }
 
-  if (IS_SET(SINFO.targets, TAR_NOT_SELF))
+  if (!IS_SET(SINFO.targets, TAR_IGNORE | TAR_SELF_ONLY) && IS_SET(SINFO.targets, TAR_NOT_SELF))
   {
     if (ch == victim)
     {
@@ -7700,18 +7770,14 @@ void handle_npc_cast(struct char_data *ch, char *argument, int subcmd __attribut
     }
   }
 
+  /* Commit costs before spell callbacks can issue another order or extract us. */
+  if (MOB_FLAGGED(ch, MOB_EIDOLON) && HAS_EVOLUTION(ch, EVOLUTION_WEB) && spellnum == SPELL_WEB)
+    USE_SWIFT_ACTION(ch);
+  else
+    USE_STANDARD_ACTION(ch);
+  if (!eidolon_spell_is_at_will(ch, spellnum))
+    consume_known_spell_slot(ch, spellnum);
   call_magic(ch, victim, 0, spellnum, 0, GET_LEVEL(ch), casttype);
-
-  if (MOB_FLAGGED(ch, MOB_EIDOLON))
-  {
-    if (HAS_EVOLUTION(ch, EVOLUTION_WEB) && spellnum == SPELL_WEB)
-    {
-      USE_SWIFT_ACTION(ch);
-      return;
-    }
-  }
-
-  USE_STANDARD_ACTION(ch);
 }
 
 bool npc_can_cast(struct char_data *ch, int spellnum)
@@ -7728,7 +7794,7 @@ bool npc_can_cast(struct char_data *ch, int spellnum)
   if (eidolon_spell_is_at_will(ch, spellnum))
     return true;
 
-  return false;
+  return has_known_spell_slot(ch, spellnum);
 }
 
 /* must be at end of file */

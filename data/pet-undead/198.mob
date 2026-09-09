@@ -1,0 +1,51 @@
+#19800
+skeletal mage undead~
+a skeletal mage~
+A skeletal mage awaits its master's command.
+~
+Runes etched into ancient bones bind this undead spellcaster to its summoner.
+~
+1073741832 128 0 32 0 0 0 0 -1000 E
+10 12 -8 0d0+110 1d6+2
+0 0
+9 9 0
+Str: 10
+Dex: 14
+Int: 18
+Wis: 14
+Con: 10
+Cha: 14
+Race: 2
+Class: 0
+Size: 5
+DR_MOD: 0
+KnownSpell: 32
+KnownSpell: 86
+E
+#19801
+lich undead~
+a lich~
+A lich awaits its master's command.
+~
+Runes etched into ancient bones bind this undead spellcaster to its summoner.
+~
+1073741832 128 0 32 0 0 0 0 -1000 E
+25 8 -14 0d0+230 1d6+2
+0 0
+9 9 0
+Str: 10
+Dex: 14
+Int: 24
+Wis: 14
+Con: 10
+Cha: 14
+Race: 2
+Class: 0
+Size: 5
+DR_MOD: 0
+KnownSpell: 32
+KnownSpell: 113
+KnownSpell: 120
+KnownSpell: 122
+E
+$~

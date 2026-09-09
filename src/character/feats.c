@@ -5093,8 +5093,10 @@ void assign_feats(void)
   feato(FEAT_ANIMATE_DEAD, "animate dead", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "uses the animatedead command to call one undead per feat rank each day",
         "The animatedead command uses a standard action and no corpse to call an undead follower "
-        "based on your composite caster level. You gain one daily use per feat rank. This command "
-        "is separate from casting the animate dead spell on a corpse.");
+        "based on your composite caster level, or select an unlocked form with animatedead "
+        "zombie, ghoul, skeleton, or mummy. Necromancer level 2 grants one rank and one daily use. "
+        "Each feat rank adds one daily use. This command is separate from casting the animate "
+        "dead spell on a corpse.");
 
   feato(FEAT_CONCOCT_LVL_1, "1st circle alchemical concoctions", TRUE, FALSE, FALSE,
         FEAT_TYPE_SPELLCASTING, "alchemist 1st circle slot",

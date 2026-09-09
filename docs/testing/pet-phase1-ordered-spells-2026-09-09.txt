@@ -1,0 +1,432 @@
+Pet Phase 1: planar healer ordered spells, 2026-09-09
+
+Development checkout; game port 4100; existing autorun/login smoke tooling.
+Petaccept used native Summoner spell access after disposable character setup.
+The acquisition transcript predates the fix and captures the silent ordered-cast
+failure. The final live transcript proves invalid-target feedback, two heals
+(40 to 80 HP and 40 to 79 HP under the room's desecration penalty), third-cast
+slot exhaustion, and bless. The same healer ID, 47345898, remains in the roster.
+This does not establish class progression, respec, or other summon-role coverage.
+
+Implementation: authored known spells use the existing two-slot mobile system
+and innate spell path; orders consume pet actions and route errors to the owner.
+The isolated regression uses do_order and checks healing, action/slot costs,
+invalid-target preservation, exhausted-spell feedback, and unknown-spell denial.
+
+Validation: isolated MariaDB on 127.0.0.1:33379, pet_baseline.
+LUMINARI_TEST_MYSQL_ENABLE=1 make -j$(nproc) test: OK (1354 tests).
+make install completed; no root luminari binary; no compiler warnings.
+Pre-commit checks passed. Development ORDER database text matches help.hlp and
+sql/components/help_pet_entries.sql. Copyover and live help checks follow.
+
+
+Native acquisition and original failure
+=======================================
+Reusing the development MUD on port 4100.
+
+>>> set Petaccept class summoner
+Petaccept has reconnected.
+[ Petaccept [127.0.0.1] has reconnected. ]
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:10pm set Petaccept class summoner
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:10pm
+Okay.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:10pm
+
+>>> settestchar Petaccept race human classes summoner:30
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:10pm settestchar Petaccept race human classes summoner:30
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:10pm
+Race set to Human with classes: summoner (L30)
+Character overall level: 30
+Racial feats applied: 1
+Class feats applied for all levels.
+Class skills set to level 30.
+HP: 260, MV: 250, PSP: 160
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:10pm
+
+>>> set Petaccept cha 30
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:10pm set Petaccept cha 30
+Petaccept's cha set to 30.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:10pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:10pm
+
+>>> set Petaccept intel 30
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:10pm set Petaccept intel 30
+Can't set that!
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:10pm 632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:10pm
+
+>>> score
+260/260H 250/250V [smw] (news) (motd)
+Staff has set your race to Human and classes to:
+  - summoner (Level 30)
+Your overall level is now 30.
+Your class skills have been set to 30.
+Your stats have been updated.
+260/260H 250/250V [smw] (news) (motd)
+260/260H 250/250V [smw] (news) (motd)
+260/260H 250/250V [smw] (news) (motd)
+260/260H 250/250V [smw] (news) (motd) score
+260/260H 250/250V [smw] (news) (motd)
+-------------------------------Score Information--------------------------------
+Name : Petaccept            Title   : Petaccept
+Race : Human                Class   : 0 warrior (premade build)
+Sex  : Male                 Deity: None                 Alignment : True Neutral (0)
+Age  : adult         Played  : 0 days / 0 hrs
+Size : Medium               Load    : 55/99 lbs Num Items: 8/40
+--------------------------------------------------------------------------------
+Hit points: 260(260)   Moves: 250(250)   Speed: 30    Initiative: +0
+-----------------------------------Experience-----------------------------------
+Level : 30                       CstrLvl : 30  DivLvl : 0   MgcLvl : 30
+Exp   : 1                        ExpTNL  : 22679999
+-------------Ability Scores--------------------------Saving Throws--------------
+Str: 10[ 0]  Dex: 10[ 0]  Con: 10[ 0]  |  Fort    : 12  Will    : 20
+Int: 10[ 0]  Wis: 10[ 0]  Cha: 30[10]  |  Reflex  : 12
+-------------------------------------Combat-------------------------------------
+BAB: 25   # of Attacks: 3   ArmorClass: 11   Wimpy: 0   Pos: Standing
+------------------------------Spellcaster Bonuses-------------------------------
+Spell DC Bonus: 0 Spell Potency Multiplier: 100% Spell Duration Multiplier: 100%
+-----------------------------------Quest Info-----------------------------------
+Quests completed : 0, Quest points     : 0
+--------------------------------------------------------------------------------
+Gold: 9144                Gold in Bank: 0
+--------------------------------------------------------------------------------
+Solinari's position in the sky bestows +1 to saving throws, +1 to effective
+caster level and +2 bonus spell slots.
+--------------------------------------------------------------------------------
+You are sober.
+You are NOT summonable by other players.
+--------------------------------------------------------------------------------
+Type 'attacks' or 'defenses' to see your melee offense and defense
+Type 'affects' to see what you are affected by
+260/260H 250/250V [smw] (news) (motd)
+
+>>> pets
+.'
+260/260H 250/250V [smw] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a celestial healer - Random Encounter Distrobution Zone - Planar ally [follow] [#47345897]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 250/250V [smw] (news) (motd) 260/260H 250/250V [smw] (news) (motd)
+
+>>> dismiss healer
+.'
+260/260H 250/250V [smw] (news) (motd) dismiss healer
+260/260H 250/250V [smw] (news) (motd)
+You dismiss a celestial healer.
+A celestial healer is no longer serving you!
+[Group] a celestial healer has left the group.
+260/260H 250/250V [smw] (news) (motd) 260/260H 250/250V [smw] (news) (motd)
+
+>>> @wait 16
+Paused the local test session for 16 second(s).
+.'
+
+
+
+260/260H 250/250V [smw] (news) (motd) cast 'planar ally' healer
+260/260H 250/250V [s-w] (news) (motd)
+
+You begin casting your spell...
+
+
+
+260/260H 250/250V [s-w] (news) (motd)
+
+Casting: planar ally ............
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 250/250V [s-w] (news) (motd)
+
+Casting: planar ally ...........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 250/250V [s-w] (news) (motd)
+
+Casting: planar ally ..........
+
+A faint rift begins to form in reality...
+
+
+
+260/260H 250/250V [s-w] (news) (motd)
+
+Casting: planar ally .........
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 250/250V [s-w] (news) (motd)
+
+Casting: planar ally ........
+
+The tear in space widens, revealing glimpses beyond...
+
+
+
+260/260H 250/250V [s-w] (news) (motd)
+
+Casting: planar ally .......
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 250/250V [smw] (news) (motd)
+
+Casting: planar ally ......
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 250/250V [smw] (news) (motd)
+
+Casting: planar ally .....
+
+Extraplanar energy pours through the opening...
+
+
+
+260/260H 250/250V [smw] (news) (motd)
+
+Casting: planar ally ....
+
+Reality bends dangerously around you!
+
+
+
+260/260H 250/250V [smw] (news) (motd)
+
+Casting: planar ally ...
+
+Reality bends dangerously around you!
+
+
+
+260/260H 250/250V [smw] (news) (motd)
+
+Casting: planar ally ..
+
+The planar connection stabilizes!
+
+
+
+260/260H 250/250V [smw] (news) (motd)
+
+Casting: planar ally .
+
+The planar connection stabilizes!
+
+You complete your spell...You conjure a celestial healer from a cloud of thick blue smoke!
+
+[Group] a celestial healer joins the group.
+
+You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.
+
+
+
+260/260H 250/250V [smw] (news) (motd)
+
+>>> pets
+260/260H 250/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a celestial healer - Random Encounter Distrobution Zone - Planar ally [follow] [#47345898]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 250/250V [smw] (news) (motd)
+
+>>> @wait 2
+Paused the local test session for 2 second(s).
+.'
+
+
+
+260/260H 250/250V [smw] (news) (motd) cast 'planar ally' guardian
+260/260H 250/250V [smw] (news) (motd)
+
+Your chosen planar ally is unavailable or your ally allowance is full.
+
+
+
+260/260H 250/250V [smw] (news) (motd)
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+order healer cast 'cure critic' Petaccept
+260/260H 250/250V [sm-] (news) (motd)
+
+Okay.
+
+
+
+260/260H 250/250V [sm-] (news) (motd)
+
+>>> pets
+260/260H 250/250V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a celestial healer - Random Encounter Distrobution Zone - Planar ally [follow] [#47345898]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+260/260H 250/250V [smw] (news) (motd)
+PASS: Kohdee ran 1 game command(s) and logged out cleanly (32s).
+
+
+Installed build copyover
+========================
+Reusing the development MUD on port 4100.
+
+>>> copyover
+Copyover recovery complete.
+
+>>> pets
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:11am
+--------------------------Pets Charmees NPC Followers---------------------------
+--------------------------------------------------------------------------------
+0 pets. General slots: 0/8 used, 8 available. Ordinary summons: 0/1.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:11am
+PASS: Kohdee survived copyover, completed the post-copyover checks, and logged out cleanly (47s).
+
+
+Ordered casting after the fix
+=============================
+Reusing the development MUD on port 4100.
+
+>>> set Petaccept hitpoints 40
+[ Petaccept [127.0.0.1] has connected. ]
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:11am
+[ Petaccept un-renting and entering game. ]
+[ Petaccept (level 30) has 62 objects (max 99999). ]
+A celestial healer appears beside Petaccept.
+Petaccept has entered the game.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:11am set Petaccept hitpoints 40
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:11am
+Petaccept's hitpoints set to 40.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:11am
+
+>>> pets
+40/260H 250/2500V [smw] (news) (motd) pets
+40/260H 250/2500V [smw] (news) (motd)
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a celestial healer - Random Encounter Distrobution Zone - Planar ally [follow] [#47345898]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+40/260H 250/2500V [smw] (news) (motd)
+
+>>> order healer cast 'cure critic' absent
+.'
+40/260H 250/2500V [smw] (news) (motd) order healer cast 'cure critic' absent
+40/260H 250/2500V [sm-] (news) (motd)
+You can't seem to find the target of your spell.
+Okay.
+40/260H 250/2500V [sm-] (news) (motd) 40/260H 250/2500V [sm-] (news) (motd)
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+40/260H 250/2500V [sm-] (news) (motd)
+
+>>> order healer cast 'cure critic' Petaccept
+80/260H 280/2500V [sm-] (news) (motd)
+A celestial healer cures critical wounds on you.
+[Aura of Desecration: -12 healing] Okay.
+80/260H 280/2500V [sm-] (news) (motd)
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+80/260H 280/2500V [sm-] (news) (motd)
+
+>>> set Petaccept hitpoints 40
+.'
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:11am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:11am
+Petaccept commands, 'cast 'cure critic' absent'.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:11am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:11am
+Petaccept commands, 'cast 'cure critic' Petaccept'.
+A celestial healer cures critical wounds on Petaccept.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:11am
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:11am set Petaccept hitpoints 40
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:11am
+Petaccept's hitpoints set to 40.
+632/632H 1160/1160V XP:1000 Gold:90064 PrepTime: [smw] Time:11am
+
+>>> order healer cast 'cure critic' Petaccept
+40/260H 280/2500V [smw] (news) (motd) order healer cast 'cure critic' Petaccept
+79/260H 280/2500V [sm-] (news) (motd)
+A celestial healer cures critical wounds on you.
+[Aura of Desecration: -12 healing] Okay.
+79/260H 280/2500V [sm-] (news) (motd)
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+79/260H 280/2500V [sm-] (news) (motd)
+
+>>> order healer cast 'cure critic' Petaccept
+79/260H 280/2500V [sm-] (news) (motd)
+Your pet cannot cast that spell.
+Okay.
+79/260H 280/2500V [sm-] (news) (motd)
+
+>>> @wait 7
+Paused the local test session for 7 second(s).
+.'
+
+
+
+79/260H 280/2500V [sm-] (news) (motd)
+
+>>> order healer cast 'bless' Petaccept
+80/260H 310/2500V [sm-] (news) (motd)
+You feel righteous.
+Okay.
+80/260H 310/2500V [sm-] (news) (motd)
+
+>>> pets
+.'
+80/260H 310/2500V [sm-] (news) (motd) pets
+--------------------------Pets Charmees NPC Followers---------------------------
+1 ) a celestial healer - Random Encounter Distrobution Zone - Planar ally [follow] [#47345898]
+--------------------------------------------------------------------------------
+1 pets. General slots: 0/11 used, 11 available. Ordinary summons: 0/2.
+The first ordinary summon has its own slot; additional ones use general slots. Other categories have separate limits.
+Animated-undead control: 0/2 points. Lesser forms cost 1; elite forms cost 2.
+80/260H 310/2500V [sm-] (news) (motd) 80/260H 310/2500V [sm-] (news) (motd)
+PASS: Kohdee ran 1 game command(s) and logged out cleanly (34s).
+
+
+Authoritative help checks
+=========================
+Reusing the development MUD on port 4100.
+PASS help ORDER -> order
+PASS help PLANAR-ALLY -> planar-ally
+PASS: Kohdee verified 2 authoritative help keyword(s) and logged out cleanly (3s).

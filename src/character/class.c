@@ -2673,6 +2673,11 @@ void init_class(struct char_data *ch, int class, int level __attribute__((unused
 
   switch (class)
   {
+  case CLASS_NECROMANCER:
+    /* Make the corpse-free daily summon available to existing Necromancers too. */
+    if (CLASS_LEVEL(ch, CLASS_NECROMANCER) >= 2 && !HAS_REAL_FEAT(ch, FEAT_ANIMATE_DEAD))
+      SET_FEAT(ch, FEAT_ANIMATE_DEAD, 1);
+    break;
   case CLASS_CLERIC:
   case CLASS_INQUISITOR:
     /* Reapply domain access on login as well as when study finalizes. This
@@ -4540,6 +4545,7 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_VIGORIZE_CRITICAL, 9);
   spell_assignment(CLASS_CLERIC, SPELL_CAUSTIC_BLOOD, 9);
   spell_assignment(CLASS_CLERIC, SPELL_GENIEKIND, 9);
+  spell_assignment(CLASS_CLERIC, SPELL_PLANAR_ALLY, 11);
   /*              class num      spell                   level acquired */
   /* 6th circle */
   spell_assignment(CLASS_CLERIC, SPELL_DISPEL_EVIL, 11);
@@ -8780,6 +8786,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_PLANAR_SOUL, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_ETHEREAL_JAUNT, 13);
   spell_assignment(CLASS_SUMMONER, SPELL_GENIEKIND, 13);
+  spell_assignment(CLASS_SUMMONER, SPELL_PLANAR_ALLY, 16);
   spell_assignment(CLASS_SUMMONER, SPELL_GRAND_DESTINY, 13);
   spell_assignment(CLASS_SUMMONER, SPELL_GREATER_HEROISM, 13);
   spell_assignment(CLASS_SUMMONER, SPELL_INVISIBILITY_SPHERE, 13);
@@ -8978,6 +8985,7 @@ void load_class_list(void)
   feat_assignment(CLASS_NECROMANCER, FEAT_PALE_MASTER_WEAPONS, Y, 1, Y);
   feat_assignment(CLASS_NECROMANCER, FEAT_UNDEAD_COHORT, Y, 1, Y);
   feat_assignment(CLASS_NECROMANCER, FEAT_SUMMON_UNDEAD, Y, 2, Y);
+  feat_assignment(CLASS_NECROMANCER, FEAT_ANIMATE_DEAD, Y, 2, N);
   feat_assignment(CLASS_NECROMANCER, FEAT_ULTRAVISION, Y, 3, Y);
   feat_assignment(CLASS_NECROMANCER, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 4, Y);
   feat_assignment(CLASS_NECROMANCER, FEAT_BONE_ARMOR, Y, 4, Y);

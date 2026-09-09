@@ -155,7 +155,7 @@ static int compute_attack_bonus_full_with_weapon(struct char_data *ch, struct ch
                                                  int attack_type, bool display,
                                                  struct obj_data *wielded,
                                                  struct obj_data *projectile);
-static void make_corpse(struct char_data *ch);
+static struct domain_entity_handle make_corpse(struct char_data *ch, bool animation_blocked);
 static void change_alignment(struct char_data *ch, struct char_data *victim);
 static void group_gain(struct char_data *ch, struct char_data *victim);
 static void solo_gain(struct char_data *ch, struct char_data *victim);
@@ -2024,6 +2024,7 @@ struct obj_data *make_a_corpse_4_npcs(struct char_data *ch)
   GET_OBJ_VAL(corpse, 0) = 0; /* You can't store stuff in a corpse */
 
   GET_OBJ_VAL(corpse, 3) = 1; /* corpse identifier */
+  CORPSE_ANIMATION_BLOCKED(corpse) = 1;
 
   GET_OBJ_WEIGHT(corpse) = GET_WEIGHT(ch);
 
@@ -2099,15 +2100,16 @@ static void make_pc_corpse(struct char_data *ch)
 }
 
 /* NPC:  function for creating corpses, ch just died */
-static void make_corpse(struct char_data *ch)
+static struct domain_entity_handle make_corpse(struct char_data *ch, bool animation_blocked)
 {
   char buf2[MAX_NAME_LENGTH + 64] = {'\0'};
   struct obj_data *corpse = NULL, *o = NULL;
   struct obj_data *money = NULL;
+  struct domain_entity_handle handle = {0};
   int i = 0, x = 0, y = 0;
 
   if (rol_handle_conjured_death(ch))
-    return;
+    return handle;
 
   /* handle mobile death that should not leave a corpse */
   if (IS_NPC(ch))
@@ -2135,7 +2137,7 @@ static void make_corpse(struct char_data *ch)
         GET_GOLD(ch) = 0;
       }
       extract_char(ch);
-      return;
+      return handle;
     }
   } /* if we continue on, we need to actually make a corpse.... */
 
@@ -2176,6 +2178,7 @@ static void make_corpse(struct char_data *ch)
   SET_BIT_AR(GET_OBJ_EXTRA(corpse), ITEM_NODONATE);
   GET_OBJ_VAL(corpse, 0) = 0; /* You can't store stuff in a corpse */
   GET_OBJ_VAL(corpse, 3) = 1; /* corpse identifier */
+  CORPSE_ANIMATION_BLOCKED(corpse) = animation_blocked;
   /* todo for players: save id onto corpse, and save race, etc */
   GET_OBJ_WEIGHT(corpse) = GET_WEIGHT(ch) + IS_CARRYING_W(ch);
   GET_OBJ_RENT(corpse) = 100000;
@@ -2231,7 +2234,9 @@ static void make_corpse(struct char_data *ch)
   IS_CARRYING_W(ch) = 0;
 
   /* place filled corpse in room */
+  handle = domain_event_object_handle(corpse);
   obj_to_room(corpse, IN_ROOM(ch));
+  return handle;
 }
 
 /* When ch kills victim */
@@ -2423,9 +2428,13 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
  * Publishes the death event, stops all combat involving the victim, then runs
  * the corpse, script and respawn path. The killer may be NULL. */
 static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
-                                enum combat_death_cause cause)
+                                enum combat_death_cause cause,
+                                struct domain_entity_handle *corpse_out)
 {
   struct char_data *temp;
+  struct domain_entity_handle corpse;
+  bool animation_blocked = IS_NPC(ch) && (IS_PET(ch) || ch->char_specials.is_charmie ||
+                                          ch->pet_source_spell != 0 || ch->pet_data_id > 0);
   struct affected_type af = {0}; /* Zero-initialize to prevent stack garbage */
 
   domain_event_runtime_character_died_with_cause(ch, killer, (uint32_t)cause);
@@ -2566,14 +2575,18 @@ static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
       prisoner_heads = -2;
       /*****/
 
-      make_corpse(ch);
+      corpse = make_corpse(ch, animation_blocked);
+      if (corpse_out != NULL)
+        *corpse_out = corpse;
       /* extraction!  *SLURRRRRRRRRRRRRP* */
       extract_char(ch);
 
       break;
 
     default:
-      make_corpse(ch);
+      corpse = make_corpse(ch, animation_blocked);
+      if (corpse_out != NULL)
+        *corpse_out = corpse;
       /* extraction!  *SLURRRRRRRRRRRRRP* */
       extract_char(ch);
       break;
@@ -2670,7 +2683,8 @@ static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
  * killer leaves the cause unspecified. */
 void raw_kill(struct char_data *ch, struct char_data *killer)
 {
-  raw_kill_with_cause(ch, killer, killer != NULL ? COMBAT_DEATH_COMBAT : COMBAT_DEATH_UNSPECIFIED);
+  raw_kill_with_cause(ch, killer, killer != NULL ? COMBAT_DEATH_COMBAT : COMBAT_DEATH_UNSPECIFIED,
+                      NULL);
 }
 
 /* called after striking the mortal blow to ch */
@@ -2855,7 +2869,7 @@ struct combat_death_result combat_death_apply(struct char_data *ch, struct char_
     /* The flag/state for this is set implicitly by the cleave logic */
   }
 
-  raw_kill_with_cause(ch, killer, cause);
+  raw_kill_with_cause(ch, killer, cause, &result.corpse);
   result.processed = true;
   return result;
 }
@@ -5610,6 +5624,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
   long local_gold = 0, happy_gold = 0;
   struct char_data *tmp_char = NULL, *tch = NULL;
   struct obj_data *corpse_obj;
+  struct combat_death_result death;
   room_rnum rnum = NOWHERE;
 
   if (!ok_damage_shopkeeper(ch, victim) || MOB_FLAGGED(victim, MOB_NOKILL) ||
@@ -5769,9 +5784,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
   rnum = IN_ROOM(victim);
 
   /* corpse should be made here */
-  die(victim, ch);
-
-  /* todo: maybe make die() return a value to let us know if there really is a corpse */
+  death = combat_death_apply(victim, ch, COMBAT_DEATH_COMBAT);
 
   /* we make everyone in the room with auto-collect search for ammo here before
      any of the autolooting, etc */
@@ -5893,6 +5906,9 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
         tch->char_specials.post_combat_account_exp = 0;
   }
 
+
+  try_auto_raise_corpse(domain_event_world_resolve_character(death.killer),
+                        domain_event_world_resolve_object(death.corpse));
 
   /* all done! */
   return (-1);
@@ -6756,6 +6772,9 @@ struct combat_damage_result combat_damage_apply(struct char_data *ch, struct cha
   struct char_data *target;
   enum combat_reaction_dequeue_status status;
   int result;
+
+  if (is_illusory_pet(ch))
+    dam_type = DAM_ILLUSION;
 
   if (active_damage_reactions != NULL)
   {
@@ -9825,8 +9844,7 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
   bool passed = FALSE;
   int i = 0;
 
-  /* TODO Change this to handle unarmed attacks! */
-  if (weapon == NULL)
+  if (ch == NULL || dr == NULL)
     return FALSE;
 
   for (i = 0; i < MAX_DR_BYPASS; i++)
@@ -9838,7 +9856,7 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
       case DR_BYPASS_CAT_NONE:
         break;
       case DR_BYPASS_CAT_MAGIC:
-        if (IS_SET_AR(GET_OBJ_EXTRA(weapon), ITEM_MAGIC))
+        if (weapon != NULL && IS_SET_AR(GET_OBJ_EXTRA(weapon), ITEM_MAGIC))
           passed = TRUE;
         if (affected_by_spell(ch, SKILL_DRHRT_CLAWS) && CLASS_LEVEL(ch, CLASS_SORCERER) >= 7)
           passed = TRUE;
@@ -9849,7 +9867,7 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
           passed = TRUE;
         break;
       case DR_BYPASS_CAT_MATERIAL:
-        if (GET_OBJ_MATERIAL(weapon) == dr->bypass_val[i])
+        if (weapon != NULL && GET_OBJ_MATERIAL(weapon) == dr->bypass_val[i])
           passed = TRUE;
         if (dr->bypass_val[i] == MATERIAL_ADAMANTINE &&
             has_perk(ch, PERK_MONK_IMPROVED_UNARMED_STRIKE_III))
@@ -9903,17 +9921,20 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
         }
         break;
       case DR_BYPASS_CAT_DAMTYPE:
-          if ((dr->bypass_val[i] == DR_DAMTYPE_BLUDGEONING) &&
-                  (HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_BLUDGEONING))
-                  passed = TRUE;
-          else if ((dr->bypass_val[i] == DR_DAMTYPE_SLASHING) &&
-                  (HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_SLASHING))
-                  passed = TRUE;
-          else if ((dr->bypass_val[i] == DR_DAMTYPE_PIERCING) &&
-                  (HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_PIERCING))
-                  passed = TRUE;
-
-            break;
+        if (weapon == NULL)
+        {
+          break;
+        }
+        if ((dr->bypass_val[i] == DR_DAMTYPE_BLUDGEONING) &&
+            HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_BLUDGEONING))
+          passed = TRUE;
+        else if ((dr->bypass_val[i] == DR_DAMTYPE_SLASHING) &&
+                 HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_SLASHING))
+          passed = TRUE;
+        else if ((dr->bypass_val[i] == DR_DAMTYPE_PIERCING) &&
+                 HAS_DAMAGE_TYPE(weapon, DAMAGE_TYPE_PIERCING))
+          passed = TRUE;
+        break;
       }
     }
   }
@@ -9939,16 +9960,14 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
   dr = NULL;
   for (cur = GET_DR(victim); cur != NULL; cur = cur->next)
   {
-    if (dr == NULL || (dr->amount < cur->amount && (weapon_bypasses_dr(wielded, cur, ch) == FALSE)))
+    if (!weapon_bypasses_dr(wielded, cur, ch) && (dr == NULL || dr->amount < cur->amount))
       dr = cur;
   }
 
-  /* Now dr is set to the 'best' DR for the incoming damage. */
-  if (weapon_bypasses_dr(wielded, dr, ch) == TRUE)
-  {
-    reduction = 0;
-  }
-  else
+  if (dr == NULL)
+    return dam;
+
+  /* Apply the strongest DR that this attack does not bypass. */
   {
     int effective_dr = dr->amount;
 
@@ -14642,6 +14661,8 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
 
   if (!ch || !victim)
     return (HIT_MISS); /* ch and victim exist? */
+  mount_cleanup(ch);
+  mount_cleanup(victim);
   if (ch != victim && !pvp_ok(ch, victim, TRUE))
     return (HIT_MISS);
   if (!PERF_combat_allow_attack())
@@ -17130,6 +17151,8 @@ void perform_violence(struct char_data *ch, int phase)
     /* Once per round when your mount is hit in combat, you may attempt a Ride
      * check (as an immediate action) to negate the hit. The hit is negated if
      * your Ride check result is greater than the opponent's attack roll. */
+    mount_cleanup(ch);
+    MOUNTED_BLOCKS_LEFT(ch) = 0;
     if (RIDING(ch) && HAS_FEAT(ch, FEAT_MOUNTED_COMBAT))
       MOUNTED_BLOCKS_LEFT(ch) = 1;
     if (RIDING(ch) && HAS_FEAT(ch, FEAT_LEGENDARY_RIDER))
