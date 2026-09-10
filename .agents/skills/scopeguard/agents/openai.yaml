@@ -1,4 +1,0 @@
-interface:
-  display_name: "Scope Guard"
-  short_description: "Keep work within agreed scope"
-  default_prompt: "Use $scopeguard when scope is expanding or a scope review is needed."

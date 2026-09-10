@@ -52,8 +52,9 @@ foreign-internals port, cosmetic refactor, or unrelated cleanup belongs on this 
 3. **Deliver.** When the remaining workflows and both reference comparisons are accounted for,
    run the final delivery gate below and close Phase 1. Do not add another design or testing phase.
 
-Before each implementation batch, apply scopeguard and plan-ablation briefly: name the missing
-player behavior or concrete failure, the smallest existing path to change, and the proof needed.
+Before each implementation batch, apply
+[ablation](../../.agents/skills/ablation/SKILL.md) briefly: name the missing player behavior or concrete
+failure, the smallest existing path to change, and the proof needed.
 Omit any proposed work that cannot answer which requirement or concrete correctness risk it
 addresses. This is a brief check, not a new report or approval ceremony.
 

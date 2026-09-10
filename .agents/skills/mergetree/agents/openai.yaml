@@ -1,4 +1,0 @@
-interface:
-  display_name: "Merge Worktree"
-  short_description: "Merge and optionally publish a worktree"
-  default_prompt: "Use $mergetree to merge and validate a worktree; publish only when requested."
