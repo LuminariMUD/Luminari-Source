@@ -1330,6 +1330,7 @@ static bool follower_admit(struct char_data *ch, struct char_data *pet,
   return true;
 }
 
+/* Names the category and usage that refused a pet, for players and logs. */
 static void follower_denial_reason(struct char_data *ch, struct char_data *pet,
                                    const struct follower_count_data *counts, char *reason,
                                    size_t size)
@@ -1346,6 +1347,7 @@ static void follower_denial_reason(struct char_data *ch, struct char_data *pet,
              counts->categories[category], follower_category_limit(ch, category));
 }
 
+/* Admission for one existing or staged mobile against the owner's live followers. */
 bool can_add_follower_mobile(struct char_data *ch, struct char_data *pet)
 {
   struct follower_count_data counts;

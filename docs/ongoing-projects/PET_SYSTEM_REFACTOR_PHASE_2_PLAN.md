@@ -15,6 +15,9 @@ See [Phase 1](PET_SYSTEM_REFACTOR_PLAN.md) for remaining gameplay parity work.
     explicit player and pet priority.
   - Keep rejected or malformed rows saved for recovery, publish no partial inventory, and ensure a
     retry never duplicates a pet already restored by stable ID.
+  - Outcome: a malformed row keeps every row saved and nothing published. A rejected
+    keeper-eligible row moves to the keeper (`PET_STATE_STORED`) for reclaim; a rejected timed
+    row is spent and leaves with the next snapshot, matching the tested expiry contract.
 
 - [ ] Close callback and transaction edge cases:
   - Define and test equipment and mobile callback behavior while a pet is prepared outside a room.

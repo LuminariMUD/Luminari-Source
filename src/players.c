@@ -7502,11 +7502,15 @@ void load_char_pets(struct char_data *ch)
     count = 0;
   }
 
+  /* Publication stops at the first failure so the roster is not further
+   * exposed piecemeal.  The unpublished rows stay saved, the failed state
+   * keeps the next snapshot from replacing them, and 'pets restore' retries
+   * while skipping every pet already published by identity. */
   owner_handle = domain_event_character_handle(ch);
   for (i = 0; i < count; i++)
   {
     pet = staged[i];
-    if (!ch)
+    if (!ch || restore_failed)
     {
       discard_unpublished_saved_pet(pet);
       continue;

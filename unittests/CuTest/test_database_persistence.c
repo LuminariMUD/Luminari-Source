@@ -1791,6 +1791,8 @@ void Test_pet_lifetime_survives_snapshot_restore_and_keeper_release(CuTest *tc)
   w.room.people = &fixture.owner;
   GET_MOB_RNUM(&fixture.first_pet) = 0;
   GET_MOB_RNUM(&fixture.second_pet) = 0;
+  /* Login restore is bounded by admission; two general followers need Charisma. */
+  GET_CHA(&fixture.owner) = 14;
   /* first_pet: timed control (charm affect).  second_pet: 90 second deadline.
    * session_pet: an ordinary summon with neither. */
   attach_mud_event(new_mud_event(ePURGEMOB, &fixture.second_pet, NULL), 90 * PASSES_PER_SEC);

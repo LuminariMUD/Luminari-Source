@@ -9832,9 +9832,10 @@ follower whose time ran out before the policy existed is released when you try
 to reclaim it, freeing its slot. The keeper holds up to 10 followers for you.
 
 When you log in with more saved followers than you can currently control, each
-follower you cannot control is handed to the keeper instead of being lost, and
-the login message names it with the limit that refused it. This can take the
-keeper past its usual 10; reclaim them once you have room.
+keeper-eligible follower you cannot control is handed to the keeper instead of
+being lost, and the login message names it with the limit that refused it.
+This can take the keeper past its usual 10; reclaim them once you have room.
+A timed follower that does not fit is spent instead of stored.
 
 STABLE RECLAIM returns a stabled follower by its listed number - the small
 number shown beside it, such as 'stable reclaim 1'. The longer stable ID in the
