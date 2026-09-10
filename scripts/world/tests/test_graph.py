@@ -75,7 +75,7 @@ class FullGraphTests(unittest.TestCase):
     self.assertEqual(before, tree_hash(root))
 
   def test_tracked_real_bundles_have_stable_phase2_results_and_are_read_only(self) -> None:
-    expected_errors = {"artifacts": set(), "minimal": {"MOB016"}}
+    expected_errors = {"artifacts": set(), "minimal": set()}
     for name, expected in expected_errors.items():
       with self.subTest(bundle=name):
         root = self.repo_root / "lib/world" / name
