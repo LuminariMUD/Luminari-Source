@@ -76,6 +76,30 @@ class MobileParserTests(unittest.TestCase):
     invalid = self.parse(mobile_record(enhanced="SpellRes: 101\n"))
     self.assertEqual(["MOB026"], [item.code for item in invalid.findings])
 
+  def test_tracked_minimal_golem_records_have_in_range_standing_positions(self) -> None:
+    path = self.repo_root / "lib/world/minimal/16.mob"
+    result = parse_mobile_file(path, "lib/world/minimal/16.mob", self.manifest, self.spec_names)
+    positions = self.manifest["tables"]["positions"]["entries"]
+    position_count = len(positions)
+    standing = next(entry["index"] for entry in positions if entry["macro"] == "POS_STANDING")
+    records = [record for record in result.records if 16500 <= record.vnum <= 16511]
+
+    self.assertTrue(path.is_file())
+    self.assertEqual(
+        [],
+        [item.code for item in result.findings if item.code in {"MOB016", "MOB017"}],
+    )
+    self.assertEqual(list(range(16500, 16512)), [record.vnum for record in records])
+    for record in records:
+      self.assertIsNotNone(record.position)
+      self.assertIsNotNone(record.default_position)
+      self.assertGreaterEqual(record.position, 0)
+      self.assertLess(record.position, position_count)
+      self.assertGreaterEqual(record.default_position, 0)
+      self.assertLess(record.default_position, position_count)
+      self.assertEqual(standing, record.position)
+      self.assertEqual(standing, record.default_position)
+
 
 if __name__ == "__main__":
   unittest.main()
