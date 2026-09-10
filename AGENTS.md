@@ -7,7 +7,7 @@ never print or modify credentials.
 
 - The MUD game port is 4100 only, including local development. Do not start or configure a different game port based on historical notes or handoff summaries. Use `MUD_PORT=4100 ./scripts/autorun/autorun.sh`. DO NOT HESITATE TO USE THS PORT FREELY FOR DEVELOPMENT AND TESTING!
 
-- NEVER attribute AI (Claude or anybody else) in commits or anywhere else.
+- NEVER attribute AI (Claude or anybody else) in commits or anywhere else.  NEVER post session links.
 - NEVER modify `src/campaign.h`, `src/mud_options.h`, `src/vnums.h` - they are local, customized configuration (gitignored). Edit the `.example.h` templates instead if a template change is needed. Only copy `.example.h` -> `.h` on a fresh clone where the real headers do not exist yet.
 - `lib/mysql_config` and `lib/.env` contain credentials: you may read them, never modify them without permission. Edit `lib/mysql_config_example` / `lib/.env.example` instead.
 - When adding or removing a source file, update BOTH `Makefile.am` and `CMakeLists.txt`.

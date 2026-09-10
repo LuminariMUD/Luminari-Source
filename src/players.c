@@ -6893,12 +6893,16 @@ bool save_char_pets(struct char_data *ch)
   transaction_started = true;
 
   /* Replace only rows this owner binding owns; a differently bound row under the
-   * same reused name is ambiguous and is retained for review. */
+   * same reused name is ambiguous and is retained for review.  Saved objects
+   * are addressed through the pet rows being replaced, never through the
+   * mutable owner name on the object row.  The cascading foreign key would
+   * remove them with the pet row anyway; the explicit statement keeps the
+   * transaction self-describing on tables that cannot carry the constraint. */
   snprintf(delete_query, sizeof(delete_query),
-           "DELETE FROM pet_save_objs WHERE owner_name = '%s' AND pet_idnum NOT IN "
-           "(SELECT pet_data_id FROM pet_data WHERE owner_name = '%s' AND (pet_state <> %d OR "
-           "(owner_id <> 0 AND (owner_id <> %ld OR owner_created <> %lld))))",
-           escaped_owner, escaped_owner, PET_STATE_ACTIVE, owner_id, owner_created);
+           "DELETE FROM pet_save_objs WHERE pet_idnum IN "
+           "(SELECT pet_data_id FROM pet_data WHERE owner_name = '%s' AND pet_state = %d AND "
+           "(owner_id = 0 OR (owner_id = %ld AND owner_created = %lld)))",
+           escaped_owner, PET_STATE_ACTIVE, owner_id, owner_created);
   if (mysql_query(conn, delete_query))
   {
     log_pet_save_failure(ch, NOBODY, "delete pet objects", mysql_errno(conn), mysql_error(conn));
@@ -7526,7 +7530,9 @@ bool pet_store_pet(struct char_data *owner, struct char_data *pet)
   }
   transaction_started = true;
 
-  /* Replace this pet's own rows only; other followers stay untouched. */
+  /* Replace this pet's own rows only; other followers stay untouched.  The
+   * saved objects are removed by pet identity ahead of the row the foreign
+   * key would cascade from. */
   if (record->saved_id > 0)
   {
     snprintf(query, sizeof(query), "DELETE FROM pet_save_objs WHERE pet_idnum = %ld",

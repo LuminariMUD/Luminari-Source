@@ -1258,6 +1258,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_i3_client_production.c
     unittests/CuTest/test_msdp_production.c
     unittests/CuTest/test_necromancer.c
+    unittests/CuTest/test_pet_persistence.c
     unittests/CuTest/test_pet_policy.c
     unittests/CuTest/test_study_pet_menus.c
     unittests/CuTest/test_bounds_checking.c

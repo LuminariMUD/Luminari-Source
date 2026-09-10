@@ -77,8 +77,11 @@ static int Crash_save_pet(struct obj_data *obj, struct char_data *ch, struct cha
                           long int pet_idnum, int location);
 int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch,
                                    struct char_data *owner, long int pet_idnum, int locate);
-static obj_save_data *objsave_parse_objects_db_pet(const char *name, long int pet_idnum,
+static obj_save_data *objsave_parse_objects_db_pet(struct char_data *owner, long int pet_idnum,
                                                    enum pet_object_load_status *status);
+static void log_pet_object_failure(const char *operation, struct char_data *owner,
+                                   long int pet_idnum, int obj_vnum, unsigned int error_code,
+                                   const char *detail);
 int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch,
                                       long int sheath_idnum, int sheath_slot);
 void load_sheath_contents(struct char_data *ch, struct obj_data *sheath, long int idnum);
@@ -3335,6 +3338,7 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj,
   size_t query_size;
   int result = 0;
   int written;
+  const char *failure = NULL;
 
   /* load up the object */
   if (GET_OBJ_VNUM(obj) != NOTHING)
@@ -3345,7 +3349,11 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj,
     temp->item_number = NOWHERE;
   }
   if (!temp)
+  {
+    log_pet_object_failure("read object prototype", owner, pet_idnum, GET_OBJ_VNUM(obj), 0,
+                           "object prototype unavailable");
     return 0;
+  }
 
   /* copy the action-description to buf1 */
   if (obj->action_description)
@@ -3563,29 +3571,47 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj,
    * serialization so the owner transaction rolls back instead of storing a
    * partial object record. */
   if (strlen(ins_buf) >= sizeof(ins_buf) - 1)
+  {
+    failure = "serialized object exceeded its payload buffer";
     goto cleanup;
+  }
 
   escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(owner));
   escaped_payload = mysql_escape_string_alloc(conn, ins_buf);
   if (!escaped_owner || !escaped_payload)
+  {
+    failure = "memory allocation while escaping the object payload";
     goto cleanup;
+  }
 
   query_size = strlen(escaped_owner) + strlen(escaped_payload) + 160;
   insert_query = malloc(query_size);
   if (!insert_query)
+  {
+    failure = "object INSERT allocation failed";
     goto cleanup;
+  }
   written = snprintf(insert_query, query_size,
                      "INSERT INTO pet_save_objs (pet_idnum, owner_name, serialized_obj) "
                      "VALUES (%ld, '%s', '%s')",
                      pet_idnum, escaped_owner, escaped_payload);
   if (written < 0 || (size_t)written >= query_size)
+  {
+    failure = "object INSERT exceeded its allocated buffer";
     goto cleanup;
+  }
   if (mysql_query(conn, insert_query))
+  {
+    failure = mysql_error(conn);
     goto cleanup;
+  }
 
   result = 1;
 
 cleanup:
+  if (!result)
+    log_pet_object_failure("insert pet object", owner, pet_idnum, GET_OBJ_VNUM(obj),
+                           conn ? mysql_errno(conn) : 0, failure);
   free(insert_query);
   free(escaped_payload);
   free(escaped_owner);
@@ -3644,6 +3670,13 @@ static bool pet_object_graph_valid(struct char_data *ch, const obj_save_data *re
   return true;
 }
 
+#ifdef LUMINARI_CUTEST
+bool pet_object_graph_valid_for_test(struct char_data *ch, const obj_save_data *records)
+{
+  return pet_object_graph_valid(ch, records);
+}
+#endif
+
 enum pet_object_load_status pet_load_objs(struct char_data *ch, struct char_data *owner,
                                           long int pet_idnum)
 {
@@ -3658,7 +3691,7 @@ enum pet_object_load_status pet_load_objs(struct char_data *ch, struct char_data
   for (i = 0; i < MAX_BAG_ROWS; i++)
     cont_row[i] = NULL;
 
-  loaded = objsave_parse_objects_db_pet(GET_NAME(owner), pet_idnum, &status);
+  loaded = objsave_parse_objects_db_pet(owner, pet_idnum, &status);
 
   if (loaded == NULL)
   {
@@ -3838,7 +3871,29 @@ static bool pet_object_set_text(char **destination, const char *prototype, char 
   return true;
 }
 
-static obj_save_data *objsave_parse_objects_db_pet(const char *name, long int pet_idnum,
+/* Pet object failures are reported with the identity needed to find the row --
+ * owner ID, pet row ID, object vnum -- and never with the serialized payload or
+ * the SQL statement that carried it. */
+static void log_pet_object_failure(const char *operation, struct char_data *owner,
+                                   long int pet_idnum, int obj_vnum, unsigned int error_code,
+                                   const char *detail)
+{
+  char safe_detail[161];
+  size_t index;
+
+  detail = detail && *detail ? detail : "no database error detail";
+  snprintf(safe_detail, sizeof(safe_detail), "%s", detail);
+  for (index = 0; safe_detail[index] != '\0'; index++)
+    if (safe_detail[index] == '\r' || safe_detail[index] == '\n')
+      safe_detail[index] = ' ';
+
+  log("SYSERR: pet objects: operation=%.40s owner_id=%ld pet_data_id=%ld obj_vnum=%d "
+      "mysql_errno=%u detail=\"%.160s\"",
+      operation ? operation : "unknown", owner && !IS_NPC(owner) ? (long)GET_IDNUM(owner) : 0L,
+      pet_idnum, obj_vnum, error_code, safe_detail);
+}
+
+static obj_save_data *objsave_parse_objects_db_pet(struct char_data *owner, long int pet_idnum,
                                                    enum pet_object_load_status *status)
 {
   obj_save_data *head, *current, *tempsave;
@@ -3850,7 +3905,6 @@ static obj_save_data *objsave_parse_objects_db_pet(const char *name, long int pe
   char buf[1024];
   char *serialized_obj = NULL;
   bool parse_failed = false;
-  char *escaped_name;
   int written;
   int locate;
   int obj_db_idnum = 0;
@@ -3862,29 +3916,29 @@ static obj_save_data *objsave_parse_objects_db_pet(const char *name, long int pe
   *status = PET_OBJECT_LOAD_FAILED;
   if (conn == NULL)
     return NULL;
-  escaped_name = mysql_escape_string_alloc(conn, name);
-  if (escaped_name == NULL)
-    return NULL;
+  /* Saved objects are addressed by the pet row that owns them.  The owner name
+   * on those rows is a mutable display value and is deliberately not part of
+   * the lookup, so a renamed owner still recovers a pet's inventory. */
   written = snprintf(buf, sizeof(buf),
                      "SELECT   serialized_obj "
                      "FROM     pet_save_objs "
-                     "WHERE    owner_name = '%s' "
-                     "AND      pet_idnum = '%ld' "
+                     "WHERE    pet_idnum = %ld "
                      "ORDER BY idnum ASC;",
-                     escaped_name, pet_idnum);
-  free(escaped_name);
+                     pet_idnum);
   if (written < 0 || (size_t)written >= sizeof(buf))
     return NULL;
 
   if (mysql_query(conn, buf))
   {
-    log("SYSERR: Pet object query failed (mysql_errno=%u)", mysql_errno(conn));
+    log_pet_object_failure("select pet objects", owner, pet_idnum, NOTHING, mysql_errno(conn),
+                           mysql_error(conn));
     return NULL;
   }
 
   if (!(result = mysql_store_result(conn)))
   {
-    log("SYSERR: Pet object result unavailable (mysql_errno=%u)", mysql_errno(conn));
+    log_pet_object_failure("read pet objects", owner, pet_idnum, NOTHING, mysql_errno(conn),
+                           mysql_error(conn));
     return NULL;
   }
 

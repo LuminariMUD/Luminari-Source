@@ -88,15 +88,6 @@ CREATE TABLE IF NOT EXISTS player_save_objs_sheathed (
   INDEX idx_player_save_objs_sheathed_sheath (sheath_obj_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS pet_save_objs (
-  idnum INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  pet_idnum BIGINT NOT NULL,
-  owner_name VARCHAR(50) NOT NULL,
-  serialized_obj TEXT NOT NULL,
-  creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_pet_save_objs_pet (pet_idnum),
-  INDEX idx_pet_save_objs_owner (owner_name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS pet_data (
   pet_data_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -109,21 +100,36 @@ CREATE TABLE IF NOT EXISTS pet_data (
   dex INT NOT NULL,
   level INT NOT NULL,
   ac INT NOT NULL,
-  intel INT DEFAULT 10,
-  wis INT DEFAULT 10,
-  cha INT DEFAULT 10,
+  intel INT NOT NULL DEFAULT 10,
+  wis INT NOT NULL DEFAULT 10,
+  cha INT NOT NULL DEFAULT 10,
   pet_name VARCHAR(255) NOT NULL,
   pet_sdesc VARCHAR(255) NOT NULL,
-  pet_ldesc VARCHAR(255) NOT NULL,
+  pet_ldesc TEXT NOT NULL,
   pet_ddesc TEXT NOT NULL,
   runtime_state LONGTEXT DEFAULT NULL,
   owner_id INT UNSIGNED NOT NULL DEFAULT 0,
   owner_created BIGINT NOT NULL DEFAULT 0,
   pet_state TINYINT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_pet_owner (owner_name),
   INDEX idx_pet_owner_binding (owner_id, owner_created),
   INDEX idx_pet_owner_state (owner_name, pet_state)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS pet_save_objs (
+  idnum INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  pet_idnum INT UNSIGNED NOT NULL,
+  owner_name VARCHAR(50) NOT NULL,
+  serialized_obj LONGTEXT NOT NULL,
+  creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_pet_save_objs_pet (pet_idnum),
+  INDEX idx_pet_save_objs_owner (owner_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- The cascading foreign key pet_save_objs.pet_idnum -> pet_data.pet_data_id is
+-- created only by pet persistence migration 2026091007 at startup.  MariaDB
+-- refuses to modify a constrained column, so a base table that already carried
+-- the key would block the earlier migrations from replaying on a fresh install.
 
 CREATE TABLE IF NOT EXISTS player_eidolons (
   idnum INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
