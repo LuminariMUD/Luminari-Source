@@ -1100,6 +1100,59 @@ static int pet_schema_has_index(const char *table_name, const char *column_name,
   return matches;
 }
 
+/* Confirm that column_name carries a foreign key to referenced_table whose
+ * delete and update rules both cascade, reading the live constraint metadata
+ * rather than the statement that was expected to create it. */
+static int pet_schema_has_foreign_key(const char *table_name, const char *column_name,
+                                      const char *referenced_table, const char *referenced_column)
+{
+  char query[512];
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  int matches = FALSE;
+
+  snprintf(query, sizeof(query),
+           "SELECT k.CONSTRAINT_NAME, r.DELETE_RULE, r.UPDATE_RULE "
+           "FROM information_schema.KEY_COLUMN_USAGE k "
+           "JOIN information_schema.REFERENTIAL_CONSTRAINTS r "
+           "ON r.CONSTRAINT_SCHEMA = k.CONSTRAINT_SCHEMA "
+           "AND r.CONSTRAINT_NAME = k.CONSTRAINT_NAME "
+           "WHERE k.TABLE_SCHEMA = DATABASE() AND k.TABLE_NAME = '%s' "
+           "AND k.COLUMN_NAME = '%s' AND k.REFERENCED_TABLE_NAME = '%s' "
+           "AND k.REFERENCED_COLUMN_NAME = '%s'",
+           table_name, column_name, referenced_table, referenced_column);
+  if (mysql_query_safe(conn, query))
+  {
+    log("SYSERR: Unable to inspect required pet foreign key on %s.%s: %s", table_name, column_name,
+        mysql_error(conn));
+    return FALSE;
+  }
+
+  result = mysql_store_result_safe(conn);
+  if (!result)
+  {
+    log("SYSERR: Unable to read required pet foreign key on %s.%s: %s", table_name, column_name,
+        mysql_error(conn));
+    return FALSE;
+  }
+
+  while ((row = mysql_fetch_row(result)))
+  {
+    if (row[1] && strcasecmp(row[1], "CASCADE") == 0 && row[2] &&
+        strcasecmp(row[2], "CASCADE") == 0)
+    {
+      matches = TRUE;
+      break;
+    }
+  }
+  mysql_free_result(result);
+  if (!matches)
+    log("SYSERR: Required cascading foreign key %s.%s -> %s.%s is missing", table_name, column_name,
+        referenced_table, referenced_column);
+
+  return matches;
+}
+
 static int pet_schema_has_primary_key(const char *table_name)
 {
   char query[128];
@@ -1182,7 +1235,17 @@ int verify_pet_persistence_schema(void)
     valid = FALSE;
   if (!pet_schema_column_matches("pet_data", "pet_data_id", "int", NULL, FALSE))
     valid = FALSE;
+  if (!pet_schema_column_is_unsigned("pet_data", "pet_data_id"))
+    valid = FALSE;
   if (!pet_schema_column_matches("pet_data", "owner_name", "varchar(50)", NULL, FALSE))
+    valid = FALSE;
+  if (!pet_schema_column_matches("pet_data", "pet_name", "varchar(255)", NULL, FALSE))
+    valid = FALSE;
+  if (!pet_schema_column_matches("pet_data", "pet_sdesc", "varchar(255)", NULL, FALSE))
+    valid = FALSE;
+  if (!pet_schema_column_matches("pet_data", "pet_ldesc", "text", NULL, FALSE))
+    valid = FALSE;
+  if (!pet_schema_column_matches("pet_data", "pet_ddesc", "text", NULL, FALSE))
     valid = FALSE;
   if (!pet_schema_column_matches("pet_data", "runtime_state", "longtext", NULL, TRUE))
     valid = FALSE;
@@ -1196,9 +1259,11 @@ int verify_pet_persistence_schema(void)
     valid = FALSE;
   if (!pet_schema_column_matches("pet_save_objs", "owner_name", "varchar(50)", NULL, FALSE))
     valid = FALSE;
-  if (!pet_schema_column_matches("pet_save_objs", "pet_idnum", "bigint", NULL, FALSE))
+  if (!pet_schema_column_matches("pet_save_objs", "pet_idnum", "int", NULL, FALSE))
     valid = FALSE;
-  if (!pet_schema_column_matches("pet_save_objs", "serialized_obj", "text", "longtext", FALSE))
+  if (!pet_schema_column_is_unsigned("pet_save_objs", "pet_idnum"))
+    valid = FALSE;
+  if (!pet_schema_column_matches("pet_save_objs", "serialized_obj", "longtext", NULL, FALSE))
     valid = FALSE;
   if (!pet_schema_has_index("pet_data", "pet_data_id", TRUE))
     valid = FALSE;
@@ -1211,6 +1276,8 @@ int verify_pet_persistence_schema(void)
   if (!pet_schema_has_index("pet_save_objs", "owner_name", FALSE))
     valid = FALSE;
   if (!pet_schema_has_index("pet_save_objs", "pet_idnum", FALSE))
+    valid = FALSE;
+  if (!pet_schema_has_foreign_key("pet_save_objs", "pet_idnum", "pet_data", "pet_data_id"))
     valid = FALSE;
   if (!pet_schema_migration_is_current())
     valid = FALSE;

@@ -268,16 +268,39 @@ static bool create_legacy_pet_temporary_schema(MYSQL *connection)
   const char *queries[] = {"CREATE TEMPORARY TABLE schema_migrations ("
                            "version INT NOT NULL PRIMARY KEY, description VARCHAR(255) NOT NULL, "
                            "applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB",
+                           /* The pre-migration production shape: signed row
+                            * identifier, nullable descriptions, unsigned-free
+                            * object identifier. */
                            "CREATE TEMPORARY TABLE pet_data ("
-                           "pet_data_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, "
-                           "owner_name VARCHAR(50) NOT NULL, cha INT NOT NULL) ENGINE=InnoDB",
+                           "pet_data_id INT AUTO_INCREMENT PRIMARY KEY, "
+                           "owner_name VARCHAR(50) NOT NULL, "
+                           "pet_name VARCHAR(50) DEFAULT NULL, "
+                           "pet_sdesc VARCHAR(255) DEFAULT NULL, "
+                           "pet_ldesc TEXT DEFAULT NULL, pet_ddesc TEXT DEFAULT NULL, "
+                           "vnum INT NOT NULL DEFAULT 1, level INT NOT NULL DEFAULT 1, "
+                           "hp INT NOT NULL DEFAULT 1, max_hp INT NOT NULL DEFAULT 1, "
+                           "str INT NOT NULL DEFAULT 10, con INT NOT NULL DEFAULT 10, "
+                           "dex INT NOT NULL DEFAULT 10, ac INT NOT NULL DEFAULT 10, "
+                           "intel INT DEFAULT 10, wis INT DEFAULT 10, cha INT DEFAULT 10"
+                           ") ENGINE=InnoDB",
                            "CREATE TEMPORARY TABLE pet_save_objs ("
                            "idnum INT UNSIGNED AUTO_INCREMENT, owner_name VARCHAR(50) NOT NULL, "
                            "pet_idnum INT NOT NULL, serialized_obj TEXT NOT NULL, "
                            "UNIQUE KEY IDNUM (idnum)) ENGINE=InnoDB",
-                           "INSERT INTO pet_data (owner_name, cha) VALUES ('LegacyOwner', 17)",
+                           "INSERT INTO pet_data (owner_name, wis, cha) "
+                           "VALUES ('LegacyOwner', NULL, 17)",
                            "INSERT INTO pet_save_objs (owner_name, pet_idnum, serialized_obj) "
-                           "VALUES ('LegacyOwner', 1, '#1234')",
+                           "VALUES ('LegacyOwner', 1, '#1234'), ('LegacyOwner', 9, '#orphan'), "
+                           "('LegacyOwner', 0, '#unbound')",
+                           /* InnoDB refuses foreign keys on temporary tables, so
+                            * the cascade migration is recorded as applied here.
+                            * The booted suite applies it for real: the base
+                            * tables carry no constraint, so every fresh test
+                            * database runs 2026091007 at startup, and
+                            * Test_pet_live_schema_cascades_objects_and_rejects_orphans
+                            * then checks its outcome on those live tables. */
+                           "INSERT INTO schema_migrations (version, description) "
+                           "VALUES (2026091007, 'temporary fixture cannot carry a foreign key')",
                            NULL};
   int index;
 
@@ -715,6 +738,7 @@ void Test_pet_persistence_legacy_schema_migration_is_idempotent(CuTest *tc)
   int linked_rows;
   int runtime_state_null_rows;
   int max_owner_id_rows;
+  int filled_description_rows;
 
   enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
   if (enabled == NULL || strcmp(enabled, "1") != 0)
@@ -740,7 +764,7 @@ void Test_pet_persistence_legacy_schema_migration_is_idempotent(CuTest *tc)
   first_migration_count =
       query_single_int(connection,
                        "SELECT COUNT(*) FROM schema_migrations WHERE version BETWEEN 2026080501 "
-                       "AND 2026090801",
+                       "AND 2026091007",
                        -1);
   max_owner_id_rows =
       mysql_query(connection, "UPDATE pet_data SET owner_id = 4294967295") == 0
@@ -748,6 +772,12 @@ void Test_pet_persistence_legacy_schema_migration_is_idempotent(CuTest *tc)
                              "SELECT COUNT(*) FROM pet_data WHERE owner_id = 4294967295", -1)
           : -1;
   pet_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1);
+  filled_description_rows =
+      query_single_int(connection,
+                       "SELECT COUNT(*) FROM pet_data WHERE pet_name = '' AND pet_sdesc = '' "
+                       "AND pet_ldesc = '' AND pet_ddesc = '' AND wis = 10 AND cha = 17",
+                       -1);
+  /* The orphan and unbound object rows were purged ahead of the constraint. */
   object_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1);
   linked_rows =
       query_single_int(connection,
@@ -762,7 +792,7 @@ void Test_pet_persistence_legacy_schema_migration_is_idempotent(CuTest *tc)
   second_migration_count =
       query_single_int(connection,
                        "SELECT COUNT(*) FROM schema_migrations WHERE version BETWEEN 2026080501 "
-                       "AND 2026090801",
+                       "AND 2026091007",
                        -1);
   conn = saved_conn;
   mysql_available = saved_available;
@@ -771,15 +801,113 @@ void Test_pet_persistence_legacy_schema_migration_is_idempotent(CuTest *tc)
   CuAssertTrue(tc, fixture_created);
   CuAssertTrue(tc, first_migration);
   CuAssertTrue(tc, first_verification);
-  CuAssertIntEquals(tc, 7, first_migration_count);
+  CuAssertIntEquals(tc, 15, first_migration_count);
   CuAssertIntEquals(tc, 1, max_owner_id_rows);
   CuAssertIntEquals(tc, 1, pet_rows);
+  CuAssertIntEquals(tc, 1, filled_description_rows);
   CuAssertIntEquals(tc, 1, object_rows);
   CuAssertIntEquals(tc, 1, linked_rows);
   CuAssertIntEquals(tc, 1, runtime_state_null_rows);
   CuAssertTrue(tc, second_migration);
   CuAssertTrue(tc, second_verification);
-  CuAssertIntEquals(tc, 7, second_migration_count);
+  CuAssertIntEquals(tc, 15, second_migration_count);
+}
+
+/* The live tables carry the constraint that temporary fixtures cannot: the
+ * migration runner and validator accept the booted schema unchanged, deleting a
+ * pet row removes its saved objects, and an object row cannot point at a pet
+ * that does not exist.  Every write happens inside a transaction that is rolled
+ * back, so the configured database is left as it was found. */
+void Test_pet_live_schema_cascades_objects_and_rejects_orphans(CuTest *tc)
+{
+  const char *enabled;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  bool saved_available;
+  bool live_tables;
+  bool migrations_idempotent;
+  bool schema_verified;
+  bool seeded;
+  bool cascaded;
+  bool orphan_rejected;
+  unsigned int orphan_errno;
+  int pet_id;
+  int object_rows;
+  char query[512];
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  live_tables = query_single_int(connection,
+                                 "SELECT COUNT(*) FROM information_schema.TABLES "
+                                 "WHERE TABLE_SCHEMA = DATABASE() "
+                                 "AND TABLE_NAME IN ('pet_data', 'pet_save_objs')",
+                                 -1) == 2;
+  if (!live_tables)
+  {
+    mysql_close(connection);
+    CuFail(tc, "the test database must hold the live pet tables from sql/master_schema.sql");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  conn = connection;
+  mysql_available = true;
+  migrations_idempotent = run_pet_persistence_migrations();
+  schema_verified = migrations_idempotent && verify_pet_persistence_schema();
+  conn = saved_conn;
+  mysql_available = saved_available;
+
+  seeded = mysql_query(connection, "START TRANSACTION") == 0 &&
+           mysql_query(connection,
+                       "INSERT INTO pet_data (owner_name, vnum, hp, max_hp, str, con, dex, level, "
+                       "ac, pet_name, pet_sdesc, pet_ldesc, pet_ddesc) VALUES "
+                       "('CutestCascadeOwner', 1, 10, 10, 10, 10, 10, 1, 10, 'cascade pet', "
+                       "'a cascade pet', 'A cascade pet stands here.', 'Test fixture.')") == 0;
+  pet_id = seeded ? (int)mysql_insert_id(connection) : 0;
+  snprintf(query, sizeof(query),
+           "INSERT INTO pet_save_objs (pet_idnum, owner_name, serialized_obj) VALUES "
+           "(%d, 'CutestCascadeOwner', '#-1'), (%d, 'CutestCascadeOwner', '#-1')",
+           pet_id, pet_id);
+  seeded = seeded && pet_id > 0 && mysql_query(connection, query) == 0;
+  snprintf(query, sizeof(query), "SELECT COUNT(*) FROM pet_save_objs WHERE pet_idnum = %d", pet_id);
+  object_rows = seeded ? query_single_int(connection, query, -1) : -1;
+
+  snprintf(query, sizeof(query), "DELETE FROM pet_data WHERE pet_data_id = %d", pet_id);
+  cascaded = seeded && mysql_query(connection, query) == 0;
+  snprintf(query, sizeof(query), "SELECT COUNT(*) FROM pet_save_objs WHERE pet_idnum = %d", pet_id);
+  cascaded = cascaded && query_single_int(connection, query, -1) == 0;
+
+  snprintf(query, sizeof(query),
+           "INSERT INTO pet_save_objs (pet_idnum, owner_name, serialized_obj) VALUES "
+           "(%d, 'CutestCascadeOwner', '#-1')",
+           pet_id);
+  orphan_rejected = seeded && mysql_query(connection, query) != 0;
+  orphan_errno = mysql_errno(connection);
+
+  mysql_query(connection, "ROLLBACK");
+  mysql_close(connection);
+
+  CuAssertTrue(tc, migrations_idempotent);
+  CuAssertTrue(tc, schema_verified);
+  CuAssertTrue(tc, seeded);
+  CuAssertIntEquals(tc, 2, object_rows);
+  CuAssertTrue(tc, cascaded);
+  CuAssertTrue(tc, orphan_rejected);
+  /* ER_NO_REFERENCED_ROW_2: the foreign key refused the orphan row. */
+  CuAssertIntEquals(tc, 1452, (int)orphan_errno);
 }
 
 void Test_pet_persistence_schema_rejects_incompatible_contract(CuTest *tc)
@@ -864,10 +992,12 @@ void Test_pet_restore_failure_blocks_snapshot_replacement(CuTest *tc)
       mysql_query(
           connection,
           "ALTER TABLE pet_save_objs ADD creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP") == 0;
+  /* Saved objects are addressed by pet row, so the owner name plays no part in
+   * the lookup: a pet row without objects is empty whatever the owner is called. */
   fixture.owner.player.name = (char *)"No Pet's Owner";
-  empty = pet_load_objs(&fixture.second_pet, &fixture.owner, 700) == PET_OBJECT_LOAD_EMPTY;
+  empty = pet_load_objs(&fixture.second_pet, &fixture.owner, 699) == PET_OBJECT_LOAD_EMPTY;
   mysql_test_fail_nth_query(1);
-  failed = pet_load_objs(&fixture.second_pet, &fixture.owner, 700) == PET_OBJECT_LOAD_FAILED;
+  failed = pet_load_objs(&fixture.second_pet, &fixture.owner, 699) == PET_OBJECT_LOAD_FAILED;
   mysql_test_clear_query_failure();
   retained =
       retained &&

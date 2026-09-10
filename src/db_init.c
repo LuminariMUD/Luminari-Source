@@ -105,29 +105,33 @@ void init_core_player_tables(void)
     return;
   }
 
-  /* pet_data - Saved companion information */
+  /* pet_data - Saved companion information.  Column definitions here must match
+   * sql/master_schema.sql and the contract asserted by
+   * verify_pet_persistence_schema(); existing installations are moved onto that
+   * contract by run_pet_persistence_migrations(), which is the sole authority
+   * for schema changes. */
   const char *create_pet_data = "CREATE TABLE IF NOT EXISTS pet_data ("
-                                "pet_data_id INT AUTO_INCREMENT PRIMARY KEY, "
+                                "pet_data_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, "
                                 "owner_name VARCHAR(50) NOT NULL, "
-                                "pet_name VARCHAR(50) DEFAULT NULL, "
-                                "pet_sdesc VARCHAR(255) DEFAULT NULL, "
-                                "pet_ldesc TEXT DEFAULT NULL, "
-                                "pet_ddesc TEXT DEFAULT NULL, "
                                 "vnum INT NOT NULL, "
-                                "level INT NOT NULL, "
                                 "hp INT NOT NULL, "
                                 "max_hp INT NOT NULL, "
                                 "str INT NOT NULL, "
                                 "con INT NOT NULL, "
                                 "dex INT NOT NULL, "
+                                "level INT NOT NULL, "
                                 "ac INT NOT NULL, "
-                                "intel INT NOT NULL DEFAULT 0, "
-                                "wis INT NOT NULL, "
-                                "cha INT NOT NULL, "
+                                "intel INT NOT NULL DEFAULT 10, "
+                                "wis INT NOT NULL DEFAULT 10, "
+                                "cha INT NOT NULL DEFAULT 10, "
+                                "pet_name VARCHAR(255) NOT NULL, "
+                                "pet_sdesc VARCHAR(255) NOT NULL, "
+                                "pet_ldesc TEXT NOT NULL, "
+                                "pet_ddesc TEXT NOT NULL, "
                                 "runtime_state LONGTEXT DEFAULT NULL, "
                                 "owner_id INT UNSIGNED NOT NULL DEFAULT 0, "
-                                "pet_state TINYINT NOT NULL DEFAULT 0, "
                                 "owner_created BIGINT NOT NULL DEFAULT 0, "
+                                "pet_state TINYINT NOT NULL DEFAULT 0, "
                                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
                                 "INDEX idx_pet_owner (owner_name), "
                                 "INDEX idx_pet_owner_binding (owner_id, owner_created), "
@@ -137,16 +141,6 @@ void init_core_player_tables(void)
   if (mysql_query_safe(conn, create_pet_data))
   {
     log("SYSERR: Failed to create pet_data table: %s", mysql_error(conn));
-    return;
-  }
-
-  const char *migrate_pet_runtime_state =
-      "ALTER TABLE pet_data "
-      "ADD COLUMN IF NOT EXISTS runtime_state LONGTEXT DEFAULT NULL AFTER cha";
-
-  if (mysql_query_safe(conn, migrate_pet_runtime_state))
-  {
-    log("SYSERR: Failed to add pet_data.runtime_state: %s", mysql_error(conn));
     return;
   }
 
@@ -247,12 +241,16 @@ void init_core_player_tables(void)
     return;
   }
 
-  /* pet_save_objs - Pet object saves */
+  /* pet_save_objs - Pet object saves.  The cascading foreign key to pet_data
+   * is deliberately absent here and in sql/master_schema.sql: MariaDB refuses
+   * to modify a constrained column, so a base table that already carried the
+   * key would block the earlier pet migrations from replaying on a fresh
+   * install.  Migration 2026091007 creates it once those have run. */
   const char *create_pet_save_objs = "CREATE TABLE IF NOT EXISTS pet_save_objs ("
                                      "idnum INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, "
-                                     "pet_idnum BIGINT NOT NULL, "
+                                     "pet_idnum INT UNSIGNED NOT NULL, "
                                      "owner_name VARCHAR(50) NOT NULL, "
-                                     "serialized_obj TEXT NOT NULL, "
+                                     "serialized_obj LONGTEXT NOT NULL, "
                                      "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
                                      "INDEX idx_pet_save_objs_pet (pet_idnum), "
                                      "INDEX idx_pet_save_objs_owner (owner_name)"
@@ -1731,6 +1729,72 @@ int run_pet_persistence_migrations(void)
   if (!apply_migration(2026090801, "Match pet owner IDs to player IDs",
                        "ALTER TABLE pet_data "
                        "MODIFY COLUMN owner_id INT UNSIGNED NOT NULL DEFAULT 0"))
+    return FALSE;
+
+  /* Descriptions are written from live prototype strings that exceed a 255
+   * byte column, so the reconciled contract stores them as TEXT rather than
+   * truncating a restored pet's appearance. */
+  if (!apply_migration(2026091001, "Fill null pet description columns",
+                       "UPDATE pet_data SET "
+                       "pet_name = COALESCE(pet_name, ''), "
+                       "pet_sdesc = COALESCE(pet_sdesc, ''), "
+                       "pet_ldesc = COALESCE(pet_ldesc, ''), "
+                       "pet_ddesc = COALESCE(pet_ddesc, '') "
+                       "WHERE pet_name IS NULL OR pet_sdesc IS NULL OR pet_ldesc IS NULL OR "
+                       "pet_ddesc IS NULL"))
+    return FALSE;
+
+  if (!apply_migration(2026091002, "Align pet description column contract",
+                       "ALTER TABLE pet_data "
+                       "MODIFY COLUMN pet_name VARCHAR(255) NOT NULL, "
+                       "MODIFY COLUMN pet_sdesc VARCHAR(255) NOT NULL, "
+                       "MODIFY COLUMN pet_ldesc TEXT NOT NULL, "
+                       "MODIFY COLUMN pet_ddesc TEXT NOT NULL"))
+    return FALSE;
+
+  /* The original master schema left the mental attributes nullable. */
+  if (!apply_migration(2026091000, "Fill null pet mental attributes",
+                       "UPDATE pet_data SET "
+                       "intel = COALESCE(intel, 10), "
+                       "wis = COALESCE(wis, 10), "
+                       "cha = COALESCE(cha, 10) "
+                       "WHERE intel IS NULL OR wis IS NULL OR cha IS NULL"))
+    return FALSE;
+
+  if (!apply_migration(2026091003, "Align pet attribute column contract",
+                       "ALTER TABLE pet_data "
+                       "MODIFY COLUMN intel INT NOT NULL DEFAULT 10, "
+                       "MODIFY COLUMN wis INT NOT NULL DEFAULT 10, "
+                       "MODIFY COLUMN cha INT NOT NULL DEFAULT 10"))
+    return FALSE;
+
+  if (!apply_migration(2026091004, "Make the pet row identifier unsigned",
+                       "ALTER TABLE pet_data "
+                       "MODIFY COLUMN pet_data_id INT UNSIGNED NOT NULL AUTO_INCREMENT"))
+    return FALSE;
+
+  /* Saved object rows without a surviving pet row can never be restored and
+   * would block the referential constraint added below. */
+  if (!apply_migration(2026091005, "Purge orphaned pet object rows",
+                       "DELETE FROM pet_save_objs WHERE pet_idnum <= 0 OR pet_idnum NOT IN "
+                       "(SELECT pet_data_id FROM pet_data)"))
+    return FALSE;
+
+  if (!apply_migration(2026091006, "Match the pet object identifier to its pet row",
+                       "ALTER TABLE pet_save_objs "
+                       "MODIFY COLUMN pet_idnum INT UNSIGNED NOT NULL, "
+                       "MODIFY COLUMN serialized_obj LONGTEXT NOT NULL"))
+    return FALSE;
+
+  /* The pet row owns its saved objects: removing a pet removes its inventory
+   * in the same statement, so no orphan can outlive its owner again.  This is
+   * the only place the constraint is created, so the recorded version is the
+   * idempotence guard and the statement stays portable. */
+  if (!apply_migration(2026091007, "Enforce the pet-to-object relationship",
+                       "ALTER TABLE pet_save_objs "
+                       "ADD CONSTRAINT fk_pet_save_objs_pet FOREIGN KEY (pet_idnum) "
+                       "REFERENCES pet_data (pet_data_id) "
+                       "ON DELETE CASCADE ON UPDATE CASCADE"))
     return FALSE;
 
   return TRUE;

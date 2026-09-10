@@ -373,6 +373,7 @@ void free_char(struct char_data *ch);
 const char *player_file_account_name(const struct char_data *ch);
 #ifdef LUMINARI_CUTEST
 bool apply_clone_owner_identity_for_test(struct char_data *mob, const char *owner_name);
+bool pet_object_graph_valid_for_test(struct char_data *ch, const obj_save_data *records);
 void load_legacy_events_for_test(FILE *fl, struct char_data *ch);
 bool skip_durable_event_section_for_test(FILE *fl);
 struct mud_event_durable_record;

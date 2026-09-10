@@ -434,6 +434,18 @@ The test creates a connection-local temporary table, performs an insert and
 select through the production prepared-statement wrappers, and closes the
 connection. Never point these variables at a production database.
 
+Most pet persistence tests also isolate themselves with temporary tables. The
+exception is `Test_pet_live_schema_cascades_objects_and_rejects_orphans`, which
+needs the live `pet_data` and `pet_save_objs` tables from
+`sql/master_schema.sql` because InnoDB refuses foreign keys on temporary tables.
+It runs the migration runner and validator against those tables, then checks
+the cascade and orphan rejection inside a transaction that is rolled back. The
+rollback covers only the fixture rows; the live schema stays migrated, which
+is the state the booted suite already left it in. CI loads the master schema into its
+isolated database before the suite runs; the master schema carries no foreign
+key, so the booted suite applies migration `2026091007` for real on every
+fresh database and this test observes its outcome.
+
 ## Isolated CI Boot Runtime
 
 The behavioral, production-linked, coverage, and integration jobs prepare a

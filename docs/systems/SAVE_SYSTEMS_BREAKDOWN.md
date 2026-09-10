@@ -131,12 +131,51 @@ Companion call, Mummy Dust, and Dragon Knight cooldown events are preserved by
 the native durable character-event save rather than cancelled before copyover.
 This is separate from each pet's finite lifetime or control-break event.
 
-The startup migration runner checks versions `2026080501` through `2026080506`
-on every boot, including when both tables already exist. Startup verifies the
-InnoDB engines, required column types and nullability, primary keys,
-owner/relation indexes, and migration version before loading world data. A
-failed migration or contract check stops the boot instead of allowing gameplay
-against an incompatible schema.
+The startup migration runner checks versions `2026080501` through `2026091007`
+on every boot, including when both tables already exist. It is the only schema
+authority: the runtime `CREATE TABLE` statements in `init_core_player_tables()`
+and `sql/master_schema.sql` describe the same base shape, and any change to the
+contract is a new migration rather than an edit to either copy. The cascading
+`pet_save_objs.pet_idnum -> pet_data.pet_data_id` foreign key is created only
+by migration `2026091007`. MariaDB refuses to modify a constrained column, so a
+base table that already carried the key would block the earlier migrations
+from replaying on a fresh install. Startup verifies the InnoDB engines,
+required column types, nullability, and unsigned identifiers, primary keys,
+owner/relation indexes, the foreign key with both rules set to `CASCADE`, and
+the migration version before loading world data. A failed migration or
+contract check stops the boot instead of allowing gameplay against an
+incompatible schema.
+
+Saved objects belong to their pet row. The loader selects them by `pet_idnum`
+alone; the `owner_name` column on an object row is display data and takes no
+part in lookup, so a renamed owner keeps every pet's inventory. Both save paths
+delete replaced object rows by pet identity before the pet row, and the foreign
+key removes anything that statement could miss. Rows whose pet no longer
+existed were purged by migration `2026091005` before the constraint was added.
+InnoDB refuses foreign keys on temporary tables, so the temporary fixtures in
+the test suite model the tables without it; the cascade and the orphan
+rejection are exercised against the live tables instead.
+
+Pet object loading never terminates the server. A query or result failure, an
+unknown or unreadable prototype, a partial numeric field, an unclosed nested
+container, a doubly claimed wear slot, or an out-of-range location all return
+`PET_OBJECT_LOAD_FAILED` after discarding every object decoded so far;
+`load_char_pets()` then drops that follower, marks the roster restore failed,
+and refuses to replace the stored snapshot until a complete restore succeeds.
+`handle_obj()` only moves objects between the inventory, a worn slot, and a
+container; a container missing from the row set returns its contents to the
+inventory rather than failing. The `exit()` calls in `src/obj/objsave.c` sit in
+the player, house, and sheath loaders and are not reachable from a pet restore.
+
+Owner rewrite churn was measured before choosing between dirty-record saves and
+batching. A local snapshot held 709 pet rows across 370 owners, averaging under
+two pets per owner with a maximum of twenty, and no pet carried more than 17
+object rows or two kilobytes of serialized objects. `save_char_pets()` already
+skips an unchanged owner through the fingerprint shortcut, so a rewrite only
+runs when something changed and then touches at most a few dozen rows inside
+one transaction. Per-row dirty tracking or statement batching would add state
+to reconcile on rollback without a measurable saving at that scale, so whole
+owner replacement stays the behavior.
 
 Failures use bounded, rate-limited operation, owner, pet VNUM, MariaDB, and
 schema-version context. Do not restore full SQL-payload logging: pet text and
