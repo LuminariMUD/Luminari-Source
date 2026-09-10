@@ -63,7 +63,7 @@
 #define PLAYER_AFFECT_FILE_VERSION 1
 #define BOARDING_ABILITY_PFILE_VERSION 1
 
-#define PET_RUNTIME_STATE_VERSION 3
+#define PET_RUNTIME_STATE_VERSION 4
 #define PET_RUNTIME_STATE_INITIAL_SIZE 4096
 #define PET_RUNTIME_STATE_MAX_SIZE 65535
 
@@ -181,7 +181,14 @@ struct pet_runtime_state
   bool mercenary_proc_fired;
   int source_spell;
   int behavior;
+  int lifetime_kind;    /* PET_SAVED_LIFETIME_* */
+  long long expires_at; /* Real-time epoch for deadline records; zero otherwise. */
 };
+
+/* Persisted lifetime kinds.  Timed control affects are already carried by
+ * the affect records, so only the event deadline needs its own marker. */
+#define PET_SAVED_LIFETIME_DURABLE 0
+#define PET_SAVED_LIFETIME_DEADLINE 1
 
 static char *serialize_pet_runtime_state(struct char_data *pet);
 static bool parse_pet_runtime_state(const char *serialized, struct pet_runtime_state *state);
@@ -5939,6 +5946,16 @@ static char *serialize_pet_runtime_state(struct char_data *pet)
   state.mercenary_proc_fired = state.hired_mercenary && PROC_FIRED(pet);
   state.source_spell = pet->pet_source_spell;
   state.behavior = pet->pet_behavior;
+  /* The scheduler handle is runtime-only; persist the absolute deadline it
+   * represents.  A deadline-class follower without a live event is already
+   * spent, so it is saved as expired rather than promoted to durable. */
+  if (pet_lifetime_kind(pet) == PET_LIFETIME_DEADLINE)
+  {
+    state.lifetime_kind = PET_SAVED_LIFETIME_DEADLINE;
+    state.expires_at = pet_lifetime_deadline(pet);
+    if (state.expires_at <= 0)
+      state.expires_at = (long long)time(NULL);
+  }
   for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
     state.saves[i] = GET_REAL_SAVE(pet, i);
   for (i = 0; i < 10; i++)
@@ -5962,11 +5979,13 @@ static char *serialize_pet_runtime_state(struct char_data *pet)
       goto serialize_failure;                                                                      \
   } while (0)
 
-  /* V=version, B=affect bits, M=mobile bits, S=stats, R=saves, L=spell slots,
+  /* V=version, P=source spell, H=behavior, T=lifetime kind and deadline,
+   * B=affect bits, M=mobile bits, S=stats, R=saves, L=spell slots,
    * F=feat override, A=timed affect, and E=end. */
   PET_STATE_APPEND("V %d\n", PET_RUNTIME_STATE_VERSION);
   PET_STATE_APPEND("P %d\n", state.source_spell);
   PET_STATE_APPEND("H %d\n", state.behavior);
+  PET_STATE_APPEND("T %d %lld\n", state.lifetime_kind, state.expires_at);
   PET_STATE_APPEND("B %d %d %d %d %d %d %d %d\n", state.extra_aff[0], state.extra_aff[1],
                    state.extra_aff[2], state.extra_aff[3], state.extra_aff2[0], state.extra_aff2[1],
                    state.extra_aff2[2], state.extra_aff2[3]);
@@ -6043,6 +6062,10 @@ static bool pet_state_values_are_valid(const struct pet_runtime_state *state)
       state->source_spell < 0 || state->source_spell >= MAX_SPELLS || state->behavior < 0 ||
       state->behavior >= NUM_PET_BEHAVIORS)
     return false;
+  if (state->lifetime_kind == PET_SAVED_LIFETIME_DURABLE
+          ? state->expires_at != 0
+          : state->lifetime_kind != PET_SAVED_LIFETIME_DEADLINE || state->expires_at <= 0)
+    return false;
 
   for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
     if (state->saves[i] < SHRT_MIN || state->saves[i] > SHRT_MAX)
@@ -6073,6 +6096,7 @@ static bool parse_pet_runtime_state(const char *serialized, struct pet_runtime_s
   int consumed, feat, feat_value, hired, proc_fired, version;
   int saw_version, saw_base, saw_mob, saw_stats, saw_saves, saw_slots, saw_end, saw_source;
   bool saw_behavior;
+  bool saw_lifetime;
   int affect_values[14];
   int values[20];
 
@@ -6090,6 +6114,7 @@ static bool parse_pet_runtime_state(const char *serialized, struct pet_runtime_s
   saw_version = saw_base = saw_mob = saw_stats = saw_saves = saw_slots = saw_end = false;
   saw_source = false;
   saw_behavior = false;
+  saw_lifetime = false;
   version = 0;
 
   for (line = strtok_r(copy, "\n", &saveptr); line; line = strtok_r(NULL, "\n", &saveptr))
@@ -6121,6 +6146,14 @@ static bool parse_pet_runtime_state(const char *serialized, struct pet_runtime_s
           !pet_state_line_is_complete(line, consumed))
         goto parse_failure;
       saw_behavior = true;
+    }
+    else if (line[0] == 'T')
+    {
+      if (!saw_version || version < 4 || saw_lifetime ||
+          sscanf(line, "T %d %lld %n", &state->lifetime_kind, &state->expires_at, &consumed) != 2 ||
+          !pet_state_line_is_complete(line, consumed))
+        goto parse_failure;
+      saw_lifetime = true;
     }
     else if (line[0] == 'B')
     {
@@ -6237,7 +6270,7 @@ static bool parse_pet_runtime_state(const char *serialized, struct pet_runtime_s
   free(copy);
   if (!saw_version || !saw_base || !saw_mob || !saw_stats || !saw_saves || !saw_slots || !saw_end ||
       (version >= 2 && !saw_source) || (version >= 3 && !saw_behavior) ||
-      !pet_state_values_are_valid(state))
+      (version >= 4 && !saw_lifetime) || !pet_state_values_are_valid(state))
     return false;
 
   mask_pet_state_bits(state->extra_aff, AF_ARRAY_MAX, NUM_AFF_FLAGS);
@@ -6309,6 +6342,40 @@ static void apply_pet_runtime_state(struct char_data *pet, const struct pet_runt
     SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
 }
 
+/* Rebuild the follower's lifetime from its saved record.  Deadlines are real
+ * time, so offline time counts against them; an elapsed deadline, or a
+ * deadline-class follower saved without one, is rejected.  A NULL state is a
+ * legacy row and is durable unless its category requires a deadline. */
+static bool restore_pet_lifetime(struct char_data *pet, const struct pet_runtime_state *state,
+                                 time_t now)
+{
+  enum pet_lifetime_kind kind;
+  long long remaining;
+
+  if (!pet)
+    return false;
+  if (!state || state->lifetime_kind == PET_SAVED_LIFETIME_DURABLE)
+  {
+    /* Session summons and decoys saved before the policy existed are spent. */
+    kind = pet_lifetime_kind(pet);
+    return kind == PET_LIFETIME_DURABLE || kind == PET_LIFETIME_CONTROL;
+  }
+  remaining = state->expires_at - (long long)now;
+  if (remaining <= 0)
+    return false;
+  if (remaining > LONG_MAX / PASSES_PER_SEC)
+    remaining = LONG_MAX / PASSES_PER_SEC;
+  attach_mud_event(new_mud_event(ePURGEMOB, pet, NULL), (long)remaining * PASSES_PER_SEC);
+  /* Admission can fail; a deadline follower without its event would be immortal. */
+  if (!mud_event_is_live(char_has_mud_event(pet, ePURGEMOB)))
+  {
+    log("SYSERR: %s: Could not schedule the expiry of saved follower %ld", __func__,
+        pet->pet_data_id);
+    return false;
+  }
+  return true;
+}
+
 #ifdef LUMINARI_CUTEST
 char *serialize_pet_runtime_state_for_test(struct char_data *pet)
 {
@@ -6322,7 +6389,7 @@ bool restore_pet_runtime_state_for_test(struct char_data *pet, const char *seria
   if (!parse_pet_runtime_state(serialized, &state))
     return false;
   apply_pet_runtime_state(pet, &state);
-  return true;
+  return restore_pet_lifetime(pet, &state, time(NULL));
 }
 #endif
 
@@ -6863,7 +6930,7 @@ bool save_char_pets(struct char_data *ch)
   for (f = ch->followers; f; f = f->next)
   {
     if (!f->follower || !IS_NPC(f->follower) || !AFF_FLAGGED(f->follower, AFF_CHARM) ||
-        MOB_FLAGGED(f->follower, MOB_NOTDEADYET))
+        MOB_FLAGGED(f->follower, MOB_NOTDEADYET) || !pet_lifetime_persists(f->follower))
       continue;
 
     current = prepare_pet_save_record(ch, f->follower, escaped_owner, PET_STATE_ACTIVE);
@@ -6992,9 +7059,12 @@ static bool pet_row_already_published(struct char_data *ch, long int pet_idnum)
   return false;
 }
 
+/* Returns the staged, roomless follower, or NULL.  A row that failed to decode
+ * sets *restore_failed and is retained; a row whose lifetime has ended sets
+ * *expired so the caller can drop it. */
 static struct char_data *prepare_saved_pet_row(struct char_data *ch, MYSQL_ROW row,
                                                long int owner_id, long long owner_created,
-                                               bool *restore_failed)
+                                               bool *restore_failed, bool *expired)
 {
   struct pet_runtime_state runtime_state;
   struct char_data *mob = NULL;
@@ -7193,6 +7263,16 @@ static struct char_data *prepare_saved_pet_row(struct char_data *ch, MYSQL_ROW r
     extract_char(mob);
     return NULL;
   }
+  /* Nothing else about the roster failed; the active snapshot drops the row on
+   * the next save and the keeper releases a stored one on reclaim. */
+  if (!restore_pet_lifetime(mob, has_runtime_state ? &runtime_state : NULL, time(NULL)))
+  {
+    log("Info: %s: Discarding expired saved follower %ld for %s (vnum %d)", __func__, pet_idnum,
+        GET_NAME(ch), atoi(row[0]));
+    *expired = true;
+    extract_char(mob);
+    return NULL;
+  }
   if (pet_load_objs(mob, ch, pet_idnum) == PET_OBJECT_LOAD_FAILED)
   {
     *restore_failed = true;
@@ -7262,6 +7342,7 @@ void load_char_pets(struct char_data *ch)
   long int owner_id;
   long long owner_created;
   bool restore_failed = false;
+  bool expired = false;
   enum perf_entity_reason previous_entity_reason;
 
   if (!ch || IS_NPC(ch))
@@ -7314,7 +7395,7 @@ void load_char_pets(struct char_data *ch)
   owner_handle = domain_event_character_handle(ch);
   while ((row = mysql_fetch_row(result)))
   {
-    pet = prepare_saved_pet_row(ch, row, owner_id, owner_created, &restore_failed);
+    pet = prepare_saved_pet_row(ch, row, owner_id, owner_created, &restore_failed, &expired);
     if (pet && !publish_saved_pet(ch, pet))
       restore_failed = true;
     ch = domain_event_world_resolve_character(owner_handle);
@@ -7496,6 +7577,10 @@ bool pet_store_pet(struct char_data *owner, struct char_data *pet)
   bool transaction_started = false;
 
   if (!owner || IS_NPC(owner) || !GET_NAME(owner) || !pet || !IS_NPC(pet))
+    return false;
+  /* Session summons and timed summons end on their own; the keeper boards
+   * only followers that keep. */
+  if (!pet_keeper_accepts(pet))
     return false;
   if (owner->pet_roster_load_state != PET_ROSTER_LOADED)
   {
@@ -7702,6 +7787,7 @@ struct char_data *pet_retrieve_stored(struct char_data *owner, long int pet_id, 
   long long owner_created;
   bool restored;
   bool restore_failed = false;
+  bool expired = false;
   enum perf_entity_reason previous_entity_reason;
 
   if (reason)
@@ -7754,10 +7840,33 @@ struct char_data *pet_retrieve_stored(struct char_data *owner, long int pet_id, 
   }
   {
     previous_entity_reason = PERF_entity_scope_set(PERF_ENTITY_PET_RESTORE);
-    mob = prepare_saved_pet_row(owner, row, owner_id, owner_created, &restore_failed);
+    mob = prepare_saved_pet_row(owner, row, owner_id, owner_created, &restore_failed, &expired);
     PERF_entity_scope_restore(previous_entity_reason);
   }
   mysql_free_result(result);
+  if (!mob && expired)
+  {
+    /* The row is locked by the SELECT above; release the spent follower so the
+     * stable slot is not held forever. */
+    snprintf(query, sizeof(query), "DELETE FROM pet_save_objs WHERE pet_idnum = %ld", pet_id);
+    if (mysql_query(conn, query))
+      goto release_failed;
+    snprintf(query, sizeof(query),
+             "DELETE FROM pet_data WHERE pet_data_id = %ld AND owner_name = '%s' AND "
+             "pet_state = %d",
+             pet_id, escaped_owner, PET_STATE_STORED);
+    if (mysql_query(conn, query) || mysql_query(conn, "COMMIT"))
+      goto release_failed;
+    free(escaped_owner);
+    if (reason)
+      *reason = "That follower's time ran out while it was stabled; the keeper has released it.";
+    return NULL;
+
+  release_failed:
+    log("SYSERR: %s: Unable to release expired stored pet %ld for %s: %s", __func__, pet_id,
+        GET_NAME(owner), mysql_error(conn));
+    goto rollback;
+  }
   if (!mob)
   {
     if (reason)

@@ -457,6 +457,12 @@ SPECIAL(pet_keeper)
       send_to_char(ch, "Dismount first.\r\n");
       return (TRUE);
     }
+    if (!pet_keeper_accepts(pet))
+    {
+      act("$N will not last; the keeper boards only followers that stay with you.", FALSE, ch, 0,
+          pet, TO_CHAR);
+      return (TRUE);
+    }
     stored = pet_stored_count(ch);
     if (stored < 0)
     {

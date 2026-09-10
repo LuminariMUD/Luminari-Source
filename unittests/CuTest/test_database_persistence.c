@@ -14,6 +14,9 @@
 #include "../../src/net/protocol.h"
 #include "../../src/db_init.h"
 #include "../../src/mudlim.h"
+#include "../../src/mud_event.h"
+#include "../../src/domain_event_world.h"
+#include "../../src/pet_vnums.h"
 #include "../../src/magic/spells.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/event_runtime.h"
@@ -1623,6 +1626,288 @@ void Test_pet_snapshot_lifecycle_handles_disconnect_and_follower_removal(CuTest 
   CuAssertIntEquals(tc, 0, final_object_rows);
 }
 
+/* Real prototypes, one room, and the database: the deadline round trip,
+ * expired active and stored rows, session summons, and keeper refusal all run
+ * through save_char_pets(), load_char_pets(), pet_store_pet(), and
+ * pet_retrieve_stored(), the same path disconnect, reboot, and copyover use. */
+struct pet_lifetime_world
+{
+  struct char_data prototypes[2];
+  struct index_data indexes[2];
+  struct room_data room;
+  struct zone_data zone;
+  struct char_data *saved_proto;
+  struct index_data *saved_index;
+  struct room_data *saved_world;
+  struct zone_data *saved_zones;
+  mob_rnum saved_top;
+  room_rnum saved_top_of_world;
+  zone_rnum saved_top_of_zone;
+};
+
+static void begin_pet_lifetime_world(struct pet_lifetime_world *w)
+{
+  int i;
+
+  memset(w, 0, sizeof(*w));
+  w->saved_proto = mob_proto;
+  w->saved_index = mob_index;
+  w->saved_world = world;
+  w->saved_zones = zone_table;
+  w->saved_top = top_of_mobt;
+  w->saved_top_of_world = top_of_world;
+  w->saved_top_of_zone = top_of_zone_table;
+  if (!event_runtime_is_initialized())
+    event_init();
+  /* real_mobile() searches a sorted index; the decoy vnum is the larger one. */
+  w->indexes[0].vnum = 1;
+  w->indexes[1].vnum = PET_MISLEAD_DECOY;
+  for (i = 0; i < 2; i++)
+  {
+    clear_char(&w->prototypes[i]);
+    SET_BIT_AR(MOB_FLAGS(&w->prototypes[i]), MOB_ISNPC);
+    GET_MOB_RNUM(&w->prototypes[i]) = i;
+    w->prototypes[i].player.name = (char *)(i == 0 ? "lifetime hound" : "lifetime decoy");
+    w->prototypes[i].player.short_descr = (char *)(i == 0 ? "a lifetime hound" : "a decoy");
+    w->prototypes[i].player.long_descr = (char *)"A lifetime fixture stands here.";
+    GET_LEVEL(&w->prototypes[i]) = 5;
+    GET_HIT(&w->prototypes[i]) = 10;
+    GET_PSP(&w->prototypes[i]) = 10;
+    GET_MAX_HIT(&w->prototypes[i]) = 10;
+    GET_POS(&w->prototypes[i]) = POS_STANDING;
+  }
+  w->room.number = 100;
+  w->room.zone = 0;
+  w->room.sector_type = SECT_INSIDE;
+  w->room.name = (char *)"Lifetime room";
+  w->room.description = (char *)"A lifetime fixture room.\r\n";
+  w->zone.number = 0;
+  w->zone.bot = 0;
+  w->zone.top = 30000;
+  mob_proto = w->prototypes;
+  mob_index = w->indexes;
+  top_of_mobt = 1;
+  world = &w->room;
+  top_of_world = 0;
+  zone_table = &w->zone;
+  top_of_zone_table = 0;
+}
+
+static void end_pet_lifetime_world(struct pet_lifetime_world *w)
+{
+  mob_proto = w->saved_proto;
+  mob_index = w->saved_index;
+  top_of_mobt = w->saved_top;
+  world = w->saved_world;
+  top_of_world = w->saved_top_of_world;
+  zone_table = w->saved_zones;
+  top_of_zone_table = w->saved_top_of_zone;
+}
+
+static int count_followers(struct char_data *owner)
+{
+  struct follow_type *f;
+  int count = 0;
+
+  for (f = owner->followers; f; f = f->next)
+    count++;
+  return count;
+}
+
+static void extract_all_followers(struct char_data *owner)
+{
+  struct follow_type *f;
+  struct follow_type *next;
+
+  for (f = owner->followers; f; f = next)
+  {
+    next = f->next;
+    if (f->follower)
+      extract_char(f->follower);
+  }
+  extract_pending_chars();
+}
+
+void Test_pet_lifetime_survives_snapshot_restore_and_keeper_release(CuTest *tc)
+{
+  struct pet_save_fixture fixture;
+  struct pet_lifetime_world w;
+  struct char_data session_pet;
+  struct follow_type session_follower;
+  struct char_data *saved_characters = character_list;
+  struct char_data *pet;
+  struct char_data *reclaimed;
+  struct follow_type *f;
+  struct mud_event_data *event;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  const char *enabled;
+  const char *reason;
+  char query[512];
+  long long now;
+  long remaining = -1;
+  int restored_control_duration = -1;
+  bool saved_available;
+  bool schema_created;
+  bool initial_saved;
+  bool session_not_saved;
+  bool deadline_saved;
+  bool restored_pair;
+  bool expired_marked;
+  bool expired_dropped;
+  bool expired_row_removed;
+  bool keeper_refuses_deadline;
+  bool keeper_refuses_session;
+  bool stable_rows_seeded;
+  bool spent_stored_released;
+  bool live_stored_reclaimed;
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  conn = connection;
+  mysql_available = true;
+  begin_pet_lifetime_world(&w);
+  initialize_pet_save_fixture(&fixture);
+  /* Restore creates real objects; keep this roster gear-free. */
+  fixture.first_pet.equipment[0] = NULL;
+  fixture.second_pet.carrying = NULL;
+  fixture.inventory_object.carried_by = NULL;
+  fixture.owner.desc = NULL;
+  fixture.descriptor.character = NULL;
+  IN_ROOM(&fixture.owner) = 0;
+  w.room.people = &fixture.owner;
+  GET_MOB_RNUM(&fixture.first_pet) = 0;
+  GET_MOB_RNUM(&fixture.second_pet) = 0;
+  /* first_pet: timed control (charm affect).  second_pet: 90 second deadline.
+   * session_pet: an ordinary summon with neither. */
+  attach_mud_event(new_mud_event(ePURGEMOB, &fixture.second_pet, NULL), 90 * PASSES_PER_SEC);
+  clear_char(&session_pet);
+  SET_BIT_AR(MOB_FLAGS(&session_pet), MOB_ISNPC);
+  SET_BIT_AR(AFF_FLAGS(&session_pet), AFF_CHARM);
+  GET_MOB_RNUM(&session_pet) = 0;
+  session_pet.player.name = (char *)"session summon";
+  session_pet.pet_source_spell = SPELL_SUMMON_CREATURE_1;
+  memset(&session_follower, 0, sizeof(session_follower));
+  session_follower.follower = &session_pet;
+  fixture.second_follower.next = &session_follower;
+  now = (long long)time(NULL);
+
+  schema_created = create_pet_snapshot_temporary_schema(connection);
+  initial_saved = schema_created && save_char_pets(&fixture.owner);
+  session_not_saved = query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 2;
+  /* Exactly one row carries a deadline, and it is the absolute real time. */
+  snprintf(query, sizeof(query),
+           "SELECT COUNT(*) FROM pet_data WHERE CAST(SUBSTRING(REGEXP_SUBSTR(runtime_state, "
+           "'T 1 [0-9]+'), 5) AS SIGNED) BETWEEN %lld AND %lld",
+           now + 89, now + 92);
+  deadline_saved = query_single_int(connection, query, -1) == 1;
+
+  /* Relog: the deadline follower returns with a fresh event, control intact. */
+  fixture.owner.followers = NULL;
+  fixture.owner.pet_roster_load_state = PET_ROSTER_UNLOADED;
+  load_char_pets(&fixture.owner);
+  restored_pair = fixture.owner.pet_roster_load_state == PET_ROSTER_LOADED &&
+                  count_followers(&fixture.owner) == 2;
+  for (f = fixture.owner.followers; f; f = f->next)
+  {
+    pet = f->follower;
+    event = char_has_mud_event(pet, ePURGEMOB);
+    if (mud_event_is_live(event))
+      remaining = mud_event_remaining(event);
+    else if (pet->affected && IS_SET_AR(pet->affected->bitvector, AFF_CHARM))
+      restored_control_duration = pet->affected->duration;
+  }
+  extract_all_followers(&fixture.owner);
+
+  /* The deadline passes offline: the row is refused and the next snapshot
+   * drops it while the roster is still considered fully restored. */
+  snprintf(query, sizeof(query),
+           "UPDATE pet_data SET runtime_state = REGEXP_REPLACE(runtime_state, 'T 1 [0-9]+', "
+           "'T 1 %lld') WHERE pet_state = %d",
+           now - 5, PET_STATE_ACTIVE);
+  expired_marked = mysql_query(connection, query) == 0 && mysql_affected_rows(connection) == 1;
+  fixture.owner.followers = NULL;
+  fixture.owner.pet_roster_load_state = PET_ROSTER_UNLOADED;
+  load_char_pets(&fixture.owner);
+  expired_dropped = fixture.owner.pet_roster_load_state == PET_ROSTER_LOADED &&
+                    count_followers(&fixture.owner) == 1 &&
+                    query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 2;
+  expired_row_removed = save_char_pets(&fixture.owner) &&
+                        query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 1;
+  extract_all_followers(&fixture.owner);
+  fixture.owner.followers = NULL;
+
+  /* The keeper boards neither a deadline follower nor a session summon. */
+  keeper_refuses_deadline = !pet_store_pet(&fixture.owner, &fixture.second_pet);
+  keeper_refuses_session = !pet_store_pet(&fixture.owner, &session_pet);
+  keeper_refuses_session = keeper_refuses_session &&
+                           query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 1;
+
+  /* A decoy stabled before the policy existed is spent: reclaiming it releases
+   * the slot.  A durable stored follower still comes back. */
+  snprintf(query, sizeof(query),
+           "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, "
+           "dex, ac, intel, wis, cha, pet_state) VALUES "
+           "(900, 'SnapshotOwner', %d, 1, 10, 10, 10, 10, 10, 10, 10, 10, 10, %d), "
+           "(901, 'SnapshotOwner', 1, 1, 10, 10, 10, 10, 10, 10, 10, 10, 10, %d)",
+           PET_MISLEAD_DECOY, PET_STATE_STORED, PET_STATE_STORED);
+  stable_rows_seeded = mysql_query(connection, query) == 0;
+  reason = NULL;
+  reclaimed = pet_retrieve_stored(&fixture.owner, 900, &reason);
+  spent_stored_released =
+      reclaimed == NULL && reason != NULL && strstr(reason, "released") != NULL &&
+      query_single_int(connection, "SELECT COUNT(*) FROM pet_data WHERE pet_data_id = 900", -1) ==
+          0;
+  reason = NULL;
+  reclaimed = pet_retrieve_stored(&fixture.owner, 901, &reason);
+  snprintf(query, sizeof(query),
+           "SELECT COUNT(*) FROM pet_data WHERE pet_data_id = 901 AND pet_state = %d",
+           PET_STATE_ACTIVE);
+  live_stored_reclaimed = reclaimed != NULL && reason == NULL &&
+                          reclaimed->master == &fixture.owner && IN_ROOM(reclaimed) == 0 &&
+                          query_single_int(connection, query, -1) == 1;
+  extract_all_followers(&fixture.owner);
+  fixture.owner.followers = NULL;
+
+  clear_char_event_list(&fixture.second_pet);
+  domain_event_world_forget_character(&fixture.owner);
+  w.room.people = NULL;
+  character_list = saved_characters;
+  end_pet_lifetime_world(&w);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertTrue(tc, schema_created);
+  CuAssertTrue(tc, initial_saved);
+  CuAssertTrue(tc, session_not_saved);
+  CuAssertTrue(tc, deadline_saved);
+  CuAssertTrue(tc, restored_pair);
+  CuAssertTrue(tc, remaining >= 85L * PASSES_PER_SEC && remaining <= 92L * PASSES_PER_SEC);
+  CuAssertIntEquals(tc, 12, restored_control_duration);
+  CuAssertTrue(tc, expired_marked);
+  CuAssertTrue(tc, expired_dropped);
+  CuAssertTrue(tc, expired_row_removed);
+  CuAssertTrue(tc, keeper_refuses_deadline);
+  CuAssertTrue(tc, keeper_refuses_session);
+  CuAssertTrue(tc, stable_rows_seeded);
+  CuAssertTrue(tc, spent_stored_released);
+  CuAssertTrue(tc, live_stored_reclaimed);
+}
+
 void Test_follower_runtime_state_round_trip(CuTest *tc)
 {
   struct affected_type charm;
@@ -1759,7 +2044,9 @@ void Test_follower_runtime_source_supports_legacy_and_rejects_invalid_source(CuT
   clear_char(&restored);
   SET_BIT_AR(MOB_FLAGS(&source), MOB_ISNPC);
   SET_BIT_AR(MOB_FLAGS(&restored), MOB_ISNPC);
-  source.pet_source_spell = SPELL_SHAMBLER;
+  /* A kept family: an ordinary spell summon would be rejected as session-bound. */
+  SET_BIT_AR(MOB_FLAGS(&source), MOB_ANIMATED_DEAD);
+  source.pet_source_spell = SPELL_ANIMATE_DEAD;
   serialized = serialize_pet_runtime_state_for_test(&source);
   if (serialized == NULL)
   {
@@ -1778,10 +2065,20 @@ void Test_follower_runtime_source_supports_legacy_and_rejects_invalid_source(CuT
   next = strchr(line + 1, '\n');
   memmove(line, next, strlen(next) + 1);
   missing_behavior = !restore_pet_runtime_state_for_test(&restored, serialized);
+  /* Version 2 records predate the lifetime marker; drop it before downgrading. */
+  line = strstr(serialized, "\nT ");
+  if (line == NULL)
+  {
+    free(serialized);
+    CuFail(tc, "missing lifetime marker");
+    return;
+  }
+  next = strchr(line + 1, '\n');
+  memmove(line, next, strlen(next) + 1);
   serialized[2] = '2';
   restored.pet_behavior = PET_BEHAVIOR_WAIT;
   previous = restore_pet_runtime_state_for_test(&restored, serialized) &&
-             restored.pet_source_spell == SPELL_SHAMBLER &&
+             restored.pet_source_spell == SPELL_ANIMATE_DEAD &&
              restored.pet_behavior == PET_BEHAVIOR_FOLLOW;
   line = strstr(serialized, "\nP ");
   if (line == NULL)
