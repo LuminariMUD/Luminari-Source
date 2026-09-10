@@ -96,9 +96,24 @@ password.
 
 These controls do not encrypt Telnet traffic. A browser gateway must also mask
 and isolate sensitive input, and the gateway-to-MUD leg must stay on a trusted
-path or use an authenticated encrypted tunnel. The password format is legacy
-and must not be changed as part of a presentation-only feature without a
-separate migration and rollback plan.
+path or use an authenticated encrypted tunnel.
+
+## Password Storage
+
+`src/password.c` owns hashing and verification. New and changed passwords are
+stored as self-describing yescrypt strings (`$y$...`) from libxcrypt with a
+random salt per password and the cost fixed by `PASSWORD_HASH_COST`.
+Verification runs the stored setting back through `crypt_rn()` and compares
+in constant time, so legacy `crypt()` records made with the account name as
+the salt still verify. After a successful login `password_needs_rehash()`
+detects a legacy or lower-cost record and the account is rewritten with the
+current scheme while the plaintext is still in hand. Dormant accounts that
+never log in keep their legacy record until a staff `resetpassword`.
+
+Plaintext passwords are limited to `MAX_PWD_LENGTH` (128) characters as an
+input-abuse control only; the stored hash may be up to `MAX_PWD_HASH_LENGTH`
+(255) and the `account_data.password` column is widened to match by schema
+migration 2026091101. No path echoes, logs, or displays a password.
 
 ## Character Creation Flow
 

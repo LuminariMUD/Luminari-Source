@@ -95,6 +95,7 @@
 #include "net/onboarding.h"
 #include "rol_feats.h"
 #include "activity_manager.h"
+#include "password.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -8274,8 +8275,7 @@ void nanny(struct descriptor_data *d, char *arg)
     ProtocolNoEcho(d, true);
     write_to_output(d, "\r\n");
 
-    if (!*arg ||
-        strncmp(CRYPT(arg, GET_NAME(d->character)), GET_PASSWD(d->character), MAX_PWD_LENGTH))
+    if (!password_verify(arg, GET_PASSWD(d->character)))
       write_to_output(d, "Wrong password.\r\n");
     else
     {
@@ -8318,7 +8318,7 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_CLOSE;
     else
     {
-      if (strncmp(CRYPT(arg, d->account->name), d->account->password, MAX_PWD_LENGTH))
+      if (!password_verify(arg, d->account->password))
       {
         mudlog(BRF, LVL_STAFF, TRUE, "Bad PW: %s [%s]", d->account->name, d->host);
         d->account->bad_password_count++;
@@ -8347,7 +8347,15 @@ void nanny(struct descriptor_data *d, char *arg)
         return;
       }
 
-      /* Password was correct. */
+      /* Password was correct.  Move legacy or lower-cost records onto the
+       * current scheme while the plaintext is still available. */
+      if (password_needs_rehash(d->account->password))
+      {
+        if (password_hash(arg, d->account->password, sizeof(d->account->password)))
+          save_account(d->account);
+        else
+          log("SYSERR: Unable to rehash the password for account %s", d->account->name);
+      }
       load_result = d->account->bad_password_count;
       d->bad_pws = 0;
 
@@ -8411,9 +8419,11 @@ void nanny(struct descriptor_data *d, char *arg)
       write_to_output(d, "\r\nIllegal password.\r\nPassword: ");
       return;
     }
-    strncpy(d->account->password, CRYPT(arg, d->account->name),
-            MAX_PWD_LENGTH); /* strncpy: OK (G_P:MAX_PWD_LENGTH+1) */
-    *(d->account->password + MAX_PWD_LENGTH) = '\0';
+    if (!password_hash(arg, d->account->password, sizeof(d->account->password)))
+    {
+      write_to_output(d, "\r\nUnable to store that password right now.\r\nPassword: ");
+      return;
+    }
 
     write_to_output(d, "\r\nPlease retype password: ");
     if (STATE(d) == CON_NEWPASSWD)
@@ -8424,7 +8434,7 @@ void nanny(struct descriptor_data *d, char *arg)
 
   case CON_CNFPASSWD:
   case CON_CHPWD_VRFY:
-    if (strncmp(CRYPT(arg, d->account->name), d->account->password, MAX_PWD_LENGTH))
+    if (!password_verify(arg, d->account->password))
     {
       write_to_output(d, "\r\nPasswords don't match... start over.\r\nPassword: ");
       if (STATE(d) == CON_CNFPASSWD)
@@ -9150,7 +9160,8 @@ void nanny(struct descriptor_data *d, char *arg)
     if (d->account && d->account->password[0])
     {
       /* Use safe string copy that always null-terminates */
-      snprintf(GET_PASSWD(d->character), MAX_PWD_LENGTH + 1, "%s", d->account->password);
+      snprintf(GET_PASSWD(d->character), sizeof(d->character->player.passwd), "%s",
+               d->account->password);
     }
 
     CREATION_STAGE(d->character) = CHARACTER_CREATION_STAGE_PREFERENCES;
@@ -9898,7 +9909,7 @@ void nanny(struct descriptor_data *d, char *arg)
   }
 
   case CON_CHPWD_GETOLD:
-    if (strncmp(CRYPT(arg, d->account->password), d->account->password, MAX_PWD_LENGTH))
+    if (!password_verify(arg, d->account->password))
     {
       // echo_on(d);
       ProtocolNoEcho(d, false);
@@ -9925,7 +9936,7 @@ void nanny(struct descriptor_data *d, char *arg)
   case CON_DELCNF1:
     // echo_on(d);
     ProtocolNoEcho(d, false);
-    if (strncmp(CRYPT(arg, d->account->password), d->account->password, MAX_PWD_LENGTH))
+    if (!password_verify(arg, d->account->password))
     {
       write_to_output(d, "\r\nIncorrect password.\r\n%s", CONFIG_MENU);
       STATE(d) = CON_MENU;

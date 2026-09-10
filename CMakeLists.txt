@@ -625,6 +625,7 @@ set(SRC_C_FILES
     src/obj/objsave.c
     src/obj/player_shop.c
     src/olc/oedit.c
+    src/password.c
     src/perfmon.c
     src/character/perks.c
     src/wilderness/perlin.c
@@ -1316,6 +1317,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_spec_typed_handlers.c
     unittests/CuTest/test_spec_combat_secondary.c
     unittests/CuTest/test_gameplay_e2e.c
+    unittests/CuTest/test_password.c
 )
 
 # The focused protocol harnesses are built by unittests/CuTest/Makefile.

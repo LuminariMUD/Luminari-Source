@@ -1,5 +1,24 @@
 # Changelog
 
+## [Unreleased] - September 11, 2026
+
+### Adaptive password hashing
+
+#### Fixed
+
+- Account and character passwords are now stored as salted yescrypt hashes with a fixed
+  cost instead of platform `crypt()` output salted by the account name; legacy records
+  still verify and are rehashed on the next successful login.
+- Staff `set password` and `resetpassword` no longer echo the chosen password, and
+  `resetpassword` no longer rejects quote or semicolon characters.
+- The plaintext limit is now an input-size control (128) and the stored hash column
+  is widened to 255 by migration 2026091101.
+
+#### Tests
+
+- Added production-linked regressions for current-scheme hashing, legacy crypt()
+  verification, rehash detection, and boundary input.
+
 ## [Unreleased] - August 30, 2026
 
 ### Realms of Luminari converter integration review

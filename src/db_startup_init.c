@@ -47,6 +47,12 @@ int startup_database_init(void)
     return FALSE;
   }
 
+  if (!run_account_migrations())
+  {
+    log("SYSERR: Required account migrations failed during startup");
+    return FALSE;
+  }
+
   /* Verify critical systems are functional */
   if (!verify_core_player_tables())
   {

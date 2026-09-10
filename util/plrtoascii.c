@@ -23,6 +23,7 @@
 // first some stock circle 3.0 defines. Change where appropriate.
 #define MAX_NAME_LENGTH 20 /* Used in char_file_u *DO*NOT*CHANGE* */
 
+#undef MAX_PWD_LENGTH
 #define MAX_PWD_LENGTH 30   /* Used in char_file_u *DO*NOT*CHANGE* */
 #define MAX_TITLE_LENGTH 80 /* Used in char_file_u *DO*NOT*CHANGE* */
 #define HOST_LENGTH 40      /* Used in char_file_u *DO*NOT*CHANGE* */

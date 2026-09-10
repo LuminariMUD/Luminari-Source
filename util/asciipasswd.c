@@ -4,12 +4,10 @@
 *  Copyright (C) 1990, 1991 - see 'license.doc' for complete information. *
 *  All Rights Reserved                                                    *
 *                                                                         *
-*  This utility generates encrypted passwords that can be used in ASCII   *
+*  This utility generates hashed passwords that can be used in ASCII      *
 *  player files. It takes a player name and plaintext password as         *
-*  arguments and outputs the encrypted password using the same encryption *
-*  method used by the main MUD server.                                    *
-*                                                                         *
-*  Updated: 2025 - Enhanced for LuminariMUD compatibility                 *
+*  arguments and outputs the hash using the same scheme and policy as the *
+*  main MUD server (see src/password.h).                                  *
 ************************************************************************* */
 
 #include "conf.h"
@@ -17,6 +15,9 @@
 
 #include "structs.h"
 #include "utils.h"
+#include "password.h"
+
+#include <crypt.h>
 
 /**
  * Capitalize the first character of a string
@@ -36,9 +37,8 @@ char *CAP(char *txt)
 /**
  * Main function for the asciipasswd utility
  *
- * Generates encrypted passwords for ASCII player files using the same
- * encryption method as the main MUD server. The password is encrypted
- * using the player name as the salt.
+ * Generates password hashes for ASCII player files using the same scheme
+ * as the main MUD server, with a random salt per invocation.
  *
  * @param argc Number of command line arguments
  * @param argv Array of command line arguments
@@ -46,14 +46,15 @@ char *CAP(char *txt)
  */
 int main(int argc, char **argv)
 {
+  struct crypt_data data;
+  char setting[CRYPT_GENSALT_OUTPUT_SIZE];
   char *encrypted_pass;
 
   if (argc != 3)
   {
     fprintf(stderr, "Usage: %s <name> <password>\n", argv[0]);
     fprintf(stderr, "\n");
-    fprintf(stderr, "Generates encrypted passwords for ASCII player files.\n");
-    fprintf(stderr, "The name is used as the salt for encryption.\n");
+    fprintf(stderr, "Generates password hashes for ASCII player files.\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "Example: %s Gandalf mypassword\n", argv[0]);
     return (1);
@@ -72,11 +73,18 @@ int main(int argc, char **argv)
     return (1);
   }
 
-  /* Generate encrypted password */
-  encrypted_pass = CRYPT(argv[2], CAP(argv[1]));
-  if (!encrypted_pass)
+  /* Generate the hash with a random salt under the server policy */
+  memset(&data, 0, sizeof(data));
+  if (!crypt_gensalt_rn(PASSWORD_HASH_PREFIX, PASSWORD_HASH_COST, NULL, 0, setting,
+                        sizeof(setting)))
   {
-    fprintf(stderr, "Error: Failed to encrypt password\n");
+    fprintf(stderr, "Error: Failed to generate a password salt\n");
+    return (1);
+  }
+  encrypted_pass = crypt_rn(argv[2], setting, &data, sizeof(data));
+  if (!encrypted_pass || *encrypted_pass == '*')
+  {
+    fprintf(stderr, "Error: Failed to hash password\n");
     return (1);
   }
 
