@@ -9,7 +9,7 @@ See [Phase 1](PET_SYSTEM_REFACTOR_PLAN.md) for remaining gameplay parity work.
   - Leave intentionally permanent pets permanent.
   - Handle legacy rows without inventing a finite deadline that was never recorded.
 
-- [ ] Finish bounded restore and admission correctness:
+- [x] Finish bounded restore and admission correctness (issue 118):
   - Decode and validate all of an owner's saved pets before exposing any of them to gameplay.
   - Select a deterministic allowed set when current capacity is lower than the saved roster, with
     explicit player and pet priority.

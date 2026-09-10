@@ -1239,6 +1239,13 @@ static bool is_controlled_follower(struct char_data *owner, struct char_data *pe
   return pet != NULL && IS_PET(pet) && pet->master == owner && !MOB_FLAGGED(pet, MOB_NOTDEADYET);
 }
 
+/* The first ordinary summon has its own slot; the rest use general slots. */
+static void follower_recount_general(struct follower_count_data *counts)
+{
+  counts->general_used =
+      counts->categories[FOLLOWER_GENERAL] + MAX(0, counts->categories[FOLLOWER_SUMMON] - 1);
+}
+
 static void count_followers(struct char_data *ch, int flag, mob_vnum vnum,
                             struct follower_count_data *counts)
 {
@@ -1265,8 +1272,7 @@ static void count_followers(struct char_data *ch, int flag, mob_vnum vnum,
     if (vnum != NOBODY && pet_vnum == vnum)
       counts->matching_vnum++;
   }
-  counts->general_used =
-      counts->categories[FOLLOWER_GENERAL] + MAX(0, counts->categories[FOLLOWER_SUMMON] - 1);
+  follower_recount_general(counts);
 }
 
 static int follower_category_limit(struct char_data *ch, size_t category)
@@ -1306,20 +1312,79 @@ bool can_add_follower_by_flag(struct char_data *ch, int flag)
   return counts.matching_flag < 1;
 }
 
+/* The one admission calculation for live and staged pets.  An admitted pet is
+ * added to the counts so later decisions in the same pass see it. */
+static bool follower_admit(struct char_data *ch, struct char_data *pet,
+                           struct follower_count_data *counts)
+{
+  mob_vnum vnum = follower_vnum(pet);
+  size_t category = follower_category(pet, vnum);
+  int cost = follower_control_cost(category, vnum);
+
+  if (!follower_category_available(ch, category, counts) ||
+      counts->categories[category] + cost > follower_category_limit(ch, category))
+    return false;
+  counts->categories[category] += cost;
+  counts->total++;
+  follower_recount_general(counts);
+  return true;
+}
+
+static void follower_denial_reason(struct char_data *ch, struct char_data *pet,
+                                   const struct follower_count_data *counts, char *reason,
+                                   size_t size)
+{
+  size_t category = follower_category(pet, follower_vnum(pet));
+
+  if (category == FOLLOWER_GENERAL ||
+      (category == FOLLOWER_SUMMON &&
+       counts->categories[FOLLOWER_SUMMON] < follower_category_limit(ch, FOLLOWER_SUMMON)))
+    snprintf(reason, size, "%s: general slots %d/%d used", follower_rules[category].name,
+             counts->general_used, counts->general_limit);
+  else
+    snprintf(reason, size, "%s: %d/%d used", follower_rules[category].name,
+             counts->categories[category], follower_category_limit(ch, category));
+}
+
 bool can_add_follower_mobile(struct char_data *ch, struct char_data *pet)
 {
   struct follower_count_data counts;
-  size_t category;
-  mob_vnum vnum;
 
   if (ch == NULL || pet == NULL || !IS_NPC(pet))
     return false;
   count_followers(ch, -1, NOBODY, &counts);
-  vnum = follower_vnum(pet);
-  category = follower_category(pet, vnum);
-  return follower_category_available(ch, category, &counts) &&
-         counts.categories[category] + follower_control_cost(category, vnum) <=
-             follower_category_limit(ch, category);
+  return follower_admit(ch, pet, &counts);
+}
+
+/* Decide, before anything is published, which staged pets the owner can control
+ * alongside the followers already present.  Admission is first-fit in array
+ * order, so the caller's ordering is the priority and the result is
+ * deterministic.  A rejected entry gets a denial reason when a buffer of
+ * count * reason_size bytes is supplied. */
+int select_restorable_followers(struct char_data *ch, struct char_data **pets, int count,
+                                bool *admitted, char *reasons, size_t reason_size)
+{
+  struct follower_count_data counts;
+  int i, selected = 0;
+
+  if (ch == NULL || pets == NULL || admitted == NULL || count < 0)
+    return 0;
+  count_followers(ch, -1, NOBODY, &counts);
+  for (i = 0; i < count; i++)
+  {
+    admitted[i] = pets[i] != NULL && IS_NPC(pets[i]) && follower_admit(ch, pets[i], &counts);
+    if (admitted[i])
+      selected++;
+    else if (reasons != NULL && reason_size > 0)
+    {
+      if (pets[i] != NULL && IS_NPC(pets[i]))
+        follower_denial_reason(ch, pets[i], &counts, reasons + (size_t)i * reason_size,
+                               reason_size);
+      else
+        snprintf(reasons + (size_t)i * reason_size, reason_size, "not a controllable follower");
+    }
+  }
+  return selected;
 }
 
 bool can_add_follower(struct char_data *ch, int mob_vnum)

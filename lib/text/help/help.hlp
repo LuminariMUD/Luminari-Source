@@ -9831,6 +9831,11 @@ control. Timed summons and ordinary spell summons are refused. A stabled
 follower whose time ran out before the policy existed is released when you try
 to reclaim it, freeing its slot. The keeper holds up to 10 followers for you.
 
+When you log in with more saved followers than you can currently control, each
+follower you cannot control is handed to the keeper instead of being lost, and
+the login message names it with the limit that refused it. This can take the
+keeper past its usual 10; reclaim them once you have room.
+
 STABLE RECLAIM returns a stabled follower by its listed number - the small
 number shown beside it, such as 'stable reclaim 1'. The longer stable ID in the
 listing also works. A reclaimed follower returns with the same
@@ -23728,6 +23733,10 @@ A separated retainer must be recalled with summon before calling another.
 Horn of Henekar recruitment uses each creature's control category. Failed
 recruitment or Oaken Defender creation leaves that power's recharge ready.
 
+When you log in, every saved pet is checked before any of them returns. If
+you can no longer control the whole roster, durable pets are restored first
+and then timed ones, oldest saved ID first. A durable pet that does not fit
+waits with the keeper (see STABLE); a timed one that does not fit is spent.
 Use 'pets restore' after a login where some saved pets could not be
 restored; the saved records are kept and pets already with you are not
 duplicated.

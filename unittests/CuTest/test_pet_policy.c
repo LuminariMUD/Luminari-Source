@@ -397,3 +397,64 @@ void Test_pet_policy_elite_undead_cost_two_control_points(CuTest *tc)
   CuAssertTrue(tc, mixed_full);
   CuAssertTrue(tc, source_cost);
 }
+
+/* Bounded restore: a staged roster is admitted first-fit in the caller's
+ * order, counted alongside live followers, and every rejection carries the
+ * category and usage that denied it. */
+void Test_pet_policy_staged_selection_is_deterministic_and_explains_denials(CuTest *tc)
+{
+  struct pet_policy_fixture fixture;
+  struct char_data *staged[5];
+  bool admitted[5];
+  char reasons[5][64];
+  int selected, i;
+  bool first_fit, reasons_named, live_counted, reordered, invalid;
+
+  /* One live general follower already uses the single Charisma slot. */
+  begin_pet_policy_fixture(&fixture, 1);
+  for (i = 0; i < 5; i++)
+    staged[i] = &fixture.pets[i + 1];
+  SET_BIT_AR(MOB_FLAGS(&fixture.pets[2]), MOB_EIDOLON);
+  GET_MOB_RNUM(&fixture.pets[3]) = real_mobile(MOB_DJINNI_KIND);
+  fixture.pets[3].pet_source_spell = SPELL_DJINNI_KIND;
+  SET_BIT_AR(MOB_FLAGS(&fixture.pets[4]), MOB_EIDOLON);
+  memset(reasons, 0, sizeof(reasons));
+  selected = select_restorable_followers(&fixture.owner, staged, 5, admitted, reasons[0],
+                                         sizeof(reasons[0]));
+  first_fit =
+      selected == 2 && !admitted[0] && admitted[1] && admitted[2] && !admitted[3] && !admitted[4];
+  reasons_named = strstr(reasons[0], "General") != NULL && strstr(reasons[0], "1/1") != NULL &&
+                  strstr(reasons[3], "Eidolon") != NULL && strstr(reasons[3], "1/1") != NULL &&
+                  strstr(reasons[4], "General") != NULL && reasons[1][0] == '\0' &&
+                  reasons[2][0] == '\0';
+
+  /* Without the live follower the first staged general pet takes the slot. */
+  fixture.owner.followers = NULL;
+  selected = select_restorable_followers(&fixture.owner, staged, 5, admitted, NULL, 0);
+  live_counted =
+      selected == 3 && admitted[0] && admitted[1] && admitted[2] && !admitted[3] && !admitted[4];
+
+  /* Order is the priority: the same roster reversed admits the other eidolon. */
+  staged[0] = &fixture.pets[5];
+  staged[1] = &fixture.pets[4];
+  staged[2] = &fixture.pets[3];
+  staged[3] = &fixture.pets[2];
+  staged[4] = &fixture.pets[1];
+  selected = select_restorable_followers(&fixture.owner, staged, 5, admitted, NULL, 0);
+  reordered =
+      selected == 3 && admitted[0] && admitted[1] && admitted[2] && !admitted[3] && !admitted[4];
+
+  staged[0] = NULL;
+  staged[1] = &fixture.owner;
+  selected = select_restorable_followers(&fixture.owner, staged, 2, admitted, reasons[0],
+                                         sizeof(reasons[0]));
+  invalid = selected == 0 && !admitted[0] && !admitted[1] && reasons[1][0] != '\0' &&
+            select_restorable_followers(NULL, staged, 2, admitted, NULL, 0) == 0 &&
+            select_restorable_followers(&fixture.owner, staged, 0, admitted, NULL, 0) == 0;
+  end_pet_policy_fixture(&fixture);
+  CuAssertTrue(tc, first_fit);
+  CuAssertTrue(tc, reasons_named);
+  CuAssertTrue(tc, live_counted);
+  CuAssertTrue(tc, reordered);
+  CuAssertTrue(tc, invalid);
+}

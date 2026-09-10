@@ -190,6 +190,8 @@ bool has_fortune_of_many_bonus(struct char_data *ch);
 bool has_authoritative_bonus(struct char_data *ch);
 bool can_add_follower(struct char_data *ch, int mob_vnum);
 bool can_add_follower_mobile(struct char_data *ch, struct char_data *pet);
+int select_restorable_followers(struct char_data *ch, struct char_data **pets, int count,
+                                bool *admitted, char *reasons, size_t reason_size);
 bool can_add_summoned_followers(struct char_data *ch, int mob_vnum, int spell, int count);
 int summoned_follower_flag(int spell);
 bool can_add_follower_by_flag(struct char_data *ch, int flag);
