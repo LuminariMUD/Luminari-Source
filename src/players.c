@@ -7046,6 +7046,8 @@ cleanup:
 /* Restore one saved pet row for its owner.  Both login restore and keeper
  * retrieval publish a pet through this single path so validation, identity, and
  * failure handling stay identical. */
+#define PET_DENIAL_REASON_LENGTH 64
+
 /* A retry after a partial restore must not publish a pet twice.  Live pets keep
  * their saved row identity, so an already published row is simply skipped. */
 static bool pet_row_already_published(struct char_data *ch, long int pet_idnum)
@@ -7331,16 +7333,95 @@ static struct char_data *publish_saved_pet(struct char_data *owner, struct char_
   return pet;
 }
 
+/* Rejected keeper-eligible followers move to the keeper so the next active
+ * snapshot cannot drop them; a rejected timed follower is spent, and its row
+ * leaves with the next snapshot exactly like an expired one. */
+static bool stable_rejected_saved_pets(struct char_data *ch, struct char_data **staged,
+                                       const bool *admitted, int count)
+{
+  char query[128];
+  int i;
+  bool transaction_started = false;
+
+  for (i = 0; i < count; i++)
+    if (!admitted[i] && pet_keeper_accepts(staged[i]))
+      break;
+  if (i == count)
+    return true;
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: %s: Unable to start stabling for %s: %s", __func__, GET_NAME(ch),
+        mysql_error(conn));
+    return false;
+  }
+  transaction_started = true;
+  for (; i < count; i++)
+  {
+    if (admitted[i] || !pet_keeper_accepts(staged[i]))
+      continue;
+    snprintf(query, sizeof(query),
+             "UPDATE pet_data SET pet_state = %d WHERE pet_data_id = %ld AND pet_state = %d",
+             PET_STATE_STORED, staged[i]->pet_data_id, PET_STATE_ACTIVE);
+    if (mysql_query(conn, query) || mysql_affected_rows(conn) != 1)
+    {
+      log("SYSERR: %s: Unable to stable rejected saved follower %ld for %s: %s", __func__,
+          staged[i]->pet_data_id, GET_NAME(ch), mysql_error(conn));
+      goto rollback;
+    }
+  }
+  if (mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: %s: Unable to commit stabling for %s: %s", __func__, GET_NAME(ch),
+        mysql_error(conn));
+    goto rollback;
+  }
+  return true;
+
+rollback:
+  if (transaction_started && mysql_query(conn, "ROLLBACK"))
+    log("SYSERR: %s: Unable to roll back stabling for %s: %s", __func__, GET_NAME(ch),
+        mysql_error(conn));
+  return false;
+}
+
+/* Restore order is the priority when capacity is short: followers the keeper
+ * can hold come first, then timed followers, each oldest saved identity first.
+ * Rows arrive ordered by identity, so a stable partition keeps that order. */
+static void order_staged_pets(struct char_data **staged, int count)
+{
+  struct char_data *kept_pet;
+  int i, j, kept = 0;
+
+  for (i = 0; i < count; i++)
+  {
+    if (!pet_keeper_accepts(staged[i]))
+      continue;
+    kept_pet = staged[i];
+    for (j = i; j > kept; j--)
+      staged[j] = staged[j - 1];
+    staged[kept++] = kept_pet;
+  }
+}
+
+/* Every saved row is decoded before any pet enters the world.  A row that
+ * cannot be decoded keeps the whole roster unpublished and retained; an
+ * over-capacity roster publishes one deterministic allowed set and hands the
+ * rest to the keeper.  Both leave a retry unable to duplicate a pet, because
+ * published pets keep their row identity and unpublished rows stay saved. */
 void load_char_pets(struct char_data *ch)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
   struct char_data *pet;
+  struct char_data **staged = NULL;
   struct domain_entity_handle owner_handle;
+  bool *admitted = NULL;
+  char *reasons = NULL;
   char query[512];
   char *escaped_name;
   long int owner_id;
   long long owner_created;
+  int capacity, count = 0, i;
   bool restore_failed = false;
   bool expired = false;
   enum perf_entity_reason previous_entity_reason;
@@ -7391,20 +7472,70 @@ void load_char_pets(struct char_data *ch)
     return;
   }
 
+  capacity = (int)MIN(mysql_num_rows(result), (my_ulonglong)INT_MAX);
+  if (capacity > 0)
+  {
+    CREATE(staged, struct char_data *, capacity);
+    CREATE(admitted, bool, capacity);
+    CREATE(reasons, char, (size_t)capacity *PET_DENIAL_REASON_LENGTH);
+  }
+
   previous_entity_reason = PERF_entity_scope_set(PERF_ENTITY_PET_RESTORE);
-  owner_handle = domain_event_character_handle(ch);
-  while ((row = mysql_fetch_row(result)))
+  while (count < capacity && (row = mysql_fetch_row(result)))
   {
     pet = prepare_saved_pet_row(ch, row, owner_id, owner_created, &restore_failed, &expired);
-    if (pet && !publish_saved_pet(ch, pet))
+    if (pet)
+      staged[count++] = pet;
+  }
+  mysql_free_result(result);
+
+  if (!restore_failed)
+  {
+    order_staged_pets(staged, count);
+    select_restorable_followers(ch, staged, count, admitted, reasons, PET_DENIAL_REASON_LENGTH);
+    restore_failed = !stable_rejected_saved_pets(ch, staged, admitted, count);
+  }
+  if (restore_failed)
+  {
+    for (i = 0; i < count; i++)
+      discard_unpublished_saved_pet(staged[i]);
+    count = 0;
+  }
+
+  /* Publication stops at the first failure so the roster is not further
+   * exposed piecemeal.  The unpublished rows stay saved, the failed state
+   * keeps the next snapshot from replacing them, and 'pets restore' retries
+   * while skipping every pet already published by identity. */
+  owner_handle = domain_event_character_handle(ch);
+  for (i = 0; i < count; i++)
+  {
+    pet = staged[i];
+    if (!ch || restore_failed)
+    {
+      discard_unpublished_saved_pet(pet);
+      continue;
+    }
+    if (!admitted[i])
+    {
+      send_to_char(ch, "%s cannot follow you right now (%s); %s\r\n",
+                   GET_NAME(pet) ? GET_NAME(pet) : "A saved follower",
+                   reasons + (size_t)i * PET_DENIAL_REASON_LENGTH,
+                   pet_keeper_accepts(pet) ? "the keeper is holding it for you."
+                                           : "its remaining time is spent.");
+      log("Info: %s: Saved follower %ld for %s was not admitted (%s)", __func__, pet->pet_data_id,
+          GET_NAME(ch), reasons + (size_t)i * PET_DENIAL_REASON_LENGTH);
+      discard_unpublished_saved_pet(pet);
+      continue;
+    }
+    if (!publish_saved_pet(ch, pet))
       restore_failed = true;
     ch = domain_event_world_resolve_character(owner_handle);
-    if (!ch)
-      break;
   }
 
   PERF_entity_scope_restore(previous_entity_reason);
-  mysql_free_result(result);
+  free(staged);
+  free(admitted);
+  free(reasons);
   if (ch && !restore_failed)
     ch->pet_roster_load_state = PET_ROSTER_LOADED;
 }
@@ -7785,7 +7916,10 @@ struct char_data *pet_retrieve_stored(struct char_data *owner, long int pet_id, 
   char *escaped_owner;
   long int owner_id;
   long long owner_created;
+  static char denial_reason[PET_DENIAL_REASON_LENGTH + 80];
+  char denial[PET_DENIAL_REASON_LENGTH];
   bool restored;
+  bool admitted;
   bool restore_failed = false;
   bool expired = false;
   enum perf_entity_reason previous_entity_reason;
@@ -7831,19 +7965,23 @@ struct char_data *pet_retrieve_stored(struct char_data *owner, long int pet_id, 
     mysql_free_result(result);
     goto rollback;
   }
-  if (!can_add_follower(owner, atoi(row[0])))
-  {
-    if (reason)
-      *reason = "You cannot take responsibility for another follower right now.";
-    mysql_free_result(result);
-    goto rollback;
-  }
   {
     previous_entity_reason = PERF_entity_scope_set(PERF_ENTITY_PET_RESTORE);
     mob = prepare_saved_pet_row(owner, row, owner_id, owner_created, &restore_failed, &expired);
     PERF_entity_scope_restore(previous_entity_reason);
   }
   mysql_free_result(result);
+  /* The staged pet carries its saved source and flags, so it is classified by
+   * its own identity rather than by its prototype. */
+  if (mob && !select_restorable_followers(owner, &mob, 1, &admitted, denial, sizeof(denial)))
+  {
+    snprintf(denial_reason, sizeof(denial_reason),
+             "You cannot take responsibility for another follower right now (%s).", denial);
+    if (reason)
+      *reason = denial_reason;
+    discard_unpublished_saved_pet(mob);
+    goto rollback;
+  }
   if (!mob && expired)
   {
     /* The row is locked by the SELECT above; release the spent follower so the

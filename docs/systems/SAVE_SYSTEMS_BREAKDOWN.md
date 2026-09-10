@@ -186,9 +186,17 @@ fields, runtime state, and validated object rows. Keeper retrieval reuses the
 same row decoder. Each pet and its inventory are prepared outside any room;
 keeper retrieval commits the stored-to-active transition before placement,
 following, and mobile load triggers. Known activation/commit failures discard the
-roomless copy and retain the stored record and inventory. Login publishes each
-prepared row separately; whole-owner admission and post-publication callback
-reconciliation remain open. Legacy rows with a NULL runtime state retain the compatibility
+roomless copy and retain the stored record and inventory. Login decodes every
+active row before publishing any of them: one undecodable row keeps the whole
+roster unpublished and retained. The staged roster is then ordered
+keeper-eligible first, then timed, oldest `pet_data_id` first, and
+`select_restorable_followers()` in `src/utils.c` admits it first-fit against the
+same category accounting used by live admission. Rejected keeper-eligible rows
+are moved to `PET_STATE_STORED` in one transaction before anything is published,
+so the next active snapshot cannot drop them; a rejected timed follower is spent
+and its row leaves with the next snapshot. Keeper reclaim applies the same check
+to the staged pet, so classification uses the saved source and flags rather than
+the prototype. Post-publication callback reconciliation remains open. Legacy rows with a NULL runtime state retain the compatibility
 load path. Custom names use the existing name/short/long text fields.
 `pets <pet|#id> name <name>` stages the new strings and restores the old pointers
 on known save failure. Prototype keywords remain available for targeting;

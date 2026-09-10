@@ -9,12 +9,15 @@ See [Phase 1](PET_SYSTEM_REFACTOR_PLAN.md) for remaining gameplay parity work.
   - Leave intentionally permanent pets permanent.
   - Handle legacy rows without inventing a finite deadline that was never recorded.
 
-- [ ] Finish bounded restore and admission correctness:
+- [x] Finish bounded restore and admission correctness (issue 118):
   - Decode and validate all of an owner's saved pets before exposing any of them to gameplay.
   - Select a deterministic allowed set when current capacity is lower than the saved roster, with
     explicit player and pet priority.
   - Keep rejected or malformed rows saved for recovery, publish no partial inventory, and ensure a
     retry never duplicates a pet already restored by stable ID.
+  - Outcome: a malformed row keeps every row saved and nothing published. A rejected
+    keeper-eligible row moves to the keeper (`PET_STATE_STORED`) for reclaim; a rejected timed
+    row is spent and leaves with the next snapshot, matching the tested expiry contract.
 
 - [ ] Close callback and transaction edge cases:
   - Define and test equipment and mobile callback behavior while a pet is prepared outside a room.

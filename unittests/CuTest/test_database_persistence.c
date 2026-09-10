@@ -1791,6 +1791,8 @@ void Test_pet_lifetime_survives_snapshot_restore_and_keeper_release(CuTest *tc)
   w.room.people = &fixture.owner;
   GET_MOB_RNUM(&fixture.first_pet) = 0;
   GET_MOB_RNUM(&fixture.second_pet) = 0;
+  /* Login restore is bounded by admission; two general followers need Charisma. */
+  GET_CHA(&fixture.owner) = 14;
   /* first_pet: timed control (charm affect).  second_pet: 90 second deadline.
    * session_pet: an ordinary summon with neither. */
   attach_mud_event(new_mud_event(ePURGEMOB, &fixture.second_pet, NULL), 90 * PASSES_PER_SEC);
@@ -2302,4 +2304,157 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
   mysql_available = saved_available;
   mysql_close(connection);
   CuAssertTrue(tc, matched);
+}
+
+/* Bounded restore: when capacity is short the durable follower wins, a spent
+ * timed one is dropped, a rejected durable one waits with the keeper, a retry
+ * cannot duplicate anything, and one bad row keeps the whole roster unpublished. */
+void Test_pet_bounded_restore_selects_capacity_and_stables_the_rest(CuTest *tc)
+{
+  struct pet_save_fixture fixture;
+  struct pet_lifetime_world w;
+  struct char_data *saved_characters = character_list;
+  struct char_data *reclaimed;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  const char *enabled;
+  const char *reason;
+  char query[256];
+  long stored_id;
+  bool saved_available;
+  bool timed_saved, durable_wins, timed_row_dropped;
+  bool pair_saved, one_admitted, retry_inert, stored_survives_save;
+  bool reclaim_denied, reclaim_allowed, partial_refused;
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  conn = connection;
+  mysql_available = true;
+  begin_pet_lifetime_world(&w);
+  initialize_pet_save_fixture(&fixture);
+  fixture.first_pet.equipment[0] = NULL;
+  fixture.second_pet.carrying = NULL;
+  fixture.inventory_object.carried_by = NULL;
+  fixture.owner.desc = NULL;
+  fixture.descriptor.character = NULL;
+  IN_ROOM(&fixture.owner) = 0;
+  w.room.people = &fixture.owner;
+  GET_MOB_RNUM(&fixture.first_pet) = 0;
+  GET_MOB_RNUM(&fixture.second_pet) = 0;
+  /* Charisma 10 allows exactly one general follower. */
+  GET_CHA(&fixture.owner) = 10;
+
+  /* first_pet: timed control, keeper-eligible.  second_pet: real-time deadline. */
+  attach_mud_event(new_mud_event(ePURGEMOB, &fixture.second_pet, NULL), 900 * PASSES_PER_SEC);
+  timed_saved = create_pet_snapshot_temporary_schema(connection) &&
+                save_char_pets(&fixture.owner) &&
+                query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 2;
+  fixture.owner.followers = NULL;
+  fixture.owner.pet_roster_load_state = PET_ROSTER_UNLOADED;
+  load_char_pets(&fixture.owner);
+  durable_wins =
+      fixture.owner.pet_roster_load_state == PET_ROSTER_LOADED &&
+      count_followers(&fixture.owner) == 1 && fixture.owner.followers->follower &&
+      fixture.owner.followers->follower->affected != NULL &&
+      !mud_event_is_live(char_has_mud_event(fixture.owner.followers->follower, ePURGEMOB));
+  snprintf(query, sizeof(query), "SELECT COUNT(*) FROM pet_data WHERE pet_state = %d",
+           PET_STATE_STORED);
+  timed_row_dropped = query_single_int(connection, query, -1) == 0 &&
+                      query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 2 &&
+                      save_char_pets(&fixture.owner) &&
+                      query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 1;
+  extract_all_followers(&fixture.owner);
+  clear_char_event_list(&fixture.second_pet);
+
+  /* Two durable followers: the older identity is restored, the other waits. */
+  fixture.owner.followers = &fixture.first_follower;
+  fixture.owner.pet_roster_load_state = PET_ROSTER_LOADED;
+  reset_pet_save_cache_for_test();
+  pair_saved = mysql_query(connection, "DELETE FROM pet_data") == 0 &&
+               save_char_pets(&fixture.owner) &&
+               query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 2;
+  fixture.owner.followers = NULL;
+  fixture.owner.pet_roster_load_state = PET_ROSTER_UNLOADED;
+  load_char_pets(&fixture.owner);
+  snprintf(query, sizeof(query), "SELECT MIN(pet_data_id) FROM pet_data WHERE pet_state = %d",
+           PET_STATE_ACTIVE);
+  one_admitted =
+      fixture.owner.pet_roster_load_state == PET_ROSTER_LOADED &&
+      count_followers(&fixture.owner) == 1 && fixture.owner.followers->follower &&
+      fixture.owner.followers->follower->pet_data_id == query_single_int(connection, query, -1);
+  snprintf(query, sizeof(query), "SELECT MAX(pet_data_id) FROM pet_data WHERE pet_state = %d",
+           PET_STATE_STORED);
+  stored_id = query_single_int(connection, query, -1);
+  one_admitted =
+      one_admitted && stored_id > 0 && stored_id > fixture.owner.followers->follower->pet_data_id;
+  mysql_query_counter_reset();
+  load_char_pets(&fixture.owner);
+  retry_inert = mysql_query_counter_value() == 0 && count_followers(&fixture.owner) == 1;
+  reset_pet_save_cache_for_test();
+  snprintf(query, sizeof(query), "SELECT COUNT(*) FROM pet_data WHERE pet_state = %d",
+           PET_STATE_STORED);
+  stored_survives_save = save_char_pets(&fixture.owner) &&
+                         query_single_int(connection, query, -1) == 1 &&
+                         query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 2;
+
+  reason = NULL;
+  reclaimed = pet_retrieve_stored(&fixture.owner, stored_id, &reason);
+  reclaim_denied = reclaimed == NULL && reason != NULL && strstr(reason, "General") != NULL &&
+                   count_followers(&fixture.owner) == 1 &&
+                   query_single_int(connection, query, -1) == 1;
+  GET_CHA(&fixture.owner) = 14;
+  reason = NULL;
+  reclaimed = pet_retrieve_stored(&fixture.owner, stored_id, &reason);
+  reclaim_allowed = reclaimed != NULL && reason == NULL && reclaimed->pet_data_id == stored_id &&
+                    count_followers(&fixture.owner) == 2 &&
+                    query_single_int(connection, query, -1) == 0;
+  extract_all_followers(&fixture.owner);
+  fixture.owner.followers = NULL;
+
+  /* One undecodable row: nothing is published and every row is retained. */
+  snprintf(query, sizeof(query),
+           "UPDATE pet_data SET runtime_state = 'invalid-versioned-record' "
+           "WHERE pet_data_id = %ld",
+           stored_id);
+  partial_refused = mysql_query(connection, query) == 0;
+  fixture.owner.pet_roster_load_state = PET_ROSTER_UNLOADED;
+  load_char_pets(&fixture.owner);
+  snprintf(query, sizeof(query), "SELECT COUNT(*) FROM pet_data WHERE pet_state = %d",
+           PET_STATE_ACTIVE);
+  partial_refused =
+      partial_refused && fixture.owner.pet_roster_load_state == PET_ROSTER_LOAD_FAILED &&
+      count_followers(&fixture.owner) == 0 && query_single_int(connection, query, -1) == 2;
+  extract_pending_chars();
+
+  domain_event_world_forget_character(&fixture.owner);
+  w.room.people = NULL;
+  character_list = saved_characters;
+  end_pet_lifetime_world(&w);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertTrue(tc, timed_saved);
+  CuAssertTrue(tc, durable_wins);
+  CuAssertTrue(tc, timed_row_dropped);
+  CuAssertTrue(tc, pair_saved);
+  CuAssertTrue(tc, one_admitted);
+  CuAssertTrue(tc, retry_inert);
+  CuAssertTrue(tc, stored_survives_save);
+  CuAssertTrue(tc, reclaim_denied);
+  CuAssertTrue(tc, reclaim_allowed);
+  CuAssertTrue(tc, partial_refused);
 }
