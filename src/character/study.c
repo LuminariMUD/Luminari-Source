@@ -46,6 +46,7 @@ static void favored_enemy_menu(struct descriptor_data *d);
 static void animal_companion_menu(struct descriptor_data *d);
 static void familiar_menu(struct descriptor_data *d);
 static void set_stats_menu(struct descriptor_data *d);
+static int last_listed_choice_index(const int *vnums, const char *names[]);
 
 static void display_main_menu(struct descriptor_data *d);
 static void generic_main_disp_menu(struct descriptor_data *d);
@@ -123,7 +124,6 @@ int animal_vnums[] = {
     MOB_DIRE_WOLF,  // 43, 9
     -1              /* end with this */
 };
-#define NUM_ANIMALS 10
 /* now paladin mounts */
 int mount_vnums[] = {
     0,
@@ -155,10 +155,6 @@ int familiar_vnums[] = {
     F_HELLHOUND,     // 89, 10
     -1               /* end with this */
 };
-#define NUM_FAMILIARS 10
-
-#define TOP_OF_ANIMALS 9
-#define TOP_OF_FAMILIARS NUM_FAMILIARS
 /****************/
 
 /* make a list of names in order, first animals */
@@ -2271,9 +2267,24 @@ static void favored_enemy_menu(struct descriptor_data *d)
   OLC_MODE(d) = FAVORED_ENEMY;
 }
 
+/* Last selectable index is the last slot before the -1 / "\n" sentinels. */
+static int last_listed_choice_index(const int *vnums, const char *names[])
+{
+  int i;
+
+  if (vnums == NULL || names == NULL)
+    return 0;
+
+  for (i = 1; vnums[i] != -1 && names[i] != NULL && names[i][0] != '\n'; i++)
+    ;
+
+  return i - 1;
+}
+
 static void animal_companion_menu(struct descriptor_data *d)
 {
   int i = 1, found = 0;
+  int last_choice = last_listed_choice_index(animal_vnums, animal_names);
 
   get_char_colors(d->character);
   clear_screen(d);
@@ -2283,14 +2294,14 @@ static void animal_companion_menu(struct descriptor_data *d)
                   "\r\n",
                   mgn, nrm);
 
-  for (i = 1; i <= TOP_OF_ANIMALS; i++)
+  for (i = 1; i <= last_choice; i++)
   {
     write_to_output(d, "%s\r\n", animal_names[i]);
   }
 
   write_to_output(d, "\r\n");
   /* find current animal */
-  for (i = 1; i <= TOP_OF_ANIMALS; i++)
+  for (i = 1; i <= last_choice; i++)
   {
     if (GET_ANIMAL_COMPANION(d->character) == animal_vnums[i])
     {
@@ -2318,6 +2329,7 @@ static void animal_companion_menu(struct descriptor_data *d)
 static void familiar_menu(struct descriptor_data *d)
 {
   int i = 1, found = 0;
+  int last_choice = last_listed_choice_index(familiar_vnums, familiar_names);
 
   get_char_colors(d->character);
   clear_screen(d);
@@ -2327,7 +2339,7 @@ static void familiar_menu(struct descriptor_data *d)
                   "\r\n",
                   mgn, nrm);
 
-  for (i = 1; i <= TOP_OF_FAMILIARS; i++)
+  for (i = 1; i <= last_choice; i++)
   {
     write_to_output(d, "%s\r\n", familiar_names[i]);
   }
@@ -2335,7 +2347,7 @@ static void familiar_menu(struct descriptor_data *d)
   write_to_output(d, "\r\n");
 
   /* find current familiar */
-  for (i = 1; i <= TOP_OF_FAMILIARS; i++)
+  for (i = 1; i <= last_choice; i++)
   {
     if (GET_FAMILIAR(d->character) == familiar_vnums[i])
     {
@@ -2839,6 +2851,7 @@ void study_parse(struct descriptor_data *d, char *arg)
 {
   struct char_data *ch = d->character;
   int number = -1;
+  int last_choice = 0;
   int counter;
   int points_left = 0, cost_for_number = 0, new_stat = 0;
   int intel_bonus = 0;
@@ -5802,13 +5815,14 @@ void study_parse(struct descriptor_data *d, char *arg)
       break;
     default:
       number = atoi(arg);
+      last_choice = last_listed_choice_index(animal_vnums, animal_names);
 
       if (number == 0)
       {
         GET_ANIMAL_COMPANION(d->character) = number;
         write_to_output(d, "Your companion has been set to OFF.\r\n");
       }
-      else if (number < 0 || number >= NUM_ANIMALS)
+      else if (number < 1 || number > last_choice)
       {
         write_to_output(d, "Not a valid choice!\r\n");
       }
@@ -5838,13 +5852,14 @@ void study_parse(struct descriptor_data *d, char *arg)
       break;
     default:
       number = atoi(arg);
+      last_choice = last_listed_choice_index(familiar_vnums, familiar_names);
 
-      if (!number)
+      if (number == 0)
       {
         GET_FAMILIAR(d->character) = number;
         write_to_output(d, "Your familiar has been set to OFF.\r\n");
       }
-      else if (number < 0 || number > NUM_FAMILIARS)
+      else if (number < 1 || number > last_choice)
       {
         write_to_output(d, "Not a valid choice!\r\n");
       }

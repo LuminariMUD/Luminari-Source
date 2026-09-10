@@ -401,6 +401,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_msdp_production.c \
 	unittests/CuTest/test_necromancer.c \
 	unittests/CuTest/test_pet_policy.c \
+	unittests/CuTest/test_study_pet_menus.c \
 	unittests/CuTest/CuTest.c \
 	unittests/CuTest/test_bounds_checking.c \
 	unittests/CuTest/test_help_sync.c \
@@ -471,6 +472,7 @@ cutest_test_files = \
 	unittests/CuTest/test_msdp_production.c \
 	unittests/CuTest/test_necromancer.c \
 	unittests/CuTest/test_pet_policy.c \
+	unittests/CuTest/test_study_pet_menus.c \
 	unittests/CuTest/test_artifacts.c \
 	unittests/CuTest/test_artifact_integration.c \
 	unittests/CuTest/test_player_rename.c \
