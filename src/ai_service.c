@@ -43,7 +43,7 @@
 
 /* Global AI Service State
  * This global state is shared across all AI components:
- * - ai_security.c accesses config for API key storage
+ * - ai_security.c owns the single in-memory API key copy
  * - ai_cache.c directly manipulates cache_head and cache_size
  * - ai_events.c validates character pointers against this state
  * - All components check initialized flag before operations
@@ -97,7 +97,6 @@ static bool start_ai_thread_request(const char *prompt, const char *cache_key, i
                                     int retry_count, struct domain_entity_handle player,
                                     struct domain_entity_handle npc);
 static int json_escape_string(char *dest, size_t dest_size, const char *src);
-/* static void derive_key_from_seed(unsigned char *key); */
 
 static bool ai_shutdown_is_requested(void)
 {
@@ -165,20 +164,6 @@ static size_t ai_curl_write_callback(void *contents, size_t size, size_t nmemb, 
   return realsize;
 }
 
-
-/**
- * Derive encryption key from server seed
- * NOTE: This is a placeholder - implement proper key derivation
- */
-/*
-static void derive_key_from_seed(unsigned char *key) {
-  int i;
-  // Simple placeholder - in production, use proper KDF
-  for (i = 0; i < 32; i++) {
-    key[i] = (unsigned char)(rand() % 256);
-  }
-}
-*/
 
 /**
  * Initialize the AI service
@@ -413,13 +398,14 @@ void shutdown_ai_service(void)
   }
   AI_DEBUG("Cache entries freed");
 
+  /* Wipe the API key before anything else is torn down */
+  ai_api_key_clear();
+  ai_state.openai_configured = FALSE;
+
   /* Free configuration */
   if (ai_state.config)
   {
     AI_DEBUG("Freeing AI configuration at %p", (void *)ai_state.config);
-    AI_DEBUG("  Clearing API key from memory");
-    secure_memset(ai_state.config->encrypted_api_key, 0,
-                  sizeof(ai_state.config->encrypted_api_key));
     free(ai_state.config);
     ai_state.config = NULL;
   }
@@ -513,10 +499,19 @@ const char *ai_service_active_provider(void)
 }
 
 /**
+ * Whether an OpenAI endpoint URL uses the https scheme (case-insensitive).
+ */
+bool ai_endpoint_is_https(const char *url)
+{
+  return url && strncasecmp(url, "https://", 8) == 0;
+}
+
+/**
  * Load AI configuration from database/files
  *
  * Loads configuration from .env file via dotenv.c. This function:
- * 1. Retrieves API key and calls ai_security.c encrypt_api_key()
+ * 1. Retrieves the API key (process environment first, then lib/.env) and
+ *    hands it to ai_security.c ai_api_key_set()
  * 2. Sets model, temperature, timeout, and other parameters
  * 3. Configures rate limiting thresholds
  *
@@ -526,11 +521,12 @@ const char *ai_service_active_provider(void)
  *
  * Interacts with:
  * - dotenv.c: get_env_value() for reading .env file
- * - ai_security.c: encrypt_api_key() for secure storage
+ * - ai_security.c: ai_api_key_set() for the single in-memory key copy
  */
 void load_ai_config(void)
 {
   char *str_val;
+  const char *key_source;
 
   AI_DEBUG("Loading AI configuration from environment");
 
@@ -569,18 +565,32 @@ void load_ai_config(void)
   AI_DEBUG("Loading OpenAI configuration");
   ai_state.openai_configured = FALSE;
 
-  /* API Key */
-  str_val = get_env_value("OPENAI_API_KEY");
+  /* API Key: the process environment (secret manager / systemd credential)
+   * takes priority over lib/.env so production can inject the key without
+   * an at-rest copy. The value itself is never logged. */
+  key_source = "environment";
+  str_val = getenv("OPENAI_API_KEY");
+  if (!str_val || !*str_val)
+  {
+    key_source = ".env";
+    str_val = get_env_value("OPENAI_API_KEY");
+  }
   if (str_val && *str_val)
   {
-    AI_DEBUG("  Found API key (length=%zu)", strlen(str_val));
-    encrypt_api_key(str_val, ai_state.config->encrypted_api_key);
-    ai_state.openai_configured = TRUE;
-    log("AI Service: OpenAI API key loaded from .env");
+    if (ai_api_key_set(str_val))
+    {
+      ai_state.openai_configured = TRUE;
+      log("AI Service: OpenAI API key loaded from %s", key_source);
+    }
+    else
+    {
+      log("AI Service: OpenAI API key from %s rejected - OpenAI disabled", key_source);
+    }
   }
   else
   {
-    AI_DEBUG("  No OpenAI API key found (Ollama-only mode)");
+    /* A reload that removed the key must not leave the old one resident. */
+    ai_api_key_clear();
     log("AI Service: No OpenAI API key found - using Ollama-only mode");
   }
 
@@ -588,8 +598,18 @@ void load_ai_config(void)
   str_val = get_env_value("OPENAI_API_ENDPOINT");
   if (str_val && *str_val)
   {
-    strlcpy(ai_state.config->openai_endpoint, str_val, sizeof(ai_state.config->openai_endpoint));
-    AI_DEBUG("  OpenAI endpoint: %s", ai_state.config->openai_endpoint);
+    /* The bearer key travels to this URL, so a cleartext scheme is refused. */
+    if (ai_endpoint_is_https(str_val))
+    {
+      strlcpy(ai_state.config->openai_endpoint, str_val, sizeof(ai_state.config->openai_endpoint));
+      AI_DEBUG("  OpenAI endpoint: %s", ai_state.config->openai_endpoint);
+    }
+    else
+    {
+      strlcpy(ai_state.config->openai_endpoint, DEFAULT_OPENAI_API_ENDPOINT,
+              sizeof(ai_state.config->openai_endpoint));
+      log("AI Service: OPENAI_API_ENDPOINT must use https:// - ignoring it and using the default");
+    }
   }
 
   /* OpenAI Model */
@@ -690,13 +710,22 @@ void load_ai_config(void)
 }
 
 /**
+ * Wipe the per-request copies of the API key once libcurl owns its header.
+ */
+static void ai_wipe_request_secrets(char *key, size_t key_size, char *header, size_t header_size)
+{
+  secure_memset(key, 0, key_size);
+  secure_memset(header, 0, header_size);
+}
+
+/**
  * Make an API request to OpenAI (internal - no retries)
  *
  * Low-level function that makes a single API request attempt.
  *
  * Flow:
  * 1. Check rate limits via ai_check_rate_limit()
- * 2. Decrypt API key via ai_security.c decrypt_api_key()
+ * 2. Copy the API key into a stack buffer via ai_security.c ai_api_key_copy()
  * 3. Build JSON request with sanitized prompt
  * 4. Execute CURL request (uses persistent handle if available)
  * 5. Parse JSON response and return content
@@ -714,7 +743,7 @@ static char *make_api_request_single(const char *prompt)
   struct curl_response response = {0};
   struct curl_slist *headers = NULL;
   char auth_header[512];
-  char *api_key;
+  char api_key[AI_API_KEY_MAX_LEN];
   char *json_request;
   char *result = NULL;
   long http_code;
@@ -741,16 +770,13 @@ static char *make_api_request_single(const char *prompt)
   }
   AI_DEBUG("Rate limit check passed");
 
-  /* Decrypt API key */
-  AI_DEBUG("Decrypting API key");
-  api_key = decrypt_api_key(ai_state.config->encrypted_api_key);
-  if (!api_key)
+  /* Fail closed: no key means no OpenAI request, ever. */
+  if (!ai_api_key_copy(api_key, sizeof(api_key)))
   {
-    log("SYSERR: Failed to decrypt API key");
-    AI_DEBUG("ERROR: API key decryption failed");
+    log("AI Service: OpenAI API key not configured - request refused");
+    AI_DEBUG("ERROR: no API key available");
     return NULL;
   }
-  AI_DEBUG("API key decrypted successfully (length=%zu)", strlen(api_key));
 
   /* Build JSON request */
   AI_DEBUG("Building JSON request");
@@ -758,7 +784,7 @@ static char *make_api_request_single(const char *prompt)
   if (!json_request)
   {
     AI_DEBUG("ERROR: Failed to build JSON request");
-    free(api_key);
+    ai_wipe_request_secrets(api_key, sizeof(api_key), auth_header, sizeof(auth_header));
     return NULL;
   }
   AI_DEBUG("JSON request built (length=%zu)", strlen(json_request));
@@ -781,7 +807,8 @@ static char *make_api_request_single(const char *prompt)
     {
       log("SYSERR: Failed to initialize CURL handle in make_api_request_single");
       AI_DEBUG("ERROR: curl_easy_init() returned NULL");
-      free(api_key);
+      ai_wipe_request_secrets(api_key, sizeof(api_key), auth_header, sizeof(auth_header));
+      free(json_request);
       return NULL;
     }
   }
@@ -790,14 +817,16 @@ static char *make_api_request_single(const char *prompt)
   /* Set headers */
   AI_DEBUG("Setting up HTTP headers");
   snprintf(auth_header, sizeof(auth_header), "Authorization: Bearer %s", api_key);
-  AI_DEBUG("  Auth header length: %zu", strlen(auth_header));
   headers = curl_slist_append(headers, auth_header);
+  /* libcurl copied the header; nothing else needs the secret from here on. */
+  ai_wipe_request_secrets(api_key, sizeof(api_key), auth_header, sizeof(auth_header));
   if (!headers)
   {
     log("SYSERR: Failed to allocate CURL header list (auth header)");
     AI_DEBUG("ERROR: curl_slist_append failed for auth header");
-    curl_easy_cleanup(curl);
-    free(api_key);
+    if (curl != ai_state.curl_handle)
+      curl_easy_cleanup(curl);
+    free(json_request);
     return NULL;
   }
   AI_DEBUG("  Auth header added successfully");
@@ -807,8 +836,10 @@ static char *make_api_request_single(const char *prompt)
   {
     log("SYSERR: Failed to allocate CURL header list (content-type)");
     AI_DEBUG("ERROR: curl_slist_append failed for content-type header");
-    curl_easy_cleanup(curl);
-    free(api_key);
+    if (curl != ai_state.curl_handle)
+      curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+    free(json_request);
     return NULL;
   }
   AI_DEBUG("  Content-Type header added successfully");
@@ -912,12 +943,8 @@ static char *make_api_request_single(const char *prompt)
   }
   curl_slist_free_all(headers);
   AI_DEBUG("  Headers freed");
+  free(json_request);
 
-  if (api_key)
-  {
-    AI_DEBUG("  Freeing API key");
-    free(api_key);
-  }
   if (response.data)
   {
     AI_DEBUG("  Freeing response data (%zu bytes)", response.size);
@@ -1031,7 +1058,7 @@ char *ai_generate_response(const char *prompt, int request_type)
 
   /* Sanitize input */
   AI_DEBUG("Sanitizing input prompt");
-  strlcpy(sanitized_prompt, sanitize_ai_input(prompt), sizeof(sanitized_prompt));
+  sanitize_ai_input(prompt, sanitized_prompt, sizeof(sanitized_prompt));
   AI_DEBUG("Sanitized prompt: '%.100s%s'", sanitized_prompt,
            strlen(sanitized_prompt) > 100 ? "..." : "");
 
@@ -2200,7 +2227,7 @@ char *ai_generate_response_async(const char *prompt, int request_type, int retry
   }
 
   /* Sanitize input */
-  strlcpy(sanitized_prompt, sanitize_ai_input(prompt), sizeof(sanitized_prompt));
+  sanitize_ai_input(prompt, sanitized_prompt, sizeof(sanitized_prompt));
 
   /* Check cache first */
   response = ai_cache_get(sanitized_prompt);

@@ -336,20 +336,21 @@ ai reset             # Reset rate limits
 
 **Key Functions**:
 - `secure_memset()` - Secure memory clearing (prevents compiler optimization)
-- `encrypt_api_key()` - API key encryption (currently plaintext - TODO: AES-256)
-- `decrypt_api_key()` - API key decryption (returns allocated string)
-- `load_encrypted_api_key()` - Load API key from file
-- `sanitize_ai_input()` - Critical prompt injection prevention
+- `ai_api_key_set()` - Store the OpenAI key in the single process-private buffer
+- `ai_api_key_copy()` - Copy the key into a caller-owned buffer (thread-safe)
+- `ai_api_key_is_set()` / `ai_api_key_clear()` - Query and wipe the stored key
+- `sanitize_ai_input()` - Critical prompt injection prevention (caller buffer)
 
 **Security Features**:
 - Input sanitization for prompt injection prevention
-- API key storage (currently plaintext - encryption planned)
+- One mutex-guarded in-memory copy of the API key, never persisted or logged
 - Secure memory operations to prevent key leakage
 - Control character filtering
 - JSON special character escaping
 - Works for both OpenAI and Ollama prompts
 
-**TODO**: Implement proper AES-256 encryption for API keys
+See "Secret Lifecycle and Threat Model" under Security Considerations for the
+honest statement of what is and is not protected.
 
 #### ai_cache.c (Response Caching)
 **Location**: `src/ai_cache.c`  
@@ -466,12 +467,71 @@ Generic Fallback
 ## Security Considerations
 
 ### Current Implementation
-- **API Key Storage**: Plaintext in .env file (AES encryption planned)
+- **API Key Storage**: Injected at runtime; see the secret lifecycle below
 - **Input Sanitization**: Escapes special characters, limits length
 - **Prompt Injection Prevention**: Fixed prompt templates
 - **Rate Limiting**: Per-minute and per-hour limits (OpenAI only)
 - **Access Control**: Admin-only configuration
 - **Local Ollama**: No authentication (localhost only)
+
+
+### Secret Lifecycle and Threat Model
+
+The OpenAI API key is the only secret the AI service handles. The contract is
+deliberately simple so nobody mistakes it for something stronger.
+
+**Sources, in priority order**
+1. The process environment variable `OPENAI_API_KEY` (set by systemd
+   `Environment=`/`EnvironmentFile=`, a secret manager wrapper, or the shell).
+   This is the preferred production path: no at-rest copy is owned by the game.
+2. `OPENAI_API_KEY` in `lib/.env`, read through `dotenv.c`. Convenient for
+   development. Keep the file mode `0600` and never commit it.
+
+**What the application guarantees**
+- The key is held in exactly one mutex-guarded buffer inside `ai_security.c`.
+  It is never written to disk, the database, player files, or the response
+  cache, and it is never compiled into the binary.
+- Nothing prints the key: not `log()`, not `AI_DEBUG`, not the `ai` staff
+  command (which reports only CONFIGURED / NOT CONFIGURED), not error text.
+  A regression test captures the log while loading a sentinel key and fails
+  if the sentinel appears.
+- Each OpenAI request copies the key into a stack buffer, builds the
+  `Authorization` header, hands it to libcurl, and immediately wipes both
+  buffers with `secure_memset()`. libcurl keeps its own copy for the life of
+  the header list, which is freed at the end of the request.
+- A key longer than 255 characters is rejected, not truncated, and OpenAI is
+  left disabled with a clear log line.
+- Missing key: OpenAI is disabled and the service fails closed to the Ollama
+  or generic fallback path. No request is ever sent without a key.
+
+**Rotation and revocation**
+1. Put the new key where the running server reads it:
+   - `lib/.env`: edit the file, then run `ai reload` as staff. The old key
+     is overwritten in place; removing the line and reloading wipes it.
+   - systemd `Environment=` / `EnvironmentFile=` (or any secret manager that
+     populates the process environment): update the unit or the credential
+     file, run `systemctl daemon-reload` if the unit itself changed, and
+     restart the server. `ai reload` re-reads the process environment of the
+     already running process, which systemd cannot change, so a reload alone
+     will keep using the old key.
+2. Confirm with `ai` that OpenAI reports CONFIGURED.
+3. Only then revoke the old key at the provider. Requests already in flight in
+   a worker thread finish with whichever key they copied when they started.
+
+**Endpoint policy**
+- `OPENAI_API_ENDPOINT` must start with `https://`. The bearer key is sent to
+  that URL on every request, so a cleartext scheme is refused at load time:
+  the value is ignored, the default endpoint is used, and a log line says so.
+  A local proxy must therefore terminate TLS itself.
+
+**What is explicitly NOT protected**
+- Anyone who can read `lib/.env`, the process environment, process memory, or
+  a core dump can read the key. The game does not implement at-rest
+  encryption; an application-held wrapping key would offer no real boundary
+  because it would sit next to the data it protects. Use OS file permissions,
+  a secret manager, and restricted core-dump handling instead.
+- Backups that include `lib/.env` contain the key. Exclude the file or
+  encrypt the backup outside the game.
 
 ### Best Practices
 1. Restrict .env file permissions: `chmod 600 lib/.env`
@@ -579,13 +639,14 @@ bool ai_moderate_content(const char *text);
 // Memory security
 void secure_memset(void *ptr, int value, size_t num);   // Secure clearing
 
-// API key management
-int encrypt_api_key(const char *plaintext, char *encrypted_out);  // Store key
-char *decrypt_api_key(const char *encrypted);                     // Retrieve key (must free)
-void load_encrypted_api_key(const char *filename);                // Load from file
+// API key management (one process-private copy, mutex guarded)
+bool ai_api_key_set(const char *key);             // Store key; FALSE if too long
+bool ai_api_key_is_set(void);                     // Non-empty key stored?
+bool ai_api_key_copy(char *out, size_t out_size); // Copy into caller buffer
+void ai_api_key_clear(void);                      // Wipe the stored key
 
 // Input sanitization
-char *sanitize_ai_input(const char *input);                      // Prevent injection
+void sanitize_ai_input(const char *input, char *out, size_t out_size);
 ```
 
 ### Cache Functions (ai_cache.c)
@@ -625,7 +686,7 @@ struct ai_service_state {
 
 // Configuration (ai_service.h)
 struct ai_config {
-    char encrypted_api_key[256];         // OpenAI API key storage
+    char openai_endpoint[256];           // OPENAI_API_ENDPOINT (key is NOT stored here)
     char model[64];                      // OpenAI model name
     int max_tokens;                      // Response length limit
     float temperature;                   // Creativity (0.0-1.0)
@@ -758,7 +819,8 @@ ai
 - ✅ Always-on AI capability
 
 ### Known Limitations
-- API keys stored in plaintext (encryption planned)
+- No application-level at-rest encryption of the API key (by design, see the
+  threat model; file permissions and the deployment secret store protect it)
 - No medit integration yet (manual flag setting required)
 - Cache is memory-only (lost on reboot)
 - Single prompt template for all NPCs
@@ -766,13 +828,12 @@ ai
 - Ollama model must be pre-downloaded
 
 ### Planned Enhancements
-1. **Security**: AES-256 encryption for API keys
-2. **Editor Support**: medit integration for AI flags
-3. **Persistence**: Database-backed cache
-4. **Features**: Room descriptions, quest generation
-5. **NPC Personalities**: Individual personality traits
-6. **Memory**: Conversation history per player/NPC pair (leverage 128K context)
-7. **Moderation**: ai_moderate_content() implementation
+1. **Editor Support**: medit integration for AI flags
+2. **Persistence**: Database-backed cache
+3. **Features**: Room descriptions, quest generation
+4. **NPC Personalities**: Individual personality traits
+5. **Memory**: Conversation history per player/NPC pair (leverage 128K context)
+6. **Moderation**: ai_moderate_content() implementation
 8. **Dynamic Models**: Per-NPC model selection
 9. **Ollama Config**: Runtime model switching
 10. **Context Enhancement**: Include world lore, zone info, NPC backgrounds
@@ -907,7 +968,8 @@ Worker Threads (detached):
 - Worker threads free their own request structures
 - Event handlers free event data after processing
 - Cache entries freed on expiration or cleanup
-- API keys cleared with `secure_memset()` on shutdown
+- The API key buffer is wiped with `secure_memset()` on shutdown, on a reload
+  that no longer supplies a key, and per request once libcurl owns the header
 
 ### Error Handling Strategy
 1. **API Failures**: Retry with exponential backoff, then Ollama fallback

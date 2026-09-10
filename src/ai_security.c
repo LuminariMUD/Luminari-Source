@@ -4,24 +4,25 @@
  * @brief Security functions for AI service
  *
  * Handles:
- * - API key encryption/decryption
+ * - OpenAI API key lifecycle (store, copy, clear)
  * - Input sanitization
  * - Secure memory operations
  *
  * COMPONENT INTERACTIONS:
  * - USED BY: ai_service.c for all security operations
- * - ACCESSES: ai_state.config for API key storage
  * - CRITICAL: All API keys pass through this component
  *
- * SECURITY MODEL:
- * - API keys stored in ai_state.config->encrypted_api_key
- * - Input sanitization prevents prompt injection
- * - Secure memory clearing prevents key leakage
- *
- * Note: This is a simplified implementation. Production systems should use
- * proper key management services and stronger encryption.
- *
- * TODO: Implement AES-256 encryption for API keys
+ * SECURITY BOUNDARY (honest statement, see docs/systems/AI_SERVICE_README.md):
+ * - The API key is injected at runtime from the process environment or
+ *   lib/.env. The application never writes it anywhere: not to disk, not to
+ *   the database, not to logs, not to player or staff output.
+ * - While loaded, the key lives in exactly one process-private buffer that is
+ *   guarded by a mutex so a worker thread can copy it while the main thread
+ *   reloads configuration. Callers receive a copy in a buffer they own and
+ *   must clear with secure_memset() as soon as the request is built.
+ * - There is NO at-rest encryption. Protecting the key at rest is the job of
+ *   file permissions on lib/.env and the deployment secret store. Nothing in
+ *   this file claims otherwise.
  *
  * Part of the LuminariMUD distribution.
  */
@@ -32,236 +33,157 @@
 #include "utils.h"
 #include "comm.h"
 #include "ai_service.h"
-#include <errno.h>
+#include <pthread.h>
 
-/* Simple XOR cipher key - in production, use proper encryption */
-#define CIPHER_KEY "LuminariMUD_AI_Service_2025_Secure_Key"
+/* The single process-private copy of the OpenAI API key. */
+static char ai_api_key_store[AI_API_KEY_MAX_LEN];
+static pthread_mutex_t ai_api_key_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /**
  * Secure memory clearing
  *
- * Prevents compiler optimization from removing memory clearing operations.
- * Uses volatile pointer to ensure memory is actually overwritten.
- *
- * Used by:
- * - load_encrypted_api_key() to clear file buffers
- * - shutdown_ai_service() to clear API keys on shutdown
- * - Any function handling sensitive data
- *
- * IMPORTANT: Standard memset() may be optimized away if the compiler
- * determines the memory won't be read again. This function prevents
- * that optimization for security-critical memory clearing.
+ * Standard memset() may be optimized away if the compiler determines the
+ * memory won't be read again. Writing through a volatile pointer forces the
+ * stores to happen.
  */
 void secure_memset(void *ptr, int value, size_t num)
 {
   volatile unsigned char *p = ptr;
-  AI_DEBUG("secure_memset() called - clearing %zu bytes at %p", num, ptr);
+
+  if (!ptr)
+    return;
   while (num--)
   {
-    *p++ = value;
+    *p++ = (unsigned char)value;
   }
 }
 
-
 /**
- * Encrypt API key
+ * Store the OpenAI API key for later use by request builders.
  *
- * Currently stores API key in plaintext (NO ENCRYPTION).
- * This is a security vulnerability that needs addressing.
+ * The key is copied verbatim into the process-private store. A NULL or empty
+ * key clears the store. A key that does not fit is rejected outright rather
+ * than silently truncated, because a truncated key would fail every request
+ * with an error message that is very hard to trace.
  *
- * Called by:
- * - load_ai_config() when loading API key from .env
- * - Admin commands when updating API key
- *
- * Stores in: ai_state.config->encrypted_api_key (256 bytes max)
- *
- * TODO: Implement proper encryption:
- * 1. Use AES-256-CBC with server-specific key
- * 2. Store initialization vector with encrypted data
- * 3. Use PBKDF2 for key derivation from server seed
- *
- * Returns: 1 on success, 0 on failure
+ * Returns: TRUE when the store now holds the requested value, FALSE when the
+ * key was too long (the previous value is cleared in that case).
  */
-int encrypt_api_key(const char *plaintext, char *encrypted_out)
+bool ai_api_key_set(const char *key)
 {
-  AI_DEBUG("encrypt_api_key() called");
+  size_t len;
+  bool stored;
 
-  if (!plaintext || !encrypted_out)
+  len = key ? strlen(key) : 0;
+  stored = TRUE;
+
+  pthread_mutex_lock(&ai_api_key_mutex);
+  secure_memset(ai_api_key_store, 0, sizeof(ai_api_key_store));
+  if (len >= sizeof(ai_api_key_store))
   {
-    AI_DEBUG("ERROR: NULL plaintext or encrypted_out");
-    return 0;
+    log("SYSERR: AI Service: OPENAI_API_KEY is longer than %zu characters and was rejected",
+        sizeof(ai_api_key_store) - 1);
+    stored = FALSE;
   }
+  else if (len > 0)
+  {
+    memcpy(ai_api_key_store, key, len);
+    ai_api_key_store[len] = '\0';
+  }
+  pthread_mutex_unlock(&ai_api_key_mutex);
 
-  AI_DEBUG("WARNING: Using plaintext storage (no encryption)");
-  AI_DEBUG("Input length: %zu", strlen(plaintext));
-
-  /* Just copy the API key as-is - no encryption */
-  strlcpy(encrypted_out, plaintext, 256);
-
-  AI_DEBUG("API key stored (length=%zu)", strlen(encrypted_out));
-  return 1;
+  return stored;
 }
 
 /**
- * Decrypt API key
- * Note: Caller must free() the returned string
- *
- * Currently returns API key as-is (NO DECRYPTION).
- * Must be updated when encryption is implemented.
- *
- * Called by:
- * - make_api_request_single() for each API request
- *
- * SECURITY CONSIDERATIONS:
- * - Returned key is in plaintext memory
- * - Caller MUST free() the returned string
- * - Caller should clear memory after use
- *
- * Memory: Allocates 256 bytes for decrypted key
- * Returns: Allocated string with API key or NULL on error
+ * Whether a non-empty API key is currently stored.
  */
-char *decrypt_api_key(const char *encrypted)
+bool ai_api_key_is_set(void)
 {
-  char *decrypted;
+  bool present;
 
-  AI_DEBUG("decrypt_api_key() called");
+  pthread_mutex_lock(&ai_api_key_mutex);
+  present = ai_api_key_store[0] != '\0';
+  pthread_mutex_unlock(&ai_api_key_mutex);
 
-  if (!encrypted || !*encrypted)
-  {
-    AI_DEBUG("ERROR: NULL or empty encrypted key");
-    return NULL;
-  }
-
-  AI_DEBUG("WARNING: Using plaintext retrieval (no decryption)");
-  AI_DEBUG("Encrypted length: %zu", strlen(encrypted));
-
-  /* Allocate memory for decrypted key */
-  CREATE(decrypted, char, 256);
-  if (!decrypted)
-  {
-    log("SYSERR: Failed to allocate memory for decrypted API key");
-    AI_DEBUG("ERROR: Failed to allocate 256 bytes");
-    return NULL;
-  }
-
-  /* Just return the API key as-is - no decryption */
-  strlcpy(decrypted, encrypted, 256);
-
-  AI_DEBUG("API key retrieved (length=%zu)", strlen(decrypted));
-  return decrypted;
+  return present;
 }
 
 /**
- * Load encrypted API key from file
+ * Copy the stored API key into a caller-owned buffer.
  *
- * Reads API key from file and stores in global config.
- * Uses secure_memset() to clear file buffer after reading.
+ * Safe to call from worker threads. The caller must clear the buffer with
+ * secure_memset() once the request headers have been built.
  *
- * Called by:
- * - Manual configuration (not currently used)
- * - Could be used for file-based key storage
- *
- * Security measures:
- * 1. Clears file buffer after reading
- * 2. Removes newlines from key
- * 3. Validates file access
- *
- * File format: Single line with API key
- * Storage: ai_state.config->encrypted_api_key
+ * Returns: TRUE when out now holds a non-empty key, FALSE when no key is
+ * configured or the buffer is too small (out is emptied either way).
  */
-void load_encrypted_api_key(const char *filename)
+bool ai_api_key_copy(char *out, size_t out_size)
 {
-  FILE *fp;
-  char buffer[512];
+  bool copied;
 
-  AI_DEBUG("load_encrypted_api_key() called with filename='%s'", filename ? filename : "(null)");
+  if (!out || out_size == 0)
+    return FALSE;
 
-  if (!filename)
+  copied = FALSE;
+  pthread_mutex_lock(&ai_api_key_mutex);
+  if (ai_api_key_store[0] != '\0' && strlen(ai_api_key_store) < out_size)
   {
-    AI_DEBUG("ERROR: NULL filename");
-    return;
-  }
-
-  AI_DEBUG("Opening file: %s", filename);
-  fp = fopen(filename, "r");
-  if (!fp)
-  {
-    log("SYSERR: Cannot open API key file: %s", filename);
-    AI_DEBUG("ERROR: fopen failed - %s", strerror(errno));
-    return;
-  }
-  AI_DEBUG("File opened successfully");
-
-  if (fgets(buffer, sizeof(buffer), fp))
-  {
-    AI_DEBUG("Read %zu bytes from file", strlen(buffer));
-    /* Remove newline */
-    buffer[strcspn(buffer, "\n")] = '\0';
-    AI_DEBUG("After newline removal: %zu bytes", strlen(buffer));
-
-    /* Store in config */
-    if (ai_state.config)
-    {
-      AI_DEBUG("Storing key in config (length=%zu)", strlen(buffer));
-      strlcpy(ai_state.config->encrypted_api_key, buffer,
-              sizeof(ai_state.config->encrypted_api_key));
-    }
-    else
-    {
-      AI_DEBUG("ERROR: ai_state.config is NULL");
-    }
+    strlcpy(out, ai_api_key_store, out_size);
+    copied = TRUE;
   }
   else
   {
-    AI_DEBUG("ERROR: Failed to read from file");
+    out[0] = '\0';
   }
+  pthread_mutex_unlock(&ai_api_key_mutex);
 
-  fclose(fp);
-  AI_DEBUG("File closed");
+  return copied;
+}
 
-  /* Clear buffer */
-  AI_DEBUG("Clearing sensitive buffer");
-  secure_memset(buffer, 0, sizeof(buffer));
-
-  log("API key loaded from %s", filename);
+/**
+ * Clear the stored API key. Called on shutdown and when a reload finds no key.
+ */
+void ai_api_key_clear(void)
+{
+  pthread_mutex_lock(&ai_api_key_mutex);
+  secure_memset(ai_api_key_store, 0, sizeof(ai_api_key_store));
+  pthread_mutex_unlock(&ai_api_key_mutex);
 }
 
 /**
  * Sanitize user input for AI prompts
  *
  * Critical security function that prevents prompt injection attacks.
- * Sanitizes user input before sending to OpenAI API.
- *
- * Called by:
- * - ai_generate_response() for all AI requests
- * - ai_generate_response_async() for async requests
+ * Sanitizes user input before it is embedded in a JSON request body.
  *
  * Security measures:
  * 1. Removes control characters (except newlines)
  * 2. Escapes quotes and backslashes for JSON
  * 3. Replaces newlines with spaces
- * 4. Enforces MAX_STRING_LENGTH limit
+ * 4. Bounds output to out_size
  * 5. Trims trailing spaces
  *
- * IMPORTANT: This is the primary defense against prompt injection.
- * All user input MUST pass through this function.
- *
- * Returns: Static buffer with sanitized input (not thread-safe)
+ * The result is written to a caller-owned buffer so the function is safe to
+ * call from any thread. out is always NUL-terminated when out_size > 0.
  */
-char *sanitize_ai_input(const char *input)
+void sanitize_ai_input(const char *input, char *out, size_t out_size)
 {
-  static char cleaned[MAX_STRING_LENGTH];
   const char *src = input;
-  char *dest = cleaned;
-  int len = 0;
+  char *dest = out;
+  size_t len = 0;
 
+  if (!out || out_size == 0)
+    return;
+
+  out[0] = '\0';
   if (!input)
-    return "";
+    return;
 
-  while (*src && len < MAX_STRING_LENGTH - 1)
+  while (*src && len < out_size - 1)
   {
     /* Skip control characters */
-    if (*src < 32 && *src != '\n' && *src != '\r')
+    if ((unsigned char)*src < 32 && *src != '\n' && *src != '\r')
     {
       src++;
       continue;
@@ -270,18 +192,12 @@ char *sanitize_ai_input(const char *input)
     /* Escape special characters for JSON */
     if (*src == '"' || *src == '\\')
     {
-      if (len >= MAX_STRING_LENGTH - 2)
+      if (len >= out_size - 2)
       {
         break; /* No room for escape sequence */
       }
       *dest++ = '\\';
       len++;
-    }
-
-    /* Check if we have room for the character */
-    if (len >= MAX_STRING_LENGTH - 1)
-    {
-      break;
     }
 
     /* Replace newlines with spaces */
@@ -301,10 +217,8 @@ char *sanitize_ai_input(const char *input)
   *dest = '\0';
 
   /* Trim trailing spaces */
-  while (dest > cleaned && *(dest - 1) == ' ')
+  while (dest > out && *(dest - 1) == ' ')
   {
     *(--dest) = '\0';
   }
-
-  return cleaned;
 }
