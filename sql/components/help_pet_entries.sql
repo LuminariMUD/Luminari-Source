@@ -103,6 +103,17 @@ Changing behavior does not stop an existing fight or prevent direct orders.
 Behavior is saved with eligible pets. Explicit summon recalls waiting pets;
 automatic travel does not.
 
+PETS also shows each pet''s persistence policy. Durable pets (companions,
+familiars, mounts, eidolons, mercenaries, golems, animated dead, and other
+kept followers) stay saved until dismissed, killed, or stored. Timed control,
+such as a charm whose control has a duration, is saved with its remaining time
+and that time pauses while you are offline. Timed summons such as an illusory
+decoy keep a real-time deadline: it keeps counting while you are offline,
+across reboots and copyovers, and a pet whose deadline has passed is gone
+when you return. Ordinary spell summons, such as summoned creatures, allies,
+and genies, last only for your current session: they are never saved and do
+not return after you log out, a reboot, or a copyover.
+
 Use pets <pet|#id> name <name> to name one loyal pet in your room. Names are
 3-24 ASCII letters, with optional internal apostrophes or hyphens; spaces,
 color codes, parser words such as the, with, all, self, or someone, and the
@@ -170,7 +181,10 @@ reclaim each one.
 STABLE STORE hands one charmed follower in your room to the keeper. You may
 use its name or its assigned ID from PETS, such as stable store #123. You cannot
 stable a follower while either of you is fighting, or while it is being ridden.
-The keeper holds up to 10 followers for you.
+The keeper boards only followers that stay with you: durable pets and timed
+control. Timed summons and ordinary spell summons are refused. A stabled
+follower whose time ran out before the policy existed is released when you try
+to reclaim it, freeing its slot. The keeper holds up to 10 followers for you.
 
 STABLE RECLAIM returns a stabled follower by its listed number - the small
 number shown beside it, such as ''stable reclaim 1''. The longer stable ID in the

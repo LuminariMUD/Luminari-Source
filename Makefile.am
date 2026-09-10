@@ -402,6 +402,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_necromancer.c \
 	unittests/CuTest/test_pet_persistence.c \
 	unittests/CuTest/test_pet_policy.c \
+	unittests/CuTest/test_pet_lifetime.c \
 	unittests/CuTest/test_study_pet_menus.c \
 	unittests/CuTest/CuTest.c \
 	unittests/CuTest/test_bounds_checking.c \
@@ -474,6 +475,7 @@ cutest_test_files = \
 	unittests/CuTest/test_necromancer.c \
 	unittests/CuTest/test_pet_persistence.c \
 	unittests/CuTest/test_pet_policy.c \
+	unittests/CuTest/test_pet_lifetime.c \
 	unittests/CuTest/test_study_pet_menus.c \
 	unittests/CuTest/test_artifacts.c \
 	unittests/CuTest/test_artifact_integration.c \

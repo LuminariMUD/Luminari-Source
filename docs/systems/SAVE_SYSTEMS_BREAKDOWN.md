@@ -196,12 +196,26 @@ repeated renaming does not accumulate prior custom names. Saved eidolon identity
 is restored before considering legacy owner-description defaults. Malformed
 records remain saved for recovery; `pets restore` offers a bounded retry and skips already published pet IDs.
 
-Timed affects currently retain remaining duration but pause while stored/offline.
-The runtime-state record does not preserve natural/control event deadlines.
-`ePURGEMOB` is the short follower-loss cleanup, not a general natural lifetime.
-Absolute deadlines, expiry gear handling, and uncertain-commit reconciliation
-remain open in `docs/ongoing-projects/PET_SYSTEM_REFACTOR_PLAN.md`. Save/load tests
-do not replace the plan's executable copyover acceptance gate.
+Follower persistence follows an explicit policy (`pet_lifetime_kind()` in
+`src/utils.c`). Durable followers persist until dismissed, killed, or stored.
+Timed control is carried by the saved charm affect; its remaining duration
+pauses while stored or offline. Deadline followers are those with a live
+`ePURGEMOB` event, plus illusory decoys, which never persist without one. The
+runtime-state record (version 4, `T <kind> <epoch>`) stores the absolute
+real-time deadline rather than the scheduler handle. The deadline keeps
+elapsing offline: restore rejects an expired record, discards the roomless
+copy, and lets the next snapshot drop the row; a live record gets a fresh
+native `ePURGEMOB` event for the remaining time; if that event cannot be
+scheduled the record is rejected rather than restored without an expiry.
+Session followers are spell summons outside the kept families (companion,
+familiar, mount, dragon mount, eidolon, golem, mercenary, animated dead,
+lycanthrope, totem spirit); they are skipped by the snapshot and a saved record
+of one is rejected on restore. The keeper boards only durable and timed-control
+followers; reclaiming a stored row whose lifetime has ended deletes that row
+and its objects inside the reclaim transaction. `pets` shows each pet's
+policy and remaining real time. Expiry gear handling and uncertain-commit
+reconciliation remain open in `docs/ongoing-projects/PET_SYSTEM_REFACTOR_PLAN.md`.
+Save/load tests do not replace the plan's executable copyover acceptance gate.
 
 #### 3. Wilderness System Data
 - **Tables**: `region_data`, `path_data`, `region_index`, `path_index`

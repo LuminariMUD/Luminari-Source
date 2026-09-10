@@ -1410,6 +1410,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable)
   struct char_data *pet;
   const char *location;
   char identity[40];
+  char lifetime[64];
   room_rnum room;
   int number = 0, spare;
   size_t category;
@@ -1440,13 +1441,18 @@ int check_npc_followers(struct char_data *ch, int mode, int variable)
       identity[0] = '\0';
       if (pet->pet_data_id > 0)
         snprintf(identity, sizeof(identity), " [#%ld]", pet->pet_data_id);
-      send_to_char(ch, "\tC%-2d\tw) %s - %s - %s [%s]%s\tn\r\n", ++number,
+      pet_lifetime_status(pet, lifetime, sizeof(lifetime));
+      send_to_char(ch, "\tC%-2d\tw) %s - %s - %s [%s]%s - %s\tn\r\n", ++number,
                    GET_NAME(pet) != NULL ? GET_NAME(pet) : "Unnamed pet",
                    location != NULL ? location : "Away",
                    follower_rules[follower_category(pet, follower_vnum(pet))].name,
-                   pet_behavior_name(pet->pet_behavior), identity);
+                   pet_behavior_name(pet->pet_behavior), identity, lifetime);
     }
     draw_line(ch, 80, '-', '-');
+    send_to_char(ch, "Durable pets and timed control are saved with you; control time pauses "
+                     "while you are offline.\r\nTimed summons keep a real-time deadline and are "
+                     "gone if it passes while you are away.\r\nOrdinary spell summons last only "
+                     "for this session and are never saved.\r\n");
     send_to_char(ch,
                  "\tC%d pets. General slots: %d/%d used, %d available. "
                  "Ordinary summons: %d/%d.\tn\r\n"
@@ -1498,6 +1504,102 @@ bool is_illusory_pet(struct char_data *pet)
 {
   return pet != NULL && IS_NPC(pet) &&
          (pet->pet_source_spell == SPELL_MISLEAD || follower_vnum(pet) == PET_MISLEAD_DECOY);
+}
+
+/* Illusory decoys exist only for their event lifetime; a record without a
+ * valid deadline is expired rather than durable. */
+bool pet_lifetime_requires_deadline(struct char_data *pet)
+{
+  return is_illusory_pet(pet);
+}
+
+/* Real-time epoch when the follower's ePURGEMOB event fires; zero without one. */
+long long pet_lifetime_deadline(struct char_data *pet)
+{
+  struct mud_event_data *event;
+  long remaining;
+
+  event = pet != NULL ? char_has_mud_event(pet, ePURGEMOB) : NULL;
+  if (!mud_event_is_live(event))
+    return 0;
+  remaining = mud_event_remaining(event);
+  if (remaining < 0)
+    remaining = 0;
+  return (long long)time(NULL) + (remaining + PASSES_PER_SEC - 1) / PASSES_PER_SEC;
+}
+
+/* Kept families are class features, crafted, hired, or permanent creations.
+ * They persist even when a spell created them; any other spell summon lasts
+ * only for the owner's session. */
+static bool pet_is_kept_family(struct char_data *pet)
+{
+  static const int kept_flags[] = {
+      MOB_C_ANIMAL,        MOB_C_FAMILIAR,    MOB_C_MOUNT,
+      MOB_C_DRAGON,        MOB_EIDOLON,       MOB_GOLEM,
+      MOB_MERCENARY,       MOB_ANIMATED_DEAD, MOB_ROL_LYCANTHROPE_SUMMON,
+      MOB_ROL_TOTEM_SPIRIT};
+  size_t i;
+
+  for (i = 0; i < sizeof(kept_flags) / sizeof(kept_flags[0]); i++)
+    if (MOB_FLAGGED(pet, kept_flags[i]))
+      return true;
+  return false;
+}
+
+enum pet_lifetime_kind pet_lifetime_kind(struct char_data *pet)
+{
+  struct affected_type *af;
+
+  if (pet == NULL || !IS_NPC(pet))
+    return PET_LIFETIME_DURABLE;
+  if (pet_lifetime_requires_deadline(pet) || pet_lifetime_deadline(pet) > 0)
+    return PET_LIFETIME_DEADLINE;
+  for (af = pet->affected; af != NULL; af = af->next)
+    if (IS_SET_AR(af->bitvector, AFF_CHARM) && af->duration >= 0)
+      return PET_LIFETIME_CONTROL;
+  if (pet->pet_source_spell != 0 && !pet_is_kept_family(pet))
+    return PET_LIFETIME_SESSION;
+  return PET_LIFETIME_DURABLE;
+}
+
+bool pet_lifetime_persists(struct char_data *pet)
+{
+  return pet_lifetime_kind(pet) != PET_LIFETIME_SESSION;
+}
+
+bool pet_keeper_accepts(struct char_data *pet)
+{
+  enum pet_lifetime_kind kind = pet_lifetime_kind(pet);
+
+  return kind == PET_LIFETIME_DURABLE || kind == PET_LIFETIME_CONTROL;
+}
+
+void pet_lifetime_status(struct char_data *pet, char *buffer, size_t size)
+{
+  long long remaining;
+
+  switch (pet_lifetime_kind(pet))
+  {
+  case PET_LIFETIME_CONTROL:
+    snprintf(buffer, size, "timed control, pauses offline");
+    break;
+  case PET_LIFETIME_DEADLINE:
+    remaining = pet_lifetime_deadline(pet) - (long long)time(NULL);
+    if (remaining <= 0)
+      snprintf(buffer, size, "expiring");
+    else if (remaining >= 60)
+      snprintf(buffer, size, "expires in %lldm %llds, real time", remaining / 60, remaining % 60);
+    else
+      snprintf(buffer, size, "expires in %llds, real time", remaining);
+    break;
+  case PET_LIFETIME_SESSION:
+    snprintf(buffer, size, "this session only, not saved");
+    break;
+  case PET_LIFETIME_DURABLE:
+  default:
+    snprintf(buffer, size, "durable");
+    break;
+  }
 }
 
 const char *pet_behavior_name(int behavior)

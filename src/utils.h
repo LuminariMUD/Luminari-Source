@@ -258,6 +258,27 @@ bool pet_guards_owner(struct char_data *pet, struct char_data *owner, struct cha
 const char *pet_behavior_name(int behavior);
 struct char_data *get_pet_command_target(struct char_data *owner, char *target);
 bool is_illusory_pet(struct char_data *pet);
+/* Follower persistence policy.  Durable followers persist until dismissed,
+ * killed, or stored.  Timed control is held by a charm affect whose remaining
+ * duration is saved and paused while the owner is offline.  Deadline
+ * followers end with an ePURGEMOB event; the deadline is real time and keeps
+ * elapsing offline.  Session followers are ordinary spell summons outside the
+ * kept families; they last while the owner plays and are never saved. */
+enum pet_lifetime_kind
+{
+  PET_LIFETIME_DURABLE,
+  PET_LIFETIME_CONTROL,
+  PET_LIFETIME_DEADLINE,
+  PET_LIFETIME_SESSION
+};
+enum pet_lifetime_kind pet_lifetime_kind(struct char_data *pet);
+bool pet_lifetime_requires_deadline(struct char_data *pet);
+/* Saved with the owner: every kind except session. */
+bool pet_lifetime_persists(struct char_data *pet);
+/* Boarded by the keeper: only durable and timed-control followers. */
+bool pet_keeper_accepts(struct char_data *pet);
+long long pet_lifetime_deadline(struct char_data *pet);
+void pet_lifetime_status(struct char_data *pet, char *buffer, size_t size);
 bool pet_order_check(struct char_data *ch, struct char_data *vict);
 /* Takes a staged, roomless NPC; destroys it if placement fails. Admission is the caller's job. */
 bool place_pet_follower(struct char_data *owner, struct char_data *pet);
