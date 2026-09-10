@@ -410,6 +410,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_artifacts.c \
 	unittests/CuTest/test_artifact_integration.c \
 	unittests/CuTest/test_player_rename.c \
+	unittests/CuTest/test_ai_secrets.c \
 	unittests/CuTest/test.helpers.c \
 	unittests/CuTest/test.interpreter.c \
 	unittests/CuTest/test_transport_production.c \
@@ -480,6 +481,7 @@ cutest_test_files = \
 	unittests/CuTest/test_artifacts.c \
 	unittests/CuTest/test_artifact_integration.c \
 	unittests/CuTest/test_player_rename.c \
+	unittests/CuTest/test_ai_secrets.c \
 	unittests/CuTest/test.helpers.c \
 	unittests/CuTest/test.interpreter.c \
 	unittests/CuTest/test_transport_production.c \

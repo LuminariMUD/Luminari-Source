@@ -143,8 +143,7 @@ enum ai_service_health
 /* AI Configuration - loaded from lib/.env at startup */
 struct ai_config
 {
-  /* OpenAI settings */
-  char encrypted_api_key[256];
+  /* OpenAI settings. The API key itself is not stored here; see ai_security.c. */
   char openai_endpoint[256]; /* OPENAI_API_ENDPOINT */
   char model[64];            /* AI_MODEL: gpt-4o-mini, etc */
   int max_tokens;            /* AI_MAX_TOKENS */
@@ -229,13 +228,17 @@ bool ai_check_rate_limit(void);
 void ai_reset_rate_limits(void);
 
 /* Security Functions (defined in ai_security.c)
- * CRITICAL SECURITY - All API keys and user input pass through here
+ * CRITICAL SECURITY - All API keys and user input pass through here.
+ * The API key is held in one mutex-guarded process-private buffer; it is
+ * never encrypted at rest, persisted, logged, or shown to players or staff.
  */
-char *decrypt_api_key(const char *encrypted); /* Returns allocated string (caller frees) */
-int encrypt_api_key(const char *plaintext, char *encrypted_out); /* Store API key */
-void load_encrypted_api_key(const char *filename);               /* Load from file (unused) */
-char *sanitize_ai_input(const char *input);           /* CRITICAL: Prevent prompt injection */
-void secure_memset(void *ptr, int value, size_t num); /* Clear sensitive memory */
+#define AI_API_KEY_MAX_LEN 256                    /* Includes the terminating NUL */
+bool ai_api_key_set(const char *key);             /* Store key; FALSE if too long */
+bool ai_api_key_is_set(void);                     /* Non-empty key stored? */
+bool ai_api_key_copy(char *out, size_t out_size); /* Copy into caller buffer */
+void ai_api_key_clear(void);                      /* Wipe the stored key */
+void sanitize_ai_input(const char *input, char *out, size_t out_size); /* Prompt injection */
+void secure_memset(void *ptr, int value, size_t num);                  /* Clear sensitive memory */
 
 /* Utility Functions */
 void log_ai_error(const char *function, const char *error);
