@@ -194,10 +194,11 @@ extern struct ai_service_state ai_state;
 /* Core Service Functions
  * PRIMARY INTERFACE - Called by main MUD systems
  */
-void init_ai_service(void);     /* Initialize at startup (comm.c) */
-void shutdown_ai_service(void); /* Cleanup at shutdown */
-void load_ai_config(void);      /* Reload from .env file */
-bool is_ai_enabled(void);       /* Global enable check (all components) */
+void init_ai_service(void);                 /* Initialize at startup (comm.c) */
+void shutdown_ai_service(void);             /* Cleanup at shutdown */
+void load_ai_config(void);                  /* Reload from .env file */
+bool ai_endpoint_is_https(const char *url); /* Custom OpenAI endpoints must be https */
+bool is_ai_enabled(void);                   /* Global enable check (all components) */
 enum ai_service_health ai_get_service_health(void);
 const char *ai_service_health_name(void);
 const char *ai_service_active_provider(void);

@@ -499,6 +499,14 @@ const char *ai_service_active_provider(void)
 }
 
 /**
+ * Whether an OpenAI endpoint URL uses the https scheme (case-insensitive).
+ */
+bool ai_endpoint_is_https(const char *url)
+{
+  return url && strncasecmp(url, "https://", 8) == 0;
+}
+
+/**
  * Load AI configuration from database/files
  *
  * Loads configuration from .env file via dotenv.c. This function:
@@ -590,8 +598,18 @@ void load_ai_config(void)
   str_val = get_env_value("OPENAI_API_ENDPOINT");
   if (str_val && *str_val)
   {
-    strlcpy(ai_state.config->openai_endpoint, str_val, sizeof(ai_state.config->openai_endpoint));
-    AI_DEBUG("  OpenAI endpoint: %s", ai_state.config->openai_endpoint);
+    /* The bearer key travels to this URL, so a cleartext scheme is refused. */
+    if (ai_endpoint_is_https(str_val))
+    {
+      strlcpy(ai_state.config->openai_endpoint, str_val, sizeof(ai_state.config->openai_endpoint));
+      AI_DEBUG("  OpenAI endpoint: %s", ai_state.config->openai_endpoint);
+    }
+    else
+    {
+      strlcpy(ai_state.config->openai_endpoint, DEFAULT_OPENAI_API_ENDPOINT,
+              sizeof(ai_state.config->openai_endpoint));
+      log("AI Service: OPENAI_API_ENDPOINT must use https:// - ignoring it and using the default");
+    }
   }
 
   /* OpenAI Model */
@@ -790,6 +808,7 @@ static char *make_api_request_single(const char *prompt)
       log("SYSERR: Failed to initialize CURL handle in make_api_request_single");
       AI_DEBUG("ERROR: curl_easy_init() returned NULL");
       ai_wipe_request_secrets(api_key, sizeof(api_key), auth_header, sizeof(auth_header));
+      free(json_request);
       return NULL;
     }
   }
@@ -805,7 +824,9 @@ static char *make_api_request_single(const char *prompt)
   {
     log("SYSERR: Failed to allocate CURL header list (auth header)");
     AI_DEBUG("ERROR: curl_slist_append failed for auth header");
-    curl_easy_cleanup(curl);
+    if (curl != ai_state.curl_handle)
+      curl_easy_cleanup(curl);
+    free(json_request);
     return NULL;
   }
   AI_DEBUG("  Auth header added successfully");
@@ -815,7 +836,10 @@ static char *make_api_request_single(const char *prompt)
   {
     log("SYSERR: Failed to allocate CURL header list (content-type)");
     AI_DEBUG("ERROR: curl_slist_append failed for content-type header");
-    curl_easy_cleanup(curl);
+    if (curl != ai_state.curl_handle)
+      curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+    free(json_request);
     return NULL;
   }
   AI_DEBUG("  Content-Type header added successfully");
@@ -919,6 +943,7 @@ static char *make_api_request_single(const char *prompt)
   }
   curl_slist_free_all(headers);
   AI_DEBUG("  Headers freed");
+  free(json_request);
 
   if (response.data)
   {

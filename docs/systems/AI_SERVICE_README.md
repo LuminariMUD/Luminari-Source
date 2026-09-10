@@ -505,11 +505,24 @@ deliberately simple so nobody mistakes it for something stronger.
   or generic fallback path. No request is ever sent without a key.
 
 **Rotation and revocation**
-1. Update the environment variable or `lib/.env` with the new key.
-2. Run `ai reload` as staff (or restart the server). The old key is
-   overwritten in place. Removing the key entirely and reloading wipes it.
-3. Revoke the old key at the provider. Requests already in flight in a
-   worker thread finish with whichever key they copied when they started.
+1. Put the new key where the running server reads it:
+   - `lib/.env`: edit the file, then run `ai reload` as staff. The old key
+     is overwritten in place; removing the line and reloading wipes it.
+   - systemd `Environment=` / `EnvironmentFile=` (or any secret manager that
+     populates the process environment): update the unit or the credential
+     file, run `systemctl daemon-reload` if the unit itself changed, and
+     restart the server. `ai reload` re-reads the process environment of the
+     already running process, which systemd cannot change, so a reload alone
+     will keep using the old key.
+2. Confirm with `ai` that OpenAI reports CONFIGURED.
+3. Only then revoke the old key at the provider. Requests already in flight in
+   a worker thread finish with whichever key they copied when they started.
+
+**Endpoint policy**
+- `OPENAI_API_ENDPOINT` must start with `https://`. The bearer key is sent to
+  that URL on every request, so a cleartext scheme is refused at load time:
+  the value is ignored, the default endpoint is used, and a log line says so.
+  A local proxy must therefore terminate TLS itself.
 
 **What is explicitly NOT protected**
 - Anyone who can read `lib/.env`, the process environment, process memory, or
