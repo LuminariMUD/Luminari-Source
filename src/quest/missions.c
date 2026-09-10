@@ -513,24 +513,24 @@ void create_mission_mobs(char_data *ch)
 
     mob->mission_owner = GET_IDNUM(ch);
 
-    sprintf(buf, "%s %s %s %ld -%s",
-            AN(mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))]),
-            mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
-            (i > 0) ? " guard" : random_npc_names[randName], (i == 0) ? GET_IDNUM(ch) : 0,
-            GET_NAME(ch));
+    snprintf(buf, sizeof(buf), "%s %s %s %ld -%s",
+             AN(mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))]),
+             mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
+             (i > 0) ? " guard" : random_npc_names[randName], (i == 0) ? GET_IDNUM(ch) : 0,
+             GET_NAME(ch));
     mob->player.name = strdup(buf);
 
-    sprintf(buf, "%s %s%s%s",
-            AN(mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))]),
-            mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
-            (i > 0) ? "" : " named ", (i > 0) ? " guard" : random_npc_names[randName]);
+    snprintf(buf, sizeof(buf), "%s %s%s%s",
+             AN(mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))]),
+             mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
+             (i > 0) ? "" : " named ", (i > 0) ? " guard" : random_npc_names[randName]);
     mob->player.short_descr = strdup(buf);
 
-    sprintf(buf, "%s %s%s%s (%s) is here.\r\n",
-            AN(mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))]),
-            mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
-            (i > 0) ? "" : " named ", (i > 0) ? " guard" : random_npc_names[randName],
-            GET_NAME(ch));
+    snprintf(buf, sizeof(buf), "%s %s%s%s (%s) is here.\r\n",
+             AN(mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))]),
+             mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
+             (i > 0) ? "" : " named ", (i > 0) ? " guard" : random_npc_names[randName],
+             GET_NAME(ch));
     mob->player.long_descr = strdup(buf);
 
     if (real_room(to_room) != NOWHERE)
@@ -545,7 +545,7 @@ void create_mission_mobs(char_data *ch)
 
       if (i > 0)
       {
-        sprintf(buf, "%ld", GET_IDNUM(ch));
+        snprintf(buf, sizeof(buf), "%ld", GET_IDNUM(ch));
         do_follow(mob, strdup(buf), 0, 0);
       }
     }

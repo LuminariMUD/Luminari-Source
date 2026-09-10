@@ -1349,12 +1349,36 @@ struct char_data *get_eidolon_in_room(struct char_data *ch)
   return NULL;
 }
 
+/* The prototype a live eidolon was loaded from, or NULL when it has none. */
+static struct char_data *eidolon_prototype(struct char_data *eidolon)
+{
+  mob_rnum rnum = GET_MOB_RNUM(eidolon);
+
+  if (mob_proto == NULL || rnum == NOBODY || rnum > top_of_mobt)
+    return NULL;
+  return &mob_proto[rnum];
+}
+
+/* Replace one of a live eidolon's description strings with a copy of text.
+ * The previous string is released unless it is still the prototype's, which
+ * mirrors the ownership rule free_char() applies to prototyped NPCs. */
+static void replace_eidolon_text(char **destination, const char *prototype_text, const char *text)
+{
+  char *copy = strdup(text);
+
+  if (copy == NULL)
+    return;
+  if (*destination != NULL && *destination != prototype_text)
+    free(*destination);
+  *destination = copy;
+}
+
 ACMD(do_eidolon)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'},
        buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *eidolon = NULL;
-  char *desc = NULL;
+  struct char_data *prototype = NULL;
   int i = 0, count = 0;
 
   half_chop_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
@@ -1470,6 +1494,7 @@ ACMD(do_eidolon)
 
     if (!strcmp(arg2, "reset"))
     {
+      free(GET_EIDOLON_SHORT_DESCRIPTION(ch));
       GET_EIDOLON_SHORT_DESCRIPTION(ch) = NULL;
       send_to_char(ch, "You've reset your eidolon short description.  This will be reflected next "
                        "time you summon your eidolon.\r\n");
@@ -1484,12 +1509,14 @@ ACMD(do_eidolon)
 
     strip_cr(arg2);
 
-    desc = strdup(arg2);
-    GET_EIDOLON_SHORT_DESCRIPTION(ch) = desc;
-    GET_SHORT(eidolon) = desc;
-    desc = strdup(arg2);
-    (eidolon)->player.name = desc;
-    send_to_char(ch, "You change your eidilon's short description to: %s\r\n", desc);
+    /* The owner and the eidolon each own their own copy of the text. */
+    free(GET_EIDOLON_SHORT_DESCRIPTION(ch));
+    GET_EIDOLON_SHORT_DESCRIPTION(ch) = strdup(arg2);
+    prototype = eidolon_prototype(eidolon);
+    replace_eidolon_text(&eidolon->player.short_descr,
+                         prototype ? prototype->player.short_descr : NULL, arg2);
+    replace_eidolon_text(&eidolon->player.name, prototype ? prototype->player.name : NULL, arg2);
+    send_to_char(ch, "You change your eidilon's short description to: %s\r\n", arg2);
     return;
   }
   else if (is_abbrev(arg, "longdesc"))
@@ -1510,6 +1537,7 @@ ACMD(do_eidolon)
     }
     if (!strcmp(arg2, "reset"))
     {
+      free(GET_EIDOLON_LONG_DESCRIPTION(ch));
       GET_EIDOLON_LONG_DESCRIPTION(ch) = NULL;
       send_to_char(ch, "You've reset your eidolon long description.  This will be reflected next "
                        "time you summon your eidolon.\r\n");
@@ -1527,12 +1555,14 @@ ACMD(do_eidolon)
     strlcpy(buf, arg2, sizeof(buf));
     strlcat(buf, "\r\n", sizeof(buf));
 
-    desc = strdup(buf);
-
-    GET_EIDOLON_LONG_DESCRIPTION(ch) = desc;
-    eidolon->player.long_descr = desc;
-    snprintf(buf, sizeof(buf), "%s\n", GET_EIDOLON_LONG_DESCRIPTION(ch));
-    eidolon->player.description = strdup(buf);
+    free(GET_EIDOLON_LONG_DESCRIPTION(ch));
+    GET_EIDOLON_LONG_DESCRIPTION(ch) = strdup(buf);
+    prototype = eidolon_prototype(eidolon);
+    replace_eidolon_text(&eidolon->player.long_descr,
+                         prototype ? prototype->player.long_descr : NULL, buf);
+    strlcat(buf, "\n", sizeof(buf));
+    replace_eidolon_text(&eidolon->player.description,
+                         prototype ? prototype->player.description : NULL, buf);
     send_to_char(ch, "You change your eidilon's long description to: %s\r\n", arg2);
     return;
   }
