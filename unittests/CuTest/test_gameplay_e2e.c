@@ -8458,6 +8458,11 @@ static void verify_named_pet_keeper_round_trip(CuTest *tc, bool eidolon)
   mysql_available = saved_available;
   mysql_close(connection);
   ProtocolDestroy(descriptor.pProtocol);
+  if (descriptor.large_outbuf != NULL)
+  {
+    free(descriptor.large_outbuf->text);
+    free(descriptor.large_outbuf);
+  }
   free(GET_EIDOLON_SHORT_DESCRIPTION((&owner)));
   free(GET_EIDOLON_LONG_DESCRIPTION((&owner)));
 

@@ -8133,6 +8133,7 @@ void set_eidolon_descs(struct char_data *ch)
   if (mysql_query(conn, query))
   {
     log("SYSERR: 1 Unable to SELECT from player_eidolons: %s", mysql_error(conn));
+    return;
   }
 
   if (!(result = mysql_store_result(conn)))
@@ -8143,8 +8144,11 @@ void set_eidolon_descs(struct char_data *ch)
 
   if ((row = mysql_fetch_row(result)))
   {
-    GET_EIDOLON_SHORT_DESCRIPTION(ch) = strdup(row[2]);
-    GET_EIDOLON_LONG_DESCRIPTION(ch) = strdup(row[3]);
+    /* The owner keeps its own copies; release the previous ones before replacing them. */
+    free(GET_EIDOLON_SHORT_DESCRIPTION(ch));
+    free(GET_EIDOLON_LONG_DESCRIPTION(ch));
+    GET_EIDOLON_SHORT_DESCRIPTION(ch) = row[2] ? strdup(row[2]) : NULL;
+    GET_EIDOLON_LONG_DESCRIPTION(ch) = row[3] ? strdup(row[3]) : NULL;
   }
 
   mysql_free_result(result);

@@ -1470,6 +1470,7 @@ ACMD(do_eidolon)
 
     if (!strcmp(arg2, "reset"))
     {
+      free(GET_EIDOLON_SHORT_DESCRIPTION(ch));
       GET_EIDOLON_SHORT_DESCRIPTION(ch) = NULL;
       send_to_char(ch, "You've reset your eidolon short description.  This will be reflected next "
                        "time you summon your eidolon.\r\n");
@@ -1484,9 +1485,10 @@ ACMD(do_eidolon)
 
     strip_cr(arg2);
 
-    desc = strdup(arg2);
-    GET_EIDOLON_SHORT_DESCRIPTION(ch) = desc;
-    GET_SHORT(eidolon) = desc;
+    /* The owner and the eidolon each own their own copy of the text. */
+    free(GET_EIDOLON_SHORT_DESCRIPTION(ch));
+    GET_EIDOLON_SHORT_DESCRIPTION(ch) = strdup(arg2);
+    GET_SHORT(eidolon) = strdup(arg2);
     desc = strdup(arg2);
     (eidolon)->player.name = desc;
     send_to_char(ch, "You change your eidilon's short description to: %s\r\n", desc);
@@ -1510,6 +1512,7 @@ ACMD(do_eidolon)
     }
     if (!strcmp(arg2, "reset"))
     {
+      free(GET_EIDOLON_LONG_DESCRIPTION(ch));
       GET_EIDOLON_LONG_DESCRIPTION(ch) = NULL;
       send_to_char(ch, "You've reset your eidolon long description.  This will be reflected next "
                        "time you summon your eidolon.\r\n");
@@ -1529,8 +1532,9 @@ ACMD(do_eidolon)
 
     desc = strdup(buf);
 
+    free(GET_EIDOLON_LONG_DESCRIPTION(ch));
     GET_EIDOLON_LONG_DESCRIPTION(ch) = desc;
-    eidolon->player.long_descr = desc;
+    eidolon->player.long_descr = strdup(buf);
     snprintf(buf, sizeof(buf), "%s\n", GET_EIDOLON_LONG_DESCRIPTION(ch));
     eidolon->player.description = strdup(buf);
     send_to_char(ch, "You change your eidilon's long description to: %s\r\n", arg2);
