@@ -2,21 +2,32 @@ cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
 project(LuminariMUD VERSION 2.5063 LANGUAGES C)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBEVENT REQUIRED IMPORTED_TARGET libevent_core>=2.1.12)
-
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 
-# Include checker modules
+# ========== User-facing options ==========
+# Every option is documented in docs/development/CMAKE_BUILD_GUIDE.md.
+option(BUILD_UTILS "Build the util/ helper programs" ON)
+option(BUILD_TESTS "Build production-linked unit tests and register CTest entries" OFF)
+option(DEVELOPER_MODE "Enable additional diagnostic warnings for development builds" OFF)
+option(MEMORY_DEBUG "Compile with the in-tree MEMORY_DEBUG allocation tracing" OFF)
+option(DMALLOC "Link against the dmalloc debugging allocator" OFF)
+option(STATIC_ANALYSIS "Run clang-tidy on every compiled source" OFF)
+option(LUMINARI_WERROR "Treat compiler warnings as errors" OFF)
+option(LUMINARI_COVERAGE "Instrument all targets for gcov/gcovr line and branch coverage" OFF)
+option(LUMINARI_HARDENING "Apply hardened Release flags (fortify, stack protector, PIE, RELRO)" OFF)
+set(LUMINARI_SANITIZERS "" CACHE STRING
+    "Comma-separated -fsanitize= list applied to every target (for example address,undefined)")
+
 include(CheckFunctionExists)
 include(CheckIncludeFile)
 include(CheckTypeSize)
 include(CheckStructHasMember)
 include(CheckSymbolExists)
 include(CheckCSourceCompiles)
+include(CheckCCompilerFlag)
 
 check_c_source_compiles(
     "int main(void) {
@@ -79,10 +90,6 @@ if (GIT_HEAD_REFERENCE)
     endif()
 endif()
 
-# Prefer CMake's binary directory for generated headers.
-include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
-include_directories(src)
-
 # Check for required configuration headers
 if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/campaign.h)
     message(FATAL_ERROR "campaign.h not found! Copy src/campaign.example.h to src/campaign.h and configure it.")
@@ -94,346 +101,149 @@ if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/vnums.h)
     message(FATAL_ERROR "vnums.h not found! Copy src/vnums.example.h to src/vnums.h and configure it.")
 endif()
 
-# ========== Compiler flags ==========
-if (CMAKE_COMPILER_IS_GNUCC)
-    include(CheckCCompilerFlag)
+# ========== Dependencies ==========
+# Autotools links every one of these unconditionally (luminari_LDADD in
+# Makefile.am), so they are required here as well. Minimum versions are the
+# oldest releases the supported Ubuntu LTS images ship; see
+# docs/development/CMAKE_BUILD_GUIDE.md.
+find_package(PkgConfig REQUIRED)
+find_package(Threads REQUIRED)
+find_package(CURL 7.68 REQUIRED)
+find_package(OpenSSL 1.1.1 REQUIRED)
+pkg_check_modules(LIBEVENT REQUIRED IMPORTED_TARGET libevent_core>=2.1.12)
+pkg_check_modules(JSONC REQUIRED IMPORTED_TARGET json-c>=0.13)
+pkg_check_modules(GD REQUIRED IMPORTED_TARGET gdlib>=2.2)
+pkg_check_modules(MARIADB IMPORTED_TARGET libmariadb>=3.1)
+if (MARIADB_FOUND)
+    set(LUMINARI_MYSQL_TARGET PkgConfig::MARIADB)
+else()
+    pkg_check_modules(MYSQLCLIENT REQUIRED IMPORTED_TARGET mysqlclient>=3.1)
+    set(LUMINARI_MYSQL_TARGET PkgConfig::MYSQLCLIENT)
+endif()
+find_library(CRYPT_LIBRARY crypt REQUIRED)
 
-    check_c_compiler_flag(-Wall SUPPORTS_WALL)
-    check_c_compiler_flag(-Wextra SUPPORTS_WEXTRA)
-    check_c_compiler_flag(-Wno-char-subscripts SUPPORTS_WNO_CHAR_SUBSCRIPTS)
-
-    if (SUPPORTS_WALL)
-        set(MYFLAGS "-Wall")
-        if (SUPPORTS_WEXTRA)
-            set(MYFLAGS "${MYFLAGS} -Wextra")
-        endif()
-        if (SUPPORTS_WNO_CHAR_SUBSCRIPTS)
-            set(MYFLAGS "${MYFLAGS} -Wno-char-subscripts")
-        endif()
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MYFLAGS}")
-    endif()
+add_library(luminari_deps INTERFACE)
+target_link_libraries(luminari_deps INTERFACE
+    ${LUMINARI_MYSQL_TARGET}
+    PkgConfig::GD
+    PkgConfig::JSONC
+    PkgConfig::LIBEVENT
+    CURL::libcurl
+    OpenSSL::SSL
+    OpenSSL::Crypto
+    Threads::Threads
+    ${CRYPT_LIBRARY}
+    m)
+if (DMALLOC)
+    find_library(DMALLOC_LIBRARY dmalloc REQUIRED)
+    target_link_libraries(luminari_deps INTERFACE ${DMALLOC_LIBRARY})
 endif()
 
-# Static analysis is opt-in so normal builds are reproducible regardless of
-# whether clang-tidy happens to be installed on the build machine.
-option(STATIC_ANALYSIS "Enable static analysis with clang-tidy" OFF)
+# ========== Platform feature checks (mirror configure.ac) ==========
+foreach(HEADER
+        fcntl.h sys/fcntl.h errno.h net/errno.h string.h strings.h
+        limits.h sys/time.h sys/select.h sys/types.h unistd.h
+        memory.h crypt.h assert.h arpa/telnet.h arpa/inet.h
+        sys/stat.h sys/socket.h sys/resource.h netinet/in.h netdb.h
+        signal.h sys/uio.h mcheck.h sys/wait.h time.h
+        stdio.h stdlib.h inttypes.h stdint.h)
+    string(TOUPPER "${HEADER}" _upper_name)
+    string(REGEX REPLACE "[./]" "_" _upper_name "${_upper_name}")
+    check_include_file("${HEADER}" HAVE_${_upper_name})
+endforeach()
 
-if(STATIC_ANALYSIS)
-    find_program(CLANG_TIDY_EXE NAMES clang-tidy)
-    if(NOT CLANG_TIDY_EXE)
-        message(FATAL_ERROR "STATIC_ANALYSIS requested but clang-tidy not found")
-    endif()
-
-    message(STATUS "clang-tidy enabled: ${CLANG_TIDY_EXE}")
-    set(CMAKE_C_CLANG_TIDY "${CLANG_TIDY_EXE}")
-    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-endif()
-
-# ========== Header checks ==========
-check_include_file("fcntl.h" HAVE_FCNTL_H)
-check_include_file("errno.h" HAVE_ERRNO_H)
-check_include_file("string.h" HAVE_STRING_H)
-check_include_file("strings.h" HAVE_STRINGS_H)
-check_include_file("limits.h" HAVE_LIMITS_H)
-check_include_file("sys/select.h" HAVE_SYS_SELECT_H)
-check_include_file("sys/wait.h" HAVE_SYS_WAIT_H)
-check_include_file("sys/types.h" HAVE_SYS_TYPES_H)
-check_include_file("unistd.h" HAVE_UNISTD_H)
-check_include_file("memory.h" HAVE_MEMORY_H)
-check_include_file("assert.h" HAVE_ASSERT_H)
-check_include_file("arpa/telnet.h" HAVE_ARPA_TELNET_H)
-check_include_file("arpa/inet.h" HAVE_ARPA_INET_H)
-check_include_file("sys/stat.h" HAVE_SYS_STAT_H)
-check_include_file("sys/socket.h" HAVE_SYS_SOCKET_H)
-check_include_file("sys/resource.h" HAVE_SYS_RESOURCE_H)
-check_include_file("netinet/in.h" HAVE_NETINET_IN_H)
-check_include_file("netdb.h" HAVE_NETDB_H)
-check_include_file("signal.h" HAVE_SIGNAL_H)
-check_include_file("sys/uio.h" HAVE_SYS_UIO_H)
-check_include_file("mcheck.h" HAVE_MCHECK_H)
-check_include_file("stdlib.h" HAVE_STDLIB_H)
-check_include_file("stdarg.h" HAVE_STDARG_H)
-check_include_file("float.h" HAVE_FLOAT_H)
-
-if (HAVE_STDLIB_H AND HAVE_STDARG_H AND HAVE_STRING_H AND HAVE_FLOAT_H)
+if (HAVE_STDLIB_H AND HAVE_STDIO_H AND HAVE_STRING_H)
     set(STDC_HEADERS 1)
 endif()
 
-# macros
-macro(check_run_return_value CODE EXPECTED_RESULT VAR_NAME)
-    set(_file "${CMAKE_BINARY_DIR}/check_run_${VAR_NAME}.c")
-    file(WRITE "${_file}" "${CODE}")
-    try_run(_run_result _compile_result
-            ${CMAKE_BINARY_DIR} ${_file}
-    )
-    if (_compile_result EQUAL 0 AND _run_result EQUAL ${EXPECTED_RESULT})
-        set(${VAR_NAME} TRUE)
-    else()
-        set(${VAR_NAME} FALSE)
-    endif()
-endmacro()
+set(CMAKE_REQUIRED_LIBRARIES ${CRYPT_LIBRARY})
+check_function_exists(crypt CIRCLE_CRYPT)
+unset(CMAKE_REQUIRED_LIBRARIES)
 
-# ========== Function checks ==========
+set(CMAKE_REQUIRED_LIBRARIES PkgConfig::JSONC)
+check_function_exists(json_object_new_object HAVE_JSON_C)
+unset(CMAKE_REQUIRED_LIBRARIES)
+
 foreach(FUNC gettimeofday select snprintf strcasecmp strdup strerror
         stricmp strlcpy strncasecmp strnicmp strstr vsnprintf vprintf
-        inet_addr inet_aton)
+        inet_addr inet_aton gethostbyaddr socket)
     string(TOUPPER "${FUNC}" _upper_name)
     check_function_exists(${FUNC} HAVE_${_upper_name})
 endforeach()
-
-if (NOT HAVE_VPRINTF)
-    check_function_exists(_doprnt HAVE_DOPRNT)
+if (NOT HAVE_GETHOSTBYADDR)
+    find_library(NSL_LIBRARY nsl REQUIRED)
+    target_link_libraries(luminari_deps INTERFACE ${NSL_LIBRARY})
+endif()
+if (NOT HAVE_SOCKET)
+    find_library(SOCKET_LIBRARY socket REQUIRED)
+    target_link_libraries(luminari_deps INTERFACE ${SOCKET_LIBRARY})
 endif()
 
-
-# ========== Type checks ==========
+# Missing system types become the same conf.h fallbacks configure.ac emits.
 check_type_size("pid_t" HAVE_PID_T)
 check_type_size("size_t" HAVE_SIZE_T)
 check_type_size("ssize_t" HAVE_SSIZE_T)
 set(CMAKE_EXTRA_INCLUDE_FILES "sys/socket.h")
 check_type_size("socklen_t" HAVE_SOCKLEN_T)
 unset(CMAKE_EXTRA_INCLUDE_FILES)
-
-
 if (NOT HAVE_PID_T)
     set(pid_t int)
 endif()
-
 if (NOT HAVE_SIZE_T)
-    set(size_t "unsigned")
+    set(size_t "unsigned int")
 endif()
-
 if (NOT HAVE_SSIZE_T)
     set(ssize_t int)
 endif()
-
 if (NOT HAVE_SOCKLEN_T)
     set(socklen_t int)
 endif()
-
-# ========== const ==========
-check_c_source_compiles("
-int main() {
-
-/* Ultrix mips cc rejects this.  */
-typedef int charset[2]; const charset x;
-/* SunOS 4.1.1 cc rejects this.  */
-char const *const *ccp;
-char **p;
-/* NEC SVR4.0.2 mips cc rejects this.  */
-struct point {int x, y;};
-static struct point const zero = {0,0};
-/* AIX XL C 1.02.0.0 rejects this.
-   It does not let you subtract one const X* pointer from another in an arm
-   of an if-expression whose if-part is not a constant expression */
-const char *g = \"string\";
-ccp = &g + (g ? g-g : 0);
-/* HPUX 7.0 cc rejects these. */
-++ccp;
-p = (char**) ccp;
-ccp = (char const *const *) p;
-{ /* SCO 3.2v4 cc rejects this.  */
-  char *t;
-  char const *s = 0 ? (char *) 0 : (char const *) 0;
-
-  *t++ = 0;
-}
-{ /* Someone thinks the Sun supposedly-ANSI compiler will reject this.  */
-  int x[] = {25, 17};
-  const int *foo = &x[0];
-  ++foo;
-}
-{ /* Sun SC1.0 ANSI compiler rejects this -- but not the above. */
-  typedef const int *iptr;
-  iptr p = 0;
-  ++p;
-}
-{ /* AIX XL C 1.02.0.0 rejects this saying
-     \"k.c\", line 2.27: 1506-025 (S) Operand must be a modifiable lvalue. */
-  struct s { int j; const int *ap[3]; };
-  struct s *b; b->j = 5;
-}
-{ /* ULTRIX-32 V3.1 (Rev 9) vcc rejects this */
-  const int foo = 10;
-}
-
-; return 0; }
-" HAVE_CONST)
-
-if (HAVE_CONST)
-    set(CONST_KEYWORD const)
-else()
-    set(CONST_KEYWORD "")
-endif()
-
-# ========== Struct checks ==========
 if (HAVE_NETINET_IN_H)
     check_struct_has_member("struct in_addr" s_addr netinet/in.h HAVE_STRUCT_IN_ADDR)
 endif()
-
-# ========== MySQL/MariaDB support ==========
-find_package(PkgConfig)
-if (PkgConfig_FOUND)
-    # Try MariaDB first (preferred)
-    pkg_check_modules(MARIADB mariadb)
-    if (MARIADB_FOUND)
-        message(STATUS "Found MariaDB: ${MARIADB_LIBRARIES}")
-        list(APPEND EXTRA_LIBS ${MARIADB_LIBRARIES})
-        include_directories(${MARIADB_INCLUDE_DIRS})
-        set(CIRCLE_MYSQL 1)
-    else()
-        # Fall back to MySQL
-        pkg_check_modules(MYSQL mysqlclient)
-        if (MYSQL_FOUND)
-            message(STATUS "Found MySQL: ${MYSQL_LIBRARIES}")
-            list(APPEND EXTRA_LIBS ${MYSQL_LIBRARIES})
-            include_directories(${MYSQL_INCLUDE_DIRS})
-            set(CIRCLE_MYSQL 1)
-        else()
-            # Try manual search for MariaDB/MySQL
-            find_path(MYSQL_INCLUDE_DIR mysql.h
-                PATHS /usr/include/mariadb /usr/include/mysql /usr/local/include/mariadb /usr/local/include/mysql
-                PATH_SUFFIXES mariadb mysql)
-            find_library(MYSQL_LIBRARY
-                NAMES mariadb mysqlclient
-                PATHS /usr/lib /usr/local/lib
-                PATH_SUFFIXES mariadb mysql)
-            if (MYSQL_INCLUDE_DIR AND MYSQL_LIBRARY)
-                message(STATUS "Found MariaDB/MySQL manually: ${MYSQL_LIBRARY}")
-                list(APPEND EXTRA_LIBS ${MYSQL_LIBRARY})
-                include_directories(${MYSQL_INCLUDE_DIR})
-                set(CIRCLE_MYSQL 1)
-            else()
-                message(WARNING "MariaDB/MySQL not found. Database support will be disabled.")
-            endif()
-        endif()
-    endif()
-endif()
-
-# ========== GD Graphics Library ==========
-find_package(PkgConfig)
-if (PkgConfig_FOUND)
-    pkg_check_modules(GD gdlib)
-    if (GD_FOUND)
-        message(STATUS "Found GD: ${GD_LIBRARIES}")
-        list(APPEND EXTRA_LIBS ${GD_LIBRARIES})
-        include_directories(${GD_INCLUDE_DIRS})
-    else()
-        find_library(GD_LIBRARY gd)
-        if (GD_LIBRARY)
-            message(STATUS "Found GD manually: ${GD_LIBRARY}")
-            list(APPEND EXTRA_LIBS ${GD_LIBRARY})
-        endif()
-    endif()
-endif()
-
-# ========== crypt()/libcrypt ==========
-
-find_library(CRYPT_LIBRARY crypt)
-if (CRYPT_LIBRARY)
-    message(STATUS "Found libcrypt: ${CRYPT_LIBRARY}")
-    list(APPEND EXTRA_LIBS ${CRYPT_LIBRARY})
-    set(_saved_lib_list ${CMAKE_REQUIRED_LIBRARIES})
-    set(CMAKE_REQUIRED_LIBRARIES ${CRYPT_LIBRARY})
-    check_include_file("crypt.h" HAVE_CRYPT_H)
-    check_function_exists(crypt CIRCLE_CRYPT)
-
-    check_run_return_value("
-#include <string.h>
-#include <unistd.h>
-${HAVE_CRYPT_H} ? \"#include <crypt.h>\" : \"\"
-
-int main(void)
-{
-  char pwd[11], pwd2[11];
-
-  strncpy(pwd, (char *)crypt(\"FooBar\", \"BazQux\"), 10);
-  pwd[10] = '\\\\0';
-  strncpy(pwd2, (char *)crypt(\"xyzzy\", \"BazQux\"), 10);
-  pwd2[10] = '\\\\0';
-  if (strcmp(pwd, pwd2) == 0)
-    exit(0);
-  exit(1);
-}
-    " 0 HAVE_UNSAFE_CRYPT)
-
-    set(CMAKE_REQUIRED_LIBRARIES ${_saved_lib_list})
-endif()
-
-
-# ========== network libs ==========
-check_function_exists(gethostbyaddr HAVE_GETHOSTBYADDR)
-if (NOT HAVE_GETHOSTBYADDR)
-    message(STATUS "gethostbyaddr() not available, trying nsllib")
-    find_library(NSL_LIBRARY nsl)
-    if (NSL_LIBRARY)
-        message(STATUS "...nsllib found.")
-        list(APPEND EXTRA_LIBS ${NSL_LIBRARY})
-    endif()
-endif()
-
-check_function_exists(socket HAVE_SOCKET)
-if (NOT HAVE_SOCKET)
-    message(STATUS "socket() not available, trying socketlib")
-    find_library(SOCKET_LIBRARY socket)
-    if (SOCKET_LIBRARY)
-        message(STATUS "...socketlib found")
-        list(APPEND EXTRA_LIBS ${SOCKET_LIBRARY})
-    endif()
-endif()
-
-# ========== time.h needs special treatment ==========
-check_include_file("sys/time.h" HAVE_SYS_TIME_H)
-check_include_file("time.h" HAVE_TIME_H)
-
-if (HAVE_SYS_TIME_H AND HAVE_TIME_H)
-    check_c_source_compiles("
-#include <sys/types.h>
-#include <sys/time.h>
-#include <time.h>
-int main() {
-struct tm *tp;
-; return 0; }
-    " TIME_WITH_SYS_TIME)
-endif()
-
-# ========== Determine return value of signal() ==========
-check_c_source_compiles("
-    #include <signal.h>
-    int handler(int sig) { return 0; }
-    int main() {
-        signal(SIGINT, handler);
-        return 1;
-    }
-" SIGNAL_RETURNS_INT FAIL_REGEX ".*incompatible pointer type.*")
-
-check_c_source_compiles("
-    #include <signal.h>
-    void handler(int sig) { }
-    int main() {
-        signal(SIGINT, handler);
-        return 1;
-    }
-" SIGNAL_RETURNS_VOID FAIL_REGEX ".*incompatible pointer type.*")
-
-if (SIGNAL_RETURNS_INT)
-    message(STATUS "signal() returns int.")
-    set(RETSIGTYPE int)
-elseif (SIGNAL_RETURNS_VOID)
-    message(STATUS "signal() returns void.")
-    set(RETSIGTYPE void)
-else()
-    message(FATAL_ERROR "Could not determine return value from signal handler.")
-endif()
-
-# ========== Define general UNIX-system ==========
 if (UNIX)
     set(CIRCLE_UNIX 1)
 endif()
 
 # Generate the header included by both the server and utility sources after all
-# platform checks have populated their feature variables.
-configure_file(cmake/cmake_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/conf.h)
+# platform checks have populated their feature variables. It lands at
+# src/conf.h, the same gitignored location configure.ac uses, because the
+# standalone test scripts under scripts/ preprocess sources with -Isrc.
+configure_file(cmake/cmake_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/conf.h)
+
+# ========== Shared build interface ==========
+# Every compiled target links this interface library instead of relying on
+# directory-wide include paths or global CMAKE_C_FLAGS edits.
+add_library(luminari_build INTERFACE)
+target_include_directories(luminari_build INTERFACE
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+set(LUMINARI_GNU_LIKE "$<C_COMPILER_ID:GNU,Clang,AppleClang>")
+target_compile_options(luminari_build INTERFACE
+    $<${LUMINARI_GNU_LIKE}:-Wall;-Wextra>
+    $<$<AND:${LUMINARI_GNU_LIKE},$<BOOL:${LUMINARI_WERROR}>>:-Werror>
+    $<$<AND:${LUMINARI_GNU_LIKE},$<BOOL:${DEVELOPER_MODE}>>:-Wshadow;-Wcast-qual;-Wwrite-strings;-Wconversion;-Wunreachable-code>)
+target_compile_definitions(luminari_build INTERFACE
+    $<$<BOOL:${MEMORY_DEBUG}>:MEMORY_DEBUG>
+    $<$<BOOL:${DMALLOC}>:DMALLOC>)
+if (LUMINARI_SANITIZERS)
+    target_compile_options(luminari_build INTERFACE
+        -fsanitize=${LUMINARI_SANITIZERS} -fno-omit-frame-pointer)
+    target_link_options(luminari_build INTERFACE -fsanitize=${LUMINARI_SANITIZERS})
+endif()
+if (LUMINARI_COVERAGE)
+    target_compile_options(luminari_build INTERFACE --coverage)
+    target_link_options(luminari_build INTERFACE --coverage)
+endif()
+if (LUMINARI_HARDENING)
+    target_compile_definitions(luminari_build INTERFACE
+        $<$<NOT:$<CONFIG:Debug>>:_FORTIFY_SOURCE=3>)
+    target_compile_options(luminari_build INTERFACE
+        -fstack-protector-strong -fstack-clash-protection -fPIE)
+    target_link_options(luminari_build INTERFACE
+        -pie -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack)
+endif()
 
 # ========== Source files ==========
 # Main C source files
@@ -800,16 +610,13 @@ set(SRC_C_FILES
     src/net/i3_client.c
     src/net/i3_commands.c
     src/net/i3_utils.c
-    # Temporarily commented out problematic I3 files to fix build
-    # src/net/i3_config.c
-    # src/net/i3_error.c
-    # src/net/i3_memory.c
-    # src/net/i3_protocol.c
-    # src/net/i3_security.c
-    # src/net/i3_test.c
+    src/pet_vnums.h
+    src/elf_build_id.h
+    src/player_rename.h
+    src/tactical_effects.h
 )
 
-set(SRC_FILES ${SRC_C_FILES} ${BUILD_IDENTITY_HEADER} src/pet_vnums.h)
+set(SRC_FILES ${SRC_C_FILES} ${BUILD_IDENTITY_HEADER})
 set_source_files_properties(${BUILD_IDENTITY_HEADER} PROPERTIES GENERATED TRUE)
 
 # ========== Build main executable FIRST ==========
@@ -823,128 +630,10 @@ add_custom_target(refresh_build_identity ALL
     COMMENT "Refreshing embedded Git build identity")
 add_dependencies(luminari refresh_build_identity)
 
-# Add compile definitions based on detected features
-target_compile_definitions(luminari PRIVATE
-    $<$<BOOL:${CIRCLE_MYSQL}>:CIRCLE_MYSQL>
-    $<$<BOOL:${CIRCLE_UNIX}>:CIRCLE_UNIX>
-    $<$<BOOL:${CIRCLE_CRYPT}>:CIRCLE_CRYPT>
-    $<$<BOOL:${HAVE_FCNTL_H}>:HAVE_FCNTL_H>
-    $<$<BOOL:${HAVE_ERRNO_H}>:HAVE_ERRNO_H>
-    $<$<BOOL:${HAVE_STRING_H}>:HAVE_STRING_H>
-    $<$<BOOL:${HAVE_STRINGS_H}>:HAVE_STRINGS_H>
-    $<$<BOOL:${HAVE_LIMITS_H}>:HAVE_LIMITS_H>
-    $<$<BOOL:${HAVE_SYS_SELECT_H}>:HAVE_SYS_SELECT_H>
-    $<$<BOOL:${HAVE_SYS_WAIT_H}>:HAVE_SYS_WAIT_H>
-    $<$<BOOL:${HAVE_SYS_TYPES_H}>:HAVE_SYS_TYPES_H>
-    $<$<BOOL:${HAVE_UNISTD_H}>:HAVE_UNISTD_H>
-    $<$<BOOL:${HAVE_MEMORY_H}>:HAVE_MEMORY_H>
-    $<$<BOOL:${HAVE_ASSERT_H}>:HAVE_ASSERT_H>
-    $<$<BOOL:${HAVE_ARPA_TELNET_H}>:HAVE_ARPA_TELNET_H>
-    $<$<BOOL:${HAVE_ARPA_INET_H}>:HAVE_ARPA_INET_H>
-    $<$<BOOL:${HAVE_SYS_STAT_H}>:HAVE_SYS_STAT_H>
-    $<$<BOOL:${HAVE_SYS_SOCKET_H}>:HAVE_SYS_SOCKET_H>
-    $<$<BOOL:${HAVE_SYS_RESOURCE_H}>:HAVE_SYS_RESOURCE_H>
-    $<$<BOOL:${HAVE_NETINET_IN_H}>:HAVE_NETINET_IN_H>
-    $<$<BOOL:${HAVE_NETDB_H}>:HAVE_NETDB_H>
-    $<$<BOOL:${HAVE_SIGNAL_H}>:HAVE_SIGNAL_H>
-    $<$<BOOL:${HAVE_SYS_UIO_H}>:HAVE_SYS_UIO_H>
-    $<$<BOOL:${HAVE_MCHECK_H}>:HAVE_MCHECK_H>
-    $<$<BOOL:${HAVE_STDLIB_H}>:HAVE_STDLIB_H>
-    $<$<BOOL:${HAVE_STDARG_H}>:HAVE_STDARG_H>
-    $<$<BOOL:${HAVE_FLOAT_H}>:HAVE_FLOAT_H>
-    $<$<BOOL:${HAVE_SYS_TIME_H}>:HAVE_SYS_TIME_H>
-    $<$<BOOL:${HAVE_TIME_H}>:HAVE_TIME_H>
-    $<$<BOOL:${HAVE_CRYPT_H}>:HAVE_CRYPT_H>
-    $<$<BOOL:${STDC_HEADERS}>:STDC_HEADERS>
-    $<$<BOOL:${TIME_WITH_SYS_TIME}>:TIME_WITH_SYS_TIME>
-    $<$<BOOL:${HAVE_GETTIMEOFDAY}>:HAVE_GETTIMEOFDAY>
-    $<$<BOOL:${HAVE_SELECT}>:HAVE_SELECT>
-    $<$<BOOL:${HAVE_SNPRINTF}>:HAVE_SNPRINTF>
-    $<$<BOOL:${HAVE_STRCASECMP}>:HAVE_STRCASECMP>
-    $<$<BOOL:${HAVE_STRDUP}>:HAVE_STRDUP>
-    $<$<BOOL:${HAVE_STRERROR}>:HAVE_STRERROR>
-    $<$<BOOL:${HAVE_STRICMP}>:HAVE_STRICMP>
-    $<$<BOOL:${HAVE_STRLCPY}>:HAVE_STRLCPY>
-    $<$<BOOL:${HAVE_STRNCASECMP}>:HAVE_STRNCASECMP>
-    $<$<BOOL:${HAVE_STRNICMP}>:HAVE_STRNICMP>
-    $<$<BOOL:${HAVE_STRSTR}>:HAVE_STRSTR>
-    $<$<BOOL:${HAVE_VSNPRINTF}>:HAVE_VSNPRINTF>
-    $<$<BOOL:${HAVE_VPRINTF}>:HAVE_VPRINTF>
-    $<$<BOOL:${HAVE_INET_ADDR}>:HAVE_INET_ADDR>
-    $<$<BOOL:${HAVE_INET_ATON}>:HAVE_INET_ATON>
-    $<$<BOOL:${HAVE_STRUCT_IN_ADDR}>:HAVE_STRUCT_IN_ADDR>
-    $<$<BOOL:${HAVE_CONST}>:HAVE_CONST>
-    $<$<BOOL:${HAVE_UNSAFE_CRYPT}>:HAVE_UNSAFE_CRYPT>
-    RETSIGTYPE=${RETSIGTYPE}
-)
-
-# Add type definitions if needed
-if (NOT HAVE_PID_T)
-    target_compile_definitions(luminari PRIVATE pid_t=int)
-endif()
-if (NOT HAVE_SIZE_T)
-    target_compile_definitions(luminari PRIVATE size_t=unsigned)
-endif()
-if (NOT HAVE_SSIZE_T)
-    target_compile_definitions(luminari PRIVATE ssize_t=int)
-endif()
-if (NOT HAVE_SOCKLEN_T)
-    target_compile_definitions(luminari PRIVATE socklen_t=int)
-endif()
-
-# Link required libraries
-target_link_libraries(luminari ${EXTRA_LIBS} m pthread PkgConfig::LIBEVENT)
-
-# Find and link additional libraries
-find_library(CURL_LIBRARY curl)
-if (CURL_LIBRARY)
-    target_link_libraries(luminari ${CURL_LIBRARY})
-endif()
-
-find_library(SSL_LIBRARY ssl)
-if (SSL_LIBRARY)
-    target_link_libraries(luminari ${SSL_LIBRARY})
-endif()
-
-find_library(CRYPTO_LIBRARY crypto)
-if (CRYPTO_LIBRARY)
-    target_link_libraries(luminari ${CRYPTO_LIBRARY})
-endif()
-
-find_library(JSON_C_LIBRARY json-c)
-if (JSON_C_LIBRARY)
-    target_link_libraries(luminari ${JSON_C_LIBRARY})
-    target_compile_definitions(luminari PRIVATE HAVE_JSON_C)
-endif()
-
-# ========== Compiler warnings and options ==========
-if (CMAKE_COMPILER_IS_GNUCC)
-    # Additional warnings for development
-    if (DEVELOPER_MODE)
-        target_compile_options(luminari PRIVATE -Wshadow -Wcast-qual
-                               -Wwrite-strings -Wconversion -Wunreachable-code)
-    endif()
-endif()
-
-# ========== Feature toggles ==========
-if (MEMORY_DEBUG)
-    message(STATUS "MEMORY_DEBUG is activated")
-    target_compile_definitions(luminari PRIVATE MEMORY_DEBUG)
-endif()
-
-if (DMALLOC)
-    message(STATUS "DMALLOC is activated")
-    target_compile_definitions(luminari PRIVATE DMALLOC)
-    find_library(DMALLOC_LIBRARY dmalloc)
-    if (DMALLOC_LIBRARY)
-        target_link_libraries(luminari ${DMALLOC_LIBRARY})
-    endif()
-endif()
+target_link_libraries(luminari PRIVATE luminari_build luminari_deps)
 
 # ========== Build utilities AFTER main executable ==========
 # Build utilities by default (can be disabled with -DBUILD_UTILS=OFF)
-option(BUILD_UTILS "Build utility programs" ON)
-
 if (BUILD_UTILS)
     # Utilities from util/ directory
     add_executable(autowiz util/autowiz.c)
@@ -960,14 +649,14 @@ if (BUILD_UTILS)
     add_executable(split util/split.c)
     add_executable(wld2html util/wld2html.c)
 
-    # Set output directory for utilities
-    set_target_properties(autowiz asciipasswd plrtoascii rebuildAsciiIndex
-                          rebuildMailIndex rol_mob_calculator shopconv sign split wld2html
+    set(LUMINARI_UTIL_TARGETS autowiz asciipasswd plrtoascii rebuildAsciiIndex
+        rebuildMailIndex rol_mob_calculator shopconv sign split wld2html)
+    set_target_properties(${LUMINARI_UTIL_TARGETS}
                           PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
-
-    # Link libraries for utilities that need them
-    target_link_libraries(asciipasswd ${CRYPT_LIBRARY})
-
+    foreach(UTIL_TARGET ${LUMINARI_UTIL_TARGETS})
+        target_link_libraries(${UTIL_TARGET} PRIVATE luminari_build)
+    endforeach()
+    target_link_libraries(asciipasswd PRIVATE ${CRYPT_LIBRARY})
 endif()
 
 # ========== Standalone world-data tools ==========
@@ -1249,7 +938,6 @@ add_custom_target(test-help-sync-integration
 
 # ========== Build unit tests AFTER main executable ==========
 # The focused protocol parser harness remains available under unittests/CuTest.
-option(BUILD_TESTS "Build production-linked unit tests" OFF)
 
 # Keep this list synchronized with cutest_test_files in Makefile.am.
 set(CUTEST_TEST_SOURCES
@@ -1333,7 +1021,7 @@ if (BUILD_TESTS)
     target_compile_definitions(bsd_snprintf_fallback_test PRIVATE
         BROKEN_SNPRINTF
         TEST_SNPRINTF)
-    target_link_libraries(bsd_snprintf_fallback_test PRIVATE m)
+    target_link_libraries(bsd_snprintf_fallback_test PRIVATE luminari_build m)
     add_test(NAME bsd-snprintf-fallback COMMAND bsd_snprintf_fallback_test)
 
     set(CUTEST_GENERATOR
@@ -1363,20 +1051,27 @@ if (BUILD_TESTS)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     target_include_directories(cutest PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest)
+    target_compile_definitions(cutest PRIVATE LUMINARI_CUTEST)
+    target_link_libraries(cutest PRIVATE luminari_build luminari_deps)
 
-    get_target_property(LUMINARI_COMPILE_DEFINITIONS
-        luminari COMPILE_DEFINITIONS)
-    target_compile_definitions(cutest PRIVATE
-        ${LUMINARI_COMPILE_DEFINITIONS}
-        LUMINARI_CUTEST)
-
-    get_target_property(LUMINARI_COMPILE_OPTIONS luminari COMPILE_OPTIONS)
-    if (LUMINARI_COMPILE_OPTIONS)
-        target_compile_options(cutest PRIVATE ${LUMINARI_COMPILE_OPTIONS})
-    endif()
-
-    get_target_property(LUMINARI_LINK_LIBRARIES luminari LINK_LIBRARIES)
-    target_link_libraries(cutest PRIVATE ${LUMINARI_LINK_LIBRARIES})
+    add_test(NAME build-parity
+        COMMAND Python3::Interpreter scripts/ci/check_build_parity.py)
+    add_test(NAME sql-interpolation-self-test
+        COMMAND Python3::Interpreter scripts/ci/check_sql_interpolation.py --self-test)
+    add_test(NAME sql-interpolation
+        COMMAND Python3::Interpreter scripts/ci/check_sql_interpolation.py)
+    add_test(NAME help-sync
+        COMMAND Python3::Interpreter -m unittest discover
+                -s scripts/help-sync/tests -p test_*.py -v)
+    add_test(NAME background-help-entries
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_background_help_entries.sh)
+    set_tests_properties(
+        build-parity
+        sql-interpolation-self-test
+        sql-interpolation
+        help-sync
+        background-help-entries
+        PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     add_test(NAME production-cutest COMMAND cutest)
     set_tests_properties(production-cutest PROPERTIES
@@ -1495,6 +1190,27 @@ add_custom_target(test-healthcheck
     COMMENT "Running healthcheck regression tests"
 )
 
+# ========== Static analysis ==========
+# Opt-in so normal builds are reproducible regardless of whether clang-tidy is
+# installed. The analyzer is attached to each executable target rather than
+# set through the directory-wide CMAKE_C_CLANG_TIDY variable.
+if (STATIC_ANALYSIS)
+    find_program(CLANG_TIDY_EXE NAMES clang-tidy)
+    if (NOT CLANG_TIDY_EXE)
+        message(FATAL_ERROR "STATIC_ANALYSIS requested but clang-tidy not found")
+    endif()
+    message(STATUS "clang-tidy enabled: ${CLANG_TIDY_EXE}")
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+    get_directory_property(LUMINARI_ALL_TARGETS BUILDSYSTEM_TARGETS)
+    foreach(ANALYZED_TARGET IN LISTS LUMINARI_ALL_TARGETS)
+        get_target_property(ANALYZED_TYPE ${ANALYZED_TARGET} TYPE)
+        if (ANALYZED_TYPE STREQUAL "EXECUTABLE")
+            set_target_properties(${ANALYZED_TARGET} PROPERTIES
+                C_CLANG_TIDY "${CLANG_TIDY_EXE}")
+        endif()
+    endforeach()
+endif()
+
 # ========== Installation ==========
 install(CODE "
     execute_process(
@@ -1523,10 +1239,16 @@ endif()
 message(STATUS "========================================")
 message(STATUS "LuminariMUD CMake Configuration Summary:")
 message(STATUS "  C Standard: GNU C23")
-message(STATUS "  MySQL Support: ${CIRCLE_MYSQL}")
+message(STATUS "  C Compiler: ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
+message(STATUS "  MySQL Client: ${LUMINARI_MYSQL_TARGET}")
 message(STATUS "  Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Build Utilities: ${BUILD_UTILS}")
 message(STATUS "  Build Tests: ${BUILD_TESTS}")
+message(STATUS "  Developer Mode: ${DEVELOPER_MODE}")
+message(STATUS "  Warnings As Errors: ${LUMINARI_WERROR}")
+message(STATUS "  Sanitizers: ${LUMINARI_SANITIZERS}")
+message(STATUS "  Coverage: ${LUMINARI_COVERAGE}")
+message(STATUS "  Hardening: ${LUMINARI_HARDENING}")
 message(STATUS "  Install Binary Output: ${INSTALL_BIN_OUTPUT_DIR}")
 message(STATUS "  Install Prefix: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "  Binary Output: ${BIN_OUTPUT_DIR}")

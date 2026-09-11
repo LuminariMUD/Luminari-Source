@@ -4914,8 +4914,8 @@ static const char *const rol_lighthouse_messages[] = {
     "$n says, 'This one used to be just fine, till they dug it all out.'",
     "$n grumbles, 'God knows what they were doin' down there..'\r\n$n chuckles.",
     "$n says, 'Course the military never tells us common folk what's really goin' on.'",
-    "$n says, 'Aahhhh well, 'tis just the same anyway.\r\n"
-    "$n says, 'If they don't wanna tell us, it probably isn't important.",
+    ("$n says, 'Aahhhh well, 'tis just the same anyway.\r\n"
+     "$n says, 'If they don't wanna tell us, it probably isn't important."),
     "$n says, 'You hear about the pirate traffic?'",
     "$n says, 'I heard it's gettin' worse, just what we need.'",
     "$n snarls, 'More jackass brigands to deal with.'",

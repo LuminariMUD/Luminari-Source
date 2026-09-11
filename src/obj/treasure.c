@@ -4585,7 +4585,7 @@ int award_random_money(struct char_data *ch, int result)
 }
 
 const char *kender_loot[NUM_KENDER_BAUBLES] = {
-    "" // 0
+    "", // 0
     "a blue fungus-covered book titled \"how to care for your cheese-mold\"",
     "a cat teeth necklace",
     "a chewed up old dragon saddle",

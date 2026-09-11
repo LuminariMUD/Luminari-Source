@@ -113,13 +113,14 @@ The focused protocol parser harness is separate:
 make -C unittests/CuTest protocol-parser
 ```
 
-For CMake, explicitly enable tests in a fresh build directory:
+For CMake, use a checked-in preset (tests are enabled by every preset except
+`release-hardened` and `cross-aarch64`):
 
 ```bash
-cmake -S . -B build -DBUILD_TESTS=ON
-cmake --build build -j"$(nproc)"
-ctest --test-dir build --output-on-failure
-cmake --install build
+cmake --preset dev
+cmake --build --preset dev -j"$(nproc)"
+ctest --preset dev
+cmake --install build/dev
 ```
 
 See the [testing guide](docs/guides/TESTING_GUIDE.md) for fixture, database,

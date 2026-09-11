@@ -23,6 +23,8 @@ on:
       - 'docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md'
       - 'docs/web/**'
       - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'cmake/**'
       - 'configure.ac'
       - 'Makefile.am'
       - 'util/Makefile.am'
@@ -51,6 +53,8 @@ on:
       - 'docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md'
       - 'docs/web/**'
       - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'cmake/**'
       - 'configure.ac'
       - 'Makefile.am'
       - 'util/Makefile.am'
@@ -120,6 +124,148 @@ jobs:
           python scripts/world/wtool.py \
             --world-root scripts/world/tests/fixtures/phase2/complete \
             refs hlquest 10000 >/dev/null
+
+  build-parity:
+    name: Autotools/CMake manifest parity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Check that Makefile.am and CMakeLists.txt list the same sources
+        run: python scripts/ci/check_build_parity.py
+
+  cmake:
+    name: CMake ${{ matrix.compiler }} (strict, blocking)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: gcc
+            preset: ci-gcc
+            packages: gcc
+          - compiler: clang
+            preset: ci-clang
+            packages: clang
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: test_root_password
+          MARIADB_DATABASE: luminari_test
+          MARIADB_USER: luminari_test
+          MARIADB_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      LUMINARI_TEST_MYSQL_ENABLE: '1'
+      LUMINARI_TEST_MYSQL_HOST: 127.0.0.1
+      LUMINARI_TEST_MYSQL_USER: luminari_test
+      LUMINARI_TEST_MYSQL_PASSWORD: test_password
+      LUMINARI_TEST_MYSQL_DATABASE: luminari_test
+      LUMINARI_TEST_MYSQL_PORT: '3306'
+      LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
+      LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            ${{ matrix.packages }} cmake pkg-config libcurl4-openssl-dev libevent-dev \
+            libgd-dev libjson-c-dev libmariadb-dev libssl-dev mariadb-client pandoc zlib1g-dev
+
+      - name: Copy config headers
+        run: |
+          cp src/campaign.example.h src/campaign.h
+          cp src/mud_options.example.h src/mud_options.h
+          cp src/vnums.example.h src/vnums.h
+
+      - name: Configure (${{ matrix.preset }})
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }} -j"$(nproc)"
+
+      - name: Prepare isolated test runtime
+        run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
+
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }}
+
+      - name: Install
+        run: |
+          cmake --install build/${{ matrix.preset }}
+          test -x bin/luminari
+          test -L bin/luminari
+
+  clean-archive:
+    name: Clean archive, both build systems (blocking)
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: test_root_password
+          MARIADB_DATABASE: luminari_test
+          MARIADB_USER: luminari_test
+          MARIADB_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      LUMINARI_TEST_MYSQL_ENABLE: '1'
+      LUMINARI_TEST_MYSQL_HOST: 127.0.0.1
+      LUMINARI_TEST_MYSQL_USER: luminari_test
+      LUMINARI_TEST_MYSQL_PASSWORD: test_password
+      LUMINARI_TEST_MYSQL_DATABASE: luminari_test
+      LUMINARI_TEST_MYSQL_PORT: '3306'
+      LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
+      LUMINARI_TEST_CONFIG_FILE: ${{ github.workspace }}/.ci-runtime/lib/etc/config
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            autoconf automake build-essential cmake libcurl4-openssl-dev libevent-dev \
+            libgd-dev libjson-c-dev libmariadb-dev libssl-dev libtool mariadb-client \
+            pandoc pkg-config ripgrep zlib1g-dev
+
+      - name: Prepare isolated test runtime
+        run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
+
+      - name: Build, test, and install git archive HEAD through Autotools and CMake
+        run: scripts/ci/check_clean_archive.sh
 
   build:
     name: Behavioral tests (Luminari)

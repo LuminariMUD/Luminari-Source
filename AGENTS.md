@@ -10,7 +10,8 @@ never print or modify credentials.
 - NEVER attribute AI (Claude or anybody else) in commits or anywhere else.  NEVER post session links.
 - NEVER modify `src/campaign.h`, `src/mud_options.h`, `src/vnums.h` - they are local, customized configuration (gitignored). Edit the `.example.h` templates instead if a template change is needed. Only copy `.example.h` -> `.h` on a fresh clone where the real headers do not exist yet.
 - `lib/mysql_config` and `lib/.env` contain credentials: you may read them, never modify them without permission. Edit `lib/mysql_config_example` / `lib/.env.example` instead.
-- When adding or removing a source file, update BOTH `Makefile.am` and `CMakeLists.txt`.
+- When adding or removing a source file, update BOTH `Makefile.am` and `CMakeLists.txt`, then
+  run `python3 scripts/ci/check_build_parity.py` (CI blocks on drift).
 - All documentation must be valid ASCII, UTF-8, LF line endings.
 - Always trace code; never assume naming conventions.
 - After planning a task and before implementation, read and apply

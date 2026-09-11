@@ -1,0 +1,115 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "BUILD_TESTS": "ON",
+        "BUILD_UTILS": "ON"
+      }
+    },
+    {
+      "name": "dev",
+      "displayName": "Developer Debug (system compiler)",
+      "inherits": "base",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
+    },
+    {
+      "name": "dev-clang",
+      "displayName": "Developer Debug (Clang)",
+      "inherits": "dev",
+      "cacheVariables": { "CMAKE_C_COMPILER": "clang" }
+    },
+    {
+      "name": "ci-gcc",
+      "displayName": "Strict CI (GCC, warnings are errors)",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_C_COMPILER": "gcc",
+        "LUMINARI_WERROR": "ON"
+      }
+    },
+    {
+      "name": "ci-clang",
+      "displayName": "Strict CI (Clang, warnings are errors)",
+      "inherits": "ci-gcc",
+      "cacheVariables": { "CMAKE_C_COMPILER": "clang" }
+    },
+    {
+      "name": "sanitizers",
+      "displayName": "AddressSanitizer + UndefinedBehaviorSanitizer",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "LUMINARI_SANITIZERS": "address,undefined"
+      }
+    },
+    {
+      "name": "coverage",
+      "displayName": "gcov/gcovr coverage instrumentation",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "gcc",
+        "LUMINARI_COVERAGE": "ON"
+      }
+    },
+    {
+      "name": "release-hardened",
+      "displayName": "Hardened Release",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_TESTS": "OFF",
+        "LUMINARI_HARDENING": "ON"
+      }
+    },
+    {
+      "name": "cross-aarch64",
+      "displayName": "Cross build for aarch64-linux-gnu",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/aarch64-linux-gnu.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_TESTS": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "dev", "configurePreset": "dev" },
+    { "name": "dev-clang", "configurePreset": "dev-clang" },
+    { "name": "ci-gcc", "configurePreset": "ci-gcc" },
+    { "name": "ci-clang", "configurePreset": "ci-clang" },
+    { "name": "sanitizers", "configurePreset": "sanitizers" },
+    { "name": "coverage", "configurePreset": "coverage" },
+    { "name": "release-hardened", "configurePreset": "release-hardened" },
+    { "name": "cross-aarch64", "configurePreset": "cross-aarch64" }
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "output": { "outputOnFailure": true },
+      "execution": { "stopOnFailure": false }
+    },
+    { "name": "dev", "inherits": "base", "configurePreset": "dev" },
+    { "name": "dev-clang", "inherits": "base", "configurePreset": "dev-clang" },
+    { "name": "ci-gcc", "inherits": "base", "configurePreset": "ci-gcc" },
+    { "name": "ci-clang", "inherits": "base", "configurePreset": "ci-clang" },
+    {
+      "name": "sanitizers",
+      "inherits": "base",
+      "configurePreset": "sanitizers",
+      "environment": {
+        "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+        "UBSAN_OPTIONS": "print_stacktrace=1:halt_on_error=1"
+      }
+    },
+    { "name": "coverage", "inherits": "base", "configurePreset": "coverage" }
+  ]
+}

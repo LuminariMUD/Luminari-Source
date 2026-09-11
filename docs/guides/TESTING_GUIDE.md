@@ -47,9 +47,9 @@ queue, compatibility heartbeat, and population-loop implementations are not
 compiled into that executable:
 
 ```sh
-cmake -S . -B build-native
-cmake --build build-native -j"$(nproc)"
-build-native/bin/luminari -c
+cmake --preset dev
+cmake --build --preset dev -j"$(nproc)"
+build/dev/bin/luminari -c
 ```
 
 The loop-based rollback executable and its build/runtime selectors were
@@ -317,8 +317,8 @@ candidate. Phase 8 runs the same check while its assembled candidate exists.
 Equivalent CMake and CTest entry points are:
 
 ```sh
-cmake --build build --target test-world-tools
-ctest --test-dir build --output-on-failure -R '^world-tool'
+cmake --build build/dev --target test-world-tools
+ctest --preset dev -R '^world-tool'
 ```
 
 Focused checks are also available:
@@ -500,6 +500,29 @@ PubSub exclusion. Run the consolidated event check directly with:
 scripts/events/test_native_event_architecture.sh
 ```
 
+## Build System Parity
+
+```sh
+make check-build-parity
+make distcheck-archive
+```
+
+The first command compares every hand-maintained source list in `Makefile.am`
+with its `CMakeLists.txt` counterpart and fails on missing, extra, duplicate,
+nonexistent, or untracked entries. Variable references are expanded first, so
+it also proves that `cutest_SOURCES` and the CMake `cutest` target both
+compile every production source plus the harness and test files. It runs
+inside `make test`, as the `build-parity` CTest entry, and as a blocking CI
+job. The second exports `git archive HEAD` to a temporary directory and, for
+Autotools and then the CMake `dev` preset (override with `CMAKE_PRESET=<name>`),
+configures, builds, runs `make test` or `ctest`, and installs, so a
+distribution never depends on repository-only files. It runs as the blocking
+`Clean archive, both build systems` CI job after the isolated MariaDB runtime
+is prepared; locally, export `LUMINARI_TEST_SKIP_SYNTAX_BOOT=1` when no world
+data is available. It is not part of `make test` because it rebuilds the tree
+twice. The CMake `sanitizers` and `coverage` presets provide the same
+instrumentation as the Autotools `CFLAGS` recipes in the workflow.
+
 ## Coverage
 
 The GitHub Actions coverage job:
@@ -618,9 +641,11 @@ or gameplay checks for the affected packages before production deployment.
 3. Use synthetic fixtures and restore any modified globals before returning.
 4. Add the file to `cutest_SOURCES` and `cutest_test_files` in `Makefile.am`.
 5. Add the file to `CUTEST_TEST_SOURCES` in `CMakeLists.txt`.
-6. Run `autoreconf -fvi`, `./configure`, `make test`, and the relevant focused
+6. Run `python3 scripts/ci/check_build_parity.py`; it fails until both lists
+   match.
+7. Run `autoreconf -fvi`, `./configure`, `make test`, and the relevant focused
    harness.
-7. Run Valgrind for code that allocates, frees, or mutates global registries.
+8. Run Valgrind for code that allocates, frees, or mutates global registries.
 
 Tests must include positive, negative, boundary, and cleanup assertions where
 they are meaningful. An unconditional passing placeholder is not a test and
@@ -632,6 +657,9 @@ must not be added to the enforced suite.
 
 - standalone world-data unit, fixture, constants, documentation, and wrapper
   checks;
+- Autotools/CMake manifest parity (`scripts/ci/check_build_parity.py`);
+- blocking CMake configure, build, CTest, and install jobs with the strict
+  `ci-gcc` and `ci-clang` presets (`-Wall -Wextra -Werror`);
 - the supported Luminari behavioral suite;
 - root `make test-all`;
 - ASan, UBSan, and bounded protocol fuzzing;
@@ -645,8 +673,9 @@ every push: no tracked build products, valid UTF-8 with LF endings, and ASCII
 documentation. See the Source Tree Hygiene section of
 [SETUP_AND_BUILD_GUIDE.md](SETUP_AND_BUILD_GUIDE.md).
 
-The behavioral, authoritative, and coverage jobs also run the syntax-check
-boot against an isolated MariaDB service and tracked minimal world. The
+The behavioral, authoritative, CMake, and coverage jobs also run the
+syntax-check boot against an isolated MariaDB service and tracked minimal
+world. The
 integration workflow independently starts the network server and proves that
 it accepts a TCP connection.
 

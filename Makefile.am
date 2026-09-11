@@ -576,6 +576,20 @@ src/constants.c: $(filter-out src/constants.c,$(luminari_SOURCES))
 # Standalone Python world-data tooling. Keep this list synchronized with
 # WORLD_TOOL_SOURCES in CMakeLists.txt.
 world_tool_sources = \
+	scripts/world/install_pet_constructs.py \
+	data/pet-constructs/196.mob \
+	data/pet-planar-allies/197.mob \
+	data/pet-undead/198.mob \
+	data/pet-lycanthropes/195.mob \
+	data/pet-lycanthropes/195.zon \
+	data/pet-illusions/199.mob \
+	data/pet-illusions/199.zon \
+	data/pet-undead/198.zon \
+	data/pet-undead/README.md \
+	data/pet-planar-allies/197.zon \
+	data/pet-planar-allies/README.md \
+	data/pet-constructs/README.md \
+	data/pet-constructs/196.zon \
 	scripts/world/generate_rol_periodic_profiles.py \
 	scripts/world/generate_rol_state_periodic_profiles.py \
 	scripts/world/wtool.py \
@@ -794,20 +808,6 @@ help_sync_sources = \
 
 # Extra files to distribute
 EXTRA_DIST = \
-	data/pet-constructs/196.mob \
-	data/pet-planar-allies/197.mob \
-	data/pet-undead/198.mob \
-	data/pet-lycanthropes/195.mob \
-	data/pet-lycanthropes/195.zon \
-	data/pet-illusions/199.mob \
-	data/pet-illusions/199.zon \
-	data/pet-undead/198.zon \
-	data/pet-undead/README.md \
-	data/pet-planar-allies/197.zon \
-	data/pet-planar-allies/README.md \
-	data/pet-constructs/README.md \
-	data/pet-constructs/196.zon \
-	scripts/world/install_pet_constructs.py \
 	scripts/development/generate_msp_sounds.py \
 	lib/sounds/README.md \
 	lib/sounds/luminari-test.wav \
@@ -1014,8 +1014,16 @@ EXTRA_DIST = \
 	sql/master_schema.sql \
 	README.md
 
+# Fail when the Autotools and CMake source manifests drift apart.
+check-build-parity:
+	cd "$(abs_top_srcdir)" && python3 scripts/ci/check_build_parity.py
+
+# Configure, build, and test an untouched git archive through both build systems.
+distcheck-archive:
+	"$(abs_top_srcdir)/scripts/ci/check_clean_archive.sh"
+
 # Run unit tests
-test: check test-help-sync test-autorun-supervision test-versioned-binary-install \
+test: check check-build-parity test-help-sync test-autorun-supervision test-versioned-binary-install \
 	test-binary-name-static test-healthcheck test-sql-interpolation \
 	test-background-help-entries test-demand-driven-architecture test-event-admission \
 	test-event-core-performance-gate test-native-event-architecture test-pubsub-retirement \
@@ -1024,7 +1032,7 @@ test: check test-help-sync test-autorun-supervision test-versioned-binary-instal
 		LUMINARI_TEST_SPEC_WORLD_ROOT="$(abs_top_srcdir)/unittests/CuTest/fixtures/spec_world_inventory" \
 		./cutest
 
-.PHONY: check-world-docs rol-mob-calculator test-all test-world-tools test-help-sync \
+.PHONY: check-build-parity distcheck-archive check-world-docs rol-mob-calculator test-all test-world-tools test-help-sync \
 	test-help-sync-integration test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
 	test-versioned-binary-install test-binary-name-static test-healthcheck \
