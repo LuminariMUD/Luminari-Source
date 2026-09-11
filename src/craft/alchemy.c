@@ -151,8 +151,8 @@ const char *grand_alchemical_discovery_names[NUM_GR_ALC_DISCOVERIES] = {
 const char *grand_alchemical_discovery_descriptions[NUM_GR_ALC_DISCOVERIES] = {
     "none", "Your base intelligence raises by 2 permanently", "Heal 5 hp per round permanently",
     "Is able to poison others with a touch (poisontouch command)",
-    "Mutagens now bestow +8 to natural ac, str, dex and con, while -2 to int, wis and cha. "
-    "Cognatogens, Inspiring Cognatogens and Elemental Mutagens are also improved."};
+    ("Mutagens now bestow +8 to natural ac, str, dex and con, while -2 to int, wis and cha. "
+     "Cognatogens, Inspiring Cognatogens and Elemental Mutagens are also improved.")};
 
 const char *bomb_types[NUM_BOMB_TYPES] = {
     "none",       "normal",     "acid",  "blinding", "boneshard", "concussive", "confusion",

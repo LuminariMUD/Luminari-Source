@@ -23,9 +23,13 @@ flags with `./scripts/deployment/deploy.sh --help`.
 sudo apt-get update
 sudo apt-get install -y build-essential git make autoconf automake libtool \
   cmake pkg-config mariadb-server libmariadb-dev libcrypt-dev libgd-dev \
-  libcurl4-openssl-dev libssl-dev libjson-c-dev zlib1g-dev mariadb-client \
-  curl pandoc gdb valgrind
+  libevent-dev libcurl4-openssl-dev libssl-dev libjson-c-dev zlib1g-dev \
+  mariadb-client curl pandoc gdb valgrind
 ```
+
+Minimum supported dependency versions are listed in the
+[CMake build guide](../development/CMAKE_BUILD_GUIDE.md); both build systems
+require the same libraries.
 
 ## Existing Configured Checkout
 
@@ -75,15 +79,28 @@ fresh minimal world rather than assembling the required indexes manually.
 
 ## CMake
 
-CMake is the supported secondary build. Tests are disabled by default and must
-be enabled explicitly for validation:
+CMake is the supported secondary build. Use the checked-in presets, which
+enable tests and write to `build/<preset>`:
 
 ```bash
-cmake -S . -B build -DBUILD_TESTS=ON
-cmake --build build -j"$(nproc)"
-ctest --test-dir build --output-on-failure
-cmake --install build
+cmake --preset dev
+cmake --build --preset dev -j"$(nproc)"
+ctest --preset dev
+cmake --install build/dev
 ```
+
+`dev-clang`, `ci-gcc`, `ci-clang`, `sanitizers`, `coverage`,
+`release-hardened`, and `cross-aarch64` cover the other supported workflows.
+Options such as `DEVELOPER_MODE`, `LUMINARI_WERROR`, and `LUMINARI_SANITIZERS`
+are documented in the [CMake build guide](../development/CMAKE_BUILD_GUIDE.md).
+
+Both build systems must list the same sources. `make check-build-parity` (also
+run by `make test`, CTest, and CI) fails when `Makefile.am` and
+`CMakeLists.txt` drift, including the production-source membership of both
+`cutest` targets. `make distcheck-archive` configures, builds, tests, and
+installs an untouched `git archive HEAD` through both systems; CI runs it as
+a blocking job, and it is not part of `make test` because it rebuilds the
+tree twice.
 
 ## Run and Verify
 

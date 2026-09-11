@@ -239,6 +239,7 @@ void remove_ship_connection(room_rnum room1, room_rnum room2)
   }
 
   VSSL_DEBUG_DOCK("Removed %d connection(s)", removed_count);
+  (void)removed_count;
   VSSL_DEBUG_EXIT("remove_ship_connection");
   for (dir = 0; dir < NUM_OF_DIRS * 2; dir++)
     door_state_finish(&operations[dir]);
@@ -702,6 +703,7 @@ bool perform_combat_boarding(struct char_data *ch, struct greyhawk_ship_data *ta
   }
 
   VSSL_DEBUG_DOCK("Combat initiated with %d defender(s)", defenders_found);
+  (void)defenders_found;
   VSSL_DEBUG_EXIT("perform_combat_boarding");
   return TRUE;
 }
@@ -741,6 +743,7 @@ void setup_boarding_defenses(struct greyhawk_ship_data *ship)
   }
 
   VSSL_DEBUG_DOCK("Sealed %d hatches", hatches_sealed);
+  (void)hatches_sealed;
 
   /* Alert crew */
   send_to_ship(ship, "BATTLE STATIONS! Prepare to repel boarders!");

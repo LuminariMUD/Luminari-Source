@@ -12388,13 +12388,13 @@ static const char *mag_summon_msgs[] = {
     "\tYAs \tn$n\tY makes a strange magical gesture, you feel a sudden shift in the earth.\tn", // 9
     "\tBAs \tn$n\tB makes a strange magical gesture, you feel the dust swirl.\tn", // 10
     "$n magically divides!",                                                       // 11 clone
-    "$n animates a corpse!",                                         // 12 animate dead
-    "$N breaks through the ground and bows before $n.",              // 13 mummy lord
-    "With a roar $N soars to the ground next to $n.",                // 14 young red dragon
-    "$N pops into existence next to $n.",                            // 15 shelgarn's dragger
-    "$N skimpers into the area, then quickly moves next to $n.",     // 16 dire badger
-    "$N charges into the area, looks left, then right... "           /* 17 */
-    "then quickly moves next to $n.",                                // 18 dire boar
+    "$n animates a corpse!",                                     // 12 animate dead
+    "$N breaks through the ground and bows before $n.",          // 13 mummy lord
+    "With a roar $N soars to the ground next to $n.",            // 14 young red dragon
+    "$N pops into existence next to $n.",                        // 15 shelgarn's dragger
+    "$N skimpers into the area, then quickly moves next to $n.", // 16 dire badger
+    ("$N charges into the area, looks left, then right... "
+     "then quickly moves next to $n."),                              // 17 dire boar
     "$N moves into the area, sniffing cautiously.",                  // 19 dire wolf
     "$N walks up to $n.",                                            // 20 phantom steed
     "$N skitters into the area and moves next to $n.",               // 21 dire spider
@@ -12435,11 +12435,11 @@ static const char *mag_summon_to_msgs[] = {
     "You magically divide!",                                                   // 11 clone
     "You animate a corpse!",                                                   // 12 animate dead
     "$N breaks through the ground and bows before you.",                       // 13 mummy lord
-    "With a roar $N soars to the ground next to you.",                // 14 young red dragon
-    "$N pops into existence next to you.",                            // 15 shelgarn's dragger
-    "$N skimpers into the area, then quickly moves next to you.",     // 16 dire badger
-    "$N charges into the area, looks left, then right... "            // 17
-    "then quickly moves next to you.",                                // 18 dire boar
+    "With a roar $N soars to the ground next to you.",            // 14 young red dragon
+    "$N pops into existence next to you.",                        // 15 shelgarn's dragger
+    "$N skimpers into the area, then quickly moves next to you.", // 16 dire badger
+    ("$N charges into the area, looks left, then right... "
+     "then quickly moves next to you."),                              // 17 dire boar
     "$N moves into the area, sniffing cautiously.",                   // 19 dire wolf
     "$N walks up to you.",                                            // 20 phantom steed
     "$N skitters into the area and moves next to you.",               // 21 dire spider
@@ -14749,7 +14749,7 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj, int s
 
 #define LOOP_LIMIT_MAGCREATE 1000
 /* this function will hand spells that create objects */
-void mag_creations(int level, struct char_data *ch, struct char_data *vict,
+void mag_creations(int level __attribute__((unused)), struct char_data *ch, struct char_data *vict,
                    struct obj_data *obj __attribute__((unused)), int spellnum,
                    int casttype __attribute__((unused)))
 {

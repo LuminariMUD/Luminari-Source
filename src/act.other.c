@@ -11095,7 +11095,7 @@ ACMDU(do_borrow)
     // some uselkess bauble
     if (which <= 9)
     {
-      which = dice(1, NUM_KENDER_BAUBLES);
+      which = rand_number(0, NUM_KENDER_BAUBLES - 1);
       obj = read_object(KENDER_BAUBLE, VIRTUAL);
       if (!obj)
       {

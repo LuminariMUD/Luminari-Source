@@ -391,8 +391,8 @@ const char *fiendish_boon_descriptions[] = {
     "adds 1d6 negative damage per hit",
     "causes bleed damage each hit",
     "gives an extra attack per round (won't stack with itself or haste)",
-    "5 percent chance on a critical hit to kill the target outright (won't work on undead, "
-    "constructs or oozes)",
+    ("5 percent chance on a critical hit to kill the target outright (won't work on undead, "
+     "constructs or oozes)"),
     "\n"};
 CHECK_TABLE_SIZE(fiendish_boon_descriptions, NUM_FIENDISH_BOONS + 1);
 

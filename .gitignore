@@ -131,6 +131,7 @@ bak/
 ####################
 # Ignore everything in build directory
 build/*
+CMakeUserPresets.json
 # But keep the directory structure
 !build/.gitkeep
 !build/CMakeFiles/

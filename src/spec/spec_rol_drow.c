@@ -67,11 +67,11 @@ int rol_drow_decay_modulus(bool inside_object, int hour, bool sunlight)
   if (inside_object)
     decay--;
 
-  /* Preserve the source predicates exactly. Each OR is true for every hour. */
-  if (hour > 4 || hour < 22)
-    decay++;
-  if (hour > 5 || hour < 21)
-    decay += decay;
+  /* The source predicates (hour > 4 || hour < 22, then hour > 5 || hour < 21)
+   * are true for every hour, so both adjustments always apply. */
+  (void)hour;
+  decay++;
+  decay += decay;
   if (!inside_object && sunlight)
     decay += decay;
 

@@ -286,7 +286,8 @@ a second consumer proves the same contract.
    callers.
 6. Add production-linked registry, OLC, persistence, and invocation coverage as
    applicable.
-7. Update both `Makefile.am` and `CMakeLists.txt` for source membership changes.
+7. Update both `Makefile.am` and `CMakeLists.txt` for source membership changes
+   and run `python3 scripts/ci/check_build_parity.py`.
 8. Update builder documentation and database-first help migration/verifier when
    the contract changes.
 
