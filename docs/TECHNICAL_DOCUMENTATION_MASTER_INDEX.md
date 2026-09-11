@@ -125,6 +125,10 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[PLAYER_RACES_REFERENCE.md](guides/PLAYER_RACES_REFERENCE.md)** - Playable race
   reference center: stats, innate feats, tiers, unlock costs, acquisition paths, and
   links to every race-related document
+- **[PLAYER_CLASSES_REFERENCE.md](guides/PLAYER_CLASSES_REFERENCE.md)** - Playable class
+  reference center: base and prestige classes, unlock costs, prerequisites,
+  progression, class skills, feats by level, casting models, spell lists, and links
+  to every class-related document
 - **[ADDING_NEW_RACE_GUIDE.md](guides/ADDING_NEW_RACE_GUIDE.md)** - End-to-end
   playable-race ID, registry, creation, mechanics, persistence, help, testing,
   deployment, and rollback guide
