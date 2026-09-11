@@ -1,12 +1,14 @@
 # Player Races Reference
 
-Status: source-backed reference, verified 2026-09-10 against `src/character/race.c`,
-`src/account.c`, `src/structs.h`, `src/quest/quest.c`, `src/quest/hlquest.c`, and
-`src/spec/spec_rol_conversion.c`.
+Status: source-backed reference, verified 2026-09-11 against `src/character/race.c`,
+`src/account.c`, `src/structs.h`, `src/quest/quest.c`, `src/quest/hlquest.c`,
+`src/spec/spec_rol_conversion.c`, `src/character/feats.c`, `src/constants.c`,
+`src/combat/fight.c`, and `src/limits.c`.
 
 This document is the reference center for playable (player-character) races. It
 lists every race a player can hold, its ability modifiers, size, alignment
-limits, innate feats, unlock cost, and how it is acquired. Non-player race
+limits, innate feats, unlock cost, and how it is acquired, and it sets the
+race point budget used to balance races within and across tiers. Non-player race
 families (animals, elementals, plants, wildshape forms) are out of scope; they
 are registered with `is_pc = FALSE` and are covered by the NPC and wildshape
 material instead.
@@ -321,6 +323,283 @@ Vampire Children Of The Night, Vampire Create Spawn, Vampire Dominate, Vampire
 Energy Drain, Vampire Change Shape, Vampire Gaseous Form, Vampire Spider Climb,
 Vampire Skill Bonuses, Vampire Ability Score Boosts, Vampire Bonus Feats,
 Vital, Hardy. Unarmed attacks: hit, bite, claw, thrash, punch, rake, smash.
+
+## Balance: race point budgets by tier
+
+This section is a design standard, not a code trace. Nothing in the server
+computes these numbers. It exists so that new races land in a consistent
+place and existing races can be measured against the same yardstick. The
+mechanical facts it rests on (ability modifiers, feat effects, size modifiers)
+are traced from `src/character/race.c`, `src/character/feats.c`,
+`src/constants.c`, `src/combat/fight.c`, and `src/limits.c`.
+
+### Why a point budget
+
+Stock d20 races are assumed balanced against each other by publication. The
+game already has four distinct acquisition classes, and the two upper ones
+have no published reference to lean on:
+
+| Tier | Registry marker | How acquired | Existing standard |
+|------|-----------------|--------------|-------------------|
+| Normal | `IS_NORMAL`, cost 0, LA +0 | Creation | d20 core races: assumed balanced |
+| Advanced | `IS_ADVANCE`, cost 1000, LA +2 | Account unlock | d20 races published with a level adjustment (drow, duergar) |
+| Epic | `IS_EPIC_R`, cost 30000 or 50000, LA +10 | Account unlock | None |
+| Epic quest | `IS_EPIC_R`, cost 999999999, LA +10 | End-game quest transformation | None |
+
+Because `level_adjustment` is not read by any experience or level code, the
+tiers are today distinguished only by unlock friction. The point budget below
+is the tool that makes "how much stronger is an advanced race allowed to be"
+a number instead of a feeling. It is modelled on the Pathfinder Advanced Race
+Guide race builder but priced against what this server's feats actually do.
+
+### Race point (RP) pricing table
+
+Score a race as:
+
+    RP = ability points + size points + trait points - drawback refund
+
+**Ability points.** Sum every positive modifier at face value. Sum the
+magnitudes of the penalties and subtract them, but credit at most 4 points of
+penalty in total. Penalties are cheap to place on a stat the intended build
+does not use, so uncapped penalties would let a race buy real power with
+imaginary weakness.
+
+**Size points.** Size affects attack, AC, damage and combat maneuvers through
+`size_modifiers[]` and `size_modifiers_inverse[]` (Medium is 0). Small gains
++1 attack and AC, loses 2 damage and 1 CMB/CMD. Large is the mirror. Tiny
+doubles the Small numbers. These net out close to zero, so Small and Medium
+cost 0 and Large and Tiny cost 1 for the trade being more favourable in
+practice (reach-free damage for Large, very high AC for Tiny).
+
+**Trait points.** Price each innate feat or special from the table below.
+When a trait is not listed, price it by the closest row; when two rows fit,
+take the higher.
+
+| Trait class | Example in game | RP |
+|-------------|-----------------|----|
+| Infravision | Most races | 0.5 |
+| Ultravision | Drow, Duergar, HalfOrc | 1 |
+| Weapon or armor proficiency group | Elf, Dwarven, Shield Dwarf armor training | 0.5 to 1 |
+| +2 to one or two skills | Keen Senses, Shadow Hopper | 0.5 |
+| +3 to one skill, or +6 situational | Menacing, Bathed In Moonlight | 0.5 |
+| +8 to four skills | Vampire Skill Bonuses | 2 |
+| +1 to all saves | Lucky | 1 |
+| +2 to a save category | Resistance To Enchantments, Stubborn Mind | 0.5 |
+| +4 to a save category | Strong Spell Hardiness, Phantasm Resist | 1 |
+| Immunity to one condition | Sleep Enchantment Immunity | 0.5 |
+| Immunity to poison | Yuan-Ti Poison Immunity | 1.5 |
+| +10 hit points once | Vital | 0.5 |
+| +1 hit point per level | Hardy, Gold Dwarf Toughness | 2 |
+| +1 natural or dodge AC | Armor Skin (per stack), Dodge | 1 each |
+| Scaling AC (+1 per 3 levels) | Trelux Exoskeleton (with its resistances) | 6 |
+| +3 flat melee damage | Crystal Fist | 2 |
+| Scaling damage (+1 per 4 levels) | Trelux Pincers | 3 |
+| Conditional +1 hit / +2 damage | Bloodhunt, Dragonborn Fury, Fury Of The Small | 1 |
+| Extra 1d6 on crits | Savage Attacks | 1 |
+| Energy resistance 5, one type | Dragonborn Resistance | 0.5 |
+| Energy resistance 10, one type | Tiefling Hellish Resistance | 1 |
+| Energy resistance 5, four types | Celestial Resistance | 1.5 |
+| 50 percent resistance, one type | Mountain Born | 1 |
+| Immunity to one energy type | Lich Electric or Cold Immunity | 2 each |
+| DR X/- | Lich Dam Resist (DR 4) | 1 per point |
+| DR 10 bypassed by a common material | Vampire DR 10/magic+silver | 6 |
+| Spell resistance 5 + half level | Half Drow | 2 |
+| Spell resistance 10 + level | Drow, Lich | 4 |
+| Spell resistance 15 + level | Fae | 6 |
+| Regeneration | Troll (3, plus 3 in combat) | 1 per hp per tick |
+| Spell-like ability 1/day | Duergar Magic, Lunar Magic | 0.5 each |
+| Spell-like ability 3/day | Drow and Duergar SLAs | 1 each |
+| One low-circle spell at will | High Elf Cantrip, Natural Illusionist | 2 |
+| Battery of strong spells at will | Fae Magic | 8 |
+| Flight | Wings, Fae Flight | 4 |
+| Bonus feat at level 1 | Quick To Master | 3 |
+| Bonus skill points | Skilled | 1.5 |
+| Extra ability points at creation | Half Elf | 2 |
+| 20 percent chance to avoid any attack | Leap | 5 |
+| 25 percent chance to avoid a killing blow | Relentless Endurance | 1 |
+| Reroll d20 results under 5 | Fortune Of The Many | 1.5 |
+| Party-wide +1 to hit | Authoritative | 1.5 |
+| Short self-buff, limited uses | Crystal Body, Stones Endurance, Insectbeing | 1 to 2 |
+| Charm or dominate at will | Vampire Dominate | 3 |
+| Level drain, gaseous form | Vampire | 2 each |
+| Minor utility | Stability, Encumbered Resilience, Tinker, Speak With Beasts, Spider Climb | 0.5 |
+| Caster level bonus (level / 6) | Magical Heritage | 2 |
+
+**Drawback refund.** Drawbacks subtract from RP but, like ability penalties,
+are capped: total refund may not exceed 25 percent of the tier budget. A race
+that is only affordable because of its drawbacks is fragile in play, because
+players route around drawbacks and keep the power.
+
+| Drawback | Example | RP |
+|----------|---------|----|
+| Light Blindness | Drow, Duergar | -2 |
+| 50 percent vulnerability, one type | Weakness To Fire | -2 |
+| 20 to 25 percent vulnerability, one type | Weakness To Acid, Vulnerable To Cold | -1 |
+| -2 AC | Physical Vulnerability | -2 |
+| -2 to a save category | Spell or Enchantment Vulnerability | -1 |
+| Cannot use an equipment slot | Wemic, Yuan-Ti, Trelux | -1 per slot, cap -6 |
+| Environmental damage or disable | Vampire Weaknesses | -4 |
+
+Alignment restrictions and forced class respecs are not priced. They shape
+who plays the race; they do not change how strong the race is once played.
+
+### Tier budgets
+
+| Tier | Target RP | Acceptable band | Notes |
+|------|-----------|-----------------|-------|
+| Normal | 7 | 5 to 9 | Matches the spread of the stock d20 races already in the registry |
+| Advanced | 14 | 12 to 16 | Roughly double a normal race, consistent with LA +2 in d20 |
+| Epic | 24 | 20 to 28 | Chosen from the current epic median; see calibration below |
+| Epic quest | 50 | 40 to 60 | Reward for a level 30 quest line; may exceed epic by about double |
+
+The step from each tier to the next is deliberately about +7 to +10 RP for
+Advanced and Epic, and about +25 for Epic quest. Expressed as a formula that
+also covers future tiers:
+
+    budget(tier) = 7 + 7 * tier_index          for tier_index 0..2
+    budget(quest) = 2 * budget(epic)
+
+with tier_index 0 = Normal, 1 = Advanced, 2 = Epic. Quest races are allowed a
+larger jump because they are gated by content difficulty rather than by
+account experience, and because their acquisition destroys the character's
+prior class build (respec to Wizard or Warrior).
+
+Composition rules, applied inside any tier:
+
+1. Ability points may not exceed 50 percent of the budget. A race is a set of
+   traits, not a stat stick. (Wemic and Vampire currently break this.)
+2. No single trait may exceed 30 percent of the budget. Above that the race
+   is defined by one mechanic and every other choice becomes noise.
+3. Drawback refund and penalty credit together may not exceed 25 percent of
+   the budget.
+4. An advanced or epic race should carry at least one trait that scales with
+   level. Flat bonuses that matter at level 5 are irrelevant at level 30 and
+   make the race feel worse than a normal race late.
+5. Unlock cost within the epic tier follows RP: 30000 at or below target,
+   50000 above it. This is the split the registry already uses (Fae is the
+   only 50000 race and scores highest).
+
+### Calibration: every current race scored
+
+Scores use the pricing table above with no per-race tuning. Ability is after
+the penalty cap, Trait is traits minus drawbacks.
+
+| Race | Tier | Ability | Size | Trait | RP | Versus band |
+|------|------|---------|------|-------|----|-------------|
+| Human | Normal | 0 | 0 | 4.5 | 4.5 | low |
+| Moon Elf | Normal | 3 | 0 | 4.5 | 7.5 | in band |
+| Mountain Dwarf | Normal | 4 | 0 | 4.5 | 8.5 | in band |
+| Lightfoot Halfling | Normal | 3 | 0 | 3.5 | 6.5 | in band |
+| Half Elf | Normal | 2 | 0 | 5.5 | 7.5 | in band |
+| HalfOrc | Normal | 3 | 0 | 3.5 | 6.5 | in band |
+| Rock Gnome | Normal | 3 | 0 | 4.0 | 7.0 | in band |
+| High Elf | Normal | 3 | 0 | 5.0 | 8.0 | in band |
+| Wild Elf | Normal | 3 | 0 | 3.5 | 6.5 | in band |
+| Half Drow | Normal | 2 | 0 | 4.5 | 6.5 | in band |
+| Dragonborn | Normal | 3 | 0 | 3.5 | 6.5 | in band |
+| Tiefling | Normal | 3 | 0 | 4.0 | 7.0 | in band |
+| Stout Halfling | Normal | 3 | 0 | 3.5 | 6.5 | in band |
+| Forest Gnome | Normal | 3 | 0 | 5.5 | 8.5 | in band |
+| Gold Dwarf | Normal | 3 | 0 | 6.0 | 9.0 | top of band |
+| Aasimar | Normal | 3 | 0 | 5.0 | 8.0 | in band |
+| Tabaxi | Normal | 3 | 0 | 3.0 | 6.0 | in band |
+| Goliath | Normal | 3 | 0 | 3.5 | 6.5 | in band |
+| Shade | Normal | 3 | 0 | 3.0 | 6.0 | in band |
+| Goblin | Normal | 2 | 0 | 3.5 | 5.5 | in band |
+| Hobgoblin | Normal | 3 | 0 | 4.5 | 7.5 | in band |
+| HalfTroll | Advanced | 4 | 1 | 3.5 | 8.5 | low |
+| ArcanaGolem | Advanced | 9 | 0 | -1.0 | 8.0 | low |
+| Drow | Advanced | 10 | 0 | 9.0 | 19.0 | high |
+| Duergar | Advanced | 6 | 0 | 8.5 | 14.5 | in band |
+| Half-Ogre | Advanced | 4 | 1 | 4.5 | 9.5 | low |
+| Wemic | Advanced | 12 | 1 | 3.5 | 16.5 | top of band |
+| Yuan-Ti | Advanced | 8 | 0 | 3.0 | 11.0 | low |
+| CrystalDwarf | Epic | 14 | 0 | 8.5 | 22.5 | in band |
+| Trelux | Epic | 12 | 0 | 16.5 | 28.5 | top of band |
+| Fae | Epic | 12 | 1 | 28.5 | 41.5 | high |
+| Half-Illithid | Epic | 12 | 0 | 8.5 | 20.5 | in band |
+| Lich | Epic quest | 18 | 0 | 26.5 | 44.5 | in band |
+| Vampire | Epic quest | 22 | 0 | 37.5 | 59.5 | top of band |
+
+What the calibration says:
+
+- **Normal races are consistent.** Twenty of twenty-one fall between 5.5 and
+  9.0. This is the empirical basis for the Normal band and supports the
+  assumption that stock d20 races can be treated as balanced. Human is the
+  one outlier and it is a known d20 property: a bonus feat is worth far more
+  in a feat-hungry build than any flat price captures. Leave Human alone.
+- **Advanced is the least consistent tier.** Drow at 19 is more than double
+  HalfTroll and ArcanaGolem at 8 to 8.5, yet all three cost the same 1000
+  account experience. ArcanaGolem is an especially weak buy: its +9 ability
+  total is offset by -2 AC and two save penalties, leaving it below several
+  normal races. Half-Ogre and Yuan-Ti are also below the band.
+- **Epic is bimodal.** CrystalDwarf and Half-Illithid sit at 20 to 23 and are
+  essentially "advanced race plus Hardy and more stats". Trelux and Fae are a
+  different product: scaling defence, flight, and avoidance. Fae at 41.5 is
+  an epic-quest-grade race sold for account experience, and its 50000 price
+  reflects that someone already noticed.
+- **Epic quest races are the ceiling.** Both land in the 40 to 60 band, with
+  Vampire well above Lich. Vampire's DR, fast healing, +6 natural armor, and
+  six bonus feats stack multiplicatively with its +22 ability total. Its
+  weaknesses (sunlight and running water) are the largest refund in the
+  table and still do not bring it near Lich.
+
+### Suggested adjustments for existing races
+
+These are recommendations for a future balance pass, listed in priority
+order. None has been applied.
+
+| Race | Direction | Change that reaches the band |
+|------|-----------|------------------------------|
+| ArcanaGolem | raise to about 14 | Remove Physical Vulnerability (-2 AC), or replace the three vulnerabilities with a single -2 to fortitude saves and add Hardy |
+| HalfTroll | raise to about 13 | Add Hardy (+1 hp per level) and either Powerful Build or Strong Against Disease upgraded to disease immunity; the regeneration is already the right kind of scaling trait |
+| Half-Ogre | raise to about 13 | Add a third Armor Skin stack and a scaling trait, for example +1 damage per 4 levels with two-handed weapons |
+| Yuan-Ti | raise to about 13 | Lift one of the three equipment restrictions (face is the least thematic) and add a 3/day spell-like ability such as charm person |
+| Drow | lower to about 16 | Reduce the ability total from +10 to +8 (drop INT to +2), or make the three SLAs 1/day instead of 3/day |
+| Fae | move or trim | Either reclassify Fae as an epic quest race, or cut Fae Resistance to DR 5 and SR 10 + level and drop two of the seven at-will spells. That brings it to about 30 |
+| CrystalDwarf, Half-Illithid | raise to about 24 | Each needs one scaling trait, for example Crystal Fist growing +1 per 6 levels or a Half-Illithid mind blast on a per-day scale |
+| Vampire | monitor | Above target but within band; leave until Lich is compared in live play. If trimmed, Fast Healing 3 rather than 5 is the cleanest single change |
+
+### Designing a new race: procedure
+
+1. Pick the tier. This decides the acquisition path (see "How race tiers and
+   unlocking work") and the budget.
+2. Write the ability line first and check it against composition rule 1.
+3. Add traits from the pricing table until the race is at or slightly below
+   target. Every advanced or epic race must include a level-scaling trait
+   (rule 4). Where a needed trait does not yet exist as a feat, price it by
+   analogy before writing code, so the feat is designed to a budget rather
+   than priced after the fact.
+4. Add drawbacks only for flavour or to reach the band from above. Check
+   rule 3.
+5. Record the RP line in the race's design notes and in this table when the
+   race ships, and add its `RACE-<NAME>` help entry.
+6. Follow [ADDING_NEW_RACE_GUIDE.md](ADDING_NEW_RACE_GUIDE.md) for the
+   registry, creation, and persistence work.
+
+Worked example, an advanced race "Shadar-kai" (budget 14, band 12 to 16):
+DEX +2, CON +2, WIS +2, CHA -2 gives ability 4 (penalty credited). Traits:
+Ultravision 1, Shadowfell Mind 0.5, One With Shadow 1, DR 2/- scaling to
+DR 5/- at level 20 (priced as DR 5) 5, shadow step 3/day (short teleport
+within the room group, priced as a 3/day SLA) 1, Hardy 2. Total 14.5. The
+DR is the scaling trait and is 5 of 14 points, under the 30 percent limit.
+
+### Limits of this model
+
+- RP is additive. Real power is multiplicative: Vampire's DR, fast healing
+  and natural armor together are worth more than their sum. Treat scores
+  within 2 points of each other as equal and use play data for finer calls.
+- Class interaction is not priced. Drow spell resistance is a cost, not a
+  benefit, for a Drow cleric buffing allies; Skilled is worth much more to a
+  rogue than to a fighter. When a race is clearly built for one class family,
+  score it as that class would experience it.
+- The pricing table is a starting position, not a law. When play shows a
+  trait is under or over priced, change the row here first and rescore the
+  affected races, so the table stays the single yardstick.
+- The registry's `level_adjustment` values are not enforced by any
+  experience code. If a future change makes them live, the Advanced and Epic
+  budgets should be revisited, because an actual experience penalty is itself
+  a large drawback.
 
 ## Registry observations worth knowing
 

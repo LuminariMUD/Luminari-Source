@@ -68,6 +68,7 @@ systems must change.
 | Classification | Existing `RACE_TYPE_*` family and `SIZE_*` value |
 | Selection mode | Creation-selectable or transformation-only |
 | Power tier | Normal, advanced, or epic presentation category |
+| Race point budget | Scored line against the tier budget in [PLAYER_RACES_REFERENCE.md](PLAYER_RACES_REFERENCE.md), section "Balance: race point budgets by tier" |
 | Access gate | Free, account-XP unlock, or explicit hard lock plus conversion |
 | Genders | Recorded intent, plus enforcement work if any sex is disallowed |
 | Statistics | STR, CON, INT, WIS, DEX, and CHA modifiers, in that exact order |
