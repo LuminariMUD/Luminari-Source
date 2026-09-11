@@ -223,37 +223,50 @@ void save_room_state(room_rnum room) {
 ### Query Optimization
 
 #### Prepared Statements
+
+`src/mysql.h` provides the `PREPARED_STMT` wrapper. It is the default way to
+run any SQL that carries a data value: the statement text stays constant and
+every value is bound, so quoting, character sets, backslashes, and the session
+`sql_mode` cannot change the statement's meaning. `src/account.c` is the
+reference migration for this pattern.
+
 ```c
-MYSQL_STMT *stmt_save_player;
+PREPARED_STMT *statement;
+const char *value;
 
-void init_prepared_statements() {
-    stmt_save_player = mysql_stmt_init(conn);
-    const char *query = "INSERT INTO player_data (name, level, experience) VALUES (?, ?, ?)";
-
-    if (mysql_stmt_prepare(stmt_save_player, query, strlen(query))) {
-        log("SYSERR: Failed to prepare statement: %s", mysql_stmt_error(stmt_save_player));
-    }
+statement = mysql_stmt_create(conn);
+if (statement == NULL ||
+    !mysql_stmt_prepare_query(statement,
+                              "SELECT id, email FROM account_data WHERE lower(name) = lower(?)") ||
+    !mysql_stmt_bind_param_string(statement, 0, name) ||
+    !mysql_stmt_execute_prepared(statement))
+{
+  log("SYSERR: Unable to load account row.");
+  mysql_stmt_cleanup(statement); /* NULL-safe; every error path releases it */
+  return -1;
 }
-
-void save_player_prepared(struct char_data *ch) {
-    MYSQL_BIND bind[3];
-    memset(bind, 0, sizeof(bind));
-
-    // Bind parameters
-    bind[0].buffer_type = MYSQL_TYPE_STRING;
-    bind[0].buffer = GET_NAME(ch);
-    bind[0].buffer_length = strlen(GET_NAME(ch));
-
-    bind[1].buffer_type = MYSQL_TYPE_LONG;
-    bind[1].buffer = &GET_LEVEL(ch);
-
-    bind[2].buffer_type = MYSQL_TYPE_LONGLONG;
-    bind[2].buffer = &GET_EXP(ch);
-
-    mysql_stmt_bind_param(stmt_save_player, bind);
-    mysql_stmt_execute(stmt_save_player);
+while (mysql_stmt_fetch_row(statement))
+{
+  account_id = mysql_stmt_get_int(statement, 0);
+  value = mysql_stmt_get_string(statement, 1); /* NULL for SQL NULL */
 }
+mysql_stmt_cleanup(statement);
 ```
+
+Binding notes:
+
+- `mysql_stmt_bind_param_string()` with a NULL pointer binds SQL `NULL`.
+- `mysql_stmt_bind_param_int()` and `mysql_stmt_bind_param_long()` bind numbers;
+  never format a number into the SQL text.
+- `mysql_stmt_get_long()` reads `BIGINT` columns and `COUNT(*)` aggregates;
+  `mysql_stmt_get_int()` reads smaller integer columns.
+- `mysql_stmt_affected_rows_count()` and `mysql_stmt_insert_id(statement->stmt)`
+  replace `mysql_affected_rows()` and `mysql_insert_id()`.
+- Variable-length lists (`IN (...)`, multi-row `VALUES`) append placeholders
+  only, then bind each value. Table and column names come from a compile-time
+  table indexed by an enum, never from data.
+- Executions are attributed to the performance monitor exactly like direct
+  queries, so `perfmon` SQL families keep working after a migration.
 
 ## Database Schema Management
 
@@ -483,10 +496,18 @@ void log_database_stats() {
 ## Security Considerations
 
 ### SQL Injection Prevention
-- Always use `mysql_real_escape_string()` for user input
-- Use prepared statements for complex queries
-- Validate input data before database operations
-- Implement proper access controls
+- Bind every data value (user, world, file, service, or database derived) with
+  the `PREPARED_STMT` API. Escaping with `mysql_real_escape_string()` is a
+  legacy compatibility technique, not the default abstraction.
+- Select dynamic table, column, and ordering identifiers from compile-time
+  allowlists; keep the values they operate on bound separately.
+- Validate input data before database operations and implement proper access
+  controls.
+- `make test` runs `scripts/ci/check_sql_interpolation.py`, which fails when a
+  source file gains a formatted SQL statement with `%` conversions beyond the
+  recorded baseline in `scripts/ci/sql_interpolation_baseline.txt`. After
+  migrating sites to bound statements, run the script with `--update` so the
+  baseline only shrinks. Use `--list` to see the remaining inventory for #98.
 
 ### Connection Security
 - Use secure passwords for database users

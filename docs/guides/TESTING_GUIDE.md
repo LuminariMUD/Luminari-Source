@@ -61,7 +61,13 @@ supported. Use the current full-world acceptance report for migration checks.
 
 Run these from a prepared `lib/` data directory or pass its absolute path with
 `-d`. Database-linked tests must use the repository's isolated test fixture;
-do not point a test run at a shared development or production database. A game-
+do not point a test run at a shared development or production database.
+Database tests are enabled with `LUMINARI_TEST_MYSQL_ENABLE=1` and the
+`LUMINARI_TEST_MYSQL_HOST/USER/PASSWORD/DATABASE/PORT` variables; they create
+only temporary tables in that session. `make test` also runs the SQL
+interpolation ratchet (`scripts/ci/check_sql_interpolation.py`), which blocks
+new formatted SQL with data values; bind values through `PREPARED_STMT`
+instead (see `docs/systems/DATABASE_INTEGRATION.md`). A game-
 loop release candidate also requires a logged-in live test and a real copyover
 that verifies descriptor survival, service reconstruction, callback progress,
 handoff cleanup, and port closure.

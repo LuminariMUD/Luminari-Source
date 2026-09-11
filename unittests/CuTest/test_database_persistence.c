@@ -10,6 +10,7 @@
 #include "../../src/comm.h"
 #include "../../src/db.h"
 #include "../../src/handler.h"
+#include "../../src/interpreter.h"
 #include "../../src/mysql.h"
 #include "../../src/net/protocol.h"
 #include "../../src/db_init.h"
@@ -2457,4 +2458,182 @@ void Test_pet_bounded_restore_selects_capacity_and_stables_the_rest(CuTest *tc)
   CuAssertTrue(tc, reclaim_denied);
   CuAssertTrue(tc, reclaim_allowed);
   CuAssertTrue(tc, partial_refused);
+}
+
+/*
+ * The account tier binds every data value through prepared statements. Names,
+ * passwords, and emails carrying quotes, backslashes, multibyte text, and
+ * SQL-looking fragments must round-trip byte for byte, and the result must not
+ * depend on the session's escaping mode.
+ */
+static void check_account_tier_binds_values(CuTest *tc, MYSQL *connection, const char *sql_mode,
+                                            const char *account_name, const char *lookup_name)
+{
+  const char *queries[] = {
+      "DROP TEMPORARY TABLE IF EXISTS account_data, player_data, unlocked_races, unlocked_classes",
+      "CREATE TEMPORARY TABLE account_data ("
+      "id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(64) NOT NULL UNIQUE, "
+      "password VARCHAR(255) NOT NULL, experience INT NOT NULL DEFAULT 0, "
+      "email VARCHAR(255) NULL, "
+      "quit_survey_completed TINYINT(1) NULL) ENGINE=InnoDB",
+      /* No primary key: duplicate-name cleanup needs duplicate rows to exist. */
+      "CREATE TEMPORARY TABLE player_data ("
+      "name VARCHAR(64) NOT NULL, account_id INT NULL, last_online DATETIME NULL) ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE unlocked_races ("
+      "account_id INT NOT NULL, race_id INT NOT NULL, "
+      "UNIQUE KEY unique_account_race (account_id, race_id)) ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE unlocked_classes ("
+      "account_id INT NOT NULL, class_id INT NOT NULL, "
+      "UNIQUE KEY unique_account_class (account_id, class_id)) ENGINE=InnoDB",
+      NULL};
+  const char *password = "$y$j9T$salt'ss\\\"; DROP TABLE account_data; --";
+  const char *email = "o'mall\\ey@example.test";
+  const char *character_name = "Bob'; DELETE FROM player_data; --";
+  struct account_data account;
+  struct account_data loaded;
+  struct char_data ch;
+  struct player_special_data specials;
+  char count_query[512];
+  char *escaped_name;
+  char *owner_name;
+  bool schema_created = true;
+  int query_index;
+  int slot;
+  bool race_found = false;
+  bool class_found = false;
+
+  memset(&account, 0, sizeof(account));
+  memset(&loaded, 0, sizeof(loaded));
+  memset(&ch, 0, sizeof(ch));
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+  ch.player.name = (char *)character_name;
+
+  CuAssertIntEquals(tc, 0, mysql_query(connection, sql_mode));
+  for (query_index = 0; queries[query_index] != NULL; query_index++)
+    if (mysql_query(connection, queries[query_index]))
+      schema_created = false;
+  CuAssertTrue(tc, schema_created);
+
+  /* Core row with every string carrying hostile characters, plus unlock sets. */
+  account.name = (char *)account_name;
+  strlcpy(account.password, password, sizeof(account.password));
+  account.email = (char *)email;
+  account.experience = 1234;
+  account.quit_survey_completed = true;
+  account.races[0] = 3;
+  account.races[1] = 7;
+  account.classes[0] = 2;
+  CuAssertTrue(tc, save_account_checked(&account));
+  CuAssertTrue(tc, account.id > 0);
+
+  CuAssertIntEquals(tc, 0, load_account((char *)lookup_name, &loaded));
+  CuAssertStrEquals(tc, account_name, loaded.name);
+  CuAssertStrEquals(tc, password, loaded.password);
+  CuAssertStrEquals(tc, email, loaded.email);
+  CuAssertIntEquals(tc, 1234, loaded.experience);
+  CuAssertTrue(tc, loaded.quit_survey_completed);
+  CuAssertIntEquals(tc, account.id, loaded.id);
+  for (slot = 0; slot < MAX_UNLOCKED_RACES; slot++)
+    if (loaded.races[slot] == 7)
+      race_found = true;
+  for (slot = 0; slot < MAX_UNLOCKED_CLASSES; slot++)
+    if (loaded.classes[slot] == 2)
+      class_found = true;
+  CuAssertTrue(tc, race_found);
+  CuAssertTrue(tc, class_found);
+  CuAssertPtrEquals(tc, NULL, loaded.character_names[0]);
+  free(loaded.name);
+  free(loaded.email);
+  memset(&loaded, 0, sizeof(loaded));
+
+  /* A missing email binds as SQL NULL rather than the text "NULL". */
+  account.email = NULL;
+  account.experience = 99;
+  account.quit_survey_completed = false;
+  CuAssertTrue(tc, save_account_checked(&account));
+  CuAssertIntEquals(tc, 0, load_account((char *)account_name, &loaded));
+  CuAssertPtrEquals(tc, NULL, loaded.email);
+  CuAssertIntEquals(tc, 99, loaded.experience);
+  CuAssertTrue(tc, !loaded.quit_survey_completed);
+  free(loaded.name);
+  memset(&loaded, 0, sizeof(loaded));
+
+  /* Character links: create, list, resolve owner, batch relink, dedupe, remove. */
+  CuAssertTrue(tc, link_character_to_account_checked(&ch, &account));
+  load_account_characters(&account);
+  CuAssertPtrNotNull(tc, account.character_names[0]);
+  CuAssertStrEquals(tc, character_name, account.character_names[0]);
+  CuAssertPtrEquals(tc, NULL, account.character_names[1]);
+  owner_name = get_char_account_name((char *)character_name);
+  CuAssertPtrNotNull(tc, owner_name);
+  CuAssertStrEquals(tc, account_name, owner_name);
+  free(owner_name);
+
+  /* The dirty character set drives the placeholder IN (...) relink. */
+  CuAssertTrue(tc, save_account_checked(&account));
+  escaped_name = mysql_escape_string_alloc(connection, character_name);
+  CuAssertPtrNotNull(tc, escaped_name);
+  snprintf(count_query, sizeof(count_query),
+           "SELECT COUNT(*) FROM player_data WHERE account_id = %d", account.id);
+  CuAssertIntEquals(tc, 1, query_single_int(connection, count_query, -1));
+
+  snprintf(count_query, sizeof(count_query),
+           "INSERT INTO player_data (name, account_id) VALUES ('%s', %d)", escaped_name,
+           account.id);
+  CuAssertIntEquals(tc, 0, mysql_query(connection, count_query));
+  snprintf(count_query, sizeof(count_query),
+           "SELECT COUNT(*) FROM player_data WHERE account_id = %d", account.id);
+  CuAssertIntEquals(tc, 2, query_single_int(connection, count_query, -1));
+  load_account_characters(&account);
+  CuAssertIntEquals(tc, 1, query_single_int(connection, count_query, -1));
+  CuAssertStrEquals(tc, character_name, account.character_names[0]);
+  CuAssertPtrEquals(tc, NULL, account.character_names[1]);
+
+  remove_char_from_account(&ch, &account);
+  CuAssertIntEquals(tc, 0, query_single_int(connection, count_query, -1));
+  CuAssertPtrEquals(tc, NULL, account.character_names[0]);
+  CuAssertPtrEquals(tc, NULL, get_char_account_name((char *)character_name));
+  free(escaped_name);
+
+  for (slot = 0; slot < MAX_CHARS_PER_ACCOUNT; slot++)
+    free(account.character_names[slot]);
+}
+
+void Test_account_tier_binds_hostile_values_in_every_sql_mode(CuTest *tc)
+{
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  const char *account_name = "Ol'R\xc3\xa9\\ille\"); DROP TABLE account_data; --";
+  const char *lookup_name = "oL'r\xc3\xa9\\ILLE\"); drop TABLE account_data; --";
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  bool saved_available;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+  mysql_set_character_set(connection, "utf8mb4");
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  conn = connection;
+  mysql_available = true;
+
+  check_account_tier_binds_values(tc, connection, "SET SESSION sql_mode = ''", account_name,
+                                  lookup_name);
+  check_account_tier_binds_values(tc, connection, "SET SESSION sql_mode = 'NO_BACKSLASH_ESCAPES'",
+                                  account_name, lookup_name);
+
+  mysql_close(connection);
+  conn = saved_conn;
+  mysql_available = saved_available;
 }

@@ -1,0 +1,44 @@
+# Formatted SQL sites per file (issue #98 ratchet).
+# Regenerate only after removing sites:
+#   python3 scripts/ci/check_sql_interpolation.py --update
+src/act.wizard.c 15
+src/character/templates.c 22
+src/comms/mysql_boards.c 13
+src/comms/new_mail.c 16
+src/craft/craft.c 3
+src/db.c 6
+src/db_init.c 2
+src/db_init_data.c 3
+src/db_startup_init.c 3
+src/help.c 3
+src/interpreter.c 1
+src/magic/spell_lists.c 1
+src/modify.c 2
+src/mysql.c 9
+src/obj/act.item.c 3
+src/obj/house.c 1
+src/obj/objsave.c 13
+src/olc/bedit.c 1
+src/olc/hedit.c 15
+src/player_rename.c 10
+src/players.c 19
+src/quest/quest.c 15
+src/vessels/vehicles.c 3
+src/vessels/vessels_autopilot.c 17
+src/vessels/vessels_contracts.c 11
+src/vessels/vessels_crew.c 3
+src/vessels/vessels_db.c 25
+src/vessels/vessels_edit.c 7
+src/vessels/vessels_events.c 10
+src/vessels/vessels_hunters.c 9
+src/vessels/vessels_merchants.c 13
+src/vessels/vessels_ownership.c 13
+src/vessels/vessels_piracy.c 5
+src/vessels/vessels_rooms.c 1
+src/vessels/vessels_trade.c 7
+src/vessels/vessels_upgrades.c 6
+src/wilderness/narrative_weaver.c 5
+src/wilderness/region_hints.c 3
+src/wilderness/resource_cascade.c 6
+src/wilderness/resource_depletion.c 10
+src/wilderness/resource_regeneration.c 2
