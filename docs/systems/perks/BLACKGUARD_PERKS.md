@@ -1,6 +1,6 @@
 # Blackguard (Antipaladin) Perk Trees
 
-Design goal: three thematic trees, each with 4 tiers; Tiers 1–3 have 4 perks each, Tier 4 has 2 capstones. Emphasize fear/control, profane offense, and unholy resilience. Prefer profane typing, alignment DR interactions, and daily/encounter flags consistent with existing perk cadence. Avoid introducing new resources.
+Design goal: three thematic trees, each with 4 tiers; Tiers 1-3 have 4 perks each, Tier 4 has 2 capstones. Emphasize fear/control, profane offense, and unholy resilience. Prefer profane typing, alignment DR interactions, and daily/encounter flags consistent with existing perk cadence. Avoid introducing new resources.
 
 ## Tree A: Tyranny & Fear (Debuff/Control)
 
@@ -41,25 +41,25 @@ Design goal: three thematic trees, each with 4 tiers; Tiers 1–3 have 4 perks e
   - Blackened Precision: Threat range or crit damage bump while bonded.
   - Unholy Blitz: Brief haste-like burst after smite hit (limited uses).
 - **Tier 4 (2 capstones)**
-  - Avatar of Profanity: Long-cd self-buff: big profane damage, DR/—, resist, and auto-bypass alignment DR.
+  - Avatar of Profanity: Long-cd self-buff: big profane damage, DR/-, resist, and auto-bypass alignment DR.
   - Cataclysmic Smite: 1/day smite detonates in dark burst: AoE damage + save vs sickened/staggered.
 
 ## Tree C: Unholy Resilience (Defense/Utility)
 
 - **Tier 1 (4 perks)**
   - Profane Fortitude: Bonus saves vs holy effects/positive energy.
-  - Dark Aegis: Small DR/— while not flat-footed; light scaling with level.
+  - Dark Aegis: Small DR/- while not flat-footed; light scaling with level.
   - Graveborn Vigor: Temp hp trigger when under threshold (cooldown).
   - Sinister Recovery: Limited self-heal that harms adjacent good foes for half.
 - **Tier 2 (4 perks)**
-  - Aura of Desecration: Allies’ negative energy boosted; enemies’ healing impeded.
+  - Aura of Desecration: Allies' negative energy boosted; enemies' healing impeded.
   - Fell Ward: Reactive save bonus after being targeted by a divine spell.
   - Defiant Hide: Bonus AC/DR vs smite/good-aligned weapons.
   - Shade Step: Short shadow step as move/swift (limited uses).
 - **Tier 3 (4 perks)**
   - Soul Carapace: Convert portion of incoming damage to temp hp (per-round and total cap).
   - Death Denied: 1/rest, prevent drop to 0; stay at 1 with brief DR.
-  - Blackguard’s Reprisal: After you save vs a spell, next attack gains bonus damage/DC rider.
+  - Blackguard's Reprisal: After you save vs a spell, next attack gains bonus damage/DC rider.
   - Warding Malice: Enemies in aura take penalty to caster level checks vs your saves/wards.
 - **Tier 4 (2 capstones)**
   - Umbral Immortality: 1/day: incorporeal-like defenses briefly; heal on kills during it.

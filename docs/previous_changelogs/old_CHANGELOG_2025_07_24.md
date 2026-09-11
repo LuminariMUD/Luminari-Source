@@ -93,7 +93,7 @@
 
 ### Compiler Warning Fixes
 
-#### Fixed Additional Compiler Warnings (70 → 36 warnings)
+#### Fixed Additional Compiler Warnings (70 -> 36 warnings)
 - **Type Conversion Errors**:
   - Fixed `room_rnum` initialization in `act.movement.c:4139` - Changed from NULL to NOWHERE
 - **Buffer Overflow Warnings**:
@@ -109,7 +109,7 @@
 - **Indentation Issues**:
   - Fixed misleading indentation in act.wizard.c else clause
 
-#### Previous Fixes: Critical Compiler Warnings (86 → 6 warnings)
+#### Previous Fixes: Critical Compiler Warnings (86 -> 6 warnings)
 - **Dangling Pointer Warnings**:
   - Fixed in `spec_procs.c` (mayor function) - Made path arrays static to prevent dangling pointers
   - Fixed in `zone_procs.c` (king_welmar function) - Made path arrays static
@@ -189,7 +189,7 @@
 
 ### Performance Optimizations
 
-#### do_save() Performance Improvements (257ms → ~50-75ms target)
+#### do_save() Performance Improvements (257ms -> ~50-75ms target)
 - **Buffered I/O Implementation**: Replaced hundreds of individual fprintf() calls with a single buffered write operation
   - 64KB initial buffer with dynamic growth capability
   - All player data collected in memory before one disk write
@@ -248,8 +248,8 @@
 ### Fixed
 
 #### Performance Optimization - Zone Reset (July 24, 2025)
-- **Fixed do_zreset() O(n²) performance issue** - Optimized random chest placement algorithm in reset_zone():
-  - Previous algorithm: Nested loops iterating through all zone rooms up to 33 times (O(n²) complexity)
+- **Fixed do_zreset() O(n^2) performance issue** - Optimized random chest placement algorithm in reset_zone():
+  - Previous algorithm: Nested loops iterating through all zone rooms up to 33 times (O(n^2) complexity)
   - New algorithm: Builds eligible room list once, then iterates efficiently (O(n) complexity)
   - Performance improvement: Reduces CPU spike from 1022% to normal levels during `zreset *`
   - Maintains exact same chest placement probability and game behavior

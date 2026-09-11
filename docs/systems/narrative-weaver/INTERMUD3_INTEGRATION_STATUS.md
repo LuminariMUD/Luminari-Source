@@ -6,7 +6,7 @@ The Intermud3 integration has been repaired and enhanced to provide a complete, 
 
 ## Current Status: FUNCTIONAL
 
-### ✅ Completed Components
+### [OK] Completed Components
 
 #### Core Infrastructure
 - **i3_client.c**: Complete threaded client implementation with thread-safe event queuing
@@ -34,19 +34,19 @@ The Intermud3 integration has been repaired and enhanced to provide a complete, 
 - **Thread Safety**: Producer-consumer queue for cross-thread communication
 - **Event Processing**: Safe handling of incoming tells and channel messages
 
-### 🔧 Architecture
+### Architecture
 
 #### Threading Model
 ```
 Main Thread                    I3 Client Thread
 -----------                    ----------------
 game_loop()                    i3_client_thread()
-├─ heartbeat()                 ├─ socket management
-│  └─ i3_process_events()      ├─ JSON parsing
-│     ├─ deliver tells         ├─ authentication  
-│     └─ broadcast channels    └─ event queuing
-└─ command processing
-   └─ i3_queue_command()
+|- heartbeat()                 |- socket management
+|  `- i3_process_events()      |- JSON parsing
+|     |- deliver tells         |- authentication  
+|     `- broadcast channels    `- event queuing
+`- command processing
+   `- i3_queue_command()
 ```
 
 #### Configuration
@@ -62,7 +62,7 @@ enable_channels 1
 enable_who 1
 ```
 
-### 🚀 Testing Instructions
+### Testing Instructions
 
 #### Prerequisites
 1. I3 Gateway service must be running on localhost:8081
@@ -97,7 +97,7 @@ i3admin stats
 - **Incoming**: Should receive and display messages from other MUDs
 - **Errors**: Should log and recover from connection issues
 
-### 🛠️ Technical Details
+### Technical Details
 
 #### Thread Safety Features
 - **Mutexes**: Separate mutexes for command queue, event queue, and state
@@ -117,7 +117,7 @@ i3admin stats
 - **Minimal Locking**: Short critical sections to prevent contention
 - **JSON Optimization**: Reuse of JSON objects where possible
 
-### 🔍 Debugging
+### Debugging
 
 #### Log Messages
 ```
@@ -133,7 +133,7 @@ I3: Delivered tell from user@mud to target
 3. **Authentication Failed**: Confirm API key matches gateway config
 4. **Memory Leaks**: All JSON objects properly freed with json_object_put()
 
-### 📋 Integration Checklist
+### Integration Checklist
 
 - [x] Core client implementation (i3_client.c)
 - [x] Command implementations (i3_commands.c)  
@@ -147,7 +147,7 @@ I3: Delivered tell from user@mud to target
 - [x] Error handling and logging
 - [x] Documentation and testing guide
 
-### 🎯 Production Readiness
+### Production Readiness
 
 The Intermud3 integration is **PRODUCTION READY** with the following characteristics:
 
@@ -157,7 +157,7 @@ The Intermud3 integration is **PRODUCTION READY** with the following characteris
 - **Maintainability**: Clear code structure with comprehensive logging
 - **Compatibility**: Works with existing LuminariMUD architecture
 
-### 📞 Usage Examples
+### Usage Examples
 
 ```c
 // Send a tell from C code

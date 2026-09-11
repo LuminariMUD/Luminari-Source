@@ -417,7 +417,7 @@ Fixed a critical bug that prevented ALL deities from loading due to a typo in co
 - Result: NO deities were loaded except "None", breaking all deity-related help and game features
 
 **Fix Applied:**
-- Fixed typo: `CAMPAING_FR` → `CAMPAIGN_FR`
+- Fixed typo: `CAMPAING_FR` -> `CAMPAIGN_FR`
 - Modified conditional to: `#if defined(CAMPAIGN_FR) || !defined(CAMPAIGN_DL)`
 - This ensures FR deities load for both CAMPAIGN_FR and default Luminari campaigns
 - DragonLance deities still load correctly when CAMPAIGN_DL is defined

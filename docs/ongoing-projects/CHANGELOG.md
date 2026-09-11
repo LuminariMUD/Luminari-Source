@@ -26,6 +26,40 @@
   hash, email, and character name carry quotes, backslashes, multibyte text, and
   SQL fragments under both the default and `NO_BACKSLASH_ESCAPES` session modes.
 
+### Source tree hygiene
+
+#### Fixed
+
+- Removed nine tracked x86-64 host executables from `util/` together with the
+  one-off MariaDB prepared-statement debug programs that produced eight of them
+  (`check_score_help`, `debug_mysql_exact`, `test_exact_replication`,
+  `test_lower_issue`, `test_mysql_c`, `test_mysql_fix`, `test_mysql_simple`,
+  `test_prepared_stmt_debug`), the applied `mysql_fix.patch`, and a Python
+  variant that embedded a database password. The fix they investigated has
+  been in `mysql.c` and `help.c` since August 2025. `spelllist_html.c` stays
+  as source; its binary is now ignored.
+- Converted 52 Markdown documents to plain ASCII: typographic quotes and
+  dashes, arrows, check marks, emoji headings, and Unicode box drawing are
+  now ASCII equivalents, and corrupted replacement characters in
+  `INTERMUD3.md` are restored as arrows. Documents that describe in-game
+  Unicode glyphs name the code points instead of embedding them.
+- The wilderness knowledge-base generator writes ASCII (`C`, `->`) so the
+  regenerated `lib/WILD_KB.md` stays compliant.
+- `make dist` no longer ships the generated `unittests/CuTest/AllTests.c`.
+
+#### Added
+
+- `scripts/ci/check_source_hygiene.py` rejects build products by magic bytes
+  and name, validates UTF-8 and LF independently, and enforces ASCII
+  documentation with an explicit exceptions list. It runs as a pre-commit hook,
+  in the new `hygiene.yml` workflow on every push, and against the unpacked
+  `make dist` tree in the behavioral test job, which also fails if the build
+  cycle leaves unignored files.
+- `.editorconfig` (UTF-8, LF, final newline, 2-space C, tabs for make).
+- `.gitattributes` marks world flat files and web sources as LF text, `.obj`
+  world files as text, and media formats as binary. `.gitignore` covers
+  coverage, profiler, sanitizer, CMake, and dist outputs.
+
 ### Adaptive password hashing
 
 #### Fixed

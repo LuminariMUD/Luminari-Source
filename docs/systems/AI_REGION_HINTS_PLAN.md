@@ -22,7 +22,7 @@ This plan outlines the implementation of an AI-generated region hints system tha
 
 ### Data Flow
 ```
-AI Agent → API → MySQL Database → C Code → Dynamic Descriptions → Players
+AI Agent -> API -> MySQL Database -> C Code -> Dynamic Descriptions -> Players
 ```
 
 1. **AI Agent Creation**: External AI agents (via your MCP server) analyze regions and generate descriptive hints
@@ -156,12 +156,12 @@ AI agents should generate hints in these categories:
 
 ## Implementation Phases
 
-### Phase 1: Database Foundation ✅
+### Phase 1: Database Foundation [OK]
 - [x] Create database schema (`ai_region_hints_schema.sql`)
 - [x] Add sample data for testing
 - [x] Create performance optimization views
 
-### Phase 2: Core C Integration ✅
+### Phase 2: Core C Integration [OK]
 - [x] Implement hint loading and management (`ai_region_hints.c`)
 - [x] Add condition filtering and weight calculation
 - [x] Integrate with existing description engine
@@ -236,7 +236,7 @@ AI agents should generate hints in these categories:
 - **Efficient Queries**: Optimized database indexes for spatial and categorical lookups
 
 ### Error Handling
-- **Graceful Fallback**: System falls back through AI → Resource → Standard descriptions
+- **Graceful Fallback**: System falls back through AI -> Resource -> Standard descriptions
 - **Database Resilience**: Continues functioning if hint database is unavailable
 - **Validation**: Input validation prevents malformed hints from breaking descriptions
 

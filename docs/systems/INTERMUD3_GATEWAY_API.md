@@ -11,7 +11,7 @@
 
 *Last Updated: 2025-08-26T05:12:00Z - Comprehensive Accuracy Audit Complete*
 
-**✅ AUDIT STATUS: COMPLETE** | **📊 ACCURACY: 100%** | **🚀 PRODUCTION READY**
+**[OK] AUDIT STATUS: COMPLETE** | **ACCURACY: 100%** | **PRODUCTION READY**
 
 ## Status Update (2025-01-20)
 
@@ -2006,49 +2006,49 @@ async def test_full_integration():
         await asyncio.sleep(2)  # Allow connection to establish
 
         assert client.is_connected(), "Client should be connected"
-        print("✓ Connection successful")
+        print("[OK] Connection successful")
 
         # Test ping
         ping_time = await client.ping()
         assert ping_time > 0, "Ping should return positive time"
-        print(f"✓ Ping successful: {ping_time:.2f}ms")
+        print(f"[OK] Ping successful: {ping_time:.2f}ms")
 
         # Join a channel
         join_result = await client.channel_join("test-integration")
         assert join_result, "Channel join should succeed"
-        print("✓ Channel join successful")
+        print("[OK] Channel join successful")
 
         await asyncio.sleep(1)  # Wait for join to complete
 
         # Send a message
         send_result = await client.channel_send("test-integration", "Integration test message")
         assert send_result, "Channel send should succeed"
-        print("✓ Channel send successful")
+        print("[OK] Channel send successful")
 
         await asyncio.sleep(2)  # Wait for message to be processed
 
         # Test who command
         try:
             who_result = await client.who("TestMUD")  # Query our own MUD
-            print(f"✓ Who command successful: {len(who_result) if who_result else 0} users")
+            print(f"[OK] Who command successful: {len(who_result) if who_result else 0} users")
         except Exception as e:
-            print(f"⚠ Who command failed (expected if no users): {e}")
+            print(f"[!] Who command failed (expected if no users): {e}")
 
         # Test stats
         stats = await client.stats()
         assert isinstance(stats, dict), "Stats should return a dictionary"
-        print("✓ Stats command successful")
+        print("[OK] Stats command successful")
 
         # Test mudlist
         mudlist = await client.mudlist()
         assert isinstance(mudlist, list), "Mudlist should return a list"
-        print(f"✓ Mudlist successful: {len(mudlist)} MUDs found")
+        print(f"[OK] Mudlist successful: {len(mudlist)} MUDs found")
 
         # Leave the channel
         leave_result = await client.channel_leave("test-integration")
-        print("✓ Channel leave successful")
+        print("[OK] Channel leave successful")
 
-        print("\n🎉 All integration tests passed!")
+        print("\nAll integration tests passed!")
 
     finally:
         # Clean up
@@ -2062,30 +2062,30 @@ async def test_error_scenarios():
     try:
         client = I3Client("ws://localhost:8080/ws", "invalid-key", "TestMUD")
         await client.connect()
-        print("❌ Should have failed with invalid API key")
+        print("[X] Should have failed with invalid API key")
     except Exception as e:
-        print(f"✓ Invalid API key handled correctly: {e}")
+        print(f"[OK] Invalid API key handled correctly: {e}")
         try:
             await client.disconnect()
         except:
             pass
 
-    print("✓ Error scenario tests completed")
+    print("[OK] Error scenario tests completed")
 
 if __name__ == "__main__":
-    print("🧪 Starting I3 Client Integration Tests")
+    print("Starting I3 Client Integration Tests")
     print("=" * 50)
 
     # Ensure API key is available
     if not os.environ.get('I3_API_KEY'):
-        print("⚠ Warning: I3_API_KEY not set, using demo key")
+        print("[!] Warning: I3_API_KEY not set, using demo key")
         os.environ['I3_API_KEY'] = 'demo-key-123'
 
     async def run_all_tests():
         await test_full_integration()
         print("\n" + "=" * 50)
         await test_error_scenarios()
-        print("\n✅ All integration tests completed!")
+        print("\n[OK] All integration tests completed!")
 
     asyncio.run(run_all_tests())
 ```

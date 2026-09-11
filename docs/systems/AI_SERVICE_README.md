@@ -27,62 +27,62 @@ The AI Service integrates both OpenAI's GPT models and local Ollama LLM into Lum
 The AI system consists of four tightly integrated components with dual AI backend support:
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           Player Interaction                             │
-└─────────────────────────────────┬───────────────────────────────────────┘
-                                  │
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                            ai_service.c                                  │
-│  - Main API interface & request handling                                 │
-│  - CURL-based HTTP client with connection pooling                       │
-│  - Threading support for non-blocking operations                        │
-│  - JSON request/response processing                                     │
-│  - Rate limiting & retry logic                                          │
-│  - Ollama fallback integration                                          │
-└────────────────┬──────────────────┬──────────────────┬─────────────────┘
-                 │                  │                  │
-     ┌───────────▼──────────┐ ┌────▼─────┐ ┌─────────▼─────────┐
-     │    ai_security.c     │ │ai_cache.c│ │   ai_events.c     │
-     │ - Input sanitization │ │ - LRU    │ │ - Event queuing   │
-     │ - API key handling   │ │   cache  │ │ - Async delivery  │
-     │ - Secure memory ops  │ │ - TTL    │ │ - Thread safety   │
-     └──────────────────────┘ └──────────┘ └───────────────────┘
+.-------------------------------------------------------------------------.
+|                           Player Interaction                             |
+`-------------------------------------------------------------------------'
+                                  |
+                                  v
+.-------------------------------------------------------------------------.
+|                            ai_service.c                                  |
+|  - Main API interface & request handling                                 |
+|  - CURL-based HTTP client with connection pooling                       |
+|  - Threading support for non-blocking operations                        |
+|  - JSON request/response processing                                     |
+|  - Rate limiting & retry logic                                          |
+|  - Ollama fallback integration                                          |
+`------------------------------------------------------------------------'
+                 |                  |                  |
+     .-----------v----------. .----v-----. .---------v---------.
+     |    ai_security.c     | |ai_cache.c| |   ai_events.c     |
+     | - Input sanitization | | - LRU    | | - Event queuing   |
+     | - API key handling   | |   cache  | | - Async delivery  |
+     | - Secure memory ops  | | - TTL    | | - Thread safety   |
+     `----------------------' `----------' `-------------------'
 ```
 
 ### AI Backend Flow
 
 ```
 1. AI Service Disabled (ai disable):
-   Player → NPC Tell → Ollama (local) → Response
-                        ↓ (if fails)
+   Player -> NPC Tell -> Ollama (local) -> Response
+                        v (if fails)
                         Generic fallback
 
 2. AI Service Enabled (ai enable):
-   Player → NPC Tell → OpenAI API → Response
-                        ↓ (if fails after 3 retries)
-                        Ollama (local) → Response
-                        ↓ (if fails)
+   Player -> NPC Tell -> OpenAI API -> Response
+                        v (if fails after 3 retries)
+                        Ollama (local) -> Response
+                        v (if fails)
                         Generic fallback
 
 3. Cache Hit (both modes):
-   Player → NPC Tell → Cache → Instant Response
+   Player -> NPC Tell -> Cache -> Instant Response
 ```
 
 ### Component Interactions
 
 1. **Request Flow with Fallback**:
    ```
-   Player Tell → ai_service.c → ai_security.c (sanitize) → ai_cache.c (check)
-                                                              ↓ (miss)
+   Player Tell -> ai_service.c -> ai_security.c (sanitize) -> ai_cache.c (check)
+                                                              v (miss)
                                                           OpenAI API (if enabled)
-                                                              ↓ (fail)
+                                                              v (fail)
                                                           Ollama API (fallback)
-                                                              ↓
+                                                              v
                                                           ai_cache.c (store)
-                                                              ↓
+                                                              v
                                                           ai_events.c (queue)
-                                                              ↓
+                                                              v
                                                           Player Response
    ```
 
@@ -92,11 +92,11 @@ The AI system consists of four tightly integrated components with dual AI backen
    - Event system: Response delivery with minimal delay
 
 3. **Data Flow Between Components**:
-   - **ai_service.c → ai_security.c**: Raw input for sanitization
-   - **ai_security.c → ai_service.c**: Sanitized, safe prompts
-   - **ai_service.c → ai_cache.c**: Cache lookups and storage
-   - **ai_service.c → ai_events.c**: Response queuing
-   - **ai_events.c → ai_service.c**: Retry requests on failure
+   - **ai_service.c -> ai_security.c**: Raw input for sanitization
+   - **ai_security.c -> ai_service.c**: Sanitized, safe prompts
+   - **ai_service.c -> ai_cache.c**: Cache lookups and storage
+   - **ai_service.c -> ai_events.c**: Response queuing
+   - **ai_events.c -> ai_service.c**: Retry requests on failure
 
 ### Key Data Structures
 
@@ -111,7 +111,7 @@ struct ai_service_state {
     CURL *curl_handle;  // Persistent for connection pooling
 };
 
-// Thread communication (ai_service.c ↔ ai_events.c)
+// Thread communication (ai_service.c <-> ai_events.c)
 struct ai_thread_request {
     char *prompt;        /* Sanitized prompt to send to API */
     char *cache_key;     /* Key for storing response in cache */
@@ -398,17 +398,17 @@ honest statement of what is and is not protected.
 ### Request Flow with Ollama Fallback
 ```
 Player Input
-    ↓
+    v
 Sanitization
-    ↓
-Cache Check ─── Hit ──→ Return Cached Response
-    ↓ Miss
-AI Enabled? ─── No ──→ Try Ollama ──→ Response
-    ↓ Yes                    ↓ Fail
+    v
+Cache Check --- Hit ---> Return Cached Response
+    v Miss
+AI Enabled? --- No ---> Try Ollama ---> Response
+    v Yes                    v Fail
 Try OpenAI                Generic Fallback
-    ↓ Fail (3 retries)
+    v Fail (3 retries)
 Try Ollama
-    ↓ Fail
+    v Fail
 Generic Fallback
 ```
 
@@ -809,14 +809,14 @@ ai
 ## Current Limitations & Future Work
 
 ### Implemented Features
-- ✅ Basic NPC dialogue via tells
-- ✅ Response caching system
-- ✅ Rate limiting (OpenAI)
-- ✅ Async/non-blocking operation
-- ✅ Admin commands
-- ✅ Performance optimizations
-- ✅ Ollama fallback integration
-- ✅ Always-on AI capability
+- [OK] Basic NPC dialogue via tells
+- [OK] Response caching system
+- [OK] Rate limiting (OpenAI)
+- [OK] Async/non-blocking operation
+- [OK] Admin commands
+- [OK] Performance optimizations
+- [OK] Ollama fallback integration
+- [OK] Always-on AI capability
 
 ### Known Limitations
 - No application-level at-rest encryption of the API key (by design, see the
@@ -906,18 +906,18 @@ For issues:
 ### File Locations
 ```
 src/
-├── ai_service.c     # Main service implementation
-├── ai_service.h     # Headers and structures
-├── ai_security.c    # Security functions
-├── ai_events.c      # Event system integration
-└── ai_cache.c       # Response caching
+|-- ai_service.c     # Main service implementation
+|-- ai_service.h     # Headers and structures
+|-- ai_security.c    # Security functions
+|-- ai_events.c      # Event system integration
+`-- ai_cache.c       # Response caching
 
 lib/
-├── .env             # API keys and configuration
-└── .env.example     # Configuration template
+|-- .env             # API keys and configuration
+`-- .env.example     # Configuration template
 
 docs/systems/
-└── AI_SERVICE_README.md  # This documentation
+`-- AI_SERVICE_README.md  # This documentation
 ```
 
 ### JSON Handling
@@ -952,15 +952,15 @@ The system uses a custom `json_escape_string()` function so JSON escaping behavi
 ### Threading Model
 ```
 Main Thread:
-├── Game loop processing
-├── Cache lookups (immediate)
-├── Event processing
-└── Character validation
+|-- Game loop processing
+|-- Cache lookups (immediate)
+|-- Event processing
+`-- Character validation
 
 Worker Threads (detached):
-├── API calls (blocking)
-├── Response caching
-└── Event queuing
+|-- API calls (blocking)
+|-- Response caching
+`-- Event queuing
 ```
 
 ### Memory Management

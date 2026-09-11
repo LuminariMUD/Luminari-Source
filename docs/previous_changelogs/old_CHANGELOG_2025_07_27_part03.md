@@ -202,7 +202,7 @@
 
 ### AI Service Performance and Error Handling
 - **Optimized cache cleanup algorithm** (ai_cache.c)
-  - Issue: Cache cleanup was O(n²) - scanning entire list for each removal
+  - Issue: Cache cleanup was O(n^2) - scanning entire list for each removal
   - Fix: Sort entries by expiration time once, then remove in O(n) time
   - Impact: Significantly faster cache cleanup for large caches (1000+ entries)
 

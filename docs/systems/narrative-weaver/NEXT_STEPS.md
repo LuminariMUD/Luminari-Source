@@ -6,7 +6,7 @@
 
 ---
 
-## 🎯 **IMMEDIATE ACTIONS REQUIRED**
+## **IMMEDIATE ACTIONS REQUIRED**
 
 ### **1. Integration Verification (URGENT - Day 1)**
 
@@ -59,25 +59,25 @@ ACMD(do_narrative_debug);    // Toggle debug output
 
 ---
 
-## 📊 **SYSTEM CAPABILITIES VERIFIED**
+## **SYSTEM CAPABILITIES VERIFIED**
 
 ### **Advanced Features Already Implemented:**
-- ✅ **Hash table caching** (256 buckets, TTL management)
-- ✅ **Contextual filtering** (weather + time + season + resource health)
-- ✅ **Regional mood weighting** (mystical regions boost mystical hints 80%)
-- ✅ **Style transformation** (poetic, mysterious, dramatic voices)
-- ✅ **Boundary transitions** (smooth gradient between regions)
-- ✅ **JSON metadata parsing** (seasonal/time coefficients)
-- ✅ **Quality score integration** (prefer high-quality approved hints)
+- [OK] **Hash table caching** (256 buckets, TTL management)
+- [OK] **Contextual filtering** (weather + time + season + resource health)
+- [OK] **Regional mood weighting** (mystical regions boost mystical hints 80%)
+- [OK] **Style transformation** (poetic, mysterious, dramatic voices)
+- [OK] **Boundary transitions** (smooth gradient between regions)
+- [OK] **JSON metadata parsing** (seasonal/time coefficients)
+- [OK] **Quality score integration** (prefer high-quality approved hints)
 
 ### **Content Ready for Testing:**
-- ✅ **Region 1000004 (The Mosswood)**: 19 hints with full metadata
-- ✅ **Database schema**: All tables created and populated
-- ✅ **Sample data**: Production-quality content for comprehensive testing
+- [OK] **Region 1000004 (The Mosswood)**: 19 hints with full metadata
+- [OK] **Database schema**: All tables created and populated
+- [OK] **Sample data**: Production-quality content for comprehensive testing
 
 ---
 
-## 🚀 **DEVELOPMENT ROADMAP**
+## **DEVELOPMENT ROADMAP**
 
 ### **Week 1: Integration & Verification**
 - **Day 1**: Verify integration, add debug logging
@@ -101,7 +101,7 @@ ACMD(do_narrative_debug);    // Toggle debug output
 
 ---
 
-## 🎯 **SUCCESS METRICS**
+## **SUCCESS METRICS**
 
 ### **Phase 1 Success (End of Week 1):**
 - [ ] Players see enhanced descriptions in wilderness areas
@@ -117,16 +117,16 @@ ACMD(do_narrative_debug);    // Toggle debug output
 
 ---
 
-## 📋 **CRITICAL PATH DEPENDENCIES**
+## **CRITICAL PATH DEPENDENCIES**
 
-1. **Integration Verification** → All other work depends on this
-2. **Database Connectivity** → Must work in game environment  
-3. **Performance Validation** → Required before content expansion
-4. **Admin Interface** → Needed for content management
+1. **Integration Verification** -> All other work depends on this
+2. **Database Connectivity** -> Must work in game environment  
+3. **Performance Validation** -> Required before content expansion
+4. **Admin Interface** -> Needed for content management
 
 ---
 
-## 🔧 **TECHNICAL CHECKLIST**
+## **TECHNICAL CHECKLIST**
 
 ### **Integration Points to Verify:**
 - [ ] `desc_engine.c` calls narrative weaver functions

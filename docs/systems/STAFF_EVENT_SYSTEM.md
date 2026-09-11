@@ -138,8 +138,8 @@ sequenceDiagram
 - **Mob Types**: 3 difficulty tiers with level restrictions
 
 **Jackalope Types**:
-- **Easy Jackalope** (vnum 11391): Level ≤10 players
-- **Medium Jackalope** (vnum 11392): Level ≤20 players  
+- **Easy Jackalope** (vnum 11391): Level <=10 players
+- **Medium Jackalope** (vnum 11392): Level <=20 players  
 - **Hard Jackalope** (vnum 11393): All levels
 
 **Rewards**:
@@ -432,7 +432,7 @@ Shows detailed information about The Prisoner event.
 ### Command Validation
 
 - **Permission**: `LVL_STAFF` required for management
-- **Event Numbers**: Must be 0 ≤ event_num < `NUM_STAFF_EVENTS`
+- **Event Numbers**: Must be 0 <= event_num < `NUM_STAFF_EVENTS`
 - **State Checking**: Prevents starting during active events or cleanup delays
 - **Event Conditions**: Some events have specific start requirements
 

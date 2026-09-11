@@ -34,6 +34,13 @@ repos:
   # Local hooks for project-specific checks
   - repo: local
     hooks:
+      # Tracked build products, malformed UTF-8, CR line endings, and
+      # non-ASCII documentation (scripts/ci/check_source_hygiene.py).
+      - id: source-hygiene
+        name: Source tree hygiene
+        entry: python3 scripts/ci/check_source_hygiene.py
+        language: system
+        pass_filenames: true
       # Build verification (pre-push only)
       - id: check-build
         name: Verify build compiles

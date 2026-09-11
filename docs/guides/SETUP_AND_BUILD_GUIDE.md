@@ -103,3 +103,43 @@ See [development.md](../development/README_development.md) for daily commands,
 [TESTING_GUIDE.md](TESTING_GUIDE.md) for all test surfaces, and
 [incident-response.md](../runbooks/incident-response.md) for operational
 diagnosis.
+
+## Source Tree Hygiene
+
+The repository tracks source and data only. `scripts/ci/check_source_hygiene.py`
+enforces three rules over every tracked file and fails on the first violation:
+
+- **No build products.** ELF, PE, Mach-O, and ar files are rejected by magic
+  bytes; object, library, coverage, profiler, and core-dump files by name; and
+  configure, automake, and CMake outputs by name. Images, audio, and fonts are
+  the only binary files allowed.
+- **Well-formed text.** Every non-media file must be valid UTF-8 with no NUL
+  bytes and no carriage returns. This check is independent of the ASCII rule so
+  a malformed byte or CRLF file cannot hide behind it.
+- **ASCII documentation.** Every `*.md` file, plus `*.txt` under `docs/`, must
+  be plain ASCII. Use `->`, `-`, straight quotes, `[OK]`/`[X]`, and ASCII box
+  drawing (`.-|+'`) instead of typographic punctuation, emoji, or Unicode boxes.
+  Documentation that has to describe a Unicode glyph names its code point
+  (`U+2588 full block`) rather than embedding it.
+
+Exceptions to the ASCII rule live in `ASCII_EXCEPTIONS` inside the script with
+the reason each one exists. The list is empty: legal text under `docs/legal/`
+and every current document are already ASCII. HTML under `docs/` is generated
+web output that declares its own charset, so it is held to the UTF-8 and LF
+rules only. Non-ASCII in C sources is limited to deliberate in-game glyphs
+(map symbols, box borders) and is outside the documentation rule.
+
+Run the checks locally:
+
+```bash
+python3 scripts/ci/check_source_hygiene.py              # tracked files
+python3 scripts/ci/check_source_hygiene.py --root DIR   # an unpacked make dist tree
+pre-commit run source-hygiene --all-files
+```
+
+CI runs the tracked-file check on every push (`.github/workflows/hygiene.yml`).
+The behavioral test job additionally proves that configure, build, test,
+install, and clean leave `git status` empty and that `make dist` produces a
+tarball that passes the same scan. `.editorconfig` and `.gitattributes` carry
+the matching editor and Git settings (UTF-8, LF, 2-space C indentation, text
+world files, binary media).

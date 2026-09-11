@@ -8,14 +8,14 @@ The movement system handles all character and object locomotion through the game
 ### Module Structure
 ```
 movement.c                  Core movement logic and commands (main module)
-├── movement_validation.c   Movement capability checks  
-├── movement_cost.c         Speed and cost calculations
-├── movement_position.c     Position/stance management
-├── movement_doors.c        Door and lock handling
-├── movement_falling.c      Gravity and fall damage
-├── movement_events.c       Post-movement event processing
-├── movement_messages.c     Movement message display
-└── movement_tracks.c       Trail/tracking system
+|-- movement_validation.c   Movement capability checks  
+|-- movement_cost.c         Speed and cost calculations
+|-- movement_position.c     Position/stance management
+|-- movement_doors.c        Door and lock handling
+|-- movement_falling.c      Gravity and fall damage
+|-- movement_events.c       Post-movement event processing
+|-- movement_messages.c     Movement message display
+`-- movement_tracks.c       Trail/tracking system
 ```
 
 ### Core Files
@@ -37,25 +37,25 @@ movement.c                  Core movement logic and commands (main module)
 ### Standard Movement Process
 ```
 1. Command Input (n/s/e/w/etc)
-   ↓
-2. perform_move() → perform_move_full()
-   ├── Check fighting/paralysis
-   ├── Check exit exists
-   ├── Handle closed doors (autodoor)
-   └── Check encounters
-   ↓
+   v
+2. perform_move() -> perform_move_full()
+   |-- Check fighting/paralysis
+   |-- Check exit exists
+   |-- Handle closed doors (autodoor)
+   `-- Check encounters
+   v
 3. do_simple_move()
-   ├── Validate terrain requirements
-   ├── Check movement restrictions
-   ├── Calculate movement cost
-   ├── Deduct movement points
-   └── Execute room transfer
-   ↓
+   |-- Validate terrain requirements
+   |-- Check movement restrictions
+   |-- Calculate movement cost
+   |-- Deduct movement points
+   `-- Execute room transfer
+   v
 4. Post-Movement Processing
-   ├── Display messages
-   ├── Create tracks
-   ├── Process events/triggers
-   └── Move followers
+   |-- Display messages
+   |-- Create tracks
+   |-- Process events/triggers
+   `-- Move followers
 ```
 
 ## Movement Validation
@@ -82,9 +82,9 @@ movement.c                  Core movement logic and commands (main module)
 ### Speed Calculation
 Base speed is 30 feet, modified by:
 - **Race**: Dwarves/Halflings (25), Fae flight (60)
-- **Spells**: Haste (+30), Shadow Walk (400), Slow (÷2)
+- **Spells**: Haste (+30), Shadow Walk (400), Slow (/2)
 - **Class**: Monk bonus (+10-60), Fast Movement (+10)
-- **Conditions**: Blind (÷2), Entangled (÷2)
+- **Conditions**: Blind (/2), Entangled (/2)
 
 ### Movement Point Cost
 ```c

@@ -1,10 +1,10 @@
 # Wilderness Resource System - Quick Reference
 
-**Version:** 1.0 | **Status:** ✅ Active | **Date:** August 8, 2025
+**Version:** 1.0 | **Status:** [OK] Active | **Date:** August 8, 2025
 
 ---
 
-## 🗺️ **Player Commands**
+## **Player Commands**
 
 ### **Basic Resource Discovery**
 ```
@@ -30,22 +30,21 @@ survey detail minerals      # Detailed mineral information
 
 ---
 
-## 🎨 **Map Symbols & Colors**
+## **Map Symbols & Colors**
 
 | Symbol | Density | Color | Meaning |
 |--------|---------|-------|---------|
-| `█` | 90%+ | 🟢 Bright Green | Very High |
-| `▓` | 70-89% | 🟢 Green | High |
-| `▒` | 50-69% | 🟡 Yellow | Medium-High |
-| `░` | 30-49% | 🟠 Orange | Medium |
-| `▪` | 10-29% | ⚫ Gray | Low |
-| `·` | 5-9% | ⚫ Dark Gray | Very Low |
-| ` ` | 0-4% | ⚫ Black | None |
-| `@` | - | ⚪ White | Your Position |
+| `#` | 75%+ | Green | Very rich |
+| `*` | 55-74% | Yellow | Rich |
+| `+` | 35-54% | Light yellow | Moderate |
+| `.` | 15-34% | Red | Poor |
+| `,` | 3-14% | Dark | Trace |
+| space | 0-2% | - | None |
+| `@` | - | White | Your Position |
 
 ---
 
-## 🏔️ **Resource by Terrain Type**
+## **Resource by Terrain Type**
 
 ### **Forest Areas**
 - **High:** Vegetation (60-80%), Wood (50-70%), Herbs (30-50%)
@@ -69,7 +68,7 @@ survey detail minerals      # Detailed mineral information
 
 ---
 
-## 🛡️ **Admin Commands** *(Immortal Only)*
+## **Admin Commands** *(Immortal Only)*
 
 ### **System Status**
 ```
@@ -94,7 +93,7 @@ resourceadmin cleanup       # Force cleanup of old resource nodes
 
 ---
 
-## 📊 **Understanding Resource Values**
+## **Understanding Resource Values**
 
 ### **Percentage Ranges**
 - **90-100%:** Incredibly abundant - rich resource deposits
@@ -114,7 +113,7 @@ resourceadmin cleanup       # Force cleanup of old resource nodes
 
 ---
 
-## 🧭 **Getting Started Guide**
+## **Getting Started Guide**
 
 ### **Step 1: Enter Wilderness**
 - Use `goto` or walk to any wilderness zone
@@ -137,7 +136,7 @@ resourceadmin cleanup       # Force cleanup of old resource nodes
 
 ---
 
-## ❓ **Troubleshooting**
+## [?] **Troubleshooting**
 
 ### **"Resource maps can only be viewed in the wilderness"**
 - **Solution:** Navigate to a wilderness zone using `goto` or walking
@@ -153,7 +152,7 @@ resourceadmin cleanup       # Force cleanup of old resource nodes
 
 ---
 
-## 🎯 **Tips for Best Results**
+## **Tips for Best Results**
 
 1. **Exploration:** Different areas have different resource patterns
 2. **Terrain Matters:** Check terrain type for expected resources  
@@ -163,11 +162,11 @@ resourceadmin cleanup       # Force cleanup of old resource nodes
 
 ---
 
-## 📞 **Support**
+## **Support**
 
 **Bug Reports:** Submit with "RESOURCE SYSTEM" tag  
 **Questions:** Ask any immortal or development team member  
 **Feature Requests:** Submit via normal suggestion channels  
 
-**System Status:** ✅ Phases 1-3 Complete and Active  
+**System Status:** [OK] Phases 1-3 Complete and Active  
 **Last Updated:** August 8, 2025

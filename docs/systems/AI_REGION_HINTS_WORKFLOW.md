@@ -2,7 +2,7 @@
 
 **Date**: August 18, 2025  
 **Status**: Updated for Two-Stage AI Workflow  
-**Purpose**: Define agent responsibilities and workflow for region description → hints generation
+**Purpose**: Define agent responsibilities and workflow for region description -> hints generation
 
 ## Overview
 
@@ -391,7 +391,7 @@ async def main_loop():
 - Verify API integration points
 
 ### 2. Integration Testing  
-- Test end-to-end region creation → hint generation workflow
+- Test end-to-end region creation -> hint generation workflow
 - Validate database consistency
 - Test error recovery scenarios
 

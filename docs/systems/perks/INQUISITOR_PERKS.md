@@ -216,7 +216,7 @@ The Inquisitor is a relentless agent of divine will, blending divine spellcastin
 
 3. **Aura Reading**
    - *1 rank, 4 points
-   You can cast sense life and detect alignment once per day.   
+   You can cast sense life and detect alignment once per day.  
 
 4. **Perfect Recall**
    - *1 rank, 3 points*
@@ -306,7 +306,7 @@ The Inquisitor is a relentless agent of divine will, blending divine spellcastin
 
 2. **Legendary Resilience**
    - *1 rank, 4 points*
-   - Your resilience becomes supernatural. Gain damage reduction 5/—. You're immune to ability damage, ability drain, and energy drain. 10% chance to automatically succeed on a saving throw. 5 minute cooldown.
+   - Your resilience becomes supernatural. Gain damage reduction 5/-. You're immune to ability damage, ability drain, and energy drain. 10% chance to automatically succeed on a saving throw. 5 minute cooldown.
 
 3. **Perfect Adaptation**
    - *1 rank, 4 points*
@@ -341,16 +341,16 @@ The Inquisitor is a relentless agent of divine will, blending divine spellcastin
 ### Single-Tree Optimization
 
 **Judgment Tree Focus:**
-- Empowered Judgment (3 ranks) → Spell Penetration (3 ranks) → Versatile Judgment → Judgment Mastery = Maximized judgment utility
+- Empowered Judgment (3 ranks) -> Spell Penetration (3 ranks) -> Versatile Judgment -> Judgment Mastery = Maximized judgment utility
 
 **Hunter Tree Focus:**
-- Studied Target (4 ranks) → Favored Enemy Enhancement (4 ranks) → Deadly Aim (3 ranks) → Supreme Hunter = Ultimate damage dealer
+- Studied Target (4 ranks) -> Favored Enemy Enhancement (4 ranks) -> Deadly Aim (3 ranks) -> Supreme Hunter = Ultimate damage dealer
 
 **Investigation Tree Focus:**
-- Keen Senses (4 ranks) → Discern Lies (3 ranks) → Aura Reading (3 ranks) → Omniscient Awareness = All-seeing investigator
+- Keen Senses (4 ranks) -> Discern Lies (3 ranks) -> Aura Reading (3 ranks) -> Omniscient Awareness = All-seeing investigator
 
 **Tactics Tree Focus:**
-- Defensive Mastery (3 ranks) → Adaptive Resistance (4 ranks) → Resilient Fighter → Legendary Resilience = Nearly unkillable tank
+- Defensive Mastery (3 ranks) -> Adaptive Resistance (4 ranks) -> Resilient Fighter -> Legendary Resilience = Nearly unkillable tank
 
 ---
 

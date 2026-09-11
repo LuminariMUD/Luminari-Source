@@ -23,12 +23,12 @@ The LuminariMUD spell preparation system handles how spellcasters prepare and ma
 
 ### **Preparation-Based Casters** (Traditional D&D/Pathfinder Model)
 - **Classes**: Wizard, Cleric, Druid, Ranger, Paladin, Blackguard, Alchemist
-- **Process**: Choose specific spells � Queue for preparation � Wait for completion � Cast once � Repeat
-- **Storage**: Preparation Queue � Spell Collection (when ready)
+- **Process**: Choose specific spells -> Queue for preparation -> Wait for completion -> Cast once -> Repeat
+- **Storage**: Preparation Queue -> Spell Collection (when ready)
 
 ### **Spontaneous/Innate Casters** (Flexible Casting Model)
 - **Classes**: Sorcerer, Bard, Inquisitor, Summoner, Warlock
-- **Process**: Know spells permanently � Have spell slots by circle � Use any slot for any known spell
+- **Process**: Know spells permanently -> Have spell slots by circle -> Use any slot for any known spell
 - **Storage**: Known Spells List + Innate Magic Queue (available slots)
 - **Note**: Warlock uses invocations (special spell range) with unique mechanics
 
@@ -39,21 +39,21 @@ The LuminariMUD spell preparation system handles how spellcasters prepare and ma
 ### **Data Flow Architecture**
 ```
 Player Input (memorize/pray/etc.)
-        �
+        ->
 Validation (level, slots, prerequisites)
-        �
+        ->
 Add to Preparation Queue
-        �
+        ->
 Event System (ePREPARATION - fires every second)
-        �
+        ->
 Decrement prep_time
-        �
+        ->
 When prep_time = 0:
   - Prepared Casters: Move to Collection
   - Spontaneous: Slot becomes available
-        �
+        ->
 Casting System checks Collection/Available Slots
-        �
+        ->
 On successful cast:
   - Prepared: Move back to Prep Queue
   - Spontaneous: Consume slot, add to recovery
@@ -468,11 +468,11 @@ Final = 1-9 (capped at class maximum)
 ### **Preparation Time Formula**
 ```
 Base = 5 + (2 * (circle - 1))
-� Class factor (2.0 to 3.0)
+-> Class factor (2.0 to 3.0)
 - Ability bonus (INT/WIS/CHA modifier * 2)
 - Concentration ranks
 - Feat bonuses (20% for Fast Memorization)
-� Room modifier (0.75 for regeneration rooms)
+-> Room modifier (0.75 for regeneration rooms)
 Minimum = 1 second
 ```
 

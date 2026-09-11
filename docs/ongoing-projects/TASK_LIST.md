@@ -335,7 +335,7 @@ The LuminariMUD codebase demonstrates a mixed documentation state with areas of 
 - **oedit.c** - Missing function descriptions
 
 #### File Header Consistency:
-✅ **Excellent** - All source files follow standard header format:
+[OK] **Excellent** - All source files follow standard header format:
 ```c
 /**************************************************************************
  *  File: filename.c                                   Part of LuminariMUD *
@@ -344,7 +344,7 @@ The LuminariMUD codebase demonstrates a mixed documentation state with areas of 
 ```
 
 #### Function Documentation:
-❌ **Inconsistent** - Mix of styles:
+[X] **Inconsistent** - Mix of styles:
 - Some files use doxygen comments (`/**`)
 - Others use traditional C comments (`/*`)
 - Many functions lack any documentation
@@ -352,11 +352,11 @@ The LuminariMUD codebase demonstrates a mixed documentation state with areas of 
 ### 4. Documentation Quality Metrics
 
 #### By Category:
-- **Setup/Installation**: ✅ Good - Comprehensive guides available
-- **Architecture**: ✅ Good - Multiple system documents
-- **API Reference**: ⚠️ Partial - DEVELOPER_GUIDE_AND_API.md exists but incomplete
-- **Code Comments**: ❌ Poor - Inconsistent across codebase
-- **Change Tracking**: ✅ Excellent - Detailed CHANGELOG.md
+- **Setup/Installation**: [OK] Good - Comprehensive guides available
+- **Architecture**: [OK] Good - Multiple system documents
+- **API Reference**: [!] Partial - DEVELOPER_GUIDE_AND_API.md exists but incomplete
+- **Code Comments**: [X] Poor - Inconsistent across codebase
+- **Change Tracking**: [OK] Excellent - Detailed CHANGELOG.md
 
 #### Documentation Freshness:
 - **Recently Updated**: CHANGELOG.md, memory leak fixes documented
@@ -366,14 +366,14 @@ The LuminariMUD codebase demonstrates a mixed documentation state with areas of 
 ### 5. Consistency Analysis
 
 #### Documentation vs Code:
-✅ **COMBAT_SYSTEM.md** accurately describes `set_fighting()` implementation
-✅ **Campaign system** documentation matches code structure
-⚠️ **Some function references** in docs may be outdated due to refactoring
+[OK] **COMBAT_SYSTEM.md** accurately describes `set_fighting()` implementation
+[OK] **Campaign system** documentation matches code structure
+[!] **Some function references** in docs may be outdated due to refactoring
 
 #### Cross-Reference Integrity:
-❌ **Broken references** to TECHNICAL_DOCUMENTATION_MASTER_INDEX.md
-✅ **Internal doc links** generally work within existing files
-✅ **Code examples** in documentation appear accurate
+[X] **Broken references** to TECHNICAL_DOCUMENTATION_MASTER_INDEX.md
+[OK] **Internal doc links** generally work within existing files
+[OK] **Code examples** in documentation appear accurate
 
 ### 6. Recommendations
 
@@ -413,7 +413,7 @@ The LuminariMUD codebase demonstrates a mixed documentation state with areas of 
 ## SPATIAL SYSTEMS ARCHITECTURE - COMPLETED IMPLEMENTATION
 
 ### Executive Summary
-**STATUS: ✅ COMPLETED** - Full spatial visual and audio systems implemented using triple strategy pattern architecture. Both systems are fully functional, tested, and integrated into the MUD core.
+**STATUS: [OK] COMPLETED** - Full spatial visual and audio systems implemented using triple strategy pattern architecture. Both systems are fully functional, tested, and integrated into the MUD core.
 
 ### System Architecture Overview
 
@@ -443,7 +443,7 @@ The LuminariMUD codebase demonstrates a mixed documentation state with areas of 
 - Weather effects (fog reduces visibility, rain provides slight reduction)
 - Lighting conditions (darkness affects visibility significantly)
 - Elevation advantages (higher ground provides better visibility)
-- Message types: clear sight → distant glimpse → shadowy movement → barely visible
+- Message types: clear sight -> distant glimpse -> shadowy movement -> barely visible
 
 #### Audio System (`spatial_audio.c`)
 **Strategies:**
@@ -457,7 +457,7 @@ The LuminariMUD codebase demonstrates a mixed documentation state with areas of 
 - Terrain effects (mountains block sound, water carries sound)
 - Weather effects (wind affects sound transmission)
 - Thunder special handling with extended range (3000 vs 1500 base)
-- Message progression: clear → distant → muffled → echo → faint → rumble
+- Message progression: clear -> distant -> muffled -> echo -> faint -> rumble
 - Proper directional language ("from the west" not "to the west")
 
 ### Integration Points
@@ -482,7 +482,7 @@ The LuminariMUD codebase demonstrates a mixed documentation state with areas of 
 
 ### Current System Status
 
-#### ✅ Completed Features
+#### [OK] Completed Features
 1. **Core Architecture** - Triple strategy pattern fully implemented and tested
 2. **Visual System** - Complete with distance, terrain, weather, and lighting effects
 3. **Audio System** - Complete with frequency-based propagation and environmental effects
@@ -491,7 +491,7 @@ The LuminariMUD codebase demonstrates a mixed documentation state with areas of 
 6. **Distance Calibration** - Realistic dropoff curves for both visual and audio
 7. **Message Quality** - Natural, immersive descriptions with proper directional language
 
-#### ✅ Quality Assurance
+#### [OK] Quality Assurance
 - **Compilation:** Clean build with no warnings or errors
 - **Runtime Testing:** Both systems tested at various distances and conditions
 - **Memory Safety:** No memory leaks or buffer overflows
@@ -535,7 +535,7 @@ typedef enum {
 } audio_frequency_t;
 
 // Intensity thresholds for audio messages
-// Clear: ≥0.8, Distant: ≥0.5, Muffled: ≥0.3, Echo: ≥0.15, Faint: ≥0.05, Rumble: <0.05
+// Clear: >=0.8, Distant: >=0.5, Muffled: >=0.3, Echo: >=0.15, Faint: >=0.05, Rumble: <0.05
 ```
 
 #### Testing

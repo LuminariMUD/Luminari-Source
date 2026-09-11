@@ -3,15 +3,15 @@
 **Character:** ornir  
 **Date:** August 10, 2025  
 **Testing:** Phase 5 Wilderness Harvesting Commands + Phase 4.5 Enhanced Integration  
-**Status:** ✅ **READY FOR TESTING** - Harvesting commands implemented!
+**Status:** [OK] **READY FOR TESTING** - Harvesting commands implemented!
 
 ---
 
-## 🎉 **Phase 5 Implementation Complete!**
+## **Phase 5 Implementation Complete!**
 
 **Status Update:**
-- ✅ **Phase 4.5**: Enhanced integration system implemented and ready
-- ✅ **Phase 5**: Material harvesting commands **NOW IMPLEMENTED**
+- [OK] **Phase 4.5**: Enhanced integration system implemented and ready
+- [OK] **Phase 5**: Material harvesting commands **NOW IMPLEMENTED**
 
 **New Commands Available:**
 - `harvest [resource_type]` - Primary harvesting command
@@ -20,7 +20,7 @@
 
 ---
 
-## 🚀 **Quick 5-Minute Test (Now Functional!)**
+## **Quick 5-Minute Test (Now Functional!)**
 
 ### **Step 1: Enter Wilderness Area**
 ```
@@ -70,13 +70,13 @@ materials details
 **Expected Enhanced Results (LuminariMUD only):**
 - Materials show with enhanced descriptions
 - Crafting applications mentioned for each material
-- Quality levels (poor → legendary) show different crafting values
+- Quality levels (poor -> legendary) show different crafting values
 - Enhanced material IDs (1000+ range)
 - **Proper color formatting** (white headers, yellow categories, normal text)
 
 ---
 
-## 🔬 **Detailed Testing Commands**
+## **Detailed Testing Commands**
 
 ### **Resource Surveying (Pre-Harvest)**
 
@@ -202,7 +202,7 @@ Enhanced Integration: ACTIVE
 
 ---
 
-## 🧪 **Advanced Testing Scenarios**
+## **Advanced Testing Scenarios**
 
 ### **Skill and Success Testing**
 
@@ -271,23 +271,23 @@ harvest herbs
 
 ---
 
-## 📊 **Expected Success Indicators**
+## **Expected Success Indicators**
 
-### ✅ **Harvesting Working Correctly:**
+### [OK] **Harvesting Working Correctly:**
 - `harvest` command available and functional
 - `gather` and `mine` commands work with appropriate restrictions
 - Success/failure messages appropriate to resource availability
 - Materials automatically added to storage
 - Enhanced integration triggers for each harvest
 
-### ✅ **Integration Working Correctly:**
+### [OK] **Integration Working Correctly:**
 - Harvested materials appear in enhanced materials display
 - Materials show enhanced descriptions with crafting info
 - Quality levels affect crafting values appropriately
 - Enhanced material IDs in 1000+ range
 - Campaign safety maintained (basic display in DL/FR if available)
 
-### ✅ **System Stability:**
+### [OK] **System Stability:**
 - No crashes during harvesting
 - Commands respond appropriately to invalid input
 - Wilderness location checking works correctly
@@ -295,7 +295,7 @@ harvest herbs
 
 ---
 
-## 🐛 **Potential Issues to Watch For**
+## **Potential Issues to Watch For**
 
 ### **If Commands Don't Work:**
 1. **Command not found:** Verify the current Luminari binary is installed
@@ -309,24 +309,24 @@ harvest herbs
 
 ---
 
-## 🎯 **Testing Summary**
+## **Testing Summary**
 
 **Phase 5 Implementation Status:**
-- ✅ Basic harvesting commands (`harvest`, `gather`, `mine`)
-- ✅ Resource availability checking
-- ✅ Skill-based success calculation  
-- ✅ Quality and subtype determination
-- ✅ Automatic storage integration
-- ✅ Enhanced crafting integration triggers
-- ✅ Luminari implementation
-- ⏳ Skill improvement system (commented out for now)
-- ⏳ Resource depletion/regeneration (future enhancement)
+- [OK] Basic harvesting commands (`harvest`, `gather`, `mine`)
+- [OK] Resource availability checking
+- [OK] Skill-based success calculation  
+- [OK] Quality and subtype determination
+- [OK] Automatic storage integration
+- [OK] Enhanced crafting integration triggers
+- [OK] Luminari implementation
+- [..] Skill improvement system (commented out for now)
+- [..] Resource depletion/regeneration (future enhancement)
 
-**Ready for full testing with `ornir`!** 🚀
+**Ready for full testing with `ornir`!**
 
 ---
 
-## 🔬 **Detailed Testing Commands**
+## **Detailed Testing Commands**
 
 ### **Material Harvesting Tests**
 
@@ -419,7 +419,7 @@ gather herbs
 gather herbs
 gather herbs
 ```
-**Expected:** Different quality herbs (poor → legendary) with different crafting values
+**Expected:** Different quality herbs (poor -> legendary) with different crafting values
 
 #### **Compare Quality Levels:**
 ```
@@ -434,7 +434,7 @@ materials details
 
 ---
 
-## 📊 **Expected Results Summary**
+## **Expected Results Summary**
 
 ### **Enhanced Integration Active (LuminariMUD Campaign):**
 ```
@@ -502,7 +502,7 @@ Total: 4 material types, 10 units
 
 ---
 
-## 🐛 **Troubleshooting**
+## **Troubleshooting**
 
 ### **If Enhanced Features Don't Appear:**
 
@@ -544,21 +544,21 @@ Total: 4 material types, 10 units
 
 ---
 
-## ✅ **Success Criteria**
+## [OK] **Success Criteria**
 
 **Integration Working Correctly If:**
-- ✅ Materials harvest successfully in wilderness
-- ✅ Enhanced materials display shows crafting integration (LuminariMUD)
-- ✅ Basic materials display only in DL/FR campaigns
-- ✅ Quality levels affect crafting values appropriately
-- ✅ Material hierarchy preserved (category → subtype → quality)
-- ✅ No crashes or errors during testing
+- [OK] Materials harvest successfully in wilderness
+- [OK] Enhanced materials display shows crafting integration (LuminariMUD)
+- [OK] Basic materials display only in DL/FR campaigns
+- [OK] Quality levels affect crafting values appropriately
+- [OK] Material hierarchy preserved (category -> subtype -> quality)
+- [OK] No crashes or errors during testing
 
 **Ready for Next Phase If:**
-- ✅ All above criteria met
-- ✅ Enhanced material IDs working (1000+ range)
-- ✅ Integration functions trigger automatically
-- ✅ Campaign safety verified
+- [OK] All above criteria met
+- [OK] Enhanced material IDs working (1000+ range)
+- [OK] Integration functions trigger automatically
+- [OK] Campaign safety verified
 
 ---
 

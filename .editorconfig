@@ -1,0 +1,37 @@
+# EditorConfig for LuminariMUD: https://editorconfig.org
+# Mirrors .clang-format (2-space C, 100 columns) and the repository text
+# policy (UTF-8, LF, final newline). scripts/ci/check_source_hygiene.py
+# enforces the encoding and line-ending rules in CI.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.{c,h}]
+max_line_length = 100
+
+[*.py]
+indent_size = 4
+
+[{Makefile,makefile,*.mk,*.am}]
+indent_style = tab
+
+[*.md]
+# Two trailing spaces are a Markdown hard line break.
+trim_trailing_whitespace = false
+
+[lib/text/help/help.hlp]
+# Database projection; body whitespace is preserved byte for byte.
+trim_trailing_whitespace = false
+insert_final_newline = false
+
+[docs/legal/CIRCLEMUD_DIKUMUD_LICENSE.txt]
+# Inherited legal archive kept byte-identical.
+trim_trailing_whitespace = false
+insert_final_newline = false

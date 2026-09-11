@@ -1,6 +1,6 @@
 # LuminariMUD Deployment Status Report
 
-> **⚠️ OBSOLETE DOCUMENT**: This document describes historical issues with `setup.sh` which is no longer the recommended deployment method. Use `./scripts/deployment/deploy.sh` instead. This file is kept for historical reference only.
+> **[!] OBSOLETE DOCUMENT**: This document describes historical issues with `setup.sh` which is no longer the recommended deployment method. Use `./scripts/deployment/deploy.sh` instead. This file is kept for historical reference only.
 
 **Date:** September 3, 2025
 **Status:** OBSOLETE - Use deploy.sh instead
@@ -9,7 +9,7 @@
 
 ## Current State
 
-### ✅ What Works
+### [OK] What Works
 1. **Source Code**: Successfully cloned from GitHub
 2. **Build System Generation**: `autoreconf -fvi` generates configure script properly
 3. **Configuration**: `./configure` completes successfully
@@ -17,7 +17,7 @@
 5. **Installation**: `make install` places binaries in `bin/` directory
 6. **Setup Script**: `./scripts/deployment/setup.sh` runs through all steps
 
-### ❌ What's Broken
+### [X] What's Broken
 1. **Server Won't Stay Running**:
    - Binary exists at `./bin/luminari`
    - Starts briefly then immediately exits
@@ -33,14 +33,14 @@
 
 ## Deployment Attempt Log
 
-### Step 1: Clone Repository ✅
+### Step 1: Clone Repository [OK]
 ```bash
 git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
 ```
 - **Result**: Success
 
-### Step 2: Run Setup Script ⚠️
+### Step 2: Run Setup Script [!]
 ```bash
 ./scripts/deployment/setup.sh
 ```
@@ -48,7 +48,7 @@ cd Luminari-Source
 - **Root Cause**: Script doesn't run `autoreconf -fvi` first
 - **Fix Applied**: Added autoreconf step to setup.sh
 
-### Step 3: Manual Build Steps ✅
+### Step 3: Manual Build Steps [OK]
 ```bash
 autoreconf -fvi    # Generate build system
 ./configure        # Create Makefile
@@ -58,7 +58,7 @@ make install      # Install to bin/
 - **Result**: All steps complete successfully
 - **Binary Location**: `./bin/luminari` exists
 
-### Step 4: Start Server ❌
+### Step 4: Start Server [X]
 ```bash
 ./bin/luminari -d lib
 ```

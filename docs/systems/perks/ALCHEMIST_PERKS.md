@@ -5,16 +5,16 @@
 Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft alchemical items, and discover extraordinary abilities through their research. These three perk trees represent the core pillars of the Pathfinder Alchemist: personal enhancement through mutagens, specialized discoveries that unlock unique powers, and the art of crafting powerful extracts (alchemical spells). Each tree has four tiers of progression, with powerful capstones at Tier IV.
 
 **The Three Trees:**
-1. **Mutagenist** – Mutagen crafting, personal enhancement, and physical transformation
-2. **Bomb Craftsman** – Alchemical bomb creation, elemental infusions, and tactical explosives
-3. **Extract Master** – Alchemical extracts (bottled spells), infusions, and arcane knowledge
+1. **Mutagenist** - Mutagen crafting, personal enhancement, and physical transformation
+2. **Bomb Craftsman** - Alchemical bomb creation, elemental infusions, and tactical explosives
+3. **Extract Master** - Alchemical extracts (bottled spells), infusions, and arcane knowledge
 
 ---
 
 ## TREE 1: MUTAGENIST
 *Unlock your body's potential through alchemical transformation. Craft mutagens to enhance strength, dexterity, and other capabilities.*
 
-### TIER I – Cost: 1 point each
+### TIER I - Cost: 1 point each
 
 #### Mutagen I
 - **Max Ranks:** 3
@@ -26,7 +26,7 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 #### Hardy Constitution I
 - **Max Ranks:** 3
 - **Description:** When you drink a mutagen you created, gain +1 max p HP per character level per rank, lasting for the mutagen's duration.
-- **Mechanics:** On consuming your own mutagen, increase maximum HP by (character level × ranks) and immediately raise current HP by the same amount (this is bonus max HP, not temporary HP). The bonus persists only while the mutagen is active; when it ends, reduce max HP by the same amount and lower current HP if needed (never below 1). Re-applying a mutagen refreshes and recalculates the bonus instead of stacking.
+- **Mechanics:** On consuming your own mutagen, increase maximum HP by (character level x ranks) and immediately raise current HP by the same amount (this is bonus max HP, not temporary HP). The bonus persists only while the mutagen is active; when it ends, reduce max HP by the same amount and lower current HP if needed (never below 1). Re-applying a mutagen refreshes and recalculates the bonus instead of stacking.
 - **Effect Type:** Survivability boost
 - **Prerequisites:** None
 
@@ -46,7 +46,7 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 ---
 
-### TIER II – Cost: 2 points each
+### TIER II - Cost: 2 points each
 
 #### Mutagen II
 - **Max Ranks:** 2
@@ -74,7 +74,7 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 ---
 
-### TIER III – Cost: 3 points each
+### TIER III - Cost: 3 points each
 
 #### Improved Mutagen
 - **Max Ranks:** 1
@@ -102,7 +102,7 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 ---
 
-### TIER IV – CAPSTONE PERKS (2) – Cost: 5 points each, Max Rank: 1
+### TIER IV - CAPSTONE PERKS (2) - Cost: 5 points each, Max Rank: 1
 
 #### Perfect Mutagen (Capstone)
 - **Max Ranks:** 1
@@ -121,7 +121,7 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 ## TREE 2: BOMB CRAFTSMAN
 *Harness the power of alchemical explosives. Mix, throw, and detonate devastating bombs in combat.*
 
-### TIER I – Cost: 1 point each
+### TIER I - Cost: 1 point each
 
 #### Alchemical Bomb I
 - **Max Ranks:** 3
@@ -148,7 +148,7 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 ---
 
-### TIER II – Cost: 2 points each
+### TIER II - Cost: 2 points each
 
 #### Alchemical Bomb II
 - **Max Ranks:** 2
@@ -176,7 +176,7 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 ---
 
-### TIER III – Cost: 3 points each
+### TIER III - Cost: 3 points each
 
 #### Inferno Bomb
 - **Max Ranks:** 1
@@ -204,7 +204,7 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 ---
 
-### TIER IV – CAPSTONE PERKS (2) – Cost: 5 points each, Max Rank: 1
+### TIER IV - CAPSTONE PERKS (2) - Cost: 5 points each, Max Rank: 1
 
 #### Bombardier Savant (Capstone)
 - **Max Ranks:** 1
@@ -225,7 +225,7 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 ## TREE 3: EXTRACT MASTER
 *Brew bottled infusions and harness the power of magic through alchemical extraction. Your extracts become extensions of your will.*
 
-### TIER I – Cost: 1 point each
+### TIER I - Cost: 1 point each
 
 #### Alchemical Extract I
 - **Max Ranks:** 3
@@ -253,7 +253,7 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 ---
 
-### TIER II – Cost: 2 points each
+### TIER II - Cost: 2 points each
 
 #### Alchemical Extract II
 - **Max Ranks:** 2
@@ -281,7 +281,7 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 ---
 
-### TIER III – Cost: 3 points each
+### TIER III - Cost: 3 points each
 
 #### Healing Extraction
 - **Max Ranks:** 1
@@ -309,7 +309,7 @@ Alchemists in Pathfinder are scientific experimenters who mix mutagens, craft al
 
 ---
 
-### TIER IV – CAPSTONE PERKS (2) – Cost: 5 points each, Max Rank: 1
+### TIER IV - CAPSTONE PERKS (2) - Cost: 5 points each, Max Rank: 1
 
 #### Eternal Extract (Capstone)
 - **Max Ranks:** 1
@@ -387,10 +387,10 @@ This perk system draws from the Pathfinder Alchemist class, which represents the
 
 ## Cost Summary
 
-- **Tier I:** 1 point × 4 perks = 4 points per tree
-- **Tier II:** 2 points × 4 perks = 8 points per tree
-- **Tier III:** 3 points × 4 perks = 12 points per tree
-- **Tier IV:** 5 points × 2 perks = 10 points per tree
+- **Tier I:** 1 point x 4 perks = 4 points per tree
+- **Tier II:** 2 points x 4 perks = 8 points per tree
+- **Tier III:** 3 points x 4 perks = 12 points per tree
+- **Tier IV:** 5 points x 2 perks = 10 points per tree
 
 **Total per tree:** 34 points  
 **Total for all three trees:** 102 points

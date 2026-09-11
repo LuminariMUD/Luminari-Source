@@ -6,7 +6,7 @@
 
 ---
 
-## 🎯 **ACTUAL REMAINING WORK**
+## **ACTUAL REMAINING WORK**
 
 ### **PHASE 1: INTEGRATION VERIFICATION (HIGH PRIORITY)**
 
@@ -116,7 +116,7 @@
 
 ---
 
-## 🎯 **IMMEDIATE NEXT STEPS (THIS WEEK)**
+## **IMMEDIATE NEXT STEPS (THIS WEEK)**
 
 ### **Day 1-2: Integration Verification**
 1. Test narrative weaver with live game in region 1000004
@@ -135,7 +135,7 @@
 
 ---
 
-## 📋 **SUCCESS CRITERIA**
+## **SUCCESS CRITERIA**
 
 ### **Phase 1 Complete When:**
 - [ ] Narrative weaver actively enhances wilderness descriptions in live game

@@ -636,7 +636,14 @@ must not be added to the enforced suite.
 - root `make test-all`;
 - ASan, UBSan, and bounded protocol fuzzing;
 - Valgrind on the production-linked suite;
-- MariaDB-backed fixed gcovr floors and coverage-artifact upload.
+- MariaDB-backed fixed gcovr floors and coverage-artifact upload;
+- a clean `git status` after the configure, build, test, install, and clean
+  cycle, and a source-hygiene scan of the `make dist` tarball.
+
+`.github/workflows/hygiene.yml` runs `scripts/ci/check_source_hygiene.py` on
+every push: no tracked build products, valid UTF-8 with LF endings, and ASCII
+documentation. See the Source Tree Hygiene section of
+[SETUP_AND_BUILD_GUIDE.md](SETUP_AND_BUILD_GUIDE.md).
 
 The behavioral, authoritative, and coverage jobs also run the syntax-check
 boot against an isolated MariaDB service and tracked minimal world. The

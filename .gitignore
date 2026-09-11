@@ -93,6 +93,7 @@ util/rebuildMailIndex
 util/rol_mob_calculator
 util/shopconv
 util/sign
+util/spelllist_html
 util/split
 util/wld2html
 
@@ -102,7 +103,6 @@ util/wld2html
 .vscode/
 .idea/
 .cursor/
-.editorconfig
 *.swp
 *.swo
 *~
@@ -136,6 +136,44 @@ build/*
 !build/CMakeFiles/
 build/CMakeFiles/*
 !build/CMakeFiles/.gitkeep
+
+####################
+# Coverage, Profiling, and Sanitizer Output
+####################
+*.gcda
+*.gcno
+*.gcov
+*.gcov.json.gz
+coverage.info
+lcov.info
+coverage.xml
+coverage/
+htmlcov/
+*.profraw
+*.profdata
+*.sancov
+asan.log*
+ubsan.log*
+tsan.log*
+msan.log*
+
+####################
+# CMake Outputs (out-of-tree builds under build/ are covered above)
+####################
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+install_manifest.txt
+compile_commands.json
+Testing/
+_deps/
+
+####################
+# Source Distribution
+####################
+/luminarimud-*.tar.gz
+/luminarimud-*/
 
 ####################
 # Configure-Generated Files

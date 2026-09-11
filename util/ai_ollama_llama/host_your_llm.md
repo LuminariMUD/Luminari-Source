@@ -526,33 +526,33 @@ echo ""
 # Check Ollama installation
 echo "1. Checking Ollama installation..."
 if command -v ollama &> /dev/null; then
-    echo "   ✓ Ollama installed: $(ollama --version)"
+    echo "   [OK] Ollama installed: $(ollama --version)"
 else
-    echo "   ✗ Ollama not found"
+    echo "   [X] Ollama not found"
 fi
 
 # Check service status
 echo "2. Checking service status..."
 if systemctl is-active --quiet ollama; then
-    echo "   ✓ Ollama service is running"
+    echo "   [OK] Ollama service is running"
 else
-    echo "   ✗ Ollama service is not running"
+    echo "   [X] Ollama service is not running"
 fi
 
 # Check models
 echo "3. Checking installed models..."
 if ollama list | grep -q "llama3.2:1b"; then
-    echo "   ✓ llama3.2:1b model installed"
+    echo "   [OK] llama3.2:1b model installed"
 else
-    echo "   ✗ Model not found"
+    echo "   [X] Model not found"
 fi
 
 # Test API
 echo "4. Testing API endpoint..."
 if curl -s http://localhost:11434/api/generate -d '{"model":"llama3.2:1b","prompt":"Hi","stream":false}' | grep -q "response"; then
-    echo "   ✓ API is responding"
+    echo "   [OK] API is responding"
 else
-    echo "   ✗ API not responding"
+    echo "   [X] API not responding"
 fi
 
 echo ""

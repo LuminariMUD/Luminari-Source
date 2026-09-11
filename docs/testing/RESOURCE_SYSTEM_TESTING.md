@@ -2,12 +2,12 @@
 
 **Document Version:** 1.0  
 **Date:** August 8, 2025  
-**System Status:** ✅ Phases 1-3 Implemented  
+**System Status:** [OK] Phases 1-3 Implemented  
 **Testing Priority:** HIGH - Ready for Production Testing  
 
 ---
 
-## 📋 **Quick Start Testing Checklist**
+## **Quick Start Testing Checklist**
 
 ### **Prerequisites**
 - [ ] MUD server compiled with latest resource system code
@@ -23,7 +23,7 @@
 
 ---
 
-## 🎯 **Comprehensive Testing Scenarios**
+## **Comprehensive Testing Scenarios**
 
 ### **Scenario 1: Basic Resource Discovery**
 
@@ -42,7 +42,7 @@
 - Terrain command shows elevation, sector type, environmental factors
 - No error messages or crashes
 
-**Pass Criteria:** ✅ All commands work, reasonable resource values displayed
+**Pass Criteria:** [OK] All commands work, reasonable resource values displayed
 
 ---
 
@@ -67,18 +67,18 @@
 ```
 Resource Map: vegetation (radius: 10)
 ========================================
-..·.·.▪▪▫▫▪▪·..··.▪.·..
-·.·.▪▪▫▫▫▫▫▫▪▪·.·.▪▪·.·
-.·▪▪▫▫▫▫▫▫▫▫▫▫▪▪.▪▪▫·..
-▪▪▫▫▫▫▫█████▫▫▫▫▪▪▫▫▪▪·
-▪▫▫▫▫█████████▫▫▫▫▫▪▪·.
-▫▫▫███████@███████▫▫▪▪·
-▪▫▫▫█████████▫▫▫▫▫▪▪·..
-▪▪▫▫▫▫▫█████▫▫▫▫▪▪▫▫▪▪·
-.·▪▪▫▫▫▫▫▫▫▫▫▫▪▪.▪▪▫·..
+,,,,,,..++..,,,,,,.,,,,
+,,,,..++++++..,,,,..,,,
+,,..++++++++++..,..+,,,
+..+++++#####++++..++..,
+.++++#########+++++..,,
++++#######@#######++..,
+.+++#########+++++..,,,
+..+++++#####++++..++..,
+,,..++++++++++..,..+,,,
 ```
 
-**Pass Criteria:** ✅ Maps display correctly, colors vary, no crashes
+**Pass Criteria:** [OK] Maps display correctly, colors vary, no crashes
 
 ---
 
@@ -108,7 +108,7 @@ Resource Map: vegetation (radius: 10)
 - Total cached nodes should increase as you explore
 - Expired nodes should show 0 unless cache lifetime exceeded
 
-**Pass Criteria:** ✅ Caching works, performance improves on subsequent visits
+**Pass Criteria:** [OK] Caching works, performance improves on subsequent visits
 
 ---
 
@@ -133,7 +133,7 @@ Resource Map: vegetation (radius: 10)
 4. Test several locations of same terrain type
 5. Confirm resource values vary but stay within expected ranges
 
-**Pass Criteria:** ✅ Resource patterns match terrain types, values are realistic
+**Pass Criteria:** [OK] Resource patterns match terrain types, values are realistic
 
 ---
 
@@ -155,11 +155,11 @@ Resource Map: vegetation (radius: 10)
 | `resourceadmin cache clear` | Clear all cache | "Cleared X entries" |
 | `resourceadmin cleanup` | Force node cleanup | "Cleanup complete" |
 
-**Pass Criteria:** ✅ All commands work without errors, provide expected information
+**Pass Criteria:** [OK] All commands work without errors, provide expected information
 
 ---
 
-## 🐛 **Known Issues and Troubleshooting**
+## **Known Issues and Troubleshooting**
 
 ### **Common Issues**
 
@@ -189,7 +189,7 @@ Use `resourceadmin debug` to see detailed information:
 
 ---
 
-## 📊 **Performance Benchmarks**
+## **Performance Benchmarks**
 
 ### **Expected Performance**
 
@@ -214,7 +214,7 @@ Use `resourceadmin debug` to see detailed information:
 
 ---
 
-## ✅ **Test Result Documentation**
+## [OK] **Test Result Documentation**
 
 ### **Test Session Template**
 
@@ -246,7 +246,7 @@ Notes: ____________________
 
 ---
 
-## 🚀 **Next Phase Testing Preparation**
+## **Next Phase Testing Preparation**
 
 ### **Phase 4: Region Integration (Planned)**
 - Test biome-specific resource modifiers

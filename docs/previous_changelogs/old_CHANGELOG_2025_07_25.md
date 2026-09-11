@@ -43,7 +43,7 @@
 - **Issue**: Server crash with malloc_consolidate error when player dies, occurring in save_char()
 - **Root Cause**:
   - During player death, `affect_remove()` is called to clear all affects
-  - This triggers `affect_total()` → `update_msdp_affects()` → protocol memory allocations
+  - This triggers `affect_total()` -> `update_msdp_affects()` -> protocol memory allocations
   - The heap is already corrupted from the complex death processing sequence
   - When `save_char()` tries to allocate memory for the write buffer, malloc detects corruption and aborts
   - Previous POS_DEAD check didn't work because `update_pos()` changes position to POS_RESTING after HP is set to 1
@@ -70,7 +70,7 @@
   - Initially tried checking `PLR_NOTDEADYET` flag but this was incorrect - that flag is for extraction queuing
   - Players are NEVER extracted when they die (they respawn), so PLR_NOTDEADYET doesn't apply
   - Changed to check `GET_POS(ch) == POS_DEAD` instead
-  - This might work because `dam_killed_vict()` sets POS_DEAD before calling `die()` → `raw_kill()`
+  - This might work because `dam_killed_vict()` sets POS_DEAD before calling `die()` -> `raw_kill()`
 - **Files Modified**:
   - handler.c:1018-1019 (added POS_DEAD check in update_msdp_affects)
   - fight.c:1991-2000 (added clarifying comments about player death not being extraction)
@@ -313,13 +313,13 @@
 
 #### Fixed All Remaining Compiler Warnings (32 warnings eliminated)
 - **Format Truncation Warnings**:
-  - `act.informative.c`: Increased buffer sizes for keyword1 (100→128) and dex_max (10→20)
+  - `act.informative.c`: Increased buffer sizes for keyword1 (100->128) and dex_max (10->20)
   - `act.wizard.c`: Increased tmp_buf size from 1024 to 8192 to handle large format strings
   - `char_descs.c`: Increased final buffer from 256 to 512 to handle concatenated strings
   - `fight.c`: Increased buf size from 10 to 20 for integer formatting
   - `limits.c`: Increased buf size from 200 to 256 for spell name formatting
   - `roleplay.c`: Increased buf2 size from 100 to 200 for roleplay info formatting
-  - `utils.c`: Increased temp_buf (200→256) and line_buf (200→256) for HP calculations
+  - `utils.c`: Increased temp_buf (200->256) and line_buf (200->256) for HP calculations
 - **String Operation Warnings**:
   - `act.item.c`: Replaced strncat with memcpy to avoid compiler warning about length dependency
   - `ban.c`: Fixed strncpy truncation by reserving space for null terminator

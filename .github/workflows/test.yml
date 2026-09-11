@@ -25,6 +25,9 @@ on:
       - 'CMakeLists.txt'
       - 'configure.ac'
       - 'Makefile.am'
+      - 'util/Makefile.am'
+      - '.gitignore'
+      - 'scripts/ci/check_source_hygiene.py'
       - '.github/workflows/test.yml'
   pull_request:
     branches: [master, main]
@@ -50,6 +53,9 @@ on:
       - 'CMakeLists.txt'
       - 'configure.ac'
       - 'Makefile.am'
+      - 'util/Makefile.am'
+      - '.gitignore'
+      - 'scripts/ci/check_source_hygiene.py'
       - '.github/workflows/test.yml'
 
 permissions:
@@ -178,6 +184,26 @@ jobs:
           test -L bin/luminari
           test ! -e luminari
           test ! -e circle
+
+      # A clean checkout must still be clean after configure, build, test,
+      # install, and clean: every generated output has to be ignored.
+      - name: Check the working tree stays clean
+        run: |
+          make clean
+          leftovers="$(git status --porcelain --untracked-files=all)"
+          if [ -n "$leftovers" ]; then
+            echo "::error::Build cycle left unignored files in the working tree:"
+            echo "$leftovers"
+            exit 1
+          fi
+
+      # The source distribution must carry source and data only.
+      - name: Check the source distribution
+        run: |
+          make dist
+          mkdir -p .dist-check
+          tar -xzf luminarimud-*.tar.gz -C .dist-check
+          python3 scripts/ci/check_source_hygiene.py --root .dist-check/luminarimud-*
 
   unit-tests:
     name: Production-linked tests (${{ matrix.io-driver }})

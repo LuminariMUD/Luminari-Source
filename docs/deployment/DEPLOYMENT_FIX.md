@@ -1,6 +1,6 @@
 # Deployment Fix Summary
 
-> **⚠️ OBSOLETE DOCUMENT**: This document describes historical fixes to `setup.sh` which is no longer the recommended deployment method. Use `./scripts/deployment/deploy.sh` instead. This file is kept for historical reference only.
+> **[!] OBSOLETE DOCUMENT**: This document describes historical fixes to `setup.sh` which is no longer the recommended deployment method. Use `./scripts/deployment/deploy.sh` instead. This file is kept for historical reference only.
 
 **Date:** September 3, 2025
 **Issue:** Setup script was broken - didn't create proper index files
