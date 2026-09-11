@@ -110,13 +110,20 @@ detects a legacy or lower-cost record and the account is rewritten with the
 current scheme while the plaintext is still in hand. Dormant accounts that
 never log in keep their legacy record until a staff `resetpassword`.
 
-Plaintext passwords are limited to `MAX_PWD_LENGTH` (128) characters as an
-input-abuse control only; the stored hash may be up to `MAX_PWD_HASH_LENGTH`
-(255) and the `account_data.password` column is widened to match by schema
-migration 2026091101. No path echoes, logs, or displays a password.
-Both hashing entry points reject plaintext over the limit rather than
-truncating it, and staff `resetpassword` takes the rest of the line as the
-password with case and spacing preserved.
+Plaintext passwords are between `MIN_PWD_LENGTH` (3) and `MAX_PWD_LENGTH`
+(128) characters; the upper bound is an input-abuse control only. The stored
+hash may be up to `MAX_PWD_HASH_LENGTH` (255) and the `account_data.password`
+column is widened to match by schema migration 2026091101. No path echoes,
+logs, or displays a password. Both hashing entry points reject plaintext over
+the limit rather than truncating it. Every path that sets a password (the
+login prompts, staff `set <player> password`, and staff `resetpassword`)
+applies the same length policy; `resetpassword` takes the rest of the line as
+the password with case and spacing preserved.
+
+The `util/asciipasswd` tool emits the same scheme for ASCII player files. It
+takes only the player name on the command line and reads the password from
+the terminal with echo off, or from standard input when that is not a
+terminal, so the plaintext never appears in process listings or shell history.
 
 Rollback: the column widening is backward compatible, and migration
 2026091101 does not need to be reverted. A server build from before this

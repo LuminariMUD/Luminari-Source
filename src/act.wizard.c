@@ -4919,6 +4919,12 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       send_to_char(ch, "You cannot change that.\r\n");
       return (0);
     }
+    if (strlen(val_arg) < MIN_PWD_LENGTH || strlen(val_arg) > MAX_PWD_LENGTH)
+    {
+      send_to_char(ch, "Passwords must be between %d and %d characters.\r\n", MIN_PWD_LENGTH,
+                   MAX_PWD_LENGTH);
+      return (0);
+    }
     if (!password_hash(val_arg, GET_PASSWD(vict), sizeof(vict->player.passwd)))
     {
       send_to_char(ch, "Unable to store that password.\r\n");
@@ -10761,9 +10767,10 @@ ACMD(do_resetpassword)
     send_to_char(ch, "Please specify what you would like the new password to be.\r\n");
     return;
   }
-  if (strlen(arg2) < 3 || strlen(arg2) > MAX_PWD_LENGTH)
+  if (strlen(arg2) < MIN_PWD_LENGTH || strlen(arg2) > MAX_PWD_LENGTH)
   {
-    send_to_char(ch, "Passwords must be between 3 and %d characters.\r\n", MAX_PWD_LENGTH);
+    send_to_char(ch, "Passwords must be between %d and %d characters.\r\n", MIN_PWD_LENGTH,
+                 MAX_PWD_LENGTH);
     return;
   }
 

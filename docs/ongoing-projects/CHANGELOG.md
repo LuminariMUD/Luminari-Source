@@ -14,6 +14,10 @@
   password, or stops at the first space.
 - Hashing and verification reject plaintext longer than the 128-character policy
   instead of passing it through; `asciipasswd` enforces the same limit.
+- Staff `set <player> password` applies the same 3..128 length rule as the login prompt
+  and `resetpassword`, via a shared `MIN_PWD_LENGTH`.
+- `asciipasswd` no longer accepts the password on the command line; it reads it from the
+  terminal without echo or from standard input.
 - Startup creates `account_data` when it is missing before applying the password
   column migration.
 - The plaintext limit is now an input-size control (128) and the stored hash column

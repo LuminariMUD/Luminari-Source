@@ -8414,7 +8414,8 @@ void nanny(struct descriptor_data *d, char *arg)
 
   case CON_NEWPASSWD:
   case CON_CHPWD_GETNEW:
-    if (!*arg || strlen(arg) > MAX_PWD_LENGTH || strlen(arg) < 3 || !str_cmp(arg, d->account->name))
+    if (!*arg || strlen(arg) > MAX_PWD_LENGTH || strlen(arg) < MIN_PWD_LENGTH ||
+        !str_cmp(arg, d->account->name))
     {
       write_to_output(d, "\r\nIllegal password.\r\nPassword: ");
       return;

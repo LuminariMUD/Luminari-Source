@@ -20,6 +20,10 @@
 #define PASSWORD_HASH_PREFIX "$y$"
 #define PASSWORD_HASH_COST 5UL
 
+/* Shortest plaintext any password-setting path accepts.  The upper bound is
+ * MAX_PWD_LENGTH in structs.h. */
+#define MIN_PWD_LENGTH 3
+
 /* Hash plaintext into out using the current policy.  Returns false and leaves
  * out untouched when hashing fails; never stores plaintext. */
 bool password_hash(const char *plaintext, char *out, size_t out_size);
