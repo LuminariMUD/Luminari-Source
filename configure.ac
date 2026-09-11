@@ -9,6 +9,12 @@ AC_SUBST(CRYPTLIB)
 AC_SUBST(CSTD_CFLAGS)
 
 AC_CONFIG_HEADERS([src/conf.h:conf.h.in])
+
+dnl Unknown configure options are fatal by default.  The production profile was
+dnl once requested through an option configure.ac never defined, and the build
+dnl silently used the default flags; a caller may still pass
+dnl --enable-option-checking=no or =warn to override this deliberately.
+m4_divert_text([DEFAULTS], [enable_option_checking=fatal])
 AC_DEFINE([CIRCLE_UNIX], [1], [Define for Unix-based systems])
 
 dnl Find the 'more' program
@@ -94,6 +100,69 @@ else
   dnl We aren't using gcc so we can't assume any special flags.
   MYFLAGS=""
 
+fi
+
+dnl Production build profile.  scripts/deployment/production_profile.sh is the
+dnl single source of truth shared with CMake: it feature-detects the
+dnl optimization and hardening flags and reports anything the toolchain
+dnl rejects.  LTO and PGO are explicit, measured profiles and never default.
+AC_ARG_ENABLE([production],
+  [AS_HELP_STRING([--enable-production],
+    [build the optimized and hardened production profile (-O2 -g plus feature-detected hardening)])],
+  [], [enable_production=no])
+AC_ARG_ENABLE([lto],
+  [AS_HELP_STRING([--enable-lto],
+    [add link-time optimization to the build (explicit, measured profile)])],
+  [], [enable_lto=no])
+AC_ARG_WITH([pgo-generate],
+  [AS_HELP_STRING([--with-pgo-generate=DIR],
+    [instrument the build to write profile data into DIR])],
+  [], [with_pgo_generate=no])
+AC_ARG_WITH([pgo-use],
+  [AS_HELP_STRING([--with-pgo-use=PATH],
+    [optimize using previously collected profile data at PATH])],
+  [], [with_pgo_use=no])
+
+PRODUCTION_CFLAGS=""
+PRODUCTION_LDFLAGS=""
+production_profile_args=""
+AS_IF([test "x$enable_production" != xno],
+  [production_profile_args="$production_profile_args --production"])
+AS_IF([test "x$enable_lto" != xno],
+  [production_profile_args="$production_profile_args --lto"])
+AS_IF([test "x$with_pgo_generate" != xno],
+  [production_profile_args="$production_profile_args --pgo-generate $with_pgo_generate"])
+AS_IF([test "x$with_pgo_use" != xno],
+  [production_profile_args="$production_profile_args --pgo-use $with_pgo_use"])
+
+if test "x$production_profile_args" != x; then
+  AC_MSG_CHECKING([the production build profile for $CC])
+  production_profile_output=`$SHELL "$srcdir/scripts/deployment/production_profile.sh" \
+    --cc "$CC" --cflags "$CSTD_CFLAGS" $production_profile_args 2>conftest.profile.err`
+  production_profile_status=$?
+  if test $production_profile_status -ne 0; then
+    AC_MSG_RESULT([failed])
+    cat conftest.profile.err >&AS_MESSAGE_LOG_FD
+    production_profile_error=`cat conftest.profile.err`
+    rm -f conftest.profile.err
+    AC_MSG_ERROR([$production_profile_error])
+  fi
+  rm -f conftest.profile.err
+  PRODUCTION_CFLAGS=`printf '%s\n' "$production_profile_output" | sed -n 's/^PRODUCTION_CFLAGS=//p'`
+  PRODUCTION_LDFLAGS=`printf '%s\n' "$production_profile_output" | sed -n 's/^PRODUCTION_LDFLAGS=//p'`
+  production_supported=`printf '%s\n' "$production_profile_output" | sed -n 's/^PRODUCTION_SUPPORTED=//p'`
+  production_unsupported=`printf '%s\n' "$production_profile_output" | sed -n 's/^PRODUCTION_UNSUPPORTED=//p'`
+  AC_MSG_RESULT([$PRODUCTION_CFLAGS $PRODUCTION_LDFLAGS])
+  AC_MSG_NOTICE([production hardening enabled: ${production_supported:-none}])
+  for production_feature in $production_unsupported; do
+    AC_MSG_WARN([hardening feature not supported by $CC and left out: $production_feature])
+  done
+  dnl Automake compiles with $(AM_CFLAGS) $(CFLAGS), so anything carried in
+  dnl AM_CFLAGS loses to a user CFLAGS such as -D_FORTIFY_SOURCE=2.  Append the
+  dnl profile to CFLAGS/LDFLAGS themselves, after the user's values, so the
+  dnl repository policy is the last word exactly as it is under CMake.
+  CFLAGS="$CFLAGS $PRODUCTION_CFLAGS"
+  LDFLAGS="$LDFLAGS $PRODUCTION_LDFLAGS"
 fi
 
 dnl Checks for libraries.  We check for the library only if the function is

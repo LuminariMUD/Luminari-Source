@@ -152,6 +152,67 @@ foreach(HEADER
     check_include_file("${HEADER}" HAVE_${_upper_name})
 endforeach()
 
+# ========== Production build profile ==========
+# scripts/deployment/production_profile.sh is the single source of truth shared
+# with configure.ac.  It feature-detects the optimization and hardening flags
+# against the same GNU C23 dialect flag the build uses and reports anything the
+# toolchain rejects.  LTO and PGO are explicit, measured profiles and never
+# default.
+option(LUMINARI_PRODUCTION
+       "Build the optimized and hardened production profile (-O2 -g plus feature-detected hardening)"
+       OFF)
+option(LUMINARI_LTO "Add link-time optimization to the build (explicit, measured profile)" OFF)
+set(LUMINARI_PGO_GENERATE "" CACHE PATH
+    "Instrument the build to write profile data into this directory")
+set(LUMINARI_PGO_USE "" CACHE PATH
+    "Optimize using previously collected profile data at this path")
+
+set(PRODUCTION_PROFILE_ARGS)
+if (LUMINARI_PRODUCTION)
+    if (CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE STREQUAL "None")
+        message(FATAL_ERROR
+            "LUMINARI_PRODUCTION owns the optimization and debug-symbol policy; "
+            "leave CMAKE_BUILD_TYPE unset instead of '${CMAKE_BUILD_TYPE}'")
+    endif()
+    list(APPEND PRODUCTION_PROFILE_ARGS --production)
+endif()
+if (LUMINARI_LTO)
+    list(APPEND PRODUCTION_PROFILE_ARGS --lto)
+endif()
+if (LUMINARI_PGO_GENERATE)
+    list(APPEND PRODUCTION_PROFILE_ARGS --pgo-generate ${LUMINARI_PGO_GENERATE})
+endif()
+if (LUMINARI_PGO_USE)
+    list(APPEND PRODUCTION_PROFILE_ARGS --pgo-use ${LUMINARI_PGO_USE})
+endif()
+
+set(PRODUCTION_SUPPORTED "")
+if (PRODUCTION_PROFILE_ARGS)
+    execute_process(
+        COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/production_profile.sh
+                --cc ${CMAKE_C_COMPILER}
+                --cflags "${CMAKE_C23_EXTENSION_COMPILE_OPTION}"
+                ${PRODUCTION_PROFILE_ARGS}
+        OUTPUT_VARIABLE PRODUCTION_PROFILE_OUTPUT
+        ERROR_VARIABLE PRODUCTION_PROFILE_ERROR
+        RESULT_VARIABLE PRODUCTION_PROFILE_RESULT)
+    if (NOT PRODUCTION_PROFILE_RESULT EQUAL 0)
+        message(FATAL_ERROR "Production build profile failed: ${PRODUCTION_PROFILE_ERROR}")
+    endif()
+    foreach (key CFLAGS LDFLAGS SUPPORTED UNSUPPORTED)
+        string(REGEX MATCH "PRODUCTION_${key}=([^\n]*)" _ "${PRODUCTION_PROFILE_OUTPUT}")
+        set(PRODUCTION_${key} "${CMAKE_MATCH_1}")
+    endforeach()
+    string(APPEND CMAKE_C_FLAGS " ${PRODUCTION_CFLAGS}")
+    string(APPEND CMAKE_EXE_LINKER_FLAGS " ${PRODUCTION_LDFLAGS}")
+    message(STATUS "Production profile flags: ${PRODUCTION_CFLAGS} ${PRODUCTION_LDFLAGS}")
+    if (PRODUCTION_UNSUPPORTED)
+        message(WARNING
+            "Hardening features not supported by ${CMAKE_C_COMPILER} and left out: "
+            "${PRODUCTION_UNSUPPORTED}")
+    endif()
+endif()
+
 if (HAVE_STDLIB_H AND HAVE_STDIO_H AND HAVE_STRING_H)
     set(STDC_HEADERS 1)
 endif()
@@ -1101,6 +1162,12 @@ if (BUILD_TESTS)
         native-event-architecture
         event-pubsub-retirement
         PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    # These scripts preprocess game sources; point them at the generated conf.h.
+    set_tests_properties(
+        demand-driven-event-architecture
+        native-event-architecture
+        PROPERTIES ENVIRONMENT
+            "CC=${CMAKE_C_COMPILER};CPPFLAGS=-I${CMAKE_CURRENT_BINARY_DIR}")
 
     add_test(NAME world-tools
         COMMAND Python3::Interpreter -m unittest discover
@@ -1120,10 +1187,13 @@ if (BUILD_TESTS)
         world-tool-wrapper
         PROPERTIES
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    # The world tests preprocess game sources; point them at the generated conf.h.
+    set(WORLD_TOOLS_TEST_ENV "CPPFLAGS=-I${CMAKE_CURRENT_BINARY_DIR}")
     if (TARGET rol_mob_calculator)
-        set_tests_properties(world-tools PROPERTIES
-            ENVIRONMENT "ROL_MOB_CALCULATOR=$<TARGET_FILE:rol_mob_calculator>")
+        list(APPEND WORLD_TOOLS_TEST_ENV
+            "ROL_MOB_CALCULATOR=$<TARGET_FILE:rol_mob_calculator>")
     endif()
+    set_tests_properties(world-tools PROPERTIES ENVIRONMENT "${WORLD_TOOLS_TEST_ENV}")
 
     add_test(NAME autorun-supervision
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/autorun/test_autorun_supervision.sh)
@@ -1138,6 +1208,11 @@ if (BUILD_TESTS)
         COMMAND bash
             ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/test_binary_name_static.sh)
     set_tests_properties(binary-name-static PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    add_test(NAME production-profile
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/test_production_profile.sh)
+    set_tests_properties(production-profile PROPERTIES
+        ENVIRONMENT "CC=${CMAKE_C_COMPILER}"
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     add_test(NAME healthcheck
@@ -1242,6 +1317,8 @@ message(STATUS "  C Standard: GNU C23")
 message(STATUS "  C Compiler: ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
 message(STATUS "  MySQL Client: ${LUMINARI_MYSQL_TARGET}")
 message(STATUS "  Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "  Production Profile: ${LUMINARI_PRODUCTION} (${PRODUCTION_SUPPORTED})")
+message(STATUS "  LTO: ${LUMINARI_LTO}")
 message(STATUS "  Build Utilities: ${BUILD_UTILS}")
 message(STATUS "  Build Tests: ${BUILD_TESTS}")
 message(STATUS "  Developer Mode: ${DEVELOPER_MODE}")

@@ -6,6 +6,8 @@ SUBDIRS = util
 
 # Additional compiler flags
 # Revert to project defaults: do NOT force global feature defines here.
+# The production profile lives in CFLAGS/LDFLAGS (configure appends it after
+# the user's flags) rather than here, where user CFLAGS would override it.
 AM_CFLAGS = @CSTD_CFLAGS@ @MYFLAGS@ @LIBEVENT_CFLAGS@
 
 
@@ -824,6 +826,7 @@ EXTRA_DIST = \
 	unittests/README_unittests.md \
 	unittests/CuTest/Makefile \
 	unittests/CuTest/README.txt \
+	unittests/CuTest/bench_protocol_parser.c \
 	unittests/CuTest/fuzz_protocol_parser.c \
 	unittests/CuTest/fuzz_corpus/plain_command.txt \
 	unittests/CuTest/fuzz_corpus/gmcp_like.txt \
@@ -857,8 +860,11 @@ EXTRA_DIST = \
 	scripts/deployment/generate_build_identity.sh \
 	scripts/deployment/install_versioned_binary.sh \
 	scripts/deployment/move_bin.sh \
+	scripts/deployment/production_profile.sh \
 	scripts/deployment/setup.sh \
+	scripts/deployment/test_production_profile.sh \
 	scripts/deployment/test_versioned_binary_install.sh \
+	scripts/deployment/verify_hardened_binary.sh \
 	scripts/development/check_local_port_allocations.sh \
 	scripts/development/dev_create_test_character.sh \
 	scripts/development/dev_kohdee_login_smoke.sh \
@@ -1024,7 +1030,7 @@ distcheck-archive:
 
 # Run unit tests
 test: check check-build-parity test-help-sync test-autorun-supervision test-versioned-binary-install \
-	test-binary-name-static test-healthcheck test-sql-interpolation \
+	test-binary-name-static test-healthcheck test-sql-interpolation test-production-profile \
 	test-background-help-entries test-demand-driven-architecture test-event-admission \
 	test-event-core-performance-gate test-native-event-architecture test-pubsub-retirement \
 	test-vessel-tooling
@@ -1036,7 +1042,7 @@ test: check check-build-parity test-help-sync test-autorun-supervision test-vers
 	test-help-sync-integration test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
 	test-versioned-binary-install test-binary-name-static test-healthcheck \
-	test-sql-interpolation \
+	test-sql-interpolation test-production-profile \
 	test-demand-driven-architecture test-event-admission test-native-event-architecture \
 	test-event-core-performance-gate test-pubsub-retirement \
 	test-vessel-tooling
@@ -1100,6 +1106,9 @@ test-versioned-binary-install:
 
 test-binary-name-static:
 	$(SHELL) ./scripts/deployment/test_binary_name_static.sh
+
+test-production-profile:
+	CC="$(CC)" ./scripts/deployment/test_production_profile.sh
 
 test-healthcheck:
 	./scripts/operations/test_healthcheck.sh

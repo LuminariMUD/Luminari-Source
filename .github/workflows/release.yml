@@ -42,11 +42,14 @@ jobs:
           cp src/mud_options.example.h src/mud_options.h
           cp src/vnums.example.h src/vnums.h
 
-      - name: Build with autotools
+      - name: Build the production profile with autotools
         run: |
           autoreconf -fvi
-          ./configure
+          ./configure --enable-production
           make -j"$(nproc)"
+
+      - name: Verify the hardened release binary
+        run: scripts/deployment/verify_hardened_binary.sh ./luminari
 
       - name: Generate changelog
         id: changelog

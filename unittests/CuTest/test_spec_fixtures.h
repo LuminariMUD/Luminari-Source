@@ -1,7 +1,7 @@
 #ifndef TEST_SPEC_FIXTURES_H
 #define TEST_SPEC_FIXTURES_H
 
-#include "../../src/conf.h"
+#include "conf.h"
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/spec/spec_registry.h"

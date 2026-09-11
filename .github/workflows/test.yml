@@ -8,6 +8,7 @@ on:
       - 'unittests/**'
       - 'scripts/world/**'
       - 'scripts/ci/**'
+      - 'scripts/deployment/**'
       - 'scripts/operations/**'
       - 'scripts/development/generate-web-guides.sh'
       - 'scripts/events/**'
@@ -38,6 +39,7 @@ on:
       - 'unittests/**'
       - 'scripts/world/**'
       - 'scripts/ci/**'
+      - 'scripts/deployment/**'
       - 'scripts/operations/**'
       - 'scripts/development/generate-web-guides.sh'
       - 'scripts/events/**'
@@ -411,6 +413,101 @@ jobs:
 
       - name: Run the authoritative test entry point
         run: make test-all
+
+  production-profile:
+    name: Production profile (${{ matrix.build }}, ${{ matrix.cc }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build: [autotools, cmake]
+        cc: [gcc, clang]
+        include:
+          # GCC 14 is the newest GCC on the runner image; it proves the explicit
+          # hardening set on a compiler generation CI would otherwise never see.
+          - build: autotools
+            cc: gcc-14
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: test_root_password
+          MARIADB_DATABASE: luminari_test
+          MARIADB_USER: luminari_test
+          MARIADB_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      CC: ${{ matrix.cc }}
+      LUMINARI_TEST_MYSQL_ENABLE: '1'
+      LUMINARI_TEST_MYSQL_HOST: 127.0.0.1
+      LUMINARI_TEST_MYSQL_USER: luminari_test
+      LUMINARI_TEST_MYSQL_PASSWORD: test_password
+      LUMINARI_TEST_MYSQL_DATABASE: luminari_test
+      LUMINARI_TEST_MYSQL_PORT: '3306'
+      LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
+      LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            autoconf automake build-essential clang cmake gcc-14 libcurl4-openssl-dev \
+            libevent-dev libgd-dev libjson-c-dev libmariadb-dev libssl-dev libtool \
+            mariadb-client pandoc ripgrep zlib1g-dev
+
+      - name: Copy config headers
+        run: |
+          cp src/campaign.example.h src/campaign.h
+          cp src/mud_options.example.h src/mud_options.h
+          cp src/vnums.example.h src/vnums.h
+
+      - name: Prepare isolated test runtime
+        run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
+
+      - name: Build, verify, and test the hardened artifact (autotools)
+        if: matrix.build == 'autotools'
+        run: |
+          autoreconf -fvi
+          # The retired no-op profile option must be rejected, not warned about.
+          if ./configure --enable-optimizations >configure-unknown.log 2>&1; then
+            cat configure-unknown.log
+            echo "configure accepted an unknown option" >&2
+            exit 1
+          fi
+          grep -q 'unrecognized options: --enable-optimizations' configure-unknown.log
+          # The profile must be the last word over a caller's CFLAGS/LDFLAGS.
+          ./configure --enable-production CFLAGS='-O1 -D_FORTIFY_SOURCE=2' LDFLAGS='-Wl,-z,lazy' \
+            >configure-override.log 2>&1
+          grep -Eq '^CFLAGS = -O1 -D_FORTIFY_SOURCE=2 .*-D_FORTIFY_SOURCE=3' Makefile
+          grep -Eq '^LDFLAGS = -Wl,-z,lazy .*-Wl,-z,now' Makefile
+          ./configure --enable-production
+          make -j"$(nproc)"
+          scripts/deployment/verify_hardened_binary.sh ./luminari
+          make test
+          make install
+          scripts/deployment/verify_hardened_binary.sh bin/luminari
+          test -L bin/luminari
+          test ! -e luminari
+
+      - name: Build, verify, and test the hardened artifact (cmake)
+        if: matrix.build == 'cmake'
+        run: |
+          cmake -S . -B build -DLUMINARI_PRODUCTION=ON -DBUILD_TESTS=ON
+          cmake --build build -j"$(nproc)"
+          scripts/deployment/verify_hardened_binary.sh build/bin/luminari
+          scripts/deployment/verify_hardened_binary.sh build/cutest
+          ctest --test-dir build --output-on-failure
+          cmake --install build
+          scripts/deployment/verify_hardened_binary.sh bin/luminari
 
   sanitizers:
     name: ASan, UBSan, and protocol fuzzing

@@ -48,7 +48,7 @@ Verified options from `./scripts/deployment/deploy.sh --help`:
 |--------|----------|
 | `--auto` | Use defaults without prompts |
 | `--dev` | Development build with debugging tools |
-| `--prod` | Optimized production build |
+| `--prod` | Production profile: optimized, hardened, and verified build |
 | `--skip-deps` | Skip dependency installation |
 | `--skip-db` | Skip database setup; the server still requires a configured database |
 | `--init-world` | Initialize minimal world data; enabled by default |
@@ -82,6 +82,146 @@ make install
 
 The [setup and build guide](../guides/SETUP_AND_BUILD_GUIDE.md) documents fresh
 manual configuration and the CMake path.
+
+## Production Build Profile
+
+`deploy.sh --prod` configures the production profile. Both build systems apply
+the same contract, produced by `scripts/deployment/production_profile.sh`,
+which feature-detects every flag against the selected compiler and reports
+anything the toolchain rejects instead of dropping it silently:
+
+```bash
+./configure --enable-production
+cmake -S . -B build -DLUMINARI_PRODUCTION=ON
+```
+
+`configure.ac` makes unknown configure options fatal, so a misspelled or
+removed profile can never fall back to the default flags; pass
+`--enable-option-checking=warn` only to override that deliberately. With CMake
+the profile owns the optimization policy, so leave `CMAKE_BUILD_TYPE` unset;
+configuring both is an error.
+
+| Policy | Setting |
+|--------|---------|
+| Optimization | `-O2` |
+| Debug symbols | `-g`; `make install` splits them into `bin/releases/<build-id>/luminari.debug` |
+| Assertions | Enabled (no `NDEBUG`); a core file beats running on corrupt state |
+| Build ID | Required by the versioned installer and the crash workflow |
+| LTO and PGO | Never default; explicit options below |
+
+Hardening set (each flag is requested explicitly and accepted only after a
+compile-and-link probe; GCC 14's `-fhardened` bundle is not used because
+distributions that already define `_FORTIFY_SOURCE` in the compiler spec make
+it reject the very flags it bundles):
+
+- `_FORTIFY_SOURCE=3` with optimization
+- PIE (`-fPIE -pie`)
+- full RELRO with immediate binding (`-z relro -z now`)
+- strong stack protector
+- stack-clash protection
+- control-flow protection (`-fcf-protection=full`, x86 toolchains)
+- non-executable stack (`-z noexecstack`)
+
+Supported GCC and Clang toolchains produce equivalent binaries; configure
+prints the enabled set and warns for each unsupported item. On architectures
+without `-fcf-protection` that item is reported as unsupported and left out.
+
+The profile also defines `LUMINARI_PRODUCTION_PROFILE`, which makes
+`src/constants.c` embed a marker in a `.luminari.profile` ELF section. That
+marker is what lets the verifier below distinguish the repository profile from
+a distribution whose compiler defaults happen to include the same hardening.
+
+### Verifying the artifact
+
+Every production build must pass the ELF check, which only needs `readelf`:
+
+```bash
+./scripts/deployment/verify_hardened_binary.sh bin/luminari
+```
+
+It requires the profile marker section, PIE, a non-executable stack, RELRO
+with BIND_NOW, stack-protector and fortified libc references, a build ID,
+control-flow protection notes on x86-64, and the absence of RPATH/RUNPATH and
+text relocations. A binary built with the compiler's default flags fails on the
+missing marker even on Ubuntu, whose defaults already supply the other
+properties; `test-production-profile` asserts exactly that. `deploy.sh --prod`
+runs the check after installation and fails the deployment on any missing
+property. The `production-profile` CI matrix (Autotools with GCC, GCC 14, and
+Clang; CMake with GCC and Clang) builds the profile, verifies the linked server
+and the test binary, runs the full production-linked suite against that exact
+hardened artifact, and verifies the installed `bin/luminari`. The Autotools
+cells also assert that the retired `--enable-optimizations` option is rejected.
+The release workflow builds the same profile and verifies it before publishing.
+
+### Crash symbolization
+
+The installed release keeps full symbols next to the executable. Load them
+explicitly when the build ID directory is not in gdb's search path:
+
+```bash
+gdb -ex "symbol-file bin/releases/<build-id>/luminari.debug" \
+    bin/releases/<build-id>/luminari core
+```
+
+`bin/luminari --build-info` and `readelf -n` print the build ID that names the
+release directory for any core file or autorun crash archive.
+
+### Explicit LTO and PGO profiles
+
+Link-time optimization and profile-guided optimization are opt-in, and their
+effect must be measured against the benchmarks below before they are ever
+made default:
+
+```bash
+./configure --enable-production --enable-lto
+./configure --enable-production --with-pgo-generate=/path/to/profiles
+./configure --enable-production --with-pgo-use=/path/to/profiles
+cmake -S . -B build -DLUMINARI_PRODUCTION=ON -DLUMINARI_LTO=ON
+cmake -S . -B build -DLUMINARI_PRODUCTION=ON -DLUMINARI_PGO_GENERATE=/path/to/profiles
+```
+
+GCC uses `-flto=auto`; Clang uses ThinLTO. With Clang, merge the generated
+`.profraw` files with `llvm-profdata merge` and pass the resulting
+`.profdata` file to `--with-pgo-use` or `LUMINARI_PGO_USE`. A requested LTO or
+PGO profile the compiler cannot honor is a configuration error, not a warning.
+
+### Benchmarks
+
+Two stable benchmarks record the cost of a flag change:
+
+- The hot-parser microbenchmark isolates the protocol layer from world,
+  database, and scheduler effects. Build it with the flags under test and
+  compare the median:
+
+  ```bash
+  make -C unittests/CuTest protocol-bench \
+      PROTOCOL_BENCH_CFLAGS="-Wall -Wextra -std=gnu23 <profile CFLAGS>" \
+      PROTOCOL_BENCH_LDFLAGS="-lm -ljson-c <profile LDFLAGS>"
+  ```
+
+- The live game-loop benchmark is the
+  [event-core performance gate](EVENT_DRIVEN_CORE_RELEASE_GATE.md), which
+  measures scheduler lateness and command round-trip latency on the installed
+  artifact. It needs a dedicated database snapshot and an idle host, so CI
+  does not run it; it has not yet been recorded under the production profile,
+  and that measurement is a precondition for making LTO or PGO default.
+
+Baseline recorded 2026-09-11 on an idle WSL2 host (Ubuntu 24.04, GCC 13.3,
+glibc 2.39, x86-64) with `PROTOCOL_BENCH_ITERATIONS=2000`, median of five
+rounds over the three corpus inputs:
+
+| Profile | Median per iteration |
+|---------|----------------------|
+| Default `-O2 -g` | 34.2 us |
+| Production (hardened) | 34.6 us |
+| Production + LTO | 33.9 us |
+
+Round-to-round spread was about 1 us, so the hardening cost and the LTO gain
+are both inside measurement noise on this parser workload. Removing any single
+hardening flag did not move the median. This is parser-only evidence: LTO
+stays opt-in until the live gate above shows a benefit on the hardened server.
+Numbers taken while other builds are running are not comparable; the same
+machine measured a 2x slowdown under load.
 
 ## Configuration Boundaries
 
@@ -138,11 +278,11 @@ Use direct startup for local development. For a supervised local process:
 | Workflow | Trigger | Contract |
 |----------|---------|----------|
 | Code Quality | Push or pull request affecting C sources/config | Formatting, targeted static analysis, warning build |
-| Build & Test | Relevant pushes and pull requests | World tools, production tests, sanitizers, Valgrind, coverage, and related gates |
+| Build & Test | Relevant pushes and pull requests | World tools, production tests, hardened production-profile matrix, sanitizers, Valgrind, coverage, and related gates |
 | Security | Relevant pushes/PRs, manual, twice monthly | Gitleaks, CodeQL, and PR-only dependency review |
 | Integration | Relevant pull requests or manual dispatch | MariaDB schema checks, isolated world/runtime validation, network and health smoke tests |
 | GitHub Pages | Documentation push to `master` or manual dispatch | Publishes the `docs/` tree |
-| Release | Tag matching `v*.*.*` | Builds and creates GitHub release notes |
+| Release | Tag matching `v*.*.*` | Builds and verifies the hardened production profile, then creates GitHub release notes |
 
 The release workflow creates GitHub release metadata; it does not update a
 running host. Production deployment remains an explicit operator action.
@@ -252,4 +392,4 @@ the crash archive and its matching immutable executable before rebuilding.
 - [Testing guide](../guides/TESTING_GUIDE.md)
 - [Incident response](../runbooks/incident-response.md)
 
-Last updated: 2026-09-06
+Last updated: 2026-09-11

@@ -40,6 +40,16 @@ FUZZ_CFLAGS ?= -Wall -Wextra $(CSTD_FLAG) -g -O1 -fno-omit-frame-pointer \
 	-fsanitize=fuzzer,address,undefined
 FUZZ_LDFLAGS ?= -lm -ljson-c -fsanitize=fuzzer,address,undefined
 
+# Hot-parser microbenchmark.  Override PROTOCOL_BENCH_CFLAGS/LDFLAGS with the
+# flags from scripts/deployment/production_profile.sh to compare profiles.
+PROTOCOL_BENCH_CC ?= $(CC)
+PROTOCOL_BENCH_CFLAGS ?= -Wall -Wextra $(CSTD_FLAG) -O2 -g
+PROTOCOL_BENCH_LDFLAGS ?= -lm -ljson-c
+PROTOCOL_BENCH_OBJ = $(BUILD_DIR)/bench_protocol_parser.o
+PROTOCOL_BENCH_SOURCE_OBJ = $(BUILD_DIR)/protocol_bench.o
+MSDP_JSON_BENCH_SOURCE_OBJ = $(BUILD_DIR)/msdp_json_bench.o
+PROTOCOL_BENCH_EXE = protocol_parser_bench
+
 all: $(PROTOCOL_PARSER_TEST_EXE)
 
 $(BUILD_DIR):
@@ -88,6 +98,22 @@ $(PROTOCOL_FUZZ_EXE): $(PROTOCOL_FUZZ_OBJ) $(PROTOCOL_FUZZ_SOURCE_OBJ) \
 		$(MSDP_JSON_FUZZ_SOURCE_OBJ)
 	$(FUZZ_CC) $(FUZZ_CFLAGS) -o $@ $^ $(FUZZ_LDFLAGS)
 
+$(PROTOCOL_BENCH_OBJ): bench_protocol_parser.c fuzz_protocol_parser.c \
+		../../src/net/protocol.h ../../src/structs.h ../../src/net/onboarding.h | $(BUILD_DIR)
+	$(PROTOCOL_BENCH_CC) $(PROTOCOL_BENCH_CFLAGS) -I../../src -c bench_protocol_parser.c -o $@
+
+$(PROTOCOL_BENCH_SOURCE_OBJ): ../../src/net/protocol.c ../../src/net/protocol.h \
+		../../src/net/msdp_json.h ../../src/structs.h ../../src/net/onboarding.h | $(BUILD_DIR)
+	$(PROTOCOL_BENCH_CC) $(PROTOCOL_BENCH_CFLAGS) -I../../src -c ../../src/net/protocol.c -o $@
+
+$(MSDP_JSON_BENCH_SOURCE_OBJ): ../../src/net/msdp_json.c ../../src/net/msdp_json.h \
+		../../src/net/protocol.h ../../src/structs.h | $(BUILD_DIR)
+	$(PROTOCOL_BENCH_CC) $(PROTOCOL_BENCH_CFLAGS) -I../../src -c ../../src/net/msdp_json.c -o $@
+
+$(PROTOCOL_BENCH_EXE): $(PROTOCOL_BENCH_OBJ) $(PROTOCOL_BENCH_SOURCE_OBJ) \
+		$(MSDP_JSON_BENCH_SOURCE_OBJ)
+	$(PROTOCOL_BENCH_CC) $(PROTOCOL_BENCH_CFLAGS) -o $@ $^ $(PROTOCOL_BENCH_LDFLAGS)
+
 production:
 	$(MAKE) -C ../.. test
 
@@ -107,6 +133,11 @@ protocol-fuzz: $(PROTOCOL_FUZZ_EXE)
 	./$(PROTOCOL_FUZZ_EXE) -max_total_time=$(FUZZ_SECONDS) -timeout=5 \
 		-print_funcs=0 -verbosity=0 -max_len=16384 "$$fuzz_work"
 
+protocol-bench-build: $(PROTOCOL_BENCH_EXE)
+
+protocol-bench: $(PROTOCOL_BENCH_EXE)
+	./$(PROTOCOL_BENCH_EXE) fuzz_corpus/*
+
 test: production
 
 test-all:
@@ -118,7 +149,7 @@ valgrind-protocol: $(PROTOCOL_PARSER_TEST_EXE)
 
 clean:
 	rm -rf $(BUILD_DIR)
-	rm -f $(PROTOCOL_PARSER_TEST_EXE) $(PROTOCOL_FUZZ_EXE)
+	rm -f $(PROTOCOL_PARSER_TEST_EXE) $(PROTOCOL_FUZZ_EXE) $(PROTOCOL_BENCH_EXE)
 
 rebuild: clean all
 
@@ -129,9 +160,10 @@ help:
 	@echo "  production         - Run the root production-linked CuTest suite"
 	@echo "  protocol-parser    - Run the focused protocol parser harness"
 	@echo "  protocol-fuzz      - Run bounded ASan/UBSan libFuzzer coverage"
+	@echo "  protocol-bench     - Time the protocol parser (PROTOCOL_BENCH_CFLAGS)"
 	@echo "  test-all           - Run the authoritative root test-all target"
 	@echo "  valgrind-protocol  - Run the protocol harness with Valgrind"
 	@echo "  clean              - Remove standalone build artifacts"
 
-.PHONY: all production protocol-parser protocol-fuzz-build protocol-fuzz test \
-	test-all valgrind-protocol clean rebuild help
+.PHONY: all production protocol-parser protocol-fuzz-build protocol-fuzz \
+	protocol-bench-build protocol-bench test test-all valgrind-protocol clean rebuild help

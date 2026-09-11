@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 
 /* Include the actual headers from src */
-#include "../../src/conf.h"
+#include "conf.h"
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"

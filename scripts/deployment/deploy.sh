@@ -10,7 +10,7 @@
 #   -h, --help        Show help message
 #   --auto            Automated setup with defaults (no prompts)
 #   -d, --dev         Development mode (includes debug tools)
-#   -p, --prod        Production mode (optimized build)
+#   -p, --prod        Production profile (optimized, hardened, verified build)
 #   --skip-deps       Skip dependency installation
 #   --skip-db         Skip database setup (NOT RECOMMENDED - database is required)
 #   --install-systemd Install/update only the canonical systemd unit
@@ -292,6 +292,16 @@ EOF
     print_msg "$GREEN" "Database setup complete!"
 }
 
+# Fail the deployment when the installed executable lacks a required
+# production hardening property.
+verify_production_binary() {
+    print_msg "$GREEN" "Verifying production hardening of bin/luminari..."
+    if ! "$PROJECT_ROOT/scripts/deployment/verify_hardened_binary.sh" "$PROJECT_ROOT/bin/luminari"; then
+        print_msg "$RED" "Production binary failed the hardening check"
+        exit 1
+    fi
+}
+
 # Function to build the project
 build_project() {
     print_header "Building LuminariMUD"
@@ -317,10 +327,12 @@ build_project() {
             chmod +x unittests/CuTest/make-tests.sh
         fi
 
-        # Configure
+        # Configure.  configure.ac makes unknown options fatal, so a
+        # misspelled or removed profile can never silently fall back to the
+        # default flags.
         print_msg "$GREEN" "Running configure..."
         if [[ "$BUILD_TYPE" == "production" ]]; then
-            ./configure --enable-optimizations
+            ./configure --enable-production
         else
             ./configure
         fi
@@ -342,6 +354,10 @@ build_project() {
 
         print_msg "$GREEN" "Build and install complete: bin/luminari"
 
+        if [[ "$BUILD_TYPE" == "production" ]]; then
+            verify_production_binary
+        fi
+
     elif [[ -f CMakeLists.txt ]]; then
         print_msg "$GREEN" "Building with CMake..."
 
@@ -349,9 +365,10 @@ build_project() {
         rm -rf build
         mkdir -p build
 
-        # Configure
+        # Configure.  The production profile owns optimization and
+        # debug-symbol policy, so it replaces CMAKE_BUILD_TYPE.
         if [[ "$BUILD_TYPE" == "production" ]]; then
-            cmake -S . -B build/ -DCMAKE_BUILD_TYPE=Release
+            cmake -S . -B build/ -DLUMINARI_PRODUCTION=ON
         else
             cmake -S . -B build/ -DCMAKE_BUILD_TYPE=Debug
         fi
@@ -361,6 +378,10 @@ build_project() {
 
         # Install the immutable server release and utility binaries.
         cmake --install build/
+
+        if [[ "$BUILD_TYPE" == "production" ]]; then
+            verify_production_binary
+        fi
 
     else
         print_msg "$RED" "No build system found!"
@@ -998,7 +1019,7 @@ Options:
     -h, --help        Show this help message
     --auto            Automated setup with defaults (no prompts)
     -d, --dev         Development mode (includes debug tools)
-    -p, --prod        Production mode (optimized build)
+    -p, --prod        Production profile (optimized, hardened, verified build)
     --skip-deps       Skip dependency installation
     --skip-db         Skip database setup (NOT RECOMMENDED - database is REQUIRED)
     --init-world      Initialize minimal world data (enabled by default)
@@ -1012,7 +1033,7 @@ Examples:
     $0                            # RECOMMENDED: Full interactive setup (includes world init)
     $0 --auto                     # Automated setup with defaults
     $0 --dev                      # Development build with debug tools
-    $0 --prod                     # Production optimized build
+    $0 --prod                     # Production optimized and hardened build
     $0 --install-systemd          # Refresh the installed service definition
     $0 --install-systemd --restart-service
                                    # Refresh it and restart the service
