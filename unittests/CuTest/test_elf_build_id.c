@@ -7,7 +7,7 @@
 
 #include "CuTest.h"
 
-#include "../../src/conf.h"
+#include "conf.h"
 #include "../../src/sysdep.h"
 #include "../../src/elf_build_id.h"
 

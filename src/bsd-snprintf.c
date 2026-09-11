@@ -704,6 +704,11 @@ static void dopr_outch(char *buffer, size_t *currlen, size_t maxlen, char c)
 }
 #endif /* !defined(HAVE_SNPRINTF) || !defined(HAVE_VSNPRINTF) */
 
+/* A fortified C library wraps these names in macros; the fallback must define
+ * the plain functions. */
+#undef vsnprintf
+#undef snprintf
+
 #ifndef HAVE_VSNPRINTF
 int vsnprintf(char *str, size_t count, const char *fmt, va_list args)
 {

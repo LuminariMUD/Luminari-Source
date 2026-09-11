@@ -385,6 +385,28 @@ The harness exercises the production protocol parser without booting the MUD
 or opening a live network socket. See
 `docs/testing/PROTOCOL_PARSER_HARNESS.md` for its fixture and case matrix.
 
+Time the same parser paths with the flags under evaluation:
+
+```sh
+make -C unittests/CuTest protocol-bench
+```
+
+`PROTOCOL_BENCH_CFLAGS` and `PROTOCOL_BENCH_LDFLAGS` select the profile;
+`PROTOCOL_BENCH_ITERATIONS` bounds the run. The target prints the median,
+minimum, and maximum nanoseconds per iteration over five rounds. Measure on an
+idle host; the result is not comparable while other builds are running.
+
+## Production Profile Contract
+
+`make test` includes `test-production-profile`, which checks that
+`scripts/deployment/production_profile.sh` emits its four output keys with the
+`-O2 -g` policy, that a program built with those flags passes
+`scripts/deployment/verify_hardened_binary.sh`, that the same program built
+with the compiler's default flags fails it (the profile marker section is
+missing, whatever hardening the distribution applies on its own), and that the
+verifier names every property a deliberately degraded build lacks. Set `CC` to
+run it against another compiler. The CMake test is named `production-profile`.
+
 Run every maintained test path from the repository root with:
 
 ```sh
@@ -662,6 +684,11 @@ must not be added to the enforced suite.
   `ci-gcc` and `ci-clang` presets (`-Wall -Wextra -Werror`);
 - the supported Luminari behavioral suite;
 - root `make test-all`;
+- the hardened production profile on Autotools (GCC, GCC 14, Clang) and CMake
+  (GCC, Clang), rejecting the retired `--enable-optimizations` option,
+  verifying the linked server and test binaries, running the full
+  production-linked suite against that artifact, and verifying the installed
+  server;
 - ASan, UBSan, and bounded protocol fuzzing;
 - Valgrind on the production-linked suite;
 - MariaDB-backed fixed gcovr floors and coverage-artifact upload;

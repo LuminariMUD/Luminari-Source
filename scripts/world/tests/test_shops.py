@@ -81,6 +81,7 @@ class ShopConverterTests(unittest.TestCase):
         shlex.split(os.environ.get("CC", "gcc"))
         + ["-std=gnu2x", "-O1", "-g", "-Wall", "-Wextra", "-Werror",
            "-D_FORTIFY_SOURCE=3", "-I", str(root / "src")]
+        + shlex.split(os.environ.get("CPPFLAGS", ""))
         + shlex.split(os.environ.get("SHOPCONV_TEST_CFLAGS", ""))
         + [str(root / "util/shopconv.c"), "-o", str(cls.binary)],
         check=True, capture_output=True, text=True,

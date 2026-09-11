@@ -466,6 +466,7 @@ unittests/CuTest/vessel_tests
 unittests/CuTest/vessel_stress_test
 unittests/CuTest/protocol_parser_tests
 unittests/CuTest/protocol_parser_fuzz
+unittests/CuTest/protocol_parser_bench
 ascii_map.txt
 FRMUD-HEX-Aunauroch.jpg
 plan.md

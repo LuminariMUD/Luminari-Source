@@ -2,7 +2,7 @@
 
 #include "CuTest.h"
 
-#include "../../src/conf.h"
+#include "conf.h"
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"

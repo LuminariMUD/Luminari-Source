@@ -3,6 +3,9 @@
 set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+# CPPFLAGS lets a CMake tree point the preprocessor at its generated conf.h;
+# an Autotools tree already has src/conf.h.
+# shellcheck disable=SC2086
 default_dg_event=$(mktemp)
 default_event_runtime=$(mktemp)
 default_public_header=$(mktemp)
@@ -47,31 +50,31 @@ fi
 # product build sees them. Rollback APIs and selectors must disappear, not
 # merely remain unused.
 printf '#include "dgscript/dg_event.h"\n' |
-  "${CC:-cc}" -E -P -I"$project_root/src" -xc - >"$default_public_header"
+  "${CC:-cc}" ${CPPFLAGS:-} -E -P -I"$project_root/src" -xc - >"$default_public_header"
 if grep -Eq 'EVENTFUNC|EVENT_BACKEND_LEGACY_QUEUE|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(|event_handle_(cancel|time|is_live|is_queued)' \
     "$default_public_header"; then
   fail "the default public header exposes the rollback event facade"
 fi
 printf '#include "dgscript/dg_scripts.h"\n' |
-  "${CC:-cc}" -DLUMINARI_ENABLE_EVENT_ROLLBACK=0 -E -P \
+  "${CC:-cc}" ${CPPFLAGS:-} -DLUMINARI_ENABLE_EVENT_ROLLBACK=0 -E -P \
     -I"$project_root/src" -xc - >"$default_public_header"
 if grep -Eq 'EVENTFUNC|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(|event_handle_(cancel|time|is_live|is_queued)' \
     "$default_public_header"; then
   fail "an explicit zero rollback definition exposes the DG rollback facade"
 fi
-"${CC:-cc}" -E -P -I"$project_root/src" \
+"${CC:-cc}" ${CPPFLAGS:-} -E -P -I"$project_root/src" \
   "$project_root/src/dgscript/dg_event.c" >"$default_dg_event"
 if grep -Eq 'EVENT_BACKEND_LEGACY_QUEUE|legacy_event|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(|event_create(_[[:alnum:]_]+)?[[:space:]]*\(|queue_(init|enq|deq|head|key|free)[[:space:]]*\(' \
     "$default_dg_event"; then
   fail "the default timed-event implementation still contains rollback architecture"
 fi
-"${CC:-cc}" -DLUMINARI_ENABLE_EVENT_ROLLBACK=0 -E -P -I"$project_root/src" \
+"${CC:-cc}" ${CPPFLAGS:-} -DLUMINARI_ENABLE_EVENT_ROLLBACK=0 -E -P -I"$project_root/src" \
   "$project_root/src/dgscript/dg_event.c" >"$default_dg_event"
 if grep -Eq 'EVENT_BACKEND_LEGACY_QUEUE|legacy_event|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(|event_create(_[[:alnum:]_]+)?[[:space:]]*\(|queue_(init|enq|deq|head|key|free)[[:space:]]*\(' \
     "$default_dg_event"; then
   fail "an explicit zero rollback definition retains rollback implementation"
 fi
-"${CC:-cc}" -E -P -I"$project_root/src" \
+"${CC:-cc}" ${CPPFLAGS:-} -E -P -I"$project_root/src" \
   "$project_root/src/event_runtime.c" >"$default_event_runtime"
 if grep -Eq 'legacy_event|EVENT_BACKEND_LEGACY_QUEUE|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(' \
     "$default_event_runtime"; then

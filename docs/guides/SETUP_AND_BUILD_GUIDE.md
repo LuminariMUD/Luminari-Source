@@ -77,6 +77,26 @@ Edit local configuration without committing it. Never overwrite an existing
 World and text data must exist under `lib/`. Use the deployment script for a
 fresh minimal world rather than assembling the required indexes manually.
 
+## Production Profile
+
+The default configuration is the development build. Production deployments
+use the optimized and hardened profile, which both build systems derive from
+`scripts/deployment/production_profile.sh`:
+
+```bash
+./configure --enable-production
+make -j"$(nproc)"
+./scripts/deployment/verify_hardened_binary.sh ./luminari
+make test
+make install
+```
+
+Unknown configure options are fatal, so a misspelled profile cannot fall back
+to the default flags. `--enable-lto`, `--with-pgo-generate=DIR`, and
+`--with-pgo-use=PATH` are explicit, measured additions. The
+[deployment guide](../deployment/DEPLOYMENT_GUIDE.md#production-build-profile)
+records the flag policy, verification, and crash-symbolization workflow.
+
 ## CMake
 
 CMake is the supported secondary build. Use the checked-in presets, which
@@ -101,6 +121,15 @@ run by `make test`, CTest, and CI) fails when `Makefile.am` and
 installs an untouched `git archive HEAD` through both systems; CI runs it as
 a blocking job, and it is not part of `make test` because it rebuilds the
 tree twice.
+
+The production profile replaces `CMAKE_BUILD_TYPE`:
+
+```bash
+cmake -S . -B build -DLUMINARI_PRODUCTION=ON
+```
+
+`LUMINARI_LTO`, `LUMINARI_PGO_GENERATE`, and `LUMINARI_PGO_USE` mirror the
+Autotools options.
 
 ## Run and Verify
 

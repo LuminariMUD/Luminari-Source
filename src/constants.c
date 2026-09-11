@@ -43,6 +43,16 @@ cpp_extern const char *const luminari_version = "LuminariMUD 2.5063-beta (tbaMUD
 cpp_extern const char *const luminari_build_git_commit = LUMINARI_BUILD_GIT_COMMIT;
 cpp_extern const bool luminari_build_git_dirty = LUMINARI_BUILD_GIT_DIRTY != 0;
 
+/* scripts/deployment/production_profile.sh defines LUMINARI_PRODUCTION_PROFILE
+ * in the production CFLAGS.  This marker section lets
+ * scripts/deployment/verify_hardened_binary.sh prove the profile reached the
+ * compile line, rather than trusting hardening that a distribution compiler
+ * may apply by default. */
+#ifdef LUMINARI_PRODUCTION_PROFILE
+const char luminari_production_profile[] __attribute__((used, section(".luminari.profile"))) =
+    "LuminariMUD production profile";
+#endif
+
 /* strings corresponding to ordinals/bitvectors in structs.h */
 
 /* Luminari moon names */

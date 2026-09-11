@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 import json
+import os
 import re
+import shlex
 import subprocess
 import tempfile
 import unittest
@@ -2302,6 +2304,7 @@ class RolTransformTests(unittest.TestCase):
     preprocessed = subprocess.run(
         [
             "cc",
+            *shlex.split(os.environ.get("CPPFLAGS", "")),
             "-E",
             "-P",
             f"-I{self.root / 'src'}",
@@ -2358,6 +2361,7 @@ class RolTransformTests(unittest.TestCase):
     preprocessed = subprocess.run(
         [
             "cc",
+            *shlex.split(os.environ.get("CPPFLAGS", "")),
             "-E",
             "-P",
             f"-I{source_root / 'src'}",
