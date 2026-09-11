@@ -54,7 +54,7 @@ Enable AI agents to create rich, contextual hints for geographic regions that en
 
 ### Data Flow Architecture
 ```
-AI Agent → Your MCP API → MySQL Database → C Game Engine → Dynamic Descriptions → Players
+AI Agent -> Your MCP API -> MySQL Database -> C Game Engine -> Dynamic Descriptions -> Players
 ```
 
 ### Phase-by-Phase Implementation
@@ -101,7 +101,7 @@ AI Agent → Your MCP API → MySQL Database → C Game Engine → Dynamic Descr
 1. Extend your MCP API to accept region hint submissions
 2. Create validation for incoming hint data
 3. Develop AI agent prompts for consistent hint generation
-4. Test end-to-end AI → Database → Game flow
+4. Test end-to-end AI -> Database -> Game flow
 
 **Deliverables**:
 - API endpoint documentation

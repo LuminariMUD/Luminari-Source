@@ -1,13 +1,13 @@
 ## Client Capabilities and Player Preferences
 
 ### Purpose
-This document explains how the game handles client capability auto-detection (colors, UTF‑8, window size, protocols) and player preference flags (PRFs), when these are applied, what persists, and where the code lives. It also captures edge cases and recommended improvements.
+This document explains how the game handles client capability auto-detection (colors, UTF-8, window size, protocols) and player preference flags (PRFs), when these are applied, what persists, and where the code lives. It also captures edge cases and recommended improvements.
 
 ### TL;DR
-- **On connect** (no player logged in): the server negotiates what the terminal/client supports. It does not change any player’s saved preferences.
+- **On connect** (no player logged in): the server negotiates what the terminal/client supports. It does not change any player's saved preferences.
 - **On login**: the server loads the character and applies their saved PRF preferences. Final behavior = your preference AND what the client actually supports.
 - **New characters**: get one-time helpful PRF defaults (autoexits, HP/move/actions in prompt, automap). If the client supports colors, color PRFs are enabled once at creation unless changed later by the player.
-- **Persistence today**: PRF flags persist. Among protocol flags, only UTF‑8, 256‑color, and GMCP persist; others (ANSI, MSDP, MXP, CHARSET, MSP) are re-detected each connection and not saved.
+- **Persistence today**: PRF flags persist. Among protocol flags, only UTF-8, 256-color, and GMCP persist; others (ANSI, MSDP, MXP, CHARSET, MSP) are re-detected each connection and not saved.
 
 ### Connection-time client auto-detection (no character yet)
 When a socket connects, the server starts the protocol capability negotiation flow. This determines what the client supports and populates per-descriptor protocol variables (not PRFs):
@@ -30,7 +30,7 @@ When a socket connects, the server starts the protocol capability negotiation fl
   }
 ```
 
-The negotiation includes TTYPE, NAWS (window size), CHARSET (UTF‑8), MSDP, GMCP, MXP, MSP, and optionally MCCP. Example: UTF‑8 request/acceptance handling:
+The negotiation includes TTYPE, NAWS (window size), CHARSET (UTF-8), MSDP, GMCP, MXP, MSP, and optionally MCCP. Example: UTF-8 request/acceptance handling:
 
 ```2043:2051:src/net/protocol.c
   case (char)TELOPT_CHARSET:
@@ -51,7 +51,7 @@ The negotiation includes TTYPE, NAWS (window size), CHARSET (UTF‑8), MSDP, GMC
         pProtocol->pVariables[eMSDP_UTF_8]->ValueInt = 1;
 ```
 
-The “protocols detected” screen shown to the user is produced by the event handler:
+The "protocols detected" screen shown to the user is produced by the event handler:
 
 ```2254:2288:src/interpreter.c
 /* protocol handling event */
@@ -67,7 +67,7 @@ EVENTFUNC(get_protocols)
 Important: all of this is per-connection capability data. No character PRF flags are changed here because no character is yet associated with the descriptor.
 
 ### Login-time preference loading (character exists)
-Once a player chooses a character and logs in, the server loads their PRF flags from the pfile and applies them. These are the player’s saved preferences.
+Once a player chooses a character and logs in, the server loads their PRF flags from the pfile and applies them. These are the player's saved preferences.
 
 Load-time PRF parsing (ASCII pfiles):
 
@@ -123,7 +123,7 @@ During character creation (not on every login), the code sets helpful defaults a
   SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTOMAP);
 ```
 
-Additionally, brand-new players may be prompted to enable “recommended preference flags,” which batch-enable many useful PRFs once:
+Additionally, brand-new players may be prompted to enable "recommended preference flags," which batch-enable many useful PRFs once:
 
 ```3814:3838:src/interpreter.c
     if (!strcmp(arg, "yes") || !strcmp(arg, "YES"))
@@ -203,9 +203,9 @@ Load-time of these persisted fields:
 
 ### Effective behavior
 - **Rule**: Output features = player PRF preference AND client capability.
-  - Example: Player sets color ON, client has color → color shown.
-  - Example: Player sets color ON, client has no color → no color shown.
-  - Example: Player sets color OFF → no color shown regardless of client support.
+  - Example: Player sets color ON, client has color -> color shown.
+  - Example: Player sets color ON, client has no color -> no color shown.
+  - Example: Player sets color OFF -> no color shown regardless of client support.
 
 This is enforced in the color helpers, which check PRF flags before using protocol variables:
 
@@ -222,7 +222,7 @@ This is enforced in the color helpers, which check PRF flags before using protoc
 ### Edge cases and gotchas
 - **New character color default**: `init_char()` enables color PRFs if the connecting client supports colors. This happens once at creation; players can later change color level in `prefedit`.
 - **Recommended flags prompt**: New players may accept a batch of PRF toggles; this is intentional and one-time.
-- **Non-persisted protocol toggles**: ANSI/MSDP/MXP/CHARSET/MSP toggles in `prefedit` don’t persist today—next connection will re-detect them. This can surprise users expecting those to “stick.”
+- **Non-persisted protocol toggles**: ANSI/MSDP/MXP/CHARSET/MSP toggles in `prefedit` don't persist today - next connection will re-detect them. This can surprise users expecting those to "stick."
 - **Login cleanup**: `PRF_BUILDWALK` is cleared on login for safety.
 
 ### Files involved
@@ -242,20 +242,20 @@ This is enforced in the color helpers, which check PRF flags before using protoc
    - Post-negotiation, apply: final = capability AND user choice. This preserves user intent while never enabling unsupported features.
 
 2. **Make color PRF for new characters strictly user-driven (optional)**
-   - Remove auto-enabling `PRF_COLOR_1|2` from `init_char()`; default color level could be “Normal” or “Off” independent of client detection.
+   - Remove auto-enabling `PRF_COLOR_1|2` from `init_char()`; default color level could be "Normal" or "Off" independent of client detection.
 
 3. **Document order of operations**
-   - Explicitly note in docs/help: connect → detect capabilities; login → load PRFs; new chars get defaults; effective behavior is intersection.
+   - Explicitly note in docs/help: connect -> detect capabilities; login -> load PRFs; new chars get defaults; effective behavior is intersection.
 
 ### Testing checklist
-- Connect with different clients (ANSI-only, 256-color, no color, UTF‑8 on/off). Confirm protocol screen matches capabilities.
+- Connect with different clients (ANSI-only, 256-color, no color, UTF-8 on/off). Confirm protocol screen matches capabilities.
 - Create a new character; verify one-time defaults (autoexits, HP/move/actions, automap). Verify color PRFs only enabled if client supports colors (current behavior).
 - Change PRFs in `prefedit`; relog to confirm PRFs persist.
 - Toggle protocol settings in `prefedit`:
-  - Confirm UTF‑8, 256-color, GMCP persist across relogs.
+  - Confirm UTF-8, 256-color, GMCP persist across relogs.
   - Confirm ANSI/MSDP/MXP/CHARSET/MSP revert to negotiated state after reconnect.
 - Verify that color output disappears if PRF color is off even when client supports colors (effective behavior rule).
 
 ### Notes
-- Effective behavior is designed to be safe: we never try to send what the client won’t accept; and we never override a player’s PRF with connect-time detection.
-- The only PRF mutations outside `prefedit` are one-time new-character defaults and the “recommended flags” prompt.
+- Effective behavior is designed to be safe: we never try to send what the client won't accept; and we never override a player's PRF with connect-time detection.
+- The only PRF mutations outside `prefedit` are one-time new-character defaults and the "recommended flags" prompt.

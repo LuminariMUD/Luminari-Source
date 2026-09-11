@@ -74,7 +74,7 @@ Claude feedback on what to do differently.
 
 ### Step 2: Add a matcher
 
-Select `+ Add new matcher…` to run your hook only on Bash tool calls.
+Select `+ Add new matcher...` to run your hook only on Bash tool calls.
 
 Type `Bash` for the matcher.
 
@@ -82,7 +82,7 @@ Type `Bash` for the matcher.
 
 ### Step 3: Add the hook
 
-Select `+ Add new hook…` and enter this command:
+Select `+ Add new hook...` and enter this command:
 
 ```bash
 jq -r '"\(.tool_input.command) - \(.tool_input.description // "No description")"' >> ~/.claude/bash-command-log.txt
@@ -263,7 +263,7 @@ try:
         if formatted != content:
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(formatted)
-            print(f"✓ Fixed markdown formatting in {file_path}")
+            print(f"[OK] Fixed markdown formatting in {file_path}")
 
 except Exception as e:
     print(f"Error formatting markdown: {e}", file=sys.stderr)

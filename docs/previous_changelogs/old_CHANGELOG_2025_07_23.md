@@ -109,9 +109,9 @@ for (index = 1; index < MAX_ITEMS; index++) {
 
 ### Testing Verification
 After the fix:
-- `feat info dragon mount` → Finds FEAT_DRAGON_BOND (exact match)
-- `feat info dragon mount boost` → Finds FEAT_DRAGON_MOUNT_BOOST (exact match)
-- `feat info drag` → Still finds first feat starting with "drag" (abbreviation)
+- `feat info dragon mount` -> Finds FEAT_DRAGON_BOND (exact match)
+- `feat info dragon mount boost` -> Finds FEAT_DRAGON_MOUNT_BOOST (exact match)
+- `feat info drag` -> Still finds first feat starting with "drag" (abbreviation)
 - Similar improvements for evolution, skill, ability, and discovery searches
 
 ## [2025-07-23] - Enhanced DG Scripts Safety and Room Validation
@@ -147,7 +147,7 @@ Fixed additional segmentation faults in the DG Scripts system by adding comprehe
 - **Lines 11-13**: Added reminder message for changing directories after deployment
 
 ### Technical Details
-- **Error Path**: heartbeat() → script_trigger_check() → random_otrigger() → script_driver() → process_if() → eval_expr() → var_subst() → find_replacement()
+- **Error Path**: heartbeat() -> script_trigger_check() -> random_otrigger() -> script_driver() -> process_if() -> eval_expr() -> var_subst() -> find_replacement()
 - The crash occurred when find_replacement() tried to access world[invalid_room].people
 - All room access now uses VALID_ROOM_RNUM macro for consistent validation
 - The fixes handle cases where obj_room() returns NOWHERE or invalid positive numbers

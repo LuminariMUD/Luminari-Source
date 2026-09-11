@@ -96,7 +96,7 @@ Each resource type has a different base regeneration rate per hour:
 ### Calculation Formula
 
 ```
-Final Regeneration = Base Rate × Seasonal Modifier × Weather Modifier × Hours Elapsed
+Final Regeneration = Base Rate * Seasonal Modifier * Weather Modifier * Hours Elapsed
 ```
 
 ### Regeneration Caps

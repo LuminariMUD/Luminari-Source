@@ -28,10 +28,10 @@
     - Fields already existed in player_special_data_saved: `score_layout_template` and `score_section_order[8]`
     - Defined 5 layout templates: Default, Combat, Roleplay, Explorer, Caster
     - Each template reorders sections to prioritize relevant information:
-      - Combat: Combat → Vitals → Abilities → Equipment → Magic → Identity → Experience → Wealth
-      - Roleplay: Identity → Abilities → Wealth → Equipment → Vitals → Experience → Magic → Combat
-      - Explorer: Vitals → Abilities → Equipment → Identity → Experience → Wealth → Magic → Combat  
-      - Caster: Magic → Vitals → Abilities → Identity → Experience → Equipment → Combat → Wealth
+      - Combat: Combat -> Vitals -> Abilities -> Equipment -> Magic -> Identity -> Experience -> Wealth
+      - Roleplay: Identity -> Abilities -> Wealth -> Equipment -> Vitals -> Experience -> Magic -> Combat
+      - Explorer: Vitals -> Abilities -> Equipment -> Identity -> Experience -> Wealth -> Magic -> Combat  
+      - Caster: Magic -> Vitals -> Abilities -> Identity -> Experience -> Equipment -> Combat -> Wealth
     - Template selection integrated with existing scoreconfig command
     - Added `get_template_section_order()` function to retrieve template arrays
   - **Phase 2.7 - Section Ordering**: Custom section ordering fully implemented
@@ -80,14 +80,14 @@
     - Enhanced scoreconfig validation and display for new themes
 - **Enhanced Score Display (do_skore) - Phase 2.1 & 2.2 Complete**: Extended the enhanced character display with visual polish features:
   - **Phase 2.1 - Class Borders**: Added decorative borders themed by character class
-    - Warriors/Berserkers/Monks: Red borders (╔═══╗)
+    - Warriors/Berserkers/Monks: Red borders (+===+)
     - Wizards/Sorcerers/Bards: Blue borders
     - Clerics/Druids/Paladins/Rangers: Green borders
     - Rogues: Magenta borders
     - Other classes: Cyan borders
     - Toggle with `scoreconfig borders on/off`
   - **Phase 2.2 - Race Symbols**: Added unique symbols for each race
-    - Each race has a distinctive symbol (Human: ☺, Elf: ♠, Dwarf: ♦, etc.)
+    - Each race has a distinctive symbol (Human: U+263A smiling face, Elf: U+2660 spade, Dwarf: U+2666 diamond, etc.)
     - Symbols display next to race name in identity panel
     - Toggle with `scoreconfig symbols on/off`
   - **Implementation Details:**

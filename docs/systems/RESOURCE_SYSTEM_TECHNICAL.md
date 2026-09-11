@@ -7,54 +7,54 @@
 
 ---
 
-## 🏗️ **System Architecture**
+## **System Architecture**
 
 ### **Core Components**
 
 ```
 Resource System Architecture
-┌─────────────────────────────────────────────────┐
-│                 User Interface                  │
-├─────────────────────────────────────────────────┤
-│  survey commands     │   resourceadmin commands │
-│  (act.informative.c) │   (act.wizard.c)        │
-├─────────────────────────────────────────────────┤
-│              Resource Calculation Engine         │
-│              (resource_system.c)                │
-├─────────────────────────────────────────────────┤
-│   Spatial Cache    │    Perlin Noise    │  KD-Tree │
-│   (Phase 3)        │    (wilderness.c)  │  (kdtree.c)│
-├─────────────────────────────────────────────────┤
-│                  Data Storage                   │
-│    Memory Cache    │    File System     │  MySQL   │
-└─────────────────────────────────────────────────┘
+.-------------------------------------------------.
+|                 User Interface                  |
+|-------------------------------------------------|
+|  survey commands     |   resourceadmin commands |
+|  (act.informative.c) |   (act.wizard.c)        |
+|-------------------------------------------------|
+|              Resource Calculation Engine         |
+|              (resource_system.c)                |
+|-------------------------------------------------|
+|   Spatial Cache    |    Perlin Noise    |  KD-Tree |
+|   (Phase 3)        |    (wilderness.c)  |  (kdtree.c)|
+|-------------------------------------------------|
+|                  Data Storage                   |
+|    Memory Cache    |    File System     |  MySQL   |
+`-------------------------------------------------'
 ```
 
 ### **File Structure**
 
 ```
 src/
-├── resource_system.h        # Main header with structures and declarations
-├── resource_system.c        # Core implementation with caching
-├── act.informative.c        # Enhanced survey commands
-├── act.wizard.c            # resourceadmin command implementation
-├── interpreter.c           # Command registration
-├── wilderness.h            # Perlin noise layer definitions
-├── wilderness.c            # Existing Perlin noise functions
-└── kdtree.c               # KD-tree utilities for spatial indexing
+|-- resource_system.h        # Main header with structures and declarations
+|-- resource_system.c        # Core implementation with caching
+|-- act.informative.c        # Enhanced survey commands
+|-- act.wizard.c            # resourceadmin command implementation
+|-- interpreter.c           # Command registration
+|-- wilderness.h            # Perlin noise layer definitions
+|-- wilderness.c            # Existing Perlin noise functions
+`-- kdtree.c               # KD-tree utilities for spatial indexing
 
 docs/
-├── guides/
-│   └── RESOURCE_SYSTEM_REFERENCE.md   # Command and configuration reference
-├── systems/
-│   └── RESOURCE_REGENERATION_SYSTEM.md # Resource regeneration details
-└── testing/
-    └── RESOURCE_SYSTEM_TESTING.md     # Testing guide
+|-- guides/
+|   `-- RESOURCE_SYSTEM_REFERENCE.md   # Command and configuration reference
+|-- systems/
+|   `-- RESOURCE_REGENERATION_SYSTEM.md # Resource regeneration details
+`-- testing/
+    `-- RESOURCE_SYSTEM_TESTING.md     # Testing guide
 ```
 
 ---
 
-## 💾 **Data Structures**
+## **Data Structures**
 
 ### **Resource Configuration**
 
@@ -98,7 +98,7 @@ struct resource_node {
 
 ---
 
-## ⚙️ **Core Functions**
+## **Core Functions**
 
 ### **Primary API Functions**
 
@@ -134,129 +134,19 @@ int cache_get_stats(int *total_nodes, int *expired_nodes);
 
 ```c
 /* Resource visualization */
-char get_resource_map_symbol(float level);
-const char *get_resource_color(float level);
-const char *get_abundance_description(float level);
+char get_resource_map_symbol_with_coords(float level, int x, int y) {
+    /* Coordinate-based micro-variation softens threshold boundaries. */
+    float micro_noise = ((x * 7 + y * 13) % 100) / 2000.0; /* +/-0.025 */
+    float adjusted_level = level + micro_noise;
+    if (adjusted_level < 0.0) adjusted_level = 0.0;
+    if (adjusted_level > 1.0) adjusted_level = 1.0;
 
-/* Survey command implementations */
-void show_resource_survey(struct char_data *ch);
-void show_resource_map(struct char_data *ch, int resource_type, int radius);
-void show_debug_survey(struct char_data *ch);
-```
-
----
-
-## 🔧 **Configuration Parameters**
-
-### **Cache Settings**
-
-```c
-#define RESOURCE_CACHE_LIFETIME 300        /* Cache lifetime: 5 minutes */
-#define RESOURCE_CACHE_MAX_NODES 1000      /* Maximum cached nodes */
-#define RESOURCE_CACHE_GRID_SIZE 10        /* Cache grid: every 10 coords */
-```
-
-### **Resource Types and Noise Layers**
-
-```c
-#define NUM_RESOURCE_TYPES 10
-
-/* Perlin noise layer assignments */
-#define NOISE_VEGETATION 4      /* Layer 4: Vegetation */
-#define NOISE_MINERALS 5        /* Layer 5: Minerals */
-#define NOISE_WATER_RESOURCE 6  /* Layer 6: Water */
-#define NOISE_HERBS 7           /* Layer 7: Herbs */
-#define NOISE_GAME 8            /* Layer 8: Game animals */
-#define NOISE_WOOD 9            /* Layer 9: Wood/timber */
-#define NOISE_STONE 10          /* Layer 10: Stone */
-#define NOISE_CRYSTAL 11        /* Layer 11: Crystal */
-/* Minerals layer (5) shared by clay */
-/* Water layer (6) shared by salt */
-```
-
-### **Resource Configuration Array**
-
-```c
-struct resource_config resource_configs[NUM_RESOURCE_TYPES] = {
-    /* {layer, mult, regen, threshold, quality, seasonal, weather, skill, name, description} */
-    {NOISE_VEGETATION, 1.0, 0.2, 0.8, 20, true, true, SKILL_FORESTING, "vegetation", "General plant life"},
-    {NOISE_MINERALS, 0.3, 0.01, 0.9, 30, false, false, SKILL_MINING, "minerals", "Ores and metals"},
-    {NOISE_WATER_RESOURCE, 1.2, 0.5, 0.6, 10, false, true, SKILL_FORESTING, "water", "Fresh water"},
-    {NOISE_HERBS, 0.4, 0.1, 0.7, 40, true, true, SKILL_FORESTING, "herbs", "Medicinal plants"},
-    {NOISE_GAME, 0.6, 0.15, 0.5, 25, true, false, SKILL_HUNTING, "game", "Huntable animals"},
-    {NOISE_WOOD, 0.8, 0.05, 0.9, 15, true, false, SKILL_FORESTING, "wood", "Harvestable timber"},
-    {NOISE_STONE, 0.5, 0.005, 0.95, 5, false, false, SKILL_MINING, "stone", "Building materials"},
-    {NOISE_CRYSTAL, 0.1, 0.001, 0.99, 50, false, false, SKILL_MINING, "crystal", "Magical crystals"},
-    {NOISE_MINERALS, 0.3, 0.02, 0.8, 15, false, true, SKILL_MINING, "clay", "Clay deposits"},
-    {NOISE_WATER_RESOURCE, 0.2, 0.03, 0.7, 20, false, true, SKILL_MINING, "salt", "Salt deposits"}
-};
-```
-
----
-
-## 🔄 **Calculation Flow**
-
-### **Resource Level Calculation Process**
-
-```
-1. Input: (resource_type, x, y)
-   ↓
-2. Cache Check: cache_find_resource_values(x, y)
-   ↓ [Cache MISS]
-3. Base Calculation: PerlinNoise2D(layer, norm_x, norm_y, ...)
-   ↓
-4. Normalization: ((noise + 1.0) / 2.0) * base_multiplier
-   ↓
-5. Region Modifiers: apply_region_resource_modifiers(...)
-   ↓
-6. Environmental Modifiers: apply_environmental_modifiers(...)
-   ↓
-7. Harvest History: apply_harvest_regeneration(...)
-   ↓
-8. Range Limiting: LIMIT(value, 0.0, 1.0)
-   ↓
-9. Cache Storage: cache_store_resource_values(x, y, all_values)
-   ↓
-10. Return: final_resource_level
-```
-
-### **Coordinate Normalization**
-
-```c
-/* Convert world coordinates to Perlin noise coordinates */
-double norm_x = x / (double)(WILD_X_SIZE / 4.0);    /* WILD_X_SIZE = 2048 */
-double norm_y = y / (double)(WILD_Y_SIZE / 4.0);    /* WILD_Y_SIZE = 2048 */
-
-/* Example: coordinate (-15, -6) becomes (-0.029, -0.012) */
-```
-
-### **Cache Grid System**
-
-```c
-/* Snap coordinates to cache grid */
-static void get_cache_coordinates(int x, int y, int *cache_x, int *cache_y) {
-    *cache_x = (x / RESOURCE_CACHE_GRID_SIZE) * RESOURCE_CACHE_GRID_SIZE;
-    *cache_y = (y / RESOURCE_CACHE_GRID_SIZE) * RESOURCE_CACHE_GRID_SIZE;
-}
-
-/* Example: coordinates (-15, -6) snap to cache grid (-20, -10) */
-```
-
----
-
-## 🎨 **Visual System**
-
-### **Resource Density Symbols**
-
-```c
-char get_resource_map_symbol(float level) {
-    if (level >= 0.9) return '█';         /* Very high (90%+) */
-    if (level >= 0.7) return '▓';         /* High (70-89%) */
-    if (level >= 0.5) return '▒';         /* Medium-high (50-69%) */
-    if (level >= 0.3) return '░';         /* Medium (30-49%) */
-    if (level >= 0.1) return '▪';         /* Low (10-29%) */
-    if (level >= 0.05) return '·';        /* Very low (5-9%) */
-    return ' ';                           /* None (0-4%) */
+    if (adjusted_level >= 0.75) return '#'; /* Very rich */
+    if (adjusted_level >= 0.55) return '*'; /* Rich */
+    if (adjusted_level >= 0.35) return '+'; /* Moderate */
+    if (adjusted_level >= 0.15) return '.'; /* Poor */
+    if (adjusted_level >= 0.03) return ','; /* Trace */
+    return ' ';                             /* None */
 }
 ```
 
@@ -275,7 +165,7 @@ const char *get_resource_color(float level) {
 
 ---
 
-## 🔍 **Debugging and Monitoring**
+## **Debugging and Monitoring**
 
 ### **Debug Output Interpretation**
 
@@ -311,7 +201,7 @@ Spatial Cache Statistics:
 
 ---
 
-## 🛠️ **Integration Points**
+## **Integration Points**
 
 ### **Existing System Integration**
 
@@ -331,7 +221,7 @@ Spatial Cache Statistics:
 
 ---
 
-## ⚡ **Performance Considerations**
+## **Performance Considerations**
 
 ### **Memory Usage**
 
@@ -353,7 +243,7 @@ Spatial Cache Statistics:
 
 ---
 
-## 🚨 **Error Handling**
+## **Error Handling**
 
 ### **Common Error Conditions**
 
@@ -370,7 +260,7 @@ Spatial Cache Statistics:
 
 ---
 
-## 📈 **Future Development Roadmap**
+## **Future Development Roadmap**
 
 ### **Phase 4: Region Integration (Planned)**
 - Biome-specific resource modifiers

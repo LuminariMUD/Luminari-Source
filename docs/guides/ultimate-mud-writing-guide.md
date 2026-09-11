@@ -45,18 +45,18 @@ Before writing a single description, crystallize your zone's purpose:
 ### The Golden Rules
 
 #### 1. **Show, Don't Tell (or Command)**
-❌ "You feel a chill run down your spine."  
-✅ "A sudden drop in temperature raises goosebumps along exposed skin."
+[X] "You feel a chill run down your spine."  
+[OK] "A sudden drop in temperature raises goosebumps along exposed skin."
 
-❌ "The sight makes you sick."  
-✅ "The stench of decay mingles with something sweeter, more cloying."
+[X] "The sight makes you sick."  
+[OK] "The stench of decay mingles with something sweeter, more cloying."
 
 #### 2. **Active Voice Reigns Supreme**
-❌ "The room is filled with dusty books."  
-✅ "Dusty tomes crowd every available surface."
+[X] "The room is filled with dusty books."  
+[OK] "Dusty tomes crowd every available surface."
 
-❌ "There is a fountain that is broken."  
-✅ "A cracked fountain spills water across crumbling tiles."
+[X] "There is a fountain that is broken."  
+[OK] "A cracked fountain spills water across crumbling tiles."
 
 #### 3. **Every Room is Unique**
 Never clone descriptions. Even similar rooms deserve individual attention. Players will stop reading if they encounter copy-paste content.
@@ -95,10 +95,10 @@ Every detail should whisper stories:
 - Keep them concise but descriptive
 
 **Examples:**
-- ✅ "Beneath the Weeping Willow"
-- ✅ "The Alchemist's Ruined Workshop"
-- ❌ "A Room"
-- ❌ "Main Street"
+- [OK] "Beneath the Weeping Willow"
+- [OK] "The Alchemist's Ruined Workshop"
+- [X] "A Room"
+- [X] "Main Street"
 
 **Never:**
 - End titles with periods
@@ -128,16 +128,16 @@ rituals.
 ### Avoiding Common Description Sins
 
 #### **Directional Bias**
-❌ "To the north, you see a castle."  
-✅ "A castle's silhouette dominates the horizon."
+[X] "To the north, you see a castle."  
+[OK] "A castle's silhouette dominates the horizon."
 
 #### **Movement Bias**
-❌ "As you walk along the path..."  
-✅ "A winding path cuts through the underbrush."
+[X] "As you walk along the path..."  
+[OK] "A winding path cuts through the underbrush."
 
 #### **Temporal Bias**
-❌ "The morning sun shines brightly."  
-✅ "Daylight filters through the canopy." (if your MUD has day/night cycles)
+[X] "The morning sun shines brightly."  
+[OK] "Daylight filters through the canopy." (if your MUD has day/night cycles)
 
 ---
 
@@ -151,7 +151,7 @@ Every mob should feel like it belongs:
 ```
 This grizzled merchant's face tells a story of hard-won success, deep lines
 mapping years of sharp deals and narrow escapes. His fingers, adorned with
-gaudy rings, never stop moving—counting invisible coins or reaching for
+gaudy rings, never stop moving - counting invisible coins or reaching for
 goods that aren't there.
 ```
 
@@ -184,7 +184,7 @@ Every major noun in your descriptions should be interactive:
 - **Complex features** that would bloat room descriptions
 - **Hidden clues** for observant players
 - **Lore drops** that reward exploration
-- **Multiple examination layers** (look painting → look signature → look date)
+- **Multiple examination layers** (look painting -> look signature -> look date)
 
 ### Best Practices
 
@@ -194,9 +194,9 @@ Every major noun in your descriptions should be interactive:
 4. **Progressive Detail** - Each examination can reveal more
 
 **Example Chain:**
-- `look altar` → Reveals bloodstains
-- `look bloodstains` → Shows they form a pattern
-- `look pattern` → Recognizable as a summoning circle
+- `look altar` -> Reveals bloodstains
+- `look bloodstains` -> Shows they form a pattern
+- `look pattern` -> Recognizable as a summoning circle
 
 ---
 
@@ -281,7 +281,7 @@ Before considering your zone complete:
 
 Building great MUD zones is both art and craft. Your descriptions are the lens through which players experience your world. Make every word count, every room memorable, and every interaction meaningful.
 
-Remember: **You're not just building rooms—you're crafting experiences.**
+Remember: **You're not just building rooms - you're crafting experiences.**
 
 ### The Ultimate Test
 

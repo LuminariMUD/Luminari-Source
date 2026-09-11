@@ -134,7 +134,7 @@
 ## 2025-08-09 (Lists System - Session 5 - Performance Optimization)
 ### Fixed
 - **Lists System Performance Optimization**:
-  - **Fixed O(n²) performance issue in free_list()**: Function now runs in O(n) time
+  - **Fixed O(n^2) performance issue in free_list()**: Function now runs in O(n) time
     - Previously used remove_from_list() which performed O(n) search for each item
     - Now directly traverses and frees nodes without searching
     - Significant performance improvement when freeing large lists
@@ -152,7 +152,7 @@
     - Clear explanation of why first list becomes global_lists itself
     - Helps beginners understand the self-referential pattern
   - **free_list() documentation**: Added performance optimization note
-    - Explains the O(n²) to O(n) improvement for future maintainers
+    - Explains the O(n^2) to O(n) improvement for future maintainers
 
 ### Summary
 - Eliminated performance bottleneck in list cleanup operations

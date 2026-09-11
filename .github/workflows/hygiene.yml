@@ -1,0 +1,23 @@
+name: Source Hygiene
+
+# Runs on every push and pull request: the checks are cheap and a tracked
+# build product or malformed text can arrive from any path in the tree.
+on:
+  push:
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hygiene:
+    name: Artifacts, encoding, and ASCII docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Check tracked files
+        run: python3 scripts/ci/check_source_hygiene.py

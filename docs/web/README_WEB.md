@@ -2,7 +2,7 @@
 
 This directory contains the public-facing web documentation portal for LuminariMUD, deployed via GitHub Pages.
 
-## 📍 Live Site
+## Live Site
 
 Once deployed, the portal is accessible at:
 - **Main Website**: https://luminarimud.com/ (Play the game!)
@@ -11,54 +11,54 @@ Once deployed, the portal is accessible at:
 
 ---
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```
 docs/web/
-├── index.html              # Main landing page with sections for resources/guides
-├── README_WEB.md           # This documentation file
-├── spells/
-│   ├── by_class.html       # Interactive spell reference organized by class
-│   └── reference.html      # Alphabetical spell reference
-├── objects/
-│   ├── index.html          # Object database search interface
-│   └── README_OBJ.md       # Object database documentation
-├── guides/
-│   ├── oedit.html          # OEDIT Guide - object editor reference
-│   ├── mob_flags.html      # MOB Flags Reference - mobile behavior flags
-│   └── room_flags.html     # Room Flags Reference - room property flags
-├── dg-scripts/
-│   ├── index.html          # DG Scripts landing page and documentation hub
-│   ├── getting-started.html # First-trigger tutorial and execution model
-│   ├── trigger-types.html  # Complete mobile/object/room event matrix
-│   ├── commands.html       # Core and owner-specific command reference
-│   ├── variables.html      # Scope, UIDs, fields, and substitution reference
-│   ├── trigedit.html       # Trigger editing and permanent attachment workflow
-│   ├── staff-commands.html # Runtime inspection and repair commands
-│   ├── testing.html        # Static and in-game verification workflow
-│   ├── architecture.html   # Runtime data flow and source map
-│   └── dollhouse.html      # Public case study from zone 118
-├── data/
-│   └── objects.json        # Object database data (generated from MySQL)
-└── assets/
-    ├── css/
-    │   ├── style.css           # Shared portal stylesheet
-    │   └── dg-scripts.css      # DG Scripts editorial documentation theme
-    ├── js/
-    │   ├── dg-reference.js     # Source-backed DG inventories
-    │   └── dg-docs.js          # Navigation, filters, tables, and copy controls
-    ├── img/                    # Images and graphics (future)
-    └── pandoc-template.html    # Template for markdown→HTML conversion
+|-- index.html              # Main landing page with sections for resources/guides
+|-- README_WEB.md           # This documentation file
+|-- spells/
+|   |-- by_class.html       # Interactive spell reference organized by class
+|   `-- reference.html      # Alphabetical spell reference
+|-- objects/
+|   |-- index.html          # Object database search interface
+|   `-- README_OBJ.md       # Object database documentation
+|-- guides/
+|   |-- oedit.html          # OEDIT Guide - object editor reference
+|   |-- mob_flags.html      # MOB Flags Reference - mobile behavior flags
+|   `-- room_flags.html     # Room Flags Reference - room property flags
+|-- dg-scripts/
+|   |-- index.html          # DG Scripts landing page and documentation hub
+|   |-- getting-started.html # First-trigger tutorial and execution model
+|   |-- trigger-types.html  # Complete mobile/object/room event matrix
+|   |-- commands.html       # Core and owner-specific command reference
+|   |-- variables.html      # Scope, UIDs, fields, and substitution reference
+|   |-- trigedit.html       # Trigger editing and permanent attachment workflow
+|   |-- staff-commands.html # Runtime inspection and repair commands
+|   |-- testing.html        # Static and in-game verification workflow
+|   |-- architecture.html   # Runtime data flow and source map
+|   `-- dollhouse.html      # Public case study from zone 118
+|-- data/
+|   `-- objects.json        # Object database data (generated from MySQL)
+`-- assets/
+    |-- css/
+    |   |-- style.css           # Shared portal stylesheet
+    |   `-- dg-scripts.css      # DG Scripts editorial documentation theme
+    |-- js/
+    |   |-- dg-reference.js     # Source-backed DG inventories
+    |   `-- dg-docs.js          # Navigation, filters, tables, and copy controls
+    |-- img/                    # Images and graphics (future)
+    `-- pandoc-template.html    # Template for markdown->HTML conversion
 ```
 
 ---
 
-## 🎨 Design System
+## Design System
 
 ### Color Palette
 The web portal uses a consistent purple gradient theme:
 
-- **Primary Gradient**: `#667eea` → `#764ba2`
+- **Primary Gradient**: `#667eea` -> `#764ba2`
 - **Primary Color**: `#667eea` (Interactive elements, headings)
 - **Secondary Color**: `#764ba2` (Accents)
 - **Text Colors**: `#212529` (dark), `#495057` (medium), `#6c757d` (light)
@@ -84,7 +84,7 @@ duplicating trigger, command, or field lists in individual pages.
 
 ---
 
-## ➕ Adding New Content
+## Adding New Content
 
 ### Adding a New HTML Page
 
@@ -135,7 +135,7 @@ duplicating trigger, command, or field lists in individual pages.
 
 ---
 
-## 📝 Converting Markdown to HTML
+## Converting Markdown to HTML
 
 We use **Pandoc** to convert markdown documentation to styled HTML pages.
 
@@ -244,7 +244,7 @@ Append a `source|output|title|subtitle` line to the `GUIDES` array in
 
 ---
 
-## 🔮 Updating Spell References
+## Updating Spell References
 
 The spell HTML files are generated from the game's spell data using Python scripts.
 
@@ -286,7 +286,7 @@ This makes them:
 
 ---
 
-## ⚔️ Updating Object Database
+## Updating Object Database
 
 The object database is a static HTML/JavaScript interface that loads data from a JSON file.
 
@@ -394,7 +394,7 @@ See `docs/web/objects/README_OBJ.md` for detailed documentation on:
 
 ---
 
-## 🎯 Best Practices
+## Best Practices
 
 ### File Naming Conventions
 
@@ -420,7 +420,7 @@ See `docs/web/objects/README_OBJ.md` for detailed documentation on:
 
 1. **Always link shared CSS**: Use `../assets/css/style.css` for consistency
 2. **Mobile-first**: Test on mobile devices or use browser dev tools
-3. **Semantic HTML**: Use proper heading hierarchy (h1 → h2 → h3)
+3. **Semantic HTML**: Use proper heading hierarchy (h1 -> h2 -> h3)
 4. **Accessibility**: Include alt text for images, proper ARIA labels
 5. **Performance**: Optimize images, minimize inline styles
 6. **SEO**: Include proper meta tags, descriptions, titles
@@ -442,7 +442,7 @@ Or use VS Code's Live Server extension.
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 ### How It Works
 
@@ -471,7 +471,7 @@ Trigger manually from GitHub Actions:
 
 Check deployment status:
 - **Actions Tab**: https://github.com/LuminariMUD/Luminari-Source/actions
-- **Look for**: 🟡 Yellow (running), ✅ Green (success), ❌ Red (failed)
+- **Look for**: Yellow (running), [OK] Green (success), [X] Red (failed)
 
 ### Important: .nojekyll File
 
@@ -481,18 +481,18 @@ The `docs/.nojekyll` file tells GitHub Pages **NOT to use Jekyll** for processin
 - Without `.nojekyll`: Jekyll processes files, breaks custom HTML
 - With `.nojekyll`: Files served as-is, custom styling works
 
-**⚠️ DO NOT DELETE `docs/.nojekyll`**
+**[!] DO NOT DELETE `docs/.nojekyll`**
 
 ---
 
-## 🔗 URL Structure
+## URL Structure
 
 Once deployed, pages are accessible at:
 
 ### Main Pages
 ```
-https://luminarimud.github.io/Luminari-Source/           → Redirect page
-https://luminarimud.github.io/Luminari-Source/web/       → Landing page
+https://luminarimud.github.io/Luminari-Source/           -> Redirect page
+https://luminarimud.github.io/Luminari-Source/web/       -> Landing page
 ```
 
 ### Spell References
@@ -539,7 +539,7 @@ https://luminarimud.github.io/Luminari-Source/web/assets/img/logo.png
 
 ---
 
-## 🛠️ Maintenance
+## Maintenance
 
 ### Updating the Landing Page
 
@@ -572,7 +572,7 @@ linkchecker http://localhost:8000/web/
 
 ---
 
-## 🔮 Future Enhancements
+## Future Enhancements
 
 Ideas for expanding the web portal:
 
@@ -599,7 +599,7 @@ Ideas for expanding the web portal:
 
 ---
 
-## 📚 Additional Resources
+## Additional Resources
 
 ### LuminariMUD Links
 - **Main Website**: https://luminarimud.com/ (Play the game!)
@@ -624,7 +624,7 @@ Ideas for expanding the web portal:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 When adding content to the web portal:
 
@@ -645,7 +645,7 @@ Add/Update: Brief description
 
 ---
 
-## ❓ Troubleshooting
+## [?] Troubleshooting
 
 ### Site not updating after push?
 
@@ -679,7 +679,7 @@ Add/Update: Brief description
 
 ---
 
-## 📞 Support
+## Support
 
 For questions or issues:
 - **Discord**: https://discord.gg/Me3Tuu4

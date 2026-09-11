@@ -877,7 +877,7 @@ void analyze_climate_zones(FILE *fp)
 
   for (zone_idx = 0; zone_idx < num_zones; zone_idx++)
   {
-    fprintf(fp, "| %s | %d-%d | %d°C | %.1f%% | %s |\n",
+    fprintf(fp, "| %s | %d-%d | %d C | %.1f%% | %s |\n",
             zone_idx == 0   ? "Arctic"
             : zone_idx == 1 ? "Subarctic"
             : zone_idx == 2 ? "Temperate"
@@ -889,7 +889,7 @@ void analyze_climate_zones(FILE *fp)
   }
 
   fprintf(fp, "\n### Elevation-Modified Climate\n");
-  fprintf(fp, "- Temperature decreases by ~6°C per 1000m elevation\n");
+  fprintf(fp, "- Temperature decreases by ~6 C per 1000m elevation\n");
   fprintf(fp, "- Snow line typically at elevations > 200m in temperate zones\n");
   fprintf(fp, "- Alpine conditions above 180m regardless of latitude\n");
 
@@ -2518,9 +2518,9 @@ void write_biome_distribution(FILE *fp)
 
   fprintf(fp, "\n### Biome Transitions\n\n");
   fprintf(fp, "Natural progression between biomes creates ecotones:\n\n");
-  fprintf(fp, "- Forest → Grassland → Desert (moisture gradient)\n");
-  fprintf(fp, "- Plains → Hills → Mountains (elevation gradient)\n");
-  fprintf(fp, "- Tundra → Taiga → Temperate Forest (temperature gradient)\n\n");
+  fprintf(fp, "- Forest -> Grassland -> Desert (moisture gradient)\n");
+  fprintf(fp, "- Plains -> Hills -> Mountains (elevation gradient)\n");
+  fprintf(fp, "- Tundra -> Taiga -> Temperate Forest (temperature gradient)\n\n");
 }
 
 /* Write resource analysis section */

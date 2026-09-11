@@ -904,14 +904,14 @@ Threshold for mountains: elevation > 185 meters
 ### Latitudinal Climate Bands
 | Zone | Y Range | Avg Temp | Coverage | Description |
 |------|---------|----------|----------|-------------|
-| Arctic | 0-409 | -20°C | 20.0% | Arctic - Perpetual ice and snow |
-| Subarctic | 409-819 | 5°C | 20.0% | Subarctic - Cold winters, cool summers |
-| Temperate | 819-1228 | 20°C | 20.0% | Temperate - Moderate seasons |
-| Subtropical | 1228-1638 | 25°C | 20.0% | Subtropical - Warm, humid |
-| Tropical | 1638-2048 | 30°C | 20.0% | Tropical - Hot and humid year-round |
+| Arctic | 0-409 | -20 C | 20.0% | Arctic - Perpetual ice and snow |
+| Subarctic | 409-819 | 5 C | 20.0% | Subarctic - Cold winters, cool summers |
+| Temperate | 819-1228 | 20 C | 20.0% | Temperate - Moderate seasons |
+| Subtropical | 1228-1638 | 25 C | 20.0% | Subtropical - Warm, humid |
+| Tropical | 1638-2048 | 30 C | 20.0% | Tropical - Hot and humid year-round |
 
 ### Elevation-Modified Climate
-- Temperature decreases by ~6°C per 1000m elevation
+- Temperature decreases by ~6 C per 1000m elevation
 - Snow line typically at elevations > 200m in temperate zones
 - Alpine conditions above 180m regardless of latitude
 
@@ -1394,9 +1394,9 @@ Moisture distribution affects biome formation:
 
 Natural progression between biomes creates ecotones:
 
-- Forest → Grassland → Desert (moisture gradient)
-- Plains → Hills → Mountains (elevation gradient)
-- Tundra → Taiga → Temperate Forest (temperature gradient)
+- Forest -> Grassland -> Desert (moisture gradient)
+- Plains -> Hills -> Mountains (elevation gradient)
+- Tundra -> Taiga -> Temperate Forest (temperature gradient)
 
 
 ## Resource Analysis

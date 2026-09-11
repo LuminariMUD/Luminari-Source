@@ -3,7 +3,7 @@
 
 ### **Current System Strengths**
 - Templateless architecture using contextual hint weaving
-- Intelligent voice transformation (2nd→3rd person observational)
+- Intelligent voice transformation (2nd->3rd person observational)
 - Probabilistic hint selection with deduplication
 - Environmental context awareness (weather, time, location)
 - Resource-aware foundation preservation
@@ -33,14 +33,14 @@ struct narrative_elements {
 - Reconstruct unified descriptions maintaining natural flow
 
 **3. Contextual Mood Transformation**
-- "Tall oak trees" → "Ancient oak trees shrouded in shadow" (mysterious)
-- "Dense forest" → "Tranquil forest where light dances" (peaceful)
-- "Trees sway" → "Trees loom menacingly overhead" (ominous)
+- "Tall oak trees" -> "Ancient oak trees shrouded in shadow" (mysterious)
+- "Dense forest" -> "Tranquil forest where light dances" (peaceful)
+- "Trees sway" -> "Trees loom menacingly overhead" (ominous)
 
 **4. Dynamic Element Injection**
 - Find optimal insertion points in base descriptions
 - Seamlessly inject hint-derived actions and modifiers
-- "Oak trees stand" + "whisper" → "Oak trees whisper as they stand sentinel"
+- "Oak trees stand" + "whisper" -> "Oak trees whisper as they stand sentinel"
 
 **5. Regional Personality System**
 - Apply region-specific writing styles (poetic, mysterious, pastoral, dramatic)

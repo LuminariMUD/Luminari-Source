@@ -355,9 +355,9 @@ descriptor->next = next_descriptor;
 ### Character-Room-Object Triangle
 
 ```
-Character ←→ Room ←→ Object
-    ↑                  ↓
-    └── Equipment ←────┘
+Character <--> Room <--> Object
+    ^                  v
+    `-- Equipment <-----'
 ```
 
 **Character in Room:**
@@ -374,23 +374,23 @@ Character ←→ Room ←→ Object
 ### Network-Character Connection
 
 ```
-Descriptor ←→ Character ←→ Account
-     ↓            ↓
+Descriptor <--> Character <--> Account
+     v            v
    Socket      Game Data
 ```
 
 **Connection Flow:**
-1. Socket accepts connection → `descriptor_data` created
-2. Login process → `char_data` loaded/created
+1. Socket accepts connection -> `descriptor_data` created
+2. Login process -> `char_data` loaded/created
 3. `descriptor->character` and `character->desc` linked
 4. Account system provides persistent data
 
 ### Scripting Integration
 
 ```
-Trigger ←→ Script ←→ Variables
-   ↓         ↓         ↓
-Room/Char/Obj → Events → Actions
+Trigger <--> Script <--> Variables
+   v         v         v
+Room/Char/Obj -> Events -> Actions
 ```
 
 **Script Attachment:**
