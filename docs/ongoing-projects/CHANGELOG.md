@@ -2,6 +2,30 @@
 
 ## [Unreleased] - September 11, 2026
 
+### Bound account SQL and interpolation ratchet
+
+#### Changed
+
+- Every account query (account lookup, character list and duplicate cleanup, unlock
+  sets, character link and unlink, and the account upsert) now runs through the
+  `PREPARED_STMT` API with bound values; no account name, password hash, email, or
+  character name is interpolated into SQL text, and unlock table identifiers come
+  from a compile-time table.
+- Prepared statements bind 64-bit integer results such as `COUNT(*)` natively, honor
+  `BIGINT UNSIGNED` metadata, expose `mysql_stmt_get_long()` and
+  `mysql_stmt_get_ulong()`, and report executions to the performance monitor like
+  direct queries.
+
+#### Tests
+
+- `make test` runs `scripts/ci/check_sql_interpolation.py`, which fails when a source
+  file gains formatted SQL with `%` conversions beyond the recorded baseline; the
+  scanner keeps SQL literals intact while stripping C comments, `--update` refuses to
+  record growth, and `--self-test` exercises the scanner on fixtures.
+- Added a database regression that saves and loads an account whose name, password
+  hash, email, and character name carry quotes, backslashes, multibyte text, and
+  SQL fragments under both the default and `NO_BACKSLASH_ESCAPES` session modes.
+
 ### Adaptive password hashing
 
 #### Fixed

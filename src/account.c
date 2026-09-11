@@ -44,7 +44,7 @@
     - strdup allocations are freed when reloading account data or character lists.
     - Account experience is clamped between 0 and 100,000,000 by change_account_xp.
     - Alignment is clamped to [-1000, 1000] after purchases in do_accexp.
-    - SQL injection protection via mysql_real_escape_string for user input in queries.
+    - SQL injection protection: every data value is bound through prepared statements.
 
   This file adds explanatory comments without changing behavior.
 */
@@ -535,6 +535,30 @@ ACMD(do_accexp)
 }
 
 /*
+  account_prepare_statement(const char *query)
+  Purpose: Create and prepare a bound statement on the primary connection.
+  Return:
+    - Prepared statement ready for parameter binding, or NULL after logging.
+  Notes:
+    - Every account query binds its data values; SQL text here is constant.
+    - The caller owns the result and must call mysql_stmt_cleanup().
+*/
+static PREPARED_STMT *account_prepare_statement(const char *query)
+{
+  PREPARED_STMT *statement;
+
+  statement = mysql_stmt_create(conn);
+  if (statement == NULL)
+    return NULL;
+  if (!mysql_stmt_prepare_query(statement, query))
+  {
+    mysql_stmt_cleanup(statement);
+    return NULL;
+  }
+  return statement;
+}
+
+/*
   load_account(char *name, struct account_data *account)
   Purpose: Load an account record (and then its characters/unlocks) from the DB by account name.
   Parameters:
@@ -553,9 +577,8 @@ ACMD(do_accexp)
 */
 int load_account(char *name, struct account_data *account)
 {
-  MYSQL_RES *result;
-  MYSQL_ROW row;
-  char buf[2048];
+  PREPARED_STMT *statement;
+  const char *value;
 
   /* Check if MySQL is available */
   if (!mysql_available || !conn)
@@ -593,42 +616,35 @@ int load_account(char *name, struct account_data *account)
     return -1;
   }
 
-  /* Escape the account name to prevent SQL injection */
-  char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
-  mysql_real_escape_string(conn, escaped_name, name, strlen(name));
-
-  /* Case-insensitive match on the escaped account name */
-  snprintf(buf, sizeof(buf),
-           "SELECT id, name, password, experience, email, quit_survey_completed "
-           "from account_data where lower(name) = lower('%s')",
-           escaped_name);
-
-  if (mysql_query(conn, buf))
+  /* Case-insensitive match on the bound account name */
+  statement = account_prepare_statement(
+      "SELECT id, name, password, experience, email, quit_survey_completed "
+      "FROM account_data WHERE lower(name) = lower(?)");
+  if (statement == NULL || !mysql_stmt_bind_param_string(statement, 0, name) ||
+      !mysql_stmt_execute_prepared(statement))
   {
-    log("SYSERR: Unable to SELECT from account_data: %s", mysql_error(conn));
+    log("SYSERR: Unable to SELECT from account_data for account lookup.");
+    mysql_stmt_cleanup(statement);
     return -1;
   }
 
-  if (!(result = mysql_store_result(conn)))
+  if (!mysql_stmt_fetch_row(statement))
   {
-    log("SYSERR: Unable to SELECT from account_data: %s", mysql_error(conn));
-    return -1;
-  }
-
-  if (!(row = mysql_fetch_row(result)))
-  {
-    mysql_free_result(result);
+    mysql_stmt_cleanup(statement);
     return -1; /* Account not found. */
   }
 
-  account->id = atoi(row[0]);
-  account->name = strdup(row[1]);
-  strlcpy(account->password, row[2], sizeof(account->password));
-  account->experience = atoi(row[3]);
-  account->email = (row[4] ? strdup(row[4]) : NULL);
-  account->quit_survey_completed = (row[5] ? atoi(row[5]) : 0);
+  account->id = mysql_stmt_get_int(statement, 0);
+  value = mysql_stmt_get_string(statement, 1);
+  account->name = strdup(value != NULL ? value : name);
+  value = mysql_stmt_get_string(statement, 2);
+  strlcpy(account->password, value != NULL ? value : "", sizeof(account->password));
+  account->experience = mysql_stmt_get_int(statement, 3);
+  value = mysql_stmt_get_string(statement, 4);
+  account->email = value != NULL ? strdup(value) : NULL;
+  account->quit_survey_completed = mysql_stmt_get_int(statement, 5);
 
-  mysql_free_result(result);
+  mysql_stmt_cleanup(statement);
   load_account_characters(account);
   load_account_unlocks(account);
   account_persistence_mark_clean(account);
@@ -649,67 +665,51 @@ int load_account(char *name, struct account_data *account)
 */
 void cleanup_duplicate_characters(struct account_data *account)
 {
-  MYSQL_RES *result;
-  MYSQL_ROW row;
-  char buf[2048];
+  PREPARED_STMT *duplicates;
+  PREPARED_STMT *removal;
+  const char *name;
+  int count;
 
   if (!account || account->id <= 0)
     return;
 
   /* Get list of duplicate character names for this account */
-  snprintf(buf, sizeof(buf),
-           "SELECT name, COUNT(*) as cnt "
-           "FROM player_data "
-           "WHERE account_id = %d "
-           "GROUP BY name "
-           "HAVING cnt > 1",
-           account->id);
-
-  if (mysql_query(conn, buf))
+  duplicates = account_prepare_statement("SELECT name, COUNT(*) AS cnt FROM player_data "
+                                         "WHERE account_id = ? GROUP BY name HAVING cnt > 1");
+  if (duplicates == NULL || !mysql_stmt_bind_param_int(duplicates, 0, account->id) ||
+      !mysql_stmt_execute_prepared(duplicates))
   {
-    log("SYSERR: Unable to check for duplicate characters: %s", mysql_error(conn));
+    log("SYSERR: Unable to check for duplicate characters for account %d.", account->id);
+    mysql_stmt_cleanup(duplicates);
     return;
   }
 
-  if (!(result = mysql_store_result(conn)))
+  /* The duplicate list is buffered client-side, so removals may run inside the loop. */
+  while (mysql_stmt_fetch_row(duplicates))
   {
-    log("SYSERR: Unable to store duplicate check results: %s", mysql_error(conn));
-    return;
-  }
+    name = mysql_stmt_get_string(duplicates, 0);
+    count = (int)mysql_stmt_get_long(duplicates, 1);
+    if (name == NULL || count <= 1)
+      continue;
 
-  /* Process each duplicate character */
-  while ((row = mysql_fetch_row(result)))
-  {
-    char *name = row[0];
-    int count = atoi(row[1]);
-
-    /* Escape character name */
-    char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
-    mysql_real_escape_string(conn, escaped_name, name, strlen(name));
-
-    /* Delete all but one - we delete count-1 duplicates
-     * ORDER BY ensures we keep a consistent row (the "first" one)
-     * This approach works regardless of table structure */
-    snprintf(buf, sizeof(buf),
-             "DELETE FROM player_data "
-             "WHERE account_id = %d "
-             "AND lower(name) = lower('%s') "
-             "ORDER BY name "
-             "LIMIT %d",
-             account->id, escaped_name, count - 1);
-
-    if (mysql_query(conn, buf))
+    /* Delete all but one; ORDER BY keeps a consistent survivor row. */
+    removal = account_prepare_statement("DELETE FROM player_data WHERE account_id = ? "
+                                        "AND lower(name) = lower(?) ORDER BY name LIMIT ?");
+    if (removal == NULL || !mysql_stmt_bind_param_int(removal, 0, account->id) ||
+        !mysql_stmt_bind_param_string(removal, 1, name) ||
+        !mysql_stmt_bind_param_int(removal, 2, count - 1) || !mysql_stmt_execute_prepared(removal))
     {
-      log("SYSERR: Unable to delete duplicate character %s: %s", name, mysql_error(conn));
+      log("SYSERR: Unable to delete duplicate character %s.", name);
     }
     else
     {
       log("Info: Cleaned up %ld duplicate(s) of character %s for account %s",
-          (long)mysql_affected_rows(conn), name, account->name);
+          (long)mysql_stmt_affected_rows_count(removal), name, account->name);
     }
+    mysql_stmt_cleanup(removal);
   }
 
-  mysql_free_result(result);
+  mysql_stmt_cleanup(duplicates);
 }
 
 /*
@@ -725,9 +725,10 @@ void cleanup_duplicate_characters(struct account_data *account)
 */
 void load_account_characters(struct account_data *account)
 {
-  MYSQL_RES *result;
-  MYSQL_ROW row;
-  char buf[2048];
+  PREPARED_STMT *statement;
+  const char *name;
+  long long total = 0;
+  long long unique_count = 0;
   int i = 0;
 
   /* Free existing names to avoid leaks on reload */
@@ -739,62 +740,47 @@ void load_account_characters(struct account_data *account)
     }
 
   /* First check if we need to clean up duplicates */
-  snprintf(buf, sizeof(buf),
-           "SELECT COUNT(*) as total, COUNT(DISTINCT name) as unique_names "
-           "FROM player_data WHERE account_id = %d",
-           account->id);
-
-  if (mysql_query(conn, buf))
+  statement = account_prepare_statement(
+      "SELECT COUNT(*), COUNT(DISTINCT name) FROM player_data WHERE account_id = ?");
+  if (statement == NULL || !mysql_stmt_bind_param_int(statement, 0, account->id) ||
+      !mysql_stmt_execute_prepared(statement))
   {
-    log("SYSERR: Unable to check for duplicates: %s", mysql_error(conn));
+    log("SYSERR: Unable to check for duplicate characters for account %d.", account->id);
   }
-  else if ((result = mysql_store_result(conn)))
+  else if (mysql_stmt_fetch_row(statement))
   {
-    if ((row = mysql_fetch_row(result)))
-    {
-      int total = atoi(row[0]);
-      int unique_count = atoi(row[1]);
-      if (total > unique_count)
-      {
-        log("Info: Detected %d duplicate character entries for account %s, cleaning up...",
-            total - unique_count, account->name);
-        mysql_free_result(result);
-        cleanup_duplicate_characters(account);
-      }
-      else
-      {
-        mysql_free_result(result);
-      }
-    }
-    else
-    {
-      mysql_free_result(result);
-    }
+    total = mysql_stmt_get_long(statement, 0);
+    unique_count = mysql_stmt_get_long(statement, 1);
+  }
+  mysql_stmt_cleanup(statement);
+  if (total > unique_count)
+  {
+    log("Info: Detected %lld duplicate character entries for account %s, cleaning up...",
+        total - unique_count, account->name);
+    cleanup_duplicate_characters(account);
   }
 
   /* Now load the character names (duplicates have been cleaned) */
-  snprintf(buf, sizeof(buf), "select name from player_data where account_id = %d", account->id);
-
-  if (mysql_query(conn, buf))
+  statement = account_prepare_statement("SELECT name FROM player_data WHERE account_id = ?");
+  if (statement == NULL || !mysql_stmt_bind_param_int(statement, 0, account->id) ||
+      !mysql_stmt_execute_prepared(statement))
   {
-    log("SYSERR: Unable to SELECT from player_data: %s", mysql_error(conn));
-    return;
-  }
-  if (!(result = mysql_store_result(conn)))
-  {
-    log("SYSERR: Unable to SELECT from player_data: %s", mysql_error(conn));
+    log("SYSERR: Unable to SELECT character names for account %d.", account->id);
+    mysql_stmt_cleanup(statement);
     return;
   }
 
   i = 0;
-  while ((row = mysql_fetch_row(result)) && i < MAX_CHARS_PER_ACCOUNT)
+  while (i < MAX_CHARS_PER_ACCOUNT && mysql_stmt_fetch_row(statement))
   {
-    account->character_names[i] = strdup(row[0]);
+    name = mysql_stmt_get_string(statement, 0);
+    if (name == NULL)
+      continue;
+    account->character_names[i] = strdup(name);
     i++;
   }
 
-  mysql_free_result(result);
-  return;
+  mysql_stmt_cleanup(statement);
 }
 
 /*
@@ -811,63 +797,45 @@ void load_account_characters(struct account_data *account)
 */
 void load_account_unlocks(struct account_data *account)
 {
-  MYSQL_RES *result;
-  MYSQL_ROW row;
-  char buf[2048];
+  PREPARED_STMT *statement;
   int i = 0;
 
-  /* load locked classes */
-  snprintf(buf, sizeof(buf),
-           "SELECT class_id from unlocked_classes "
-           "WHERE account_id = %d",
-           account->id);
-
-  if (mysql_query(conn, buf))
+  /* load unlocked classes */
+  statement =
+      account_prepare_statement("SELECT class_id FROM unlocked_classes WHERE account_id = ?");
+  if (statement == NULL || !mysql_stmt_bind_param_int(statement, 0, account->id) ||
+      !mysql_stmt_execute_prepared(statement))
   {
-    log("SYSERR: Unable to SELECT from unlocked_classes: %s", mysql_error(conn));
-    return;
-  }
-
-  if (!(result = mysql_store_result(conn)))
-  {
-    log("SYSERR: Unable to SELECT from unlocked_classes: %s", mysql_error(conn));
+    log("SYSERR: Unable to SELECT from unlocked_classes for account %d.", account->id);
+    mysql_stmt_cleanup(statement);
     return;
   }
 
   i = 0;
-
-  while ((row = mysql_fetch_row(result)) && i < MAX_UNLOCKED_CLASSES)
+  while (i < MAX_UNLOCKED_CLASSES && mysql_stmt_fetch_row(statement))
   {
-    account->classes[i] = atoi(row[0]);
+    account->classes[i] = mysql_stmt_get_int(statement, 0);
     i++;
   }
-  mysql_free_result(result);
+  mysql_stmt_cleanup(statement);
 
-  /* load locked races */
-  snprintf(buf, sizeof(buf),
-           "SELECT race_id from unlocked_races "
-           "WHERE account_id = %d",
-           account->id);
-  if (mysql_query(conn, buf))
+  /* load unlocked races */
+  statement = account_prepare_statement("SELECT race_id FROM unlocked_races WHERE account_id = ?");
+  if (statement == NULL || !mysql_stmt_bind_param_int(statement, 0, account->id) ||
+      !mysql_stmt_execute_prepared(statement))
   {
-    log("SYSERR: Unable to SELECT from unlocked_races: %s", mysql_error(conn));
+    log("SYSERR: Unable to SELECT from unlocked_races for account %d.", account->id);
+    mysql_stmt_cleanup(statement);
     return;
   }
-  if (!(result = mysql_store_result(conn)))
-  {
-    log("SYSERR: Unable to SELECT from unlocked_races: %s", mysql_error(conn));
-    return;
-  }
+
   i = 0;
-  while ((row = mysql_fetch_row(result)) && i < MAX_UNLOCKED_RACES)
+  while (i < MAX_UNLOCKED_RACES && mysql_stmt_fetch_row(statement))
   {
-    account->races[i] = atoi(row[0]);
+    account->races[i] = mysql_stmt_get_int(statement, 0);
     i++;
   }
-
-  /* cleanup */
-  mysql_free_result(result);
-  return;
+  mysql_stmt_cleanup(statement);
 }
 
 /*
@@ -885,37 +853,27 @@ void load_account_unlocks(struct account_data *account)
 */
 char *get_char_account_name(char *name)
 {
-  MYSQL_RES *result;
-  MYSQL_ROW row;
-  char buf[2048];
+  PREPARED_STMT *statement;
+  const char *value;
   char *acct_name = NULL;
 
-  /* Escape character name to prevent SQL injection */
-  char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
-  mysql_real_escape_string(conn, escaped_name, name, strlen(name));
-
-  snprintf(buf, sizeof(buf),
-           "select a.name from account_data a, player_data p where p.account_id = a.id and p.name "
-           "= '%s'",
-           escaped_name);
-
-  if (mysql_query(conn, buf))
+  statement = account_prepare_statement("SELECT a.name FROM account_data a, player_data p "
+                                        "WHERE p.account_id = a.id AND p.name = ?");
+  if (statement == NULL || !mysql_stmt_bind_param_string(statement, 0, name) ||
+      !mysql_stmt_execute_prepared(statement))
   {
-    log("SYSERR: Unable to retrieve account name for character %s: %s", name, mysql_error(conn));
+    log("SYSERR: Unable to retrieve account name for character %s.", name);
+    mysql_stmt_cleanup(statement);
     return NULL;
   }
-  if (!(result = mysql_store_result(conn)))
-  {
-    log("SYSERR: Unable to retreive account name for character %s: %s", name, mysql_error(conn));
-    return NULL;
-  }
-  while ((row = mysql_fetch_row(result)))
+  while (mysql_stmt_fetch_row(statement))
   {
     if (acct_name)
       free(acct_name); /* Free previous allocation if multiple rows */
-    acct_name = (row[0] ? strdup(row[0]) : NULL);
+    value = mysql_stmt_get_string(statement, 0);
+    acct_name = value != NULL ? strdup(value) : NULL;
   }
-  mysql_free_result(result);
+  mysql_stmt_cleanup(statement);
   return acct_name;
 }
 
@@ -1011,77 +969,122 @@ static void account_persistence_detect_dirty(struct account_data *account,
 static bool save_account_character_links(struct account_data *account, char *query,
                                          size_t query_size)
 {
-  char *escaped_name;
+  PREPARED_STMT *statement;
+  bool bound;
   int used;
   int i;
   int count;
 
-  used = snprintf(query, query_size,
-                  "UPDATE player_data SET account_id = %d WHERE lower(name) IN (", account->id);
   count = 0;
-  for (i = 0; i < MAX_CHARS_PER_ACCOUNT && account->character_names[i] != NULL; i++)
-  {
-    escaped_name = mysql_escape_string_alloc(conn, account->character_names[i]);
-    if (escaped_name == NULL)
-      return false;
-    used = snprintf_append(query, query_size, used, "%slower('%s')", count > 0 ? "," : "",
-                           escaped_name);
-    free(escaped_name);
-    if ((size_t)used >= query_size - 1)
-      return false;
+  while (count < MAX_CHARS_PER_ACCOUNT && account->character_names[count] != NULL)
     count++;
-  }
   if (count == 0)
     return true;
+
+  /* Only placeholders are appended here; every name is bound below. */
+  used =
+      snprintf(query, query_size, "UPDATE player_data SET account_id = ? WHERE lower(name) IN (");
+  for (i = 0; i < count; i++)
+  {
+    used = snprintf_append(query, query_size, used, "%slower(?)", i > 0 ? "," : "");
+    if ((size_t)used >= query_size - 1)
+      return false;
+  }
   used = snprintf_append(query, query_size, used, ")");
   if ((size_t)used >= query_size - 1)
     return false;
-  if (mysql_query(conn, query))
+
+  statement = account_prepare_statement(query);
+  bound = statement != NULL && mysql_stmt_bind_param_int(statement, 0, account->id);
+  for (i = 0; bound && i < count; i++)
+    bound = mysql_stmt_bind_param_string(statement, i + 1, account->character_names[i]);
+  if (!bound || !mysql_stmt_execute_prepared(statement))
   {
-    log("SYSERR: Unable to batch account character links: %s", mysql_error(conn));
+    log("SYSERR: Unable to batch account character links for account %d.", account->id);
+    mysql_stmt_cleanup(statement);
     return false;
   }
+  mysql_stmt_cleanup(statement);
   return true;
 }
 
-static bool save_account_integer_set(int account_id, const char *table, const char *column,
-                                     const int *values, int value_count, char *query,
-                                     size_t query_size)
+/* Unlock tables addressable by save_account_integer_set(). Identifiers never come from data. */
+enum account_unlock_set
 {
+  ACCOUNT_UNLOCK_RACES,
+  ACCOUNT_UNLOCK_CLASSES
+};
+
+static const struct
+{
+  const char *table;
+  const char *delete_sql;
+  const char *insert_prefix;
+  const char *insert_suffix;
+} account_unlock_sql[] = {
+    {"unlocked_races", "DELETE FROM unlocked_races WHERE account_id = ?",
+     "INSERT INTO unlocked_races (account_id, race_id) VALUES ",
+     " ON DUPLICATE KEY UPDATE race_id=VALUES(race_id)"},
+    {"unlocked_classes", "DELETE FROM unlocked_classes WHERE account_id = ?",
+     "INSERT INTO unlocked_classes (account_id, class_id) VALUES ",
+     " ON DUPLICATE KEY UPDATE class_id=VALUES(class_id)"},
+};
+
+static bool save_account_integer_set(int account_id, enum account_unlock_set set, const int *values,
+                                     int value_count, char *query, size_t query_size)
+{
+  PREPARED_STMT *statement;
+  bool bound;
   int count;
   int i;
   int used;
 
-  snprintf(query, query_size, "DELETE FROM %s WHERE account_id = %d", table, account_id);
-  if (mysql_query(conn, query))
+  statement = account_prepare_statement(account_unlock_sql[set].delete_sql);
+  if (statement == NULL || !mysql_stmt_bind_param_int(statement, 0, account_id) ||
+      !mysql_stmt_execute_prepared(statement))
   {
-    log("SYSERR: Unable to replace %s: %s", table, mysql_error(conn));
+    log("SYSERR: Unable to replace %s for account %d.", account_unlock_sql[set].table, account_id);
+    mysql_stmt_cleanup(statement);
     return false;
   }
+  mysql_stmt_cleanup(statement);
 
-  used = snprintf(query, query_size, "INSERT INTO %s (account_id, %s) VALUES ", table, column);
+  /* Only placeholders are appended here; every value pair is bound below. */
+  used = snprintf(query, query_size, "%s", account_unlock_sql[set].insert_prefix);
   count = 0;
   for (i = 0; i < value_count; i++)
   {
     if (values[i] == 0)
       continue;
-    used = snprintf_append(query, query_size, used, "%s(%d,%d)", count > 0 ? "," : "", account_id,
-                           values[i]);
+    used = snprintf_append(query, query_size, used, "%s(?,?)", count > 0 ? "," : "");
     if ((size_t)used >= query_size - 1)
       return false;
     count++;
   }
   if (count == 0)
     return true;
-  used = snprintf_append(query, query_size, used, " ON DUPLICATE KEY UPDATE %s=VALUES(%s)", column,
-                         column);
+  used = snprintf_append(query, query_size, used, "%s", account_unlock_sql[set].insert_suffix);
   if ((size_t)used >= query_size - 1)
     return false;
-  if (mysql_query(conn, query))
+
+  statement = account_prepare_statement(query);
+  bound = statement != NULL;
+  count = 0;
+  for (i = 0; bound && i < value_count; i++)
   {
-    log("SYSERR: Unable to batch %s: %s", table, mysql_error(conn));
+    if (values[i] == 0)
+      continue;
+    bound = mysql_stmt_bind_param_int(statement, count * 2, account_id) &&
+            mysql_stmt_bind_param_int(statement, count * 2 + 1, values[i]);
+    count++;
+  }
+  if (!bound || !mysql_stmt_execute_prepared(statement))
+  {
+    log("SYSERR: Unable to batch %s for account %d.", account_unlock_sql[set].table, account_id);
+    mysql_stmt_cleanup(statement);
     return false;
   }
+  mysql_stmt_cleanup(statement);
   return true;
 }
 
@@ -1133,9 +1136,7 @@ static void synchronize_connected_account_views(const struct account_data *sourc
 bool save_account_checked(struct account_data *account)
 {
   char query[16384];
-  char *escaped_name;
-  char *escaped_password;
-  char *escaped_email;
+  PREPARED_STMT *statement;
   enum perf_sql_category previous_sql_category;
   bool success;
   bool transaction_started;
@@ -1154,9 +1155,6 @@ bool save_account_checked(struct account_data *account)
 
   PERF_PROF_ENTER_SAMPLED(pr_save_account_, "save.account");
   previous_sql_category = PERF_sql_scope_set(PERF_SQL_ACCOUNT);
-  escaped_name = NULL;
-  escaped_password = NULL;
-  escaped_email = NULL;
   success = false;
   transaction_started = false;
   account_persistence_detect_dirty(account, hashes);
@@ -1174,16 +1172,6 @@ bool save_account_checked(struct account_data *account)
     goto cleanup;
   }
 
-  escaped_name = mysql_escape_string_alloc(conn, account->name);
-  escaped_password = mysql_escape_string_alloc(conn, account->password);
-  escaped_email = account->email != NULL ? mysql_escape_string_alloc(conn, account->email) : NULL;
-  if (escaped_name == NULL || escaped_password == NULL ||
-      (account->email != NULL && escaped_email == NULL))
-  {
-    log("SYSERR: Unable to escape account data for persistence.");
-    goto cleanup;
-  }
-
   if (mysql_query(conn, "START TRANSACTION"))
   {
     log("SYSERR: Unable to start account save transaction: %s", mysql_error(conn));
@@ -1193,29 +1181,34 @@ bool save_account_checked(struct account_data *account)
 
   if (core_dirty)
   {
-    snprintf(query, sizeof(query),
-             "INSERT INTO account_data (id,name,password,experience,email,quit_survey_completed) "
-             "VALUES (%d,'%s','%s',%d,%s%s%s,%d) "
-             "ON DUPLICATE KEY UPDATE password=VALUES(password),experience=VALUES(experience),"
-             "email=VALUES(email),quit_survey_completed=VALUES(quit_survey_completed)",
-             account->id, escaped_name, escaped_password, account->experience,
-             escaped_email != NULL ? "'" : "", escaped_email != NULL ? escaped_email : "NULL",
-             escaped_email != NULL ? "'" : "", account->quit_survey_completed ? 1 : 0);
-    if (mysql_query(conn, query))
+    /* A NULL email binds as SQL NULL; nothing here is interpolated into the text. */
+    statement = account_prepare_statement(
+        "INSERT INTO account_data (id,name,password,experience,email,quit_survey_completed) "
+        "VALUES (?,?,?,?,?,?) "
+        "ON DUPLICATE KEY UPDATE password=VALUES(password),experience=VALUES(experience),"
+        "email=VALUES(email),quit_survey_completed=VALUES(quit_survey_completed)");
+    if (statement == NULL || !mysql_stmt_bind_param_int(statement, 0, account->id) ||
+        !mysql_stmt_bind_param_string(statement, 1, account->name) ||
+        !mysql_stmt_bind_param_string(statement, 2, account->password) ||
+        !mysql_stmt_bind_param_int(statement, 3, account->experience) ||
+        !mysql_stmt_bind_param_string(statement, 4, account->email) ||
+        !mysql_stmt_bind_param_int(statement, 5, account->quit_survey_completed ? 1 : 0) ||
+        !mysql_stmt_execute_prepared(statement))
     {
-      log("SYSERR: Unable to UPSERT account_data: %s", mysql_error(conn));
+      log("SYSERR: Unable to UPSERT account_data for account '%s'.", account->name);
+      mysql_stmt_cleanup(statement);
       goto rollback;
     }
     if (account->id == 0)
-      account->id = (int)mysql_insert_id(conn);
+      account->id = (int)mysql_stmt_insert_id(statement->stmt);
+    mysql_stmt_cleanup(statement);
   }
 
   if ((characters_dirty && !save_account_character_links(account, query, sizeof(query))) ||
-      (races_dirty &&
-       !save_account_integer_set(account->id, "unlocked_races", "race_id", account->races,
-                                 MAX_UNLOCKED_RACES, query, sizeof(query))) ||
+      (races_dirty && !save_account_integer_set(account->id, ACCOUNT_UNLOCK_RACES, account->races,
+                                                MAX_UNLOCKED_RACES, query, sizeof(query))) ||
       (classes_dirty &&
-       !save_account_integer_set(account->id, "unlocked_classes", "class_id", account->classes,
+       !save_account_integer_set(account->id, ACCOUNT_UNLOCK_CLASSES, account->classes,
                                  MAX_UNLOCKED_CLASSES, query, sizeof(query))))
     goto rollback;
 
@@ -1246,9 +1239,6 @@ cleanup:
   if (!success)
     log("SYSERR: Account '%s' was not durably saved; the current state remains retryable.",
         account->name);
-  free(escaped_name);
-  free(escaped_password);
-  free(escaped_email);
   PERF_sql_scope_restore(previous_sql_category);
   PERF_PROF_EXIT(pr_save_account_);
   return success;
@@ -1295,10 +1285,9 @@ void show_account_menu(struct descriptor_data *d)
     return;
   }
 
-  MYSQL_RES *res = NULL;
-  MYSQL_ROW row = NULL;
-
-  char query[MAX_INPUT_LENGTH] = {'\0'};
+  PREPARED_STMT *statement = NULL;
+  bool executed = false;
+  bool found = false;
 
   if (d->account)
   {
@@ -1319,29 +1308,22 @@ void show_account_menu(struct descriptor_data *d)
 
         write_to_output(d, " \tW%-3d\tn \tC|\tn \tW%-20s\tn\tC|\tn", i + 1,
                         d->account->character_names[i]);
-        char *escaped_name = mysql_escape_string_alloc(conn, d->account->character_names[i]);
-        if (!escaped_name)
+        statement =
+            account_prepare_statement("SELECT name FROM player_data WHERE lower(name) = lower(?)");
+        executed = statement != NULL &&
+                   mysql_stmt_bind_param_string(statement, 0, d->account->character_names[i]) &&
+                   mysql_stmt_execute_prepared(statement);
+        found = executed && mysql_stmt_fetch_row(statement);
+        mysql_stmt_cleanup(statement);
+        statement = NULL;
+        if (!executed)
         {
-          log("SYSERR: Failed to escape character name in display_account_menu");
-          continue;
-        }
-        snprintf(query, sizeof(query), "SELECT name FROM player_data WHERE lower(name)=lower('%s')",
-                 escaped_name);
-        free(escaped_name);
-
-        if (mysql_query(conn, query))
-        {
-          log("SYSERR: Unable to SELECT from player_data: %s", mysql_error(conn));
+          log("SYSERR: Unable to SELECT from player_data for the account menu.");
         }
 
-        if (!(res = mysql_store_result(conn)))
+        if (executed)
         {
-          log("SYSERR: Unable to SELECT from player_data: %s", mysql_error(conn));
-        }
-
-        if (res != NULL)
-        {
-          if ((row = mysql_fetch_row(res)) != NULL)
+          if (found)
           {
             /* Initialize another temporary char to format line output. */
             CREATE(tch, struct char_data, 1);
@@ -1356,7 +1338,6 @@ void show_account_menu(struct descriptor_data *d)
               {
                 write_to_output(d, " \tR---===||DELETED||===---\tn\r\n");
                 free_char(tch);
-                mysql_free_result(res);
                 continue;
               }
 
@@ -1390,9 +1371,8 @@ void show_account_menu(struct descriptor_data *d)
             }
             free_char(tch);
           }
+          write_to_output(d, "\r\n");
         }
-        mysql_free_result(res);
-        write_to_output(d, "\r\n");
       }
       else
       {
@@ -1540,7 +1520,8 @@ ACMD(do_account)
 */
 void remove_char_from_account(struct char_data *ch, struct account_data *account)
 {
-  char buf[2048];
+  PREPARED_STMT *statement;
+  long removed;
 
   if (ch == NULL)
   {
@@ -1553,86 +1534,73 @@ void remove_char_from_account(struct char_data *ch, struct account_data *account
     return;
   }
 
-  /* Escape character name to prevent SQL injection */
-  char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
-  mysql_real_escape_string(conn, escaped_name, GET_NAME(ch), strlen(GET_NAME(ch)));
-
-  snprintf(buf, sizeof(buf),
-           "DELETE from player_data where lower(name) = lower('%s') and account_id = %d;",
-           escaped_name, account->id);
-
-  if (mysql_query(conn, buf))
+  statement = account_prepare_statement(
+      "DELETE FROM player_data WHERE lower(name) = lower(?) AND account_id = ?");
+  if (statement == NULL || !mysql_stmt_bind_param_string(statement, 0, GET_NAME(ch)) ||
+      !mysql_stmt_bind_param_int(statement, 1, account->id) ||
+      !mysql_stmt_execute_prepared(statement))
   {
-    log("SYSERR: Unable to DELETE from player_data: %s", mysql_error(conn));
+    log("SYSERR: Unable to DELETE %s from player_data.", GET_NAME(ch));
+    mysql_stmt_cleanup(statement);
     return;
   }
+  removed = (long)mysql_stmt_affected_rows_count(statement);
+  mysql_stmt_cleanup(statement);
 
   /* Reload the character names */
   load_account_characters(account);
 
-  log("Info: Character %s removed from account %s : %s", GET_NAME(ch), account->name,
-      mysql_info(conn));
+  log("Info: Character %s removed from account %s : %ld row(s) affected", GET_NAME(ch),
+      account->name, removed);
 }
 
 bool link_character_to_account_checked(struct char_data *ch, struct account_data *account)
 {
-  char query[2048];
-  char *escaped_name = NULL;
+  PREPARED_STMT *statement;
 
   if (ch == NULL || account == NULL || !mysql_available || conn == NULL || GET_NAME(ch) == NULL)
     return FALSE;
 
-  escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
-  if (escaped_name == NULL)
-    return FALSE;
-
-  snprintf(query, sizeof(query),
-           "INSERT INTO player_data (name, account_id, last_online) "
-           "VALUES ('%s', %d, NOW()) "
-           "ON DUPLICATE KEY UPDATE account_id = VALUES(account_id)",
-           escaped_name, account->id);
-  free(escaped_name);
-
-  if (mysql_query(conn, query))
+  statement = account_prepare_statement("INSERT INTO player_data (name, account_id, last_online) "
+                                        "VALUES (?, ?, NOW()) "
+                                        "ON DUPLICATE KEY UPDATE account_id = VALUES(account_id)");
+  if (statement == NULL || !mysql_stmt_bind_param_string(statement, 0, GET_NAME(ch)) ||
+      !mysql_stmt_bind_param_int(statement, 1, account->id) ||
+      !mysql_stmt_execute_prepared(statement))
   {
-    log("SYSERR: Unable to link new character %s to account %s: %s", GET_NAME(ch), account->name,
-        mysql_error(conn));
+    log("SYSERR: Unable to link new character %s to account %s.", GET_NAME(ch), account->name);
+    mysql_stmt_cleanup(statement);
     return FALSE;
   }
+  mysql_stmt_cleanup(statement);
   return TRUE;
 }
 
 bool begin_account_character_removal(struct char_data *ch, struct account_data *account)
 {
-  char query[2048];
-  char *escaped_name = NULL;
+  PREPARED_STMT *statement;
 
   if (ch == NULL || account == NULL || !mysql_available || conn == NULL || GET_NAME(ch) == NULL)
-    return FALSE;
-
-  escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
-  if (escaped_name == NULL)
     return FALSE;
 
   if (mysql_query(conn, "START TRANSACTION"))
   {
     log("SYSERR: Could not begin character-removal transaction: %s", mysql_error(conn));
-    free(escaped_name);
     return FALSE;
   }
 
-  snprintf(query, sizeof(query),
-           "DELETE FROM player_data WHERE lower(name) = lower('%s') AND account_id = %d",
-           escaped_name, account->id);
-  free(escaped_name);
-
-  if (mysql_query(conn, query))
+  statement = account_prepare_statement(
+      "DELETE FROM player_data WHERE lower(name) = lower(?) AND account_id = ?");
+  if (statement == NULL || !mysql_stmt_bind_param_string(statement, 0, GET_NAME(ch)) ||
+      !mysql_stmt_bind_param_int(statement, 1, account->id) ||
+      !mysql_stmt_execute_prepared(statement))
   {
-    log("SYSERR: Could not stage account unlink for character %s: %s", GET_NAME(ch),
-        mysql_error(conn));
+    log("SYSERR: Could not stage account unlink for character %s.", GET_NAME(ch));
+    mysql_stmt_cleanup(statement);
     mysql_query(conn, "ROLLBACK");
     return FALSE;
   }
+  mysql_stmt_cleanup(statement);
 
   return TRUE;
 }

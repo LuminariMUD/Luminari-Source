@@ -142,6 +142,7 @@ typedef struct prepared_stmt
   int result_count;    /* Number of result columns */
   MYSQL_RES *metadata; /* Result metadata */
   MYSQL *connection;   /* Associated connection */
+  char *query_text;    /* Prepared SQL text, kept for performance accounting */
 } PREPARED_STMT;
 
 /* Create and initialize a prepared statement */
@@ -162,6 +163,8 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt);
 bool mysql_stmt_fetch_row(PREPARED_STMT *pstmt);
 char *mysql_stmt_get_string(PREPARED_STMT *pstmt, int col_index);
 int mysql_stmt_get_int(PREPARED_STMT *pstmt, int col_index);
+long long mysql_stmt_get_long(PREPARED_STMT *pstmt, int col_index);
+unsigned long long mysql_stmt_get_ulong(PREPARED_STMT *pstmt, int col_index);
 
 /* Get number of affected rows (for INSERT/UPDATE/DELETE) */
 my_ulonglong mysql_stmt_affected_rows_count(PREPARED_STMT *pstmt);

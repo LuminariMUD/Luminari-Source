@@ -9,6 +9,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include <stdint.h>
+#include <limits.h>
 #include <stdatomic.h>
 #include <math.h>
 #include "structs.h"
@@ -1191,6 +1192,7 @@ PREPARED_STMT *mysql_stmt_create(MYSQL *mysql_conn)
   pstmt->param_count = 0;
   pstmt->result_count = 0;
   pstmt->metadata = NULL;
+  pstmt->query_text = NULL;
 
   /* Select appropriate mutex based on connection */
   if (mysql_conn == conn)
@@ -1265,6 +1267,13 @@ bool mysql_stmt_prepare_query(PREPARED_STMT *pstmt, const char *query)
     MYSQL_UNLOCK(*mutex);
     return FALSE;
   }
+
+  /* Keep the statement text so executions are attributed like direct queries */
+  if (pstmt->query_text)
+  {
+    free(pstmt->query_text);
+  }
+  pstmt->query_text = strdup(query);
 
   /* Get parameter count and allocate bindings */
   pstmt->param_count = mysql_stmt_param_count(pstmt->stmt);
@@ -1469,6 +1478,9 @@ bool mysql_stmt_bind_param_long(PREPARED_STMT *pstmt, int param_index, long valu
 bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
 {
   pthread_mutex_t *mutex;
+  uint64_t start_usec;
+  uint64_t end_usec;
+  int execute_failed;
   int i;
 
   if (!pstmt || !pstmt->stmt)
@@ -1513,7 +1525,12 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
 
   /* Execute the statement */
   atomic_fetch_add_explicit(&query_execution_count, 1, memory_order_relaxed);
-  if (mysql_stmt_execute(pstmt->stmt))
+  start_usec = PERF_monotonic_usec();
+  execute_failed = mysql_stmt_execute(pstmt->stmt);
+  end_usec = PERF_monotonic_usec();
+  PERF_note_sql_query(pstmt->query_text != NULL ? pstmt->query_text : "",
+                      end_usec >= start_usec ? end_usec - start_usec : 0, execute_failed != 0);
+  if (execute_failed)
   {
     log("SYSERR: mysql_stmt_execute failed: %s (Error: %u, SQLState: %s)",
         mysql_stmt_error(pstmt->stmt), mysql_stmt_errno(pstmt->stmt),
@@ -1614,6 +1631,20 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
         /* Initialize error flag */
         *pstmt->results[i].error = 0;
         /* Integer types don't need length pointer */
+        pstmt->results[i].length = NULL;
+        break;
+
+      case MYSQL_TYPE_LONGLONG:
+        /* BIGINT columns and COUNT(*) aggregates arrive as 64-bit integers.
+         * The buffer signedness follows the column so the client library
+         * converts and range-checks correctly for BIGINT UNSIGNED. */
+        CREATE(pstmt->results[i].buffer, long long, 1);
+        pstmt->results[i].buffer_type = MYSQL_TYPE_LONGLONG;
+        pstmt->results[i].buffer_length = sizeof(long long);
+        pstmt->results[i].is_unsigned = (my_bool)((field->flags & UNSIGNED_FLAG) != 0 ? 1 : 0);
+        CREATE(pstmt->results[i].is_null, my_bool, 1);
+        CREATE(pstmt->results[i].error, my_bool, 1);
+        *pstmt->results[i].error = 0;
         pstmt->results[i].length = NULL;
         break;
 
@@ -1786,7 +1817,84 @@ int mysql_stmt_get_int(PREPARED_STMT *pstmt, int col_index)
     return 0;
   }
 
+  if (pstmt->results[col_index].buffer_type == MYSQL_TYPE_LONGLONG)
+  {
+    long long wide = mysql_stmt_get_long(pstmt, col_index);
+    return wide > INT_MAX ? INT_MAX : (wide < INT_MIN ? INT_MIN : (int)wide);
+  }
+
   return *(int *)pstmt->results[col_index].buffer;
+}
+
+/**
+ * Gets a 64-bit integer value from the current result row.
+ *
+ * @param pstmt The prepared statement structure
+ * @param col_index The column index (0-based)
+ * @return Integer value, or 0 if column is NULL or error
+ *
+ * @note Use this for BIGINT columns and COUNT(*) aggregates.
+ */
+long long mysql_stmt_get_long(PREPARED_STMT *pstmt, int col_index)
+{
+  if (!pstmt || !pstmt->results || col_index < 0 || col_index >= pstmt->result_count)
+  {
+    return 0;
+  }
+
+  if (*pstmt->results[col_index].is_null)
+  {
+    return 0;
+  }
+
+  if (pstmt->results[col_index].buffer_type == MYSQL_TYPE_LONGLONG)
+  {
+    if (pstmt->results[col_index].is_unsigned)
+    {
+      unsigned long long raw = *(unsigned long long *)pstmt->results[col_index].buffer;
+      return raw > (unsigned long long)LLONG_MAX ? LLONG_MAX : (long long)raw;
+    }
+    return *(long long *)pstmt->results[col_index].buffer;
+  }
+
+  return *(int *)pstmt->results[col_index].buffer;
+}
+
+/**
+ * Gets an unsigned 64-bit integer value from the current result row.
+ *
+ * @param pstmt The prepared statement structure
+ * @param col_index The column index (0-based)
+ * @return Integer value, or 0 if column is NULL, negative, or error
+ *
+ * @note Use this for BIGINT UNSIGNED columns whose values may exceed LLONG_MAX.
+ */
+unsigned long long mysql_stmt_get_ulong(PREPARED_STMT *pstmt, int col_index)
+{
+  long long signed_value;
+
+  if (!pstmt || !pstmt->results || col_index < 0 || col_index >= pstmt->result_count)
+  {
+    return 0;
+  }
+
+  if (*pstmt->results[col_index].is_null)
+  {
+    return 0;
+  }
+
+  if (pstmt->results[col_index].buffer_type == MYSQL_TYPE_LONGLONG)
+  {
+    if (pstmt->results[col_index].is_unsigned)
+    {
+      return *(unsigned long long *)pstmt->results[col_index].buffer;
+    }
+    signed_value = *(long long *)pstmt->results[col_index].buffer;
+    return signed_value < 0 ? 0 : (unsigned long long)signed_value;
+  }
+
+  signed_value = *(int *)pstmt->results[col_index].buffer;
+  return signed_value < 0 ? 0 : (unsigned long long)signed_value;
 }
 
 /**
@@ -1884,6 +1992,11 @@ void mysql_stmt_cleanup(PREPARED_STMT *pstmt)
   if (pstmt->metadata)
   {
     mysql_free_result(pstmt->metadata);
+  }
+
+  if (pstmt->query_text)
+  {
+    free(pstmt->query_text);
   }
 
   /* Close the statement */

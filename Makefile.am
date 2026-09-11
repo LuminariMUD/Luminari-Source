@@ -845,6 +845,8 @@ EXTRA_DIST = \
 	scripts/copyover/copyover_watchdog.sh \
 	scripts/copyover/enhanced_copyover_diagnostic.sh \
 	scripts/ci/prepare_test_runtime.sh \
+	scripts/ci/check_sql_interpolation.py \
+	scripts/ci/sql_interpolation_baseline.txt \
 	scripts/debugging/debug_game.sh \
 	scripts/debugging/verify_core_capture.sh \
 	scripts/debugging/vgrind.sh \
@@ -1012,7 +1014,7 @@ EXTRA_DIST = \
 
 # Run unit tests
 test: check test-help-sync test-autorun-supervision test-versioned-binary-install \
-	test-binary-name-static test-healthcheck \
+	test-binary-name-static test-healthcheck test-sql-interpolation \
 	test-background-help-entries test-demand-driven-architecture test-event-admission \
 	test-event-core-performance-gate test-native-event-architecture test-pubsub-retirement \
 	test-vessel-tooling
@@ -1024,6 +1026,7 @@ test: check test-help-sync test-autorun-supervision test-versioned-binary-instal
 	test-help-sync-integration test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
 	test-versioned-binary-install test-binary-name-static test-healthcheck \
+	test-sql-interpolation \
 	test-demand-driven-architecture test-event-admission test-native-event-architecture \
 	test-event-core-performance-gate test-pubsub-retirement \
 	test-vessel-tooling
@@ -1090,6 +1093,11 @@ test-binary-name-static:
 
 test-healthcheck:
 	./scripts/operations/test_healthcheck.sh
+
+# Blocks new formatted SQL with data values (issue #98 ratchet).
+test-sql-interpolation:
+	cd "$(abs_top_srcdir)" && python3 scripts/ci/check_sql_interpolation.py --self-test
+	cd "$(abs_top_srcdir)" && python3 scripts/ci/check_sql_interpolation.py
 
 test-process-memory:
 	./scripts/process-memory/test_process_memory_details.sh
