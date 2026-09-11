@@ -2466,8 +2466,19 @@ void Test_pet_bounded_restore_selects_capacity_and_stables_the_rest(CuTest *tc)
  * SQL-looking fragments must round-trip byte for byte, and the result must not
  * depend on the session's escaping mode.
  */
-static void check_account_tier_binds_values(CuTest *tc, MYSQL *connection, const char *sql_mode,
-                                            const char *account_name, const char *lookup_name)
+#define ACCOUNT_CHECK(condition, label)                                                            \
+  do                                                                                               \
+  {                                                                                                \
+    if (!(condition))                                                                              \
+      return (label);                                                                              \
+  } while (0)
+
+/* Returns NULL on success or a label naming the first failed check. The helper
+ * never asserts: a CuTest assertion longjmps past the caller's cleanup, which
+ * would leave the test connection installed in the globals. */
+static const char *check_account_tier_binds_values(MYSQL *connection, const char *sql_mode,
+                                                   const char *account_name,
+                                                   const char *lookup_name)
 {
   const char *queries[] = {
       "DROP TEMPORARY TABLE IF EXISTS account_data, player_data, unlocked_races, unlocked_classes",
@@ -2509,11 +2520,12 @@ static void check_account_tier_binds_values(CuTest *tc, MYSQL *connection, const
   ch.player_specials = &specials;
   ch.player.name = (char *)character_name;
 
-  CuAssertIntEquals(tc, 0, mysql_query(connection, sql_mode));
+  ACCOUNT_CHECK((0) == (mysql_query(connection, sql_mode)),
+                "(0) == (mysql_query(connection, sql_mode))");
   for (query_index = 0; queries[query_index] != NULL; query_index++)
     if (mysql_query(connection, queries[query_index]))
       schema_created = false;
-  CuAssertTrue(tc, schema_created);
+  ACCOUNT_CHECK(schema_created, "schema_created");
 
   /* Core row with every string carrying hostile characters, plus unlock sets. */
   account.name = (char *)account_name;
@@ -2524,25 +2536,30 @@ static void check_account_tier_binds_values(CuTest *tc, MYSQL *connection, const
   account.races[0] = 3;
   account.races[1] = 7;
   account.classes[0] = 2;
-  CuAssertTrue(tc, save_account_checked(&account));
-  CuAssertTrue(tc, account.id > 0);
+  ACCOUNT_CHECK(save_account_checked(&account), "save_account_checked(&account)");
+  ACCOUNT_CHECK(account.id > 0, "account.id > 0");
 
-  CuAssertIntEquals(tc, 0, load_account((char *)lookup_name, &loaded));
-  CuAssertStrEquals(tc, account_name, loaded.name);
-  CuAssertStrEquals(tc, password, loaded.password);
-  CuAssertStrEquals(tc, email, loaded.email);
-  CuAssertIntEquals(tc, 1234, loaded.experience);
-  CuAssertTrue(tc, loaded.quit_survey_completed);
-  CuAssertIntEquals(tc, account.id, loaded.id);
+  ACCOUNT_CHECK((0) == (load_account((char *)lookup_name, &loaded)),
+                "(0) == (load_account((char *)lookup_name, &loaded))");
+  ACCOUNT_CHECK((loaded.name) != NULL && strcmp(account_name, loaded.name) == 0,
+                "(loaded.name) != NULL && strcmp(account_name, loaded.name) == 0");
+  ACCOUNT_CHECK((loaded.password) != NULL && strcmp(password, loaded.password) == 0,
+                "(loaded.password) != NULL && strcmp(password, loaded.password) == 0");
+  ACCOUNT_CHECK((loaded.email) != NULL && strcmp(email, loaded.email) == 0,
+                "(loaded.email) != NULL && strcmp(email, loaded.email) == 0");
+  ACCOUNT_CHECK((1234) == (loaded.experience), "(1234) == (loaded.experience)");
+  ACCOUNT_CHECK(loaded.quit_survey_completed, "loaded.quit_survey_completed");
+  ACCOUNT_CHECK((account.id) == (loaded.id), "(account.id) == (loaded.id)");
   for (slot = 0; slot < MAX_UNLOCKED_RACES; slot++)
     if (loaded.races[slot] == 7)
       race_found = true;
   for (slot = 0; slot < MAX_UNLOCKED_CLASSES; slot++)
     if (loaded.classes[slot] == 2)
       class_found = true;
-  CuAssertTrue(tc, race_found);
-  CuAssertTrue(tc, class_found);
-  CuAssertPtrEquals(tc, NULL, loaded.character_names[0]);
+  ACCOUNT_CHECK(race_found, "race_found");
+  ACCOUNT_CHECK(class_found, "class_found");
+  ACCOUNT_CHECK((void *)(NULL) == (void *)(loaded.character_names[0]),
+                "(void *)(NULL) == (void *)(loaded.character_names[0])");
   free(loaded.name);
   free(loaded.email);
   memset(&loaded, 0, sizeof(loaded));
@@ -2551,54 +2568,76 @@ static void check_account_tier_binds_values(CuTest *tc, MYSQL *connection, const
   account.email = NULL;
   account.experience = 99;
   account.quit_survey_completed = false;
-  CuAssertTrue(tc, save_account_checked(&account));
-  CuAssertIntEquals(tc, 0, load_account((char *)account_name, &loaded));
-  CuAssertPtrEquals(tc, NULL, loaded.email);
-  CuAssertIntEquals(tc, 99, loaded.experience);
-  CuAssertTrue(tc, !loaded.quit_survey_completed);
+  ACCOUNT_CHECK(save_account_checked(&account), "save_account_checked(&account)");
+  ACCOUNT_CHECK((0) == (load_account((char *)account_name, &loaded)),
+                "(0) == (load_account((char *)account_name, &loaded))");
+  ACCOUNT_CHECK((void *)(NULL) == (void *)(loaded.email),
+                "(void *)(NULL) == (void *)(loaded.email)");
+  ACCOUNT_CHECK((99) == (loaded.experience), "(99) == (loaded.experience)");
+  ACCOUNT_CHECK(!loaded.quit_survey_completed, "!loaded.quit_survey_completed");
   free(loaded.name);
   memset(&loaded, 0, sizeof(loaded));
 
   /* Character links: create, list, resolve owner, batch relink, dedupe, remove. */
-  CuAssertTrue(tc, link_character_to_account_checked(&ch, &account));
+  ACCOUNT_CHECK(link_character_to_account_checked(&ch, &account),
+                "link_character_to_account_checked(&ch, &account)");
   load_account_characters(&account);
-  CuAssertPtrNotNull(tc, account.character_names[0]);
-  CuAssertStrEquals(tc, character_name, account.character_names[0]);
-  CuAssertPtrEquals(tc, NULL, account.character_names[1]);
+  ACCOUNT_CHECK((account.character_names[0]) != NULL, "(account.character_names[0]) != NULL");
+  ACCOUNT_CHECK((account.character_names[0]) != NULL &&
+                    strcmp(character_name, account.character_names[0]) == 0,
+                "(account.character_names[0]) != NULL && strcmp(character_name, "
+                "account.character_names[0]) == 0");
+  ACCOUNT_CHECK((void *)(NULL) == (void *)(account.character_names[1]),
+                "(void *)(NULL) == (void *)(account.character_names[1])");
   owner_name = get_char_account_name((char *)character_name);
-  CuAssertPtrNotNull(tc, owner_name);
-  CuAssertStrEquals(tc, account_name, owner_name);
+  ACCOUNT_CHECK((owner_name) != NULL, "(owner_name) != NULL");
+  ACCOUNT_CHECK((owner_name) != NULL && strcmp(account_name, owner_name) == 0,
+                "(owner_name) != NULL && strcmp(account_name, owner_name) == 0");
   free(owner_name);
 
   /* The dirty character set drives the placeholder IN (...) relink. */
-  CuAssertTrue(tc, save_account_checked(&account));
+  ACCOUNT_CHECK(save_account_checked(&account), "save_account_checked(&account)");
   escaped_name = mysql_escape_string_alloc(connection, character_name);
-  CuAssertPtrNotNull(tc, escaped_name);
+  ACCOUNT_CHECK((escaped_name) != NULL, "(escaped_name) != NULL");
   snprintf(count_query, sizeof(count_query),
            "SELECT COUNT(*) FROM player_data WHERE account_id = %d", account.id);
-  CuAssertIntEquals(tc, 1, query_single_int(connection, count_query, -1));
+  ACCOUNT_CHECK((1) == (query_single_int(connection, count_query, -1)),
+                "(1) == (query_single_int(connection, count_query, -1))");
 
   snprintf(count_query, sizeof(count_query),
            "INSERT INTO player_data (name, account_id) VALUES ('%s', %d)", escaped_name,
            account.id);
-  CuAssertIntEquals(tc, 0, mysql_query(connection, count_query));
+  ACCOUNT_CHECK((0) == (mysql_query(connection, count_query)),
+                "(0) == (mysql_query(connection, count_query))");
   snprintf(count_query, sizeof(count_query),
            "SELECT COUNT(*) FROM player_data WHERE account_id = %d", account.id);
-  CuAssertIntEquals(tc, 2, query_single_int(connection, count_query, -1));
+  ACCOUNT_CHECK((2) == (query_single_int(connection, count_query, -1)),
+                "(2) == (query_single_int(connection, count_query, -1))");
   load_account_characters(&account);
-  CuAssertIntEquals(tc, 1, query_single_int(connection, count_query, -1));
-  CuAssertStrEquals(tc, character_name, account.character_names[0]);
-  CuAssertPtrEquals(tc, NULL, account.character_names[1]);
+  ACCOUNT_CHECK((1) == (query_single_int(connection, count_query, -1)),
+                "(1) == (query_single_int(connection, count_query, -1))");
+  ACCOUNT_CHECK((account.character_names[0]) != NULL &&
+                    strcmp(character_name, account.character_names[0]) == 0,
+                "(account.character_names[0]) != NULL && strcmp(character_name, "
+                "account.character_names[0]) == 0");
+  ACCOUNT_CHECK((void *)(NULL) == (void *)(account.character_names[1]),
+                "(void *)(NULL) == (void *)(account.character_names[1])");
 
   remove_char_from_account(&ch, &account);
-  CuAssertIntEquals(tc, 0, query_single_int(connection, count_query, -1));
-  CuAssertPtrEquals(tc, NULL, account.character_names[0]);
-  CuAssertPtrEquals(tc, NULL, get_char_account_name((char *)character_name));
+  ACCOUNT_CHECK((0) == (query_single_int(connection, count_query, -1)),
+                "(0) == (query_single_int(connection, count_query, -1))");
+  ACCOUNT_CHECK((void *)(NULL) == (void *)(account.character_names[0]),
+                "(void *)(NULL) == (void *)(account.character_names[0])");
+  ACCOUNT_CHECK((void *)(NULL) == (void *)(get_char_account_name((char *)character_name)),
+                "(void *)(NULL) == (void *)(get_char_account_name((char *)character_name))");
   free(escaped_name);
 
   for (slot = 0; slot < MAX_CHARS_PER_ACCOUNT; slot++)
     free(account.character_names[slot]);
+  return NULL;
 }
+
+#undef ACCOUNT_CHECK
 
 void Test_account_tier_binds_hostile_values_in_every_sql_mode(CuTest *tc)
 {
@@ -2607,6 +2646,8 @@ void Test_account_tier_binds_hostile_values_in_every_sql_mode(CuTest *tc)
   const char *lookup_name = "oL'r\xc3\xa9\\ILLE\"); drop TABLE account_data; --";
   MYSQL *connection;
   MYSQL *saved_conn;
+  const char *default_mode_failure;
+  const char *no_backslash_failure;
   bool saved_available;
 
   if (enabled == NULL || strcmp(enabled, "1") != 0)
@@ -2628,12 +2669,18 @@ void Test_account_tier_binds_hostile_values_in_every_sql_mode(CuTest *tc)
   conn = connection;
   mysql_available = true;
 
-  check_account_tier_binds_values(tc, connection, "SET SESSION sql_mode = ''", account_name,
-                                  lookup_name);
-  check_account_tier_binds_values(tc, connection, "SET SESSION sql_mode = 'NO_BACKSLASH_ESCAPES'",
-                                  account_name, lookup_name);
+  default_mode_failure = check_account_tier_binds_values(connection, "SET SESSION sql_mode = ''",
+                                                         account_name, lookup_name);
+  no_backslash_failure = check_account_tier_binds_values(
+      connection, "SET SESSION sql_mode = 'NO_BACKSLASH_ESCAPES'", account_name, lookup_name);
 
+  /* Restore the globals before any assertion can longjmp out of this test. */
   mysql_close(connection);
   conn = saved_conn;
   mysql_available = saved_available;
+
+  CuAssert(tc, default_mode_failure != NULL ? default_mode_failure : "default sql_mode",
+           default_mode_failure == NULL);
+  CuAssert(tc, no_backslash_failure != NULL ? no_backslash_failure : "NO_BACKSLASH_ESCAPES",
+           no_backslash_failure == NULL);
 }

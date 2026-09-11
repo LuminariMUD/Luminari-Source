@@ -17,9 +17,10 @@ like a clause is acceptable noise because only growth fails the check. Placehold
 when it mentions a keyword; keep placeholder building free of SQL keywords.
 
 Usage:
-  check_sql_interpolation.py            # compare against the baseline
-  check_sql_interpolation.py --list     # print every counted site
-  check_sql_interpolation.py --update   # rewrite the baseline from the tree
+  check_sql_interpolation.py              # compare against the baseline
+  check_sql_interpolation.py --list       # print every counted site
+  check_sql_interpolation.py --update     # lower the baseline; refuses growth
+  check_sql_interpolation.py --self-test  # exercise the scanner on fixtures
 """
 
 import os
@@ -44,8 +45,38 @@ STRING_LITERAL_PATTERN = re.compile(r'"((?:[^"\\]|\\.)*)"')
 
 
 def strip_comments(text):
-    text = re.sub(r"/\*.*?\*/", lambda match: " " * len(match.group(0)), text, flags=re.S)
-    return re.sub(r"//[^\n]*", "", text)
+    """Blank out C comments while leaving string and character literals intact.
+
+    Comment-like sequences inside literals ("-- //", "/* hint */") are SQL
+    text, not C comments, so a literal-aware scan is required to keep those
+    sites visible to the ratchet.
+    """
+    out = []
+    index = 0
+    length = len(text)
+    while index < length:
+        char = text[index]
+        if char == '"' or char == "'":
+            quote = char
+            end = index + 1
+            while end < length and text[end] != quote:
+                end += 2 if text[end] == "\\" else 1
+            end = min(end + 1, length)
+            out.append(text[index:end])
+            index = end
+        elif text.startswith("/*", index):
+            end = text.find("*/", index + 2)
+            end = length if end < 0 else end + 2
+            out.append(re.sub(r"[^\n]", " ", text[index:end]))
+            index = end
+        elif text.startswith("//", index):
+            end = text.find("\n", index)
+            end = length if end < 0 else end
+            index = end
+        else:
+            out.append(char)
+            index += 1
+    return "".join(out)
 
 
 def iter_calls(text):
@@ -112,7 +143,57 @@ def write_baseline(sites):
             handle.write("%s %d\n" % (path, len(sites[path])))
 
 
+def count_sites_in_text(text):
+    """Count formatted SQL sites in one C source text (shared by the self-test)."""
+    stripped = strip_comments(text)
+    count = 0
+    for _offset, call_text in iter_calls(stripped):
+        fmt = call_format_string(call_text)
+        if KEYWORD_PATTERN.search(fmt) and CONVERSION_PATTERN.search(fmt):
+            count += 1
+    return count
+
+
+SELF_TEST_CASES = [
+    # (description, source, expected count)
+    ("plain formatted select",
+     'snprintf(q, sizeof(q), "SELECT a FROM t WHERE b = %d", b);', 1),
+    ("placeholders only are not data",
+     'snprintf(q, sizeof(q), "SELECT a FROM t WHERE b = ?");', 0),
+    ("block comment does not hide a site",
+     '/* SELECT %s */ snprintf(q, sizeof(q), "DELETE FROM t WHERE k = \'%s\'", k);', 1),
+    ("line comment site is not counted",
+     '// snprintf(q, sizeof(q), "SELECT a FROM t WHERE b = %d", b);\nint x;', 0),
+    ("line comment sequence inside a literal is kept",
+     'snprintf(q, sizeof(q), "SELECT a FROM t WHERE b = %d -- // note", b);', 1),
+    ("block comment sequence inside a literal is kept",
+     'snprintf(q, sizeof(q), "/* hint */ SELECT a FROM t WHERE b = %d", b);', 1),
+    ("comment opener inside a character literal",
+     "char c = '/'; char d = '*'; snprintf(q, sizeof(q), \"UPDATE t SET a = %d\", a);", 1),
+    ("escaped quote inside a literal",
+     'snprintf(q, sizeof(q), "INSERT INTO t (a) VALUES (\'%s\') /* \\" */", a);', 1),
+    ("non-sql format text",
+     'snprintf(buf, sizeof(buf), "You set %s down from where it came.", name);', 0),
+]
+
+
+def self_test():
+    failures = 0
+    for description, source, expected in SELF_TEST_CASES:
+        actual = count_sites_in_text(source)
+        if actual != expected:
+            failures += 1
+            print("self-test FAILED: %s (expected %d, got %d)" % (description, expected, actual),
+                  file=sys.stderr)
+    if failures:
+        return 1
+    print("sql interpolation self-test: %d cases passed" % len(SELF_TEST_CASES))
+    return 0
+
+
 def main(argv):
+    if "--self-test" in argv:
+        return self_test()
     sites = collect_sites()
     if "--list" in argv:
         for path in sorted(sites):
@@ -121,6 +202,15 @@ def main(argv):
         print("total: %d" % sum(len(lines) for lines in sites.values()))
         return 0
     if "--update" in argv:
+        baseline = read_baseline()
+        grown = [(path, baseline.get(path, 0), len(lines)) for path, lines in sorted(sites.items())
+                 if len(lines) > baseline.get(path, 0)]
+        if baseline and grown:
+            print("Refusing to record baseline growth; migrate or justify these sites first:",
+                  file=sys.stderr)
+            for path, allowed, now in grown:
+                print("  %s: %d site(s), baseline allows %d" % (path, now, allowed), file=sys.stderr)
+            return 1
         write_baseline(sites)
         print("baseline written: %d files, %d sites" % (len(sites), sum(map(len, sites.values()))))
         return 0

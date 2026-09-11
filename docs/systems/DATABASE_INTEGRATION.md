@@ -143,34 +143,34 @@ CREATE TABLE combat_logs (
 #### Loading Player Data
 ```c
 struct char_data *load_player_from_db(const char *name) {
-    MYSQL_RES *result;
-    MYSQL_ROW row;
+    PREPARED_STMT *statement;
     struct char_data *ch = NULL;
-    char query[MAX_STRING_LENGTH];
+    const char *value;
 
-    mysql_ping(conn);
-
-    snprintf(query, sizeof(query),
-        "SELECT id, name, level, experience, class, race "
-        "FROM player_data WHERE name = '%s'", name);
-
-    if (mysql_query(conn, query)) {
-        log("SYSERR: MySQL query error: %s", mysql_error(conn));
+    statement = mysql_stmt_create(conn);
+    if (statement == NULL ||
+        !mysql_stmt_prepare_query(statement,
+                                  "SELECT id, name, level, experience, class, race "
+                                  "FROM player_data WHERE name = ?") ||
+        !mysql_stmt_bind_param_string(statement, 0, name) ||
+        !mysql_stmt_execute_prepared(statement)) {
+        log("SYSERR: Unable to load player %s.", name);
+        mysql_stmt_cleanup(statement);
         return NULL;
     }
 
-    result = mysql_store_result(conn);
-    if ((row = mysql_fetch_row(result))) {
+    if (mysql_stmt_fetch_row(statement)) {
         ch = create_char();
-        GET_IDNUM(ch) = atoi(row[0]);
-        strcpy(GET_NAME(ch), row[1]);
-        GET_LEVEL(ch) = atoi(row[2]);
-        GET_EXP(ch) = atoll(row[3]);
-        GET_CLASS(ch) = atoi(row[4]);
-        GET_RACE(ch) = atoi(row[5]);
+        GET_IDNUM(ch) = mysql_stmt_get_long(statement, 0);
+        value = mysql_stmt_get_string(statement, 1);
+        strlcpy(GET_NAME(ch), value != NULL ? value : "", MAX_NAME_LENGTH + 1);
+        GET_LEVEL(ch) = mysql_stmt_get_int(statement, 2);
+        GET_EXP(ch) = mysql_stmt_get_long(statement, 3);
+        GET_CLASS(ch) = mysql_stmt_get_int(statement, 4);
+        GET_RACE(ch) = mysql_stmt_get_int(statement, 5);
     }
 
-    mysql_free_result(result);
+    mysql_stmt_cleanup(statement);
     return ch;
 }
 ```
@@ -178,23 +178,25 @@ struct char_data *load_player_from_db(const char *name) {
 #### Saving Player Data
 ```c
 void save_player_to_db(struct char_data *ch) {
-    char query[MAX_STRING_LENGTH];
-    char escaped_name[MAX_NAME_LENGTH * 2 + 1];
+    PREPARED_STMT *statement;
 
-    mysql_ping(conn);
-    mysql_real_escape_string(conn, escaped_name, GET_NAME(ch), strlen(GET_NAME(ch)));
-
-    snprintf(query, sizeof(query),
-        "INSERT INTO player_data (name, level, experience, class, race, last_logon) "
-        "VALUES ('%s', %d, %lld, %d, %d, NOW()) "
-        "ON DUPLICATE KEY UPDATE "
-        "level = %d, experience = %lld, class = %d, race = %d, last_logon = NOW()",
-        escaped_name, GET_LEVEL(ch), GET_EXP(ch), GET_CLASS(ch), GET_RACE(ch),
-        GET_LEVEL(ch), GET_EXP(ch), GET_CLASS(ch), GET_RACE(ch));
-
-    if (mysql_query(conn, query)) {
-        log("SYSERR: Failed to save player %s: %s", GET_NAME(ch), mysql_error(conn));
+    statement = mysql_stmt_create(conn);
+    if (statement == NULL ||
+        !mysql_stmt_prepare_query(statement,
+                                  "INSERT INTO player_data (name, level, experience, class, race, last_logon) "
+                                  "VALUES (?, ?, ?, ?, ?, NOW()) "
+                                  "ON DUPLICATE KEY UPDATE level = VALUES(level), "
+                                  "experience = VALUES(experience), class = VALUES(class), "
+                                  "race = VALUES(race), last_logon = NOW()") ||
+        !mysql_stmt_bind_param_string(statement, 0, GET_NAME(ch)) ||
+        !mysql_stmt_bind_param_int(statement, 1, GET_LEVEL(ch)) ||
+        !mysql_stmt_bind_param_long(statement, 2, GET_EXP(ch)) ||
+        !mysql_stmt_bind_param_int(statement, 3, GET_CLASS(ch)) ||
+        !mysql_stmt_bind_param_int(statement, 4, GET_RACE(ch)) ||
+        !mysql_stmt_execute_prepared(statement)) {
+        log("SYSERR: Failed to save player %s.", GET_NAME(ch));
     }
+    mysql_stmt_cleanup(statement);
 }
 ```
 
@@ -203,20 +205,28 @@ void save_player_to_db(struct char_data *ch) {
 #### Room State Management
 ```c
 void save_room_state(room_rnum room) {
-    char query[MAX_STRING_LENGTH];
+    PREPARED_STMT *statement;
     struct room_data *rm = &world[room];
 
-    snprintf(query, sizeof(query),
-        "INSERT INTO room_data (vnum, name, description, zone_id, room_flags, sector_type) "
-        "VALUES (%d, '%s', '%s', %d, %lld, %d) "
-        "ON DUPLICATE KEY UPDATE "
-        "name = '%s', description = '%s', room_flags = %lld, sector_type = %d",
-        rm->number, rm->name, rm->description, rm->zone, rm->room_flags, rm->sector_type,
-        rm->name, rm->description, rm->room_flags, rm->sector_type);
-
-    if (mysql_query(conn, query)) {
-        log("SYSERR: Failed to save room %d: %s", rm->number, mysql_error(conn));
+    /* Room names and descriptions are builder text; they are bound, never formatted. */
+    statement = mysql_stmt_create(conn);
+    if (statement == NULL ||
+        !mysql_stmt_prepare_query(statement,
+                                  "INSERT INTO room_data (vnum, name, description, zone_id, room_flags, sector_type) "
+                                  "VALUES (?, ?, ?, ?, ?, ?) "
+                                  "ON DUPLICATE KEY UPDATE name = VALUES(name), "
+                                  "description = VALUES(description), room_flags = VALUES(room_flags), "
+                                  "sector_type = VALUES(sector_type)") ||
+        !mysql_stmt_bind_param_int(statement, 0, rm->number) ||
+        !mysql_stmt_bind_param_string(statement, 1, rm->name) ||
+        !mysql_stmt_bind_param_string(statement, 2, rm->description) ||
+        !mysql_stmt_bind_param_int(statement, 3, rm->zone) ||
+        !mysql_stmt_bind_param_long(statement, 4, rm->room_flags) ||
+        !mysql_stmt_bind_param_int(statement, 5, rm->sector_type) ||
+        !mysql_stmt_execute_prepared(statement)) {
+        log("SYSERR: Failed to save room %d.", rm->number);
     }
+    mysql_stmt_cleanup(statement);
 }
 ```
 
@@ -259,7 +269,8 @@ Binding notes:
 - `mysql_stmt_bind_param_int()` and `mysql_stmt_bind_param_long()` bind numbers;
   never format a number into the SQL text.
 - `mysql_stmt_get_long()` reads `BIGINT` columns and `COUNT(*)` aggregates;
-  `mysql_stmt_get_int()` reads smaller integer columns.
+  `mysql_stmt_get_ulong()` reads `BIGINT UNSIGNED` columns whose values can
+  exceed the signed range; `mysql_stmt_get_int()` reads smaller integer columns.
 - `mysql_stmt_affected_rows_count()` and `mysql_stmt_insert_id(statement->stmt)`
   replace `mysql_affected_rows()` and `mysql_insert_id()`.
 - Variable-length lists (`IN (...)`, multi-row `VALUES`) append placeholders
@@ -346,31 +357,44 @@ void release_db_connection(MYSQL *conn) {
 ```
 
 ### Batch Operations
+
+Multi-row statements append placeholders only; the row values are bound after
+the statement is prepared, exactly as `save_account_integer_set()` does for
+unlock sets in `src/account.c`.
+
 ```c
 void batch_save_players() {
     char query[MAX_STRING_LENGTH * 10];
-    strcpy(query, "INSERT INTO player_data (name, level, experience) VALUES ");
-
+    PREPARED_STMT *statement;
     struct char_data *ch;
-    bool first = TRUE;
+    bool bound;
+    int used;
+    int count = 0;
+    int slot = 0;
 
+    used = snprintf(query, sizeof(query),
+                    "INSERT INTO player_data (name, level, experience) VALUES ");
     for (ch = character_list; ch; ch = ch->next) {
         if (IS_NPC(ch) || !ch->desc) continue;
-
-        if (!first) strcat(query, ", ");
-
-        char values[256];
-        snprintf(values, sizeof(values), "('%s', %d, %lld)",
-                GET_NAME(ch), GET_LEVEL(ch), GET_EXP(ch));
-        strcat(query, values);
-        first = FALSE;
+        used = snprintf_append(query, sizeof(query), used, "%s(?, ?, ?)", count > 0 ? ", " : "");
+        count++;
     }
+    if (count == 0) return;
+    snprintf_append(query, sizeof(query), used,
+                    " ON DUPLICATE KEY UPDATE level = VALUES(level), experience = VALUES(experience)");
 
-    strcat(query, " ON DUPLICATE KEY UPDATE level = VALUES(level), experience = VALUES(experience)");
-
-    if (mysql_query(conn, query)) {
-        log("SYSERR: Batch save failed: %s", mysql_error(conn));
+    statement = mysql_stmt_create(conn);
+    bound = statement != NULL && mysql_stmt_prepare_query(statement, query);
+    for (ch = character_list; bound && ch; ch = ch->next) {
+        if (IS_NPC(ch) || !ch->desc) continue;
+        bound = mysql_stmt_bind_param_string(statement, slot++, GET_NAME(ch)) &&
+                mysql_stmt_bind_param_int(statement, slot++, GET_LEVEL(ch)) &&
+                mysql_stmt_bind_param_long(statement, slot++, GET_EXP(ch));
     }
+    if (!bound || !mysql_stmt_execute_prepared(statement)) {
+        log("SYSERR: Batch save failed.");
+    }
+    mysql_stmt_cleanup(statement);
 }
 ```
 
@@ -506,8 +530,9 @@ void log_database_stats() {
 - `make test` runs `scripts/ci/check_sql_interpolation.py`, which fails when a
   source file gains a formatted SQL statement with `%` conversions beyond the
   recorded baseline in `scripts/ci/sql_interpolation_baseline.txt`. After
-  migrating sites to bound statements, run the script with `--update` so the
-  baseline only shrinks. Use `--list` to see the remaining inventory for #98.
+  migrating sites to bound statements, run the script with `--update`; it
+  refuses to record growth, so the baseline only shrinks. Use `--list` to see
+  the remaining inventory for #98.
 
 ### Connection Security
 - Use secure passwords for database users

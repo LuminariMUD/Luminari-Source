@@ -1096,6 +1096,7 @@ test-healthcheck:
 
 # Blocks new formatted SQL with data values (issue #98 ratchet).
 test-sql-interpolation:
+	cd "$(abs_top_srcdir)" && python3 scripts/ci/check_sql_interpolation.py --self-test
 	cd "$(abs_top_srcdir)" && python3 scripts/ci/check_sql_interpolation.py
 
 test-process-memory:

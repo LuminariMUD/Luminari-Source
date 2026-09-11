@@ -9,6 +9,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include <stdint.h>
+#include <limits.h>
 #include <stdatomic.h>
 #include <math.h>
 #include "structs.h"
@@ -1634,10 +1635,13 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
         break;
 
       case MYSQL_TYPE_LONGLONG:
-        /* BIGINT columns and COUNT(*) aggregates arrive as 64-bit integers */
+        /* BIGINT columns and COUNT(*) aggregates arrive as 64-bit integers.
+         * The buffer signedness follows the column so the client library
+         * converts and range-checks correctly for BIGINT UNSIGNED. */
         CREATE(pstmt->results[i].buffer, long long, 1);
         pstmt->results[i].buffer_type = MYSQL_TYPE_LONGLONG;
         pstmt->results[i].buffer_length = sizeof(long long);
+        pstmt->results[i].is_unsigned = (my_bool)((field->flags & UNSIGNED_FLAG) != 0 ? 1 : 0);
         CREATE(pstmt->results[i].is_null, my_bool, 1);
         CREATE(pstmt->results[i].error, my_bool, 1);
         *pstmt->results[i].error = 0;
@@ -1815,7 +1819,8 @@ int mysql_stmt_get_int(PREPARED_STMT *pstmt, int col_index)
 
   if (pstmt->results[col_index].buffer_type == MYSQL_TYPE_LONGLONG)
   {
-    return (int)*(long long *)pstmt->results[col_index].buffer;
+    long long wide = mysql_stmt_get_long(pstmt, col_index);
+    return wide > INT_MAX ? INT_MAX : (wide < INT_MIN ? INT_MIN : (int)wide);
   }
 
   return *(int *)pstmt->results[col_index].buffer;
@@ -1844,10 +1849,52 @@ long long mysql_stmt_get_long(PREPARED_STMT *pstmt, int col_index)
 
   if (pstmt->results[col_index].buffer_type == MYSQL_TYPE_LONGLONG)
   {
+    if (pstmt->results[col_index].is_unsigned)
+    {
+      unsigned long long raw = *(unsigned long long *)pstmt->results[col_index].buffer;
+      return raw > (unsigned long long)LLONG_MAX ? LLONG_MAX : (long long)raw;
+    }
     return *(long long *)pstmt->results[col_index].buffer;
   }
 
   return *(int *)pstmt->results[col_index].buffer;
+}
+
+/**
+ * Gets an unsigned 64-bit integer value from the current result row.
+ *
+ * @param pstmt The prepared statement structure
+ * @param col_index The column index (0-based)
+ * @return Integer value, or 0 if column is NULL, negative, or error
+ *
+ * @note Use this for BIGINT UNSIGNED columns whose values may exceed LLONG_MAX.
+ */
+unsigned long long mysql_stmt_get_ulong(PREPARED_STMT *pstmt, int col_index)
+{
+  long long signed_value;
+
+  if (!pstmt || !pstmt->results || col_index < 0 || col_index >= pstmt->result_count)
+  {
+    return 0;
+  }
+
+  if (*pstmt->results[col_index].is_null)
+  {
+    return 0;
+  }
+
+  if (pstmt->results[col_index].buffer_type == MYSQL_TYPE_LONGLONG)
+  {
+    if (pstmt->results[col_index].is_unsigned)
+    {
+      return *(unsigned long long *)pstmt->results[col_index].buffer;
+    }
+    signed_value = *(long long *)pstmt->results[col_index].buffer;
+    return signed_value < 0 ? 0 : (unsigned long long)signed_value;
+  }
+
+  signed_value = *(int *)pstmt->results[col_index].buffer;
+  return signed_value < 0 ? 0 : (unsigned long long)signed_value;
 }
 
 /**

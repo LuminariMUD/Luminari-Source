@@ -164,6 +164,7 @@ bool mysql_stmt_fetch_row(PREPARED_STMT *pstmt);
 char *mysql_stmt_get_string(PREPARED_STMT *pstmt, int col_index);
 int mysql_stmt_get_int(PREPARED_STMT *pstmt, int col_index);
 long long mysql_stmt_get_long(PREPARED_STMT *pstmt, int col_index);
+unsigned long long mysql_stmt_get_ulong(PREPARED_STMT *pstmt, int col_index);
 
 /* Get number of affected rows (for INSERT/UPDATE/DELETE) */
 my_ulonglong mysql_stmt_affected_rows_count(PREPARED_STMT *pstmt);
