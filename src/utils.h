@@ -2625,17 +2625,6 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define SEEK_END 2
 #endif
 
-/* NOCRYPT can be defined by an implementor manually in sysdep.h. CIRCLE_CRYPT
- * is a variable that the 'configure' script automatically sets when it
- * determines whether or not the system is capable of encrypting. */
-#if defined(NOCRYPT) || !defined(CIRCLE_CRYPT)
-/** When crypt is not defined. (NOTE: Player passwords will be plain text.) */
-#define CRYPT(a, b) (a)
-#else
-/** When crypt is defined. Player passwords stored encrypted. */
-#define CRYPT(a, b) ((char *)crypt((a), (b)))
-#endif
-
 /* Config macros */
 
 /** Pointer to the config file. */

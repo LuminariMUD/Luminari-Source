@@ -23387,11 +23387,15 @@ See also: HUNT, SNEAK, TRACK
 #0
 PASSWORDS PW
 
-Ideally, your password should be something that nobody could guess.  In 
+Ideally, your password should be something that nobody could guess.  In
 reality, most people choose a password that is easy to remember and they never
-change it. While passwords on most MUDs are encrypted there is no rule that 
-they have to be. So please NEVER use a password on a MUD that you use anywhere 
-else. Choose a separate MUDding password and change it occasionally.
+change it. Please NEVER use a password on a MUD that you use anywhere else.
+Choose a separate MUDding password and change it occasionally.
+
+Passwords are between 3 and 128 characters and may contain any characters.
+They are stored only as salted, slow-to-crack hashes; nobody, including staff,
+can read your password back. Accounts created before this scheme are upgraded
+automatically the next time you log in.
 
 If you forget your password any IMP can reset it for you.
 #0

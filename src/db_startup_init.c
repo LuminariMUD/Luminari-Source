@@ -47,6 +47,12 @@ int startup_database_init(void)
     return FALSE;
   }
 
+  if (!run_account_migrations())
+  {
+    log("SYSERR: Required account migrations failed during startup");
+    return FALSE;
+  }
+
   /* Verify critical systems are functional */
   if (!verify_core_player_tables())
   {
@@ -76,7 +82,7 @@ void initialize_missing_tables(void)
   /* Check and initialize individual table systems */
 
   /* Core player tables */
-  if (!table_exists("player_data") || !table_exists("pet_data"))
+  if (!table_exists("player_data") || !table_exists("account_data") || !table_exists("pet_data"))
   {
     log("Initializing core player tables...");
     init_core_player_tables();

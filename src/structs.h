@@ -5579,7 +5579,8 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 
 #define MAX_MESSAGES 512           /**< Max Different attack message types */
 #define MAX_NAME_LENGTH 20         /**< Max PC/NPC name length */
-#define MAX_PWD_LENGTH 30          /**< Max PC password length */
+#define MAX_PWD_LENGTH 128         /**< Max plaintext password length (abuse control only) */
+#define MAX_PWD_HASH_LENGTH 255    /**< Max stored password hash length; matches the column */
 #define MAX_TITLE_LENGTH 80        /**< Max PC title length */
 #define MAX_IMM_TITLE_LENGTH 20    /**< Max Imm Title Length */
 #define MAX_ARCANE_MARK_LENGTH 250 /**< Max stored arcane mark signature length */
@@ -6206,24 +6207,24 @@ struct pclean_criteria_data
 /** General info used by PC's and NPC's. */
 struct char_player_data
 {
-  char passwd[MAX_PWD_LENGTH + 1]; /**< PC's password */
-  char *name;                      /**< PC / NPC name */
-  char *short_descr;               /**< NPC 'actions' */
-  char *long_descr;                /**< PC / NPC look description */
-  char *description;               /**< NPC Extra descriptions */
-  char *title;                     /**< PC / NPC title */
-  byte sex;                        /**< PC / NPC sex */
-  byte chclass;                    /**< PC / NPC class */
-  byte level;                      /**< PC / NPC level */
-  struct time_data time;           /**< PC AGE in days */
-  ubyte weight;                    /**< PC / NPC weight */
-  ubyte height;                    /**< PC / NPC height */
-  sh_int race;                     // Persistent concrete race ID
-  byte pc_subrace;                 // SubRace
-  char *walkin;                    // NPC (for now) walkin message
-  char *walkout;                   // NPC (for now) walkout message
-  char *background;                // Character Backgrounds
-  byte exploit_weaknesses;         // has exploit weaknesses taken effect?
+  char passwd[MAX_PWD_HASH_LENGTH + 1]; /**< PC's password hash */
+  char *name;                           /**< PC / NPC name */
+  char *short_descr;                    /**< NPC 'actions' */
+  char *long_descr;                     /**< PC / NPC look description */
+  char *description;                    /**< NPC Extra descriptions */
+  char *title;                          /**< PC / NPC title */
+  byte sex;                             /**< PC / NPC sex */
+  byte chclass;                         /**< PC / NPC class */
+  byte level;                           /**< PC / NPC level */
+  struct time_data time;                /**< PC AGE in days */
+  ubyte weight;                         /**< PC / NPC weight */
+  ubyte height;                         /**< PC / NPC height */
+  sh_int race;                          // Persistent concrete race ID
+  byte pc_subrace;                      // SubRace
+  char *walkin;                         // NPC (for now) walkin message
+  char *walkout;                        // NPC (for now) walkout message
+  char *background;                     // Character Backgrounds
+  byte exploit_weaknesses;              // has exploit weaknesses taken effect?
   char *eidolon_shortdescription;
   char *eidolon_longdescription;
   char *eidolon_detaildescription;
@@ -8112,7 +8113,7 @@ struct account_data
 {
   int id;
   char *name;
-  char password[MAX_PWD_LENGTH + 1];
+  char password[MAX_PWD_HASH_LENGTH + 1];
   sbyte bad_password_count;
   char *character_names[MAX_CHARS_PER_ACCOUNT];
   int experience;

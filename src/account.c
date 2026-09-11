@@ -546,7 +546,7 @@ ACMD(do_accexp)
   Behavior:
     - Frees any pre-existing owned memory inside 'account' (name, email, character_names[]).
     - Reads id, name, password, experience, email from 'account_data'.
-    - Ensures password is null-terminated at MAX_PWD_LENGTH.
+    - Copies the stored password hash with truncation-safe termination.
     - Calls load_account_characters() and load_account_unlocks() to populate arrays.
   Notes:
     - Uses mysql_ping(conn) before querying to ensure connection is alive.
@@ -623,8 +623,7 @@ int load_account(char *name, struct account_data *account)
 
   account->id = atoi(row[0]);
   account->name = strdup(row[1]);
-  strncpy(account->password, row[2], MAX_PWD_LENGTH);
-  account->password[MAX_PWD_LENGTH] = '\0'; /* Ensure null termination */
+  strlcpy(account->password, row[2], sizeof(account->password));
   account->experience = atoi(row[3]);
   account->email = (row[4] ? strdup(row[4]) : NULL);
   account->quit_survey_completed = (row[5] ? atoi(row[5]) : 0);

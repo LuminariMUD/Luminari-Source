@@ -12,17 +12,6 @@
 #ifndef _SYSDEP_H_
 #define _SYSDEP_H_
 
-/* Configurables: tbaMUD uses the crypt(3) function to encrypt player passwords
- * in the players file so that they are never stored in plaintext form. However,
- * due to U.S. export restrictions on machine-readable cryptographic software,
- * the crypt() function is not available on some operating systems such as
- * FreeBSD.  By default, the 'configure' script will determine if you have
- * crypt() available and enable or disable password encryption appropriately.
- * #define NOCRYPT (by uncommenting the line below) if you'd like to explicitly
- * disable password encryption (i.e., if you have moved your MUD from an OS that
- * does not support encryption to one that does). */
-/* #define NOCRYPT */
-
 /* If you are porting tbaMUD to a new (untested) platform and you find that
  * POSIX-standard non-blocking I/O does *not* work, you can define the constant
  * below to work around the problem.  Not having non-blocking I/O can cause the

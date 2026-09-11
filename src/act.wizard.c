@@ -12,6 +12,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "password.h"
 #include "spec/spec_binding.h"
 #include "spec/spec_effective_binding.h"
 #include "spec/spec_registry.h"
@@ -4918,10 +4919,18 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       send_to_char(ch, "You cannot change that.\r\n");
       return (0);
     }
-    strncpy(GET_PASSWD(vict), CRYPT(val_arg, GET_NAME(vict)),
-            MAX_PWD_LENGTH); /* strncpy: OK (G_P:MAX_PWD_LENGTH) */
-    *(GET_PASSWD(vict) + MAX_PWD_LENGTH) = '\0';
-    send_to_char(ch, "Password changed to '%s'.\r\n", val_arg);
+    if (strlen(val_arg) < MIN_PWD_LENGTH || strlen(val_arg) > MAX_PWD_LENGTH)
+    {
+      send_to_char(ch, "Passwords must be between %d and %d characters.\r\n", MIN_PWD_LENGTH,
+                   MAX_PWD_LENGTH);
+      return (0);
+    }
+    if (!password_hash(val_arg, GET_PASSWD(vict), sizeof(vict->player.passwd)))
+    {
+      send_to_char(ch, "Unable to store that password.\r\n");
+      return (0);
+    }
+    send_to_char(ch, "Password changed.\r\n");
     break;
   case 41: /* poofin */
     if ((vict == ch) || (GET_LEVEL(ch) == LVL_IMPL))
@@ -10732,14 +10741,20 @@ ACMD(do_showwearoff)
   send_to_char(ch, "There is no spell or skill by that name.\r\n");
 }
 
+/* Staff reset of an account password: resetpassword <account> <new password>.
+ * The password is the rest of the line, case and spacing preserved, under the
+ * same length policy as the login prompt. */
 ACMD(do_resetpassword)
 {
-  char query[2048], arg1[MAX_NAME_LENGTH], arg2[MAX_PWD_LENGTH], password[MAX_PWD_LENGTH];
+  char query[2048], arg1[MAX_NAME_LENGTH];
+  char password[MAX_PWD_HASH_LENGTH + 1];
+  const char *arg2;
   MYSQL_RES *res;
   MYSQL_ROW row;
   bool account_found = false;
 
-  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  arg2 = one_argument(argument, arg1, sizeof(arg1));
+  skip_spaces_c(&arg2);
 
   if (!*arg1)
   {
@@ -10752,10 +10767,10 @@ ACMD(do_resetpassword)
     send_to_char(ch, "Please specify what you would like the new password to be.\r\n");
     return;
   }
-
-  if (strstr(arg2, ";") || strstr(arg2, "'"))
+  if (strlen(arg2) < MIN_PWD_LENGTH || strlen(arg2) > MAX_PWD_LENGTH)
   {
-    send_to_char(ch, "Passwords cannot contain ' or ; symbols.\r\n");
+    send_to_char(ch, "Passwords must be between %d and %d characters.\r\n", MIN_PWD_LENGTH,
+                 MAX_PWD_LENGTH);
     return;
   }
 
@@ -10786,7 +10801,11 @@ ACMD(do_resetpassword)
     return;
   }
 
-  snprintf(password, sizeof(password), "%s", CRYPT(arg2, arg1));
+  if (!password_hash(arg2, password, sizeof(password)))
+  {
+    send_to_char(ch, "Unable to hash that password.  Password not changed.\r\n");
+    return;
+  }
 
   char *escaped_name_update = mysql_escape_string_alloc(conn, arg1);
   char *escaped_password = mysql_escape_string_alloc(conn, password);
@@ -10805,7 +10824,7 @@ ACMD(do_resetpassword)
   free(escaped_password);
   if (!mysql_query(conn, query))
   {
-    send_to_char(ch, "You have updated account %s's password to '%s'.\r\n", arg1, arg2);
+    send_to_char(ch, "You have updated account %s's password.\r\n", arg1);
     return;
   }
 

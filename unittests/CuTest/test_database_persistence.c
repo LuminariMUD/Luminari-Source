@@ -599,7 +599,7 @@ void Test_race_equivalence_account_unlock_database_round_trip(CuTest *tc)
   const char *queries[] = {
       "CREATE TEMPORARY TABLE account_data ("
       "id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(64) NOT NULL, "
-      "password VARCHAR(64) NOT NULL, experience INT NOT NULL, email VARCHAR(255) NULL, "
+      "password VARCHAR(255) NOT NULL, experience INT NOT NULL, email VARCHAR(255) NULL, "
       "quit_survey_completed BOOLEAN NOT NULL) ENGINE=InnoDB",
       "CREATE TEMPORARY TABLE unlocked_races ("
       "account_id INT NOT NULL, race_id INT NOT NULL, "

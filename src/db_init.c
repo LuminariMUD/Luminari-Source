@@ -88,7 +88,7 @@ void init_core_player_tables(void)
       "CREATE TABLE IF NOT EXISTS account_data ("
       "id INT AUTO_INCREMENT PRIMARY KEY, "
       "name VARCHAR(50) UNIQUE NOT NULL, "
-      "password VARCHAR(64) NOT NULL, "
+      "password VARCHAR(255) NOT NULL, "
       "email VARCHAR(255), "
       "experience INT DEFAULT 0, "
       "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
@@ -1674,6 +1674,21 @@ static int apply_migration(int version, const char *description, const char *sql
 
   log("Info: Migration %d applied successfully", version);
   return 1;
+}
+
+/* Apply the required account_data migrations; false aborts startup. */
+int run_account_migrations(void)
+{
+  if (!init_database_migrations())
+    return FALSE;
+
+  /* yescrypt output is about 73 bytes; 255 leaves room for future schemes. */
+  if (!apply_migration(2026091101, "Widen account password column for adaptive hashes",
+                       "ALTER TABLE account_data "
+                       "MODIFY COLUMN password VARCHAR(255) NOT NULL"))
+    return FALSE;
+
+  return TRUE;
 }
 
 int run_pet_persistence_migrations(void)

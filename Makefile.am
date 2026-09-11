@@ -216,6 +216,7 @@ luminari_SOURCES = \
 	src/obj/objsave.c \
 	src/obj/player_shop.c \
 	src/olc/oedit.c \
+	src/password.c \
 	src/perfmon.c \
 	src/wilderness/perlin.c \
 	src/player_rename.c \
@@ -459,6 +460,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_spec_typed_handlers.c \
 	unittests/CuTest/test_spec_combat_secondary.c \
 	unittests/CuTest/test_gameplay_e2e.c \
+	unittests/CuTest/test_password.c \
 	unittests/CuTest/AllTests.c \
 	$(luminari_SOURCES)
 
@@ -529,7 +531,8 @@ cutest_test_files = \
 	unittests/CuTest/test_spec_mechanics.c \
 	unittests/CuTest/test_spec_typed_handlers.c \
 	unittests/CuTest/test_spec_combat_secondary.c \
-	unittests/CuTest/test_gameplay_e2e.c
+	unittests/CuTest/test_gameplay_e2e.c \
+	unittests/CuTest/test_password.c
 
 # Generate AllTests.c before building cutest
 unittests/CuTest/AllTests.c: $(cutest_test_files) unittests/CuTest/make-tests.sh

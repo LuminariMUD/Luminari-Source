@@ -96,9 +96,41 @@ password.
 
 These controls do not encrypt Telnet traffic. A browser gateway must also mask
 and isolate sensitive input, and the gateway-to-MUD leg must stay on a trusted
-path or use an authenticated encrypted tunnel. The password format is legacy
-and must not be changed as part of a presentation-only feature without a
-separate migration and rollback plan.
+path or use an authenticated encrypted tunnel.
+
+## Password Storage
+
+`src/password.c` owns hashing and verification. New and changed passwords are
+stored as self-describing yescrypt strings (`$y$...`) from libxcrypt with a
+random salt per password and the cost fixed by `PASSWORD_HASH_COST`.
+Verification runs the stored setting back through `crypt_rn()` and compares
+in constant time, so legacy `crypt()` records made with the account name as
+the salt still verify. After a successful login `password_needs_rehash()`
+detects a legacy or lower-cost record and the account is rewritten with the
+current scheme while the plaintext is still in hand. Dormant accounts that
+never log in keep their legacy record until a staff `resetpassword`.
+
+Plaintext passwords are between `MIN_PWD_LENGTH` (3) and `MAX_PWD_LENGTH`
+(128) characters; the upper bound is an input-abuse control only. The stored
+hash may be up to `MAX_PWD_HASH_LENGTH` (255) and the `account_data.password`
+column is widened to match by schema migration 2026091101. No path echoes,
+logs, or displays a password. Both hashing entry points reject plaintext over
+the limit rather than truncating it. Every path that sets a password (the
+login prompts, staff `set <player> password`, and staff `resetpassword`)
+applies the same length policy; `resetpassword` takes the rest of the line as
+the password with case and spacing preserved.
+
+The `util/asciipasswd` tool emits the same scheme for ASCII player files. It
+takes only the player name on the command line and reads the password from
+the terminal with echo off, or from standard input when that is not a
+terminal, so the plaintext never appears in process listings or shell history.
+
+Rollback: the column widening is backward compatible, and migration
+2026091101 does not need to be reverted. A server build from before this
+scheme cannot verify `$y$` records, so accounts that logged in (and were
+rehashed) after the rollout would need a staff `resetpassword` on the old
+binary. Roll back the binary only together with a database restore taken
+before the rollout, or accept those resets.
 
 ## Character Creation Flow
 

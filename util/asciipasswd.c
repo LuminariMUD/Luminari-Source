@@ -4,12 +4,13 @@
 *  Copyright (C) 1990, 1991 - see 'license.doc' for complete information. *
 *  All Rights Reserved                                                    *
 *                                                                         *
-*  This utility generates encrypted passwords that can be used in ASCII   *
-*  player files. It takes a player name and plaintext password as         *
-*  arguments and outputs the encrypted password using the same encryption *
-*  method used by the main MUD server.                                    *
-*                                                                         *
-*  Updated: 2025 - Enhanced for LuminariMUD compatibility                 *
+*  This utility generates hashed passwords that can be used in ASCII      *
+*  player files. It takes a player name as its argument, reads the        *
+*  plaintext password from the terminal without echo (or from standard    *
+*  input when that is not a terminal), and outputs the hash using the     *
+*  same scheme and policy as the main MUD server (see src/password.h).    *
+*  The password is never accepted on the command line, where it would be  *
+*  visible in process listings and shell history.                         *
 ************************************************************************* */
 
 #include "conf.h"
@@ -17,6 +18,10 @@
 
 #include "structs.h"
 #include "utils.h"
+#include "password.h"
+
+#include <crypt.h>
+#include <termios.h>
 
 /**
  * Capitalize the first character of a string
@@ -34,11 +39,76 @@ char *CAP(char *txt)
 }
 
 /**
+ * Read one line of password input into buf without echoing it.
+ *
+ * When standard input is a terminal, echo is disabled for the duration of the
+ * read and a prompt is written to standard error.  Otherwise the first line of
+ * standard input is used as-is, so the password can be piped from a protected
+ * source.  The trailing newline is removed.  A line longer than the buffer is
+ * reported as a failure rather than silently truncated.
+ *
+ * @param buf  Destination buffer
+ * @param size Size of buf in bytes
+ * @return true on success, false when no password could be read
+ */
+static bool read_password(char *buf, size_t size)
+{
+  struct termios saved, quiet;
+  bool is_tty = isatty(STDIN_FILENO);
+  bool echo_off = false;
+  size_t len;
+
+  if (is_tty)
+  {
+    if (tcgetattr(STDIN_FILENO, &saved) == 0)
+    {
+      quiet = saved;
+      quiet.c_lflag &= ~(tcflag_t)ECHO;
+      echo_off = tcsetattr(STDIN_FILENO, TCSAFLUSH, &quiet) == 0;
+    }
+    fputs("Password: ", stderr);
+    fflush(stderr);
+  }
+
+  if (!fgets(buf, (int)size, stdin))
+  {
+    buf[0] = '\0';
+  }
+
+  if (is_tty)
+  {
+    if (echo_off)
+    {
+      tcsetattr(STDIN_FILENO, TCSAFLUSH, &saved);
+    }
+    fputc('\n', stderr);
+  }
+
+  len = strlen(buf);
+  if (len == 0)
+  {
+    return (false);
+  }
+  if (buf[len - 1] == '\n')
+  {
+    buf[--len] = '\0';
+  }
+  else if (!feof(stdin))
+  {
+    /* The line did not fit; drain it so nothing leaks to a later reader. */
+    int c;
+    while ((c = getchar()) != EOF && c != '\n')
+      ;
+    return (false);
+  }
+  return (true);
+}
+
+/**
  * Main function for the asciipasswd utility
  *
- * Generates encrypted passwords for ASCII player files using the same
- * encryption method as the main MUD server. The password is encrypted
- * using the player name as the salt.
+ * Generates password hashes for ASCII player files using the same scheme
+ * as the main MUD server, with a random salt per invocation.
  *
  * @param argc Number of command line arguments
  * @param argv Array of command line arguments
@@ -46,16 +116,22 @@ char *CAP(char *txt)
  */
 int main(int argc, char **argv)
 {
+  struct crypt_data data;
+  char setting[CRYPT_GENSALT_OUTPUT_SIZE];
+  char password[MAX_PWD_LENGTH + 2]; /* room for the newline and terminator */
   char *encrypted_pass;
+  size_t len;
+  int rc = 1;
 
-  if (argc != 3)
+  if (argc != 2)
   {
-    fprintf(stderr, "Usage: %s <name> <password>\n", argv[0]);
+    fprintf(stderr, "Usage: %s <name>\n", argv[0]);
     fprintf(stderr, "\n");
-    fprintf(stderr, "Generates encrypted passwords for ASCII player files.\n");
-    fprintf(stderr, "The name is used as the salt for encryption.\n");
+    fprintf(stderr, "Generates password hashes for ASCII player files.\n");
+    fprintf(stderr, "The password is read from the terminal without echo, or from\n");
+    fprintf(stderr, "standard input when it is not a terminal.\n");
     fprintf(stderr, "\n");
-    fprintf(stderr, "Example: %s Gandalf mypassword\n", argv[0]);
+    fprintf(stderr, "Example: %s Gandalf\n", argv[0]);
     return (1);
   }
 
@@ -66,23 +142,42 @@ int main(int argc, char **argv)
     return (1);
   }
 
-  if (!argv[2] || !*argv[2])
+  if (!read_password(password, sizeof(password)))
   {
-    fprintf(stderr, "Error: Password cannot be empty\n");
-    return (1);
+    fprintf(stderr, "Error: Password cannot be empty or exceed %d characters\n", MAX_PWD_LENGTH);
+    goto done;
   }
 
-  /* Generate encrypted password */
-  encrypted_pass = CRYPT(argv[2], CAP(argv[1]));
-  if (!encrypted_pass)
+  len = strlen(password);
+  if (len < MIN_PWD_LENGTH || len > MAX_PWD_LENGTH)
   {
-    fprintf(stderr, "Error: Failed to encrypt password\n");
-    return (1);
+    fprintf(stderr, "Error: Password must be between %d and %d characters\n", MIN_PWD_LENGTH,
+            MAX_PWD_LENGTH);
+    goto done;
+  }
+
+  /* Generate the hash with a random salt under the server policy */
+  memset(&data, 0, sizeof(data));
+  if (!crypt_gensalt_rn(PASSWORD_HASH_PREFIX, PASSWORD_HASH_COST, NULL, 0, setting,
+                        sizeof(setting)))
+  {
+    fprintf(stderr, "Error: Failed to generate a password salt\n");
+    goto done;
+  }
+  encrypted_pass = crypt_rn(password, setting, &data, sizeof(data));
+  if (!encrypted_pass || *encrypted_pass == '*')
+  {
+    fprintf(stderr, "Error: Failed to hash password\n");
+    goto done;
   }
 
   /* Output the results */
   printf("Name: %s\n", CAP(argv[1]));
   printf("Pass: %s\n", encrypted_pass);
+  rc = 0;
 
-  return (0);
+done:
+  explicit_bzero(password, sizeof(password));
+  explicit_bzero(&data, sizeof(data));
+  return (rc);
 }
