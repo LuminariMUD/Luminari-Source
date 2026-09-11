@@ -82,7 +82,7 @@ and remains active behind the native domain-event boundary. See
 
 **Distance Formula:**
 ```c
-distance_factor = 1.0f / (1.0f + (distance^2 / (base_range * 0.05f)));
+distance_factor = 1.0f / (1.0f + ((distance * distance) / (base_range * 0.05f)));
 if (distance > 5.0f) {
     distance_factor *= (1.0f / (1.0f + (distance / 100.0f)));
 }
@@ -149,7 +149,7 @@ typedef enum {
 **Distance Formula (More Aggressive than Visual):**
 ```c
 // Exponential decay with steep initial dropoff
-distance_factor = 1.0f / (1.0f + (distance^2 / (effective_range * 0.01f)));
+distance_factor = 1.0f / (1.0f + ((distance * distance) / (effective_range * 0.01f)));
 
 // Additional linear attenuation for sounds beyond 5 units
 if (distance > 5.0f) {

@@ -136,6 +136,11 @@ int cache_get_stats(int *total_nodes, int *expired_nodes);
 /* Resource visualization */
 char get_resource_map_symbol_with_coords(float level, int x, int y) {
     /* Coordinate-based micro-variation softens threshold boundaries. */
+    float micro_noise = ((x * 7 + y * 13) % 100) / 2000.0; /* +/-0.025 */
+    float adjusted_level = level + micro_noise;
+    if (adjusted_level < 0.0) adjusted_level = 0.0;
+    if (adjusted_level > 1.0) adjusted_level = 1.0;
+
     if (adjusted_level >= 0.75) return '#'; /* Very rich */
     if (adjusted_level >= 0.55) return '*'; /* Rich */
     if (adjusted_level >= 0.35) return '+'; /* Moderate */

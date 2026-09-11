@@ -8,7 +8,8 @@ artifacts
     archives detected by magic bytes; object, library, coverage, profiler,
     and core-dump files by name; and configure/CMake/automake outputs that
     must never be committed. Media fixtures (images, audio, fonts) are
-    allowed by extension.
+    exempt from the text checks only; magic bytes are inspected regardless
+    of extension.
 
 encoding
     Every text file (anything not classified as media) must be valid UTF-8
@@ -145,8 +146,8 @@ def check_artifacts(path, full, dist_mode):
         return "autotools bootstrap output %s" % base
     if os.path.islink(full):
         return None
-    if is_media(path):
-        return None
+    # Magic bytes run before the media exemption so a renamed executable
+    # (artifact.png) is still rejected; media only skips the text checks.
     head = read_head(full)
     for magic, label in MAGIC:
         if head.startswith(magic):

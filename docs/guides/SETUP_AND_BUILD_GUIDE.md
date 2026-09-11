@@ -107,7 +107,8 @@ diagnosis.
 ## Source Tree Hygiene
 
 The repository tracks source and data only. `scripts/ci/check_source_hygiene.py`
-enforces three rules over every tracked file and fails on the first violation:
+enforces three rules over every tracked file, reports every violation, and exits
+non-zero when any is found:
 
 - **No build products.** ELF, PE, Mach-O, and ar files are rejected by magic
   bytes; object, library, coverage, profiler, and core-dump files by name; and

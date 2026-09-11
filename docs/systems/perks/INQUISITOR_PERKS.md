@@ -306,7 +306,7 @@ The Inquisitor is a relentless agent of divine will, blending divine spellcastin
 
 2. **Legendary Resilience**
    - *1 rank, 4 points*
-   - Your resilience becomes supernatural. Gain damage reduction 5/-. You're immune to ability damage, ability drain, and energy drain. 10% chance to automatically succeed on a saving throw. 5 minute cooldown.
+   - Your resilience becomes supernatural. Gain damage reduction 5/-. You're immune to ability damage, ability drain, and energy drain. 10% chance to automatically succeed on a saving throw. 5-minute cooldown.
 
 3. **Perfect Adaptation**
    - *1 rank, 4 points*

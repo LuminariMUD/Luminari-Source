@@ -72,7 +72,13 @@ lib/text/help/help.hlp text eol=lf -whitespace
 *.a binary
 *.lib binary
 *.o binary
-*.obj text eol=lf
+*.obj binary
+# Every tracked .obj is a text world file at these paths; compiled objects
+# are never tracked (scripts/ci/check_source_hygiene.py rejects them).
+data/**/*.obj text eol=lf
+lib/world/**/*.obj text eol=lf
+scripts/world/tests/fixtures/**/*.obj text eol=lf
+unittests/CuTest/fixtures/**/*.obj text eol=lf
 *.pch binary
 *.pdb binary
 *.zip binary
