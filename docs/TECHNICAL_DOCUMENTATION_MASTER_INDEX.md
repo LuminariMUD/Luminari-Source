@@ -122,6 +122,9 @@ This master index provides a comprehensive guide to all technical documentation 
 ### Core Development
 - **[Development guide](development/README_development.md)** - Current daily commands, build gates, and source map
 - **[DEVELOPER_GUIDE_AND_API.md](guides/DEVELOPER_GUIDE_AND_API.md)** - Comprehensive developer reference
+- **[PLAYER_RACES_REFERENCE.md](guides/PLAYER_RACES_REFERENCE.md)** - Playable race
+  reference center: stats, innate feats, tiers, unlock costs, acquisition paths, and
+  links to every race-related document
 - **[ADDING_NEW_RACE_GUIDE.md](guides/ADDING_NEW_RACE_GUIDE.md)** - End-to-end
   playable-race ID, registry, creation, mechanics, persistence, help, testing,
   deployment, and rollback guide
