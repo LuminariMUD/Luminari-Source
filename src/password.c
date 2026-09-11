@@ -34,12 +34,20 @@ static const char *password_current_params(void)
   return params;
 }
 
+/* True when plaintext is non-empty and within the MAX_PWD_LENGTH policy. */
+static bool password_plaintext_acceptable(const char *plaintext)
+{
+  return plaintext != NULL && plaintext[0] != '\0' && strlen(plaintext) <= MAX_PWD_LENGTH;
+}
+
+/* Wipe a buffer that held password material with a non-optimizable primitive. */
 void password_secure_zero(void *buffer, size_t size)
 {
   if (buffer != NULL && size > 0)
     explicit_bzero(buffer, size);
 }
 
+/* Hash plaintext under the current policy into out; false on any failure. */
 bool password_hash(const char *plaintext, char *out, size_t out_size)
 {
   struct crypt_data data;
@@ -47,7 +55,7 @@ bool password_hash(const char *plaintext, char *out, size_t out_size)
   const char *hash;
   bool ok;
 
-  if (out == NULL || out_size == 0 || plaintext == NULL || plaintext[0] == '\0')
+  if (out == NULL || out_size == 0 || !password_plaintext_acceptable(plaintext))
     return false;
 
   if (crypt_gensalt_rn(PASSWORD_HASH_PREFIX, PASSWORD_HASH_COST, NULL, 0, setting,
@@ -68,6 +76,7 @@ bool password_hash(const char *plaintext, char *out, size_t out_size)
   return ok;
 }
 
+/* Constant-time check of plaintext against a stored hash of any supported scheme. */
 bool password_verify(const char *plaintext, const char *stored)
 {
   struct crypt_data data;
@@ -76,7 +85,7 @@ bool password_verify(const char *plaintext, const char *stored)
   size_t i;
   unsigned char diff;
 
-  if (plaintext == NULL || plaintext[0] == '\0' || stored == NULL || stored[0] == '\0')
+  if (!password_plaintext_acceptable(plaintext) || stored == NULL || stored[0] == '\0')
     return false;
 
   memset(&data, 0, sizeof(data));
@@ -101,6 +110,7 @@ bool password_verify(const char *plaintext, const char *stored)
   return diff == 0;
 }
 
+/* True when stored is missing, malformed, legacy, or below the current parameters. */
 bool password_needs_rehash(const char *stored)
 {
   const char *params;

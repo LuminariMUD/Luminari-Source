@@ -73,6 +73,12 @@ int main(int argc, char **argv)
     return (1);
   }
 
+  if (strlen(argv[2]) > MAX_PWD_LENGTH)
+  {
+    fprintf(stderr, "Error: Password cannot exceed %d characters\n", MAX_PWD_LENGTH);
+    return (1);
+  }
+
   /* Generate the hash with a random salt under the server policy */
   memset(&data, 0, sizeof(data));
   if (!crypt_gensalt_rn(PASSWORD_HASH_PREFIX, PASSWORD_HASH_COST, NULL, 0, setting,

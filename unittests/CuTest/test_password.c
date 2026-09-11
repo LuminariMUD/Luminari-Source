@@ -86,6 +86,26 @@ void Test_password_hash_handles_long_and_special_plaintext(CuTest *tc)
   CuAssertTrue(tc, password_verify("it's \\ \"quoted\" ; -- \xc3\xa9", hash));
 }
 
+void Test_password_rejects_plaintext_over_policy_length(CuTest *tc)
+{
+  char plaintext[MAX_PWD_LENGTH + 2];
+  char hash[MAX_PWD_HASH_LENGTH + 1];
+
+  memset(plaintext, 'a', MAX_PWD_LENGTH + 1);
+  plaintext[MAX_PWD_LENGTH + 1] = '\0';
+
+  strlcpy(hash, "untouched", sizeof(hash));
+  CuAssertTrue(tc, !password_hash(plaintext, hash, sizeof(hash)));
+  CuAssertStrEquals(tc, "untouched", hash);
+
+  /* A stored hash never matches over-length input, even one that shares a prefix. */
+  plaintext[MAX_PWD_LENGTH] = '\0';
+  CuAssertTrue(tc, password_hash(plaintext, hash, sizeof(hash)));
+  plaintext[MAX_PWD_LENGTH] = 'a';
+  plaintext[MAX_PWD_LENGTH + 1] = '\0';
+  CuAssertTrue(tc, !password_verify(plaintext, hash));
+}
+
 void Test_password_needs_rehash_on_parameter_change(CuTest *tc)
 {
   /* A current-scheme record produced with a lower cost must be upgraded. */

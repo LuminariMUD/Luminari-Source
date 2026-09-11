@@ -10735,15 +10735,20 @@ ACMD(do_showwearoff)
   send_to_char(ch, "There is no spell or skill by that name.\r\n");
 }
 
+/* Staff reset of an account password: resetpassword <account> <new password>.
+ * The password is the rest of the line, case and spacing preserved, under the
+ * same length policy as the login prompt. */
 ACMD(do_resetpassword)
 {
-  char query[2048], arg1[MAX_NAME_LENGTH], arg2[MAX_PWD_LENGTH + 1];
+  char query[2048], arg1[MAX_NAME_LENGTH];
   char password[MAX_PWD_HASH_LENGTH + 1];
+  const char *arg2;
   MYSQL_RES *res;
   MYSQL_ROW row;
   bool account_found = false;
 
-  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  arg2 = one_argument(argument, arg1, sizeof(arg1));
+  skip_spaces_c(&arg2);
 
   if (!*arg1)
   {
@@ -10754,6 +10759,11 @@ ACMD(do_resetpassword)
   if (!*arg2)
   {
     send_to_char(ch, "Please specify what you would like the new password to be.\r\n");
+    return;
+  }
+  if (strlen(arg2) < 3 || strlen(arg2) > MAX_PWD_LENGTH)
+  {
+    send_to_char(ch, "Passwords must be between 3 and %d characters.\r\n", MAX_PWD_LENGTH);
     return;
   }
 

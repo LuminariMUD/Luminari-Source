@@ -114,6 +114,16 @@ Plaintext passwords are limited to `MAX_PWD_LENGTH` (128) characters as an
 input-abuse control only; the stored hash may be up to `MAX_PWD_HASH_LENGTH`
 (255) and the `account_data.password` column is widened to match by schema
 migration 2026091101. No path echoes, logs, or displays a password.
+Both hashing entry points reject plaintext over the limit rather than
+truncating it, and staff `resetpassword` takes the rest of the line as the
+password with case and spacing preserved.
+
+Rollback: the column widening is backward compatible, and migration
+2026091101 does not need to be reverted. A server build from before this
+scheme cannot verify `$y$` records, so accounts that logged in (and were
+rehashed) after the rollout would need a staff `resetpassword` on the old
+binary. Roll back the binary only together with a database restore taken
+before the rollout, or accept those resets.
 
 ## Character Creation Flow
 

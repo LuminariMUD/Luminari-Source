@@ -1676,6 +1676,7 @@ static int apply_migration(int version, const char *description, const char *sql
   return 1;
 }
 
+/* Apply the required account_data migrations; false aborts startup. */
 int run_account_migrations(void)
 {
   if (!init_database_migrations())

@@ -10,7 +10,12 @@
   cost instead of platform `crypt()` output salted by the account name; legacy records
   still verify and are rehashed on the next successful login.
 - Staff `set password` and `resetpassword` no longer echo the chosen password, and
-  `resetpassword` no longer rejects quote or semicolon characters.
+  `resetpassword` no longer rejects quote or semicolon characters, lowercases the
+  password, or stops at the first space.
+- Hashing and verification reject plaintext longer than the 128-character policy
+  instead of passing it through; `asciipasswd` enforces the same limit.
+- Startup creates `account_data` when it is missing before applying the password
+  column migration.
 - The plaintext limit is now an input-size control (128) and the stored hash column
   is widened to 255 by migration 2026091101.
 
