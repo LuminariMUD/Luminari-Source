@@ -1,0 +1,67 @@
+Pet copyover and restart acceptance - 2026-09-12
+=================================================
+
+Scope
+-----
+
+Closes the executable gate from issue #162 under its overriding rule: a
+minimal pass, with the remaining durability boundaries recorded as accepted
+limits in docs/systems/SAVE_SYSTEMS_BREAKDOWN.md rather than implemented.
+
+Tested revision
+---------------
+
+Branch fix/issue-162-pet-durability-limits on top of master 4bfc60abb, with
+the src/players.c change that stops the restore path from adding the
+mercenary flag to a hireling that did not carry it live.  Installed release
+ELF build ID 6f24742333ca2d65b1863cad3d0b735790924a05.
+
+Production-linked suite
+-----------------------
+
+  LUMINARI_TEST_MYSQL_ENABLE=1 make -j$(nproc) test    (database tests then
+  rerun through ./cutest with the test database variables pointed at the
+  development database, because this checkout's database user cannot create
+  a separate schema)
+
+  OK (1424 tests)
+
+make install completed without compiler warnings and removed the root-level
+luminari artifact.
+
+Live acceptance on port 4100 (autorun, Kohdee)
+----------------------------------------------
+
+1. Purchase: buy token in room 103489 created an owned mercenary rogue
+   (pet #47345984).  A leather bag (3032) was given to it.
+2. Copyover with the owner online: after "Copyover recovery complete." the
+   pet was present with the same row id and still carried the bag.
+   Observed defect: the pet was listed as General before the copyover and as
+   Mercenary after it, moving it out of the general slot accounting.  Cause:
+   load_char_pets() and apply_pet_runtime_state() forced MOB_MERCENARY onto
+   any pet whose prototype special is mercenary, while a live purchase never
+   sets that flag.  Fixed; the runtime state's kept-flag line still carries a
+   flag that was set on the live mobile.
+3. Rebuilt and installed.  A second purchase (pet #47345986, with its own bag)
+   stayed General through a copyover and through logout and relogin.  The
+   first pet kept the Mercenary flag it had already saved, as documented.
+4. Full restart: shutdown reboot, autorun restarted the server (new pid
+   3499574).  On relogin both pets were restored with their bags and the
+   same row ids and categories.
+5. Cleanup: each pet returned its bag through order, the bags were junked,
+   both pets were dismissed, and the roster reads 0 pets.  The 2000 gold
+   spent on the two tokens was not refunded.
+
+Session logs (scratch, not committed): pet-copyover-live2.log,
+pet-copyover-live3.log, pet-copyover-live4.log, pet-postcopyover-live5.log,
+pet-postrestart-live6.log, pet-cleanup-live7.log.
+
+Not exercised
+-------------
+
+Summoner, necromancer, divine, mount, construct, and source-item acquisition
+routes, owner death and reclaim, finite expiry, reduced-capacity restore, and
+failed-operation recovery remain covered by the production-linked suites and
+the Phase 1 records; they were not repeated live under the minimal rule.  The
+CMake build and focused memory checks were not rerun for this three-line
+change.

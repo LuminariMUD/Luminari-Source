@@ -6284,6 +6284,8 @@ parse_failure:
   return false;
 }
 
+/* Reapply a decoded runtime-state record to a freshly read prototype copy:
+ * stats, flags beyond the prototype, feats, spell slots, and affects. */
 static void apply_pet_runtime_state(struct char_data *pet, const struct pet_runtime_state *state)
 {
   struct affected_type af;
@@ -6333,11 +6335,11 @@ static void apply_pet_runtime_state(struct char_data *pet, const struct pet_runt
     affect_to_char(pet, &af);
   }
 
+  /* The mercenary category comes from the prototype or the kept flag line;
+   * only the one-time hit-point roll marker is carried here so a restored
+   * hireling matches its live category accounting. */
   if (state->hired_mercenary)
-  {
-    SET_BIT_AR(MOB_FLAGS(pet), MOB_MERCENARY);
     PROC_FIRED(pet) = state->mercenary_proc_fired;
-  }
   if (!AFF_FLAGGED(pet, AFF_CHARM))
     SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
 }
@@ -7251,10 +7253,7 @@ static struct char_data *prepare_saved_pet_row(struct char_data *ch, MYSQL_ROW r
   {
     SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
     if (hired_mercenary)
-    {
-      SET_BIT_AR(MOB_FLAGS(mob), MOB_MERCENARY);
       PROC_FIRED(mob) = TRUE;
-    }
   }
   affect_total(mob);
   update_pos(mob);
