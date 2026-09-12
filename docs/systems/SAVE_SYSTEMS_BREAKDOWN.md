@@ -116,9 +116,14 @@ every follower row before starting the transaction, then replaces active pet and
 object rows together. Stored rows remain intact. Existing `pet_data_id` values
 survive replacement; `owner_id` and `owner_created` bind them to the pfile owner,
 including across a rename. SQL player IDs are not interchangeable with pfile IDs.
-A known query failure rolls back the replacement. An uncertain COMMIT outcome
-still needs reconciliation; a transaction does not make pfiles, world items,
-and SQL jointly crash-atomic.
+A known query failure rolls back the replacement. A COMMIT that reports an
+error is treated as a failure: `save_char_pets()` and the keeper store both
+issue a ROLLBACK, but the server may already have applied the commit, so the
+rollback's effect is uncertain. The live pets stay in play and the next
+snapshot replaces the active rows again, so the worst case is a stale active
+row until then. A transaction does not make pfiles, world items, and SQL
+jointly crash-atomic; pet data is not treated as critical, and no cross-store
+reconciliation is attempted.
 
 Before copyover closes sockets or writes its handoff file, `save_player_pets()`
 in `src/limits.c` snapshots players in the world, including linkdead owners.
@@ -196,8 +201,20 @@ are moved to `PET_STATE_STORED` in one transaction before anything is published,
 so the next active snapshot cannot drop them; a rejected timed follower is spent
 and its row leaves with the next snapshot. Keeper reclaim applies the same check
 to the staged pet, so classification uses the saved source and flags rather than
-the prototype. Post-publication callback reconciliation remains open. Legacy rows with a NULL runtime state retain the compatibility
-load path. Custom names use the existing name/short/long text fields.
+the prototype. A restored hireling keeps the prototype's category; the runtime
+state carries only its one-time hit-point roll marker plus any flag that was
+set on the live mobile, so a purchased mercenary counts against the same slot
+before and after a restore. Placement and mobile load triggers that extract or
+detach the pet during publication discard the roomless copy. On login the row
+is untouched. On keeper reclaim the row was already committed active, so a
+separate recovery transaction moves it back to `PET_STATE_STORED`; if that
+recovery fails or its commit outcome is uncertain, the row stays active with
+no live pet, and the owner's next login restores it from there. Once
+published, the pet is an ordinary live NPC: anything that happens to it
+afterward is captured by the next snapshot or lost with it, and no further
+reconciliation is performed. Legacy rows with a NULL runtime state
+retain the compatibility load path; older saved data is not repaired or
+migrated beyond the schema migrations. Custom names use the existing name/short/long text fields.
 `pets <pet|#id> name <name>` stages the new strings and restores the old pointers
 on known save failure. Prototype keywords remain available for targeting;
 repeated renaming does not accumulate prior custom names. Saved eidolon identity
@@ -221,10 +238,24 @@ lycanthrope, totem spirit); they are skipped by the snapshot and a saved record
 of one is rejected on restore. The keeper boards only durable and timed-control
 followers; reclaiming a stored row whose lifetime has ended deletes that row
 and its objects inside the reclaim transaction. `pets` shows each pet's
-policy and remaining real time. Expiry gear handling and uncertain-commit
-reconciliation remain open; see
-[issue #162](https://github.com/LuminariMUD/Luminari-Source/issues/162).
-Save/load tests do not replace the executable copyover acceptance gate tracked there.
+policy and remaining real time.
+
+Accepted durability limits:
+
+- When a timed follower's deadline fires, live or during an offline restore,
+  its equipment and inventory are destroyed with it. Nothing is returned to
+  the owner or the room.
+- A keeper store whose COMMIT reports an error keeps the live pet and gear in
+  play. If the commit had in fact applied, a stored copy also exists until the
+  owner reclaims or a staff member removes it.
+- A keeper reclaim whose activation COMMIT reports an error discards the
+  roomless copy. If the commit had in fact applied, the row is now active and
+  the owner's next login restores it; otherwise it stays with the keeper.
+- Uncertain outcomes are not reconciled against pfiles or live objects. Losing
+  or duplicating a pet in these windows is accepted.
+
+The copyover and restart acceptance run is recorded in
+`docs/testing/pet-copyover-restart-acceptance-2026-09-12.txt`.
 
 #### 3. Wilderness System Data
 - **Tables**: `region_data`, `path_data`, `region_index`, `path_index`
