@@ -368,47 +368,56 @@ with one other feat holder in the group.
 `INNATE_SWAMP_SNEAK` (hidden on the map in swamp terrain and no boat needed
 in swamp water, `src/world/map.c`, `src/cmd/actmove.c`). Ours: +6 to stealth
 checks in the matching sector set, the Bathed In Moonlight model. Outdoor is
-any outdoor non-underdark sector; swamp is `SECT_MARSHLAND`; underdark is
-`SECT_UD_WILD` through `SECT_UD_NOGROUND`. The Duris swamp boat waiver is
-dropped; Swamp Stealth keeps only the stealth bonus. One helper
-`racial_terrain_stealth_bonus(ch)` called where `FEAT_MOON_ELF_BATHED_IN_MOONLIGHT`
-is applied in `src/character/abilities.c`. Test: bonus by sector for each
-feat; zero elsewhere.
+any sector `is_room_outdoors()` accepts (it already excludes the underdark,
+ocean, lava and underwater); swamp is `SECT_MARSHLAND`; underdark is
+`SECT_UD_WILD` through `SECT_UD_NOGROUND`. The feats do not stack: a marsh is
+also outdoors, and the bonus stays +6. The Duris swamp boat waiver is
+dropped; Swamp Stealth keeps only the stealth bonus. As built: one helper
+`racial_terrain_ability_bonus(ch, ability)` in `src/character/abilities.c`
+(prototype in `abilities.h`), added to the stealth case beside Mask Of The
+Wild and to the perception case for Forest Sight. Test: bonus by sector for
+each feat; zero elsewhere; no stacking.
 
 **FEAT_FOREST_SIGHT** (RP 0.5). Duris: `INNATE_FOREST_SIGHT` in
 `src/world/map.c` lifts the map view cap in forest rooms. Our wilderness map
-has no forest cap to lift, so: +4 to perception and spot in `SECT_FOREST`.
-Hook: the same abilities helper as the stealth feats. Test: bonus in forest,
-none in a field.
+has no forest cap to lift, so: +4 to perception in `SECT_FOREST` (spot and
+listen are folded into perception here). Hook: the same abilities helper as
+the stealth feats. Test: bonus in forest, none in a field.
 
 **FEAT_SEADOG** (RP 0.5). Duris: `INNATE_SEADOG` in `src/ships/ship_utils.c`
 (+2 ship max speed) and `src/ships/ship_shop.c` (10 percent better sale). Ours:
-+1 to the vessel's effective speed while the character is at the helm. Hook:
-`get_terrain_speed_modifier()` callers in `src/vessels/` (trace the helm
-speed path before editing). Lowest priority in the plan; ship sales have no
-counterpart here and are dropped. Test: speed helper result with and without
-the feat.
+one extra map tile per move while the character is piloting. As built:
+`vessel_pilot_speed_bonus(ch)` in `src/vessels/vessels.c` (prototype in
+`vessels.h`), added to `move_distance` in `move_ship_wilderness()` before the
+weather reduction; the terrain modifier path was not the right hook because
+distance per move is what the pilot feels. Ship sales have no counterpart
+here and are dropped. Test: helper result with and without the feat.
 
 **FEAT_MINER** (RP 0.5). Duris: `INNATE_MINER` in `src/world/map.c` shows
 mines and gem mines on the map at distance. Ours: +4 harvest skill level for
 `RESOURCE_MINERALS`, `RESOURCE_STONE`, and `RESOURCE_CRYSTAL`. Hook:
-`get_harvest_skill_level()` in `src/wilderness/resource_system.c`. Test:
-skill level differs by 4 for minerals, unchanged for herbs.
+`get_harvest_skill_level()` in `src/wilderness/resource_system.c` (done).
+Test: skill level differs by 4 for minerals, stone and crystal, unchanged for
+herbs.
 
 **FEAT_BARTER** (RP 0.5). Duris: `INNATE_BARTER` in `src/economy/shop.c`:
 25 percent better price on a Charisma check, else 10 percent worse. Ours: a
 flat +10 to the character's side of the price modifier (the same weight as
-10 points of Charisma) in both directions. Hook: `buy_price()` and
-`sell_price()` in `src/obj/shop.c`, next to the appraise term. Test: buy
-price lower and sell price higher with the feat.
+10 points of Charisma) in both directions. As built: the charisma-plus-
+appraise term that `buy_price()` and `sell_price()` each computed twice is now
+`shop_haggle_score(ch)` in `src/obj/shop.c` (prototype in `shop.h`), and the
+feat adds 10 there, so both directions get it. Test: the score rises by 10
+with the feat.
 
 **FEAT_CALMING** (RP 1.5). Duris: `INNATE_CALMING` in `src/mob/mobact.c`,
 `src/world/handler.c`, `src/cmd/interp.c`: aggressive mobs skip the
 character 75 percent of the time and delay their attack when within five
 levels. Ours: an aggressive mob whose level is within five of the character
 skips it 50 percent of the time on each aggression check. Hook: the same
-`MOB_AGGRESSIVE` target loop as Undead Fealty. Test: with the roll forced,
-the mob skips; a mob six levels higher does not.
+`MOB_AGGRESSIVE` target loop as Undead Fealty, through `calming_applies(mob,
+vict)` in `src/utils.c` with the coin flip at the call site (done in Phase 2
+with the aggro loop). Test: the gate holds within five levels and not at
+six.
 
 ### Group 4: active abilities through the SLA table
 
@@ -498,7 +507,8 @@ with the expiry affect.
       feats that replaced the race checks. Done 2026-09-12.
 - [x] Phase 2, Group 1 (passive defence) and Group 2 (passive offence). Done
       2026-09-12.
-- [ ] Phase 3, Group 3 (terrain and utility) and Group 4 (SLA table rows).
+- [x] Phase 3, Group 3 (terrain and utility) and Group 4 (SLA table rows).
+      Done 2026-09-12 (the SLA rows landed with Phase 0).
 - [ ] Phase 4, Group 5 (bespoke commands), including the warg and orc mob
       vnums and world entries.
 - [ ] Phase 5, help in both stores for every feat and command; RP trait
@@ -570,6 +580,12 @@ without re-reading the conversation.
   `unittests/CuTest/test_racial_innate_feats.c` (four tests), `Makefile.am`,
   `CMakeLists.txt`, and `unittests/CuTest/test_syntax_check_boot.c` (persisted
   event count 93 to 110).
+- 2026-09-12, Phase 3 done. `src/character/abilities.c`
+  `racial_terrain_ability_bonus()` in the stealth and perception cases;
+  `src/wilderness/resource_system.c` `get_harvest_skill_level()`;
+  `src/obj/shop.c` `shop_haggle_score()` used by both price helpers;
+  `src/vessels/vessels.c` `vessel_pilot_speed_bonus()` in
+  `move_ship_wilderness()`. Three tests added.
 - 2026-09-12, Phase 2 done. Helpers: `src/utils.c` (`suffers_sun_vulnerability`,
   `is_dayblinded`, `char_is_blinded`, `count_grouped_in_room`,
   `racial_warcallers_fury_bonus`, `racial_rrakkma_allies`,

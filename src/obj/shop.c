@@ -668,6 +668,18 @@ static struct obj_data *get_purchase_obj(struct char_data *ch, char *arg, struct
   return (obj);
 }
 
+/* charisma plus appraise: the haggling weight a shop gives each party.  The
+ * barter racial innate is worth ten more points of charisma. */
+int shop_haggle_score(struct char_data *ch)
+{
+  int score = GET_CHA(ch) + compute_ability(ch, ABILITY_APPRAISE);
+
+  if (HAS_FEAT(ch, FEAT_BARTER))
+    score += 10;
+
+  return score;
+}
+
 /* zusuk:  shop purchase adjustment - added appraise factor */
 static int buy_price(struct obj_data *obj, int shop_nr, struct char_data *seller,
                      struct char_data *buyer)
@@ -675,8 +687,8 @@ static int buy_price(struct obj_data *obj, int shop_nr, struct char_data *seller
   float price = 0.0;
   float modifiers = 0.0;
 
-  modifiers = ((float)GET_CHA(seller)) + ((float)compute_ability(seller, ABILITY_APPRAISE));
-  modifiers -= ((float)GET_CHA(buyer)) + ((float)compute_ability(buyer, ABILITY_APPRAISE));
+  modifiers = (float)shop_haggle_score(seller);
+  modifiers -= (float)shop_haggle_score(buyer);
   price = 1.0 + modifiers / 70.0;
   price *= (float)GET_OBJ_COST(obj);
   price *= (float)SHOP_BUYPROFIT(shop_nr);
@@ -702,8 +714,8 @@ static int sell_price(struct obj_data *obj, int shop_nr, struct char_data *keepe
   float price = 0.0;
   float modifiers = 0.0;
 
-  modifiers = ((float)GET_CHA(keeper)) + ((float)compute_ability(keeper, ABILITY_APPRAISE));
-  modifiers -= ((float)GET_CHA(seller)) + ((float)compute_ability(seller, ABILITY_APPRAISE));
+  modifiers = (float)shop_haggle_score(keeper);
+  modifiers -= (float)shop_haggle_score(seller);
   price = 1.0 - modifiers / 70.0;
   price *= (float)GET_OBJ_COST(obj);
   price *= (float)SHOP_SELLPROFIT(shop_nr);

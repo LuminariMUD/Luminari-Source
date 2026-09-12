@@ -480,6 +480,8 @@ int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type,
 bool vessel_region_feature_threshold_met(int region_type, int threshold, int z, int depth_units);
 bool vessel_region_feature_at_coordinates(int region_type, int x, int y, int z,
                                           struct vessel_region_feature *feature);
+/* Duris racial innate seadog: extra distance per move while piloting */
+int vessel_pilot_speed_bonus(struct char_data *ch);
 int get_vessel_position_speed_modifier(enum vessel_class vessel_type, int sector_type,
                                        int weather_conditions, int x, int y, int z,
                                        struct vessel_region_feature *lane);

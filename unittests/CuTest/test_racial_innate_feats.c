@@ -23,6 +23,9 @@
 #include "../../src/mud_event.h"
 #include "../../src/mudlim.h"
 #include "../../src/net/protocol.h"
+#include "../../src/obj/shop.h"
+#include "../../src/vessels/vessels.h"
+#include "../../src/wilderness/resource_system.h"
 
 #include <string.h>
 
@@ -794,6 +797,94 @@ void TestWarcallersFuryAndRrakkmaCountTheGroup(CuTest *tc)
   IN_ROOM(&fixture.other) = 1; /* elsewhere: neither counts */
   CuAssertIntEquals(tc, 1, racial_warcallers_fury_bonus(&fixture.ch));
   CuAssertIntEquals(tc, 0, racial_rrakkma_allies(&fixture.ch));
+
+  end_innate_fixture(&fixture);
+}
+
+/* ---- Phase 3: terrain and utility ---- */
+
+/* Each terrain stealth feat pays +6 only in its own sector set; forest sight +4 in forests. */
+void TestTerrainStealthAndForestSightFollowTheSector(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  int base_stealth, base_perception;
+
+  begin_innate_fixture(&fixture);
+  fixture.rooms[0].sector_type = SECT_FIELD;
+  base_stealth = compute_ability(&fixture.ch, ABILITY_STEALTH);
+  base_perception = compute_ability(&fixture.ch, ABILITY_PERCEPTION);
+
+  SET_FEAT(&fixture.ch, FEAT_OUTDOOR_STEALTH, 1);
+  CuAssertIntEquals(tc, 6, racial_terrain_ability_bonus(&fixture.ch, ABILITY_STEALTH));
+  CuAssertIntEquals(tc, base_stealth + 6, compute_ability(&fixture.ch, ABILITY_STEALTH));
+  fixture.rooms[0].sector_type = SECT_UD_WILD;
+  CuAssertIntEquals(tc, 0, racial_terrain_ability_bonus(&fixture.ch, ABILITY_STEALTH));
+  fixture.rooms[0].sector_type = SECT_INSIDE;
+  CuAssertIntEquals(tc, 0, racial_terrain_ability_bonus(&fixture.ch, ABILITY_STEALTH));
+  SET_FEAT(&fixture.ch, FEAT_OUTDOOR_STEALTH, 0);
+
+  SET_FEAT(&fixture.ch, FEAT_SWAMP_STEALTH, 1);
+  fixture.rooms[0].sector_type = SECT_FIELD;
+  CuAssertIntEquals(tc, 0, racial_terrain_ability_bonus(&fixture.ch, ABILITY_STEALTH));
+  fixture.rooms[0].sector_type = SECT_MARSHLAND;
+  CuAssertIntEquals(tc, 6, racial_terrain_ability_bonus(&fixture.ch, ABILITY_STEALTH));
+  SET_FEAT(&fixture.ch, FEAT_SWAMP_STEALTH, 0);
+
+  SET_FEAT(&fixture.ch, FEAT_UNDERDARK_STEALTH, 1);
+  CuAssertIntEquals(tc, 0, racial_terrain_ability_bonus(&fixture.ch, ABILITY_STEALTH));
+  fixture.rooms[0].sector_type = SECT_UD_NOGROUND;
+  CuAssertIntEquals(tc, 6, racial_terrain_ability_bonus(&fixture.ch, ABILITY_STEALTH));
+  /* the feats do not stack in a shared sector */
+  SET_FEAT(&fixture.ch, FEAT_OUTDOOR_STEALTH, 1);
+  fixture.rooms[0].sector_type = SECT_MARSHLAND;
+  SET_FEAT(&fixture.ch, FEAT_SWAMP_STEALTH, 1);
+  CuAssertIntEquals(tc, 6, racial_terrain_ability_bonus(&fixture.ch, ABILITY_STEALTH));
+
+  fixture.rooms[0].sector_type = SECT_FOREST;
+  CuAssertIntEquals(tc, 0, racial_terrain_ability_bonus(&fixture.ch, ABILITY_PERCEPTION));
+  SET_FEAT(&fixture.ch, FEAT_FOREST_SIGHT, 1);
+  CuAssertIntEquals(tc, 4, racial_terrain_ability_bonus(&fixture.ch, ABILITY_PERCEPTION));
+  CuAssertIntEquals(tc, base_perception + 4, compute_ability(&fixture.ch, ABILITY_PERCEPTION));
+  fixture.rooms[0].sector_type = SECT_FIELD;
+  CuAssertIntEquals(tc, 0, racial_terrain_ability_bonus(&fixture.ch, ABILITY_PERCEPTION));
+
+  end_innate_fixture(&fixture);
+}
+
+/* Miner raises the harvest skill for minerals, stone and crystal only. */
+void TestMinerRaisesMineralHarvestSkill(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  int base_minerals, base_herbs;
+
+  begin_innate_fixture(&fixture);
+  base_minerals = get_harvest_skill_level(&fixture.ch, RESOURCE_MINERALS);
+  base_herbs = get_harvest_skill_level(&fixture.ch, RESOURCE_HERBS);
+
+  SET_FEAT(&fixture.ch, FEAT_MINER, 1);
+  CuAssertIntEquals(tc, base_minerals + 4, get_harvest_skill_level(&fixture.ch, RESOURCE_MINERALS));
+  CuAssertIntEquals(tc, base_minerals + 4, get_harvest_skill_level(&fixture.ch, RESOURCE_STONE));
+  CuAssertIntEquals(tc, base_minerals + 4, get_harvest_skill_level(&fixture.ch, RESOURCE_CRYSTAL));
+  CuAssertIntEquals(tc, base_herbs, get_harvest_skill_level(&fixture.ch, RESOURCE_HERBS));
+
+  end_innate_fixture(&fixture);
+}
+
+/* Barter is worth ten points of charisma in the shop haggle, seadog one tile at the helm. */
+void TestBarterAndSeadogBonuses(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  int base_score;
+
+  begin_innate_fixture(&fixture);
+  base_score = shop_haggle_score(&fixture.ch);
+  SET_FEAT(&fixture.ch, FEAT_BARTER, 1);
+  CuAssertIntEquals(tc, base_score + 10, shop_haggle_score(&fixture.ch));
+
+  CuAssertIntEquals(tc, 0, vessel_pilot_speed_bonus(NULL));
+  CuAssertIntEquals(tc, 0, vessel_pilot_speed_bonus(&fixture.ch));
+  SET_FEAT(&fixture.ch, FEAT_SEADOG, 1);
+  CuAssertIntEquals(tc, 1, vessel_pilot_speed_bonus(&fixture.ch));
 
   end_innate_fixture(&fixture);
 }

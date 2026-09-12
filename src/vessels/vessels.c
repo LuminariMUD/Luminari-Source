@@ -1899,6 +1899,14 @@ int get_vessel_position_speed_modifier(enum vessel_class vessel_type, int sector
   return modifier;
 }
 
+/* seadog (Duris racial innate): one extra tile per move while at the helm */
+int vessel_pilot_speed_bonus(struct char_data *ch)
+{
+  if (ch == NULL || !HAS_FEAT(ch, FEAT_SEADOG))
+    return 0;
+  return 1;
+}
+
 /**
  * Move ship in given direction using wilderness coordinates
  * @param shipnum Ship index number
@@ -1938,6 +1946,7 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
 
   /* Calculate new position based on direction and speed */
   move_distance = MAX(1, greyhawk_ships[shipnum].speed / 10);
+  move_distance += vessel_pilot_speed_bonus(ch);
 
   /* Weather affects movement distance */
   if (weather_conditions > 50)
