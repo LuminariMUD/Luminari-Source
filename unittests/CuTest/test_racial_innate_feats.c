@@ -9,6 +9,7 @@
 #include "../../src/utils.h"
 #include "../../src/actionqueues.h"
 #include "../../src/act.h"
+#include "../../src/character/abilities.h"
 #include "../../src/character/feats.h"
 #include "../../src/character/race.h"
 #include "../../src/character/skill_lists.h"
