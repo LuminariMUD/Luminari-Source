@@ -4,10 +4,14 @@ Status: source-backed study, verified 2026-09-11 against the Duris checkout at
 `/home/aiwithapex/projects/duris` (`src/core/defines.h`, `src/core/constant.c`,
 `src/core/common.c`, `src/classes/innates.c`, `src/combat/dam_mods.c`,
 `src/combat/fight.c`, `src/magic/affects.c`, `src/world/limits.c`,
-`src/world/handler.c`, `src/world/db.c`, `lib/duris.properties`, and
+`src/world/handler.c`, `src/world/db.c`, `src/account/nanny.c`,
+`src/cmd/actobj.c`, `lib/duris.properties`, and
 `help/duris_help_parsed.hlp`). Scoring uses the race point (RP) table in
 [PLAYER_RACES_REFERENCE.md](../guides/PLAYER_RACES_REFERENCE.md), section
 "Balance: race point budgets by tier".
+
+Follow-up: [DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md](DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md)
+plans the uncovered innates below as non-selectable feats.
 
 This document converts every Duris player race to LuminariMUD's scale so the
 team can decide which ones are worth adapting. It keeps each race's stat
@@ -52,7 +56,8 @@ almost all read from `lib/duris.properties` at boot:
 | Shrug | `innate.shrug.<Race>` (`get_innate_resistance()` in `src/classes/innates.c`) | Percent chance to ignore a spell, scaled by level up to 50 and never below 5. Lich 65, Illithid 50, elves 35 |
 | Racial saves | `saves.<spell,breath,para,petri>.racial.<Race>` | Flat save bonuses for a handful of races |
 | Innates | `ADD_RACIAL_INNATE()` calls in `src/classes/innates.c` | Passive and active abilities, many gated by level (Duris mortals go to 56) |
-| Size | `race_size()` in `src/core/common.c` | Tiny to Gargantuan. Player races are Small, Medium, Large, or Huge |
+| Size | Player creation switch in `src/account/nanny.c` (`race_size()` in `src/core/common.c` is the mob table and disagrees for several player races) | Tiny to Gargantuan. Player races are Small, Medium, Large, or Huge |
+| Giant wield | `IS_GIANT()` in `src/core/utils.h`, `wield_item_size()` in `src/cmd/actobj.c` | Ogre, Minotaur, Firbolg, and Storm Giant treat every weapon as one-handed. A two-handed weapon keeps its 1.5x dice multiplier (`damage.modifier.twohanded` in `src/combat/fight.c`) and leaves the other hand free for a shield or second weapon. This is keyed to race, not size: Wight is Huge and does not get it |
 | Regeneration | `hit.regen.Troll` 9, `hit.regen.Revenant` 4 (`get_innate_regeneration()`) | Adds mult+1 hit points per tick standing, doubled resting, tripled sleeping |
 | Sun vulnerability | `INNATE_VULN_SUN` (`src/world/limits.c`, `sun_damage_check()` in `src/world/handler.c`) | Zero hit point and movement regeneration in sunlight, plus 5 to 20 damage per check outdoors in daylight. Forests, swamps, and globe of darkness suppress it |
 | Dayblind | `INNATE_DAYBLIND` | Cannot see in daylight. Help text lists it on many races, but the registration is commented out for all of them except Half-Illithid |
@@ -97,8 +102,10 @@ instant casting and would otherwise score 195 RP.
 and 5 as 0.5 RP.
 
 **Size.** Duris Small stays Small (0 RP). Duris Large and Huge both become our
-Large (1 RP); we have no Huge player size and Huge in Duris carries no extra
-mechanics beyond size comparisons.
+Large (1 RP); we have no Huge player size and size itself carries no extra
+mechanics in Duris beyond size comparisons. The giant wield rule is priced
+separately as a trait (3 RP: a two-handed weapon at full 1.5x dice in one hand
+plus a shield or off-hand weapon) for the four races that have it.
 
 **Innates.** Each is priced by the closest row of our trait table. Where the
 Duris effect is numerically known (weapon masters, troll skin, regeneration,
@@ -117,7 +124,8 @@ should agree.
 
 ## Table 1: Duris source values
 
-Stats are Str/Dex/Agi/Con/Pow/Int/Wis/Cha/Luc as percent of human. Multipliers
+Stats are Str/Dex/Agi/Con/Pow/Int/Wis/Cha/Luc as percent of human. Size is
+the player-creation size (S/M/L/H). Multipliers
 are damroll / total output / combat pulse / spellcast pulse. Exp is the
 experience factor; "none" means the property is absent and the code default of
 1.0 applies.
@@ -125,17 +133,17 @@ experience factor; "none" means the property is absent and the code default of
 | Race | Stats | Size | Multipliers | Exp | Shrug | Roster |
 |------|-------|------|-------------|-----|-------|--------|
 | Human | 100/100/100/100/100/100/100/100/100 | M | 1.0/1.1/15/1.0 | 1.3 | 0 | good |
-| Barbarian | 155/90/90/165/70/70/95/75/90 | M | 1.15/1.25/18.25/1.3 | none | 0 | good |
+| Barbarian | 155/90/90/165/70/70/95/75/90 | L | 1.15/1.25/18.25/1.3 | none | 0 | good |
 | Grey Elf | 90/110/120/90/105/115/120/120/100 | M | 0.77/0.9/13.5/0.825 | 0.8 | 35 | good |
 | Mountain Dwarf | 135/95/85/120/90/85/125/80/100 | M | 1.12/1.2/17/0.85 | 0.9 | 0 | good |
 | Halfling | 95/130/125/95/80/100/115/110/120 | S | 0.85/1.0/12.5/0.7 | 0.9 | 0 | good |
 | Gnome | 85/115/120/90/105/130/95/95/100 | S | 0.8/0.9/11.5/0.6 | 0.9 | 0 | good |
 | Centaur | 140/90/90/155/65/80/100/90/90 | L | 1.18/1.2/15.5/1.2 | 0.9 | 0 | good |
 | Githzerai | 100/100/100/100/120/115/110/90/100 | M | 0.975/0.95/15/0.9 | 0.9 | 20 | good |
-| Firbolg | 230/75/75/200/65/75/80/80/90 | L | 1.45/1.7/15.5/1.5 | 0.85 | 0 | good |
+| Firbolg | 230/75/75/200/65/75/80/80/90 | H | 1.45/1.7/15.5/1.5 | 0.85 | 0 | good |
 | Drow | 90/110/130/90/110/120/115/110/100 | M | 0.75/0.9/13.5/0.825 | 0.8 | 35 | evil |
 | Duergar | 130/90/90/135/85/75/130/70/100 | M | 1.11/1.2/17/0.85 | 0.85 | 0 | evil |
-| Ogre | 230/75/75/200/60/70/80/50/90 | L | 1.5/1.8/19/1.6 | 0.85 | 0 | evil |
+| Ogre | 230/75/75/200/60/70/80/50/90 | H | 1.5/1.8/19/1.6 | 0.85 | 0 | evil |
 | Troll | 160/90/100/160/75/75/90/70/90 | L | 1.18/1.3/18.25/1.4 | 0.85 | 0 | evil |
 | Orc | 120/100/95/125/100/90/90/85/100 | M | 1.03/1.2/15/1.0 | 1.15 | 0 | evil |
 | Githyanki | 100/100/100/100/130/120/100/75/100 | M | 0.97/0.95/15/0.9 | 0.8 | 25 | evil |
@@ -143,24 +151,24 @@ experience factor; "none" means the property is absent and the code default of
 | Kobold | 90/110/120/95/95/125/105/100/110 | S | 0.775/0.95/15/0.6 | 0.9 | 0 | evil |
 | Drider | 95/110/110/115/85/100/90/70/100 | L | 1.175/0.95/15/0.95 | 0.9 | 25 | evil |
 | Thri-Kreen | 115/125/130/105/70/65/65/75/90 | M | 1.0/0.85/17.5/1.0 | 0.8 | 0 | neutral |
-| Minotaur | 165/80/80/170/65/85/85/70/85 | L | 1.2/1.05/18.5/1.4 | 0.7 | 0 | neutral |
+| Minotaur | 165/80/80/170/65/85/85/70/85 | H | 1.2/1.05/18.5/1.4 | 0.7 | 0 | neutral |
 | Tiefling | 110/110/110/100/100/120/100/120/110 | M | 1.0/1.0/14/0.9 | 0.9 | 20 | neutral |
 | Shade | 85/140/125/100/120/140/100/100/115 | S | 0.7/0.75/15/0.7 | none | 0 | descend: thief/illusionist |
 | Revenant | 145/90/110/169/85/70/75/50/100 | L | 1.4/1.65/16.4/1.3 | none | 0 | descend: mercenary |
 | Lich | 70/100/115/70/150/145/100/90/100 | M | 0.65/0.8/12/0.55 | 0.1 | 65 | descend: necromancer |
 | Vampire | 120/125/115/100/110/120/100/120/100 | M | 1.28/1.65/13/0.8 | 0.79 | 40 | descend: sorcerer/dreadlord |
-| Death Knight | 120/95/95/120/105/100/95/70/100 | M | 1.475/1.8/14/1.5 | none | 0 | descend: anti-paladin |
-| Shadow Beast | 120/130/130/106/100/70/70/70/120 | L | 1.25/1.25/12/1.1 | none | 0 | descend: assassin |
-| Wight | 135/80/80/155/100/60/60/50/100 | M | 1.35/2.2/15.5/1.9 | none | 0 | descend: warrior |
+| Death Knight | 120/95/95/120/105/100/95/70/100 | L | 1.475/1.8/14/1.5 | none | 0 | descend: anti-paladin |
+| Shadow Beast | 120/130/130/106/100/70/70/70/120 | M | 1.25/1.25/12/1.1 | none | 0 | descend: assassin |
+| Wight | 135/80/80/155/100/60/60/50/100 | H | 1.35/2.2/15.5/1.9 | none | 0 | descend: warrior |
 | Phantom | 90/140/130/97/125/100/100/100/100 | M | 0.9/0.9/14/0.7 | none | 20 | descend: conjurer |
 | Half-Elf | 105/110/110/102/125/115/110/115/100 | M | 1.03/1.05/14/0.9 | 1.0 | 20 | legacy |
 | Wood Elf | 125/115/115/135/95/85/91/85/100 | M | 1.15/1.2/15/0.95 | 1.0 | 5 | legacy |
 | Kuo-Toa | 135/115/115/140/95/85/85/90/100 | M | 1.25/1.2/15/1.1 | 0.8 | 0 | legacy |
 | Orog | 160/120/120/170/50/40/80/50/75 | M | 1.2/2.0/15/1.6 | 0.85 | 0 | legacy |
-| Harpy | 80/115/130/109/100/120/110/100/80 | M | 1.05/1.0/12/0.7 | none | 0 | lore-restricted |
+| Harpy | 80/115/130/109/100/120/110/100/80 | S | 1.05/1.0/12/0.7 | none | 0 | lore-restricted |
 | Illithid | 70/90/90/85/200/150/110/25/100 | M | 0.45/0.6/15.5/0.025 | 0.1 | 50 | lore-restricted |
 | Half-Illithid (Pillithid) | 83/105/105/82/125/120/100/100/100 | M | 0.65/1.0/15.5/0.75 | 0.1 | 50 | lore-restricted |
-| Storm Giant | 150/70/70/150/80/80/80/65/100 | L | 1.455/2.0/14.5/1.6 | none | 0 | lore-restricted |
+| Storm Giant | 150/70/70/150/80/80/80/65/100 | H | 1.455/2.0/14.5/1.6 | none | 0 | lore-restricted |
 
 ## Table 2: converted line
 
@@ -217,17 +225,17 @@ score falls in the gap between two bands.
 | Race | Ability | Size | Melee | Cast | Traits | RP | Tier by score |
 |------|---------|------|-------|------|--------|----|---------------|
 | Human | 0 | 0 | 0.75 | 0 | 3.5 | 4.2 | Normal |
-| Barbarian | 9 | 0 | 1.5 | -0.5 | 7 | 17 | Advanced/Epic |
+| Barbarian | 9 | 1 | 1.5 | -0.5 | 7 | 18 | Advanced/Epic |
 | Grey Elf | 6 | 0 | -1 | 1 | 9 | 15 | Advanced |
 | Mountain Dwarf | 5 | 0 | 1.5 | 1 | 10 | 17.5 | Advanced/Epic |
 | Halfling | 4 | 0 | 0 | 2 | 3 | 9 | Normal |
 | Gnome | 1 | 0 | -0.5 | 3.5 | 2 | 6 | Normal |
 | Centaur | 6 | 1 | 3 | -0.5 | 3 | 12.5 | Advanced |
 | Githzerai | 2 | 0 | -0.5 | 0.5 | 7.5 | 9.5 | Normal/Advanced |
-| Firbolg | 19 | 1 | 10.5 | -0.75 | 1 | 30.8 | Epic/Quest |
+| Firbolg | 19 | 1 | 10.5 | -0.75 | 4 | 33.8 | Epic/Quest |
 | Drow | 5 | 0 | -1 | 1 | 7.5 | 12.5 | Advanced |
 | Duergar | 6 | 0 | 1.5 | 1 | 6 | 14.5 | Advanced |
-| Ogre | 19 | 1 | 8.25 | -1 | -2 | 25.2 | Epic |
+| Ogre | 19 | 1 | 8.25 | -1 | 1 | 28.2 | Epic |
 | Troll | 8 | 1 | 2.25 | -0.75 | 13 | 23.5 | Epic |
 | Orc | 1 | 0 | 1.5 | 0 | 4.5 | 7 | Normal |
 | Githyanki | -1 | 0 | -0.5 | 0.5 | 3 | 2 | Normal |
@@ -235,15 +243,15 @@ score falls in the gap between two bands.
 | Kobold | 4 | 0 | -1.5 | 3.5 | 2 | 8 | Normal |
 | Drider | -1 | 1 | 0.75 | 0.5 | 3.5 | 4.8 | Normal |
 | Thri-Kreen | 2 | 0 | -1.5 | 0 | 7 | 7.5 | Normal |
-| Minotaur | 10 | 1 | 0 | -0.75 | 2 | 12.2 | Advanced |
+| Minotaur | 10 | 1 | 0 | -0.75 | 5 | 15.2 | Advanced |
 | Tiefling | 6 | 0 | 0.75 | 0.5 | 4.5 | 11.8 | Advanced |
 | Shade | 5 | 0 | -2.5 | 2 | 0.5 | 5 | Normal |
 | Revenant | 8 | 1 | 8.25 | -0.5 | 6.5 | 23.2 | Epic |
 | Lich | 2 | 0 | -2 | 4 | 11 | 15 | Advanced |
 | Vampire | 8 | 0 | 10.5 | 1.5 | 10 | 30 | Epic/Quest |
-| Death Knight | 0 | 0 | 13.5 | -0.75 | 3 | 15.8 | Advanced |
-| Shadow Beast | 2 | 1 | 7.5 | -0.25 | 2 | 12.2 | Advanced |
-| Wight | 6 | 0 | 14.25 | -1.25 | 5.5 | 24.5 | Epic |
+| Death Knight | 0 | 1 | 13.5 | -0.75 | 3 | 16.8 | Advanced/Epic |
+| Shadow Beast | 2 | 0 | 7.5 | -0.25 | 2 | 11.2 | Normal/Advanced |
+| Wight | 6 | 1 | 14.25 | -1.25 | 5.5 | 25.5 | Epic |
 | Phantom | 3 | 0 | -0.5 | 2 | 10 | 14.5 | Advanced |
 | Half-Elf | 7 | 0 | 1.5 | 0.5 | 7 | 16 | Advanced |
 | Wood Elf | 5 | 0 | 3 | 0.5 | 5 | 13.5 | Advanced |
@@ -252,7 +260,7 @@ score falls in the gap between two bands.
 | Harpy | 4 | 0 | 2.25 | 2 | 5 | 13.2 | Advanced |
 | Illithid | 2 | 0 | -3.5 | 5 | 9 | 12.5 | Advanced |
 | Half-Illithid (Pillithid) | -1 | 0 | -2 | 1.5 | 5 | 3.5 | Normal |
-| Storm Giant | 6 | 1 | 15 | -1 | 1.5 | 22.5 | Epic |
+| Storm Giant | 6 | 1 | 15 | -1 | 4.5 | 25.5 | Epic |
 
 ## Reading the results
 
@@ -267,10 +275,12 @@ score falls in the gap between two bands.
   +13 and CON +10, three points past our highest existing modifier (Fae DEX
   +10). Their melee factor alone is worth 8 to 10 RP. Both score Epic on raw
   conversion despite being ordinary evil or good roster races in Duris, where
-  their 1.5 to 1.6 spellcast pulse and two-class list are the real cost. Adopt
-  them only with compressed stats (see below).
+  their 1.5 to 1.6 spellcast pulse and two-class list are the real cost. Both,
+  with Minotaur and Storm Giant, also wield two-handed weapons in one hand at
+  full damage, so a shield or second weapon stacks on top of the multiplier.
+  Adopt them only with compressed stats (see below).
 - **Descend forms score Advanced to Epic, not Epic quest.** Lich 15,
-  Revenant 23, Wight 24.5, Vampire 30. Our own Lich and Vampire score 44.5
+  Revenant 23, Wight 25.5, Vampire 30. Our own Lich and Vampire score 44.5
   and 59.5. Duris undead
   are balanced against a level reset and outcast status, which our system does
   not model. If adopted as quest races they would need roughly double their
@@ -308,8 +318,8 @@ and Duergar Battle Rage as a per-day haste.
 **Near matches with a different frame.** Troll versus our HalfTroll (23.5 vs
 8.5): Duris Troll's 10 per tick regeneration and Troll Skin are what our
 HalfTroll is missing to reach the Advanced band. Ogre versus our Half-Ogre
-(25.2 vs 9.5): compress to STR +6, CON +4, Large, Ogre Roar, bonus damage vs
-smaller, and it lands at about 14. Thri-Kreen versus Trelux: Trelux already
+(28.2 vs 9.5): compress to STR +6, CON +4, Large, Ogre Roar, bonus damage vs
+smaller, giant wield, and it lands at about 17. Thri-Kreen versus Trelux: Trelux already
 has exoskeleton, leap, and pincers; the four-arm mechanic is the only new
 idea. Centaur versus Wemic: Wemic already covers the quadruped body; Duris
 adds Stampede and Doorkick.
@@ -322,9 +332,9 @@ adds Stampede and Doorkick.
 | Kobold | 8 | Normal | None. Small, DEX +2, INT +3, Ultravision, stealth, fast casting |
 | Githyanki | 2 | Normal, or Advanced with SR | Shrug 25 and unscored Pow 130 are the race. Drop sun vulnerability (it is a racewar device) and give it a psionic SLA and it is a clean Advanced race at about 8 to 10 |
 | Githzerai | 9.5 | Normal or Advanced | Add one scaling trait (Rrakkma grows with grouped Githzerai; alone it does nothing) |
-| Barbarian | 17 | Advanced | STR +6, CON +7 exceed rule 1 (ability over 50 percent of budget). Compress to +4/+4 and keep Bodyslam, Groundfighting, Dauntless, cold resistance |
+| Barbarian | 18 | Advanced | STR +6, CON +7 exceed rule 1 (ability over 50 percent of budget). Compress to +4/+4 and keep Bodyslam, Groundfighting, Dauntless, cold resistance |
 | Drider | 4.8 | Advanced | Under-built in Duris (four innates, three of them shared). Needs its stats raised toward Drow's and Webwrap implemented to justify the Large body |
-| Minotaur | 12.2 | Advanced | STR +7, CON +7 compress to +4/+4; Charge is a good active. The bloodlust rage below half hp is a genuine drawback we could implement |
+| Minotaur | 15.2 | Advanced | STR +7, CON +7 compress to +4/+4; Charge and giant wield are the identity. The bloodlust rage below half hp is a genuine drawback we could implement |
 | Kuo-Toa | 10 | Normal or Advanced | Sun vulnerability and Throw Lightning; otherwise a sturdy aquatic fighter |
 | Harpy | 13.2 | Advanced | Flight is 4 of 13 points. Comparable to a flying Tabaxi |
 
@@ -332,14 +342,14 @@ adds Stampede and Doorkick.
 
 | Race | Raw RP | Issue | Compressed line |
 |------|--------|-------|-----------------|
-| Firbolg | 30.8 | STR +13, CON +10, melee x2.4 | STR +8, CON +6, INT -2, CHA -2, Large, Bodyslam, Doorbash, Forest Sight, Magic Vulnerability. About 20 |
-| Ogre | 25.2 | Same as Firbolg, plus three lost slots | See near matches above; best folded into Half-Ogre |
-| Storm Giant | 22.5 | No innates at all; entire score is stats and melee x2.7 | Needs Throw Lightning and Doorbash restored (both are commented out in Duris) before it is a race rather than a stat block |
+| Firbolg | 33.8 | STR +13, CON +10, melee x2.4 | STR +8, CON +6, INT -2, CHA -2, Large, giant wield, Bodyslam, Doorbash, Forest Sight, Magic Vulnerability. About 23 |
+| Ogre | 28.2 | Same as Firbolg, plus three lost slots | See near matches above; best folded into Half-Ogre |
+| Storm Giant | 25.5 | No innates beyond giant wield; entire score is stats and melee x2.7 | Needs Throw Lightning and Doorbash restored (both are commented out in Duris) before it is a race rather than a stat block |
 | Orog | 23 | Melee x2.0 and 40 spell save | STR +6, CON +7 compress to +4/+5; Warcaller's Fury as a party-scaling damage trait is the interesting piece |
 | Illithid | 12.5 | Pow 200 unscored, instant casting, CHA 25 | As an Epic caster: INT +5, WIS +1, CHA -4 (capped), SR 15 + level, mind blast 3/day, levitate, planar shift. About 24 |
 
-**Undead descend forms.** Death Knight (15.8), Shadow Beast (12.2), Phantom
-(14.5), Revenant (23.2), Wight (24.5) are all built around one or two large
+**Undead descend forms.** Death Knight (16.8), Shadow Beast (11.2), Phantom
+(14.5), Revenant (23.2), Wight (25.5) are all built around one or two large
 multipliers plus fire or sun vulnerability. The kits are thin by our
 standards. If we want more transformation races beyond Lich and Vampire,
 Death Knight (fire shield and firestorm on a fighter chassis) and Phantom
@@ -454,6 +464,7 @@ which the innate becomes available.
 
 | Trait | RP |
 |-------|----|
+| Giant wield: two-handed weapons in one hand at full damage | 3 |
 | Bodyslam | 1 |
 | Doorbash | 0.5 |
 | Forest Sight | 0.5 |
@@ -490,6 +501,7 @@ which the innate becomes available.
 | Trait | RP |
 |-------|----|
 | Ultravision | 1 |
+| Giant wield: two-handed weapons in one hand at full damage | 3 |
 | Bodyslam | 1 |
 | Doorbash | 0.5 |
 | Ogre Roar (L11): fear debuff | 1.5 |
@@ -579,6 +591,7 @@ which the innate becomes available.
 | Trait | RP |
 |-------|----|
 | Ultravision | 1 |
+| Giant wield: two-handed weapons in one hand at full damage | 3 |
 | Dayvision | 0 |
 | Doorbash | 0.5 |
 | Charge (L11): damage and stun up to one room away | 2 |
@@ -756,4 +769,5 @@ which the innate becomes available.
 | Trait | RP |
 |-------|----|
 | No innates registered | 0 |
+| Giant wield: two-handed weapons in one hand at full damage | 3 |
 | Saves: para +15, spell/breath/petri +10 | 1.5 |

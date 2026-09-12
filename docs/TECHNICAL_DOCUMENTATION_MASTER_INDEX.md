@@ -216,6 +216,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[Screen-reader and MSP plan](ongoing-projects/SCREEN_READER_AND_MSP_IMPLEMENTATION_PLAN.md)** - Issue #137 implementation sequence and acceptance criteria
 - **[known-issues.md](ongoing-projects/known-issues.md)** - Recorded exceptions and technical-debt follow-ups
 - **[Duris race conversion study](ongoing-projects/DURIS_RACE_CONVERSION.md)** - Every Duris player race converted to our stat scale and scored with the race point budget
+- **[Duris racial innates as feats plan](ongoing-projects/DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md)** - Coverage matrix and implementation plan for every uncovered Duris racial innate as a non-selectable feat
 - **[docs-audit.md](docs-audit.md)** - Phase 00 transition and vessel documentation audit ledger
 - **[CONSIDERATIONS.md](development/CONSIDERATIONS.md)** - Durable special-procedure and vessel maintenance lessons
 - **[CONVENTIONS.md](development/CONVENTIONS.md)** - Canonical engineering, build, test, documentation, and operational conventions
