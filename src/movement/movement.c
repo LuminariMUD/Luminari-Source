@@ -130,6 +130,7 @@ ACMD(do_doorbash)
 
   act("$n charges straight into the door with $s entire body!", FALSE, ch, 0, 0, TO_ROOM);
   act("You throw your entire body at the door!", FALSE, ch, 0, 0, TO_CHAR);
+  USE_FULL_ROUND_ACTION(ch);
 
   if (dice(1, 300) > GET_STR(ch) + GET_LEVEL(ch))
   {

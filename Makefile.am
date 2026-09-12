@@ -938,6 +938,7 @@ EXTRA_DIST = \
 	sql/components/help_pet_entries.sql \
 	sql/components/help_dg_damage_trigger.sql \
 	sql/components/help_rol_feat_entries.sql \
+	sql/components/help_duris_racial_innate_entries.sql \
 	sql/components/help_rol_player_kits.sql \
 	sql/components/help_race_half_illithid_entries.sql \
 	sql/components/help_race_half_ogre_entries.sql \

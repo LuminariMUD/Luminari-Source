@@ -25,6 +25,7 @@
 #include "../../src/mudlim.h"
 #include "../../src/net/protocol.h"
 #include "../../src/obj/shop.h"
+#include "../../src/pet_vnums.h"
 #include "../../src/vessels/vessels.h"
 #include "../../src/wilderness/resource_system.h"
 
@@ -265,6 +266,10 @@ void TestRacialSlaUseStartsTheDailyCooldown(CuTest *tc)
   do_racial_sla(&fixture.ch, "", 0, SCMD_RSLA_WEB); /* no opponent */
   CuAssertTrue(tc, char_has_mud_event(&fixture.ch, eSLA_WEB) == NULL);
 
+  SET_FEAT(&fixture.ch, FEAT_SLA_SHADOW_JUMP, 1);
+  do_racial_sla(&fixture.ch, "innate", 0, SCMD_RSLA_SHADOW_JUMP); /* resolves to self */
+  CuAssertTrue(tc, char_has_mud_event(&fixture.ch, eSLA_SHADOW_JUMP) == NULL);
+
   SET_FEAT(&fixture.ch, FEAT_SUMMON_WARG, 1);
   fixture.rooms[0].sector_type = SECT_INSIDE;
   do_racial_sla(&fixture.ch, "", 0, SCMD_RSLA_SUMMON_WARG); /* indoors */
@@ -455,7 +460,10 @@ void TestFearlessnessFeatGrantsFearImmunity(CuTest *tc)
 void TestSunVulnerabilityStopsRegenerationInOpenSunlight(CuTest *tc)
 {
   struct innate_fixture fixture;
+  struct obj_data cloak;
 
+  memset(&cloak, 0, sizeof(cloak));
+  cloak.item_number = NOTHING; /* no prototype: an ordinary, unregistered cloak */
   begin_innate_fixture(&fixture);
   GET_CLASS(&fixture.ch) = CLASS_WARRIOR;
   GET_COND(&fixture.ch, HUNGER) = 24;
@@ -476,6 +484,19 @@ void TestSunVulnerabilityStopsRegenerationInOpenSunlight(CuTest *tc)
   fixture.rooms[0].sector_type = SECT_INSIDE;
   CuAssertTrue(tc, !suffers_sun_vulnerability(&fixture.ch));
   CuAssertTrue(tc, hit_gain(&fixture.ch) > 0);
+
+  /* any cloak worn about the body shelters, unless wind or a grapple strips it */
+  fixture.rooms[0].sector_type = SECT_FIELD;
+  CuAssertTrue(tc, suffers_sun_vulnerability(&fixture.ch));
+  GET_EQ(&fixture.ch, WEAR_ABOUT) = &cloak;
+  CuAssertTrue(tc, !suffers_sun_vulnerability(&fixture.ch));
+  SET_BIT_AR(AFF_FLAGS(&fixture.ch), AFF_WIND_WALL);
+  CuAssertTrue(tc, suffers_sun_vulnerability(&fixture.ch));
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.ch), AFF_WIND_WALL);
+  SET_BIT_AR(AFF_FLAGS(&fixture.ch), AFF_GRAPPLED);
+  CuAssertTrue(tc, suffers_sun_vulnerability(&fixture.ch));
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.ch), AFF_GRAPPLED);
+  GET_EQ(&fixture.ch, WEAR_ABOUT) = NULL;
 
   end_innate_fixture(&fixture);
 }
@@ -994,5 +1015,94 @@ void TestStampedeRefusals(CuTest *tc)
   FIGHTING(&fixture.ch) = NULL;
   REMOVE_BIT_AR(ROOM_FLAGS(0), ROOM_SINGLEFILE);
 
+  end_innate_fixture(&fixture);
+}
+
+/* The racial summons are summon mobs with their own follower categories: one
+ * warg at a time, and a horde of two to four orcs admitted as a whole batch
+ * against a limit of four, independent of the general and summon slots. */
+void TestRacialSummonFollowerLimits(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  struct char_data prototypes[2], orcs[4], warg;
+  struct index_data indexes[2];
+  struct follow_type links[5];
+  struct char_data *saved_proto = mob_proto;
+  struct index_data *saved_index = mob_index;
+  mob_rnum saved_top = top_of_mobt;
+  int i;
+
+  begin_innate_fixture(&fixture);
+  GET_CHA(&fixture.ch) = 10;
+
+  for (i = 0; i < 2; i++)
+  {
+    clear_char(&prototypes[i]);
+    SET_BIT_AR(MOB_FLAGS(&prototypes[i]), MOB_ISNPC);
+    GET_MOB_RNUM(&prototypes[i]) = i;
+  }
+  indexes[0].vnum = PET_RACIAL_WARG; /* sorted: 19502 before 19503 */
+  indexes[1].vnum = PET_RACIAL_ORC_WARRIOR;
+  mob_proto = prototypes;
+  mob_index = indexes;
+  top_of_mobt = 1;
+
+  memset(links, 0, sizeof(links));
+  for (i = 0; i < 4; i++)
+  {
+    clear_char(&orcs[i]);
+    SET_BIT_AR(MOB_FLAGS(&orcs[i]), MOB_ISNPC);
+    SET_BIT_AR(AFF_FLAGS(&orcs[i]), AFF_CHARM);
+    GET_MOB_RNUM(&orcs[i]) = 1;
+    orcs[i].master = &fixture.ch;
+    links[i].follower = &orcs[i];
+  }
+  clear_char(&warg);
+  SET_BIT_AR(MOB_FLAGS(&warg), MOB_ISNPC);
+  SET_BIT_AR(AFF_FLAGS(&warg), AFF_CHARM);
+  GET_MOB_RNUM(&warg) = 0;
+  warg.master = &fixture.ch;
+  links[4].follower = &warg;
+
+  CuAssertTrue(tc, isSummonMob(PET_RACIAL_WARG));
+  CuAssertTrue(tc, isSummonMob(PET_RACIAL_ORC_WARRIOR));
+
+  /* nothing following: any legal horde, never five, never none */
+  for (i = 2; i <= 4; i++)
+    CuAssertTrue(tc, can_add_summoned_followers(&fixture.ch, PET_RACIAL_ORC_WARRIOR,
+                                                ABILITY_SUMMON_HORDE, i));
+  CuAssertTrue(tc, !can_add_summoned_followers(&fixture.ch, PET_RACIAL_ORC_WARRIOR,
+                                               ABILITY_SUMMON_HORDE, 5));
+  CuAssertTrue(tc, !can_add_summoned_followers(&fixture.ch, PET_RACIAL_ORC_WARRIOR,
+                                               ABILITY_SUMMON_HORDE, 0));
+  CuAssertTrue(tc,
+               can_add_summoned_followers(&fixture.ch, PET_RACIAL_WARG, ABILITY_SUMMON_WARG, 1));
+
+  /* one orc already here: three more fit, four do not */
+  fixture.ch.followers = &links[0];
+  CuAssertTrue(
+      tc, can_add_summoned_followers(&fixture.ch, PET_RACIAL_ORC_WARRIOR, ABILITY_SUMMON_HORDE, 3));
+  CuAssertTrue(tc, !can_add_summoned_followers(&fixture.ch, PET_RACIAL_ORC_WARRIOR,
+                                               ABILITY_SUMMON_HORDE, 4));
+
+  /* a full horde blocks another horde but not the warg */
+  for (i = 0; i < 3; i++)
+    links[i].next = &links[i + 1];
+  CuAssertTrue(tc, !can_add_summoned_followers(&fixture.ch, PET_RACIAL_ORC_WARRIOR,
+                                               ABILITY_SUMMON_HORDE, 2));
+  CuAssertTrue(tc,
+               can_add_summoned_followers(&fixture.ch, PET_RACIAL_WARG, ABILITY_SUMMON_WARG, 1));
+
+  /* a warg already following refuses a second one, and leaves the horde alone */
+  fixture.ch.followers = &links[4];
+  CuAssertTrue(tc,
+               !can_add_summoned_followers(&fixture.ch, PET_RACIAL_WARG, ABILITY_SUMMON_WARG, 1));
+  CuAssertTrue(
+      tc, can_add_summoned_followers(&fixture.ch, PET_RACIAL_ORC_WARRIOR, ABILITY_SUMMON_HORDE, 4));
+
+  fixture.ch.followers = NULL;
+  mob_proto = saved_proto;
+  mob_index = saved_index;
+  top_of_mobt = saved_top;
   end_innate_fixture(&fixture);
 }

@@ -1,9 +1,12 @@
 # Duris Racial Innates as Feats: Implementation Plan
 
 Status: implemented, all six phases done 2026-09-12. Every feat is
-registered, wired and tested; no race is granted any of them. See
-"Progress log" at the end for the as-built map and the open follow-ups
-(assignment per race is the separate next step).
+registered, wired and tested. No race was granted any of the new Duris
+feats; the only race rows touched are the two compatibility assignments
+(`FEAT_STABILITY` to `RACE_CRYSTAL_DWARF`, `FEAT_BODYSLAM` to
+`RACE_HALF_TROLL`) that keep those races' existing behaviour now that the
+checks are feat-gated. See "Progress log" at the end for the as-built map
+and the open follow-ups (assignment per race is the separate next step).
 Companion study: [DURIS_RACE_CONVERSION.md](DURIS_RACE_CONVERSION.md).
 Duris source verified at `/home/aiwithapex/projects/duris` (`src/classes/innates.c`
 registration list and the implementation sites named per feat below). Our side
@@ -636,9 +639,38 @@ without re-reading the conversation.
   doorbash success roll, the stampede trample in live combat, the warg load
   outdoors, and the offensive SLAs against a target; each shares its path
   with a verified sibling (summonhorde, the SLA handler, `perform_knockdown`).
+- 2026-09-12, PR #159 CI fix. `unittests/CuTest/test_racial_innate_feats.c`
+  now includes `character/abilities.h` (clang treats the implicit
+  declarations of `compute_ability` and `racial_terrain_ability_bonus` as
+  errors). `scripts/world/wtool_constants.json` regenerated with
+  `python3 scripts/world/wtool.py constants sync --write` because `NUM_FEATS`
+  moved from 1269 to 1317; the world-tools check compares that manifest with
+  `src/structs.h`. Remember both steps whenever `NUM_FEATS` changes again.
+- 2026-09-12, PR #159 review pass. `src/utils.c`: `sun_cover_protects()`
+  (any about-body item shelters, wind wall or a grapple strips it, the
+  vampire cloak still counts through `is_covered()`); follower categories
+  `FOLLOWER_WARG` and `FOLLOWER_ORC_HORDE` keyed by prototype vnum, the
+  horde limit is 4 and `can_add_summoned_followers()` checks the whole
+  batch. `src/magic/magic.c`: both pets in `isSummonMob()`, caster-facing
+  summon messages 36 and 37. `src/act.other.c`: `shadowdoor` refuses self,
+  the SLA handler and `onslaught` spend their declared action.
+  `src/movement/movement.c`: `doorbash` spends its full-round action on
+  both outcomes. `src/combat/act.offensive.c`: `stampede` spends its
+  action and stops when the stampeder dies or leaves the room.
+  `Makefile.am` lists the help SQL component. The QUADRUPED-BODY help
+  entry (file, SQL, dev database) now points at `FEAT INFO LEONINE FRAME`
+  and `WEMIC` instead of a keyword that does not exist. Caution for the
+  summon message tables in `src/magic/magic.c`: the `// N` comments skip
+  18, so from the dire wolf onward each comment is one higher than the real
+  array index; `mag_summons()` indexes by real position, and the warg and
+  horde rows sit at real 36 and 37 (verified in game).
 - Open follow-ups: assigning feats to races (the companion study's
   per-race lists), the `innates` style summary the study mentions, and a
-  help-sync run when the user wants the new entries on production.
+  help-sync run when the user wants the new entries on production. Any
+  checkout that has not run them yet also needs
+  `sql/components/help_duris_racial_innate_entries.sql` applied and
+  `python3 scripts/world/install_pet_constructs.py` run so the warg and
+  orc warrior prototypes exist in `lib/world/mob/195.mob`.
 - 2026-09-12, Phase 5 done. `sql/components/help_duris_racial_innate_entries.sql`
   (49 entries, applied to the development database), `lib/text/help/help.hlp`
   (48 new entries, `BODYSLAM` rewritten), `docs/guides/PLAYER_RACES_REFERENCE.md`
@@ -690,4 +722,3 @@ without re-reading the conversation.
   `FEAT_STABILITY` assignment and half-troll the `FEAT_BODYSLAM` assignment
   it needed to keep its behaviour. `src/character/feats.c`: fearlessness and
   giant-training text, lich long text says 15 + level. Seven tests added.
-- Next: Phases 2 to 4 in any order, then 5 and 6.

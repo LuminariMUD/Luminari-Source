@@ -154,7 +154,7 @@ Four legs are very hard to topple. Bash, trip and every other knockdown
 automatically fails against you unless the attacker is larger than you. You
 cannot ride a mount; your own legs carry you.
 
-See also: FEAT INFO QUADRUPED BODY, LEONINE-FRAME', 0, FALSE)
+See also: FEAT INFO QUADRUPED BODY, FEAT INFO LEONINE FRAME, WEMIC', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('QUADRUPED-BODY', 'QUADRUPED-BODY');

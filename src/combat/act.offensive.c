@@ -14354,6 +14354,7 @@ ACMDCHECK(can_children_of_the_night)
 ACMD(do_stampede)
 {
   struct char_data *tch = NULL, *next_tch = NULL;
+  room_rnum room = NOWHERE;
 
   if (!HAS_FEAT(ch, FEAT_STAMPEDE))
   {
@@ -14379,14 +14380,19 @@ ACMD(do_stampede)
   send_to_char(ch, "\tWYou lower your head and stampede through your foes!\tn\r\n");
   act("$n lowers $s head and stampedes through the melee!", FALSE, ch, 0, 0, TO_ROOM);
   attach_mud_event(new_mud_event(eSTAMPEDE, ch, NULL), 3 * PULSE_VIOLENCE);
+  USE_FULL_ROUND_ACTION(ch);
 
-  for (tch = world[IN_ROOM(ch)].people; tch != NULL; tch = next_tch)
+  room = IN_ROOM(ch);
+  for (tch = world[room].people; tch != NULL; tch = next_tch)
   {
     next_tch = tch->next_in_room;
-    if (tch == ch || FIGHTING(tch) != ch)
+    if (tch == ch || FIGHTING(tch) != ch || DEAD(tch))
       continue;
-    if (perform_knockdown(ch, tch, SKILL_BASH, FALSE, TRUE))
+    if (perform_knockdown(ch, tch, SKILL_BASH, FALSE, TRUE) && !DEAD(tch))
       hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_UNARMED);
+    /* a riposte or trap can drop the stampeder mid-charge */
+    if (DEAD(ch) || GET_POS(ch) <= POS_DEAD || IN_ROOM(ch) != room)
+      break;
   }
 }
 

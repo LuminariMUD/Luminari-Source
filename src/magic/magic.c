@@ -12426,9 +12426,9 @@ static const char *mag_summon_msgs[] = {
     "$N creep into the area with horribly noisy squeeks", // 33 children of the night rats
     "$N flies into the area screeching loudly.",          // 34 children of the night bats
     "$n raises $N!",                                      // 35 create vampire spawn
-    "$N lopes out of the wilds to answer $n's call.",     // 36 summon warg
-    "$N stomps in to join $n's horde!",                   // 37 summon horde
     "\r\n",                                               // filler
+    "$N lopes out of the wilds to answer $n's call.",     // 36 summon warg (real index)
+    "$N stomps in to join $n's horde!",                   // 37 summon horde (real index)
     "\r\n",                                               // filler
     "\r\n",                                               // filler
     "\r\n",                                               // filler
@@ -12472,8 +12472,8 @@ static const char *mag_summon_to_msgs[] = {
     "$N flies into the area screeching loudly.",          // 34 children of the night bats
     "You raise $N!",                                      // 35 create vampire spawn
     "\r\n",                                               // filler
-    "\r\n",                                               // filler
-    "\r\n",                                               // filler
+    "You howl, and $N answers your call!",                // 36 summon warg (real index)
+    "You bellow, and $N answers your call to the horde!", // 37 summon horde (real index)
     "\r\n",                                               // filler
     "\r\n",                                               // filler
     "\r\n",                                               // filler
@@ -12547,6 +12547,8 @@ bool isSummonMob(int vnum)
   case MOB_EFREETI_KIND:
   case MOB_MARID_KIND:
   case MOB_SHAITAN_KIND:
+  case PET_RACIAL_WARG:
+  case PET_RACIAL_ORC_WARRIOR:
     return true;
   }
   return is_shambler_summon(vnum);

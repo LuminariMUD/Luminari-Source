@@ -6342,6 +6342,11 @@ ACMD(do_racial_sla)
       send_to_char(ch, "You cannot sense anyone by that name.\r\n");
       return;
     }
+    if (vict == ch)
+    {
+      send_to_char(ch, "You cannot target yourself with that.\r\n");
+      return;
+    }
     break;
   case RSLA_TARGET_ROOM:
   case RSLA_TARGET_ROOM_OTHERS:
@@ -6373,6 +6378,13 @@ ACMD(do_racial_sla)
   {
     call_magic(ch, vict, NULL, sla->spellnum, 0, GET_LEVEL(ch), CAST_INNATE);
   }
+
+  /* spend the action the command table declares: self and far-target
+   * abilities are move actions, everything aimed at the room is standard */
+  if (sla->target == RSLA_TARGET_SELF || sla->target == RSLA_TARGET_WORLD_CHAR)
+    USE_MOVE_ACTION(ch);
+  else
+    USE_STANDARD_ACTION(ch);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, sla->feat);
@@ -6417,6 +6429,7 @@ ACMD(do_racial_flurry)
 
   send_to_char(ch, "\tWYou explode into a flurry of blows!\tn\r\n");
   act("$n explodes into a flurry of blows!", FALSE, ch, 0, 0, TO_ROOM);
+  USE_MOVE_ACTION(ch);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_RACIAL_FLURRY);
