@@ -626,6 +626,9 @@ ACMD_DECL(do_strength);
 ACMD_DECL(do_invisduergar);
 ACMD_DECL(do_enlarge);
 ACMD_DECL(do_darkness);
+ACMD_DECL(do_racial_sla);
+struct racial_sla_info; /* act.other.c, one row per racial spell-like ability */
+const struct racial_sla_info *racial_sla_lookup(int subcmd);
 ACMD_DECL(do_invisiblerogue);
 ACMD_DECL(do_land);
 ACMD_DECL(do_frightful);

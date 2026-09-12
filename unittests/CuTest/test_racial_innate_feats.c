@@ -1,0 +1,240 @@
+/* Tests for the Duris racial innates converted to feats.  See
+ * docs/ongoing-projects/DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md */
+
+#include "CuTest.h"
+
+#include "conf.h"
+#include "../../src/sysdep.h"
+#include "../../src/structs.h"
+#include "../../src/utils.h"
+#include "../../src/actionqueues.h"
+#include "../../src/act.h"
+#include "../../src/character/feats.h"
+#include "../../src/comm.h"
+#include "../../src/db.h"
+#include "../../src/dgscript/dg_event.h"
+#include "../../src/handler.h"
+#include "../../src/interpreter.h"
+#include "../../src/magic/spells.h"
+#include "../../src/mud_event.h"
+#include "../../src/net/protocol.h"
+
+#include <string.h>
+
+struct innate_fixture
+{
+  struct room_data rooms[2];
+  struct char_data ch;
+  struct char_data other;
+  struct player_special_data ch_specials;
+  struct player_special_data other_specials;
+  struct descriptor_data ch_descriptor;
+  struct descriptor_data other_descriptor;
+  struct room_data *saved_world;
+  struct char_data *saved_character_list;
+  room_rnum saved_top_of_world;
+};
+
+static void setup_innate_char(struct char_data *ch, struct player_special_data *specials,
+                              struct descriptor_data *descriptor, const char *name)
+{
+  clear_char(ch);
+  GET_ATTACK_QUEUE(ch) = create_attack_queue();
+  ch->player_specials = specials;
+  ch->player.name = (char *)name;
+  ch->desc = descriptor;
+  IN_ROOM(ch) = 0;
+  GET_LEVEL(ch) = 10;
+  GET_REAL_SIZE(ch) = SIZE_MEDIUM;
+  ch->points.size = SIZE_MEDIUM;
+  GET_POS(ch) = POS_STANDING;
+  GET_HIT(ch) = 100;
+  GET_MAX_HIT(ch) = 100;
+
+  memset(descriptor, 0, sizeof(*descriptor));
+  descriptor->character = ch;
+  descriptor->output = descriptor->small_outbuf;
+  descriptor->bufspace = SMALL_BUFSIZE - 1;
+  descriptor->pProtocol = ProtocolCreate();
+  STATE(descriptor) = CON_PLAYING;
+}
+
+static void begin_innate_fixture(struct innate_fixture *fixture)
+{
+  if (feat_list[FEAT_SUN_VULNERABILITY].name == NULL ||
+      !strcmp(feat_list[FEAT_SUN_VULNERABILITY].name, "Unused Feat"))
+    assign_feats();
+
+  event_init();
+  memset(fixture, 0, sizeof(*fixture));
+  fixture->saved_world = world;
+  fixture->saved_top_of_world = top_of_world;
+  fixture->saved_character_list = character_list;
+
+  setup_innate_char(&fixture->ch, &fixture->ch_specials, &fixture->ch_descriptor, "innate one");
+  setup_innate_char(&fixture->other, &fixture->other_specials, &fixture->other_descriptor,
+                    "innate two");
+
+  fixture->ch.next_in_room = &fixture->other;
+  fixture->ch.next = &fixture->other;
+
+  fixture->rooms[0].number = 169910;
+  fixture->rooms[0].people = &fixture->ch;
+  fixture->rooms[1].number = 169911;
+  world = fixture->rooms;
+  top_of_world = 1;
+  character_list = &fixture->ch;
+}
+
+static void end_innate_char(struct char_data *ch, struct descriptor_data *descriptor)
+{
+  while (ch->affected != NULL)
+    affect_remove_no_total(ch, ch->affected);
+  clear_char_event_list(ch);
+  free_attack_queue(GET_ATTACK_QUEUE(ch));
+  GET_ATTACK_QUEUE(ch) = NULL;
+  ch->desc = NULL;
+  if (descriptor->pProtocol != NULL)
+    ProtocolDestroy(descriptor->pProtocol);
+}
+
+static void end_innate_fixture(struct innate_fixture *fixture)
+{
+  end_innate_char(&fixture->ch, &fixture->ch_descriptor);
+  end_innate_char(&fixture->other, &fixture->other_descriptor);
+  event_free_all();
+  (void)event_test_select_backend(EVENT_BACKEND_UNINITIALIZED);
+  world = fixture->saved_world;
+  top_of_world = fixture->saved_top_of_world;
+  character_list = fixture->saved_character_list;
+}
+
+/* Every converted innate is registered as an in-game, unlearnable innate ability. */
+void TestDurisInnateFeatsAreRegisteredAsInnates(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  int feat;
+
+  begin_innate_fixture(&fixture);
+
+  for (feat = FEAT_SUN_VULNERABILITY; feat <= FEAT_SUMMON_HORDE; feat++)
+  {
+    CuAssertPtrNotNull(tc, feat_list[feat].name);
+    CuAssertTrue(tc, strcmp(feat_list[feat].name, "Unused Feat") != 0);
+    CuAssertTrue(tc, feat_list[feat].in_game);
+    CuAssertTrue(tc, !feat_list[feat].can_learn);
+    CuAssertTrue(tc, !feat_list[feat].can_stack);
+    CuAssertIntEquals(tc, FEAT_TYPE_INNATE_ABILITY, feat_list[feat].feat_type);
+  }
+  CuAssertIntEquals(tc, FEAT_SUMMON_HORDE + 1, FEAT_LAST_FEAT);
+
+  /* the repurposed haste feat follows the same rules */
+  CuAssertTrue(tc, feat_list[FEAT_HASTE].in_game);
+  CuAssertTrue(tc, !feat_list[FEAT_HASTE].can_learn);
+  CuAssertIntEquals(tc, FEAT_TYPE_INNATE_ABILITY, feat_list[FEAT_HASTE].feat_type);
+
+  end_innate_fixture(&fixture);
+}
+
+struct racial_sla_expectation
+{
+  int subcmd;
+  int feat;
+  int event;
+  int uses;
+};
+
+static const struct racial_sla_expectation racial_sla_expectations[] = {
+    {SCMD_RSLA_FARSEE, FEAT_SLA_FARSEE, eSLA_FARSEE, 3},
+    {SCMD_RSLA_STONESKIN, FEAT_SLA_STONESKIN, eSLA_STONESKIN, 1},
+    {SCMD_RSLA_LIGHTNING_BOLT, FEAT_SLA_LIGHTNING_BOLT, eSLA_LIGHTNING_BOLT, 3},
+    {SCMD_RSLA_FIRE_SHIELD, FEAT_SLA_FIRE_SHIELD, eSLA_FIRE_SHIELD, 1},
+    {SCMD_RSLA_FIRE_STORM, FEAT_SLA_FIRE_STORM, eSLA_FIRE_STORM, 1},
+    {SCMD_RSLA_SHADOW_JUMP, FEAT_SLA_SHADOW_JUMP, eSLA_SHADOW_JUMP, 1},
+    {SCMD_RSLA_PLANE_SHIFT, FEAT_SLA_PLANE_SHIFT, eSLA_PLANE_SHIFT, 1},
+    {SCMD_RSLA_PSIONIC_BLAST, FEAT_SLA_PSIONIC_BLAST, eSLA_PSIONIC_BLAST, 3},
+    {SCMD_RSLA_SCARE, FEAT_SLA_SCARE, eSLA_SCARE, 3},
+    {SCMD_RSLA_HASTE, FEAT_HASTE, eSLA_HASTE, 1},
+    {SCMD_RSLA_FIREBALL, FEAT_SLA_FIREBALL, eSLA_FIREBALL, 3},
+    {SCMD_RSLA_MASS_DISPEL, FEAT_SLA_MASS_DISPEL, eSLA_MASS_DISPEL, 1},
+    {SCMD_RSLA_FROST_BREATH, FEAT_SLA_FROST_BREATH, eSLA_FROST_BREATH, 3},
+    {SCMD_RSLA_WEB, FEAT_SLA_WEB, eSLA_WEB, 3},
+};
+
+/* Each SLA row has its daily count, cooldown event, and a lookup entry. */
+void TestRacialSlaRowsHaveDailyUsesAndEvents(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  size_t i;
+
+  begin_innate_fixture(&fixture);
+
+  CuAssertIntEquals(tc, NUM_RACIAL_SLAS,
+                    (int)(sizeof(racial_sla_expectations) / sizeof(racial_sla_expectations[0])));
+  CuAssertTrue(tc, racial_sla_lookup(-1) == NULL);
+  CuAssertTrue(tc, racial_sla_lookup(NUM_RACIAL_SLAS) == NULL);
+
+  for (i = 0; i < sizeof(racial_sla_expectations) / sizeof(racial_sla_expectations[0]); i++)
+  {
+    const struct racial_sla_expectation *row = &racial_sla_expectations[i];
+
+    CuAssertTrue(tc, racial_sla_lookup(row->subcmd) != NULL);
+    CuAssertIntEquals(tc, row->event, feat_list[row->feat].event);
+    CuAssertIntEquals(tc, row->uses, get_daily_uses(&fixture.ch, row->feat));
+    CuAssertIntEquals(tc, row->uses, daily_uses_remaining(&fixture.ch, row->feat));
+  }
+
+  end_innate_fixture(&fixture);
+}
+
+/* The verbs refuse without the feat and do not touch the cooldown. */
+void TestRacialSlaVerbsRefuseWithoutTheFeat(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  size_t i;
+
+  begin_innate_fixture(&fixture);
+
+  for (i = 0; i < sizeof(racial_sla_expectations) / sizeof(racial_sla_expectations[0]); i++)
+  {
+    const struct racial_sla_expectation *row = &racial_sla_expectations[i];
+
+    do_racial_sla(&fixture.ch, "", 0, row->subcmd);
+    CuAssertTrue(tc, char_has_mud_event(&fixture.ch, row->event) == NULL);
+    CuAssertIntEquals(tc, row->uses, daily_uses_remaining(&fixture.ch, row->feat));
+  }
+
+  end_innate_fixture(&fixture);
+}
+
+/* A use is only spent once the ability actually fires: preconditions such as
+ * needing an opponent or a plane name return before the cooldown starts, and
+ * one real use starts the daily cooldown event. */
+void TestRacialSlaUseStartsTheDailyCooldown(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  struct mud_event_data *event = NULL;
+
+  begin_innate_fixture(&fixture);
+
+  SET_FEAT(&fixture.ch, FEAT_SLA_LIGHTNING_BOLT, 1);
+  do_racial_sla(&fixture.ch, "", 0, SCMD_RSLA_LIGHTNING_BOLT); /* not fighting */
+  CuAssertTrue(tc, char_has_mud_event(&fixture.ch, eSLA_LIGHTNING_BOLT) == NULL);
+
+  SET_FEAT(&fixture.ch, FEAT_SLA_PLANE_SHIFT, 1);
+  do_racial_sla(&fixture.ch, "", 0, SCMD_RSLA_PLANE_SHIFT); /* no plane named */
+  CuAssertTrue(tc, char_has_mud_event(&fixture.ch, eSLA_PLANE_SHIFT) == NULL);
+
+  SET_FEAT(&fixture.ch, FEAT_SLA_WEB, 1);
+  do_racial_sla(&fixture.ch, "", 0, SCMD_RSLA_WEB); /* no opponent */
+  CuAssertTrue(tc, char_has_mud_event(&fixture.ch, eSLA_WEB) == NULL);
+
+  SET_FEAT(&fixture.ch, FEAT_SLA_FARSEE, 1);
+  CuAssertIntEquals(tc, 1, start_daily_use_cooldown(&fixture.ch, FEAT_SLA_FARSEE));
+  CuAssertIntEquals(tc, 2, daily_uses_remaining(&fixture.ch, FEAT_SLA_FARSEE));
+  event = char_has_mud_event(&fixture.ch, eSLA_FARSEE);
+  CuAssertPtrNotNull(tc, event);
+  CuAssertStrEquals(tc, "uses:1", event->sVariables);
+
+  end_innate_fixture(&fixture);
+}

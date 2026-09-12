@@ -1,6 +1,8 @@
 # Duris Racial Innates as Feats: Implementation Plan
 
-Status: plan, not started. Created 2026-09-12.
+Status: in progress. Created 2026-09-12; Phase 0 landed 2026-09-12.
+See "Progress log" at the end for what is done and what a new session
+should pick up next.
 Companion study: [DURIS_RACE_CONVERSION.md](DURIS_RACE_CONVERSION.md).
 Duris source verified at `/home/aiwithapex/projects/duris` (`src/classes/innates.c`
 registration list and the implementation sites named per feat below). Our side
@@ -21,7 +23,10 @@ cover as a feat that:
   `GET_RACE()`, so it can be granted to any race later with one
   `feat_race_assignment()` line;
 - is not granted to any race by this work. Assignment is a separate, later
-  decision per race. Nothing in this plan changes `assign_races()`.
+  decision per race. The only `assign_races()` changes are the two
+  behaviour-preserving lines named in bucket B (crystal dwarf stability,
+  half-troll bodyslam), which exist so that swapping a race check for a feat
+  check leaves every existing race exactly as it was.
 
 "Player-race innate" means every `ADD_RACIAL_INNATE()` line in Duris
 `src/classes/innates.c` for the 37 player races listed in the companion study
@@ -79,13 +84,13 @@ behaviour does not change for them.
 | Vulnerable To Fire | `FEAT_WEAKNESS_TO_FIRE` | `compute_damtype_reduction()` in `src/combat/fight.c` checks `RACE_HALF_TROLL` (-50) | Check the feat instead |
 | Vulnerable To Cold | `FEAT_VULNERABLE_TO_COLD` | Same function checks `RACE_TRELUX` (-20) under `DAM_COLD` | Check the feat instead |
 | Leap | `FEAT_LEAP` | The 20 percent avoidance in `src/combat/fight.c` (near the "trelux leap" comment) checks `RACE_TRELUX` | Check the feat instead |
-| Giant Avoidance | `FEAT_COMBAT_TRAINING_VS_GIANTS` | Registered, never consulted | Add +1 AC and +1 attack vs opponents at least one size larger, in `compute_armor_class()` and `compute_attack_bonus()` |
-| Horse Body, Spider Body (slot part) | `FEAT_LEONINE_FRAME` | Registered; no code enforces the leg and foot restriction for Wemic (the race help text claims it). `FEAT_TRELUX_EQ` is in the same state | Block `WEAR_LEGS` and `WEAR_FEET` in the wear-position resolution in `src/obj/act.item.c` when the feat is held |
+| Giant Avoidance | `FEAT_COMBAT_TRAINING_VS_GIANTS` | Registered; `compute_armor_class()` in `src/combat/fight.c` grants +4 AC vs larger attackers on a race list (dwarf, crystal dwarf, gnome, duergar, halfling) that is narrower than the eight races holding the feat | Replace the race list with the feat check and keep the existing +4 AC. No attack bonus: the mechanic already exists, only its gate changes. Fix the feat text ("+1 size bonus") to match |
+| Horse Body, Spider Body (slot part) | `FEAT_LEONINE_FRAME` | Registered; the leg and foot block is enforced for Wemic and Trelux through the per-race table read by `character_wear_slot_restriction()` in `src/character/race.c`, not through the feat | Make `character_wear_slot_restriction()` also refuse `WEAR_LEGS` and `WEAR_FEET` when the feat is held. The race table rows stay, so existing races are unchanged. `FEAT_TRELUX_EQ` is left on the race table |
 | Magic Resistance, shrug 50 and above | `FEAT_LICH_SPELL_RESIST` | `compute_spell_res()` in `src/magic/magic.c` grants SR 15 + level on `IS_LICH()`; the feat is registered but never consulted | Check the feat instead; Lich keeps it through its existing assignment |
-| Horse Body, Spider Body (stability part) | `FEAT_STABILITY` | Registered; bash and trip resistance in `src/combat/act.offensive.c` checks dwarf races | Check the feat instead. The full Duris immunity is the new `FEAT_QUADRUPED_BODY` below |
+| Horse Body, Spider Body (stability part) | `FEAT_STABILITY` | Registered; bash and trip resistance in `src/combat/act.offensive.c` checks dwarf, crystal dwarf and duergar. Crystal dwarf holds no `FEAT_STABILITY` assignment, so a plain feat check would strip it | Check the feat instead and add the one missing `feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_STABILITY, ...)` line so behaviour is unchanged. The full Duris immunity is the new `FEAT_QUADRUPED_BODY` below |
 | Dauntless | `FEAT_KENDER_FEARLESSNESS` | Wired in `is_immune_fear()`; text says "Kender" | Reword to "Immune to fear, normal and magical". No rename of the constant |
-| Battle Rage | `FEAT_HASTE` | Registered `in_game = FALSE`, `FEAT_TYPE_CLASS_ABILITY`, no command | Set `in_game = TRUE`, type innate, 1/day self haste through the SLA table below |
-| Bodyslam | `SKILL_BODYSLAM` | `bodyslam` exists; availability in `src/character/skill_lists.c` checks `RACE_HALF_TROLL` | New `FEAT_BODYSLAM` (bucket C) and make the skill available when the feat is held |
+| Battle Rage | `FEAT_HASTE` | Registered `in_game = FALSE`, `FEAT_TYPE_CLASS_ABILITY`, no command, no consumer | Done: renamed "innate haste", `in_game = TRUE`, type innate, 1/day self haste through the SLA table below. The verb is `battlehaste` because `battlerage` is already the domain-power command |
+| Bodyslam | `SKILL_BODYSLAM` | `bodyslam` exists; availability in `src/character/skill_lists.c` checks `RACE_HALF_TROLL` | New `FEAT_BODYSLAM` (bucket C), make the skill available when the feat is held, and assign the feat to `RACE_HALF_TROLL` so that race keeps the skill |
 | Regeneration (stronger) | `FEAT_TROLL_REGENERATION` | Fixed 3 hp | Optional: allow stacking (`can_stack = TRUE`, +3 per rank) so a Duris Troll (10 per tick) can be expressed as ranks. Do only if a race needs it |
 
 ### C. New feats to build
@@ -132,31 +137,36 @@ copies:
 ```
 struct racial_sla_info
 {
-  int feat;          /* FEAT_SLA_x, gates use and daily count */
-  int spellnum;      /* spell cast with call_magic() at character level */
-  int target_mode;   /* self, room, single opponent, in-combat only,
-                        or every other character in the room */
-  const char *verb;  /* command name, for messages */
+  int feat;         /* FEAT_x, gates use and daily count */
+  int spellnum;     /* spell cast with call_magic() at character level */
+  int target;       /* enum racial_sla_target: self, room, opponent,
+                       world character, or every other character here */
+  int flags;        /* RSLA_FLAG_COMBAT_ONLY, RSLA_FLAG_SIZE_LIMIT,
+                       RSLA_FLAG_PASS_ARG (argument handed to cast_arg2) */
+  const char *verb; /* command name, for messages */
 };
-ACMD(do_racial_sla); /* subcmd indexes the table */
+ACMD(do_racial_sla); /* subcmd indexes racial_sla_table[] */
+const struct racial_sla_info *racial_sla_lookup(int subcmd); /* for tests */
 ```
 
-Each verb is its own `cmd_info[]` row with `do_racial_sla` as the handler and
-the table index as `subcmd`, so players still type `farsee`, `stoneskin`,
-`roar`, and so on. The handler does the `HAS_FEAT`, `daily_uses_remaining()`,
-target parsing, `call_magic()`, and `start_daily_use_cooldown()` sequence
-that `do_levitate` in `src/act.other.c` does today. Place the table and
-handler in `src/act.other.c` next to the existing SLA commands; declare the
-`ACMD_DECL` in `src/interpreter.h`. No new source file is planned, so
-`Makefile.am` and `CMakeLists.txt` do not change. If the implementer does add
-a file, update both build lists and run
-`python3 scripts/ci/check_build_parity.py`.
+As built (Phase 0): the table, `racial_sla_lookup()`, and `do_racial_sla`
+live in `src/act.other.c` directly before `do_invisiblerogue`; the
+`ACMD_DECL` and lookup prototype are in `src/act.h` beside `do_levitate`
+(that is where the existing SLA declarations are, not `interpreter.h`); the
+`SCMD_RSLA_*` indices and `NUM_RACIAL_SLAS` are in `src/interpreter.h`; the
+fourteen `cmd_info[]` rows follow the `levitate` row in `src/interpreter.c`.
+The handler does the `HAS_FEAT`, precondition, `daily_uses_remaining()`,
+target parsing, `call_magic()` (`CAST_INNATE`), and
+`start_daily_use_cooldown()` sequence that `do_levitate` does today, and
+refuses a self-target cast while `affected_by_spell()` for that spell so a
+daily use is never wasted. No new source file was needed, so `Makefile.am`
+and `CMakeLists.txt` changed only for the test file.
 
-None of the new verbs collide with an existing `cmd_info[]` entry (checked
-for farsee, stoneskin, roar, battlerage, planeshift, shadowdoor, fireshield,
-firestorm, mindblast, fireball, massdispel, frostbreath, webwrap, flurry,
-summonwarg, summonhorde, stampede, doorbash). `calm` and `mine` already exist
-and are not reused.
+Verb collisions: `battlerage` already exists (domain power), so the haste
+verb is `battlehaste`. The rest (farsee, stoneskin, throwlightning,
+fireshield, firestorm, shadowdoor, planeshift, mindblast, roar, fireball,
+massdispel, frostbreath, webwrap, flurry, summonwarg, summonhorde, stampede,
+doorbash) are free. `calm` and `mine` already exist and are not reused.
 
 **Help.** One entry per feat (keyword is the feat name) and one per new
 command, in both `lib/text/help/help.hlp` and the help database, per the
@@ -389,18 +399,22 @@ All 3/day unless stated; all use `call_magic()` at character level.
 | `FEAT_SLA_LIGHTNING_BOLT` | `throwlightning` | `SPELL_LIGHTNING_BOLT` | current opponent, combat only | `do_throw_lightning()` | 1.5 |
 | `FEAT_SLA_FIRE_SHIELD` | `fireshield` | `SPELL_FIRE_SHIELD` | self, 1/day | `INNATE_FIRESHIELD` | 2 |
 | `FEAT_SLA_FIRE_STORM` | `firestorm` | `SPELL_FIRE_STORM` | room, 1/day | `INNATE_FIRESTORM` (no Duris implementation; spell exists here) | 2 |
-| `FEAT_SLA_SHADOW_JUMP` | `shadowdoor` | `SPELL_SHADOW_JUMP` | self, 1/day | `do_shadow_door()` casts dimension door | 1 |
-| `FEAT_SLA_PLANE_SHIFT` | `planeshift` | `SPELL_PLANE_SHIFT` | self, 1/day | `do_shift_astral()` and `do_shift_prime()`; one feat covers both directions | 2 |
-| `FEAT_SLA_PSIONIC_BLAST` | `mindblast` | `PSIONIC_PSIONIC_BLAST` | current opponent | `INNATE_BLAST`, `spell_innate_blast()` | 2 |
+| `FEAT_SLA_SHADOW_JUMP` | `shadowdoor <target>` | `SPELL_SHADOW_JUMP` | one character anywhere in the world, 1/day | `do_shadow_door()` casts dimension door; there is no dimension door here and `spell_shadow_jump()` with no target jumps to your own room, so the verb takes a target like the shadowdancer spell | 1 |
+| `FEAT_SLA_PLANE_SHIFT` | `planeshift <astral or ethereal or elemental or prime>` | `SPELL_PLANE_SHIFT` | self, 1/day; the plane name is required and copied to `cast_arg2`, which `spell_plane_shift()` reads | `do_shift_astral()` and `do_shift_prime()`; one feat covers both directions | 2 |
+| `FEAT_SLA_PSIONIC_BLAST` | `mindblast` | `PSIONIC_PSIONIC_BLAST` | current opponent; the power is `MAG_MASSES` here, so it stuns every hostile in the room and the target only has to exist | `INNATE_BLAST`, `spell_innate_blast()` | 2 |
 | `FEAT_SLA_SCARE` | `roar` | `SPELL_SCARE` | single opponent | `INNATE_OGREROAR` in `src/classes/new_skills.c` | 1.5 |
-| `FEAT_HASTE` (existing, repurposed) | `battlerage` | `SPELL_HASTE` | self, 1/day | `do_battle_rage()`, 60 s haste | 2 |
+| `FEAT_HASTE` (existing, repurposed as "innate haste") | `battlehaste` | `SPELL_HASTE` | self, 1/day | `do_battle_rage()`, 60 s haste. `battlerage` is taken by the domain power | 2 |
 | `FEAT_SLA_FIREBALL` | `fireball` | `SPELL_FIREBALL` | single opponent | `do_fireball()`; its cooldown gate is commented out in Duris, ours uses the daily gate | 1.5 |
 | `FEAT_SLA_MASS_DISPEL` | `massdispel` | `SPELL_DISPEL_MAGIC` | every other character in the room, 1/day | `do_mass_dispel()` | 2 |
-| `FEAT_SLA_FROST_BREATH` | `frostbreath` | `SPELL_FROST_BREATHE` (trace that `call_magic()` accepts it; else `SPELL_CONE_OF_COLD`) | single opponent | `INNATE_BARB_BREATH`, level d4 cold | 2 |
+| `FEAT_SLA_FROST_BREATH` | `frostbreath` | `SPELL_CONE_OF_COLD` (level d6 cold, single target). `SPELL_FROST_BREATHE` is the dragon breath: `MAG_AREAS`, level d16, far above the Duris level d4 | single opponent | `INNATE_BARB_BREATH`, level d4 cold | 2 |
 | `FEAT_SLA_WEB` | `webwrap` | `SPELL_WEB` | single opponent at most one size larger | `webwrap()` in `src/classes/innates.c`, minor paralysis 5 to 10 rounds | 1.5 |
 
-Test: for each row, `get_daily_uses()` returns the configured count, the
-verb refuses without the feat, and one use starts the cooldown event.
+Test (in place): for each row, `get_daily_uses()` returns the configured
+count, `feat_list[].event` is the row's event, `racial_sla_lookup()` finds
+the row, the verb refuses without the feat, a failed precondition (no
+opponent, not fighting, no plane name) does not spend a use, and one use
+starts the cooldown event. `call_magic()` itself is not driven from the
+test; that is the Phase 6 in-game check.
 
 ### Group 5: active abilities with bespoke commands
 
@@ -452,9 +466,9 @@ with the expiry affect.
 
 ## Phases and checklist
 
-- [ ] Phase 0, infrastructure: constants, `feato()` block, events, daily-use
+- [x] Phase 0, infrastructure: constants, `feato()` block, events, daily-use
       cases, SLA table and `do_racial_sla`, test file skeleton in both build
-      lists. Build clean with `-Wall -Wextra`.
+      lists. Build clean with `-Wall -Wextra`. Done 2026-09-12.
 - [ ] Phase 1, bucket B wiring: fire and cold vulnerability, leap, giant
       training, leonine frame, stability, lich spell resistance, fearlessness
       text, haste repurpose, bodyslam availability. Existing races must behave exactly as before;
@@ -505,3 +519,32 @@ after Phase 0.
   three sector sets are needed.
 - Dropped mechanics with no implementation in Duris rather than inventing
   them.
+- Giant training keeps the +4 AC that already exists instead of a new +1 AC
+  and +1 attack pair: only the gate moves from a race list to the feat.
+- Leonine frame hooks the existing `character_wear_slot_restriction()`
+  helper instead of adding a check to `act.item.c`; the race table already
+  carries the same restriction for Wemic and Trelux.
+- The `FEAT_HASTE` "(3x/day)" special case in the feat list display was
+  removed rather than rewritten; the short description carries "1/day" like
+  the other SLA feats.
+
+## Progress log
+
+Keep this current. A new session should be able to continue from here
+without re-reading the conversation.
+
+- 2026-09-12, Phase 0 done. Files: `src/structs.h` (48 constants 1268 to
+  1315, `FEAT_LAST_FEAT` 1316, `NUM_FEATS` 1317), `src/mud_event.h` (18
+  events before `eMUD_EVENT_COUNT`), `src/mud_event_list.c` (18 rows at the
+  end; `eSTAMPEDE` is an `event_countdown` row, the rest
+  `event_daily_use_cooldown`), `src/mud_event.c` (17 `PERSIST_CHARACTER_EVENT`
+  rows; `eSTAMPEDE` is a three-round cooldown and is not persisted),
+  `src/character/feats.c` (Duris block after `FEAT_LEONINE_FRAME`, `FEAT_HASTE`
+  moved into it, 17 `dailyfeat()` lines, `FEAT_HASTE` display special case
+  removed), `src/utils.c` (`get_daily_uses()` cases), `src/interpreter.h`
+  (`SCMD_RSLA_*`), `src/act.h`, `src/act.other.c`, `src/interpreter.c`,
+  `unittests/CuTest/test_racial_innate_feats.c` (four tests), `Makefile.am`,
+  `CMakeLists.txt`, and `unittests/CuTest/test_syntax_check_boot.c` (persisted
+  event count 93 to 110).
+- Next: Phase 1 (bucket B wiring), then Phases 2 to 4 in any order, then 5
+  and 6.

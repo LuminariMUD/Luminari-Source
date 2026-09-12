@@ -433,6 +433,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_native_event_integration.c \
 	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_rol_feats.c \
+	unittests/CuTest/test_racial_innate_feats.c \
 	unittests/CuTest/test_unassigned_spells.c \
 	unittests/CuTest/test_spells_skills_production.c \
 	unittests/CuTest/test_perfmon_production.c \
@@ -507,6 +508,7 @@ cutest_test_files = \
 	unittests/CuTest/test_native_event_integration.c \
 	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_rol_feats.c \
+	unittests/CuTest/test_racial_innate_feats.c \
 	unittests/CuTest/test_unassigned_spells.c \
 	unittests/CuTest/test_spells_skills_production.c \
 	unittests/CuTest/test_perfmon_production.c \

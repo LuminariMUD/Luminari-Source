@@ -587,7 +587,7 @@ void Test_mud_event_persistence_policy_classifies_entire_registry(CuTest *tc)
     }
   }
 
-  CuAssertIntEquals(tc, 93, (int)persisted);
+  CuAssertIntEquals(tc, 110, (int)persisted);
   CuAssertIntEquals(tc, 1, (int)reconstructable);
   CuAssertTrue(tc, transient + persisted + reconstructable == mud_event_index_count);
   CuAssertIntEquals(tc, MUD_EVENT_RECONSTRUCTABLE,

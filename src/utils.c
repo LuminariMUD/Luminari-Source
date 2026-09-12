@@ -5681,6 +5681,28 @@ int get_daily_uses(struct char_data *ch, int featnum)
   case FEAT_MASTER_OF_THE_MIND:
     daily_uses = 3;
     break;
+  /* Duris racial innates */
+  case FEAT_SLA_FARSEE:
+  case FEAT_SLA_LIGHTNING_BOLT:
+  case FEAT_SLA_PSIONIC_BLAST:
+  case FEAT_SLA_SCARE:
+  case FEAT_SLA_FIREBALL:
+  case FEAT_SLA_FROST_BREATH:
+  case FEAT_SLA_WEB:
+    daily_uses = 3;
+    break;
+  case FEAT_SLA_STONESKIN:
+  case FEAT_SLA_FIRE_SHIELD:
+  case FEAT_SLA_FIRE_STORM:
+  case FEAT_SLA_SHADOW_JUMP:
+  case FEAT_SLA_PLANE_SHIFT:
+  case FEAT_HASTE:
+  case FEAT_SLA_MASS_DISPEL:
+  case FEAT_RACIAL_FLURRY:
+  case FEAT_SUMMON_WARG:
+  case FEAT_SUMMON_HORDE:
+    daily_uses = 1;
+    break;
   case FEAT_SHADOW_ILLUSION:
     daily_uses += CLASS_LEVEL(ch, CLASS_SHADOWDANCER) / 2;
     break;

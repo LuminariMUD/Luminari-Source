@@ -6180,6 +6180,181 @@ ACMD(do_darkness)
     start_daily_use_cooldown(ch, FEAT_SLA_DARKNESS);
 }
 
+/* Duris racial innates: one table-driven handler for the spell-like abilities.
+ * Each verb is its own cmd_info[] row whose subcmd indexes racial_sla_table[]
+ * (SCMD_RSLA_* in interpreter.h).  Every row casts its spell with call_magic()
+ * at character level and spends one daily use of its feat. */
+enum racial_sla_target
+{
+  RSLA_TARGET_SELF,       /* cast on the user */
+  RSLA_TARGET_ROOM,       /* area spell, no target */
+  RSLA_TARGET_OPPONENT,   /* one other character here, defaults to the current opponent */
+  RSLA_TARGET_WORLD_CHAR, /* one character anywhere in the world */
+  RSLA_TARGET_ROOM_OTHERS /* every other character in the room, one cast each */
+};
+
+#define RSLA_FLAG_COMBAT_ONLY (1 << 0) /* usable only while fighting */
+#define RSLA_FLAG_SIZE_LIMIT (1 << 1)  /* target at most one size larger than the user */
+#define RSLA_FLAG_PASS_ARG (1 << 2)    /* argument is required and handed to the spell */
+
+struct racial_sla_info
+{
+  int feat;         /* FEAT_x, gates use and daily count */
+  int spellnum;     /* spell cast with call_magic() at character level */
+  int target;       /* enum racial_sla_target */
+  int flags;        /* RSLA_FLAG_x */
+  const char *verb; /* command name, for messages */
+};
+
+static const struct racial_sla_info racial_sla_table[NUM_RACIAL_SLAS] = {
+    /* SCMD_RSLA_FARSEE */
+    {FEAT_SLA_FARSEE, SPELL_FARSEE, RSLA_TARGET_SELF, 0, "farsee"},
+    /* SCMD_RSLA_STONESKIN */
+    {FEAT_SLA_STONESKIN, SPELL_STONESKIN, RSLA_TARGET_SELF, 0, "stoneskin"},
+    /* SCMD_RSLA_LIGHTNING_BOLT */
+    {FEAT_SLA_LIGHTNING_BOLT, SPELL_LIGHTNING_BOLT, RSLA_TARGET_OPPONENT, RSLA_FLAG_COMBAT_ONLY,
+     "throwlightning"},
+    /* SCMD_RSLA_FIRE_SHIELD */
+    {FEAT_SLA_FIRE_SHIELD, SPELL_FIRE_SHIELD, RSLA_TARGET_SELF, 0, "fireshield"},
+    /* SCMD_RSLA_FIRE_STORM */
+    {FEAT_SLA_FIRE_STORM, SPELL_FIRE_STORM, RSLA_TARGET_ROOM, 0, "firestorm"},
+    /* SCMD_RSLA_SHADOW_JUMP */
+    {FEAT_SLA_SHADOW_JUMP, SPELL_SHADOW_JUMP, RSLA_TARGET_WORLD_CHAR, 0, "shadowdoor"},
+    /* SCMD_RSLA_PLANE_SHIFT */
+    {FEAT_SLA_PLANE_SHIFT, SPELL_PLANE_SHIFT, RSLA_TARGET_SELF, RSLA_FLAG_PASS_ARG, "planeshift"},
+    /* SCMD_RSLA_PSIONIC_BLAST */
+    {FEAT_SLA_PSIONIC_BLAST, PSIONIC_PSIONIC_BLAST, RSLA_TARGET_OPPONENT, 0, "mindblast"},
+    /* SCMD_RSLA_SCARE */
+    {FEAT_SLA_SCARE, SPELL_SCARE, RSLA_TARGET_OPPONENT, 0, "roar"},
+    /* SCMD_RSLA_HASTE */
+    {FEAT_HASTE, SPELL_HASTE, RSLA_TARGET_SELF, 0, "battlehaste"},
+    /* SCMD_RSLA_FIREBALL */
+    {FEAT_SLA_FIREBALL, SPELL_FIREBALL, RSLA_TARGET_OPPONENT, 0, "fireball"},
+    /* SCMD_RSLA_MASS_DISPEL */
+    {FEAT_SLA_MASS_DISPEL, SPELL_DISPEL_MAGIC, RSLA_TARGET_ROOM_OTHERS, 0, "massdispel"},
+    /* SCMD_RSLA_FROST_BREATH */
+    {FEAT_SLA_FROST_BREATH, SPELL_CONE_OF_COLD, RSLA_TARGET_OPPONENT, 0, "frostbreath"},
+    /* SCMD_RSLA_WEB */
+    {FEAT_SLA_WEB, SPELL_WEB, RSLA_TARGET_OPPONENT, RSLA_FLAG_SIZE_LIMIT, "webwrap"},
+};
+
+const struct racial_sla_info *racial_sla_lookup(int subcmd)
+{
+  if (subcmd < 0 || subcmd >= NUM_RACIAL_SLAS)
+    return NULL;
+  return &racial_sla_table[subcmd];
+}
+
+/* racial spell-like abilities (Duris innates), see racial_sla_table[] */
+ACMD(do_racial_sla)
+{
+  const struct racial_sla_info *sla = racial_sla_lookup(subcmd);
+  struct char_data *vict = NULL, *tch = NULL, *next_tch = NULL;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+
+  if (sla == NULL)
+  {
+    log("SYSERR: do_racial_sla called with invalid subcmd %d", subcmd);
+    return;
+  }
+
+  if (!HAS_FEAT(ch, sla->feat))
+  {
+    send_to_char(ch, "You don't have this ability.\r\n");
+    return;
+  }
+
+  if (IS_SET(sla->flags, RSLA_FLAG_COMBAT_ONLY) && !FIGHTING(ch))
+  {
+    send_to_char(ch, "You can only %s while fighting.\r\n", sla->verb);
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+
+  switch (sla->target)
+  {
+  case RSLA_TARGET_SELF:
+    vict = ch;
+    if (IS_SET(sla->flags, RSLA_FLAG_PASS_ARG) && !*arg)
+    {
+      send_to_char(ch, "%s where?  (astral, ethereal, elemental or prime)\r\n", sla->verb);
+      return;
+    }
+    if (affected_by_spell(ch, sla->spellnum))
+    {
+      send_to_char(ch, "You are already under that effect.\r\n");
+      return;
+    }
+    break;
+  case RSLA_TARGET_OPPONENT:
+    if (*arg)
+      vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
+    else
+      vict = FIGHTING(ch);
+    if (vict == NULL)
+    {
+      send_to_char(ch, "Who do you want to %s?\r\n", sla->verb);
+      return;
+    }
+    if (vict == ch)
+    {
+      send_to_char(ch, "You cannot target yourself with that.\r\n");
+      return;
+    }
+    if (IS_SET(sla->flags, RSLA_FLAG_SIZE_LIMIT) && GET_SIZE(vict) > GET_SIZE(ch) + 1)
+    {
+      send_to_char(ch, "%s is far too large for that.\r\n", GET_NAME(vict));
+      return;
+    }
+    break;
+  case RSLA_TARGET_WORLD_CHAR:
+    if (!*arg)
+    {
+      send_to_char(ch, "Who do you want to %s to?\r\n", sla->verb);
+      return;
+    }
+    if ((vict = get_char_vis(ch, arg, NULL, FIND_CHAR_WORLD)) == NULL)
+    {
+      send_to_char(ch, "You cannot sense anyone by that name.\r\n");
+      return;
+    }
+    break;
+  case RSLA_TARGET_ROOM:
+  case RSLA_TARGET_ROOM_OTHERS:
+  default:
+    vict = NULL;
+    break;
+  }
+
+  if (!IS_NPC(ch) && daily_uses_remaining(ch, sla->feat) == 0)
+  {
+    send_to_char(ch, "You must recover before you can use this ability again.\r\n");
+    return;
+  }
+
+  if (IS_SET(sla->flags, RSLA_FLAG_PASS_ARG))
+    strlcpy(cast_arg2, arg, MAX_INPUT_LENGTH);
+
+  if (sla->target == RSLA_TARGET_ROOM_OTHERS)
+  {
+    for (tch = world[IN_ROOM(ch)].people; tch != NULL; tch = next_tch)
+    {
+      next_tch = tch->next_in_room;
+      if (tch == ch)
+        continue;
+      call_magic(ch, tch, NULL, sla->spellnum, 0, GET_LEVEL(ch), CAST_INNATE);
+    }
+  }
+  else
+  {
+    call_magic(ch, vict, NULL, sla->spellnum, 0, GET_LEVEL(ch), CAST_INNATE);
+  }
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, sla->feat);
+}
+
 /* invisible rogue feat */
 ACMD(do_invisiblerogue)
 {
