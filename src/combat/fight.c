@@ -3956,7 +3956,7 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
 // can return negative values, which indicates vulnerability (this is percent)
 // dam_ defines are in spells.h
 /* ---- Duris racial innates ----
- * see docs/ongoing-projects/DURIS_RACIAL_MECHANICS.md */
+ * see docs/systems/GAME_MECHANICS_SYSTEMS.md */
 
 /* weapon-family mastery: +1 attack and damage per 8 levels, max +3, while the
  * weapon used for the attack matches the feat's family or type */

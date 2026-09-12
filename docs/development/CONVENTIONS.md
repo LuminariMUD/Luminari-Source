@@ -142,6 +142,12 @@ ownership evidence in the
 - Use CMake as a supported secondary build and keep its manifests behaviorally synchronized. Fresh
   CMake test trees require `-DBUILD_TESTS=ON`.
 - Use `.clang-format` for formatting and `.clang-tidy` for configured static analysis.
+  Five clang-tidy checks are disabled on purpose: `bugprone-macro-parentheses` (the codebase uses
+  unparenthesized macro arguments in expected patterns), `bugprone-reserved-identifier` (legacy
+  naming), `bugprone-easily-swappable-parameters` (common in game APIs), and the two
+  `clang-analyzer-security.insecureAPI` checks for deprecated buffer handling and `strcpy`
+  (`snprintf` is the accepted form; legacy `strcpy` sites migrate incrementally). Do not
+  re-enable one without clearing its findings.
 - Respect the pre-commit hooks, including include-comment alignment changes. Rebuild and retest
   after formatting modifies source.
 - The configured pre-commit package lives in `.venv`; run it with
@@ -167,7 +173,7 @@ ownership evidence in the
 - Keep commits atomic enough to review and revert safely.
 - Review changes against the relevant base commit and preserve existing authored content and
   history.
-- Do not rewrite historical paths in `docs/ongoing-projects/CHANGELOG.md` or `docs/previous_changelogs/`; those files
+- Do not rewrite historical paths in `docs/previous_changelogs/`; those files
   record the tree as it existed.
 
 ## Local Development Tools

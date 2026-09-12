@@ -379,6 +379,44 @@ int apply_feat_bonuses(struct char_data *ch, int bonus_type) {
 }
 ```
 
+### Racial Innate Feats and Spell-Like Abilities
+
+Race-level abilities are feats, not race checks. Every racial innate (including
+the Duris-derived set added in 2026) is registered with `feato()` as
+`in_game = TRUE`, `can_learn = FALSE`, `FEAT_TYPE_INNATE_ABILITY`, and the
+mechanic that consumes it tests `HAS_FEAT()`; `GET_RACE()` is never the gate.
+Races receive innates through `feat_race_assignment(race, feat, level, stacks)`
+in `assign_races()`, so a new race is data plus feat grants. Feats that exist
+but are assigned to no race are inert until a race grants them.
+
+Active racial abilities share one table-driven handler: `racial_sla_table[]`
+and `do_racial_sla` in `src/act.other.c`, with one `cmd_info[]` row per verb
+whose subcommand indexes the table (`SCMD_RSLA_*` in `src/interpreter.h`).
+Daily uses are `get_daily_uses()` cases in `src/utils.c` backed by persisted
+cooldown events in `src/mud_event.h` and `src/mud_event_list.c`. The handler
+spends the action and the daily use only when the ability commits: a
+`call_magic()` fizzle returns early, a teleport must move the caster, a summon
+must add a follower, and mass dispel applies `perform_dispel()` directly with
+`aoeOK()`, `CAN_SEE()`, and `pvp_ok()` filtering so it never starts a fight.
+Verbs are renamed when they collide with an existing command prefix
+(`onslaught`, `battlehaste`, `shadowdoor`, `throwlightning`); keep that rule
+when adding one.
+
+Racial summons are ordinary `MAG_SUMMONS` rows (for example
+`ABILITY_SUMMON_WARG` and `ABILITY_SUMMON_HORDE`) whose prototypes are
+installed by `python3 scripts/world/install_pet_constructs.py`. Caution: the
+`// N` index comments on the summon message tables in `src/magic/magic.c`
+skip 18, so from the dire wolf onward each comment reads one higher than the
+real index; the warg and horde rows are real indexes 36 and 37 and are
+annotated as such.
+
+When `NUM_FEATS` moves, regenerate `scripts/world/wtool_constants.json` with
+`python3 scripts/world/wtool.py constants sync --write`. Player-facing text
+lives in both `lib/text/help/help.hlp` and the help database; the Duris set is
+tracked as `sql/components/help_duris_racial_innate_entries.sql`, and race
+point pricing is in `docs/guides/PLAYER_RACES_REFERENCE.md`. Production-linked
+coverage is `unittests/CuTest/test_racial_innate_feats.c`.
+
 ## Spell System
 
 ### Spell Structure

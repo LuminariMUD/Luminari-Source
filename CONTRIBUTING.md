@@ -80,8 +80,8 @@ world-tool, schema, and subsystem-specific gates.
 - Documentation and helpfiles must be valid ASCII, UTF-8, and LF text.
 - Link to an authoritative document instead of copying the same procedure into
   several files.
-- Historical paths in `docs/ongoing-projects/CHANGELOG.md` and `docs/previous_changelogs/`
-  intentionally record the tree as it existed and should not be rewritten.
+- Historical paths in `docs/previous_changelogs/` intentionally record the tree as it
+  existed and should not be rewritten.
 - World data under `lib/world/` is production content. Validate format and
   references with the maintained world tools before submitting changes.
 - Prefer DG Scripts for localized narrative, dialogue, puzzles, and sequencing;

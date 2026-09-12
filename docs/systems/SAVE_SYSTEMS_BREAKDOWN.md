@@ -222,8 +222,9 @@ of one is rejected on restore. The keeper boards only durable and timed-control
 followers; reclaiming a stored row whose lifetime has ended deletes that row
 and its objects inside the reclaim transaction. `pets` shows each pet's
 policy and remaining real time. Expiry gear handling and uncertain-commit
-reconciliation remain open in `docs/ongoing-projects/PET_SYSTEM_REFACTOR_PLAN.md`.
-Save/load tests do not replace the plan's executable copyover acceptance gate.
+reconciliation remain open; see
+[issue #162](https://github.com/LuminariMUD/Luminari-Source/issues/162).
+Save/load tests do not replace the executable copyover acceptance gate tracked there.
 
 #### 3. Wilderness System Data
 - **Tables**: `region_data`, `path_data`, `region_index`, `path_index`

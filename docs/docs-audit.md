@@ -167,7 +167,7 @@ example project snapshots rather than current project entry points.
 - The approved production release still needs the canonical systemd unit installed/restarted and
   the readiness endpoint probed. Repository policy prohibited that production mutation from this
   development checkout; the local equivalent passed and the exception remains in the
-  [known-issues ledger](ongoing-projects/known-issues.md).
+  [production health activation issue](https://github.com/LuminariMUD/Luminari-Source/issues/161).
 - The repository has no single general application rollback command. Current docs state that
   constraint and require identified immutable release, database, world-data, and component-runbook
   evidence before production rollback.
@@ -211,7 +211,7 @@ current evidence.
 | What performance and test evidence exists | [VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md) |
 | How schema install, verification, and rollback work | [VESSEL_SCHEMA_DEPLOYMENT.md](deployment/VESSEL_SCHEMA_DEPLOYMENT.md) |
 | What remains unfinished and who owns it | [Vessel System Product Requirements, Release Gate State](product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md#release-gate-state) |
-| What shipped and when | [CHANGELOG.md](ongoing-projects/CHANGELOG.md) |
+| What shipped and when | [archived changelogs](previous_changelogs/) |
 | Which maintenance lessons should persist | [CONSIDERATIONS.md](development/CONSIDERATIONS.md#vessel-system) |
 
 The temporary vessel workspace was retired after its completed history was verified against the

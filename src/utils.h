@@ -148,7 +148,7 @@ bool is_caster_class(int class);
 bool has_aura_of_terror(struct char_data *ch);
 int get_random_chest_dc(int level);
 bool has_blindsense(struct char_data *ch);
-/* Duris racial innates, see docs/ongoing-projects/DURIS_RACIAL_MECHANICS.md */
+/* Duris racial innates, see docs/systems/GAME_MECHANICS_SYSTEMS.md */
 bool suffers_sun_vulnerability(struct char_data *ch);
 bool is_dayblinded(struct char_data *ch);
 bool char_is_blinded(struct char_data *ch);

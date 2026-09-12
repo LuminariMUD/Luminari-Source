@@ -212,15 +212,11 @@ This master index provides a comprehensive guide to all technical documentation 
 ## Project Management
 
 ### Planning & Tracking
-- **[TASK_LIST.md](ongoing-projects/TASK_LIST.md)** - Current development priorities
-- **[Screen-reader and MSP plan](ongoing-projects/SCREEN_READER_AND_MSP_IMPLEMENTATION_PLAN.md)** - Issue #137 implementation sequence and acceptance criteria
-- **[known-issues.md](ongoing-projects/known-issues.md)** - Recorded exceptions and technical-debt follow-ups
-- **[Duris race conversion study](ongoing-projects/DURIS_RACE_CONVERSION.md)** - Every Duris player race converted to our stat scale and scored with the race point budget
-- **[Duris racial mechanics](ongoing-projects/DURIS_RACIAL_MECHANICS.md)** - Gap list of the race-level mechanics still missing for the Duris races, and the as-built record of the racial innate feats
 - **[docs-audit.md](docs-audit.md)** - Phase 00 transition and vessel documentation audit ledger
 - **[CONSIDERATIONS.md](development/CONSIDERATIONS.md)** - Durable special-procedure and vessel maintenance lessons
 - **[CONVENTIONS.md](development/CONVENTIONS.md)** - Canonical engineering, build, test, documentation, and operational conventions
-- **[CHANGELOG.md](ongoing-projects/CHANGELOG.md)** - Recent changes and updates
+- **[GitHub Issues](https://github.com/LuminariMUD/Luminari-Source/issues)** - Open work and follow-ups
+- **[Archived changelogs](previous_changelogs/)** - Dated change history
 
 ### System References and Follow-up Work
 
@@ -318,7 +314,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - `systems/` - Architecture and runtime/protocol contracts, including the canonical MSDP reference
 - `development/` - Contributor onboarding, daily commands, conventions, and maintenance considerations
 - `deployment/` - Host setup, environments, CI/CD, release, and deployment operations
-- `ongoing-projects/` - Temporary working changelog, task list, and known-issue notes
+- `ongoing-projects/` - Temporary working notes; emptied when their content is consolidated into permanent documentation or GitHub issues
 
 ### Documentation Standards
 - All docs use Markdown format

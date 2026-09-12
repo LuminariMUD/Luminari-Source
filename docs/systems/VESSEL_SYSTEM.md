@@ -12,7 +12,7 @@ beta, and staged production rollout remain
 including its
 [release-gate state](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md#release-gate-state);
 for what shipped when see
-[CHANGELOG.md](../ongoing-projects/CHANGELOG.md).
+[the archived changelogs](../previous_changelogs/).
 
 ---
 
@@ -1962,7 +1962,7 @@ For each vessel behavior change:
 - [Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md) -
   Durable requirements, release criteria, and gate state
 - [VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md) - Performance data and memory attribution
-- [CHANGELOG.md](../ongoing-projects/CHANGELOG.md) - What shipped when
+- [the archived changelogs](../previous_changelogs/) - What shipped when
 - [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md) - 30-step manual regression script
 - [0001-unified-vessel-system.md](../adr/0001-unified-vessel-system.md) - Architecture decision and invariants
 - [TECHNICAL_DOCUMENTATION_MASTER_INDEX.md](../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md) - Complete docs index

@@ -227,7 +227,7 @@ See the [architecture guide](docs/systems/ARCHITECTURE.md),
 [Phase 06 decisions](docs/testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md), and
 [Phase 07 validation](docs/testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md).
 For broader development history and current work, see the
-[changelog](docs/ongoing-projects/CHANGELOG.md) and
+[archived changelogs](docs/previous_changelogs/) and
 [GitHub Issues](https://github.com/LuminariMUD/Luminari-Source/issues).
 
 ## LuminariMUD Ecosystem

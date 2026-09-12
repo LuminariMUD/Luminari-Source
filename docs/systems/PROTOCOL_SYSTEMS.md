@@ -845,4 +845,4 @@ capability is reported separately and is no longer manually toggled there.
 Commands: `sound on`, `sound off`, `sound status`, `sound test`. The bundled
 [sound pack](../../lib/sounds/README.md) supplies the test and successful-door-open
 cues without an automatic download URL. Real-client playback acceptance remains
-tracked in the [implementation plan](../ongoing-projects/SCREEN_READER_AND_MSP_IMPLEMENTATION_PLAN.md).
+recorded in the [acceptance report](../testing/SCREEN_READER_AND_MSP_ACCEPTANCE.md).

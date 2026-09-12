@@ -146,7 +146,7 @@ cross-subsystem coupling visible.
 
 When installed, the configured pre-commit hook may reformat changed source or run checks. Inspect
 any resulting diff and rerun affected checks before committing; do not assume hooks are installed.
-Historical paths in `docs/ongoing-projects/CHANGELOG.md` and `docs/previous_changelogs/` are
+Historical paths in `docs/previous_changelogs/` are
 deliberately left stale - they record the tree as it was.
 
 ### Misc

@@ -281,8 +281,8 @@ The `I` switch case expects two arguments, but the generic branch demands three,
 so a two-argument `I` line fails to parse and aborts the boot. Write `I` with
 three numbers.
 
-This is a source-level bug, not a documentation quirk. It is recorded in
-[known-issues.md](../ongoing-projects/known-issues.md).
+This is a source-level bug, not a documentation quirk. It is tracked in
+[issue #160](https://github.com/LuminariMUD/Luminari-Source/issues/160).
 
 ### `L` does not work
 
@@ -291,8 +291,8 @@ reads `arg3` as the container to fill - and `arg3` is never assigned, so it is
 always zero. Even when the chance roll passes and a container is somehow found,
 the call that would actually place the treasure is commented out and marked
 `Unfinished`. `L` is dead weight: it will either do nothing or log
-`ZONE ERROR: target obj not found`. Do not use it. Also recorded in
-[known-issues.md](../ongoing-projects/known-issues.md).
+`ZONE ERROR: target obj not found`. Do not use it. Also tracked in
+[issue #160](https://github.com/LuminariMUD/Luminari-Source/issues/160).
 
 ### Unresolvable room references are silenced
 

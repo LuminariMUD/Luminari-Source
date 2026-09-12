@@ -3010,7 +3010,7 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define FEAT_LEONINE_FRAME 1267
 
 /* Duris racial innates converted to feats, see
- * docs/ongoing-projects/DURIS_RACIAL_MECHANICS.md */
+ * docs/systems/GAME_MECHANICS_SYSTEMS.md */
 #define FEAT_SUN_VULNERABILITY 1268
 #define FEAT_DAYBLIND 1269
 #define FEAT_MAGIC_VULNERABILITY 1270

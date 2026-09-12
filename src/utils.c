@@ -8264,7 +8264,7 @@ bool has_blindsense(struct char_data *ch)
 }
 
 /* ---- Duris racial innates ----
- * see docs/ongoing-projects/DURIS_RACIAL_MECHANICS.md */
+ * see docs/systems/GAME_MECHANICS_SYSTEMS.md */
 
 /* anything worn about the body shelters from the sun, unless wind or a
  * grapple has torn it open; the vampire cloak counts through is_covered() */

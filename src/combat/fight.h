@@ -58,7 +58,7 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim, int atta
 void idle_weapon_spells(struct char_data *ch);
 int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_data *attacker,
                               int w_type);
-/* Duris racial innates, see docs/ongoing-projects/DURIS_RACIAL_MECHANICS.md */
+/* Duris racial innates, see docs/systems/GAME_MECHANICS_SYSTEMS.md */
 int racial_weapon_mastery_bonus(struct char_data *ch, struct obj_data *wielded);
 int racial_spell_absorb_chance(struct char_data *victim);
 int racial_sacrilegious_power_reduction(struct char_data *ch);

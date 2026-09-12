@@ -554,5 +554,5 @@ is emitted after the recommended-preferences save succeeds, before first entry.
 While enabled, the preference overrides automatic map and gameplay prompt output
 without changing the underlying map/prompt bits. Turning it off restores their
 configured behavior. Pager/editor instructions remain available. Sound consent is
-independent and defaults off. See the [implementation plan](../ongoing-projects/SCREEN_READER_AND_MSP_IMPLEMENTATION_PLAN.md)
-for validation status and remaining acceptance work.
+independent and defaults off. See the [acceptance report](../testing/SCREEN_READER_AND_MSP_ACCEPTANCE.md)
+for validation status and the remaining real-client walkthroughs.
