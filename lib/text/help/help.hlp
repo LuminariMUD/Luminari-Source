@@ -2402,32 +2402,27 @@ See Also: TOGGLE, TAKE, SPLIT
 #0
 AUTOMAPPING MAPS
 
-Usage: map <#1-12>
+Usage: map [distance] [normal|world]
 
-   This command prints a text generated map of your current surroundings. 
-Including a number allows you to expand or shrink the map to show a wider 
-or smaller area. 
+The map command prints an ASCII map of your surroundings. Distance can be
+1 to 12; omitting it uses the configured default. Normal mode shows rooms
+and exits. World mode shows one symbol per room. For example, use map,
+map world, map 6 normal, or map 6 world.
+
+Shop rooms appear as [$] in normal mode and $ in world mode. Your current
+room always shows &, including when you are standing in a shop. A room with
+several shops shows one $; the marker remains when a shop is closed or its
+keeper is absent. It marks a shop location, not current vendor availability.
+Other rooms keep their terrain symbols. The same shop markers appear on
+the automatic minimap. Wilderness uses its separate terrain map.
 
 Usage: toggle automap on
 
-   Toggle automap on will turn on the automap, which shows a mini-map to the 
-right of the room descriptions. 
-   
- -LuminariMUD Map System-
-  .-.__--.,--.__.-.
- | 	R+	n Up            |                                                      
- | 	R-	n Down          |                                                      
- | [	B!	n] You         |                                                      
- | [	W.	n] Inside      |                                                      
- | [	wC	n] City        |                                                      
- | [	g,	n] Field       |                                                      
- | [	gY	n] Forest      |                                                      
- | [	mm	n] Hills       |                                                      
- | [	RM	n] Mountain    |                         	C[	W.	C]	n                          
- | [	C~	n] Swim        |                          	W| 	R+	n                         
- | [	B=	n] Boat        |                   	C[	W.	C] 	W- 	C[	B!	C] 	W- 	C[	W.	C]	n                    
- | [	W^	n] Flying      |                          	W| 	R-	n                         
- | [	BU	n] Underwater  |                         	C[	W.	C]	n                          
+Automap displays a minimap with room descriptions. Use toggle automap off
+to hide it. Screen-reader mode also hides automatic maps; the map command
+remains available.
+
+See also: MAP, GUI-MAP, WILDERNESS, SCREEN-READER
 #0
 AUTOPILOT
 
@@ -19823,6 +19818,11 @@ It is able to fly, has darkvision and can launch tail spikes once per round
 as a swift action, dealing 1d6+5 damage to all foes in the room.
 #0
 GUI-MAP MAP MAPPER MAPPING
+
+Use map or map world for an ASCII map of nearby rooms. Shop locations show
+$ (even when closed), and & marks your current room, including inside a shop.
+You can set the distance with map 6 normal or map 6 world. See AUTOMAPPING
+for the ASCII map and automatic minimap options.
 
 If you are using Luminari's GUI, a mapper will appear on the top right.
 
