@@ -20,6 +20,7 @@ apply help_command_sweep_entries.sql
 apply help_counterspell_readiness.sql
 apply help_defensive_casting_clock.sql
 apply help_dg_damage_trigger.sql
+apply help_duris_racial_innate_entries.sql
 skip help_gdb_binary_path.sql
 apply help_intermud3_entries.sql
 apply help_nature_survival_entries.sql

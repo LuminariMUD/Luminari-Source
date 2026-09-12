@@ -2692,7 +2692,15 @@ int can_harvest_resource_in_terrain(int resource_type, int sector_type)
 int get_harvest_skill_level(struct char_data *ch, int resource_type)
 {
   int skill = get_harvest_skill(resource_type);
-  return GET_SKILL(ch, skill);
+  int level = GET_SKILL(ch, skill);
+
+  /* miner (Duris racial innate): reads the rock */
+  if ((resource_type == RESOURCE_MINERALS || resource_type == RESOURCE_STONE ||
+       resource_type == RESOURCE_CRYSTAL) &&
+      HAS_FEAT(ch, FEAT_MINER))
+    level += 4;
+
+  return level;
 }
 
 int get_harvest_skill(int resource_type)

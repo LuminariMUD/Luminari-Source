@@ -6041,6 +6041,11 @@ void mag_assign_spells(void)
          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 1, 1, NECROMANCY, FALSE);
   spello(ABILITY_CREATE_VAMPIRE_SPAWN, "create vampiric spawn", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
          FALSE, MAG_SUMMONS, NULL, 1, 1, NECROMANCY, FALSE);
+  /* Duris racial innates, cast through do_racial_sla */
+  spello(ABILITY_SUMMON_WARG, "summon warg", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS,
+         NULL, 1, 1, CONJURATION, FALSE);
+  spello(ABILITY_SUMMON_HORDE, "summon horde", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
+         MAG_SUMMONS, NULL, 1, 1, CONJURATION, FALSE);
 
   spello(ABILITY_VAMPIRIC_DOMINATION, "vampiric domination", 51, 36, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_MANUAL,
@@ -6243,6 +6248,7 @@ void mag_assign_spells(void)
           "Your prepared irresistible magic dissipates.");
   affecto(AFFECT_CLERIC_AVATAR_OF_WAR, "cleric avatar of war",
           "The power of the avatar of war leaves you.");
+  affecto(AFFECT_RACIAL_FLURRY, "racial flurry", "Your flurry of blows subsides.");
   affecto(AFFECT_MONK_AVATAR_OF_ELEMENTS, "monk avatar of the elements",
           "Your unity with the elements fades.");
   affecto(AFFECT_RANGER_NATURES_WRATH, "ranger nature's wrath",

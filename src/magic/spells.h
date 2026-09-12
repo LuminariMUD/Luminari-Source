@@ -857,6 +857,10 @@
 #define AFFECT_ROL_MANSCORPION_VENOM 1339
 #define AFFECT_ROL_BARBAZU_BERSERK 1340
 #define AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN 1341
+/* Duris racial innates, see docs/ongoing-projects/DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md */
+#define AFFECT_RACIAL_FLURRY 1342 /* one extra attack per round for four rounds */
+#define ABILITY_SUMMON_WARG 1343  /* MAG_SUMMONS: a mountable warg */
+#define ABILITY_SUMMON_HORDE 1344 /* MAG_SUMMONS: two to four orc warriors */
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 
@@ -2034,6 +2038,8 @@ const char *skill_name(int num);
 const char *spell_name(int num);
 bool isEpicSpell(int spellnum);
 int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool is_tele);
+void perform_dispel(struct char_data *ch, struct char_data *vict, struct obj_data *obj,
+                    int spellnum);
 
 /* spells.c */
 bool wall_blocks_movement(struct char_data *victim, room_rnum from_room, room_rnum to_room,

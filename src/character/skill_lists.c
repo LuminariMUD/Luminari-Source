@@ -301,7 +301,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
     else
       return FALSE;
   case SKILL_BODYSLAM:
-    if (GET_RACE(ch) == RACE_HALF_TROLL)
+    if (HAS_FEAT(ch, FEAT_BODYSLAM))
       return TRUE;
     else
       return FALSE;

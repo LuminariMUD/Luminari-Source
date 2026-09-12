@@ -183,6 +183,25 @@ struct alias_data
 #define SCMD_OASIS_PATHLIST 8
 #define SCMD_OASIS_OLIST_APPLIES 9
 
+/* do_racial_sla: index into racial_sla_table[] in act.other.c */
+#define SCMD_RSLA_FARSEE 0
+#define SCMD_RSLA_STONESKIN 1
+#define SCMD_RSLA_LIGHTNING_BOLT 2
+#define SCMD_RSLA_FIRE_SHIELD 3
+#define SCMD_RSLA_FIRE_STORM 4
+#define SCMD_RSLA_SHADOW_JUMP 5
+#define SCMD_RSLA_PLANE_SHIFT 6
+#define SCMD_RSLA_PSIONIC_BLAST 7
+#define SCMD_RSLA_SCARE 8
+#define SCMD_RSLA_HASTE 9
+#define SCMD_RSLA_FIREBALL 10
+#define SCMD_RSLA_MASS_DISPEL 11
+#define SCMD_RSLA_FROST_BREATH 12
+#define SCMD_RSLA_WEB 13
+#define SCMD_RSLA_SUMMON_WARG 14
+#define SCMD_RSLA_SUMMON_HORDE 15
+#define NUM_RACIAL_SLAS 16
+
 #define SCMD_PILFER 1
 
 #define SCMD_QUICK_CHANT 1

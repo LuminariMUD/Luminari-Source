@@ -1,6 +1,12 @@
 # Duris Racial Innates as Feats: Implementation Plan
 
-Status: plan, not started. Created 2026-09-12.
+Status: implemented, all six phases done 2026-09-12. Every feat is
+registered, wired and tested. No race was granted any of the new Duris
+feats; the only race rows touched are the two compatibility assignments
+(`FEAT_STABILITY` to `RACE_CRYSTAL_DWARF`, `FEAT_BODYSLAM` to
+`RACE_HALF_TROLL`) that keep those races' existing behaviour now that the
+checks are feat-gated. See "Progress log" at the end for the as-built map
+and the open follow-ups (assignment per race is the separate next step).
 Companion study: [DURIS_RACE_CONVERSION.md](DURIS_RACE_CONVERSION.md).
 Duris source verified at `/home/aiwithapex/projects/duris` (`src/classes/innates.c`
 registration list and the implementation sites named per feat below). Our side
@@ -21,7 +27,10 @@ cover as a feat that:
   `GET_RACE()`, so it can be granted to any race later with one
   `feat_race_assignment()` line;
 - is not granted to any race by this work. Assignment is a separate, later
-  decision per race. Nothing in this plan changes `assign_races()`.
+  decision per race. The only `assign_races()` changes are the two
+  behaviour-preserving lines named in bucket B (crystal dwarf stability,
+  half-troll bodyslam), which exist so that swapping a race check for a feat
+  check leaves every existing race exactly as it was.
 
 "Player-race innate" means every `ADD_RACIAL_INNATE()` line in Duris
 `src/classes/innates.c` for the 37 player races listed in the companion study
@@ -79,13 +88,13 @@ behaviour does not change for them.
 | Vulnerable To Fire | `FEAT_WEAKNESS_TO_FIRE` | `compute_damtype_reduction()` in `src/combat/fight.c` checks `RACE_HALF_TROLL` (-50) | Check the feat instead |
 | Vulnerable To Cold | `FEAT_VULNERABLE_TO_COLD` | Same function checks `RACE_TRELUX` (-20) under `DAM_COLD` | Check the feat instead |
 | Leap | `FEAT_LEAP` | The 20 percent avoidance in `src/combat/fight.c` (near the "trelux leap" comment) checks `RACE_TRELUX` | Check the feat instead |
-| Giant Avoidance | `FEAT_COMBAT_TRAINING_VS_GIANTS` | Registered, never consulted | Add +1 AC and +1 attack vs opponents at least one size larger, in `compute_armor_class()` and `compute_attack_bonus()` |
-| Horse Body, Spider Body (slot part) | `FEAT_LEONINE_FRAME` | Registered; no code enforces the leg and foot restriction for Wemic (the race help text claims it). `FEAT_TRELUX_EQ` is in the same state | Block `WEAR_LEGS` and `WEAR_FEET` in the wear-position resolution in `src/obj/act.item.c` when the feat is held |
+| Giant Avoidance | `FEAT_COMBAT_TRAINING_VS_GIANTS` | Registered; `compute_armor_class()` in `src/combat/fight.c` grants +4 AC vs larger attackers on a race list (dwarf, crystal dwarf, gnome, duergar, halfling) that is narrower than the eight races holding the feat | Replace the race list with the feat check and keep the existing +4 AC. No attack bonus: the mechanic already exists, only its gate changes. Fix the feat text ("+1 size bonus") to match |
+| Horse Body, Spider Body (slot part) | `FEAT_LEONINE_FRAME` | Registered; the leg and foot block is enforced for Wemic and Trelux through the per-race table read by `character_wear_slot_restriction()` in `src/character/race.c`, not through the feat | Make `character_wear_slot_restriction()` also refuse `WEAR_LEGS` and `WEAR_FEET` when the feat is held. The race table rows stay, so existing races are unchanged. `FEAT_TRELUX_EQ` is left on the race table |
 | Magic Resistance, shrug 50 and above | `FEAT_LICH_SPELL_RESIST` | `compute_spell_res()` in `src/magic/magic.c` grants SR 15 + level on `IS_LICH()`; the feat is registered but never consulted | Check the feat instead; Lich keeps it through its existing assignment |
-| Horse Body, Spider Body (stability part) | `FEAT_STABILITY` | Registered; bash and trip resistance in `src/combat/act.offensive.c` checks dwarf races | Check the feat instead. The full Duris immunity is the new `FEAT_QUADRUPED_BODY` below |
-| Dauntless | `FEAT_KENDER_FEARLESSNESS` | Wired in `is_immune_fear()`; text says "Kender" | Reword to "Immune to fear, normal and magical". No rename of the constant |
-| Battle Rage | `FEAT_HASTE` | Registered `in_game = FALSE`, `FEAT_TYPE_CLASS_ABILITY`, no command | Set `in_game = TRUE`, type innate, 1/day self haste through the SLA table below |
-| Bodyslam | `SKILL_BODYSLAM` | `bodyslam` exists; availability in `src/character/skill_lists.c` checks `RACE_HALF_TROLL` | New `FEAT_BODYSLAM` (bucket C) and make the skill available when the feat is held |
+| Horse Body, Spider Body (stability part) | `FEAT_STABILITY` | Registered; bash and trip resistance in `src/combat/act.offensive.c` checks dwarf, crystal dwarf and duergar. Crystal dwarf holds no `FEAT_STABILITY` assignment, so a plain feat check would strip it | Check the feat instead and add the one missing `feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_STABILITY, ...)` line so behaviour is unchanged. The full Duris immunity is the new `FEAT_QUADRUPED_BODY` below |
+| Dauntless | `FEAT_KENDER_FEARLESSNESS` | Wired in `is_immune_fear()`; text said "Kender" | Done: name is now "fearlessness", text "Immune to fear, normal and magical". The constant is unchanged |
+| Battle Rage | `FEAT_HASTE` | Registered `in_game = FALSE`, `FEAT_TYPE_CLASS_ABILITY`, no command, no consumer | Done: renamed "innate haste", `in_game = TRUE`, type innate, 1/day self haste through the SLA table below. The verb is `battlehaste` because `battlerage` is already the domain-power command |
+| Bodyslam | `SKILL_BODYSLAM` | `bodyslam` exists; availability in `src/character/skill_lists.c` checks `RACE_HALF_TROLL` | New `FEAT_BODYSLAM` (bucket C), make the skill available when the feat is held, and assign the feat to `RACE_HALF_TROLL` so that race keeps the skill |
 | Regeneration (stronger) | `FEAT_TROLL_REGENERATION` | Fixed 3 hp | Optional: allow stacking (`can_stack = TRUE`, +3 per rank) so a Duris Troll (10 per tick) can be expressed as ranks. Do only if a race needs it |
 
 ### C. New feats to build
@@ -132,36 +141,56 @@ copies:
 ```
 struct racial_sla_info
 {
-  int feat;          /* FEAT_SLA_x, gates use and daily count */
-  int spellnum;      /* spell cast with call_magic() at character level */
-  int target_mode;   /* self, room, single opponent, in-combat only,
-                        or every other character in the room */
-  const char *verb;  /* command name, for messages */
+  int feat;         /* FEAT_x, gates use and daily count */
+  int spellnum;     /* spell cast with call_magic() at character level */
+  int target;       /* enum racial_sla_target: self, room, opponent,
+                       world character, or every other character here */
+  int flags;        /* RSLA_FLAG_COMBAT_ONLY, RSLA_FLAG_SIZE_LIMIT,
+                       RSLA_FLAG_PASS_ARG (argument handed to cast_arg2) */
+  const char *verb; /* command name, for messages */
 };
-ACMD(do_racial_sla); /* subcmd indexes the table */
+ACMD(do_racial_sla); /* subcmd indexes racial_sla_table[] */
+const struct racial_sla_info *racial_sla_lookup(int subcmd); /* for tests */
 ```
 
-Each verb is its own `cmd_info[]` row with `do_racial_sla` as the handler and
-the table index as `subcmd`, so players still type `farsee`, `stoneskin`,
-`roar`, and so on. The handler does the `HAS_FEAT`, `daily_uses_remaining()`,
-target parsing, `call_magic()`, and `start_daily_use_cooldown()` sequence
-that `do_levitate` in `src/act.other.c` does today. Place the table and
-handler in `src/act.other.c` next to the existing SLA commands; declare the
-`ACMD_DECL` in `src/interpreter.h`. No new source file is planned, so
-`Makefile.am` and `CMakeLists.txt` do not change. If the implementer does add
-a file, update both build lists and run
-`python3 scripts/ci/check_build_parity.py`.
+As built (Phase 0): the table, `racial_sla_lookup()`, and `do_racial_sla`
+live in `src/act.other.c` directly before `do_invisiblerogue`; the
+`ACMD_DECL` and lookup prototype are in `src/act.h` beside `do_levitate`
+(that is where the existing SLA declarations are, not `interpreter.h`); the
+`SCMD_RSLA_*` indices and `NUM_RACIAL_SLAS` are in `src/interpreter.h`; the
+fourteen `cmd_info[]` rows follow the `levitate` row in `src/interpreter.c`.
+The handler does the `HAS_FEAT`, precondition, `daily_uses_remaining()`,
+target parsing, `call_magic()` (`CAST_INNATE`), and
+`start_daily_use_cooldown()` sequence that `do_levitate` does today, and
+refuses a self-target cast while `affected_by_spell()` for that spell so a
+daily use is never wasted. No new source file was needed, so `Makefile.am`
+and `CMakeLists.txt` changed only for the test file.
 
-None of the new verbs collide with an existing `cmd_info[]` entry (checked
-for farsee, stoneskin, roar, battlerage, planeshift, shadowdoor, fireshield,
-firestorm, mindblast, fireball, massdispel, frostbreath, webwrap, flurry,
-summonwarg, summonhorde, stampede, doorbash). `calm` and `mine` already exist
-and are not reused.
+Verb collisions: `battlerage` already exists (domain power), so the haste
+verb is `battlehaste`; `flurry` is shadowed by `flurryofblows` (prefix match
+in table order), so the racial flurry verb is `onslaught`. The rest (farsee,
+stoneskin, throwlightning, fireshield, firestorm, shadowdoor, planeshift,
+mindblast, roar, fireball, massdispel, frostbreath, webwrap, summonwarg,
+summonhorde, stampede, doorbash) are free and were checked for earlier
+prefix rows as well. `calm` and `mine` already exist and are not reused.
 
-**Help.** One entry per feat (keyword is the feat name) and one per new
-command, in both `lib/text/help/help.hlp` and the help database, per the
-repository rule. Model the text on the existing `ULTRAVISION` entry for
-passives and the `BODYSLAM` entry for commands.
+**Help.** One entry per feat, tagged by the hyphenated feat name, with the
+feat's command verb attached as an extra keyword instead of a second entry
+(the ROL feat component model: `CAMP` plus `ESTABLISH-CAMP`). Four verbs
+(`farsee`, `stoneskin`, `planeshift`, `fireball`) collide with existing spell
+entries and are left to those entries; the feat text points at them. Both
+stores are written from one generator: the SQL component
+`sql/components/help_duris_racial_innate_entries.sql` (idempotent, applied to
+the development database) and `lib/text/help/help.hlp` (entries inserted in
+keyword order; the race-keyed `BODYSLAM` entry rewritten). The help-sync
+audit reports the same pre-existing file-versus-database projection drift on
+both environments before and after; a cross-environment sync is a separate,
+explicitly authorised operation.
+
+**World data.** `lib/world/` is gitignored. Code-loaded pet prototypes are
+delivered through `data/pet-lycanthropes/195.mob` and
+`scripts/world/install_pet_constructs.py` (append-only into an existing
+195.mob), so the warg and orc warrior live there and in that README.
 
 **Tests.** A new production-linked suite
 `unittests/CuTest/test_racial_innate_feats.c`, added to `cutest_SOURCES` and
@@ -191,21 +220,27 @@ swamp, or twilight rooms. Ours: no hit or move regeneration while
 `IN_SUNLIGHT(ch)` and not `is_covered(ch)`; 1d8 sun damage per round in
 `update_damage_and_effects_over_time_one()` in `src/limits.c`, using the
 `TYPE_SUN_DAMAGE` path Vampire Weaknesses already uses; suppressed in
-`SECT_FOREST` and `SECT_MARSHLAND` and under any darkness room affect. Hook:
-`hit_gain()`, `move_gain()`, and the Vampire Weaknesses block in
-`update_damage_and_effects_over_time_one()`. Test: regen returns zero in a
-sunlit room with the feat and normal without it; no damage in a forest room.
+`SECT_FOREST` and `SECT_MARSHLAND` and under any darkness room affect
+(`is_room_in_sunlight()` already treats darkness as no sun). As built: one
+helper `suffers_sun_vulnerability(ch)` in `src/utils.c` holds the rule;
+`hit_gain()` and `move_gain()` return 0 when it is true and the damage tick
+sits beside the Vampire Weaknesses block. Test: the helper and `hit_gain()`
+in a sunlit field with and without the feat, and in a forest.
 
 **FEAT_DAYBLIND** (drawback, RP -4). Duris: `IS_DAYBLIND()` in
 `src/core/utils.h`: the character is treated as blind in daylight unless
 Eyeless, in a twilight room, or under globe of darkness. The `IS_BLIND()`
 macro's dayblind term is itself commented out there, so it was only ever
 partly live. Ours: while `IN_SUNLIGHT(ch)` and not `is_covered(ch)` and not
-under a darkness room affect, the character cannot see (same effect as
-`AFF_BLIND` for vision and attack penalties), with `FEAT_EYELESS` as an
-override. Hook: a helper `is_dayblinded(ch)` consulted wherever `AFF_BLIND`
-is read for vision in `src/utils.h` and `src/utils.c`. Test: cannot see in a
-sunlit outdoor room; can see indoors and under darkness.
+under a darkness room affect, the character cannot see, with `FEAT_EYELESS`
+as an override. As built: `is_dayblinded(ch)` and `char_is_blinded(ch)` in
+`src/utils.c`; the `LIGHT_OK`, `INFRA_OK` and `CAN_SEE_OBJ` glow clauses in
+`src/utils.h` now test `char_is_blinded()` (blindness without blindsense or an
+eyeless body, or dayblind) instead of the raw `AFF_BLIND` flag. Blindness has
+no separate attack penalty in this codebase (the blindness spell applies its
+own hitroll penalty), so dayblind has none either. Side effect: blindsense
+now also satisfies `INFRA_OK`, which previously ignored it. Test: dayblinded
+in a sunlit field, sighted indoors, sighted with eyeless.
 
 **FEAT_MAGIC_VULNERABILITY** (drawback, RP -1). Duris: `MAGIC_VULNERABILITY`
 in `src/combat/dam_mods.c`, +10 percent spell damage. Ours: +10 percent
@@ -240,24 +275,29 @@ spell-damage path in `damage()` in `src/combat/fight.c`, before resistance.
 Test: with the roll forced, damage is zero and the message is sent.
 
 **FEAT_EYELESS** (RP 1). Duris: `INNATE_EYELESS` sets `AFF5_NOBLIND`. Ours:
-immune to the blinded condition, and `can_see` treats the character as
-sighted while blinded, sharing the existing `FEAT_BLINDSENSE` branch. Hook:
-where the blindness affect is applied in `mag_affects()` in
-`src/magic/magic.c`, and beside the existing `FEAT_BLINDSENSE` vision check.
-Test: blindness affect is refused; the feat does not grant darkvision.
+immune to the blinded condition, and vision treats the character as sighted
+while blinded. As built: `can_blind()` in `src/utils.c` returns false with the
+feat (every blinding spell and proc already asks it), and `char_is_blinded()`
+ignores `AFF_BLIND` for the feat. `CAN_SEE_IN_DARK` is untouched, so no
+darkvision. Test: `can_blind()` false and `char_is_blinded()` false while
+flagged blind; `has_blindsense()` still false.
 
 **FEAT_QUICK_THINKING** (RP 1.5). Duris: `INNATE_QUICK_THINKING` in
 `src/core/utility.c` and `src/net/sparser.c`: 15 percent automatic success on
 INT and POW saves, and a second roll on a failed save. Ours: when a Will save
-fails, 15 percent chance to reroll it once. Hook: `savingthrow()` in
-`src/magic/magic.c` (or wherever Will saves resolve; trace before editing).
-Test: with the roll forced, a failed Will save is retried; Fortitude is not.
+fails, 15 percent chance to reroll it once. As built: `savingthrow_full()` in
+`src/magic/magic.c` rerolls the d20 once before the final comparison when
+`racial_quick_thinking_chance(vict, type)` (in `src/utils.c`, 15 for Will with
+the feat, else 0) beats the roll. There is no dice forcing in the test
+harness, so the test covers the chance helper (15 for Will, 0 for Fortitude,
+0 without the feat).
 
 **FEAT_GROUNDFIGHTING** (RP 1). Duris: `INNATE_GROUNDFIGHTING` halves the
 dodge penalty for not standing (`src/combat/fight.c`). Ours: no attack roll
-or AC penalty for being prone or sitting. Hook: the position penalties in
+or AC penalty for being prone (`POS_RECLINING`), sitting or resting. Stunned,
+sleeping and worse keep their penalties. Hook: the position switches in
 `compute_attack_bonus()` and `compute_armor_class()` in `src/combat/fight.c`.
-Test: prone AC and attack equal standing values with the feat.
+Test: the feat is worth +3 AC prone and +2 AC and +2 attack sitting.
 
 **FEAT_QUADRUPED_BODY** (Horse Body, Spider Body, RP 1.5). Duris:
 `INNATE_HORSE_BODY` and `INNATE_SPIDER_BODY` in `src/cmd/actoff.c`,
@@ -266,24 +306,27 @@ ground-slam fail against the character unless the attacker is larger; the
 character cannot mount. Ours: `perform_knockdown()` fails automatically when
 the attacker's size is equal or smaller; `do_mount` refuses. The equipment
 slot loss is the wired `FEAT_LEONINE_FRAME` (bucket B), assigned alongside
-this feat later. Hook: `perform_knockdown()` in `src/combat/act.offensive.c`,
-`do_mount` in `src/act.other.c`. Test: knockdown from a same-size attacker
-fails; from a larger attacker it proceeds to the normal roll.
+this feat later. Hook: `perform_knockdown()` in `src/combat/act.offensive.c`
+(after the Immovable Object perk check), `do_mount` in `src/act.other.c`.
+Test: knockdown from a same-size attacker fails; `mount` leaves the character
+unmounted. The larger-attacker roll is random and is checked in game.
 
 **FEAT_WATER_BREATHING** (RP 0.5). Duris: `INNATE_WATERBREATH` sets
-`AFF_WATERBREATH` permanently. Ours: the drowning and underwater checks treat
-the character as having `AFF_WATER_BREATH`. Hook: wherever
-`AFF_FLAGGED(ch, AFF_WATER_BREATH)` is read (trace; `src/limits.c` and
-`src/movement/`). Test: no drowning damage in `SECT_UNDERWATER`.
+`AFF_WATERBREATH` permanently. Ours: the character permanently has `AFF_WATER_BREATH`. As built: the
+per-round updater in `src/limits.c` sets the flag for the feat exactly as it
+already does for the Gills evolution, so every reader (drowning, aqueous orb)
+is covered by the one line. Test: the flag is set by one updater pass with
+the feat and not without.
 
 **FEAT_UNDEAD_FEALTY** (RP 1). Duris: `INNATE_UNDEAD_FEALTY` in
 `src/core/utility.c`: undead at least 10 levels below the character do not
 aggro on it. Ours: same rule, undead race family only. Hook: the
 `MOB_AGGRESSIVE` target loop in `src/mob/mob_act.c`, beside the existing
-`FEAT_ONE_OF_US` (undead) and `FEAT_SOUL_OF_THE_FEY` (animal) exemptions.
+`FEAT_ONE_OF_US` (undead) and `FEAT_SOUL_OF_THE_FEY` (animal) exemptions,
+through `undead_fealty_protects(mob, vict)` in `src/utils.c`.
 `FEAT_ONE_OF_US` is not reused because it is a sorcerer bloodline bundle with
-cold immunity and DR. Test: an undead mob 10 levels lower
-skips the character; a living mob does not.
+cold immunity and DR. Test: an undead mob 10 levels lower is exempt; a living
+mob or one 9 levels lower is not.
 
 ### Group 2: passive offence
 
@@ -296,10 +339,11 @@ skips the character; a living mob does not.
 damage while the primary weapon matches; `TWO_HANDED_SWORD_MASTERY` in
 `src/core/utility.c` grants the 2H slashing skill at 100. Ours: +1 attack
 and +1 damage per 8 character levels (maximum +3 each at level 24) while the
-primary weapon matches. One helper, `racial_weapon_mastery_bonus(ch, wielded)`,
-returning the bonus, called from `compute_attack_bonus()` and
-`compute_damage_bonus()` in `src/combat/fight.c`. Test: bonus is 0 at level
-7, 1 at 8, 3 at 24, 0 with a non-matching weapon.
+weapon used for the attack matches (so an off-hand axe also counts, like every
+other weapon feat here). One helper, `racial_weapon_mastery_bonus(ch, wielded)`
+in `src/combat/fight.c`, called beside Bloodhunt in the attack and damage
+bonus builders. Test: bonus is 0 at level 7, 1 at 8, 3 at 24, 0 with a
+non-matching weapon; damage bonus rises by the same amount.
 
 **FEAT_HATRED** (RP 1). Duris: `INNATE_HATRED` in `src/classes/innates.c`
 runs a timed event that triggers a rage when a hated race is in the room.
@@ -310,23 +354,30 @@ model. Hook: beside `FEAT_BLOODHUNT` in `compute_attack_bonus()` and
 **FEAT_BATTLE_FRENZY** (RP 1). Duris: `INNATE_BATTLE_FRENZY` in
 `src/combat/fight.c`, 1 in 21 chance per hit on a humanoid to trigger an
 extra attack. Ours: 5 percent chance on each successful melee hit against a
-humanoid to gain one extra attack that round. Hook: `hit()` in
-`src/combat/fight.c` after a successful attack. Test: with the roll forced,
-an extra attack is queued; not against a non-humanoid.
+humanoid to gain one extra attack, delivered as an immediate follow-up
+`hit()` the way the Whirling Steel perk does. Hook: `hit()` in
+`src/combat/fight.c` beside Whirling Steel, gated by
+`battle_frenzy_applies(ch, victim, attack_type)`. Test: the gate is true for
+a humanoid melee target, false for an animal or a ranged attack.
 
 **FEAT_WARCALLERS_FURY** (RP 2). Duris: `INNATE_WARCALLERS_FURY` in
 `src/combat/dam_mods.c`: +2 to +15 percent damage by group size in room,
 plus 1/30 per other Orog in the group. Ours: +1 damage per grouped member in
-the room (self included), maximum +5. Hook: `compute_damage_bonus()`; group
-walk copied from `FEAT_AUTHORITATIVE` in `src/utils.c`. Test: +2 with two
-members present, +5 cap with seven.
+the room (self included), maximum +5; an ungrouped character gets nothing.
+Hook: `compute_damage_bonus()` through `racial_warcallers_fury_bonus(ch)`,
+built on a shared `count_grouped_in_room(ch, feat)` walk in `src/utils.c`
+(the `FEAT_AUTHORITATIVE` pattern). Test: +2 with two members present, 0
+alone.
 
 **FEAT_RRAKKMA** (RP 1.5). Duris: `INNATE_RRAKKMA` in `src/combat/fight.c`
 and `src/classes/innates.c`: -10 AC (better) and +5 shrug per other grouped
-Githzerai in the room, capped at 5. Ours: +1 AC and +2 to saves against
-spells per other grouped character in the room who also has this feat,
-maximum 5 counted. Hook: `compute_armor_class()` and the save bonus path in
-`src/magic/magic.c`. Test: no bonus alone; +1 AC with one other feat holder.
+Githzerai in the room, capped at 5. Ours: +1 AC and +2 to every saving throw resolved by
+`savingthrow_full()` (spells, spell-like abilities and the other magical
+sources that go through it) per other grouped character in the room who also
+has this feat, maximum 5 counted. Hook: `compute_armor_class()` (racial bonus
+type) and `savingthrow_full()` in `src/magic/magic.c`, through
+`racial_rrakkma_allies(ch)` in `src/utils.c`. Test: no bonus alone; +1 AC
+with one other feat holder in the group.
 
 ### Group 3: terrain and utility
 
@@ -336,47 +387,56 @@ maximum 5 counted. Hook: `compute_armor_class()` and the save bonus path in
 `INNATE_SWAMP_SNEAK` (hidden on the map in swamp terrain and no boat needed
 in swamp water, `src/world/map.c`, `src/cmd/actmove.c`). Ours: +6 to stealth
 checks in the matching sector set, the Bathed In Moonlight model. Outdoor is
-any outdoor non-underdark sector; swamp is `SECT_MARSHLAND`; underdark is
-`SECT_UD_WILD` through `SECT_UD_NOGROUND`. The Duris swamp boat waiver is
-dropped; Swamp Stealth keeps only the stealth bonus. One helper
-`racial_terrain_stealth_bonus(ch)` called where `FEAT_MOON_ELF_BATHED_IN_MOONLIGHT`
-is applied in `src/character/abilities.c`. Test: bonus by sector for each
-feat; zero elsewhere.
+any sector `is_room_outdoors()` accepts (it already excludes the underdark,
+ocean, lava and underwater); swamp is `SECT_MARSHLAND`; underdark is
+`SECT_UD_WILD` through `SECT_UD_NOGROUND`. The feats do not stack: a marsh is
+also outdoors, and the bonus stays +6. The Duris swamp boat waiver is
+dropped; Swamp Stealth keeps only the stealth bonus. As built: one helper
+`racial_terrain_ability_bonus(ch, ability)` in `src/character/abilities.c`
+(prototype in `abilities.h`), added to the stealth case beside Mask Of The
+Wild and to the perception case for Forest Sight. Test: bonus by sector for
+each feat; zero elsewhere; no stacking.
 
 **FEAT_FOREST_SIGHT** (RP 0.5). Duris: `INNATE_FOREST_SIGHT` in
 `src/world/map.c` lifts the map view cap in forest rooms. Our wilderness map
-has no forest cap to lift, so: +4 to perception and spot in `SECT_FOREST`.
-Hook: the same abilities helper as the stealth feats. Test: bonus in forest,
-none in a field.
+has no forest cap to lift, so: +4 to perception in `SECT_FOREST` (spot and
+listen are folded into perception here). Hook: the same abilities helper as
+the stealth feats. Test: bonus in forest, none in a field.
 
 **FEAT_SEADOG** (RP 0.5). Duris: `INNATE_SEADOG` in `src/ships/ship_utils.c`
 (+2 ship max speed) and `src/ships/ship_shop.c` (10 percent better sale). Ours:
-+1 to the vessel's effective speed while the character is at the helm. Hook:
-`get_terrain_speed_modifier()` callers in `src/vessels/` (trace the helm
-speed path before editing). Lowest priority in the plan; ship sales have no
-counterpart here and are dropped. Test: speed helper result with and without
-the feat.
+one extra map tile per move while the character is piloting. As built:
+`vessel_pilot_speed_bonus(ch)` in `src/vessels/vessels.c` (prototype in
+`vessels.h`), added to `move_distance` in `move_ship_wilderness()` before the
+weather reduction; the terrain modifier path was not the right hook because
+distance per move is what the pilot feels. Ship sales have no counterpart
+here and are dropped. Test: helper result with and without the feat.
 
 **FEAT_MINER** (RP 0.5). Duris: `INNATE_MINER` in `src/world/map.c` shows
 mines and gem mines on the map at distance. Ours: +4 harvest skill level for
 `RESOURCE_MINERALS`, `RESOURCE_STONE`, and `RESOURCE_CRYSTAL`. Hook:
-`get_harvest_skill_level()` in `src/wilderness/resource_system.c`. Test:
-skill level differs by 4 for minerals, unchanged for herbs.
+`get_harvest_skill_level()` in `src/wilderness/resource_system.c` (done).
+Test: skill level differs by 4 for minerals, stone and crystal, unchanged for
+herbs.
 
 **FEAT_BARTER** (RP 0.5). Duris: `INNATE_BARTER` in `src/economy/shop.c`:
 25 percent better price on a Charisma check, else 10 percent worse. Ours: a
 flat +10 to the character's side of the price modifier (the same weight as
-10 points of Charisma) in both directions. Hook: `buy_price()` and
-`sell_price()` in `src/obj/shop.c`, next to the appraise term. Test: buy
-price lower and sell price higher with the feat.
+10 points of Charisma) in both directions. As built: the charisma-plus-
+appraise term that `buy_price()` and `sell_price()` each computed twice is now
+`shop_haggle_score(ch)` in `src/obj/shop.c` (prototype in `shop.h`), and the
+feat adds 10 there, so both directions get it. Test: the score rises by 10
+with the feat.
 
 **FEAT_CALMING** (RP 1.5). Duris: `INNATE_CALMING` in `src/mob/mobact.c`,
 `src/world/handler.c`, `src/cmd/interp.c`: aggressive mobs skip the
 character 75 percent of the time and delay their attack when within five
 levels. Ours: an aggressive mob whose level is within five of the character
 skips it 50 percent of the time on each aggression check. Hook: the same
-`MOB_AGGRESSIVE` target loop as Undead Fealty. Test: with the roll forced,
-the mob skips; a mob six levels higher does not.
+`MOB_AGGRESSIVE` target loop as Undead Fealty, through `calming_applies(mob,
+vict)` in `src/utils.c` with the coin flip at the call site (done in Phase 2
+with the aggro loop). Test: the gate holds within five levels and not at
+six.
 
 ### Group 4: active abilities through the SLA table
 
@@ -389,87 +449,119 @@ All 3/day unless stated; all use `call_magic()` at character level.
 | `FEAT_SLA_LIGHTNING_BOLT` | `throwlightning` | `SPELL_LIGHTNING_BOLT` | current opponent, combat only | `do_throw_lightning()` | 1.5 |
 | `FEAT_SLA_FIRE_SHIELD` | `fireshield` | `SPELL_FIRE_SHIELD` | self, 1/day | `INNATE_FIRESHIELD` | 2 |
 | `FEAT_SLA_FIRE_STORM` | `firestorm` | `SPELL_FIRE_STORM` | room, 1/day | `INNATE_FIRESTORM` (no Duris implementation; spell exists here) | 2 |
-| `FEAT_SLA_SHADOW_JUMP` | `shadowdoor` | `SPELL_SHADOW_JUMP` | self, 1/day | `do_shadow_door()` casts dimension door | 1 |
-| `FEAT_SLA_PLANE_SHIFT` | `planeshift` | `SPELL_PLANE_SHIFT` | self, 1/day | `do_shift_astral()` and `do_shift_prime()`; one feat covers both directions | 2 |
-| `FEAT_SLA_PSIONIC_BLAST` | `mindblast` | `PSIONIC_PSIONIC_BLAST` | current opponent | `INNATE_BLAST`, `spell_innate_blast()` | 2 |
+| `FEAT_SLA_SHADOW_JUMP` | `shadowdoor <target>` | `SPELL_SHADOW_JUMP` | one character anywhere in the world, 1/day | `do_shadow_door()` casts dimension door; there is no dimension door here and `spell_shadow_jump()` with no target jumps to your own room, so the verb takes a target like the shadowdancer spell | 1 |
+| `FEAT_SLA_PLANE_SHIFT` | `planeshift <astral or ethereal or elemental or prime>` | `SPELL_PLANE_SHIFT` | self, 1/day; the plane name is required and copied to `cast_arg2`, which `spell_plane_shift()` reads | `do_shift_astral()` and `do_shift_prime()`; one feat covers both directions | 2 |
+| `FEAT_SLA_PSIONIC_BLAST` | `mindblast` | `PSIONIC_PSIONIC_BLAST` | current opponent; the power is `MAG_MASSES` here, so it stuns every hostile in the room and the target only has to exist | `INNATE_BLAST`, `spell_innate_blast()` | 2 |
 | `FEAT_SLA_SCARE` | `roar` | `SPELL_SCARE` | single opponent | `INNATE_OGREROAR` in `src/classes/new_skills.c` | 1.5 |
-| `FEAT_HASTE` (existing, repurposed) | `battlerage` | `SPELL_HASTE` | self, 1/day | `do_battle_rage()`, 60 s haste | 2 |
+| `FEAT_HASTE` (existing, repurposed as "innate haste") | `battlehaste` | `SPELL_HASTE` | self, 1/day | `do_battle_rage()`, 60 s haste. `battlerage` is taken by the domain power | 2 |
 | `FEAT_SLA_FIREBALL` | `fireball` | `SPELL_FIREBALL` | single opponent | `do_fireball()`; its cooldown gate is commented out in Duris, ours uses the daily gate | 1.5 |
 | `FEAT_SLA_MASS_DISPEL` | `massdispel` | `SPELL_DISPEL_MAGIC` | every other character in the room, 1/day | `do_mass_dispel()` | 2 |
-| `FEAT_SLA_FROST_BREATH` | `frostbreath` | `SPELL_FROST_BREATHE` (trace that `call_magic()` accepts it; else `SPELL_CONE_OF_COLD`) | single opponent | `INNATE_BARB_BREATH`, level d4 cold | 2 |
+| `FEAT_SLA_FROST_BREATH` | `frostbreath` | `SPELL_CONE_OF_COLD` (level d6 cold, single target). `SPELL_FROST_BREATHE` is the dragon breath: `MAG_AREAS`, level d16, far above the Duris level d4 | single opponent | `INNATE_BARB_BREATH`, level d4 cold | 2 |
 | `FEAT_SLA_WEB` | `webwrap` | `SPELL_WEB` | single opponent at most one size larger | `webwrap()` in `src/classes/innates.c`, minor paralysis 5 to 10 rounds | 1.5 |
 
-Test: for each row, `get_daily_uses()` returns the configured count, the
-verb refuses without the feat, and one use starts the cooldown event.
+Test (in place): for each row, `get_daily_uses()` returns the configured
+count, `feat_list[].event` is the row's event, `racial_sla_lookup()` finds
+the row, the verb refuses without the feat, a failed precondition (no
+opponent, not fighting, no plane name) does not spend a use, and one use
+starts the cooldown event. `call_magic()` itself is not driven from the
+test; that is the Phase 6 in-game check.
 
 ### Group 5: active abilities with bespoke commands
 
 **FEAT_BODYSLAM** (RP 1). Existing `bodyslam` command and `SKILL_BODYSLAM`;
-only the availability rule changes (bucket B). Test: the skill is available
-with the feat and not without, independent of race.
+only the availability rule changes (bucket B, done in Phase 1). Test: the
+skill is available with the feat and not without, independent of race.
 
 **FEAT_DOORBASH** (RP 0.5). Duris: `do_doorbash()` in
 `src/classes/innates.c` (and the Centaur `do_doorkick()` variant, merged
-here). Ours: finish the commented-out `do_doorbash` in
-`src/movement/movement.c`: `doorbash <direction>`; closed, non-pickproof exit;
-success on d300 at or below strength plus level; success opens the exit on
-both sides and breaks the lock, failure deals 1d6 plus a short wait. Register
-the command and `ACMD_DECL`. Test: refused without the feat; opens a closed
-door with the roll forced; pickproof refused.
+here). Ours: the commented-out `do_doorbash` in
+`src/movement/movement.c` is now real: `doorbash <direction>`; closed,
+non-pickproof exit; success on d300 at or below strength plus level; success
+opens the exit on both sides and breaks the lock through
+`doorbash_open_exit(ch, door)` (wrapped in `door_state_begin/finish` like the
+switch code), failure deals 1d6 bludgeoning. The command row's standard plus
+move action cost is the "short wait". Test: refused without the feat and on a
+pickproof door; the forced open clears closed and locked on both sides. The
+d300 roll is not forceable in the harness and is checked in game.
 
 **FEAT_STAMPEDE** (RP 1). Duris: `do_stampede()` in `src/cmd/actnew.c`
 (refused in single-file rooms and without footing). Ours: `stampede`
-attempts `perform_knockdown()` against every opponent fighting the character
-and deals unarmed damage to each on success; usable once per 3 rounds
-(`eSTAMPEDE` cooldown, not a daily use). Refused in `ROOM_SINGLEFILE`. Hook:
-new `ACMD(do_stampede)` in `src/combat/act.offensive.c`. Test: refused
-without the feat; hits every opponent in the room.
+attempts `perform_knockdown()` (as a bash) against every opponent fighting the
+character and follows each success with an unarmed `hit()`; usable once per 3
+rounds (`eSTAMPEDE` countdown event, not a daily use). Refused in
+`ROOM_SINGLEFILE` and when not fighting. Hook: `ACMD(do_stampede)` in
+`src/combat/act.offensive.c` before `do_children_of_the_night`. Test: refused
+without the feat, when not fighting, and in a single-file room. The trample
+itself needs live combat and is checked in game.
 
 **FEAT_RACIAL_FLURRY** (RP 2). Duris: `do_flurry()` in
 `src/classes/innates.c`: `AFF2_FLURRY` for four combat rounds, granting the
-maximum attack count. Ours: `flurry`, 1/day: one extra attack per round for
-four rounds, applied as a short affect that sets `AFF_HASTE` without
-stacking with real haste. Distinct from the monk `FEAT_FLURRY_OF_BLOWS`
-passive. Hook: new `ACMD(do_racial_flurry)` in `src/act.other.c`; the extra
-attack comes from the existing haste handling in `src/combat/fight.c`.
-Test: refused without the feat; affect present for four rounds; refused
-while already hasted.
+maximum attack count. Ours: `onslaught`, 1/day (the verb `flurry` is shadowed by the earlier
+`flurryofblows` row, because the interpreter takes the first table row whose
+name starts with the typed word): one extra attack per round for four
+rounds, applied as the `AFFECT_RACIAL_FLURRY` affect (id 1342 in
+`src/magic/spells.h`, registered with `affecto()` in `spell_parser.c`) that
+sets `AFF_HASTE`; refused while already hasted or already in a flurry, before
+the use is spent. Distinct from the monk `FEAT_FLURRY_OF_BLOWS` passive.
+Hook: `ACMD(do_racial_flurry)` in `src/act.other.c` after `do_racial_sla`;
+the extra attack comes from the existing haste handling in
+`src/combat/fight.c`. Test: refused without the feat; affect present with
+duration 4; refused while hasted with no use spent.
 
 **FEAT_SUMMON_WARG** (RP 1.5). Duris: `do_summon_warg()` in
 `src/classes/new_skills.c`, outdoors only, 1/day, delayed arrival, warg mount.
-Ours: 1/day, outdoors, loads a warg mount mob that follows the character;
-reuse the `FEAT_CALL_MOUNT` loading path in `src/act.other.c` with a warg
-vnum. Needs a warg mob; add `MOB_VNUM_RACIAL_WARG` to `src/vnums.example.h`
-(never hardcode) and a mob in the world files. Test: refused indoors; mob
-loaded and following.
+Ours: 1/day, outdoors, loads a warg mount that follows the character. As
+built: not the `FEAT_CALL_MOUNT` path but a `MAG_SUMMONS` ability
+(`ABILITY_SUMMON_WARG`, id 1343) cast through the SLA table row `summonwarg`
+(outdoors-only flag on the row), the way Children Of The Night works.
+`mag_summons()` in `src/magic/magic.c` loads `PET_RACIAL_WARG` (19502, in
+`src/pet_vnums.h` beside the other pet vnums, because `vnums.h` is a local
+untracked header) at two thirds of the caller's level and flags it
+`MOB_MOUNTABLE`. The warg prototype is in `lib/world/mob/195.mob` with the
+other code-loaded pets. Test: the row's daily count and event; refused
+indoors without spending a use. The load itself is checked in game.
 
 **FEAT_SUMMON_HORDE** (RP 1.5). Duris: `do_summon_horde()` in
 `src/classes/new_skills.c`, thrice weekly, prime plane only, orcs arrive over
-time. Ours: 1/day, loads two to four orc warrior mobs (vnum in
-`vnums.example.h`) as timed followers, the `FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT`
-model in `src/act.other.c`. Test: refused without the feat; followers loaded
-with the expiry affect.
+time. Ours: 1/day, loads two to four orc warriors as timed followers. As built:
+`ABILITY_SUMMON_HORDE` (id 1344), a `MAG_SUMMONS` ability on the SLA table row
+`summonhorde`; `mag_summons()` loads `PET_RACIAL_ORC_WARRIOR` (19503,
+`src/pet_vnums.h`, prototype in `lib/world/mob/195.mob`) two to four times at
+half the caller's level and attaches `ePURGEMOB` at 15 minutes to each, the
+Mislead decoy pattern. `can_add_summoned_followers()` in `src/utils.c` allows
+the count of 4 for this ability. Test: the row's daily count and event and
+the refusal without the feat. The load is checked in game.
 
 ## Phases and checklist
 
-- [ ] Phase 0, infrastructure: constants, `feato()` block, events, daily-use
+- [x] Phase 0, infrastructure: constants, `feato()` block, events, daily-use
       cases, SLA table and `do_racial_sla`, test file skeleton in both build
-      lists. Build clean with `-Wall -Wextra`.
-- [ ] Phase 1, bucket B wiring: fire and cold vulnerability, leap, giant
+      lists. Build clean with `-Wall -Wextra`. Done 2026-09-12.
+- [x] Phase 1, bucket B wiring: fire and cold vulnerability, leap, giant
       training, leonine frame, stability, lich spell resistance, fearlessness
-      text, haste repurpose, bodyslam availability. Existing races must behave exactly as before;
-      the test asserts the affected races still pass the old checks.
-- [ ] Phase 2, Group 1 (passive defence) and Group 2 (passive offence).
-- [ ] Phase 3, Group 3 (terrain and utility) and Group 4 (SLA table rows).
-- [ ] Phase 4, Group 5 (bespoke commands), including the warg and orc mob
-      vnums and world entries.
-- [ ] Phase 5, help in both stores for every feat and command; RP trait
-      table rows; master index entry; `feat info` and `race feats` checked in
-      game for one feat from each group.
-- [ ] Phase 6, verification: `make -j$(nproc)`, `make test`, `make install`
-      (no root `luminari` binary left), a login on port 4100 through
-      `MUD_PORT=4100 ./scripts/autorun/autorun.sh`, and a staff character
-      granted one feat per group with `set`/`feat` to exercise each verb.
+      text, haste repurpose, bodyslam availability. Existing races behave
+      exactly as before; the test asserts the affected races still hold the
+      feats that replaced the race checks. Done 2026-09-12.
+- [x] Phase 2, Group 1 (passive defence) and Group 2 (passive offence). Done
+      2026-09-12.
+- [x] Phase 3, Group 3 (terrain and utility) and Group 4 (SLA table rows).
+      Done 2026-09-12 (the SLA rows landed with Phase 0).
+- [x] Phase 4, Group 5 (bespoke commands), including the warg and orc mob
+      vnums and world entries. Done 2026-09-12. Warg and horde are SLA rows,
+      so only flurry, doorbash and stampede are bespoke commands.
+- [x] Phase 5, help in both stores for every feat and command; RP trait
+      table rows; master index entry (already present). Done 2026-09-12. The
+      in-game `feat info` check is folded into Phase 6.
+- [x] Phase 6, verification: `make -j$(nproc)`, `make test` (1418 tests),
+      `make install` (no root `luminari` binary left), a restart on port 4100
+      through `MUD_PORT=4100 ./scripts/autorun/autorun.sh`, and a staff
+      session through `scripts/development/dev_kohdee_login_smoke.sh
+      --commands` that granted one feat per group with `featset`, checked
+      `feat info` for each, and exercised `farsee`, `onslaught`,
+      `battlehaste` (refused while hasted), `stampede` (refused when not
+      fighting), `doorbash` (refused on an open way), `summonhorde` (orcs
+      loaded and grouped), `summonwarg` (refused indoors), and the
+      `help` entries, then revoked the feats. Done 2026-09-12.
 
 Each phase is a reviewable commit. Phases 2 through 4 can run in any order
 after Phase 0.
@@ -505,3 +597,150 @@ after Phase 0.
   three sector sets are needed.
 - Dropped mechanics with no implementation in Duris rather than inventing
   them.
+- Giant training keeps the +4 AC that already exists instead of a new +1 AC
+  and +1 attack pair: only the gate moves from a race list to the feat.
+- Leonine frame hooks the existing `character_wear_slot_restriction()`
+  helper instead of adding a check to `act.item.c`; the race table already
+  carries the same restriction for Wemic and Trelux.
+- The `FEAT_HASTE` "(3x/day)" special case in the feat list display was
+  removed rather than rewritten; the short description carries "1/day" like
+  the other SLA feats.
+- Summon Warg and Summon Horde are `MAG_SUMMONS` abilities on the SLA table
+  instead of two bespoke commands: the summons routine already does the
+  loading, charming, follower limits and messages, so only a selection case
+  and a post-load case per ability were needed.
+
+## Progress log
+
+Keep this current. A new session should be able to continue from here
+without re-reading the conversation.
+
+- 2026-09-12, Phase 0 done. Files: `src/structs.h` (48 constants 1268 to
+  1315, `FEAT_LAST_FEAT` 1316, `NUM_FEATS` 1317), `src/mud_event.h` (18
+  events before `eMUD_EVENT_COUNT`), `src/mud_event_list.c` (18 rows at the
+  end; `eSTAMPEDE` is an `event_countdown` row, the rest
+  `event_daily_use_cooldown`), `src/mud_event.c` (17 `PERSIST_CHARACTER_EVENT`
+  rows; `eSTAMPEDE` is a three-round cooldown and is not persisted),
+  `src/character/feats.c` (Duris block after `FEAT_LEONINE_FRAME`, `FEAT_HASTE`
+  moved into it, 17 `dailyfeat()` lines, `FEAT_HASTE` display special case
+  removed), `src/utils.c` (`get_daily_uses()` cases), `src/interpreter.h`
+  (`SCMD_RSLA_*`), `src/act.h`, `src/act.other.c`, `src/interpreter.c`,
+  `unittests/CuTest/test_racial_innate_feats.c` (four tests), `Makefile.am`,
+  `CMakeLists.txt`, and `unittests/CuTest/test_syntax_check_boot.c` (persisted
+  event count 93 to 110).
+- 2026-09-12, Phase 6 done; the in-game pass found that `flurry` was shadowed
+  by the earlier `flurryofblows` command row (prefix match in table order), so
+  the racial flurry verb became `onslaught` in `src/interpreter.c`, the feat
+  text, the recovery message, the help entry and this plan. Every other new
+  verb was checked for an earlier prefix row. The same pass showed
+  `battlehaste` landing on top of an active racial flurry (the flag does not
+  stack, but the daily use was wasted), so the SLA handler now refuses innate
+  haste while `AFF_HASTE` is set from any source. Not exercised in game: the
+  doorbash success roll, the stampede trample in live combat, the warg load
+  outdoors, and the offensive SLAs against a target; each shares its path
+  with a verified sibling (summonhorde, the SLA handler, `perform_knockdown`).
+- 2026-09-12, PR #159 CI fix. `unittests/CuTest/test_racial_innate_feats.c`
+  now includes `character/abilities.h` (clang treats the implicit
+  declarations of `compute_ability` and `racial_terrain_ability_bonus` as
+  errors). `scripts/world/wtool_constants.json` regenerated with
+  `python3 scripts/world/wtool.py constants sync --write` because `NUM_FEATS`
+  moved from 1269 to 1317; the world-tools check compares that manifest with
+  `src/structs.h`. Remember both steps whenever `NUM_FEATS` changes again.
+- 2026-09-12, PR #159 review pass. `src/utils.c`: `sun_cover_protects()`
+  (any about-body item shelters, wind wall or a grapple strips it, the
+  vampire cloak still counts through `is_covered()`); follower categories
+  `FOLLOWER_WARG` and `FOLLOWER_ORC_HORDE` keyed by prototype vnum, the
+  horde limit is 4 and `can_add_summoned_followers()` checks the whole
+  batch. `src/magic/magic.c`: both pets in `isSummonMob()`, caster-facing
+  summon messages 36 and 37. `src/act.other.c`: `shadowdoor` refuses self,
+  the SLA handler and `onslaught` spend their declared action.
+  `src/movement/movement.c`: `doorbash` spends its full-round action on
+  both outcomes. `src/combat/act.offensive.c`: `stampede` spends its
+  action and stops when the stampeder dies or leaves the room.
+  `Makefile.am` lists the help SQL component. The QUADRUPED-BODY help
+  entry (file, SQL, dev database) now points at `FEAT INFO LEONINE FRAME`
+  and `WEMIC` instead of a keyword that does not exist. Caution for the
+  summon message tables in `src/magic/magic.c`: the `// N` comments skip
+  18, so from the dire wolf onward each comment is one higher than the real
+  array index; `mag_summons()` indexes by real position, and the warg and
+  horde rows sit at real 36 and 37 (verified in game).
+- 2026-09-12, PR #159 second review pass (adversarial). `src/act.other.c`:
+  the SLA handler spends its action and daily use only once the ability
+  committed: a `call_magic()` fizzle (no-magic, anti-magic, peaceful, pvp)
+  returns early, `shadowdoor` and `planeshift` must have moved the caster,
+  `summonwarg` and `summonhorde` must have added a follower. `massdispel`
+  no longer goes through `call_magic()` (a violent spell there starts fights
+  with pets and bystanders); it filters with `aoeOK()`, `CAN_SEE()` and
+  `pvp_ok()`, applies `perform_dispel()` directly, spends the action when it
+  had a target and the daily use only when an affect came off. `onslaught`
+  refuses while slowed. `src/magic/magic.c`: slow strips
+  `AFFECT_RACIAL_FLURRY` alongside `SPELL_HASTE`. `src/magic/spells.c`:
+  `spell_shadow_jump` had its shadow predicate inverted (it refused two dark
+  rooms); it now fails when either room is lit and carries teleport's
+  `MOB_NOTELEPORT` and `IS_POWERFUL_BEING` guards. `src/combat/act.offensive.c`:
+  `stampede` needs a grounded target who is fighting you or whom you are
+  fighting before it spends its cooldown; both count as trample targets.
+  Five tests added; the fixture now has three rooms because `call_magic()`
+  only checks room flags for rnums strictly between 0 and `top_of_world`.
+  The `Clean archive, both build systems` job fails on master at the merge
+  base with the same two tests (`test_syntax_check_boot.c:526`,
+  `test_database_persistence.c:807`); that is pre-existing and not from
+  this branch.
+- Open follow-ups: assigning feats to races (the companion study's
+  per-race lists), the `innates` style summary the study mentions, and a
+  help-sync run when the user wants the new entries on production. Any
+  checkout that has not run them yet also needs
+  `sql/components/help_duris_racial_innate_entries.sql` applied and
+  `python3 scripts/world/install_pet_constructs.py` run so the warg and
+  orc warrior prototypes exist in `lib/world/mob/195.mob`.
+- 2026-09-12, Phase 5 done. `sql/components/help_duris_racial_innate_entries.sql`
+  (49 entries, applied to the development database), `lib/text/help/help.hlp`
+  (48 new entries, `BODYSLAM` rewritten), `docs/guides/PLAYER_RACES_REFERENCE.md`
+  (six trait rows, three drawback rows), `data/pet-lycanthropes/195.mob` and
+  its README (warg 19502, orc warrior 19503).
+- 2026-09-12, Phase 4 done. `src/magic/spells.h` (three ids at 1342 to 1344),
+  `src/magic/spell_parser.c` (two `spello()` summons rows, one `affecto()`),
+  `src/magic/magic.c` (`mag_summons()` selection and post-load cases, two
+  message rows replacing fillers 36 and 37), `src/utils.c`
+  (`can_add_summoned_followers()` count 4 for the horde), `src/pet_vnums.h`,
+  `lib/world/mob/195.mob` (19502 warg, 19503 orc warrior),
+  `src/interpreter.h` (`SCMD_RSLA_SUMMON_WARG`, `SCMD_RSLA_SUMMON_HORDE`,
+  `NUM_RACIAL_SLAS` 16), `src/act.other.c` (two rows, outdoors-only flag,
+  `do_racial_flurry`), `src/movement/movement.c` (`doorbash_open_exit`,
+  `do_doorbash`), `src/combat/act.offensive.c` (`do_stampede`), `src/act.h`,
+  `src/interpreter.c` (five rows). Three tests added, SLA expectations
+  extended.
+- 2026-09-12, Phase 3 done. `src/character/abilities.c`
+  `racial_terrain_ability_bonus()` in the stealth and perception cases;
+  `src/wilderness/resource_system.c` `get_harvest_skill_level()`;
+  `src/obj/shop.c` `shop_haggle_score()` used by both price helpers;
+  `src/vessels/vessels.c` `vessel_pilot_speed_bonus()` in
+  `move_ship_wilderness()`. Three tests added.
+- 2026-09-12, Phase 2 done. Helpers: `src/utils.c` (`suffers_sun_vulnerability`,
+  `is_dayblinded`, `char_is_blinded`, `count_grouped_in_room`,
+  `racial_warcallers_fury_bonus`, `racial_rrakkma_allies`,
+  `racial_quick_thinking_chance`, `undead_fealty_protects`, `calming_applies`,
+  and `can_blind()` refuses eyeless) with prototypes in `src/utils.h` after
+  `has_blindsense`; `src/combat/fight.c` (`racial_weapon_mastery_bonus`,
+  `racial_spell_absorb_chance`, `racial_sacrilegious_power_reduction`,
+  `battle_frenzy_applies`) with prototypes in `src/combat/fight.h`. Hooks:
+  `src/utils.h` vision macros, `src/limits.c` (regen, sun tick, water breath
+  flag), `src/mob/mob_act.c` aggro loop, `src/combat/act.offensive.c`
+  `perform_knockdown()`, `src/act.other.c` `do_mount`, `src/magic/magic.c`
+  `savingthrow_full()`, and `src/combat/fight.c` (`compute_damtype_reduction`
+  block before the type switch, spell absorb in `damage_handling_with_weapon`,
+  position switches, rrakkma AC, hatred and mastery beside Bloodhunt in both
+  bonus builders, warcaller's fury in the damage builder, battle frenzy beside
+  Whirling Steel in `hit()`).
+- 2026-09-12, Phase 1 done. `src/combat/fight.c`: fire (-50) and cold (-20)
+  vulnerability in `compute_damtype_reduction()`, the leap dodge in
+  `damage_handling_with_weapon()`, and the +4 AC vs larger attackers in
+  `compute_armor_class()` now check the feats. `src/magic/magic.c`:
+  `compute_spell_res()` checks `FEAT_LICH_SPELL_RESIST`.
+  `src/combat/act.offensive.c`: both stability checks in `perform_knockdown()`
+  use `FEAT_STABILITY`. `src/character/skill_lists.c`: bodyslam needs
+  `FEAT_BODYSLAM`. `src/character/race.c`: `character_wear_slot_restriction()`
+  refuses legs and feet for `FEAT_LEONINE_FRAME`; crystal dwarf gains the
+  `FEAT_STABILITY` assignment and half-troll the `FEAT_BODYSLAM` assignment
+  it needed to keep its behaviour. `src/character/feats.c`: fearlessness and
+  giant-training text, lich long text says 15 + level. Seven tests added.

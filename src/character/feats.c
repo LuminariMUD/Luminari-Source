@@ -844,7 +844,7 @@ void assign_feats(void)
   feato(FEAT_LICH_SPELL_RESIST, "lich spell resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "15 + level spell resist",
         "Due to their undead magical nature, Lich have a strong natural resistance "
-        "to magic.  A Lich's spell resistance is equal to 10 + their level.");
+        "to magic.  A Lich's spell resistance is equal to 15 + their level.");
   feato(FEAT_LICH_DAM_RESIST, "lich damage resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+4 general damage resist",
         "Due to their undead nature, Lich have a strong natural damage resistance. "
@@ -1026,9 +1026,8 @@ void assign_feats(void)
   feato(FEAT_KENDER_TAUNT, "kender taunt", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Kender gain a +4 bonus to the taunt ability.",
         "Kender gain a +4 bonus to the taunt ability, and can perform taunts as a swift action.");
-  feato(FEAT_KENDER_FEARLESSNESS, "kender fearlessness", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "Kender are immune to fear, normal and magical.",
-        "Kender are immune to fear, normal and magical.");
+  feato(FEAT_KENDER_FEARLESSNESS, "fearlessness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Immune to fear, normal and magical.", "Immune to fear, normal and magical.");
   feato(FEAT_KENDER_LUCK, "kender luck", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Kender gain a +1 luck bonus on all saving throws.",
         "Kender gain a +1 luck bonus on all saving throws.");
@@ -1073,8 +1072,8 @@ void assign_feats(void)
         "You can see outlines of life in complete dark, and see fully when outside at night.",
         "You can see outlines of life in complete dark, and see fully when outside at night.");
   feato(FEAT_COMBAT_TRAINING_VS_GIANTS, "combat training vs giants", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "+1 size bonus versus larger opponents",
-        "+1 size bonus versus larger opponents");
+        FEAT_TYPE_INNATE_ABILITY, "+4 size bonus to armor class versus larger opponents",
+        "You gain a +4 size bonus to armor class against opponents larger than you.");
   feato(FEAT_POISON_RESIST, "poison resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 saves versus poison", "+2 saves versus poison");
   feato(FEAT_VITAL, "vital", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "start with +10 hps",
@@ -5505,8 +5504,6 @@ void assign_feats(void)
   feato(FEAT_DEITY_WEAPON_PROFICIENCY, "deity's weapon proficiency", FALSE, FALSE, FALSE,
         FEAT_TYPE_CLASS_ABILITY, "allows you to use the weapon of your deity",
         "allows you to use the weapon of your deity");
-  feato(FEAT_HASTE, "haste", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "can cast haste 3x per day", "can cast haste 3x per day");
 
   /* dragon disciple */
   feato(FEAT_DRAGON_APOTHEOSIS, "dragon apotheosis", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -5987,6 +5984,199 @@ void assign_feats(void)
         "cannot wear leg or foot equipment",
         "Your humanoid torso rises from a powerful four-legged leonine body. This anatomy "
         "prevents you from wearing equipment in the legs and feet slots.");
+
+  /* Duris racial innates converted to feats.  None of these are assigned to a race here;
+   * see docs/ongoing-projects/DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  /* passive defence and resistance */
+  feato(FEAT_SUN_VULNERABILITY, "sun vulnerability", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "drawback: no regeneration and 1d8 damage per round in sunlight",
+        "Drawback.  While in direct sunlight you do not recover hit points or movement and you "
+        "take 1d8 damage each round.  Forests, marshland, and magical darkness shelter you.");
+  feato(FEAT_DAYBLIND, "dayblind", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "drawback: blinded while in direct sunlight",
+        "Drawback.  Direct sunlight blinds you.  Indoors, under magical darkness, or when you have "
+        "no eyes to blind (eyeless), you see normally.");
+  feato(FEAT_MAGIC_VULNERABILITY, "magic vulnerability", TRUE, FALSE, FALSE,
+        FEAT_TYPE_INNATE_ABILITY, "drawback: take 10 percent more damage from spells",
+        "Drawback.  You take 10 percent more damage from any spell or spell-like attack.");
+  feato(FEAT_MAGICAL_REDUCTION, "magical reduction", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "20 percent less force and energy damage",
+        "Your body shrugs off raw magic.  You take 20 percent less force and energy damage.");
+  feato(FEAT_THICK_HIDE, "thick hide", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "15 percent less slashing, piercing and bludgeoning damage",
+        "Your thick hide turns aside blows.  You take 15 percent less slashing, piercing and "
+        "bludgeoning damage.");
+  feato(FEAT_SACRILEGIOUS_POWER, "sacrilegious power", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "holy damage reduced 25/50/75 percent at levels 20/25/30",
+        "Your profane nature blunts holy power.  You take 25 percent less holy damage at level 20, "
+        "50 percent less at level 25 and 75 percent less at level 30.");
+  feato(FEAT_SPELL_ABSORB, "spell absorb", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "level/2 percent chance to absorb a damaging spell",
+        "When a damaging spell strikes you there is a chance equal to half your level, in percent, "
+        "that you absorb it and take no damage.");
+  feato(FEAT_EYELESS, "eyeless", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "immune to blindness",
+        "You have no eyes to blind.  Blindness effects cannot affect you and you sense your "
+        "surroundings normally while others would be blinded.  This does not grant darkvision.");
+  feato(
+      FEAT_QUICK_THINKING, "quick thinking", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+      "15 percent chance to reroll a failed will save",
+      "Your mind recovers quickly.  When you fail a will saving throw there is a 15 percent chance "
+      "that you may roll it again.");
+  feato(
+      FEAT_GROUNDFIGHTING, "groundfighting", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+      "no attack or armor class penalty while prone or sitting",
+      "You fight as well from the ground as on your feet.  You take no attack roll or armor class "
+      "penalty for being prone or sitting.");
+  feato(FEAT_QUADRUPED_BODY, "quadruped body", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "immune to knockdown from attackers your size or smaller, cannot mount",
+        "Your four-legged body is nearly impossible to topple.  Bash, trip and similar knockdowns "
+        "automatically fail unless the attacker is larger than you.  You cannot ride a mount.");
+  feato(FEAT_WATER_BREATHING, "water breathing", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "breathe underwater at all times", "You breathe water as easily as air and never drown.");
+  feato(
+      FEAT_UNDEAD_FEALTY, "undead fealty", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+      "undead 10 or more levels below you never attack you unprovoked",
+      "The restless dead recognize you.  Aggressive undead at least ten levels below you will not "
+      "attack you unprovoked.");
+  /* passive offence */
+  feato(FEAT_AXE_MASTERY, "axe mastery", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+1 attack and damage per 8 levels with axes",
+        "You gain +1 to attack and damage rolls per 8 character levels (maximum +3) while your "
+        "primary weapon is an axe.");
+  feato(FEAT_HAMMER_MASTERY, "hammer mastery", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+1 attack and damage per 8 levels with hammers",
+        "You gain +1 to attack and damage rolls per 8 character levels (maximum +3) while your "
+        "primary weapon is a hammer.");
+  feato(FEAT_LONGSWORD_MASTERY, "longsword mastery", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+1 attack and damage per 8 levels with long swords",
+        "You gain +1 to attack and damage rolls per 8 character levels (maximum +3) while your "
+        "primary weapon is a long sword.");
+  feato(FEAT_GREATSWORD_MASTERY, "greatsword mastery", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+1 attack and damage per 8 levels with great swords",
+        "You gain +1 to attack and damage rolls per 8 character levels (maximum +3) while your "
+        "primary weapon is a great sword.");
+  feato(FEAT_HATRED, "hatred", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+1 attack and +2 damage against evil opponents",
+        "An old hatred drives your blows.  You gain +1 to attack rolls and +2 to damage against "
+        "evil-aligned opponents.");
+  feato(FEAT_BATTLE_FRENZY, "battle frenzy", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "5 percent chance per melee hit on a humanoid to gain an extra attack",
+        "Each successful melee hit against a humanoid has a 5 percent chance to whip you into a "
+        "frenzy, granting one extra attack that round.");
+  feato(FEAT_WARCALLERS_FURY, "warcaller's fury", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+1 damage per grouped member in the room, maximum +5",
+        "The press of allies drives you on.  You gain +1 damage per member of your group in the "
+        "room, yourself included, to a maximum of +5.");
+  feato(FEAT_RRAKKMA, "rrakkma", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+1 AC and +2 saves vs spells per grouped ally with this feat, maximum 5",
+        "You fight best beside your own kind.  For each other grouped character in the room who "
+        "also has this feat (up to five) you gain +1 armor class and +2 on saving throws against "
+        "spells.");
+  /* terrain and utility */
+  feato(FEAT_OUTDOOR_STEALTH, "outdoor stealth", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+6 stealth outdoors",
+        "You blend into open country.  You gain +6 to stealth checks in any outdoor sector outside "
+        "the underdark.");
+  feato(FEAT_SWAMP_STEALTH, "swamp stealth", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+6 stealth in marshland",
+        "You are at home in the mire.  You gain +6 to stealth checks in marshland.");
+  feato(FEAT_UNDERDARK_STEALTH, "underdark stealth", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+6 stealth in the underdark",
+        "The deep places hide you.  You gain +6 to stealth checks in underdark sectors.");
+  feato(FEAT_FOREST_SIGHT, "forest sight", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+4 perception in forests",
+        "Your eyes are made for the woods.  You gain +4 to perception checks in forest sectors.");
+  feato(FEAT_SEADOG, "seadog", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+1 vessel speed while at the helm",
+        "Born to the waves, you coax an extra knot from any vessel you pilot: +1 to the vessel's "
+        "effective speed while you are at the helm.");
+  feato(FEAT_MINER, "miner", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+4 harvest skill for minerals, stone and crystal",
+        "You read the rock.  You gain +4 effective harvest skill when gathering minerals, stone "
+        "and crystal.");
+  feato(FEAT_BARTER, "barter", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "better prices when buying and selling",
+        "You haggle by instinct.  Shops treat you as if you had 10 more points of charisma when "
+        "setting buy and sell prices.");
+  feato(FEAT_CALMING, "calming", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "aggressive mobs near your level skip you half the time",
+        "Something about you soothes hostile creatures.  An aggressive creature within five levels "
+        "of you ignores you half the time it would otherwise attack unprovoked.");
+  /* spell-like abilities, all through the racial SLA commands */
+  feato(FEAT_SLA_FARSEE, "innate farsee", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "sla - farsee 3/day",
+        "You can use 'farsee' to see far beyond the horizon three times per day.");
+  feato(FEAT_SLA_STONESKIN, "innate stoneskin", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "sla - stoneskin 1/day",
+        "You can use 'stoneskin' to harden your skin against blows once per day.");
+  feato(FEAT_SLA_LIGHTNING_BOLT, "innate lightning bolt", TRUE, FALSE, FALSE,
+        FEAT_TYPE_INNATE_ABILITY, "sla - throwlightning at your opponent 3/day",
+        "While fighting you can use 'throwlightning' to hurl a lightning bolt at your opponent "
+        "three times per day.");
+  feato(FEAT_SLA_FIRE_SHIELD, "innate fire shield", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "sla - fireshield 1/day",
+        "You can use 'fireshield' to wreathe yourself in flames once per day.");
+  feato(FEAT_SLA_FIRE_STORM, "innate fire storm", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "sla - firestorm on the room 1/day",
+        "You can use 'firestorm' to engulf everyone around you in flames once per day.");
+  feato(FEAT_SLA_SHADOW_JUMP, "innate shadow jump", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "sla - shadowdoor to a distant character 1/day",
+        "You can use 'shadowdoor <target>' to step through shadow to another character's side "
+        "once per day.");
+  feato(FEAT_SLA_PLANE_SHIFT, "innate plane shift", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "sla - planeshift 1/day",
+        "You can use 'planeshift <astral|ethereal|elemental|prime>' to cross the planes once "
+        "per day.");
+  feato(FEAT_SLA_PSIONIC_BLAST, "innate psionic blast", TRUE, FALSE, FALSE,
+        FEAT_TYPE_INNATE_ABILITY, "sla - mindblast 3/day",
+        "You can use 'mindblast' to unleash a stunning psionic blast at your enemies three times "
+        "per day.");
+  feato(FEAT_SLA_SCARE, "innate scare", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "sla - roar to terrify an opponent 3/day",
+        "You can use 'roar' to terrify an opponent three times per day.");
+  feato(FEAT_HASTE, "innate haste", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "sla - battlehaste on yourself 1/day",
+        "You can use 'battlehaste' to work yourself into a hasted battle fury once per day.");
+  feato(FEAT_SLA_FIREBALL, "innate fireball", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "sla - fireball an opponent 3/day",
+        "You can use 'fireball' to hurl a ball of flame at an opponent three times per day.");
+  feato(FEAT_SLA_MASS_DISPEL, "innate mass dispel", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "sla - massdispel everyone else in the room 1/day",
+        "You can use 'massdispel' to strip magic from everyone else in the room once per day.");
+  feato(FEAT_SLA_FROST_BREATH, "innate frost breath", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "sla - frostbreath at an opponent 3/day",
+        "You can use 'frostbreath' to breathe a cone of cold at an opponent three times per day.");
+  feato(FEAT_SLA_WEB, "innate web", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "sla - webwrap an opponent 3/day",
+        "You can use 'webwrap' to bind an opponent no more than one size larger than you in "
+        "webbing three times per day.");
+  /* active abilities with their own commands */
+  feato(FEAT_BODYSLAM, "bodyslam", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "grants the bodyslam skill",
+        "You can use 'bodyslam' to hurl your body at an opponent and knock them down.");
+  feato(FEAT_DOORBASH, "doorbash", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "break open closed doors by force",
+        "You can use 'doorbash <direction>' to smash open a closed door.  Success depends on your "
+        "strength and level; failure hurts.");
+  feato(FEAT_STAMPEDE, "stampede", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "knock down every opponent fighting you",
+        "You can use 'stampede' to trample every opponent fighting you, knocking down and "
+        "damaging each you overrun.  Usable once every three rounds, not in single-file rooms.");
+  feato(FEAT_RACIAL_FLURRY, "racial flurry", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "onslaught: one extra attack per round for four rounds, 1/day",
+        "You can use 'onslaught' once per day to unleash one extra attack per round for four "
+        "rounds. "
+        "It does not stack with haste.");
+  feato(FEAT_SUMMON_WARG, "summon warg", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "summonwarg: call a warg mount outdoors 1/day",
+        "You can use 'summonwarg' outdoors once per day to call a warg that follows you and can "
+        "be ridden.");
+  feato(FEAT_SUMMON_HORDE, "summon horde", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "summonhorde: call orc warriors to your side 1/day",
+        "You can use 'summonhorde' once per day to call two to four orc warriors who follow you "
+        "for a time.");
   feat_prereq_ability(FEAT_SHADOW, ABILITY_STEALTH, 21);
   feat_prereq_attribute(FEAT_CALM, AB_CHA, 19);
   feat_prereq_ability(FEAT_ESTABLISH_CAMP, ABILITY_SURVIVAL, 3);
@@ -6099,6 +6289,24 @@ void assign_feats(void)
   dailyfeat(FEAT_SLA_LEVITATE, eSLA_LEVITATE);
   dailyfeat(FEAT_SLA_DARKNESS, eSLA_DARKNESS);
   dailyfeat(FEAT_SLA_FAERIE_FIRE, eSLA_FAERIE_FIRE);
+  /* Duris racial innates */
+  dailyfeat(FEAT_SLA_FARSEE, eSLA_FARSEE);
+  dailyfeat(FEAT_SLA_STONESKIN, eSLA_STONESKIN);
+  dailyfeat(FEAT_SLA_LIGHTNING_BOLT, eSLA_LIGHTNING_BOLT);
+  dailyfeat(FEAT_SLA_FIRE_SHIELD, eSLA_FIRE_SHIELD);
+  dailyfeat(FEAT_SLA_FIRE_STORM, eSLA_FIRE_STORM);
+  dailyfeat(FEAT_SLA_SHADOW_JUMP, eSLA_SHADOW_JUMP);
+  dailyfeat(FEAT_SLA_PLANE_SHIFT, eSLA_PLANE_SHIFT);
+  dailyfeat(FEAT_SLA_PSIONIC_BLAST, eSLA_PSIONIC_BLAST);
+  dailyfeat(FEAT_SLA_SCARE, eSLA_SCARE);
+  dailyfeat(FEAT_HASTE, eSLA_HASTE);
+  dailyfeat(FEAT_SLA_FIREBALL, eSLA_FIREBALL);
+  dailyfeat(FEAT_SLA_MASS_DISPEL, eSLA_MASS_DISPEL);
+  dailyfeat(FEAT_SLA_FROST_BREATH, eSLA_FROST_BREATH);
+  dailyfeat(FEAT_SLA_WEB, eSLA_WEB);
+  dailyfeat(FEAT_RACIAL_FLURRY, eRACIAL_FLURRY);
+  dailyfeat(FEAT_SUMMON_WARG, eSUMMON_WARG);
+  dailyfeat(FEAT_SUMMON_HORDE, eSUMMON_HORDE);
   dailyfeat(FEAT_AASIMAR_HEALING_HANDS, eAASIMAR_HEALING_HANDS);
   dailyfeat(FEAT_AASIMAR_LIGHT_BEARER, eAASIMAR_LIGHT_BEARER);
   dailyfeat(FEAT_LAYHANDS, eLAYONHANDS);
@@ -8174,22 +8382,6 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         {
           snprintf(buf3, sizeof(buf3), "%s (%d/-)", feat_list[i].name,
                    HAS_FEAT(ch, FEAT_ENERGY_RESISTANCE) * 3);
-          snprintf(buf, sizeof(buf), "%-40s ", buf3);
-        }
-        strlcat(buf2, buf, sizeof(buf2));
-        none_shown = FALSE;
-      }
-      else if (i == FEAT_HASTE)
-      {
-        if (mode == 1)
-        {
-          snprintf(buf3, sizeof(buf3), "%s (3x/day)", feat_list[i].name);
-          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3,
-                   feat_list[i].short_description);
-        }
-        else
-        {
-          snprintf(buf3, sizeof(buf3), "%s (3x/day)", feat_list[i].name);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));

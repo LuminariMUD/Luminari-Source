@@ -1124,7 +1124,9 @@ enum follower_category
   FOLLOWER_GENERAL,
   FOLLOWER_SUMMON,
   FOLLOWER_GENIE,
-  FOLLOWER_SHAMBLER
+  FOLLOWER_SHAMBLER,
+  FOLLOWER_WARG,     /* Duris racial innate: one summoned mount */
+  FOLLOWER_ORC_HORDE /* Duris racial innate: two to four orcs as one unit */
 };
 
 static const struct
@@ -1137,6 +1139,8 @@ static const struct
     {-1, NOBODY, "Summon"},
     {MOB_GENIEKIND, NOBODY, "Genie"},
     {-1, NOBODY, "Shambler group"},
+    {-1, PET_RACIAL_WARG, "Warg"},
+    {-1, PET_RACIAL_ORC_WARRIOR, "Orc horde"},
     {MOB_C_O_T_N, NOBODY, "Children of the night"},
     {MOB_VAMP_SPWN, NOBODY, "Vampire spawn"},
     {MOB_DRAGON_KNIGHT, NOBODY, "Dragon knight"},
@@ -1281,6 +1285,8 @@ static int follower_category_limit(struct char_data *ch, size_t category)
     return 1 + MAX(0, GET_CHA_BONUS(ch));
   if (category == FOLLOWER_SUMMON)
     return IS_SUMMONER(ch) ? 2 : 1;
+  if (category == FOLLOWER_ORC_HORDE)
+    return 4;
   if (follower_rules[category].flag == MOB_ANIMATED_DEAD)
     return CLASS_LEVEL(ch, CLASS_NECROMANCER) > 0 ? 4 : 2;
   return 1;
@@ -1447,13 +1453,22 @@ bool can_add_summoned_followers(struct char_data *ch, int mob_vnum, int spell, i
       real_mobile(mob_vnum) == NOBODY)
     return false;
   flag = summoned_follower_flag(spell);
-  maximum = spell == SPELL_ELEMENTAL_SWARM ? 8 : (spell == SPELL_SHAMBLER ? 6 : 1);
+  maximum = spell == SPELL_ELEMENTAL_SWARM  ? 8
+            : spell == SPELL_SHAMBLER       ? 6
+            : spell == ABILITY_SUMMON_HORDE ? 4 /* Duris racial innate: 2 to 4 orcs */
+                                            : 1;
   if (count < 1 || count > maximum)
     return false;
   if (spell == SPELL_SHAMBLER)
   {
     count_followers(ch, -1, NOBODY, &counts);
     return follower_category_available(ch, FOLLOWER_SHAMBLER, &counts);
+  }
+  if (spell == ABILITY_SUMMON_HORDE)
+  { /* the whole horde must fit, not just its first orc */
+    count_followers(ch, -1, NOBODY, &counts);
+    return counts.categories[FOLLOWER_ORC_HORDE] + count <=
+           follower_category_limit(ch, FOLLOWER_ORC_HORDE);
   }
   if (flag == MOB_ANIMATED_DEAD)
   {
@@ -5681,6 +5696,28 @@ int get_daily_uses(struct char_data *ch, int featnum)
   case FEAT_MASTER_OF_THE_MIND:
     daily_uses = 3;
     break;
+  /* Duris racial innates */
+  case FEAT_SLA_FARSEE:
+  case FEAT_SLA_LIGHTNING_BOLT:
+  case FEAT_SLA_PSIONIC_BLAST:
+  case FEAT_SLA_SCARE:
+  case FEAT_SLA_FIREBALL:
+  case FEAT_SLA_FROST_BREATH:
+  case FEAT_SLA_WEB:
+    daily_uses = 3;
+    break;
+  case FEAT_SLA_STONESKIN:
+  case FEAT_SLA_FIRE_SHIELD:
+  case FEAT_SLA_FIRE_STORM:
+  case FEAT_SLA_SHADOW_JUMP:
+  case FEAT_SLA_PLANE_SHIFT:
+  case FEAT_HASTE:
+  case FEAT_SLA_MASS_DISPEL:
+  case FEAT_RACIAL_FLURRY:
+  case FEAT_SUMMON_WARG:
+  case FEAT_SUMMON_HORDE:
+    daily_uses = 1;
+    break;
   case FEAT_SHADOW_ILLUSION:
     daily_uses += CLASS_LEVEL(ch, CLASS_SHADOWDANCER) / 2;
     break;
@@ -8044,6 +8081,8 @@ bool can_blind(struct char_data *ch)
 {
   if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOBLIND))
     return false;
+  if (HAS_FEAT(ch, FEAT_EYELESS)) /* nothing to blind */
+    return false;
   if (affected_by_spell(ch, PSIONIC_OAK_BODY))
     return false;
   if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
@@ -8222,6 +8261,128 @@ bool has_blindsense(struct char_data *ch)
     return true;
 
   return false;
+}
+
+/* ---- Duris racial innates ----
+ * see docs/ongoing-projects/DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md */
+
+/* anything worn about the body shelters from the sun, unless wind or a
+ * grapple has torn it open; the vampire cloak counts through is_covered() */
+static bool sun_cover_protects(struct char_data *ch)
+{
+  if (is_covered(ch))
+    return true;
+  if (AFF_FLAGGED(ch, AFF_WIND_WALL) || AFF_FLAGGED(ch, AFF_GRAPPLED))
+    return false;
+  return GET_EQ(ch, WEAR_ABOUT) != NULL;
+}
+
+/* sun vulnerability: exposed to direct sunlight with nothing sheltering the
+ * character.  Forest and marshland shelter; so does a covering cloak, and
+ * is_room_in_sunlight() already treats magical darkness as no sun. */
+bool suffers_sun_vulnerability(struct char_data *ch)
+{
+  if (!ch || IN_ROOM(ch) == NOWHERE)
+    return false;
+  if (!IN_SUNLIGHT(ch) || sun_cover_protects(ch))
+    return false;
+  if (SECT(IN_ROOM(ch)) == SECT_FOREST || SECT(IN_ROOM(ch)) == SECT_MARSHLAND)
+    return false;
+  return HAS_FEAT(ch, FEAT_SUN_VULNERABILITY) != 0;
+}
+
+/* dayblind: the character cannot see while in direct sunlight, unless it
+ * has no eyes to dazzle or is covered. */
+bool is_dayblinded(struct char_data *ch)
+{
+  if (!ch || IN_ROOM(ch) == NOWHERE)
+    return false;
+  if (!IN_SUNLIGHT(ch) || sun_cover_protects(ch))
+    return false;
+  if (!HAS_FEAT(ch, FEAT_DAYBLIND) || HAS_FEAT(ch, FEAT_EYELESS))
+    return false;
+  return true;
+}
+
+/* the one vision gate: blinded (without blindsense or an eyeless body) or
+ * dayblinded.  Used by the CAN_SEE macro family. */
+bool char_is_blinded(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+  if (AFF_FLAGGED(ch, AFF_BLIND) && !has_blindsense(ch) && !HAS_FEAT(ch, FEAT_EYELESS))
+    return true;
+  return is_dayblinded(ch);
+}
+
+/* members of ch's group standing in ch's room, ch included; with feat set,
+ * only the members holding that feat are counted */
+int count_grouped_in_room(struct char_data *ch, int feat)
+{
+  struct char_data *tch = NULL;
+  struct iterator_data iterator;
+  int count = 0;
+
+  if (!ch || !GROUP(ch) || !GROUP(ch)->members || !GROUP(ch)->members->iSize)
+    return 0;
+
+  for (tch = (struct char_data *)merge_iterator(&iterator, GROUP(ch)->members); tch;
+       tch = next_in_list(&iterator))
+  {
+    if (IN_ROOM(tch) != IN_ROOM(ch))
+      continue;
+    if (feat && !HAS_FEAT(tch, feat))
+      continue;
+    count++;
+  }
+  remove_iterator(&iterator);
+
+  return count;
+}
+
+/* warcaller's fury: +1 damage per grouped member here, self included, max +5 */
+int racial_warcallers_fury_bonus(struct char_data *ch)
+{
+  if (!ch || !HAS_FEAT(ch, FEAT_WARCALLERS_FURY))
+    return 0;
+  return MIN(5, count_grouped_in_room(ch, 0));
+}
+
+/* rrakkma: other grouped characters here who also hold the feat, max 5 */
+int racial_rrakkma_allies(struct char_data *ch)
+{
+  if (!ch || !HAS_FEAT(ch, FEAT_RRAKKMA))
+    return 0;
+  return MIN(5, MAX(0, count_grouped_in_room(ch, FEAT_RRAKKMA) - 1));
+}
+
+/* quick thinking: percent chance to reroll a failed will save */
+int racial_quick_thinking_chance(struct char_data *vict, int save_type)
+{
+  if (!vict || save_type != SAVING_WILL || !HAS_FEAT(vict, FEAT_QUICK_THINKING))
+    return 0;
+  return 15;
+}
+
+/* undead fealty: undead at least ten levels below the character leave it alone */
+bool undead_fealty_protects(struct char_data *mob, struct char_data *vict)
+{
+  if (!mob || !vict || !IS_UNDEAD(mob))
+    return false;
+  if (!HAS_FEAT(vict, FEAT_UNDEAD_FEALTY))
+    return false;
+  return GET_LEVEL(mob) + 10 <= GET_LEVEL(vict);
+}
+
+/* calming: an aggressor within five levels may lose interest (the caller rolls) */
+bool calming_applies(struct char_data *mob, struct char_data *vict)
+{
+  int gap;
+
+  if (!mob || !vict || !HAS_FEAT(vict, FEAT_CALMING))
+    return false;
+  gap = GET_LEVEL(mob) - GET_LEVEL(vict);
+  return gap >= -5 && gap <= 5;
 }
 
 // returns true if the target doesn't have immunity to poison

@@ -326,7 +326,7 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
   /* === CREATURE TYPE SPELL RESISTANCE === */
 
   /* Liches are powerful undead with strong spell resistance */
-  if (IS_LICH(vict))
+  if (HAS_FEAT(vict, FEAT_LICH_SPELL_RESIST))
     resist = MAX(resist, 15 + GET_LEVEL(vict));
 
   /* Dragons naturally have spell resistance
@@ -1035,6 +1035,9 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
   if (has_teamwork_feat(vict, FEAT_SHAKE_IT_OFF))
     savethrow += MIN(4, has_teamwork_feat(vict, FEAT_SHAKE_IT_OFF));
 
+  /* rrakkma (Duris racial innate): +2 per other grouped ally here with the feat */
+  savethrow += 2 * racial_rrakkma_allies(vict);
+
   if (is_judgement_possible(vict, ch, INQ_JUDGEMENT_PURITY))
   {
     savethrow += get_judgement_bonus(vict, INQ_JUDGEMENT_PURITY);
@@ -1117,6 +1120,17 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
       attach_mud_event(new_mud_event(eLEGENDARY_RESILIENCE_USED, vict, NULL), 300 RL_SEC);
       return (TRUE);
     }
+  }
+
+  /* quick thinking (Duris racial innate): a failed will save may be rerolled once */
+  if (diceroll != 20 && (savethrow < challenge || diceroll == 1) &&
+      rand_number(1, 100) <= racial_quick_thinking_chance(vict, type))
+  {
+    int reroll = d20(vict);
+
+    send_combat_roll_info(vict, "\tW*Quick Thinking, rerolling!*\tn ");
+    savethrow += reroll - diceroll;
+    diceroll = reroll;
   }
 
   if (diceroll != 1 && (savethrow >= challenge || diceroll == 20))
@@ -10080,9 +10094,11 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_SLOW: // abjuration
-    if (affected_by_spell(victim, SPELL_HASTE))
+    if (affected_by_spell(victim, SPELL_HASTE) || affected_by_spell(victim, AFFECT_RACIAL_FLURRY))
     {
+      /* the racial flurry (onslaught) is a haste affect too and goes the same way */
       affect_from_char(victim, SPELL_HASTE);
+      affect_from_char(victim, AFFECT_RACIAL_FLURRY);
       send_to_char(ch, "You dispel the haste spell!\r\n");
       send_to_char(victim, "Your haste spell is dispelled!\r\n");
       return;
@@ -12413,8 +12429,8 @@ static const char *mag_summon_msgs[] = {
     "$N flies into the area screeching loudly.",          // 34 children of the night bats
     "$n raises $N!",                                      // 35 create vampire spawn
     "\r\n",                                               // filler
-    "\r\n",                                               // filler
-    "\r\n",                                               // filler
+    "$N lopes out of the wilds to answer $n's call.",     // 36 summon warg (real index)
+    "$N stomps in to join $n's horde!",                   // 37 summon horde (real index)
     "\r\n",                                               // filler
     "\r\n",                                               // filler
     "\r\n",                                               // filler
@@ -12458,8 +12474,8 @@ static const char *mag_summon_to_msgs[] = {
     "$N flies into the area screeching loudly.",          // 34 children of the night bats
     "You raise $N!",                                      // 35 create vampire spawn
     "\r\n",                                               // filler
-    "\r\n",                                               // filler
-    "\r\n",                                               // filler
+    "You howl, and $N answers your call!",                // 36 summon warg (real index)
+    "You bellow, and $N answers your call to the horde!", // 37 summon horde (real index)
     "\r\n",                                               // filler
     "\r\n",                                               // filler
     "\r\n",                                               // filler
@@ -12533,6 +12549,8 @@ bool isSummonMob(int vnum)
   case MOB_EFREETI_KIND:
   case MOB_MARID_KIND:
   case MOB_SHAITAN_KIND:
+  case PET_RACIAL_WARG:
+  case PET_RACIAL_ORC_WARRIOR:
     return true;
   }
   return is_shambler_summon(vnum);
@@ -12827,6 +12845,21 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       break;
     }
     pfail = 10;
+    break;
+
+  /* Duris racial innates */
+  case ABILITY_SUMMON_WARG:
+    msg = 36;
+    fmsg = 8;
+    mob_num = PET_RACIAL_WARG;
+    pfail = 0;
+    break;
+  case ABILITY_SUMMON_HORDE:
+    msg = 37;
+    fmsg = 8;
+    mob_num = PET_RACIAL_ORC_WARRIOR;
+    num = dice(1, 3) + 1;
+    pfail = 0;
     break;
 
   case WARLOCK_THE_DEAD_WALK:
@@ -13253,6 +13286,18 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
       GET_LEVEL(mob) = MAX(1, GET_LEVEL(ch) / 2);
       autoroll_mob(mob, TRUE, TRUE);
+      break;
+
+    case ABILITY_SUMMON_WARG: /* Duris racial innate: a mount */
+      GET_LEVEL(mob) = MAX(1, GET_LEVEL(ch) * 2 / 3);
+      autoroll_mob(mob, TRUE, TRUE);
+      SET_BIT_AR(MOB_FLAGS(mob), MOB_MOUNTABLE);
+      break;
+
+    case ABILITY_SUMMON_HORDE: /* Duris racial innate: orcs that drift off later */
+      GET_LEVEL(mob) = MAX(1, GET_LEVEL(ch) / 2);
+      autoroll_mob(mob, TRUE, TRUE);
+      attach_mud_event(new_mud_event(ePURGEMOB, mob, NULL), 900 * PASSES_PER_SEC);
       break;
 
     case ABILITY_CREATE_VAMPIRE_SPAWN:

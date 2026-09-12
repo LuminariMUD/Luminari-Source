@@ -23,6 +23,7 @@ bool shop_background_access_allowed(bitvector_t shop_flags, bool has_criminal, b
 float shop_background_hometown_price_multiplier(bool eligible, bool in_hometown, bool buying);
 bool shop_room_access_allowed(bitvector_t shop_flags, bool room_listed);
 float shop_rol_cheat_price_multiplier(bool cheated, bool buying);
+int shop_haggle_score(struct char_data *ch);
 bool shop_rol_magic_allowed(bitvector_t shop_flags);
 
 struct shop_buy_data

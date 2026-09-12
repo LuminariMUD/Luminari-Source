@@ -41,6 +41,36 @@
 
 extern struct background_data background_list[NUM_BACKGROUNDS];
 
+/* Duris racial innates: +6 stealth in the sector set of a held terrain stealth
+ * feat (best one wins, they do not stack) and +4 perception in forests.
+ * see docs/ongoing-projects/DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md */
+int racial_terrain_ability_bonus(struct char_data *ch, int ability_num)
+{
+  int sector = 0;
+
+  if (!ch || IN_ROOM(ch) == NOWHERE)
+    return 0;
+  sector = SECT(IN_ROOM(ch));
+
+  if (ability_num == ABILITY_STEALTH)
+  {
+    if (HAS_FEAT(ch, FEAT_OUTDOOR_STEALTH) && is_room_outdoors(IN_ROOM(ch)))
+      return 6;
+    if (HAS_FEAT(ch, FEAT_SWAMP_STEALTH) && sector == SECT_MARSHLAND)
+      return 6;
+    if (HAS_FEAT(ch, FEAT_UNDERDARK_STEALTH) && sector >= SECT_UD_WILD &&
+        sector <= SECT_UD_NOGROUND)
+      return 6;
+  }
+  else if (ability_num == ABILITY_PERCEPTION)
+  {
+    if (HAS_FEAT(ch, FEAT_FOREST_SIGHT) && sector == SECT_FOREST)
+      return 4;
+  }
+
+  return 0;
+}
+
 int compute_ability(struct char_data *ch, int abilityNum)
 {
   return compute_ability_full(ch, abilityNum, false);
@@ -297,6 +327,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       value += 8;
     if (HAS_FEAT(ch, FEAT_WOOD_ELF_MASK_OF_THE_WILD))
       value += 3;
+    value += racial_terrain_ability_bonus(ch, ABILITY_STEALTH);
     if (IN_NATURE(ch) && HAS_FEAT(ch, FEAT_MOON_ELF_BATHED_IN_MOONLIGHT))
     {
       if (weather_info.sunlight == SUN_DARK || weather_info.sunlight == SUN_SET)
@@ -333,6 +364,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
 
   case ABILITY_PERCEPTION:
     value += GET_WIS_BONUS(ch);
+    value += racial_terrain_ability_bonus(ch, ABILITY_PERCEPTION);
     if (HAS_FEAT(ch, FEAT_KENDER_SKILL_MOD))
       value += 2;
     if (HAS_FEAT(ch, FEAT_AFFINITY_LISTEN))

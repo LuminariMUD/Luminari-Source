@@ -151,6 +151,12 @@ const char *character_wear_slot_restriction(const struct char_data *ch, int wear
   if (wear_slot == WEAR_TAIL && !character_has_tail_wear_slot(ch))
     return "Your anatomy does not provide a tail equipment slot.";
 
+  /* leonine frame: feat-driven, so any race granted it loses the slots.
+   * get_feat_value() only reads the character. */
+  if ((wear_slot == WEAR_LEGS || wear_slot == WEAR_FEET) &&
+      HAS_FEAT((struct char_data *)ch, FEAT_LEONINE_FRAME))
+    return "Your four-legged body cannot wear leg or foot equipment.";
+
   if (IS_NPC(ch))
     return NULL;
 
@@ -1424,6 +1430,7 @@ void assign_races(void)
   feat_race_assignment(RACE_HALF_TROLL, FEAT_ULTRAVISION, 1, N);
   feat_race_assignment(RACE_HALF_TROLL, FEAT_TROLL_REGENERATION, 1, N);
   feat_race_assignment(RACE_HALF_TROLL, FEAT_WEAKNESS_TO_FIRE, 1, N);
+  feat_race_assignment(RACE_HALF_TROLL, FEAT_BODYSLAM, 1, N);
   feat_race_assignment(RACE_HALF_TROLL, FEAT_WEAKNESS_TO_ACID, 1, N);
   feat_race_assignment(RACE_HALF_TROLL, FEAT_STRONG_AGAINST_POISON, 1, N);
   feat_race_assignment(RACE_HALF_TROLL, FEAT_STRONG_AGAINST_DISEASE, 1, N);
@@ -1630,6 +1637,7 @@ void assign_races(void)
   feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_CRYSTAL_SKIN, 1, N);
   feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_POISON_RESIST, 1, N);
   feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_COMBAT_TRAINING_VS_GIANTS, 1, N);
+  feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_STABILITY, 1, N);
   feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_CRYSTAL_DWARF_RACIAL_ADJUSTMENT, 1, N);
   /* affect assignment */
   /*                  race-num  affect            lvl */

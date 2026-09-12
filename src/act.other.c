@@ -3117,6 +3117,12 @@ ACMD(do_mount)
 
   one_argument(argument, arg, sizeof(arg));
 
+  if (HAS_FEAT(ch, FEAT_QUADRUPED_BODY))
+  {
+    send_to_char(ch, "Your own four legs carry you; you cannot sit a mount.\r\n");
+    return;
+  }
+
   if (!*arg)
   {
     send_to_char(ch, "Mount who?\r\n");
@@ -6178,6 +6184,347 @@ ACMD(do_darkness)
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_SLA_DARKNESS);
+}
+
+/* Duris racial innates: one table-driven handler for the spell-like abilities.
+ * Each verb is its own cmd_info[] row whose subcmd indexes racial_sla_table[]
+ * (SCMD_RSLA_* in interpreter.h).  Every row casts its spell with call_magic()
+ * at character level and spends one daily use of its feat. */
+enum racial_sla_target
+{
+  RSLA_TARGET_SELF,       /* cast on the user */
+  RSLA_TARGET_ROOM,       /* area spell, no target */
+  RSLA_TARGET_OPPONENT,   /* one other character here, defaults to the current opponent */
+  RSLA_TARGET_WORLD_CHAR, /* one character anywhere in the world */
+  RSLA_TARGET_ROOM_OTHERS /* every other character in the room, one cast each */
+};
+
+#define RSLA_FLAG_COMBAT_ONLY (1 << 0)   /* usable only while fighting */
+#define RSLA_FLAG_SIZE_LIMIT (1 << 1)    /* target at most one size larger than the user */
+#define RSLA_FLAG_PASS_ARG (1 << 2)      /* argument is required and handed to the spell */
+#define RSLA_FLAG_OUTDOORS_ONLY (1 << 3) /* usable only outdoors */
+
+struct racial_sla_info
+{
+  int feat;         /* FEAT_x, gates use and daily count */
+  int spellnum;     /* spell cast with call_magic() at character level */
+  int target;       /* enum racial_sla_target */
+  int flags;        /* RSLA_FLAG_x */
+  const char *verb; /* command name, for messages */
+};
+
+static const struct racial_sla_info racial_sla_table[NUM_RACIAL_SLAS] = {
+    /* SCMD_RSLA_FARSEE */
+    {FEAT_SLA_FARSEE, SPELL_FARSEE, RSLA_TARGET_SELF, 0, "farsee"},
+    /* SCMD_RSLA_STONESKIN */
+    {FEAT_SLA_STONESKIN, SPELL_STONESKIN, RSLA_TARGET_SELF, 0, "stoneskin"},
+    /* SCMD_RSLA_LIGHTNING_BOLT */
+    {FEAT_SLA_LIGHTNING_BOLT, SPELL_LIGHTNING_BOLT, RSLA_TARGET_OPPONENT, RSLA_FLAG_COMBAT_ONLY,
+     "throwlightning"},
+    /* SCMD_RSLA_FIRE_SHIELD */
+    {FEAT_SLA_FIRE_SHIELD, SPELL_FIRE_SHIELD, RSLA_TARGET_SELF, 0, "fireshield"},
+    /* SCMD_RSLA_FIRE_STORM */
+    {FEAT_SLA_FIRE_STORM, SPELL_FIRE_STORM, RSLA_TARGET_ROOM, 0, "firestorm"},
+    /* SCMD_RSLA_SHADOW_JUMP */
+    {FEAT_SLA_SHADOW_JUMP, SPELL_SHADOW_JUMP, RSLA_TARGET_WORLD_CHAR, 0, "shadowdoor"},
+    /* SCMD_RSLA_PLANE_SHIFT */
+    {FEAT_SLA_PLANE_SHIFT, SPELL_PLANE_SHIFT, RSLA_TARGET_SELF, RSLA_FLAG_PASS_ARG, "planeshift"},
+    /* SCMD_RSLA_PSIONIC_BLAST */
+    {FEAT_SLA_PSIONIC_BLAST, PSIONIC_PSIONIC_BLAST, RSLA_TARGET_OPPONENT, 0, "mindblast"},
+    /* SCMD_RSLA_SCARE */
+    {FEAT_SLA_SCARE, SPELL_SCARE, RSLA_TARGET_OPPONENT, 0, "roar"},
+    /* SCMD_RSLA_HASTE */
+    {FEAT_HASTE, SPELL_HASTE, RSLA_TARGET_SELF, 0, "battlehaste"},
+    /* SCMD_RSLA_FIREBALL */
+    {FEAT_SLA_FIREBALL, SPELL_FIREBALL, RSLA_TARGET_OPPONENT, 0, "fireball"},
+    /* SCMD_RSLA_MASS_DISPEL */
+    {FEAT_SLA_MASS_DISPEL, SPELL_DISPEL_MAGIC, RSLA_TARGET_ROOM_OTHERS, 0, "massdispel"},
+    /* SCMD_RSLA_FROST_BREATH */
+    {FEAT_SLA_FROST_BREATH, SPELL_CONE_OF_COLD, RSLA_TARGET_OPPONENT, 0, "frostbreath"},
+    /* SCMD_RSLA_WEB */
+    {FEAT_SLA_WEB, SPELL_WEB, RSLA_TARGET_OPPONENT, RSLA_FLAG_SIZE_LIMIT, "webwrap"},
+    /* SCMD_RSLA_SUMMON_WARG */
+    {FEAT_SUMMON_WARG, ABILITY_SUMMON_WARG, RSLA_TARGET_ROOM, RSLA_FLAG_OUTDOORS_ONLY,
+     "summonwarg"},
+    /* SCMD_RSLA_SUMMON_HORDE */
+    {FEAT_SUMMON_HORDE, ABILITY_SUMMON_HORDE, RSLA_TARGET_ROOM, 0, "summonhorde"},
+};
+
+const struct racial_sla_info *racial_sla_lookup(int subcmd)
+{
+  if (subcmd < 0 || subcmd >= NUM_RACIAL_SLAS)
+    return NULL;
+  return &racial_sla_table[subcmd];
+}
+
+/* followers of ch, so a summon can be seen to have actually arrived */
+static int racial_sla_follower_count(struct char_data *ch)
+{
+  struct follow_type *f = NULL;
+  int count = 0;
+
+  for (f = ch->followers; f != NULL; f = f->next)
+    count++;
+  return count;
+}
+
+/* affects on ch, so a dispel can be seen to have actually stripped one */
+static int racial_sla_affect_count(struct char_data *ch)
+{
+  struct affected_type *af = NULL;
+  int count = 0;
+
+  for (af = ch->affected; af != NULL; af = af->next)
+    count++;
+  return count;
+}
+
+/* mass dispel: strip every hostile in the room.  The dispel is applied directly
+ * rather than through call_magic() so a violent spell never starts fights with
+ * pets, groupmates, or bystanders.  Returns the number of eligible targets and
+ * sets *stripped when at least one affect actually came off. */
+static int racial_sla_mass_dispel(struct char_data *ch, int spellnum, bool *stripped)
+{
+  struct char_data *tch = NULL, *next_tch = NULL;
+  int targets = 0, before = 0;
+
+  *stripped = FALSE;
+  for (tch = world[IN_ROOM(ch)].people; tch != NULL; tch = next_tch)
+  {
+    next_tch = tch->next_in_room;
+    if (!aoeOK(ch, tch, spellnum) || !CAN_SEE(ch, tch) || DEAD(tch))
+      continue;
+    if ((!IS_NPC(tch) || (tch->master && !IS_NPC(tch->master))) && !pvp_ok(ch, tch, FALSE))
+      continue;
+    targets++;
+    before = racial_sla_affect_count(tch);
+    perform_dispel(ch, tch, NULL, spellnum);
+    if (racial_sla_affect_count(tch) < before)
+      *stripped = TRUE;
+  }
+  return targets;
+}
+
+/* racial spell-like abilities (Duris innates), see racial_sla_table[] */
+ACMD(do_racial_sla)
+{
+  const struct racial_sla_info *sla = racial_sla_lookup(subcmd);
+  struct char_data *vict = NULL;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  room_rnum start_room = NOWHERE;
+  int followers_before = 0;
+  bool committed = FALSE;
+
+  if (sla == NULL)
+  {
+    log("SYSERR: do_racial_sla called with invalid subcmd %d", subcmd);
+    return;
+  }
+
+  if (!HAS_FEAT(ch, sla->feat))
+  {
+    send_to_char(ch, "You don't have this ability.\r\n");
+    return;
+  }
+
+  if (IS_SET(sla->flags, RSLA_FLAG_COMBAT_ONLY) && !FIGHTING(ch))
+  {
+    send_to_char(ch, "You can only %s while fighting.\r\n", sla->verb);
+    return;
+  }
+
+  if (IS_SET(sla->flags, RSLA_FLAG_OUTDOORS_ONLY) && (IN_ROOM(ch) == NOWHERE || !OUTSIDE(ch)))
+  {
+    send_to_char(ch, "You can only %s outdoors.\r\n", sla->verb);
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+
+  switch (sla->target)
+  {
+  case RSLA_TARGET_SELF:
+    vict = ch;
+    if (IS_SET(sla->flags, RSLA_FLAG_PASS_ARG) && !*arg)
+    {
+      send_to_char(ch, "%s where?  (astral, ethereal, elemental or prime)\r\n", sla->verb);
+      return;
+    }
+    if (affected_by_spell(ch, sla->spellnum))
+    {
+      send_to_char(ch, "You are already under that effect.\r\n");
+      return;
+    }
+    if (sla->spellnum == SPELL_HASTE && AFF_FLAGGED(ch, AFF_HASTE))
+    { /* innate haste does not stack with haste from any source, flurry included */
+      send_to_char(ch, "You are already moving as fast as you can.\r\n");
+      return;
+    }
+    break;
+  case RSLA_TARGET_OPPONENT:
+    if (*arg)
+      vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
+    else
+      vict = FIGHTING(ch);
+    if (vict == NULL)
+    {
+      send_to_char(ch, "Who do you want to %s?\r\n", sla->verb);
+      return;
+    }
+    if (vict == ch)
+    {
+      send_to_char(ch, "You cannot target yourself with that.\r\n");
+      return;
+    }
+    if (IS_SET(sla->flags, RSLA_FLAG_SIZE_LIMIT) && GET_SIZE(vict) > GET_SIZE(ch) + 1)
+    {
+      send_to_char(ch, "%s is far too large for that.\r\n", GET_NAME(vict));
+      return;
+    }
+    break;
+  case RSLA_TARGET_WORLD_CHAR:
+    if (!*arg)
+    {
+      send_to_char(ch, "Who do you want to %s to?\r\n", sla->verb);
+      return;
+    }
+    if ((vict = get_char_vis(ch, arg, NULL, FIND_CHAR_WORLD)) == NULL)
+    {
+      send_to_char(ch, "You cannot sense anyone by that name.\r\n");
+      return;
+    }
+    if (vict == ch)
+    {
+      send_to_char(ch, "You cannot target yourself with that.\r\n");
+      return;
+    }
+    break;
+  case RSLA_TARGET_ROOM:
+  case RSLA_TARGET_ROOM_OTHERS:
+  default:
+    vict = NULL;
+    break;
+  }
+
+  if (!IS_NPC(ch) && daily_uses_remaining(ch, sla->feat) == 0)
+  {
+    send_to_char(ch, "You must recover before you can use this ability again.\r\n");
+    return;
+  }
+
+  if (IS_SET(sla->flags, RSLA_FLAG_PASS_ARG))
+    strlcpy(cast_arg2, arg, MAX_INPUT_LENGTH);
+
+  /* The action and the daily use are only spent once the ability actually did
+   * something: a fizzle, a refused teleport, or a summon that never arrived
+   * costs nothing. */
+  start_room = IN_ROOM(ch);
+  followers_before = racial_sla_follower_count(ch);
+
+  if (sla->target == RSLA_TARGET_ROOM_OTHERS)
+  {
+    if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOMAGIC) || ROOM_AFFECTED(IN_ROOM(ch), RAFF_ANTI_MAGIC))
+    {
+      send_to_char(ch, "Your magic fizzles out and dies.\r\n");
+      act("$n's magic fizzles out and dies.", FALSE, ch, 0, 0, TO_ROOM);
+      return;
+    }
+    if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+    {
+      send_to_char(ch, "A flash of white light fills the room, dispelling your violent magic!\r\n");
+      act("White light from no particular source suddenly fills the room, then vanishes.", FALSE,
+          ch, 0, 0, TO_ROOM);
+      return;
+    }
+    if (racial_sla_mass_dispel(ch, sla->spellnum, &committed) == 0)
+    {
+      send_to_char(ch, "There is nobody here for you to dispel.\r\n");
+      return;
+    }
+  }
+  else
+  {
+    if (!call_magic(ch, vict, NULL, sla->spellnum, 0, GET_LEVEL(ch), CAST_INNATE))
+      return; /* fizzled, and call_magic() already said why */
+    switch (sla->spellnum)
+    {
+    case SPELL_SHADOW_JUMP:
+    case SPELL_PLANE_SHIFT:
+      committed = IN_ROOM(ch) != start_room;
+      break;
+    case ABILITY_SUMMON_WARG:
+    case ABILITY_SUMMON_HORDE:
+      committed = racial_sla_follower_count(ch) > followers_before;
+      break;
+    default:
+      committed = TRUE;
+      break;
+    }
+    if (!committed)
+      return; /* the spell refused and explained itself */
+  }
+
+  /* spend the action the command table declares: self and far-target
+   * abilities are move actions, everything aimed at the room is standard */
+  if (sla->target == RSLA_TARGET_SELF || sla->target == RSLA_TARGET_WORLD_CHAR)
+    USE_MOVE_ACTION(ch);
+  else
+    USE_STANDARD_ACTION(ch);
+
+  /* a mass dispel that found targets but stripped nothing keeps its use */
+  if (committed && !IS_NPC(ch))
+    start_daily_use_cooldown(ch, sla->feat);
+}
+
+/* racial flurry (Duris racial innate), the 'onslaught' command: one extra attack
+ * per round for four rounds, as a short haste affect that does not stack with
+ * real haste.  'flurry' itself is shadowed by the monk flurryofblows row. */
+ACMD(do_racial_flurry)
+{
+  struct affected_type af;
+
+  if (!HAS_FEAT(ch, FEAT_RACIAL_FLURRY))
+  {
+    send_to_char(ch, "You don't have this ability.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, AFFECT_RACIAL_FLURRY))
+  {
+    send_to_char(ch, "You are already in a flurry!\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_HASTE))
+  {
+    send_to_char(ch, "You are already moving as fast as you can.\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_SLOW))
+  {
+    send_to_char(ch, "You are far too slowed to manage a flurry.\r\n");
+    return;
+  }
+
+  if (!IS_NPC(ch) && daily_uses_remaining(ch, FEAT_RACIAL_FLURRY) == 0)
+  {
+    send_to_char(ch, "You must recover before you can use this ability again.\r\n");
+    return;
+  }
+
+  new_affect(&af);
+  af.spell = AFFECT_RACIAL_FLURRY;
+  af.duration = 4; /* combat rounds */
+  SET_BIT_AR(af.bitvector, AFF_HASTE);
+  affect_to_char(ch, &af);
+
+  send_to_char(ch, "\tWYou explode into a flurry of blows!\tn\r\n");
+  act("$n explodes into a flurry of blows!", FALSE, ch, 0, 0, TO_ROOM);
+  USE_MOVE_ACTION(ch);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_RACIAL_FLURRY);
 }
 
 /* invisible rogue feat */

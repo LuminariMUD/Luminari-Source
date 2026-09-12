@@ -1548,6 +1548,15 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
     return FALSE;
   }
 
+  /* quadruped body (Duris racial innate): only a larger attacker can topple it */
+  if (HAS_FEAT(vict, FEAT_QUADRUPED_BODY) && GET_SIZE(ch) <= GET_SIZE(vict))
+  {
+    if (display)
+      send_to_char(ch, "%s's four-legged stance cannot be toppled by someone your size!\r\n",
+                   show_pers(ch, vict));
+    return FALSE;
+  }
+
   if (!is_mission_mob(ch, vict))
   {
     if (display)
@@ -1759,8 +1768,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
       skilled_monk = TRUE;
     }
 
-    if (GET_RACE(vict) == RACE_DWARF || GET_RACE(vict) == RACE_CRYSTAL_DWARF ||
-        GET_RACE(vict) == RACE_DUERGAR) /* dwarven stability */
+    if (HAS_FEAT(vict, FEAT_STABILITY)) /* dwarven stability */
       defense_check += 4;
 
     /*DEBUG*/ /*send_to_char(ch, "attack check: %d, defense_check: %d\r\n", attack_check, defense_check);*/
@@ -1859,8 +1867,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
         attack_check = (d20(vict) + GET_STR_BONUS(vict) + (GET_SIZE(vict) - GET_SIZE(ch)) * 4);
         defense_check = (d20(ch) + MAX(GET_STR_BONUS(ch), GET_DEX_BONUS(ch)));
 
-        if (GET_RACE(ch) == RACE_DWARF || GET_RACE(ch) == RACE_DUERGAR ||
-            GET_RACE(ch) == RACE_CRYSTAL_DWARF) /* Dwarves get a stability bonus. */
+        if (HAS_FEAT(ch, FEAT_STABILITY)) /* Dwarves get a stability bonus. */
           defense_check += 4;
         /*DEBUG*/ /*send_to_char(ch, "counterattack check: %d, defense_check: %d\r\n", attack_check, defense_check);*/
 
@@ -14340,6 +14347,74 @@ ACMDCHECK(can_children_of_the_night)
   }
 
   return CAN_CMD;
+}
+
+/* someone a stampede can run over: an opponent here who is fighting ch or whom
+ * ch is fighting, alive and on the ground */
+static bool stampede_target(struct char_data *ch, struct char_data *tch)
+{
+  if (tch == ch || DEAD(tch) || GET_POS(tch) <= POS_DEAD)
+    return FALSE;
+  if (FIGHTING(tch) != ch && FIGHTING(ch) != tch)
+    return FALSE;
+  return !is_flying(tch);
+}
+
+/* stampede (Duris racial innate): trample every opponent fighting you, knocking
+ * down and striking each you overrun.  Once every three rounds. */
+ACMD(do_stampede)
+{
+  struct char_data *tch = NULL, *next_tch = NULL;
+  room_rnum room = NOWHERE;
+  bool found = FALSE;
+
+  if (!HAS_FEAT(ch, FEAT_STAMPEDE))
+  {
+    send_to_char(ch, "You don't have this ability.\r\n");
+    return;
+  }
+  if (IN_ROOM(ch) == NOWHERE || ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE))
+  {
+    send_to_char(ch, "There is no room to stampede here.\r\n");
+    return;
+  }
+  if (!FIGHTING(ch))
+  {
+    send_to_char(ch, "You are not fighting anyone.\r\n");
+    return;
+  }
+  if (char_has_mud_event(ch, eSTAMPEDE))
+  {
+    send_to_char(ch, "You are still recovering from your last stampede.\r\n");
+    return;
+  }
+
+  /* the cooldown and the action are only spent with someone to run over */
+  room = IN_ROOM(ch);
+  for (tch = world[room].people; tch != NULL && !found; tch = tch->next_in_room)
+    found = stampede_target(ch, tch);
+  if (!found)
+  {
+    send_to_char(ch, "There is nobody on the ground here for you to trample.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "\tWYou lower your head and stampede through your foes!\tn\r\n");
+  act("$n lowers $s head and stampedes through the melee!", FALSE, ch, 0, 0, TO_ROOM);
+  attach_mud_event(new_mud_event(eSTAMPEDE, ch, NULL), 3 * PULSE_VIOLENCE);
+  USE_FULL_ROUND_ACTION(ch);
+
+  for (tch = world[room].people; tch != NULL; tch = next_tch)
+  {
+    next_tch = tch->next_in_room;
+    if (!stampede_target(ch, tch))
+      continue;
+    if (perform_knockdown(ch, tch, SKILL_BASH, FALSE, TRUE) && !DEAD(tch))
+      hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_UNARMED);
+    /* a riposte or trap can drop the stampeder mid-charge */
+    if (DEAD(ch) || GET_POS(ch) <= POS_DEAD || IN_ROOM(ch) != room)
+      break;
+  }
 }
 
 ACMD(do_children_of_the_night)
