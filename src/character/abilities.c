@@ -43,7 +43,7 @@ extern struct background_data background_list[NUM_BACKGROUNDS];
 
 /* Duris racial innates: +6 stealth in the sector set of a held terrain stealth
  * feat (best one wins, they do not stack) and +4 perception in forests.
- * see docs/ongoing-projects/DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md */
+ * see docs/ongoing-projects/DURIS_RACIAL_MECHANICS.md */
 int racial_terrain_ability_bonus(struct char_data *ch, int ability_num)
 {
   int sector = 0;

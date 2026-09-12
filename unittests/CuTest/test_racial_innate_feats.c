@@ -1,5 +1,5 @@
 /* Tests for the Duris racial innates converted to feats.  See
- * docs/ongoing-projects/DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md */
+ * docs/ongoing-projects/DURIS_RACIAL_MECHANICS.md */
 
 #include "CuTest.h"
 

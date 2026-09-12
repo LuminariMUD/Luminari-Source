@@ -5986,7 +5986,7 @@ void assign_feats(void)
         "prevents you from wearing equipment in the legs and feet slots.");
 
   /* Duris racial innates converted to feats.  None of these are assigned to a race here;
-   * see docs/ongoing-projects/DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md */
+   * see docs/ongoing-projects/DURIS_RACIAL_MECHANICS.md */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* passive defence and resistance */
   feato(FEAT_SUN_VULNERABILITY, "sun vulnerability", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
