@@ -29,6 +29,7 @@
 #include "quest/hlquest.h"
 #include "mudlim.h"
 #include "wilderness/wilderness.h" /* Wilderness! */
+#include "combat/traps.h"          /* doorbash */
 #include "actions.h"
 #include "combat/traps.h" /* for check_traps() */
 #include "magic/spell_prep.h"
@@ -56,78 +57,93 @@
 
 /***** start file body *****/
 
-/* doorbash - unfinished */
-/*
-ACMD(do_doorbash) {
-  bool failure = FALSE;
-  int door;
-  struct room_direction_data *back = 0;
-  int other_room;
-  struct obj_data *obj = 0;
+/* doorbash (Duris racial innate): force one closed exit open on both sides,
+ * breaking the lock.  Split out so the effect can be checked without the roll. */
+void doorbash_open_exit(struct char_data *ch, int door)
+{
+  struct door_state_operation operation;
+  struct room_direction_data *back = NULL;
+  struct obj_data *no_obj = NULL;
+  room_rnum room = NOWHERE, other_room = NOWHERE;
 
-  if (!INN_FLAGGED(ch, INNATE_DOORBASH)) {
-    send_to_char("But you are way too small to attempt that.\r\n", ch);
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE || door < 0 || door >= NUM_OF_DIRS || !EXIT(ch, door))
     return;
-  }
-  one_argument(argument, arg);
+  room = IN_ROOM(ch);
 
-  if (!*arg) {
-    send_to_char("Doorbash which direction?\r\n", ch);
-    return;
-  }
-  door = search_block(arg, dirs, FALSE);
-  if (door < 0) {
-    send_to_char("That is not a direction!\r\n", ch);
-    return;
-  }
-
-  if (!EXIT(ch, door) || EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN)) {
-    send_to_char("There is nothing to doorbash in that direction.\r\n", ch);
-    return;
-  }
-
-  if (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)) {
-    send_to_char("But that direction does not need to be doorbashed.\r\n", ch);
-    return;
-  }
-
-  if ((other_room = EXIT(ch, door)->to_room) != NOWHERE) {
+  if ((other_room = EXIT(ch, door)->to_room) != NOWHERE)
+  {
     back = world[other_room].dir_option[rev_dir[door]];
-    if (back && back->to_room != ch->in_room)
-      back = 0;
+    if (back && back->to_room != room)
+      back = NULL;
   }
 
-  if (EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF) || dice(1, 300) > GET_R_STR(ch) + GET_LEVEL(ch)
-          || EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED2) || EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED3)
-          )
-    failure = TRUE;
+  door_state_begin(&operation, room, door, true, DOMAIN_DOOR_GAMEPLAY);
+  UNLOCK_DOOR(room, no_obj, door);
+  OPEN_DOOR(room, no_obj, door);
+  if (back)
+  {
+    UNLOCK_DOOR(other_room, no_obj, rev_dir[door]);
+    OPEN_DOOR(other_room, no_obj, rev_dir[door]);
+  }
+  door_state_finish(&operation);
+}
 
-  act("$n charges straight into the door with $s entire body.", FALSE, ch, 0, 0, TO_ROOM);
-  act("You throw your entire body at the door.", FALSE, ch, 0, 0, TO_CHAR);
+/* doorbash <direction>: d300 at or below strength plus level breaks the door
+ * open; failure hurts.  Pickproof doors cannot be forced. */
+ACMD(do_doorbash)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int door = -1;
 
-  if (failure) {
-    act("But it holds steady against the onslaught.", FALSE, ch, 0, 0, TO_ROOM);
-    act("But it holds steady against the onslaught.", FALSE, ch, 0, 0, TO_CHAR);
+  if (!HAS_FEAT(ch, FEAT_DOORBASH))
+  {
+    send_to_char(ch, "You don't have this ability.\r\n");
     return;
   }
-  act("and it shatters into a million pieces!!", FALSE, ch, 0, 0, TO_ROOM);
-  act("and it shatters into a million pieces!!.", FALSE, ch, 0, 0, TO_CHAR);
 
-  UNLOCK_DOOR(ch->in_room, obj, door);
-  OPEN_DOOR(ch->in_room, obj, door);
-  if (back) {
-    UNLOCK_DOOR(other_room, obj, rev_dir[door]);
-    OPEN_DOOR(other_room, obj, rev_dir[door]);
-    REMOVE_BIT(back->exit_info, EX_HIDDEN);
+  one_argument(argument, arg, sizeof(arg));
+  if (!*arg)
+  {
+    send_to_char(ch, "Doorbash which direction?\r\n");
+    return;
   }
-  WAIT_STATE(ch, 1 * PULSE_VIOLENCE);
+  if ((door = search_block(arg, dirs, FALSE)) < 0)
+  {
+    send_to_char(ch, "That is not a direction!\r\n");
+    return;
+  }
+  if (!EXIT(ch, door) || EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN))
+  {
+    send_to_char(ch, "There is nothing to doorbash in that direction.\r\n");
+    return;
+  }
+  if (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
+  {
+    send_to_char(ch, "That way is already open.\r\n");
+    return;
+  }
+  if (EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF))
+  {
+    send_to_char(ch, "That door is far too sturdy to force.\r\n");
+    return;
+  }
 
-  check_trap(ch, TRAP_TRIGGER_OPEN_DOOR, ch->in_room, 0, door);
+  act("$n charges straight into the door with $s entire body!", FALSE, ch, 0, 0, TO_ROOM);
+  act("You throw your entire body at the door!", FALSE, ch, 0, 0, TO_CHAR);
 
-  return;
+  if (dice(1, 300) > GET_STR(ch) + GET_LEVEL(ch))
+  {
+    act("It holds steady against the onslaught.", FALSE, ch, 0, 0, TO_ROOM);
+    act("It holds steady against the onslaught, and that hurt!", FALSE, ch, 0, 0, TO_CHAR);
+    damage(ch, ch, dice(1, 6), TYPE_SUFFERING, DAM_BLUDGEON, FALSE);
+    return;
+  }
+
+  act("The door shatters open under the impact!", FALSE, ch, 0, 0, TO_ROOM);
+  act("The door shatters open under the impact!", FALSE, ch, 0, 0, TO_CHAR);
+  doorbash_open_exit(ch, door);
+  check_trap(ch, TRAP_TRIGGER_OPEN_DOOR, IN_ROOM(ch), NULL, door);
 }
- */
-
 
 /** Move a PC/NPC character from their current location to a new location. This
  * is the standard movement locomotion function that all normal walking

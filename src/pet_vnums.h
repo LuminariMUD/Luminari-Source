@@ -16,6 +16,10 @@
 #define PET_GOLEM_STONE_HUGE 19607
 #define PET_GOLEM_IRON_SMALL 19608
 #define PET_GOLEM_IRON_HUGE 19611
+
+/* Duris racial innates: summonwarg and summonhorde followers */
+#define PET_RACIAL_WARG 19502
+#define PET_RACIAL_ORC_WARRIOR 19503
 #define PET_GOLEM_BONE 19612
 
 #define PET_CELESTIAL_GUARDIAN 19700

@@ -12426,8 +12426,8 @@ static const char *mag_summon_msgs[] = {
     "$N creep into the area with horribly noisy squeeks", // 33 children of the night rats
     "$N flies into the area screeching loudly.",          // 34 children of the night bats
     "$n raises $N!",                                      // 35 create vampire spawn
-    "\r\n",                                               // filler
-    "\r\n",                                               // filler
+    "$N lopes out of the wilds to answer $n's call.",     // 36 summon warg
+    "$N stomps in to join $n's horde!",                   // 37 summon horde
     "\r\n",                                               // filler
     "\r\n",                                               // filler
     "\r\n",                                               // filler
@@ -12841,6 +12841,21 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       break;
     }
     pfail = 10;
+    break;
+
+  /* Duris racial innates */
+  case ABILITY_SUMMON_WARG:
+    msg = 36;
+    fmsg = 8;
+    mob_num = PET_RACIAL_WARG;
+    pfail = 0;
+    break;
+  case ABILITY_SUMMON_HORDE:
+    msg = 37;
+    fmsg = 8;
+    mob_num = PET_RACIAL_ORC_WARRIOR;
+    num = dice(1, 3) + 1;
+    pfail = 0;
     break;
 
   case WARLOCK_THE_DEAD_WALK:
@@ -13267,6 +13282,18 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
       GET_LEVEL(mob) = MAX(1, GET_LEVEL(ch) / 2);
       autoroll_mob(mob, TRUE, TRUE);
+      break;
+
+    case ABILITY_SUMMON_WARG: /* Duris racial innate: a mount */
+      GET_LEVEL(mob) = MAX(1, GET_LEVEL(ch) * 2 / 3);
+      autoroll_mob(mob, TRUE, TRUE);
+      SET_BIT_AR(MOB_FLAGS(mob), MOB_MOUNTABLE);
+      break;
+
+    case ABILITY_SUMMON_HORDE: /* Duris racial innate: orcs that drift off later */
+      GET_LEVEL(mob) = MAX(1, GET_LEVEL(ch) / 2);
+      autoroll_mob(mob, TRUE, TRUE);
+      attach_mud_event(new_mud_event(ePURGEMOB, mob, NULL), 900 * PASSES_PER_SEC);
       break;
 
     case ABILITY_CREATE_VAMPIRE_SPAWN:

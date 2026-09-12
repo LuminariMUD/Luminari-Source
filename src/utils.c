@@ -1447,7 +1447,10 @@ bool can_add_summoned_followers(struct char_data *ch, int mob_vnum, int spell, i
       real_mobile(mob_vnum) == NOBODY)
     return false;
   flag = summoned_follower_flag(spell);
-  maximum = spell == SPELL_ELEMENTAL_SWARM ? 8 : (spell == SPELL_SHAMBLER ? 6 : 1);
+  maximum = spell == SPELL_ELEMENTAL_SWARM  ? 8
+            : spell == SPELL_SHAMBLER       ? 6
+            : spell == ABILITY_SUMMON_HORDE ? 4 /* Duris racial innate: 2 to 4 orcs */
+                                            : 1;
   if (count < 1 || count > maximum)
     return false;
   if (spell == SPELL_SHAMBLER)

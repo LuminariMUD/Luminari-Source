@@ -6199,9 +6199,10 @@ enum racial_sla_target
   RSLA_TARGET_ROOM_OTHERS /* every other character in the room, one cast each */
 };
 
-#define RSLA_FLAG_COMBAT_ONLY (1 << 0) /* usable only while fighting */
-#define RSLA_FLAG_SIZE_LIMIT (1 << 1)  /* target at most one size larger than the user */
-#define RSLA_FLAG_PASS_ARG (1 << 2)    /* argument is required and handed to the spell */
+#define RSLA_FLAG_COMBAT_ONLY (1 << 0)   /* usable only while fighting */
+#define RSLA_FLAG_SIZE_LIMIT (1 << 1)    /* target at most one size larger than the user */
+#define RSLA_FLAG_PASS_ARG (1 << 2)      /* argument is required and handed to the spell */
+#define RSLA_FLAG_OUTDOORS_ONLY (1 << 3) /* usable only outdoors */
 
 struct racial_sla_info
 {
@@ -6242,6 +6243,11 @@ static const struct racial_sla_info racial_sla_table[NUM_RACIAL_SLAS] = {
     {FEAT_SLA_FROST_BREATH, SPELL_CONE_OF_COLD, RSLA_TARGET_OPPONENT, 0, "frostbreath"},
     /* SCMD_RSLA_WEB */
     {FEAT_SLA_WEB, SPELL_WEB, RSLA_TARGET_OPPONENT, RSLA_FLAG_SIZE_LIMIT, "webwrap"},
+    /* SCMD_RSLA_SUMMON_WARG */
+    {FEAT_SUMMON_WARG, ABILITY_SUMMON_WARG, RSLA_TARGET_ROOM, RSLA_FLAG_OUTDOORS_ONLY,
+     "summonwarg"},
+    /* SCMD_RSLA_SUMMON_HORDE */
+    {FEAT_SUMMON_HORDE, ABILITY_SUMMON_HORDE, RSLA_TARGET_ROOM, 0, "summonhorde"},
 };
 
 const struct racial_sla_info *racial_sla_lookup(int subcmd)
@@ -6273,6 +6279,12 @@ ACMD(do_racial_sla)
   if (IS_SET(sla->flags, RSLA_FLAG_COMBAT_ONLY) && !FIGHTING(ch))
   {
     send_to_char(ch, "You can only %s while fighting.\r\n", sla->verb);
+    return;
+  }
+
+  if (IS_SET(sla->flags, RSLA_FLAG_OUTDOORS_ONLY) && (IN_ROOM(ch) == NOWHERE || !OUTSIDE(ch)))
+  {
+    send_to_char(ch, "You can only %s outdoors.\r\n", sla->verb);
     return;
   }
 
@@ -6359,6 +6371,49 @@ ACMD(do_racial_sla)
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, sla->feat);
+}
+
+/* racial flurry (Duris racial innate): one extra attack per round for four
+ * rounds, as a short haste affect that does not stack with real haste */
+ACMD(do_racial_flurry)
+{
+  struct affected_type af;
+
+  if (!HAS_FEAT(ch, FEAT_RACIAL_FLURRY))
+  {
+    send_to_char(ch, "You don't have this ability.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, AFFECT_RACIAL_FLURRY))
+  {
+    send_to_char(ch, "You are already in a flurry!\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_HASTE))
+  {
+    send_to_char(ch, "You are already moving as fast as you can.\r\n");
+    return;
+  }
+
+  if (!IS_NPC(ch) && daily_uses_remaining(ch, FEAT_RACIAL_FLURRY) == 0)
+  {
+    send_to_char(ch, "You must recover before you can use this ability again.\r\n");
+    return;
+  }
+
+  new_affect(&af);
+  af.spell = AFFECT_RACIAL_FLURRY;
+  af.duration = 4; /* combat rounds */
+  SET_BIT_AR(af.bitvector, AFF_HASTE);
+  affect_to_char(ch, &af);
+
+  send_to_char(ch, "\tWYou explode into a flurry of blows!\tn\r\n");
+  act("$n explodes into a flurry of blows!", FALSE, ch, 0, 0, TO_ROOM);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_RACIAL_FLURRY);
 }
 
 /* invisible rogue feat */

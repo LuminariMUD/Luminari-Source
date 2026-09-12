@@ -450,50 +450,66 @@ test; that is the Phase 6 in-game check.
 ### Group 5: active abilities with bespoke commands
 
 **FEAT_BODYSLAM** (RP 1). Existing `bodyslam` command and `SKILL_BODYSLAM`;
-only the availability rule changes (bucket B). Test: the skill is available
-with the feat and not without, independent of race.
+only the availability rule changes (bucket B, done in Phase 1). Test: the
+skill is available with the feat and not without, independent of race.
 
 **FEAT_DOORBASH** (RP 0.5). Duris: `do_doorbash()` in
 `src/classes/innates.c` (and the Centaur `do_doorkick()` variant, merged
-here). Ours: finish the commented-out `do_doorbash` in
-`src/movement/movement.c`: `doorbash <direction>`; closed, non-pickproof exit;
-success on d300 at or below strength plus level; success opens the exit on
-both sides and breaks the lock, failure deals 1d6 plus a short wait. Register
-the command and `ACMD_DECL`. Test: refused without the feat; opens a closed
-door with the roll forced; pickproof refused.
+here). Ours: the commented-out `do_doorbash` in
+`src/movement/movement.c` is now real: `doorbash <direction>`; closed,
+non-pickproof exit; success on d300 at or below strength plus level; success
+opens the exit on both sides and breaks the lock through
+`doorbash_open_exit(ch, door)` (wrapped in `door_state_begin/finish` like the
+switch code), failure deals 1d6 bludgeoning. The command row's standard plus
+move action cost is the "short wait". Test: refused without the feat and on a
+pickproof door; the forced open clears closed and locked on both sides. The
+d300 roll is not forceable in the harness and is checked in game.
 
 **FEAT_STAMPEDE** (RP 1). Duris: `do_stampede()` in `src/cmd/actnew.c`
 (refused in single-file rooms and without footing). Ours: `stampede`
-attempts `perform_knockdown()` against every opponent fighting the character
-and deals unarmed damage to each on success; usable once per 3 rounds
-(`eSTAMPEDE` cooldown, not a daily use). Refused in `ROOM_SINGLEFILE`. Hook:
-new `ACMD(do_stampede)` in `src/combat/act.offensive.c`. Test: refused
-without the feat; hits every opponent in the room.
+attempts `perform_knockdown()` (as a bash) against every opponent fighting the
+character and follows each success with an unarmed `hit()`; usable once per 3
+rounds (`eSTAMPEDE` countdown event, not a daily use). Refused in
+`ROOM_SINGLEFILE` and when not fighting. Hook: `ACMD(do_stampede)` in
+`src/combat/act.offensive.c` before `do_children_of_the_night`. Test: refused
+without the feat, when not fighting, and in a single-file room. The trample
+itself needs live combat and is checked in game.
 
 **FEAT_RACIAL_FLURRY** (RP 2). Duris: `do_flurry()` in
 `src/classes/innates.c`: `AFF2_FLURRY` for four combat rounds, granting the
 maximum attack count. Ours: `flurry`, 1/day: one extra attack per round for
-four rounds, applied as a short affect that sets `AFF_HASTE` without
-stacking with real haste. Distinct from the monk `FEAT_FLURRY_OF_BLOWS`
-passive. Hook: new `ACMD(do_racial_flurry)` in `src/act.other.c`; the extra
-attack comes from the existing haste handling in `src/combat/fight.c`.
-Test: refused without the feat; affect present for four rounds; refused
-while already hasted.
+four rounds, applied as the `AFFECT_RACIAL_FLURRY` affect (id 1342 in
+`src/magic/spells.h`, registered with `affecto()` in `spell_parser.c`) that
+sets `AFF_HASTE`; refused while already hasted or already in a flurry, before
+the use is spent. Distinct from the monk `FEAT_FLURRY_OF_BLOWS` passive.
+Hook: `ACMD(do_racial_flurry)` in `src/act.other.c` after `do_racial_sla`;
+the extra attack comes from the existing haste handling in
+`src/combat/fight.c`. Test: refused without the feat; affect present with
+duration 4; refused while hasted with no use spent.
 
 **FEAT_SUMMON_WARG** (RP 1.5). Duris: `do_summon_warg()` in
 `src/classes/new_skills.c`, outdoors only, 1/day, delayed arrival, warg mount.
-Ours: 1/day, outdoors, loads a warg mount mob that follows the character;
-reuse the `FEAT_CALL_MOUNT` loading path in `src/act.other.c` with a warg
-vnum. Needs a warg mob; add `MOB_VNUM_RACIAL_WARG` to `src/vnums.example.h`
-(never hardcode) and a mob in the world files. Test: refused indoors; mob
-loaded and following.
+Ours: 1/day, outdoors, loads a warg mount that follows the character. As
+built: not the `FEAT_CALL_MOUNT` path but a `MAG_SUMMONS` ability
+(`ABILITY_SUMMON_WARG`, id 1343) cast through the SLA table row `summonwarg`
+(outdoors-only flag on the row), the way Children Of The Night works.
+`mag_summons()` in `src/magic/magic.c` loads `PET_RACIAL_WARG` (19502, in
+`src/pet_vnums.h` beside the other pet vnums, because `vnums.h` is a local
+untracked header) at two thirds of the caller's level and flags it
+`MOB_MOUNTABLE`. The warg prototype is in `lib/world/mob/195.mob` with the
+other code-loaded pets. Test: the row's daily count and event; refused
+indoors without spending a use. The load itself is checked in game.
 
 **FEAT_SUMMON_HORDE** (RP 1.5). Duris: `do_summon_horde()` in
 `src/classes/new_skills.c`, thrice weekly, prime plane only, orcs arrive over
-time. Ours: 1/day, loads two to four orc warrior mobs (vnum in
-`vnums.example.h`) as timed followers, the `FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT`
-model in `src/act.other.c`. Test: refused without the feat; followers loaded
-with the expiry affect.
+time. Ours: 1/day, loads two to four orc warriors as timed followers. As built:
+`ABILITY_SUMMON_HORDE` (id 1344), a `MAG_SUMMONS` ability on the SLA table row
+`summonhorde`; `mag_summons()` loads `PET_RACIAL_ORC_WARRIOR` (19503,
+`src/pet_vnums.h`, prototype in `lib/world/mob/195.mob`) two to four times at
+half the caller's level and attaches `ePURGEMOB` at 15 minutes to each, the
+Mislead decoy pattern. `can_add_summoned_followers()` in `src/utils.c` allows
+the count of 4 for this ability. Test: the row's daily count and event and
+the refusal without the feat. The load is checked in game.
 
 ## Phases and checklist
 
@@ -509,8 +525,9 @@ with the expiry affect.
       2026-09-12.
 - [x] Phase 3, Group 3 (terrain and utility) and Group 4 (SLA table rows).
       Done 2026-09-12 (the SLA rows landed with Phase 0).
-- [ ] Phase 4, Group 5 (bespoke commands), including the warg and orc mob
-      vnums and world entries.
+- [x] Phase 4, Group 5 (bespoke commands), including the warg and orc mob
+      vnums and world entries. Done 2026-09-12. Warg and horde are SLA rows,
+      so only flurry, doorbash and stampede are bespoke commands.
 - [ ] Phase 5, help in both stores for every feat and command; RP trait
       table rows; master index entry; `feat info` and `race feats` checked in
       game for one feat from each group.
@@ -561,6 +578,10 @@ after Phase 0.
 - The `FEAT_HASTE` "(3x/day)" special case in the feat list display was
   removed rather than rewritten; the short description carries "1/day" like
   the other SLA feats.
+- Summon Warg and Summon Horde are `MAG_SUMMONS` abilities on the SLA table
+  instead of two bespoke commands: the summons routine already does the
+  loading, charming, follower limits and messages, so only a selection case
+  and a post-load case per ability were needed.
 
 ## Progress log
 
@@ -580,6 +601,18 @@ without re-reading the conversation.
   `unittests/CuTest/test_racial_innate_feats.c` (four tests), `Makefile.am`,
   `CMakeLists.txt`, and `unittests/CuTest/test_syntax_check_boot.c` (persisted
   event count 93 to 110).
+- 2026-09-12, Phase 4 done. `src/magic/spells.h` (three ids at 1342 to 1344),
+  `src/magic/spell_parser.c` (two `spello()` summons rows, one `affecto()`),
+  `src/magic/magic.c` (`mag_summons()` selection and post-load cases, two
+  message rows replacing fillers 36 and 37), `src/utils.c`
+  (`can_add_summoned_followers()` count 4 for the horde), `src/pet_vnums.h`,
+  `lib/world/mob/195.mob` (19502 warg, 19503 orc warrior),
+  `src/interpreter.h` (`SCMD_RSLA_SUMMON_WARG`, `SCMD_RSLA_SUMMON_HORDE`,
+  `NUM_RACIAL_SLAS` 16), `src/act.other.c` (two rows, outdoors-only flag,
+  `do_racial_flurry`), `src/movement/movement.c` (`doorbash_open_exit`,
+  `do_doorbash`), `src/combat/act.offensive.c` (`do_stampede`), `src/act.h`,
+  `src/interpreter.c` (five rows). Three tests added, SLA expectations
+  extended.
 - 2026-09-12, Phase 3 done. `src/character/abilities.c`
   `racial_terrain_ability_bonus()` in the stealth and perception cases;
   `src/wilderness/resource_system.c` `get_harvest_skill_level()`;

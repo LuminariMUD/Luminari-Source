@@ -192,6 +192,8 @@ static const struct racial_sla_expectation racial_sla_expectations[] = {
     {SCMD_RSLA_MASS_DISPEL, FEAT_SLA_MASS_DISPEL, eSLA_MASS_DISPEL, 1},
     {SCMD_RSLA_FROST_BREATH, FEAT_SLA_FROST_BREATH, eSLA_FROST_BREATH, 3},
     {SCMD_RSLA_WEB, FEAT_SLA_WEB, eSLA_WEB, 3},
+    {SCMD_RSLA_SUMMON_WARG, FEAT_SUMMON_WARG, eSUMMON_WARG, 1},
+    {SCMD_RSLA_SUMMON_HORDE, FEAT_SUMMON_HORDE, eSUMMON_HORDE, 1},
 };
 
 /* Each SLA row has its daily count, cooldown event, and a lookup entry. */
@@ -261,6 +263,11 @@ void TestRacialSlaUseStartsTheDailyCooldown(CuTest *tc)
   SET_FEAT(&fixture.ch, FEAT_SLA_WEB, 1);
   do_racial_sla(&fixture.ch, "", 0, SCMD_RSLA_WEB); /* no opponent */
   CuAssertTrue(tc, char_has_mud_event(&fixture.ch, eSLA_WEB) == NULL);
+
+  SET_FEAT(&fixture.ch, FEAT_SUMMON_WARG, 1);
+  fixture.rooms[0].sector_type = SECT_INSIDE;
+  do_racial_sla(&fixture.ch, "", 0, SCMD_RSLA_SUMMON_WARG); /* indoors */
+  CuAssertTrue(tc, char_has_mud_event(&fixture.ch, eSUMMON_WARG) == NULL);
 
   SET_FEAT(&fixture.ch, FEAT_SLA_FARSEE, 1);
   CuAssertIntEquals(tc, 1, start_daily_use_cooldown(&fixture.ch, FEAT_SLA_FARSEE));
@@ -885,6 +892,100 @@ void TestBarterAndSeadogBonuses(CuTest *tc)
   CuAssertIntEquals(tc, 0, vessel_pilot_speed_bonus(&fixture.ch));
   SET_FEAT(&fixture.ch, FEAT_SEADOG, 1);
   CuAssertIntEquals(tc, 1, vessel_pilot_speed_bonus(&fixture.ch));
+
+  end_innate_fixture(&fixture);
+}
+
+/* ---- Phase 4: bespoke commands ---- */
+
+/* Flurry applies a four-round haste affect once per day and never stacks with haste. */
+void TestRacialFlurryAppliesAShortHasteAffect(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  struct affected_type *af;
+
+  begin_innate_fixture(&fixture);
+
+  do_racial_flurry(&fixture.ch, "", 0, 0); /* no feat */
+  CuAssertTrue(tc, !affected_by_spell(&fixture.ch, AFFECT_RACIAL_FLURRY));
+
+  SET_FEAT(&fixture.ch, FEAT_RACIAL_FLURRY, 1);
+  do_racial_flurry(&fixture.ch, "", 0, 0);
+  CuAssertTrue(tc, affected_by_spell(&fixture.ch, AFFECT_RACIAL_FLURRY));
+  CuAssertTrue(tc, AFF_FLAGGED(&fixture.ch, AFF_HASTE));
+  CuAssertIntEquals(tc, 0, daily_uses_remaining(&fixture.ch, FEAT_RACIAL_FLURRY));
+  for (af = fixture.ch.affected; af != NULL; af = af->next)
+    if (af->spell == AFFECT_RACIAL_FLURRY)
+      CuAssertIntEquals(tc, 4, af->duration);
+
+  /* already hasted by something else: refused, no use spent */
+  while (fixture.ch.affected != NULL)
+    affect_remove_no_total(&fixture.ch, fixture.ch.affected);
+  clear_char_event_list(&fixture.ch);
+  SET_BIT_AR(AFF_FLAGS(&fixture.ch), AFF_HASTE);
+  do_racial_flurry(&fixture.ch, "", 0, 0);
+  CuAssertTrue(tc, !affected_by_spell(&fixture.ch, AFFECT_RACIAL_FLURRY));
+  CuAssertIntEquals(tc, 1, daily_uses_remaining(&fixture.ch, FEAT_RACIAL_FLURRY));
+
+  end_innate_fixture(&fixture);
+}
+
+/* Doorbash refuses without the feat and on pickproof doors; the forced open clears both sides. */
+void TestDoorbashOpensBothSidesOfTheDoor(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  struct room_direction_data east, west;
+
+  begin_innate_fixture(&fixture);
+  memset(&east, 0, sizeof(east));
+  memset(&west, 0, sizeof(west));
+  east.to_room = 1;
+  east.exit_info = EX_ISDOOR | EX_CLOSED | EX_LOCKED;
+  west.to_room = 0;
+  west.exit_info = EX_ISDOOR | EX_CLOSED | EX_LOCKED;
+  fixture.rooms[0].dir_option[EAST] = &east;
+  fixture.rooms[1].dir_option[WEST] = &west;
+
+  do_doorbash(&fixture.ch, "east", 0, 0); /* no feat */
+  CuAssertTrue(tc, IS_SET(east.exit_info, EX_CLOSED));
+
+  SET_FEAT(&fixture.ch, FEAT_DOORBASH, 1);
+  east.exit_info |= EX_PICKPROOF;
+  do_doorbash(&fixture.ch, "east", 0, 0); /* pickproof */
+  CuAssertTrue(tc, IS_SET(east.exit_info, EX_CLOSED));
+  east.exit_info &= ~EX_PICKPROOF;
+
+  doorbash_open_exit(&fixture.ch, EAST);
+  CuAssertTrue(tc, !IS_SET(east.exit_info, EX_CLOSED));
+  CuAssertTrue(tc, !IS_SET(east.exit_info, EX_LOCKED));
+  CuAssertTrue(tc, !IS_SET(west.exit_info, EX_CLOSED));
+  CuAssertTrue(tc, !IS_SET(west.exit_info, EX_LOCKED));
+
+  fixture.rooms[0].dir_option[EAST] = NULL;
+  fixture.rooms[1].dir_option[WEST] = NULL;
+  end_innate_fixture(&fixture);
+}
+
+/* Stampede needs the feat, an open room, and an opponent before it starts its cooldown. */
+void TestStampedeRefusals(CuTest *tc)
+{
+  struct innate_fixture fixture;
+
+  begin_innate_fixture(&fixture);
+
+  do_stampede(&fixture.ch, "", 0, 0); /* no feat */
+  CuAssertTrue(tc, char_has_mud_event(&fixture.ch, eSTAMPEDE) == NULL);
+
+  SET_FEAT(&fixture.ch, FEAT_STAMPEDE, 1);
+  do_stampede(&fixture.ch, "", 0, 0); /* not fighting */
+  CuAssertTrue(tc, char_has_mud_event(&fixture.ch, eSTAMPEDE) == NULL);
+
+  SET_BIT_AR(ROOM_FLAGS(0), ROOM_SINGLEFILE);
+  FIGHTING(&fixture.ch) = &fixture.other;
+  do_stampede(&fixture.ch, "", 0, 0); /* single file */
+  CuAssertTrue(tc, char_has_mud_event(&fixture.ch, eSTAMPEDE) == NULL);
+  FIGHTING(&fixture.ch) = NULL;
+  REMOVE_BIT_AR(ROOM_FLAGS(0), ROOM_SINGLEFILE);
 
   end_innate_fixture(&fixture);
 }

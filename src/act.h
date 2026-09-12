@@ -627,6 +627,10 @@ ACMD_DECL(do_invisduergar);
 ACMD_DECL(do_enlarge);
 ACMD_DECL(do_darkness);
 ACMD_DECL(do_racial_sla);
+ACMD_DECL(do_racial_flurry);
+ACMD_DECL(do_doorbash);
+void doorbash_open_exit(struct char_data *ch, int door); /* movement.c */
+ACMD_DECL(do_stampede);
 struct racial_sla_info; /* act.other.c, one row per racial spell-like ability */
 const struct racial_sla_info *racial_sla_lookup(int subcmd);
 ACMD_DECL(do_invisiblerogue);

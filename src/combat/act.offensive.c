@@ -14349,6 +14349,47 @@ ACMDCHECK(can_children_of_the_night)
   return CAN_CMD;
 }
 
+/* stampede (Duris racial innate): trample every opponent fighting you, knocking
+ * down and striking each you overrun.  Once every three rounds. */
+ACMD(do_stampede)
+{
+  struct char_data *tch = NULL, *next_tch = NULL;
+
+  if (!HAS_FEAT(ch, FEAT_STAMPEDE))
+  {
+    send_to_char(ch, "You don't have this ability.\r\n");
+    return;
+  }
+  if (IN_ROOM(ch) == NOWHERE || ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE))
+  {
+    send_to_char(ch, "There is no room to stampede here.\r\n");
+    return;
+  }
+  if (!FIGHTING(ch))
+  {
+    send_to_char(ch, "You are not fighting anyone.\r\n");
+    return;
+  }
+  if (char_has_mud_event(ch, eSTAMPEDE))
+  {
+    send_to_char(ch, "You are still recovering from your last stampede.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "\tWYou lower your head and stampede through your foes!\tn\r\n");
+  act("$n lowers $s head and stampedes through the melee!", FALSE, ch, 0, 0, TO_ROOM);
+  attach_mud_event(new_mud_event(eSTAMPEDE, ch, NULL), 3 * PULSE_VIOLENCE);
+
+  for (tch = world[IN_ROOM(ch)].people; tch != NULL; tch = next_tch)
+  {
+    next_tch = tch->next_in_room;
+    if (tch == ch || FIGHTING(tch) != ch)
+      continue;
+    if (perform_knockdown(ch, tch, SKILL_BASH, FALSE, TRUE))
+      hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_UNARMED);
+  }
+}
+
 ACMD(do_children_of_the_night)
 {
   PREREQ_CHECK(can_children_of_the_night);
