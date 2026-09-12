@@ -32,7 +32,7 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
 ('automapping', 'MAPS');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated) VALUES
-('map', 'Use map or map world for an ASCII map of nearby rooms. Shop locations show
+('gui-map', 'Use map or map world for an ASCII map of nearby rooms. Shop locations show
 $ (even when closed), and & marks your current room, including inside a shop.
 You can set the distance with map 6 normal or map 6 world. See AUTOMAPPING
 for the ASCII map and automatic minimap options.
@@ -55,10 +55,15 @@ See also:  AUTOMAPPING
 ON DUPLICATE KEY UPDATE entry=VALUES(entry), min_level=VALUES(min_level),
                         auto_generated=VALUES(auto_generated);
 
+-- Reclaim aliases from earlier imports or the previous migration's map tag.
+DELETE FROM help_keywords
+WHERE UPPER(keyword) IN ('GUI-MAP', 'MAP', 'MAPPER', 'MAPPING')
+  AND help_tag <> 'gui-map';
+
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
-('map', 'GUI-MAP'),
-('map', 'MAP'),
-('map', 'MAPPER'),
-('map', 'MAPPING');
+('gui-map', 'GUI-MAP'),
+('gui-map', 'MAP'),
+('gui-map', 'MAPPER'),
+('gui-map', 'MAPPING');
 
 COMMIT;

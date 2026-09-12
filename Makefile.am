@@ -953,6 +953,7 @@ EXTRA_DIST = \
 	sql/components/help_thrown_weapons_entries.sql \
 	sql/components/help_vessel_entries.sql \
 	sql/components/help_character_backgrounds.sql \
+	sql/components/help_map_shop_markers.sql \
 	sql/components/help_necromancer_entries.sql \
 	sql/components/help_rol_object_trap_entries.sql \
 	sql/components/help_worship_entries.sql \
