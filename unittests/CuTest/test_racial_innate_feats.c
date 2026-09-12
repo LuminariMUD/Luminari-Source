@@ -33,7 +33,7 @@
 
 struct innate_fixture
 {
-  struct room_data rooms[2];
+  struct room_data rooms[3]; /* call_magic() only checks rooms strictly below top_of_world */
   struct char_data ch;
   struct char_data other;
   struct player_special_data ch_specials;
@@ -94,8 +94,9 @@ static void begin_innate_fixture(struct innate_fixture *fixture)
   fixture->rooms[0].number = 169910;
   fixture->rooms[0].people = &fixture->ch;
   fixture->rooms[1].number = 169911;
+  fixture->rooms[2].number = 169912;
   world = fixture->rooms;
-  top_of_world = 1;
+  top_of_world = 2;
   character_list = &fixture->ch;
 }
 
@@ -1015,6 +1016,174 @@ void TestStampedeRefusals(CuTest *tc)
   FIGHTING(&fixture.ch) = NULL;
   REMOVE_BIT_AR(ROOM_FLAGS(0), ROOM_SINGLEFILE);
 
+  end_innate_fixture(&fixture);
+}
+
+/* The cooldown and the action are only spent with someone to run over: an
+ * opponent in another room or in the air is not one, ch's own opponent who has
+ * not turned to fight back yet is. */
+void TestStampedeSpendsOnlyWithSomeoneToTrample(CuTest *tc)
+{
+  struct innate_fixture fixture;
+
+  begin_innate_fixture(&fixture);
+  SET_FEAT(&fixture.ch, FEAT_STAMPEDE, 1);
+  FIGHTING(&fixture.ch) = &fixture.other;
+
+  /* opponent elsewhere */
+  fixture.ch.next_in_room = NULL;
+  IN_ROOM(&fixture.other) = 1;
+  fixture.rooms[1].people = &fixture.other;
+  do_stampede(&fixture.ch, "", 0, 0);
+  CuAssertTrue(tc, char_has_mud_event(&fixture.ch, eSTAMPEDE) == NULL);
+
+  /* opponent here but flying */
+  fixture.rooms[1].people = NULL;
+  IN_ROOM(&fixture.other) = 0;
+  fixture.ch.next_in_room = &fixture.other;
+  SET_BIT_AR(AFF_FLAGS(&fixture.other), AFF_FLYING);
+  do_stampede(&fixture.ch, "", 0, 0);
+  CuAssertTrue(tc, char_has_mud_event(&fixture.ch, eSTAMPEDE) == NULL);
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.other), AFF_FLYING);
+
+  /* ch's own opponent on the ground, not yet fighting back */
+  do_stampede(&fixture.ch, "", 0, 0);
+  CuAssertPtrNotNull(tc, char_has_mud_event(&fixture.ch, eSTAMPEDE));
+
+  FIGHTING(&fixture.ch) = NULL;
+  FIGHTING(&fixture.other) = NULL;
+  end_innate_fixture(&fixture);
+}
+
+/* A spell-like ability that fizzles keeps its daily use. */
+void TestRacialSlaFizzleKeepsTheDailyUse(CuTest *tc)
+{
+  struct innate_fixture fixture;
+
+  begin_innate_fixture(&fixture);
+  SET_FEAT(&fixture.ch, FEAT_SLA_FIRE_STORM, 1);
+  fixture.rooms[0].people = &fixture.other;
+  fixture.ch.next_in_room = NULL;
+  IN_ROOM(&fixture.ch) = 1;
+  fixture.rooms[1].people = &fixture.ch;
+  SET_BIT_AR(ROOM_FLAGS(1), ROOM_NOMAGIC);
+
+  do_racial_sla(&fixture.ch, "", 0, SCMD_RSLA_FIRE_STORM);
+  CuAssertTrue(tc, char_has_mud_event(&fixture.ch, eSLA_FIRE_STORM) == NULL);
+  CuAssertIntEquals(tc, 1, daily_uses_remaining(&fixture.ch, FEAT_SLA_FIRE_STORM));
+
+  REMOVE_BIT_AR(ROOM_FLAGS(1), ROOM_NOMAGIC);
+  end_innate_fixture(&fixture);
+}
+
+/* Mass dispel skips groupmates, never starts a fight, and spends its use only
+ * once an affect actually came off a hostile. */
+void TestMassDispelSkipsAlliesAndNeverStartsAFight(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  struct affected_type af;
+
+  begin_innate_fixture(&fixture);
+  fixture.rooms[0].light = 1;
+  SET_FEAT(&fixture.ch, FEAT_SLA_MASS_DISPEL, 1);
+  new_affect(&af);
+  af.spell = SPELL_HASTE;
+  af.duration = 5;
+  affect_to_char(&fixture.other, &af);
+
+  /* a groupmate is left alone and no use is spent */
+  group_innate_fixture(&fixture);
+  do_racial_sla(&fixture.ch, "", 0, SCMD_RSLA_MASS_DISPEL);
+  CuAssertTrue(tc, affected_by_spell(&fixture.other, SPELL_HASTE));
+  CuAssertTrue(tc, FIGHTING(&fixture.ch) == NULL);
+  CuAssertTrue(tc, FIGHTING(&fixture.other) == NULL);
+  CuAssertIntEquals(tc, 1, daily_uses_remaining(&fixture.ch, FEAT_SLA_MASS_DISPEL));
+  fixture.ch.group = NULL;
+  fixture.other.group = NULL;
+
+  /* a hostile mob is dispelled without anyone entering combat; the use goes
+   * only with a successful strip */
+  SET_BIT_AR(MOB_FLAGS(&fixture.other), MOB_ISNPC);
+  fixture.other.player.short_descr = (char *)"innate two";
+  GET_LEVEL(&fixture.other) = 1;
+  do_racial_sla(&fixture.ch, "", 0, SCMD_RSLA_MASS_DISPEL);
+  CuAssertTrue(tc, FIGHTING(&fixture.ch) == NULL);
+  CuAssertTrue(tc, FIGHTING(&fixture.other) == NULL);
+  CuAssertIntEquals(tc, affected_by_spell(&fixture.other, SPELL_HASTE) ? 1 : 0,
+                    daily_uses_remaining(&fixture.ch, FEAT_SLA_MASS_DISPEL));
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.other), MOB_ISNPC);
+
+  end_innate_fixture(&fixture);
+}
+
+/* Slow strips the racial flurry like any haste, and onslaught refuses while slowed. */
+void TestSlowStripsTheRacialFlurry(CuTest *tc)
+{
+  struct innate_fixture fixture;
+
+  begin_innate_fixture(&fixture);
+  SET_FEAT(&fixture.ch, FEAT_RACIAL_FLURRY, 1);
+
+  do_racial_flurry(&fixture.ch, "", 0, 0);
+  CuAssertTrue(tc, affected_by_spell(&fixture.ch, AFFECT_RACIAL_FLURRY));
+  mag_affects(10, &fixture.other, &fixture.ch, NULL, SPELL_SLOW, SAVING_WILL, CAST_INNATE, 0);
+  CuAssertTrue(tc, !affected_by_spell(&fixture.ch, AFFECT_RACIAL_FLURRY));
+  CuAssertTrue(tc, !AFF_FLAGGED(&fixture.ch, AFF_HASTE));
+
+  clear_char_event_list(&fixture.ch);
+  SET_BIT_AR(AFF_FLAGS(&fixture.ch), AFF_SLOW);
+  do_racial_flurry(&fixture.ch, "", 0, 0);
+  CuAssertTrue(tc, !affected_by_spell(&fixture.ch, AFFECT_RACIAL_FLURRY));
+  CuAssertIntEquals(tc, 1, daily_uses_remaining(&fixture.ch, FEAT_RACIAL_FLURRY));
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.ch), AFF_SLOW);
+
+  end_innate_fixture(&fixture);
+}
+
+/* Shadow jump needs both rooms in shadow, refuses no-teleport and powerful
+ * targets, and otherwise moves the caster. */
+void TestShadowJumpNeedsShadowInBothRooms(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  struct zone_data zone;
+  struct zone_data *saved_zone_table = zone_table;
+  zone_rnum saved_top_of_zone_table = top_of_zone_table;
+
+  begin_innate_fixture(&fixture);
+  memset(&zone, 0, sizeof(zone));
+  zone_table = &zone;
+  top_of_zone_table = 0;
+  fixture.ch.player.title = (char *)"";
+  fixture.other.player.title = (char *)"";
+  fixture.ch.next_in_room = NULL;
+  IN_ROOM(&fixture.other) = 1;
+  fixture.rooms[1].people = &fixture.other;
+
+  /* a lit target room refuses */
+  SET_BIT_AR(ROOM_FLAGS(1), ROOM_MAGICLIGHT);
+  spell_shadow_jump(10, &fixture.ch, &fixture.other, NULL, CAST_INNATE);
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.ch));
+  REMOVE_BIT_AR(ROOM_FLAGS(1), ROOM_MAGICLIGHT);
+
+  /* teleport's unique-mob guards apply */
+  SET_BIT_AR(MOB_FLAGS(&fixture.other), MOB_ISNPC);
+  fixture.other.player.short_descr = (char *)"innate two";
+  SET_BIT_AR(MOB_FLAGS(&fixture.other), MOB_NOTELEPORT);
+  spell_shadow_jump(10, &fixture.ch, &fixture.other, NULL, CAST_INNATE);
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.ch));
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.other), MOB_NOTELEPORT);
+  GET_LEVEL(&fixture.other) = LVL_IMMORT;
+  spell_shadow_jump(10, &fixture.ch, &fixture.other, NULL, CAST_INNATE);
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.ch));
+  GET_LEVEL(&fixture.other) = 10;
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.other), MOB_ISNPC);
+
+  /* two dark indoor rooms: the jump lands */
+  spell_shadow_jump(10, &fixture.ch, &fixture.other, NULL, CAST_INNATE);
+  CuAssertIntEquals(tc, 1, IN_ROOM(&fixture.ch));
+
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
   end_innate_fixture(&fixture);
 }
 

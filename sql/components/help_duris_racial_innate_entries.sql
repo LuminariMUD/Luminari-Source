@@ -664,10 +664,11 @@ VALUES ('STAMPEDE', 'Stampede
 Usage: stampede
 Requires: the stampede feat (racial innate)
 
-You lower your head and trample every opponent fighting you. Each one you
-overrun (as a bash) is knocked down and struck with an unarmed blow. Usable
-once every three rounds, never in a single-file room, and only while
-fighting.
+You lower your head and trample every opponent fighting you, and the one
+you are fighting. Each one you overrun (as a bash) is knocked down and
+struck with an unarmed blow. Flying opponents cannot be trampled, and the
+charge only starts with someone on the ground to run over. Usable once
+every three rounds, never in a single-file room, and only while fighting.
 
 See also: FEAT INFO STAMPEDE, BASH', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),

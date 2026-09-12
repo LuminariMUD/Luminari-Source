@@ -6257,12 +6257,63 @@ const struct racial_sla_info *racial_sla_lookup(int subcmd)
   return &racial_sla_table[subcmd];
 }
 
+/* followers of ch, so a summon can be seen to have actually arrived */
+static int racial_sla_follower_count(struct char_data *ch)
+{
+  struct follow_type *f = NULL;
+  int count = 0;
+
+  for (f = ch->followers; f != NULL; f = f->next)
+    count++;
+  return count;
+}
+
+/* affects on ch, so a dispel can be seen to have actually stripped one */
+static int racial_sla_affect_count(struct char_data *ch)
+{
+  struct affected_type *af = NULL;
+  int count = 0;
+
+  for (af = ch->affected; af != NULL; af = af->next)
+    count++;
+  return count;
+}
+
+/* mass dispel: strip every hostile in the room.  The dispel is applied directly
+ * rather than through call_magic() so a violent spell never starts fights with
+ * pets, groupmates, or bystanders.  Returns the number of eligible targets and
+ * sets *stripped when at least one affect actually came off. */
+static int racial_sla_mass_dispel(struct char_data *ch, int spellnum, bool *stripped)
+{
+  struct char_data *tch = NULL, *next_tch = NULL;
+  int targets = 0, before = 0;
+
+  *stripped = FALSE;
+  for (tch = world[IN_ROOM(ch)].people; tch != NULL; tch = next_tch)
+  {
+    next_tch = tch->next_in_room;
+    if (!aoeOK(ch, tch, spellnum) || !CAN_SEE(ch, tch) || DEAD(tch))
+      continue;
+    if ((!IS_NPC(tch) || (tch->master && !IS_NPC(tch->master))) && !pvp_ok(ch, tch, FALSE))
+      continue;
+    targets++;
+    before = racial_sla_affect_count(tch);
+    perform_dispel(ch, tch, NULL, spellnum);
+    if (racial_sla_affect_count(tch) < before)
+      *stripped = TRUE;
+  }
+  return targets;
+}
+
 /* racial spell-like abilities (Duris innates), see racial_sla_table[] */
 ACMD(do_racial_sla)
 {
   const struct racial_sla_info *sla = racial_sla_lookup(subcmd);
-  struct char_data *vict = NULL, *tch = NULL, *next_tch = NULL;
+  struct char_data *vict = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
+  room_rnum start_room = NOWHERE;
+  int followers_before = 0;
+  bool committed = FALSE;
 
   if (sla == NULL)
   {
@@ -6364,19 +6415,53 @@ ACMD(do_racial_sla)
   if (IS_SET(sla->flags, RSLA_FLAG_PASS_ARG))
     strlcpy(cast_arg2, arg, MAX_INPUT_LENGTH);
 
+  /* The action and the daily use are only spent once the ability actually did
+   * something: a fizzle, a refused teleport, or a summon that never arrived
+   * costs nothing. */
+  start_room = IN_ROOM(ch);
+  followers_before = racial_sla_follower_count(ch);
+
   if (sla->target == RSLA_TARGET_ROOM_OTHERS)
   {
-    for (tch = world[IN_ROOM(ch)].people; tch != NULL; tch = next_tch)
+    if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOMAGIC) || ROOM_AFFECTED(IN_ROOM(ch), RAFF_ANTI_MAGIC))
     {
-      next_tch = tch->next_in_room;
-      if (tch == ch)
-        continue;
-      call_magic(ch, tch, NULL, sla->spellnum, 0, GET_LEVEL(ch), CAST_INNATE);
+      send_to_char(ch, "Your magic fizzles out and dies.\r\n");
+      act("$n's magic fizzles out and dies.", FALSE, ch, 0, 0, TO_ROOM);
+      return;
+    }
+    if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+    {
+      send_to_char(ch, "A flash of white light fills the room, dispelling your violent magic!\r\n");
+      act("White light from no particular source suddenly fills the room, then vanishes.", FALSE,
+          ch, 0, 0, TO_ROOM);
+      return;
+    }
+    if (racial_sla_mass_dispel(ch, sla->spellnum, &committed) == 0)
+    {
+      send_to_char(ch, "There is nobody here for you to dispel.\r\n");
+      return;
     }
   }
   else
   {
-    call_magic(ch, vict, NULL, sla->spellnum, 0, GET_LEVEL(ch), CAST_INNATE);
+    if (!call_magic(ch, vict, NULL, sla->spellnum, 0, GET_LEVEL(ch), CAST_INNATE))
+      return; /* fizzled, and call_magic() already said why */
+    switch (sla->spellnum)
+    {
+    case SPELL_SHADOW_JUMP:
+    case SPELL_PLANE_SHIFT:
+      committed = IN_ROOM(ch) != start_room;
+      break;
+    case ABILITY_SUMMON_WARG:
+    case ABILITY_SUMMON_HORDE:
+      committed = racial_sla_follower_count(ch) > followers_before;
+      break;
+    default:
+      committed = TRUE;
+      break;
+    }
+    if (!committed)
+      return; /* the spell refused and explained itself */
   }
 
   /* spend the action the command table declares: self and far-target
@@ -6386,7 +6471,8 @@ ACMD(do_racial_sla)
   else
     USE_STANDARD_ACTION(ch);
 
-  if (!IS_NPC(ch))
+  /* a mass dispel that found targets but stripped nothing keeps its use */
+  if (committed && !IS_NPC(ch))
     start_daily_use_cooldown(ch, sla->feat);
 }
 
@@ -6412,6 +6498,12 @@ ACMD(do_racial_flurry)
   if (AFF_FLAGGED(ch, AFF_HASTE))
   {
     send_to_char(ch, "You are already moving as fast as you can.\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_SLOW))
+  {
+    send_to_char(ch, "You are far too slowed to manage a flurry.\r\n");
     return;
   }
 

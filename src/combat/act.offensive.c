@@ -14349,12 +14349,24 @@ ACMDCHECK(can_children_of_the_night)
   return CAN_CMD;
 }
 
+/* someone a stampede can run over: an opponent here who is fighting ch or whom
+ * ch is fighting, alive and on the ground */
+static bool stampede_target(struct char_data *ch, struct char_data *tch)
+{
+  if (tch == ch || DEAD(tch) || GET_POS(tch) <= POS_DEAD)
+    return FALSE;
+  if (FIGHTING(tch) != ch && FIGHTING(ch) != tch)
+    return FALSE;
+  return !is_flying(tch);
+}
+
 /* stampede (Duris racial innate): trample every opponent fighting you, knocking
  * down and striking each you overrun.  Once every three rounds. */
 ACMD(do_stampede)
 {
   struct char_data *tch = NULL, *next_tch = NULL;
   room_rnum room = NOWHERE;
+  bool found = FALSE;
 
   if (!HAS_FEAT(ch, FEAT_STAMPEDE))
   {
@@ -14377,16 +14389,25 @@ ACMD(do_stampede)
     return;
   }
 
+  /* the cooldown and the action are only spent with someone to run over */
+  room = IN_ROOM(ch);
+  for (tch = world[room].people; tch != NULL && !found; tch = tch->next_in_room)
+    found = stampede_target(ch, tch);
+  if (!found)
+  {
+    send_to_char(ch, "There is nobody on the ground here for you to trample.\r\n");
+    return;
+  }
+
   send_to_char(ch, "\tWYou lower your head and stampede through your foes!\tn\r\n");
   act("$n lowers $s head and stampedes through the melee!", FALSE, ch, 0, 0, TO_ROOM);
   attach_mud_event(new_mud_event(eSTAMPEDE, ch, NULL), 3 * PULSE_VIOLENCE);
   USE_FULL_ROUND_ACTION(ch);
 
-  room = IN_ROOM(ch);
   for (tch = world[room].people; tch != NULL; tch = next_tch)
   {
     next_tch = tch->next_in_room;
-    if (tch == ch || FIGHTING(tch) != ch || DEAD(tch))
+    if (!stampede_target(ch, tch))
       continue;
     if (perform_knockdown(ch, tch, SKILL_BASH, FALSE, TRUE) && !DEAD(tch))
       hit(ch, tch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_UNARMED);

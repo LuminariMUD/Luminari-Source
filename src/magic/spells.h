@@ -2038,6 +2038,8 @@ const char *skill_name(int num);
 const char *spell_name(int num);
 bool isEpicSpell(int spellnum);
 int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool is_tele);
+void perform_dispel(struct char_data *ch, struct char_data *vict, struct obj_data *obj,
+                    int spellnum);
 
 /* spells.c */
 bool wall_blocks_movement(struct char_data *victim, room_rnum from_room, room_rnum to_room,

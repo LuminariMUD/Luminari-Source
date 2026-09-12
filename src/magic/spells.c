@@ -3312,6 +3312,19 @@ ASPELL(spell_shadow_jump)
     return;
   }
 
+  if (MOB_FLAGGED(victim, MOB_NOTELEPORT))
+  {
+    send_to_char(ch, "The shadows begin to gather around you, then scatter suddenly!\r\n");
+    return;
+  }
+
+  if (IS_POWERFUL_BEING(victim))
+  {
+    send_to_char(ch, "Shadow jump failed!  The target is a powerful being and easily dismisses "
+                     "your magic from the other side!\r\n");
+    return;
+  }
+
   to_room = IN_ROOM(victim);
 
   if (!valid_mortal_tele_dest(ch, to_room, TRUE))
@@ -3350,7 +3363,7 @@ ASPELL(spell_shadow_jump)
     return;
   }
 
-  if (IS_SHADOW_CONDITIONS(ch) && IS_SHADOW_CONDITIONS(victim))
+  if (!IS_SHADOW_CONDITIONS(ch) || !IS_SHADOW_CONDITIONS(victim))
   {
     send_to_char(ch,
                  "Either your current or target room is too bright to perform a shadow jump.\r\n");

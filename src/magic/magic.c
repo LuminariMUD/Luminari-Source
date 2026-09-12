@@ -10094,9 +10094,11 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_SLOW: // abjuration
-    if (affected_by_spell(victim, SPELL_HASTE))
+    if (affected_by_spell(victim, SPELL_HASTE) || affected_by_spell(victim, AFFECT_RACIAL_FLURRY))
     {
+      /* the racial flurry (onslaught) is a haste affect too and goes the same way */
       affect_from_char(victim, SPELL_HASTE);
+      affect_from_char(victim, AFFECT_RACIAL_FLURRY);
       send_to_char(ch, "You dispel the haste spell!\r\n");
       send_to_char(victim, "Your haste spell is dispelled!\r\n");
       return;

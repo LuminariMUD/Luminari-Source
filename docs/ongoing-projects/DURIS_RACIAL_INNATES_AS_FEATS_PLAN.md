@@ -664,6 +664,28 @@ without re-reading the conversation.
   18, so from the dire wolf onward each comment is one higher than the real
   array index; `mag_summons()` indexes by real position, and the warg and
   horde rows sit at real 36 and 37 (verified in game).
+- 2026-09-12, PR #159 second review pass (adversarial). `src/act.other.c`:
+  the SLA handler spends its action and daily use only once the ability
+  committed: a `call_magic()` fizzle (no-magic, anti-magic, peaceful, pvp)
+  returns early, `shadowdoor` and `planeshift` must have moved the caster,
+  `summonwarg` and `summonhorde` must have added a follower. `massdispel`
+  no longer goes through `call_magic()` (a violent spell there starts fights
+  with pets and bystanders); it filters with `aoeOK()`, `CAN_SEE()` and
+  `pvp_ok()`, applies `perform_dispel()` directly, spends the action when it
+  had a target and the daily use only when an affect came off. `onslaught`
+  refuses while slowed. `src/magic/magic.c`: slow strips
+  `AFFECT_RACIAL_FLURRY` alongside `SPELL_HASTE`. `src/magic/spells.c`:
+  `spell_shadow_jump` had its shadow predicate inverted (it refused two dark
+  rooms); it now fails when either room is lit and carries teleport's
+  `MOB_NOTELEPORT` and `IS_POWERFUL_BEING` guards. `src/combat/act.offensive.c`:
+  `stampede` needs a grounded target who is fighting you or whom you are
+  fighting before it spends its cooldown; both count as trample targets.
+  Five tests added; the fixture now has three rooms because `call_magic()`
+  only checks room flags for rnums strictly between 0 and `top_of_world`.
+  The `Clean archive, both build systems` job fails on master at the merge
+  base with the same two tests (`test_syntax_check_boot.c:526`,
+  `test_database_persistence.c:807`); that is pre-existing and not from
+  this branch.
 - Open follow-ups: assigning feats to races (the companion study's
   per-race lists), the `innates` style summary the study mentions, and a
   help-sync run when the user wants the new entries on production. Any
