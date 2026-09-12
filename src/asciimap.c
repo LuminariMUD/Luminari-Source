@@ -18,6 +18,7 @@
 #include "db.h"
 #include "magic/spells.h"
 #include "obj/house.h"
+#include "obj/shop.h"
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "asciimap.h"
@@ -45,6 +46,7 @@
 #define SECT_EMPTY (NUM_ROOM_SECTORS + 1)
 #define SECT_STRANGE (SECT_EMPTY + 1)
 #define SECT_HERE (SECT_STRANGE + 1)
+#define SECT_SHOP (SECT_HERE + 1)
 
 #define DOOR_NS -1
 #define DOOR_EW -2
@@ -102,7 +104,7 @@ static struct map_info_type compact_door_info[] = {{DOOR_NONE, " "},
                                                    {DOOR_NS, " | "}};
 
 /* Add new sector types below for both map_info and world_map_info     */
-/* The last 3 MUST remain the same, although the symbol can be changed */
+/* Entries must stay indexed by their sector or reserved map value.   */
 /* New sectors also need to be added to the perform_map function below */
 static struct map_info_type map_info[] = {
     {SECT_INSIDE, "\tc[\tn.\tc]\tn"}, /* 0 */
@@ -147,6 +149,7 @@ static struct map_info_type map_info[] = {
     {SECT_EMPTY, "   "}, /* NUM_ROOM_SECTORS + 1 */
     {SECT_STRANGE, "\tc[\tR?\tc]\tn"},
     {SECT_HERE, "\tc[\tW&\tc]\tn"},
+    {SECT_SHOP, "\tc[\ty$\tc]\tn"},
 };
 
 static struct map_info_type world_map_info[] = {
@@ -192,6 +195,7 @@ static struct map_info_type world_map_info[] = {
     {SECT_EMPTY, " "},
     {SECT_STRANGE, "\tR?\tn"},
     {SECT_HERE, "\tW&\tn"},
+    {SECT_SHOP, "\ty$\tn"},
 };
 
 static int map[MAX_MAP][MAX_MAP];
@@ -238,6 +242,25 @@ bool can_see_map(struct char_data *ch)
   return TRUE;
 }
 
+/* Shop locations remain useful even when their keeper is absent or closed. */
+static bool room_has_shop(room_vnum room)
+{
+  int shop_nr, room_index;
+
+  if (shop_index == NULL)
+    return FALSE;
+
+  for (shop_nr = 0; shop_nr <= top_shop; shop_nr++)
+  {
+    if (shop_index[shop_nr].in_room == NULL)
+      continue;
+    for (room_index = 0; SHOP_ROOM(shop_nr, room_index) != NOWHERE; room_index++)
+      if (SHOP_ROOM(shop_nr, room_index) == room)
+        return TRUE;
+  }
+  return FALSE;
+}
+
 /* MapArea function - create the actual map */
 static void MapArea(room_rnum room, struct char_data *ch, int x, int y, int min, int max,
                     sh_int xpos, sh_int ypos, bool worldmap)
@@ -253,6 +276,8 @@ static void MapArea(room_rnum room, struct char_data *ch, int x, int y, int min,
   /* marks the room as visited */
   if (room == IN_ROOM(ch))
     map[x][y] = SECT_HERE;
+  else if (room_has_shop(GET_ROOM_VNUM(room)))
+    map[x][y] = SECT_SHOP;
   else
     map[x][y] = SECT(room);
 
@@ -534,7 +559,12 @@ void perform_map(struct char_data *ch, const char *argument, bool worldmap)
   int mapshape = MAP_CIRCLE;
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
-  if (*arg1)
+  /* A mode alone keeps the configured distance, as in "map world". */
+  if (*arg1 && !*arg2 && (is_abbrev(arg1, "normal") || is_abbrev(arg1, "world")))
+  {
+    strlcpy(arg2, arg1, sizeof(arg2));
+  }
+  else if (*arg1)
   {
     size = atoi(arg1);
   }
@@ -546,7 +576,7 @@ void perform_map(struct char_data *ch, const char *argument, bool worldmap)
       worldmap = TRUE;
     else
     {
-      send_to_char(ch, "Usage: \tymap <distance> [ normal | world ]\tn");
+      send_to_char(ch, "Usage: \tymap [distance] [ normal | world ]\tn");
       return;
     }
   }
@@ -588,6 +618,7 @@ void perform_map(struct char_data *ch, const char *argument, bool worldmap)
   count += sprintf(buf + count, "\tn\tn\tn%s Up\\\\", door_info[NUM_DOOR_TYPES + DOOR_UP].disp);
   count += sprintf(buf + count, "\tn\tn\tn%s Down\\\\", door_info[NUM_DOOR_TYPES + DOOR_DOWN].disp);
   count += sprintf(buf + count, "\tn%s You\\\\", map_info[SECT_HERE].disp);
+  count += snprintf(buf + count, sizeof(buf) - count, "\tn%s Shop\\\\", map_info[SECT_SHOP].disp);
   count += sprintf(buf + count, "\tn%s Inside\\\\", map_info[SECT_INSIDE].disp);
   count += sprintf(buf + count, "\tn%s City\\\\", map_info[SECT_CITY].disp);
   count += sprintf(buf + count, "\tn%s Field\\\\", map_info[SECT_FIELD].disp);

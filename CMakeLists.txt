@@ -1002,6 +1002,7 @@ add_custom_target(test-help-sync-integration
 
 # Keep this list synchronized with cutest_test_files in Makefile.am.
 set(CUTEST_TEST_SOURCES
+    unittests/CuTest/test_asciimap_production.c
     unittests/CuTest/test_syntax_check_boot.c
     unittests/CuTest/test_web_onboarding.c
     unittests/CuTest/test_race_equivalence.c

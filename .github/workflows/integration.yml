@@ -123,6 +123,15 @@ jobs:
             exit 1
           fi
 
+      - name: Verify map help migration lookup and replay
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mariadb-server
+          python3 -m pip install -r scripts/help-sync/requirements.txt
+          LUMINARI_HELP_SYNC_INTEGRATION=1 python3 -m unittest \
+            scripts/help-sync/tests/test_endpoint_integration.py \
+            -k test_map_shop_migration -v
+
   world-validation:
     name: World File Validation
     runs-on: ubuntu-latest
