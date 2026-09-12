@@ -1082,6 +1082,7 @@ void TestMassDispelSkipsAlliesAndNeverStartsAFight(CuTest *tc)
 {
   struct innate_fixture fixture;
   struct affected_type af;
+  struct char_data *caster = &fixture.ch;
 
   begin_innate_fixture(&fixture);
   fixture.rooms[0].light = 1;
@@ -1101,16 +1102,19 @@ void TestMassDispelSkipsAlliesAndNeverStartsAFight(CuTest *tc)
   fixture.ch.group = NULL;
   fixture.other.group = NULL;
 
-  /* a hostile mob is dispelled without anyone entering combat; the use goes
-   * only with a successful strip */
+  /* a hostile mob is dispelled without anyone entering combat, and the use
+   * goes with the strip.  Caster level 30 against a level 1 mob makes the
+   * d20 dispel check (30 + 1 vs at most 1 + 20) certain. */
   SET_BIT_AR(MOB_FLAGS(&fixture.other), MOB_ISNPC);
   fixture.other.player.short_descr = (char *)"innate two";
   GET_LEVEL(&fixture.other) = 1;
+  CLASS_LEVEL(caster, CLASS_WIZARD) = 30;
   do_racial_sla(&fixture.ch, "", 0, SCMD_RSLA_MASS_DISPEL);
   CuAssertTrue(tc, FIGHTING(&fixture.ch) == NULL);
   CuAssertTrue(tc, FIGHTING(&fixture.other) == NULL);
-  CuAssertIntEquals(tc, affected_by_spell(&fixture.other, SPELL_HASTE) ? 1 : 0,
-                    daily_uses_remaining(&fixture.ch, FEAT_SLA_MASS_DISPEL));
+  CuAssertTrue(tc, !affected_by_spell(&fixture.other, SPELL_HASTE));
+  CuAssertIntEquals(tc, 0, daily_uses_remaining(&fixture.ch, FEAT_SLA_MASS_DISPEL));
+  CLASS_LEVEL(caster, CLASS_WIZARD) = 0;
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.other), MOB_ISNPC);
 
   end_innate_fixture(&fixture);
