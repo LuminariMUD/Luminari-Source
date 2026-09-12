@@ -8066,6 +8066,8 @@ bool can_blind(struct char_data *ch)
 {
   if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOBLIND))
     return false;
+  if (HAS_FEAT(ch, FEAT_EYELESS)) /* nothing to blind */
+    return false;
   if (affected_by_spell(ch, PSIONIC_OAK_BODY))
     return false;
   if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
@@ -8244,6 +8246,117 @@ bool has_blindsense(struct char_data *ch)
     return true;
 
   return false;
+}
+
+/* ---- Duris racial innates ----
+ * see docs/ongoing-projects/DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md */
+
+/* sun vulnerability: exposed to direct sunlight with nothing sheltering the
+ * character.  Forest and marshland shelter; so does a covering cloak, and
+ * is_room_in_sunlight() already treats magical darkness as no sun. */
+bool suffers_sun_vulnerability(struct char_data *ch)
+{
+  if (!ch || IN_ROOM(ch) == NOWHERE)
+    return false;
+  if (!IN_SUNLIGHT(ch) || is_covered(ch))
+    return false;
+  if (SECT(IN_ROOM(ch)) == SECT_FOREST || SECT(IN_ROOM(ch)) == SECT_MARSHLAND)
+    return false;
+  return HAS_FEAT(ch, FEAT_SUN_VULNERABILITY) != 0;
+}
+
+/* dayblind: the character cannot see while in direct sunlight, unless it
+ * has no eyes to dazzle or is covered. */
+bool is_dayblinded(struct char_data *ch)
+{
+  if (!ch || IN_ROOM(ch) == NOWHERE)
+    return false;
+  if (!IN_SUNLIGHT(ch) || is_covered(ch))
+    return false;
+  if (!HAS_FEAT(ch, FEAT_DAYBLIND) || HAS_FEAT(ch, FEAT_EYELESS))
+    return false;
+  return true;
+}
+
+/* the one vision gate: blinded (without blindsense or an eyeless body) or
+ * dayblinded.  Used by the CAN_SEE macro family. */
+bool char_is_blinded(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+  if (AFF_FLAGGED(ch, AFF_BLIND) && !has_blindsense(ch) && !HAS_FEAT(ch, FEAT_EYELESS))
+    return true;
+  return is_dayblinded(ch);
+}
+
+/* members of ch's group standing in ch's room, ch included; with feat set,
+ * only the members holding that feat are counted */
+int count_grouped_in_room(struct char_data *ch, int feat)
+{
+  struct char_data *tch = NULL;
+  struct iterator_data iterator;
+  int count = 0;
+
+  if (!ch || !GROUP(ch) || !GROUP(ch)->members || !GROUP(ch)->members->iSize)
+    return 0;
+
+  for (tch = (struct char_data *)merge_iterator(&iterator, GROUP(ch)->members); tch;
+       tch = next_in_list(&iterator))
+  {
+    if (IN_ROOM(tch) != IN_ROOM(ch))
+      continue;
+    if (feat && !HAS_FEAT(tch, feat))
+      continue;
+    count++;
+  }
+  remove_iterator(&iterator);
+
+  return count;
+}
+
+/* warcaller's fury: +1 damage per grouped member here, self included, max +5 */
+int racial_warcallers_fury_bonus(struct char_data *ch)
+{
+  if (!ch || !HAS_FEAT(ch, FEAT_WARCALLERS_FURY))
+    return 0;
+  return MIN(5, count_grouped_in_room(ch, 0));
+}
+
+/* rrakkma: other grouped characters here who also hold the feat, max 5 */
+int racial_rrakkma_allies(struct char_data *ch)
+{
+  if (!ch || !HAS_FEAT(ch, FEAT_RRAKKMA))
+    return 0;
+  return MIN(5, MAX(0, count_grouped_in_room(ch, FEAT_RRAKKMA) - 1));
+}
+
+/* quick thinking: percent chance to reroll a failed will save */
+int racial_quick_thinking_chance(struct char_data *vict, int save_type)
+{
+  if (!vict || save_type != SAVING_WILL || !HAS_FEAT(vict, FEAT_QUICK_THINKING))
+    return 0;
+  return 15;
+}
+
+/* undead fealty: undead at least ten levels below the character leave it alone */
+bool undead_fealty_protects(struct char_data *mob, struct char_data *vict)
+{
+  if (!mob || !vict || !IS_UNDEAD(mob))
+    return false;
+  if (!HAS_FEAT(vict, FEAT_UNDEAD_FEALTY))
+    return false;
+  return GET_LEVEL(mob) + 10 <= GET_LEVEL(vict);
+}
+
+/* calming: an aggressor within five levels may lose interest (the caller rolls) */
+bool calming_applies(struct char_data *mob, struct char_data *vict)
+{
+  int gap;
+
+  if (!mob || !vict || !HAS_FEAT(vict, FEAT_CALMING))
+    return false;
+  gap = GET_LEVEL(mob) - GET_LEVEL(vict);
+  return gap >= -5 && gap <= 5;
 }
 
 // returns true if the target doesn't have immunity to poison

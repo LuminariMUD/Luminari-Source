@@ -148,6 +148,16 @@ bool is_caster_class(int class);
 bool has_aura_of_terror(struct char_data *ch);
 int get_random_chest_dc(int level);
 bool has_blindsense(struct char_data *ch);
+/* Duris racial innates, see docs/ongoing-projects/DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md */
+bool suffers_sun_vulnerability(struct char_data *ch);
+bool is_dayblinded(struct char_data *ch);
+bool char_is_blinded(struct char_data *ch);
+int count_grouped_in_room(struct char_data *ch, int feat);
+int racial_warcallers_fury_bonus(struct char_data *ch);
+int racial_rrakkma_allies(struct char_data *ch);
+int racial_quick_thinking_chance(struct char_data *vict, int save_type);
+bool undead_fealty_protects(struct char_data *mob, struct char_data *vict);
+bool calming_applies(struct char_data *mob, struct char_data *vict);
 int number_of_chests_per_zone(int num_zone_rooms);
 void place_random_chest(room_rnum rrnum, int level, int search_dc, int pick_dc, int trap_chance);
 bool can_place_random_chest_in_room(room_rnum rrnum, int num_zone_rooms, int num_chests);
@@ -2086,10 +2096,10 @@ bool corpse_can_be_animated(struct obj_data *corpse);
 
 /** Defines if there is enough light for sub to see in. */
 #define LIGHT_OK(sub)                                                                              \
-  ((!AFF_FLAGGED(sub, AFF_BLIND) || has_blindsense(sub)) &&                                        \
+  (!char_is_blinded(sub) &&                                                                        \
    (IS_LIGHT(IN_ROOM(sub)) || CAN_SEE_IN_DARK(sub) || GET_LEVEL(sub) >= LVL_IMMORT))
 #define INFRA_OK(sub)                                                                              \
-  (!AFF_FLAGGED(sub, AFF_BLIND) &&                                                                 \
+  (!char_is_blinded(sub) &&                                                                        \
    (IS_LIGHT(IN_ROOM(sub)) || CAN_INFRA_IN_DARK(sub) || GET_LEVEL(sub) >= LVL_IMMORT))
 
 /** Defines if sub character can see the invisible obj character.
@@ -2153,7 +2163,7 @@ bool corpse_can_be_animated(struct obj_data *corpse);
 /** Can sub character see the obj, using mortal and immortal checks? */
 #define CAN_SEE_OBJ(sub, obj)                                                                      \
   (MORT_CAN_SEE_OBJ(sub, obj) || (!IS_NPC(sub) && PRF_FLAGGED((sub), PRF_HOLYLIGHT)) ||            \
-   (!AFF_FLAGGED(sub, AFF_BLIND) && OBJ_FLAGGED(obj, ITEM_GLOW)))
+   (!char_is_blinded(sub) && OBJ_FLAGGED(obj, ITEM_GLOW)))
 #define CAN_INFRA_OBJ(sub, obj)                                                                    \
   (MORT_CAN_INFRA_OBJ(sub, obj) || (!IS_NPC(sub) && PRF_FLAGGED((sub), PRF_HOLYLIGHT)))
 

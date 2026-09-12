@@ -1276,11 +1276,16 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   switch (GET_POS(ch))
   { // position penalty
   case POS_RECLINING:
+    if (HAS_FEAT(ch, FEAT_GROUNDFIGHTING)) /* fights as well from the ground */
+      break;
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 3;
     ac_penalty -= 3;
     break;
   case POS_SITTING:
   case POS_RESTING:
+    if (HAS_FEAT(ch, FEAT_GROUNDFIGHTING))
+      break;
+    /* fallthrough */
   case POS_STUNNED:
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
     ac_penalty -= 2;
@@ -1332,6 +1337,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
       bonuses[BONUS_TYPE_SIZE] += 4;
     }
   }
+  /* rrakkma (Duris racial innate): +1 per other grouped ally here with the feat */
+  bonuses[BONUS_TYPE_RACIAL] += racial_rrakkma_allies(ch);
   if (bonuses[BONUS_TYPE_SIZE] < 0)
     ac_penalty -= bonuses[BONUS_TYPE_SIZE];
   /**/
@@ -3948,6 +3955,70 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
 
 // can return negative values, which indicates vulnerability (this is percent)
 // dam_ defines are in spells.h
+/* ---- Duris racial innates ----
+ * see docs/ongoing-projects/DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md */
+
+/* weapon-family mastery: +1 attack and damage per 8 levels, max +3, while the
+ * weapon used for the attack matches the feat's family or type */
+int racial_weapon_mastery_bonus(struct char_data *ch, struct obj_data *wielded)
+{
+  int weapon_type = 0, family = 0, bonus = 0;
+
+  if (!ch || !wielded)
+    return 0;
+  weapon_type = GET_WEAPON_TYPE(wielded);
+  if (weapon_type <= 0 || weapon_type >= NUM_WEAPON_TYPES)
+    return 0;
+  bonus = MIN(3, GET_LEVEL(ch) / 8);
+  if (bonus <= 0)
+    return 0;
+  family = weapon_list[weapon_type].weaponFamily;
+
+  if (family == WEAPON_FAMILY_AXE && HAS_FEAT(ch, FEAT_AXE_MASTERY))
+    return bonus;
+  if (family == WEAPON_FAMILY_HAMMER && HAS_FEAT(ch, FEAT_HAMMER_MASTERY))
+    return bonus;
+  if (weapon_type == WEAPON_TYPE_LONG_SWORD && HAS_FEAT(ch, FEAT_LONGSWORD_MASTERY))
+    return bonus;
+  if (weapon_type == WEAPON_TYPE_GREAT_SWORD && HAS_FEAT(ch, FEAT_GREATSWORD_MASTERY))
+    return bonus;
+
+  return 0;
+}
+
+/* spell absorb: percent chance to take no damage from a damaging spell */
+int racial_spell_absorb_chance(struct char_data *victim)
+{
+  if (!victim || !HAS_FEAT(victim, FEAT_SPELL_ABSORB))
+    return 0;
+  return GET_LEVEL(victim) / 2;
+}
+
+/* sacrilegious power: holy damage reduction by level */
+int racial_sacrilegious_power_reduction(struct char_data *ch)
+{
+  if (!ch || !HAS_FEAT(ch, FEAT_SACRILEGIOUS_POWER))
+    return 0;
+  if (GET_LEVEL(ch) >= 30)
+    return 75;
+  if (GET_LEVEL(ch) >= 25)
+    return 50;
+  if (GET_LEVEL(ch) >= 20)
+    return 25;
+  return 0;
+}
+
+/* battle frenzy: a melee hit on a humanoid may grant an extra attack (the
+ * caller rolls the 5 percent) */
+bool battle_frenzy_applies(struct char_data *ch, struct char_data *victim, int attack_type)
+{
+  if (!ch || !victim || !HAS_FEAT(ch, FEAT_BATTLE_FRENZY))
+    return false;
+  if (is_ranged_weapon_attack(attack_type))
+    return false;
+  return IS_HUMANOID(victim) != 0;
+}
+
 int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_data *attacker,
                               int w_type)
 {
@@ -4029,6 +4100,17 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_da
       damtype_reduction += 100; // full immunity
     }
   }
+
+  /* Duris racial innates */
+  if (HAS_FEAT(ch, FEAT_MAGIC_VULNERABILITY) && is_spell_or_spell_like(w_type))
+    damtype_reduction -= 10;
+  if (HAS_FEAT(ch, FEAT_MAGICAL_REDUCTION) && (dam_type == DAM_FORCE || dam_type == DAM_ENERGY))
+    damtype_reduction += 20;
+  if (HAS_FEAT(ch, FEAT_THICK_HIDE) &&
+      (dam_type == DAM_SLASHING || dam_type == DAM_PIERCING || dam_type == DAM_BLUDGEON))
+    damtype_reduction += 15;
+  if (dam_type == DAM_HOLY)
+    damtype_reduction += racial_sacrilegious_power_reduction(ch);
 
   switch (dam_type)
   {
@@ -5096,6 +5178,16 @@ static int damage_handling_with_weapon(struct char_data *ch, struct char_data *v
   {
     if (dam_type == DAM_POISON && !can_poison(victim))
       return 0;
+
+    /* spell absorb (Duris racial innate): swallow a damaging spell whole */
+    if (is_spell && rand_number(1, 100) <= racial_spell_absorb_chance(victim))
+    {
+      act("\tWYou absorb the magic of $n's spell harmlessly!\tn", FALSE, ch, 0, victim, TO_VICT);
+      act("\tR$N absorbs the magic of your spell harmlessly!\tn", FALSE, ch, 0, victim, TO_CHAR);
+      act("$N absorbs the magic of $n's spell harmlessly!", ACT_CONDENSE_VALUE, ch, 0, victim,
+          TO_NOTVICT);
+      return -1;
+    }
 
     /* handle concealment */
     int concealment = compute_concealment(victim, ch);
@@ -6985,6 +7077,26 @@ static int compute_damage_bonus_with_projectile(struct char_data *ch, struct cha
     dambonus += 1;
     if (display_mode)
       send_to_char(ch, "Bloodhunt: \tR1\tn\r\n");
+  }
+
+  /* Duris racial innates: hatred, weapon-family mastery, warcaller's fury */
+  if (ch && vict && HAS_FEAT(ch, FEAT_HATRED) && IS_EVIL(vict))
+  {
+    dambonus += 2;
+    if (display_mode)
+      send_to_char(ch, "Hatred: \tR2\tn\r\n");
+  }
+  if (racial_weapon_mastery_bonus(ch, wielded) > 0)
+  {
+    dambonus += racial_weapon_mastery_bonus(ch, wielded);
+    if (display_mode)
+      send_to_char(ch, "Weapon Mastery: \tR%d\tn\r\n", racial_weapon_mastery_bonus(ch, wielded));
+  }
+  if (racial_warcallers_fury_bonus(ch) > 0)
+  {
+    dambonus += racial_warcallers_fury_bonus(ch);
+    if (display_mode)
+      send_to_char(ch, "Warcaller's Fury: \tR%d\tn\r\n", racial_warcallers_fury_bonus(ch));
   }
 
   if (affected_by_aura_of_sin(ch))
@@ -10701,6 +10813,9 @@ static int compute_attack_bonus_full_with_weapon(
   {
   case POS_SITTING:
   case POS_RESTING:
+    if (HAS_FEAT(ch, FEAT_GROUNDFIGHTING)) /* fights as well from the ground */
+      break;
+    /* fallthrough */
   case POS_SLEEPING:
   case POS_STUNNED:
   case POS_INCAP:
@@ -11051,6 +11166,21 @@ static int compute_attack_bonus_full_with_weapon(
     bonuses[BONUS_TYPE_MORALE] += 1;
     if (display)
       send_to_char(ch, " 1: %-50s\r\n", "Bloodhunt");
+  }
+
+  /* Duris racial innates: hatred and weapon-family mastery */
+  if (ch && victim && HAS_FEAT(ch, FEAT_HATRED) && IS_EVIL(victim))
+  {
+    bonuses[BONUS_TYPE_MORALE] += 1;
+    if (display)
+      send_to_char(ch, " 1: %-50s\r\n", "Hatred");
+  }
+  if (racial_weapon_mastery_bonus(ch, wielded) > 0)
+  {
+    bonuses[BONUS_TYPE_RACIAL] += racial_weapon_mastery_bonus(ch, wielded);
+    if (display)
+      send_to_char(ch, "%2d: %-50s\r\n", racial_weapon_mastery_bonus(ch, wielded),
+                   "Weapon Mastery");
   }
 
   // Dragon champion level 3 abil: +1 hitroll +2 damage
@@ -14188,6 +14318,14 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       is_dual_wielding(ch) && dice(1, 100) <= 5)
   {
     send_to_char(ch, "\tW[WHIRLING STEEL!]\tn\r\n");
+    hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  }
+
+  /* Battle Frenzy (Duris racial innate): 5% chance per melee hit on a humanoid */
+  if (!victim_is_dead && battle_frenzy_applies(ch, victim, attack_type) && dice(1, 100) <= 5)
+  {
+    send_to_char(ch, "\tW[BATTLE FRENZY!]\tn\r\n");
+    act("$n is whipped into a battle frenzy!", FALSE, ch, 0, 0, TO_ROOM);
     hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
   }
 

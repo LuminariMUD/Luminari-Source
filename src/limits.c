@@ -1172,6 +1172,9 @@ int hit_gain(struct char_data *ch)
 {
   int gain;
 
+  if (suffers_sun_vulnerability(ch))
+    return 0;
+
   if (IS_NPC(ch))
   {
     /* Neat and fast */
@@ -1221,6 +1224,9 @@ int hit_gain(struct char_data *ch)
 int move_gain(struct char_data *ch)
 {
   int gain;
+
+  if (suffers_sun_vulnerability(ch))
+    return 0;
 
   if (IS_NPC(ch))
   {
@@ -2859,7 +2865,7 @@ void update_damage_and_effects_over_time_one(struct char_data *ch)
   if (ch == NULL)
     return;
 
-  if (HAS_EVOLUTION(ch, EVOLUTION_GILLS))
+  if (HAS_EVOLUTION(ch, EVOLUTION_GILLS) || HAS_FEAT(ch, FEAT_WATER_BREATHING))
     SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
 
   // Disabled as causes issues with different things, such as wildshape
@@ -2926,6 +2932,13 @@ void update_damage_and_effects_over_time_one(struct char_data *ch)
     {
       damage(ch, ch, GET_MAX_HIT(ch) / 3, TYPE_MOVING_WATER, DAM_WATER, FALSE);
     }
+  }
+
+  /* sun vulnerability (Duris racial innate): 1d8 per round in open sunlight */
+  if (GET_LEVEL(ch) < LVL_IMMORT && !affected_by_spell(ch, AFFECT_RECENTLY_DIED) &&
+      !affected_by_spell(ch, AFFECT_RECENTLY_RESPECED) && suffers_sun_vulnerability(ch))
+  {
+    damage(ch, ch, dice(1, 8), TYPE_SUN_DAMAGE, DAM_SUNLIGHT, FALSE);
   }
 
   for (x = 0; x < NUM_ELDRITCH_BLAST_COOLDOWNS; x++)

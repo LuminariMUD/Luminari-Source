@@ -1548,6 +1548,15 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
     return FALSE;
   }
 
+  /* quadruped body (Duris racial innate): only a larger attacker can topple it */
+  if (HAS_FEAT(vict, FEAT_QUADRUPED_BODY) && GET_SIZE(ch) <= GET_SIZE(vict))
+  {
+    if (display)
+      send_to_char(ch, "%s's four-legged stance cannot be toppled by someone your size!\r\n",
+                   show_pers(ch, vict));
+    return FALSE;
+  }
+
   if (!is_mission_mob(ch, vict))
   {
     if (display)

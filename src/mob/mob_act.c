@@ -375,6 +375,11 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
           {
             continue;
           }
+          /* Duris racial innates: undead fealty and calming */
+          if (undead_fealty_protects(ch, vict))
+            continue;
+          if (calming_applies(ch, vict) && rand_number(0, 1))
+            continue;
           if (HAS_FEAT(ch, FEAT_COWARDLY) && dice(1, 4) < 4)
             continue;
           if (mob_is_encounter && ((mob_level - GET_LEVEL(vict)) < 2))

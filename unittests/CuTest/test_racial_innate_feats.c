@@ -18,8 +18,10 @@
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"
+#include "../../src/lists.h"
 #include "../../src/magic/spells.h"
 #include "../../src/mud_event.h"
+#include "../../src/mudlim.h"
 #include "../../src/net/protocol.h"
 
 #include <string.h>
@@ -36,6 +38,8 @@ struct innate_fixture
   struct room_data *saved_world;
   struct char_data *saved_character_list;
   room_rnum saved_top_of_world;
+  struct weather_data saved_weather;
+  struct group_data group;
 };
 
 static void setup_innate_char(struct char_data *ch, struct player_special_data *specials,
@@ -73,6 +77,7 @@ static void begin_innate_fixture(struct innate_fixture *fixture)
   fixture->saved_world = world;
   fixture->saved_top_of_world = top_of_world;
   fixture->saved_character_list = character_list;
+  fixture->saved_weather = weather_info;
 
   setup_innate_char(&fixture->ch, &fixture->ch_specials, &fixture->ch_descriptor, "innate one");
   setup_innate_char(&fixture->other, &fixture->other_specials, &fixture->other_descriptor,
@@ -107,9 +112,31 @@ static void end_innate_fixture(struct innate_fixture *fixture)
   end_innate_char(&fixture->other, &fixture->other_descriptor);
   event_free_all();
   (void)event_test_select_backend(EVENT_BACKEND_UNINITIALIZED);
+  if (fixture->group.members != NULL)
+    free_list(fixture->group.members);
   world = fixture->saved_world;
   top_of_world = fixture->saved_top_of_world;
   character_list = fixture->saved_character_list;
+  weather_info = fixture->saved_weather;
+}
+
+/* put both fixture characters in one group with a real member list */
+static void group_innate_fixture(struct innate_fixture *fixture)
+{
+  fixture->group.leader = &fixture->ch;
+  fixture->group.members = create_list();
+  add_to_list(&fixture->ch, fixture->group.members);
+  add_to_list(&fixture->other, fixture->group.members);
+  fixture->ch.group = &fixture->group;
+  fixture->other.group = &fixture->group;
+}
+
+/* clear daylight over a field so IN_SUNLIGHT() is true in room 0 */
+static void innate_fixture_sunlit_field(struct innate_fixture *fixture)
+{
+  fixture->rooms[0].sector_type = SECT_FIELD;
+  weather_info.sunlight = SUN_LIGHT;
+  weather_info.sky = SKY_CLOUDLESS;
 }
 
 /* Every converted innate is registered as an in-game, unlearnable innate ability. */
@@ -401,6 +428,372 @@ void TestFearlessnessFeatGrantsFearImmunity(CuTest *tc)
   CuAssertTrue(tc, !is_immune_fear(&fixture.other, &fixture.ch, FALSE));
   SET_FEAT(&fixture.ch, FEAT_KENDER_FEARLESSNESS, 1);
   CuAssertTrue(tc, is_immune_fear(&fixture.other, &fixture.ch, FALSE));
+
+  end_innate_fixture(&fixture);
+}
+
+/* ---- Phase 2: passive defence ---- */
+
+/* Sun vulnerability stops regeneration only in open sunlight. */
+void TestSunVulnerabilityStopsRegenerationInOpenSunlight(CuTest *tc)
+{
+  struct innate_fixture fixture;
+
+  begin_innate_fixture(&fixture);
+  GET_CLASS(&fixture.ch) = CLASS_WARRIOR;
+  GET_COND(&fixture.ch, HUNGER) = 24;
+  GET_COND(&fixture.ch, THIRST) = 24;
+
+  innate_fixture_sunlit_field(&fixture);
+  CuAssertTrue(tc, !suffers_sun_vulnerability(&fixture.ch));
+  CuAssertTrue(tc, hit_gain(&fixture.ch) > 0);
+  CuAssertTrue(tc, move_gain(&fixture.ch) > 0);
+
+  SET_FEAT(&fixture.ch, FEAT_SUN_VULNERABILITY, 1);
+  CuAssertTrue(tc, suffers_sun_vulnerability(&fixture.ch));
+  CuAssertIntEquals(tc, 0, hit_gain(&fixture.ch));
+  CuAssertIntEquals(tc, 0, move_gain(&fixture.ch));
+
+  fixture.rooms[0].sector_type = SECT_FOREST; /* sheltered */
+  CuAssertTrue(tc, !suffers_sun_vulnerability(&fixture.ch));
+  fixture.rooms[0].sector_type = SECT_INSIDE;
+  CuAssertTrue(tc, !suffers_sun_vulnerability(&fixture.ch));
+  CuAssertTrue(tc, hit_gain(&fixture.ch) > 0);
+
+  end_innate_fixture(&fixture);
+}
+
+/* Dayblind blinds in sunlight, not indoors, and never with an eyeless body. */
+void TestDayblindFollowsSunlightAndEyeless(CuTest *tc)
+{
+  struct innate_fixture fixture;
+
+  begin_innate_fixture(&fixture);
+
+  innate_fixture_sunlit_field(&fixture);
+  CuAssertTrue(tc, !is_dayblinded(&fixture.ch));
+  CuAssertTrue(tc, !char_is_blinded(&fixture.ch));
+
+  SET_FEAT(&fixture.ch, FEAT_DAYBLIND, 1);
+  CuAssertTrue(tc, is_dayblinded(&fixture.ch));
+  CuAssertTrue(tc, char_is_blinded(&fixture.ch));
+
+  fixture.rooms[0].sector_type = SECT_INSIDE;
+  CuAssertTrue(tc, !is_dayblinded(&fixture.ch));
+
+  fixture.rooms[0].sector_type = SECT_FIELD;
+  SET_FEAT(&fixture.ch, FEAT_EYELESS, 1);
+  CuAssertTrue(tc, !is_dayblinded(&fixture.ch));
+
+  end_innate_fixture(&fixture);
+}
+
+/* Eyeless refuses blindness and sees through the blind flag without darkvision. */
+void TestEyelessIsImmuneToBlindness(CuTest *tc)
+{
+  struct innate_fixture fixture;
+
+  begin_innate_fixture(&fixture);
+
+  CuAssertTrue(tc, can_blind(&fixture.ch));
+  SET_BIT_AR(AFF_FLAGS(&fixture.ch), AFF_BLIND);
+  CuAssertTrue(tc, char_is_blinded(&fixture.ch));
+
+  SET_FEAT(&fixture.ch, FEAT_EYELESS, 1);
+  CuAssertTrue(tc, !can_blind(&fixture.ch));
+  CuAssertTrue(tc, !char_is_blinded(&fixture.ch));
+  CuAssertTrue(tc, !has_blindsense(&fixture.ch));
+
+  end_innate_fixture(&fixture);
+}
+
+/* The percentage reductions and vulnerabilities apply by damage type. */
+void TestDurisDamageTypeReductions(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  int base_fire, base_force, base_slash, base_holy;
+
+  begin_innate_fixture(&fixture);
+  base_fire = compute_damtype_reduction(&fixture.ch, DAM_FIRE, NULL, SPELL_FIREBALL);
+  base_force = compute_damtype_reduction(&fixture.ch, DAM_FORCE, NULL, TYPE_HIT);
+  base_slash = compute_damtype_reduction(&fixture.ch, DAM_SLASHING, NULL, TYPE_HIT);
+  base_holy = compute_damtype_reduction(&fixture.ch, DAM_HOLY, NULL, TYPE_HIT);
+
+  /* magic vulnerability: spells only */
+  SET_FEAT(&fixture.ch, FEAT_MAGIC_VULNERABILITY, 1);
+  CuAssertIntEquals(tc, base_fire - 10,
+                    compute_damtype_reduction(&fixture.ch, DAM_FIRE, NULL, SPELL_FIREBALL));
+  CuAssertIntEquals(tc, base_slash,
+                    compute_damtype_reduction(&fixture.ch, DAM_SLASHING, NULL, TYPE_HIT));
+  SET_FEAT(&fixture.ch, FEAT_MAGIC_VULNERABILITY, 0);
+
+  /* magical reduction: force and energy, not fire */
+  SET_FEAT(&fixture.ch, FEAT_MAGICAL_REDUCTION, 1);
+  CuAssertIntEquals(tc, base_force + 20,
+                    compute_damtype_reduction(&fixture.ch, DAM_FORCE, NULL, TYPE_HIT));
+  CuAssertIntEquals(tc, base_fire,
+                    compute_damtype_reduction(&fixture.ch, DAM_FIRE, NULL, SPELL_FIREBALL));
+  SET_FEAT(&fixture.ch, FEAT_MAGICAL_REDUCTION, 0);
+
+  /* thick hide: physical only */
+  SET_FEAT(&fixture.ch, FEAT_THICK_HIDE, 1);
+  CuAssertIntEquals(tc, base_slash + 15,
+                    compute_damtype_reduction(&fixture.ch, DAM_SLASHING, NULL, TYPE_HIT));
+  CuAssertIntEquals(tc, base_fire,
+                    compute_damtype_reduction(&fixture.ch, DAM_FIRE, NULL, SPELL_FIREBALL));
+  SET_FEAT(&fixture.ch, FEAT_THICK_HIDE, 0);
+
+  /* sacrilegious power: holy, stepping at 20, 25, 30 */
+  SET_FEAT(&fixture.ch, FEAT_SACRILEGIOUS_POWER, 1);
+  GET_LEVEL(&fixture.ch) = 19;
+  CuAssertIntEquals(tc, 0, racial_sacrilegious_power_reduction(&fixture.ch));
+  GET_LEVEL(&fixture.ch) = 20;
+  CuAssertIntEquals(tc, 25, racial_sacrilegious_power_reduction(&fixture.ch));
+  CuAssertIntEquals(tc, base_holy + 25,
+                    compute_damtype_reduction(&fixture.ch, DAM_HOLY, NULL, TYPE_HIT));
+  GET_LEVEL(&fixture.ch) = 25;
+  CuAssertIntEquals(tc, 50, racial_sacrilegious_power_reduction(&fixture.ch));
+  GET_LEVEL(&fixture.ch) = 30;
+  CuAssertIntEquals(tc, 75, racial_sacrilegious_power_reduction(&fixture.ch));
+
+  end_innate_fixture(&fixture);
+}
+
+/* Spell absorb and quick thinking chances follow the feat, level and save type. */
+void TestSpellAbsorbAndQuickThinkingChances(CuTest *tc)
+{
+  struct innate_fixture fixture;
+
+  begin_innate_fixture(&fixture);
+
+  CuAssertIntEquals(tc, 0, racial_spell_absorb_chance(&fixture.ch));
+  SET_FEAT(&fixture.ch, FEAT_SPELL_ABSORB, 1);
+  CuAssertIntEquals(tc, 5, racial_spell_absorb_chance(&fixture.ch));
+  GET_LEVEL(&fixture.ch) = 30;
+  CuAssertIntEquals(tc, 15, racial_spell_absorb_chance(&fixture.ch));
+
+  CuAssertIntEquals(tc, 0, racial_quick_thinking_chance(&fixture.ch, SAVING_WILL));
+  SET_FEAT(&fixture.ch, FEAT_QUICK_THINKING, 1);
+  CuAssertIntEquals(tc, 15, racial_quick_thinking_chance(&fixture.ch, SAVING_WILL));
+  CuAssertIntEquals(tc, 0, racial_quick_thinking_chance(&fixture.ch, SAVING_FORT));
+
+  end_innate_fixture(&fixture);
+}
+
+/* Groundfighting removes the prone and sitting penalties. */
+void TestGroundfightingRemovesPositionPenalties(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  int prone_ac, sitting_ac, sitting_attack;
+
+  begin_innate_fixture(&fixture);
+
+  GET_POS(&fixture.ch) = POS_RECLINING;
+  prone_ac = compute_armor_class(NULL, &fixture.ch, FALSE, MODE_ARMOR_CLASS_NORMAL);
+  GET_POS(&fixture.ch) = POS_SITTING;
+  sitting_ac = compute_armor_class(NULL, &fixture.ch, FALSE, MODE_ARMOR_CLASS_NORMAL);
+  sitting_attack = compute_attack_bonus(&fixture.ch, &fixture.other, ATTACK_TYPE_PRIMARY);
+
+  SET_FEAT(&fixture.ch, FEAT_GROUNDFIGHTING, 1);
+  CuAssertIntEquals(tc, sitting_ac + 2,
+                    compute_armor_class(NULL, &fixture.ch, FALSE, MODE_ARMOR_CLASS_NORMAL));
+  CuAssertIntEquals(tc, sitting_attack + 2,
+                    compute_attack_bonus(&fixture.ch, &fixture.other, ATTACK_TYPE_PRIMARY));
+  GET_POS(&fixture.ch) = POS_RECLINING;
+  CuAssertIntEquals(tc, prone_ac + 3,
+                    compute_armor_class(NULL, &fixture.ch, FALSE, MODE_ARMOR_CLASS_NORMAL));
+
+  end_innate_fixture(&fixture);
+}
+
+/* A quadruped body cannot be knocked down by an attacker of its size and cannot mount. */
+void TestQuadrupedBodyResistsKnockdownAndRefusesMounts(CuTest *tc)
+{
+  struct innate_fixture fixture;
+
+  begin_innate_fixture(&fixture);
+
+  SET_FEAT(&fixture.ch, FEAT_QUADRUPED_BODY, 1);
+  CuAssertTrue(tc, !perform_knockdown(&fixture.other, &fixture.ch, SKILL_BASH, FALSE, FALSE));
+
+  do_mount(&fixture.ch, "innate", 0, 0);
+  CuAssertTrue(tc, RIDING(&fixture.ch) == NULL);
+
+  end_innate_fixture(&fixture);
+}
+
+/* Water breathing sets the permanent water-breath flag on the per-round pass. */
+void TestWaterBreathingSetsThePermanentFlag(CuTest *tc)
+{
+  struct innate_fixture fixture;
+
+  begin_innate_fixture(&fixture);
+
+  update_damage_and_effects_over_time_one(&fixture.ch);
+  CuAssertTrue(tc, !AFF_FLAGGED(&fixture.ch, AFF_WATER_BREATH));
+
+  SET_FEAT(&fixture.ch, FEAT_WATER_BREATHING, 1);
+  update_damage_and_effects_over_time_one(&fixture.ch);
+  CuAssertTrue(tc, AFF_FLAGGED(&fixture.ch, AFF_WATER_BREATH));
+
+  end_innate_fixture(&fixture);
+}
+
+/* Undead fealty and calming exempt the character from aggression by level. */
+void TestUndeadFealtyAndCalmingAggressionRules(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  struct char_data *mob;
+
+  begin_innate_fixture(&fixture);
+  mob = &fixture.other;
+  SET_BIT_AR(MOB_FLAGS(mob), MOB_ISNPC);
+  GET_REAL_RACE(mob) = RACE_TYPE_UNDEAD;
+  GET_LEVEL(&fixture.ch) = 20;
+
+  GET_LEVEL(mob) = 10;
+  CuAssertTrue(tc, !undead_fealty_protects(mob, &fixture.ch));
+  SET_FEAT(&fixture.ch, FEAT_UNDEAD_FEALTY, 1);
+  CuAssertTrue(tc, undead_fealty_protects(mob, &fixture.ch));
+  GET_LEVEL(mob) = 11;
+  CuAssertTrue(tc, !undead_fealty_protects(mob, &fixture.ch));
+  GET_LEVEL(mob) = 10;
+  GET_REAL_RACE(mob) = RACE_TYPE_ANIMAL;
+  CuAssertTrue(tc, !undead_fealty_protects(mob, &fixture.ch));
+
+  GET_LEVEL(mob) = 25;
+  CuAssertTrue(tc, !calming_applies(mob, &fixture.ch));
+  SET_FEAT(&fixture.ch, FEAT_CALMING, 1);
+  CuAssertTrue(tc, calming_applies(mob, &fixture.ch));
+  GET_LEVEL(mob) = 26;
+  CuAssertTrue(tc, !calming_applies(mob, &fixture.ch));
+  GET_LEVEL(mob) = 15;
+  CuAssertTrue(tc, calming_applies(mob, &fixture.ch));
+
+  end_innate_fixture(&fixture);
+}
+
+/* ---- Phase 2: passive offence ---- */
+
+static void make_test_weapon(struct obj_data *obj, int weapon_type)
+{
+  memset(obj, 0, sizeof(*obj));
+  GET_OBJ_TYPE(obj) = ITEM_WEAPON;
+  GET_OBJ_VAL(obj, 0) = weapon_type;
+}
+
+/* Weapon-family mastery scales with level and only for a matching weapon. */
+void TestWeaponMasteryScalesWithLevelAndWeapon(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  struct obj_data sword, axe;
+  int base_damage;
+
+  begin_innate_fixture(&fixture);
+  make_test_weapon(&sword, WEAPON_TYPE_LONG_SWORD);
+  make_test_weapon(&axe, WEAPON_TYPE_BATTLE_AXE);
+
+  base_damage = compute_damage_bonus(&fixture.ch, &fixture.other, &sword, TYPE_HIT, 0,
+                                     MODE_NORMAL_HIT, ATTACK_TYPE_PRIMARY);
+
+  SET_FEAT(&fixture.ch, FEAT_LONGSWORD_MASTERY, 1);
+  GET_LEVEL(&fixture.ch) = 7;
+  CuAssertIntEquals(tc, 0, racial_weapon_mastery_bonus(&fixture.ch, &sword));
+  GET_LEVEL(&fixture.ch) = 8;
+  CuAssertIntEquals(tc, 1, racial_weapon_mastery_bonus(&fixture.ch, &sword));
+  GET_LEVEL(&fixture.ch) = 24;
+  CuAssertIntEquals(tc, 3, racial_weapon_mastery_bonus(&fixture.ch, &sword));
+  GET_LEVEL(&fixture.ch) = 30;
+  CuAssertIntEquals(tc, 3, racial_weapon_mastery_bonus(&fixture.ch, &sword));
+  CuAssertIntEquals(tc, 0, racial_weapon_mastery_bonus(&fixture.ch, &axe));
+  CuAssertIntEquals(tc, 0, racial_weapon_mastery_bonus(&fixture.ch, NULL));
+
+  GET_LEVEL(&fixture.ch) = 10;
+  CuAssertIntEquals(tc, base_damage + 1,
+                    compute_damage_bonus(&fixture.ch, &fixture.other, &sword, TYPE_HIT, 0,
+                                         MODE_NORMAL_HIT, ATTACK_TYPE_PRIMARY));
+
+  SET_FEAT(&fixture.ch, FEAT_AXE_MASTERY, 1);
+  CuAssertIntEquals(tc, 1, racial_weapon_mastery_bonus(&fixture.ch, &axe));
+
+  end_innate_fixture(&fixture);
+}
+
+/* Hatred adds damage against evil opponents only. */
+void TestHatredAddsDamageAgainstEvil(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  int base_damage;
+
+  begin_innate_fixture(&fixture);
+  GET_ALIGNMENT(&fixture.other) = 0;
+  base_damage = compute_damage_bonus(&fixture.ch, &fixture.other, NULL, TYPE_HIT, 0,
+                                     MODE_NORMAL_HIT, ATTACK_TYPE_UNARMED);
+
+  SET_FEAT(&fixture.ch, FEAT_HATRED, 1);
+  CuAssertIntEquals(tc, base_damage,
+                    compute_damage_bonus(&fixture.ch, &fixture.other, NULL, TYPE_HIT, 0,
+                                         MODE_NORMAL_HIT, ATTACK_TYPE_UNARMED));
+  GET_ALIGNMENT(&fixture.other) = -1000;
+  CuAssertIntEquals(tc, base_damage + 2,
+                    compute_damage_bonus(&fixture.ch, &fixture.other, NULL, TYPE_HIT, 0,
+                                         MODE_NORMAL_HIT, ATTACK_TYPE_UNARMED));
+
+  end_innate_fixture(&fixture);
+}
+
+/* Battle frenzy only triggers on melee hits against humanoids. */
+void TestBattleFrenzyGate(CuTest *tc)
+{
+  struct innate_fixture fixture;
+
+  begin_innate_fixture(&fixture);
+
+  CuAssertTrue(tc, !battle_frenzy_applies(&fixture.ch, &fixture.other, ATTACK_TYPE_PRIMARY));
+  SET_FEAT(&fixture.ch, FEAT_BATTLE_FRENZY, 1);
+  CuAssertTrue(tc, battle_frenzy_applies(&fixture.ch, &fixture.other, ATTACK_TYPE_PRIMARY));
+  CuAssertTrue(tc, !battle_frenzy_applies(&fixture.ch, &fixture.other, ATTACK_TYPE_RANGED));
+
+  SET_BIT_AR(MOB_FLAGS(&fixture.other), MOB_ISNPC);
+  GET_REAL_RACE(&fixture.other) = RACE_TYPE_ANIMAL;
+  CuAssertTrue(tc, !battle_frenzy_applies(&fixture.ch, &fixture.other, ATTACK_TYPE_PRIMARY));
+
+  end_innate_fixture(&fixture);
+}
+
+/* Warcaller's fury counts grouped members in the room; rrakkma counts feat holders. */
+void TestWarcallersFuryAndRrakkmaCountTheGroup(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  int base_damage, base_ac;
+
+  begin_innate_fixture(&fixture);
+  base_damage = compute_damage_bonus(&fixture.ch, &fixture.other, NULL, TYPE_HIT, 0,
+                                     MODE_NORMAL_HIT, ATTACK_TYPE_UNARMED);
+  base_ac = compute_armor_class(NULL, &fixture.ch, FALSE, MODE_ARMOR_CLASS_NORMAL);
+
+  SET_FEAT(&fixture.ch, FEAT_WARCALLERS_FURY, 1);
+  SET_FEAT(&fixture.ch, FEAT_RRAKKMA, 1);
+  CuAssertIntEquals(tc, 0, racial_warcallers_fury_bonus(&fixture.ch)); /* ungrouped */
+  CuAssertIntEquals(tc, 0, racial_rrakkma_allies(&fixture.ch));
+
+  group_innate_fixture(&fixture);
+  CuAssertIntEquals(tc, 2, racial_warcallers_fury_bonus(&fixture.ch));
+  CuAssertIntEquals(tc, base_damage + 2,
+                    compute_damage_bonus(&fixture.ch, &fixture.other, NULL, TYPE_HIT, 0,
+                                         MODE_NORMAL_HIT, ATTACK_TYPE_UNARMED));
+  CuAssertIntEquals(tc, 0, racial_rrakkma_allies(&fixture.ch)); /* ally lacks the feat */
+  CuAssertIntEquals(tc, base_ac,
+                    compute_armor_class(NULL, &fixture.ch, FALSE, MODE_ARMOR_CLASS_NORMAL));
+
+  SET_FEAT(&fixture.other, FEAT_RRAKKMA, 1);
+  CuAssertIntEquals(tc, 1, racial_rrakkma_allies(&fixture.ch));
+  CuAssertIntEquals(tc, base_ac + 1,
+                    compute_armor_class(NULL, &fixture.ch, FALSE, MODE_ARMOR_CLASS_NORMAL));
+
+  IN_ROOM(&fixture.other) = 1; /* elsewhere: neither counts */
+  CuAssertIntEquals(tc, 1, racial_warcallers_fury_bonus(&fixture.ch));
+  CuAssertIntEquals(tc, 0, racial_rrakkma_allies(&fixture.ch));
 
   end_innate_fixture(&fixture);
 }

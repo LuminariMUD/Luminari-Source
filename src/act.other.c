@@ -3117,6 +3117,12 @@ ACMD(do_mount)
 
   one_argument(argument, arg, sizeof(arg));
 
+  if (HAS_FEAT(ch, FEAT_QUADRUPED_BODY))
+  {
+    send_to_char(ch, "Your own four legs carry you; you cannot sit a mount.\r\n");
+    return;
+  }
+
   if (!*arg)
   {
     send_to_char(ch, "Mount who?\r\n");

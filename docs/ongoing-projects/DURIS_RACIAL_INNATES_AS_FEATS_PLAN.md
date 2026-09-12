@@ -201,21 +201,27 @@ swamp, or twilight rooms. Ours: no hit or move regeneration while
 `IN_SUNLIGHT(ch)` and not `is_covered(ch)`; 1d8 sun damage per round in
 `update_damage_and_effects_over_time_one()` in `src/limits.c`, using the
 `TYPE_SUN_DAMAGE` path Vampire Weaknesses already uses; suppressed in
-`SECT_FOREST` and `SECT_MARSHLAND` and under any darkness room affect. Hook:
-`hit_gain()`, `move_gain()`, and the Vampire Weaknesses block in
-`update_damage_and_effects_over_time_one()`. Test: regen returns zero in a
-sunlit room with the feat and normal without it; no damage in a forest room.
+`SECT_FOREST` and `SECT_MARSHLAND` and under any darkness room affect
+(`is_room_in_sunlight()` already treats darkness as no sun). As built: one
+helper `suffers_sun_vulnerability(ch)` in `src/utils.c` holds the rule;
+`hit_gain()` and `move_gain()` return 0 when it is true and the damage tick
+sits beside the Vampire Weaknesses block. Test: the helper and `hit_gain()`
+in a sunlit field with and without the feat, and in a forest.
 
 **FEAT_DAYBLIND** (drawback, RP -4). Duris: `IS_DAYBLIND()` in
 `src/core/utils.h`: the character is treated as blind in daylight unless
 Eyeless, in a twilight room, or under globe of darkness. The `IS_BLIND()`
 macro's dayblind term is itself commented out there, so it was only ever
 partly live. Ours: while `IN_SUNLIGHT(ch)` and not `is_covered(ch)` and not
-under a darkness room affect, the character cannot see (same effect as
-`AFF_BLIND` for vision and attack penalties), with `FEAT_EYELESS` as an
-override. Hook: a helper `is_dayblinded(ch)` consulted wherever `AFF_BLIND`
-is read for vision in `src/utils.h` and `src/utils.c`. Test: cannot see in a
-sunlit outdoor room; can see indoors and under darkness.
+under a darkness room affect, the character cannot see, with `FEAT_EYELESS`
+as an override. As built: `is_dayblinded(ch)` and `char_is_blinded(ch)` in
+`src/utils.c`; the `LIGHT_OK`, `INFRA_OK` and `CAN_SEE_OBJ` glow clauses in
+`src/utils.h` now test `char_is_blinded()` (blindness without blindsense or an
+eyeless body, or dayblind) instead of the raw `AFF_BLIND` flag. Blindness has
+no separate attack penalty in this codebase (the blindness spell applies its
+own hitroll penalty), so dayblind has none either. Side effect: blindsense
+now also satisfies `INFRA_OK`, which previously ignored it. Test: dayblinded
+in a sunlit field, sighted indoors, sighted with eyeless.
 
 **FEAT_MAGIC_VULNERABILITY** (drawback, RP -1). Duris: `MAGIC_VULNERABILITY`
 in `src/combat/dam_mods.c`, +10 percent spell damage. Ours: +10 percent
@@ -250,24 +256,29 @@ spell-damage path in `damage()` in `src/combat/fight.c`, before resistance.
 Test: with the roll forced, damage is zero and the message is sent.
 
 **FEAT_EYELESS** (RP 1). Duris: `INNATE_EYELESS` sets `AFF5_NOBLIND`. Ours:
-immune to the blinded condition, and `can_see` treats the character as
-sighted while blinded, sharing the existing `FEAT_BLINDSENSE` branch. Hook:
-where the blindness affect is applied in `mag_affects()` in
-`src/magic/magic.c`, and beside the existing `FEAT_BLINDSENSE` vision check.
-Test: blindness affect is refused; the feat does not grant darkvision.
+immune to the blinded condition, and vision treats the character as sighted
+while blinded. As built: `can_blind()` in `src/utils.c` returns false with the
+feat (every blinding spell and proc already asks it), and `char_is_blinded()`
+ignores `AFF_BLIND` for the feat. `CAN_SEE_IN_DARK` is untouched, so no
+darkvision. Test: `can_blind()` false and `char_is_blinded()` false while
+flagged blind; `has_blindsense()` still false.
 
 **FEAT_QUICK_THINKING** (RP 1.5). Duris: `INNATE_QUICK_THINKING` in
 `src/core/utility.c` and `src/net/sparser.c`: 15 percent automatic success on
 INT and POW saves, and a second roll on a failed save. Ours: when a Will save
-fails, 15 percent chance to reroll it once. Hook: `savingthrow()` in
-`src/magic/magic.c` (or wherever Will saves resolve; trace before editing).
-Test: with the roll forced, a failed Will save is retried; Fortitude is not.
+fails, 15 percent chance to reroll it once. As built: `savingthrow_full()` in
+`src/magic/magic.c` rerolls the d20 once before the final comparison when
+`racial_quick_thinking_chance(vict, type)` (in `src/utils.c`, 15 for Will with
+the feat, else 0) beats the roll. There is no dice forcing in the test
+harness, so the test covers the chance helper (15 for Will, 0 for Fortitude,
+0 without the feat).
 
 **FEAT_GROUNDFIGHTING** (RP 1). Duris: `INNATE_GROUNDFIGHTING` halves the
 dodge penalty for not standing (`src/combat/fight.c`). Ours: no attack roll
-or AC penalty for being prone or sitting. Hook: the position penalties in
+or AC penalty for being prone (`POS_RECLINING`), sitting or resting. Stunned,
+sleeping and worse keep their penalties. Hook: the position switches in
 `compute_attack_bonus()` and `compute_armor_class()` in `src/combat/fight.c`.
-Test: prone AC and attack equal standing values with the feat.
+Test: the feat is worth +3 AC prone and +2 AC and +2 attack sitting.
 
 **FEAT_QUADRUPED_BODY** (Horse Body, Spider Body, RP 1.5). Duris:
 `INNATE_HORSE_BODY` and `INNATE_SPIDER_BODY` in `src/cmd/actoff.c`,
@@ -276,24 +287,27 @@ ground-slam fail against the character unless the attacker is larger; the
 character cannot mount. Ours: `perform_knockdown()` fails automatically when
 the attacker's size is equal or smaller; `do_mount` refuses. The equipment
 slot loss is the wired `FEAT_LEONINE_FRAME` (bucket B), assigned alongside
-this feat later. Hook: `perform_knockdown()` in `src/combat/act.offensive.c`,
-`do_mount` in `src/act.other.c`. Test: knockdown from a same-size attacker
-fails; from a larger attacker it proceeds to the normal roll.
+this feat later. Hook: `perform_knockdown()` in `src/combat/act.offensive.c`
+(after the Immovable Object perk check), `do_mount` in `src/act.other.c`.
+Test: knockdown from a same-size attacker fails; `mount` leaves the character
+unmounted. The larger-attacker roll is random and is checked in game.
 
 **FEAT_WATER_BREATHING** (RP 0.5). Duris: `INNATE_WATERBREATH` sets
-`AFF_WATERBREATH` permanently. Ours: the drowning and underwater checks treat
-the character as having `AFF_WATER_BREATH`. Hook: wherever
-`AFF_FLAGGED(ch, AFF_WATER_BREATH)` is read (trace; `src/limits.c` and
-`src/movement/`). Test: no drowning damage in `SECT_UNDERWATER`.
+`AFF_WATERBREATH` permanently. Ours: the character permanently has `AFF_WATER_BREATH`. As built: the
+per-round updater in `src/limits.c` sets the flag for the feat exactly as it
+already does for the Gills evolution, so every reader (drowning, aqueous orb)
+is covered by the one line. Test: the flag is set by one updater pass with
+the feat and not without.
 
 **FEAT_UNDEAD_FEALTY** (RP 1). Duris: `INNATE_UNDEAD_FEALTY` in
 `src/core/utility.c`: undead at least 10 levels below the character do not
 aggro on it. Ours: same rule, undead race family only. Hook: the
 `MOB_AGGRESSIVE` target loop in `src/mob/mob_act.c`, beside the existing
-`FEAT_ONE_OF_US` (undead) and `FEAT_SOUL_OF_THE_FEY` (animal) exemptions.
+`FEAT_ONE_OF_US` (undead) and `FEAT_SOUL_OF_THE_FEY` (animal) exemptions,
+through `undead_fealty_protects(mob, vict)` in `src/utils.c`.
 `FEAT_ONE_OF_US` is not reused because it is a sorcerer bloodline bundle with
-cold immunity and DR. Test: an undead mob 10 levels lower
-skips the character; a living mob does not.
+cold immunity and DR. Test: an undead mob 10 levels lower is exempt; a living
+mob or one 9 levels lower is not.
 
 ### Group 2: passive offence
 
@@ -306,10 +320,11 @@ skips the character; a living mob does not.
 damage while the primary weapon matches; `TWO_HANDED_SWORD_MASTERY` in
 `src/core/utility.c` grants the 2H slashing skill at 100. Ours: +1 attack
 and +1 damage per 8 character levels (maximum +3 each at level 24) while the
-primary weapon matches. One helper, `racial_weapon_mastery_bonus(ch, wielded)`,
-returning the bonus, called from `compute_attack_bonus()` and
-`compute_damage_bonus()` in `src/combat/fight.c`. Test: bonus is 0 at level
-7, 1 at 8, 3 at 24, 0 with a non-matching weapon.
+weapon used for the attack matches (so an off-hand axe also counts, like every
+other weapon feat here). One helper, `racial_weapon_mastery_bonus(ch, wielded)`
+in `src/combat/fight.c`, called beside Bloodhunt in the attack and damage
+bonus builders. Test: bonus is 0 at level 7, 1 at 8, 3 at 24, 0 with a
+non-matching weapon; damage bonus rises by the same amount.
 
 **FEAT_HATRED** (RP 1). Duris: `INNATE_HATRED` in `src/classes/innates.c`
 runs a timed event that triggers a rage when a hated race is in the room.
@@ -320,23 +335,30 @@ model. Hook: beside `FEAT_BLOODHUNT` in `compute_attack_bonus()` and
 **FEAT_BATTLE_FRENZY** (RP 1). Duris: `INNATE_BATTLE_FRENZY` in
 `src/combat/fight.c`, 1 in 21 chance per hit on a humanoid to trigger an
 extra attack. Ours: 5 percent chance on each successful melee hit against a
-humanoid to gain one extra attack that round. Hook: `hit()` in
-`src/combat/fight.c` after a successful attack. Test: with the roll forced,
-an extra attack is queued; not against a non-humanoid.
+humanoid to gain one extra attack, delivered as an immediate follow-up
+`hit()` the way the Whirling Steel perk does. Hook: `hit()` in
+`src/combat/fight.c` beside Whirling Steel, gated by
+`battle_frenzy_applies(ch, victim, attack_type)`. Test: the gate is true for
+a humanoid melee target, false for an animal or a ranged attack.
 
 **FEAT_WARCALLERS_FURY** (RP 2). Duris: `INNATE_WARCALLERS_FURY` in
 `src/combat/dam_mods.c`: +2 to +15 percent damage by group size in room,
 plus 1/30 per other Orog in the group. Ours: +1 damage per grouped member in
-the room (self included), maximum +5. Hook: `compute_damage_bonus()`; group
-walk copied from `FEAT_AUTHORITATIVE` in `src/utils.c`. Test: +2 with two
-members present, +5 cap with seven.
+the room (self included), maximum +5; an ungrouped character gets nothing.
+Hook: `compute_damage_bonus()` through `racial_warcallers_fury_bonus(ch)`,
+built on a shared `count_grouped_in_room(ch, feat)` walk in `src/utils.c`
+(the `FEAT_AUTHORITATIVE` pattern). Test: +2 with two members present, 0
+alone.
 
 **FEAT_RRAKKMA** (RP 1.5). Duris: `INNATE_RRAKKMA` in `src/combat/fight.c`
 and `src/classes/innates.c`: -10 AC (better) and +5 shrug per other grouped
-Githzerai in the room, capped at 5. Ours: +1 AC and +2 to saves against
-spells per other grouped character in the room who also has this feat,
-maximum 5 counted. Hook: `compute_armor_class()` and the save bonus path in
-`src/magic/magic.c`. Test: no bonus alone; +1 AC with one other feat holder.
+Githzerai in the room, capped at 5. Ours: +1 AC and +2 to every saving throw resolved by
+`savingthrow_full()` (spells, spell-like abilities and the other magical
+sources that go through it) per other grouped character in the room who also
+has this feat, maximum 5 counted. Hook: `compute_armor_class()` (racial bonus
+type) and `savingthrow_full()` in `src/magic/magic.c`, through
+`racial_rrakkma_allies(ch)` in `src/utils.c`. Test: no bonus alone; +1 AC
+with one other feat holder in the group.
 
 ### Group 3: terrain and utility
 
@@ -474,7 +496,8 @@ with the expiry affect.
       text, haste repurpose, bodyslam availability. Existing races behave
       exactly as before; the test asserts the affected races still hold the
       feats that replaced the race checks. Done 2026-09-12.
-- [ ] Phase 2, Group 1 (passive defence) and Group 2 (passive offence).
+- [x] Phase 2, Group 1 (passive defence) and Group 2 (passive offence). Done
+      2026-09-12.
 - [ ] Phase 3, Group 3 (terrain and utility) and Group 4 (SLA table rows).
 - [ ] Phase 4, Group 5 (bespoke commands), including the warg and orc mob
       vnums and world entries.
@@ -547,6 +570,22 @@ without re-reading the conversation.
   `unittests/CuTest/test_racial_innate_feats.c` (four tests), `Makefile.am`,
   `CMakeLists.txt`, and `unittests/CuTest/test_syntax_check_boot.c` (persisted
   event count 93 to 110).
+- 2026-09-12, Phase 2 done. Helpers: `src/utils.c` (`suffers_sun_vulnerability`,
+  `is_dayblinded`, `char_is_blinded`, `count_grouped_in_room`,
+  `racial_warcallers_fury_bonus`, `racial_rrakkma_allies`,
+  `racial_quick_thinking_chance`, `undead_fealty_protects`, `calming_applies`,
+  and `can_blind()` refuses eyeless) with prototypes in `src/utils.h` after
+  `has_blindsense`; `src/combat/fight.c` (`racial_weapon_mastery_bonus`,
+  `racial_spell_absorb_chance`, `racial_sacrilegious_power_reduction`,
+  `battle_frenzy_applies`) with prototypes in `src/combat/fight.h`. Hooks:
+  `src/utils.h` vision macros, `src/limits.c` (regen, sun tick, water breath
+  flag), `src/mob/mob_act.c` aggro loop, `src/combat/act.offensive.c`
+  `perform_knockdown()`, `src/act.other.c` `do_mount`, `src/magic/magic.c`
+  `savingthrow_full()`, and `src/combat/fight.c` (`compute_damtype_reduction`
+  block before the type switch, spell absorb in `damage_handling_with_weapon`,
+  position switches, rrakkma AC, hatred and mastery beside Bloodhunt in both
+  bonus builders, warcaller's fury in the damage builder, battle frenzy beside
+  Whirling Steel in `hit()`).
 - 2026-09-12, Phase 1 done. `src/combat/fight.c`: fire (-50) and cold (-20)
   vulnerability in `compute_damtype_reduction()`, the leap dodge in
   `damage_handling_with_weapon()`, and the +4 AC vs larger attackers in

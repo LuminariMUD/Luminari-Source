@@ -1035,6 +1035,9 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
   if (has_teamwork_feat(vict, FEAT_SHAKE_IT_OFF))
     savethrow += MIN(4, has_teamwork_feat(vict, FEAT_SHAKE_IT_OFF));
 
+  /* rrakkma (Duris racial innate): +2 per other grouped ally here with the feat */
+  savethrow += 2 * racial_rrakkma_allies(vict);
+
   if (is_judgement_possible(vict, ch, INQ_JUDGEMENT_PURITY))
   {
     savethrow += get_judgement_bonus(vict, INQ_JUDGEMENT_PURITY);
@@ -1117,6 +1120,17 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
       attach_mud_event(new_mud_event(eLEGENDARY_RESILIENCE_USED, vict, NULL), 300 RL_SEC);
       return (TRUE);
     }
+  }
+
+  /* quick thinking (Duris racial innate): a failed will save may be rerolled once */
+  if (diceroll != 20 && (savethrow < challenge || diceroll == 1) &&
+      rand_number(1, 100) <= racial_quick_thinking_chance(vict, type))
+  {
+    int reroll = d20(vict);
+
+    send_combat_roll_info(vict, "\tW*Quick Thinking, rerolling!*\tn ");
+    savethrow += reroll - diceroll;
+    diceroll = reroll;
   }
 
   if (diceroll != 1 && (savethrow >= challenge || diceroll == 20))
