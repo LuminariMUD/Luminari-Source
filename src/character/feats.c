@@ -844,7 +844,7 @@ void assign_feats(void)
   feato(FEAT_LICH_SPELL_RESIST, "lich spell resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "15 + level spell resist",
         "Due to their undead magical nature, Lich have a strong natural resistance "
-        "to magic.  A Lich's spell resistance is equal to 10 + their level.");
+        "to magic.  A Lich's spell resistance is equal to 15 + their level.");
   feato(FEAT_LICH_DAM_RESIST, "lich damage resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+4 general damage resist",
         "Due to their undead nature, Lich have a strong natural damage resistance. "
@@ -1026,9 +1026,8 @@ void assign_feats(void)
   feato(FEAT_KENDER_TAUNT, "kender taunt", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Kender gain a +4 bonus to the taunt ability.",
         "Kender gain a +4 bonus to the taunt ability, and can perform taunts as a swift action.");
-  feato(FEAT_KENDER_FEARLESSNESS, "kender fearlessness", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "Kender are immune to fear, normal and magical.",
-        "Kender are immune to fear, normal and magical.");
+  feato(FEAT_KENDER_FEARLESSNESS, "fearlessness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Immune to fear, normal and magical.", "Immune to fear, normal and magical.");
   feato(FEAT_KENDER_LUCK, "kender luck", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Kender gain a +1 luck bonus on all saving throws.",
         "Kender gain a +1 luck bonus on all saving throws.");
@@ -1073,8 +1072,8 @@ void assign_feats(void)
         "You can see outlines of life in complete dark, and see fully when outside at night.",
         "You can see outlines of life in complete dark, and see fully when outside at night.");
   feato(FEAT_COMBAT_TRAINING_VS_GIANTS, "combat training vs giants", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "+1 size bonus versus larger opponents",
-        "+1 size bonus versus larger opponents");
+        FEAT_TYPE_INNATE_ABILITY, "+4 size bonus to armor class versus larger opponents",
+        "You gain a +4 size bonus to armor class against opponents larger than you.");
   feato(FEAT_POISON_RESIST, "poison resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 saves versus poison", "+2 saves versus poison");
   feato(FEAT_VITAL, "vital", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "start with +10 hps",

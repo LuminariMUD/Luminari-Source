@@ -326,7 +326,7 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
   /* === CREATURE TYPE SPELL RESISTANCE === */
 
   /* Liches are powerful undead with strong spell resistance */
-  if (IS_LICH(vict))
+  if (HAS_FEAT(vict, FEAT_LICH_SPELL_RESIST))
     resist = MAX(resist, 15 + GET_LEVEL(vict));
 
   /* Dragons naturally have spell resistance

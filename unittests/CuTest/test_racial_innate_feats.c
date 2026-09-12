@@ -10,6 +10,9 @@
 #include "../../src/actionqueues.h"
 #include "../../src/act.h"
 #include "../../src/character/feats.h"
+#include "../../src/character/race.h"
+#include "../../src/character/skill_lists.h"
+#include "../../src/combat/fight.h"
 #include "../../src/comm.h"
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_event.h"
@@ -235,6 +238,169 @@ void TestRacialSlaUseStartsTheDailyCooldown(CuTest *tc)
   event = char_has_mud_event(&fixture.ch, eSLA_FARSEE);
   CuAssertPtrNotNull(tc, event);
   CuAssertStrEquals(tc, "uses:1", event->sVariables);
+
+  end_innate_fixture(&fixture);
+}
+
+/* ---- Phase 1: bucket B feats that replaced race checks ---- */
+
+static bool race_assigns_feat(int race, int feat)
+{
+  struct race_feat_assign *assign;
+
+  for (assign = race_list[race].featassign_list; assign != NULL; assign = assign->next)
+    if (assign->feat_num == feat)
+      return TRUE;
+  return FALSE;
+}
+
+/* The races that used to pass the race checks still hold the feats that
+ * replaced them, so their behaviour is unchanged. */
+void TestBucketBRacesStillHoldTheirWiredFeats(CuTest *tc)
+{
+  static const int pairs[][2] = {
+      {RACE_HALF_TROLL, FEAT_WEAKNESS_TO_FIRE},
+      {RACE_HALF_TROLL, FEAT_BODYSLAM},
+      {RACE_TRELUX, FEAT_VULNERABLE_TO_COLD},
+      {RACE_TRELUX, FEAT_LEAP},
+      {RACE_LICH, FEAT_LICH_SPELL_RESIST},
+      {RACE_WEMIC, FEAT_LEONINE_FRAME},
+      {RACE_DWARF, FEAT_STABILITY},
+      {RACE_DUERGAR, FEAT_STABILITY},
+      {RACE_CRYSTAL_DWARF, FEAT_STABILITY},
+      {RACE_GOLD_DWARF, FEAT_STABILITY},
+      {RACE_DWARF, FEAT_COMBAT_TRAINING_VS_GIANTS},
+      {RACE_GNOME, FEAT_COMBAT_TRAINING_VS_GIANTS},
+      {RACE_DUERGAR, FEAT_COMBAT_TRAINING_VS_GIANTS},
+      {RACE_CRYSTAL_DWARF, FEAT_COMBAT_TRAINING_VS_GIANTS},
+      {RACE_HALFLING, FEAT_COMBAT_TRAINING_VS_GIANTS},
+  };
+  size_t i;
+
+  if (race_list[RACE_WEMIC].type == NULL)
+    assign_races();
+  if (feat_list[FEAT_SUN_VULNERABILITY].name == NULL ||
+      !strcmp(feat_list[FEAT_SUN_VULNERABILITY].name, "Unused Feat"))
+    assign_feats();
+
+  for (i = 0; i < sizeof(pairs) / sizeof(pairs[0]); i++)
+    CuAssert(tc, feat_list[pairs[i][1]].name, race_assigns_feat(pairs[i][0], pairs[i][1]));
+
+  /* the reworded feats no longer name a race */
+  CuAssertTrue(tc, strstr(feat_list[FEAT_KENDER_FEARLESSNESS].name, "ender") == NULL);
+  CuAssertTrue(tc, strstr(feat_list[FEAT_KENDER_FEARLESSNESS].description, "Kender") == NULL);
+  CuAssertTrue(tc,
+               strstr(feat_list[FEAT_COMBAT_TRAINING_VS_GIANTS].short_description, "+4") != NULL);
+}
+
+/* Fire and cold vulnerability follow the feat, not the race. */
+void TestFireAndColdVulnerabilityFollowTheFeat(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  int base_fire, base_cold;
+
+  begin_innate_fixture(&fixture);
+
+  base_fire = compute_damtype_reduction(&fixture.ch, DAM_FIRE, NULL, TYPE_UNDEFINED);
+  base_cold = compute_damtype_reduction(&fixture.ch, DAM_COLD, NULL, TYPE_UNDEFINED);
+
+  SET_FEAT(&fixture.ch, FEAT_WEAKNESS_TO_FIRE, 1);
+  CuAssertIntEquals(tc, base_fire - 50,
+                    compute_damtype_reduction(&fixture.ch, DAM_FIRE, NULL, TYPE_UNDEFINED));
+  CuAssertIntEquals(tc, base_cold,
+                    compute_damtype_reduction(&fixture.ch, DAM_COLD, NULL, TYPE_UNDEFINED));
+
+  SET_FEAT(&fixture.ch, FEAT_VULNERABLE_TO_COLD, 1);
+  CuAssertIntEquals(tc, base_cold - 20,
+                    compute_damtype_reduction(&fixture.ch, DAM_COLD, NULL, TYPE_UNDEFINED));
+
+  end_innate_fixture(&fixture);
+}
+
+/* Lich spell resistance (15 + level) follows the feat. */
+void TestLichSpellResistanceFollowsTheFeat(CuTest *tc)
+{
+  struct innate_fixture fixture;
+
+  begin_innate_fixture(&fixture);
+
+  CuAssertTrue(tc, compute_spell_res(NULL, &fixture.ch, 0) < 15 + GET_LEVEL(&fixture.ch));
+  SET_FEAT(&fixture.ch, FEAT_LICH_SPELL_RESIST, 1);
+  CuAssertIntEquals(tc, 15 + GET_LEVEL(&fixture.ch), compute_spell_res(NULL, &fixture.ch, 0));
+
+  end_innate_fixture(&fixture);
+}
+
+/* Leonine frame refuses the leg and foot slots and nothing else. */
+void TestLeonineFrameBlocksLegAndFootSlots(CuTest *tc)
+{
+  struct innate_fixture fixture;
+
+  begin_innate_fixture(&fixture);
+  if (race_list[RACE_WEMIC].type == NULL)
+    assign_races();
+
+  CuAssertTrue(tc, character_wear_slot_restriction(&fixture.ch, WEAR_LEGS) == NULL);
+  CuAssertTrue(tc, character_wear_slot_restriction(&fixture.ch, WEAR_FEET) == NULL);
+
+  SET_FEAT(&fixture.ch, FEAT_LEONINE_FRAME, 1);
+  CuAssertPtrNotNull(tc, character_wear_slot_restriction(&fixture.ch, WEAR_LEGS));
+  CuAssertPtrNotNull(tc, character_wear_slot_restriction(&fixture.ch, WEAR_FEET));
+  CuAssertTrue(tc, character_wear_slot_restriction(&fixture.ch, WEAR_HANDS) == NULL);
+  CuAssertTrue(tc, !character_can_use_wear_slot(&fixture.ch, WEAR_LEGS));
+
+  end_innate_fixture(&fixture);
+}
+
+/* The bodyslam skill is available with the feat and not without it. */
+void TestBodyslamAvailabilityFollowsTheFeat(CuTest *tc)
+{
+  struct innate_fixture fixture;
+
+  begin_innate_fixture(&fixture);
+
+  CuAssertTrue(tc, !meet_skill_reqs(&fixture.ch, SKILL_BODYSLAM));
+  SET_FEAT(&fixture.ch, FEAT_BODYSLAM, 1);
+  CuAssertTrue(tc, meet_skill_reqs(&fixture.ch, SKILL_BODYSLAM));
+
+  end_innate_fixture(&fixture);
+}
+
+/* Combat training vs giants gives +4 armor class only against larger attackers. */
+void TestGiantTrainingGrantsArmorClassAgainstLargerAttackers(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  int base_large, base_same;
+
+  begin_innate_fixture(&fixture);
+
+  fixture.other.points.size = SIZE_LARGE;
+  base_large = compute_armor_class(&fixture.other, &fixture.ch, FALSE, MODE_ARMOR_CLASS_NORMAL);
+  fixture.other.points.size = SIZE_MEDIUM;
+  base_same = compute_armor_class(&fixture.other, &fixture.ch, FALSE, MODE_ARMOR_CLASS_NORMAL);
+
+  SET_FEAT(&fixture.ch, FEAT_COMBAT_TRAINING_VS_GIANTS, 1);
+  CuAssertIntEquals(
+      tc, base_same,
+      compute_armor_class(&fixture.other, &fixture.ch, FALSE, MODE_ARMOR_CLASS_NORMAL));
+  fixture.other.points.size = SIZE_LARGE;
+  CuAssertIntEquals(
+      tc, base_large + 4,
+      compute_armor_class(&fixture.other, &fixture.ch, FALSE, MODE_ARMOR_CLASS_NORMAL));
+
+  end_innate_fixture(&fixture);
+}
+
+/* Fear immunity is granted by the reworded fearlessness feat. */
+void TestFearlessnessFeatGrantsFearImmunity(CuTest *tc)
+{
+  struct innate_fixture fixture;
+
+  begin_innate_fixture(&fixture);
+
+  CuAssertTrue(tc, !is_immune_fear(&fixture.other, &fixture.ch, FALSE));
+  SET_FEAT(&fixture.ch, FEAT_KENDER_FEARLESSNESS, 1);
+  CuAssertTrue(tc, is_immune_fear(&fixture.other, &fixture.ch, FALSE));
 
   end_innate_fixture(&fixture);
 }

@@ -1326,11 +1326,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   /* bonus type size (should not stack) */
   bonuses[BONUS_TYPE_SIZE] += size_modifiers_inverse[GET_SIZE(ch)];
   if (attacker)
-  { /* racial bonus vs. larger opponents */
-    if ((GET_RACE(ch) == RACE_DWARF || GET_RACE(ch) == RACE_CRYSTAL_DWARF ||
-         GET_RACE(ch) == RACE_GNOME || GET_RACE(ch) == RACE_DUERGAR ||
-         GET_RACE(ch) == RACE_HALFLING) &&
-        GET_SIZE(attacker) > GET_SIZE(ch))
+  { /* combat training vs giants: racial bonus vs. larger opponents */
+    if (HAS_FEAT(ch, FEAT_COMBAT_TRAINING_VS_GIANTS) && GET_SIZE(attacker) > GET_SIZE(ch))
     {
       bonuses[BONUS_TYPE_SIZE] += 4;
     }
@@ -4038,7 +4035,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_da
   case DAM_FIRE:
     if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
       damtype_reduction += 20;
-    if (!IS_NPC(ch) && GET_RACE(ch) == RACE_HALF_TROLL)
+    if (HAS_FEAT(ch, FEAT_WEAKNESS_TO_FIRE))
       damtype_reduction += -50;
     if (!IS_NPC(ch) &&
         (GET_RACE(ch) == RACE_WHITE_DRAGON || GET_DISGUISE_RACE(ch) == RACE_WHITE_DRAGON))
@@ -4083,7 +4080,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_da
 
   case DAM_COLD:
 
-    if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
+    if (HAS_FEAT(ch, FEAT_VULNERABLE_TO_COLD))
       damtype_reduction += -20;
     if (!IS_NPC(ch) &&
         (GET_RACE(ch) == RACE_RED_DRAGON || GET_DISGUISE_RACE(ch) == RACE_RED_DRAGON))
@@ -5117,8 +5114,8 @@ static int damage_handling_with_weapon(struct char_data *ch, struct char_data *v
       return 0;
     }
 
-    /* trelux racial dodge */
-    if (GET_RACE(victim) == RACE_TRELUX && !rand_number(0, 4) && !is_spell)
+    /* leap: racial dodge (trelux and any race granted the feat) */
+    if (HAS_FEAT(victim, FEAT_LEAP) && !rand_number(0, 4) && !is_spell)
     {
       if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {

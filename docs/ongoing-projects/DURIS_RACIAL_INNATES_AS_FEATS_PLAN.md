@@ -88,7 +88,7 @@ behaviour does not change for them.
 | Horse Body, Spider Body (slot part) | `FEAT_LEONINE_FRAME` | Registered; the leg and foot block is enforced for Wemic and Trelux through the per-race table read by `character_wear_slot_restriction()` in `src/character/race.c`, not through the feat | Make `character_wear_slot_restriction()` also refuse `WEAR_LEGS` and `WEAR_FEET` when the feat is held. The race table rows stay, so existing races are unchanged. `FEAT_TRELUX_EQ` is left on the race table |
 | Magic Resistance, shrug 50 and above | `FEAT_LICH_SPELL_RESIST` | `compute_spell_res()` in `src/magic/magic.c` grants SR 15 + level on `IS_LICH()`; the feat is registered but never consulted | Check the feat instead; Lich keeps it through its existing assignment |
 | Horse Body, Spider Body (stability part) | `FEAT_STABILITY` | Registered; bash and trip resistance in `src/combat/act.offensive.c` checks dwarf, crystal dwarf and duergar. Crystal dwarf holds no `FEAT_STABILITY` assignment, so a plain feat check would strip it | Check the feat instead and add the one missing `feat_race_assignment(RACE_CRYSTAL_DWARF, FEAT_STABILITY, ...)` line so behaviour is unchanged. The full Duris immunity is the new `FEAT_QUADRUPED_BODY` below |
-| Dauntless | `FEAT_KENDER_FEARLESSNESS` | Wired in `is_immune_fear()`; text says "Kender" | Reword to "Immune to fear, normal and magical". No rename of the constant |
+| Dauntless | `FEAT_KENDER_FEARLESSNESS` | Wired in `is_immune_fear()`; text said "Kender" | Done: name is now "fearlessness", text "Immune to fear, normal and magical". The constant is unchanged |
 | Battle Rage | `FEAT_HASTE` | Registered `in_game = FALSE`, `FEAT_TYPE_CLASS_ABILITY`, no command, no consumer | Done: renamed "innate haste", `in_game = TRUE`, type innate, 1/day self haste through the SLA table below. The verb is `battlehaste` because `battlerage` is already the domain-power command |
 | Bodyslam | `SKILL_BODYSLAM` | `bodyslam` exists; availability in `src/character/skill_lists.c` checks `RACE_HALF_TROLL` | New `FEAT_BODYSLAM` (bucket C), make the skill available when the feat is held, and assign the feat to `RACE_HALF_TROLL` so that race keeps the skill |
 | Regeneration (stronger) | `FEAT_TROLL_REGENERATION` | Fixed 3 hp | Optional: allow stacking (`can_stack = TRUE`, +3 per rank) so a Duris Troll (10 per tick) can be expressed as ranks. Do only if a race needs it |
@@ -469,10 +469,11 @@ with the expiry affect.
 - [x] Phase 0, infrastructure: constants, `feato()` block, events, daily-use
       cases, SLA table and `do_racial_sla`, test file skeleton in both build
       lists. Build clean with `-Wall -Wextra`. Done 2026-09-12.
-- [ ] Phase 1, bucket B wiring: fire and cold vulnerability, leap, giant
+- [x] Phase 1, bucket B wiring: fire and cold vulnerability, leap, giant
       training, leonine frame, stability, lich spell resistance, fearlessness
-      text, haste repurpose, bodyslam availability. Existing races must behave exactly as before;
-      the test asserts the affected races still pass the old checks.
+      text, haste repurpose, bodyslam availability. Existing races behave
+      exactly as before; the test asserts the affected races still hold the
+      feats that replaced the race checks. Done 2026-09-12.
 - [ ] Phase 2, Group 1 (passive defence) and Group 2 (passive offence).
 - [ ] Phase 3, Group 3 (terrain and utility) and Group 4 (SLA table rows).
 - [ ] Phase 4, Group 5 (bespoke commands), including the warg and orc mob
@@ -546,5 +547,16 @@ without re-reading the conversation.
   `unittests/CuTest/test_racial_innate_feats.c` (four tests), `Makefile.am`,
   `CMakeLists.txt`, and `unittests/CuTest/test_syntax_check_boot.c` (persisted
   event count 93 to 110).
-- Next: Phase 1 (bucket B wiring), then Phases 2 to 4 in any order, then 5
-  and 6.
+- 2026-09-12, Phase 1 done. `src/combat/fight.c`: fire (-50) and cold (-20)
+  vulnerability in `compute_damtype_reduction()`, the leap dodge in
+  `damage_handling_with_weapon()`, and the +4 AC vs larger attackers in
+  `compute_armor_class()` now check the feats. `src/magic/magic.c`:
+  `compute_spell_res()` checks `FEAT_LICH_SPELL_RESIST`.
+  `src/combat/act.offensive.c`: both stability checks in `perform_knockdown()`
+  use `FEAT_STABILITY`. `src/character/skill_lists.c`: bodyslam needs
+  `FEAT_BODYSLAM`. `src/character/race.c`: `character_wear_slot_restriction()`
+  refuses legs and feet for `FEAT_LEONINE_FRAME`; crystal dwarf gains the
+  `FEAT_STABILITY` assignment and half-troll the `FEAT_BODYSLAM` assignment
+  it needed to keep its behaviour. `src/character/feats.c`: fearlessness and
+  giant-training text, lich long text says 15 + level. Seven tests added.
+- Next: Phases 2 to 4 in any order, then 5 and 6.

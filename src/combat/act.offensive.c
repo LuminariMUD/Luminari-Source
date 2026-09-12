@@ -1759,8 +1759,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
       skilled_monk = TRUE;
     }
 
-    if (GET_RACE(vict) == RACE_DWARF || GET_RACE(vict) == RACE_CRYSTAL_DWARF ||
-        GET_RACE(vict) == RACE_DUERGAR) /* dwarven stability */
+    if (HAS_FEAT(vict, FEAT_STABILITY)) /* dwarven stability */
       defense_check += 4;
 
     /*DEBUG*/ /*send_to_char(ch, "attack check: %d, defense_check: %d\r\n", attack_check, defense_check);*/
@@ -1859,8 +1858,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
         attack_check = (d20(vict) + GET_STR_BONUS(vict) + (GET_SIZE(vict) - GET_SIZE(ch)) * 4);
         defense_check = (d20(ch) + MAX(GET_STR_BONUS(ch), GET_DEX_BONUS(ch)));
 
-        if (GET_RACE(ch) == RACE_DWARF || GET_RACE(ch) == RACE_DUERGAR ||
-            GET_RACE(ch) == RACE_CRYSTAL_DWARF) /* Dwarves get a stability bonus. */
+        if (HAS_FEAT(ch, FEAT_STABILITY)) /* Dwarves get a stability bonus. */
           defense_check += 4;
         /*DEBUG*/ /*send_to_char(ch, "counterattack check: %d, defense_check: %d\r\n", attack_check, defense_check);*/
 
