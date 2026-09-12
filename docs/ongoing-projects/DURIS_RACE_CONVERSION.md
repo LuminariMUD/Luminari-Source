@@ -10,7 +10,7 @@ Status: source-backed study, verified 2026-09-11 against the Duris checkout at
 [PLAYER_RACES_REFERENCE.md](../guides/PLAYER_RACES_REFERENCE.md), section
 "Balance: race point budgets by tier".
 
-Follow-up: [DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md](DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md)
+Follow-up: [DURIS_RACIAL_MECHANICS.md](DURIS_RACIAL_MECHANICS.md)
 plans the uncovered innates below as non-selectable feats.
 
 This document converts every Duris player race to LuminariMUD's scale so the

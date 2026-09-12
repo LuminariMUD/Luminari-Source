@@ -857,7 +857,7 @@
 #define AFFECT_ROL_MANSCORPION_VENOM 1339
 #define AFFECT_ROL_BARBAZU_BERSERK 1340
 #define AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN 1341
-/* Duris racial innates, see docs/ongoing-projects/DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md */
+/* Duris racial innates, see docs/ongoing-projects/DURIS_RACIAL_MECHANICS.md */
 #define AFFECT_RACIAL_FLURRY 1342 /* one extra attack per round for four rounds */
 #define ABILITY_SUMMON_WARG 1343  /* MAG_SUMMONS: a mountable warg */
 #define ABILITY_SUMMON_HORDE 1344 /* MAG_SUMMONS: two to four orc warriors */
