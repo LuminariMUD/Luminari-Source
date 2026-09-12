@@ -4,7 +4,7 @@
 -- keyword where it does not collide with an existing spell entry.
 -- The database help system is authoritative; lib/text/help/help.hlp carries
 -- the same text. This migration is safe to run repeatedly.
--- See docs/ongoing-projects/DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md
+-- See docs/ongoing-projects/DURIS_RACIAL_MECHANICS.md
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('SUN-VULNERABILITY', 'Sun Vulnerability (racial drawback)
