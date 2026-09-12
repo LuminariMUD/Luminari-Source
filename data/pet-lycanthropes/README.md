@@ -20,3 +20,12 @@ Missing prototypes and occupied lycanthrope capacity preserve the charge.
 The ordinary wand check also preserves charges on failure. Once admitted, the
 native spell owns acquisition, control, 30-second expiry/control checks, and
 potential hostility. See CALL-LYCANTHROPE/MOONCALL help for player rules.
+
+## Duris racial innate summons
+
+The same zone 195 mob file also carries the two prototypes loaded by the
+`summonwarg` and `summonhorde` racial innate feats: the snarling warg (19502,
+`PET_RACIAL_WARG`) and the orc warrior (19503, `PET_RACIAL_ORC_WARRIOR`) named
+in `src/pet_vnums.h`. They are code-loaded only; no zone reset places them.
+The installer appends them to an existing 195.mob. See
+docs/ongoing-projects/DURIS_RACIAL_INNATES_AS_FEATS_PLAN.md.

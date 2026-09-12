@@ -42,4 +42,47 @@ SubRace 1: 18
 Class: 3
 Size: 5
 E
+#19502
+warg wolf mount~
+a snarling warg~
+A snarling warg paces here, waiting on its rider.
+~
+Coarse black fur bristles over a wolf the size of a pony.  Its yellow eyes
+never leave its master.
+~
+8 0 0 2147483648 0 0 0 0 0 E
+10 10 0 0d0+100 1d8+0
+0 0
+9 9 1
+Str: 18
+Dex: 15
+Int: 6
+Wis: 10
+Con: 16
+Cha: 6
+Race: 3
+Size: 6
+E
+#19503
+orc warrior horde~
+an orc warrior~
+An orc warrior stands here, answering the call of the horde.
+~
+Scarred and snarling, this orc grips a notched blade and looks for something
+to kill.
+~
+8 0 0 2147483648 0 0 0 0 0 E
+10 10 0 0d0+100 1d8+0
+0 0
+9 9 1
+Str: 17
+Dex: 12
+Int: 8
+Wis: 8
+Con: 14
+Cha: 6
+Race: 1
+Class: 3
+Size: 5
+E
 $~

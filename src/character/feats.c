@@ -6165,8 +6165,9 @@ void assign_feats(void)
         "You can use 'stampede' to trample every opponent fighting you, knocking down and "
         "damaging each you overrun.  Usable once every three rounds, not in single-file rooms.");
   feato(FEAT_RACIAL_FLURRY, "racial flurry", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "flurry: one extra attack per round for four rounds, 1/day",
-        "You can use 'flurry' once per day to unleash one extra attack per round for four rounds. "
+        "onslaught: one extra attack per round for four rounds, 1/day",
+        "You can use 'onslaught' once per day to unleash one extra attack per round for four "
+        "rounds. "
         "It does not stack with haste.");
   feato(FEAT_SUMMON_WARG, "summon warg", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "summonwarg: call a warg mount outdoors 1/day",

@@ -567,7 +567,7 @@ struct mud_event_list mud_event_index[] = {
     {"Stampede Cooldown", event_countdown, EVENT_CHAR, "You are ready to stampede again.", NULL,
      FEAT_UNDEFINED, 0},
     {"Racial Flurry", event_daily_use_cooldown, EVENT_CHAR, NULL,
-     "One of your flurry uses has recovered.", FEAT_RACIAL_FLURRY, 0},
+     "One of your onslaught uses has recovered.", FEAT_RACIAL_FLURRY, 0},
 };
 
 /* Expose registry count for validation */

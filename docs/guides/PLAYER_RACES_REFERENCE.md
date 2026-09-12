@@ -423,6 +423,12 @@ take the higher.
 | Charm or dominate at will | Vampire Dominate | 3 |
 | Level drain, gaseous form | Vampire | 2 each |
 | Minor utility | Stability, Encumbered Resilience, Tinker, Speak With Beasts, Spider Climb | 0.5 |
+| Weapon-family mastery (+1 hit and damage per 8 levels, max +3) | Axe Mastery, Longsword Mastery | 2 |
+| Terrain stealth (+6 in one sector set) | Outdoor Stealth, Underdark Stealth (1), Swamp Stealth (0.5) | 0.5 to 1 |
+| Quadruped body (no knockdown from equal size, cannot mount) | Quadruped Body | 1.5 |
+| Party-scaling damage (+1 per grouped member here, max +5) | Warcaller's Fury | 2 |
+| Ally-scaling defence (+1 AC and +2 saves per feat-holding ally, max 5) | Rrakkma | 1.5 |
+| Chance to absorb a damaging spell (level/2 percent) | Spell Absorb | 2 |
 | Caster level bonus (level / 6) | Magical Heritage | 2 |
 
 **Drawback refund.** Drawbacks subtract from RP but, like ability penalties,
@@ -439,6 +445,9 @@ players route around drawbacks and keep the power.
 | -2 to a save category | Spell or Enchantment Vulnerability | -1 |
 | Cannot use an equipment slot | Wemic, Yuan-Ti, Trelux | -1 per slot, cap -6 |
 | Environmental damage or disable | Vampire Weaknesses | -4 |
+| No regeneration and 1d8 per round in open sunlight | Sun Vulnerability | -3 |
+| Blind in direct sunlight | Dayblind | -4 |
+| 10 percent more damage from spells | Magic Vulnerability | -1 |
 
 Alignment restrictions and forced class respecs are not priced. They shape
 who plays the race; they do not change how strong the race is once played.

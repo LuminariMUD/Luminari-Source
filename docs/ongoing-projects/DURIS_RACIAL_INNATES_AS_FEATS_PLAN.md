@@ -1,8 +1,9 @@
 # Duris Racial Innates as Feats: Implementation Plan
 
-Status: in progress. Created 2026-09-12; Phase 0 landed 2026-09-12.
-See "Progress log" at the end for what is done and what a new session
-should pick up next.
+Status: implemented, all six phases done 2026-09-12. Every feat is
+registered, wired and tested; no race is granted any of them. See
+"Progress log" at the end for the as-built map and the open follow-ups
+(assignment per race is the separate next step).
 Companion study: [DURIS_RACE_CONVERSION.md](DURIS_RACE_CONVERSION.md).
 Duris source verified at `/home/aiwithapex/projects/duris` (`src/classes/innates.c`
 registration list and the implementation sites named per feat below). Our side
@@ -163,15 +164,30 @@ daily use is never wasted. No new source file was needed, so `Makefile.am`
 and `CMakeLists.txt` changed only for the test file.
 
 Verb collisions: `battlerage` already exists (domain power), so the haste
-verb is `battlehaste`. The rest (farsee, stoneskin, throwlightning,
-fireshield, firestorm, shadowdoor, planeshift, mindblast, roar, fireball,
-massdispel, frostbreath, webwrap, flurry, summonwarg, summonhorde, stampede,
-doorbash) are free. `calm` and `mine` already exist and are not reused.
+verb is `battlehaste`; `flurry` is shadowed by `flurryofblows` (prefix match
+in table order), so the racial flurry verb is `onslaught`. The rest (farsee,
+stoneskin, throwlightning, fireshield, firestorm, shadowdoor, planeshift,
+mindblast, roar, fireball, massdispel, frostbreath, webwrap, summonwarg,
+summonhorde, stampede, doorbash) are free and were checked for earlier
+prefix rows as well. `calm` and `mine` already exist and are not reused.
 
-**Help.** One entry per feat (keyword is the feat name) and one per new
-command, in both `lib/text/help/help.hlp` and the help database, per the
-repository rule. Model the text on the existing `ULTRAVISION` entry for
-passives and the `BODYSLAM` entry for commands.
+**Help.** One entry per feat, tagged by the hyphenated feat name, with the
+feat's command verb attached as an extra keyword instead of a second entry
+(the ROL feat component model: `CAMP` plus `ESTABLISH-CAMP`). Four verbs
+(`farsee`, `stoneskin`, `planeshift`, `fireball`) collide with existing spell
+entries and are left to those entries; the feat text points at them. Both
+stores are written from one generator: the SQL component
+`sql/components/help_duris_racial_innate_entries.sql` (idempotent, applied to
+the development database) and `lib/text/help/help.hlp` (entries inserted in
+keyword order; the race-keyed `BODYSLAM` entry rewritten). The help-sync
+audit reports the same pre-existing file-versus-database projection drift on
+both environments before and after; a cross-environment sync is a separate,
+explicitly authorised operation.
+
+**World data.** `lib/world/` is gitignored. Code-loaded pet prototypes are
+delivered through `data/pet-lycanthropes/195.mob` and
+`scripts/world/install_pet_constructs.py` (append-only into an existing
+195.mob), so the warg and orc warrior live there and in that README.
 
 **Tests.** A new production-linked suite
 `unittests/CuTest/test_racial_innate_feats.c`, added to `cutest_SOURCES` and
@@ -477,8 +493,10 @@ itself needs live combat and is checked in game.
 
 **FEAT_RACIAL_FLURRY** (RP 2). Duris: `do_flurry()` in
 `src/classes/innates.c`: `AFF2_FLURRY` for four combat rounds, granting the
-maximum attack count. Ours: `flurry`, 1/day: one extra attack per round for
-four rounds, applied as the `AFFECT_RACIAL_FLURRY` affect (id 1342 in
+maximum attack count. Ours: `onslaught`, 1/day (the verb `flurry` is shadowed by the earlier
+`flurryofblows` row, because the interpreter takes the first table row whose
+name starts with the typed word): one extra attack per round for four
+rounds, applied as the `AFFECT_RACIAL_FLURRY` affect (id 1342 in
 `src/magic/spells.h`, registered with `affecto()` in `spell_parser.c`) that
 sets `AFF_HASTE`; refused while already hasted or already in a flurry, before
 the use is spent. Distinct from the monk `FEAT_FLURRY_OF_BLOWS` passive.
@@ -528,13 +546,19 @@ the refusal without the feat. The load is checked in game.
 - [x] Phase 4, Group 5 (bespoke commands), including the warg and orc mob
       vnums and world entries. Done 2026-09-12. Warg and horde are SLA rows,
       so only flurry, doorbash and stampede are bespoke commands.
-- [ ] Phase 5, help in both stores for every feat and command; RP trait
-      table rows; master index entry; `feat info` and `race feats` checked in
-      game for one feat from each group.
-- [ ] Phase 6, verification: `make -j$(nproc)`, `make test`, `make install`
-      (no root `luminari` binary left), a login on port 4100 through
-      `MUD_PORT=4100 ./scripts/autorun/autorun.sh`, and a staff character
-      granted one feat per group with `set`/`feat` to exercise each verb.
+- [x] Phase 5, help in both stores for every feat and command; RP trait
+      table rows; master index entry (already present). Done 2026-09-12. The
+      in-game `feat info` check is folded into Phase 6.
+- [x] Phase 6, verification: `make -j$(nproc)`, `make test` (1418 tests),
+      `make install` (no root `luminari` binary left), a restart on port 4100
+      through `MUD_PORT=4100 ./scripts/autorun/autorun.sh`, and a staff
+      session through `scripts/development/dev_kohdee_login_smoke.sh
+      --commands` that granted one feat per group with `featset`, checked
+      `feat info` for each, and exercised `farsee`, `onslaught`,
+      `battlehaste` (refused while hasted), `stampede` (refused when not
+      fighting), `doorbash` (refused on an open way), `summonhorde` (orcs
+      loaded and grouped), `summonwarg` (refused indoors), and the
+      `help` entries, then revoked the feats. Done 2026-09-12.
 
 Each phase is a reviewable commit. Phases 2 through 4 can run in any order
 after Phase 0.
@@ -601,6 +625,25 @@ without re-reading the conversation.
   `unittests/CuTest/test_racial_innate_feats.c` (four tests), `Makefile.am`,
   `CMakeLists.txt`, and `unittests/CuTest/test_syntax_check_boot.c` (persisted
   event count 93 to 110).
+- 2026-09-12, Phase 6 done; the in-game pass found that `flurry` was shadowed
+  by the earlier `flurryofblows` command row (prefix match in table order), so
+  the racial flurry verb became `onslaught` in `src/interpreter.c`, the feat
+  text, the recovery message, the help entry and this plan. Every other new
+  verb was checked for an earlier prefix row. The same pass showed
+  `battlehaste` landing on top of an active racial flurry (the flag does not
+  stack, but the daily use was wasted), so the SLA handler now refuses innate
+  haste while `AFF_HASTE` is set from any source. Not exercised in game: the
+  doorbash success roll, the stampede trample in live combat, the warg load
+  outdoors, and the offensive SLAs against a target; each shares its path
+  with a verified sibling (summonhorde, the SLA handler, `perform_knockdown`).
+- Open follow-ups: assigning feats to races (the companion study's
+  per-race lists), the `innates` style summary the study mentions, and a
+  help-sync run when the user wants the new entries on production.
+- 2026-09-12, Phase 5 done. `sql/components/help_duris_racial_innate_entries.sql`
+  (49 entries, applied to the development database), `lib/text/help/help.hlp`
+  (48 new entries, `BODYSLAM` rewritten), `docs/guides/PLAYER_RACES_REFERENCE.md`
+  (six trait rows, three drawback rows), `data/pet-lycanthropes/195.mob` and
+  its README (warg 19502, orc warrior 19503).
 - 2026-09-12, Phase 4 done. `src/magic/spells.h` (three ids at 1342 to 1344),
   `src/magic/spell_parser.c` (two `spello()` summons rows, one `affecto()`),
   `src/magic/magic.c` (`mag_summons()` selection and post-load cases, two

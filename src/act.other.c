@@ -6304,6 +6304,11 @@ ACMD(do_racial_sla)
       send_to_char(ch, "You are already under that effect.\r\n");
       return;
     }
+    if (sla->spellnum == SPELL_HASTE && AFF_FLAGGED(ch, AFF_HASTE))
+    { /* innate haste does not stack with haste from any source, flurry included */
+      send_to_char(ch, "You are already moving as fast as you can.\r\n");
+      return;
+    }
     break;
   case RSLA_TARGET_OPPONENT:
     if (*arg)
@@ -6373,8 +6378,9 @@ ACMD(do_racial_sla)
     start_daily_use_cooldown(ch, sla->feat);
 }
 
-/* racial flurry (Duris racial innate): one extra attack per round for four
- * rounds, as a short haste affect that does not stack with real haste */
+/* racial flurry (Duris racial innate), the 'onslaught' command: one extra attack
+ * per round for four rounds, as a short haste affect that does not stack with
+ * real haste.  'flurry' itself is shadowed by the monk flurryofblows row. */
 ACMD(do_racial_flurry)
 {
   struct affected_type af;

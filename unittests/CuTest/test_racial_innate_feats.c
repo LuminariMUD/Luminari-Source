@@ -269,6 +269,12 @@ void TestRacialSlaUseStartsTheDailyCooldown(CuTest *tc)
   do_racial_sla(&fixture.ch, "", 0, SCMD_RSLA_SUMMON_WARG); /* indoors */
   CuAssertTrue(tc, char_has_mud_event(&fixture.ch, eSUMMON_WARG) == NULL);
 
+  SET_FEAT(&fixture.ch, FEAT_HASTE, 1);
+  SET_BIT_AR(AFF_FLAGS(&fixture.ch), AFF_HASTE);
+  do_racial_sla(&fixture.ch, "", 0, SCMD_RSLA_HASTE); /* already hasted */
+  CuAssertTrue(tc, char_has_mud_event(&fixture.ch, eSLA_HASTE) == NULL);
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.ch), AFF_HASTE);
+
   SET_FEAT(&fixture.ch, FEAT_SLA_FARSEE, 1);
   CuAssertIntEquals(tc, 1, start_daily_use_cooldown(&fixture.ch, FEAT_SLA_FARSEE));
   CuAssertIntEquals(tc, 2, daily_uses_remaining(&fixture.ch, FEAT_SLA_FARSEE));
