@@ -1078,6 +1078,10 @@ check-world-docs:
 	cd "$(abs_top_srcdir)" && python3 scripts/world/wtool.py constants sync --check
 	cd "$(abs_top_srcdir)" && python3 scripts/world/wtool.py docs --check
 
+# Check recurses into util/. Share its calculator prerequisite with world tools
+# before starting that recursive make, so the two paths cannot compile it at once.
+check: rol-mob-calculator
+
 rol-mob-calculator:
 	$(MAKE) -C "$(abs_top_srcdir)/util" rol_mob_calculator
 

@@ -1,7 +1,7 @@
 FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8 LC_ALL=C.UTF-8
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    autoconf automake build-essential ca-certificates ccache clang cmake curl gcc-14 \
+    autoconf automake build-essential ca-certificates ccache clang cmake curl gcc-14 g++-14 libclang-rt-18-dev \
     git iproute2 libcurl4-openssl-dev libevent-dev libgd-dev libjson-c-dev \
     libmariadb-dev libssl-dev libtool mariadb-client mariadb-server netcat-openbsd \
     pandoc pkg-config procps python3 python3-pip python3-venv ripgrep sudo time \

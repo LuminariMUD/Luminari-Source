@@ -305,7 +305,7 @@ The runtime enabled diagonal exits to match the existing development world.
 - All 27,092 mobile prototypes had byte-identical `aff_abils`, `real_abils`, and `points`:
   both dumps were 3,847,064 bytes; `cmp` succeeded. Dumps were taken immediately after
   `index_boot(DB_BOOT_MOB)` from baseline and updated production executables using GDB.
-- Three warm `make -j16 test-all` runs passed in 13.097, 14.045, and 14.796 s.
+- Three final warm `make -j16 test-all` runs passed in 11.616, 11.608, and 12.641 s.
 - Three `ctest -j16 --preset dev` runs passed all 28 entries in 10.81, 10.93, and 10.82 s.
 - Both polling scripts passed ten consecutive runs. The container requires `--init` so
   detached supervisors are reaped, just as they are on a normal host.
@@ -314,6 +314,9 @@ The runtime enabled diagonal exits to match the existing development world.
   failing test after its summary.
 - `make -n -W src/structs.h cutest` scheduled 390 affected compiles, confirming that header
   dependency tracking is active without changing the header's contents or timestamp.
+- A cold-build compiler lock reproduced concurrent calculator compilation (exit 2).
+  Making the calculator a shared prerequisite of `check` and world tools eliminated
+  the race: the guarded build passed with exactly one calculator compilation.
 - The installed server passed the port-4100 startup, health, and graceful-shutdown smoke
   test through autorun. Build parity, workflow syntax, and archive-runtime regressions passed.
 

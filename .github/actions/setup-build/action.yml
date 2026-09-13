@@ -31,6 +31,7 @@ runs:
         key: ccache-${{ runner.os }}-${{ github.job }}-${{ inputs.cache-variant }}-${{ hashFiles('configure.ac', 'Makefile.am', 'CMakeLists.txt', 'cmake/**') }}-${{ github.sha }}
         restore-keys: |
           ccache-${{ runner.os }}-${{ github.job }}-${{ inputs.cache-variant }}-${{ hashFiles('configure.ac', 'Makefile.am', 'CMakeLists.txt', 'cmake/**') }}-
+          ccache-${{ runner.os }}-${{ github.job }}-${{ inputs.cache-variant }}-
 
     - name: Configure compiler cache and headers
       shell: bash
