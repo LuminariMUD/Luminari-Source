@@ -199,7 +199,7 @@ def main():
             selected = cpu_groups.get()
             command = ['docker', 'run', '--rm', '--init', '--user', f'{os.getuid()}:{os.getgid()}',
                        '--cpuset-cpus', ','.join(map(str, selected)), '--workdir', '/workspace',
-                       '--tmpfs', f'/workspace:mode=0755,uid={os.getuid()},gid={os.getgid()}',
+                       '--tmpfs', f'/workspace:exec,mode=0755,uid={os.getuid()},gid={os.getgid()}',
                        '-v', f'{source}:/input/source.tar:ro',
                        '-v', f'{descriptor}:/input/job.json:ro',
                        '-v', f'{runner}:/input/run.py:ro',
