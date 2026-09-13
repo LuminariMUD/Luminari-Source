@@ -45,6 +45,7 @@ apply help_sync_schema.sql
 apply help_system_indexes.sql
 apply help_thrown_weapons_entries.sql
 apply help_vessel_entries.sql
+apply help_wilderness_harvest.sql
 apply help_worship_entries.sql
 apply insert_room_templates.sql
 skip mosswood_sample_data.sql
