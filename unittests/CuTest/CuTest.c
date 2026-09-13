@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 #include "CuTest.h"
 
@@ -116,6 +117,7 @@ void CuTestInit(CuTest *t, const char *name, TestFunction function)
   t->name = CuStrCopy(name);
   t->failed = 0;
   t->ran = 0;
+  t->elapsed_seconds = 0.0;
   t->message = NULL;
   t->function = function;
   t->jumpBuf = NULL;
@@ -139,6 +141,9 @@ void CuTestDelete(CuTest *t)
 void CuTestRun(CuTest *tc)
 {
   jmp_buf buf;
+  struct timespec start = {0}, end = {0};
+
+  clock_gettime(CLOCK_MONOTONIC, &start);
   tc->jumpBuf = &buf;
   if (setjmp(buf) == 0)
   {
@@ -146,6 +151,9 @@ void CuTestRun(CuTest *tc)
     (tc->function)(tc);
   }
   tc->jumpBuf = 0;
+  clock_gettime(CLOCK_MONOTONIC, &end);
+  tc->elapsed_seconds =
+      (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec) / 1000000000.0;
 }
 
 static void CuFailInternal(CuTest *tc, const char *file, int line, CuString *string)
@@ -343,5 +351,14 @@ void CuSuiteDetails(CuSuite *testSuite, CuString *details)
     CuStringAppendFormat(details, "Runs: %d ", testSuite->count);
     CuStringAppendFormat(details, "Passes: %d ", testSuite->count - testSuite->failCount);
     CuStringAppendFormat(details, "Fails: %d\n", testSuite->failCount);
+  }
+
+  /* Report wall time, including forked boot tests and waits, without a flaky gate. */
+  for (i = 0; i < testSuite->count; ++i)
+  {
+    CuTest *testCase = testSuite->list[i];
+    if (testCase->elapsed_seconds > 1.0)
+      CuStringAppendFormat(details, "Slow test: %s (%.3f s)\n", testCase->name,
+                           testCase->elapsed_seconds);
   }
 }

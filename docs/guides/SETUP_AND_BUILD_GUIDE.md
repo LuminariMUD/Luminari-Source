@@ -36,11 +36,27 @@ require the same libraries.
 Autotools is preferred for incremental development:
 
 ```bash
-make clean
 make -j"$(nproc)"
-make test
+make -j"$(nproc)" test
 make install
 ```
+
+Incremental builds retain dependency files and rebuild affected source/header users.
+Use `make clean` after changing compiler flags or build configuration, or when dependency
+files are stale; it is not part of the normal edit/test loop.
+
+Optional compiler caching and faster unoptimized development builds:
+
+```bash
+sudo apt install ccache
+./configure CC="ccache gcc"
+# Optional: use this instead when optimizing edit/compile latency.
+./configure CC="ccache gcc" CFLAGS="-g -O0"
+```
+
+Clean once when switching an existing build's compiler or flags. CI retains its optimized
+and instrumented profiles. For CMake, add `-DCMAKE_C_COMPILER_LAUNCHER=ccache` to configure;
+`cmake --preset dev` already selects a debug build.
 
 If the generated build files are absent:
 
@@ -48,7 +64,7 @@ If the generated build files are absent:
 autoreconf -fvi
 ./configure
 make -j"$(nproc)"
-make test
+make -j"$(nproc)" test
 make install
 ```
 
@@ -87,7 +103,7 @@ use the optimized and hardened profile, which both build systems derive from
 ./configure --enable-production
 make -j"$(nproc)"
 ./scripts/deployment/verify_hardened_binary.sh ./luminari
-make test
+make -j"$(nproc)" test
 make install
 ```
 
@@ -105,7 +121,7 @@ enable tests and write to `build/<preset>`:
 ```bash
 cmake --preset dev
 cmake --build --preset dev -j"$(nproc)"
-ctest --preset dev
+ctest -j"$(nproc)" --preset dev
 cmake --install build/dev
 ```
 

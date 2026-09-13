@@ -1124,6 +1124,9 @@ if (BUILD_TESTS)
 
     add_test(NAME build-parity
         COMMAND Python3::Interpreter scripts/ci/check_build_parity.py)
+    add_test(NAME cutest-runner
+        COMMAND ${CMAKE_COMMAND} -E env "CC=${CMAKE_C_COMPILER}"
+            ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/ci/test_cutest_runner.py)
     add_test(NAME clean-archive-runtime
         COMMAND Python3::Interpreter scripts/ci/test_clean_archive.py -v)
     add_test(NAME sql-interpolation-self-test

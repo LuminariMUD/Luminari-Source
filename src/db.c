@@ -2968,8 +2968,6 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
   ECHO_SEQUENTIAL(mob_proto + i) = 0;
   CURRENT_ECHO(mob_proto + i) = 0;
   // ECHO_ENTRIES(mob_proto + i) = "";
-
-  affect_total(mob_proto + i);
 }
 
 /* interpret_espec is the function that takes espec keywords and values and
@@ -3420,7 +3418,6 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   {
     log("SYSERR: Warning: unrecognized espec keyword %s in mob #%d", keyword, nr);
   }
-  affect_total(mob_proto + i);
 }
 
 #ifdef LUMINARI_CUTEST
@@ -3639,6 +3636,10 @@ void parse_mobile(FILE *mob_f, int nr)
     log("SYSERR: Unsupported mob type '%c' in mob #%d", letter, nr);
     exit(1);
   }
+
+  /* E-specs only assign base values. Compute derived stats once the complete
+   * prototype is available, for both simple and enhanced mobiles. */
+  affect_total(mob_proto + i);
 
   /* DG triggers -- script info follows mob S/E section */
   letter = fread_letter(mob_f);

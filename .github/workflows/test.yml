@@ -32,6 +32,11 @@ on:
       - '.gitignore'
       - 'scripts/ci/check_source_hygiene.py'
       - '.github/workflows/test.yml'
+      - '.github/actions/setup-build/**'
+      - 'scripts/autorun/**'
+      - 'scripts/process-memory/**'
+      - 'sql/**'
+      - 'lib/world/**'
   pull_request:
     branches: [master, main]
     paths:
@@ -63,6 +68,11 @@ on:
       - '.gitignore'
       - 'scripts/ci/check_source_hygiene.py'
       - '.github/workflows/test.yml'
+      - '.github/actions/setup-build/**'
+      - 'scripts/autorun/**'
+      - 'scripts/process-memory/**'
+      - 'sql/**'
+      - 'lib/world/**'
 
 permissions:
   contents: read
@@ -188,18 +198,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            ${{ matrix.packages }} cmake pkg-config libcurl4-openssl-dev libevent-dev \
-            libgd-dev libjson-c-dev libmariadb-dev libssl-dev mariadb-client pandoc zlib1g-dev
-
-      - name: Copy config headers
-        run: |
-          cp src/campaign.example.h src/campaign.h
-          cp src/mud_options.example.h src/mud_options.h
-          cp src/vnums.example.h src/vnums.h
+      - name: Set up build
+        uses: ./.github/actions/setup-build
+        with:
+          packages: ${{ matrix.packages }} mariadb-client pandoc
+          cache-variant: ${{ matrix.preset }}
 
       - name: Configure (${{ matrix.preset }})
         run: cmake --preset ${{ matrix.preset }}
@@ -211,7 +214,7 @@ jobs:
         run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
 
       - name: Test
-        run: ctest --preset ${{ matrix.preset }}
+        run: ctest -j"$(nproc)" --preset ${{ matrix.preset }}
 
       - name: Install
         run: |
@@ -220,7 +223,15 @@ jobs:
           test -L bin/luminari
 
   clean-archive:
-    name: Clean archive, both build systems (blocking)
+    name: Clean archive (${{ matrix.build }}, blocking)
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - build: autotools
+            skip: --skip-cmake
+          - build: cmake
+            skip: --skip-autotools
     runs-on: ubuntu-latest
     services:
       mariadb:
@@ -255,22 +266,20 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            autoconf automake build-essential cmake libcurl4-openssl-dev libevent-dev \
-            libgd-dev libjson-c-dev libmariadb-dev libssl-dev libtool mariadb-client \
-            pandoc pkg-config ripgrep zlib1g-dev
+      - name: Set up build
+        uses: ./.github/actions/setup-build
+        with:
+          packages: mariadb-client mariadb-server pandoc ripgrep
+          cache-variant: archive-${{ matrix.build }}
 
       - name: Prepare isolated test runtime
         run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
 
       - name: Build, test, and install git archive HEAD through Autotools and CMake
-        run: scripts/ci/check_clean_archive.sh
+        run: scripts/ci/check_clean_archive.sh ${{ matrix.skip }}
 
-  build:
-    name: Behavioral tests (Luminari)
+  unit-tests:
+    name: Production-linked tests (both I/O drivers)
     runs-on: ubuntu-latest
     services:
       mariadb:
@@ -296,42 +305,39 @@ jobs:
       LUMINARI_TEST_MYSQL_PORT: '3306'
       LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
       LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
+      LUMINARI_IO_DRIVER: libevent
+      TERRAIN_API_PORT: '4182'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            autoconf automake build-essential libcurl4-openssl-dev libevent-dev libgd-dev \
-            libjson-c-dev libmariadb-dev libssl-dev libtool mariadb-client zlib1g-dev
-
-      - name: Copy config headers
-        run: |
-          cp src/campaign.example.h src/campaign.h
-          cp src/mud_options.example.h src/mud_options.h
-          cp src/vnums.example.h src/vnums.h
+      - name: Set up build
+        uses: ./.github/actions/setup-build
+        with:
+          packages: mariadb-client mariadb-server pandoc ripgrep curl netcat-openbsd
+          cache-variant: autotools-gcc
 
       - name: Configure with autotools
         run: |
           autoreconf -fvi
           ./configure
 
-      - name: Build
-        run: make -j"$(nproc)"
-
       - name: Prepare isolated test runtime
         run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
 
-      - name: Run production-linked behavioral tests
+      - name: Run the authoritative test entry point
         run: |
-          make test
-          make install
+          make -j"$(nproc)" test-all
           test -x bin/luminari
           test -L bin/luminari
           test ! -e luminari
           test ! -e circle
+
+      - name: Run the same binary with the select driver
+        run: LUMINARI_IO_DRIVER=select ./cutest
+
+      - name: Server startup smoke test
+        run: scripts/ci/test_server_startup.sh
 
       # A clean checkout must still be clean after configure, build, test,
       # install, and clean: every generated output has to be ignored.
@@ -344,6 +350,7 @@ jobs:
             echo "$leftovers"
             exit 1
           fi
+          echo "Working tree clean after build/test/install/clean"
 
       # The source distribution must carry source and data only.
       - name: Check the source distribution
@@ -352,67 +359,7 @@ jobs:
           mkdir -p .dist-check
           tar -xzf luminarimud-*.tar.gz -C .dist-check
           python3 scripts/ci/check_source_hygiene.py --root .dist-check/luminarimud-*
-
-  unit-tests:
-    name: Production-linked tests (${{ matrix.io-driver }})
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        io-driver: [libevent, select]
-    services:
-      mariadb:
-        image: mariadb:10.11
-        env:
-          MARIADB_ROOT_PASSWORD: test_root_password
-          MARIADB_DATABASE: luminari_test
-          MARIADB_USER: luminari_test
-          MARIADB_PASSWORD: test_password
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="healthcheck.sh --connect --innodb_initialized"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
-    env:
-      LUMINARI_TEST_MYSQL_ENABLE: '1'
-      LUMINARI_TEST_MYSQL_HOST: 127.0.0.1
-      LUMINARI_TEST_MYSQL_USER: luminari_test
-      LUMINARI_TEST_MYSQL_PASSWORD: test_password
-      LUMINARI_TEST_MYSQL_DATABASE: luminari_test
-      LUMINARI_TEST_MYSQL_PORT: '3306'
-      LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
-      LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
-      LUMINARI_IO_DRIVER: ${{ matrix.io-driver }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            autoconf automake build-essential libcurl4-openssl-dev libevent-dev libgd-dev \
-            libjson-c-dev libmariadb-dev libssl-dev libtool mariadb-client \
-            mariadb-server pandoc ripgrep zlib1g-dev
-
-      - name: Copy config headers
-        run: |
-          cp src/campaign.example.h src/campaign.h
-          cp src/mud_options.example.h src/mud_options.h
-          cp src/vnums.example.h src/vnums.h
-
-      - name: Configure with autotools
-        run: |
-          autoreconf -fvi
-          ./configure
-
-      - name: Prepare isolated test runtime
-        run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
-
-      - name: Run the authoritative test entry point
-        run: make test-all
+          echo "Source distribution hygiene passed"
 
   production-profile:
     name: Production profile (${{ matrix.build }}, ${{ matrix.cc }})
@@ -456,19 +403,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            autoconf automake build-essential clang cmake gcc-14 libcurl4-openssl-dev \
-            libevent-dev libgd-dev libjson-c-dev libmariadb-dev libssl-dev libtool \
-            mariadb-client pandoc ripgrep zlib1g-dev
-
-      - name: Copy config headers
-        run: |
-          cp src/campaign.example.h src/campaign.h
-          cp src/mud_options.example.h src/mud_options.h
-          cp src/vnums.example.h src/vnums.h
+      - name: Set up build
+        uses: ./.github/actions/setup-build
+        with:
+          packages: clang gcc-14 mariadb-client mariadb-server pandoc ripgrep
+          cache-variant: production-${{ matrix.build }}-${{ matrix.cc }}
 
       - name: Prepare isolated test runtime
         run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
@@ -492,7 +431,9 @@ jobs:
           ./configure --enable-production
           make -j"$(nproc)"
           scripts/deployment/verify_hardened_binary.sh ./luminari
-          make test
+          if [[ "${{ matrix.cc }}" == gcc-14 ]]; then
+            make -j"$(nproc)" test
+          fi
           make install
           scripts/deployment/verify_hardened_binary.sh bin/luminari
           test -L bin/luminari
@@ -501,11 +442,15 @@ jobs:
       - name: Build, verify, and test the hardened artifact (cmake)
         if: matrix.build == 'cmake'
         run: |
-          cmake -S . -B build -DLUMINARI_PRODUCTION=ON -DBUILD_TESTS=ON
+          tests=OFF
+          [[ "${{ matrix.cc }}" != clang ]] || tests=ON
+          cmake -S . -B build -DLUMINARI_PRODUCTION=ON -DBUILD_TESTS="$tests"
           cmake --build build -j"$(nproc)"
           scripts/deployment/verify_hardened_binary.sh build/bin/luminari
-          scripts/deployment/verify_hardened_binary.sh build/cutest
-          ctest --test-dir build --output-on-failure
+          if [[ "$tests" == ON ]]; then
+            scripts/deployment/verify_hardened_binary.sh build/cutest
+            ctest -j"$(nproc)" --test-dir build --output-on-failure
+          fi
           cmake --install build
           scripts/deployment/verify_hardened_binary.sh bin/luminari
 
@@ -518,18 +463,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            autoconf automake build-essential clang libcurl4-openssl-dev libevent-dev \
-            libgd-dev libjson-c-dev libmariadb-dev libssl-dev libtool zlib1g-dev
-
-      - name: Copy config headers
-        run: |
-          cp src/campaign.example.h src/campaign.h
-          cp src/mud_options.example.h src/mud_options.h
-          cp src/vnums.example.h src/vnums.h
+      - name: Set up build
+        uses: ./.github/actions/setup-build
+        with:
+          packages: clang
+          cache-variant: sanitizers
 
       - name: Configure sanitizer build
         run: |
@@ -558,18 +496,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            autoconf automake build-essential libcurl4-openssl-dev libevent-dev libgd-dev \
-            libjson-c-dev libmariadb-dev libssl-dev libtool valgrind zlib1g-dev
-
-      - name: Copy config headers
-        run: |
-          cp src/campaign.example.h src/campaign.h
-          cp src/mud_options.example.h src/mud_options.h
-          cp src/vnums.example.h src/vnums.h
+      - name: Set up build
+        uses: ./.github/actions/setup-build
+        with:
+          packages: valgrind
+          cache-variant: valgrind
 
       - name: Configure and build test binary
         run: |
@@ -623,21 +554,14 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            autoconf automake build-essential libcurl4-openssl-dev libevent-dev \
-            libgd-dev libjson-c-dev libmariadb-dev libssl-dev libtool mariadb-client zlib1g-dev
+      - name: Set up build
+        uses: ./.github/actions/setup-build
+        with:
+          packages: mariadb-client
+          cache-variant: coverage
 
       - name: Install coverage tool
         run: python -m pip install 'gcovr==8.6'
-
-      - name: Copy config headers
-        run: |
-          cp src/campaign.example.h src/campaign.h
-          cp src/mud_options.example.h src/mud_options.h
-          cp src/vnums.example.h src/vnums.h
 
       - name: Configure coverage build
         run: |

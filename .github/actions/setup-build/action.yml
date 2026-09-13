@@ -1,0 +1,46 @@
+name: Set up C build
+description: Install build dependencies, prepare config headers, and cache compiler output.
+inputs:
+  packages:
+    description: Additional job dependencies
+    default: ''
+  cache-variant:
+    description: Compiler and build profile used by this job
+    default: default
+runs:
+  using: composite
+  steps:
+    - name: Install dependencies
+      if: env.LUMINARI_LOCAL_CI != '1'
+      shell: bash
+      env:
+        EXTRA_PACKAGES: ${{ inputs.packages }}
+      run: |
+        sudo apt-get update
+        # EXTRA_PACKAGES is a whitespace-separated list of trusted workflow package names.
+        sudo apt-get install -y \
+          autoconf automake build-essential ccache cmake libcurl4-openssl-dev libevent-dev \
+          libgd-dev libjson-c-dev libmariadb-dev libssl-dev libtool pkg-config zlib1g-dev \
+          $EXTRA_PACKAGES
+
+    - name: Restore compiler cache
+      if: env.LUMINARI_LOCAL_CI != '1'
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/ccache
+        key: ccache-${{ runner.os }}-${{ github.job }}-${{ inputs.cache-variant }}-${{ hashFiles('configure.ac', 'Makefile.am', 'CMakeLists.txt', 'cmake/**') }}-${{ github.sha }}
+        restore-keys: |
+          ccache-${{ runner.os }}-${{ github.job }}-${{ inputs.cache-variant }}-${{ hashFiles('configure.ac', 'Makefile.am', 'CMakeLists.txt', 'cmake/**') }}-
+
+    - name: Configure compiler cache and headers
+      shell: bash
+      run: |
+        echo /usr/lib/ccache >> "$GITHUB_PATH"
+        echo "CCACHE_DIR=$HOME/.cache/ccache" >> "$GITHUB_ENV"
+        echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+        ccache --max-size=2G
+        for header in campaign mud_options vnums; do
+          if [[ ! -e "src/$header.h" ]]; then
+            cp "src/$header.example.h" "src/$header.h"
+          fi
+        done

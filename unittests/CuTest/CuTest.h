@@ -46,6 +46,7 @@ struct CuTest
   TestFunction function;
   int failed;
   int ran;
+  double elapsed_seconds;
   const char *message;
   jmp_buf *jumpBuf;
 };

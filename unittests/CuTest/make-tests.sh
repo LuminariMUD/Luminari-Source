@@ -13,10 +13,19 @@ echo '
 /* This is auto-generated code. Edit at your own peril. */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "CuTest.h"
 
 extern FILE *logfile;
+
+/* Filtering is confined to this generated runner; nested suites still run fully. */
+#define ADD_MATCHING_TEST(suite, test) \
+    do { \
+        if (filter == NULL || strstr(#test, filter) != NULL) \
+            SUITE_ADD_TEST(suite, test); \
+    } while (0)
+
 
 '
 
@@ -33,16 +42,24 @@ int RunAllTests(void)
     CuString *output = CuStringNew();
     CuSuite* suite = CuSuiteNew();
     int fail_count;
+    const char *filter = getenv("CUTEST_FILTER");
 
 '
 cat $FILES | grep '^void Test' |
     sed -e 's/^void //' \
         -e 's/(.*$//' \
-        -e 's/^/    SUITE_ADD_TEST(suite, /' \
+        -e 's/^/    ADD_MATCHING_TEST(suite, /' \
         -e 's/$/);/'
 
 echo \
 '
+    if (suite->count == 0)
+    {
+        fprintf(stderr, "No tests matched CUTEST_FILTER=%s\n", filter ? filter : "");
+        CuStringDelete(output);
+        CuSuiteDelete(suite);
+        return 1;
+    }
     CuSuiteRun(suite);
     CuSuiteSummary(suite, output);
     CuSuiteDetails(suite, output);

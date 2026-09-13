@@ -86,7 +86,7 @@ EOF
 
   (
     cd "$planned_dir"
-    MUD_PORT="$(find_unused_port)" ./autorun.sh foreground
+    AUTORUN_FASTBOOT_DELAY=0 MUD_PORT=4100 ./autorun.sh foreground
   ) > "$planned_dir/launcher.log" 2>&1
 
   grep -Fq "MUD requested a planned reboot" "$planned_dir/launcher.log" ||
@@ -183,17 +183,6 @@ wait_for_lock_release()
   fail "lock was not released"
 }
 
-find_unused_port()
-{
-  local port=$((45000 + $$ % 10000))
-
-  while ss -H -ltn "sport = :$port" 2>/dev/null | grep -q .; do
-    port=$((port + 1))
-  done
-
-  printf '%s\n' "$port"
-}
-
 test_autorun_startup_and_locking()
 {
   local fake_mud_pid
@@ -270,11 +259,11 @@ EOF
   "$unrelated_dir/autorun.sh" foreground &
   unrelated_pid=$!
 
-  port=$(find_unused_port)
+  port=4100
   (
     cd "$daemon_dir"
     PATH="$daemon_dir/fake-bin:$PATH" \
-      AUTORUN_STATE_INTERVAL=1 MUD_PORT="$port" ./autorun.sh
+      AUTORUN_STATE_INTERVAL=0.2 MUD_PORT="$port" ./autorun.sh
   ) > "$daemon_dir/launcher.log" 2>&1
 
   wait_for_file "$daemon_dir/.watchdog-saw-state"
@@ -510,7 +499,7 @@ EOF
 
   (
     cd "$guard_dir"
-    WATCHDOG_CHECK_INTERVAL=1 \
+    WATCHDOG_CHECK_INTERVAL=0.2 \
       WATCHDOG_STARTUP_GRACE_PERIOD=0 \
       WATCHDOG_STATE_STALE_THRESHOLD=30 \
       ./autorun-watchdog.sh loop
@@ -525,7 +514,8 @@ EOF
     fail "watchdog restarted a healthy autorun during MUD startup"
 
   rm -f "$guard_dir/.killscript"
-  sleep 1.2
+  wait_for_pattern "$guard_dir/log/watchdog.log" \
+    "Autorun startup completed - resuming health checks"
   kill -0 "$watchdog_pid" 2>/dev/null ||
     fail "watchdog did not survive successful MUD startup"
 
@@ -612,7 +602,7 @@ EOF
 
   (
     cd "$stale_dir"
-    WATCHDOG_CHECK_INTERVAL=1 \
+    WATCHDOG_CHECK_INTERVAL=0.2 \
       WATCHDOG_STARTUP_GRACE_PERIOD=0 \
       WATCHDOG_STATE_STALE_THRESHOLD=1 \
       ./autorun-watchdog.sh loop
@@ -670,7 +660,7 @@ EOF
   (
     cd "$recovery_dir"
     WATCHDOG_AUTORUN_STARTUP_TIMEOUT=5 \
-      WATCHDOG_CHECK_INTERVAL=1 \
+      WATCHDOG_CHECK_INTERVAL=0.2 \
       WATCHDOG_RESTART_COOLDOWN=0 \
       WATCHDOG_STARTUP_GRACE_PERIOD=0 \
       WATCHDOG_STATE_STALE_THRESHOLD=30 \
@@ -748,10 +738,10 @@ EOF
     fail "could not build the post-copyover fixture"
   ln -s "release-old/luminari" "$copyover_dir/bin/luminari"
 
-  port=$(find_unused_port)
+  port=4100
   (
     cd "$copyover_dir"
-    AUTORUN_STATE_INTERVAL=1 MUD_PORT="$port" ./autorun.sh
+    AUTORUN_STATE_INTERVAL=0.2 MUD_PORT="$port" ./autorun.sh
   ) > "$copyover_dir/launcher.log" 2>&1
 
   wait_for_file "$copyover_dir/.mud-fake.pid"

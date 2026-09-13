@@ -62,6 +62,14 @@ cd "$work_dir"
 cp src/campaign.example.h src/campaign.h
 cp src/mud_options.example.h src/mud_options.h
 cp src/vnums.example.h src/vnums.h
+# Normalize debug paths so temporary archive directories can reuse compiler cache
+# entries without returning debug information that names a vanished checkout.
+cmake_cache_flags=()
+if [[ -n ${CCACHE_BASEDIR:-} ]]; then
+  export CCACHE_BASEDIR="$work_dir"
+  export CFLAGS="${CFLAGS:--g -O2} -fdebug-prefix-map=$work_dir=."
+  cmake_cache_flags=("-DCMAKE_C_FLAGS=-fdebug-prefix-map=$work_dir=.")
+fi
 export LUMINARI_TEST_ROOT="$work_dir"
 export LUMINARI_TEST_SPEC_WORLD_ROOT="$work_dir/unittests/CuTest/fixtures/spec_world_inventory"
 
@@ -71,7 +79,7 @@ if [[ $run_autotools -eq 1 ]]; then
   ./configure >/dev/null
   make -j"$jobs" >/dev/null
   make -j"$jobs" cutest bsd_snprintf_fallback_test >/dev/null
-  make test
+  make -j"$jobs" test
   make install >/dev/null
   test -x bin/luminari
   test ! -e luminari
@@ -79,9 +87,9 @@ fi
 
 if [[ $run_cmake -eq 1 ]]; then
   printf '==> CMake: preset %s configure, build, ctest, install\n' "$preset"
-  cmake --preset "$preset" >/dev/null
+  cmake --preset "$preset" "${cmake_cache_flags[@]}" >/dev/null
   cmake --build --preset "$preset" -j"$jobs" >/dev/null
-  ctest --preset "$preset"
+  ctest -j"$jobs" --preset "$preset"
   cmake --install "build/$preset" >/dev/null
   test -x bin/luminari
 fi
