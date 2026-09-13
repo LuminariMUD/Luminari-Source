@@ -15,6 +15,7 @@
 #include "wilderness.h"
 #include "perlin.h"
 #include "resource_system.h"
+#include "harvest.h"
 #include "resource_depletion.h"    /* Phase 6: Add depletion system */
 #include "resource_descriptions.h" /* For elevation functions */
 #include "mysql.h"
@@ -2259,7 +2260,8 @@ ACMD(do_wilderness_harvest)
   one_argument(argument, arg, sizeof(arg));
 
   /* Validate wilderness location */
-  if (!ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS))
+  if (!ch || IN_ROOM(ch) == NOWHERE || IN_ROOM(ch) > top_of_world ||
+      !ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS))
   {
     send_to_char(ch, "You can only harvest materials in the wilderness.\r\n");
     return;
@@ -2293,7 +2295,8 @@ ACMD(do_wilderness_gather)
   one_argument(argument, arg, sizeof(arg));
 
   /* Validate wilderness location */
-  if (!ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS))
+  if (!ch || IN_ROOM(ch) == NOWHERE || IN_ROOM(ch) > top_of_world ||
+      !ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS))
   {
     send_to_char(ch, "You can only gather materials in the wilderness.\r\n");
     return;
@@ -2327,7 +2330,8 @@ ACMD(do_wilderness_mine)
   one_argument(argument, arg, sizeof(arg));
 
   /* Validate wilderness location */
-  if (!ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS))
+  if (!ch || IN_ROOM(ch) == NOWHERE || IN_ROOM(ch) > top_of_world ||
+      !ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS))
   {
     send_to_char(ch, "You can only mine materials in the wilderness.\r\n");
     return;
@@ -2359,6 +2363,9 @@ int attempt_wilderness_harvest(struct char_data *ch, int resource_type)
   int x, y, skill_level, success_roll;
   int category, subtype, quality, quantity;
   float resource_level;
+
+  if (wilderness_harvest_crafting_enabled())
+    return start_wilderness_crafting_harvest(ch, resource_type);
 
   /* Get location coordinates */
   x = world[IN_ROOM(ch)].coords[0];
@@ -2818,7 +2825,8 @@ void show_harvestable_resources(struct char_data *ch)
   for (i = 0; i < NUM_RESOURCE_TYPES; i++)
   {
     resource_level = calculate_current_resource_level(i, x, y);
-    if (resource_level > 0.1)
+    if (resource_level > 0.1 &&
+        (!wilderness_harvest_crafting_enabled() || wilderness_harvest_available(ch, i, false)))
     { /* Only show harvestable resources */
       float depletion_level = get_resource_depletion_level(IN_ROOM(ch), i);
       float effective_level =

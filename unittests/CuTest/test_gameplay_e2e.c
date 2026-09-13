@@ -83,6 +83,14 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "../../src/craft/crafting_recipes.h"
+#include "../../src/wilderness/harvest.h"
+#include "../../src/wilderness/resource_system.h"
+#include "../../src/wilderness/resource_depletion.h"
+#include "../../src/wilderness/wilderness.h"
+#include "../../src/wilderness/perlin.h"
+#include "../../src/harvest_vnums.h"
+
 /* Real player saves also write the index: keep every persistence fixture isolated. */
 static void enter_player_fixture(CuTest *tc, char *temporary_directory)
 {
@@ -10562,4 +10570,516 @@ void Test_gameplay_freight_delivery_waits_until_the_payment_fits(CuTest *tc)
   CuAssertTrue(tc, refused);
   CuAssertTrue(tc, refusal_reported);
   CuAssertTrue(tc, delivered);
+}
+
+/* Issue #145: exercise the production command, activity, and payout paths. */
+static void reset_harvest_fixture_output(struct descriptor_data *descriptor, MYSQL *database)
+{
+  if (database)
+  {
+    mysql_query(database, "DELETE FROM resource_depletion");
+    mysql_query(database, "DELETE FROM player_conservation");
+  }
+  descriptor->output[0] = '\0';
+  descriptor->bufptr = 0;
+  descriptor->bufspace = descriptor->large_outbuf ? LARGE_BUFSIZE - 1 : SMALL_BUFSIZE - 1;
+}
+
+void Test_wilderness_harvest_quality_maps_to_usable_rewards_without_duplicate_storage(CuTest *tc)
+{
+  struct char_data actor = {0};
+  struct player_special_data specials = {0};
+  int category, subtype, quality, material, mote, before;
+  bool valid = true, overflow = true;
+
+  actor.player_specials = &specials;
+  for (category = 0; category < NUM_RESOURCE_TYPES; category++)
+    for (subtype = 0; subtype < get_max_subtypes_for_category(category); subtype++)
+      for (quality = MATERIAL_QUALITY_POOR; quality <= MATERIAL_QUALITY_LEGENDARY; quality++)
+      {
+        material = wilderness_harvest_material(category, subtype, quality);
+        mote = wilderness_harvest_mote(category, subtype);
+        if (material)
+        {
+          valid = valid && material_grade(material) >= quality && !mote;
+          before = GET_CRAFT_MAT((&actor), material);
+          valid = valid && award_wilderness_harvest(&actor, category, subtype, quality, 3) == 3;
+          valid = valid && GET_CRAFT_MAT((&actor), material) == before + 3;
+          GET_CRAFT_MAT((&actor), material) = INT_MAX - 1;
+          overflow =
+              overflow && award_wilderness_harvest(&actor, category, subtype, quality, 3) == 0;
+          overflow = overflow && GET_CRAFT_MAT((&actor), material) == INT_MAX - 1;
+          GET_CRAFT_MAT((&actor), material) = 0;
+        }
+        else
+        {
+          valid = valid && mote > 0 && mote < NUM_CRAFT_MOTES;
+          before = GET_CRAFT_MOTES((&actor), mote);
+          valid = valid && award_wilderness_harvest(&actor, category, subtype, quality, 3) == 3;
+          valid = valid && GET_CRAFT_MOTES((&actor), mote) == before + 3 * quality;
+          GET_CRAFT_MOTES((&actor), mote) = INT_MAX - 1;
+          overflow =
+              overflow && award_wilderness_harvest(&actor, category, subtype, quality, 3) == 0;
+          overflow = overflow && GET_CRAFT_MOTES((&actor), mote) == INT_MAX - 1;
+          GET_CRAFT_MOTES((&actor), mote) = 0;
+        }
+      }
+  CuAssertTrue(tc, valid);
+  CuAssertTrue(tc, overflow);
+  CuAssertIntEquals(tc, 0, specials.saved.stored_material_count);
+  CuAssertIntEquals(tc, 0, award_wilderness_harvest(&actor, -1, 0, 1, 1));
+  CuAssertIntEquals(tc, 0, award_wilderness_harvest(&actor, RESOURCE_WOOD, -1, 1, 1));
+  CuAssertIntEquals(tc, 0, award_wilderness_harvest(&actor, RESOURCE_WOOD, 0, 6, 1));
+  CuAssertIntEquals(tc, 0, award_wilderness_harvest(&actor, RESOURCE_WOOD, 0, 1, -1));
+}
+
+void Test_wilderness_harvest_tools_use_vnum_and_best_inventory_or_equipment_tier(CuTest *tc)
+{
+  struct char_data actor = {0};
+  struct obj_data tools[6] = {{0}};
+  struct index_data indexes[6] = {{0}};
+  struct index_data *saved_index = obj_index;
+  obj_rnum saved_top = top_of_objt;
+  int tier;
+  bool inventory = true, equipment = true, highest;
+
+  obj_index = indexes;
+  top_of_objt = 5;
+  for (tier = 1; tier <= 5; tier++)
+  {
+    tools[tier].item_number = tier;
+    indexes[tier].vnum = HARVEST_TOOL_FIRST + tier - 1;
+    actor.carrying = &tools[tier];
+    inventory = inventory && wilderness_harvest_tool_quality(&actor) == tier;
+    actor.carrying = NULL;
+    GET_EQ(&actor, WEAR_HOLD_1) = &tools[tier];
+    equipment = equipment && wilderness_harvest_tool_quality(&actor) == tier;
+    GET_EQ(&actor, WEAR_HOLD_1) = NULL;
+  }
+  tools[0].name = "legendary harvest tool";
+  indexes[0].vnum = HARVEST_TOOL_LAST + 1;
+  actor.carrying = &tools[0];
+  highest = wilderness_harvest_tool_quality(&actor) == 0;
+  tools[0].next_content = &tools[2];
+  tools[2].next_content = &tools[5];
+  GET_EQ(&actor, WEAR_HOLD_1) = &tools[3];
+  highest = highest && wilderness_harvest_tool_quality(&actor) == 5;
+  obj_index = saved_index;
+  top_of_objt = saved_top;
+  CuAssertTrue(tc, inventory);
+  CuAssertTrue(tc, equipment);
+  CuAssertTrue(tc, highest);
+}
+
+void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves_rollback(
+    CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct primary_activity_snapshot snapshot;
+  struct obj_data tool = {0}, node = {0};
+  struct index_data index = {0};
+  struct index_data *saved_index = obj_index;
+  obj_rnum saved_top = top_of_objt;
+  struct char_data *saved_characters = character_list;
+  unsigned long saved_pulse = pulse, seed, poor_seed = 0, legendary_seed = 0, failure_seed = 0;
+  bool saved_mysql = mysql_available;
+  MYSQL *saved_connection = conn, *database = NULL;
+  MYSQL_RES *sql_result;
+  MYSQL_ROW row;
+  char query[512];
+  char directory[PATH_MAX], temporary[] = "/tmp/luminari-harvest-XXXXXX";
+  float levels[NUM_RESOURCE_TYPES];
+  int i, x, y, mining_x, mining_y, roll, quality, before, result[16] = {0};
+  FILE *env;
+  char command[] = "harvest vegetation";
+
+  CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
+  CuAssertPtrNotNull(tc, mkdtemp(temporary));
+  CuAssertIntEquals(tc, 0, chdir(temporary));
+  result[0] = wilderness_harvest_crafting_enabled();
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player_specials = &specials;
+  fixture.actor.player.name = "harvest fixture";
+  fixture.actor.desc = &descriptor;
+  GET_LEVEL(&fixture.actor) = 10;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &fixture.actor;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  character_list = &fixture.actor;
+  mysql_available = false;
+  result[10] = result[11] = result[12] = result[13] = true;
+  if (getenv("LUMINARI_TEST_MYSQL_ENABLE") && !strcmp(getenv("LUMINARI_TEST_MYSQL_ENABLE"), "1"))
+  {
+    database = open_keeper_test_database();
+    result[10] = database != NULL;
+    if (database)
+    {
+      result[10] =
+          mysql_query(database,
+                      "CREATE TEMPORARY TABLE resource_depletion ("
+                      "zone_vnum INT, x_coord INT, y_coord INT, resource_type INT, "
+                      "depletion_level FLOAT DEFAULT 1.0, total_harvested INT DEFAULT 0, "
+                      "last_harvest TIMESTAMP DEFAULT CURRENT_TIMESTAMP, cascade_effects TEXT, "
+                      "UNIQUE KEY location (zone_vnum,x_coord,y_coord,resource_type))") == 0;
+      result[10] =
+          result[10] &&
+          mysql_query(database,
+                      "CREATE TEMPORARY TABLE player_conservation ("
+                      "player_id BIGINT PRIMARY KEY, conservation_score FLOAT DEFAULT 0.5, "
+                      "total_harvests INT DEFAULT 0, sustainable_harvests INT DEFAULT 0, "
+                      "unsustainable_harvests INT DEFAULT 0, last_updated TIMESTAMP DEFAULT "
+                      "CURRENT_TIMESTAMP)") == 0;
+      conn = database;
+      mysql_available = true;
+    }
+  }
+  SET_BIT_AR(fixture.zones[0].zone_flags, ZONE_WILDERNESS);
+  fixture.rooms[0].light = fixture.rooms[1].light = 1;
+  fixture.rooms[0].harvest_material = CRAFT_MAT_MITHRIL;
+  fixture.rooms[0].harvest_material_amount = 17;
+  init_perlin(NOISE_MATERIAL_PLANE_ELEV, NOISE_MATERIAL_PLANE_ELEV_SEED);
+  init_perlin(NOISE_MATERIAL_PLANE_MOISTURE, NOISE_MATERIAL_PLANE_MOISTURE_SEED);
+  init_perlin(NOISE_MATERIAL_PLANE_ELEV_DIST, NOISE_MATERIAL_PLANE_ELEV_DIST_SEED);
+  for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+    levels[i] = 0.9f;
+  for (x = -100; x <= 100; x += 10)
+  {
+    y = x / 2;
+    if (can_harvest_resource_in_terrain(RESOURCE_VEGETATION, get_modified_sector_type(0, x, y)))
+      break;
+  }
+  fixture.rooms[0].coords[0] = x;
+  fixture.rooms[0].coords[1] = y;
+  cache_clear_all();
+  cache_store_resource_values(x, y, levels);
+  obj_index = &index;
+  top_of_objt = 0;
+  index.vnum = HARVEST_TOOL_LAST;
+  tool.item_number = 0;
+  fixture.actor.carrying = &tool;
+  /* Seed selection uses real quality rolls, independent of the payout implementation. */
+  for (seed = 1; seed < 10000 && (!poor_seed || !legendary_seed || !failure_seed); seed++)
+  {
+    circle_srandom(seed);
+    roll = dice(1, 100);
+    quality = calculate_harvest_quality(&fixture.actor, RESOURCE_VEGETATION, roll, 0);
+    if (roll >= 25 && quality == MATERIAL_QUALITY_POOR)
+      poor_seed = seed;
+    if (roll >= 25 && quality == MATERIAL_QUALITY_LEGENDARY)
+      legendary_seed = seed;
+    if (roll <= 5)
+      failure_seed = seed;
+  }
+  event_free_all();
+  active_world_reset_for_test();
+  active_world_select_for_test(false);
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(false);
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(false);
+  event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER);
+  pulse = 200U;
+  event_init();
+  domain_event_runtime_init();
+  if (!complete_cmd_info)
+    create_command_list();
+
+  /* A visible legacy node still reaches its original inventory-capacity rule.
+   * The category route succeeds with the same full physical inventory. */
+  node.item_number = 0;
+  node.name = "vein";
+  fixture.rooms[0].contents = &node;
+  index.vnum = HARVESTING_NODE;
+  IS_CARRYING_N(&fixture.actor) = CAN_CARRY_N(&fixture.actor);
+  do_harvest(&fixture.actor, "vein", 0, 0);
+  result[15] = strstr(descriptor.output, "must drop something") != NULL &&
+               !primary_activity_snapshot(&fixture.actor, &snapshot);
+  fixture.rooms[0].contents = NULL;
+  index.vnum = HARVEST_TOOL_LAST;
+  reset_harvest_fixture_output(&descriptor, database);
+
+  command_interpreter(&fixture.actor, command);
+  result[1] = primary_activity_snapshot(&fixture.actor, &snapshot) &&
+              snapshot.type == PRIMARY_ACTIVITY_HARVEST &&
+              GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == 0;
+  command_interpreter(&fixture.actor, command);
+  circle_srandom(poor_seed);
+  pulse += PULSE_VIOLENCE - 1;
+  event_test_advance();
+  result[1] = result[1] && GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == 0;
+  pulse++;
+  event_test_advance();
+  result[2] = !primary_activity_snapshot(&fixture.actor, &snapshot) &&
+              GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) >= 2 &&
+              GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_HEMP) == 0 &&
+              GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_GATHERING) > 0;
+  if (database)
+  {
+    snprintf(query, sizeof(query),
+             "SELECT total_harvested FROM resource_depletion WHERE resource_type=%d",
+             RESOURCE_VEGETATION);
+    result[10] = result[10] && mysql_query(database, query) == 0;
+    sql_result = mysql_store_result(database);
+    row = sql_result ? mysql_fetch_row(sql_result) : NULL;
+    result[10] =
+        result[10] && row && atoi(row[0]) == GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN);
+    if (sql_result)
+      mysql_free_result(sql_result);
+    result[10] = result[10] && get_resource_depletion_level(0, RESOURCE_HERBS) < 1.0f;
+  }
+  reset_harvest_fixture_output(&descriptor, database);
+
+  IS_CARRYING_N(&fixture.actor) = 0;
+
+  /* Removing the tool during the round removes its guarantee. */
+  do_harvest(&fixture.actor, "vegetation", 0, 0);
+  fixture.actor.carrying = NULL;
+  circle_srandom(poor_seed);
+  pulse += PULSE_VIOLENCE;
+  event_test_advance();
+  result[3] = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_HEMP) >= 2;
+  reset_harvest_fixture_output(&descriptor, database);
+
+  /* All five floors apply at completion; a lower tool never caps a natural roll. */
+  result[4] = true;
+  for (i = 1; i <= 5; i++)
+  {
+    index.vnum = HARVEST_TOOL_FIRST + i - 1;
+    GET_EQ(&fixture.actor, WEAR_HOLD_1) = &tool;
+    before =
+        GET_CRAFT_MAT((&fixture.actor), wilderness_harvest_material(RESOURCE_VEGETATION, 0, i));
+    do_wilderness_gather(&fixture.actor, "vegetation", 0, 0);
+    circle_srandom(poor_seed);
+    pulse += PULSE_VIOLENCE;
+    event_test_advance();
+    result[4] =
+        result[4] && GET_CRAFT_MAT((&fixture.actor),
+                                   wilderness_harvest_material(RESOURCE_VEGETATION, 0, i)) > before;
+    GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_GATHERING) = 0;
+    reset_harvest_fixture_output(&descriptor, database);
+  }
+  index.vnum = HARVEST_TOOL_FIRST;
+  before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN);
+  do_harvest(&fixture.actor, "vegetation", 0, 0);
+  circle_srandom(legendary_seed);
+  pulse += PULSE_VIOLENCE;
+  event_test_advance();
+  result[4] = result[4] && GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) > before;
+  reset_harvest_fixture_output(&descriptor, database);
+
+  /* Failed attempts still fail with a legendary tool. */
+  index.vnum = HARVEST_TOOL_LAST;
+  before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN);
+  do_harvest(&fixture.actor, "vegetation", 0, 0);
+  circle_srandom(failure_seed);
+  pulse += PULSE_VIOLENCE;
+  event_test_advance();
+  result[5] = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before &&
+              strstr(descriptor.output, "fail to harvest") != NULL;
+  if (database)
+  {
+    snprintf(query, sizeof(query),
+             "SELECT total_harvested FROM resource_depletion WHERE resource_type=%d",
+             RESOURCE_VEGETATION);
+    result[10] = result[10] && mysql_query(database, query) == 0;
+    sql_result = mysql_store_result(database);
+    row = sql_result ? mysql_fetch_row(sql_result) : NULL;
+    result[10] = result[10] && row && atoi(row[0]) == 1;
+    if (sql_result)
+      mysql_free_result(sql_result);
+  }
+  reset_harvest_fixture_output(&descriptor, database);
+
+  do_harvest(&fixture.actor, "vegetation", 0, 0);
+  char_from_room(&fixture.actor);
+  X_LOC(&fixture.actor) = fixture.rooms[1].coords[0];
+  Y_LOC(&fixture.actor) = fixture.rooms[1].coords[1];
+  char_to_room_cause(&fixture.actor, 1, NULL, DOMAIN_RELOCATION_WALK, NORTH);
+  pulse += PULSE_VIOLENCE;
+  event_test_advance();
+  result[6] = !primary_activity_snapshot(&fixture.actor, &snapshot) &&
+              GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before;
+  char_from_room(&fixture.actor);
+  X_LOC(&fixture.actor) = x;
+  Y_LOC(&fixture.actor) = y;
+  char_to_room_cause(&fixture.actor, 0, NULL, DOMAIN_RELOCATION_WALK, SOUTH);
+  do_harvest(&fixture.actor, "vegetation", 0, 0);
+  levels[RESOURCE_VEGETATION] = 0.0f;
+  cache_store_resource_values(x, y, levels);
+  pulse += PULSE_VIOLENCE;
+  event_test_advance();
+  result[6] = result[6] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
+              GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before;
+  reset_harvest_fixture_output(&descriptor, database);
+  do_harvest(&fixture.actor, "vegetation", 0, 0);
+  do_harvest(&fixture.actor, "unknown", 0, 0);
+  result[7] = !primary_activity_snapshot(&fixture.actor, &snapshot);
+  levels[RESOURCE_VEGETATION] = 0.9f;
+  cache_store_resource_values(x, y, levels);
+
+  /* Capacity failure must not deplete resources or award progression. */
+  before = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN);
+  GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) = INT_MAX;
+  GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_GATHERING) = 0;
+  do_harvest(&fixture.actor, "vegetation", 0, 0);
+  circle_srandom(poor_seed);
+  pulse += PULSE_VIOLENCE;
+  event_test_advance();
+  result[11] = GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == INT_MAX &&
+               GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_GATHERING) == 0 &&
+               strstr(descriptor.output, "cannot hold") != NULL;
+  if (database)
+    result[11] = result[11] && get_resource_depletion_level(0, RESOURCE_VEGETATION) == 1.0f;
+  GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) = before;
+  reset_harvest_fixture_output(&descriptor, database);
+
+  /* Damage, combat and explicit cancellation use the production event hooks. */
+  for (i = 0; i < 3; i++)
+  {
+    do_harvest(&fixture.actor, "vegetation", 0, 0);
+    result[12] = result[12] && primary_activity_snapshot(&fixture.actor, &snapshot);
+    if (i == 0)
+      domain_event_runtime_character_damaged(&fixture.actor, &fixture.victim, 1, TYPE_HIT);
+    else if (i == 1)
+      domain_event_runtime_combat_state_changed(&fixture.actor, &fixture.victim, true);
+    else
+      primary_activity_cancel(&fixture.actor, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false);
+    pulse += PULSE_VIOLENCE;
+    event_test_advance();
+    result[12] = result[12] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
+                 GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before;
+    reset_harvest_fixture_output(&descriptor, database);
+  }
+
+  /* Database depletion changing during the round also cancels delivery. */
+  if (database)
+  {
+    do_harvest(&fixture.actor, "vegetation", 0, 0);
+    snprintf(query, sizeof(query),
+             "INSERT INTO resource_depletion (zone_vnum,x_coord,y_coord,resource_type,"
+             "depletion_level) VALUES (0,%d,%d,%d,0)",
+             x, y, RESOURCE_VEGETATION);
+    result[13] = mysql_query(database, query) == 0;
+    pulse += PULSE_VIOLENCE;
+    event_test_advance();
+    result[13] = result[13] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
+                 GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before;
+    reset_harvest_fixture_output(&descriptor, database);
+  }
+
+  /* The mining alias also schedules its mote payout and honors the tool floor. */
+  result[14] = true;
+  do_wilderness_mine(&fixture.actor, "vegetation", 0, 0);
+  result[14] = !primary_activity_snapshot(&fixture.actor, &snapshot);
+  mining_y = 0;
+  for (mining_x = -2000; mining_x <= 2000; mining_x += 100)
+  {
+    for (mining_y = -2000; mining_y <= 2000; mining_y += 100)
+      if (can_harvest_resource_in_terrain(RESOURCE_STONE,
+                                          get_modified_sector_type(0, mining_x, mining_y)))
+        break;
+    if (mining_y <= 2000)
+      break;
+  }
+  fixture.rooms[0].coords[0] = mining_x;
+  fixture.rooms[0].coords[1] = mining_y;
+  cache_store_resource_values(mining_x, mining_y, levels);
+  do_wilderness_mine(&fixture.actor, "stone", 0, 0);
+  result[14] = result[14] && primary_activity_snapshot(&fixture.actor, &snapshot) &&
+               GET_CRAFT_MOTES((&fixture.actor), CRAFTING_MOTE_EARTH) >= 0;
+  quality = GET_CRAFT_MOTES((&fixture.actor), CRAFTING_MOTE_EARTH);
+  circle_srandom(legendary_seed);
+  pulse += PULSE_VIOLENCE;
+  event_test_advance();
+  result[14] = result[14] && !primary_activity_snapshot(&fixture.actor, &snapshot) &&
+               GET_CRAFT_MOTES((&fixture.actor), CRAFTING_MOTE_EARTH) > quality &&
+               (GET_CRAFT_MOTES((&fixture.actor), CRAFTING_MOTE_EARTH) - quality) % 5 == 0;
+  fixture.rooms[0].coords[0] = x;
+  fixture.rooms[0].coords[1] = y;
+  reset_harvest_fixture_output(&descriptor, database);
+
+  /* Disabling the toggle retains the immediate, separate wilderness inventory. */
+  env = fopen(".env", "w");
+  if (env)
+  {
+    fputs("WILDERNESS_HARVEST_CRAFTING=FALSE\n", env);
+    fclose(env);
+    circle_srandom(poor_seed);
+    do_wilderness_harvest(&fixture.actor, "vegetation", 0, 0);
+    result[8] = !wilderness_harvest_crafting_enabled() &&
+                !primary_activity_snapshot(&fixture.actor, &snapshot) &&
+                specials.saved.stored_material_count == 1 &&
+                GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) == before;
+  }
+  result[9] = fixture.rooms[0].harvest_material == CRAFT_MAT_MITHRIL &&
+              fixture.rooms[0].harvest_material_amount == 17;
+
+  domain_event_runtime_shutdown();
+  event_free_all();
+  active_world_reset_for_test();
+  character_periodic_reset_for_test();
+  point_update_periodic_reset_for_test();
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  cache_clear_all();
+  fixture.actor.carrying = NULL;
+  GET_EQ(&fixture.actor, WEAR_HOLD_1) = NULL;
+  fixture.actor.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  if (descriptor.large_outbuf)
+  {
+    free(descriptor.large_outbuf->text);
+    free(descriptor.large_outbuf);
+  }
+  character_list = saved_characters;
+  conn = saved_connection;
+  mysql_available = saved_mysql;
+  if (database)
+    mysql_close(database);
+  obj_index = saved_index;
+  top_of_objt = saved_top;
+  pulse = saved_pulse;
+  end_gameplay_fixture(&fixture);
+  unlink(".env");
+  result[0] = (chdir(directory) == 0) && result[0];
+  rmdir(temporary);
+  CuAssertTrue(tc, poor_seed && legendary_seed && failure_seed);
+  for (i = 0; i < 16; i++)
+  {
+    char message[80];
+    snprintf(message, sizeof(message), "Wilderness harvest scenario %d failed", i);
+    CuAssert(tc, message, result[i]);
+  }
+}
+
+void Test_wilderness_harvest_rewards_are_consumed_by_existing_crafting(CuTest *tc)
+{
+  struct char_data actor = {0};
+  struct player_special_data specials = {0};
+  struct char_data *ch = &actor;
+  int saved_requirement = crafting_recipes[CRAFT_RECIPE_NONE].materials[0][0][1];
+  bool consumed;
+
+  ch->player_specials = &specials;
+  award_wilderness_harvest(ch, RESOURCE_WOOD, WOOD_IRONWOOD, MATERIAL_QUALITY_LEGENDARY, 3);
+  crafting_recipes[CRAFT_RECIPE_NONE].materials[0][0][1] = 2;
+  process_crafting_materials(ch, CRAFT_GROUP_WOOD, CRAFT_MAT_IRONWOOD, 2, 0);
+  consumed = GET_CRAFT_MAT(ch, CRAFT_MAT_IRONWOOD) == 1 &&
+             GET_CRAFT(ch).materials[CRAFT_GROUP_WOOD][0] == CRAFT_MAT_IRONWOOD &&
+             GET_CRAFT(ch).materials[CRAFT_GROUP_WOOD][1] == 2;
+  crafting_recipes[CRAFT_RECIPE_NONE].materials[0][0][1] = saved_requirement;
+
+  award_wilderness_harvest(ch, RESOURCE_WATER, WATER_SPRING, MATERIAL_QUALITY_RARE, 2);
+  GET_CRAFT(ch).crafting_item_type = CRAFT_TYPE_INSTRUMENT;
+  GET_CRAFT(ch).instrument_effectiveness = 3;
+  set_crafting_motes(ch, "add effectiveness");
+  consumed = consumed && GET_CRAFT_MOTES(ch, CRAFTING_MOTE_WATER) == 5 &&
+             GET_CRAFT(ch).instrument_motes[2] == 3;
+  CuAssertTrue(tc, consumed);
+  CuAssertIntEquals(tc, 0, specials.saved.stored_material_count);
 }
