@@ -30,6 +30,7 @@ from catalog import (  # noqa: E402
     HelpEntry,
     MergeResult,
     build_plan_core,
+    parse_help_hlp,
     render_help_hlp,
     seal_plan,
 )
@@ -617,6 +618,78 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
                 "sync_plan_id",
             }.issubset(schema.tables["help_versions"])
         )
+
+    def test_map_shop_migration_updates_imported_entry_and_reclaims_aliases(self):
+        entries = {
+            entry.keywords[0].lower(): entry
+            for entry in parse_help_hlp(
+                (REPOSITORY_ROOT / "lib/text/help/help.hlp").read_bytes()
+            )
+            if entry.keywords[0].lower() in ("automapping", "gui-map")
+        }
+        self.assertEqual(set(entries), {"automapping", "gui-map"})
+        migration = (REPOSITORY_ROOT / "sql/components/help_map_shop_markers.sql").read_bytes()
+        client = shutil.which("mariadb") or shutil.which("mysql")
+        connection = self.config.connect(autocommit=True)
+        try:
+            with connection.cursor(pymysql.cursors.Cursor) as cursor:
+                for previously_applied in (False, True):
+                    with self.subTest(previously_applied=previously_applied):
+                        cursor.execute("DELETE FROM help_keywords")
+                        cursor.execute("DELETE FROM help_entries")
+                        for tag, entry in entries.items():
+                            cursor.execute(
+                                "INSERT INTO help_entries (tag, entry) VALUES (%s, %s)",
+                                (tag, "Legacy help without shop markers.\n"),
+                            )
+                            cursor.executemany(
+                                "INSERT INTO help_keywords (help_tag, keyword) VALUES (%s, %s)",
+                                [(tag, keyword) for keyword in entry.keywords],
+                            )
+                        if previously_applied:
+                            cursor.execute(
+                                "INSERT INTO help_entries (tag, entry) VALUES ('map', 'Keep body')"
+                            )
+                            cursor.executemany(
+                                "INSERT INTO help_keywords (help_tag, keyword) VALUES ('map', %s)",
+                                [(keyword.lower(),) for keyword in entries["gui-map"].keywords]
+                                + [("UNRELATED",)],
+                            )
+                        for _ in range(2):
+                            subprocess.run(
+                                [client, "--no-defaults", "--protocol=tcp", "--host=127.0.0.1",
+                                 f"--port={self.config.port}", "--user=root", self.database_name],
+                                input=migration, capture_output=True, check=True,
+                            )
+                            for tag, entry in entries.items():
+                                cursor.execute(
+                                    "SELECT entry, min_level FROM help_entries WHERE tag=%s", (tag,)
+                                )
+                                self.assertEqual(cursor.fetchone(), (entry.body, entry.min_level))
+                                for keyword in entry.keywords:
+                                    cursor.execute(
+                                        "SELECT help_tag FROM help_keywords "
+                                        "WHERE LOWER(keyword)=LOWER(%s)", (keyword,)
+                                    )
+                                    self.assertEqual(cursor.fetchall(), ((tag,),))
+                            # Match search_help's prefix lookup and first-result selection.
+                            for keyword in entries["gui-map"].keywords:
+                                cursor.execute(
+                                    "SELECT he.tag, he.entry FROM help_entries he "
+                                    "JOIN help_keywords hk ON he.tag=hk.help_tag "
+                                    "WHERE LOWER(hk.keyword) LIKE LOWER(%s) AND he.min_level<=0 "
+                                    "ORDER BY LENGTH(hk.keyword) ASC LIMIT 1", (keyword + "%",)
+                                )
+                                self.assertEqual(
+                                    cursor.fetchone(), ("gui-map", entries["gui-map"].body)
+                                )
+                        cursor.execute("SELECT entry FROM help_entries WHERE tag='map'")
+                        self.assertEqual(cursor.fetchall(), (("Keep body",),) if previously_applied else ())
+                        if previously_applied:
+                            cursor.execute("SELECT help_tag FROM help_keywords WHERE keyword='UNRELATED'")
+                            self.assertEqual(cursor.fetchone(), ("map",))
+        finally:
+            connection.close()
 
 
 if __name__ == "__main__":

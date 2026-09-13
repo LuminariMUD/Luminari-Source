@@ -397,6 +397,7 @@ bsd_snprintf_fallback_test_LDADD = -lm
 
 # CuTest sources
 cutest_SOURCES = \
+	unittests/CuTest/test_asciimap_production.c \
 	unittests/CuTest/test_syntax_check_boot.c \
 	unittests/CuTest/test_web_onboarding.c \
 	unittests/CuTest/test_race_equivalence.c \
@@ -473,6 +474,7 @@ cutest_CFLAGS = $(AM_CFLAGS) -DLUMINARI_CUTEST
 cutest_LDADD = $(luminari_LDADD)
 
 cutest_test_files = \
+	unittests/CuTest/test_asciimap_production.c \
 	unittests/CuTest/test_syntax_check_boot.c \
 	unittests/CuTest/test_bounds_checking.c \
 	unittests/CuTest/test_help_sync.c \
@@ -951,6 +953,7 @@ EXTRA_DIST = \
 	sql/components/help_thrown_weapons_entries.sql \
 	sql/components/help_vessel_entries.sql \
 	sql/components/help_character_backgrounds.sql \
+	sql/components/help_map_shop_markers.sql \
 	sql/components/help_necromancer_entries.sql \
 	sql/components/help_rol_object_trap_entries.sql \
 	sql/components/help_worship_entries.sql \

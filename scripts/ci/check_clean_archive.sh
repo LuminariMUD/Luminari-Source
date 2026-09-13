@@ -50,6 +50,14 @@ trap cleanup EXIT
 printf '==> Exporting git archive HEAD from %s\n' "$repo_root"
 git -C "$repo_root" archive --format=tar HEAD | tar -x -C "$work_dir"
 
+# The server accepts only relative config paths. Keep an external runtime's
+# configuration reachable after moving into the exported source tree.
+if [[ -n ${LUMINARI_TEST_CONFIG_FILE:-} ]]; then
+  mkdir -p "$work_dir/lib/etc"
+  cp -- "$LUMINARI_TEST_CONFIG_FILE" "$work_dir/lib/etc/config"
+  export LUMINARI_TEST_CONFIG_FILE=lib/etc/config
+fi
+
 cd "$work_dir"
 cp src/campaign.example.h src/campaign.h
 cp src/mud_options.example.h src/mud_options.h
