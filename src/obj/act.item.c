@@ -33,6 +33,7 @@
 #include "quest/hlquest.h"
 #include "combat/fight.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "handler.h"
 #include "actions.h"
 #include "combat/traps.h" /* for check_traps() */
@@ -2259,10 +2260,18 @@ static void get_check_money(struct char_data *ch, struct obj_data *obj)
   if (GET_OBJ_TYPE(obj) != ITEM_MONEY || value <= 0)
     return;
 
+  /* coins the purse cannot hold stay in the inventory as a pile */
+  if (value > award_capacity(ch, AWARD_GOLD))
+  {
+    send_to_char(ch, "Your purse cannot hold %d more coins, so you carry them as a pile.\r\n",
+                 value);
+    return;
+  }
+
   extract_obj(obj);
 
   ch->char_specials.post_combat_gold = value;
-  increase_gold(ch, value);
+  award_gold(ch, value);
 
   if (!ch->char_specials.post_combat_messages)
   {
@@ -2814,7 +2823,7 @@ static void perform_drop_gold(struct char_data *ch, int amount, byte mode, room_
 
       send_to_char(ch, "You drop some gold which disappears in a puff of smoke!\r\n");
     }
-    decrease_gold(ch, amount);
+    award_gold(ch, -amount);
   }
 }
 
@@ -3027,7 +3036,7 @@ ACMD(do_drop)
   {
     send_to_char(ch, "You have been rewarded by the gods!\r\n");
     act("$n has been rewarded by the gods!", TRUE, ch, 0, 0, TO_ROOM);
-    GET_GOLD(ch) += amount;
+    award_gold(ch, amount);
   }
 }
 
@@ -3140,6 +3149,11 @@ static void perform_give_gold(struct char_data *ch, struct char_data *vict, int 
     send_to_char(ch, "You don't have that many coins!\r\n");
     return;
   }
+  if (amount > award_capacity(vict, AWARD_GOLD))
+  {
+    act("$N cannot carry that many more coins.", FALSE, ch, 0, vict, TO_CHAR);
+    return;
+  }
   send_to_char(ch, "%s", CONFIG_OK);
 
   snprintf(buf, sizeof(buf), "$n gives you %d gold coin%s.", amount, amount == 1 ? "" : "s");
@@ -3149,9 +3163,9 @@ static void perform_give_gold(struct char_data *ch, struct char_data *vict, int 
   act(buf, TRUE, ch, 0, vict, TO_NOTVICT);
 
   if (IS_NPC(ch) || (GET_LEVEL(ch) < LVL_STAFF))
-    decrease_gold(ch, amount);
+    award_gold(ch, -amount);
 
-  increase_gold(vict, amount);
+  award_gold(vict, amount);
   bribe_mtrigger(vict, ch, amount);
 
   /* autoquest system check point -Zusuk */
@@ -5197,6 +5211,7 @@ ACMD(do_sac)
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *j, *jj, *next_thing2;
   struct char_data *tch;
+  int gold = 0, experience = 0;
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -5250,8 +5265,7 @@ ACMD(do_sac)
       send_to_char(
           ch, "You sacrifice %s to the gods.\r\nYou receive one gold coin for your humility.\r\n",
           GET_OBJ_SHORT(j));
-    ch->char_specials.post_combat_gold += 1;
-    increase_gold(ch, 1);
+    ch->char_specials.post_combat_gold += award_gold(ch, 1);
     break;
   case 1:
     if (!ch->char_specials.post_combat_messages)
@@ -5259,41 +5273,38 @@ ACMD(do_sac)
                    GET_OBJ_SHORT(j));
     break;
   case 2:
+    experience = (int)award_points(ch, AWARD_EXPERIENCE, GET_OBJ_COST(j));
     if (!ch->char_specials.post_combat_messages)
       send_to_char(ch,
                    "You sacrifice %s to the gods.\r\nThe gods give you %d experience points.\r\n",
-                   GET_OBJ_SHORT(j), (GET_OBJ_COST(j)));
-    ch->char_specials.post_combat_exp += GET_OBJ_COST(j);
-    GET_EXP(ch) += (GET_OBJ_COST(j));
+                   GET_OBJ_SHORT(j), experience);
+    ch->char_specials.post_combat_exp += experience;
     break;
   case 3:
+    experience = (int)award_points(ch, AWARD_EXPERIENCE, GET_OBJ_COST(j) / 2);
     if (!ch->char_specials.post_combat_messages)
       send_to_char(ch, "You sacrifice %s to the gods.\r\nYou receive %d experience points.\r\n",
-                   GET_OBJ_SHORT(j), GET_OBJ_COST(j) / 2);
-    ch->char_specials.post_combat_exp += GET_OBJ_COST(j) / 2;
-    GET_EXP(ch) += GET_OBJ_COST(j) / 2;
+                   GET_OBJ_SHORT(j), experience);
+    ch->char_specials.post_combat_exp += experience;
     break;
   case 4:
+    gold = award_gold(ch, GET_OBJ_COST(j) / 4);
     if (!ch->char_specials.post_combat_messages)
-      send_to_char(ch, "Your sacrifice to the gods is rewarded with %d gold coins.\r\n",
-                   GET_OBJ_COST(j) / 4);
-    ch->char_specials.post_combat_exp += GET_OBJ_COST(j) / 4;
-    increase_gold(ch, GET_OBJ_COST(j) / 4);
+      send_to_char(ch, "Your sacrifice to the gods is rewarded with %d gold coins.\r\n", gold);
+    ch->char_specials.post_combat_gold += gold;
     break;
   case 5:
+    gold = award_gold(ch, GET_OBJ_COST(j) / 2);
     if (!ch->char_specials.post_combat_messages)
-      send_to_char(ch, "Your sacrifice to the gods is rewarded with %d gold coins\r\n",
-                   (GET_OBJ_COST(j) / 2));
-    increase_gold(ch, (GET_OBJ_COST(j) / 2));
-    ch->char_specials.post_combat_gold += GET_OBJ_COST(j) / 2;
+      send_to_char(ch, "Your sacrifice to the gods is rewarded with %d gold coins\r\n", gold);
+    ch->char_specials.post_combat_gold += gold;
     break;
   default: /* should not get here */
     if (!ch->char_specials.post_combat_messages)
       send_to_char(
           ch, "You sacrifice %s to the gods.\r\nYou receive one gold coin for your humility.\r\n",
           GET_OBJ_SHORT(j));
-    increase_gold(ch, 1);
-    ch->char_specials.post_combat_gold += 1;
+    ch->char_specials.post_combat_gold += award_gold(ch, 1);
     break;
   }
   for (jj = j->contains; jj; jj = next_thing2)
@@ -5508,7 +5519,7 @@ ACMD(do_loot)
   if (LOOTBOX_TYPE(obj) == LOOTBOX_TYPE_GOLD)
     gold *= 5;
 
-  GET_GOLD(ch) += gold;
+  gold = award_gold(ch, gold);
   send_to_char(ch, "You find %d gold coins in the chest.\r\n", gold);
 
   sbyte recMagic = false;
@@ -5677,6 +5688,16 @@ void start_auction(struct char_data *ch, struct obj_data *obj, int bid)
   aucstat = AUC_OFFERING;
 }
 
+/* Pay out escrowed auction gold.  Coins the purse cannot hold are handed over as a pile, so
+ * no bid is lost at the gold limit. */
+static void auction_pay(struct char_data *ch, int amount)
+{
+  int paid = award_gold(ch, amount);
+
+  if (amount > paid)
+    obj_to_char(create_money(amount - paid), ch);
+}
+
 void check_auction(void)
 {
   char auction_buf[MAX_STRING_LENGTH] = {'\0'};
@@ -5749,7 +5770,7 @@ void check_auction(void)
       send_to_char(ch_selling, "%s", auction_buf);
 
       /* Give selling char the money for his stuff */
-      GET_GOLD(ch_selling) += curbid;
+      auction_pay(ch_selling, curbid);
 
       /* Reset auctioning values */
       obj_selling = NULL;
@@ -5895,13 +5916,13 @@ ACMD(do_bid)
   else
   {
     if (ch == ch_buying)
-      GET_GOLD(ch) -= (bid - curbid);
+      award_gold(ch, -(bid - curbid));
     else
     {
-      GET_GOLD(ch) -= bid;
+      award_gold(ch, -bid);
 
       if (!(ch_buying == NULL))
-        GET_GOLD(ch_buying) += curbid;
+        auction_pay(ch_buying, curbid);
     }
 
     curbid = bid;
@@ -5965,7 +5986,7 @@ void stop_auction(int type, struct char_data *ch)
   }
 
   if (!(ch_buying == NULL))
-    GET_GOLD(ch_buying) += curbid;
+    auction_pay(ch_buying, curbid);
 
   obj_selling = NULL;
   ch_selling = NULL;
@@ -9068,7 +9089,7 @@ ACMD(do_downgrade)
     send_to_char(ch, "To abort the downgrade, type: downgrade %s %d cancel\r\n", arg, level);
   }
 
-  GET_GOLD(ch) -= cost;
+  award_gold(ch, -cost);
   downgrade_item(ch, obj, level);
   SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_DOWNGRADED);
   do_stat_object(ch, obj, ITEM_STAT_MODE_LORE_SKILL);
@@ -9289,6 +9310,12 @@ ACMD(do_salvage)
 
   /* Calculate gold value (15% of item cost) */
   gold_value = MAX(1, GET_OBJ_COST(obj) * 15 / 100);
+  if (gold_value > award_capacity(ch, AWARD_GOLD))
+  {
+    send_to_char(ch, "You cannot carry the %d gold coins that salvaging %s would yield.\r\n",
+                 gold_value, GET_OBJ_SHORT(obj));
+    return;
+  }
 
   /* Get artificer level for material chance calculation */
   artificer_level = GET_LEVEL(ch);
@@ -9297,7 +9324,7 @@ ACMD(do_salvage)
   chance = (artificer_level / 3) + 10;
 
   /* Give gold to the character */
-  increase_gold(ch, gold_value);
+  award_gold(ch, gold_value);
 
   /* Announce the salvage */
   send_to_char(ch, "You carefully dismantle %s, salvaging %d gold coins worth of materials.\r\n",

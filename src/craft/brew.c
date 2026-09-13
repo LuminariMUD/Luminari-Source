@@ -15,6 +15,7 @@
 #include "comm.h"
 #include "magic/spells.h"
 #include "handler.h"
+#include "rewards.h"
 #include "constants.h"
 #include "act.h"
 #include "character/class.h"
@@ -173,7 +174,7 @@ MUD_EVENT_CALLBACK(event_brewing)
     if (gold_lost > 0)
     {
       send_to_char(ch, "  %d gold lost\r\n", gold_lost);
-      GET_GOLD(ch) -= gold_lost;
+      award_gold(ch, -gold_lost);
     }
 
     /* Give minimal alchemy experience for critical failure */
@@ -198,7 +199,7 @@ MUD_EVENT_CALLBACK(event_brewing)
     if (gold_lost > 0)
     {
       send_to_char(ch, "  %d gold lost\r\n", gold_lost);
-      GET_GOLD(ch) -= gold_lost;
+      award_gold(ch, -gold_lost);
     }
 
     /* Give some alchemy experience for regular failure */
@@ -239,7 +240,7 @@ MUD_EVENT_CALLBACK(event_brewing)
   if (total_gold > 0)
   {
     send_to_char(ch, "  %d gold used\r\n", total_gold);
-    GET_GOLD(ch) -= total_gold;
+    award_gold(ch, -total_gold);
   }
 
   /* Consume spell slots for spontaneous casters */
@@ -754,7 +755,7 @@ void consume_brew_materials(struct char_data *ch, int spell_num)
   }
 
   /* Consume gold */
-  GET_GOLD(ch) -= gold_required;
+  award_gold(ch, -gold_required);
 
   /* Consume motes */
   int current_motes = GET_CRAFT_MOTES(ch, mote_type);

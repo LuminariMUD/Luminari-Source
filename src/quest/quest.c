@@ -24,6 +24,7 @@
 #include "domain_event_world.h"
 #include "act.h" /* for do_tell */
 #include "mudlim.h"
+#include "rewards.h"
 #include "mud_event.h"
 #include "missions.h"
 #include "obj/house.h"
@@ -600,7 +601,7 @@ void complete_quest(struct char_data *ch, int index)
   qst_rnum rnum = -1;
   qst_vnum vnum = GET_QUEST(ch, index);
   struct obj_data *new_obj = NULL;
-  int happy_qp = 0, happy_gold = 0, happy_exp = 0;
+  int happy_qp = 0, happy_gold = 0, awarded = 0;
   struct descriptor_data *pt = NULL;
   struct char_data *mob = NULL;
   struct domain_entity_handle pet_handle = {0};
@@ -678,21 +679,19 @@ void complete_quest(struct char_data *ch, int index)
 
   /* Quest complete! */
 
-  /* any quest point reward for this quest? */
+  /* any quest point reward for this quest?  Each message reports what was applied. */
   if (IS_HAPPYHOUR && IS_HAPPYQP)
   {
     happy_qp = (int)(QST_POINTS(rnum) * (((float)(100 + HAPPY_QP)) / (float)100));
     happy_qp = MAX(happy_qp, 0);
-    GET_QUESTPOINTS(ch) += happy_qp;
-    send_to_char(ch, "%s\r\nYou have been awarded %d \tCquest points\tn for your service.\r\n\r\n",
-                 QST_DONE(rnum), happy_qp);
+    awarded = award_quest_points(ch, happy_qp);
   }
   else
   { /* no happy hour bonus :( */
-    GET_QUESTPOINTS(ch) += QST_POINTS(rnum);
-    send_to_char(ch, "%s\r\nYou have been awarded %d \tCquest points\tn for your service.\r\n\r\n",
-                 QST_DONE(rnum), QST_POINTS(rnum));
+    awarded = award_quest_points(ch, QST_POINTS(rnum));
   }
+  send_to_char(ch, "%s\r\nYou have been awarded %d \tCquest points\tn for your service.\r\n\r\n",
+               QST_DONE(rnum), awarded);
 
   /* any gold reward in this quest? */
   if (QST_GOLD(rnum))
@@ -701,35 +700,22 @@ void complete_quest(struct char_data *ch, int index)
     {
       happy_gold = (int)(QST_GOLD(rnum) * (((float)(100 + HAPPY_GOLD)) / (float)100));
       happy_gold = MAX(happy_gold, 0);
-      increase_gold(ch, happy_gold);
-      send_to_char(ch, "You have been awarded %d \tYgold coins\tn for your service.\r\n\r\n",
-                   happy_gold);
+      awarded = award_gold(ch, happy_gold);
     }
     else
     {
-      increase_gold(ch, QST_GOLD(rnum));
-      send_to_char(ch, "You have been awarded %d \tYgold coins\tn for your service.\r\n\r\n",
-                   QST_GOLD(rnum));
+      awarded = award_gold(ch, QST_GOLD(rnum));
     }
+    send_to_char(ch, "You have been awarded %d \tYgold coins\tn for your service.\r\n\r\n",
+                 awarded);
   }
 
-  /* any xp points reward in this quest? */
+  /* any xp points reward in this quest?  award_experience() adds any happy-hour bonus. */
   if (QST_EXP(rnum))
   {
-    if ((IS_HAPPYHOUR) && (IS_HAPPYEXP))
-    {
-      happy_exp = (int)(QST_EXP(rnum) * (((float)(100 + HAPPY_EXP)) / (float)100));
-      happy_exp = MAX(happy_exp, 0);
-      send_to_char(ch, "You have been awarded %d \tBexperience\tn for your service.\r\n\r\n",
-                   happy_exp);
-      gain_exp(ch, happy_exp, GAIN_EXP_MODE_QUEST);
-    }
-    else
-    {
-      send_to_char(ch, "You have been awarded %d \tBexperience\tn points for your service.\r\n\r\n",
-                   QST_EXP(rnum));
-      gain_exp(ch, QST_EXP(rnum), GAIN_EXP_MODE_QUEST);
-    }
+    awarded = award_experience(ch, QST_EXP(rnum), AWARD_EXP_MODE_QUEST);
+    send_to_char(ch, "You have been awarded %d \tBexperience\tn points for your service.\r\n\r\n",
+                 awarded);
   }
 
   /* any object reward from this quest? */
@@ -758,7 +744,7 @@ void complete_quest(struct char_data *ch, int index)
       // GET_HOMETOWN(ch) = 3;
 
       respec_quest_owner(ch, CLASS_WARRIOR, pet_handle);
-      GET_EXP(ch) = 0;
+      award_set_points(ch, AWARD_EXPERIENCE, 0);
       GET_ALIGNMENT(ch) = -1000;
 
       /* Messages */
@@ -791,7 +777,7 @@ void complete_quest(struct char_data *ch, int index)
       // GET_HOMETOWN(ch) = 3;
 
       respec_quest_owner(ch, CLASS_WIZARD, pet_handle);
-      GET_EXP(ch) = 0;
+      award_set_points(ch, AWARD_EXPERIENCE, 0);
       GET_ALIGNMENT(ch) = -1000;
 
       /* Messages */
@@ -1093,7 +1079,7 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
           generic_complete_quest(ch, index);
 
           /* we are now removing the gold once returned so the mob isn't killed and robbed -zusuk */
-          GET_GOLD(vict) = 0;
+          award_set_points(vict, AWARD_GOLD, 0);
         }
       break;
 
@@ -1548,8 +1534,8 @@ void quest_quit(struct char_data *ch, char argument[MAX_STRING_LENGTH])
       send_to_char(ch, "You are now no longer part of the quest.\r\n");
     if (QST_PENALTY(rnum))
     {
-      GET_QUESTPOINTS(ch) -= QST_PENALTY(rnum);
-      send_to_char(ch, "You have lost %d quest points for your cowardice.\r\n", QST_PENALTY(rnum));
+      send_to_char(ch, "You have lost %d quest points for your cowardice.\r\n",
+                   -award_quest_points(ch, -QST_PENALTY(rnum)));
     }
     save_char(ch, 0);
   }

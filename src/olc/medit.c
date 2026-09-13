@@ -20,6 +20,7 @@
 #include "genshp.h"
 #include "oasis.h"
 #include "handler.h"
+#include "rewards.h"
 #include "constants.h"
 #include "improved-edit.h"
 #include "dgscript/dg_olc.h"
@@ -2034,13 +2035,13 @@ void medit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case MEDIT_EXP:
-    GET_EXP(OLC_MOB(d)) = LIMIT(i, 0, MAX_MOB_EXP);
+    award_set_points(OLC_MOB(d), AWARD_EXPERIENCE, LIMIT(i, 0, MAX_MOB_EXP));
     OLC_VAL(d) = TRUE;
     medit_disp_stats_menu(d);
     return;
 
   case MEDIT_GOLD:
-    GET_GOLD(OLC_MOB(d)) = LIMIT(i, 0, MAX_MOB_GOLD);
+    award_set_points(OLC_MOB(d), AWARD_GOLD, LIMIT(i, 0, MAX_MOB_GOLD));
     OLC_VAL(d) = TRUE;
     medit_disp_stats_menu(d);
     return;
@@ -2577,8 +2578,8 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   armor_class += level * 10; // 110 (11) - 400 (40)
 
   /* exp and gold */
-  GET_EXP(mob) = (level * level * 75);
-  GET_GOLD(mob) = (level * 10);
+  award_set_points(mob, AWARD_EXPERIENCE, (level * level * 75));
+  award_set_points(mob, AWARD_GOLD, (level * 10));
 
   /* class modifications to base */
   switch (GET_CLASS(mob))
@@ -2726,7 +2727,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
     GET_CHA(mob) -= 7;
     GET_SAVE(mob, SAVING_FORT) += 4;
     GET_SAVE(mob, SAVING_REFL) += 4;
-    GET_GOLD(mob) = 0;
+    award_set_points(mob, AWARD_GOLD, 0);
     break;
   case RACE_TYPE_DRAGON:
     (mob)->aff_abils.dex += 6;
@@ -2777,10 +2778,10 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   case RACE_TYPE_OUTSIDER:
     break;
   case RACE_TYPE_PLANT:
-    GET_GOLD(mob) = 0;
+    award_set_points(mob, AWARD_GOLD, 0);
     break;
   case RACE_TYPE_VERMIN:
-    GET_GOLD(mob) = 0;
+    award_set_points(mob, AWARD_GOLD, 0);
     break;
   default:
     break;
@@ -2793,8 +2794,8 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
 
     mobs_hps *= (bonus_level * 2);
     GET_DAMROLL(mob) += bonus_level;
-    GET_EXP(mob) += (bonus_level * 5000);
-    GET_GOLD(mob) += (bonus_level * 50);
+    award_points(mob, AWARD_EXPERIENCE, (bonus_level * 5000));
+    award_gold(mob, (bonus_level * 50));
   }
 
   /* Tier is an autoroll input. It adds saved-stat bonuses only when autoroll runs. */
@@ -2839,8 +2840,8 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
     GET_REAL_SPELL_RES(mob) = GET_SPELL_RES(mob);
 
     /* so far realmode is only for mobiles that shouldn't give xp/gold */
-    GET_EXP(mob) = 0;
-    GET_GOLD(mob) = 0;
+    award_set_points(mob, AWARD_EXPERIENCE, 0);
+    award_set_points(mob, AWARD_GOLD, 0);
     affect_total(mob);
   }
   else

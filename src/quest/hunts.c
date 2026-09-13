@@ -15,6 +15,7 @@
 #include "olc/oasis.h"
 #include "screen.h"
 #include "handler.h"
+#include "rewards.h"
 #include "constants.h"
 #include "interpreter.h"
 #include "character/race.h"
@@ -484,8 +485,8 @@ void create_hunt_mob(room_rnum room, int which_hunt)
   GET_CLASS(mob) = hunt_table[which_hunt].char_class;
   GET_LEVEL(mob) = hunt_table[which_hunt].level;
   autoroll_mob(mob, TRUE, FALSE);
-  GET_EXP(mob) = (GET_LEVEL(mob) * GET_LEVEL(mob) * 500);
-  GET_GOLD(mob) = (GET_LEVEL(mob) * 100);
+  award_set_points(mob, AWARD_EXPERIENCE, (GET_LEVEL(mob) * GET_LEVEL(mob) * 500));
+  award_set_points(mob, AWARD_GOLD, (GET_LEVEL(mob) * 100));
   set_alignment(mob, hunt_table[which_hunt].alignment);
   GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 7.5;
   GET_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob);
@@ -952,6 +953,9 @@ void award_hunt_materials(struct char_data *ch, int which_hunt)
 {
   struct obj_data *obj1 = NULL, *obj2 = NULL;
 
+  if (ch == NULL)
+    return;
+
   obj1 = read_object_reason(get_hunt_armor_drop_vnum(which_hunt), VIRTUAL, PERF_ENTITY_QUEST);
   obj2 = read_object_reason(get_hunt_weapon_drop_vnum(which_hunt), VIRTUAL, PERF_ENTITY_QUEST);
 
@@ -966,7 +970,7 @@ void award_hunt_materials(struct char_data *ch, int which_hunt)
 
   if (obj2)
   {
-    if (GET_OBJ_TYPE(obj1) != ITEM_MATERIAL)
+    if (GET_OBJ_TYPE(obj2) != ITEM_MATERIAL)
       GET_OBJ_VAL(obj2, 0) = which_hunt;
     obj_to_char(obj2, ch);
     act("You harvest $p from the creature's remains.", true, ch, obj2, 0, TO_CHAR);
@@ -1010,10 +1014,11 @@ void drop_hunt_mob_rewards(struct char_data *ch, struct char_data *hunt_mob)
       continue;
     if (is_player_grouped(tch, ch))
     {
-      GET_QUESTPOINTS(tch) += GET_LEVEL(hunt_mob) * 20;
-      GET_GOLD(tch) += GET_LEVEL(hunt_mob) * 500;
-      send_to_char(tch, "You've been rewarded %d quest points, and %d gold!\r\n",
-                   GET_LEVEL(hunt_mob) * 20, GET_LEVEL(hunt_mob) * 500);
+      int quest_points = award_quest_points(tch, GET_LEVEL(hunt_mob) * 20);
+      int gold = award_gold(tch, GET_LEVEL(hunt_mob) * 500);
+
+      send_to_char(tch, "You've been rewarded %d quest points, and %d gold!\r\n", quest_points,
+                   gold);
     }
   }
 }

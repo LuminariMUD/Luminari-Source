@@ -15,6 +15,7 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
+#include "rewards.h"
 #include "db.h"
 #include "magic/spells.h"
 #include "constants.h"
@@ -767,11 +768,11 @@ void determine_treasure(struct char_data *ch, struct char_data *mob)
     if (dice(1, 3) == 1)
       award_magic_item(1, ch,
                        grade); // we want magic item treasure drops to be better but less common
+    gold = award_gold(ch, gold);
     snprintf(buf, MEDIUM_STRING, "\tYYou have found %d coins hidden on $N's corpse!\tn", gold);
     act(buf, FALSE, ch, 0, mob, TO_CHAR);
     snprintf(buf, MEDIUM_STRING, "$n \tYhas found %d coins hidden on $N's corpse!\tn", gold);
     act(buf, FALSE, ch, 0, mob, TO_NOTVICT);
-    GET_GOLD(ch) += gold;
     /* does not split this gold, maybe change later */
   }
 }
@@ -4044,7 +4045,7 @@ SPECIAL(bazaar)
     }
     else
     {
-      GET_QUESTPOINTS(ch) -= cost;
+      award_quest_points(ch, -cost);
       send_to_char(ch, "You pay %d quest points.  You have %d left.\r\n", cost,
                    GET_QUESTPOINTS(ch));
     }
@@ -4579,9 +4580,7 @@ int award_random_money(struct char_data *ch, int result)
 {
   int amount = MAX(1, dice(1, result * 10));
 
-  increase_gold(ch, amount);
-
-  return amount;
+  return award_gold(ch, amount);
 }
 
 const char *kender_loot[NUM_KENDER_BAUBLES] = {

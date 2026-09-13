@@ -52,6 +52,7 @@
 #include "craft/craft.h"
 #include "quest/hlquest.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "combat/spec_abilities.h"
 #include "wilderness/wilderness.h"
 #include "wilderness/wilderness_kb.h"
@@ -2383,7 +2384,7 @@ ACMD(do_advance)
     GET_COND(victim, DRUNK) = -1;
   }
 
-  gain_exp_regardless(victim, level_exp(victim, newlevel) - GET_EXP(victim), FALSE);
+  award_experience_uncapped(victim, level_exp(victim, newlevel) - GET_EXP(victim), FALSE);
   save_char(victim, 0);
 }
 
@@ -4656,7 +4657,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     affect_total(vict);
     break;
   case 4: /* bank */
-    GET_BANK_GOLD(vict) = RANGE(0, 100000000);
+    award_set_points(vict, AWARD_BANK_GOLD, RANGE(0, 100000000));
     break;
   case 5: /* brief */
     SET_OR_REMOVE(PRF_FLAGS(vict), PRF_BRIEF);
@@ -4746,7 +4747,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     }
     break;
   case 16: /* exp */
-    vict->points.exp = value;
+    award_set_points(vict, AWARD_EXPERIENCE, value);
     break;
   case 17: /* frozen */
     if (ch == vict && on)
@@ -4757,7 +4758,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     SET_OR_REMOVE(PLR_FLAGS(vict), PLR_FROZEN);
     break;
   case 18: /* gold */
-    GET_GOLD(vict) = RANGE(0, 100000000);
+    award_set_points(vict, AWARD_GOLD, RANGE(0, 100000000));
     break;
   case 19: /* height */
     GET_HEIGHT(vict) = value;
@@ -5104,7 +5105,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     affect_total(vict);
     break;
   case 58: /* questpoints */
-    GET_QUESTPOINTS(vict) = RANGE(0, 100000000);
+    award_set_points(vict, AWARD_QUEST_POINTS, RANGE(0, 100000000));
     break;
   case 59: /* questhistory */
     qvnum = atoi(val_arg);
@@ -5185,7 +5186,12 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
                  value);
     break;
   case 80: /* accexp - account experience */
-    change_account_xp(vict, RANGE(0, 99999999));
+    if (!vict->desc || !vict->desc->account)
+    {
+      send_to_char(ch, "Account experience can only be changed for a connected player.\r\n");
+      return (0);
+    }
+    award_set_points(vict, AWARD_ACCOUNT_EXPERIENCE, RANGE(0, 99999999));
     break;
   case 86: /* GUI Mode */
     SET_OR_REMOVE(PRF_FLAGS(vict), PRF_GUI_MODE);
@@ -5195,7 +5201,12 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     SET_OR_REMOVE(PRF_FLAGS(vict), PRF_RP);
     break;
   case 89: /* addaccexp - Adds *additional* account experience */
-    change_account_xp(vict, RANGE(0, 9999999));
+    if (!vict->desc || !vict->desc->account)
+    {
+      send_to_char(ch, "Account experience can only be changed for a connected player.\r\n");
+      return (0);
+    }
+    award_account_experience(vict, RANGE(0, 9999999));
     break;
   case 93: /* premade build class */
     if ((i = parse_class_long(val_arg)) == CLASS_UNDEFINED)
@@ -10833,7 +10844,7 @@ ACMD(do_award)
   char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'}, arg3[MEDIUM_STRING] = {'\0'};
   struct char_data *victim = NULL;
   int i = 0;
-  long int amount = 0;
+  long int amount = 0, applied = 0;
 
   three_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
 
@@ -10855,7 +10866,7 @@ ACMD(do_award)
     return;
   }
 
-  if (!ch->desc || !ch->desc->account || STATE(ch->desc) != CON_PLAYING)
+  if (!victim->desc || !victim->desc->account || STATE(victim->desc) != CON_PLAYING)
   {
     send_to_char(ch, "You can only award online players who are not in a menu of any sort.\r\n");
     return;
@@ -10902,55 +10913,18 @@ ACMD(do_award)
     return;
   }
 
-  switch (i)
+  /* award_types[] shares its order with the AWARD_* types. */
+  applied = award_points(victim, i, amount);
+  if (applied <= 0)
   {
-  case 0: // experience
-    GET_EXP(victim) += amount;
-    break;
-  case 1: // questpoints
-    GET_QUESTPOINTS(victim) += amount;
-    break;
-  case 2: // accountexperience
-    change_account_xp(ch, amount);
-    break;
-  case 3: // gold
-    GET_GOLD(victim) += amount;
-    break;
-  case 4: // bank gold
-    GET_BANK_GOLD(victim) += amount;
-    break;
-  case 5: // skill points
-    GET_TRAINS(victim) += amount;
-    break;
-  case 6: // feats
-    GET_FEAT_POINTS(victim) += amount;
-    break;
-  case 7: // class feats
-    GET_CLASS_FEATS(victim, GET_CLASS(victim)) += amount;
-    break;
-  case 8: // epic feats
-    GET_EPIC_FEAT_POINTS(victim) += amount;
-    break;
-  case 9: // epic class feats
-    GET_EPIC_CLASS_FEATS(victim, GET_CLASS(victim)) += amount;
-    break;
-  case 10: // ability score boosts
-    GET_BOOSTS(victim) += amount;
-    break;
-  default:
-    send_to_char(ch, "That is not a valid award type.\r\n");
-    send_to_char(ch, "Please specify what you would like to award:\r\n");
-    for (i = 0; i < NUM_AWARD_TYPES; i++)
-    {
-      send_to_char(ch, "%s\r\n", award_types[i]);
-    }
+    send_to_char(ch, "%s's %s is already at its maximum.\r\n", GET_NAME(victim), award_types[i]);
     return;
   }
 
   send_to_char(ch, "You have increased %s's %s by %ld.\r\n", GET_NAME(victim), award_types[i],
-               amount);
+               applied);
   send_to_char(victim, "%s has increased your %s by %ld.\r\n",
-               CAN_SEE(victim, ch) ? GET_NAME(ch) : "Someone", award_types[i], amount);
+               CAN_SEE(victim, ch) ? GET_NAME(ch) : "Someone", award_types[i], applied);
   save_char(victim, 0);
 }
 

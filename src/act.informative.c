@@ -20,6 +20,7 @@
 #include "handler.h"
 #include "db.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "magic/spells.h"
 #include "screen.h"
 #include "pfdefaults.h"
@@ -10900,7 +10901,7 @@ SPECIAL(eqstats)
     return TRUE;
   }
 
-  GET_GOLD(ch) -= cost;
+  award_gold(ch, -cost);
 
   int i, k, lore_bonus = 0;
   int found = false;

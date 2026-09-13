@@ -125,6 +125,8 @@ int get_monk_stunning_fist_dc(struct char_data *ch);
 
 #ifdef LUMINARI_CUTEST
 int test_award_kill_experience(struct char_data *ch, int exp, int mode);
+void test_solo_gain(struct char_data *ch, struct char_data *victim);
+void test_perform_group_gain(struct char_data *ch, int base, struct char_data *victim);
 int test_cap_combat_damage(struct char_data *ch, int dam, int w_type);
 int test_damage_handling(struct char_data *ch, struct char_data *victim, int dam, int attacktype,
                          int dam_type);

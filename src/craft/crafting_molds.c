@@ -24,6 +24,7 @@
 #include "obj/house.h"
 #include "clan.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "graph.h"
 #include "dgscript/dg_scripts.h"
 #include "mud_event.h"
@@ -102,7 +103,7 @@ void create_crafting_mold(struct char_data *ch, int selection, int type)
              a_or_an(weapon_list[selection].name), weapon_list[selection].name);
     obj->description = strdup(buf);
     obj_to_char(obj, ch);
-    GET_GOLD(ch) -= MOLD_OBJ_COST;
+    award_gold(ch, -MOLD_OBJ_COST);
     send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description,
                  MOLD_OBJ_COST);
     GET_OBJ_COST(obj) = 0;
@@ -127,7 +128,7 @@ void create_crafting_mold(struct char_data *ch, int selection, int type)
              a_or_an(armor_list[selection].name), armor_list[selection].name);
     obj->description = strdup(buf);
     obj_to_char(obj, ch);
-    GET_GOLD(ch) -= MOLD_OBJ_COST;
+    award_gold(ch, -MOLD_OBJ_COST);
     send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description,
                  MOLD_OBJ_COST);
     GET_OBJ_COST(obj) = 0;
@@ -170,7 +171,7 @@ void create_crafting_mold(struct char_data *ch, int selection, int type)
              a_or_an(mold_accessories[selection]), mold_accessories[selection]);
     obj->description = strdup(buf);
     obj_to_char(obj, ch);
-    GET_GOLD(ch) -= MOLD_OBJ_COST;
+    award_gold(ch, -MOLD_OBJ_COST);
     send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description,
                  MOLD_OBJ_COST);
     GET_OBJ_COST(obj) = 0;

@@ -15,6 +15,7 @@
 #include "db.h"
 #include "act.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "magic/spells.h"
 #include "clan_services.h"
 #include "clan.h"
@@ -85,9 +86,9 @@ SPECIAL(clan_cleric)
           {
             act("$N gives $n some money.", FALSE, this_mob, 0, ch, TO_NOTVICT);
             send_to_char(ch, "You give %s %d coins.\r\n", GET_NAME(this_mob), clan_prices[i].price);
-            decrease_gold(ch, clan_prices[i].price);
+            award_gold(ch, -clan_prices[i].price);
             /* Uncomment the next line to make the mob get RICH! */
-            /* increase_gold(this_mob, clan_prices[i].price); */
+            /* award_gold(this_mob, clan_prices[i].price); */
 
             cast_spell(this_mob, ch, NULL, clan_prices[i].number, 0);
             return TRUE;

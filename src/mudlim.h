@@ -13,19 +13,6 @@ extern "C"
 {
 #endif
 
-/* modes for gain_exp() */
-#define GAIN_EXP_MODE_DEFAULT 0
-#define GAIN_EXP_MODE_QUEST 1
-#define GAIN_EXP_MODE_CRAFT 2
-#define GAIN_EXP_MODE_SCRIPT 3
-#define GAIN_EXP_MODE_DEATH 4
-#define GAIN_EXP_MODE_GROUP 5
-#define GAIN_EXP_MODE_SOLO 6
-#define GAIN_EXP_MODE_DAMAGE 7
-#define GAIN_EXP_MODE_EDRAIN 8
-#define GAIN_EXP_MODE_DUMP 9
-#define GAIN_EXP_MODE_TRAP 10
-
 /* limits.c functions */
 size_t process_room_affect_activity(struct room_data *room);
 void process_character_environment_and_recovery(struct char_data *ch);
@@ -44,8 +31,6 @@ int move_gain(struct char_data *ch);
 void set_title(struct char_data *ch, char *title);
 void set_imm_title(struct char_data *ch, char *title);
 void run_autowiz(void);
-int gain_exp(struct char_data *ch, int gain, int mode);
-int gain_exp_regardless(struct char_data *ch, int gain, bool is_ress);
 void gain_condition(struct char_data *ch, int condition, int value);
 void check_idling(struct char_data *ch);
 bool save_player_pets(void);
@@ -66,10 +51,6 @@ long int pet_stored_id_at(struct char_data *owner, int position);
 void point_update_global_one(void);
 void point_update_character_one(struct char_data *ch);
 bool point_update_object_one(struct obj_data *obj);
-int increase_gold(struct char_data *ch, int amt);
-int decrease_gold(struct char_data *ch, int deduction);
-int increase_bank(struct char_data *ch, int amt);
-int decrease_bank(struct char_data *ch, int deduction);
 void increase_anger(struct char_data *ch, float amount);
 void vamp_blood_drain(struct char_data *ch, struct char_data *vict);
 

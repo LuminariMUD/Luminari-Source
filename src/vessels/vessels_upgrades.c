@@ -12,6 +12,7 @@
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
+#include "rewards.h"
 #include "interpreter.h"
 #include "vessels.h"
 #include "mysql.h"
@@ -377,18 +378,27 @@ int vessel_deliver_pending_insurance(struct char_data *ch)
   {
     return 0;
   }
-  if (total < 0 || total > INT_MAX - GET_GOLD(ch))
+  if (total < 0)
   {
-    log("SYSERR: Insurance settlements overflow gold for %s", GET_NAME(ch));
+    log("SYSERR: Insurance settlements for %s total %lld gold", GET_NAME(ch), total);
+    return 0;
+  }
+  /* Claims stay pending until the whole settlement fits in the purse. */
+  if (total > award_capacity(ch, AWARD_GOLD))
+  {
+    send_to_char(ch,
+                 "The vessel underwriters hold %lld gold in insurance settlements for you, "
+                 "more than you can carry. Bank some gold to collect it.\r\n",
+                 total);
     return 0;
   }
 
   old_gold = GET_GOLD(ch);
-  GET_GOLD(ch) += (int)total;
+  award_gold(ch, (int)total);
   GET_VESSEL_INSURANCE_CLAIM(ch) = highest_claim_id;
   if (credited > 0 && !save_char_checked(ch, 0))
   {
-    GET_GOLD(ch) = old_gold;
+    award_set_points(ch, AWARD_GOLD, old_gold);
     GET_VESSEL_INSURANCE_CLAIM(ch) = previous_claim_id;
     log("SYSERR: Could not save insurance settlement for %s", GET_NAME(ch));
     return 0;
@@ -572,7 +582,7 @@ ACMD(do_shipupgrade)
     return;
   }
 
-  GET_GOLD(ch) -= cost;
+  award_gold(ch, -cost);
   SET_BIT(ship->upgrades, bit);
 
   /* Raise the relevant ceilings once, at install time */
@@ -680,7 +690,7 @@ ACMD(do_shipinsure)
     return;
   }
 
-  GET_GOLD(ch) -= premium;
+  award_gold(ch, -premium);
   ship->insured_for = value;
   vessel_db_save_extras(ship);
 

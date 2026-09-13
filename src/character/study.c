@@ -19,6 +19,7 @@
 #include "feats.h"
 #include "class.h"
 #include "handler.h"
+#include "rewards.h"
 #include "constants.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
@@ -3243,7 +3244,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       }
       do_start(ch);
       HAS_SET_STATS_STUDY(ch) = FALSE;
-      GET_EXP(ch) = tempXP;
+      award_set_points(ch, AWARD_EXPERIENCE, tempXP);
       send_to_char(
           ch,
           "You have reset your character and can begin choosing stats, skills and feats anew.\r\n");

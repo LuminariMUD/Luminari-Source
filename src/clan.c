@@ -25,6 +25,7 @@
 #include "clan.h"
 #include "clan_benefits.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "olc/oasis.h" /* for can_edit_zone */
 #include "clan_transactions.h"
 
@@ -1608,7 +1609,7 @@ ACMD(do_clanapply)
   }
 
   /* Application is allowed - take application fee */
-  decrease_gold(ch, clan_list[c_n].appfee);
+  award_gold(ch, -clan_list[c_n].appfee);
   clan_list[c_n].treasure += clan_list[c_n].appfee;
   mark_clan_modified(c_n);
   save_single_clan(c_n);
@@ -2334,7 +2335,7 @@ ACMD(do_clandeposit)
   /* Execute the transaction */
   clan_list[(c_n)].treasure += amt;
   clan_list[(c_n)].total_deposits += amt; /* Track total deposits */
-  decrease_gold(ch, amt);
+  award_gold(ch, -amt);
 
   /* Update clan activity */
   update_clan_activity(clan_list[c_n].vnum);
@@ -2343,7 +2344,7 @@ ACMD(do_clandeposit)
   if (!commit_clan_transaction(trans))
   {
     /* Rollback player gold if transaction failed */
-    increase_gold(ch, amt);
+    award_gold(ch, amt);
     send_to_char(ch, "Transaction failed and was rolled back.\r\n");
     release_clan_lock(c_n, ch);
     return;
@@ -3566,12 +3567,6 @@ ACMD(do_clanwithdraw)
     return;
   }
 
-  if (GET_GOLD(ch) > MAX_GOLD)
-  {
-    send_to_char(ch, "You can't hold that many coins!\r\n");
-    return;
-  }
-
   /* Acquire lock for clan modification */
   if (!acquire_clan_lock(c_n, ch))
   {
@@ -3596,9 +3591,17 @@ ACMD(do_clanwithdraw)
     }
   }
 
+  /* take nothing from the treasury that the purse cannot hold */
+  if (amt > award_capacity(ch, AWARD_GOLD))
+  {
+    send_to_char(ch, "You can't hold that many coins!\r\n");
+    release_clan_lock(c_n, ch);
+    return;
+  }
+
   clan_list[(c_n)].treasure -= amt;
   clan_list[(c_n)].total_withdrawals += amt; /* Track total withdrawals */
-  increase_gold(ch, amt);
+  award_gold(ch, amt);
 
   /* Update clan activity */
   update_clan_activity(clan_list[c_n].vnum);
@@ -5507,7 +5510,7 @@ void do_clan_tax_losses(struct char_data *ch, int amount)
         /* The zone that ch is in */
         zn = zone_table[(world[IN_ROOM(ch)].zone)].number;
         cn = real_clan(get_owning_clan(zn));
-        decrease_gold(ch, loss);
+        award_gold(ch, -loss);
         send_to_char(ch, "This area is owned by %s.\r\n", CLAN_NAME(cn));
         send_to_char(ch, "You lose %d coins to clan taxes.\r\n", loss);
       }

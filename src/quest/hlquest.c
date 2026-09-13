@@ -24,6 +24,7 @@
 #include "actions.h"
 #include "magic/spell_prep.h"
 #include "mudlim.h"
+#include "rewards.h"
 
 /* cheesy lich hack */
 #define LICH_QUEST 9999
@@ -349,7 +350,6 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim, struct qu
   struct char_data *homie = NULL, *nexth = NULL;
   struct obj_data *obj = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
-  long long quest_points_total = 0;
   int i = 0;
 
   // heh.. give stuff..
@@ -360,25 +360,15 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim, struct qu
     switch (qcom->type)
     {
     case QUEST_COMMAND_COINS:
-      if (GET_GOLD(ch) + qcom->value <= MAX_GOLD)
-        GET_GOLD(ch) += qcom->value;
-      else
-        GET_GOLD(ch) = MAX_GOLD;
-      send_to_char(ch, "You receive %d \tYcoins\tn.\r\n", qcom->value);
+      send_to_char(ch, "You receive %d \tYcoins\tn.\r\n", award_gold(ch, qcom->value));
       break;
     case QUEST_COMMAND_QUEST_POINTS:
-      quest_points_total = (long long)GET_QUESTPOINTS(ch) + qcom->value;
-      if (quest_points_total > HLQUEST_MAX_QUEST_POINTS)
-        GET_QUESTPOINTS(ch) = HLQUEST_MAX_QUEST_POINTS;
-      else if (quest_points_total < 0)
-        GET_QUESTPOINTS(ch) = 0;
-      else
-        GET_QUESTPOINTS(ch) = (int)quest_points_total;
-      send_to_char(ch, "Your quest-point balance changes by %d.\r\n", qcom->value);
+      send_to_char(ch, "Your quest-point balance changes by %d.\r\n",
+                   award_quest_points(ch, qcom->value));
       break;
     case QUEST_COMMAND_EXPERIENCE:
-      gain_exp(ch, qcom->value, GAIN_EXP_MODE_QUEST);
-      send_to_char(ch, "You receive %d experience points.\r\n", qcom->value);
+      send_to_char(ch, "You receive %d experience points.\r\n",
+                   award_experience(ch, qcom->value, AWARD_EXP_MODE_QUEST));
       break;
     case QUEST_COMMAND_ITEM:
       obj = read_object_reason(qcom->value, VIRTUAL, PERF_ENTITY_QUEST);
@@ -508,7 +498,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim, struct qu
         // GET_HOMETOWN(ch) = 3;
 
         respec_engine(ch, CLASS_WIZARD, NULL, TRUE);
-        GET_EXP(ch) = 0;
+        award_set_points(ch, AWARD_EXPERIENCE, 0);
         GET_ALIGNMENT(ch) = -1000;
 
         /* Messages */
@@ -708,7 +698,7 @@ bool hlquest_consume_coins(struct char_data *quest_mob, int amount)
   if (!quest_mob || amount < 0 || GET_GOLD(quest_mob) < amount)
     return FALSE;
 
-  GET_GOLD(quest_mob) -= amount;
+  award_gold(quest_mob, -amount);
   return TRUE;
 }
 

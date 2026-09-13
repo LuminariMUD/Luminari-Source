@@ -28,6 +28,7 @@
 #include "screen.h"    /* for QNRM, etc */
 #include "craft/craft.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "obj/item.h"
 #include "obj/treasure.h"
 #include "domains_schools.h"
@@ -3626,7 +3627,7 @@ ASPELL(spell_resurrect)
   /* get XP back! */
   if (exp <= 0)
     exp = 1;
-  gain = gain_exp_regardless(ressed, exp, TRUE);
+  gain = award_experience_uncapped(ressed, exp, TRUE);
 
   act("\twYou complete your chant, and stand humbled before the might of\n"
       "your \tn\tWdeity.\tn\tw Your vision swims as you see your deity's \tYdivine\n"
@@ -5921,7 +5922,7 @@ ASPELL(spell_call_lycanthrope)
 
   IS_CARRYING_W(mob) = 0;
   IS_CARRYING_N(mob) = 0;
-  GET_GOLD(mob) = 0;
+  award_set_points(mob, AWARD_GOLD, 0);
 
   while (mob->affected != NULL)
     affect_remove(mob, mob->affected);

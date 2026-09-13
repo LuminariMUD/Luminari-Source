@@ -13,6 +13,7 @@
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
+#include "rewards.h"
 #include "interpreter.h"
 #include "vessels.h"
 #include "wilderness/wilderness.h"
@@ -1044,7 +1045,7 @@ ACMD(do_marque)
     return;
   }
 
-  GET_GOLD(ch) -= MARQUE_COST;
+  award_gold(ch, -MARQUE_COST);
   send_to_char(ch,
                "You pay %d gold. The admiralty commissions you as a privateer - prizes "
                "taken now are lawful.\r\n",

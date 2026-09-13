@@ -14,6 +14,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "handler.h"
+#include "rewards.h"
 #include "domain_object_transfer.h"
 #include "db.h"
 #include "interpreter.h"
@@ -1625,7 +1626,7 @@ static void Crash_cryosave(struct char_data *ch, int cost)
   Crash_extract_norent_eq(ch);
   Crash_extract_norents(ch->carrying);
 
-  GET_GOLD(ch) = MAX(0, GET_GOLD(ch) - cost);
+  award_gold(ch, -cost);
 
   /* write to file rentcode: rentcode, time, cost for renting, gold, bank-gold */
   if (!objsave_write_rentcode(fp, RENT_CRYO, 0, ch))
@@ -3089,8 +3090,8 @@ static int Crash_load_objs(struct char_data *ch)
     }
     else
     {
-      GET_BANK_GOLD(ch) -= MAX(cost - GET_GOLD(ch), 0);
-      GET_GOLD(ch) = MAX(GET_GOLD(ch) - cost, 0);
+      award_bank_gold(ch, -MAX(cost - GET_GOLD(ch), 0));
+      award_gold(ch, -cost);
       save_char(ch, 0);
     }
   }

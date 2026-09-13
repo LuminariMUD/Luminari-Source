@@ -16,6 +16,7 @@
 #include "dg_scripts.h"
 #include "db.h"
 #include "handler.h"
+#include "rewards.h"
 #include "domain_event_world.h"
 #include "domain_event_runtime.h"
 #include "interpreter.h"
@@ -1418,9 +1419,9 @@ ACMD(do_mtransform)
     {
       GET_HIT(&tmpmob) = GET_HIT(ch);
       GET_MAX_HIT(&tmpmob) = GET_MAX_HIT(ch);
-      GET_EXP(&tmpmob) = GET_EXP(ch);
+      award_set_points(&tmpmob, AWARD_EXPERIENCE, GET_EXP(ch));
     }
-    GET_GOLD(&tmpmob) = GET_GOLD(ch);
+    award_set_points(&tmpmob, AWARD_GOLD, GET_GOLD(ch));
     GET_POS(&tmpmob) = GET_POS(ch);
     IS_CARRYING_W(&tmpmob) = IS_CARRYING_W(ch);
     IS_CARRYING_N(&tmpmob) = IS_CARRYING_N(ch);

@@ -21,6 +21,7 @@
 #include "mail.h"
 #include "modify.h"
 #include "mudlim.h"
+#include "rewards.h"
 
 /* local (file scope) function prototypes */
 static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman, int cmd,
@@ -334,7 +335,7 @@ static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman
   {
     snprintf(buf, sizeof(buf), "$n tells you, 'I'll take %d coins for the stamp.'", STAMP_PRICE);
     act(buf, FALSE, mailman, 0, ch, TO_VICT);
-    decrease_gold(ch, STAMP_PRICE);
+    award_gold(ch, -STAMP_PRICE);
   }
 
   act("$n tells you, 'Write your message. (/s saves /h for help).'", FALSE, mailman, 0, ch,

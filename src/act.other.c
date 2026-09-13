@@ -50,6 +50,7 @@
 #include "craft/craft.h"
 #include "obj/treasure.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "combat/spec_abilities.h"
 #include "actions.h"
 #include "character/feats.h"
@@ -257,8 +258,8 @@ ACMD(do_cexchange)
     }
 
     /* bingo! */
-    GET_EXP(ch) -= (int)cost;           /* loss*/
-    change_account_xp(ch, (int)amount); /* gain */
+    award_points(ch, AWARD_EXPERIENCE, -(int)cost); /* loss*/
+    award_account_experience(ch, (int)amount);      /* gain */
     send_to_char(ch, "You exchange %d experience points for %d accexp\r\n", (int)cost, (int)amount);
 
     break;
@@ -283,9 +284,16 @@ ACMD(do_cexchange)
       return;
     }
 
+    /* the purse has to hold the gold before any account exp is taken */
+    if (amount > award_capacity(ch, AWARD_GOLD))
+    {
+      send_to_char(ch, "You cannot carry that much more gold.\r\n");
+      return;
+    }
+
     /* bingo! */
-    change_account_xp(ch, -(int)cost); /* loss */
-    increase_gold(ch, (int)amount);    /* gain */
+    award_account_experience(ch, -(int)cost); /* loss */
+    award_gold(ch, (int)amount);              /* gain */
     send_to_char(ch, "You exchange %d account exp for %d gold\r\n", (int)cost, (int)amount);
 
     break;
@@ -312,9 +320,16 @@ ACMD(do_cexchange)
       return;
     }
 
+    /* quest points cap, so check the room before any gold is taken */
+    if (amount > award_capacity(ch, AWARD_QUEST_POINTS))
+    {
+      send_to_char(ch, "Quest points cap at %d.\r\n", MAX_QUEST_POINTS);
+      return;
+    }
+
     /* bingo! */
-    increase_gold(ch, -(int)cost);
-    GET_QUESTPOINTS(ch) += (int)amount;
+    award_gold(ch, -(int)cost);
+    award_quest_points(ch, (int)amount);
     send_to_char(ch, "You exchange %d gold for %d qp\r\n", (int)cost, (int)amount);
 
     break;
@@ -363,8 +378,8 @@ ACMD(do_cexchange)
     }
 
     /* bingo! */
-    GET_QUESTPOINTS(ch) -= (int)cost;
-    GET_EXP(ch) += (int)amount;
+    award_quest_points(ch, -(int)cost);
+    award_points(ch, AWARD_EXPERIENCE, (int)amount);
     send_to_char(ch, "You exchange %d quest points for %d exp\r\n", (int)cost, (int)amount);
 
     break;
@@ -520,7 +535,7 @@ ACMD(do_cexchange)
     }
 
     /* bingo! */
-    change_account_xp(ch, -pool);
+    award_account_experience(ch, -pool);
     save_account(ch->desc->account);
     send_to_char(ch, "You exchange %d account exp for ", (int)pool);
     break;
@@ -541,7 +556,7 @@ ACMD(do_cexchange)
     }
 
     /* bingo! */
-    GET_QUESTPOINTS(ch) -= pool;
+    award_quest_points(ch, -(int)pool);
     send_to_char(ch, "You exchange %d quest points for ", (int)pool);
     break;
 
@@ -563,7 +578,7 @@ ACMD(do_cexchange)
     }
 
     /* bingo! */
-    GET_GOLD(ch) -= pool;
+    award_gold(ch, -(int)pool);
     send_to_char(ch, "You exchange %d gold for ", (int)pool);
     break;
 
@@ -583,7 +598,7 @@ ACMD(do_cexchange)
     }
 
     /* bingo! */
-    GET_EXP(ch) -= pool;
+    award_points(ch, AWARD_EXPERIENCE, -(long)pool);
     send_to_char(ch, "You exchange %d experience points for ", (int)pool);
     break;
 
@@ -598,19 +613,19 @@ ACMD(do_cexchange)
   {
   case SRC_DST_ACCEXP:
     send_to_char(ch, "%d account experience.", (int)amount);
-    change_account_xp(ch, (int)amount);
+    award_account_experience(ch, (int)amount);
     break;
   case SRC_DST_QP:
     send_to_char(ch, "%d quest points.", (int)amount);
-    GET_QUESTPOINTS(ch) += (int)amount;
+    award_quest_points(ch, (int)amount);
     break;
   case SRC_DST_GOLD:
     send_to_char(ch, "%d gold coins.", (int)amount);
-    GET_GOLD(ch) += (int)amount;
+    award_gold(ch, (int)amount);
     break;
   case SRC_DST_EXP:
     send_to_char(ch, "%d experience points.", (int)amount);
-    GET_EXP(ch) += (int)amount;
+    award_points(ch, AWARD_EXPERIENCE, (int)amount);
     break;
   default: /* should never get here */
     show_exchange_rates(ch);
@@ -3096,7 +3111,7 @@ ACMD(do_recharge)
   {
     chargeval = maxcharge - mincharge;
     GET_OBJ_VAL(obj, 2) += chargeval;
-    GET_GOLD(ch) -= 5000;
+    award_gold(ch, -5000);
     send_to_char(ch, "The %s glows blue for a moment.\r\n",
                  (GET_OBJ_TYPE(obj) == ITEM_STAFF ? "staff" : "wand"));
     snprintf(buf, sizeof(buf), "The item now has %d charges remaining.\r\n", maxcharge);
@@ -3348,7 +3363,7 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
   if (preserve_original_size)
     GET_REAL_SIZE(ch) = original_size;
   HAS_SET_STATS_STUDY(ch) = FALSE;
-  GET_EXP(ch) = tempXP;
+  award_set_points(ch, AWARD_EXPERIENCE, tempXP);
 
   /* Check for stage advancement to award any perk points based on restored XP
    * GET_CLASS(ch) was already set at the beginning of respec_engine
@@ -7157,10 +7172,11 @@ ACMD(do_steal)
       /* Steal some gold coins */
       gold = (GET_GOLD(vict) * rand_number(1, 10)) / 100;
       gold = MIN(1782, gold);
+      gold = MIN(gold, award_capacity(ch, AWARD_GOLD)); /* only what the thief can carry */
       if (gold > 0)
       {
-        increase_gold(ch, gold);
-        decrease_gold(vict, gold);
+        award_gold(ch, gold);
+        award_gold(vict, -gold);
         if (gold > 1)
           send_to_char(ch, "Bingo!  You got %d gold coins.\r\n", gold);
         else
@@ -8152,6 +8168,7 @@ ACMD(do_split)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   int amount, num = 0, share, rest;
+  long space = MAX_GOLD;
   size_t len;
   struct char_data *k;
 
@@ -8184,7 +8201,11 @@ ACMD(do_split)
 
       while ((k = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
         if (IN_ROOM(ch) == IN_ROOM(k) && !IS_NPC(k))
+        {
           num++;
+          if (k != ch && award_capacity(k, AWARD_GOLD) < space)
+            space = award_capacity(k, AWARD_GOLD);
+        }
     }
 
     if (num && GROUP(ch))
@@ -8198,7 +8219,16 @@ ACMD(do_split)
       return;
     }
 
-    decrease_gold(ch, share * (num - 1));
+    /* every recipient has to carry a full share before any gold moves */
+    if (share > space)
+    {
+      send_to_char(ch,
+                   "Someone in your group cannot carry %d more coins, so you keep your gold.\r\n",
+                   share);
+      return;
+    }
+
+    award_gold(ch, -(share * (num - 1)));
     ch->char_specials.post_combat_gold = share;
 
     /* Abusing signed/unsigned to make sizeof work. */
@@ -8221,7 +8251,7 @@ ACMD(do_split)
     {
       if (k != ch && IN_ROOM(ch) == IN_ROOM(k) && !IS_NPC(k))
       {
-        increase_gold(k, share);
+        award_gold(k, share);
         k->char_specials.post_combat_gold = share;
         if (!k->char_specials.post_combat_messages)
           send_to_char(k, "%s", buf);
@@ -11463,8 +11493,7 @@ ACMDU(do_borrow)
     }
     else
     {
-      gold = dice(1, GET_LEVEL(vict)) * 10;
-      GET_GOLD(ch) += gold;
+      gold = award_gold(ch, dice(1, GET_LEVEL(vict)) * 10);
       snprintf(buf, sizeof(buf),
                "$N seems to have misplaced some coins.  Looks to be about %d coins.  Lucky that "
                "you found it for them!\r\n",

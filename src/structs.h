@@ -4930,9 +4930,6 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 // maximum number of spells/powers to buff
 #define MAX_BUFFS 40
 
-// number of award types.  do_award in act.wizard.c
-#define NUM_AWARD_TYPES 11
-
 /* Equals the total number of SAVING_* defines in spells.h */
 #define NUM_OF_SAVING_THROWS 5
 
@@ -5685,8 +5682,10 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 /* maximum length for file system paths (NOT related to MAX_PATH for NPC patrols) */
 #define MAX_FILEPATH 256
 
-#define MAX_GOLD 2140000000 /**< Maximum possible on hand gold (2.14 Billion) */
-#define MAX_BANK 2140000000 /**< Maximum possible in bank gold (2.14 Billion) */
+#define MAX_GOLD 2140000000              /**< Maximum possible on hand gold (2.14 Billion) */
+#define MAX_BANK 2140000000              /**< Maximum possible in bank gold (2.14 Billion) */
+#define MAX_QUEST_POINTS 100000000       /**< Maximum quest point balance (100 Million) */
+#define MAX_ACCOUNT_EXPERIENCE 100000000 /**< Maximum account experience (100 Million) */
 
 /** Define the largest set of commands for a trigger.
  * 16k should be plenty and then some. */

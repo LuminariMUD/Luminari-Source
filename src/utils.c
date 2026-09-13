@@ -37,6 +37,7 @@
 #include "dgscript/dg_scripts.h"
 #include "domain_event_world.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "craft/alchemy.h"
 #include "character/premadebuilds.h"
 #include "craft/craft.h"
@@ -11677,7 +11678,7 @@ void apply_mob_stat_modifiers(struct char_data *mob)
   /* Apply gold modifier */
   if (stats->gold != 100)
   {
-    GET_GOLD(mob) = (GET_GOLD(mob) * stats->gold) / 100;
+    award_set_points(mob, AWARD_GOLD, (GET_GOLD(mob) * stats->gold) / 100);
   }
 }
 
@@ -12742,16 +12743,6 @@ int get_account_experience(struct char_data *ch)
     return 0;
 
   return ch->desc->account->experience;
-}
-
-void change_account_experience(struct char_data *ch, int amount)
-{
-  if (!ch || IS_NPC(ch) || !ch->desc || !ch->desc->account)
-    return;
-
-  ch->desc->account->experience += amount;
-  if (ch->desc->account->experience < 0)
-    ch->desc->account->experience = 0;
 }
 
 int sector_type_to_terrain_type(int sector)

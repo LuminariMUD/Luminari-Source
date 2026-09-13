@@ -37,12 +37,12 @@
 #include "random_names.h"
 #include "olc/oasis.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "olc/genmob.h"
 #include "obj/treasure.h" /* for magic awards */
 #include "hunts.h"
 
 /* inits */
-int gain_exp(struct char_data *ch, int gain, int mode);
 int is_player_grouped(struct char_data *target, struct char_data *group);
 
 /* constants */
@@ -396,8 +396,9 @@ void increase_mob_difficulty(struct char_data *mob, int difficulty)
     mob->points.armor += 100;
     break;
   }
-  GET_EXP(mob) = GET_LEVEL(mob) * GET_LEVEL(mob) * (75 + (10 * difficulty));
-  GET_GOLD(mob) = GET_LEVEL(mob) * (10 + difficulty);
+  award_set_points(mob, AWARD_EXPERIENCE,
+                   GET_LEVEL(mob) * GET_LEVEL(mob) * (75 + (10 * difficulty)));
+  award_set_points(mob, AWARD_GOLD, GET_LEVEL(mob) * (10 + difficulty));
 }
 
 int select_mission_coords(int start)
@@ -472,8 +473,8 @@ void create_mission_mobs(char_data *ch)
 
     GET_REAL_MAX_HIT(mob) = GET_HIT(mob);
     GET_NDD(mob) = GET_SDD(mob) = MAX(2, GET_LEVEL(mob) / 6) + GET_MISSION_DIFFICULTY(ch);
-    GET_EXP(mob) = (GET_LEVEL(mob) * GET_LEVEL(mob) * 75);
-    GET_GOLD(mob) = (GET_LEVEL(mob) * 10);
+    award_set_points(mob, AWARD_EXPERIENCE, (GET_LEVEL(mob) * GET_LEVEL(mob) * 75));
+    award_set_points(mob, AWARD_GOLD, (GET_LEVEL(mob) * 10));
 
     switch (GET_MISSION_DIFFICULTY(ch))
     {
@@ -632,14 +633,14 @@ void apply_mission_rewards(char_data *ch)
   send_to_char(ch, "You've received %ld %s faction standing.\r\n", GET_MISSION_STANDING(ch),
                faction_names_lwr[GET_MISSION_FACTION(ch)]);
 
-  GET_QUESTPOINTS(ch) += GET_MISSION_REP(ch);
-  send_to_char(ch, "You've received %ld quest points.\r\n", GET_MISSION_REP(ch));
+  send_to_char(ch, "You've received %d quest points.\r\n",
+               award_quest_points(ch, (int)GET_MISSION_REP(ch)));
 
-  GET_GOLD(ch) += GET_MISSION_CREDITS(ch);
-  send_to_char(ch, "You have received %ld gold coins.\r\n", GET_MISSION_CREDITS(ch));
+  send_to_char(ch, "You have received %d gold coins.\r\n",
+               award_gold(ch, (int)GET_MISSION_CREDITS(ch)));
 
   send_to_char(ch, "You have earned %d experience points for completing your mission.\r\n",
-               gain_exp(ch, GET_MISSION_EXP(ch), GAIN_EXP_MODE_QUEST));
+               award_experience(ch, GET_MISSION_EXP(ch), AWARD_EXP_MODE_QUEST));
 
   send_to_char(ch, "You've received a random loot drop!\r\n");
   award_magic_item(1, ch, quick_grade_check(level));

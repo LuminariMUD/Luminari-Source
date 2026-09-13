@@ -19,6 +19,7 @@
 #include "dgscript/dg_scripts.h"
 #include "graph.h"
 #include "handler.h"
+#include "rewards.h"
 #include "interpreter.h"
 #include "magic/domains_schools.h"
 #include "magic/spells.h"
@@ -1393,8 +1394,8 @@ static int rol_avernus_dagger_object_hit(struct spec_event_context *context, str
   obj_to_char(obj, ch);
   char_to_room(dagger, IN_ROOM(ch));
   GET_MOB_LOADROOM(dagger) = IN_ROOM(ch);
-  GET_GOLD(dagger) = 0;
-  GET_EXP(dagger) = 0;
+  award_set_points(dagger, AWARD_GOLD, 0);
+  award_set_points(dagger, AWARD_EXPERIENCE, 0);
   GET_LEVEL(dagger) = GET_LEVEL(ch);
   GET_DAMROLL(dagger) = GET_DAMROLL(ch);
   dagger->mob_specials.rol_dancing_dagger_owner_id = IS_NPC(ch) ? 0 : GET_IDNUM(ch);

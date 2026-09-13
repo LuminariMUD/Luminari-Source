@@ -15,6 +15,7 @@
 #include "db.h"
 #include "dgscript/dg_scripts.h"
 #include "handler.h"
+#include "rewards.h"
 #include "interpreter.h"
 #include "magic/spells.h"
 #include "mud_event.h"
@@ -1006,7 +1007,7 @@ static int rol_utility_llyms_altar(struct spec_event_context *context, struct ch
     (void)call_magic(ch, ch, NULL, SPELL_BLESS, 0, 50, CAST_INNATE);
   else
   {
-    GET_GOLD(ch) += rand_number(1, 100);
+    award_gold(ch, rand_number(1, 100));
     send_to_char(ch, "Your purse suddenly feels heavier!\r\n");
   }
 

@@ -18,6 +18,7 @@
 #include "mud_event.h"
 #include "actions.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "constants.h"
 #include "fight.h"
 #include "dgscript/dg_scripts.h"
@@ -1600,7 +1601,7 @@ void recover_trap_components(struct char_data *ch, struct trap_data *trap)
 
   // Create a generic "trap components" object (you'll need to create this object)
   // For now, just give gold as a placeholder
-  increase_gold(ch, value);
+  value = award_gold(ch, value);
   send_to_char(ch, "You salvage trap components worth %d gold coins!\r\n", value);
 }
 
@@ -2019,7 +2020,7 @@ int search_for_traps(struct char_data *ch)
     // Grant experience
     exp = trap->detect_dc * 100;
     send_to_char(ch, "You receive %d experience points.\r\n",
-                 gain_exp(ch, exp, GAIN_EXP_MODE_TRAP));
+                 award_experience(ch, exp, AWARD_EXP_MODE_TRAP));
 
     return TRUE;
   }
@@ -2073,7 +2074,7 @@ void perform_autosearch(struct char_data *ch)
     if (exp > 0)
     {
       send_to_char(ch, "\tyYou receive %d experience points for your alertness.\tn\r\n",
-                   gain_exp(ch, exp, GAIN_EXP_MODE_TRAP));
+                   award_experience(ch, exp, AWARD_EXP_MODE_TRAP));
     }
   }
   // On failure, no message (silent failure for autosearch)
@@ -2132,7 +2133,7 @@ ACMD(do_disabletrap)
     // Grant experience
     exp = trap->disarm_dc * trap->disarm_dc * 100;
     send_to_char(ch, "You receive %d experience points.\r\n",
-                 gain_exp(ch, exp, GAIN_EXP_MODE_TRAP));
+                 award_experience(ch, exp, AWARD_EXP_MODE_TRAP));
 
     // Try to recover components
     if (can_recover_trap_components(ch))

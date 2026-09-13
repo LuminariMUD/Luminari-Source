@@ -32,6 +32,7 @@
 #include "screen.h"
 #include "character/race.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "item.h"
 #include "character/backgrounds.h"
 #include "clan_economy.h"
@@ -878,7 +879,7 @@ static void shopping_buy_transfer_impl(char *arg, struct char_data *ch, struct c
 
       goldamt += GET_OBJ_COST(obj);
       if (!IS_STAFF(ch))
-        GET_QUESTPOINTS(ch) -= GET_OBJ_COST(obj);
+        award_quest_points(ch, -GET_OBJ_COST(obj));
 
       /* this is the homeland pet code, it basically converts
          an object to a living mobile upon purchase */
@@ -916,7 +917,7 @@ static void shopping_buy_transfer_impl(char *arg, struct char_data *ch, struct c
 
       goldamt += GET_OBJ_COST(obj);
       if (!IS_STAFF(ch))
-        change_account_xp(ch, -GET_OBJ_COST(obj));
+        award_account_experience(ch, -GET_OBJ_COST(obj));
 
       /* this is the homeland pet code, it basically converts
          an object to a living mobile upon purchase */
@@ -958,7 +959,7 @@ static void shopping_buy_transfer_impl(char *arg, struct char_data *ch, struct c
       goldamt += charged;
       if (!IS_STAFF(ch))
       {
-        decrease_gold(ch, charged);
+        award_gold(ch, -charged);
         /* Collect clan transaction tax */
         collect_clan_transaction_tax(ch, charged, TRANS_SHOP_BUY);
       }
@@ -1008,12 +1009,12 @@ static void shopping_buy_transfer_impl(char *arg, struct char_data *ch, struct c
   /* shopkeeper acquires the gold */
   if (!IS_STAFF(ch) && obj && !OBJ_FLAGGED(obj, ITEM_QUEST) && !OBJ_FLAGGED(obj, ITEM_ACCOUNT_EXP))
   {
-    increase_gold(keeper, goldamt);
+    award_gold(keeper, goldamt);
     if (SHOP_USES_BANK(shop_nr))
       if (GET_GOLD(keeper) > MAX_OUTSIDE_BANK)
       {
         SHOP_BANK(shop_nr) += (GET_GOLD(keeper) - MAX_OUTSIDE_BANK);
-        GET_GOLD(keeper) = MAX_OUTSIDE_BANK;
+        award_set_points(keeper, AWARD_GOLD, MAX_OUTSIDE_BANK);
       }
   }
   strlcpy(tempstr, times_message(ch->carrying, 0, bought), sizeof(tempstr));
@@ -1171,6 +1172,7 @@ static void shopping_sell_transfer_impl(char *arg, struct char_data *ch, struct 
        tempbuf[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj;
   int sellnum, sold = 0, goldamt = 0;
+  long purse_space;
   char objname[200];
 
   if (!(is_ok(keeper, ch, shop_nr)))
@@ -1208,16 +1210,29 @@ static void shopping_sell_transfer_impl(char *arg, struct char_data *ch, struct 
     do_tell(keeper, buf, cmd_tell, 0);
     return;
   }
+  /* buy only what the seller's purse can hold, so no sale is underpaid */
+  purse_space = award_capacity(ch, AWARD_GOLD);
+  if (sell_price(obj, shop_nr, keeper, ch) > purse_space)
+  {
+    char buf[MAX_INPUT_LENGTH] = {'\0'};
+
+    snprintf(buf, sizeof(buf), "%s You cannot carry the gold I would pay you.", GET_NAME(ch));
+    do_tell(keeper, buf, cmd_tell, 0);
+    return;
+  }
   while (obj &&
          (/*IS_SET(SHOP_BITVECTOR(shop_nr), HAS_UNLIMITED_CASH) ||*/
           GET_GOLD(keeper) + SHOP_BANK(shop_nr) >= sell_price(obj, shop_nr, keeper, ch)) &&
-         sold < sellnum)
+         (long)goldamt + sell_price(obj, shop_nr, keeper, ch) <= purse_space && sold < sellnum)
   {
     int charged = sell_price(obj, shop_nr, keeper, ch);
+    int paid;
 
     goldamt += charged;
 
-    decrease_gold(keeper, charged);
+    /* the shop bank covers whatever the keeper's purse cannot */
+    paid = -award_gold(keeper, -charged);
+    SHOP_BANK(shop_nr) -= charged - paid;
 
     sold++;
     obj_from_char(obj);
@@ -1233,12 +1248,15 @@ static void shopping_sell_transfer_impl(char *arg, struct char_data *ch, struct 
       snprintf(buf, sizeof(buf), "%s You only have %d of those.", GET_NAME(ch), sold);
     else if (GET_GOLD(keeper) + SHOP_BANK(shop_nr) < sell_price(obj, shop_nr, keeper, ch))
       snprintf(buf, sizeof(buf), "%s I can only afford to buy %d of those.", GET_NAME(ch), sold);
+    else if ((long)goldamt + sell_price(obj, shop_nr, keeper, ch) > purse_space)
+      snprintf(buf, sizeof(buf), "%s You can only carry the gold for %d of those.", GET_NAME(ch),
+               sold);
     else
       snprintf(buf, sizeof(buf), "%s Something really screwy made me buy %d.", GET_NAME(ch), sold);
 
     do_tell(keeper, buf, cmd_tell, 0);
   }
-  increase_gold(ch, goldamt);
+  award_gold(ch, goldamt);
 
   /* Collect clan transaction tax on the sale */
   collect_clan_transaction_tax(ch, goldamt, TRANS_SHOP_SELL);
@@ -1261,7 +1279,7 @@ static void shopping_sell_transfer_impl(char *arg, struct char_data *ch, struct 
   {
     goldamt = MIN(MAX_OUTSIDE_BANK - GET_GOLD(keeper), SHOP_BANK(shop_nr));
     SHOP_BANK(shop_nr) -= goldamt;
-    increase_gold(keeper, goldamt);
+    award_gold(keeper, goldamt);
   }
 }
 
@@ -1857,7 +1875,7 @@ void assign_the_shopkeepers(void)
       log("SYSERR: Unable to record shopkeeper effective binding: %s", effective_error);
     SET_BIT_AR(MOB_FLAGS(&mob_proto[SHOP_KEEPER(cindex)]), MOB_CUSTOM_GOLD);
     SET_BIT_AR(MOB_FLAGS(&mob_proto[SHOP_KEEPER(cindex)]), MOB_NO_AI);
-    GET_GOLD(&mob_proto[SHOP_KEEPER(cindex)]) = 100000;
+    award_set_points(&mob_proto[SHOP_KEEPER(cindex)], AWARD_GOLD, 100000);
   }
 }
 

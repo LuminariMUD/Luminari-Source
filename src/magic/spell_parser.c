@@ -37,6 +37,7 @@
 #include "act.h"
 #include "character/evolutions.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "metamagic_science.h"
 #include "mob/mob_spellslots.h"
 #include "mob/mob_known_spells.h"
@@ -2082,7 +2083,7 @@ void finishCasting(struct char_data *ch)
 
   if (FIGHTING(ch) && !IS_NPC(ch) && exp_to_give > 0)
   {
-    gain_exp(ch, exp_to_give, GAIN_EXP_MODE_DAMAGE);
+    award_experience(ch, exp_to_give, AWARD_EXP_MODE_DAMAGE);
   }
 
   int final_metamagic = CASTING_METAMAGIC(ch);

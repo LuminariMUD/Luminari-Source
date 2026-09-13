@@ -22,6 +22,7 @@
 #include "obj/house.h"
 #include "clan.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "graph.h"
 #include "dgscript/dg_scripts.h"
 #include "mud_event.h"
@@ -242,7 +243,7 @@ SPECIAL(player_owned_shops)
     if (GET_OBJ_COST(i) > 0)
     {
       /* Take gold from player */
-      GET_GOLD(ch) -= GET_OBJ_COST(i);
+      award_gold(ch, -GET_OBJ_COST(i));
 
       /* Put gold in stock-room */
       j = create_money(GET_OBJ_COST(i));

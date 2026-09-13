@@ -24,6 +24,7 @@
 #include "constants.h"
 #include "act.h"
 #include "handler.h" // for obj_from_char()
+#include "rewards.h"
 #include "character/abilities.h"
 #include "spell_prep.h"
 #include "obj/item.h"
@@ -567,7 +568,7 @@ SPECIAL(wizard_library)
     }
 
     /* we made it! */
-    GET_GOLD(ch) -= cost;
+    award_gold(ch, -cost);
     obj->sbinfo[i].spellname = spellnum;
     obj->sbinfo[i].pages = MAX(1, lowest_spell_level(spellnum) / 2);
     send_to_char(ch,

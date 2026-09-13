@@ -21,6 +21,7 @@
 #include "character/feats.h"
 #include "character/class.h"
 #include "handler.h"
+#include "rewards.h"
 #include "constants.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
@@ -524,7 +525,7 @@ static bool enter_transport_paid(struct char_data *ch, int locale, int type, int
   }
   if (fare != 0)
   {
-    GET_GOLD(ch) -= fare;
+    award_gold(ch, -fare);
     send_to_char(ch, "You pay the transport fare of %d coins.\r\n", fare);
   }
   name = type == TRAVEL_SAILING || type == TRAVEL_OVERLAND_FLIGHT_SAIL

@@ -18,6 +18,7 @@
 #include "dgscript/dg_scripts.h"
 #include "graph.h"
 #include "handler.h"
+#include "rewards.h"
 #include "interpreter.h"
 #include "magic/domains_schools.h"
 #include "magic/spells.h"
@@ -2379,8 +2380,20 @@ static void rol_monster_transfer_possessions(struct char_data *source,
       else
         obj_to_char(item, destination);
     }
-  GET_GOLD(destination) += GET_GOLD(source);
-  GET_GOLD(source) = 0;
+  /* the source keeps any coins the destination cannot carry */
+  award_gold(source, -award_gold(destination, GET_GOLD(source)));
+}
+
+/* Coins a replacement could not carry fall to the floor instead of vanishing with the extracted
+ * source. */
+static void rol_monster_drop_leftover_gold(struct char_data *source)
+{
+  int gold = GET_GOLD(source);
+
+  if (gold <= 0 || !VALID_ROOM_RNUM(IN_ROOM(source)))
+    return;
+  award_set_points(source, AWARD_GOLD, 0);
+  obj_to_room(create_money(gold), IN_ROOM(source));
 }
 
 static int rol_monster_replace(struct spec_event_context *context, struct char_data *ch,
@@ -2397,6 +2410,7 @@ static int rol_monster_replace(struct spec_event_context *context, struct char_d
   char_to_room(replacement, IN_ROOM(ch));
   GET_MOB_LOADROOM(replacement) = IN_ROOM(ch);
   rol_monster_transfer_possessions(ch, replacement, true);
+  rol_monster_drop_leftover_gold(ch);
   extract_char(ch);
   context->invalidation |= SPEC_INVALIDATE_OWNER | SPEC_INVALIDATE_ACTOR;
   if (victim != NULL && GET_POS(victim) > POS_DEAD && VALID_ROOM_RNUM(IN_ROOM(victim)) &&
@@ -3846,6 +3860,7 @@ static int rol_monster_tiamat_death(struct char_data *tiamat, struct char_data *
   GET_MAX_HIT(lich) = 30000;
   GET_HIT(lich) = 30000;
   rol_monster_transfer_possessions(tiamat, lich, true);
+  rol_monster_drop_leftover_gold(tiamat);
   act("The mighty Tiamat screams with all five heads as a blinding flash tears her flesh away. "
       "Her blackened bones rise again as a terrible dracolich!",
       FALSE, tiamat, NULL, NULL, TO_ROOM);
@@ -5138,6 +5153,7 @@ static int rol_monster_ice_wolf_transform(struct spec_event_context *context, st
   GET_MOB_LOADROOM(leader) = IN_ROOM(ch);
   rol_monster_transfer_possessions(ch, leader, true);
   act("$n drops to the floor howling, then transforms into $N!", TRUE, ch, NULL, leader, TO_ROOM);
+  rol_monster_drop_leftover_gold(ch);
   extract_char(ch);
   context->invalidation |= SPEC_INVALIDATE_OWNER | SPEC_INVALIDATE_ACTOR;
   (void)set_fighting(leader, victim);

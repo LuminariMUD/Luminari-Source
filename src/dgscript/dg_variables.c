@@ -29,6 +29,7 @@
 #include "character/race.h"
 #include "clan.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "character/feats.h"
 
 /* Utility functions */
@@ -940,7 +941,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           {
             int addition = MIN(atoi(subfield), 1000);
 
-            gain_exp(c, addition, GAIN_EXP_MODE_SCRIPT);
+            award_experience(c, addition, AWARD_EXP_MODE_SCRIPT);
           }
           snprintf(str, slen, "%ld", GET_EXP(c));
         }
@@ -969,7 +970,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (subfield && *subfield)
           {
             int addition = atoi(subfield);
-            increase_gold(c, addition);
+            award_gold(c, addition);
           }
           snprintf(str, slen, "%d", GET_GOLD(c));
         }
@@ -1278,7 +1279,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (subfield && *subfield)
           {
             int addition = atoi(subfield);
-            GET_QUESTPOINTS(c) += addition;
+            award_quest_points(c, addition);
           }
           snprintf(str, slen, "%d", GET_QUESTPOINTS(c));
         }

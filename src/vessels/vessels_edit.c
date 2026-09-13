@@ -13,6 +13,7 @@
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
+#include "rewards.h"
 #include "interpreter.h"
 #include "vessels.h"
 #include "vessel_periodic.h"
@@ -824,7 +825,7 @@ ACMD(do_shipbuy)
     return; /* Spawn failed; no charge */
   }
 
-  GET_GOLD(ch) -= price;
+  award_gold(ch, -price);
   send_to_char(ch,
                "You pay %d gold coins. Fair winds, captain - christen her with "
                "'shipchristen <name>'.\r\n",

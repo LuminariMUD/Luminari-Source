@@ -15,6 +15,7 @@
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
+#include "rewards.h"
 #include "interpreter.h"
 #include "vessels.h"
 #include "mysql.h"
@@ -605,6 +606,14 @@ ACMD(do_contractdeliver)
     send_to_char(ch, "The freight is not aboard - you cannot deliver what you lost.\r\n");
     return;
   }
+  if (payout > award_capacity(ch, AWARD_GOLD))
+  {
+    send_to_char(ch,
+                 "The %d gold payment would exceed the %d-gold carrying limit. Bank some gold "
+                 "first.\r\n",
+                 payout, MAX_GOLD);
+    return;
+  }
 
   ship->cargo[lot].quantity -= quantity;
   if (ship->cargo[lot].quantity <= 0)
@@ -620,7 +629,7 @@ ACMD(do_contractdeliver)
     log("SYSERR: contract completion update failed: %s", mysql_error(conn));
   }
 
-  GET_GOLD(ch) += payout;
+  award_gold(ch, payout);
   send_to_char(ch, "Freight delivered. The consignee pays %d gold.\r\n", payout);
   send_to_ship(ship, "Dockhands unload %d units of freight from %s.", quantity, ship->name);
   log("Info: %s delivered freight contract %d for %d gold", GET_NAME(ch), contract_id, payout);

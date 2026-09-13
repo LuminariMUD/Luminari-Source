@@ -13,6 +13,7 @@
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
+#include "rewards.h"
 #include "interpreter.h"
 #include "vessels.h"
 #include "mysql.h"
@@ -568,7 +569,7 @@ ACMD(do_shiphire)
     return;
   }
 
-  GET_GOLD(ch) -= cost;
+  award_gold(ch, -cost);
   ship->crew_tier[position] = tier;
   vessel_apply_crew_bonuses(ship);
   vessel_db_save_crew(ship);
@@ -649,7 +650,7 @@ ACMD(do_shipwages)
     return;
   }
 
-  GET_GOLD(ch) -= ship->wages_owed;
+  award_gold(ch, -ship->wages_owed);
   send_to_char(ch, "You pay out %d gold in wages.\r\n", ship->wages_owed);
   send_to_ship(ship, "Wages paid - the crew's mood improves considerably.");
   ship->wages_owed = 0;

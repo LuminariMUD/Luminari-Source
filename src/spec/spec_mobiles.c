@@ -24,6 +24,7 @@
 #include "obj/house.h"
 #include "clan.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "graph.h"
 #include "dgscript/dg_scripts.h"
 #include "mud_event.h"
@@ -66,10 +67,7 @@ static void npc_steal(struct char_data *ch, struct char_data *victim)
     /* Steal some gold coins */
     gold = (GET_GOLD(victim) * rand_number(1, 10)) / 100;
     if (gold > 0)
-    {
-      increase_gold(ch, gold);
-      decrease_gold(victim, gold);
-    }
+      award_gold(victim, -award_gold(ch, gold)); /* only what the thief can carry */
   }
 }
 

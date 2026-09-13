@@ -516,6 +516,7 @@ set(SRC_C_FILES
     src/random.c
     src/random_names.c
     src/rank.c
+    src/rewards.c
     src/olc/redit.c
     src/wilderness/resource_system.c
     src/wilderness/resource_depletion.c
@@ -1069,6 +1070,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_spec_combat_secondary.c
     unittests/CuTest/test_gameplay_e2e.c
     unittests/CuTest/test_password.c
+    unittests/CuTest/test_rewards_production.c
 )
 
 # The focused protocol harnesses are built by unittests/CuTest/Makefile.

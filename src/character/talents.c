@@ -10,6 +10,7 @@
 #include "comm.h"
 #include "magic/spells.h"
 #include "handler.h"
+#include "rewards.h"
 #include "db.h"
 #include "constants.h"
 #include "interpreter.h"
@@ -650,7 +651,7 @@ int learn_talent(struct char_data *ch, int talent)
   {
     if (GET_GOLD(ch) < g_cost)
       return 0; /* double-check */
-    GET_GOLD(ch) -= g_cost;
+    award_gold(ch, -g_cost);
   }
   /* Increase rank */
   int rank = current_rank(ch, talent);

@@ -14,6 +14,7 @@
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
+#include "rewards.h"
 #include "interpreter.h"
 #include "vessels.h"
 #include "mysql.h"
@@ -139,10 +140,10 @@ bool vessel_collect_passenger_fare(struct char_data *ch, struct greyhawk_ship_da
   }
 
   old_gold = GET_GOLD(ch);
-  GET_GOLD(ch) -= fare;
+  award_gold(ch, -fare);
   if (!save_char_checked(ch, 0))
   {
-    GET_GOLD(ch) = old_gold;
+    award_set_points(ch, AWARD_GOLD, old_gold);
     send_to_char(ch, "The purser cannot record your fare; no gold was taken.\r\n");
     return FALSE;
   }
@@ -355,10 +356,10 @@ ACMD(do_dockfees)
     return;
   }
 
-  GET_GOLD(ch) -= amount;
+  award_gold(ch, -amount);
   if (!save_char_checked(ch, 0))
   {
-    GET_GOLD(ch) += amount;
+    award_gold(ch, amount);
     ship->dock_fee_balance = amount;
     ship->dock_fee_port = old_port;
     ship->dock_fee_clan = old_clan;
@@ -1251,7 +1252,7 @@ ACMD(do_cargobuy)
     return;
   }
 
-  GET_GOLD(ch) -= (int)cost;
+  award_gold(ch, -(int)cost);
   ship->cargo[lot].commodity_id = def->id;
   ship->cargo[lot].quantity += quantity;
 
@@ -1360,7 +1361,7 @@ ACMD(do_cargosell)
   {
     ship->cargo[lot].commodity_id = 0;
   }
-  GET_GOLD(ch) += (int)revenue;
+  award_gold(ch, (int)revenue);
 
   /* Selling floods the local market, nudging its price down */
   port_adjust_supply(port_vnum, def->id, quantity);

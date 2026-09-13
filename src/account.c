@@ -42,7 +42,7 @@
   Safety notes:
     - All DB reads are followed by mysql_store_result/mysql_free_result.
     - strdup allocations are freed when reloading account data or character lists.
-    - Account experience is clamped between 0 and 100,000,000 by change_account_xp.
+    - Account experience is clamped between 0 and 100,000,000 by award_account_experience().
     - Alignment is clamped to [-1000, 1000] after purchases in do_accexp.
     - SQL injection protection: every data value is bound through prepared statements.
 
@@ -56,6 +56,7 @@
 #include "utils.h"
 #include "db.h"
 #include "handler.h"
+#include "rewards.h"
 #include "character/feats.h"
 #include "dgscript/dg_scripts.h"
 #include "comm.h"
@@ -117,36 +118,6 @@ bool is_locked_race(int race)
     return TRUE;
 
   return FALSE;
-}
-
-/*
-  change_account_xp(struct char_data *ch, int change_val)
-  Purpose: Adjust the account experience for the account tied to a character.
-  Parameters:
-    - ch: character whose descriptor/account will be updated
-    - change_val: positive or negative delta to apply
-  Return:
-    - The resulting account experience after clamping.
-  Behavior and constraints:
-    - Clamps experience to [0, 100000000].
-    - Persists the updated account via save_account(ch->desc->account).
-  Requirements:
-    - ch->desc and ch->desc->account must be valid (assumed by callers here).
-*/
-int change_account_xp(struct char_data *ch, int change_val)
-{
-  GET_ACCEXP_DESC(ch) += change_val;
-
-  if (GET_ACCEXP_DESC(ch) < 0)
-    GET_ACCEXP_DESC(ch) = 0;
-
-  if (GET_ACCEXP_DESC(ch) > 100000000)
-    GET_ACCEXP_DESC(ch) = 100000000;
-
-  /* Persist to DB and update other descriptors that share this account */
-  save_account(ch->desc->account);
-
-  return GET_ACCEXP_DESC(ch);
 }
 
 /*
@@ -226,7 +197,7 @@ int has_unlocked_class(struct char_data *ch, int class)
     - For classes: lists lockable classes or purchases one if affordable and slot available.
   Side effects:
     - May adjust GET_ALIGNMENT(ch) with clamping [-1000, 1000].
-    - Deducts account experience (change_account_xp).
+    - Deducts account experience (award_account_experience).
     - Writes user feedback via send_to_char.
     - For race/class unlocks, writes into account arrays and saves account.
   Safety:
@@ -304,7 +275,7 @@ ACMD(do_accexp)
       }
       else if (GET_ACCEXP_DESC(ch) >= cost)
       {
-        change_account_xp(ch, -cost);
+        award_account_experience(ch, -cost);
         send_to_char(ch,
                      "You have changed your alignment by %d points, costing %d account points!\r\n",
                      align_change, cost);
@@ -403,7 +374,7 @@ ACMD(do_accexp)
                      "You have unlocked the advanced race '%s' for all character "
                      "and future characters on your account!.\r\n",
                      race_list[i].type);
-        change_account_xp(ch, -cost); /* this will call save_account() for us */
+        award_account_experience(ch, -cost); /* this will call save_account() for us */
         return;
       }
       else
@@ -508,7 +479,7 @@ ACMD(do_accexp)
                      "You have unlocked the prestige class '%s' for all "
                      "character and future characters on your account!.\r\n",
                      CLSLIST_NAME(i));
-        change_account_xp(ch, -cost); /* this will call save_account() for us */
+        award_account_experience(ch, -cost); /* this will call save_account() for us */
         return;
       }
       else

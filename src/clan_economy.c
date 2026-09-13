@@ -16,6 +16,7 @@
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
+#include "rewards.h"
 #include "interpreter.h"
 #include "clan.h"
 #include "obj/shop.h"
@@ -158,7 +159,7 @@ void collect_clan_transaction_tax(struct char_data *ch, int amount,
     return;
 
   /* Collect the tax */
-  GET_GOLD(ch) -= tax_amount;
+  award_gold(ch, -tax_amount);
   clan_list[clan_r].treasure += tax_amount;
   clan_list[clan_r].total_taxes_collected += tax_amount;
   mark_clan_modified(clan_r);

@@ -19,6 +19,7 @@
 #include "modify.h" // for parse_at()
 #include "obj/treasure.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "obj/item.h"
 #include "quest/quest.h"
 #include "combat/assign_wpn_armor.h"
@@ -7068,8 +7069,8 @@ void complete_supply_order(struct char_data *ch)
   // Award artisan points based on quantity completed
   artisan_points = GET_CRAFT(ch).supply_num_required * 10;
 
-  // Award rewards
-  GET_GOLD(ch) += gold_reward;
+  // Award rewards, reporting the gold actually applied
+  gold_reward = award_gold(ch, gold_reward);
   recipe = get_current_craft_project_recipe(ch);
   skill = recipe_skill_to_actual_crafting_skill(
       crafting_recipes[recipe].variant_skill[GET_CRAFT(ch).craft_variant]);
@@ -11259,7 +11260,7 @@ static void impl_do_reforge_new_(struct char_data *ch, char *argument,
   if (cost > 0)
   {
     send_to_char(ch, "It cost you %d coins to reforge this item.\r\n", cost);
-    GET_GOLD(ch) -= cost;
+    award_gold(ch, -cost);
   }
 
   /* Prepare messages */

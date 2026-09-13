@@ -23,6 +23,7 @@
 #include "obj/house.h"
 #include "clan.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "graph.h"
 #include "dgscript/dg_scripts.h"
 #include "mud_event.h"
@@ -88,10 +89,15 @@ int bank_typed(struct spec_event_context *context)
     if (is_abbrev(argument, "all"))
     {
       amount = GET_GOLD(ch);
+      if (amount > award_capacity(ch, AWARD_BANK_GOLD))
+      {
+        send_to_char(ch, "Your account cannot hold that many more coins!\r\n");
+        return (TRUE);
+      }
       send_to_char(ch, "\twYou deposit all (\tW%d\tw) your \tYcoins\tw.\tn\r\n", amount);
       act("$n makes a bank transaction.", TRUE, ch, 0, NULL, TO_ROOM);
-      decrease_gold(ch, amount);
-      increase_bank(ch, amount);
+      award_gold(ch, -amount);
+      award_bank_gold(ch, amount);
       return (TRUE);
     }
 
@@ -105,8 +111,13 @@ int bank_typed(struct spec_event_context *context)
       send_to_char(ch, "You don't have that many coins!\r\n");
       return (TRUE);
     }
-    decrease_gold(ch, amount);
-    increase_bank(ch, amount);
+    if (amount > award_capacity(ch, AWARD_BANK_GOLD))
+    {
+      send_to_char(ch, "Your account cannot hold that many more coins!\r\n");
+      return (TRUE);
+    }
+    award_gold(ch, -amount);
+    award_bank_gold(ch, amount);
     send_to_char(ch, "\twYou deposit \tW%d\tY coins\tw.\tn\r\n", amount);
     act("$n makes a bank transaction.", TRUE, ch, 0, NULL, TO_ROOM);
     return (TRUE);
@@ -118,10 +129,15 @@ int bank_typed(struct spec_event_context *context)
     if (is_abbrev(argument, "all"))
     {
       amount = GET_BANK_GOLD(ch);
+      if (amount > award_capacity(ch, AWARD_GOLD))
+      {
+        send_to_char(ch, "You cannot carry that many more coins!\r\n");
+        return (TRUE);
+      }
       send_to_char(ch, "\twYou withdraw all (\tW%d\tw) your \tYcoins\tw.\tn\r\n", amount);
       act("$n makes a bank transaction.", TRUE, ch, 0, NULL, TO_ROOM);
-      increase_gold(ch, amount);
-      decrease_bank(ch, amount);
+      award_gold(ch, amount);
+      award_bank_gold(ch, -amount);
       return (TRUE);
     }
 
@@ -135,8 +151,13 @@ int bank_typed(struct spec_event_context *context)
       send_to_char(ch, "You don't have that many coins deposited!\r\n");
       return (TRUE);
     }
-    increase_gold(ch, amount);
-    decrease_bank(ch, amount);
+    if (amount > award_capacity(ch, AWARD_GOLD))
+    {
+      send_to_char(ch, "You cannot carry that many more coins!\r\n");
+      return (TRUE);
+    }
+    award_gold(ch, amount);
+    award_bank_gold(ch, -amount);
     send_to_char(ch, "\twYou withdraw \tW%d \tYcoins\tw.\tn\r\n", amount);
     act("$n makes a bank transaction.", TRUE, ch, 0, NULL, TO_ROOM);
     return (TRUE);
@@ -630,7 +651,7 @@ SPECIAL(buyarmor)
     GET_OBJ_VAL(obj, 4) = level; // Enhancement Bonus
   }
 
-  GET_GOLD(ch) -= cost;
+  award_gold(ch, -cost);
   obj_to_char(obj, ch);
   send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description, cost);
 
@@ -690,8 +711,8 @@ SPECIAL(pet_shops)
       send_to_char(ch, "That pet is unavailable right now. You have not been charged.\r\n");
       return TRUE;
     }
-    decrease_gold(ch, price);
-    GET_EXP(pet) = 0;
+    award_gold(ch, -price);
+    award_set_points(pet, AWARD_EXPERIENCE, 0);
     SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
     if (GET_LEVEL(pet) <= 10)
     {
@@ -921,7 +942,7 @@ SPECIAL(buyweapons)
     GET_OBJ_VAL(obj, 4) = level; // Enhancement Bonus
   }
 
-  GET_GOLD(ch) -= cost;
+  award_gold(ch, -cost);
   obj_to_char(obj, ch);
   send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description, cost);
 
@@ -957,7 +978,7 @@ SPECIAL(identify_mob)
       return 1;
     }
 
-    GET_GOLD(ch) -= cost;
+    award_gold(ch, -cost);
 
     send_to_char(ch, "\r\nYour equipped items have been identified for %d coins.\r\n\r\n", cost);
 
@@ -989,7 +1010,7 @@ SPECIAL(identify_mob)
             cost, GET_GOLD(ch));
         return 1;
       }
-      GET_GOLD(ch) -= cost;
+      award_gold(ch, -cost);
       send_to_char(ch, "That will cost you %d coins.\r\n", cost);
       do_stat_object(ch, obj, ITEM_STAT_MODE_IDENTIFY_SPELL);
     }

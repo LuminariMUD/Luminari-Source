@@ -40,9 +40,11 @@
 #include "../../src/quest/staff_events.h"
 #include "../../src/quest/staff_event_agenda.h"
 #include "../../src/vessels/routing.h"
+#include "../../src/vessels/vessels.h"
 #include "../../src/handler.h"
 #include "../../src/obj/vendor.h"
 #include "../../src/obj/shop.h"
+#include "../../src/clan.h"
 #include "../../src/interpreter.h"
 #include "../../src/mob/mob_utils.h"
 #include "../../src/mob/mob_known_spells.h"
@@ -10122,4 +10124,442 @@ void Test_gameplay_autoraise_toggle_requires_the_native_class_ability(CuTest *tc
   CuAssertTrue(tc, !PRF_FLAGGED(&owner, PRF_AUTORAISE));
   CuAssertPtrNotNull(tc, strstr(descriptor.output, "Summon Undead ability"));
   ProtocolDestroy(descriptor.pProtocol);
+}
+
+void quest_quit(struct char_data *ch, char argument[MAX_STRING_LENGTH]);
+
+/* Quest rewards report the amounts actually applied at a balance limit, happy hour boosts quest
+ * experience once, inside award_experience(), and a quit penalty reports what was taken. */
+void Test_gameplay_quest_rewards_report_applied_amounts_with_one_happy_hour_bonus(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct aq_data quest = {0}, *saved_quests = aquest_table;
+  qst_rnum saved_count = total_quests;
+  struct happyhour saved_happy = happy_data;
+  int saved_max_exp_gain = CONFIG_MAX_EXP_GAIN;
+  int saved_experience_multiplier = CONFIG_EXPERIENCE_MULTIPLIER;
+  long experience_before, experience_gained;
+  bool balances_capped, applied_reported, penalty_reported;
+  char quit_argument[MAX_STRING_LENGTH] = "0";
+
+  begin_gameplay_fixture(&fixture);
+  CONFIG_MAX_EXP_GAIN = 100000;
+  CONFIG_EXPERIENCE_MULTIPLIER = 100;
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player.name = (char *)"questrewardee";
+  fixture.actor.player_specials = &specials;
+  specials.saved.stage_info.current_stage = 1;
+  GET_PFILEPOS(&fixture.actor) = -1;
+  GET_LEVEL(&fixture.actor) = 20;
+  GET_EXP(&fixture.actor) = level_exp(&fixture.actor, 20);
+  GET_GOLD(&fixture.actor) = MAX_GOLD - 70;
+  GET_QUESTPOINTS(&fixture.actor) = MAX_QUEST_POINTS - 3;
+  descriptor.character = &fixture.actor;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  fixture.actor.desc = &descriptor;
+  aquest_table = &quest;
+  total_quests = 1;
+  quest.vnum = 701;
+  quest.done = (char *)"Your service is complete.";
+  quest.follower_reward = NOBODY;
+  quest.obj_reward = NOTHING;
+  quest.race_reward = RACE_UNDEFINED;
+  quest.next_quest = NOTHING;
+  quest.gold_reward = 100;
+  quest.exp_reward = 20;
+  quest.value[0] = 10;
+  quest.value[1] = 10;
+  quest.prev_quest = NOTHING;
+  GET_QUEST(&fixture.actor, 0) = quest.vnum;
+  GET_QUEST_COUNTER(&fixture.actor, 0) = 0;
+  memset(&happy_data, 0, sizeof(happy_data));
+  HAPPY_EXP = 100;
+  HAPPY_TIME = 5;
+
+  experience_before = GET_EXP(&fixture.actor);
+  complete_quest(&fixture.actor, 0);
+  experience_gained = GET_EXP(&fixture.actor) - experience_before;
+  balances_capped =
+      GET_GOLD(&fixture.actor) == MAX_GOLD && GET_QUESTPOINTS(&fixture.actor) == MAX_QUEST_POINTS;
+  applied_reported = strstr(descriptor.output, "awarded 3 ") != NULL &&
+                     strstr(descriptor.output, "awarded 70 ") != NULL &&
+                     strstr(descriptor.output, "awarded 40 ") != NULL;
+
+  GET_QUEST(&fixture.actor, 0) = quest.vnum;
+  GET_QUESTPOINTS(&fixture.actor) = 3;
+  descriptor.small_outbuf[0] = '\0';
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  quest_quit(&fixture.actor, quit_argument);
+  penalty_reported = GET_QUESTPOINTS(&fixture.actor) == 0 &&
+                     GET_QUEST(&fixture.actor, 0) == (int)NOTHING &&
+                     strstr(descriptor.output, "You have lost 3 quest points") != NULL;
+
+  happy_data = saved_happy;
+  CONFIG_MAX_EXP_GAIN = saved_max_exp_gain;
+  CONFIG_EXPERIENCE_MULTIPLIER = saved_experience_multiplier;
+  free(specials.saved.completed_quests);
+  fixture.actor.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  aquest_table = saved_quests;
+  total_quests = saved_count;
+  end_gameplay_fixture(&fixture);
+
+  CuAssertIntEquals(tc, 40, (int)experience_gained);
+  CuAssertTrue(tc, balances_capped);
+  CuAssertTrue(tc, applied_reported);
+  CuAssertTrue(tc, penalty_reported);
+}
+
+/* A retainer sells nothing until the whole bank note fits in the purse, so the items are
+ * never given away for less than they fetch. */
+void Test_gameplay_retainer_sale_waits_for_room_in_the_purse(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct char_data prototype, *pet, *ch = &fixture.actor;
+  struct char_data *saved_proto = mob_proto, *saved_characters = character_list;
+  struct obj_data *item;
+  bool refused = false, sold = false;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
+  ch->player_specials = &specials;
+  ch->player.name = (char *)"squire";
+  ch->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
+  GET_PFILEPOS(ch) = -1;
+  GET_CHA(ch) = 18;
+  SET_FEAT(ch, FEAT_BG_SQUIRE, 1);
+  fixture.mobile_index[0].vnum = RETAINER_MOB_VNUM;
+  initialize_test_npc(&prototype, "retainer", NOWHERE);
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
+  SET_BIT_AR(MOB_FLAGS(&prototype), MOB_RETAINER);
+  prototype.player.name = (char *)"retainer";
+  GET_MOB_RNUM(&prototype) = 0;
+  GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
+  GET_REAL_MAX_MOVE(&prototype) = 100;
+  mob_proto = &prototype;
+  do_retainer(ch, "call", 0, 0);
+  pet = ch->followers != NULL ? ch->followers->follower : NULL;
+  if (pet != NULL && get_retainer_from_room(ch) == pet)
+  {
+    item = create_obj();
+    item->name = strdup("trinket");
+    item->short_description = strdup("a trinket");
+    GET_OBJ_TYPE(item) = ITEM_TREASURE;
+    GET_OBJ_COST(item) = 1000;
+    obj_to_char(item, pet);
+    GET_GOLD(ch) = MAX_GOLD - 100;
+    do_retainer(ch, "sell", 0, 0);
+    refused = GET_GOLD(ch) == MAX_GOLD - 100 && pet->carrying == item && ch->followers != NULL &&
+              ch->followers->follower == pet;
+    GET_GOLD(ch) = 0;
+    do_retainer(ch, "sell", 0, 0);
+    extract_pending_chars();
+    sold = GET_GOLD(ch) == 150 && ch->followers == NULL;
+  }
+  mob_proto = saved_proto;
+  character_list = saved_characters;
+  domain_event_world_forget_character(ch);
+  domain_event_world_forget_character(&fixture.victim);
+  end_gameplay_fixture(&fixture);
+  CuAssertTrue(tc, pet != NULL);
+  CuAssertTrue(tc, refused);
+  CuAssertTrue(tc, sold);
+}
+
+/* A shopkeeper with an empty purse pays a seller from the shop bank without creating gold,
+ * and a seller whose purse cannot hold the price keeps the item. */
+void Test_gameplay_shop_sales_conserve_gold_within_the_purse_limit(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct shop_data shop = {0}, *saved_shops = shop_index;
+  int saved_top_shop = top_shop;
+  obj_vnum products[] = {NOTHING};
+  room_vnum shop_rooms[] = {100, NOWHERE};
+  struct shop_buy_data buy_types[] = {{ITEM_TREASURE, NULL}, {(int)NOTHING, NULL}};
+  struct obj_data *item;
+  char sell_argument[] = "trinket";
+  bool created_command_list = false;
+  bool sold, conserved, refused;
+  int sell_command, index, seller_gain;
+  long funds_before, funds_after;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player_specials = &specials;
+  fixture.actor.player.name = (char *)"seller";
+  GET_PFILEPOS(&fixture.actor) = -1;
+  GET_CLAN(&fixture.actor) = NO_CLAN;
+  for (index = 0; index < 2; index++)
+  {
+    item = create_obj();
+    item->name = strdup("trinket");
+    item->short_description = strdup("a trinket");
+    GET_OBJ_TYPE(item) = ITEM_TREASURE;
+    GET_OBJ_COST(item) = 1000;
+    SET_BIT_AR(GET_OBJ_WEAR(item), ITEM_WEAR_TAKE);
+    obj_to_char(item, &fixture.actor);
+  }
+  GET_MOB_RNUM(&fixture.victim) = 0;
+  GET_GOLD(&fixture.victim) = 0;
+  shop.keeper = 0;
+  shop.in_room = shop_rooms;
+  shop.producing = products;
+  shop.type = buy_types;
+  shop.profit_buy = 1.0;
+  shop.profit_sell = 1.0;
+  shop.close1 = 24;
+  shop.bankAccount = 100000;
+  shop_index = &shop;
+  top_shop = 0;
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_command_list = true;
+  }
+  sell_command = find_command("sell");
+
+  funds_before = GET_GOLD(&fixture.victim) + SHOP_BANK(0);
+  shop_keeper(&fixture.actor, &fixture.victim, sell_command, sell_argument);
+  seller_gain = GET_GOLD(&fixture.actor);
+  funds_after = GET_GOLD(&fixture.victim) + SHOP_BANK(0);
+  sold = seller_gain > 1 && fixture.victim.carrying != NULL && fixture.actor.carrying != NULL &&
+         fixture.actor.carrying->next_content == NULL;
+  conserved = funds_before - funds_after == seller_gain;
+
+  GET_GOLD(&fixture.actor) = MAX_GOLD - 1;
+  shop_keeper(&fixture.actor, &fixture.victim, sell_command, sell_argument);
+  refused = GET_GOLD(&fixture.actor) == MAX_GOLD - 1 && fixture.actor.carrying != NULL &&
+            GET_GOLD(&fixture.victim) + SHOP_BANK(0) == funds_after;
+
+  while (fixture.actor.carrying != NULL)
+    extract_obj(fixture.actor.carrying);
+  while (fixture.victim.carrying != NULL)
+    extract_obj(fixture.victim.carrying);
+  if (created_command_list)
+    free_command_list();
+  shop_index = saved_shops;
+  top_shop = saved_top_shop;
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  end_gameplay_fixture(&fixture);
+
+  CuAssertTrue(tc, sold);
+  CuAssertTrue(tc, conserved);
+  CuAssertTrue(tc, refused);
+}
+
+extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
+
+static bool run_vessel_test_queries(MYSQL *connection, const char *const *queries)
+{
+  int index;
+
+  for (index = 0; queries[index] != NULL; index++)
+    if (mysql_query(connection, queries[index]))
+      return false;
+  return true;
+}
+
+/* Settled vessel insurance credits nothing and stays pending while the purse cannot hold the
+ * whole settlement, then pays every claim once it fits. */
+void Test_gameplay_vessel_insurance_waits_until_the_settlement_fits(CuTest *tc)
+{
+  const char *const schema[] = {
+      "CREATE TEMPORARY TABLE vessel_insurance_claims ("
+      "claim_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, ship_id INT NOT NULL, "
+      "owner VARCHAR(64) NOT NULL, ship_name VARCHAR(128) NOT NULL, amount INT NOT NULL, "
+      "status VARCHAR(16) NOT NULL DEFAULT 'pending', "
+      "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, paid_at TIMESTAMP NULL DEFAULT NULL"
+      ") ENGINE=InnoDB",
+      NULL};
+  char temporary_directory[] = "/tmp/luminari-player-fixture-XXXXXX";
+  struct player_index_element index[1] = {0};
+  struct player_index_element *saved_table = player_table;
+  int saved_top = top_of_p_table;
+  MYSQL *saved_conn = conn;
+  bool saved_available = mysql_available;
+  unsigned long saved_pulse = pulse;
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  char directory[PATH_MAX], filename[MAX_FILEPATH], name[32], query[MAX_STRING_LENGTH];
+  struct char_data *ch;
+  MYSQL *connection;
+  int refused_credits, refused_gold, refused_pending;
+  int paid_credits, paid_gold, paid_rows;
+  unsigned long long refused_claim, paid_claim;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+    return;
+  connection = open_keeper_test_database();
+  CuAssertPtrNotNull(tc, connection);
+  CuAssertTrue(tc, run_vessel_test_queries(connection, schema));
+  snprintf(name, sizeof(name), "Zzins%ld", (long)getpid());
+  snprintf(query, sizeof(query),
+           "INSERT INTO vessel_insurance_claims (ship_id, owner, ship_name, amount) "
+           "VALUES (1, '%s', 'lost hull', 300), (2, '%s', 'lost hull', 200)",
+           name, name);
+  CuAssertIntEquals(tc, 0, mysql_query(connection, query));
+  conn = connection;
+  mysql_available = true;
+  index[0].name = name;
+  index[0].id = 4248;
+  index[0].level = 7;
+  player_table = index;
+  top_of_p_table = 0;
+  ch = new_char();
+  ch->player.name = strdup(name);
+  GET_PFILEPOS(ch) = 0;
+  GET_IDNUM(ch) = 4248;
+  GET_LEVEL(ch) = 7;
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
+  enter_player_fixture(tc, temporary_directory);
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, name));
+
+  GET_GOLD(ch) = MAX_GOLD - 100;
+  refused_credits = vessel_deliver_pending_insurance(ch);
+  refused_gold = GET_GOLD(ch);
+  refused_claim = GET_VESSEL_INSURANCE_CLAIM(ch);
+  snprintf(query, sizeof(query),
+           "SELECT COUNT(*) FROM vessel_insurance_claims WHERE owner = '%s' AND status = 'pending'",
+           name);
+  refused_pending = keeper_query_int(connection, query);
+
+  GET_GOLD(ch) = 0;
+  paid_credits = vessel_deliver_pending_insurance(ch);
+  paid_gold = GET_GOLD(ch);
+  paid_claim = GET_VESSEL_INSURANCE_CLAIM(ch);
+  snprintf(query, sizeof(query),
+           "SELECT COUNT(*) FROM vessel_insurance_claims WHERE owner = '%s' AND status = 'paid'",
+           name);
+  paid_rows = keeper_query_int(connection, query);
+
+  unlink(filename);
+  CuAssertIntEquals(tc, 0, leave_player_fixture(directory, temporary_directory));
+  free_char(ch);
+  event_free_all();
+  pulse = saved_pulse;
+  player_table = saved_table;
+  top_of_p_table = saved_top;
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertIntEquals(tc, 0, refused_credits);
+  CuAssertIntEquals(tc, MAX_GOLD - 100, refused_gold);
+  CuAssertTrue(tc, refused_claim == 0);
+  CuAssertIntEquals(tc, 2, refused_pending);
+  CuAssertIntEquals(tc, 2, paid_credits);
+  CuAssertIntEquals(tc, 500, paid_gold);
+  CuAssertTrue(tc, paid_claim > 0);
+  CuAssertIntEquals(tc, 2, paid_rows);
+}
+
+/* Freight delivery refuses, before unloading cargo or closing the contract, a payment the
+ * purse cannot hold, then completes once it fits. */
+void Test_gameplay_freight_delivery_waits_until_the_payment_fits(CuTest *tc)
+{
+  const char *const schema[] = {
+      "CREATE TEMPORARY TABLE freight_contracts ("
+      "contract_id INT AUTO_INCREMENT PRIMARY KEY, origin_vnum INT NOT NULL, "
+      "destination_vnum INT NOT NULL, commodity_id INT NOT NULL, quantity INT NOT NULL, "
+      "payout INT NOT NULL, status INT NOT NULL DEFAULT 0, "
+      "taken_by VARCHAR(64) NOT NULL DEFAULT '') ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE ship_cargo_manifest ("
+      "ship_id INT NOT NULL, cargo_room INT NOT NULL, item_vnum INT NOT NULL, "
+      "item_name VARCHAR(128) NOT NULL, item_count INT NOT NULL, item_weight INT NOT NULL"
+      ") ENGINE=InnoDB",
+      NULL};
+  struct gameplay_fixture fixture;
+  struct player_special_data specials = {0};
+  struct descriptor_data descriptor = {0};
+  struct greyhawk_ship_data saved_ship;
+  struct greyhawk_ship_data *ship = &greyhawk_ships[GREYHAWK_MAXSHIPS - 1];
+  struct obj_data *hull;
+  MYSQL *saved_conn = conn;
+  bool saved_available = mysql_available;
+  const char *enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  char command[16], query[MAX_STRING_LENGTH];
+  MYSQL *connection;
+  int contract_id;
+  bool refused, refusal_reported, delivered;
+
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+    return;
+  connection = open_keeper_test_database();
+  CuAssertPtrNotNull(tc, connection);
+  CuAssertTrue(tc, run_vessel_test_queries(connection, schema));
+  snprintf(query, sizeof(query),
+           "INSERT INTO freight_contracts (origin_vnum, destination_vnum, commodity_id, quantity, "
+           "payout, status, taken_by) VALUES (100, 101, 7, 5, 900, %d, 'freighter')",
+           CONTRACT_STATUS_TAKEN);
+  CuAssertIntEquals(tc, 0, mysql_query(connection, query));
+  contract_id = (int)mysql_insert_id(connection);
+  conn = connection;
+  mysql_available = true;
+
+  begin_gameplay_fixture(&fixture);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player.name = (char *)"freighter";
+  fixture.actor.player_specials = &specials;
+  GET_LEVEL(&fixture.actor) = 10;
+  descriptor.character = &fixture.actor;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  descriptor.connected = CON_PLAYING;
+  fixture.actor.desc = &descriptor;
+  memcpy(&saved_ship, ship, sizeof(saved_ship));
+  memset(ship, 0, sizeof(*ship));
+  ship->shipnum = GREYHAWK_MAXSHIPS - 1;
+  ship->active = TRUE;
+  ship->cargo[0].commodity_id = 7;
+  ship->cargo[0].quantity = 5;
+  fixture.rooms[0].ship = ship;
+  fixture.rooms[1].sector_type = SECT_SEAPORT;
+  hull = create_obj();
+  obj_to_room(hull, 1);
+  ship->shipobj = hull;
+  snprintf(command, sizeof(command), "%d", contract_id);
+  snprintf(query, sizeof(query), "SELECT status FROM freight_contracts WHERE contract_id = %d",
+           contract_id);
+
+  GET_GOLD(&fixture.actor) = MAX_GOLD - 899;
+  do_contractdeliver(&fixture.actor, command, 0, 0);
+  refused = GET_GOLD(&fixture.actor) == MAX_GOLD - 899 && ship->cargo[0].quantity == 5 &&
+            keeper_query_int(connection, query) == CONTRACT_STATUS_TAKEN;
+  refusal_reported = strstr(descriptor.output, "carrying limit") != NULL;
+
+  GET_GOLD(&fixture.actor) = 0;
+  do_contractdeliver(&fixture.actor, command, 0, 0);
+  delivered = GET_GOLD(&fixture.actor) == 900 && ship->cargo[0].quantity == 0 &&
+              keeper_query_int(connection, query) == CONTRACT_STATUS_DONE;
+
+  fixture.rooms[0].ship = NULL;
+  extract_obj(hull);
+  memcpy(ship, &saved_ship, sizeof(*ship));
+  fixture.actor.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  domain_event_world_forget_character(&fixture.actor);
+  domain_event_world_forget_character(&fixture.victim);
+  end_gameplay_fixture(&fixture);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertTrue(tc, refused);
+  CuAssertTrue(tc, refusal_reported);
+  CuAssertTrue(tc, delivered);
 }

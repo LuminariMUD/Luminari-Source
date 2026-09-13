@@ -21,6 +21,7 @@
 #include "character/feats.h"
 #include "character/class.h"
 #include "handler.h"
+#include "rewards.h"
 #include "constants.h"
 #include "assign_wpn_armor.h"
 #include "magic/domains_schools.h"
@@ -1737,8 +1738,8 @@ void check_random_encounter(struct char_data *ch)
           GET_LEVEL(mob) = MAX(1, highest_level - 2);
           autoroll_mob(mob, TRUE, FALSE);
           GET_REAL_SIZE(mob) = encounter_table[j].size;
-          GET_EXP(mob) = (GET_LEVEL(mob) * GET_LEVEL(mob) * 75);
-          GET_GOLD(mob) = (GET_LEVEL(mob) * 10);
+          award_set_points(mob, AWARD_EXPERIENCE, (GET_LEVEL(mob) * GET_LEVEL(mob) * 75));
+          award_set_points(mob, AWARD_GOLD, (GET_LEVEL(mob) * 10));
           set_alignment(mob, encounter_table[j].alignment);
           // set flags
           SET_BIT_AR(MOB_FLAGS(mob), MOB_ENCOUNTER);
@@ -2110,7 +2111,7 @@ void give_gold_to_encounter_mob(struct char_data *ch, int amount)
     {
       if (MOB_FLAGGED(tch, MOB_ENCOUNTER))
       {
-        GET_GOLD(tch) += amount;
+        award_gold(tch, amount);
         return;
       }
     }
@@ -2298,7 +2299,7 @@ ACMD(do_encounter)
     }
     else
     {
-      GET_GOLD(ch) -= encounter_bribe_amount(ch);
+      award_gold(ch, -encounter_bribe_amount(ch));
       give_gold_to_encounter_mob(ch, encounter_bribe_amount(ch));
       set_encounter_to_peaceful(ch);
       send_to_char(ch, "Your attempt to bribe the enemy has succeeded. It cost you %d gold.\r\n",

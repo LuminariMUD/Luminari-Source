@@ -120,7 +120,7 @@ ACMD_DECL(do_hlqedit);
 #define HLQEDIT_OUT_EXPERIENCE 26
 /* end qedit connectedness */
 
-#define HLQUEST_MAX_QUEST_POINTS 100000000
+#define HLQUEST_MAX_QUEST_POINTS MAX_QUEST_POINTS
 
 #endif
 

@@ -11,6 +11,7 @@
 #include "db.h"
 #include "interpreter.h"
 #include "handler.h"
+#include "rewards.h"
 #include "comm.h"
 #include "character/race.h"
 #include "magic/spells.h"
@@ -391,18 +392,22 @@ SPECIAL(trade_master) {
           send_to_char(ch, "But that is not a resource.\r\n");
           return TRUE;
         } else {
-          found = TRUE;
           int profit = get_profit_factor(ch, obj, master);
-          snprintf(profit_info, sizeof(profit_info), "You sold at a profit of %d percent.\r\n", profit - 100);
           int price = GET_OBJ_COST(obj);
           price *= profit;
           price /= 100;
+          if ((price % 1000) / 100 > award_capacity(ch, AWARD_GOLD)) {
+            send_to_char(ch, "You cannot carry any more gold.\r\n");
+            break;
+          }
+          found = TRUE;
+          snprintf(profit_info, sizeof(profit_info), "You sold at a profit of %d percent.\r\n", profit - 100);
           total_profit += price;
           obj_from_obj(obj);
           extract_obj(obj);
 
           GET_PLAT(ch) += price / 1000;
-          GET_GOLD(ch) += (price % 1000) / 100;
+          award_gold(ch, (price % 1000) / 100);
           GET_SILVER(ch) += (price % 100) / 10;
           GET_COPPER(ch) += price % 10;
         }

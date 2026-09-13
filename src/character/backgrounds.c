@@ -9,6 +9,7 @@
 #include "comm.h"
 #include "magic/spells.h"
 #include "handler.h"
+#include "rewards.h"
 #include "db.h"
 #include "interpreter.h"
 #include "constants.h"
@@ -435,7 +436,7 @@ bool temple_blessing_cost_handling(struct char_data *ch, int blessing)
 
   if (!has_acolyte_in_group(ch))
   {
-    GET_GOLD(ch) -= blessing;
+    award_gold(ch, -blessing);
     send_to_char(ch, "The blessing costs you %d gold coins.\r\n", blessing);
   }
 
@@ -1296,10 +1297,22 @@ ACMD(do_retainer)
       return;
     }
 
+    for (obj = retainer->carrying; obj; obj = obj->next_content)
+      gold += (int)(GET_OBJ_COST(obj) * (0.15));
+
+    /* keep the items unless the whole bank note fits in the purse */
+    if (gold > award_capacity(ch, AWARD_GOLD))
+    {
+      send_to_char(ch,
+                   "You cannot carry the %d coins those items would fetch.  Bank some gold "
+                   "first.\r\n",
+                   gold);
+      return;
+    }
+
     for (obj = retainer->carrying; obj; obj = next_obj)
     {
       next_obj = obj->next_content;
-      gold += (int)(GET_OBJ_COST(obj) * (0.15));
       obj_from_char(obj);
       extract_obj(obj);
     }
@@ -1309,7 +1322,7 @@ ACMD(do_retainer)
                  "items you gave them.\r\n",
                  gold);
     act("$N gives $n a slip of paper and then hurries off.", TRUE, ch, 0, retainer, TO_ROOM);
-    GET_GOLD(ch) += gold;
+    award_gold(ch, gold);
     extract_char(retainer);
     return;
   }

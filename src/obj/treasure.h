@@ -218,7 +218,6 @@ int determine_rnd_misc_cat();
 int cp_convert_grade_enchantment(int grade);
 /* given a level, determine a random appropriate grade */
 int quick_grade_check(int level);
-int increase_gold(struct char_data *ch, int amt);
 int award_random_money(struct char_data *ch, int result);
 void award_random_food_item(struct char_data *ch, int result, int type);
 

@@ -108,7 +108,7 @@ int track_through_doors = YES;
 
 /* If you do not want mortals to level up to immortal once they have enough
  * experience, then set this to YES. Subtracting this from LVL_IMMORT gives
- * the top level that people can advance to in gain_exp() in limits.c */
+ * the top level that people can advance to in award_experience() in rewards.c */
 int no_mort_to_immort = YES;
 
 /* Are diagonal directions enabled?

@@ -15,6 +15,7 @@
 #include "domain_event_world.h"
 #include "dgscript/dg_scripts.h"
 #include "handler.h"
+#include "rewards.h"
 #include "interpreter.h"
 #include "olc/oasis.h"
 #include "spec_rol_totem.h"
@@ -205,8 +206,8 @@ static bool rol_totem_summon(struct char_data *ch, const struct rol_totem_defini
   autoroll_mob(mob, true, true);
   GET_REAL_MAX_HIT(mob) += MAX(1, GET_REAL_MAX_HIT(mob) / 4);
   GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
-  GET_EXP(mob) = 0;
-  GET_GOLD(mob) = 0;
+  award_set_points(mob, AWARD_EXPERIENCE, 0);
+  award_set_points(mob, AWARD_GOLD, 0);
   SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))

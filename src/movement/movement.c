@@ -28,6 +28,7 @@
 #include "mud_event.h"
 #include "quest/hlquest.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "wilderness/wilderness.h" /* Wilderness! */
 #include "combat/traps.h"          /* doorbash */
 #include "actions.h"
@@ -1888,28 +1889,28 @@ ACMDU(do_unstuck)
   }
   else
   {
-    GET_EXP(ch) -= exp;
+    award_points(ch, AWARD_EXPERIENCE, -exp);
     send_to_char(ch, "You lose %d experience points.\r\n", exp);
     if (GET_GOLD(ch) < gold)
     {
       gold -= GET_GOLD(ch);
       send_to_char(ch, "You lose %d gold ", gold);
-      GET_GOLD(ch) = 0;
+      award_set_points(ch, AWARD_GOLD, 0);
       if (GET_BANK_GOLD(ch) < gold)
       {
         gold = GET_BANK_GOLD(ch);
         send_to_char(ch, "and %d bank gold.\r\n", gold);
-        GET_BANK_GOLD(ch) = 0;
+        award_set_points(ch, AWARD_BANK_GOLD, 0);
       }
       else
       {
-        GET_BANK_GOLD(ch) -= gold;
+        award_bank_gold(ch, -gold);
         send_to_char(ch, "and %d bank gold.\r\n", gold);
       }
     }
     else
     {
-      GET_GOLD(ch) -= gold;
+      award_gold(ch, -gold);
       send_to_char(ch, "You lose %d gold.\r\n", gold);
     }
   }

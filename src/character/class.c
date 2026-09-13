@@ -24,6 +24,7 @@
 #include "comm.h"
 #include "mud_event.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "feats.h"
 #include "class.h"
 #include "combat/assign_wpn_armor.h"
@@ -2779,7 +2780,7 @@ void init_start_char(struct char_data *ch)
   /* start at level 1 */
   GET_LEVEL(ch) = 1;
   CLASS_LEVEL(ch, GET_CLASS(ch)) = 1;
-  GET_EXP(ch) = 1;
+  award_set_points(ch, AWARD_EXPERIENCE, 1);
 
   /* reset title */
   set_title(ch, GET_NAME(ch));

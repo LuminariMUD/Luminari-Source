@@ -33,6 +33,7 @@
 #include "modify.h" // for parse_at()
 #include "obj/treasure.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "character/abilities.h"
 #include "obj/item.h"
 #include "quest/quest.h"
@@ -300,7 +301,7 @@ int convert_material(int material)
 
 static int award_legacy_crafting_experience(struct char_data *ch, int exp)
 {
-  int gained = gain_exp(ch, exp, GAIN_EXP_MODE_CRAFT);
+  int gained = award_experience(ch, exp, AWARD_EXP_MODE_CRAFT);
 
   if (gained > 0)
     send_to_char(ch, "You gained %d exp for crafting...\r\n", gained);
@@ -943,7 +944,7 @@ int augment(struct obj_data *kit, struct char_data *ch)
                "It cost you %d coins in supplies to augment this "
                "essence.\r\n",
                cost);
-  GET_GOLD(ch) -= cost;
+  award_gold(ch, -cost);
 
   GET_CRAFTING_TYPE(ch) = SCMD_AUGMENT;
   GET_CRAFTING_TICKS(ch) = 10 - fast_craft_bonus;
@@ -1052,7 +1053,7 @@ int convert(struct obj_data *kit, struct char_data *ch)
                "It cost you %d gold in supplies to convert this "
                "item.\r\n",
                cost);
-  GET_GOLD(ch) -= cost;
+  award_gold(ch, -cost);
   // new name
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   snprintf(buf, sizeof(buf), "\tca portion of %s material\tn", material_name[num_mats]);
@@ -1219,7 +1220,7 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
   GET_CRAFTING_OBJ(ch) = obj;
 
   send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n", cost);
-  GET_GOLD(ch) -= cost;
+  award_gold(ch, -cost);
   send_to_char(ch,
                "You put the item into the crafting kit and wait for it "
                "to transform into %s.\r\n",
@@ -1343,7 +1344,7 @@ int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
   GET_CRAFTING_OBJ(ch) = obj;
 
   send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n", cost);
-  GET_GOLD(ch) -= cost;
+  award_gold(ch, -cost);
   send_to_char(ch,
                "You put the item into the crafting kit and wait for it to transform into %s.\r\n",
                obj->short_description);
@@ -1547,7 +1548,7 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch)
   if (cost > 0)
   {
     send_to_char(ch, "It cost you %d coins to resize this item.\r\n", cost);
-    GET_GOLD(ch) -= cost;
+    award_gold(ch, -cost);
   }
   send_to_char(ch, "You begin to resize %s from %s to %s.\r\n", obj->short_description,
                size_names[GET_OBJ_SIZE(obj)], size_names[newsize]);
@@ -1694,7 +1695,7 @@ int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
   if (cost > 0)
   {
     send_to_char(ch, "It cost you %d coins to convert this item into bone.\r\n", cost);
-    GET_GOLD(ch) -= cost;
+    award_gold(ch, -cost);
   }
 
   update_bone_armor_descriptions(obj, argument);
@@ -1881,7 +1882,7 @@ int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
   if (cost > 0)
   {
     send_to_char(ch, "It cost you %d coins to reforge this item.\r\n", cost);
-    GET_GOLD(ch) -= cost;
+    award_gold(ch, -cost);
   }
 
   send_to_char(ch, "You begin to reforge %s into %s %s.\r\n", obj->short_description,
@@ -2463,7 +2464,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
     GET_CRAFTING_BONUS(ch) = 10 + MIN(60, GET_OBJ_LEVEL(mold));
 
     send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n", cost);
-    GET_GOLD(ch) -= cost;
+    award_gold(ch, -cost);
 
     /* gotta convert @ sign */
     parse_at(argument);
@@ -2805,17 +2806,17 @@ SPECIAL(crafting_quest)
   {
     if (GET_AUTOCQUEST_VNUM(ch) && GET_AUTOCQUEST_MAKENUM(ch) <= 0)
     {
+      int quest_points = award_quest_points(ch, GET_AUTOCQUEST_QP(ch));
+      int gold = award_gold(ch, GET_AUTOCQUEST_GOLD(ch));
+      int exp = (int)award_points(ch, AWARD_EXPERIENCE, GET_AUTOCQUEST_EXP(ch));
+
       send_to_char(ch,
                    "You have completed your supply order contract"
                    " for %s.\r\n"
                    "You receive %d reputation points.\r\n"
                    "%d gold has been given to you.\r\n"
                    "You receive %d experience points.\r\n",
-                   GET_AUTOCQUEST_DESC(ch), GET_AUTOCQUEST_QP(ch), GET_AUTOCQUEST_GOLD(ch),
-                   GET_AUTOCQUEST_EXP(ch));
-      GET_QUESTPOINTS(ch) += GET_AUTOCQUEST_QP(ch);
-      GET_GOLD(ch) += GET_AUTOCQUEST_GOLD(ch);
-      GET_EXP(ch) += GET_AUTOCQUEST_EXP(ch);
+                   GET_AUTOCQUEST_DESC(ch), quest_points, gold, exp);
 
       reset_acraft(ch);
     }
@@ -3082,9 +3083,9 @@ MUD_EVENT_CALLBACK(event_crafting)
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
       /*
         if (GET_GOLD(ch) < (GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4)) {
-          GET_BANK_GOLD(ch) -= GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4;
+          award_bank_gold(ch, -(GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4));
         } else {
-          GET_GOLD(ch) -= GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4;
+          award_gold(ch, -(GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4));
         }
          */
 

@@ -19,6 +19,7 @@
 #include "spec_rooms.h"
 #include "combat/fight.h"
 #include "mudlim.h"
+#include "rewards.h"
 
 SPECIAL(dump)
 {
@@ -49,9 +50,9 @@ SPECIAL(dump)
     act("$n has been awarded for being a good citizen.", TRUE, ch, 0, 0, TO_ROOM);
 
     if (GET_LEVEL(ch) < 3)
-      gain_exp(ch, value, GAIN_EXP_MODE_DUMP);
+      award_experience(ch, value, AWARD_EXP_MODE_DUMP);
     else
-      increase_gold(ch, value);
+      award_gold(ch, value);
   }
   return (TRUE);
 }

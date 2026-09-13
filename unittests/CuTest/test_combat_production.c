@@ -5,6 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/act.h"
+#include "../../src/db.h"
 #include "../../src/handler.h"
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
@@ -21,6 +22,7 @@
 #include "../../src/domain_event_world.h"
 #include "../../src/lists.h"
 #include "../../src/mudlim.h"
+#include "../../src/rewards.h"
 #include "../../src/net/protocol.h"
 
 #include <stdlib.h>
@@ -570,7 +572,7 @@ void Test_capped_kill_experience_does_not_report_zero_award(CuTest *tc)
   CONFIG_EXPERIENCE_MULTIPLIER = 100;
   GET_EXP(&ch) = level_exp(&ch, GET_LEVEL(&ch));
 
-  normal_gain = test_award_kill_experience(&ch, 100, GAIN_EXP_MODE_SOLO);
+  normal_gain = test_award_kill_experience(&ch, 100, AWARD_EXP_MODE_SOLO);
   normal_award_reported = strstr(descriptor.output, "You receive 100 experience points.") != NULL;
 
   descriptor.small_outbuf[0] = '\0';
@@ -579,7 +581,7 @@ void Test_capped_kill_experience_does_not_report_zero_award(CuTest *tc)
   descriptor.bufspace = SMALL_BUFSIZE - 1;
   GET_EXP(&ch) = level_exp(&ch, GET_LEVEL(&ch) + 2) + 1;
 
-  capped_gain = test_award_kill_experience(&ch, 100, GAIN_EXP_MODE_SOLO);
+  capped_gain = test_award_kill_experience(&ch, 100, AWARD_EXP_MODE_SOLO);
   cap_reported = strstr(descriptor.output, "Your experience has been capped.") != NULL;
   zero_award_reported = strstr(descriptor.output, "You receive 0 experience points.") != NULL;
 
@@ -593,6 +595,88 @@ void Test_capped_kill_experience_does_not_report_zero_award(CuTest *tc)
   CuAssertIntEquals(tc, 0, capped_gain);
   CuAssertTrue(tc, cap_reported);
   CuAssertTrue(tc, !zero_award_reported);
+}
+
+/* A kill during happy hour earns the happy-hour bonus once, alone or grouped:
+ * award_experience() adds it after the mode caps. */
+void Test_happy_hour_kill_experience_is_boosted_once(CuTest *tc)
+{
+  struct char_data ch;
+  struct char_data victim;
+  struct player_special_data player_specials;
+  struct descriptor_data descriptor;
+  struct happyhour saved_happy = happy_data;
+  long start_exp;
+  long solo_award;
+  long group_award;
+  bool solo_reported;
+  bool group_reported;
+  int saved_max_exp_gain;
+  int saved_experience_multiplier;
+
+  memset(&ch, 0, sizeof(ch));
+  memset(&victim, 0, sizeof(victim));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &ch;
+  descriptor.pProtocol = ProtocolCreate();
+  ch.desc = &descriptor;
+  ch.player_specials = &player_specials;
+  ch.player.name = "happy hour test character";
+  IN_ROOM(&ch) = NOWHERE;
+  GET_CLASS(&ch) = CLASS_WARRIOR;
+  GET_LEVEL(&ch) = 12;
+  ch.player_specials->saved.stage_info.current_stage = 1;
+  victim.player.name = "happy hour test victim";
+  victim.player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&victim), MOB_ISNPC);
+  IN_ROOM(&victim) = NOWHERE;
+  GET_LEVEL(&victim) = 12;
+  GET_EXP(&victim) = 60;
+
+  if (descriptor.pProtocol == NULL)
+  {
+    ch.desc = NULL;
+    CuFail(tc, "could not initialize the happy hour fixture");
+    return;
+  }
+
+  saved_max_exp_gain = CONFIG_MAX_EXP_GAIN;
+  saved_experience_multiplier = CONFIG_EXPERIENCE_MULTIPLIER;
+  CONFIG_MAX_EXP_GAIN = 100000;
+  CONFIG_EXPERIENCE_MULTIPLIER = 100;
+  memset(&happy_data, 0, sizeof(happy_data));
+  HAPPY_EXP = 100;
+  HAPPY_TIME = 5;
+  start_exp = level_exp(&ch, GET_LEVEL(&ch));
+
+  GET_EXP(&ch) = start_exp;
+  test_solo_gain(&ch, &victim);
+  solo_award = GET_EXP(&ch) - start_exp;
+  solo_reported = strstr(descriptor.output, "You receive 40 experience points.") != NULL;
+
+  descriptor.small_outbuf[0] = '\0';
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  GET_EXP(&ch) = start_exp;
+  test_perform_group_gain(&ch, 20, &victim);
+  group_award = GET_EXP(&ch) - start_exp;
+  group_reported =
+      strstr(descriptor.output, "You receive your share of experience -- 40 points.") != NULL;
+
+  happy_data = saved_happy;
+  ch.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  CONFIG_MAX_EXP_GAIN = saved_max_exp_gain;
+  CONFIG_EXPERIENCE_MULTIPLIER = saved_experience_multiplier;
+
+  CuAssertIntEquals(tc, 40, (int)solo_award);
+  CuAssertTrue(tc, solo_reported);
+  CuAssertIntEquals(tc, 40, (int)group_award);
+  CuAssertTrue(tc, group_reported);
 }
 
 void Test_random_encounters_respect_peaceful_rooms(CuTest *tc)

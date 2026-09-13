@@ -30,6 +30,7 @@
 #include "actions.h"
 #include "pet_vnums.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "olc/oasis.h" // mob autoroller
 #include "combat/assign_wpn_armor.h"
 #include "domains_schools.h"
@@ -3320,8 +3321,8 @@ static int mag_damage_scaled(int level, struct char_data *ch, struct char_data *
     else
       num_dice = 1;
     size_dice = 200;
-    gain_exp(ch, (dice(2, 200) * 10), GAIN_EXP_MODE_EDRAIN);
-    gain_exp(victim, -(dice(2, 200) * 10), GAIN_EXP_MODE_EDRAIN);
+    award_experience(ch, (dice(2, 200) * 10), AWARD_EXP_MODE_EDRAIN);
+    award_experience(victim, -(dice(2, 200) * 10), AWARD_EXP_MODE_EDRAIN);
     bonus = 0;
     break;
 

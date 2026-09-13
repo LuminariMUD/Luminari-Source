@@ -28,6 +28,7 @@
 #include "mob/mob_utils.h"
 #include "mud_event.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "obj/shop.h"
 #include "spec_combat.h"
 #include "spec_context.h"
@@ -2134,8 +2135,7 @@ static void rol_death_return_to_master(struct char_data *ch)
   {
     send_to_char(master, "A shadowy hole opens and deposits your servant's possessions into your "
                          "inventory.\r\n");
-    GET_GOLD(master) += GET_GOLD(ch);
-    GET_GOLD(ch) = 0;
+    award_gold(ch, -award_gold(master, GET_GOLD(ch)));
     for (wear = 0; wear < NUM_WEARS; wear++)
       if (GET_EQ(ch, wear) != NULL)
         obj_to_char(unequip_char(ch, wear), master);
@@ -2145,13 +2145,13 @@ static void rol_death_return_to_master(struct char_data *ch)
       obj_from_char(item);
       obj_to_char(item, master);
     }
-    return;
   }
 
+  /* without a master, or beyond what the master can carry, possessions fall here */
   if (GET_GOLD(ch) > 0)
   {
     money = create_money(GET_GOLD(ch));
-    GET_GOLD(ch) = 0;
+    award_set_points(ch, AWARD_GOLD, 0);
     obj_to_room(money, IN_ROOM(ch));
   }
   for (wear = 0; wear < NUM_WEARS; wear++)
@@ -2275,7 +2275,7 @@ static void rol_death_drop_possessions(struct char_data *ch)
   if (GET_GOLD(ch) > 0)
   {
     money = create_money(GET_GOLD(ch));
-    GET_GOLD(ch) = 0;
+    award_set_points(ch, AWARD_GOLD, 0);
     obj_to_room(money, IN_ROOM(ch));
   }
 }
@@ -2638,10 +2638,7 @@ static void rol_thief_steal(struct char_data *ch, struct char_data *victim)
 
   gold = (GET_GOLD(victim) * rand_number(1, 10)) / 100;
   if (gold > 0)
-  {
-    increase_gold(ch, gold);
-    decrease_gold(victim, gold);
-  }
+    award_gold(victim, -award_gold(ch, gold)); /* only what the thief can carry */
 }
 
 int rol_thief(struct char_data *ch, void *me, int cmd, const char *argument)
@@ -3500,7 +3497,7 @@ static int rol_guild_guard_protection(struct char_data *guard, struct char_data 
   send_to_char(victim, "A wrenching pain drains your life force away!\r\n");
 
   loss = MIN((long)GET_LEVEL(victim) * 5000L, MAX(0L, GET_EXP(victim) - 2L));
-  GET_EXP(victim) -= loss;
+  award_points(victim, AWARD_EXPERIENCE, -loss);
 
   call_magic(guard, victim, NULL, SPELL_DISPEL_MAGIC, 0, 60, CAST_INNATE);
   call_magic(guard, victim, NULL, SPELL_CURSE, 0, 60, CAST_INNATE);
@@ -4021,7 +4018,7 @@ static void rol_lich_rite_transform(struct char_data *ch)
 
   GET_REAL_RACE(ch) = RACE_LICH;
   respec_engine(ch, CLASS_WIZARD, NULL, TRUE);
-  GET_EXP(ch) = 0;
+  award_set_points(ch, AWARD_EXPERIENCE, 0);
   GET_ALIGNMENT(ch) = -1000;
 
   for (descriptor = descriptor_list; descriptor != NULL; descriptor = descriptor->next)

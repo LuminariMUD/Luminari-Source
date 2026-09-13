@@ -18,6 +18,7 @@
 #include "magic/spells.h"
 #include "mud_event.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "spec/spec_dispatch.h"
 #include "spec/spec_rol_conversion.h"
 
@@ -139,10 +140,7 @@ static void rol_residual_steal(struct char_data *ch, struct char_data *victim)
   }
   gold = (GET_GOLD(victim) * rand_number(1, 10)) / 100;
   if (gold > 0)
-  {
-    increase_gold(ch, gold);
-    decrease_gold(victim, gold);
-  }
+    award_gold(victim, -award_gold(ch, gold)); /* only what the thief can carry */
 }
 
 static void rol_residual_beavis(struct char_data *ch, bool butthead)

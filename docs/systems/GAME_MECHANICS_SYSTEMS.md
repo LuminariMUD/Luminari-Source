@@ -743,6 +743,129 @@ bool make_saving_throw(struct char_data *ch, int save_type, int difficulty) {
 }
 ```
 
+## Reward API
+
+`src/rewards.h` and `src/rewards.c` are the single entry point for gameplay changes to
+experience, quest points, account experience, gold, bank gold, and the progression pools that
+staff can award. Combat, quests, missions, hunts, treasure and lootboxes, scripts, crafting,
+shops, vessels, clans, and staff commands all call this API. Production-linked regressions
+live in `unittests/CuTest/test_rewards_production.c`; command, sale, quest, and vessel payout
+flows are covered in `unittests/CuTest/test_gameplay_e2e.c`, and kill experience in
+`unittests/CuTest/test_combat_production.c`.
+
+### Award Types
+
+The `AWARD_*` constants share their order with `award_types[]` in `src/constants.c`, which the
+staff `award` command lists and parses. `MAX_QUEST_POINTS` and `MAX_ACCOUNT_EXPERIENCE` live in
+`src/structs.h` beside `MAX_GOLD` and `MAX_BANK`; the pool limits are the ranges of their fields.
+
+| Constant | Balance | Limit | Applies to |
+|----------|---------|-------|------------|
+| `AWARD_EXPERIENCE` | `GET_EXP()` | `LONG_MAX` | Any character |
+| `AWARD_QUEST_POINTS` | `GET_QUESTPOINTS()` | `MAX_QUEST_POINTS` (100,000,000) | Players |
+| `AWARD_ACCOUNT_EXPERIENCE` | Account `experience` | `MAX_ACCOUNT_EXPERIENCE` (100,000,000) | Players with a connected account |
+| `AWARD_GOLD` | `GET_GOLD()` | `MAX_GOLD` | Any character |
+| `AWARD_BANK_GOLD` | `GET_BANK_GOLD()` | `MAX_BANK` | Players |
+| `AWARD_SKILL_POINTS` | `GET_TRAINS()` | `INT_MAX` | Players |
+| `AWARD_FEATS` | `GET_FEAT_POINTS()` | 127 | Players |
+| `AWARD_CLASS_FEATS` | `GET_CLASS_FEATS()` for the current class | 127 | Players |
+| `AWARD_EPIC_FEATS` | `GET_EPIC_FEAT_POINTS()` | 127 | Players |
+| `AWARD_EPIC_CLASS_FEATS` | `GET_EPIC_CLASS_FEATS()` for the current class | 127 | Players |
+| `AWARD_ABILITY_BOOSTS` | `GET_BOOSTS()` | 255 | Players |
+
+### Functions
+
+```c
+long award_points(struct char_data *ch, int type, long amount);
+long award_set_points(struct char_data *ch, int type, long value);
+long award_capacity(struct char_data *ch, int type);
+int award_experience(struct char_data *ch, int gain, int mode);
+int award_experience_uncapped(struct char_data *ch, int gain, bool is_ress);
+int award_gold(struct char_data *ch, int amount);
+int award_bank_gold(struct char_data *ch, int amount);
+int award_quest_points(struct char_data *ch, int amount);
+int award_account_experience(struct char_data *ch, int amount);
+```
+
+- `award_points()` applies a signed change of any type with no bonuses, clipped only by the
+  balance limits, and returns the change it applied. Negative amounts are costs, penalties, and
+  transfers out.
+- `award_set_points()` assigns a balance. Staff `set`, respec restores, race-change resets,
+  corpse and transfer zeroing, save rollbacks, and NPC experience and gold values use it.
+- `award_capacity()` returns the largest credit a balance can accept in full: its limit minus the
+  current balance, clamped to `[0, limit]`, or 0 when the type does not apply to the character.
+- `award_experience()` is earned experience. It applies leadership, newbie, feat, and happy-hour
+  bonuses, the caps selected by its `AWARD_EXP_MODE_*` argument, and the per-gain maximum.
+  Callers pass the gain without happy hour; the bonus is added once, after the mode caps. A
+  negative gain is a death or drain loss capped by `CONFIG_MAX_EXP_LOSS`. NPCs keep half of a
+  gain, and charmed followers gain nothing.
+- `award_experience_uncapped()` applies experience without earned caps for staff `advance` and
+  resurrection. Unless restoring a resurrection, it adds the happy-hour bonus and advances every
+  level the new total reaches.
+- `award_gold()`, `award_bank_gold()`, `award_quest_points()`, and
+  `award_account_experience()` are exact single-balance forms of `award_points()`.
+
+Every function follows the same contract:
+
+- A NULL character returns 0 with no side effects.
+- Except for `award_capacity()`, the return value is the signed change actually applied to the
+  balance. Reward messages report that amount, so a death loss reports only the experience that
+  existed to lose, and resurrection restores that amount.
+- Balances stay within `[0, limit]`. A credit never lowers a balance and a debit never raises
+  one, so a value loaded above a limit is kept until it is spent.
+- A type that does not apply to the character changes nothing and returns 0: an unknown type,
+  quest points or bank gold or pools on an NPC, a class index out of range, or account
+  experience without a connected account.
+- A gold or bank credit that reaches its limit tells the character.
+- Account experience changes persist through `save_account()`, which also updates other
+  descriptors that share the account.
+
+### Transfers and Payouts
+
+A limit never destroys value that moves between balances or pays for something. Every flow that
+takes something in return for a credit checks the destination first:
+
+- `give`, bank `deposit` and `withdraw`, `cexchange`, `split`, shop `sell`, `salvage`, `retainer
+  sell`, trade-master sales, `clan withdraw`, and freight contract delivery refuse a credit that
+  `award_capacity()` says will not fit, before anything is taken.
+- `steal` and thieving NPCs take only what the thief can carry. Coins handed to a monster or a
+  master stay with the source, or fall to the floor, when they do not fit.
+- Settled vessel insurance claims stay pending until the whole settlement fits.
+- Auction payouts and refunds, and coins picked up beyond the limit, arrive as a pile of coins in
+  the inventory.
+- A shopkeeper buying an item pays from the shop bank whatever the keeper's purse cannot cover.
+
+Pure rewards, such as quest, mission, hunt, and supply-order rewards, still stop at the limit and
+report the amount actually applied.
+
+### Staff Commands
+
+`award <player> <type> <amount>` resolves the type from `award_types[]` and makes one
+`award_points()` call. The target must be connected and playing. The command reports the amount
+actually applied and changes nothing when the balance is already at its limit. Staff `set` routes
+gold, bank, quest points, and experience through `award_set_points()`. `set accexp` assigns and
+`set addaccexp` adds account experience; both require a connected target.
+
+### Direct Writes
+
+Only record construction writes experience, gold, bank gold, quest points, and account
+experience directly: player-file defaults and parsing in `src/players.c`, world parsing and
+first-player setup in `src/db.c`, and account loading and descriptor sync in `src/account.c`. The
+following command lists direct writes of those balances, including macro arguments with one
+nested call; any file it prints bypasses the API:
+
+```sh
+grep -rnE 'GET_(EXP|GOLD|BANK_GOLD|QUESTPOINTS)\(([^()]|\([^()]*\))*\)\s*(\+\+|--|[-+*/%]?=[^=])|(points\.(gold|bank_gold|exp)|saved\.questpoints|account->experience|GET_ACCEXP(_DESC)?\(([^()]|\([^()]*\))*\))\s*(\+\+|--|[-+*/%]?=[^=])' src |
+  grep -vE '^src/(rewards|players|db|account)\.c:'
+```
+
+The progression pools follow their own rules outside this audit: leveling and study commit
+trains, feat points, and boosts; guild services spend boosts; premade builds reset the pools; and
+staff `set` assigns them. Only the staff `award` command changes them through `award_points()`.
+
+Item rewards are generated and delivered by the `award_*` item functions in `src/obj/treasure.c`,
+such as `award_magic_item()`; their coin grants use `award_gold()`.
+
 ---
 
 *This documentation covers the core game mechanics systems. For specific implementation details and advanced mechanics, refer to the individual source files and the [Developer Guide](../guides/DEVELOPER_GUIDE_AND_API.md).*

@@ -38,6 +38,7 @@
 #include "clan.h"
 #include "obj/treasure.h"
 #include "mudlim.h"
+#include "rewards.h"
 #include "spec_abilities.h"
 #include "character/feats.h"
 #include "actions.h"
@@ -2138,7 +2139,7 @@ static struct domain_entity_handle make_corpse(struct char_data *ch, bool animat
           obj_to_room(money, IN_ROOM(ch));
           /* Note: corpse is NULL here - don't try to add money to it */
         }
-        GET_GOLD(ch) = 0;
+        award_set_points(ch, AWARD_GOLD, 0);
       }
       extract_char(ch);
       return handle;
@@ -2230,7 +2231,7 @@ static struct domain_entity_handle make_corpse(struct char_data *ch, bool animat
       money = create_money(GET_GOLD(ch));
       obj_to_obj(money, corpse);
     }
-    GET_GOLD(ch) = 0;
+    award_set_points(ch, AWARD_GOLD, 0);
   }
   /* empty out inventory and carrying-number and carrying-weight */
   ch->carrying = NULL;
@@ -2729,7 +2730,7 @@ struct combat_death_result combat_death_apply(struct char_data *ch, struct char_
     if (!IN_ARENA(ch) && (killer == NULL || !IN_ARENA(killer)))
     {
       /* we are storing lost xp for ressurect */
-      GET_LOST_XP(ch) = gain_exp(ch, -penalty, GAIN_EXP_MODE_DEATH);
+      GET_LOST_XP(ch) = award_experience(ch, -penalty, AWARD_EXP_MODE_DEATH);
     }
   }
 
@@ -2890,18 +2891,12 @@ void die(struct char_data *ch, struct char_data *killer)
 /* called for splitting xp in a group (engine) */
 static void perform_group_gain(struct char_data *ch, int base, struct char_data *victim)
 {
-  int share, hap_share;
+  int share;
 
+  /* award_experience() adds any happy-hour bonus after its caps */
   share = MIN(CONFIG_MAX_EXP_GAIN, MAX(1, base));
 
-  if ((IS_HAPPYHOUR) && (IS_HAPPYEXP))
-  {
-    /* This only reports the correct amount - the calc is done in gain_exp */
-    hap_share = share + (int)((float)share * ((float)HAPPY_EXP / (float)(100)));
-    share = MIN(CONFIG_MAX_EXP_GAIN, MAX(1, hap_share));
-  }
-
-  award_kill_experience(ch, share, GAIN_EXP_MODE_GROUP);
+  award_kill_experience(ch, share, AWARD_EXP_MODE_GROUP);
 
   change_alignment(ch, victim);
 }
@@ -2990,7 +2985,7 @@ static void group_gain(struct char_data *ch, struct char_data *victim)
 /* called for splitting xp if NOT in a group (engine) */
 static void solo_gain(struct char_data *ch, struct char_data *victim)
 {
-  int exp = 0, happy_exp = 0;
+  int exp = 0;
 
   /* the base exp is the totally victim's exp divided by 3, limited by config */
   exp = MIN(CONFIG_MAX_EXP_GAIN, GET_EXP(victim) / 3);
@@ -3015,21 +3010,15 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
   if (!IS_NPC(victim))
     exp = MIN(CONFIG_MAX_EXP_LOSS * 2 / 3, exp);
 
-  /* happyhour bonus XP */
-  if (IS_HAPPYHOUR && IS_HAPPYEXP)
-  {
-    happy_exp = exp + (int)((float)exp * ((float)HAPPY_EXP / (float)(100)));
-    exp = MAX(happy_exp, 1);
-  }
-
-  award_kill_experience(ch, exp, GAIN_EXP_MODE_SOLO);
+  /* award_experience() adds any happy-hour bonus after its caps */
+  award_kill_experience(ch, exp, AWARD_EXP_MODE_SOLO);
 
   change_alignment(ch, victim);
 }
 
 static int award_kill_experience(struct char_data *ch, int exp, int mode)
 {
-  int gained = gain_exp(ch, exp, mode);
+  int gained = award_experience(ch, exp, mode);
 
   if (ch->char_specials.post_combat_messages)
   {
@@ -3039,14 +3028,14 @@ static int award_kill_experience(struct char_data *ch, int exp, int mode)
 
   if (gained > 1)
   {
-    if (mode == GAIN_EXP_MODE_GROUP)
+    if (mode == AWARD_EXP_MODE_GROUP)
       send_to_char(ch, "You receive your share of experience -- %d points.\r\n", gained);
     else
       send_to_char(ch, "You receive %d experience points.\r\n", gained);
   }
   else if (gained == 1)
   {
-    if (mode == GAIN_EXP_MODE_GROUP)
+    if (mode == AWARD_EXP_MODE_GROUP)
       send_to_char(ch, "You receive your share of experience -- one measly little point!\r\n");
     else
       send_to_char(ch, "You receive one lousy experience point.\r\n");
@@ -3059,6 +3048,16 @@ static int award_kill_experience(struct char_data *ch, int exp, int mode)
 int test_award_kill_experience(struct char_data *ch, int exp, int mode)
 {
   return award_kill_experience(ch, exp, mode);
+}
+
+void test_solo_gain(struct char_data *ch, struct char_data *victim)
+{
+  solo_gain(ch, victim);
+}
+
+void test_perform_group_gain(struct char_data *ch, int base, struct char_data *victim)
+{
+  perform_group_gain(ch, base, victim);
 }
 
 int test_cap_combat_damage(struct char_data *ch, int dam, int w_type)
@@ -5863,7 +5862,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
     {
       happy_gold = (long)(GET_GOLD(victim) * (((float)(HAPPY_GOLD)) / (float)100));
       happy_gold = MAX(0, happy_gold);
-      increase_gold(victim, happy_gold);
+      award_gold(victim, happy_gold);
     }
     local_gold = GET_GOLD(victim);
     snprintf(local_buf, sizeof(local_buf), "%ld", (long)local_gold);
@@ -6628,11 +6627,11 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
     if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_EIDOLON) && ch->master)
     {
       exp_to_give /= 2;
-      gain_exp(ch->master, exp_to_give, GAIN_EXP_MODE_DAMAGE);
+      award_experience(ch->master, exp_to_give, AWARD_EXP_MODE_DAMAGE);
     }
     else
     {
-      gain_exp(ch, exp_to_give, GAIN_EXP_MODE_DAMAGE);
+      award_experience(ch, exp_to_give, AWARD_EXP_MODE_DAMAGE);
     }
   }
 
