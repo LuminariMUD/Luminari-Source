@@ -95,7 +95,6 @@ static void adjust_room_references_for_insert(room_rnum inserted_room)
       case 'E':
       case 'J':
       case 'I':
-      case 'L':
       case 'C':
       case '*':
         break;
@@ -435,7 +434,6 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
       case 'C':
       case 'J':
       case 'I':
-      case 'L':
       case '*':
         /* Known zone entries we don't care about. */
         break;

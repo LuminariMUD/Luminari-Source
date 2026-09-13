@@ -602,7 +602,6 @@ set, argument arities, and file syntax are documented in the
 | `V` | Assign a DG script variable |
 | `J` | Load a mobile with a load probability |
 | `I` | Load random treasure on a mobile |
-| `L` | Load random treasure into a container |
 | `S` | Terminates the command list (required) |
 | `*` | Comment line |
 

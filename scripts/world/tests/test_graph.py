@@ -69,7 +69,7 @@ class FullGraphTests(unittest.TestCase):
     self.assertTrue(mini.complete)
     self.assertEqual([], [item for item in normal.findings if item.severity == "error"])
     self.assertEqual(
-        {"OBJ027", "SEM010", "ZON033"},
+        {"OBJ027", "SEM010"},
         {item.code for item in normal.findings},
     )
     self.assertEqual(before, tree_hash(root))

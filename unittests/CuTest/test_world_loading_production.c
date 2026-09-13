@@ -5,6 +5,8 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/db.h"
+#include "../../src/constants.h"
+#include "../../src/comm.h"
 #include "../../src/handler.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/movement/movement_validation.h"
@@ -12,6 +14,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
 
 void Test_world_loading_production_real_room_lookup(CuTest *tc)
 {
@@ -340,4 +343,231 @@ void Test_world_loading_production_rol_whole_armor_conflicts(CuTest *tc)
   GET_EQ(&ch, WEAR_FACE) = NULL;
   GET_EQ(&ch, WEAR_HEAD) = &head;
   CuAssertTrue(tc, rol_object_wear_conflicts(&ch, &face, WEAR_FACE));
+}
+
+/* The production loader exits on malformed input and retains its zone index.
+ * Fork fixtures so both behaviors are exercised without contaminating the suite. */
+static void assert_world_loader_child(CuTest *tc, pid_t child, int expected_status)
+{
+  int status;
+
+  CuAssertTrue(tc, child > 0);
+  CuAssertTrue(tc, waitpid(child, &status, 0) == child);
+  CuAssertTrue(tc, WIFEXITED(status));
+  CuAssertIntEquals(tc, expected_status, WEXITSTATUS(status));
+}
+
+void Test_world_loading_production_zone_reset_dispatch_and_whitespace(CuTest *tc)
+{
+  pid_t child;
+
+  child = fork();
+  if (child == 0)
+  {
+    FILE *input = tmpfile();
+    struct reset_com *commands;
+
+    if (input == NULL)
+      _exit(2);
+    fputs("#100\nBuilder~\nReset parsing~\n10000 10099 30 2\n"
+          "   I 1 75\n"
+          "\tI\t0 50 -1 -1 -1 (legacy saved form)\n"
+          "  * indented comment\n \t \n"
+          " R 0 10000 10001\n"
+          "\tR 1 10000 10001 0\n"
+          "R 0 10000 10001 100\n"
+          "R 0 10000 10001 -1 -1 (legacy saved form)\n"
+          " \tS  \n$\n",
+          input);
+    rewind(input);
+    zone_table = calloc(1, sizeof(*zone_table));
+    if (zone_table == NULL)
+      _exit(2);
+    test_load_zones(input, "reset-fixture.zon");
+    commands = zone_table[0].cmd;
+    if (top_of_zone_table != 0 || commands[0].command != 'I' || commands[0].if_flag != 1 ||
+        commands[0].arg1 != 75 || commands[0].line != 5 || commands[1].command != 'I' ||
+        commands[1].if_flag != 0 || commands[1].arg1 != 50 || commands[1].line != 6)
+      _exit(3);
+    if (commands[2].command != 'R' || commands[2].arg1 != 10000 || commands[2].arg2 != 10001 ||
+        commands[2].arg3 != 100 || commands[2].arg4 != 0 || commands[2].line != 9 ||
+        commands[3].if_flag != 1 || commands[3].arg3 != 0 || commands[3].arg4 != 1 ||
+        commands[4].arg3 != 100 || commands[4].arg4 != 1 || commands[5].arg3 != 100 ||
+        commands[5].arg4 != 0 || commands[6].command != 'S')
+      _exit(4);
+    _exit(0);
+  }
+  assert_world_loader_child(tc, child, 0);
+}
+
+void Test_world_loading_production_zone_header_forms_and_diagnostics(CuTest *tc)
+{
+  pid_t child;
+
+  child = fork();
+  if (child == 0)
+  {
+    const int values[] = {10000, 10099, 30, 2, 1, 2, 4, 8, 3, 20, 0, 7, 8, 9, 999};
+    int count, i, used;
+    FILE *input, *capture;
+    struct zone_data *zone;
+    char output[READ_SIZE], expected[READ_SIZE];
+    size_t length;
+
+    zone_table = calloc(12, sizeof(*zone_table));
+    if (zone_table == NULL)
+      _exit(2);
+    for (count = 4; count <= 15; count++)
+    {
+      input = tmpfile();
+      capture = tmpfile();
+      if (input == NULL || capture == NULL)
+        _exit(2);
+      logfile = capture;
+      fputs("#100\nBuilder~\nHeader parsing~\n* comment\n\n", input);
+      for (i = 0; i < count; i++)
+        fprintf(input, "%d ", values[i]);
+      fputs("\nS\n$\n", input);
+      rewind(input);
+      test_load_zones(input, "header-fixture.zon");
+      zone = &zone_table[count - 4];
+      used = count >= 14 ? 14 : count >= 11 ? 11 : count >= 10 ? 10 : 4;
+      if (zone->bot != 10000 || zone->top != 10099 || zone->lifespan != 30 ||
+          zone->reset_mode != 2 || zone->cmd[0].command != 'S' ||
+          zone->min_level != (used >= 10 ? 3 : -1) || zone->max_level != (used >= 10 ? 20 : -1) ||
+          zone->show_weather != (used >= 11 ? 0 : 1) || zone->region != (used == 14 ? 7 : 0) ||
+          zone->faction != (used == 14 ? 8 : 0) || zone->city != (used == 14 ? 9 : 0))
+        _exit(count + 10);
+      for (i = 0; i < ZN_ARRAY_MAX; i++)
+        if (zone->zone_flags[i] != (used >= 10 ? values[i + 4] : 0))
+          _exit(count + 30);
+      rewind(capture);
+      length = fread(output, 1, sizeof(output) - 1, capture);
+      output[length] = '\0';
+      if (used == count && length != 0)
+        _exit(count + 50);
+      if (used != count)
+      {
+        snprintf(
+            expected, sizeof(expected),
+            "ZONE WARNING: Zone #100, header-fixture.zon, line 6: numeric header uses %d fields;",
+            used);
+        if (strstr(output, expected) == NULL || strstr(output, "ignoring trailing data:") == NULL)
+          _exit(count + 70);
+      }
+      fclose(capture);
+      fclose(input);
+    }
+    _exit(0);
+  }
+  assert_world_loader_child(tc, child, 0);
+}
+
+void Test_world_loading_production_zone_without_builder_preserves_first_reset(CuTest *tc)
+{
+  pid_t child;
+
+  child = fork();
+  if (child == 0)
+  {
+    FILE *input = tmpfile();
+
+    if (input == NULL)
+      _exit(2);
+    fputs("#100\nLegacy zone~\n10000 10099 30 2\nI 0 100\nS\n$\n", input);
+    rewind(input);
+    zone_table = calloc(1, sizeof(*zone_table));
+    if (zone_table == NULL)
+      _exit(2);
+    test_load_zones(input, "legacy-fixture.zon");
+    if (strcmp(zone_table[0].name, "Legacy zone") != 0 ||
+        strcmp(zone_table[0].builders, "None.") != 0 || zone_table[0].cmd[0].command != 'I' ||
+        zone_table[0].cmd[0].line != 4 || zone_table[0].cmd[1].command != 'S')
+      _exit(3);
+    _exit(0);
+  }
+  assert_world_loader_child(tc, child, 0);
+}
+
+void Test_world_loading_production_unsupported_zone_reset_reports_line(CuTest *tc)
+{
+  pid_t child;
+  FILE *capture;
+  char output[READ_SIZE];
+  size_t length;
+
+  capture = tmpfile();
+  CuAssertPtrNotNull(tc, capture);
+  child = fork();
+  if (child == 0)
+  {
+    FILE *input = tmpfile();
+
+    if (input == NULL)
+      _exit(2);
+    logfile = capture;
+    fputs("#100\nBuilder~\nUnsupported reset~\n10000 10099 30 2\n"
+          " L 0 10001 50\nS\n$\n",
+          input);
+    rewind(input);
+    zone_table = calloc(1, sizeof(*zone_table));
+    if (zone_table == NULL)
+      _exit(2);
+    test_load_zones(input, "unsupported-fixture.zon");
+    _exit(0);
+  }
+  assert_world_loader_child(tc, child, 1);
+  rewind(capture);
+  length = fread(output, 1, sizeof(output) - 1, capture);
+  output[length] = '\0';
+  fclose(capture);
+  CuAssertPtrNotNull(
+      tc, strstr(output, "Unknown zone reset command 'L' in unsupported-fixture.zon, line 5"));
+}
+
+void Test_world_loading_production_exit_diagnostics(CuTest *tc)
+{
+  struct room_data rooms[2] = {0};
+  struct room_direction_data exits[NUM_OF_DIRS] = {0};
+  struct room_data *saved_world = world;
+  room_rnum saved_top = top_of_world;
+  FILE *saved_logfile = logfile;
+  FILE *capture = tmpfile();
+  char output[MAX_STRING_LENGTH], expected[READ_SIZE];
+  size_t length;
+  int direction;
+
+  CuAssertPtrNotNull(tc, capture);
+  rooms[0].number = 100;
+  rooms[1].number = 200;
+  for (direction = 0; direction < NUM_OF_DIRS; direction++)
+  {
+    rooms[0].dir_option[direction] = &exits[direction];
+    exits[direction].to_room = 900 + direction;
+  }
+  exits[NORTH].to_room = 200;
+  exits[EAST].to_room = NOWHERE;
+  world = rooms;
+  top_of_world = 1;
+  logfile = capture;
+  renum_world();
+  world = saved_world;
+  top_of_world = saved_top;
+  logfile = saved_logfile;
+  rewind(capture);
+  length = fread(output, 1, sizeof(output) - 1, capture);
+  output[length] = '\0';
+  fclose(capture);
+
+  CuAssertIntEquals(tc, 1, exits[NORTH].to_room);
+  CuAssertIntEquals(tc, NOWHERE, exits[EAST].to_room);
+  CuAssertTrue(tc, strstr(output, "exit north (") == NULL);
+  CuAssertTrue(tc, strstr(output, "exit east (") == NULL);
+  for (direction = SOUTH; direction < NUM_OF_DIRS; direction++)
+  {
+    CuAssertIntEquals(tc, NOWHERE, exits[direction].to_room);
+    snprintf(expected, sizeof(expected), "Room #100, exit %s (%d): destination #%d",
+             dirs[direction], direction, 900 + direction);
+    CuAssertPtrNotNull(tc, strstr(output, expected));
+  }
 }

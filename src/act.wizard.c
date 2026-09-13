@@ -883,11 +883,6 @@ static void list_zone_commands_room(struct char_data *ch, room_vnum rvnum)
         send_to_char(ch, "%sGive it random treasure (%d%%)", ZOCMD.if_flag ? " then " : "",
                      ZOCMD.arg1);
         break;
-      case 'L':
-        send_to_char(ch, "%sPut random treasure in %s [%s%" PRI_IDX "%s] (%d%%)",
-                     ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
-                     obj_index[ZOCMD.arg1].vnum, yel, ZOCMD.arg2);
-        break;
       case 'M':
         send_to_char(ch, "%sLoad %s [%s%" PRI_IDX "%s], Max : %d\r\n",
                      ZOCMD.if_flag ? " then " : "", mob_proto[ZOCMD.arg1].player.short_descr, cyn,

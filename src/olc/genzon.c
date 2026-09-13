@@ -516,13 +516,6 @@ int save_zone(zone_rnum zone_num)
       arg4 = -1;
       comment = "RandomGive";
       break;
-    case 'L':
-      arg1 = obj_index[ZCMD(zone_num, subcmd).arg1].vnum;
-      arg2 = ZCMD(zone_num, subcmd).arg2;
-      arg3 = -1;
-      arg4 = -1;
-      comment = "RandomCont";
-      break;
     case 'J':
       arg1 = ZCMD(zone_num, subcmd).arg1;
       arg2 = ZCMD(zone_num, subcmd).arg2;

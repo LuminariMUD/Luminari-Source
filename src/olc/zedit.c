@@ -582,12 +582,6 @@ static void zedit_disp_menu(struct descriptor_data *d)
     case 'I':
       write_to_output(d, "%sGive it random treasure (%d%%)", buf1, MYCMD.arg1);
       break;
-    case 'L':
-      write_to_output(d, "%sPut random treasure in %s [%s%d%s] (%d%%)",
-                      buf1, // MYCMD.if_flag ? " then " : "",
-                      obj_proto[MYCMD.arg1].short_description, cyn, obj_index[MYCMD.arg1].vnum, yel,
-                      MYCMD.arg2);
-      break;
     case 'J':
       if ((counter + MYCMD.arg1) <= maxcount)
         write_to_output(d, "%sJump over %d line%s to line #%d. (%d%%)", buf1, MYCMD.arg1,
@@ -762,19 +756,18 @@ static void zedit_disp_comtype(struct descriptor_data *d)
 {
   get_char_colors(d->character);
   clear_screen(d);
-  write_to_output(
-      d,
-      "\r\n"
-      "%sM%s) Load Mobile to room             %sO%s) Load Object to room\r\n"
-      "%sE%s) Equip mobile with object        %sG%s) Give an object to a mobile\r\n"
-      "%sP%s) Put object in another object    %sD%s) Open/Close/Lock a Door\r\n"
-      "%sR%s) Remove an object from the room  %sJ%s) Jump over next <x> commands\r\n"
-      "%sT%s) Assign a trigger                %sV%s) Set a global variable\r\n"
-      "%sI%s) Give treasure to a mobile       %sL%s) Load treasure in another object\r\n"
-      "\r\n"
-      "What sort of command will this be? : ",
-      grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn,
-      nrm, grn, nrm, grn, nrm);
+  write_to_output(d,
+                  "\r\n"
+                  "%sM%s) Load Mobile to room             %sO%s) Load Object to room\r\n"
+                  "%sE%s) Equip mobile with object        %sG%s) Give an object to a mobile\r\n"
+                  "%sP%s) Put object in another object    %sD%s) Open/Close/Lock a Door\r\n"
+                  "%sR%s) Remove an object from the room  %sJ%s) Jump over next <x> commands\r\n"
+                  "%sT%s) Assign a trigger                %sV%s) Set a global variable\r\n"
+                  "%sI%s) Give treasure to a mobile\r\n"
+                  "\r\n"
+                  "What sort of command will this be? : ",
+                  grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm,
+                  grn, nrm, grn, nrm, grn, nrm);
   OLC_MODE(d) = ZEDIT_COMMAND_TYPE;
 }
 
@@ -788,10 +781,6 @@ static void zedit_disp_arg1(struct descriptor_data *d)
   {
   case 'I':
     write_to_output(d, "Chance to load (0-100%%) : ");
-    OLC_MODE(d) = ZEDIT_ARG1;
-    break;
-  case 'L':
-    write_to_output(d, "Virtual number of the container : ");
     OLC_MODE(d) = ZEDIT_ARG1;
     break;
   case 'J':
@@ -839,9 +828,6 @@ static void zedit_disp_arg2(struct descriptor_data *d)
 
   switch (OLC_CMD(d).command)
   {
-  case 'L':
-    write_to_output(d, "Chance to load (0-100%%) : ");
-    break;
   case 'J':
     write_to_output(d, "Chance to execute (0-100%%) : ");
     break;
@@ -928,7 +914,6 @@ static void zedit_disp_arg3(struct descriptor_data *d)
   case 'R':
   case 'J':
   case 'I':
-  case 'L':
   default:
     /* We should never get here, just in case. */
     cleanup_olc(d, CLEANUP_ALL);
@@ -960,7 +945,6 @@ static void zedit_disp_arg4(struct descriptor_data *d)
   case 'G':
   case 'J':
   case 'I':
-  case 'L':
   default:
     /* We should never get here, just in case. */
     cleanup_olc(d, CLEANUP_ALL);
@@ -990,7 +974,6 @@ static void zedit_disp_gr_query(struct descriptor_data *d)
   case 'G':
   case 'J':
   case 'I':
-  case 'L':
   default:
     /* We should never get here, just in case. */
     cleanup_olc(d, CLEANUP_ALL);
@@ -1354,7 +1337,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
   case ZEDIT_COMMAND_TYPE:
     /* Parse the input for which type of command this is, and goto next quiz. */
     OLC_CMD(d).command = toupper(*arg);
-    if (!OLC_CMD(d).command || (strchr("MOPEDGRTVJIL", OLC_CMD(d).command) == NULL))
+    if (!OLC_CMD(d).command || (strchr("MOPEDGRTVJI", OLC_CMD(d).command) == NULL))
     {
       write_to_output(d, "Invalid choice, try again : ");
     }
@@ -1432,16 +1415,6 @@ void zedit_parse(struct descriptor_data *d, char *arg)
         zedit_disp_menu(d);
       }
       break;
-    case 'L':
-      if ((pos = real_object(atoi(arg))) != (int)NOTHING)
-      {
-        OLC_CMD(d).arg3 = pos;
-        zedit_disp_arg2(d);
-        // zedit_disp_menu(d);
-      }
-      else
-        write_to_output(d, "That object does not exist, try again : ");
-      break;
     case 'J':
       pos = atoi(arg);
       if (pos < 0 || pos > 5)
@@ -1506,16 +1479,6 @@ void zedit_parse(struct descriptor_data *d, char *arg)
     }
     switch (OLC_CMD(d).command)
     {
-    case 'L':
-      pos = atoi(arg);
-      if (pos < 0 || pos > 100)
-        write_to_output(d, "Try again : ");
-      else
-      {
-        OLC_CMD(d).arg2 = pos;
-        zedit_disp_menu(d);
-      }
-      break;
     case 'J':
       OLC_CMD(d).arg2 = MAX(0, MIN(100, atoi(arg)));
       zedit_disp_menu(d);
