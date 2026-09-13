@@ -1,16 +1,23 @@
 #1251
 poor harvest tool~
 a poor harvest tool~
-A poor harvest tool has been left here.~
+A battered bundle of harvesting tools lies here, bound with fraying twine.~
 ~
 12 0 0 0 0 ao 0 0 0 0 0 0 0
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-1 0 0 1 0
+1 50 0 1 0
 E
 poor harvest tool~
-This compact set of harvesting implements guarantees at least poor
-quality on successful wilderness harvests while carried or equipped.
-Only your best harvest tool applies. The tool is not consumed.
+A length of fraying twine binds together a chipped hand pick, a dull
+skinning knife, a nicked hatchet head on a split wooden haft and a patched
+gathering sack. Everything here has seen hard use, but it will serve for
+mining, forestry, hunting and gathering alike.
+
+Carried or held, this tool guarantees at least poor quality on successful
+wilderness harvests. Poor is already the lowest result, so this bundle is
+mostly a starting point on the way to better tools. Only your best harvest
+tool applies, tools inside containers do not count, and the tool is never
+consumed.
 ~
 G
 0
@@ -23,21 +30,26 @@ J
 #1252
 common harvest tool~
 a common harvest tool~
-A common harvest tool has been left here.~
+A plain canvas roll of well-oiled harvesting tools has been left here.~
 ~
 12 0 0 0 0 ao 0 0 0 0 0 0 0
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-1 0 0 1 0
+1 500 0 1 0
 E
 common harvest tool~
-This compact set of harvesting implements guarantees at least common
-quality on successful wilderness harvests while carried or equipped.
-Only your best harvest tool applies. The tool is not consumed.
+A plain canvas roll holds an iron pick, a sturdy hatchet, a keen skinning
+knife and a small sickle, each oiled and sharpened by a working hand.
+Nothing about the set is remarkable, but every edge is true and every haft
+is sound.
+
+Carried or held, this tool guarantees at least common quality on successful
+wilderness harvests of every kind. Only your best harvest tool applies,
+tools inside containers do not count, and the tool is never consumed.
 ~
 G
 0
 H
-8
+14
 I
 5
 J
@@ -45,21 +57,27 @@ J
 #1253
 uncommon harvest tool~
 an uncommon harvest tool~
-An uncommon harvest tool has been left here.~
+A guild-stamped leather roll of steel harvesting tools rests here.~
 ~
 12 0 0 0 0 ao 0 0 0 0 0 0 0
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-1 0 0 1 0
+1 2500 0 1 0
 E
 uncommon harvest tool~
-This compact set of harvesting implements guarantees at least uncommon
-quality on successful wilderness harvests while carried or equipped.
-Only your best harvest tool applies. The tool is not consumed.
+Oiled leather stamped with a crafting guild's mark wraps a matched set of
+steel tools: a balanced pick, a felling hatchet, a flensing knife and a
+curved herb sickle. Each tool sits snugly in its own loop, and all of them
+were clearly made by the same careful hand.
+
+Carried or held, this tool guarantees at least uncommon quality on
+successful wilderness harvests of every kind. Only your best harvest tool
+applies, tools inside containers do not count, and the tool is never
+consumed.
 ~
 G
 0
 H
-8
+7
 I
 5
 J
@@ -67,21 +85,26 @@ J
 #1254
 rare harvest tool~
 a rare harvest tool~
-A rare harvest tool has been left here.~
+A felt-lined hardwood case of mithril-edged harvesting tools lies here.~
 ~
 12 0 0 0 0 ao 0 0 0 0 0 0 0
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-1 0 0 1 0
+1 12500 0 1 0
 E
 rare harvest tool~
-This compact set of harvesting implements guarantees at least rare
-quality on successful wilderness harvests while carried or equipped.
-Only your best harvest tool applies. The tool is not consumed.
+A fitted case of dark hardwood lined with green felt holds tools edged in
+bright mithril: a slender pick, a hatchet, a skinning blade and a hooked
+sickle. They are astonishingly light in the hand, and their edges show no
+sign of ever having dulled.
+
+Carried or held, this tool guarantees at least rare quality on successful
+wilderness harvests of every kind. Only your best harvest tool applies,
+tools inside containers do not count, and the tool is never consumed.
 ~
 G
 0
 H
-8
+13
 I
 5
 J
@@ -89,21 +112,28 @@ J
 #1255
 legendary harvest tool~
 a legendary harvest tool~
-A legendary harvest tool has been left here.~
+A dragonhide case of adamantine harvesting tools gleams darkly here.~
 ~
 12 0 0 0 0 ao 0 0 0 0 0 0 0
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-1 0 0 1 0
+1 50000 0 1 0
 E
 legendary harvest tool~
-This compact set of harvesting implements guarantees at least legendary
-quality on successful wilderness harvests while carried or equipped.
-Only your best harvest tool applies. The tool is not consumed.
+A case bound in dragonhide opens on tools forged from adamantine and hafted
+in ironwood: a pick that bites into stone as if it were packed earth, a
+hatchet, a skinning blade that parts hide along its finest grain and a
+sickle that never bruises a leaf. Tiny runes of a long-forgotten artisans'
+guild are etched along every haft.
+
+Carried or held, this tool guarantees at least legendary quality on
+successful wilderness harvests of every kind. Only your best harvest tool
+applies, tools inside containers do not count, and the tool is never
+consumed.
 ~
 G
 0
 H
-8
+12
 I
 5
 J

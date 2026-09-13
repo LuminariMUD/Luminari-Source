@@ -100,13 +100,13 @@ The authored object prototypes are in
 VNUM definitions live in `src/harvest_vnums.h`, which is included by the example
 VNUM configuration. Existing customized `src/vnums.h` files need no edits.
 
-| VNUM | Name | Minimum quality |
-| --- | --- | --- |
-| 1251 | poor harvest tool | Poor |
-| 1252 | common harvest tool | Common |
-| 1253 | uncommon harvest tool | Uncommon |
-| 1254 | rare harvest tool | Rare |
-| 1255 | legendary harvest tool | Legendary |
+| VNUM | Name | Minimum quality | Cost |
+| --- | --- | --- | --- |
+| 1251 | poor harvest tool | Poor | 50 |
+| 1252 | common harvest tool | Common | 500 |
+| 1253 | uncommon harvest tool | Uncommon | 2500 |
+| 1254 | rare harvest tool | Rare | 12500 |
+| 1255 | legendary harvest tool | Legendary | 50000 |
 
 The highest qualifying VNUM in top-level inventory or any equipment slot sets
 `max(rolled_quality, tool_quality)` at completion. Names alone do not identify a

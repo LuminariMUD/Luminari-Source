@@ -11,16 +11,19 @@ The feature checks VNUM, not an object name or a generic tool flag.
 
 The following names and VNUMs are taken directly from `harvest-tools.obj`.
 Each record has type `ITEM_OTHER` (12), wear flags `ao` (`ITEM_WEAR_TAKE`
-at bit 0 and `ITEM_WEAR_HOLD` at bit 14), and weight 1.
+at bit 0 and `ITEM_WEAR_HOLD` at bit 14), weight 1, level 1 and medium size,
+with a room description and an examine description. Material and cost rise
+with the tier: a Poor floor adds nothing because Poor is already the lowest
+roll, while a Legendary floor makes every successful harvest top grade.
 The file contains exactly these five records followed by the `$~` terminator.
 
-| VNUM | Keywords | Short description |
-| --- | --- | --- |
-| 1251 | poor harvest tool | a poor harvest tool |
-| 1252 | common harvest tool | a common harvest tool |
-| 1253 | uncommon harvest tool | an uncommon harvest tool |
-| 1254 | rare harvest tool | a rare harvest tool |
-| 1255 | legendary harvest tool | a legendary harvest tool |
+| VNUM | Keywords | Short description | Material | Cost |
+| --- | --- | --- | --- | --- |
+| 1251 | poor harvest tool | a poor harvest tool | wood | 50 |
+| 1252 | common harvest tool | a common harvest tool | iron | 500 |
+| 1253 | uncommon harvest tool | an uncommon harvest tool | steel | 2500 |
+| 1254 | rare harvest tool | a rare harvest tool | mithril | 12500 |
+| 1255 | legendary harvest tool | a legendary harvest tool | adamantine | 50000 |
 
 ## World installation
 
