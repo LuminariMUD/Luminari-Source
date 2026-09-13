@@ -49,12 +49,17 @@ Optional compiler caching and faster unoptimized development builds:
 
 ```bash
 sudo apt install ccache
-./configure CC="ccache gcc"
+export PATH=/usr/lib/ccache:$PATH
+./configure
 # Optional: use this instead when optimizing edit/compile latency.
-./configure CC="ccache gcc" CFLAGS="-g -O0"
+./configure CFLAGS="-g -O0"
 ```
 
-Clean once when switching an existing build's compiler or flags. CI retains its optimized
+Put the `PATH` export in your shell profile so every build and test shell sees it. Do not
+configure with `CC="ccache gcc"`: the test gates run `$CC` as a single program name, so
+`make test` fails with `ccache gcc: command not found`. The ccache masquerade directory
+keeps `CC=gcc` and is what CI uses. Clean once when switching an existing build's compiler
+or flags. CI retains its optimized
 and instrumented profiles. For CMake, add `-DCMAKE_C_COMPILER_LAUNCHER=ccache` to configure;
 `cmake --preset dev` already selects a debug build.
 

@@ -1058,8 +1058,9 @@ test: run-cutest test-cutest-runner check-build-parity test-clean-archive-runtim
 	test-vessel-tooling
 
 # Build check programs once before running the suite, alongside the shell gates.
+# An inherited CUTEST_FILTER must not narrow the authoritative run.
 run-cutest: check
-	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" \
+	CUTEST_FILTER= LUMINARI_TEST_ROOT="$(abs_top_srcdir)" \
 		LUMINARI_TEST_SPEC_WORLD_ROOT="$(abs_top_srcdir)/unittests/CuTest/fixtures/spec_world_inventory" \
 		./cutest
 

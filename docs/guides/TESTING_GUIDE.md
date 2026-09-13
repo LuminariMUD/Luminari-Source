@@ -26,7 +26,10 @@ CUTEST_FILTER=Test_mob_autoroll ./cutest
 ```
 
 `CUTEST_FILTER` matches a case-sensitive substring of the registered test name. Unset or
-empty runs all tests; no matches returns failure. Leave it unset for full validation.
+empty runs all tests; no matches returns failure. A filtered run prints
+`CUTEST_FILTER=<value>: N of M tests selected` before the results. The `make test`,
+`make test-all`, and CTest `production-cutest` entry points clear the variable, so an
+exported filter cannot narrow full validation.
 The runner lists each test taking more than one second after the result summary, including
 failed tests and wall time spent in child processes. Timing is diagnostic, not a pass gate.
 

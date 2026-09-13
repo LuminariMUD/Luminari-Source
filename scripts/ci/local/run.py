@@ -128,6 +128,7 @@ def main():
     parser.add_argument('--cpus', type=int, default=4, help='cores per container')
     parser.add_argument('--cache', type=Path, default=Path.home() / '.cache/luminari-ci/ccache')
     parser.add_argument('--results', type=Path)
+    parser.add_argument('--timeout', type=int, default=45, help='minutes per container')
     parser.add_argument('--list', action='store_true')
     parser.add_argument('--job', help='run one job name from --list')
     args = parser.parse_args()
@@ -197,7 +198,9 @@ def main():
             descriptor = Path(directory, job['name'] + '.json')
             descriptor.write_text(json.dumps(job))
             selected = cpu_groups.get()
-            command = ['docker', 'run', '--rm', '--init', '--user', f'{os.getuid()}:{os.getgid()}',
+            container = f'luminari-ci-{os.getpid()}-{job['name']}'
+            command = ['docker', 'run', '--rm', '--init', '--name', container,
+                       '--user', f'{os.getuid()}:{os.getgid()}',
                        '--cpuset-cpus', ','.join(map(str, selected)), '--workdir', '/workspace',
                        '--tmpfs', f'/workspace:exec,mode=0755,uid={os.getuid()},gid={os.getgid()}',
                        '-v', f'{source}:/input/source.tar:ro',
@@ -208,7 +211,12 @@ def main():
             begin = time.monotonic()
             try:
                 with (job_dir / 'job.log').open('w') as log:
-                    status = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT).returncode
+                    status = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT,
+                                            timeout=args.timeout * 60).returncode
+            except subprocess.TimeoutExpired:
+                subprocess.run(['docker', 'kill', container], stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL)
+                status = 124
             finally:
                 cpu_groups.put(selected)
             result = dict(job=job['name'], status=status, seconds=round(time.monotonic() - begin, 2))

@@ -281,6 +281,7 @@ jobs:
   unit-tests:
     name: Production-linked tests (both I/O drivers)
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     services:
       mariadb:
         image: mariadb:10.11

@@ -172,8 +172,9 @@ this is what would have made the 31 s boot visible months ago.
 - `AGENTS.md` and `docs/guides/SETUP_AND_BUILD_GUIDE.md`: the normal build is
   `make -j$(nproc)`; `make clean` is for configure or `Makefile.am` changes or a suspect
   tree. With working dependency files a header edit rebuilds exactly what includes it.
-- Install `ccache` on the host (`sudo apt install ccache`, needs the user), configure with
-  `CC="ccache gcc"`, and mount the cache directory into the local CI containers. Objects
+- Install `ccache` on the host (`sudo apt install ccache`, needs the user), put
+  `/usr/lib/ccache` first on `PATH` (a `CC="ccache gcc"` configure breaks the shell test
+  gates), and mount the cache directory into the local CI containers. Objects
   of an unchanged tree then cost about 5 ms each instead of 0.3 s.
 - Optional: a dev configure with `CFLAGS="-g -O0"` (or the CMake `dev` preset). One-file
   compiles drop from 2.8 s to 0.75 s. Keep `-O2` for CI. Not required; the incremental

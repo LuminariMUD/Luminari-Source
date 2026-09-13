@@ -22,6 +22,7 @@ extern FILE *logfile;
 /* Filtering is confined to this generated runner; nested suites still run fully. */
 #define ADD_MATCHING_TEST(suite, test) \
     do { \
+        registered++; \
         if (filter == NULL || strstr(#test, filter) != NULL) \
             SUITE_ADD_TEST(suite, test); \
     } while (0)
@@ -43,6 +44,7 @@ int RunAllTests(void)
     CuSuite* suite = CuSuiteNew();
     int fail_count;
     const char *filter = getenv("CUTEST_FILTER");
+    int registered = 0;
 
 '
 cat $FILES | grep '^void Test' |
@@ -60,6 +62,8 @@ echo \
         CuSuiteDelete(suite);
         return 1;
     }
+    if (filter != NULL && *filter != '\0')
+        printf("CUTEST_FILTER=%s: %d of %d tests selected\n", filter, suite->count, registered);
     CuSuiteRun(suite);
     CuSuiteSummary(suite, output);
     CuSuiteDetails(suite, output);

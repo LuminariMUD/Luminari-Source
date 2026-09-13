@@ -1150,7 +1150,7 @@ if (BUILD_TESTS)
     add_test(NAME production-cutest COMMAND cutest)
     set_tests_properties(production-cutest PROPERTIES
         ENVIRONMENT
-            "LUMINARI_TEST_ROOT=${CMAKE_CURRENT_SOURCE_DIR};LUMINARI_TEST_SPEC_WORLD_ROOT=${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest/fixtures/spec_world_inventory"
+            "CUTEST_FILTER=;LUMINARI_TEST_ROOT=${CMAKE_CURRENT_SOURCE_DIR};LUMINARI_TEST_SPEC_WORLD_ROOT=${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest/fixtures/spec_world_inventory"
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     add_test(NAME demand-driven-event-architecture
