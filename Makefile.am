@@ -255,6 +255,9 @@ luminari_SOURCES = \
 	src/rol_feats.c \
 	src/olc/redit.c \
 	src/wilderness/resource_system.c \
+	src/wilderness/harvest.c \
+	src/wilderness/harvest.h \
+	src/harvest_vnums.h \
 	src/wilderness/resource_depletion.c \
 	src/wilderness/resource_descriptions.c \
 	src/wilderness/resource_regeneration.c \

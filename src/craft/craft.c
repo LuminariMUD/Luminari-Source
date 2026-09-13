@@ -40,6 +40,7 @@
 #include "combat/assign_wpn_armor.h"
 #include "olc/genolc.h"
 #include "wilderness/resource_system.h"
+#include "wilderness/harvest.h"
 
 extern MYSQL *conn;
 
@@ -3231,6 +3232,22 @@ ACMD(do_harvest)
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   char buf[MEDIUM_STRING] = {'\0'};
   int sub_command = SCMD_CRAFT_UNDF;
+
+  /* Explicit legacy nodes retain their original path. Category harvests store
+   * crafting balances and do not depend on physical inventory capacity. */
+  if (ch && IN_ROOM(ch) != NOWHERE && IN_ROOM(ch) <= top_of_world &&
+      ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS) &&
+      wilderness_harvest_crafting_enabled())
+  {
+    one_argument(argument, arg, sizeof(arg));
+    node = *arg ? get_obj_in_list_vis(ch, arg, NULL, world[IN_ROOM(ch)].contents) : NULL;
+    if (!node || GET_OBJ_VNUM(node) != HARVESTING_NODE)
+    {
+      do_wilderness_harvest(ch, argument, cmd, subcmd);
+      return;
+    }
+    node = NULL;
+  }
 
   if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch))
   {

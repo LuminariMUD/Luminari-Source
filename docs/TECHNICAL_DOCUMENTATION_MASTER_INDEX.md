@@ -102,6 +102,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[wilderness_system.md](world_game-data/wilderness_system.md)** - Dynamic wilderness generation
 - **[SPATIAL_SYSTEMS_ARCHITECTURE.md](systems/SPATIAL_SYSTEMS_ARCHITECTURE.md)** - Spatial visual and audio systems with triple strategy pattern
 - **[RESOURCE_SYSTEM_TECHNICAL.md](systems/RESOURCE_SYSTEM_TECHNICAL.md)** - Wilderness resource system with flexible region effects
+- [Wilderness category harvesting](systems/WILDERNESS_HARVESTING.md) - Issue #145: full-round rewards, quality tools, and configuration.
 - **[RESOURCE_REGENERATION_SYSTEM.md](systems/RESOURCE_REGENERATION_SYSTEM.md)** - Resource regeneration with seasonal and weather effects
 - **[RESOURCE_REGENERATION_QUICK_REFERENCE.md](systems/RESOURCE_REGENERATION_QUICK_REFERENCE.md)** - Quick reference for resource regeneration system
 - **[DYNAMIC_RESOURCE_DESCRIPTIONS_PLAN.md](systems/DYNAMIC_RESOURCE_DESCRIPTIONS_PLAN.md)** - Dynamic environment descriptions based on resource state

@@ -16,6 +16,7 @@ depend
 *.ko
 *.obj
 !data/pet-lycanthropes/*.obj
+!data/harvest-tools/*.obj
 !scripts/world/tests/fixtures/rol_inventory/valid/areas/obj/*.obj
 *.elf
 *.lo

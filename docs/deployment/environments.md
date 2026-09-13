@@ -106,3 +106,11 @@ See [Deployment and CI/CD](DEPLOYMENT_GUIDE.md), the detailed
 [incident runbook](../runbooks/incident-response.md). The targeted Phase 00
 security and privacy result is recorded in the
 [validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md#security-and-privacy-assessment).
+
+## Wilderness harvesting
+
+`WILDERNESS_HARVEST_CRAFTING=TRUE` enables full-round category harvesting into
+usable crafting balances. It defaults to true. Set it to `FALSE` to restore
+the earlier wilderness-storage route. Node systems keep their current behavior.
+See [Wilderness harvesting](../systems/WILDERNESS_HARVESTING.md). The requested
+`lib/.env.example` spelling links to the maintained `lib/.env_example` template.
