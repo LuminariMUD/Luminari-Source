@@ -311,11 +311,53 @@ sudo journalctl -u luminari.service -n 200 --no-pager
 sudo systemctl restart luminari.service
 ```
 
-As of the Phase 00 transition on 2026-08-07, the endpoint, probe, and rendered
-unit passed against an isolated local MariaDB runtime. Installing the released
-unit, restarting the production service, and probing production readiness still
-require an approved operator action; local success is not a production
-activation claim.
+Installing a released unit and restarting production require an approved
+operator action. Local validation alone does not establish production activation.
+
+### Production Health Activation Evidence
+
+The production follow-up from the 2026-08-07 Phase 00 transition was completed
+during the 2026-08-21 binary rename cutover. The
+[committed production cutover record][production-health-cutover] establishes:
+
+| Check | Recorded production result on 2026-08-21 |
+|-------|------------------------------------------|
+| Checkout | `3a38a6ae` |
+| Immutable release / ELF build ID | `99d5df5459163ec6705e9262a20cde71e7323f21` |
+| Canonical unit | Installed, reloaded, and confirmed identical to the repository copy |
+| Service restart | Completed with no players connected |
+| Startup readiness | `ExecStartPost` ran `scripts/operations/healthcheck.sh --wait`, retried during boot, and exited 0 |
+| Stop/start verification | A subsequent full stop/start also passed the readiness probe |
+| Final runtime | Canonical release serving game port 4100; health reported `healthy` |
+
+Read-only production verification on 2026-09-13, 10:05-10:09 UTC, also passed:
+
+| Check | Observed production result |
+|-------|----------------------------|
+| Environment | `APP_ENV=production` |
+| Running release / ELF build ID | `8d4a8dd8e1932cae25987737eb702fb67c89191e` |
+| Release manifest | `GIT_COMMIT=31b240eb9e83757058f701d54a93936644bc088a`, `GIT_DIRTY=1` |
+| Process identity | PID `1014220`; `/proc/1014220/exe` matched the installed `bin/luminari` release, and `readelf -nW` confirmed its build ID |
+| Listeners | The same MUD PID served game port 4100 and loopback `127.0.0.1:8182` |
+| Installed unit | Matched the canonical unit; systemd reported `active/running`, `NeedDaemonReload=no`, and the configured `healthcheck.sh --wait` startup probe |
+| `scripts/operations/healthcheck.sh` | Exit 0; service `luminari-mud`, status `healthy`, database `healthy` |
+| `scripts/operations/healthcheck.sh --wait` | Exit 0; status `healthy`, database `healthy` |
+| `GET /health/ready` | HTTP 200; status `healthy`, database `healthy` |
+| `GET /health/live` | HTTP 200; status `healthy`, database `not_checked` |
+
+The probes reported `uptime_seconds=7718`. The release manifest records a
+dirty build, so retain the observed ELF build ID when identifying this runtime.
+The 2026-09-13 verification did not install, restart, or modify production.
+The historical record above supplies the completed startup-probe evidence;
+the current systemd query did not retain its execution timestamps.
+
+This production evidence satisfies the completion criterion in
+[issue #161](https://github.com/LuminariMUD/Luminari-Source/issues/161).
+The activation was already complete; it does not require another restart to
+close the historical follow-up. Use the probes below to assess current health
+after subsequent releases.
+
+[production-health-cutover]: https://github.com/LuminariMUD/Luminari-Source/blob/aaea5fd9643f897aa5c56acec00698a29377c05c/docs/ongoing-projects/BINARY_RENAME_CIRCLE_TO_LUMINARI.md#2026-08-21---production-maintenance-cutover-complete
 
 ## Readiness and Liveness
 
