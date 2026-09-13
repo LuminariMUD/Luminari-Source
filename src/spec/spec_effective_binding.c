@@ -400,7 +400,7 @@ const char *spec_effective_outcome_name(enum spec_effective_outcome outcome)
   }
 }
 
-/* Hyphenated tokens: these appear in the machine-readable SPEC_BIND_* boot log,
+/* Hyphenated tokens: these appear in the machine-readable SPEC_BIND_* diagnostics,
  * which is a distinct format from the spaced builder-facing names in
  * spec_binding.c. */
 static const char *spec_effective_source_token(spec_binding_source_mask source)
@@ -534,23 +534,4 @@ bool spec_effective_binding_format_final(const struct spec_effective_binding *bi
                      authored, binding->contribution_count, binding->collision_count, chosen_source,
                      chosen);
   return written >= 0 && (size_t)written < buffer_size;
-}
-
-void spec_effective_binding_log(const struct spec_effective_binding *binding, bool no_specials_mode)
-{
-  char diagnostic[MAX_STRING_LENGTH];
-  size_t index;
-
-  if (binding == NULL)
-    return;
-
-  for (index = 0; index < binding->contribution_count; index++)
-  {
-    if (spec_effective_binding_format_contribution(binding, index, no_specials_mode, diagnostic,
-                                                   sizeof(diagnostic)))
-      log("%s", diagnostic);
-  }
-  if (spec_effective_binding_format_final(binding, no_specials_mode, diagnostic,
-                                          sizeof(diagnostic)))
-    log("%s", diagnostic);
 }

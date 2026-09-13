@@ -26,10 +26,12 @@ or incompatible and installs no callback. Merely opening and saving OLC keeps
 that request. Select a menu entry to replace it with a canonical name, or enter
 0 to clear the authored procedure and omit it on the next zone save.
 
-At boot, SPEC_BIND lines show ordered world, parser-hook, legacy-assignment,
-shop, and quest contributions. SPEC_BIND_FINAL shows the authored request,
-chosen callback, source, and collision count. In -s mode only sources that
-actually run are reported; -s is not a global callback-disable switch.
+At boot, one SPEC_BIND_SUMMARY line reports aggregate prototype, contribution,
+and collision counts. Detailed binding histories are available through SPECBIND.
+Collisions count repeated assignments, including the same callback, and do not
+necessarily indicate errors. Invalid-binding warnings still appear in syslog.
+In -s mode only sources that actually run are recorded;
+-s is not a global callback-disable switch.
 
 Immortal staff can inspect the same recorded post-boot chain on a live server
 with SPECBIND <mob|obj|room> <vnum>. The command reports the effective callback,

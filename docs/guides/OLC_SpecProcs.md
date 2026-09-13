@@ -307,15 +307,15 @@ Choose either moving-room behavior or a registry-backed room SpecProc before sav
 
 ## Startup Diagnostics
 
-Boot logs effective binding provenance after the normal assignment sequence. Each contribution is
-one `SPEC_BIND` line containing the mode, owner, VNUM, step, source, requested name, installed
-handler, outcome, source location, and saved secondary handler. A `SPEC_BIND_FINAL` line then gives
-the authored name, contribution and collision counts, and final source and handler. The surrounding
-`SPEC_BIND_SUMMARY` lines provide aggregate prototype, contribution, and collision counts.
+Boot logs one `SPEC_BIND_SUMMARY` line after the normal assignment sequence, with the mode and
+aggregate prototype, contribution, and collision counts. Detailed per-prototype `SPEC_BIND` and
+`SPEC_BIND_FINAL` records are not written to syslog. Invalid-binding warnings and `ITEM_AUTOPROC`
+errors still log normally. Collisions count every assignment after the first, including repeated
+assignments of the same callback; they do not necessarily indicate errors.
 
 This report is a boot-time snapshot. Later OLC reassignment does not rewrite the recorded chain.
 
-Immortal staff can inspect that snapshot without searching the boot log:
+Immortal staff can inspect the detailed snapshot on demand:
 
 ```text
 specbind <mob|obj|room> <vnum>

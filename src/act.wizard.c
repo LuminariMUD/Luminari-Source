@@ -13463,9 +13463,8 @@ ACMD(do_settestkit)
 /* specbind - inspect the complete post-boot special-procedure binding chain for
  * one prototype.
  *
- * Boot already logs every contribution, but a log dump is not a diagnostic a
- * builder or operator can use against a live server. This command reports the
- * same recorded provenance on demand: the authored world name, every ordered
+ * Boot logs aggregate counts. This command reports the recorded provenance
+ * on demand: the authored world name, every ordered
  * contribution with its source and source location, each collision outcome,
  * saved shop and quest secondaries, and the final chosen callback.
  */

@@ -452,10 +452,12 @@ general chain. Under `-s`, world names and parser hooks still load while the ass
 skipped. Effective reporting remains outside that block and labels the mode, so it describes the
 path that ran without becoming a new global dispatch gate.
 
-Each contribution emits a bounded `SPEC_BIND` line. `SPEC_BIND_FINAL` records the latest authored
-request, contribution and collision counts, and final source/handler. `SPEC_BIND_SUMMARY` brackets
-the report and provides aggregate counts. Text inputs are owned, single-line validated, and escaped
-before formatting.
+Boot emits one `SPEC_BIND_SUMMARY` line with aggregate prototype, contribution, and collision
+counts. Per-prototype histories remain in memory for `specbind`; routine `SPEC_BIND` and
+`SPEC_BIND_FINAL` records are not written to syslog. Existing invalid-binding warnings and
+`ITEM_AUTOPROC` errors still log normally. Collisions count every contribution after the first,
+including repeated assignments of the same callback; they do not necessarily indicate errors.
+Text inputs are owned, single-line validated, and escaped by the structured diagnostic formatters.
 
 Immortal staff can inspect one prototype's recorded post-boot history with
 `specbind <mob|obj|room> <vnum>`. The command is read-only and does not recompute the boot snapshot.

@@ -893,13 +893,13 @@ static void report_effective_spec_bindings(void)
   collisions = 0;
   contributions = 0;
   prototypes = 0;
-  log("SPEC_BIND_SUMMARY mode=%s status=begin", no_specials ? "no_specials" : "normal");
+
+  /* Keep boot logging concise; staff can inspect each recorded chain with specbind. */
 
   for (mobile = 0; mobile <= top_of_mobt; mobile++)
   {
     if (mob_index[mobile].effective_binding == NULL)
       continue;
-    spec_effective_binding_log(mob_index[mobile].effective_binding, no_specials != 0);
     prototypes++;
     contributions += mob_index[mobile].effective_binding->contribution_count;
     collisions += mob_index[mobile].effective_binding->collision_count;
@@ -908,7 +908,6 @@ static void report_effective_spec_bindings(void)
   {
     if (obj_index[object].effective_binding == NULL)
       continue;
-    spec_effective_binding_log(obj_index[object].effective_binding, no_specials != 0);
     prototypes++;
     contributions += obj_index[object].effective_binding->contribution_count;
     collisions += obj_index[object].effective_binding->collision_count;
@@ -917,7 +916,6 @@ static void report_effective_spec_bindings(void)
   {
     if (world[room].effective_binding == NULL)
       continue;
-    spec_effective_binding_log(world[room].effective_binding, no_specials != 0);
     prototypes++;
     contributions += world[room].effective_binding->contribution_count;
     collisions += world[room].effective_binding->collision_count;

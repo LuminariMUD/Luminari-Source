@@ -148,9 +148,11 @@ saved secondary state. The record is diagnostic only: it never dispatches a
 callback and is never serialized.
 
 The sources are named world data, moving-room parser hook, legacy assignment,
-shop wrapper, and quest wrapper. Formatters emit bounded `SPEC_BIND` and
-`SPEC_BIND_FINAL` records within `SPEC_BIND_SUMMARY`. Allocation or formatting
-failure may log an error but cannot suppress an established callback assignment.
+shop wrapper, and quest wrapper. Boot logs one `SPEC_BIND_SUMMARY` with aggregate
+counts, while detailed history is available through `specbind`. Bounded
+`SPEC_BIND` and `SPEC_BIND_FINAL` formatters remain available for diagnostics
+but do not write to syslog. Allocation failure may log an error but cannot
+suppress an established callback assignment.
 
 With specials enabled, preserved write order is world/parser load, mobile
 assignment, shop wrapping, object assignment, room assignment, and quest

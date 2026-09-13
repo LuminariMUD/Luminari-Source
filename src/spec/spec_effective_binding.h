@@ -98,8 +98,4 @@ bool spec_effective_binding_format_contribution(const struct spec_effective_bind
 bool spec_effective_binding_format_final(const struct spec_effective_binding *binding,
                                          bool no_specials_mode, char *buffer, size_t buffer_size);
 
-/** Log every contribution and the final winner for one prototype. */
-void spec_effective_binding_log(const struct spec_effective_binding *binding,
-                                bool no_specials_mode);
-
 #endif /* LUMINARI_SPEC_EFFECTIVE_BINDING_H */

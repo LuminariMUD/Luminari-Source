@@ -26,7 +26,8 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'preserves the exact authored request') > 0
   AND INSTR(entry, 'Select a menu entry to replace') > 0
   AND INSTR(entry, '0 to clear the authored procedure') > 0
-  AND INSTR(entry, 'SPEC_BIND_FINAL') > 0
+  AND INSTR(entry, 'one SPEC_BIND_SUMMARY line') > 0
+  AND INSTR(entry, 'Collisions count repeated assignments') > 0
   AND INSTR(entry, 'SPECBIND <mob|obj|room> <vnum>') > 0
   AND INSTR(entry, 'SPECBIND is read-only') > 0
   AND INSTR(entry, 'not a persisted multiple-procedure dispatch chain') > 0
