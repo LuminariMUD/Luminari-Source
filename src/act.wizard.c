@@ -838,6 +838,7 @@ ACMD(do_vnum)
 
 #define ZOCMD zone_table[zrnum].cmd[subcmd]
 
+/** Display the supported reset commands associated with a room to a staff member. */
 static void list_zone_commands_room(struct char_data *ch, room_vnum rvnum)
 {
   zone_rnum zrnum = real_zone_by_thing(rvnum);

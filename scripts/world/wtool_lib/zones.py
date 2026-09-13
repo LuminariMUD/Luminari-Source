@@ -164,6 +164,7 @@ def _validate_zone_header(
 
 
 def _command_shape(command: str) -> tuple[int, int]:
+  """Return the minimum and maximum integer counts, including the if-flag."""
   if command in _FLEX_FIVE:
     return 4, 5
   if command == "G":
@@ -250,6 +251,7 @@ def _parse_command(
     direction_count: int,
     wear_count: int,
 ) -> ResetCommandRecord | None:
+  """Parse a supported reset and attach argument and range diagnostics."""
   command_text = line.text.lstrip()
   command = command_text[0]
   payload = command_text[1:].lstrip()
@@ -559,6 +561,7 @@ def parse_zone_file(
     manifest: dict[str, Any],
     direction_count: int,
 ) -> ParseResult[ZoneRecord]:
+  """Read one zone and validate its header, resets, references, and terminators."""
   result: ParseResult[ZoneRecord] = ParseResult()
   try:
     source = SourceFile.from_path(path, display_path)

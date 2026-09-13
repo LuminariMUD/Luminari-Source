@@ -511,7 +511,7 @@ bool zedit_get_levels(struct descriptor_data *d, char *buf)
 /*------------------------------------------------------------------*/
 /* Menu functions */
 
-/* the main menu */
+/** Display zone properties and the editable reset command list. */
 static void zedit_disp_menu(struct descriptor_data *d)
 {
   int subcmd = 0, counter = 0, maxcount;
@@ -751,7 +751,7 @@ static void zedit_disp_menu(struct descriptor_data *d)
   OLC_MODE(d) = ZEDIT_MAIN_MENU;
 }
 
-/* Print the command type menu and setup response catch. */
+/** List supported reset types and enter the command-type input state. */
 static void zedit_disp_comtype(struct descriptor_data *d)
 {
   get_char_colors(d->character);
@@ -771,8 +771,7 @@ static void zedit_disp_comtype(struct descriptor_data *d)
   OLC_MODE(d) = ZEDIT_COMMAND_TYPE;
 }
 
-/* Print the appropriate message for the command type for arg1 and set
-   up the input catch clause */
+/** Prompt for the selected reset's first argument and enter its input state. */
 static void zedit_disp_arg1(struct descriptor_data *d)
 {
   write_to_output(d, "\r\n");
@@ -818,8 +817,7 @@ static void zedit_disp_arg1(struct descriptor_data *d)
   }
 }
 
-/* Print the appropriate message for the command type for arg2 and set
-   up the input catch clause. */
+/** Prompt for the selected reset's second argument and enter its input state. */
 static void zedit_disp_arg2(struct descriptor_data *d)
 {
   int i;
@@ -867,8 +865,7 @@ static void zedit_disp_arg2(struct descriptor_data *d)
   OLC_MODE(d) = ZEDIT_ARG2;
 }
 
-/* Print the appropriate message for the command type for arg3 and set
-   up the input catch clause. */
+/** Prompt for the third argument, including direction or wear-slot choices. */
 static void zedit_disp_arg3(struct descriptor_data *d)
 {
   write_to_output(d, "\r\n");
@@ -924,8 +921,7 @@ static void zedit_disp_arg3(struct descriptor_data *d)
   OLC_MODE(d) = ZEDIT_ARG3;
 }
 
-/* Print the appropriate message for the command type for arg4 and set
-   up the input catch clause. */
+/** Prompt for the load probability of resets with a fourth argument. */
 static void zedit_disp_arg4(struct descriptor_data *d)
 {
   write_to_output(d, "\r\n");
@@ -955,6 +951,7 @@ static void zedit_disp_arg4(struct descriptor_data *d)
   OLC_MODE(d) = ZEDIT_ARG4;
 }
 
+/** Ask whether a mobile reset counts its maximum globally or in the room. */
 static void zedit_disp_gr_query(struct descriptor_data *d)
 {
   write_to_output(d, "\r\n");
@@ -1009,7 +1006,7 @@ void zedit_disp_levels(struct descriptor_data *d)
   OLC_MODE(d) = ZEDIT_LEVELS;
 }
 
-/* The event handler */
+/** Validate one zone-editor response and advance, save, or cancel the edit. */
 void zedit_parse(struct descriptor_data *d, char *arg)
 {
   int pos, number, i;

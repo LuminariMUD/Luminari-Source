@@ -31,22 +31,26 @@ class ZoneParserTests(unittest.TestCase):
     self.assertFalse(result.complete)
 
   def test_indented_reset_is_accepted(self) -> None:
+    """Accept leading whitespace without losing the reset command."""
     result = self.parse("broken/prescan.zon")
     self.assertEqual([], result.findings)
     self.assertEqual("M", result.records[0].commands[0].command)
 
   def test_dependency_unsupported_reset_and_variable_traps_are_diagnosed_together(self) -> None:
+    """Report each independent reset defect with its diagnostic code."""
     result = self.parse("broken/reset-traps.zon")
     codes = {finding.code for finding in result.findings}
-    self.assertTrue({"ZON023", "ZON019", "ZON035"} <= codes)
+    self.assertLessEqual({"ZON023", "ZON019", "ZON035"}, codes)
 
   def test_r_accepts_legacy_three_integer_form(self) -> None:
+    """Preserve the legacy R form with no explicit removal probability."""
     result = self.parse("valid/100.zon")
     remove = next(command for command in result.records[0].commands if command.command == "R")
     self.assertEqual([10000, 30000], remove.arguments)
     self.assertNotIn("ZON021", {finding.code for finding in result.findings})
 
   def test_i_r_and_whitespace_match_loader(self) -> None:
+    """Match production parsing for I, R, whitespace, and saved placeholders."""
     with tempfile.TemporaryDirectory() as directory:
       path = Path(directory) / "123.zon"
       path.write_text(

@@ -345,7 +345,7 @@ void Test_world_loading_production_rol_whole_armor_conflicts(CuTest *tc)
   CuAssertTrue(tc, rol_object_wear_conflicts(&ch, &face, WEAR_FACE));
 }
 
-/* The production loader exits on malformed input and retains its zone index.
+/** The production loader exits on malformed input and retains its zone index.
  * Fork fixtures so both behaviors are exercised without contaminating the suite. */
 static void assert_world_loader_child(CuTest *tc, pid_t child, int expected_status)
 {
@@ -357,6 +357,7 @@ static void assert_world_loader_child(CuTest *tc, pid_t child, int expected_stat
   CuAssertIntEquals(tc, expected_status, WEXITSTATUS(status));
 }
 
+/** Verify I and both R forms survive whitespace and legacy saved placeholders. */
 void Test_world_loading_production_zone_reset_dispatch_and_whitespace(CuTest *tc)
 {
   pid_t child;
@@ -400,6 +401,7 @@ void Test_world_loading_production_zone_reset_dispatch_and_whitespace(CuTest *tc
   assert_world_loader_child(tc, child, 0);
 }
 
+/** Check supported header defaults and physical-line warnings for ignored suffixes. */
 void Test_world_loading_production_zone_header_forms_and_diagnostics(CuTest *tc)
 {
   pid_t child;
@@ -463,6 +465,7 @@ void Test_world_loading_production_zone_header_forms_and_diagnostics(CuTest *tc)
   assert_world_loader_child(tc, child, 0);
 }
 
+/** Keep the first reset and its line number when repairing a missing builder line. */
 void Test_world_loading_production_zone_without_builder_preserves_first_reset(CuTest *tc)
 {
   pid_t child;
@@ -489,6 +492,7 @@ void Test_world_loading_production_zone_without_builder_preserves_first_reset(Cu
   assert_world_loader_child(tc, child, 0);
 }
 
+/** Reject the removed L reset with the source filename and physical line. */
 void Test_world_loading_production_unsupported_zone_reset_reports_line(CuTest *tc)
 {
   pid_t child;
@@ -525,6 +529,7 @@ void Test_world_loading_production_unsupported_zone_reset_reports_line(CuTest *t
       tc, strstr(output, "Unknown zone reset command 'L' in unsupported-fixture.zon, line 5"));
 }
 
+/** Report each missing exit destination while preserving valid and NOWHERE exits. */
 void Test_world_loading_production_exit_diagnostics(CuTest *tc)
 {
   struct room_data rooms[2] = {0};

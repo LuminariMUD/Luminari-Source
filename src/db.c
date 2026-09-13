@@ -2597,7 +2597,7 @@ static void check_start_rooms(void)
   }
 }
 
-/* resolve all vnums into rnums in the world */
+/** Resolve exit vnums once at boot and report destinations replaced with NOWHERE. */
 void renum_world(void)
 {
   room_rnum room;
@@ -2625,7 +2625,7 @@ void renum_world(void)
 #endif
 #define ZCMD zone_table[zone].cmd[cmd_no]
 
-/* Resolve vnums into rnums in the zone reset tables. In English: Once all of
+/** Resolve vnums into rnums in the zone reset tables. In English: Once all of
  * the zone reset tables have been loaded, we resolve the virtual numbers into
  * real numbers all at once so we don't have to do it repeatedly while the game
  * is running.  This does make adding any room, mobile, or object a little more
@@ -4231,7 +4231,7 @@ const char *parse_object(FILE *obj_f, int nr)
   }
 }
 
-/* Supported header forms are 4, 10, 11 and 14 fields. Keep legacy defaults,
+/** Supported header forms are 4, 10, 11 and 14 fields. Keep legacy defaults,
  * but report any suffix that the selected form cannot consume. */
 static bool parse_zone_header(struct zone_data *zone, char *line, const char *name, int line_num)
 {
@@ -4274,7 +4274,7 @@ static bool parse_zone_header(struct zone_data *zone, char *line, const char *na
 
 #define Z zone_table[zone]
 
-/* load the zone table and command tables */
+/** Load one zone and advance the boot-time zone index; malformed input is fatal. */
 static void load_zones(FILE *fl, char *zonename)
 {
   static zone_rnum zone = 0;
@@ -4508,6 +4508,7 @@ static void load_zones(FILE *fl, char *zonename)
 #undef Z
 
 #ifdef LUMINARI_CUTEST
+/** Exercise the production loader, including its fatal errors and retained index. */
 void test_load_zones(FILE *fl, char *zonename)
 {
   load_zones(fl, zonename);
@@ -5632,6 +5633,7 @@ void reset_zone(zone_rnum zone)
   domain_transfer_context_finish(&context);
 }
 
+/** Execute resolved resets within the caller's transfer context and update zone state. */
 static void reset_zone_transfer_impl(zone_rnum zone)
 {
   int cmd_no = 0, jump = 0, total_rooms = 0, num_chests = 0, max_chests = 0;

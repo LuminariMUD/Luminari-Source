@@ -406,7 +406,7 @@ void remove_room_zone_commands(zone_rnum zone, room_rnum room_num)
   }
 }
 
-/* Save all the zone_table for this zone to disk.  This function now writes
+/** Save all the zone_table for this zone to disk.  This function now writes
  * simple comments in the form of (<name>) to each record.  A header for each
  * field is also there. */
 int save_zone(zone_rnum zone_num)
