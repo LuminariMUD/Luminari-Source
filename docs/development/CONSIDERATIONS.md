@@ -41,8 +41,10 @@ Durable behavior and evidence live in the
 
 - **MariaDB is mandatory:** Boot, production-linked tests, and readiness require a reachable
   MySQL/MariaDB service. Keep test databases isolated and never reuse credential-bearing `lib/`.
-- **Production health activation is pending:** The local endpoint and rendered unit pass, but the
-  approved production release still needs unit installation, restart, and a readiness probe.
+- **Production health activation is verified:** The 2026-08-21 production cutover installed the
+  canonical unit, restarted the service, and passed the readiness probe. See the
+  [release evidence](../deployment/DEPLOYMENT_GUIDE.md#production-health-activation-evidence).
+  Continue readiness and liveness checks after subsequent releases.
 - **Infrastructure coverage remains partial:** Health is delivered; security, backup, and deploy
   work still needs bounded production-safe validation when those surfaces change.
 
@@ -143,7 +145,7 @@ Durable behavior and evidence live in the
 | Opaque boot precedence | Ordered effective records expose world, parser, legacy, shop, and quest contributions and final callbacks. |
 | Moving-room and named-procedure collision | Loader, REdit, and writer boundaries reject shared room-slot ownership before mutation. |
 | Clean-checkout CI runtime failures | Isolated fixtures repaired production tests, sanitizers, coverage, syntax boot, and network smoke tests. |
-| Missing service readiness contract | Loopback health routes, a bounded probe, systemd startup enforcement, and CI smoke coverage are complete locally. |
+| Missing service readiness contract | Loopback health routes, a bounded probe, systemd startup enforcement, and CI smoke coverage are delivered; production activation passed on 2026-08-21 (see the deployment guide evidence above). |
 
 ## Vessel System
 

@@ -164,10 +164,13 @@ example project snapshots rather than current project entry points.
 
 ### Documented Operational Follow-Up
 
-- The approved production release still needs the canonical systemd unit installed/restarted and
-  the readiness endpoint probed. Repository policy prohibited that production mutation from this
-  development checkout; the local equivalent passed and the exception remains in the
-  [production health activation issue](https://github.com/LuminariMUD/Luminari-Source/issues/161).
+- Production health activation was completed on 2026-08-21 during the binary rename cutover.
+  The canonical unit was installed/reloaded, the service restarted, and its startup readiness
+  probe exited 0. On 2026-09-13, the historical production evidence was reconciled with
+  [issue #161](https://github.com/LuminariMUD/Luminari-Source/issues/161), and read-only production
+  readiness/liveness probes passed again. Both release identities and the original committed
+  record are now linked from the
+  [deployment guide](deployment/DEPLOYMENT_GUIDE.md#production-health-activation-evidence).
 - The repository has no single general application rollback command. Current docs state that
   constraint and require identified immutable release, database, world-data, and component-runbook
   evidence before production rollback.

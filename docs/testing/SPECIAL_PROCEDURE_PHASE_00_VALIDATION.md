@@ -176,8 +176,10 @@ skipped on the final push event; that skip is not evidence of a dependency scan 
    account values as gateway context expands.
 3. Continue isolated loopback MariaDB fixtures and fail-closed path validation for CI and
    operational tests; never point them at protected repository data or production databases.
-4. Complete the approved production health install, restart, and probe before closing the
-   infrastructure exception.
+4. Preserve the approved production health install, restart, and probe evidence. This
+   infrastructure exception was satisfied on 2026-08-21; the
+   [deployment guide](../deployment/DEPLOYMENT_GUIDE.md#production-health-activation-evidence)
+   records the release identity and successful production startup probe.
 
 Environment, credential, and loopback boundaries are maintained in
 [environments.md](../deployment/environments.md). The managed-service procedure and activation status are in
