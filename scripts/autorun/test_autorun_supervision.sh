@@ -5,6 +5,13 @@ set -euo pipefail
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 test_root=$(mktemp -d "${TMPDIR:-/tmp}/luminari-autorun-test.XXXXXX")
 
+# These fake MUD executables never open sockets. Keep their port probes isolated
+# so the real development MUD can continue listening on its required port 4100.
+mkdir -p "$test_root/socket-probe"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$test_root/socket-probe/ss"
+chmod +x "$test_root/socket-probe/ss"
+export PATH="$test_root/socket-probe:$PATH"
+
 fail()
 {
   echo "autorun supervision test: $*" >&2

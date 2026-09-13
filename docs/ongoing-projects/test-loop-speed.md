@@ -305,9 +305,11 @@ The runtime enabled diagonal exits to match the existing development world.
 - All 27,092 mobile prototypes had byte-identical `aff_abils`, `real_abils`, and `points`:
   both dumps were 3,847,064 bytes; `cmp` succeeded. Dumps were taken immediately after
   `index_boot(DB_BOOT_MOB)` from baseline and updated production executables using GDB.
-- Three final warm `make -j16 test-all` runs passed in 11.616, 11.608, and 12.641 s.
+- Three final warm `make -j16 test-all` runs passed in 12.602, 11.460, and 11.615 s.
 - Three `ctest -j16 --preset dev` runs passed all 28 entries in 10.81, 10.93, and 10.82 s.
-- Both polling scripts passed ten consecutive runs. The container requires `--init` so
+- Both polling scripts passed ten consecutive runs. Supervision also passed ten runs
+  with TCP port 4100 occupied, leaving the listener alive. Its fake executables use an
+  isolated socket probe so they coexist with a development MUD. The container requires `--init` so
   detached supervisors are reaped, just as they are on a normal host.
 - `CUTEST_FILTER=Test_mob_autoroll ./cutest` passed exactly four tests. The runner regression
   checks unset, empty, matching, and unmatched filters and reports a deliberately slow
