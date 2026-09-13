@@ -1119,6 +1119,8 @@ if (BUILD_TESTS)
 
     add_test(NAME build-parity
         COMMAND Python3::Interpreter scripts/ci/check_build_parity.py)
+    add_test(NAME clean-archive-runtime
+        COMMAND Python3::Interpreter scripts/ci/test_clean_archive.py -v)
     add_test(NAME sql-interpolation-self-test
         COMMAND Python3::Interpreter scripts/ci/check_sql_interpolation.py --self-test)
     add_test(NAME sql-interpolation
@@ -1130,6 +1132,7 @@ if (BUILD_TESTS)
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_background_help_entries.sh)
     set_tests_properties(
         build-parity
+        clean-archive-runtime
         sql-interpolation-self-test
         sql-interpolation
         help-sync
