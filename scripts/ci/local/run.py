@@ -179,6 +179,9 @@ def main():
     results.mkdir(parents=True, exist_ok=True)
     print(f'Commit {revision}; results: {results}', flush=True)
     with tempfile.TemporaryDirectory(prefix='luminari-ci-input-') as directory:
+        runner = Path(directory, 'run.py')
+        runner.write_bytes(subprocess.check_output(
+            ['git', 'show', f'{revision}:scripts/ci/local/run.py'], cwd=root))
         source = Path(directory, 'source.tar')
         with source.open('wb') as output:
             subprocess.run(['git', 'archive', revision], cwd=root, stdout=output, check=True)
@@ -196,10 +199,10 @@ def main():
             selected = cpu_groups.get()
             command = ['docker', 'run', '--rm', '--init', '--user', f'{os.getuid()}:{os.getgid()}',
                        '--cpuset-cpus', ','.join(map(str, selected)), '--workdir', '/workspace',
-                       '--tmpfs', '/workspace:mode=1777',
+                       '--tmpfs', f'/workspace:mode=0755,uid={os.getuid()},gid={os.getgid()}',
                        '-v', f'{source}:/input/source.tar:ro',
                        '-v', f'{descriptor}:/input/job.json:ro',
-                       '-v', f'{Path(__file__).resolve()}:/input/run.py:ro',
+                       '-v', f'{runner}:/input/run.py:ro',
                        '-v', f'{args.cache.resolve()}:/ccache', '-v', f'{job_dir}:/results',
                        args.image, 'python3', '/input/run.py', '--container-job']
             begin = time.monotonic()
