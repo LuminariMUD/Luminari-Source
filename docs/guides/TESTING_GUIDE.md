@@ -545,6 +545,22 @@ data is available. It is not part of `make test` because it rebuilds the tree
 twice. The CMake `sanitizers` and `coverage` presets provide the same
 instrumentation as the Autotools `CFLAGS` recipes in the workflow.
 
+The archive job retains the real encounter-world boot and pet persistence tests.
+Its MariaDB service, `LUMINARI_TEST_MYSQL_*` variables, and prepared runtime are
+required together. `LUMINARI_TEST_DATA_DIR` must be absolute because the check
+changes directories into the archive. `LUMINARI_TEST_CONFIG_FILE` may be absolute
+or relative to the invoking directory: the check copies it to `lib/etc/config` in
+the archive and passes that relative path to the server. Passing the original
+absolute config path directly to the server caused the boot failure reported in
+issue #157.
+
+`python3 scripts/ci/test_clean_archive.py -v` checks this handoff using a temporary
+Git repository and recording build tools. It covers both test entry points,
+absolute and relative config inputs, database environment inheritance, and a
+missing config failing before any build step. It runs in `make test` and as the
+`clean-archive-runtime` CTest entry; the full archive job supplies the real build,
+boot, and database verification.
+
 ## Coverage
 
 The GitHub Actions coverage job:

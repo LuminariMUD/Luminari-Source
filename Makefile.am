@@ -853,7 +853,9 @@ EXTRA_DIST = \
 	scripts/character-rename/test_character_rename_static.sh \
 	scripts/copyover/copyover_watchdog.sh \
 	scripts/copyover/enhanced_copyover_diagnostic.sh \
+	scripts/ci/check_clean_archive.sh \
 	scripts/ci/prepare_test_runtime.sh \
+	scripts/ci/test_clean_archive.py \
 	scripts/ci/check_sql_interpolation.py \
 	scripts/ci/sql_interpolation_baseline.txt \
 	scripts/debugging/debug_game.sh \
@@ -1030,12 +1032,16 @@ EXTRA_DIST = \
 check-build-parity:
 	cd "$(abs_top_srcdir)" && python3 scripts/ci/check_build_parity.py
 
+test-clean-archive-runtime:
+	cd "$(abs_top_srcdir)" && python3 scripts/ci/test_clean_archive.py -v
+
 # Configure, build, and test an untouched git archive through both build systems.
 distcheck-archive:
 	"$(abs_top_srcdir)/scripts/ci/check_clean_archive.sh"
 
 # Run unit tests
-test: check check-build-parity test-help-sync test-autorun-supervision test-versioned-binary-install \
+test: check check-build-parity test-clean-archive-runtime test-help-sync \
+	test-autorun-supervision test-versioned-binary-install \
 	test-binary-name-static test-healthcheck test-sql-interpolation test-production-profile \
 	test-background-help-entries test-demand-driven-architecture test-event-admission \
 	test-event-core-performance-gate test-native-event-architecture test-pubsub-retirement \
@@ -1044,7 +1050,8 @@ test: check check-build-parity test-help-sync test-autorun-supervision test-vers
 		LUMINARI_TEST_SPEC_WORLD_ROOT="$(abs_top_srcdir)/unittests/CuTest/fixtures/spec_world_inventory" \
 		./cutest
 
-.PHONY: check-build-parity distcheck-archive check-world-docs rol-mob-calculator test-all test-world-tools test-help-sync \
+.PHONY: check-build-parity test-clean-archive-runtime distcheck-archive check-world-docs \
+	rol-mob-calculator test-all test-world-tools test-help-sync \
 	test-help-sync-integration test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
 	test-versioned-binary-install test-binary-name-static test-healthcheck \
