@@ -20,6 +20,13 @@ Set `WILDERNESS_HARVEST_CRAFTING=TRUE` in `lib/.env`. The default is true when
 omitted. The setting is read when a harvest starts and rechecked at completion;
 disabling it cancels any pending category harvest at its next check.
 
+The shared environment parser caches parsed assignments. Each lookup checks the
+selected file's identity, size, modification time and change time before reusing
+them, so ordinary edits, replacements and environment-path changes are visible
+immediately without reopening and parsing a stable file for every check. Files
+changed within the last two seconds bypass the cache because rapid writes can
+receive identical timestamps on filesystems with a coarse clock.
+
 `FALSE` restores the earlier immediate wilderness-material storage behavior.
 It does not change node spawning or node rewards. Credentials and other local
 configuration stay in their existing ignored files.

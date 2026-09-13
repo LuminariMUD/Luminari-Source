@@ -7,6 +7,21 @@ VNUMs 1251-1255 correspond to Poor, Common, Uncommon, Rare and Legendary.
 Each object is a portable, holdable tool; carrying it is sufficient.
 The feature checks VNUM, not an object name or a generic tool flag.
 
+## Prototype records
+
+The following names and VNUMs are taken directly from `harvest-tools.obj`.
+Each record has type `ITEM_OTHER` (12), wear flags `ao` (`ITEM_WEAR_TAKE`
+at bit 0 and `ITEM_WEAR_HOLD` at bit 14), and weight 1.
+The file contains exactly these five records followed by the `$~` terminator.
+
+| VNUM | Keywords | Short description |
+| --- | --- | --- |
+| 1251 | poor harvest tool | a poor harvest tool |
+| 1252 | common harvest tool | a common harvest tool |
+| 1253 | uncommon harvest tool | an uncommon harvest tool |
+| 1254 | rare harvest tool | a rare harvest tool |
+| 1255 | legendary harvest tool | a legendary harvest tool |
+
 ## World installation
 
 The main source repository keeps authored additions here because each site's

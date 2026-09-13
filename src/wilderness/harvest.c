@@ -27,11 +27,13 @@ struct wilderness_harvest_context
   int y;
 };
 
+/** @brief Read the live routing toggle through the shared configuration cache, defaulting true. */
 bool wilderness_harvest_crafting_enabled(void)
 {
   return get_env_bool("WILDERNESS_HARVEST_CRAFTING", TRUE);
 }
 
+/** @brief Accept only player characters in a currently valid wilderness room. */
 static bool harvest_location_valid(struct char_data *ch)
 {
   return world && zone_table && ch && !IS_NPC(ch) && ch->player_specials &&
@@ -40,6 +42,7 @@ static bool harvest_location_valid(struct char_data *ch)
          ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS);
 }
 
+/** @brief Check terrain and remaining resources, optionally explaining an unavailable category. */
 bool wilderness_harvest_available(struct char_data *ch, int category, bool verbose)
 {
   int x, y, sector;
@@ -66,6 +69,7 @@ bool wilderness_harvest_available(struct char_data *ch, int category, bool verbo
   return true;
 }
 
+/** @brief Convert a real tool prototype VNUM to its quality floor, or zero for another object. */
 static int tool_quality(struct obj_data *obj)
 {
   obj_vnum vnum;
@@ -78,6 +82,7 @@ static int tool_quality(struct obj_data *obj)
   return MATERIAL_QUALITY_POOR + vnum - HARVEST_TOOL_FIRST;
 }
 
+/** @brief Return the best tool floor in top-level inventory or equipment without consuming it. */
 int wilderness_harvest_tool_quality(struct char_data *ch)
 {
   struct obj_data *obj;
@@ -92,8 +97,10 @@ int wilderness_harvest_tool_quality(struct char_data *ch)
   return quality;
 }
 
-/* Each column corresponds to Poor through Legendary. These are actual crafting
- * materials, whose grades are checked independently by the regression suite. */
+/**
+ * @brief Map a validated wilderness quality to a usable crafting material, or CRAFT_MAT_NONE.
+ * Each column corresponds to Poor through Legendary; material grades preserve the tool floor.
+ */
 int wilderness_harvest_material(int category, int subtype, int quality)
 {
   static const int cloth[] = {CRAFT_MAT_HEMP, CRAFT_MAT_FLAX, CRAFT_MAT_WOOL, CRAFT_MAT_SILK,
@@ -129,8 +136,10 @@ int wilderness_harvest_material(int category, int subtype, int quality)
   }
 }
 
-/* Resources without graded crafting materials supply crafting motes instead.
- * Quality is preserved in their yield: one through five motes per raw unit. */
+/**
+ * @brief Select a useful mote for resources without graded materials; zero means no mapping.
+ * Payout preserves quality as one through five motes per raw unit.
+ */
 int wilderness_harvest_mote(int category, int subtype)
 {
   static const int crystals[NUM_CRYSTAL_SUBTYPES] = {
@@ -157,6 +166,10 @@ int wilderness_harvest_mote(int category, int subtype)
   }
 }
 
+/**
+ * @brief Credit one crafting balance and return raw units delivered, or zero on invalid/capped data.
+ * This function does not deplete resources, grant experience, or duplicate wilderness storage.
+ */
 int award_wilderness_harvest(struct char_data *ch, int category, int subtype, int quality,
                              int quantity)
 {
@@ -187,6 +200,7 @@ int award_wilderness_harvest(struct char_data *ch, int category, int subtype, in
   return quantity;
 }
 
+/** @brief Select the existing crafting ability that governs a resource category. */
 static int crafting_harvest_skill(int category)
 {
   switch (category)
@@ -206,6 +220,7 @@ static int crafting_harvest_skill(int category)
   }
 }
 
+/** @brief Require standing, unrestrained players outside combat and legacy crafting work. */
 static bool harvest_conditions(struct char_data *ch)
 {
   return harvest_location_valid(ch) && !FIGHTING(ch) && GET_POS(ch) >= POS_STANDING &&
@@ -213,6 +228,7 @@ static bool harvest_conditions(struct char_data *ch)
          GET_CRAFTING_TICKS(ch) == 0 && GET_CRAFT(ch).craft_duration == 0;
 }
 
+/** @brief Cancel eligibility when the toggle, target room, coordinates, or resources change. */
 static bool harvest_recheck(struct char_data *ch, void *target, void *context)
 {
   struct wilderness_harvest_context *harvest = context;
@@ -223,6 +239,7 @@ static bool harvest_recheck(struct char_data *ch, void *target, void *context)
          wilderness_harvest_available(ch, harvest->category, true);
 }
 
+/** @brief Resolve success, current tools, payout, depletion, and advancement after the full round. */
 static void complete_wilderness_harvest(struct char_data *ch, void *target, void *context)
 {
   struct wilderness_harvest_context *harvest = context;
@@ -282,6 +299,10 @@ static void complete_wilderness_harvest(struct char_data *ch, void *target, void
   act("$n finishes harvesting.", FALSE, ch, NULL, NULL, TO_ROOM);
 }
 
+/**
+ * @brief Schedule one interruptible full-round attempt, returning one only when accepted.
+ * The activity owns its context after a successful start; rewards are deferred to completion.
+ */
 int start_wilderness_crafting_harvest(struct char_data *ch, int category)
 {
   struct primary_activity_definition definition = {0};
