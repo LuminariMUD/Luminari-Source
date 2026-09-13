@@ -15,6 +15,23 @@ fail()
   exit 1
 }
 
+# Wait for a complete sample from the expected process, not just a TSV header.
+wait_for_sample()
+{
+  local file=$1
+  local pid=$2
+  local attempt
+
+  for attempt in {1..50}; do
+    if [[ -f "$file" ]] && awk -F '\t' -v pid="$pid" \
+      'NR > 1 && NF == 13 && $3 == pid { found = 1 } END { exit !found }' "$file"; then
+      return 0
+    fi
+    sleep 0.1
+  done
+  fail "timed out waiting for a complete sample from PID $pid in $file"
+}
+
 [[ -x "$monitor" ]] || fail "monitor script is not executable: $monitor"
 [[ -x "$sampler" ]] || fail "sampler script is not executable: $sampler"
 
@@ -101,7 +118,7 @@ status_out=$(LUMINARI_PROJECT_ROOT="$env_root" "$monitor" status)
 grep -Fq "Status: RUNNING" <<< "$status_out" || fail "status did not report RUNNING"
 
 # Allow daemon to collect at least one sample
-sleep 2.5
+wait_for_sample "$output_tsv" "$$"
 [[ -s "$output_tsv" ]] || fail "daemon did not create or populate TSV output"
 
 LUMINARI_PROJECT_ROOT="$env_root" "$monitor" stop
@@ -129,12 +146,12 @@ IFS= read -r auto_daemon_pid < "$auto_root/.memory-monitor.pid"
 daemon_cmdline=$(tr '\0' ' ' < "/proc/$auto_daemon_pid/cmdline")
 [[ "$daemon_cmdline" != *" --pid "* ]] || fail "auto-discovered start pinned daemon PID"
 
-sleep 1.5
+wait_for_sample "$auto_output" "$target_one"
 printf '%s\n' "$target_two" > "$auto_root/.mud.pid"
 kill "$target_one"
 wait "$target_one" 2>/dev/null || true
 target_one=""
-sleep 2.5
+wait_for_sample "$auto_output" "$target_two"
 
 awk -F '\t' -v pid="$target_two" 'NR > 1 && $3 == pid { found = 1 } END { exit !found }' \
   "$auto_output" || fail "daemon did not follow .mud.pid to the replacement process"

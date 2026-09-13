@@ -172,8 +172,9 @@ this is what would have made the 31 s boot visible months ago.
 - `AGENTS.md` and `docs/guides/SETUP_AND_BUILD_GUIDE.md`: the normal build is
   `make -j$(nproc)`; `make clean` is for configure or `Makefile.am` changes or a suspect
   tree. With working dependency files a header edit rebuilds exactly what includes it.
-- Install `ccache` on the host (`sudo apt install ccache`, needs the user), configure with
-  `CC="ccache gcc"`, and mount the cache directory into the local CI containers. Objects
+- Install `ccache` on the host (`sudo apt install ccache`, needs the user), put
+  `/usr/lib/ccache` first on `PATH` (a `CC="ccache gcc"` configure breaks the shell test
+  gates), and mount the cache directory into the local CI containers. Objects
   of an unchanged tree then cost about 5 ms each instead of 0.3 s.
 - Optional: a dev configure with `CFLAGS="-g -O0"` (or the CMake `dev` preset). One-file
   compiles drop from 2.8 s to 0.75 s. Keep `-O2` for CI. Not required; the incremental
@@ -288,3 +289,47 @@ the host numbers were measured with the changes applied in this worktree and the
   the CI job map after Phase 6, ccache for local matrix runs.
 - `docs/guides/SETUP_AND_BUILD_GUIDE.md`: ccache and the optional `-O0` configure.
 - Help files: none; no player-facing behavior changes.
+
+## Implementation evidence (issue #178)
+
+All seven phases are implemented together. The no-op clang-tidy job was deleted rather
+than introducing a new lint policy. All existing effective checks remain, including the
+installed-binary assertions, clean-tree/dist checks, both I/O drivers, and real-port boot,
+health, and graceful shutdown. Test execution is parallel in Make and the CI CTest commands.
+
+Validation used the development worktree and its complete world through an Ubuntu 24.04
+container toolchain; host development packages were unavailable and installing them required
+sudo credentials. The isolated test database and runtime did not use local credentials.
+The runtime enabled diagonal exits to match the existing development world.
+
+- Baseline: 1,448 tests passed in 35.747 s. Updated: the same 1,448 passed in 5.985 s.
+- All 27,092 mobile prototypes had byte-identical `aff_abils`, `real_abils`, and `points`:
+  both dumps were 3,847,064 bytes; `cmp` succeeded. Dumps were taken immediately after
+  `index_boot(DB_BOOT_MOB)` from baseline and updated production executables using GDB.
+- Three final warm `make -j16 test-all` runs passed in 12.602, 11.460, and 11.615 s.
+- Three `ctest -j16 --preset dev` runs passed all 28 entries in 10.81, 10.93, and 10.82 s.
+- Both polling scripts passed ten consecutive runs. Supervision also passed ten runs
+  with TCP port 4100 occupied, leaving the listener alive. Its fake executables use an
+  isolated socket probe so they coexist with a development MUD. The container requires `--init` so
+  detached supervisors are reaped, just as they are on a normal host.
+- `CUTEST_FILTER=Test_mob_autoroll ./cutest` passed exactly four tests. The runner regression
+  checks unset, empty, matching, and unmatched filters and reports a deliberately slow
+  failing test after its summary.
+- `make -n -W src/structs.h cutest` scheduled 390 affected compiles, confirming that header
+  dependency tracking is active without changing the header's contents or timestamp.
+- A cold-build compiler lock reproduced concurrent calculator compilation (exit 2).
+  Making the calculator a shared prerequisite of `check` and world tools eliminated
+  the race: the guarded build passed with exactly one calculator compilation.
+- The installed server passed the port-4100 startup, health, and graceful-shutdown smoke
+  test through autorun. Build parity, workflow syntax, and archive-runtime regressions passed.
+
+The original build-count estimate had an arithmetic error: applying its stated removals
+removes nine of thirty server/test executable builds, leaving 21, including CodeQL. All five
+hardened server builds remain; only the three explicitly redundant hardened CuTest builds
+are omitted. Instrumented builds and coverage floors are unchanged.
+
+The local image and runner live in `scripts/ci/local/`. They use committed source snapshots,
+three containers with four cores each by default, isolated databases, and a shared ccache.
+Archive builds normalize debug paths to allow cache reuse across temporary directories.
+The final-commit matrix writes a timed `summary.json` and per-job logs; the PR records its
+result together with the GitHub checks. Matrix wall-time estimates above are not assertions.

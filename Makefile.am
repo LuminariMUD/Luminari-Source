@@ -862,6 +862,7 @@ EXTRA_DIST = \
 	scripts/ci/check_clean_archive.sh \
 	scripts/ci/prepare_test_runtime.sh \
 	scripts/ci/test_clean_archive.py \
+	scripts/ci/test_cutest_runner.py \
 	scripts/ci/check_sql_interpolation.py \
 	scripts/ci/sql_interpolation_baseline.txt \
 	scripts/debugging/debug_game.sh \
@@ -1038,6 +1039,9 @@ EXTRA_DIST = \
 check-build-parity:
 	cd "$(abs_top_srcdir)" && python3 scripts/ci/check_build_parity.py
 
+test-cutest-runner:
+	cd "$(abs_top_srcdir)" && CC="$(CC)" python3 scripts/ci/test_cutest_runner.py
+
 test-clean-archive-runtime:
 	cd "$(abs_top_srcdir)" && python3 scripts/ci/test_clean_archive.py -v
 
@@ -1046,17 +1050,22 @@ distcheck-archive:
 	"$(abs_top_srcdir)/scripts/ci/check_clean_archive.sh"
 
 # Run unit tests
-test: check check-build-parity test-clean-archive-runtime test-help-sync \
+test: run-cutest test-cutest-runner check-build-parity test-clean-archive-runtime test-help-sync \
 	test-autorun-supervision test-versioned-binary-install \
 	test-binary-name-static test-healthcheck test-sql-interpolation test-production-profile \
 	test-background-help-entries test-demand-driven-architecture test-event-admission \
 	test-event-core-performance-gate test-native-event-architecture test-pubsub-retirement \
 	test-vessel-tooling
-	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" \
+
+# Build check programs once before running the suite, alongside the shell gates.
+# An inherited CUTEST_FILTER must not narrow the authoritative run.
+run-cutest: check
+	CUTEST_FILTER= LUMINARI_TEST_ROOT="$(abs_top_srcdir)" \
 		LUMINARI_TEST_SPEC_WORLD_ROOT="$(abs_top_srcdir)/unittests/CuTest/fixtures/spec_world_inventory" \
 		./cutest
 
-.PHONY: check-build-parity test-clean-archive-runtime distcheck-archive check-world-docs \
+.PHONY: test test-cutest-runner run-cutest test-process-memory check-build-parity \
+	test-clean-archive-runtime distcheck-archive check-world-docs \
 	rol-mob-calculator test-all test-world-tools test-help-sync \
 	test-help-sync-integration test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
@@ -1069,6 +1078,10 @@ test: check check-build-parity test-clean-archive-runtime test-help-sync \
 check-world-docs:
 	cd "$(abs_top_srcdir)" && python3 scripts/world/wtool.py constants sync --check
 	cd "$(abs_top_srcdir)" && python3 scripts/world/wtool.py docs --check
+
+# Check recurses into util/. Share its calculator prerequisite with world tools
+# before starting that recursive make, so the two paths cannot compile it at once.
+check: rol-mob-calculator
 
 rol-mob-calculator:
 	$(MAKE) -C "$(abs_top_srcdir)/util" rol_mob_calculator
@@ -1150,13 +1163,8 @@ test-vessel-tooling:
 
 # Authoritative full local test entry point. The final install both verifies the
 # install path and removes the root-level luminari artifact created by make test.
-test-all:
-	$(MAKE) test
-	$(MAKE) test-world-tools
-	$(MAKE) test-protocol
-	$(MAKE) test-process-memory
-	$(MAKE) test-character-rename-static
-	$(MAKE) test-character-rename-schema
+test-all: test test-world-tools test-protocol test-character-rename-static \
+	test-character-rename-schema
 	$(MAKE) install
 
 # Additional cleanup for distclean

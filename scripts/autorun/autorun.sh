@@ -95,6 +95,7 @@ readonly LOG_RETENTION_DAYS="${LOG_RETENTION_DAYS:-30}"  # Keep logs for 30 days
 
 # Runtime control options (can be overridden by environment variables)
 readonly IGNORE_DISK_SPACE="${IGNORE_DISK_SPACE:-true}"  # Default: keep running even with low disk space
+readonly FASTBOOT_DELAY="${AUTORUN_FASTBOOT_DELAY:-5}"
 readonly STATE_UPDATE_INTERVAL="${AUTORUN_STATE_INTERVAL:-60}"
 readonly AUTORUN_PID_FILE="${PROJECT_ROOT}/.autorun.lock.pid"
 readonly MUD_PID_FILE="${PROJECT_ROOT}/.mud.pid"
@@ -1334,14 +1335,14 @@ handle_shutdown() {
     # Check for fastboot
     local wait_time=60
     if [[ -r .fastboot ]]; then
-        log_info "Fastboot mode - restarting in 5 seconds"
+        log_info "Fastboot mode - restarting in $FASTBOOT_DELAY seconds"
         rm -f .fastboot
-        wait_time=5
+        wait_time=$FASTBOOT_DELAY
     else
         log_info "Normal restart - waiting $wait_time seconds"
     fi
 
-    sleep $wait_time
+    sleep "$wait_time"
 
     # Handle pause mode
     while [[ -r pause ]]; do
@@ -1596,6 +1597,7 @@ case "${1:-}" in
         echo "  MUD_FLAGS   - Server flags (default: -q)"
         echo "  ENABLE_WEBSOCKET - Enable websocket policy (default: false)"
         echo "  ENABLE_FLASH     - Enable flash policy (default: false)"
+        echo "  AUTORUN_FASTBOOT_DELAY - Fastboot restart seconds (default: 5)"
         echo "  AUTORUN_STATE_INTERVAL - State heartbeat seconds (default: 60)"
         exit 0
         ;;

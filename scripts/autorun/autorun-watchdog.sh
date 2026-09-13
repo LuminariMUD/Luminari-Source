@@ -298,6 +298,7 @@ start_autorun() {
 watchdog_loop() {
     local restart_attempts=0
     local last_restart_time=0
+    local startup_deferred=0
 
     log_msg "INFO" "Watchdog starting (PID: $$)"
     if ! write_pid_file "$WATCHDOG_PID_FILE" "$$"; then
@@ -328,6 +329,7 @@ watchdog_loop() {
             if check_autorun_health; then
                 log_msg "INFO" \
                     ".killscript detected while autorun is healthy - deferring shutdown"
+                startup_deferred=1
                 sleep "$CHECK_INTERVAL"
                 continue
             fi
@@ -336,6 +338,11 @@ watchdog_loop() {
                 ".killscript detected after autorun stopped - stopping watchdog"
             rm -f "$WATCHDOG_PID_FILE"
             exit 0
+        fi
+
+        if [[ $startup_deferred -eq 1 ]]; then
+            log_msg "INFO" "Autorun startup completed - resuming health checks"
+            startup_deferred=0
         fi
 
         # Check autorun health

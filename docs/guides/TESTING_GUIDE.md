@@ -11,12 +11,38 @@ The enforced test path has two parts:
 Legacy standalone vessel, autopilot, and vehicle mirror sources have been
 removed. Their historical result documents remain under `docs/testing/`.
 
+## Fast development loop
+
+Use `make -j"$(nproc)" test-all` for the complete local check. Its prerequisites run
+concurrently, then install the server after every check passes. Process-memory tests run
+once through vessel tooling; `make test-process-memory` remains available separately.
+CuTest overlaps the shell checks after its build/check prerequisites finish.
+
+For a focused edit:
+
+```sh
+make -j"$(nproc)" cutest
+CUTEST_FILTER=Test_mob_autoroll ./cutest
+```
+
+`CUTEST_FILTER` matches a case-sensitive substring of the registered test name. Unset or
+empty runs all tests; no matches returns failure. A filtered run prints
+`CUTEST_FILTER=<value>: N of M tests selected` before the results. The `make test`,
+`make test-all`, and CTest `production-cutest` entry points clear the variable, so an
+exported filter cannot narrow full validation.
+The runner lists each test taking more than one second after the result summary, including
+failed tests and wall time spent in child processes. Timing is diagnostic, not a pass gate.
+
+CTest also supports parallel execution: `ctest -j"$(nproc)" --preset dev`.
+Use incremental builds normally; clean after compiler/flag changes or suspect dependency
+files. See the setup guide for ccache and optional `-O0` development builds.
+
 ## Production-Linked Tests
 
 From the repository root:
 
 ```sh
-make test
+make -j"$(nproc)" test
 ```
 
 This builds `cutest` with `-DLUMINARI_CUTEST`, links the same game source files
@@ -105,7 +131,7 @@ the complete world-tool suite because constant and documentation drift tests are
 
 ```sh
 make test-world-tools
-make test
+make -j"$(nproc)" test
 make install
 ```
 
@@ -136,13 +162,12 @@ Phase 04 adds nine mechanics/context tests, Phase 05 adds five typed-handler tes
 one typed-through-secondary test, and Phase 07 adds one assignment-module boundary test. The
 completed Phase 00-07 inventory is 117 dedicated `Test`
 functions across the files above plus `test_spec_mechanics.c` and `test_spec_typed_handlers.c`.
-`test_spec_fixtures.c` is production-linked support and is not counted as a test owner. CuTest has
-no per-function filter, so the supported focused development run is still the complete
-production-linked executable:
+`test_spec_fixtures.c` is production-linked support and is not counted as a test owner.
+For focused development, select test names with a case-sensitive substring:
 
 ```sh
 make -j"$(nproc)" cutest
-./cutest
+CUTEST_FILTER=Test_spec ./cutest
 ```
 
 Before Phase 00 or a later special-procedure change is released, run `make test`, immediately run
@@ -197,7 +222,7 @@ behavior:
 ```sh
 make clean
 ./configure
-make test
+make -j"$(nproc)" test
 make install
 ```
 
@@ -318,7 +343,7 @@ Equivalent CMake and CTest entry points are:
 
 ```sh
 cmake --build build/dev --target test-world-tools
-ctest --preset dev -R '^world-tool'
+ctest -j"$(nproc)" --preset dev -R '^world-tool'
 ```
 
 Focused checks are also available:
@@ -410,7 +435,7 @@ run it against another compiler. The CMake test is named `production-profile`.
 Run every maintained test path from the repository root with:
 
 ```sh
-make test-all
+make -j"$(nproc)" test-all
 ```
 
 This authoritative target runs the production-linked CuTest suite, the
@@ -637,7 +662,7 @@ complete candidate world:
 
 ```sh
 make test-world-tools
-make test
+make -j"$(nproc)" test
 make install
 python3 scripts/world/wtool.py \
   --world-root <candidate-lib>/world validate --all --strict
@@ -724,3 +749,43 @@ it accepts a TCP connection.
 
 Any change to test sources, build lists, covered documentation, or the
 workflow triggers this pipeline.
+
+## CI job map and local containers
+
+The production-linked job runs `make -j test-all` with libevent, reruns the same CuTest
+binary with select, verifies the installed server's real-port startup, health endpoint,
+and graceful shutdown through autorun, then checks clean-tree and source-distribution
+hygiene. Both I/O drivers retain the complete behavioral suite.
+
+The strict GCC/Clang CMake jobs still fail on warnings. All five production-profile server
+builds retain binary hardening verification; hardened tests run with Autotools/GCC 14 and
+CMake/Clang. Each build system has an independent clean-archive job. Sanitizers, protocol
+fuzzing, Valgrind, coverage floors, CodeQL, world tools, parity, formatting, source hygiene,
+database migrations, and world validation remain. The duplicate warnings build and the
+clang-tidy job that ignored all findings have been removed.
+
+`.github/actions/setup-build` supplies dependencies, missing example headers, and compiler
+caching by job, compiler/profile, build configuration, and commit. Cache restoration never
+replaces running a check.
+
+For the local matrix, install Docker and Python's PyYAML, then build the dependency image
+once (rebuild when its Dockerfile, help-sync requirements, or pre-commit configuration changes):
+
+```sh
+docker build -t luminari-ci:local-fast -f scripts/ci/local/Dockerfile .
+python3 scripts/ci/local/run.py --list
+python3 scripts/ci/local/run.py --jobs 3 --cpus 4
+```
+
+The runner exports committed HEAD, executes the actual build/integration/format/hygiene/security-scan
+workflow shell commands in separate containers, and keeps the local world and credentials
+outside those containers. Each database job gets its own disposable MariaDB. Every game
+smoke test uses port 4100 inside its container; no host port is published. The image includes
+the workflow dependencies and pre-commit hooks. A shared compiler cache defaults to
+`~/.cache/luminari-ci/ccache`; `--cache` overrides it. Jobs use a stable `/workspace` path.
+
+`--job NAME` selects one name from `--list`. `--results DIR` retains per-job logs, coverage
+artifacts, and a timed `summary.json`; failures produce a nonzero exit. Run the complete
+matrix on the final commit after iterating with the host suite. GitHub action downloads,
+cache/upload services, CodeQL, and dependency review are verified on GitHub rather than
+emulated locally. Unsupported workflow expressions or actions fail explicitly.
