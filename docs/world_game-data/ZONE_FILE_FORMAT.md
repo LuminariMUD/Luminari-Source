@@ -44,8 +44,8 @@ $
 
 ## The Numeric Header Line
 
-`load_zones()` tries four field counts in order and takes the first that
-matches exactly: **14, then 11, then 10, then 4.**
+`load_zones()` accepts four header forms: **14, 11, 10, or 4 fields.**
+It selects the longest supported form that can be parsed.
 
 | Field | Name | Meaning |
 |-------|------|---------|
@@ -63,15 +63,18 @@ matches exactly: **14, then 11, then 10, then 4.**
 
 `bot` greater than `top` is a fatal error.
 
-### The 12-and-13-field trap
+### Incomplete or extra header fields
 
-Because the parser falls back on *exact* counts, a header with 12 or 13 fields
-does not fail - it fails the 14-field scan, then **succeeds** at the 11-field
-scan, and `region`, `faction`, and `city` are silently discarded. There is no
-warning. If you are using any of those three fields, write all fourteen.
+A header with 12 or 13 fields uses the 11-field form; `region`, `faction`,
+and `city` default to zero. A 5-to-9-field header uses the 4-field form, with
+zero zone flags, levels `-1`, and weather enabled. The 10-field form also
+defaults weather to enabled. Fields after a complete 14-field header are ignored.
 
-The same applies to counts between 4 and 10: a 5-to-9 field line silently
-degrades to the 4-field form, losing flags and level range.
+Whenever a selected form leaves trailing data, the loader emits a
+`ZONE WARNING` naming the zone vnum, file, physical line, selected field count,
+and ignored suffix. Boot continues, but correct the header to one of the four
+supported forms to preserve all intended values. A malformed field can also
+force a shorter form and produces the same warning.
 
 ### `reset_mode`
 
@@ -135,8 +138,8 @@ loaded.
 **All vnums in reset commands are real numbers, not virtual numbers**, after
 `renum_zone_table()` converts them at boot. You write vnums in the file; the
 conversion is automatic. A vnum that does not resolve produces a
-`ZONE ERROR` log line for objects, but see the warning at the end of this
-document about rooms.
+`ZONE ERROR` log line for invalid reset targets. Unresolvable room exits
+also produce diagnostics; see [Room exit diagnostics](#room-exit-diagnostics).
 
 ### Command Summary
 
@@ -152,8 +155,7 @@ document about rooms.
 | `T` | Attach a trigger | trigger target type, trigger vnum, target vnum |
 | `V` | Assign a DG script variable | target type, context, var name, var value |
 | `J` | Jump over the following lines | number of lines, [chance %] |
-| `I` | Load random treasure onto a mobile | chance %, plus a third ignored number - see below |
-| `L` | Load random treasure into a container | non-functional, see below |
+| `I` | Load random treasure onto a mobile | chance % |
 | `K` | Apply an RoL legacy door bitmask | room vnum, direction, bitmask, chance % |
 | `F` | Set RoL mobile relationship | room vnum, leader mob vnum, follower mob vnum, ignored % |
 | `X` | Remove an RoL mobile instance | room vnum or `-1`, mob vnum, combat guard, chance % |
@@ -179,17 +181,20 @@ changes only the current runtime instance for testing and is not saved.
 
 ### Load Percentage
 
-`M`, `O`, and `P` take an optional fifth number: a 1-100 percentage chance the
+`M`, `O`, `E`, and `P` take an optional fifth number: a 1-100 percentage chance the
 command runs. `G` takes it as its fourth. If you omit it, or pass a negative
 number, it defaults to **100** - the command always runs.
 
 `max existing` caps how many of that prototype may exist world-wide before the
 command is skipped. A `0` here means "load only at boot time".
 
-`R` retains its historical three-number form. In that form it is unconditional
+`R` retains its historical three-number form (including the if-flag). In that
+form removal is unconditional after the dependency check
 and preserves the legacy target result-chain behavior. The optional fourth number
 is an explicit 0-100 removal chance used by converted RoL data; that form reports
 success to the dependency chain only when an object was actually removed.
+A negative removal chance selects the legacy unconditional form. A zero chance
+in the explicit form never removes an object.
 
 ### Door States
 
@@ -243,70 +248,39 @@ Room exit serialization also accepts door flag values 5-8. These are the usual
 door values 1-4 plus a blocked-movement marker and are used by converted source
 room exits.
 
-## Parser Gotchas
+## Parsing and Diagnostics
 
-These are behaviors of `load_zones()` that are easy to trip over and produce
-confusing failures.
+### Reset command whitespace
 
-### Reset commands must start in column 0
+Both loader passes accept leading spaces and tabs, blank whitespace-only lines,
+and indented `*` comments. Spaces or tabs may separate a command from its numbers.
+The `S` sentinel may also be indented or followed by whitespace. Command letters
+are case-sensitive. Unknown commands are fatal and report the file and physical
+line before the loader writes a command-table entry.
 
-The parser reads the file twice. The first pass counts commands by testing
-`buf[0]` directly:
+### Random treasure on mobiles
 
-```c
-if ((strchr("MOPGERDTVJILFKXC", buf[0]) && buf[1] == ' ') ||
-    (buf[0] == 'S' && buf[1] == '\0'))
-```
+Write `I <if-flag> <chance-percent>`, for example `I 1 100`, after the mobile
+load. Older saved forms with extra numeric placeholders remain accepted; only
+the if-flag and chance are used.
 
-The second pass calls `skip_spaces()` before reading the command character.
-An **indented** reset command is therefore missed by the count but parsed by
-the loop, and the two disagree:
+Container contents can be authored with `P` resets using explicit object
+prototypes. The unfinished random-container reset has been removed from the
+loader and zone editor; unsupported command letters now fail with a file and
+line diagnostic.
 
-```
-SYSERR: Zone command count mismatch for <file>. Estimated: N, Actual: M
-```
+### Room exit diagnostics
 
-Never indent a reset command. The count also requires exactly one space after
-the command character, and requires the terminating `S` to be alone on its line
-with nothing after it.
-
-### `I` takes three arguments, not two
-
-`load_zones()` dispatches on `strchr("MOGEPDTVJLFKXC", command)`. Note that `I`
-is **absent** from that string, so it falls through to the generic three-argument
-branch before its `case` label is reached. The `case 'I'` block in the switch is
-unreachable.
-
-The `I` switch case expects two arguments, but the generic branch demands three,
-so a two-argument `I` line fails to parse and aborts the boot. Write `I` with
-three numbers.
-
-This is a source-level bug, not a documentation quirk. It is tracked in
-[issue #160](https://github.com/LuminariMUD/Luminari-Source/issues/160).
-
-### `L` does not work
-
-The `L` command parses only two arguments after its if-flag, but `reset_zone()`
-reads `arg3` as the container to fill - and `arg3` is never assigned, so it is
-always zero. Even when the chance roll passes and a container is somehow found,
-the call that would actually place the treasure is commented out and marked
-`Unfinished`. `L` is dead weight: it will either do nothing or log
-`ZONE ERROR: target obj not found`. Do not use it. Also tracked in
-[issue #160](https://github.com/LuminariMUD/Luminari-Source/issues/160).
-
-### Unresolvable room references are silenced
-
-`renum_zone_table()` logs a `ZONE ERROR` when an object or mobile vnum in a
-reset command cannot be resolved. `renum_world()`, which resolves room exits,
-does **not**: an exit pointing at a nonexistent room is quietly rewritten to
-`NOWHERE`. A door that leads nowhere after a boot is usually this, and nothing
-in the log will tell you.
+When `renum_world()` cannot resolve an exit destination, it logs the source
+room vnum, direction name and number, and missing destination vnum, then sets
+the exit to `NOWHERE`. Exits already authored as `NOWHERE` are left alone and
+do not produce a warning. Valid exits are resolved normally.
 
 ## Validation and Lookup
 
 Run the standalone validator from the repository root before booting a changed
-zone. It catches the parser traps above, validates typed reset targets, and
-detects room exits that the server would silently null:
+zone. It rejects unsupported header counts, validates typed reset targets, and
+detects unresolved room exits before boot:
 
 ```sh
 python3 scripts/world/wtool.py validate --zone 30

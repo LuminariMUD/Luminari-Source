@@ -13,7 +13,7 @@ from .source import READ_SIZE, SourceCursor, SourceFile, parse_c_integer_token
 
 
 _HEADER_COUNTS = {4, 10, 11, 14}
-_COMMANDS = frozenset("MOEGPDRITVJLFKXC")
+_COMMANDS = frozenset("MOEGPDRITVJFKXC")
 _FLEX_FIVE = frozenset("MOEP")
 
 
@@ -164,6 +164,7 @@ def _validate_zone_header(
 
 
 def _command_shape(command: str) -> tuple[int, int]:
+  """Return the minimum and maximum integer counts, including the if-flag."""
   if command in _FLEX_FIVE:
     return 4, 5
   if command == "G":
@@ -172,8 +173,8 @@ def _command_shape(command: str) -> tuple[int, int]:
     return 4, 4
   if command == "R":
     return 3, 4
-  if command in {"I", "L"}:
-    return 3, 3
+  if command == "I":
+    return 2, 2
   if command == "F":
     return 4, 5
   if command in {"K", "X", "C"}:
@@ -250,6 +251,7 @@ def _parse_command(
     direction_count: int,
     wear_count: int,
 ) -> ResetCommandRecord | None:
+  """Parse a supported reset and attach argument and range diagnostics."""
   command_text = line.text.lstrip()
   command = command_text[0]
   payload = command_text[1:].lstrip()
@@ -288,8 +290,6 @@ def _parse_command(
       probability = arguments[1] if len(arguments) == 2 else 100
     elif command == "I":
       probability = arguments[0]
-    elif command == "L":
-      probability = arguments[1]
     parsed = ResetCommandRecord(
         command,
         dependency,
@@ -416,28 +416,6 @@ def _parse_command(
   if parsed.command == "J" and parsed.arguments and parsed.arguments[0] < 0:
     result.findings.append(
         finding("ZON032", "error", "jump count must be non-negative", line.span, "zone", zone_vnum)
-    )
-  if parsed.command == "I":
-    result.findings.append(
-        finding(
-            "ZON033",
-            "warning",
-            "I reset requires a dummy third integer that the runtime ignores",
-            line.span,
-            "zone",
-            zone_vnum,
-        )
-    )
-  if parsed.command == "L":
-    result.findings.append(
-        finding(
-            "ZON034",
-            "error",
-            "L reset is non-functional: the parser never initializes the container field used at runtime",
-            line.span,
-            "zone",
-            zone_vnum,
-        )
     )
   return parsed
 
@@ -583,6 +561,7 @@ def parse_zone_file(
     manifest: dict[str, Any],
     direction_count: int,
 ) -> ParseResult[ZoneRecord]:
+  """Read one zone and validate its header, resets, references, and terminators."""
   result: ParseResult[ZoneRecord] = ParseResult()
   try:
     source = SourceFile.from_path(path, display_path)
@@ -675,17 +654,6 @@ def parse_zone_file(
     if stripped.startswith("*"):
       continue
     if stripped.startswith("S"):
-      if line.text != "S":
-        result.findings.append(
-            finding(
-                "ZON018",
-                "error",
-                "zone sentinel must be exactly 'S' in column zero for the prescan and parser to agree",
-                line.span,
-                "zone",
-                vnum,
-            )
-        )
       found_sentinel = True
       break
     command = stripped[:1]
@@ -694,17 +662,6 @@ def parse_zone_file(
           finding("ZON019", "error", f"unknown or lowercase reset command {command!r}", line.span, "zone", vnum)
       )
       continue
-    if line.text[0] != command or len(line.text) < 2 or line.text[1] != " ":
-      result.findings.append(
-          finding(
-              "ZON020",
-              "error",
-              "reset command must start in column zero and use a literal space as byte two",
-              line.span,
-              "zone",
-              vnum,
-          )
-      )
     parsed = _parse_command(line, result, vnum, direction_count, wear_count)
     if parsed is not None:
       record.commands.append(parsed)

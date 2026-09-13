@@ -88,10 +88,10 @@ vnums 3000 through 3099, reset every 30 minutes, reset mode 2 (always), no zone
 flags, levels 1-5, weather shown. `S` ends the reset command list (empty for
 now) and `$` ends the file.
 
-The numeric header's field count is significant: the parser accepts exactly 4,
-10, 11, or 14 fields and silently discards the extras from any other count. See
-the [Zone File Format Reference](ZONE_FILE_FORMAT.md) for the full field list
-and the traps around it.
+The numeric header's field count is significant: use 4, 10, 11, or 14 fields.
+If the parser falls back to a shorter form or ignores extra fields, it logs a
+warning naming the zone, file, line, and ignored data. See the
+[Zone File Format Reference](ZONE_FILE_FORMAT.md) for the full field list.
 
 ## Step 2: The Rooms
 
@@ -144,9 +144,9 @@ Two things that bite:
 
 - **Exits are one-way.** Room 3000's north exit to 3001 does not create 3001's
   south exit back. Write both, as above.
-- **An exit to a room that does not exist is silently nulled.** `renum_world()`
-  rewrites it to `NOWHERE` and logs nothing. If a door leads nowhere after a
-  clean boot, the destination vnum is wrong.
+- **An exit to a room that does not exist is disabled.** `renum_world()`
+  rewrites it to `NOWHERE` and logs the source room vnum, direction, and missing
+  destination vnum. Check that diagnostic if a door leads nowhere after boot.
 
 ## Step 3: A Mobile
 

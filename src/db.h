@@ -425,6 +425,9 @@ void remove_obj_from_rnum_hash(struct obj_data *obj);
 
 void setup_dir(FILE *fl, room_rnum room, int dir);
 void index_boot(int mode);
+#ifdef LUMINARI_CUTEST
+void test_load_zones(FILE *fl, char *zonename);
+#endif
 void discrete_load(FILE *fl, int mode, char *filename);
 void parse_room(FILE *fl, int virtual_nr, const char *filename);
 void parse_mobile(FILE *mob_f, int nr);

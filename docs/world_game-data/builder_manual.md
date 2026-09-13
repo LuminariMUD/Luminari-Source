@@ -431,7 +431,6 @@ the usage line.
 - `V` - Assign a DG Script variable
 - `J` - Jump over the following lines
 - `I` - Load random treasure onto a mobile
-- `L` - Load random treasure into a container (non-functional; do not use)
 - `S` - Terminates the command list
 
 Each command takes an if-flag as its first argument: `0` runs the command

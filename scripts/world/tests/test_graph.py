@@ -59,6 +59,7 @@ class FullGraphTests(unittest.TestCase):
       self.assertEqual({"SEM005", "SEM010"}, {item.code for item in findings})
 
   def test_tracked_complete_fixture_covers_normal_mini_and_legacy_read_only(self) -> None:
+    """Validate normal and mini indexes without modifying legacy world data."""
     root = self.repo_root / "scripts/world/tests/fixtures/phase2/complete"
     before = tree_hash(root)
     normal = self.validate(root)
@@ -69,7 +70,7 @@ class FullGraphTests(unittest.TestCase):
     self.assertTrue(mini.complete)
     self.assertEqual([], [item for item in normal.findings if item.severity == "error"])
     self.assertEqual(
-        {"OBJ027", "SEM010", "ZON033"},
+        {"OBJ027", "SEM010"},
         {item.code for item in normal.findings},
     )
     self.assertEqual(before, tree_hash(root))

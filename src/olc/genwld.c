@@ -64,6 +64,7 @@ static void clear_new_room_runtime_ownership(struct room_data *room)
   room->affected_registered = false;
 }
 
+/** Shift runtime room references after inserting a room into the world array. */
 static void adjust_room_references_for_insert(room_rnum inserted_room)
 {
   struct char_data *tch;
@@ -95,7 +96,6 @@ static void adjust_room_references_for_insert(room_rnum inserted_room)
       case 'E':
       case 'J':
       case 'I':
-      case 'L':
       case 'C':
       case '*':
         break;
@@ -271,6 +271,7 @@ room_rnum add_runtime_room(struct room_data *room)
   return add_room_internal(room, FALSE);
 }
 
+/** Remove a room and repair references; persist affected zones when requested. */
 static int delete_room_internal(room_rnum rnum, bool persistent)
 {
   struct door_state_operation *incoming = NULL;
@@ -435,7 +436,6 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
       case 'C':
       case 'J':
       case 'I':
-      case 'L':
       case '*':
         /* Known zone entries we don't care about. */
         break;

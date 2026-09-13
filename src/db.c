@@ -2597,17 +2597,25 @@ static void check_start_rooms(void)
   }
 }
 
-/* resolve all vnums into rnums in the world */
+/** Resolve exit vnums once at boot and report destinations replaced with NOWHERE. */
 void renum_world(void)
 {
   room_rnum room;
+  room_vnum destination;
   int door;
 
   for (room = 0; room <= top_of_world; room++)
     for (door = 0; door < NUM_OF_DIRS; door++)
       if (world[room].dir_option[door])
         if (world[room].dir_option[door]->to_room != NOWHERE)
-          world[room].dir_option[door]->to_room = real_room(world[room].dir_option[door]->to_room);
+        {
+          destination = world[room].dir_option[door]->to_room;
+          world[room].dir_option[door]->to_room = real_room(destination);
+          if (world[room].dir_option[door]->to_room == NOWHERE)
+            log("SYSERR: Room #%" PRI_IDX ", exit %s (%d): destination #%" PRI_IDX
+                " does not exist; exit set to NOWHERE.",
+                world[room].number, dirs[door], door, destination);
+        }
 }
 
 /** This is not the same ZCMD as used elsewhere. GRUMBLE... namespace conflict
@@ -2617,7 +2625,7 @@ void renum_world(void)
 #endif
 #define ZCMD zone_table[zone].cmd[cmd_no]
 
-/* Resolve vnums into rnums in the zone reset tables. In English: Once all of
+/** Resolve vnums into rnums in the zone reset tables. In English: Once all of
  * the zone reset tables have been loaded, we resolve the virtual numbers into
  * real numbers all at once so we don't have to do it repeatedly while the game
  * is running.  This does make adding any room, mobile, or object a little more
@@ -2809,25 +2817,6 @@ static void renum_zone_table(void)
         break;
       case 'V': /* trigger variable assignment */
         b = ZCMD.arg3 = real_room(ZCMD.arg3);
-        break;
-      case 'L': /* Load random treasure in container */
-        c = real_object(ZCMD.arg3);
-        /* CRITICAL: Validate container object vnum at parse time */
-        if (c == NOTHING)
-        {
-          log("ZONE ERROR: Zone #%d, Line %d: Container vnum #%d does not exist (L = Load "
-              "treasure)",
-              zone_table[zone].number, ZCMD.line, oldc);
-          log("ZONE FIX: Create container #%d with 'oedit %d' OR remove this L command from 'zedit "
-              "%d'",
-              oldc, oldc, zone_table[zone].number);
-          /* Keep the original vnum for error tracking but mark as invalid */
-          ZCMD.arg3 = NOTHING;
-        }
-        else
-        {
-          ZCMD.arg3 = c;
-        }
         break;
       }
       if (a == NOWHERE || b == NOWHERE || c == NOWHERE)
@@ -4242,18 +4231,58 @@ const char *parse_object(FILE *obj_f, int nr)
   }
 }
 
+/** Supported header forms are 4, 10, 11 and 14 fields. Keep legacy defaults,
+ * but report any suffix that the selected form cannot consume. */
+static bool parse_zone_header(struct zone_data *zone, char *line, const char *name, int line_num)
+{
+  char flags[ZN_ARRAY_MAX][READ_SIZE];
+  char *remainder;
+  int fields, used, end4 = 0, end10 = 0, end11 = 0, end14 = 0;
+  int i;
+
+  fields = sscanf(line,
+                  " %" SCN_IDX " %" SCN_IDX " %d %d%n %511s %511s %511s %511s %d %d%n"
+                  " %d%n %d %d %d%n",
+                  &zone->bot, &zone->top, &zone->lifespan, &zone->reset_mode, &end4, flags[0],
+                  flags[1], flags[2], flags[3], &zone->min_level, &zone->max_level, &end10,
+                  &zone->show_weather, &end11, &zone->region, &zone->faction, &zone->city, &end14);
+  if (fields < 4)
+    return false;
+
+  used = fields >= 14 ? 14 : fields >= 11 ? 11 : fields >= 10 ? 10 : 4;
+  remainder = line + (used == 14 ? end14 : used == 11 ? end11 : used == 10 ? end10 : end4);
+  while (isspace((unsigned char)*remainder))
+    remainder++;
+  if (*remainder)
+    log("ZONE WARNING: Zone #%" PRI_IDX ", %s, line %d: numeric header uses %d fields; "
+        "ignoring trailing data: '%s'",
+        zone->number, name, line_num, used, remainder);
+
+  for (i = 0; i < ZN_ARRAY_MAX; i++)
+    zone->zone_flags[i] = used >= 10 ? asciiflag_conv(flags[i]) : 0;
+  if (used < 10)
+  {
+    zone->min_level = -1;
+    zone->max_level = -1;
+  }
+  if (used < 11)
+    zone->show_weather = 1;
+  if (used < 14)
+    zone->region = zone->faction = zone->city = 0;
+  return true;
+}
+
 #define Z zone_table[zone]
 
-/* load the zone table and command tables */
+/** Load one zone and advance the boot-time zone index; malformed input is fatal. */
 static void load_zones(FILE *fl, char *zonename)
 {
   static zone_rnum zone = 0;
-  int i, cmd_no, num_of_cmds = 0, line_num = 0, tmp, error, arg_count = 0;
-  char *ptr, buf[READ_SIZE], zname[READ_SIZE], buf2[MAX_STRING_LENGTH] = {'\0'};
+  int cmd_no, num_of_cmds = 0, line_num = 0, tmp, error, arg_count = 0;
+  const char *commands = "MOPGERDTVJIFKXC";
+  char *ptr, buf[READ_SIZE], zname[READ_SIZE];
   int zone_fix = FALSE;
   char t1[80], t2[80];
-  char zbuf1[MAX_STRING_LENGTH] = {'\0'}, zbuf2[MAX_STRING_LENGTH] = {'\0'};
-  char zbuf3[MAX_STRING_LENGTH] = {'\0'}, zbuf4[MAX_STRING_LENGTH] = {'\0'};
 
   strlcpy(zname, zonename, sizeof(zname));
 
@@ -4261,12 +4290,20 @@ static void load_zones(FILE *fl, char *zonename)
   for (tmp = 0; tmp < 3; tmp++)
     get_line(fl, buf);
 
-  /* More accurate count. Previous was always 4 or 5 too high. -gg Note that if
-   * a new zone command is added to reset_zone(), this string will need to be
-   * updated to suit. - ae. */
+  /* Use the same command starts and terminators as the parsing pass. */
   while (get_line(fl, buf))
-    if ((strchr("MOPGERDTVJILFKXC", buf[0]) && buf[1] == ' ') || (buf[0] == 'S' && buf[1] == '\0'))
+  {
+    ptr = buf;
+    while (isspace((unsigned char)*ptr))
+      ptr++;
+    if (*ptr == 'S' || *ptr == '$')
+    {
       num_of_cmds++;
+      break;
+    }
+    if (*ptr && strchr(commands, *ptr))
+      num_of_cmds++;
+  }
 
   rewind(fl);
 
@@ -4286,7 +4323,6 @@ static void load_zones(FILE *fl, char *zonename)
     log("SYSERR: Format error in %s, line %d", zname, line_num);
     exit(1);
   }
-  snprintf(buf2, sizeof(buf2), "beginning of zone #%" PRI_IDX, Z.number);
 
   line_num += get_line(fl, buf);
   if ((ptr = strchr(buf, '~')) != NULL) /* take off the '~' if it's there */
@@ -4299,81 +4335,21 @@ static void load_zones(FILE *fl, char *zonename)
   Z.name = strdup(buf);
   parse_at(Z.name);
 
-  /* Clear all the zone flags */
-  for (i = 0; i < ZN_ARRAY_MAX; i++)
-    Z.zone_flags[i] = 0;
-
-  // had to change this block -zusuk
   line_num += get_line(fl, buf);
-
-  /* vnum expansion
-  if (sscanf(buf, " %hd %hd %d %d %s %s %s %s %d %d %d", &Z.bot, &Z.top, &Z.lifespan,
-          &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level,
-          &Z.show_weather) != 11) {
-   */
-  if (sscanf(buf, " %" SCN_IDX " %" SCN_IDX " %d %d %511s %511s %511s %511s %d %d %d %d %d %d",
-             &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level,
-             &Z.max_level, &Z.show_weather, &Z.region, &Z.faction, &Z.city) != 14)
+  if (!parse_zone_header(&Z, buf, zname, line_num))
   {
-    // not 14 values, lets try 11
-    if (sscanf(buf, " %" SCN_IDX " %" SCN_IDX " %d %d %511s %511s %511s %511s %d %d %d", &Z.bot,
-               &Z.top, &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level,
-               &Z.max_level, &Z.show_weather) != 11)
+    /* Legacy zones may omit the builder line, shifting the numeric header. */
+    log("SYSERR: Format error in numeric constant line of %s, attempting to fix.", zname);
+    if (!parse_zone_header(&Z, Z.name, zname, line_num - 1))
     {
-      // not 11 values, lets try 10
-      if (sscanf(buf, " %" SCN_IDX " %" SCN_IDX " %d %d %511s %511s %511s %511s %d %d", &Z.bot,
-                 &Z.top, &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level,
-                 &Z.max_level) != 10)
-      {
-        // not 10 values, last try for 4 values
-        if (sscanf(buf, " %" SCN_IDX " %" SCN_IDX " %d %d ", &Z.bot, &Z.top, &Z.lifespan,
-                   &Z.reset_mode) != 4)
-        {
-          // attempt to fix: copy previous 2 last reads into this and last variable
-          log("SYSERR: Format error in numeric constant line of %s, attempting to fix.", zname);
-          if (sscanf(Z.name, " %" SCN_IDX " %" SCN_IDX " %d %d ", &Z.bot, &Z.top, &Z.lifespan,
-                     &Z.reset_mode) != 4)
-          {
-            log("SYSERR: Could not fix previous error, aborting game.");
-            exit(1);
-          }
-          else
-          {
-            free(Z.name);
-            Z.name = strdup(Z.builders);
-            free(Z.builders);
-            Z.builders = strdup("None.");
-            zone_fix = TRUE;
-          }
-        }
-        /* We only found 4 values, so set 'defaults' for the ones not found */
-        Z.min_level = -1;
-        Z.max_level = -1;
-        Z.show_weather = 1;
-      }
-      else
-      { // 10 values
-        Z.zone_flags[0] = asciiflag_conv(zbuf1);
-        Z.zone_flags[1] = asciiflag_conv(zbuf2);
-        Z.zone_flags[2] = asciiflag_conv(zbuf3);
-        Z.zone_flags[3] = asciiflag_conv(zbuf4);
-        Z.show_weather = 1;
-      }
+      log("SYSERR: Could not fix previous error, aborting game.");
+      exit(1);
     }
-    else
-    { // 11 values
-      Z.zone_flags[0] = asciiflag_conv(zbuf1);
-      Z.zone_flags[1] = asciiflag_conv(zbuf2);
-      Z.zone_flags[2] = asciiflag_conv(zbuf3);
-      Z.zone_flags[3] = asciiflag_conv(zbuf4);
-    }
-  }
-  else
-  { // 14 values
-    Z.zone_flags[0] = asciiflag_conv(zbuf1);
-    Z.zone_flags[1] = asciiflag_conv(zbuf2);
-    Z.zone_flags[2] = asciiflag_conv(zbuf3);
-    Z.zone_flags[3] = asciiflag_conv(zbuf4);
+    free(Z.name);
+    Z.name = strdup(Z.builders);
+    free(Z.builders);
+    Z.builders = strdup("None.");
+    zone_fix = TRUE;
   }
 
   if (Z.bot > Z.top)
@@ -4396,16 +4372,29 @@ static void load_zones(FILE *fl, char *zonename)
       }
     }
     else
+    {
       zone_fix = FALSE;
+      tmp = 0;
+    }
 
     line_num += tmp;
     ptr = buf;
-    skip_spaces(&ptr);
-
-    if ((ZCMD.command = *ptr) == '*')
+    while (isspace((unsigned char)*ptr))
+      ptr++;
+    if (!*ptr || *ptr == '*')
       continue;
-
-    ptr++;
+    if (*ptr != 'S' && *ptr != '$' && !strchr(commands, *ptr))
+    {
+      log("SYSERR: Unknown zone reset command '%c' in %s, line %d: '%s'", *ptr, zname, line_num,
+          buf);
+      exit(1);
+    }
+    if (cmd_no >= num_of_cmds)
+    {
+      log("SYSERR: Zone command count mismatch for %s, line %d: '%s'", zname, line_num, buf);
+      exit(1);
+    }
+    ZCMD.command = *ptr++;
 
     if (ZCMD.command == 'S' || ZCMD.command == '$')
     {
@@ -4413,12 +4402,7 @@ static void load_zones(FILE *fl, char *zonename)
       break;
     }
     error = 0;
-    if (strchr("MOGEPDTVJLFKXC", ZCMD.command) == NULL)
-    { /* a 3-arg command */
-      if (sscanf(ptr, " %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2) != 3)
-        error = 1;
-    }
-    else if (ZCMD.command == 'V')
+    if (ZCMD.command == 'V')
     { /* a string-arg command */
       if (sscanf(ptr, " %d %d %d %d %79s %79[^\f\n\r\t\v]", &tmp, &ZCMD.arg1, &ZCMD.arg2,
                  &ZCMD.arg3, t1, t2) != 6)
@@ -4436,11 +4420,6 @@ static void load_zones(FILE *fl, char *zonename)
       case 'I': /* Load random treasure on mobile */
         arg_count = sscanf(ptr, " %d %d ", &tmp, &ZCMD.arg1);
         if (arg_count != 2)
-          error = 1;
-        break;
-      case 'L': /* Load random treasure in container */
-        arg_count = sscanf(ptr, " %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2);
-        if (arg_count != 3)
           error = 1;
         break;
       case 'J':
@@ -4504,9 +4483,6 @@ static void load_zones(FILE *fl, char *zonename)
         error = 1;
         break;
       }
-      // if (sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2,
-      //         &ZCMD.arg3) != 4)
-      //   error = 1;
     }
 
     ZCMD.if_flag = tmp;
@@ -4530,6 +4506,14 @@ static void load_zones(FILE *fl, char *zonename)
   top_of_zone_table = zone++;
 }
 #undef Z
+
+#ifdef LUMINARI_CUTEST
+/** Exercise the production loader, including its fatal errors and retained index. */
+void test_load_zones(FILE *fl, char *zonename)
+{
+  load_zones(fl, zonename);
+}
+#endif
 
 static void get_one_line(FILE *fl, char *buf)
 {
@@ -5649,6 +5633,7 @@ void reset_zone(zone_rnum zone)
   domain_transfer_context_finish(&context);
 }
 
+/** Execute resolved resets within the caller's transfer context and update zone state. */
 static void reset_zone_transfer_impl(zone_rnum zone)
 {
   int cmd_no = 0, jump = 0, total_rooms = 0, num_chests = 0, max_chests = 0;
@@ -6034,23 +6019,6 @@ static void reset_zone_transfer_impl(zone_rnum zone)
       }
       if (rand_number(1, 100) <= ZCMD.arg1)
         load_treasure(mob);
-      break;
-
-    case 'L': /* random treasure to container (with percentage loads) */
-      if (rand_number(1, 100) <= ZCMD.arg2)
-      {
-        if (!(obj_to = get_obj_num(ZCMD.arg3)))
-        {
-          ZONE_ERROR("target obj not found");
-          // ZCMD.command = '*';
-          break;
-        }
-        /* Unfinished */
-        // load_treasure_in_obj(obj_to);
-        push_result(1);
-      }
-      else
-        push_result(0);
       break;
 
     case 'E': /* object to equipment list (with percentage loads) */
