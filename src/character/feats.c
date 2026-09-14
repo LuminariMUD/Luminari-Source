@@ -6177,6 +6177,16 @@ void assign_feats(void)
         "summonhorde: call orc warriors to your side 1/day",
         "You can use 'summonhorde' once per day to call two to four orc warriors who follow you "
         "for a time.");
+  feato(FEAT_FAST_CASTING, "fast casting", TRUE, FALSE, TRUE, FEAT_TYPE_INNATE_ABILITY,
+        "spells take one casting tick less per rank",
+        "Your race casts quickly: every spell and power you cast takes one casting tick less "
+        "per rank of this feat. A cast reduced to no time at all completes at once. Slow "
+        "casting cancels this rank for rank.");
+  feato(FEAT_SLOW_CASTING, "slow casting", TRUE, FALSE, TRUE, FEAT_TYPE_INNATE_ABILITY,
+        "spells take one casting tick more per rank",
+        "Your race casts slowly: every spell and power you cast takes one casting tick more "
+        "per rank of this feat. Quickened and other instant casts are not delayed. Fast "
+        "casting cancels this rank for rank.");
   feat_prereq_ability(FEAT_SHADOW, ABILITY_STEALTH, 21);
   feat_prereq_attribute(FEAT_CALM, AB_CHA, 19);
   feat_prereq_ability(FEAT_ESTABLISH_CAMP, ABILITY_SURVIVAL, 3);

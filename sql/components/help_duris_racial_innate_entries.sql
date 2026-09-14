@@ -723,3 +723,32 @@ ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SUMMON-HORDE', 'SUMMON-HORDE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SUMMON-HORDE', 'SUMMONHORDE');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('FAST-CASTING', 'Fast Casting (racial innate)
+
+Requires: the fast casting feat
+
+Your race casts quickly. Every spell and power you cast takes one casting
+tick less per rank of this feat, so with one rank an ordinary one-tick spell
+completes at once. Quickened spells are already instant. Slow casting cancels
+this feat rank for rank.
+
+See also: FEAT INFO FAST CASTING, SLOW-CASTING, QUICKEN-SPELL', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FAST-CASTING', 'FAST-CASTING');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('SLOW-CASTING', 'Slow Casting (racial drawback)
+
+Requires: the slow casting feat
+
+Your race casts slowly. Every spell and power you cast takes one casting tick
+more per rank of this feat. Quickened and other instant casts are not delayed.
+Fast casting cancels this feat rank for rank.
+
+See also: FEAT INFO SLOW CASTING, FAST-CASTING, QUICKEN-SPELL', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SLOW-CASTING', 'SLOW-CASTING');

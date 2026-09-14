@@ -2841,6 +2841,13 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
     casting_time = SINFO.time;
   }
 
+  /* racial casting speed: slow casting adds one tick per rank, fast casting removes one; a
+   * cast that reaches zero completes at once.  Applied before the instant-cast overrides so a
+   * quickened spell is never delayed. */
+  casting_time += HAS_FEAT(ch, FEAT_SLOW_CASTING) - HAS_FEAT(ch, FEAT_FAST_CASTING);
+  if (casting_time < 0)
+    casting_time = 0;
+
   /* meta magic! */
   if (!IS_NPC(ch))
   {
