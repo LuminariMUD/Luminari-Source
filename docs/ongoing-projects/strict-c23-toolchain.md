@@ -35,10 +35,12 @@ warning debt, and feature detection that strict flags cannot influence.
   `CMakeLists.txt` (`LUMINARI_WARNING_TIER`). `DEVELOPER_MODE` is gone.
 - Baseline tier: `-Wall -Wextra -Wstrict-prototypes -Wold-style-definition
   -Wpointer-arith -Wformat-security -Wvla -Wredundant-decls -Wnested-externs
-  -Wmissing-prototypes` plus GCC's `-Wtrampolines -Walloc-size
-  -Wbidi-chars=any -Wcalloc-transposed-args -Wflex-array-member-not-at-end
-  -Wunterminated-string-initialization`. The last three common flags were
-  promoted from the migration tier by steps 2.3 and 2.4. Clean on all four
+  -Wmissing-prototypes -Wjump-misses-init` plus GCC's `-Wtrampolines
+  -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-args
+  -Wflex-array-member-not-at-end -Wunterminated-string-initialization`. The
+  last four common flags were promoted from the migration tier by steps 2.3,
+  2.4, and 3.1; Clang 18 does not know `-Wjump-misses-init`, so the probe
+  drops it there. Clean on all four
   compilers; `-Werror` is refused with any other tier.
 - Migration tier: conversions, shadowing, switch coverage, `-Wformat=2`,
   allocation, duplicated conditions and branches, logical operators,
@@ -286,6 +288,9 @@ Notes from step 3.1:
 - Clang also reported the `goto save_char_restore` in every `BUFFER_WRITE`
   after `save_char_checked` declared the legacy talent bitset words mid-function;
   they are declared with the other locals now.
+- `-Wjump-misses-init` moved to the baseline tier after a clean baseline
+  build with GCC 13; Clang 18 rejects the option, and the per-compiler probe
+  leaves it out there.
 
 - The production half of the class (about 290 sites: string tables declared
   `char *[]`, `one_argument_u((char *)argument, ...)`, `findLine` in the index

@@ -313,7 +313,8 @@ probe_warning()
 # tiers were introduced, so -Werror is safe.  A new baseline flag must first
 # be proven clean by the migration budget reaching zero for that class.
 baseline_common=(-Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpointer-arith
-  -Wformat-security -Wvla -Wredundant-decls -Wnested-externs -Wmissing-prototypes)
+  -Wformat-security -Wvla -Wredundant-decls -Wnested-externs -Wmissing-prototypes
+  -Wjump-misses-init)
 baseline_gcc=(-Wtrampolines -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-args
   -Wflex-array-member-not-at-end -Wunterminated-string-initialization)
 baseline_clang=()
@@ -324,7 +325,7 @@ baseline_clang=()
 # -Werror; scripts/ci/check_warning_budget.py ratchets them down.
 migration_common=(-Wconversion -Wsign-conversion -Wdouble-promotion -Wshadow
   -Wswitch-enum -Wcast-qual -Wundef
-  -Wjump-misses-init -Wnull-dereference -Wformat=2
+  -Wnull-dereference -Wformat=2
   -Wfloat-equal -Walloca -Wimplicit-fallthrough -Wwrite-strings)
 migration_gcc=(-Wformat-signedness -Wcast-align=strict -Walloc-zero -Wduplicated-cond
   -Wduplicated-branches -Wlogical-op)
