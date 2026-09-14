@@ -90,7 +90,9 @@ warning debt, and feature detection that strict flags cannot influence.
 
 - Strict full builds: GCC 13, GCC 16, Clang 18, Clang 22, all zero errors.
 - `make test` on the strict Autotools build: 1483 tests pass.
-- The local CI matrix (`scripts/ci/local/run.py`): rerun pending on the fixes below (the first run failed as described in the notes).
+- The local CI matrix (`scripts/ci/local/run.py`): all 28 jobs passed on
+  `70ff161ed` in 9 minutes (`--jobs 3 --cpus 4`). The first run failed as
+  described in the notes below.
 
 ## Budget snapshot
 
@@ -546,7 +548,8 @@ Notes from the local CI run and the analyzer triage:
     hint count passed to `dice()`, which the optimized builds fold away. Debug
     baseline builds are now clean on GCC 13, GCC 16, Clang 18, and Clang 22.
   - The Clang CMake production-profile job once reported that the migration
-    tier dropped `-Wcast-align`; the same probe keeps it when run on its own.
+    tier dropped `-Wcast-align`; the same probe keeps it when run on its own,
+    and the job passed in the rerun.
 - `check_warning_budget.py` accepts a log without warnings only while the
   budget file is empty, so the budget job still passes with both budgets at
   zero.
