@@ -18,6 +18,8 @@ Usage:
   check_warning_budget.py --compiler LABEL --log build.log            # compare
   check_warning_budget.py --compiler LABEL --log build.log --update   # lower the baseline
   check_warning_budget.py --compiler LABEL --log build.log --report   # print counts only
+  check_warning_budget.py --compiler LABEL --log build.log --list CLASS      # sites by file
+  check_warning_budget.py --compiler LABEL --log build.log --by-token CLASS  # sites by identifier
   check_warning_budget.py --self-test
 """
 
@@ -37,8 +39,8 @@ def baseline_path(compiler):
     return os.path.join(BASELINE_DIR, f"warning_budget_{compiler}.txt")
 
 
-def count_warnings(lines):
-    """Return ({class: count}, error_count) for the distinct warning sites in lines."""
+def collect_sites(lines):
+    """Return ({(site, class)}, error_count) for the distinct warning sites in lines."""
     seen = set()
     errors = 0
     for line in lines:
@@ -48,10 +50,46 @@ def count_warnings(lines):
             seen.add((match.group("site"), match.group("cls")))
         elif ERROR_PATTERN.match(line):
             errors += 1
+    return seen, errors
+
+
+def count_warnings(lines):
+    """Return ({class: count}, error_count) for the distinct warning sites in lines."""
+    seen, errors = collect_sites(lines)
     counts = {}
     for _site, cls in seen:
         counts[cls] = counts.get(cls, 0) + 1
     return counts, errors
+
+
+def list_sites(seen, cls, by_token):
+    """Print one class's sites grouped by file, or by the identifier at the column."""
+    groups = {}
+    for site, site_cls in seen:
+        if site_cls != cls:
+            continue
+        path, line, col = site.rsplit(":", 2)
+        if by_token:
+            source = ""
+            try:
+                with open(path, encoding="utf-8", errors="replace") as handle:
+                    for number, text in enumerate(handle, 1):
+                        if number == int(line):
+                            source = text
+                            break
+            except OSError:
+                pass
+            fragment = source[int(col) - 1:]
+            match = re.match(r"[A-Za-z_][A-Za-z_0-9]*", fragment)
+            key = match.group(0) if match else fragment[:12].strip() or "?"
+        else:
+            key = os.path.relpath(path, REPO_ROOT) if path.startswith(REPO_ROOT) else path
+        groups.setdefault(key, []).append(site)
+    for key in sorted(groups, key=lambda name: (-len(groups[name]), name)):
+        print(f"{len(groups[key]):7d}  {key}")
+        if not by_token:
+            for site in sorted(groups[key], key=lambda text: int(text.rsplit(":", 2)[1])):
+                print(f"           {site}")
 
 
 def read_baseline(path):
@@ -123,6 +161,9 @@ def main():
     parser.add_argument("--log", help="build log captured with the migration warning tier")
     parser.add_argument("--update", action="store_true", help="lower the baseline; refuses growth")
     parser.add_argument("--report", action="store_true", help="print counts without comparing")
+    parser.add_argument("--list", metavar="CLASS", help="print one class's sites grouped by file")
+    parser.add_argument("--by-token", metavar="CLASS",
+                        help="print one class's sites grouped by the identifier at the column")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
@@ -132,7 +173,13 @@ def main():
         parser.error("--compiler and --log are required")
 
     with open(args.log, encoding="utf-8", errors="replace") as handle:
-        counts, errors = count_warnings(handle)
+        seen, errors = collect_sites(handle)
+    if args.list or args.by_token:
+        list_sites(seen, args.list or args.by_token, bool(args.by_token))
+        return 0
+    counts = {}
+    for _site, cls in seen:
+        counts[cls] = counts.get(cls, 0) + 1
     total = sum(counts.values())
     print(f"{args.compiler}: {total} distinct warning sites in {len(counts)} classes, {errors} errors")
     for cls in sorted(counts, key=lambda name: (-counts[name], name)):
