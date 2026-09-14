@@ -278,6 +278,7 @@ EOF
     fail "watchdog ran before the initial autorun state was published"
   wait_for_file "$daemon_dir/.mud-fake.pid"
   wait_for_file "$daemon_dir/.mud.pid"
+  wait_for_file "$daemon_dir/.mud.identity"
   wait_for_file "$daemon_dir/.autorun.lock.pid"
 
   state_pid=$(awk -F= '$1 == "PID" {print $2}' "$daemon_dir/.autorun.state")
