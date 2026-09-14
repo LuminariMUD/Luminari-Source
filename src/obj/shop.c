@@ -574,7 +574,7 @@ static char *times_message(struct obj_data *obj, char *name, int num)
 
   if (obj)
     len = strlcpy(buf, obj->short_description, sizeof(buf));
-  else
+  else if (name)
   {
     if ((ptr = strchr(name, '.')) == NULL)
       ptr = name;
@@ -582,6 +582,8 @@ static char *times_message(struct obj_data *obj, char *name, int num)
       ptr++;
     len = snprintf(buf, sizeof(buf), "%s %s", AN(ptr), ptr);
   }
+  else
+    len = strlcpy(buf, "something", sizeof(buf));
 
   if (num > 1 && len < sizeof(buf))
     snprintf(buf + len, sizeof(buf) - len, " (x %d)", num);

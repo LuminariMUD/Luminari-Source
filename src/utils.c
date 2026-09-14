@@ -9166,7 +9166,7 @@ char *randstring(int length)
   if (length < 1 || length > 255)
     return NULL;
 
-  char buf[length + 1];
+  char buf[256];
   char char_list[64];
   int i = 0;
 

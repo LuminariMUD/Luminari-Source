@@ -722,7 +722,15 @@ must not be added to the enforced suite.
   checks;
 - Autotools/CMake manifest parity (`scripts/ci/check_build_parity.py`);
 - blocking CMake configure, build, CTest, and install jobs with the strict
-  `ci-gcc` and `ci-clang` presets (`-Wall -Wextra -Werror`);
+  `ci-gcc` and `ci-clang` presets (baseline warning tier with `-Werror`) in
+  Debug and Release on GCC 13, Clang 18, GCC 16.2, and Clang 22.1.8;
+- the migration warning budget on GCC 16.2 and Clang 22.1.8
+  (`scripts/ci/check_warning_budget.py`), which fails when any warning class
+  grows;
+- a compiler identity and version check in every compiling job
+  (`scripts/ci/check_compiler.sh`) and a check that strict flags cannot
+  change Autotools or CMake feature-probe results
+  (`scripts/ci/check_configure_probes.sh`);
 - the supported Luminari behavioral suite;
 - root `make test-all`;
 - the hardened production profile on Autotools (GCC, GCC 14, Clang) and CMake
@@ -757,7 +765,9 @@ binary with select, verifies the installed server's real-port startup, health en
 and graceful shutdown through autorun, then checks clean-tree and source-distribution
 hygiene. Both I/O drivers retain the complete behavioral suite.
 
-The strict GCC/Clang CMake jobs still fail on warnings. All five production-profile server
+The strict GCC/Clang CMake jobs still fail on warnings; `toolchain-analysis.yml` runs the
+analysis warning tier and the ISO C23 extension report on a weekly schedule without blocking
+anything. All five production-profile server
 builds retain binary hardening verification; hardened tests run with Autotools/GCC 14 and
 CMake/Clang. Each build system has an independent clean-archive job. Sanitizers, protocol
 fuzzing, Valgrind, coverage floors, CodeQL, world tools, parity, formatting, source hygiene,
@@ -773,9 +783,14 @@ once (rebuild when its Dockerfile, help-sync requirements, or pre-commit configu
 
 ```sh
 docker build -t luminari-ci:local-fast -f scripts/ci/local/Dockerfile .
+docker build -t luminari-ci:local-gcc-16.2 -f scripts/ci/local/Dockerfile.gcc-16.2 .
 python3 scripts/ci/local/run.py --list
 python3 scripts/ci/local/run.py --jobs 3 --cpus 4
 ```
+
+A job that GitHub runs inside a compiler container (`container: gcc:16.2`)
+runs locally in `luminari-ci:local-gcc-16.2`; every other job uses the
+`--image` default.
 
 The runner exports committed HEAD, executes the actual build/integration/format/hygiene/security-scan
 workflow shell commands in separate containers, and keeps the local world and credentials

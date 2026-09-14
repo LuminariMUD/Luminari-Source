@@ -66,8 +66,8 @@ writes to `build/<preset>`.
 |--------|---------|
 | `dev` | Debug build with tests and utilities, system compiler |
 | `dev-clang` | The same with `clang` |
-| `ci-gcc` | RelWithDebInfo, `-Wall -Wextra -Werror`, blocking in CI |
-| `ci-clang` | The same with `clang`, blocking in CI |
+| `ci-gcc` | RelWithDebInfo, baseline warning tier with `-Werror`, blocking in CI (Debug and Release, GCC 13 and 16.2) |
+| `ci-clang` | The same with `clang` (Clang 18 and 22.1.8), blocking in CI |
 | `sanitizers` | Debug with `-fsanitize=address,undefined` |
 | `coverage` | Debug with `--coverage` for gcov/gcovr |
 | `release-hardened` | Release with fortify, stack protector, PIE, RELRO, no tests |
@@ -101,22 +101,26 @@ summary.
 |--------|---------|--------|
 | `BUILD_UTILS` | `ON` | Build the `util/` helper programs |
 | `BUILD_TESTS` | `OFF` | Build `cutest` and register the CTest entries |
-| `DEVELOPER_MODE` | `OFF` | Add `-Wshadow -Wcast-qual -Wwrite-strings -Wconversion -Wunreachable-code` |
+| `LUMINARI_WARNING_TIER` | `baseline` | `baseline`, `migration`, or `analysis`; see the compiler policy in the [setup and build guide](../guides/SETUP_AND_BUILD_GUIDE.md#compiler-policy-and-warning-tiers) |
 | `MEMORY_DEBUG` | `OFF` | Define `MEMORY_DEBUG` for the in-tree allocation tracing |
 | `DMALLOC` | `OFF` | Define `DMALLOC` and link the dmalloc allocator (required when set) |
 | `STATIC_ANALYSIS` | `OFF` | Run clang-tidy on every compiled source and export compile commands |
-| `LUMINARI_WERROR` | `OFF` | Add `-Werror` |
+| `LUMINARI_WERROR` | `OFF` | Add `-Werror`; accepted only with the `baseline` tier |
 | `LUMINARI_COVERAGE` | `OFF` | Add `--coverage` to compile and link |
 | `LUMINARI_HARDENING` | `OFF` | Add `_FORTIFY_SOURCE=3`, `-fstack-protector-strong`, `-fstack-clash-protection`, PIE, RELRO, and `-z now` |
 | `LUMINARI_SANITIZERS` | empty | Comma-separated `-fsanitize=` list, for example `address,undefined` |
 
-Options compose with any preset. `DEVELOPER_MODE` is deliberately not
+Options compose with any preset. The `migration` tier is deliberately not
 enabled by a checked-in preset because `-Wconversion` alone reports thousands
-of pre-existing warnings; turn it on for a focused pass:
+of pre-existing warnings; turn it on for a focused pass, then lower the
+budget file with `scripts/ci/check_warning_budget.py --update`:
 
 ```bash
-cmake --preset dev -DDEVELOPER_MODE=ON
+cmake --preset dev -DLUMINARI_WARNING_TIER=migration
 ```
+
+The warning flags come from `scripts/deployment/production_profile.sh`, the
+same probe Autotools uses, so both builds print and apply one list.
 
 Every flag, definition, include path, and link option is attached to the
 `luminari_build` and `luminari_deps` interface targets, which the server,

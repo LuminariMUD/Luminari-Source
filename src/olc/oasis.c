@@ -352,9 +352,8 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
 void split_argument(char *argument, char *tag)
 {
   char *tmp = argument, *ttag = tag, *wrt = argument;
-  int i;
 
-  for (i = 0; *tmp; tmp++, i++)
+  for (; *tmp; tmp++)
   {
     if (*tmp != ' ' && *tmp != '=')
       *(ttag++) = *tmp;

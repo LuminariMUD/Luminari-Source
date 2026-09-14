@@ -11,11 +11,13 @@ set(CMAKE_C_EXTENSIONS ON)
 # Every option is documented in docs/development/CMAKE_BUILD_GUIDE.md.
 option(BUILD_UTILS "Build the util/ helper programs" ON)
 option(BUILD_TESTS "Build production-linked unit tests and register CTest entries" OFF)
-option(DEVELOPER_MODE "Enable additional diagnostic warnings for development builds" OFF)
+set(LUMINARI_WARNING_TIER "baseline" CACHE STRING
+    "Warning tier: baseline (clean everywhere), migration (budgeted), analysis (scheduled)")
+set_property(CACHE LUMINARI_WARNING_TIER PROPERTY STRINGS baseline migration analysis)
 option(MEMORY_DEBUG "Compile with the in-tree MEMORY_DEBUG allocation tracing" OFF)
 option(DMALLOC "Link against the dmalloc debugging allocator" OFF)
 option(STATIC_ANALYSIS "Run clang-tidy on every compiled source" OFF)
-option(LUMINARI_WERROR "Treat compiler warnings as errors" OFF)
+option(LUMINARI_WERROR "Treat baseline-tier warnings as errors" OFF)
 option(LUMINARI_COVERAGE "Instrument all targets for gcov/gcovr line and branch coverage" OFF)
 option(LUMINARI_HARDENING "Apply hardened Release flags (fortify, stack protector, PIE, RELRO)" OFF)
 set(LUMINARI_SANITIZERS "" CACHE STRING
@@ -28,6 +30,14 @@ include(CheckStructHasMember)
 include(CheckSymbolExists)
 include(CheckCSourceCompiles)
 include(CheckCCompilerFlag)
+
+# Feature detection must not depend on the warning policy.  CMake's probes
+# (check_function_exists declares each function as "char f(void)") warn under
+# -Wall and would flip to "not found" under a caller's -Werror, activating
+# fallback definitions.  Keep -Werror out of every probe and restore the
+# caller's flags once src/conf.h is generated.
+set(LUMINARI_USER_C_FLAGS "${CMAKE_C_FLAGS}")
+string(REGEX REPLACE "(^| )-Werror(=[^ ]*)?( |$)" " " CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 
 check_c_source_compiles(
     "int main(void) {
@@ -167,7 +177,18 @@ set(LUMINARI_PGO_GENERATE "" CACHE PATH
 set(LUMINARI_PGO_USE "" CACHE PATH
     "Optimize using previously collected profile data at this path")
 
-set(PRODUCTION_PROFILE_ARGS)
+if (NOT LUMINARI_WARNING_TIER MATCHES "^(baseline|migration|analysis)$")
+    message(FATAL_ERROR "Unknown LUMINARI_WARNING_TIER '${LUMINARI_WARNING_TIER}'")
+endif()
+if (LUMINARI_WERROR AND NOT LUMINARI_WARNING_TIER STREQUAL "baseline")
+    message(FATAL_ERROR
+        "LUMINARI_WERROR applies to the baseline tier only; the ${LUMINARI_WARNING_TIER} "
+        "tier is tracked by scripts/ci/check_warning_budget.py")
+endif()
+
+# The warning tier is always requested, so the profile script runs on every
+# configure and both build systems print the same probed flag list.
+set(PRODUCTION_PROFILE_ARGS --warnings ${LUMINARI_WARNING_TIER})
 if (LUMINARI_PRODUCTION)
     if (CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE STREQUAL "None")
         message(FATAL_ERROR
@@ -187,30 +208,45 @@ if (LUMINARI_PGO_USE)
 endif()
 
 set(PRODUCTION_SUPPORTED "")
-if (PRODUCTION_PROFILE_ARGS)
-    execute_process(
-        COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/production_profile.sh
-                --cc ${CMAKE_C_COMPILER}
-                --cflags "${CMAKE_C23_EXTENSION_COMPILE_OPTION}"
-                ${PRODUCTION_PROFILE_ARGS}
-        OUTPUT_VARIABLE PRODUCTION_PROFILE_OUTPUT
-        ERROR_VARIABLE PRODUCTION_PROFILE_ERROR
-        RESULT_VARIABLE PRODUCTION_PROFILE_RESULT)
-    if (NOT PRODUCTION_PROFILE_RESULT EQUAL 0)
-        message(FATAL_ERROR "Production build profile failed: ${PRODUCTION_PROFILE_ERROR}")
-    endif()
-    foreach (key CFLAGS LDFLAGS SUPPORTED UNSUPPORTED)
-        string(REGEX MATCH "PRODUCTION_${key}=([^\n]*)" _ "${PRODUCTION_PROFILE_OUTPUT}")
-        set(PRODUCTION_${key} "${CMAKE_MATCH_1}")
-    endforeach()
-    string(APPEND CMAKE_C_FLAGS " ${PRODUCTION_CFLAGS}")
+execute_process(
+    COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/production_profile.sh
+            --cc ${CMAKE_C_COMPILER}
+            --cflags "${CMAKE_C23_EXTENSION_COMPILE_OPTION}"
+            ${PRODUCTION_PROFILE_ARGS}
+    OUTPUT_VARIABLE PRODUCTION_PROFILE_OUTPUT
+    ERROR_VARIABLE PRODUCTION_PROFILE_ERROR
+    RESULT_VARIABLE PRODUCTION_PROFILE_RESULT)
+if (NOT PRODUCTION_PROFILE_RESULT EQUAL 0)
+    message(FATAL_ERROR "Build profile failed: ${PRODUCTION_PROFILE_ERROR}")
+endif()
+foreach (key CFLAGS LDFLAGS SUPPORTED UNSUPPORTED)
+    string(REGEX MATCH "PRODUCTION_${key}=([^\n]*)" _ "${PRODUCTION_PROFILE_OUTPUT}")
+    set(PRODUCTION_${key} "${CMAKE_MATCH_1}")
+endforeach()
+foreach (key CFLAGS UNSUPPORTED)
+    string(REGEX MATCH "WARNING_${key}=([^\n]*)" _ "${PRODUCTION_PROFILE_OUTPUT}")
+    set(LUMINARI_WARNING_${key} "${CMAKE_MATCH_1}")
+endforeach()
+separate_arguments(LUMINARI_WARNING_CFLAGS_LIST UNIX_COMMAND "${LUMINARI_WARNING_CFLAGS}")
+if (LUMINARI_WERROR)
+    list(APPEND LUMINARI_WARNING_CFLAGS_LIST -Werror)
+endif()
+message(STATUS "Warning tier ${LUMINARI_WARNING_TIER} for ${CMAKE_C_COMPILER}: "
+               "${LUMINARI_WARNING_CFLAGS_LIST}")
+if (LUMINARI_WARNING_UNSUPPORTED)
+    message(WARNING
+        "Warning flags not supported by ${CMAKE_C_COMPILER} and left out: "
+        "${LUMINARI_WARNING_UNSUPPORTED}")
+endif()
+if (PRODUCTION_CFLAGS OR PRODUCTION_LDFLAGS)
+    # PRODUCTION_CFLAGS joins CMAKE_C_FLAGS after the feature probes below.
     string(APPEND CMAKE_EXE_LINKER_FLAGS " ${PRODUCTION_LDFLAGS}")
     message(STATUS "Production profile flags: ${PRODUCTION_CFLAGS} ${PRODUCTION_LDFLAGS}")
-    if (PRODUCTION_UNSUPPORTED)
-        message(WARNING
-            "Hardening features not supported by ${CMAKE_C_COMPILER} and left out: "
-            "${PRODUCTION_UNSUPPORTED}")
-    endif()
+endif()
+if (PRODUCTION_UNSUPPORTED)
+    message(WARNING
+        "Hardening features not supported by ${CMAKE_C_COMPILER} and left out: "
+        "${PRODUCTION_UNSUPPORTED}")
 endif()
 
 if (HAVE_STDLIB_H AND HAVE_STDIO_H AND HAVE_STRING_H)
@@ -271,6 +307,9 @@ endif()
 # src/conf.h, the same gitignored location configure.ac uses, because the
 # standalone test scripts under scripts/ preprocess sources with -Isrc.
 configure_file(cmake/cmake_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/conf.h)
+# The profile comes last so the repository policy is the last word, exactly
+# as configure.ac orders it.
+set(CMAKE_C_FLAGS "${LUMINARI_USER_C_FLAGS} ${PRODUCTION_CFLAGS}")
 
 # ========== Shared build interface ==========
 # Every compiled target links this interface library instead of relying on
@@ -280,11 +319,12 @@ target_include_directories(luminari_build INTERFACE
     ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-set(LUMINARI_GNU_LIKE "$<C_COMPILER_ID:GNU,Clang,AppleClang>")
-target_compile_options(luminari_build INTERFACE
-    $<${LUMINARI_GNU_LIKE}:-Wall;-Wextra>
-    $<$<AND:${LUMINARI_GNU_LIKE},$<BOOL:${LUMINARI_WERROR}>>:-Werror>
-    $<$<AND:${LUMINARI_GNU_LIKE},$<BOOL:${DEVELOPER_MODE}>>:-Wshadow;-Wcast-qual;-Wwrite-strings;-Wconversion;-Wunreachable-code>)
+# Warning flags come from the shared, probed tier list above.
+target_compile_options(luminari_build INTERFACE ${LUMINARI_WARNING_CFLAGS_LIST})
+# The versioned installer and the copyover identity line key on the ELF build
+# ID.  Distribution compilers emit one by default; a toolchain built from
+# source (the official gcc container images) does not, so ask for it.
+target_link_options(luminari_build INTERFACE -Wl,--build-id)
 target_compile_definitions(luminari_build INTERFACE
     $<$<BOOL:${MEMORY_DEBUG}>:MEMORY_DEBUG>
     $<$<BOOL:${DMALLOC}>:DMALLOC>)
@@ -1130,6 +1170,8 @@ if (BUILD_TESTS)
             ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/ci/test_cutest_runner.py)
     add_test(NAME clean-archive-runtime
         COMMAND Python3::Interpreter scripts/ci/test_clean_archive.py -v)
+    add_test(NAME warning-budget-self-test
+        COMMAND Python3::Interpreter scripts/ci/check_warning_budget.py --self-test)
     add_test(NAME sql-interpolation-self-test
         COMMAND Python3::Interpreter scripts/ci/check_sql_interpolation.py --self-test)
     add_test(NAME sql-interpolation
@@ -1142,6 +1184,7 @@ if (BUILD_TESTS)
     set_tests_properties(
         build-parity
         clean-archive-runtime
+        warning-budget-self-test
         sql-interpolation-self-test
         sql-interpolation
         help-sync
@@ -1335,7 +1378,7 @@ message(STATUS "  Production Profile: ${LUMINARI_PRODUCTION} (${PRODUCTION_SUPPO
 message(STATUS "  LTO: ${LUMINARI_LTO}")
 message(STATUS "  Build Utilities: ${BUILD_UTILS}")
 message(STATUS "  Build Tests: ${BUILD_TESTS}")
-message(STATUS "  Developer Mode: ${DEVELOPER_MODE}")
+message(STATUS "  Warning Tier: ${LUMINARI_WARNING_TIER}")
 message(STATUS "  Warnings As Errors: ${LUMINARI_WERROR}")
 message(STATUS "  Sanitizers: ${LUMINARI_SANITIZERS}")
 message(STATUS "  Coverage: ${LUMINARI_COVERAGE}")

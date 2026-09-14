@@ -118,6 +118,71 @@ to the default flags. `--enable-lto`, `--with-pgo-generate=DIR`, and
 [deployment guide](../deployment/DEPLOYMENT_GUIDE.md#production-build-profile)
 records the flag policy, verification, and crash-symbolization workflow.
 
+## Compiler Policy and Warning Tiers
+
+The build is GNU C23 on GCC or Clang. Two compiler generations are supported
+and both are exercised by blocking CI jobs on every pull request:
+
+| Role | GCC | Clang | Where CI gets it |
+|------|-----|-------|------------------|
+| Minimum | 13 | 18 | the `ubuntu-latest` runner image |
+| Current | 16.2 | 22.1.8 | the `gcc:16.2` container image; apt.llvm.org |
+
+GCC 13 only knows the pre-publication `-std=gnu2x` spelling; configure and
+CMake accept it after the C23 keyword probe passes. Update cadence: the
+current versions in `.github/workflows/test.yml` move to each new GCC and
+LLVM point release within a month of it shipping, and the minimum moves when
+the runner image's distribution drops a compiler. Every job that compiles
+runs `scripts/ci/check_compiler.sh`, which reads the preprocessor's
+predefined macros to prove the family and version before building, so
+installing Clang can never silently produce a GCC build. The configure
+summary and the CMake status output print the effective warning flags.
+
+GNU extensions are an explicit choice (`-std=gnu23`, `CMAKE_C_EXTENSIONS ON`).
+The scheduled `toolchain-analysis.yml` workflow compiles the tree as ISO C23
+with `-Wpedantic` and reports how much of it depends on extensions; the
+report is informational.
+
+Warnings come in three cumulative tiers. The flag lists live in
+`scripts/deployment/production_profile.sh`, which both build systems call so
+the two builds apply the same set; each flag is probed, and a compiler that
+lacks one reports it and continues.
+
+| Tier | Contents | Enforcement |
+|------|----------|-------------|
+| `baseline` | `-Wall -Wextra` plus prototype hygiene, format security, `-Wvla`, and the GCC allocation-size and flexible-array checks | errors on every pull request (`--enable-werror`, `LUMINARI_WERROR=ON`) |
+| `migration` | conversions, shadowing, switch coverage, missing prototypes, `-Wformat=2`, allocation, duplicated conditions and branches, logical-operator mistakes, fallthrough, `-Wwrite-strings` | a per-compiler budget that may only shrink |
+| `analysis` | GCC `-fanalyzer`; Clang's opinionated extras | scheduled, informational |
+
+Select a tier with `./configure --enable-warning-tier=migration` or
+`cmake -DLUMINARI_WARNING_TIER=migration`. `-Werror` is refused with any
+tier but `baseline`; the migration tier has thousands of pre-existing
+instances and is held by `scripts/ci/check_warning_budget.py` instead. The
+CI job builds with the pinned current compilers and compares the count of
+distinct warning sites per class with `scripts/ci/warning_budget_gcc-16.txt`
+and `scripts/ci/warning_budget_clang-22.txt`. Growth in any class, or a new
+class, fails the job. Counting is by distinct site, and the build uses
+make's per-target output sync so parallel diagnostics cannot interleave and
+change the count. After fixing warnings, lower the budget:
+
+```bash
+cmake -S . -B build/budget -DCMAKE_C_COMPILER=clang-22 \
+  -DLUMINARI_WARNING_TIER=migration -DBUILD_TESTS=ON
+cmake --build build/budget -j"$(nproc)" -- --output-sync=target 2>&1 | tee build/budget/build.log
+scripts/ci/check_warning_budget.py --compiler clang-22 --log build/budget/build.log --update
+```
+
+A class whose budget reaches zero on both compilers is promoted to the
+baseline tier. A warning that must be suppressed is suppressed at the site
+(`__attribute__` or a pragma) or, for a diagnostic that is wrong for this
+code base, in the profile script next to a comment giving the reason; the
+repository-wide tier lists are never weakened to accommodate one site.
+
+Feature detection is independent of the warning policy: no configure or
+CMake probe uses `-Werror` unless the probe itself requires it, and
+`scripts/ci/check_configure_probes.sh` configures both build systems with
+strict flags and plainly and fails if `src/conf.h` differs.
+
 ## CMake
 
 CMake is the supported secondary build. Use the checked-in presets, which
@@ -132,8 +197,8 @@ cmake --install build/dev
 
 `dev-clang`, `ci-gcc`, `ci-clang`, `sanitizers`, `coverage`,
 `release-hardened`, and `cross-aarch64` cover the other supported workflows.
-Options such as `DEVELOPER_MODE`, `LUMINARI_WERROR`, and `LUMINARI_SANITIZERS`
-are documented in the [CMake build guide](../development/CMAKE_BUILD_GUIDE.md).
+Options such as `LUMINARI_WARNING_TIER`, `LUMINARI_WERROR`, and
+`LUMINARI_SANITIZERS` are documented in the [CMake build guide](../development/CMAKE_BUILD_GUIDE.md).
 
 Both build systems must list the same sources. `make check-build-parity` (also
 run by `make test`, CTest, and CI) fails when `Makefile.am` and

@@ -7443,7 +7443,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg,
       if (!iarg)
         return TRUE;
       if (is_proficient_with_weapon(ch, iarg) &&
-          has_combat_feat(ch, FEAT_GREATER_WEAPON_SPECIALIZATION, iarg))
+          has_combat_feat(ch, CFEAT_GREATER_WEAPON_SPECIALIZATION, iarg))
         return TRUE;
       return FALSE;
     case FEAT_EPIC_ELDRITCH_MASTER:

@@ -178,7 +178,8 @@ SPECIAL(bought_pet)
   if (cmd)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  /* Pulse calls arrive with a NULL argument; only a command carries text. */
+  if (argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "This appears to be a pet.\r\n");
     return TRUE;

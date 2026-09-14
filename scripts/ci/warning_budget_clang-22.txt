@@ -1,0 +1,26 @@
+# Migration-tier warning budget for clang-22.
+# Distinct warning sites per class; may only shrink. Regenerate with
+# scripts/ci/check_warning_budget.py --compiler clang-22 --log LOG --update
+alloca 4
+cast-align 6
+cast-qual 399
+double-promotion 559
+enum-enum-conversion 1
+float-conversion 95
+float-equal 7
+format-nonliteral 23
+implicit-fallthrough 33
+implicit-float-conversion 223
+implicit-int-conversion 1613
+implicit-int-conversion-on-negation 58
+implicit-int-float-conversion 134
+incompatible-pointer-types-discards-qualifiers 486
+jump-misses-init 579
+missing-format-attribute 29
+missing-prototypes 2123
+shadow 166
+shorten-64-to-32 602
+sign-conversion 15028
+switch-default 657
+switch-enum 45
+undef 8

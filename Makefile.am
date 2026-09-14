@@ -9,6 +9,10 @@ SUBDIRS = util
 # The production profile lives in CFLAGS/LDFLAGS (configure appends it after
 # the user's flags) rather than here, where user CFLAGS would override it.
 AM_CFLAGS = @CSTD_CFLAGS@ @MYFLAGS@ @LIBEVENT_CFLAGS@
+# The versioned installer and the copyover identity line key on the ELF build
+# ID.  Distribution compilers emit one by default; a toolchain built from
+# source (the official gcc container images) does not, so ask for it.
+AM_LDFLAGS = -Wl,--build-id
 
 
 # Main program
@@ -867,6 +871,11 @@ EXTRA_DIST = \
 	scripts/ci/test_cutest_runner.py \
 	scripts/ci/check_sql_interpolation.py \
 	scripts/ci/sql_interpolation_baseline.txt \
+	scripts/ci/check_compiler.sh \
+	scripts/ci/check_configure_probes.sh \
+	scripts/ci/check_warning_budget.py \
+	scripts/ci/warning_budget_gcc-16.txt \
+	scripts/ci/warning_budget_clang-22.txt \
 	scripts/debugging/debug_game.sh \
 	scripts/debugging/verify_core_capture.sh \
 	scripts/debugging/vgrind.sh \
@@ -1055,7 +1064,7 @@ distcheck-archive:
 test: run-cutest test-cutest-runner check-build-parity test-clean-archive-runtime test-help-sync \
 	test-autorun-supervision test-versioned-binary-install \
 	test-binary-name-static test-healthcheck test-sql-interpolation test-production-profile \
-	test-background-help-entries test-demand-driven-architecture test-event-admission \
+	test-warning-budget test-background-help-entries test-demand-driven-architecture test-event-admission \
 	test-event-core-performance-gate test-native-event-architecture test-pubsub-retirement \
 	test-vessel-tooling
 
@@ -1072,7 +1081,7 @@ run-cutest: check
 	test-help-sync-integration test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
 	test-versioned-binary-install test-binary-name-static test-healthcheck \
-	test-sql-interpolation test-production-profile \
+	test-sql-interpolation test-production-profile test-warning-budget \
 	test-demand-driven-architecture test-event-admission test-native-event-architecture \
 	test-event-core-performance-gate test-pubsub-retirement \
 	test-vessel-tooling
@@ -1146,6 +1155,12 @@ test-production-profile:
 
 test-healthcheck:
 	./scripts/operations/test_healthcheck.sh
+
+# The migration-tier warning ratchet's own checks; the budget comparison
+# itself needs a pinned compiler and runs in CI (issue #86).
+test-warning-budget:
+	cd "$(abs_top_srcdir)" && python3 scripts/ci/check_warning_budget.py --self-test
+	cd "$(abs_top_srcdir)" && CC="$(CC)" scripts/ci/check_compiler.sh --cc "$(CC)" >/dev/null
 
 # Blocks new formatted SQL with data values (issue #98 ratchet).
 test-sql-interpolation:

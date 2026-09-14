@@ -2514,7 +2514,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
 
 SPECIAL(crafting_kit)
 {
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "This is a crafting kit. You can use the following commands:\r\n");
     send_to_char(ch, "  resize      - Resize armor or weapons\r\n");

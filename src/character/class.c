@@ -1557,9 +1557,8 @@ int parse_class(char arg)
 /* accept short descrip, return class */
 int parse_class_long(const char *arg_in)
 {
-  size_t arg_sz = strlen(arg_in) + 1;
-  char arg_buf[arg_sz];
-  strlcpy(arg_buf, arg_in, arg_sz);
+  char arg_buf[MAX_INPUT_LENGTH];
+  strlcpy(arg_buf, arg_in, sizeof(arg_buf));
   char *arg = arg_buf;
 
   int l = 0; /* string length */

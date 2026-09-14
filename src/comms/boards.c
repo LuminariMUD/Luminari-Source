@@ -146,7 +146,7 @@ SPECIAL(gen_board)
   /* These were originally globals for some unknown reason. */
   int ACMD_READ, ACMD_LOOK, ACMD_EXAMINE, ACMD_WRITE, ACMD_REMOVE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "This is a bulletin board. You can use the following commands:\r\n");
     send_to_char(ch, "  read <num>    - Read a specific message\r\n");

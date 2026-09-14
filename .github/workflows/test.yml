@@ -153,18 +153,48 @@ jobs:
         run: python scripts/ci/check_build_parity.py
 
   cmake:
-    name: CMake ${{ matrix.compiler }} (strict, blocking)
+    name: CMake ${{ matrix.compiler }} ${{ matrix.build_type }} (strict, blocking)
     runs-on: ubuntu-latest
+    # The exact GCC release comes from the official image; the runner image
+    # only carries the distribution's GCC.  Clang comes from apt.llvm.org.
+    container: ${{ matrix.container }}
     strategy:
       fail-fast: false
       matrix:
+        build_type: [Debug, Release]
+        compiler: [gcc, clang, gcc-16, clang-22]
         include:
+          # Oldest supported compilers: the runner image's distribution builds.
           - compiler: gcc
+            cc: gcc
             preset: ci-gcc
             packages: gcc
+            min_version: '13'
+            container: ''
+            db_host: 127.0.0.1
           - compiler: clang
+            cc: clang
             preset: ci-clang
             packages: clang
+            min_version: '18'
+            container: ''
+            db_host: 127.0.0.1
+          # Current supported compilers, pinned; see the compiler policy in
+          # docs/guides/SETUP_AND_BUILD_GUIDE.md for the update cadence.
+          - compiler: gcc-16
+            cc: gcc
+            preset: ci-gcc
+            packages: ''
+            min_version: '16.2'
+            container: gcc:16.2
+            db_host: mariadb
+          - compiler: clang-22
+            cc: clang-22
+            preset: ci-clang
+            packages: ''
+            min_version: '22.1.8'
+            container: ''
+            db_host: 127.0.0.1
     services:
       mariadb:
         image: mariadb:10.11
@@ -182,7 +212,7 @@ jobs:
           --health-retries=10
     env:
       LUMINARI_TEST_MYSQL_ENABLE: '1'
-      LUMINARI_TEST_MYSQL_HOST: 127.0.0.1
+      LUMINARI_TEST_MYSQL_HOST: ${{ matrix.db_host }}
       LUMINARI_TEST_MYSQL_USER: luminari_test
       LUMINARI_TEST_MYSQL_PASSWORD: test_password
       LUMINARI_TEST_MYSQL_DATABASE: luminari_test
@@ -190,10 +220,17 @@ jobs:
       LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
       LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
     steps:
+      - name: Install container prerequisites
+        if: matrix.container != ''
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends sudo python3 git
+
       - name: Checkout
         uses: actions/checkout@v7
 
       - name: Set up Python
+        if: matrix.container == ''
         uses: actions/setup-python@v7
         with:
           python-version: '3.12'
@@ -202,10 +239,22 @@ jobs:
         uses: ./.github/actions/setup-build
         with:
           packages: ${{ matrix.packages }} mariadb-client pandoc
-          cache-variant: ${{ matrix.preset }}
+          cache-variant: ${{ matrix.compiler }}-${{ matrix.build_type }}
 
-      - name: Configure (${{ matrix.preset }})
-        run: cmake --preset ${{ matrix.preset }}
+      - name: Install Clang 22
+        if: matrix.compiler == 'clang-22'
+        run: |
+          curl -fsSL https://apt.llvm.org/llvm.sh -o /tmp/llvm.sh
+          sudo bash /tmp/llvm.sh 22
+
+      - name: Verify the compiler
+        run: scripts/ci/check_compiler.sh --cc ${{ matrix.cc }} --min-version ${{ matrix.min_version }}
+
+      - name: Configure (${{ matrix.preset }}, ${{ matrix.build_type }})
+        run: |
+          cmake --preset ${{ matrix.preset }} \
+            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }} -j"$(nproc)"
@@ -221,6 +270,64 @@ jobs:
           cmake --install build/${{ matrix.preset }}
           test -x bin/luminari
           test -L bin/luminari
+
+  warning-budget:
+    name: Migration warning budget (${{ matrix.compiler }})
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: gcc-16
+            cc: gcc
+            min_version: '16.2'
+            container: gcc:16.2
+          - compiler: clang-22
+            cc: clang-22
+            min_version: '22.1.8'
+            container: ''
+    steps:
+      - name: Install container prerequisites
+        if: matrix.container != ''
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends sudo python3 git
+
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up build
+        uses: ./.github/actions/setup-build
+        with:
+          cache-variant: budget-${{ matrix.compiler }}
+
+      - name: Install Clang 22
+        if: matrix.compiler == 'clang-22'
+        run: |
+          curl -fsSL https://apt.llvm.org/llvm.sh -o /tmp/llvm.sh
+          sudo bash /tmp/llvm.sh 22
+
+      - name: Verify the compiler
+        run: scripts/ci/check_compiler.sh --cc ${{ matrix.cc }} --min-version ${{ matrix.min_version }}
+
+      # The migration tier is never combined with -Werror; the budget file
+      # under scripts/ci/ is the gate and may only shrink.  Output sync keeps
+      # parallel diagnostics from interleaving, which would change the count.
+      - name: Build with the migration warning tier
+        run: |
+          cmake -S . -B build/budget \
+            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DLUMINARI_WARNING_TIER=migration \
+            -DBUILD_TESTS=ON
+          cmake --build build/budget -j"$(nproc)" -- --output-sync=target 2>&1 \
+            | tee build/budget/build.log
+
+      - name: Compare against the budget
+        run: >-
+          python3 scripts/ci/check_warning_budget.py
+          --compiler ${{ matrix.compiler }} --log build/budget/build.log
 
   clean-archive:
     name: Clean archive (${{ matrix.build }}, blocking)
@@ -272,6 +379,9 @@ jobs:
           packages: mariadb-client mariadb-server pandoc ripgrep
           cache-variant: archive-${{ matrix.build }}
 
+      - name: Verify the compiler
+        run: scripts/ci/check_compiler.sh --cc gcc --min-version 13
+
       - name: Prepare isolated test runtime
         run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
 
@@ -318,10 +428,16 @@ jobs:
           packages: mariadb-client mariadb-server pandoc ripgrep curl netcat-openbsd
           cache-variant: autotools-gcc
 
-      - name: Configure with autotools
-        run: |
-          autoreconf -fvi
-          ./configure
+      - name: Verify the compiler
+        run: scripts/ci/check_compiler.sh --cc gcc --min-version 13
+
+      # Strict flags must not change any feature-test result; this also
+      # leaves the tree plainly configured.
+      - name: Check feature probes ignore strict flags
+        run: scripts/ci/check_configure_probes.sh --cc gcc
+
+      - name: Configure with autotools (strict)
+        run: ./configure --enable-werror
 
       - name: Prepare isolated test runtime
         run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
@@ -410,6 +526,9 @@ jobs:
           packages: clang gcc-14 mariadb-client mariadb-server pandoc ripgrep
           cache-variant: production-${{ matrix.build }}-${{ matrix.cc }}
 
+      - name: Verify the compiler
+        run: scripts/ci/check_compiler.sh --cc ${{ matrix.cc }}
+
       - name: Prepare isolated test runtime
         run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
 
@@ -470,6 +589,9 @@ jobs:
           packages: clang
           cache-variant: sanitizers
 
+      - name: Verify the compiler
+        run: scripts/ci/check_compiler.sh --cc gcc --min-version 13
+
       - name: Configure sanitizer build
         run: |
           autoreconf -fvi
@@ -502,6 +624,9 @@ jobs:
         with:
           packages: valgrind
           cache-variant: valgrind
+
+      - name: Verify the compiler
+        run: scripts/ci/check_compiler.sh --cc gcc --min-version 13
 
       - name: Configure and build test binary
         run: |
@@ -560,6 +685,9 @@ jobs:
         with:
           packages: mariadb-client
           cache-variant: coverage
+
+      - name: Verify the compiler
+        run: scripts/ci/check_compiler.sh --cc gcc --min-version 13
 
       - name: Install coverage tool
         run: python -m pip install 'gcovr==8.6'

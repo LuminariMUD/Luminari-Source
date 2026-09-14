@@ -7553,11 +7553,11 @@ ACMD(do_who)
   /* int length = 0; */     /* Currently unused */
   /* int padding = 0; */    /* Currently unused */
 
-  char *account_names[CONFIG_MAX_PLAYING];
+  char **account_names = NULL;
   int num_accounts = 0, x = 0, y = 0;
 
-  for (i = 0; i < CONFIG_MAX_PLAYING; i++)
-    account_names[i] = NULL;
+  /* Sized by a runtime setting, so it lives on the heap (no VLAs). */
+  CREATE(account_names, char *, CONFIG_MAX_PLAYING);
 
   struct
   {
@@ -7641,12 +7641,14 @@ ACMD(do_who)
         break;
       default:
         send_to_char(ch, "%s", WHO_FORMAT);
+        free(account_names);
         return;
       }
     }
     else
     {
       send_to_char(ch, "%s", WHO_FORMAT);
+      free(account_names);
       return;
     }
   }
@@ -7942,6 +7944,9 @@ ACMD(do_who)
     send_to_char(ch, "\tWA staff-ran event is taking place! Type \tRstaffevent\tW to see the "
                      "current event info.\tn\r\n");
   }
+  for (x = 0; x < CONFIG_MAX_PLAYING; x++)
+    free(account_names[x]);
+  free(account_names);
 }
 
 #define USERS_FORMAT                                                                               \

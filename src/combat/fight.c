@@ -311,7 +311,7 @@ bool bloodlust_holds_the_fight(struct char_data *ch)
    the engine for fleeing */
 void perform_flee(struct char_data *ch)
 {
-  int i, found = 0, fleeOptions[DIR_COUNT];
+  int i, found = 0, fleeOptions[NUM_OF_DIRS];
 
   /* disqualifications? */
   if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_DAZED) || AFF_FLAGGED(ch, AFF_PARALYZED) ||

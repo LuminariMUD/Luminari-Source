@@ -58,7 +58,7 @@ SPECIAL(neverwinter_button_control)
   if (cmd)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "This appears to be a button control...\r\n");
     return TRUE;
@@ -109,7 +109,7 @@ SPECIAL(neverwinter_valve_control)
   if (cmd)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "This appears to be a valve control...\r\n");
     return TRUE;

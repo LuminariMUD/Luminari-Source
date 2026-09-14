@@ -38,7 +38,7 @@ SPECIAL(tia_rapier)
 {
   struct char_data *vict = NULL;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: dancing parry - on parry will do a light vamp attack\r\n");
     send_to_char(ch, "Proc: dragon strike - 120 to 200 energy damage\r\n");

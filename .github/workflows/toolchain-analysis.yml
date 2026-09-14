@@ -1,0 +1,140 @@
+name: Toolchain analysis
+
+# Scheduled, informational diagnostics on the current supported compilers:
+# the analysis warning tier (compiler-specific checks such as GCC's static
+# analyzer) and a report of how much the tree depends on GNU extensions.
+# Nothing here blocks a pull request; the blocking tiers live in test.yml.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  analysis:
+    name: Analysis tier (${{ matrix.compiler }})
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: gcc-16
+            cc: gcc
+            min_version: '16.2'
+            container: gcc:16.2
+          - compiler: clang-22
+            cc: clang-22
+            min_version: '22.1.8'
+            container: ''
+    steps:
+      - name: Install container prerequisites
+        if: matrix.container != ''
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends sudo python3 git
+
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up build
+        uses: ./.github/actions/setup-build
+        with:
+          cache-variant: analysis-${{ matrix.compiler }}
+
+      - name: Install Clang 22
+        if: matrix.compiler == 'clang-22'
+        run: |
+          curl -fsSL https://apt.llvm.org/llvm.sh -o /tmp/llvm.sh
+          sudo bash /tmp/llvm.sh 22
+
+      - name: Verify the compiler
+        run: scripts/ci/check_compiler.sh --cc ${{ matrix.cc }} --min-version ${{ matrix.min_version }}
+
+      - name: Build with the analysis warning tier
+        run: |
+          cmake -S . -B build/analysis \
+            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DLUMINARI_WARNING_TIER=analysis \
+            -DBUILD_TESTS=OFF
+          # The server target only: GCC's analyzer roughly triples compile time
+          # and the test binary would compile every source a second time.
+          cmake --build build/analysis -j"$(nproc)" --target luminari -- -k --output-sync=target 2>&1 \
+            | tee build/analysis/build.log
+
+      - name: Report warning classes
+        run: >-
+          python3 scripts/ci/check_warning_budget.py
+          --compiler ${{ matrix.compiler }} --log build/analysis/build.log --report
+
+      - name: Upload the build log
+        uses: actions/upload-artifact@v4
+        with:
+          name: analysis-${{ matrix.compiler }}
+          path: build/analysis/build.log
+
+  gnu-extensions:
+    name: GNU extension dependence (${{ matrix.compiler }})
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: gcc-16
+            cc: gcc
+            min_version: '16.2'
+            container: gcc:16.2
+          - compiler: clang-22
+            cc: clang-22
+            min_version: '22.1.8'
+            container: ''
+    steps:
+      - name: Install container prerequisites
+        if: matrix.container != ''
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends sudo python3 git
+
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up build
+        uses: ./.github/actions/setup-build
+        with:
+          cache-variant: extensions-${{ matrix.compiler }}
+
+      - name: Install Clang 22
+        if: matrix.compiler == 'clang-22'
+        run: |
+          curl -fsSL https://apt.llvm.org/llvm.sh -o /tmp/llvm.sh
+          sudo bash /tmp/llvm.sh 22
+
+      - name: Verify the compiler
+        run: scripts/ci/check_compiler.sh --cc ${{ matrix.cc }} --min-version ${{ matrix.min_version }}
+
+      # GNU C23 is the documented dialect.  Compiling as strict ISO C23 with
+      # -Wpedantic reports every extension the tree relies on; a user CFLAGS
+      # -std comes after the configured -std=gnu23 and therefore wins.
+      - name: Build as ISO C23 with pedantic diagnostics
+        run: |
+          autoreconf -fvi
+          ./configure CC=${{ matrix.cc }} CFLAGS='-std=c23 -Wpedantic -O1'
+          make -k -j"$(nproc)" --output-sync=target 2>&1 | tee extensions.log || true
+
+      - name: Report extension use
+        run: >-
+          python3 scripts/ci/check_warning_budget.py
+          --compiler ${{ matrix.compiler }} --log extensions.log --report
+
+      - name: Upload the build log
+        uses: actions/upload-artifact@v4
+        with:
+          name: extensions-${{ matrix.compiler }}
+          path: extensions.log

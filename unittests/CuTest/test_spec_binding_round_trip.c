@@ -320,7 +320,7 @@ static bool spec_round_trip_run_writer(struct spec_test_fixture *fixture,
   if (waited_pid != child_pid || received != sizeof(result) || !WIFEXITED(child_status) ||
       WEXITSTATUS(child_status) != 0 || !result.success)
   {
-    spec_round_trip_set_error(error, error_size,
+    spec_round_trip_set_error(error, error_size, "%s",
                               result.error[0] != '\0' ? result.error
                                                       : "round-trip writer exited unexpectedly");
     return false;

@@ -5258,8 +5258,7 @@ static void load_devices(FILE *fl, struct char_data *ch)
       /* No levels section in save; use default 0s and stash pre-read line for next loop/terminator */
       for (spell_idx = 0; spell_idx < MAX_INVENTION_SPELLS; spell_idx++)
         inv->spell_levels[spell_idx] = 0;
-      strncpy(pre_line, line, sizeof(pre_line) - 1);
-      pre_line[sizeof(pre_line) - 1] = '\0';
+      snprintf(pre_line, sizeof(pre_line), "%s", line);
       has_pre_line = 1;
     }
   }
