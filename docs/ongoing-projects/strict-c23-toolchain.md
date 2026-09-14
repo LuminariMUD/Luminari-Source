@@ -45,7 +45,7 @@ warning debt, and feature detection that strict flags cannot influence.
   the Clang flag were promoted from the migration tier by steps 2.3 to 3.5.
   Clang 18 does not know `-Wjump-misses-init`, so the probe drops it there.
   Clean on all four compilers; `-Werror` is refused with any other tier.
-- Migration tier: sign and value conversion, plus `-Wnull-dereference` and
+- Migration tier: value conversion (`-Wconversion`), plus `-Wnull-dereference` and
   GCC's `-Walloc-zero`, which depend on what the optimizer proves and so stay
   on the budget at zero rather than under `-Werror`. Held by
   `scripts/ci/check_warning_budget.py` against `scripts/ci/warning_budget_gcc-16.txt`
@@ -54,7 +54,8 @@ warning debt, and feature detection that strict flags cannot influence.
   which was required to make Clang's numbers deterministic.
 - Analysis tier: GCC `-fanalyzer` and Clang's opinionated extras, plus
   `-Wswitch-enum` and `-Wformat-nonliteral` (moved out of the budget by step
-  3.5) and an ISO C23 `-Wpedantic` extension report, in the weekly, non-blocking
+  3.5), `-Wsign-conversion` (step 4), and an ISO C23 `-Wpedantic` extension
+  report, in the weekly, non-blocking
   `.github/workflows/toolchain-analysis.yml`.
 
 ### Feature detection
@@ -93,13 +94,14 @@ warning debt, and feature detection that strict flags cannot influence.
 
 ## Budget snapshot
 
-| Compiler | At the start | Now (after step 3.5) |
+| Compiler | At the start | Now (after step 4) |
 |----------|--------------|----------------------|
-| GCC 16.2 | 11363 sites, 24 classes | 2336 sites, 2 classes |
-| Clang 22.1.8 | 22878 sites, 23 classes | 3853 sites, 2 classes |
+| GCC 16.2 | 11363 sites, 24 classes | 529 sites, 1 class |
+| Clang 22.1.8 | 22878 sites, 23 classes | 523 sites, 1 class |
 
-Remaining classes: sign conversion (GCC 1807, Clang 3330) and value
-conversion (GCC 529, Clang `implicit-int-conversion` 523), the only classes left.
+The only class left is value conversion (GCC `conversion` 529, Clang
+`implicit-int-conversion` 523); sign conversion (GCC 1807, Clang 3330) moved to
+the analysis tier in step 4.
 
 ## Burn-down progress
 
@@ -130,6 +132,7 @@ per compiler.
 | 3.2 | `float` is `double`; unused kdtree float API removed; float `MIN`/`MAX` clamps fixed; float-to-int conversions explicit; float classes at zero and promoted to baseline | 2824 | 4263 |
 | 3.4 | const string tables, read-only string parameters, owned strings through mutable pointers; qualifier classes at zero and promoted to baseline | 2532 | 3971 |
 | 3.5 | logic defects, dead branches, null guards, format attributes; `switch-enum` and `format-nonliteral` to the analysis tier; nine flags promoted to baseline | 2336 | 3853 |
+| 4 | `-Wsign-conversion` to the analysis tier; value conversion stays on the budget | 529 | 523 |
 
 Every step was also verified with a host `make test` (1483 tests pass) before
 it was committed, and each promotion to the baseline tier was first built at
@@ -466,6 +469,23 @@ Notes from step 3.5:
   optimizer proves, so another optimization level could fail a `-Werror` build
   that is clean here.
 
+Notes from step 4:
+
+- Measured after step 3: 1807 GCC 16.2 sites in 207 files and 3330 Clang
+  22.1.8 sites in 229 files, past the 3000 the plan set as the limit for fixing
+  them in place. The identifiers at the reported columns are the type-system
+  disagreements the plan expected: `atoi` results stored in vnum and index
+  types (146 GCC, 152 Clang), `snprintf_append` offsets (75), `NOTHING` and
+  `NOWHERE` compared with signed values (Clang 143), the `TOGGLE_BIT_AR` and
+  `PRF_TOG_CHK` bit toggles (Clang 150), and loop counters and lengths used as
+  sizes.
+- `-Wsign-conversion` moved to the analysis tier on both compilers.
+  `-Wconversion` stays in the migration tier: its 529 GCC and 523 Clang sites
+  are narrowing that can lose data, which is what the budget should hold. In C
+  `-Wconversion` enables `-Wsign-conversion` on both compilers, so the
+  migration tier lists `-Wno-sign-conversion` after it; the analysis tier's own
+  `-Wsign-conversion` comes later on the command line and wins.
+
 ## Remaining work
 
 1. GitHub-side confirmation. Container jobs, the apt.llvm.org install step,
@@ -481,8 +501,8 @@ Notes from step 3.5:
    sites. These are candidate bugs, not noise, and deserve their own issue.
 4. Burn down the rest of the migration budget. Steps 0, 1.1, 1.2, and 2.1 to
    2.6 are done (see the progress table), step 1.3 is done for 64-bit
-   narrowing, and step 3 is done. Left: the step 4 decision on the
-   sign-conversion tail, and the value-conversion sites that remain beside it.
+   narrowing, and steps 3 and 4 are done. Left: the value-conversion sites
+   (GCC 529, Clang 523), the only class the budget still holds.
 5. Cadence. Bump the current versions in `test.yml`,
    `scripts/ci/local/Dockerfile*`, and the setup guide within a month of each
    GCC or LLVM point release; raise the minimum when the runner image drops a
@@ -579,7 +599,7 @@ migration list to the baseline list in `production_profile.sh`.
 4. `-Wwrite-strings` and `cast-qual` in `src/` (done; see the step 3.4 notes).
 5. Small classes (done; see the step 3.5 notes).
 
-### Step 4: the sign-conversion tail (decision point)
+### Step 4: the sign-conversion tail (done: analysis tier)
 
 After step 1 the remaining `sign-conversion` sites are the ones the type
 system genuinely disagrees about: `int` counters indexed into `size_t`, `int`
@@ -598,7 +618,7 @@ not for every `int` index to become `size_t`.
 | steps 1.1, 1.2 | about 9500 | 8010 | about 8500 | 7955 |
 | step 2 | about 5800 | 5188 | about 5300 | 6675 |
 | step 3 | about 2800 | 2336 | about 3000 | 3853 |
-| step 4 | 0 or the sign-conversion tail | | same | |
+| step 4 | 0 or the sign-conversion tail | 529 | same | 523 |
 
 The steps landed as separate commits on the `strict-c23-toolchain` branch,
 each with its lowered budget files, rather than as separate pull requests.

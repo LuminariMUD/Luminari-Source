@@ -321,17 +321,19 @@ baseline_gcc=(-Wtrampolines -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-ar
   -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wformat-signedness)
 baseline_clang=(-Wcast-align)
 
-# Migration: sign and value conversion, which the strict-C23 audit found in
-# bulk, and the null-dereference and alloc-zero checks, which depend on what the
-# optimizer proves and so stay off the -Werror tier.  Never combined with
-# -Werror; scripts/ci/check_warning_budget.py ratchets them down.
-migration_common=(-Wconversion -Wsign-conversion -Wnull-dereference)
+# Migration: value conversion, which the strict-C23 audit found in bulk, and
+# the null-dereference and alloc-zero checks, which depend on what the
+# optimizer proves and so stay off the -Werror tier.  In C, -Wconversion also
+# enables -Wsign-conversion, so it is switched off here and back on in the
+# analysis tier, whose flags come later.  Never combined with -Werror;
+# scripts/ci/check_warning_budget.py ratchets them down.
+migration_common=(-Wconversion -Wno-sign-conversion -Wnull-dereference)
 migration_gcc=(-Walloc-zero)
 migration_clang=()
 
 # Analysis: expensive or opinionated, compiler-specific, scheduled only.
-analysis_gcc=(-fanalyzer -Wswitch-enum -Wformat-nonliteral)
-analysis_clang=(-Wswitch-enum -Wformat-nonliteral -Wextra-semi-stmt -Wcomma -Wunreachable-code-aggressive -Wbad-function-cast
+analysis_gcc=(-fanalyzer -Wswitch-enum -Wformat-nonliteral -Wsign-conversion)
+analysis_clang=(-Wswitch-enum -Wformat-nonliteral -Wsign-conversion -Wextra-semi-stmt -Wcomma -Wunreachable-code-aggressive -Wbad-function-cast
   -Wconditional-uninitialized -Wcovered-switch-default -Wmissing-format-attribute
   -Wformat-pedantic -Wassign-enum -Wenum-enum-conversion)
 
