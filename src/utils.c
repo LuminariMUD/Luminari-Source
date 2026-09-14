@@ -3586,7 +3586,7 @@ struct time_info_data *age(struct char_data *ch)
   for (af = ch->affected; af; af = af->next)
     if (af->location == APPLY_AGE)
       age_modifier += af->modifier;
-  player_age.year = MAX(17, player_age.year + age_modifier);
+  player_age.year = (sh_int)MAX(17, player_age.year + age_modifier);
 
   return (&player_age);
 }
@@ -4845,7 +4845,7 @@ int file_tail(FILE *file, char *buf, size_t bufsize, int lines_to_read)
   {
     do
     {
-      c = fgetc(file);
+      c = (char)fgetc(file);
     } while (c != '\n');
 
     lines_read++;
@@ -4940,7 +4940,7 @@ int file_numlines(FILE *file)
 
   while (!feof(file))
   {
-    c = fgetc(file);
+    c = (char)fgetc(file);
     if (c == '\n')
     {
       numlines++;
@@ -7742,13 +7742,13 @@ int find_ability_num_by_name(char *name)
   int i = 0, j = 0;
 
   for (i = 0; (size_t)i < strlen(name); i++)
-    name[i] = tolower(name[i]);
+    name[i] = (char)tolower(name[i]);
 
   for (j = START_GENERAL_ABILITIES; j < NUM_ABILITIES; j++)
   {
     snprintf(skOne, sizeof(skOne), "%s", ability_names[j]);
     for (i = 0; (size_t)i < strlen(skOne); i++)
-      skOne[i] = tolower(skOne[i]);
+      skOne[i] = (char)tolower(skOne[i]);
     if (!strcmp(name, skOne))
       return j;
   }
@@ -9969,7 +9969,7 @@ const char *apply_types_lowercase(int apply_type)
 
   for (i = 0; (size_t)i < strlen(apply_text); i++)
   {
-    apply_text[i] = tolower(apply_text[i]);
+    apply_text[i] = (char)tolower(apply_text[i]);
     if (apply_text[i] == '-')
       apply_text[i] = ' ';
   }

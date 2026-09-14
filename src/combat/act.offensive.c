@@ -9788,7 +9788,7 @@ ACMD(do_powerstrike)
     return;
   }
 
-  GET_POWER_STRIKE(ch) = value;
+  GET_POWER_STRIKE(ch) = (sbyte)value;
 
   if (value == 0)
   {
@@ -14135,7 +14135,7 @@ ACMDU(do_favored_terrain)
   {
     if (GET_FAVORED_TERRAINS(ch, i) < 0)
     {
-      GET_FAVORED_TERRAINS(ch, i) = terrain;
+      GET_FAVORED_TERRAINS(ch, i) = (sbyte)terrain;
       send_to_char(
           ch, "Favored terrain added to slot %d: %s. You gain +2 initiative and Stealth there.\r\n",
           i, terrain_types[terrain]);
@@ -14294,7 +14294,7 @@ ACMDU(do_inquisitor_favored_enemy)
   {
     if (GET_FAVORED_ENEMY(ch, i) < 0)
     {
-      GET_FAVORED_ENEMY(ch, i) = enemy_type;
+      GET_FAVORED_ENEMY(ch, i) = (ubyte)enemy_type;
       send_to_char(
           ch,
           "Favored enemy added to slot %d: %s. You gain +%d attack, damage, and +%d AC against "
@@ -14478,7 +14478,7 @@ ACMDU(do_slayer)
     return;
   }
 
-  GET_SLAYER_JUDGEMENT(ch) = i;
+  GET_SLAYER_JUDGEMENT(ch) = (byte)i;
   send_to_char(
       ch,
       "You assign %s as your slayer enabled judgement.  "

@@ -94,14 +94,12 @@ warning debt, and feature detection that strict flags cannot influence.
 
 ## Budget snapshot
 
-| Compiler | At the start | Now (after step 4) |
+| Compiler | At the start | Now (value conversion pass) |
 |----------|--------------|----------------------|
-| GCC 16.2 | 11363 sites, 24 classes | 529 sites, 1 class |
-| Clang 22.1.8 | 22878 sites, 23 classes | 523 sites, 1 class |
+| GCC 16.2 | 11363 sites, 24 classes | 0 sites, 0 classes |
+| Clang 22.1.8 | 22878 sites, 23 classes | 0 sites, 0 classes |
 
-The only class left is value conversion (GCC `conversion` 529, Clang
-`implicit-int-conversion` 523); sign conversion (GCC 1807, Clang 3330) moved to
-the analysis tier in step 4.
+No class is left in the budget: value conversion is at zero on both compilers, and sign conversion (GCC 1807, Clang 3330) runs in the analysis tier since step 4.
 
 ## Burn-down progress
 
@@ -133,6 +131,7 @@ per compiler.
 | 3.4 | const string tables, read-only string parameters, owned strings through mutable pointers; qualifier classes at zero and promoted to baseline | 2532 | 3971 |
 | 3.5 | logic defects, dead branches, null guards, format attributes; `switch-enum` and `format-nonliteral` to the analysis tier; nine flags promoted to baseline | 2336 | 3853 |
 | 4 | `-Wsign-conversion` to the analysis tier; value conversion stays on the budget | 529 | 523 |
+| 5 | explicit narrowing casts, compound assignments, `dc_bonus` widened | 0 | 0 |
 
 Every step was also verified with a host `make test` (1483 tests pass) before
 it was committed, and each promotion to the baseline tier was first built at
@@ -486,6 +485,36 @@ Notes from step 4:
   migration tier lists `-Wno-sign-conversion` after it; the analysis tier's own
   `-Wsign-conversion` comes later on the command line and wins.
 
+Notes from the value conversion pass:
+
+- Nearly every site stored an `int` in a `byte`, `ubyte`, `char`, `sh_int`, or
+  `sbyte` field: race and weapon tables, clan privileges, preference values,
+  conditions, room light, affect locations. Step 1.2 had already widened the
+  fields that hold running totals, so the rest take explicit casts that keep
+  today's truncation.
+- The Clang excerpts drive a copy of the step 1.3 range script for
+  `-Wimplicit-int-conversion`: 380 sites cast where the underline shows the
+  converted expression. It skips ranges that contain an assignment, because
+  casting `x += y` changes nothing.
+- Hand-cast sites: `tolower` and `toupper` results stored in `char` (52),
+  `RANGE`, `LIMIT`, and `GET_LEVEL` results assigned to narrow fields, the
+  summon damage dice, the handler's affect location and modifier arguments
+  (`NUM_APPLIES` is 75, so a `byte` location holds every value), the ASCII map
+  coordinates, and port numbers passed to `htons`. `MOB_SET_FEAT`,
+  `SET_ABILITY`, and `VESSEL_REPAIR_FIELD` cast inside the macro; the last uses
+  `typeof(cur)` because it repairs fields of several types.
+- GCC also reports compound assignments into narrow fields, which Clang does
+  not; those read `x = (T)(x op (y))` now. `dc_bonus` was the exception: 47
+  compound updates (40 `+=`, 5 `++`, 2 `-=`) adjust it, so it is an `int`
+  instead of a `byte` that wrapped past 127. The logon record keeps its `int`
+  fields and casts the `long` ids, because `struct last_entry` is written with
+  `fwrite`.
+- `check_warning_budget.py` refused every log without warnings, taking it for a
+  build without the migration tier, so a clean migration build would have failed
+  the budget job. It now accepts such a log when the budget file lists no
+  classes and the log shows compilation; while classes remain, an empty log
+  still fails.
+
 ## Remaining work
 
 1. GitHub-side confirmation. Container jobs, the apt.llvm.org install step,
@@ -501,8 +530,8 @@ Notes from step 4:
    sites. These are candidate bugs, not noise, and deserve their own issue.
 4. Burn down the rest of the migration budget. Steps 0, 1.1, 1.2, and 2.1 to
    2.6 are done (see the progress table), step 1.3 is done for 64-bit
-   narrowing, and steps 3 and 4 are done. Left: the value-conversion sites
-   (GCC 529, Clang 523), the only class the budget still holds.
+   narrowing, steps 3 and 4 are done, and value conversion is at zero, so the
+   budget files list no classes.
 5. Cadence. Bump the current versions in `test.yml`,
    `scripts/ci/local/Dockerfile*`, and the setup guide within a month of each
    GCC or LLVM point release; raise the minimum when the runner image drops a

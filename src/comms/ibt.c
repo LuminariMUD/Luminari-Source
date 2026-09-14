@@ -179,7 +179,7 @@ static IBT_DATA *read_ibt(char *filename, FILE *fp)
 
   do
   {
-    letter = getc(fp);
+    letter = (char)getc(fp);
     if (feof(fp))
     {
       fclose(fp);

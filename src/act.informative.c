@@ -6636,7 +6636,7 @@ ACMD(do_skore)
     {
       for (i = 0; i < 8; i++)
       {
-        GET_SCORE_SECTION_ORDER(ch, i) = i;
+        GET_SCORE_SECTION_ORDER(ch, i) = (byte)i;
       }
     }
 
@@ -6662,7 +6662,7 @@ ACMD(do_skore)
         /* Reset to default order */
         for (j = 0; j < 8; j++)
         {
-          GET_SCORE_SECTION_ORDER(ch, j) = j;
+          GET_SCORE_SECTION_ORDER(ch, j) = (byte)j;
         }
         break;
       }
@@ -6877,7 +6877,7 @@ ACMD(do_scoreconfig)
       send_to_char(ch, "Valid widths are: 80, 120, or 160 characters.\r\n");
       return;
     }
-    GET_SCORE_DISPLAY_WIDTH(ch) = width;
+    GET_SCORE_DISPLAY_WIDTH(ch) = (byte)width;
 
     // Update preference flags for compatibility
     if (width == 120 || width == 160)
@@ -7153,7 +7153,7 @@ ACMD(do_scoreconfig)
     {
       for (i = 0; i < 8; i++)
       {
-        GET_SCORE_SECTION_ORDER(ch, i) = i;
+        GET_SCORE_SECTION_ORDER(ch, i) = (byte)i;
       }
       old_position = section_id;
     }
@@ -7162,7 +7162,7 @@ ACMD(do_scoreconfig)
     if (old_position != position)
     {
       byte temp = GET_SCORE_SECTION_ORDER(ch, position);
-      GET_SCORE_SECTION_ORDER(ch, position) = section_id;
+      GET_SCORE_SECTION_ORDER(ch, position) = (byte)section_id;
       GET_SCORE_SECTION_ORDER(ch, old_position) = temp;
     }
 
@@ -7181,7 +7181,7 @@ ACMD(do_scoreconfig)
     /* Reset custom section order to default */
     for (i = 0; i < 8; i++)
     {
-      GET_SCORE_SECTION_ORDER(ch, i) = i;
+      GET_SCORE_SECTION_ORDER(ch, i) = (byte)i;
     }
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_CLASSIC);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_NOCOLOR);
@@ -8797,7 +8797,7 @@ ACMD(do_toggle)
       send_to_char(ch, "Your current page length is set to %d lines.", GET_PAGE_LENGTH(ch));
     else if (is_number(arg2))
     {
-      GET_PAGE_LENGTH(ch) = MIN(MAX(atoi(arg2), 5), 255);
+      GET_PAGE_LENGTH(ch) = (ubyte)(MIN(MAX(atoi(arg2), 5), 255));
       send_to_char(ch, "Okay, your page length is now set to %d lines.", GET_PAGE_LENGTH(ch));
     }
     else
@@ -8808,7 +8808,7 @@ ACMD(do_toggle)
       send_to_char(ch, "Your current screen width is set to %d characters.", GET_SCREEN_WIDTH(ch));
     else if (is_number(arg2))
     {
-      GET_SCREEN_WIDTH(ch) = MIN(MAX(atoi(arg2), 40), 200);
+      GET_SCREEN_WIDTH(ch) = (ubyte)(MIN(MAX(atoi(arg2), 40), 200));
       send_to_char(ch, "Okay, your screen width is now set to %d characters.",
                    GET_SCREEN_WIDTH(ch));
     }
@@ -11302,7 +11302,7 @@ ACMDU(do_wearapplies)
   {
     snprintf(wears, sizeof(wears), "%s", wear_bits[i]);
     for (j = 0; (size_t)j < strlen(wears); j++)
-      wears[j] = tolower(wears[j]);
+      wears[j] = (char)tolower(wears[j]);
 
     if (is_abbrev(argument, wears))
       break;

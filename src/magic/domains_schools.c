@@ -357,7 +357,7 @@ static void init_domains(void)
 static void add_domain(int domain, const char *name, int weapon, const char *description)
 {
   domain_list[domain].name = name;
-  domain_list[domain].favored_weapon = weapon;
+  domain_list[domain].favored_weapon = (ubyte)weapon;
   domain_list[domain].description = description;
 }
 

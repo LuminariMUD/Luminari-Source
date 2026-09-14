@@ -831,9 +831,9 @@ static void setweapon(int type, const char *name, int numDice, int diceSize, int
 {
   weapon_type[type] = name;
   weapon_list[type].name = name;
-  weapon_list[type].numDice = numDice;
-  weapon_list[type].diceSize = diceSize;
-  weapon_list[type].critRange = critRange;
+  weapon_list[type].numDice = (sbyte)numDice;
+  weapon_list[type].diceSize = (ubyte)diceSize;
+  weapon_list[type].critRange = (sbyte)critRange;
   if (critMult == 2)
     weapon_list[type].critMult = CRIT_X2;
   else if (critMult == 3)
@@ -844,16 +844,16 @@ static void setweapon(int type, const char *name, int numDice, int diceSize, int
     weapon_list[type].critMult = CRIT_X5;
   else if (critMult == 6)
     weapon_list[type].critMult = CRIT_X6;
-  weapon_list[type].weaponFlags = weaponFlags;
-  weapon_list[type].cost = cost;
-  weapon_list[type].damageTypes = damageTypes;
-  weapon_list[type].weight = weight;
-  weapon_list[type].range = range;
-  weapon_list[type].weaponFamily = weaponFamily;
-  weapon_list[type].size = size;
-  weapon_list[type].material = material;
-  weapon_list[type].handle_type = handle_type;
-  weapon_list[type].head_type = head_type;
+  weapon_list[type].weaponFlags = (ush_int)weaponFlags;
+  weapon_list[type].cost = (ush_int)cost;
+  weapon_list[type].damageTypes = (ush_int)damageTypes;
+  weapon_list[type].weight = (ush_int)weight;
+  weapon_list[type].range = (ubyte)range;
+  weapon_list[type].weaponFamily = (ush_int)weaponFamily;
+  weapon_list[type].size = (byte)size;
+  weapon_list[type].material = (ubyte)material;
+  weapon_list[type].handle_type = (ubyte)handle_type;
+  weapon_list[type].head_type = (ubyte)head_type;
   weapon_list[type].description = description;
 }
 
@@ -1875,16 +1875,16 @@ static void setarmor(int type, const char *name, int armorType, int cost, int ar
                      int weight, int material, int wear, const char *description)
 {
   armor_list[type].name = name;
-  armor_list[type].armorType = armorType;
-  armor_list[type].cost = cost;
-  armor_list[type].armorBonus = armorBonus;
-  armor_list[type].dexBonus = dexBonus;
-  armor_list[type].armorCheck = armorCheck;
-  armor_list[type].spellFail = spellFail;
-  armor_list[type].thirtyFoot = thirtyFoot;
-  armor_list[type].twentyFoot = twentyFoot;
-  armor_list[type].weight = weight;
-  armor_list[type].material = material;
+  armor_list[type].armorType = (ubyte)armorType;
+  armor_list[type].cost = (ush_int)cost;
+  armor_list[type].armorBonus = (ubyte)armorBonus;
+  armor_list[type].dexBonus = (ubyte)dexBonus;
+  armor_list[type].armorCheck = (byte)armorCheck;
+  armor_list[type].spellFail = (ubyte)spellFail;
+  armor_list[type].thirtyFoot = (ubyte)thirtyFoot;
+  armor_list[type].twentyFoot = (ubyte)twentyFoot;
+  armor_list[type].weight = (ush_int)weight;
+  armor_list[type].material = (ubyte)material;
   armor_list[type].wear = wear;
   armor_list[type].description = description;
 }

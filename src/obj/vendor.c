@@ -723,9 +723,9 @@ SPECIAL(pet_shops)
       GET_HITROLL(pet) = GET_HITROLL(pet) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
       GET_DAMROLL(pet) = GET_DAMROLL(pet) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
       pet->mob_specials.damnodice =
-          pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+          (byte)(pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100);
       pet->mob_specials.damsizedice =
-          pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+          (byte)(pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100);
     }
     else if (GET_LEVEL(pet) <= 20)
     {
@@ -735,9 +735,9 @@ SPECIAL(pet_shops)
       GET_HITROLL(pet) = GET_HITROLL(pet) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
       GET_DAMROLL(pet) = GET_DAMROLL(pet) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
       pet->mob_specials.damnodice =
-          pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+          (byte)(pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100);
       pet->mob_specials.damsizedice =
-          pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+          (byte)(pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100);
     }
     else
     {
@@ -747,9 +747,9 @@ SPECIAL(pet_shops)
       GET_HITROLL(pet) = GET_HITROLL(pet) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
       GET_DAMROLL(pet) = GET_DAMROLL(pet) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
       pet->mob_specials.damnodice =
-          pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+          (byte)(pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100);
       pet->mob_specials.damsizedice =
-          pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+          (byte)(pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100);
     }
     GET_HIT(pet) = GET_MAX_HIT(pet);
 

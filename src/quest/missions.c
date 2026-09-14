@@ -469,7 +469,7 @@ void create_mission_mobs(char_data *ch)
     mob->points.armor -= 40;
 
     GET_REAL_MAX_HIT(mob) = GET_HIT(mob);
-    GET_NDD(mob) = GET_SDD(mob) = MAX(2, GET_LEVEL(mob) / 6) + GET_MISSION_DIFFICULTY(ch);
+    GET_NDD(mob) = GET_SDD(mob) = (byte)(MAX(2, GET_LEVEL(mob) / 6) + GET_MISSION_DIFFICULTY(ch));
     award_set_points(mob, AWARD_EXPERIENCE, (GET_LEVEL(mob) * GET_LEVEL(mob) * 75));
     award_set_points(mob, AWARD_GOLD, (GET_LEVEL(mob) * 10));
 

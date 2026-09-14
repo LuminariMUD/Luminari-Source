@@ -944,7 +944,7 @@ int load_char(const char *name, struct char_data *ch)
 
       case 'B':
         if (!strcmp(tag, "Badp"))
-          GET_BAD_PWS(ch) = atoi(line);
+          GET_BAD_PWS(ch) = (ubyte)atoi(line);
         else if (!strcmp(tag, "BGnd"))
           GET_BACKGROUND(ch) = atoi(line);
         else if (!strcmp(tag, "BgFx"))
@@ -982,7 +982,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Bomb"))
           load_bombs(fl, ch);
         else if (!strcmp(tag, "Bost"))
-          GET_BOOSTS(ch) = atoi(line);
+          GET_BOOSTS(ch) = (ubyte)atoi(line);
         else if (!strcmp(tag, "Bank"))
           GET_BANK_GOLD(ch) = atoi(line);
         else if (!strcmp(tag, "Brth"))
@@ -1042,9 +1042,9 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Cvnm"))
           GET_AUTOCQUEST_VNUM(ch) = atoi(line);
         else if (!strcmp(tag, "Cmnm"))
-          GET_AUTOCQUEST_MAKENUM(ch) = atoi(line);
+          GET_AUTOCQUEST_MAKENUM(ch) = (ubyte)atoi(line);
         else if (!strcmp(tag, "Cqps"))
-          GET_AUTOCQUEST_QP(ch) = atoi(line);
+          GET_AUTOCQUEST_QP(ch) = (ubyte)atoi(line);
         else if (!strcmp(tag, "Cexp"))
           GET_AUTOCQUEST_EXP(ch) = atoi(line);
         else if (!strcmp(tag, "Cgld"))
@@ -1052,7 +1052,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Cdsc"))
           GET_AUTOCQUEST_DESC(ch) = strdup(line);
         else if (!strcmp(tag, "Cmat"))
-          GET_AUTOCQUEST_MATERIAL(ch) = atoi(line);
+          GET_AUTOCQUEST_MATERIAL(ch) = (ubyte)atoi(line);
         else if (!strcmp(tag, "ChEn"))
           ch->player_specials->saved.channel_energy_type = atoi(line);
         else if (!strcmp(tag, "CrAf"))
@@ -1167,7 +1167,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "DRMd"))
           GET_DR_MOD(ch) = atoi(line);
         else if (!strcmp(tag, "Drnk"))
-          GET_COND(ch, DRUNK) = atoi(line);
+          GET_COND(ch, DRUNK) = (sbyte)atoi(line);
         else if (!strcmp(tag, "Drol"))
           GET_REAL_DAMROLL(ch) = atoi(line);
         else if (!strcmp(tag, "Disc"))
@@ -1175,7 +1175,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "DipT"))
           GET_DIPTIMER(ch) = atoi(line);
         else if (!strcmp(tag, "DRac"))
-          GET_DISGUISE_RACE(ch) = atoi(line);
+          GET_DISGUISE_RACE(ch) = (sh_int)atoi(line);
         else if (!strcmp(tag, "DDex"))
           GET_DISGUISE_DEX(ch) = atoi(line);
         else if (!strcmp(tag, "DStr"))
@@ -1185,9 +1185,9 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "DAC "))
           GET_DISGUISE_AC(ch) = atoi(line);
         else if (!strcmp(tag, "Dom1"))
-          GET_1ST_DOMAIN(ch) = atoi(line);
+          GET_1ST_DOMAIN(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "Dom2"))
-          GET_2ND_DOMAIN(ch) = atoi(line);
+          GET_2ND_DOMAIN(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "DrMU"))
           DRAGON_MAGIC_USES(ch) = atoi(line);
         else if (!strcmp(tag, "DrMT"))
@@ -1210,7 +1210,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Ecfp"))
           load_epic_class_feat_points(fl, ch);
         else if (!strcmp(tag, "Efpt"))
-          GET_EPIC_FEAT_POINTS(ch) = atoi(line);
+          GET_EPIC_FEAT_POINTS(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "EidB"))
           GET_EIDOLON_BASE_FORM(ch) = atoi(line);
         else if (!strcmp(tag, "EidC"))
@@ -1229,7 +1229,7 @@ int load_char(const char *name, struct char_data *ch)
 
       case 'F':
         if (!strcmp(tag, "Frez"))
-          GET_FREEZE_LEV(ch) = atoi(line);
+          GET_FREEZE_LEV(ch) = (byte)atoi(line);
         if (!strcmp(tag, "FBAB"))
           FIXED_BAB(ch) = atoi(line);
         else if (!strcmp(tag, "FaEn"))
@@ -1257,7 +1257,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "FLGU"))
           FLEETING_GLANCE_USES(ch) = atoi(line);
         else if (!strcmp(tag, "Ftpt"))
-          GET_FEAT_POINTS(ch) = atoi(line);
+          GET_FEAT_POINTS(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "FSWT"))
           FEY_SHADOW_WALK_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "FSWU"))
@@ -1317,7 +1317,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Hrol"))
           GET_REAL_HITROLL(ch) = atoi(line);
         else if (!strcmp(tag, "Hung"))
-          GET_COND(ch, HUNGER) = atoi(line);
+          GET_COND(ch, HUNGER) = (sbyte)atoi(line);
         break;
 
       case 'I':
@@ -1336,7 +1336,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Int "))
           GET_REAL_INT(ch) = atoi(line);
         else if (!strcmp(tag, "Invs"))
-          GET_INVIS_LEV(ch) = atoi(line);
+          GET_INVIS_LEV(ch) = (sh_int)atoi(line);
         else if (!strcmp(tag, "InFT"))
           INCORPOREAL_FORM_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "InFU"))
@@ -1474,7 +1474,7 @@ int load_char(const char *name, struct char_data *ch)
 
       case 'P':
         if (!strcmp(tag, "Page"))
-          GET_PAGE_LENGTH(ch) = atoi(line);
+          GET_PAGE_LENGTH(ch) = (ubyte)atoi(line);
         else if (!strcmp(tag, "Pass"))
           strlcpy(GET_PASSWD(ch), line, sizeof(ch->player.passwd));
         else if (!strcmp(tag, "Potn"))
@@ -1519,9 +1519,9 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "PrQu"))
           load_spell_prep_queue(fl, ch);
         else if (!strcmp(tag, "PCAr"))
-          GET_PREFERRED_ARCANE(ch) = atoi(line);
+          GET_PREFERRED_ARCANE(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "PCDi"))
-          GET_PREFERRED_DIVINE(ch) = atoi(line);
+          GET_PREFERRED_DIVINE(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "PSP "))
           load_HMVS(ch, line, LOAD_PSP);
         else if (!strcmp(tag, "PSRg"))
@@ -1607,7 +1607,7 @@ int load_char(const char *name, struct char_data *ch)
           int power_strike_value;
           if (sscanf(line, "%d", &power_strike_value) == 1)
           {
-            ch->player_specials->saved.power_strike = power_strike_value;
+            ch->player_specials->saved.power_strike = (sbyte)power_strike_value;
           }
         }
         else if (!strcmp(tag, "PPsS"))
@@ -1804,9 +1804,9 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "ResK"))
           GET_REAL_RESISTANCES(ch, 20) = atoi(line);
         else if (!strcmp(tag, "RSc1"))
-          GET_1ST_RESTRICTED_SCHOOL(ch) = atoi(line);
+          GET_1ST_RESTRICTED_SCHOOL(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "RSc2"))
-          GET_2ND_RESTRICTED_SCHOOL(ch) = atoi(line);
+          GET_2ND_RESTRICTED_SCHOOL(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "RetC"))
           GET_RETAINER_COOLDOWN(ch) = atoi(line);
         else if (!strcmp(tag, "BDsU"))
@@ -1865,7 +1865,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Scrg"))
           GET_SCROUNGE_COOLDOWN(ch) = atoi(line);
         else if (!strcmp(tag, "ScrW"))
-          GET_SCREEN_WIDTH(ch) = atoi(line);
+          GET_SCREEN_WIDTH(ch) = (ubyte)atoi(line);
         else if (!strcmp(tag, "SpWC"))
           GET_SPIRITUAL_WEAPON_COOLDOWN(ch) = atoi(line);
         else if (!strcmp(tag, "IrMC"))
@@ -1889,13 +1889,13 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Stav"))
           load_staves(fl, ch);
         else if (!strcmp(tag, "Slyr"))
-          GET_SLAYER_JUDGEMENT(ch) = atoi(line);
+          GET_SLAYER_JUDGEMENT(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "SySt"))
           HAS_SET_STATS_STUDY(ch) = atoi(line);
         else if (!strcmp(tag, "Str "))
           load_HMVS(ch, line, LOAD_STRENGTH);
         else if (!strcmp(tag, "SSch"))
-          GET_SPECIALTY_SCHOOL(ch) = atoi(line);
+          GET_SPECIALTY_SCHOOL(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "SpNM"))
           GET_NSUPPLY_NUM_MADE(ch) = atoi(line);
         else if (!strcmp(tag, "SpCd"))
@@ -1996,7 +1996,7 @@ int load_char(const char *name, struct char_data *ch)
           }
         }
         else if (!strcmp(tag, "Tmpl"))
-          GET_TEMPLATE(ch) = atoi(line);
+          GET_TEMPLATE(ch) = (ubyte)atoi(line);
         else if (!strcmp(tag, "Tlpt"))
           GET_TALENT_POINTS(ch) = atoi(line);
         else if (!strcmp(tag, "Tlbt"))
@@ -2040,7 +2040,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "TEvo"))
           load_temp_evolutions(fl, ch);
         else if (!strcmp(tag, "Thir"))
-          GET_COND(ch, THIRST) = atoi(line);
+          GET_COND(ch, THIRST) = (sbyte)atoi(line);
         else if (!strcmp(tag, "Thr1"))
           GET_REAL_SAVE(ch, 0) = atoi(line);
         else if (!strcmp(tag, "Thr2"))
@@ -5001,7 +5001,7 @@ static void load_judgements(FILE *fl, struct char_data *ch)
     sscanf(line, "%d", &num);
     if (num != -1)
     {
-      IS_JUDGEMENT_ACTIVE(ch, i) = num;
+      IS_JUDGEMENT_ACTIVE(ch, i) = (byte)num;
       i++;
     }
   } while (num != -1);
@@ -5051,7 +5051,7 @@ static void load_favored_enemy(FILE *fl, struct char_data *ch)
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
     if (num >= 0 && num < MAX_ENEMIES)
-      GET_FAVORED_ENEMY(ch, num) = num2;
+      GET_FAVORED_ENEMY(ch, num) = (ubyte)num2;
   } while (num != -1);
 }
 
@@ -5065,7 +5065,7 @@ static void load_favored_terrains(FILE *fl, struct char_data *ch)
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
     if (num != -1 && num >= 0 && num < MAX_ENEMIES)
-      GET_FAVORED_TERRAINS(ch, num) = num2;
+      GET_FAVORED_TERRAINS(ch, num) = (sbyte)num2;
   } while (num != -1);
 }
 
@@ -5152,7 +5152,7 @@ static void load_abilities(FILE *fl, struct char_data *ch)
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
     if (num != 0)
-      GET_ABILITY(ch, num) = num2;
+      GET_ABILITY(ch, num) = (ubyte)num2;
   } while (num != 0);
 }
 
@@ -5373,7 +5373,7 @@ void load_class_feat_points(FILE *fl, struct char_data *ch)
 
     if ((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
       return;
-    GET_CLASS_FEATS(ch, cls) = pts;
+    GET_CLASS_FEATS(ch, cls) = (byte)pts;
   } while (1);
 }
 
@@ -5388,7 +5388,7 @@ void load_epic_class_feat_points(FILE *fl, struct char_data *ch)
 
     if ((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
       return;
-    GET_EPIC_CLASS_FEATS(ch, cls) = pts;
+    GET_EPIC_CLASS_FEATS(ch, cls) = (byte)pts;
   } while (1);
 }
 
@@ -6331,8 +6331,8 @@ static void apply_pet_runtime_state(struct char_data *pet, const struct pet_runt
   GET_REAL_MAX_PSP(pet) = state->max_psp;
   GET_REAL_HITROLL(pet) = state->hitroll;
   GET_REAL_DAMROLL(pet) = state->damroll;
-  pet->mob_specials.damnodice = state->damnodice;
-  pet->mob_specials.damsizedice = state->damsizedice;
+  pet->mob_specials.damnodice = (byte)state->damnodice;
+  pet->mob_specials.damsizedice = (byte)state->damsizedice;
   GET_ALIGNMENT(pet) = state->alignment;
   for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
     GET_REAL_SAVE(pet, i) = state->saves[i];
@@ -7157,27 +7157,27 @@ static struct char_data *prepare_saved_pet_row(struct char_data *ch, MYSQL_ROW r
       GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
       GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
       mob->mob_specials.damnodice =
-          mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100);
       mob->mob_specials.damsizedice =
-          mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100);
     }
     else if (GET_LEVEL(mob) <= 20)
     {
       GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
       GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
       mob->mob_specials.damnodice =
-          mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100);
       mob->mob_specials.damsizedice =
-          mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100);
     }
     else
     {
       GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
       GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
       mob->mob_specials.damnodice =
-          mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100);
       mob->mob_specials.damsizedice =
-          mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100);
     }
   }
   log("Pet for %s: %s, loaded.", GET_NAME(ch), GET_NAME(mob));

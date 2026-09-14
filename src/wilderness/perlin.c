@@ -179,7 +179,7 @@ void init_perlin(int idx, int seed)
   while (--i)
   {
     k = p[idx][i];
-    p[idx][i] = (int)(p[idx][j = random() % B]);
+    p[idx][i] = (int)(p[idx][j = (int)(random() % B)]);
     p[idx][j] = k;
   }
 

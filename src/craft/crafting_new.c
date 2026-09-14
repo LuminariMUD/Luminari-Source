@@ -1754,7 +1754,7 @@ static void set_crafting_bonuses(struct char_data *ch, const char *argument)
     snprintf(temp, sizeof(temp), "%s", apply_types[i]);
     for (j = 0; (size_t)j < strlen(temp); j++)
     {
-      temp[j] = tolower(temp[j]);
+      temp[j] = (char)tolower(temp[j]);
     }
     if (is_abbrev(arg2, temp))
       break;
@@ -1793,7 +1793,7 @@ static void set_crafting_bonuses(struct char_data *ch, const char *argument)
     snprintf(temp, sizeof(temp), "%s", bonus_types[i]);
     for (j = 0; (size_t)j < strlen(temp); j++)
     {
-      temp[j] = tolower(temp[j]);
+      temp[j] = (char)tolower(temp[j]);
     }
     if (is_abbrev(arg3, temp))
       break;
@@ -1894,7 +1894,7 @@ static void set_crafting_bonuses(struct char_data *ch, const char *argument)
         snprintf(temp, sizeof(temp), "%s", ability_names[i]);
         for (j = 0; (size_t)j < strlen(temp); j++)
         {
-          temp[j] = tolower(temp[j]);
+          temp[j] = (char)tolower(temp[j]);
         }
         if (is_abbrev(arg5, temp))
           break;
@@ -1916,7 +1916,7 @@ static void set_crafting_bonuses(struct char_data *ch, const char *argument)
         snprintf(temp, sizeof(temp), "%s", feat_list[i].name);
         for (j = 0; (size_t)j < strlen(temp); j++)
         {
-          temp[j] = tolower(temp[j]);
+          temp[j] = (char)tolower(temp[j]);
         }
         if (is_abbrev(arg5, temp))
           break;
@@ -1951,7 +1951,7 @@ static void set_crafting_bonuses(struct char_data *ch, const char *argument)
         snprintf(temp, sizeof(temp), "%s", class_list[i].name);
         for (j = 0; (size_t)j < strlen(temp); j++)
         {
-          temp[j] = tolower(temp[j]);
+          temp[j] = (char)tolower(temp[j]);
         }
         if (is_abbrev(arg5, temp))
           break;
@@ -5395,7 +5395,7 @@ static void newcraft_refine(struct char_data *ch, const char *argument)
     snprintf(output, sizeof(output), "REFINING %s",
              crafting_materials[GET_CRAFT(ch).refining_result[0]]);
     for (i = 0; (size_t)i < strlen(output); i++)
-      output[i] = toupper(output[i]);
+      output[i] = (char)toupper(output[i]);
     text_line(ch, output, 80, '-', '-');
     send_to_char(ch, "\tc");
 
@@ -7419,7 +7419,7 @@ static void newcraft_resize(struct char_data *ch, const char *argument)
     for (i = 0; i < NUM_SIZES; i++)
     {
       snprintf(buf, sizeof(buf), "%s", size_names[i]);
-      buf[0] = tolower(buf[0]);
+      buf[0] = (char)tolower(buf[0]);
       if (is_abbrev(arg2, buf))
         break;
     }
@@ -7432,7 +7432,7 @@ static void newcraft_resize(struct char_data *ch, const char *argument)
       for (i = 0; i < NUM_SIZES; i++)
       {
         snprintf(buf, sizeof(buf), "%s", size_names[i]);
-        buf[0] = tolower(buf[0]);
+        buf[0] = (char)tolower(buf[0]);
         send_to_char(ch, "-- %s\r\n", buf);
       }
       send_to_char(ch, "\r\n");
@@ -7695,7 +7695,7 @@ int get_craft_material_by_name(struct char_data *ch, char *arg)
   for (i = 1; i < NUM_CRAFT_MATS; i++)
   {
     snprintf(buf, sizeof(buf), "%s", crafting_materials[i]);
-    buf[0] = tolower(buf[0]);
+    buf[0] = (char)tolower(buf[0]);
     if (is_abbrev(arg, buf))
       return i;
   }
@@ -11276,7 +11276,7 @@ static void impl_do_reforge_new_(struct char_data *ch, char *argument,
   if (cost == 0)
     GET_CRAFTING_TICKS(ch) = 1;
   else
-    GET_CRAFTING_TICKS(ch) = 10 - fast_craft_bonus;
+    GET_CRAFTING_TICKS(ch) = (ubyte)(10 - fast_craft_bonus);
 
   /* Start crafting event - save after all modifications including restring_identifier */
   save_char(ch, 0);

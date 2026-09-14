@@ -780,7 +780,7 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
       else
       {
         OLC_HOUSE(d)->atrium = number;
-        OLC_HOUSE(d)->exit_num = id;
+        OLC_HOUSE(d)->exit_num = (sh_int)id;
       }
     }
     break;
@@ -816,7 +816,7 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     }
     else
     {
-      OLC_HOUSE(d)->exit_num = number;
+      OLC_HOUSE(d)->exit_num = (sh_int)number;
 
       room_rnum_id = world[id].dir_option[number]->to_room;
       OLC_HOUSE(d)->atrium = world[room_rnum_id].number;

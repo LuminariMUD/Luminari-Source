@@ -400,7 +400,7 @@ int start_discord_server(int port_value)
   /* Bind to port - INADDR_ANY allows connections from any interface */
   memset(&sa, 0, sizeof(sa));
   sa.sin_family = AF_INET;
-  sa.sin_port = htons(port_value);
+  sa.sin_port = htons((uint16_t)port_value);
   sa.sin_addr.s_addr = htonl(INADDR_ANY); /* Binds to 0.0.0.0 - accepts from any interface */
 
   DISCORD_DEBUG("Attempting to bind socket %d to 0.0.0.0:%d", discord_bridge->server_socket,

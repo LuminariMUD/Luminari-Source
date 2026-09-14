@@ -1513,7 +1513,7 @@ void show_background_help(struct char_data *ch, int background_value)
 
   for (i = 0; (size_t)i < strlen(buf); i++)
   {
-    buf[i] = toupper(buf[i]);
+    buf[i] = (char)toupper(buf[i]);
   }
 
   draw_line(ch, 80, '-', '-');

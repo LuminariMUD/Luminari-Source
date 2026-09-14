@@ -581,7 +581,7 @@ void load_clans(void)
                 }
                 else
                 {
-                  c.privilege[priv] = lev;
+                  c.privilege[priv] = (ubyte)lev;
                 }
               }
               get_line(fl, line);
@@ -616,7 +616,7 @@ void load_clans(void)
               }
               get_line(fl, line);
             }
-            c.ranks = j;
+            c.ranks = (ubyte)j;
           }
           else
             log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
@@ -2148,7 +2148,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_CLAIM] = number;
+    OLC_CLAN(d)->privilege[CP_CLAIM] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2161,7 +2161,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_BALANCE] = number;
+    OLC_CLAN(d)->privilege[CP_BALANCE] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2174,7 +2174,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_DEMOTE] = number;
+    OLC_CLAN(d)->privilege[CP_DEMOTE] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2187,7 +2187,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_DEPOSIT] = number;
+    OLC_CLAN(d)->privilege[CP_DEPOSIT] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2200,7 +2200,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_CLANEDIT] = number;
+    OLC_CLAN(d)->privilege[CP_CLANEDIT] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2213,7 +2213,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_ENROL] = number;
+    OLC_CLAN(d)->privilege[CP_ENROL] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2226,7 +2226,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_EXPEL] = number;
+    OLC_CLAN(d)->privilege[CP_EXPEL] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2239,7 +2239,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_OWNER] = number;
+    OLC_CLAN(d)->privilege[CP_OWNER] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2252,7 +2252,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_PROMOTE] = number;
+    OLC_CLAN(d)->privilege[CP_PROMOTE] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2265,7 +2265,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_WHERE] = number;
+    OLC_CLAN(d)->privilege[CP_WHERE] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2278,7 +2278,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_WITHDRAW] = number;
+    OLC_CLAN(d)->privilege[CP_WITHDRAW] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2291,7 +2291,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_ALLIED] = number;
+    OLC_CLAN(d)->privilege[CP_ALLIED] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2304,7 +2304,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_APPFEE] = number;
+    OLC_CLAN(d)->privilege[CP_APPFEE] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2317,7 +2317,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_APPLEV] = number;
+    OLC_CLAN(d)->privilege[CP_APPLEV] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2330,7 +2330,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_DESC] = number;
+    OLC_CLAN(d)->privilege[CP_DESC] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2343,7 +2343,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_TAXRATE] = number;
+    OLC_CLAN(d)->privilege[CP_TAXRATE] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2356,7 +2356,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_RANKS] = number;
+    OLC_CLAN(d)->privilege[CP_RANKS] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2369,7 +2369,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_TITLE] = number;
+    OLC_CLAN(d)->privilege[CP_TITLE] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2382,7 +2382,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_ATWAR] = number;
+    OLC_CLAN(d)->privilege[CP_ATWAR] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     return;
@@ -2395,7 +2395,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       clanedit_priv_menu(d);
       return;
     }
-    OLC_CLAN(d)->privilege[CP_SETPRIVS] = number;
+    OLC_CLAN(d)->privilege[CP_SETPRIVS] = (ubyte)number;
     OLC_VAL(d) = 1;
     clanedit_priv_menu(d);
     break;
@@ -2408,7 +2408,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "Enter number of ranks! (1-%d) : ", MAX_CLANRANKS);
       return;
     }
-    OLC_CLAN(d)->ranks = number;
+    OLC_CLAN(d)->ranks = (ubyte)number;
     /* Erase all the old rank names that are now outside the range (if any) */
     for (i = number; i < MAX_CLANRANKS; i++)
     {

@@ -536,7 +536,7 @@ char *current_short_desc_for_values(struct char_data *ch, int descriptor_1, int 
   snprintf(final, sizeof(final), "%s%s%s", desc, adj1, adj2);
 
   for (i = 0; (size_t)i < strlen(final); i++)
-    final[i] = tolower((unsigned char) final[i]);
+    final[i] = (char)tolower((unsigned char) final[i]);
 
   return strdup(final);
 }

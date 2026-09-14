@@ -424,7 +424,7 @@ void trigedit_parse(struct descriptor_data *d, char *arg)
 
   case TRIGEDIT_INTENDED:
     if ((atoi(arg) >= MOB_TRIGGER) || (atoi(arg) <= WLD_TRIGGER))
-      OLC_TRIG(d)->attach_type = atoi(arg);
+      OLC_TRIG(d)->attach_type = (byte)atoi(arg);
     OLC_VAL(d)
     ++;
     break;

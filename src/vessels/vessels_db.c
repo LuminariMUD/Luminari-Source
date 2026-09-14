@@ -1696,8 +1696,8 @@ void load_all_ship_interiors(void)
 
     if (ship->id[0] == '\0')
     {
-      ship->id[0] = 'A' + (shipnum / 26) % 26;
-      ship->id[1] = 'A' + shipnum % 26;
+      ship->id[0] = (char)('A' + (shipnum / 26) % 26);
+      ship->id[1] = (char)('A' + shipnum % 26);
       ship->id[2] = '\0';
     }
 

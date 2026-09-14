@@ -64,7 +64,7 @@ static void add_weapon_special_ability(int specab, const char *name, int level, 
   special_ability_info[specab].level = level;
   special_ability_info[specab].activation_method = actmtd;
   special_ability_info[specab].targets = targets;
-  special_ability_info[specab].violent = violent;
+  special_ability_info[specab].violent = (byte)violent;
   special_ability_info[specab].name = name;
   special_ability_info[specab].time = time;
   special_ability_info[specab].school = school;
@@ -80,7 +80,7 @@ static void add_armor_special_ability(int specab, const char *name, int level, i
   special_ability_info[specab].level = level;
   special_ability_info[specab].activation_method = actmtd;
   special_ability_info[specab].targets = targets;
-  special_ability_info[specab].violent = violent;
+  special_ability_info[specab].violent = (byte)violent;
   special_ability_info[specab].name = name;
   special_ability_info[specab].time = time;
   special_ability_info[specab].school = school;
@@ -96,7 +96,7 @@ static void add_item_special_ability(int specab, const char *name, int level, in
   special_ability_info[specab].level = level;
   special_ability_info[specab].activation_method = actmtd;
   special_ability_info[specab].targets = targets;
-  special_ability_info[specab].violent = violent;
+  special_ability_info[specab].violent = (byte)violent;
   special_ability_info[specab].name = name;
   special_ability_info[specab].time = time;
   special_ability_info[specab].school = school;

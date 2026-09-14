@@ -1045,7 +1045,7 @@ bool display_class_info(struct char_data *ch, const char *classname)
     char spellList[30];
     snprintf(spellList, sizeof(spellList), "spells %s", CLSLIST_NAME(class));
     for (i = 0; (size_t)i < strlen(spellList); i++)
-      spellList[i] = tolower(spellList[i]);
+      spellList[i] = (char)tolower(spellList[i]);
     send_to_char(ch, "\tcSpell List Command  : \tn%s\r\n",
                  (class != CLASS_ALCHEMIST)
                      ? ((class != CLASS_PSIONICIST) ? spellList : "powers psionicist")
@@ -1813,9 +1813,9 @@ byte saving_throws(struct char_data *ch, int type)
   if (IS_NPC(ch))
   {
     if (CLSLIST_SAVES(GET_CLASS(ch), type))
-      return (GET_LEVEL(ch) / 2 + 1);
+      return ((byte)(GET_LEVEL(ch) / 2 + 1));
     else
-      return (GET_LEVEL(ch) / 4 + 1);
+      return ((byte)(GET_LEVEL(ch) / 4 + 1));
   }
 
   int i, save = 0;
@@ -1834,7 +1834,7 @@ byte saving_throws(struct char_data *ch, int type)
   }
 
   save = (int)counter;
-  return save;
+  return (byte)save;
 }
 
 int NUM_ATTACKS_BAB(struct char_data *ch)
@@ -3592,20 +3592,20 @@ void advance_level(struct char_data *ch, int class)
       send_to_char(ch, "\tMTotal PSP:\tn %d\r\n", add_psp);
   }
   */
-  GET_FEAT_POINTS(ch) += feats;
+  GET_FEAT_POINTS(ch) = (byte)(GET_FEAT_POINTS(ch) + (feats));
   if (feats > 0)
   {
     if (GET_PREMADE_BUILD_CLASS(ch) == CLASS_UNDEFINED)
       send_to_char(ch, "%d \tMFeat points gained.\tn\r\n", feats);
   }
-  GET_CLASS_FEATS(ch, class) += class_feats;
+  GET_CLASS_FEATS(ch, class) = (byte)(GET_CLASS_FEATS(ch, class) + (class_feats));
   if (class_feats)
     if (GET_PREMADE_BUILD_CLASS(ch) == CLASS_UNDEFINED)
       send_to_char(ch, "%d \tMClass feat points gained.\tn\r\n", class_feats);
-  GET_EPIC_FEAT_POINTS(ch) += epic_feats;
+  GET_EPIC_FEAT_POINTS(ch) = (byte)(GET_EPIC_FEAT_POINTS(ch) + (epic_feats));
   if (epic_feats)
     send_to_char(ch, "%d \tMEpic feat points gained.\tn\r\n", epic_feats);
-  GET_EPIC_CLASS_FEATS(ch, class) += epic_class_feats;
+  GET_EPIC_CLASS_FEATS(ch, class) = (byte)(GET_EPIC_CLASS_FEATS(ch, class) + (epic_class_feats));
   if (epic_class_feats)
     send_to_char(ch, "%d \tMEpic class feat points gained.\tn\r\n", epic_class_feats);
   GET_TRAINS(ch) += trains;

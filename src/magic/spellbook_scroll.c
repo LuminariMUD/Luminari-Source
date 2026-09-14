@@ -360,8 +360,8 @@ ACMD(do_scribe)
     }
      */
 
-    obj->sbinfo[i].spellname = spellnum;
-    obj->sbinfo[i].pages = MAX(1, lowest_spell_level(spellnum) / 2);
+    obj->sbinfo[i].spellname = (ush_int)spellnum;
+    obj->sbinfo[i].pages = (ubyte)MAX(1, lowest_spell_level(spellnum) / 2);
     send_to_char(ch,
                  "You scribe the spell '%s' into your spellbook, which "
                  "takes up %d pages.\r\n",
@@ -569,8 +569,8 @@ SPECIAL(wizard_library)
 
     /* we made it! */
     award_gold(ch, -cost);
-    obj->sbinfo[i].spellname = spellnum;
-    obj->sbinfo[i].pages = MAX(1, lowest_spell_level(spellnum) / 2);
+    obj->sbinfo[i].spellname = (ush_int)spellnum;
+    obj->sbinfo[i].pages = (ubyte)MAX(1, lowest_spell_level(spellnum) / 2);
     send_to_char(ch,
                  "Your research is successful and you scribe the spell '%s' "
                  "into your spellbook, which takes up %d pages and cost %d coins.\r\n",

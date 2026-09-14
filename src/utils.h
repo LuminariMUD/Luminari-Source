@@ -1621,7 +1621,7 @@ void char_from_furniture(struct char_data *ch);
 #define SET_ABILITY(ch, i, pct)                                                                    \
   do                                                                                               \
   {                                                                                                \
-    CHECK_PLAYER_SPECIAL((ch), (ch)->player_specials->saved.abilities[i]) = pct;                   \
+    CHECK_PLAYER_SPECIAL((ch), (ch)->player_specials->saved.abilities[i]) = (ubyte)(pct);          \
   } while (0)
 
 /* Levelup - data storage for study command. */
@@ -1630,7 +1630,7 @@ void char_from_furniture(struct char_data *ch);
 /* Feats */
 /*#define MOB_FEATS(ch)           ((ch)->char_specials.saved.feats[i])*/
 #define MOB_HAS_FEAT(ch, i) ((ch)->char_specials.mob_feats[i])
-#define MOB_SET_FEAT(ch, i, j) ((ch)->char_specials.mob_feats[i] = j)
+#define MOB_SET_FEAT(ch, i, j) ((ch)->char_specials.mob_feats[i] = (byte)(j))
 
 #define GET_FEAT_POINTS(ch) (ch->player_specials->saved.feat_points)
 #define GET_EPIC_FEAT_POINTS(ch) (ch->player_specials->saved.epic_feat_points)

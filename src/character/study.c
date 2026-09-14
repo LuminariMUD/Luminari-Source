@@ -297,13 +297,13 @@ void finalize_study(struct descriptor_data *d)
 
   /* Finalize the chosen data, applying the levelup structure to
    * the character structure. */
-  GET_FEAT_POINTS(ch) = LEVELUP(ch)->feat_points;
-  GET_CLASS_FEATS(ch, LEVELUP(ch)->class) = LEVELUP(ch)->class_feat_points;
-  GET_EPIC_FEAT_POINTS(ch) = LEVELUP(ch)->epic_feat_points;
-  GET_EPIC_CLASS_FEATS(ch, LEVELUP(ch)->class) = LEVELUP(ch)->epic_class_feat_points;
+  GET_FEAT_POINTS(ch) = (byte)(LEVELUP(ch)->feat_points);
+  GET_CLASS_FEATS(ch, LEVELUP(ch)->class) = (byte)(LEVELUP(ch)->class_feat_points);
+  GET_EPIC_FEAT_POINTS(ch) = (byte)(LEVELUP(ch)->epic_feat_points);
+  GET_EPIC_CLASS_FEATS(ch, LEVELUP(ch)->class) = (byte)(LEVELUP(ch)->epic_class_feat_points);
   GET_PRACTICES(ch) = LEVELUP(ch)->practices;
   GET_TRAINS(ch) = LEVELUP(ch)->trains;
-  GET_BOOSTS(ch) = LEVELUP(ch)->num_boosts;
+  GET_BOOSTS(ch) = (ubyte)(LEVELUP(ch)->num_boosts);
 
   GET_REAL_STR(ch) = LEVELUP(ch)->str;
   GET_REAL_DEX(ch) = LEVELUP(ch)->dex;
@@ -3293,7 +3293,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
 
     for (i = 0; (size_t)i < strlen(arg); i++)
-      arg[i] = tolower(arg[i]);
+      arg[i] = (char)tolower(arg[i]);
 
     if (is_abbrev(arg, "quit"))
     {
@@ -4736,7 +4736,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       set_domain_submenu(d);
       return;
     }
-    GET_1ST_DOMAIN(ch) = number;
+    GET_1ST_DOMAIN(ch) = (byte)number;
     write_to_output(d, "Choice selected.\r\n");
     print_domain_info(d, number);
     OLC_MODE(d) = STUDY_SET_DOMAINS;
@@ -4765,7 +4765,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       set_domain_submenu(d);
       return;
     }
-    GET_2ND_DOMAIN(ch) = number;
+    GET_2ND_DOMAIN(ch) = (byte)number;
     write_to_output(d, "Choice selected.\r\n");
     print_domain_info(d, number);
     OLC_MODE(d) = STUDY_SET_DOMAINS;
@@ -4821,7 +4821,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       set_school_submenu(d);
       return;
     }
-    GET_SPECIALTY_SCHOOL(ch) = number;
+    GET_SPECIALTY_SCHOOL(ch) = (byte)number;
     write_to_output(d, "Choice selected.\r\n");
     OLC_MODE(d) = STUDY_SET_SCHOOL;
     print_school_info(d, number);
@@ -4863,7 +4863,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       set_preferred_arcane(d);
       return;
     }
-    GET_PREFERRED_ARCANE(ch) = number;
+    GET_PREFERRED_ARCANE(ch) = (byte)number;
     write_to_output(d, "Choice selected.\r\n");
     OLC_MODE(d) = STUDY_SET_P_CASTER;
     set_preferred_caster(d);
@@ -4878,7 +4878,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       set_preferred_divine(d);
       return;
     }
-    GET_PREFERRED_DIVINE(ch) = number;
+    GET_PREFERRED_DIVINE(ch) = (byte)number;
     write_to_output(d, "Choice selected.\r\n");
     OLC_MODE(d) = STUDY_SET_P_CASTER;
     set_preferred_caster(d);
@@ -5797,7 +5797,7 @@ void study_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "Invalid race!\r\n");
       else
       {
-        GET_FAVORED_ENEMY(d->character, LEVELUP(d->character)->favored_slot) = number;
+        GET_FAVORED_ENEMY(d->character, LEVELUP(d->character)->favored_slot) = (ubyte)number;
         favored_enemy_menu(d);
         OLC_MODE(d) = FAVORED_ENEMY;
         return;

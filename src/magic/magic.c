@@ -13372,9 +13372,9 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       GET_REAL_DAMROLL(mob) = GET_DAMROLL(mob) =
           GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
       mob->mob_specials.damnodice =
-          mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100);
       mob->mob_specials.damsizedice =
-          mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100);
     }
     else if (GET_LEVEL(mob) <= 20)
     {
@@ -13386,9 +13386,9 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       GET_REAL_DAMROLL(mob) = GET_DAMROLL(mob) =
           GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
       mob->mob_specials.damnodice =
-          mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100);
       mob->mob_specials.damsizedice =
-          mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100);
     }
     else
     {
@@ -13400,9 +13400,9 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       GET_REAL_DAMROLL(mob) = GET_DAMROLL(mob) =
           GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
       mob->mob_specials.damnodice =
-          mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100);
       mob->mob_specials.damsizedice =
-          mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100);
     }
 
     /* summon augmentation feat */
@@ -13557,7 +13557,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     }
     if (!IS_NPC(ch) && get_greater_summons_damage(ch) > 0)
     {
-      mob->mob_specials.damnodice += get_greater_summons_damage(ch);
+      mob->mob_specials.damnodice =
+          (byte)(mob->mob_specials.damnodice + get_greater_summons_damage(ch));
       mob->mob_specials.damsizedice += 6; /* +1d6 damage */
       GET_DAMROLL(mob) += get_greater_summons_damage(ch);
       send_to_char(ch, "\tG[Greater Summons +1d6 dmg]\tn ");

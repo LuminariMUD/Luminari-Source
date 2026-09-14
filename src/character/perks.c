@@ -14554,7 +14554,8 @@ void set_perk_toggle(struct char_data *ch, int perk_id, bool state)
   if (state)
     ch->player_specials->saved.perk_toggles[byte_index] |= (1 << bit_index);
   else
-    ch->player_specials->saved.perk_toggles[byte_index] &= ~(1 << bit_index);
+    ch->player_specials->saved.perk_toggles[byte_index] =
+        (byte)(ch->player_specials->saved.perk_toggles[byte_index] & (~(1 << bit_index)));
 }
 
 /**

@@ -583,7 +583,7 @@ static int find_spell_by_name(char *name)
   /* Convert input to lowercase for comparison */
   strcpy(temp_name, name);
   for (i = 0; temp_name[i]; i++)
-    temp_name[i] = tolower(temp_name[i]);
+    temp_name[i] = (char)tolower(temp_name[i]);
 
   /* Check for exact matches first */
   for (i = 1; i <= TOP_SPELL_DEFINE; i++)
@@ -593,7 +593,7 @@ static int find_spell_by_name(char *name)
 
     strcpy(spell_name, spell_info[i].name);
     for (j = 0; spell_name[j]; j++)
-      spell_name[j] = tolower(spell_name[j]);
+      spell_name[j] = (char)tolower(spell_name[j]);
 
     if (!strcmp(temp_name, spell_name))
       return i;
@@ -607,7 +607,7 @@ static int find_spell_by_name(char *name)
 
     strcpy(spell_name, spell_info[i].name);
     for (j = 0; spell_name[j]; j++)
-      spell_name[j] = tolower(spell_name[j]);
+      spell_name[j] = (char)tolower(spell_name[j]);
 
     if (is_abbrev(temp_name, spell_name))
       return i;

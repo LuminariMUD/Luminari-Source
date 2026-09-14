@@ -2386,8 +2386,8 @@ obj_save_data *objsave_parse_objects(FILE *fl)
             memset((char *)temp->sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
           }
 
-          temp->sbinfo[j].spellname = t[0];
-          temp->sbinfo[j].pages = t[1];
+          temp->sbinfo[j].spellname = (ush_int)t[0];
+          temp->sbinfo[j].pages = (ubyte)t[1];
           j++;
         }
       }
@@ -2891,8 +2891,8 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
               memset((char *)temp->sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
             }
 
-            temp->sbinfo[j].spellname = t[0];
-            temp->sbinfo[j].pages = t[1];
+            temp->sbinfo[j].spellname = (ush_int)t[0];
+            temp->sbinfo[j].pages = (ubyte)t[1];
             j++;
           }
         }
@@ -4358,8 +4358,8 @@ static obj_save_data *objsave_parse_objects_db_pet(struct char_data *owner, long
               memset((char *)temp->sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
             }
 
-            temp->sbinfo[j].spellname = t[0];
-            temp->sbinfo[j].pages = t[1];
+            temp->sbinfo[j].spellname = (ush_int)t[0];
+            temp->sbinfo[j].pages = (ubyte)t[1];
             j++;
           }
         }
@@ -5070,8 +5070,8 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
               memset((char *)temp->sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
             }
 
-            temp->sbinfo[j].spellname = t[0];
-            temp->sbinfo[j].pages = t[1];
+            temp->sbinfo[j].spellname = (ush_int)t[0];
+            temp->sbinfo[j].pages = (ubyte)t[1];
             j++;
           }
         }

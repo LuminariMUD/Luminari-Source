@@ -642,7 +642,7 @@ static void casting_test_end(struct casting_test_fixture *fixture)
   domain_event_world_forget_character(&fixture->activity.target);
   world = fixture->saved_world;
   top_of_world = fixture->saved_top;
-  CONFIG_SPELLCASTING_TIME_MODE = fixture->saved_mode;
+  CONFIG_SPELLCASTING_TIME_MODE = (ubyte)fixture->saved_mode;
   CONFIG_DIVINE_PREP_TIME = fixture->saved_divine_prep;
   spell_info[SPELL_CURE_LIGHT] = fixture->saved_spell;
 }

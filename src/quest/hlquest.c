@@ -464,7 +464,7 @@ static void perform_out_chain(struct char_data *ch, struct char_data *victim,
 
       /* unfinished for luminari port */
     case QUEST_COMMAND_CHURCH:
-      GET_CHURCH(ch) = qcom->value;
+      GET_CHURCH(ch) = (byte)qcom->value;
       snprintf(buf, sizeof(buf), "You are now a servant of %s.\r\n", church_types[GET_CHURCH(ch)]);
       send_to_char(ch, "%s", buf);
       break;

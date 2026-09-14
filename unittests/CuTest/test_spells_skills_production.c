@@ -1133,7 +1133,7 @@ void Test_inquisitor_receives_every_selected_domain_power_feat(CuTest *tc)
   for (domain = 1; domain < NUM_DOMAINS; domain++)
   {
     clear_domain_feats(&ch);
-    GET_1ST_DOMAIN(&ch) = domain;
+    GET_1ST_DOMAIN(&ch) = (byte)domain;
     add_domain_feats(&ch);
     expected_feat_count = 0;
 
@@ -2023,7 +2023,7 @@ void Test_spell_resource_probe_preserves_preparations_and_moon_bonus(CuTest *tc)
   clear_prep_queue_by_class(&ch, CLASS_WIZARD);
   ch.desc = NULL;
   cleanup_test_descriptor(&descriptor);
-  CONFIG_ARCANE_MOON_PHASES = saved_moon;
+  CONFIG_ARCANE_MOON_PHASES = (ubyte)saved_moon;
   CONFIG_ARCANE_PREP_TIME = saved_prep;
   spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_WIZARD] = saved_level;
 }
@@ -2068,7 +2068,7 @@ void Test_spell_resource_probe_tracks_spontaneous_exhaustion_without_debit(CuTes
 
   clear_innate_magic_by_class(&ch, CLASS_SORCERER);
   clear_known_spells_by_class(&ch, CLASS_SORCERER);
-  CONFIG_ARCANE_MOON_PHASES = saved_moon;
+  CONFIG_ARCANE_MOON_PHASES = (ubyte)saved_moon;
   CONFIG_ARCANE_PREP_TIME = saved_prep;
   spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_SORCERER] = saved_level;
 }

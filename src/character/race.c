@@ -55,9 +55,9 @@ int race_sort_info[NUM_EXTENDED_RACES + 1];
 /* this will set the appropriate gender for a given race */
 static void set_race_genders(int race, int neuter, int male, int female)
 {
-  race_list[race].genders[0] = neuter;
-  race_list[race].genders[1] = male;
-  race_list[race].genders[2] = female;
+  race_list[race].genders[0] = (sbyte)neuter;
+  race_list[race].genders[1] = (sbyte)male;
+  race_list[race].genders[2] = (sbyte)female;
 }
 
 /* this will set the ability modifiers of the given race to whatever base
@@ -69,12 +69,12 @@ const char *abil_mod_names[NUM_ABILITY_MODS + 1] = {
 static void set_race_abilities(int race, int str_mod, int con_mod, int int_mod, int wis_mod,
                                int dex_mod, int cha_mod)
 {
-  race_list[race].ability_mods[0] = str_mod;
-  race_list[race].ability_mods[1] = con_mod;
-  race_list[race].ability_mods[2] = int_mod;
-  race_list[race].ability_mods[3] = wis_mod;
-  race_list[race].ability_mods[4] = dex_mod;
-  race_list[race].ability_mods[5] = cha_mod;
+  race_list[race].ability_mods[0] = (byte)str_mod;
+  race_list[race].ability_mods[1] = (byte)con_mod;
+  race_list[race].ability_mods[2] = (byte)int_mod;
+  race_list[race].ability_mods[3] = (byte)wis_mod;
+  race_list[race].ability_mods[4] = (byte)dex_mod;
+  race_list[race].ability_mods[5] = (byte)cha_mod;
 }
 int get_race_stat(int race, int stat)
 {
@@ -187,15 +187,15 @@ bool character_can_use_wear_slot(const struct char_data *ch, int wear_slot)
 static void set_race_alignments(int race, int lg, int ng, int cg, int ln, int tn, int cn, int le,
                                 int ne, int ce)
 {
-  race_list[race].alignments[0] = lg;
-  race_list[race].alignments[1] = ng;
-  race_list[race].alignments[2] = cg;
-  race_list[race].alignments[3] = ln;
-  race_list[race].alignments[4] = tn;
-  race_list[race].alignments[5] = cn;
-  race_list[race].alignments[6] = le;
-  race_list[race].alignments[7] = ne;
-  race_list[race].alignments[8] = ce;
+  race_list[race].alignments[0] = (sbyte)lg;
+  race_list[race].alignments[1] = (sbyte)ng;
+  race_list[race].alignments[2] = (sbyte)cg;
+  race_list[race].alignments[3] = (sbyte)ln;
+  race_list[race].alignments[4] = (sbyte)tn;
+  race_list[race].alignments[5] = (sbyte)cn;
+  race_list[race].alignments[6] = (sbyte)le;
+  race_list[race].alignments[7] = (sbyte)ne;
+  race_list[race].alignments[8] = (sbyte)ce;
 }
 
 /* set the attack types this race will use when not wielding */
@@ -205,30 +205,30 @@ static void set_race_attack_types(int race, int hit, int sting, int whip, int sl
                                   int thrust, int hack, int rake, int peck, int smash, int trample,
                                   int charge, int gore)
 {
-  race_list[race].attack_types[0] = hit;
-  race_list[race].attack_types[1] = sting;
-  race_list[race].attack_types[2] = whip;
-  race_list[race].attack_types[3] = slash;
-  race_list[race].attack_types[4] = bite;
-  race_list[race].attack_types[5] = bludgeon;
-  race_list[race].attack_types[6] = crush;
-  race_list[race].attack_types[7] = pound;
-  race_list[race].attack_types[8] = claw;
-  race_list[race].attack_types[9] = maul;
-  race_list[race].attack_types[10] = thrash;
-  race_list[race].attack_types[11] = pierce;
-  race_list[race].attack_types[12] = blast;
-  race_list[race].attack_types[13] = punch;
-  race_list[race].attack_types[14] = stab;
-  race_list[race].attack_types[15] = slice;
-  race_list[race].attack_types[16] = thrust;
-  race_list[race].attack_types[17] = hack;
-  race_list[race].attack_types[18] = rake;
-  race_list[race].attack_types[19] = peck;
-  race_list[race].attack_types[20] = smash;
-  race_list[race].attack_types[21] = trample;
-  race_list[race].attack_types[22] = charge;
-  race_list[race].attack_types[23] = gore;
+  race_list[race].attack_types[0] = (byte)hit;
+  race_list[race].attack_types[1] = (byte)sting;
+  race_list[race].attack_types[2] = (byte)whip;
+  race_list[race].attack_types[3] = (byte)slash;
+  race_list[race].attack_types[4] = (byte)bite;
+  race_list[race].attack_types[5] = (byte)bludgeon;
+  race_list[race].attack_types[6] = (byte)crush;
+  race_list[race].attack_types[7] = (byte)pound;
+  race_list[race].attack_types[8] = (byte)claw;
+  race_list[race].attack_types[9] = (byte)maul;
+  race_list[race].attack_types[10] = (byte)thrash;
+  race_list[race].attack_types[11] = (byte)pierce;
+  race_list[race].attack_types[12] = (byte)blast;
+  race_list[race].attack_types[13] = (byte)punch;
+  race_list[race].attack_types[14] = (byte)stab;
+  race_list[race].attack_types[15] = (byte)slice;
+  race_list[race].attack_types[16] = (byte)thrust;
+  race_list[race].attack_types[17] = (byte)hack;
+  race_list[race].attack_types[18] = (byte)rake;
+  race_list[race].attack_types[19] = (byte)peck;
+  race_list[race].attack_types[20] = (byte)smash;
+  race_list[race].attack_types[21] = (byte)trample;
+  race_list[race].attack_types[22] = (byte)charge;
+  race_list[race].attack_types[23] = (byte)gore;
 }
 
 /* function to initialize the whole race list to empty values */

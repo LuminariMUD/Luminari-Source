@@ -7705,7 +7705,7 @@ int enter_player_game(struct descriptor_data *d)
     CREATE(d->character->bags, struct bag_data, 1);
 
   if (PLR_FLAGGED(d->character, PLR_INVSTART))
-    GET_INVIS_LEV(d->character) = GET_LEVEL(d->character);
+    GET_INVIS_LEV(d->character) = (sh_int)GET_LEVEL(d->character);
 
   /* We have to place the character in a room before equipping them
    * or equip_char() will gripe about the person in NOWHERE. */

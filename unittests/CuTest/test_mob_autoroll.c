@@ -25,7 +25,7 @@ static void init_autoroll_mobile(struct char_data *mob, int level, int race, int
   GET_REAL_RACE(mob) = race;
   GET_REAL_SIZE(mob) = SIZE_MEDIUM;
   mob->points.size = SIZE_MEDIUM;
-  GET_MOB_TIER(mob) = tier;
+  GET_MOB_TIER(mob) = (sbyte)tier;
 }
 
 void Test_mob_tier_formula_v1_hit_point_vectors(CuTest *tc)

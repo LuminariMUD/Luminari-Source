@@ -1334,7 +1334,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
     /*-------------------------------------------------------------------*/
   case ZEDIT_COMMAND_TYPE:
     /* Parse the input for which type of command this is, and goto next quiz. */
-    OLC_CMD(d).command = toupper(*arg);
+    OLC_CMD(d).command = (char)toupper(*arg);
     if (!OLC_CMD(d).command || (strchr("MOPEDGRTVJI", OLC_CMD(d).command) == NULL))
     {
       write_to_output(d, "Invalid choice, try again : ");
@@ -1383,7 +1383,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
       break;
     case 't':
     case 'T':
-      if ((OLC_CMD(d).if_flag = atoi(arg + 1)) == 0)
+      if ((OLC_CMD(d).if_flag = (signed char)atoi(arg + 1)) == 0)
         OLC_CMD(d).if_flag = 1;
       break;
     default:

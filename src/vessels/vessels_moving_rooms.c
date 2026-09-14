@@ -157,7 +157,7 @@ void setup_moving_room(FILE *fl, int rroom, int vroom, char *line)
   newRoom->destination = vroom;
   newRoom->inbound_dir = roomInfo[0];
   newRoom->randomMove = roomInfo[2];
-  newRoom->exitInfo = roomInfo[3];
+  newRoom->exitInfo = (sh_int)roomInfo[3];
   newRoom->keyInfo = roomInfo[4];
 #ifdef DEBUGMEM
   newRoom->keywords = str_dup("door", S19);

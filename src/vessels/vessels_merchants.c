@@ -558,7 +558,7 @@ static bool vessel_merchant_activate_profile(const struct vessel_merchant_profil
     return FALSE;
   }
 
-  ship->speed = MAX(1, ship->maxspeed / 2);
+  ship->speed = (short)MAX(1, ship->maxspeed / 2);
   ship->setspeed = ship->speed;
   if (!schedule_create(ship, profile->route_id, profile->schedule_interval_hours, 0) ||
       !schedule_trigger_departure(ship))

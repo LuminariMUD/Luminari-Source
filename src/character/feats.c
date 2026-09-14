@@ -326,9 +326,9 @@ static void feato(int featnum, const char *name, int in_game, int can_learn, int
                   int feat_type, const char *short_description, const char *description)
 {
   feat_list[featnum].name = name;
-  feat_list[featnum].in_game = in_game;
-  feat_list[featnum].can_learn = can_learn;
-  feat_list[featnum].can_stack = can_stack;
+  feat_list[featnum].in_game = (sbyte)in_game;
+  feat_list[featnum].can_learn = (sbyte)can_learn;
+  feat_list[featnum].can_stack = (sbyte)can_stack;
   feat_list[featnum].feat_type = feat_type;
   feat_list[featnum].short_description = short_description;
   feat_list[featnum].description = description;

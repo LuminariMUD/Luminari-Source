@@ -1354,10 +1354,10 @@ void gain_condition(struct char_data *ch, int condition, int value)
 
   intoxicated = (GET_COND(ch, DRUNK) > 0);
 
-  GET_COND(ch, condition) += value;
+  GET_COND(ch, condition) = (sbyte)(GET_COND(ch, condition) + (value));
 
-  GET_COND(ch, condition) = MAX(0, GET_COND(ch, condition));
-  GET_COND(ch, condition) = MIN(24, GET_COND(ch, condition));
+  GET_COND(ch, condition) = (sbyte)MAX(0, GET_COND(ch, condition));
+  GET_COND(ch, condition) = (sbyte)MIN(24, GET_COND(ch, condition));
 
   if (GET_COND(ch, condition) || PLR_FLAGGED(ch, PLR_WRITING))
     return;
@@ -1465,7 +1465,7 @@ void recharge_activated_items(void)
                 snprintf(where_name, sizeof(where_name), "%s", equipment_types[i]);
                 for (j = 0; (size_t)j < strlen(where_name); j++)
                 {
-                  where_name[j] = tolower(where_name[j]);
+                  where_name[j] = (char)tolower(where_name[j]);
                 }
                 snprintf(buf, sizeof(buf), "$p, %s, regains 1 charge of '%s'.", where_name,
                          spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);

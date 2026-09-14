@@ -947,7 +947,7 @@ static int augment(struct obj_data *kit, struct char_data *ch)
   award_gold(ch, -cost);
 
   GET_CRAFTING_TYPE(ch) = SCMD_AUGMENT;
-  GET_CRAFTING_TICKS(ch) = 10 - fast_craft_bonus;
+  GET_CRAFTING_TICKS(ch) = (ubyte)(10 - fast_craft_bonus);
   GET_CRAFTING_OBJ(ch) = essence_one;
   send_to_char(ch, "You begin to augment %s.\r\n", essence_one->short_description);
   act("$n begins to augment $p.", FALSE, ch, essence_one, 0, TO_ROOM);
@@ -1065,9 +1065,9 @@ static int convert(struct obj_data *kit, struct char_data *ch)
 
   GET_CRAFTING_BONUS(ch) = 10 + MIN(60, GET_OBJ_LEVEL(new_mat));
   GET_CRAFTING_TYPE(ch) = SCMD_CONVERT;
-  GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
+  GET_CRAFTING_TICKS(ch) = (ubyte)(5 - fast_craft_bonus);
   GET_CRAFTING_OBJ(ch) = new_mat;
-  GET_CRAFTING_REPEAT(ch) = MAX(0, (num_mats / 10) + 1);
+  GET_CRAFTING_REPEAT(ch) = (ubyte)MAX(0, (num_mats / 10) + 1);
 
   obj_from_obj(new_mat);
 
@@ -1216,7 +1216,7 @@ static int restring(char *argument, struct obj_data *kit, struct char_data *ch)
     obj->ex_description = new_descr;
   }
   GET_CRAFTING_TYPE(ch) = SCMD_RESTRING;
-  GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
+  GET_CRAFTING_TICKS(ch) = (ubyte)(5 - fast_craft_bonus);
   GET_CRAFTING_OBJ(ch) = obj;
 
   send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n", cost);
@@ -1340,7 +1340,7 @@ static int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
   obj->ex_description = new_descr;
 
   GET_CRAFTING_TYPE(ch) = SCMD_REDESC;
-  GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
+  GET_CRAFTING_TICKS(ch) = (ubyte)(5 - fast_craft_bonus);
   GET_CRAFTING_OBJ(ch) = obj;
 
   send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n", cost);
@@ -1437,7 +1437,7 @@ static int autocraft(struct obj_data *kit, struct char_data *ch)
   }
 
   GET_CRAFTING_TYPE(ch) = SCMD_SUPPLYORDER;
-  GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
+  GET_CRAFTING_TICKS(ch) = (ubyte)(5 - fast_craft_bonus);
   GET_AUTOCQUEST_GOLD(ch) += GET_LEVEL(ch);
   send_to_char(ch, "You begin a supply order for %s.\r\n", GET_AUTOCQUEST_DESC(ch));
   act("$n begins a supply order.", FALSE, ch, NULL, 0, TO_ROOM);
@@ -1567,7 +1567,7 @@ static int resize(char *argument, struct obj_data *kit, struct char_data *ch)
   if (cost == 0)
     GET_CRAFTING_TICKS(ch) = 1;
   else
-    GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
+    GET_CRAFTING_TICKS(ch) = (ubyte)(5 - fast_craft_bonus);
 
   obj_to_char(obj, ch);
   save_char(ch, 0);
@@ -1713,7 +1713,7 @@ static int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
   if (cost == 0)
     GET_CRAFTING_TICKS(ch) = 1;
   else
-    GET_CRAFTING_TICKS(ch) = MAX(1, 5 - fast_craft_bonus);
+    GET_CRAFTING_TICKS(ch) = (ubyte)MAX(1, 5 - fast_craft_bonus);
 
   obj_to_char(obj, ch);
   save_char(ch, 0);
@@ -1938,7 +1938,7 @@ static int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
   if (cost == 0)
     GET_CRAFTING_TICKS(ch) = 1;
   else
-    GET_CRAFTING_TICKS(ch) = 10 - fast_craft_bonus;
+    GET_CRAFTING_TICKS(ch) = (ubyte)(10 - fast_craft_bonus);
 
   obj_to_char(obj, ch);
   save_char(ch, 0);
@@ -2010,7 +2010,7 @@ static int disenchant(struct obj_data *kit, struct char_data *ch)
   }
 
   GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
-  GET_CRAFTING_TICKS(ch) = MAX(2, 11 - fast_craft_bonus);
+  GET_CRAFTING_TICKS(ch) = (ubyte)MAX(2, 11 - fast_craft_bonus);
   GET_CRAFTING_OBJ(ch) = NULL;
 
   send_to_char(ch, "You begin to disenchant %s.\r\n", obj->short_description);
@@ -2489,7 +2489,7 @@ static int create(char *argument, struct obj_data *kit, struct char_data *ch, in
     obj_from_obj(mold); /* extracting this causes issues, solution? */
     GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
     fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
-    GET_CRAFTING_TICKS(ch) = 11 - fast_craft_bonus;
+    GET_CRAFTING_TICKS(ch) = (ubyte)(11 - fast_craft_bonus);
     int kit_obj_vnum = GET_OBJ_VNUM(kit);
     obj_from_room(kit);
     extract_obj(kit);
@@ -3590,7 +3590,7 @@ ACMD(do_harvest)
     return;
   }
 
-  GET_CRAFTING_TYPE(ch) = sub_command;
+  GET_CRAFTING_TYPE(ch) = (ubyte)sub_command;
   GET_CRAFTING_TICKS(ch) = 5;
   GET_CRAFTING_OBJ(ch) = obj;
 

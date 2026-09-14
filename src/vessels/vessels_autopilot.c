@@ -2317,7 +2317,7 @@ void process_waiting_vessel(struct greyhawk_ship_data *ship)
   {
     /* Wait complete, advance to next waypoint */
     ap->wait_remaining = 0;
-    ship->speed = MIN(MAX(0, ship->setspeed), ship->maxspeed);
+    ship->speed = (short)MIN(MAX(0, ship->setspeed), ship->maxspeed);
     ap->state = AUTOPILOT_TRAVELING;
     VSSL_DEBUG_AUTO("Ship %d wait complete, advancing to next waypoint", ship->shipnum);
     advance_to_next_waypoint(ship);

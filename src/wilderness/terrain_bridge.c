@@ -330,7 +330,7 @@ int start_terrain_api_server(int port_value)
   /* Bind to localhost only for security */
   memset(&sa, 0, sizeof(sa));
   sa.sin_family = AF_INET;
-  sa.sin_port = htons(port_value);
+  sa.sin_port = htons((uint16_t)port_value);
   sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK); /* localhost only */
 
   if (bind(s, (struct sockaddr *)&sa, sizeof(sa)) < 0)

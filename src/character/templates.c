@@ -202,7 +202,7 @@ void set_template(struct char_data *ch, int template_type)
     ch->real_abils.intel = 13;
     ch->real_abils.wis = 16;
     ch->real_abils.cha = 13;
-    GET_TEMPLATE(ch) = template_type;
+    GET_TEMPLATE(ch) = (ubyte)template_type;
     send_to_char(ch, "You have been set to use the %s template type.\r\n",
                  template_types[template_type]);
     break;

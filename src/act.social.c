@@ -161,9 +161,9 @@ void create_command_list(void)
       soc_mess_list[j].act_nr = k;
       complete_cmd_info[k].command = soc_mess_list[j].command;
       complete_cmd_info[k].sort_as = soc_mess_list[j].sort_as;
-      complete_cmd_info[k].minimum_position = soc_mess_list[j].min_char_position;
+      complete_cmd_info[k].minimum_position = (byte)soc_mess_list[j].min_char_position;
       complete_cmd_info[k].command_pointer = do_action;
-      complete_cmd_info[k].minimum_level = soc_mess_list[j++].min_level_char;
+      complete_cmd_info[k].minimum_level = (sh_int)soc_mess_list[j++].min_level_char;
       complete_cmd_info[k++].subcmd = 0;
     }
   }

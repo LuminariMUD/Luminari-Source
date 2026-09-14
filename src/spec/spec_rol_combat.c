@@ -4230,7 +4230,7 @@ static int rol_monster_command(struct spec_event_context *context,
     if (fleeing)
     {
       act("As you turn to flee, $n trips you!", FALSE, ch, NULL, actor, TO_VICT);
-      GET_POS(actor) = MIN(GET_POS(actor), POS_SITTING);
+      GET_POS(actor) = (byte)MIN(GET_POS(actor), POS_SITTING);
     }
     else
       act("As you try to leave, $n leaps in front of you!", FALSE, ch, NULL, actor, TO_VICT);

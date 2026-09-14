@@ -21,6 +21,10 @@ Usage:
   check_warning_budget.py --compiler LABEL --log build.log --list CLASS      # sites by file
   check_warning_budget.py --compiler LABEL --log build.log --by-token CLASS  # sites by identifier
   check_warning_budget.py --self-test
+
+A log without warnings passes only while the budget file lists no classes and
+the log shows compilation: a clean migration build. While classes remain, an
+empty log is a build that did not use the migration tier.
 """
 
 import argparse
@@ -41,6 +45,8 @@ ERROR_PATTERN = re.compile(
     r"|^collect2: error: "
     r"|^(?:clang|gcc|cc)[-\d.]*: error: "
 )
+# CMake progress lines and automake's silent-rule compile lines.
+BUILD_PATTERN = re.compile(r"Building C object |^\s*CC\s+\S+\.o\b")
 
 
 def baseline_path(compiler):
@@ -123,6 +129,17 @@ def write_baseline(path, compiler, counts):
             handle.write(f"{cls} {counts[cls]}\n")
 
 
+def empty_log_problem(total, baseline, built):
+    """Why a log with no warnings cannot be trusted, or None when it can."""
+    if total:
+        return None
+    if baseline:
+        return "no warnings found; the log was not produced with the migration tier"
+    if not built:
+        return "no warnings and no compilation in the log; it is not a build log"
+    return None
+
+
 def compare(counts, baseline):
     """Return (failures, improvements) as lists of human-readable lines."""
     failures = []
@@ -163,6 +180,12 @@ collect2: error: ld returned 1 exit status
         "-Wconversion: 1 exceeds budget 0 (+1)",
         "new warning class -Wformat=: 1 (not in baseline)",
     ], failures
+    assert empty_log_problem(0, {"conversion": 1}, True) is not None
+    assert empty_log_problem(0, {}, False) is not None
+    assert empty_log_problem(0, {}, True) is None
+    assert empty_log_problem(2, {"conversion": 3}, True) is None
+    assert any(BUILD_PATTERN.search(line) for line in log)
+    assert BUILD_PATTERN.search("  CC       src/luminari-comm.o")
     print("check_warning_budget self-test passed")
 
 
@@ -184,7 +207,9 @@ def main():
         parser.error("--compiler and --log are required")
 
     with open(args.log, encoding="utf-8", errors="replace") as handle:
-        seen, errors = collect_sites(handle)
+        lines = handle.readlines()
+    seen, errors = collect_sites(lines)
+    built = any(BUILD_PATTERN.search(line) for line in lines)
     if args.list or args.by_token:
         list_sites(seen, args.list or args.by_token, bool(args.by_token))
         return 0
@@ -200,12 +225,12 @@ def main():
     if errors:
         print("the build log contains compiler errors; the count is not trustworthy", file=sys.stderr)
         return 1
-    if total == 0:
-        print("no warnings found; the log was not produced with the migration tier", file=sys.stderr)
-        return 1
-
     path = baseline_path(args.compiler)
     baseline = read_baseline(path)
+    problem = empty_log_problem(total, baseline, built)
+    if problem:
+        print(problem, file=sys.stderr)
+        return 1
     failures, improvements = compare(counts, baseline)
     if args.update:
         if failures and baseline:
@@ -216,7 +241,7 @@ def main():
         write_baseline(path, args.compiler, counts)
         print(f"wrote {os.path.relpath(path, REPO_ROOT)}")
         return 0
-    if not baseline:
+    if not os.path.exists(path):
         print(f"no baseline at {os.path.relpath(path, REPO_ROOT)}; create it with --update", file=sys.stderr)
         return 1
     for line in improvements:

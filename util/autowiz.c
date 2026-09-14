@@ -117,7 +117,7 @@ static void read_file(void)
     flags = (int)asciiflag_conv(bits);
     if (level >= MIN_LEVEL && !(IS_SET(flags, PINDEX_NOWIZLIST)) &&
         !(IS_SET(flags, PINDEX_DELETED)))
-      add_name(level, name);
+      add_name((byte)level, name);
   }
   fclose(fl);
 }

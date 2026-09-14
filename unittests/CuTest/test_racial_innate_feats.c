@@ -1457,7 +1457,7 @@ static void end_racial_cast_fixture(struct innate_fixture *fixture,
     fixture->ch.events = NULL;
   }
   spell_info[SPELL_CURE_LIGHT] = *saved_spell;
-  CONFIG_SPELLCASTING_TIME_MODE = saved_mode;
+  CONFIG_SPELLCASTING_TIME_MODE = (ubyte)saved_mode;
   pulse = saved_pulse;
   end_innate_fixture(fixture);
 }

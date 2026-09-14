@@ -460,7 +460,7 @@ int main(int argc, char **argv)
       printf("Usage: %s [-c] [-m] [-q] [-r] [-s] [-d pathname] [port #]\n", argv[0]);
       exit(1);
     }
-    else if ((port = atoi(argv[pos])) <= 1024)
+    else if ((port = (ush_int)atoi(argv[pos])) <= 1024)
     {
       printf("SYSERR: Illegal port number %d.\n", port);
       exit(1);
@@ -5777,8 +5777,8 @@ static int collect_graphic_map_rooms(struct char_data *ch, room_rnum start_room,
         return room_count;
 
       rooms[room_count].room = pexit->to_room;
-      rooms[room_count].x = next_x;
-      rooms[room_count].y = next_y;
+      rooms[room_count].x = (sh_int)next_x;
+      rooms[room_count].y = (sh_int)next_y;
       room_count++;
     }
 

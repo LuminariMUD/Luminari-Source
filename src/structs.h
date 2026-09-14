@@ -7101,7 +7101,7 @@ struct player_special_data
   /* levelup data structure - Saved data for study process. */
   struct level_data *levelup;
 
-  byte dc_bonus;                /* used to apply dc bonuses, usually to spells.
+  int dc_bonus;                 /* used to apply dc bonuses, usually to spells.
                     Must be reset to zero manually after applying the bonus */
   byte arcane_apotheosis_slots; /* used with the apotheosis command to store spell slots
                                    to be used in place of wand or staff charges.  These stored

@@ -1190,7 +1190,7 @@ ACMDU(do_skillcheck)
         continue;
       snprintf(abilname, sizeof(abilname), "%s", ability_names[i]);
       for (j = 0; (size_t)j < strlen(abilname); j++)
-        abilname[j] = tolower(abilname[j]);
+        abilname[j] = (char)tolower(abilname[j]);
       if (is_abbrev(skill, abilname))
       {
         snprintf(abiltext, strlen(abiltext), "%s", ability_names[i]);

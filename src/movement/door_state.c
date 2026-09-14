@@ -101,7 +101,7 @@ void door_state_apply(struct door_state_operation *operation, int clear_flags, i
     struct room_direction_data *exit = find_exit(room, side->direction);
 
     if (exit != NULL && door_state_identity(room, side->direction) == side->exit_identity)
-      exit->exit_info = (exit->exit_info & ~clear_flags) | set_flags;
+      exit->exit_info = (sh_int)((exit->exit_info & ~clear_flags) | set_flags);
   }
 }
 

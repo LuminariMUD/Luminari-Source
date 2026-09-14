@@ -2055,7 +2055,8 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
 
   /* Adjust ship speed based on terrain and weather, then credit the
    * sailmaster's handling bonus (see vessels_crew.c) */
-  greyhawk_ships[shipnum].speed = (greyhawk_ships[shipnum].setspeed * speed_modifier) / 100;
+  greyhawk_ships[shipnum].speed =
+      (short)((greyhawk_ships[shipnum].setspeed * speed_modifier) / 100);
   greyhawk_ships[shipnum].speed += greyhawk_ships[shipnum].sailcrew.speedadjust;
   if (greyhawk_ships[shipnum].speed > greyhawk_ships[shipnum].maxspeed &&
       greyhawk_ships[shipnum].maxspeed > 0)
@@ -2306,8 +2307,8 @@ ACMD(do_greyhawk_speed)
   }
 
   /* Set the new speed */
-  greyhawk_ships[shipnum].setspeed = new_speed;
-  greyhawk_ships[shipnum].speed = new_speed;
+  greyhawk_ships[shipnum].setspeed = (short)new_speed;
+  greyhawk_ships[shipnum].speed = (short)new_speed;
 
   /* Apply terrain modifiers using actual vessel type */
   {
@@ -2317,7 +2318,7 @@ ACMD(do_greyhawk_speed)
     int speed_modifier = get_vessel_position_speed_modifier(
         vtype, terrain_type, 0, (int)greyhawk_ships[shipnum].x, (int)greyhawk_ships[shipnum].y,
         (int)greyhawk_ships[shipnum].z, &altitude_lane);
-    greyhawk_ships[shipnum].speed = (new_speed * speed_modifier) / 100;
+    greyhawk_ships[shipnum].speed = (short)((new_speed * speed_modifier) / 100);
 
     /* Send feedback */
     if (new_speed == 0)

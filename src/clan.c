@@ -4989,7 +4989,7 @@ ACMD(do_clanset)
       send_to_char(ch, "You MUST have between 1 and %d ranks in a clan!", MAX_CLANRANKS);
       return;
     }
-    clan_list[clannum].ranks = value;
+    clan_list[clannum].ranks = (ubyte)value;
     /* Erase all the old rank names that are now outside the range (if any) */
     for (i = value; i < MAX_CLANRANKS; i++)
     {

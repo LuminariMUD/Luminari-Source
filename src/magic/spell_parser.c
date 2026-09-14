@@ -4364,9 +4364,9 @@ void spello(int spl, const char *name, int max_psp, int min_psp, int psp_change,
   spell_info[spl].psp_max = max_psp;
   spell_info[spl].psp_min = min_psp;
   spell_info[spl].psp_change = psp_change;
-  spell_info[spl].min_position = minpos;
+  spell_info[spl].min_position = (byte)minpos;
   spell_info[spl].targets = targets;
-  spell_info[spl].violent = violent;
+  spell_info[spl].violent = (byte)violent;
   spell_info[spl].routines = routines;
   spell_info[spl].name = name;
   if (wearoff == 0)

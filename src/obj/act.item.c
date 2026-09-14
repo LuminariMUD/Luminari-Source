@@ -3408,7 +3408,7 @@ static void perform_drink_from_drinkcon(struct char_data *ch, struct obj_data *o
   snprintf(affect_text, sizeof(affect_text), "%s", apply_types[bonus_location]);
   for (i = 0; i < NUM_APPLIES; i++)
   {
-    affect_text[i] = tolower(affect_text[i]);
+    affect_text[i] = (char)tolower(affect_text[i]);
     if (affect_text[i] == '-')
       affect_text[i] = ' ';
   }
@@ -6213,7 +6213,7 @@ ACMD(do_setbaneweapon)
   {
     snprintf(buf, sizeof(buf), "%s", race_family_types[i]);
     for (j = 0; (size_t)j < sizeof(buf); j++)
-      buf[j] = tolower(buf[j]);
+      buf[j] = (char)tolower(buf[j]);
     if (!strcmp(buf, arg1))
       break;
   }
@@ -6236,7 +6236,7 @@ ACMD(do_setbaneweapon)
     {
       snprintf(buf, sizeof(buf), "%s", npc_subrace_types[i]);
       for (j = 0; (size_t)j < sizeof(buf); j++)
-        buf[j] = tolower(buf[j]);
+        buf[j] = (char)tolower(buf[j]);
       if (!strcmp(buf, arg2))
         break;
     }

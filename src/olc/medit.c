@@ -1470,7 +1470,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case MEDIT_ECHO_FREQUENCY:
-    ECHO_FREQ(OLC_MOB(d)) = LIMIT(i, 0, 100);
+    ECHO_FREQ(OLC_MOB(d)) = (byte)LIMIT(i, 0, 100);
     OLC_VAL(d) = TRUE;
     medit_disp_echo_menu(d);
     return;
@@ -2001,13 +2001,13 @@ void medit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case MEDIT_NDD:
-    GET_NDD(OLC_MOB(d)) = LIMIT(i, 0, 30);
+    GET_NDD(OLC_MOB(d)) = (byte)LIMIT(i, 0, 30);
     OLC_VAL(d) = TRUE;
     medit_disp_stats_menu(d);
     return;
 
   case MEDIT_SDD:
-    GET_SDD(OLC_MOB(d)) = LIMIT(i, 0, 127);
+    GET_SDD(OLC_MOB(d)) = (byte)LIMIT(i, 0, 127);
     OLC_VAL(d) = TRUE;
     medit_disp_stats_menu(d);
     return;
@@ -2234,7 +2234,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     i--;
     if (i == POS_FIGHTING)
       i = POS_STANDING;
-    GET_POS(OLC_MOB(d)) = LIMIT(i, 0, NUM_POSITIONS);
+    GET_POS(OLC_MOB(d)) = (byte)LIMIT(i, 0, NUM_POSITIONS);
     break;
 
   case MEDIT_DEFAULT_POS:
@@ -2242,11 +2242,11 @@ void medit_parse(struct descriptor_data *d, char *arg)
     i--;
     if (i == POS_FIGHTING)
       i = POS_STANDING;
-    GET_DEFAULT_POS(OLC_MOB(d)) = LIMIT(i, 0, NUM_POSITIONS);
+    GET_DEFAULT_POS(OLC_MOB(d)) = (byte)LIMIT(i, 0, NUM_POSITIONS);
     break;
 
   case MEDIT_ATTACK:
-    GET_ATTACK(OLC_MOB(d)) = LIMIT(i, 0, NUM_ATTACK_TYPES - 1);
+    GET_ATTACK(OLC_MOB(d)) = (byte)LIMIT(i, 0, NUM_ATTACK_TYPES - 1);
     break;
 
   case MEDIT_LEVEL:
@@ -2285,23 +2285,23 @@ void medit_parse(struct descriptor_data *d, char *arg)
 
   case MEDIT_SUB_RACE_1:
     if (i == 99)
-      GET_SUBRACE(OLC_MOB(d), 0) = rand_number(1, NUM_SUB_RACES - 1);
+      GET_SUBRACE(OLC_MOB(d), 0) = (byte)rand_number(1, NUM_SUB_RACES - 1);
     else
-      GET_SUBRACE(OLC_MOB(d), 0) = LIMIT(i, 0, NUM_SUB_RACES - 1);
+      GET_SUBRACE(OLC_MOB(d), 0) = (byte)LIMIT(i, 0, NUM_SUB_RACES - 1);
     break;
 
   case MEDIT_SUB_RACE_2:
     if (i == 99)
-      GET_SUBRACE(OLC_MOB(d), 1) = rand_number(1, NUM_SUB_RACES - 1);
+      GET_SUBRACE(OLC_MOB(d), 1) = (byte)rand_number(1, NUM_SUB_RACES - 1);
     else
-      GET_SUBRACE(OLC_MOB(d), 1) = LIMIT(i, 0, NUM_SUB_RACES - 1);
+      GET_SUBRACE(OLC_MOB(d), 1) = (byte)LIMIT(i, 0, NUM_SUB_RACES - 1);
     break;
 
   case MEDIT_SUB_RACE_3:
     if (i == 99)
-      GET_SUBRACE(OLC_MOB(d), 2) = rand_number(1, NUM_SUB_RACES - 1);
+      GET_SUBRACE(OLC_MOB(d), 2) = (byte)rand_number(1, NUM_SUB_RACES - 1);
     else
-      GET_SUBRACE(OLC_MOB(d), 2) = LIMIT(i, 0, NUM_SUB_RACES - 1);
+      GET_SUBRACE(OLC_MOB(d), 2) = (byte)LIMIT(i, 0, NUM_SUB_RACES - 1);
     break;
 
   case MEDIT_CLASS:
@@ -2573,8 +2573,8 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   mobs_hps = (level * level) + (level * 10);
 
   /* damage dice default */
-  GET_NDD(mob) = 1;     /* number damage dice */
-  GET_SDD(mob) = level; /* size of damage dice */
+  GET_NDD(mob) = 1;           /* number damage dice */
+  GET_SDD(mob) = (byte)level; /* size of damage dice */
 
   /* armor class default, d20 system * 10 */
   armor_class += level * 10; // 110 (11) - 400 (40)
@@ -2588,14 +2588,14 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   {
   case CLASS_WIZARD:
     mobs_hps = mobs_hps * 2 / 5;
-    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 2 / 5);
     armor_class -= 60;
     GET_INT(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
     break;
   case CLASS_PSIONICIST:
     mobs_hps = mobs_hps * 2 / 5;
-    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 2 / 5);
     armor_class -= 60;
     GET_INT(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
@@ -2605,14 +2605,14 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
     GET_CHA(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
     mobs_hps = mobs_hps * 2 / 5;
-    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 2 / 5);
     armor_class -= 60;
     break;
   case CLASS_NECROMANCER:
     GET_CHA(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
     mobs_hps = mobs_hps * 2 / 5;
-    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 2 / 5);
     armor_class -= 60;
     break;
   case CLASS_ROGUE:
@@ -2626,7 +2626,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   case CLASS_BARD:
     GET_CHA(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
-    GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 4 / 5);
     mobs_hps = mobs_hps * 3 / 5;
     armor_class -= 50;
     break;
@@ -2639,7 +2639,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   case CLASS_CLERIC:
     (mob)->aff_abils.str += bonus;
     GET_WIS(mob) += bonus;
-    GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 4 / 5);
     mobs_hps = mobs_hps * 4 / 5;
     armor_class -= 10;
     break;
@@ -2647,7 +2647,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   case CLASS_SHIFTER:
     GET_WIS(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
-    GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 4 / 5);
     mobs_hps = mobs_hps * 4 / 5;
     armor_class -= 50;
     break;
@@ -2697,9 +2697,9 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
     GET_CHA(mob) += bonus;
     break;
   case CLASS_MYSTIC_THEURGE:
-    mobs_hps = mobs_hps * 3 / 5;         // Average of cleric (4) and wizard (2)
-    GET_SDD(mob) = GET_SDD(mob) * 3 / 5; // Average of cleric (4) and wizard (2)
-    armor_class -= 60;                   // Use wizard-level AC.
+    mobs_hps = mobs_hps * 3 / 5;                 // Average of cleric (4) and wizard (2)
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 3 / 5); // Average of cleric (4) and wizard (2)
+    armor_class -= 60;                           // Use wizard-level AC.
     // Wizard stat bonuses
     GET_INT(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
@@ -2711,7 +2711,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   default:
     /* if we ned up here, just using wizard stats as default */
     mobs_hps = mobs_hps * 2 / 5;
-    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 2 / 5);
     armor_class -= 60;
     break;
   }

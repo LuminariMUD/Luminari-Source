@@ -507,7 +507,7 @@ static void hcontrol_build_house(struct char_data *ch, char *arg)
     return;
   }
 
-  if ((exit_num = search_block(arg1, dirs, FALSE)) < 0)
+  if ((exit_num = (sh_int)search_block(arg1, dirs, FALSE)) < 0)
   {
     send_to_char(ch, "'%s' is not a valid direction.\r\n", arg1);
     return;

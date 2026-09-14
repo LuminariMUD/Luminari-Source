@@ -655,7 +655,8 @@ int learn_talent(struct char_data *ch, int talent)
   }
   /* Increase rank */
   int rank = current_rank(ch, talent);
-  (ch)->player_specials->saved.talent_ranks[talent] = MIN(rank + 1, talent_max_ranks(talent));
+  (ch)->player_specials->saved.talent_ranks[talent] =
+      (ubyte)MIN(rank + 1, talent_max_ranks(talent));
   if (rank == 0)
     send_to_char(ch, "\tGYou learn the talent: %s (rank %d/%d)!\tn\r\n", talent_list[talent].name,
                  rank + 1, talent_max_ranks(talent));

@@ -906,7 +906,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (subfield && *subfield)
           {
             int addition = atoi(subfield);
-            GET_COND(c, DRUNK) = MAX(-1, MIN(addition, 24));
+            GET_COND(c, DRUNK) = (sbyte)MAX(-1, MIN(addition, 24));
           }
           snprintf(str, slen, "%d", GET_COND(c, DRUNK));
         }
@@ -1038,7 +1038,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (subfield && *subfield)
           {
             int addition = atoi(subfield);
-            GET_COND(c, HUNGER) = MAX(-1, MIN(addition, 24));
+            GET_COND(c, HUNGER) = (sbyte)MAX(-1, MIN(addition, 24));
           }
           snprintf(str, slen, "%d", GET_COND(c, HUNGER));
         }
@@ -1241,7 +1241,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
               /* allows : Sleeping, Resting, Sitting, Fighting, Standing */
               if (!strn_cmp(subfield, position_types[i], strlen(subfield)))
               {
-                GET_POS(c) = i;
+                GET_POS(c) = (byte)i;
                 break;
               }
             }
@@ -1642,7 +1642,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             int ra = get_subrace_by_name(subfield);
             if (ra != -1)
             {
-              GET_SUBRACE(c, 0) = ra;
+              GET_SUBRACE(c, 0) = (byte)ra;
               snprintf(str, slen, "1");
             }
             else
@@ -1663,7 +1663,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             int ra = get_subrace_by_name(subfield);
             if (ra != -1)
             {
-              GET_SUBRACE(c, 1) = ra;
+              GET_SUBRACE(c, 1) = (byte)ra;
               snprintf(str, slen, "1");
             }
             else
@@ -1684,7 +1684,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             int ra = get_subrace_by_name(subfield);
             if (ra != -1)
             {
-              GET_SUBRACE(c, 2) = ra;
+              GET_SUBRACE(c, 2) = (byte)ra;
               snprintf(str, slen, "1");
             }
             else
@@ -1705,7 +1705,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (subfield && *subfield)
           {
             int addition = atoi(subfield);
-            GET_COND(c, THIRST) = MAX(-1, MIN(addition, 24));
+            GET_COND(c, THIRST) = (sbyte)MAX(-1, MIN(addition, 24));
           }
           snprintf(str, slen, "%d", GET_COND(c, THIRST));
         }

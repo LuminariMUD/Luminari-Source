@@ -115,7 +115,7 @@ void Test_transport_landmark_regions_accept_names_and_city(CuTest *tc)
     top_of_world = saved_top_of_world;
     zone_table = saved_zone_table;
     top_of_zone_table = saved_top_of_zone_table;
-    CONFIG_LANDMARK_SYSTEM = saved_landmark_system;
+    CONFIG_LANDMARK_SYSTEM = (ubyte)saved_landmark_system;
     CuFail(tc, "could not initialize the landmark descriptor");
     return;
   }
@@ -141,7 +141,7 @@ void Test_transport_landmark_regions_accept_names_and_city(CuTest *tc)
   top_of_world = saved_top_of_world;
   zone_table = saved_zone_table;
   top_of_zone_table = saved_top_of_zone_table;
-  CONFIG_LANDMARK_SYSTEM = saved_landmark_system;
+  CONFIG_LANDMARK_SYSTEM = (ubyte)saved_landmark_system;
 
   CuAssertIntEquals(tc, 1030, get_walkto_landmark_region_vnum("1030"));
   CuAssertIntEquals(tc, NOWHERE, get_walkto_landmark_region_vnum("103"));

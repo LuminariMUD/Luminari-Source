@@ -1633,7 +1633,7 @@ ACMD(do_sorcerer_arcane_apotheosis)
   prep_time = compute_spells_prep_time(ch, CLASS_SORCERER, circle, false);
   innate_magic_add(ch, CLASS_SORCERER, circle, METAMAGIC_NONE, prep_time, false);
 
-  APOTHEOSIS_SLOTS(ch) += circle;
+  APOTHEOSIS_SLOTS(ch) = (byte)(APOTHEOSIS_SLOTS(ch) + (circle));
 
   act("You focus your arcane power.", FALSE, ch, 0, 0, TO_CHAR);
   act("$n focuses $s arcane power.", FALSE, ch, 0, 0, TO_ROOM);
@@ -4324,10 +4324,11 @@ static int display_eligible_wildshape_races(struct char_data *ch, const char *ar
     set_wild_shape_mods(i, &abil_mods);
     if (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE) && mode == 0)
     {
-      abil_mods.strength += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-      abil_mods.dexterity += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-      abil_mods.constitution += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-      abil_mods.natural_armor += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+      abil_mods.strength = (byte)(abil_mods.strength + (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE)));
+      abil_mods.dexterity = (byte)(abil_mods.dexterity + (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE)));
+      abil_mods.constitution = (byte)(abil_mods.constitution + (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE)));
+      abil_mods.natural_armor =
+          (byte)(abil_mods.natural_armor + (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE)));
     }
     if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), TRANSMUTATION) && mode == 1)
     { // polymorph
@@ -4881,15 +4882,15 @@ bool wildshape_engine(struct char_data *ch, const char *argument, int mode)
 
   /* we're in the clear, set the wildshape race! */
   SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
-  GET_DISGUISE_RACE(ch) = i;
+  GET_DISGUISE_RACE(ch) = (sh_int)i;
   /* determine modifiers */
   set_wild_shape_mods(GET_DISGUISE_RACE(ch), &abil_mods);
   if (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE) && mode == 0) // wildshape
   {
-    abil_mods.strength += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-    abil_mods.dexterity += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-    abil_mods.constitution += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-    abil_mods.natural_armor += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+    abil_mods.strength = (byte)(abil_mods.strength + (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE)));
+    abil_mods.dexterity = (byte)(abil_mods.dexterity + (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE)));
+    abil_mods.constitution = (byte)(abil_mods.constitution + (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE)));
+    abil_mods.natural_armor = (byte)(abil_mods.natural_armor + (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE)));
   }
   if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), TRANSMUTATION) && mode == 1)
   { // polymorph
@@ -5068,7 +5069,7 @@ void perform_shapechange(struct char_data *ch, char *arg, int mode)
       list_forms(ch);
       return;
     }
-    IS_MORPHED(ch) = form;
+    IS_MORPHED(ch) = (ubyte)form;
     if (mode == 1)
       GET_SHAPECHANGES(ch)
     --;
@@ -5374,7 +5375,7 @@ ACMD(do_disguise)
   }
 
   /* we're in the clear, set the disguise race! */
-  GET_DISGUISE_RACE(ch) = i;
+  GET_DISGUISE_RACE(ch) = (sh_int)i;
   affect_total(ch);
   save_char(ch, 0);
   Crash_crashsave(ch);

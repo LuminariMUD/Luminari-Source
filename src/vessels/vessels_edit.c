@@ -527,12 +527,12 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
   ship->hull_object_vnum = VESSEL_BASE_HULL_OBJ_VNUM;
   strlcpy(ship->name, spawn_name, sizeof(ship->name));
   strlcpy(ship->owner, owner ? owner : "", sizeof(ship->owner));
-  ship->id[0] = 'A' + (slot / 26) % 26;
-  ship->id[1] = 'A' + slot % 26;
+  ship->id[0] = (char)('A' + (slot / 26) % 26);
+  ship->id[1] = (char)('A' + slot % 26);
   ship->id[2] = '\0';
   ship->vessel_type = (enum vessel_class)vclass;
   ship->minspeed = 0;
-  ship->maxspeed = max_speed;
+  ship->maxspeed = (short)max_speed;
   ship->speed = 0;
   ship->setspeed = 0;
   vessel_initialize_condition(ship, armor);

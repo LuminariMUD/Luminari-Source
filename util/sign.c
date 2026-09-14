@@ -84,7 +84,7 @@ int init_socket(int port)
 #endif
 
   sa.sin_family = AF_INET;
-  sa.sin_port = htons(port);
+  sa.sin_port = htons((uint16_t)port);
   sa.sin_addr.s_addr = htonl(INADDR_ANY);
 
   if (bind(s, (struct sockaddr *)&sa, sizeof(sa)) < 0)

@@ -1909,7 +1909,7 @@ void Test_gameplay_golem_minor_repairs_cost_materials_and_pending_destruction_ca
   do_destroygolem(ch, "victim", 0, 0);
   no_reward =
       GET_CRAFT_MAT(ch, CRAFT_MAT_MAPLE_WOOD) == 100 && GET_CRAFT_MAT(ch, CRAFT_MAT_BRONZE) == 0;
-  CONFIG_CRAFTING_SYSTEM = saved_system;
+  CONFIG_CRAFTING_SYSTEM = (ubyte)saved_system;
   REMOVE_BIT_AR(MOB_FLAGS(golem), MOB_NOTDEADYET);
   golem->master = NULL;
   end_gameplay_fixture(&fixture);
@@ -2117,7 +2117,7 @@ void Test_gameplay_natural_pet_attacks_bypass_only_eligible_damage_reduction(CuT
   matching_physical = apply_damage_reduction(pet, target, weapon, 20, false);
   physical.bypass_val[0] = DR_DAMTYPE_SLASHING;
   mismatched_physical = apply_damage_reduction(pet, target, weapon, 20, false);
-  weapon_list[0].damageTypes = saved_damage_types;
+  weapon_list[0].damageTypes = (ush_int)saved_damage_types;
   extract_obj(weapon);
   GET_DR(target) = NULL;
   end_gameplay_fixture(&f);
@@ -4858,7 +4858,7 @@ static void verify_readied_cast_outcome(CuTest *tc, int outcome)
     free_list(f.actor.events);
   if (f.victim.events != NULL)
     free_list(f.victim.events);
-  CONFIG_SPELLCASTING_TIME_MODE = saved_mode;
+  CONFIG_SPELLCASTING_TIME_MODE = (ubyte)saved_mode;
   spell_info[SPELL_CURE_LIGHT] = saved_spell;
   character_list = saved_characters;
   pulse = saved_pulse;
@@ -5877,7 +5877,7 @@ static void verify_buff_sequence_casting(CuTest *tc, int mode)
   ProtocolDestroy(descriptor.pProtocol);
   actor->desc = NULL;
   actor->next_in_room = &f.victim;
-  CONFIG_SPELLCASTING_TIME_MODE = saved_mode;
+  CONFIG_SPELLCASTING_TIME_MODE = (ubyte)saved_mode;
   CONFIG_DIVINE_PREP_TIME = saved_divine_prep;
   spell_info[SPELL_CURE_LIGHT].min_level[CLASS_CLERIC] = saved_min_level;
   pulse = saved_pulse;
@@ -6282,7 +6282,7 @@ counterspell_cleanup:
     free_list(f.actor.events);
   if (f.victim.events != NULL)
     free_list(f.victim.events);
-  CONFIG_SPELLCASTING_TIME_MODE = saved_mode;
+  CONFIG_SPELLCASTING_TIME_MODE = (ubyte)saved_mode;
   CONFIG_DIVINE_PREP_TIME = saved_prep;
   CONFIG_PK_ALLOWED = saved_pk;
   spell_info[SPELL_CURE_LIGHT] = saved_spell;

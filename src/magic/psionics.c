@@ -48,11 +48,11 @@ static void psiono(int pwr, const char *name, int psp_cost, bool can_augment, in
                    int max_augment, int power_type, int targets, int violent, int routines,
                    const char *wearoff, int time)
 {
-  psionic_powers[pwr].psp_cost = psp_cost;
+  psionic_powers[pwr].psp_cost = (short)psp_cost;
   psionic_powers[pwr].can_augment = can_augment;
   psionic_powers[pwr].augment_amount = augment_amount;
   psionic_powers[pwr].max_augment = max_augment;
-  psionic_powers[pwr].power_type = power_type;
+  psionic_powers[pwr].power_type = (short)power_type;
   spello(pwr, name, 0, 0, 0, POS_FIGHTING, targets, violent, routines, wearoff, time, 0, NOSCHOOL,
          false);
 }

@@ -2090,7 +2090,7 @@ static char fread_letter(FILE *fp)
   char c;
   do
   {
-    c = getc(fp);
+    c = (char)getc(fp);
   } while (isspace(c));
   return c;
 }
@@ -2903,8 +2903,8 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
 
   GET_REAL_SPELL_RES(mob_proto + i) = 0;
 
-  mob_proto[i].mob_specials.damnodice = t[6];
-  mob_proto[i].mob_specials.damsizedice = t[7];
+  mob_proto[i].mob_specials.damnodice = (byte)t[6];
+  mob_proto[i].mob_specials.damsizedice = (byte)t[7];
   GET_REAL_DAMROLL(mob_proto + i) = t[8];
 
   if (!get_line(mob_f, line))
@@ -2945,10 +2945,10 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
     exit(1);
   }
 
-  GET_DEFAULT_POS(mob_proto + i) = t[1];
+  GET_DEFAULT_POS(mob_proto + i) = (byte)t[1];
   if (GET_DEFAULT_POS(mob_proto + i) == POS_FIGHTING)
     GET_DEFAULT_POS(mob_proto + i) = POS_STANDING;
-  GET_POS(mob_proto + i) = t[0];
+  GET_POS(mob_proto + i) = (byte)t[0];
   if (GET_POS(mob_proto + i) == POS_FIGHTING)
     GET_POS(mob_proto + i) = POS_STANDING;
 
@@ -3006,7 +3006,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   CASE("BareHandAttack")
   {
     RANGE(0, NUM_ATTACK_TYPES - 1);
-    mob_proto[i].mob_specials.attack_type = num_arg;
+    mob_proto[i].mob_specials.attack_type = (byte)num_arg;
   }
 
   CASE("Str")
@@ -3297,19 +3297,19 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   CASE("SubRace 1")
   {
     RANGE(0, NUM_SUB_RACES);
-    GET_SUBRACE(mob_proto + i, 0) = num_arg;
+    GET_SUBRACE(mob_proto + i, 0) = (byte)num_arg;
   }
 
   CASE("SubRace 2")
   {
     RANGE(0, NUM_SUB_RACES);
-    GET_SUBRACE(mob_proto + i, 1) = num_arg;
+    GET_SUBRACE(mob_proto + i, 1) = (byte)num_arg;
   }
 
   CASE("SubRace 3")
   {
     RANGE(0, NUM_SUB_RACES);
-    GET_SUBRACE(mob_proto + i, 2) = num_arg;
+    GET_SUBRACE(mob_proto + i, 2) = (byte)num_arg;
   }
 
   CASE("Class")
@@ -3361,13 +3361,13 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   CASE("EchoZone")
   {
     RANGE(0, 1);
-    ECHO_IS_ZONE(mob_proto + i) = num_arg;
+    ECHO_IS_ZONE(mob_proto + i) = (byte)num_arg;
   }
 
   CASE("EchoFreq")
   {
     RANGE(0, 100);
-    ECHO_FREQ(mob_proto + i) = num_arg;
+    ECHO_FREQ(mob_proto + i) = (byte)num_arg;
   }
 
   CASE("EchoCount")
@@ -3380,7 +3380,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   CASE("EchoSequential")
   {
     RANGE(0, 1);
-    ECHO_SEQUENTIAL(mob_proto + i) = num_arg;
+    ECHO_SEQUENTIAL(mob_proto + i) = (byte)num_arg;
   }
 
   CASE("Echo")
@@ -4040,8 +4040,8 @@ const char *parse_object(FILE *obj_f, int nr)
         memset((char *)obj_proto[i].sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
       }
 
-      obj_proto[i].sbinfo[sbnum].spellname = t[0];
-      obj_proto[i].sbinfo[sbnum].pages = t[1];
+      obj_proto[i].sbinfo[sbnum].spellname = (ush_int)t[0];
+      obj_proto[i].sbinfo[sbnum].pages = (ubyte)t[1];
       sbnum++;
       break;
     case 'C': /* Special abilities */
@@ -4499,7 +4499,7 @@ static void load_zones(FILE *fl, char *zonename)
       }
     }
 
-    ZCMD.if_flag = tmp;
+    ZCMD.if_flag = (signed char)tmp;
 
     if (error)
     {
@@ -6691,7 +6691,7 @@ char *fread_clean_string(FILE *fl, const char *error)
       log("%s", "fread_clean_string: EOF encountered on read.");
       return 0;
     }
-    c = getc(fl);
+    c = (char)getc(fl);
   } while (isspace(c));
   ungetc(c, fl);
 
@@ -6737,18 +6737,18 @@ int fread_number(FILE *fp)
       log("%s", "fread_number: EOF encountered on read.");
       return 0;
     }
-    c = getc(fp);
+    c = (char)getc(fp);
   } while (isspace(c));
 
   number = 0;
 
   sign = FALSE;
   if (c == '+')
-    c = getc(fp);
+    c = (char)getc(fp);
   else if (c == '-')
   {
     sign = TRUE;
-    c = getc(fp);
+    c = (char)getc(fp);
   }
 
   if (!isdigit(c))
@@ -6765,7 +6765,7 @@ int fread_number(FILE *fp)
       return number;
     }
     number = number * 10 + c - '0';
-    c = getc(fp);
+    c = (char)getc(fp);
   }
 
   if (sign)
@@ -6801,7 +6801,7 @@ char *fread_line(FILE *fp)
       *pline = '\0';
       return (line);
     }
-    c = getc(fp);
+    c = (char)getc(fp);
   } while (isspace(c));
 
   /* Un-Read first char */
@@ -6815,7 +6815,7 @@ char *fread_line(FILE *fp)
       *pline = '\0';
       return (line);
     }
-    c = getc(fp);
+    c = (char)getc(fp);
     *pline++ = c;
     ln++;
     if (ln >= (MAX_STRING_LENGTH - 1))
@@ -6827,7 +6827,7 @@ char *fread_line(FILE *fp)
 
   do
   {
-    c = getc(fp);
+    c = (char)getc(fp);
   } while (c == '\n' || c == '\r');
 
   ungetc(c, fp);
@@ -6864,7 +6864,7 @@ int fread_flags(FILE *fp, int *fg, int fg_size)
       *pline = '\0';
       return (0);
     }
-    c = getc(fp);
+    c = (char)getc(fp);
   } while (isspace(c));
 
   /* Un-Read first char */
@@ -6878,7 +6878,7 @@ int fread_flags(FILE *fp, int *fg, int fg_size)
       *pline = '\0';
       return (0);
     }
-    c = getc(fp);
+    c = (char)getc(fp);
     *pline++ = c;
     ln++;
     if (ln >= (MAX_STRING_LENGTH - 1))
@@ -6890,7 +6890,7 @@ int fread_flags(FILE *fp, int *fg, int fg_size)
 
   do
   {
-    c = getc(fp);
+    c = (char)getc(fp);
   } while (c == '\n' || c == '\r');
 
   ungetc(c, fp);
@@ -6926,7 +6926,7 @@ char *fread_word(FILE *fp)
       word[0] = '\0';
       return word;
     }
-    cEnd = getc(fp);
+    cEnd = (char)getc(fp);
   } while (isspace(cEnd));
 
   if (cEnd == '\'' || cEnd == '"')
@@ -6948,7 +6948,7 @@ char *fread_word(FILE *fp)
       *pword = '\0';
       return word;
     }
-    *pword = getc(fp);
+    *pword = (char)getc(fp);
     if (cEnd == ' ' ? isspace(*pword) : *pword == cEnd)
     {
       if (cEnd == ' ')
@@ -6973,12 +6973,12 @@ void fread_to_eol(FILE *fp)
       log("%s", "fread_to_eol: EOF encountered on read.");
       return;
     }
-    c = getc(fp);
+    c = (char)getc(fp);
   } while (c != '\n' && c != '\r');
 
   do
   {
-    c = getc(fp);
+    c = (char)getc(fp);
   } while (c == '\n' || c == '\r');
 
   ungetc(c, fp);
@@ -7590,7 +7590,7 @@ void init_char(struct char_data *ch)
   /* Initialize score section order to default */
   for (i = 0; i < 8; i++)
   {
-    ch->player_specials->saved.score_section_order[i] = i;
+    ch->player_specials->saved.score_section_order[i] = (byte)i;
   }
 
   /* If this is our first player make him IMPL. */
@@ -8345,23 +8345,23 @@ void load_config(void)
       else if (!str_cmp(tag, "alchemy_mem_times"))
         CONFIG_ALCHEMY_PREP_TIME = num;
       else if (!str_cmp(tag, "allow_cexchange"))
-        CONFIG_ALLOW_CEXCHANGE = num;
+        CONFIG_ALLOW_CEXCHANGE = (ubyte)num;
       else if (!str_cmp(tag, "arcane_moon_phases"))
-        CONFIG_ARCANE_MOON_PHASES = num;
+        CONFIG_ARCANE_MOON_PHASES = (ubyte)num;
       else if (!str_cmp(tag, "auto_dl_mudlet_package"))
-        CONFIG_AUTO_DL_MUDLET_PACKAGE = num;
+        CONFIG_AUTO_DL_MUDLET_PACKAGE = (ubyte)num;
       break;
 
     case 'b':
       if (!str_cmp(tag, "bag_system"))
-        CONFIG_BAG_SYSTEM = num;
+        CONFIG_BAG_SYSTEM = (ubyte)num;
       break;
 
     case 'c':
       if (!str_cmp(tag, "crash_file_timeout"))
         CONFIG_CRASH_TIMEOUT = num;
       if (!str_cmp(tag, "crafting_system"))
-        CONFIG_CRAFTING_SYSTEM = num;
+        CONFIG_CRAFTING_SYSTEM = (ubyte)num;
       break;
 
     case 'd':
@@ -8411,7 +8411,7 @@ void load_config(void)
           CONFIG_DFLT_IP = NULL;
       }
       else if (!str_cmp(tag, "dflt_port"))
-        CONFIG_DFLT_PORT = num;
+        CONFIG_DFLT_PORT = (ush_int)num;
       else if (!str_cmp(tag, "default_map_size"))
         CONFIG_MAP_SIZE = num;
       else if (!str_cmp(tag, "default_minimap_size"))
@@ -8478,7 +8478,7 @@ void load_config(void)
 
     case 'l':
       if (!str_cmp(tag, "landmark_system"))
-        CONFIG_LANDMARK_SYSTEM = num;
+        CONFIG_LANDMARK_SYSTEM = (ubyte)num;
       if (!str_cmp(tag, "level_can_shout"))
         CONFIG_LEVEL_CAN_SHOUT = num;
       else if (!str_cmp(tag, "load_into_inventory"))
@@ -8588,14 +8588,14 @@ void load_config(void)
       else if (!str_cmp(tag, "mob_rogues_gold"))
         CONFIG_MOB_ROGUES_GOLD = num;
       else if (!str_cmp(tag, "melee_exp_option"))
-        CONFIG_MELEE_EXP_OPTION = num;
+        CONFIG_MELEE_EXP_OPTION = (ubyte)num;
       break;
 
     case 'n':
       if (!str_cmp(tag, "nameserver_is_slow"))
         CONFIG_NS_IS_SLOW = num;
       if (!str_cmp(tag, "new_player_gear"))
-        CONFIG_NEW_PLAYER_GEAR = num;
+        CONFIG_NEW_PLAYER_GEAR = (ubyte)num;
       else if (!str_cmp(tag, "no_mort_to_immort"))
         CONFIG_NO_MORT_TO_IMMORT = num;
       else if (!str_cmp(tag, "noperson"))
@@ -8687,9 +8687,9 @@ void load_config(void)
       else if (!str_cmp(tag, "summon_21_30_ac"))
         CONFIG_SUMMON_LEVEL_21_30_AC = num;
       else if (!str_cmp(tag, "spell_cast_exp_option"))
-        CONFIG_SPELL_CAST_EXP_OPTION = num;
+        CONFIG_SPELL_CAST_EXP_OPTION = (ubyte)num;
       else if (!str_cmp(tag, "spellcasting_time_mode"))
-        CONFIG_SPELLCASTING_TIME_MODE = num;
+        CONFIG_SPELLCASTING_TIME_MODE = (ubyte)num;
       break;
 
     case 't':
@@ -8710,7 +8710,7 @@ void load_config(void)
 
     case 'v':
       if (!str_cmp(tag, "vessel_system"))
-        CONFIG_VESSEL_SYSTEM = num;
+        CONFIG_VESSEL_SYSTEM = (ubyte)num;
       break;
 
     case 'w':
@@ -8722,7 +8722,7 @@ void load_config(void)
         CONFIG_WELC_MESSG = fread_string(fl, buf);
       }
       else if (!str_cmp(tag, "wilderness_system"))
-        CONFIG_WILDERNESS_SYSTEM = num;
+        CONFIG_WILDERNESS_SYSTEM = (ubyte)num;
       break;
 
     default:
@@ -8752,7 +8752,7 @@ struct char_data *new_char()
   int i;
   for (i = 0; i < 8; i++)
   {
-    ch->player_specials->saved.score_section_order[i] = i;
+    ch->player_specials->saved.score_section_order[i] = (byte)i;
   }
 
   return ch;

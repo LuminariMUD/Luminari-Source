@@ -1899,10 +1899,10 @@ void award_magic_ammo(struct char_data *ch, int grade)
   obj2->short_description = strdup(desc);
   obj3->short_description = strdup(desc);
   obj4->short_description = strdup(desc);
-  desc[0] = toupper(desc[0]);
+  desc[0] = (char)toupper(desc[0]);
   strlcpy(desc5, desc, sizeof(desc5));
   strlcat(desc5, " is lying here.", sizeof(desc5));
-  desc5[0] = toupper(desc5[0]);
+  desc5[0] = (char)toupper(desc5[0]);
   obj->description = strdup(desc5);
   obj2->description = strdup(desc5);
   obj3->description = strdup(desc5);
@@ -2075,7 +2075,7 @@ static void give_magic_armor(struct char_data *ch, int selection, int enchantmen
   obj->name = strdup(keywords);
   // Set descriptions
   obj->short_description = strdup(desc);
-  desc[0] = toupper(desc[0]);
+  desc[0] = (char)toupper(desc[0]);
   dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " is lying here.");
   if (dcount > 0)
     dlen += dcount;
@@ -2220,7 +2220,7 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot)
   obj->name = strdup(keywords);
   // Set descriptions
   obj->short_description = strdup(desc);
-  desc[0] = toupper(desc[0]);
+  desc[0] = (char)toupper(desc[0]);
   strlcat(desc, " is lying here.", sizeof(desc));
   obj->description = strdup(desc);
 
@@ -2460,10 +2460,10 @@ void award_magic_armor_suit(struct char_data *ch, int grade)
   head->short_description = strdup(desch);
   arms->short_description = strdup(desca);
   legs->short_description = strdup(descl);
-  descb[0] = toupper(descb[0]);
-  desch[0] = toupper(desch[0]);
-  desca[0] = toupper(desca[0]);
-  descl[0] = toupper(descl[0]);
+  descb[0] = (char)toupper(descb[0]);
+  desch[0] = (char)toupper(desch[0]);
+  desca[0] = (char)toupper(desca[0]);
+  descl[0] = (char)toupper(descl[0]);
   strlcat(descb, " is lying here.", sizeof(descb));
   strlcat(desch, " is lying here.", sizeof(desch));
   strlcat(desca, " is lying here.", sizeof(desca));

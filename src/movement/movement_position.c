@@ -403,7 +403,7 @@ int change_position(struct char_data *ch, int new_position)
   /* end general checks */
 
   /* this is really all that is going on here :P */
-  GET_POS(ch) = new_position;
+  GET_POS(ch) = (byte)new_position;
   active_world_reconsider_character(ch);
   character_periodic_sync(ch);
 

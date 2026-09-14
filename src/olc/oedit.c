@@ -3636,8 +3636,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
         memset((char *)OLC_OBJ(d)->sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
       }
 
-      OLC_OBJ(d)->sbinfo[OLC_VAL(d)].spellname = number;
-      OLC_OBJ(d)->sbinfo[OLC_VAL(d)].pages = MAX(1, lowest_spell_level(number) / 2);
+      OLC_OBJ(d)->sbinfo[OLC_VAL(d)].spellname = (ush_int)number;
+      OLC_OBJ(d)->sbinfo[OLC_VAL(d)].pages = (ubyte)MAX(1, lowest_spell_level(number) / 2);
       ;
       oedit_disp_prompt_spellbook_menu(d);
     }

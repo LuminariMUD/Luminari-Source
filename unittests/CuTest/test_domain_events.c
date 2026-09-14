@@ -3634,7 +3634,7 @@ void TestVesselPeriodicSchedulesLoadedOwners(CuTest *tc)
   vessel_periodic_reset_for_test();
   event_free_all();
   greyhawk_ships[slot] = saved_ship;
-  CONFIG_VESSEL_SYSTEM = saved_vessel_system;
+  CONFIG_VESSEL_SYSTEM = (ubyte)saved_vessel_system;
   pulse = saved_pulse;
 }
 
@@ -3684,7 +3684,7 @@ void TestVesselPeriodicCapacityRefillsAfterOwnerCancellation(CuTest *tc)
   event_free_all();
   greyhawk_ships[first_slot] = saved_first;
   greyhawk_ships[second_slot] = saved_second;
-  CONFIG_VESSEL_SYSTEM = saved_vessel_system;
+  CONFIG_VESSEL_SYSTEM = (ubyte)saved_vessel_system;
   pulse = saved_pulse;
 }
 
@@ -3706,7 +3706,7 @@ void TestVesselPeriodicRemainsUnavailableWhenRegistrationFails(CuTest *tc)
 
   vessel_periodic_reset_for_test();
   event_free_all();
-  CONFIG_VESSEL_SYSTEM = saved_vessel_system;
+  CONFIG_VESSEL_SYSTEM = (ubyte)saved_vessel_system;
 }
 
 struct phenomenon_perception_capture

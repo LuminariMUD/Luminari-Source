@@ -110,16 +110,16 @@ void add_deity(int deity, const char *name, int ethos, int alignment, int d1, in
   deity_list[deity].alignment = alignment;
 
   /* Assign clerical domains (up to 6) */
-  deity_list[deity].domains[0] = d1;
-  deity_list[deity].domains[1] = d2;
-  deity_list[deity].domains[2] = d3;
-  deity_list[deity].domains[3] = d4;
-  deity_list[deity].domains[4] = d5;
-  deity_list[deity].domains[5] = d6;
+  deity_list[deity].domains[0] = (ubyte)d1;
+  deity_list[deity].domains[1] = (ubyte)d2;
+  deity_list[deity].domains[2] = (ubyte)d3;
+  deity_list[deity].domains[3] = (ubyte)d4;
+  deity_list[deity].domains[4] = (ubyte)d5;
+  deity_list[deity].domains[5] = (ubyte)d6;
 
   /* Set combat and organizational info */
-  deity_list[deity].favored_weapon = weapon;
-  deity_list[deity].pantheon = pantheon;
+  deity_list[deity].favored_weapon = (ubyte)weapon;
+  deity_list[deity].pantheon = (sbyte)pantheon;
 
   /* Set descriptive text */
   deity_list[deity].portfolio = portfolio;
@@ -164,7 +164,7 @@ void add_deity_new(int deity, const char *name, int ethos, int alignment, int pa
   deity_list[deity].name = name;
   deity_list[deity].ethos = ethos;
   deity_list[deity].alignment = alignment;
-  deity_list[deity].pantheon = pantheon;
+  deity_list[deity].pantheon = (sbyte)pantheon;
 
   /* Set extended roleplay information */
   deity_list[deity].alias = alias;

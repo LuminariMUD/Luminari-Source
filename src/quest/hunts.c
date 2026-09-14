@@ -443,7 +443,7 @@ void create_hunt_mob(room_rnum room, int which_hunt)
 
   sprintf(mob_descs, "\tn%s %s", AN(hunt_table[which_hunt].name), hunt_table[which_hunt].name);
   for (i = 0; (size_t)i < strlen(mob_descs); i++)
-    mob_descs[i] = tolower(mob_descs[i]);
+    mob_descs[i] = (char)tolower(mob_descs[i]);
   mob->player.short_descr = strdup(mob_descs);
 
   if (!strcmp(hunt_table[which_hunt].long_description, "Nothing"))
@@ -472,9 +472,9 @@ void create_hunt_mob(room_rnum room, int which_hunt)
 
   // set mob details
   GET_REAL_RACE(mob) = hunt_table[which_hunt].race_type;
-  GET_SUBRACE(mob, 0) = hunt_table[which_hunt].subrace[0];
-  GET_SUBRACE(mob, 1) = hunt_table[which_hunt].subrace[1];
-  GET_SUBRACE(mob, 2) = hunt_table[which_hunt].subrace[2];
+  GET_SUBRACE(mob, 0) = (byte)hunt_table[which_hunt].subrace[0];
+  GET_SUBRACE(mob, 1) = (byte)hunt_table[which_hunt].subrace[1];
+  GET_SUBRACE(mob, 2) = (byte)hunt_table[which_hunt].subrace[2];
   mob->mob_specials.hunt_cooldown = -1;
   mob->mob_specials.hunt_generation = hunt_generation;
   mob->mob_specials.hunt_type = which_hunt;
@@ -850,23 +850,23 @@ SPECIAL(huntsmaster)
                affected_bits[hunts_special_armor_type(GET_OBJ_VAL(obj1, 0))]);
       for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
-        objdesc[i] = tolower(objdesc[i]);
+        objdesc[i] = (char)tolower(objdesc[i]);
       }
       obj2->name = strdup(objdesc);
       snprintf(objdesc, sizeof(objdesc), "%s %s of %s", AN(subdesc), subdesc,
                affected_bits[hunts_special_armor_type(GET_OBJ_VAL(obj1, 0))]);
       for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
-        objdesc[i] = tolower(objdesc[i]);
+        objdesc[i] = (char)tolower(objdesc[i]);
       }
       obj2->short_description = strdup(objdesc);
       snprintf(objdesc, sizeof(objdesc), "%s %s of %s lies here.", AN(subdesc), subdesc,
                affected_bits[hunts_special_armor_type(GET_OBJ_VAL(obj1, 0))]);
       for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
-        objdesc[i] = tolower(objdesc[i]);
+        objdesc[i] = (char)tolower(objdesc[i]);
       }
-      objdesc[0] = toupper(objdesc[0]);
+      objdesc[0] = (char)toupper(objdesc[0]);
       obj2->description = strdup(objdesc);
 
       // set wear slot
@@ -894,23 +894,23 @@ SPECIAL(huntsmaster)
                special_ability_info[hunts_special_weapon_type(GET_OBJ_VAL(obj1, 0))].name);
       for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
-        objdesc[i] = tolower(objdesc[i]);
+        objdesc[i] = (char)tolower(objdesc[i]);
       }
       obj2->name = strdup(objdesc);
       snprintf(objdesc, sizeof(objdesc), "a vial of -%s- weapon oil",
                special_ability_info[hunts_special_weapon_type(GET_OBJ_VAL(obj1, 0))].name);
       for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
-        objdesc[i] = tolower(objdesc[i]);
+        objdesc[i] = (char)tolower(objdesc[i]);
       }
       obj2->short_description = strdup(objdesc);
       snprintf(objdesc, sizeof(objdesc), "A vial of -%s- weapon oil lies here.",
                special_ability_info[hunts_special_weapon_type(GET_OBJ_VAL(obj1, 0))].name);
       for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
-        objdesc[i] = tolower(objdesc[i]);
+        objdesc[i] = (char)tolower(objdesc[i]);
       }
-      objdesc[0] = toupper(objdesc[0]);
+      objdesc[0] = (char)toupper(objdesc[0]);
       obj2->description = strdup(objdesc);
 
       GET_OBJ_TYPE(obj2) = ITEM_WEAPON_OIL;

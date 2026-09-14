@@ -2519,7 +2519,7 @@ static void perform_immort_invis(struct char_data *ch, int level)
       act("You suddenly realize that $n is standing beside you.", FALSE, ch, 0, tch, TO_VICT);
   }
 
-  GET_INVIS_LEV(ch) = level;
+  GET_INVIS_LEV(ch) = (sh_int)level;
   send_to_char(ch, "Your invisibility level is %d.\r\n", level);
 }
 
@@ -2817,7 +2817,7 @@ void add_llog_entry(struct char_data *ch, int type)
   }
 
   /* See if we have a login stored */
-  llast = find_llog_entry(GET_PREF(ch), GET_IDNUM(ch));
+  llast = find_llog_entry((int)GET_PREF(ch), GET_IDNUM(ch));
 
   /* we didn't - make a new one */
   if (llast == NULL)
@@ -2825,8 +2825,8 @@ void add_llog_entry(struct char_data *ch, int type)
     CREATE(llast, struct last_entry, 1);
     strncpy(llast->username, GET_NAME(ch), 16);
     strncpy(llast->hostname, GET_HOST(ch), 128);
-    llast->idnum = GET_IDNUM(ch);
-    llast->punique = GET_PREF(ch);
+    llast->idnum = (int)GET_IDNUM(ch);
+    llast->punique = (int)GET_PREF(ch);
     llast->time = time(0);
     llast->close_time = 0;
     llast->close_type = type;
@@ -3455,7 +3455,7 @@ ACMD(do_wizutil)
         return;
       }
       SET_BIT_AR(PLR_FLAGS(vict), PLR_FROZEN);
-      GET_FREEZE_LEV(vict) = GET_LEVEL(ch);
+      GET_FREEZE_LEV(vict) = (byte)GET_LEVEL(ch);
       send_to_char(vict, "A bitter wind suddenly rises and drains every erg of heat from your "
                          "body!\r\nYou feel frozen!\r\n");
       send_to_char(ch, "Frozen.\r\n");
@@ -4733,7 +4733,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     {
       value = atoi(val_arg);
       RANGE(0, 24);
-      GET_COND(vict, DRUNK) = value;
+      GET_COND(vict, DRUNK) = (sbyte)value;
       send_to_char(ch, "%s's drunkenness set to %d.\r\n", GET_NAME(vict), value);
     }
     else
@@ -4778,7 +4778,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     {
       value = atoi(val_arg);
       RANGE(0, 24);
-      GET_COND(vict, HUNGER) = value;
+      GET_COND(vict, HUNGER) = (sbyte)value;
       send_to_char(ch, "%s's hunger set to %d.\r\n", GET_NAME(vict), value);
     }
     else
@@ -4798,7 +4798,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       send_to_char(ch, "You aren't godly enough for that!\r\n");
       return (0);
     }
-    GET_INVIS_LEV(vict) = RANGE(0, GET_LEVEL(vict));
+    GET_INVIS_LEV(vict) = (sh_int)RANGE(0, GET_LEVEL(vict));
     break;
   case 25: /* invistart */
     SET_OR_REMOVE(PLR_FLAGS(vict), PLR_INVSTART);
@@ -5038,7 +5038,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     char_to_room_cause(vict, rnum, ch, DOMAIN_RELOCATION_STAFF, -1);
     break;
   case 46: /* screenwidth */
-    GET_SCREEN_WIDTH(vict) = RANGE(40, 200);
+    GET_SCREEN_WIDTH(vict) = (ubyte)RANGE(40, 200);
     break;
   case 47: /* sex */
     if ((i = search_block(val_arg, genders, FALSE)) < 0)
@@ -5076,7 +5076,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     {
       value = atoi(val_arg);
       RANGE(0, 24);
-      GET_COND(vict, THIRST) = value;
+      GET_COND(vict, THIRST) = (sbyte)value;
       send_to_char(ch, "%s's thirst set to %d.\r\n", GET_NAME(vict), value);
     }
     else
@@ -5146,13 +5146,13 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     affect_total(vict);
     break;
   case 70: /* boosts */
-    GET_BOOSTS(vict) = RANGE(0, 20);
+    GET_BOOSTS(vict) = (ubyte)RANGE(0, 20);
     break;
   case 76: /* featpoints */
-    GET_FEAT_POINTS(vict) = RANGE(0, 20);
+    GET_FEAT_POINTS(vict) = (byte)RANGE(0, 20);
     break;
   case 77: /* epicfeatpoints */
-    GET_EPIC_FEAT_POINTS(vict) = RANGE(0, 20);
+    GET_EPIC_FEAT_POINTS(vict) = (byte)RANGE(0, 20);
     break;
   case 78: /* classfeats (points) */
     two_arguments(val_arg, arg1, sizeof(arg1), arg2,
@@ -5164,7 +5164,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       return 0;
     }
     value = atoi(arg2);
-    GET_CLASS_FEATS(vict, class) = RANGE(0, 20);
+    GET_CLASS_FEATS(vict, class) = (byte)RANGE(0, 20);
     send_to_char(ch, "%s's %s for %s set to %d.\r\n", GET_NAME(vict), set_fields[mode].cmd, arg1,
                  value);
     break;
@@ -5178,7 +5178,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       return 0;
     }
     value = atoi(arg2);
-    GET_EPIC_CLASS_FEATS(vict, class) = RANGE(0, 20);
+    GET_EPIC_CLASS_FEATS(vict, class) = (byte)RANGE(0, 20);
     send_to_char(ch, "%s's %s for %s set to %d.\r\n", GET_NAME(vict), set_fields[mode].cmd, arg1,
                  value);
     break;
@@ -5353,7 +5353,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       send_to_char(ch, "That is not a valid spell school.\r\n");
       return 0;
     }
-    GET_SPECIALTY_SCHOOL(vict) = school;
+    GET_SPECIALTY_SCHOOL(vict) = (byte)school;
     send_to_char(ch, "You have set %s's spell school to %s.\r\n", GET_NAME(vict),
                  spell_schools[school]);
     send_to_char(vict, "%s has set your spell school to %s.\r\n",
@@ -10017,7 +10017,7 @@ ACMD(do_cmdlev)
   }
 
   /* All checks done - set the command level */
-  complete_cmd_info[iCmd].minimum_level = iLev;
+  complete_cmd_info[iCmd].minimum_level = (sh_int)iLev;
   send_to_char(ch,
                "Command level changed (%s%s%s is now available to anyone level %d or higher)\r\n",
                CCYEL(ch, C_NRM), complete_cmd_info[iCmd].command, CCNRM(ch, C_NRM), iLev);
@@ -10786,7 +10786,7 @@ ACMD(do_resetpassword)
     return;
   }
 
-  arg1[0] = toupper(arg1[0]);
+  arg1[0] = (char)toupper(arg1[0]);
 
   char *escaped_name = mysql_escape_string_alloc(conn, arg1);
   if (!escaped_name)
@@ -11016,13 +11016,13 @@ ACMDU(do_setworldsect)
   char arg[200];
   sprintf(arg, "%s", argument);
   for (j = 0; (size_t)j < strlen(arg); j++)
-    arg[j] = tolower(arg[j]);
+    arg[j] = (char)tolower(arg[j]);
 
   for (i = 0; i < NUM_ROOM_SECTORS; i++)
   {
     sprintf(buf, "%s", sector_types[i]);
     for (j = 0; (size_t)j < strlen(buf); j++)
-      buf[j] = tolower(buf[j]);
+      buf[j] = (char)tolower(buf[j]);
     if (is_abbrev(arg, buf))
       break;
   }
@@ -11068,13 +11068,13 @@ ACMDU(do_setroomsect)
   char arg[200];
   sprintf(arg, "%s", argument);
   for (j = 0; (size_t)j < strlen(arg); j++)
-    arg[j] = tolower(arg[j]);
+    arg[j] = (char)tolower(arg[j]);
 
   for (i = 0; i < NUM_ROOM_SECTORS; i++)
   {
     sprintf(buf, "%s", sector_types[i]);
     for (j = 0; (size_t)j < strlen(buf); j++)
-      buf[j] = tolower(buf[j]);
+      buf[j] = (char)tolower(buf[j]);
     if (is_abbrev(arg, buf))
       break;
   }
@@ -11126,14 +11126,14 @@ ACMDU(do_setroomflag)
   sprintf(arg, "%s", argument);
   for (j = 0; (size_t)j < strlen(arg); j++)
   {
-    arg[j] = tolower(arg[j]);
+    arg[j] = (char)tolower(arg[j]);
   }
 
   for (i = 0; i < NUM_ROOM_FLAGS; i++)
   {
     sprintf(buf, "%s", room_bits[i]);
     for (j = 0; (size_t)j < strlen(buf); j++)
-      buf[j] = tolower(buf[j]);
+      buf[j] = (char)tolower(buf[j]);
     if (is_abbrev(arg, buf))
       break;
   }

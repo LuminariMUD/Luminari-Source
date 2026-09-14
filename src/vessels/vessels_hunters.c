@@ -646,7 +646,7 @@ bool vessel_hunter_spawn(struct greyhawk_ship_data *target,
     return FALSE;
   }
 
-  hunter->speed = MIN(config->pursuit_speed, MAX(1, hunter->maxspeed));
+  hunter->speed = (short)MIN(config->pursuit_speed, MAX(1, hunter->maxspeed));
   hunter->setspeed = hunter->speed;
   vessel_hunter_attach_runtime(hunter, target_name, target->shipnum,
                                now + config->hunt_duration_seconds, config);
@@ -832,7 +832,7 @@ void vessel_hunter_boot(void)
 
     vessel_hunter_attach_runtime(hunter, row->target_player, row->target_ship_id, row->expires_at,
                                  &row->config);
-    hunter->speed = MIN(row->config.pursuit_speed, MAX(1, hunter->maxspeed));
+    hunter->speed = (short)MIN(row->config.pursuit_speed, MAX(1, hunter->maxspeed));
     hunter->setspeed = hunter->speed;
     vessel_db_save_runtime(hunter);
     attached++;
@@ -987,8 +987,8 @@ void vessel_hunter_tick_one(struct greyhawk_ship_data *hunter)
   hunter->hunter_target_ship_id = target->shipnum;
   hunter->last_attacker = target->shipnum;
   speed = MIN(hunter->hunter_pursuit_speed, MAX(1, hunter->maxspeed));
-  hunter->speed = speed;
-  hunter->setspeed = speed;
+  hunter->speed = (short)speed;
+  hunter->setspeed = (short)speed;
   hunter->setheading = (short int)greyhawk_bearing(hunter->x, hunter->y, target->x, target->y);
   hunter->heading = hunter->setheading;
 

@@ -569,7 +569,7 @@ void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause)
     /* Subsystem degradation from structural hits */
     if (arc == GREYHAWK_FORE && ship->mainsail > 0)
     {
-      ship->mainsail = (ship->mainsail > spill) ? ship->mainsail - spill : 0;
+      ship->mainsail = (ship->mainsail > spill) ? (unsigned char)(ship->mainsail - spill) : 0;
       if (ship->mainsail == 0)
       {
         send_to_ship(ship, "The rigging collapses! The ship is dead in the water.");
@@ -579,7 +579,7 @@ void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause)
     }
     if (arc == GREYHAWK_REAR && ship->turnrate > 0)
     {
-      ship->turnrate = (ship->turnrate > spill) ? ship->turnrate - spill : 0;
+      ship->turnrate = (ship->turnrate > spill) ? (unsigned char)(ship->turnrate - spill) : 0;
       if (ship->turnrate == 0)
       {
         send_to_ship(ship, "The rudder is smashed! The helm no longer answers.");
@@ -952,7 +952,7 @@ ACMD(do_shiprepair)
   {                                                                                                \
     if ((cur) < (max))                                                                             \
     {                                                                                              \
-      (cur) = ((max) - (cur) > (amt)) ? (cur) + (amt) : (max);                                     \
+      (cur) = (typeof(cur))(((max) - (cur) > (amt)) ? (cur) + (amt) : (max));                      \
       repaired = 1;                                                                                \
     }                                                                                              \
   } while (0)

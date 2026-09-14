@@ -85,8 +85,8 @@ static bool prefedit_save_to_char(struct descriptor_data *d)
     [i] = OLC_PREFS(d)->pref_flags[i];
 
     GET_WIMP_LEV(vict) = OLC_PREFS(d)->wimp_level;
-    GET_PAGE_LENGTH(vict) = OLC_PREFS(d)->page_length;
-    GET_SCREEN_WIDTH(vict) = OLC_PREFS(d)->screen_width;
+    GET_PAGE_LENGTH(vict) = (ubyte)(OLC_PREFS(d)->page_length);
+    GET_SCREEN_WIDTH(vict) = (ubyte)(OLC_PREFS(d)->screen_width);
 
     BLASTING(vict) = PRF_FLAGGED(vict, PRF_AUTOBLAST);
 
@@ -94,8 +94,8 @@ static bool prefedit_save_to_char(struct descriptor_data *d)
       return TRUE;
     memcpy(PRF_FLAGS(vict), previous_flags, sizeof(previous_flags));
     GET_WIMP_LEV(vict) = previous_wimp;
-    GET_PAGE_LENGTH(vict) = previous_page_length;
-    GET_SCREEN_WIDTH(vict) = previous_screen_width;
+    GET_PAGE_LENGTH(vict) = (ubyte)previous_page_length;
+    GET_SCREEN_WIDTH(vict) = (ubyte)previous_screen_width;
     BLASTING(vict) = previous_blasting;
     send_to_char(d->character, "Unable to save preferences; previous settings remain.\r\n");
   }
