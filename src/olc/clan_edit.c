@@ -88,7 +88,7 @@ void save_clans(void)
     if (clan_list[i].taxrate != 0)
       fprintf(fl, "Tax : %d\n", clan_list[i].taxrate);
     if (clan_list[i].hall != 0)
-      fprintf(fl, "Hall: %" PRI_IDX "\n", clan_list[i].hall);
+      fprintf(fl, "Hall: %d\n", (int)clan_list[i].hall);
     if (clan_list[i].treasure != 0)
       fprintf(fl, "Bank: %ld\n", clan_list[i].treasure);
     fprintf(fl, "Ally:");
@@ -260,7 +260,7 @@ void save_single_clan(clan_rnum c)
         if (clan_list[c].taxrate != 0)
           fprintf(new_fl, "Tax : %d\n", clan_list[c].taxrate);
         if (clan_list[c].hall != 0)
-          fprintf(new_fl, "Hall: %" PRI_IDX "\n", clan_list[c].hall);
+          fprintf(new_fl, "Hall: %d\n", (int)clan_list[c].hall);
         if (clan_list[c].treasure != 0)
           fprintf(new_fl, "Bank: %ld\n", clan_list[c].treasure);
 
@@ -709,7 +709,7 @@ bool save_claims(void)
     fprintf(fl, "#%" PRI_IDX "\n", this_claim->zn);
 
     if (this_claim->clan != NO_CLAN)
-      fprintf(fl, "Clan: %" PRI_IDX "\n", this_claim->clan);
+      fprintf(fl, "Clan: %d\n", (int)this_claim->clan);
     if (this_claim->claimant != 0)
       fprintf(fl, "Clmt: %ld\n", this_claim->claimant);
 

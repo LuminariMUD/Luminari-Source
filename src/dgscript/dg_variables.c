@@ -790,11 +790,11 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
               int addition = atoi(subfield);
               GET_CLAN(c) = MAX(0, MIN(addition, MAX_CLANS));
             }
-            snprintf(str, slen, "%" PRI_IDX, GET_CLAN(c));
+            snprintf(str, slen, "%d", (int)GET_CLAN(c));
           }
           else
           {
-            snprintf(str, slen, "%u", NO_CLAN); /* Mobs have no clan */
+            snprintf(str, slen, "%d", (int)NO_CLAN); /* Mobs have no clan */
           }
         }
         else if (!str_cmp(field, "clanrank"))
@@ -2173,7 +2173,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         }
       }
       else if (!str_cmp(field, "zonenumber"))
-        snprintf(str, slen, "%" PRI_IDX, zone_table[r->zone].number);
+        snprintf(str, slen, "%d", (int)zone_table[r->zone].number);
       else if (!str_cmp(field, "zonename"))
         snprintf(str, slen, "%s", zone_table[r->zone].name);
       else if (!str_cmp(field, "roomflag"))
@@ -2197,9 +2197,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (subfield && *subfield)
           {
             if (!str_cmp(subfield, "vnum"))
-              snprintf(str, slen, "%u", GET_ROOM_VNUM(R_EXIT(r, NORTH)->to_room));
+              snprintf(str, slen, "%d", (int)GET_ROOM_VNUM(R_EXIT(r, NORTH)->to_room));
             else if (!str_cmp(subfield, "key"))
-              snprintf(str, slen, "%" PRI_IDX, R_EXIT(r, NORTH)->key);
+              snprintf(str, slen, "%d", (int)R_EXIT(r, NORTH)->key);
             else if (!str_cmp(subfield, "bits"))
               sprintbit(R_EXIT(r, NORTH)->exit_info, exit_bits, str, slen);
             else if (!str_cmp(subfield, "room"))
@@ -2224,9 +2224,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (subfield && *subfield)
           {
             if (!str_cmp(subfield, "vnum"))
-              snprintf(str, slen, "%u", GET_ROOM_VNUM(R_EXIT(r, EAST)->to_room));
+              snprintf(str, slen, "%d", (int)GET_ROOM_VNUM(R_EXIT(r, EAST)->to_room));
             else if (!str_cmp(subfield, "key"))
-              snprintf(str, slen, "%" PRI_IDX, R_EXIT(r, EAST)->key);
+              snprintf(str, slen, "%d", (int)R_EXIT(r, EAST)->key);
             else if (!str_cmp(subfield, "bits"))
               sprintbit(R_EXIT(r, EAST)->exit_info, exit_bits, str, slen);
             else if (!str_cmp(subfield, "room"))
@@ -2251,9 +2251,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (subfield && *subfield)
           {
             if (!str_cmp(subfield, "vnum"))
-              snprintf(str, slen, "%u", GET_ROOM_VNUM(R_EXIT(r, SOUTH)->to_room));
+              snprintf(str, slen, "%d", (int)GET_ROOM_VNUM(R_EXIT(r, SOUTH)->to_room));
             else if (!str_cmp(subfield, "key"))
-              snprintf(str, slen, "%" PRI_IDX, R_EXIT(r, SOUTH)->key);
+              snprintf(str, slen, "%d", (int)R_EXIT(r, SOUTH)->key);
             else if (!str_cmp(subfield, "bits"))
               sprintbit(R_EXIT(r, SOUTH)->exit_info, exit_bits, str, slen);
             else if (!str_cmp(subfield, "room"))
@@ -2278,9 +2278,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (subfield && *subfield)
           {
             if (!str_cmp(subfield, "vnum"))
-              snprintf(str, slen, "%u", GET_ROOM_VNUM(R_EXIT(r, WEST)->to_room));
+              snprintf(str, slen, "%d", (int)GET_ROOM_VNUM(R_EXIT(r, WEST)->to_room));
             else if (!str_cmp(subfield, "key"))
-              snprintf(str, slen, "%" PRI_IDX, R_EXIT(r, WEST)->key);
+              snprintf(str, slen, "%d", (int)R_EXIT(r, WEST)->key);
             else if (!str_cmp(subfield, "bits"))
               sprintbit(R_EXIT(r, WEST)->exit_info, exit_bits, str, slen);
             else if (!str_cmp(subfield, "room"))
@@ -2305,9 +2305,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (subfield && *subfield)
           {
             if (!str_cmp(subfield, "vnum"))
-              snprintf(str, slen, "%u", GET_ROOM_VNUM(R_EXIT(r, UP)->to_room));
+              snprintf(str, slen, "%d", (int)GET_ROOM_VNUM(R_EXIT(r, UP)->to_room));
             else if (!str_cmp(subfield, "key"))
-              snprintf(str, slen, "%" PRI_IDX, R_EXIT(r, UP)->key);
+              snprintf(str, slen, "%d", (int)R_EXIT(r, UP)->key);
             else if (!str_cmp(subfield, "bits"))
               sprintbit(R_EXIT(r, UP)->exit_info, exit_bits, str, slen);
             else if (!str_cmp(subfield, "room"))
@@ -2332,9 +2332,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (subfield && *subfield)
           {
             if (!str_cmp(subfield, "vnum"))
-              snprintf(str, slen, "%u", GET_ROOM_VNUM(R_EXIT(r, DOWN)->to_room));
+              snprintf(str, slen, "%d", (int)GET_ROOM_VNUM(R_EXIT(r, DOWN)->to_room));
             else if (!str_cmp(subfield, "key"))
-              snprintf(str, slen, "%" PRI_IDX, R_EXIT(r, DOWN)->key);
+              snprintf(str, slen, "%d", (int)R_EXIT(r, DOWN)->key);
             else if (!str_cmp(subfield, "bits"))
               sprintbit(R_EXIT(r, DOWN)->exit_info, exit_bits, str, slen);
             else if (!str_cmp(subfield, "room"))

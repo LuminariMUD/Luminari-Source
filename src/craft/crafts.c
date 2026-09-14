@@ -282,7 +282,7 @@ static void save_crafts_to_disk(void)
     fprintf(fp, "Name: %s\n", CRAFT_NAME(c));
     fprintf(fp, "Id  : %d\n", CRAFT_ID(c));
     fprintf(fp, "Flag: %d\n", CRAFT_FLAGS(c));
-    fprintf(fp, "Vnum: %" PRI_IDX "\n", CRAFT_OBJVNUM(c));
+    fprintf(fp, "Vnum: %d\n", (int)CRAFT_OBJVNUM(c));
     fprintf(fp, "Time: %d\n", CRAFT_TIMER(c));
     fprintf(fp, "Skil: %d %d\n", CRAFT_SKILL(c), CRAFT_SKILL_LEVEL(c));
 
@@ -296,7 +296,7 @@ static void save_crafts_to_disk(void)
     simple_list(NULL);
 
     while ((r = (struct requirement_data *)simple_list(c->requirements)) != NULL)
-      fprintf(fp, "Req : %" PRI_IDX " %d %d\n", r->req_vnum, r->req_amount, r->req_flags);
+      fprintf(fp, "Req : %d %d %d\n", (int)r->req_vnum, r->req_amount, r->req_flags);
     fprintf(fp, "End :\n");
   }
 

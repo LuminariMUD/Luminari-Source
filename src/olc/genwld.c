@@ -705,9 +705,10 @@ int save_rooms(zone_rnum rzone)
         room_num curR = ENDMOVING;
         int curD = -1, curCnt = -1, mm;
 
-        fprintf(sf, "M %d %d %d %d %" PRI_IDX "\n", world[rnum].mover->inbound_dir,
+        /* the key vnum is NOTHING (-1) for an unlocked mover; the loader reads %d */
+        fprintf(sf, "M %d %d %d %d %d\n", world[rnum].mover->inbound_dir,
                 world[rnum].mover->resetZonePulse, world[rnum].mover->randomMove,
-                world[rnum].mover->exitInfo, world[rnum].mover->keyInfo);
+                world[rnum].mover->exitInfo, (int)world[rnum].mover->keyInfo);
 
         fprintf(sf, "%s\n%s\n%s\n",
                 world[rnum].mover->msg_transit ? world[rnum].mover->msg_transit : "~",

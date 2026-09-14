@@ -400,8 +400,8 @@ int save_objects(zone_rnum zone_num)
       // J:  vnum of mob that can receive item
       fprintf(fp,
               "J\n"
-              "%" PRI_IDX "\n",
-              obj->mob_recepient);
+              "%d\n",
+              (int)obj->mob_recepient); /* NOTHING stays -1 in the file */
 
       // R: restring identifier
       if (obj->restring_identifier && *obj->restring_identifier)

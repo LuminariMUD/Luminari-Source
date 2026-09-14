@@ -1232,8 +1232,9 @@ void save_cargo_manifest(struct greyhawk_ship_data *ship, int cargo_room, struct
   snprintf(query, sizeof(query),
            "INSERT INTO ship_cargo_manifest "
            "(ship_id, cargo_room, item_vnum, item_name, item_count, item_weight) "
-           "VALUES (%d, %d, %u, '%s', %d, %d)",
-           ship->shipnum, cargo_room, GET_OBJ_VNUM(cargo), escaped_name, 1, GET_OBJ_WEIGHT(cargo));
+           "VALUES (%d, %d, %d, '%s', %d, %d)",
+           ship->shipnum, cargo_room, (int)GET_OBJ_VNUM(cargo), escaped_name, 1,
+           GET_OBJ_WEIGHT(cargo));
 
   if (mysql_query(conn, query))
   {
@@ -1310,8 +1311,9 @@ void save_crew_roster(struct greyhawk_ship_data *ship, struct char_data *npc, co
   snprintf(query, sizeof(query),
            "INSERT INTO ship_crew_roster "
            "(ship_id, npc_vnum, npc_name, crew_role, assigned_room) "
-           "VALUES (%d, %u, '%s', '%s', %" PRI_IDX ")",
-           ship->shipnum, GET_MOB_VNUM(npc), escaped_name, role ? role : "crew", IN_ROOM(npc));
+           "VALUES (%d, %d, '%s', '%s', %d)",
+           ship->shipnum, (int)GET_MOB_VNUM(npc), escaped_name, role ? role : "crew",
+           (int)IN_ROOM(npc));
 
   if (mysql_query(conn, query))
   {

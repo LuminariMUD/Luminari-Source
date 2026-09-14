@@ -410,7 +410,7 @@ void save_ibt_file(int mode)
       if (ibtData->dated != 0)
         fprintf(fp, "Dated     %ld\n", ibtData->dated);
       fprintf(fp, "Level     %d\n", ibtData->level);
-      fprintf(fp, "Room      %" PRI_IDX "\n", ibtData->room);
+      fprintf(fp, "Room      %d\n", (int)ibtData->room);
       fprintf(fp, "Flags     %d %d %d %d\n", ibtData->flags[0], ibtData->flags[1],
               ibtData->flags[2], ibtData->flags[3]);
       fprintf(fp, "End\n");

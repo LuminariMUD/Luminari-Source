@@ -187,10 +187,10 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
   ins_buf[0] = '\0';
 #endif
 
-  fprintf(fp, "#%u\n", GET_OBJ_VNUM(obj));
+  fprintf(fp, "#%d\n", (int)GET_OBJ_VNUM(obj));
 
 #ifdef OBJSAVE_DB
-  snprintf(line_buf, sizeof(line_buf), "#%u\n", GET_OBJ_VNUM(obj));
+  snprintf(line_buf, sizeof(line_buf), "#%d\n", (int)GET_OBJ_VNUM(obj));
   strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
 
@@ -3448,7 +3448,7 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj,
 
   *ins_buf = '\0';
 
-  snprintf(line_buf, sizeof(line_buf), "#%u\n", GET_OBJ_VNUM(obj));
+  snprintf(line_buf, sizeof(line_buf), "#%d\n", (int)GET_OBJ_VNUM(obj));
   strlcat(ins_buf, line_buf, sizeof(ins_buf));
 
 
@@ -4499,7 +4499,7 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
            "owner_name, serialized_obj) values (NULL, '%ld', %d, '%s', '",
            sheath_idnum, sheath_slot, GET_NAME(ch));
 
-  snprintf(line_buf, sizeof(line_buf), "#%u\n", GET_OBJ_VNUM(obj));
+  snprintf(line_buf, sizeof(line_buf), "#%d\n", (int)GET_OBJ_VNUM(obj));
   strlcat(ins_buf, line_buf, sizeof(ins_buf));
 
   /**** start checks for modifications to default object! ***/
