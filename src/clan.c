@@ -541,7 +541,7 @@ bool set_clan(struct char_data *ch, clan_vnum c_v)
 
   GET_CLAN(ch) = clan_list[c_n].vnum;
   save_char(ch, 0);
-  if ((p_i = get_ptable_by_name(GET_NAME(ch))) < 0)
+  if ((p_i = (int)get_ptable_by_name(GET_NAME(ch))) < 0)
   {
     log_clan_error(__func__,
                    "Unable to get player_table index for %s (ID: %ld) when setting clan %" PRI_IDX,
@@ -2210,7 +2210,7 @@ ACMD(do_clanbalance)
     return;
   }
 
-  amt = clan_list[(c_n)].treasure;
+  amt = (int)clan_list[(c_n)].treasure;
   send_to_char(ch, "The Clan bank balance is:\tW %d\tn\r\n", amt);
 }
 
@@ -2294,7 +2294,7 @@ ACMD(do_clandeposit)
 
   if ((clan_list[(c_n)].treasure + amt) > MAX_BANK)
   {
-    amt = MAX_BANK - clan_list[(c_n)].treasure;
+    amt = (int)(MAX_BANK - clan_list[(c_n)].treasure);
     if (amt > 0)
     {
       send_to_char(ch, "The clan's bank account is almost FULL! You fill it"
@@ -3583,7 +3583,7 @@ ACMD(do_clanwithdraw)
 
   if ((clan_list[(c_n)].treasure - amt) < 0)
   {
-    amt = clan_list[(c_n)].treasure;
+    amt = (int)clan_list[(c_n)].treasure;
     if (amt > 0)
     {
       send_to_char(ch, "The clan's bank account is almost EMPTY! You take"

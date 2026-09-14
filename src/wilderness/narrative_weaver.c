@@ -407,7 +407,7 @@ double parse_json_double_value(const char *json, const char *key)
 
   // Extract and convert
   char value_str[32];
-  int len = end - start;
+  int len = (int)(end - start);
   if ((size_t)len >= sizeof(value_str))
     len = sizeof(value_str) - 1;
   strncpy(value_str, start, len);
@@ -1987,12 +1987,12 @@ int safe_strcpy(char *dest, const char *src, size_t dest_size)
     // Truncate to fit, leaving room for null terminator
     strncpy(dest, src, dest_size - 1);
     dest[dest_size - 1] = '\0';
-    return dest_size - 1;
+    return (int)(dest_size - 1);
   }
   else
   {
     strcpy(dest, src);
-    return src_len;
+    return (int)src_len;
   }
 }
 
@@ -2019,14 +2019,14 @@ int narrative_safe_strcat(char *dest, const char *src, size_t dest_size)
   if (src_len <= remaining)
   {
     strcat(dest, src);
-    return src_len;
+    return (int)src_len;
   }
   else
   {
     // Truncate to fit
     strncat(dest, src, remaining);
     dest[dest_size - 1] = '\0';
-    return remaining;
+    return (int)remaining;
   }
 }
 

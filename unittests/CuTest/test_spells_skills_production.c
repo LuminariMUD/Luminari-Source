@@ -474,7 +474,7 @@ void Test_warlock_darkness_lasts_fifteen_rounds(CuTest *tc)
 
   darkness = raff_list;
   duration = darkness == NULL ? -1 : darkness->timer;
-  affection = darkness == NULL ? -1 : darkness->affection;
+  affection = darkness == NULL ? -1 : (int)darkness->affection;
   spell = darkness == NULL ? -1 : darkness->spell;
   /* Remove both the effect and its room registry entry before the stack room expires. */
   if (darkness != NULL)

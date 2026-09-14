@@ -662,7 +662,7 @@ void send_to_discord(const char *channel, const char *name, const char *message,
 
   /* Build JSON message */
   json = build_discord_json(channel, name, message, emoted);
-  json_len = strlen(json);
+  json_len = (int)strlen(json);
 
   /* Check buffer space */
   if (discord_bridge->outbuf_len + json_len + 2 >= DISCORD_BRIDGE_BUFFER_SIZE)

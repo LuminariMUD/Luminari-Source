@@ -2238,7 +2238,7 @@ ACMD(do_weaponlist_old)
     sprintbit(weapon_list[type].damageTypes, weapon_damage_types, buf3, sizeof(buf3));
 
     len =
-        snprintf_append(buf, sizeof(buf), len,
+        snprintf_append(buf, sizeof(buf), (int)len,
                         "\tW%s\tn, Dam: %dd%d, Threat: %d, Crit-Multi: %d, Flags: %s, Cost: %d, "
                         "Dam-Types: %s, Weight: %d, Range: %d, Family: %s, Size: %s, Material: %s, "
                         "Handle: %s, Head: %s.\r\n",
@@ -2262,7 +2262,7 @@ ACMD(do_armorlist_old)
 
   for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
   {
-    len = snprintf_append(buf, sizeof(buf), len,
+    len = snprintf_append(buf, sizeof(buf), (int)len,
                           "\tW%s\tn, Type: %s, Cost: %d, "
                           "AC: %.1f, Max Dex: %d, Armor Penalty: %d, Spell Fail: %d, Weight: %d, "
                           "Material: %s\r\n",

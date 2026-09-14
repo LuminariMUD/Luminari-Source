@@ -830,7 +830,7 @@ ACMD(do_house)
     send_to_char(ch, "Only the primary owner can set guests.\r\n");
   else if (!*arg)
     House_list_guests(ch, i, FALSE);
-  else if ((id = get_id_by_name(arg)) < 0)
+  else if ((id = (int)get_id_by_name(arg)) < 0)
     send_to_char(ch, "No such player.\r\n");
   else if (id == GET_IDNUM(ch))
     send_to_char(ch, "It's your house!\r\n");

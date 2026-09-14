@@ -244,7 +244,7 @@ ACMD(do_cexchange)
     }
 
     /* xp has to be overflow! */
-    xp_excess = (GET_EXP(ch) - level_exp(ch, (LVL_IMMORT - 1)));
+    xp_excess = ((int)(GET_EXP(ch) - level_exp(ch, (LVL_IMMORT - 1))));
 
     /* can we afford it? if so, go ahead and make exchange */
     if (xp_excess < cost)
@@ -9211,7 +9211,7 @@ ACMD(do_gen_tog)
     {
       time_t current_time = time(0);
       time_t time_since_enabled = current_time - GET_PVP_TIMER(ch);
-      int minutes_remaining = 15 - (time_since_enabled / 60);
+      int minutes_remaining = (int)(15 - (time_since_enabled / 60));
 
       if (time_since_enabled < (15 * 60)) /* 15 minutes in seconds */
       {
@@ -12031,7 +12031,8 @@ ACMDU(do_device)
     /* Check if device creation is on cooldown from destroying a device */
     if (ch->player_specials->saved.device_creation_cooldown > time(0))
     {
-      int minutes_left = (ch->player_specials->saved.device_creation_cooldown - time(0)) / 60;
+      int minutes_left =
+          (int)((ch->player_specials->saved.device_creation_cooldown - time(0)) / 60);
       int seconds_left = (ch->player_specials->saved.device_creation_cooldown - time(0)) % 60;
       send_to_char(ch,
                    "You must wait %d minute%s and %d second%s before creating another device.\r\n",
@@ -12580,7 +12581,7 @@ ACMDU(do_device)
     /* Check if this specific device is on cooldown */
     if (inv->cooldown_expires > time(0))
     {
-      int hours_left = (inv->cooldown_expires - time(0)) / 3600;
+      int hours_left = (int)((inv->cooldown_expires - time(0)) / 3600);
       int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
       if (hours_left > 0)
       {
@@ -13307,7 +13308,7 @@ ACMDU(do_device)
     /* Check if device is broken */
     if (inv->cooldown_expires > time(0) && inv->uses == 0)
     {
-      int hours_left = (inv->cooldown_expires - time(0)) / 3600;
+      int hours_left = (int)((inv->cooldown_expires - time(0)) / 3600);
       int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
       send_to_char(ch, "  Status: BROKEN - will be repaired in %d hours, %d minutes\r\n",
                    hours_left, minutes_left);
@@ -13320,7 +13321,7 @@ ACMDU(do_device)
     /* Show cooldown information */
     if (inv->cooldown_expires > time(0))
     {
-      int hours_left = (inv->cooldown_expires - time(0)) / 3600;
+      int hours_left = (int)((inv->cooldown_expires - time(0)) / 3600);
       int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
       if (inv->uses == 0)
       {
@@ -13589,7 +13590,7 @@ ACMDU(do_device)
     // Show global device creation cooldown first
     if (ch->player_specials->saved.device_creation_cooldown > time(0))
     {
-      int seconds_left = ch->player_specials->saved.device_creation_cooldown - time(0);
+      int seconds_left = (int)(ch->player_specials->saved.device_creation_cooldown - time(0));
       int minutes_left = (seconds_left % 3600) / 60;
       int hours_left = seconds_left / 3600;
       seconds_left = seconds_left % 60;
@@ -13611,7 +13612,7 @@ ACMDU(do_device)
       if (inv->cooldown_expires > time(0))
       {
         found_any_cooldowns = 1;
-        int hours_left = (inv->cooldown_expires - time(0)) / 3600;
+        int hours_left = (int)((inv->cooldown_expires - time(0)) / 3600);
         int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
         int seconds_left = (inv->cooldown_expires - time(0)) % 60;
         if (hours_left > 0)
@@ -13883,7 +13884,7 @@ MUD_EVENT_CALLBACK(event_device_progress)
 
   /* Get time remaining on creation event */
   long time_remaining_passes = mud_event_remaining(creation_event);
-  int time_remaining_seconds = time_remaining_passes / PASSES_PER_SEC;
+  int time_remaining_seconds = (int)(time_remaining_passes / PASSES_PER_SEC);
 
   /* Safety: if time remaining is <= 0, finalize immediately (fallback) */
   if (time_remaining_seconds <= 0)

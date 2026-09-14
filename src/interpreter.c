@@ -6682,7 +6682,7 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
       return;
   }
 
-  for (length = strlen(arg), cmd = 0; *complete_cmd_info[cmd].command != '\n'; cmd++)
+  for (length = (int)strlen(arg), cmd = 0; *complete_cmd_info[cmd].command != '\n'; cmd++)
     if (complete_cmd_info[cmd].command_pointer != do_action &&
         !strncmp(complete_cmd_info[cmd].command, arg, length))
       if (GET_LEVEL(ch) >= complete_cmd_info[cmd].minimum_level)
@@ -6691,7 +6691,7 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
   /* it's not a 'real' command, so it's a social */
 
   if (*complete_cmd_info[cmd].command == '\n')
-    for (length = strlen(arg), cmd = 0; *complete_cmd_info[cmd].command != '\n'; cmd++)
+    for (length = (int)strlen(arg), cmd = 0; *complete_cmd_info[cmd].command != '\n'; cmd++)
       if (complete_cmd_info[cmd].command_pointer == do_action &&
           !strncmp(complete_cmd_info[cmd].command, arg, length))
         if (GET_LEVEL(ch) >= complete_cmd_info[cmd].minimum_level)
@@ -8331,7 +8331,7 @@ void nanny(struct descriptor_data *d, char *arg)
         {
           /* Make sure old files are removed so the new player doesn't get the
            * deleted player's equipment. */
-          player_i = get_ptable_by_name(tmp_name);
+          player_i = (int)get_ptable_by_name(tmp_name);
           if (player_i < 0 || !remove_player(player_i))
           {
             write_to_output(
@@ -10178,7 +10178,7 @@ void nanny(struct descriptor_data *d, char *arg)
       if (selfdelete_fastwipe)
       {
         player_removed = FALSE;
-        if ((player_i = get_ptable_by_name(GET_NAME(d->character))) >= 0)
+        if ((player_i = (int)get_ptable_by_name(GET_NAME(d->character))) >= 0)
         {
           SET_BIT(player_table[player_i].flags, PINDEX_SELFDELETE);
           player_removed = remove_player(player_i);

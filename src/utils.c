@@ -3809,7 +3809,7 @@ int get_line(FILE *fl, char *buf)
   } while (*temp == '*' || *temp == '\n' || *temp == '\r');
 
   /* Last line of file doesn't always have a \n, but it should. */
-  sl = strlen(temp);
+  sl = (int)strlen(temp);
   while (sl > 0 && (temp[sl - 1] == '\n' || temp[sl - 1] == '\r'))
     temp[--sl] = '\0';
 
@@ -4047,7 +4047,7 @@ int count_color_chars(const char *string)
   if (!string || !*string)
     return 0;
 
-  len = strlen(string);
+  len = (int)strlen(string);
   for (i = 0; i < len; i++)
   {
     while (string[i] == '\t')
@@ -4395,7 +4395,7 @@ bool is_room_in_sunlight(room_rnum room)
 int levenshtein_distance(const char *s1, const char *s2)
 {
   int **d, i, j;
-  int s1_len = strlen(s1), s2_len = strlen(s2);
+  int s1_len = strlen(s1), s2_len = (int)strlen(s2);
 
   CREATE(d, int *, s1_len + 1);
 
@@ -5286,7 +5286,7 @@ char *add_commas(long num)
   next_string = (next_string + 1) % (sizeof(comma_strings) / sizeof(comma_strings[0]));
 
   snprintf(num_string, sizeof(num_string), "%ld", num);
-  len = strlen(num_string);
+  len = (int)strlen(num_string);
 
   for (i = 0; num_string[i]; i++)
   {
@@ -6169,7 +6169,7 @@ const char *text_line_string(const char *text, int length, char first, char seco
   int i = 0, j = 0;
   static char buf[MAX_STRING_LENGTH] = {'\0'}; /* Note - static! */
 
-  text_length = strlen(text);
+  text_length = (int)strlen(text);
   text_print_length = count_non_protocol_chars(text);
 
   pre_length = (length - (text_print_length)) / 2; /* (length - (text length + '[  ]'))/2 */

@@ -171,15 +171,15 @@ void assign_harvest_materials_to_word(void)
   for (cnt = 0; cnt <= top_of_world; cnt++)
   {
     // erase all harvest materials
-    wipe_room_harvest_materials(cnt);
+    wipe_room_harvest_materials((room_rnum)cnt);
     // check valid sector type
     if (!is_valid_harvesting_sector(world[cnt].sector_type))
       continue;
     // check random chance
-    if (!will_room_have_harvest_materials(cnt))
+    if (!will_room_have_harvest_materials((room_rnum)cnt))
       continue;
     // assign materials
-    assign_harvest_materials_to_room(cnt);
+    assign_harvest_materials_to_room((room_rnum)cnt);
   }
 }
 
@@ -8300,7 +8300,7 @@ void show_supply_order(struct char_data *ch)
   {
     time_t now = time(0);
     time_t expires = GET_CRAFT(ch).supply_contract_expiration;
-    int hours_left = (expires - now) / 3600;
+    int hours_left = (int)((expires - now) / 3600);
 
     if (hours_left > 0)
     {
@@ -8914,7 +8914,7 @@ void refresh_supply_slots(struct char_data *ch)
 
         // Helper to add plural without double 's'
         char plural_item[128]; /* Item names are typically short (~20 chars max) */
-        int len = strlen(item_name);
+        int len = (int)strlen(item_name);
         if (contract->quantity > 1 && len > 0 && item_name[len - 1] != 's')
         {
           snprintf(plural_item, sizeof(plural_item), "%ss", item_name);
@@ -9475,7 +9475,7 @@ void show_supply_order_cooldowns(struct char_data *ch)
 
     if (now < expires)
     {
-      int hours_left = (expires - now) / 3600;
+      int hours_left = (int)((expires - now) / 3600);
       int minutes_left = ((expires - now) % 3600) / 60;
 
       const char *urgency_color;
@@ -9514,7 +9514,7 @@ void show_supply_order_cooldowns(struct char_data *ch)
   {
     if (now < GET_CRAFT(ch).supply_slots_next_refresh)
     {
-      int refresh_hours = (GET_CRAFT(ch).supply_slots_next_refresh - now) / 3600;
+      int refresh_hours = (int)((GET_CRAFT(ch).supply_slots_next_refresh - now) / 3600);
       int refresh_minutes = ((GET_CRAFT(ch).supply_slots_next_refresh - now) % 3600) / 60;
 
       send_to_char(ch, "Contract Slots Refresh: \tc%d hours, %d minutes\tn\r\n", refresh_hours,
@@ -9533,7 +9533,7 @@ void show_supply_order_cooldowns(struct char_data *ch)
   /* Last refresh time */
   if (GET_CRAFT(ch).supply_slots_last_refresh > 0)
   {
-    int last_refresh_hours = (now - GET_CRAFT(ch).supply_slots_last_refresh) / 3600;
+    int last_refresh_hours = (int)((now - GET_CRAFT(ch).supply_slots_last_refresh) / 3600);
     int last_refresh_minutes = ((now - GET_CRAFT(ch).supply_slots_last_refresh) % 3600) / 60;
 
     send_to_char(ch, "Last Slot Refresh: %d hours, %d minutes ago\r\n", last_refresh_hours,
@@ -9554,7 +9554,7 @@ void show_supply_order_cooldowns(struct char_data *ch)
     {
       if (now < GET_CRAFT(ch).supply_slot_cooldowns[slot])
       {
-        int cooldown_hours = (GET_CRAFT(ch).supply_slot_cooldowns[slot] - now) / 3600;
+        int cooldown_hours = (int)((GET_CRAFT(ch).supply_slot_cooldowns[slot] - now) / 3600);
         int cooldown_minutes = ((GET_CRAFT(ch).supply_slot_cooldowns[slot] - now) % 3600) / 60;
 
         send_to_char(ch, "  Slot %d: \tr%d hours, %d minutes remaining\tn\r\n", slot + 1,

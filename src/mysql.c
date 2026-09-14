@@ -1276,7 +1276,7 @@ bool mysql_stmt_prepare_query(PREPARED_STMT *pstmt, const char *query)
   pstmt->query_text = strdup(query);
 
   /* Get parameter count and allocate bindings */
-  pstmt->param_count = mysql_stmt_param_count(pstmt->stmt);
+  pstmt->param_count = (int)mysql_stmt_param_count(pstmt->stmt);
   if (pstmt->param_count > 0)
   {
     CREATE(pstmt->params, MYSQL_BIND, pstmt->param_count);
@@ -2379,7 +2379,7 @@ void load_regions()
 
   wild_map_cache_invalidate();
 
-  if ((numrows = mysql_num_rows(result)) < 1)
+  if ((numrows = (int)mysql_num_rows(result)) < 1)
   {
     free_region_table_data();
     mysql_free_result(result);
@@ -2992,7 +2992,7 @@ void load_paths()
 
   wild_map_cache_invalidate();
 
-  if ((numrows = mysql_num_rows(result)) < 1)
+  if ((numrows = (int)mysql_num_rows(result)) < 1)
   {
     free_path_table_data();
     mysql_free_result(result);

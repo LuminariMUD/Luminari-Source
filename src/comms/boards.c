@@ -474,7 +474,7 @@ void board_save_board(int board_type)
   for (i = 0; i < num_of_msgs[board_type]; i++)
   {
     if ((tmp1 = MSG_HEADING(board_type, i)) != NULL)
-      msg_index[board_type][i].heading_len = strlen(tmp1) + 1;
+      msg_index[board_type][i].heading_len = (int)(strlen(tmp1) + 1);
     else
       msg_index[board_type][i].heading_len = 0;
 
@@ -482,7 +482,7 @@ void board_save_board(int board_type)
         (!(tmp2 = msg_storage[MSG_SLOTNUM(board_type, i)])))
       msg_index[board_type][i].message_len = 0;
     else
-      msg_index[board_type][i].message_len = strlen(tmp2) + 1;
+      msg_index[board_type][i].message_len = (int)(strlen(tmp2) + 1);
 
     fwrite(&(msg_index[board_type][i]), sizeof(struct board_msginfo), 1, fl);
     if (tmp1)

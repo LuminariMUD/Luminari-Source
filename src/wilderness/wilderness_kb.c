@@ -410,9 +410,9 @@ void analyze_world_grid(FILE *fp, struct terrain_stats *stats)
   /* Calculate averages and percentages */
   if (sample_count > 0)
   {
-    stats->avg_elevation = total_elev / sample_count;
-    stats->avg_temp = total_temp / sample_count;
-    stats->avg_moisture = total_moist / sample_count;
+    stats->avg_elevation = (int)(total_elev / sample_count);
+    stats->avg_temp = (int)(total_temp / sample_count);
+    stats->avg_moisture = (int)(total_moist / sample_count);
   }
 
   for (sector = 0; sector < NUM_ROOM_SECTORS; sector++)
@@ -1113,7 +1113,7 @@ void analyze_spatial_relationships(FILE *fp)
   }
 
   /* Count regions and provide basic statistics */
-  num_regions = mysql_num_rows(regions_result);
+  num_regions = (int)mysql_num_rows(regions_result);
   fprintf(fp, "### Region Statistics\n\n");
   fprintf(fp, "Total regions in database: %d\n\n", num_regions);
 

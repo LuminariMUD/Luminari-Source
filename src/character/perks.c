@@ -14182,8 +14182,8 @@ int calculate_stage_xp_needed(struct char_data *ch)
     return 0;
 
   /* Calculate total XP needed for this level */
-  next_level_xp = level_exp(ch, current_level + 1);
-  current_level_xp = level_exp(ch, current_level);
+  next_level_xp = (int)level_exp(ch, current_level + 1);
+  current_level_xp = (int)level_exp(ch, current_level);
   xp_for_level = next_level_xp - current_level_xp;
 
   /* Each stage is 25% of the level */
@@ -14234,7 +14234,7 @@ bool check_stage_advancement(struct char_data *ch, int *perk_points_awarded)
     return FALSE;
 
   /* Calculate how much XP we have within this level */
-  current_level_xp = level_exp(ch, GET_LEVEL(ch));
+  current_level_xp = (int)level_exp(ch, GET_LEVEL(ch));
   stage_xp_needed = calculate_stage_xp_needed(ch);
 
   /* Check if we have enough XP to advance stages */

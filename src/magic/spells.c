@@ -397,7 +397,7 @@ int isname_obj(char *search, char *list)
     found_name = 1;
   else
   { /* It is embedded inside namelist. Is it preceded by a space? */
-    found_pos = found_in_list - namelist;
+    found_pos = (int)(found_in_list - namelist);
     if (namelist[found_pos - 1] == ' ')
       found_name = 1;
   }

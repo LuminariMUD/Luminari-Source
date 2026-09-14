@@ -568,7 +568,7 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
       extract_obj(temp);
       return 1;
     }
-    insert_id = mysql_stmt_insert_id(statement->stmt);
+    insert_id = (int)mysql_stmt_insert_id(statement->stmt);
     mysql_stmt_cleanup(statement);
 
     if (CAN_WEAR(obj, ITEM_WEAR_SHEATH))
@@ -1807,7 +1807,7 @@ static int Crash_offer_rent(struct char_data *ch, struct char_data *recep, int d
     else if (factor == RENT_FACTOR)
       Crash_rent_deadline(ch, recep, totalcost);
   }
-  return (totalcost);
+  return ((int)totalcost);
 }
 
 static int gen_receptionist(struct char_data *ch, struct char_data *recep, int cmd,
@@ -2298,13 +2298,13 @@ obj_save_data *objsave_parse_objects(FILE *fl)
           break;
         }
         GET_OBJ_EXTRA(temp)
-        [0] = asciiflag_conv(f1);
+        [0] = (int)asciiflag_conv(f1);
         GET_OBJ_EXTRA(temp)
-        [1] = asciiflag_conv(f2);
+        [1] = (int)asciiflag_conv(f2);
         GET_OBJ_EXTRA(temp)
-        [2] = asciiflag_conv(f3);
+        [2] = (int)asciiflag_conv(f3);
         GET_OBJ_EXTRA(temp)
-        [3] = asciiflag_conv(f4);
+        [3] = (int)asciiflag_conv(f4);
       }
       break;
     case 'L':
@@ -2330,13 +2330,13 @@ obj_save_data *objsave_parse_objects(FILE *fl)
           break;
         }
         GET_OBJ_AFFECT(temp)
-        [0] = asciiflag_conv(f1);
+        [0] = (int)asciiflag_conv(f1);
         GET_OBJ_AFFECT(temp)
-        [1] = asciiflag_conv(f2);
+        [1] = (int)asciiflag_conv(f2);
         GET_OBJ_AFFECT(temp)
-        [2] = asciiflag_conv(f3);
+        [2] = (int)asciiflag_conv(f3);
         GET_OBJ_AFFECT(temp)
-        [3] = asciiflag_conv(f4);
+        [3] = (int)asciiflag_conv(f4);
       }
       else if (!strcmp(tag, "Prm2"))
       {
@@ -2346,13 +2346,13 @@ obj_save_data *objsave_parse_objects(FILE *fl)
           break;
         }
         GET_OBJ2_PERM(temp)
-        [0] = asciiflag_conv(f1);
+        [0] = (int)asciiflag_conv(f1);
         GET_OBJ2_PERM(temp)
-        [1] = asciiflag_conv(f2);
+        [1] = (int)asciiflag_conv(f2);
         GET_OBJ2_PERM(temp)
-        [2] = asciiflag_conv(f3);
+        [2] = (int)asciiflag_conv(f3);
         GET_OBJ2_PERM(temp)
-        [3] = asciiflag_conv(f4);
+        [3] = (int)asciiflag_conv(f4);
       }
       break;
       if (!strcmp(tag, "Prof"))
@@ -2409,13 +2409,13 @@ obj_save_data *objsave_parse_objects(FILE *fl)
           break;
         }
         GET_OBJ_WEAR(temp)
-        [0] = asciiflag_conv(f1);
+        [0] = (int)asciiflag_conv(f1);
         GET_OBJ_WEAR(temp)
-        [1] = asciiflag_conv(f2);
+        [1] = (int)asciiflag_conv(f2);
         GET_OBJ_WEAR(temp)
-        [2] = asciiflag_conv(f3);
+        [2] = (int)asciiflag_conv(f3);
         GET_OBJ_WEAR(temp)
-        [3] = asciiflag_conv(f4);
+        [3] = (int)asciiflag_conv(f4);
       }
       else if (!strcmp(tag, "Wght"))
         GET_OBJ_WEIGHT(temp) = num;
@@ -2821,13 +2821,13 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
           GET_OBJ_EXTRA(temp)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           GET_OBJ_EXTRA(temp)
-          [1] = asciiflag_conv(f2);
+          [1] = (int)asciiflag_conv(f2);
           GET_OBJ_EXTRA(temp)
-          [2] = asciiflag_conv(f3);
+          [2] = (int)asciiflag_conv(f3);
           GET_OBJ_EXTRA(temp)
-          [3] = asciiflag_conv(f4);
+          [3] = (int)asciiflag_conv(f4);
         }
         break;
       case 'L':
@@ -2849,25 +2849,25 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
           GET_OBJ_AFFECT(temp)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           GET_OBJ_AFFECT(temp)
-          [1] = asciiflag_conv(f2);
+          [1] = (int)asciiflag_conv(f2);
           GET_OBJ_AFFECT(temp)
-          [2] = asciiflag_conv(f3);
+          [2] = (int)asciiflag_conv(f3);
           GET_OBJ_AFFECT(temp)
-          [3] = asciiflag_conv(f4);
+          [3] = (int)asciiflag_conv(f4);
         }
         else if (!strcmp(tag, "Prm2"))
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
           GET_OBJ2_PERM(temp)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           GET_OBJ2_PERM(temp)
-          [1] = asciiflag_conv(f2);
+          [1] = (int)asciiflag_conv(f2);
           GET_OBJ2_PERM(temp)
-          [2] = asciiflag_conv(f3);
+          [2] = (int)asciiflag_conv(f3);
           GET_OBJ2_PERM(temp)
-          [3] = asciiflag_conv(f4);
+          [3] = (int)asciiflag_conv(f4);
         }
         if (!strcmp(tag, "Prof"))
           GET_OBJ_PROF(temp) = num;
@@ -2915,13 +2915,13 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
           GET_OBJ_WEAR(temp)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           GET_OBJ_WEAR(temp)
-          [1] = asciiflag_conv(f2);
+          [1] = (int)asciiflag_conv(f2);
           GET_OBJ_WEAR(temp)
-          [2] = asciiflag_conv(f3);
+          [2] = (int)asciiflag_conv(f3);
           GET_OBJ_WEAR(temp)
-          [3] = asciiflag_conv(f4);
+          [3] = (int)asciiflag_conv(f4);
         }
         else if (!strcmp(tag, "Wght"))
           GET_OBJ_WEIGHT(temp) = num;
@@ -5002,13 +5002,13 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
           GET_OBJ_EXTRA(temp)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           GET_OBJ_EXTRA(temp)
-          [1] = asciiflag_conv(f2);
+          [1] = (int)asciiflag_conv(f2);
           GET_OBJ_EXTRA(temp)
-          [2] = asciiflag_conv(f3);
+          [2] = (int)asciiflag_conv(f3);
           GET_OBJ_EXTRA(temp)
-          [3] = asciiflag_conv(f4);
+          [3] = (int)asciiflag_conv(f4);
         }
         break;
       case 'L':
@@ -5030,25 +5030,25 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
           GET_OBJ_AFFECT(temp)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           GET_OBJ_AFFECT(temp)
-          [1] = asciiflag_conv(f2);
+          [1] = (int)asciiflag_conv(f2);
           GET_OBJ_AFFECT(temp)
-          [2] = asciiflag_conv(f3);
+          [2] = (int)asciiflag_conv(f3);
           GET_OBJ_AFFECT(temp)
-          [3] = asciiflag_conv(f4);
+          [3] = (int)asciiflag_conv(f4);
         }
         if (!strcmp(tag, "Prm2"))
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
           GET_OBJ2_PERM(temp)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           GET_OBJ2_PERM(temp)
-          [1] = asciiflag_conv(f2);
+          [1] = (int)asciiflag_conv(f2);
           GET_OBJ2_PERM(temp)
-          [2] = asciiflag_conv(f3);
+          [2] = (int)asciiflag_conv(f3);
           GET_OBJ2_PERM(temp)
-          [3] = asciiflag_conv(f4);
+          [3] = (int)asciiflag_conv(f4);
         }
         if (!strcmp(tag, "Prof"))
           GET_OBJ_PROF(temp) = num;
@@ -5094,13 +5094,13 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
           GET_OBJ_WEAR(temp)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           GET_OBJ_WEAR(temp)
-          [1] = asciiflag_conv(f2);
+          [1] = (int)asciiflag_conv(f2);
           GET_OBJ_WEAR(temp)
-          [2] = asciiflag_conv(f3);
+          [2] = (int)asciiflag_conv(f3);
           GET_OBJ_WEAR(temp)
-          [3] = asciiflag_conv(f4);
+          [3] = (int)asciiflag_conv(f4);
         }
         else if (!strcmp(tag, "Wght"))
           GET_OBJ_WEIGHT(temp) = num;

@@ -294,7 +294,7 @@ int text_processed(char *field, char *subfield, struct trig_var_data *vd, char *
     /* depending on what patches you've got applied.                      */
     /* on older source bases:    extern struct command_info *cmd_info; */
     int length, cmd;
-    for (length = strlen(vd->value), cmd = 0; *cmd_info[cmd].command != '\n'; cmd++)
+    for (length = (int)strlen(vd->value), cmd = 0; *cmd_info[cmd].command != '\n'; cmd++)
       if (!strncmp(cmd_info[cmd].command, vd->value, length))
         break;
 

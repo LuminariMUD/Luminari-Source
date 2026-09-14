@@ -39,7 +39,7 @@ static int mail_recip_ok(const char *name)
 {
   int player_i = 0, ret = FALSE;
 
-  if ((player_i = get_ptable_by_name(name)) >= 0)
+  if ((player_i = (int)get_ptable_by_name(name)) >= 0)
   {
     if (!IS_SET(player_table[player_i].flags, PINDEX_DELETED))
       ret = TRUE;

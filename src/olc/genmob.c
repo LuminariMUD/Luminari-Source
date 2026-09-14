@@ -481,7 +481,7 @@ int save_mobiles(zone_rnum rznum)
       log("SYSERR: GenOLC: Error writing mobile #%" PRI_IDX ".", i);
   }
   fputs("$\n", mobfd);
-  written = ftell(mobfd);
+  written = (int)ftell(mobfd);
   snprintf(usedfname, sizeof(usedfname), "%s%" PRI_IDX ".mob", MOB_PREFIX, vznum);
   if (!finish_file_save(mobfd, mobfname, usedfname))
     return FALSE;

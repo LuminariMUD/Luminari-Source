@@ -199,10 +199,10 @@ static int parse_mail_flags(FILE *plr_file)
     /* Read the flags */
     if (sscanf(txt, "%32s %32s %32s %32s", f1, f2, f3, f4) == 4)
     {
-      fl[0] = asciiflag_conv(f1);
-      fl[1] = asciiflag_conv(f2);
-      fl[2] = asciiflag_conv(f3);
-      fl[3] = asciiflag_conv(f4);
+      fl[0] = (int)asciiflag_conv(f1);
+      fl[1] = (int)asciiflag_conv(f2);
+      fl[2] = (int)asciiflag_conv(f3);
+      fl[3] = (int)asciiflag_conv(f4);
 
       /* convert from mail flags to mail index flags */
       if (IS_SET_AR(fl, MAIL_DELETED))
@@ -344,7 +344,7 @@ int get_line(FILE *fl, char *buf)
   } while (*temp == '*' || *temp == '\n' || *temp == '\r');
 
   /* Last line of file doesn't always have a \n, but it should. */
-  sl = strlen(temp);
+  sl = (int)strlen(temp);
   while (sl > 0 && (temp[sl - 1] == '\n' || temp[sl - 1] == '\r'))
     temp[--sl] = '\0';
 

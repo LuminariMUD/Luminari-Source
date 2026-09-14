@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
   /* Initialize socket and get text content */
   s = init_socket(port);
   txt = get_text(argv[2]);
-  len = strlen(txt);
+  len = (int)strlen(txt);
 
   if (len == 0)
   {
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
       remaining = len;
       do
       {
-        if ((bytes_written = write(desc, txt, remaining)) < 0)
+        if ((bytes_written = (int)write(desc, txt, remaining)) < 0)
           exit(0);
         else
         {

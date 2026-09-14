@@ -1329,8 +1329,8 @@ void show_account_menu(struct descriptor_data *d)
                   if (CLASS_LEVEL(tch, inc))
                   {
                     if (classCount)
-                      len = snprintf_append(buf, sizeof(buf), len, "/");
-                    len = snprintf_append(buf, sizeof(buf), len, "%s", CLSLIST_CLRABBRV(inc));
+                      len = snprintf_append(buf, sizeof(buf), (int)len, "/");
+                    len = snprintf_append(buf, sizeof(buf), (int)len, "%s", CLSLIST_CLRABBRV(inc));
                     classCount++;
                   }
                 }

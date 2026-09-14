@@ -891,7 +891,7 @@ char *generate_resource_aware_description(struct char_data *ch, room_rnum room)
   }
 
   /* Ensure proper ending */
-  len = strlen(description);
+  len = (int)strlen(description);
   if (len > 0 && description[len - 1] != '.')
   {
     if (len < MAX_STRING_LENGTH - 2)
@@ -899,7 +899,7 @@ char *generate_resource_aware_description(struct char_data *ch, room_rnum room)
       strncat(description, ".", MAX_STRING_LENGTH - len - 1);
     }
   }
-  len = strlen(description);
+  len = (int)strlen(description);
   if (len < MAX_STRING_LENGTH - 3)
   {
     strncat(description, "\r\n", MAX_STRING_LENGTH - len - 1);
@@ -1242,7 +1242,7 @@ void safe_strcat(char *dest, const char *src)
   /* Ensure dest is null-terminated and within bounds */
   dest[MAX_STRING_LENGTH - 1] = '\0';
 
-  int dest_len = strnlen(dest, MAX_STRING_LENGTH - 1);
+  int dest_len = (int)strnlen(dest, MAX_STRING_LENGTH - 1);
   int remaining = MAX_STRING_LENGTH - dest_len - 1;
 
   if (remaining > 0 && dest_len < MAX_STRING_LENGTH - 1)

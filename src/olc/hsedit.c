@@ -715,7 +715,7 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HSEDIT_OWNER_NAME:
-    if ((id = get_id_by_name(arg)) < 0)
+    if ((id = (int)get_id_by_name(arg)) < 0)
     {
       send_to_char(d->character, "There is no such player.\r\n");
       hsedit_owner_menu(d);
@@ -860,7 +860,7 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HSEDIT_BUILDER:
-    if ((id = get_id_by_name(arg)) < 0)
+    if ((id = (int)get_id_by_name(arg)) < 0)
     {
       send_to_char(d->character, "No such player.\r\n");
       return;
@@ -943,7 +943,7 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HSEDIT_GUEST_ADD:
-    if ((id = get_id_by_name(arg)) < 0)
+    if ((id = (int)get_id_by_name(arg)) < 0)
     {
       send_to_char(d->character, "No such player.\r\n");
       hsedit_disp_guest_menu(d);
@@ -975,7 +975,7 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HSEDIT_GUEST_DELETE:
-    if ((id = get_id_by_name(arg)) < 0)
+    if ((id = (int)get_id_by_name(arg)) < 0)
     {
       send_to_char(d->character, "No such player.\r\n");
       hsedit_disp_guest_menu(d);

@@ -994,7 +994,7 @@ void obj_command_interpreter(obj_data *obj, char *argument)
   line = any_one_arg(argument, arg);
 
   /* find the command */
-  for (length = strlen(arg), cmd = 0; *obj_cmd_info[cmd].command != '\n'; cmd++)
+  for (length = (int)strlen(arg), cmd = 0; *obj_cmd_info[cmd].command != '\n'; cmd++)
     if (!strncmp(obj_cmd_info[cmd].command, arg, length))
       break;
 

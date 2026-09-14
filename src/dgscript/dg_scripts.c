@@ -2283,7 +2283,7 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig, in
 
   /* locate and load the trigger specified */
   trignum = real_trigger(atoi(trignum_s));
-  if (trignum == NOTHING || !(newtrig = read_trigger(trignum)))
+  if (trignum == NOTHING || !(newtrig = read_trigger((int)trignum)))
   {
     script_log("Trigger: %s, VNum %" PRI_IDX ". attach invalid trigger: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), trignum_s);

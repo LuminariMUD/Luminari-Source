@@ -119,6 +119,7 @@ per compiler.
 | 2.6 | explicit fallthrough; `-Wredundant-decls` and `-Wnested-externs` promoted to baseline | 6427 | 7913 |
 | 2.4 | `static` file-local functions, prototypes in owning headers, dead code removed; `-Wmissing-prototypes` promoted to baseline | 5775 | 7262 |
 | 2.5 | const-correct test fixtures and five read-only parameters | 5188 | 6675 |
+| 1.3a | explicit casts where 64-bit values narrow to `int` outside macros; `oedit` `max_val` is `int` | 4793 | 6278 |
 
 Every step was also verified with a host `make test` (1483 tests pass) before
 it was committed, and each promotion to the baseline tier was first built at
@@ -219,6 +220,22 @@ Notes from step 2.5:
   `test_load_zones`), or sit in a function-pointer table typed `char *`
   (`prefedit_parse` in `nanny`'s OLC dispatch) receive a mutable copy from the
   tests instead.
+Notes from step 1.3 (first pass):
+
+- `asciiflag_conv` returns a 64-bit `bitvector_t` but every caller stores one
+  32-bit flag-array element; those 114 assignments now cast to `int`, which is
+  the truncation the implicit conversion already performed.
+- Other narrowing sites were cast from the range Clang underlines as the
+  converted expression, only where that range is outside every macro. A first
+  attempt that also cast macro arguments was discarded: Clang reports such a
+  site at an argument's spelling location, and casting one `MIN` or `MAX`
+  operand changes the comparison, so those sites are left for hand work.
+- Before casting, the `long` sources were checked against their ceilings:
+  experience is capped at `EXP_MAX` (2100000000), gold and clan treasure at
+  `MAX_BANK` (2140000000), both below `INT_MAX`.
+- The object editor's `max_val` was `long` although its largest value is
+  400000000.
+
 - The production half of the class (about 290 sites: string tables declared
   `char *[]`, `one_argument_u((char *)argument, ...)`, `findLine` in the index
   tools) is step 3.4.

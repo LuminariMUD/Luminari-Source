@@ -809,7 +809,7 @@ char *process_terrain_request(const char *json_request)
     }
     else
     {
-      target_vnum = json_object_get_int64(vnum_obj);
+      target_vnum = (room_vnum)json_object_get_int64(vnum_obj);
       target_rnum = real_room(target_vnum);
 
       if (target_rnum == NOWHERE)
@@ -1262,9 +1262,9 @@ char *process_terrain_request(const char *json_request)
     /* Simple connectivity test */
     json_object_object_add(response, "success", json_object_new_boolean(TRUE));
     json_object_object_add(response, "message", json_object_new_string("pong"));
-    json_object_object_add(response, "server_time", json_object_new_int(time(NULL)));
+    json_object_object_add(response, "server_time", json_object_new_int((int32_t)time(NULL)));
     json_object_object_add(response, "uptime",
-                           json_object_new_int(time(NULL) - terrain_api->start_time));
+                           json_object_new_int((int32_t)(time(NULL) - terrain_api->start_time)));
   }
   else
   {

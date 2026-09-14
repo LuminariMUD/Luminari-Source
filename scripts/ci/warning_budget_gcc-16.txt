@@ -5,7 +5,7 @@ alloc-zero 1
 alloca 4
 cast-align 8
 cast-qual 100
-conversion 1258
+conversion 863
 discarded-qualifiers 191
 double-promotion 552
 duplicated-branches 21

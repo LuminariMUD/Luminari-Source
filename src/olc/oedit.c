@@ -2096,7 +2096,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
 void oedit_parse(struct descriptor_data *d, char *arg)
 {
   int number, min_val = 0, i = 0, count = 0;
-  long max_val = 0;
+  int max_val = 0;
   char *oldtext = NULL;
   struct obj_data *obj;
   // int this_missile = -1;

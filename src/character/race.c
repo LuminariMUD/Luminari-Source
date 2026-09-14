@@ -470,7 +470,7 @@ bool display_race_info(struct char_data *ch, const char *racename)
     if (stat_mod != 0)
     {
       found = TRUE;
-      len = snprintf_append(buf, sizeof(buf), len, "%s %s%d ", abil_mod_names[i],
+      len = snprintf_append(buf, sizeof(buf), (int)len, "%s %s%d ", abil_mod_names[i],
                             (stat_mod > 0) ? "+" : "", stat_mod);
     }
   }

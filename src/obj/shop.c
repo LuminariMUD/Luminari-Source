@@ -1926,7 +1926,7 @@ static void list_all_shops(struct char_data *ch)
   const char *list_all_shops_header =
       " ##   Virtual   Where    Keeper    Buy   Sell   Customers\r\n"
       "---------------------------------------------------------\r\n";
-  int shop_nr, headerlen = strlen(list_all_shops_header);
+  int shop_nr, headerlen = (int)strlen(list_all_shops_header);
   size_t len = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'}, buf1[16];
 

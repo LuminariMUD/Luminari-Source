@@ -259,7 +259,7 @@ void build_player_index(void)
     name_length = strlen(arg2) + 1;
     CREATE(player_table[i].name, char, name_length);
     memcpy(player_table[i].name, arg2, name_length);
-    player_table[i].flags = asciiflag_conv(bits);
+    player_table[i].flags = (int)asciiflag_conv(bits);
     top_idnum = MAX(top_idnum, player_table[i].id);
   }
 
@@ -279,7 +279,7 @@ int create_entry(char *name)
     pos = top_of_p_table = 0;
     CREATE(player_table, struct player_index_element, 1);
   }
-  else if ((pos = get_ptable_by_name(name)) == -1)
+  else if ((pos = (int)get_ptable_by_name(name)) == -1)
   { /* new name */
     i = ++top_of_p_table + 1;
 
@@ -516,7 +516,7 @@ int load_char(const char *name, struct char_data *ch)
   trig_data *t = NULL;
   trig_rnum t_rnum = NOTHING;
 
-  if ((id = get_ptable_by_name(name)) < 0)
+  if ((id = (int)get_ptable_by_name(name)) < 0)
     return (-1);
   else
   {
@@ -891,34 +891,34 @@ int load_char(const char *name, struct char_data *ch)
           if (sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4) == 4)
           {
             PLR_FLAGS(ch)
-            [0] = asciiflag_conv(f1);
+            [0] = (int)asciiflag_conv(f1);
             PLR_FLAGS(ch)
-            [1] = asciiflag_conv(f2);
+            [1] = (int)asciiflag_conv(f2);
             PLR_FLAGS(ch)
-            [2] = asciiflag_conv(f3);
+            [2] = (int)asciiflag_conv(f3);
             PLR_FLAGS(ch)
-            [3] = asciiflag_conv(f4);
+            [3] = (int)asciiflag_conv(f4);
           }
           else
             PLR_FLAGS(ch)
-          [0] = asciiflag_conv(line);
+          [0] = (int)asciiflag_conv(line);
         }
         else if (!strcmp(tag, "Aff "))
         {
           if (sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4) == 4)
           {
             AFF_FLAGS(ch)
-            [0] = asciiflag_conv(f1);
+            [0] = (int)asciiflag_conv(f1);
             AFF_FLAGS(ch)
-            [1] = asciiflag_conv(f2);
+            [1] = (int)asciiflag_conv(f2);
             AFF_FLAGS(ch)
-            [2] = asciiflag_conv(f3);
+            [2] = (int)asciiflag_conv(f3);
             AFF_FLAGS(ch)
-            [3] = asciiflag_conv(f4);
+            [3] = (int)asciiflag_conv(f4);
           }
           else
             AFF_FLAGS(ch)
-          [0] = asciiflag_conv(line);
+          [0] = (int)asciiflag_conv(line);
         }
         else if (!strcmp(tag, "AExp"))
           GET_ARTISAN_EXP(ch) = atoi(line);
@@ -1006,10 +1006,10 @@ int load_char(const char *name, struct char_data *ch)
             log("load_char: %s combat feat record out of range: %s", GET_NAME(ch), line);
             break;
           }
-          ch->char_specials.saved.combat_feats[i][0] = asciiflag_conv(f1);
-          ch->char_specials.saved.combat_feats[i][1] = asciiflag_conv(f2);
-          ch->char_specials.saved.combat_feats[i][2] = asciiflag_conv(f3);
-          ch->char_specials.saved.combat_feats[i][3] = asciiflag_conv(f4);
+          ch->char_specials.saved.combat_feats[i][0] = (int)asciiflag_conv(f1);
+          ch->char_specials.saved.combat_feats[i][1] = (int)asciiflag_conv(f2);
+          ch->char_specials.saved.combat_feats[i][2] = (int)asciiflag_conv(f3);
+          ch->char_specials.saved.combat_feats[i][3] = (int)asciiflag_conv(f4);
         }
         else if (!strcmp(tag, "Cfpt"))
           load_class_feat_points(fl, ch);
@@ -1503,17 +1503,17 @@ int load_char(const char *name, struct char_data *ch)
           if (parsed == 4)
           {
             PRF_FLAGS(ch)
-            [0] = asciiflag_conv(f1);
+            [0] = (int)asciiflag_conv(f1);
             PRF_FLAGS(ch)
-            [1] = asciiflag_conv(f2);
+            [1] = (int)asciiflag_conv(f2);
             PRF_FLAGS(ch)
-            [2] = asciiflag_conv(f3);
+            [2] = (int)asciiflag_conv(f3);
             PRF_FLAGS(ch)
-            [3] = asciiflag_conv(f4);
+            [3] = (int)asciiflag_conv(f4);
           }
           else if (parsed == 1)
             PRF_FLAGS(ch)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           else log("load_char: %s has an invalid preference flag record: %s", GET_NAME(ch), line);
         }
         else if (!strcmp(tag, "PrQu"))
@@ -1858,7 +1858,7 @@ int load_char(const char *name, struct char_data *ch)
             log("load_char: %s school feat record out of range: %s", GET_NAME(ch), line);
             break;
           }
-          ch->char_specials.saved.school_feats[i] = asciiflag_conv(f1);
+          ch->char_specials.saved.school_feats[i] = (int)asciiflag_conv(f1);
         }
         else if (!strcmp(tag, "Scrl"))
           load_scrolls(fl, ch);
@@ -3941,7 +3941,7 @@ save_char_restore:
     return FALSE;
   }
 
-  if ((id = get_ptable_by_name(GET_NAME(ch))) < 0)
+  if ((id = (int)get_ptable_by_name(GET_NAME(ch))) < 0)
   {
     PERF_PROF_EXIT(pr_save_char_checked_);
     return FALSE;
@@ -5754,22 +5754,23 @@ bool update_player_last_on_single(struct char_data *ch)
   if (GET_LEVEL(ch) < LVL_IMMORT)
   {
     int inc, class_count = 0;
-    len = snprintf_append(classes_list, sizeof(classes_list), len, "[%2d %4s ", GET_LEVEL(ch),
+    len = snprintf_append(classes_list, sizeof(classes_list), (int)len, "[%2d %4s ", GET_LEVEL(ch),
                           RACE_ABBR_REAL(ch));
     for (inc = 0; inc < MAX_CLASSES; inc++)
     {
       if (CLASS_LEVEL(ch, inc))
       {
         if (class_count)
-          len = snprintf_append(classes_list, sizeof(classes_list), len, "|");
-        len = snprintf_append(classes_list, sizeof(classes_list), len, "%s", CLSLIST_ABBRV(inc));
+          len = snprintf_append(classes_list, sizeof(classes_list), (int)len, "|");
+        len =
+            snprintf_append(classes_list, sizeof(classes_list), (int)len, "%s", CLSLIST_ABBRV(inc));
         class_count++;
       }
     }
-    class_len = strlen(classes_list) - count_color_chars(classes_list);
+    class_len = (int)(strlen(classes_list) - count_color_chars(classes_list));
     while (class_len < 11)
     {
-      len = snprintf_append(classes_list, sizeof(classes_list), len, " ");
+      len = snprintf_append(classes_list, sizeof(classes_list), (int)len, " ");
       class_len++;
     }
     snprintf(char_info, sizeof(char_info), "%s]", classes_list);

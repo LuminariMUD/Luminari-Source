@@ -114,7 +114,7 @@ static void read_file(void)
       continue;
     }
     CAP(name);
-    flags = asciiflag_conv(bits);
+    flags = (int)asciiflag_conv(bits);
     if (level >= MIN_LEVEL && !(IS_SET(flags, PINDEX_NOWIZLIST)) &&
         !(IS_SET(flags, PINDEX_DELETED)))
       add_name(level, name);
@@ -210,7 +210,7 @@ static void write_wizlist(FILE *out, int minlev, int maxlev)
   {
     if (curr_level->params->level < minlev || curr_level->params->level > maxlev)
       continue;
-    i = 39 - (strlen(curr_level->params->level_name) >> 1);
+    i = (int)(39 - (strlen(curr_level->params->level_name) >> 1));
     for (j = 1; j <= i; j++)
       fputc(' ', out);
     fprintf(out, "%s\n", curr_level->params->level_name);
@@ -231,7 +231,7 @@ static void write_wizlist(FILE *out, int minlev, int maxlev)
           fprintf(out, IMM_LMARG);
         else
         {
-          i = 40 - (strlen(buf) >> 1);
+          i = (int)(40 - (strlen(buf) >> 1));
           for (j = 1; j <= i; j++)
             fputc(' ', out);
         }
@@ -257,7 +257,7 @@ static void write_wizlist(FILE *out, int minlev, int maxlev)
         fprintf(out, "%s%s\n", IMM_LMARG, buf);
       else
       {
-        i = 40 - (strlen(buf) >> 1);
+        i = (int)(40 - (strlen(buf) >> 1));
         for (j = 1; j <= i; j++)
           fputc(' ', out);
         fprintf(out, "%s\n", buf);

@@ -1244,7 +1244,7 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
       {
         time_t current_time = time(0);
         time_t time_since_enabled = current_time - GET_PVP_TIMER(PREFEDIT_GET_CHAR);
-        int minutes_remaining = 15 - (time_since_enabled / 60);
+        int minutes_remaining = (int)(15 - (time_since_enabled / 60));
 
         if (time_since_enabled < (15 * 60)) /* 15 minutes in seconds */
         {

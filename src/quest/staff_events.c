@@ -3049,7 +3049,7 @@ static int test_performance_optimizations(void)
   log("Running Performance Optimization Tests...");
 
   /* Test coordinate caching performance */
-  int start_time = time(NULL);
+  int start_time = (int)time(NULL);
   int i = 0;
 
   for (i = 0; i < 1000; i++)
@@ -3058,7 +3058,7 @@ static int test_performance_optimizations(void)
     get_cached_coordinates(&x, &y);
   }
 
-  int end_time = time(NULL);
+  int end_time = (int)time(NULL);
   int duration = end_time - start_time;
 
   TEST_ASSERT(duration < 5,
@@ -3067,12 +3067,12 @@ static int test_performance_optimizations(void)
   /* Test hash table performance vs linear search */
   init_hash_tables();
 
-  start_time = time(NULL);
+  start_time = (int)time(NULL);
   for (i = 0; i < 1000; i++)
   {
     hash_lookup_event(EASY_JACKALOPE);
   }
-  end_time = time(NULL);
+  end_time = (int)time(NULL);
   int hash_duration = end_time - start_time;
 
   TEST_ASSERT(hash_duration < 2, "Hash table lookup performance acceptable");

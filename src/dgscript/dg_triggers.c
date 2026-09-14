@@ -76,8 +76,8 @@ int is_substring(char *sub, char *string)
 
   if ((s = str_str(string, sub)))
   {
-    int len = strlen(string);
-    int sublen = strlen(sub);
+    int len = (int)strlen(string);
+    int sublen = (int)strlen(sub);
 
     /* check front */
     if ((s == string || isspace(*(s - 1)) || ispunct(*(s - 1))) &&

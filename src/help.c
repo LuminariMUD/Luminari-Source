@@ -88,7 +88,7 @@ bool help_sync_barrier_active_at(const char *path, char *owner, size_t owner_siz
 
   if (owner != NULL && owner_size > 0)
   {
-    if (fgets(owner, owner_size, lock_file) == NULL)
+    if (fgets(owner, (int)owner_size, lock_file) == NULL)
       strlcpy(owner, "unknown", owner_size);
     else
       owner[strcspn(owner, "\r\n")] = '\0';

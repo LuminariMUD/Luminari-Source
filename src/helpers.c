@@ -237,7 +237,7 @@ void sentence_case(char *str)
   while (*p == ' ' || *p == '\t' || *p == '\n')
     p++;
 
-  len = strlen(p);
+  len = (int)strlen(p);
 
   // remove trailing spaces
   while (len >= 0 && (p[len - 1] == ' ' || p[len - 1] == '\t' || *p == '\n'))

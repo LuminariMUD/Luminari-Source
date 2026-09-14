@@ -3406,7 +3406,7 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format, va_list a
 
   /* this block is Kavir's protocol */
   strlcpy(txt, ProtocolOutput(t, txt, (int *)&wantsize), sizeof(txt));
-  size = wantsize;
+  size = (int)wantsize;
   if (t->pProtocol->WriteOOB > 0)
     --t->pProtocol->WriteOOB;
 
@@ -3479,7 +3479,7 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format, va_list a
   strlcat(t->output, txt, LARGE_BUFSIZE);
 
   /* set the pointer for the next write */
-  t->bufptr = strlen(t->output);
+  t->bufptr = (int)strlen(t->output);
 
   /* calculate how much space is left in the buffer */
   t->bufspace = LARGE_BUFSIZE - 1 - t->bufptr;
@@ -3702,7 +3702,7 @@ static int new_descriptor(socket_t s)
   }
   else
   {
-    greetsize = strlen(GREETINGS);
+    greetsize = (int)strlen(GREETINGS);
     write_to_output(newd, "%s", ProtocolOutput(newd, GREETINGS, &greetsize));
   }
   return (0);
@@ -3998,7 +3998,7 @@ int write_to_descriptor(socket_t desc, const char *txt)
     else if (bytes_written == 0)
     {
       /* Temporary failure -- socket buffer full. */
-      return (write_total);
+      return ((int)write_total);
     }
     else
     {
@@ -4008,7 +4008,7 @@ int write_to_descriptor(socket_t desc, const char *txt)
     }
   }
 
-  return (write_total);
+  return ((int)write_total);
 }
 
 /* Same information about perform_socket_write applies here. I like
@@ -4095,7 +4095,7 @@ static int process_input(struct descriptor_data *t)
   static char read_buf[MAX_PROTOCOL_BUFFER] = {'\0'}; /* KaVir's plugin */
 
   /* first, find the point where we left off reading data */
-  buf_length = strlen(t->inbuf);
+  buf_length = (int)strlen(t->inbuf);
   read_point = t->inbuf + buf_length;
   space_left = MAX_RAW_INPUT_LENGTH - buf_length - 1;
 
@@ -4115,7 +4115,7 @@ static int process_input(struct descriptor_data *t)
     /* Since we have received at least 1 byte of data from the socket, lets run
      * it through ProtocolInput() and rip out anything that is Out Of Band */
     if (bytes_read > 0)
-      bytes_read = ProtocolInput(t, read_buf, bytes_read, t->inbuf);
+      bytes_read = ProtocolInput(t, read_buf, (int)bytes_read, t->inbuf);
 
     if (bytes_read < 0) /* Error, disconnect them. */
       return (-1);
@@ -6238,7 +6238,7 @@ static void msdp_update(void)
       strip_colors(buf);
       MSDPSetString(d, eMSDP_TITLE, buf);
       MSDPSetNumber(d, eMSDP_EXPERIENCE, GET_EXP(ch));
-      MSDPSetNumber(d, eMSDP_EXPERIENCE_TNL, level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
+      MSDPSetNumber(d, eMSDP_EXPERIENCE_TNL, (int)(level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch)));
       MSDPSetNumber(d, eMSDP_EXPERIENCE_MAX,
                     level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch)));
 

@@ -242,7 +242,7 @@ void mysql_board_load_configs(void)
     return;
 
   /* Count rows first */
-  mysql_num_boards = mysql_num_rows(result);
+  mysql_num_boards = (int)mysql_num_rows(result);
 
   if (mysql_board_configs)
   {
@@ -1467,7 +1467,7 @@ void mysql_board_handle_reply_title(struct descriptor_data *d, char *additional_
   d->board_title = strdup(full_title);
 
   /* Calculate size needed for quoted body */
-  quoted_length = strlen(original_post->body) * 2 + 1000; /* Extra space for formatting */
+  quoted_length = (int)(strlen(original_post->body) * 2 + 1000); /* Extra space for formatting */
   quoted_body = malloc(quoted_length);
 
   if (!quoted_body)
@@ -1490,7 +1490,7 @@ void mysql_board_handle_reply_title(struct descriptor_data *d, char *additional_
     if (line_end)
     {
       /* Copy line to temp buffer */
-      int line_len = line_end - line_start;
+      int line_len = (int)(line_end - line_start);
       if (line_len >= MAX_STRING_LENGTH - 1)
       {
         line_len = MAX_STRING_LENGTH - 2;
@@ -1933,7 +1933,7 @@ ACMD(do_boardcheck)
             if (*p == '\t' && *(p + 1))
             {
               /* Copy color code */
-              int len = strlen(display_name);
+              int len = (int)strlen(display_name);
               if (len < 69)
               {
                 display_name[len] = *p++;
@@ -1944,7 +1944,7 @@ ACMD(do_boardcheck)
             else
             {
               /* Copy regular character */
-              int len = strlen(display_name);
+              int len = (int)strlen(display_name);
               if (len < 69)
               {
                 display_name[len] = *p++;
@@ -2107,7 +2107,7 @@ ACMD(do_boardfind)
         if (*p == '\t' && *(p + 1))
         {
           /* Copy color code */
-          int len = strlen(display_name);
+          int len = (int)strlen(display_name);
           if (len < 49)
           {
             display_name[len] = *p++;
@@ -2118,7 +2118,7 @@ ACMD(do_boardfind)
         else
         {
           /* Copy regular character */
-          int len = strlen(display_name);
+          int len = (int)strlen(display_name);
           if (len < 49)
           {
             display_name[len] = *p++;
@@ -2224,7 +2224,7 @@ ACMD(do_boardfind)
         if (*p == '\t' && *(p + 1))
         {
           /* Copy color code */
-          int len = strlen(display_name);
+          int len = (int)strlen(display_name);
           if (len < 49)
           {
             display_name[len] = *p++;
@@ -2235,7 +2235,7 @@ ACMD(do_boardfind)
         else
         {
           /* Copy regular character */
-          int len = strlen(display_name);
+          int len = (int)strlen(display_name);
           if (len < 49)
           {
             display_name[len] = *p++;

@@ -324,7 +324,7 @@ void *i3_client_thread(void *arg)
       result = select(i3_client->socket_fd + 1, &read_set, NULL, NULL, &timeout);
       if (result > 0 && FD_ISSET(i3_client->socket_fd, &read_set))
       {
-        bytes = recv(i3_client->socket_fd, buffer, sizeof(buffer) - 1, 0);
+        bytes = (int)recv(i3_client->socket_fd, buffer, sizeof(buffer) - 1, 0);
         if (bytes > 0)
         {
           buffer[bytes] = '\0';
@@ -2310,7 +2310,7 @@ int i3_load_config(const char *filename)
     }
 
     /* Remove trailing newline and carriage return */
-    len = strlen(line);
+    len = (int)strlen(line);
     while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r'))
     {
       line[--len] = '\0';

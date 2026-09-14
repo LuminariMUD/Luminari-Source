@@ -194,7 +194,7 @@ void init_perlin(int idx, int seed)
   }
 
   /* Reset the seed to something random in case we need it for other purposes. */
-  srand(time(0));
+  srand((unsigned int)time(0));
 }
 
 /* --- My harmonic summing functions - PDB --------------------------*/

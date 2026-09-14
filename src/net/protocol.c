@@ -3860,7 +3860,7 @@ static void SendGMCP(descriptor_t *apDescriptor, const char *apVariable, const c
     protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
 
     /* Should really be replaced with a dynamic buffer */
-    int RequiredBuffer = strlen(apVariable) + strlen(apValue) + 12;
+    int RequiredBuffer = (int)(strlen(apVariable) + strlen(apValue) + 12);
 
     if (RequiredBuffer >= MAX_VARIABLE_LENGTH)
     {

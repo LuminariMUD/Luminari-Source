@@ -2747,7 +2747,7 @@ struct combat_death_result combat_death_apply(struct char_data *ch, struct char_
 
   struct char_data *temp;
   struct descriptor_data *pt;
-  int xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
+  int xp_to_lvl = (int)(level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch)));
   int penalty = xp_to_lvl / XP_LOSS_FACTOR;
 
   penalty = penalty * CONFIG_DEATH_EXP_LOSS / 100;
@@ -2972,7 +2972,7 @@ static void group_gain(struct char_data *ch, struct char_data *victim)
     party_level /= tot_members;
 
   /* total XP received, round up to the nearest tot_members */
-  tot_gain = (GET_EXP(victim) / 3) + tot_members - 1;
+  tot_gain = (int)((GET_EXP(victim) / 3) + tot_members - 1);
 
   /* Calculate level-difference bonus */
   if (GET_LEVEL(victim) > party_level)
@@ -5910,7 +5910,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
     {
       happy_gold = (long)(GET_GOLD(victim) * (((float)(HAPPY_GOLD)) / (float)100));
       happy_gold = MAX(0, happy_gold);
-      award_gold(victim, happy_gold);
+      award_gold(victim, (int)happy_gold);
     }
     local_gold = GET_GOLD(victim);
     snprintf(local_buf, sizeof(local_buf), "%ld", (long)local_gold);

@@ -287,7 +287,7 @@ char *zstrdup(const char *src, char *file, int line)
 {
   char *result;
 #ifndef NO_MEMORY_STRDUP
-  result = (char *)zmalloc(strlen(src) + 1, file, line);
+  result = (char *)zmalloc((int)(strlen(src) + 1), file, line);
   if (!result)
     return NULL;
   strcpy(result, src);

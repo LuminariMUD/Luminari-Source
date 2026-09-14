@@ -17,7 +17,7 @@ incompatible-pointer-types-discards-qualifiers 191
 jump-misses-init 579
 missing-format-attribute 29
 shadow 164
-shorten-64-to-32 602
+shorten-64-to-32 205
 sign-conversion 3383
 switch-enum 45
 undef 8

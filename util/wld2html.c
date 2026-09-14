@@ -148,7 +148,7 @@ static int get_line(FILE *fl, char *line, size_t line_size)
 {
   size_t length;
 
-  while (fgets(line, line_size, fl))
+  while (fgets(line, (int)line_size, fl))
   {
     length = strlen(line);
     if (length == line_size - 1 && line[length - 1] != '\n' && !feof(fl))

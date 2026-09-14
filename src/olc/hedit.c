@@ -235,7 +235,7 @@ static bool validate_help_tag(const char *tag, struct descriptor_data *d)
   }
 
   /* Check length boundaries */
-  len = strlen(tag);
+  len = (int)strlen(tag);
   if (len < MIN_TAG_LENGTH)
   {
     write_to_output(d, "Help tag too short (minimum %d characters).\r\n", MIN_TAG_LENGTH);
@@ -300,7 +300,7 @@ static bool validate_help_keyword(const char *keyword, struct descriptor_data *d
   }
 
   /* Check length boundaries */
-  len = strlen(keyword);
+  len = (int)strlen(keyword);
   if (len < MIN_KEYWORD_LENGTH)
   {
     write_to_output(d, "Keyword too short (minimum %d characters).\r\n", MIN_KEYWORD_LENGTH);
@@ -352,7 +352,7 @@ static bool validate_help_content(const char *content, struct descriptor_data *d
   }
 
   /* Check length */
-  len = strlen(content);
+  len = (int)strlen(content);
   if (len > MAX_STRING_LENGTH)
   {
     write_to_output(d, "Help content too long (maximum %d characters).\r\n", MAX_STRING_LENGTH);
@@ -1492,15 +1492,15 @@ ACMD(do_helpcheck)
       if (!helpcheck_keyword_array_has_prefix(keywords.items, keywords.count,
                                               complete_cmd_info[i].command))
       {
-        len = snprintf_append(buf, sizeof(buf), len, "%-20.20s%s", complete_cmd_info[i].command,
-                              (++count % 3 ? "" : "\r\n"));
+        len = snprintf_append(buf, sizeof(buf), (int)len, "%-20.20s%s",
+                              complete_cmd_info[i].command, (++count % 3 ? "" : "\r\n"));
         if (len >= sizeof(buf) - 1)
           break;
       }
     }
   }
   if (count % 3)
-    len = snprintf_append(buf, sizeof(buf), len, "\r\n");
+    len = snprintf_append(buf, sizeof(buf), (int)len, "\r\n");
 
   free_helpcheck_keyword_index(&keywords);
 
@@ -2359,7 +2359,7 @@ static void perform_helpgen(struct char_data *ch, const char *argument,
       return;
     }
 
-    int keywords_deleted = mysql_affected_rows(conn);
+    int keywords_deleted = (int)mysql_affected_rows(conn);
 
     /* Delete help entries */
     snprintf(query, sizeof(query), "DELETE FROM help_entries WHERE auto_generated = TRUE");
@@ -2370,7 +2370,7 @@ static void perform_helpgen(struct char_data *ch, const char *argument,
       return;
     }
 
-    int entries_deleted = mysql_affected_rows(conn);
+    int entries_deleted = (int)mysql_affected_rows(conn);
 
     send_to_char(ch, "Deleted %d auto-generated help entries and %d keywords.\r\n", entries_deleted,
                  keywords_deleted);
@@ -2448,7 +2448,7 @@ static void perform_helpgen(struct char_data *ch, const char *argument,
 
         if (mysql_query(conn, query) == 0)
         {
-          int deleted = mysql_affected_rows(conn);
+          int deleted = (int)mysql_affected_rows(conn);
           send_to_char(ch, "  Deleted %d orphaned keywords.\r\n", deleted);
           fixed += deleted;
         }
@@ -3156,7 +3156,7 @@ static struct help_entry_list *parse_help_entry(FILE *fp, int *min_level)
     }
 
     /* Add line to content */
-    int line_len = strlen(line);
+    int line_len = (int)strlen(line);
     if ((size_t)(content_len + line_len) < sizeof(content) - 1)
     {
       strlcat(content, line, sizeof(content));
@@ -3261,7 +3261,7 @@ static int import_entry_with_resolution(struct char_data *ch __attribute__((unus
           escaped_size *= 2;
           RECREATE(escaped_keywords, char, escaped_size);
         }
-        escaped_len = snprintf_append(escaped_keywords, escaped_size, escaped_len, ", ");
+        escaped_len = snprintf_append(escaped_keywords, escaped_size, (int)escaped_len, ", ");
       }
       first_keyword = 0;
 
@@ -3272,8 +3272,8 @@ static int import_entry_with_resolution(struct char_data *ch __attribute__((unus
         escaped_size *= 2;
         RECREATE(escaped_keywords, char, escaped_size);
       }
-      escaped_len =
-          snprintf_append(escaped_keywords, escaped_size, escaped_len, "'%s'", escaped_keyword);
+      escaped_len = snprintf_append(escaped_keywords, escaped_size, (int)escaped_len, "'%s'",
+                                    escaped_keyword);
 
       token = strtok_r(NULL, " ", &rest);
     }

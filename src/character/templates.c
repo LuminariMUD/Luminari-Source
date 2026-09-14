@@ -382,7 +382,7 @@ ACMD(do_templates)
 
     // we need to get the level_id in the db first
     char *chname = strdup(template_db_names[ttype]);
-    level_num = get_level_id_by_level_num(level_num, chname);
+    level_num = (int)get_level_id_by_level_num(level_num, chname);
     free(chname);
 
     // Now we can find the level info from our new level_num/id

@@ -1675,7 +1675,7 @@ static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmi
         }
       }
 
-      len2 = strlcpy(wears_text, "\ty", sizeof(wears_text));
+      len2 = (int)strlcpy(wears_text, "\ty", sizeof(wears_text));
       if (obj_proto[i].obj_flags.type_flag == ITEM_WORN)
       {
         for (j = 1; j < NUM_ITEM_WEARS; j++)

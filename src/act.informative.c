@@ -1373,7 +1373,7 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
     list_char_to_char(world[room_number].people, ch);
     return;
   }
-  else if (!IS_DARK(ch->in_room) && ultra_blind(ch, room_number))
+  else if (!IS_DARK(ch->in_room) && ultra_blind(ch, (room_rnum)room_number))
   {
     send_to_char(ch, "\tWIt is far too bright to see anything...\tn\r\n");
     return;
@@ -2398,7 +2398,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   // Device creation cooldown (global for artificer)
   if (k->player_specials->saved.device_creation_cooldown > time(0))
   {
-    int seconds_left = k->player_specials->saved.device_creation_cooldown - time(0);
+    int seconds_left = (int)(k->player_specials->saved.device_creation_cooldown - time(0));
     int minutes_left = (seconds_left % 3600) / 60;
     int hours_left = seconds_left / 3600;
     seconds_left = seconds_left % 60;
@@ -2948,7 +2948,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   {
     time_t current_time = time(0);
     time_t time_since_enabled = current_time - GET_PVP_TIMER(k);
-    int seconds_remaining = (15 * 60) - time_since_enabled;
+    int seconds_remaining = (int)((15 * 60) - time_since_enabled);
     char timebuf[100];
 
     if (seconds_remaining < 60)
@@ -5833,9 +5833,9 @@ static void display_experience_section(struct char_data *ch, int line_length)
       if (current_stage < STAGES_PER_LEVEL)
       {
         /* Calculate XP within current stage */
-        int base_level_xp = (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0);
+        int base_level_xp = (GET_LEVEL(ch) > 1 ? (int)level_exp(ch, GET_LEVEL(ch)) : 0);
         int stage_start_xp = base_level_xp + (stage_xp_needed * (current_stage - 1));
-        stage_xp = GET_EXP(ch) - stage_start_xp;
+        stage_xp = (int)(GET_EXP(ch) - stage_start_xp);
 
         send_to_char(ch, "\tc             \tn \tYStage:\tn %d/4 \tc|\tn \tYStage XP:\tn %s/%s\r\n",
                      current_stage, add_commas(stage_xp), add_commas(stage_xp_needed));
@@ -7637,7 +7637,7 @@ ACMD(do_who)
         break;
       case 't':
         half_chop(buf1, arg, buf);
-        showrace = find_race_bitvector(arg);
+        showrace = (int)find_race_bitvector(arg);
         break;
       default:
         send_to_char(ch, "%s", WHO_FORMAT);
@@ -7806,16 +7806,16 @@ ACMD(do_who)
             if (CLASS_LEVEL(tch, inc))
             {
               if (classCount)
-                len = snprintf_append(classes_list, sizeof(classes_list), len, "/");
-              len = snprintf_append(classes_list, sizeof(classes_list), len, "%s",
+                len = snprintf_append(classes_list, sizeof(classes_list), (int)len, "/");
+              len = snprintf_append(classes_list, sizeof(classes_list), (int)len, "%s",
                                     CLSLIST_CLRABBRV(inc));
               classCount++;
             }
           }
-          class_len = strlen(classes_list) - count_color_chars(classes_list);
+          class_len = (int)(strlen(classes_list) - count_color_chars(classes_list));
           while (class_len < 11)
           {
-            len = snprintf_append(classes_list, sizeof(classes_list), len, " ");
+            len = snprintf_append(classes_list, sizeof(classes_list), (int)len, " ");
             class_len++;
           }
           send_to_char(ch, "%s]", classes_list);
@@ -8227,8 +8227,8 @@ ACMD(do_levels)
 
   for (i = min_lev; i < max_lev; i++)
   {
-    len = snprintf_append(buf, sizeof(buf), len, "[%2d] %8ld-%-8ld : ", (int)i, level_exp(ch, i),
-                          level_exp(ch, i + 1) - 1);
+    len = snprintf_append(buf, sizeof(buf), (int)len, "[%2d] %8ld-%-8ld : ", (int)i,
+                          level_exp(ch, i), level_exp(ch, i + 1) - 1);
     if (len >= sizeof(buf) - 1)
       break;
 
@@ -8238,13 +8238,13 @@ ACMD(do_levels)
     {
     case SEX_MALE:
     case SEX_NEUTRAL:
-      len = snprintf_append(buf, sizeof(buf), len, "%s\r\n", titles(GET_CLASS(ch), i));
+      len = snprintf_append(buf, sizeof(buf), (int)len, "%s\r\n", titles(GET_CLASS(ch), i));
       break;
     case SEX_FEMALE:
-      len = snprintf_append(buf, sizeof(buf), len, "%s\r\n", titles(GET_CLASS(ch), i));
+      len = snprintf_append(buf, sizeof(buf), (int)len, "%s\r\n", titles(GET_CLASS(ch), i));
       break;
     default:
-      len = snprintf_append(buf, sizeof(buf), len, "Oh dear.  You seem to be sexless.\r\n");
+      len = snprintf_append(buf, sizeof(buf), (int)len, "Oh dear.  You seem to be sexless.\r\n");
       break;
     }
     if (len >= sizeof(buf) - 1)
@@ -8252,7 +8252,7 @@ ACMD(do_levels)
   }
 
   if (max_lev == LVL_IMMORT)
-    len = snprintf_append(buf, sizeof(buf), len, "[%2d] %8ld          : Immortality\r\n",
+    len = snprintf_append(buf, sizeof(buf), (int)len, "[%2d] %8ld          : Immortality\r\n",
                           LVL_IMMORT, level_exp(ch, LVL_IMMORT));
   page_string(ch->desc, buf, TRUE);
 }
@@ -8642,7 +8642,7 @@ ACMD(do_toggle)
     return;
   }
 
-  len = strlen(arg);
+  len = (int)strlen(arg);
   for (toggle = 0; *tog_messages[toggle].command != '\n'; toggle++)
     if (!strncmp(arg, tog_messages[toggle].command, len))
       break;
@@ -9193,7 +9193,7 @@ ACMD(do_whois)
   {
     format_time_string(victim->player.time.logon, "%a %b %d %Y", buf, sizeof(buf));
 
-    hours = (time(0) - victim->player.time.logon) / 3600;
+    hours = (int)((time(0) - victim->player.time.logon) / 3600);
 
     if (!got_from_file)
     {

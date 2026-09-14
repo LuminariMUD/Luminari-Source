@@ -204,7 +204,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
     /* in case line_low is negative or zero */
     line_low = MAX(1, line_low);
 
-    format_text(d->str, flags, d, d->max_str, line_low, line_high);
+    format_text(d->str, flags, d, (unsigned int)d->max_str, line_low, line_high);
     write_to_output(d, "Text formatted with%s indent.\r\n", (indent ? "" : "out"));
     break;
   case PARSE_REPLACE:
@@ -237,9 +237,10 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
     {
       return;
     }
-    else if ((total_len = ((strlen(t) - strlen(s)) + strlen(*d->str))) <= d->max_str)
+    else if ((total_len = ((unsigned int)((strlen(t) - strlen(s)) + strlen(*d->str)))) <=
+             d->max_str)
     {
-      if ((replaced = replace_str(d->str, s, t, rep_all, d->max_str)) > 0)
+      if ((replaced = replace_str(d->str, s, t, rep_all, (unsigned int)d->max_str)) > 0)
       {
         write_to_output(d, "Replaced %d occurance%sof '%s' with '%s'.\r\n", replaced,
                         ((replaced != 1) ? "s " : " "), s, t);
@@ -824,7 +825,7 @@ int replace_str(char **string, char *pattern, char *replacement, int rep_all, un
     {
       i++;
       flow += strlen(pattern);
-      len = ((char *)flow - (char *)*string) - strlen(pattern);
+      len = (int)(((char *)flow - (char *)*string) - strlen(pattern));
       memcpy(replace_buffer, *string, len);
       replace_buffer[len] = '\0';
       strlcat(replace_buffer, replacement, max_size + 1);

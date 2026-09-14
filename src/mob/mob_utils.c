@@ -82,7 +82,7 @@ struct char_data *npc_find_target(struct char_data *ch, int *num_targets)
   /* ok should be golden, go ahead snag a random and free list */
   /* always can just return fighting target */
   tch = random_from_list(target_list);
-  *num_targets = target_list->iSize; // yay pointers!
+  *num_targets = (int)target_list->iSize; // yay pointers!
 
   if (target_list)
     free_list(target_list);

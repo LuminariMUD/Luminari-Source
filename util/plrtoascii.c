@@ -205,7 +205,7 @@ static void convert(char *filename)
 
   for (;;)
   {
-    j = fread(&player, sizeof(struct char_file_u_plrtoascii), 1, fl);
+    j = (int)fread(&player, sizeof(struct char_file_u_plrtoascii), 1, fl);
 
     if (feof(fl))
     {

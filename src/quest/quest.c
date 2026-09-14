@@ -2211,7 +2211,7 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
     return;
   }
 
-  int total_quests = mysql_num_rows(result);
+  int total_quests = (int)mysql_num_rows(result);
 
   send_to_char(ch, "%-13s %-42.42s | %-25s | %-30s | %-7s | %s\r\n", "Quest Num", "Quest Name",
                "Quest Master", "Location", "Min Lvl", "Status");

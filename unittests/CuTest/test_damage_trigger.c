@@ -543,7 +543,7 @@ static void damage_trigger_verify_wait_loop(CuTest *tc, bool explicit_wait)
                        : "set progress 0\nwhile 1\n"
                          "eval progress %progress% + 1\nglobal progress\ndone\n"
                          "set finished 1\nglobal finished";
-  saved_pulse = pulse;
+  saved_pulse = (int)pulse;
   event_free_all();
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   event_init();

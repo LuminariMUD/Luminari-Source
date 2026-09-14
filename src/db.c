@@ -2243,7 +2243,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
      * will save the entire world later on, when every room, mobile, and object
      * is converted. */
     log("Converting room #%d to 128bits..", virtual_nr);
-    world[room_nr].room_flags[0] = asciiflag_conv(flags);
+    world[room_nr].room_flags[0] = (int)asciiflag_conv(flags);
     world[room_nr].room_flags[1] = 0;
     world[room_nr].room_flags[2] = 0;
     world[room_nr].room_flags[3] = 0;
@@ -2269,10 +2269,10 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
   {
     int taeller;
 
-    world[room_nr].room_flags[0] = asciiflag_conv(flags);
-    world[room_nr].room_flags[1] = asciiflag_conv(flags2);
-    world[room_nr].room_flags[2] = asciiflag_conv(flags3);
-    world[room_nr].room_flags[3] = asciiflag_conv(flags4);
+    world[room_nr].room_flags[0] = (int)asciiflag_conv(flags);
+    world[room_nr].room_flags[1] = (int)asciiflag_conv(flags2);
+    world[room_nr].room_flags[2] = (int)asciiflag_conv(flags3);
+    world[room_nr].room_flags[3] = (int)asciiflag_conv(flags4);
 
     snprintf(flags, sizeof(flags), "room #%d",
              virtual_nr); /* sprintf: OK (until 399-bit integers) */
@@ -3538,7 +3538,7 @@ void parse_mobile(FILE *mob_f, int nr)
   {
     log("Converting mobile #%d to 128bits..", nr);
     MOB_FLAGS(mob_proto + i)
-    [0] = asciiflag_conv(f1);
+    [0] = (int)asciiflag_conv(f1);
     MOB_FLAGS(mob_proto + i)
     [1] = 0;
     MOB_FLAGS(mob_proto + i)
@@ -3548,7 +3548,7 @@ void parse_mobile(FILE *mob_f, int nr)
     check_bitvector_names(MOB_FLAGS(mob_proto + i)[0], action_bits_count, buf2, "mobile");
 
     AFF_FLAGS(mob_proto + i)
-    [0] = asciiflag_conv_aff(f2);
+    [0] = (int)asciiflag_conv_aff(f2);
     AFF_FLAGS(mob_proto + i)
     [1] = 0;
     AFF_FLAGS(mob_proto + i)
@@ -3591,24 +3591,24 @@ void parse_mobile(FILE *mob_f, int nr)
     int taeller;
 
     MOB_FLAGS(mob_proto + i)
-    [0] = asciiflag_conv(f1);
+    [0] = (int)asciiflag_conv(f1);
     MOB_FLAGS(mob_proto + i)
-    [1] = asciiflag_conv(f2);
+    [1] = (int)asciiflag_conv(f2);
     MOB_FLAGS(mob_proto + i)
-    [2] = asciiflag_conv(f3);
+    [2] = (int)asciiflag_conv(f3);
     MOB_FLAGS(mob_proto + i)
-    [3] = asciiflag_conv(f4);
+    [3] = (int)asciiflag_conv(f4);
     for (taeller = 0; taeller < AF_ARRAY_MAX; taeller++)
       check_bitvector_names(MOB_FLAGS(mob_proto + i)[taeller], action_bits_count, buf2, "mobile");
 
     AFF_FLAGS(mob_proto + i)
-    [0] = asciiflag_conv(f5);
+    [0] = (int)asciiflag_conv(f5);
     AFF_FLAGS(mob_proto + i)
-    [1] = asciiflag_conv(f6);
+    [1] = (int)asciiflag_conv(f6);
     AFF_FLAGS(mob_proto + i)
-    [2] = asciiflag_conv(f7);
+    [2] = (int)asciiflag_conv(f7);
     AFF_FLAGS(mob_proto + i)
-    [3] = asciiflag_conv(f8);
+    [3] = (int)asciiflag_conv(f8);
 
     GET_ALIGNMENT(mob_proto + i) = t[2];
 
@@ -3738,11 +3738,11 @@ const char *parse_object(FILE *obj_f, int nr)
     if (retval == 3)
       t[3] = 0;
     else if (retval == 4)
-      t[3] = asciiflag_conv_aff(f3);
+      t[3] = (int)asciiflag_conv_aff(f3);
 
     log("Converting object #%d to 128bits..", nr);
     GET_OBJ_EXTRA(obj_proto + i)
-    [0] = asciiflag_conv(f1);
+    [0] = (int)asciiflag_conv(f1);
     GET_OBJ_EXTRA(obj_proto + i)
     [1] = 0;
     GET_OBJ_EXTRA(obj_proto + i)
@@ -3750,7 +3750,7 @@ const char *parse_object(FILE *obj_f, int nr)
     GET_OBJ_EXTRA(obj_proto + i)
     [3] = 0;
     GET_OBJ_WEAR(obj_proto + i)
-    [0] = asciiflag_conv(f2);
+    [0] = (int)asciiflag_conv(f2);
     GET_OBJ_WEAR(obj_proto + i)
     [1] = 0;
     GET_OBJ_WEAR(obj_proto + i)
@@ -3758,7 +3758,7 @@ const char *parse_object(FILE *obj_f, int nr)
     GET_OBJ_WEAR(obj_proto + i)
     [3] = 0;
     GET_OBJ_AFFECT(obj_proto + i)
-    [0] = asciiflag_conv_aff(f3);
+    [0] = (int)asciiflag_conv_aff(f3);
     GET_OBJ_AFFECT(obj_proto + i)
     [1] = 0;
     GET_OBJ_AFFECT(obj_proto + i)
@@ -3778,64 +3778,64 @@ const char *parse_object(FILE *obj_f, int nr)
   else if (retval == 13)
   {
     GET_OBJ_EXTRA(obj_proto + i)
-    [0] = asciiflag_conv(f1);
+    [0] = (int)asciiflag_conv(f1);
     GET_OBJ_EXTRA(obj_proto + i)
-    [1] = asciiflag_conv(f2);
+    [1] = (int)asciiflag_conv(f2);
     GET_OBJ_EXTRA(obj_proto + i)
-    [2] = asciiflag_conv(f3);
+    [2] = (int)asciiflag_conv(f3);
     GET_OBJ_EXTRA(obj_proto + i)
-    [3] = asciiflag_conv(f4);
+    [3] = (int)asciiflag_conv(f4);
     GET_OBJ_WEAR(obj_proto + i)
-    [0] = asciiflag_conv(f5);
+    [0] = (int)asciiflag_conv(f5);
     GET_OBJ_WEAR(obj_proto + i)
-    [1] = asciiflag_conv(f6);
+    [1] = (int)asciiflag_conv(f6);
     GET_OBJ_WEAR(obj_proto + i)
-    [2] = asciiflag_conv(f7);
+    [2] = (int)asciiflag_conv(f7);
     GET_OBJ_WEAR(obj_proto + i)
-    [3] = asciiflag_conv(f8);
+    [3] = (int)asciiflag_conv(f8);
     GET_OBJ_AFFECT(obj_proto + i)
-    [0] = asciiflag_conv(f9);
+    [0] = (int)asciiflag_conv(f9);
     GET_OBJ_AFFECT(obj_proto + i)
-    [1] = asciiflag_conv(f10);
+    [1] = (int)asciiflag_conv(f10);
     GET_OBJ_AFFECT(obj_proto + i)
-    [2] = asciiflag_conv(f11);
+    [2] = (int)asciiflag_conv(f11);
     GET_OBJ_AFFECT(obj_proto + i)
-    [3] = asciiflag_conv(f12);
+    [3] = (int)asciiflag_conv(f12);
   }
   else if (retval == 17)
   {
     GET_OBJ_EXTRA(obj_proto + i)
-    [0] = asciiflag_conv(f1);
+    [0] = (int)asciiflag_conv(f1);
     GET_OBJ_EXTRA(obj_proto + i)
-    [1] = asciiflag_conv(f2);
+    [1] = (int)asciiflag_conv(f2);
     GET_OBJ_EXTRA(obj_proto + i)
-    [2] = asciiflag_conv(f3);
+    [2] = (int)asciiflag_conv(f3);
     GET_OBJ_EXTRA(obj_proto + i)
-    [3] = asciiflag_conv(f4);
+    [3] = (int)asciiflag_conv(f4);
     GET_OBJ_WEAR(obj_proto + i)
-    [0] = asciiflag_conv(f5);
+    [0] = (int)asciiflag_conv(f5);
     GET_OBJ_WEAR(obj_proto + i)
-    [1] = asciiflag_conv(f6);
+    [1] = (int)asciiflag_conv(f6);
     GET_OBJ_WEAR(obj_proto + i)
-    [2] = asciiflag_conv(f7);
+    [2] = (int)asciiflag_conv(f7);
     GET_OBJ_WEAR(obj_proto + i)
-    [3] = asciiflag_conv(f8);
+    [3] = (int)asciiflag_conv(f8);
     GET_OBJ_AFFECT(obj_proto + i)
-    [0] = asciiflag_conv(f9);
+    [0] = (int)asciiflag_conv(f9);
     GET_OBJ_AFFECT(obj_proto + i)
-    [1] = asciiflag_conv(f10);
+    [1] = (int)asciiflag_conv(f10);
     GET_OBJ_AFFECT(obj_proto + i)
-    [2] = asciiflag_conv(f11);
+    [2] = (int)asciiflag_conv(f11);
     GET_OBJ_AFFECT(obj_proto + i)
-    [3] = asciiflag_conv(f12);
+    [3] = (int)asciiflag_conv(f12);
     GET_OBJ2_PERM(obj_proto + i)
-    [0] = asciiflag_conv(f13);
+    [0] = (int)asciiflag_conv(f13);
     GET_OBJ2_PERM(obj_proto + i)
-    [1] = asciiflag_conv(f14);
+    [1] = (int)asciiflag_conv(f14);
     GET_OBJ2_PERM(obj_proto + i)
-    [2] = asciiflag_conv(f15);
+    [2] = (int)asciiflag_conv(f15);
     GET_OBJ2_PERM(obj_proto + i)
-    [3] = asciiflag_conv(f16);
+    [3] = (int)asciiflag_conv(f16);
   }
   else
   {
@@ -4272,7 +4272,7 @@ static bool parse_zone_header(struct zone_data *zone, char *line, const char *na
         zone->number, name, line_num, used, remainder);
 
   for (i = 0; i < ZN_ARRAY_MAX; i++)
-    zone->zone_flags[i] = used >= 10 ? asciiflag_conv(flags[i]) : 0;
+    zone->zone_flags[i] = used >= 10 ? (int)asciiflag_conv(flags[i]) : 0;
   if (used < 10)
   {
     zone->min_level = -1;
@@ -4610,7 +4610,7 @@ void load_help(FILE *fl, char *name)
       strcpy(entry + sizeof(entry) - strlen(truncmsg) - 1,
              truncmsg); /* strcpy: OK (assuming sane 'entry' size) */
 
-      keysize = strlen(key) - 2;
+      keysize = (int)(strlen(key) - 2);
       log("SYSERR: Help entry exceeded buffer space: %.*s", keysize, key);
 
       /* If we ran out of buffer space, eat the rest of the entry. */
@@ -7666,7 +7666,7 @@ void init_char(struct char_data *ch)
   if (GET_RACE(ch) != RACE_UNDEFINED && !race_is_creation_eligible(GET_RACE(ch)))
     GET_REAL_RACE(ch) = RACE_UNDEFINED;
 
-  if ((i = get_ptable_by_name(GET_NAME(ch))) != -1)
+  if ((i = (int)get_ptable_by_name(GET_NAME(ch))) != -1)
     player_table[i].id = GET_IDNUM(ch) = ++top_idnum;
   else
     log("SYSERR: init_char: Character '%s' not found in player table.", GET_NAME(ch));
@@ -8148,7 +8148,7 @@ static int check_bitvector_names(bitvector_t bits, size_t namecount, const char 
   if (namecount >= bit_count || (bits >> namecount) == 0)
     return (FALSE);
 
-  for (flagnum = namecount; (size_t)flagnum < bit_count; flagnum++)
+  for (flagnum = (unsigned int)namecount; (size_t)flagnum < bit_count; flagnum++)
     if (((bitvector_t)1 << flagnum) & bits)
     {
       log("SYSERR: %s has unknown %s flag, bit %u (0 through %d known).", whatami, whatbits,
@@ -8967,7 +8967,7 @@ void save_objects_to_database(struct char_data *ch __attribute__((unused)))
     }
     else
     {
-      obj_idnum = mysql_insert_id(conn);
+      obj_idnum = (int)mysql_insert_id(conn);
 
       for (i = 0; i < NUM_ITEM_WEARS; i++)
       {

@@ -818,7 +818,7 @@ void wld_command_interpreter(room_data *room, char *argument)
   line = any_one_arg(argument, arg);
 
   /* find the command */
-  for (length = strlen(arg), cmd = 0; *wld_cmd_info[cmd].command != '\n'; cmd++)
+  for (length = (int)strlen(arg), cmd = 0; *wld_cmd_info[cmd].command != '\n'; cmd++)
     if (!strncmp(wld_cmd_info[cmd].command, arg, length))
       break;
 

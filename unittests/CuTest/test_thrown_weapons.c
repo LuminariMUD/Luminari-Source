@@ -201,7 +201,7 @@ void Test_throwable_weapon_classification_enforces_instance_rules(CuTest *tc)
   CuAssertTrue(tc, !is_throwable_weapon(&ch, &obj));
   REMOVE_BIT_AR(GET_OBJ_EXTRA(&obj), ITEM_NODROP);
 
-  GET_OBJ_BOUND_ID(&obj) = GET_IDNUM(&ch) + 1;
+  GET_OBJ_BOUND_ID(&obj) = (int)(GET_IDNUM(&ch) + 1);
   CuAssertTrue(tc, !is_throwable_weapon(&ch, &obj));
   GET_OBJ_BOUND_ID(&obj) = GET_IDNUM(&ch);
   CuAssertTrue(tc, is_throwable_weapon(&ch, &obj));

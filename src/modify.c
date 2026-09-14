@@ -340,7 +340,7 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
     {
       store_mail(d->mail_to, GET_IDNUM(d->character), *d->str);
       write_to_output(d, "Message sent!\r\n");
-      notify_if_playing(d->character, d->mail_to);
+      notify_if_playing(d->character, (int)d->mail_to);
     }
     else
       write_to_output(d, "Mail aborted.\r\n");
@@ -353,7 +353,7 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
    * give the message.   */
   if (d->mail_to >= BOARD_MAGIC)
   {
-    board_save_board(d->mail_to - BOARD_MAGIC);
+    board_save_board((int)(d->mail_to - BOARD_MAGIC));
     if (action == STRINGADD_ABORT)
     {
       act("$n stops writing to the board.", TRUE, d->character, NULL, NULL, TO_ROOM);
@@ -981,7 +981,7 @@ void show_string(struct descriptor_data *d, char *input)
   } /* Or if we have more to show.... */
   else
   {
-    diff = d->showstr_vector[d->showstr_page + 1] - d->showstr_vector[d->showstr_page];
+    diff = (int)(d->showstr_vector[d->showstr_page + 1] - d->showstr_vector[d->showstr_page]);
     if (diff > MAX_STRING_LENGTH - 3) /* 3=\r\n\0 */
       diff = MAX_STRING_LENGTH - 3;
     strncpy(buffer, d->showstr_vector[d->showstr_page],
@@ -1102,7 +1102,7 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
                 GET_NAME(d->character), query);
           }
 
-          last_id = mysql_insert_id(conn);
+          last_id = (int)mysql_insert_id(conn);
 
           if (last_id > 0 && strcmp(row[0], GET_NAME(ch)))
           {

@@ -21,7 +21,7 @@ int i3_validate_username(const char *username)
     return 0;
   }
 
-  len = strlen(username);
+  len = (int)strlen(username);
   if (len < 1 || len > 20)
   {
     return 0;
@@ -50,7 +50,7 @@ int i3_validate_mudname(const char *mudname)
     return 0;
   }
 
-  len = strlen(mudname);
+  len = (int)strlen(mudname);
   if (len < 1 || len > 50)
   {
     return 0;
@@ -69,7 +69,7 @@ int i3_validate_message(const char *message)
     return 0;
   }
 
-  len = strlen(message);
+  len = (int)strlen(message);
   if (len < 1 || len > 4000)
   {
     return 0;
@@ -88,7 +88,7 @@ int i3_validate_channel(const char *channel)
     return 0;
   }
 
-  len = strlen(channel);
+  len = (int)strlen(channel);
   if (len < 1 || len > 30)
   {
     return 0;

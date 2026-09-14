@@ -261,7 +261,7 @@ ACMD(do_gmote)
   half_chop_c(argument, buf, sizeof(buf), arg, sizeof(arg));
 
   if (subcmd)
-    for (length = strlen(buf), cmd = 0; *complete_cmd_info[cmd].command != '\n'; cmd++)
+    for (length = (int)strlen(buf), cmd = 0; *complete_cmd_info[cmd].command != '\n'; cmd++)
       if (!strncmp(complete_cmd_info[cmd].command, buf, length))
         break;
 
