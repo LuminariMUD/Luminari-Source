@@ -90,7 +90,7 @@ warning debt, and feature detection that strict flags cannot influence.
 
 - Strict full builds: GCC 13, GCC 16, Clang 18, Clang 22, all zero errors.
 - `make test` on the strict Autotools build: 1483 tests pass.
-- The local CI matrix (`scripts/ci/local/run.py`) on the final commit.
+- The local CI matrix (`scripts/ci/local/run.py`): rerun pending on the fixes below (the first run failed as described in the notes).
 
 ## Budget snapshot
 
@@ -518,6 +518,62 @@ Notes from the value conversion pass:
   classes and the log shows compilation; while classes remain, an empty log
   still fails.
 
+Notes from the local CI run and the analyzer triage:
+
+- The first local CI run on the promoted tree failed in ways the budget
+  builds could not see, because they build one optimized configuration and
+  never run the tests:
+  - The step 2.2 format pass had printed index typedefs with `PRI_IDX` or
+    `%u`, so a `NOTHING` or `NOWHERE` vnum became 4294967295 where it used to
+    be -1. The pet object decoder rejects that, and three pet persistence
+    tests failed in every container (the development host passed them, so
+    only the clean CI database exposed it). Signed output with an explicit
+    `(int)` is back wherever text is read back or compared: object save
+    records, the object file recipient line, the moving room key, clan hall
+    and claim lines, the IBT room, craft vnums, vessel cargo and crew rows,
+    and the DG script variables for clans, zones, and exits. Display-only
+    uses keep `PRI_IDX`.
+  - Clang 22.1.8 at `-O2` miscompiles `vessel_commodity_price` in the shape
+    step 1.3 gave it (saturate at `INT_MAX`, then `llong_max(1, price)`): the
+    saturation is dropped. A standalone copy reproduces it, and `-O0`, Clang
+    18, and GCC are correct; a plain lower clamp avoids it. Other uses of the
+    width-matched helpers were checked in the same harness and compile
+    correctly.
+  - `make cutest` compiled test objects before `test_prototypes.h` existed
+    (`BUILT_SOURCES` only orders all, check, and install), which broke the
+    sanitizer, coverage, and memory-check jobs.
+  - With `-Wconversion` in the baseline, a Debug build reports the `size_t`
+    hint count passed to `dice()`, which the optimized builds fold away. Debug
+    baseline builds are now clean on GCC 13, GCC 16, Clang 18, and Clang 22.
+  - The Clang CMake production-profile job once reported that the migration
+    tier dropped `-Wcast-align`; the same probe keeps it when run on its own.
+- `check_warning_budget.py` accepts a log without warnings only while the
+  budget file is empty, so the budget job still passes with both budgets at
+  zero.
+- A local GCC 16.2 analysis-tier build of the server target:
+  run in progress; wall time pending, well over half an hour so far on six jobs.
+  Distinct analyzer sites by class:
+  57 `malloc-leak`, 23 `null-dereference`, 13 `out-of-bounds`, 7
+  `possible-null-argument`, 4 `use-after-free`, 4 `possible-null-dereference`,
+  4 `null-argument`, 3 `use-of-uninitialized-value`, 3 `file-leak`, 3
+  `fd-leak`, 2 `deref-before-check`, and 1 each of `double-free`,
+  `tainted-array-index`, `imprecise-fp-arithmetic`, and
+  `shift-count-negative` (127 sites so far).
+  Fixed from the triage: a double free between `free_claim` and
+  `remove_claim_from_list`; `ascii_convert_house` returning failure at end of
+  file without closing its files; `board_load_board` leaking its `FILE` on
+  every corrupt-file return; `fread_flags` and the say family indexing before
+  an empty or short string; a dangling `d->str` in `playing_string_cleanup`;
+  a `size_t` passed to `ProtocolOutput` as an `int` pointer; a NULL
+  `argument` in two spec procedures; unchecked `fopen` in the map writers; a
+  shift by -1 in `find_race_bitvector`; and an unchecked `close_type` index
+  from the logon file. Confirmed false positives: the tokenizer over-reads
+  (the array is NULL-terminated), `perform_complex_alias` (indexes are bounded
+  by `num_of_tokens`), the Discord and terrain server sockets (every error
+  path closes them), `insert_object`, and `count_commands`. The `malloc-leak`
+  reports and the rest of the `null-dereference` reports still need a
+  dedicated pass.
+
 ## Remaining work
 
 1. GitHub-side confirmation. Container jobs, the apt.llvm.org install step,
@@ -525,12 +581,11 @@ Notes from the value conversion pass:
    locally. Open the pull request and watch the first run; the compiler check
    step is the first thing that would fail if the runner's toolchain differs.
 2. Dispatch `toolchain-analysis.yml` once by hand to confirm its wall time
-   fits the job timeout. Locally the GCC `-fanalyzer` build of the whole tree
-   took well over half an hour on three cores.
-3. Triage the analysis findings. The first local GCC 16.2 analyzer run
-   reported 66 `malloc-leak`, 39 `null-dereference`, 27
-   `possible-null-argument`, 10 `out-of-bounds`, and 4 `use-after-free`
-   sites. These are candidate bugs, not noise, and deserve their own issue.
+   fits the job timeout. (run in progress; wall time pending, well over half an hour so far on six jobs).
+3. Finish the analyzer triage. The use-after-free, double-free,
+   out-of-bounds, leak-of-handle, and uninitialized-value classes are triaged
+   (see the notes above); the `malloc-leak` and `null-dereference` classes
+   still deserve their own issue.
 4. Burn down the rest of the migration budget. Steps 0, 1.1, 1.2, and 2.1 to
    2.6 are done (see the progress table), step 1.3 is done for 64-bit
    narrowing, steps 3 and 4 are done, and value conversion is at zero, so the
