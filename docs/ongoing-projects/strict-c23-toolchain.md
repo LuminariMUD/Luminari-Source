@@ -56,7 +56,8 @@ warning debt, and feature detection that strict flags cannot influence.
   `-Wswitch-enum` and `-Wformat-nonliteral` (moved out of the budget by step
   3.5), `-Wsign-conversion` (step 4), and an ISO C23 `-Wpedantic` extension
   report, in the weekly, non-blocking
-  `.github/workflows/toolchain-analysis.yml`.
+  `.github/workflows/toolchain-analysis.yml`. GCC's analyzer skips
+  `src/character/class.c` (see the notes on the local analyzer run).
 
 ### Feature detection
 
@@ -554,14 +555,19 @@ Notes from the local CI run and the analyzer triage:
   budget file is empty, so the budget job still passes with both budgets at
   zero.
 - A local GCC 16.2 analysis-tier build of the server target:
-  run in progress; wall time pending, well over half an hour so far on six jobs.
-  Distinct analyzer sites by class:
-  57 `malloc-leak`, 23 `null-dereference`, 13 `out-of-bounds`, 7
-  `possible-null-argument`, 4 `use-after-free`, 4 `possible-null-dereference`,
-  4 `null-argument`, 3 `use-of-uninitialized-value`, 3 `file-leak`, 3
-  `fd-leak`, 2 `deref-before-check`, and 1 each of `double-free`,
-  `tainted-array-index`, `imprecise-fp-arithmetic`, and
-  `shift-count-negative` (127 sites so far).
+  `class.c` never finished: after 40 minutes its compile had grown past 30
+  GiB in `load_class_list`, which registers every class in one 5300-line
+  function, so both build systems now compile that file with `-fno-analyzer`.
+  With it left out, a runner-shaped rebuild of the server target without
+  ccache (4 CPUs, 16 GiB, `-j4`) took 206 seconds, or 645 compile seconds
+  over 331 files. The heaviest compiles were `fight.c` (89 seconds, 6.6 GiB),
+  `crafting_new.c` (71 seconds), and `magic.c` (3.4 GiB).
+  Distinct analyzer sites by class, after the fixes below:
+  54 `malloc-leak`, 23 `null-dereference`, 11 `out-of-bounds`, 7
+  `possible-null-argument`, 4 `possible-null-dereference`, 3
+  `use-of-uninitialized-value`, 3 `fd-leak`, 2 `deref-before-check`, and 1
+  each of `use-after-free`, `null-argument`, `tainted-array-index`, and
+  `imprecise-fp-arithmetic` (111 sites).
   Fixed from the triage: a double free between `free_claim` and
   `remove_claim_from_list`; `ascii_convert_house` returning failure at end of
   file without closing its files; `board_load_board` leaking its `FILE` on
@@ -584,7 +590,11 @@ Notes from the local CI run and the analyzer triage:
    locally. Open the pull request and watch the first run; the compiler check
    step is the first thing that would fail if the runner's toolchain differs.
 2. Dispatch `toolchain-analysis.yml` once by hand to confirm its wall time
-   fits the job timeout. (run in progress; wall time pending, well over half an hour so far on six jobs).
+   fits the job timeout. Locally, with `class.c` left out of the
+   analyzer, a runner-shaped build of the server target took under four
+   minutes and peaked at 6.6 GiB for one compile, well inside the 120-minute
+   timeout and the runner's 16 GiB; the dispatch still has to confirm the
+   container and cache steps.
 3. Finish the analyzer triage. The use-after-free, double-free,
    out-of-bounds, leak-of-handle, and uninitialized-value classes are triaged
    (see the notes above); the `malloc-leak` and `null-dereference` classes
