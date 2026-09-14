@@ -15,7 +15,6 @@ implicit-int-conversion-on-negation 5
 implicit-int-float-conversion 125
 incompatible-pointer-types-discards-qualifiers 191
 missing-format-attribute 29
-shadow 4
 sign-conversion 3337
 switch-enum 45
 undef 8

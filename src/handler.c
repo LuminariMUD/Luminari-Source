@@ -1533,13 +1533,13 @@ void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
   if (af->location == APPLY_DR)
   {
     /* Remove the dr. */
-    struct damage_reduction_type *temp, *dr, *next_dr; /* Used by REMOVE_FROM_LIST */
+    struct damage_reduction_type *dr_temp, *dr, *next_dr;
     for (dr = GET_DR(ch); dr != NULL; dr = next_dr)
     {
       next_dr = dr->next; /* Save next pointer before potential removal */
       if (dr->spell == af->spell)
       {
-        REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+        REMOVE_FROM_LIST_USING(dr, GET_DR(ch), next, dr_temp);
         free(dr); /* Free the damage reduction structure */
       }
     }
@@ -1601,13 +1601,13 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   if (af->location == APPLY_DR)
   {
     /* Remove the dr. */
-    struct damage_reduction_type *temp, *dr, *next_dr; /* Used by REMOVE_FROM_LIST */
+    struct damage_reduction_type *dr_temp, *dr, *next_dr;
     for (dr = GET_DR(ch); dr != NULL; dr = next_dr)
     {
       next_dr = dr->next; /* Save next pointer before potential removal */
       if (dr->spell == af->spell)
       {
-        REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+        REMOVE_FROM_LIST_USING(dr, GET_DR(ch), next, dr_temp);
         free(dr); /* Free the damage reduction structure */
       }
     }

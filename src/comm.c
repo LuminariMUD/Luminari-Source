@@ -2769,26 +2769,26 @@ static char *make_prompt(struct descriptor_data *d)
     /* show only when below 25% (autoprompt) */
     if (PRF_FLAGGED(d->character, PRF_DISPAUTO) && len < sizeof(prompt))
     {
-      struct char_data *ch = d->character;
-      if (GET_HIT(ch) << 2 < GET_MAX_HIT(ch))
+      struct char_data *inner_ch = d->character;
+      if (GET_HIT(inner_ch) << 2 < GET_MAX_HIT(inner_ch))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sH%s ", GET_HIT(ch),
-                         CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sH%s ", GET_HIT(inner_ch),
+                         CCYEL(inner_ch, C_NRM), CCNRM(inner_ch, C_NRM));
         if (count >= 0)
           len += count;
       }
-      if (CLASS_LEVEL(ch, CLASS_PSIONICIST) > 0 && GET_PSP(ch) << 2 < GET_MAX_PSP(ch) &&
-          len < sizeof(prompt))
+      if (CLASS_LEVEL(inner_ch, CLASS_PSIONICIST) > 0 &&
+          GET_PSP(inner_ch) << 2 < GET_MAX_PSP(inner_ch) && len < sizeof(prompt))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sP%s ", GET_PSP(ch),
-                         CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sP%s ", GET_PSP(inner_ch),
+                         CCYEL(inner_ch, C_NRM), CCNRM(inner_ch, C_NRM));
         if (count >= 0)
           len += count;
       }
-      if (GET_MOVE(ch) << 2 < GET_MAX_MOVE(ch) && len < sizeof(prompt))
+      if (GET_MOVE(inner_ch) << 2 < GET_MAX_MOVE(inner_ch) && len < sizeof(prompt))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sV%s ", GET_MOVE(ch),
-                         CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sV%s ", GET_MOVE(inner_ch),
+                         CCYEL(inner_ch, C_NRM), CCNRM(inner_ch, C_NRM));
         if (count >= 0)
           len += count;
       }

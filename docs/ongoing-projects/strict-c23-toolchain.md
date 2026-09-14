@@ -89,17 +89,16 @@ warning debt, and feature detection that strict flags cannot influence.
 
 ## Budget snapshot
 
-| Compiler | At the start | Now (after step 2.5) |
+| Compiler | At the start | Now (after step 3.3) |
 |----------|--------------|----------------------|
-| GCC 16.2 | 11363 sites, 24 classes | 5188 sites, 19 classes |
-| Clang 22.1.8 | 22878 sites, 23 classes | 6675 sites, 20 classes |
+| GCC 16.2 | 11363 sites, 24 classes | 3818 sites, 17 classes |
+| Clang 22.1.8 | 22878 sites, 23 classes | 5275 sites, 17 classes |
 
-Largest remaining classes: sign conversion (GCC 1853, Clang 3383), value
-conversion (GCC 1263, Clang `implicit-int-conversion` about 525),
-double promotion (about 555 each), jump-misses-init (446 and 579),
-`size_t` and `long` narrowing (Clang `shorten-64-to-32` 602), float
-conversion, shadowing, and the production half of the discarded-qualifier
-warnings.
+Largest remaining classes: sign conversion (GCC 1814, Clang 3337), value
+conversion (GCC 645, Clang `implicit-int-conversion` 523), double promotion
+(552 and 557), float conversion (GCC 299; Clang 220 implicit, 125 int to
+float, 94 explicit), and the production half of the discarded-qualifier
+warnings (191 each) with `cast-qual` (100 each).
 
 ## Burn-down progress
 
@@ -126,6 +125,7 @@ per compiler.
 | 1.3c | narrowing inside macros and multi-line expressions; clan return widened; `look_at_room_number` guard fixed; Clang `shorten-64-to-32` at zero | 4535 | 6018 |
 | 3.1 | case-local declarations scoped or hoisted; `jump-misses-init` at zero; flag promoted to baseline | 4087 | 5437 |
 | 3.3 | 265 shadowing declarations renamed within their scope | 3822 | 5279 |
+| 3.3 tail | `REMOVE_FROM_LIST_USING`; last three renames; `shadow` at zero | 3818 | 5275 |
 
 Every step was also verified with a host `make test` (1483 tests pass) before
 it was committed, and each promotion to the baseline tier was first built at
@@ -306,9 +306,14 @@ Notes from step 3.3:
   `inner_NAME` for inner locals that reused an outer name.
 - A rename is skipped when a macro expanded in the same scope uses the name as
   a free identifier, since the macro would then silently refer to the outer
-  variable. Four such sites remain: `REMOVE_FROM_LIST` hardcodes `temp` in both
-  affect removal functions, and two scopes expand macros that name `index` and
-  `ch`.
+  variable. The check first looked at every macro body in `src/`, which held
+  back four sites; it now ignores a macro whose parameter has the same name,
+  which cleared the `index` rename in `find_replacement` and the `ch` rename in
+  `make_prompt`.
+- `REMOVE_FROM_LIST` hardcodes a `temp` cursor, so both affect removal
+  functions declared a damage-reduction `temp` that shadowed the function's
+  affect `temp`. The macro is now a wrapper over `REMOVE_FROM_LIST_USING`,
+  which takes the cursor variable, and those two functions pass `dr_temp`.
 
 - The production half of the class (about 290 sites: string tables declared
   `char *[]`, `one_argument_u((char *)argument, ...)`, `findLine` in the index
@@ -427,7 +432,7 @@ migration list to the baseline list in `production_profile.sh`.
    change `float` to `double` in the wilderness and resource files, and give
    the float-typed struct fields explicit casts at the assignment. Performance
    is irrelevant on this path.
-3. `shadow` (done but four sites; see the step 3.3 notes).
+3. `shadow` (done; see the step 3.3 notes).
 4. `-Wwrite-strings` in `src/` (188): the 23 in `bsd-snprintf.c` are
    `findLine` and friends taking `char *`; constify the parameters.
 5. Small classes, one sitting: `null-dereference` 48, `switch-enum` 45,

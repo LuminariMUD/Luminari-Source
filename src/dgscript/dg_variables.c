@@ -1286,15 +1286,15 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
 
         else if (!str_cmp(field, "quest"))
         {
-          int index = 0;
+          int inner_index = 0;
           bool found = FALSE;
 
-          for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+          for (inner_index = 0; inner_index < MAX_CURRENT_QUESTS; inner_index++)
           { /* loop through all the character's quest slots */
-            if (!IS_NPC(c) && (GET_QUEST(c, index) != (int)NOTHING) &&
-                (real_quest(GET_QUEST(c, index)) != NOTHING))
+            if (!IS_NPC(c) && (GET_QUEST(c, inner_index) != (int)NOTHING) &&
+                (real_quest(GET_QUEST(c, inner_index)) != NOTHING))
             {
-              snprintf(str, slen, "%d", GET_QUEST(c, index));
+              snprintf(str, slen, "%d", GET_QUEST(c, inner_index));
               found = TRUE;
               break;
             }

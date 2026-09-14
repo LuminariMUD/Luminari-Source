@@ -741,16 +741,20 @@ void char_from_furniture(struct char_data *ch);
  * @param head Pointer to the head of the linked list.
  * @param next The variable name pointing to the next in the list.
  * */
-#define REMOVE_FROM_LIST(item, head, next)                                                         \
+#define REMOVE_FROM_LIST(item, head, next) REMOVE_FROM_LIST_USING(item, head, next, temp)
+
+/* REMOVE_FROM_LIST with an explicit cursor variable, for a scope that already
+ * uses temp for a list of another type. */
+#define REMOVE_FROM_LIST_USING(item, head, next, cursor)                                           \
   if ((item) == (head))                                                                            \
     head = (item)->next;                                                                           \
   else                                                                                             \
   {                                                                                                \
-    temp = head;                                                                                   \
-    while (temp && (temp->next != (item)))                                                         \
-      temp = temp->next;                                                                           \
-    if (temp)                                                                                      \
-      temp->next = (item)->next;                                                                   \
+    cursor = head;                                                                                 \
+    while (cursor && (cursor->next != (item)))                                                     \
+      cursor = cursor->next;                                                                       \
+    if (cursor)                                                                                    \
+      cursor->next = (item)->next;                                                                 \
   }
 
 /* Connect 'link' to the end of a double-linked list
