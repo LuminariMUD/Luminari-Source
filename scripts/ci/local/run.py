@@ -85,8 +85,6 @@ def container_job():
     try:
         service = job.get('database')
         if service:
-            # GitHub container jobs reach the service by name; here it is local.
-            env['LUMINARI_TEST_MYSQL_HOST'] = '127.0.0.1'
             subprocess.run(['mariadb-install-db', '--no-defaults', '--datadir=/tmp/mysql',
                             '--auth-root-authentication-method=normal', '--skip-test-db'], check=True,
                            stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
@@ -224,6 +222,9 @@ def main():
                        '-v', f'{descriptor}:/input/job.json:ro',
                        '-v', f'{runner}:/input/run.py:ro',
                        '-v', f'{args.cache.resolve()}:/ccache', '-v', f'{job_dir}:/results',
+                       # The service runs inside the job container; GitHub container jobs
+                       # reach it as 'mariadb', so resolve that name to loopback.
+                       *(['--add-host', 'mariadb:127.0.0.1'] if job['database'] else []),
                        job['image'] or args.image, 'python3', '/input/run.py', '--container-job']
             begin = time.monotonic()
             try:

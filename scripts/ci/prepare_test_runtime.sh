@@ -38,10 +38,18 @@ if [[ "$LUMINARI_TEST_MYSQL_ENABLE" != 1 ]]; then
   printf 'LUMINARI_TEST_MYSQL_ENABLE must be 1.\n' >&2
   exit 2
 fi
-if [[ "$LUMINARI_TEST_MYSQL_HOST" != localhost &&
+# A job container reaches the workflow's MariaDB service by its service name,
+# which only CI runners (GitHub or the local runner) are trusted to provide.
+ci_service_host=0
+if [[ "$LUMINARI_TEST_MYSQL_HOST" == mariadb &&
+      ( "${GITHUB_ACTIONS:-}" == true || "${LUMINARI_LOCAL_CI:-}" == 1 ) ]]; then
+  ci_service_host=1
+fi
+if [[ "$ci_service_host" != 1 &&
+      "$LUMINARI_TEST_MYSQL_HOST" != localhost &&
       "$LUMINARI_TEST_MYSQL_HOST" != ::1 &&
       ! "$LUMINARI_TEST_MYSQL_HOST" =~ ^127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-  printf 'The CI runtime preparer only accepts a loopback test database host.\n' >&2
+  printf 'The CI runtime preparer only accepts a loopback or CI service database host.\n' >&2
   exit 2
 fi
 case "$LUMINARI_TEST_MYSQL_DATABASE" in
