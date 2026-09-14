@@ -177,15 +177,15 @@ WCMD(do_wsend)
 WCMD(do_wzoneecho)
 {
   zone_rnum zone;
-  char room_num[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'}, *msg;
+  char room_num_id[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'}, *msg;
 
-  msg = any_one_arg(argument, room_num);
+  msg = any_one_arg(argument, room_num_id);
   skip_spaces(&msg);
 
-  if (!*room_num || !*msg)
+  if (!*room_num_id || !*msg)
     wld_log(room, "wzoneecho called with too few args");
 
-  else if ((zone = real_zone_by_thing(atoi(room_num))) == NOWHERE)
+  else if ((zone = real_zone_by_thing(atoi(room_num_id))) == NOWHERE)
     wld_log(room, "wzoneecho called for nonexistant zone");
 
   else

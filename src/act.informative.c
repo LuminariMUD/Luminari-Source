@@ -347,7 +347,7 @@ static void show_obj_info(struct obj_data *obj, struct char_data *ch)
   int size = GET_OBJ_SIZE(obj);
   int material = GET_OBJ_MATERIAL(obj);
   int type = GET_OBJ_TYPE(obj);
-  int weapon_type = GET_WEAPON_TYPE(obj);
+  int weapon_type_value = GET_WEAPON_TYPE(obj);
   int armor_val = GET_OBJ_VAL(obj, 1);
   int i = 0;
 
@@ -358,8 +358,8 @@ static void show_obj_info(struct obj_data *obj, struct char_data *ch)
     material = 0;
   if (type < 0 || type >= NUM_ITEM_TYPES)
     type = 0;
-  if (weapon_type < 0 || weapon_type >= NUM_WEAPON_TYPES)
-    weapon_type = 0;
+  if (weapon_type_value < 0 || weapon_type_value >= NUM_WEAPON_TYPES)
+    weapon_type_value = 0;
   if (armor_val < 0 || armor_val >= NUM_SPEC_ARMOR_TYPES)
     armor_val = 0;
 
@@ -371,7 +371,8 @@ static void show_obj_info(struct obj_data *obj, struct char_data *ch)
   switch (type)
   {
   case ITEM_WEAPON:
-    send_to_char(ch, "Weapon: %s ", weapon_type ? weapon_list[weapon_type].name : "???");
+    send_to_char(ch, "Weapon: %s ",
+                 weapon_type_value ? weapon_list[weapon_type_value].name : "???");
 
     /* check load-status of a reloadable weapon (such as crossbow) */
     if (is_reloading_weapon(ch, obj, TRUE))
@@ -2095,7 +2096,7 @@ static void perform_immort_where(struct char_data *ch, const char *arg)
   struct obj_data *k;
   struct descriptor_data *d;
   struct where_output_buffer output = {NULL, 0, 0, FALSE};
-  int mob_num = 0, obj_num = 0;
+  int mob_num = 0, obj_num_id = 0;
   bool found = FALSE;
 
   if (!*arg)
@@ -2157,7 +2158,7 @@ static void perform_immort_where(struct char_data *ch, const char *arg)
     if (CAN_SEE_OBJ(ch, k) && isname(arg, k->name))
     {
       found = TRUE;
-      print_object_location(++obj_num, k, ch, &output, 0);
+      print_object_location(++obj_num_id, k, ch, &output, 0);
     }
   }
 
@@ -9766,7 +9767,7 @@ ACMD(do_survey)
   {
     /* Resource minimap */
     char arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH];
-    int resource_type = -1, radius = 7, i;
+    int resource_type = -1, radius = 7, inner_i;
 
     /* Skip past "map" and get the resource type and radius */
     argument = one_argument(argument, arg, sizeof(arg));   /* Skip "map" */
@@ -9776,9 +9777,9 @@ ACMD(do_survey)
     if (!*arg2)
     {
       send_to_char(ch, "Available resource types for mapping:\r\n");
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      for (inner_i = 0; inner_i < NUM_RESOURCE_TYPES; inner_i++)
       {
-        send_to_char(ch, "  %d. %s\r\n", i, resource_names[i]);
+        send_to_char(ch, "  %d. %s\r\n", inner_i, resource_names[inner_i]);
       }
       send_to_char(ch, "\r\nUsage: survey map <resource_type> [radius]\r\n");
       send_to_char(ch, "Example: survey map vegetation 10\r\n");
@@ -9793,11 +9794,11 @@ ACMD(do_survey)
     else
     {
       /* Try to match by name */
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      for (inner_i = 0; inner_i < NUM_RESOURCE_TYPES; inner_i++)
       {
-        if (is_abbrev(arg2, resource_names[i]))
+        if (is_abbrev(arg2, resource_names[inner_i]))
         {
-          resource_type = i;
+          resource_type = inner_i;
           break;
         }
       }
@@ -9825,7 +9826,7 @@ ACMD(do_survey)
   {
     /* Detailed resource analysis */
     char arg2[MAX_INPUT_LENGTH];
-    int resource_type = -1, i;
+    int resource_type = -1, inner_i;
 
     /* Skip past "detail" and get the resource type */
     argument = one_argument(argument, arg, sizeof(arg)); /* Skip "detail" */
@@ -9834,9 +9835,9 @@ ACMD(do_survey)
     if (!*arg2)
     {
       send_to_char(ch, "Available resource types for detailed analysis:\r\n");
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      for (inner_i = 0; inner_i < NUM_RESOURCE_TYPES; inner_i++)
       {
-        send_to_char(ch, "  %d. %s\r\n", i, resource_names[i]);
+        send_to_char(ch, "  %d. %s\r\n", inner_i, resource_names[inner_i]);
       }
       send_to_char(ch, "\r\nUsage: survey detail <resource_type>\r\n");
       send_to_char(ch, "Example: survey detail minerals\r\n");
@@ -9851,11 +9852,11 @@ ACMD(do_survey)
     else
     {
       /* Try to match by name */
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      for (inner_i = 0; inner_i < NUM_RESOURCE_TYPES; inner_i++)
       {
-        if (is_abbrev(arg2, resource_names[i]))
+        if (is_abbrev(arg2, resource_names[inner_i]))
         {
-          resource_type = i;
+          resource_type = inner_i;
           break;
         }
       }
@@ -9901,7 +9902,7 @@ ACMD(do_survey)
   {
     /* Phase 7: Cascade effect preview */
     char arg2[MAX_INPUT_LENGTH];
-    int resource_type = -1, i;
+    int resource_type = -1, inner_i;
 
     /* Get resource type argument */
     argument = one_argument(argument, arg, sizeof(arg)); /* Skip "cascade" */
@@ -9911,9 +9912,10 @@ ACMD(do_survey)
     {
       send_to_char(ch, "Usage: survey cascade <resource_type>\r\n");
       send_to_char(ch, "Available resources: ");
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      for (inner_i = 0; inner_i < NUM_RESOURCE_TYPES; inner_i++)
       {
-        send_to_char(ch, "%s%s", resource_names[i], i < NUM_RESOURCE_TYPES - 1 ? ", " : "\r\n");
+        send_to_char(ch, "%s%s", resource_names[inner_i],
+                     inner_i < NUM_RESOURCE_TYPES - 1 ? ", " : "\r\n");
       }
       return;
     }
@@ -9925,11 +9927,11 @@ ACMD(do_survey)
     }
     else
     {
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      for (inner_i = 0; inner_i < NUM_RESOURCE_TYPES; inner_i++)
       {
-        if (is_abbrev(arg2, resource_names[i]))
+        if (is_abbrev(arg2, resource_names[inner_i]))
         {
-          resource_type = i;
+          resource_type = inner_i;
           break;
         }
       }

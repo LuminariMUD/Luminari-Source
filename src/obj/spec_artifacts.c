@@ -2959,19 +2959,19 @@ void artifact_on_extract(struct obj_data *obj)
 /* Single-instance enforcement.  TRUE means the just-loaded object must be
  * extracted again: someone already owns this artifact, or an instance is
  * already in play. */
-int artifact_block_zone_load(obj_rnum obj_rnum)
+int artifact_block_zone_load(obj_rnum obj_rnum_id)
 {
   int vnum = 0;
 
-  if (!art_index || obj_rnum == NOTHING)
+  if (!art_index || obj_rnum_id == NOTHING)
     return FALSE;
 
-  vnum = obj_index[obj_rnum].vnum;
+  vnum = obj_index[obj_rnum_id].vnum;
 
   if (artifact_search(vnum) < 0)
     return FALSE;
 
-  if (obj_index[obj_rnum].number > 0)
+  if (obj_index[obj_rnum_id].number > 0)
     return TRUE;
 
   if (artifact_is_owned(vnum) && artifact_by_vnum(vnum)->instance_persisted)

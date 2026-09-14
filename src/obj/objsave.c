@@ -3959,7 +3959,7 @@ static bool pet_object_set_text(char **destination, const char *prototype, char 
  * owner ID, pet row ID, object vnum -- and never with the serialized payload or
  * the SQL statement that carried it. */
 static void log_pet_object_failure(const char *operation, struct char_data *owner,
-                                   long int pet_idnum, int obj_vnum, unsigned int error_code,
+                                   long int pet_idnum, int obj_vnum_id, unsigned int error_code,
                                    const char *detail)
 {
   char safe_detail[161];
@@ -3974,7 +3974,7 @@ static void log_pet_object_failure(const char *operation, struct char_data *owne
   log("SYSERR: pet objects: operation=%.40s owner_id=%ld pet_data_id=%ld obj_vnum=%d "
       "mysql_errno=%u detail=\"%.160s\"",
       operation ? operation : "unknown", owner && !IS_NPC(owner) ? (long)GET_IDNUM(owner) : 0L,
-      pet_idnum, obj_vnum, error_code, safe_detail);
+      pet_idnum, obj_vnum_id, error_code, safe_detail);
 }
 
 static obj_save_data *objsave_parse_objects_db_pet(struct char_data *owner, long int pet_idnum,

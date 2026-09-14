@@ -4000,25 +4000,25 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
  * weapon used for the attack matches the feat's family or type */
 int racial_weapon_mastery_bonus(struct char_data *ch, struct obj_data *wielded)
 {
-  int weapon_type = 0, family = 0, bonus = 0;
+  int weapon_type_value = 0, family = 0, bonus = 0;
 
   if (!ch || !wielded)
     return 0;
-  weapon_type = GET_WEAPON_TYPE(wielded);
-  if (weapon_type <= 0 || weapon_type >= NUM_WEAPON_TYPES)
+  weapon_type_value = GET_WEAPON_TYPE(wielded);
+  if (weapon_type_value <= 0 || weapon_type_value >= NUM_WEAPON_TYPES)
     return 0;
   bonus = MIN(3, GET_LEVEL(ch) / 8);
   if (bonus <= 0)
     return 0;
-  family = weapon_list[weapon_type].weaponFamily;
+  family = weapon_list[weapon_type_value].weaponFamily;
 
   if (family == WEAPON_FAMILY_AXE && HAS_FEAT(ch, FEAT_AXE_MASTERY))
     return bonus;
   if (family == WEAPON_FAMILY_HAMMER && HAS_FEAT(ch, FEAT_HAMMER_MASTERY))
     return bonus;
-  if (weapon_type == WEAPON_TYPE_LONG_SWORD && HAS_FEAT(ch, FEAT_LONGSWORD_MASTERY))
+  if (weapon_type_value == WEAPON_TYPE_LONG_SWORD && HAS_FEAT(ch, FEAT_LONGSWORD_MASTERY))
     return bonus;
-  if (weapon_type == WEAPON_TYPE_GREAT_SWORD && HAS_FEAT(ch, FEAT_GREATSWORD_MASTERY))
+  if (weapon_type_value == WEAPON_TYPE_GREAT_SWORD && HAS_FEAT(ch, FEAT_GREATSWORD_MASTERY))
     return bonus;
 
   return 0;
@@ -6629,7 +6629,7 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
     room_rnum combat_room = IN_ROOM(ch);
     int threshold = get_char_affect_modifier(victim, SPELL_LIFE_SHIELD, APPLY_SPECIAL);
     int lifedam = 0;
-    struct affected_type *af = NULL;
+    struct affected_type *inner_af = NULL;
     bool remove_spell = false;
 
     if (threshold > dam / 2)
@@ -6641,12 +6641,12 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
       threshold = dam / 2;
     }
     lifedam = dam / 2;
-    for (af = victim->affected; af; af = af->next)
+    for (inner_af = victim->affected; inner_af; inner_af = inner_af->next)
     {
-      if (af->spell == SPELL_LIFE_SHIELD && af->location == APPLY_SPECIAL)
+      if (inner_af->spell == SPELL_LIFE_SHIELD && inner_af->location == APPLY_SPECIAL)
       {
-        af->modifier -= threshold;
-        if (af->modifier <= 0)
+        inner_af->modifier -= threshold;
+        if (inner_af->modifier <= 0)
         {
           remove_spell = true;
           break;
@@ -6702,14 +6702,14 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
     send_to_char(victim,
                  "In damage() function, Position: %d, HP: %d, DAM: %d, Attacker %s, You: %s\r\n",
                  GET_POS(victim), GET_HIT(victim), dam, GET_NAME(ch), GET_NAME(victim));
-    int weapon_type = w_type - TOP_ATTACK_TYPES;
-    if (weapon_type < 0 || weapon_type >= NUM_ATTACK_TYPES)
+    int weapon_type_value = w_type - TOP_ATTACK_TYPES;
+    if (weapon_type_value < 0 || weapon_type_value >= NUM_ATTACK_TYPES)
     {
-      send_to_char(ch, "Weapon-type: %d!!", weapon_type);
+      send_to_char(ch, "Weapon-type: %d!!", weapon_type_value);
     }
     else
     {
-      send_to_char(ch, "Weapon-type: %s", attack_hit_types[weapon_type]);
+      send_to_char(ch, "Weapon-type: %s", attack_hit_types[weapon_type_value]);
     }
     send_to_char(ch, ", Dam-type: %s, Attack mode: %d\r\n", damtypes[dam_type], attack_type);
   }
@@ -12542,7 +12542,7 @@ static void teamwork_attacks_of_opportunity(struct char_data *victim, int penalt
 static int wildshape_weapon_type(struct char_data *ch)
 {
   int w_type_array[NUM_ATTACK_TYPES];
-  int weapon_type = TYPE_HIT;
+  int weapon_type_value = TYPE_HIT;
   int count = 0;
   int race = 0;
 
@@ -12578,9 +12578,9 @@ static int wildshape_weapon_type(struct char_data *ch)
 
     /* list built, pick random */
     if (count <= 0) /* dummy check */
-      weapon_type = TYPE_HIT;
+      weapon_type_value = TYPE_HIT;
     else
-      weapon_type = w_type_array[rand_number(0, count - 1)];
+      weapon_type_value = w_type_array[rand_number(0, count - 1)];
   } /* handle old shapechange system */
   else
   {
@@ -12616,7 +12616,7 @@ static int wildshape_weapon_type(struct char_data *ch)
       break;
     }
     /* pick random */
-    weapon_type = w_type_array[rand_number(0, count)];
+    weapon_type_value = w_type_array[rand_number(0, count)];
   }
   if (IS_PIXIE(ch))
   {
@@ -12626,7 +12626,7 @@ static int wildshape_weapon_type(struct char_data *ch)
     w_type_array[++count] = TYPE_STING;
   }
 
-  return weapon_type;
+  return weapon_type_value;
 }
 
 /* a function that will return the weapon-type being used based on attack_type
@@ -13899,13 +13899,13 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
 
         if (save_result == FALSE)
         {
-          struct affected_type af;
-          af.spell = SKILL_BLEEDING_ATTACK;
-          af.duration = 5;
-          af.modifier = 1; /* 1d6 per round */
-          af.location = APPLY_NONE;
-          SET_BIT_AR(af.bitvector, AFF_BLEED);
-          affect_to_char(victim, &af);
+          struct affected_type inner_af;
+          inner_af.spell = SKILL_BLEEDING_ATTACK;
+          inner_af.duration = 5;
+          inner_af.modifier = 1; /* 1d6 per round */
+          inner_af.location = APPLY_NONE;
+          SET_BIT_AR(inner_af.bitvector, AFF_BLEED);
+          affect_to_char(victim, &inner_af);
           send_to_char(victim, "\tRYou begin bleeding from the wound!\tn\r\n");
           send_to_char(ch, "\tWYour strike causes your opponent to bleed!\tn\r\n");
         }
@@ -13927,13 +13927,13 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
 
         if (save_result == FALSE)
         {
-          struct affected_type af;
-          af.spell = SKILL_CRIPPLING_STRIKE;
-          af.duration = 3;
-          af.modifier = 0;
-          af.location = APPLY_NONE;
-          SET_BIT_AR(af.bitvector, AFF_CRIPPLED);
-          affect_to_char(victim, &af);
+          struct affected_type inner_af;
+          inner_af.spell = SKILL_CRIPPLING_STRIKE;
+          inner_af.duration = 3;
+          inner_af.modifier = 0;
+          inner_af.location = APPLY_NONE;
+          SET_BIT_AR(inner_af.bitvector, AFF_CRIPPLED);
+          affect_to_char(victim, &inner_af);
           send_to_char(victim, "\tRYou feel your movement crippled!\tn\r\n");
           send_to_char(ch, "\tWYour strike cripples your opponent's movement!\tn\r\n");
         }
@@ -13958,7 +13958,7 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
 
           if (save_result == FALSE)
           {
-            struct affected_type af;
+            struct affected_type inner_af;
 
             if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
             {
@@ -13986,11 +13986,11 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
             }
 
             /* Apply 4 round cooldown on victim to prevent being pressure pointed again */
-            af.spell = SKILL_PRESSURE_POINT_STRIKE;
-            af.duration = 4;
-            af.modifier = 0;
-            af.location = APPLY_NONE;
-            affect_to_char(victim, &af);
+            inner_af.spell = SKILL_PRESSURE_POINT_STRIKE;
+            inner_af.duration = 4;
+            inner_af.modifier = 0;
+            inner_af.location = APPLY_NONE;
+            affect_to_char(victim, &inner_af);
           }
           else
           {
@@ -14281,12 +14281,12 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
                            : 0;
         if (!savingthrow(ch, victim, SAVING_WILL, save_mod, CAST_INNATE, bg_level, ENCHANTMENT))
         {
-          struct affected_type af;
-          new_affect(&af);
-          af.spell = SKILL_SMITE_GOOD;
-          af.duration = MAX(2, (bg_level / 6));
-          SET_BIT_AR(af.bitvector, AFF_SHAKEN);
-          affect_to_char(victim, &af);
+          struct affected_type inner_af;
+          new_affect(&inner_af);
+          inner_af.spell = SKILL_SMITE_GOOD;
+          inner_af.duration = MAX(2, (bg_level / 6));
+          SET_BIT_AR(inner_af.bitvector, AFF_SHAKEN);
+          affect_to_char(victim, &inner_af);
           act("\tDYour profane smite terrifies $N!\tn", FALSE, ch, 0, victim, TO_CHAR);
           act("\tD$n's profane smite terrifies you!\tn", FALSE, ch, 0, victim, TO_VICT | TO_SLEEP);
           act("\tD$n's profane smite terrifies $N!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
@@ -14301,12 +14301,12 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
 
         if (!savingthrow(ch, victim, SAVING_WILL, 0, CAST_INNATE, pal_level, NOSCHOOL))
         {
-          struct affected_type af;
-          new_affect(&af);
-          af.spell = SPELL_BLINDNESS;
-          af.duration = 2; /* 2 rounds */
-          SET_BIT_AR(af.bitvector, AFF_BLIND);
-          affect_to_char(victim, &af);
+          struct affected_type inner_af;
+          new_affect(&inner_af);
+          inner_af.spell = SPELL_BLINDNESS;
+          inner_af.duration = 2; /* 2 rounds */
+          SET_BIT_AR(inner_af.bitvector, AFF_BLIND);
+          affect_to_char(victim, &inner_af);
 
           act("\tWYour righteous strike blinds $N with holy radiance!\tn", FALSE, ch, 0, victim,
               TO_CHAR);
@@ -14492,12 +14492,12 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
       !is_ranged_weapon_attack(attack_type) && !affected_by_spell(victim, SPELL_SLOW) &&
       dice(1, 100) <= 5)
   {
-    struct affected_type af;
-    new_affect(&af);
-    af.spell = SPELL_SLOW;
-    af.duration = 3;
-    SET_BIT_AR(af.bitvector, AFF_SLOW);
-    affect_to_char(victim, &af);
+    struct affected_type inner_af;
+    new_affect(&inner_af);
+    inner_af.spell = SPELL_SLOW;
+    inner_af.duration = 3;
+    SET_BIT_AR(inner_af.bitvector, AFF_SLOW);
+    affect_to_char(victim, &inner_af);
     send_to_char(victim, "\tRYou feel your movements slow down!\tn\r\n");
     send_to_char(ch, "\tW[CRIPPLING STRIKE!]\tn Your strike slows your opponent!\r\n");
     act("$n's strike slows $N's movements!", FALSE, ch, 0, victim, TO_NOTVICT);
@@ -15562,12 +15562,12 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
       if (rand_number(1, 100) <= crippling_chance)
       {
         /* Apply slow effect for 3 rounds - no save */
-        struct affected_type af = {0};
-        new_affect(&af);
-        af.spell = AFFECT_BERSERKER_CRIPPLING_BLOW;
-        af.duration = 3;
-        SET_BIT_AR(af.bitvector, AFF_SLOW);
-        affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+        struct affected_type inner_af = {0};
+        new_affect(&inner_af);
+        inner_af.spell = AFFECT_BERSERKER_CRIPPLING_BLOW;
+        inner_af.duration = 3;
+        SET_BIT_AR(inner_af.bitvector, AFF_SLOW);
+        affect_join(victim, &inner_af, TRUE, FALSE, FALSE, FALSE);
         act("\tR[\tDCRIPPLING BLOW\tR]\tn $n's devastating strike cripples your movement!", FALSE,
             ch, 0, victim, TO_VICT);
         act("\tR[\tDCRIPPLING BLOW\tR]\tn Your critical strike cripples $N's movement!", FALSE, ch,
@@ -15611,12 +15611,12 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
     if (can_stun(victim) &&
         !savingthrow(ch, victim, SAVING_FORT, dc, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
     {
-      struct affected_type af = {0};
-      new_affect(&af);
-      af.spell = AFFECT_BERSERKER_STUNNING_BLOW;
-      af.duration = 2;
-      SET_BIT_AR(af.bitvector, AFF_STUN);
-      affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+      struct affected_type inner_af = {0};
+      new_affect(&inner_af);
+      inner_af.spell = AFFECT_BERSERKER_STUNNING_BLOW;
+      inner_af.duration = 2;
+      SET_BIT_AR(inner_af.bitvector, AFF_STUN);
+      affect_join(victim, &inner_af, TRUE, FALSE, FALSE, FALSE);
 
       act("\tY[\tRSTUNNING BLOW\tY]\tn $n's overwhelming attack \tYSTUNS\tn you!", FALSE, ch, 0,
           victim, TO_VICT);
@@ -15638,14 +15638,14 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
     int debuff_modifier = get_bard_frostbite_natural_20_debuff(ch);
     if (debuff_modifier < 0)
     {
-      struct affected_type af = {0};
-      new_affect(&af);
-      af.spell = AFFECT_BARD_FROSTBITE_REFRAIN_I;
-      af.location = APPLY_HITROLL;
-      af.duration = 1;               /* 1 round */
-      af.modifier = debuff_modifier; /* -1 to attack */
-      af.bonus_type = BONUS_TYPE_UNDEFINED;
-      affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
+      struct affected_type inner_af = {0};
+      new_affect(&inner_af);
+      inner_af.spell = AFFECT_BARD_FROSTBITE_REFRAIN_I;
+      inner_af.location = APPLY_HITROLL;
+      inner_af.duration = 1;               /* 1 round */
+      inner_af.modifier = debuff_modifier; /* -1 to attack */
+      inner_af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &inner_af, FALSE, FALSE, FALSE, FALSE);
 
       act("\tC[\tBFROSTBITE\tC]\tn Your frostbite refrain freezes $N's movements, making them "
           "sluggish!",
@@ -15666,26 +15666,26 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
 
     if (attack_debuff < 0)
     {
-      struct affected_type af = {0};
-      new_affect(&af);
-      af.spell = AFFECT_BARD_FROSTBITE_REFRAIN_II;
-      af.location = APPLY_HITROLL;
-      af.duration = 1;             /* 1 round */
-      af.modifier = attack_debuff; /* -2 to attack */
-      af.bonus_type = BONUS_TYPE_UNDEFINED;
-      affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
+      struct affected_type inner_af = {0};
+      new_affect(&inner_af);
+      inner_af.spell = AFFECT_BARD_FROSTBITE_REFRAIN_II;
+      inner_af.location = APPLY_HITROLL;
+      inner_af.duration = 1;             /* 1 round */
+      inner_af.modifier = attack_debuff; /* -2 to attack */
+      inner_af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &inner_af, FALSE, FALSE, FALSE, FALSE);
     }
 
     if (ac_debuff < 0)
     {
-      struct affected_type af = {0};
-      new_affect(&af);
-      af.spell = AFFECT_BARD_FROSTBITE_REFRAIN_II;
-      af.location = APPLY_AC_NEW;
-      af.duration = 1;         /* 1 round */
-      af.modifier = ac_debuff; /* -1 to AC */
-      af.bonus_type = BONUS_TYPE_UNDEFINED;
-      affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
+      struct affected_type inner_af = {0};
+      new_affect(&inner_af);
+      inner_af.spell = AFFECT_BARD_FROSTBITE_REFRAIN_II;
+      inner_af.location = APPLY_AC_NEW;
+      inner_af.duration = 1;         /* 1 round */
+      inner_af.modifier = ac_debuff; /* -1 to AC */
+      inner_af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &inner_af, FALSE, FALSE, FALSE, FALSE);
     }
 
     act("\tC[\tBFROSTBITE\tC]\tn Your enhanced frostbite refrain DEEPLY freezes $N, sapping their "
@@ -15783,14 +15783,14 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
   {
     if (dice(1, 100) <= 15) /* 15% chance */
     {
-      struct affected_type af;
-      new_affect(&af);
-      af.spell = STATUS_AFFECT_STAGGERED;
-      af.location = APPLY_SPECIAL;
-      af.duration = 2;
-      af.modifier = 1;
-      SET_BIT_AR(af.bitvector, AFF_STAGGERED);
-      affect_to_char(victim, &af);
+      struct affected_type inner_af;
+      new_affect(&inner_af);
+      inner_af.spell = STATUS_AFFECT_STAGGERED;
+      inner_af.location = APPLY_SPECIAL;
+      inner_af.duration = 2;
+      inner_af.modifier = 1;
+      SET_BIT_AR(inner_af.bitvector, AFF_STAGGERED);
+      affect_to_char(victim, &inner_af);
 
       act("\tRYour overwhelming power attack staggers $N!\tn", FALSE, ch, 0, victim, TO_CHAR);
       act("\tR$n's overwhelming power attack staggers YOU!\tn", FALSE, ch, 0, victim, TO_VICT);

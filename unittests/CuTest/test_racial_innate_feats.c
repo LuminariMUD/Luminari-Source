@@ -781,11 +781,11 @@ void TestUndeadFealtyAndCalmingAggressionRules(CuTest *tc)
 
 /* ---- Phase 2: passive offence ---- */
 
-static void make_test_weapon(struct obj_data *obj, int weapon_type)
+static void make_test_weapon(struct obj_data *obj, int weapon_type_value)
 {
   memset(obj, 0, sizeof(*obj));
   GET_OBJ_TYPE(obj) = ITEM_WEAPON;
-  GET_OBJ_VAL(obj, 0) = weapon_type;
+  GET_OBJ_VAL(obj, 0) = weapon_type_value;
 }
 
 /* Weapon-family mastery scales with level and only for a matching weapon. */

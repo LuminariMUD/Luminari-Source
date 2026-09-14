@@ -1622,29 +1622,29 @@ void Test_spec_rol_darkhold_profiles_preserve_source_identities_and_timing(CuTes
   bool shadow_fiend;
   int denominator;
   int destination_vnum;
-  int room_vnum;
+  int room_vnum_id;
   size_t index;
 
   CuAssertIntEquals(tc, 11, (int)rol_darkhold_object_profile_count());
   for (index = 0; index < sizeof(summon_skulls) / sizeof(summon_skulls[0]); index++)
   {
-    CuAssertTrue(tc, rol_darkhold_object_profile(summon_skulls[index], &kind, &room_vnum,
+    CuAssertTrue(tc, rol_darkhold_object_profile(summon_skulls[index], &kind, &room_vnum_id,
                                                  &destination_vnum));
     CuAssertIntEquals(tc, ROL_DARKHOLD_OBJECT_SUMMON_SKULL, kind);
-    CuAssertIntEquals(tc, -1, room_vnum);
+    CuAssertIntEquals(tc, -1, room_vnum_id);
     CuAssertIntEquals(tc, 2094500, destination_vnum);
   }
-  CuAssertTrue(tc, rol_darkhold_object_profile(2094504, &kind, &room_vnum, &destination_vnum));
+  CuAssertTrue(tc, rol_darkhold_object_profile(2094504, &kind, &room_vnum_id, &destination_vnum));
   CuAssertIntEquals(tc, ROL_DARKHOLD_OBJECT_PASSAGE_SKULL, kind);
-  CuAssertIntEquals(tc, 2094666, room_vnum);
+  CuAssertIntEquals(tc, 2094666, room_vnum_id);
   CuAssertIntEquals(tc, -1, destination_vnum);
-  CuAssertTrue(tc, rol_darkhold_object_profile(2094508, &kind, &room_vnum, &destination_vnum));
+  CuAssertTrue(tc, rol_darkhold_object_profile(2094508, &kind, &room_vnum_id, &destination_vnum));
   CuAssertIntEquals(tc, ROL_DARKHOLD_OBJECT_SOUTH_GEM, kind);
-  CuAssertIntEquals(tc, 2094667, room_vnum);
+  CuAssertIntEquals(tc, 2094667, room_vnum_id);
   CuAssertIntEquals(tc, 2094673, destination_vnum);
-  CuAssertTrue(tc, rol_darkhold_object_profile(2094509, &kind, &room_vnum, &destination_vnum));
+  CuAssertTrue(tc, rol_darkhold_object_profile(2094509, &kind, &room_vnum_id, &destination_vnum));
   CuAssertIntEquals(tc, ROL_DARKHOLD_OBJECT_NORTH_GEM, kind);
-  CuAssertIntEquals(tc, 2094668, room_vnum);
+  CuAssertIntEquals(tc, 2094668, room_vnum_id);
   CuAssertIntEquals(tc, 2094674, destination_vnum);
   CuAssertTrue(tc, !rol_darkhold_object_profile(2094512, NULL, NULL, NULL));
 

@@ -3664,7 +3664,7 @@ ASPELL(spell_resurrect)
 
 ASPELL(spell_transport_via_plants)
 {
-  obj_vnum obj_num = NOTHING;
+  obj_vnum obj_num_id = NOTHING;
   room_rnum to_room = NOWHERE;
   struct obj_data *dest_obj = NULL, *tmp_obj = NULL;
 
@@ -3686,7 +3686,7 @@ ASPELL(spell_transport_via_plants)
     send_to_char(ch, "That plant is not large enough to transport you.\r\n");
     return;
   }
-  obj_num = GET_OBJ_VNUM(obj);
+  obj_num_id = GET_OBJ_VNUM(obj);
 
   // find another of that plant in the world
   for (tmp_obj = object_list; tmp_obj; tmp_obj = tmp_obj->next)
@@ -3695,7 +3695,7 @@ ASPELL(spell_transport_via_plants)
       continue;
 
     // we don't want to transport to a plant in someone's inventory
-    if (GET_OBJ_VNUM(tmp_obj) == obj_num && !tmp_obj->carried_by)
+    if (GET_OBJ_VNUM(tmp_obj) == obj_num_id && !tmp_obj->carried_by)
     {
       dest_obj = tmp_obj;
 
@@ -5900,7 +5900,7 @@ ASPELL(spell_call_lycanthrope)
 {
   struct char_data *mob;
   struct domain_entity_handle owner_handle, pet_handle;
-  mob_vnum mob_vnum;
+  mob_vnum mob_vnum_id;
   int hit_points;
   int mob_level;
 
@@ -5912,9 +5912,9 @@ ASPELL(spell_call_lycanthrope)
     return;
   }
 
-  mob_vnum = random_call_lycanthrope_vnum();
-  if (mob_vnum == NOBODY ||
-      (mob = read_mobile_reason(mob_vnum, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)) == NULL)
+  mob_vnum_id = random_call_lycanthrope_vnum();
+  if (mob_vnum_id == NOBODY ||
+      (mob = read_mobile_reason(mob_vnum_id, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)) == NULL)
   {
     log("SYSERR: spell_call_lycanthrope could not find a converted summon prototype");
     send_to_char(ch, "No lycanthrope answers your call. Please report this to staff.\r\n");

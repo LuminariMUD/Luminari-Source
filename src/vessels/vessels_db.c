@@ -1249,7 +1249,7 @@ void load_cargo_manifest(struct greyhawk_ship_data *ship)
   char query[MAX_STRING_LENGTH];
   struct obj_data *cargo;
   room_rnum cargo_room;
-  obj_rnum obj_num;
+  obj_rnum obj_num_id;
 
   if (!mysql_available || !ship)
   {
@@ -1276,11 +1276,11 @@ void load_cargo_manifest(struct greyhawk_ship_data *ship)
   while ((row = mysql_fetch_row(result)))
   {
     cargo_room = real_room(atoi(row[0]));
-    obj_num = real_object(atoi(row[1]));
+    obj_num_id = real_object(atoi(row[1]));
 
-    if (cargo_room != NOWHERE && obj_num != NOTHING)
+    if (cargo_room != NOWHERE && obj_num_id != NOTHING)
     {
-      cargo = read_object_reason(obj_num, REAL, PERF_ENTITY_VESSEL);
+      cargo = read_object_reason(obj_num_id, REAL, PERF_ENTITY_VESSEL);
       if (cargo)
       {
         obj_to_room(cargo, cargo_room);

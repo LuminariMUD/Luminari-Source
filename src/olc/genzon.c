@@ -379,7 +379,7 @@ int create_world_index(int znum, const char *type)
   return TRUE;
 }
 
-void remove_room_zone_commands(zone_rnum zone, room_rnum room_num)
+void remove_room_zone_commands(zone_rnum zone, room_rnum room_num_id)
 {
   int subcmd = 0, cmd_room = -2;
 
@@ -405,7 +405,7 @@ void remove_room_zone_commands(zone_rnum zone, room_rnum room_num)
     default:
       break;
     }
-    if (cmd_room >= 0 && (room_rnum)cmd_room == room_num)
+    if (cmd_room >= 0 && (room_rnum)cmd_room == room_num_id)
       remove_cmd_from_list(&zone_table[zone].cmd, subcmd);
     else
       subcmd++;

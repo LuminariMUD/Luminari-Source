@@ -263,7 +263,7 @@ ACMD(do_scribe)
 {
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
   char arg2[MAX_INPUT_LENGTH] = {'\0'};
-  char *s = NULL, buf[READ_SIZE] = {'\0'};
+  char *s = NULL, buf_value[READ_SIZE] = {'\0'};
   int i = 0, spellnum = -1, found = FALSE;
   struct obj_data *obj = NULL, *scroll = NULL, *next_obj = NULL;
 
@@ -391,8 +391,8 @@ ACMD(do_scribe)
 
     found = FALSE;
 
-    snprintf(buf, sizeof(buf), "a scroll of '%s'", spell_info[spellnum].name);
-    obj->short_description = strdup(buf);
+    snprintf(buf_value, sizeof(buf_value), "a scroll of '%s'", spell_info[spellnum].name);
+    obj->short_description = strdup(buf_value);
     send_to_char(ch, "You scribe the spell '%s' onto %s.\r\n", spell_info[spellnum].name,
                  obj->short_description);
   }
@@ -408,7 +408,7 @@ ACMD(do_scribe)
                  "The magical energy committed for the spell '%s' has been "
                  "expended.\r\n",
                  spell_info[spellnum].name);
-    snprintf(buf, sizeof(buf), "%d", spellnum);
+    snprintf(buf_value, sizeof(buf_value), "%d", spellnum);
     collection_remove_by_class(ch, CLASS_WIZARD, spellnum, METAMAGIC_NONE);
   }
 }

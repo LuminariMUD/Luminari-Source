@@ -340,7 +340,7 @@ void redit_setup_existing(struct descriptor_data *d, int real_num, int mode __at
 
 void redit_save_internally(struct descriptor_data *d)
 {
-  room_rnum room_num;
+  room_rnum room_num_id;
   int j, new_room = FALSE;
   struct descriptor_data *dsc;
   char binding_error[256];
@@ -373,22 +373,22 @@ void redit_save_internally(struct descriptor_data *d)
   if (OLC_ROOM(d)->spec_binding != NULL)
     OLC_ROOM(d)->spec_binding->prototype_vnum = OLC_NUM(d);
 
-  if ((room_num = add_room(OLC_ROOM(d))) == NOWHERE)
+  if ((room_num_id = add_room(OLC_ROOM(d))) == NOWHERE)
   {
     write_to_output(d, "Something went wrong...\r\n");
-    log("SYSERR: redit_save_internally: Something failed! (%" PRI_IDX ")", room_num);
+    log("SYSERR: redit_save_internally: Something failed! (%" PRI_IDX ")", room_num_id);
     return;
   }
 
   /* Apply selected spec proc to room */
-  world[room_num].func = OLC(d)->specroom;
+  world[room_num_id].func = OLC(d)->specroom;
 
   /* Update triggers and free old proto list */
-  if (world[room_num].proto_script && world[room_num].proto_script != OLC_SCRIPT(d))
-    free_proto_script(&world[room_num].proto_script);
+  if (world[room_num_id].proto_script && world[room_num_id].proto_script != OLC_SCRIPT(d))
+    free_proto_script(&world[room_num_id].proto_script);
 
-  world[room_num].proto_script = OLC_SCRIPT(d);
-  assign_room_triggers(&world[room_num]);
+  world[room_num_id].proto_script = OLC_SCRIPT(d);
+  assign_room_triggers(&world[room_num_id]);
   /* end trigger update */
 
   /* Don't adjust numbers on a room update. */
@@ -410,14 +410,14 @@ void redit_save_internally(struct descriptor_data *d)
         case 'M':
         case 'T':
         case 'V':
-          OLC_ZONE(dsc)->cmd[j].arg3 += (OLC_ZONE(dsc)->cmd[j].arg3 >= (int)room_num);
+          OLC_ZONE(dsc)->cmd[j].arg3 += (OLC_ZONE(dsc)->cmd[j].arg3 >= (int)room_num_id);
           break;
         case 'D':
         case 'R':
         case 'F':
         case 'K':
         case 'X':
-          OLC_ZONE(dsc)->cmd[j].arg1 += (OLC_ZONE(dsc)->cmd[j].arg1 >= (int)room_num);
+          OLC_ZONE(dsc)->cmd[j].arg1 += (OLC_ZONE(dsc)->cmd[j].arg1 >= (int)room_num_id);
           break;
         }
     }
@@ -425,7 +425,7 @@ void redit_save_internally(struct descriptor_data *d)
     {
       for (j = 0; j < DIR_COUNT; j++)
         if (OLC_ROOM(dsc)->dir_option[j])
-          if (OLC_ROOM(dsc)->dir_option[j]->to_room >= room_num)
+          if (OLC_ROOM(dsc)->dir_option[j]->to_room >= room_num_id)
             OLC_ROOM(dsc)->dir_option[j]->to_room++;
     }
   }

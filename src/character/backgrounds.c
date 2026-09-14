@@ -68,34 +68,34 @@ static const struct background_identity background_identities[NUM_BACKGROUNDS] =
     [BACKGROUND_URCHIN] = {"urchin", "urchin", "background/urchin"},
 };
 
-static bool background_identity_is_valid(int background)
+static bool background_identity_is_valid(int background_value)
 {
-  return background >= BACKGROUND_NONE && background < NUM_BACKGROUNDS &&
-         background_identities[background].id != NULL;
+  return background_value >= BACKGROUND_NONE && background_value < NUM_BACKGROUNDS &&
+         background_identities[background_value].id != NULL;
 }
 
-const char *background_stable_id(int background)
+const char *background_stable_id(int background_value)
 {
-  if (!background_identity_is_valid(background))
+  if (!background_identity_is_valid(background_value))
     return "unknown";
 
-  return background_identities[background].id;
+  return background_identities[background_value].id;
 }
 
-const char *background_wire_value(int background)
+const char *background_wire_value(int background_value)
 {
-  if (!background_identity_is_valid(background))
+  if (!background_identity_is_valid(background_value))
     return "";
 
-  return background_identities[background].wire;
+  return background_identities[background_value].wire;
 }
 
-const char *background_media_key(int background)
+const char *background_media_key(int background_value)
 {
-  if (!background_identity_is_valid(background))
+  if (!background_identity_is_valid(background_value))
     return "background/fallback";
 
-  return background_identities[background].media_key;
+  return background_identities[background_value].media_key;
 }
 
 /*
@@ -109,7 +109,7 @@ int background_from_input(const char *input)
   char normalized[MAX_INPUT_LENGTH];
   size_t read_index = 0;
   size_t write_index = 0;
-  int background = BACKGROUND_NONE;
+  int background_value = BACKGROUND_NONE;
 
   if (input == NULL)
     return BACKGROUND_NONE;
@@ -138,10 +138,10 @@ int background_from_input(const char *input)
   if (write_index == 0)
     return BACKGROUND_NONE;
 
-  for (background = 1; background < NUM_BACKGROUNDS; background++)
+  for (background_value = 1; background_value < NUM_BACKGROUNDS; background_value++)
   {
-    if (is_abbrev(normalized, background_wire_value(background)))
-      return background;
+    if (is_abbrev(normalized, background_wire_value(background_value)))
+      return background_value;
   }
 
   return BACKGROUND_NONE;
@@ -166,14 +166,14 @@ void sort_backgrounds(void)
   qsort(&background_sort_info[1], NUM_BACKGROUNDS - 1, sizeof(int), compare_backgrounds);
 }
 
-static void backgroundo(int background, const char *name, int skill_one, int skill_two, int featnum,
-                        const char *desc)
+static void backgroundo(int background_value, const char *name, int skill_one, int skill_two,
+                        int featnum, const char *desc)
 {
-  background_list[background].name = name;
-  background_list[background].desc = desc;
-  background_list[background].skills[0] = skill_one;
-  background_list[background].skills[1] = skill_two;
-  background_list[background].feat = featnum;
+  background_list[background_value].name = name;
+  background_list[background_value].desc = desc;
+  background_list[background_value].skills[0] = skill_one;
+  background_list[background_value].skills[1] = skill_two;
+  background_list[background_value].feat = featnum;
 }
 
 static void initialize_background_list(void)
@@ -1498,18 +1498,18 @@ ACMD(do_shortcut)
   greet_memory_mtrigger(ch);
 }
 
-void show_background_help(struct char_data *ch, int background)
+void show_background_help(struct char_data *ch, int background_value)
 {
   char buf[500];
   int i = 0;
 
-  if (background <= BACKGROUND_NONE || background >= NUM_BACKGROUNDS)
+  if (background_value <= BACKGROUND_NONE || background_value >= NUM_BACKGROUNDS)
   {
     send_to_char(ch, "Background type is invalid.\r\n");
     return;
   }
 
-  snprintf(buf, sizeof(buf), "%s BACKGROUND", background_list[background].name);
+  snprintf(buf, sizeof(buf), "%s BACKGROUND", background_list[background_value].name);
 
   for (i = 0; (size_t)i < strlen(buf); i++)
   {
@@ -1520,15 +1520,15 @@ void show_background_help(struct char_data *ch, int background)
   text_line(ch, buf, 80, '-', '-');
   draw_line(ch, 80, '-', '-');
 
-  snprintf(buf, sizeof(buf), "%s", background_list[background].desc);
+  snprintf(buf, sizeof(buf), "%s", background_list[background_value].desc);
   send_to_char(ch, "%s", strfrmt(buf, 80, 1, 0, 0, 0));
   draw_line(ch, 80, '-', '-');
   send_to_char(ch, "Skill Bonuses: +2 to %s, +2 to %s.\r\n",
-               ability_names[background_list[background].skills[0]],
-               ability_names[background_list[background].skills[1]]);
+               ability_names[background_list[background_value].skills[0]],
+               ability_names[background_list[background_value].skills[1]]);
   draw_line(ch, 80, '-', '-');
   snprintf(buf, sizeof(buf), "Special Ability: %s",
-           feat_list[background_list[background].feat].description);
+           feat_list[background_list[background_value].feat].description);
   send_to_char(ch, "%s", strfrmt(buf, 80, 1, 0, 0, 0));
   draw_line(ch, 80, '-', '-');
 }

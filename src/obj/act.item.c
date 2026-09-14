@@ -8279,44 +8279,44 @@ void sort_object_bag(struct char_data *ch, char *objname, int subcmd, int bagnum
     }
     else
     {
-      struct obj_data *bag = NULL, *next_content = NULL;
+      struct obj_data *inner_bag = NULL, *next_content = NULL;
       switch (bagnum)
       {
       case 1:
-        bag = ch->bags->bag1;
+        inner_bag = ch->bags->bag1;
         break;
       case 2:
-        bag = ch->bags->bag2;
+        inner_bag = ch->bags->bag2;
         break;
       case 3:
-        bag = ch->bags->bag3;
+        inner_bag = ch->bags->bag3;
         break;
       case 4:
-        bag = ch->bags->bag4;
+        inner_bag = ch->bags->bag4;
         break;
       case 5:
-        bag = ch->bags->bag5;
+        inner_bag = ch->bags->bag5;
         break;
       case 6:
-        bag = ch->bags->bag6;
+        inner_bag = ch->bags->bag6;
         break;
       case 7:
-        bag = ch->bags->bag7;
+        inner_bag = ch->bags->bag7;
         break;
       case 8:
-        bag = ch->bags->bag8;
+        inner_bag = ch->bags->bag8;
         break;
       case 9:
-        bag = ch->bags->bag9;
+        inner_bag = ch->bags->bag9;
         break;
       case 10:
-        bag = ch->bags->bag10;
+        inner_bag = ch->bags->bag10;
         break;
       default:
         send_to_char(ch, "That is not a valid bag number.\r\n");
         return;
       }
-      for (obj = bag; obj; obj = next_content)
+      for (obj = inner_bag; obj; obj = next_content)
       {
         next_content = obj->next_content;
         obj_from_bag(ch, obj, bagnum);
@@ -9185,7 +9185,7 @@ ACMD(do_salvage)
   int artificer_level = 0;
   int chance = 0;
   int craft_material = 0;
-  const char *material_name = NULL;
+  const char *material_name_value = NULL;
   int mote_chance = 0;
   int mote_type = 0;
   int i = 0;
@@ -9271,10 +9271,10 @@ ACMD(do_salvage)
 
       /* Give the crafting materials */
       GET_CRAFT_MAT(ch, craft_material) += material_amount;
-      material_name = crafting_materials[craft_material];
+      material_name_value = crafting_materials[craft_material];
 
       send_to_char(ch, "You manage to recover %d unit%s of %s from the salvaged item!\r\n",
-                   material_amount, material_amount == 1 ? "" : "s", material_name);
+                   material_amount, material_amount == 1 ? "" : "s", material_name_value);
     }
   }
 

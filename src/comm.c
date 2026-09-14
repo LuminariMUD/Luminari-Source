@@ -6368,20 +6368,20 @@ static void msdp_update(void)
       /* This would be better moved elsewhere? */
       if (pOpponent != NULL)
       {
-        char buf[255];
+        char inner_buf[255];
         int hit_points = (GET_HIT(pOpponent) * 100) / GET_MAX_HIT(pOpponent);
         MSDPSetNumber(d, eMSDP_OPPONENT_HEALTH, hit_points);
         MSDPSetNumber(d, eMSDP_OPPONENT_HEALTH_MAX, 100);
         MSDPSetNumber(d, eMSDP_OPPONENT_LEVEL, GET_LEVEL(pOpponent));
-        snprintf(buf, sizeof(buf), "%s", PERS(pOpponent, ch));
-        strip_colors(buf);
-        MSDPSetString(d, eMSDP_OPPONENT_NAME, buf);
+        snprintf(inner_buf, sizeof(inner_buf), "%s", PERS(pOpponent, ch));
+        strip_colors(inner_buf);
+        MSDPSetString(d, eMSDP_OPPONENT_NAME, inner_buf);
 
         if (tank != NULL && tank != ch)
         {
-          snprintf(buf, sizeof(buf), "%s", PERS(tank, ch));
-          strip_colors(buf);
-          MSDPSetString(d, eMSDP_TANK_NAME, buf);
+          snprintf(inner_buf, sizeof(inner_buf), "%s", PERS(tank, ch));
+          strip_colors(inner_buf);
+          MSDPSetString(d, eMSDP_TANK_NAME, inner_buf);
           MSDPSetNumber(d, eMSDP_TANK_HEALTH, (GET_HIT(tank) * 100) / GET_MAX_HIT(tank));
           MSDPSetNumber(d, eMSDP_TANK_HEALTH_MAX, 100);
         }

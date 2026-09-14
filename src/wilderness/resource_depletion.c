@@ -193,7 +193,7 @@ void apply_lazy_regeneration(room_rnum room, int resource_type)
   char update_query[MAX_STRING_LENGTH];
   MYSQL_RES *result;
   MYSQL_ROW row;
-  int x, y, zone_vnum;
+  int x, y, zone_vnum_id;
   float current_depletion = 1.0;
   time_t last_harvest_time = 0;
 
@@ -209,13 +209,13 @@ void apply_lazy_regeneration(room_rnum room, int resource_type)
   /* Get coordinates and zone */
   x = world[room].coords[0];
   y = world[room].coords[1];
-  zone_vnum = zone_table[world[room].zone].number;
+  zone_vnum_id = zone_table[world[room].zone].number;
 
   /* Check if this location has depletion data */
   snprintf(query, sizeof(query),
            "SELECT depletion_level, UNIX_TIMESTAMP(last_harvest) FROM resource_depletion "
            "WHERE zone_vnum = %d AND x_coord = %d AND y_coord = %d AND resource_type = %d",
-           zone_vnum, x, y, resource_type);
+           zone_vnum_id, x, y, resource_type);
 
   if (mysql_query_safe(conn, query))
   {
@@ -246,7 +246,7 @@ void apply_lazy_regeneration(room_rnum room, int resource_type)
       snprintf(update_query, sizeof(update_query),
                "UPDATE resource_depletion SET depletion_level = %.3f "
                "WHERE zone_vnum = %d AND x_coord = %d AND y_coord = %d AND resource_type = %d",
-               new_depletion, zone_vnum, x, y, resource_type);
+               new_depletion, zone_vnum_id, x, y, resource_type);
 
       if (mysql_query_safe(conn, update_query))
       {
@@ -255,7 +255,7 @@ void apply_lazy_regeneration(room_rnum room, int resource_type)
       else
       {
         /* Log regeneration event if logging is enabled */
-        log_regeneration_event(zone_vnum, x, y, resource_type, current_depletion, new_depletion,
+        log_regeneration_event(zone_vnum_id, x, y, resource_type, current_depletion, new_depletion,
                                regeneration, "natural");
       }
     }
@@ -303,7 +303,7 @@ float get_resource_depletion_level(room_rnum room, int resource_type)
   MYSQL_RES *result;
   MYSQL_ROW row;
   float depletion_level = 1.0; /* Default to fully available */
-  int x, y, zone_vnum;
+  int x, y, zone_vnum_id;
 
   if (room == NOWHERE || resource_type < 0)
     return 1.0;
@@ -326,13 +326,13 @@ float get_resource_depletion_level(room_rnum room, int resource_type)
   /* Get coordinates and zone */
   x = world[room].coords[0];
   y = world[room].coords[1];
-  zone_vnum = zone_table[world[room].zone].number;
+  zone_vnum_id = zone_table[world[room].zone].number;
 
   /* Query database for depletion level using coordinates */
   snprintf(query, sizeof(query),
            "SELECT depletion_level FROM resource_depletion "
            "WHERE zone_vnum = %d AND x_coord = %d AND y_coord = %d AND resource_type = %d",
-           zone_vnum, x, y, resource_type);
+           zone_vnum_id, x, y, resource_type);
 
   if (mysql_query_safe(conn, query))
   {
@@ -359,7 +359,7 @@ float get_resource_depletion_level(room_rnum room, int resource_type)
 }
 
 /* Get the current depletion level for a resource at specific coordinates (0.0-1.0) */
-float get_resource_depletion_level_by_coords(int x, int y, int zone_vnum, int resource_type)
+float get_resource_depletion_level_by_coords(int x, int y, int zone_vnum_id, int resource_type)
 {
   char query[MAX_STRING_LENGTH];
   MYSQL_RES *result;
@@ -385,7 +385,7 @@ float get_resource_depletion_level_by_coords(int x, int y, int zone_vnum, int re
   snprintf(query, sizeof(query),
            "SELECT depletion_level FROM resource_depletion "
            "WHERE zone_vnum = %d AND x_coord = %d AND y_coord = %d AND resource_type = %d",
-           zone_vnum, x, y, resource_type);
+           zone_vnum_id, x, y, resource_type);
 
   if (mysql_query_safe(conn, query))
   {
@@ -415,7 +415,7 @@ float get_resource_depletion_level_by_coords(int x, int y, int zone_vnum, int re
 void apply_harvest_depletion(room_rnum room, int resource_type, int quantity)
 {
   char query[MAX_STRING_LENGTH];
-  int x, y, zone_vnum;
+  int x, y, zone_vnum_id;
 
   if (room == NOWHERE || resource_type < 0 || quantity <= 0)
     return;
@@ -429,7 +429,7 @@ void apply_harvest_depletion(room_rnum room, int resource_type, int quantity)
   /* Get coordinates and zone */
   x = world[room].coords[0];
   y = world[room].coords[1];
-  zone_vnum = zone_table[world[room].zone].number;
+  zone_vnum_id = zone_table[world[room].zone].number;
 
   /* Calculate depletion amount based on quantity harvested and resource type */
   float base_depletion_rate = get_resource_depletion_rate(resource_type);
@@ -446,7 +446,7 @@ void apply_harvest_depletion(room_rnum room, int resource_type, int quantity)
            "depletion_level = GREATEST(0.0, depletion_level - %.3f), "
            "total_harvested = total_harvested + %d, "
            "last_harvest = CURRENT_TIMESTAMP",
-           zone_vnum, x, y, resource_type, 1.0 - depletion_amount, quantity, depletion_amount,
+           zone_vnum_id, x, y, resource_type, 1.0 - depletion_amount, quantity, depletion_amount,
            quantity);
 
   if (mysql_query_safe(conn, query))
@@ -626,7 +626,7 @@ void apply_single_cascade_effect(room_rnum room, int target_resource, float effe
                                  const char *description)
 {
   char query[MAX_STRING_LENGTH];
-  int x, y, zone_vnum;
+  int x, y, zone_vnum_id;
   float current_depletion, new_depletion;
 
   if (room == NOWHERE || target_resource < 0 || target_resource >= NUM_RESOURCE_TYPES)
@@ -638,7 +638,7 @@ void apply_single_cascade_effect(room_rnum room, int target_resource, float effe
   /* Get coordinates and zone */
   x = world[room].coords[0];
   y = world[room].coords[1];
-  zone_vnum = zone_table[world[room].zone].number;
+  zone_vnum_id = zone_table[world[room].zone].number;
 
   /* Get current depletion level */
   current_depletion = get_resource_depletion_level(room, target_resource);
@@ -664,7 +664,7 @@ void apply_single_cascade_effect(room_rnum room, int target_resource, float effe
              "depletion_level = GREATEST(0.0, depletion_level - %.3f), "
              "cascade_effects = CONCAT(IFNULL(cascade_effects, ''), '; %s'), "
              "last_harvest = CURRENT_TIMESTAMP",
-             zone_vnum, x, y, target_resource, new_depletion, description, depletion_amount,
+             zone_vnum_id, x, y, target_resource, new_depletion, description, depletion_amount,
              description);
   }
   else if (effect_magnitude > 0.0)
@@ -687,7 +687,7 @@ void apply_single_cascade_effect(room_rnum room, int target_resource, float effe
              "depletion_level = LEAST(1.0, depletion_level + %.3f), "
              "cascade_effects = CONCAT(IFNULL(cascade_effects, ''), '; %s'), "
              "last_harvest = CURRENT_TIMESTAMP",
-             zone_vnum, x, y, target_resource, new_depletion, description, enhancement_amount,
+             zone_vnum_id, x, y, target_resource, new_depletion, description, enhancement_amount,
              description);
   }
   else
@@ -1097,7 +1097,7 @@ void show_regeneration_analysis(struct char_data *ch, int x, int y)
   MYSQL_RES *result;
   MYSQL_ROW row;
   time_t current_time = time(NULL);
-  int zone_vnum = zone_table[world[IN_ROOM(ch)].zone].number;
+  int zone_vnum_id = zone_table[world[IN_ROOM(ch)].zone].number;
 
   if (!ch)
     return;
@@ -1117,7 +1117,7 @@ void show_regeneration_analysis(struct char_data *ch, int x, int y)
       query, sizeof(query),
       "SELECT resource_type, depletion_level, UNIX_TIMESTAMP(last_harvest) FROM resource_depletion "
       "WHERE zone_vnum = %d AND x_coord = %d AND y_coord = %d ORDER BY resource_type",
-      zone_vnum, x, y);
+      zone_vnum_id, x, y);
 
   if (mysql_query_safe(conn, query))
   {
@@ -1132,8 +1132,8 @@ void show_regeneration_analysis(struct char_data *ch, int x, int y)
     return;
   }
 
-  const char *resource_names[] = {"Vegetation", "Minerals", "Water",   "Herbs", "Game",
-                                  "Wood",       "Stone",    "Crystal", "Clay",  "Salt"};
+  const char *resource_names_value[] = {"Vegetation", "Minerals", "Water",   "Herbs", "Game",
+                                        "Wood",       "Stone",    "Crystal", "Clay",  "Salt"};
 
   while ((row = mysql_fetch_row(result)))
   {
@@ -1143,7 +1143,7 @@ void show_regeneration_analysis(struct char_data *ch, int x, int y)
     double hours_since = difftime(current_time, last_harvest) / 3600.0;
     float regen_rate = get_resource_regeneration_rate(resource_type);
 
-    send_to_char(ch, "%-17s | %6.1f%% | %9.1f%% | %18.1f\r\n", resource_names[resource_type],
+    send_to_char(ch, "%-17s | %6.1f%% | %9.1f%% | %18.1f\r\n", resource_names_value[resource_type],
                  depletion_level * 100.0, regen_rate * 100.0, hours_since);
   }
 

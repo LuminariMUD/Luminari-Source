@@ -165,14 +165,14 @@ const struct trap_type_template trap_type_table[NUM_TRAP_TYPES] = {
  * Creates a new trap with the specified parameters.
  * Allocates memory and initializes all fields.
  */
-struct trap_data *create_trap(int trap_type, int severity, int trigger_type)
+struct trap_data *create_trap(int trap_type_value, int severity, int trigger_type)
 {
   struct trap_data *trap;
   const struct trap_type_template *template;
   const struct trap_severity_data *sev_data;
 
-  if (trap_type < 0 || trap_type >= NUM_TRAP_TYPES)
-    trap_type = TRAP_TYPE_SPIKE;
+  if (trap_type_value < 0 || trap_type_value >= NUM_TRAP_TYPES)
+    trap_type_value = TRAP_TYPE_SPIKE;
   if (severity < 0 || severity >= NUM_TRAP_SEVERITIES)
     severity = TRAP_SEVERITY_MINOR;
   if (trigger_type < 0 || trigger_type >= NUM_TRAP_TRIGGERS)
@@ -180,10 +180,10 @@ struct trap_data *create_trap(int trap_type, int severity, int trigger_type)
 
   CREATE(trap, struct trap_data, 1);
 
-  template = &trap_type_table[trap_type];
+  template = &trap_type_table[trap_type_value];
   sev_data = &trap_severity_table[severity];
 
-  trap->trap_type = trap_type;
+  trap->trap_type = trap_type_value;
   trap->severity = severity;
   trap->trigger_type = trigger_type;
   trap->detect_dc = sev_data->detect_dc_base;
@@ -195,7 +195,7 @@ struct trap_data *create_trap(int trap_type, int severity, int trigger_type)
   trap->flags = TRAP_FLAG_ONE_SHOT; // Default: one-shot traps
 
   /* Set damage dice based on trap type and severity */
-  switch (trap_type)
+  switch (trap_type_value)
   {
   case TRAP_TYPE_ACID_BLOB:
     trap->damage_dice_num = 3 + (severity * 3);
@@ -348,13 +348,14 @@ void free_trap_list(struct trap_data *trap)
   }
 }
 
-bool rol_exit_trap_values_are_valid(int direction, int state, int trap_type, int minimum_damage,
-                                    int maximum_damage, int area_effect, int hardness,
-                                    int load_percent)
+bool rol_exit_trap_values_are_valid(int direction, int state, int trap_type_value,
+                                    int minimum_damage, int maximum_damage, int area_effect,
+                                    int hardness, int load_percent)
 {
   return direction >= 0 && direction < DIR_COUNT && (state == 0 || state == 1) &&
-         (trap_type == 1 || trap_type == 2 || trap_type == 3 || trap_type == 4 || trap_type == 5 ||
-          trap_type == 10 || trap_type == 11) &&
+         (trap_type_value == 1 || trap_type_value == 2 || trap_type_value == 3 ||
+          trap_type_value == 4 || trap_type_value == 5 || trap_type_value == 10 ||
+          trap_type_value == 11) &&
          minimum_damage >= 0 && maximum_damage >= minimum_damage && maximum_damage <= 32766 &&
          (area_effect == 0 || area_effect == 1) && hardness >= -100 && hardness <= 100 &&
          load_percent >= 0 && load_percent <= 100;
@@ -420,18 +421,18 @@ static void configure_rol_exit_trap_type(struct trap_data *trap, int source_type
   }
 }
 
-struct trap_data *create_rol_exit_trap(int direction, int state, int trap_type, int minimum_damage,
-                                       int maximum_damage, int area_effect, int hardness,
-                                       int load_percent)
+struct trap_data *create_rol_exit_trap(int direction, int state, int trap_type_value,
+                                       int minimum_damage, int maximum_damage, int area_effect,
+                                       int hardness, int load_percent)
 {
   struct trap_data *trap;
   int initial_type, dc;
 
-  if (!rol_exit_trap_values_are_valid(direction, state, trap_type, minimum_damage, maximum_damage,
-                                      area_effect, hardness, load_percent))
+  if (!rol_exit_trap_values_are_valid(direction, state, trap_type_value, minimum_damage,
+                                      maximum_damage, area_effect, hardness, load_percent))
     return NULL;
 
-  initial_type = trap_type == 10 ? 1 : trap_type;
+  initial_type = trap_type_value == 10 ? 1 : trap_type_value;
   trap = create_trap(rol_exit_trap_target_type(initial_type), TRAP_SEVERITY_AVERAGE,
                      TRAP_TRIGGER_OPEN_DOOR);
   configure_rol_exit_trap_type(trap, initial_type);
@@ -445,7 +446,7 @@ struct trap_data *create_rol_exit_trap(int direction, int state, int trap_type, 
   trap->max_targets = area_effect ? 99 : 1;
   trap->trigger_direction = direction;
   trap->rol_initial_state = state;
-  trap->rol_source_type = trap_type;
+  trap->rol_source_type = trap_type_value;
   trap->rol_minimum_damage = minimum_damage;
   trap->rol_maximum_damage = maximum_damage;
   trap->rol_hardness = hardness;
@@ -454,7 +455,7 @@ struct trap_data *create_rol_exit_trap(int direction, int state, int trap_type, 
   SET_BIT(trap->flags, TRAP_FLAG_ROL_EXIT | TRAP_FLAG_REUSABLE);
   if (area_effect)
     SET_BIT(trap->flags, TRAP_FLAG_AREA_EFFECT);
-  if (trap_type == 4 || trap_type == 5)
+  if (trap_type_value == 4 || trap_type_value == 5)
     SET_BIT(trap->flags, TRAP_FLAG_MAGICAL);
   else
     SET_BIT(trap->flags, TRAP_FLAG_MECHANICAL);
@@ -630,10 +631,10 @@ int get_random_trap_type(void)
  */
 struct trap_data *generate_random_trap(int zone_level)
 {
-  int trap_type, severity, trigger_type;
+  int trap_type_value, severity, trigger_type;
   struct trap_data *trap;
 
-  trap_type = get_random_trap_type();
+  trap_type_value = get_random_trap_type();
   severity = determine_trap_severity(zone_level);
 
   // Determine trigger type - removed ENTER_ROOM since autosearch handles detection
@@ -645,7 +646,7 @@ struct trap_data *generate_random_trap(int zone_level)
   else
     trigger_type = TRAP_TRIGGER_OPEN_CONTAINER;
 
-  trap = create_trap(trap_type, severity, trigger_type);
+  trap = create_trap(trap_type_value, severity, trigger_type);
 
   if (trap)
   {
@@ -1392,16 +1393,16 @@ void apply_trap_special_effect(struct char_data *ch, struct trap_data *trap)
   case TRAP_SPECIAL_SUMMON_CREATURE:
     // Summon hostile creatures
     {
-      int mob_vnum = 0, count = 0, i;
+      int mob_vnum_id = 0, count = 0, i;
 
       switch (trap->trap_type)
       {
       case TRAP_TYPE_AMBUSH:
-        mob_vnum = TRAP_DARK_WARRIOR_MOBILE;
+        mob_vnum_id = TRAP_DARK_WARRIOR_MOBILE;
         count = 1 + (GET_LEVEL(ch) / 5); // 1-4 based on level
         break;
       case TRAP_TYPE_SPIDER_HORDE:
-        mob_vnum = TRAP_SPIDER_MOBILE;
+        mob_vnum_id = TRAP_SPIDER_MOBILE;
         count = dice(1, 3);
         break;
       default:
@@ -1410,7 +1411,7 @@ void apply_trap_special_effect(struct char_data *ch, struct trap_data *trap)
 
       for (i = 0; i < count; i++)
       {
-        struct char_data *mob = read_mobile(mob_vnum, VIRTUAL);
+        struct char_data *mob = read_mobile(mob_vnum_id, VIRTUAL);
         if (mob)
         {
           if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
@@ -1472,12 +1473,12 @@ const char *get_trap_severity_name(int severity)
 /**
  * Get trap type name.
  */
-const char *get_trap_type_name(int trap_type)
+const char *get_trap_type_name(int trap_type_value)
 {
-  if (trap_type < 0 || trap_type >= NUM_TRAP_TYPES)
+  if (trap_type_value < 0 || trap_type_value >= NUM_TRAP_TYPES)
     return "unknown";
 
-  return trap_type_table[trap_type].name;
+  return trap_type_table[trap_type_value].name;
 }
 
 /**
@@ -2189,12 +2190,12 @@ ACMD(do_trapinfo)
 /**
  * Legacy trap check function - maintained for backward compatibility.
  */
-bool check_trap(struct char_data *ch, int trap_type, int room, struct obj_data *obj, int dir)
+bool check_trap(struct char_data *ch, int trap_type_value, int room, struct obj_data *obj, int dir)
 {
   // Convert old trap type to new trigger type
   int trigger_type;
 
-  switch (trap_type)
+  switch (trap_type_value)
   {
   case 0:
     trigger_type = TRAP_TRIGGER_LEAVE_ROOM;

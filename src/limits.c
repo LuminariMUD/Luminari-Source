@@ -921,23 +921,23 @@ void regen_update(struct char_data *ch)
   /* Bleeding Attack damage processing */
   if (AFF_FLAGGED(ch, AFF_BLEED) && affected_by_spell(ch, SKILL_BLEEDING_ATTACK))
   {
-    int found = 0;
-    struct char_data *tch = NULL;
+    int inner_found = 0;
+    struct char_data *inner_tch = NULL;
 
     /* In combat, damage comes from the attacker */
     if (FIGHTING(ch) || dice(1, 2) == 2)
     {
-      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+      for (inner_tch = world[IN_ROOM(ch)].people; inner_tch; inner_tch = inner_tch->next_in_room)
       {
-        if (!IS_NPC(tch) && FIGHTING(tch) == ch)
+        if (!IS_NPC(inner_tch) && FIGHTING(inner_tch) == ch)
         {
-          damage(tch, ch, dice(1, 6), SKILL_BLEEDING_ATTACK, DAM_PUNCTURE, FALSE);
-          found = 1;
+          damage(inner_tch, ch, dice(1, 6), SKILL_BLEEDING_ATTACK, DAM_PUNCTURE, FALSE);
+          inner_found = 1;
           break;
         }
       }
 
-      if (!found)
+      if (!inner_found)
         damage(ch, ch, dice(1, 6), SKILL_BLEEDING_ATTACK, DAM_PUNCTURE, FALSE);
       update_pos(ch);
       return;

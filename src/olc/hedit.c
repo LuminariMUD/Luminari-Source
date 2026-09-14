@@ -1795,18 +1795,18 @@ static const char *get_command_category(struct command_info *cmd)
 }
 
 /* Get action type description */
-static const char *get_action_type_desc(int action_type)
+static const char *get_action_type_desc(int action_type_value)
 {
   /* Handle combined action flags */
-  if (action_type & ACTION_STANDARD && action_type & ACTION_MOVE)
+  if (action_type_value & ACTION_STANDARD && action_type_value & ACTION_MOVE)
     return "Requires both standard and move actions";
-  if (action_type & ACTION_STANDARD)
+  if (action_type_value & ACTION_STANDARD)
     return "Requires a standard action";
-  if (action_type & ACTION_MOVE)
+  if (action_type_value & ACTION_MOVE)
     return "Requires a move action";
-  if (action_type & ACTION_SWIFT)
+  if (action_type_value & ACTION_SWIFT)
     return "Requires a swift action";
-  if (action_type == ACTION_NONE)
+  if (action_type_value == ACTION_NONE)
     return "No action required";
 
   return "";

@@ -487,18 +487,18 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     /* Bard Spellsinger: Dirge of Dissonance - foes suffer concentration penalty */
     if (IN_ROOM(ch) != NOWHERE)
     {
-      struct char_data *i = NULL;
-      for (i = world[IN_ROOM(ch)].people; i; i = i->next_in_room)
+      struct char_data *inner_i = NULL;
+      for (inner_i = world[IN_ROOM(ch)].people; inner_i; inner_i = inner_i->next_in_room)
       {
-        if (i == ch)
+        if (inner_i == ch)
           continue;
-        if (!IS_NPC(i) && IS_PERFORMING(i) && has_bard_dirge_of_dissonance(i))
+        if (!IS_NPC(inner_i) && IS_PERFORMING(inner_i) && has_bard_dirge_of_dissonance(inner_i))
         {
           /* If not grouped with the performing bard, apply penalty */
-          if (!GROUP(ch) || GROUP(ch) != GROUP(i))
+          if (!GROUP(ch) || GROUP(ch) != GROUP(inner_i))
           {
-            value += get_bard_dirge_concentration_penalty(i); /* returns negative value */
-            break;                                            /* Only apply once per room */
+            value += get_bard_dirge_concentration_penalty(inner_i); /* returns negative value */
+            break;                                                  /* Only apply once per room */
           }
         }
       }

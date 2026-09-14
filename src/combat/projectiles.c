@@ -31,13 +31,13 @@ static bool is_projectile_wear_slot(int wear_slot)
 
 static bool is_valid_weapon_object(const struct obj_data *obj)
 {
-  int weapon_type;
+  int weapon_type_value;
 
   if (!obj || GET_OBJ_TYPE(obj) != ITEM_WEAPON)
     return FALSE;
 
-  weapon_type = GET_OBJ_VAL(obj, 0);
-  return weapon_type > WEAPON_TYPE_UNDEFINED && weapon_type < NUM_WEAPON_TYPES;
+  weapon_type_value = GET_OBJ_VAL(obj, 0);
+  return weapon_type_value > WEAPON_TYPE_UNDEFINED && weapon_type_value < NUM_WEAPON_TYPES;
 }
 
 static bool can_transfer_throwable(struct char_data *ch, const struct obj_data *obj)
@@ -168,26 +168,26 @@ bool has_physical_projectile(int attack_type)
 
 bool is_launcher_weapon(const struct obj_data *obj)
 {
-  int weapon_type;
+  int weapon_type_value;
 
   if (!is_valid_weapon_object(obj))
     return FALSE;
 
-  weapon_type = GET_OBJ_VAL(obj, 0);
-  return IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED);
+  weapon_type_value = GET_OBJ_VAL(obj, 0);
+  return IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_RANGED);
 }
 
 bool is_throwable_weapon(struct char_data *ch, const struct obj_data *obj)
 {
-  int weapon_type;
+  int weapon_type_value;
 
   if (!is_valid_weapon_object(obj) || !can_transfer_throwable(ch, obj))
     return FALSE;
 
-  weapon_type = GET_OBJ_VAL(obj, 0);
-  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_THROWN))
+  weapon_type_value = GET_OBJ_VAL(obj, 0);
+  if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_THROWN))
     return TRUE;
-  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+  if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_RANGED))
     return FALSE;
 
   return obj_has_special_ability((struct obj_data *)obj, WEAPON_SPECAB_THROWING);
@@ -228,18 +228,18 @@ struct obj_data *find_equipped_throwable(struct char_data *ch, int *wear_slot)
 bool is_compatible_launcher_ammo(const struct obj_data *launcher, const struct obj_data *ammo)
 {
   int ammo_type;
-  int weapon_type;
+  int weapon_type_value;
 
   if (!is_launcher_weapon(launcher) || !ammo || GET_OBJ_TYPE(ammo) != ITEM_MISSILE)
     return FALSE;
 
   ammo_type = GET_OBJ_VAL(ammo, 0);
-  weapon_type = GET_OBJ_VAL(launcher, 0);
+  weapon_type_value = GET_OBJ_VAL(launcher, 0);
 
   switch (ammo_type)
   {
   case AMMO_TYPE_ARROW:
-    switch (weapon_type)
+    switch (weapon_type_value)
     {
     case WEAPON_TYPE_LONG_BOW:
     case WEAPON_TYPE_SHORT_BOW:
@@ -258,7 +258,7 @@ bool is_compatible_launcher_ammo(const struct obj_data *launcher, const struct o
     break;
 
   case AMMO_TYPE_BOLT:
-    switch (weapon_type)
+    switch (weapon_type_value)
     {
     case WEAPON_TYPE_HAND_CROSSBOW:
     case WEAPON_TYPE_HEAVY_REP_XBOW:
@@ -270,10 +270,10 @@ bool is_compatible_launcher_ammo(const struct obj_data *launcher, const struct o
     break;
 
   case AMMO_TYPE_STONE:
-    return weapon_type == WEAPON_TYPE_SLING;
+    return weapon_type_value == WEAPON_TYPE_SLING;
 
   case AMMO_TYPE_DART:
-    return weapon_type == WEAPON_TYPE_BLOWGUN;
+    return weapon_type_value == WEAPON_TYPE_BLOWGUN;
   }
 
   return FALSE;

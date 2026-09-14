@@ -8205,10 +8205,12 @@ void nanny(struct descriptor_data *d, char *arg)
             !strcasecmp(GET_ACCOUNT_NAME(d->character), d->account->name))
         {
           /* Character was created with this account - auto re-link without password */
-          int i;
-          for (i = 0; (i < MAX_CHARS_PER_ACCOUNT) && (d->account->character_names[i] != NULL); i++)
+          int inner_i;
+          for (inner_i = 0;
+               (inner_i < MAX_CHARS_PER_ACCOUNT) && (d->account->character_names[inner_i] != NULL);
+               inner_i++)
             ;
-          if (i == MAX_CHARS_PER_ACCOUNT)
+          if (inner_i == MAX_CHARS_PER_ACCOUNT)
           {
             write_to_output(d,
                             "You have reached the maximum number of characters on this account.\r\n"
@@ -8216,22 +8218,22 @@ void nanny(struct descriptor_data *d, char *arg)
           }
           else
           {
-            d->account->character_names[i] = strdup(GET_NAME(d->character));
+            d->account->character_names[inner_i] = strdup(GET_NAME(d->character));
 
             /* Ensure the character exists in MySQL player_data table */
             if (mysql_available && conn)
             {
-              char buf[2048];
+              char inner_buf[2048];
               char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(d->character));
               if (escaped_name)
               {
                 /* First try to INSERT the character (in case it doesn't exist) */
-                snprintf(buf, sizeof(buf),
+                snprintf(inner_buf, sizeof(inner_buf),
                          "INSERT IGNORE INTO player_data (name, account_id, last_online) "
                          "VALUES ('%s', %d, NOW())",
                          escaped_name, d->account->id);
 
-                if (mysql_query(conn, buf))
+                if (mysql_query(conn, inner_buf))
                 {
                   log("SYSERR: Unable to INSERT character %s into player_data: %s",
                       GET_NAME(d->character), mysql_error(conn));

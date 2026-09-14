@@ -405,13 +405,13 @@ int select_mission_coords(int start)
   int x = 0, y = 0;
   int terrain = 0;
   room_rnum room = NOWHERE;
-  int room_vnum = 0;
+  int room_vnum_id = 0;
 
   y = dice(1, 21) - 10;
   x = dice(1, 21) - 10;
 
-  room_vnum = get_hunt_room(start, x, y);
-  room = real_room(room_vnum);
+  room_vnum_id = get_hunt_room(start, x, y);
+  room = real_room(room_vnum_id);
 
   terrain = world[room].sector_type;
 
@@ -426,10 +426,10 @@ int select_mission_coords(int start)
   case SECT_INSIDE:
   case SECT_INSIDE_ROOM:
     select_hunt_coords(start);
-    return room_vnum;
+    return room_vnum_id;
   }
 
-  return room_vnum;
+  return room_vnum_id;
 }
 
 void create_mission_mobs(char_data *ch)

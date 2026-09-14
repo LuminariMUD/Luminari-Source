@@ -1170,14 +1170,14 @@ void get_environmental_context(room_rnum room, struct environmental_context *con
   if (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room)))
   {
     /* For wilderness rooms, use the comprehensive elevation function */
-    int x = world[room].coords[0];
-    int y = world[room].coords[1];
+    int inner_x = world[room].coords[0];
+    int inner_y = world[room].coords[1];
     zone_rnum zone = world[room].zone;
 
     if (ZONE_FLAGGED(zone, ZONE_WILDERNESS))
     {
       /* Use elevation relative to sea level for realistic descriptions */
-      float elevation_meters = get_elevation_relative_sea_level(x, y);
+      float elevation_meters = get_elevation_relative_sea_level(inner_x, inner_y);
 
       /* Convert to 0.0-1.0 scale for consistency with existing description logic */
       /* Using a reasonable max elevation for scaling (1000m) */

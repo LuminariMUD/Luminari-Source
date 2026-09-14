@@ -278,7 +278,7 @@ void dg_read_trigger(FILE *fp, void *proto, int type, int proto_vnum)
   }
 }
 
-void dg_obj_trigger(char *line, struct obj_data *obj, int obj_vnum)
+void dg_obj_trigger(char *line, struct obj_data *obj, int obj_vnum_id)
 {
   char junk[8];
   trig_rnum rnum;
@@ -300,11 +300,11 @@ void dg_obj_trigger(char *line, struct obj_data *obj, int obj_vnum)
     mudlog(BRF, LVL_BUILDER, TRUE,
            "TRIGGER ERROR: Object '%s' (vnum #%d) has trigger #%d attached, but that trigger "
            "doesn't exist!",
-           obj->short_description ? obj->short_description : "UNNAMED", obj_vnum, vnum);
+           obj->short_description ? obj->short_description : "UNNAMED", obj_vnum_id, vnum);
     mudlog(BRF, LVL_BUILDER, TRUE,
            "TRIGGER FIX: Either create trigger #%d with 'trigedit %d', OR remove it from 'oedit "
            "%d' (check 'scripts')",
-           vnum, vnum, obj_vnum);
+           vnum, vnum, obj_vnum_id);
     mudlog(
         BRF, LVL_BUILDER, TRUE,
         "TRIGGER NOTE: Use 'tlist' to see existing triggers, 'vnum trigger <keyword>' to search");

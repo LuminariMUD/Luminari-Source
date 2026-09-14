@@ -328,8 +328,8 @@ ACMD(do_accexp)
         if (!race_is_creation_eligible(i) || !is_locked_race(i) || has_unlocked_race(ch, i))
           continue;
 
-        int cost = locked_race_cost(i);
-        send_to_char(ch, "%s (%d account experience)\r\n", race_list[i].type, cost);
+        int inner_cost = locked_race_cost(i);
+        send_to_char(ch, "%s (%d account experience)\r\n", race_list[i].type, inner_cost);
       }
     }
 

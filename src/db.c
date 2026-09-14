@@ -2403,14 +2403,14 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
     }
     case 'Y': /* Persisted converted Realms of Luminari exit trap. */
     {
-      int direction, state, trap_type, minimum_damage, maximum_damage;
+      int direction, state, trap_type_value, minimum_damage, maximum_damage;
       int area_effect, hardness, load_percent;
       char trailing;
 
-      if (sscanf(line + 1, " %d %d %d %d %d %d %d %d %c", &direction, &state, &trap_type,
+      if (sscanf(line + 1, " %d %d %d %d %d %d %d %d %c", &direction, &state, &trap_type_value,
                  &minimum_damage, &maximum_damage, &area_effect, &hardness, &load_percent,
                  &trailing) != 8 ||
-          !rol_exit_trap_values_are_valid(direction, state, trap_type, minimum_damage,
+          !rol_exit_trap_values_are_valid(direction, state, trap_type_value, minimum_damage,
                                           maximum_damage, area_effect, hardness, load_percent))
       {
         log("SYSERR: Room #%d has invalid RoL exit-trap Y record: %s", virtual_nr, line);
@@ -2425,7 +2425,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
           exit(1);
         }
       }
-      trap = create_rol_exit_trap(direction, state, trap_type, minimum_damage, maximum_damage,
+      trap = create_rol_exit_trap(direction, state, trap_type_value, minimum_damage, maximum_damage,
                                   area_effect, hardness, load_percent);
       if (!trap)
       {

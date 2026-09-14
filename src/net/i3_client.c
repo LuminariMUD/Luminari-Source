@@ -451,7 +451,7 @@ int i3_is_connected(void)
 }
 
 /* Create TCP socket connection */
-static int i3_socket_connect(const char *host, int port)
+static int i3_socket_connect(const char *host, int port_value)
 {
   struct sockaddr_in server_addr;
   struct hostent *server;
@@ -479,7 +479,7 @@ static int i3_socket_connect(const char *host, int port)
   memset(&server_addr, 0, sizeof(server_addr));
   server_addr.sin_family = AF_INET;
   memcpy(&server_addr.sin_addr.s_addr, server->h_addr, server->h_length);
-  server_addr.sin_port = htons(port);
+  server_addr.sin_port = htons(port_value);
 
   /* Connect */
   if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)

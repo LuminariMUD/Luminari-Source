@@ -2325,7 +2325,7 @@ static void note_entity_vnum(struct perf_entity_counter *table, size_t capacity,
     counter->extracted = saturating_add_u64(counter->extracted, 1);
 }
 
-void PERF_note_mobile_created(int vnum, int zone_vnum, enum perf_entity_reason reason)
+void PERF_note_mobile_created(int vnum, int zone_vnum_id, enum perf_entity_reason reason)
 {
   struct perf_entity_zone_counter *zone;
 
@@ -2335,14 +2335,14 @@ void PERF_note_mobile_created(int vnum, int zone_vnum, enum perf_entity_reason r
   entity_reason_counters[reason].mobiles_created =
       saturating_add_u64(entity_reason_counters[reason].mobiles_created, 1);
   note_entity_vnum(mobile_vnum_counters, ENTITY_VNUM_CAPACITY, vnum, 1, &mobile_vnum_overflow);
-  zone = entity_zone_slot(zone_vnum);
+  zone = entity_zone_slot(zone_vnum_id);
   if (zone != NULL)
     zone->mobiles_created = saturating_add_u64(zone->mobiles_created, 1);
   else
     entity_zone_overflow = saturating_add_u64(entity_zone_overflow, 1);
 }
 
-void PERF_note_mobile_extracted(int vnum, int zone_vnum, enum perf_entity_reason reason)
+void PERF_note_mobile_extracted(int vnum, int zone_vnum_id, enum perf_entity_reason reason)
 {
   struct perf_entity_zone_counter *zone;
 
@@ -2352,14 +2352,14 @@ void PERF_note_mobile_extracted(int vnum, int zone_vnum, enum perf_entity_reason
   entity_reason_counters[reason].mobiles_extracted =
       saturating_add_u64(entity_reason_counters[reason].mobiles_extracted, 1);
   note_entity_vnum(mobile_vnum_counters, ENTITY_VNUM_CAPACITY, vnum, 0, &mobile_vnum_overflow);
-  zone = entity_zone_slot(zone_vnum);
+  zone = entity_zone_slot(zone_vnum_id);
   if (zone != NULL)
     zone->mobiles_extracted = saturating_add_u64(zone->mobiles_extracted, 1);
   else
     entity_zone_overflow = saturating_add_u64(entity_zone_overflow, 1);
 }
 
-void PERF_note_object_created(int vnum, int zone_vnum, enum perf_entity_reason reason)
+void PERF_note_object_created(int vnum, int zone_vnum_id, enum perf_entity_reason reason)
 {
   struct perf_entity_zone_counter *zone;
 
@@ -2369,14 +2369,14 @@ void PERF_note_object_created(int vnum, int zone_vnum, enum perf_entity_reason r
   entity_reason_counters[reason].objects_created =
       saturating_add_u64(entity_reason_counters[reason].objects_created, 1);
   note_entity_vnum(object_vnum_counters, ENTITY_VNUM_CAPACITY, vnum, 1, &object_vnum_overflow);
-  zone = entity_zone_slot(zone_vnum);
+  zone = entity_zone_slot(zone_vnum_id);
   if (zone != NULL)
     zone->objects_created = saturating_add_u64(zone->objects_created, 1);
   else
     entity_zone_overflow = saturating_add_u64(entity_zone_overflow, 1);
 }
 
-void PERF_note_object_extracted(int vnum, int zone_vnum, enum perf_entity_reason reason)
+void PERF_note_object_extracted(int vnum, int zone_vnum_id, enum perf_entity_reason reason)
 {
   struct perf_entity_zone_counter *zone;
 
@@ -2386,20 +2386,20 @@ void PERF_note_object_extracted(int vnum, int zone_vnum, enum perf_entity_reason
   entity_reason_counters[reason].objects_extracted =
       saturating_add_u64(entity_reason_counters[reason].objects_extracted, 1);
   note_entity_vnum(object_vnum_counters, ENTITY_VNUM_CAPACITY, vnum, 0, &object_vnum_overflow);
-  zone = entity_zone_slot(zone_vnum);
+  zone = entity_zone_slot(zone_vnum_id);
   if (zone != NULL)
     zone->objects_extracted = saturating_add_u64(zone->objects_extracted, 1);
   else
     entity_zone_overflow = saturating_add_u64(entity_zone_overflow, 1);
 }
 
-void PERF_note_zone_reset(int zone_vnum, uint64_t elapsed_usec, uint64_t mobiles_created,
+void PERF_note_zone_reset(int zone_vnum_id, uint64_t elapsed_usec, uint64_t mobiles_created,
                           uint64_t mobiles_extracted, uint64_t objects_created,
                           uint64_t objects_extracted)
 {
   struct perf_entity_zone_counter *zone;
 
-  zone = entity_zone_slot(zone_vnum);
+  zone = entity_zone_slot(zone_vnum_id);
   if (zone == NULL)
   {
     entity_zone_overflow = saturating_add_u64(entity_zone_overflow, 1);

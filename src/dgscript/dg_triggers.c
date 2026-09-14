@@ -719,20 +719,21 @@ static const char *damage_trigger_attack_mode_name(int attack_mode)
   return attack_types[attack_mode];
 }
 
-static int resolve_damage_trigger_result(int mob_vnum, int original_damage, int driver_result,
+static int resolve_damage_trigger_result(int mob_vnum_id, int original_damage, int driver_result,
                                          bool explicit_return)
 {
   if (driver_result == SCRIPT_ERROR_CODE)
   {
-    script_log("Damage trigger on mob %d failed; preserving %d damage", mob_vnum, original_damage);
+    script_log("Damage trigger on mob %d failed; preserving %d damage", mob_vnum_id,
+               original_damage);
     return original_damage;
   }
   if (!explicit_return)
     return original_damage;
   if (driver_result < -1)
   {
-    script_log("Damage trigger on mob %d returned invalid damage %d; preventing damage", mob_vnum,
-               driver_result);
+    script_log("Damage trigger on mob %d returned invalid damage %d; preventing damage",
+               mob_vnum_id, driver_result);
     return -1;
   }
   return driver_result;

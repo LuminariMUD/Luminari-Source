@@ -80,14 +80,14 @@ static MYSQL *open_test_database(void)
   const char *database;
   const char *port_text;
   MYSQL *connection;
-  unsigned int port;
+  unsigned int port_value;
 
   host = getenv("LUMINARI_TEST_MYSQL_HOST");
   user = getenv("LUMINARI_TEST_MYSQL_USER");
   password = getenv("LUMINARI_TEST_MYSQL_PASSWORD");
   database = getenv("LUMINARI_TEST_MYSQL_DATABASE");
   port_text = getenv("LUMINARI_TEST_MYSQL_PORT");
-  port = port_text != NULL ? (unsigned int)strtoul(port_text, NULL, 10) : 3306;
+  port_value = port_text != NULL ? (unsigned int)strtoul(port_text, NULL, 10) : 3306;
 
   if (host == NULL || user == NULL || password == NULL || database == NULL)
     return NULL;
@@ -96,7 +96,7 @@ static MYSQL *open_test_database(void)
   if (connection == NULL)
     return NULL;
 
-  if (mysql_real_connect(connection, host, user, password, database, port, NULL, 0) == NULL)
+  if (mysql_real_connect(connection, host, user, password, database, port_value, NULL, 0) == NULL)
   {
     mysql_close(connection);
     return NULL;

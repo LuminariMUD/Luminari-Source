@@ -266,7 +266,7 @@ char *process_terrain_http_request(const char *http_request, bool database_healt
  * @param port TCP port to listen on (default: 8182)
  * @return 1 on success, 0 on failure
  */
-int start_terrain_api_server(int port)
+int start_terrain_api_server(int port_value)
 {
   socket_t s;
   struct sockaddr_in sa;
@@ -330,12 +330,12 @@ int start_terrain_api_server(int port)
   /* Bind to localhost only for security */
   memset(&sa, 0, sizeof(sa));
   sa.sin_family = AF_INET;
-  sa.sin_port = htons(port);
+  sa.sin_port = htons(port_value);
   sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK); /* localhost only */
 
   if (bind(s, (struct sockaddr *)&sa, sizeof(sa)) < 0)
   {
-    log("Terrain-API: ERROR - Bind to port %d failed: %s", port, strerror(errno));
+    log("Terrain-API: ERROR - Bind to port %d failed: %s", port_value, strerror(errno));
     CLOSE_SOCKET(s);
     free(terrain_api->clients);
     free(terrain_api);
@@ -355,9 +355,9 @@ int start_terrain_api_server(int port)
   }
 
   terrain_api->server_socket = s;
-  terrain_api->port = port;
+  terrain_api->port = port_value;
 
-  log("Terrain-API: Server successfully started on localhost:%d", port);
+  log("Terrain-API: Server successfully started on localhost:%d", port_value);
   TERRAIN_DEBUG("Maximum clients: %d, Max message size: %d bytes", TERRAIN_API_MAX_CLIENTS,
                 TERRAIN_API_MAX_MSG_SIZE);
 
@@ -1478,7 +1478,7 @@ void terrain_api_start(void)
 {
   const char *configured_port;
   char *end;
-  long port;
+  long port_value;
 
   /* Debug logging for automatic startup */
   TERRAIN_DEBUG("terrain_api_start() called during initialization");
@@ -1490,13 +1490,13 @@ void terrain_api_start(void)
     return;
   }
 
-  port = TERRAIN_API_DEFAULT_PORT;
+  port_value = TERRAIN_API_DEFAULT_PORT;
   configured_port = getenv("TERRAIN_API_PORT");
   if (configured_port && *configured_port)
   {
     errno = 0;
-    port = strtol(configured_port, &end, 10);
-    if (errno || *end || port <= 1024 || port > 65535)
+    port_value = strtol(configured_port, &end, 10);
+    if (errno || *end || port_value <= 1024 || port_value > 65535)
     {
       log("Terrain-API: ERROR - TERRAIN_API_PORT must be an integer from 1025 through 65535");
       return;
@@ -1504,14 +1504,14 @@ void terrain_api_start(void)
   }
 
   /* Directly call server start like the working manual command */
-  TERRAIN_DEBUG("Calling start_terrain_api_server(port=%ld)", port);
-  if (start_terrain_api_server((int)port))
+  TERRAIN_DEBUG("Calling start_terrain_api_server(port=%ld)", port_value);
+  if (start_terrain_api_server((int)port_value))
   {
-    log("Terrain-API Info: Automatic startup successful on port %ld", port);
+    log("Terrain-API Info: Automatic startup successful on port %ld", port_value);
   }
   else
   {
-    log("Terrain-API: ERROR - Automatic startup failed on port %ld", port);
+    log("Terrain-API: ERROR - Automatic startup failed on port %ld", port_value);
   }
 }
 

@@ -188,14 +188,14 @@ bool vessel_build_ambient_message(enum vessel_class vessel_type, int weather, in
 
 static const char *vessel_description_class_name(enum vessel_class vessel_type)
 {
-  static const char *class_names[NUM_VESSEL_TYPES] = {
+  static const char *class_names_value[NUM_VESSEL_TYPES] = {
       "raft", "boat", "ship", "warship", "airship", "submarine", "transport", "magical vessel"};
 
   if (vessel_type < 0 || vessel_type >= NUM_VESSEL_TYPES)
   {
     return NULL;
   }
-  return class_names[vessel_type];
+  return class_names_value[vessel_type];
 }
 
 static const char *vessel_description_speed(int speed, int maxspeed)

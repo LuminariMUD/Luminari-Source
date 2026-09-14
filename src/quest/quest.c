@@ -169,7 +169,7 @@ int is_quest_target_mob(struct char_data *ch, struct char_data *mob)
     {
       char kill_list_copy[MAX_STRING_LENGTH];
       char *mob_vnum_str;
-      mob_vnum mob_vnum;
+      mob_vnum mob_vnum_id;
 
       strncpy(kill_list_copy, QST_KLIST(rnum), sizeof(kill_list_copy) - 1);
       kill_list_copy[sizeof(kill_list_copy) - 1] = '\0';
@@ -177,8 +177,8 @@ int is_quest_target_mob(struct char_data *ch, struct char_data *mob)
       mob_vnum_str = strtok(kill_list_copy, ",");
       while (mob_vnum_str)
       {
-        mob_vnum = atoi(mob_vnum_str);
-        if (mob_vnum == GET_MOB_VNUM(mob))
+        mob_vnum_id = atoi(mob_vnum_str);
+        if (mob_vnum_id == GET_MOB_VNUM(mob))
           return TRUE;
         mob_vnum_str = strtok(NULL, ",");
       }
@@ -1619,16 +1619,16 @@ static void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH
     {
     case AQ_OBJ_FIND: /* Acquire Object */
     {
-      obj_rnum obj_rnum = real_object(QST_TARGET(rnum));
-      if (obj_rnum != NOTHING)
-        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", obj_proto[obj_rnum].short_description);
+      obj_rnum obj_rnum_id = real_object(QST_TARGET(rnum));
+      if (obj_rnum_id != NOTHING)
+        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", obj_proto[obj_rnum_id].short_description);
       break;
     }
     case AQ_ROOM_FIND: /* Find Room */
     {
-      room_rnum room_rnum = real_room(QST_TARGET(rnum));
-      if (room_rnum != NOWHERE)
-        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", world[room_rnum].name);
+      room_rnum room_rnum_id = real_room(QST_TARGET(rnum));
+      if (room_rnum_id != NOWHERE)
+        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", world[room_rnum_id].name);
       break;
     }
     case AQ_MOB_FIND:    /* Find Mob */
@@ -1637,23 +1637,23 @@ static void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH
     case AQ_DIALOGUE:    /* Dialogue Quest */
     case AQ_MOB_RESOLVE: /* Resolve Mob Nonlethally */
     {
-      mob_rnum mob_rnum = real_mobile(QST_TARGET(rnum));
-      if (mob_rnum != NOBODY)
-        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", mob_proto[mob_rnum].player.short_descr);
+      mob_rnum mob_rnum_id = real_mobile(QST_TARGET(rnum));
+      if (mob_rnum_id != NOBODY)
+        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", mob_proto[mob_rnum_id].player.short_descr);
       break;
     }
     case AQ_OBJ_RETURN: /* Return Object */
     {
-      obj_rnum obj_rnum = real_object(QST_TARGET(rnum));
-      if (obj_rnum != NOTHING)
-        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", obj_proto[obj_rnum].short_description);
+      obj_rnum obj_rnum_id = real_object(QST_TARGET(rnum));
+      if (obj_rnum_id != NOTHING)
+        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", obj_proto[obj_rnum_id].short_description);
       break;
     }
     case AQ_ROOM_CLEAR: /* Clear Room */
     {
-      room_rnum room_rnum = real_room(QST_TARGET(rnum));
-      if (room_rnum != NOWHERE)
-        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", world[room_rnum].name);
+      room_rnum room_rnum_id = real_room(QST_TARGET(rnum));
+      if (room_rnum_id != NOWHERE)
+        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", world[room_rnum_id].name);
       break;
     }
     case AQ_MOB_MULTI_KILL: /* Kill Multiple Mobs */
@@ -1673,13 +1673,13 @@ static void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH
         while (mob_vnum_str != NULL)
         {
           mob_vnum mvnum = atoi(mob_vnum_str);
-          mob_rnum mob_rnum = real_mobile(mvnum);
+          mob_rnum mob_rnum_id = real_mobile(mvnum);
 
-          if (mob_rnum != NOBODY)
+          if (mob_rnum_id != NOBODY)
           {
             if (!first)
               send_to_char(ch, ", ");
-            send_to_char(ch, "%s", mob_proto[mob_rnum].player.short_descr);
+            send_to_char(ch, "%s", mob_proto[mob_rnum_id].player.short_descr);
             first = FALSE;
           }
 
@@ -2211,7 +2211,7 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
     return;
   }
 
-  int total_quests = (int)mysql_num_rows(result);
+  int total_quests_value = (int)mysql_num_rows(result);
 
   send_to_char(ch, "%-13s %-42.42s | %-25s | %-30s | %-7s | %s\r\n", "Quest Num", "Quest Name",
                "Quest Master", "Location", "Min Lvl", "Status");
@@ -2373,7 +2373,7 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
     send_to_char(ch, "(No quests have been added yet.)\r\n");
   else if (limit > 0 &&
            quest_count <
-               total_quests -
+               total_quests_value -
                    ((!is_staff && (current_quest_vnum != -1 || next_quest_vnum != -1)) ? 1 : 0))
     send_to_char(ch,
                  "\r\nShowing latest %d quest%s. Use 'questline show %d <number>' or 'questline "

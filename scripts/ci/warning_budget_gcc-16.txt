@@ -15,7 +15,7 @@ float-equal 22
 format-nonliteral 25
 logical-op 31
 null-dereference 49
-shadow 269
+shadow 4
 sign-conversion 1814
 switch-enum 45
 undef 8

@@ -213,10 +213,10 @@ bool rol_utility_spiderhaunt_altar_trigger(const char *command, int position)
   return command != NULL && !strcmp(command, "worship") && position == POS_SITTING;
 }
 
-bool rol_utility_acheron_roaming_room_allowed(int room_vnum)
+bool rol_utility_acheron_roaming_room_allowed(int room_vnum_id)
 {
-  return room_vnum >= 2050100 && room_vnum <= 2050184 &&
-         (room_vnum < 2050143 || room_vnum > 2050149);
+  return room_vnum_id >= 2050100 && room_vnum_id <= 2050184 &&
+         (room_vnum_id < 2050143 || room_vnum_id > 2050149);
 }
 
 bool rol_utility_acheron_platform_room_allowed(int current_vnum, int destination_vnum)
@@ -672,9 +672,9 @@ const char *rol_utility_necro_child_message(int roll)
   return messages[roll];
 }
 
-bool rol_utility_monocle_room(int room_vnum)
+bool rol_utility_monocle_room(int room_vnum_id)
 {
-  return room_vnum >= ROL_RUBY_MONOCLE_ROOM_MIN && room_vnum <= ROL_RUBY_MONOCLE_ROOM_MAX;
+  return room_vnum_id >= ROL_RUBY_MONOCLE_ROOM_MIN && room_vnum_id <= ROL_RUBY_MONOCLE_ROOM_MAX;
 }
 
 static int rol_utility_child_sacrifice(struct spec_event_context *context, struct char_data *ch,

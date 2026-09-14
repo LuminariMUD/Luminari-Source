@@ -241,11 +241,11 @@ void Test_necromancer_bone_armor_replaces_owned_descriptions_once(CuTest *tc)
   free(armor.description);
 }
 
-static void setup_necromancer_test_armor(struct obj_data *armor, int armor_type, int material)
+static void setup_necromancer_test_armor(struct obj_data *armor, int armor_type_value, int material)
 {
   clear_object(armor);
   GET_OBJ_TYPE(armor) = ITEM_ARMOR;
-  GET_OBJ_VAL(armor, 1) = armor_type;
+  GET_OBJ_VAL(armor, 1) = armor_type_value;
   GET_OBJ_MATERIAL(armor) = material;
 }
 

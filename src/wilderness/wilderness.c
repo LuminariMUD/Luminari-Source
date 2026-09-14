@@ -424,7 +424,7 @@ int get_temperature(int map, int x, int y)
 int get_comprehensive_elevation(int x, int y, zone_rnum zone)
 {
   int base_elevation, modified_elevation;
-  struct region_list *regions = NULL;
+  struct region_list *regions_value = NULL;
   struct region_list *curr_region = NULL;
 
   /* Get base elevation from noise layer */
@@ -435,10 +435,10 @@ int get_comprehensive_elevation(int x, int y, zone_rnum zone)
   if (zone != NOWHERE)
   {
     /* Get enclosing regions to check for elevation modifications */
-    regions = get_enclosing_regions(zone, x, y);
+    regions_value = get_enclosing_regions(zone, x, y);
 
     /* Apply region-based elevation modifications */
-    for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
+    for (curr_region = regions_value; curr_region != NULL; curr_region = curr_region->next)
     {
       /* Check if region_table is valid and rnum is within bounds */
       if (region_table && curr_region->rnum <= top_of_region_table)
@@ -469,13 +469,13 @@ int get_comprehensive_elevation(int x, int y, zone_rnum zone)
     }
 
     /* Free the region list */
-    if (regions)
+    if (regions_value)
     {
       struct region_list *temp;
-      while (regions)
+      while (regions_value)
       {
-        temp = regions;
-        regions = regions->next;
+        temp = regions_value;
+        regions_value = regions_value->next;
         free(temp);
       }
     }
@@ -573,17 +573,17 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       map[x][y].weather = get_weather(x + x_offset, y + y_offset);
 
       /* Map should reflect changes from regions */
-      struct region_list *regions = NULL;
+      struct region_list *regions_value = NULL;
       struct region_list *curr_region = NULL;
       struct path_list *paths = NULL;
       struct path_list *curr_path = NULL;
 
       /* Get the enclosing regions. */
-      regions = get_enclosing_regions(real_zone(WILD_ZONE_VNUM), x + x_offset, y + y_offset);
+      regions_value = get_enclosing_regions(real_zone(WILD_ZONE_VNUM), x + x_offset, y + y_offset);
       paths = get_enclosing_paths(real_zone(WILD_ZONE_VNUM), x + x_offset, y + y_offset);
       //log("-> MAP: Processing location (%d, %d)", x + x_offset, y + y_offset);
       /* Override default values with region-based values. */
-      for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
+      for (curr_region = regions_value; curr_region != NULL; curr_region = curr_region->next)
       {
         /* Add this region to the tile's region list */
         if (map[x][y].num_regions < 24)
@@ -649,7 +649,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       }
 
       /* Free the region and path lists after use */
-      free_region_list(regions);
+      free_region_list(regions_value);
       free_path_list(paths);
     }
   }
@@ -785,7 +785,7 @@ int get_sector_type(int elevation, int temperature, int moisture)
 /* Get the sector type, modified by regions and paths. */
 int get_modified_sector_type(zone_rnum zone, int x, int y)
 {
-  struct region_list *regions = NULL;
+  struct region_list *regions_value = NULL;
   struct region_list *curr_region = NULL;
   struct path_list *paths = NULL;
   struct path_list *curr_path = NULL;
@@ -793,7 +793,7 @@ int get_modified_sector_type(zone_rnum zone, int x, int y)
   int elev, temp, mois;
 
   /* Get the enclosing regions. */
-  regions = get_enclosing_regions(zone, x, y);
+  regions_value = get_enclosing_regions(zone, x, y);
   /* Get the enclosing paths. */
   paths = get_enclosing_paths(zone, x, y);
 
@@ -804,7 +804,7 @@ int get_modified_sector_type(zone_rnum zone, int x, int y)
   sector_type = get_sector_type(elev, temp, mois);
 
   /* Override default values with region-based values. */
-  for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
+  for (curr_region = regions_value; curr_region != NULL; curr_region = curr_region->next)
   {
     /* Check if region_table is valid and rnum is within bounds */
     if (!region_table || curr_region->rnum > top_of_region_table)
@@ -850,7 +850,7 @@ int get_modified_sector_type(zone_rnum zone, int x, int y)
   }
 
   /* Free the region and path lists before returning */
-  free_region_list(regions);
+  free_region_list(regions_value);
   free_path_list(paths);
 
   return sector_type;
@@ -972,7 +972,7 @@ void assign_wilderness_room(room_rnum room, int x, int y)
    * CRITICAL: Always check against these pointers before calling free()
    * to prevent crashes from attempting to free static memory.
    */
-  struct region_list *regions = NULL;
+  struct region_list *regions_value = NULL;
   struct region_list *curr_region = NULL;
   struct path_list *paths = NULL;
   struct path_list *curr_path = NULL;
@@ -989,7 +989,7 @@ void assign_wilderness_room(room_rnum room, int x, int y)
   world[room].wilderness_coordinates_set = true;
 
   /* Get the enclosing regions. */
-  regions = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);
+  regions_value = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);
   /* Get the enclosing paths. */
   paths = get_enclosing_paths(GET_ROOM_ZONE(room), x, y);
 
@@ -1010,7 +1010,7 @@ void assign_wilderness_room(room_rnum room, int x, int y)
                                             get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y));
 
   /* Override default values with region-based values. */
-  for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
+  for (curr_region = regions_value; curr_region != NULL; curr_region = curr_region->next)
   {
     /* Check if region_table is valid and rnum is within bounds */
     if (!region_table || curr_region->rnum > top_of_region_table)
@@ -1076,7 +1076,7 @@ void assign_wilderness_room(room_rnum room, int x, int y)
   world[room].description = wilderness_desc;
 
   /* Free the region and path lists after use */
-  free_region_list(regions);
+  free_region_list(regions_value);
   free_path_list(paths);
 }
 
@@ -1860,18 +1860,18 @@ void save_map_to_file(const char *fn, int xsize, int ysize)
                                     get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, -y));
 
       /* Map should reflect changes from regions */
-      struct region_list *regions = NULL;
+      struct region_list *regions_value = NULL;
       struct region_list *curr_region = NULL;
       struct path_list *paths = NULL;
       struct path_list *curr_path = NULL;
 
       /* Get the enclosing regions. */
-      regions = get_enclosing_regions(real_zone(WILD_ZONE_VNUM), x, -y);
+      regions_value = get_enclosing_regions(real_zone(WILD_ZONE_VNUM), x, -y);
       /* Get the enclosing paths. */
       paths = get_enclosing_paths(real_zone(WILD_ZONE_VNUM), x, -y);
 
       /* Override default values with region-based values. */
-      for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
+      for (curr_region = regions_value; curr_region != NULL; curr_region = curr_region->next)
       {
         /* Check if region_table is valid and rnum is within bounds */
         if (!region_table || curr_region->rnum > top_of_region_table)
@@ -1933,7 +1933,7 @@ void save_map_to_file(const char *fn, int xsize, int ysize)
         gdImageSetPixel(im, x + xsize / 2, ysize / 2 + y, color_by_sector[sector_type]);
 
       /* Free the region and path lists after use */
-      free_region_list(regions);
+      free_region_list(regions_value);
       free_path_list(paths);
     }
   }
@@ -2128,18 +2128,18 @@ void generate_river(struct char_data *ch, int dir, region_vnum vnum, const char 
                                   get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y));
 
     /* Should reflect changes from regions */
-    struct region_list *regions = NULL;
+    struct region_list *regions_value = NULL;
     struct region_list *curr_region = NULL;
     struct path_list *paths = NULL;
     struct path_list *curr_path = NULL;
 
     /* Get the enclosing regions. */
-    regions = get_enclosing_regions(real_zone(WILD_ZONE_VNUM), x, y);
+    regions_value = get_enclosing_regions(real_zone(WILD_ZONE_VNUM), x, y);
     /* Get the enclosing paths. */
     paths = get_enclosing_paths(real_zone(WILD_ZONE_VNUM), x, y);
 
     /* Override default values with region-based values. */
-    for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
+    for (curr_region = regions_value; curr_region != NULL; curr_region = curr_region->next)
     {
       switch (region_table[curr_region->rnum].region_type)
       {
@@ -2186,7 +2186,7 @@ void generate_river(struct char_data *ch, int dir, region_vnum vnum, const char 
     kd_res_free(set);
 
     /* Free the region and path lists after use */
-    free_region_list(regions);
+    free_region_list(regions_value);
     free_path_list(paths);
   }
 

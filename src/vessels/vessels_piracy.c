@@ -291,7 +291,7 @@ bool vessel_piracy_wanted_port_is_open(const struct vessel_piracy_law *law)
 /**
  * Locate cached law metadata by region VNUM.
  */
-static const struct vessel_piracy_law_cache_entry *vessel_piracy_cached_law(int region_vnum)
+static const struct vessel_piracy_law_cache_entry *vessel_piracy_cached_law(int region_vnum_id)
 {
   size_t low;
   size_t high;
@@ -302,11 +302,11 @@ static const struct vessel_piracy_law_cache_entry *vessel_piracy_cached_law(int 
   while (low < high)
   {
     middle = low + (high - low) / 2;
-    if (vessel_law_cache[middle].region_vnum == region_vnum)
+    if (vessel_law_cache[middle].region_vnum == region_vnum_id)
     {
       return &vessel_law_cache[middle];
     }
-    if (vessel_law_cache[middle].region_vnum < region_vnum)
+    if (vessel_law_cache[middle].region_vnum < region_vnum_id)
     {
       low = middle + 1;
     }

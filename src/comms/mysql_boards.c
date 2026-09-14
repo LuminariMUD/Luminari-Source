@@ -287,13 +287,13 @@ void mysql_board_load_configs(void)
 /*
  * Get board configuration for a specific object vnum
  */
-struct mysql_board_config *mysql_board_get_config_by_obj(int obj_vnum)
+struct mysql_board_config *mysql_board_get_config_by_obj(int obj_vnum_id)
 {
   int i;
 
   for (i = 0; i < mysql_num_boards; i++)
   {
-    if (mysql_board_configs[i].obj_vnum == obj_vnum && mysql_board_configs[i].active)
+    if (mysql_board_configs[i].obj_vnum == obj_vnum_id && mysql_board_configs[i].active)
     {
       return &mysql_board_configs[i];
     }

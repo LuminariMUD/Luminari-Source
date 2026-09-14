@@ -696,7 +696,7 @@ int get_event_delay(void)
  * - Minimizes function call overhead through batch processing
  * - Wilderness system handles room allocation efficiently
  */
-static void spawn_jackalope_batch(int mob_vnum, int count, uint64_t incarnation)
+static void spawn_jackalope_batch(int mob_vnum_id, int count, uint64_t incarnation)
 {
   int i = 0;       /* Loop counter */
   int x_coord = 0; /* Random X coordinate for spawning */
@@ -715,7 +715,7 @@ static void spawn_jackalope_batch(int mob_vnum, int count, uint64_t incarnation)
     get_cached_coordinates(&x_coord, &y_coord);
 
     /* Load the mob at the cached coordinates */
-    wild_mobile_loader(mob_vnum, x_coord, y_coord);
+    wild_mobile_loader(mob_vnum_id, x_coord, y_coord);
   }
 }
 
@@ -768,13 +768,13 @@ void count_jackalope_mobs(int *easy_count, int *med_count, int *hard_count)
   {
     if (IS_NPC(l))
     {
-      mob_rnum mob_rnum = GET_MOB_RNUM(l);
+      mob_rnum mob_rnum_id = GET_MOB_RNUM(l);
 
-      if (mob_rnum == easy_rnum && easy_count)
+      if (mob_rnum_id == easy_rnum && easy_count)
         (*easy_count)++;
-      else if (mob_rnum == med_rnum && med_count)
+      else if (mob_rnum_id == med_rnum && med_count)
         (*med_count)++;
-      else if (mob_rnum == hard_rnum && hard_count)
+      else if (mob_rnum_id == hard_rnum && hard_count)
         (*hard_count)++;
     }
   }
@@ -2552,7 +2552,7 @@ void init_object_pool(void)
  * Get a pre-allocated object from the pool.
  * Falls back to standard object creation if pool is empty.
  */
-struct obj_data *get_pooled_object(int obj_vnum)
+struct obj_data *get_pooled_object(int obj_vnum_id)
 {
   int i = 0;
   obj_pool_node_t *node = NULL;
@@ -2565,7 +2565,7 @@ struct obj_data *get_pooled_object(int obj_vnum)
   {
     for (node = object_pool[i]; node; node = node->next)
     {
-      if (node->obj_vnum == obj_vnum && !node->in_use && node->obj)
+      if (node->obj_vnum == obj_vnum_id && !node->in_use && node->obj)
       {
         node->in_use = TRUE;
         return node->obj;
@@ -2574,7 +2574,7 @@ struct obj_data *get_pooled_object(int obj_vnum)
   }
 
   /* Pool exhausted or object type not pooled - fall back to standard creation */
-  return read_object_reason(obj_vnum, VIRTUAL, PERF_ENTITY_QUEST);
+  return read_object_reason(obj_vnum_id, VIRTUAL, PERF_ENTITY_QUEST);
 }
 
 /*

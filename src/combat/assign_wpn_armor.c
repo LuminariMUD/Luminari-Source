@@ -1343,7 +1343,7 @@ void load_weapons(void)
    ch is wearing */
 int compute_gear_armor_type(struct char_data *ch)
 {
-  int armor_type = ARMOR_TYPE_NONE, armor_compare = ARMOR_TYPE_NONE, i;
+  int armor_type_value = ARMOR_TYPE_NONE, armor_compare = ARMOR_TYPE_NONE, i;
   struct obj_data *obj = NULL;
 
   for (i = 0; i < NUM_WEARS; i++)
@@ -1355,14 +1355,14 @@ int compute_gear_armor_type(struct char_data *ch)
       armor_compare = armor_list[GET_OBJ_VAL(obj, 1)].armorType;
       if (armor_compare == ARMOR_TYPE_HEAVY && HAS_FEAT(ch, FEAT_ARMORED_MOBILITY))
         armor_compare = ARMOR_TYPE_MEDIUM;
-      if (armor_compare < ARMOR_TYPE_SHIELD && armor_compare > armor_type)
+      if (armor_compare < ARMOR_TYPE_SHIELD && armor_compare > armor_type_value)
       {
-        armor_type = armor_compare;
+        armor_type_value = armor_compare;
       }
     }
   }
 
-  return armor_type;
+  return armor_type_value;
 }
 
 int compute_gear_shield_type(struct char_data *ch)

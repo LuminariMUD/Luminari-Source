@@ -3282,7 +3282,7 @@ SPECIAL(clanportal)
 {
   int iPlayerClan = -1;
   struct obj_data *obj = (struct obj_data *)me;
-  struct obj_data *port;
+  struct obj_data *port_value;
   zone_vnum z;
   room_vnum r;
   char obj_name[MAX_INPUT_LENGTH] = {'\0'};
@@ -3301,12 +3301,12 @@ SPECIAL(clanportal)
   argument = one_argument_u(argument, obj_name);
 
   /* Check that the player is trying to enter THIS portal */
-  if (!(port = get_obj_in_list_vis(ch, obj_name, NULL, world[(IN_ROOM(ch))].contents)))
+  if (!(port_value = get_obj_in_list_vis(ch, obj_name, NULL, world[(IN_ROOM(ch))].contents)))
   {
     return (FALSE);
   }
 
-  if (port != obj)
+  if (port_value != obj)
     return (FALSE);
 
   iPlayerClan = GET_CLAN(ch);
@@ -3342,8 +3342,8 @@ SPECIAL(clanportal)
     return TRUE;
   }
 
-  act("$n enters $p, and vanishes!", FALSE, ch, port, 0, TO_ROOM);
-  act("You enter $p, and you are transported elsewhere", FALSE, ch, port, 0, TO_CHAR);
+  act("$n enters $p, and vanishes!", FALSE, ch, port_value, 0, TO_ROOM);
+  act("You enter $p, and you are transported elsewhere", FALSE, ch, port_value, 0, TO_CHAR);
   char_from_room(ch);
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(real_room(r)), ZONE_WILDERNESS))

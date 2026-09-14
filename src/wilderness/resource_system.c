@@ -1282,18 +1282,18 @@ void show_debug_survey(struct char_data *ch)
 
   /* Region effects analysis */
   {
-    struct region_list *regions = NULL;
+    struct region_list *regions_value = NULL;
     struct region_list *curr_region = NULL;
     zone_rnum zone = real_zone(WILD_ZONE_VNUM);
 
     if (zone != NOWHERE)
     {
-      regions = get_enclosing_regions(zone, x, y);
-      if (regions)
+      regions_value = get_enclosing_regions(zone, x, y);
+      if (regions_value)
       {
         send_to_char(ch, "\r\nRegion Effects:\r\n");
 
-        for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
+        for (curr_region = regions_value; curr_region != NULL; curr_region = curr_region->next)
         {
           if (curr_region->rnum != NOWHERE && curr_region->rnum <= top_of_region_table)
           {
@@ -1309,7 +1309,7 @@ void show_debug_survey(struct char_data *ch)
           }
         }
 
-        free_region_list(regions);
+        free_region_list(regions_value);
       }
       else
       {
@@ -1405,10 +1405,10 @@ void show_resource_map(struct char_data *ch, int resource_type, int radius)
       {
         float base_level = calculate_current_resource_level(resource_type, x, y);
         /* Get depletion level directly by coordinates - much more accurate! */
-        zone_rnum zrnum = world[IN_ROOM(ch)].zone;
-        int zone_vnum = zone_table[zrnum].number;
+        zone_rnum inner_zrnum = world[IN_ROOM(ch)].zone;
+        int zone_vnum_id = zone_table[inner_zrnum].number;
         float depletion_level =
-            get_resource_depletion_level_by_coords(x, y, zone_vnum, resource_type);
+            get_resource_depletion_level_by_coords(x, y, zone_vnum_id, resource_type);
         resource_level = base_level * depletion_level;
 
         symbol = get_resource_map_symbol_with_coords(resource_level, x, y);
@@ -2101,7 +2101,7 @@ int get_enhanced_material_crafting_value(int category, int subtype, int quality)
 const char *get_enhanced_material_description(int category, int subtype, int quality)
 {
   static char enhanced_desc_buf[512];
-  const char *material_name = get_enhanced_material_name(category, subtype, quality);
+  const char *material_name_value = get_enhanced_material_name(category, subtype, quality);
   const char *crafting_use = "";
 
   /* Determine crafting applications */
@@ -2136,7 +2136,7 @@ const char *get_enhanced_material_description(int category, int subtype, int qua
   snprintf(enhanced_desc_buf, sizeof(enhanced_desc_buf),
            "A sample of %s, carefully harvested from the wilderness. "
            "This material is prized for %s and retains its natural potency.",
-           material_name, crafting_use);
+           material_name_value, crafting_use);
 
   return enhanced_desc_buf;
 }
@@ -2168,11 +2168,11 @@ void integrate_wilderness_harvest_with_crafting(struct char_data *ch, int catego
   add_material_to_storage(ch, category, subtype, quality, amount);
 
   /* Also add crafting value to show integration */
-  const char *material_name = get_enhanced_material_name(category, subtype, quality);
+  const char *material_name_value = get_enhanced_material_name(category, subtype, quality);
   send_to_char(ch,
                "\\cY[Enhanced Crafting]\\cn The %s has a crafting value of %d and can be used "
                "in advanced LuminariMUD recipes.\\r\\n",
-               material_name, crafting_value);
+               material_name_value, crafting_value);
 }
 
 /* Enhanced materials display with crafting integration */
@@ -2441,8 +2441,8 @@ int attempt_wilderness_harvest(struct char_data *ch, int resource_type)
 
   if (added > 0)
   {
-    const char *material_name = get_full_material_name(category, subtype, quality);
-    send_to_char(ch, "You successfully harvest %d units of %s.\r\n", added, material_name);
+    const char *material_name_value = get_full_material_name(category, subtype, quality);
+    send_to_char(ch, "You successfully harvest %d units of %s.\r\n", added, material_name_value);
 
     /* Phase 7: Apply depletion WITH cascade effects */
     apply_harvest_depletion_with_cascades(IN_ROOM(ch), resource_type, added);

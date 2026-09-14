@@ -71,7 +71,7 @@ float get_base_regeneration_rate(int resource_type)
 }
 
 /* Log regeneration event to database */
-void log_regeneration_event(int zone_vnum, int x, int y, int resource_type, float old_level,
+void log_regeneration_event(int zone_vnum_id, int x, int y, int resource_type, float old_level,
                             float new_level, float regen_amount, const char *regen_type)
 {
   char query[MAX_STRING_LENGTH];
@@ -92,7 +92,7 @@ void log_regeneration_event(int zone_vnum, int x, int y, int resource_type, floa
            "(zone_vnum, x_coord, y_coord, resource_type, old_depletion_level, "
            "new_depletion_level, regeneration_amount, regeneration_type) VALUES "
            "(%d, %d, %d, %d, %.3f, %.3f, %.3f, '%s')",
-           zone_vnum, x, y, resource_type, old_level, new_level, regen_amount, regen_type);
+           zone_vnum_id, x, y, resource_type, old_level, new_level, regen_amount, regen_type);
 
   if (mysql_query_safe(conn, query))
   {
@@ -117,7 +117,7 @@ bool is_regeneration_logging_enabled(void)
 }
 
 /* Get recent regeneration events for a location */
-void show_regeneration_history(struct char_data *ch, int zone_vnum, int x, int y, int limit)
+void show_regeneration_history(struct char_data *ch, int zone_vnum_id, int x, int y, int limit)
 {
   char query[MAX_STRING_LENGTH];
   MYSQL_RES *result;
@@ -135,7 +135,7 @@ void show_regeneration_history(struct char_data *ch, int zone_vnum, int x, int y
            "FROM resource_regeneration_log "
            "WHERE zone_vnum = %d AND x_coord = %d AND y_coord = %d "
            "ORDER BY regeneration_time DESC LIMIT %d",
-           zone_vnum, x, y, limit);
+           zone_vnum_id, x, y, limit);
 
   if (mysql_query_safe(conn, query))
   {
@@ -150,7 +150,7 @@ void show_regeneration_history(struct char_data *ch, int zone_vnum, int x, int y
     return;
   }
 
-  send_to_char(ch, "Recent regeneration events at (%d,%d) zone %d:\r\n", x, y, zone_vnum);
+  send_to_char(ch, "Recent regeneration events at (%d,%d) zone %d:\r\n", x, y, zone_vnum_id);
   send_to_char(ch, "%-12s %-8s %-8s %-10s %-10s %s\r\n", "Resource", "Old", "New", "Amount", "Type",
                "Time");
   send_to_char(ch, "%-12s %-8s %-8s %-10s %-10s %s\r\n", "--------", "---", "---", "------", "----",

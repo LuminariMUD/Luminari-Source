@@ -4976,9 +4976,9 @@ static struct char_data *rol_monster_room_mobile(struct char_data *ch, int mobil
   return NULL;
 }
 
-static void rol_monster_move_to_vnum(struct char_data *ch, int room_vnum)
+static void rol_monster_move_to_vnum(struct char_data *ch, int room_vnum_id)
 {
-  room_rnum destination = real_room(room_vnum);
+  room_rnum destination = real_room(room_vnum_id);
 
   if (!VALID_ROOM_RNUM(destination) || ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
     return;

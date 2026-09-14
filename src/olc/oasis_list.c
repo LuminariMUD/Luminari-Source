@@ -1062,16 +1062,16 @@ ACMD(do_oasis_list)
     }
     else if (is_abbrev(arg, "level") || is_abbrev(arg, "flags"))
     {
-      int i;
+      int inner_i;
 
       if (!*arg2)
       {
         send_to_char(ch, "Which mobile flag or level do you want to list?\r\n");
-        for (i = 0; i < NUM_MOB_FLAGS; i++)
+        for (inner_i = 0; inner_i < NUM_MOB_FLAGS; inner_i++)
         {
-          send_to_char(ch, "%s%2d%s-%s%-14s%s", CCNRM(ch, C_NRM), i, CCNRM(ch, C_NRM),
-                       CCYEL(ch, C_NRM), action_bits[i], CCNRM(ch, C_NRM));
-          if (!((i + 1) % 4))
+          send_to_char(ch, "%s%2d%s-%s%-14s%s", CCNRM(ch, C_NRM), inner_i, CCNRM(ch, C_NRM),
+                       CCYEL(ch, C_NRM), action_bits[inner_i], CCNRM(ch, C_NRM));
+          if (!((inner_i + 1) % 4))
             send_to_char(ch, "\r\n");
         }
         send_to_char(ch, "\r\n");

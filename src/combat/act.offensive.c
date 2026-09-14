@@ -4244,14 +4244,14 @@ ACMD(do_rage)
       int dc = 10 + GET_LEVEL(ch) + GET_CHA_BONUS(ch);
       if (!savingthrow(ch, tch, SAVING_WILL, dc, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
       {
-        struct affected_type af;
+        struct affected_type inner_af;
         int blind_duration = dice(1, 4); // 1d4 rounds
 
-        new_affect(&af);
-        af.spell = SKILL_RAGE;
-        af.duration = blind_duration;
-        SET_BIT_AR(af.bitvector, AFF_BLIND);
-        affect_to_char(tch, &af);
+        new_affect(&inner_af);
+        inner_af.spell = SKILL_RAGE;
+        inner_af.duration = blind_duration;
+        SET_BIT_AR(inner_af.bitvector, AFF_BLIND);
+        affect_to_char(tch, &inner_af);
 
         act("Your rage blinds $N with overwhelming fury!", FALSE, ch, 0, tch, TO_CHAR);
         act("$n's rage blinds you with overwhelming fury!", FALSE, ch, 0, tch, TO_VICT);

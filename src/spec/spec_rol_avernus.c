@@ -168,7 +168,8 @@ size_t rol_avernus_object_profile_count(void)
   return sizeof(rol_avernus_object_profiles) / sizeof(rol_avernus_object_profiles[0]);
 }
 
-bool rol_avernus_object_profile(int object_vnum, bool *commands, bool *pulse, bool *weapon_hit)
+bool rol_avernus_object_profile(int object_vnum, bool *commands, bool *pulse_value,
+                                bool *weapon_hit)
 {
   const struct rol_avernus_object_profile *profile = rol_avernus_object_profile_for(object_vnum);
 
@@ -176,21 +177,22 @@ bool rol_avernus_object_profile(int object_vnum, bool *commands, bool *pulse, bo
     return false;
   if (commands != NULL)
     *commands = profile->commands;
-  if (pulse != NULL)
-    *pulse = profile->pulse;
+  if (pulse_value != NULL)
+    *pulse_value = profile->pulse;
   if (weapon_hit != NULL)
     *weapon_hit = profile->weapon_hit;
   return true;
 }
 
-bool rol_avernus_garden_room_vnum(int room_vnum)
+bool rol_avernus_garden_room_vnum(int room_vnum_id)
 {
-  return room_vnum >= ROL_AVERNUS_GARDEN_FIRST_VNUM && room_vnum <= ROL_AVERNUS_GARDEN_LAST_VNUM;
+  return room_vnum_id >= ROL_AVERNUS_GARDEN_FIRST_VNUM &&
+         room_vnum_id <= ROL_AVERNUS_GARDEN_LAST_VNUM;
 }
 
-static int rol_avernus_ring_direction(int room_vnum, bool reverse)
+static int rol_avernus_ring_direction(int room_vnum_id, bool reverse)
 {
-  int source_vnum = room_vnum - 2000000;
+  int source_vnum = room_vnum_id - 2000000;
 
   if (!reverse)
   {
@@ -376,9 +378,9 @@ static int rol_avernus_ring_direction(int room_vnum, bool reverse)
   }
 }
 
-static int rol_avernus_citadel_direction(int room_vnum, bool reverse)
+static int rol_avernus_citadel_direction(int room_vnum_id, bool reverse)
 {
-  int source_vnum = room_vnum - 2000000;
+  int source_vnum = room_vnum_id - 2000000;
 
   if (!reverse)
   {
@@ -483,18 +485,18 @@ static int rol_avernus_citadel_direction(int room_vnum, bool reverse)
   }
 }
 
-int rol_avernus_patrol_direction(int mobile_vnum, int room_vnum)
+int rol_avernus_patrol_direction(int mobile_vnum, int room_vnum_id)
 {
   switch (mobile_vnum)
   {
   case 2032641:
-    return rol_avernus_ring_direction(room_vnum, false);
+    return rol_avernus_ring_direction(room_vnum_id, false);
   case 2032643:
-    return rol_avernus_ring_direction(room_vnum, true);
+    return rol_avernus_ring_direction(room_vnum_id, true);
   case 2033008:
-    return rol_avernus_citadel_direction(room_vnum, false);
+    return rol_avernus_citadel_direction(room_vnum_id, false);
   case 2033021:
-    return rol_avernus_citadel_direction(room_vnum, true);
+    return rol_avernus_citadel_direction(room_vnum_id, true);
   default:
     return -1;
   }
@@ -1663,7 +1665,7 @@ int rol_avernus_garden_typed(struct spec_event_context *context)
 {
   struct room_data *garden;
   room_rnum room;
-  int room_vnum;
+  int room_vnum_id;
 
   if (context == NULL || context->owner_type != SPEC_OWNER_ROOM ||
       context->event != SPEC_EVENT_ROOM_ACTIVITY || context->owner == NULL)
@@ -1671,10 +1673,10 @@ int rol_avernus_garden_typed(struct spec_event_context *context)
   garden = context->owner;
   if (garden->number != ROL_AVERNUS_GARDEN_FIRST_VNUM)
     return FALSE;
-  for (room_vnum = ROL_AVERNUS_GARDEN_FIRST_VNUM; room_vnum <= ROL_AVERNUS_GARDEN_LAST_VNUM;
-       room_vnum++)
+  for (room_vnum_id = ROL_AVERNUS_GARDEN_FIRST_VNUM; room_vnum_id <= ROL_AVERNUS_GARDEN_LAST_VNUM;
+       room_vnum_id++)
   {
-    room = real_room(room_vnum);
+    room = real_room(room_vnum_id);
     if (room != NOWHERE)
       rol_avernus_garden_room_activity(room);
   }

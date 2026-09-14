@@ -1664,14 +1664,14 @@ int rol_waterdeep_ambient_roll_sides(int mobile_vnum)
   return 5;
 }
 
-bool rol_waterdeep_ambient_room_allows(int mobile_vnum, int room_vnum)
+bool rol_waterdeep_ambient_room_allows(int mobile_vnum, int room_vnum_id)
 {
   const struct rol_ambient_mobile_profile *profile = rol_ambient_profile_for(mobile_vnum);
 
   if (profile == NULL)
     return false;
 
-  return profile->profile_id != ROL_AMBIENT_MERCHANT_TWO || room_vnum == 2005400;
+  return profile->profile_id != ROL_AMBIENT_MERCHANT_TWO || room_vnum_id == 2005400;
 }
 
 bool rol_waterdeep_ambient_fighting_allows(int mobile_vnum, bool fighting)
@@ -3260,12 +3260,12 @@ bool rol_class_guild_allows(const struct char_data *ch, enum rol_guild_family fa
   }
 }
 
-bool rol_waterdeep_guild_allows(int room_vnum, const struct char_data *ch)
+bool rol_waterdeep_guild_allows(int room_vnum_id, const struct char_data *ch)
 {
   if (ch == NULL || IS_NPC(ch))
     return false;
 
-  switch (room_vnum)
+  switch (room_vnum_id)
   {
   case 2005505:
     return CLASS_LEVEL(ch, CLASS_PALADIN) > 0;
@@ -3356,7 +3356,7 @@ int rol_waterdeep_guild_room(struct char_data *ch, void *me, int cmd, const char
   return guild(ch, me, cmd, argument);
 }
 
-bool rol_guild_guard_allows(int room_vnum, int direction, const struct char_data *ch)
+bool rol_guild_guard_allows(int room_vnum_id, int direction, const struct char_data *ch)
 {
   const struct rol_guild_guard_rule *rule;
   size_t rule_index;
@@ -3365,7 +3365,7 @@ bool rol_guild_guard_allows(int room_vnum, int direction, const struct char_data
        rule_index < sizeof(rol_guild_guard_rules) / sizeof(rol_guild_guard_rules[0]); rule_index++)
   {
     rule = &rol_guild_guard_rules[rule_index];
-    if (rule->room_vnum != room_vnum || rule->direction != direction)
+    if (rule->room_vnum != room_vnum_id || rule->direction != direction)
       continue;
 
     if (rule->class_mask != 0)
@@ -3379,22 +3379,22 @@ bool rol_guild_guard_allows(int room_vnum, int direction, const struct char_data
   return true;
 }
 
-bool rol_guild_guard_protects(int room_vnum)
+bool rol_guild_guard_protects(int room_vnum_id)
 {
   size_t rule_index;
 
   for (rule_index = 0;
        rule_index < sizeof(rol_guild_guard_rules) / sizeof(rol_guild_guard_rules[0]); rule_index++)
-    if (rol_guild_guard_rules[rule_index].room_vnum == room_vnum &&
+    if (rol_guild_guard_rules[rule_index].room_vnum == room_vnum_id &&
         rol_guild_guard_rules[rule_index].protects)
       return true;
 
   return false;
 }
 
-int rol_guild_guard_passage_destination(int room_vnum, int direction)
+int rol_guild_guard_passage_destination(int room_vnum_id, int direction)
 {
-  switch (room_vnum)
+  switch (room_vnum_id)
   {
   case 2002951:
     return direction == NORTH ? 2002952 : 0;
@@ -3439,9 +3439,9 @@ int rol_guild_guard_passage_destination(int room_vnum, int direction)
   }
 }
 
-bool rol_guild_guard_trips_rejected(int room_vnum, int direction)
+bool rol_guild_guard_trips_rejected(int room_vnum_id, int direction)
 {
-  return room_vnum == 2002951 && direction == NORTH;
+  return room_vnum_id == 2002951 && direction == NORTH;
 }
 
 static room_rnum rol_guild_guard_teleport_destination(struct char_data *victim)
@@ -3599,9 +3599,9 @@ int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argumen
   return TRUE;
 }
 
-static int rol_named_guild_guard_activity(struct char_data *guard, int room_vnum)
+static int rol_named_guild_guard_activity(struct char_data *guard, int room_vnum_id)
 {
-  if (room_vnum != 2005500 || !AWAKE(guard) || FIGHTING(guard) != NULL)
+  if (room_vnum_id != 2005500 || !AWAKE(guard) || FIGHTING(guard) != NULL)
     return FALSE;
 
   switch (dice(2, 5))
@@ -5007,12 +5007,12 @@ static const struct rol_scheduled_gate_profile *rol_scheduled_gate_profile_for(i
 }
 
 static bool rol_scheduled_gate_room_matches(const struct rol_scheduled_gate_profile *profile,
-                                            int room_vnum)
+                                            int room_vnum_id)
 {
   size_t index;
 
   for (index = 0; index < profile->room_count; index++)
-    if (profile->room_vnums[index] == room_vnum)
+    if (profile->room_vnums[index] == room_vnum_id)
       return true;
   return false;
 }
@@ -6145,7 +6145,7 @@ int rol_item_blocker(struct char_data *ch, void *me, int cmd, const char *argume
 }
 
 static const struct rol_command_sentinel_profile *
-rol_command_sentinel_profile_for(int mobile_vnum, int room_vnum, int direction)
+rol_command_sentinel_profile_for(int mobile_vnum, int room_vnum_id, int direction)
 {
   size_t index;
 
@@ -6153,20 +6153,20 @@ rol_command_sentinel_profile_for(int mobile_vnum, int room_vnum, int direction)
        index < sizeof(rol_command_sentinel_profiles) / sizeof(rol_command_sentinel_profiles[0]);
        index++)
     if (rol_command_sentinel_profiles[index].mobile_vnum == mobile_vnum &&
-        rol_command_sentinel_profiles[index].room_vnum == room_vnum &&
+        rol_command_sentinel_profiles[index].room_vnum == room_vnum_id &&
         rol_command_sentinel_profiles[index].direction == direction)
       return &rol_command_sentinel_profiles[index];
 
   return NULL;
 }
 
-bool rol_command_sentinel_blocks_passage(int mobile_vnum, int room_vnum, int direction,
+bool rol_command_sentinel_blocks_passage(int mobile_vnum, int room_vnum_id, int direction,
                                          const struct char_data *ch, int chance_roll)
 {
   const struct rol_command_sentinel_profile *profile;
 
   if (ch == NULL || (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT) ||
-      (profile = rol_command_sentinel_profile_for(mobile_vnum, room_vnum, direction)) == NULL)
+      (profile = rol_command_sentinel_profile_for(mobile_vnum, room_vnum_id, direction)) == NULL)
     return false;
 
   switch (profile->rule)
@@ -6333,14 +6333,14 @@ int rol_toll_keeper_destination(int mobile_vnum, bool first_side)
   return first_side || profile->destination_b < 0 ? profile->destination_a : profile->destination_b;
 }
 
-bool rol_toll_keeper_ticket_matches(int mobile_vnum, int room_vnum, int entered_object_vnum,
+bool rol_toll_keeper_ticket_matches(int mobile_vnum, int room_vnum_id, int entered_object_vnum,
                                     int ticket_vnum)
 {
   const struct rol_toll_keeper_profile *profile = rol_toll_keeper_profile_for(mobile_vnum);
 
   return profile != NULL && profile->kind == ROL_TOLL_KEEPER_TICKET &&
-         profile->room_vnum == room_vnum && profile->entered_object_vnum == entered_object_vnum &&
-         profile->ticket_vnum == ticket_vnum;
+         profile->room_vnum == room_vnum_id &&
+         profile->entered_object_vnum == entered_object_vnum && profile->ticket_vnum == ticket_vnum;
 }
 
 bool rol_toll_keeper_payment_syntax_valid(int mobile_vnum, const char *argument)

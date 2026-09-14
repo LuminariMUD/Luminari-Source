@@ -999,25 +999,25 @@ SPECIAL(identify_mob)
   /* success! */
   if (obj)
   {
-    int cost = MAX(1, GET_OBJ_LEVEL(obj) * 5);
+    int inner_cost = MAX(1, GET_OBJ_LEVEL(obj) * 5);
 
     if (CMD_IS("identify"))
     {
-      if (GET_GOLD(ch) < cost)
+      if (GET_GOLD(ch) < inner_cost)
       {
         send_to_char(
             ch,
             "You don't have the coins to play for that. You need %d, but only have %d on hand.\r\n",
-            cost, GET_GOLD(ch));
+            inner_cost, GET_GOLD(ch));
         return 1;
       }
-      award_gold(ch, -cost);
-      send_to_char(ch, "That will cost you %d coins.\r\n", cost);
+      award_gold(ch, -inner_cost);
+      send_to_char(ch, "That will cost you %d coins.\r\n", inner_cost);
       do_stat_object(ch, obj, ITEM_STAT_MODE_IDENTIFY_SPELL);
     }
     else
     {
-      send_to_char(ch, "It will cost %d coins to identify that item.", cost);
+      send_to_char(ch, "It will cost %d coins to identify that item.", inner_cost);
     }
     return 1;
   }

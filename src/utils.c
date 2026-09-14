@@ -1398,13 +1398,13 @@ int select_restorable_followers(struct char_data *ch, struct char_data **pets, i
   return selected;
 }
 
-bool can_add_follower(struct char_data *ch, int mob_vnum)
+bool can_add_follower(struct char_data *ch, int mob_vnum_id)
 {
   mob_rnum rnum;
 
   if (ch == NULL || mob_proto == NULL || mob_index == NULL || top_of_mobt == (mob_rnum)NOBODY)
     return false;
-  rnum = real_mobile(mob_vnum);
+  rnum = real_mobile(mob_vnum_id);
   if (rnum == NOBODY)
     return false;
   return can_add_follower_mobile(ch, &mob_proto[rnum]);
@@ -1446,14 +1446,14 @@ int summoned_follower_flag(int spell)
   }
 }
 
-bool can_add_summoned_followers(struct char_data *ch, int mob_vnum, int spell, int count)
+bool can_add_summoned_followers(struct char_data *ch, int mob_vnum_id, int spell, int count)
 {
   struct follower_count_data counts;
   int flag, maximum;
   size_t category;
 
   if (ch == NULL || mob_proto == NULL || mob_index == NULL || top_of_mobt == NOBODY ||
-      real_mobile(mob_vnum) == NOBODY)
+      real_mobile(mob_vnum_id) == NOBODY)
     return false;
   flag = summoned_follower_flag(spell);
   maximum = spell == SPELL_ELEMENTAL_SWARM  ? 8
@@ -1478,13 +1478,13 @@ bool can_add_summoned_followers(struct char_data *ch, int mob_vnum, int spell, i
     count_followers(ch, -1, NOBODY, &counts);
     for (category = FOLLOWER_GENIE; category < FOLLOWER_RULE_COUNT; category++)
       if (follower_rules[category].flag == flag)
-        return counts.categories[category] + follower_control_cost(category, mob_vnum) <=
+        return counts.categories[category] + follower_control_cost(category, mob_vnum_id) <=
                follower_category_limit(ch, category);
     return false;
   }
   if (flag >= 0)
     return can_add_follower_by_flag(ch, flag);
-  return can_add_follower(ch, mob_vnum);
+  return can_add_follower(ch, mob_vnum_id);
 }
 
 /* Native count queries and PETS display use the same accounting as admission. */

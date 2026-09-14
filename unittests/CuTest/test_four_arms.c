@@ -101,14 +101,14 @@ static void reset_output(struct four_arm_fixture *fixture)
   fixture->descriptor.bufptr = 0;
 }
 
-static void init_weapon(struct obj_data *obj, const char *name, int weapon_type, int size)
+static void init_weapon(struct obj_data *obj, const char *name, int weapon_type_value, int size)
 {
   clear_object(obj);
   obj->name = CuMutableString(name);
   obj->short_description = CuMutableString(name);
   obj->description = CuMutableString(name);
   GET_OBJ_TYPE(obj) = ITEM_WEAPON;
-  GET_OBJ_VAL(obj, 0) = weapon_type;
+  GET_OBJ_VAL(obj, 0) = weapon_type_value;
   GET_OBJ_SIZE(obj) = size;
   SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_TAKE);
   SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_WIELD);

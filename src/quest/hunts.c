@@ -1386,31 +1386,32 @@ bool weapon_specab_desc_position(int specab)
   return false;
 }
 
-bool is_weapon_specab_compatible(struct char_data *ch, int weapon_type, int specab, bool output)
+bool is_weapon_specab_compatible(struct char_data *ch, int weapon_type_value, int specab,
+                                 bool output)
 {
   switch (specab)
   {
   case WEAPON_SPECAB_SEEKING:
-    if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED | WEAPON_FLAG_THROWN))
+    if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_RANGED | WEAPON_FLAG_THROWN))
       return true;
     if (output)
       send_to_char(ch, "This weapon ability can only be added to ranged or thrown weapons.\r\n");
     return false;
   case WEAPON_SPECAB_ADAPTIVE:
-    if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+    if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_RANGED))
       return true;
     if (output)
       send_to_char(ch, "This weapon ability can only be added to ranged weapons.\r\n");
     return false;
   case WEAPON_SPECAB_VORPAL:
-    if (weapon_list[weapon_type].damageTypes == DAMAGE_TYPE_SLASHING &&
-        !IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+    if (weapon_list[weapon_type_value].damageTypes == DAMAGE_TYPE_SLASHING &&
+        !IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_RANGED))
       return true;
     if (output)
       send_to_char(ch, "This weapon ability can only be added to slashing melee weapons.\r\n");
     return false;
   default:
-    if (!IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+    if (!IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_RANGED))
       return true;
     if (output)
       send_to_char(ch, "This weapon ability can only be added to melee weapons.\r\n");

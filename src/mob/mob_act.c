@@ -189,7 +189,7 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
   int door = 0, found = FALSE, max = 0, where = -1;
   struct char_data *room_people = NULL; /* Cache for room occupants */
   SPECIAL_DECL(*spec_func);             /* Cache for spec proc function */
-  int mob_rnum = 0;                     /* Cache for mob rnum */
+  int mob_rnum_id = 0;                  /* Cache for mob rnum */
   bool disabled = false;
   size_t nodes_visited = 0;
 
@@ -223,8 +223,8 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     /* not the AWAKE() type of checks are inside the spec_procs */
     if ((requested_work & MOBILE_WORK_SPEC_ACTIVITY) && MOB_FLAGGED(ch, MOB_SPEC) && !no_specials)
     {
-      mob_rnum = GET_MOB_RNUM(ch); /* Cache the rnum lookup */
-      spec_func = mob_index[mob_rnum].func;
+      mob_rnum_id = GET_MOB_RNUM(ch); /* Cache the rnum lookup */
+      spec_func = mob_index[mob_rnum_id].func;
 
       if (spec_func == NULL)
       {

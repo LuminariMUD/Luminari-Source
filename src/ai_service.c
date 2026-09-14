@@ -2166,7 +2166,7 @@ char *generate_fallback_response(const char *prompt)
 /**
  * Generate room description (stub for now)
  */
-char *ai_generate_room_desc(int room_vnum __attribute__((unused)),
+char *ai_generate_room_desc(int room_vnum_id __attribute__((unused)),
                             int sector_type __attribute__((unused)))
 {
   /* TODO: Implement room description generation */

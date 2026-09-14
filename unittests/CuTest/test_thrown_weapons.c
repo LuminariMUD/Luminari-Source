@@ -27,11 +27,11 @@ static void initialize_test_character(struct char_data *ch,
   GET_IDNUM(ch) = 1001;
 }
 
-static void initialize_test_object(struct obj_data *obj, int item_type, int weapon_type)
+static void initialize_test_object(struct obj_data *obj, int item_type, int weapon_type_value)
 {
   clear_object(obj);
   GET_OBJ_TYPE(obj) = item_type;
-  GET_OBJ_VAL(obj, 0) = weapon_type;
+  GET_OBJ_VAL(obj, 0) = weapon_type_value;
   GET_OBJ_BOUND_ID(obj) = NOBODY;
 }
 

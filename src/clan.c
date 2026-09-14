@@ -1860,17 +1860,17 @@ ACMD(do_clancreate)
   if (strlen(c_n) > MAX_CLAN_NAME)
   {
     /* Ensure we don't cut in the middle of a color code */
-    int i = MAX_CLAN_NAME;
-    while (i > 0 && c_n[i - 1] == '@')
+    int inner_i = MAX_CLAN_NAME;
+    while (inner_i > 0 && c_n[inner_i - 1] == '@')
     {
-      i--;
+      inner_i--;
     }
     /* If we have an odd number of @, we're in the middle of a color code */
-    if ((MAX_CLAN_NAME - i) % 2 == 1 && i > 0)
+    if ((MAX_CLAN_NAME - inner_i) % 2 == 1 && inner_i > 0)
     {
-      i--; /* Back up one more to include the @ */
+      inner_i--; /* Back up one more to include the @ */
     }
-    c_n[i] = '\0';
+    c_n[inner_i] = '\0';
   }
 
   v = highest_clan_vnum() + 1;
@@ -1907,13 +1907,13 @@ ACMD(do_clancreate)
     if (!new_clan.rank_name[i])
     {
       /* Free already allocated ranks */
-      int j;
-      for (j = 0; j < 6; j++)
+      int inner_j;
+      for (inner_j = 0; inner_j < 6; inner_j++)
       {
-        if (new_clan.rank_name[j])
+        if (new_clan.rank_name[inner_j])
         {
-          free(new_clan.rank_name[j]);
-          new_clan.rank_name[j] = NULL;
+          free(new_clan.rank_name[inner_j]);
+          new_clan.rank_name[inner_j] = NULL;
         }
       }
       if (new_clan.clan_name)
@@ -3716,12 +3716,12 @@ ACMD(do_clanally)
 
     /* Show current allies */
     int count = 0;
-    int i;
-    for (i = 0; i < num_of_clans; i++)
+    int inner_i;
+    for (inner_i = 0; inner_i < num_of_clans; inner_i++)
     {
-      if (clan_list[my_clan].allies[i])
+      if (clan_list[my_clan].allies[inner_i])
       {
-        send_to_char(ch, "  - %s\r\n", clan_list[i].clan_name);
+        send_to_char(ch, "  - %s\r\n", clan_list[inner_i].clan_name);
         count++;
       }
     }
@@ -3874,12 +3874,12 @@ ACMD(do_clanwar)
 
     /* Show current wars */
     int count = 0;
-    int i;
-    for (i = 0; i < num_of_clans; i++)
+    int inner_i;
+    for (inner_i = 0; inner_i < num_of_clans; inner_i++)
     {
-      if (clan_list[my_clan].at_war[i])
+      if (clan_list[my_clan].at_war[inner_i])
       {
-        send_to_char(ch, "  - %s", clan_list[i].clan_name);
+        send_to_char(ch, "  - %s", clan_list[inner_i].clan_name);
         if (clan_list[my_clan].war_timer > 0)
         {
           send_to_char(ch, " (war ends in %d hours)", clan_list[my_clan].war_timer);

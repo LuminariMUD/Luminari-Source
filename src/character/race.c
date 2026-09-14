@@ -294,13 +294,13 @@ static void add_race(int race, const char *name, const char *type, const char *t
 }
 
 /* extension of details added to race */
-static void set_race_details(int race, const char *descrip, const char *morph_to_char,
-                             const char *morph_to_room)
+static void set_race_details(int race, const char *descrip, const char *morph_to_char_value,
+                             const char *morph_to_room_value)
 {
   race_list[race].descrip = strdup(descrip); /* Description of race */
   /* message to send to room if transforming to this particular race */
-  race_list[race].morph_to_char = strdup(morph_to_char);
-  race_list[race].morph_to_room = strdup(morph_to_room);
+  race_list[race].morph_to_char = strdup(morph_to_char_value);
+  race_list[race].morph_to_room = strdup(morph_to_room_value);
 }
 
 /*

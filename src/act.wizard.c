@@ -4187,9 +4187,9 @@ ACMD(do_shopstat)
   /* Shopkeeper */
   if (SHOP_KEEPER(shop_nr) != NOBODY)
   {
-    int mob_vnum = mob_index[SHOP_KEEPER(shop_nr)].vnum;
+    int mob_vnum_id = mob_index[SHOP_KEEPER(shop_nr)].vnum;
     const char *mob_name = mob_proto[SHOP_KEEPER(shop_nr)].player.short_descr;
-    send_to_char(ch, "Keeper: %d - %s\r\n", mob_vnum, mob_name);
+    send_to_char(ch, "Keeper: %d - %s\r\n", mob_vnum_id, mob_name);
   }
   else
   {
@@ -8735,7 +8735,7 @@ ACMD(do_hlqlist)
 ACMD(do_singlefile)
 {
   room_rnum room = NOWHERE;
-  int dirs = -1, num_exits = -1;
+  int dirs_value = -1, num_exits = -1;
   char exits[24] = "NONE", buf[MAX_INPUT_LENGTH] = {'\0'};
 
   for (room = 0; room < top_of_world; room++)
@@ -8743,8 +8743,8 @@ ACMD(do_singlefile)
     if (ROOM_FLAGGED(room, ROOM_SINGLEFILE))
     {
       num_exits = 0;
-      for (dirs = 0; dirs < NUM_OF_DIRS; dirs++)
-        if (world[room].dir_option[dirs])
+      for (dirs_value = 0; dirs_value < NUM_OF_DIRS; dirs_value++)
+        if (world[room].dir_option[dirs_value])
           num_exits++;
 
       snprintf(exits, sizeof(exits), "%d   ", num_exits);
@@ -11826,7 +11826,7 @@ void resourceadmin_effects_show(struct char_data *ch, int effect_id)
   }
 }
 
-void resourceadmin_effects_assign(struct char_data *ch, int region_vnum, int effect_id,
+void resourceadmin_effects_assign(struct char_data *ch, int region_vnum_id, int effect_id,
                                   double intensity)
 {
   char query[1024];
@@ -11865,12 +11865,12 @@ void resourceadmin_effects_assign(struct char_data *ch, int region_vnum, int eff
            "INSERT INTO region_effect_assignments (region_vnum, effect_id, intensity) "
            "VALUES (%d, %d, %.2f) "
            "ON DUPLICATE KEY UPDATE intensity = %.2f, is_active = 1, assigned_at = NOW()",
-           region_vnum, effect_id, intensity, intensity);
+           region_vnum_id, effect_id, intensity, intensity);
 
   if (mysql_query(conn, query) == 0)
   {
     send_to_char(ch, "Effect '%s' (ID: %d) assigned to region %d with intensity %.2f\r\n",
-                 effect_name, effect_id, region_vnum, intensity);
+                 effect_name, effect_id, region_vnum_id, intensity);
   }
   else
   {
@@ -11878,24 +11878,24 @@ void resourceadmin_effects_assign(struct char_data *ch, int region_vnum, int eff
   }
 }
 
-void resourceadmin_effects_unassign(struct char_data *ch, int region_vnum, int effect_id)
+void resourceadmin_effects_unassign(struct char_data *ch, int region_vnum_id, int effect_id)
 {
   char query[512];
 
   snprintf(query, sizeof(query),
            "DELETE FROM region_effect_assignments WHERE region_vnum = %d AND effect_id = %d",
-           region_vnum, effect_id);
+           region_vnum_id, effect_id);
 
   if (mysql_query(conn, query) == 0)
   {
     if (mysql_affected_rows(conn) > 0)
     {
-      send_to_char(ch, "Effect ID %d unassigned from region %d\r\n", effect_id, region_vnum);
+      send_to_char(ch, "Effect ID %d unassigned from region %d\r\n", effect_id, region_vnum_id);
     }
     else
     {
       send_to_char(ch, "No assignment found for effect ID %d on region %d.\r\n", effect_id,
-                   region_vnum);
+                   region_vnum_id);
     }
   }
   else
@@ -11904,7 +11904,7 @@ void resourceadmin_effects_unassign(struct char_data *ch, int region_vnum, int e
   }
 }
 
-void resourceadmin_effects_region(struct char_data *ch, int region_vnum)
+void resourceadmin_effects_region(struct char_data *ch, int region_vnum_id)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -11916,7 +11916,7 @@ void resourceadmin_effects_region(struct char_data *ch, int region_vnum)
            "FROM region_effects re "
            "JOIN region_effect_assignments rea ON re.effect_id = rea.effect_id "
            "WHERE rea.region_vnum = %d ORDER BY re.effect_type, re.effect_name",
-           region_vnum);
+           region_vnum_id);
 
   if (mysql_query(conn, query) != 0)
   {
@@ -11931,7 +11931,7 @@ void resourceadmin_effects_region(struct char_data *ch, int region_vnum)
     return;
   }
 
-  send_to_char(ch, "\tcEffects assigned to Region %d:\tn\r\n", region_vnum);
+  send_to_char(ch, "\tcEffects assigned to Region %d:\tn\r\n", region_vnum_id);
   send_to_char(
       ch, "ID | Name              | Type      | Intensity | Active | Assigned       | Expires\r\n");
   send_to_char(
@@ -12214,9 +12214,10 @@ ACMD(do_materialadmin)
 
     if (result > 0)
     {
-      const char *material_name = get_full_material_name(category, subtype, quality);
-      send_to_char(ch, "Added %d %s to %s's storage.\r\n", result, material_name, GET_NAME(victim));
-      send_to_char(victim, "An immortal has granted you %d %s.\r\n", result, material_name);
+      const char *material_name_value = get_full_material_name(category, subtype, quality);
+      send_to_char(ch, "Added %d %s to %s's storage.\r\n", result, material_name_value,
+                   GET_NAME(victim));
+      send_to_char(victim, "An immortal has granted you %d %s.\r\n", result, material_name_value);
     }
     else
     {
@@ -12229,11 +12230,11 @@ ACMD(do_materialadmin)
 
     if (result > 0)
     {
-      const char *material_name = get_full_material_name(category, subtype, quality);
-      send_to_char(ch, "Removed %d %s from %s's storage.\r\n", result, material_name,
+      const char *material_name_value = get_full_material_name(category, subtype, quality);
+      send_to_char(ch, "Removed %d %s from %s's storage.\r\n", result, material_name_value,
                    GET_NAME(victim));
       send_to_char(victim, "An immortal has removed %d %s from your storage.\r\n", result,
-                   material_name);
+                   material_name_value);
     }
     else
     {
@@ -13149,7 +13150,7 @@ static void set_testkit_obj_strings_fmt(struct obj_data *obj, int bonus, const c
 }
 
 static void set_testkit_obj_strings_fmt_armor(struct obj_data *obj, int bonus, const char *keywords,
-                                              const char *armor_type, const char *short_fmt,
+                                              const char *armor_type_value, const char *short_fmt,
                                               const char *long_fmt)
 {
   char shortbuf[MEDIUM_STRING] = {'\0'};
@@ -13158,8 +13159,8 @@ static void set_testkit_obj_strings_fmt_armor(struct obj_data *obj, int bonus, c
   if (!obj || !keywords || !short_fmt || !long_fmt)
     return;
 
-  snprintf(shortbuf, sizeof(shortbuf), short_fmt, armor_type, bonus);
-  snprintf(longbuf, sizeof(longbuf), long_fmt, armor_type, bonus);
+  snprintf(shortbuf, sizeof(shortbuf), short_fmt, armor_type_value, bonus);
+  snprintf(longbuf, sizeof(longbuf), long_fmt, armor_type_value, bonus);
 
   set_testkit_obj_strings(obj, keywords, shortbuf, longbuf);
 }
@@ -13307,22 +13308,22 @@ ACMD(do_settestkit)
   }
 
   /* === ARMOR === */
-  int armor_type = SPEC_ARMOR_TYPE_CLOTHING;
+  int armor_type_value = SPEC_ARMOR_TYPE_CLOTHING;
   const char *armor_name = "clothing";
 
   if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_HEAVY))
   {
-    armor_type = SPEC_ARMOR_TYPE_FULL_PLATE;
+    armor_type_value = SPEC_ARMOR_TYPE_FULL_PLATE;
     armor_name = "full plate";
   }
   else if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_MEDIUM))
   {
-    armor_type = SPEC_ARMOR_TYPE_CHAINMAIL;
+    armor_type_value = SPEC_ARMOR_TYPE_CHAINMAIL;
     armor_name = "chainmail";
   }
   else if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_LIGHT))
   {
-    armor_type = SPEC_ARMOR_TYPE_LEATHER;
+    armor_type_value = SPEC_ARMOR_TYPE_LEATHER;
     armor_name = "leather armor";
   }
 
@@ -13332,7 +13333,7 @@ ACMD(do_settestkit)
   {
     char body_keywords[64] = {'\0'};
     snprintf(body_keywords, sizeof(body_keywords), "test %s", armor_name);
-    set_armor_object(obj, outfit_type_to_armor_type(armor_type, ITEM_WEAR_BODY));
+    set_armor_object(obj, outfit_type_to_armor_type(armor_type_value, ITEM_WEAR_BODY));
     GET_OBJ_VAL(obj, 4) = enh_bonus;
     set_testkit_obj_strings_fmt_armor(obj, enh_bonus, body_keywords, armor_name, "test %s +%d",
                                       "A suit of test %s +%d has been left here.");
@@ -13346,7 +13347,7 @@ ACMD(do_settestkit)
   {
     char arm_keywords[64] = {'\0'};
     snprintf(arm_keywords, sizeof(arm_keywords), "test %s armguards", armor_name);
-    set_armor_object(obj, outfit_type_to_armor_type(armor_type, ITEM_WEAR_ARMS));
+    set_armor_object(obj, outfit_type_to_armor_type(armor_type_value, ITEM_WEAR_ARMS));
     GET_OBJ_VAL(obj, 4) = enh_bonus;
     set_testkit_obj_strings_fmt_armor(obj, enh_bonus, arm_keywords, armor_name,
                                       "test %s armguards +%d",
@@ -13361,7 +13362,7 @@ ACMD(do_settestkit)
   {
     char leg_keywords[64] = {'\0'};
     snprintf(leg_keywords, sizeof(leg_keywords), "test %s leggings", armor_name);
-    set_armor_object(obj, outfit_type_to_armor_type(armor_type, ITEM_WEAR_LEGS));
+    set_armor_object(obj, outfit_type_to_armor_type(armor_type_value, ITEM_WEAR_LEGS));
     GET_OBJ_VAL(obj, 4) = enh_bonus;
     set_testkit_obj_strings_fmt_armor(obj, enh_bonus, leg_keywords, armor_name,
                                       "test %s leggings +%d",
@@ -13376,7 +13377,7 @@ ACMD(do_settestkit)
   {
     char head_keywords[64] = {'\0'};
     snprintf(head_keywords, sizeof(head_keywords), "test %s helm", armor_name);
-    set_armor_object(obj, outfit_type_to_armor_type(armor_type, ITEM_WEAR_HEAD));
+    set_armor_object(obj, outfit_type_to_armor_type(armor_type_value, ITEM_WEAR_HEAD));
     GET_OBJ_VAL(obj, 4) = enh_bonus;
     set_testkit_obj_strings_fmt_armor(obj, enh_bonus, head_keywords, armor_name, "test %s helm +%d",
                                       "A test %s helm +%d rests here.\r\n");

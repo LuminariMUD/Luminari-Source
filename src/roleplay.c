@@ -583,7 +583,7 @@ enum roleplay_commit_result roleplay_commit_background(struct descriptor_data *d
 {
   struct char_data *ch = NULL;
   struct roleplay_pending_data *pending = NULL;
-  int background = BACKGROUND_NONE;
+  int background_value = BACKGROUND_NONE;
   int feat = 0;
   int old_background = BACKGROUND_NONE;
   int old_feat = 0;
@@ -596,15 +596,15 @@ enum roleplay_commit_result roleplay_commit_background(struct descriptor_data *d
     return ROLEPLAY_COMMIT_INVALID_SELECTION;
   ch = d->character;
   pending = &d->roleplay_pending;
-  background = pending->background;
+  background_value = pending->background;
 
-  if (background <= BACKGROUND_NONE || background >= NUM_BACKGROUNDS ||
-      background_list[background].name == NULL)
+  if (background_value <= BACKGROUND_NONE || background_value >= NUM_BACKGROUNDS ||
+      background_list[background_value].name == NULL)
     return ROLEPLAY_COMMIT_INVALID_SELECTION;
   if (GET_BACKGROUND(ch) != BACKGROUND_NONE)
     return ROLEPLAY_COMMIT_LOCKED;
 
-  feat = background_list[background].feat;
+  feat = background_list[background_value].feat;
   if (feat <= 0 || feat >= NUM_FEATS)
     return ROLEPLAY_COMMIT_INVALID_SELECTION;
 
@@ -614,7 +614,7 @@ enum roleplay_commit_result roleplay_commit_background(struct descriptor_data *d
   old_max_hit = GET_MAX_HIT(ch);
   old_hit = GET_HIT(ch);
   old_effects_applied = BACKGROUND_EFFECTS_APPLIED(ch);
-  GET_BACKGROUND(ch) = background;
+  GET_BACKGROUND(ch) = background_value;
   SET_FEAT(ch, feat, 1);
   BACKGROUND_EFFECTS_APPLIED(ch) = FALSE;
   if (GET_LEVEL(ch) > 0)
@@ -1509,7 +1509,7 @@ void choose_random_roleplay_goal(struct char_data *ch)
   send_to_char(ch, "\r\n");
 }
 
-static void choose_roleplay_inspiration(struct char_data *ch, int background,
+static void choose_roleplay_inspiration(struct char_data *ch, int background_value,
                                         enum character_creation_inspiration_kind kind, int state,
                                         const char *title)
 {
@@ -1521,15 +1521,15 @@ static void choose_roleplay_inspiration(struct char_data *ch, int background,
   if (!ch)
     return;
 
-  if (background < 1 || background >= NUM_BACKGROUNDS)
+  if (background_value < 1 || background_value >= NUM_BACKGROUNDS)
   {
     send_to_char(ch, "That is an invalid background.\r\n");
     return;
   }
 
   first_index = rand_number(0, 1);
-  first = character_creation_inspiration_seed(background, kind, first_index);
-  second = character_creation_inspiration_seed(background, kind, 1 - first_index);
+  first = character_creation_inspiration_seed(background_value, kind, first_index);
+  second = character_creation_inspiration_seed(background_value, kind, 1 - first_index);
   if (first == NULL || second == NULL || !*first || !*second || !strcmp(first, second))
   {
     send_to_char(ch, "That inspiration theme has no usable suggestions.\r\n");
@@ -1549,27 +1549,27 @@ static void choose_roleplay_inspiration(struct char_data *ch, int background,
   send_to_char(ch, "\r\n");
 }
 
-void choose_random_roleplay_personality(struct char_data *ch, int background)
+void choose_random_roleplay_personality(struct char_data *ch, int background_value)
 {
-  choose_roleplay_inspiration(ch, background, CHARACTER_CREATION_INSPIRATION_PERSONALITY,
+  choose_roleplay_inspiration(ch, background_value, CHARACTER_CREATION_INSPIRATION_PERSONALITY,
                               CON_CHARACTER_PERSONALITY_IDEAS, "EXAMPLE PERSONALITY QUALITIES");
 }
 
-void choose_random_roleplay_ideals(struct char_data *ch, int background)
+void choose_random_roleplay_ideals(struct char_data *ch, int background_value)
 {
-  choose_roleplay_inspiration(ch, background, CHARACTER_CREATION_INSPIRATION_IDEAL,
+  choose_roleplay_inspiration(ch, background_value, CHARACTER_CREATION_INSPIRATION_IDEAL,
                               CON_CHARACTER_IDEALS_IDEAS, "EXAMPLE CHARACTER IDEALS");
 }
 
-void choose_random_roleplay_bonds(struct char_data *ch, int background)
+void choose_random_roleplay_bonds(struct char_data *ch, int background_value)
 {
-  choose_roleplay_inspiration(ch, background, CHARACTER_CREATION_INSPIRATION_BOND,
+  choose_roleplay_inspiration(ch, background_value, CHARACTER_CREATION_INSPIRATION_BOND,
                               CON_CHARACTER_BONDS_IDEAS, "EXAMPLE CHARACTER BONDS");
 }
 
-void choose_random_roleplay_flaws(struct char_data *ch, int background)
+void choose_random_roleplay_flaws(struct char_data *ch, int background_value)
 {
-  choose_roleplay_inspiration(ch, background, CHARACTER_CREATION_INSPIRATION_FLAW,
+  choose_roleplay_inspiration(ch, background_value, CHARACTER_CREATION_INSPIRATION_FLAW,
                               CON_CHARACTER_FLAWS_IDEAS, "EXAMPLE CHARACTER FLAWS");
 }
 

@@ -656,7 +656,8 @@ ACMD(do_bombs)
       }
     }
 
-    int action_type = KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS) ? ACTION_MOVE : ACTION_STANDARD;
+    int action_type_value =
+        KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS) ? ACTION_MOVE : ACTION_STANDARD;
     bool quick_proc = FALSE;
 
     int quick_chance = get_alchemist_quick_bomb_chance(ch);
@@ -664,13 +665,13 @@ ACMD(do_bombs)
     {
       if (is_action_available(ch, ACTION_SWIFT, FALSE))
       {
-        action_type = ACTION_SWIFT;
+        action_type_value = ACTION_SWIFT;
         quick_proc = TRUE;
         send_to_char(ch, "You react instantly and ready a bomb as a swift action!\r\n");
       }
     }
 
-    if (!is_action_available(ch, action_type, TRUE))
+    if (!is_action_available(ch, action_type_value, TRUE))
       return;
 
     if (!target)
@@ -3870,13 +3871,13 @@ ACMD(do_psychokinetic)
 
       affect_to_char(victim, &af2);
 
-      struct affected_type *af = NULL;
-      for (af = ch->affected; af; af = af->next)
+      struct affected_type *inner_af = NULL;
+      for (inner_af = ch->affected; inner_af; inner_af = inner_af->next)
       {
-        if (af->spell == ALC_DISC_AFFECT_PSYCHOKINETIC)
+        if (inner_af->spell == ALC_DISC_AFFECT_PSYCHOKINETIC)
         {
-          af->modifier -= 1;
-          if (af->modifier <= 0)
+          inner_af->modifier -= 1;
+          if (inner_af->modifier <= 0)
           {
             affect_from_char(ch, ALC_DISC_AFFECT_PSYCHOKINETIC);
             send_to_char(ch, "You have launched the last of your psychokinetic spirits.\r\n");

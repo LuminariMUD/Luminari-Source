@@ -114,28 +114,28 @@ void hsedit_setup_existing(struct descriptor_data *d, int real_num)
 /*-----------------------------------------------------------1-------------*/
 void hsedit_save_internally(struct descriptor_data *d)
 {
-  house_rnum house_rnum;
+  house_rnum house_rnum_id;
 
   /* this is done rather differently from the other OLCs */
   /* Houses have a pre-allocated list size, so just copy */
   /* the OLC house back into it */
 
-  house_rnum = find_house(OLC_NUM(d));
-  if (house_rnum != NOWHERE)
+  house_rnum_id = find_house(OLC_NUM(d));
+  if (house_rnum_id != NOWHERE)
   {
     /* This house VNUM is already in the list */
     /* Replace the old data                   */
-    free_house(house_control + house_rnum);
-    house_control[house_rnum] = *OLC_HOUSE(d);
+    free_house(house_control + house_rnum_id);
+    house_control[house_rnum_id] = *OLC_HOUSE(d);
   }
   else
   {
     /*. House doesn't exist, hafta add it .*/
-    house_rnum = num_of_houses++;
-    if (house_rnum < MAX_HOUSES)
+    house_rnum_id = num_of_houses++;
+    if (house_rnum_id < MAX_HOUSES)
     {
-      house_control[house_rnum] = *(OLC_HOUSE(d));
-      house_control[house_rnum].vnum = OLC_NUM(d);
+      house_control[house_rnum_id] = *(OLC_HOUSE(d));
+      house_control[house_rnum_id].vnum = OLC_NUM(d);
     }
     else
     {
@@ -572,7 +572,7 @@ void hsedit_disp_menu(struct descriptor_data *d)
 
 void hsedit_parse(struct descriptor_data *d, char *arg)
 {
-  int number = 0, id = 0, i, room_rnum;
+  int number = 0, id = 0, i, room_rnum_id;
   char *tmp;
   bool found = FALSE;
 
@@ -749,7 +749,7 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
       hsedit_disp_menu(d);
       return;
     }
-    room_rnum = real_room(OLC_HOUSE(d)->vnum);
+    room_rnum_id = real_room(OLC_HOUSE(d)->vnum);
     if (real_room(number) == NOWHERE)
     {
       send_to_char(
@@ -761,9 +761,9 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     {
       for (i = 0; i < 6; i++)
       {
-        if (world[room_rnum].dir_option[i])
+        if (world[room_rnum_id].dir_option[i])
         {
-          if (world[room_rnum].dir_option[i]->to_room == real_room(number))
+          if (world[room_rnum_id].dir_option[i]->to_room == real_room(number))
           {
             found = TRUE;
             id = i;
@@ -818,8 +818,8 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     {
       OLC_HOUSE(d)->exit_num = number;
 
-      room_rnum = world[id].dir_option[number]->to_room;
-      OLC_HOUSE(d)->atrium = world[room_rnum].number;
+      room_rnum_id = world[id].dir_option[number]->to_room;
+      OLC_HOUSE(d)->atrium = world[room_rnum_id].number;
     }
     break;
 

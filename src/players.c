@@ -1403,17 +1403,17 @@ int load_char(const char *name, struct char_data *ch)
               CREATE(ch->player_specials, struct player_special_data, 1);
             }
             /* Find the first empty slot to load this material */
-            int i;
-            for (i = 0; i < MAX_STORED_MATERIALS; i++)
+            int inner_i;
+            for (inner_i = 0; inner_i < MAX_STORED_MATERIALS; inner_i++)
             {
-              if (ch->player_specials->saved.stored_materials[i].quantity == 0)
+              if (ch->player_specials->saved.stored_materials[inner_i].quantity == 0)
               {
                 if (validate_material_data(category, subtype, quality) && quantity > 0)
                 {
-                  ch->player_specials->saved.stored_materials[i].category = category;
-                  ch->player_specials->saved.stored_materials[i].subtype = subtype;
-                  ch->player_specials->saved.stored_materials[i].quality = quality;
-                  ch->player_specials->saved.stored_materials[i].quantity = quantity;
+                  ch->player_specials->saved.stored_materials[inner_i].category = category;
+                  ch->player_specials->saved.stored_materials[inner_i].subtype = subtype;
+                  ch->player_specials->saved.stored_materials[inner_i].quality = quality;
+                  ch->player_specials->saved.stored_materials[inner_i].quantity = quantity;
                 }
                 break;
               }
@@ -2007,13 +2007,14 @@ int load_char(const char *name, struct char_data *ch)
           ch->player_specials->saved.talents_bits[0] = b1;
           ch->player_specials->saved.talents_bits[1] = b2;
           {
-            int t;
-            for (t = 1; t < 64; t++)
+            int inner_t;
+            for (inner_t = 1; inner_t < 64; inner_t++)
             {
-              unsigned int idx = (t / 32);
-              unsigned int mask = (1U << (t % 32));
-              if (((idx == 0 ? b1 : b2) & mask) && ch->player_specials->saved.talent_ranks[t] == 0)
-                ch->player_specials->saved.talent_ranks[t] = 1;
+              unsigned int idx = (inner_t / 32);
+              unsigned int mask = (1U << (inner_t % 32));
+              if (((idx == 0 ? b1 : b2) & mask) &&
+                  ch->player_specials->saved.talent_ranks[inner_t] == 0)
+                ch->player_specials->saved.talent_ranks[inner_t] = 1;
             }
           }
         }
@@ -2024,12 +2025,12 @@ int load_char(const char *name, struct char_data *ch)
           int consumed = 0;
           const char *p = line;
           int val;
-          int t;
-          for (t = 0; t < 64; t++)
+          int inner_t;
+          for (inner_t = 0; inner_t < 64; inner_t++)
           {
             if (sscanf(p, "%d%n", &val, &consumed) == 1)
             {
-              ch->player_specials->saved.talent_ranks[t] = (ubyte)MAX(0, MIN(255, val));
+              ch->player_specials->saved.talent_ranks[inner_t] = (ubyte)MAX(0, MIN(255, val));
               p += consumed;
             }
             else
@@ -3140,7 +3141,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   // save devices from do_device here
   if (ch->player_specials->saved.num_inventions > 0)
   {
-    int j;
+    int inner_j;
     BUFFER_WRITE("Dvis:\n");
     BUFFER_WRITE("%d\n", ch->player_specials->saved.num_inventions);
     for (i = 0; i < ch->player_specials->saved.num_inventions; i++)
@@ -3153,17 +3154,17 @@ bool save_char_checked(struct char_data *ch, int mode)
       BUFFER_WRITE("%d %d %d %d %ld\n", inv->num_spells, inv->duration, inv->reliability, inv->uses,
                    (long)inv->cooldown_expires);
       /* Save spell effects */
-      for (j = 0; j < inv->num_spells && j < MAX_INVENTION_SPELLS; j++)
-        BUFFER_WRITE("%d\n", inv->spell_effects[j]);
+      for (inner_j = 0; inner_j < inv->num_spells && inner_j < MAX_INVENTION_SPELLS; inner_j++)
+        BUFFER_WRITE("%d\n", inv->spell_effects[inner_j]);
       /* Fill remaining spell slots with -1 */
-      for (j = inv->num_spells; j < MAX_INVENTION_SPELLS; j++)
+      for (inner_j = inv->num_spells; inner_j < MAX_INVENTION_SPELLS; inner_j++)
         BUFFER_WRITE("-1\n");
 
       /* Save chosen spell levels (marker + values for backward compatibility) */
       BUFFER_WRITE("Lvls:\n");
-      for (j = 0; j < inv->num_spells && j < MAX_INVENTION_SPELLS; j++)
-        BUFFER_WRITE("%d\n", inv->spell_levels[j]);
-      for (j = inv->num_spells; j < MAX_INVENTION_SPELLS; j++)
+      for (inner_j = 0; inner_j < inv->num_spells && inner_j < MAX_INVENTION_SPELLS; inner_j++)
+        BUFFER_WRITE("%d\n", inv->spell_levels[inner_j]);
+      for (inner_j = inv->num_spells; inner_j < MAX_INVENTION_SPELLS; inner_j++)
         BUFFER_WRITE("0\n");
     }
     BUFFER_WRITE("-1\n"); /* terminator */

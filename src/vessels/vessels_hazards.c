@@ -267,7 +267,8 @@ int vessel_lookout_bonus(const struct greyhawk_ship_data *ship)
  * result order, so selecting its first node made identical coordinates depend
  * on the query plan.
  */
-bool vessel_encounter_region_from_list(const struct region_list *regions, int *output_region_vnum)
+bool vessel_encounter_region_from_list(const struct region_list *regions_value,
+                                       int *output_region_vnum)
 {
   const struct region_list *curr;
   int best_position = -1;
@@ -286,7 +287,7 @@ bool vessel_encounter_region_from_list(const struct region_list *regions, int *o
     return FALSE;
   }
 
-  for (curr = regions; curr != NULL; curr = curr->next)
+  for (curr = regions_value; curr != NULL; curr = curr->next)
   {
     if (curr->rnum == NOWHERE || curr->rnum > top_of_region_table ||
         region_table[curr->rnum].region_type != REGION_ENCOUNTER)
@@ -608,14 +609,14 @@ static bool vessel_encounter_room_is_claimed(room_rnum room, const room_rnum *cl
  * @param region_vnum Out: the containing encounter region's vnum
  * @return TRUE if inside one
  */
-bool vessel_in_encounter_region(const struct greyhawk_ship_data *ship, int *region_vnum)
+bool vessel_in_encounter_region(const struct greyhawk_ship_data *ship, int *region_vnum_id)
 {
-  if (ship == NULL || region_vnum == NULL)
+  if (ship == NULL || region_vnum_id == NULL)
   {
     return FALSE;
   }
 
-  return vessel_encounter_region_at_coordinates((int)ship->x, (int)ship->y, region_vnum);
+  return vessel_encounter_region_at_coordinates((int)ship->x, (int)ship->y, region_vnum_id);
 }
 
 /**
@@ -762,7 +763,7 @@ void vessel_encounter_tick_one(struct greyhawk_ship_data *ship)
   struct char_data *mob;
   room_rnum ship_room;
   int region_index;
-  int region_vnum = 0;
+  int region_vnum_id = 0;
   int depth_units;
   int definition_index;
   int hunter_configured;
@@ -781,16 +782,16 @@ void vessel_encounter_tick_one(struct greyhawk_ship_data *ship)
   if (region_index >= 0)
   {
     in_region = encounter_region_found[region_index];
-    region_vnum = encounter_region_vnums[region_index];
+    region_vnum_id = encounter_region_vnums[region_index];
   }
   else
   {
-    in_region = vessel_in_encounter_region(ship, &region_vnum);
+    in_region = vessel_in_encounter_region(ship, &region_vnum_id);
     if (ship_room != NOWHERE && encounter_region_count < GREYHAWK_MAXSHIPS)
     {
       encounter_region_rooms[encounter_region_count] = ship_room;
       encounter_region_found[encounter_region_count] = in_region;
-      encounter_region_vnums[encounter_region_count] = region_vnum;
+      encounter_region_vnums[encounter_region_count] = region_vnum_id;
       encounter_region_count++;
     }
   }
@@ -806,7 +807,7 @@ void vessel_encounter_tick_one(struct greyhawk_ship_data *ship)
     definition = &vessel_encounter_definitions[definition_index];
     if (!vessel_encounter_candidate_matches(definition->region_vnum, definition->vessel_class,
                                             definition->min_depth, definition->max_depth,
-                                            region_vnum, ship->vessel_type, depth_units))
+                                            region_vnum_id, ship->vessel_type, depth_units))
       continue;
 
     hunter_configured = definition->hunter_configured;
@@ -836,7 +837,7 @@ void vessel_encounter_tick_one(struct greyhawk_ship_data *ship)
     log("Info: Shared encounter '%s' in room %" PRI_IDX
         " from ship %d notified %d vessels in region %d",
         definition->name[0] ? definition->name : "?", ship_room, ship->shipnum, recipient_count,
-        region_vnum);
+        region_vnum_id);
 
     if (hunter_configured == 0 && definition->mob_vnum > 0 && ship_room != NOWHERE)
     {
@@ -846,7 +847,7 @@ void vessel_encounter_tick_one(struct greyhawk_ship_data *ship)
         char_to_room(mob, ship_room);
         act("$n rises from the depths!", FALSE, mob, 0, 0, TO_ROOM);
         log("Info: Encounter '%s' spawned for shared room %" PRI_IDX " from ship %d in region %d",
-            definition->name[0] ? definition->name : "?", ship_room, ship->shipnum, region_vnum);
+            definition->name[0] ? definition->name : "?", ship_room, ship->shipnum, region_vnum_id);
       }
     }
     break;
@@ -895,7 +896,7 @@ ACMD(do_seastate)
   int weather;
   int severity;
   int depth_units;
-  int region_vnum = 0;
+  int region_vnum_id = 0;
   int sector;
 
   ship = get_ship_from_room(IN_ROOM(ch));
@@ -958,7 +959,7 @@ ACMD(do_seastate)
     send_to_char(ch, "  Waters    : Unnamed open waters (standard maritime law)\r\n");
   }
 
-  if (vessel_in_encounter_region(ship, &region_vnum))
+  if (vessel_in_encounter_region(ship, &region_vnum_id))
   {
     send_to_char(ch, "  These are dangerous waters - keep a sharp watch.\r\n");
   }

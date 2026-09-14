@@ -31,7 +31,7 @@ time_t region_hint_cache_time = 0;
 /*                         CORE HINT MANAGEMENT                          */
 /* ====================================================================== */
 
-struct region_hint *load_region_hints(int region_vnum)
+struct region_hint *load_region_hints(int region_vnum_id)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -52,7 +52,7 @@ struct region_hint *load_region_hints(int region_vnum)
            "FROM region_hints "
            "WHERE region_vnum = %d AND is_active = TRUE "
            "ORDER BY priority DESC, id ASC",
-           region_vnum);
+           region_vnum_id);
 
   if (mysql_pool_query(query, &result))
   {
@@ -103,7 +103,7 @@ struct region_hint *load_region_hints(int region_vnum)
   return hints;
 }
 
-struct region_profile *load_region_profile(int region_vnum)
+struct region_profile *load_region_profile(int region_vnum_id)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -120,7 +120,7 @@ struct region_profile *load_region_profile(int region_vnum)
            "SELECT region_vnum, overall_theme, dominant_mood, key_characteristics, "
            "description_style, complexity_level, UNIX_TIMESTAMP(created_at) "
            "FROM region_profiles WHERE region_vnum = %d",
-           region_vnum);
+           region_vnum_id);
 
   if (mysql_pool_query(query, &result))
   {
@@ -205,7 +205,7 @@ char *enhance_wilderness_description_with_hints(struct char_data *ch, room_rnum 
   struct region_profile *profile = NULL;
   struct description_context context;
   char *enhanced_desc = NULL;
-  int region_vnum = NOWHERE;
+  int region_vnum_id = NOWHERE;
 
   log("DEBUG: enhance_wilderness_description_with_hints called for room %u", GET_ROOM_VNUM(room));
 
@@ -276,21 +276,21 @@ char *enhance_wilderness_description_with_hints(struct char_data *ch, room_rnum 
     return NULL;
   }
 
-  region_vnum = region_table[best_region->rnum].vnum;
-  log("DEBUG: Selected region vnum %d from region_table[%" PRI_IDX "] for hints", region_vnum,
+  region_vnum_id = region_table[best_region->rnum].vnum;
+  log("DEBUG: Selected region vnum %d from region_table[%" PRI_IDX "] for hints", region_vnum_id,
       best_region->rnum);
 
   /* Load hints and profile for this region */
-  hints = load_region_hints(region_vnum);
-  profile = load_region_profile(region_vnum);
+  hints = load_region_hints(region_vnum_id);
+  profile = load_region_profile(region_vnum_id);
 
   log("DEBUG: Loaded %s hints and %s profile for region %d", hints ? "valid" : "no",
-      profile ? "valid" : "no", region_vnum);
+      profile ? "valid" : "no", region_vnum_id);
 
   /* If no hints available, fall back to default */
   if (!hints)
   {
-    log("DEBUG: No hints available for region %d, falling back to default", region_vnum);
+    log("DEBUG: No hints available for region %d, falling back to default", region_vnum_id);
     if (profile)
       free_region_profile(profile);
     free_region_list(regions);

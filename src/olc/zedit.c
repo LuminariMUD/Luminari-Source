@@ -296,7 +296,7 @@ void perform_zone_restat(struct descriptor_data *d)
   }
 }
 
-static void zedit_setup(struct descriptor_data *d, int room_num)
+static void zedit_setup(struct descriptor_data *d, int room_num_id)
 {
   struct zone_data *zone;
   int subcmd = 0, count = 0, cmd_room = NOWHERE, i;
@@ -351,7 +351,7 @@ static void zedit_setup(struct descriptor_data *d, int room_num)
     default:
       break;
     }
-    if (cmd_room == room_num)
+    if (cmd_room == room_num_id)
     {
       add_cmd_to_list(&(zone->cmd), &ZCMD(OLC_ZNUM(d), subcmd), count);
       count++;
@@ -413,15 +413,15 @@ static void zedit_new_zone(struct char_data *ch, zone_vnum vzone_num, room_vnum 
 static void zedit_save_internally(struct descriptor_data *d)
 {
   int i;
-  room_rnum room_num = real_room(OLC_NUM(d));
+  room_rnum room_num_id = real_room(OLC_NUM(d));
 
-  if (room_num == NOWHERE)
+  if (room_num_id == NOWHERE)
   {
     log("SYSERR: zedit_save_internally: OLC_NUM(d) room %" PRI_IDX " not found.", OLC_NUM(d));
     return;
   }
 
-  remove_room_zone_commands(OLC_ZNUM(d), room_num);
+  remove_room_zone_commands(OLC_ZNUM(d), room_num_id);
 
   /* Invalid dependent commands are skipped without advancing the insert position. */
   zedit_append_room_commands(d);

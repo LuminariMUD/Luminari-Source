@@ -209,15 +209,15 @@ double PerlinNoise1D(int idx, double x, double alpha, double beta, int n)
 {
   int i;
   double val, sum = 0;
-  double p, scale = 1;
+  double p_value, scale = 1;
 
-  p = x;
+  p_value = x;
   for (i = 0; i < n; i++)
   {
-    val = noise1(idx, p);
+    val = noise1(idx, p_value);
     sum += val / scale;
     scale *= alpha;
-    p *= beta;
+    p_value *= beta;
   }
   return (sum);
 }
@@ -228,18 +228,18 @@ double PerlinNoise2D(int idx, double x, double y, double alpha, double beta, int
 {
   int i;
   double val, sum = 0;
-  double p[2], scale = 1;
+  double p_value[2], scale = 1;
 
-  p[0] = x;
-  p[1] = y;
+  p_value[0] = x;
+  p_value[1] = y;
   for (i = 0; i < n; i++)
   {
-    val = noise2(idx, p);
+    val = noise2(idx, p_value);
     //      val = ( val < 0 ? -val : val);
     sum += val / scale;
     scale *= alpha;
-    p[0] *= beta;
-    p[1] *= beta;
+    p_value[0] *= beta;
+    p_value[1] *= beta;
   }
   return (sum);
 }
@@ -248,19 +248,19 @@ double PerlinNoise3D(int idx, double x, double y, double z, double alpha, double
 {
   int i;
   double val, sum = 0;
-  double p[3], scale = 1;
+  double p_value[3], scale = 1;
 
-  p[0] = x;
-  p[1] = y;
-  p[2] = z;
+  p_value[0] = x;
+  p_value[1] = y;
+  p_value[2] = z;
   for (i = 0; i < n; i++)
   {
-    val = noise3(idx, p);
+    val = noise3(idx, p_value);
     sum += val / scale;
     scale *= alpha;
-    p[0] *= beta;
-    p[1] *= beta;
-    p[2] *= beta;
+    p_value[0] *= beta;
+    p_value[1] *= beta;
+    p_value[2] *= beta;
   }
   return (sum);
 }
@@ -278,13 +278,13 @@ double PerlinNoise3D(int idx, double x, double y, double z, double alpha, double
 double RidgedMultifractal2D(int idx, double x, double y, double H, double lacunarity,
                             double octaves, double offset, double gain)
 {
-  double result, frequency, signal, weight, p[2];
+  double result, frequency, signal, weight, p_value[2];
   int i;
   static int first = 1;
   static double *exponent_array;
 
-  p[0] = x;
-  p[1] = y;
+  p_value[0] = x;
+  p_value[1] = y;
 
   /* precompute and store spectral weights */
   if (first)
@@ -302,7 +302,7 @@ double RidgedMultifractal2D(int idx, double x, double y, double H, double lacuna
   }
 
   /* get first octave */
-  signal = noise2(idx, p);
+  signal = noise2(idx, p_value);
   /* get absolute value of signal (this creates the ridges) */
   if (signal < 0.0)
     signal = -signal;
@@ -317,8 +317,8 @@ double RidgedMultifractal2D(int idx, double x, double y, double H, double lacuna
   for (i = 1; i < octaves; i++)
   {
     /* increase the frequency */
-    p[0] *= lacunarity;
-    p[1] *= lacunarity;
+    p_value[0] *= lacunarity;
+    p_value[1] *= lacunarity;
 
     /* weight successive contributions by previous signal */
     weight = signal * gain;
@@ -326,7 +326,7 @@ double RidgedMultifractal2D(int idx, double x, double y, double H, double lacuna
       weight = 1.0;
     if (weight < 0.0)
       weight = 0.0;
-    signal = noise2(idx, p);
+    signal = noise2(idx, p_value);
     if (signal < 0.0)
       signal = -signal;
     signal = offset - signal;

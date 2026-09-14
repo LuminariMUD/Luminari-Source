@@ -6749,13 +6749,13 @@ ACMD(do_craft_score_new)
   show_craft_score(ch, argument);
 }
 
-struct obj_data *find_obj_rnum_in_inventory(struct char_data *ch, obj_rnum obj_rnum)
+struct obj_data *find_obj_rnum_in_inventory(struct char_data *ch, obj_rnum obj_rnum_id)
 {
   struct obj_data *obj;
 
   for (obj = ch->carrying; obj; obj = obj->next_content)
   {
-    if (GET_OBJ_RNUM(obj) == obj_rnum)
+    if (GET_OBJ_RNUM(obj) == obj_rnum_id)
       return obj;
   }
   return NULL;

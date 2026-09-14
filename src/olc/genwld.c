@@ -841,7 +841,7 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   struct event_runtime_handle moving_room_event;
   size_t affected_count;
   bool affected_registered;
-  long room_affections;
+  long room_affections_value;
   uint64_t event_owner_generation;
   uint64_t periodic_event_generation;
   room_rnum live_room;
@@ -853,7 +853,7 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   affected_event_handle = to->affected_event_handle;
   affected_count = to->affected_count;
   affected_registered = to->affected_registered;
-  room_affections = to->room_affections;
+  room_affections_value = to->room_affections;
   event_owner_generation = to->event_owner_generation;
   periodic_event_generation = to->periodic_event_generation;
 
@@ -884,7 +884,7 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   to->moving_room_event = moving_room_event;
   to->affected_count = affected_count;
   to->affected_registered = affected_registered;
-  to->room_affections = room_affections;
+  to->room_affections = room_affections_value;
   to->event_owner_generation = event_owner_generation;
   to->periodic_event_generation = periodic_event_generation;
 

@@ -122,7 +122,7 @@ static void i3_test_cleanup(void)
   i3_client = NULL;
 }
 
-static json_object *i3_test_mud(const char *name, int port)
+static json_object *i3_test_mud(const char *name, int port_value)
 {
   json_object *mud;
   json_object *services;
@@ -132,7 +132,7 @@ static json_object *i3_test_mud(const char *name, int port)
   json_object_object_add(services, "tell", json_object_new_int(1));
   json_object_object_add(mud, "name", json_object_new_string(name));
   json_object_object_add(mud, "host", json_object_new_string("192.0.2.10"));
-  json_object_object_add(mud, "port", json_object_new_int(port));
+  json_object_object_add(mud, "port", json_object_new_int(port_value));
   json_object_object_add(mud, "driver", json_object_new_string("TestDriver"));
   json_object_object_add(mud, "mud_type", json_object_new_string("Diku"));
   json_object_object_add(mud, "status", json_object_new_string("up"));

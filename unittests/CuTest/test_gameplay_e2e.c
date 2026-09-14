@@ -1728,14 +1728,14 @@ static bool verify_authored_constructs(const char *sandbox, char *error, size_t 
     if (i == 1)
     {
       int cast_index;
-      struct descriptor_data feedback = {0};
+      struct descriptor_data inner_feedback = {0};
 
       ch->player.name = CuMutableString("petcaller");
-      feedback.output = feedback.small_outbuf;
-      feedback.bufspace = SMALL_BUFSIZE - 1;
-      feedback.character = ch;
-      feedback.pProtocol = ProtocolCreate();
-      ch->desc = &feedback;
+      inner_feedback.output = inner_feedback.small_outbuf;
+      inner_feedback.bufspace = SMALL_BUFSIZE - 1;
+      inner_feedback.character = ch;
+      inner_feedback.pProtocol = ProtocolCreate();
+      ch->desc = &inner_feedback;
       GET_MAX_HIT(ch) = GET_REAL_MAX_HIT(ch) = 200;
       if (complete_cmd_info == NULL)
         create_command_list();
@@ -1748,7 +1748,7 @@ static bool verify_authored_constructs(const char *sandbox, char *error, size_t 
       do_order(ch, "healer cast 'cure critic' absent", 0, 0);
       if (pet->mob_specials.known_spell_slots[SPELL_CURE_CRITIC] != 2 ||
           !is_action_available(pet, atSTANDARD, false) ||
-          strstr(feedback.output, "find the target") == NULL)
+          strstr(inner_feedback.output, "find the target") == NULL)
         return false;
       for (cast_index = 0; cast_index < 3; cast_index++)
       {
@@ -1761,18 +1761,18 @@ static bool verify_authored_constructs(const char *sandbox, char *error, size_t 
         {
           snprintf(error, error_size, "ordered healer cast %d failed: hp=%d slots=%d: %.300s",
                    cast_index, GET_HIT(ch), pet->mob_specials.known_spell_slots[SPELL_CURE_CRITIC],
-                   feedback.output);
+                   inner_feedback.output);
           return false;
         }
         if (cast_index < 2 && is_action_available(pet, atSTANDARD, false))
           return false;
       }
       if (npc_can_cast(pet, SPELL_CURE_CRITIC) ||
-          strstr(feedback.output, "Your pet cannot cast that spell") == NULL)
+          strstr(inner_feedback.output, "Your pet cannot cast that spell") == NULL)
         return false;
       clear_char_event_list(ch);
       ch->desc = NULL;
-      ProtocolDestroy(feedback.pProtocol);
+      ProtocolDestroy(inner_feedback.pProtocol);
     }
     extract_char(pet);
     extract_pending_chars();
@@ -3858,19 +3858,19 @@ void Test_gameplay_elemental_choices_are_owned_by_each_cast_and_preserve_limits(
 {
   struct char_data first = {0}, second = {0};
   struct player_special_data specials = {0};
-  const int spells[] = {SPELL_SUMMON_CREATURE_7,     SPELL_SUMMON_CREATURE_8,
-                        SPELL_SUMMON_CREATURE_9,     SPELL_SUMMON_NATURES_ALLY_7,
-                        SPELL_SUMMON_NATURES_ALLY_8, SPELL_SUMMON_NATURES_ALLY_9};
+  const int spells_value[] = {SPELL_SUMMON_CREATURE_7,     SPELL_SUMMON_CREATURE_8,
+                              SPELL_SUMMON_CREATURE_9,     SPELL_SUMMON_NATURES_ALLY_7,
+                              SPELL_SUMMON_NATURES_ALLY_8, SPELL_SUMMON_NATURES_ALLY_9};
   size_t i;
 
   first.player_specials = &specials;
-  for (i = 0; i < sizeof(spells) / sizeof(spells[0]); i++)
+  for (i = 0; i < sizeof(spells_value) / sizeof(spells_value[0]); i++)
   {
-    CuAssertTrue(tc, set_pet_summon_choice(&first, spells[i], "air"));
-    CuAssertTrue(tc, set_pet_summon_choice(&second, spells[i], "earth"));
-    CuAssertIntEquals(tc, MOB_AIR_ELEMENTAL, pet_summon_choice_mob(&first, spells[i]));
-    CuAssertIntEquals(tc, MOB_EARTH_ELEMENTAL, pet_summon_choice_mob(&second, spells[i]));
-    verify_native_summon_batch(tc, spells[i], 1, true);
+    CuAssertTrue(tc, set_pet_summon_choice(&first, spells_value[i], "air"));
+    CuAssertTrue(tc, set_pet_summon_choice(&second, spells_value[i], "earth"));
+    CuAssertIntEquals(tc, MOB_AIR_ELEMENTAL, pet_summon_choice_mob(&first, spells_value[i]));
+    CuAssertIntEquals(tc, MOB_EARTH_ELEMENTAL, pet_summon_choice_mob(&second, spells_value[i]));
+    verify_native_summon_batch(tc, spells_value[i], 1, true);
   }
   CuAssertTrue(tc, set_pet_summon_choice(&first, SPELL_GENIEKIND, "marid"));
   CuAssertTrue(tc, set_pet_summon_choice(&second, SPELL_GENIEKIND, "efreeti"));

@@ -974,7 +974,7 @@ static int augment(struct obj_data *kit, struct char_data *ch)
 static int convert(struct obj_data *kit, struct char_data *ch)
 {
   int cost = 500; /* flat cost */
-  int num_mats = 0, material = -1, obj_vnum = 0;
+  int num_mats = 0, material = -1, obj_vnum_id = 0;
   struct obj_data *new_mat = NULL, *obj = NULL;
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
 
@@ -1012,7 +1012,7 @@ static int convert(struct obj_data *kit, struct char_data *ch)
           return 1;
         }
         num_mats++; /* we found matching material */
-        obj_vnum = GET_OBJ_VNUM(obj);
+        obj_vnum_id = GET_OBJ_VNUM(obj);
       }
     }
   }
@@ -1071,10 +1071,10 @@ static int convert(struct obj_data *kit, struct char_data *ch)
 
   obj_from_obj(new_mat);
 
-  obj_vnum = GET_OBJ_VNUM(kit);
+  obj_vnum_id = GET_OBJ_VNUM(kit);
   obj_from_char(kit);
   extract_obj(kit);
-  kit = read_object(obj_vnum, VIRTUAL);
+  kit = read_object(obj_vnum_id, VIRTUAL);
 
   obj_to_char(kit, ch);
 
@@ -1362,7 +1362,7 @@ static int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
 /* autocraft - crafting quest command */
 static int autocraft(struct obj_data *kit, struct char_data *ch)
 {
-  int material, obj_vnum, num_mats = 0;
+  int material, obj_vnum_id, num_mats = 0;
   struct obj_data *obj = NULL;
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
 
@@ -1408,7 +1408,7 @@ static int autocraft(struct obj_data *kit, struct char_data *ch)
                        material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
           return 1;
         }
-        obj_vnum = GET_OBJ_VNUM(obj);
+        obj_vnum_id = GET_OBJ_VNUM(obj);
         num_mats++; /* we found matching material */
         if (num_mats > SUPPLYORDER_MATS)
         {
@@ -1442,10 +1442,10 @@ static int autocraft(struct obj_data *kit, struct char_data *ch)
   send_to_char(ch, "You begin a supply order for %s.\r\n", GET_AUTOCQUEST_DESC(ch));
   act("$n begins a supply order.", FALSE, ch, NULL, 0, TO_ROOM);
 
-  obj_vnum = GET_OBJ_VNUM(kit);
+  obj_vnum_id = GET_OBJ_VNUM(kit);
   obj_from_char(kit);
   extract_obj(kit);
-  kit = read_object(obj_vnum, VIRTUAL);
+  kit = read_object(obj_vnum_id, VIRTUAL);
   obj_to_char(kit, ch);
   save_char(ch, 0);
   Crash_crashsave(ch);

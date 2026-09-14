@@ -807,7 +807,7 @@ static double calculate_regional_influence(int x, int y, int region_x, int regio
  * @return Boundary proximity factor: 0.0 (center) to 1.0 (edge)
  */
 static double detect_region_boundary_proximity(int x, int y,
-                                               int region_vnum __attribute__((unused)))
+                                               int region_vnum_id __attribute__((unused)))
 {
   /* This is a simplified implementation - a full version would check actual region boundaries */
 
@@ -841,12 +841,12 @@ static double detect_region_boundary_proximity(int x, int y,
  * Modifies contextual weights based on proximity to region boundaries
  */
 static void apply_boundary_transition_effects(struct region_hint *hints, int hint_count, int x,
-                                              int y, int region_vnum)
+                                              int y, int region_vnum_id)
 {
   if (!hints || hint_count <= 0)
     return;
 
-  double boundary_proximity = detect_region_boundary_proximity(x, y, region_vnum);
+  double boundary_proximity = detect_region_boundary_proximity(x, y, region_vnum_id);
 
   /* Near boundaries, reduce region-specific hints and increase generic ones */
   if (boundary_proximity > 0.3)
@@ -2099,7 +2099,7 @@ static const char *get_time_of_day_category(void)
 static struct narrative_elements *extract_narrative_elements(struct region_hint *hints,
                                                              const char *weather
                                                              __attribute__((unused)),
-                                                             const char *time, int region_vnum)
+                                                             const char *time, int region_vnum_id)
 {
   struct narrative_elements *elements;
   struct region_profile *profile = NULL;
@@ -2111,9 +2111,9 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
     return NULL;
 
   // Load regional style profile
-  if (region_vnum > 0)
+  if (region_vnum_id > 0)
   {
-    profile = load_region_profile(region_vnum);
+    profile = load_region_profile(region_vnum_id);
     if (profile)
     {
       // The current region_hints.c converts string to int incorrectly with atoi()
@@ -2123,7 +2123,8 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
       char query[512];
 
       snprintf(query, sizeof(query),
-               "SELECT description_style FROM region_profiles WHERE region_vnum = %d", region_vnum);
+               "SELECT description_style FROM region_profiles WHERE region_vnum = %d",
+               region_vnum_id);
 
       if (mysql_pool_query(query, &result) == 0 && result)
       {
@@ -2131,7 +2132,7 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
         {
           regional_style = convert_style_string_to_int(row[0]);
           narrative_debug_log(2, "Using regional style %d ('%s') for region %d", regional_style,
-                              row[0] ? row[0] : "NULL", region_vnum);
+                              row[0] ? row[0] : "NULL", region_vnum_id);
         }
         mysql_pool_free_result(result);
       }
@@ -2140,7 +2141,7 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
         // Fallback to the incorrectly converted value
         regional_style = profile->description_style;
         narrative_debug_log(2, "Using fallback regional style %d for region %d", regional_style,
-                            region_vnum);
+                            region_vnum_id);
       }
     }
   }
@@ -2944,12 +2945,12 @@ static void free_description_components(struct description_components *component
 /**
  * Optimized cached hint loading with performance enhancements
  */
-struct region_hint *load_contextual_hints_cached(int region_vnum, const char *weather_condition,
+struct region_hint *load_contextual_hints_cached(int region_vnum_id, const char *weather_condition,
                                                  const char *time_category, double resource_health)
 {
   /* Create cache key */
   struct hint_cache_key cache_key;
-  cache_key.region_vnum = region_vnum;
+  cache_key.region_vnum = region_vnum_id;
   cache_key.weather_condition = get_weather_code_from_string(weather_condition);
   cache_key.time_category = get_time_code_from_string(time_category);
   cache_key.season = get_season_from_time();
@@ -2964,7 +2965,7 @@ struct region_hint *load_contextual_hints_cached(int region_vnum, const char *we
 
   /* Cache miss - load from database using optimized query */
   struct region_hint *fresh_hints =
-      load_contextual_hints_optimized(region_vnum, weather_condition, time_category);
+      load_contextual_hints_optimized(region_vnum_id, weather_condition, time_category);
 
   /* Cache the fresh hints for future use */
   if (fresh_hints)
@@ -3028,7 +3029,8 @@ int get_time_code_from_string(const char *time_category)
 /**
  * Optimized database query version with batch loading
  */
-struct region_hint *load_contextual_hints_optimized(int region_vnum, const char *weather_condition,
+struct region_hint *load_contextual_hints_optimized(int region_vnum_id,
+                                                    const char *weather_condition,
                                                     const char *time_category)
 {
   MYSQL_RES *result;
@@ -3050,7 +3052,7 @@ struct region_hint *load_contextual_hints_optimized(int region_vnum, const char 
            "weather_conditions) > 0) "
            "ORDER BY priority DESC, id ASC "
            "LIMIT 20",
-           region_vnum, weather_condition ? weather_condition : "");
+           region_vnum_id, weather_condition ? weather_condition : "");
 
   if (!mysql_pool)
   {
@@ -3108,7 +3110,7 @@ struct region_hint *load_contextual_hints_optimized(int region_vnum, const char 
 
     current_hint = &hints[hint_count];
     current_hint->id = row[0] ? atoi(row[0]) : 0;
-    current_hint->region_vnum = row[1] ? atoi(row[1]) : region_vnum;
+    current_hint->region_vnum = row[1] ? atoi(row[1]) : region_vnum_id;
 
     /* Enhanced category mapping with error checking */
     if (row[2])
@@ -3176,7 +3178,7 @@ struct region_hint *load_contextual_hints_optimized(int region_vnum, const char 
     hints[hint_count].hint_text = NULL;
   }
 
-  log("DEBUG: Loaded %d optimized contextual hints for region %d", hint_count, region_vnum);
+  log("DEBUG: Loaded %d optimized contextual hints for region %d", hint_count, region_vnum_id);
   return hints;
 }
 
@@ -3219,11 +3221,11 @@ int get_hint_category_from_string(const char *category_str)
 /**
  * Legacy hint loading function (maintained for compatibility)
  */
-struct region_hint *load_contextual_hints(int region_vnum, const char *weather_condition,
+struct region_hint *load_contextual_hints(int region_vnum_id, const char *weather_condition,
                                           const char *time_category)
 {
   /* For backward compatibility, call optimized cached version with default resource health */
-  return load_contextual_hints_cached(region_vnum, weather_condition, time_category, 0.5);
+  return load_contextual_hints_cached(region_vnum_id, weather_condition, time_category, 0.5);
 }
 
 /* ====================================================================== */
@@ -3291,7 +3293,7 @@ char *transform_voice_to_observational(const char *text)
 /**
  * Load comprehensive region description from database
  */
-char *load_comprehensive_region_description(int region_vnum)
+char *load_comprehensive_region_description(int region_vnum_id)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -3303,7 +3305,7 @@ char *load_comprehensive_region_description(int region_vnum)
           "has_historical_context, has_resource_info, has_wildlife_info, "
           "has_geological_info, has_cultural_info, is_approved "
           "FROM region_data WHERE vnum = %d AND region_description IS NOT NULL",
-          region_vnum);
+          region_vnum_id);
 
   if (!mysql_pool)
   {
@@ -3330,7 +3332,7 @@ char *load_comprehensive_region_description(int region_vnum)
       description = strdup(row[0]);
       log("DEBUG: Loaded comprehensive description for region %d (style: %s, length: %s, quality: "
           "%s)",
-          region_vnum, row[1] ? row[1] : "unknown", row[2] ? row[2] : "unknown",
+          region_vnum_id, row[1] ? row[1] : "unknown", row[2] ? row[2] : "unknown",
           row[8] ? row[8] : "0");
     }
   }
@@ -3348,7 +3350,7 @@ char *load_comprehensive_region_description(int region_vnum)
  * @param region_vnum The region vnum to load characteristics for
  * @return JSON string containing key_characteristics, or NULL if not found
  */
-char *load_region_characteristics(int region_vnum)
+char *load_region_characteristics(int region_vnum_id)
 {
   MYSQL_RES *result = NULL;
   MYSQL_ROW row;
@@ -3364,7 +3366,8 @@ char *load_region_characteristics(int region_vnum)
 
   /* Build query with bounds checking */
   snprintf(query, sizeof(query),
-           "SELECT key_characteristics FROM region_profiles WHERE region_vnum = %d", region_vnum);
+           "SELECT key_characteristics FROM region_profiles WHERE region_vnum = %d",
+           region_vnum_id);
 
   /* Execute query using connection pool */
   if (mysql_pool_query(query, &result) != 0)
@@ -3385,12 +3388,12 @@ char *load_region_characteristics(int region_vnum)
   if (row && row[0] && *row[0])
   {
     characteristics = strdup(row[0]);
-    narrative_debug_log(2, "Loaded AI characteristics for region %d: %.100s...", region_vnum,
+    narrative_debug_log(2, "Loaded AI characteristics for region %d: %.100s...", region_vnum_id,
                         characteristics);
   }
   else
   {
-    narrative_debug_log(1, "No AI characteristics found for region %d", region_vnum);
+    narrative_debug_log(1, "No AI characteristics found for region %d", region_vnum_id);
   }
 
   /* Always free the result set */
@@ -3420,11 +3423,12 @@ static char *weave_unified_description(const char *base_description __attribute_
   /* Load regional characteristics for mood-based weighting */
   if (hints && hints[0].hint_text)
   {
-    int region_vnum = 1000004; /* Default to Mosswood for now, should be derived from coordinates */
-    regional_characteristics = load_region_characteristics(region_vnum);
+    int region_vnum_id =
+        1000004; /* Default to Mosswood for now, should be derived from coordinates */
+    regional_characteristics = load_region_characteristics(region_vnum_id);
     if (!regional_characteristics)
     {
-      log("DEBUG: No characteristics found for region %d, using basic weighting", region_vnum);
+      log("DEBUG: No characteristics found for region %d, using basic weighting", region_vnum_id);
     }
   }
 
@@ -3841,7 +3845,7 @@ char *enhance_base_description_with_hints(char *base_description,
   char *enhanced_desc = NULL;
   const char *weather_condition = NULL;
   const char *time_category = NULL;
-  int region_vnum = 0;
+  int region_vnum_id = 0;
 
   if (!base_description)
   {
@@ -3887,8 +3891,8 @@ char *enhance_base_description_with_hints(char *base_description,
     return NULL;
   }
 
-  region_vnum = region_table[best_region->rnum].vnum;
-  narrative_debug_log(1, "Using region vnum %d for hint enhancement", region_vnum);
+  region_vnum_id = region_table[best_region->rnum].vnum;
+  narrative_debug_log(1, "Using region vnum %d for hint enhancement", region_vnum_id);
 
   // Get environmental context
   weather_condition = get_wilderness_weather_condition(x, y);
@@ -3898,11 +3902,11 @@ char *enhance_base_description_with_hints(char *base_description,
   float resource_health = calculate_regional_resource_health(x, y, 5);
 
   // Load contextual hints for current conditions using optimized cached version
-  hints =
-      load_contextual_hints_cached(region_vnum, weather_condition, time_category, resource_health);
+  hints = load_contextual_hints_cached(region_vnum_id, weather_condition, time_category,
+                                       resource_health);
   if (!hints)
   {
-    log("DEBUG: No contextual hints available for region %d", region_vnum);
+    log("DEBUG: No contextual hints available for region %d", region_vnum_id);
     free_region_list(regions);
     return NULL;
   }
@@ -3922,16 +3926,16 @@ char *enhance_base_description_with_hints(char *base_description,
     apply_regional_transition_weights(hints, hint_count, transitions, transition_count);
 
     /* Apply boundary proximity effects */
-    apply_boundary_transition_effects(hints, hint_count, x, y, region_vnum);
+    apply_boundary_transition_effects(hints, hint_count, x, y, region_vnum_id);
 
     /* Apply resource-based weighting for dynamic regional atmosphere */
-    float resource_health =
+    float inner_resource_health =
         calculate_regional_resource_health(x, y, 5); /* 5-coordinate radius sampling */
-    apply_resource_based_hint_weighting(hints, hint_count, resource_health);
+    apply_resource_based_hint_weighting(hints, hint_count, inner_resource_health);
 
     narrative_debug_log(
         2, "Applied regional transition effects with %d nearby regions, resource health %.2f",
-        transition_count, resource_health);
+        transition_count, inner_resource_health);
 
     /* Cleanup transition data */
     int i;
@@ -3950,15 +3954,15 @@ char *enhance_base_description_with_hints(char *base_description,
     int hint_count = 0;
     while (hints[hint_count].hint_text)
       hint_count++;
-    apply_boundary_transition_effects(hints, hint_count, x, y, region_vnum);
+    apply_boundary_transition_effects(hints, hint_count, x, y, region_vnum_id);
 
     /* Apply resource-based weighting for dynamic regional atmosphere */
-    float resource_health =
+    float inner_resource_health =
         calculate_regional_resource_health(x, y, 5); /* 5-coordinate radius sampling */
-    apply_resource_based_hint_weighting(hints, hint_count, resource_health);
+    apply_resource_based_hint_weighting(hints, hint_count, inner_resource_health);
 
     log("DEBUG: Applied boundary effects and resource weighting (health %.2f) for single region",
-        resource_health);
+        inner_resource_health);
   }
 
   // Layer hints onto base description
@@ -4015,8 +4019,8 @@ char *layer_hints_on_base_description(char *base_description, struct region_hint
   srand(x * 1000 + y + time_info.hours);
 
   // Extract semantic elements from hints with regional style
-  int region_vnum = hints[0].region_vnum; // Get region from first hint
-  elements = extract_narrative_elements(hints, weather_condition, time_category, region_vnum);
+  int region_vnum_id = hints[0].region_vnum; // Get region from first hint
+  elements = extract_narrative_elements(hints, weather_condition, time_category, region_vnum_id);
   if (!elements)
   {
     log("DEBUG: No semantic elements extracted, falling back to simple layering");
@@ -4139,11 +4143,12 @@ char *simple_hint_layering(char *base_description, struct region_hint *hints, in
   /* Load regional characteristics for mood-based weighting */
   if (hints && hints[0].hint_text)
   {
-    int region_vnum = 1000004;
-    regional_characteristics = load_region_characteristics(region_vnum);
+    int region_vnum_id = 1000004;
+    regional_characteristics = load_region_characteristics(region_vnum_id);
     if (!regional_characteristics)
     {
-      log("DEBUG: No regional characteristics found for region %d in simple layering", region_vnum);
+      log("DEBUG: No regional characteristics found for region %d in simple layering",
+          region_vnum_id);
     }
   }
 
@@ -4419,7 +4424,7 @@ char *create_unified_wilderness_description(zone_rnum zone, int x, int y)
   struct region_list *regions = NULL;
   struct region_hint *hints = NULL;
   char *unified_description = NULL;
-  int region_vnum = 0;
+  int region_vnum_id = 0;
   const char *weather_condition;
   const char *time_category;
 
@@ -4485,16 +4490,16 @@ char *create_unified_wilderness_description(zone_rnum zone, int x, int y)
     return NULL;
   }
 
-  region_vnum = region_table[best_region->rnum].vnum;
+  region_vnum_id = region_table[best_region->rnum].vnum;
   log("DEBUG: Selected region vnum %d from region_table[%" PRI_IDX "] for descriptions",
-      region_vnum, best_region->rnum);
+      region_vnum_id, best_region->rnum);
 
   // Calculate resource health for optimized caching
   float resource_health = calculate_regional_resource_health(x, y, 5);
 
   // Load contextual hints for current conditions using cached version
-  hints =
-      load_contextual_hints_cached(region_vnum, weather_condition, time_category, resource_health);
+  hints = load_contextual_hints_cached(region_vnum_id, weather_condition, time_category,
+                                       resource_health);
 
   // Create unified description from environmental data and hints (no base template)
   unified_description =

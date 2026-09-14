@@ -84,15 +84,16 @@ static uint32_t movement_trail_hash_mix(uint32_t value)
 }
 
 static size_t movement_trail_location_bucket(enum movement_trail_location_kind kind,
-                                             room_vnum room_vnum, zone_vnum zone_vnum, int x, int y)
+                                             room_vnum room_vnum_id, zone_vnum zone_vnum_id, int x,
+                                             int y)
 {
   uint32_t hash = movement_trail_hash_mix((uint32_t)kind + 1U);
 
-  if (kind == TRAIL_LOCATION_ROOM || room_vnum != NOWHERE)
-    hash ^= movement_trail_hash_mix((uint32_t)room_vnum);
+  if (kind == TRAIL_LOCATION_ROOM || room_vnum_id != NOWHERE)
+    hash ^= movement_trail_hash_mix((uint32_t)room_vnum_id);
   else
   {
-    hash ^= movement_trail_hash_mix((uint32_t)zone_vnum);
+    hash ^= movement_trail_hash_mix((uint32_t)zone_vnum_id);
     hash ^= movement_trail_hash_mix((uint32_t)x + 0x9e3779b9U);
     hash ^= movement_trail_hash_mix((uint32_t)y + 0x85ebca6bU);
   }
@@ -101,17 +102,18 @@ static size_t movement_trail_location_bucket(enum movement_trail_location_kind k
 
 static bool movement_trail_location_matches(const struct movement_trail_location *location,
                                             enum movement_trail_location_kind kind,
-                                            room_vnum room_vnum, zone_vnum zone_vnum, int x, int y)
+                                            room_vnum room_vnum_id, zone_vnum zone_vnum_id, int x,
+                                            int y)
 {
   if (location->kind != kind)
     return false;
   if (kind == TRAIL_LOCATION_ROOM)
-    return location->room_vnum == room_vnum;
-  if (location->room_vnum != room_vnum)
+    return location->room_vnum == room_vnum_id;
+  if (location->room_vnum != room_vnum_id)
     return false;
-  if (room_vnum != NOWHERE)
+  if (room_vnum_id != NOWHERE)
     return true;
-  return location->zone_vnum == zone_vnum && location->x == x && location->y == y;
+  return location->zone_vnum == zone_vnum_id && location->x == x && location->y == y;
 }
 
 static void movement_trail_list_clear(struct trail_data_list *list)
@@ -137,8 +139,8 @@ movement_trail_location_for_room(const struct room_data *room, bool create)
   struct movement_trail_location *location;
   enum movement_trail_location_kind kind;
   bool coordinates_set;
-  room_vnum room_vnum;
-  zone_vnum zone_vnum;
+  room_vnum room_vnum_id;
+  zone_vnum zone_vnum_id;
   int x;
   int y;
 
@@ -147,22 +149,22 @@ movement_trail_location_for_room(const struct room_data *room, bool create)
   kind = movement_trail_room_is_wilderness(room) ? TRAIL_LOCATION_WILDERNESS : TRAIL_LOCATION_ROOM;
   coordinates_set = kind == TRAIL_LOCATION_WILDERNESS &&
                     (IS_WILDERNESS_VNUM(room->number) || room->wilderness_coordinates_set);
-  room_vnum = kind == TRAIL_LOCATION_ROOM || !coordinates_set ? room->number : NOWHERE;
-  zone_vnum = kind == TRAIL_LOCATION_WILDERNESS ? movement_trail_wilderness_zone(room) : NOWHERE;
+  room_vnum_id = kind == TRAIL_LOCATION_ROOM || !coordinates_set ? room->number : NOWHERE;
+  zone_vnum_id = kind == TRAIL_LOCATION_WILDERNESS ? movement_trail_wilderness_zone(room) : NOWHERE;
   x = coordinates_set ? room->coords[X_COORD] : 0;
   y = coordinates_set ? room->coords[Y_COORD] : 0;
-  head = &movement_trail_location_buckets[movement_trail_location_bucket(kind, room_vnum, zone_vnum,
-                                                                         x, y)];
+  head = &movement_trail_location_buckets[movement_trail_location_bucket(kind, room_vnum_id,
+                                                                         zone_vnum_id, x, y)];
   for (location = *head; location != NULL; location = location->next)
-    if (movement_trail_location_matches(location, kind, room_vnum, zone_vnum, x, y))
+    if (movement_trail_location_matches(location, kind, room_vnum_id, zone_vnum_id, x, y))
       return location;
   if (!create)
     return NULL;
 
   CREATE(location, struct movement_trail_location, 1);
   location->kind = kind;
-  location->room_vnum = room_vnum;
-  location->zone_vnum = zone_vnum;
+  location->room_vnum = room_vnum_id;
+  location->zone_vnum = zone_vnum_id;
   location->x = x;
   location->y = y;
   location->next = *head;

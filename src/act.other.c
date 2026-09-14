@@ -5634,20 +5634,20 @@ void record_quit_feedback(struct char_data *ch, const char *reason)
 
   format_time_string(now, "%Y-%m-%d %H:%M:%S", time_buf, sizeof(time_buf));
 
-  FILE *logfile = fopen_restricted(QUIT_FEEDBACK_FILE, "a");
-  if (!logfile)
+  FILE *logfile_value = fopen_restricted(QUIT_FEEDBACK_FILE, "a");
+  if (!logfile_value)
   {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: Could not open %s for quit feedback: %s",
            QUIT_FEEDBACK_FILE, strerror(errno));
     return;
   }
 
-  fprintf(logfile, "[%s] %s (Account: %s, %s %s, Room: %d, Host: %s): %s\n", time_buf, GET_NAME(ch),
-          account, race_name, class_breakdown,
+  fprintf(logfile_value, "[%s] %s (Account: %s, %s %s, Room: %d, Host: %s): %s\n", time_buf,
+          GET_NAME(ch), account, race_name, class_breakdown,
           IN_ROOM(ch) != NOWHERE ? (int)GET_ROOM_VNUM(IN_ROOM(ch)) : -1, host,
           *cleaned ? cleaned : "(no reason provided)");
 
-  fclose(logfile);
+  fclose(logfile_value);
 
   /* Notify online staff of the quit feedback entry */
   mudlog(BRF, LVL_STAFF, TRUE, "QUIT FEEDBACK: %s (Account: %s, %s %s): %s", GET_NAME(ch), account,
@@ -12262,12 +12262,12 @@ ACMDU(do_device)
       for (j = 0; j < inv->num_spells; j++)
       {
         int spellnum = inv->spell_effects[j];
-        int spell_level = 0;
+        int inner_spell_level = 0;
 
         /* Prefer persisted assigned level if available */
         if (inv->spell_levels[j] > 0)
         {
-          spell_level = inv->spell_levels[j];
+          inner_spell_level = inv->spell_levels[j];
         }
         else
         {
@@ -12276,15 +12276,15 @@ ACMDU(do_device)
           /* Use the lower of wizard or cleric level (if both are available) */
           if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT)
           {
-            spell_level = MIN(wizard_level, cleric_level);
+            inner_spell_level = MIN(wizard_level, cleric_level);
           }
           else if (wizard_level < LVL_IMMORT)
           {
-            spell_level = wizard_level;
+            inner_spell_level = wizard_level;
           }
           else if (cleric_level < LVL_IMMORT)
           {
-            spell_level = cleric_level;
+            inner_spell_level = cleric_level;
           }
           else
           {
@@ -12292,9 +12292,9 @@ ACMDU(do_device)
           }
         }
 
-        if (spell_level >= 1 && spell_level <= 7)
+        if (inner_spell_level >= 1 && inner_spell_level <= 7)
         {
-          int circle = (spell_level + 1) / 2 - 1;
+          int circle = (inner_spell_level + 1) / 2 - 1;
           if (circle >= 0 && circle < 4)
             used_circles[circle]++;
         }
@@ -12461,12 +12461,12 @@ ACMDU(do_device)
     int total_spell_levels = 0;
     for (i = 0; i < num_spells; i++)
     {
-      int spell_level = spell_info[spell_nums[i]].min_level[CLASS_WIZARD];
-      if (spell_level >= LVL_IMMORT)
-        spell_level = spell_info[spell_nums[i]].min_level[CLASS_CLERIC];
-      if (spell_level < LVL_IMMORT && spell_level >= 1)
+      int inner_spell_level = spell_info[spell_nums[i]].min_level[CLASS_WIZARD];
+      if (inner_spell_level >= LVL_IMMORT)
+        inner_spell_level = spell_info[spell_nums[i]].min_level[CLASS_CLERIC];
+      if (inner_spell_level < LVL_IMMORT && inner_spell_level >= 1)
       {
-        total_spell_levels += spell_level;
+        total_spell_levels += inner_spell_level;
       }
     }
 
@@ -12976,11 +12976,11 @@ ACMDU(do_device)
           {
             /* Calculate total spell circles for explosion damage */
             int total_circles = 0;
-            int j;
-            for (j = 0; j < inv->num_spells; j++)
+            int inner_j;
+            for (inner_j = 0; inner_j < inv->num_spells; inner_j++)
             {
-              int spell_circle = compute_spells_circle(ch, CLASS_WIZARD, inv->spell_effects[j],
-                                                       METAMAGIC_NONE, DOMAIN_UNDEFINED);
+              int spell_circle = compute_spells_circle(
+                  ch, CLASS_WIZARD, inv->spell_effects[inner_j], METAMAGIC_NONE, DOMAIN_UNDEFINED);
               total_circles += spell_circle;
             }
 
@@ -13069,10 +13069,10 @@ ACMDU(do_device)
 
     for (i = 0; i < inv->num_spells; i++)
     {
-      int spell_num = inv->spell_effects[i];
-      if (spell_num > 0 && spell_num < NUM_SPELLS)
+      int inner_spell_num = inv->spell_effects[i];
+      if (inner_spell_num > 0 && inner_spell_num < NUM_SPELLS)
       {
-        call_magic(ch, target, NULL, spell_num, 0, artificer_level, CAST_DEVICE);
+        call_magic(ch, target, NULL, inner_spell_num, 0, artificer_level, CAST_DEVICE);
       }
     }
 
@@ -13377,7 +13377,7 @@ ACMDU(do_device)
 
   if (is_abbrev(arg1, "spells"))
   {
-    int spell_num;
+    int inner_spell_num;
 
     if (!*arg2)
     {
@@ -13426,10 +13426,10 @@ ACMDU(do_device)
                                     : "5th+");
 
       /* First pass: collect all spells at this level */
-      for (spell_num = 1; spell_num < NUM_SPELLS; spell_num++)
+      for (inner_spell_num = 1; inner_spell_num < NUM_SPELLS; inner_spell_num++)
       {
-        int spell_circle =
-            compute_spells_circle(ch, spell_class, spell_num, METAMAGIC_NONE, DOMAIN_UNDEFINED);
+        int spell_circle = compute_spells_circle(ch, spell_class, inner_spell_num, METAMAGIC_NONE,
+                                                 DOMAIN_UNDEFINED);
         if (spell_circle == spell_level)
         {
           if (!spells_found)
@@ -13437,7 +13437,7 @@ ACMDU(do_device)
             send_to_char(ch, "%s", level_header);
             spells_found = 1;
           }
-          strncpy(spell_names[spell_count], spell_info[spell_num].name, 49);
+          strncpy(spell_names[spell_count], spell_info[inner_spell_num].name, 49);
           spell_names[spell_count][49] = '\0'; /* Ensure null termination */
           spell_count++;
           if (spell_count >= 100)
@@ -13511,11 +13511,11 @@ ACMDU(do_device)
       for (j = 0; j < inv->num_spells; j++)
       {
         int spellnum = inv->spell_effects[j];
-        int spell_level = 0;
+        int inner_spell_level = 0;
 
         if (inv->spell_levels[j] > 0)
         {
-          spell_level = inv->spell_levels[j];
+          inner_spell_level = inv->spell_levels[j];
         }
         else
         {
@@ -13524,15 +13524,15 @@ ACMDU(do_device)
           /* Use the lower of wizard or cleric level (if both are available) */
           if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT)
           {
-            spell_level = MIN(wizard_level, cleric_level);
+            inner_spell_level = MIN(wizard_level, cleric_level);
           }
           else if (wizard_level < LVL_IMMORT)
           {
-            spell_level = wizard_level;
+            inner_spell_level = wizard_level;
           }
           else if (cleric_level < LVL_IMMORT)
           {
-            spell_level = cleric_level;
+            inner_spell_level = cleric_level;
           }
           else
           {
@@ -13540,9 +13540,9 @@ ACMDU(do_device)
           }
         }
 
-        if (spell_level >= 1 && spell_level <= 7)
+        if (inner_spell_level >= 1 && inner_spell_level <= 7)
         {
-          int circle = (spell_level + 1) / 2 - 1;
+          int circle = (inner_spell_level + 1) / 2 - 1;
           if (circle >= 0 && circle < 4)
             used_circles[circle]++;
         }
