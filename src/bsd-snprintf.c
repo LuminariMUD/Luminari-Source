@@ -372,7 +372,7 @@ static void dopr(char *buffer, size_t maxlen, const char *format, va_list args)
         {
           short int *num;
           num = va_arg(args, short int *);
-          *num = currlen;
+          *num = (short int)(currlen);
         }
         else if (cflags == DP_C_LONG)
         {

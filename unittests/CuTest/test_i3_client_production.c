@@ -224,7 +224,7 @@ void Test_i3_fragmented_large_mudlist_response(CuTest *tc)
   CuAssertIntEquals(tc, 100, mud_count);
   CuAssertPtrNotNull(tc, i3_find_mud("RegressionMUD042"));
   CuAssertIntEquals(tc, 4042, i3_find_mud("RegressionMUD042")->port);
-  CuAssertIntEquals(tc, 1, i3_client->messages_received);
+  CuAssertIntEquals(tc, 1, (int)i3_client->messages_received);
 
   json_object_put(root);
   i3_test_cleanup();
@@ -265,7 +265,7 @@ void Test_i3_line_framing_preserves_partial_notifications(CuTest *tc)
   CuAssertStrEquals(tc, "Beta", event->from_user);
   CuAssertStrEquals(tc, "two", event->message);
   i3_free_event(event);
-  CuAssertIntEquals(tc, 2, i3_client->messages_received);
+  CuAssertIntEquals(tc, 2, (int)i3_client->messages_received);
 
   i3_test_cleanup();
 }
@@ -393,7 +393,7 @@ void Test_i3_direct_message_lookup_does_not_require_a_viewer(CuTest *tc)
   i3_process_events();
 
   CuAssertIntEquals(tc, 0, i3_client->event_queue_size);
-  CuAssertIntEquals(tc, 1, i3_client->messages_received);
+  CuAssertIntEquals(tc, 1, (int)i3_client->messages_received);
 
   i3_test_cleanup();
   character_list = saved_character_list;

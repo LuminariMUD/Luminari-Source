@@ -232,7 +232,7 @@ static void verify_mud_event_owner_generation(CuTest *tc, enum event_backend_kin
   attach_mud_event(new_mud_event(eARMOR_SPECAB_BLINDING, &object, NULL), 100);
   attach_mud_event(new_mud_event(eITEM_SPECAB_HORN_OF_SUMMONING, &object, NULL), 100);
   CuAssertPtrNotNull(tc, object.events);
-  CuAssertIntEquals(tc, 2, object.events->iSize);
+  CuAssertIntEquals(tc, 2, (int)object.events->iSize);
   CuAssertTrue(tc, object.event_owner_generation != 0);
   first_event = (struct mud_event_data *)object.events->pFirstItem->pContent;
   last_event = (struct mud_event_data *)object.events->pLastItem->pContent;
@@ -255,7 +255,7 @@ static void verify_mud_event_owner_generation(CuTest *tc, enum event_backend_kin
   descriptor.events = create_list();
   attach_mud_event(new_mud_event(ePROTOCOLS, &descriptor, NULL), 100);
   CuAssertPtrNotNull(tc, descriptor.events);
-  CuAssertIntEquals(tc, 1, descriptor.events->iSize);
+  CuAssertIntEquals(tc, 1, (int)descriptor.events->iSize);
   first_descriptor_generation = descriptor.event_owner_generation;
   first_event = (struct mud_event_data *)descriptor.events->pFirstItem->pContent;
   CuAssertTrue(tc, mud_event_is_live(first_event));

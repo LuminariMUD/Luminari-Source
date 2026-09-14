@@ -1386,7 +1386,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Mote"))
           load_craft_motes_onhand(fl, ch);
         else if (!strcmp(tag, "Mrph"))
-          IS_MORPHED(ch) = atol(line);
+          IS_MORPHED(ch) = (ubyte)(atol(line));
         else if (!strcmp(tag, "MFrm"))
           MERGE_FORMS_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "Mrcy"))
@@ -2434,7 +2434,7 @@ bool save_char_checked(struct char_data *ch, int mode)
     /* Only update the time.played and time.logon if the character is playing. */
     if (STATE(ch->desc) == CON_PLAYING)
     {
-      ch->player.time.played += time(0) - ch->player.time.logon;
+      ch->player.time.played += (int)(time(0) - ch->player.time.logon);
       ch->player.time.logon = time(0);
     }
   }

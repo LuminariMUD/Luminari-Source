@@ -1333,7 +1333,7 @@ void terrain_api_process_clients(void)
       if (bytes_read <= remaining_space)
       {
         strncpy(client->input_buffer + client->input_pos, temp_buffer, bytes_read);
-        client->input_pos += bytes_read;
+        client->input_pos += (int)(bytes_read);
         client->input_buffer[client->input_pos] = '\0';
 
         is_http = terrain_api_request_is_http(client->input_buffer);

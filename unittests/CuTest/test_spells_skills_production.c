@@ -1720,7 +1720,7 @@ void Test_group_inspiration_affects_finish_with_nested_group_calculations(CuTest
   CuAssertTrue(tc, inspire_on_pet);
   CuAssertTrue(tc, final_stand_on_ch);
   CuAssertTrue(tc, final_stand_on_pet);
-  CuAssertIntEquals(tc, 0, members.iIterators);
+  CuAssertIntEquals(tc, 0, (int)members.iIterators);
 }
 
 void Test_split_enchantment_uses_perk_ownership_and_nonnegative_cooldowns(CuTest *tc)

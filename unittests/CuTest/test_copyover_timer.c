@@ -83,14 +83,14 @@ void Test_copyover_checkpoint_timer_is_suspended_and_restored(CuTest *tc)
   CuAssertIntEquals(tc, 0, arm_result);
   CuAssertTrue(tc, suspend_result);
   CuAssertIntEquals(tc, 0, inspect_suspended_result);
-  CuAssertIntEquals(tc, 0, suspended_timer.it_interval.tv_sec);
-  CuAssertIntEquals(tc, 0, suspended_timer.it_interval.tv_usec);
-  CuAssertIntEquals(tc, 0, suspended_timer.it_value.tv_sec);
-  CuAssertIntEquals(tc, 0, suspended_timer.it_value.tv_usec);
+  CuAssertIntEquals(tc, 0, (int)suspended_timer.it_interval.tv_sec);
+  CuAssertIntEquals(tc, 0, (int)suspended_timer.it_interval.tv_usec);
+  CuAssertIntEquals(tc, 0, (int)suspended_timer.it_value.tv_sec);
+  CuAssertIntEquals(tc, 0, (int)suspended_timer.it_value.tv_usec);
   CuAssertTrue(tc, resume_result);
   CuAssertIntEquals(tc, 0, inspect_resumed_result);
-  CuAssertIntEquals(tc, 120, resumed_timer.it_interval.tv_sec);
-  CuAssertIntEquals(tc, 0, resumed_timer.it_interval.tv_usec);
+  CuAssertIntEquals(tc, 120, (int)resumed_timer.it_interval.tv_sec);
+  CuAssertIntEquals(tc, 0, (int)resumed_timer.it_interval.tv_usec);
   CuAssertTrue(tc, timerisset(&resumed_timer.it_value));
   CuAssertIntEquals(tc, 0, cleanup_result);
 #else

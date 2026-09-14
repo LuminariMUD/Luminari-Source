@@ -203,7 +203,7 @@ void Test_throwable_weapon_classification_enforces_instance_rules(CuTest *tc)
 
   GET_OBJ_BOUND_ID(&obj) = (int)(GET_IDNUM(&ch) + 1);
   CuAssertTrue(tc, !is_throwable_weapon(&ch, &obj));
-  GET_OBJ_BOUND_ID(&obj) = GET_IDNUM(&ch);
+  GET_OBJ_BOUND_ID(&obj) = (int)GET_IDNUM(&ch);
   CuAssertTrue(tc, is_throwable_weapon(&ch, &obj));
 
   obj.special_abilities = NULL;
@@ -1353,7 +1353,7 @@ void Test_final_thrown_anchor_exhaustion_stops_reciprocal_combat(CuTest *tc)
 
   CuAssertPtrEquals(tc, NULL, FIGHTING(&attacker));
   CuAssertPtrEquals(tc, NULL, FIGHTING(&target));
-  CuAssertIntEquals(tc, 0, combat_state_count_attackers(&target));
+  CuAssertIntEquals(tc, 0, (int)combat_state_count_attackers(&target));
   CuAssertIntEquals(tc, PROJECTILE_MODE_NONE, PROJECTILE_MODE(&attacker));
   CuAssertIntEquals(tc, NOTHING, THROWN_ANCHOR_VNUM(&attacker));
   CuAssertIntEquals(tc, -1, THROWN_ANCHOR_WEAR_SLOT(&attacker));
@@ -1419,11 +1419,11 @@ void Test_collect_recovers_throwables_from_room_and_corpse(CuTest *tc)
   CuAssertIntEquals(tc, 2, collected);
   CuAssertPtrEquals(tc, &room_throwable, pouch.contains);
   CuAssertPtrEquals(tc, &ch, corpse_throwable.carried_by);
-  CuAssertIntEquals(tc, NOBODY, MISSILE_ID(&corpse_throwable));
+  CuAssertIntEquals(tc, NOBODY, (int)MISSILE_ID(&corpse_throwable));
   CuAssertPtrEquals(tc, &corpse, room.contents);
   CuAssertPtrEquals(tc, &missile, corpse.next_content);
   CuAssertIntEquals(tc, 0, IN_ROOM(&missile));
-  CuAssertIntEquals(tc, GET_IDNUM(&ch), MISSILE_ID(&missile));
+  CuAssertIntEquals(tc, (int)GET_IDNUM(&ch), (int)MISSILE_ID(&missile));
 
   world = saved_world;
   top_of_world = saved_top_of_world;

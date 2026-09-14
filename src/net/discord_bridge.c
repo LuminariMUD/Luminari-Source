@@ -589,7 +589,7 @@ void process_discord_input(void)
     return;
   }
 
-  discord_bridge->inbuf_len += bytes_read;
+  discord_bridge->inbuf_len += (int)(bytes_read);
   discord_bridge->inbuf[discord_bridge->inbuf_len] = '\0';
   discord_bridge->last_activity = time(NULL); /* Update activity timestamp */
 
@@ -606,7 +606,7 @@ void process_discord_input(void)
     /* Move remaining data to beginning of buffer */
     memmove(discord_bridge->inbuf, newline + 1,
             discord_bridge->inbuf_len - (newline - discord_bridge->inbuf + 1));
-    discord_bridge->inbuf_len -= (newline - discord_bridge->inbuf + 1);
+    discord_bridge->inbuf_len -= (int)((newline - discord_bridge->inbuf + 1));
   }
 
   /* Check for buffer overflow */
@@ -647,7 +647,7 @@ void process_discord_output(void)
   {
     memmove(discord_bridge->outbuf, discord_bridge->outbuf + bytes_sent,
             discord_bridge->outbuf_len - bytes_sent);
-    discord_bridge->outbuf_len -= bytes_sent;
+    discord_bridge->outbuf_len -= (int)(bytes_sent);
   }
 }
 

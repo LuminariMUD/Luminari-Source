@@ -304,7 +304,7 @@ void create_wall(struct char_data *ch, int room, int dir, int type, int level)
   GET_OBJ_VAL(wall, WALL_TYPE) = type;
   GET_OBJ_VAL(wall, WALL_DIR) = dir;
   GET_OBJ_VAL(wall, WALL_LEVEL) = level; /* in case we can't find wall creator */
-  GET_OBJ_VAL(wall, WALL_IDNUM) = GET_IDNUM(ch);
+  GET_OBJ_VAL(wall, WALL_IDNUM) = (int)GET_IDNUM(ch);
 
   /* all done!  drop the object in the room and let it wreak havoc! */
   obj_to_room(wall, room);

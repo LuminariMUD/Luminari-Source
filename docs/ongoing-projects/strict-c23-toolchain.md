@@ -121,6 +121,7 @@ per compiler.
 | 2.5 | const-correct test fixtures and five read-only parameters | 5188 | 6675 |
 | 1.3a | explicit casts where 64-bit values narrow to `int` outside macros; `oedit` `max_val` is `int` | 4793 | 6278 |
 | 1.3b | width-matched `long_min`, `size_min`, `u64_min` and friends where `MIN` and `MAX` truncated their arguments | 4701 | 6183 |
+| 1.3c | narrowing inside macros and multi-line expressions; clan return widened; `look_at_room_number` guard fixed; Clang `shorten-64-to-32` at zero | 4535 | 6018 |
 
 Every step was also verified with a host `make test` (1483 tests pass) before
 it was committed, and each promotion to the baseline tier was first built at
@@ -256,6 +257,23 @@ Notes from step 1.3 (second pass):
   - The rent withdrawal in `Crash_load_objs` subtracted gold from an
     `unsigned long` cost; it now subtracts in signed arithmetic.
 
+Notes from step 1.3 (third pass):
+
+- Narrowing inside macro expansions was fixed at the use, not inside the
+  macro: `CuAssertIntEquals` arguments and the `GET_IDNUM`, `GET_EXP`, and
+  `GET_PREF` values convert explicitly, `APPEND_TO_BUF` converts its `size_t`
+  offset where it calls `snprintf_append`, and multi-line expressions (the
+  experience displays, string-length sums, MSDP values) cast the whole value.
+- The clan investment return is `long`: an investment of up to `MAX_BANK`
+  plus its return does not fit in `int`. Its log message now uses `%ld`.
+- `look_at_room_number` took a `long`, so its `room_number < 0` guard never
+  fired for the `room_rnum` values every caller passes, and `NOWHERE` reached
+  `ROOM_FLAGS()`. It now takes a `room_rnum` and rejects `NOWHERE` and rooms
+  past `top_of_world`.
+- Clang's `shorten-64-to-32` class is empty after this pass. It stays in the
+  migration tier until GCC's `-Wconversion`, which covers the same family plus
+  `int` to narrower types, is also empty.
+
 - The production half of the class (about 290 sites: string tables declared
   `char *[]`, `one_argument_u((char *)argument, ...)`, `findLine` in the index
   tools) is step 3.4.
@@ -274,8 +292,8 @@ Notes from step 1.3 (second pass):
    `possible-null-argument`, 10 `out-of-bounds`, and 4 `use-after-free`
    sites. These are candidate bugs, not noise, and deserve their own issue.
 4. Burn down the rest of the migration budget. Steps 0, 1.1, 1.2, and 2.1 to
-   2.6 are done (see the progress table). Left: step 1.3 (`size_t` and `long`
-   narrowing), step 3 (jump-misses-init, float promotion and conversion,
+   2.6 are done (see the progress table), and step 1.3 is done for 64-bit
+   narrowing. Left: step 3 (jump-misses-init, float promotion and conversion,
    shadowing, production write-strings and cast-qual, small classes), and the
    step 4 sign-conversion decision.
 5. Cadence. Bump the current versions in `test.yml`,
@@ -325,7 +343,7 @@ migration list to the baseline list in `production_profile.sh`.
     is a `case` label jumping over an initialized declaration, which the
     style guide already forbids (declarations at the top of blocks).
 
-### Step 1: header and type roots (1.1 and 1.2 done)
+### Step 1: header and type roots (done)
 
 1. `IS_SET_AR`: cast the array element to `unsigned int` before the mask, or
    store flag arrays as `unsigned int` if the ASCII loaders and savers agree.

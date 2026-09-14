@@ -5562,7 +5562,7 @@ static void rol_reset_legacy_door(room_rnum room, int direction, int state)
   door_state_begin(&operation, room, direction, false, DOMAIN_DOOR_RESET);
   door_state_apply(
       &operation, ~0,
-      rol_reset_legacy_door_flags(world[room].dir_option[direction]->exit_info, state));
+      (int)rol_reset_legacy_door_flags(world[room].dir_option[direction]->exit_info, state));
   if (state & 0x10)
     rol_exit_trap_rearm(room, direction);
   door_state_finish(&operation);

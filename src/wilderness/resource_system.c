@@ -325,7 +325,7 @@ float apply_harvest_regeneration(int resource_type, float base_value, struct res
   /* Calculate time-based regeneration */
   time_t now = time(NULL);
   time_t last_harvest = node->last_harvest[resource_type];
-  float hours_passed = (now - last_harvest) / 3600.0;
+  float hours_passed = (float)((double)(now - last_harvest) / 3600.0);
 
   /* Regenerate based on time and config */
   float regenerated = consumed * config->regen_rate_per_hour * hours_passed;

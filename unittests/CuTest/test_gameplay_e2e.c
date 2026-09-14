@@ -6890,7 +6890,7 @@ static void verify_tactical_defense_clock(CuTest *tc, int scenario)
     combat_encounter_leave(&f.victim, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
     FIGHTING(&f.actor) = FIGHTING(&f.victim) = NULL;
     CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
-    CuAssertIntEquals(tc, 0, f.actor.defensive_casting_turn);
+    CuAssertIntEquals(tc, 0, (int)f.actor.defensive_casting_turn);
     if (scenario == 6)
     {
       FIGHTING(&f.actor) = &f.victim;
@@ -7366,7 +7366,7 @@ static void verify_billowing_cloud_exposure(CuTest *tc, int scenario)
   if (scenario == 3 || scenario == 6)
   {
     CuAssertIntEquals(tc, 0, trace.count);
-    CuAssertIntEquals(tc, 0, tactical_room_hazard_exposures());
+    CuAssertIntEquals(tc, 0, (int)tactical_room_hazard_exposures());
     CuAssertTrue(tc, tactical_room_hazard_exposure_rejections() ==
                          rejected_before + (scenario == 3 ? 1U : 0U));
   }
@@ -7374,7 +7374,7 @@ static void verify_billowing_cloud_exposure(CuTest *tc, int scenario)
   {
     CuAssertIntEquals(tc, scenario == 5 ? 2 : 1, trace.count);
     CuAssertTrue(tc, trace.source_identity == source->source_identity);
-    CuAssertIntEquals(tc, scenario == 5 ? 2 : 1, tactical_room_hazard_exposures());
+    CuAssertIntEquals(tc, scenario == 5 ? 2 : 1, (int)tactical_room_hazard_exposures());
   }
 
   if (scenario == 0)
@@ -7413,7 +7413,7 @@ static void verify_billowing_cloud_exposure(CuTest *tc, int scenario)
   {
     rem_room_aff(source);
     source = NULL;
-    CuAssertIntEquals(tc, 0, tactical_room_hazard_exposures());
+    CuAssertIntEquals(tc, 0, (int)tactical_room_hazard_exposures());
     pulse += 6 RL_SEC;
     event_test_advance();
     CuAssertIntEquals(tc, 1, trace.count);
@@ -7424,7 +7424,7 @@ static void verify_billowing_cloud_exposure(CuTest *tc, int scenario)
     event_test_advance();
     CuAssertIntEquals(tc, 1, trace.count);
     CuAssertPtrEquals(tc, NULL, raff_list);
-    CuAssertIntEquals(tc, 0, tactical_room_hazard_exposures());
+    CuAssertIntEquals(tc, 0, (int)tactical_room_hazard_exposures());
     source = NULL;
   }
   else if (scenario == 5)
@@ -7445,11 +7445,11 @@ static void verify_billowing_cloud_exposure(CuTest *tc, int scenario)
     CuAssertTrue(tc, combat_encounter_join(&fixture.actor, &fixture.victim, 1));
     CuAssertTrue(tc, combat_encounter_join(&fixture.victim, &fixture.actor, 1));
     CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
-    CuAssertIntEquals(tc, 0, tactical_room_hazard_exposures());
+    CuAssertIntEquals(tc, 0, (int)tactical_room_hazard_exposures());
     event_free_all();
     event_init();
     CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
-    CuAssertIntEquals(tc, 2, tactical_room_hazard_exposures());
+    CuAssertIntEquals(tc, 2, (int)tactical_room_hazard_exposures());
     pulse += 6 RL_SEC;
     event_test_advance();
     CuAssertIntEquals(tc, 2, trace.count);

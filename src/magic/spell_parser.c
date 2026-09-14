@@ -300,7 +300,7 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
       if (!strncmp(syls[j].org, lbuf + ofs, strlen(syls[j].org)))
       {
         strlcat(buf, syls[j].news, sizeof(buf)); /* strcat: BAD */
-        ofs += strlen(syls[j].org);
+        ofs += (int)(strlen(syls[j].org));
         break;
       }
     }

@@ -3327,7 +3327,7 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
   int tempXP;
 
   /* in the clear! */
-  tempXP = GET_EXP(ch);
+  tempXP = (int)GET_EXP(ch);
   original_size = GET_REAL_SIZE(ch);
   preserve_original_size = GET_REAL_RACE(ch) == RACE_LICH || GET_REAL_RACE(ch) == RACE_VAMPIRE;
 
@@ -7170,7 +7170,8 @@ ACMD(do_steal)
       /* Steal some gold coins */
       gold = (GET_GOLD(vict) * rand_number(1, 10)) / 100;
       gold = MIN(1782, gold);
-      gold = long_min(gold, award_capacity(ch, AWARD_GOLD)); /* only what the thief can carry */
+      gold =
+          (int)long_min(gold, award_capacity(ch, AWARD_GOLD)); /* only what the thief can carry */
       if (gold > 0)
       {
         award_gold(ch, gold);
@@ -12033,7 +12034,8 @@ ACMDU(do_device)
     {
       int minutes_left =
           (int)((ch->player_specials->saved.device_creation_cooldown - time(0)) / 60);
-      int seconds_left = (ch->player_specials->saved.device_creation_cooldown - time(0)) % 60;
+      int seconds_left =
+          (int)((ch->player_specials->saved.device_creation_cooldown - time(0)) % 60);
       send_to_char(ch,
                    "You must wait %d minute%s and %d second%s before creating another device.\r\n",
                    minutes_left, (minutes_left == 1) ? "" : "s", seconds_left,
@@ -12582,7 +12584,7 @@ ACMDU(do_device)
     if (inv->cooldown_expires > time(0))
     {
       int hours_left = (int)((inv->cooldown_expires - time(0)) / 3600);
-      int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
+      int minutes_left = (int)(((inv->cooldown_expires - time(0)) % 3600) / 60);
       if (hours_left > 0)
       {
         send_to_char(
@@ -13135,7 +13137,7 @@ ACMDU(do_device)
           if (remaining_space > 0)
           {
             strncat(spell_list, spell_name, remaining_space);
-            spell_list_len += strlen(spell_name);
+            spell_list_len += (int)(strlen(spell_name));
             if (spell_list_len >= 195)
             {
               spell_list[195] = '\0';
@@ -13309,7 +13311,7 @@ ACMDU(do_device)
     if (inv->cooldown_expires > time(0) && inv->uses == 0)
     {
       int hours_left = (int)((inv->cooldown_expires - time(0)) / 3600);
-      int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
+      int minutes_left = (int)(((inv->cooldown_expires - time(0)) % 3600) / 60);
       send_to_char(ch, "  Status: BROKEN - will be repaired in %d hours, %d minutes\r\n",
                    hours_left, minutes_left);
     }
@@ -13322,7 +13324,7 @@ ACMDU(do_device)
     if (inv->cooldown_expires > time(0))
     {
       int hours_left = (int)((inv->cooldown_expires - time(0)) / 3600);
-      int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
+      int minutes_left = (int)(((inv->cooldown_expires - time(0)) % 3600) / 60);
       if (inv->uses == 0)
       {
         send_to_char(ch,
@@ -13613,8 +13615,8 @@ ACMDU(do_device)
       {
         found_any_cooldowns = 1;
         int hours_left = (int)((inv->cooldown_expires - time(0)) / 3600);
-        int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
-        int seconds_left = (inv->cooldown_expires - time(0)) % 60;
+        int minutes_left = (int)(((inv->cooldown_expires - time(0)) % 3600) / 60);
+        int seconds_left = (int)((inv->cooldown_expires - time(0)) % 60);
         if (hours_left > 0)
         {
           send_to_char(ch, "  [%d] %s - COOLDOWN: %d hour%s, %d minute%s, %d second%s\r\n", i + 1,

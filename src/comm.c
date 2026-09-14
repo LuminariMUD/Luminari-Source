@@ -1031,7 +1031,7 @@ static int get_max_players(void)
     if (limit.rlim_max == RLIM_INFINITY)
       max_descs = CONFIG_MAX_PLAYING + NUM_RESERVED_DESCS;
     else
-      max_descs = size_min(CONFIG_MAX_PLAYING + NUM_RESERVED_DESCS, limit.rlim_max);
+      max_descs = (int)size_min(CONFIG_MAX_PLAYING + NUM_RESERVED_DESCS, limit.rlim_max);
 #else
     max_descs = MIN(CONFIG_MAX_PLAYING + NUM_RESERVED_DESCS, limit.rlim_max);
 #endif
@@ -6237,10 +6237,10 @@ static void msdp_update(void)
       snprintf(buf, sizeof(buf), "%s", GET_TITLE(ch) ? GET_TITLE(ch) : "");
       strip_colors(buf);
       MSDPSetString(d, eMSDP_TITLE, buf);
-      MSDPSetNumber(d, eMSDP_EXPERIENCE, GET_EXP(ch));
+      MSDPSetNumber(d, eMSDP_EXPERIENCE, (int)GET_EXP(ch));
       MSDPSetNumber(d, eMSDP_EXPERIENCE_TNL, (int)(level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch)));
       MSDPSetNumber(d, eMSDP_EXPERIENCE_MAX,
-                    level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch)));
+                    (int)(level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch))));
 
       MSDPSetNumber(d, eMSDP_HEALTH, GET_HIT(ch));
       MSDPSetNumber(d, eMSDP_HEALTH_MAX, GET_MAX_HIT(ch));

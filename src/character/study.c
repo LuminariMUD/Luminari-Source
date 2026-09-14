@@ -3233,7 +3233,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     {
     case 'y':
     case 'Y':
-      tempXP = GET_EXP(ch);
+      tempXP = (int)GET_EXP(ch);
       /* Make sure that players can't make wildshaped forms permanent.*/
       SUBRACE(ch) = 0;
       IS_MORPHED(ch) = 0;

@@ -308,7 +308,7 @@ void show_level_history(struct char_data *ch, int level)
   while (temp != NULL)
   {
     send_to_char(ch, "%s ", temp);
-    len += strlen(temp);
+    len += (int)(strlen(temp));
     if (strstr(temp, "\n"))
       len = 0;
     if (len > 70)

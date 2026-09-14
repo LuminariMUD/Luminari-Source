@@ -2964,7 +2964,7 @@ int rand_number(int from, int to)
    * circle_random() though, which shouldn't have that problem. Mean and
    * standard deviation of both are identical (within the realm of statistical
    * identity) if the rand() implementation is non-broken. */
-  return ((circle_random() % (to - from + 1)) + from);
+  return (int)(((circle_random() % (to - from + 1)) + from));
 }
 
 /** floating-point version of the random number function above.
@@ -3510,16 +3510,16 @@ struct time_info_data *real_time_passed(time_t t2, time_t t1)
 
   secs = t2 - t1;
 
-  now.hours = (secs / SECS_PER_REAL_HOUR) % 24; /* 0..23 hours */
+  now.hours = (int)((secs / SECS_PER_REAL_HOUR) % 24); /* 0..23 hours */
   secs -= SECS_PER_REAL_HOUR * now.hours;
 
-  now.day = (secs / SECS_PER_REAL_DAY) % 35; /* 0..34 days  */
+  now.day = (int)((secs / SECS_PER_REAL_DAY) % 35); /* 0..34 days  */
   secs -= SECS_PER_REAL_DAY * now.day;
 
-  now.month = (secs / (SECS_PER_REAL_YEAR / 12)) % 12; /* 0..11 months */
+  now.month = (int)((secs / (SECS_PER_REAL_YEAR / 12)) % 12); /* 0..11 months */
   secs -= (SECS_PER_REAL_YEAR / 12) * now.month;
 
-  now.year = (secs / SECS_PER_REAL_YEAR);
+  now.year = (sh_int)((secs / SECS_PER_REAL_YEAR));
   secs -= SECS_PER_REAL_YEAR * now.year;
 
   return (&now);
@@ -3538,16 +3538,16 @@ struct time_info_data *mud_time_passed(time_t t2, time_t t1)
 
   secs = t2 - t1;
 
-  now.hours = (secs / SECS_PER_MUD_HOUR) % 24; /* 0..23 hours */
+  now.hours = (int)((secs / SECS_PER_MUD_HOUR) % 24); /* 0..23 hours */
   secs -= SECS_PER_MUD_HOUR * now.hours;
 
-  now.day = (secs / SECS_PER_MUD_DAY) % 35; /* 0..34 days  */
+  now.day = (int)((secs / SECS_PER_MUD_DAY) % 35); /* 0..34 days  */
   secs -= SECS_PER_MUD_DAY * now.day;
 
-  now.month = (secs / SECS_PER_MUD_MONTH) % 17; /* 0..16 months */
+  now.month = (int)((secs / SECS_PER_MUD_MONTH) % 17); /* 0..16 months */
   secs -= SECS_PER_MUD_MONTH * now.month;
 
-  now.year = (secs / SECS_PER_MUD_YEAR); /* 0..XX? years */
+  now.year = (sh_int)((secs / SECS_PER_MUD_YEAR)); /* 0..XX? years */
 
   return (&now);
 }
@@ -4395,7 +4395,7 @@ bool is_room_in_sunlight(room_rnum room)
 int levenshtein_distance(const char *s1, const char *s2)
 {
   int **d, i, j;
-  int s1_len = strlen(s1), s2_len = (int)strlen(s2);
+  int s1_len = (int)strlen(s1), s2_len = (int)strlen(s2);
 
   CREATE(d, int *, s1_len + 1);
 

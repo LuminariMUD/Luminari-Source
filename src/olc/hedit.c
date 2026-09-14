@@ -3525,7 +3525,8 @@ static int import_help_hlp_file(struct char_data *ch, const char *mode)
       RECREATE(output_buf, char, new_size);                                                        \
       output_size = new_size;                                                                      \
     }                                                                                              \
-    output_len = snprintf_append(output_buf, output_size, output_len, fmt, ##__VA_ARGS__);         \
+    output_len =                                                                                   \
+        (size_t)snprintf_append(output_buf, output_size, (int)output_len, fmt, ##__VA_ARGS__);     \
   } while (0)
 
   /* Open the help.hlp file */

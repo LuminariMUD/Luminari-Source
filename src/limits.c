@@ -2793,7 +2793,7 @@ void check_auto_happy_hour(void)
 
   mytime = time(0);
 
-  m = (mytime / 60) % 60;
+  m = (int)((mytime / 60) % 60);
 
   if (m == 0)
   {

@@ -639,7 +639,7 @@ void apply_mission_rewards(char_data *ch)
                award_gold(ch, (int)GET_MISSION_CREDITS(ch)));
 
   send_to_char(ch, "You have earned %d experience points for completing your mission.\r\n",
-               award_experience(ch, GET_MISSION_EXP(ch), AWARD_EXP_MODE_QUEST));
+               award_experience(ch, (int)GET_MISSION_EXP(ch), AWARD_EXP_MODE_QUEST));
 
   send_to_char(ch, "You've received a random loot drop!\r\n");
   award_magic_item(1, ch, quick_grade_check(level));

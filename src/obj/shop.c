@@ -2110,7 +2110,7 @@ static void list_detailed_shop(struct char_data *ch, int shop_nr)
 
     if (!send_to_char(ch, "%s", buf1))
       return;
-    column += linelen;
+    column += (int)(linelen);
   }
   if (!sindex)
     send_to_char(ch, "Buys:       Nothing!");

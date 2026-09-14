@@ -2690,8 +2690,8 @@ ACMD(do_date)
   {
     mytime = time(0) - boot_time;
     d = (int)(mytime / 86400);
-    h = (mytime / 3600) % 24;
-    m = (mytime / 60) % 60;
+    h = (int)((mytime / 3600) % 24);
+    m = (int)((mytime / 60) % 60);
 
     send_to_char(ch, "Up since %s: %d day%s, %d:%02d\r\n", timestr, d, d == 1 ? "" : "s", h, m);
   }
@@ -5608,10 +5608,10 @@ ACMD(do_keycheck)
   top = zone_table[rzone].top;
 
   /* start building the string */
-  len = strlcpy(buf,
-                "VNum     Name                                         Exit:Key-VNum\r\n"
-                "-------- -------------------------------------------- -------------\r\n",
-                sizeof(buf));
+  len = (int)strlcpy(buf,
+                     "VNum     Name                                         Exit:Key-VNum\r\n"
+                     "-------- -------------------------------------------- -------------\r\n",
+                     sizeof(buf));
 
   /* here is a loop that will go through the list of rooms by vnum */
   for (i = bottom; i <= top; i++)
@@ -6190,8 +6190,8 @@ ACMD(do_zcheck)
       if (ROOM_FLAGGED(i, ROOM_ATRIUM) || ROOM_FLAGGED(i, ROOM_HOUSE) ||
           ROOM_FLAGGED(i, ROOM_HOUSE_CRASH) || ROOM_FLAGGED(i, ROOM_OLC) ||
           ROOM_FLAGGED(i, ROOM_BFS_MARK))
-        len = snprintf_append(
-            buf, sizeof(buf), len, "- Has illegal affection bits set (%s %s %s %s %s)\r\n",
+        len = (size_t)snprintf_append(
+            buf, sizeof(buf), (int)len, "- Has illegal affection bits set (%s %s %s %s %s)\r\n",
             ROOM_FLAGGED(i, ROOM_ATRIUM) ? "ATRIUM" : "",
             ROOM_FLAGGED(i, ROOM_HOUSE) ? "HOUSE" : "",
             ROOM_FLAGGED(i, ROOM_HOUSE_CRASH) ? "HCRSH" : "",
@@ -6204,8 +6204,8 @@ ACMD(do_zcheck)
                               (int)strlen(world[i].description), MIN_ROOM_DESC_LENGTH);
 
       if (strncmp(world[i].description, "   ", 3) && (found = 1))
-        len = snprintf_append(
-            buf, sizeof(buf), len,
+        len = (size_t)snprintf_append(
+            buf, sizeof(buf), (int)len,
             "- Room description not formatted with indent (/fi in the editor).\r\n");
 
       /* strcspan = size of text in first arg before any character in second arg */
@@ -10110,7 +10110,7 @@ ACMD(do_obind)
       return;
     }
   }
-  GET_OBJ_BOUND_ID(obj) = GET_IDNUM(vict);
+  GET_OBJ_BOUND_ID(obj) = (int)GET_IDNUM(vict);
   send_to_char(ch, "%s is now bound to %s.", obj->short_description, GET_NAME(vict));
 }
 
@@ -10453,8 +10453,8 @@ void check_auto_shutdown(void)
 
   mytime = time(0);
 
-  h = (mytime / 3600) % 24;
-  m = (mytime / 60) % 60;
+  h = (int)((mytime / 3600) % 24);
+  m = (int)((mytime / 60) % 60);
 
   if ((h == 7) && m == 30)
   {

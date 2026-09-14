@@ -8458,7 +8458,7 @@ static void show_mote_bonuses(struct char_data *ch, int mote)
     {
       send_to_char(ch, "%s", weapon_list[i].name);
       send_to_char(ch, ", ");
-      length += strlen(weapon_list[i].name);
+      length += (int)(strlen(weapon_list[i].name));
       if (length > 80)
       {
         send_to_char(ch, "\r\n");
@@ -8482,7 +8482,7 @@ static void show_mote_bonuses(struct char_data *ch, int mote)
     {
       send_to_char(ch, "%s", armor_list[i].name);
       send_to_char(ch, ", ");
-      length += strlen(armor_list[i].name);
+      length += (int)(strlen(armor_list[i].name));
       if (length > 80)
       {
         send_to_char(ch, "\r\n");
@@ -8511,7 +8511,7 @@ static void show_mote_bonuses(struct char_data *ch, int mote)
         if (crafting_mote_by_bonus_location(i, j, 0) == mote)
         {
           send_to_char(ch, "%s (%s), ", apply_types[i], ability_names[j]);
-          length += strlen(apply_types[i]) + strlen(ability_names[j]) +
+          length += (int)strlen(apply_types[i]) + (int)strlen(ability_names[j]) +
                     2; // +2 for the parentheses and comma
           if (length > 80)
           {
@@ -8526,7 +8526,7 @@ static void show_mote_bonuses(struct char_data *ch, int mote)
       if (crafting_mote_by_bonus_location(i, 0, BONUS_TYPE_DEFLECTION) == mote)
       {
         send_to_char(ch, "%s (Deflection), ", apply_types[i]);
-        length += strlen(apply_types[i]) + 14; // +14 for " (Deflection), "
+        length += (int)strlen(apply_types[i]) + 14; // +14 for " (Deflection), "
         if (length > 80)
         {
           send_to_char(ch, "\r\n");
@@ -8537,7 +8537,7 @@ static void show_mote_bonuses(struct char_data *ch, int mote)
       if (crafting_mote_by_bonus_location(i, 0, BONUS_TYPE_NATURALARMOR) == mote)
       {
         send_to_char(ch, "%s (Natural), ", apply_types[i]);
-        length += strlen(apply_types[i]) + 12; // +12 for " (Natural), "
+        length += (int)strlen(apply_types[i]) + 12; // +12 for " (Natural), "
         if (length > 80)
         {
           send_to_char(ch, "\r\n");
@@ -8549,7 +8549,7 @@ static void show_mote_bonuses(struct char_data *ch, int mote)
       {
         send_to_char(ch, "%s (Dodge), ", apply_types[i]);
         send_to_char(ch, "%s, ", ability_names[j]);
-        length += strlen(apply_types[i]) + 8; // +8 for " (Dodge), "
+        length += (int)strlen(apply_types[i]) + 8; // +8 for " (Dodge), "
         if (length > 80)
         {
           send_to_char(ch, "\r\n");
@@ -8562,7 +8562,7 @@ static void show_mote_bonuses(struct char_data *ch, int mote)
       if (crafting_mote_by_bonus_location(i, 0, 0) == mote)
       {
         send_to_char(ch, "%s, ", apply_types[i]);
-        length += strlen(apply_types[i]) + 2; // +2 for the comma
+        length += (int)(strlen(apply_types[i]) + 2); // +2 for the comma
         if (length > 80)
         {
           send_to_char(ch, "\r\n");
@@ -8773,7 +8773,7 @@ void refresh_supply_slots(struct char_data *ch)
   }
 
   // Create stable seed based on player ID and refresh time
-  int player_seed = GET_IDNUM(ch);
+  int player_seed = (int)GET_IDNUM(ch);
   int base_seed = (player_seed * 997 + (int)(now / 3600)) % 10000;
 
   for (i = 0; i < 5; i++)
@@ -9476,7 +9476,7 @@ void show_supply_order_cooldowns(struct char_data *ch)
     if (now < expires)
     {
       int hours_left = (int)((expires - now) / 3600);
-      int minutes_left = ((expires - now) % 3600) / 60;
+      int minutes_left = (int)(((expires - now) % 3600) / 60);
 
       const char *urgency_color;
       if (hours_left <= 6)
@@ -9515,7 +9515,7 @@ void show_supply_order_cooldowns(struct char_data *ch)
     if (now < GET_CRAFT(ch).supply_slots_next_refresh)
     {
       int refresh_hours = (int)((GET_CRAFT(ch).supply_slots_next_refresh - now) / 3600);
-      int refresh_minutes = ((GET_CRAFT(ch).supply_slots_next_refresh - now) % 3600) / 60;
+      int refresh_minutes = (int)(((GET_CRAFT(ch).supply_slots_next_refresh - now) % 3600) / 60);
 
       send_to_char(ch, "Contract Slots Refresh: \tc%d hours, %d minutes\tn\r\n", refresh_hours,
                    refresh_minutes);
@@ -9534,7 +9534,7 @@ void show_supply_order_cooldowns(struct char_data *ch)
   if (GET_CRAFT(ch).supply_slots_last_refresh > 0)
   {
     int last_refresh_hours = (int)((now - GET_CRAFT(ch).supply_slots_last_refresh) / 3600);
-    int last_refresh_minutes = ((now - GET_CRAFT(ch).supply_slots_last_refresh) % 3600) / 60;
+    int last_refresh_minutes = (int)(((now - GET_CRAFT(ch).supply_slots_last_refresh) % 3600) / 60);
 
     send_to_char(ch, "Last Slot Refresh: %d hours, %d minutes ago\r\n", last_refresh_hours,
                  last_refresh_minutes);
@@ -9555,7 +9555,8 @@ void show_supply_order_cooldowns(struct char_data *ch)
       if (now < GET_CRAFT(ch).supply_slot_cooldowns[slot])
       {
         int cooldown_hours = (int)((GET_CRAFT(ch).supply_slot_cooldowns[slot] - now) / 3600);
-        int cooldown_minutes = ((GET_CRAFT(ch).supply_slot_cooldowns[slot] - now) % 3600) / 60;
+        int cooldown_minutes =
+            (int)(((GET_CRAFT(ch).supply_slot_cooldowns[slot] - now) % 3600) / 60);
 
         send_to_char(ch, "  Slot %d: \tr%d hours, %d minutes remaining\tn\r\n", slot + 1,
                      cooldown_hours, cooldown_minutes);
@@ -10795,7 +10796,7 @@ bool can_repair_golem(struct char_data *ch, struct char_data *golem, int *materi
 
   /* Calculate repair percentage and material cost */
   /* Charge each started ten-percent increment, including minor damage. */
-  repair_percent = (missing_hp * 100LL + GET_MAX_HIT(golem) - 1) / GET_MAX_HIT(golem);
+  repair_percent = (int)((missing_hp * 100LL + GET_MAX_HIT(golem) - 1) / GET_MAX_HIT(golem));
   *material_needed =
       ((repair_percent + 9) / 10) * get_golem_repair_material_cost(golem_type, golem_size);
   *material_type = get_golem_repair_material_type(golem_type);

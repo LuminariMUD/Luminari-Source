@@ -904,7 +904,7 @@ static OCMD(do_objbind)
   if ((ch = get_char_by_obj(obj, buf)))
   {
     if (!IS_NPC(ch))
-      GET_OBJ_BOUND_ID(obj) = GET_IDNUM(ch);
+      GET_OBJ_BOUND_ID(obj) = (int)GET_IDNUM(ch);
     else
       obj_log(obj, "target for objbind is NPC");
   }

@@ -1326,13 +1326,13 @@ static void do_auto_exits(struct char_data *ch)
 
 /* Kel: Function used by farseeing characters (later clair, wizeye) to
   look in a room, takes on the real room number, NOT vnum (from homeland) */
-void look_at_room_number(struct char_data *ch, int ignore_brief, long room_number)
+void look_at_room_number(struct char_data *ch, int ignore_brief, room_rnum room_number)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!ch->desc)
     return;
-  if (room_number < 0)
+  if (room_number == NOWHERE || room_number > top_of_world)
     return;
   if (IS_SET_AR(ROOM_FLAGS(room_number), ROOM_FOG) && GET_LEVEL(ch) < LVL_IMMORT)
   {
@@ -5807,14 +5807,15 @@ static void display_experience_section(struct char_data *ch, int line_length)
 
   /* Experience progress bar */
   int exp_needed =
-      (GET_LEVEL(ch) >= LVL_IMMORT ? 0 : level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
-  int exp_current = (GET_LEVEL(ch) >= LVL_IMMORT
-                         ? 1
-                         : GET_EXP(ch) - (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
-  int exp_total =
-      (GET_LEVEL(ch) >= LVL_IMMORT ? 1
-                                   : level_exp(ch, GET_LEVEL(ch) + 1) -
-                                         (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
+      (int)(GET_LEVEL(ch) >= LVL_IMMORT ? 0 : level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
+  int exp_current =
+      (int)(GET_LEVEL(ch) >= LVL_IMMORT
+                ? 1
+                : GET_EXP(ch) - (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
+  int exp_total = (int)(GET_LEVEL(ch) >= LVL_IMMORT
+                            ? 1
+                            : level_exp(ch, GET_LEVEL(ch) + 1) -
+                                  (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
 
   if (GET_LEVEL(ch) < LVL_IMMORT)
   {

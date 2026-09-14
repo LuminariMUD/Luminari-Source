@@ -604,7 +604,7 @@ bool is_grouped_in_room(struct char_data *ch);
 /* in act.informative.c */
 void look_at_room(struct char_data *ch, int mode);
 void add_history(struct char_data *ch, const char *msg, int type);
-void look_at_room_number(struct char_data *ch, int ignore_brief, long room_number);
+void look_at_room_number(struct char_data *ch, int ignore_brief, room_rnum room_number);
 /* in spec_procs.c but connected to act.informative.c */
 void ship_lookout(struct char_data *ch);
 

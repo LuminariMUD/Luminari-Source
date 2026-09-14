@@ -4435,8 +4435,8 @@ static void emit_outbound_transfer_frame(struct descriptor_data *d)
 
   if (transfer->sent_bytes < transfer->total_bytes)
   {
-    raw_bytes = MIN(transfer->total_bytes - transfer->sent_bytes,
-                    (size_t)WEB_ONBOARDING_EDITOR_MAX_CHUNK_BYTES);
+    raw_bytes = size_min(transfer->total_bytes - transfer->sent_bytes,
+                         (size_t)WEB_ONBOARDING_EDITOR_MAX_CHUNK_BYTES);
 
     encoded_bytes = EVP_EncodeBlock((unsigned char *)encoded,
                                     transfer->content + transfer->sent_bytes, (int)raw_bytes);

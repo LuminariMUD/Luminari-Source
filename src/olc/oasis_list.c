@@ -1332,7 +1332,7 @@ static void list_regions(struct char_data *ch, int requested_type)
   char properties[32];
   const char *type_name;
 
-  len = strlcpy(
+  len = (int)strlcpy(
       buf,
       "Ind|VNum      | Name                                |Type        |Properties\r\n"
       "--- ---------- ------------------------------------- ------------ ---------------\r\n",
@@ -1405,7 +1405,7 @@ static void list_paths(struct char_data *ch, int requested_type)
   int counter = 0, len;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  len = strlcpy(
+  len = (int)strlcpy(
       buf,
       "Ind|VNum      | Name                                |Type        |Glyphs\r\n"
       "--- ---------- ------------------------------------- ------------ ---------------\r\n",
@@ -1469,10 +1469,10 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
     return;
   }
 
-  len = strlcpy(buf,
-                "Index  VNum       Room Name                                    Exits\r\n"
-                "-----  ---------- -------------------------------------------- -----\r\n",
-                sizeof(buf));
+  len = (int)strlcpy(buf,
+                     "Index  VNum       Room Name                                    Exits\r\n"
+                     "-----  ---------- -------------------------------------------- -----\r\n",
+                     sizeof(buf));
 
   if (!top_of_world)
     return;
@@ -1569,10 +1569,11 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
     top = vmax;
   }
 
-  len = strlcpy(buf,
-                "Ind|VNum      |Lv|T|Al|Rac|Cls|E|Mobile Name                                 \r\n"
-                "--- ---------- -- - -- --- --- - ------------------------------------------- \r\n",
-                sizeof(buf));
+  len = (int)strlcpy(
+      buf,
+      "Ind|VNum      |Lv|T|Al|Rac|Cls|E|Mobile Name                                 \r\n"
+      "--- ---------- -- - -- --- --- - ------------------------------------------- \r\n",
+      sizeof(buf));
   if (!top_of_mobt)
     return;
 
@@ -1650,10 +1651,11 @@ static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmi
     top = vmax;
   }
 
-  len = strlcpy(buf,
-                "VNum       #  D Object Name                  Type         Lv [B] + Specific\r\n"
-                "---------- -- - ---------------------------- ------------ -- ----------------\r\n",
-                sizeof(buf));
+  len = (int)strlcpy(
+      buf,
+      "VNum       #  D Object Name                  Type         Lv [B] + Specific\r\n"
+      "---------- -- - ---------------------------- ------------ -- ----------------\r\n",
+      sizeof(buf));
 
   if (!top_of_objt)
     return;

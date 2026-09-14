@@ -1700,7 +1700,7 @@ ACMD(do_clanaward)
     return;
   }
 
-  GET_CLANPOINTS(l) += num_cp;
+  GET_CLANPOINTS(l) += (int)(num_cp);
   CLAN_BANK(c_r) -= (num_cp * 10);
 
   send_to_char(l, "%sCLAN: You have been awarded %s%ld%s clan points!%s\r\n", CCMAG(l, C_NRM),

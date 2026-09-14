@@ -1006,7 +1006,7 @@ static double get_interval_avg(const struct perf_interval *interval)
     sum += interval->avg_data[i];
   }
 
-  return sum / interval->count;
+  return sum / (double)interval->count;
 }
 
 /* Get minimum of minimums from interval */
@@ -1705,7 +1705,8 @@ size_t PERF_repr(char *out_buf, size_t n)
   /* Add threshold statistics */
   for (i = 0; (size_t)i < sizeof(thresholds) / sizeof(thresholds[0]) && written < n - 1; i++)
   {
-    double percent = (total_pulses > 0) ? (100.0 * thresholds[i].count / total_pulses) : 0.0;
+    double percent =
+        (total_pulses > 0) ? (100.0 * (double)thresholds[i].count / (double)total_pulses) : 0.0;
 
     written += bounded_format_length(
         snprintf(out_buf + written, n - written, "Over %5d%% (%7.1f ms): %.2f%% (%lu)\n\r",

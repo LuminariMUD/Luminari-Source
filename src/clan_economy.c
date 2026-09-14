@@ -207,7 +207,8 @@ void process_clan_investments(void)
 {
   struct clan_investment *invest, *temp, *prev = NULL;
   clan_rnum clan_r;
-  int return_amount, risk_roll;
+  long return_amount;
+  int risk_roll;
   time_t current_time = time(0);
 
   for (invest = clan_investments; invest;)
@@ -247,7 +248,7 @@ void process_clan_investments(void)
             mark_clan_modified(clan_r);
 
             mudlog(NRM, LVL_STAFF, TRUE,
-                   "CLAN ECONOMY: Investment of %ld gold in %s returned %d gold to %s",
+                   "CLAN ECONOMY: Investment of %ld gold in %s returned %ld gold to %s",
                    invest->amount,
                    invest->type == INVEST_SHOPS      ? "shops"
                    : invest->type == INVEST_CARAVANS ? "caravans"

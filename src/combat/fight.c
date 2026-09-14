@@ -2126,7 +2126,7 @@ static void make_pc_corpse(struct char_data *ch)
 
   GET_OBJ_VAL(corpse, 3) = 1; /* corpse identifier */
 
-  GET_OBJ_VAL(corpse, 4) = GET_IDNUM(ch); /* save the ID on the object value */
+  GET_OBJ_VAL(corpse, 4) = (int)GET_IDNUM(ch); /* save the ID on the object value */
 
   GET_OBJ_VAL(corpse, 5) = GET_LOST_XP(ch); /* save the xp loss into the object */
 
@@ -3024,7 +3024,7 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
   int exp = 0;
 
   /* the base exp is the totally victim's exp divided by 3, limited by config */
-  exp = long_min(CONFIG_MAX_EXP_GAIN, GET_EXP(victim) / 3);
+  exp = (int)long_min(CONFIG_MAX_EXP_GAIN, GET_EXP(victim) / 3);
 
   /* Calculate level-difference bonus */
   if (GET_LEVEL(victim) > GET_LEVEL(ch))

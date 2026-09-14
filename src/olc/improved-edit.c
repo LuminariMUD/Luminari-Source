@@ -742,7 +742,7 @@ int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned
         CAP(start);
       }
 
-      line_chars += strlen(start);
+      line_chars += (int)(strlen(start));
       strlcat(formatted, start, sizeof(formatted));
 
       *flow = temp;

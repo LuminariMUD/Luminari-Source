@@ -1137,8 +1137,8 @@ static void display_imm_classlist(struct char_data *ch)
 
   for (i = 0; i < NUM_CLASSES; i++)
   {
-    len = snprintf_append(
-        buf, sizeof(buf), len,
+    len = (size_t)snprintf_append(
+        buf, sizeof(buf), (int)len,
         "\r\n%d] %s %s %s | %s | %d %s %s %s %d %d %d %s %d %d %s\r\n     %s\r\n"
         "  %s %s %s\r\n"
         "     %s %s %s %s %s %s %s\r\n"

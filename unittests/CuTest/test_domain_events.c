@@ -4158,7 +4158,7 @@ static void verify_late_room_affect_clock(CuTest *tc, bool expires, bool add_sou
   pulse = started + PULSE_VIOLENCE + 1U;
   event_test_advance();
   CuAssertIntEquals(tc, expires ? 2 : 9, raff->timer);
-  CuAssertIntEquals(tc, 1, affected_room_behavior_executions());
+  CuAssertIntEquals(tc, 1, (int)affected_room_behavior_executions());
 
   /* Two more lifetime boundaries pass, but behavior must not catch up twice. */
   pulse = started + 3U * PULSE_VIOLENCE + 1U;
@@ -4174,17 +4174,17 @@ static void verify_late_room_affect_clock(CuTest *tc, bool expires, bool add_sou
     affected_room_owner_add(fresh);
   }
   event_test_advance();
-  CuAssertIntEquals(tc, add_source ? 3 : 2, affected_room_nodes_processed());
+  CuAssertIntEquals(tc, add_source ? 3 : 2, (int)affected_room_nodes_processed());
   if (expires)
   {
     CuAssertPtrEquals(tc, NULL, raff_list);
-    CuAssertIntEquals(tc, 1, affected_room_behavior_executions());
+    CuAssertIntEquals(tc, 1, (int)affected_room_behavior_executions());
     CuAssertIntEquals(tc, 0, event_queue_depth());
   }
   else
   {
     CuAssertIntEquals(tc, 7, raff->timer);
-    CuAssertIntEquals(tc, 2, affected_room_behavior_executions());
+    CuAssertIntEquals(tc, 2, (int)affected_room_behavior_executions());
     CuAssertIntEquals(tc, 1, event_queue_depth());
     rem_room_aff(raff);
   }
@@ -4193,7 +4193,7 @@ static void verify_late_room_affect_clock(CuTest *tc, bool expires, bool add_sou
     CuAssertIntEquals(tc, 10, fresh->timer);
     rem_room_aff(fresh);
   }
-  CuAssertIntEquals(tc, 0, affected_room_registry_validate());
+  CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
   affected_owners_reset_for_test();
   affected_registry_reset_for_test();
   event_free_all();

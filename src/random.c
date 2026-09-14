@@ -52,7 +52,7 @@ unsigned long circle_random(void)
   int lo, hi, test;
 
   hi = (int)(seed / q);
-  lo = seed % q;
+  lo = (int)(seed % q);
 
   test = a * lo - r * hi;
 

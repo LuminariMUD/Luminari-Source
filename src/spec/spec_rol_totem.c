@@ -274,7 +274,7 @@ int rol_shaman_totem(struct char_data *ch, void *me, int cmd, const char *argume
       return TRUE;
     }
     GET_ROL_TOTEM_CHOICE(ch) = totem->choice;
-    GET_OBJ_BOUND_ID(obj) = GET_IDNUM(ch);
+    GET_OBJ_BOUND_ID(obj) = (int)GET_IDNUM(ch);
     send_to_char(ch, "A strong feeling of acceptance and bonding overcomes you.\r\n"
                      "You may now summon your spirit companion.\r\n");
     return TRUE;
@@ -385,7 +385,7 @@ int rol_totem_restorer(struct char_data *ch, void *me, int cmd, const char *argu
     return TRUE;
   }
 
-  GET_OBJ_BOUND_ID(totem) = GET_IDNUM(ch);
+  GET_OBJ_BOUND_ID(totem) = (int)GET_IDNUM(ch);
   obj_to_char(totem, ch);
   send_to_char(ch, "The shaman mutters over a wooden figure, then grins and hands your newly bound "
                    "totem to you before hurrying toward the tavern.\r\n");

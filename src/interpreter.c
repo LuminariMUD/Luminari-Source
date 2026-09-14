@@ -7452,7 +7452,7 @@ static int perform_dupe_check(struct descriptor_data *d)
   struct char_data *target = NULL, *ch, *next_ch;
   int mode = 0;
   int pref_temp = 0; /* for "last" log */
-  int id = GET_IDNUM(d->character);
+  int id = (int)GET_IDNUM(d->character);
 
   /* Now that this descriptor has successfully logged in, disconnect all
    * other descriptors controlling a character with the same ID number. */
@@ -7470,7 +7470,7 @@ static int perform_dupe_check(struct descriptor_data *d)
 
       write_to_output(d, "\r\nMultiple login detected -- disconnecting.\r\n");
       STATE(k) = CON_CLOSE;
-      pref_temp = GET_PREF(k->character);
+      pref_temp = (int)GET_PREF(k->character);
       if (!target)
       {
         target = k->original;
@@ -7493,7 +7493,7 @@ static int perform_dupe_check(struct descriptor_data *d)
     else if (k->character && GET_IDNUM(k->character) == id)
     {
       /* Character taking over their own body. */
-      pref_temp = GET_PREF(k->character);
+      pref_temp = (int)GET_PREF(k->character);
 
       if (!target && STATE(k) == CON_PLAYING)
       {
@@ -7538,7 +7538,7 @@ static int perform_dupe_check(struct descriptor_data *d)
     {
       target = ch;
       mode = RECON;
-      pref_temp = GET_PREF(ch);
+      pref_temp = (int)GET_PREF(ch);
       continue;
     }
 
@@ -9583,7 +9583,7 @@ void nanny(struct descriptor_data *d, char *arg)
   {
     int previous_preferences[PR_ARRAY_MAX];
     int previous_wimp = GET_WIMP_LEV(d->character);
-    int previous_session_id = GET_PREF(d->character);
+    int previous_session_id = (int)GET_PREF(d->character);
     int previous_color = d->pProtocol->pVariables[eMSDP_256_COLORS] != NULL
                              ? d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt
                              : 0;
