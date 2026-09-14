@@ -1173,6 +1173,8 @@ ACMD_DECL(do_consign_to_oblivion);
 
 /** END defines **/
 
+void assign_feat_spell_slots(int ch_class);
+
 #ifdef __cplusplus
 }
 #endif

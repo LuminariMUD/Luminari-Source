@@ -467,7 +467,7 @@ static int start_change_command(struct descriptor_data *d, int pos)
 }
 
 /*------------------------------------------------------------------*/
-void zedit_disp_flag_menu(struct descriptor_data *d)
+static void zedit_disp_flag_menu(struct descriptor_data *d)
 {
   char bits[MAX_STRING_LENGTH] = {'\0'};
 
@@ -986,7 +986,7 @@ static void zedit_disp_gr_query(struct descriptor_data *d)
 /*
  * Print the recommended levels menu and setup response catch.
  */
-void zedit_disp_levels(struct descriptor_data *d)
+static void zedit_disp_levels(struct descriptor_data *d)
 {
   char lev_string[50];
   bool levels_set = FALSE;

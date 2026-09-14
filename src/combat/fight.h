@@ -171,4 +171,10 @@ bool test_attack_number_runs_in_phase(int attack_number, int phase);
 extern struct attack_hit_type attack_hit_text[];
 #endif /* __FIGHT_C__ */
 
+
+int roll_initiative(struct char_data *ch);
+int weapon_special(struct obj_data *wpn, struct char_data *ch, struct char_data *target, int damage,
+                   int attack_type, bool critical, char *hit_msg);
+
+void autoDiagnose(struct char_data *ch);
 #endif /* _FIGHT_H_*/

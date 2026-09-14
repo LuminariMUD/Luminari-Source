@@ -296,20 +296,3 @@ void Test_scan_distance_labels_cover_every_farsee_range(CuTest *tc)
   ch.desc = NULL;
   ProtocolDestroy(descriptor.pProtocol);
 }
-
-/* Suite setup */
-CuSuite *BoundsCheckingSuite(void)
-{
-  CuSuite *suite = CuSuiteNew();
-  SUITE_ADD_TEST(suite, Test_get_wearoff_bounds_checking);
-  SUITE_ADD_TEST(suite, Test_dr_spell_bounds_validation);
-  SUITE_ADD_TEST(suite, Test_snprintf_append_saturates_offset);
-  SUITE_ADD_TEST(suite, Test_strfrmt_truncates_oversized_input_and_dimensions);
-  SUITE_ADD_TEST(suite, Test_strfrmt_preserves_wrapping_and_color_behavior);
-  SUITE_ADD_TEST(suite, Test_strpaste_rejects_an_oversized_joiner);
-  SUITE_ADD_TEST(suite, Test_wilderness_map_truncates_an_oversized_glyph);
-  SUITE_ADD_TEST(suite, Test_path_component_validation);
-  SUITE_ADD_TEST(suite, Test_fopen_restricted_blocks_world_write);
-  SUITE_ADD_TEST(suite, Test_scan_distance_labels_cover_every_farsee_range);
-  return suite;
-}

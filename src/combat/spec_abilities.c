@@ -104,7 +104,7 @@ static void add_item_special_ability(int specab, const char *name, int level, in
   special_ability_info[specab].special_ability_proc = specab_proc;
 }
 
-void daily_item_specab(int specab, event_id event, int daily_uses)
+static void daily_item_specab(int specab, event_id event, int daily_uses)
 {
   special_ability_info[specab].daily_uses = daily_uses;
   special_ability_info[specab].event = event;

@@ -224,4 +224,12 @@ struct region_proximity_list *get_nearby_regions(zone_rnum zone, int x, int y, i
 char **tokenize(const char *input, const char *delim);
 void free_tokens(char **tokens);
 
+
+struct path_data;
+void insert_path(struct path_data *path);
+bool delete_path(region_vnum vnum);
+
+void after_world_load();
+void save_paths();
+void save_regions();
 #endif

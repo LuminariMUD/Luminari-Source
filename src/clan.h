@@ -341,4 +341,6 @@ void clanedit_string_cleanup(struct descriptor_data *d, int terminator);
 #ifndef __CLAN_C__
 /* External globals (proably needed by any file that loads this header) */
 //extern struct clan_rec clan[MAX_CLANS];
+
+void free_single_clan_data(struct clan_data *c);
 #endif

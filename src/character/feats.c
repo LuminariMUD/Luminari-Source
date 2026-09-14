@@ -37,7 +37,7 @@ void free_feats(void)
 
 /* Helper function for t sort_feats function - not very robust and should not be reused.
  * SCARY pointer stuff! */
-int compare_feats(const void *x, const void *y)
+static int compare_feats(const void *x, const void *y)
 {
   int a = *(const int *)x, b = *(const int *)y;
 
@@ -103,7 +103,7 @@ bool has_spell_feat(struct char_data *ch, int sfeat, int school) {
  */
 
 /* create/allocate memory for a pre-req struct, then assign the prereqs */
-struct feat_prerequisite *create_prerequisite(int prereq_type, int val1, int val2, int val3)
+static struct feat_prerequisite *create_prerequisite(int prereq_type, int val1, int val2, int val3)
 {
   struct feat_prerequisite *prereq = NULL;
 
@@ -120,7 +120,7 @@ struct feat_prerequisite *create_prerequisite(int prereq_type, int val1, int val
  *  These prerequisites are automatically checked, if they exist.
  *  Dynamically assigning prerequisites also allows us to create
  *  dynamic 'help' and easier to read presentations of feat lists. */
-void feat_prereq_attribute(int featnum, int attribute, int value)
+static void feat_prereq_attribute(int featnum, int attribute, int value)
 {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -138,7 +138,7 @@ void feat_prereq_attribute(int featnum, int attribute, int value)
   feat_list[featnum].prerequisite_list = prereq;
 }
 
-void feat_prereq_class_level(int featnum, int cl, int level)
+static void feat_prereq_class_level(int featnum, int cl, int level)
 {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -154,7 +154,7 @@ void feat_prereq_class_level(int featnum, int cl, int level)
   feat_list[featnum].prerequisite_list = prereq;
 }
 
-void feat_prereq_feat(int featnum, int feat, int ranks)
+static void feat_prereq_feat(int featnum, int feat, int ranks)
 {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -174,7 +174,7 @@ void feat_prereq_feat(int featnum, int feat, int ranks)
   feat_list[featnum].prerequisite_list = prereq;
 }
 
-void feat_prereq_nofeat(int featnum, int feat, int ranks)
+static void feat_prereq_nofeat(int featnum, int feat, int ranks)
 {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -194,7 +194,7 @@ void feat_prereq_nofeat(int featnum, int feat, int ranks)
   feat_list[featnum].prerequisite_list = prereq;
 }
 
-void feat_prereq_cfeat(int featnum, int feat)
+static void feat_prereq_cfeat(int featnum, int feat)
 {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -209,7 +209,7 @@ void feat_prereq_cfeat(int featnum, int feat)
   feat_list[featnum].prerequisite_list = prereq;
 }
 
-void feat_prereq_ability(int featnum, int ability, int ranks)
+static void feat_prereq_ability(int featnum, int ability, int ranks)
 {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -224,7 +224,7 @@ void feat_prereq_ability(int featnum, int ability, int ranks)
   feat_list[featnum].prerequisite_list = prereq;
 }
 
-void feat_prereq_spellcasting(int featnum, int casting_type, int prep_type, int circle)
+static void feat_prereq_spellcasting(int featnum, int casting_type, int prep_type, int circle)
 {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -259,7 +259,7 @@ void feat_prereq_race(int featnum, int race)
   feat_list[featnum].prerequisite_list = prereq;
 }
 
-void feat_prereq_bab(int featnum, int bab)
+static void feat_prereq_bab(int featnum, int bab)
 {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -274,7 +274,7 @@ void feat_prereq_bab(int featnum, int bab)
   feat_list[featnum].prerequisite_list = prereq;
 }
 
-void feat_prereq_weapon_proficiency(int featnum)
+static void feat_prereq_weapon_proficiency(int featnum)
 {
   struct feat_prerequisite *prereq = NULL;
   char buf[80];
@@ -301,22 +301,22 @@ void feat_prereq_weapon_proficiency(int featnum)
  *   8) long description of the feat.   */
 
 /* utility functions for assigning "specials" to individual feats */
-void epicfeat(int featnum)
+static void epicfeat(int featnum)
 {
   feat_list[featnum].epic = TRUE;
 }
 
-void combatfeat(int featnum)
+static void combatfeat(int featnum)
 {
   feat_list[featnum].combat_feat = TRUE;
 }
 
-void dailyfeat(int featnum, event_id event)
+static void dailyfeat(int featnum, event_id event)
 {
   feat_list[featnum].event = event;
 }
 
-void teamworkfeat(int featnum)
+static void teamworkfeat(int featnum)
 {
   feat_list[featnum].teamwork_feat = TRUE;
 }
@@ -335,7 +335,7 @@ static void feato(int featnum, const char *name, int in_game, int can_learn, int
   feat_list[featnum].prerequisite_list = NULL;
 }
 
-void initialize_feat_list(void)
+static void initialize_feat_list(void)
 {
   int i;
 
@@ -6583,7 +6583,7 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
 }
 
 /* counts how many critical feats we have */
-int critical_feat_total(struct char_data *ch)
+static int critical_feat_total(struct char_data *ch)
 {
   int total = 0;
   if (HAS_FEAT(ch, FEAT_STAGGERING_CRITICAL) || HAS_FEAT(ch, FEAT_STUNNING_CRITICAL))

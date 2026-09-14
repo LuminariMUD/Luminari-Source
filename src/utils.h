@@ -3108,6 +3108,18 @@ bool has_reach(struct char_data *ch);
 #define GET_NSUPPLY_NUM_MADE(ch) (ch->player_specials->saved.new_supply_num_made)
 #define GET_NSUPPLY_COOLDOWN(ch) (ch->player_specials->saved.new_supply_cooldown)
 
+
+void set_vampire_spawn_feats(struct char_data *mob);
+bool sect_no_weather(struct char_data *ch);
+
+bool can_paralyze(struct char_data *ch);
+void clear_group_marks(struct char_data *ch, struct char_data *victim);
+bool display_dam_type(int dam_type);
+room_vnum get_direction_vnum(room_rnum room_origin, int direction);
+bool is_exit_locked(struct char_data *ch, int dir);
+bool is_ghost(struct char_data *ch);
+bool is_swimming(struct char_data *ch);
+int spell_level_ch(struct char_data *ch, int spell);
 #endif /* _UTILS_H_ */
 
 /*EOF*/

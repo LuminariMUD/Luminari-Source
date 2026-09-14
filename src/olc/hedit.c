@@ -985,7 +985,7 @@ static void hedit_disp_keywords_menu(struct descriptor_data *d)
   OLC_MODE(d) = HEDIT_KEYWORD_MENU;
 }
 
-bool hedit_delete_keyword(struct help_entry_list *entry, int num)
+static bool hedit_delete_keyword(struct help_entry_list *entry, int num)
 {
   int i;
   bool found = FALSE;

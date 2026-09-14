@@ -130,4 +130,6 @@ int study_num_aspects_chosen(struct descriptor_data *d);
 bool study_has_aspects_unchosen(struct descriptor_data *d);
 int get_evolution_attack_w_type(int attack_type);
 
+
+void sort_evolutions(void);
 #endif

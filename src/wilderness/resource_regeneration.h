@@ -20,4 +20,6 @@ void log_regeneration_event(int zone_vnum, int x, int y, int resource_type, floa
                             float new_level, float regen_amount, const char *regen_type);
 void show_regeneration_history(struct char_data *ch, int zone_vnum, int x, int y, int limit);
 
+
+float get_base_regeneration_rate(int resource_type);
 #endif /* RESOURCE_REGENERATION_H */

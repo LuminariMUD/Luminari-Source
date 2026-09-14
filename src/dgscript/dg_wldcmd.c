@@ -56,6 +56,8 @@ WCMD(do_wdamage);
 WCMD(do_wat);
 WCMD(do_wmove);
 WCMD(do_wlog);
+WCMD(do_wrolroomflag);
+WCMD(do_wroldamage);
 
 /* attaches room vnum to msg and sends it to script_log */
 void wld_log(room_data *room, const char *format, ...)

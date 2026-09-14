@@ -29,4 +29,6 @@ int vampire_mob(struct char_data *ch, void *me, int cmd, const char *argument);
 int wraith(struct char_data *ch, void *me, int cmd, const char *argument);
 int wraith_elemental(struct char_data *ch, void *me, int cmd, const char *argument);
 
+
+int perform_lichdrain(struct char_data *ch);
 #endif /* LUMINARI_SPEC_MOBILE_ARCHETYPES_H */

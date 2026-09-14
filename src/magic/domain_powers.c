@@ -464,7 +464,7 @@ ACMD(do_massinvis)
 
 /* engine for aura of protection */
 #define AURA_OF_PROTECTION_AFFECTS 4
-void perform_auraofprotection(struct char_data *ch)
+static void perform_auraofprotection(struct char_data *ch)
 {
   struct affected_type af[AURA_OF_PROTECTION_AFFECTS];
   int i = 0, duration = 0;

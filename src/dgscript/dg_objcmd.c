@@ -888,7 +888,7 @@ static OCMD(do_oat)
     extract_obj(object);
 }
 
-OCMD(do_objbind)
+static OCMD(do_objbind)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   char_data *ch;

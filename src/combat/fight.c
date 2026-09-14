@@ -228,7 +228,7 @@ bool is_tanking(struct char_data *ch)
 
 /* code to check if vict is going to be auto-rescued by someone while
  being attacked by ch */
-void guard_check(struct char_data *ch, struct char_data *vict)
+static void guard_check(struct char_data *ch, struct char_data *vict)
 {
   struct char_data *tch;
   struct char_data *next_tch;
@@ -1566,7 +1566,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
 
 // the whole update_pos system probably needs to be rethought -zusuk
 
-void update_pos_dam(struct char_data *victim)
+static void update_pos_dam(struct char_data *victim)
 {
   if (HAS_FEAT(victim, FEAT_DEATHLESS_FRENZY) && affected_by_spell(victim, SKILL_RAGE))
   {
@@ -2385,7 +2385,7 @@ void death_cry(struct char_data *ch)
 }
 
 /* this message is a replacement in our new (temporary?) death system */
-void death_message(struct char_data *ch)
+static void death_message(struct char_data *ch)
 {
   GUI_CMBT_OPEN(ch);
   send_to_char(ch, "\r\n");
@@ -2414,7 +2414,7 @@ void death_message(struct char_data *ch)
 
 /* Added quest completion for all group members if they are in the room.
  * Oct 6, 2014 - Ornir. */
-void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
+static void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
 {
   struct group_data *group = NULL;
   struct char_data *k = NULL;
@@ -5736,14 +5736,14 @@ static int damage_handling_with_weapon(struct char_data *ch, struct char_data *v
   return dam;
 }
 
-int damage_handling(struct char_data *ch, struct char_data *victim, int dam, int attacktype,
-                    int dam_type)
+#ifdef LUMINARI_CUTEST
+static int damage_handling(struct char_data *ch, struct char_data *victim, int dam, int attacktype,
+                           int dam_type)
 {
   return damage_handling_with_weapon(ch, victim, dam, attacktype, dam_type, ATTACK_TYPE_PRIMARY,
                                      NULL);
 }
 
-#ifdef LUMINARI_CUTEST
 int test_damage_handling(struct char_data *ch, struct char_data *victim, int dam, int attacktype,
                          int dam_type)
 {
@@ -8648,8 +8648,8 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded, struc
 #define CRIT_MULTI_MIN 2
 #define CRIT_MULTI_MAX 7
 
-int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded,
-                                  struct char_data *victim, int attack_type)
+static int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded,
+                                         struct char_data *victim, int attack_type)
 {
   int crit_multi = 2;
 
@@ -8747,8 +8747,8 @@ int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded
    #define MODE_DISPLAY_PRIMARY  2
    #define MODE_DISPLAY_OFFHAND  3
    #define MODE_DISPLAY_RANGED   4 */
-int compute_dam_dice(struct char_data *ch, struct char_data *victim, struct obj_data *wielded,
-                     int mode, int attack_type)
+static int compute_dam_dice(struct char_data *ch, struct char_data *victim,
+                            struct obj_data *wielded, int mode, int attack_type)
 {
   int diceOne = 0, diceTwo = 0;
   bool is_ranged;
@@ -9024,8 +9024,8 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim, struct obj_
 }
 
 /* simple test for testing (confirming) critical hit */
-int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll, int calc_bab,
-                    int victim_ac, struct char_data *victim, int attack_type)
+static int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll,
+                           int calc_bab, int victim_ac, struct char_data *victim, int attack_type)
 {
   int threat_range, confirm_roll = d20(ch) + calc_bab;
   int powerful_being = 0;
@@ -10038,8 +10038,8 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam)
 #undef IRONSKIN_ABSORB
 
 /* for weapon bypassing damage resistance handling */
-bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *dr,
-                        struct char_data *ch)
+static bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *dr,
+                               struct char_data *ch)
 {
   bool passed = FALSE;
   int i = 0;
@@ -10355,7 +10355,7 @@ void weapon_poison(struct char_data *ch, struct char_data *victim, struct obj_da
 /* this function will call the spell-casting ability of the
    given weapon (wpn) attacker (ch) has when attacking vict
    these are always 'violent' spells */
-void weapon_spells(struct char_data *ch, struct char_data *vict, struct obj_data *wpn)
+static void weapon_spells(struct char_data *ch, struct char_data *vict, struct obj_data *wpn)
 {
   int weapon_touch_spell = 0;
 
@@ -12524,7 +12524,7 @@ void attacks_of_opportunity(struct char_data *victim, int penalty)
 }
 
 /* Perform an attack of opportunity from every character engaged with ch. */
-void teamwork_attacks_of_opportunity(struct char_data *victim, int penalty, int featnum)
+static void teamwork_attacks_of_opportunity(struct char_data *victim, int penalty, int featnum)
 {
   struct char_data *ch;
 
@@ -12539,7 +12539,7 @@ void teamwork_attacks_of_opportunity(struct char_data *victim, int penalty, int 
   }
 }
 
-int wildshape_weapon_type(struct char_data *ch)
+static int wildshape_weapon_type(struct char_data *ch)
 {
   int w_type_array[NUM_ATTACK_TYPES];
   int weapon_type = TYPE_HIT;
@@ -12631,8 +12631,9 @@ int wildshape_weapon_type(struct char_data *ch)
 
 /* a function that will return the weapon-type being used based on attack_type
  * and wielded data */
-int determine_weapon_type(struct char_data *ch, struct char_data *victim __attribute__((unused)),
-                          struct obj_data *wielded, int attack_type)
+static int determine_weapon_type(struct char_data *ch,
+                                 struct char_data *victim __attribute__((unused)),
+                                 struct obj_data *wielded, int attack_type)
 {
   int w_type = TYPE_HIT, count = 0;
   int w_type_array[NUM_ATTACK_TYPES];
@@ -12778,7 +12779,7 @@ int determine_weapon_type(struct obj_data *wielded) {
  */
 
 /* arrow imbued with spell will now activate */
-void imbued_arrow(struct char_data *ch, struct char_data *vict, struct obj_data *missile)
+static void imbued_arrow(struct char_data *ch, struct char_data *vict, struct obj_data *missile)
 {
   int original_loc = NOWHERE;
 
@@ -12843,10 +12844,11 @@ void imbued_arrow(struct char_data *ch, struct char_data *vict, struct obj_data 
 }
 
 /* called from hit() */
-enum projectile_disposition handle_missed_attack(struct char_data *ch, struct char_data *victim,
-                                                 int type, int w_type, int dam_type,
-                                                 int attack_type, struct obj_data *attack_weapon,
-                                                 struct obj_data *projectile)
+static enum projectile_disposition handle_missed_attack(struct char_data *ch,
+                                                        struct char_data *victim, int type,
+                                                        int w_type, int dam_type, int attack_type,
+                                                        struct obj_data *attack_weapon,
+                                                        struct obj_data *projectile)
 {
   GET_CONSECUTIVE_HITS(ch) = 0;
 
@@ -12953,7 +12955,7 @@ enum projectile_disposition handle_missed_attack(struct char_data *ch, struct ch
 }
 
 /* is ch sneak attacking victim? */
-int can_sneak_attack(struct char_data *ch, struct char_data *victim)
+static int can_sneak_attack(struct char_data *ch, struct char_data *victim)
 {
   /* we will check for disqualifiers first */
 
@@ -13055,11 +13057,11 @@ static int fist_air_callback(struct char_data *ch, struct char_data *tch, void *
 }
 
 /* called from hit() */
-int handle_successful_attack(struct char_data *ch, struct char_data *victim,
-                             struct obj_data *wielded, int dam, int w_type, int type, int diceroll,
-                             int is_critical, int attack_type, int dam_type,
-                             struct obj_data *projectile, bool *attack_context_invalidated,
-                             enum projectile_disposition *projectile_disposition)
+static int handle_successful_attack(struct char_data *ch, struct char_data *victim,
+                                    struct obj_data *wielded, int dam, int w_type, int type,
+                                    int diceroll, int is_critical, int attack_type, int dam_type,
+                                    struct obj_data *projectile, bool *attack_context_invalidated,
+                                    enum projectile_disposition *projectile_disposition)
 {
   struct domain_entity_handle attacker_handle = domain_event_character_handle(ch);
   struct domain_entity_handle victim_handle = domain_event_character_handle(victim);
@@ -15866,7 +15868,7 @@ int is_dual_wielding(struct char_data *ch)
 #define MODE_IMP_2_WPN 2   /* improved two weapon fighting - extra attack at -5 */
 #define MODE_GREAT_2_WPN 3 /* greater two weapon fighting - extra attack at -10 */
 #define MODE_EPIC_2_WPN 4  /* perfect two weapon fighting - extra attack */
-int is_skilled_dualer(struct char_data *ch, int mode)
+static int is_skilled_dualer(struct char_data *ch, int mode)
 {
   switch (mode)
   {
@@ -17360,7 +17362,7 @@ MUD_EVENT_CALLBACK(event_combat_round)
   return 2 RL_SEC; /* 6 second rounds, hack! */
 }
 
-void handle_cleave(struct char_data *ch)
+static void handle_cleave(struct char_data *ch)
 {
   struct char_data *tch = NULL;
   bool found = false;
@@ -17409,7 +17411,7 @@ void handle_cleave(struct char_data *ch)
   }
 }
 
-void handle_smash_defense(struct char_data *ch)
+static void handle_smash_defense(struct char_data *ch)
 {
   struct char_data *vict = FIGHTING(ch);
   bool semantic_used = false;

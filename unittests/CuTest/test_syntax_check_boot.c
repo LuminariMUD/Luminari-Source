@@ -20,7 +20,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-int luminari_main(int argc, char **argv);
 
 static struct game_event_result
 test_profiled_event_callback(const struct game_event_context *context)

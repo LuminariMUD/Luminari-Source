@@ -38,7 +38,7 @@ extern int weighted_object_bonuses[NUM_ITEM_WEARS][NUM_APPLIES];
 /***  utility functions ***/
 
 /* utility function to label 'rare grade' gear */
-const char *label_rare_grade(int rare_grade)
+static const char *label_rare_grade(int rare_grade)
 {
   switch (rare_grade)
   {
@@ -53,7 +53,7 @@ const char *label_rare_grade(int rare_grade)
 }
 
 /* utility function to determine 'rare grade' - extra special items */
-int determine_rare_grade()
+static int determine_rare_grade()
 {
   int roll = 0, rare_grade = RARE_GRADE_NORMAL;
 
@@ -175,7 +175,7 @@ int determine_rnd_misc_cat()
 }
 
 /* this function is used to inform ch and surrounding of a bazaar purchase */
-void say_bazaar(struct char_data *ch, struct obj_data *obj)
+static void say_bazaar(struct char_data *ch, struct obj_data *obj)
 {
   if (ch && obj)
   {
@@ -187,7 +187,7 @@ void say_bazaar(struct char_data *ch, struct obj_data *obj)
 }
 
 /* this function is used to inform ch and surrounding of a treasure drop */
-void say_treasure(struct char_data *ch, struct obj_data *obj)
+static void say_treasure(struct char_data *ch, struct obj_data *obj)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
@@ -367,7 +367,7 @@ int choose_cloth_material(void)
 }
 
 /* determine appropriate stat bonus apply for this piece of gear */
-int determine_stat_apply(int wear)
+static int determine_stat_apply(int wear)
 {
   int stat = APPLY_NONE;
 
@@ -551,7 +551,7 @@ int determine_stat_apply(int wear)
 }
 
 /* pick a random feat to put on our special items */
-int apply_bonus_feat(int rare_grade)
+static int apply_bonus_feat(int rare_grade)
 {
   /* just in case */
   if (rare_grade <= RARE_GRADE_NORMAL)
@@ -651,7 +651,7 @@ int adjust_bonus_value(int apply_location, int bonus)
 /* assign bonus-types to the bonus */
 
 /* called by: cp_modify_object_applies() */
-int adjust_bonus_type(int apply_location)
+static int adjust_bonus_type(int apply_location)
 {
   switch (apply_location)
   {
@@ -777,7 +777,8 @@ void determine_treasure(struct char_data *ch, struct char_data *mob)
   }
 }
 
-void award_random_magic_armor(struct char_data *ch, int grade)
+#if defined(USE_NEW_CRAFTING_SYSTEM)
+static void award_random_magic_armor(struct char_data *ch, int grade)
 {
   if (dice(1, 3) != 3)
     award_magic_armor_suit(ch, grade);
@@ -785,7 +786,7 @@ void award_random_magic_armor(struct char_data *ch, int grade)
     award_magic_armor(ch, grade, ITEM_WEAR_SHIELD);
 }
 
-void award_random_expendible_item(struct char_data *ch, int grade)
+static void award_random_expendible_item(struct char_data *ch, int grade)
 {
   switch (dice(1, 8))
   {
@@ -810,6 +811,7 @@ void award_random_expendible_item(struct char_data *ch, int grade)
     break;
   }
 }
+#endif
 
 #if defined(USE_NEW_CRAFTING_SYSTEM)
 /* character should get treasure, roll dice for what items to give out */
@@ -1931,7 +1933,7 @@ void award_magic_ammo(struct char_data *ch, int grade)
  * 3)  determine Creation Points
  * 4)  determine AC bonus (Always first stat...)
  * 5)  craft description based on object and bonuses */
-void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool silent_mode)
+static void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool silent_mode)
 {
   struct obj_data *obj = NULL;
   int roll = 0, armor_desc_roll = 0, crest_num = 0;
@@ -2987,7 +2989,8 @@ void award_magic_weapon(struct char_data *ch, int grade)
  */
 #define SHORT_STRING 80
 
-void give_magic_weapon(struct char_data *ch, int selection, int enchantment, bool silent_mode)
+static void give_magic_weapon(struct char_data *ch, int selection, int enchantment,
+                              bool silent_mode)
 {
   struct obj_data *obj = NULL;
   int roll = 0;
@@ -3884,7 +3887,7 @@ void load_treasure(char_data *mob)
 
 /* utility function for bazaar below - misc armoring such
    as rings, necklaces, bracelets, etc */
-void disp_misc_type_menu(struct char_data *ch)
+static void disp_misc_type_menu(struct char_data *ch)
 {
   send_to_char(ch, "1) finger\r\n"
                    "2) neck\r\n"
@@ -4938,7 +4941,7 @@ bool is_resist_physical_apply(int bonus)
   return false;
 }
 
-bool is_everywhere_apply(int bonus)
+static bool is_everywhere_apply(int bonus)
 {
   if (is_spell_slot_apply(bonus))
     return true;
@@ -6136,7 +6139,7 @@ void assign_weighted_bonuses(void)
   }
 }
 
-bool obj_has_bonus_already(struct obj_data *obj, int apply)
+static bool obj_has_bonus_already(struct obj_data *obj, int apply)
 {
   int i;
 
@@ -6174,7 +6177,7 @@ int get_first_wear_slot(struct obj_data *obj)
   return ITEM_WEAR_TAKE;
 }
 
-int get_apply_type_from_apply(int apply)
+static int get_apply_type_from_apply(int apply)
 {
   switch (apply)
   {
@@ -6294,7 +6297,7 @@ int choose_random_apply_type(void)
     return APPLY_TYPE_SPELL_ENHANCE;
 }
 
-int choose_random_apply(struct obj_data *obj)
+static int choose_random_apply(struct obj_data *obj)
 {
   int i, j, total = 0, count = 0;
   int apply = -1;

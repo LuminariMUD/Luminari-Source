@@ -126,4 +126,6 @@ MYSQL_RES *mysql_board_execute_select(char *query);
 extern struct mysql_board_config *mysql_board_configs;
 extern int mysql_num_boards;
 
+
+struct mysql_board_config *mysql_board_get_config_by_room(int vnum);
 #endif /* __MYSQL_BOARDS_H__ */

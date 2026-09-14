@@ -121,7 +121,7 @@ int main(int argc, char **argv)
  * @param filename The filename to parse
  * @return Base filename without extension, or NULL if not a .ml file
  */
-char *parsefilename(char *filename)
+static char *parsefilename(char *filename)
 {
   static char copy[1024];
   char *extension;
@@ -141,7 +141,7 @@ char *parsefilename(char *filename)
 }
 
 /* Search file for a specific tag line, return text after tag, or NULL if not found */
-char *findLine(FILE *plr_file, char *tag)
+static char *findLine(FILE *plr_file, char *tag)
 {
   static char line[5000];
   rewind(plr_file);
@@ -156,31 +156,31 @@ char *findLine(FILE *plr_file, char *tag)
   return NULL;
 }
 /* Search file for mail ID and convert to long */
-long parse_mailid(FILE *plr_file)
+static long parse_mailid(FILE *plr_file)
 {
   return atol(findLine(plr_file, "MlID:"));
 }
 
 /* Search file for sender ID and convert to long */
-long parse_sender(FILE *plr_file)
+static long parse_sender(FILE *plr_file)
 {
   return atol(findLine(plr_file, "Send:"));
 }
 
 /* Search file for recipient ID and convert to long */
-long parse_recipient(FILE *plr_file)
+static long parse_recipient(FILE *plr_file)
 {
   return atoi(findLine(plr_file, "Reci:"));
 }
 
 /* Search file for date/time mail was sent and convert to long */
-long parse_send_time(FILE *plr_file)
+static long parse_send_time(FILE *plr_file)
 {
   return atoi(findLine(plr_file, "Sent:"));
 }
 
 /* Search file for mail subject and return as string */
-char *parse_subject(FILE *plr_file)
+static char *parse_subject(FILE *plr_file)
 {
   static char subj[5000]; /* matches findLine buffer size */
   char *txt = findLine(plr_file, "Subj:");
@@ -189,7 +189,7 @@ char *parse_subject(FILE *plr_file)
 }
 
 /* Search file for mail flags and return as bitvector */
-int parse_mail_flags(FILE *plr_file)
+static int parse_mail_flags(FILE *plr_file)
 {
   int fl[4], ret = 0;
   char *txt, f1[33], f2[33], f3[33], f4[33];
@@ -229,23 +229,6 @@ int parse_mail_flags(FILE *plr_file)
     SET_BIT(ret, MINDEX_HAS_OBJ);
   }
   return (ret);
-}
-
-int parseadminlevel(FILE *plr_file, int level)
-{
-  char *fromFile = findLine(plr_file, "Admn:");
-  if (fromFile != NULL)
-    return atoi(fromFile);
-
-  if (level >= 30)
-    return level - 30;
-  else
-    return 0;
-}
-
-long parselast(FILE *plr_file)
-{
-  return atol(findLine(plr_file, "Last:"));
 }
 
 /**

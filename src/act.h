@@ -1238,4 +1238,21 @@ ACMD_DECL(do_temote);
 ACMD_DECL(do_dialogue_quest);
 
 int eqstats(struct char_data *ch, void *me, int cmd, const char *argument);
+void check_dangersense(struct char_data *ch, room_rnum room);
+int can_lore_target(struct char_data *ch, struct char_data *target_ch, struct obj_data *target_obj,
+                    bool silent);
+void check_auto_shutdown(void);
+int outfit_type_to_armor_type(int type, int wear);
+
+ACMD_DECL(do_relock);
+
+
+ACMDCHECK(can_bane);
+ACMDCHECK(can_true_judgement);
+
+bool char_has_any_item_activation_ability_cooldowns(struct char_data *ch);
+ACMD_DECL(do_homelands);
+const char *get_copyover_state_string(void);
+ACMD_DECL(do_detectmagic);
+bool has_piercing_weapon(struct char_data *ch, int wield);
 #endif /* _ACT_H_ */

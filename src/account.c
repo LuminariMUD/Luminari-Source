@@ -93,7 +93,7 @@ static void account_persistence_mark_clean(struct account_data *account);
   Notes:
     - No bounds checking here; callers should ensure 'race' is in range.
 */
-int locked_race_cost(int race)
+static int locked_race_cost(int race)
 {
   return (race_list[race].unlock_cost);
 }
@@ -631,7 +631,7 @@ int load_account(char *name, struct account_data *account)
   Notes:
     - Should be called before load_account_characters when duplicates are detected
 */
-void cleanup_duplicate_characters(struct account_data *account)
+static void cleanup_duplicate_characters(struct account_data *account)
 {
   PREPARED_STMT *duplicates;
   PREPARED_STMT *removal;

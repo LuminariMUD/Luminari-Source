@@ -21,7 +21,7 @@
 #include "combat/combat_encounters.h"
 
 /* Initialize the queue, must be performed on any new queues. */
-struct queue_type *create_queue()
+static struct queue_type *create_queue()
 {
   struct queue_type *queue = NULL;
 
@@ -105,7 +105,7 @@ void clear_attack_queue(struct queue_type *queue)
   /* Send a custom MSDP event so clients can manage queue displays. */
 };
 
-void enqueue(struct queue_type *queue, void *data)
+static void enqueue(struct queue_type *queue, void *data)
 {
   struct queue_element_type *el = NULL;
 
@@ -141,7 +141,7 @@ void enqueue_attack(struct queue_type *queue, struct attack_action_data *attack)
   /* Send a custom MSDP event so clients can manage queue displays */
 };
 
-void *dequeue(struct queue_type *queue)
+static void *dequeue(struct queue_type *queue)
 {
   void *data;
   struct queue_element_type *el;
@@ -196,7 +196,7 @@ struct attack_action_data *dequeue_attack(struct queue_type *queue)
   return attack;
 }
 
-void *peek(struct queue_type *queue)
+static void *peek(struct queue_type *queue)
 {
   if (queue == NULL)
     return NULL;

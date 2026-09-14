@@ -2167,4 +2167,6 @@ extern const int skills_alphabetic[NUM_SKILLS_IN_GAME];
 
 #endif /* __SPELL_PARSER_C__ */
 
+
+void create_wall(struct char_data *ch, int room, int dir, int type, int level);
 #endif /* _SPELLS_H_ */

@@ -241,11 +241,6 @@ static int open_logfile(const char *filename, FILE *stderr_fp);
 static sigfunc *my_signal(int signo, sigfunc *func);
 #endif
 static void msdp_update(void); /* KaVir plugin*/
-void update_player_last_on(void);
-void check_auto_shutdown(void);
-void check_auto_happy_hour(void);
-void recharge_activated_items(void);
-void process_auction_events(void);
 
 /* externally defined functions, used locally */
 #ifdef __CXREF__

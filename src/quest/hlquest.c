@@ -35,7 +35,7 @@
 
 /* homeland-port this eventually can be used to have special class
    quests */
-int has_race_kit(int race __attribute__((unused)), int c __attribute__((unused)))
+static int has_race_kit(int race __attribute__((unused)), int c __attribute__((unused)))
 {
   // return has_kit[race][c];
   return TRUE;
@@ -249,7 +249,7 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
 }
 
 /* utility function to check if there is a spell reward for all quests */
-bool has_spell_a_quest(int spell)
+static bool has_spell_a_quest(int spell)
 {
   mob_rnum i;
   struct quest_entry *quest;
@@ -273,7 +273,8 @@ bool has_spell_a_quest(int spell)
 }
 
 /* utility function used to return items given in quest */
-void give_back_items(struct char_data *questor, struct char_data *player, struct quest_entry *quest)
+static void give_back_items(struct char_data *questor, struct char_data *player,
+                            struct quest_entry *quest)
 {
   struct quest_command *qcom;
   struct obj_data *obj;
@@ -341,8 +342,8 @@ bool is_object_in_a_quest(struct obj_data *obj)
 
 /* this is the main driver for the quest-out quest-reward system */
 
-void perform_out_chain(struct char_data *ch, struct char_data *victim, struct quest_entry *quest,
-                       char *name __attribute__((unused)))
+static void perform_out_chain(struct char_data *ch, struct char_data *victim,
+                              struct quest_entry *quest, char *name __attribute__((unused)))
 {
   struct descriptor_data *pt = NULL;
   struct char_data *mob = NULL;

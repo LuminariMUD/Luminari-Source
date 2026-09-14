@@ -177,7 +177,7 @@ struct char_file_u_plrtoascii
 int sprintascii(char *out, bitvector_t bits);
 int plr_filename(char *orig_name, char *filename);
 
-void convert(char *filename)
+static void convert(char *filename)
 {
   FILE *fl, *outfile, *index_file;
   struct char_file_u_plrtoascii player;

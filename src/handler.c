@@ -299,7 +299,7 @@ int is_name(const char *str, const char *namelist)
 /* allow abbreviations */
 #define WHITESPACE " \t"
 #define KEYWORDJOIN "-"
-int isname_tok(const char *str, const char *namelist)
+static int isname_tok(const char *str, const char *namelist)
 {
   char *newlist = NULL;
   char *curtok = NULL;
@@ -361,8 +361,8 @@ int isname(const char *str, const char *namelist)
 }
 
 /* modify a character's given apply-type (loc) by value */
-void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod,
-                      const char *msg __attribute__((unused)))
+static void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod,
+                             const char *msg __attribute__((unused)))
 {
   switch (loc)
   {
@@ -599,8 +599,8 @@ void affect_modify_ar(struct char_data *ch, byte loc, sh_int mod, int bitv[], bo
   aff_apply_modify(ch, loc, mod, "affect_modify_ar");
 }
 
-int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int except_eq,
-                       int except_spell)
+static int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int except_eq,
+                              int except_spell)
 {
   struct affected_type *af = NULL;
   int i = 0, j = 0;

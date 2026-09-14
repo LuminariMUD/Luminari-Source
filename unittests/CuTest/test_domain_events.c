@@ -48,13 +48,12 @@
 #include <pthread.h>
 #include <stdint.h>
 #include <string.h>
+#include "../../src/vessels/vessels_legacy.h"
 
 #define TEST_EVENT_OUTER UINT32_C(0x2001)
 #define TEST_EVENT_INNER UINT32_C(0x2002)
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern void update_ship(struct obj_data *ship, room_vnum start, room_vnum end, int movedelay,
-                        int waitdelay);
 
 struct test_payload
 {

@@ -16,6 +16,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "clan.h"
+#include "clan_transactions.h"
 
 /* Transaction types */
 #define TRANS_TREASURY_CHANGE 0
@@ -77,9 +78,6 @@ static void free_transaction(struct clan_transaction *trans);
 static bool execute_operation(struct trans_operation *op);
 static bool rollback_operation(struct trans_operation *op);
 static void log_transaction(struct clan_transaction *trans, const char *action);
-bool rollback_clan_transaction(struct clan_transaction *trans);
-void remove_from_transaction_list(struct clan_transaction *trans);
-void update_player_index_clan(long player_id, clan_vnum clan, int rank);
 
 /* Create a new transaction */
 struct clan_transaction *begin_clan_transaction(struct char_data *ch, const char *description)

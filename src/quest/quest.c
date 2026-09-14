@@ -128,7 +128,7 @@ int is_complete(struct char_data *ch, qst_vnum vnum)
 }
 
 /* Check if a quest has been accepted but not completed */
-int is_accepted_not_complete(struct char_data *ch, qst_vnum vnum)
+static int is_accepted_not_complete(struct char_data *ch, qst_vnum vnum)
 {
   int i;
 
@@ -1178,7 +1178,7 @@ void list_quests(struct char_data *ch, zone_rnum zone, qst_vnum vmin, qst_vnum v
     send_to_char(ch, "None found.\r\n");
 }
 
-void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH])
+static void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 {
   int i = 0, counter = 0, num_arg = -1;
   qst_rnum rnum = NOTHING;
@@ -1251,7 +1251,7 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 
 /* rewrote this so quest objects can be equipped -zusuk */
 /* 2nd re-write to allow for taking multiple quests -z */
-void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_INPUT_LENGTH])
+static void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_INPUT_LENGTH])
 {
   qst_vnum vnum = NOTHING;
   qst_rnum rnum = NOWHERE;
@@ -1470,7 +1470,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
 
 /* lists available quests, can also accept vnum or list-number to view
  details of a specific quest */
-void quest_list(struct char_data *ch, struct char_data *qm, char argument[MAX_INPUT_LENGTH])
+static void quest_list(struct char_data *ch, struct char_data *qm, char argument[MAX_INPUT_LENGTH])
 {
   qst_vnum vnum;
   qst_rnum rnum;
@@ -1546,7 +1546,7 @@ void quest_quit(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 }
 
 /* will give player current status on their quest they are working on */
-void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
+static void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 {
   qst_rnum rnum;
   int index = -1;
@@ -1721,7 +1721,7 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 }
 
 /* displays a list of quests available at given quest master */
-void quest_show(struct char_data *ch, mob_vnum qm)
+static void quest_show(struct char_data *ch, mob_vnum qm)
 {
   qst_rnum rnum;
   int counter = 0;
@@ -1764,7 +1764,7 @@ void quest_show(struct char_data *ch, mob_vnum qm)
 }
 
 /* allows staff to assign a quest as completed to given target */
-void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
+static void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 {
   char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *victim = NULL;
@@ -1810,7 +1810,7 @@ void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 }
 
 /* allows staff to view detailed info about any quest in game */
-void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
+static void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 {
   qst_rnum rnum = NOTHING;
   mob_rnum qmrnum = NOBODY;

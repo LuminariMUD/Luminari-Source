@@ -18483,8 +18483,8 @@ static const char *save_type_names[] = {"Fortitude", "Reflex", "Will", "Poison",
  * @param perk The perk to display
  * @param char_perk The character's current rank in this perk (can be NULL)
  */
-void display_perk_details(struct char_data *ch, struct perk_data *perk,
-                          struct char_perk_data *char_perk)
+static void display_perk_details(struct char_data *ch, struct perk_data *perk,
+                                 struct char_perk_data *char_perk)
 {
   int current_rank = char_perk ? char_perk->current_rank : 0;
   int class_id = perk->associated_class;
@@ -18660,7 +18660,7 @@ static bool meets_prerequisites_not_purchased(struct char_data *ch, int perk_id,
  * @param ch The character viewing perks
  * @param class_id The class to show perks for
  */
-void list_perks_for_class(struct char_data *ch, int class_id)
+static void list_perks_for_class(struct char_data *ch, int class_id)
 {
   int perk_ids[NUM_PERKS];
   int count, i, j;
@@ -18800,7 +18800,7 @@ void list_perks_for_class(struct char_data *ch, int class_id)
  *
  * @param ch The character
  */
-void list_my_perks(struct char_data *ch)
+static void list_my_perks(struct char_data *ch)
 {
   struct char_perk_data *char_perk;
   struct perk_data *perk;

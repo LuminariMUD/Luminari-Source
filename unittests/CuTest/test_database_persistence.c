@@ -26,15 +26,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "../../src/obj/objsave.h"
 
-extern char *serialize_pet_runtime_state_for_test(struct char_data *pet);
-extern bool restore_pet_runtime_state_for_test(struct char_data *pet, const char *serialized);
-extern char *build_pet_keyword_list_for_test(const char *saved_keywords,
-                                             const char *prototype_keywords);
-extern bool pet_save_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum);
 extern int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *pet,
                                           struct char_data *owner, long int pet_idnum, int locate);
-extern void reset_pet_save_cache_for_test(void);
 
 static int query_single_int(MYSQL *connection, const char *query, int fallback);
 

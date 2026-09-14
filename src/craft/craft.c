@@ -192,7 +192,7 @@ int weapon_damage_c[NUM_SIZES][2] = {
  * we have 3 charts above trying to accomodate most weapons you could
  *   possibly ecnounter
  * returns TRUE if successful, FALSE if failed */
-bool scale_damage(struct char_data *ch, struct obj_data *weapon, int new_size)
+static bool scale_damage(struct char_data *ch, struct obj_data *weapon, int new_size)
 {
   int num_of_dice = 0;       // number-of-dice rolled for weapon dam
   int size_of_dice = 0;      // size-of-dice rolled for weapon dam
@@ -284,7 +284,7 @@ bool scale_damage(struct char_data *ch, struct obj_data *weapon, int new_size)
 /* this function will switch the material of an item based on the
    conversion crafting system
  */
-int convert_material(int material)
+static int convert_material(int material)
 {
   switch (material)
   {
@@ -336,7 +336,7 @@ int test_legacy_supply_order_skill(int material)
 #endif
 
 /* simple function to reset craft data */
-void reset_craft(struct char_data *ch)
+static void reset_craft(struct char_data *ch)
 {
   /* initialize values */
   GET_CRAFTING_TYPE(ch) = 0; // SCMD_ of craft
@@ -363,7 +363,7 @@ void reset_acraft(struct char_data *ch)
 
 /* compartmentalized auto-quest crafting reporting since its done
    a few times in the code */
-void cquest_report(struct char_data *ch)
+static void cquest_report(struct char_data *ch)
 {
   if (GET_AUTOCQUEST_VNUM(ch))
   {
@@ -424,7 +424,7 @@ void cquest_report(struct char_data *ch)
  */
 
 /* this function returns an appropriate keyword(s) based on material */
-char *node_keywords(int material)
+static char *node_keywords(int material)
 {
   /* reference */
   /* steel      - vein of dull ore */
@@ -473,7 +473,7 @@ char *node_keywords(int material)
 }
 
 /* this function returns an appropriate short-desc based on material */
-char *node_sdesc(int material)
+static char *node_sdesc(int material)
 {
   /* reference */
   /* steel      - vein of dull ore */
@@ -521,7 +521,7 @@ char *node_sdesc(int material)
 }
 
 /* this function returns an appropriate desc based on material */
-char *node_desc(int material)
+static char *node_desc(int material)
 {
   /* reference */
   /* steel      - vein of dull ore */
@@ -570,7 +570,7 @@ char *node_desc(int material)
 
 /* a function to try and make an intelligent(?) decision
    about what material a harvesting node should be */
-int random_node_material(int allowed)
+static int random_node_material(int allowed)
 {
   int rand = 0;
 
@@ -832,7 +832,7 @@ void reset_harvesting_rooms(void)
 
 // combine essence to make them stronger
 
-int augment(struct obj_data *kit, struct char_data *ch)
+static int augment(struct obj_data *kit, struct char_data *ch)
 {
   struct obj_data *obj = NULL, *essence_one = NULL, *essence_two = NULL;
   int num_objs = 0, cost = 0, level_diff = 0, success_chance = 0;
@@ -971,7 +971,7 @@ int augment(struct obj_data *kit, struct char_data *ch)
 // requires multiples of exactly 10 of same mat to do the converstion
 
 /*  !! still under construction - zusuk !! */
-int convert(struct obj_data *kit, struct char_data *ch)
+static int convert(struct obj_data *kit, struct char_data *ch)
 {
   int cost = 500; /* flat cost */
   int num_mats = 0, material = -1, obj_vnum = 0;
@@ -1088,7 +1088,7 @@ int convert(struct obj_data *kit, struct char_data *ch)
 }
 
 /* rename an object */
-int restring(char *argument, struct obj_data *kit, struct char_data *ch)
+static int restring(char *argument, struct obj_data *kit, struct char_data *ch)
 {
   int num_objs = 0, cost;
   struct obj_data *obj = NULL;
@@ -1237,7 +1237,7 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
 }
 
 /* change extra description of an object */
-int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
+static int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
 {
   int num_objs = 0, cost;
   struct obj_data *obj = NULL;
@@ -1360,7 +1360,7 @@ int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
 }
 
 /* autocraft - crafting quest command */
-int autocraft(struct obj_data *kit, struct char_data *ch)
+static int autocraft(struct obj_data *kit, struct char_data *ch)
 {
   int material, obj_vnum, num_mats = 0;
   struct obj_data *obj = NULL;
@@ -1455,7 +1455,7 @@ int autocraft(struct obj_data *kit, struct char_data *ch)
 }
 
 /* resize an object, also will change weapon damage */
-int resize(char *argument, struct obj_data *kit, struct char_data *ch)
+static int resize(char *argument, struct obj_data *kit, struct char_data *ch)
 {
   int num_objs = 0, newsize, cost;
   struct obj_data *obj = NULL;
@@ -1637,7 +1637,7 @@ void test_update_bone_armor_descriptions(struct obj_data *obj, char *argument)
 #endif
 
 /* change armor from original material to bone material */
-int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
+static int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
 {
   int num_objs = 0, cost;
   struct obj_data *obj = NULL;
@@ -1724,7 +1724,7 @@ int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
 }
 
 /* change armor or weapon from one type to another */
-int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
+static int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
 {
   int num_objs = 0, cost;
   struct obj_data *obj = NULL;
@@ -1949,7 +1949,7 @@ int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
 }
 
 /* convert magic objects to essence */
-int disenchant(struct obj_data *kit, struct char_data *ch)
+static int disenchant(struct obj_data *kit, struct char_data *ch)
 {
   struct obj_data *obj = NULL;
   int num_objs = 0, essence_level = 0;
@@ -2062,7 +2062,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch)
  */
 #define CREATE_STRING_LIMIT 80
 
-int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
+static int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL, *material = NULL, *essence = NULL;

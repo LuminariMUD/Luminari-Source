@@ -3966,7 +3966,7 @@ ACMD(do_poisontouch)
   USE_STANDARD_ACTION(ch);
 }
 
-int find_discovery_num(char *name)
+static int find_discovery_num(char *name)
 {
   int index, ok;
   char *temp, *temp2;
@@ -4064,7 +4064,7 @@ bool display_discovery_info(struct char_data *ch, char *discoveryname)
   return TRUE;
 }
 
-int find_grand_discovery_num(char *name)
+static int find_grand_discovery_num(char *name)
 {
   int index, ok;
   char *temp, *temp2;

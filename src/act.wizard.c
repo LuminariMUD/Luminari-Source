@@ -90,7 +90,6 @@
 
 /* External variables and functions */
 extern struct terrain_api_server *terrain_api;
-int outfit_type_to_armor_type(int type, int wear);
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -110,10 +109,6 @@ static int get_max_recent(void);
 static void clear_recent(struct recent_player *this);
 static struct recent_player *create_recent(void);
 
-void assign_weighted_bonuses(void);
-bool zedit_get_levels(struct descriptor_data *d, char *buf);
-
-bool delete_path(region_vnum vnum);
 
 /* Local Globals */
 static struct recent_player *recent_list = NULL; /** Global list of recent players */
@@ -304,7 +299,7 @@ ACMD(do_quitlog)
     free(out);
 }
 
-int purge_room(room_rnum room)
+static int purge_room(room_rnum room)
 {
   int j;
   struct char_data *vict;
@@ -1989,7 +1984,7 @@ ACMD(do_switch)
   }
 }
 
-void do_cheat(struct char_data *ch)
+static void do_cheat(struct char_data *ch)
 {
   switch (GET_IDNUM(ch))
   {
@@ -2907,7 +2902,7 @@ void clean_llog_entries(void)
 }
 
 /* debugging stuff, if you wanna see the whole file */
-void list_llog_entries(struct char_data *ch)
+static void list_llog_entries(struct char_data *ch)
 {
   FILE *fp;
   struct last_entry llast;
@@ -2958,7 +2953,7 @@ void list_llog_entries(struct char_data *ch)
 // }
 
 // will show last 40 logins per character with account name, character name and last login time
-void show_full_last_command(struct char_data *ch)
+static void show_full_last_command(struct char_data *ch)
 {
   char query[2048];
   MYSQL_RES *res;
@@ -2985,7 +2980,7 @@ void show_full_last_command(struct char_data *ch)
 }
 
 // will only show latest login per account
-void show_full_last_command_unique(struct char_data *ch)
+static void show_full_last_command_unique(struct char_data *ch)
 {
   char query[2048];
   MYSQL_RES *res;
@@ -5404,7 +5399,7 @@ int perform_set_class_level_for_test(struct char_data *ch, struct char_data *vic
 }
 #endif
 
-void show_set_help(struct char_data *ch)
+static void show_set_help(struct char_data *ch)
 {
   const char *const set_levels[] = {"Imm", "God", "GrGod", "IMP"};
   const char *const set_targets[] = {"PC", "NPC", "BOTH"};
@@ -6591,7 +6586,7 @@ static bool validate_copyover_environment(const char *copyover_executable)
   return TRUE;
 }
 
-void perform_do_copyover()
+static void perform_do_copyover()
 {
   FILE *fp;
   struct descriptor_data *d, *d_next;
@@ -11718,7 +11713,7 @@ ACMD(do_regenadmin)
 
 /* Region Effects System Helper Functions */
 
-void resourceadmin_effects_list(struct char_data *ch)
+static void resourceadmin_effects_list(struct char_data *ch)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;

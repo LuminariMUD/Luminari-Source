@@ -58,4 +58,8 @@ void vamp_blood_drain(struct char_data *ch, struct char_data *vict);
 }
 #endif
 
+void check_auto_happy_hour(void);
+void process_auction_events(void);
+void recharge_activated_items(void);
+
 #endif /* LIMITS_H */

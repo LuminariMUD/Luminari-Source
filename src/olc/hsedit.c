@@ -171,7 +171,7 @@ void free_house(struct house_control_rec *house __attribute__((unused)))
 
 /*------------------------------------------------------------------------*/
 
-void hsedit_delete_house(struct descriptor_data *d, int house_vnum)
+static void hsedit_delete_house(struct descriptor_data *d, int house_vnum)
 {
   house_rnum house_index;
   int i, j;
@@ -242,7 +242,7 @@ void hsedit_disp_flags_menu(struct descriptor_data *d)
   OLC_MODE(d) = HSEDIT_FLAGS;
 }
 
-void hsedit_owner_menu(struct descriptor_data *d)
+static void hsedit_owner_menu(struct descriptor_data *d)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
   struct house_control_rec *house;
@@ -264,7 +264,7 @@ void hsedit_owner_menu(struct descriptor_data *d)
   OLC_MODE(d) = HSEDIT_OWNER_MENU;
 }
 
-void hsedit_dir_menu(struct descriptor_data *d)
+static void hsedit_dir_menu(struct descriptor_data *d)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
   struct house_control_rec *house;
@@ -342,7 +342,7 @@ void hsedit_disp_type_menu(struct descriptor_data *d)
   OLC_MODE(d) = HSEDIT_TYPE;
 }
 
-void hsedit_disp_guest_menu(struct descriptor_data *d)
+static void hsedit_disp_guest_menu(struct descriptor_data *d)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char not_set[128];

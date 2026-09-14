@@ -13,13 +13,10 @@
 #include "craft/brew.h"
 
 /* External event handler function declarations */
-extern MUD_EVENT_CALLBACK(event_radiant_aura);
-extern MUD_EVENT_CALLBACK(event_fist_of_four_thunders);
 extern MUD_EVENT_CALLBACK(event_rol_yggdrasil_release);
 extern MUD_EVENT_CALLBACK(event_rol_barbazu_bloodloss);
 extern MUD_EVENT_CALLBACK(event_rol_drow_decay);
 extern MUD_EVENT_CALLBACK(event_rol_deaths_head_seed);
-extern MUD_EVENT_CALLBACK(event_rol_spiderhaunt_maggots);
 
 /* The mud_event_index[] with extended data for table-driven handling
  * Format: {name, func, type, completion_msg, recovery_msg, feat, daily_uses} */

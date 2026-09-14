@@ -451,4 +451,10 @@ MUD_EVENT_CALLBACK(event_rol_tazriks_frenzied_hound);
 void mud_event_test_reset_cleanup_count(void);
 int mud_event_test_cleanup_count(void);
 #endif
+
+MUD_EVENT_CALLBACK(event_fist_of_four_thunders);
+MUD_EVENT_CALLBACK(event_radiant_aura);
+MUD_EVENT_CALLBACK(event_rol_spiderhaunt_maggots);
+
+struct mud_event_data *world_has_mud_event(event_id iId);
 #endif /* _MUD_EVENT_H_ */

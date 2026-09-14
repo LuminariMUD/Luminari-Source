@@ -2252,40 +2252,6 @@ char **tokenize(const char *input, const char *delim)
   return result;
 }
 
-/* Test function for tokenize - remove after debugging */
-void test_tokenize(void)
-{
-  char **tokens;
-  char **it;
-  const char *test_input = "#3183\nLoc : -1\nFlag: 64 0 0 0\nName: a small leather pouch";
-  char test_str[256];
-  char *tok;
-
-  log("DEBUG: Testing tokenize with input: '%s'", test_input);
-
-  /* First test strtok directly */
-  log("DEBUG: Testing strtok directly:");
-  strcpy(test_str, test_input);
-  tok = strtok(test_str, "\n");
-  log("DEBUG: Direct strtok first token: '%s'", tok ? tok : "NULL");
-
-  /* Now test our tokenize function */
-  tokens = tokenize(test_input, "\n");
-  if (!tokens)
-  {
-    log("DEBUG: tokenize returned NULL!");
-    return;
-  }
-
-  log("DEBUG: Tokenize results:");
-  for (it = tokens; *it; ++it)
-  {
-    log("DEBUG:   Token: '%s'", *it);
-  }
-
-  free_tokens(tokens);
-}
-
 /* Free the memory allocated by tokenize() */
 void free_tokens(char **tokens)
 {
@@ -2549,7 +2515,7 @@ void load_regions()
 }
 
 /* Move this out to another file... */
-bool is_point_within_region(region_vnum region, int x, int y)
+static bool is_point_within_region(region_vnum region, int x, int y)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;

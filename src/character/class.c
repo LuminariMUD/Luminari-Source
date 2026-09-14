@@ -69,7 +69,7 @@ struct class_table class_list[NUM_CLASSES];
 /* SET OF UTILITY FUNCTIONS for the purpose of class prereqs */
 
 /* create/allocate memory for a pre-req struct, then assign the prereqs */
-struct class_prerequisite *create_prereq(int prereq_type, int val1, int val2, int val3)
+static struct class_prerequisite *create_prereq(int prereq_type, int val1, int val2, int val3)
 {
   struct class_prerequisite *prereq = NULL;
 
@@ -100,7 +100,7 @@ void class_prereq_attribute(int class_num, int attribute, int value)
   class_list[class_num].prereq_list = prereq;
 }
 
-void class_prereq_class_level(int class_num, int cl, int level)
+static void class_prereq_class_level(int class_num, int cl, int level)
 {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -116,7 +116,7 @@ void class_prereq_class_level(int class_num, int cl, int level)
   class_list[class_num].prereq_list = prereq;
 }
 
-void class_prereq_feat(int class_num, int feat, int ranks)
+static void class_prereq_feat(int class_num, int feat, int ranks)
 {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -136,7 +136,7 @@ void class_prereq_feat(int class_num, int feat, int ranks)
   class_list[class_num].prereq_list = prereq;
 }
 
-void class_prereq_cfeat(int class_num, int feat, int special)
+static void class_prereq_cfeat(int class_num, int feat, int special)
 {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -156,7 +156,7 @@ void class_prereq_cfeat(int class_num, int feat, int special)
   class_list[class_num].prereq_list = prereq;
 }
 
-void class_prereq_ability(int class_num, int ability, int ranks)
+static void class_prereq_ability(int class_num, int ability, int ranks)
 {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -171,7 +171,7 @@ void class_prereq_ability(int class_num, int ability, int ranks)
   class_list[class_num].prereq_list = prereq;
 }
 
-void class_prereq_spellcasting(int class_num, int casting_type, int prep_type, int circle)
+static void class_prereq_spellcasting(int class_num, int casting_type, int prep_type, int circle)
 {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -191,7 +191,7 @@ void class_prereq_spellcasting(int class_num, int casting_type, int prep_type, i
   class_list[class_num].prereq_list = prereq;
 }
 
-void class_prereq_race(int class_num, int race)
+static void class_prereq_race(int class_num, int race)
 {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -206,7 +206,7 @@ void class_prereq_race(int class_num, int race)
   class_list[class_num].prereq_list = prereq;
 }
 
-void class_prereq_bab(int class_num, int bab)
+static void class_prereq_bab(int class_num, int bab)
 {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -222,7 +222,7 @@ void class_prereq_bab(int class_num, int bab)
 }
 
 /* alignment is a list of RESTRICTED alignments */
-void class_prereq_align(int class_num, int alignment)
+static void class_prereq_align(int class_num, int alignment)
 {
   struct class_prerequisite *prereq = NULL;
   char buf[80];
@@ -266,7 +266,7 @@ void class_prereq_weapon_proficiency(int class_num)
    minimum-level for those spells */
 
 /* create/allocate memory for the spellassign struct */
-struct class_spell_assign *create_spell_assign(int spell_num, int level)
+static struct class_spell_assign *create_spell_assign(int spell_num, int level)
 {
   struct class_spell_assign *spell_asign = NULL;
 
@@ -278,7 +278,7 @@ struct class_spell_assign *create_spell_assign(int spell_num, int level)
 }
 
 /* actual function called to perform the spell assignment */
-void spell_assignment(int class_num, int spell_num, int level)
+static void spell_assignment(int class_num, int spell_num, int level)
 {
   struct class_spell_assign *spell_asign = NULL;
 
@@ -293,8 +293,8 @@ void spell_assignment(int class_num, int spell_num, int level)
    class-feats to a class */
 
 /* create/allocate memory for the spellassign struct */
-struct class_feat_assign *create_feat_assign(int feat_num, bool is_classfeat, int level_received,
-                                             bool stacks)
+static struct class_feat_assign *create_feat_assign(int feat_num, bool is_classfeat,
+                                                    int level_received, bool stacks)
 {
   struct class_feat_assign *feat_assign = NULL;
 
@@ -323,11 +323,11 @@ void feat_assignment(int class_num, int feat_num, bool is_classfeat, int level_r
 }
 
 /* function that will assign a list of values to a given class */
-void classo(int class_num, const char *name, const char *abbrev, const char *colored_abbrev,
-            const char *menu_name, int max_level, bool locked_class, int prestige_class,
-            int base_attack_bonus, int hit_dice, int psp_gain, int move_gain, int trains_gain,
-            bool in_game, int unlock_cost, int epic_feat_progression, const char *spell_prog,
-            const char *primary_attribute, const char *descrip)
+static void classo(int class_num, const char *name, const char *abbrev, const char *colored_abbrev,
+                   const char *menu_name, int max_level, bool locked_class, int prestige_class,
+                   int base_attack_bonus, int hit_dice, int psp_gain, int move_gain,
+                   int trains_gain, bool in_game, int unlock_cost, int epic_feat_progression,
+                   const char *spell_prog, const char *primary_attribute, const char *descrip)
 {
   class_list[class_num].name = name;
   class_list[class_num].abbrev = abbrev;
@@ -376,8 +376,8 @@ static void assign_class_titles(int class_num, const char *title_4, const char *
 }
 
 /* function used for assigned a classes 'preferred' saves */
-void assign_class_saves(int class_num, int save_fort, int save_refl, int save_will, int save_posn,
-                        int save_deth)
+static void assign_class_saves(int class_num, int save_fort, int save_refl, int save_will,
+                               int save_posn, int save_deth)
 {
   class_list[class_num].preferred_saves[SAVING_FORT] = save_fort;
   class_list[class_num].preferred_saves[SAVING_REFL] = save_refl;
@@ -388,13 +388,14 @@ void assign_class_saves(int class_num, int save_fort, int save_refl, int save_wi
 
 /* function used for assigning whether a given ability is not-available, cross-class
  or class-skill */
-void assign_class_abils(int class_num, int acrobatics, int stealth, int perception, int heal,
-                        int intimidate, int concentration, int spellcraft, int appraise,
-                        int discipline, int total_defense, int lore __attribute__((unused)),
-                        int ride, int climb, int sleight_of_hand, int bluff, int diplomacy,
-                        int disable_device, int disguise, int escape_artist, int handle_animal,
-                        int sense_motive, int survival __attribute__((unused)),
-                        int swim __attribute__((unused)), int use_magic_device, int perform)
+static void assign_class_abils(int class_num, int acrobatics, int stealth, int perception, int heal,
+                               int intimidate, int concentration, int spellcraft, int appraise,
+                               int discipline, int total_defense, int lore __attribute__((unused)),
+                               int ride, int climb, int sleight_of_hand, int bluff, int diplomacy,
+                               int disable_device, int disguise, int escape_artist,
+                               int handle_animal, int sense_motive,
+                               int survival __attribute__((unused)),
+                               int swim __attribute__((unused)), int use_magic_device, int perform)
 {
   class_list[class_num].class_abil[ABILITY_ACROBATICS] = acrobatics;
   class_list[class_num].class_abil[ABILITY_STEALTH] = stealth;
@@ -427,7 +428,7 @@ void assign_class_abils(int class_num, int acrobatics, int stealth, int percepti
 }
 
 /* function to give default values for a class before assignment */
-void init_class_list(int class_num)
+static void init_class_list(int class_num)
 {
   class_list[class_num].name = "unusedclass";
   class_list[class_num].abbrev = "???";
@@ -463,7 +464,7 @@ void init_class_list(int class_num)
 
 /* this was created to handle special scenarios for combat feat requirements
    for classes */
-bool has_special_cfeat(struct char_data *ch, int featnum, int mode)
+static bool has_special_cfeat(struct char_data *ch, int featnum, int mode)
 {
   switch (mode)
   {
@@ -698,7 +699,7 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
 }
 
 /* a display specific to identify prereqs for a given class */
-bool display_class_prereqs(struct char_data *ch, const char *classname)
+static bool display_class_prereqs(struct char_data *ch, const char *classname)
 {
   int class = CLASS_UNDEFINED;
   struct class_prerequisite *prereq = NULL;
@@ -1113,7 +1114,7 @@ bool display_class_info(struct char_data *ch, const char *classname)
 
 /* this was created for debugging the class command and new classes added to the
  class list */
-void display_imm_classlist(struct char_data *ch)
+static void display_imm_classlist(struct char_data *ch)
 {
   int i = 0, j = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -1225,7 +1226,7 @@ void display_imm_classlist(struct char_data *ch)
   page_string(ch->desc, buf, 1);
 }
 
-bool view_class_feats(struct char_data *ch, const char *classname)
+static bool view_class_feats(struct char_data *ch, const char *classname)
 {
   int class = CLASS_UNDEFINED;
   struct class_feat_assign *feat_assign = NULL;
@@ -2691,7 +2692,7 @@ void init_class(struct char_data *ch, int class, int level __attribute__((unused
 }
 
 /* not to be confused with init_char, this is exclusive right now for do_start */
-void init_start_char(struct char_data *ch)
+static void init_start_char(struct char_data *ch)
 {
   int trains = 0, i = 0, j = 0;
 
@@ -2949,7 +2950,7 @@ void do_start(struct char_data *ch)
     advance_premade_build(ch);
 }
 
-bool special_handling_level_feats(struct char_data *ch, int feat_num)
+static bool special_handling_level_feats(struct char_data *ch, int feat_num)
 {
   switch (feat_num)
   {
@@ -3104,7 +3105,7 @@ void process_race_level_feats(struct char_data *ch)
     }                                                                                              \
   }
 
-void process_conditional_class_level_feats(struct char_data *ch, int class)
+static void process_conditional_class_level_feats(struct char_data *ch, int class)
 {
   switch (class)
   {

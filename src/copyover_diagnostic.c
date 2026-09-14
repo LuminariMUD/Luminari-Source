@@ -20,6 +20,7 @@
 #include <time.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include "copyover_diagnostic.h"
 
 /* Diagnostic log file for copyover issues */
 #define COPYOVER_DIAG_FILE "../log/copyover_diagnostic.log"

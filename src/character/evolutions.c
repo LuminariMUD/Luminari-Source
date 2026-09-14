@@ -31,7 +31,7 @@
 int evolution_sort_info[NUM_EVOLUTIONS];
 struct evolution_info evolution_list[NUM_EVOLUTIONS];
 
-int compare_evolutions(const void *x, const void *y)
+static int compare_evolutions(const void *x, const void *y)
 {
   int a = *(const int *)x, b = *(const int *)y;
 
@@ -69,7 +69,7 @@ static void evolutiono(int evolution, const char *name, int points, bool stacks,
   evolution_list[evolution].desc = desc;
 }
 
-void initialize_evolution_list(void)
+static void initialize_evolution_list(void)
 {
   int i;
 

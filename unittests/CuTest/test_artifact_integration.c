@@ -44,7 +44,6 @@
 #include "../../src/spec/spec_effects.h"
 
 /* Production look helper exercised by Wyrmfang's danger-sense contract. */
-void check_dangersense(struct char_data *ch, room_rnum room);
 
 /* --------------------------------------------------------------------------
  * The fixture

@@ -41,7 +41,7 @@ int ship_info[NUM_OF_SHIPS][4] = {
     {120013, 120010, 120036, 120040},
 };
 
-struct obj_data *find_ship(room_rnum room)
+static struct obj_data *find_ship(room_rnum room)
 {
   int i, j;
   room_rnum ship_room;
@@ -70,7 +70,7 @@ struct obj_data *find_ship(room_rnum room)
   return NULL;
 }
 
-void move_ship(struct obj_data *ship, int dir)
+static void move_ship(struct obj_data *ship, int dir)
 {
   room_rnum new_room;
   room_rnum ship_room;

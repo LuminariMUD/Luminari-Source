@@ -547,7 +547,7 @@ static void oedit_disp_prompt_apply_menu(struct descriptor_data *d)
   OLC_MODE(d) = OEDIT_PROMPT_APPLY;
 }
 
-void oedit_disp_prompt_spellbook_menu(struct descriptor_data *d)
+static void oedit_disp_prompt_spellbook_menu(struct descriptor_data *d)
 {
   int counter, columns, i, u = 0;
 
@@ -730,7 +730,7 @@ static void oedit_disp_specab_activation_method_menu(struct descriptor_data *d)
                   cyn, bits, nrm);
 }
 
-void oedit_disp_specab_bane_race(struct descriptor_data *d)
+static void oedit_disp_specab_bane_race(struct descriptor_data *d)
 {
   int counter, columns = 0;
 
@@ -745,7 +745,7 @@ void oedit_disp_specab_bane_race(struct descriptor_data *d)
   write_to_output(d, "\r\n%sEnter race number : ", nrm);
 }
 
-void oedit_disp_specab_bane_subrace(struct descriptor_data *d)
+static void oedit_disp_specab_bane_subrace(struct descriptor_data *d)
 {
   int counter, columns = 0;
 
@@ -1841,7 +1841,7 @@ static void oedit_disp_wear_menu(struct descriptor_data *d)
                   cyn, bits, nrm);
 }
 
-bool remove_special_ability(struct obj_data *obj, int number __attribute__((unused)))
+static bool remove_special_ability(struct obj_data *obj, int number __attribute__((unused)))
 {
   // struct obj_special_ability *current = obj->special_abilities;
   // struct obj_special_ability *next;
@@ -1894,7 +1894,7 @@ bool remove_special_ability(struct obj_data *obj, int number __attribute__((unus
   // return deleted;
 }
 
-struct obj_special_ability *get_specab_by_position(struct obj_data *obj, int position)
+static struct obj_special_ability *get_specab_by_position(struct obj_data *obj, int position)
 {
   int i;
   struct obj_special_ability *specab;

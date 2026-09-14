@@ -234,7 +234,7 @@ SPECIAL(bought_pet)
 }
 
 
-int get_vendor_armor_cost(struct char_data *ch, int level, int armortype, sbyte masterwork)
+static int get_vendor_armor_cost(struct char_data *ch, int level, int armortype, sbyte masterwork)
 {
   int cost = 0;
 
@@ -269,7 +269,7 @@ int get_vendor_armor_cost(struct char_data *ch, int level, int armortype, sbyte 
   return MAX(1, cost);
 }
 
-int get_vendor_weapon_cost(struct char_data *ch, int level, int weapontype, sbyte masterwork)
+static int get_vendor_weapon_cost(struct char_data *ch, int level, int weapontype, sbyte masterwork)
 {
   int cost = 0;
 
@@ -300,7 +300,7 @@ int get_vendor_weapon_cost(struct char_data *ch, int level, int weapontype, sbyt
   return MAX(1, cost);
 }
 
-void display_buy_armor_types(struct char_data *ch, int level, sbyte masterwork, char *type)
+static void display_buy_armor_types(struct char_data *ch, int level, sbyte masterwork, char *type)
 {
   int i = 0;
   int cost = 0;
@@ -360,7 +360,7 @@ void display_buy_armor_types(struct char_data *ch, int level, sbyte masterwork, 
     send_to_char(ch, "These prices are for +%d items.\r\n\r\n", level);
 }
 
-void display_buy_weapon_types(struct char_data *ch, int level, sbyte masterwork)
+static void display_buy_weapon_types(struct char_data *ch, int level, sbyte masterwork)
 {
   int i = 0, cost = 0;
 
@@ -384,7 +384,7 @@ void display_buy_weapon_types(struct char_data *ch, int level, sbyte masterwork)
   "Masterwork armor reduces the armor check penalty for certain skills, by one.  They cost an "    \
   "extra 50 gold per piece.\r\n"
 
-void set_weapon_name(struct obj_data *obj, int type)
+static void set_weapon_name(struct obj_data *obj, int type)
 {
   char buf[200];
 
@@ -399,7 +399,7 @@ void set_weapon_name(struct obj_data *obj, int type)
   obj->name = strdup(buf);
 }
 
-void set_armor_name(struct obj_data *obj, int type)
+static void set_armor_name(struct obj_data *obj, int type)
 {
   char buf[200];
 
@@ -413,7 +413,7 @@ void set_armor_name(struct obj_data *obj, int type)
   obj->name = strdup(buf);
 }
 
-void set_masterwork_obj_name(struct obj_data *obj)
+static void set_masterwork_obj_name(struct obj_data *obj)
 {
   char buf[200];
 
@@ -433,7 +433,7 @@ void set_masterwork_obj_name(struct obj_data *obj)
   obj->name = strdup(buf);
 }
 
-void set_magical_obj_name(struct obj_data *obj, int level)
+static void set_magical_obj_name(struct obj_data *obj, int level)
 {
   char buf[200];
   int i = 0;

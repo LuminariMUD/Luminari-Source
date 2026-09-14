@@ -360,7 +360,7 @@ void clear_mission_mobs(char_data *ch)
   }
 }
 
-void increase_mob_difficulty(struct char_data *mob, int difficulty)
+static void increase_mob_difficulty(struct char_data *mob, int difficulty)
 {
   switch (difficulty)
   {

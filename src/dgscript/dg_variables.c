@@ -73,7 +73,7 @@ void add_var(struct trig_var_data **var_list, const char *name, const char *valu
   memcpy(vd->value, value, strlen(value) + 1);
 }
 
-int dg_has_feat(char_data *ch, const char *feat, int return_type __attribute__((unused)))
+static int dg_has_feat(char_data *ch, const char *feat, int return_type __attribute__((unused)))
 {
   int featnum;
 
@@ -100,7 +100,7 @@ const char *skill_percent(struct char_data *ch, char *skill)
 }
 
 /* perhaps not the best place for this, but I didn't want a new file */
-const char *skill_percent_plus_d20(struct char_data *ch, char *skill)
+static const char *skill_percent_plus_d20(struct char_data *ch, char *skill)
 {
   static char retval[16];
   int skillnum;

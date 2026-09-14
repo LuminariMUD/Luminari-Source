@@ -519,7 +519,7 @@ static void normalize_bardic_performance_state(struct char_data *ch)
 }
 
 /* will list to the performer which performances are available to them */
-void list_available_performances(struct char_data *ch)
+static void list_available_performances(struct char_data *ch)
 {
   int i = 0;
 

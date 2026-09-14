@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-bool sect_no_weather(struct char_data *ch);
 
 void Test_pvp_policy_blocks_combat_damage_and_player_controlled_pets(CuTest *tc)
 {

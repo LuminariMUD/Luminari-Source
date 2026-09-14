@@ -32,8 +32,6 @@ static float simple_fabs(float value)
 }
 
 /* Forward declarations for wilderness functions not in headers */
-extern int get_temperature(int map, int x, int y);
-extern int get_moisture(int map, int x, int y);
 
 /* Forward declarations for region integration */
 /* Phase 4b: Region Effects Forward Declarations */

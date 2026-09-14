@@ -110,15 +110,12 @@ static bool perform_new_char_dupe_check(struct descriptor_data *d);
 static int sort_commands_helper(const void *a, const void *b);
 
 // external functions
-void update_player_last_on(void);
 
 /* globals defined here, used here and elsewhere */
 int *cmd_sort_info = NULL;
 
 struct command_info *complete_cmd_info;
 
-ACMD_DECL(do_reboot);
-ACMD_DECL(do_relock);
 
 /* This is the Master Command List. You can put new commands in, take commands
  * out, change the order they appear in, etc.  You can adjust the "priority"

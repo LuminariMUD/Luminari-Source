@@ -71,7 +71,6 @@ static float pnoise(float x, float y, int noise_type)
 #define CRYSTAL NOISE_CRYSTAL
 
 /* External functions from wilderness.c */
-extern int get_temperature(int map, int x, int y);
 
 /* Safe macros for wilderness map access with bounds checking */
 #define SAFE_MAP_BOUNDS(x, y) ((x) >= 0 && (x) < MAP_WIDTH && (y) >= 0 && (y) < MAP_HEIGHT)
@@ -93,7 +92,7 @@ extern int get_temperature(int map, int x, int y);
 extern const char *sector_types[];
 
 /* Function to get noise seed - simple implementation */
-int get_noise_seed(int layer)
+static int get_noise_seed(int layer)
 {
   /* Return predefined seeds based on layer type */
   switch (layer)
@@ -895,7 +894,7 @@ void analyze_climate_zones(FILE *fp)
 }
 
 /* Calculate actual correlation between two resources */
-float calculate_resource_correlation(int res1, int res2)
+static float calculate_resource_correlation(int res1, int res2)
 {
   int x, y, samples = 0;
   float sum1 = 0, sum2 = 0, sum12 = 0;

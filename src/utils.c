@@ -1181,7 +1181,7 @@ struct follower_count_data
   int general_used;
 };
 
-bool isGenieKind(int vnum)
+static bool isGenieKind(int vnum)
 {
   switch (vnum)
   {
@@ -9620,7 +9620,7 @@ int get_spellcasting_class(struct char_data *ch)
 }
 
 // will return true if the sector type offers opportunity for cover
-bool can_room_sector_give_cover(int type)
+static bool can_room_sector_give_cover(int type)
 {
   switch (type)
   {
@@ -9636,7 +9636,7 @@ bool can_room_sector_give_cover(int type)
 }
 
 // will return true if the character has cover
-bool has_cover(struct char_data *ch, struct char_data *t)
+static bool has_cover(struct char_data *ch, struct char_data *t)
 {
   if (!ch || !t)
     return false;

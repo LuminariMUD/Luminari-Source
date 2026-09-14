@@ -242,6 +242,8 @@ extern const char *quest_types[]; /* named for quest types (quest.c) */
 /* Committed movement and transfer consumers. */
 enum domain_event_status quest_register_commit_handlers(struct domain_event_bus *bus);
 
+
+void quest_quit(struct char_data *ch, char argument[MAX_STRING_LENGTH]);
 #endif /* _QUEST_H_ */
 
 /* EOF */

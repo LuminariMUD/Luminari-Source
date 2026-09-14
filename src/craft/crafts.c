@@ -89,7 +89,7 @@ struct craft_data *create_craft(void)
   return (new_craft);
 }
 
-struct requirement_data *create_requirement(void)
+static struct requirement_data *create_requirement(void)
 {
   struct requirement_data *new_requirement;
 
@@ -307,7 +307,7 @@ static void save_crafts_to_disk(void)
 }
 
 /* Craft Handlers */
-void sort_craft_list(void)
+static void sort_craft_list(void)
 {
   struct list_data *sorted;
   struct craft_data *craft, *rem_craft;
@@ -376,7 +376,7 @@ struct craft_data *get_craft_from_id(int id)
   return (craft);
 }
 
-struct requirement_data *find_requirement_in_craft(struct craft_data *craft, obj_vnum vnum)
+static struct requirement_data *find_requirement_in_craft(struct craft_data *craft, obj_vnum vnum)
 {
   struct requirement_data *r = NULL;
   struct iterator_data Iterator;
@@ -401,7 +401,8 @@ struct requirement_data *find_requirement_in_craft(struct craft_data *craft, obj
   return NULL;
 }
 
-struct obj_data *get_object_from_requirement(struct char_data *ch, struct requirement_data *req)
+static struct obj_data *get_object_from_requirement(struct char_data *ch,
+                                                    struct requirement_data *req)
 {
   struct obj_data *obj;
 
@@ -428,7 +429,7 @@ struct obj_data *get_object_from_requirement(struct char_data *ch, struct requir
   return (NULL);
 }
 
-bool find_requirement(struct char_data *ch, struct requirement_data *req)
+static bool find_requirement(struct char_data *ch, struct requirement_data *req)
 {
   bool in_room = IS_SET(req->req_flags, REQ_FLAG_IN_ROOM);
   obj_vnum vnum = req->req_vnum;
@@ -457,7 +458,7 @@ bool find_requirement(struct char_data *ch, struct requirement_data *req)
   return (FALSE);
 }
 
-int missing_craft_requirements(struct char_data *ch, struct craft_data *craft)
+static int missing_craft_requirements(struct char_data *ch, struct craft_data *craft)
 {
   int missing = 0;
   struct iterator_data iterator;
@@ -933,7 +934,7 @@ static void craftedit_setup_new(struct descriptor_data *d)
   OLC_VAL(d) = 0;
 }
 
-void craftedit_setup_existing(struct descriptor_data *d, int craft_id)
+static void craftedit_setup_existing(struct descriptor_data *d, int craft_id)
 {
   struct craft_data *craft;
 
@@ -947,7 +948,7 @@ void craftedit_setup_existing(struct descriptor_data *d, int craft_id)
   OLC_VAL(d) = 0;
 }
 
-void craftedit_save_internal(struct craft_data *craft)
+static void craftedit_save_internal(struct craft_data *craft)
 {
   struct craft_data *temp_craft;
 

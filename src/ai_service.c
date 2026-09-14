@@ -2097,7 +2097,7 @@ static char *make_ollama_request(const char *prompt)
     {
       log("AI Service: ERROR - Ollama CURL error: %s", curl_easy_strerror(res));
     }
-    AI_DEBUG("Ollama CURL error code: %d", res);
+    AI_DEBUG("Ollama CURL error code: %d", (int)res);
   }
 
   /* Cleanup */

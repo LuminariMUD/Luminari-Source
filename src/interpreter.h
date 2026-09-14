@@ -78,6 +78,7 @@ ACMD_DECL(do_db_init_system);
 
 /* ACMDs available through interpreter.c */
 ACMD_DECL(do_alias);
+ACMD_DECL(do_reboot);
 
 /* for compatibility with 2.20: */
 #define argument_interpreter(a, b, c) two_arguments_u(a, b, c)

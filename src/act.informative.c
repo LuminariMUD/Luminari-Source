@@ -342,7 +342,7 @@ void check_dangersense(struct char_data *ch, room_rnum room)
     send_to_char(ch, "\tRYou feel \trdanger\tR there.\tn\r\n");
 }
 
-void show_obj_info(struct obj_data *obj, struct char_data *ch)
+static void show_obj_info(struct obj_data *obj, struct char_data *ch)
 {
   int size = GET_OBJ_SIZE(obj);
   int material = GET_OBJ_MATERIAL(obj);
@@ -2978,7 +2978,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   }
 }
 
-void perform_damage_reduction(struct char_data *ch, struct char_data *k)
+static void perform_damage_reduction(struct char_data *ch, struct char_data *k)
 {
   send_to_char(ch, "\tC");
   text_line(ch, "\tYDamage Reduction Breakdown\tC", 80, '-', '-');
@@ -3715,7 +3715,7 @@ ACMD(do_gold)
     send_to_char(ch, "You have %d gold coins.\r\n", GET_GOLD(ch));
 }
 
-char *get_ability_command_feat_name(int i)
+static char *get_ability_command_feat_name(int i)
 {
   if (i == FEAT_STUNNING_FIST)
     return strdup("ki points");
@@ -7209,7 +7209,7 @@ ACMD(do_inventory)
   }
 }
 
-int count_bag_contents(struct char_data *ch, int bagnum)
+static int count_bag_contents(struct char_data *ch, int bagnum)
 {
   struct obj_data *obj;
   int count = 0;
@@ -7260,7 +7260,7 @@ int count_bag_contents(struct char_data *ch, int bagnum)
   return count;
 }
 
-void show_bags_summary(struct char_data *ch)
+static void show_bags_summary(struct char_data *ch)
 {
   if (!ch)
     return;
@@ -7360,7 +7360,7 @@ ACMD(do_bags)
   }
 }
 
-bool show_wear_slot_in_eq(int wear_slot)
+static bool show_wear_slot_in_eq(int wear_slot)
 {
   switch (wear_slot)
   {
@@ -8865,7 +8865,7 @@ ACMD(do_toggle)
 }
 
 /* new wizhelp function, courtesy of paragon codebase -zusuk */
-void do_wizhelp(struct char_data *ch)
+static void do_wizhelp(struct char_data *ch)
 {
   int no = 1, i, cmd_num;
   int level;
@@ -9256,7 +9256,7 @@ ACMD(do_whois)
     free_char(victim);
 }
 
-bool get_zone_levels(zone_rnum znum, char *buf)
+static bool get_zone_levels(zone_rnum znum, char *buf)
 {
   /* Create a string for the level restrictions for this zone. */
   if ((zone_table[znum].min_level == -1) && (zone_table[znum].max_level == -1))
@@ -10221,7 +10221,7 @@ ACMD(do_rank)
   do_slug_rank(ch, argument);
 }
 
-void display_weapon_families(struct char_data *ch)
+static void display_weapon_families(struct char_data *ch)
 {
   int i = 0;
 
@@ -10311,7 +10311,7 @@ ACMD(do_armorlist)
   send_to_char(ch, "\tDType 'weaponlist' to see a list of weapon types\tn\r\n");
 }
 
-int is_weapon_proficient(int weapon, int type)
+static int is_weapon_proficient(int weapon, int type)
 {
   if (type == WPT_SIMPLE)
   {
@@ -11155,7 +11155,7 @@ ACMD(do_touch_spells)
   }
 }
 
-bool char_has_any_item_activation_abilities(struct char_data *ch)
+static bool char_has_any_item_activation_abilities(struct char_data *ch)
 {
   if (!ch)
     return false;

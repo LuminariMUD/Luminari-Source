@@ -229,7 +229,7 @@ bool death_check(struct char_data *ch)
 }
 
 /* engine for checking a room-affect to see if it fires */
-void room_aff_tick(struct raff_node *raff)
+static void room_aff_tick(struct raff_node *raff)
 {
   struct room_data *caster_room = NULL;
   struct char_data *caster = NULL;
@@ -310,7 +310,7 @@ void room_aff_tick(struct raff_node *raff)
 }
 
 /* Advance character afflictions during environment and recovery work. */
-void affliction_tick(struct char_data *ch)
+static void affliction_tick(struct char_data *ch)
 {
   /* cloudkill */
   if (CLOUDKILL(ch))
@@ -426,7 +426,7 @@ void mount_cleanup(struct char_data *ch)
 
 /* a tick counter that checks for room-based hazards, like
  * falling/drowning/lava/etc */
-void hazard_tick(struct char_data *ch)
+static void hazard_tick(struct char_data *ch)
 {
   /* falling */
   if (char_should_fall(ch, TRUE) && !char_has_mud_event(ch, eFALLING))
@@ -556,7 +556,7 @@ int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6)
  * @param ch The character to check
  * @return Total healing bonus from all auras in range
  */
-int get_healing_aura_regen_bonus(struct char_data *ch)
+static int get_healing_aura_regen_bonus(struct char_data *ch)
 {
   struct char_data *aura_caster = NULL;
   int total_bonus = 0;
@@ -660,7 +660,7 @@ int get_healing_aura_regen_bonus(struct char_data *ch)
 }
 
 /* we do the math for our hps regen per tick here -zusuk */
-int regen_hps(struct char_data *ch)
+static int regen_hps(struct char_data *ch)
 {
   int hp = 0;
 

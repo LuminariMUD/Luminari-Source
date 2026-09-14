@@ -25,8 +25,6 @@
 #define SPEC_COMBAT_MAX_CALLS 8
 #define SPEC_COMBAT_SOURCE_LIMIT (1024L * 1024L)
 
-int weapon_special(struct obj_data *wpn, struct char_data *ch, struct char_data *target, int damage,
-                   int attack_type, bool critical, char *hit_msg);
 
 struct spec_combat_call
 {

@@ -41,7 +41,6 @@
 #include "mysql.h"
 #include "desc_engine.h"
 
-void insert_path(struct path_data *path);
 
 struct kdtree *kd_wilderness_rooms = NULL;
 
@@ -171,7 +170,7 @@ void initialize_wilderness_lists()
 }
 
 /* Get the value of the radial/box gradient at the specified (x,y) coordinate. */
-double get_radial_gradient(int x, int y)
+static double get_radial_gradient(int x, int y)
 {
   int cx, cy;
   int xsize = WILD_X_SIZE;
@@ -1102,7 +1101,7 @@ void mark_wilderness_room_occupied(room_rnum room)
   }
 }
 
-void line_vis(struct wild_map_tile **map, int x, int y, int x2, int y2)
+static void line_vis(struct wild_map_tile **map, int x, int y, int x2, int y2)
 {
   int i = 0;
   int visibility = 10;

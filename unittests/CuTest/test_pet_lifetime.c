@@ -15,8 +15,6 @@
 #include <string.h>
 #include <time.h>
 
-extern char *serialize_pet_runtime_state_for_test(struct char_data *pet);
-extern bool restore_pet_runtime_state_for_test(struct char_data *pet, const char *serialized);
 
 static void begin_lifetime_pet(struct char_data *pet)
 {

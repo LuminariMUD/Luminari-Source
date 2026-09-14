@@ -34,7 +34,7 @@ void spello(int spl, const char *name, int max_psp, int min_psp, int psp_change,
             int targets, int violent, int routines, const char *wearoff, int time, int memtime,
             int school, bool quest);
 
-void unused_psionic_power(int pwr)
+static void unused_psionic_power(int pwr)
 {
   psionic_powers[pwr].psp_cost = 0;
   psionic_powers[pwr].can_augment = false;
@@ -44,9 +44,9 @@ void unused_psionic_power(int pwr)
   psionic_powers[pwr].is_epic = false;
 }
 
-void psiono(int pwr, const char *name, int psp_cost, bool can_augment, int augment_amount,
-            int max_augment, int power_type, int targets, int violent, int routines,
-            const char *wearoff, int time)
+static void psiono(int pwr, const char *name, int psp_cost, bool can_augment, int augment_amount,
+                   int max_augment, int power_type, int targets, int violent, int routines,
+                   const char *wearoff, int time)
 {
   psionic_powers[pwr].psp_cost = psp_cost;
   psionic_powers[pwr].can_augment = can_augment;
@@ -57,7 +57,7 @@ void psiono(int pwr, const char *name, int psp_cost, bool can_augment, int augme
          false);
 }
 
-void epic_psionic_power(int pwr)
+static void epic_psionic_power(int pwr)
 {
   psionic_powers[pwr].is_epic = true;
 }

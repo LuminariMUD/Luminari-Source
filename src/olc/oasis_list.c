@@ -97,7 +97,7 @@ void perform_mob_name_list(struct char_data *ch, char *arg)
   return;
 }
 
-void perform_mob_flag_list(struct char_data *ch, char *arg)
+static void perform_mob_flag_list(struct char_data *ch, char *arg)
 {
   mob_rnum num;
   int mob_flag, found = 0, len;
@@ -140,7 +140,7 @@ void perform_mob_flag_list(struct char_data *ch, char *arg)
   return;
 }
 
-void perform_mob_level_list(struct char_data *ch, char *arg)
+static void perform_mob_level_list(struct char_data *ch, char *arg)
 {
   mob_rnum num;
   int mob_level, found = 0, len;
@@ -181,7 +181,7 @@ void perform_mob_level_list(struct char_data *ch, char *arg)
   return;
 }
 
-void add_to_obj_list(struct obj_list_item *lst, int num_items, obj_vnum nvo, int nval)
+static void add_to_obj_list(struct obj_list_item *lst, int num_items, obj_vnum nvo, int nval)
 {
   int j, tmp_v;
   obj_vnum tmp_ov;
@@ -203,7 +203,7 @@ void add_to_obj_list(struct obj_list_item *lst, int num_items, obj_vnum nvo, int
 }
 
 /* list objects by type */
-void perform_obj_type_list(struct char_data *ch, char *arg)
+static void perform_obj_type_list(struct char_data *ch, char *arg)
 {
   obj_rnum num;
   int itemtype, v1, v2 = -1, v3 = -1, v4 = -1, v5 = -1, found = 0, len = 0;
@@ -595,7 +595,7 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
 }
 
 /* this function is ran for doing:  olist worn <slot> */
-void perform_obj_worn_list(struct char_data *ch, char *arg)
+static void perform_obj_worn_list(struct char_data *ch, char *arg)
 {
   obj_rnum num;
   int wearloc, found = 0, len = 0, i = 0;
@@ -670,7 +670,7 @@ void perform_obj_worn_list(struct char_data *ch, char *arg)
   return;
 }
 
-void perform_obj_aff_list(struct char_data *ch, char *arg)
+static void perform_obj_aff_list(struct char_data *ch, char *arg)
 {
   obj_rnum num;
   int i, apply, v1 = 0, found = 0, len = 0, tmp_len = 0;
@@ -772,7 +772,7 @@ void perform_obj_aff_list(struct char_data *ch, char *arg)
   page_string(ch->desc, buf, TRUE);
 }
 
-void perform_obj_perms_list(struct char_data *ch, char *arg)
+static void perform_obj_perms_list(struct char_data *ch, char *arg)
 {
   obj_rnum num = 0;
   int found = 0, len = 0, tmp_len = 0;
@@ -819,7 +819,7 @@ void perform_obj_perms_list(struct char_data *ch, char *arg)
   page_string(ch->desc, buf, TRUE);
 }
 
-void perform_obj_perms2_list(struct char_data *ch, char *arg)
+static void perform_obj_perms2_list(struct char_data *ch, char *arg)
 {
   obj_rnum num = 0;
   int found = 0, len = 0, tmp_len = 0;
@@ -866,7 +866,7 @@ void perform_obj_perms2_list(struct char_data *ch, char *arg)
   page_string(ch->desc, buf, TRUE);
 }
 
-void perform_obj_name_list(struct char_data *ch, char *arg)
+static void perform_obj_name_list(struct char_data *ch, char *arg)
 {
   obj_rnum num;
   int found = 0, len = 0, tmp_len = 0;

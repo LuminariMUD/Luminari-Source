@@ -44,9 +44,9 @@ int active_hunts[AHUNT_1][AHUNT_2];
 int hunt_reset_timer;
 static uint64_t hunt_generation = 1U;
 
-void add_hunt(int hunt_type, int level, const char *name, const char *description,
-              const char *long_description, int char_class, int alignment, int race_type,
-              int subrace1, int subrace2, int subrace3, int size)
+static void add_hunt(int hunt_type, int level, const char *name, const char *description,
+                     const char *long_description, int char_class, int alignment, int race_type,
+                     int subrace1, int subrace2, int subrace3, int size)
 {
   hunt_table[hunt_type].level = level;
   hunt_table[hunt_type].name = name;
@@ -61,12 +61,12 @@ void add_hunt(int hunt_type, int level, const char *name, const char *descriptio
   hunt_table[hunt_type].size = size;
 }
 
-void add_hunt_ability(int hunt_type, int ability)
+static void add_hunt_ability(int hunt_type, int ability)
 {
   hunt_table[hunt_type].abilities[ability] = true;
 }
 
-void init_hunts(void)
+static void init_hunts(void)
 {
   int i = 0, j = 0;
   for (i = 0; i < NUM_HUNT_TYPES; i++)

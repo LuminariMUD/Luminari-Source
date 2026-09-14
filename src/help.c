@@ -801,7 +801,7 @@ struct help_keyword_list *get_help_keywords(const char *tag)
   return keywords;
 }
 
-struct help_keyword_list *soundex_search_help_keywords(const char *argument, int level)
+static struct help_keyword_list *soundex_search_help_keywords(const char *argument, int level)
 {
   PREPARED_STMT *pstmt;
   struct help_keyword_list *keywords = NULL, *new_keyword = NULL, *cur = NULL;

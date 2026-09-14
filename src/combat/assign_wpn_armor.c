@@ -330,7 +330,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
 }
 
 /* is weapon out of ammo? */
-bool weapon_needs_reload(struct char_data *ch, struct obj_data *weapon, bool silent_mode)
+static bool weapon_needs_reload(struct char_data *ch, struct obj_data *weapon, bool silent_mode)
 {
   /* object value 5 is for loaded status */
   if (GET_OBJ_VAL(weapon, 5) > 0)
@@ -342,7 +342,7 @@ bool weapon_needs_reload(struct char_data *ch, struct obj_data *weapon, bool sil
   return TRUE;
 }
 
-bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent_mode)
+static bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent_mode)
 {
   switch (GET_OBJ_VAL(wielded, 0))
   {
@@ -451,7 +451,7 @@ bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent
    then run reload_weapon() for actual reloading
    finally burn up appropriate action
  * @returns:  true if success */
-bool process_load_weapon(struct char_data *ch, struct obj_data *weapon, bool silent_mode)
+static bool process_load_weapon(struct char_data *ch, struct obj_data *weapon, bool silent_mode)
 {
   /* position check */
   if (GET_POS(ch) <= POS_STUNNED)
@@ -859,7 +859,7 @@ static void setweapon(int type, const char *name, int numDice, int diceSize, int
   weapon_list[type].description = description;
 }
 
-void initialize_weapons(int type)
+static void initialize_weapons(int type)
 {
   weapon_list[type].name = "unused weapon";
   weapon_list[type].description = "unused weapon";
@@ -1891,7 +1891,7 @@ static void setarmor(int type, const char *name, int armorType, int cost, int ar
   armor_list[type].description = description;
 }
 
-void initialize_armor(int type)
+static void initialize_armor(int type)
 {
   armor_list[type].name = "unused armor";
   armor_list[type].description = "unused armor";

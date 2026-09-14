@@ -248,7 +248,6 @@ static void free_extra_descriptions(struct extra_descr_data *edesc);
 static bitvector_t asciiflag_conv_aff(char *flag);
 static int help_sort(const void *a, const void *b);
 void assign_deities(void);
-void assign_weighted_bonuses(void);
 
 /* Ils: Global result_q needed for init_result_q, push_result & test_result */
 struct
@@ -259,7 +258,7 @@ struct
 
 /* init_result_q
  * note: just prepares the result_q for usage */
-void init_result_q(void)
+static void init_result_q(void)
 {
   result_q.size = 0;
   result_q.tail = 0;
@@ -272,7 +271,7 @@ void init_result_q(void)
  * been enqueued.
  * note: result_q.tail is kept 1 ahead of valid results so that
  *       result_q.tail - 1 = previous result */
-void push_result(byte result)
+static void push_result(byte result)
 {
   result_q.q[result_q.tail] = result;
   result_q.size++;
@@ -296,7 +295,7 @@ void push_result(byte result)
  * usage: TRUE should mean execute the command
  *        FALSE should mean don't execute the command
  * NOTE: Uses the ZONE_ERROR macro defined for reset_zone */
-sbyte test_result(sbyte offset, zone_rnum zone, int cmd_no)
+static sbyte test_result(sbyte offset, zone_rnum zone, int cmd_no)
 {
   if (abs(offset) > result_q.size)
   {
@@ -359,7 +358,7 @@ char *fread_action(FILE *fl, int nr)
   return (strdup(buf));
 }
 
-void boot_social_messages(void)
+static void boot_social_messages(void)
 {
   FILE *fl;
   int nr = 0, hide, min_char_pos, min_pos, min_lvl, curr_soc = -1;
@@ -5350,7 +5349,7 @@ void zone_update(void)
     }
 }
 
-int check_max_existing(mob_rnum mob_num, int max, room_rnum room)
+static int check_max_existing(mob_rnum mob_num, int max, room_rnum room)
 {
   struct char_data *temp_mob = NULL;
   char buf[MAX_STRING_LENGTH] = {'\0'};

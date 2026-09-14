@@ -45,8 +45,6 @@ extern const char *sector_types[];
 extern const char *dirs[];
 
 /* External declarations for wilderness functions */
-extern int get_moisture(int map, int x, int y);
-extern int get_temperature(int map, int x, int y);
 
 /* Debug toggle for Terrain API - set to 0 to disable debug messages */
 static int terrain_api_debug_enabled = 0;

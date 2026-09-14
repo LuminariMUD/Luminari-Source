@@ -62,7 +62,7 @@ struct level_rec *levels = 0;
  * Creates a linked list of level records based on the static level_params
  * array, setting up the data structures needed for wizard list generation.
  */
-void initialize(void)
+static void initialize(void)
 {
   struct level_rec *tmp;
   int i = 0;
@@ -84,7 +84,7 @@ void initialize(void)
 
 void add_name(byte level, char *name);
 
-void read_file(void)
+static void read_file(void)
 {
   FILE *fl;
   int recs, i, last = 0, level = 0, flags = 0;
@@ -171,7 +171,7 @@ void add_name(byte level, char *name)
   }
 }
 
-void sort_names(void)
+static void sort_names(void)
 {
   struct level_rec *curr_level;
   struct name_rec *a, *b;
@@ -194,7 +194,7 @@ void sort_names(void)
   }
 }
 
-void write_wizlist(FILE *out, int minlev, int maxlev)
+static void write_wizlist(FILE *out, int minlev, int maxlev)
 {
   char buf[100];
   struct level_rec *curr_level;

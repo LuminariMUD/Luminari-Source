@@ -3286,6 +3286,8 @@ static int pet_order_test_mode;
 static int pet_order_test_dispatches;
 
 /* Exercise callbacks through the real command table and interpreter. */
+ACMD_DECL(pet_order_test_command);
+
 ACMD(pet_order_test_command)
 {
   pet_order_test_last = ch;
@@ -10136,7 +10138,6 @@ void Test_gameplay_autoraise_toggle_requires_the_native_class_ability(CuTest *tc
   ProtocolDestroy(descriptor.pProtocol);
 }
 
-void quest_quit(struct char_data *ch, char argument[MAX_STRING_LENGTH]);
 
 /* Quest rewards report the amounts actually applied at a balance limit, happy hour boosts quest
  * experience once, inside award_experience(), and a quit penalty reports what was taken. */

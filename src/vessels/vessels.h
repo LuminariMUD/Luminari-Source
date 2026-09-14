@@ -2127,4 +2127,7 @@ ACMD_DECL(do_unloadvehicle); /* Unload vehicle from a vessel (S0205) */
 /* ========================================================================= */
 
 
+ACMD_DECL(do_board_vessel);
+
+void init_vessel_db(void);
 #endif /* _VESSELS_H_ */

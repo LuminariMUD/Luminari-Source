@@ -25,6 +25,7 @@
 #include "clan.h"
 #include "mysql.h"
 #include "modify.h"
+#include "new_mail.h"
 
 void perform_mail_delete(struct char_data *ch, int mnum);
 void perform_mail_list(struct char_data *ch, int type);

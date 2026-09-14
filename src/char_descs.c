@@ -21,7 +21,6 @@
 #include "net/onboarding.h"
 
 /* External function declarations */
-void update_player_last_on(void);
 
 const char *const eye_descriptions[] = {"undefined",
                                         "blue",
@@ -575,7 +574,7 @@ char *current_disguise_desc(struct char_data *ch)
   return desc;
 }
 
-void short_desc_descriptors_menu(struct char_data *ch)
+static void short_desc_descriptors_menu(struct char_data *ch)
 {
   SEND_TO_Q(
       "Please choose a descriptor from the list.  This will determine what kind of feature\r\n"
@@ -599,7 +598,7 @@ void short_desc_descriptors_menu(struct char_data *ch)
             ch->desc);
 }
 
-void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
+static void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
 {
   char buf[100];
   int i = 1;
@@ -772,7 +771,7 @@ void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
   SEND_TO_Q("\r\n", ch->desc);
 }
 
-int count_adjective_types(int which_desc)
+static int count_adjective_types(int which_desc)
 {
   return short_desc_adjective_count(which_desc);
 }

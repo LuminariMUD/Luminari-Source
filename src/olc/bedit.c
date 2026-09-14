@@ -18,6 +18,7 @@
 #include "helpers.h"
 #include "mysql.h"
 #include "comms/mysql_boards.h"
+#include "bedit.h"
 
 /*-------------------------------------------------------------------*/
 /* External variables */
@@ -26,7 +27,6 @@
 /* Function prototypes */
 void bedit_setup_new(struct descriptor_data *d);
 void bedit_setup_existing(struct descriptor_data *d, int board_id);
-void bedit_parse(struct descriptor_data *d, char *arg);
 void bedit_disp_menu(struct descriptor_data *d);
 void bedit_disp_board_type_menu(struct descriptor_data *d);
 void bedit_save_to_disk(struct descriptor_data *d);

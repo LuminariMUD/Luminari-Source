@@ -136,7 +136,7 @@ void calc_moon_bonus(void)
 
 /* a nice little cheesy function used to reset dailies, currently
  dailies are resetting every 6 game hours */
-void reset_dailies()
+static void reset_dailies()
 {
   struct char_data *ch = NULL, *next_ch = NULL;
   int changes = 0;

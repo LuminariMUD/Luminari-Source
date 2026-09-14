@@ -135,7 +135,7 @@ void show_exchange_rates(struct char_data *ch)
 }
 #endif
 
-void show_exchange_rates(struct char_data *ch)
+static void show_exchange_rates(struct char_data *ch)
 {
   send_to_char(ch,
                "Usage: cexchange <currency source> <amount to purchase of exchange currency>\r\n");
@@ -3679,7 +3679,7 @@ void set_bonus_attributes(struct char_data *ch, int str, int con, int dex, int a
   GET_DISGUISE_AC(ch) = ac;
 }
 
-void init_wild_shape_mods(struct wild_shape_mods *abil_mods)
+static void init_wild_shape_mods(struct wild_shape_mods *abil_mods)
 {
   abil_mods->strength = 0;
   abil_mods->constitution = 0;
@@ -4146,8 +4146,8 @@ At 12th level, a druid can use wild shape to change into a Huge elemental or a
  * shape now functions as elemental body IV. When taking the form of a plant, the
  * druid's wild shape now functions as plant shape III.
  */
-int display_eligible_wildshape_races(struct char_data *ch, const char *argument, int silent,
-                                     int mode)
+static int display_eligible_wildshape_races(struct char_data *ch, const char *argument, int silent,
+                                            int mode)
 {
   int i = 0;
   struct wild_shape_mods abil_mods;
@@ -4369,7 +4369,7 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
     return i; /* specific race */
 }
 
-void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac)
+static void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac)
 {
   struct affected_type af[WILDSHAPE_AFFECTS];
   int i = 0;
@@ -4417,7 +4417,7 @@ void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac)
 }
 
 /* also clean up anything else assigned such as affections */
-void cleanup_wildshape_feats(struct char_data *ch)
+static void cleanup_wildshape_feats(struct char_data *ch)
 {
   int counter = 0;
   int race = GET_DISGUISE_RACE(ch);
@@ -4516,7 +4516,7 @@ void cleanup_wildshape_feats(struct char_data *ch)
 }
 
 /* we also set other special abilities here */
-void assign_wildshape_feats(struct char_data *ch)
+static void assign_wildshape_feats(struct char_data *ch)
 {
   int counter = 0;
   int shifter_level = CLASS_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_SHIFTER);
@@ -5256,7 +5256,7 @@ ACMD(do_shapechange)
 
 /*****************************/
 
-int display_eligible_disguise_races(struct char_data *ch, const char *argument, int silent)
+static int display_eligible_disguise_races(struct char_data *ch, const char *argument, int silent)
 {
   int i = 0;
 
@@ -6597,7 +6597,7 @@ ACMD(do_fly)
 
 /* Helper function for 'search' command.
  * Returns the DC of the search attempt to find the specified door. */
-int get_hidden_door_dc(struct char_data *ch, int door)
+static int get_hidden_door_dc(struct char_data *ch, int door)
 {
   /* (Taken from the d&d 3.5e SRD)
    * Task	                                                Search DC
@@ -8275,7 +8275,7 @@ ACMD(do_split)
 }
 
 /* lazy hack to fix some troublesome staves in-game */
-bool invalid_staff_spell(int spell_num)
+static bool invalid_staff_spell(int spell_num)
 {
   bool is_invalid = FALSE;
 
@@ -9557,7 +9557,7 @@ ACMD(do_diplomacy)
   // need to make this do something Zusuk :P
 }
 
-void show_happyhour(struct char_data *ch)
+static void show_happyhour(struct char_data *ch)
 {
   char happyexp[80], happygold[80], happyqp[80], happytreasure[80];
   int secs_left;
@@ -10734,7 +10734,7 @@ ACMDU(do_holyweapon)
   save_char(ch, 0);
 }
 
-int total_fiendish_boon_levels(struct char_data *ch)
+static int total_fiendish_boon_levels(struct char_data *ch)
 {
   int num = CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 4;
   if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 30)
@@ -10742,7 +10742,7 @@ int total_fiendish_boon_levels(struct char_data *ch)
   return num;
 }
 
-int active_fiendish_boon_levels(struct char_data *ch)
+static int active_fiendish_boon_levels(struct char_data *ch)
 {
   int i = 0, num = 0;
 

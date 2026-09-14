@@ -147,7 +147,7 @@ int background_from_input(const char *input)
   return BACKGROUND_NONE;
 }
 
-int compare_backgrounds(const void *x, const void *y)
+static int compare_backgrounds(const void *x, const void *y)
 {
   int a = *(const int *)x, b = *(const int *)y;
 
@@ -176,7 +176,7 @@ static void backgroundo(int background, const char *name, int skill_one, int ski
   background_list[background].feat = featnum;
 }
 
-void initialize_background_list(void)
+static void initialize_background_list(void)
 {
   int i;
 
@@ -423,7 +423,7 @@ bool has_acolyte_in_group(struct char_data *ch)
   return acolyte;
 }
 
-bool temple_blessing_cost_handling(struct char_data *ch, int blessing)
+static bool temple_blessing_cost_handling(struct char_data *ch, int blessing)
 {
   if (GET_GOLD(ch) < blessing && !has_acolyte_in_group(ch))
   {

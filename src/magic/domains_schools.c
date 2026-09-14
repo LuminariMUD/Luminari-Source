@@ -338,7 +338,7 @@ void assign_domain_spells(struct char_data *ch)
 }
 
 /* go through and init the list of domains with "empty" values */
-void init_domains(void)
+static void init_domains(void)
 {
   int i = 0, j = 0;
 
@@ -354,14 +354,14 @@ void init_domains(void)
   }
 }
 
-void add_domain(int domain, const char *name, int weapon, const char *description)
+static void add_domain(int domain, const char *name, int weapon, const char *description)
 {
   domain_list[domain].name = name;
   domain_list[domain].favored_weapon = weapon;
   domain_list[domain].description = description;
 }
 
-void add_domain_powers(int domain, int p1, int p2, int p3, int p4, int p5)
+static void add_domain_powers(int domain, int p1, int p2, int p3, int p4, int p5)
 {
   domain_list[domain].granted_powers[0] = p1;
   domain_list[domain].granted_powers[1] = p2;
@@ -371,8 +371,8 @@ void add_domain_powers(int domain, int p1, int p2, int p3, int p4, int p5)
   /* if MAX_GRANTED_POWERS is changed, we have to add it here! */
 }
 
-void add_domain_spells(int domain, int s1, int s2, int s3, int s4, int s5, int s6, int s7, int s8,
-                       int s9)
+static void add_domain_spells(int domain, int s1, int s2, int s3, int s4, int s5, int s6, int s7,
+                              int s8, int s9)
 {
   domain_list[domain].domain_spells[0] = s1;
   domain_list[domain].domain_spells[1] = s2;
@@ -627,7 +627,7 @@ void assign_domains(void)
   init_domain_spell_level();
 }
 
-void domain_spell_level(int spell, int level, int domain)
+static void domain_spell_level(int spell, int level, int domain)
 {
   int bad = 0;
 

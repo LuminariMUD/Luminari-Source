@@ -83,8 +83,6 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
 static int hands_have(struct char_data *ch);
 static void wear_message(struct char_data *ch, struct obj_data *obj, int where);
 
-int can_lore_target(struct char_data *ch, struct char_data *target_ch, struct obj_data *target_obj,
-                    bool silent);
 
 /**** start file code *****/
 
@@ -1983,8 +1981,8 @@ void damage_object(struct char_data *ch, struct char_data *victim) {
  */
 
 /* function to update number of lights in a room */
-void check_room_lighting_special(room_rnum room, struct char_data *ch,
-                                 struct obj_data *light_source, bool take_out_of_container)
+static void check_room_lighting_special(room_rnum room, struct char_data *ch,
+                                        struct obj_data *light_source, bool take_out_of_container)
 {
   /* this object isn't a potential light source, so ignore */
   if (!ch || !light_source || room == NOWHERE)
@@ -3364,7 +3362,7 @@ void name_to_drinkcon(struct obj_data *obj, int type)
   obj->name = new_name;
 }
 
-void perform_drink_from_drinkcon(struct char_data *ch, struct obj_data *obj)
+static void perform_drink_from_drinkcon(struct char_data *ch, struct obj_data *obj)
 {
   if (!ch || !obj)
     return;
@@ -3566,328 +3564,6 @@ ACMDU(do_eat)
 
   obj_from_char(obj);
   extract_obj(obj);
-}
-
-ACMD(do_drink_old)
-{
-  char arg[MAX_INPUT_LENGTH] = {'\0'};
-  struct obj_data *temp;
-  // struct affected_type af;
-  int amount, weight;
-  char buf[MAX_INPUT_LENGTH] = {'\0'};
-
-  one_argument(argument, arg, sizeof(arg));
-
-  if (IS_NPC(ch)) /* Cannot use GET_COND() on mobs. */
-    return;
-
-  if (!*arg)
-  {
-    char buf[MAX_STRING_LENGTH] = {'\0'};
-    switch (SECT(IN_ROOM(ch)))
-    {
-    case SECT_WATER_SWIM:
-    case SECT_WATER_NOSWIM:
-    case SECT_UD_WATER:
-    case SECT_UD_NOSWIM:
-    case SECT_UNDERWATER:
-      if ((GET_COND(ch, HUNGER) > 20) && (GET_COND(ch, THIRST) > 0))
-      {
-        send_to_char(ch, "Your stomach can't contain anymore!\r\n");
-      }
-      snprintf(buf, sizeof(buf), "$n takes a refreshing drink.");
-      act(buf, TRUE, ch, 0, 0, TO_ROOM);
-      send_to_char(ch, "You take a refreshing drink.\r\n");
-      gain_condition(ch, THIRST, 1);
-      if (GET_COND(ch, THIRST) > 20)
-        send_to_char(ch, "You don't feel thirsty any more.\r\n");
-      return;
-    default:
-      send_to_char(ch, "Drink from what?\r\n");
-      return;
-    }
-  }
-
-  if (!(temp = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
-  {
-    if (!(temp = get_obj_in_list_vis(ch, arg, NULL, world[IN_ROOM(ch)].contents)))
-    {
-      send_to_char(ch, "You can't find it!\r\n");
-      return;
-    }
-    else
-    {
-      /* on_ground = 1; */
-    }
-  }
-
-  if ((GET_OBJ_TYPE(temp) != ITEM_DRINKCON) && (GET_OBJ_TYPE(temp) != ITEM_FOUNTAIN))
-  {
-    send_to_char(ch, "You can't drink from that!\r\n");
-    return;
-  }
-
-  if (GET_OBJ_BOUND_ID(temp) != (int)NOBODY)
-  {
-    if (GET_OBJ_BOUND_ID(temp) != GET_IDNUM(ch))
-    {
-      if (get_name_by_id(GET_OBJ_BOUND_ID(temp)) == NULL)
-        snprintf(buf, sizeof(buf), "$p%s belongs to someone else.  You can't drink from it.",
-                 CCNRM(ch, C_NRM));
-      else
-        snprintf(buf, sizeof(buf), "$p%s belongs to %s.  You can't drink from it.",
-                 CCNRM(ch, C_NRM), CAP(get_name_by_id(GET_OBJ_BOUND_ID(temp))));
-
-      act(buf, FALSE, ch, temp, 0, TO_CHAR);
-      return;
-    }
-  }
-
-  /*if (on_ground && (GET_OBJ_TYPE(temp) == ITEM_DRINKCON)) {
-    send_to_char(ch, "You have to be holding that to drink from it.\r\n");
-    return;
-  }*/
-
-  if ((GET_COND(ch, DRUNK) > 10) && (GET_COND(ch, THIRST) > 0))
-  {
-    /* The pig is drunk */
-    send_to_char(ch, "You can't seem to get close enough to your mouth.\r\n");
-    act("$n tries to drink but misses $s mouth!", TRUE, ch, 0, 0, TO_ROOM);
-    return;
-  }
-
-  if ((GET_COND(ch, HUNGER) > 22) && (GET_COND(ch, THIRST) > 4))
-  {
-    send_to_char(ch, "Your stomach can't contain anymore!\r\n");
-    return;
-  }
-
-  if (EMPTY_DRINK_CONTAINER(temp))
-  {
-    send_to_char(ch, "It is empty.\r\n");
-    return;
-  }
-
-  /*
-  if (!(GET_OBJ_VAL(temp, 0) == 1)) {
-    send_to_char(ch, "It is empty.\r\n");
-    return;
-  }
-   */
-
-  if (GET_COND(ch, THIRST) > 20)
-  {
-    send_to_char(ch, "You are not thirsty.\r\n");
-    return;
-  }
-
-  if (GET_OBJ_VAL(temp, 3) != 0 && char_has_mud_event(ch, eMAGIC_FOOD))
-  {
-    send_to_char(ch, "You cannot drink any more magical liquids right now.\r\n");
-    return;
-  }
-
-  if (!consume_otrigger(temp, ch, OCMD_DRINK)) /* check trigger */
-    return;
-
-  if (subcmd == SCMD_DRINK)
-  {
-    char buf[MAX_STRING_LENGTH] = {'\0'};
-
-    snprintf(buf, sizeof(buf), "$n drinks %s from $p.", drinks[DRINK_CON_TYPE(temp)]);
-    act(buf, TRUE, ch, temp, 0, TO_ROOM);
-
-    send_to_char(ch, "You drink the %s.\r\n", drinks[DRINK_CON_TYPE(temp)]);
-
-    if (drink_aff[DRINK_CON_TYPE(temp)][DRUNK] > 0)
-      amount = (25 - GET_COND(ch, THIRST)) / drink_aff[DRINK_CON_TYPE(temp)][DRUNK];
-    else
-      amount = rand_number(3, 10);
-  }
-  else
-  {
-    act("$n sips from $p.", TRUE, ch, temp, 0, TO_ROOM);
-    send_to_char(ch, "It tastes like %s.\r\n", drinks[DRINK_CON_TYPE(temp)]);
-    amount = 1;
-  }
-
-  if (LIMITED_DRINK_CONTAINER(temp))
-    amount = MIN(amount, DRINK_CON_NOW(temp));
-
-  /* You can't subtract more than the object weighs, unless its unlimited. */
-  if (LIMITED_DRINK_CONTAINER(temp))
-  {
-    weight = MIN(amount, GET_OBJ_WEIGHT(temp));
-    weight_change_object(temp, -weight); /* Subtract amount */
-  }
-
-  gain_condition(ch, DRUNK, drink_aff[DRINK_CON_TYPE(temp)][DRUNK] * amount / 4);
-  gain_condition(ch, HUNGER, drink_aff[DRINK_CON_TYPE(temp)][HUNGER] * amount / 4);
-  gain_condition(ch, THIRST, drink_aff[DRINK_CON_TYPE(temp)][THIRST] * amount / 4);
-
-  if (GET_COND(ch, DRUNK) > 10)
-    send_to_char(ch, "You feel drunk.\r\n");
-
-  if (GET_COND(ch, THIRST) > 20)
-    send_to_char(ch, "You don't feel thirsty any more.\r\n");
-
-  if (GET_COND(ch, HUNGER) > 20)
-    send_to_char(ch, "You are full.\r\n");
-
-  if (DRINK_CON_SPELL(temp) != 0)
-  {
-    // this drink has a spell attached to it
-    // call the spell, ch as target
-    call_magic(ch, ch, NULL, DRINK_CON_SPELL(temp), 0, GET_LEVEL(ch), CAST_FOOD_DRINK);
-    /* attach event to character to prevent over-eating magical food/drink */
-    if (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE))
-      attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 3000);
-  }
-
-  /* removed poison value from drink containers, replaced with spellnum
-   * so now if you want a poisoned drink container, just use poison spell for
-   * value 3 -Nashak
-   *
-  if (GET_OBJ_VAL(temp, 3) && GET_LEVEL(ch) < LVL_IMMORT) { // The crap was poisoned !
-    send_to_char(ch, "Oops, it tasted rather strange!\r\n");
-    act("$n chokes and utters some strange sounds.", TRUE, ch, 0, 0, TO_ROOM);
-
-    new_affect(&af);
-    af.spell = SPELL_POISON;
-    af.duration = amount * 3;
-    SET_BIT_AR(af.bitvector, AFF_POISON);
-    affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
-  } */
-
-  /* Empty the container (unless unlimited), and no longer poison. */
-  if (LIMITED_DRINK_CONTAINER(temp))
-  {
-    DRINK_CON_NOW(temp) -= amount;
-    if (!DRINK_CON_NOW(temp))
-    { /* The last bit */
-      name_from_drinkcon(temp);
-      DRINK_CON_TYPE(temp) = 0;
-      DRINK_CON_SPELL(temp) = 0;
-    }
-  }
-
-  /* Use a move action, but regen in half a round. */
-  start_action_cooldown(ch, atMOVE, 3 RL_SEC);
-
-  return;
-}
-
-ACMD(do_eat_old)
-{
-  char arg[MAX_INPUT_LENGTH] = {'\0'};
-  struct obj_data *food;
-  struct affected_type af;
-  int amount;
-  char buf[MAX_INPUT_LENGTH] = {'\0'};
-
-  one_argument(argument, arg, sizeof(arg));
-
-  if (IS_NPC(ch)) /* Cannot use GET_COND() on mobs. */
-    return;
-
-  if (!*arg)
-  {
-    send_to_char(ch, "Eat what?\r\n");
-    return;
-  }
-  if (!(food = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
-  {
-    send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg), arg);
-    return;
-  }
-  if (subcmd == SCMD_TASTE &&
-      ((GET_OBJ_TYPE(food) == ITEM_DRINKCON) || (GET_OBJ_TYPE(food) == ITEM_FOUNTAIN)))
-  {
-    do_drink(ch, argument, 0, SCMD_SIP);
-    return;
-  }
-  if ((GET_OBJ_TYPE(food) != ITEM_FOOD) && (GET_LEVEL(ch) < LVL_IMMORT))
-  {
-    send_to_char(ch, "You can't eat THAT!\r\n");
-    return;
-  }
-  if (GET_OBJ_BOUND_ID(food) != (int)NOBODY)
-  {
-    if (GET_OBJ_BOUND_ID(food) != GET_IDNUM(ch))
-    {
-      if (get_name_by_id(GET_OBJ_BOUND_ID(food)) == NULL)
-        snprintf(buf, sizeof(buf), "$p%s belongs to someone else.  You can't eat it.",
-                 CCNRM(ch, C_NRM));
-      else
-        snprintf(buf, sizeof(buf), "$p%s belongs to %s.  You can't eat it.", CCNRM(ch, C_NRM),
-                 CAP(get_name_by_id(GET_OBJ_BOUND_ID(food))));
-
-      act(buf, FALSE, ch, food, 0, TO_CHAR);
-      return;
-    }
-  }
-  if (GET_COND(ch, HUNGER) > 20)
-  { /* Stomach full */
-    send_to_char(ch, "You are too full to eat more!\r\n");
-    return;
-  }
-  if (GET_OBJ_VAL(food, 1) != 0 && char_has_mud_event(ch, eMAGIC_FOOD))
-  {
-    send_to_char(ch, "You cannot eat any more magical food right now.\r\n");
-    return;
-  }
-  if (!consume_otrigger(food, ch, OCMD_EAT)) /* check trigger */
-    return;
-
-  if (subcmd == SCMD_EAT)
-  {
-    act("You eat $p.", FALSE, ch, food, 0, TO_CHAR);
-    act("$n eats $p.", TRUE, ch, food, 0, TO_ROOM);
-  }
-  else
-  {
-    act("You nibble a little bit of $p.", FALSE, ch, food, 0, TO_CHAR);
-    act("$n tastes a little bit of $p.", TRUE, ch, food, 0, TO_ROOM);
-  }
-
-  amount = (subcmd == SCMD_EAT ? GET_OBJ_VAL(food, 0) : 1);
-
-  gain_condition(ch, HUNGER, amount);
-
-  if (GET_COND(ch, HUNGER) > 20)
-    send_to_char(ch, "You are full.\r\n");
-
-  if (GET_OBJ_TYPE(food) == ITEM_FOOD && GET_OBJ_VAL(food, 1) != 0)
-  {
-    // this food has a spell attached to it
-    // call the spell, ch as target
-    call_magic(ch, ch, NULL, GET_OBJ_VAL(food, 1), 0, GET_LEVEL(ch), CAST_FOOD_DRINK);
-    /* attach event to character to prevent over-eating magical food/drink */
-    if (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE))
-      attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 3000);
-  }
-  if (GET_OBJ_VAL(food, 3) && (GET_LEVEL(ch) < LVL_IMMORT) && can_poison(ch))
-  {
-    /* The crap was poisoned ! */
-    send_to_char(ch, "Oops, that tasted rather strange!\r\n");
-    act("$n coughs and utters some strange sounds.", FALSE, ch, 0, 0, TO_ROOM);
-
-    new_affect(&af);
-    af.spell = SPELL_POISON;
-    af.duration = amount * 2;
-    SET_BIT_AR(af.bitvector, AFF_POISON);
-    affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
-  }
-  if (subcmd == SCMD_EAT)
-    extract_obj(food);
-  else
-  {
-    if (!(--GET_OBJ_VAL(food, 0)))
-    {
-      send_to_char(ch, "There's nothing left now.\r\n");
-      extract_obj(food);
-    }
-  }
 }
 
 ACMD(do_pour)
@@ -5568,7 +5244,7 @@ ACMD(do_sac)
   extract_obj(j);
 }
 
-struct obj_data *find_lootbox_in_room_vis(struct char_data *ch)
+static struct obj_data *find_lootbox_in_room_vis(struct char_data *ch)
 {
   struct obj_data *obj = NULL;
 
@@ -6466,7 +6142,7 @@ ACMD(do_applyoil)
   extract_obj(oil);
 }
 
-void display_bane_weapon_info(struct char_data *ch)
+static void display_bane_weapon_info(struct char_data *ch)
 {
   int i = 0;
   send_to_char(ch, "Please specify one of the following race types:\r\n\r\n");
@@ -7286,7 +6962,7 @@ ACMDU(do_unstore)
   }
 }
 
-void quaff_potion(struct char_data *ch, char *argument)
+static void quaff_potion(struct char_data *ch, char *argument)
 {
   int spellnum = 0, i = 0, spell_level = 99, metamagic = 0;
   int umd_dc = 0, umd_check = 0;
@@ -7389,7 +7065,7 @@ void quaff_potion(struct char_data *ch, char *argument)
 
   save_char(ch, 0);
 }
-void recite_scroll(struct char_data *ch, char *argument)
+static void recite_scroll(struct char_data *ch, char *argument)
 {
   int spellnum = 0, i = 0, spell_level = 99, metamagic = 0;
   int umd_dc = 0, umd_check = 0;
@@ -7516,7 +7192,7 @@ void recite_scroll(struct char_data *ch, char *argument)
   save_char(ch, 0);
 }
 
-void use_wand(struct char_data *ch, char *argument)
+static void use_wand(struct char_data *ch, char *argument)
 {
   int spellnum = 0, i = 0, spell_level = 99, metamagic = 0, charges_needed = 1;
   char buf[MEDIUM_STRING] = {'\0'}, arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
@@ -7643,7 +7319,7 @@ void use_wand(struct char_data *ch, char *argument)
   save_char(ch, 0);
 }
 
-void invoke_staff(struct char_data *ch, char *argument)
+static void invoke_staff(struct char_data *ch, char *argument)
 {
   int spellnum = 0, i = 0, spell_level = 99, metamagic = 0, charges_needed = 1;
   char buf[MEDIUM_STRING] = {'\0'};
@@ -7786,7 +7462,7 @@ ACMD(do_use_consumable)
   }
 }
 
-void perform_outfit_show(struct char_data *ch)
+static void perform_outfit_show(struct char_data *ch)
 {
   char buf[MEDIUM_STRING * 4];
 
@@ -8007,7 +7683,7 @@ int outfit_type_to_armor_type(int type, int wear)
 // returns false if there's an error in setting things up.
 // in which case calling function should relate that to the player
 // and terminate any further outfit item processing.
-bool setup_outfit_item(struct char_data *ch, struct obj_data *obj)
+static bool setup_outfit_item(struct char_data *ch, struct obj_data *obj)
 {
   if (!ch || !obj)
     return false;
@@ -8108,7 +7784,7 @@ bool setup_outfit_item(struct char_data *ch, struct obj_data *obj)
   return true;
 }
 
-void clear_outfit_info(struct char_data *ch)
+static void clear_outfit_info(struct char_data *ch)
 {
   GET_OUTFIT_OBJ(ch) = NULL;
   GET_OUTFIT_TYPE(ch) = 0;
@@ -9139,7 +8815,7 @@ int find_activate_object_by_spellnum(struct char_data *ch, int spellnum,
   return -1;
 }
 
-void downgrade_item(struct char_data *ch, struct obj_data *obj, int level)
+static void downgrade_item(struct char_data *ch, struct obj_data *obj, int level)
 {
   int i = 0, reduce = 0;
 

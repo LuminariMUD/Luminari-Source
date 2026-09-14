@@ -407,4 +407,6 @@ void resume_craft_activity(struct char_data *ch);
 struct supply_contract *generate_available_contracts(struct char_data *ch, int *num_contracts);
 void free_contract_list(struct supply_contract *contracts, int num_contracts);
 
+
+bool has_golem_follower(struct char_data *ch);
 #endif // NEWCRAFT_H

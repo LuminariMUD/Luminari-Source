@@ -306,7 +306,7 @@ int determine_material_type_by_group_and_grade(int group, int grade)
   return CRAFT_MAT_NONE;
 }
 
-int craft_material_level_adjustment(int material)
+static int craft_material_level_adjustment(int material)
 {
   switch (material)
   {
@@ -773,7 +773,7 @@ void survey_complete(struct char_data *ch)
   act("$n finishes surveying.", FALSE, ch, 0, 0, TO_ROOM);
 }
 
-void set_crafting_itemtype(struct char_data *ch, char *arg2)
+static void set_crafting_itemtype(struct char_data *ch, char *arg2)
 {
   int i = 0;
 
@@ -822,7 +822,7 @@ void set_crafting_itemtype(struct char_data *ch, char *arg2)
   GET_CRAFT(ch).craft_variant = -1; // Initialize variant to "not set"
 }
 
-bool is_valid_craft_weapon(int weapon)
+static bool is_valid_craft_weapon(int weapon)
 {
   switch (weapon)
   {
@@ -839,7 +839,7 @@ bool is_valid_craft_weapon(int weapon)
   return TRUE;
 }
 
-void craft_show_weapon_types(struct char_data *ch)
+static void craft_show_weapon_types(struct char_data *ch)
 {
   int i = 0, count = 0;
 
@@ -856,7 +856,7 @@ void craft_show_weapon_types(struct char_data *ch)
     send_to_char(ch, "\r\n");
 }
 
-void set_craft_weapon_type(struct char_data *ch, char *arg2)
+static void set_craft_weapon_type(struct char_data *ch, char *arg2)
 {
   int i = 0;
 
@@ -884,7 +884,7 @@ void set_craft_weapon_type(struct char_data *ch, char *arg2)
   send_to_char(ch, "Crafting weapon type set to: %s\r\n", weapon_list[i].name);
 }
 
-void craft_show_armor_types(struct char_data *ch)
+static void craft_show_armor_types(struct char_data *ch)
 {
   int i = 0;
 
@@ -898,7 +898,7 @@ void craft_show_armor_types(struct char_data *ch)
     send_to_char(ch, "\r\n");
 }
 
-void set_craft_armor_type(struct char_data *ch, char *arg2)
+static void set_craft_armor_type(struct char_data *ch, char *arg2)
 {
   int i = 0;
 
@@ -926,7 +926,7 @@ void set_craft_armor_type(struct char_data *ch, char *arg2)
   send_to_char(ch, "Crafting armor type set to: %s\r\n", armor_list[i].name);
 }
 
-void craft_show_instrument_types(struct char_data *ch)
+static void craft_show_instrument_types(struct char_data *ch)
 {
   int i = 0;
 
@@ -940,7 +940,7 @@ void craft_show_instrument_types(struct char_data *ch)
     send_to_char(ch, "\r\n");
 }
 
-void set_craft_instrument_type(struct char_data *ch, char *arg2)
+static void set_craft_instrument_type(struct char_data *ch, char *arg2)
 {
   int i = 0;
 
@@ -968,7 +968,7 @@ void set_craft_instrument_type(struct char_data *ch, char *arg2)
   send_to_char(ch, "Crafting instrument type set to: %s\r\n", crafting_instrument_types[i]);
 }
 
-void craft_show_misc_types(struct char_data *ch)
+static void craft_show_misc_types(struct char_data *ch)
 {
   int i = 0;
 
@@ -982,7 +982,7 @@ void craft_show_misc_types(struct char_data *ch)
     send_to_char(ch, "\r\n");
 }
 
-void set_craft_misc_type(struct char_data *ch, char *arg2)
+static void set_craft_misc_type(struct char_data *ch, char *arg2)
 {
   int i = 0;
 
@@ -1010,7 +1010,7 @@ void set_craft_misc_type(struct char_data *ch, char *arg2)
   send_to_char(ch, "Crafting misc type set to: %s\r\n", crafting_misc_types[i]);
 }
 
-void set_crafting_keywords(struct char_data *ch, const char *arg2)
+static void set_crafting_keywords(struct char_data *ch, const char *arg2)
 {
   if (!*arg2)
   {
@@ -1063,7 +1063,7 @@ void set_crafting_keywords(struct char_data *ch, const char *arg2)
   return;
 }
 
-void set_crafting_short_desc(struct char_data *ch, const char *arg2)
+static void set_crafting_short_desc(struct char_data *ch, const char *arg2)
 {
   if (!*arg2)
   {
@@ -1112,7 +1112,7 @@ void set_crafting_short_desc(struct char_data *ch, const char *arg2)
   return;
 }
 
-void set_crafting_room_desc(struct char_data *ch, const char *arg2)
+static void set_crafting_room_desc(struct char_data *ch, const char *arg2)
 {
   if (!*arg2)
   {
@@ -1164,7 +1164,7 @@ void set_crafting_room_desc(struct char_data *ch, const char *arg2)
   return;
 }
 
-void set_crafting_extra_desc(struct char_data *ch, const char *arg2)
+static void set_crafting_extra_desc(struct char_data *ch, const char *arg2)
 {
   if (GET_CRAFT(ch).keywords == NULL)
   {
@@ -1653,7 +1653,7 @@ void set_craft_level_adjust(struct char_data *ch, char *arg2)
   GET_CRAFT(ch).level_adjust = adjust;
 }
 
-void set_crafting_bonuses(struct char_data *ch, const char *argument)
+static void set_crafting_bonuses(struct char_data *ch, const char *argument)
 {
   char arg1[100], // bonus slot (0-5)
       arg2[100],  // bonus location
@@ -2976,7 +2976,7 @@ void set_craft_item_flags(struct char_data *ch __attribute__((unused)), struct o
   REMOVE_OBJ_FLAG(obj, ITEM_MOLD);
 }
 
-int material_to_craft_skill(int item_type, int material)
+static int material_to_craft_skill(int item_type, int material)
 {
   switch (item_type)
   {
@@ -3659,7 +3659,7 @@ struct obj_data *setup_craft_weapon(struct char_data *ch, int w_type)
   return obj;
 }
 
-void create_craft_weapon(struct char_data *ch)
+static void create_craft_weapon(struct char_data *ch)
 {
   int w_type = GET_CRAFT(ch).crafting_specific;
   struct obj_data *obj;
@@ -3876,7 +3876,7 @@ struct obj_data *setup_craft_instrument(struct char_data *ch, int a_type __attri
   return obj;
 }
 
-void create_craft_instrument(struct char_data *ch)
+static void create_craft_instrument(struct char_data *ch)
 {
   int i_type = GET_CRAFT(ch).crafting_specific;
   struct obj_data *obj;
@@ -3999,7 +3999,7 @@ int craft_misc_spec_to_vnum(int s_type)
   return vnum;
 }
 
-void create_craft_misc(struct char_data *ch)
+static void create_craft_misc(struct char_data *ch)
 {
   int m_type = GET_CRAFT(ch).crafting_item_type;
   int s_type = GET_CRAFT(ch).crafting_specific;
@@ -4159,7 +4159,7 @@ void craft_create_complete(struct char_data *ch)
   act("$n finishes crafting.", FALSE, ch, 0, 0, TO_ROOM);
 }
 
-void check_current_craft(struct char_data *ch, bool verbose)
+static void check_current_craft(struct char_data *ch, bool verbose)
 {
   if (!is_craft_ready(ch, verbose))
   {
@@ -4454,7 +4454,7 @@ const int craft_skills_alphabetic[END_HARVEST_ABILITIES - START_CRAFT_ABILITIES 
     ABILITY_CRAFT_POISONMAKING,   ABILITY_CRAFT_TAILORING,     ABILITY_CRAFT_TRAPMAKING,
     ABILITY_CRAFT_WEAPONSMITHING, ABILITY_CRAFT_WOODWORKING};
 
-void show_craft_score(struct char_data *ch, const char *arg2 __attribute__((unused)))
+static void show_craft_score(struct char_data *ch, const char *arg2 __attribute__((unused)))
 {
   int i = 0, abil = 0, base_rank = 0, modifier = 0, total = 0;
 
@@ -4705,7 +4705,7 @@ void newcraft_create(struct char_data *ch, const char *argument)
   }
 }
 
-void newcraft_survey(struct char_data *ch, const char *argument __attribute__((unused)))
+static void newcraft_survey(struct char_data *ch, const char *argument __attribute__((unused)))
 {
   int seconds = 0;
 
@@ -4799,7 +4799,7 @@ void craft_refine_complete(struct char_data *ch)
   act("$n finishes refining.", FALSE, ch, 0, 0, TO_ROOM);
 }
 
-void harvest_complete(struct char_data *ch)
+static void harvest_complete(struct char_data *ch)
 {
   int skill = 0, skill_roll = 0, roll = 0, dc = 0, amount = 0, bonus = 0, harvest_level = 0;
   bool motes_found = FALSE;
@@ -4985,7 +4985,7 @@ void harvest_complete(struct char_data *ch)
   }
 }
 
-void newcraft_harvest(struct char_data *ch, const char *argument __attribute__((unused)))
+static void newcraft_harvest(struct char_data *ch, const char *argument __attribute__((unused)))
 {
   int seconds = 0;
   int harvest_skill = 0;
@@ -5203,7 +5203,7 @@ void show_refine_noargs(struct char_data *ch)
   }
 }
 
-void newcraft_refine(struct char_data *ch, const char *argument)
+static void newcraft_refine(struct char_data *ch, const char *argument)
 {
   char arg1[50], arg2[50], output[200];
   int i = 0, recipe = 0, material = 0;
@@ -6467,7 +6467,7 @@ ACMD(do_list_craft_materials)
   send_to_char(ch, "\tn");
 }
 
-int compare_materials(const void *x, const void *y)
+static int compare_materials(const void *x, const void *y)
 {
   int a = *(const int *)x, b = *(const int *)y;
 
@@ -7210,7 +7210,7 @@ bool validate_supply_order_materials(struct char_data *ch)
   return TRUE;
 }
 
-bool check_resize(struct char_data *ch, bool verbose)
+static bool check_resize(struct char_data *ch, bool verbose)
 {
   bool fail = FALSE;
   struct obj_data *obj = find_obj_rnum_in_inventory(ch, GET_CRAFT(ch).craft_obj_rnum);
@@ -7259,7 +7259,7 @@ bool check_resize(struct char_data *ch, bool verbose)
   return (!fail);
 }
 
-void newcraft_resize(struct char_data *ch, const char *argument)
+static void newcraft_resize(struct char_data *ch, const char *argument)
 {
   struct obj_data *obj;
   int i, size, mat, cmat, num, mod, old_size, total;
@@ -7745,8 +7745,8 @@ int get_current_craft_project_recipe(struct char_data *ch)
  * @param recipe The craft recipe.
  * @return The number of materials required.
  */
-int get_num_mats_required_by_material_type_and_craft_recipe(struct char_data *ch, int material,
-                                                            int recipe)
+static int get_num_mats_required_by_material_type_and_craft_recipe(struct char_data *ch,
+                                                                   int material, int recipe)
 {
   int i = 0, j = 0;
   int num_mats = 0;
@@ -7941,7 +7941,7 @@ int select_random_craft_recipe(void)
   return choice;
 }
 
-int select_random_craft_variant(int recipe)
+static int select_random_craft_variant(int recipe)
 {
   if (recipe <= CRAFT_RECIPE_NONE || recipe >= NUM_CRAFTING_RECIPES)
   {
@@ -7967,7 +7967,7 @@ int select_random_craft_variant(int recipe)
 }
 
 // Stable versions for supply order contracts - use seed for consistent results
-int select_stable_craft_recipe(int seed)
+static int select_stable_craft_recipe(int seed)
 {
   int type = 0;
   int choice = 0;
@@ -7988,7 +7988,7 @@ int select_stable_craft_recipe(int seed)
   return choice;
 }
 
-int select_stable_craft_variant(int recipe, int seed)
+static int select_stable_craft_variant(int recipe, int seed)
 {
   if (recipe <= CRAFT_RECIPE_NONE || recipe >= NUM_CRAFTING_RECIPES)
   {
@@ -8443,7 +8443,7 @@ SPECIAL(new_supply_orders)
   return 1;
 }
 
-void show_mote_bonuses(struct char_data *ch, int mote)
+static void show_mote_bonuses(struct char_data *ch, int mote)
 {
   int i, j, length = 0;
   bool found = FALSE;
@@ -9589,7 +9589,7 @@ void show_supply_order_cooldowns(struct char_data *ch)
 }
 
 // Function to get the display name for each crafting tool slot
-const char *get_craft_tool_name(int wear_slot)
+static const char *get_craft_tool_name(int wear_slot)
 {
   switch (wear_slot)
   {
@@ -9617,7 +9617,7 @@ const char *get_craft_tool_name(int wear_slot)
 }
 
 // Function to display equipped crafting tools
-void show_craft_equipment(struct char_data *ch)
+static void show_craft_equipment(struct char_data *ch)
 {
   int craft_slots[] = {WEAR_CRAFT_SICKLE,       WEAR_CRAFT_AXE,     WEAR_CRAFT_KNIFE,
                        WEAR_CRAFT_PICKAXE,      WEAR_CRAFT_ALCHEMY, WEAR_CRAFT_ARMOR_HAMMER,
@@ -10198,7 +10198,7 @@ bool begin_golem_craft(struct char_data *ch)
 /**
  * Get the mob VNUM for a golem based on type and size
  */
-int get_golem_vnum(int golem_type, int golem_size)
+static int get_golem_vnum(int golem_type, int golem_size)
 {
   /* Dedicated recipe prototypes; legacy IDs remain recognized below. */
   // Each type has 4 sizes: small(0), medium(1), large(2), huge(3)

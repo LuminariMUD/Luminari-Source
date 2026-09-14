@@ -69,4 +69,7 @@ int witherdirk(struct char_data *ch, void *me, int cmd, const char *argument);
 int xvim_artifact(struct char_data *ch, void *me, int cmd, const char *argument);
 int xvim_normal(struct char_data *ch, void *me, int cmd, const char *argument);
 
+
+SPECIAL_DECL(clanportal);
+bool obj_proc_ready(struct char_data *ch, struct obj_data *obj, int cmd);
 #endif /* LUMINARI_SPEC_OBJECTS_H */

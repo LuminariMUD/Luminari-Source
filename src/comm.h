@@ -144,4 +144,10 @@ extern int next_tick;
 
 #endif /* __COMM_C__ */
 
+
+#ifdef LUMINARI_CUTEST
+int luminari_main(int argc, char **argv);
+#endif
+
+void send_to_clan(clan_vnum c_id, const char *messg, ...);
 #endif /* _COMM_H_ */

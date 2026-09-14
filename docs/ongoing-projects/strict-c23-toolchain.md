@@ -113,6 +113,7 @@ per compiler.
 | 1.2 | `int` affect, ability, point, player and object fields | 8010 | 7955 |
 | 2.2, 2.3 | format conversions, redundant and nested declarations | 6427 | 7946 |
 | 2.6 | explicit fallthrough; `-Wredundant-decls` and `-Wnested-externs` promoted to baseline | 6427 | 7913 |
+| 2.4 | `static` file-local functions, prototypes in owning headers, dead code removed | 5777 | 7264 |
 
 Also fixed on the way: the budget check counted only `file:line:col: error:`
 lines, so a build that stopped on a missing header (`fatal error:`), a linker
@@ -150,6 +151,48 @@ Notes from step 2.6:
   prompt now ends in `break`.
 - Before the promotion both flags were built at the baseline tier with GCC 13
   and Clang 18 (the minimum compilers), all 746 objects, zero warnings.
+
+Notes from step 2.4:
+
+- Functions no other file names (comments and string literals ignored) became
+  `static`. Cross-file functions got one prototype in the header that matches
+  the defining source file, and every local copy in other `.c` files and
+  tests was removed, since `-Wredundant-decls` is now an error. Files without
+  their own header use the umbrella that already declares their neighbours
+  (`act.h` for the `act.*.c` commands, `db.h` for `players.c`, `mudlim.h` for
+  `limits.c`, `oasis.h` for the editors).
+- The `db.c` test hooks were declared inside `db.h`'s `#ifndef __DB_C__`
+  section, so `db.c` itself never saw them; they now sit with the other
+  `LUMINARI_CUTEST` hooks.
+- `limits.c` and `tactical_effects.c` each define an unrelated `hazard_tick`;
+  both are file-local now.
+- Obsolete, never-called code was deleted: `do_drink_old`, `do_eat_old`,
+  `load_contextual_hints_legacy`, `test_tokenize`, the two spatial audio test
+  emitters and the three retired `spatial_visual_meteor_*` emitters (both
+  families are forbidden by `test_pubsub_retirement.sh`), the unregistered
+  `BoundsCheckingSuite`, and the unused
+  `parseadminlevel` and `parselast` copies in `util/rebuildMailIndex.c`.
+- Never-called functions that look like unfinished features keep a prototype
+  in their header instead of being deleted. They are dead-code candidates for
+  a follow-up issue: `char_has_any_item_activation_ability_cooldowns`,
+  `do_homelands`, `get_copyover_state_string`, `class_prereq_attribute`,
+  `class_prereq_weapon_proficiency`, `process_level_feats`, `sort_evolutions`,
+  `feat_prereq_race`, `free_feats`, `get_draconic_heritage_subfeat`,
+  `reset_training_points`, `free_single_clan_data`, `do_detectmagic`,
+  `has_piercing_weapon`, `can_enable_mode`, `set_encounter_terrain_all_roads`,
+  `autoDiagnose`, `send_to_clan`, `mysql_board_get_config_by_room`,
+  `alchemist_can_brew_spell`, `consume_brew_materials`, `has_brew_materials`,
+  `has_golem_follower`, `assign_feat_spell_slots`, `world_has_mud_event`,
+  `after_world_load`, `save_paths`, `save_regions`, `is_house_owner`,
+  `assign_weighted_random_bonuses`, `choose_cloth_material`,
+  `choose_metal_material`, `choose_precious_metal_material`,
+  `perform_mob_name_list`, `compute_ranged_weapon_actual_value`,
+  `perform_zone_restat`, `perform_lichdrain`, `clanportal`, `obj_proc_ready`,
+  `can_paralyze`, `clear_group_marks`, `display_dam_type`,
+  `get_direction_vnum`, `is_exit_locked`, `is_ghost`, `is_swimming`,
+  `spell_level_ch`, `init_vessel_db`, `clear_hint_cache`,
+  `get_time_weight_for_category`, `init_hint_cache`, `load_contextual_hints`,
+  and `get_base_regeneration_rate`.
 
 ## Remaining work
 

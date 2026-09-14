@@ -79,7 +79,7 @@ bool medit_mode_requires_number_for_test(int mode)
 }
 #endif
 
-void medit_add_class_feats(struct descriptor_data *d)
+static void medit_add_class_feats(struct descriptor_data *d)
 {
   int cl = 0, lvl = 0;
   struct char_data *mob = OLC_MOB(d);
@@ -106,7 +106,7 @@ void medit_add_class_feats(struct descriptor_data *d)
   }
 }
 
-void medit_clear_all_feats(struct descriptor_data *d)
+static void medit_clear_all_feats(struct descriptor_data *d)
 {
   struct char_data *mob = OLC_MOB(d);
   int i = 0;
@@ -120,7 +120,7 @@ void medit_clear_all_feats(struct descriptor_data *d)
   }
 }
 
-void medit_clear_all_spells(struct descriptor_data *d)
+static void medit_clear_all_spells(struct descriptor_data *d)
 {
   struct char_data *mob = OLC_MOB(d);
   int i = 0;
@@ -134,7 +134,7 @@ void medit_clear_all_spells(struct descriptor_data *d)
   }
 }
 
-bool does_mob_have_feats(struct char_data *mob)
+static bool does_mob_have_feats(struct char_data *mob)
 {
   if (!mob)
     return false;
@@ -149,7 +149,7 @@ bool does_mob_have_feats(struct char_data *mob)
   return false;
 }
 
-bool does_mob_have_spells(struct char_data *mob)
+static bool does_mob_have_spells(struct char_data *mob)
 {
   if (!mob)
     return false;
@@ -164,7 +164,7 @@ bool does_mob_have_spells(struct char_data *mob)
 }
 
 
-void medit_disp_add_feats(struct descriptor_data *d)
+static void medit_disp_add_feats(struct descriptor_data *d)
 {
   int i = 0, count = 0;
 
@@ -188,7 +188,7 @@ void medit_disp_add_feats(struct descriptor_data *d)
   write_to_output(d, "\r\nPlease enter the name of the feat you wish to toggle: ");
 }
 
-void medit_disp_add_spells(struct descriptor_data *d)
+static void medit_disp_add_spells(struct descriptor_data *d)
 {
   int i = 0, count = 0;
 
@@ -754,7 +754,7 @@ static void medit_disp_aff2_flags(struct descriptor_data *d)
 
 // needs to be fixed/finished
 
-void delete_echo_entry(struct char_data *mob, int entry_num)
+static void delete_echo_entry(struct char_data *mob, int entry_num)
 {
   int i = 0;
 

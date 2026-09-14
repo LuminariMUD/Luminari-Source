@@ -32,7 +32,7 @@
 extern int spell_school(int spellnum);
 
 /* Map CRAFT_SKILL_* constants to ABILITY_* constants */
-int craft_skill_to_ability(int craft_skill)
+static int craft_skill_to_ability(int craft_skill)
 {
   switch (craft_skill)
   {
@@ -545,7 +545,7 @@ bool alchemist_can_brew_spell(struct char_data *ch, int spellnum)
 }
 
 /* Get the minimum spell circle across all classes that can cast it */
-int get_minimum_spell_circle(int spellnum)
+static int get_minimum_spell_circle(int spellnum)
 {
   int class, min_circle = 10, min_level;
 
@@ -571,7 +571,7 @@ int get_minimum_spell_circle(int spellnum)
 }
 
 /* Function to find a spell by full name (case-insensitive, partial match) */
-int find_spell_by_name(char *name)
+static int find_spell_by_name(char *name)
 {
   int i, j;
   char temp_name[MAX_INPUT_LENGTH];
@@ -617,7 +617,7 @@ int find_spell_by_name(char *name)
 }
 
 /* Check if character can brew the spell */
-bool can_brew_spell(struct char_data *ch, int spell_num)
+static bool can_brew_spell(struct char_data *ch, int spell_num)
 {
   int spell_level = 0;
 

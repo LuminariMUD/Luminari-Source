@@ -1789,7 +1789,7 @@ static void interrupt_casting(struct char_data *ch, enum primary_activity_end_re
     resetCastingData(ch);
 }
 
-int castingCheckOk(struct char_data *ch)
+static int castingCheckOk(struct char_data *ch)
 {
   int spellnum = CASTING_SPELLNUM(ch);
   int metamagic = CASTING_METAMAGIC(ch);
@@ -2014,7 +2014,7 @@ void test_clear_bard_spell_perks(struct char_data *ch)
 #endif
 
 /* moment of completion of spell casting */
-void finishCasting(struct char_data *ch)
+static void finishCasting(struct char_data *ch)
 {
   bool trigger_symphonic;
 
@@ -4398,7 +4398,7 @@ void spello(int spl, const char *name, int max_psp, int min_psp, int psp_change,
   spell_info[spl].actual_ability = true;
 }
 
-void CantCast(int spl)
+static void CantCast(int spl)
 {
   spell_info[spl].cant_cast = true;
   spell_info[spl].no_player = true;
@@ -4470,7 +4470,7 @@ void unused_spell(int spl)
   spell_info[spl].actual_ability = FALSE;
 }
 
-void unused_skill(int spl)
+static void unused_skill(int spl)
 {
   int i;
 

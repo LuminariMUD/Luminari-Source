@@ -741,7 +741,7 @@ void gain_talent_point(struct char_data *ch, int amount)
 }
 
 /* Helper: list only talents the character can currently afford */
-void list_available_talents(struct char_data *ch)
+static void list_available_talents(struct char_data *ch)
 {
   struct talent_sort_entry sorted[TALENT_MAX];
   int count, idx, i;
@@ -800,7 +800,7 @@ void list_available_talents(struct char_data *ch)
 }
 
 /* Helper: list ALL talents including disabled ones (for admin review) */
-void list_all_talents(struct char_data *ch)
+static void list_all_talents(struct char_data *ch)
 {
   struct talent_sort_entry sorted[TALENT_MAX];
   int count, idx, i;
@@ -857,7 +857,7 @@ void list_all_talents(struct char_data *ch)
   }
 
 } /* Helper: show detailed info about a specific talent */
-void show_talent_info(struct char_data *ch, int talent)
+static void show_talent_info(struct char_data *ch, int talent)
 {
   if (talent <= 0 || talent >= TALENT_MAX)
   {
@@ -913,7 +913,7 @@ void show_talent_info(struct char_data *ch, int talent)
 }
 
 /* Helper: list available talent categories with talent counts */
-void list_talent_categories(struct char_data *ch)
+static void list_talent_categories(struct char_data *ch)
 {
   int cat, i, count;
   int cat_counts[NUM_TALENT_CATEGORIES];
@@ -954,7 +954,7 @@ void list_talent_categories(struct char_data *ch)
 }
 
 /* Helper: list talents in a specific category */
-void list_talents_by_category(struct char_data *ch, int category)
+static void list_talents_by_category(struct char_data *ch, int category)
 {
   struct talent_sort_entry sorted[TALENT_MAX];
   int count, i, idx;

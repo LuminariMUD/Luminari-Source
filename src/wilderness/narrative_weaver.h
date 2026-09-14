@@ -224,4 +224,10 @@ int get_narrative_debug_mode(void);
 /* Structure definitions */
 struct narrative_components; /* Forward declaration - full definition in .c file */
 
+
+void clear_hint_cache(void);
+double get_time_weight_for_category(const char *json_weights, const char *time_category);
+void init_hint_cache(void);
+struct region_hint *load_contextual_hints(int region_vnum, const char *weather_condition,
+                                          const char *time_category);
 #endif /* _NARRATIVE_WEAVER_H_ */

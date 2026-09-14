@@ -54,6 +54,7 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include "obj/objsave.h"
 
 #define LOAD_HIT 0
 #define LOAD_PSP 1
@@ -196,7 +197,6 @@ static char *build_pet_keyword_list(const char *saved_keywords, const char *prot
 
 
 // external functions
-bool pet_save_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum);
 
 /* New version to build player index for ASCII Player Files. Generate index
  * table for the player file. */
@@ -307,7 +307,7 @@ int create_entry(char *name)
 
 /* Remove an entry from the in-memory player index table.               *
  * Requires the 'pos' value returned by the get_ptable_by_name function */
-void remove_player_from_index(int pos)
+static void remove_player_from_index(int pos)
 {
   int i;
 

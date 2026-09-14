@@ -98,7 +98,7 @@
  person in the disadvantage, whom has less choices*/
 
 /* check and cleanup grapple */
-bool valid_grapple_cond(struct char_data *ch)
+static bool valid_grapple_cond(struct char_data *ch)
 {
   bool valid_conditions = TRUE;
 
@@ -183,7 +183,7 @@ void grapple_cleanup(struct char_data *ch)
 }
 
 /* set ch grappling vict, with ch in the dominant position */
-void set_grapple(struct char_data *ch, struct char_data *vict)
+static void set_grapple(struct char_data *ch, struct char_data *vict)
 {
   GRAPPLE_TARGET(ch) = vict;
   if (!AFF_FLAGGED(ch, AFF_GRAPPLED))
@@ -196,7 +196,7 @@ void set_grapple(struct char_data *ch, struct char_data *vict)
 /* set ch pinning vict, with ch in the dominant position */
 /* pinning makes your dex bonus -5, and you are treated as if you have no
  dex bonus for the sake of sneak attacks etc */
-void set_pin(struct char_data *ch, struct char_data *vict)
+static void set_pin(struct char_data *ch, struct char_data *vict)
 {
   UNUSED(ch);
   if (!AFF_FLAGGED(vict, AFF_PINNED))

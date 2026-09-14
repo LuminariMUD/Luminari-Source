@@ -299,4 +299,7 @@ struct path_list
   struct path_list *next;
 };
 
+
+int get_moisture(int map, int x, int y);
+int get_temperature(int map, int x, int y);
 #endif

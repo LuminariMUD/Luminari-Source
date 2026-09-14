@@ -219,7 +219,6 @@ int test_resolve_affect_cast_level(struct char_data *ch, int spellnum, int suppl
   return resolve_affect_cast_level(ch, spellnum, supplied_level, modified_level, casttype);
 }
 #endif
-void set_vampire_spawn_feats(struct char_data *mob);
 
 /* local file scope function prototypes */
 static int mag_materials(struct char_data *ch, IDXTYPE item0, IDXTYPE item1, IDXTYPE item2,
@@ -1254,7 +1253,7 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
 }
 
 /* added this function to add special wear off handling -zusuk */
-bool spec_wear_off(struct char_data *ch, int skillnum)
+static bool spec_wear_off(struct char_data *ch, int skillnum)
 {
   if (skillnum >= TOP_SKILL_DEFINE)
     return FALSE;
@@ -1279,7 +1278,7 @@ bool spec_wear_off(struct char_data *ch, int skillnum)
 
 /* added this function to add wear off messages for skills -zusuk
    wondering why i didn't just add this to skillo() or whatnot? */
-bool alt_wear_off_msg(struct char_data *ch, int skillnum)
+static bool alt_wear_off_msg(struct char_data *ch, int skillnum)
 {
   if (skillnum <= SPELL_RESERVED_DBC)
     return FALSE;
@@ -4433,7 +4432,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim, struct
 }
 /* Affect durations are combat rounds and update once per PULSE_VIOLENCE. */
 
-bool passed_poison_checks(struct char_data *ch, struct char_data *victim, int casttype, int level)
+static bool passed_poison_checks(struct char_data *ch, struct char_data *victim, int casttype,
+                                 int level)
 {
   if (!can_poison(victim))
   {

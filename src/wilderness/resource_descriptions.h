@@ -126,4 +126,6 @@ int calculate_natural_light_level(room_rnum room);
 
 #endif /* ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS */
 
+
+void safe_strcat(char *dest, const char *src);
 #endif /* RESOURCE_DESCRIPTIONS_H */
