@@ -13,10 +13,12 @@
 #include "../../src/character/feats.h"
 #include "../../src/character/race.h"
 #include "../../src/character/skill_lists.h"
+#include "../../src/character/class.h"
 #include "../../src/combat/fight.h"
 #include "../../src/comm.h"
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_event.h"
+#include "../../src/domain_event_runtime.h"
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"
 #include "../../src/lists.h"
@@ -162,7 +164,16 @@ void TestDurisInnateFeatsAreRegisteredAsInnates(CuTest *tc)
     CuAssertTrue(tc, !feat_list[feat].can_stack);
     CuAssertIntEquals(tc, FEAT_TYPE_INNATE_ABILITY, feat_list[feat].feat_type);
   }
-  CuAssertIntEquals(tc, FEAT_SUMMON_HORDE + 1, FEAT_LAST_FEAT);
+  /* the racial casting-speed pair follows the same rules but stacks per rank */
+  for (feat = FEAT_FAST_CASTING; feat <= FEAT_SLOW_CASTING; feat++)
+  {
+    CuAssertPtrNotNull(tc, feat_list[feat].name);
+    CuAssertTrue(tc, feat_list[feat].in_game);
+    CuAssertTrue(tc, !feat_list[feat].can_learn);
+    CuAssertTrue(tc, feat_list[feat].can_stack);
+    CuAssertIntEquals(tc, FEAT_TYPE_INNATE_ABILITY, feat_list[feat].feat_type);
+  }
+  CuAssertIntEquals(tc, FEAT_SLOW_CASTING + 1, FEAT_LAST_FEAT);
 
   /* the repurposed haste feat follows the same rules */
   CuAssertTrue(tc, feat_list[FEAT_HASTE].in_game);
@@ -1277,5 +1288,163 @@ void TestRacialSummonFollowerLimits(CuTest *tc)
   mob_proto = saved_proto;
   mob_index = saved_index;
   top_of_mobt = saved_top;
+  end_innate_fixture(&fixture);
+}
+
+/* ---- racial casting speed and spell power (issue 165) ---- */
+
+/* Runs one real timed cast of a healing spell through cast_spell() and the game scheduler.
+ * Returns the casting time the cast started with (0 when it completed at once) and only
+ * returns after the target has been healed, which proves the cast resolved. */
+static int racial_timed_cast(CuTest *tc, struct innate_fixture *fixture, int fast, int slow)
+{
+  struct char_data *caster = &fixture->ch;
+  struct char_data *target = &fixture->other;
+  int started_with = 0;
+  unsigned int tick = 0;
+
+  SET_FEAT(caster, FEAT_FAST_CASTING, fast);
+  SET_FEAT(caster, FEAT_SLOW_CASTING, slow);
+  GET_HIT(target) = 10;
+  CuAssertIntEquals(tc, 1, cast_spell(caster, target, NULL, SPELL_CURE_LIGHT, METAMAGIC_NONE));
+  started_with = CASTING_TIME(caster);
+  if (started_with > 0)
+    CuAssertTrue(tc, IS_CASTING(caster));
+  else
+    CuAssertTrue(tc, !IS_CASTING(caster));
+  for (tick = 0; tick < 10U * PASSES_PER_SEC && IS_CASTING(caster); tick++)
+  {
+    pulse++;
+    event_test_advance();
+  }
+  CuAssertTrue(tc, !IS_CASTING(caster));
+  CuAssertTrue(tc, GET_HIT(target) > 10);
+  return started_with;
+}
+
+static void begin_racial_cast_fixture(CuTest *tc, struct innate_fixture *fixture,
+                                      struct spell_info_type *saved_spell, int *saved_mode,
+                                      unsigned long *saved_pulse)
+{
+  begin_innate_fixture(fixture);
+  *saved_spell = spell_info[SPELL_CURE_LIGHT];
+  *saved_mode = CONFIG_SPELLCASTING_TIME_MODE;
+  *saved_pulse = pulse;
+  memset(&spell_info[SPELL_CURE_LIGHT], 0, sizeof(spell_info[SPELL_CURE_LIGHT]));
+  spell_info[SPELL_CURE_LIGHT].name = "cure light";
+  spell_info[SPELL_CURE_LIGHT].min_position = POS_FIGHTING;
+  spell_info[SPELL_CURE_LIGHT].targets = TAR_CHAR_ROOM;
+  spell_info[SPELL_CURE_LIGHT].routines = MAG_POINTS;
+  spell_info[SPELL_CURE_LIGHT].time = 2;
+  /* the runtime's periodic services recompute a player's max hit from class levels while the
+   * cast runs, so the heal target is a mobile with real points */
+  SET_BIT_AR(MOB_FLAGS(&fixture->other), MOB_ISNPC);
+  fixture->other.player.short_descr = (char *)"innate two";
+  GET_REAL_MAX_HIT(&fixture->ch) = 100;
+  GET_REAL_MAX_HIT(&fixture->other) = 100;
+  /* a mortal casting an at-will racial cantrip: no spell preparation, real timed cast */
+  SET_FEAT(&fixture->ch, FEAT_HIGH_ELF_CANTRIP, 1);
+  HIGH_ELF_CANTRIP((&fixture->ch)) = SPELL_CURE_LIGHT;
+  fixture->rooms[0].light = 1;
+  domain_event_runtime_shutdown();
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+}
+
+static void end_racial_cast_fixture(struct innate_fixture *fixture,
+                                    const struct spell_info_type *saved_spell, int saved_mode,
+                                    unsigned long saved_pulse)
+{
+  domain_event_runtime_shutdown();
+  if (fixture->ch.events != NULL)
+  {
+    free_list(fixture->ch.events);
+    fixture->ch.events = NULL;
+  }
+  spell_info[SPELL_CURE_LIGHT] = *saved_spell;
+  CONFIG_SPELLCASTING_TIME_MODE = saved_mode;
+  pulse = saved_pulse;
+  end_innate_fixture(fixture);
+}
+
+void Test_racial_casting_feats_shift_a_timed_cast_by_one_tick_per_rank(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  struct spell_info_type saved_spell;
+  int saved_mode;
+  unsigned long saved_pulse;
+
+  begin_racial_cast_fixture(tc, &fixture, &saved_spell, &saved_mode, &saved_pulse);
+  CONFIG_SPELLCASTING_TIME_MODE = 1;
+
+  CuAssertIntEquals(tc, 2, racial_timed_cast(tc, &fixture, 0, 0));
+  CuAssertIntEquals(tc, 3, racial_timed_cast(tc, &fixture, 0, 1));
+  CuAssertIntEquals(tc, 4, racial_timed_cast(tc, &fixture, 0, 2));
+  CuAssertIntEquals(tc, 1, racial_timed_cast(tc, &fixture, 1, 0));
+  /* two ranks take a two-tick spell to zero: it completes inside cast_spell() */
+  CuAssertIntEquals(tc, 0, racial_timed_cast(tc, &fixture, 2, 0));
+  CuAssertIntEquals(tc, 0, racial_timed_cast(tc, &fixture, 3, 0));
+  /* the two feats cancel rank for rank */
+  CuAssertIntEquals(tc, 2, racial_timed_cast(tc, &fixture, 1, 1));
+
+  end_racial_cast_fixture(&fixture, &saved_spell, saved_mode, saved_pulse);
+}
+
+void Test_racial_casting_feats_apply_in_standard_action_mode(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  struct spell_info_type saved_spell;
+  int saved_mode;
+  unsigned long saved_pulse;
+
+  begin_racial_cast_fixture(tc, &fixture, &saved_spell, &saved_mode, &saved_pulse);
+  CONFIG_SPELLCASTING_TIME_MODE = 0;
+
+  /* standard-action mode casts every non-ritual spell in one tick regardless of SINFO.time */
+  CuAssertIntEquals(tc, 1, racial_timed_cast(tc, &fixture, 0, 0));
+  CuAssertIntEquals(tc, 2, racial_timed_cast(tc, &fixture, 0, 1));
+  CuAssertIntEquals(tc, 0, racial_timed_cast(tc, &fixture, 1, 0));
+
+  end_racial_cast_fixture(&fixture, &saved_spell, saved_mode, saved_pulse);
+}
+
+/* Spell power decision: no racial spell-power feat.  FEAT_ENHANCED_SPELL_DAMAGE is granted by
+ * the race level-feat path without any class prerequisite, stacks per grant, and mag_damage()
+ * reads it through HAS_FEAT() for every spell-number damage roll. */
+void Test_enhanced_spell_damage_is_race_assignable_and_stacks(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  struct race_feat_assign grants[2];
+  struct race_feat_assign *saved_head = NULL;
+  int race = 0;
+
+  begin_innate_fixture(&fixture);
+  race = GET_RACE(&fixture.ch);
+  saved_head = race_list[race].featassign_list;
+  memset(grants, 0, sizeof(grants));
+  grants[0].feat_num = FEAT_ENHANCED_SPELL_DAMAGE;
+  grants[0].level_received = 1;
+  grants[0].next = &grants[1];
+  grants[1].feat_num = FEAT_ENHANCED_SPELL_DAMAGE;
+  grants[1].level_received = 3;
+  grants[1].stacks = TRUE;
+  grants[1].next = saved_head;
+  race_list[race].featassign_list = grants;
+
+  /* no class, no caster level: the race grant does not consult the class prerequisites */
+  CuAssertIntEquals(tc, 0, HAS_FEAT(&fixture.ch, FEAT_ENHANCED_SPELL_DAMAGE));
+  GET_LEVEL(&fixture.ch) = 1;
+  process_race_level_feats(&fixture.ch);
+  CuAssertIntEquals(tc, 1, HAS_FEAT(&fixture.ch, FEAT_ENHANCED_SPELL_DAMAGE));
+  GET_LEVEL(&fixture.ch) = 2;
+  process_race_level_feats(&fixture.ch);
+  CuAssertIntEquals(tc, 1, HAS_FEAT(&fixture.ch, FEAT_ENHANCED_SPELL_DAMAGE));
+  GET_LEVEL(&fixture.ch) = 3;
+  process_race_level_feats(&fixture.ch);
+  CuAssertIntEquals(tc, 2, HAS_FEAT(&fixture.ch, FEAT_ENHANCED_SPELL_DAMAGE));
+
+  race_list[race].featassign_list = saved_head;
   end_innate_fixture(&fixture);
 }

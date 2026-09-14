@@ -13363,6 +13363,19 @@ does not reveal anything that scan could not otherwise perceive.
 
 See also: SCAN, VISION, SPELLS
 #0
+FAST-CASTING
+
+Fast Casting (racial innate)
+
+Requires: the fast casting feat
+
+Your race casts quickly. Every spell and power you cast takes one casting
+tick less per rank of this feat, so with one rank an ordinary one-tick spell
+completes at once. Quickened spells are already instant. Slow casting cancels
+this feat rank for rank.
+
+See also: FEAT INFO FAST CASTING, SLOW-CASTING, QUICKEN-SPELL
+#0
 FAST-HEALER FAST-HEALING FAST-HEALING-2 FASTHEAL FASTHEALING
 
 Topic  : Fast Healing
@@ -30932,6 +30945,18 @@ shop.
  
 See also: SHOW-SHOP, SEDIT, OLC
 #31
+SLOW-CASTING
+
+Slow Casting (racial drawback)
+
+Requires: the slow casting feat
+
+Your race casts slowly. Every spell and power you cast takes one casting tick
+more per rank of this feat. Quickened and other instant casts are not delayed.
+Fast casting cancels this feat rank for rank.
+
+See also: FEAT INFO SLOW CASTING, FAST-CASTING, QUICKEN-SPELL
+#0
 SLOW-POISON SPELL-SLOW-POISON
 
 Usage: cast 'slow poison' <target>
