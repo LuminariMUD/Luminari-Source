@@ -1201,3 +1201,76 @@ void TestFourArmsSecondPairAttacksLandWithOwnWeapons(CuTest *tc)
 #undef PHASE_1
 #undef PHASE_2
 #undef PHASE_3
+
+/* ---- Step 4 support: displays, typed bonuses, downgrade fallback ---- */
+
+/* The equipment command labels every lower-arm slot, and four bracers with
+ * the same typed bonus do not stack four times. */
+void TestFourArmsEquipmentDisplayAndTypedBonuses(CuTest *tc)
+{
+  struct four_arm_fixture fixture;
+  struct obj_data sword, big, sleeves, gloves, wrists[4];
+  int base_dex, i;
+
+  begin_four_arm_fixture(&fixture);
+  SET_FEAT(&fixture.ch, FEAT_FOUR_ARMS, 1);
+  fixture.ch.real_abils.dex = 10;
+  fixture.ch.aff_abils.dex = 10;
+  base_dex = GET_DEX(&fixture.ch);
+  init_weapon(&sword, "a third sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  init_weapon(&big, "a lower greatsword", WEAPON_TYPE_GREAT_SWORD, SIZE_LARGE);
+  init_armor(&sleeves, "lower sleeves", ITEM_WEAR_ARMS, 1, SPEC_ARMOR_TYPE_LEATHER_ARMS);
+  init_armor(&gloves, "lower gloves", ITEM_WEAR_HANDS, 0, 0);
+  for (i = 0; i < 4; i++)
+  {
+    init_armor(&wrists[i], "a nimble bracer", ITEM_WEAR_WRIST, 0, 0);
+    wrists[i].affected[0].location = APPLY_DEX;
+    wrists[i].affected[0].modifier = 2;
+    wrists[i].affected[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
+  }
+
+  equip_char(&fixture.ch, &sword, WEAR_WIELD_3);
+  equip_char(&fixture.ch, &sleeves, WEAR_ARMS_2);
+  equip_char(&fixture.ch, &gloves, WEAR_HANDS_2);
+  equip_char(&fixture.ch, &wrists[0], WEAR_WRIST_R);
+  equip_char(&fixture.ch, &wrists[1], WEAR_WRIST_L);
+  equip_char(&fixture.ch, &wrists[2], WEAR_WRIST_R2);
+  equip_char(&fixture.ch, &wrists[3], WEAR_WRIST_L2);
+  CuAssertIntEquals(tc, base_dex + 2, GET_DEX(&fixture.ch));
+
+  reset_output(&fixture);
+  do_equipment(&fixture.ch, "", 0, 0);
+  CuAssertPtrNotNull(tc, strstr(fixture.descriptor.output, "Wielded Third"));
+  CuAssertPtrNotNull(tc, strstr(fixture.descriptor.output, "Worn On Lower Arms"));
+  CuAssertPtrNotNull(tc, strstr(fixture.descriptor.output, "Worn On Lower Hands"));
+  CuAssertPtrNotNull(tc, strstr(fixture.descriptor.output, "a third sword"));
+
+  CuAssertPtrEquals(tc, &sword, unequip_char(&fixture.ch, WEAR_WIELD_3));
+  equip_char(&fixture.ch, &big, WEAR_WIELD_2H_2);
+  reset_output(&fixture);
+  do_equipment(&fixture.ch, "", 0, 0);
+  CuAssertPtrNotNull(tc, strstr(fixture.descriptor.output, "Wielded Twohanded 2"));
+  CuAssertPtrNotNull(tc, strstr(fixture.descriptor.output, "a lower greatsword"));
+
+  /* removing one bracer keeps the single typed bonus */
+  CuAssertPtrEquals(tc, &wrists[3], unequip_char(&fixture.ch, WEAR_WRIST_L2));
+  CuAssertIntEquals(tc, base_dex + 2, GET_DEX(&fixture.ch));
+
+  end_four_arm_fixture(&fixture);
+}
+
+/* Downgrade fallback: a saved position beyond the wear table goes to
+ * inventory on the player path, while the strict pet parser refuses it. */
+void TestFourArmsUnknownSavedSlotFallsBackToInventory(CuTest *tc)
+{
+  struct four_arm_fixture fixture;
+  struct obj_data sword;
+
+  begin_four_arm_fixture(&fixture);
+  init_weapon(&sword, "a sword from the future", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  test_auto_equip_loaded_object(&fixture.ch, &sword, NUM_WEARS + 1);
+  CuAssertPtrEquals(tc, &fixture.ch, sword.carried_by);
+  CuAssertIntEquals(tc, -1, worn_position(&fixture.ch, &sword));
+  CuAssertIntEquals(tc, 0, sword.four_arms_restore_slot);
+  end_four_arm_fixture(&fixture);
+}

@@ -1,9 +1,10 @@
 # Thri-Kreen four-arm wielding: Duris study and LuminariMUD mapping
 
-Status: implementation in progress on branch
+Status: mechanic implemented on branch
 `feat/168-thri-kreen-four-arm-wielding`, updated 2026-09-14. Steps 1 to 3
-of the sequence in Part 4 are implemented and tested; step 4 (release
-decisions) is open. See
+of the sequence in Part 4 are implemented and tested and the step 4
+documentation and checks are done; the Thri-Kreen race release itself waits
+on the balance decisions listed in Part 0. See
 "Part 0: progress and handoff" for the exact state. The extra-attack
 stand-in first proposed for this issue was rejected; the target is the full
 mechanic: real weapon slots, real doubled limb slots, real extra swings, and
@@ -128,12 +129,42 @@ Decisions and deviations taken in step 3:
   reset `GET_HITROLL()`, so combat tests must set the hit roll after the
   last equipment change.
 
-### Open: step 4 (release decisions)
+### Step 4 (help, save-format record, checks; release decisions open)
 
-Race registration, RP price and tier, psionic defence, venom, mount rule.
-See Part 3 "Race data" and "Race point price". Rollback procedure for the
-save format still needs the fixture test described in "Persistence and
-rollback".
+Done: help entry in both copies and the development database (verified
+identical), `GAME_MECHANICS_SYSTEMS.md`, `PLAYER_RACES_REFERENCE.md`,
+`SAVE_SYSTEMS_BREAKDOWN.md` (format note and the rollback procedure),
+constants sync, build parity, source hygiene, full test suite,
+`make install`. Equipment display labels and typed-bonus stacking across the
+four wrists are covered by `TestFourArmsEquipmentDisplayAndTypedBonuses`; the
+player-path downgrade fallback by `TestFourArmsUnknownSavedSlotFallsBackToInventory`
+(pet rejection is covered by the existing pet persistence tests).
+
+Open, and not something the code can decide: the Thri-Kreen race release.
+Nothing in the mechanic references a race, so the feat can be granted today
+through `set_race_feat()`-style registration, an item `APPLY_FEAT`, or a
+mob feat. Registering a playable Thri-Kreen needs these explicit choices,
+each recorded in Part 3:
+
+1. Tier and RP: an 8 RP Four Arms trait breaks the single-trait cap of
+   every tier (Advanced 4.2, Epic 7.2) and the subtotal lands outside both
+   bands. Options: price Four Arms lower with a documented exception,
+   accept an Epic race with an exception note, or hold the race until the
+   guide's Epic formula/table discrepancy is reconciled.
+2. Psionic defence: choose and price a mapping for Duris's psionic damage
+   reduction, or omit it and say so.
+3. Venom: `FEAT_POISON_BITE` (1-in-6 poison proc on any damaging hit) is
+   amplified by the extra swings; keep it, rescale its gate, or build a real
+   bite/paralysis later.
+4. Cannot ride: separate mount-only rule or omit.
+5. Ability adjustments: re-evaluate the study's +2/+1/-4/-4/+3/-3 proposal
+   after the psionic/cold interpretation is corrected.
+
+Everything else in the acceptance list is either covered by a test named
+above or recorded as a deliberate deviation in the step notes. Not done, by
+design: the pet fingerprint check across binaries and a `save_char()`
+failure-path fixture (see step 2 notes), and the stochastic ranger offhand
+procs for the second pair (see step 3 notes).
 
 ### How to verify
 
