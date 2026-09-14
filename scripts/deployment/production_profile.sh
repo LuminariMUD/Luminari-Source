@@ -314,16 +314,16 @@ probe_warning()
 # be proven clean by the migration budget reaching zero for that class.
 baseline_common=(-Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpointer-arith
   -Wformat-security -Wvla -Wredundant-decls -Wnested-externs -Wmissing-prototypes
-  -Wjump-misses-init)
+  -Wjump-misses-init -Wshadow)
 baseline_gcc=(-Wtrampolines -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-args
   -Wflex-array-member-not-at-end -Wunterminated-string-initialization)
 baseline_clang=()
 
 # Migration: the families the strict-C23 audit found in bulk (sign and value
-# conversion, switch coverage, prototype hygiene, format types, shadowing,
+# conversion, switch coverage, format types,
 # allocation size, duplicated logic, fallthrough).  Never combined with
 # -Werror; scripts/ci/check_warning_budget.py ratchets them down.
-migration_common=(-Wconversion -Wsign-conversion -Wdouble-promotion -Wshadow
+migration_common=(-Wconversion -Wsign-conversion -Wdouble-promotion
   -Wswitch-enum -Wcast-qual -Wundef
   -Wnull-dereference -Wformat=2
   -Wfloat-equal -Walloca -Wimplicit-fallthrough -Wwrite-strings)

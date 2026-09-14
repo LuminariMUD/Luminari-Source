@@ -35,14 +35,14 @@ warning debt, and feature detection that strict flags cannot influence.
   `CMakeLists.txt` (`LUMINARI_WARNING_TIER`). `DEVELOPER_MODE` is gone.
 - Baseline tier: `-Wall -Wextra -Wstrict-prototypes -Wold-style-definition
   -Wpointer-arith -Wformat-security -Wvla -Wredundant-decls -Wnested-externs
-  -Wmissing-prototypes -Wjump-misses-init` plus GCC's `-Wtrampolines
+  -Wmissing-prototypes -Wjump-misses-init -Wshadow` plus GCC's `-Wtrampolines
   -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-args
   -Wflex-array-member-not-at-end -Wunterminated-string-initialization`. The
-  last four common flags were promoted from the migration tier by steps 2.3,
-  2.4, and 3.1; Clang 18 does not know `-Wjump-misses-init`, so the probe
+  last five common flags were promoted from the migration tier by steps 2.3,
+  2.4, 3.1, and 3.3; Clang 18 does not know `-Wjump-misses-init`, so the probe
   drops it there. Clean on all four
   compilers; `-Werror` is refused with any other tier.
-- Migration tier: conversions, shadowing, switch coverage, `-Wformat=2`,
+- Migration tier: conversions, switch coverage, `-Wformat=2`,
   allocation, duplicated conditions and branches, logical operators,
   fallthrough, `-Wwrite-strings`. Held by
   `scripts/ci/check_warning_budget.py` against `scripts/ci/warning_budget_gcc-16.txt`
@@ -125,7 +125,7 @@ per compiler.
 | 1.3c | narrowing inside macros and multi-line expressions; clan return widened; `look_at_room_number` guard fixed; Clang `shorten-64-to-32` at zero | 4535 | 6018 |
 | 3.1 | case-local declarations scoped or hoisted; `jump-misses-init` at zero; flag promoted to baseline | 4087 | 5437 |
 | 3.3 | 265 shadowing declarations renamed within their scope | 3822 | 5279 |
-| 3.3 tail | `REMOVE_FROM_LIST_USING`; last three renames; `shadow` at zero | 3818 | 5275 |
+| 3.3 tail | `REMOVE_FROM_LIST_USING`; last three renames; `shadow` at zero; flag promoted to baseline | 3818 | 5275 |
 
 Every step was also verified with a host `make test` (1483 tests pass) before
 it was committed, and each promotion to the baseline tier was first built at
@@ -314,6 +314,9 @@ Notes from step 3.3:
   functions declared a damage-reduction `temp` that shadowed the function's
   affect `temp`. The macro is now a wrapper over `REMOVE_FROM_LIST_USING`,
   which takes the cursor variable, and those two functions pass `dr_temp`.
+- `-Wshadow` moved to the baseline tier after clean baseline builds with GCC
+  13 and Clang 18, so a new shadowing declaration now fails the `-Werror`
+  jobs instead of the budget.
 
 - The production half of the class (about 290 sites: string tables declared
   `char *[]`, `one_argument_u((char *)argument, ...)`, `findLine` in the index
