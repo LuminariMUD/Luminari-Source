@@ -5993,6 +5993,9 @@ struct obj_data
   bool transfer_pending;
   bool transfer_extracting;
   bool transfer_disposed;
+  /* saved four-arm wear position + 1 awaiting its provider during a load;
+   * 0 when not pending (runtime-only) */
+  int four_arms_restore_slot;
 
   struct obj_flag_data obj_flags;                    /**< Object information */
   struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< affects */
@@ -7593,6 +7596,12 @@ struct char_data
   long int confuser_idnum;
   bool preserve_organs_procced;
   bool mute_equip_messages;
+  /* four arms (FEAT_FOUR_ARMS) lifecycle, runtime-only: while defer > 0 a
+   * capability loss is noted but not acted on; reconciling guards re-entry. */
+  int four_arms_defer;
+  bool four_arms_reconciling;
+  bool four_arms_dirty;
+  bool four_arms_active; /* last completed check found four arms */
 
   /* PERFMON lifecycle attribution for NPC instances; runtime-only. */
   int perf_origin_zone_vnum;

@@ -4218,7 +4218,8 @@ static int hands_have(struct char_data *ch)
   if (has_four_arms(ch))
     num += 2;
 
-  if (KNOWS_DISCOVERY(ch, ALC_DISC_VESTIGIAL_ARM))
+  /* reconciliation runs from affect_total() on partially built characters too */
+  if (ch->player_specials != NULL && KNOWS_DISCOVERY(ch, ALC_DISC_VESTIGIAL_ARM))
     num++;
 
   // if (GET_LEVEL(ch) >= LVL_IMPL)
@@ -4235,6 +4236,115 @@ int hands_available(struct char_data *ch)
     return -1;
   }
   return (hands_have(ch) - hands_used(ch));
+}
+
+/* Four-arm lifecycle.  Losing the capability (last provider item removed,
+ * feat cleared, a form whose mob feats lack it) closes the seven four-arm
+ * slots and shrinks the hand budget.  Reconciliation runs from affect_total()
+ * once the change is complete; callers that temporarily strip providers, such
+ * as save_char()'s unequip/re-equip cycle and object restoration, bracket the
+ * work with four_arms_defer_begin()/four_arms_defer_end() so a mid-cycle state
+ * never moves valid equipment.  Displacement uses the object-transfer
+ * machinery, runs the remove trigger for its side effects without letting a
+ * veto keep gear in a slot the body no longer has, and moves items to
+ * inventory (never the room), bypassing inventory limits like a forced
+ * remove.  Removal order: the second weapon pair, lower wrists, lower hands,
+ * lower arms; then, while the old positions still exceed the hand budget,
+ * held items, the offhand weapon, the shield, the two-hander and last the
+ * primary weapon. */
+static const int four_arms_slot_removal_order[] = {WEAR_WIELD_2H_2, WEAR_WIELD_4,  WEAR_WIELD_3,
+                                                   WEAR_WRIST_L2,   WEAR_WRIST_R2, WEAR_HANDS_2,
+                                                   WEAR_ARMS_2};
+static const int four_arms_hand_trim_order[] = {WEAR_HOLD_2H,       WEAR_HOLD_2, WEAR_HOLD_1,
+                                                WEAR_WIELD_OFFHAND, WEAR_SHIELD, WEAR_WIELD_2H,
+                                                WEAR_WIELD_1};
+
+static void four_arms_displace(struct char_data *ch, int pos)
+{
+  struct domain_object_transfer_operation operation;
+  struct obj_data *obj = GET_EQ(ch, pos);
+
+  if (obj == NULL)
+    return;
+
+  domain_object_transfer_begin(&operation, obj, ch, DOMAIN_TRANSFER_RESTORE);
+  /* the trigger may move or purge the object; re-read the slot afterwards */
+  (void)remove_otrigger(obj, ch);
+  if (GET_EQ(ch, pos) == obj && !obj->transfer_extracting)
+  {
+    if (!ch->mute_equip_messages)
+    {
+      act("You can no longer keep hold of $p and tuck it into your inventory.", FALSE, ch, obj, 0,
+          TO_CHAR);
+      act("$n stops using $p.", TRUE, ch, obj, 0, TO_ROOM);
+    }
+    obj_to_char(unequip_char(ch, pos), ch);
+  }
+  domain_object_transfer_finish(&operation);
+}
+
+void four_arms_defer_begin(struct char_data *ch)
+{
+  if (ch == NULL)
+    return;
+  ch->four_arms_defer++;
+}
+
+void four_arms_defer_end(struct char_data *ch)
+{
+  if (ch == NULL)
+    return;
+  if (ch->four_arms_defer <= 0)
+  {
+    log("SYSERR: four_arms_defer_end without a matching begin for %s", GET_NAME(ch));
+    ch->four_arms_defer = 0;
+    return;
+  }
+  if (--ch->four_arms_defer == 0)
+    four_arms_reconcile(ch);
+}
+
+void four_arms_reconcile(struct char_data *ch)
+{
+  size_t i;
+  bool extra_gear = false;
+
+  if (ch == NULL || ch->four_arms_reconciling || DEAD(ch))
+    return;
+  if (ch->four_arms_defer > 0 || ch->char_specials.affect_batch_depth > 0)
+  {
+    ch->four_arms_dirty = TRUE;
+    return;
+  }
+  ch->four_arms_dirty = FALSE;
+
+  if (has_four_arms(ch))
+  {
+    ch->four_arms_active = TRUE;
+    return;
+  }
+
+  for (i = 0; i < sizeof(four_arms_slot_removal_order) / sizeof(int); i++)
+    if (GET_EQ(ch, four_arms_slot_removal_order[i]))
+      extra_gear = true;
+  /* the hand-budget trim is a consequence of losing four arms, never a
+   * general audit of a two-armed character's equipment */
+  if (!extra_gear && !(ch->four_arms_active && hands_used(ch) > hands_have(ch)))
+  {
+    ch->four_arms_active = FALSE;
+    return;
+  }
+
+  ch->four_arms_reconciling = TRUE;
+  for (i = 0; i < sizeof(four_arms_slot_removal_order) / sizeof(int); i++)
+    four_arms_displace(ch, four_arms_slot_removal_order[i]);
+  /* four arms can hold two weapons and two held items entirely in the old
+   * positions: trim to the budget, keeping the primary weapon longest */
+  for (i = 0;
+       i < sizeof(four_arms_hand_trim_order) / sizeof(int) && hands_used(ch) > hands_have(ch); i++)
+    four_arms_displace(ch, four_arms_hand_trim_order[i]);
+  ch->four_arms_reconciling = FALSE;
+  ch->four_arms_active = FALSE;
 }
 
 int hands_needed(struct char_data *ch, struct obj_data *obj)

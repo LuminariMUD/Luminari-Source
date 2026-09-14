@@ -2485,6 +2485,9 @@ bool save_char_checked(struct char_data *ch, int mode)
    * and wear messages while the equipment hooks run. */
   old_mute_equip_messages = ch->mute_equip_messages;
   ch->mute_equip_messages = TRUE;
+  /* providers leave and return with the rest of the gear: no four-arm
+   * reconciliation until the matching re-equip pass below has finished */
+  four_arms_defer_begin(ch);
   for (i = 0; i < NUM_WEARS; i++)
   {
     if (GET_EQ(ch, i))
@@ -3925,6 +3928,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   }
 
   ch->mute_equip_messages = old_mute_equip_messages;
+  four_arms_defer_end(ch);
 
   /* end char_to_store code */
 

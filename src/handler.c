@@ -1396,6 +1396,8 @@ void affect_batch_end(struct char_data *ch)
     ch->char_specials.affect_batch_dirty = FALSE;
     update_msdp_affects(ch);
   }
+  if (ch->char_specials.affect_batch_depth == 0 && ch->four_arms_dirty)
+    four_arms_reconcile(ch);
 }
 
 /* This updates a character by subtracting everything he is affected by
@@ -1427,6 +1429,9 @@ void affect_total(struct char_data *ch)
   /* MSDP */
   if (!defer_msdp)
     update_msdp_affects(ch);
+
+  /* four arms: a completed change may have closed the four-arm slots */
+  four_arms_reconcile(ch);
 }
 
 static bool affect_changes_mobile_reactions(const struct affected_type *af)

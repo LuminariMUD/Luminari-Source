@@ -430,7 +430,15 @@ takes melee weapons only (`second_pair_rejects_object()`), enforced in
 restoration cannot bypass it. Two-armed characters keep the old first-pair
 behavior. Lower sleeves join `apply_ac()`, enhancement, spell failure, armor
 penalty, max Dexterity, sleeve proficiency and whole-body conflicts.
-Saved object `Loc` 45..51 restore into the new slots. The design record is
+Saved object `Loc` 45..51 restore into the new slots; `auto_equip()` holds
+four-arm gear whose provider item comes later in the record set and
+`crash_restore_records()` retries it once the whole set is loaded. Losing
+the capability is reconciled by `four_arms_reconcile()` from
+`affect_total()`: the seven slots empty into inventory in a fixed order and
+the old hand positions are trimmed to two hands (held items first, primary
+weapon last). `save_char()` brackets its unequip/re-equip cycle with
+`four_arms_defer_begin()`/`four_arms_defer_end()` so a temporarily removed
+provider never moves gear. The design record is
 `docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md`; combat routing for the
 second pair is tracked there.
 

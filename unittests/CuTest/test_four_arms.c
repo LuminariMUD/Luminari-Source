@@ -1,7 +1,9 @@
 /* Four arms (FEAT_FOUR_ARMS): the second weapon pair and the doubled limb
  * slots, exercised through the production equip paths.  Step 1 of
  * docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md: capability sources, anatomy
- * gate, hand budget, placement, lower armor consumers and the restore cases. */
+ * gate, hand budget, placement, lower armor consumers and the restore cases.
+ * Step 2: loss handling, deferral across provider cycles, order-independent
+ * restoration. */
 #include "CuTest.h"
 #include <string.h>
 #include "conf.h"
@@ -19,6 +21,7 @@
 #include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/combat/fight.h"
 #include "../../src/constants.h"
+#include "../../src/dgscript/dg_scripts.h"
 #include "../../src/net/protocol.h"
 
 struct four_arm_fixture
@@ -181,7 +184,9 @@ void TestFourArmsPredicateSources(CuTest *tc)
   CuAssertPtrEquals(tc, &bracer, GET_EQ(&fixture.ch, WEAR_WRIST_R2));
   CuAssertPtrEquals(tc, &ring, unequip_char(&fixture.ch, WEAR_FINGER_R));
   CuAssertTrue(tc, !has_four_arms(&fixture.ch));
-  CuAssertPtrEquals(tc, &bracer, unequip_char(&fixture.ch, WEAR_WRIST_R2));
+  /* the ring was the only provider: the lower-wrist bracer is displaced */
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.ch, WEAR_WRIST_R2));
+  CuAssertPtrEquals(tc, &fixture.ch, bracer.carried_by);
 
   /* NPCs use their mob feats */
   memset(&mob, 0, sizeof(mob));
@@ -504,4 +509,327 @@ void TestFourArmsSlotTablesAreComplete(CuTest *tc)
   CuAssertIntEquals(tc, WEAR_ARMS, four_arm_slot_base(WEAR_ARMS_2));
   CuAssertIntEquals(tc, WEAR_WIELD_2H, four_arm_slot_base(WEAR_WIELD_2H_2));
   CuAssertIntEquals(tc, WEAR_BODY, four_arm_slot_base(WEAR_BODY));
+}
+
+static void init_held(struct obj_data *obj, const char *name)
+{
+  clear_object(obj);
+  obj->name = (char *)name;
+  obj->short_description = (char *)name;
+  obj->description = (char *)name;
+  GET_OBJ_TYPE(obj) = ITEM_OTHER;
+  GET_OBJ_SIZE(obj) = SIZE_MEDIUM;
+  SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_TAKE);
+  SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HOLD);
+}
+
+static int count_carried(struct char_data *ch)
+{
+  struct obj_data *obj;
+  int count = 0;
+
+  for (obj = ch->carrying; obj != NULL; obj = obj->next_content)
+    count++;
+  return count;
+}
+
+/* Removing the last provider closes the seven slots: their gear moves to
+ * inventory (not the room), the first pair stays, repeated checks are stable. */
+void TestFourArmsLossClosesExtraSlots(CuTest *tc)
+{
+  struct four_arm_fixture fixture;
+  struct obj_data ring, swords[4], sleeves[2], wrists[4];
+  const int extra[] = {WEAR_WIELD_3, WEAR_WIELD_4, WEAR_ARMS_2, WEAR_WRIST_R2, WEAR_WRIST_L2};
+  size_t i;
+
+  begin_four_arm_fixture(&fixture);
+  init_armor(&ring, "a four-armed ring", ITEM_WEAR_FINGER, 0, 0);
+  grant_feat_on_object(&ring, FEAT_FOUR_ARMS);
+  wear_from_inventory(&fixture, &ring, WEAR_FINGER_R);
+  CuAssertTrue(tc, has_four_arms(&fixture.ch));
+  for (i = 0; i < 4; i++)
+  {
+    init_weapon(&swords[i], "a test sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+    wear_from_inventory(&fixture, &swords[i], WEAR_WIELD_1);
+    init_armor(&wrists[i], "a test bracer", ITEM_WEAR_WRIST, 0, 0);
+    wear_from_inventory(&fixture, &wrists[i], WEAR_WRIST_R);
+  }
+  for (i = 0; i < 2; i++)
+  {
+    init_armor(&sleeves[i], "test sleeves", ITEM_WEAR_ARMS, 2, SPEC_ARMOR_TYPE_LEATHER_ARMS);
+    wear_from_inventory(&fixture, &sleeves[i], WEAR_ARMS);
+  }
+  CuAssertPtrEquals(tc, &swords[3], GET_EQ(&fixture.ch, WEAR_WIELD_4));
+  CuAssertPtrEquals(tc, &sleeves[1], GET_EQ(&fixture.ch, WEAR_ARMS_2));
+  CuAssertIntEquals(tc, 0, count_carried(&fixture.ch));
+  CuAssertIntEquals(tc, 4, fixture.ch.points.armor);
+
+  reset_output(&fixture);
+  perform_remove(&fixture.ch, WEAR_FINGER_R, FALSE);
+  CuAssertTrue(tc, !has_four_arms(&fixture.ch));
+  for (i = 0; i < sizeof(extra) / sizeof(extra[0]); i++)
+    CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.ch, extra[i]));
+  CuAssertPtrEquals(tc, &swords[0], GET_EQ(&fixture.ch, WEAR_WIELD_1));
+  CuAssertPtrEquals(tc, &swords[1], GET_EQ(&fixture.ch, WEAR_WIELD_OFFHAND));
+  CuAssertPtrEquals(tc, &sleeves[0], GET_EQ(&fixture.ch, WEAR_ARMS));
+  CuAssertPtrEquals(tc, &wrists[1], GET_EQ(&fixture.ch, WEAR_WRIST_L));
+  /* ring plus five displaced items, every one carried, none in the room */
+  CuAssertIntEquals(tc, 6, count_carried(&fixture.ch));
+  CuAssertPtrEquals(tc, &fixture.ch, swords[2].carried_by);
+  CuAssertPtrEquals(tc, &fixture.ch, sleeves[1].carried_by);
+  CuAssertPtrEquals(tc, NULL, fixture.room.contents);
+  CuAssertIntEquals(tc, 2, fixture.ch.points.armor);
+  CuAssertPtrNotNull(tc, strstr(fixture.descriptor.output, "no longer keep hold"));
+  CuAssertIntEquals(tc, 2, hands_used(&fixture.ch));
+  CuAssertIntEquals(tc, 0, hands_available(&fixture.ch));
+
+  /* stable under repeated recomputation */
+  affect_total(&fixture.ch);
+  four_arms_reconcile(&fixture.ch);
+  CuAssertIntEquals(tc, 6, count_carried(&fixture.ch));
+  CuAssertPtrEquals(tc, &swords[0], GET_EQ(&fixture.ch, WEAR_WIELD_1));
+
+  end_four_arm_fixture(&fixture);
+}
+
+/* Four arms can hold two weapons and two held items in old positions alone;
+ * losing the feat trims held items first and keeps both weapons. */
+void TestFourArmsLossTrimsOldPositionsToCapacity(CuTest *tc)
+{
+  struct four_arm_fixture fixture;
+  struct obj_data swords[2], held[2];
+  int i;
+
+  begin_four_arm_fixture(&fixture);
+  SET_FEAT(&fixture.ch, FEAT_FOUR_ARMS, 1);
+  for (i = 0; i < 2; i++)
+  {
+    init_weapon(&swords[i], "a test sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+    wear_from_inventory(&fixture, &swords[i], WEAR_WIELD_1);
+    init_held(&held[i], "a test orb");
+    wear_from_inventory(&fixture, &held[i], WEAR_HOLD_1);
+  }
+  CuAssertPtrEquals(tc, &held[0], GET_EQ(&fixture.ch, WEAR_HOLD_1));
+  CuAssertPtrEquals(tc, &held[1], GET_EQ(&fixture.ch, WEAR_HOLD_2));
+  CuAssertIntEquals(tc, 4, hands_used(&fixture.ch));
+
+  SET_FEAT(&fixture.ch, FEAT_FOUR_ARMS, 0);
+  reset_output(&fixture);
+  affect_total(&fixture.ch);
+  CuAssertPtrEquals(tc, &swords[0], GET_EQ(&fixture.ch, WEAR_WIELD_1));
+  CuAssertPtrEquals(tc, &swords[1], GET_EQ(&fixture.ch, WEAR_WIELD_OFFHAND));
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.ch, WEAR_HOLD_1));
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.ch, WEAR_HOLD_2));
+  CuAssertIntEquals(tc, 2, count_carried(&fixture.ch));
+  CuAssertIntEquals(tc, 2, hands_used(&fixture.ch));
+
+  end_four_arm_fixture(&fixture);
+}
+
+/* A provider cycle inside a deferral (save_char's unequip/re-equip) keeps
+ * item-supported gear; the loss is acted on only when the deferral ends. */
+void TestFourArmsDeferralSpansProviderCycle(CuTest *tc)
+{
+  struct four_arm_fixture fixture;
+  struct obj_data ring, sword;
+
+  begin_four_arm_fixture(&fixture);
+  init_armor(&ring, "a four-armed ring", ITEM_WEAR_FINGER, 0, 0);
+  grant_feat_on_object(&ring, FEAT_FOUR_ARMS);
+  equip_char(&fixture.ch, &ring, WEAR_FINGER_R);
+  init_weapon(&sword, "a test sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  equip_char(&fixture.ch, &sword, WEAR_WIELD_3);
+  CuAssertPtrEquals(tc, &sword, GET_EQ(&fixture.ch, WEAR_WIELD_3));
+
+  four_arms_defer_begin(&fixture.ch);
+  CuAssertPtrEquals(tc, &ring, unequip_char(&fixture.ch, WEAR_FINGER_R));
+  CuAssertTrue(tc, !has_four_arms(&fixture.ch));
+  CuAssertPtrEquals(tc, &sword, GET_EQ(&fixture.ch, WEAR_WIELD_3));
+  affect_total(&fixture.ch);
+  CuAssertPtrEquals(tc, &sword, GET_EQ(&fixture.ch, WEAR_WIELD_3));
+  equip_char(&fixture.ch, &ring, WEAR_FINGER_R);
+  four_arms_defer_end(&fixture.ch);
+  CuAssertPtrEquals(tc, &sword, GET_EQ(&fixture.ch, WEAR_WIELD_3));
+  CuAssertIntEquals(tc, 0, count_carried(&fixture.ch));
+
+  /* nested deferral; the real loss lands when the outermost one ends */
+  four_arms_defer_begin(&fixture.ch);
+  four_arms_defer_begin(&fixture.ch);
+  CuAssertPtrEquals(tc, &ring, unequip_char(&fixture.ch, WEAR_FINGER_R));
+  four_arms_defer_end(&fixture.ch);
+  CuAssertPtrEquals(tc, &sword, GET_EQ(&fixture.ch, WEAR_WIELD_3));
+  four_arms_defer_end(&fixture.ch);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.ch, WEAR_WIELD_3));
+  CuAssertPtrEquals(tc, &fixture.ch, sword.carried_by);
+
+  /* an affect batch also holds the change until it closes */
+  equip_char(&fixture.ch, &ring, WEAR_FINGER_R);
+  obj_from_char(&sword);
+  equip_char(&fixture.ch, &sword, WEAR_WIELD_3);
+  affect_batch_begin(&fixture.ch);
+  CuAssertPtrEquals(tc, &ring, unequip_char(&fixture.ch, WEAR_FINGER_R));
+  CuAssertPtrEquals(tc, &sword, GET_EQ(&fixture.ch, WEAR_WIELD_3));
+  affect_batch_end(&fixture.ch);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.ch, WEAR_WIELD_3));
+
+  end_four_arm_fixture(&fixture);
+}
+
+/* A remove trigger's veto cannot keep gear in a slot the body no longer has. */
+void TestFourArmsLossIgnoresRemoveTriggerVeto(CuTest *tc)
+{
+  struct four_arm_fixture fixture;
+  struct obj_data sword;
+  struct index_data **saved_trig_index = trig_index;
+  struct trig_data *saved_trigger_list = trigger_list;
+  struct index_data *prototype_index;
+  struct cmdlist_element *commands, *next_command;
+  int saved_top_of_trigt = top_of_trigt;
+  FILE *trigger_file;
+
+  begin_four_arm_fixture(&fixture);
+  trig_index = calloc(1, sizeof(*trig_index));
+  top_of_trigt = 0;
+  trigger_file = tmpfile();
+  CuAssertPtrNotNull(tc, trig_index);
+  CuAssertPtrNotNull(tc, trigger_file);
+  fprintf(trigger_file, "Four arms remove veto~\n");
+  fprintf(trigger_file, "%d %d 100\n", OBJ_TRIGGER, OTRIG_REMOVE);
+  fprintf(trigger_file, "~\n");
+  fprintf(trigger_file, "return 0\n");
+  fprintf(trigger_file, "~\n");
+  rewind(trigger_file);
+  parse_trigger(trigger_file, 9001);
+  fclose(trigger_file);
+  CuAssertIntEquals(tc, 1, top_of_trigt);
+
+  SET_FEAT(&fixture.ch, FEAT_FOUR_ARMS, 1);
+  init_weapon(&sword, "a clingy sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  sword.script = calloc(1, sizeof(*sword.script));
+  add_trigger(sword.script, read_trigger(0), -1);
+  equip_char(&fixture.ch, &sword, WEAR_WIELD_3);
+  CuAssertPtrEquals(tc, &sword, GET_EQ(&fixture.ch, WEAR_WIELD_3));
+
+  /* the ordinary command honours the veto */
+  perform_remove(&fixture.ch, WEAR_WIELD_3, FALSE);
+  CuAssertPtrEquals(tc, &sword, GET_EQ(&fixture.ch, WEAR_WIELD_3));
+
+  /* losing the arms does not */
+  SET_FEAT(&fixture.ch, FEAT_FOUR_ARMS, 0);
+  affect_total(&fixture.ch);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.ch, WEAR_WIELD_3));
+  CuAssertPtrEquals(tc, &fixture.ch, sword.carried_by);
+
+  obj_from_char(&sword);
+  extract_script(&sword.script);
+  prototype_index = trig_index[0];
+  commands = ((struct trig_data *)prototype_index->proto)->cmdlist;
+  free_trigger((struct trig_data *)prototype_index->proto);
+  while (commands != NULL)
+  {
+    next_command = commands->next;
+    free(commands->cmd);
+    free(commands);
+    commands = next_command;
+  }
+  free(prototype_index);
+  free(trig_index);
+  trig_index = saved_trig_index;
+  top_of_trigt = saved_top_of_trigt;
+  trigger_list = saved_trigger_list;
+  end_four_arm_fixture(&fixture);
+}
+
+static void extract_everything(struct char_data *ch)
+{
+  int pos;
+
+  for (pos = 0; pos < NUM_WEARS; pos++)
+    if (GET_EQ(ch, pos))
+      extract_obj(GET_EQ(ch, pos));
+  while (ch->carrying)
+    extract_obj(ch->carrying);
+}
+
+/* Flat-file round trip: a provider recorded after the gear that depends on it
+ * still restores that gear into its saved slot, with contents; without any
+ * provider the gear stays in inventory with its contents. */
+void TestFourArmsRestoreIsOrderIndependent(CuTest *tc)
+{
+  struct four_arm_fixture fixture;
+  struct obj_data ring, sword, pouch, coin, bracer;
+  struct obj_data *loaded;
+  obj_save_data *records;
+  FILE *file;
+
+  begin_four_arm_fixture(&fixture);
+  init_armor(&ring, "a four-armed ring", ITEM_WEAR_FINGER, 0, 0);
+  grant_feat_on_object(&ring, FEAT_FOUR_ARMS);
+  init_weapon(&sword, "a saved sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  init_held(&pouch, "a wielded pouch");
+  GET_OBJ_TYPE(&pouch) = ITEM_CONTAINER;
+  GET_OBJ_VAL(&pouch, 0) = 50;
+  SET_BIT_AR(GET_OBJ_WEAR(&pouch), ITEM_WEAR_WIELD);
+  init_held(&coin, "a saved coin");
+  init_armor(&bracer, "a saved bracer", ITEM_WEAR_WRIST, 0, 0);
+
+  /* dependents first, provider last; the pouch's content precedes it */
+  file = tmpfile();
+  CuAssertPtrNotNull(tc, file);
+  CuAssertTrue(tc, test_objsave_save_obj_record(&sword, &fixture.ch, file, WEAR_WIELD_3 + 1));
+  CuAssertTrue(tc, test_objsave_save_obj_record(&coin, &fixture.ch, file, -1));
+  CuAssertTrue(tc, test_objsave_save_obj_record(&pouch, &fixture.ch, file, WEAR_WIELD_4 + 1));
+  CuAssertTrue(tc, test_objsave_save_obj_record(&bracer, &fixture.ch, file, WEAR_WRIST_R2 + 1));
+  CuAssertTrue(tc, test_objsave_save_obj_record(&ring, &fixture.ch, file, WEAR_FINGER_R + 1));
+  fputs("$~\n", file);
+  rewind(file);
+  records = objsave_parse_objects(file);
+  fclose(file);
+  CuAssertPtrNotNull(tc, records);
+  CuAssertIntEquals(tc, 5, test_restore_loaded_objects(&fixture.ch, records));
+
+  CuAssertTrue(tc, has_four_arms(&fixture.ch));
+  CuAssertPtrNotNull(tc, GET_EQ(&fixture.ch, WEAR_FINGER_R));
+  loaded = GET_EQ(&fixture.ch, WEAR_WIELD_3);
+  CuAssertPtrNotNull(tc, loaded);
+  CuAssertStrEquals(tc, "a saved sword", loaded->short_description);
+  loaded = GET_EQ(&fixture.ch, WEAR_WIELD_4);
+  CuAssertPtrNotNull(tc, loaded);
+  CuAssertStrEquals(tc, "a wielded pouch", loaded->short_description);
+  CuAssertPtrNotNull(tc, loaded->contains);
+  CuAssertStrEquals(tc, "a saved coin", loaded->contains->short_description);
+  CuAssertPtrNotNull(tc, GET_EQ(&fixture.ch, WEAR_WRIST_R2));
+  CuAssertIntEquals(tc, 0, count_carried(&fixture.ch));
+  CuAssertIntEquals(tc, 0, GET_EQ(&fixture.ch, WEAR_WIELD_4)->four_arms_restore_slot);
+  extract_everything(&fixture.ch);
+
+  /* no provider at all: the gear waits in inventory, contents intact */
+  file = tmpfile();
+  CuAssertPtrNotNull(tc, file);
+  CuAssertTrue(tc, test_objsave_save_obj_record(&coin, &fixture.ch, file, -1));
+  CuAssertTrue(tc, test_objsave_save_obj_record(&pouch, &fixture.ch, file, WEAR_WIELD_4 + 1));
+  CuAssertTrue(tc, test_objsave_save_obj_record(&sword, &fixture.ch, file, WEAR_WIELD_3 + 1));
+  fputs("$~\n", file);
+  rewind(file);
+  records = objsave_parse_objects(file);
+  fclose(file);
+  CuAssertPtrNotNull(tc, records);
+  CuAssertIntEquals(tc, 3, test_restore_loaded_objects(&fixture.ch, records));
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.ch, WEAR_WIELD_3));
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.ch, WEAR_WIELD_4));
+  CuAssertIntEquals(tc, 2, count_carried(&fixture.ch));
+  for (loaded = fixture.ch.carrying; loaded != NULL; loaded = loaded->next_content)
+  {
+    CuAssertIntEquals(tc, 0, loaded->four_arms_restore_slot);
+    if (GET_OBJ_TYPE(loaded) == ITEM_CONTAINER)
+      CuAssertPtrNotNull(tc, loaded->contains);
+  }
+  extract_everything(&fixture.ch);
+
+  /* the tail position 44 (Loc 44) is untouched by the appended slots */
+  CuAssertIntEquals(tc, 44, WEAR_TAIL + 1);
+  CuAssertIntEquals(tc, 45, WEAR_WIELD_3 + 1);
+  CuAssertIntEquals(tc, 51, WEAR_WRIST_L2 + 1);
+
+  end_four_arm_fixture(&fixture);
 }

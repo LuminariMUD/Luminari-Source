@@ -1,8 +1,8 @@
 # Thri-Kreen four-arm wielding: Duris study and LuminariMUD mapping
 
 Status: implementation in progress on branch
-`feat/168-thri-kreen-four-arm-wielding`, updated 2026-09-14. Step 1 of the
-sequence in Part 4 is implemented and tested; steps 2 to 4 are open. See
+`feat/168-thri-kreen-four-arm-wielding`, updated 2026-09-14. Steps 1 and 2
+of the sequence in Part 4 are implemented and tested; steps 3 and 4 are open. See
 "Part 0: progress and handoff" for the exact state. The extra-attack
 stand-in first proposed for this issue was rejected; the target is the full
 mechanic: real weapon slots, real doubled limb slots, real extra swings, and
@@ -65,18 +65,31 @@ Decisions taken in step 1 that Part 3 left open:
   and no-mixing policy checks every wield slot through `is_wielding_type()`.
 - Held items and shields stay on the existing slots and share the budget.
 
-### Open: step 2 (loss handling, save/restore ordering)
+### Done: step 2 (loss handling, deferral, order-independent restoration)
 
-Not started. Today, losing the capability while wearing extra-slot gear
-leaves that gear equipped: `hands_available()` logs a SYSERR and returns -1,
-`character_wear_slot_restriction()` reports the slot as closed, and nothing
-removes the items. Required per Part 3 "Removal, save bookkeeping and loss
-of the feat": a reconciliation at completed transitions with per-character
-deferral across `save_char()`'s unequip/re-equip, the documented removal
-order, forced transfers via the object-transfer machinery, and restoration
-that places ordinary-slot providers before dependent extra-slot gear
-regardless of record order. Tests listed in Part 4 under "Grant
-intrinsically..." and "Save a fully equipped item-supported PC...".
+| Area | What exists now |
+|------|-----------------|
+| Reconciliation | `four_arms_reconcile()` in `src/obj/act.item.c`, declared in `src/handler.h`. Runs at the end of `affect_total()` (every completed equipment, affect, feat or form change) and at the close of an affect batch. Re-entry guarded by `ch->four_arms_reconciling`; skipped for characters being extracted (`DEAD()`). |
+| Deferral | `four_arms_defer_begin()` / `four_arms_defer_end()` on a runtime counter `ch->four_arms_defer` in `struct char_data`; a loss noticed while deferred sets `four_arms_dirty` and is acted on when the outermost deferral ends. `save_char_checked()` in `src/players.c` brackets its unequip/re-equip cycle (no early returns exist between the two loops). |
+| Loss action | Order: WIELD_2H_2, WIELD_4, WIELD_3, WRIST_L2, WRIST_R2, HANDS_2, ARMS_2; then, only when the character had four arms at the last completed check (`four_arms_active`) and the old positions exceed the budget: HOLD_2H, HOLD_2, HOLD_1, WIELD_OFFHAND, SHIELD, WIELD_2H, WIELD_1 until it fits. Each displacement wraps a `domain_object_transfer_begin/finish` (`DOMAIN_TRANSFER_RESTORE`), runs `remove_otrigger()` for its side effects but ignores a veto, re-reads the slot in case the trigger moved or purged the object, then `obj_to_char(unequip_char())`: inventory, never the room, inventory limits bypassed. Message: "You can no longer keep hold of $p and tuck it into your inventory." (suppressed under `mute_equip_messages`). |
+| Restoration | `auto_equip()` marks four-arm gear whose slot is closed at that moment with `obj->four_arms_restore_slot` (runtime-only field on `struct obj_data`) and holds it in inventory. `crash_restore_records()` (shared by `Crash_load_objs()`, `pet_load_objs()` and the `test_restore_loaded_objects()` hook) runs the record loop under deferral, then `four_arms_restore_deferred()` retries those objects with their contents, then ends the deferral so capacity is checked once. Gear whose provider never arrives stays in inventory with its marker cleared. Copyover reconnects through `Crash_load()`, so it shares the path. |
+| Tests | `TestFourArmsLossClosesExtraSlots`, `TestFourArmsLossTrimsOldPositionsToCapacity`, `TestFourArmsDeferralSpansProviderCycle` (nested deferral and affect batch), `TestFourArmsLossIgnoresRemoveTriggerVeto` (real DG trigger returning 0), `TestFourArmsRestoreIsOrderIndependent` (flat-file round trip through `objsave_parse_objects()`: provider after dependents, container contents, missing provider). Full suite: 1467 tests pass. |
+
+Decisions taken in step 2:
+
+- NPCs (and PCs in a disguised wild shape) take the capability from mob
+  feats only, matching `get_feat_value()`, which never reads items for them.
+  An "NPC item grant" therefore does not exist in this codebase; pets and
+  zone `E` gear validate against the mob feat set at load.
+- The hand-budget trim never audits a two-armed character who never had four
+  arms: `Test_spec_rol_abyss_forged_weapons_dissolve_before_corpse_creation`
+  stages an over-budget mob directly and must keep working.
+- `hands_have()` tolerates a NULL `player_specials` because reconciliation
+  now runs from `affect_total()` on partially built characters.
+- The "pet fingerprint stabilizes within the new binary" check and a
+  `save_char()` failure-path fixture were not added: `save_char_checked()`
+  has no exit between its two loops, and the deferral test covers the same
+  mechanism directly. Revisit if a save path with an early exit appears.
 
 ### Open: step 3 (combat routing and second-pair attacks)
 
