@@ -93,8 +93,11 @@ warning debt, and feature detection that strict flags cannot influence.
 - `make test` on the strict Autotools build: 1483 tests pass.
 - The local CI matrix (`scripts/ci/local/run.py`): all 28 jobs passed on
   `8584422ae` in 7 minutes (`--jobs 3 --cpus 4`), as they did on `70ff161ed`
-  before the `class.c` analyzer exclusion. The first run failed as described
-  in the notes below.
+  before the `class.c` analyzer exclusion. On the analyzer leak and null fixes
+  (`96b8600c6`) 27 passed; the process-memory monitor test raced a fake MUD
+  process that had not finished its exec, and the Clang production-profile
+  job passed again once the test waited for it (`ea2f763ea`). The first run
+  failed as described in the notes below.
 
 ## Budget snapshot
 
