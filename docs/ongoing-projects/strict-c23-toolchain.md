@@ -92,8 +92,9 @@ warning debt, and feature detection that strict flags cannot influence.
 - Strict full builds: GCC 13, GCC 16, Clang 18, Clang 22, all zero errors.
 - `make test` on the strict Autotools build: 1483 tests pass.
 - The local CI matrix (`scripts/ci/local/run.py`): all 28 jobs passed on
-  `70ff161ed` in 9 minutes (`--jobs 3 --cpus 4`). The first run failed as
-  described in the notes below.
+  `8584422ae` in 7 minutes (`--jobs 3 --cpus 4`), as they did on `70ff161ed`
+  before the `class.c` analyzer exclusion. The first run failed as described
+  in the notes below.
 
 ## Budget snapshot
 
