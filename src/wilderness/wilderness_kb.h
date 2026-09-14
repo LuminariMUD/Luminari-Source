@@ -23,8 +23,8 @@
 #define WILD_DEBUG_MEM(label, size)                                                                \
   do                                                                                               \
   {                                                                                                \
-    mudlog(CMP, LVL_IMMORT, FALSE, "[WILD_KB_MEM] %s: allocated %ld bytes", label, (long)size);    \
-    printf("[WILD_KB_MEM] %s: allocated %ld bytes\n", label, (long)size);                          \
+    mudlog(CMP, LVL_IMMORT, FALSE, "[WILD_KB_MEM] %s: allocated %ld bytes", label, (long)(size));  \
+    printf("[WILD_KB_MEM] %s: allocated %ld bytes\n", label, (long)(size));                        \
   } while (0)
 #define WILD_DEBUG_FUNC(func)                                                                      \
   do                                                                                               \

@@ -241,7 +241,6 @@ static int open_logfile(const char *filename, FILE *stderr_fp);
 static sigfunc *my_signal(int signo, sigfunc *func);
 #endif
 static void msdp_update(void); /* KaVir plugin*/
-void update_msdp_affects(struct char_data *ch);
 void update_player_last_on(void);
 void check_auto_shutdown(void);
 void check_auto_happy_hour(void);
@@ -1162,7 +1161,7 @@ static bool initialize_io_reactor(void)
   io_reactor = luminari_reactor_create(driver, &status);
   if (io_reactor == NULL)
   {
-    log("SYSERR: Unable to initialize %s I/O driver (status %d).", luminari_io_driver_name(driver),
+    log("SYSERR: Unable to initialize %s I/O driver (status %u).", luminari_io_driver_name(driver),
         status);
     return FALSE;
   }
@@ -1457,7 +1456,7 @@ void game_loop(socket_t local_mother_desc)
     scheduler_status = event_scheduler_next_deadline(&scheduler_deadline, &scheduler_has_deadline);
     if (scheduler_status != GAME_SCHEDULER_OK)
     {
-      log("SYSERR: Unable to query timing-wheel deadline (status %d).", scheduler_status);
+      log("SYSERR: Unable to query timing-wheel deadline (status %u).", scheduler_status);
       scheduler_has_deadline = false;
     }
     if (scheduler_has_deadline)
@@ -1743,7 +1742,7 @@ void game_loop(socket_t local_mother_desc)
       memset(&scheduler_report, 0, sizeof(scheduler_report));
       scheduler_status = event_process_scheduler(&scheduler_budget, &scheduler_report);
       if (scheduler_status != GAME_SCHEDULER_OK)
-        log("SYSERR: Timing-wheel reactor dispatch failed with status %d.", scheduler_status);
+        log("SYSERR: Timing-wheel reactor dispatch failed with status %u.", scheduler_status);
     }
 
     /* Extraction is an explicit mutation safe point, independent of cadence. */
@@ -2037,7 +2036,7 @@ static void persistence_scheduler_step(uint64_t heart_pulse)
         if (elapsed_usec > PERSISTENCE_HARD_LIMIT_USEC)
         {
           persistence_scheduler.hard_limit_overruns++;
-          log("PERFMON [PERSISTENCE]: task=%d exceeded hard pulse limit: %llu usec", task,
+          log("PERFMON [PERSISTENCE]: task=%u exceeded hard pulse limit: %llu usec", task,
               (unsigned long long)elapsed_usec);
         }
         if (result == PERSISTENCE_STEP_FAILURE)
@@ -2425,7 +2424,7 @@ static bool runtime_services_register_types(void)
     status = event_runtime_register_type(&config, &runtime_service_table[index].event_type);
     if (status != GAME_SCHEDULER_OK)
     {
-      log("SYSERR: unable to register native service event type '%s' (status %d).",
+      log("SYSERR: unable to register native service event type '%s' (status %u).",
           runtime_service_table[index].name, status);
       return false;
     }
@@ -2448,7 +2447,7 @@ static bool runtime_services_register_types(void)
   if (status != GAME_SCHEDULER_OK)
   {
     log("SYSERR: unable to register native service event type "
-        "'service.persistence_batch' (status %d).",
+        "'service.persistence_batch' (status %u).",
         status);
     return false;
   }
@@ -2877,7 +2876,7 @@ static char *make_prompt(struct descriptor_data *d)
           len += count;
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
         {
-          count = snprintf(prompt + len, sizeof(prompt) - len, "[%5d]%s ",
+          count = snprintf(prompt + len, sizeof(prompt) - len, "[%5u]%s ",
                            GET_ROOM_VNUM(IN_ROOM(ch)), CCNRM(ch, C_NRM));
           if (count >= 0)
             len += count;
@@ -4754,7 +4753,7 @@ static void signal_setup(void)
           io_reactor, reactor_signals[index], reactor_signal_dispatch, NULL);
       if (status != LUMINARI_REACTOR_OK)
       {
-        log("SYSERR: Unable to register signal %d with libevent (status %d).",
+        log("SYSERR: Unable to register signal %d with libevent (status %u).",
             reactor_signals[index], status);
         exit(1);
       }
@@ -6090,8 +6089,6 @@ void update_msdp_room(struct char_data *ch)
   const char MsdpVar = (char)MSDP_VAR;
   const char MsdpVal = (char)MSDP_VAL;
 
-  extern const char *dirs[];
-  extern const char *sector_types[];
 
   int door;
 
@@ -6150,7 +6147,7 @@ void update_msdp_room(struct char_data *ch)
         if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
           continue;
 
-        snprintf(buf3, sizeof(buf3), "%c%s%c%d%c", MsdpVar, dirs[door], MsdpVal,
+        snprintf(buf3, sizeof(buf3), "%c%s%c%u%c", MsdpVar, dirs[door], MsdpVal,
                  GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
         //          send_to_char(ch, "DEBUG: %s\r\n", buf3);
         strlcat(room_exits, buf3, sizeof(room_exits));
@@ -6166,7 +6163,7 @@ void update_msdp_room(struct char_data *ch)
       /* Build the ROOM table.  */
       snprintf(buf2, sizeof(buf2),
                "%cVNUM"
-               "%c%d"
+               "%c%u"
                "%cNAME"
                "%c%s"
                "%cAREA"
@@ -6213,8 +6210,6 @@ static void msdp_update(void)
   const char MsdpVar = (char)MSDP_VAR;
   const char MsdpVal = (char)MSDP_VAL;
 
-  extern const char *dirs[];
-  extern const char *sector_types[];
 
   struct descriptor_data *d;
   int PlayerCount = 0;
@@ -6333,7 +6328,7 @@ static void msdp_update(void)
           if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
             continue;
 
-          snprintf(buf3, sizeof(buf3), "%c%s%c%d%c", MsdpVar, dirs[door], MsdpVal,
+          snprintf(buf3, sizeof(buf3), "%c%s%c%u%c", MsdpVar, dirs[door], MsdpVal,
                    GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
           //          send_to_char(ch, "DEBUG: %s\r\n", buf3);
           strlcat(room_exits, buf3, sizeof(room_exits));

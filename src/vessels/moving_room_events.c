@@ -115,8 +115,9 @@ bool moving_room_event_sync(room_rnum rnum)
   if (room->mover->destination != room->number)
   {
     moving_room_event_forget(rnum);
-    log("SYSERR: moving room #%d has metadata for room #%d; refusing its deadline.", room->number,
-        room->mover->destination);
+    log("SYSERR: moving room #%" PRI_IDX " has metadata for room #%" PRI_IDX
+        "; refusing its deadline.",
+        room->number, room->mover->destination);
     return false;
   }
   if (event_runtime_remaining(room->moving_room_event, &remaining) == GAME_SCHEDULER_OK)
@@ -176,7 +177,8 @@ bool moving_room_events_bootstrap(void)
   for (room = 0; room <= top_of_world; room++)
     if (world[room].mover != NULL && !moving_room_event_sync(room))
     {
-      log("SYSERR: unable to admit native moving-room deadline for #%d.", world[room].number);
+      log("SYSERR: unable to admit native moving-room deadline for #%" PRI_IDX ".",
+          world[room].number);
       moving_room_events_shutdown();
       return false;
     }

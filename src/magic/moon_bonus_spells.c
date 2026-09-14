@@ -18,7 +18,6 @@
 #include "moon_bonus_spells.h"
 
 /* Externals */
-extern struct weather_data weather_info;
 
 /**
  * Initialize moon bonus spells for a character based on their alignment

@@ -42,7 +42,6 @@
 #include "wilderness/resource_system.h"
 #include "wilderness/harvest.h"
 
-extern MYSQL *conn;
 
 /* global variables */
 int mining_nodes = 0;
@@ -380,8 +379,8 @@ void cquest_report(struct char_data *ch)
                  "Once completed/turned-in you will receive the"
                  " following:\r\n"
                  "You will receive %d reputation points.\r\n"
-                 "%d gold will be awarded to you.\r\n"
-                 "You will receive %d experience points.\r\n"
+                 "%u gold will be awarded to you.\r\n"
+                 "You will receive %u experience points.\r\n"
                  "(type 'supplyorder complete' at the supply office)\r\n",
                  GET_AUTOCQUEST_QP(ch), GET_AUTOCQUEST_GOLD(ch), GET_AUTOCQUEST_EXP(ch));
   }
@@ -2798,7 +2797,7 @@ SPECIAL(crafting_quest)
                  "make %s.  We expect you to make %d before you can collect your "
                  "reward.  Good luck!  Once completed you will receive the "
                  "following:  You will receive %d quest points."
-                 "  %d gold will be given to you.  You will receive %d "
+                 "  %u gold will be given to you.  You will receive %u "
                  "experience points.\r\n",
                  desc, GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_QP(ch), GET_AUTOCQUEST_GOLD(ch),
                  GET_AUTOCQUEST_EXP(ch));

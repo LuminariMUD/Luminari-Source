@@ -13,6 +13,8 @@
 #define _HANDLER_H_
 
 #include "domain_event_types.h"
+#include "mob/mob_memory.h"
+#include "mob/mob_utils.h"
 
 void check_room_lighting(room_rnum room, struct char_data *ch, bool enter);
 
@@ -166,10 +168,6 @@ int generic_find(const char *arg, bitvector_t bitvector, struct char_data *ch,
 #define FIND_OBJ_EQUIP (1 << 5)
 
 /* prototypes from mobact.c */
-void forget(struct char_data *ch, struct char_data *victim);
-void remember(struct char_data *ch, struct char_data *victim);
-void mobile_echos(struct char_data *ch);
-void clearMemory(struct char_data *ch);
 
 /* For new last command: */
 #define LAST_FILE LIB_ETC "last"

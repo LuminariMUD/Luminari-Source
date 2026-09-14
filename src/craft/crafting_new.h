@@ -291,7 +291,6 @@ void show_refine_noargs(struct char_data *ch);
 bool is_refine_ready(struct char_data *ch, bool verbose);
 void craft_refine_complete(struct char_data *ch);
 int get_craft_skill_value(struct char_data *ch, int skill_num);
-int craft_material_to_obj_material(int material);
 void craft_resize_complete(struct char_data *ch, struct obj_data *obj);
 char *get_supply_order_item_desc(struct char_data *ch);
 int determine_supply_order_exp(struct char_data *ch);
@@ -402,8 +401,6 @@ int get_golem_repair_dc(int golem_type, int golem_size);
 int get_golem_repair_material_type(int golem_type);
 bool can_repair_golem(struct char_data *ch, struct char_data *golem, int *material_needed,
                       int *material_type);
-int get_golem_type_from_vnum(int vnum);
-int get_golem_size_from_vnum(int vnum);
 
 /* Reconstruct active crafting after login/copyover; offline time does not advance work. */
 void resume_craft_activity(struct char_data *ch);

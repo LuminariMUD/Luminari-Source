@@ -212,9 +212,7 @@ bool can_understand_language(struct char_data *ch, int language);
 int num_blackguard_cruelties_known(struct char_data *ch);
 sbyte has_blackguard_cruelties_unchosen(struct char_data *ch);
 sbyte has_blackguard_cruelties_unchosen_study(struct char_data *ch);
-bool affected_by_aura_of_cowardice(struct char_data *ch);
 bool affected_by_aura_of_despair(struct char_data *ch);
-int sector_type_to_terrain_type(int sector);
 bool has_aura_of_courage(struct char_data *ch);
 bool pvp_ok_single(struct char_data *ch, bool display);
 int comp_cha_cost(struct char_data *ch, int number);
@@ -532,7 +530,9 @@ int str_cmp(const char *arg1, const char *arg2);
 int strn_cmp(const char *arg1, const char *arg2, int n);
 #endif
 
+#if !defined(HAVE_STRLCAT)
 size_t strlcat(char *buf, const char *src, size_t bufsz);
+#endif
 int snprintf_append(char *buffer, size_t buffer_size, int offset, const char *format, ...)
     __attribute__((format(printf, 4, 5)));
 

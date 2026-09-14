@@ -71,7 +71,6 @@ static int mud_event_cleanup_count = 0;
 #endif
 
 /* The mud_event_index[] is defined in mud_event_list.c */
-extern struct mud_event_list mud_event_index[];
 
 #define MUD_EVENT_SEMANTIC_NAME_SIZE 96U
 
@@ -540,7 +539,7 @@ bool mud_event_runtime_init(void)
     status = event_runtime_register_type(&config, &mud_event_type_ids[id]);
     if (status != GAME_SCHEDULER_OK)
     {
-      log("SYSERR: unable to register native MUD event type %d '%s' (status %d).", id, expected,
+      log("SYSERR: unable to register native MUD event type %u '%s' (status %u).", id, expected,
           status);
       return false;
     }
@@ -645,7 +644,7 @@ MUD_EVENT_CALLBACK(event_countdown)
     /* Verify the room exists before we use it later */
     if (rnum == NOWHERE)
     {
-      log("SYSERR: event_countdown() - ROOM event for invalid vnum %d", *rvnum);
+      log("SYSERR: event_countdown() - ROOM event for invalid vnum %" PRI_IDX, *rvnum);
       return 0;
     }
     /* room = &world[real_room(rnum)]; */ /* Unused assignment */
@@ -738,7 +737,7 @@ MUD_EVENT_CALLBACK(event_countdown)
     if (pMudEvent->sVariables == NULL)
     {
       /* This encounter region has no encounter rooms. */
-      log("SYSERR: No encounter rooms set for encounter region vnum: %d", *regvnum);
+      log("SYSERR: No encounter rooms set for encounter region vnum: %" PRI_IDX, *regvnum);
     }
     else
     {
@@ -746,7 +745,7 @@ MUD_EVENT_CALLBACK(event_countdown)
       tokens = tokenize(pMudEvent->sVariables, ",");
       if (!tokens)
       {
-        log("SYSERR: tokenize() failed in event_countdown for region %d", *regvnum);
+        log("SYSERR: tokenize() failed in event_countdown for region %" PRI_IDX, *regvnum);
         break; /* Exit this case */
       }
 
@@ -758,7 +757,7 @@ MUD_EVENT_CALLBACK(event_countdown)
         int x, y;
         int ctr = 0;
 
-        if (sscanf(*it, "%d", &eroom_vnum) != 1)
+        if (sscanf(*it, "%" SCN_IDX, &eroom_vnum) != 1)
         {
           log("SYSERR: Invalid encounter room vnum: %s", *it);
           continue;
@@ -803,7 +802,7 @@ MUD_EVENT_CALLBACK(event_countdown)
         if (!location_found)
         {
           world[eroom_rnum].wilderness_coordinates_set = false;
-          log("SYSERR: No valid wilderness location for encounter room %d.", eroom_vnum);
+          log("SYSERR: No valid wilderness location for encounter room %" PRI_IDX ".", eroom_vnum);
           continue;
         }
 
@@ -861,13 +860,13 @@ MUD_EVENT_CALLBACK(event_daily_use_cooldown)
   {
     /* This is odd - This field should always be populated for daily-use abilities,
      * maybe some legacy code or bad id. */
-    log("SYSERR: 1 sVariables field is NULL for daily-use-cooldown-event: %d", pMudEvent->iId);
+    log("SYSERR: 1 sVariables field is NULL for daily-use-cooldown-event: %u", pMudEvent->iId);
   }
   else
   {
     if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
     {
-      log("SYSERR: In event_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %d",
+      log("SYSERR: In event_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %u",
           pMudEvent->iId);
       uses = 0;
     }
@@ -1043,7 +1042,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
     room_index = real_room(*rvnum);
     if (room_index == NOWHERE)
     {
-      log("SYSERR: Attempt to attach event to non-existent room vnum %d!", *rvnum);
+      log("SYSERR: Attempt to attach event to non-existent room vnum %" PRI_IDX "!", *rvnum);
       free(rvnum);
       goto admission_failed;
     }

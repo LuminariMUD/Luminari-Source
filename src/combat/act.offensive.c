@@ -47,7 +47,6 @@
 #include "wilderness/wilderness.h"
 
 /* externs */
-extern char cast_arg2[MAX_INPUT_LENGTH];
 
 int roll_initiative(struct char_data *ch);
 

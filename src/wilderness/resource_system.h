@@ -356,7 +356,6 @@ extern const char *resource_names[NUM_RESOURCE_TYPES];
 
 /* Phase 4: Region integration functions */
 /* Phase 4b: Region Effects System Functions */
-float apply_region_resource_modifiers(int resource_type, int x, int y, float base_value);
 void apply_region_resource_modifiers_to_node(struct char_data *ch, struct resource_node *resources);
 
 /* Phase 4.5: Material Subtype Management Functions */

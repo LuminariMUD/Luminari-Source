@@ -193,9 +193,11 @@ ACMD(do_oasis_oedit)
   /* If we need to save, save the objects. */
   if (save)
   {
-    send_to_char(ch, "Saving all objects in zone %d.\r\n", zone_table[OLC_ZNUM(d)].number);
-    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s saves object info for zone %d.",
-           GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
+    send_to_char(ch, "Saving all objects in zone %" PRI_IDX ".\r\n",
+                 zone_table[OLC_ZNUM(d)].number);
+    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE,
+           "OLC: %s saves object info for zone %" PRI_IDX ".", GET_NAME(ch),
+           zone_table[OLC_ZNUM(d)].number);
 
     /* Save the objects in this zone. */
     save_objects(OLC_ZNUM(d));
@@ -223,8 +225,8 @@ ACMD(do_oasis_oedit)
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
   /* Log the OLC message. */
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d", GET_NAME(ch),
-         zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %" PRI_IDX " allowed zone %d",
+         GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
 static void oedit_setup_new(struct descriptor_data *d)
@@ -1938,7 +1940,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
 
   write_to_output(
       d,
-      "-- Item number : [%s%d%s]\r\n"
+      "-- Item number : [%s%" PRI_IDX "%s]\r\n"
       "%s1%s) Keywords : %s%s\r\n"
       "%s2%s) S-Desc   : %s%s\r\n"
       "%s3%s) L-Desc   :-\r\n%s%s\r\n"
@@ -2046,7 +2048,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
       "%sM%s) Min Level              : %s%d\r\n"
       "%sP%s) Perm Affects           : %s%s\r\n"
       "%sV%s) Perm2 Affects (AFF2)   : %s%s\r\n"
-      "%sR%s) Mob Recipient          : %s%d\r\n"
+      "%sR%s) Mob Recipient          : %s%" PRI_IDX "\r\n"
       "%sS%s) Script                 : %s%s\r\n"
       "%sT%s) Spellbook menu\r\n"
       "%sEQ Rating (save/exit to update, under development): %s%d\r\n"
@@ -2156,8 +2158,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     case 'y':
     case 'Y':
       oedit_save_internally(d);
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits obj %d",
-             GET_NAME(d->character), OLC_NUM(d));
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
+             "OLC: %s edits obj %" PRI_IDX, GET_NAME(d->character), OLC_NUM(d));
       if (CONFIG_OLC_SAVE)
       {
         oedit_save_to_disk(real_zone_by_thing(OLC_NUM(d)));
@@ -2219,7 +2221,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
         iedit_commit_existing(obj, OLC_OBJ(d));
         OLC_OBJ(d) = NULL;
 
-        log("OLC: %s iedit a unique #%d", GET_NAME(d->character), GET_OBJ_VNUM(obj));
+        log("OLC: %s iedit a unique #%u", GET_NAME(d->character), GET_OBJ_VNUM(obj));
 
         if (d->character)
         {

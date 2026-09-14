@@ -177,7 +177,6 @@ void init_perks(void)
 
   /* Define Alchemist Perks */
   define_alchemist_perks();
-  void define_alchemist_perks(void);
 
   /* Define Psionicist Perks */
   define_psionicist_perks();
@@ -19358,7 +19357,6 @@ int get_master_of_elements_override(struct char_data *ch, int dam_type)
 {
   int preferred_type;
   char buf[MAX_STRING_LENGTH];
-  extern const char *damtypes[];
 
   if (!ch || IS_NPC(ch))
     return dam_type;

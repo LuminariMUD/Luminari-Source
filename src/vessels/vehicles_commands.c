@@ -28,15 +28,6 @@
 /* ========================================================================= */
 
 /* From vehicles.c */
-extern struct vehicle_data *vehicle_find_by_id(int id);
-extern int vehicle_add_passenger(struct vehicle_data *vehicle);
-extern int vehicle_remove_passenger(struct vehicle_data *vehicle);
-extern int vehicle_can_add_passenger(struct vehicle_data *vehicle);
-extern int vehicle_move(struct vehicle_data *vehicle, int direction);
-extern int vehicle_can_move(struct vehicle_data *vehicle, int direction);
-extern int vehicle_is_operational(struct vehicle_data *vehicle);
-extern const char *vehicle_type_name(enum vehicle_type type);
-extern const char *vehicle_state_name(enum vehicle_state state);
 
 /* ========================================================================= */
 /* STATIC VARIABLES FOR PLAYER-VEHICLE TRACKING                              */
@@ -728,12 +719,6 @@ ACMD(do_vstatus)
 /* ========================================================================= */
 
 /* External vessel/transport functions */
-extern struct greyhawk_ship_data *get_ship_from_room(room_rnum room);
-extern int load_vehicle_onto_vessel(struct char_data *ch, struct vehicle_data *vehicle,
-                                    struct greyhawk_ship_data *vessel);
-extern int unload_vehicle_from_vessel(struct char_data *ch, struct vehicle_data *vehicle);
-extern struct vehicle_data **get_loaded_vehicles_list(struct greyhawk_ship_data *vessel,
-                                                      int *count);
 
 /**
  * do_loadvehicle - Load a vehicle onto a vessel.

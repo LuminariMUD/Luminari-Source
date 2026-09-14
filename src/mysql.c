@@ -1687,7 +1687,7 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
       /* Log buffer details for debugging */
       for (i = 0; i < pstmt->result_count; i++)
       {
-        log("  Column %d: type=%d, buffer_length=%lu", i, pstmt->results[i].buffer_type,
+        log("  Column %d: type=%u, buffer_length=%lu", i, pstmt->results[i].buffer_type,
             pstmt->results[i].buffer_length);
       }
       MYSQL_UNLOCK(*mutex);
@@ -2098,12 +2098,12 @@ struct wilderness_data *load_wilderness(zone_vnum zone)
 
   struct wilderness_data *wild = NULL;
 
-  log("Info: Loading wilderness data for zone: %d", zone);
+  log("Info: Loading wilderness data for zone: %" PRI_IDX, zone);
 
   snprintf(buf, sizeof(buf),
            "SELECT f.id, f.nav_vnum, f.dynamic_vnum_pool_start, f.dynamic_vnum_pool_end, f.x_size, "
            "f.y_size, f.elevation_seed, f.distortion_seed, f.moisture_seed, f.min_temp, f.max_temp "
-           "from wilderness_data as f where f.zone_vnum = %d",
+           "from wilderness_data as f where f.zone_vnum = %" PRI_IDX,
            zone);
 
   if (mysql_query(conn, buf))
@@ -2120,7 +2120,7 @@ struct wilderness_data *load_wilderness(zone_vnum zone)
 
   if (mysql_num_rows(result) > 1)
   {
-    log("SYSERR: Too many rows returned on SELECT from wilderness_data for zone: %d", zone);
+    log("SYSERR: Too many rows returned on SELECT from wilderness_data for zone: %" PRI_IDX, zone);
   }
 
   CREATE(wild, struct wilderness_data, 1);
@@ -2462,7 +2462,7 @@ void load_regions()
     /* Validate num_vertices is within reasonable bounds */
     if (region_table[i].num_vertices < 0 || region_table[i].num_vertices > 1024)
     {
-      log("SYSERR: Invalid num_vertices (%d) for region %s (vnum %d), setting to 0",
+      log("SYSERR: Invalid num_vertices (%d) for region %s (vnum %" PRI_IDX "), setting to 0",
           region_table[i].num_vertices, row[2], region_table[i].vnum);
       region_table[i].num_vertices = 0;
       region_table[i].vertices = NULL;
@@ -2472,7 +2472,8 @@ void load_regions()
     {
       /* No polygon data - create empty region */
       region_table[i].vertices = NULL;
-      log("Info: Region %d (%s) has no polygon data", region_table[i].vnum, region_table[i].name);
+      log("Info: Region %" PRI_IDX " (%s) has no polygon data", region_table[i].vnum,
+          region_table[i].name);
     }
     else
     {
@@ -2519,7 +2520,7 @@ void load_regions()
   if (i > 0)
   {
     top_of_region_table = i - 1;
-    log("Info: Loaded %d regions, top_of_region_table set to %d", i, top_of_region_table);
+    log("Info: Loaded %d regions, top_of_region_table set to %" PRI_IDX, i, top_of_region_table);
 
     /* Now create events after top_of_region_table is set */
     for (j = 0; j <= (int)top_of_region_table; j++)
@@ -2530,7 +2531,8 @@ void load_regions()
 
         vnum = region_table[j].vnum;
 
-        log("Creating encounter reset event for region #%d (%s) - resets every %d seconds",
+        log("Creating encounter reset event for region #%" PRI_IDX
+            " (%s) - resets every %d seconds",
             region_table[j].vnum, region_table[j].name, region_table[j].reset_time);
         NEW_EVENT(eENCOUNTER_REG_RESET, &vnum, region_table[j].reset_data,
                   region_table[j].reset_time RL_SEC);
@@ -2559,7 +2561,7 @@ bool is_point_within_region(region_vnum region, int x, int y)
   snprintf(buf, sizeof(buf),
            "SELECT 1 "
            "from region_index "
-           "where vnum = %d and "
+           "where vnum = %" PRI_IDX " and "
            "ST_Within(ST_GeomFromText('POINT(%d %d)'), region_polygon)",
            region, x, y);
 
@@ -2882,15 +2884,15 @@ struct region_proximity_list *get_nearby_regions(zone_rnum zone, int x, int y, i
   if (mysql_query(conn, buf))
   {
     log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
-    log("SYSERR: get_nearby_regions failed for zone %d, coords (%d,%d)", zone, x, y);
+    log("SYSERR: get_nearby_regions failed for zone %" PRI_IDX ", coords (%d,%d)", zone, x, y);
     return NULL; /* Return empty region list on error */
   }
 
   if (!(result = mysql_store_result(conn)))
   {
     log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
-    log("SYSERR: get_nearby_regions failed to store result for zone %d, coords (%d,%d)", zone, x,
-        y);
+    log("SYSERR: get_nearby_regions failed to store result for zone %" PRI_IDX ", coords (%d,%d)",
+        zone, x, y);
     return NULL; /* Return empty region list on error */
   }
 
@@ -3058,7 +3060,7 @@ void load_paths()
     /* Validate num_vertices is within reasonable bounds */
     if (path_table[i].num_vertices < 0 || path_table[i].num_vertices > 1024)
     {
-      log("SYSERR: Invalid num_vertices (%d) for path %s (vnum %d), setting to 0",
+      log("SYSERR: Invalid num_vertices (%d) for path %s (vnum %" PRI_IDX "), setting to 0",
           path_table[i].num_vertices, row[2], path_table[i].vnum);
       path_table[i].num_vertices = 0;
       path_table[i].vertices = NULL;
@@ -3068,7 +3070,8 @@ void load_paths()
     {
       /* No polygon data - create empty path */
       path_table[i].vertices = NULL;
-      log("Info: Path %d (%s) has no polygon data", path_table[i].vnum, path_table[i].name);
+      log("Info: Path %" PRI_IDX " (%s) has no polygon data", path_table[i].vnum,
+          path_table[i].name);
     }
     else
     {
@@ -3186,7 +3189,7 @@ void insert_path(struct path_data *path)
   snprintf(query, query_size,
            "insert into path_data "
            "(vnum, zone_vnum, path_type, name, path_props, path_linestring) "
-           "VALUES (%d, %d, %d, '%s', %d, %s);",
+           "VALUES (%" PRI_IDX ", %" PRI_IDX ", %d, '%s', %d, %s);",
            path->vnum, zone_table[path->zone].number, path->path_type, escaped_name,
            path->path_props, linestring);
 
@@ -3332,12 +3335,12 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
   ylow = 99999;
   yhigh = -99999;
 
-  log(" Getting random point in region with vnum : %d", region);
+  log(" Getting random point in region with vnum : %" PRI_IDX, region);
 
   snprintf(buf, sizeof(buf),
            "SELECT ST_AsText(ST_Envelope(region_polygon)) "
            "from region_data "
-           "where vnum = %d;",
+           "where vnum = %" PRI_IDX ";",
            region);
 
   /* Check the connection, reconnect if necessary. */
@@ -3403,7 +3406,7 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
 
   if (!found_coordinate)
   {
-    log("SYSERR: Region %d has no valid spatial coordinates.", region);
+    log("SYSERR: Region %" PRI_IDX " has no valid spatial coordinates.", region);
     return false;
   }
 
@@ -3416,7 +3419,7 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
     log("new point: (%d, %d)", xp, yp);
   } while (!is_point_within_region(region, xp, yp));
 
-  log("Returning point within region %d : (%d, %d)", region, xp, yp);
+  log("Returning point within region %" PRI_IDX " : (%d, %d)", region, xp, yp);
   *x = xp;
   *y = yp;
   return true;

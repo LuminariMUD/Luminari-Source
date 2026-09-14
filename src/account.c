@@ -72,11 +72,8 @@
 #include "vessels/routing.h"
 #include "perfmon.h"
 
-extern MYSQL *conn;
 
 /* Forward reference: helper loaders for attached structures on an account */
-void load_account_characters(struct account_data *account);
-void load_account_unlocks(struct account_data *account);
 static void account_persistence_mark_clean(struct account_data *account);
 
 /* Simple aliases for boolean-like flags used in this file. */

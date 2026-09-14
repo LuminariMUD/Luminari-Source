@@ -208,7 +208,7 @@ static bool register_point_update_event_type(void)
   status = event_runtime_register_type(&config, &point_update_event_type);
   if (status != GAME_SCHEDULER_OK)
   {
-    log("SYSERR: unable to register native event type 'world.mud_hour_update' (status %d).",
+    log("SYSERR: unable to register native event type 'world.mud_hour_update' (status %u).",
         status);
     return false;
   }

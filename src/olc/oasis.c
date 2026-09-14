@@ -337,7 +337,7 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
                GET_NAME(d->character));
       else
         mudlog(CMP, LVL_IMMORT, TRUE,
-               "OLC: %s stops editing zone %d allowed"
+               "OLC: %s stops editing zone %" PRI_IDX " allowed"
                " zone %d",
                GET_NAME(d->character), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(d->character));
 
@@ -436,15 +436,16 @@ void send_cannot_edit(struct char_data *ch, zone_vnum zone)
 
   if (GET_OLC_ZONE(ch) != (int)NOWHERE)
   {
-    send_to_char(ch, "You do not have permission to edit zone %d.  Try zone %d or ZUNLOCK.\r\n",
-                 zone, GET_OLC_ZONE(ch));
-    snprintf(buf, sizeof(buf), "OLC: %s tried to edit zone %d (allowed zone %d).", GET_NAME(ch),
-             zone, GET_OLC_ZONE(ch));
+    send_to_char(
+        ch, "You do not have permission to edit zone %" PRI_IDX ".  Try zone %d or ZUNLOCK.\r\n",
+        zone, GET_OLC_ZONE(ch));
+    snprintf(buf, sizeof(buf), "OLC: %s tried to edit zone %" PRI_IDX " (allowed zone %d).",
+             GET_NAME(ch), zone, GET_OLC_ZONE(ch));
   }
   else
   {
-    send_to_char(ch, "You do not have permission to edit zone %d.\r\n", zone);
-    snprintf(buf, sizeof(buf), "OLC: %s tried to edit zone %d.", GET_NAME(ch), zone);
+    send_to_char(ch, "You do not have permission to edit zone %" PRI_IDX ".\r\n", zone);
+    snprintf(buf, sizeof(buf), "OLC: %s tried to edit zone %" PRI_IDX ".", GET_NAME(ch), zone);
   }
   mudlog(BRF, LVL_IMPL, TRUE, "%s", buf);
 }

@@ -53,7 +53,6 @@
 #include "point_update_periodic.h"
 
 // external
-extern struct raff_node *raff_list;
 
 static uint64_t next_phenomenon_id = 1U;
 
@@ -220,7 +219,6 @@ int test_resolve_affect_cast_level(struct char_data *ch, int spellnum, int suppl
   return resolve_affect_cast_level(ch, spellnum, supplied_level, modified_level, casttype);
 }
 #endif
-bool save_char_pets(struct char_data *ch);
 void set_vampire_spawn_feats(struct char_data *mob);
 
 /* local file scope function prototypes */
@@ -12064,7 +12062,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
     if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
     {
       /* Debug coordinates */
-      log("DEBUG: Meteor swarm cast by %s in room %d, zone %d (wilderness: %s)", GET_NAME(ch),
+      log("DEBUG: Meteor swarm cast by %s in room %u, zone %u (wilderness: %s)", GET_NAME(ch),
           GET_ROOM_VNUM(IN_ROOM(ch)), GET_ROOM_ZONE(IN_ROOM(ch)),
           ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS) ? "YES" : "NO");
       log("DEBUG: Character coordinates: X_LOC=%d, Y_LOC=%d", X_LOC(ch), Y_LOC(ch));
@@ -15088,9 +15086,12 @@ void mag_creations(int level __attribute__((unused)), struct char_data *ch, stru
   if (!(tobj = read_object_reason(object_vnum, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)))
   {
     send_to_char(
-        ch, "I seem to have goofed.  Please let staff know these values:  spell %d, obj %d\r\n",
+        ch,
+        "I seem to have goofed.  Please let staff know these values:  spell %d, obj %" PRI_IDX
+        "\r\n",
         spellnum, object_vnum);
-    log("SYSERR: spell_creations, spell %d, obj %d: obj not found", spellnum, object_vnum);
+    log("SYSERR: spell_creations, spell %d, obj %" PRI_IDX ": obj not found", spellnum,
+        object_vnum);
     return;
   }
 
@@ -15101,9 +15102,12 @@ void mag_creations(int level __attribute__((unused)), struct char_data *ch, stru
     if (!(portal = read_object_reason(object_vnum, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)))
     {
       send_to_char(
-          ch, "I seem to have goofed.  Please let staff know these values:  spell %d, obj %d\r\n",
+          ch,
+          "I seem to have goofed.  Please let staff know these values:  spell %d, obj %" PRI_IDX
+          "\r\n",
           spellnum, object_vnum);
-      log("SYSERR: spell_creations, spell %d, obj %d: obj not found", spellnum, object_vnum);
+      log("SYSERR: spell_creations, spell %d, obj %" PRI_IDX ": obj not found", spellnum,
+          object_vnum);
       return;
     }
 
@@ -15139,7 +15143,8 @@ void mag_creations(int level __attribute__((unused)), struct char_data *ch, stru
     if (!(portal = read_object_reason(object_vnum, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)))
     {
       send_to_char(ch, "I seem to have goofed.\r\n");
-      log("SYSERR: spell_creations, spell %d, obj %d: obj not found", spellnum, object_vnum);
+      log("SYSERR: spell_creations, spell %d, obj %" PRI_IDX ": obj not found", spellnum,
+          object_vnum);
       return;
     }
 
@@ -15240,7 +15245,6 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
   const char *to_room = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct raff_node *raff = NULL;
-  extern struct raff_node *raff_list;
   room_rnum rnum = NOWHERE;
   bool failure = FALSE;
   event_id IdNum = eNULL; /* eNULL means it must be an affection */

@@ -2392,7 +2392,7 @@ static struct obj_data *newbie_create_obj(struct char_data *ch, obj_vnum vnum, b
 
   if (!obj)
   {
-    log("SYSERR: newbieEquipment could not load object vnum %d", vnum);
+    log("SYSERR: newbieEquipment could not load object vnum %" PRI_IDX, vnum);
     return NULL;
   }
 

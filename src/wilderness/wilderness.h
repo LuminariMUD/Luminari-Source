@@ -246,7 +246,6 @@ void generate_river(struct char_data *ch, int dir, region_vnum vnum, const char 
 int get_modified_sector_type(zone_rnum zone, int x, int y);
 
 /* World Knowledge Base Generation */
-void generate_wilderness_knowledge_base(const char *output_filename);
 
 /* Wilderness */
 

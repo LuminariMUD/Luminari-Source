@@ -96,6 +96,9 @@
 #include "rol_feats.h"
 #include "activity_manager.h"
 #include "password.h"
+#include "clan_economy.h"
+#include "vessels/transport_unified.h"
+#include "help.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -107,7 +110,6 @@ static bool perform_new_char_dupe_check(struct descriptor_data *d);
 static int sort_commands_helper(const void *a, const void *b);
 
 // external functions
-void load_char_pets(struct char_data *ch);
 void update_player_last_on(void);
 
 /* globals defined here, used here and elsewhere */
@@ -10263,8 +10265,6 @@ void nanny(struct descriptor_data *d, char *arg)
     else if (d->reply_to_post_id > 0)
     {
       /* This is a reply - handle differently */
-      extern void mysql_board_handle_reply_title(struct descriptor_data * d,
-                                                 char *additional_subject);
       mysql_board_handle_reply_title(d, arg);
     }
     else

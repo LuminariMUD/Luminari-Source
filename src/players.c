@@ -138,7 +138,6 @@ static void load_wands(FILE *fl, struct char_data *ch);
 static void load_staves(FILE *fl, struct char_data *ch);
 static void load_discoveries(FILE *fl, struct char_data *ch);
 void load_temp_evolutions(FILE *fl, struct char_data *ch);
-bool save_char_pets(struct char_data *ch);
 static void load_mercies(FILE *fl, struct char_data *ch);
 static void load_cruelties(FILE *fl, struct char_data *ch);
 static void load_buffs(FILE *fl, struct char_data *ch);
@@ -197,7 +196,6 @@ static char *build_pet_keyword_list(const char *saved_keywords, const char *prot
 
 
 // external functions
-void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
 bool pet_save_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum);
 
 /* New version to build player index for ASCII Player Files. Generate index
@@ -2170,7 +2168,7 @@ int load_char(const char *name, struct char_data *ch)
     restore_status =
         mud_event_restore_character_record(ch, &pending_event->record, (int64_t)time(NULL));
     if (restore_status != MUD_EVENT_RESTORE_OK && restore_status != MUD_EVENT_RESTORE_EXPIRED)
-      log("SYSERR: Ignoring durable event %d for %s: %s.", pending_event->record.event_type,
+      log("SYSERR: Ignoring durable event %u for %s: %s.", pending_event->record.event_type,
           GET_NAME(ch), mud_event_restore_status_name(restore_status));
     free(pending_event);
   }
@@ -2469,7 +2467,7 @@ bool save_char_checked(struct char_data *ch, int mode)
           !mud_event_make_durable_record(ch, pMudEvent, save_epoch,
                                          &saved_events[saved_event_count]))
       {
-        log("SYSERR: Unable to serialize persisted event %d (%s) for %s.", pMudEvent->iId,
+        log("SYSERR: Unable to serialize persisted event %u (%s) for %s.", pMudEvent->iId,
             mud_event_index[pMudEvent->iId].event_name, GET_NAME(ch));
         save_ok = FALSE;
         continue;

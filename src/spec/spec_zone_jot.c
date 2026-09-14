@@ -38,7 +38,6 @@
 
 bool jot_inv_check = false;
 
-ACMD_DECL(do_say);
 
 /* just made this to help facilitate switching of zone vnums if needed */
 int jot_converter(int value)

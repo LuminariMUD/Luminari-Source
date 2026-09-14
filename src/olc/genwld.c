@@ -101,8 +101,8 @@ static void adjust_room_references_for_insert(room_rnum inserted_room)
         break;
       default:
         mudlog(BRF, LVL_STAFF, TRUE,
-               "SYSERR: GenOLC: add_room: Unknown zone entry found! Zone: %d CMD: %c", zone,
-               ZCMD(zone, command).command);
+               "SYSERR: GenOLC: add_room: Unknown zone entry found! Zone: %" PRI_IDX " CMD: %c",
+               zone, ZCMD(zone, command).command);
       }
 
   /* Idled characters in the void are not reachable through world[].people. */
@@ -163,7 +163,7 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
     world[i].light = live_light;
     if (persistent)
       add_to_save_list(zone_table[room->zone].number, SL_WLD);
-    log("GenOLC: add_room: Updated existing room #%d.", room->number);
+    log("GenOLC: add_room: Updated existing room #%" PRI_IDX ".", room->number);
     return i;
   }
 
@@ -227,7 +227,7 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
   initialize_wilderness_lists();
   vehicle_reindex_room_insert(found);
 
-  log("GenOLC: add_room: Added room %d at index #%d.", room->number, found);
+  log("GenOLC: add_room: Added room %" PRI_IDX " at index #%" PRI_IDX ".", room->number, found);
   /* found is equal to the array index where we added the room. */
 
   adjust_room_references_for_insert(found);
@@ -253,7 +253,7 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
     add_to_save_list(zone_table[room->zone].number, SL_WLD);
 
   if (!moving_room_event_sync(found))
-    log("SYSERR: unable to schedule new moving room #%d.", world[found].number);
+    log("SYSERR: unable to schedule new moving room #%" PRI_IDX ".", world[found].number);
   /* Return what array entry we placed the new room in. */
   return found;
 }
@@ -309,7 +309,7 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
     add_to_save_list(zone_table[room->zone].number, SL_WLD);
 
   /* This is something you might want to read about in the logs. */
-  log("GenOLC: delete_room: Deleting room #%d (%s).", room->number, room->name);
+  log("GenOLC: delete_room: Deleting room #%" PRI_IDX " (%s).", room->number, room->name);
 
   moving_room_event_forget(rnum);
   affected_room_owners_remove_room(rnum);
@@ -511,8 +511,8 @@ int save_rooms(zone_rnum rzone)
   if (rzone < 0 || rzone > top_of_zone_table)
   {
 #endif
-    log("SYSERR: GenOLC: save_rooms: Invalid zone number %d passed! (0-%d)", rzone,
-        top_of_zone_table);
+    log("SYSERR: GenOLC: save_rooms: Invalid zone number %" PRI_IDX " passed! (0-%" PRI_IDX ")",
+        rzone, top_of_zone_table);
     return FALSE;
   }
 
@@ -527,16 +527,17 @@ int save_rooms(zone_rnum rzone)
     spname = room_persisted_spec_name(&world[rnum]);
     if (spname != NULL && *spname != '\0')
     {
-      log("SYSERR: GenOLC: save_rooms: Room #%d has moving-room M data and named Z binding '%s'.",
+      log("SYSERR: GenOLC: save_rooms: Room #%" PRI_IDX
+          " has moving-room M data and named Z binding '%s'.",
           world[rnum].number, spname);
       return FALSE;
     }
   }
 
-  log("GenOLC: save_rooms: Saving rooms in zone #%d (%d-%d).", zone_table[rzone].number,
-      genolc_zone_bottom(rzone), zone_table[rzone].top);
+  log("GenOLC: save_rooms: Saving rooms in zone #%" PRI_IDX " (%" PRI_IDX "-%" PRI_IDX ").",
+      zone_table[rzone].number, genolc_zone_bottom(rzone), zone_table[rzone].top);
 
-  snprintf(filename, sizeof(filename), "%s/%d.new", WLD_PREFIX, zone_table[rzone].number);
+  snprintf(filename, sizeof(filename), "%s/%" PRI_IDX ".new", WLD_PREFIX, zone_table[rzone].number);
   if (!(sf = fopen_restricted(filename, "w")))
   {
     perror("SYSERR: save_rooms");
@@ -594,12 +595,13 @@ int save_rooms(zone_rnum rzone)
       }
 
       /* Save the numeric and string section of the file. */
-      fprintf(sf, "#%d\n", room->number);
+      fprintf(sf, "#%" PRI_IDX "\n", room->number);
       fprintf(sf, "%s%c\n", convert_from_tabs(room->name ? room->name : "Untitled"),
               STRING_TERMINATOR);
       fprintf(sf, "%s%c\n", convert_from_tabs(buf), STRING_TERMINATOR);
-      fprintf(sf, "%d %d %d %d %d %d\n", zone_table[room->zone].number, room->room_flags[0],
-              room->room_flags[1], room->room_flags[2], room->room_flags[3], room->sector_type);
+      fprintf(sf, "%" PRI_IDX " %d %d %d %d %d\n", zone_table[room->zone].number,
+              room->room_flags[0], room->room_flags[1], room->room_flags[2], room->room_flags[3],
+              room->sector_type);
 
       if (room->minimum_level > 0 || room->maximum_level > 0)
         fprintf(sf, "R %d %d\n", room->minimum_level, room->maximum_level);
@@ -703,7 +705,7 @@ int save_rooms(zone_rnum rzone)
         room_num curR = ENDMOVING;
         int curD = -1, curCnt = -1, mm;
 
-        fprintf(sf, "M %d %d %d %d %d\n", world[rnum].mover->inbound_dir,
+        fprintf(sf, "M %d %d %d %d %" PRI_IDX "\n", world[rnum].mover->inbound_dir,
                 world[rnum].mover->resetZonePulse, world[rnum].mover->randomMove,
                 world[rnum].mover->exitInfo, world[rnum].mover->keyInfo);
 
@@ -719,7 +721,7 @@ int save_rooms(zone_rnum rzone)
             /*  new grouping  */
             if (curCnt > 0)
             {
-              fprintf(sf, "%d %d %d\n", curR, curD, curCnt);
+              fprintf(sf, "%" PRI_IDX " %d %d\n", curR, curD, curCnt);
               curR = ENDMOVING;
               curD = -1;
               curCnt = -1;
@@ -737,7 +739,7 @@ int save_rooms(zone_rnum rzone)
         /*  last grouping  */
         if (curCnt > 0)
         {
-          fprintf(sf, "%d %d %d\n", curR, curD, curCnt);
+          fprintf(sf, "%" PRI_IDX " %d %d\n", curR, curD, curCnt);
         }
 
         fprintf(sf, "~\n");
@@ -778,7 +780,7 @@ int save_rooms(zone_rnum rzone)
   fprintf(sf, "$~\n");
 
   /* Old file we're replacing. */
-  snprintf(buf, sizeof(buf), "%s/%d.wld", WLD_PREFIX, zone_table[rzone].number);
+  snprintf(buf, sizeof(buf), "%s/%" PRI_IDX ".wld", WLD_PREFIX, zone_table[rzone].number);
 
   if (!finish_file_save(sf, filename, buf))
     return FALSE;
@@ -893,7 +895,7 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   for (direction = 0; direction < NUM_OF_DIRS; direction++)
     door_state_finish(&doors[direction]);
   if (live_room != NOWHERE && &world[live_room] == to && !moving_room_event_sync(live_room))
-    log("SYSERR: unable to schedule edited moving room #%d.", to->number);
+    log("SYSERR: unable to schedule edited moving room #%" PRI_IDX ".", to->number);
   return TRUE;
 }
 
@@ -981,8 +983,8 @@ void dump_moving(struct moving_room_data *mr, struct char_data *ch)
     send_to_char(ch, "%s", pdh);
     snprintf(pdh, sizeof(pdh), "Current Inbound Idx: %d\r\n", mr->currentInbound);
     send_to_char(ch, "%s", pdh);
-    snprintf(pdh, sizeof(pdh), "Destination: %d        Inbound Dir: %d\r\n", mr->destination,
-             mr->inbound_dir);
+    snprintf(pdh, sizeof(pdh), "Destination: %" PRI_IDX "        Inbound Dir: %d\r\n",
+             mr->destination, mr->inbound_dir);
     send_to_char(ch, "%s", pdh);
     snprintf(pdh, sizeof(pdh), "Random: %s\r\n", (mr->randomMove) ? "yes" : "no");
     send_to_char(ch, "%s", pdh);
@@ -1001,7 +1003,7 @@ void dump_moving(struct moving_room_data *mr, struct char_data *ch)
     {
       for (ridx = 0; ridx < MAX_MOVING_ROOMS && mr->from[ridx] != ENDMOVING; ridx++)
       {
-        snprintf(pdh, sizeof(pdh), "%6d  %d\r\n", mr->from[ridx], mr->fromDir[ridx]);
+        snprintf(pdh, sizeof(pdh), "%6" PRI_IDX "  %d\r\n", mr->from[ridx], mr->fromDir[ridx]);
         send_to_char(ch, "%s", pdh);
       }
     }

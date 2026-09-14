@@ -38,13 +38,9 @@
 #include "graph.h"
 #include "routing.h"
 
-extern struct room_data *world;
-extern struct char_data *character_list;
 
 /* External Functions */
 room_rnum find_target_room(struct char_data *ch, char *rawroomstr);
-int is_player_grouped(struct char_data *target, struct char_data *group);
-int find_first_step(room_rnum src, room_rnum target);
 
 /* To get the map coords, use the coords found in the wilderness area where the zone connects.
    Same applies to the sailing map points below. Map point will be the spot where the sailing tower is. */
@@ -898,9 +894,9 @@ static void show_walkto_landmark_regions(struct char_data *ch)
 
     zone = real_zone(region);
     if (zone != NOWHERE && zone_table[zone].name != NULL)
-      send_to_char(ch, "  [%d] %s\r\n", region, zone_table[zone].name);
+      send_to_char(ch, "  [%" PRI_IDX "] %s\r\n", region, zone_table[zone].name);
     else
-      send_to_char(ch, "  [%d]\r\n", region);
+      send_to_char(ch, "  [%" PRI_IDX "]\r\n", region);
   }
 
   send_to_char(ch, "\r\nUse 'landmarks <area name or zone number>' to list an area's landmarks.\r\n"

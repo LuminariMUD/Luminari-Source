@@ -276,7 +276,6 @@ ACMD_DECL(do_clanbenefits);
 
 ACMD_DECL(do_clanset);
 ACMD_DECL(do_clantalk);
-ACMD_DECL(do_claninvest);
 clan_vnum zone_is_clanhall(zone_vnum z);
 zone_vnum get_clanhall_by_char(struct char_data *ch);
 int get_clan_taxrate(struct char_data *ch);
@@ -341,7 +340,5 @@ void clanedit_string_cleanup(struct descriptor_data *d, int terminator);
 
 #ifndef __CLAN_C__
 /* External globals (proably needed by any file that loads this header) */
-extern struct clan_data *clan_list;
-extern int num_of_clans;
 //extern struct clan_rec clan[MAX_CLANS];
 #endif

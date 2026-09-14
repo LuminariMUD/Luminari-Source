@@ -69,7 +69,7 @@ void wld_log(room_data *room, const char *format, ...)
   vsnprintf(message, sizeof(message), format, args);
   va_end(args);
 
-  script_log("Room %d :: %s", room->number, message);
+  script_log("Room %" PRI_IDX " :: %s", room->number, message);
 }
 
 /* sends str to room */

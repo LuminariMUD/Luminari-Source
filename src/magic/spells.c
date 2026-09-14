@@ -44,12 +44,12 @@
 #include "movement/movement_validation.h"
 #include "character_periodic.h"
 #include "domain_event_world.h"
+#include "quest/missions.h"
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
 /************************************************************/
 
-bool save_char_pets(struct char_data *ch);
 
 /* Reference
 #define SPELL_WALL_OF_FORCE             147
@@ -3078,8 +3078,6 @@ ASPELL(eldritch_blast)
 
 ASPELL(spell_summon)
 {
-  bool is_mission_mob(struct char_data * ch, struct char_data * mob);
-
   if (ch == NULL || victim == NULL)
     return;
 
@@ -4068,7 +4066,7 @@ ASPELL(spell_augury)
                      ZOCMD.arg1);
         break;
       case 'L':
-        send_to_char(ch, "%sMay have random treasure in %s [%s%d%s] (%d%%)",
+        send_to_char(ch, "%sMay have random treasure in %s [%s%" PRI_IDX "%s] (%d%%)",
                      ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
                      obj_index[ZOCMD.arg1].vnum, yel, ZOCMD.arg2);
         break;
@@ -4077,21 +4075,24 @@ ASPELL(spell_augury)
                      mob_proto[ZOCMD.arg1].player.short_descr);
         break;
       case 'G':
-        send_to_char(ch, "%sthey may possess %s [%s%d%s].\r\n", ZOCMD.if_flag ? " then " : "",
-                     obj_proto[ZOCMD.arg1].short_description, cyn, obj_index[ZOCMD.arg1].vnum, yel);
+        send_to_char(ch, "%sthey may possess %s [%s%" PRI_IDX "%s].\r\n",
+                     ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
+                     obj_index[ZOCMD.arg1].vnum, yel);
         break;
       case 'O':
-        send_to_char(ch, "%s%s may be found here. [%s%d%s]\r\n", ZOCMD.if_flag ? " then " : "",
-                     obj_proto[ZOCMD.arg1].short_description, cyn, obj_index[ZOCMD.arg1].vnum, yel);
+        send_to_char(ch, "%s%s may be found here. [%s%" PRI_IDX "%s]\r\n",
+                     ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
+                     obj_index[ZOCMD.arg1].vnum, yel);
         break;
       case 'E':
-        send_to_char(ch, "%s they may equip %s  [%s%d%s].\r\n", ZOCMD.if_flag ? " then " : "",
-                     obj_proto[ZOCMD.arg1].short_description, cyn, obj_index[ZOCMD.arg1].vnum, yel);
+        send_to_char(ch, "%s they may equip %s  [%s%" PRI_IDX "%s].\r\n",
+                     ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
+                     obj_index[ZOCMD.arg1].vnum, yel);
         break;
       case 'P':
-        send_to_char(ch, "%s%s [%s%d%s] may be inside %s.\r\n", ZOCMD.if_flag ? " then " : "",
-                     obj_proto[ZOCMD.arg1].short_description, cyn, obj_index[ZOCMD.arg1].vnum, yel,
-                     obj_proto[ZOCMD.arg3].short_description);
+        send_to_char(ch, "%s%s [%s%" PRI_IDX "%s] may be inside %s.\r\n",
+                     ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
+                     obj_index[ZOCMD.arg1].vnum, yel, obj_proto[ZOCMD.arg3].short_description);
         break;
       default:
         break;
@@ -6047,7 +6048,7 @@ MUD_EVENT_CALLBACK(event_rol_tazriks_frenzied_hound)
     return 0;
   }
 
-  snprintf(state, sizeof(state), "%d %d", world[IN_ROOM(caster)].number, strike + 1);
+  snprintf(state, sizeof(state), "%" PRI_IDX " %d", world[IN_ROOM(caster)].number, strike + 1);
   next_state = strdup(state);
   if (next_state == NULL)
   {
@@ -6069,7 +6070,7 @@ ASPELL(spell_tazriks_frenzied_hound)
 
   send_to_room(IN_ROOM(ch),
                "A vortex to the Abyss opens in midair. From it springs a slavering hellhound!\r\n");
-  snprintf(state, sizeof(state), "%d 0", world[IN_ROOM(ch)].number);
+  snprintf(state, sizeof(state), "%" PRI_IDX " 0", world[IN_ROOM(ch)].number);
   NEW_EVENT(eROL_TAZRIKS_FRENZIED_HOUND, ch, state, PULSE_VIOLENCE);
 }
 

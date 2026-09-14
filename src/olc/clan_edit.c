@@ -67,7 +67,7 @@ void save_clans(void)
   fprintf(fl, "* Number of clans: %d\n", num_of_clans);
   for (i = 0; i < num_of_clans; i++)
   {
-    fprintf(fl, "#%d\n", clan_list[i].vnum);
+    fprintf(fl, "#%" PRI_IDX "\n", clan_list[i].vnum);
     fprintf(fl, "Name: %s\n", clan_list[i].clan_name);
     fprintf(fl, "Init: %s\n", clan_list[i].abrev);
 
@@ -88,7 +88,7 @@ void save_clans(void)
     if (clan_list[i].taxrate != 0)
       fprintf(fl, "Tax : %d\n", clan_list[i].taxrate);
     if (clan_list[i].hall != 0)
-      fprintf(fl, "Hall: %d\n", clan_list[i].hall);
+      fprintf(fl, "Hall: %" PRI_IDX "\n", clan_list[i].hall);
     if (clan_list[i].treasure != 0)
       fprintf(fl, "Bank: %ld\n", clan_list[i].treasure);
     fprintf(fl, "Ally:");
@@ -195,7 +195,7 @@ void save_single_clan(clan_rnum c)
 
   if (c == NO_CLAN || c >= (clan_rnum)num_of_clans)
   {
-    log("SYSERR: save_single_clan called with invalid clan rnum %d", c);
+    log("SYSERR: save_single_clan called with invalid clan rnum %" PRI_IDX, c);
     return;
   }
 
@@ -240,7 +240,7 @@ void save_single_clan(clan_rnum c)
       if (current_clan >= 0 && (clan_vnum)current_clan == clan_list[c].vnum)
       {
         /* Write the updated clan data */
-        fprintf(new_fl, "#%d\n", clan_list[c].vnum);
+        fprintf(new_fl, "#%" PRI_IDX "\n", clan_list[c].vnum);
         fprintf(new_fl, "Name: %s\n", clan_list[c].clan_name);
         fprintf(new_fl, "Init: %s\n", clan_list[c].abrev);
 
@@ -260,7 +260,7 @@ void save_single_clan(clan_rnum c)
         if (clan_list[c].taxrate != 0)
           fprintf(new_fl, "Tax : %d\n", clan_list[c].taxrate);
         if (clan_list[c].hall != 0)
-          fprintf(new_fl, "Hall: %d\n", clan_list[c].hall);
+          fprintf(new_fl, "Hall: %" PRI_IDX "\n", clan_list[c].hall);
         if (clan_list[c].treasure != 0)
           fprintf(new_fl, "Bank: %ld\n", clan_list[c].treasure);
 
@@ -558,7 +558,7 @@ void load_clans(void)
             {
               if (j >= NUM_CLAN_PRIVS)
               {
-                log("SYSERR: Too many privs in clan file (clan ID: %d, "
+                log("SYSERR: Too many privs in clan file (clan ID: %" PRI_IDX ", "
                     "rank line %d)",
                     c.vnum, j + 1);
               }
@@ -566,7 +566,8 @@ void load_clans(void)
               {
                 if (sscanf(line, "%d %d", &priv, &lev) != 2)
                 {
-                  log("SYSERR: Invalid privilege line in clan file (clan ID: %d, rank line %d)",
+                  log("SYSERR: Invalid privilege line in clan file (clan ID: %" PRI_IDX
+                      ", rank line %d)",
                       c.vnum, j + 1);
                   get_line(fl, line);
                   j++;
@@ -574,7 +575,7 @@ void load_clans(void)
                 }
                 if (priv >= 21 || priv < 0)
                 {
-                  log("SYSERR: Invalid priv in clan file (clan ID: %d, "
+                  log("SYSERR: Invalid priv in clan file (clan ID: %" PRI_IDX ", "
                       "rank line %d, val=%d)",
                       c.vnum, j + 1, priv);
                 }
@@ -602,7 +603,7 @@ void load_clans(void)
             {
               if (j >= 20)
               {
-                log("SYSERR: Too many ranks in clan file (clan ID: %d,"
+                log("SYSERR: Too many ranks in clan file (clan ID: %" PRI_IDX ","
                     " rank line %d)",
                     c.vnum, j + 1);
               }
@@ -705,10 +706,10 @@ bool save_claims(void)
   fprintf(fl, "* Number of clans: %d\n", num_of_clans);
   for (this_claim = claim_list; this_claim; this_claim = this_claim->next)
   {
-    fprintf(fl, "#%d\n", this_claim->zn);
+    fprintf(fl, "#%" PRI_IDX "\n", this_claim->zn);
 
     if (this_claim->clan != NO_CLAN)
-      fprintf(fl, "Clan: %d\n", this_claim->clan);
+      fprintf(fl, "Clan: %" PRI_IDX "\n", this_claim->clan);
     if (this_claim->claimant != 0)
       fprintf(fl, "Clmt: %ld\n", this_claim->claimant);
 
@@ -802,15 +803,16 @@ void load_claims(void)
               if (j >= MAX_CLANS)
               {
                 log("SYSERR: Too many popularity values in claims file "
-                    "(zone ID: %d, popularity line %d)",
+                    "(zone ID: %" PRI_IDX ", popularity line %d)",
                     c.zn, j + 1);
               }
               else
               {
                 if (sscanf(line, "%d %f", &cn, &pop) != 2)
                 {
-                  log("SYSERR: Invalid popularity line in claims file (zone ID: %d, line %d)", c.zn,
-                      j + 1);
+                  log("SYSERR: Invalid popularity line in claims file (zone ID: %" PRI_IDX
+                      ", line %d)",
+                      c.zn, j + 1);
                   get_line(fl, line);
                   j++;
                   continue;
@@ -818,7 +820,7 @@ void load_claims(void)
                 if (cn < 0 || cn >= MAX_CLANS || pop >= 100.0 || pop < 0.0)
                 {
                   log("SYSERR: Invalid popularity value in claims file "
-                      "(zone ID: %d, popularity line %d, clan=%d, "
+                      "(zone ID: %" PRI_IDX ", popularity line %d, clan=%d, "
                       "val=%f)",
                       c.zn, j + 1, cn, pop);
                 }
@@ -985,8 +987,8 @@ ACMD(do_clanedit)
   act("$n starts using Clan edit.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "OLC: %s starts editing clan %d (%s)",
-         GET_NAME(ch), OLC_NUM(d), CLAN_NAME(cr));
+  mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE,
+         "OLC: %s starts editing clan %" PRI_IDX " (%s)", GET_NAME(ch), OLC_NUM(d), CLAN_NAME(cr));
 }
 
 /****************************************************************************
@@ -1035,7 +1037,7 @@ static void clanedit_save(struct descriptor_data *d)
 
   if ((cr = real_clan(OLC_CLAN(d)->vnum)) == NO_CLAN)
   {
-    log("SYSERR: clanedit_save: Invalid clan vnum (%d) in OLC struct", OLC_CLAN(d)->vnum);
+    log("SYSERR: clanedit_save: Invalid clan vnum (%" PRI_IDX ") in OLC struct", OLC_CLAN(d)->vnum);
     return;
   }
 
@@ -1078,7 +1080,7 @@ static void clanedit_disp_menu(struct descriptor_data *d)
   get_char_colors(d->character);
   clear_screen(d);
 
-  write_to_output(d, "-- Clan ID     : %s[%s%d%s]%s\r\n", cyn, yel, OLC_NUM(d), cyn, nrm);
+  write_to_output(d, "-- Clan ID     : %s[%s%" PRI_IDX "%s]%s\r\n", cyn, yel, OLC_NUM(d), cyn, nrm);
 
   if (CHK_CP(CP_TITLE))
   {
@@ -1364,8 +1366,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     case 'Y':
       clanedit_save(d);
       write_to_output(d, "Clan saved.\r\n");
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits clan %d.",
-             GET_NAME(d->character), OLC_NUM(d));
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
+             "OLC: %s edits clan %" PRI_IDX ".", GET_NAME(d->character), OLC_NUM(d));
       cleanup_olc(d, CLEANUP_ALL);
       break;
     case 'n':

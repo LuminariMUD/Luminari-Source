@@ -2404,7 +2404,7 @@ static int rol_monster_replace(struct spec_event_context *context, struct char_d
   replacement = read_mobile(replacement_vnum, VIRTUAL);
   if (replacement == NULL)
   {
-    log("SYSERR: RoL monster %d cannot load replacement %d", GET_MOB_VNUM(ch), replacement_vnum);
+    log("SYSERR: RoL monster %u cannot load replacement %d", GET_MOB_VNUM(ch), replacement_vnum);
     return FALSE;
   }
   char_to_room(replacement, IN_ROOM(ch));
@@ -2566,7 +2566,7 @@ static bool rol_monster_summon_helper(struct char_data *ch, int mobile_vnum,
 
   if ((helper = read_mobile(mobile_vnum, VIRTUAL)) == NULL)
   {
-    log("SYSERR: RoL monster %d cannot load helper %d", GET_MOB_VNUM(ch), mobile_vnum);
+    log("SYSERR: RoL monster %u cannot load helper %d", GET_MOB_VNUM(ch), mobile_vnum);
     return false;
   }
   char_to_room(helper, IN_ROOM(ch));
@@ -4493,7 +4493,7 @@ static int rol_monster_vortex_guardian_death(struct char_data *ch)
   door_state_begin(&operation, IN_ROOM(ch), NORTH, false, DOMAIN_DOOR_GAMEPLAY);
   north_exit = world[IN_ROOM(ch)].dir_option[NORTH];
   if (north_exit == NULL)
-    log("SYSERR: RoL Vortex Guardian has no northern exit to block in room %d",
+    log("SYSERR: RoL Vortex Guardian has no northern exit to block in room %u",
         GET_ROOM_VNUM(IN_ROOM(ch)));
   else
     SET_BIT(north_exit->exit_info, EX_BLOCKED);

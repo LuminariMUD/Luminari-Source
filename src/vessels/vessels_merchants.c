@@ -20,10 +20,7 @@
 #include "quest/missions.h"
 #include "constants.h"
 
-extern MYSQL *conn;
-extern bool mysql_available;
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct char_data *character_list;
 
 #define VESSEL_MERCHANT_RETRY_SECONDS 300
 #define VESSEL_MERCHANT_NAME_LENGTH 128

@@ -21,7 +21,6 @@
 #include "act.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct room_data *world;
 extern int wild_waterline;
 
 /* Repair amounts per shiprepair invocation (dockside pace lands in the

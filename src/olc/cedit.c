@@ -694,17 +694,17 @@ int save_config(IDXTYPE nowhere __attribute__((unused)))
 
   fprintf(fl,
           "* The virtual number of the room that mortals should enter at.\n"
-          "mortal_start_room = %d\n\n",
+          "mortal_start_room = %" PRI_IDX "\n\n",
           CONFIG_MORTAL_START);
 
   fprintf(fl,
           "* The virtual number of the room that immorts should enter at.\n"
-          "immort_start_room = %d\n\n",
+          "immort_start_room = %" PRI_IDX "\n\n",
           CONFIG_IMMORTAL_START);
 
   fprintf(fl,
           "* The virtual number of the room that frozen people should enter at.\n"
-          "frozen_start_room = %d\n\n",
+          "frozen_start_room = %" PRI_IDX "\n\n",
           CONFIG_FROZEN_START);
 
   fprintf(fl,
@@ -1435,12 +1435,12 @@ static void cedit_disp_room_numbers(struct descriptor_data *d)
 
   write_to_output(d,
                   "\r\n\r\n"
-                  "%sA%s) Mortal Start Room   : %s%d\r\n"
-                  "%sB%s) Immortal Start Room : %s%d\r\n"
-                  "%sC%s) Frozen Start Room   : %s%d\r\n"
-                  "%s1%s) Donation Room #1    : %s%d\r\n"
-                  "%s2%s) Donation Room #2    : %s%d\r\n"
-                  "%s3%s) Donation Room #3    : %s%d\r\n"
+                  "%sA%s) Mortal Start Room   : %s%" PRI_IDX "\r\n"
+                  "%sB%s) Immortal Start Room : %s%" PRI_IDX "\r\n"
+                  "%sC%s) Frozen Start Room   : %s%" PRI_IDX "\r\n"
+                  "%s1%s) Donation Room #1    : %s%" PRI_IDX "\r\n"
+                  "%s2%s) Donation Room #2    : %s%" PRI_IDX "\r\n"
+                  "%s3%s) Donation Room #3    : %s%" PRI_IDX "\r\n"
                   "%sQ%s) Exit To The Main Menu\r\n"
                   "Enter your choice : ",
                   grn, nrm, cyn, OLC_CONFIG(d)->room_nums.mortal_start_room, grn, nrm, cyn,

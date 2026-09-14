@@ -45,13 +45,11 @@
 #include "vnums.h"
 #include "crafting_recipes.h"
 
-ACMD_DECL(do_practice);
 
 int copy_object(struct obj_data *to, struct obj_data *from);
 void process_craft_critical_success(struct char_data *ch, struct obj_data *obj);
 int get_rapid_talent_bonus(struct char_data *ch, int skill);
 int get_insightful_talent_bonus(struct char_data *ch, int skill);
-int get_efficient_talent_bonus(struct char_data *ch, int skill);
 void return_efficient_saved_materials(struct char_data *ch);
 
 int materials_sort_info[NUM_CRAFT_MATS];
@@ -160,8 +158,6 @@ int materials_sort_info[NUM_CRAFT_MATS];
 #define CRAFT_MOTES_REQ_1 3
 
 // Contract generation functions - structure defined in crafting_new.h
-struct supply_contract *generate_available_contracts(struct char_data *ch, int *num_contracts);
-void free_contract_list(struct supply_contract *contracts, int num_contracts);
 int select_contract_by_id(struct char_data *ch, int contract_id);
 int reject_contract_by_id(struct char_data *ch, int contract_id);
 
@@ -10313,9 +10309,6 @@ bool has_golem_follower(struct char_data *ch)
  */
 void recover_golem_materials(struct char_data *ch, struct char_data *golem, int recovery_percent)
 {
-  extern int get_golem_type_from_vnum(int vnum);
-  extern int get_golem_size_from_vnum(int vnum);
-
   int golem_type, golem_size, golem_vnum;
   int material_types[3] = {0}, material_amounts[3] = {0};
   int num_mats = 0, i = 0;

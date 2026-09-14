@@ -41,8 +41,6 @@
 #define IS_SET(flag, bit) ((flag) & (bit))
 #define SET_BIT(var, bit) ((var) |= (bit))
 
-int atoi(const char *str);
-long atol(const char *str);
 
 /* Mail index flags - taken from mail.h */
 #define MINDEX_DELETED FLAG(0)  /* Mail has been marked for deletion     */

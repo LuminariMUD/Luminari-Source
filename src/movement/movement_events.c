@@ -41,14 +41,6 @@
 #include "movement_events.h"
 
 /* External functions */
-int perform_detecttrap(struct char_data *ch, bool silent);
-void quest_room(struct char_data *ch);
-void set_expire_cooldown(room_rnum room);
-void reset_expire_cooldown(room_rnum room);
-bool is_road_room(room_rnum room, int type);
-void check_hunt_room(room_rnum room);
-void check_random_encounter(struct char_data *ch);
-bool is_covered(struct char_data *ch);
 
 /**
  * Process all post-movement events

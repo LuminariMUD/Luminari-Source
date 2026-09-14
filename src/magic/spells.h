@@ -1860,7 +1860,6 @@ ASPELL(spell_summon_instrument);
 ASPELL(spell_teleport);
 ASPELL(spell_shadow_jump);
 ASPELL(spell_transport_via_plants);
-ASPELL(spell_resurrect);
 ASPELL(spell_wall_of_fire);
 ASPELL(spell_wall_of_thorns);
 ASPELL(spell_wall_of_force);
@@ -2161,7 +2160,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 extern struct spell_info_type spell_info[];
 extern struct spell_info_type skill_info[];
 extern struct wall_information wallinfo[];
-extern char cast_arg2[];
+extern char cast_arg2[MAX_INPUT_LENGTH];
 extern char cast_arg3[];
 extern const char *unused_spellname;
 extern const int skills_alphabetic[NUM_SKILLS_IN_GAME];

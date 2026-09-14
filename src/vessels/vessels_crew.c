@@ -18,8 +18,6 @@
 #include "vessels.h"
 #include "mysql.h"
 
-extern MYSQL *conn;
-extern bool mysql_available;
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
 /* Crew rows live in ship_crew_roster with npc_vnum encoding the position so

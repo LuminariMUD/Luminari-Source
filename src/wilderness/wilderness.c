@@ -596,7 +596,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
         /* Check if region_table is valid and rnum is within bounds */
         if (!region_table || curr_region->rnum > top_of_region_table)
         {
-          log("SYSERR: Invalid region rnum %d in get_map_elev", curr_region->rnum);
+          log("SYSERR: Invalid region rnum %" PRI_IDX " in get_map_elev", curr_region->rnum);
           continue;
         }
 
@@ -810,7 +810,7 @@ int get_modified_sector_type(zone_rnum zone, int x, int y)
     /* Check if region_table is valid and rnum is within bounds */
     if (!region_table || curr_region->rnum > top_of_region_table)
     {
-      log("SYSERR: Invalid region rnum %d in assign_wilderness_room", curr_region->rnum);
+      log("SYSERR: Invalid region rnum %" PRI_IDX " in assign_wilderness_room", curr_region->rnum);
       continue;
     }
 
@@ -1016,7 +1016,7 @@ void assign_wilderness_room(room_rnum room, int x, int y)
     /* Check if region_table is valid and rnum is within bounds */
     if (!region_table || curr_region->rnum > top_of_region_table)
     {
-      log("SYSERR: Invalid region rnum %d in assign_wilderness_room", curr_region->rnum);
+      log("SYSERR: Invalid region rnum %" PRI_IDX " in assign_wilderness_room", curr_region->rnum);
       continue;
     }
 
@@ -1877,7 +1877,7 @@ void save_map_to_file(const char *fn, int xsize, int ysize)
         /* Check if region_table is valid and rnum is within bounds */
         if (!region_table || curr_region->rnum > top_of_region_table)
         {
-          log("SYSERR: Invalid region rnum %d in wilderness function", curr_region->rnum);
+          log("SYSERR: Invalid region rnum %" PRI_IDX " in wilderness function", curr_region->rnum);
           continue;
         }
 

@@ -19,11 +19,7 @@
 #include "wilderness/wilderness.h"
 #include "constants.h"
 
-extern MYSQL *conn;
-extern bool mysql_available;
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct char_data *character_list;
-extern struct room_data *world;
 
 #define VESSEL_HUNTER_BOUNTY_CHECK_INTERVAL 20
 #define VESSEL_HUNTER_RUNTIME_SAVE_INTERVAL 10

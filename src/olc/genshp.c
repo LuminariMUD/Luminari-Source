@@ -377,12 +377,12 @@ int save_shops(zone_rnum zone_num)
   if (zone_num < 0 || zone_num > top_of_zone_table)
   {
 #endif
-    log("SYSERR: GenOLC: save_shops: Invalid real zone number %d. (0-%d)", zone_num,
-        top_of_zone_table);
+    log("SYSERR: GenOLC: save_shops: Invalid real zone number %" PRI_IDX ". (0-%" PRI_IDX ")",
+        zone_num, top_of_zone_table);
     return FALSE;
   }
 
-  snprintf(fname, sizeof(fname), "%s/%d.new", SHP_PREFIX, zone_table[zone_num].number);
+  snprintf(fname, sizeof(fname), "%s/%" PRI_IDX ".new", SHP_PREFIX, zone_table[zone_num].number);
   if (!(shop_file = fopen_restricted(fname, "w")))
   {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: OLC: Cannot open shop file!");
@@ -399,12 +399,12 @@ int save_shops(zone_rnum zone_num)
   {
     if ((rshop = real_shop(i)) != NOWHERE)
     {
-      fprintf(shop_file, "#%d~\n", i);
+      fprintf(shop_file, "#%" PRI_IDX "~\n", i);
       shop = shop_index + rshop;
 
       /* Save the products. */
       for (j = 0; S_PRODUCT(shop, j) != NOTHING; j++)
-        fprintf(shop_file, "%d\n", obj_index[S_PRODUCT(shop, j)].vnum);
+        fprintf(shop_file, "%" PRI_IDX "\n", obj_index[S_PRODUCT(shop, j)].vnum);
       fprintf(shop_file, "-1\n");
 
       /* Save the rates. */
@@ -430,7 +430,7 @@ int save_shops(zone_rnum zone_num)
           "%s~\n"
           "%s~\n"
           "%d\n"
-          "%ld\n"
+          "%lu\n"
           "%d\n"
           "%d\n",
           S_NOITEM1(shop) ? S_NOITEM1(shop) : "%s Ke?!",
@@ -444,7 +444,7 @@ int save_shops(zone_rnum zone_num)
 
       /* Save the rooms. */
       for (j = 0; S_ROOM(shop, j) != NOWHERE; j++)
-        fprintf(shop_file, "%d\n", S_ROOM(shop, j));
+        fprintf(shop_file, "%" PRI_IDX "\n", S_ROOM(shop, j));
       fprintf(shop_file, "-1\n");
 
       /* Save open/closing times. */
@@ -456,7 +456,8 @@ int save_shops(zone_rnum zone_num)
     }
   }
   fprintf(shop_file, "$~\n");
-  snprintf(oldname, sizeof(oldname), "%s/%d.shp", SHP_PREFIX, zone_table[zone_num].number);
+  snprintf(oldname, sizeof(oldname), "%s/%" PRI_IDX ".shp", SHP_PREFIX,
+           zone_table[zone_num].number);
   if (!finish_file_save(shop_file, fname, oldname))
     return FALSE;
 

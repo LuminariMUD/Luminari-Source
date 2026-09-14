@@ -409,7 +409,7 @@ void save_ibt_file(int mode)
       if (ibtData->dated != 0)
         fprintf(fp, "Dated     %ld\n", ibtData->dated);
       fprintf(fp, "Level     %d\n", ibtData->level);
-      fprintf(fp, "Room      %d\n", ibtData->room);
+      fprintf(fp, "Room      %" PRI_IDX "\n", ibtData->room);
       fprintf(fp, "Flags     %d %d %d %d\n", ibtData->flags[0], ibtData->flags[1],
               ibtData->flags[2], ibtData->flags[3]);
       fprintf(fp, "End\n");
@@ -639,7 +639,7 @@ ACMD(do_ibt)
         if (GET_LEVEL(ch) >= LVL_IMMORT)
         {
           send_to_char(ch, "%sLevel: %s%d\r\n", QCYN, QBYEL, ibtData->level);
-          send_to_char(ch, "%sRoom : %s%d\r\n", QCYN, QBYEL, ibtData->room);
+          send_to_char(ch, "%sRoom : %s%" PRI_IDX "\r\n", QCYN, QBYEL, ibtData->room);
         }
         send_to_char(ch, "%sTitle: %s%s\r\n", QCYN, QBYEL, ibtData->text);
         send_to_char(ch, "%s%s Details%s\r\n%s\r\n", QCYN, ibt_types[subcmd], QBYEL, ibtData->body);
@@ -1027,7 +1027,8 @@ ACMD(do_oasis_ibtedit)
   act("$n starts using OLC.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing %s %d", GET_NAME(ch), IBT_TYPE, OLC_NUM(d));
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing %s %" PRI_IDX, GET_NAME(ch), IBT_TYPE,
+         OLC_NUM(d));
 }
 
 /*-------------------------------------------------------------------*/
@@ -1117,7 +1118,7 @@ static void ibtedit_save(struct descriptor_data *d)
   }
   else
   {
-    log("SYSERR: ibtedit_save: Invalid IBT vnum (%d) in OLC struct", OLC_NUM(d));
+    log("SYSERR: ibtedit_save: Invalid IBT vnum (%" PRI_IDX ") in OLC struct", OLC_NUM(d));
     log("        IBT possibly removed while being edited");
     return;
   }
@@ -1170,9 +1171,9 @@ static void ibtedit_disp_main_menu(struct descriptor_data *d)
 
   send_to_char(
       ch,
-      "%s-- Edit %s Number %s[%s%d%s]\r\n"
+      "%s-- Edit %s Number %s[%s%" PRI_IDX "%s]\r\n"
       "%s1%s) Reported By: %s%-12s\r\n"
-      "%s2%s) Reported In: %s[%s%-5d%s]%s - %s%s\r\n"
+      "%s2%s) Reported In: %s[%s%-5" PRI_IDX "%s]%s - %s%s\r\n"
       "%s3%s) Header Text: %s%s\r\n"
       "%s4%s) Flags      : %s%s\r\n"
       "%s5%s) Details:\r\n%s%s\r\n"
@@ -1220,7 +1221,7 @@ void ibtedit_parse(struct descriptor_data *d, char *arg)
     case 'Y':
       /* Save the IBT in memory and to disk. */
       ibtedit_save(d);
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits %s %d",
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits %s %" PRI_IDX,
              GET_NAME(d->character), IBT_TYPE, OLC_NUM(d));
       write_to_output(d, "%s saved.\r\n", IBT_TYPE);
       cleanup_olc(d, CLEANUP_ALL);

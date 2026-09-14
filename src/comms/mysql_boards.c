@@ -31,10 +31,6 @@
 #include "mysql_boards.h"
 
 /* External Variables */
-extern MYSQL *conn;
-extern struct room_data *world;
-extern struct index_data *obj_index;
-extern room_rnum top_of_world;
 
 /* External Commands - original versions before board interception */
 void do_look(struct char_data *ch, const char *argument, int cmd, int subcmd);
@@ -2163,7 +2159,7 @@ ACMD(do_boardfind)
         char room_truncated[33];
         strncpy(room_truncated, world[obj->in_room].name, 32);
         room_truncated[32] = '\0';
-        snprintf(display_location, sizeof(display_location), "\tCRoom [\tY%5d\tC] %.32s\tn",
+        snprintf(display_location, sizeof(display_location), "\tCRoom [\tY%5u\tC] %.32s\tn",
                  GET_ROOM_VNUM(obj->in_room), room_truncated);
       }
       else if (obj->in_obj)
@@ -2178,7 +2174,7 @@ ACMD(do_boardfind)
         }
         else if (obj->in_obj->in_room != NOWHERE)
         {
-          snprintf(display_location, sizeof(display_location), "\tCIn container at: [\tY%5d\tC]\tn",
+          snprintf(display_location, sizeof(display_location), "\tCIn container at: [\tY%5u\tC]\tn",
                    GET_ROOM_VNUM(obj->in_obj->in_room));
         }
         else

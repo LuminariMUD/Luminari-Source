@@ -1395,7 +1395,7 @@ static void rol_gate_one(struct char_data *ch, const char *alias, int family_fla
 
   if ((rnum = rol_gate_template(alias, family_flag)) == NOBODY)
   {
-    log("SYSERR: RoL gate template '%s' is unavailable for mobile %d", alias, GET_MOB_VNUM(ch));
+    log("SYSERR: RoL gate template '%s' is unavailable for mobile %u", alias, GET_MOB_VNUM(ch));
     return;
   }
   if ((summoned = read_mobile(rnum, REAL)) == NULL)
@@ -2094,7 +2094,7 @@ static void rol_death_replace_mobile(struct char_data *ch, const struct rol_deat
   if (profile->replacement_vnum <= 0 ||
       (replacement = read_mobile(profile->replacement_vnum, VIRTUAL)) == NULL)
   {
-    log("SYSERR: RoL death replacement %d for mobile %d is unavailable", profile->replacement_vnum,
+    log("SYSERR: RoL death replacement %d for mobile %u is unavailable", profile->replacement_vnum,
         GET_MOB_VNUM(ch));
     return;
   }
@@ -2117,7 +2117,7 @@ static void rol_death_drop_object(struct char_data *ch, int object_vnum)
 
   if (object_vnum <= 0 || (obj = read_object(object_vnum, VIRTUAL)) == NULL)
   {
-    log("SYSERR: RoL death object %d for mobile %d is unavailable", object_vnum, GET_MOB_VNUM(ch));
+    log("SYSERR: RoL death object %d for mobile %u is unavailable", object_vnum, GET_MOB_VNUM(ch));
     return;
   }
   obj_to_room(obj, IN_ROOM(ch));
@@ -2229,7 +2229,7 @@ static void rol_death_stone_crumble(struct char_data *ch, int object_vnum)
 
   if (object_vnum <= 0 || (pile = read_object(object_vnum, VIRTUAL)) == NULL)
   {
-    log("SYSERR: RoL stone-crumble object %d for mobile %d is unavailable", object_vnum,
+    log("SYSERR: RoL stone-crumble object %d for mobile %u is unavailable", object_vnum,
         GET_MOB_VNUM(ch));
     return;
   }
@@ -2297,7 +2297,7 @@ static void rol_death_split_skeleton(struct char_data *ch)
     replacement = read_mobile(GET_MOB_VNUM(ch), VIRTUAL);
     if (replacement == NULL)
     {
-      log("SYSERR: RoL splitting skeleton cannot load mobile %d", GET_MOB_VNUM(ch));
+      log("SYSERR: RoL splitting skeleton cannot load mobile %u", GET_MOB_VNUM(ch));
       return;
     }
     char_to_room(replacement, IN_ROOM(ch));
@@ -2316,7 +2316,7 @@ static void rol_death_split_mapped(struct char_data *ch, int replacement_vnum)
     replacement = read_mobile(replacement_vnum, VIRTUAL);
     if (replacement == NULL)
     {
-      log("SYSERR: RoL mapped split cannot load mobile %d for mobile %d", replacement_vnum,
+      log("SYSERR: RoL mapped split cannot load mobile %d for mobile %u", replacement_vnum,
           GET_MOB_VNUM(ch));
       return;
     }
@@ -3011,7 +3011,7 @@ int rol_portal_door(struct char_data *ch, void *me, int cmd, const char *argumen
   if (!VALID_ROOM_RNUM(destination))
   {
     send_to_char(ch, "The portal leads nowhere. Please tell a staff member.\r\n");
-    log("SYSERR: RoL portal door object %d has invalid destination %d", GET_OBJ_VNUM(obj),
+    log("SYSERR: RoL portal door object %u has invalid destination %d", GET_OBJ_VNUM(obj),
         GET_OBJ_VAL(obj, 0));
     return TRUE;
   }
@@ -3065,7 +3065,7 @@ int rol_bloodstone_portal(struct char_data *ch, void *me, int cmd, const char *a
   if (!VALID_ROOM_RNUM(destination))
   {
     send_to_char(ch, "The portal leads nowhere. Please tell a staff member.\r\n");
-    log("SYSERR: RoL Bloodstone portal object %d has invalid destination %d", GET_OBJ_VNUM(obj),
+    log("SYSERR: RoL Bloodstone portal object %u has invalid destination %d", GET_OBJ_VNUM(obj),
         GET_OBJ_VAL(obj, 0));
     return TRUE;
   }
@@ -3120,7 +3120,7 @@ int rol_magic_pool(struct char_data *ch, void *me, int cmd, const char *argument
   if (!VALID_ROOM_RNUM(destination))
   {
     send_to_char(ch, "The pool leads nowhere. Please tell a staff member.\r\n");
-    log("SYSERR: RoL magic pool object %d has invalid destination %d", GET_OBJ_VNUM(obj),
+    log("SYSERR: RoL magic pool object %u has invalid destination %d", GET_OBJ_VNUM(obj),
         GET_OBJ_VAL(obj, 0));
     return TRUE;
   }
@@ -3188,8 +3188,8 @@ int rol_auto_distributor(struct char_data *ch, void *me, int cmd, const char *ar
   if (!VALID_ROOM_RNUM(destination))
   {
     send_to_char(ch, "The distributing magic fails. Please tell a staff member.\r\n");
-    log("SYSERR: RoL auto distributor room %d has no valid destination in zone %d", room->number,
-        zone);
+    log("SYSERR: RoL auto distributor room %" PRI_IDX " has no valid destination in zone %" PRI_IDX,
+        room->number, zone);
     return TRUE;
   }
 
@@ -5727,7 +5727,7 @@ static int rol_waterdeep_bouncer(struct char_data *keeper,
     route[index] = real_room(profile->route[index]);
     if (!VALID_ROOM_RNUM(route[index]))
     {
-      log("SYSERR: RoL Waterdeep bouncer %d has invalid route room %d", GET_MOB_VNUM(keeper),
+      log("SYSERR: RoL Waterdeep bouncer %u has invalid route room %d", GET_MOB_VNUM(keeper),
           profile->route[index]);
       return FALSE;
     }
@@ -5788,7 +5788,7 @@ static int rol_waterdeep_casino_bouncer(struct char_data *keeper)
 
   if (!VALID_ROOM_RNUM(home))
   {
-    log("SYSERR: RoL casino bouncer %d has no valid load room", GET_MOB_VNUM(keeper));
+    log("SYSERR: RoL casino bouncer %u has no valid load room", GET_MOB_VNUM(keeper));
     return FALSE;
   }
   if (IN_ROOM(keeper) != home)
@@ -5803,7 +5803,7 @@ static int rol_waterdeep_casino_bouncer(struct char_data *keeper)
   destination = real_room(ROL_WATERDEEP_CASINO_EXIT_VNUM);
   if (!VALID_ROOM_RNUM(destination))
   {
-    log("SYSERR: RoL casino bouncer %d has invalid exit room %d", GET_MOB_VNUM(keeper),
+    log("SYSERR: RoL casino bouncer %u has invalid exit room %d", GET_MOB_VNUM(keeper),
         ROL_WATERDEEP_CASINO_EXIT_VNUM);
     return FALSE;
   }

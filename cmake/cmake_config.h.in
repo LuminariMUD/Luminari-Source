@@ -33,6 +33,7 @@
 #cmakedefine HAVE_STRICMP 1
 #cmakedefine HAVE_STRINGS_H 1
 #cmakedefine HAVE_STRING_H 1
+#cmakedefine HAVE_STRLCAT 1
 #cmakedefine HAVE_STRLCPY 1
 #cmakedefine HAVE_STRNCASECMP 1
 #cmakedefine HAVE_STRNICMP 1

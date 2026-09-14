@@ -1010,8 +1010,6 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
     write_to_output(d, "Mail aborted.\r\n");
   else
   {
-    extern MYSQL *conn;
-
     /* Check the connection, reconnect if necessary. */
     if (!MYSQL_PING_CONN(conn))
     {
@@ -1040,8 +1038,6 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
 
     if (found)
     {
-      extern MYSQL *conn2;
-
       /* Check the connection, reconnect if necessary. */
       if (!MYSQL_PING_CONN(conn2))
       {
@@ -1225,8 +1221,6 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
  */
 static void board_post_string_cleanup(struct descriptor_data *d, int action)
 {
-  extern void mysql_board_finish_post(struct descriptor_data * d, int save);
-
   if (!d->str)
   {
     log("SYSERR: board_post_string_cleanup: CON_BOARD_POST with NULL d->str");

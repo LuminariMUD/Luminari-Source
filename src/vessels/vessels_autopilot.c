@@ -21,11 +21,8 @@
 #define SCHEDULE_ROUTE_VALIDATION_MAX_STEPS 10000
 
 /* External MySQL connection variables */
-extern MYSQL *conn;
-extern bool mysql_available;
 
 /* External time structure for schedule timing */
-extern struct time_info_data time_info;
 
 /* External ship data array from vessels.c */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];

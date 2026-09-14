@@ -23,10 +23,7 @@
 #include <errno.h>
 #include <limits.h>
 
-extern MYSQL *conn;
-extern bool mysql_available;
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct room_data *world;
 
 #define TRADE_SIMULATION_MAX_TRADES 10000
 
@@ -266,8 +263,8 @@ void vessel_update_port_berth(struct greyhawk_ship_data *ship, room_rnum old_roo
                    "The harbor master records a %d-gold berthing fee. "
                    "Use 'dockfees pay' before departure.",
                    fee);
-      log("Info: Port %d assessed ship %d '%s' %d gold for clan %d", world[new_room].number,
-          ship->shipnum, ship->name, fee, ship->dock_fee_clan);
+      log("Info: Port %" PRI_IDX " assessed ship %d '%s' %d gold for clan %d",
+          world[new_room].number, ship->shipnum, ship->name, fee, ship->dock_fee_clan);
       changed = TRUE;
     }
   }

@@ -448,9 +448,10 @@ void assign_the_quests(void)
   {
     if (QST_MASTER(rnum) == NOBODY || QST_MASTER(rnum) <= 0)
     {
-      log("QUEST ERROR: Quest #%d '%s' has no questmaster mob assigned.", QST_NUM(rnum),
+      log("QUEST ERROR: Quest #%" PRI_IDX " '%s' has no questmaster mob assigned.", QST_NUM(rnum),
           QST_NAME(rnum) ? QST_NAME(rnum) : "UNNAMED");
-      log("QUEST FIX: Use 'qedit %d' and set a questmaster mob vnum (the NPC who gives this "
+      log("QUEST FIX: Use 'qedit %" PRI_IDX
+          "' and set a questmaster mob vnum (the NPC who gives this "
           "quest).",
           QST_NUM(rnum));
       log("QUEST FIX: Common questmaster vnums: Check 'vnum mob questmaster' or create a new NPC.");
@@ -463,19 +464,22 @@ void assign_the_quests(void)
     }
     if ((mrnum = real_mobile(QST_MASTER(rnum))) == NOBODY)
     {
-      log("QUEST ERROR: Quest #%d '%s' has questmaster mob vnum #%d which doesn't exist.",
+      log("QUEST ERROR: Quest #%" PRI_IDX " '%s' has questmaster mob vnum #%" PRI_IDX
+          " which doesn't exist.",
           QST_NUM(rnum), QST_NAME(rnum) ? QST_NAME(rnum) : "UNNAMED", QST_MASTER(rnum));
-      log("QUEST FIX: Either create mob #%d using 'medit %d', OR change the questmaster in 'qedit "
-          "%d'.",
+      log("QUEST FIX: Either create mob #%" PRI_IDX " using 'medit %" PRI_IDX
+          "', OR change the questmaster in 'qedit "
+          "%" PRI_IDX "'.",
           QST_MASTER(rnum), QST_MASTER(rnum), QST_NUM(rnum));
       log("QUEST FIX: Use 'vnum mob questmaster' to find existing questmaster mobs.");
       continue;
     }
     if (mrnum <= 0)
     {
-      log("QUEST ERROR: Quest #%d '%s' has an invalid questmaster mob (negative rnum).",
+      log("QUEST ERROR: Quest #%" PRI_IDX " '%s' has an invalid questmaster mob (negative rnum).",
           QST_NUM(rnum), QST_NAME(rnum) ? QST_NAME(rnum) : "UNNAMED");
-      log("QUEST FIX: This is a data corruption issue. Use 'qedit %d' to reassign the questmaster.",
+      log("QUEST FIX: This is a data corruption issue. Use 'qedit %" PRI_IDX
+          "' to reassign the questmaster.",
           QST_NUM(rnum));
       continue;
     }
@@ -490,7 +494,7 @@ void assign_the_quests(void)
       definition = spec_registry_find_by_handler(secondary_handler);
       secondary_name = definition != NULL ? definition->canonical_name : "unregistered-callback";
     }
-    snprintf(source_location, sizeof(source_location), "quest #%d", QST_NUM(rnum));
+    snprintf(source_location, sizeof(source_location), "quest #%" PRI_IDX, QST_NUM(rnum));
     contribution.source = SPEC_BINDING_SOURCE_QUEST;
     contribution.requested_name = "questmaster";
     contribution.handler_name = "Questmaster";
@@ -891,7 +895,7 @@ void generic_complete_quest(struct char_data *ch, int index)
     char buf[128] = {'\0'};
 
     /* we should be in the clear to tag this player with a completed quest */
-    snprintf(buf, sizeof(buf), "%d", vnum); /* sending vnum to event of quest */
+    snprintf(buf, sizeof(buf), "%" PRI_IDX, vnum); /* sending vnum to event of quest */
     attach_mud_event(new_mud_event(eQUEST_COMPLETE, ch, buf), 1);
   }
 }
@@ -1167,8 +1171,8 @@ void list_quests(struct char_data *ch, zone_rnum zone, qst_vnum vmin, qst_vnum v
                    "----- ------- -------------------------------------------- -----------\r\n");
   for (rnum = 0; rnum < total_quests; rnum++)
     if (QST_NUM(rnum) >= bottom && QST_NUM(rnum) <= top)
-      send_to_char(ch, "\tg%4d\tn) [\tg%-5d\tn] \tc%-44.44s\tn \ty[%5d]\tn\r\n", ++counter,
-                   QST_NUM(rnum), QST_DESC(rnum),
+      send_to_char(ch, "\tg%4d\tn) [\tg%-5" PRI_IDX "\tn] \tc%-44.44s\tn \ty[%5" PRI_IDX "]\tn\r\n",
+                   ++counter, QST_NUM(rnum), QST_DESC(rnum),
                    QST_MASTER(rnum) == NOBODY ? 0 : QST_MASTER(rnum));
   if (!counter)
     send_to_char(ch, "None found.\r\n");
@@ -1477,7 +1481,7 @@ void quest_list(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     send_to_char(ch, "That is not a valid quest!\r\n");
   else if (QST_INFO(rnum))
   {
-    send_to_char(ch, "Complete Details on Quest %d \tc%s\tn:\r\n%s", vnum, QST_DESC(rnum),
+    send_to_char(ch, "Complete Details on Quest %" PRI_IDX " \tc%s\tn:\r\n%s", vnum, QST_DESC(rnum),
                  QST_INFO(rnum));
     if (QST_PREV(rnum) != NOTHING)
       send_to_char(ch, "You have to have completed quest %s first.\r\n",
@@ -1558,7 +1562,8 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
         send_to_char(ch, " (Index: %d) This quest slot is available.\r\n", index);
       }
       else
-        send_to_char(ch, "(Index: %d) - %s [vnum %d]\r\n", index, QST_NAME(rnum), QST_NUM(rnum));
+        send_to_char(ch, "(Index: %d) - %s [vnum %" PRI_IDX "]\r\n", index, QST_NAME(rnum),
+                     QST_NUM(rnum));
     }
     send_to_char(ch, "You can provide the quest index from your queue to check specific progress "
                      "details (ex. quest progress <index # above>).\r\n");
@@ -1731,7 +1736,8 @@ void quest_show(struct char_data *ch, mob_vnum qm)
         "-----------\r\n");
     for (rnum = 0; rnum < total_quests; rnum++)
       if (qm == QST_MASTER(rnum))
-        send_to_char(ch, "\tg%4d\tn) \tc%-52.52s\tn \ty(%6d)\tn \ty(%3s)\tn \ty(%3s)\tn\r\n",
+        send_to_char(ch,
+                     "\tg%4d\tn) \tc%-52.52s\tn \ty(%6" PRI_IDX ")\tn \ty(%3s)\tn \ty(%3s)\tn\r\n",
                      ++counter, QST_NAME(rnum), QST_NUM(rnum),
                      (is_complete(ch, QST_NUM(rnum)) ? "Yes" : "No "),
                      ((IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) ? "Yes" : "No "));
@@ -1935,7 +1941,8 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     /* display time! */
     send_to_char(
         ch,
-        "VNum  : [\ty%5d\tn], RNum: [\ty%5d\tn] -- Questmaster: [\ty%5d\tn] \ty%s\tn\r\n"
+        "VNum  : [\ty%5" PRI_IDX "\tn], RNum: [\ty%5" PRI_IDX
+        "\tn] -- Questmaster: [\ty%5d\tn] \ty%s\tn\r\n"
         "Name  : \ty%s\tn\r\n"
         "Desc  : \ty%s\tn\r\n"
         "Accept Message:\r\n\tc%s\tn"
@@ -1944,7 +1951,7 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
         "Type  : \ty%s\tn\r\n"
         "Target: \ty%d\tn \ty%s\tn, Quantity: \ty%d\tn\r\n"
         "Value : \ty%d\tn, Penalty: \ty%d\tn, Min Level: \ty%2d\tn, Max Level: \ty%2d\tn\r\n"
-        "Gold Reward: \ty%d\tn, Exp Reward: \ty%d\tn, Obj Reward: \ty(%d)\tn %s\r\n"
+        "Gold Reward: \ty%d\tn, Exp Reward: \ty%d\tn, Obj Reward: \ty(%" PRI_IDX ")\tn %s\r\n"
         "Quest Race Reward: %s (%d)\r\n"
         "Quest Follower Reward: %s (%d)\r\n"
         "Flags : \tc%s\tn\r\n",
@@ -1981,13 +1988,13 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     if (QST_PREV(rnum) == NOTHING)
       send_to_char(ch, " \tyNone.\tn\r\n");
     else
-      send_to_char(ch, " [\ty%5d\tn] \tc%s\tn\r\n", QST_PREV(rnum),
+      send_to_char(ch, " [\ty%5" PRI_IDX "\tn] \tc%s\tn\r\n", QST_PREV(rnum),
                    QST_DESC(real_quest(QST_PREV(rnum))));
     send_to_char(ch, "Next  :");
     if (QST_NEXT(rnum) == NOTHING)
       send_to_char(ch, " \tyNone.\tn\r\n");
     else
-      send_to_char(ch, " [\ty%5d\tn] \tc%s\tn\r\n", QST_NEXT(rnum),
+      send_to_char(ch, " [\ty%5" PRI_IDX "\tn] \tc%s\tn\r\n", QST_NEXT(rnum),
                    QST_DESC(real_quest(QST_NEXT(rnum))));
   }
 }
@@ -2704,7 +2711,8 @@ ACMD(do_aqref)
 
   if (GET_LEVEL(ch) < LVL_IMMORT)
   {
-    snprintf(buf, sizeof(buf), "(GC) %s did a reference check for (%d).", GET_NAME(ch), vnum);
+    snprintf(buf, sizeof(buf), "(GC) %s did a reference check for (%" PRI_IDX ").", GET_NAME(ch),
+             vnum);
     log("%s", buf);
     return;
   }
@@ -2720,25 +2728,29 @@ ACMD(do_aqref)
     if (QST_OBJ(i) && QST_OBJ(i) == vnum)
     {
       found = TRUE;
-      send_to_char(ch, "(%d) \tCREWARD\tn %s (\tW%d\tn) from %s (\tW%d\tn)\r\n", QST_NUM(i),
-                   obj_proto[real_num].short_description, vnum,
+      send_to_char(ch,
+                   "(%" PRI_IDX ") \tCREWARD\tn %s (\tW%" PRI_IDX "\tn) from %s (\tW%" PRI_IDX
+                   "\tn)\r\n",
+                   QST_NUM(i), obj_proto[real_num].short_description, vnum,
                    mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
     }
 
     if ((QST_TYPE(i) == AQ_OBJ_FIND) && QST_TARGET(i) > 0 && (obj_vnum)QST_TARGET(i) == vnum)
     {
       found = TRUE;
-      send_to_char(ch, "(%d) \tCFIND\tn %s (\tW%d\tn) for %s (\tW%d\tn)\r\n", QST_NUM(i),
-                   obj_proto[real_num].short_description, vnum,
-                   mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
+      send_to_char(
+          ch, "(%" PRI_IDX ") \tCFIND\tn %s (\tW%" PRI_IDX "\tn) for %s (\tW%" PRI_IDX "\tn)\r\n",
+          QST_NUM(i), obj_proto[real_num].short_description, vnum,
+          mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
     }
 
     if ((QST_TYPE(i) == AQ_OBJ_RETURN) && QST_TARGET(i) > 0 && (obj_vnum)QST_TARGET(i) == vnum)
     {
       found = TRUE;
-      send_to_char(ch, "(%d) \tCRETURN\tn %s (\tW%d\tn) to %s (\tW%d\tn)\r\n", QST_NUM(i),
-                   obj_proto[real_num].short_description, vnum,
-                   mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
+      send_to_char(
+          ch, "(%" PRI_IDX ") \tCRETURN\tn %s (\tW%" PRI_IDX "\tn) to %s (\tW%" PRI_IDX "\tn)\r\n",
+          QST_NUM(i), obj_proto[real_num].short_description, vnum,
+          mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
     }
   }
 

@@ -244,8 +244,6 @@ void space_to_minus(char *str)
  */
 static struct help_entry_list *search_help_table(const char *argument, int level)
 {
-  extern struct help_index_element *help_table;
-  extern int top_of_helpt;
   struct help_entry_list *help_entries = NULL, *new_entry = NULL, *cur = NULL;
   int i;
 

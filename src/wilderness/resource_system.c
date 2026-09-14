@@ -39,9 +39,6 @@ extern int get_moisture(int map, int x, int y);
 /* Phase 4b: Region Effects Forward Declarations */
 
 /* Forward declarations for enhanced material functions */
-int get_enhanced_wilderness_material_id(int category, int subtype);
-const char *get_enhanced_material_name(int category, int subtype, int quality);
-int get_enhanced_material_crafting_value(int category, int subtype, int quality);
 
 /* Global resource configuration array */
 struct resource_config resource_configs[NUM_RESOURCE_TYPES] = {
@@ -1305,9 +1302,11 @@ void show_debug_survey(struct char_data *ch)
             region_vnum vnum = region_table[curr_region->rnum].vnum;
             char *name = region_table[curr_region->rnum].name;
 
-            send_to_char(ch, "  Region: %s (vnum %d)\r\n", name ? name : "Unknown", vnum);
+            send_to_char(ch, "  Region: %s (vnum %" PRI_IDX ")\r\n", name ? name : "Unknown", vnum);
             send_to_char(
-                ch, "    Effects: (New effects system - use 'resourceadmin effects region %d')\r\n",
+                ch,
+                "    Effects: (New effects system - use 'resourceadmin effects region %" PRI_IDX
+                "')\r\n",
                 vnum);
           }
         }

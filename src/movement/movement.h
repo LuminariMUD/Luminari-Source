@@ -27,17 +27,11 @@
  */
 
 /* Core movement functions */
-int do_simple_move(struct char_data *ch, int dir, int need_specials_check);
-int perform_move(struct char_data *ch, int dir, int need_specials_check);
 int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bool recursive);
 
 /* Movement utility functions */
-bool is_top_of_room_for_singlefile(struct char_data *ch, int dir);
-struct char_data *get_char_ahead_of_me(struct char_data *ch, int dir);
 
 /* Track/trail functions */
-void create_tracks(struct char_data *ch, int dir, int flag);
-void cleanup_all_trails(void);
 
 /* Movement commands - ACMDs */
 ACMD_DECL(do_move);
@@ -52,6 +46,5 @@ ACMD_DECL(do_unstuck);
 ACMD_DECL(do_lastroom);
 
 /* Movement cost array - defined in movement.c */
-extern int movement_loss[];
 
 #endif /* MOVEMENT_H */

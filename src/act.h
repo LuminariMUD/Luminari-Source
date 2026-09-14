@@ -20,6 +20,7 @@
 #define _ACT_H_
 
 #include "utils.h" /* for the ACMD macro */
+#include "movement/movement.h"
 
 #define CAN_CMD 0
 #define CANT_CMD_PERM 1
@@ -34,7 +35,6 @@ int hands_used(struct char_data *ch);
 int hands_needed(struct char_data *ch, struct obj_data *obj);
 int is_wielding_type(struct char_data *ch);
 extern const int eq_ordering_1[NUM_WEARS];
-int get_speed(struct char_data *ch, sbyte to_display);
 bool is_locked_race(int race);
 
 /* from ready_action.c */
@@ -174,7 +174,6 @@ bool add_introduction(struct char_data *ch, struct char_data *vict);
 /* Utility Functions */
 
 // char creation help files
-void perform_help(struct descriptor_data *d, const char *argument);
 
 /* character info */
 void perform_affects(struct char_data *ch, struct char_data *k);
@@ -197,7 +196,6 @@ char *find_exdesc(char *word, struct extra_descr_data *list);
 /** @todo Move to a mud centric string utility library */
 void space_to_minus(char *str);
 /** @todo Move to a help module? */
-void game_info(const char *format, ...);
 void free_history(struct char_data *ch, int type);
 void free_recent_players(void);
 /* functions with subcommands */
@@ -252,7 +250,6 @@ ACMD_DECL(do_survey);
 ACMD_DECL(do_materials);
 ACMD_DECL(do_gold);
 ACMD_DECL(do_statcap);
-ACMD_DECL(do_help);
 ACMD_DECL(do_history);
 ACMD_DECL(do_inventory);
 ACMD_DECL(do_initiative);
@@ -308,7 +305,6 @@ ACMD_DECL(do_inquisitor_favored_enemy);
 ACMD_DECL(do_flightlist);
 ACMD_DECL(do_kapak_saliva);
 ACMD_DECL(do_roomvnum);
-ACMD_DECL(do_lastroom);
 ACMD_DECL(do_wearlocations);
 ACMD_DECL(do_wearapplies);
 
@@ -362,8 +358,6 @@ void weight_change_object(struct obj_data *obj, int weight);
 void perform_remove(struct char_data *ch, int pos, bool forced);
 bool perform_give(struct char_data *ch, struct char_data *vict, struct obj_data *obj);
 void perform_wear(struct char_data *ch, struct obj_data *obj, int where);
-bool obj_should_fall(struct obj_data *obj);
-bool char_should_fall(struct char_data *ch, bool silent);
 bool perform_wield(struct char_data *ch, struct obj_data *obj, bool not_silent);
 void start_auction(struct char_data *ch, struct obj_data *obj, int bid);
 void auc_stat(struct char_data *ch, struct obj_data *obj);
@@ -407,8 +401,6 @@ ACMD_DECL(do_bags);
 ACMD_DECL(do_activate);
 ACMD_DECL(do_downgrade);
 
-ACMD_DECL(do_relay);
-ACMD_DECL(do_forgeas);
 
 /* AUCTIONING STATES */
 #define AUC_NULL_STATE 0  /* not doing anything */
@@ -460,20 +452,10 @@ ACMD_DECL(do_staves);
  * Begin Functions and defines for act.movement.c
  ****************************************************************************/
 
-int has_boat(struct char_data *ch, room_rnum going_to);
-int has_flight(struct char_data *ch);
-int change_position(struct char_data *ch, int position);
-int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bool recursive);
-int is_evaporating_key(struct char_data *ch, obj_vnum key);
-int has_key(struct char_data *ch, obj_vnum key);
-void extract_key(struct char_data *ch, obj_vnum key);
-bool can_stand(struct char_data *ch);
-void cleanup_all_trails(void);
 ACMD_DECL(do_pick_lock);
 
 /* Functions with subcommands */
 /* do_gen_door */
-ACMD_DECL(do_gen_door);
 #define SCMD_OPEN 0
 #define SCMD_CLOSE 1
 #define SCMD_UNLOCK 2
@@ -481,21 +463,8 @@ ACMD_DECL(do_gen_door);
 #define SCMD_PICK 4
 /* Functions without subcommands */
 ACMD_DECL(do_disembark);
-ACMD_DECL(do_enter);
-ACMD_DECL(do_follow);
 ACMD_DECL(do_unfollow);
-ACMD_DECL(do_unlead);
-ACMD_DECL(do_leave);
-ACMD_DECL(do_move);
-ACMD_DECL(do_rest);
-ACMD_DECL(do_sit);
-ACMD_DECL(do_recline);
-ACMD_DECL(do_sleep);
 ACMD_DECL(do_arcanemark);
-ACMD_DECL(do_stand);
-ACMD_DECL(do_wake);
-ACMD_DECL(do_pullswitch);
-ACMD_DECL(do_transposition);
 
 /* Switch info */
 #define SWITCH_UNHIDE 0
@@ -503,7 +472,6 @@ ACMD_DECL(do_transposition);
 #define SWITCH_OPEN 2
 /* Global variables from act.movement.c */
 #ifndef __ACT_MOVEMENT_C__
-extern const char *const cmd_door[];
 #endif /* __ACT_MOVEMENT_C__ */
 
 /*****************************************************************************
@@ -655,7 +623,6 @@ ACMD_DECL(do_crushingblow);
 ACMDCHECK(can_crushingblow);
 ACMD_DECL(do_shatteringstrike);
 ACMDCHECK(can_shatteringstrike);
-ACMD_DECL(do_waterwhip);
 ACMDCHECK(can_waterwhip);
 ACMD_DECL(do_gongsummit);
 ACMDCHECK(can_gongsummit);
@@ -741,7 +708,6 @@ ACMD_DECL(do_defensive_strike);
 ACMD_DECL(do_bastion);
 ACMD_DECL(do_radiantaura);
 ACMD_DECL(do_masscurewounds);
-ACMD_DECL(do_beaconofhope);
 ACMD_DECL(do_kill);
 ACMD_DECL(do_layonhands);
 ACMDCHECK(can_layonhands);
@@ -804,7 +770,6 @@ ACMD_DECL(do_sorcerer_breath_weapon);
 ACMDCHECK(can_sorcerer_breath_weapon);
 ACMD_DECL(do_sorcerer_claw_attack);
 ACMDCHECK(can_sorcerer_claw_attack);
-ACMD_DECL(do_sorcerer_draconic_wings);
 ACMD_DECL(do_dragonborn_breath_weapon);
 ACMDCHECK(can_dragonborn_breath_weapon);
 ACMD_DECL(do_tabaxi_claw_attack);
@@ -851,7 +816,6 @@ ACMD_DECL(do_curtain_call);
 ACMD_DECL(do_wisdom_of_the_measure);
 ACMD_DECL(do_final_stand);
 ACMD_DECL(do_knighthoods_flower);
-ACMD_DECL(do_masscurewounds);
 
 /*****************************************************************************
  * Begin Functions and defines for act.other.c
@@ -1035,7 +999,6 @@ ACMDCHECK(can_tinker);
 ACMD_DECL(do_tinker);
 ACMD_DECL(do_eldritch);
 ACMD_DECL(do_borrow);
-ACMD_DECL(do_unstuck);
 
 /*****************************************************************************
  * Begin Functions and defines for act.social.c
@@ -1202,7 +1165,6 @@ ACMD_DECL(do_obind);
 ACMD_DECL(do_unbind);
 // ACMD_DECL(do_plist);
 ACMD_DECL(do_finddoor);
-ACMD_DECL(do_bombs);
 ACMD_DECL(do_bandage);
 ACMD_DECL(do_players);
 ACMD_DECL(do_copyroom);

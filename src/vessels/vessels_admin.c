@@ -20,8 +20,6 @@
 #include "act.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct room_data *world;
-extern room_rnum top_of_world;
 
 /* Warn operators when the shared wilderness dynamic room pool crosses this
  * utilization percentage (vessel product requirements Section 5, invariant 3). */

@@ -83,14 +83,13 @@
 #include "olc/genshp.h"
 #include "obj/treasure.h"
 #include "player_rename.h"
+#include "net/i3_client.h"
+#include "net/discord_bridge.h"
 
 #define SET_NAME_FIELD 34
 
 /* External variables and functions */
-extern MYSQL *conn;
-extern struct descriptor_data *descriptor_list;
 extern struct terrain_api_server *terrain_api;
-void load_account_unlocks(struct account_data *account);
 int outfit_type_to_armor_type(int type, int wear);
 
 /* local utility functions with file scope */
@@ -1431,8 +1430,8 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
     }
 
     send_to_char(ch,
-                 "\tCacVnum:\tn %d \tC#:\tn %d\tC QP:\tn %d\tC xp:\tn %d\tC "
-                 "G:\tn %d\tC Dsc:\tn %s\tC, Mat:\tn %s\r\n",
+                 "\tCacVnum:\tn %u \tC#:\tn %d\tC QP:\tn %d\tC xp:\tn %u\tC "
+                 "G:\tn %u\tC Dsc:\tn %s\tC, Mat:\tn %s\r\n",
                  GET_AUTOCQUEST_VNUM(k), GET_AUTOCQUEST_MAKENUM(k), GET_AUTOCQUEST_QP(k),
                  GET_AUTOCQUEST_EXP(k), GET_AUTOCQUEST_GOLD(k), GET_AUTOCQUEST_DESC(k),
                  material_name[GET_AUTOCQUEST_MATERIAL(k)]);
@@ -2148,7 +2147,6 @@ ACMD(do_vstat)
   struct obj_data *obj;
   IDXTYPE r_num;
 
-  ACMD_DECL(do_tstat);
 
   two_arguments(argument, buf, sizeof(buf), buf2, sizeof(buf2));
 
@@ -3186,7 +3184,7 @@ ACMD(do_force)
   else if (!str_cmp("room", arg))
   {
     send_to_char(ch, "%s", CONFIG_OK);
-    mudlog(NRM, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) %s forced room %d to %s",
+    mudlog(NRM, MAX(LVL_STAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) %s forced room %u to %s",
            GET_NAME(ch), GET_ROOM_VNUM(IN_ROOM(ch)), to_force);
 
     for (vict = world[IN_ROOM(ch)].people; vict; vict = next_force)
@@ -3384,8 +3382,8 @@ ACMD(do_zreset)
   if (i <= top_of_zone_table && (can_edit_zone(ch, i) || GET_LEVEL(ch) > LVL_IMMORT))
   {
     reset_zone(i);
-    send_to_char(ch, "Reset zone #%d: %s.\r\n", zone_table[i].number, zone_table[i].name);
-    mudlog(NRM, MAX(LVL_GRSTAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) %s reset zone %d (%s)",
+    send_to_char(ch, "Reset zone #%" PRI_IDX ": %s.\r\n", zone_table[i].number, zone_table[i].name);
+    mudlog(NRM, MAX(LVL_GRSTAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) %s reset zone %" PRI_IDX " (%s)",
            GET_NAME(ch), zone_table[i].number, zone_table[i].name);
   }
   else
@@ -3558,8 +3556,9 @@ static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int l
     sprintbitarray(zone_table[zone].zone_flags, zone_bits, ZN_ARRAY_MAX, buf);
 
     tmp = snprintf(bufptr, left,
-                   "%3d %-30.30s%s By: %-10.10s%s Age: %3d; Reset: %3d (%s);Show Weather %d; "
-                   "Range: %5d-%5d\r\n",
+                   "%3" PRI_IDX
+                   " %-30.30s%s By: %-10.10s%s Age: %3d; Reset: %3d (%s);Show Weather %d; "
+                   "Range: %5" PRI_IDX "-%5" PRI_IDX "\r\n",
                    zone_table[zone].number, zone_table[zone].name, KNRM, zone_table[zone].builders,
                    KNRM, zone_table[zone].age, zone_table[zone].lifespan,
                    zone_table[zone].reset_mode
@@ -3596,7 +3595,7 @@ static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int l
                     "       Zone stats:\r\n"
                     "       ---------------\r\n"
                     "         Flags:       %s\r\n"
-                    "         RealNum:     %2d\r\n"
+                    "         RealNum:     %2" PRI_IDX "\r\n"
                     "         Min Lev:     %2d\r\n"
                     "         Max Lev:     %2d\r\n"
                     "         Rooms:       %2d\r\n"
@@ -3612,10 +3611,11 @@ static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int l
     return tmp;
   }
 
-  return snprintf(bufptr, left, "%3d %-*s%s By: %-10.10s%s Range: %5d-%5d, AvgLvl: %2.3f\r\n",
-                  zone_table[zone].number, count_color_chars(zone_table[zone].name) + 30,
-                  zone_table[zone].name, KNRM, zone_table[zone].builders, KNRM,
-                  zone_table[zone].bot, zone_table[zone].top, avglvl);
+  return snprintf(
+      bufptr, left,
+      "%3" PRI_IDX " %-*s%s By: %-10.10s%s Range: %5" PRI_IDX "-%5" PRI_IDX ", AvgLvl: %2.3f\r\n",
+      zone_table[zone].number, count_color_chars(zone_table[zone].name) + 30, zone_table[zone].name,
+      KNRM, zone_table[zone].builders, KNRM, zone_table[zone].bot, zone_table[zone].top, avglvl);
 }
 
 ACMD(do_show)
@@ -3834,11 +3834,11 @@ ACMD(do_show)
                  "Current stats:\r\n"
                  "  %5d players in game  %5d connected\r\n"
                  "  %5d registered\r\n"
-                 "  %5d mobiles          %5d prototypes\r\n"
-                 "  %5d objects          %5d prototypes\r\n"
-                 "  %5d rooms            %5d zones\r\n"
+                 "  %5d mobiles          %5" PRI_IDX " prototypes\r\n"
+                 "  %5d objects          %5" PRI_IDX " prototypes\r\n"
+                 "  %5" PRI_IDX " rooms            %5" PRI_IDX " zones\r\n"
                  "  %5d triggers         %5d shops\r\n"
-                 "  %5d large bufs       %5d autoquests\r\n"
+                 "  %5d large bufs       %5" PRI_IDX " autoquests\r\n"
                  "  %5d hlquests app     %5d total hl quests\r\n"
                  "  %5d buf switches     %5d overflows\r\n"
                  "  %5zu lists\r\n"
@@ -3859,7 +3859,7 @@ ACMD(do_show)
           continue;
         if (W_EXIT(i, j)->to_room == 0)
         {
-          len = snprintf_append(buf, sizeof(buf), len, "%2d: (void   ) [%5d] %-*s%s (%s)\r\n", ++k,
+          len = snprintf_append(buf, sizeof(buf), len, "%2d: (void   ) [%5u] %-*s%s (%s)\r\n", ++k,
                                 GET_ROOM_VNUM(i), count_color_chars(world[i].name) + 40,
                                 world[i].name, QNRM, dirs[j]);
           if (len >= sizeof(buf) - 1)
@@ -3867,7 +3867,7 @@ ACMD(do_show)
         }
         if (W_EXIT(i, j)->to_room == NOWHERE && !W_EXIT(i, j)->general_description)
         {
-          len = snprintf_append(buf, sizeof(buf), len, "%2d: (Nowhere) [%5d] %-*s%s (%s)\r\n", ++k,
+          len = snprintf_append(buf, sizeof(buf), len, "%2d: (Nowhere) [%5u] %-*s%s (%s)\r\n", ++k,
                                 GET_ROOM_VNUM(i), count_color_chars(world[i].name) + 40,
                                 world[i].name, QNRM, dirs[j]);
           if (len >= sizeof(buf) - 1)
@@ -3883,7 +3883,7 @@ ACMD(do_show)
     for (i = 0, j = 0; i <= (int)top_of_world; i++)
       if (ROOM_FLAGGED(i, ROOM_DEATH))
       {
-        len = snprintf_append(buf, sizeof(buf), len, "%2d: [%5d] %s%s\r\n", ++j, GET_ROOM_VNUM(i),
+        len = snprintf_append(buf, sizeof(buf), len, "%2d: [%5u] %s%s\r\n", ++j, GET_ROOM_VNUM(i),
                               world[i].name, QNRM);
         if (len >= sizeof(buf) - 1)
           break;
@@ -3897,7 +3897,7 @@ ACMD(do_show)
     for (i = 0, j = 0; i <= (int)top_of_world; i++)
       if (ROOM_FLAGGED(i, ROOM_STAFFROOM))
       {
-        len = snprintf_append(buf, sizeof(buf), len, "%2d: [%5d] %s%s\r\n", ++j, GET_ROOM_VNUM(i),
+        len = snprintf_append(buf, sizeof(buf), len, "%2d: [%5u] %s%s\r\n", ++j, GET_ROOM_VNUM(i),
                               world[i].name, QNRM);
         if (len >= sizeof(buf) - 1)
           break;
@@ -4141,7 +4141,8 @@ ACMD(do_shoplist)
     }
 
     snprintf(
-        line, sizeof(line), "%-6d %-6d %-24.24s %-6d %-24.24s %-6d %-20.20s", SHOP_NUM(shop_nr),
+        line, sizeof(line), "%-6" PRI_IDX " %-6d %-24.24s %-6" PRI_IDX " %-24.24s %-6d %-20.20s",
+        SHOP_NUM(shop_nr),
         (zone_idx != NOWHERE && zone_idx <= top_of_zone_table) ? (int)zone_table[zone_idx].number
                                                                : -1,
         zone_name, SHOP_ROOM(shop_nr, room_idx), room_name,
@@ -4287,7 +4288,7 @@ ACMD(do_shopstat)
     const char *rname = (rrn != NOWHERE) ? world[rrn].name : "<Unknown Room>";
     int znum = (rrn != NOWHERE) ? (int)zone_table[world[rrn].zone].number : -1;
     const char *zname = (rrn != NOWHERE) ? zone_table[world[rrn].zone].name : "<Unknown Zone>";
-    send_to_char(ch, "  %d: %d - %s | Zone %d - %s\r\n", i + 1, rvn, rname, znum, zname);
+    send_to_char(ch, "  %d: %" PRI_IDX " - %s | Zone %d - %s\r\n", i + 1, rvn, rname, znum, zname);
   }
 
   /* Products */
@@ -4302,7 +4303,7 @@ ACMD(do_shopstat)
     obj_rnum orn = SHOP_PRODUCT(shop_nr, i);
     if (orn == NOTHING || orn > top_of_objt)
     {
-      send_to_char(ch, "  %-3d <Invalid rnum %d>\r\n", i + 1, orn);
+      send_to_char(ch, "  %-3d <Invalid rnum %" PRI_IDX ">\r\n", i + 1, orn);
       continue;
     }
     obj_vnum ovn = obj_index[orn].vnum;
@@ -4370,8 +4371,8 @@ ACMD(do_shopstat)
     char bonusstr[52];
     snprintf(bonusstr, sizeof(bonusstr), "%.50s", bonusbuf);
 
-    send_to_char(ch, "  %-3d %-6d %-40s %-20s %-30s %-3d %-40s\r\n", i + 1, ovn, objname, typestr,
-                 wearstr, objlevel, bonusstr);
+    send_to_char(ch, "  %-3d %-6" PRI_IDX " %-40s %-20s %-30s %-3d %-40s\r\n", i + 1, ovn, objname,
+                 typestr, wearstr, objlevel, bonusstr);
   }
 
   /* Accepted types */
@@ -4831,7 +4832,8 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       {
         SET_BIT_AR(PLR_FLAGS(vict), PLR_LOADROOM);
         GET_LOADROOM(vict) = rvnum;
-        send_to_char(ch, "%s will enter at room #%d.\r\n", GET_NAME(vict), GET_LOADROOM(vict));
+        send_to_char(ch, "%s will enter at room #%" PRI_IDX ".\r\n", GET_NAME(vict),
+                     GET_LOADROOM(vict));
       }
       else
       {
@@ -5637,8 +5639,9 @@ ACMD(do_keycheck)
       {
         if (keynum < bottom || keynum > top)
         {
-          len = snprintf_append(buf, sizeof(buf), len, "[%s%-6d%s] %s%-*s%s %s%-5s:%d%s\r\n", QGRN,
-                                i, QNRM, QCYN, count_color_chars(world[real_room(i)].name) + 44,
+          len = snprintf_append(buf, sizeof(buf), len,
+                                "[%s%-6" PRI_IDX "%s] %s%-*s%s %s%-5s:%" PRI_IDX "%s\r\n", QGRN, i,
+                                QNRM, QCYN, count_color_chars(world[real_room(i)].name) + 44,
                                 world[real_room(i)].name, QNRM, QBRED, dirs[j], keynum, QNRM);
         }
       }
@@ -5680,8 +5683,8 @@ ACMD(do_keycheck)
     {
       if ((room_vnum)GET_OBJ_VAL(obj, 2) < bottom || (room_vnum)GET_OBJ_VAL(obj, 2) > top)
       {
-        len = snprintf_append(buf, sizeof(buf), len, "[%s%-6d%s] %s%-*s%s %s%d%s\r\n", QGRN, i,
-                              QNRM, QCYN, count_color_chars(GET_OBJ_SHORT(obj)) + 44,
+        len = snprintf_append(buf, sizeof(buf), len, "[%s%-6" PRI_IDX "%s] %s%-*s%s %s%d%s\r\n",
+                              QGRN, i, QNRM, QCYN, count_color_chars(GET_OBJ_SHORT(obj)) + 44,
                               GET_OBJ_SHORT(obj), QNRM, QBRED, GET_OBJ_VAL(obj, 2), QNRM);
       }
     }
@@ -5726,7 +5729,7 @@ ACMD(do_links)
   last = zone_table[zrnum].top;
   first = zone_table[zrnum].bot;
 
-  send_to_char(ch, "Zone %d is linked to the following zones:\r\n", zvnum);
+  send_to_char(ch, "Zone %" PRI_IDX " is linked to the following zones:\r\n", zvnum);
   for (nr = 0; nr <= top_of_world && (GET_ROOM_VNUM(nr) <= last); nr++)
   {
     if (GET_ROOM_VNUM(nr) >= first)
@@ -5737,7 +5740,7 @@ ACMD(do_links)
         {
           to_room = world[nr].dir_option[j]->to_room;
           if (to_room != NOWHERE && (zrnum != world[to_room].zone))
-            send_to_char(ch, "%3d %-30s at %5d (%-5s) ---> %5d\r\n",
+            send_to_char(ch, "%3" PRI_IDX " %-30s at %5u (%-5s) ---> %5" PRI_IDX "\r\n",
                          zone_table[world[to_room].zone].number,
                          zone_table[world[to_room].zone].name, GET_ROOM_VNUM(nr), dirs[j],
                          world[to_room].number);
@@ -5915,7 +5918,7 @@ ACMD(do_zcheck)
     return;
   }
   else
-    send_to_char(ch, "Checking zone %d!\r\n", zone_table[zrnum].number);
+    send_to_char(ch, "Checking zone %" PRI_IDX "!\r\n", zone_table[zrnum].number);
 
   /* Check mobs */
 
@@ -5998,7 +6001,7 @@ ACMD(do_zcheck)
       /* Additional mob checks.*/
       if (found)
       {
-        send_to_char(ch, "%s[%5d]%s %-30s: %s\r\n", CCCYN(ch, C_NRM), GET_MOB_VNUM(mob),
+        send_to_char(ch, "%s[%5u]%s %-30s: %s\r\n", CCCYN(ch, C_NRM), GET_MOB_VNUM(mob),
                      CCYEL(ch, C_NRM), GET_NAME(mob), CCNRM(ch, C_NRM));
         send_to_char(ch, "%s", buf);
       }
@@ -6144,7 +6147,7 @@ ACMD(do_zcheck)
       /* Additional object checks. */
       if (found)
       {
-        send_to_char(ch, "[%5d] %-30s: \r\n", GET_OBJ_VNUM(obj), obj->short_description);
+        send_to_char(ch, "[%5u] %-30s: \r\n", GET_OBJ_VNUM(obj), obj->short_description);
         send_to_char(ch, "%s", buf);
       }
       strlcpy(buf, "", sizeof(buf));
@@ -6176,8 +6179,8 @@ ACMD(do_zcheck)
         {
           if (world[exroom].zone == real_zone(offlimit_zones[k]) && (found = 1))
             len = snprintf_append(buf, sizeof(buf), len,
-                                  "- Exit %s cannot connect to %d (zone off limits).\r\n", dirs[j],
-                                  world[exroom].number);
+                                  "- Exit %s cannot connect to %" PRI_IDX " (zone off limits).\r\n",
+                                  dirs[j], world[exroom].number);
         } /* for (k.. */
       } /* cycle directions */
 
@@ -6218,7 +6221,7 @@ ACMD(do_zcheck)
 
       if (found)
       {
-        send_to_char(ch, "[%5d] %-30s: \r\n", world[i].number,
+        send_to_char(ch, "[%5" PRI_IDX "] %-30s: \r\n", world[i].number,
                      world[i].name ? world[i].name : "An unnamed room");
         send_to_char(ch, "%s", buf);
         strlcpy(buf, "", sizeof(buf));
@@ -6269,7 +6272,7 @@ static void mob_checkload(struct char_data *ch, mob_vnum mvnum)
       /* read a mobile */
       if (ZCMD2.arg1 == (int)mrnum)
       {
-        send_to_char(ch, "  [%5d] %s (%d MAX)\r\n", world[ZCMD2.arg3].number,
+        send_to_char(ch, "  [%5" PRI_IDX "] %s (%d MAX)\r\n", world[ZCMD2.arg3].number,
                      world[ZCMD2.arg3].name, ZCMD2.arg2);
       }
     }
@@ -6308,31 +6311,31 @@ static void obj_checkload(struct char_data *ch, obj_vnum ovnum)
         lastroom_v = world[ZCMD2.arg3].number;
         lastroom_r = ZCMD2.arg3;
         if (ZCMD2.arg1 == (int)ornum)
-          send_to_char(ch, "  [%5d] %s (%d Max)\r\n", lastroom_v, world[lastroom_r].name,
+          send_to_char(ch, "  [%5" PRI_IDX "] %s (%d Max)\r\n", lastroom_v, world[lastroom_r].name,
                        ZCMD2.arg2);
         break;
       case 'P': /* object to object */
         if (ZCMD2.arg1 == (int)ornum)
-          send_to_char(ch, "  [%5d] %s (Put in another object [%d Max])\r\n", lastroom_v,
+          send_to_char(ch, "  [%5" PRI_IDX "] %s (Put in another object [%d Max])\r\n", lastroom_v,
                        world[lastroom_r].name, ZCMD2.arg2);
         break;
       case 'G': /* obj_to_char */
         if (ZCMD2.arg1 == (int)ornum)
-          send_to_char(ch, "  [%5d] %s (Given to %s [%d][%d Max])\r\n", lastroom_v,
-                       world[lastroom_r].name, mob_proto[lastmob_r].player.short_descr,
+          send_to_char(ch, "  [%5" PRI_IDX "] %s (Given to %s [%" PRI_IDX "][%d Max])\r\n",
+                       lastroom_v, world[lastroom_r].name, mob_proto[lastmob_r].player.short_descr,
                        mob_index[lastmob_r].vnum, ZCMD2.arg2);
         break;
       case 'E': /* object to equipment list */
         if (ZCMD2.arg1 == (int)ornum)
-          send_to_char(ch, "  [%5d] %s (Equipped to %s [%d][%d Max])\r\n", lastroom_v,
-                       world[lastroom_r].name, mob_proto[lastmob_r].player.short_descr,
+          send_to_char(ch, "  [%5" PRI_IDX "] %s (Equipped to %s [%" PRI_IDX "][%d Max])\r\n",
+                       lastroom_v, world[lastroom_r].name, mob_proto[lastmob_r].player.short_descr,
                        mob_index[lastmob_r].vnum, ZCMD2.arg2);
         break;
       case 'R': /* rem obj from room */
         lastroom_v = world[ZCMD2.arg1].number;
         lastroom_r = ZCMD2.arg1;
         if (ZCMD2.arg2 == (int)ornum)
-          send_to_char(ch, "  [%5d] %s (Removed from room)\r\n", lastroom_v,
+          send_to_char(ch, "  [%5" PRI_IDX "] %s (Removed from room)\r\n", lastroom_v,
                        world[lastroom_r].name);
         break;
       } /* switch */
@@ -6399,19 +6402,22 @@ static void trg_checkload(struct char_data *ch, trig_vnum tvnum)
           break;
         if (ZCMD2.arg1 == MOB_TRIGGER)
         {
-          send_to_char(ch, "mob [%5d] %-60s (zedit room %5d)\r\n", mob_index[lastmob_r].vnum,
-                       mob_proto[lastmob_r].player.short_descr, lastroom_v);
+          send_to_char(ch, "mob [%5" PRI_IDX "] %-60s (zedit room %5" PRI_IDX ")\r\n",
+                       mob_index[lastmob_r].vnum, mob_proto[lastmob_r].player.short_descr,
+                       lastroom_v);
           found = 1;
         }
         else if (ZCMD2.arg1 == OBJ_TRIGGER)
         {
-          send_to_char(ch, "obj [%5d] %-60s  (zedit room %d)\r\n", obj_index[lastobj_r].vnum,
-                       obj_proto[lastobj_r].short_description, lastroom_v);
+          send_to_char(ch, "obj [%5" PRI_IDX "] %-60s  (zedit room %" PRI_IDX ")\r\n",
+                       obj_index[lastobj_r].vnum, obj_proto[lastobj_r].short_description,
+                       lastroom_v);
           found = 1;
         }
         else if (ZCMD2.arg1 == WLD_TRIGGER)
         {
-          send_to_char(ch, "room [%5d] %-60s (zedit)\r\n", lastroom_v, world[lastroom_r].name);
+          send_to_char(ch, "room [%5" PRI_IDX "] %-60s (zedit)\r\n", lastroom_v,
+                       world[lastroom_r].name);
           found = 1;
         }
         break;
@@ -6427,7 +6433,8 @@ static void trg_checkload(struct char_data *ch, trig_vnum tvnum)
     for (tpl = mob_proto[i].proto_script; tpl; tpl = tpl->next)
       if (tpl->vnum == (int)tvnum)
       {
-        send_to_char(ch, "mob [%5d] %s\r\n", mob_index[i].vnum, mob_proto[i].player.short_descr);
+        send_to_char(ch, "mob [%5" PRI_IDX "] %s\r\n", mob_index[i].vnum,
+                     mob_proto[i].player.short_descr);
         found = 1;
       }
   }
@@ -6440,7 +6447,8 @@ static void trg_checkload(struct char_data *ch, trig_vnum tvnum)
     for (tpl = obj_proto[j].proto_script; tpl; tpl = tpl->next)
       if (tpl->vnum == (int)tvnum)
       {
-        send_to_char(ch, "obj [%5d] %s\r\n", obj_index[j].vnum, obj_proto[j].short_description);
+        send_to_char(ch, "obj [%5" PRI_IDX "] %s\r\n", obj_index[j].vnum,
+                     obj_proto[j].short_description);
         found = 1;
       }
   }
@@ -6453,7 +6461,7 @@ static void trg_checkload(struct char_data *ch, trig_vnum tvnum)
     for (tpl = world[k].proto_script; tpl; tpl = tpl->next)
       if (tpl->vnum == (int)tvnum)
       {
-        send_to_char(ch, "room[%5d] %s\r\n", world[k].number, world[k].name);
+        send_to_char(ch, "room[%5" PRI_IDX "] %s\r\n", world[k].number, world[k].name);
         found = 1;
       }
   }
@@ -6573,7 +6581,6 @@ static bool validate_copyover_environment(const char *copyover_executable)
   unlink("copyover.test");
 
   /* Check database connection */
-  extern MYSQL *conn;
   if (!MYSQL_PING_CONN(conn))
   {
     log("SYSERR: copyover: Database connection is not active");
@@ -6611,7 +6618,7 @@ void perform_do_copyover()
   /* Check if copyover is already in progress */
   if (copyover_status != COPYOVER_NONE)
   {
-    log("SYSERR: copyover: Copyover already in progress (state=%d)", copyover_status);
+    log("SYSERR: copyover: Copyover already in progress (state=%u)", copyover_status);
     log_copyover_phase("FAILED", "Copyover already in progress");
     close_copyover_diagnostics(0);
     /* Notify all players */
@@ -6915,8 +6922,8 @@ void perform_do_copyover()
       /* validate and save och */
       if (!VALID_ROOM_RNUM(IN_ROOM(och)))
       {
-        log("SYSERR: copyover: Player %s has invalid room %d, moving to void", GET_NAME(och),
-            IN_ROOM(och));
+        log("SYSERR: copyover: Player %s has invalid room %" PRI_IDX ", moving to void",
+            GET_NAME(och), IN_ROOM(och));
         char_from_room(och);
         char_to_room_cause(och, 0, NULL, DOMAIN_RELOCATION_RESTORE, -1); /* Move to void/room 0 */
       }
@@ -6926,7 +6933,7 @@ void perform_do_copyover()
       save_char(och, 0);
       saved_count++;
 
-      COPYOVER_DEBUG("copyover: Saved player %s (room %d, desc %d)", GET_NAME(och),
+      COPYOVER_DEBUG("copyover: Saved player %s (room %" PRI_IDX ", desc %d)", GET_NAME(och),
                      GET_ROOM_VNUM(IN_ROOM(och)), d->descriptor);
     }
   } /* end descriptor loop */
@@ -7109,9 +7116,6 @@ void perform_do_copyover()
   /* } */
 
   /* Close database connections */
-  extern void disconnect_from_mysql(void);
-  extern void disconnect_from_mysql2(void);
-  extern void disconnect_from_mysql3(void);
   disconnect_from_mysql();
   disconnect_from_mysql2();
   disconnect_from_mysql3();
@@ -7123,17 +7127,14 @@ void perform_do_copyover()
 
   /* Stop worker ingress before detaching the main-thread reactor.  This joins
    * the I3 worker and closes its gateway socket and wake pipe before exec. */
-  extern void i3_shutdown(void);
   i3_shutdown();
   COPYOVER_DEBUG("copyover: I3 worker and wake descriptors shut down for copyover");
 
   /* Shutdown Discord bridge before copyover */
-  extern void shutdown_discord_bridge(void);
   shutdown_discord_bridge();
   COPYOVER_DEBUG("copyover: Discord bridge shut down for copyover");
 
   /* Shutdown Terrain API bridge before copyover */
-  extern void stop_terrain_api_server(void);
   stop_terrain_api_server();
   COPYOVER_DEBUG("copyover: Terrain API bridge shut down for copyover");
 
@@ -7609,8 +7610,9 @@ ACMD(do_zpurge)
       if (room != NOWHERE)
         purge_room(room);
     }
-    send_to_char(ch, "Purged zone #%d: %s.\r\n", zone_table[zone].number, zone_table[zone].name);
-    mudlog(NRM, MAX(LVL_GRSTAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) %s purged zone %d (%s)",
+    send_to_char(ch, "Purged zone #%" PRI_IDX ": %s.\r\n", zone_table[zone].number,
+                 zone_table[zone].name);
+    mudlog(NRM, MAX(LVL_GRSTAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) %s purged zone %" PRI_IDX " (%s)",
            GET_NAME(ch), zone_table[zone].number, zone_table[zone].name);
   }
   else
@@ -8057,7 +8059,7 @@ ACMD(do_zlock)
           SET_BIT_AR(ZONE_FLAGS(zn), ZONE_NOBUILD);
           if (save_zone(zn))
           {
-            log("(GC) %s has locked zone %d", GET_NAME(ch), zone_table[zn].number);
+            log("(GC) %s has locked zone %" PRI_IDX, GET_NAME(ch), zone_table[zn].number);
           }
           else
           {
@@ -8076,7 +8078,7 @@ ACMD(do_zlock)
           SET_BIT_AR(ZONE_FLAGS(zn), ZONE_NOBUILD);
           if (save_zone(zn))
           {
-            log("(GC) %s has locked zone %d", GET_NAME(ch), zone_table[zn].number);
+            log("(GC) %s has locked zone %" PRI_IDX, GET_NAME(ch), zone_table[zn].number);
           }
           else
           {
@@ -8109,9 +8111,9 @@ ACMD(do_zlock)
         if (!counter)
           send_to_char(ch, "Locked Zones\r\n");
 
-        send_to_char(ch, "[%s%3d%s] %s%-*s %s%-1s%s\r\n", QGRN, zone_table[zn].number, QNRM, QCYN,
-                     count_color_chars(zone_table[zn].name) + 30, zone_table[zn].name, QYEL,
-                     zone_table[zn].builders ? zone_table[zn].builders : "None.", QNRM);
+        send_to_char(ch, "[%s%3" PRI_IDX "%s] %s%-*s %s%-1s%s\r\n", QGRN, zone_table[zn].number,
+                     QNRM, QCYN, count_color_chars(zone_table[zn].name) + 30, zone_table[zn].name,
+                     QYEL, zone_table[zn].builders ? zone_table[zn].builders : "None.", QNRM);
         counter++;
       }
     }
@@ -8144,13 +8146,13 @@ ACMD(do_zlock)
   /* If we get here, player has typed 'zlock <num>' */
   if (ZONE_FLAGGED(zn, ZONE_NOBUILD))
   {
-    send_to_char(ch, "Zone %d is already locked!\r\n", znvnum);
+    send_to_char(ch, "Zone %" PRI_IDX " is already locked!\r\n", znvnum);
     return;
   }
   SET_BIT_AR(ZONE_FLAGS(zn), ZONE_NOBUILD);
   if (save_zone(zn))
   {
-    mudlog(NRM, LVL_GRSTAFF, TRUE, "(GC) %s has locked zone %d", GET_NAME(ch), znvnum);
+    mudlog(NRM, LVL_GRSTAFF, TRUE, "(GC) %s has locked zone %" PRI_IDX, GET_NAME(ch), znvnum);
   }
   else
   {
@@ -8192,7 +8194,7 @@ ACMD(do_zunlock)
         REMOVE_BIT_AR(ZONE_FLAGS(zn), ZONE_NOBUILD);
         if (save_zone(zn))
         {
-          log("(GC) %s has unlocked zone %d", GET_NAME(ch), zone_table[zn].number);
+          log("(GC) %s has unlocked zone %" PRI_IDX, GET_NAME(ch), zone_table[zn].number);
         }
         else
         {
@@ -8224,9 +8226,9 @@ ACMD(do_zunlock)
         if (!counter)
           send_to_char(ch, "Unlocked Zones\r\n");
 
-        send_to_char(ch, "[%s%3d%s] %s%-*s %s%-1s%s\r\n", QGRN, zone_table[zn].number, QNRM, QCYN,
-                     count_color_chars(zone_table[zn].name) + 30, zone_table[zn].name, QYEL,
-                     zone_table[zn].builders ? zone_table[zn].builders : "None.", QNRM);
+        send_to_char(ch, "[%s%3" PRI_IDX "%s] %s%-*s %s%-1s%s\r\n", QGRN, zone_table[zn].number,
+                     QNRM, QCYN, count_color_chars(zone_table[zn].name) + 30, zone_table[zn].name,
+                     QYEL, zone_table[zn].builders ? zone_table[zn].builders : "None.", QNRM);
         counter++;
       }
     }
@@ -8259,13 +8261,13 @@ ACMD(do_zunlock)
   /* If we get here, player has typed 'zunlock <num>' */
   if (!ZONE_FLAGGED(zn, ZONE_NOBUILD))
   {
-    send_to_char(ch, "Zone %d is already unlocked!\r\n", znvnum);
+    send_to_char(ch, "Zone %" PRI_IDX " is already unlocked!\r\n", znvnum);
     return;
   }
   REMOVE_BIT_AR(ZONE_FLAGS(zn), ZONE_NOBUILD);
   if (save_zone(zn))
   {
-    mudlog(NRM, LVL_GRSTAFF, TRUE, "(GC) %s has unlocked zone %d", GET_NAME(ch), znvnum);
+    mudlog(NRM, LVL_GRSTAFF, TRUE, "(GC) %s has unlocked zone %" PRI_IDX, GET_NAME(ch), znvnum);
   }
   else
   {
@@ -8629,7 +8631,7 @@ ACMD(do_hlqlist)
   if (!*buf1)
   {
     bottom = zone_table[world[IN_ROOM(ch)].zone].bot;
-    send_to_char(ch, "Bottom:  %d\r\n", bottom);
+    send_to_char(ch, "Bottom:  %" PRI_IDX "\r\n", bottom);
   } /* if buf1 is not a number send them back */
   else if (!isdigit(*buf1))
   {
@@ -8645,7 +8647,7 @@ ACMD(do_hlqlist)
   if (!*buf2)
   {
     top = zone_table[world[IN_ROOM(ch)].zone].top;
-    send_to_char(ch, "Top:  %d\r\n", top);
+    send_to_char(ch, "Top:  %" PRI_IDX "\r\n", top);
   } /* if buf2 is not a number send them back */
   else if (!isdigit(*buf2))
   {
@@ -8676,7 +8678,7 @@ ACMD(do_hlqlist)
   }
 
   /* start engine */
-  send_to_char(ch, "Quest Listings : From %d to %d\r\n", bottom, top);
+  send_to_char(ch, "Quest Listings : From %" PRI_IDX " to %" PRI_IDX "\r\n", bottom, top);
   for (i = bottom; i <= top; i++)
   {
     if ((realnum = real_mobile(i)) != NOBODY)
@@ -8698,7 +8700,7 @@ ACMD(do_hlqlist)
                 mob_proto[realnum].player.short_descr, temp_num, num_found);
          */
 
-        len += snprintf(buf + len, sizeof(buf) - len, "[%5d] %-40s %d/%d\r\n", i,
+        len += snprintf(buf + len, sizeof(buf) - len, "[%5" PRI_IDX "] %-40s %d/%d\r\n", i,
                         mob_proto[realnum].player.short_descr, temp_num, num_found);
 
         /* Large buf can't hold that much memory so cut off list */
@@ -8743,8 +8745,8 @@ ACMD(do_singlefile)
           num_exits++;
 
       snprintf(exits, sizeof(exits), "%d   ", num_exits);
-      snprintf(buf, sizeof(buf), "[%5d] %-*s \tgExits: \tc%4s %s\tn\r\n", world[room].number,
-               50 + color_count(world[room].name), world[room].name,
+      snprintf(buf, sizeof(buf), "[%5" PRI_IDX "] %-*s \tgExits: \tc%4s %s\tn\r\n",
+               world[room].number, 50 + color_count(world[room].name), world[room].name,
                num_exits == 0 ? "NONE" : exits, num_exits != 2 ? "\tRERROR!\tn" : "");
 
       send_to_char(ch, "%s", buf);
@@ -8923,7 +8925,7 @@ ACMD(do_genmap)
   }
   vnum = (region_vnum)parsed_vnum;
 
-  /*debug*/ send_to_char(ch, "Debug- dir: %d, vnum: %d, name: %s\r\n", dir, vnum, name);
+  /*debug*/ send_to_char(ch, "Debug- dir: %d, vnum: %" PRI_IDX ", name: %s\r\n", dir, vnum, name);
 
   generate_river(ch, dir, vnum, name);
   load_paths();
@@ -9693,7 +9695,7 @@ ACMD(do_eqrating)
 
     if (i <= 0 || i > (int)top_of_zone_table)
     {
-      send_to_char(ch, "Zone %d does not exist.\r\n", zone);
+      send_to_char(ch, "Zone %" PRI_IDX " does not exist.\r\n", zone);
       return;
     }
 
@@ -9932,8 +9934,8 @@ ACMD(do_findmagic)
         if (hits == 1)
           send_to_char(ch, "Showing %ss with the '%s' spell\r\nNum  VNUM    Name\r\n", objname,
                        skill_name(spellnum));
-        send_to_char(ch, "%4d %s[%s%5d%s]%s %s%s\r\n", hits, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM),
-                     obj_index[num].vnum, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM),
+        send_to_char(ch, "%4d %s[%s%5" PRI_IDX "%s]%s %s%s\r\n", hits, CCCYN(ch, C_NRM),
+                     CCYEL(ch, C_NRM), obj_index[num].vnum, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM),
                      obj->short_description, CCNRM(ch, C_NRM));
       }
     }
@@ -9947,7 +9949,7 @@ ACMD(do_findmagic)
         obj = read_object_reason(r_num, REAL, PERF_ENTITY_STAFF);
         if (hits == 1)
           send_to_char(ch, "Num  VNUM   Name\r\n");
-        send_to_char(ch, "%4d %6d %s (%d charges)\r\n", hits, obj_index[num].vnum,
+        send_to_char(ch, "%4d %6" PRI_IDX " %s (%d charges)\r\n", hits, obj_index[num].vnum,
                      obj->short_description, obj_proto[num].obj_flags.value[1]);
       }
     }
@@ -10351,7 +10353,7 @@ ACMD(do_players)
 
     if (STATE(d) == CON_PLAYING)
     {
-      snprintf(buf, sizeof(buf), "%-15.15s %-15.15s %-3d %-15.15s %-7d %-7.7s %.1024s\r\n",
+      snprintf(buf, sizeof(buf), "%-15.15s %-15.15s %-3d %-15.15s %-7u %-7.7s %.1024s\r\n",
                GET_NAME(d->character),
                (d && d->account && d->account->name) ? d->account->name : "None",
                GET_LEVEL(d->character), buf3, GET_ROOM_VNUM(IN_ROOM(d->character)),
@@ -10431,7 +10433,7 @@ ACMD(do_copyroom)
 
   send_to_char(ch,
                "You have copied this room with the name, description, sector and room flags of "
-               "room vnum %d.\r\n",
+               "room vnum %u.\r\n",
                GET_ROOM_VNUM(source_room));
 
   add_to_save_list(zone_table[world[target_room].zone].number, SL_WLD);
@@ -11277,7 +11279,7 @@ ACMD(do_objcheck)
       invalid_rnums++;
       if (detail_count < 20)
       {
-        send_to_char(ch, "INVALID: rnum %d, object '%s'\r\n", rnum,
+        send_to_char(ch, "INVALID: rnum %" PRI_IDX ", object '%s'\r\n", rnum,
                      obj->short_description ? obj->short_description : "UNDEFINED");
         detail_count++;
       }
@@ -11295,7 +11297,8 @@ ACMD(do_objcheck)
       mismatches++;
       if (detail_count < 100)
       {
-        send_to_char(ch, "MISMATCH: Object %d (%s) - Index count: %d, Actual count: %d\r\n",
+        send_to_char(ch,
+                     "MISMATCH: Object %" PRI_IDX " (%s) - Index count: %d, Actual count: %d\r\n",
                      obj_index[i].vnum,
                      obj_proto[i].short_description ? obj_proto[i].short_description : "UNDEFINED",
                      obj_index[i].number, actual_count[i]);

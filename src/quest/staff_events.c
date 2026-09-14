@@ -856,7 +856,8 @@ void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord)
   /* Validate location bounds before accessing world array */
   if (location == NOWHERE || location > top_of_world)
   {
-    log("SYSERR: Invalid location %d in wild_mobile_loader for mob vnum %d", location, mobile_vnum);
+    log("SYSERR: Invalid location %" PRI_IDX " in wild_mobile_loader for mob vnum %d", location,
+        mobile_vnum);
     extract_char(mob); /* Clean up created mob to prevent memory leak */
     return;
   }

@@ -71,9 +71,7 @@ static float pnoise(float x, float y, int noise_type)
 #define CRYSTAL NOISE_CRYSTAL
 
 /* External functions from wilderness.c */
-extern int get_elevation(int map, int x, int y);
 extern int get_temperature(int map, int x, int y);
-extern int get_sector_type(int elevation, int temperature, int moisture);
 
 /* Safe macros for wilderness map access with bounds checking */
 #define SAFE_MAP_BOUNDS(x, y) ((x) >= 0 && (x) < MAP_WIDTH && (y) >= 0 && (y) < MAP_HEIGHT)

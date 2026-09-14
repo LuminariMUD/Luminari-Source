@@ -17,8 +17,6 @@
 #include "vessels.h"
 #include "mysql.h"
 
-extern MYSQL *conn;
-extern bool mysql_available;
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
 /* Helm permits ride in ship_crew_roster as crew_role='captain' rows with

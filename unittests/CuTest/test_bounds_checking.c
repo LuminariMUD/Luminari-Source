@@ -16,7 +16,6 @@
 #include "../../src/wilderness/wilderness.h"
 
 /* External function declaration */
-extern const char *get_wearoff(int abilnum);
 
 /* Test for get_wearoff bounds checking */
 void Test_get_wearoff_bounds_checking(CuTest *tc)

@@ -4189,11 +4189,11 @@ static const char *GetRGBColour(bool_t abBackground, int aRed, int aGreen, int a
   int ColVal = 16 + (aRed * 36) + (aGreen * 6) + aBlue;
   int Written;
 
-  Written =
-      snprintf(Result, sizeof(Result), "\033[%c8;5;%c%c%cm", '3' + abBackground, /* Background */
-               '0' + (ColVal / 100),                                             /* Red        */
-               '0' + ((ColVal % 100) / 10),                                      /* Green      */
-               '0' + (ColVal % 10));                                             /* Blue       */
+  Written = snprintf(Result, sizeof(Result), "\033[%c8;5;%c%c%cm",
+                     '3' + (int)abBackground,     /* Background */
+                     '0' + (ColVal / 100),        /* Red        */
+                     '0' + ((ColVal % 100) / 10), /* Green      */
+                     '0' + (ColVal % 10));        /* Blue       */
   if (Written < 0 || (size_t)Written >= sizeof(Result))
     return s_Clean;
   return Result;

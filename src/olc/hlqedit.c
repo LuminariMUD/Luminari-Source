@@ -353,7 +353,7 @@ int hlqedit_save_to_disk(zone_rnum zone_num)
   }
 
   fprintf(fp, "$~\n");
-  snprintf(buf2, sizeof(buf2), "%s/%d.hlq", HLQST_PREFIX, zone_table[zone_num].number);
+  snprintf(buf2, sizeof(buf2), "%s/%" PRI_IDX ".hlq", HLQST_PREFIX, zone_table[zone_num].number);
   if (!finish_file_save(fp, buf, buf2))
     return FALSE;
 
@@ -455,7 +455,7 @@ void hlqedit_disp_menu(struct descriptor_data *d)
     OLC_QUESTENTRY(d) = 0;
   }
 
-  snprintf(buf, sizeof(buf), "\r\n---- Quests for %s (vnum: %d)\r\n", GET_NAME(OLC_MOB(d)),
+  snprintf(buf, sizeof(buf), "\r\n---- Quests for %s (vnum: %u)\r\n", GET_NAME(OLC_MOB(d)),
            GET_MOB_VNUM(OLC_MOB(d)));
   send_to_char(d->character, "%s", buf);
 
@@ -544,8 +544,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     case 'y':
     case 'Y':
       saved_to_disk = hlqedit_save_internally(d);
-      snprintf(buf, sizeof(buf), "OLC: %s edits hl quest %d%s.", GET_NAME(d->character), OLC_NUM(d),
-               saved_to_disk ? "" : " (disk save failed)");
+      snprintf(buf, sizeof(buf), "OLC: %s edits hl quest %" PRI_IDX "%s.", GET_NAME(d->character),
+               OLC_NUM(d), saved_to_disk ? "" : " (disk save failed)");
       log("%s", buf);
       OLC_MOB(d) = 0;
       cleanup_olc(d, CLEANUP_STRUCTS);

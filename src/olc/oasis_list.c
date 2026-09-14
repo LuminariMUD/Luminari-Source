@@ -803,13 +803,13 @@ void perform_obj_perms_list(struct char_data *ch, char *arg)
     if (obj && OBJAFF_FLAGGED(obj, flag_num))
     {
       ov = obj_index[num].vnum;
-      tmp_len = snprintf(
-          buf + len, sizeof(buf) - len,
-          "%s%4d%s) %s[%s%10" PRI_IDX "%s] %s(%s%10" PRI_IDX "%s)%s %-*s%s [%s]%s%s\r\n", QGRN,
-          ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number, QNRM, QCYN,
-          42 + count_color_chars(obj_proto[num].short_description),
-          obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag],
-          QNRM, obj_proto[num].proto_script ? " [TRIG]" : "");
+      tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                         "%s%4d%s) %s[%s%10" PRI_IDX "%s] %s(%s%10d%s)%s %-*s%s [%s]%s%s\r\n", QGRN,
+                         ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number,
+                         QNRM, QCYN, 42 + count_color_chars(obj_proto[num].short_description),
+                         obj_proto[num].short_description, QYEL,
+                         item_types[obj_proto[num].obj_flags.type_flag], QNRM,
+                         obj_proto[num].proto_script ? " [TRIG]" : "");
       len += tmp_len;
       if (len >= (MAX_STRING_LENGTH - SMALL_STRING))
         break; /* zusuk put this check here */
@@ -850,13 +850,13 @@ void perform_obj_perms2_list(struct char_data *ch, char *arg)
     if (obj && OBJAFF2_FLAGGED(obj, flag_num))
     {
       ov = obj_index[num].vnum;
-      tmp_len = snprintf(
-          buf + len, sizeof(buf) - len,
-          "%s%4d%s) %s[%s%10" PRI_IDX "%s] %s(%s%10" PRI_IDX "%s)%s %-*s%s [%s]%s%s\r\n", QGRN,
-          ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number, QNRM, QCYN,
-          42 + count_color_chars(obj_proto[num].short_description),
-          obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag],
-          QNRM, obj_proto[num].proto_script ? " [TRIG]" : "");
+      tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                         "%s%4d%s) %s[%s%10" PRI_IDX "%s] %s(%s%10d%s)%s %-*s%s [%s]%s%s\r\n", QGRN,
+                         ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number,
+                         QNRM, QCYN, 42 + count_color_chars(obj_proto[num].short_description),
+                         obj_proto[num].short_description, QYEL,
+                         item_types[obj_proto[num].obj_flags.type_flag], QNRM,
+                         obj_proto[num].proto_script ? " [TRIG]" : "");
       len += tmp_len;
       if (len >= (MAX_STRING_LENGTH - SMALL_STRING))
         break; /* zusuk put this check here */
@@ -884,13 +884,13 @@ void perform_obj_name_list(struct char_data *ch, char *arg)
     if (is_name(arg, obj_proto[num].name))
     {
       ov = obj_index[num].vnum;
-      tmp_len = snprintf(
-          buf + len, sizeof(buf) - len,
-          "%s%4d%s) %s[%s%10" PRI_IDX "%s] %s(%s%10" PRI_IDX "%s)%s %-*s%s [%s]%s%s\r\n", QGRN,
-          ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number, QNRM, QCYN,
-          42 + count_color_chars(obj_proto[num].short_description),
-          obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag],
-          QNRM, obj_proto[num].proto_script ? " [TRIG]" : "");
+      tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                         "%s%4d%s) %s[%s%10" PRI_IDX "%s] %s(%s%10d%s)%s %-*s%s [%s]%s%s\r\n", QGRN,
+                         ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number,
+                         QNRM, QCYN, 42 + count_color_chars(obj_proto[num].short_description),
+                         obj_proto[num].short_description, QYEL,
+                         item_types[obj_proto[num].obj_flags.type_flag], QNRM,
+                         obj_proto[num].proto_script ? " [TRIG]" : "");
       len += tmp_len;
       if (len >= (MAX_STRING_LENGTH - SMALL_STRING))
         break; /* zusuk put this check here */

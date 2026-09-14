@@ -82,7 +82,6 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int attackty
            int attack_type);
 void death_cry(struct char_data *ch);
 void die(struct char_data *ch, struct char_data *killer);
-void free_messages(void);
 int dam_killed_vict(struct char_data *ch, struct char_data *victim);
 void update_pos(struct char_data *victim);
 int attack_roll(struct char_data *ch, struct char_data *victim, int attack_type, int is_touch,
@@ -96,7 +95,6 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
         int attack_type);
 bool combat_readied_attack_allowed(struct char_data *ch, struct char_data *victim);
 int combat_readied_attack(struct char_data *ch, struct char_data *victim);
-void load_messages(void);
 void perform_violence(struct char_data *ch, int phase);
 void bloodlust_round_check(struct char_data *ch);
 bool bloodlust_holds_the_fight(struct char_data *ch);

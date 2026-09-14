@@ -1119,7 +1119,6 @@ int outcast_ship_look_out_room(int room, struct char_data *ch, int cmd, char *ar
 /* COMMAND PROTOTYPES (ADVANCED PLACEHOLDERS)                                */
 /* ========================================================================= */
 /* Future commands - not yet implemented */
-ACMD_DECL(do_board);               /* Board a vessel */
 /* ACMD_DECL(do_pilot); */         /* Pilot a vessel */
 /* ACMD_DECL(do_vessel_status); */ /* Show vessel status */
 
@@ -2127,9 +2126,5 @@ ACMD_DECL(do_unloadvehicle); /* Unload vehicle from a vessel (S0205) */
 /* UNIFIED TRANSPORT COMMAND PROTOTYPES (Phase 02, Session 06)                */
 /* ========================================================================= */
 
-ACMD_DECL(do_transport_enter); /* Unified entry (vehicle/vessel) */
-ACMD_DECL(do_exit_transport);  /* Unified exit (vehicle/vessel) */
-ACMD_DECL(do_transport_go);    /* Unified movement (vehicle/vessel) */
-ACMD_DECL(do_transportstatus); /* Unified status display (vehicle/vessel) */
 
 #endif /* _VESSELS_H_ */

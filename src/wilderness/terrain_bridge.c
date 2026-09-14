@@ -43,8 +43,6 @@
 /* External declarations for sector types */
 extern const char *sector_types[];
 extern const char *dirs[];
-extern struct zone_data *zone_table;
-extern zone_rnum top_of_zone_table;
 
 /* External declarations for wilderness functions */
 extern int get_moisture(int map, int x, int y);

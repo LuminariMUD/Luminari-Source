@@ -121,7 +121,6 @@ void display_evolution_requirements(struct char_data *ch, int evo);
 bool display_evolution_info(struct char_data *ch, const char *evoname);
 int find_evolution_num(const char *name);
 void assign_evolutions(void);
-bool display_evolution_info(struct char_data *ch, const char *evoname);
 bool study_qualifies_for_evolution(struct char_data *ch, int evolution, bool is_pc);
 int num_free_evolution_points(struct char_data *ch);
 bool is_eidolon_base_form_evolution(int form, int evo);

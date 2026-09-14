@@ -81,8 +81,6 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
 /* do_remove utility functions */
 /* do_wear utility functions */
 static int hands_have(struct char_data *ch);
-int hands_used(struct char_data *ch);
-int hands_available(struct char_data *ch);
 static void wear_message(struct char_data *ch, struct obj_data *obj, int where);
 
 int can_lore_target(struct char_data *ch, struct char_data *target_ch, struct obj_data *target_obj,
@@ -1694,7 +1692,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
   if (mode == ITEM_STAT_MODE_IMMORTAL)
   {
     text_line(ch, "\tcLocation Information\tn", line_length, '-', '-');
-    send_to_char(ch, "In room: %d (%s), ", GET_ROOM_VNUM(IN_ROOM(j)),
+    send_to_char(ch, "In room: %u (%s), ", GET_ROOM_VNUM(IN_ROOM(j)),
                  IN_ROOM(j) == NOWHERE ? "Nowhere" : world[IN_ROOM(j)].name);
     /* In order to make it this far, we must already be able to see the character
      * holding the object. Therefore, we do not need CAN_SEE(). */
@@ -3310,7 +3308,7 @@ void name_from_drinkcon(struct obj_data *obj)
   liqname = drinknames[DRINK_CON_TYPE(obj)];
   if (!isname(liqname, obj->name))
   {
-    log("SYSERR: Can't remove liquid '%s' from '%s' (%d) item.", liqname, obj->name,
+    log("SYSERR: Can't remove liquid '%s' from '%s' (%" PRI_IDX ") item.", liqname, obj->name,
         obj->item_number);
     /* SYSERR_DESC: From name_from_drinkcon(), this error comes about if the
      * object noted (by keywords and item vnum) does not contain the liquid
@@ -5015,8 +5013,8 @@ ACMD(do_wear)
                        GET_OBJ_SHORT(obj));
         else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
                  (GET_CLAN(ch) == NO_CLAN || GET_OBJ_CLAN(obj) != GET_CLAN(ch)))
-          send_to_char(ch, "You are in clan %d, This belongs to clan %d.\r\n", GET_CLAN(ch),
-                       GET_OBJ_CLAN(obj));
+          send_to_char(ch, "You are in clan %" PRI_IDX ", This belongs to clan %u.\r\n",
+                       GET_CLAN(ch), GET_OBJ_CLAN(obj));
         else
         {
           items_worn++; /* counting how many items we equipped */
@@ -5044,7 +5042,7 @@ ACMD(do_wear)
                    GET_OBJ_SHORT(obj));
     else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
              (GET_CLAN(ch) == NO_CLAN || GET_OBJ_CLAN(obj) != GET_CLAN(ch)))
-      send_to_char(ch, "You are in clan %d, That belongs to clan %d.\r\n", GET_CLAN(ch),
+      send_to_char(ch, "You are in clan %" PRI_IDX ", That belongs to clan %u.\r\n", GET_CLAN(ch),
                    GET_OBJ_CLAN(obj));
     else
     { /* engine! */
@@ -5071,7 +5069,7 @@ ACMD(do_wear)
                    GET_OBJ_SHORT(obj));
     else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
              (GET_CLAN(ch) == NO_CLAN || GET_OBJ_CLAN(obj) != GET_CLAN(ch)))
-      send_to_char(ch, "You are in clan %d, That belongs to clan %d.\r\n", GET_CLAN(ch),
+      send_to_char(ch, "You are in clan %" PRI_IDX ", That belongs to clan %u.\r\n", GET_CLAN(ch),
                    GET_OBJ_CLAN(obj));
     else
     {
@@ -5675,7 +5673,7 @@ ACMD(do_loot)
     snprintf(query, sizeof(query),
              "SELECT last_loot, DATE_ADD(last_loot, INTERVAL 4 HOUR) as curr_time, "
              "DATE_ADD(last_loot, INTERVAL 4 HOUR) as reloot "
-             "FROM loot_chests WHERE chest_vnum='%d' AND character_name='%s' AND "
+             "FROM loot_chests WHERE chest_vnum='%" PRI_IDX "' AND character_name='%s' AND "
              "DATE_ADD(last_loot, INTERVAL 4 HOUR) > NOW()",
              vnum, escaped_name_select);
     free(escaped_name_select);
@@ -5718,13 +5716,13 @@ ACMD(do_loot)
       return;
     }
     snprintf(query, sizeof(query),
-             "DELETE FROM loot_chests WHERE chest_vnum='%d' AND character_name='%s'", vnum,
-             escaped_name);
+             "DELETE FROM loot_chests WHERE chest_vnum='%" PRI_IDX "' AND character_name='%s'",
+             vnum, escaped_name);
     mysql_query(conn, query);
 
     snprintf(query, sizeof(query),
              "INSERT INTO loot_chests (loot_id, chest_vnum, character_name, last_loot) "
-             "VALUES(NULL,'%d','%s',NOW())",
+             "VALUES(NULL,'%" PRI_IDX "','%s',NOW())",
              vnum, escaped_name);
     free(escaped_name);
     mysql_query(conn, query);

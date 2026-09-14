@@ -25,7 +25,6 @@
 #define MOB_SPELL_SLOT_RECOVERY_SECONDS 300
 
 /* External functions */
-extern int compute_slots_by_circle(struct char_data *ch, int class_num, int circle);
 
 /**
  * Calculate the spell circle for a given spell and class.

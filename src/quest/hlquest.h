@@ -64,7 +64,6 @@ int quest_location_vnum(struct quest_command *qcom);
 int quest_value_vnum(struct quest_command *qcom);
 void free_hlquest(struct char_data *ch);
 void free_hlquests(struct quest_entry *quest);
-void clear_hlquest(struct quest_entry *quest);
 void show_quest_to_player(struct char_data *ch, struct quest_entry *quest);
 void hlqedit_parse(struct descriptor_data *d, char *arg);
 void boot_the_quests(FILE *quest_f, char *filename, int rec_count);

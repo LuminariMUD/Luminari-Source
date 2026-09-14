@@ -218,10 +218,10 @@ ACMD(do_oasis_zedit)
   /* If we need to save, then save the zone. */
   if (save)
   {
-    send_to_char(ch, "Saving all zone information for zone %d.\r\n",
+    send_to_char(ch, "Saving all zone information for zone %" PRI_IDX ".\r\n",
                  zone_table[OLC_ZNUM(d)].number);
     mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE,
-           "OLC: %s saves zone information for zone %d.", GET_NAME(ch),
+           "OLC: %s saves zone information for zone %" PRI_IDX ".", GET_NAME(ch),
            zone_table[OLC_ZNUM(d)].number);
 
     /* Save the zone information to the zone file. */
@@ -251,8 +251,8 @@ ACMD(do_oasis_zedit)
   act("$n starts using OLC.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d", GET_NAME(ch),
-         zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %" PRI_IDX " allowed zone %d",
+         GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
 void perform_zone_restat(struct descriptor_data *d)
@@ -403,7 +403,7 @@ static void zedit_new_zone(struct char_data *ch, zone_vnum vzone_num, room_vnum 
 
   zedit_save_to_disk(result); /* save to disk .. */
 
-  mudlog(BRF, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s creates new zone #%d",
+  mudlog(BRF, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s creates new zone #%" PRI_IDX,
          GET_NAME(ch), vzone_num);
   write_to_output(ch->desc, "Zone created successfully.\r\n");
 }
@@ -417,7 +417,7 @@ static void zedit_save_internally(struct descriptor_data *d)
 
   if (room_num == NOWHERE)
   {
-    log("SYSERR: zedit_save_internally: OLC_NUM(d) room %d not found.", OLC_NUM(d));
+    log("SYSERR: zedit_save_internally: OLC_NUM(d) room %" PRI_IDX " not found.", OLC_NUM(d));
     return;
   }
 
@@ -529,13 +529,13 @@ static void zedit_disp_menu(struct descriptor_data *d)
   /* Menu header */
   send_to_char(
       d->character,
-      "Room number: %s%d%s Room zone: %s%d\r\n"
+      "Room number: %s%" PRI_IDX "%s Room zone: %s%" PRI_IDX "\r\n"
       "%s1%s) Builders       : %s%s\r\n"
       "%sZ%s) Zone name      : %s%s\r\n"
       "%sL%s) Lifespan       : %s%d minutes\r\n"
       "%sW%s) Show Weather   : %s%d (0 Off / 1 On)\r\n"
-      "%sB%s) Bottom of zone : %s%d\r\n"
-      "%sT%s) Top of zone    : %s%d\r\n"
+      "%sB%s) Bottom of zone : %s%" PRI_IDX "\r\n"
+      "%sT%s) Top of zone    : %s%" PRI_IDX "\r\n"
       "%sR%s) Reset Mode     : %s%s\r\n"
       "%sF%s) Zone Flags     : %s%s\r\n"
       "%sM%s) Level Range    : %s%s\r\n"
@@ -591,53 +591,54 @@ static void zedit_disp_menu(struct descriptor_data *d)
                         (MYCMD.arg1 > 1) ? "s" : "", MYCMD.arg2);
       break;
     case 'M':
-      write_to_output(d, "%sLoad %s [%s%d%s], Max (%s) : %d (%d%%)",
+      write_to_output(d, "%sLoad %s [%s%" PRI_IDX "%s], Max (%s) : %d (%d%%)",
                       buf1, // MYCMD.if_flag ? " then " : "",
                       mob_proto[MYCMD.arg1].player.short_descr, cyn, mob_index[MYCMD.arg1].vnum,
                       yel, (MYCMD.arg2 < 0 ? "in room" : "in game"), abs(MYCMD.arg2), MYCMD.arg4);
       break;
     case 'G':
-      write_to_output(d, "%sGive it %s [%s%d%s], Max : %d (%d%%)",
+      write_to_output(d, "%sGive it %s [%s%" PRI_IDX "%s], Max : %d (%d%%)",
                       buf1, // MYCMD.if_flag ? " then " : "",
                       obj_proto[MYCMD.arg1].short_description, cyn, obj_index[MYCMD.arg1].vnum, yel,
                       MYCMD.arg2, MYCMD.arg3);
       break;
     case 'O':
-      write_to_output(d, "%sLoad %s [%s%d%s], Max : %d (%d%%)",
+      write_to_output(d, "%sLoad %s [%s%" PRI_IDX "%s], Max : %d (%d%%)",
                       buf1, // MYCMD.if_flag ? " then " : "",
                       obj_proto[MYCMD.arg1].short_description, cyn, obj_index[MYCMD.arg1].vnum, yel,
                       MYCMD.arg2, MYCMD.arg4);
       break;
     case 'E':
-      write_to_output(d, "%sEquip with %s [%s%d%s], %s, Max : %d (%d%%)",
+      write_to_output(d, "%sEquip with %s [%s%" PRI_IDX "%s], %s, Max : %d (%d%%)",
                       buf1, // MYCMD.if_flag ? " then " : "",
                       obj_proto[MYCMD.arg1].short_description, cyn, obj_index[MYCMD.arg1].vnum, yel,
                       equipment_types[MYCMD.arg3], MYCMD.arg2, MYCMD.arg4);
       break;
     case 'P':
-      write_to_output(d, "%sPut %s [%s%d%s] in %s [%s%d%s], Max : %d (%d%%)",
+      write_to_output(d, "%sPut %s [%s%" PRI_IDX "%s] in %s [%s%" PRI_IDX "%s], Max : %d (%d%%)",
                       buf1, // MYCMD.if_flag ? " then " : "",
                       obj_proto[MYCMD.arg1].short_description, cyn, obj_index[MYCMD.arg1].vnum, yel,
                       obj_proto[MYCMD.arg3].short_description, cyn, obj_index[MYCMD.arg3].vnum, yel,
                       MYCMD.arg2, MYCMD.arg4);
       break;
     case 'R':
-      write_to_output(d, "%sRemove %s [%s%d%s] from room.",
+      write_to_output(d, "%sRemove %s [%s%" PRI_IDX "%s] from room.",
                       buf1, // MYCMD.if_flag ? " then " : "",
                       obj_proto[MYCMD.arg2].short_description, cyn, obj_index[MYCMD.arg2].vnum,
                       yel);
       break;
     case 'F':
-      write_to_output(d, "%sFollow mode %d: mobile [%s%d%s] follows [%s%d%s] in this room.", buf1,
-                      MYCMD.if_flag, cyn, mob_index[MYCMD.arg3].vnum, yel, cyn,
-                      mob_index[MYCMD.arg2].vnum, yel);
+      write_to_output(
+          d, "%sFollow mode %d: mobile [%s%" PRI_IDX "%s] follows [%s%" PRI_IDX "%s] in this room.",
+          buf1, MYCMD.if_flag, cyn, mob_index[MYCMD.arg3].vnum, yel, cyn,
+          mob_index[MYCMD.arg2].vnum, yel);
       break;
     case 'K':
       write_to_output(d, "%sSet legacy door %s bitmask %d (%d%%).", buf1, dirs[MYCMD.arg2],
                       MYCMD.arg3, MYCMD.arg4);
       break;
     case 'X':
-      write_to_output(d, "%sRemove mobile [%s%d%s] %s (%d%%).", buf1, cyn,
+      write_to_output(d, "%sRemove mobile [%s%" PRI_IDX "%s] %s (%d%%).", buf1, cyn,
                       mob_index[MYCMD.arg2].vnum, yel,
                       MYCMD.arg1 == -1 ? "globally" : "from this room", MYCMD.arg4);
       break;
@@ -712,7 +713,7 @@ static void zedit_disp_menu(struct descriptor_data *d)
       break;
     case 'T':
       write_to_output(
-          d, "%sAttach trigger %s%s%s [%s%d%s] to %s",
+          d, "%sAttach trigger %s%s%s [%s%" PRI_IDX "%s] to %s",
           buf1, // MYCMD.if_flag ? " then " : "",
           cyn, trig_index[MYCMD.arg2]->proto->name, yel, cyn, trig_index[MYCMD.arg2]->vnum, yel,
           ((MYCMD.arg1 == MOB_TRIGGER)
@@ -1030,7 +1031,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "Saving zone info in memory.\r\n");
 
       mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
-             "OLC: %s edits zone info for room %d.", GET_NAME(d->character), OLC_NUM(d));
+             "OLC: %s edits zone info for room %" PRI_IDX ".", GET_NAME(d->character), OLC_NUM(d));
       /* FALL THROUGH */
     case 'n':
     case 'N':

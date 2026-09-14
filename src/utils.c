@@ -50,6 +50,7 @@
 #include "char_descs.h"
 #include "obj/treasure.h"
 #include "character/perks.h"
+#include "help.h"
 #include <time.h>
 
 #ifdef CIRCLE_WINDOWS
@@ -3095,6 +3096,7 @@ char *UNCAP(char *txt)
   return (txt);
 }
 
+#if !defined(HAVE_STRLCAT)
 /*
 Returns total length of the string that would have been created.
 */
@@ -3116,6 +3118,7 @@ size_t strlcat(char *buf, const char *src, size_t bufsz)
 
   return rtn;
 }
+#endif
 
 /*
  * Appends formatted text at a tracked buffer offset and returns the new,
@@ -4194,7 +4197,7 @@ bool room_is_daylit(room_rnum room)
 {
   if (!VALID_ROOM_RNUM(room))
   {
-    log("room_is_daylit: Invalid room rnum %d. (0-%d)", room, top_of_world);
+    log("room_is_daylit: Invalid room rnum %" PRI_IDX ". (0-%" PRI_IDX ")", room, top_of_world);
     return (FALSE);
   }
 
@@ -4255,7 +4258,7 @@ bool room_is_dark(room_rnum room)
 
   if (!VALID_ROOM_RNUM(room))
   {
-    log("room_is_dark: Invalid room rnum %d. (0-%d)", room, top_of_world);
+    log("room_is_dark: Invalid room rnum %" PRI_IDX ". (0-%" PRI_IDX ")", room, top_of_world);
     return (FALSE);
   }
 
@@ -5254,7 +5257,6 @@ const char *strpaste(const char *str1, const char *str2, const char *joiner)
 /* with given name, returns character structure if found */
 struct char_data *is_playing(char *vict_name)
 {
-  extern struct descriptor_data *descriptor_list;
   struct descriptor_data *i, *next_i;
   char name_copy[MAX_NAME_LENGTH + 1];
 
@@ -5963,13 +5965,13 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum)
     {
       /* This is odd - This field should always be populated for daily-use abilities,
        * maybe some legacy code or bad id. */
-      log("SYSERR: 2 sVariables field is NULL for daily-use-cooldown-event: %d", iId);
+      log("SYSERR: 2 sVariables field is NULL for daily-use-cooldown-event: %u", iId);
     }
     else
     {
       if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
       {
-        log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %d",
+        log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %u",
             iId);
         uses = 0;
       }
@@ -6012,13 +6014,13 @@ int daily_uses_remaining(struct char_data *ch, int featnum)
     {
       /* This is odd - This field should always be populated for daily-use abilities,
        * maybe some legacy code or bad id. */
-      log("SYSERR: 3 sVariables field is NULL for daily-use-cooldown-event: %d", iId);
+      log("SYSERR: 3 sVariables field is NULL for daily-use-cooldown-event: %u", iId);
     }
     else
     {
       if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
       {
-        log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %d",
+        log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %u",
             iId);
         uses = 0;
       }
@@ -6066,13 +6068,13 @@ int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab)
     {
       /* This is odd - This field should always be populated for daily-use abilities,
        * maybe some legacy code or bad id. */
-      log("SYSERR: 4 sVariables field is NULL for daily-use-cooldown-event: %d", iId);
+      log("SYSERR: 4 sVariables field is NULL for daily-use-cooldown-event: %u", iId);
     }
     else
     {
       if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
       {
-        log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %d",
+        log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %u",
             iId);
         uses = 0;
       }
@@ -6115,13 +6117,13 @@ int daily_item_specab_uses_remaining(struct obj_data *obj, int specab)
     {
       /* This is odd - This field should always be populated for daily-use abilities,
        * maybe some legacy code or bad id. */
-      log("SYSERR: 5 sVariables field is NULL for daily-use-cooldown-event: %d", iId);
+      log("SYSERR: 5 sVariables field is NULL for daily-use-cooldown-event: %u", iId);
     }
     else
     {
       if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
       {
-        log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %d",
+        log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %u",
             iId);
         uses = 0;
       }

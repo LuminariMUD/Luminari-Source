@@ -453,11 +453,11 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
 
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
     {
-      send_to_char(ch, "[%d] ", GET_OBJ_VNUM(obj));
+      send_to_char(ch, "[%u] ", GET_OBJ_VNUM(obj));
       if (SCRIPT(obj))
       {
         if (!TRIGGERS(SCRIPT(obj))->next)
-          send_to_char(ch, "[T%d] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(obj))));
+          send_to_char(ch, "[T%" PRI_IDX "] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(obj))));
         else
           send_to_char(ch, "[TRIGS] ");
       }
@@ -469,11 +469,11 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
   case SHOW_OBJ_SHORT:
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
     {
-      send_to_char(ch, "[%d] ", GET_OBJ_VNUM(obj));
+      send_to_char(ch, "[%u] ", GET_OBJ_VNUM(obj));
       if (SCRIPT(obj))
       {
         if (!TRIGGERS(SCRIPT(obj))->next)
-          send_to_char(ch, "[T%d] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(obj))));
+          send_to_char(ch, "[T%" PRI_IDX "] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(obj))));
         else
           send_to_char(ch, "[TRIGS] ");
       }
@@ -908,12 +908,12 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
   {
     if (IS_NPC(i))
-      send_to_char(ch, "[%d] ", GET_MOB_VNUM(i));
+      send_to_char(ch, "[%u] ", GET_MOB_VNUM(i));
     send_to_char(ch, "[%2d] ", GET_LEVEL(i));
     if (SCRIPT(i) && TRIGGERS(SCRIPT(i)))
     {
       if (!TRIGGERS(SCRIPT(i))->next)
-        send_to_char(ch, "[T%d] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(i))));
+        send_to_char(ch, "[T%" PRI_IDX "] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(i))));
       else
         send_to_char(ch, "[TRIGS] ");
     }
@@ -1382,7 +1382,7 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
   {
     sprintbitarray(ROOM_FLAGS(room_number), room_bits, RF_ARRAY_MAX, buf);
-    send_to_char(ch, "\tc[%5d]\tn %s \tc[ %s] %s\tn", GET_ROOM_VNUM(room_number),
+    send_to_char(ch, "\tc[%5u]\tn %s \tc[ %s] %s\tn", GET_ROOM_VNUM(room_number),
                  world[room_number].name, buf, sector_types[(world[room_number].sector_type)]);
   }
   else
@@ -1560,14 +1560,14 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   {
     sprintbitarray(ROOM_FLAGS(IN_ROOM(ch)), room_bits, RF_ARRAY_MAX, buf);
     send_to_char(ch, "%s", CCCYN(ch, C_NRM));
-    send_to_char(ch, "[%5d]%s ", GET_ROOM_VNUM(IN_ROOM(ch)), CCNRM(ch, C_NRM));
+    send_to_char(ch, "[%5u]%s ", GET_ROOM_VNUM(IN_ROOM(ch)), CCNRM(ch, C_NRM));
     send_to_char(ch, "%s %s[ %s] ", world[IN_ROOM(ch)].name, CCCYN(ch, C_NRM), buf);
 
     if (SCRIPT(rm))
     {
       send_to_char(ch, "[T");
       for (t = TRIGGERS(SCRIPT(rm)); t; t = t->next)
-        send_to_char(ch, " %d", GET_TRIG_VNUM(t));
+        send_to_char(ch, " %" PRI_IDX, GET_TRIG_VNUM(t));
       send_to_char(ch, "]");
     }
   }
@@ -8867,7 +8867,6 @@ ACMD(do_toggle)
 /* new wizhelp function, courtesy of paragon codebase -zusuk */
 void do_wizhelp(struct char_data *ch)
 {
-  extern int *cmd_sort_info;
   int no = 1, i, cmd_num;
   int level;
   int commands_per_row;
@@ -9422,7 +9421,7 @@ ACMD(do_areas)
       len = snprintf_append(buf, sizeof(buf), len, "\tn(%3d) %s%-*.*s\tn %s%.64s\tn\r\n", ++zcount,
                             overlap ? QRED : QCYN, name_width, name_width, zone_table[i].name,
                             lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
-      snprintf(zone_num, sizeof(zone_num), " \tc[%3d]\tn  ", zone_table[i].number);
+      snprintf(zone_num, sizeof(zone_num), " \tc[%3" PRI_IDX "]\tn  ", zone_table[i].number);
       snprintf(areas[num_areas], sizeof(areas[num_areas]), "\tn %-*.*s\tn %s%s%.64s\tn\r\n",
                name_width, name_width, zone_table[i].name, zone_num, lev_set ? "\tc" : "\tn",
                lev_set ? lev_str : "All Levels");
@@ -10076,7 +10075,7 @@ ACMD(do_exits)
     len++;
 
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS) && !EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
-      send_to_char(ch, "%-5s - [%5d]%s %s\r\n", dirs[door], GET_ROOM_VNUM(EXIT(ch, door)->to_room),
+      send_to_char(ch, "%-5s - [%5u]%s %s\r\n", dirs[door], GET_ROOM_VNUM(EXIT(ch, door)->to_room),
                    EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " [HIDDEN]" : "",
                    world[EXIT(ch, door)->to_room].name);
     else if (CONFIG_DISP_CLOSED_DOORS && EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
@@ -11272,7 +11271,7 @@ ACMD(do_roomvnum)
     return;
   }
 
-  send_to_char(ch, "This room's vnum is %d.\r\n", world[IN_ROOM(ch)].number);
+  send_to_char(ch, "This room's vnum is %" PRI_IDX ".\r\n", world[IN_ROOM(ch)].number);
   return;
 }
 

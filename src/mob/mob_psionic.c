@@ -26,7 +26,6 @@
 #define MAX_LOOPS 100
 
 /* External data arrays */
-extern int valid_aoe_spell[OFFENSIVE_AOE_SPELLS];
 
 void npc_psionic_powerup(struct char_data *ch)
 {

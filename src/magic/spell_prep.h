@@ -984,15 +984,6 @@ void reset_preparation_time(struct char_data *ch, int class);
      */
 int free_arcana_slots(struct char_data *ch);
 
-/**
-     * isEpicSpell - Check if spell is epic level
-     * @spellnum: Spell number to check
-     *
-     * Epic spells have special rules and requirements.
-     * Currently not implemented.
-     * Returns: TRUE if epic spell, FALSE otherwise
-     */
-bool isEpicSpell(int spellnum);
 
 /* UTILITY FUNCTIONS */
 

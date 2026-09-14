@@ -58,6 +58,5 @@ ACMD_DECL(do_rapidshot);
 ACMD_DECL(do_totaldefense);
 ACMD_DECL(do_spellbattle);
 ACMD_DECL(do_flurry);
-ACMD_DECL(do_whirlwind);
 
 #endif

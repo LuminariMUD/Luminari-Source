@@ -668,7 +668,7 @@ void quest_ask(struct char_data *ch, struct char_data *victim, char *keyword)
 
   if (GET_LEVEL(ch) >= LVL_IMMORT && GET_LEVEL(ch) < LVL_IMPL)
   {
-    snprintf(buf, sizeof(buf), "(GC) %s asked '%s' on %s (%d).", GET_NAME(ch), keyword,
+    snprintf(buf, sizeof(buf), "(GC) %s asked '%s' on %s (%u).", GET_NAME(ch), keyword,
              GET_NAME(victim), GET_MOB_VNUM(victim));
     log("%s", buf);
   }
@@ -1137,7 +1137,7 @@ ACMD(do_qinfo)
                   strlcat(buf, " and", sizeof(buf));
                 }
               }
-              snprintf(buf2, sizeof(buf2), "\r\nTo %s (%d)\r\n",
+              snprintf(buf2, sizeof(buf2), "\r\nTo %s (%" PRI_IDX ")\r\n",
                        mob_proto[realnum].player.short_descr, i);
               strlcat(buf, buf2, sizeof(buf));
               for (qcmd = quest->out; qcmd; qcmd = qcmd->next)
@@ -1259,7 +1259,7 @@ ACMD(do_checkapproved)
       }
       if (count > 0)
       {
-        snprintf(buf, sizeof(buf), "\tn[%5d] %-40s\tn  %d/%d\tn\r\n", mob_index[i].vnum,
+        snprintf(buf, sizeof(buf), "\tn[%5" PRI_IDX "] %-40s\tn  %d/%d\tn\r\n", mob_index[i].vnum,
                  mob_proto[i].player.short_descr, total - count, total);
         send_to_char(ch, "%s", buf);
       }
@@ -1294,13 +1294,13 @@ ACMD(do_kitquests)
           {
             if (qcom->location == LICH_QUEST || qcom->value == LICH_QUEST)
             {
-              snprintf(buf, sizeof(buf), "\tc%-32s\tn - %s(\tW%d\tn)\r\n", "LICH",
+              snprintf(buf, sizeof(buf), "\tc%-32s\tn - %s(\tW%" PRI_IDX "\tn)\r\n", "LICH",
                        mob_proto[i].player.short_descr, mob_index[i].vnum);
               send_to_char(ch, "%s", buf);
             }
             else
             {
-              snprintf(buf, sizeof(buf), "\tc%-32s\tn - %s(\tW%d\tn)\r\n",
+              snprintf(buf, sizeof(buf), "\tc%-32s\tn - %s(\tW%" PRI_IDX "\tn)\r\n",
                        CLSLIST_NAME(qcom->value), mob_proto[i].player.short_descr,
                        mob_index[i].vnum);
               send_to_char(ch, "%s", buf);
@@ -1355,7 +1355,7 @@ ACMD(do_spellquests)
         {
           if (qcom->type == QUEST_COMMAND_TEACH_SPELL)
           {
-            snprintf(buf, sizeof(buf), "\tc%-32s\tn - %s(\tW%d\tn)\r\n",
+            snprintf(buf, sizeof(buf), "\tc%-32s\tn - %s(\tW%" PRI_IDX "\tn)\r\n",
                      spell_info[qcom->value].name, mob_proto[mob].player.short_descr,
                      mob_index[mob].vnum);
             send_to_char(ch, "%s", buf);
@@ -1411,7 +1411,7 @@ ACMD(do_qref)
         {
           if (qcom && qcom->value == vnum && qcom->type == QUEST_COMMAND_ITEM)
           {
-            snprintf(buf, sizeof(buf), "\tCGIVE\tn %s to %s(\tW%d\tn)\r\n",
+            snprintf(buf, sizeof(buf), "\tCGIVE\tn %s to %s(\tW%" PRI_IDX "\tn)\r\n",
                      obj_proto[real_num].short_description, mob_proto[i].player.short_descr,
                      mob_index[i].vnum);
             send_to_char(ch, "%s", buf);
@@ -1427,14 +1427,15 @@ ACMD(do_qref)
             switch (qcom->type)
             {
             case QUEST_COMMAND_ITEM:
-              snprintf(buf, sizeof(buf), "\tCRECEIVE\tn %s from %s(\tW%d\tn)\r\n",
+              snprintf(buf, sizeof(buf), "\tCRECEIVE\tn %s from %s(\tW%" PRI_IDX "\tn)\r\n",
                        obj_proto[real_num].short_description, mob_proto[i].player.short_descr,
                        mob_index[i].vnum);
               send_to_char(ch, "%s", buf);
               count++;
               break;
             case QUEST_COMMAND_LOAD_OBJECT_INROOM:
-              snprintf(buf, sizeof(buf), "\tcLOADOBJECT\tn %s in quest for %s (\tW%d\tn)\r\n",
+              snprintf(buf, sizeof(buf),
+                       "\tcLOADOBJECT\tn %s in quest for %s (\tW%" PRI_IDX "\tn)\r\n",
                        obj_proto[real_num].short_description, mob_proto[i].player.short_descr,
                        mob_index[i].vnum);
               send_to_char(ch, "%s", buf);

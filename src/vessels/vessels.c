@@ -475,7 +475,7 @@ const struct vessel_terrain_caps *get_vessel_terrain_caps(enum vessel_class vess
   /* Bounds check - default to VESSEL_SHIP for invalid types */
   if (vessel_type < 0 || vessel_type >= NUM_VESSEL_TYPES)
   {
-    log("SYSERR: get_vessel_terrain_caps: Invalid vessel type %d, defaulting to VESSEL_SHIP",
+    log("SYSERR: get_vessel_terrain_caps: Invalid vessel type %u, defaulting to VESSEL_SHIP",
         vessel_type);
     return &vessel_terrain_data[VESSEL_SHIP];
   }
@@ -687,7 +687,7 @@ int get_vessel_cargo_capacity(enum vessel_class vessel_type)
 
   if (vessel_type < 0 || vessel_type >= NUM_VESSEL_TYPES)
   {
-    log("SYSERR: get_vessel_cargo_capacity: Invalid vessel type %d, defaulting to VESSEL_SHIP",
+    log("SYSERR: get_vessel_cargo_capacity: Invalid vessel type %u, defaulting to VESSEL_SHIP",
         vessel_type);
     return vessel_cargo_capacity[VESSEL_SHIP];
   }
@@ -753,21 +753,6 @@ void vessel_initialize_condition(struct greyhawk_ship_data *ship, int armor)
 }
 
 /* Forward declarations for Greyhawk functions */
-void greyhawk_getstatus(int slot, int rnum);
-void greyhawk_getposition(int slot, int rnum);
-void greyhawk_dispweapon(int slot, int rnum);
-int greyhawk_weaprange(int shipnum, int slot, char range);
-int greyhawk_bearing(float x1, float y1, float x2, float y2);
-float greyhawk_range(float x1, float y1, float z1, float x2, float y2, float z2);
-void greyhawk_dispcontact(int i);
-int greyhawk_getcontacts(int shipnum);
-void greyhawk_setcontact(int i, struct obj_data *obj, int shipnum, int xoffset, int yoffset);
-int greyhawk_getarc(int ship1, int ship2);
-int greyhawk_loadship(int template, int to_room, short int x_cord, short int y_cord,
-                      short int z_cord);
-void greyhawk_nameship(char *name, int shipnum);
-bool greyhawk_setsail(int class, int shipnum);
-void greyhawk_initialize_ships(void);
 
 /* ========================================================================= */
 /* WILDERNESS ROOM ALLOCATION HELPER                                        */
@@ -1435,7 +1420,7 @@ void greyhawk_initialize_ships(void)
       world[interior_rnum].ship = ship;
 
       log("Greyhawk: Test vessel initialized in slot 1 - interior room 70003 "
-          "(rnum %d), location (-66, 92)",
+          "(rnum %" PRI_IDX "), location (-66, 92)",
           interior_rnum);
     }
     else
@@ -1481,7 +1466,7 @@ int vessel_relink_world_objects(void)
     ship = &greyhawk_ships[shipnum];
     if (ship->shiproom != GET_OBJ_VAL(obj, 0))
     {
-      log("SYSERR: Ship object %d entrance %d disagrees with fleet slot %d room %d",
+      log("SYSERR: Ship object %u entrance %d disagrees with fleet slot %d room %d",
           GET_OBJ_VNUM(obj), GET_OBJ_VAL(obj, 0), shipnum, ship->shiproom);
       continue;
     }
@@ -1489,21 +1474,21 @@ int vessel_relink_world_objects(void)
     interior_rnum = real_room(ship->shiproom);
     if (interior_rnum == NOWHERE)
     {
-      log("SYSERR: Ship object %d cannot relink missing interior room %d", GET_OBJ_VNUM(obj),
+      log("SYSERR: Ship object %u cannot relink missing interior room %d", GET_OBJ_VNUM(obj),
           ship->shiproom);
       continue;
     }
 
     if (ship->shipobj != NULL && ship->shipobj != obj && IN_ROOM(ship->shipobj) != NOWHERE)
     {
-      log("SYSERR: Fleet slot %d has duplicate live ship objects %d and %d", shipnum,
+      log("SYSERR: Fleet slot %d has duplicate live ship objects %u and %u", shipnum,
           GET_OBJ_VNUM(ship->shipobj), GET_OBJ_VNUM(obj));
       continue;
     }
 
     if (!vessel_place_hull_object(ship, obj))
     {
-      log("SYSERR: Ship object %d could not be placed for fleet slot %d", GET_OBJ_VNUM(obj),
+      log("SYSERR: Ship object %u could not be placed for fleet slot %d", GET_OBJ_VNUM(obj),
           shipnum);
       continue;
     }

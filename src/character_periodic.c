@@ -307,7 +307,7 @@ static bool register_character_maintenance_type(void)
   status = event_runtime_register_type(&config, &character_maintenance_event_type);
   if (status != GAME_SCHEDULER_OK)
   {
-    log("SYSERR: unable to register native event type 'character.maintenance' (status %d).",
+    log("SYSERR: unable to register native event type 'character.maintenance' (status %u).",
         status);
     return false;
   }

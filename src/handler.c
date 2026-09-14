@@ -2055,8 +2055,8 @@ void char_to_room_cause(struct char_data *ch, room_rnum room, struct char_data *
 
   if (ch == NULL || room == NOWHERE || room > top_of_world)
   {
-    log("SYSERR: Illegal value(s) passed to char_to_room. (Room: %d/%d Ch: %p)", room, top_of_world,
-        ch);
+    log("SYSERR: Illegal value(s) passed to char_to_room. (Room: %" PRI_IDX "/%" PRI_IDX " Ch: %p)",
+        room, top_of_world, ch);
     return;
   }
   else
@@ -2586,7 +2586,7 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
   {
     r_rnum = IN_ROOM(ch);
 
-    log("SYSERR: Char/Loc [%d][%d] is already equipped: %s, %s", GET_MOB_VNUM(ch),
+    log("SYSERR: Char/Loc [%u][%u] is already equipped: %s, %s", GET_MOB_VNUM(ch),
         GET_ROOM_VNUM(r_rnum), GET_NAME(ch), obj->short_description);
     return;
   }
@@ -2815,7 +2815,6 @@ struct obj_data *get_obj_num(obj_rnum nr)
 {
   struct obj_data *obj;
   int hash_key;
-  extern struct obj_rnum_hash_bucket obj_rnum_hash[];
 
   if (nr == NOTHING)
     return NULL;
@@ -2872,8 +2871,8 @@ void obj_to_room(struct obj_data *object, room_rnum room)
   if (object != NULL && (object->transfer_extracting || IN_ROOM(object) == room))
     return;
   if (!object || room == NOWHERE || room > top_of_world)
-    log("SYSERR: Illegal value(s) passed to obj_to_room. (Room #%d/%d, obj %p)", room, top_of_world,
-        object);
+    log("SYSERR: Illegal value(s) passed to obj_to_room. (Room #%" PRI_IDX "/%" PRI_IDX ", obj %p)",
+        room, top_of_world, object);
   else
   {
     /* Room contents are deliberately newest-first. Combat autoloot and other
@@ -2905,7 +2904,7 @@ void obj_from_room(struct obj_data *object)
 
   if (!object || IN_ROOM(object) == NOWHERE)
   {
-    log("SYSERR: NULL object (%p) or obj not in a room (%d) passed to obj_from_room", object,
+    log("SYSERR: NULL object (%p) or obj not in a room (%u) passed to obj_from_room", object,
         object != NULL ? IN_ROOM(object) : NOWHERE);
     return;
   }
@@ -2950,7 +2949,7 @@ void obj_to_obj(struct obj_data *obj, struct obj_data *obj_to)
   {
     if (tmp_obj == obj)
     {
-      log("SYSERR: Circular containment detected! Object %s (#%d) would contain itself.",
+      log("SYSERR: Circular containment detected! Object %s (#%u) would contain itself.",
           obj->short_description ? obj->short_description : "UNDEFINED", GET_OBJ_VNUM(obj));
       return;
     }
@@ -3100,7 +3099,7 @@ void extract_obj(struct obj_data *obj)
     }
     else
     {
-      log("SYSERR: Attempt to decrement object count below 0 - vnum %d, rnum %d",
+      log("SYSERR: Attempt to decrement object count below 0 - vnum %" PRI_IDX ", rnum %" PRI_IDX,
           obj_index[GET_OBJ_RNUM(obj)].vnum, GET_OBJ_RNUM(obj));
     }
   }
@@ -3446,7 +3445,7 @@ void extract_char(struct char_data *ch)
   {
     if (MOB_FLAGGED(ch, MOB_NOTDEADYET))
     {
-      log("WARNING: extract_char() called on mob %s (vnum %d) already marked for extraction",
+      log("WARNING: extract_char() called on mob %s (vnum %u) already marked for extraction",
           GET_NAME(ch), GET_MOB_VNUM(ch));
       return; /* Already pending extraction, don't double-count */
     }
@@ -3527,14 +3526,14 @@ void extract_pending_chars(void)
       if (MOB_FLAGGED(vict, MOB_NOTDEADYET))
       {
         mob_count++;
-        log("  DEBUG: Found MOB with NOTDEADYET still set: %s (vnum %d, room %d)", GET_NAME(vict),
-            GET_MOB_VNUM(vict), IN_ROOM(vict));
+        log("  DEBUG: Found MOB with NOTDEADYET still set: %s (vnum %u, room %" PRI_IDX ")",
+            GET_NAME(vict), GET_MOB_VNUM(vict), IN_ROOM(vict));
       }
       else if (PLR_FLAGGED(vict, PLR_NOTDEADYET))
       {
         plr_count++;
-        log("  DEBUG: Found PLAYER with NOTDEADYET still set: %s (room %d)", GET_NAME(vict),
-            IN_ROOM(vict));
+        log("  DEBUG: Found PLAYER with NOTDEADYET still set: %s (room %" PRI_IDX ")",
+            GET_NAME(vict), IN_ROOM(vict));
       }
     }
 

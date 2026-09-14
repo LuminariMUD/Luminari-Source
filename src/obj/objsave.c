@@ -187,10 +187,10 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
   ins_buf[0] = '\0';
 #endif
 
-  fprintf(fp, "#%d\n", GET_OBJ_VNUM(obj));
+  fprintf(fp, "#%u\n", GET_OBJ_VNUM(obj));
 
 #ifdef OBJSAVE_DB
-  snprintf(line_buf, sizeof(line_buf), "#%d\n", GET_OBJ_VNUM(obj));
+  snprintf(line_buf, sizeof(line_buf), "#%u\n", GET_OBJ_VNUM(obj));
   strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
 
@@ -1047,7 +1047,7 @@ void Crash_listrent(struct char_data *ch, char *name)
   loaded = objsave_parse_objects(fl);
 
   for (current = loaded; current != NULL; current = current->next)
-    len = snprintf_append(buf, sizeof(buf), len, "[%5d] (%5dau) %-20s\r\n",
+    len = snprintf_append(buf, sizeof(buf), len, "[%5u] (%5dau) %-20s\r\n",
                           GET_OBJ_VNUM(current->obj), GET_OBJ_RENT(current->obj),
                           current->obj->short_description);
 
@@ -2520,7 +2520,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
     snprintf(buf, sizeof(buf),
              "SELECT   serialized_obj, idnum "
              "FROM     house_data "
-             "WHERE    vnum = '%d' "
+             "WHERE    vnum = '%" PRI_IDX "' "
              "ORDER BY creation_date ASC;",
              house_vnum);
 
@@ -2531,14 +2531,14 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
       snprintf(buf, sizeof(buf),
                "SELECT   serialized_obj "
                "FROM     house_data "
-               "WHERE    vnum = '%d' "
+               "WHERE    vnum = '%" PRI_IDX "' "
                "ORDER BY creation_date ASC;",
                house_vnum);
 
       if (mysql_query(conn, buf))
       {
         log("SYSERR: Unable to SELECT from house_data (without idnum): %s", mysql_error(conn));
-        log("WARNING: Skipping house data loading for vnum %d", house_vnum);
+        log("WARNING: Skipping house data loading for vnum %" PRI_IDX, house_vnum);
         return NULL;
       }
       loading_house_data = 2; /* Mark that we're using the fallback query */
@@ -2547,7 +2547,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
     if (!(result = mysql_store_result(conn)))
     {
       log("SYSERR: Unable to SELECT from house_data: %s", mysql_error(conn));
-      log("WARNING: Skipping house data loading for vnum %d", house_vnum);
+      log("WARNING: Skipping house data loading for vnum %" PRI_IDX, house_vnum);
       return NULL;
     }
   }
@@ -3453,7 +3453,7 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj,
 
   *ins_buf = '\0';
 
-  snprintf(line_buf, sizeof(line_buf), "#%d\n", GET_OBJ_VNUM(obj));
+  snprintf(line_buf, sizeof(line_buf), "#%u\n", GET_OBJ_VNUM(obj));
   strlcat(ins_buf, line_buf, sizeof(ins_buf));
 
 
@@ -4504,7 +4504,7 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
            "owner_name, serialized_obj) values (NULL, '%ld', %d, '%s', '",
            sheath_idnum, sheath_slot, GET_NAME(ch));
 
-  snprintf(line_buf, sizeof(line_buf), "#%d\n", GET_OBJ_VNUM(obj));
+  snprintf(line_buf, sizeof(line_buf), "#%u\n", GET_OBJ_VNUM(obj));
   strlcat(ins_buf, line_buf, sizeof(ins_buf));
 
   /**** start checks for modifications to default object! ***/

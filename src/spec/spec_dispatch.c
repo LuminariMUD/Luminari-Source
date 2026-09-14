@@ -144,7 +144,7 @@ int spec_dispatch_typed(struct spec_event_context *context,
 
   if (context->flow != SPEC_FLOW_CONTINUE && context->flow != SPEC_FLOW_STOP)
   {
-    log("SYSERR: Typed special procedure '%s' returned invalid flow %d.",
+    log("SYSERR: Typed special procedure '%s' returned invalid flow %u.",
         definition->canonical_name, context->flow);
     context->flow = SPEC_FLOW_CONTINUE;
   }

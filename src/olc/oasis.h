@@ -14,6 +14,7 @@
 
 #include "utils.h" /* for ACMD macro */
 #include "help.h"  /* for help_entry_list */
+#include "mob/mob_autoroll.h"
 
 #define _OASISOLC 0x206 /* 2.0.6 */
 
@@ -796,7 +797,6 @@ void medit_parse(struct descriptor_data *d, char *arg);
 void medit_string_cleanup(struct descriptor_data *d, int terminator);
 ACMD_DECL(do_oasis_medit);
 void medit_autoroll_stats(struct descriptor_data *d);
-void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
 
 /* public functions from oedit.c */
 void oedit_setup_existing(struct descriptor_data *d, int rnum, int mode);

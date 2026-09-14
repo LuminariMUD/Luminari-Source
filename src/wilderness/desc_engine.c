@@ -76,7 +76,7 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
   }
   else
   {
-    log("DEBUG: Room %d not detected as wilderness, using original descriptions",
+    log("DEBUG: Room %u not detected as wilderness, using original descriptions",
         GET_ROOM_VNUM(room));
   }
 #else
@@ -169,8 +169,8 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
     /* Bounds check to prevent segfault */
     if (!region_table || curr_region->rnum == NOWHERE || curr_region->rnum > top_of_region_table)
     {
-      log("SYSERR: Invalid region rnum %d in gen_room_description for room %d", curr_region->rnum,
-          world[room].number);
+      log("SYSERR: Invalid region rnum %" PRI_IDX " in gen_room_description for room %" PRI_IDX,
+          curr_region->rnum, world[room].number);
       continue;
     }
 

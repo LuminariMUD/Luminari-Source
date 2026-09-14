@@ -495,7 +495,6 @@ ACMD_DECL(do_mclanally);
 /* from dg_olc.c... thinking these should be moved to oasis.h */
 void trigedit_save(struct descriptor_data *d);
 void trigedit_string_cleanup(struct descriptor_data *d, int terminator);
-int format_script(struct descriptor_data *d);
 void trigedit_setup_existing(struct descriptor_data *d, int rtrg_num, int mode);
 
 /* from dg_objcmd.c */

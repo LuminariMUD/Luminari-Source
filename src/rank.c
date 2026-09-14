@@ -27,10 +27,6 @@
 #include "act.h"
 
 /* extern vars */
-extern struct room_data *world;
-extern struct char_data *character_list;
-extern struct descriptor_data *descriptor_list;
-extern struct player_index_element *player_table;
 
 /* extern functions */
 

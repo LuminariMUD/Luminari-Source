@@ -13,6 +13,7 @@
 #include "improved-edit.h"
 #include "dgscript/dg_scripts.h"
 #include "modify.h"
+#include "dgscript/dg_olc.h"
 
 void send_editor_help(struct descriptor_data *d)
 {
@@ -311,7 +312,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
       *t = '\0';
       RECREATE(*d->str, char, strlen(*d->str) + 3);
 
-      write_to_output(d, "%d line%sdeleted.\r\n", total_len, (total_len != 1 ? "s " : " "));
+      write_to_output(d, "%u line%sdeleted.\r\n", total_len, (total_len != 1 ? "s " : " "));
     }
     else
     {
@@ -386,7 +387,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
     else
       strcat(buf, t);
     /* This is kind of annoying...but some people like it. */
-    sprintf(buf + strlen(buf), "\r\n%d line%sshown.\r\n", total_len, (total_len != 1) ? "s " : " ");
+    sprintf(buf + strlen(buf), "\r\n%u line%sshown.\r\n", total_len, (total_len != 1) ? "s " : " ");
     page_string(d, buf, TRUE);
     break;
   case PARSE_LIST_NUM:

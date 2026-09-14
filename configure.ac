@@ -239,7 +239,7 @@ fi
 
 dnl Checks for library functions.
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(gettimeofday select snprintf strcasecmp strdup strerror stricmp strlcpy strncasecmp strnicmp strstr vsnprintf)
+AC_CHECK_FUNCS(gettimeofday select snprintf strcasecmp strdup strerror stricmp strlcat strlcpy strncasecmp strnicmp strstr vsnprintf)
 
 dnl Check for functions that parse IP addresses
 ORIGLIBS=$LIBS

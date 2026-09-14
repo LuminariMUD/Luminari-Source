@@ -577,7 +577,7 @@ static bool register_primary_activity_event_type(void)
   status = event_runtime_register_type(&config, &primary_activity_event_type);
   if (status != GAME_SCHEDULER_OK)
   {
-    log("SYSERR: unable to register native event type 'activity.primary.step' (status %d).",
+    log("SYSERR: unable to register native event type 'activity.primary.step' (status %u).",
         status);
     return false;
   }

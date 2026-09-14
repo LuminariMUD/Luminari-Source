@@ -50,7 +50,6 @@
 #include "point_update_periodic.h"
 
 // external functions
-bool save_char_pets(struct char_data *ch);
 
 #define PLAYER_COOLDOWN_TICK_SECONDS 6
 #define BONUS_SLOT_REGEN_TICKS 5

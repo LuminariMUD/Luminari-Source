@@ -34,8 +34,6 @@
 #include "mud_event.h"
 #include "act.h"
 
-extern struct room_data *world;
-extern struct char_data *character_list;
 
 struct encounter_data encounter_table[NUM_ENCOUNTER_TYPES];
 

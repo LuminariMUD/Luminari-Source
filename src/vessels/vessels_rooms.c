@@ -24,11 +24,7 @@
 
 /* External variables */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct room_data *world;
-extern room_rnum top_of_world;
 
-extern MYSQL *conn;
-extern bool mysql_available;
 
 #define NUM_SHIP_ROOM_TYPES (ROOM_TYPE_DECK + 1)
 #define MAX_SHIP_ROOM_TEMPLATE_TRIGGERS 8
@@ -304,16 +300,16 @@ static void attach_ship_room_template_triggers(room_rnum room, enum ship_room_ty
     trigger_rnum = real_trigger(trigger_vnum);
     if (trigger_rnum == NOTHING)
     {
-      log("SYSERR: Generated ship room %d cannot attach missing trigger %d", world[room].number,
-          trigger_vnum);
+      log("SYSERR: Generated ship room %" PRI_IDX " cannot attach missing trigger %" PRI_IDX,
+          world[room].number, trigger_vnum);
       continue;
     }
 
     trigger = read_trigger(trigger_rnum);
     if (trigger == NULL)
     {
-      log("SYSERR: Generated ship room %d could not instantiate trigger %d", world[room].number,
-          trigger_vnum);
+      log("SYSERR: Generated ship room %" PRI_IDX " could not instantiate trigger %" PRI_IDX,
+          world[room].number, trigger_vnum);
       continue;
     }
 
@@ -526,7 +522,7 @@ int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
 
   if (!template)
   {
-    log("SYSERR: No template found for room type %d", type);
+    log("SYSERR: No template found for room type %u", type);
     return NOWHERE;
   }
 
@@ -828,7 +824,7 @@ void generate_ship_interior(struct greyhawk_ship_data *ship)
   /* Generate connections between rooms */
   generate_room_connections(ship);
 
-  log("Generated %d rooms for %s (vessel type %d)", ship->num_rooms, ship->name, ship->vessel_type);
+  log("Generated %d rooms for %s (vessel type %u)", ship->num_rooms, ship->name, ship->vessel_type);
 }
 
 /* Create connections between ship rooms */
@@ -1348,8 +1344,8 @@ int vessel_reclaim_interior_rooms(struct greyhawk_ship_data *ship, room_rnum eva
 
     if (world[interior].ship != ship)
     {
-      log("SYSERR: Refusing to reclaim room %d not owned by ship %d", world[interior].number,
-          ship->shipnum);
+      log("SYSERR: Refusing to reclaim room %" PRI_IDX " not owned by ship %d",
+          world[interior].number, ship->shipnum);
       continue;
     }
 

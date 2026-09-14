@@ -23,8 +23,6 @@
 #define READ_SIZE 256
 
 /* Function prototypes */
-int atoi(const char *str);
-long atol(const char *str);
 int walkdir(FILE *index_file, char *dir);
 int get_line(FILE *fl, char *buf);
 char *parsename(char *filename);

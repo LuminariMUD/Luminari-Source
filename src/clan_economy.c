@@ -19,13 +19,11 @@
 #include "rewards.h"
 #include "interpreter.h"
 #include "clan.h"
+#include "clan_economy.h"
 #include "obj/shop.h"
 #include "constants.h"
 
 /* External variables */
-extern struct clan_data *clan_list;
-extern int num_of_clans;
-extern struct shop_data *shop_index;
 
 /* Clan shop discount rates based on rank */
 #define CLAN_LEADER_DISCOUNT 20  /* 20% discount for clan leaders */

@@ -1131,7 +1131,7 @@ static bool register_encounter_round_event_type(void)
   status = event_runtime_register_type(&config, &encounter_round_event_type);
   if (status != GAME_SCHEDULER_OK)
   {
-    log("SYSERR: unable to register native event type 'combat.encounter.round' (status %d).",
+    log("SYSERR: unable to register native event type 'combat.encounter.round' (status %u).",
         status);
     return false;
   }

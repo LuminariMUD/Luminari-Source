@@ -13,13 +13,11 @@ duplicated-cond 3
 float-conversion 303
 float-equal 22
 format-nonliteral 25
-format= 964
+format= 1
 jump-misses-init 446
 logical-op 31
-missing-prototypes 640
-nested-externs 44
+missing-prototypes 631
 null-dereference 49
-redundant-decls 567
 shadow 274
 sign-conversion 1853
 switch-enum 45

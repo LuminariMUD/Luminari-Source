@@ -21,9 +21,6 @@
 
 /*-------------------------------------------------------------------*/
 /* External variables */
-extern struct mysql_board_config *mysql_board_configs;
-extern int mysql_num_boards;
-extern MYSQL *conn;
 
 /*-------------------------------------------------------------------*/
 /* Function prototypes */

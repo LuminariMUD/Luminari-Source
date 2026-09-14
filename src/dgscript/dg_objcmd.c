@@ -74,7 +74,7 @@ static void obj_log(obj_data *obj, const char *format, ...)
   vsnprintf(message, sizeof(message), format, args);
   va_end(args);
 
-  script_log("Obj (%s, VNum %d):: %s", obj->short_description, GET_OBJ_VNUM(obj), message);
+  script_log("Obj (%s, VNum %u):: %s", obj->short_description, GET_OBJ_VNUM(obj), message);
 }
 
 /* returns the real room number that the object or object's carrier is in */

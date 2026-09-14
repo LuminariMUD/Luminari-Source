@@ -82,13 +82,10 @@ void initialize(void)
   }
 }
 
+void add_name(byte level, char *name);
+
 void read_file(void)
 {
-  void add_name(byte level, char *name);
-  char *CAP(char *txt);
-  int get_line(FILE * fl, char *buf);
-  bitvector_t asciiflag_conv(const char *flag);
-
   FILE *fl;
   int recs, i, last = 0, level = 0, flags = 0;
   char index_name[40], line[256], bits[64];

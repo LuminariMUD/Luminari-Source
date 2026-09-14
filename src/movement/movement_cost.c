@@ -25,6 +25,8 @@
 #include "character/race.h"
 #include "combat/assign_wpn_armor.h"
 #include "movement_cost.h"
+#include "vessels/routing.h"
+#include "vessels/transport.h"
 
 /* Functions moved from movement.c */
 

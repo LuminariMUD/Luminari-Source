@@ -114,9 +114,7 @@ int verify_vessel_system_tables(void);
 /* ===== ADMIN COMMANDS ===== */
 
 /* Admin command prototypes for manual database management */
-ACMD_DECL(do_database);       /* Main database admin command */
-ACMD_DECL(do_db_init_system); /* Initialize specific systems */
-ACMD_DECL(do_db_info);        /* Database information command */
+ACMD_DECL(do_db_info); /* Database information command */
 
 /* ===== STARTUP INITIALIZATION FUNCTIONS ===== */
 int startup_database_init(void);

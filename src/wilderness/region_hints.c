@@ -21,9 +21,6 @@
 
 
 /* External function declarations */
-extern struct region_list *get_enclosing_regions(zone_rnum zone, int x, int y);
-extern void free_region_list(struct region_list *regions);
-extern int get_weather(int x, int y);
 extern char *generate_resource_aware_description(struct char_data *ch, room_rnum room);
 
 /* Global variables */
@@ -210,12 +207,12 @@ char *enhance_wilderness_description_with_hints(struct char_data *ch, room_rnum 
   char *enhanced_desc = NULL;
   int region_vnum = NOWHERE;
 
-  log("DEBUG: enhance_wilderness_description_with_hints called for room %d", GET_ROOM_VNUM(room));
+  log("DEBUG: enhance_wilderness_description_with_hints called for room %u", GET_ROOM_VNUM(room));
 
   /* Only enhance wilderness rooms for now */
   if (!IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room)))
   {
-    log("DEBUG: Room %d is not wilderness, returning NULL", GET_ROOM_VNUM(room));
+    log("DEBUG: Room %u is not wilderness, returning NULL", GET_ROOM_VNUM(room));
     return NULL;
   }
 
@@ -244,18 +241,18 @@ char *enhance_wilderness_description_with_hints(struct char_data *ch, room_rnum 
     if (curr_region->rnum != NOWHERE && curr_region->rnum <= top_of_region_table)
     {
       int region_type = region_table[curr_region->rnum].region_type;
-      log("DEBUG: Found region vnum %d (type %d) from region_table[%d]",
+      log("DEBUG: Found region vnum %" PRI_IDX " (type %d) from region_table[%" PRI_IDX "]",
           region_table[curr_region->rnum].vnum, region_type, curr_region->rnum);
 
       if (region_type == 1)
       { /* Geographic region */
         geographic_region = curr_region;
-        log("DEBUG: Found geographic region vnum %d", region_table[curr_region->rnum].vnum);
+        log("DEBUG: Found geographic region vnum %" PRI_IDX, region_table[curr_region->rnum].vnum);
       }
       else if (region_type == 2)
       { /* Encounter region */
         encounter_region = curr_region;
-        log("DEBUG: Found encounter region vnum %d", region_table[curr_region->rnum].vnum);
+        log("DEBUG: Found encounter region vnum %" PRI_IDX, region_table[curr_region->rnum].vnum);
       }
     }
     curr_region = curr_region->next;
@@ -280,7 +277,7 @@ char *enhance_wilderness_description_with_hints(struct char_data *ch, room_rnum 
   }
 
   region_vnum = region_table[best_region->rnum].vnum;
-  log("DEBUG: Selected region vnum %d from region_table[%d] for hints", region_vnum,
+  log("DEBUG: Selected region vnum %d from region_table[%" PRI_IDX "] for hints", region_vnum,
       best_region->rnum);
 
   /* Load hints and profile for this region */
@@ -606,7 +603,7 @@ void log_hint_usage(int hint_id, room_rnum room, struct char_data *ch,
   snprintf(query, sizeof(query),
            "INSERT INTO hint_usage_log (hint_id, room_vnum, player_id, weather_condition, season, "
            "time_of_day) "
-           "VALUES (%d, %d, %ld, '%s', '%s', '%s')",
+           "VALUES (%d, %" PRI_IDX ", %ld, '%s', '%s', '%s')",
            hint_id, world[room].number, ch ? GET_IDNUM(ch) : 0L, weather_str, season_str, time_str);
 
   /* Try to log hint usage - don't worry if it fails */

@@ -297,7 +297,7 @@ static int rol_utility_acheron_enter(struct spec_event_context *context, struct 
   destination = real_room(GET_OBJ_VAL(obj, 0));
   if (!VALID_ROOM_RNUM(destination))
   {
-    log("SYSERR: RoL Acheron portal %d has unavailable destination %d", GET_OBJ_VNUM(obj),
+    log("SYSERR: RoL Acheron portal %u has unavailable destination %d", GET_OBJ_VNUM(obj),
         GET_OBJ_VAL(obj, 0));
     send_to_char(ch, "The portal twists away from this world. Please tell a staff member.\r\n");
     return TRUE;
@@ -351,7 +351,7 @@ static int rol_utility_acheron_relocate(struct obj_data *obj)
     return TRUE;
   }
 
-  log("SYSERR: RoL Acheron portal %d found no available relocation room", GET_OBJ_VNUM(obj));
+  log("SYSERR: RoL Acheron portal %u found no available relocation room", GET_OBJ_VNUM(obj));
   point_update_object_spec_timer_set(obj, 0, 1);
   return FALSE;
 }
@@ -750,7 +750,7 @@ static int rol_utility_menden_figurine(struct spec_event_context *context, struc
   summoned = read_mobile(GET_OBJ_VAL(obj, 0), VIRTUAL);
   if (summoned == NULL)
   {
-    log("SYSERR: RoL Menden figurine %d cannot load mobile %d", GET_OBJ_VNUM(obj),
+    log("SYSERR: RoL Menden figurine %u cannot load mobile %d", GET_OBJ_VNUM(obj),
         GET_OBJ_VAL(obj, 0));
     send_to_char(ch, "The figurine fails to awaken. Please tell a staff member.\r\n");
     return TRUE;
@@ -883,7 +883,7 @@ static int rol_utility_summon_basilisk_snake(struct char_data *ch, struct obj_da
   summoned = read_mobile(ROL_BASILISK_SNAKE_VNUM, VIRTUAL);
   if (summoned == NULL)
   {
-    log("SYSERR: RoL basilisk snakes object %d cannot load mobile %d", GET_OBJ_VNUM(obj),
+    log("SYSERR: RoL basilisk snakes object %u cannot load mobile %d", GET_OBJ_VNUM(obj),
         ROL_BASILISK_SNAKE_VNUM);
     send_to_char(ch, "The snakes fail to awaken. Please tell a staff member.\r\n");
     return TRUE;

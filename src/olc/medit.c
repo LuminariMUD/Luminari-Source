@@ -314,9 +314,11 @@ ACMD(do_oasis_medit)
   /* If save is TRUE, save the mobiles. */
   if (save)
   {
-    send_to_char(ch, "Saving all mobiles in zone %d.\r\n", zone_table[OLC_ZNUM(d)].number);
-    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s saves mobile info for zone %d.",
-           GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
+    send_to_char(ch, "Saving all mobiles in zone %" PRI_IDX ".\r\n",
+                 zone_table[OLC_ZNUM(d)].number);
+    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE,
+           "OLC: %s saves mobile info for zone %" PRI_IDX ".", GET_NAME(ch),
+           zone_table[OLC_ZNUM(d)].number);
 
     /* Save the mobiles. */
     save_mobiles(OLC_ZNUM(d));
@@ -344,8 +346,8 @@ ACMD(do_oasis_medit)
   act("$n starts using OLC.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d", GET_NAME(ch),
-         zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %" PRI_IDX " allowed zone %d",
+         GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
 static void medit_save_to_disk(zone_vnum foo)
@@ -832,7 +834,7 @@ static void medit_disp_menu(struct descriptor_data *d)
     specname = get_spec_func_name(OLC(d)->specmob);
 
   write_to_output(d,
-                  "-- Mob Number:  [%s%d%s]\r\n"
+                  "-- Mob Number:  [%s%" PRI_IDX "%s]\r\n"
                   "%s1%s) Sex: %s%-7.7s%s	         %s2%s) Keywords: %s%s\r\n"
                   "%s3%s) S-Desc: %s%s\r\n"
                   "%s4%s) L-Desc:-\r\n%s%s\r\n"
@@ -948,7 +950,7 @@ static void medit_disp_resistances_menu(struct descriptor_data *d)
 
   write_to_output(
       d,
-      "-- RESISTANCES -- Mob Number:  %s[%s%d%s]%s\r\n"
+      "-- RESISTANCES -- Mob Number:  %s[%s%" PRI_IDX "%s]%s\r\n"
       "(%sA%s) Fire:     %s[%s%4d%s]%s   (%sK%s) Bludgeon: %s[%s%4d%s]%s\r\n"
       "(%sB%s) Cold:     %s[%s%4d%s]%s   (%sL%s) Sound:    %s[%s%4d%s]%s\r\n"
       "(%sC%s) Air:      %s[%s%4d%s]%s   (%sM%s) Poison:   %s[%s%4d%s]%s\r\n"
@@ -997,7 +999,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d)
   /* Top section - standard stats */
   write_to_output(
       d,
-      "-- Mob Number:  %s[%s%d%s]%s\r\n"
+      "-- Mob Number:  %s[%s%" PRI_IDX "%s]%s\r\n"
       "(%s1%s) Level:       %s[%s%4d%s]%s\r\n"
       "(%s2%s) %sAuto Set Stats (*set level/race/class first)%s\r\n\r\n"
       "Hit Points  (xdy+z):        Bare Hand Damage (xdy+z): \r\n"
@@ -1130,8 +1132,8 @@ void medit_parse(struct descriptor_data *d, char *arg)
     case 'Y':
       /* Save the mob in memory and to disk. */
       medit_save_internally(d);
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits mob %d",
-             GET_NAME(d->character), OLC_NUM(d));
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
+             "OLC: %s edits mob %" PRI_IDX, GET_NAME(d->character), OLC_NUM(d));
       if (CONFIG_OLC_SAVE)
       {
         medit_save_to_disk(zone_table[real_zone_by_thing(OLC_NUM(d))].number);
@@ -2803,7 +2805,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   damage_bonus = GET_DAMROLL(mob);
   if (!mob_tier_apply_autostat_bonuses(GET_MOB_TIER(mob), &mobs_hps, &hitroll, &armor_class,
                                        &damage_bonus))
-    log("SYSERR: autoroll_mob received invalid tier %d or hit points for mob %d", GET_MOB_TIER(mob),
+    log("SYSERR: autoroll_mob received invalid tier %d or hit points for mob %u", GET_MOB_TIER(mob),
         GET_MOB_VNUM(mob));
   else
   {

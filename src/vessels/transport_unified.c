@@ -29,26 +29,10 @@
 /* ========================================================================= */
 
 /* From vehicles.c */
-extern struct vehicle_data *vehicle_find_in_room(room_rnum room);
-extern struct vehicle_data *vehicle_find_by_id(int id);
-extern int vehicle_add_passenger(struct vehicle_data *vehicle);
-extern int vehicle_remove_passenger(struct vehicle_data *vehicle);
-extern int vehicle_can_add_passenger(struct vehicle_data *vehicle);
-extern int vehicle_move(struct vehicle_data *vehicle, int direction);
-extern int vehicle_can_move(struct vehicle_data *vehicle, int direction);
-extern int vehicle_is_operational(struct vehicle_data *vehicle);
-extern const char *vehicle_type_name(enum vehicle_type type);
-extern const char *vehicle_state_name(enum vehicle_state state);
 
 /* From vessels_rooms.c */
-extern struct greyhawk_ship_data *get_ship_from_room(room_rnum room);
-extern bool is_in_ship_interior(struct char_data *ch);
 
 /* From vehicles_commands.c - player-vehicle tracking */
-extern int is_player_in_vehicle(struct char_data *ch);
-extern struct vehicle_data *get_player_vehicle(struct char_data *ch);
-extern int register_player_mount(struct char_data *ch, struct vehicle_data *vehicle);
-extern int unregister_player_mount(struct char_data *ch);
 
 /* ========================================================================= */
 /* HELPER FUNCTIONS                                                          */

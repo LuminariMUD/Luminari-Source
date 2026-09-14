@@ -175,7 +175,6 @@ room_rnum r_mortal_start_room = 0; /* rnum of mortal start room	 */
 room_rnum r_immort_start_room = 0; /* rnum of immort start room	 */
 room_rnum r_frozen_start_room = 0; /* rnum of frozen start room	 */
 
-extern MYSQL *conn; /* MySQL database connection (defined in mysql.c) */
 
 char *credits = NULL;    /* game credits			 */
 char *news = NULL;       /* mud news			 */
@@ -249,7 +248,6 @@ static void free_extra_descriptions(struct extra_descr_data *edesc);
 static bitvector_t asciiflag_conv_aff(char *flag);
 static int help_sort(const void *a, const void *b);
 void assign_deities(void);
-void set_armor_object(struct obj_data *obj, int type);
 void assign_weighted_bonuses(void);
 
 /* Ils: Global result_q needed for init_result_q, push_result & test_result */
@@ -302,7 +300,8 @@ sbyte test_result(sbyte offset, zone_rnum zone, int cmd_no)
 {
   if (abs(offset) > result_q.size)
   {
-    log("ZONE ERROR: Zone #%d, Line %d, Command #%d ('%c'): if_flag %d references command #%d "
+    log("ZONE ERROR: Zone #%" PRI_IDX
+        ", Line %d, Command #%d ('%c'): if_flag %d references command #%d "
         "back, but only %d commands have executed so far.",
         zone_table[zone].number, zone_table[zone].cmd[cmd_no].line, cmd_no + 1,
         zone_table[zone].cmd[cmd_no].command, offset, abs(offset), result_q.size);
@@ -927,7 +926,8 @@ static void report_effective_spec_bindings(void)
     {
       if (obj_index[object].func == NULL)
       {
-        log("SYSERR: Object prototype #%d has ITEM_AUTOPROC flag but no special procedure "
+        log("SYSERR: Object prototype #%" PRI_IDX
+            " has ITEM_AUTOPROC flag but no special procedure "
             "assigned.",
             obj_index[object].vnum);
       }
@@ -937,7 +937,8 @@ static void report_effective_spec_bindings(void)
         if (def != NULL && def->typed_handler != NULL &&
             !spec_definition_supports_event(def, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTOMATIC))
         {
-          log("SYSERR: Object prototype #%d has ITEM_AUTOPROC flag but special procedure '%s' does "
+          log("SYSERR: Object prototype #%" PRI_IDX
+              " has ITEM_AUTOPROC flag but special procedure '%s' does "
               "not support automatic activity.",
               obj_index[object].vnum, def->canonical_name);
         }
@@ -1474,7 +1475,7 @@ void boot_db(void)
     {
       if (obj_proto[j].script == (struct script_data *)&shop_keeper)
       {
-        log("Item %d (%s) had shopkeeper trouble.", obj_index[j].vnum,
+        log("Item %" PRI_IDX " (%s) had shopkeeper trouble.", obj_index[j].vnum,
             obj_proto[j].short_description);
         obj_proto[j].script = NULL;
       }
@@ -1490,8 +1491,8 @@ void boot_db(void)
     strncpy(buf1, zone_table[i].name, sizeof(buf1) - 1);
     buf1[sizeof(buf1) - 1] = '\0';
     strip_colors(buf1);
-    log("Resetting #%d: %s (rooms %d-%d).", zone_table[i].number, buf1, zone_table[i].bot,
-        zone_table[i].top);
+    log("Resetting #%" PRI_IDX ": %s (rooms %" PRI_IDX "-%" PRI_IDX ").", zone_table[i].number,
+        buf1, zone_table[i].bot, zone_table[i].top);
     reset_zone(i);
   }
 
@@ -1530,7 +1531,7 @@ void boot_db(void)
      * Only extract if the object is not attached to anything. */
     if (j->in_room == NOWHERE && j->carried_by == NULL && j->worn_by == NULL && j->in_obj == NULL)
     {
-      log("SYSERR: Cleaning up orphaned object %d [%s] during boot", GET_OBJ_VNUM(j),
+      log("SYSERR: Cleaning up orphaned object %u [%s] during boot", GET_OBJ_VNUM(j),
           j->short_description ? j->short_description : "UNKNOWN");
       extract_obj(j);
       continue;
@@ -2187,9 +2188,11 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
 
   if (virtual_nr < 0 || (room_vnum)virtual_nr < zone_table[zone].bot)
   {
-    log("SYSERR: (parse_room) Room #%d in file '%s' is below zone %d's range (expected: %d-%d, "
+    log("SYSERR: (parse_room) Room #%d in file '%s' is below zone %" PRI_IDX
+        "'s range (expected: %" PRI_IDX "-%" PRI_IDX ", "
         "got: %d).\n"
-        "       This room number must be between %d and %d to belong to zone %d.\n"
+        "       This room number must be between %" PRI_IDX " and %" PRI_IDX
+        " to belong to zone %" PRI_IDX ".\n"
         "       Please renumber the room or move it to the correct zone file.",
         virtual_nr, filename ? filename : "unknown", zone_table[zone].number, zone_table[zone].bot,
         zone_table[zone].top, virtual_nr, zone_table[zone].bot, zone_table[zone].top,
@@ -2200,7 +2203,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
     if (++zone > top_of_zone_table)
     {
       log("SYSERR: Room #%d in file '%s' is outside of any zone's range.\n"
-          "       The highest zone (%d) has range %d-%d.\n"
+          "       The highest zone (%" PRI_IDX ") has range %" PRI_IDX "-%" PRI_IDX ".\n"
           "       Either create a new zone for this room or renumber it to fit an existing zone.",
           virtual_nr, filename ? filename : "unknown", zone_table[top_of_zone_table].number,
           zone_table[top_of_zone_table].bot, zone_table[top_of_zone_table].top);
@@ -2497,7 +2500,7 @@ void setup_dir(FILE *fl, room_rnum room, int dir)
   int t[5], serialized_flag;
   char line[READ_SIZE], buf2[128];
 
-  snprintf(buf2, sizeof(buf2), "room #%d, direction D%d", world[room].number, dir);
+  snprintf(buf2, sizeof(buf2), "room #%" PRI_IDX ", direction D%d", world[room].number, dir);
 
   if (!CONFIG_DIAGONAL_DIRS && IS_DIAGONAL(dir))
   {
@@ -2566,8 +2569,8 @@ static void check_start_rooms(void)
         r_mortal_start_room = 0;
       if (r_mortal_start_room != NOWHERE)
       {
-        log("Info: Mini-mud start room %d is unavailable; using room %d.", CONFIG_MORTAL_START,
-            GET_ROOM_VNUM(r_mortal_start_room));
+        log("Info: Mini-mud start room %" PRI_IDX " is unavailable; using room %u.",
+            CONFIG_MORTAL_START, GET_ROOM_VNUM(r_mortal_start_room));
       }
       else
       {
@@ -2654,10 +2657,11 @@ static void renum_zone_table(void)
         /* CRITICAL: Validate object vnum at parse time */
         if (a == NOTHING)
         {
-          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist",
+          log("ZONE ERROR: Zone #%" PRI_IDX ", Line %d: Object vnum #%" PRI_IDX " does not exist",
               zone_table[zone].number, ZCMD.line, olda);
-          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this O command from 'zedit "
-              "%d'",
+          log("ZONE FIX: Create object #%" PRI_IDX " with 'oedit %" PRI_IDX
+              "' OR remove this O command from 'zedit "
+              "%" PRI_IDX "'",
               olda, olda, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg1 = NOTHING;
@@ -2674,10 +2678,12 @@ static void renum_zone_table(void)
         /* CRITICAL: Validate object vnum at parse time */
         if (a == NOTHING)
         {
-          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist (G = Give to mob)",
+          log("ZONE ERROR: Zone #%" PRI_IDX ", Line %d: Object vnum #%" PRI_IDX
+              " does not exist (G = Give to mob)",
               zone_table[zone].number, ZCMD.line, olda);
-          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this G command from 'zedit "
-              "%d'",
+          log("ZONE FIX: Create object #%" PRI_IDX " with 'oedit %" PRI_IDX
+              "' OR remove this G command from 'zedit "
+              "%" PRI_IDX "'",
               olda, olda, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg1 = NOTHING;
@@ -2692,10 +2698,12 @@ static void renum_zone_table(void)
         /* CRITICAL: Validate object vnum at parse time */
         if (a == NOTHING)
         {
-          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist (E = Equip on mob)",
+          log("ZONE ERROR: Zone #%" PRI_IDX ", Line %d: Object vnum #%" PRI_IDX
+              " does not exist (E = Equip on mob)",
               zone_table[zone].number, ZCMD.line, olda);
-          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this E command from 'zedit "
-              "%d'",
+          log("ZONE FIX: Create object #%" PRI_IDX " with 'oedit %" PRI_IDX
+              "' OR remove this E command from 'zedit "
+              "%" PRI_IDX "'",
               olda, olda, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg1 = NOTHING;
@@ -2710,11 +2718,13 @@ static void renum_zone_table(void)
         /* CRITICAL: Validate object vnum at parse time */
         if (a == NOTHING)
         {
-          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist (P = Put in "
+          log("ZONE ERROR: Zone #%" PRI_IDX ", Line %d: Object vnum #%" PRI_IDX
+              " does not exist (P = Put in "
               "container)",
               zone_table[zone].number, ZCMD.line, olda);
-          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this P command from 'zedit "
-              "%d'",
+          log("ZONE FIX: Create object #%" PRI_IDX " with 'oedit %" PRI_IDX
+              "' OR remove this P command from 'zedit "
+              "%" PRI_IDX "'",
               olda, olda, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg1 = NOTHING;
@@ -2726,11 +2736,13 @@ static void renum_zone_table(void)
         c = real_object(ZCMD.arg3);
         if (c == NOTHING)
         {
-          log("ZONE ERROR: Zone #%d, Line %d: Container vnum #%d does not exist (P = target "
+          log("ZONE ERROR: Zone #%" PRI_IDX ", Line %d: Container vnum #%" PRI_IDX
+              " does not exist (P = target "
               "container)",
               zone_table[zone].number, ZCMD.line, oldc);
-          log("ZONE FIX: Create container #%d with 'oedit %d' OR change/remove this P command in "
-              "'zedit %d'",
+          log("ZONE FIX: Create container #%" PRI_IDX " with 'oedit %" PRI_IDX
+              "' OR change/remove this P command in "
+              "'zedit %" PRI_IDX "'",
               oldc, oldc, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg3 = NOTHING;
@@ -2749,11 +2761,13 @@ static void renum_zone_table(void)
         /* CRITICAL: Validate object vnum at parse time */
         if (b == NOTHING)
         {
-          log("ZONE ERROR: Zone #%d, Line %d: Object vnum #%d does not exist (R = Remove from "
+          log("ZONE ERROR: Zone #%" PRI_IDX ", Line %d: Object vnum #%" PRI_IDX
+              " does not exist (R = Remove from "
               "room)",
               zone_table[zone].number, ZCMD.line, oldb);
-          log("ZONE FIX: Create object #%d with 'oedit %d' OR remove this R command from 'zedit "
-              "%d'",
+          log("ZONE FIX: Create object #%" PRI_IDX " with 'oedit %" PRI_IDX
+              "' OR remove this R command from 'zedit "
+              "%" PRI_IDX "'",
               oldb, oldb, zone_table[zone].number);
           /* Keep the original vnum for error tracking but mark as invalid */
           ZCMD.arg2 = NOTHING;
@@ -2790,9 +2804,9 @@ static void renum_zone_table(void)
           {
             if (proto_trigger->vnum == (int)oldb)
             {
-              log("ZONE WARNING: Zone #%d, Line %d: Room #%" PRI_IDX
+              log("ZONE WARNING: Zone #%" PRI_IDX ", Line %d: Room #%" PRI_IDX
                   " and its zone reset both attach "
-                  "trigger #%d; reset attachment will be idempotent.",
+                  "trigger #%" PRI_IDX "; reset attachment will be idempotent.",
                   zone_table[zone].number, ZCMD.line, world[c].number, oldb);
               break;
             }
@@ -2805,7 +2819,8 @@ static void renum_zone_table(void)
                 zone_table[zone].cmd[prior_cmd].arg2 == (int)b &&
                 zone_table[zone].cmd[prior_cmd].arg3 == (int)c)
             {
-              log("ZONE WARNING: Zone #%d, Line %d: duplicate reset attachment of trigger #%d "
+              log("ZONE WARNING: Zone #%" PRI_IDX
+                  ", Line %d: duplicate reset attachment of trigger #%" PRI_IDX " "
                   "to room #%" PRI_IDX " will be idempotent.",
                   zone_table[zone].number, ZCMD.line, oldb, world[c].number);
               break;
@@ -4353,7 +4368,8 @@ static void load_zones(FILE *fl, char *zonename)
 
   if (Z.bot > Z.top)
   {
-    log("SYSERR: Zone %d bottom (%d) > top (%d).", Z.number, Z.bot, Z.top);
+    log("SYSERR: Zone %" PRI_IDX " bottom (%" PRI_IDX ") > top (%" PRI_IDX ").", Z.number, Z.bot,
+        Z.top);
     exit(1);
   }
 
@@ -4648,7 +4664,7 @@ int vnum_mobile(char *searchname, struct char_data *ch)
 
   for (nr = 0; nr <= top_of_mobt; nr++)
     if (isname(searchname, mob_proto[nr].player.name))
-      send_to_char(ch, "%3d. [%5d] %-40s %s\r\n", ++found, mob_index[nr].vnum,
+      send_to_char(ch, "%3d. [%5" PRI_IDX "] %-40s %s\r\n", ++found, mob_index[nr].vnum,
                    mob_proto[nr].player.short_descr, mob_proto[nr].proto_script ? "[TRIG]" : "");
 
   return (found);
@@ -4661,7 +4677,7 @@ int vnum_object(char *searchname, struct char_data *ch)
 
   for (nr = 0; nr <= top_of_objt; nr++)
     if (isname(searchname, obj_proto[nr].name))
-      send_to_char(ch, "%3d. [%5d] %-40s %s\r\n", ++found, obj_index[nr].vnum,
+      send_to_char(ch, "%3d. [%5" PRI_IDX "] %-40s %s\r\n", ++found, obj_index[nr].vnum,
                    obj_proto[nr].short_description, obj_proto[nr].proto_script ? "[TRIG]" : "");
 
   return (found);
@@ -4674,8 +4690,8 @@ int vnum_room(char *searchname, struct char_data *ch)
 
   for (nr = 0; nr <= top_of_world; nr++)
     if (isname(searchname, world[nr].name))
-      send_to_char(ch, "%3d. [%5d] %-40s %s\r\n", ++found, world[nr].number, world[nr].name,
-                   world[nr].proto_script ? "[TRIG]" : "");
+      send_to_char(ch, "%3d. [%5" PRI_IDX "] %-40s %s\r\n", ++found, world[nr].number,
+                   world[nr].name, world[nr].proto_script ? "[TRIG]" : "");
   return (found);
 }
 
@@ -4684,7 +4700,7 @@ int vnum_trig(char *searchname, struct char_data *ch)
   int nr, found = 0;
   for (nr = 0; nr < top_of_trigt; nr++)
     if (isname(searchname, trig_index[nr]->proto->name))
-      send_to_char(ch, "%3d. [%5d] %-40s\r\n", ++found, trig_index[nr]->vnum,
+      send_to_char(ch, "%3d. [%5" PRI_IDX "] %-40s\r\n", ++found, trig_index[nr]->vnum,
                    trig_index[nr]->proto->name);
   return (found);
 }
@@ -4739,8 +4755,9 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   {
     if ((i = real_mobile(nr)) == NOBODY)
     {
-      log("MOB ERROR: Mobile vnum #%d doesn't exist in the world files!", nr);
-      log("MOB FIX: Create this mobile with 'medit %d', OR remove references to it from zone "
+      log("MOB ERROR: Mobile vnum #%" PRI_IDX " doesn't exist in the world files!", nr);
+      log("MOB FIX: Create this mobile with 'medit %" PRI_IDX
+          "', OR remove references to it from zone "
           "commands",
           nr);
       log("MOB NOTE: Use 'vnum mob <keyword>' to search for existing mobs, 'mlist' to see zone "
@@ -5106,10 +5123,11 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
 
   if (i == NOTHING || i > top_of_objt)
   {
-    log("OBJECT ERROR: Object vnum #%d doesn't exist or isn't loaded!", nr);
+    log("OBJECT ERROR: Object vnum #%" PRI_IDX " doesn't exist or isn't loaded!", nr);
     log("OBJECT CONTEXT: During boot this can mean: wrong VIRTUAL/REAL flag, disabled zone, or "
         "loading order issue");
-    log("OBJECT FIX: Create this object with 'oedit %d', OR fix the code calling read_object()",
+    log("OBJECT FIX: Create this object with 'oedit %" PRI_IDX
+        "', OR fix the code calling read_object()",
         nr);
     log("OBJECT NOTE: Common sources: weighted bonuses calc, treasure tables, zone commands, mob "
         "equipment, special procs");
@@ -5311,7 +5329,7 @@ void zone_update(void)
     if (zone_table[update_u->zone_to_reset].reset_mode == 2 || is_empty(update_u->zone_to_reset))
     {
       reset_zone(update_u->zone_to_reset);
-      mudlog(CMP, LVL_IMPL, FALSE, "\tnAuto zone reset: %s (Zone %d)",
+      mudlog(CMP, LVL_IMPL, FALSE, "\tnAuto zone reset: %s (Zone %" PRI_IDX ")",
              zone_table[update_u->zone_to_reset].name, zone_table[update_u->zone_to_reset].number);
       /* dequeue */
       if (update_u == reset_q.head)
@@ -5602,11 +5620,12 @@ static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
     break;
   }
 
-  mudlog(CMP, LVL_STAFF, TRUE, "ZONE ERROR: Zone #%d, Line %d: %s", zone_table[zone].number,
-         ZCMD.line, message);
+  mudlog(CMP, LVL_STAFF, TRUE, "ZONE ERROR: Zone #%" PRI_IDX ", Line %d: %s",
+         zone_table[zone].number, ZCMD.line, message);
   mudlog(CMP, LVL_STAFF, TRUE, "ZONE INFO: Command '%c' (%s) at position #%d in zone file",
          ZCMD.command, cmd_explain, cmd_no);
-  mudlog(CMP, LVL_STAFF, TRUE, "ZONE FIX: Edit the zone file with 'zedit %d' and check line %d",
+  mudlog(CMP, LVL_STAFF, TRUE,
+         "ZONE FIX: Edit the zone file with 'zedit %" PRI_IDX "' and check line %d",
          zone_table[zone].number, ZCMD.line);
 }
 
@@ -5659,7 +5678,7 @@ static void reset_zone_transfer_impl(zone_rnum zone)
   /* CRITICAL: Set zone reset state to prevent race conditions */
   if (zone_table[zone].reset_state == ZONE_RESET_ACTIVE)
   {
-    log("SYSERR: Zone %d already resetting - possible race condition detected!",
+    log("SYSERR: Zone %" PRI_IDX " already resetting - possible race condition detected!",
         zone_table[zone].number);
     return;
   }
@@ -5752,7 +5771,7 @@ static void reset_zone_transfer_impl(zone_rnum zone)
       /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
       if (ZCMD.arg1 < 0 || (obj_rnum)ZCMD.arg1 > top_of_objt)
       {
-        log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'O' command",
+        log("SYSERR: Zone %" PRI_IDX " cmd %d: Invalid object rnum %d in 'O' command",
             zone_table[zone].number, cmd_no, ZCMD.arg1);
         push_result(0);
         break;
@@ -5776,8 +5795,8 @@ static void reset_zone_transfer_impl(zone_rnum zone)
           /* CRITICAL FIX: Check for NULL object before use */
           if (!obj)
           {
-            log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d", zone_table[zone].number,
-                cmd_no, obj_index[ZCMD.arg1].vnum);
+            log("SYSERR: Zone %" PRI_IDX " cmd %d: Failed to create object vnum %" PRI_IDX,
+                zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
             push_result(0);
             break;
           }
@@ -5822,7 +5841,8 @@ static void reset_zone_transfer_impl(zone_rnum zone)
           if (!obj_will_be_used)
           {
             /* Don't create the object if it won't be used */
-            log("SYSERR: Zone %d cmd %d: Skipping orphaned object %d with NOWHERE room",
+            log("SYSERR: Zone %" PRI_IDX " cmd %d: Skipping orphaned object %" PRI_IDX
+                " with NOWHERE room",
                 zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
             push_result(0);
             tobj = NULL;
@@ -5833,7 +5853,8 @@ static void reset_zone_transfer_impl(zone_rnum zone)
             /* CRITICAL FIX: Check for NULL object before use */
             if (!obj)
             {
-              log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d (no room)",
+              log("SYSERR: Zone %" PRI_IDX " cmd %d: Failed to create object vnum %" PRI_IDX
+                  " (no room)",
                   zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
               push_result(0);
               break;
@@ -5857,7 +5878,7 @@ static void reset_zone_transfer_impl(zone_rnum zone)
       /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
       if (ZCMD.arg1 < 0 || (obj_rnum)ZCMD.arg1 > top_of_objt)
       {
-        log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'P' command",
+        log("SYSERR: Zone %" PRI_IDX " cmd %d: Invalid object rnum %d in 'P' command",
             zone_table[zone].number, cmd_no, ZCMD.arg1);
         push_result(0);
         break;
@@ -5878,7 +5899,8 @@ static void reset_zone_transfer_impl(zone_rnum zone)
         /* CRITICAL FIX: Check for NULL object before use */
         if (!obj)
         {
-          log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'P' command",
+          log("SYSERR: Zone %" PRI_IDX " cmd %d: Failed to create object vnum %" PRI_IDX
+              " for 'P' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
           push_result(0);
           break;
@@ -5928,7 +5950,7 @@ static void reset_zone_transfer_impl(zone_rnum zone)
       /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
       if (ZCMD.arg1 < 0 || (obj_rnum)ZCMD.arg1 > top_of_objt)
       {
-        log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'G' command",
+        log("SYSERR: Zone %" PRI_IDX " cmd %d: Invalid object rnum %d in 'G' command",
             zone_table[zone].number, cmd_no, ZCMD.arg1);
         push_result(0);
         break;
@@ -5947,7 +5969,7 @@ static void reset_zone_transfer_impl(zone_rnum zone)
         if (ZCMD.if_flag == 0)
         {
           char error[MAX_INPUT_LENGTH] = {'\0'};
-          snprintf(error, sizeof(error), "attempt to give obj #%d to non-existant mob",
+          snprintf(error, sizeof(error), "attempt to give obj #%" PRI_IDX " to non-existant mob",
                    obj_index[ZCMD.arg1].vnum);
           ZONE_ERROR(error);
           // ZCMD.command = '*';
@@ -5962,7 +5984,8 @@ static void reset_zone_transfer_impl(zone_rnum zone)
         /* CRITICAL FIX: Check for NULL object before use */
         if (!obj)
         {
-          log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'G' command",
+          log("SYSERR: Zone %" PRI_IDX " cmd %d: Failed to create object vnum %" PRI_IDX
+              " for 'G' command",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
           push_result(0);
           break;
@@ -5978,7 +6001,8 @@ static void reset_zone_transfer_impl(zone_rnum zone)
         /* CRITICAL FIX: Check for NULL object before use */
         if (!obj)
         {
-          log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'G' command (boot)",
+          log("SYSERR: Zone %" PRI_IDX " cmd %d: Failed to create object vnum %" PRI_IDX
+              " for 'G' command (boot)",
               zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
           push_result(0);
           break;
@@ -6024,7 +6048,7 @@ static void reset_zone_transfer_impl(zone_rnum zone)
       /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
       if (ZCMD.arg1 < 0 || (obj_rnum)ZCMD.arg1 > top_of_objt)
       {
-        log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'E' command",
+        log("SYSERR: Zone %" PRI_IDX " cmd %d: Invalid object rnum %d in 'E' command",
             zone_table[zone].number, cmd_no, ZCMD.arg1);
         push_result(0);
         break;
@@ -6045,7 +6069,7 @@ static void reset_zone_transfer_impl(zone_rnum zone)
           char error[MAX_INPUT_LENGTH] = {'\0'};
           snprintf(error, sizeof(error),
                    "trying to equip non-existant mob with "
-                   "obj #%d",
+                   "obj #%" PRI_IDX,
                    obj_index[ZCMD.arg1].vnum);
           ZONE_ERROR(error);
           // ZCMD.command = '*';
@@ -6070,7 +6094,7 @@ static void reset_zone_transfer_impl(zone_rnum zone)
           /* FIX: arg2 should be arg1 for object vnum */
           snprintf(error, sizeof(error),
                    "invalid equipment pos number (mob %s, "
-                   "obj %d, pos %d)",
+                   "obj %" PRI_IDX ", pos %d)",
                    GET_NAME(mob), obj_index[ZCMD.arg1].vnum, ZCMD.arg3);
           ZONE_ERROR(error);
           // ZCMD.command = '*';
@@ -6081,7 +6105,8 @@ static void reset_zone_transfer_impl(zone_rnum zone)
           /* CRITICAL FIX: Check for NULL object before use */
           if (!obj)
           {
-            log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'E' command",
+            log("SYSERR: Zone %" PRI_IDX " cmd %d: Failed to create object vnum %" PRI_IDX
+                " for 'E' command",
                 zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
             push_result(0);
             break;
@@ -6107,7 +6132,7 @@ static void reset_zone_transfer_impl(zone_rnum zone)
           /* FIX: arg2 should be arg1 for object vnum */
           snprintf(error, sizeof(error),
                    "invalid equipment pos number (mob %s, "
-                   "obj %d, pos %d)",
+                   "obj %" PRI_IDX ", pos %d)",
                    GET_NAME(mob), obj_index[ZCMD.arg1].vnum, ZCMD.arg3);
           ZONE_ERROR(error);
           // ZCMD.command = '*';
@@ -6118,7 +6143,8 @@ static void reset_zone_transfer_impl(zone_rnum zone)
           /* CRITICAL FIX: Check for NULL object before use */
           if (!obj)
           {
-            log("SYSERR: Zone %d cmd %d: Failed to create object vnum %d for 'E' command (boot)",
+            log("SYSERR: Zone %" PRI_IDX " cmd %d: Failed to create object vnum %" PRI_IDX
+                " for 'E' command (boot)",
                 zone_table[zone].number, cmd_no, obj_index[ZCMD.arg1].vnum);
             push_result(0);
             break;
@@ -6235,7 +6261,7 @@ static void reset_zone_transfer_impl(zone_rnum zone)
           (world[ZCMD.arg1].dir_option[ZCMD.arg2] == NULL))
       {
         char error[MAX_INPUT_LENGTH] = {'\0'};
-        snprintf(error, sizeof(error), "door does not exist in room %d - dir %d",
+        snprintf(error, sizeof(error), "door does not exist in room %" PRI_IDX " - dir %d",
                  world[ZCMD.arg1].number, ZCMD.arg2);
         ZONE_ERROR(error);
         // ZCMD.command = '*';
@@ -6513,7 +6539,7 @@ static void reset_zone_transfer_impl(zone_rnum zone)
       tobj->worn_by == NULL)
   {
     /* Object was created but never used - extract it to prevent memory leak */
-    log("SYSERR: Zone %d: Cleaning up orphaned object %d [%s] that was never attached",
+    log("SYSERR: Zone %" PRI_IDX ": Cleaning up orphaned object %u [%s] that was never attached",
         zone_table[zone].number, GET_OBJ_VNUM(tobj), tobj->short_description);
     extract_obj(tobj);
   }
@@ -7050,7 +7076,7 @@ void free_char(struct char_data *ch)
     }
 
     if (IS_NPC(ch))
-      log("SYSERR: Mob %s (#%d) had player_specials allocated!", GET_NAME(ch), GET_MOB_VNUM(ch));
+      log("SYSERR: Mob %s (#%u) had player_specials allocated!", GET_NAME(ch), GET_MOB_VNUM(ch));
   }
 
   if (!IS_NPC(ch) || (IS_NPC(ch) && GET_MOB_RNUM(ch) == NOBODY))
@@ -7966,14 +7992,14 @@ static int check_object(struct obj_data *obj)
   strip_colors(buf1);
 
   if (GET_OBJ_WEIGHT(obj) < 0 && (error = TRUE))
-    log("SYSERR: Object #%d (%s) has negative weight (%d).", GET_OBJ_VNUM(obj), buf1,
+    log("SYSERR: Object #%u (%s) has negative weight (%d).", GET_OBJ_VNUM(obj), buf1,
         GET_OBJ_WEIGHT(obj));
 
   if (GET_OBJ_RENT(obj) < 0 && (error = TRUE))
-    log("SYSERR: Object #%d (%s) has negative cost/day (%d).", GET_OBJ_VNUM(obj), buf1,
+    log("SYSERR: Object #%u (%s) has negative cost/day (%d).", GET_OBJ_VNUM(obj), buf1,
         GET_OBJ_RENT(obj));
 
-  snprintf(objname, sizeof(objname), "Object #%d (%s)", GET_OBJ_VNUM(obj), buf1);
+  snprintf(objname, sizeof(objname), "Object #%u (%s)", GET_OBJ_VNUM(obj), buf1);
   for (y = 0; y < TW_ARRAY_MAX; y++)
   {
     error |= check_bitvector_names(GET_OBJ_WEAR(obj)[y], wear_bits_count, objname, "object wear");
@@ -7986,7 +8012,7 @@ static int check_object(struct obj_data *obj)
   if (OBJ_FLAGGED(obj, ITEM_TRAPPED) && !rol_object_trap_values_are_valid(obj))
   {
     error = TRUE;
-    log("SYSERR: Object #%d (%s) has an invalid ITEM_TRAPPED payload in values 10..15.",
+    log("SYSERR: Object #%u (%s) has an invalid ITEM_TRAPPED payload in values 10..15.",
         GET_OBJ_VNUM(obj), buf1);
   }
 
@@ -8032,7 +8058,7 @@ static int check_object(struct obj_data *obj)
     error |= check_object_level(obj, 0);
     error |= check_object_spell_number(obj, 3);
     if (GET_OBJ_VAL(obj, 2) > GET_OBJ_VAL(obj, 1) && (error = TRUE))
-      log("SYSERR: Object #%d (%s) has more charges (%d) than maximum (%d).", GET_OBJ_VNUM(obj),
+      log("SYSERR: Object #%u (%s) has more charges (%d) than maximum (%d).", GET_OBJ_VNUM(obj),
           buf1, GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 1));
     break;
   case ITEM_NOTE:
@@ -8056,7 +8082,7 @@ static int check_object(struct obj_data *obj)
     break;
   case ITEM_FURNITURE:
     if (GET_OBJ_VAL(obj, 1) > GET_OBJ_VAL(obj, 0) && (error = TRUE))
-      log("SYSERR: Object #%d (%s) contains (%d) more than maximum (%d).", GET_OBJ_VNUM(obj), buf1,
+      log("SYSERR: Object #%u (%s) contains (%d) more than maximum (%d).", GET_OBJ_VNUM(obj), buf1,
           GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 0));
     break;
   }
@@ -8081,7 +8107,7 @@ static int check_object_spell_number(struct obj_data *obj, int val)
   if (GET_OBJ_VAL(obj, val) > MAX_SPELLS && GET_OBJ_VAL(obj, val) < TOP_SKILL_DEFINE)
     error = TRUE;
   if (error)
-    log("SYSERR: Object #%d (%s) has out of range spell #%d.", GET_OBJ_VNUM(obj),
+    log("SYSERR: Object #%u (%s) has out of range spell #%d.", GET_OBJ_VNUM(obj),
         obj->short_description, GET_OBJ_VAL(obj, val));
 
   if (scheck) /* Spell names don't exist in syntax check mode. */
@@ -8091,7 +8117,7 @@ static int check_object_spell_number(struct obj_data *obj, int val)
   spellname = spell_name(GET_OBJ_VAL(obj, val));
 
   if ((spellname == unused_spellname || !str_cmp("UNDEFINED", spellname)) && (error = TRUE))
-    log("SYSERR: Object #%d (%s) uses '%s' spell #%d.", GET_OBJ_VNUM(obj), obj->short_description,
+    log("SYSERR: Object #%u (%s) uses '%s' spell #%d.", GET_OBJ_VNUM(obj), obj->short_description,
         spellname, GET_OBJ_VAL(obj, val));
 
   return (error);
@@ -8102,7 +8128,7 @@ static int check_object_level(struct obj_data *obj, int val)
   int error = FALSE;
 
   if ((GET_OBJ_VAL(obj, val) < 0 || GET_OBJ_VAL(obj, val) > LVL_IMPL) && (error = TRUE))
-    log("SYSERR: Object #%d (%s) has out of range level #%d.", GET_OBJ_VNUM(obj),
+    log("SYSERR: Object #%u (%s) has out of range level #%d.", GET_OBJ_VNUM(obj),
         obj->short_description, GET_OBJ_VAL(obj, val));
 
   return (error);
@@ -8126,7 +8152,7 @@ static int check_bitvector_names(bitvector_t bits, size_t namecount, const char 
   for (flagnum = namecount; (size_t)flagnum < bit_count; flagnum++)
     if (((bitvector_t)1 << flagnum) & bits)
     {
-      log("SYSERR: %s has unknown %s flag, bit %d (0 through %d known).", whatami, whatbits,
+      log("SYSERR: %s has unknown %s flag, bit %u (0 through %d known).", whatami, whatbits,
           flagnum, (int)namecount - 1);
       error = TRUE;
     }
@@ -8899,23 +8925,23 @@ void save_objects_to_database(struct char_data *ch __attribute__((unused)))
         "`weapon_spell_2`, `weapon_spell_3`, "
         "`weapon_special_ability`, `minimum_level`, `zone_num`, `zone_name`, `notes`, "
         "`enhancement_bonus`) VALUES (NULL,"
-        "%d,"     // A object_vnum
-        "\"%s\"," // B object_name
-        "\"%s\"," // C object_type
-        "\"%s\"," // D material
-        "%d,"     // E weight
-        "\"%s\"," // F object_size
-        "%d,"     // G cost
-        "\"%s\"," // H specific_type
-        "\"%s\"," // I weapon_spell_1
-        "\"%s\"," // J weapon_spell_2
-        "\"%s\"," // K weapon_spell_3
-        "\"%s\"," // L weapon_special_ability
-        "%d,"     // M minimum_level
-        "%d,"     // N zone_num
-        "\"%s\"," // O zone_name
-        "\"%s\"," // P notes
-        "%d"      // Q enhancement
+        "%" PRI_IDX "," // A object_vnum
+        "\"%s\","       // B object_name
+        "\"%s\","       // C object_type
+        "\"%s\","       // D material
+        "%d,"           // E weight
+        "\"%s\","       // F object_size
+        "%d,"           // G cost
+        "\"%s\","       // H specific_type
+        "\"%s\","       // I weapon_spell_1
+        "\"%s\","       // J weapon_spell_2
+        "\"%s\","       // K weapon_spell_3
+        "\"%s\","       // L weapon_special_ability
+        "%d,"           // M minimum_level
+        "%d,"           // N zone_num
+        "\"%s\","       // O zone_name
+        "\"%s\","       // P notes
+        "%d"            // Q enhancement
         ")",
         obj_index[j].vnum,                              // A
         object_name,                                    // B

@@ -110,12 +110,31 @@ per compiler.
 | 1.1 | `IS_SET_AR` casts the element before the mask | 10706 | 10578 |
 | 2.1 | generated `test_prototypes.h` | 9223 | 9095 |
 | 1.2 | `int` affect, ability, point, player and object fields | 8010 | 7955 |
+| 2.2, 2.3 | format conversions, redundant and nested declarations | 6427 | 7946 |
 
 Also fixed on the way: the budget check counted only `file:line:col: error:`
 lines, so a build that stopped on a missing header (`fatal error:`), a linker
 failure, or a make `***` line still reported a trustworthy count. The CI step
 pipes the build through `tee` without `pipefail`, so the check is the only
 gate that sees such a failure; it now counts all four forms.
+
+Notes from steps 2.2 and 2.3:
+
+- GCC 16.2 emits no usable fix-it for `-Wformat-signedness` (it rewrites `%d`
+  as `%d`), so the conversions were applied by a script that reads the
+  directive back from the source at the reported column, or at the "format
+  string is defined here" note for concatenated and macro-built literals.
+  Index typedefs got `PRI_IDX` (or `SCN_IDX`), plain unsigned values `%u`.
+- Three object listings in `oasis_list.c` printed the object count through
+  `PRI_IDX`; `WILD_DEBUG_MEM` cast only the first operand of its size argument.
+- Duplicate declarations were resolved toward the header that matches the
+  defining source file; the legacy umbrella headers now include the owners
+  (`act.h` includes `movement/movement.h`, `handler.h` the mob memory and
+  utility headers, `oasis.h` `mob/mob_autoroll.h`). Block-scope `extern`
+  declarations of `conn2` and `conn3` moved to `mysql.h`.
+- `strlcat` is now probed like `strlcpy` (`HAVE_STRLCAT`), so the local
+  fallback no longer redeclares the C library function on glibc 2.38 and
+  later.
 
 ## Remaining work
 

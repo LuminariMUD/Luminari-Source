@@ -48,7 +48,7 @@ mob_rnum add_mobile(struct char_data *mob, mob_vnum vnum)
       add_to_save_list(zone_table[zone].number, SL_MOB);
     else
       log("SYSERR: GenOLC: Cannot determine save zone for mobile #%u.", vnum);
-    log("GenOLC: add_mobile: Updated existing mobile #%d.", vnum);
+    log("GenOLC: add_mobile: Updated existing mobile #%" PRI_IDX ".", vnum);
     return rnum;
   }
 
@@ -87,7 +87,7 @@ mob_rnum add_mobile(struct char_data *mob, mob_vnum vnum)
     mob_index[0].effective_binding = NULL;
   }
 
-  log("GenOLC: add_mobile: Added mobile %d at index #%d.", vnum, found);
+  log("GenOLC: add_mobile: Added mobile %" PRI_IDX " at index #%" PRI_IDX ".", vnum, found);
 
   /* Update live mobile rnums. */
   for (live_mob = character_list; live_mob; live_mob = live_mob->next)
@@ -202,7 +202,7 @@ int delete_mobile(mob_rnum refpt)
   if (refpt < 0 || refpt > top_of_mobt)
   {
 #endif
-    log("SYSERR: GenOLC: delete_mobile: Invalid rnum %d.", refpt);
+    log("SYSERR: GenOLC: delete_mobile: Invalid rnum %" PRI_IDX ".", refpt);
     return NOBODY;
   }
 
@@ -459,13 +459,13 @@ int save_mobiles(zone_rnum rznum)
   if (rznum < 0 || rznum > top_of_zone_table)
   {
 #endif
-    log("SYSERR: GenOLC: save_mobiles: Invalid real zone number %d. (0-%d)", rznum,
-        top_of_zone_table);
+    log("SYSERR: GenOLC: save_mobiles: Invalid real zone number %" PRI_IDX ". (0-%" PRI_IDX ")",
+        rznum, top_of_zone_table);
     return FALSE;
   }
 
   vznum = zone_table[rznum].number;
-  snprintf(mobfname, sizeof(mobfname), "%s%d.new", MOB_PREFIX, vznum);
+  snprintf(mobfname, sizeof(mobfname), "%s%" PRI_IDX ".new", MOB_PREFIX, vznum);
   if ((mobfd = fopen_restricted(mobfname, "w")) == NULL)
   {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: GenOLC: Cannot open mob file for writing.");
@@ -478,11 +478,11 @@ int save_mobiles(zone_rnum rznum)
       continue;
     check_mobile_strings(&mob_proto[rmob]);
     if (write_mobile_record(i, &mob_proto[rmob], mobfd) < 0)
-      log("SYSERR: GenOLC: Error writing mobile #%d.", i);
+      log("SYSERR: GenOLC: Error writing mobile #%" PRI_IDX ".", i);
   }
   fputs("$\n", mobfd);
   written = ftell(mobfd);
-  snprintf(usedfname, sizeof(usedfname), "%s%d.mob", MOB_PREFIX, vznum);
+  snprintf(usedfname, sizeof(usedfname), "%s%" PRI_IDX ".mob", MOB_PREFIX, vznum);
   if (!finish_file_save(mobfd, mobfname, usedfname))
     return FALSE;
 
@@ -668,7 +668,7 @@ int write_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
   strip_cr(strncpy(ldesc, GET_LDESC(mob), MAX_STRING_LENGTH - 1));
   strip_cr(strncpy(ddesc, GET_DDESC(mob), MAX_STRING_LENGTH - 1));
 
-  fprintf(fd, "#%d\n", mvnum);
+  fprintf(fd, "#%" PRI_IDX "\n", mvnum);
   fprintf(fd, "%s%c\n", convert_from_tabs(GET_ALIAS(mob)), STRING_TERMINATOR);
   fprintf(fd, "%s%c\n", convert_from_tabs(GET_SDESC(mob)), STRING_TERMINATOR);
   fprintf(fd, "%s%c\n", convert_from_tabs(ldesc), STRING_TERMINATOR);
@@ -700,7 +700,7 @@ int write_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
           GET_GOLD(mob), GET_EXP(mob), GET_POS(mob), pos, GET_SEX(mob));
 
   if (write_mobile_espec(mvnum, mob, fd) < 0)
-    log("SYSERR: GenOLC: Error writing E-specs for mobile #%d.", mvnum);
+    log("SYSERR: GenOLC: Error writing E-specs for mobile #%" PRI_IDX ".", mvnum);
 
   script_save_to_disk(fd, mob, MOB_TRIGGER);
 
@@ -728,7 +728,7 @@ void check_mobile_string(mob_vnum i, char **string, const char *desc)
   if (*string == NULL || **string == '\0')
   {
     char smbuf[128];
-    snprintf(smbuf, sizeof(smbuf), "GenOLC: Mob #%d has an invalid %s.", i, desc);
+    snprintf(smbuf, sizeof(smbuf), "GenOLC: Mob #%" PRI_IDX " has an invalid %s.", i, desc);
     mudlog(BRF, LVL_STAFF, TRUE, "%s", smbuf);
     if (*string)
       free(*string);

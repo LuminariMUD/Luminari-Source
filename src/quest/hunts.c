@@ -33,8 +33,6 @@
  *
  */
 
-extern struct char_data *character_list;
-extern struct room_data *world;
 
 struct hunt_type hunt_table[NUM_HUNT_TYPES];
 /* active hunts:

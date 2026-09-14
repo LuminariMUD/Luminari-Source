@@ -139,7 +139,7 @@ void trig_data_copy(trig_data *this_data, const trig_data *trg)
   else
   {
     this_data->name = strdup("unnamed trigger");
-    log("Trigger with no name! (%d)", trg->nr);
+    log("Trigger with no name! (%" PRI_IDX ")", trg->nr);
   }
   this_data->trigger_type = trg->trigger_type;
   this_data->cmdlist = trg->cmdlist;
@@ -264,10 +264,12 @@ void dg_read_trigger(FILE *fp, void *proto, int type, int proto_vnum)
     else
     {
       mudlog(BRF, LVL_BUILDER, TRUE,
-             "TRIGGER ERROR: Room #%d has non-existent trigger #%d assigned during zone reset",
+             "TRIGGER ERROR: Room #%" PRI_IDX
+             " has non-existent trigger #%d assigned during zone reset",
              room->number, vnum);
       mudlog(BRF, LVL_BUILDER, TRUE,
-             "TRIGGER FIX: Check 'zedit' for zone containing room #%d and remove/fix T commands",
+             "TRIGGER FIX: Check 'zedit' for zone containing room #%" PRI_IDX
+             " and remove/fix T commands",
              room->number);
     }
     break;

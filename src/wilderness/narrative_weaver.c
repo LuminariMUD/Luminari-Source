@@ -29,18 +29,7 @@
 
 
 /* External function declarations */
-extern struct region_list *get_enclosing_regions(zone_rnum zone, int x, int y);
-extern void free_region_list(struct region_list *regions);
-extern int get_weather(int x, int y);
-extern char *generate_resource_aware_description(struct char_data *ch, room_rnum room);
-extern struct time_info_data time_info;
-extern struct region_data *region_table;
-extern zone_rnum top_of_region_table;
 extern void safe_strcat(char *dest, const char *src); /* From resource_descriptions.c */
-extern struct region_profile *load_region_profile(int region_vnum); /* From region_hints.c */
-extern void free_region_profile(struct region_profile *profile);    /* From region_hints.c */
-extern int mysql_pool_query(const char *query, MYSQL_RES **result); /* From mysql.c */
-extern void mysql_pool_free_result(MYSQL_RES *result);              /* From mysql.c */
 
 /* Forward declarations */
 char *simple_hint_layering(char *base_description, struct region_hint *hints, int x, int y);
@@ -372,8 +361,6 @@ void clear_hint_cache(void)
 /* Helper function to get current season */
 int get_season_from_time(void)
 {
-  extern struct time_info_data time_info;
-
   // Standard MUD seasonal calculation based on month
   int month = time_info.month;
 
@@ -1555,36 +1542,13 @@ void inject_temporal_and_sensory_elements(struct description_components *desc,
                                           const char *sensory_details);
 const char **get_style_adjectives(int style);
 const char **get_style_verbs(int style);
-const struct vocabulary_mapping *get_style_vocabulary(int style);
-char *apply_vocabulary_transformation(const char *text, int style);
 char *apply_regional_style_transformation(const char *text, int style);
 int convert_style_string_to_int(const char *style_str);
 const char *get_transitional_phrase(int style, const char *context);
 
 /* Multi-condition contextual system prototypes */
-double get_time_weight_for_category(const char *json_weights, const char *time_category);
-double calculate_comprehensive_relevance(struct region_hint *hint,
-                                         struct environmental_context *context,
-                                         const char *regional_characteristics);
-double calculate_weather_relevance_for_hint(struct region_hint *hint, int weather_value);
-int select_contextual_weighted_hint(struct region_hint *hints, int *hint_indices, int count,
-                                    struct environmental_context *context,
-                                    const char *regional_characteristics);
 
 /* Regional transition system prototypes */
-double calculate_regional_influence(int x, int y, int region_x, int region_y,
-                                    int max_influence_distance);
-double detect_region_boundary_proximity(int x, int y, int region_vnum);
-struct regional_transition *calculate_regional_transitions(int x, int y, int max_search_radius,
-                                                           int *transition_count);
-void apply_regional_transition_weights(struct region_hint *hints, int hint_count,
-                                       struct regional_transition *transitions,
-                                       int transition_count);
-void apply_boundary_transition_effects(struct region_hint *hints, int hint_count, int x, int y,
-                                       int region_vnum);
-float calculate_regional_resource_health(int x, int y, int radius);
-void apply_resource_based_hint_weighting(struct region_hint *hints, int hint_count,
-                                         float resource_health);
 
 /* ====================================================================== */
 /*                       TRANSITIONAL PHRASE SYSTEM                      */
@@ -2345,7 +2309,6 @@ struct narrative_elements *extract_narrative_elements(struct region_hint *hints,
   }
 
   // Add seasonal context analysis based on current season
-  extern struct time_info_data time_info;
   int season = get_season_from_time(); // We need to implement this
 
   // Re-analyze hints for seasonal context
@@ -4607,8 +4570,9 @@ char *create_unified_wilderness_description(zone_rnum zone, int x, int y)
   weather_condition = get_wilderness_weather_condition(x, y);
   time_category = get_time_of_day_category();
 
-  log("DEBUG: Creating unified description for (%d, %d) in zone %d - weather: %s, time: %s", x, y,
-      zone, weather_condition, time_category);
+  log("DEBUG: Creating unified description for (%d, %d) in zone %" PRI_IDX
+      " - weather: %s, time: %s",
+      x, y, zone, weather_condition, time_category);
 
   // Get region information using the correct zone
   regions = get_enclosing_regions(zone, x, y);
@@ -4629,18 +4593,18 @@ char *create_unified_wilderness_description(zone_rnum zone, int x, int y)
     if (curr_region->rnum != NOWHERE)
     {
       int region_type = region_table[curr_region->rnum].region_type;
-      log("DEBUG: Found region vnum %d (type %d) from region_table[%d]",
+      log("DEBUG: Found region vnum %" PRI_IDX " (type %d) from region_table[%" PRI_IDX "]",
           region_table[curr_region->rnum].vnum, region_type, curr_region->rnum);
 
       if (region_type == 1)
       { /* Geographic region */
         geographic_region = curr_region;
-        log("DEBUG: Found geographic region vnum %d", region_table[curr_region->rnum].vnum);
+        log("DEBUG: Found geographic region vnum %" PRI_IDX, region_table[curr_region->rnum].vnum);
       }
       else if (region_type == 2)
       { /* Encounter region */
         encounter_region = curr_region;
-        log("DEBUG: Found encounter region vnum %d", region_table[curr_region->rnum].vnum);
+        log("DEBUG: Found encounter region vnum %" PRI_IDX, region_table[curr_region->rnum].vnum);
       }
     }
     curr_region = curr_region->next;
@@ -4665,8 +4629,8 @@ char *create_unified_wilderness_description(zone_rnum zone, int x, int y)
   }
 
   region_vnum = region_table[best_region->rnum].vnum;
-  log("DEBUG: Selected region vnum %d from region_table[%d] for descriptions", region_vnum,
-      best_region->rnum);
+  log("DEBUG: Selected region vnum %d from region_table[%" PRI_IDX "] for descriptions",
+      region_vnum, best_region->rnum);
 
   // Calculate resource health for optimized caching
   float resource_health = calculate_regional_resource_health(x, y, 5);

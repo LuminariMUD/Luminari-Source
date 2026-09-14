@@ -889,7 +889,7 @@ static char *make_api_request_single(const char *prompt)
   /* Execute request */
   AI_DEBUG("Executing CURL request to API endpoint");
   res = curl_easy_perform(curl);
-  AI_DEBUG("CURL request completed with result: %d (%s)", res, curl_easy_strerror(res));
+  AI_DEBUG("CURL request completed with result: %d (%s)", (int)res, curl_easy_strerror(res));
 
   if (res == CURLE_OK)
   {
@@ -1106,11 +1106,11 @@ char *ai_npc_dialogue(struct char_data *npc, struct char_data *ch, const char *i
   /* Build cache key - limit input length to prevent overflow */
   if (strlen(input) > 200)
   {
-    snprintf(cache_key, sizeof(cache_key), "npc_%d_%.200s", GET_MOB_VNUM(npc), input);
+    snprintf(cache_key, sizeof(cache_key), "npc_%u_%.200s", GET_MOB_VNUM(npc), input);
   }
   else
   {
-    snprintf(cache_key, sizeof(cache_key), "npc_%d_%s", GET_MOB_VNUM(npc), input);
+    snprintf(cache_key, sizeof(cache_key), "npc_%u_%s", GET_MOB_VNUM(npc), input);
   }
 
   /* Check cache */
@@ -1182,11 +1182,11 @@ void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const ch
   /* Build cache key - limit input length to prevent overflow */
   if (strlen(input) > 200)
   {
-    snprintf(cache_key, sizeof(cache_key), "npc_%d_%.200s", GET_MOB_VNUM(npc), input);
+    snprintf(cache_key, sizeof(cache_key), "npc_%u_%.200s", GET_MOB_VNUM(npc), input);
   }
   else
   {
-    snprintf(cache_key, sizeof(cache_key), "npc_%d_%s", GET_MOB_VNUM(npc), input);
+    snprintf(cache_key, sizeof(cache_key), "npc_%u_%s", GET_MOB_VNUM(npc), input);
   }
 
   /* Check cache */

@@ -29,8 +29,6 @@
 /* EXTERNAL VARIABLES                                                         */
 /* ========================================================================= */
 
-extern MYSQL *conn;
-extern bool mysql_available;
 
 /* ========================================================================= */
 /* GLOBAL VARIABLES                                                           */
@@ -308,7 +306,7 @@ struct vehicle_data *vehicle_create(enum vehicle_type type, const char *name)
   /* Validate type */
   if (type <= VEHICLE_NONE || type >= NUM_VEHICLE_TYPES)
   {
-    log("SYSERR: vehicle_create called with invalid type %d", type);
+    log("SYSERR: vehicle_create called with invalid type %u", type);
     return NULL;
   }
 
@@ -431,7 +429,7 @@ int vehicle_set_state(struct vehicle_data *vehicle, enum vehicle_state new_state
   /* Validate new state */
   if (new_state < VSTATE_IDLE || new_state >= NUM_VEHICLE_STATES)
   {
-    log("SYSERR: vehicle_set_state invalid state %d", new_state);
+    log("SYSERR: vehicle_set_state invalid state %u", new_state);
     return 0;
   }
 
@@ -1034,7 +1032,7 @@ int vehicle_save(struct vehicle_data *vehicle)
            "location, direction, x_coord, y_coord, max_passengers, current_passengers, "
            "max_weight, current_weight, base_speed, current_speed, "
            "terrain_flags, max_condition, vehicle_condition, owner_id, parent_vessel_id) "
-           "VALUES (%d, %d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %ld, %d)",
+           "VALUES (%d, %u, %u, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %ld, %d)",
            vehicle->id, vehicle->type, vehicle->state, escaped_name, persisted_location,
            vehicle->direction, vehicle->x_coord, vehicle->y_coord, vehicle->max_passengers,
            vehicle->current_passengers, vehicle->max_weight, vehicle->current_weight,
@@ -1766,8 +1764,8 @@ int move_vehicle(struct vehicle_data *vehicle, int direction)
   /* Persist position to database */
   vehicle_save(vehicle);
 
-  log("Info: Vehicle #%d moved to (%d, %d) room %d, speed=%d, state: %s -> %s", vehicle->id, new_x,
-      new_y, dest_room, vehicle->current_speed, vehicle_state_name(prev_state),
+  log("Info: Vehicle #%d moved to (%d, %d) room %" PRI_IDX ", speed=%d, state: %s -> %s",
+      vehicle->id, new_x, new_y, dest_room, vehicle->current_speed, vehicle_state_name(prev_state),
       vehicle_state_name(vehicle->state));
 
   return 1;

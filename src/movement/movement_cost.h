@@ -21,7 +21,5 @@ bool check_movement_points(struct char_data *ch, int need_movement, int riding, 
 void deduct_movement_points(struct char_data *ch, int need_movement, int riding, int ridden_by);
 
 /* External functions needed */
-extern const char *get_walkto_landmark_name(int index);
-extern int walkto_vnum_to_list_row(int vnum);
 
 #endif /* MOVEMENT_COST_H */

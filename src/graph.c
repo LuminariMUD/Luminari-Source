@@ -118,7 +118,8 @@ int find_first_step(room_rnum src, room_rnum target)
 
   if (src == NOWHERE || target == NOWHERE || src > top_of_world || target > top_of_world)
   {
-    log("SYSERR: Illegal value %d or %d passed to find_first_step. (%s)", src, target, __FILE__);
+    log("SYSERR: Illegal value %" PRI_IDX " or %" PRI_IDX " passed to find_first_step. (%s)", src,
+        target, __FILE__);
     return (BFS_ERROR);
   }
 

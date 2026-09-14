@@ -23,15 +23,8 @@
 #include "wilderness/wilderness.h"
 
 /* External variables */
-extern MYSQL *conn;
-extern bool mysql_available;
 
 /* Function prototypes */
-bool save_ship_interior(struct greyhawk_ship_data *ship);
-void load_ship_interior(struct greyhawk_ship_data *ship);
-void save_docking_record(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2,
-                         const char *dock_type);
-void end_docking_record(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2);
 void save_cargo_manifest(struct greyhawk_ship_data *ship, int cargo_room, struct obj_data *cargo);
 void load_cargo_manifest(struct greyhawk_ship_data *ship);
 void save_crew_roster(struct greyhawk_ship_data *ship, struct char_data *npc, const char *role);
@@ -238,7 +231,7 @@ bool save_ship_interior(struct greyhawk_ship_data *ship)
            "room_vnums, bridge_room, entrance_room, "
            "cargo_room1, cargo_room2, cargo_room3, cargo_room4, cargo_room5, "
            "room_data) "
-           "VALUES (%d, %d, '%s', '%s', '%s', %d, %d, '%s', %d, %d, "
+           "VALUES (%d, %u, '%s', '%s', '%s', %d, %d, '%s', %d, %d, "
            "%d, %d, %d, %d, %d, '%s') "
            "ON DUPLICATE KEY UPDATE "
            "vessel_type=VALUES(vessel_type), vessel_name=VALUES(vessel_name), "
@@ -1239,7 +1232,7 @@ void save_cargo_manifest(struct greyhawk_ship_data *ship, int cargo_room, struct
   snprintf(query, sizeof(query),
            "INSERT INTO ship_cargo_manifest "
            "(ship_id, cargo_room, item_vnum, item_name, item_count, item_weight) "
-           "VALUES (%d, %d, %d, '%s', %d, %d)",
+           "VALUES (%d, %d, %u, '%s', %d, %d)",
            ship->shipnum, cargo_room, GET_OBJ_VNUM(cargo), escaped_name, 1, GET_OBJ_WEIGHT(cargo));
 
   if (mysql_query(conn, query))
@@ -1291,7 +1284,7 @@ void load_cargo_manifest(struct greyhawk_ship_data *ship)
       if (cargo)
       {
         obj_to_room(cargo, cargo_room);
-        log("Info: Loaded cargo item %d to room %d on ship %d", GET_OBJ_VNUM(cargo),
+        log("Info: Loaded cargo item %u to room %" PRI_IDX " on ship %d", GET_OBJ_VNUM(cargo),
             world[cargo_room].number, ship->shipnum);
       }
     }
@@ -1317,7 +1310,7 @@ void save_crew_roster(struct greyhawk_ship_data *ship, struct char_data *npc, co
   snprintf(query, sizeof(query),
            "INSERT INTO ship_crew_roster "
            "(ship_id, npc_vnum, npc_name, crew_role, assigned_room) "
-           "VALUES (%d, %d, '%s', '%s', %d)",
+           "VALUES (%d, %u, '%s', '%s', %" PRI_IDX ")",
            ship->shipnum, GET_MOB_VNUM(npc), escaped_name, role ? role : "crew", IN_ROOM(npc));
 
   if (mysql_query(conn, query))

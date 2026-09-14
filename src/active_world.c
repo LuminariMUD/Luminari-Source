@@ -314,7 +314,7 @@ static bool register_mobile_agenda_event_type(void)
   if (status != GAME_SCHEDULER_OK)
   {
     log("SYSERR: unable to register native event type 'mobile.autonomous.agenda' "
-        "(status %d).",
+        "(status %u).",
         status);
     return false;
   }

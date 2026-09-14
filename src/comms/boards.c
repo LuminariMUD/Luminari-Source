@@ -117,12 +117,13 @@ static void init_boards(void)
   {
     if ((BOARD_RNUM(i) = real_object(BOARD_VNUM(i))) == NOTHING)
     {
-      log("SYSERR: Fatal board error: board vnum %d does not exist!", BOARD_VNUM(i));
+      log("SYSERR: Fatal board error: board vnum %" PRI_IDX " does not exist!", BOARD_VNUM(i));
       fatal_error = 1;
     }
     else
     {
-      log("Board %d initialized: vnum=%d, rnum=%d", i, BOARD_VNUM(i), BOARD_RNUM(i));
+      log("Board %d initialized: vnum=%" PRI_IDX ", rnum=%" PRI_IDX, i, BOARD_VNUM(i),
+          BOARD_RNUM(i));
     }
     num_of_msgs[i] = 0;
     for (j = 0; j < MAX_BOARD_MESSAGES; j++)
@@ -350,7 +351,7 @@ int board_display_msg(int board_type, struct char_data *ch, char *arg, struct ob
   if (MSG_SLOTNUM(board_type, ind) < 0 || MSG_SLOTNUM(board_type, ind) >= INDEX_SIZE)
   {
     send_to_char(ch, "Sorry, the board is not working.\r\n");
-    log("SYSERR: Board is screwed up. (Room #%d)", GET_ROOM_VNUM(IN_ROOM(ch)));
+    log("SYSERR: Board is screwed up. (Room #%u)", GET_ROOM_VNUM(IN_ROOM(ch)));
     return (1);
   }
   if (!(MSG_HEADING(board_type, ind)))
@@ -420,7 +421,7 @@ int board_remove_msg(int board_type, struct char_data *ch, char *arg,
   if (slot_num < 0 || slot_num >= INDEX_SIZE)
   {
     send_to_char(ch, "That message is majorly screwed up.\r\n");
-    log("SYSERR: The board is seriously screwed up. (Room #%d)", GET_ROOM_VNUM(IN_ROOM(ch)));
+    log("SYSERR: The board is seriously screwed up. (Room #%u)", GET_ROOM_VNUM(IN_ROOM(ch)));
     return (1);
   }
   for (d = descriptor_list; d; d = d->next)

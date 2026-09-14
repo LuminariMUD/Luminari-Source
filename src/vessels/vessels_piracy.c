@@ -19,10 +19,7 @@
 #include "wilderness/wilderness.h"
 #include "mysql.h"
 
-extern MYSQL *conn;
-extern bool mysql_available;
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct room_data *world;
 
 /* A letter of marque costs this multiple of the WANTED threshold */
 #define MARQUE_COST (BOUNTY_WANTED * 4)

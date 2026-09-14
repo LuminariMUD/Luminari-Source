@@ -13,33 +13,6 @@
 #include "craft/brew.h"
 
 /* External event handler function declarations */
-extern MUD_EVENT_CALLBACK(event_countdown);
-extern MUD_EVENT_CALLBACK(event_daily_use_cooldown);
-extern MUD_EVENT_CALLBACK(get_protocols);
-extern MUD_EVENT_CALLBACK(event_whirlwind);
-extern MUD_EVENT_CALLBACK(event_preparation);
-extern MUD_EVENT_CALLBACK(event_crafting);
-extern MUD_EVENT_CALLBACK(event_acid_arrow);
-extern MUD_EVENT_CALLBACK(event_implode);
-extern MUD_EVENT_CALLBACK(event_ice_storm);
-extern MUD_EVENT_CALLBACK(event_chain_lightning);
-extern MUD_EVENT_CALLBACK(event_falling);
-extern MUD_EVENT_CALLBACK(event_check_occupied);
-extern MUD_EVENT_CALLBACK(event_tracks);
-extern MUD_EVENT_CALLBACK(event_combat_round);
-extern MUD_EVENT_CALLBACK(event_action_cooldown);
-extern MUD_EVENT_CALLBACK(event_trap_triggered);
-extern MUD_EVENT_CALLBACK(event_craft);
-extern MUD_EVENT_CALLBACK(event_copyover);
-extern MUD_EVENT_CALLBACK(event_spiritual_weapon);
-extern MUD_EVENT_CALLBACK(event_dancing_weapon);
-extern MUD_EVENT_CALLBACK(event_holy_javelin);
-extern MUD_EVENT_CALLBACK(event_moonbeam);
-extern MUD_EVENT_CALLBACK(event_aqueous_orb);
-extern MUD_EVENT_CALLBACK(event_concussive_onslaught);
-extern MUD_EVENT_CALLBACK(event_power_leech);
-extern MUD_EVENT_CALLBACK(event_device_creation);
-extern MUD_EVENT_CALLBACK(event_device_progress);
 extern MUD_EVENT_CALLBACK(event_radiant_aura);
 extern MUD_EVENT_CALLBACK(event_fist_of_four_thunders);
 extern MUD_EVENT_CALLBACK(event_rol_yggdrasil_release);
@@ -47,8 +20,6 @@ extern MUD_EVENT_CALLBACK(event_rol_barbazu_bloodloss);
 extern MUD_EVENT_CALLBACK(event_rol_drow_decay);
 extern MUD_EVENT_CALLBACK(event_rol_deaths_head_seed);
 extern MUD_EVENT_CALLBACK(event_rol_spiderhaunt_maggots);
-extern MUD_EVENT_CALLBACK(event_rol_call_lycanthrope_charm);
-extern MUD_EVENT_CALLBACK(event_rol_tazriks_frenzied_hound);
 
 /* The mud_event_index[] with extended data for table-driven handling
  * Format: {name, func, type, completion_msg, recovery_msg, feat, daily_uses} */

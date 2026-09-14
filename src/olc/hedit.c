@@ -1739,15 +1739,7 @@ static const char *get_level_name(int level)
 }
 
 /* Forward declarations for command functions used in categorization */
-ACMD_DECL(do_move);
-ACMD_DECL(do_action);
 ACMD_DECL(do_gen_cast);
-ACMD_DECL(do_gen_comm);
-ACMD_DECL(do_gen_door);
-ACMD_DECL(do_gen_ps);
-ACMD_DECL(do_gen_tog);
-ACMD_DECL(do_write);
-ACMD_DECL(do_activate);
 
 /* Get command category based on function pointer and name patterns */
 static const char *get_command_category(struct command_info *cmd)
@@ -3646,7 +3638,6 @@ static int import_help_hlp_file(struct char_data *ch, const char *mode)
     if (imported > 0)
     {
       /* Clear the help cache */
-      extern void clear_help_cache(void);
       clear_help_cache();
       APPEND_TO_BUF("\r\nHelp cache cleared. New entries are now available.\r\n");
     }

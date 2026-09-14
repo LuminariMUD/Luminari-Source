@@ -47,7 +47,7 @@ static void mob_log(char_data *mob, const char *format, ...)
   vsnprintf(message, sizeof(message), format, args);
   va_end(args);
 
-  script_log("Mob (%s, VNum %d):: %s", GET_SHORT(mob), GET_MOB_VNUM(mob), message);
+  script_log("Mob (%s, VNum %u):: %s", GET_SHORT(mob), GET_MOB_VNUM(mob), message);
 }
 
 /* Macro to determine if a mob is permitted to use these commands. */
@@ -1727,7 +1727,7 @@ ACMDU(do_mclanset)
   clan_r = real_clan(clan_num);
   if (clan_r == NO_CLAN)
   {
-    mob_log(ch, "mclanset: clan vnum %d not found", clan_num);
+    mob_log(ch, "mclanset: clan vnum %" PRI_IDX " not found", clan_num);
     return;
   }
 

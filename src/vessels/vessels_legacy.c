@@ -296,7 +296,7 @@ SPECIAL(greyhawk_ship_object)
   if (!is_valid_ship(&greyhawk_ships[ship_index]))
   {
     send_to_char(ch, "This ship seems to be broken.\r\n");
-    log("SYSERR: Ship object %d points to inactive or mismatched fleet slot %d", GET_OBJ_VNUM(obj),
+    log("SYSERR: Ship object %u points to inactive or mismatched fleet slot %d", GET_OBJ_VNUM(obj),
         ship_index);
     return 0;
   }
@@ -312,7 +312,7 @@ SPECIAL(greyhawk_ship_object)
   if (greyhawk_ships[ship_index].shiproom != GET_OBJ_VAL(obj, 0))
   {
     send_to_char(ch, "This ship's entrance is not linked correctly.\r\n");
-    log("SYSERR: Ship object %d entrance %d disagrees with fleet slot %d room %d",
+    log("SYSERR: Ship object %u entrance %d disagrees with fleet slot %d room %d",
         GET_OBJ_VNUM(obj), GET_OBJ_VAL(obj, 0), ship_index, greyhawk_ships[ship_index].shiproom);
     return 0;
   }

@@ -278,7 +278,7 @@ ACMD(do_dig)
   }
   if (!can_edit_zone(ch, zone))
   {
-    send_to_char(ch, "You do not have permission to edit room #%d.\r\n", rvnum);
+    send_to_char(ch, "You do not have permission to edit room #%" PRI_IDX ".\r\n", rvnum);
     return;
   }
   /* Now we know the builder is allowed to make the link. */
@@ -315,9 +315,10 @@ ACMD(do_dig)
     redit_save_internally(d);
     OLC_VAL(d) = 0;
 
-    send_to_char(ch, "New room (%d) created.\r\n", rvnum);
-    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s digs room %d %s of room %d",
-           GET_NAME(ch), rvnum, dirs[dir], GET_ROOM_VNUM(IN_ROOM(ch)));
+    send_to_char(ch, "New room (%" PRI_IDX ") created.\r\n", rvnum);
+    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE,
+           "OLC: %s digs room %" PRI_IDX " %s of room %u", GET_NAME(ch), rvnum, dirs[dir],
+           GET_ROOM_VNUM(IN_ROOM(ch)));
     cleanup_olc(d, CLEANUP_ALL);
     /* Update rrnum to the correct room rnum after adding the room. */
     rrnum = real_room(rvnum);
@@ -330,13 +331,15 @@ ACMD(do_dig)
   W_EXIT(IN_ROOM(ch), dir)->to_room = rrnum;
   add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
 
-  send_to_char(ch, "You make an exit %s to room %d (%s).\r\n", dirs[dir], rvnum, world[rrnum].name);
+  send_to_char(ch, "You make an exit %s to room %" PRI_IDX " (%s).\r\n", dirs[dir], rvnum,
+               world[rrnum].name);
 
   /* Check if we can dig from there to here. */
   if (W_EXIT(rrnum, rev_dir[dir]))
-    send_to_char(
-        ch, "You cannot dig from %d to here. The target room already has an exit to the %s.\r\n",
-        rvnum, dirs[rev_dir[dir]]);
+    send_to_char(ch,
+                 "You cannot dig from %" PRI_IDX
+                 " to here. The target room already has an exit to the %s.\r\n",
+                 rvnum, dirs[rev_dir[dir]]);
   else
   {
     CREATE(W_EXIT(rrnum, rev_dir[dir]), struct room_direction_data, 1);
@@ -492,7 +495,8 @@ int buildwalk(struct char_data *ch, int dir)
         world[rnum].dir_option[EAST]->to_room = real_room(1000000);
         world[rnum].dir_option[WEST]->to_room = real_room(1000000);
 
-        send_to_char(ch, "%sWilderness Room #%d created by BuildWalk.%s\r\n", yel, vnum, nrm);
+        send_to_char(ch, "%sWilderness Room #%" PRI_IDX " created by BuildWalk.%s\r\n", yel, vnum,
+                     nrm);
       }
       else
       {
@@ -502,11 +506,11 @@ int buildwalk(struct char_data *ch, int dir)
         world[rnum].dir_option[rev_dir[dir]]->to_room = IN_ROOM(ch);
 
         /* Report room creation to user */
-        send_to_char(ch, "%sRoom #%d created by BuildWalk.%s\r\n", yel, vnum, nrm);
+        send_to_char(ch, "%sRoom #%" PRI_IDX " created by BuildWalk.%s\r\n", yel, vnum, nrm);
       }
 
       mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE,
-             "OLC: %s creates room %d with buildwalk", GET_NAME(ch), vnum);
+             "OLC: %s creates room %" PRI_IDX " with buildwalk", GET_NAME(ch), vnum);
       cleanup_olc(d, CLEANUP_STRUCTS);
 
       return (1);

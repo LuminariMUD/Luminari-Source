@@ -69,6 +69,8 @@ extern MYSQL_POOL *mysql_pool;
 
 /* Legacy compatibility - these will be removed in future */
 extern MYSQL *conn;
+extern MYSQL *conn2;
+extern MYSQL *conn3;
 
 /* Global flag to track MySQL availability */
 extern bool mysql_available;

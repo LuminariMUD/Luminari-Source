@@ -41,9 +41,6 @@
 #include "vessels/vessels.h"
 
 /* External function prototypes */
-void npc_offensive_spells(struct char_data *ch);
-void npc_racial_behave(struct char_data *ch);
-bool mob_knows_assigned_spells(struct char_data *ch);
 
 
 static bool mobile_activity_owner_eligible(const struct char_data *ch)
@@ -231,7 +228,7 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
 
       if (spec_func == NULL)
       {
-        log("MOB ERROR: Mobile '%s' (vnum #%d) has the SPEC flag set but no special procedure "
+        log("MOB ERROR: Mobile '%s' (vnum #%u) has the SPEC flag set but no special procedure "
             "assigned.",
             GET_NAME(ch), GET_MOB_VNUM(ch));
         log("MOB FIX: Either remove the SPEC flag from this mob in medit, OR add it to the "
@@ -239,7 +236,7 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
         log("MOB FIX: Common spec procs: shop_keeper, guild_guard, snake, cityguard, receptionist, "
             "cryogenicist, postmaster, bank.");
         log("MOB NOTE: The SPEC flag has been automatically removed to prevent further errors. Use "
-            "'medit %d' and check 'mob flags'.",
+            "'medit %u' and check 'mob flags'.",
             GET_MOB_VNUM(ch));
         REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_SPEC);
       }

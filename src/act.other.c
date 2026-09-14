@@ -98,7 +98,6 @@ static void print_group(struct char_data *ch);
 static void display_group_list(struct char_data *ch);
 
 // external functions
-bool save_char_pets(struct char_data *ch);
 
 /*****************/
 
@@ -2023,8 +2022,8 @@ void perform_call(struct char_data *ch, int call_type, int level)
   if (!ok_call_mob_vnum(mob_num))
   {
     send_to_char(ch, "This call type is not completely set up. Please inform a staff member.\r\n");
-    mudlog(NRM, LVL_IMMORT, TRUE, "ERROR: Invalid mob vnum %d for call type %d by %s", mob_num,
-           call_type, GET_NAME(ch));
+    mudlog(NRM, LVL_IMMORT, TRUE, "ERROR: Invalid mob vnum %" PRI_IDX " for call type %d by %s",
+           mob_num, call_type, GET_NAME(ch));
     return;
   }
   if (level >= LVL_IMMORT)
@@ -2040,8 +2039,8 @@ void perform_call(struct char_data *ch, int call_type, int level)
   if (!(mob = read_mobile(mob_num, VIRTUAL)))
   {
     send_to_char(ch, "You don't quite remember how to call that creature.\r\n");
-    mudlog(NRM, LVL_IMMORT, TRUE, "ERROR: Failed to load mob %d for %s companion call by %s",
-           mob_num,
+    mudlog(NRM, LVL_IMMORT, TRUE,
+           "ERROR: Failed to load mob %" PRI_IDX " for %s companion call by %s", mob_num,
            call_type == MOB_SHADOW       ? "shadow"
            : call_type == MOB_EIDOLON    ? "eidolon"
            : call_type == MOB_C_ANIMAL   ? "animal"
@@ -2999,8 +2998,6 @@ ACMD(do_golemrepair)
   }
 
   /* Check if we can repair the golem (validates materials, combat status, etc) */
-  extern bool can_repair_golem(struct char_data * ch, struct char_data * golem,
-                               int *material_needed, int *material_type);
   if (!can_repair_golem(ch, golem, &material_needed, &material_type))
     return;
 
@@ -3016,7 +3013,6 @@ ACMD(do_golemrepair)
   }
 
   /* Make the Arcana skill check */
-  extern int get_golem_repair_dc(int golem_type, int golem_size);
   dc = get_golem_repair_dc(golem_type, golem_size);
   roll = d20(ch);
   skill = get_craft_skill_value(ch, ABILITY_ARCANA);
@@ -11707,9 +11703,6 @@ ACMD(do_deadly_power)
   ((obj) ? (OBJVAL_FLAGGED(obj, CONT_PICKPROOF)) : (EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF)))
 #define DOOR_IS_CLOSED(ch, obj, door) (!(DOOR_IS_OPEN(ch, obj, door)))
 #define DOOR_IS_LOCKED(ch, obj, door) (!(DOOR_IS_UNLOCKED(ch, obj, door)))
-#define DOOR_KEY(ch, obj, door)                                                                    \
-  ((obj) ? ((GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST) ? 0 : GET_OBJ_VAL(obj, 2))                  \
-         : (EXIT(ch, door)->key))
 
 ACMD(do_pick_lock)
 {

@@ -54,6 +54,5 @@ char *current_short_desc(struct char_data *ch);
 char *current_disguise_desc(struct char_data *ch);
 char *current_wildshape_desc(struct char_data *ch);
 char *current_morphed_desc(struct char_data *ch);
-char *show_pers(struct char_data *ch, struct char_data *vict);
 
 #endif

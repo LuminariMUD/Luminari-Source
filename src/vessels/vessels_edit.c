@@ -20,8 +20,6 @@
 #include "mysql.h"
 #include "wilderness/wilderness.h"
 
-extern MYSQL *conn;
-extern bool mysql_available;
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
 /* Bounds for editable prototype fields */

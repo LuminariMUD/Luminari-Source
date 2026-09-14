@@ -21,7 +21,6 @@
 
 /* External variables */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct room_data *world;
 
 /* Docking constants */
 #define MAX_DOCKING_RANGE 2.0 /* Maximum distance for docking */

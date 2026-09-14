@@ -674,7 +674,7 @@ void auto_generate_room_trap(room_rnum room, int zone_level)
   if (trap)
   {
     attach_trap_to_room(trap, room);
-    log("TRAP: Auto-generated %s trap (severity: %s) in room %d",
+    log("TRAP: Auto-generated %s trap (severity: %s) in room %u",
         get_trap_type_name(trap->trap_type), get_trap_severity_name(trap->severity),
         GET_ROOM_VNUM(room));
   }
@@ -702,7 +702,7 @@ void auto_generate_object_trap(struct obj_data *obj, int zone_level)
                                                                : TRAP_TRIGGER_OPEN_DOOR;
 
     attach_trap_to_object(trap, obj);
-    log("TRAP: Auto-generated %s trap (severity: %s) on object %d",
+    log("TRAP: Auto-generated %s trap (severity: %s) on object %u",
         get_trap_type_name(trap->trap_type), get_trap_severity_name(trap->severity),
         GET_OBJ_VNUM(obj));
   }
@@ -763,7 +763,7 @@ void auto_generate_zone_traps(zone_rnum zone)
 
   if (num_traps > 0)
   {
-    log("TRAP: Auto-generated %d traps in zone %d (%d rooms total, ~1 trap per %d rooms)",
+    log("TRAP: Auto-generated %d traps in zone %" PRI_IDX " (%d rooms total, ~1 trap per %d rooms)",
         num_traps, zone_table[zone].number, total_rooms, NUM_OF_ZONE_ROOMS_PER_RANDOM_TRAP);
   }
 }
@@ -2333,7 +2333,7 @@ MUD_EVENT_CALLBACK(event_trap_triggered)
   if (pMudEvent->sVariables == NULL)
   {
     /* This is odd - This field should always be populated for traps. */
-    log("SYSERR: sVariables field is NULL for event_trap_triggered: %d", pMudEvent->iId);
+    log("SYSERR: sVariables field is NULL for event_trap_triggered: %u", pMudEvent->iId);
     return 0;
   }
   else

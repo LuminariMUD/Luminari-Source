@@ -72,6 +72,8 @@
 #include "combat/combat_reactions.h"
 #include "combat/combat_state.h"
 #include "activity_manager.h"
+#include "vessels/transport.h"
+#include "craft/crafting_new.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -88,8 +90,6 @@
 #define CELESTIAL_LEVIATHAN 13700
 
 // external functions
-bool save_char_pets(struct char_data *ch);
-int hands_used(struct char_data *ch);
 
 /* Weapon attack texts
  * don't forget to add to constants.c attack_hit_types */
@@ -2188,8 +2188,6 @@ static struct domain_entity_handle make_corpse(struct char_data *ch, bool animat
   if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_GOLEM) && ch->master)
   {
     /* Recover materials (25% of original cost) from golem death */
-    extern void recover_golem_materials(struct char_data * ch, struct char_data * golem,
-                                        int recovery_percent);
     recover_golem_materials(ch->master, ch, 25);
   }
 
@@ -5865,7 +5863,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
 
   if (!IS_NPC(victim))
   { // forget victim, log
-    mudlog(BRF, LVL_IMMORT, TRUE, "%s killed by %s (%d) at %s (%d)", GET_NAME(victim), GET_NAME(ch),
+    mudlog(BRF, LVL_IMMORT, TRUE, "%s killed by %s (%u) at %s (%u)", GET_NAME(victim), GET_NAME(ch),
            GET_MOB_VNUM(ch), world[IN_ROOM(victim)].name, GET_ROOM_VNUM(IN_ROOM(victim)));
     if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_MEMORY))
       forget(ch, victim);

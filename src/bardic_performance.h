@@ -16,8 +16,6 @@ extern "C"
 #include "utils.h" /* for the ACMD macro */
 
 /* functions, etc */
-extern struct room_data *world;
-extern void clearMemory(struct char_data *ch);
 extern const char *spells[];
 void advance_bardic_performance(struct char_data *ch);
 bool is_valid_performance(int performance_num);

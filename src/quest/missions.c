@@ -43,7 +43,6 @@
 #include "hunts.h"
 
 /* inits */
-int is_player_grouped(struct char_data *target, struct char_data *group);
 
 /* constants */
 const char *const mission_details[][MISSION_DETAIL_FIELDS] = {

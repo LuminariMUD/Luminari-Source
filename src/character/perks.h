@@ -200,10 +200,6 @@ bool is_alchemist_universal_mutagen_ready(struct char_data *ch);
 int get_alchemist_mutagenic_mastery_bonus(struct char_data *ch);
 
 /* Tier III */
-bool has_alchemist_improved_mutagen(struct char_data *ch);
-bool is_alchemist_unstable_mutagen_on(struct char_data *ch);
-bool is_alchemist_universal_mutagen_ready(struct char_data *ch);
-int get_alchemist_mutagenic_mastery_bonus(struct char_data *ch);
 
 /* Mutagenist Tier IV helpers */
 bool has_alchemist_perfect_mutagen(struct char_data *ch);

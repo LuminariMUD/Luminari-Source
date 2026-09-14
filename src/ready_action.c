@@ -400,7 +400,7 @@ bool ready_action_runtime_init(void)
   status = event_runtime_register_type(&config, &ready_execution_event_type);
   if (status != GAME_SCHEDULER_OK)
   {
-    log("SYSERR: unable to register native event type 'action.ready.execute' (status %d).", status);
+    log("SYSERR: unable to register native event type 'action.ready.execute' (status %u).", status);
     return false;
   }
   config.name = "action.ready.expire";

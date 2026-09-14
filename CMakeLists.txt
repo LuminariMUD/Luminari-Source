@@ -262,7 +262,7 @@ check_function_exists(json_object_new_object HAVE_JSON_C)
 unset(CMAKE_REQUIRED_LIBRARIES)
 
 foreach(FUNC gettimeofday select snprintf strcasecmp strdup strerror
-        stricmp strlcpy strncasecmp strnicmp strstr vsnprintf vprintf
+        stricmp strlcat strlcpy strncasecmp strnicmp strstr vsnprintf vprintf
         inet_addr inet_aton gethostbyaddr socket)
     string(TOUPPER "${FUNC}" _upper_name)
     check_function_exists(${FUNC} HAVE_${_upper_name})

@@ -27,7 +27,6 @@
 /*------------------------------------------------------------------------*/
 /*. External data .*/
 
-extern struct zone_data *zone_table;
 extern struct house_control_rec house_control[MAX_HOUSES]; /* house.c */
 extern int num_of_houses;                                  /* house.c */
 extern const char *dirs[];                                 /* constants.c */
@@ -40,19 +39,14 @@ extern void strip_string(char *buffer);
 
 /*------------------------------------------------------------------------*/
 /* local function protos */
-void hsedit_setup_new(struct descriptor_data *d);
-void hsedit_setup_existing(struct descriptor_data *d, int real_num);
 void hsedit_save_internally(struct descriptor_data *d);
-void hsedit_save_to_disk(void);
 void hsedit_disp_type_menu(struct descriptor_data *d);
 void hsedit_disp_menu(struct descriptor_data *d);
-void hsedit_parse(struct descriptor_data *d, char *arg);
 void hsedit_disp_flags_menu(struct descriptor_data *d);
 void hsedit_disp_val0_menu(struct descriptor_data *d);
 void hsedit_disp_val1_menu(struct descriptor_data *d);
 void hsedit_disp_val2_menu(struct descriptor_data *d);
 void hsedit_disp_val3_menu(struct descriptor_data *d);
-void free_house(struct house_control_rec *house);
 
 /*------------------------------------------------------------------------*/
 /* internal globals */
@@ -190,12 +184,14 @@ void hsedit_delete_house(struct descriptor_data *d, int house_vnum)
     return;
   }
   if ((real_atrium = real_room(house_control[house_index].atrium)) == NOWHERE)
-    log("SYSERR: House %d had invalid atrium %d!", house_vnum, house_control[house_index].atrium);
+    log("SYSERR: House %d had invalid atrium %" PRI_IDX "!", house_vnum,
+        house_control[house_index].atrium);
   else
     REMOVE_BIT_AR(ROOM_FLAGS(real_atrium), ROOM_ATRIUM);
 
   if ((real_house = real_room(house_control[house_index].vnum)) == NOWHERE)
-    log("SYSERR: House %d had invalid vnum %d!", house_vnum, house_control[house_index].vnum);
+    log("SYSERR: House %d had invalid vnum %" PRI_IDX "!", house_vnum,
+        house_control[house_index].vnum);
   else
     REMOVE_BIT_AR(ROOM_FLAGS(real_house), ROOM_HOUSE | ROOM_PRIVATE | ROOM_HOUSE_CRASH);
 
@@ -530,9 +526,9 @@ void hsedit_disp_menu(struct descriptor_data *d)
   snprintf(
       buf, sizeof(buf),
       "%s                                               %s\r\n"
-      "-- House number : [%s%d%s]  	House zone: [%s%d%s]\r\n"
+      "-- House number : [%s%" PRI_IDX "%s]  	House zone: [%s%" PRI_IDX "%s]\r\n"
       "%s1%s) Owner       : %s%ld -- %s%s\r\n"
-      "%s2%s) Atrium      : %s%d%s\r\n"
+      "%s2%s) Atrium      : %s%" PRI_IDX "%s\r\n"
       "%s3%s) Direction   : %s%s%s\r\n"
       "%s4%s) House Type  : %s%s%s\r\n"
       "%s5%s) Built on    : %s%s%s\r\n"
@@ -594,7 +590,8 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
     case 'y':
     case 'Y':
       hsedit_save_internally(d);
-      mudlog(CMP, LVL_BUILDER, TRUE, "OLC: %s edits house %d", GET_NAME(d->character), OLC_NUM(d));
+      mudlog(CMP, LVL_BUILDER, TRUE, "OLC: %s edits house %" PRI_IDX, GET_NAME(d->character),
+             OLC_NUM(d));
       if (CONFIG_OLC_SAVE)
       {
         hsedit_save_to_disk();
@@ -1219,10 +1216,10 @@ ACMD(do_oasis_hsedit)
   /****************************************************************************/
   if (!can_edit_zone(ch, OLC_ZNUM(d)))
   {
-    send_to_char(ch, " You do not have permission to edit zone %d. Try zone %d.\r\n",
+    send_to_char(ch, " You do not have permission to edit zone %" PRI_IDX ". Try zone %d.\r\n",
                  zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
-    mudlog(BRF, LVL_IMPL, TRUE, "OLC: %s tried to edit zone %d allowed zone %d", GET_NAME(ch),
-           zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+    mudlog(BRF, LVL_IMPL, TRUE, "OLC: %s tried to edit zone %" PRI_IDX " allowed zone %d",
+           GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 
     /**************************************************************************/
     /** Free the descriptor's OLC structure.                                 **/
@@ -1237,9 +1234,10 @@ ACMD(do_oasis_hsedit)
   /****************************************************************************/
   if (save)
   {
-    send_to_char(ch, "Saving all houses in zone %d.\r\n", zone_table[OLC_ZNUM(d)].number);
-    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s saves house info for zone %d.",
-           GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
+    send_to_char(ch, "Saving all houses in zone %" PRI_IDX ".\r\n", zone_table[OLC_ZNUM(d)].number);
+    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE,
+           "OLC: %s saves house info for zone %" PRI_IDX ".", GET_NAME(ch),
+           zone_table[OLC_ZNUM(d)].number);
 
     /**************************************************************************/
     /** Save the houses in this zone.                                       **/
@@ -1291,6 +1289,6 @@ ACMD(do_oasis_hsedit)
   /****************************************************************************/
   /** Log the OLC message.                                                   **/
   /****************************************************************************/
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: (hsedit) %s starts editing zone %d allowed zone %d",
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: (hsedit) %s starts editing zone %" PRI_IDX " allowed zone %d",
          GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }

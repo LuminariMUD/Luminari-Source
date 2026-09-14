@@ -121,7 +121,6 @@ const char *get_water_description(float level, int season, int weather);
 /* Utility functions */
 int get_current_season(void);
 int get_terrain_type(room_rnum room);
-int calculate_total_light_level(room_rnum room);
 int calculate_artificial_light_level(room_rnum room);
 int calculate_natural_light_level(room_rnum room);
 

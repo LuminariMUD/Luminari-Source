@@ -28,7 +28,6 @@
 #include "mysql.h"
 #include "olc/oasis.h"
 
-extern MYSQL *conn;
 
 void gain_template_level(struct char_data *ch, int t_type, int level)
 {

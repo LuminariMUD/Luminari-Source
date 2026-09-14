@@ -138,7 +138,7 @@ static bool register_event_type(const char *name, game_event_handler handler, si
   status = event_runtime_register_type(&config, event_type);
   if (status != GAME_SCHEDULER_OK)
   {
-    log("SYSERR: unable to register native event type '%s' (status %d).", name, status);
+    log("SYSERR: unable to register native event type '%s' (status %u).", name, status);
     return false;
   }
   return true;

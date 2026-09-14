@@ -53,8 +53,8 @@ SPECIAL(clan_cleric)
     clanhall = zone_table[(GET_ROOM_ZONE(IN_ROOM(this_mob)))].number;
     if ((clan = zone_is_clanhall(clanhall)) == NO_CLAN)
     {
-      log("SYSERR: clan_cleric spec (%s) not in a known clanhall (room %d)", GET_NAME(this_mob),
-          world[(IN_ROOM(this_mob))].number);
+      log("SYSERR: clan_cleric spec (%s) not in a known clanhall (room %" PRI_IDX ")",
+          GET_NAME(this_mob), world[(IN_ROOM(this_mob))].number);
       return FALSE;
     }
     if (clan != GET_CLAN(ch))
@@ -133,7 +133,7 @@ SPECIAL(clan_guard)
   clanhall = zone_table[(GET_ROOM_ZONE(IN_ROOM(guard)))].number;
   if ((clan = zone_is_clanhall(clanhall)) == NO_CLAN)
   {
-    log("SYSERR: clan_guard spec (%s) not in a known clanhall (room %d)", GET_NAME(guard),
+    log("SYSERR: clan_guard spec (%s) not in a known clanhall (room %" PRI_IDX ")", GET_NAME(guard),
         world[(IN_ROOM(guard))].number);
     return FALSE;
   }

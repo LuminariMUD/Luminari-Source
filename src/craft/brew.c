@@ -29,9 +29,7 @@
 #include "brew.h"
 
 /* External function declarations */
-extern int find_skill_num(char *name);
 extern int spell_school(int spellnum);
-extern void save_char(struct char_data *ch, int load_room);
 
 /* Map CRAFT_SKILL_* constants to ABILITY_* constants */
 int craft_skill_to_ability(int craft_skill)
@@ -58,8 +56,6 @@ int craft_skill_to_ability(int craft_skill)
 }
 
 /* Forward declarations */
-struct obj_data *create_potion(int spell_num, struct char_data *ch);
-struct obj_data *create_multi_spell_potion(int *spell_nums, int num_spells, struct char_data *ch);
 
 /* Mud event for brewing completion */
 MUD_EVENT_CALLBACK(event_brewing)
@@ -1241,6 +1237,3 @@ ACMD(do_brew)
 #include "helpers.h"
 
 /* External function declarations */
-extern int find_skill_num(char *name);
-extern int spell_school(int spellnum);
-extern void save_char(struct char_data *ch, int load_room);

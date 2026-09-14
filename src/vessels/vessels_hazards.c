@@ -22,11 +22,7 @@
 
 #include <float.h>
 
-extern MYSQL *conn;
-extern bool mysql_available;
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct room_data *world;
-extern struct region_data *region_table;
 extern int wild_waterline;
 
 static int hazard_ticks = 0;
@@ -837,7 +833,8 @@ void vessel_encounter_tick_one(struct greyhawk_ship_data *ship)
 
     recipient_count = vessel_broadcast_encounter(ship_room, ship, definition->warn_message,
                                                  definition->arrive_message, definition->name);
-    log("Info: Shared encounter '%s' in room %d from ship %d notified %d vessels in region %d",
+    log("Info: Shared encounter '%s' in room %" PRI_IDX
+        " from ship %d notified %d vessels in region %d",
         definition->name[0] ? definition->name : "?", ship_room, ship->shipnum, recipient_count,
         region_vnum);
 
@@ -848,7 +845,7 @@ void vessel_encounter_tick_one(struct greyhawk_ship_data *ship)
       {
         char_to_room(mob, ship_room);
         act("$n rises from the depths!", FALSE, mob, 0, 0, TO_ROOM);
-        log("Info: Encounter '%s' spawned for shared room %d from ship %d in region %d",
+        log("Info: Encounter '%s' spawned for shared room %" PRI_IDX " from ship %d in region %d",
             definition->name[0] ? definition->name : "?", ship_room, ship->shipnum, region_vnum);
       }
     }

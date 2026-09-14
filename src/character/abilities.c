@@ -39,7 +39,6 @@
 #include "character/backgrounds.h"
 #include "character/perks.h"
 
-extern struct background_data background_list[NUM_BACKGROUNDS];
 
 /* Duris racial innates: +6 stealth in the sector set of a held terrain stealth
  * feat (best one wins, they do not stack) and +4 perception in forests.

@@ -46,7 +46,6 @@ i3_client_t *i3_client = NULL;
 /* Forward declarations */
 static int i3_socket_connect(const char *host, int port);
 static int i3_authenticate(void);
-void i3_queue_command(i3_command_t *cmd);
 static void i3_queue_event(i3_event_t *event);
 static i3_command_t *i3_pop_command(void);
 static void i3_free_command(i3_command_t *cmd);

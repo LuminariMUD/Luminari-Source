@@ -251,12 +251,13 @@ int save_objects(zone_rnum zone_num)
   if (zone_num < 0 || zone_num > top_of_zone_table)
   {
 #endif
-    log("SYSERR: GenOLC: save_objects: Invalid real zone number %d. (0-%d)", zone_num,
-        top_of_zone_table);
+    log("SYSERR: GenOLC: save_objects: Invalid real zone number %" PRI_IDX ". (0-%" PRI_IDX ")",
+        zone_num, top_of_zone_table);
     return FALSE;
   }
 
-  snprintf(filename, sizeof(filename), "%s/%d.new", OBJ_PREFIX, zone_table[zone_num].number);
+  snprintf(filename, sizeof(filename), "%s/%" PRI_IDX ".new", OBJ_PREFIX,
+           zone_table[zone_num].number);
   if (!(fp = fopen_restricted(filename, "w+")))
   {
     mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: OLC: Cannot open objects file %s!", filename);
@@ -275,7 +276,7 @@ int save_objects(zone_rnum zone_num)
       else
         *buf = '\0';
 
-      fprintf(fp, "#%d\n", GET_OBJ_VNUM(obj));
+      fprintf(fp, "#%u\n", GET_OBJ_VNUM(obj));
       fprintf(fp, "%s~\n", convert_from_tabs((obj->name && *obj->name) ? obj->name : "undefined"));
       fprintf(fp, "%s~\n",
               convert_from_tabs((obj->short_description && *obj->short_description)
@@ -399,7 +400,7 @@ int save_objects(zone_rnum zone_num)
       // J:  vnum of mob that can receive item
       fprintf(fp,
               "J\n"
-              "%d\n",
+              "%" PRI_IDX "\n",
               obj->mob_recepient);
 
       // R: restring identifier
@@ -453,7 +454,7 @@ int save_objects(zone_rnum zone_num)
 
   /* Write the final line, close the file. */
   fprintf(fp, "$~\n");
-  snprintf(buf, sizeof(buf), "%s/%d.obj", OBJ_PREFIX, zone_table[zone_num].number);
+  snprintf(buf, sizeof(buf), "%s/%" PRI_IDX ".obj", OBJ_PREFIX, zone_table[zone_num].number);
   if (!finish_file_save(fp, filename, buf))
     return FALSE;
 
@@ -628,7 +629,7 @@ int delete_object(obj_rnum rnum)
   zrnum = real_zone_by_thing(GET_OBJ_VNUM(obj));
 
   /* This is something you might want to read about in the logs. */
-  log("GenOLC: delete_object: Deleting object #%d (%s).", GET_OBJ_VNUM(obj),
+  log("GenOLC: delete_object: Deleting object #%u (%s).", GET_OBJ_VNUM(obj),
       obj->short_description);
 
   for (tmp = object_list; tmp; tmp = next_obj)

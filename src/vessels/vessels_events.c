@@ -18,10 +18,6 @@
 #include "mysql.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct descriptor_data *descriptor_list;
-extern struct room_data *world;
-extern MYSQL *conn;
-extern bool mysql_available;
 
 #define VESSEL_EVENT_MAX_PARTICIPANTS 64
 #define VESSEL_EVENT_MAX_GHOSTS 5
