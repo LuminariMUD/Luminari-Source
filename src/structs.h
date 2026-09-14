@@ -3059,11 +3059,14 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define FEAT_RACIAL_FLURRY 1313
 #define FEAT_SUMMON_WARG 1314
 #define FEAT_SUMMON_HORDE 1315
+/* Thri-Kreen four-arm stand-in: one extra melee attack per rank, see
+ * docs/systems/GAME_MECHANICS_SYSTEMS.md */
+#define FEAT_EXTRA_ARMS 1316
 
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1316
+#define FEAT_LAST_FEAT 1317
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1317
+#define NUM_FEATS 1318
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/

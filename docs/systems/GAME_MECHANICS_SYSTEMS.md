@@ -410,6 +410,14 @@ skip 18, so from the dire wolf onward each comment reads one higher than the
 real index; the warg and horde rows are real indexes 36 and 37 and are
 annotated as such.
 
+The Duris Thri-Kreen four-arm mechanic is deliberately not the full version
+(two more weapon slots, save-format migration, doubled wrist, sleeve and
+glove slots). The stand-in is `FEAT_EXTRA_ARMS`, the one stackable innate in
+the set: `perform_attacks()` in `src/combat/fight.c` adds one melee attack at
+full base attack bonus per rank, after the ranged routines so launchers and
+thrown weapons never gain it. Grant two ranks for the Thri-Kreen shape.
+Pricing is recorded in `docs/guides/PLAYER_RACES_REFERENCE.md`.
+
 When `NUM_FEATS` moves, regenerate `scripts/world/wtool_constants.json` with
 `python3 scripts/world/wtool.py constants sync --write`. Player-facing text
 lives in both `lib/text/help/help.hlp` and the help database; the Duris set is
