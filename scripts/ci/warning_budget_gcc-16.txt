@@ -15,7 +15,6 @@ float-equal 22
 format-nonliteral 25
 jump-misses-init 446
 logical-op 31
-missing-prototypes 2
 null-dereference 49
 shadow 271
 sign-conversion 1853

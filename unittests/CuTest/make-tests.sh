@@ -59,7 +59,7 @@ cat $FILES | grep '^void Test' |
 echo \
 '
 
-int RunAllTests(void)
+static int RunAllTests(void)
 {
     CuString *output = CuStringNew();
     CuSuite* suite = CuSuiteNew();

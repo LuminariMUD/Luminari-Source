@@ -34,8 +34,8 @@ warning debt, and feature detection that strict flags cannot influence.
   compiler and consumed by both `configure.ac` (`--enable-warning-tier`) and
   `CMakeLists.txt` (`LUMINARI_WARNING_TIER`). `DEVELOPER_MODE` is gone.
 - Baseline tier: `-Wall -Wextra -Wstrict-prototypes -Wold-style-definition
-  -Wpointer-arith -Wformat-security -Wvla -Wredundant-decls -Wnested-externs`
-  (the last two promoted by step 2.3) plus GCC's `-Wtrampolines
+  -Wpointer-arith -Wformat-security -Wvla -Wredundant-decls -Wnested-externs
+  -Wmissing-prototypes` (the last three promoted by steps 2.3 and 2.4) plus GCC's `-Wtrampolines
   -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-args
   -Wflex-array-member-not-at-end -Wunterminated-string-initialization`. Clean
   on all four compilers; `-Werror` is refused with any other tier.
@@ -113,7 +113,7 @@ per compiler.
 | 1.2 | `int` affect, ability, point, player and object fields | 8010 | 7955 |
 | 2.2, 2.3 | format conversions, redundant and nested declarations | 6427 | 7946 |
 | 2.6 | explicit fallthrough; `-Wredundant-decls` and `-Wnested-externs` promoted to baseline | 6427 | 7913 |
-| 2.4 | `static` file-local functions, prototypes in owning headers, dead code removed | 5777 | 7264 |
+| 2.4 | `static` file-local functions, prototypes in owning headers, dead code removed; `-Wmissing-prototypes` promoted to baseline | 5775 | 7262 |
 
 Also fixed on the way: the budget check counted only `file:line:col: error:`
 lines, so a build that stopped on a missing header (`fatal error:`), a linker

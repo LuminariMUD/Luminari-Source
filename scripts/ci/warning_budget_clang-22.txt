@@ -16,7 +16,6 @@ implicit-int-float-conversion 128
 incompatible-pointer-types-discards-qualifiers 484
 jump-misses-init 579
 missing-format-attribute 29
-missing-prototypes 2
 shadow 164
 shorten-64-to-32 602
 sign-conversion 3383
