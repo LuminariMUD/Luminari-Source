@@ -2794,6 +2794,14 @@ int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tob
     return (0);
   }
 
+  /* bloodlust (racial drawback) */
+  if (affected_by_spell(ch, SKILL_BLOODLUST))
+  {
+    send_to_char(ch, "Your bloodlust leaves no room for the focus to cast!\r\n");
+    act("$n snarls, too lost in bloodlust to cast!", TRUE, ch, 0, 0, TO_ROOM);
+    return (0);
+  }
+
   if (IS_SET(SINFO.targets, TAR_IGNORE) && SINFO.violent)
   {
     if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE))
@@ -6876,6 +6884,7 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
          ACTIVE_SKILL, FALSE);
   skillo(SKILL_GARROTE, "garrote", ACTIVE_SKILL);
   skillo(SKILL_ACCOMPANY, "accompany", ACTIVE_SKILL);
+  skillo(SKILL_BLOODLUST, "bloodlust", ACTIVE_SKILL);
 
   /* songs */
   skillo(SKILL_DEAFENING_SONG, "deafening song", ACTIVE_SKILL);                   // 587

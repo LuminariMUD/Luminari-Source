@@ -1336,6 +1336,9 @@ bool alt_wear_off_msg(struct char_data *ch, int skillnum)
   case SKILL_RAGE_FATIGUE:
     send_to_char(ch, "You recover from your fatigue.\r\n");
     break;
+  case SKILL_BLOODLUST:
+    send_to_char(ch, "The red haze of bloodlust lifts from your eyes.\r\n");
+    break;
   case SKILL_FEINT:
     send_to_char(ch, "You are no longer off balance from the feint!\r\n");
     break;

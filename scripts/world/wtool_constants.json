@@ -136,7 +136,7 @@
     },
     "NUM_FEATS": {
       "source": "src/structs.h:NUM_FEATS",
-      "value": 1319
+      "value": 1321
     },
     "NUM_GENDERS": {
       "source": "src/structs.h:NUM_GENDERS",

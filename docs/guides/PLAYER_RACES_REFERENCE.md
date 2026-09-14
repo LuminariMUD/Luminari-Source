@@ -431,6 +431,7 @@ take the higher.
 | Chance to absorb a damaging spell (level/2 percent) | Spell Absorb | 2 |
 | Caster level bonus (level / 6) | Magical Heritage | 2 |
 | Casting one tick faster per rank (one rank makes one-tick spells instant; longer casts keep their remaining ticks) | Fast Casting | 5 first rank, 1 each further |
+| Charge into an adjacent room, stun on a connecting charge (Fortitude save) | Bull Charge | 2 |
 
 **Drawback refund.** Drawbacks subtract from RP but, like ability penalties,
 are capped: total refund may not exceed 25 percent of the tier budget. A race
@@ -450,6 +451,7 @@ players route around drawbacks and keep the power.
 | Blind in direct sunlight | Dayblind | -4 |
 | 10 percent more damage from spells | Magic Vulnerability | -1 |
 | Casting one tick slower per rank | Slow Casting | -1.5 per rank |
+| Uncontrolled rage below half hit points (no casting, no fleeing) | Bloodlust | -2 |
 
 Alignment restrictions and forced class respecs are not priced. They shape
 who plays the race; they do not change how strong the race is once played.

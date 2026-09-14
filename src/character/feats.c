@@ -6187,6 +6187,15 @@ void assign_feats(void)
         "Your race casts slowly: every spell and power you cast takes one casting tick more "
         "per rank of this feat. Quickened and other instant casts are not delayed. Fast "
         "casting cancels this rank for rank.");
+  feato(FEAT_BULL_CHARGE, "bull charge", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "charge into an adjacent room; a charge that connects can stun",
+        "Your charge carries the weight of a bull.  You may 'charge <direction> <target>' to "
+        "thunder into the next room and slam into a foe there, and any charge that lands its "
+        "opening blow stuns the victim for a round unless they pass a Fortitude save.");
+  feato(FEAT_BLOODLUST, "bloodlust", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "drawback: below half hit points you rage, unable to cast or flee",
+        "Drawback.  Whenever a combat round finds you below half of your hit points a red haze "
+        "of bloodlust takes you: you cannot cast or flee until you are back at half or more.");
   feat_prereq_ability(FEAT_SHADOW, ABILITY_STEALTH, 21);
   feat_prereq_attribute(FEAT_CALM, AB_CHA, 19);
   feat_prereq_ability(FEAT_ESTABLISH_CAMP, ABILITY_SURVIVAL, 3);

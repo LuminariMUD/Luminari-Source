@@ -3061,11 +3061,13 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define FEAT_SUMMON_HORDE 1315
 #define FEAT_FAST_CASTING 1316
 #define FEAT_SLOW_CASTING 1317
+#define FEAT_BULL_CHARGE 1318
+#define FEAT_BLOODLUST 1319
 
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1318
+#define FEAT_LAST_FEAT 1320
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1319
+#define NUM_FEATS 1321
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
