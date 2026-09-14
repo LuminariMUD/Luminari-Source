@@ -101,6 +101,9 @@ MUD_EVENT_CALLBACK(event_action_cooldown)
     break;
   }
 
+  if (ch == NULL)
+    return 0;
+
   /* Lets show duration for immortals */
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     snprintf(buf, sizeof(buf), " (%.2f sec)", (double)(atoi(pMudEvent->sVariables)) / 10);

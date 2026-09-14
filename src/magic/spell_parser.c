@@ -2502,10 +2502,8 @@ static long casting_activity_step(struct char_data *ch, void *target, void *cont
     // do all our checks
     if (!castingCheckOk(ch))
       return 0;
-    else
-    { /* we cleared all our casting checks! */
-      return 0;
-    }
+
+    return 0;
   }
 }
 

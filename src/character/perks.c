@@ -18987,8 +18987,9 @@ ACMD(do_perk)
     if (purchase_perk(ch, perk_id, class_id))
     {
       char_perk = find_char_perk(ch, perk_id, class_id);
-      send_to_char(ch, "\tGYou have purchased rank %d of '%s'!\tn\r\n", char_perk->current_rank,
-                   perk->name);
+      if (char_perk != NULL)
+        send_to_char(ch, "\tGYou have purchased rank %d of '%s'!\tn\r\n", char_perk->current_rank,
+                     perk->name);
       send_to_char(ch, "Remaining perk points for %s: \tY%d\tn\r\n", class_names[class_id],
                    get_perk_points(ch, class_id));
 

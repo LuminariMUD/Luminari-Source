@@ -15497,7 +15497,7 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
         break;
     }
 
-    if (--afx->modifier <= 0)
+    if (afx != NULL && --afx->modifier <= 0)
       affect_from_char(victim, SPELL_PROTECTION_FROM_ARROWS);
 
     act("An invisible barrier forces $n's shot wide.", FALSE, ch, 0, victim, TO_ROOM);

@@ -1529,7 +1529,7 @@ protocol_error_t CopyoverSet(descriptor_t *apDescriptor, const char *apData)
                Write(apDescriptor, WillMSDP);
        */
     }
-    else if (pProtocol->bGMCP)
+    else if (pProtocol != NULL && pProtocol->bGMCP)
     {
       ConfirmNegotiation(apDescriptor, eNEGOTIATED_GMCP, true, true);
       /*
@@ -2887,8 +2887,8 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
     if (pProtocol->bTTYPE && aSize >= 1)
     {
       /* Store the client name. */
-      const int MaxClientLength = 64;
-      char *pClientName = alloca(MaxClientLength + 1);
+      char pClientName[64 + 1];
+      const int MaxClientLength = (int)sizeof(pClientName) - 1;
       int i = 0, j = 1;
       bool_t bStopCyclicTTYPE = false;
 
@@ -3881,7 +3881,7 @@ static void SendGMCP(descriptor_t *apDescriptor, const char *apVariable, const c
       ReportBug(GMCPBuffer);
       GMCPBuffer[0] = '\0';
     }
-    else if (pProtocol->bGMCP)
+    else if (pProtocol != NULL && pProtocol->bGMCP)
     {
       int ret = snprintf(GMCPBuffer, sizeof(GMCPBuffer), "%c%c%c%s %s%c%c", IAC, SB, TELOPT_GMCP,
                          apVariable, apValue, IAC, SE);

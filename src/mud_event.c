@@ -108,7 +108,8 @@ static void reconcile_expired_character_event(struct char_data *ch, event_id eve
   switch (event_type)
   {
   case eSPELLBATTLE:
-    SPELLBATTLE(ch) = 0;
+    if (ch != NULL)
+      SPELLBATTLE(ch) = 0;
     break;
   default:
     break;
@@ -722,7 +723,8 @@ MUD_EVENT_CALLBACK(event_countdown)
     break;
 
   case eSPELLBATTLE:
-    SPELLBATTLE(ch) = 0;
+    if (ch != NULL)
+      SPELLBATTLE(ch) = 0;
     break;
 
   case eENCOUNTER_REG_RESET:

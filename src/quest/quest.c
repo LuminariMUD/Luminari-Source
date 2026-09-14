@@ -154,7 +154,7 @@ int is_quest_target_mob(struct char_data *ch, struct char_data *mob)
       continue;
 
     rnum = real_quest(GET_QUEST(ch, index));
-    if (rnum == NOTHING || rnum == NOWHERE)
+    if (rnum == NOTHING)
       continue;
 
     /* Check if this quest involves this mob */
@@ -203,7 +203,7 @@ int is_quest_target_obj(struct char_data *ch, struct obj_data *obj)
       continue;
 
     rnum = real_quest(GET_QUEST(ch, index));
-    if (rnum == NOTHING || rnum == NOWHERE)
+    if (rnum == NOTHING)
       continue;
 
     /* Check if this quest involves this object */
@@ -2221,10 +2221,9 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
   if (!is_staff && next_quest_vnum != -1)
   {
     qst_rnum qrnum = real_quest(next_quest_vnum);
-    const char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum))
-                            ? "(missing quest)"
-                            : QST_NAME(qrnum);
-    mob_vnum qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? NOBODY : QST_MASTER(qrnum);
+    const char *qname =
+        (qrnum == NOTHING || !QST_NAME(qrnum)) ? "(missing quest)" : QST_NAME(qrnum);
+    mob_vnum qm_vnum = (qrnum == NOTHING) ? NOBODY : QST_MASTER(qrnum);
     const char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
                               ? "(no master)"
                               : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
@@ -2246,7 +2245,7 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
       }
     }
 
-    int min_level = (qrnum == NOTHING || qrnum == NOWHERE) ? 0 : QST_MINLEVEL(qrnum);
+    int min_level = (qrnum == NOTHING) ? 0 : QST_MINLEVEL(qrnum);
 
     snprintf(quest_name, sizeof(quest_name), "%s", qname);
     snprintf(quest_master, sizeof(quest_master), "%s", qm_name);
@@ -2263,10 +2262,9 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
   if (!is_staff && current_quest_vnum != -1)
   {
     qst_rnum qrnum = real_quest(current_quest_vnum);
-    const char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum))
-                            ? "(missing quest)"
-                            : QST_NAME(qrnum);
-    mob_vnum qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? NOBODY : QST_MASTER(qrnum);
+    const char *qname =
+        (qrnum == NOTHING || !QST_NAME(qrnum)) ? "(missing quest)" : QST_NAME(qrnum);
+    mob_vnum qm_vnum = (qrnum == NOTHING) ? NOBODY : QST_MASTER(qrnum);
     const char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
                               ? "(no master)"
                               : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
@@ -2288,7 +2286,7 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
       }
     }
 
-    int min_level = (qrnum == NOTHING || qrnum == NOWHERE) ? 0 : QST_MINLEVEL(qrnum);
+    int min_level = (qrnum == NOTHING) ? 0 : QST_MINLEVEL(qrnum);
 
     snprintf(quest_name, sizeof(quest_name), "%s", qname);
     snprintf(quest_master, sizeof(quest_master), "%s", qm_name);
@@ -2331,10 +2329,9 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
 
     quest_count++;
 
-    const char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum))
-                            ? "(missing quest)"
-                            : QST_NAME(qrnum);
-    mob_vnum qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? NOBODY : QST_MASTER(qrnum);
+    const char *qname =
+        (qrnum == NOTHING || !QST_NAME(qrnum)) ? "(missing quest)" : QST_NAME(qrnum);
+    mob_vnum qm_vnum = (qrnum == NOTHING) ? NOBODY : QST_MASTER(qrnum);
     const char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
                               ? "(no master)"
                               : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
@@ -2356,7 +2353,7 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
       }
     }
 
-    int min_level = (qrnum == NOTHING || qrnum == NOWHERE) ? 0 : QST_MINLEVEL(qrnum);
+    int min_level = (qrnum == NOTHING) ? 0 : QST_MINLEVEL(qrnum);
 
     snprintf(quest_name, sizeof(quest_name), "%s", qname);
     snprintf(quest_master, sizeof(quest_master), "%s", qm_name);
@@ -2633,7 +2630,7 @@ ACMDU(do_questline)
     int quest_vnum = atoi(arg2);
     int position = *arg3 ? atoi(arg3) : 0;
     qst_rnum qrnum = real_quest(quest_vnum);
-    if (qrnum == NOTHING || qrnum == NOWHERE)
+    if (qrnum == NOTHING)
     {
       send_to_char(ch, "Quest vnum %d does not exist.\r\n", quest_vnum);
       return;

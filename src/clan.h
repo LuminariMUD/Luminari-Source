@@ -310,7 +310,7 @@ void check_diplomacy(void);
 void update_clan_member_cache(clan_rnum c);
 void update_all_clan_caches(void);
 void update_clan_activity(clan_vnum c);
-void log_clan_activity(clan_vnum c, const char *format, ...);
+void log_clan_activity(clan_vnum c, const char *format, ...) __attribute__((format(printf, 2, 3)));
 void log_clan_error(const char *function, const char *format, ...)
     __attribute__((format(printf, 2, 3)));
 

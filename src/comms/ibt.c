@@ -58,7 +58,8 @@ struct ibt_output_buffer
   bool failed;
 };
 
-static bool append_ibt_output(struct ibt_output_buffer *output, const char *format, ...)
+__attribute__((format(printf, 2, 3))) static bool
+append_ibt_output(struct ibt_output_buffer *output, const char *format, ...)
 {
   va_list args;
   char *resized;
@@ -587,15 +588,6 @@ ACMD(do_ibt)
                    CMD_NAME, QNRM, QBYEL, CMD_NAME, QNRM, QBYEL, CMD_NAME, QNRM);
       return;
     }
-    else if (GET_LEVEL(ch) >= LVL_IMMORT)
-    {
-      send_to_char(ch,
-                   "Usage: %s%s submit <header>%s\r\n"
-                   "       %s%s list%s\r\n"
-                   "       %s%s show <num>%s\r\n",
-                   QBYEL, CMD_NAME, QNRM, QBYEL, CMD_NAME, QNRM, QBYEL, CMD_NAME, QNRM);
-      return;
-    }
     else
     {
       send_to_char(ch,
@@ -699,8 +691,8 @@ ACMD(do_ibt)
           else
           {
             append_ibt_output(&output, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n", imp, QGRN,
-                              i, QGRN, QGRN, ibtData->name, QGRN, QGRN, ibtData->room, QGRN, QGRN,
-                              ibtData->level, QGRN, QGRN, ibtData->text, QNRM);
+                              i, QGRN, QGRN, ibtData->name, QGRN, QGRN, (int)ibtData->room, QGRN,
+                              QGRN, ibtData->level, QGRN, QGRN, ibtData->text, QNRM);
           }
           num_res++;
         }
@@ -714,7 +706,7 @@ ACMD(do_ibt)
           else
           {
             append_ibt_output(&output, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n", imp, QBYEL,
-                              i, QGRN, QBYEL, ibtData->name, QGRN, QBYEL, ibtData->room, QGRN,
+                              i, QGRN, QBYEL, ibtData->name, QGRN, QBYEL, (int)ibtData->room, QGRN,
                               QBYEL, ibtData->level, QGRN, QBYEL, ibtData->text, QNRM);
           }
           num_unres++;
@@ -729,8 +721,8 @@ ACMD(do_ibt)
           else
           {
             append_ibt_output(&output, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n", imp, QRED,
-                              i, QGRN, QRED, ibtData->name, QGRN, QRED, ibtData->room, QGRN, QRED,
-                              ibtData->level, QGRN, QRED, ibtData->text, QNRM);
+                              i, QGRN, QRED, ibtData->name, QGRN, QRED, (int)ibtData->room, QGRN,
+                              QRED, ibtData->level, QGRN, QRED, ibtData->text, QNRM);
           }
           num_unres++;
         }

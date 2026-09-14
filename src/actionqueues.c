@@ -74,6 +74,8 @@ void clear_action_queue(struct queue_type *queue)
     while (queue->size > 0)
     {
       action = dequeue_action(queue);
+      if (action == NULL)
+        break;
 
       /* Free the memory. */
       free(action->argument);
@@ -96,6 +98,8 @@ void clear_attack_queue(struct queue_type *queue)
     while (queue->size > 0)
     {
       attack = dequeue_attack(queue);
+      if (attack == NULL)
+        break;
 
       /* Free the memory. */
       free(attack->argument);
@@ -239,6 +243,8 @@ void execute_next_action(struct char_data *ch)
     return;
 
   action = dequeue_action(GET_QUEUE(ch));
+  if (action == NULL)
+    return;
   argument = action->argument;
   free(action);
   command_interpreter(ch, argument);

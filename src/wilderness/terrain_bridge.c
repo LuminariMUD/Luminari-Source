@@ -1418,7 +1418,7 @@ void terrain_api_process_clients(void)
       /* Client disconnected cleanly */
       terrain_api_disconnect_client(i);
     }
-    else if (errno != EAGAIN && errno != EWOULDBLOCK)
+    else if (!errno_would_block(errno))
     {
       /* Real error occurred */
       log("Terrain-API: Receive error for client %d: %s", i, strerror(errno));

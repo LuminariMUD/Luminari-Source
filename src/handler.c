@@ -593,7 +593,7 @@ void affect_modify_ar(struct char_data *ch, byte loc, sh_int mod, int bitv[], bo
       for (j = 0; j < 32; j++)
         if (IS_SET_AR(bitv, (i * 32) + j))
           REMOVE_BIT_AR(AFF_FLAGS(ch), (i * 32) + j);
-    mod = -mod;
+    mod = (sh_int)-mod;
   }
 
   aff_apply_modify(ch, loc, mod, "affect_modify_ar");
@@ -1108,7 +1108,7 @@ int affect_total_sub(struct char_data *ch)
     {
       modifier += calculate_best_mod(ch, i, j, -1, -1);
     }
-    aff_apply_modify(ch, i, -modifier, "affect_total_sub");
+    aff_apply_modify(ch, i, (sh_int)-modifier, "affect_total_sub");
     // affect_modify_ar(ch, i, modifier, empty_bits, FALSE);
   }
 
@@ -1228,7 +1228,8 @@ struct msdp_affect_writer
   bool overflow;
 };
 
-static bool append_msdp_affect_data(struct msdp_affect_writer *writer, const char *format, ...)
+__attribute__((format(printf, 2, 3))) static bool
+append_msdp_affect_data(struct msdp_affect_writer *writer, const char *format, ...)
 {
   va_list args;
   int written;
@@ -1477,7 +1478,7 @@ void affect_to_char_source(struct char_data *ch, struct affected_type *af, long 
   else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell))
   {
     aff_apply_modify(ch, af->location,
-                     -calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell),
+                     (sh_int)-calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell),
                      "affect_to_char");
     /*affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location,
              af->bonus_type, -1, af->spell), empty_bits, FALSE);*/
@@ -2683,10 +2684,10 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
                        is_weapon_wielded_two_handed(obj, ch) ? obj->affected[j].modifier * 2
                                                              : obj->affected[j].modifier,
                        GET_OBJ_AFFECT(obj), TRUE);
-      aff_apply_modify(
-          ch, obj->affected[j].location,
-          -calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1),
-          "equip_char");
+      aff_apply_modify(ch, obj->affected[j].location,
+                       (sh_int)-calculate_best_mod(ch, obj->affected[j].location,
+                                                   obj->affected[j].bonus_type, pos, -1),
+                       "equip_char");
       // affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, FALSE);
     }
   }

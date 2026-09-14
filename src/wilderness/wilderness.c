@@ -2197,6 +2197,12 @@ void generate_river(struct char_data *ch, int dir, region_vnum vnum, const char 
   river.path_type = 5; /* Corresponds to river glyphs in the db */
   river.path_props = PATH_STREAM;
   river.num_vertices = num_vertices;
+  if (num_vertices == 0)
+  {
+    free(river.name);
+    send_to_char(ch, "A river cannot start in water.\r\n");
+    return;
+  }
 
   CREATE(river.vertices, struct vertex, num_vertices);
 

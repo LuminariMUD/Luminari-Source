@@ -138,6 +138,19 @@ extern void abort(), exit();
 #include <sys/errno.h>
 #endif
 
+#if defined(EAGAIN) && defined(EWOULDBLOCK)
+/* EAGAIN and EWOULDBLOCK are one value on most systems, so the usual two-way
+ * test compares the same thing twice there. */
+static inline int errno_would_block(int error_number)
+{
+#if EAGAIN == EWOULDBLOCK
+  return error_number == EAGAIN;
+#else
+  return error_number == EAGAIN || error_number == EWOULDBLOCK;
+#endif
+}
+#endif
+
 #ifdef HAVE_CRYPT_H
 #include <crypt.h>
 #endif

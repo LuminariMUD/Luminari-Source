@@ -196,7 +196,7 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
         {
           send_to_char(ch, "\tcSET_KIT\tn character will become a LICH (race).\r\n");
         }
-        else if (qcom->location >= NUM_CLASSES || qcom->location >= NUM_CLASSES)
+        else if (qcom->location <= CLASS_UNDEFINED || qcom->location >= NUM_CLASSES)
         {
           send_to_char(ch, "Invalid Class # set for this quest!\r\n");
         }

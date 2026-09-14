@@ -2209,7 +2209,8 @@ int load_char(const char *name, struct char_data *ch)
 /* Write the vital data of a player to the player file. */
 
 static bool append_player_save_buffer(char **buffer, size_t *capacity, size_t *used,
-                                      const char *format, ...);
+                                      const char *format, ...)
+    __attribute__((format(printf, 4, 5)));
 
 /* Helper function for save_char to optimize string operations */
 static bool buffer_write_string_field(char **buffer, size_t *capacity, size_t *used,
@@ -2651,7 +2652,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   BUFFER_WRITE("Plyd: %d\n", ch->player.time.played);
   BUFFER_WRITE("Last: %ld\n", (long)ch->player.time.logon);
   BUFFER_WRITE("CkAt: %" PRId64 "\n", save_epoch);
-  BUFFER_WRITE("LstR: %d\n", GET_LAST_ROOM(ch));
+  BUFFER_WRITE("LstR: %d\n", (int)GET_LAST_ROOM(ch));
 
   if (GET_LAST_MOTD(ch) != PFDEF_LASTMOTD)
     BUFFER_WRITE("Lmot: %d\n", (int)GET_LAST_MOTD(ch));
@@ -2701,7 +2702,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   BUFFER_WRITE("MiXp: %ld\n", GET_MISSION_EXP(ch));
   BUFFER_WRITE("MiDf: %d\n", GET_MISSION_DIFFICULTY(ch));
   BUFFER_WRITE("MiRN: %d\n", GET_MISSION_NPC_NAME_NUM(ch));
-  BUFFER_WRITE("MiRm: %d\n", GET_CURRENT_MISSION_ROOM(ch));
+  BUFFER_WRITE("MiRm: %d\n", (int)GET_CURRENT_MISSION_ROOM(ch));
 
   if (GET_QUIT_SURVEY_DONE(ch))
     BUFFER_WRITE("QSvy: %d\n", GET_QUIT_SURVEY_DONE(ch));
@@ -2790,7 +2791,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   if (GET_INVIS_LEV(ch) != PFDEF_INVISLEV)
     BUFFER_WRITE("Invs: %d\n", GET_INVIS_LEV(ch));
   if (GET_LOADROOM(ch) != PFDEF_LOADROOM)
-    BUFFER_WRITE("Room: %d\n", GET_LOADROOM(ch));
+    BUFFER_WRITE("Room: %d\n", (int)GET_LOADROOM(ch));
   if (ch->player_specials->saved.active_fiendish_boons != 0)
     BUFFER_WRITE("FdBn: %d\n", ch->player_specials->saved.active_fiendish_boons);
   if (ch->player_specials->saved.channel_energy_type != 0)
@@ -2971,15 +2972,15 @@ bool save_char_checked(struct char_data *ch, int mode)
     BUFFER_WRITE("BSlT: %d\n", GET_BONUS_SLOTS_REGEN_TIMER(ch));
   BUFFER_WRITE("God : %d\n", GET_DEITY(ch));
   if (GET_AUTOCQUEST_VNUM(ch) != PFDEF_AUTOCQUEST_VNUM)
-    BUFFER_WRITE("Cvnm: %d\n", GET_AUTOCQUEST_VNUM(ch));
+    BUFFER_WRITE("Cvnm: %d\n", (int)GET_AUTOCQUEST_VNUM(ch));
   if (GET_AUTOCQUEST_MAKENUM(ch) != PFDEF_AUTOCQUEST_MAKENUM)
     BUFFER_WRITE("Cmnm: %d\n", GET_AUTOCQUEST_MAKENUM(ch));
   if (GET_AUTOCQUEST_QP(ch) != PFDEF_AUTOCQUEST_QP)
     BUFFER_WRITE("Cqps: %d\n", GET_AUTOCQUEST_QP(ch));
   if (GET_AUTOCQUEST_EXP(ch) != PFDEF_AUTOCQUEST_EXP)
-    BUFFER_WRITE("Cexp: %d\n", GET_AUTOCQUEST_EXP(ch));
+    BUFFER_WRITE("Cexp: %d\n", (int)GET_AUTOCQUEST_EXP(ch));
   if (GET_AUTOCQUEST_GOLD(ch) != PFDEF_AUTOCQUEST_GOLD)
-    BUFFER_WRITE("Cgld: %d\n", GET_AUTOCQUEST_GOLD(ch));
+    BUFFER_WRITE("Cgld: %d\n", (int)GET_AUTOCQUEST_GOLD(ch));
   if (GET_AUTOCQUEST_DESC(ch) != PFDEF_AUTOCQUEST_DESC)
     BUFFER_WRITE("Cdsc: %s\n", GET_AUTOCQUEST_DESC(ch));
   if (GET_AUTOCQUEST_MATERIAL(ch) != PFDEF_AUTOCQUEST_MATERIAL)
@@ -3064,7 +3065,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   {
     BUFFER_WRITE("Qest:\n");
     for (i = 0; i < GET_NUM_QUESTS(ch); i++)
-      BUFFER_WRITE("%d\n", ch->player_specials->saved.completed_quests[i]);
+      BUFFER_WRITE("%d\n", (int)ch->player_specials->saved.completed_quests[i]);
     BUFFER_WRITE("%d\n", (int)NOTHING);
   }
 
@@ -3103,7 +3104,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   if (GET_DIPTIMER(ch) != PFDEF_DIPTIMER)
     BUFFER_WRITE("DipT: %d\n", GET_DIPTIMER(ch));
   if (GET_CLAN(ch) != PFDEF_CLAN)
-    BUFFER_WRITE("Cln : %d\n", GET_CLAN(ch));
+    BUFFER_WRITE("Cln : %d\n", (int)GET_CLAN(ch));
   if (GET_CLANRANK(ch) != PFDEF_CLANRANK)
     BUFFER_WRITE("Clrk: %d\n", GET_CLANRANK(ch));
   if (GET_CLANPOINTS(ch) != PFDEF_CLANPOINTS)
@@ -3121,12 +3122,12 @@ bool save_char_checked(struct char_data *ch, int mode)
   if (SCRIPT(ch))
   {
     for (t = TRIGGERS(SCRIPT(ch)); t; t = t->next)
-      BUFFER_WRITE("Trig: %d\n", GET_TRIG_VNUM(t));
+      BUFFER_WRITE("Trig: %d\n", (int)GET_TRIG_VNUM(t));
   }
 
   if (ch->desc)
   {
-    BUFFER_WRITE("GMCP: %d\n", ch->desc->pProtocol->bGMCP);
+    BUFFER_WRITE("GMCP: %d\n", (int)ch->desc->pProtocol->bGMCP);
     BUFFER_WRITE("XTrm: %d\n", ch->desc->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt);
     BUFFER_WRITE("UTF8: %d\n", ch->desc->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt);
   }
@@ -3490,7 +3491,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   BUFFER_WRITE("PTog: ");
   for (i = 0; i < 32; i++)
   {
-    BUFFER_WRITE("%02x", ch->player_specials->saved.perk_toggles[i]);
+    BUFFER_WRITE("%02x", (unsigned int)ch->player_specials->saved.perk_toggles[i]);
   }
   BUFFER_WRITE("\n");
 
@@ -3726,9 +3727,10 @@ bool save_char_checked(struct char_data *ch, int mode)
     for (saved_event_index = 0; saved_event_index < saved_event_count; saved_event_index++)
     {
       record = &saved_events[saved_event_index];
-      BUFFER_WRITE("%d %u %" PRId64 " %" PRId64 " %" PRId64 " %d %" PRId64 "\n", record->event_type,
-                   record->schema_version, record->owner_id, record->remaining_ticks,
-                   record->saved_at_epoch, record->payload_value, record->recovery_interval_ticks);
+      BUFFER_WRITE("%d %u %" PRId64 " %" PRId64 " %" PRId64 " %d %" PRId64 "\n",
+                   (int)record->event_type, record->schema_version, record->owner_id,
+                   record->remaining_ticks, record->saved_at_epoch, record->payload_value,
+                   record->recovery_interval_ticks);
     }
     BUFFER_WRITE("-1\n");
   }

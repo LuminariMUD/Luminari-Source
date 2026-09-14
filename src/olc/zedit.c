@@ -1378,7 +1378,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
       break;
     case 'e':
     case 'E':
-      if ((OLC_CMD(d).if_flag = -atoi(arg + 1)) == 0)
+      if ((OLC_CMD(d).if_flag = (signed char)-atoi(arg + 1)) == 0)
         OLC_CMD(d).if_flag = -1;
       break;
     case 't':

@@ -101,9 +101,9 @@ ACMD(do_action)
   {
     if (*part)
     {
-      act(action->char_body_found, 0, ch, (struct obj_data *)part, vict, TO_CHAR | TO_SLEEP);
-      act(action->others_body_found, action->hide, ch, (struct obj_data *)part, vict, TO_NOTVICT);
-      act(action->vict_body_found, action->hide, ch, (struct obj_data *)part, vict, TO_VICT);
+      act(action->char_body_found, 0, ch, (void *)part, vict, TO_CHAR | TO_SLEEP);
+      act(action->others_body_found, action->hide, ch, (void *)part, vict, TO_NOTVICT);
+      act(action->vict_body_found, action->hide, ch, (void *)part, vict, TO_VICT);
     }
     else
     {

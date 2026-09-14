@@ -568,8 +568,11 @@ static void activate_participant(struct combat_encounter_participant *participan
     due = (uint64_t)pulse + delay;
   if (participant->encounter->resolving)
   {
-    due = u64_max(due, (uint64_t)pulse + (semantic_rounds ? COMBAT_ENCOUNTER_ROUND_DELAY
-                                                          : COMBAT_ENCOUNTER_JOIN_GUARD));
+    uint64_t guard = COMBAT_ENCOUNTER_JOIN_GUARD;
+
+    if (semantic_rounds)
+      guard = COMBAT_ENCOUNTER_ROUND_DELAY;
+    due = u64_max(due, (uint64_t)pulse + guard);
     participant->pending_activation = true;
   }
   else

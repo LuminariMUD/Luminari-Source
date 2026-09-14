@@ -2225,6 +2225,8 @@ void Test_gameplay_juggernaut_failed_publication_retains_daily_use(CuTest *tc)
   mag_summons(20, owner, NULL, PSIONIC_ECTOPLASMIC_SHAMBLER, 0, CAST_SPELL);
   pet = owner->followers != NULL ? owner->followers->follower : NULL;
   CuAssertPtrNotNull(tc, pet);
+  if (pet == NULL)
+    return;
   ordinary[0] = GET_HITROLL(pet);
   ordinary[1] = GET_DAMROLL(pet);
   ordinary[2] = GET_AC(pet);
@@ -2237,6 +2239,8 @@ void Test_gameplay_juggernaut_failed_publication_retains_daily_use(CuTest *tc)
   mag_summons(20, owner, NULL, PSIONIC_ECTOPLASMIC_SHAMBLER, 0, CAST_SPELL);
   pet = owner->followers != NULL ? owner->followers->follower : NULL;
   CuAssertPtrNotNull(tc, pet);
+  if (pet == NULL)
+    return;
   CuAssertIntEquals(tc, GET_AC(pet) + 30, ordinary[2]);
   CuAssertIntEquals(tc, GET_MAX_HIT(pet), GET_HIT(pet));
   extract_char(pet);
@@ -2302,6 +2306,8 @@ static void verify_nature_summon_scaling(CuTest *tc, int mob_level, int scaling)
     mag_summons(10, &f.actor, NULL, SPELL_SUMMON_NATURES_ALLY_1, 0, CAST_SPELL);
     pet = f.actor.followers != NULL ? f.actor.followers->follower : NULL;
     CuAssertPtrNotNull(tc, pet);
+    if (pet == NULL)
+      return;
     if (mode == 0)
     {
       affect_total(pet);
@@ -2389,6 +2395,8 @@ void Test_gameplay_alpha_bond_saves_survive_recalculation_without_stacking(CuTes
     perform_call(&f.actor, MOB_C_ANIMAL, 10);
     pet = f.actor.followers != NULL ? f.actor.followers->follower : NULL;
     CuAssertPtrNotNull(tc, pet);
+    if (pet == NULL)
+      return;
     for (i = 0; i < 3; i++)
       if (mode == 0)
         base[i] = GET_SAVE(pet, saves[i]);

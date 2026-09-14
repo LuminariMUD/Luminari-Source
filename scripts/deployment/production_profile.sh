@@ -321,20 +321,18 @@ baseline_gcc=(-Wtrampolines -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-ar
 baseline_clang=()
 
 # Migration: the families the strict-C23 audit found in bulk (sign and value
-# conversion, switch coverage, format types,
-# allocation size, duplicated logic, fallthrough).  Never combined with
-# -Werror; scripts/ci/check_warning_budget.py ratchets them down.
-migration_common=(-Wconversion -Wsign-conversion
-  -Wswitch-enum -Wundef
-  -Wnull-dereference -Wformat=2
+# conversion, format types, allocation size, duplicated logic, fallthrough).
+# Never combined with -Werror; scripts/ci/check_warning_budget.py ratchets
+# them down.
+migration_common=(-Wconversion -Wsign-conversion -Wundef -Wnull-dereference
   -Walloca -Wimplicit-fallthrough)
 migration_gcc=(-Wformat-signedness -Wcast-align=strict -Walloc-zero -Wduplicated-cond
   -Wduplicated-branches -Wlogical-op)
 migration_clang=(-Wcast-align)
 
 # Analysis: expensive or opinionated, compiler-specific, scheduled only.
-analysis_gcc=(-fanalyzer)
-analysis_clang=(-Wextra-semi-stmt -Wcomma -Wunreachable-code-aggressive -Wbad-function-cast
+analysis_gcc=(-fanalyzer -Wswitch-enum -Wformat-nonliteral)
+analysis_clang=(-Wswitch-enum -Wformat-nonliteral -Wextra-semi-stmt -Wcomma -Wunreachable-code-aggressive -Wbad-function-cast
   -Wconditional-uninitialized -Wcovered-switch-default -Wmissing-format-attribute
   -Wformat-pedantic -Wassign-enum -Wenum-enum-conversion)
 

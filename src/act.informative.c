@@ -98,7 +98,8 @@ struct where_output_buffer
   bool failed;
 };
 
-static bool append_where_output(struct where_output_buffer *output, const char *format, ...);
+static bool append_where_output(struct where_output_buffer *output, const char *format, ...)
+    __attribute__((format(printf, 2, 3)));
 static void print_object_location(int num, const struct obj_data *obj, struct char_data *ch,
                                   struct where_output_buffer *output, int depth);
 
@@ -1797,10 +1798,7 @@ static void look_in_obj(struct char_data *ch, char *arg)
   }
   else if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK)
   {
-    if (GET_LEVEL(ch) < LVL_IMMORT)
-      display_spells(ch, obj, 0);
-    else
-      display_spells(ch, obj, 0);
+    display_spells(ch, obj, 0);
   }
   else if (GET_OBJ_TYPE(obj) == ITEM_SCROLL)
   {
@@ -1970,8 +1968,8 @@ static void append_carrier_room(struct char_data *carrier, struct char_data *ch,
                                 struct where_output_buffer *output)
 {
   if (PRF_FLAGGED(ch, PRF_VERBOSE) && IN_ROOM(carrier) != NOWHERE)
-    append_where_output(output, "%37s in [%5d] %s%s\r\n", " - ", GET_ROOM_VNUM(IN_ROOM(carrier)),
-                        world[IN_ROOM(carrier)].name, QNRM);
+    append_where_output(output, "%37s in [%5d] %s%s\r\n", " - ",
+                        (int)GET_ROOM_VNUM(IN_ROOM(carrier)), world[IN_ROOM(carrier)].name, QNRM);
 }
 
 static void print_object_location(int num, const struct obj_data *obj, struct char_data *ch,
@@ -1988,18 +1986,18 @@ static void print_object_location(int num, const struct obj_data *obj, struct ch
   if (SCRIPT(obj) && TRIGGERS(SCRIPT(obj)))
   {
     if (!TRIGGERS(SCRIPT(obj))->next)
-      append_where_output(output, "[T%d] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(obj))));
+      append_where_output(output, "[T%d] ", (int)(GET_TRIG_VNUM(TRIGGERS(SCRIPT(obj)))));
     else
       append_where_output(output, "[TRIGS] ");
   }
 
   if (IN_ROOM(obj) != NOWHERE)
-    append_where_output(output, "[%5d] %s%s\r\n", GET_ROOM_VNUM(IN_ROOM(obj)),
+    append_where_output(output, "[%5d] %s%s\r\n", (int)GET_ROOM_VNUM(IN_ROOM(obj)),
                         world[IN_ROOM(obj)].name, QNRM);
   else if (obj->carried_by)
   {
     if (PRF_FLAGGED(ch, PRF_SHOWVNUMS) && IS_NPC(obj->carried_by))
-      append_where_output(output, "carried by [%5d] %s%s\r\n", GET_MOB_VNUM(obj->carried_by),
+      append_where_output(output, "carried by [%5d] %s%s\r\n", (int)GET_MOB_VNUM(obj->carried_by),
                           PERS(obj->carried_by, ch), QNRM);
     else
       append_where_output(output, "carried by %s%s\r\n", PERS(obj->carried_by, ch), QNRM);
@@ -2008,7 +2006,7 @@ static void print_object_location(int num, const struct obj_data *obj, struct ch
   else if (obj->worn_by)
   {
     if (PRF_FLAGGED(ch, PRF_SHOWVNUMS) && IS_NPC(obj->worn_by))
-      append_where_output(output, "worn by [%5d] %s%s\r\n", GET_MOB_VNUM(obj->worn_by),
+      append_where_output(output, "worn by [%5d] %s%s\r\n", (int)GET_MOB_VNUM(obj->worn_by),
                           PERS(obj->worn_by, ch), QNRM);
     else
       append_where_output(output, "worn by %s%s\r\n", PERS(obj->worn_by, ch), QNRM);
@@ -2119,12 +2117,12 @@ static void perform_immort_where(struct char_data *ch, const char *arg)
         {
           if (d->original)
             append_where_output(&output, "%-8s%s - [%5d] %s%s (in %s%s)\r\n", GET_NAME(i), QNRM,
-                                GET_ROOM_VNUM(IN_ROOM(d->character)),
+                                (int)GET_ROOM_VNUM(IN_ROOM(d->character)),
                                 world[IN_ROOM(d->character)].name, QNRM, GET_NAME(d->character),
                                 QNRM);
           else
             append_where_output(&output, "%-8s%s %s[%s%5d%s]%s %-*s%s %s%s\r\n", GET_NAME(i), QNRM,
-                                QCYN, QYEL, GET_ROOM_VNUM(IN_ROOM(i)), QCYN, QNRM,
+                                QCYN, QYEL, (int)GET_ROOM_VNUM(IN_ROOM(i)), QCYN, QNRM,
                                 30 + count_color_chars(world[IN_ROOM(i)].name),
                                 world[IN_ROOM(i)].name, QNRM,
                                 zone_table[(world[IN_ROOM(i)].zone)].name, QNRM);
@@ -2144,11 +2142,11 @@ static void perform_immort_where(struct char_data *ch, const char *arg)
     {
       found = TRUE;
       append_where_output(&output, "M%4d. %-25s%s - [%5d] %-25s%s", ++mob_num, GET_NAME(i), QNRM,
-                          GET_ROOM_VNUM(IN_ROOM(i)), world[IN_ROOM(i)].name, QNRM);
+                          (int)GET_ROOM_VNUM(IN_ROOM(i)), world[IN_ROOM(i)].name, QNRM);
       if (SCRIPT(i) && TRIGGERS(SCRIPT(i)))
       {
         if (!TRIGGERS(SCRIPT(i))->next)
-          append_where_output(&output, "[T%d]", GET_TRIG_VNUM(TRIGGERS(SCRIPT(i))));
+          append_where_output(&output, "[T%d]", (int)(GET_TRIG_VNUM(TRIGGERS(SCRIPT(i)))));
         else
           append_where_output(&output, "[TRIGS]");
       }
@@ -10478,18 +10476,6 @@ static int is_weapon_proficient(int weapon, int type)
     }
   }
   else if (type == WPT_DWARF)
-  {
-    switch (weapon)
-    {
-    case WEAPON_TYPE_BATTLE_AXE:
-    case WEAPON_TYPE_HEAVY_PICK:
-    case WEAPON_TYPE_WARHAMMER:
-    case WEAPON_TYPE_DWARVEN_WAR_AXE:
-    case WEAPON_TYPE_DWARVEN_URGOSH:
-      return TRUE;
-    }
-  }
-  else if (type == WPT_DUERGAR)
   {
     switch (weapon)
     {

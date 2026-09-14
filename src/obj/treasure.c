@@ -5440,8 +5440,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 1;
     else if (olevel >= 6)
       return 1;
-    else if (olevel >= 3)
-      return 0;
     else
       return 0;
 
@@ -5534,10 +5532,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 1;
     else if (olevel >= 9)
       return 1;
-    else if (olevel >= 6)
-      return 0;
-    else if (olevel >= 3)
-      return 0;
     else
       return 0;
 
@@ -5558,10 +5552,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 1;
     else if (olevel >= 9)
       return 1;
-    else if (olevel >= 6)
-      return 0;
-    else if (olevel >= 3)
-      return 0;
     else
       return 0;
 
@@ -5584,10 +5574,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 2;
     else if (olevel >= 9)
       return 2;
-    else if (olevel >= 6)
-      return 1;
-    else if (olevel >= 3)
-      return 1;
     else
       return 1;
 
@@ -5611,8 +5597,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 1;
     else if (olevel >= 6)
       return 1;
-    else if (olevel >= 3)
-      return 0;
     else
       return 0;
 
@@ -5633,10 +5617,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 2;
     else if (olevel >= 9)
       return 2;
-    else if (olevel >= 6)
-      return 1;
-    else if (olevel >= 3)
-      return 1;
     else
       return 1;
 
@@ -5700,10 +5680,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 1;
     else if (olevel >= 9)
       return 1;
-    else if (olevel >= 6)
-      return 0;
-    else if (olevel >= 3)
-      return 0;
     else
       return 0;
 
@@ -5726,8 +5702,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 2;
     else if (olevel >= 6)
       return 2;
-    else if (olevel >= 3)
-      return 1;
     else
       return 1;
 
@@ -5750,8 +5724,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 2;
     else if (olevel >= 6)
       return 2;
-    else if (olevel >= 3)
-      return 1;
     else
       return 1;
 
@@ -5774,8 +5746,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 15;
     else if (olevel >= 6)
       return 10;
-    else if (olevel >= 3)
-      return 5;
     else
       return 5;
 
@@ -5798,8 +5768,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 2;
     else if (olevel >= 6)
       return 2;
-    else if (olevel >= 3)
-      return 1;
     else
       return 1;
 
@@ -5822,8 +5790,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 3;
     else if (olevel >= 6)
       return 2;
-    else if (olevel >= 3)
-      return 1;
     else
       return 1;
 
@@ -5846,8 +5812,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 2;
     else if (olevel >= 6)
       return 2;
-    else if (olevel >= 3)
-      return 1;
     else
       return 1;
 
@@ -5868,10 +5832,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 2;
     else if (olevel >= 9)
       return 2;
-    else if (olevel >= 6)
-      return 1;
-    else if (olevel >= 3)
-      return 1;
     else
       return 1;
 
@@ -5953,8 +5913,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 6;
     else if (olevel >= 6)
       return 6;
-    else if (olevel >= 3)
-      return 5;
     else
       return 5;
 
@@ -6000,10 +5958,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 1;
     else if (olevel >= 9)
       return 1;
-    else if (olevel >= 6)
-      return 0;
-    else if (olevel >= 3)
-      return 0;
     else
       return 0;
 

@@ -238,8 +238,9 @@ enum salt_subtypes
 
 /* Total enhanced wilderness materials */
 #define NUM_ENHANCED_WILDERNESS_MATERIALS                                                          \
-  (NUM_HERB_SUBTYPES + NUM_CRYSTAL_SUBTYPES + NUM_ORE_SUBTYPES + NUM_WOOD_SUBTYPES +               \
-   NUM_VEGETATION_SUBTYPES + NUM_STONE_SUBTYPES + NUM_GAME_SUBTYPES)
+  ((int)NUM_HERB_SUBTYPES + (int)NUM_CRYSTAL_SUBTYPES + (int)NUM_ORE_SUBTYPES +                    \
+   (int)NUM_WOOD_SUBTYPES + (int)NUM_VEGETATION_SUBTYPES + (int)NUM_STONE_SUBTYPES +               \
+   (int)NUM_GAME_SUBTYPES)
 
 #endif /* ENABLE_WILDERNESS_CRAFTING_INTEGRATION */
 

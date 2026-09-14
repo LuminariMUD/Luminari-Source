@@ -282,8 +282,8 @@ int spatial_cache_result(struct spatial_context *ctx, double result);
 int spatial_get_cached_result(struct spatial_context *ctx, double *cached_result);
 
 /* Debug and Logging */
-void spatial_log(const char *format, ...);
-void spatial_debug(const char *format, ...);
+void spatial_log(const char *format, ...) __attribute__((format(printf, 1, 2)));
+void spatial_debug(const char *format, ...) __attribute__((format(printf, 1, 2)));
 const char *spatial_error_string(int error_code);
 
 /* Global Variables */

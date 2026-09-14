@@ -2582,14 +2582,9 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
       /* Player data fallback query without idnum */
       obj_db_idnum = 0;
     }
-    else if (loading_house_data == 1)
-    {
-      /* House data with idnum column */
-      obj_db_idnum = row[1] != NULL ? atoi(row[1]) : 0;
-    }
     else
     {
-      /* Player data with idnum column (normal case) */
+      /* House data (1) or player data (normal case) with idnum column */
       obj_db_idnum = row[1] != NULL ? atoi(row[1]) : 0;
     }
 

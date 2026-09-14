@@ -211,7 +211,7 @@ ACMD(do_track)
     if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
     {
       snprintf(buf, sizeof(buf), " %s I can't find tracks for anyone named %s\r\n",
-               GET_NAME(ch->master), GET_NAME(vict));
+               GET_NAME(ch->master), arg);
       do_tell(ch, buf, 0, 0);
     }
     return;

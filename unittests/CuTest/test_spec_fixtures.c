@@ -496,8 +496,8 @@ static FILE *spec_test_open_record(const char *record, char *error, size_t error
   return file;
 }
 
-static FILE *spec_test_open_named_record(const char *format, const char *name, char *error,
-                                         size_t error_size)
+__attribute__((format(printf, 1, 0))) static FILE *
+spec_test_open_named_record(const char *format, const char *name, char *error, size_t error_size)
 {
   char record[MAX_STRING_LENGTH];
   int length;

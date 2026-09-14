@@ -37,7 +37,7 @@ void init_moon_bonus_spells(struct char_data *ch)
     return;
   }
 
-  if (!ch->player_specials || !ch->player_specials)
+  if (!ch->player_specials)
     return;
 
   /* Only arcane casters get moon bonus spells */
@@ -78,7 +78,7 @@ void update_moon_bonus_spells(struct char_data *ch)
     return;
   }
 
-  if (!ch->player_specials || !ch->player_specials)
+  if (!ch->player_specials)
     return;
 
   /* Only arcane casters get moon bonus spells */
@@ -120,7 +120,7 @@ int get_max_moon_bonus_spells(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return 0;
 
-  if (!ch->player_specials || !ch->player_specials)
+  if (!ch->player_specials)
     return 0;
 
   if (!is_arcane_caster(ch))
@@ -140,7 +140,7 @@ int get_available_moon_bonus_spells(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return 0;
 
-  if (!ch->player_specials || !ch->player_specials)
+  if (!ch->player_specials)
     return 0;
 
   max_spells = ch->player_specials->saved.moon_bonus_spells;
@@ -157,7 +157,7 @@ int get_used_moon_bonus_spells(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return 0;
 
-  if (!ch->player_specials || !ch->player_specials)
+  if (!ch->player_specials)
     return 0;
 
   return ch->player_specials->saved.moon_bonus_spells_used;
@@ -182,7 +182,7 @@ bool use_moon_bonus_spell(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return FALSE;
 
-  if (!ch->player_specials || !ch->player_specials)
+  if (!ch->player_specials)
     return FALSE;
 
   if (!has_moon_bonus_spells(ch))
@@ -203,7 +203,7 @@ void regenerate_moon_bonus_spell(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return;
 
-  if (!ch->player_specials || !ch->player_specials)
+  if (!ch->player_specials)
     return;
 
   if (!is_arcane_caster(ch))
@@ -235,7 +235,7 @@ void reset_moon_bonus_spells(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return;
 
-  if (!ch->player_specials || !ch->player_specials)
+  if (!ch->player_specials)
     return;
 
   /* Reset usage and timer when leveling */

@@ -38,7 +38,8 @@ void free_contextual_hints(struct region_hint *hints);
 static int narrative_debug_mode = 0; /* 0 = off, 1 = basic, 2 = verbose */
 
 /* Debug logging function - only logs if debug mode is enabled */
-static void narrative_debug_log(int level, const char *format, ...)
+__attribute__((format(printf, 2, 3))) static void narrative_debug_log(int level, const char *format,
+                                                                      ...)
 {
   va_list args;
 

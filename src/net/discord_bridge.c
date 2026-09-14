@@ -485,7 +485,7 @@ void accept_discord_connection(void)
   new_socket = accept(discord_bridge->server_socket, (struct sockaddr *)&peer, &peer_len);
   if (new_socket == INVALID_SOCKET)
   {
-    if (errno != EAGAIN && errno != EWOULDBLOCK)
+    if (!errno_would_block(errno))
     {
       log("SYSERR: Discord bridge accept failed: %s", strerror(errno));
     }
@@ -576,7 +576,7 @@ void process_discord_input(void)
 
   if (bytes_read < 0)
   {
-    if (errno != EAGAIN && errno != EWOULDBLOCK)
+    if (!errno_would_block(errno))
     {
       log("SYSERR: Discord bridge recv error: %s", strerror(errno));
       close_discord_connection();
@@ -635,7 +635,7 @@ void process_discord_output(void)
 
   if (bytes_sent < 0)
   {
-    if (errno != EAGAIN && errno != EWOULDBLOCK)
+    if (!errno_would_block(errno))
     {
       log("SYSERR: Discord bridge send error: %s", strerror(errno));
       close_discord_connection();

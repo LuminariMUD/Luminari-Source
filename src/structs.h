@@ -1292,7 +1292,7 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define MOB_EPIC_PALADIN_MOUNT_SMALL 92
 #define MOB_EPIC_BLACKGUARD_MOUNT 1238
 #define MOB_BLACKGUARD_MOUNT 1234
-#define MOB_ADV_BLACKGUARD_MOUNT 1234
+#define MOB_ADV_BLACKGUARD_MOUNT 1236
 #define MAX_MERCS 3
 /***  end misc defines ****/
 /**********************/

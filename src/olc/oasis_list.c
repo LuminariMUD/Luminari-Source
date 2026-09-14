@@ -295,14 +295,6 @@ static void perform_obj_type_list(struct char_data *ch, char *arg)
                          QGRN, ++found, QNRM, ov);
             break;
           }
-          if (v3 < TRAP_SPECIAL_PARALYSIS && v3 >= LAST_SPELL_DEFINE)
-          { /* invalid trap effects check 2 */
-            tmp_len =
-                snprintf(buf + len, sizeof(buf) - len,
-                         "%s%3d%s) %10" PRI_IDX " INVALID, CHECK THIS OBJECT (effect-range-2)\r\n",
-                         QGRN, ++found, QNRM, ov);
-            break;
-          }
           if ((v1 == TRAP_TRIGGER_OPEN_CONTAINER || v1 == TRAP_TRIGGER_UNLOCK_CONTAINER ||
                v1 == TRAP_TRIGGER_GET_OBJECT) &&
               target_obj == NOTHING)

@@ -256,7 +256,8 @@ static int visual_generate_message(struct spatial_context *ctx, char *output, si
     break;
   }
 
-  spatial_debug("Generated visual message (clarity %.3f, type %d): %s", clarity, msg_type, output);
+  spatial_debug("Generated visual message (clarity %.3f, type %d): %s", clarity, (int)msg_type,
+                output);
 
   spatial_log("SPATIAL: visual_generate_message returning SUCCESS");
   return SPATIAL_SUCCESS;

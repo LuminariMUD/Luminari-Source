@@ -19,7 +19,8 @@
 #define SPEC_EFFECTIVE_TEXT_LIMIT (READ_SIZE - 1U)
 #define SPEC_EFFECTIVE_ESCAPED_LIMIT ((SPEC_EFFECTIVE_TEXT_LIMIT * 2U) + 1U)
 
-static void spec_effective_set_error(char *error, size_t error_size, const char *format, ...)
+__attribute__((format(printf, 3, 4))) static void
+spec_effective_set_error(char *error, size_t error_size, const char *format, ...)
 {
   va_list arguments;
 

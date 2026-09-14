@@ -1790,7 +1790,7 @@ ACMD(do_clanclaim)
 
     /* Log the claim */
     log_clan_activity(GET_CLAN(ch), "%s claimed zone %s [%d]", GET_NAME(ch),
-                      zone_table[real_zone(zv)].name, zv);
+                      zone_table[real_zone(zv)].name, (int)zv);
 
     save_claims();
   }
@@ -4351,6 +4351,8 @@ void remove_claim_from_list(struct claim_data *rem_claim)
     for (this_claim = claim_list; this_claim && this_claim->next != rem_claim;
          this_claim = this_claim->next)
       ;
+    if (this_claim == NULL)
+      return;
     this_claim->next = rem_claim->next;
     free_claim(rem_claim);
   }

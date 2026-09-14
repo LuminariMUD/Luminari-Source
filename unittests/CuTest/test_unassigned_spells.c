@@ -830,6 +830,8 @@ void TestElementalEmbodimentsPreserveProfilesAndLinkedCleanup(CuTest *tc)
 
     af = find_test_affect(&target, expected->spellnum, APPLY_HIT);
     CuAssertPtrNotNull(tc, af);
+    if (af == NULL)
+      return;
     base_hp = 10 * expected->hp_factor;
     variance = base_hp * 5 / 100;
     CuAssertTrue(tc, af->modifier >= base_hp - variance);
@@ -840,15 +842,21 @@ void TestElementalEmbodimentsPreserveProfilesAndLinkedCleanup(CuTest *tc)
 
     af = find_test_affect(&target, expected->spellnum, APPLY_CHAR_HEIGHT);
     CuAssertPtrNotNull(tc, af);
+    if (af == NULL)
+      return;
     CuAssertIntEquals(tc, expected->size_percent, af->modifier);
     af = find_test_affect(&target, expected->spellnum, APPLY_CHAR_WEIGHT);
     CuAssertPtrNotNull(tc, af);
+    if (af == NULL)
+      return;
     CuAssertIntEquals(tc, expected->size_percent, af->modifier);
 
     if (expected->armor_bonus > 0)
     {
       af = find_test_affect(&target, expected->spellnum, APPLY_AC_NEW);
       CuAssertPtrNotNull(tc, af);
+      if (af == NULL)
+        return;
       CuAssertIntEquals(tc, expected->armor_bonus, af->modifier);
       CuAssertIntEquals(tc, BONUS_TYPE_NATURALARMOR, af->bonus_type);
     }
@@ -861,6 +869,8 @@ void TestElementalEmbodimentsPreserveProfilesAndLinkedCleanup(CuTest *tc)
     {
       af = find_test_affect(&target, expected->spellnum, expected->resistances[resistance_index]);
       CuAssertPtrNotNull(tc, af);
+      if (af == NULL)
+        return;
       CuAssertIntEquals(tc, 50, af->modifier);
     }
     for (flag_index = 0; flag_index < expected->flag_count; flag_index++)
@@ -868,6 +878,8 @@ void TestElementalEmbodimentsPreserveProfilesAndLinkedCleanup(CuTest *tc)
 
     af = find_test_affect(&caster, AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN, APPLY_NONE);
     CuAssertPtrNotNull(tc, af);
+    if (af == NULL)
+      return;
     CuAssertIntEquals(tc, expected->spellnum, af->specific);
     CuAssertTrue(tc, af->source_id == target_id);
 
@@ -1060,16 +1072,24 @@ void TestDarkWrathAppliesSourceBonusesToAllSpellSaves(CuTest *tc)
 
   af = find_test_affect(&ch, SPELL_DARK_WRATH, APPLY_DAMROLL);
   CuAssertPtrNotNull(tc, af);
+  if (af == NULL)
+    return;
   CuAssertIntEquals(tc, 1, af->modifier);
   CuAssertTrue(tc, af->duration >= 5 && af->duration <= 8);
   af = find_test_affect(&ch, SPELL_DARK_WRATH, APPLY_SAVING_FORT);
   CuAssertPtrNotNull(tc, af);
+  if (af == NULL)
+    return;
   CuAssertIntEquals(tc, 3, af->modifier);
   af = find_test_affect(&ch, SPELL_DARK_WRATH, APPLY_SAVING_REFL);
   CuAssertPtrNotNull(tc, af);
+  if (af == NULL)
+    return;
   CuAssertIntEquals(tc, 3, af->modifier);
   af = find_test_affect(&ch, SPELL_DARK_WRATH, APPLY_SAVING_WILL);
   CuAssertPtrNotNull(tc, af);
+  if (af == NULL)
+    return;
   CuAssertIntEquals(tc, 3, af->modifier);
 
   remove_test_affects(&ch);
@@ -1088,6 +1108,8 @@ void TestUnholyAuraKeepsItsOwnFireShieldAffect(CuTest *tc)
   spell_unholy_aura(30, &ch, &ch, NULL, CAST_SPELL);
   af = find_test_affect(&ch, SPELL_UNHOLY_AURA, APPLY_NONE);
   CuAssertPtrNotNull(tc, af);
+  if (af == NULL)
+    return;
   CuAssertIntEquals(tc, 3, af->duration);
   CuAssertTrue(tc, AFF_FLAGGED(&ch, AFF_FSHIELD));
 
@@ -1138,6 +1160,8 @@ void TestPhantomHealingIsRepaidExactlyOnceOnExpiryOrRemoval(CuTest *tc)
       spell_phantom_heal(20, &ch, &ch, NULL, CAST_SPELL);
       af = find_test_affect(&ch, SPELL_PHANTOM_HEAL, APPLY_SPECIAL);
       CuAssertPtrNotNull(tc, af);
+      if (af == NULL)
+        return;
       CuAssertIntEquals(tc, 50, GET_HIT(&ch));
       if (wounded)
         GET_HIT(&ch) = 5;

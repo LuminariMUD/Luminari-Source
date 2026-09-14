@@ -951,9 +951,10 @@ bool rol_planar_screech_health_allows(int hit, int max_hit)
 
 int rol_planar_screech_cooldown_seconds(int mobile_vnum)
 {
-  return rol_planar_burst_profile(mobile_vnum, NULL, NULL, NULL) &&
-                 rol_monster_combat_profile_for(mobile_vnum)->effect ==
-                     ROL_MONSTER_PLANAR_VROCK_BURSTS
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+
+  return rol_planar_burst_profile(mobile_vnum, NULL, NULL, NULL) && profile != NULL &&
+                 profile->effect == ROL_MONSTER_PLANAR_VROCK_BURSTS
              ? SECS_PER_MUD_DAY
              : 0;
 }

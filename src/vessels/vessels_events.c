@@ -137,7 +137,7 @@ static const char *vessel_event_team_name(int team)
   }
 }
 
-static void vessel_event_broadcast(const char *format, ...)
+__attribute__((format(printf, 1, 2))) static void vessel_event_broadcast(const char *format, ...)
 {
   struct descriptor_data *d;
   char message[MAX_STRING_LENGTH];

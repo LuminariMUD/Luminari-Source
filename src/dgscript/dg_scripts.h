@@ -330,7 +330,7 @@ void do_sstat_room(struct char_data *ch, room_data *r);
 void do_sstat_object(char_data *ch, obj_data *j);
 void do_sstat_character(char_data *ch, char_data *k);
 void add_trigger(struct script_data *sc, trig_data *t, int loc);
-void script_vlog(const char *format, va_list args);
+void script_vlog(const char *format, va_list args) __attribute__((format(printf, 1, 0)));
 void script_log(const char *format, ...) __attribute__((format(printf, 1, 2)));
 char *matching_quote(char *p);
 struct room_data *dg_room_of_obj(struct obj_data *obj);

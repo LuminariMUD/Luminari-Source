@@ -220,14 +220,6 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       else
         send_to_char(ch, "Invalid trap effect on this object [1]\r\n");
     }
-    else if (GET_OBJ_VAL(item, 2) < TRAP_SPECIAL_PARALYSIS &&
-             GET_OBJ_VAL(item, 2) >= LAST_SPELL_DEFINE)
-    {
-      if (mode == ITEM_STAT_MODE_G_LORE)
-        send_to_group(NULL, GROUP(ch), "Invalid trap effect on this object [2]\r\n");
-      else
-        send_to_char(ch, "Invalid trap effect on this object [2]\r\n");
-    }
     else if (GET_OBJ_VAL(item, 2) >= TRAP_SPECIAL_PARALYSIS)
     {
       if (mode == ITEM_STAT_MODE_G_LORE)
@@ -3631,6 +3623,8 @@ ACMD(do_pour)
       return;
     }
   }
+  if (from_obj == NULL)
+    return; /* neither pour nor fill */
   if (EMPTY_DRINK_CONTAINER(from_obj))
   {
     act("The $p is empty.", FALSE, ch, from_obj, 0, TO_CHAR);
@@ -3675,6 +3669,8 @@ ACMD(do_pour)
       return;
     }
   }
+  if (to_obj == NULL)
+    return;
   if (to_obj == from_obj)
   {
     send_to_char(ch, "A most unproductive effort.\r\n");

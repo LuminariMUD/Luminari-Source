@@ -26,7 +26,7 @@ int write_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd);
 int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd);
 int free_mobile_strings(struct char_data *mob);
 int copy_mobile_strings(struct char_data *t, struct char_data *f);
-#if CONFIG_GENOLC_MOBPROG
+#if defined(CONFIG_GENOLC_MOBPROG) && CONFIG_GENOLC_MOBPROG
 int write_mobile_mobprog(mob_vnum mvnum, struct char_data *mob, FILE *fd);
 #endif
 

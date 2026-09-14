@@ -70,7 +70,8 @@ static const char *const spec_round_trip_selected_names[SPEC_TEST_OWNER_COUNT] =
     "Greyhawk Ship Commands",
 };
 
-static void spec_round_trip_set_error(char *error, size_t error_size, const char *format, ...)
+__attribute__((format(printf, 3, 4))) static void
+spec_round_trip_set_error(char *error, size_t error_size, const char *format, ...)
 {
   va_list arguments;
 
@@ -340,7 +341,7 @@ static bool spec_round_trip_saved_name_matches(const struct spec_test_fixture *f
   text = spec_test_fixture_saved_text(fixture, owner);
   if (text == NULL || name == NULL)
   {
-    spec_round_trip_set_error(error, error_size, "owner %d has no captured output", owner);
+    spec_round_trip_set_error(error, error_size, "owner %d has no captured output", (int)owner);
     return false;
   }
 
@@ -350,8 +351,8 @@ static bool spec_round_trip_saved_name_matches(const struct spec_test_fixture *f
     length = snprintf(expected, sizeof(expected), "\nZ\n%s\n", name);
   if (length < 0 || (size_t)length >= sizeof(expected) || strstr(text, expected) == NULL)
   {
-    spec_round_trip_set_error(error, error_size,
-                              "owner %d output did not retain authored name '%s'", owner, name);
+    spec_round_trip_set_error(
+        error, error_size, "owner %d output did not retain authored name '%s'", (int)owner, name);
     return false;
   }
 
@@ -370,7 +371,7 @@ static bool spec_round_trip_saved_binding_absent(const struct spec_test_fixture 
   if (text == NULL || strstr(text, marker) != NULL)
   {
     spec_round_trip_set_error(error, error_size, "owner %d explicit clear still emitted a binding",
-                              owner);
+                              (int)owner);
     return false;
   }
 
@@ -392,7 +393,7 @@ static bool spec_round_trip_binding_matches(const struct spec_test_fixture *fixt
       binding->requested_name == NULL || strcmp(binding->requested_name, requested_name) != 0)
   {
     spec_round_trip_set_error(error, error_size,
-                              "owner %d reloaded authored metadata did not match", owner);
+                              "owner %d reloaded authored metadata did not match", (int)owner);
     return false;
   }
   if (canonical_name == NULL)
@@ -400,7 +401,7 @@ static bool spec_round_trip_binding_matches(const struct spec_test_fixture *fixt
     if (binding->definition != NULL)
     {
       spec_round_trip_set_error(error, error_size, "owner %d unexpectedly resolved after reload",
-                                owner);
+                                (int)owner);
       return false;
     }
   }
@@ -408,7 +409,7 @@ static bool spec_round_trip_binding_matches(const struct spec_test_fixture *fixt
            strcmp(binding->definition->canonical_name, canonical_name) != 0)
   {
     spec_round_trip_set_error(error, error_size, "owner %d reloaded the wrong canonical definition",
-                              owner);
+                              (int)owner);
     return false;
   }
 

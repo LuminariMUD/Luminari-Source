@@ -695,6 +695,8 @@ static void remove_cmd_from_list(struct reset_com **list, int pos)
 
   /* Count number of commands (not including terminator). */
   count = count_commands(*list);
+  if (count <= 0)
+    return; /* only the terminator: nothing to remove */
 
   /* Value is 'count' because we didn't include the terminator above but since
    * we're deleting one thing anyway we want one less. */

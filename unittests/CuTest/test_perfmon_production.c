@@ -281,6 +281,8 @@ void Test_perfmon_reports_bounded_game_loop_telemetry(CuTest *tc)
     }
   }
   CuAssertPtrNotNull(tc, profile);
+  if (profile == NULL)
+    return;
   CuAssertIntEquals(tc, 1, (int)profile->late_callbacks);
   CuAssertIntEquals(tc, 2, (int)profile->lateness_p50_ticks);
   CuAssertIntEquals(tc, 3, (int)profile->lateness_p95_ticks);

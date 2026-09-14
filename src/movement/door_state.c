@@ -39,14 +39,17 @@ uint64_t door_state_identity(room_rnum room, int direction)
 static void capture_side(struct door_state_operation *operation, room_rnum room, int direction,
                          enum domain_door_change_cause cause)
 {
-  struct domain_door_state_changed *side = &operation->sides[operation->count++];
+  struct room_direction_data *exit_data = find_exit(room, direction);
+  struct domain_door_state_changed *side;
 
-  operation->destinations[operation->count - 1U] =
-      domain_event_room_handle(find_exit(room, direction)->to_room);
+  if (exit_data == NULL)
+    return;
+  side = &operation->sides[operation->count++];
+  operation->destinations[operation->count - 1U] = domain_event_room_handle(exit_data->to_room);
   side->room = domain_event_room_handle(room);
   side->direction = direction;
   side->exit_identity = door_state_identity(room, direction);
-  side->previous_state = (uint16_t)find_exit(room, direction)->exit_info;
+  side->previous_state = (uint16_t)exit_data->exit_info;
   side->current_state = side->previous_state;
   side->cause = cause;
 }

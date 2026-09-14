@@ -93,7 +93,8 @@ void write_to_q(const char *txt, struct txt_q *queue, int aliased);
 int write_to_descriptor(socket_t desc, const char *txt);
 size_t write_to_output(struct descriptor_data *d, const char *txt, ...)
     __attribute__((format(printf, 2, 3)));
-size_t vwrite_to_output(struct descriptor_data *d, const char *format, va_list args);
+size_t vwrite_to_output(struct descriptor_data *d, const char *format, va_list args)
+    __attribute__((format(printf, 2, 0)));
 bool write_to_output_raw_atomic(struct descriptor_data *d, const char *data, size_t data_length,
                                 size_t headroom);
 
@@ -149,5 +150,5 @@ extern int next_tick;
 int luminari_main(int argc, char **argv);
 #endif
 
-void send_to_clan(clan_vnum c_id, const char *messg, ...);
+void send_to_clan(clan_vnum c_id, const char *messg, ...) __attribute__((format(printf, 2, 3)));
 #endif /* _COMM_H_ */

@@ -118,7 +118,8 @@ static int sell_price(struct obj_data *obj, int shop_nr, struct char_data *keepe
 static int ok_shop_room(int shop_nr, room_vnum room);
 static int add_to_shop_list(struct shop_buy_data *list, int type, int *len, int *val);
 static int end_read_list(struct shop_buy_data *list, int len, int error);
-static void read_line(FILE *shop_f, const char *string, void *data);
+static void read_line(FILE *shop_f, const char *string, void *data)
+    __attribute__((format(scanf, 2, 0)));
 static void format_shop_message(char *dest, size_t dest_size, const char *message, const char *name,
                                 int amount);
 

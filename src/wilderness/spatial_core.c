@@ -614,7 +614,7 @@ spatial_direction_t spatial_calculate_direction(int observer_x, int observer_y, 
   else
     result = SPATIAL_DIR_UNKNOWN;
 
-  spatial_log("DEBUG: Final direction: %d", result);
+  spatial_log("DEBUG: Final direction: %d", (int)result);
   return result;
 }
 

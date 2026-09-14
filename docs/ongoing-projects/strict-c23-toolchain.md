@@ -44,15 +44,17 @@ warning debt, and feature detection that strict flags cannot influence.
   2.4, 3.1, 3.3, 3.2, and 3.4; Clang 18 does not know `-Wjump-misses-init`, so the probe
   drops it there. Clean on all four
   compilers; `-Werror` is refused with any other tier.
-- Migration tier: conversions, switch coverage, `-Wformat=2`,
-  allocation, duplicated conditions and branches, logical operators,
-  fallthrough, `-Wwrite-strings`. Held by
+- Migration tier: sign and value conversion, `-Wundef`, `-Wnull-dereference`,
+  `-Walloca`, `-Wimplicit-fallthrough`, and GCC's
+  `-Wformat-signedness`, `-Wcast-align=strict`, `-Walloc-zero`, duplicated
+  conditions and branches, and logical operators. Held by
   `scripts/ci/check_warning_budget.py` against `scripts/ci/warning_budget_gcc-16.txt`
   and `scripts/ci/warning_budget_clang-22.txt`; growth in any class fails the
   new `warning-budget` job. Counting is by distinct site with make output sync,
   which was required to make Clang's numbers deterministic.
-- Analysis tier: GCC `-fanalyzer` and Clang's opinionated extras, plus an
-  ISO C23 `-Wpedantic` extension report, in the weekly, non-blocking
+- Analysis tier: GCC `-fanalyzer` and Clang's opinionated extras, plus
+  `-Wswitch-enum` and `-Wformat-nonliteral` (moved out of the budget by step
+  3.5) and an ISO C23 `-Wpedantic` extension report, in the weekly, non-blocking
   `.github/workflows/toolchain-analysis.yml`.
 
 ### Feature detection
@@ -91,14 +93,13 @@ warning debt, and feature detection that strict flags cannot influence.
 
 ## Budget snapshot
 
-| Compiler | At the start | Now (after step 3.4) |
+| Compiler | At the start | Now (after step 3.5) |
 |----------|--------------|----------------------|
-| GCC 16.2 | 11363 sites, 24 classes | 2532 sites, 12 classes |
-| Clang 22.1.8 | 22878 sites, 23 classes | 3971 sites, 10 classes |
+| GCC 16.2 | 11363 sites, 24 classes | 2336 sites, 2 classes |
+| Clang 22.1.8 | 22878 sites, 23 classes | 3853 sites, 2 classes |
 
-Largest remaining classes: sign conversion (GCC 1808, Clang 3331), value
-conversion (GCC 533, Clang `implicit-int-conversion` 523), and the small
-classes of step 3.5.
+Remaining classes: sign conversion (GCC 1807, Clang 3330) and value
+conversion (GCC 529, Clang `implicit-int-conversion` 523), the only classes left.
 
 ## Burn-down progress
 
@@ -128,6 +129,7 @@ per compiler.
 | 3.3 tail | `REMOVE_FROM_LIST_USING`; last three renames; `shadow` at zero; flag promoted to baseline | 3818 | 5275 |
 | 3.2 | `float` is `double`; unused kdtree float API removed; float `MIN`/`MAX` clamps fixed; float-to-int conversions explicit; float classes at zero and promoted to baseline | 2824 | 4263 |
 | 3.4 | const string tables, read-only string parameters, owned strings through mutable pointers; qualifier classes at zero and promoted to baseline | 2532 | 3971 |
+| 3.5 | logic defects, dead branches, null guards, format attributes; `switch-enum` and `format-nonliteral` to the analysis tier | 2336 | 3853 |
 
 Every step was also verified with a host `make test` (1483 tests pass) before
 it was committed, and each promotion to the baseline tier was first built at
@@ -405,6 +407,58 @@ Notes from step 3.4:
 - `-Wwrite-strings` and `-Wcast-qual` moved to the baseline tier after clean
   baseline builds with GCC 13 and Clang 18.
 
+Notes from step 3.5:
+
+- Logic defects: the social editor accepted any position or level because its
+  range tests joined the bounds with `&&`; the high-level quest editor tested
+  `location >= NUM_CLASSES` twice and let negative classes through;
+  `MOB_ADV_BLACKGUARD_MOUNT` shared vnum 1234 with the basic mount, so the
+  advanced mount was never summoned (1236, the other mob tagged
+  `blackguardmount` besides the basic and epic mounts, is the advanced one);
+  and the track command printed `GET_NAME(vict)` after finding no victim, a
+  null dereference when a charmed follower is told to track an unknown name.
+- Unreachable code removed: the second trap effect range check in the object
+  stat display and the object list (always false since trap effects start at
+  1), the duergar weapon branch (`WPT_DUERGAR` has the value of `WPT_DWARF`),
+  the reduced immortal usage text of the idea, bug, and typo commands
+  (`LVL_IMMORTAL` is `LVL_IMMORT`), a duplicated `LVL_GRSTAFF` level name, a
+  doubled `player_specials` test, and `NOTHING || NOWHERE` tests (one value).
+- `errno_would_block()` in `sysdep.h` replaces the `EAGAIN`/`EWOULDBLOCK`
+  pairs, which compare one value twice on Linux.
+- Identical branches merged: 23 identical tails in the treasure bonus tables,
+  the immortal and mortal spellbook displays, the house and player object id
+  columns, and the pilot spell list choice. The casting check and the
+  encounter join guard (both delays are six seconds) no longer repeat one
+  statement in two branches.
+- Null guards where a lookup can fail: action queue dequeues, the perk purchase
+  confirmation, clan claim removal, protection from arrows, door state
+  capture, spell battle expiry, GMCP send, pour and fill, the vrock screech
+  cooldown, the action cooldown event, and `strip_colors`. The link-loss path
+  dropped a redundant `if` that made the compiler assume a null character.
+  Tests return after a failed pointer assertion, since `CuAssertPtrNotNull`
+  does not tell the compiler the pointer is set.
+- The TTYPE client name buffer is a fixed array instead of `alloca`;
+  `remove_cmd_from_list` returns when the list holds only its terminator and
+  `generate_river` stops when it starts in water, instead of `calloc(0)`.
+  Social body parts and the board editor's storage pass through `void *`, and
+  the ELF note header is copied out of the note bytes instead of cast.
+- Format attributes: 29 printf-style functions (loggers, buffer appenders,
+  error setters, `send_to_ship`, `send_to_clan`, `i3_log`, and friends) carry
+  `format(printf, ...)`, `read_line` carries `format(scanf, 2, 0)`, and
+  `format_time_string` carries `format(strftime, 2, 0)`. The checks this
+  enabled found 41 signedness mismatches and 18 empty format strings. The
+  mismatches are cast to the printed type rather than given new directives,
+  so `NOWHERE` still prints as -1 and the player save file is unchanged.
+- `-Wswitch-enum` moved to the analysis tier: GCC reported 4224 enumerators
+  missing from 44 switches that already have a `default`, most of them over the
+  event id enum, and `-Wswitch` in `-Wall` still covers switches without one.
+  `-Wformat-nonliteral` moved there too: the remaining sites print from format
+  tables by design (auction messages, wall descriptions, clan command help,
+  description templates, spec alert messages, the snprintf self-test). The
+  migration tier no longer lists `-Wformat=2`: the baseline's `-Wformat` and
+  `-Wformat-security` cover the rest of it, and `-Wformat-y2k` would only flag
+  the `%c` and `%m/%d/%y` display dates the strftime attribute exposed.
+
 ## Remaining work
 
 1. GitHub-side confirmation. Container jobs, the apt.llvm.org install step,
@@ -420,8 +474,8 @@ Notes from step 3.4:
    sites. These are candidate bugs, not noise, and deserve their own issue.
 4. Burn down the rest of the migration budget. Steps 0, 1.1, 1.2, and 2.1 to
    2.6 are done (see the progress table), step 1.3 is done for 64-bit
-   narrowing, and steps 3.1 to 3.4 are done. Left: step 3.5 (small classes
-   and the rest of GCC `conversion`) and the step 4 sign-conversion decision.
+   narrowing, and step 3 is done. Left: the step 4 decision on the
+   sign-conversion tail, and the value-conversion sites that remain beside it.
 5. Cadence. Bump the current versions in `test.yml`,
    `scripts/ci/local/Dockerfile*`, and the setup guide within a month of each
    GCC or LLVM point release; raise the minimum when the runner image drops a
@@ -509,19 +563,14 @@ migration list to the baseline list in `production_profile.sh`.
 6. Clang `implicit-fallthrough` (33): insert `[[fallthrough]];` where the
    existing comment says so. GCC already accepts the comments.
 
-### Step 3: file-focused hand work (two to three days, about 2500 sites)
+### Step 3: file-focused hand work (done)
 
 1. `jump-misses-init` (done). The 446 GCC and 579 Clang sites came from
    sixteen declarations: seven case bodies braced, two declarations hoisted.
 2. `double-promotion` and `float-conversion` (done; see the step 3.2 notes).
 3. `shadow` (done; see the step 3.3 notes).
 4. `-Wwrite-strings` and `cast-qual` in `src/` (done; see the step 3.4 notes).
-5. Small classes, one sitting: `null-dereference` 48, `switch-enum` 45,
-   `logical-op` 31, `format-nonliteral` 25,
-   `float-equal` 22, `duplicated-branches` 21, `cast-align` 8, `undef` 8,
-   `alloca` 4, `duplicated-cond` 3, `alloc-zero` 1. The `null-dereference`
-   sites are candidate bugs; the rest are style and fold into whatever is
-   nearby.
+5. Small classes (done; see the step 3.5 notes).
 
 ### Step 4: the sign-conversion tail (decision point)
 
@@ -541,7 +590,7 @@ not for every `int` index to become `size_t`.
 | start | 11363 | 11363 | 22878 | 22878 |
 | steps 1.1, 1.2 | about 9500 | 8010 | about 8500 | 7955 |
 | step 2 | about 5800 | 5188 | about 5300 | 6675 |
-| step 3 | about 2800 | | about 3000 | |
+| step 3 | about 2800 | 2336 | about 3000 | 3853 |
 | step 4 | 0 or the sign-conversion tail | | same | |
 
 The steps landed as separate commits on the `strict-c23-toolchain` branch,

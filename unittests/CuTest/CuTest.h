@@ -33,7 +33,8 @@ CuString *CuStringNew(void);
 void CuStringRead(CuString *str, const char *path);
 void CuStringAppend(CuString *str, const char *text);
 void CuStringAppendChar(CuString *str, char ch);
-void CuStringAppendFormat(CuString *str, const char *format, ...);
+void CuStringAppendFormat(CuString *str, const char *format, ...)
+    __attribute__((format(printf, 2, 3)));
 void CuStringInsert(CuString *str, const char *text, int pos);
 void CuStringResize(CuString *str, int newSize);
 void CuStringDelete(CuString *str);

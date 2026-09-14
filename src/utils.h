@@ -315,7 +315,7 @@ int get_spell_duration_bonus(struct char_data *ch);
 bool ok_call_mob_vnum(int mob_num);
 int convert_material_vnum(int obj_vnum);
 void basic_mud_log(const char *format, ...) __attribute__((format(printf, 1, 2)));
-void basic_mud_vlog(const char *format, va_list args);
+void basic_mud_vlog(const char *format, va_list args) __attribute__((format(printf, 1, 0)));
 int touch(const char *path);
 void mudlog(int type, int level, int file, const char *str, ...)
     __attribute__((format(printf, 4, 5)));
@@ -480,7 +480,8 @@ bool rol_object_wear_conflicts(struct char_data *ch, struct obj_data *obj, int w
 int warlock_spell_type(int spellnum);
 int get_number_of_spellcasting_classes(struct char_data *ch);
 struct char_data *get_mob_follower(const struct char_data *ch, int mob_type);
-void send_combat_roll_info(struct char_data *ch, const char *messg, ...);
+void send_combat_roll_info(struct char_data *ch, const char *messg, ...)
+    __attribute__((format(printf, 2, 3)));
 bool show_combat_roll(struct char_data *ch);
 struct obj_data *get_char_bag(struct char_data *ch, int bagnum);
 int get_psp_regen_amount(struct char_data *ch);
@@ -496,7 +497,8 @@ void draw_line(struct char_data *ch, int length, char first, char second);
 void text_line(struct char_data *ch, const char *text, int length, char first, char second);
 
 /* Time formatting */
-bool format_time_string(time_t when, const char *format, char *buf, size_t size);
+bool format_time_string(time_t when, const char *format, char *buf, size_t size)
+    __attribute__((format(strftime, 2, 0)));
 /* Formats a time_t into a thread-unsafe static buffer in the form "YYYY-MM-DD HH:MM:SS".
  * Returns a pointer to a static buffer that will be overwritten on subsequent calls. */
 const char *format_time_ymd_hms(time_t when);

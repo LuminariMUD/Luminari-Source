@@ -1723,8 +1723,6 @@ static const char *get_level_name(int level)
     return "Staff";
   else if (level == LVL_GRSTAFF)
     return "Greater Staff";
-  else if (level == LVL_GRSTAFF)
-    return "Greater Staff";
   else if (level == LVL_IMPL)
     return "Implementor";
   else if (level > 0 && level < LVL_IMMORT)

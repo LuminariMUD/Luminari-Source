@@ -1228,7 +1228,7 @@ int i3_send_json(void *obj)
     {
       continue;
     }
-    if (sent < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
+    if (sent < 0 && errno_would_block(errno))
     {
       FD_ZERO(&write_set);
       FD_SET(i3_client->socket_fd, &write_set);
@@ -2073,7 +2073,7 @@ void i3_process_events(void)
       break;
 
     default:
-      i3_log("DEBUG: Unknown event type: %d", event->type);
+      i3_log("DEBUG: Unknown event type: %d", (int)event->type);
       break;
     }
 

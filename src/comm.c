@@ -4387,10 +4387,7 @@ void close_socket(struct descriptor_data *d)
       act("$n has lost $s link.", TRUE, link_challenged, 0, 0, TO_ROOM);
 
       /* Clean up supply order slots before saving */
-      if (link_challenged)
-      {
-        cleanup_supply_slots(link_challenged);
-      }
+      cleanup_supply_slots(link_challenged);
 
       buff_sequence_cancel(link_challenged);
       transport_job_cancel(link_challenged, true);
@@ -5573,7 +5570,8 @@ struct graphic_map_buffer
   bool truncated;
 };
 
-static void graphic_map_buffer_appendf(struct graphic_map_buffer *buffer, const char *format, ...)
+__attribute__((format(printf, 2, 3))) static void
+graphic_map_buffer_appendf(struct graphic_map_buffer *buffer, const char *format, ...)
 {
   int written;
   size_t remaining;
@@ -5857,7 +5855,7 @@ static void update_msdp_graphic_map(struct descriptor_data *d, struct char_data 
                                "%ci%c%d",
                                MsdpVal, MsdpTableOpen, MsdpVar, MsdpVal, rooms[index].x, MsdpVar,
                                MsdpVal, rooms[index].y, MsdpVar, MsdpVal,
-                               GET_ROOM_VNUM(rooms[index].room), MsdpVar, MsdpVal,
+                               (int)GET_ROOM_VNUM(rooms[index].room), MsdpVar, MsdpVal,
                                world[rooms[index].room].sector_type, MsdpVar, MsdpVal,
                                ROOM_FLAGGED(rooms[index].room, ROOM_INDOORS) ? 1 : 0);
 
@@ -6002,7 +6000,7 @@ static void update_msdp_wilderness_graphic_map(struct descriptor_data *d, struct
                                  indoors ? 1 : 0);
 
       if (room != NOWHERE)
-        graphic_map_buffer_appendf(&buffer, "%cv%c%d", MsdpVar, MsdpVal, GET_ROOM_VNUM(room));
+        graphic_map_buffer_appendf(&buffer, "%cv%c%d", MsdpVar, MsdpVal, (int)GET_ROOM_VNUM(room));
 
       if (connections)
         graphic_map_buffer_appendf(&buffer, "%cc%c%u", MsdpVar, MsdpVal, connections);

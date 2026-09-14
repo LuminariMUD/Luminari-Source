@@ -1,15 +1,5 @@
 # Migration-tier warning budget for gcc-16.
 # Distinct warning sites per class; may only shrink. Regenerate with
 # scripts/ci/check_warning_budget.py --compiler gcc-16 --log LOG --update
-alloc-zero 1
-alloca 1
-cast-align 8
-conversion 533
-duplicated-branches 21
-duplicated-cond 3
-format-nonliteral 25
-logical-op 31
-null-dereference 49
-sign-conversion 1808
-switch-enum 44
-undef 8
+conversion 529
+sign-conversion 1807

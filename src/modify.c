@@ -100,7 +100,9 @@ void strip_colors(char *str)
   char *p = str;
   char *n = str;
 
-  while (p && *p)
+  if (str == NULL)
+    return;
+  while (*p)
   {
     if (*p == '@')
     {

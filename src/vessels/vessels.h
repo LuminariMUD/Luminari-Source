@@ -963,7 +963,7 @@ void pilot_vessel(struct char_data *ch, int direction); /* Pilot vessel in direc
 /* ========================================================================= */
 /* FUNCTION PROTOTYPES - CWG VEHICLE SYSTEM (READY TO USE)                   */
 /* ========================================================================= */
-#if VESSELS_ENABLE_CWG
+#if defined(VESSELS_ENABLE_CWG) && VESSELS_ENABLE_CWG
 
 /* Object Finding Functions */
 struct obj_data *find_vehicle_by_vnum(int vnum); /* Find vehicle object by vnum */
@@ -986,7 +986,7 @@ void drive_in_direction(struct char_data *ch, struct obj_data *vehicle,
 /* ========================================================================= */
 /* OUTCAST SHIP SYSTEM CONSTANTS AND STRUCTURES                              */
 /* ========================================================================= */
-#if VESSELS_ENABLE_OUTCAST
+#if defined(VESSELS_ENABLE_OUTCAST) && VESSELS_ENABLE_OUTCAST
 
 #ifndef MAX_NUM_SHIPS
 #define MAX_NUM_SHIPS 50 /* Maximum number of ships in game */
@@ -1063,7 +1063,7 @@ int outcast_ship_look_out_room(int room, struct char_data *ch, int cmd, char *ar
 /* ========================================================================= */
 /* GREYHAWK SHIP SYSTEM CONSTANTS AND STRUCTURES                             */
 /* ========================================================================= */
-#if VESSELS_ENABLE_GREYHAWK
+#if defined(VESSELS_ENABLE_GREYHAWK) && VESSELS_ENABLE_GREYHAWK
 
 /* Note: GREYHAWK_MAXSHIPS, GREYHAWK_MAXSLOTS, position constants (FORE/PORT/REAR/STARBOARD),
  * range constants (SHRTRANGE/MEDRANGE/LNGRANGE), and GREYHAWK_ITEM_SHIP are now defined
@@ -1588,9 +1588,11 @@ void vessel_reset_customization(struct greyhawk_ship_data *ship);
 struct greyhawk_ship_data *find_ship_by_name(const char *name);
 struct greyhawk_ship_data *get_ship_by_id(int id);
 bool is_pilot(struct char_data *ch, struct greyhawk_ship_data *ship);
-void send_to_ship(struct greyhawk_ship_data *ship, const char *format, ...);
+void send_to_ship(struct greyhawk_ship_data *ship, const char *format, ...)
+    __attribute__((format(printf, 2, 3)));
 void send_to_ship_throttled(struct greyhawk_ship_data *ship, enum vessel_message_key key,
-                            uint64_t cooldown_pulses, const char *format, ...);
+                            uint64_t cooldown_pulses, const char *format, ...)
+    __attribute__((format(printf, 4, 5)));
 bool vessel_message_allowed(struct greyhawk_ship_data *ship, enum vessel_message_key key,
                             uint64_t now_pulse, uint64_t cooldown_pulses);
 void show_wilderness_from_ship(struct char_data *ch, struct greyhawk_ship_data *ship);
