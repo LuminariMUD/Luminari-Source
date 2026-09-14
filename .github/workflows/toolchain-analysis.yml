@@ -73,7 +73,7 @@ jobs:
           --compiler ${{ matrix.compiler }} --log build/analysis/build.log --report
 
       - name: Upload the build log
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: analysis-${{ matrix.compiler }}
           path: build/analysis/build.log
@@ -134,7 +134,7 @@ jobs:
           --compiler ${{ matrix.compiler }} --log extensions.log --report
 
       - name: Upload the build log
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: extensions-${{ matrix.compiler }}
           path: extensions.log
