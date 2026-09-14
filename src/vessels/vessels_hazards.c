@@ -398,7 +398,8 @@ static int vessel_encounter_polygon_position(const struct region_data *region, i
     segment_distance_squared = vessel_encounter_distance_squared_to_segment(
         x, y, region->vertices[current].x, region->vertices[current].y, region->vertices[next].x,
         region->vertices[next].y);
-    edge_distance_squared = MIN(edge_distance_squared, segment_distance_squared);
+    if (segment_distance_squared < edge_distance_squared)
+      edge_distance_squared = segment_distance_squared;
   }
 
   if (area_twice > -0.000001 && area_twice < 0.000001)

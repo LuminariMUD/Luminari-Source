@@ -46,7 +46,7 @@ it landed.
 
 | Area | What exists at the end of step 1 |
 |------|-----------------|
-| Constants | `WEAR_WIELD_3` 44 .. `WEAR_WRIST_L2` 50, `NUM_WEARS` 51, `FEAT_FOUR_ARMS` 1317, `FEAT_LAST_FEAT` 1318, `NUM_FEATS` 1319 in `src/structs.h`. Attack types THIRD/FOURTH are not added yet (step 3). |
+| Constants | `WEAR_WIELD_3` 44 .. `WEAR_WRIST_L2` 50, `NUM_WEARS` 51, `FEAT_FOUR_ARMS` 1321, `FEAT_LAST_FEAT` 1322, `NUM_FEATS` 1323 (renumbered past the casting-speed and Minotaur feats when merged with master) in `src/structs.h`. Attack types THIRD/FOURTH are not added yet (step 3). |
 | Capability | `has_four_arms()`, `is_four_arm_wear_slot()`, `is_second_pair_wield_slot()`, `four_arm_slot_base()`, `second_pair_rejects_object()` in `src/utils.c`, declared in `src/utils.h`. Grant sources: mob feats (NPC, disguised wild shape), `HAS_REAL_FEAT`, `APPLY_FEAT` gear in ordinary slots only. |
 | Feat | `feato(FEAT_FOUR_ARMS, ...)` in `assign_feats()`: innate, in game, not learnable, not stackable. `test_racial_innate_feats.c` sentinel moved to `FEAT_FOUR_ARMS + 1`. |
 | Anatomy gate | `character_wear_slot_restriction()` refuses the seven slots without the capability before the NPC early return, then maps each doubled slot to its base slot for the race table (Trelux cannot use lower hands). |

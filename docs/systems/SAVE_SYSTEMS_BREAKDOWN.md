@@ -71,7 +71,7 @@ preparation first, in this order, on an isolated copy before production:
    optional database object tables, and rewrite pet records the same way so
    the strict parser does not reject them. Zone `E` commands with positions
    44..50 must be changed or removed.
-4. Clear feat 1317 (`FEAT_FOUR_ARMS`) from player records and item
+4. Clear feat 1321 (`FEAT_FOUR_ARMS`) from player records and item
    `APPLY_FEAT` modifiers, or the old binary's feat bounds will reject it.
 5. Only then install the old binary. Verify with a copy of a converted player
    and a pet on the isolated fixture before touching production.

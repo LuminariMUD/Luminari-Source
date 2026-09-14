@@ -294,6 +294,19 @@ void guard_check(struct char_data *ch, struct char_data *vict)
   }
 }
 
+/* bloodlust (racial drawback) will not let go of the fight: every path out of
+ * combat (flee, directed flee, disengage) asks here first.  TRUE refuses. */
+bool bloodlust_holds_the_fight(struct char_data *ch)
+{
+  if (!affected_by_spell(ch, SKILL_BLOODLUST))
+    return FALSE;
+
+  GUI_CMBT_OPEN(ch);
+  send_to_char(ch, "Your bloodlust will not let you leave the fight!\r\n");
+  GUI_CMBT_CLOSE(ch);
+  return TRUE;
+}
+
 /* rewritten subfunction
    the engine for fleeing */
 void perform_flee(struct char_data *ch)
@@ -313,6 +326,9 @@ void perform_flee(struct char_data *ch)
     GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
     return;
   }
+
+  if (bloodlust_holds_the_fight(ch))
+    return;
 
   /* got to be in a position to flee */
   if (GET_POS(ch) <= POS_SITTING)
@@ -17491,6 +17507,44 @@ void test_apply_bard_warbeat_allies(struct char_data *ch)
 }
 #endif
 
+/* bloodlust (racial drawback): once per combat round, below half hit points
+ * the rage takes hold; back above half it lets go.  The affect lapses on its
+ * own two rounds after the last check, so a fight that ends releases it. */
+void bloodlust_round_check(struct char_data *ch)
+{
+  struct affected_type af;
+  bool raging = FALSE, below_half = FALSE;
+
+  if (!ch || !HAS_FEAT(ch, FEAT_BLOODLUST))
+    return;
+
+  raging = affected_by_spell(ch, SKILL_BLOODLUST);
+  below_half = GET_HIT(ch) * 2 < GET_MAX_HIT(ch);
+
+  if (!below_half)
+  {
+    if (raging)
+      affect_from_char(ch, SKILL_BLOODLUST);
+    return;
+  }
+
+  new_affect(&af);
+  af.spell = SKILL_BLOODLUST;
+  af.duration = 2;
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+
+  if (raging)
+    return;
+
+  send_to_char(ch, "\tRA red haze of bloodlust descends over your eyes!\tn\r\n");
+  act("$n's eyes glaze red with bloodlust!", TRUE, ch, 0, 0, TO_ROOM);
+  if (IS_CASTING(ch))
+  {
+    send_to_char(ch, "Your spell is lost in the rage!\r\n");
+    resetCastingData(ch);
+  }
+}
+
 /* control the fights going on.
  * Called from combat round event. */
 void perform_violence(struct char_data *ch, int phase)
@@ -17515,6 +17569,8 @@ void perform_violence(struct char_data *ch, int phase)
 
   if (phase == 1 || phase == 0)
   { /* make sure this doesn't happen more than once a round */
+    bloodlust_round_check(ch);
+
     if (!IS_NPC(ch) && has_bard_warbeat(ch) && !GET_WARBEAT_USED(ch))
     {
       int warbeat_result;

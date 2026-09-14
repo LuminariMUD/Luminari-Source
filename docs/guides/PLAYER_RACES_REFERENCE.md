@@ -430,6 +430,8 @@ take the higher.
 | Ally-scaling defence (+1 AC and +2 saves per feat-holding ally, max 5) | Rrakkma | 1.5 |
 | Chance to absorb a damaging spell (level/2 percent) | Spell Absorb | 2 |
 | Caster level bonus (level / 6) | Magical Heritage | 2 |
+| Casting one tick faster per rank (one rank makes one-tick spells instant; longer casts keep their remaining ticks) | Fast Casting | 5 first rank, 1 each further |
+| Charge into an adjacent room, stun on a connecting charge (Fortitude save) | Bull Charge | 2 |
 | Extra melee attack at full attack bonus, per rank | Extra Arms | 3 per rank |
 | Second weapon pair and doubled arm, hand, wrist slots | Four Arms | provisional, unvalidated |
 
@@ -450,6 +452,8 @@ players route around drawbacks and keep the power.
 | No regeneration and 1d8 per round in open sunlight | Sun Vulnerability | -3 |
 | Blind in direct sunlight | Dayblind | -4 |
 | 10 percent more damage from spells | Magic Vulnerability | -1 |
+| Casting one tick slower per rank | Slow Casting | -1.5 per rank |
+| Uncontrolled rage below half hit points (no casting, no fleeing) | Bloodlust | -2 |
 
 Extra Arms is the general "one more arm" trait at 3 RP per rank (one extra
 full-bonus swing, no extra slots). The Duris Thri-Kreen four-arm mechanic

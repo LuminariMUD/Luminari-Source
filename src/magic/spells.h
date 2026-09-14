@@ -1352,9 +1352,10 @@
 #define SKILL_CAMP 2241      /* wilderness campsite, see the establish camp feat */
 #define SKILL_GARROTE 2242   /* strangling attack, see the garrote feat */
 #define SKILL_ACCOMPANY 2243 /* backing performance, see the accompany feat */
+#define SKILL_BLOODLUST 2244 /* bloodlust rage affect, see the bloodlust feat */
 
 /* New skills may be added above here, up to 3000 */
-#define NUM_SKILLS 2244 // Total number of skills (increment when adding new skills)
+#define NUM_SKILLS 2245 // Total number of skills (increment when adding new skills)
 
 /* Special Abilities for weapons (3000-3099: 100 slots reserved) */
 

@@ -44,6 +44,7 @@
 #include "character/evolutions.h"
 #include "character/perks.h"
 #include "magic/spell_prep.h"
+#include "wilderness/wilderness.h"
 
 /* externs */
 extern char cast_arg2[MAX_INPUT_LENGTH];
@@ -1433,6 +1434,34 @@ void perform_rescue(struct char_data *ch, struct char_data *vict)
 /* charge mechanic */
 #define CHARGE_AFFECTS 3
 
+/* bull charge (racial innate): a charge that connects stuns for a round unless
+ * the victim passes a Fortitude save.  Returns TRUE when the stun lands. */
+bool bull_charge_stun(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict || DEAD(vict) || GET_POS(vict) <= POS_DEAD)
+    return FALSE;
+
+  if (!can_stun(vict))
+  {
+    act("$N shrugs off the force of your charge.", FALSE, ch, NULL, vict, TO_CHAR);
+    return FALSE;
+  }
+
+  if (savingthrow(ch, vict, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+  {
+    act("$N staggers under your charge but keeps $S footing.", FALSE, ch, NULL, vict, TO_CHAR);
+    act("You stagger under $n's charge but keep your footing.", FALSE, ch, NULL, vict, TO_VICT);
+    return FALSE;
+  }
+
+  act("\tYYour charge slams into $N, leaving $M stunned!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+  act("\tR$n's charge slams into you, leaving you stunned!\tn", FALSE, ch, NULL, vict, TO_VICT);
+  act("$n's charge slams into $N, leaving $M stunned!", FALSE, ch, NULL, vict, TO_NOTVICT);
+  if (!char_has_mud_event(vict, eSTUNNED))
+    attach_mud_event(new_mud_event(eSTUNNED, vict, NULL), 6 * PASSES_PER_SEC);
+  return TRUE;
+}
+
 void perform_charge(struct char_data *ch, struct char_data *vict)
 {
   struct affected_type af[CHARGE_AFFECTS];
@@ -1491,9 +1520,16 @@ void perform_charge(struct char_data *ch, struct char_data *vict)
   }
 
   if (!FIGHTING(ch) && vict && vict != ch)
-    hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+  {
+    /* bull charge (racial innate): the opening slam can stun */
+    if (hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE) > 0 &&
+        HAS_FEAT(ch, FEAT_BULL_CHARGE))
+      bull_charge_stun(ch, vict);
+  }
 
-  if (vict && vict != ch)
+  /* hit() refuses a peaceful room, so do not start the fight it refused */
+  if (vict && vict != ch && !ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL) &&
+      !ROOM_FLAGGED(IN_ROOM(vict), ROOM_PEACEFUL))
   {
     if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))
       set_fighting(ch, vict);
@@ -1504,6 +1540,114 @@ void perform_charge(struct char_data *ch, struct char_data *vict)
   }
 }
 #undef CHARGE_AFFECTS
+
+/* bull charge (racial innate): the room one step through the exit, resolved
+ * the way do_simple_move() resolves it.  A wilderness exit points at the
+ * sentinel room, so the destination is the tile at the adjacent coordinates;
+ * NOWHERE when no room holds that tile yet (nobody can be standing there). */
+room_rnum bull_charge_destination(struct char_data *ch, int dir)
+{
+  int x = X_LOC(ch), y = Y_LOC(ch);
+
+  if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS) ||
+      EXIT(ch, dir)->to_room != real_room(WILD_ROOM_VNUM_START))
+    return EXIT(ch, dir)->to_room;
+
+  switch (dir)
+  {
+  case NORTH:
+    y++;
+    break;
+  case SOUTH:
+    y--;
+    break;
+  case EAST:
+    x++;
+    break;
+  case WEST:
+    x--;
+    break;
+  default:
+    return NOWHERE;
+  }
+  return find_room_by_coordinates(x, y);
+}
+
+/* bull charge (racial innate): the first character in the room that matches
+ * the name and that ch can see; unseen matches are skipped, as in
+ * get_char_room_vis(). */
+static struct char_data *bull_charge_target(struct char_data *ch, char *name, room_rnum room)
+{
+  struct char_data *i = NULL;
+  int number = get_number(&name);
+
+  if (room == NOWHERE || number == 0)
+    return NULL;
+
+  for (i = world[room].people; i; i = i->next_in_room)
+  {
+    if (!isname(name, i->player.name) || !CAN_SEE(ch, i))
+      continue;
+    if (--number == 0)
+      return i;
+  }
+  return NULL;
+}
+
+/* bull charge (racial innate): 'charge <direction> <target>' moves one room
+ * through the exit and charges the named target there.  The movement engine
+ * owns every door, terrain and single-file check. */
+static void perform_bull_charge(struct char_data *ch, int dir, char *name)
+{
+  struct char_data *vict = NULL;
+  room_rnum to_room = NOWHERE;
+
+  if (!*name)
+  {
+    send_to_char(ch, "Whom do you want to charge to the %s?\r\n", dirs[dir]);
+    return;
+  }
+  if (FIGHTING(ch))
+  {
+    send_to_char(ch, "You are too busy fighting to charge off elsewhere!\r\n");
+    return;
+  }
+  if (AFF_FLAGGED(ch, AFF_CHARGING))
+  {
+    send_to_char(ch, "You are already charging!\r\n");
+    return;
+  }
+  if (!CAN_GO(ch, dir))
+  {
+    send_to_char(ch, "You cannot charge that way.\r\n");
+    return;
+  }
+
+  to_room = bull_charge_destination(ch, dir);
+  vict = bull_charge_target(ch, name, to_room);
+  if (!vict)
+  {
+    send_to_char(ch, "You see nobody like that to the %s.\r\n", dirs[dir]);
+    return;
+  }
+  if (ROOM_FLAGGED(to_room, ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "That place has such a peaceful, easy feeling... you cannot charge in.\r\n");
+    return;
+  }
+
+  act("You lower your head and charge $T!", FALSE, ch, NULL, (void *)dirs[dir], TO_CHAR);
+  act("$n lowers $s head and charges $T!", FALSE, ch, NULL, (void *)dirs[dir], TO_ROOM);
+  if (!perform_move_full(ch, dir, TRUE, true))
+    return;
+  if (IN_ROOM(vict) != IN_ROOM(ch))
+  {
+    send_to_char(ch, "Your quarry is no longer here.\r\n");
+    return;
+  }
+
+  perform_charge(ch, vict);
+}
 
 /* engine for knockdown, used in bash/trip/etc */
 bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, bool can_counter,
@@ -5171,6 +5315,9 @@ ACMD(do_flee)
     }
   }
 
+  if (bloodlust_holds_the_fight(ch))
+    return;
+
   if (argument)
     one_argument(argument, arg, sizeof(arg));
 
@@ -5247,6 +5394,8 @@ ACMD(do_disengage)
       send_to_char(ch, "You are too busy fighting for your life!\r\n");
       return;
     }
+    if (bloodlust_holds_the_fight(ch))
+      return;
 
     /* don't forget to remove the fight event! */
     if (char_has_mud_event(ch, eCOMBAT_ROUND))
@@ -11127,16 +11276,23 @@ ACMD(do_shieldslam)
 /* charging system for combat */
 ACMD(do_charge)
 {
-  char arg[MAX_INPUT_LENGTH] = {'\0'}, mob_keys[200];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'}, mob_keys[200];
   struct char_data *vict = NULL, *mob = NULL;
   bool found = false;
-  int i = 0;
+  int i = 0, dir = -1;
 
   PREREQ_CAN_FIGHT();
   PREREQ_NOT_PEACEFUL_ROOM();
   PREREQ_IN_POSITION(POS_SITTING, "You need to stand to charge!\r\n");
 
-  one_argument(argument, arg, sizeof(arg));
+  two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
+
+  /* bull charge (racial innate): 'charge <direction> <target>' */
+  if (*arg && HAS_FEAT(ch, FEAT_BULL_CHARGE) && (dir = search_block(arg, dirs, FALSE)) >= 0)
+  {
+    perform_bull_charge(ch, dir, arg2);
+    return;
+  }
 
   // if (!*arg)
   // {

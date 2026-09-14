@@ -6177,6 +6177,25 @@ void assign_feats(void)
         "summonhorde: call orc warriors to your side 1/day",
         "You can use 'summonhorde' once per day to call two to four orc warriors who follow you "
         "for a time.");
+  feato(FEAT_FAST_CASTING, "fast casting", TRUE, FALSE, TRUE, FEAT_TYPE_INNATE_ABILITY,
+        "spells take one casting tick less per rank",
+        "Your race casts quickly: every spell and power you cast takes one casting tick less "
+        "per rank of this feat. A cast reduced to no time at all completes at once. Slow "
+        "casting cancels this rank for rank.");
+  feato(FEAT_SLOW_CASTING, "slow casting", TRUE, FALSE, TRUE, FEAT_TYPE_INNATE_ABILITY,
+        "spells take one casting tick more per rank",
+        "Your race casts slowly: every spell and power you cast takes one casting tick more "
+        "per rank of this feat. Quickened and other instant casts are not delayed. Fast "
+        "casting cancels this rank for rank.");
+  feato(FEAT_BULL_CHARGE, "bull charge", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "charge into an adjacent room; a charge that connects can stun",
+        "Your charge carries the weight of a bull.  You may 'charge <direction> <target>' to "
+        "thunder into the next room and slam into a foe there, and any charge that lands its "
+        "opening blow stuns the victim for a round unless they pass a Fortitude save.");
+  feato(FEAT_BLOODLUST, "bloodlust", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "drawback: below half hit points you rage, unable to cast or flee",
+        "Drawback.  Whenever a combat round finds you below half of your hit points a red haze "
+        "of bloodlust takes you: you cannot cast or flee until you are back at half or more.");
   /* stackable: the Thri-Kreen four-arm stand-in, one rank per extra arm */
   feato(FEAT_EXTRA_ARMS, "extra arms", TRUE, FALSE, TRUE, FEAT_TYPE_INNATE_ABILITY,
         "one extra melee attack per rank at full BAB",

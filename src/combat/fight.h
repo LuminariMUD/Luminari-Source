@@ -98,6 +98,8 @@ bool combat_readied_attack_allowed(struct char_data *ch, struct char_data *victi
 int combat_readied_attack(struct char_data *ch, struct char_data *victim);
 void load_messages(void);
 void perform_violence(struct char_data *ch, int phase);
+void bloodlust_round_check(struct char_data *ch);
+bool bloodlust_holds_the_fight(struct char_data *ch);
 bool combat_run_compatibility_phase(struct char_data *ch, unsigned int phase);
 bool combat_run_semantic_round(struct char_data *ch, bool was_hit);
 void raw_kill(struct char_data *ch, struct char_data *killer);

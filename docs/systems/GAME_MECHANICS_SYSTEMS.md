@@ -410,6 +410,20 @@ skip 18, so from the dire wolf onward each comment reads one higher than the
 real index; the warg and horde rows are real indexes 36 and 37 and are
 annotated as such.
 
+Racial casting speed is two stackable innates, `FEAT_FAST_CASTING` and
+`FEAT_SLOW_CASTING`, consumed once in `cast_spell()` right after the base
+casting time is read: each slow rank adds a casting tick, each fast rank
+removes one, the two net against each other, and a cast that reaches zero
+completes at once. The adjustment precedes the quicken and other instant-cast
+overrides, so those are never delayed. In standard-action mode every
+non-ritual spell is one tick, so a single fast rank is instant casting.
+
+Racial spell power needs no new feat: `FEAT_ENHANCED_SPELL_DAMAGE` is granted
+through the ordinary race level-feat path without its class prerequisites,
+stacks per grant, and `mag_damage()` reads it through `HAS_FEAT()` for every
+spell-number damage roll. Price it from the race point table when a race takes
+it; spell DCs are left to the existing focus feats.
+
 `FEAT_EXTRA_ARMS`, the one stackable innate in the set, is the general
 "one more arm" trait: `perform_attacks()` in `src/combat/fight.c` adds one
 melee attack at full base attack bonus per rank, after the ranged routines so

@@ -725,6 +725,73 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SUMMON-HORDE', 'SU
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SUMMON-HORDE', 'SUMMONHORDE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('FAST-CASTING', 'Fast Casting (racial innate)
+
+Requires: the fast casting feat
+
+Your race casts quickly. Every spell and power you cast takes one casting
+tick less per rank of this feat, so with one rank an ordinary one-tick spell
+completes at once. Quickened spells are already instant. Slow casting cancels
+this feat rank for rank.
+
+See also: FEAT INFO FAST CASTING, SLOW-CASTING, QUICKEN-SPELL', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FAST-CASTING', 'FAST-CASTING');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('SLOW-CASTING', 'Slow Casting (racial drawback)
+
+Requires: the slow casting feat
+
+Your race casts slowly. Every spell and power you cast takes one casting tick
+more per rank of this feat. Quickened and other instant casts are not delayed.
+Fast casting cancels this feat rank for rank.
+
+See also: FEAT INFO SLOW CASTING, FAST-CASTING, QUICKEN-SPELL', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SLOW-CASTING', 'SLOW-CASTING');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('BULL-CHARGE', 'Bull Charge
+
+Usage: charge <direction> <target>
+       charge <target>
+Requires: the bull charge feat (racial innate)
+
+Your charge carries the weight of a bull. Naming a direction lets you
+thunder through that exit and slam into a foe in the next room; every
+door, terrain and single-file rule of ordinary movement still applies,
+and a peaceful room refuses the charge before you set off. Only a foe you
+can see counts as a target. Whether you charge across a room or across an
+exit, a charge whose opening
+blow lands stuns the victim for one round unless they pass a Fortitude save
+(DC 10 + your level). Creatures that cannot be stunned shrug it off.
+
+See also: CHARGE, FEAT INFO BULL CHARGE, BLOODLUST', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('BULL-CHARGE', 'BULL-CHARGE');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('BULL-CHARGE', 'BULLCHARGE');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('BLOODLUST', 'Bloodlust (racial drawback)
+
+Requires: the bloodlust feat
+
+Whenever a combat round finds you below half of your hit points a red haze
+of bloodlust takes you. While it holds you cannot cast or manifest a
+spell, and you cannot leave the fight: flee, a directed flee and disengage
+are all refused. It lets go the first round that finds you at half hit
+points or more, or a few rounds after the fight ends.
+
+See also: FEAT INFO BLOODLUST, BULL-CHARGE', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('BLOODLUST', 'BLOODLUST');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('EXTRA-ARMS', 'Extra Arms
 
 Requires: the extra arms feat (racial innate)
