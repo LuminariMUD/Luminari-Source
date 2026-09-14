@@ -7559,11 +7559,8 @@ ACMD(do_who)
   /* int length = 0; */     /* Currently unused */
   /* int padding = 0; */    /* Currently unused */
 
-  char **account_names = NULL;
-  int num_accounts = 0, x = 0, y = 0;
-
-  /* Sized by a runtime setting, so it lives on the heap (no VLAs). */
-  CREATE(account_names, char *, CONFIG_MAX_PLAYING);
+  const char **account_names = NULL;
+  int num_accounts = 0, num_descs = 0, x = 0;
 
   struct
   {
@@ -7647,17 +7644,20 @@ ACMD(do_who)
         break;
       default:
         send_to_char(ch, "%s", WHO_FORMAT);
-        free(account_names);
         return;
       }
     }
     else
     {
       send_to_char(ch, "%s", WHO_FORMAT);
-      free(account_names);
       return;
     }
   }
+
+  /* Distinct accounts cannot outnumber descriptors, so size by the live list. */
+  for (d = descriptor_list; d; d = d->next)
+    num_descs++;
+  CREATE(account_names, const char *, num_descs + 1);
 
   // first counting the "ranks" which will display how many chars are viewed with do_who call
   for (d = descriptor_list; d && !short_list; d = d->next)
@@ -7702,38 +7702,12 @@ ACMD(do_who)
 
       if (d->account)
       {
-        for (x = 0; x < CONFIG_MAX_PLAYING; x++)
-        {
-          if (account_names[x] == NULL)
-          {
-            if (x > 0)
-            {
-              for (y = 0; y < x; y++)
-              {
-                if (!strcmp(account_names[y], d->account->name))
-                {
-                  break;
-                }
-              }
-              if (y == x)
-              {
-                account_names[x] = strdup(d->account->name);
-              }
-            }
-            else
-            {
-              account_names[x] = strdup(d->account->name);
-            }
-          }
-        }
-        x = 0;
-        while (account_names[x] != NULL)
-        {
-          x++;
-        }
+        for (x = 0; x < num_accounts; x++)
+          if (!strcmp(account_names[x], d->account->name))
+            break;
+        if (x == num_accounts)
+          account_names[num_accounts++] = d->account->name;
       }
-
-      num_accounts = x;
     }
   }
 
@@ -7950,8 +7924,6 @@ ACMD(do_who)
     send_to_char(ch, "\tWA staff-ran event is taking place! Type \tRstaffevent\tW to see the "
                      "current event info.\tn\r\n");
   }
-  for (x = 0; x < CONFIG_MAX_PLAYING; x++)
-    free(account_names[x]);
   free(account_names);
 }
 

@@ -92,6 +92,7 @@ def list_sites(seen, cls, by_token):
                             source = text
                             break
             except OSError:
+                # An unreadable file keeps source empty; the key falls back to "?" below.
                 pass
             fragment = source[int(col) - 1:]
             match = re.match(r"[A-Za-z_][A-Za-z_0-9]*", fragment)

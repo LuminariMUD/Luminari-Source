@@ -444,6 +444,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_rol_feats.c \
 	unittests/CuTest/test_racial_innate_feats.c \
 	unittests/CuTest/test_four_arms.c \
+	unittests/CuTest/test_who_command.c \
 	unittests/CuTest/test_unassigned_spells.c \
 	unittests/CuTest/test_spells_skills_production.c \
 	unittests/CuTest/test_perfmon_production.c \
@@ -522,6 +523,7 @@ cutest_test_files = \
 	unittests/CuTest/test_rol_feats.c \
 	unittests/CuTest/test_racial_innate_feats.c \
 	unittests/CuTest/test_four_arms.c \
+	unittests/CuTest/test_who_command.c \
 	unittests/CuTest/test_unassigned_spells.c \
 	unittests/CuTest/test_spells_skills_production.c \
 	unittests/CuTest/test_perfmon_production.c \
