@@ -1684,7 +1684,10 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
         (GET_EQ(ch, WEAR_WIELD_2H) &&
          GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_2H)) == WEAPON_TYPE_WHIP) ||
         (GET_EQ(ch, WEAR_WIELD_OFFHAND) &&
-         GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_OFFHAND)) == WEAPON_TYPE_WHIP))
+         GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_OFFHAND)) == WEAPON_TYPE_WHIP) ||
+        (GET_EQ(ch, WEAR_WIELD_3) &&
+         GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_3)) == WEAPON_TYPE_WHIP) ||
+        (GET_EQ(ch, WEAR_WIELD_4) && GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_4)) == WEAPON_TYPE_WHIP))
     {
       attack_check += 5;
     }
@@ -4961,8 +4964,7 @@ ACMDCHECK(can_backstab)
 
   if (GET_RACE(ch) == RACE_TRELUX)
     ;
-  else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_OFFHAND) &&
-           !GET_EQ(ch, WEAR_WIELD_2H))
+  else if (is_wielding_type(ch) == -1)
   {
     ACMD_ERRORMSG("You need to wield a weapon to make it a success.\r\n");
     return CANT_CMD_TEMP;
@@ -10645,8 +10647,7 @@ ACMDCHECK(can_circle)
 
   if (GET_RACE(ch) == RACE_TRELUX)
     ;
-  else if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_OFFHAND) &&
-           !GET_EQ(ch, WEAR_WIELD_2H))
+  else if (is_wielding_type(ch) == -1)
   {
     ACMD_ERRORMSG("You need to wield a weapon to make it a success.\r\n");
     return CANT_CMD_TEMP;
@@ -12143,6 +12144,22 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod)
     wielded = GET_EQ(vict, WEAR_WIELD_OFFHAND);
     pos = WEAR_WIELD_OFFHAND;
   }
+  /* four arms: the lower arms' weapons can be disarmed as well */
+  if (!wielded)
+  {
+    wielded = GET_EQ(vict, WEAR_WIELD_2H_2);
+    pos = WEAR_WIELD_2H_2;
+  }
+  if (!wielded)
+  {
+    wielded = GET_EQ(vict, WEAR_WIELD_3);
+    pos = WEAR_WIELD_3;
+  }
+  if (!wielded)
+  {
+    wielded = GET_EQ(vict, WEAR_WIELD_4);
+    pos = WEAR_WIELD_4;
+  }
 
   // If wielded is NULL, then the victim is weilding no weapon!
   if (!wielded)
@@ -12156,8 +12173,7 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod)
     mod -= attack_of_opportunity(vict, ch, 0);
 
   // Check to see what we are wielding.
-  if ((GET_EQ(ch, WEAR_WIELD_2H) == NULL) && (GET_EQ(ch, WEAR_WIELD_1) == NULL) &&
-      (GET_EQ(ch, WEAR_WIELD_OFFHAND) == NULL) && (!HAS_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE)))
+  if (is_wielding_type(ch) == -1 && (!HAS_FEAT(ch, FEAT_IMPROVED_UNARMED_STRIKE)))
   {
     // Trying an unarmed disarm, -4.
     mod -= 4;
@@ -12168,7 +12184,9 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod)
       (GET_EQ(ch, WEAR_WIELD_2H) &&
        GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_2H)) == WEAPON_TYPE_WHIP) ||
       (GET_EQ(ch, WEAR_WIELD_OFFHAND) &&
-       GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_OFFHAND)) == WEAPON_TYPE_WHIP))
+       GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_OFFHAND)) == WEAPON_TYPE_WHIP) ||
+      (GET_EQ(ch, WEAR_WIELD_3) && GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_3)) == WEAPON_TYPE_WHIP) ||
+      (GET_EQ(ch, WEAR_WIELD_4) && GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_4)) == WEAPON_TYPE_WHIP))
   {
     mod += 5;
   }
@@ -12321,6 +12339,21 @@ int perform_sunder(struct char_data *ch, struct char_data *vict, int mod)
   {
     target_item = GET_EQ(vict, WEAR_WIELD_OFFHAND);
     pos = WEAR_WIELD_OFFHAND;
+  }
+  else if (GET_EQ(vict, WEAR_WIELD_2H_2)) /* four arms */
+  {
+    target_item = GET_EQ(vict, WEAR_WIELD_2H_2);
+    pos = WEAR_WIELD_2H_2;
+  }
+  else if (GET_EQ(vict, WEAR_WIELD_3))
+  {
+    target_item = GET_EQ(vict, WEAR_WIELD_3);
+    pos = WEAR_WIELD_3;
+  }
+  else if (GET_EQ(vict, WEAR_WIELD_4))
+  {
+    target_item = GET_EQ(vict, WEAR_WIELD_4);
+    pos = WEAR_WIELD_4;
   }
 
   if (!target_item)

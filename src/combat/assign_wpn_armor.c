@@ -773,7 +773,8 @@ bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded)
   if (!wielded) /* fists are light?  i need to check this */
     return TRUE;
 
-  if (GET_EQ(ch, WEAR_WIELD_OFFHAND) == wielded && HAS_FEAT(ch, FEAT_OVERSIZED_TWO_WEAPON_FIGHTING))
+  if ((GET_EQ(ch, WEAR_WIELD_OFFHAND) == wielded || GET_EQ(ch, WEAR_WIELD_4) == wielded) &&
+      HAS_FEAT(ch, FEAT_OVERSIZED_TWO_WEAPON_FIGHTING))
     return TRUE;
 
   if (GET_OBJ_SIZE(wielded) > GET_SIZE(ch))
@@ -800,7 +801,13 @@ bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded)
  * end of the weapon can be used in any given round. */
 bool is_using_double_weapon(struct char_data *ch)
 {
-  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
+  return is_using_double_weapon_at(ch, WEAR_WIELD_2H);
+}
+
+/* the same test for either pair's two-hand position (four arms) */
+bool is_using_double_weapon_at(struct char_data *ch, int slot)
+{
+  struct obj_data *wielded = GET_EQ(ch, slot);
 
   /* we are going to say it is not enough that the weapon just be flagged
      double, we also need the weapon to be a size-class larger than the player */
@@ -2140,6 +2147,9 @@ bool is_bare_handed(struct char_data *ch)
     return FALSE;
   if (GET_EQ(ch, WEAR_WIELD_2H))
     return FALSE;
+  /* four arms: the lower hands must be empty too */
+  if (GET_EQ(ch, WEAR_WIELD_3) || GET_EQ(ch, WEAR_WIELD_4) || GET_EQ(ch, WEAR_WIELD_2H_2))
+    return FALSE;
   /* made it */
   return TRUE;
 }
@@ -2169,6 +2179,17 @@ bool monk_gear_ok(struct char_data *ch)
     return FALSE;
 
   obj = GET_EQ(ch, WEAR_WIELD_2H);
+  if (obj && (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
+    return FALSE;
+
+  /* four arms: the second pair follows the same rule */
+  obj = GET_EQ(ch, WEAR_WIELD_3);
+  if (obj && (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
+    return FALSE;
+  obj = GET_EQ(ch, WEAR_WIELD_4);
+  if (obj && (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
+    return FALSE;
+  obj = GET_EQ(ch, WEAR_WIELD_2H_2);
   if (obj && (weapon_list[GET_WEAPON_TYPE(obj)].weaponFamily != WEAPON_FAMILY_MONK))
     return FALSE;
 
@@ -2537,6 +2558,17 @@ int get_defending_weapon_bonus(struct char_data *ch, bool weapon)
   if (obj && OBJ_FLAGGED(obj, ITEM_DEFENDING))
     bonus += GET_OBJ_VAL(obj, 1) / 2;
 
+  /* four arms */
+  obj = GET_EQ(ch, WEAR_WIELD_3);
+  if (obj && OBJ_FLAGGED(obj, ITEM_DEFENDING))
+    bonus += GET_OBJ_VAL(obj, 1) / 2;
+  obj = GET_EQ(ch, WEAR_WIELD_4);
+  if (obj && OBJ_FLAGGED(obj, ITEM_DEFENDING))
+    bonus += GET_OBJ_VAL(obj, 1) / 2;
+  obj = GET_EQ(ch, WEAR_WIELD_2H_2);
+  if (obj && OBJ_FLAGGED(obj, ITEM_DEFENDING))
+    bonus += GET_OBJ_VAL(obj, 1) / 2;
+
   return bonus;
 }
 
@@ -2553,6 +2585,17 @@ bool has_speed_weapon(struct char_data *ch)
     return true;
 
   obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_SPEED))
+    return true;
+
+  /* four arms: a speed weapon in any hand counts once */
+  obj = GET_EQ(ch, WEAR_WIELD_3);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_SPEED))
+    return true;
+  obj = GET_EQ(ch, WEAR_WIELD_4);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_SPEED))
+    return true;
+  obj = GET_EQ(ch, WEAR_WIELD_2H_2);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_SPEED))
     return true;
 
@@ -2575,6 +2618,17 @@ bool is_using_ghost_touch_weapon(struct char_data *ch)
     return true;
 
   obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_GHOST_TOUCH))
+    return true;
+
+  /* four arms */
+  obj = GET_EQ(ch, WEAR_WIELD_3);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_GHOST_TOUCH))
+    return true;
+  obj = GET_EQ(ch, WEAR_WIELD_4);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_GHOST_TOUCH))
+    return true;
+  obj = GET_EQ(ch, WEAR_WIELD_2H_2);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_GHOST_TOUCH))
     return true;
 
@@ -2622,6 +2676,12 @@ bool is_using_keen_weapon(struct char_data *ch)
   if (weapon_has_keen_effect(ch, obj))
     return true;
 
+  /* four arms */
+  if (weapon_has_keen_effect(ch, GET_EQ(ch, WEAR_WIELD_3)) ||
+      weapon_has_keen_effect(ch, GET_EQ(ch, WEAR_WIELD_4)) ||
+      weapon_has_keen_effect(ch, GET_EQ(ch, WEAR_WIELD_2H_2)))
+    return true;
+
   return false;
 }
 
@@ -2645,6 +2705,17 @@ int get_lucky_weapon_bonus(struct char_data *ch)
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_LUCKY))
     bonus = MAX(bonus, GET_OBJ_VAL(obj, 4));
 
+  /* four arms */
+  obj = GET_EQ(ch, WEAR_WIELD_3);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_LUCKY))
+    bonus = MAX(bonus, GET_OBJ_VAL(obj, 4));
+  obj = GET_EQ(ch, WEAR_WIELD_4);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_LUCKY))
+    bonus = MAX(bonus, GET_OBJ_VAL(obj, 4));
+  obj = GET_EQ(ch, WEAR_WIELD_2H_2);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_LUCKY))
+    bonus = MAX(bonus, GET_OBJ_VAL(obj, 4));
+
   return bonus;
 }
 
@@ -2663,6 +2734,17 @@ int get_agile_weapon_dex_bonus(struct char_data *ch)
     bonus = MAX(bonus, GET_OBJ_VAL(obj, 4));
 
   obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_AGILE))
+    bonus = MAX(bonus, GET_OBJ_VAL(obj, 4));
+
+  /* four arms */
+  obj = GET_EQ(ch, WEAR_WIELD_3);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_AGILE))
+    bonus = MAX(bonus, GET_OBJ_VAL(obj, 4));
+  obj = GET_EQ(ch, WEAR_WIELD_4);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_AGILE))
+    bonus = MAX(bonus, GET_OBJ_VAL(obj, 4));
+  obj = GET_EQ(ch, WEAR_WIELD_2H_2);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_AGILE))
     bonus = MAX(bonus, GET_OBJ_VAL(obj, 4));
 

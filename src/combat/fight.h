@@ -120,6 +120,12 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded, struc
                            int attack_type);
 int dual_wielding_penalty(struct char_data *ch, bool offhand);
 int is_dual_wielding(struct char_data *ch);
+/* four arms: the second weapon pair (THIRD/FOURTH attack types) */
+int second_pair_dual_wielding_penalty(struct char_data *ch, bool offhand);
+int is_dual_wielding_second_pair(struct char_data *ch);
+bool is_second_pair_attack(int attack_type);
+bool attack_is_offhand_role(int attack_type);
+int attack_pair_two_hand_slot(int attack_type);
 int get_initiative_modifier(struct char_data *ch);
 int get_monk_stunning_fist_dc(struct char_data *ch);
 

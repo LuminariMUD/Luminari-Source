@@ -438,9 +438,20 @@ the capability is reconciled by `four_arms_reconcile()` from
 the old hand positions are trimmed to two hands (held items first, primary
 weapon last). `save_char()` brackets its unequip/re-equip cycle with
 `four_arms_defer_begin()`/`four_arms_defer_end()` so a temporarily removed
-provider never moves gear. The design record is
-`docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md`; combat routing for the
-second pair is tracked there.
+provider never moves gear. Combat: `ATTACK_TYPE_THIRD` and `ATTACK_TYPE_FOURTH` are the second pair's
+attacks. `get_wielded()` resolves them to WIELD_3/WIELD_2H_2 and
+WIELD_4 (or the lower double weapon), and every pair-specific rule (two-hand
+strength, power attack, the spare-hand bonus, two-weapon penalties via
+`second_pair_dual_wielding_penalty()`, weapon-finesse) reads the attacking
+weapon's own pair through `attack_pair_two_hand_slot()`; the first pair's
+two-hander no longer rewrites a THIRD or FOURTH attack. In
+`perform_attacks()`, `perform_second_pair_attacks()` runs after every
+ordinary attack of the round: it mirrors the planned base, offhand, haste,
+bonus and trained-offhand opportunities with stable ordinals and iterative
+penalties, rolls each once in its own phase (50 percent, +25 with
+two-weapon training, +25 with improved training, `is_skilled_dualer()`), adds
+the floor of the summed chances in count mode, and prints rows in display
+mode. The design record is `docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md`.
 
 When `NUM_FEATS` moves, regenerate `scripts/world/wtool_constants.json` with
 `python3 scripts/world/wtool.py constants sync --write`. Player-facing text

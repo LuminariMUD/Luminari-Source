@@ -1,8 +1,9 @@
 # Thri-Kreen four-arm wielding: Duris study and LuminariMUD mapping
 
 Status: implementation in progress on branch
-`feat/168-thri-kreen-four-arm-wielding`, updated 2026-09-14. Steps 1 and 2
-of the sequence in Part 4 are implemented and tested; steps 3 and 4 are open. See
+`feat/168-thri-kreen-four-arm-wielding`, updated 2026-09-14. Steps 1 to 3
+of the sequence in Part 4 are implemented and tested; step 4 (release
+decisions) is open. See
 "Part 0: progress and handoff" for the exact state. The extra-attack
 stand-in first proposed for this issue was rejected; the target is the full
 mechanic: real weapon slots, real doubled limb slots, real extra swings, and
@@ -91,13 +92,41 @@ Decisions taken in step 2:
   has no exit between its two loops, and the deferral test covers the same
   mechanism directly. Revisit if a save path with an early exit appears.
 
-### Open: step 3 (combat routing and second-pair attacks)
+### Done: step 3 (combat routing and second-pair attacks)
 
-Not started. `get_wielded()`, `is_dual_wielding()`,
-`dual_wielding_penalty()`, `compute_hit_damage()` (the WIELD_2H rewrite to
-`ATTACK_TYPE_TWOHAND`), `perform_attacks()` and the display modes still know
-only the first pair. Weapons in WIELD_3/WIELD_4/WIELD_2H_2 currently equip
-but never swing. See Part 3 "Combat routing and attack generation".
+| Area | What exists now |
+|------|-----------------|
+| Attack types | `ATTACK_TYPE_THIRD` 23, `ATTACK_TYPE_FOURTH` 24 in `src/structs.h`. |
+| Pair helpers | In `src/combat/fight.c`, declared in `fight.h`: `is_second_pair_attack()`, `attack_is_offhand_role()`, `attack_pair_two_hand_slot()`, `is_dual_wielding_second_pair()`, `second_pair_dual_wielding_penalty()` (shares `dual_wielding_penalty_for()` with the first pair); static `pair_two_hander()` and `spare_hand_for_attack()`. `is_using_double_weapon_at(ch, slot)` in `assign_wpn_armor.c`. |
+| Weapon lookup | `get_wielded()`: THIRD is WIELD_3 then WIELD_2H_2; FOURTH is the lower double weapon or WIELD_4. `skill_message()` picks the same weapon for THIRD/FOURTH messages. |
+| Attack bonus | `compute_attack_bonus_full_with_weapon()`: the two-weapon block uses the attacking pair's dual test and penalty table; THIRD/FOURTH join the finesse case; the oversized-weapon check compares against the attack's own 2H slot. `is_using_light_weapon()` treats WIELD_4 like OFFHAND for Oversized Two-Weapon Fighting. |
+| Damage bonus | THIRD mirrors PRIMARY (1.5x Strength only for the pair's own real two-hander, spare-hand +2 by primary-pair-first allocation, tinker); FOURTH mirrors OFFHAND (half Strength, tinker, ranger Dual Strike with the second pair's dual test). Power Attack doubles only for the attacking pair's two-hander. |
+| Hit damage | `compute_hit_damage()` rewrites to TWOHAND only for first-pair types when WIELD_2H is worn; THIRD/FOURTH keep their identity. `compute_dam_dice()` display rows show the lower weapon. |
+| Routine | `perform_attacks()` records the planned penalty, bonus count, max-BAB count and haste before the first pair's loops consume them, then calls `perform_second_pair_attacks()` after every ordinary attack of the round. Candidates: THIRD base, FOURTH base when the pair is dual, THIRD haste, THIRD per planned bonus attack (consuming max-BAB first, then -5 each), trained FOURTH extras (Improved/Greater/Epic, PCs only like the first pair). Each real candidate takes the next ordinal, rolls once in its phase after `valid_fight_cond()`, and hits with its own type. Chance: 50 + 25 (`MODE_2_WPN`) + 25 (`MODE_IMP_2_WPN`) via `is_skilled_dualer()`. Whole routine off under Vital Strike, wild shape and morph. Count mode returns the ordinary count plus floor(sum of chances); display mode prints "Third hand"/"Fourth hand" rows with the chance and never rolls. |
+| Other consumers | Two-Weapon Defense counts WIELD_4; Weapon Mastery deflection/CMB use `is_wielding_type()`; grapple light-weapon rule covers every hand; `is_bare_handed()`/`monk_gear_ok()` see the second pair; speed, defending, ghost touch, keen, lucky and agile "any weapon" checks include it; `is_weapon_wielded_two_handed()` has a second-pair rule; disarm/sunder targets and the unarmed-disarm, whip and backstab/circle weapon checks include the lower arms. |
+| Tests | `TestFourArmsGetWieldedRoutesSecondPair`, `TestFourArmsSecondPairBonusesReadOwnPair`, `TestFourArmsAttackRoutineCountsAndDisplays`, `TestFourArmsSecondPairAttacksLandWithOwnWeapons` (real `perform_attacks()` rounds on an NPC rogue with four arms: 50d1 lower weapons land in their own phases, no empty third swing, nothing swings without the arms). Full suite: 1471 tests pass. |
+
+Decisions and deviations taken in step 3:
+
+- The stochastic ranger Wilderness Warrior offhand procs (10 percent perks)
+  are not mirrored; they keep their first-pair proc only. The trained
+  extras (Improved/Greater/Epic and the ranger `DUAL_WEAPON_FIGHTING`
+  equivalents inside `is_skilled_dualer()`) are.
+- Spare-hand allocation is primary-pair-first: the first pair's primary
+  claims a free hand unless a two-hander sits in WIELD_2H; the third hand
+  gets the next free hand.
+- Mirror chance uses `is_skilled_dualer()` so NPC rangers and rogues reach
+  100 percent like trained players; NPCs still get no trained extra
+  fourth-hand swings, matching the first pair's `!IS_NPC` gate.
+- First-pair double-weapon quirks are untouched (the TWOHAND rewrite still
+  applies to a first-pair double weapon's offhand end).
+- Still first-pair only (documented, not extended): the parry weapon pick in
+  `skill_message()`, the monk weapon AC pick, reach-weapon detection,
+  sunder's attacker weapon, `mob_spells.c`, `spec_abilities.c`, `magic.c`,
+  `feats.c`, `perks.c` and the `spec_rol_*` explicit slot checks.
+- A test fixture note: `equip_char()`/`unequip_char()` recompute affects and
+  reset `GET_HITROLL()`, so combat tests must set the hit roll after the
+  last equipment change.
 
 ### Open: step 4 (release decisions)
 

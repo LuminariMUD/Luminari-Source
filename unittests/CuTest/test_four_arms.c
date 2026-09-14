@@ -3,7 +3,7 @@
  * docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md: capability sources, anatomy
  * gate, hand budget, placement, lower armor consumers and the restore cases.
  * Step 2: loss handling, deferral across provider cycles, order-independent
- * restoration. */
+ * restoration.  Step 3: second-pair combat routing (THIRD/FOURTH attacks). */
 #include "CuTest.h"
 #include <string.h>
 #include "conf.h"
@@ -22,6 +22,8 @@
 #include "../../src/combat/fight.h"
 #include "../../src/constants.h"
 #include "../../src/dgscript/dg_scripts.h"
+#include "../../src/actionqueues.h"
+#include "../../src/mud_event.h"
 #include "../../src/net/protocol.h"
 
 struct four_arm_fixture
@@ -833,3 +835,369 @@ void TestFourArmsRestoreIsOrderIndependent(CuTest *tc)
 
   end_four_arm_fixture(&fixture);
 }
+
+/* ---- Step 3: combat routing ---- */
+
+#define RETURN_NUM_ATTACKS 1
+#define DISPLAY_ROUTINE_POTENTIAL 2
+#define NORMAL_ATTACK_ROUTINE 0
+#define PHASE_0 0
+#define PHASE_1 1
+#define PHASE_2 2
+#define PHASE_3 3
+
+static void set_weapon_dice(struct obj_data *obj, int num, int size)
+{
+  GET_OBJ_VAL(obj, 1) = num;
+  GET_OBJ_VAL(obj, 2) = size;
+}
+
+/* THIRD reads the third hand, then the lower two-hander; FOURTH reads the
+ * fourth hand, or the lower double weapon's other end. */
+void TestFourArmsGetWieldedRoutesSecondPair(CuTest *tc)
+{
+  struct four_arm_fixture fixture;
+  struct obj_data sword, axe, big, staff;
+
+  begin_four_arm_fixture(&fixture);
+  SET_FEAT(&fixture.ch, FEAT_FOUR_ARMS, 1);
+  init_weapon(&sword, "a third sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  init_weapon(&axe, "a fourth axe", WEAPON_TYPE_HAND_AXE, SIZE_MEDIUM);
+  init_weapon(&big, "a lower greatsword", WEAPON_TYPE_GREAT_SWORD, SIZE_LARGE);
+  init_weapon(&staff, "a lower double axe", WEAPON_TYPE_DOUBLE_AXE, SIZE_LARGE);
+  CuAssertTrue(tc, IS_SET(weapon_list[WEAPON_TYPE_DOUBLE_AXE].weaponFlags, WEAPON_FLAG_DOUBLE));
+
+  CuAssertPtrEquals(tc, NULL, test_get_wielded(&fixture.ch, ATTACK_TYPE_THIRD));
+  CuAssertPtrEquals(tc, NULL, test_get_wielded(&fixture.ch, ATTACK_TYPE_FOURTH));
+  CuAssertTrue(tc, !is_dual_wielding_second_pair(&fixture.ch));
+
+  equip_char(&fixture.ch, &sword, WEAR_WIELD_3);
+  equip_char(&fixture.ch, &axe, WEAR_WIELD_4);
+  CuAssertPtrEquals(tc, &sword, test_get_wielded(&fixture.ch, ATTACK_TYPE_THIRD));
+  CuAssertPtrEquals(tc, &axe, test_get_wielded(&fixture.ch, ATTACK_TYPE_FOURTH));
+  CuAssertTrue(tc, is_dual_wielding_second_pair(&fixture.ch));
+  /* the first pair is untouched by the second */
+  CuAssertPtrEquals(tc, NULL, test_get_wielded(&fixture.ch, ATTACK_TYPE_PRIMARY));
+  CuAssertTrue(tc, !is_dual_wielding(&fixture.ch));
+  CuAssertPtrEquals(tc, &sword, unequip_char(&fixture.ch, WEAR_WIELD_3));
+  CuAssertPtrEquals(tc, &axe, unequip_char(&fixture.ch, WEAR_WIELD_4));
+
+  equip_char(&fixture.ch, &big, WEAR_WIELD_2H_2);
+  CuAssertPtrEquals(tc, &big, test_get_wielded(&fixture.ch, ATTACK_TYPE_THIRD));
+  CuAssertPtrEquals(tc, NULL, test_get_wielded(&fixture.ch, ATTACK_TYPE_FOURTH));
+  CuAssertTrue(tc, !is_dual_wielding_second_pair(&fixture.ch));
+  CuAssertPtrEquals(tc, &big, unequip_char(&fixture.ch, WEAR_WIELD_2H_2));
+
+  equip_char(&fixture.ch, &staff, WEAR_WIELD_2H_2);
+  CuAssertTrue(tc, is_using_double_weapon_at(&fixture.ch, WEAR_WIELD_2H_2));
+  CuAssertTrue(tc, !is_using_double_weapon(&fixture.ch));
+  CuAssertPtrEquals(tc, &staff, test_get_wielded(&fixture.ch, ATTACK_TYPE_THIRD));
+  CuAssertPtrEquals(tc, &staff, test_get_wielded(&fixture.ch, ATTACK_TYPE_FOURTH));
+  CuAssertTrue(tc, is_dual_wielding_second_pair(&fixture.ch));
+
+  CuAssertIntEquals(tc, WEAR_WIELD_2H_2, attack_pair_two_hand_slot(ATTACK_TYPE_THIRD));
+  CuAssertIntEquals(tc, WEAR_WIELD_2H, attack_pair_two_hand_slot(ATTACK_TYPE_OFFHAND));
+  CuAssertTrue(tc, attack_is_offhand_role(ATTACK_TYPE_FOURTH));
+  CuAssertTrue(tc, !attack_is_offhand_role(ATTACK_TYPE_THIRD));
+
+  end_four_arm_fixture(&fixture);
+}
+
+/* Strength, two-hand and spare-hand damage rules and the two-weapon attack
+ * penalties come from the attacking weapon's own pair. */
+void TestFourArmsSecondPairBonusesReadOwnPair(CuTest *tc)
+{
+  struct four_arm_fixture fixture;
+  struct obj_data first, big, third, fourth;
+  int str_bonus, base_hit;
+
+  begin_four_arm_fixture(&fixture);
+  SET_FEAT(&fixture.ch, FEAT_FOUR_ARMS, 1);
+  fixture.ch.real_abils.str = 18;
+  fixture.ch.aff_abils.str = 18;
+  str_bonus = GET_STR_BONUS(&fixture.ch);
+  CuAssertTrue(tc, str_bonus > 0);
+  init_weapon(&first, "a first sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  init_weapon(&big, "an upper greatsword", WEAPON_TYPE_GREAT_SWORD, SIZE_LARGE);
+  init_weapon(&third, "a third sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  init_weapon(&fourth, "a fourth sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+
+  /* a lone third-hand weapon with three spare hands: primary-first allocation
+   * gives the first pair one spare hand and the third hand the next */
+  equip_char(&fixture.ch, &third, WEAR_WIELD_3);
+  CuAssertIntEquals(tc, str_bonus + 2,
+                    compute_damage_bonus(&fixture.ch, &fixture.ch, &third, TYPE_HIT, 0,
+                                         MODE_NORMAL_HIT, ATTACK_TYPE_THIRD));
+
+  /* an upper two-hander does not rewrite or upgrade the third hand's swing */
+  equip_char(&fixture.ch, &big, WEAR_WIELD_2H);
+  CuAssertIntEquals(tc, 1, hands_available(&fixture.ch));
+  CuAssertIntEquals(tc, str_bonus + 2,
+                    compute_damage_bonus(&fixture.ch, &fixture.ch, &third, TYPE_HIT, 0,
+                                         MODE_NORMAL_HIT, ATTACK_TYPE_THIRD));
+  CuAssertIntEquals(tc, str_bonus * 3 / 2,
+                    compute_damage_bonus(&fixture.ch, &fixture.ch, &big, TYPE_HIT, 0,
+                                         MODE_NORMAL_HIT, ATTACK_TYPE_PRIMARY));
+  CuAssertPtrEquals(tc, &big, unequip_char(&fixture.ch, WEAR_WIELD_2H));
+
+  /* a full second pair: the fourth hand uses offhand strength, and both lower
+   * swings carry the two-weapon penalty while the first pair does not */
+  equip_char(&fixture.ch, &first, WEAR_WIELD_1);
+  equip_char(&fixture.ch, &fourth, WEAR_WIELD_4);
+  CuAssertIntEquals(tc, str_bonus / 2,
+                    compute_damage_bonus(&fixture.ch, &fixture.ch, &fourth, TYPE_HIT, 0,
+                                         MODE_NORMAL_HIT, ATTACK_TYPE_FOURTH));
+  CuAssertIntEquals(tc, str_bonus,
+                    compute_damage_bonus(&fixture.ch, &fixture.ch, &third, TYPE_HIT, 0,
+                                         MODE_NORMAL_HIT, ATTACK_TYPE_THIRD));
+  base_hit = compute_attack_bonus(&fixture.ch, &fixture.ch, ATTACK_TYPE_PRIMARY);
+  CuAssertIntEquals(tc, -6, second_pair_dual_wielding_penalty(&fixture.ch, FALSE));
+  CuAssertIntEquals(tc, -10, second_pair_dual_wielding_penalty(&fixture.ch, TRUE));
+  CuAssertTrue(tc, !is_dual_wielding(&fixture.ch));
+  CuAssertIntEquals(tc, base_hit - 6,
+                    compute_attack_bonus(&fixture.ch, &fixture.ch, ATTACK_TYPE_THIRD));
+  CuAssertIntEquals(tc, base_hit - 10,
+                    compute_attack_bonus(&fixture.ch, &fixture.ch, ATTACK_TYPE_FOURTH));
+
+  /* the lower two-hander gets the two-hand strength rule for its own swing */
+  CuAssertPtrEquals(tc, &third, unequip_char(&fixture.ch, WEAR_WIELD_3));
+  CuAssertPtrEquals(tc, &fourth, unequip_char(&fixture.ch, WEAR_WIELD_4));
+  equip_char(&fixture.ch, &big, WEAR_WIELD_2H_2);
+  CuAssertPtrEquals(tc, &big, test_get_wielded(&fixture.ch, ATTACK_TYPE_THIRD));
+  CuAssertIntEquals(tc, str_bonus * 3 / 2,
+                    compute_damage_bonus(&fixture.ch, &fixture.ch, &big, TYPE_HIT, 0,
+                                         MODE_NORMAL_HIT, ATTACK_TYPE_THIRD));
+  /* while the first pair's one-hander keeps its own rule */
+  CuAssertIntEquals(tc, str_bonus + 2,
+                    compute_damage_bonus(&fixture.ch, &fixture.ch, &first, TYPE_HIT, 0,
+                                         MODE_NORMAL_HIT, ATTACK_TYPE_PRIMARY));
+
+  end_four_arm_fixture(&fixture);
+}
+
+/* Count mode adds the floor of the summed mirror chances, never rolling;
+ * display mode prints the second-pair rows with their weapons and chance. */
+void TestFourArmsAttackRoutineCountsAndDisplays(CuTest *tc)
+{
+  struct four_arm_fixture fixture;
+  struct obj_data first, third, fourth;
+  int base;
+
+  begin_four_arm_fixture(&fixture);
+  init_weapon(&first, "a first sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  init_weapon(&third, "a third sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  init_weapon(&fourth, "a fourth axe", WEAPON_TYPE_HAND_AXE, SIZE_MEDIUM);
+  equip_char(&fixture.ch, &first, WEAR_WIELD_1);
+  base = perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0);
+  CuAssertTrue(tc, base >= 1);
+
+  SET_FEAT(&fixture.ch, FEAT_FOUR_ARMS, 1);
+  /* no lower weapons: nothing changes */
+  CuAssertIntEquals(tc, base, perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0));
+
+  /* one third-hand weapon at 50 percent: floor(0.5) adds nothing */
+  equip_char(&fixture.ch, &third, WEAR_WIELD_3);
+  CuAssertIntEquals(tc, base, perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0));
+
+  /* third and fourth at 50 percent each: one expected attack */
+  equip_char(&fixture.ch, &fourth, WEAR_WIELD_4);
+  CuAssertIntEquals(tc, base + 1, perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0));
+
+  /* two-weapon training: 75 percent each, floor(1.5) */
+  SET_FEAT(&fixture.ch, FEAT_TWO_WEAPON_FIGHTING, 1);
+  CuAssertIntEquals(tc, base + 1, perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0));
+
+  /* improved training: 100 percent, plus the trained extra fourth-hand swing;
+   * the first pair gains nothing because it is not dual wielding */
+  SET_FEAT(&fixture.ch, FEAT_IMPROVED_TWO_WEAPON_FIGHTING, 1);
+  CuAssertIntEquals(tc, base + 3, perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0));
+  CuAssertIntEquals(tc, base + 3, perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_2));
+
+  /* vital strike suppresses the whole second-pair routine */
+  VITAL_STRIKING(&fixture.ch) = TRUE;
+  CuAssertIntEquals(tc, base, perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0));
+  VITAL_STRIKING(&fixture.ch) = FALSE;
+
+  /* display: rows for the lower hands, with their own weapons, no rolls */
+  reset_output(&fixture);
+  perform_attacks(&fixture.ch, DISPLAY_ROUTINE_POTENTIAL, PHASE_0);
+  CuAssertPtrNotNull(tc, strstr(fixture.descriptor.output, "Third hand, Attack Bonus"));
+  CuAssertPtrNotNull(tc, strstr(fixture.descriptor.output, "Fourth hand, Attack Bonus"));
+  CuAssertPtrNotNull(tc, strstr(fixture.descriptor.output, "(100% chance)"));
+  CuAssertPtrNotNull(tc, strstr(fixture.descriptor.output, "a third sword"));
+  CuAssertPtrNotNull(tc, strstr(fixture.descriptor.output, "a fourth axe"));
+  CuAssertPtrNotNull(tc, strstr(fixture.descriptor.output, "Improved 2 Weapon Fighting"));
+  CuAssertPtrEquals(tc, NULL, FIGHTING(&fixture.ch));
+
+  /* a weapon only in the fourth hand never produces an empty third swing */
+  CuAssertPtrEquals(tc, &third, unequip_char(&fixture.ch, WEAR_WIELD_3));
+  CuAssertIntEquals(tc, base + 2, perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0));
+  reset_output(&fixture);
+  perform_attacks(&fixture.ch, DISPLAY_ROUTINE_POTENTIAL, PHASE_0);
+  CuAssertPtrEquals(tc, NULL, strstr(fixture.descriptor.output, "Third hand"));
+  CuAssertPtrNotNull(tc, strstr(fixture.descriptor.output, "Fourth hand"));
+
+  end_four_arm_fixture(&fixture);
+}
+
+struct four_arm_combat_fixture
+{
+  struct room_data room;
+  struct index_data mobile_index[1];
+  struct char_data actor;
+  struct char_data victim;
+  struct room_data *saved_world;
+  struct index_data *saved_mob_index;
+  room_rnum saved_top_of_world;
+  mob_rnum saved_top_of_mobt;
+};
+
+static void init_combat_npc(struct char_data *ch, const char *name)
+{
+  clear_char(ch);
+  SET_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
+  ch->player_specials = &dummy_mob;
+  ch->player.short_descr = (char *)name;
+  ch->player.name = (char *)name;
+  GET_LEVEL(ch) = 1;
+  GET_POS(ch) = POS_STANDING;
+  GET_HIT(ch) = 100000;
+  GET_MAX_HIT(ch) = 100000;
+  GET_REAL_SIZE(ch) = SIZE_MEDIUM;
+  ch->points.size = SIZE_MEDIUM;
+  IN_ROOM(ch) = 0;
+}
+
+static void begin_combat_fixture(struct four_arm_combat_fixture *fixture)
+{
+  if (!IS_SET(weapon_list[WEAPON_TYPE_LONG_BOW].weaponFlags, WEAPON_FLAG_RANGED))
+    load_weapons();
+  memset(fixture, 0, sizeof(*fixture));
+  fixture->saved_world = world;
+  fixture->saved_top_of_world = top_of_world;
+  fixture->saved_mob_index = mob_index;
+  fixture->saved_top_of_mobt = top_of_mobt;
+  fixture->room.number = 169930;
+  fixture->room.light = 1;
+  fixture->mobile_index[0].vnum = 1;
+  world = &fixture->room;
+  top_of_world = 0;
+  mob_index = fixture->mobile_index;
+  top_of_mobt = 0;
+  init_combat_npc(&fixture->actor, "four arm attacker");
+  init_combat_npc(&fixture->victim, "four arm target");
+  GET_ATTACK_QUEUE(&fixture->actor) = create_attack_queue();
+  GET_ATTACK_QUEUE(&fixture->victim) = create_attack_queue();
+  fixture->room.people = &fixture->actor;
+  fixture->actor.next_in_room = &fixture->victim;
+  FIGHTING(&fixture->actor) = &fixture->victim;
+  FIGHTING(&fixture->victim) = &fixture->actor;
+}
+
+static void end_combat_fixture(struct four_arm_combat_fixture *fixture)
+{
+  int pos;
+
+  FIGHTING(&fixture->actor) = NULL;
+  FIGHTING(&fixture->victim) = NULL;
+  for (pos = 0; pos < NUM_WEARS; pos++)
+    if (GET_EQ(&fixture->actor, pos))
+      unequip_char(&fixture->actor, pos);
+  while (fixture->actor.carrying)
+    obj_from_char(fixture->actor.carrying);
+  while (fixture->actor.affected != NULL)
+    affect_remove_no_total(&fixture->actor, fixture->actor.affected);
+  while (fixture->victim.affected != NULL)
+    affect_remove_no_total(&fixture->victim, fixture->victim.affected);
+  clear_char_event_list(&fixture->actor);
+  clear_char_event_list(&fixture->victim);
+  free_attack_queue(GET_ATTACK_QUEUE(&fixture->actor));
+  free_attack_queue(GET_ATTACK_QUEUE(&fixture->victim));
+  GET_ATTACK_QUEUE(&fixture->actor) = NULL;
+  GET_ATTACK_QUEUE(&fixture->victim) = NULL;
+  world = fixture->saved_world;
+  top_of_world = fixture->saved_top_of_world;
+  mob_index = fixture->saved_mob_index;
+  top_of_mobt = fixture->saved_top_of_mobt;
+}
+
+/* best of several rounds: a natural 1 misses even at +100 to hit */
+static int damage_in_phase(struct four_arm_combat_fixture *fixture, int phase)
+{
+  int best = 0, round, dealt;
+
+  for (round = 0; round < 6; round++)
+  {
+    /* equipment changes recompute affects and reset the hit roll */
+    GET_HITROLL(&fixture->actor) = 100;
+    GET_HIT(&fixture->victim) = 100000;
+    GET_POS(&fixture->victim) = POS_STANDING;
+    perform_attacks(&fixture->actor, NORMAL_ATTACK_ROUTINE, phase);
+    dealt = 100000 - GET_HIT(&fixture->victim);
+    if (dealt > best)
+      best = dealt;
+  }
+  return best;
+}
+
+/* Real rounds: each lower-hand swing lands with its own weapon dice in its
+ * own phase, ordinals continue after the ordinary attacks, and phases 1..3
+ * together deliver the same swings as the whole round. */
+void TestFourArmsSecondPairAttacksLandWithOwnWeapons(CuTest *tc)
+{
+  struct four_arm_combat_fixture fixture;
+  struct obj_data first, third, fourth;
+  int phase1, phase2, phase3, whole;
+
+  begin_combat_fixture(&fixture);
+  /* an NPC rogue: two-weapon and improved training both count, 100 percent */
+  GET_CLASS(&fixture.actor) = CLASS_ROGUE;
+  MOB_HAS_FEAT(&fixture.actor, FEAT_FOUR_ARMS) = 1;
+  CuAssertTrue(tc, has_four_arms(&fixture.actor));
+  init_weapon(&first, "a first dagger", WEAPON_TYPE_DAGGER, SIZE_MEDIUM);
+  set_weapon_dice(&first, 1, 1);
+  init_weapon(&third, "a third maul", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  set_weapon_dice(&third, 50, 1);
+  init_weapon(&fourth, "a fourth maul", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  set_weapon_dice(&fourth, 50, 1);
+  equip_char(&fixture.actor, &first, WEAR_WIELD_1);
+  equip_char(&fixture.actor, &third, WEAR_WIELD_3);
+  equip_char(&fixture.actor, &fourth, WEAR_WIELD_4);
+  GET_HITROLL(&fixture.actor) = 100;
+  CuAssertIntEquals(tc, 3, perform_attacks(&fixture.actor, RETURN_NUM_ATTACKS, PHASE_0));
+
+  /* ordinal 1: first pair (phase 1); ordinal 2: third hand (phase 2);
+   * ordinal 3: fourth hand (phase 3) */
+  phase1 = damage_in_phase(&fixture, PHASE_1);
+  phase2 = damage_in_phase(&fixture, PHASE_2);
+  phase3 = damage_in_phase(&fixture, PHASE_3);
+  whole = damage_in_phase(&fixture, PHASE_0);
+  /* 50d1 less the level-one mob's strength penalty: well above the dagger */
+  CuAssertTrue(tc, phase1 > 0 && phase1 < 40);
+  CuAssertTrue(tc, phase2 >= 40);
+  CuAssertTrue(tc, phase3 >= 40);
+  CuAssertTrue(tc, whole >= 80 + phase1);
+
+  /* the fourth hand alone: no empty third-hand swing, the fourth still lands */
+  CuAssertPtrEquals(tc, &third, unequip_char(&fixture.actor, WEAR_WIELD_3));
+  CuAssertIntEquals(tc, 2, perform_attacks(&fixture.actor, RETURN_NUM_ATTACKS, PHASE_0));
+  CuAssertTrue(tc, damage_in_phase(&fixture, PHASE_2) >= 40);
+  CuAssertTrue(tc, damage_in_phase(&fixture, PHASE_3) < 40);
+
+  /* without the arms the lower weapons never swing */
+  MOB_HAS_FEAT(&fixture.actor, FEAT_FOUR_ARMS) = 0;
+  affect_total(&fixture.actor);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.actor, WEAR_WIELD_4));
+  CuAssertIntEquals(tc, 1, perform_attacks(&fixture.actor, RETURN_NUM_ATTACKS, PHASE_0));
+  CuAssertTrue(tc, damage_in_phase(&fixture, PHASE_0) < 40);
+
+  end_combat_fixture(&fixture);
+}
+
+#undef RETURN_NUM_ATTACKS
+#undef DISPLAY_ROUTINE_POTENTIAL
+#undef NORMAL_ATTACK_ROUTINE
+#undef PHASE_0
+#undef PHASE_1
+#undef PHASE_2
+#undef PHASE_3

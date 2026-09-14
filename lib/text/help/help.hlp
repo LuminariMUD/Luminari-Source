@@ -3531,6 +3531,16 @@ manage melee weapons only: no bows, crossbows or slings there, and the
 usual rule of one ranged weapon and no mixing of ranged and melee still
 counts every hand.
 
+In combat the lower arms mirror the upper ones.  Each swing your upper
+arms are entitled to (the basic attack, the offhand attack when the lower
+pair holds two weapons, haste, and the extra attacks from base attack bonus,
+flurry and two-weapon training) is also attempted by the lower pair with
+its own weapons and its own penalties.  Each such swing lands only some of
+the time: 50 percent, 75 percent with two-weapon fighting and 100 percent
+with improved two-weapon fighting (or the ranger equivalents).  Vital
+strike disables the lower swings.  The ATTACKS command lists them with
+their chance.
+
 You also gain a second set of sleeves and gloves and two more wrist slots.
 Lower sleeves count as armor like the upper ones.  Wear, wield and remove
 work as before; the lower slots take the overflow.
