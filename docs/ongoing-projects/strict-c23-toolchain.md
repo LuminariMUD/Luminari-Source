@@ -567,11 +567,9 @@ Notes from the local CI run and the analyzer triage:
   over 331 files. The heaviest compiles were `fight.c` (89 seconds, 6.6 GiB),
   `crafting_new.c` (71 seconds), and `magic.c` (3.4 GiB).
   Distinct analyzer sites by class, after the fixes below:
-  42 `malloc-leak`, 11 `out-of-bounds`, 7 `possible-null-argument`, 4
-  `possible-null-dereference`, 3 `use-of-uninitialized-value`, 3 `fd-leak`, 2
-  `deref-before-check`, 2 `null-dereference`, and 1 each of
-  `tainted-array-index`, `use-after-free`, `imprecise-fp-arithmetic`, and
-  `null-argument` (78 sites).
+  41 `malloc-leak`, 11 `out-of-bounds`, 3 `use-of-uninitialized-value`, 3
+  `fd-leak`, 2 `null-dereference`, and 1 each of `tainted-array-index`,
+  `use-after-free`, and `imprecise-fp-arithmetic` (63 sites).
   Fixed from the triage: a double free between `free_claim` and
   `remove_claim_from_list`; `ascii_convert_house` returning failure at end of
   file without closing its files; `board_load_board` leaking its `FILE` on
@@ -604,6 +602,18 @@ Notes from the local CI run and the analyzer triage:
   `malloc-leak` reports left are pointers stored into character, account, OLC,
   object, and list structures that the analyzer stops tracking; several are
   setters fixed above for their old value.
+  A third pass fixed the smaller classes: unchecked `strdup` and `malloc`
+  results in the help import, board posts, `get_number`, the template lookups,
+  and the wilderness map; a help cache check after use; `zmalloc_check` writing
+  to a log it never checked; an unchecked tag copy when merging help entries;
+  and a NULL argument in the rune scimitar's dodge proc. Two reports are left in
+  those classes: the logon file's `close_type` is already bounds-checked on both
+  sides, and the floating-point allocation size is in `RidgedMultifractal2D`,
+  which nothing calls. The same pass stopped crafting from freeing strings an
+  object still shares with its prototype: `restring`, `reforge`, `create`, bone
+  armor, the harvest node reset, the new reforge command, and the vampire cloak
+  now use `free_object_string`, and `restring` no longer frees the description
+  twice or frees the prototype's extra descriptions.
 
 ## Remaining work
 
@@ -611,18 +621,15 @@ Notes from the local CI run and the analyzer triage:
    and `actions/cache` inside the `gcc:16.2` container cannot be replicated
    locally. Open the pull request and watch the first run; the compiler check
    step is the first thing that would fail if the runner's toolchain differs.
-2. Dispatch `toolchain-analysis.yml` once by hand to confirm its wall time
-   fits the job timeout. Locally, with `class.c` left out of the
-   analyzer, a runner-shaped build of the server target took under four
-   minutes and peaked at 6.6 GiB for one compile, well inside the 120-minute
-   timeout and the runner's 16 GiB; the dispatch still has to confirm the
-   container and cache steps.
-3. Finish the analyzer triage. The use-after-free, double-free, out-of-bounds,
-   leak-of-handle, uninitialized-value, `malloc-leak`, and `null-dereference`
-   classes are triaged (see the notes above); the `possible-null-argument`,
-   `possible-null-dereference`, `deref-before-check`, `null-argument`,
-   `tainted-array-index`, and `imprecise-fp-arithmetic` reports (16 sites) are
-   not.
+2. Dispatch `toolchain-analysis.yml` once by hand to confirm its wall time fits
+   the job timeout. GitHub dispatches only workflows that exist on the default
+   branch, and this one is new on the branch, so the first manual run has to
+   follow the merge. Locally, with `class.c` left out of the analyzer, a
+   runner-shaped build of the server target took under four minutes and peaked
+   at 6.6 GiB for one compile, well inside the 120-minute timeout and the
+   runner's 16 GiB.
+3. Done: the analyzer triage. Every class is triaged (see the notes above); the
+   reports left are the false positives listed there.
 4. Done: the migration budget is burned down. Steps 0, 1.1, 1.2, and 2.1 to
    2.6 are done (see the progress table), step 1.3 is done for 64-bit
    narrowing, steps 3 and 4 are done, and value conversion is at zero, so the
