@@ -3171,6 +3171,12 @@ static struct help_entry_list *parse_help_entry(FILE *fp, int *min_level)
 
   /* Generate tag from first keyword */
   char *first_keyword = strdup(keywords);
+  if (!entry->keywords || !entry->entry || !first_keyword)
+  {
+    free(first_keyword);
+    free_help_entry(entry);
+    return NULL;
+  }
   char *space = strchr(first_keyword, ' ');
   char *p;
   if (space)

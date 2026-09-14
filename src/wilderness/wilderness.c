@@ -1765,9 +1765,10 @@ char *gen_ascii_wilderness_map(int size, int x, int y, int map_type)
 
   char *mapstring = NULL;
 
-  struct wild_map_tile *data = malloc(sizeof(struct wild_map_tile) * xsize * ysize);
+  struct wild_map_tile *data;
 
-  map = malloc(sizeof(struct wild_map_tile *) * xsize);
+  CREATE(data, struct wild_map_tile, (size_t)xsize * (size_t)ysize);
+  CREATE(map, struct wild_map_tile *, (size_t)xsize);
 
   for (i = 0; i < xsize; i++)
   {

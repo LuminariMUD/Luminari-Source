@@ -290,7 +290,7 @@ double RidgedMultifractal2D(int idx, double x, double y, double H, double lacuna
   if (first)
   {
     /* seize required memory for exponent_array */
-    exponent_array = (double *)malloc((size_t)(octaves + 1) * sizeof(double));
+    exponent_array = (double *)malloc(((size_t)octaves + 1) * sizeof(double));
     frequency = 1.0;
     for (i = 0; i <= octaves; i++)
     {

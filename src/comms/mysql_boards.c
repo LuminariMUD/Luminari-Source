@@ -518,7 +518,7 @@ struct mysql_board_post *mysql_board_get_post(int board_id, int post_id)
   }
 
   /* Allocate and populate post structure */
-  post = (struct mysql_board_post *)malloc(sizeof(struct mysql_board_post));
+  CREATE(post, struct mysql_board_post, 1);
   post->post_id = atoi(row[0]);
   post->board_id = atoi(row[1]);
   post->title = strdup(row[2]);
@@ -531,6 +531,11 @@ struct mysql_board_post *mysql_board_get_post(int board_id, int post_id)
   post->deleted = (atoi(row[9]) == 1);
 
   mysql_free_result(result);
+  if (!post->title || !post->body || !post->author)
+  {
+    mysql_board_free_post(post);
+    return NULL;
+  }
   return post;
 }
 
@@ -1524,7 +1529,7 @@ void mysql_board_handle_reply_title(struct descriptor_data *d, char *additional_
   strcat(quoted_body, "\r\n--- Reply is below this line ---\r\n\r\n");
 
   /* Set up string editor with quoted content */
-  d->str = (char **)malloc(sizeof(char *));
+  CREATE(d->str, char *, 1);
   *(d->str) = strdup(quoted_body);
   d->max_str = MAX_BOARD_BODY_LENGTH;
   d->backstr = NULL;

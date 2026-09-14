@@ -1819,7 +1819,7 @@ static void add_to_help_cache(const char *argument, int level, struct help_entry
   }
 
   /* If cache is full, remove oldest entry */
-  if (help_cache_count >= HELP_CACHE_SIZE)
+  if (help_cache_count >= HELP_CACHE_SIZE && help_cache != NULL)
   {
     oldest = help_cache;
     oldest_time = help_cache->timestamp;

@@ -2640,7 +2640,7 @@ SPECIAL(rune_scimitar)
   }
 
   /* dodge proc */
-  else if (!strcmp(argument, "dodge") && !rand_number(0, 3))
+  else if (argument && !strcmp(argument, "dodge") && !rand_number(0, 3))
   {
     act("\tLAs you dodge the attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
         "\tLfrom $N \tLand transfers it back to you.\tn",

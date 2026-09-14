@@ -2782,6 +2782,8 @@ int get_number(char **name)
 
   /* Make a working copy of name */
   namebuf = strdup(*name);
+  if (namebuf == NULL)
+    return retval;
 
   if ((ppos = strchr(namebuf, '.')) != NULL)
   {

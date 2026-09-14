@@ -307,6 +307,9 @@ void zmalloc_check()
   const char *admonishemnt;
   int total_leak = 0, num_leaks = 0, i;
 
+  if (zfd == NULL)
+    return;
+
   fprintf(zfd, "\n------------ Checking leaks ------------\n\n");
 
   for (i = 0; i < NUM_ZBUCKETS; i++)
@@ -360,11 +363,8 @@ void zmalloc_check()
     fprintf(zfd, "zmalloc: Congratulations: leak-free code!\n");
   }
 
-  if (zfd)
-  {
-    fflush(zfd);
-    fclose(zfd);
-  }
+  fflush(zfd);
+  fclose(zfd);
 }
 
 void pad_check(meminfo *m)

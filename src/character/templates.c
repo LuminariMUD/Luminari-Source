@@ -381,14 +381,10 @@ ACMD(do_templates)
     }
 
     // we need to get the level_id in the db first
-    char *chname = strdup(template_db_names[ttype]);
-    level_num = (int)get_level_id_by_level_num(level_num, chname);
-    free(chname);
+    level_num = (int)get_level_id_by_level_num(level_num, template_db_names[ttype]);
 
     // Now we can find the level info from our new level_num/id
-    chname = strdup(template_db_names[ttype]);
-    show_levelinfo_for_specific_level(ch, level_num, chname);
-    free(chname);
+    show_levelinfo_for_specific_level(ch, level_num, template_db_names[ttype]);
 
     return;
 
@@ -401,7 +397,7 @@ ACMD(do_templates)
           "\r\n");
 }
 
-long get_level_id_by_level_num(int level_num, char *chname)
+long get_level_id_by_level_num(int level_num, const char *chname)
 {
   if (level_num < 1 || level_num >= (LVL_IMMORT - 1))
   {
@@ -455,7 +451,7 @@ long get_level_id_by_level_num(int level_num, char *chname)
   return level_id;
 }
 
-void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, char *chname)
+void show_levelinfo_for_specific_level(struct char_data *ch, long level_id, const char *chname)
 {
   MYSQL_RES *res = NULL;
   MYSQL_ROW row = NULL;
