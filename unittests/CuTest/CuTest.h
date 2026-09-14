@@ -120,4 +120,11 @@ void CuSuiteRun(CuSuite *testSuite);
 void CuSuiteSummary(CuSuite *testSuite, CuString *summary);
 void CuSuiteDetails(CuSuite *testSuite, CuString *details);
 
+/* The root suite's build generates a prototype for every Test function
+ * (make-tests.sh --prototypes) so test files satisfy -Wmissing-prototypes.
+ * The generated runner declares the tests itself. */
+#if defined(LUMINARI_CUTEST) && !defined(CUTEST_RUNNER)
+#include "test_prototypes.h"
+#endif
+
 #endif /* CU_TEST_H */

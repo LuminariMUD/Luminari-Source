@@ -400,6 +400,7 @@ lib/text/help/*
 ####################
 /unittests/obj
 /unittests/CuTest/AllTests.c
+/unittests/CuTest/test_prototypes.h
 /cutest
 
 ####################

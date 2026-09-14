@@ -94,6 +94,28 @@ Largest classes: sign conversion, value conversion, missing prototypes,
 `-Wformat=` signedness (GCC), switch default, jump-misses-init,
 double promotion, discarded qualifiers.
 
+## Burn-down progress
+
+Sites after each landed step, measured with the CI budget job's exact CMake
+command inside the pinned images (`luminari-ci:local-gcc-16.2` and
+`luminari-ci:local-fast` for Clang 22.1.8) on a snapshot of the working tree
+with the example config headers. The first local run reproduced both committed
+budget files exactly; with ccache a full budget build takes about two minutes
+per compiler.
+
+| Step | Change | GCC 16.2 | Clang 22.1.8 |
+|------|--------|----------|--------------|
+| start | committed budgets | 11363 | 22878 |
+| 0 | `--list` and `--by-token`; `-Wswitch-default` dropped | 10706 | 22221 |
+| 1.1 | `IS_SET_AR` casts the element before the mask | 10706 | 10578 |
+| 2.1 | generated `test_prototypes.h` | 9223 | 9095 |
+
+Also fixed on the way: the budget check counted only `file:line:col: error:`
+lines, so a build that stopped on a missing header (`fatal error:`), a linker
+failure, or a make `***` line still reported a trustworthy count. The CI step
+pipes the build through `tee` without `pipefail`, so the check is the only
+gate that sees such a failure; it now counts all four forms.
+
 ## Remaining work
 
 1. GitHub-side confirmation. Container jobs, the apt.llvm.org install step,

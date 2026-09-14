@@ -77,8 +77,8 @@ root.
 
 To add a test here: create `unittests/CuTest/test_*.c`, add it to
 `cutest_SOURCES` and `cutest_test_files` in `Makefile.am`, and add it to
-`CUTEST_TEST_SOURCES` in `CMakeLists.txt`. `AllTests.c` regenerates
-automatically from functions whose names begin with `Test`.
+`CUTEST_TEST_SOURCES` in `CMakeLists.txt`. `AllTests.c` and `test_prototypes.h`
+regenerate automatically from functions whose names begin with `Test`.
 
 **2. Focused protocol parser harness.** `unittests/CuTest/Makefile` builds the
 source-linked `protocol_parser_tests` executable. Vessel, autopilot, and

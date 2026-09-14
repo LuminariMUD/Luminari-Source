@@ -16,7 +16,7 @@ format-nonliteral 25
 format= 964
 jump-misses-init 446
 logical-op 31
-missing-prototypes 2123
+missing-prototypes 640
 nested-externs 44
 null-dereference 60
 redundant-decls 567

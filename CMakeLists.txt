@@ -1150,6 +1150,19 @@ if (BUILD_TESTS)
         message(FATAL_ERROR "Failed to generate the CuTest test registry")
     endif()
 
+    # Prototypes for every Test function, included by CuTest.h.  A directory
+    # of its own keeps stray headers in the binary directory off the path.
+    set(CUTEST_GENERATED_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/cutest_generated)
+    file(MAKE_DIRECTORY ${CUTEST_GENERATED_INCLUDE_DIR})
+    execute_process(
+        COMMAND ${CUTEST_GENERATOR} --prototypes ${CUTEST_TEST_SOURCES}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        OUTPUT_FILE ${CUTEST_GENERATED_INCLUDE_DIR}/test_prototypes.h
+        RESULT_VARIABLE CUTEST_GENERATOR_RESULT)
+    if (NOT CUTEST_GENERATOR_RESULT EQUAL 0)
+        message(FATAL_ERROR "Failed to generate the CuTest test prototypes")
+    endif()
+
     add_executable(cutest
         unittests/CuTest/CuTest.c
         ${CUTEST_TEST_SOURCES}
@@ -1159,7 +1172,8 @@ if (BUILD_TESTS)
     set_target_properties(cutest PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     target_include_directories(cutest PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest)
+        ${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest
+        ${CUTEST_GENERATED_INCLUDE_DIR})
     target_compile_definitions(cutest PRIVATE LUMINARI_CUTEST)
     target_link_libraries(cutest PRIVATE luminari_build luminari_deps)
 
