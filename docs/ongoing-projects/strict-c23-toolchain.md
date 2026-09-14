@@ -36,18 +36,18 @@ warning debt, and feature detection that strict flags cannot influence.
 - Baseline tier: `-Wall -Wextra -Wstrict-prototypes -Wold-style-definition
   -Wpointer-arith -Wformat-security -Wvla -Wredundant-decls -Wnested-externs
   -Wmissing-prototypes -Wjump-misses-init -Wshadow -Wdouble-promotion
-  -Wfloat-equal -Wfloat-conversion -Wwrite-strings -Wcast-qual` plus GCC's
-  `-Wtrampolines
-  -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-args
-  -Wflex-array-member-not-at-end -Wunterminated-string-initialization`. The
-  last ten common flags were promoted from the migration tier by steps 2.3,
-  2.4, 3.1, 3.3, 3.2, and 3.4; Clang 18 does not know `-Wjump-misses-init`, so the probe
-  drops it there. Clean on all four
-  compilers; `-Werror` is refused with any other tier.
-- Migration tier: sign and value conversion, `-Wundef`, `-Wnull-dereference`,
-  `-Walloca`, `-Wimplicit-fallthrough`, and GCC's
-  `-Wformat-signedness`, `-Wcast-align=strict`, `-Walloc-zero`, duplicated
-  conditions and branches, and logical operators. Held by
+  -Wfloat-equal -Wfloat-conversion -Wwrite-strings -Wcast-qual -Wundef -Walloca
+  -Wimplicit-fallthrough`, plus GCC's `-Wtrampolines -Walloc-size
+  -Wbidi-chars=any -Wcalloc-transposed-args -Wflex-array-member-not-at-end
+  -Wunterminated-string-initialization -Wcast-align=strict -Wduplicated-cond
+  -Wduplicated-branches -Wlogical-op -Wformat-signedness` and Clang's
+  `-Wcast-align`. Every common flag after `-Wvla`, the last five GCC flags, and
+  the Clang flag were promoted from the migration tier by steps 2.3 to 3.5.
+  Clang 18 does not know `-Wjump-misses-init`, so the probe drops it there.
+  Clean on all four compilers; `-Werror` is refused with any other tier.
+- Migration tier: sign and value conversion, plus `-Wnull-dereference` and
+  GCC's `-Walloc-zero`, which depend on what the optimizer proves and so stay
+  on the budget at zero rather than under `-Werror`. Held by
   `scripts/ci/check_warning_budget.py` against `scripts/ci/warning_budget_gcc-16.txt`
   and `scripts/ci/warning_budget_clang-22.txt`; growth in any class fails the
   new `warning-budget` job. Counting is by distinct site with make output sync,
@@ -129,7 +129,7 @@ per compiler.
 | 3.3 tail | `REMOVE_FROM_LIST_USING`; last three renames; `shadow` at zero; flag promoted to baseline | 3818 | 5275 |
 | 3.2 | `float` is `double`; unused kdtree float API removed; float `MIN`/`MAX` clamps fixed; float-to-int conversions explicit; float classes at zero and promoted to baseline | 2824 | 4263 |
 | 3.4 | const string tables, read-only string parameters, owned strings through mutable pointers; qualifier classes at zero and promoted to baseline | 2532 | 3971 |
-| 3.5 | logic defects, dead branches, null guards, format attributes; `switch-enum` and `format-nonliteral` to the analysis tier | 2336 | 3853 |
+| 3.5 | logic defects, dead branches, null guards, format attributes; `switch-enum` and `format-nonliteral` to the analysis tier; nine flags promoted to baseline | 2336 | 3853 |
 
 Every step was also verified with a host `make test` (1483 tests pass) before
 it was committed, and each promotion to the baseline tier was first built at
@@ -458,6 +458,13 @@ Notes from step 3.5:
   migration tier no longer lists `-Wformat=2`: the baseline's `-Wformat` and
   `-Wformat-security` cover the rest of it, and `-Wformat-y2k` would only flag
   the `%c` and `%m/%d/%y` display dates the strftime attribute exposed.
+- `-Wundef`, `-Walloca`, `-Wimplicit-fallthrough`, GCC's `-Wcast-align=strict`,
+  `-Wduplicated-cond`, `-Wduplicated-branches`, `-Wlogical-op`, and
+  `-Wformat-signedness`, and Clang's `-Wcast-align` moved to the baseline tier
+  after clean baseline builds with GCC 13 and Clang 18. `-Wnull-dereference`
+  and `-Walloc-zero` stay in the migration tier at zero: both report what the
+  optimizer proves, so another optimization level could fail a `-Werror` build
+  that is clean here.
 
 ## Remaining work
 

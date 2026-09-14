@@ -315,20 +315,19 @@ probe_warning()
 baseline_common=(-Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpointer-arith
   -Wformat-security -Wvla -Wredundant-decls -Wnested-externs -Wmissing-prototypes
   -Wjump-misses-init -Wshadow -Wdouble-promotion -Wfloat-equal -Wfloat-conversion
-  -Wwrite-strings -Wcast-qual)
+  -Wwrite-strings -Wcast-qual -Wundef -Walloca -Wimplicit-fallthrough)
 baseline_gcc=(-Wtrampolines -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-args
-  -Wflex-array-member-not-at-end -Wunterminated-string-initialization)
-baseline_clang=()
+  -Wflex-array-member-not-at-end -Wunterminated-string-initialization -Wcast-align=strict
+  -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wformat-signedness)
+baseline_clang=(-Wcast-align)
 
-# Migration: the families the strict-C23 audit found in bulk (sign and value
-# conversion, format types, allocation size, duplicated logic, fallthrough).
-# Never combined with -Werror; scripts/ci/check_warning_budget.py ratchets
-# them down.
-migration_common=(-Wconversion -Wsign-conversion -Wundef -Wnull-dereference
-  -Walloca -Wimplicit-fallthrough)
-migration_gcc=(-Wformat-signedness -Wcast-align=strict -Walloc-zero -Wduplicated-cond
-  -Wduplicated-branches -Wlogical-op)
-migration_clang=(-Wcast-align)
+# Migration: sign and value conversion, which the strict-C23 audit found in
+# bulk, and the null-dereference and alloc-zero checks, which depend on what the
+# optimizer proves and so stay off the -Werror tier.  Never combined with
+# -Werror; scripts/ci/check_warning_budget.py ratchets them down.
+migration_common=(-Wconversion -Wsign-conversion -Wnull-dereference)
+migration_gcc=(-Walloc-zero)
+migration_clang=()
 
 # Analysis: expensive or opinionated, compiler-specific, scheduled only.
 analysis_gcc=(-fanalyzer -Wswitch-enum -Wformat-nonliteral)
@@ -340,7 +339,7 @@ tier_flags=("${baseline_common[@]}")
 if [[ "$is_clang" == 1 ]]; then tier_flags+=("${baseline_clang[@]-}"); else tier_flags+=("${baseline_gcc[@]}"); fi
 if [[ "$warning_tier" == migration || "$warning_tier" == analysis ]]; then
   tier_flags+=("${migration_common[@]}")
-  if [[ "$is_clang" == 1 ]]; then tier_flags+=("${migration_clang[@]}"); else tier_flags+=("${migration_gcc[@]}"); fi
+  if [[ "$is_clang" == 1 ]]; then tier_flags+=("${migration_clang[@]-}"); else tier_flags+=("${migration_gcc[@]}"); fi
 fi
 if [[ "$warning_tier" == analysis ]]; then
   if [[ "$is_clang" == 1 ]]; then tier_flags+=("${analysis_clang[@]}"); else tier_flags+=("${analysis_gcc[@]}"); fi
