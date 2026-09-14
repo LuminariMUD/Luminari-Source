@@ -796,7 +796,7 @@ void char_from_furniture(struct char_data *ch);
 #define Q_BIT(x) (1U << ((x) % 32))
 
 /** 1 if bit is set in the bitarray represented by var, 0 if not. */
-#define IS_SET_AR(var, bit) ((var)[Q_FIELD(bit)] & Q_BIT(bit))
+#define IS_SET_AR(var, bit) ((unsigned int)(var)[Q_FIELD(bit)] & Q_BIT(bit))
 
 /** Set a specific bit in the bitarray represented by var to 1. */
 #define SET_BIT_AR(var, bit) ((var)[Q_FIELD(bit)] |= Q_BIT(bit))

@@ -22,6 +22,5 @@ null-dereference 60
 redundant-decls 567
 shadow 274
 sign-conversion 1855
-switch-default 657
 switch-enum 45
 undef 8

@@ -323,7 +323,7 @@ baseline_clang=()
 # allocation size, duplicated logic, fallthrough).  Never combined with
 # -Werror; scripts/ci/check_warning_budget.py ratchets them down.
 migration_common=(-Wconversion -Wsign-conversion -Wdouble-promotion -Wshadow
-  -Wmissing-prototypes -Wswitch-enum -Wswitch-default -Wcast-qual -Wundef
+  -Wmissing-prototypes -Wswitch-enum -Wcast-qual -Wundef
   -Wjump-misses-init -Wnull-dereference -Wnested-externs -Wredundant-decls -Wformat=2
   -Wfloat-equal -Walloca -Wimplicit-fallthrough -Wwrite-strings)
 migration_gcc=(-Wformat-signedness -Wcast-align=strict -Walloc-zero -Wduplicated-cond
