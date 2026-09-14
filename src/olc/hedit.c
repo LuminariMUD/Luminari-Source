@@ -3398,6 +3398,13 @@ static int import_entry_with_resolution(struct char_data *ch __attribute__((unus
 
       free(entry->tag);
       entry->tag = strdup(new_tag);
+      if (!entry->tag)
+      {
+        snprintf(msg_buf, msg_size, "  [ERROR] %s - out of memory\r\n", entry->keywords);
+        if (existing_help_tag)
+          free(existing_help_tag);
+        return -1;
+      }
       snprintf_append(msg_buf, msg_size, 0, "  [MERGED] %s (as %s)\r\n", entry->keywords, new_tag);
     }
     else if (!str_cmp(mode, "skip"))
