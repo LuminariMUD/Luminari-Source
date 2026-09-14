@@ -32,7 +32,15 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 BASELINE_DIR = os.path.join(REPO_ROOT, "scripts", "ci")
 
 WARNING_PATTERN = re.compile(r"^(?P<site>[^\s:]+:\d+:\d+): warning: .*\[-W(?P<cls>[^\]]+)\]\s*$")
-ERROR_PATTERN = re.compile(r"^[^\s:]+:\d+:\d+: error: ")
+# Compiler errors, fatal errors (a missing header), linker failures, and the
+# make line that stops a target all mean part of the tree was never compiled,
+# so its warnings are missing from the count.
+ERROR_PATTERN = re.compile(
+    r"^[^\s:]+:\d+:\d+: (?:fatal )?error: "
+    r"|^g?make(?:\[\d+\])?: \*\*\* "
+    r"|^collect2: error: "
+    r"|^(?:clang|gcc|cc)[-\d.]*: error: "
+)
 
 
 def baseline_path(compiler):
@@ -139,11 +147,14 @@ def self_test():
 /src/h.h:7:9: warning: format '%d' expects argument of type 'int' [-Wformat=]
 /src/h.h:7:9: warning: format '%d' expects argument of type 'int' [-Wformat=]
 /src/c.c:1:1: error: unknown type name 'foo'
+/src/d.c:2:10: fatal error: missing.h: No such file or directory
+gmake[2]: *** [CMakeFiles/cutest.dir/build.make:76: CMakeFiles/cutest.dir/d.c.o] Error 1
+collect2: error: ld returned 1 exit status
 [ 10%] Building C object CMakeFiles/luminari.dir/src/a.c.o
 """.splitlines()
     counts, errors = count_warnings(log)
     assert counts == {"conversion": 1, "missing-prototypes": 1, "format=": 1}, counts
-    assert errors == 1, errors
+    assert errors == 4, errors
     failures, improvements = compare(counts, {"conversion": 1, "missing-prototypes": 2, "format=": 1})
     assert failures == [], failures
     assert improvements == ["-Wmissing-prototypes: 1 is below budget 2"], improvements
