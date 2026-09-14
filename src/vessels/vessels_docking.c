@@ -21,7 +21,6 @@
 
 /* External variables */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct room_data *world;
 
 /* Docking constants */
 #define MAX_DOCKING_RANGE 2.0 /* Maximum distance for docking */
@@ -35,7 +34,7 @@ extern struct room_data *world;
 /* Check if two ships are in docking range */
 bool ships_in_docking_range(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2)
 {
-  float distance;
+  double distance;
 
   VSSL_DEBUG_ENTER("ships_in_docking_range");
 

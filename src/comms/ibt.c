@@ -58,7 +58,8 @@ struct ibt_output_buffer
   bool failed;
 };
 
-static bool append_ibt_output(struct ibt_output_buffer *output, const char *format, ...)
+__attribute__((format(printf, 2, 3))) static bool
+append_ibt_output(struct ibt_output_buffer *output, const char *format, ...)
 {
   va_list args;
   char *resized;
@@ -178,7 +179,7 @@ static IBT_DATA *read_ibt(char *filename, FILE *fp)
 
   do
   {
-    letter = getc(fp);
+    letter = (char)getc(fp);
     if (feof(fp))
     {
       fclose(fp);
@@ -409,7 +410,7 @@ void save_ibt_file(int mode)
       if (ibtData->dated != 0)
         fprintf(fp, "Dated     %ld\n", ibtData->dated);
       fprintf(fp, "Level     %d\n", ibtData->level);
-      fprintf(fp, "Room      %d\n", ibtData->room);
+      fprintf(fp, "Room      %d\n", (int)ibtData->room);
       fprintf(fp, "Flags     %d %d %d %d\n", ibtData->flags[0], ibtData->flags[1],
               ibtData->flags[2], ibtData->flags[3]);
       fprintf(fp, "End\n");
@@ -463,7 +464,7 @@ static IBT_DATA *get_last_ibt(int mode)
   return (last_ibt);
 }
 
-IBT_DATA *get_ibt_by_num(int mode, int target_num)
+static IBT_DATA *get_ibt_by_num(int mode, int target_num)
 {
   int no = 0;
   IBT_DATA *target_ibt, *first_ibt;
@@ -483,7 +484,7 @@ IBT_DATA *get_ibt_by_num(int mode, int target_num)
 }
 
 /* Search the IBT list, and return true if ibt is found there */
-bool ibt_in_list(int mode, IBT_DATA *ibt)
+static bool ibt_in_list(int mode, IBT_DATA *ibt)
 {
   IBT_DATA *target_ibt, *first_ibt;
 
@@ -502,7 +503,7 @@ bool ibt_in_list(int mode, IBT_DATA *ibt)
 
 /* Free up an IBT struct, removing it from the list if necessary
    returns TRUE on success  */
-bool free_ibt(int mode, IBT_DATA *ibtData)
+static bool free_ibt(int mode, IBT_DATA *ibtData)
 {
   if (ibtData == NULL)
     return FALSE;
@@ -587,15 +588,6 @@ ACMD(do_ibt)
                    CMD_NAME, QNRM, QBYEL, CMD_NAME, QNRM, QBYEL, CMD_NAME, QNRM);
       return;
     }
-    else if (GET_LEVEL(ch) >= LVL_IMMORT)
-    {
-      send_to_char(ch,
-                   "Usage: %s%s submit <header>%s\r\n"
-                   "       %s%s list%s\r\n"
-                   "       %s%s show <num>%s\r\n",
-                   QBYEL, CMD_NAME, QNRM, QBYEL, CMD_NAME, QNRM, QBYEL, CMD_NAME, QNRM);
-      return;
-    }
     else
     {
       send_to_char(ch,
@@ -639,7 +631,7 @@ ACMD(do_ibt)
         if (GET_LEVEL(ch) >= LVL_IMMORT)
         {
           send_to_char(ch, "%sLevel: %s%d\r\n", QCYN, QBYEL, ibtData->level);
-          send_to_char(ch, "%sRoom : %s%d\r\n", QCYN, QBYEL, ibtData->room);
+          send_to_char(ch, "%sRoom : %s%" PRI_IDX "\r\n", QCYN, QBYEL, ibtData->room);
         }
         send_to_char(ch, "%sTitle: %s%s\r\n", QCYN, QBYEL, ibtData->text);
         send_to_char(ch, "%s%s Details%s\r\n%s\r\n", QCYN, ibt_types[subcmd], QBYEL, ibtData->body);
@@ -699,8 +691,8 @@ ACMD(do_ibt)
           else
           {
             append_ibt_output(&output, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n", imp, QGRN,
-                              i, QGRN, QGRN, ibtData->name, QGRN, QGRN, ibtData->room, QGRN, QGRN,
-                              ibtData->level, QGRN, QGRN, ibtData->text, QNRM);
+                              i, QGRN, QGRN, ibtData->name, QGRN, QGRN, (int)ibtData->room, QGRN,
+                              QGRN, ibtData->level, QGRN, QGRN, ibtData->text, QNRM);
           }
           num_res++;
         }
@@ -714,7 +706,7 @@ ACMD(do_ibt)
           else
           {
             append_ibt_output(&output, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n", imp, QBYEL,
-                              i, QGRN, QBYEL, ibtData->name, QGRN, QBYEL, ibtData->room, QGRN,
+                              i, QGRN, QBYEL, ibtData->name, QGRN, QBYEL, (int)ibtData->room, QGRN,
                               QBYEL, ibtData->level, QGRN, QBYEL, ibtData->text, QNRM);
           }
           num_unres++;
@@ -729,8 +721,8 @@ ACMD(do_ibt)
           else
           {
             append_ibt_output(&output, "%s%s%3d%s|%s%-12s%s|%s%6d%s|%s%5d%s|%s%s%s\r\n", imp, QRED,
-                              i, QGRN, QRED, ibtData->name, QGRN, QRED, ibtData->room, QGRN, QRED,
-                              ibtData->level, QGRN, QRED, ibtData->text, QNRM);
+                              i, QGRN, QRED, ibtData->name, QGRN, QRED, (int)ibtData->room, QGRN,
+                              QRED, ibtData->level, QGRN, QRED, ibtData->text, QNRM);
           }
           num_unres++;
         }
@@ -1027,7 +1019,8 @@ ACMD(do_oasis_ibtedit)
   act("$n starts using OLC.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing %s %d", GET_NAME(ch), IBT_TYPE, OLC_NUM(d));
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing %s %" PRI_IDX, GET_NAME(ch), IBT_TYPE,
+         OLC_NUM(d));
 }
 
 /*-------------------------------------------------------------------*/
@@ -1117,7 +1110,7 @@ static void ibtedit_save(struct descriptor_data *d)
   }
   else
   {
-    log("SYSERR: ibtedit_save: Invalid IBT vnum (%d) in OLC struct", OLC_NUM(d));
+    log("SYSERR: ibtedit_save: Invalid IBT vnum (%" PRI_IDX ") in OLC struct", OLC_NUM(d));
     log("        IBT possibly removed while being edited");
     return;
   }
@@ -1170,9 +1163,9 @@ static void ibtedit_disp_main_menu(struct descriptor_data *d)
 
   send_to_char(
       ch,
-      "%s-- Edit %s Number %s[%s%d%s]\r\n"
+      "%s-- Edit %s Number %s[%s%" PRI_IDX "%s]\r\n"
       "%s1%s) Reported By: %s%-12s\r\n"
-      "%s2%s) Reported In: %s[%s%-5d%s]%s - %s%s\r\n"
+      "%s2%s) Reported In: %s[%s%-5" PRI_IDX "%s]%s - %s%s\r\n"
       "%s3%s) Header Text: %s%s\r\n"
       "%s4%s) Flags      : %s%s\r\n"
       "%s5%s) Details:\r\n%s%s\r\n"
@@ -1220,7 +1213,7 @@ void ibtedit_parse(struct descriptor_data *d, char *arg)
     case 'Y':
       /* Save the IBT in memory and to disk. */
       ibtedit_save(d);
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits %s %d",
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits %s %" PRI_IDX,
              GET_NAME(d->character), IBT_TYPE, OLC_NUM(d));
       write_to_output(d, "%s saved.\r\n", IBT_TYPE);
       cleanup_olc(d, CLEANUP_ALL);

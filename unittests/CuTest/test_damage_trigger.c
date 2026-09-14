@@ -53,7 +53,7 @@ static void damage_trigger_initialize_npc(struct char_data *ch, const char *name
   clear_char(ch);
   SET_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
   ch->player_specials = &dummy_mob;
-  ch->player.short_descr = (char *)name;
+  ch->player.short_descr = CuMutableString(name);
   GET_LEVEL(ch) = 10;
   GET_POS(ch) = POS_STANDING;
   GET_HIT(ch) = 100;
@@ -81,8 +81,8 @@ static bool damage_trigger_fixture_begin(struct damage_trigger_fixture *fixture)
   fixture->room.number = 100;
   fixture->room.zone = 0;
   fixture->room.sector_type = SECT_INSIDE;
-  fixture->room.name = "Damage trigger test room";
-  fixture->room.description = "A production-linked damage trigger test room.\r\n";
+  fixture->room.name = CuMutableString("Damage trigger test room");
+  fixture->room.description = CuMutableString("A production-linked damage trigger test room.\r\n");
   fixture->zone.number = 0;
   fixture->zone.bot = 100;
   fixture->zone.top = 199;
@@ -97,7 +97,7 @@ static bool damage_trigger_fixture_begin(struct damage_trigger_fixture *fixture)
   mob_index = &fixture->mobile_index;
   top_of_mobt = 0;
   damage_trigger_initialize_npc(&fixture->mobile_prototype, "damage trigger dynamic mob");
-  fixture->mobile_prototype.player.name = "damage trigger dynamic";
+  fixture->mobile_prototype.player.name = CuMutableString("damage trigger dynamic");
   fixture->mobile_prototype.nr = 0;
   GET_PSP(&fixture->mobile_prototype) = 100;
   mob_proto = &fixture->mobile_prototype;
@@ -333,21 +333,21 @@ void Test_damage_trigger_olc_uses_attachment_specific_type_counts(CuTest *tc)
   trigger.attach_type = MOB_TRIGGER;
   damage_trigger_reset_output(&descriptor);
 
-  trigedit_parse(&descriptor, "21");
+  trigedit_parse(&descriptor, CuMutableString("21"));
   CuAssertTrue(tc, IS_SET(GET_TRIG_TYPE(&trigger), MTRIG_DAMAGE));
-  trigedit_parse(&descriptor, "21");
+  trigedit_parse(&descriptor, CuMutableString("21"));
   CuAssertTrue(tc, !IS_SET(GET_TRIG_TYPE(&trigger), MTRIG_DAMAGE));
 
   trigger.attach_type = OBJ_TRIGGER;
   damage_trigger_reset_output(&descriptor);
-  trigedit_parse(&descriptor, "21");
+  trigedit_parse(&descriptor, CuMutableString("21"));
   CuAssertTrue(tc, !IS_SET(GET_TRIG_TYPE(&trigger), MTRIG_DAMAGE));
   CuAssertPtrNotNull(tc, strstr(descriptor.output, "20)"));
   CuAssertTrue(tc, strstr(descriptor.output, "21)") == NULL);
 
   trigger.attach_type = WLD_TRIGGER;
   damage_trigger_reset_output(&descriptor);
-  trigedit_parse(&descriptor, "21");
+  trigedit_parse(&descriptor, CuMutableString("21"));
   CuAssertTrue(tc, !IS_SET(GET_TRIG_TYPE(&trigger), MTRIG_DAMAGE));
   CuAssertPtrNotNull(tc, strstr(descriptor.output, "20)"));
   CuAssertTrue(tc, strstr(descriptor.output, "21)") == NULL);
@@ -382,7 +382,7 @@ void Test_damage_trigger_olc_flag_serializes_and_reloads_as_u(CuTest *tc)
   trigger.attach_type = MOB_TRIGGER;
   damage_trigger_reset_output(&descriptor);
 
-  trigedit_parse(&descriptor, "21");
+  trigedit_parse(&descriptor, CuMutableString("21"));
   sprintascii(flags, GET_TRIG_TYPE(&trigger));
   started = damage_trigger_fixture_begin(&fixture);
   added = started &&
@@ -543,7 +543,7 @@ static void damage_trigger_verify_wait_loop(CuTest *tc, bool explicit_wait)
                        : "set progress 0\nwhile 1\n"
                          "eval progress %progress% + 1\nglobal progress\ndone\n"
                          "set finished 1\nglobal finished";
-  saved_pulse = pulse;
+  saved_pulse = (int)pulse;
   event_free_all();
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   event_init();

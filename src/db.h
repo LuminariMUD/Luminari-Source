@@ -373,6 +373,10 @@ void free_char(struct char_data *ch);
 const char *player_file_account_name(const struct char_data *ch);
 #ifdef LUMINARI_CUTEST
 bool apply_clone_owner_identity_for_test(struct char_data *mob, const char *owner_name);
+char *serialize_pet_runtime_state_for_test(struct char_data *pet);
+bool restore_pet_runtime_state_for_test(struct char_data *pet, const char *serialized);
+char *build_pet_keyword_list_for_test(const char *saved_keywords, const char *prototype_keywords);
+void reset_pet_save_cache_for_test(void);
 bool pet_object_graph_valid_for_test(struct char_data *ch, const obj_save_data *records);
 void load_legacy_events_for_test(FILE *fl, struct char_data *ch);
 bool skip_durable_event_section_for_test(FILE *fl);
@@ -427,6 +431,8 @@ void setup_dir(FILE *fl, room_rnum room, int dir);
 void index_boot(int mode);
 #ifdef LUMINARI_CUTEST
 void test_load_zones(FILE *fl, char *zonename);
+void test_interpret_mobile_espec(const char *keyword, const char *value, int i, int nr);
+bool test_rol_reset_remove_mobile(room_rnum room, mob_rnum mob_num, bool combat_guard);
 #endif
 void discrete_load(FILE *fl, int mode, char *filename);
 void parse_room(FILE *fl, int virtual_nr, const char *filename);
@@ -524,10 +530,6 @@ extern struct char_data *character_list;
 extern struct index_data *mob_index;
 extern struct char_data *mob_proto;
 extern mob_rnum top_of_mobt;
-#ifdef LUMINARI_CUTEST
-void test_interpret_mobile_espec(const char *keyword, const char *value, int i, int nr);
-bool test_rol_reset_remove_mobile(room_rnum room, mob_rnum mob_num, bool combat_guard);
-#endif
 
 extern struct index_data *obj_index;
 extern struct obj_data *object_list;
@@ -570,5 +572,7 @@ extern long top_idnum;
 /* end previously located in players.c */
 
 #endif /* __DB_C__ */
+
+void update_player_last_on(void);
 
 #endif /* _DB_H_ */

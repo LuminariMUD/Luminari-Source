@@ -64,7 +64,7 @@ static void add_weapon_special_ability(int specab, const char *name, int level, 
   special_ability_info[specab].level = level;
   special_ability_info[specab].activation_method = actmtd;
   special_ability_info[specab].targets = targets;
-  special_ability_info[specab].violent = violent;
+  special_ability_info[specab].violent = (byte)violent;
   special_ability_info[specab].name = name;
   special_ability_info[specab].time = time;
   special_ability_info[specab].school = school;
@@ -80,7 +80,7 @@ static void add_armor_special_ability(int specab, const char *name, int level, i
   special_ability_info[specab].level = level;
   special_ability_info[specab].activation_method = actmtd;
   special_ability_info[specab].targets = targets;
-  special_ability_info[specab].violent = violent;
+  special_ability_info[specab].violent = (byte)violent;
   special_ability_info[specab].name = name;
   special_ability_info[specab].time = time;
   special_ability_info[specab].school = school;
@@ -96,7 +96,7 @@ static void add_item_special_ability(int specab, const char *name, int level, in
   special_ability_info[specab].level = level;
   special_ability_info[specab].activation_method = actmtd;
   special_ability_info[specab].targets = targets;
-  special_ability_info[specab].violent = violent;
+  special_ability_info[specab].violent = (byte)violent;
   special_ability_info[specab].name = name;
   special_ability_info[specab].time = time;
   special_ability_info[specab].school = school;
@@ -104,7 +104,7 @@ static void add_item_special_ability(int specab, const char *name, int level, in
   special_ability_info[specab].special_ability_proc = specab_proc;
 }
 
-void daily_item_specab(int specab, event_id event, int daily_uses)
+static void daily_item_specab(int specab, event_id event, int daily_uses)
 {
   special_ability_info[specab].daily_uses = daily_uses;
   special_ability_info[specab].event = event;
@@ -303,7 +303,7 @@ void initialize_special_abilities(void)
                              0, EVOCATION, 2, weapon_specab_wounding);
 }
 
-bool obj_has_special_ability(struct obj_data *obj, int ability)
+bool obj_has_special_ability(const struct obj_data *obj, int ability)
 {
   struct obj_special_ability *specab = NULL;
 
@@ -1131,6 +1131,7 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding)
     if (!ch->mute_equip_messages)
       send_to_char(ch, "The shield speaks in your mind, \"I will blind your enemies!  Utter "
                        "'Lumia'!  FOR LUMIA!\"\r\n");
+    break;
   default:
     /* Do nothing. */
     break;

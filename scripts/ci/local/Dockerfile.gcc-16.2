@@ -1,0 +1,12 @@
+# Local image for the jobs test.yml runs inside the official gcc:16.2
+# container.  Build it with:
+#   docker build -t luminari-ci:local-gcc-16.2 -f scripts/ci/local/Dockerfile.gcc-16.2 .
+FROM gcc:16.2
+ENV DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8 LC_ALL=C.UTF-8
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    autoconf automake ca-certificates ccache cmake curl git iproute2 libcurl4-openssl-dev \
+    libevent-dev libgd-dev libjson-c-dev libmariadb-dev libssl-dev libtool mariadb-client \
+    mariadb-server netcat-openbsd pandoc pkg-config procps python3 python3-yaml ripgrep sudo time \
+    zlib1g-dev && rm -rf /var/lib/apt/lists/*
+ENV PATH=/usr/lib/ccache:$PATH
+USER 1000:1000

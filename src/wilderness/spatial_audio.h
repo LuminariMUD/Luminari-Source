@@ -16,11 +16,11 @@
 #include "spatial_core.h"
 
 /* Audio-specific constants */
-#define AUDIO_BASE_RANGE 1500.0f
-#define AUDIO_ECHO_RANGE 800.0f
-#define AUDIO_WHISPER_RANGE 50.0f
-#define AUDIO_SHOUT_RANGE 500.0f
-#define AUDIO_THUNDER_RANGE 3000.0f
+#define AUDIO_BASE_RANGE 1500.0
+#define AUDIO_ECHO_RANGE 800.0
+#define AUDIO_WHISPER_RANGE 50.0
+#define AUDIO_SHOUT_RANGE 500.0
+#define AUDIO_THUNDER_RANGE 3000.0
 
 /* Audio message types based on intensity and characteristics */
 typedef enum
@@ -58,6 +58,6 @@ extern struct spatial_system audio_system;
 /* Audio system functions */
 int spatial_audio_init(void);
 int spatial_audio_emit(int source_x, int source_y, int source_z, const char *sound_desc,
-                       float intensity, int frequency, int range);
+                       double intensity, int frequency, int range);
 
 #endif /* _SPATIAL_AUDIO_H_ */

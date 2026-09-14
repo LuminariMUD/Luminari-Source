@@ -30,7 +30,6 @@
 #define DEBUG_MODE FALSE
 
 static long next_bardic_performance_source_id = 1;
-extern int performance_info[MAX_PERFORMANCES][PERFORMANCE_INFO_FIELDS];
 
 static int process_bardic_performance_slot_internal(struct char_data *ch, int slot,
                                                     bool check_stutter);
@@ -520,7 +519,7 @@ static void normalize_bardic_performance_state(struct char_data *ch)
 }
 
 /* will list to the performer which performances are available to them */
-void list_available_performances(struct char_data *ch)
+static void list_available_performances(struct char_data *ch)
 {
   int i = 0;
 

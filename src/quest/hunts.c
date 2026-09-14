@@ -33,8 +33,6 @@
  *
  */
 
-extern struct char_data *character_list;
-extern struct room_data *world;
 
 struct hunt_type hunt_table[NUM_HUNT_TYPES];
 /* active hunts:
@@ -46,9 +44,9 @@ int active_hunts[AHUNT_1][AHUNT_2];
 int hunt_reset_timer;
 static uint64_t hunt_generation = 1U;
 
-void add_hunt(int hunt_type, int level, const char *name, const char *description,
-              const char *long_description, int char_class, int alignment, int race_type,
-              int subrace1, int subrace2, int subrace3, int size)
+static void add_hunt(int hunt_type, int level, const char *name, const char *description,
+                     const char *long_description, int char_class, int alignment, int race_type,
+                     int subrace1, int subrace2, int subrace3, int size)
 {
   hunt_table[hunt_type].level = level;
   hunt_table[hunt_type].name = name;
@@ -63,12 +61,12 @@ void add_hunt(int hunt_type, int level, const char *name, const char *descriptio
   hunt_table[hunt_type].size = size;
 }
 
-void add_hunt_ability(int hunt_type, int ability)
+static void add_hunt_ability(int hunt_type, int ability)
 {
   hunt_table[hunt_type].abilities[ability] = true;
 }
 
-void init_hunts(void)
+static void init_hunts(void)
 {
   int i = 0, j = 0;
   for (i = 0; i < NUM_HUNT_TYPES; i++)
@@ -445,7 +443,7 @@ void create_hunt_mob(room_rnum room, int which_hunt)
 
   sprintf(mob_descs, "\tn%s %s", AN(hunt_table[which_hunt].name), hunt_table[which_hunt].name);
   for (i = 0; (size_t)i < strlen(mob_descs); i++)
-    mob_descs[i] = tolower(mob_descs[i]);
+    mob_descs[i] = (char)tolower(mob_descs[i]);
   mob->player.short_descr = strdup(mob_descs);
 
   if (!strcmp(hunt_table[which_hunt].long_description, "Nothing"))
@@ -474,9 +472,9 @@ void create_hunt_mob(room_rnum room, int which_hunt)
 
   // set mob details
   GET_REAL_RACE(mob) = hunt_table[which_hunt].race_type;
-  GET_SUBRACE(mob, 0) = hunt_table[which_hunt].subrace[0];
-  GET_SUBRACE(mob, 1) = hunt_table[which_hunt].subrace[1];
-  GET_SUBRACE(mob, 2) = hunt_table[which_hunt].subrace[2];
+  GET_SUBRACE(mob, 0) = (byte)hunt_table[which_hunt].subrace[0];
+  GET_SUBRACE(mob, 1) = (byte)hunt_table[which_hunt].subrace[1];
+  GET_SUBRACE(mob, 2) = (byte)hunt_table[which_hunt].subrace[2];
   mob->mob_specials.hunt_cooldown = -1;
   mob->mob_specials.hunt_generation = hunt_generation;
   mob->mob_specials.hunt_type = which_hunt;
@@ -488,7 +486,7 @@ void create_hunt_mob(room_rnum room, int which_hunt)
   award_set_points(mob, AWARD_EXPERIENCE, (GET_LEVEL(mob) * GET_LEVEL(mob) * 500));
   award_set_points(mob, AWARD_GOLD, (GET_LEVEL(mob) * 100));
   set_alignment(mob, hunt_table[which_hunt].alignment);
-  GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 7.5;
+  GET_REAL_MAX_HIT(mob) = (int)(GET_REAL_MAX_HIT(mob) * 7.5);
   GET_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob);
   GET_HIT(mob) = GET_MAX_HIT(mob);
   GET_HITROLL(mob) += GET_LEVEL(mob) / 5;
@@ -852,23 +850,23 @@ SPECIAL(huntsmaster)
                affected_bits[hunts_special_armor_type(GET_OBJ_VAL(obj1, 0))]);
       for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
-        objdesc[i] = tolower(objdesc[i]);
+        objdesc[i] = (char)tolower(objdesc[i]);
       }
       obj2->name = strdup(objdesc);
       snprintf(objdesc, sizeof(objdesc), "%s %s of %s", AN(subdesc), subdesc,
                affected_bits[hunts_special_armor_type(GET_OBJ_VAL(obj1, 0))]);
       for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
-        objdesc[i] = tolower(objdesc[i]);
+        objdesc[i] = (char)tolower(objdesc[i]);
       }
       obj2->short_description = strdup(objdesc);
       snprintf(objdesc, sizeof(objdesc), "%s %s of %s lies here.", AN(subdesc), subdesc,
                affected_bits[hunts_special_armor_type(GET_OBJ_VAL(obj1, 0))]);
       for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
-        objdesc[i] = tolower(objdesc[i]);
+        objdesc[i] = (char)tolower(objdesc[i]);
       }
-      objdesc[0] = toupper(objdesc[0]);
+      objdesc[0] = (char)toupper(objdesc[0]);
       obj2->description = strdup(objdesc);
 
       // set wear slot
@@ -896,23 +894,23 @@ SPECIAL(huntsmaster)
                special_ability_info[hunts_special_weapon_type(GET_OBJ_VAL(obj1, 0))].name);
       for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
-        objdesc[i] = tolower(objdesc[i]);
+        objdesc[i] = (char)tolower(objdesc[i]);
       }
       obj2->name = strdup(objdesc);
       snprintf(objdesc, sizeof(objdesc), "a vial of -%s- weapon oil",
                special_ability_info[hunts_special_weapon_type(GET_OBJ_VAL(obj1, 0))].name);
       for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
-        objdesc[i] = tolower(objdesc[i]);
+        objdesc[i] = (char)tolower(objdesc[i]);
       }
       obj2->short_description = strdup(objdesc);
       snprintf(objdesc, sizeof(objdesc), "A vial of -%s- weapon oil lies here.",
                special_ability_info[hunts_special_weapon_type(GET_OBJ_VAL(obj1, 0))].name);
       for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
-        objdesc[i] = tolower(objdesc[i]);
+        objdesc[i] = (char)tolower(objdesc[i]);
       }
-      objdesc[0] = toupper(objdesc[0]);
+      objdesc[0] = (char)toupper(objdesc[0]);
       obj2->description = strdup(objdesc);
 
       GET_OBJ_TYPE(obj2) = ITEM_WEAPON_OIL;
@@ -1388,31 +1386,32 @@ bool weapon_specab_desc_position(int specab)
   return false;
 }
 
-bool is_weapon_specab_compatible(struct char_data *ch, int weapon_type, int specab, bool output)
+bool is_weapon_specab_compatible(struct char_data *ch, int weapon_type_value, int specab,
+                                 bool output)
 {
   switch (specab)
   {
   case WEAPON_SPECAB_SEEKING:
-    if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED | WEAPON_FLAG_THROWN))
+    if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_RANGED | WEAPON_FLAG_THROWN))
       return true;
     if (output)
       send_to_char(ch, "This weapon ability can only be added to ranged or thrown weapons.\r\n");
     return false;
   case WEAPON_SPECAB_ADAPTIVE:
-    if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+    if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_RANGED))
       return true;
     if (output)
       send_to_char(ch, "This weapon ability can only be added to ranged weapons.\r\n");
     return false;
   case WEAPON_SPECAB_VORPAL:
-    if (weapon_list[weapon_type].damageTypes == DAMAGE_TYPE_SLASHING &&
-        !IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+    if (weapon_list[weapon_type_value].damageTypes == DAMAGE_TYPE_SLASHING &&
+        !IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_RANGED))
       return true;
     if (output)
       send_to_char(ch, "This weapon ability can only be added to slashing melee weapons.\r\n");
     return false;
   default:
-    if (!IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+    if (!IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_RANGED))
       return true;
     if (output)
       send_to_char(ch, "This weapon ability can only be added to melee weapons.\r\n");

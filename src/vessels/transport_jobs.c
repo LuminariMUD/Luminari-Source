@@ -78,7 +78,8 @@ int transport_remaining_seconds(const struct char_data *ch)
     return 0;
   job = ch->player_specials->transport_job;
   if (job != NULL && event_runtime_remaining(job->timer, &ticks) == GAME_SCHEDULER_OK)
-    return (int)MIN((game_tick_t)INT_MAX, ticks / PASSES_PER_SEC + (ticks % PASSES_PER_SEC != 0));
+    return (int)u64_min((game_tick_t)INT_MAX,
+                        ticks / PASSES_PER_SEC + (ticks % PASSES_PER_SEC != 0));
   return MAX(0, ch->player_specials->travel_timer);
 }
 
@@ -206,7 +207,7 @@ bool transport_job_start(struct char_data *ch, room_rnum transit, room_rnum dest
   owner.runtime_id = job->passenger.runtime_id;
   owner.generation = job->passenger.generation;
   status = event_runtime_schedule_owned_after(
-      arrival_type, owner, MAX((game_tick_t)1, (game_tick_t)seconds * PASSES_PER_SEC), job,
+      arrival_type, owner, u64_max((game_tick_t)1, (game_tick_t)seconds * PASSES_PER_SEC), job,
       &job->timer);
   if (status != GAME_SCHEDULER_OK)
   {

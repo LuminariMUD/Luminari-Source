@@ -19,11 +19,7 @@
 #include "wilderness/wilderness.h"
 #include "constants.h"
 
-extern MYSQL *conn;
-extern bool mysql_available;
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct char_data *character_list;
-extern struct room_data *world;
 
 #define VESSEL_HUNTER_BOUNTY_CHECK_INTERVAL 20
 #define VESSEL_HUNTER_RUNTIME_SAVE_INTERVAL 10
@@ -650,7 +646,7 @@ bool vessel_hunter_spawn(struct greyhawk_ship_data *target,
     return FALSE;
   }
 
-  hunter->speed = MIN(config->pursuit_speed, MAX(1, hunter->maxspeed));
+  hunter->speed = (short)MIN(config->pursuit_speed, MAX(1, hunter->maxspeed));
   hunter->setspeed = hunter->speed;
   vessel_hunter_attach_runtime(hunter, target_name, target->shipnum,
                                now + config->hunt_duration_seconds, config);
@@ -836,7 +832,7 @@ void vessel_hunter_boot(void)
 
     vessel_hunter_attach_runtime(hunter, row->target_player, row->target_ship_id, row->expires_at,
                                  &row->config);
-    hunter->speed = MIN(row->config.pursuit_speed, MAX(1, hunter->maxspeed));
+    hunter->speed = (short)MIN(row->config.pursuit_speed, MAX(1, hunter->maxspeed));
     hunter->setspeed = hunter->speed;
     vessel_db_save_runtime(hunter);
     attached++;
@@ -991,8 +987,8 @@ void vessel_hunter_tick_one(struct greyhawk_ship_data *hunter)
   hunter->hunter_target_ship_id = target->shipnum;
   hunter->last_attacker = target->shipnum;
   speed = MIN(hunter->hunter_pursuit_speed, MAX(1, hunter->maxspeed));
-  hunter->speed = speed;
-  hunter->setspeed = speed;
+  hunter->speed = (short)speed;
+  hunter->setspeed = (short)speed;
   hunter->setheading = (short int)greyhawk_bearing(hunter->x, hunter->y, target->x, target->y);
   hunter->heading = hunter->setheading;
 
@@ -1000,7 +996,7 @@ void vessel_hunter_tick_one(struct greyhawk_ship_data *hunter)
   waypoint.x = target->x;
   waypoint.y = target->y;
   waypoint.z = target->z;
-  if (vessel_autopilot_next_position(hunter, &waypoint, (float)speed, &target_x, &target_y,
+  if (vessel_autopilot_next_position(hunter, &waypoint, (double)speed, &target_x, &target_y,
                                      &target_z) &&
       (target_x != (int)hunter->x || target_y != (int)hunter->y || target_z != (int)hunter->z))
   {

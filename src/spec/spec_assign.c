@@ -49,7 +49,7 @@ void spec_assign_mobile(mob_vnum mob, spec_legacy_handler handler, const char *s
                              (unsigned int)mob, handler, symbol, source_location);
   }
   else if (!mini_mud)
-    log("SYSERR: Attempt to assign spec to non-existant mob #%d", mob);
+    log("SYSERR: Attempt to assign spec to non-existant mob #%" PRI_IDX, mob);
 }
 
 void spec_assign_object(obj_vnum obj, spec_legacy_handler handler, const char *symbol,
@@ -64,7 +64,7 @@ void spec_assign_object(obj_vnum obj, spec_legacy_handler handler, const char *s
                              (unsigned int)obj, handler, symbol, source_location);
   }
   else if (!mini_mud)
-    log("SYSERR: Attempt to assign spec to non-existant obj #%d", obj);
+    log("SYSERR: Attempt to assign spec to non-existant obj #%" PRI_IDX, obj);
 }
 
 void spec_assign_room(room_vnum room, spec_legacy_handler handler, const char *symbol,
@@ -79,7 +79,7 @@ void spec_assign_room(room_vnum room, spec_legacy_handler handler, const char *s
                              handler, symbol, source_location);
   }
   else if (!mini_mud)
-    log("SYSERR: Attempt to assign spec to non-existant room #%d", room);
+    log("SYSERR: Attempt to assign spec to non-existant room #%" PRI_IDX, room);
 }
 
 /* eof */

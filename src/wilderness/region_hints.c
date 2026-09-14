@@ -21,9 +21,6 @@
 
 
 /* External function declarations */
-extern struct region_list *get_enclosing_regions(zone_rnum zone, int x, int y);
-extern void free_region_list(struct region_list *regions);
-extern int get_weather(int x, int y);
 extern char *generate_resource_aware_description(struct char_data *ch, room_rnum room);
 
 /* Global variables */
@@ -34,7 +31,7 @@ time_t region_hint_cache_time = 0;
 /*                         CORE HINT MANAGEMENT                          */
 /* ====================================================================== */
 
-struct region_hint *load_region_hints(int region_vnum)
+struct region_hint *load_region_hints(int region_vnum_id)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -55,7 +52,7 @@ struct region_hint *load_region_hints(int region_vnum)
            "FROM region_hints "
            "WHERE region_vnum = %d AND is_active = TRUE "
            "ORDER BY priority DESC, id ASC",
-           region_vnum);
+           region_vnum_id);
 
   if (mysql_pool_query(query, &result))
   {
@@ -106,7 +103,7 @@ struct region_hint *load_region_hints(int region_vnum)
   return hints;
 }
 
-struct region_profile *load_region_profile(int region_vnum)
+struct region_profile *load_region_profile(int region_vnum_id)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -123,7 +120,7 @@ struct region_profile *load_region_profile(int region_vnum)
            "SELECT region_vnum, overall_theme, dominant_mood, key_characteristics, "
            "description_style, complexity_level, UNIX_TIMESTAMP(created_at) "
            "FROM region_profiles WHERE region_vnum = %d",
-           region_vnum);
+           region_vnum_id);
 
   if (mysql_pool_query(query, &result))
   {
@@ -208,14 +205,14 @@ char *enhance_wilderness_description_with_hints(struct char_data *ch, room_rnum 
   struct region_profile *profile = NULL;
   struct description_context context;
   char *enhanced_desc = NULL;
-  int region_vnum = NOWHERE;
+  int region_vnum_id = NOWHERE;
 
-  log("DEBUG: enhance_wilderness_description_with_hints called for room %d", GET_ROOM_VNUM(room));
+  log("DEBUG: enhance_wilderness_description_with_hints called for room %u", GET_ROOM_VNUM(room));
 
   /* Only enhance wilderness rooms for now */
   if (!IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room)))
   {
-    log("DEBUG: Room %d is not wilderness, returning NULL", GET_ROOM_VNUM(room));
+    log("DEBUG: Room %u is not wilderness, returning NULL", GET_ROOM_VNUM(room));
     return NULL;
   }
 
@@ -244,18 +241,18 @@ char *enhance_wilderness_description_with_hints(struct char_data *ch, room_rnum 
     if (curr_region->rnum != NOWHERE && curr_region->rnum <= top_of_region_table)
     {
       int region_type = region_table[curr_region->rnum].region_type;
-      log("DEBUG: Found region vnum %d (type %d) from region_table[%d]",
+      log("DEBUG: Found region vnum %" PRI_IDX " (type %d) from region_table[%" PRI_IDX "]",
           region_table[curr_region->rnum].vnum, region_type, curr_region->rnum);
 
       if (region_type == 1)
       { /* Geographic region */
         geographic_region = curr_region;
-        log("DEBUG: Found geographic region vnum %d", region_table[curr_region->rnum].vnum);
+        log("DEBUG: Found geographic region vnum %" PRI_IDX, region_table[curr_region->rnum].vnum);
       }
       else if (region_type == 2)
       { /* Encounter region */
         encounter_region = curr_region;
-        log("DEBUG: Found encounter region vnum %d", region_table[curr_region->rnum].vnum);
+        log("DEBUG: Found encounter region vnum %" PRI_IDX, region_table[curr_region->rnum].vnum);
       }
     }
     curr_region = curr_region->next;
@@ -279,21 +276,21 @@ char *enhance_wilderness_description_with_hints(struct char_data *ch, room_rnum 
     return NULL;
   }
 
-  region_vnum = region_table[best_region->rnum].vnum;
-  log("DEBUG: Selected region vnum %d from region_table[%d] for hints", region_vnum,
+  region_vnum_id = region_table[best_region->rnum].vnum;
+  log("DEBUG: Selected region vnum %d from region_table[%" PRI_IDX "] for hints", region_vnum_id,
       best_region->rnum);
 
   /* Load hints and profile for this region */
-  hints = load_region_hints(region_vnum);
-  profile = load_region_profile(region_vnum);
+  hints = load_region_hints(region_vnum_id);
+  profile = load_region_profile(region_vnum_id);
 
   log("DEBUG: Loaded %s hints and %s profile for region %d", hints ? "valid" : "no",
-      profile ? "valid" : "no", region_vnum);
+      profile ? "valid" : "no", region_vnum_id);
 
   /* If no hints available, fall back to default */
   if (!hints)
   {
-    log("DEBUG: No hints available for region %d, falling back to default", region_vnum);
+    log("DEBUG: No hints available for region %d, falling back to default", region_vnum_id);
     if (profile)
       free_region_profile(profile);
     free_region_list(regions);
@@ -606,7 +603,7 @@ void log_hint_usage(int hint_id, room_rnum room, struct char_data *ch,
   snprintf(query, sizeof(query),
            "INSERT INTO hint_usage_log (hint_id, room_vnum, player_id, weather_condition, season, "
            "time_of_day) "
-           "VALUES (%d, %d, %ld, '%s', '%s', '%s')",
+           "VALUES (%d, %" PRI_IDX ", %ld, '%s', '%s', '%s')",
            hint_id, world[room].number, ch ? GET_IDNUM(ch) : 0L, weather_str, season_str, time_str);
 
   /* Try to log hint usage - don't worry if it fails */
@@ -618,7 +615,7 @@ void log_hint_usage(int hint_id, room_rnum room, struct char_data *ch,
   }
 }
 
-char *get_hint_category_name(int category)
+const char *get_hint_category_name(int category)
 {
   switch (category)
   {

@@ -194,19 +194,19 @@ void TestBackgroundSortKeepsEveryPlayableBackgroundInBounds(CuTest *tc)
 
   for (position = 1; position < NUM_BACKGROUNDS; position++)
   {
-    int background = background_sort_info[position];
+    int background_value = background_sort_info[position];
 
-    CuAssertTrue(tc, background > BACKGROUND_NONE);
-    CuAssertTrue(tc, background < NUM_BACKGROUNDS);
-    CuAssertTrue(tc, !seen[background]);
-    seen[background] = TRUE;
+    CuAssertTrue(tc, background_value > BACKGROUND_NONE);
+    CuAssertTrue(tc, background_value < NUM_BACKGROUNDS);
+    CuAssertTrue(tc, !seen[background_value]);
+    seen[background_value] = TRUE;
 
     if (position > 1)
     {
       int previous = background_sort_info[position - 1];
 
-      CuAssertTrue(tc,
-                   strcmp(background_list[previous].name, background_list[background].name) <= 0);
+      CuAssertTrue(
+          tc, strcmp(background_list[previous].name, background_list[background_value].name) <= 0);
     }
   }
 
@@ -225,7 +225,7 @@ void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
   int seed_count = 0;
   int region = 0;
   int language = 0;
-  int background = 0;
+  int background_value = 0;
   int kind = 0;
   int seed_index = 0;
   size_t profile_index = 0;
@@ -233,7 +233,7 @@ void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
   CuAssertStrEquals(tc, "homelands-1.0.0", CHARACTER_CREATION_HOMELAND_CANON_VERSION);
   CuAssertStrEquals(tc, "homeland-languages-1.0.0", CHARACTER_CREATION_LANGUAGE_CANON_VERSION);
   CuAssertStrEquals(tc, "character-compass-1.0.0", CHARACTER_CREATION_COMPASS_CANON_VERSION);
-  CuAssertPtrNotNull(tc, (void *)character_creation_content_provenance());
+  CuAssertPtrNotNull(tc, character_creation_content_provenance());
 
   for (region = 1; region < NUM_REGIONS; region++)
   {
@@ -241,7 +241,7 @@ void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
         character_creation_homeland_for_region(region);
     int previous = 0;
 
-    CuAssertPtrNotNull(tc, (void *)homeland);
+    CuAssertPtrNotNull(tc, homeland);
     if (homeland == NULL)
       continue;
     homeland_count++;
@@ -254,7 +254,7 @@ void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
     CuAssertTrue(tc, homeland->description != NULL && strlen(homeland->description) > 200);
     CuAssertTrue(tc, homeland->provenance != NULL && homeland->provenance[0] != '\0');
     CuAssertTrue(tc, homeland->language != LANG_COMMON);
-    CuAssertPtrNotNull(tc, (void *)character_creation_language_for_index(homeland->language));
+    CuAssertPtrNotNull(tc, character_creation_language_for_index(homeland->language));
 
     for (previous = 1; previous < region; previous++)
     {
@@ -292,7 +292,7 @@ void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
     const struct character_creation_guidance *guidance =
         character_creation_guidance_for_profile(profile_ids[profile_index]);
 
-    CuAssertPtrNotNull(tc, (void *)guidance);
+    CuAssertPtrNotNull(tc, guidance);
     if (guidance == NULL)
       continue;
     CuAssertTrue(tc, guidance->hub_summary != NULL && guidance->hub_summary[0] != '\0');
@@ -302,15 +302,15 @@ void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
     CuAssertTrue(tc, guidance->generator_shape != NULL && guidance->generator_shape[0] != '\0');
   }
 
-  for (background = 1; background < NUM_BACKGROUNDS; background++)
+  for (background_value = 1; background_value < NUM_BACKGROUNDS; background_value++)
   {
     const struct character_creation_background *content =
-        character_creation_background_for_value(background);
+        character_creation_background_for_value(background_value);
 
-    CuAssertPtrNotNull(tc, (void *)content);
+    CuAssertPtrNotNull(tc, content);
     if (content == NULL)
       continue;
-    CuAssertIntEquals(tc, background, content->background);
+    CuAssertIntEquals(tc, background_value, content->background);
     CuAssertTrue(tc, content->content_id != NULL && content->content_id[0] != '\0');
     CuAssertTrue(tc, content->story_promise != NULL && content->story_promise[0] != '\0');
     CuAssertTrue(tc, content->biography != NULL && strlen(content->biography) > 100);
@@ -320,10 +320,10 @@ void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
       for (seed_index = 0; seed_index < 2; seed_index++)
       {
         const char *seed = character_creation_inspiration_seed(
-            background, (enum character_creation_inspiration_kind)kind, seed_index);
+            background_value, (enum character_creation_inspiration_kind)kind, seed_index);
         int previous_seed = 0;
 
-        CuAssertPtrNotNull(tc, (void *)seed);
+        CuAssertPtrNotNull(tc, seed);
         if (seed == NULL)
           continue;
         CuAssertTrue(tc, seed[0] != '\0');
@@ -338,18 +338,18 @@ void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
 
 void TestEveryBackgroundHasNonPlaceholderMechanicMetadata(CuTest *tc)
 {
-  int background = 0;
+  int background_value = 0;
 
   assign_feats();
   assign_backgrounds();
 
-  for (background = 1; background < NUM_BACKGROUNDS; background++)
+  for (background_value = 1; background_value < NUM_BACKGROUNDS; background_value++)
   {
-    int feat = background_list[background].feat;
+    int feat = background_list[background_value].feat;
 
     CuAssertTrue(tc, feat > 0 && feat < NUM_FEATS);
-    CuAssertPtrNotNull(tc, (void *)feat_list[feat].name);
-    CuAssertPtrNotNull(tc, (void *)feat_list[feat].description);
+    CuAssertPtrNotNull(tc, feat_list[feat].name);
+    CuAssertPtrNotNull(tc, feat_list[feat].description);
     CuAssertTrue(tc,
                  feat_list[feat].name != NULL && strcmp(feat_list[feat].name, "Unused Feat") != 0);
     CuAssertTrue(tc, feat_list[feat].description != NULL &&
@@ -443,10 +443,10 @@ void TestBackgroundShopAccessAndHometownPricingAreExact(CuTest *tc)
   CuAssertTrue(tc, shop_background_access_allowed(BLACK_MARKET_SHOP | NOBLE_SHOP, TRUE, TRUE));
   CuAssertTrue(tc, !shop_background_access_allowed(BLACK_MARKET_SHOP | NOBLE_SHOP, TRUE, FALSE));
 
-  CuAssertTrue(tc, shop_background_hometown_price_multiplier(TRUE, TRUE, TRUE) == 0.90f);
-  CuAssertTrue(tc, shop_background_hometown_price_multiplier(TRUE, TRUE, FALSE) == 1.10f);
-  CuAssertTrue(tc, shop_background_hometown_price_multiplier(FALSE, TRUE, TRUE) == 1.0f);
-  CuAssertTrue(tc, shop_background_hometown_price_multiplier(TRUE, FALSE, FALSE) == 1.0f);
+  CuAssertDblEquals(tc, 0.90, shop_background_hometown_price_multiplier(TRUE, TRUE, TRUE), 0.0001);
+  CuAssertDblEquals(tc, 1.10, shop_background_hometown_price_multiplier(TRUE, TRUE, FALSE), 0.0001);
+  CuAssertDblEquals(tc, 1.0, shop_background_hometown_price_multiplier(FALSE, TRUE, TRUE), 0.0001);
+  CuAssertDblEquals(tc, 1.0, shop_background_hometown_price_multiplier(TRUE, FALSE, FALSE), 0.0001);
 }
 
 void TestRoamingShopRoomAccessIsExplicit(CuTest *tc)
@@ -458,10 +458,10 @@ void TestRoamingShopRoomAccessIsExplicit(CuTest *tc)
 
 void TestRoLShopCheatPricingIsBounded(CuTest *tc)
 {
-  CuAssertTrue(tc, shop_rol_cheat_price_multiplier(FALSE, TRUE) == 1.0f);
-  CuAssertTrue(tc, shop_rol_cheat_price_multiplier(FALSE, FALSE) == 1.0f);
-  CuAssertTrue(tc, shop_rol_cheat_price_multiplier(TRUE, TRUE) == 2.0f);
-  CuAssertTrue(tc, shop_rol_cheat_price_multiplier(TRUE, FALSE) == 0.5f);
+  CuAssertDblEquals(tc, 1.0, shop_rol_cheat_price_multiplier(FALSE, TRUE), 0.0001);
+  CuAssertDblEquals(tc, 1.0, shop_rol_cheat_price_multiplier(FALSE, FALSE), 0.0001);
+  CuAssertDblEquals(tc, 2.0, shop_rol_cheat_price_multiplier(TRUE, TRUE), 0.0001);
+  CuAssertDblEquals(tc, 0.5, shop_rol_cheat_price_multiplier(TRUE, FALSE), 0.0001);
 }
 
 void TestRoLShopMagicPolicyLeavesNativeShopsUnchanged(CuTest *tc)
@@ -524,7 +524,7 @@ void TestWebOnboardingMediaKeysAreStableAndBounded(CuTest *tc)
   for (index = 0; index < NUM_RACES; index++)
   {
     const char *key = web_onboarding_race_media_key(index);
-    CuAssertPtrNotNull(tc, (void *)key);
+    CuAssertPtrNotNull(tc, key);
     CuAssertTrue(tc, strncmp(key, "race/", 5) == 0);
   }
 }
@@ -1113,22 +1113,22 @@ void TestWebOnboardingBackgroundCatalogUsesStableIdentityAndFitsPayloadCap(CuTes
 
   for (index = 0; index < 6; index++)
   {
-    int background = backgrounds_listed_alphabetically[index + 1];
+    int background_value = backgrounds_listed_alphabetically[index + 1];
     char fragment[256];
 
     snprintf(fragment, sizeof(fragment),
              "\"id\":\"%s\",\"label\":\"%s\",\"wireValue\":\"%s\","
              "\"enabled\":true,\"mediaKey\":\"%s\"",
-             background_stable_id(background), background_list[background].name,
-             background_wire_value(background), background_media_key(background));
+             background_stable_id(background_value), background_list[background_value].name,
+             background_wire_value(background_value), background_media_key(background_value));
     CuAssertPtrNotNull(tc, strstr(payload, fragment));
   }
 
   {
-    int background = backgrounds_listed_alphabetically[7];
+    int background_value = backgrounds_listed_alphabetically[7];
     char fragment[80];
 
-    snprintf(fragment, sizeof(fragment), "\"id\":\"%s\"", background_stable_id(background));
+    snprintf(fragment, sizeof(fragment), "\"id\":\"%s\"", background_stable_id(background_value));
     CuAssertTrue(tc, strstr(payload, fragment) == NULL);
   }
   CuAssertTrue(tc, web_onboarding_handle_catalog_control(&d, "__onboarding-next__"));
@@ -1140,21 +1140,21 @@ void TestWebOnboardingBackgroundCatalogUsesStableIdentityAndFitsPayloadCap(CuTes
 
   for (index = 6; index < 12; index++)
   {
-    int background = backgrounds_listed_alphabetically[index + 1];
+    int background_value = backgrounds_listed_alphabetically[index + 1];
     char fragment[256];
 
     snprintf(fragment, sizeof(fragment),
              "\"id\":\"%s\",\"label\":\"%s\",\"wireValue\":\"%s\","
              "\"enabled\":true,\"mediaKey\":\"%s\"",
-             background_stable_id(background), background_list[background].name,
-             background_wire_value(background), background_media_key(background));
+             background_stable_id(background_value), background_list[background_value].name,
+             background_wire_value(background_value), background_media_key(background_value));
     CuAssertPtrNotNull(tc, strstr(payload, fragment));
   }
   {
-    int background = backgrounds_listed_alphabetically[1];
+    int background_value = backgrounds_listed_alphabetically[1];
     char fragment[80];
 
-    snprintf(fragment, sizeof(fragment), "\"id\":\"%s\"", background_stable_id(background));
+    snprintf(fragment, sizeof(fragment), "\"id\":\"%s\"", background_stable_id(background_value));
     CuAssertTrue(tc, strstr(payload, fragment) == NULL);
   }
   CuAssertTrue(tc, web_onboarding_handle_catalog_control(&d, "__onboarding-next__"));
@@ -1165,14 +1165,14 @@ void TestWebOnboardingBackgroundCatalogUsesStableIdentityAndFitsPayloadCap(CuTes
 
   for (index = 12; index < NUM_BACKGROUNDS - 1; index++)
   {
-    int background = backgrounds_listed_alphabetically[index + 1];
+    int background_value = backgrounds_listed_alphabetically[index + 1];
     char fragment[256];
 
     snprintf(fragment, sizeof(fragment),
              "\"id\":\"%s\",\"label\":\"%s\",\"wireValue\":\"%s\","
              "\"enabled\":true,\"mediaKey\":\"%s\"",
-             background_stable_id(background), background_list[background].name,
-             background_wire_value(background), background_media_key(background));
+             background_stable_id(background_value), background_list[background_value].name,
+             background_wire_value(background_value), background_media_key(background_value));
     CuAssertPtrNotNull(tc, strstr(payload, fragment));
   }
   web_onboarding_reset(&d);
@@ -1540,7 +1540,8 @@ void TestCharacterCreationLifecycleAndWorkflowActionsAreSourceOwned(CuTest *tc)
   CuAssertTrue(tc, character_creation_resume(&d));
   CuAssertIntEquals(tc, CON_SETPREFS, STATE(&d));
   CuAssertTrue(tc, PRF_FLAGGED(character, PRF_SCREEN_READER));
-  nanny(&d, "yes"); /* The injected save failure must undo recommended settings only. */
+  nanny(&d, CuMutableString(
+                "yes")); /* The injected save failure must undo recommended settings only. */
   CuAssertIntEquals(tc, CON_SETPREFS, STATE(&d));
   CuAssertTrue(tc, PRF_FLAGGED(character, PRF_SCREEN_READER));
   CuAssertTrue(tc, !PRF_FLAGGED(character, PRF_DISPGOLD));
@@ -1693,7 +1694,7 @@ void TestRoleplayGuidanceAndInspirationPayloadsAreContextSpecific(CuTest *tc)
 
   for (state_index = 0; state_index < sizeof(states) / sizeof(states[0]); state_index++)
   {
-    int background = 0;
+    int background_value = 0;
 
     STATE(&d) = states[state_index];
     d.roleplay_pending.example_state = states[state_index];
@@ -1706,11 +1707,11 @@ void TestRoleplayGuidanceAndInspirationPayloadsAreContextSpecific(CuTest *tc)
     CuAssertPtrNotNull(tc, strstr(payload, "will not set or change your permanent Background"));
     CuAssertTrue(tc, strstr(payload, "Palanthas") == NULL);
 
-    for (background = 1; background < NUM_BACKGROUNDS; background++)
+    for (background_value = 1; background_value < NUM_BACKGROUNDS; background_value++)
     {
       char id[96];
 
-      snprintf(id, sizeof(id), "\"id\":\"%s\"", background_stable_id(background));
+      snprintf(id, sizeof(id), "\"id\":\"%s\"", background_stable_id(background_value));
       CuAssertPtrNotNull(tc, strstr(payload, id));
     }
   }
@@ -1824,7 +1825,8 @@ static void editor_test_chunks(struct descriptor_data *d, const char *transfer_i
 
   while (offset < content_bytes)
   {
-    size_t raw_bytes = MIN(content_bytes - offset, (size_t)WEB_ONBOARDING_EDITOR_MAX_CHUNK_BYTES);
+    size_t raw_bytes =
+        size_min(content_bytes - offset, (size_t)WEB_ONBOARDING_EDITOR_MAX_CHUNK_BYTES);
     int encoded_bytes = EVP_EncodeBlock((unsigned char *)encoded, content + offset, (int)raw_bytes);
 
     encoded[encoded_bytes] = '\0';
@@ -2466,7 +2468,7 @@ void TestWebOnboardingRoleplayDetailsIdeasAndControlsAreStateExact(CuTest *tc)
   struct player_special_data specials;
   char payload[WEB_ONBOARDING_MAX_PAYLOAD + 1];
   char expected_choice[160];
-  int background = BACKGROUND_FOLK_HERO;
+  int background_value = BACKGROUND_FOLK_HERO;
   int first_background = BACKGROUND_NONE;
   int deity = 0;
 
@@ -2507,7 +2509,7 @@ void TestWebOnboardingRoleplayDetailsIdeasAndControlsAreStateExact(CuTest *tc)
 
   d.connected = CON_BACKGROUND_ARCHTYPE_CONFIRM;
   d.roleplay_pending.background_active = TRUE;
-  d.roleplay_pending.background = background;
+  d.roleplay_pending.background = background_value;
   CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
   CuAssertPtrNotNull(tc, strstr(payload, "\"detail\":{\"id\":\"folk-hero\""));
   CuAssertPtrNotNull(tc, strstr(payload, "\"label\":\"Skill bonuses\""));
@@ -2672,8 +2674,8 @@ void TestRoleplayFactionCommitRollsBackCharacterAndPlayerIndex(CuTest *tc)
   CuAssertTrue(tc, init_editor_descriptor(&d, &ch, &specials, CON_CHAR_RP_MENU));
   if (d.pProtocol == NULL)
     return;
-  ch.player.name = "synthetic-roleplay-character";
-  fixture[0].name = "synthetic-roleplay-character";
+  ch.player.name = CuMutableString("synthetic-roleplay-character");
+  fixture[0].name = CuMutableString("synthetic-roleplay-character");
   fixture[0].clan = 17;
   player_table = fixture;
   top_of_p_table = 0;

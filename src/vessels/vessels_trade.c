@@ -23,10 +23,7 @@
 #include <errno.h>
 #include <limits.h>
 
-extern MYSQL *conn;
-extern bool mysql_available;
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct room_data *world;
 
 #define TRADE_SIMULATION_MAX_TRADES 10000
 
@@ -266,8 +263,8 @@ void vessel_update_port_berth(struct greyhawk_ship_data *ship, room_rnum old_roo
                    "The harbor master records a %d-gold berthing fee. "
                    "Use 'dockfees pay' before departure.",
                    fee);
-      log("Info: Port %d assessed ship %d '%s' %d gold for clan %d", world[new_room].number,
-          ship->shipnum, ship->name, fee, ship->dock_fee_clan);
+      log("Info: Port %" PRI_IDX " assessed ship %d '%s' %d gold for clan %d",
+          world[new_room].number, ship->shipnum, ship->name, fee, ship->dock_fee_clan);
       changed = TRUE;
     }
   }
@@ -317,7 +314,7 @@ ACMD(do_dockfees)
                  CLAN_NAME(owner_clan));
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   if (!*arg)
   {
     send_to_char(ch, "Use 'dockfees pay' to settle the balance before departure.\r\n");
@@ -579,7 +576,13 @@ int vessel_commodity_price(int base_price, int supply)
   {
     return INT_MAX;
   }
-  return (int)MAX(1, price);
+  /* A plain clamp: Clang 22.1.8 at -O2 drops the INT_MAX check above when the
+   * lower bound is taken with llong_max (see the strict C23 toolchain notes). */
+  if (price < 1)
+  {
+    return 1;
+  }
+  return (int)price;
 }
 
 /**
@@ -650,7 +653,7 @@ static long long vessel_trade_batch_value(int base_price, int supply, int quanti
     unit_value = unit_price;
     if (!buying_from_port)
     {
-      unit_value = MAX(1, (unit_value * TRADE_SELL_PERCENT) / 100);
+      unit_value = llong_max(1, (unit_value * TRADE_SELL_PERCENT) / 100);
     }
     if (total > LLONG_MAX - unit_value)
     {
@@ -797,7 +800,7 @@ ACMD(do_vtradecheck)
   long requested_trades = 1000;
   bool passed;
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   if (*arg)
   {
     errno = 0;
@@ -1202,7 +1205,7 @@ ACMD(do_cargobuy)
     return;
   }
 
-  two_arguments_u((char *)argument, arg1, arg2);
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   if (!*arg1 || !*arg2)
   {
     send_to_char(ch, "Usage: cargobuy <commodity> <quantity>\r\n");
@@ -1297,7 +1300,7 @@ ACMD(do_cargosell)
     return;
   }
 
-  two_arguments_u((char *)argument, arg1, arg2);
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   if (!*arg1)
   {
     send_to_char(ch, "Usage: cargosell <commodity> <quantity|all>\r\n");

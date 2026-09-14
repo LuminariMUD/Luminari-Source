@@ -122,7 +122,7 @@ static void i3_test_cleanup(void)
   i3_client = NULL;
 }
 
-static json_object *i3_test_mud(const char *name, int port)
+static json_object *i3_test_mud(const char *name, int port_value)
 {
   json_object *mud;
   json_object *services;
@@ -132,7 +132,7 @@ static json_object *i3_test_mud(const char *name, int port)
   json_object_object_add(services, "tell", json_object_new_int(1));
   json_object_object_add(mud, "name", json_object_new_string(name));
   json_object_object_add(mud, "host", json_object_new_string("192.0.2.10"));
-  json_object_object_add(mud, "port", json_object_new_int(port));
+  json_object_object_add(mud, "port", json_object_new_int(port_value));
   json_object_object_add(mud, "driver", json_object_new_string("TestDriver"));
   json_object_object_add(mud, "mud_type", json_object_new_string("Diku"));
   json_object_object_add(mud, "status", json_object_new_string("up"));
@@ -224,7 +224,7 @@ void Test_i3_fragmented_large_mudlist_response(CuTest *tc)
   CuAssertIntEquals(tc, 100, mud_count);
   CuAssertPtrNotNull(tc, i3_find_mud("RegressionMUD042"));
   CuAssertIntEquals(tc, 4042, i3_find_mud("RegressionMUD042")->port);
-  CuAssertIntEquals(tc, 1, i3_client->messages_received);
+  CuAssertIntEquals(tc, 1, (int)i3_client->messages_received);
 
   json_object_put(root);
   i3_test_cleanup();
@@ -265,7 +265,7 @@ void Test_i3_line_framing_preserves_partial_notifications(CuTest *tc)
   CuAssertStrEquals(tc, "Beta", event->from_user);
   CuAssertStrEquals(tc, "two", event->message);
   i3_free_event(event);
-  CuAssertIntEquals(tc, 2, i3_client->messages_received);
+  CuAssertIntEquals(tc, 2, (int)i3_client->messages_received);
 
   i3_test_cleanup();
 }
@@ -373,7 +373,7 @@ void Test_i3_direct_message_lookup_does_not_require_a_viewer(CuTest *tc)
 
   memset(&player, 0, sizeof(player));
   memset(&player_specials, 0, sizeof(player_specials));
-  player.player.name = "TargetPlayer";
+  player.player.name = CuMutableString("TargetPlayer");
   player.player_specials = &player_specials;
 
   saved_character_list = character_list;
@@ -393,7 +393,7 @@ void Test_i3_direct_message_lookup_does_not_require_a_viewer(CuTest *tc)
   i3_process_events();
 
   CuAssertIntEquals(tc, 0, i3_client->event_queue_size);
-  CuAssertIntEquals(tc, 1, i3_client->messages_received);
+  CuAssertIntEquals(tc, 1, (int)i3_client->messages_received);
 
   i3_test_cleanup();
   character_list = saved_character_list;
@@ -408,7 +408,7 @@ void Test_i3_channel_echo_suppression_matches_only_local_sender(CuTest *tc)
   memset(&player, 0, sizeof(player));
   memset(&player_specials, 0, sizeof(player_specials));
   memset(&event, 0, sizeof(event));
-  player.player.name = "Kohdee";
+  player.player.name = CuMutableString("Kohdee");
   player.player_specials = &player_specials;
 
   i3_test_setup();
@@ -524,8 +524,8 @@ void Test_i3_presence_snapshot_uses_playing_descriptors(CuTest *tc)
   memset(&descriptor, 0, sizeof(descriptor));
   memset(&player, 0, sizeof(player));
   memset(&player_specials, 0, sizeof(player_specials));
-  player.player.name = "PresenceTester";
-  player.player.title = "\tCthe Network Tester\tn";
+  player.player.name = CuMutableString("PresenceTester");
+  player.player.title = CuMutableString("\tCthe Network Tester\tn");
   player.player.level = 34;
   player.player.race = RACE_HUMAN;
   player.player_specials = &player_specials;

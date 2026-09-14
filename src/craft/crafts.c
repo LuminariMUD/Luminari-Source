@@ -89,7 +89,7 @@ struct craft_data *create_craft(void)
   return (new_craft);
 }
 
-struct requirement_data *create_requirement(void)
+static struct requirement_data *create_requirement(void)
 {
   struct requirement_data *new_requirement;
 
@@ -282,7 +282,7 @@ static void save_crafts_to_disk(void)
     fprintf(fp, "Name: %s\n", CRAFT_NAME(c));
     fprintf(fp, "Id  : %d\n", CRAFT_ID(c));
     fprintf(fp, "Flag: %d\n", CRAFT_FLAGS(c));
-    fprintf(fp, "Vnum: %d\n", CRAFT_OBJVNUM(c));
+    fprintf(fp, "Vnum: %d\n", (int)CRAFT_OBJVNUM(c));
     fprintf(fp, "Time: %d\n", CRAFT_TIMER(c));
     fprintf(fp, "Skil: %d %d\n", CRAFT_SKILL(c), CRAFT_SKILL_LEVEL(c));
 
@@ -296,7 +296,7 @@ static void save_crafts_to_disk(void)
     simple_list(NULL);
 
     while ((r = (struct requirement_data *)simple_list(c->requirements)) != NULL)
-      fprintf(fp, "Req : %d %d %d\n", r->req_vnum, r->req_amount, r->req_flags);
+      fprintf(fp, "Req : %d %d %d\n", (int)r->req_vnum, r->req_amount, r->req_flags);
     fprintf(fp, "End :\n");
   }
 
@@ -307,7 +307,7 @@ static void save_crafts_to_disk(void)
 }
 
 /* Craft Handlers */
-void sort_craft_list(void)
+static void sort_craft_list(void)
 {
   struct list_data *sorted;
   struct craft_data *craft, *rem_craft;
@@ -376,7 +376,7 @@ struct craft_data *get_craft_from_id(int id)
   return (craft);
 }
 
-struct requirement_data *find_requirement_in_craft(struct craft_data *craft, obj_vnum vnum)
+static struct requirement_data *find_requirement_in_craft(struct craft_data *craft, obj_vnum vnum)
 {
   struct requirement_data *r = NULL;
   struct iterator_data Iterator;
@@ -401,7 +401,8 @@ struct requirement_data *find_requirement_in_craft(struct craft_data *craft, obj
   return NULL;
 }
 
-struct obj_data *get_object_from_requirement(struct char_data *ch, struct requirement_data *req)
+static struct obj_data *get_object_from_requirement(struct char_data *ch,
+                                                    struct requirement_data *req)
 {
   struct obj_data *obj;
 
@@ -428,7 +429,7 @@ struct obj_data *get_object_from_requirement(struct char_data *ch, struct requir
   return (NULL);
 }
 
-bool find_requirement(struct char_data *ch, struct requirement_data *req)
+static bool find_requirement(struct char_data *ch, struct requirement_data *req)
 {
   bool in_room = IS_SET(req->req_flags, REQ_FLAG_IN_ROOM);
   obj_vnum vnum = req->req_vnum;
@@ -457,7 +458,7 @@ bool find_requirement(struct char_data *ch, struct requirement_data *req)
   return (FALSE);
 }
 
-int missing_craft_requirements(struct char_data *ch, struct craft_data *craft)
+static int missing_craft_requirements(struct char_data *ch, struct craft_data *craft)
 {
   int missing = 0;
   struct iterator_data iterator;
@@ -534,8 +535,8 @@ void list_all_crafts(struct char_data *ch)
 
     while ((craft = (struct craft_data *)simple_list(global_craft_list)) != NULL)
     {
-      send_to_char(ch, "\t2%-4d)\t3 %-22s -> \t1[\t2%-4d\t1] [\t2%s\t1]\tn\r\n", CRAFT_ID(craft),
-                   CRAFT_NAME(craft), CRAFT_OBJVNUM(craft),
+      send_to_char(ch, "\t2%-4d)\t3 %-22s -> \t1[\t2%-4" PRI_IDX "\t1] [\t2%s\t1]\tn\r\n",
+                   CRAFT_ID(craft), CRAFT_NAME(craft), CRAFT_OBJVNUM(craft),
                    (vnum = real_object(CRAFT_OBJVNUM(craft))) != NOWHERE
                        ? obj_proto[vnum].short_description
                        : "MISSING OBJECT");
@@ -933,7 +934,7 @@ static void craftedit_setup_new(struct descriptor_data *d)
   OLC_VAL(d) = 0;
 }
 
-void craftedit_setup_existing(struct descriptor_data *d, int craft_id)
+static void craftedit_setup_existing(struct descriptor_data *d, int craft_id)
 {
   struct craft_data *craft;
 
@@ -947,7 +948,7 @@ void craftedit_setup_existing(struct descriptor_data *d, int craft_id)
   OLC_VAL(d) = 0;
 }
 
-void craftedit_save_internal(struct craft_data *craft)
+static void craftedit_save_internal(struct craft_data *craft)
 {
   struct craft_data *temp_craft;
 
@@ -1096,11 +1097,12 @@ static void craftedit_requirement_menu(struct descriptor_data *d)
     while ((r = (struct requirement_data *)simple_list(c->requirements)) != NULL)
     {
       sprintbit(r->req_flags, requirement_flags, buf, sizeof(buf));
-      write_to_output(
-          d, "  \t2[\t3%-5d\t2]\t1)\t3 %d, %s \t2[\t3%s\t2]\tn\r\n", r->req_vnum, r->req_amount,
-          ((vnum = real_object(r->req_vnum)) != NOTHING) ? obj_proto[vnum].short_description
-                                                         : "None",
-          buf);
+      write_to_output(d, "  \t2[\t3%-5" PRI_IDX "\t2]\t1)\t3 %d, %s \t2[\t3%s\t2]\tn\r\n",
+                      r->req_vnum, r->req_amount,
+                      ((vnum = real_object(r->req_vnum)) != NOTHING)
+                          ? obj_proto[vnum].short_description
+                          : "None",
+                      buf);
     }
   }
   else
@@ -1148,12 +1150,12 @@ static void craftedit_disp_menu(struct descriptor_data *d)
     while ((r = (struct requirement_data *)simple_list(c->requirements)) != NULL)
     {
       sprintbit(r->req_flags, requirement_flags, buf, sizeof(buf));
-      write_to_output(d, "   \t2[\t3%-4d\t2] \t1%-2d, \t1\"\tn%s\t1\"\tn \t2[\t3%s\t2]\tn\r\n",
-                      r->req_vnum, r->req_amount,
-                      ((vnum = real_object(r->req_vnum)) != NOTHING)
-                          ? obj_proto[vnum].short_description
-                          : "None",
-                      buf);
+      write_to_output(
+          d, "   \t2[\t3%-4" PRI_IDX "\t2] \t1%-2d, \t1\"\tn%s\t1\"\tn \t2[\t3%s\t2]\tn\r\n",
+          r->req_vnum, r->req_amount,
+          ((vnum = real_object(r->req_vnum)) != NOTHING) ? obj_proto[vnum].short_description
+                                                         : "None",
+          buf);
     }
   }
   else

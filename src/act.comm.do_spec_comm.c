@@ -63,7 +63,7 @@ ACMD(do_spec_comm)
 
     if (subcmd == SCMD_ASK)
     {
-      len = strlen(buf2);
+      len = (int)strlen(buf2);
       // remove trailing punctuation from ask
       while (len >= 0 && (buf2[len - 1] == '.' || buf2[len - 1] == '!' || *buf2 == '\n'))
       {

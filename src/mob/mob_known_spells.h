@@ -29,7 +29,7 @@ void regenerate_known_spell_slot(struct char_data *ch);
 int categorize_known_spell(int spellnum);
 
 /* Check if mob has any known spells */
-bool mob_has_known_spells(struct char_data *ch);
+bool mob_has_known_spells(const struct char_data *ch);
 
 #define KNOWN_SPELL_CATEGORY_BUFF 0
 #define KNOWN_SPELL_CATEGORY_HEAL 1

@@ -178,7 +178,8 @@ SPECIAL(bought_pet)
   if (cmd)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  /* Pulse calls arrive with a NULL argument; only a command carries text. */
+  if (argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "This appears to be a pet.\r\n");
     return TRUE;
@@ -233,7 +234,7 @@ SPECIAL(bought_pet)
 }
 
 
-int get_vendor_armor_cost(struct char_data *ch, int level, int armortype, sbyte masterwork)
+static int get_vendor_armor_cost(struct char_data *ch, int level, int armortype, sbyte masterwork)
 {
   int cost = 0;
 
@@ -268,7 +269,7 @@ int get_vendor_armor_cost(struct char_data *ch, int level, int armortype, sbyte 
   return MAX(1, cost);
 }
 
-int get_vendor_weapon_cost(struct char_data *ch, int level, int weapontype, sbyte masterwork)
+static int get_vendor_weapon_cost(struct char_data *ch, int level, int weapontype, sbyte masterwork)
 {
   int cost = 0;
 
@@ -299,7 +300,7 @@ int get_vendor_weapon_cost(struct char_data *ch, int level, int weapontype, sbyt
   return MAX(1, cost);
 }
 
-void display_buy_armor_types(struct char_data *ch, int level, sbyte masterwork, char *type)
+static void display_buy_armor_types(struct char_data *ch, int level, sbyte masterwork, char *type)
 {
   int i = 0;
   int cost = 0;
@@ -359,7 +360,7 @@ void display_buy_armor_types(struct char_data *ch, int level, sbyte masterwork, 
     send_to_char(ch, "These prices are for +%d items.\r\n\r\n", level);
 }
 
-void display_buy_weapon_types(struct char_data *ch, int level, sbyte masterwork)
+static void display_buy_weapon_types(struct char_data *ch, int level, sbyte masterwork)
 {
   int i = 0, cost = 0;
 
@@ -383,7 +384,7 @@ void display_buy_weapon_types(struct char_data *ch, int level, sbyte masterwork)
   "Masterwork armor reduces the armor check penalty for certain skills, by one.  They cost an "    \
   "extra 50 gold per piece.\r\n"
 
-void set_weapon_name(struct obj_data *obj, int type)
+static void set_weapon_name(struct obj_data *obj, int type)
 {
   char buf[200];
 
@@ -398,7 +399,7 @@ void set_weapon_name(struct obj_data *obj, int type)
   obj->name = strdup(buf);
 }
 
-void set_armor_name(struct obj_data *obj, int type)
+static void set_armor_name(struct obj_data *obj, int type)
 {
   char buf[200];
 
@@ -412,7 +413,7 @@ void set_armor_name(struct obj_data *obj, int type)
   obj->name = strdup(buf);
 }
 
-void set_masterwork_obj_name(struct obj_data *obj)
+static void set_masterwork_obj_name(struct obj_data *obj)
 {
   char buf[200];
 
@@ -432,7 +433,7 @@ void set_masterwork_obj_name(struct obj_data *obj)
   obj->name = strdup(buf);
 }
 
-void set_magical_obj_name(struct obj_data *obj, int level)
+static void set_magical_obj_name(struct obj_data *obj, int level)
 {
   char buf[200];
   int i = 0;
@@ -468,7 +469,7 @@ void set_magical_obj_name(struct obj_data *obj, int level)
 
 SPECIAL(buyarmor)
 {
-  if (!CMD_IS("buy") && !CMD_IS("list"))
+  if (!argument || (!CMD_IS("buy") && !CMD_IS("list")))
     return 0;
 
   struct char_data *keeper = (struct char_data *)me;
@@ -513,7 +514,7 @@ SPECIAL(buyarmor)
       return 1;
     }
     display_buy_armor_types(ch, level, level == 0 ? !is_abbrev(arg1, "mundane") : false,
-                            level == 0 ? strdup(arg2) : strdup(arg1));
+                            level == 0 ? arg2 : arg1);
     return 1;
   }
 
@@ -722,9 +723,9 @@ SPECIAL(pet_shops)
       GET_HITROLL(pet) = GET_HITROLL(pet) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
       GET_DAMROLL(pet) = GET_DAMROLL(pet) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
       pet->mob_specials.damnodice =
-          pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+          (byte)(pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100);
       pet->mob_specials.damsizedice =
-          pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+          (byte)(pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100);
     }
     else if (GET_LEVEL(pet) <= 20)
     {
@@ -734,9 +735,9 @@ SPECIAL(pet_shops)
       GET_HITROLL(pet) = GET_HITROLL(pet) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
       GET_DAMROLL(pet) = GET_DAMROLL(pet) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
       pet->mob_specials.damnodice =
-          pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+          (byte)(pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100);
       pet->mob_specials.damsizedice =
-          pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+          (byte)(pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100);
     }
     else
     {
@@ -746,9 +747,9 @@ SPECIAL(pet_shops)
       GET_HITROLL(pet) = GET_HITROLL(pet) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
       GET_DAMROLL(pet) = GET_DAMROLL(pet) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
       pet->mob_specials.damnodice =
-          pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+          (byte)(pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100);
       pet->mob_specials.damsizedice =
-          pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+          (byte)(pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100);
     }
     GET_HIT(pet) = GET_MAX_HIT(pet);
 
@@ -791,7 +792,7 @@ SPECIAL(pet_shops)
 
 SPECIAL(buyweapons)
 {
-  if (!CMD_IS("buy") && !CMD_IS("list"))
+  if (!argument || (!CMD_IS("buy") && !CMD_IS("list")))
     return 0;
 
   struct char_data *keeper = (struct char_data *)me;
@@ -998,25 +999,25 @@ SPECIAL(identify_mob)
   /* success! */
   if (obj)
   {
-    int cost = MAX(1, GET_OBJ_LEVEL(obj) * 5);
+    int inner_cost = MAX(1, GET_OBJ_LEVEL(obj) * 5);
 
     if (CMD_IS("identify"))
     {
-      if (GET_GOLD(ch) < cost)
+      if (GET_GOLD(ch) < inner_cost)
       {
         send_to_char(
             ch,
             "You don't have the coins to play for that. You need %d, but only have %d on hand.\r\n",
-            cost, GET_GOLD(ch));
+            inner_cost, GET_GOLD(ch));
         return 1;
       }
-      award_gold(ch, -cost);
-      send_to_char(ch, "That will cost you %d coins.\r\n", cost);
+      award_gold(ch, -inner_cost);
+      send_to_char(ch, "That will cost you %d coins.\r\n", inner_cost);
       do_stat_object(ch, obj, ITEM_STAT_MODE_IDENTIFY_SPELL);
     }
     else
     {
-      send_to_char(ch, "It will cost %d coins to identify that item.", cost);
+      send_to_char(ch, "It will cost %d coins to identify that item.", inner_cost);
     }
     return 1;
   }

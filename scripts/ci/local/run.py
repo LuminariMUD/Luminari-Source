@@ -23,15 +23,26 @@ WORKFLOWS = ('test', 'integration', 'quality', 'hygiene', 'security')
 SETUP_ACTIONS = ('actions/checkout@', 'actions/setup-python@', 'actions/cache@',
                  'actions/upload-artifact@')
 INSTALL_STEPS = {'Install documentation dependency', 'Install coverage tool', 'Install pre-commit',
-                 'Install Gitleaks'}
+                 'Install Gitleaks', 'Install container prerequisites', 'Install Clang 22'}
 
 
 def expand_matrix(job):
+    """Expand strategy.matrix the way GitHub does.
+
+    An include entry whose axis values all match existing combinations adds
+    its other keys to each of them; one that matches none becomes a new entry.
+    """
     matrix = job.get('strategy', {}).get('matrix', {})
     axes = {key: value for key, value in matrix.items() if key not in ('include', 'exclude')}
     entries = [dict(zip(axes, values)) for values in itertools.product(*axes.values())] if axes else []
     for extra in matrix.get('include', []):
-        entries.append(extra)
+        matching = [entry for entry in entries
+                    if all(entry.get(key) == value for key, value in extra.items() if key in axes)]
+        if matching and any(key in axes for key in extra):
+            for entry in matching:
+                entry.update({key: value for key, value in extra.items() if key not in axes})
+        else:
+            entries.append(dict(extra))
     if matrix.get('exclude'):
         raise ValueError('Local runner needs an explicit implementation for matrix.exclude')
     return entries or [{}]
@@ -51,10 +62,10 @@ def interpolate(value, matrix):
 def included(condition, matrix):
     if condition is None:
         return True
-    match = re.fullmatch(r"matrix\.([\w-]+) == '([^']+)'", condition)
+    match = re.fullmatch(r"matrix\.([\w-]+) (==|!=) '([^']*)'", condition)
     if not match:
         raise ValueError(f'Unsupported local step condition: {condition}')
-    return matrix[match[1]] == match[2]
+    return (matrix.get(match[1], '') == match[3]) == (match[2] == '==')
 
 
 def container_job():
@@ -74,6 +85,8 @@ def container_job():
     try:
         service = job.get('database')
         if service:
+            # GitHub container jobs reach the service by name; here it is local.
+            env['LUMINARI_TEST_MYSQL_HOST'] = '127.0.0.1'
             subprocess.run(['mariadb-install-db', '--no-defaults', '--datadir=/tmp/mysql',
                             '--auth-root-authentication-method=normal', '--skip-test-db'], check=True,
                            stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
@@ -123,7 +136,9 @@ def container_job():
 def main():
     root = Path(__file__).resolve().parents[3]
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--image', default='luminari-ci:local-fast')
+    parser.add_argument('--image', default='luminari-ci:local-fast',
+                        help='image for jobs without a container: key; a job with container: '
+                             'IMAGE uses luminari-ci:local-IMAGE (colon replaced by a dash)')
     parser.add_argument('--jobs', type=int, default=3, help='concurrent containers')
     parser.add_argument('--cpus', type=int, default=4, help='cores per container')
     parser.add_argument('--cache', type=Path, default=Path.home() / '.cache/luminari-ci/ccache')
@@ -143,7 +158,7 @@ def main():
                 continue
             for matrix in expand_matrix(job):
                 label = f'{workflow_name}-{name}' + ''.join(f'-{value}' for key, value in matrix.items()
-                                                           if key in ('build', 'cc', 'compiler'))
+                                                           if key in ('build', 'cc', 'compiler', 'build_type'))
                 env = {key: interpolate(value, matrix) for key, value in
                        {**workflow.get('env', {}), **job.get('env', {})}.items()}
                 steps = []
@@ -161,7 +176,9 @@ def main():
                         steps.append({'name': step['name'], 'run': interpolate(step['run'], matrix),
                                       'env': {key: interpolate(value, matrix) for key, value in
                                               step.get('env', {}).items()}})
+                image = interpolate(job.get('container', ''), matrix)
                 jobs.append(dict(name=label, env=env, steps=steps, revision=revision,
+                                 image=f'luminari-ci:local-{image.replace(":", "-")}' if image else '',
                                  database=job.get('services', {}).get('mariadb', {}).get('env')))
     if args.list:
         print('\n'.join(job['name'] for job in jobs))
@@ -207,7 +224,7 @@ def main():
                        '-v', f'{descriptor}:/input/job.json:ro',
                        '-v', f'{runner}:/input/run.py:ro',
                        '-v', f'{args.cache.resolve()}:/ccache', '-v', f'{job_dir}:/results',
-                       args.image, 'python3', '/input/run.py', '--container-job']
+                       job['image'] or args.image, 'python3', '/input/run.py', '--container-job']
             begin = time.monotonic()
             try:
                 with (job_dir / 'job.log').open('w') as log:

@@ -46,7 +46,6 @@ i3_client_t *i3_client = NULL;
 /* Forward declarations */
 static int i3_socket_connect(const char *host, int port);
 static int i3_authenticate(void);
-void i3_queue_command(i3_command_t *cmd);
 static void i3_queue_event(i3_event_t *event);
 static i3_command_t *i3_pop_command(void);
 static void i3_free_command(i3_command_t *cmd);
@@ -325,7 +324,7 @@ void *i3_client_thread(void *arg)
       result = select(i3_client->socket_fd + 1, &read_set, NULL, NULL, &timeout);
       if (result > 0 && FD_ISSET(i3_client->socket_fd, &read_set))
       {
-        bytes = recv(i3_client->socket_fd, buffer, sizeof(buffer) - 1, 0);
+        bytes = (int)recv(i3_client->socket_fd, buffer, sizeof(buffer) - 1, 0);
         if (bytes > 0)
         {
           buffer[bytes] = '\0';
@@ -452,7 +451,7 @@ int i3_is_connected(void)
 }
 
 /* Create TCP socket connection */
-static int i3_socket_connect(const char *host, int port)
+static int i3_socket_connect(const char *host, int port_value)
 {
   struct sockaddr_in server_addr;
   struct hostent *server;
@@ -480,7 +479,7 @@ static int i3_socket_connect(const char *host, int port)
   memset(&server_addr, 0, sizeof(server_addr));
   server_addr.sin_family = AF_INET;
   memcpy(&server_addr.sin_addr.s_addr, server->h_addr, server->h_length);
-  server_addr.sin_port = htons(port);
+  server_addr.sin_port = htons((uint16_t)port_value);
 
   /* Connect */
   if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
@@ -1229,7 +1228,7 @@ int i3_send_json(void *obj)
     {
       continue;
     }
-    if (sent < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
+    if (sent < 0 && errno_would_block(errno))
     {
       FD_ZERO(&write_set);
       FD_SET(i3_client->socket_fd, &write_set);
@@ -2074,7 +2073,7 @@ void i3_process_events(void)
       break;
 
     default:
-      i3_log("DEBUG: Unknown event type: %d", event->type);
+      i3_log("DEBUG: Unknown event type: %d", (int)event->type);
       break;
     }
 
@@ -2311,7 +2310,7 @@ int i3_load_config(const char *filename)
     }
 
     /* Remove trailing newline and carriage return */
-    len = strlen(line);
+    len = (int)strlen(line);
     while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r'))
     {
       line[--len] = '\0';

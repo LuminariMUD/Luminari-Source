@@ -27,7 +27,7 @@
 struct craft_recipe_data crafting_recipes[NUM_CRAFTING_RECIPES];
 struct refine_recipe_data refining_recipes[NUM_REFINING_RECIPES];
 
-void craft_recipe(int rec, int obj_type, int obj_subtype, const char *name, int practical)
+static void craft_recipe(int rec, int obj_type, int obj_subtype, const char *name, int practical)
 {
   crafting_recipes[rec].name = name;
   crafting_recipes[rec].object_type = obj_type;
@@ -35,8 +35,8 @@ void craft_recipe(int rec, int obj_type, int obj_subtype, const char *name, int 
   crafting_recipes[rec].practical_type = practical;
 }
 
-void cvariant(int rec, int var, int skill, int mat_one, int num_one, int mat_two, int num_two,
-              int mat_three, int num_three, const char *desc)
+static void cvariant(int rec, int var, int skill, int mat_one, int num_one, int mat_two,
+                     int num_two, int mat_three, int num_three, const char *desc)
 {
   crafting_recipes[rec].variant_skill[var] = skill;
   crafting_recipes[rec].materials[0][var][0] = mat_one;
@@ -48,9 +48,9 @@ void cvariant(int rec, int var, int skill, int mat_one, int num_one, int mat_two
   crafting_recipes[rec].variant_descriptions[var] = desc;
 }
 
-void refine_recipe(int recipe, int skill, int dc, int mat_one, int amount_one, int mat_two,
-                   int amount_two, int mat_three, int amount_three, int result, int result_amount,
-                   int flag)
+static void refine_recipe(int recipe, int skill, int dc, int mat_one, int amount_one, int mat_two,
+                          int amount_two, int mat_three, int amount_three, int result,
+                          int result_amount, int flag)
 {
   refining_recipes[recipe].skill = skill;
   refining_recipes[recipe].dc = dc;
@@ -85,7 +85,7 @@ void initialize_refining_recipes(void)
   }
 }
 
-void initialize_crafting_recipes(void)
+static void initialize_crafting_recipes(void)
 {
   int i, j, k;
 

@@ -211,7 +211,7 @@ static void flush_queues(struct descriptor_data *d);
 static void nonblock(socket_t s);
 static int perform_subst(struct descriptor_data *t, char *orig, char *subst);
 static void record_usage(void);
-static char *make_prompt(struct descriptor_data *point);
+static const char *make_prompt(struct descriptor_data *point);
 static void check_idle_passwords(void);
 static void init_descriptor(struct descriptor_data *newd, int desc);
 static void persistence_schedule_minute(int include_crash_and_houses);
@@ -241,12 +241,6 @@ static int open_logfile(const char *filename, FILE *stderr_fp);
 static sigfunc *my_signal(int signo, sigfunc *func);
 #endif
 static void msdp_update(void); /* KaVir plugin*/
-void update_msdp_affects(struct char_data *ch);
-void update_player_last_on(void);
-void check_auto_shutdown(void);
-void check_auto_happy_hour(void);
-void recharge_activated_items(void);
-void process_auction_events(void);
 
 /* externally defined functions, used locally */
 #ifdef __CXREF__
@@ -272,7 +266,7 @@ void gettimeofday(struct timeval *t, struct timezone *dummy)
   DWORD millisec = GetTickCount();
 #elif defined(CIRCLE_MACINTOSH)
   unsigned long int millisec;
-  millisec = (int)((float)TickCount() * 1000.0 / 60.0);
+  millisec = (int)((double)TickCount() * 1000.0 / 60.0);
 #endif
 
   t->tv_sec = (int)(millisec / 1000);
@@ -466,7 +460,7 @@ int main(int argc, char **argv)
       printf("Usage: %s [-c] [-m] [-q] [-r] [-s] [-d pathname] [port #]\n", argv[0]);
       exit(1);
     }
-    else if ((port = atoi(argv[pos])) <= 1024)
+    else if ((port = (ush_int)atoi(argv[pos])) <= 1024)
     {
       printf("SYSERR: Illegal port number %d.\n", port);
       exit(1);
@@ -1037,7 +1031,7 @@ static int get_max_players(void)
     if (limit.rlim_max == RLIM_INFINITY)
       max_descs = CONFIG_MAX_PLAYING + NUM_RESERVED_DESCS;
     else
-      max_descs = MIN(CONFIG_MAX_PLAYING + NUM_RESERVED_DESCS, limit.rlim_max);
+      max_descs = (int)size_min(CONFIG_MAX_PLAYING + NUM_RESERVED_DESCS, limit.rlim_max);
 #else
     max_descs = MIN(CONFIG_MAX_PLAYING + NUM_RESERVED_DESCS, limit.rlim_max);
 #endif
@@ -1162,7 +1156,7 @@ static bool initialize_io_reactor(void)
   io_reactor = luminari_reactor_create(driver, &status);
   if (io_reactor == NULL)
   {
-    log("SYSERR: Unable to initialize %s I/O driver (status %d).", luminari_io_driver_name(driver),
+    log("SYSERR: Unable to initialize %s I/O driver (status %u).", luminari_io_driver_name(driver),
         status);
     return FALSE;
   }
@@ -1457,7 +1451,7 @@ void game_loop(socket_t local_mother_desc)
     scheduler_status = event_scheduler_next_deadline(&scheduler_deadline, &scheduler_has_deadline);
     if (scheduler_status != GAME_SCHEDULER_OK)
     {
-      log("SYSERR: Unable to query timing-wheel deadline (status %d).", scheduler_status);
+      log("SYSERR: Unable to query timing-wheel deadline (status %u).", scheduler_status);
       scheduler_has_deadline = false;
     }
     if (scheduler_has_deadline)
@@ -1743,7 +1737,7 @@ void game_loop(socket_t local_mother_desc)
       memset(&scheduler_report, 0, sizeof(scheduler_report));
       scheduler_status = event_process_scheduler(&scheduler_budget, &scheduler_report);
       if (scheduler_status != GAME_SCHEDULER_OK)
-        log("SYSERR: Timing-wheel reactor dispatch failed with status %d.", scheduler_status);
+        log("SYSERR: Timing-wheel reactor dispatch failed with status %u.", scheduler_status);
     }
 
     /* Extraction is an explicit mutation safe point, independent of cadence. */
@@ -2037,7 +2031,7 @@ static void persistence_scheduler_step(uint64_t heart_pulse)
         if (elapsed_usec > PERSISTENCE_HARD_LIMIT_USEC)
         {
           persistence_scheduler.hard_limit_overruns++;
-          log("PERFMON [PERSISTENCE]: task=%d exceeded hard pulse limit: %llu usec", task,
+          log("PERFMON [PERSISTENCE]: task=%u exceeded hard pulse limit: %llu usec", task,
               (unsigned long long)elapsed_usec);
         }
         if (result == PERSISTENCE_STEP_FAILURE)
@@ -2425,7 +2419,7 @@ static bool runtime_services_register_types(void)
     status = event_runtime_register_type(&config, &runtime_service_table[index].event_type);
     if (status != GAME_SCHEDULER_OK)
     {
-      log("SYSERR: unable to register native service event type '%s' (status %d).",
+      log("SYSERR: unable to register native service event type '%s' (status %u).",
           runtime_service_table[index].name, status);
       return false;
     }
@@ -2448,7 +2442,7 @@ static bool runtime_services_register_types(void)
   if (status != GAME_SCHEDULER_OK)
   {
     log("SYSERR: unable to register native service event type "
-        "'service.persistence_batch' (status %d).",
+        "'service.persistence_batch' (status %u).",
         status);
     return false;
   }
@@ -2733,7 +2727,7 @@ void echo_on(struct descriptor_data *d)
    have to use protocolOutput function to parse it
  * note - i just parse the whole string now, add all the color you want */
 /** Build state-specific prompts while preserving protocol delimiters for reader mode. */
-static char *make_prompt(struct descriptor_data *d)
+static const char *make_prompt(struct descriptor_data *d)
 {
   static char prompt[MAX_PROMPT_LENGTH] = {'\0'};
   int door = 0, slen = 0, i = 0;
@@ -2775,26 +2769,26 @@ static char *make_prompt(struct descriptor_data *d)
     /* show only when below 25% (autoprompt) */
     if (PRF_FLAGGED(d->character, PRF_DISPAUTO) && len < sizeof(prompt))
     {
-      struct char_data *ch = d->character;
-      if (GET_HIT(ch) << 2 < GET_MAX_HIT(ch))
+      struct char_data *inner_ch = d->character;
+      if (GET_HIT(inner_ch) << 2 < GET_MAX_HIT(inner_ch))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sH%s ", GET_HIT(ch),
-                         CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sH%s ", GET_HIT(inner_ch),
+                         CCYEL(inner_ch, C_NRM), CCNRM(inner_ch, C_NRM));
         if (count >= 0)
           len += count;
       }
-      if (CLASS_LEVEL(ch, CLASS_PSIONICIST) > 0 && GET_PSP(ch) << 2 < GET_MAX_PSP(ch) &&
-          len < sizeof(prompt))
+      if (CLASS_LEVEL(inner_ch, CLASS_PSIONICIST) > 0 &&
+          GET_PSP(inner_ch) << 2 < GET_MAX_PSP(inner_ch) && len < sizeof(prompt))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sP%s ", GET_PSP(ch),
-                         CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sP%s ", GET_PSP(inner_ch),
+                         CCYEL(inner_ch, C_NRM), CCNRM(inner_ch, C_NRM));
         if (count >= 0)
           len += count;
       }
-      if (GET_MOVE(ch) << 2 < GET_MAX_MOVE(ch) && len < sizeof(prompt))
+      if (GET_MOVE(inner_ch) << 2 < GET_MAX_MOVE(inner_ch) && len < sizeof(prompt))
       {
-        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sV%s ", GET_MOVE(ch),
-                         CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sV%s ", GET_MOVE(inner_ch),
+                         CCYEL(inner_ch, C_NRM), CCNRM(inner_ch, C_NRM));
         if (count >= 0)
           len += count;
       }
@@ -2804,7 +2798,8 @@ static char *make_prompt(struct descriptor_data *d)
     else
     {
       /* display hit points */
-      float hit_percent = (float)GET_HIT(d->character) / (float)GET_MAX_HIT(d->character) * 100.0;
+      double hit_percent =
+          (double)GET_HIT(d->character) / (double)GET_MAX_HIT(d->character) * 100.0;
 
       if (PRF_FLAGGED(d->character, PRF_DISPHP) && len < sizeof(prompt))
       {
@@ -2877,7 +2872,7 @@ static char *make_prompt(struct descriptor_data *d)
           len += count;
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
         {
-          count = snprintf(prompt + len, sizeof(prompt) - len, "[%5d]%s ",
+          count = snprintf(prompt + len, sizeof(prompt) - len, "[%5u]%s ",
                            GET_ROOM_VNUM(IN_ROOM(ch)), CCNRM(ch, C_NRM));
           if (count >= 0)
             len += count;
@@ -3240,7 +3235,7 @@ static char *make_prompt(struct descriptor_data *d)
    * with a little experimentation I was able to approach 350 - 02/02/2013 */
   /* send_to_char(d->character, "%d", prompt_size); */
 
-  return ((char *)ProtocolOutput(d, prompt, &prompt_size));
+  return ProtocolOutput(d, prompt, &prompt_size);
 }
 
 #ifdef LUMINARI_CUTEST
@@ -3401,23 +3396,21 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format, va_list a
 {
   const char *text_overflow = "\r\nOVERFLOW\r\n";
   static char txt[MAX_STRING_LENGTH] = {'\0'};
-  size_t wantsize = 0;
   int size = 0;
 
   /* if we're in the overflow state already, ignore this new output */
   if (t->bufspace == 0)
     return (0);
 
-  wantsize = size = vsnprintf(txt, sizeof(txt), format, args);
+  size = vsnprintf(txt, sizeof(txt), format, args);
 
-  /* this block is Kavir's protocol */
-  strlcpy(txt, ProtocolOutput(t, txt, (int *)&wantsize), sizeof(txt));
-  size = wantsize;
+  /* this block is Kavir's protocol; it reads and returns the length as an int */
+  strlcpy(txt, ProtocolOutput(t, txt, &size), sizeof(txt));
   if (t->pProtocol->WriteOOB > 0)
     --t->pProtocol->WriteOOB;
 
   /* If exceeding the size of the buffer, truncate it for the overflow message */
-  if (size < 0 || wantsize >= sizeof(txt))
+  if (size < 0 || (size_t)size >= sizeof(txt))
   {
     size = sizeof(txt) - 1;
     strlcpy(txt + size - strlen(text_overflow), text_overflow,
@@ -3485,7 +3478,7 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format, va_list a
   strlcat(t->output, txt, LARGE_BUFSIZE);
 
   /* set the pointer for the next write */
-  t->bufptr = strlen(t->output);
+  t->bufptr = (int)strlen(t->output);
 
   /* calculate how much space is left in the buffer */
   t->bufspace = LARGE_BUFSIZE - 1 - t->bufptr;
@@ -3701,14 +3694,14 @@ static int new_descriptor(socket_t s)
   if (CONFIG_PROTOCOL_NEGOTIATION)
   {
     /* Attach Event */
-    NEW_EVENT(ePROTOCOLS, newd, NULL, 1.5 * PASSES_PER_SEC);
+    NEW_EVENT(ePROTOCOLS, newd, NULL, (long)(1.5 * PASSES_PER_SEC));
     /* KaVir's plugin*/
     write_to_output(newd, "Attempting to Detect Client, Please Wait...\r\n");
     ProtocolNegotiate(newd);
   }
   else
   {
-    greetsize = strlen(GREETINGS);
+    greetsize = (int)strlen(GREETINGS);
     write_to_output(newd, "%s", ProtocolOutput(newd, GREETINGS, &greetsize));
   }
   return (0);
@@ -4004,7 +3997,7 @@ int write_to_descriptor(socket_t desc, const char *txt)
     else if (bytes_written == 0)
     {
       /* Temporary failure -- socket buffer full. */
-      return (write_total);
+      return ((int)write_total);
     }
     else
     {
@@ -4014,7 +4007,7 @@ int write_to_descriptor(socket_t desc, const char *txt)
     }
   }
 
-  return (write_total);
+  return ((int)write_total);
 }
 
 /* Same information about perform_socket_write applies here. I like
@@ -4101,7 +4094,7 @@ static int process_input(struct descriptor_data *t)
   static char read_buf[MAX_PROTOCOL_BUFFER] = {'\0'}; /* KaVir's plugin */
 
   /* first, find the point where we left off reading data */
-  buf_length = strlen(t->inbuf);
+  buf_length = (int)strlen(t->inbuf);
   read_point = t->inbuf + buf_length;
   space_left = MAX_RAW_INPUT_LENGTH - buf_length - 1;
 
@@ -4121,7 +4114,7 @@ static int process_input(struct descriptor_data *t)
     /* Since we have received at least 1 byte of data from the socket, lets run
      * it through ProtocolInput() and rip out anything that is Out Of Band */
     if (bytes_read > 0)
-      bytes_read = ProtocolInput(t, read_buf, bytes_read, t->inbuf);
+      bytes_read = ProtocolInput(t, read_buf, (int)bytes_read, t->inbuf);
 
     if (bytes_read < 0) /* Error, disconnect them. */
       return (-1);
@@ -4392,10 +4385,7 @@ void close_socket(struct descriptor_data *d)
       act("$n has lost $s link.", TRUE, link_challenged, 0, 0, TO_ROOM);
 
       /* Clean up supply order slots before saving */
-      if (link_challenged)
-      {
-        cleanup_supply_slots(link_challenged);
-      }
+      cleanup_supply_slots(link_challenged);
 
       buff_sequence_cancel(link_challenged);
       transport_job_cancel(link_challenged, true);
@@ -4754,7 +4744,7 @@ static void signal_setup(void)
           io_reactor, reactor_signals[index], reactor_signal_dispatch, NULL);
       if (status != LUMINARI_REACTOR_OK)
       {
-        log("SYSERR: Unable to register signal %d with libevent (status %d).",
+        log("SYSERR: Unable to register signal %d with libevent (status %u).",
             reactor_signals[index], status);
         exit(1);
       }
@@ -5578,7 +5568,8 @@ struct graphic_map_buffer
   bool truncated;
 };
 
-static void graphic_map_buffer_appendf(struct graphic_map_buffer *buffer, const char *format, ...)
+__attribute__((format(printf, 2, 3))) static void
+graphic_map_buffer_appendf(struct graphic_map_buffer *buffer, const char *format, ...)
 {
   int written;
   size_t remaining;
@@ -5784,8 +5775,8 @@ static int collect_graphic_map_rooms(struct char_data *ch, room_rnum start_room,
         return room_count;
 
       rooms[room_count].room = pexit->to_room;
-      rooms[room_count].x = next_x;
-      rooms[room_count].y = next_y;
+      rooms[room_count].x = (sh_int)next_x;
+      rooms[room_count].y = (sh_int)next_y;
       room_count++;
     }
 
@@ -5862,7 +5853,7 @@ static void update_msdp_graphic_map(struct descriptor_data *d, struct char_data 
                                "%ci%c%d",
                                MsdpVal, MsdpTableOpen, MsdpVar, MsdpVal, rooms[index].x, MsdpVar,
                                MsdpVal, rooms[index].y, MsdpVar, MsdpVal,
-                               GET_ROOM_VNUM(rooms[index].room), MsdpVar, MsdpVal,
+                               (int)GET_ROOM_VNUM(rooms[index].room), MsdpVar, MsdpVal,
                                world[rooms[index].room].sector_type, MsdpVar, MsdpVal,
                                ROOM_FLAGGED(rooms[index].room, ROOM_INDOORS) ? 1 : 0);
 
@@ -6007,7 +5998,7 @@ static void update_msdp_wilderness_graphic_map(struct descriptor_data *d, struct
                                  indoors ? 1 : 0);
 
       if (room != NOWHERE)
-        graphic_map_buffer_appendf(&buffer, "%cv%c%d", MsdpVar, MsdpVal, GET_ROOM_VNUM(room));
+        graphic_map_buffer_appendf(&buffer, "%cv%c%d", MsdpVar, MsdpVal, (int)GET_ROOM_VNUM(room));
 
       if (connections)
         graphic_map_buffer_appendf(&buffer, "%cc%c%u", MsdpVar, MsdpVal, connections);
@@ -6090,8 +6081,6 @@ void update_msdp_room(struct char_data *ch)
   const char MsdpVar = (char)MSDP_VAR;
   const char MsdpVal = (char)MSDP_VAL;
 
-  extern const char *dirs[];
-  extern const char *sector_types[];
 
   int door;
 
@@ -6150,7 +6139,7 @@ void update_msdp_room(struct char_data *ch)
         if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
           continue;
 
-        snprintf(buf3, sizeof(buf3), "%c%s%c%d%c", MsdpVar, dirs[door], MsdpVal,
+        snprintf(buf3, sizeof(buf3), "%c%s%c%u%c", MsdpVar, dirs[door], MsdpVal,
                  GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
         //          send_to_char(ch, "DEBUG: %s\r\n", buf3);
         strlcat(room_exits, buf3, sizeof(room_exits));
@@ -6166,7 +6155,7 @@ void update_msdp_room(struct char_data *ch)
       /* Build the ROOM table.  */
       snprintf(buf2, sizeof(buf2),
                "%cVNUM"
-               "%c%d"
+               "%c%u"
                "%cNAME"
                "%c%s"
                "%cAREA"
@@ -6213,8 +6202,6 @@ static void msdp_update(void)
   const char MsdpVar = (char)MSDP_VAR;
   const char MsdpVal = (char)MSDP_VAL;
 
-  extern const char *dirs[];
-  extern const char *sector_types[];
 
   struct descriptor_data *d;
   int PlayerCount = 0;
@@ -6247,10 +6234,10 @@ static void msdp_update(void)
       snprintf(buf, sizeof(buf), "%s", GET_TITLE(ch) ? GET_TITLE(ch) : "");
       strip_colors(buf);
       MSDPSetString(d, eMSDP_TITLE, buf);
-      MSDPSetNumber(d, eMSDP_EXPERIENCE, GET_EXP(ch));
-      MSDPSetNumber(d, eMSDP_EXPERIENCE_TNL, level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
+      MSDPSetNumber(d, eMSDP_EXPERIENCE, (int)GET_EXP(ch));
+      MSDPSetNumber(d, eMSDP_EXPERIENCE_TNL, (int)(level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch)));
       MSDPSetNumber(d, eMSDP_EXPERIENCE_MAX,
-                    level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch)));
+                    (int)(level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch))));
 
       MSDPSetNumber(d, eMSDP_HEALTH, GET_HIT(ch));
       MSDPSetNumber(d, eMSDP_HEALTH_MAX, GET_MAX_HIT(ch));
@@ -6333,7 +6320,7 @@ static void msdp_update(void)
           if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
             continue;
 
-          snprintf(buf3, sizeof(buf3), "%c%s%c%d%c", MsdpVar, dirs[door], MsdpVal,
+          snprintf(buf3, sizeof(buf3), "%c%s%c%u%c", MsdpVar, dirs[door], MsdpVal,
                    GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
           //          send_to_char(ch, "DEBUG: %s\r\n", buf3);
           strlcat(room_exits, buf3, sizeof(room_exits));
@@ -6378,20 +6365,20 @@ static void msdp_update(void)
       /* This would be better moved elsewhere? */
       if (pOpponent != NULL)
       {
-        char buf[255];
+        char inner_buf[255];
         int hit_points = (GET_HIT(pOpponent) * 100) / GET_MAX_HIT(pOpponent);
         MSDPSetNumber(d, eMSDP_OPPONENT_HEALTH, hit_points);
         MSDPSetNumber(d, eMSDP_OPPONENT_HEALTH_MAX, 100);
         MSDPSetNumber(d, eMSDP_OPPONENT_LEVEL, GET_LEVEL(pOpponent));
-        snprintf(buf, sizeof(buf), "%s", PERS(pOpponent, ch));
-        strip_colors(buf);
-        MSDPSetString(d, eMSDP_OPPONENT_NAME, buf);
+        snprintf(inner_buf, sizeof(inner_buf), "%s", PERS(pOpponent, ch));
+        strip_colors(inner_buf);
+        MSDPSetString(d, eMSDP_OPPONENT_NAME, inner_buf);
 
         if (tank != NULL && tank != ch)
         {
-          snprintf(buf, sizeof(buf), "%s", PERS(tank, ch));
-          strip_colors(buf);
-          MSDPSetString(d, eMSDP_TANK_NAME, buf);
+          snprintf(inner_buf, sizeof(inner_buf), "%s", PERS(tank, ch));
+          strip_colors(inner_buf);
+          MSDPSetString(d, eMSDP_TANK_NAME, inner_buf);
           MSDPSetNumber(d, eMSDP_TANK_HEALTH, (GET_HIT(tank) * 100) / GET_MAX_HIT(tank));
           MSDPSetNumber(d, eMSDP_TANK_HEALTH_MAX, 100);
         }

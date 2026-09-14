@@ -32,6 +32,23 @@ wait_for_sample()
   fail "timed out waiting for a complete sample from PID $pid in $file"
 }
 
+# A backgrounded child reports the shell as its executable until its exec
+# finishes, and the monitor only adopts processes running from the bin tree.
+wait_for_exec()
+{
+  local pid=$1
+  local exe=$2
+  local attempt
+
+  for attempt in {1..50}; do
+    if [[ "$(readlink -f -- "/proc/$pid/exe" 2>/dev/null || true)" == "$exe" ]]; then
+      return 0
+    fi
+    sleep 0.1
+  done
+  fail "timed out waiting for PID $pid to run $exe"
+}
+
 [[ -x "$monitor" ]] || fail "monitor script is not executable: $monitor"
 [[ -x "$sampler" ]] || fail "sampler script is not executable: $sampler"
 
@@ -138,6 +155,8 @@ ln -sf "releases/aaaabbbbccccdddd/luminari" "$auto_root/bin/luminari"
 target_one=$!
 "$auto_release/luminari" 30 &
 target_two=$!
+wait_for_exec "$target_one" "$(readlink -f -- "$auto_release/luminari")"
+wait_for_exec "$target_two" "$(readlink -f -- "$auto_release/luminari")"
 printf '%s\n' "$target_one" > "$auto_root/.mud.pid"
 
 LUMINARI_PROJECT_ROOT="$auto_root" \

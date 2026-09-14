@@ -75,7 +75,7 @@ struct combat_mode_data combat_mode_info[] = {
     {"deadly aim", AFF_DEADLY_AIM, FEAT_DEADLY_AIM, TRUE, MODE_GROUP_NONE}};
 
 /* Unified combat mode management */
-bool is_mode_enabled(const struct char_data *ch, const int mode)
+static bool is_mode_enabled(const struct char_data *ch, const int mode)
 {
   if (AFF_FLAGGED(ch, combat_mode_info[mode].affect_flag))
   {
@@ -87,7 +87,7 @@ bool is_mode_enabled(const struct char_data *ch, const int mode)
   }
 }
 
-int is_mode_blocked(const struct char_data *ch, const int mode)
+static int is_mode_blocked(const struct char_data *ch, const int mode)
 {
   int i = 0;
 
@@ -121,7 +121,7 @@ bool can_enable_mode(struct char_data *ch, const int mode)
   }
 }
 
-void enable_combat_mode(struct char_data *ch, const int mode, const int value)
+static void enable_combat_mode(struct char_data *ch, const int mode, const int value)
 {
   //  if ( can_enable_mode(ch, mode) ) {
   SET_BIT_AR(AFF_FLAGS(ch), combat_mode_info[mode].affect_flag);

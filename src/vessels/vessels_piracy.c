@@ -19,10 +19,7 @@
 #include "wilderness/wilderness.h"
 #include "mysql.h"
 
-extern MYSQL *conn;
-extern bool mysql_available;
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct room_data *world;
 
 /* A letter of marque costs this multiple of the WANTED threshold */
 #define MARQUE_COST (BOUNTY_WANTED * 4)
@@ -294,7 +291,7 @@ bool vessel_piracy_wanted_port_is_open(const struct vessel_piracy_law *law)
 /**
  * Locate cached law metadata by region VNUM.
  */
-static const struct vessel_piracy_law_cache_entry *vessel_piracy_cached_law(int region_vnum)
+static const struct vessel_piracy_law_cache_entry *vessel_piracy_cached_law(int region_vnum_id)
 {
   size_t low;
   size_t high;
@@ -305,11 +302,11 @@ static const struct vessel_piracy_law_cache_entry *vessel_piracy_cached_law(int 
   while (low < high)
   {
     middle = low + (high - low) / 2;
-    if (vessel_law_cache[middle].region_vnum == region_vnum)
+    if (vessel_law_cache[middle].region_vnum == region_vnum_id)
     {
       return &vessel_law_cache[middle];
     }
-    if (vessel_law_cache[middle].region_vnum < region_vnum)
+    if (vessel_law_cache[middle].region_vnum < region_vnum_id)
     {
       low = middle + 1;
     }
@@ -970,7 +967,7 @@ ACMD(do_bounty)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   target = *arg ? arg : GET_NAME(ch);
 
   bounty = vessel_get_bounty(target);

@@ -112,7 +112,7 @@ ACMD(do_introduce)
   char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   int i, j, count = 0;
   bool found = FALSE;
-  const char *known_names[MAX_INTROS];
+  char *known_names[MAX_INTROS];
   char name_buf[MAX_NAME_LENGTH + 1];
 
   /* Check if introduction system is enabled */
@@ -206,11 +206,11 @@ ACMD(do_introduce)
     else
     {
       /* Display in 3 columns */
-      column_list(ch, 3, known_names, count, FALSE);
+      column_list(ch, 3, (const char *const *)known_names, count, FALSE);
 
       /* Free the duplicated strings */
       for (i = 0; i < count; i++)
-        free((void *)known_names[i]);
+        free(known_names[i]);
     }
     return;
   }

@@ -131,7 +131,7 @@ bool rol_deaths_head_mature_wood_drop_enabled(void)
 long rol_deaths_head_source_delay_pulses(int source_pulses)
 {
   source_pulses = MAX(1, source_pulses);
-  return MAX(1L, (long)source_pulses * PASSES_PER_SEC / ROL_DEATHS_HEAD_SOURCE_PASSES_PER_SEC);
+  return long_max(1L, (long)source_pulses * PASSES_PER_SEC / ROL_DEATHS_HEAD_SOURCE_PASSES_PER_SEC);
 }
 
 int rol_deaths_head_seed_damage_min(int growth)
@@ -163,7 +163,7 @@ static void rol_deaths_head_initialize_tree(struct char_data *tree, enum rol_dea
 
   minimum = rol_deaths_head_initial_head_min(kind);
   maximum = rol_deaths_head_initial_head_max(kind);
-  tree->mob_specials.rol_deaths_head_count = rand_number(minimum, maximum);
+  tree->mob_specials.rol_deaths_head_count = (byte)rand_number(minimum, maximum);
   tree->mob_specials.rol_deaths_head_cycle = 0;
   tree->mob_specials.rol_deaths_head_drop = 0;
   tree->mob_specials.rol_deaths_head_initialized = true;
@@ -288,7 +288,7 @@ static void rol_deaths_head_drop_fruit(struct char_data *tree)
     act("$N falls from $n.", FALSE, tree, NULL, fruit, TO_ROOM);
     remaining_heads--;
   }
-  tree->mob_specials.rol_deaths_head_count = remaining_heads;
+  tree->mob_specials.rol_deaths_head_count = (byte)remaining_heads;
 }
 
 static int rol_deaths_head_cry(struct char_data *tree)
@@ -325,7 +325,7 @@ static int rol_deaths_head_mature_activity(struct char_data *tree)
   tree->mob_specials.rol_deaths_head_cycle++;
   if (tree->mob_specials.rol_deaths_head_cycle > ROL_DEATHS_HEAD_GERMINATE_THRESHOLD)
   {
-    tree->mob_specials.rol_deaths_head_count = rol_deaths_head_mature_regrowth_count(
+    tree->mob_specials.rol_deaths_head_count = (byte)rol_deaths_head_mature_regrowth_count(
         tree->mob_specials.rol_deaths_head_count, rand_number(10, 15));
     act("Several new heads begin to grow on $n.", FALSE, tree, NULL, NULL, TO_ROOM);
     tree->mob_specials.rol_deaths_head_cycle = 0;

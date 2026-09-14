@@ -1334,11 +1334,11 @@ ACMD(do_enter)
           } while ((real_room(portal_dest) == NOWHERE) && (++count < 150));
         }
 
-        log("Random Portal: Sending %s to vnum %d", GET_NAME(ch), portal_dest);
+        log("Random Portal: Sending %s to vnum %" PRI_IDX, GET_NAME(ch), portal_dest);
         break;
 
       default:
-        mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Invalid portal type (%d) in room %d",
+        mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Invalid portal type (%d) in room %" PRI_IDX,
                portal->obj_flags.value[0], world[IN_ROOM(ch)].number);
         send_to_char(ch, "This portal is broken, please tell an Imm.\r\n");
         return;

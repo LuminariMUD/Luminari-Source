@@ -25,7 +25,9 @@ and operational conventions that apply to contributors.
   tops.
 - Do not use variable-length arrays. Use `snprintf`, never `sprintf`, and NULL-check before
   dereferencing.
-- Log actionable runtime failures with `log("SYSERR: ...")`; fix all `-Wall -Wextra` warnings.
+- Log actionable runtime failures with `log("SYSERR: ...")`; fix all baseline-tier warnings
+  (`-Wall -Wextra` and the rest of the list in `scripts/deployment/production_profile.sh`) and
+  never add to the migration-tier budget.
 - Use repository macros and typed VNUM definitions after tracing them; never hard-code virtual
   numbers.
 
@@ -183,7 +185,7 @@ ownership evidence in the
 | Compiler | GNU-compatible C23 compiler | `configure.ac`, `CMakeLists.txt` |
 | Formatter | clang-format | `.clang-format` |
 | Linter/static analysis | clang-tidy | `.clang-tidy` |
-| Type safety | GCC/Clang `-Wall -Wextra` | `Makefile.am`, `CMakeLists.txt` |
+| Type safety | GCC/Clang warning tiers, `-Werror` on the baseline | `scripts/deployment/production_profile.sh`, `configure.ac`, `CMakeLists.txt` |
 | Testing | CuTest and protocol parser harness | `Makefile.am`, `unittests/CuTest/Makefile` |
 | Build | Autotools/Automake and CMake | `Makefile.am`, `CMakeLists.txt` |
 | Development startup | Syntax-check boot | `./bin/luminari -c -d lib` |

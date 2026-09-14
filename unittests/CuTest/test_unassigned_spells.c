@@ -577,7 +577,7 @@ void TestRolSpellKitLevelAndMulticlassBoundaries(CuTest *tc)
   clear_char(&ch);
   memset(&specials, 0, sizeof(specials));
   ch.player_specials = &specials;
-  ch.player.name = "spell access tester";
+  ch.player.name = CuMutableString("spell access tester");
   GET_LEVEL(&ch) = 30;
 
   CLASS_LEVEL((&ch), CLASS_CLERIC) = 10;
@@ -626,7 +626,7 @@ void TestElementalistEmbodimentsRequireMasterOfElementsForPreparation(CuTest *tc
   memset(&specials, 0, sizeof(specials));
   memset(&master, 0, sizeof(master));
   ch.player_specials = &specials;
-  ch.player.name = "elementalist";
+  ch.player.name = CuMutableString("elementalist");
   GET_LEVEL(&ch) = 30;
   CLASS_LEVEL((&ch), CLASS_WIZARD) = 13;
   init_class(&ch, CLASS_WIZARD, 13);
@@ -659,7 +659,7 @@ void TestBattlechanterSpellUsesBardKnownSpellPath(CuTest *tc)
   clear_char(&ch);
   memset(&specials, 0, sizeof(specials));
   ch.player_specials = &specials;
-  ch.player.name = "battlechanter";
+  ch.player.name = CuMutableString("battlechanter");
   GET_LEVEL(&ch) = 16;
   GET_CLASS(&ch) = CLASS_BARD;
   CLASS_LEVEL((&ch), CLASS_BARD) = 16;
@@ -689,7 +689,7 @@ void TestMasterOfElementsRequiresTwoFocusedElementPerks(CuTest *tc)
   memset(&fire, 0, sizeof(fire));
   memset(&cold, 0, sizeof(cold));
   ch.player_specials = &specials;
-  ch.player.name = "perk tester";
+  ch.player.name = CuMutableString("perk tester");
   GET_LEVEL(&ch) = 1;
   CLASS_LEVEL((&ch), CLASS_WIZARD) = 1;
   specials.saved.perk_points[CLASS_WIZARD] = 100;
@@ -722,7 +722,7 @@ void TestDireRaiderWolfBondRequiresRangerWarriorMulticlass(CuTest *tc)
   clear_char(&ch);
   memset(&specials, 0, sizeof(specials));
   ch.player_specials = &specials;
-  ch.player.name = "dire raider";
+  ch.player.name = CuMutableString("dire raider");
   SET_FEAT(&ch, FEAT_ANIMAL_COMPANION, 1);
 
   CLASS_LEVEL((&ch), CLASS_RANGER) = 3;
@@ -795,8 +795,8 @@ void TestElementalEmbodimentsPreserveProfilesAndLinkedCleanup(CuTest *tc)
     memset(&target_specials, 0, sizeof(target_specials));
     caster.player_specials = &caster_specials;
     target.player_specials = &target_specials;
-    caster.player.name = "elementalist";
-    target.player.name = "subject";
+    caster.player.name = CuMutableString("elementalist");
+    target.player.name = CuMutableString("subject");
     GET_LEVEL(&caster) = 20;
     GET_LEVEL(&target) = 10;
     GET_REAL_RACE(&caster) = RACE_HUMAN;
@@ -830,6 +830,8 @@ void TestElementalEmbodimentsPreserveProfilesAndLinkedCleanup(CuTest *tc)
 
     af = find_test_affect(&target, expected->spellnum, APPLY_HIT);
     CuAssertPtrNotNull(tc, af);
+    if (af == NULL)
+      return;
     base_hp = 10 * expected->hp_factor;
     variance = base_hp * 5 / 100;
     CuAssertTrue(tc, af->modifier >= base_hp - variance);
@@ -840,15 +842,21 @@ void TestElementalEmbodimentsPreserveProfilesAndLinkedCleanup(CuTest *tc)
 
     af = find_test_affect(&target, expected->spellnum, APPLY_CHAR_HEIGHT);
     CuAssertPtrNotNull(tc, af);
+    if (af == NULL)
+      return;
     CuAssertIntEquals(tc, expected->size_percent, af->modifier);
     af = find_test_affect(&target, expected->spellnum, APPLY_CHAR_WEIGHT);
     CuAssertPtrNotNull(tc, af);
+    if (af == NULL)
+      return;
     CuAssertIntEquals(tc, expected->size_percent, af->modifier);
 
     if (expected->armor_bonus > 0)
     {
       af = find_test_affect(&target, expected->spellnum, APPLY_AC_NEW);
       CuAssertPtrNotNull(tc, af);
+      if (af == NULL)
+        return;
       CuAssertIntEquals(tc, expected->armor_bonus, af->modifier);
       CuAssertIntEquals(tc, BONUS_TYPE_NATURALARMOR, af->bonus_type);
     }
@@ -861,6 +869,8 @@ void TestElementalEmbodimentsPreserveProfilesAndLinkedCleanup(CuTest *tc)
     {
       af = find_test_affect(&target, expected->spellnum, expected->resistances[resistance_index]);
       CuAssertPtrNotNull(tc, af);
+      if (af == NULL)
+        return;
       CuAssertIntEquals(tc, 50, af->modifier);
     }
     for (flag_index = 0; flag_index < expected->flag_count; flag_index++)
@@ -868,6 +878,8 @@ void TestElementalEmbodimentsPreserveProfilesAndLinkedCleanup(CuTest *tc)
 
     af = find_test_affect(&caster, AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN, APPLY_NONE);
     CuAssertPtrNotNull(tc, af);
+    if (af == NULL)
+      return;
     CuAssertIntEquals(tc, expected->spellnum, af->specific);
     CuAssertTrue(tc, af->source_id == target_id);
 
@@ -1060,16 +1072,24 @@ void TestDarkWrathAppliesSourceBonusesToAllSpellSaves(CuTest *tc)
 
   af = find_test_affect(&ch, SPELL_DARK_WRATH, APPLY_DAMROLL);
   CuAssertPtrNotNull(tc, af);
+  if (af == NULL)
+    return;
   CuAssertIntEquals(tc, 1, af->modifier);
   CuAssertTrue(tc, af->duration >= 5 && af->duration <= 8);
   af = find_test_affect(&ch, SPELL_DARK_WRATH, APPLY_SAVING_FORT);
   CuAssertPtrNotNull(tc, af);
+  if (af == NULL)
+    return;
   CuAssertIntEquals(tc, 3, af->modifier);
   af = find_test_affect(&ch, SPELL_DARK_WRATH, APPLY_SAVING_REFL);
   CuAssertPtrNotNull(tc, af);
+  if (af == NULL)
+    return;
   CuAssertIntEquals(tc, 3, af->modifier);
   af = find_test_affect(&ch, SPELL_DARK_WRATH, APPLY_SAVING_WILL);
   CuAssertPtrNotNull(tc, af);
+  if (af == NULL)
+    return;
   CuAssertIntEquals(tc, 3, af->modifier);
 
   remove_test_affects(&ch);
@@ -1088,6 +1108,8 @@ void TestUnholyAuraKeepsItsOwnFireShieldAffect(CuTest *tc)
   spell_unholy_aura(30, &ch, &ch, NULL, CAST_SPELL);
   af = find_test_affect(&ch, SPELL_UNHOLY_AURA, APPLY_NONE);
   CuAssertPtrNotNull(tc, af);
+  if (af == NULL)
+    return;
   CuAssertIntEquals(tc, 3, af->duration);
   CuAssertTrue(tc, AFF_FLAGGED(&ch, AFF_FSHIELD));
 
@@ -1138,6 +1160,8 @@ void TestPhantomHealingIsRepaidExactlyOnceOnExpiryOrRemoval(CuTest *tc)
       spell_phantom_heal(20, &ch, &ch, NULL, CAST_SPELL);
       af = find_test_affect(&ch, SPELL_PHANTOM_HEAL, APPLY_SPECIAL);
       CuAssertPtrNotNull(tc, af);
+      if (af == NULL)
+        return;
       CuAssertIntEquals(tc, 50, GET_HIT(&ch));
       if (wounded)
         GET_HIT(&ch) = 5;

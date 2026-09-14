@@ -129,4 +129,6 @@ extern "C"
 }
 #endif
 
+
+int get_wear_location_by_armor_type(int type);
 #endif /* ASSIGN_WPN_ARMOR_H */

@@ -38,7 +38,6 @@
 
 bool jot_inv_check = false;
 
-ACMD_DECL(do_say);
 
 /* just made this to help facilitate switching of zone vnums if needed */
 int jot_converter(int value)
@@ -496,7 +495,7 @@ SPECIAL(ymir_cloak)
   if (!ch)
     return 0;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Invoke ice storm by saying 'icicle storm'.\r\nOnce per day.\r\n");
     return 1;
@@ -540,7 +539,7 @@ SPECIAL(mistweave)
   if (!ch)
     return 0;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Invoke blindness by saying 'mistweave'. Once per day.\r\n");
     return 1;
@@ -589,7 +588,7 @@ SPECIAL(frostbite)
   if (!ch)
     return 0;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Invoke cone of cold  by saying 'frostbite'. Once per day.\r\n");
     return 1;
@@ -665,7 +664,7 @@ SPECIAL(vaprak_claws)
   if (!ch)
     return 0;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Invoke Fury of Vaprak by saying 'vaprak'. Once per day.\r\nWorks only for "
                      "Trolls and Ogres.\r\n");
@@ -748,7 +747,7 @@ SPECIAL(fake_twilight)
   if (!ch)
     return 0;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Twilight Rage.\r\n");
     return 1;
@@ -803,7 +802,7 @@ SPECIAL(twilight)
   if (!ch)
     return 0;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Twilight Rage!\r\n");
     return 1;
@@ -856,7 +855,7 @@ SPECIAL(valkyrie_sword)
   if (!ch || cmd)
     return 0;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Female Only - Proc Burning Hands\r\n");
     return 1;
@@ -892,7 +891,7 @@ SPECIAL(planetar_sword)
   if (!ch)
     return 0;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc Cure Critical and Dispel Evil\r\n");
     return 1;
@@ -933,7 +932,7 @@ SPECIAL(giantslayer)
   if (!ch)
     return 0;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Invoke giant hamstring attack by saying 'hamstring'. Once per day.\r\nWorks "
                      "only for Dwarves.\r\n");

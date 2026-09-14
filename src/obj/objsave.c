@@ -187,10 +187,10 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
   ins_buf[0] = '\0';
 #endif
 
-  fprintf(fp, "#%d\n", GET_OBJ_VNUM(obj));
+  fprintf(fp, "#%d\n", (int)GET_OBJ_VNUM(obj));
 
 #ifdef OBJSAVE_DB
-  snprintf(line_buf, sizeof(line_buf), "#%d\n", GET_OBJ_VNUM(obj));
+  snprintf(line_buf, sizeof(line_buf), "#%d\n", (int)GET_OBJ_VNUM(obj));
   strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
 
@@ -568,7 +568,7 @@ static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_da
       extract_obj(temp);
       return 1;
     }
-    insert_id = mysql_stmt_insert_id(statement->stmt);
+    insert_id = (int)mysql_stmt_insert_id(statement->stmt);
     mysql_stmt_cleanup(statement);
 
     if (CAN_WEAR(obj, ITEM_WEAR_SHEATH))
@@ -1047,7 +1047,7 @@ void Crash_listrent(struct char_data *ch, char *name)
   loaded = objsave_parse_objects(fl);
 
   for (current = loaded; current != NULL; current = current->next)
-    len = snprintf_append(buf, sizeof(buf), len, "[%5d] (%5dau) %-20s\r\n",
+    len = snprintf_append(buf, sizeof(buf), len, "[%5u] (%5dau) %-20s\r\n",
                           GET_OBJ_VNUM(current->obj), GET_OBJ_RENT(current->obj),
                           current->obj->short_description);
 
@@ -1807,7 +1807,7 @@ static int Crash_offer_rent(struct char_data *ch, struct char_data *recep, int d
     else if (factor == RENT_FACTOR)
       Crash_rent_deadline(ch, recep, totalcost);
   }
-  return (totalcost);
+  return ((int)totalcost);
 }
 
 static int gen_receptionist(struct char_data *ch, struct char_data *recep, int cmd,
@@ -2298,13 +2298,13 @@ obj_save_data *objsave_parse_objects(FILE *fl)
           break;
         }
         GET_OBJ_EXTRA(temp)
-        [0] = asciiflag_conv(f1);
+        [0] = (int)asciiflag_conv(f1);
         GET_OBJ_EXTRA(temp)
-        [1] = asciiflag_conv(f2);
+        [1] = (int)asciiflag_conv(f2);
         GET_OBJ_EXTRA(temp)
-        [2] = asciiflag_conv(f3);
+        [2] = (int)asciiflag_conv(f3);
         GET_OBJ_EXTRA(temp)
-        [3] = asciiflag_conv(f4);
+        [3] = (int)asciiflag_conv(f4);
       }
       break;
     case 'L':
@@ -2330,13 +2330,13 @@ obj_save_data *objsave_parse_objects(FILE *fl)
           break;
         }
         GET_OBJ_AFFECT(temp)
-        [0] = asciiflag_conv(f1);
+        [0] = (int)asciiflag_conv(f1);
         GET_OBJ_AFFECT(temp)
-        [1] = asciiflag_conv(f2);
+        [1] = (int)asciiflag_conv(f2);
         GET_OBJ_AFFECT(temp)
-        [2] = asciiflag_conv(f3);
+        [2] = (int)asciiflag_conv(f3);
         GET_OBJ_AFFECT(temp)
-        [3] = asciiflag_conv(f4);
+        [3] = (int)asciiflag_conv(f4);
       }
       else if (!strcmp(tag, "Prm2"))
       {
@@ -2346,13 +2346,13 @@ obj_save_data *objsave_parse_objects(FILE *fl)
           break;
         }
         GET_OBJ2_PERM(temp)
-        [0] = asciiflag_conv(f1);
+        [0] = (int)asciiflag_conv(f1);
         GET_OBJ2_PERM(temp)
-        [1] = asciiflag_conv(f2);
+        [1] = (int)asciiflag_conv(f2);
         GET_OBJ2_PERM(temp)
-        [2] = asciiflag_conv(f3);
+        [2] = (int)asciiflag_conv(f3);
         GET_OBJ2_PERM(temp)
-        [3] = asciiflag_conv(f4);
+        [3] = (int)asciiflag_conv(f4);
       }
       break;
       if (!strcmp(tag, "Prof"))
@@ -2386,8 +2386,8 @@ obj_save_data *objsave_parse_objects(FILE *fl)
             memset((char *)temp->sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
           }
 
-          temp->sbinfo[j].spellname = t[0];
-          temp->sbinfo[j].pages = t[1];
+          temp->sbinfo[j].spellname = (ush_int)t[0];
+          temp->sbinfo[j].pages = (ubyte)t[1];
           j++;
         }
       }
@@ -2409,13 +2409,13 @@ obj_save_data *objsave_parse_objects(FILE *fl)
           break;
         }
         GET_OBJ_WEAR(temp)
-        [0] = asciiflag_conv(f1);
+        [0] = (int)asciiflag_conv(f1);
         GET_OBJ_WEAR(temp)
-        [1] = asciiflag_conv(f2);
+        [1] = (int)asciiflag_conv(f2);
         GET_OBJ_WEAR(temp)
-        [2] = asciiflag_conv(f3);
+        [2] = (int)asciiflag_conv(f3);
         GET_OBJ_WEAR(temp)
-        [3] = asciiflag_conv(f4);
+        [3] = (int)asciiflag_conv(f4);
       }
       else if (!strcmp(tag, "Wght"))
         GET_OBJ_WEIGHT(temp) = num;
@@ -2520,7 +2520,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
     snprintf(buf, sizeof(buf),
              "SELECT   serialized_obj, idnum "
              "FROM     house_data "
-             "WHERE    vnum = '%d' "
+             "WHERE    vnum = '%" PRI_IDX "' "
              "ORDER BY creation_date ASC;",
              house_vnum);
 
@@ -2531,14 +2531,14 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
       snprintf(buf, sizeof(buf),
                "SELECT   serialized_obj "
                "FROM     house_data "
-               "WHERE    vnum = '%d' "
+               "WHERE    vnum = '%" PRI_IDX "' "
                "ORDER BY creation_date ASC;",
                house_vnum);
 
       if (mysql_query(conn, buf))
       {
         log("SYSERR: Unable to SELECT from house_data (without idnum): %s", mysql_error(conn));
-        log("WARNING: Skipping house data loading for vnum %d", house_vnum);
+        log("WARNING: Skipping house data loading for vnum %" PRI_IDX, house_vnum);
         return NULL;
       }
       loading_house_data = 2; /* Mark that we're using the fallback query */
@@ -2547,7 +2547,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
     if (!(result = mysql_store_result(conn)))
     {
       log("SYSERR: Unable to SELECT from house_data: %s", mysql_error(conn));
-      log("WARNING: Skipping house data loading for vnum %d", house_vnum);
+      log("WARNING: Skipping house data loading for vnum %" PRI_IDX, house_vnum);
       return NULL;
     }
   }
@@ -2582,14 +2582,9 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
       /* Player data fallback query without idnum */
       obj_db_idnum = 0;
     }
-    else if (loading_house_data == 1)
-    {
-      /* House data with idnum column */
-      obj_db_idnum = row[1] != NULL ? atoi(row[1]) : 0;
-    }
     else
     {
-      /* Player data with idnum column (normal case) */
+      /* House data (1) or player data (normal case) with idnum column */
       obj_db_idnum = row[1] != NULL ? atoi(row[1]) : 0;
     }
 
@@ -2821,13 +2816,13 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
           GET_OBJ_EXTRA(temp)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           GET_OBJ_EXTRA(temp)
-          [1] = asciiflag_conv(f2);
+          [1] = (int)asciiflag_conv(f2);
           GET_OBJ_EXTRA(temp)
-          [2] = asciiflag_conv(f3);
+          [2] = (int)asciiflag_conv(f3);
           GET_OBJ_EXTRA(temp)
-          [3] = asciiflag_conv(f4);
+          [3] = (int)asciiflag_conv(f4);
         }
         break;
       case 'L':
@@ -2849,25 +2844,25 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
           GET_OBJ_AFFECT(temp)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           GET_OBJ_AFFECT(temp)
-          [1] = asciiflag_conv(f2);
+          [1] = (int)asciiflag_conv(f2);
           GET_OBJ_AFFECT(temp)
-          [2] = asciiflag_conv(f3);
+          [2] = (int)asciiflag_conv(f3);
           GET_OBJ_AFFECT(temp)
-          [3] = asciiflag_conv(f4);
+          [3] = (int)asciiflag_conv(f4);
         }
         else if (!strcmp(tag, "Prm2"))
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
           GET_OBJ2_PERM(temp)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           GET_OBJ2_PERM(temp)
-          [1] = asciiflag_conv(f2);
+          [1] = (int)asciiflag_conv(f2);
           GET_OBJ2_PERM(temp)
-          [2] = asciiflag_conv(f3);
+          [2] = (int)asciiflag_conv(f3);
           GET_OBJ2_PERM(temp)
-          [3] = asciiflag_conv(f4);
+          [3] = (int)asciiflag_conv(f4);
         }
         if (!strcmp(tag, "Prof"))
           GET_OBJ_PROF(temp) = num;
@@ -2896,8 +2891,8 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
               memset((char *)temp->sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
             }
 
-            temp->sbinfo[j].spellname = t[0];
-            temp->sbinfo[j].pages = t[1];
+            temp->sbinfo[j].spellname = (ush_int)t[0];
+            temp->sbinfo[j].pages = (ubyte)t[1];
             j++;
           }
         }
@@ -2915,13 +2910,13 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
           GET_OBJ_WEAR(temp)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           GET_OBJ_WEAR(temp)
-          [1] = asciiflag_conv(f2);
+          [1] = (int)asciiflag_conv(f2);
           GET_OBJ_WEAR(temp)
-          [2] = asciiflag_conv(f3);
+          [2] = (int)asciiflag_conv(f3);
           GET_OBJ_WEAR(temp)
-          [3] = asciiflag_conv(f4);
+          [3] = (int)asciiflag_conv(f4);
         }
         else if (!strcmp(tag, "Wght"))
           GET_OBJ_WEIGHT(temp) = num;
@@ -3113,7 +3108,7 @@ static int Crash_load_objs(struct char_data *ch)
   if (rentcode == RENT_RENTED || rentcode == RENT_TIMEDOUT)
   {
     snprintf(str, sizeof(str), "%d", SECS_PER_REAL_DAY);
-    num_of_days = (int)((float)(time(0) - timed) / (float)atoi(str));
+    num_of_days = (int)((double)(time(0) - timed) / (double)atoi(str));
     cost = (unsigned int)(netcost * num_of_days);
     if (cost > (unsigned int)GET_GOLD(ch) + (unsigned int)GET_BANK_GOLD(ch))
     {
@@ -3126,8 +3121,8 @@ static int Crash_load_objs(struct char_data *ch)
     }
     else
     {
-      award_bank_gold(ch, -MAX(cost - GET_GOLD(ch), 0));
-      award_gold(ch, -cost);
+      award_bank_gold(ch, -(int)long_max((long)cost - GET_GOLD(ch), 0L));
+      award_gold(ch, -(int)cost);
       save_char(ch, 0);
     }
   }
@@ -3453,7 +3448,7 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj,
 
   *ins_buf = '\0';
 
-  snprintf(line_buf, sizeof(line_buf), "#%d\n", GET_OBJ_VNUM(obj));
+  snprintf(line_buf, sizeof(line_buf), "#%d\n", (int)GET_OBJ_VNUM(obj));
   strlcat(ins_buf, line_buf, sizeof(ins_buf));
 
 
@@ -3959,7 +3954,7 @@ static bool pet_object_set_text(char **destination, const char *prototype, char 
  * owner ID, pet row ID, object vnum -- and never with the serialized payload or
  * the SQL statement that carried it. */
 static void log_pet_object_failure(const char *operation, struct char_data *owner,
-                                   long int pet_idnum, int obj_vnum, unsigned int error_code,
+                                   long int pet_idnum, int obj_vnum_id, unsigned int error_code,
                                    const char *detail)
 {
   char safe_detail[161];
@@ -3974,7 +3969,7 @@ static void log_pet_object_failure(const char *operation, struct char_data *owne
   log("SYSERR: pet objects: operation=%.40s owner_id=%ld pet_data_id=%ld obj_vnum=%d "
       "mysql_errno=%u detail=\"%.160s\"",
       operation ? operation : "unknown", owner && !IS_NPC(owner) ? (long)GET_IDNUM(owner) : 0L,
-      pet_idnum, obj_vnum, error_code, safe_detail);
+      pet_idnum, obj_vnum_id, error_code, safe_detail);
 }
 
 static obj_save_data *objsave_parse_objects_db_pet(struct char_data *owner, long int pet_idnum,
@@ -4363,8 +4358,8 @@ static obj_save_data *objsave_parse_objects_db_pet(struct char_data *owner, long
               memset((char *)temp->sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
             }
 
-            temp->sbinfo[j].spellname = t[0];
-            temp->sbinfo[j].pages = t[1];
+            temp->sbinfo[j].spellname = (ush_int)t[0];
+            temp->sbinfo[j].pages = (ubyte)t[1];
             j++;
           }
         }
@@ -4504,7 +4499,7 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
            "owner_name, serialized_obj) values (NULL, '%ld', %d, '%s', '",
            sheath_idnum, sheath_slot, GET_NAME(ch));
 
-  snprintf(line_buf, sizeof(line_buf), "#%d\n", GET_OBJ_VNUM(obj));
+  snprintf(line_buf, sizeof(line_buf), "#%d\n", (int)GET_OBJ_VNUM(obj));
   strlcat(ins_buf, line_buf, sizeof(ins_buf));
 
   /**** start checks for modifications to default object! ***/
@@ -5002,13 +4997,13 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
           GET_OBJ_EXTRA(temp)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           GET_OBJ_EXTRA(temp)
-          [1] = asciiflag_conv(f2);
+          [1] = (int)asciiflag_conv(f2);
           GET_OBJ_EXTRA(temp)
-          [2] = asciiflag_conv(f3);
+          [2] = (int)asciiflag_conv(f3);
           GET_OBJ_EXTRA(temp)
-          [3] = asciiflag_conv(f4);
+          [3] = (int)asciiflag_conv(f4);
         }
         break;
       case 'L':
@@ -5030,25 +5025,25 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
           GET_OBJ_AFFECT(temp)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           GET_OBJ_AFFECT(temp)
-          [1] = asciiflag_conv(f2);
+          [1] = (int)asciiflag_conv(f2);
           GET_OBJ_AFFECT(temp)
-          [2] = asciiflag_conv(f3);
+          [2] = (int)asciiflag_conv(f3);
           GET_OBJ_AFFECT(temp)
-          [3] = asciiflag_conv(f4);
+          [3] = (int)asciiflag_conv(f4);
         }
         if (!strcmp(tag, "Prm2"))
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
           GET_OBJ2_PERM(temp)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           GET_OBJ2_PERM(temp)
-          [1] = asciiflag_conv(f2);
+          [1] = (int)asciiflag_conv(f2);
           GET_OBJ2_PERM(temp)
-          [2] = asciiflag_conv(f3);
+          [2] = (int)asciiflag_conv(f3);
           GET_OBJ2_PERM(temp)
-          [3] = asciiflag_conv(f4);
+          [3] = (int)asciiflag_conv(f4);
         }
         if (!strcmp(tag, "Prof"))
           GET_OBJ_PROF(temp) = num;
@@ -5075,8 +5070,8 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
               memset((char *)temp->sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
             }
 
-            temp->sbinfo[j].spellname = t[0];
-            temp->sbinfo[j].pages = t[1];
+            temp->sbinfo[j].spellname = (ush_int)t[0];
+            temp->sbinfo[j].pages = (ubyte)t[1];
             j++;
           }
         }
@@ -5094,13 +5089,13 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         {
           sscanf(*line, "%s %s %s %s", f1, f2, f3, f4);
           GET_OBJ_WEAR(temp)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           GET_OBJ_WEAR(temp)
-          [1] = asciiflag_conv(f2);
+          [1] = (int)asciiflag_conv(f2);
           GET_OBJ_WEAR(temp)
-          [2] = asciiflag_conv(f3);
+          [2] = (int)asciiflag_conv(f3);
           GET_OBJ_WEAR(temp)
-          [3] = asciiflag_conv(f4);
+          [3] = (int)asciiflag_conv(f4);
         }
         else if (!strcmp(tag, "Wght"))
           GET_OBJ_WEIGHT(temp) = num;

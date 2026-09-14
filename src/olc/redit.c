@@ -200,9 +200,10 @@ ACMD(do_oasis_redit)
 
   if (save)
   {
-    send_to_char(ch, "Saving all rooms in zone %d.\r\n", zone_table[OLC_ZNUM(d)].number);
-    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s saves room info for zone %d.",
-           GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
+    send_to_char(ch, "Saving all rooms in zone %" PRI_IDX ".\r\n", zone_table[OLC_ZNUM(d)].number);
+    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE,
+           "OLC: %s saves room info for zone %" PRI_IDX ".", GET_NAME(ch),
+           zone_table[OLC_ZNUM(d)].number);
 
     /* Save the rooms. */
     save_rooms(OLC_ZNUM(d));
@@ -225,8 +226,8 @@ ACMD(do_oasis_redit)
   act("$n starts using OLC.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d", GET_NAME(ch),
-         zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %" PRI_IDX " allowed zone %d",
+         GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
 static void redit_setup_new(struct descriptor_data *d)
@@ -339,14 +340,15 @@ void redit_setup_existing(struct descriptor_data *d, int real_num, int mode __at
 
 void redit_save_internally(struct descriptor_data *d)
 {
-  room_rnum room_num;
+  room_rnum room_num_id;
   int j, new_room = FALSE;
   struct descriptor_data *dsc;
   char binding_error[256];
 
   if (redit_has_moving_room_binding_conflict(d))
   {
-    log("SYSERR: redit_save_internally: Room #%d has moving-room and named SpecProc ownership.",
+    log("SYSERR: redit_save_internally: Room #%" PRI_IDX
+        " has moving-room and named SpecProc ownership.",
         OLC_NUM(d));
     write_to_output(
         d, "A moving room cannot also own a named room special procedure. Save rejected.\r\n");
@@ -371,22 +373,22 @@ void redit_save_internally(struct descriptor_data *d)
   if (OLC_ROOM(d)->spec_binding != NULL)
     OLC_ROOM(d)->spec_binding->prototype_vnum = OLC_NUM(d);
 
-  if ((room_num = add_room(OLC_ROOM(d))) == NOWHERE)
+  if ((room_num_id = add_room(OLC_ROOM(d))) == NOWHERE)
   {
     write_to_output(d, "Something went wrong...\r\n");
-    log("SYSERR: redit_save_internally: Something failed! (%d)", room_num);
+    log("SYSERR: redit_save_internally: Something failed! (%" PRI_IDX ")", room_num_id);
     return;
   }
 
   /* Apply selected spec proc to room */
-  world[room_num].func = OLC(d)->specroom;
+  world[room_num_id].func = OLC(d)->specroom;
 
   /* Update triggers and free old proto list */
-  if (world[room_num].proto_script && world[room_num].proto_script != OLC_SCRIPT(d))
-    free_proto_script(&world[room_num].proto_script);
+  if (world[room_num_id].proto_script && world[room_num_id].proto_script != OLC_SCRIPT(d))
+    free_proto_script(&world[room_num_id].proto_script);
 
-  world[room_num].proto_script = OLC_SCRIPT(d);
-  assign_room_triggers(&world[room_num]);
+  world[room_num_id].proto_script = OLC_SCRIPT(d);
+  assign_room_triggers(&world[room_num_id]);
   /* end trigger update */
 
   /* Don't adjust numbers on a room update. */
@@ -408,14 +410,14 @@ void redit_save_internally(struct descriptor_data *d)
         case 'M':
         case 'T':
         case 'V':
-          OLC_ZONE(dsc)->cmd[j].arg3 += (OLC_ZONE(dsc)->cmd[j].arg3 >= (int)room_num);
+          OLC_ZONE(dsc)->cmd[j].arg3 += (OLC_ZONE(dsc)->cmd[j].arg3 >= (int)room_num_id);
           break;
         case 'D':
         case 'R':
         case 'F':
         case 'K':
         case 'X':
-          OLC_ZONE(dsc)->cmd[j].arg1 += (OLC_ZONE(dsc)->cmd[j].arg1 >= (int)room_num);
+          OLC_ZONE(dsc)->cmd[j].arg1 += (OLC_ZONE(dsc)->cmd[j].arg1 >= (int)room_num_id);
           break;
         }
     }
@@ -423,7 +425,7 @@ void redit_save_internally(struct descriptor_data *d)
     {
       for (j = 0; j < DIR_COUNT; j++)
         if (OLC_ROOM(dsc)->dir_option[j])
-          if (OLC_ROOM(dsc)->dir_option[j]->to_room >= room_num)
+          if (OLC_ROOM(dsc)->dir_option[j]->to_room >= room_num_id)
             OLC_ROOM(dsc)->dir_option[j]->to_room++;
     }
   }
@@ -584,7 +586,7 @@ static void redit_disp_menu(struct descriptor_data *d)
   /* Current spec proc (from OLC selection if any, else from room) */
   specname = get_spec_func_name(OLC(d)->specroom ? OLC(d)->specroom : room->func);
   write_to_output(d,
-                  "-- Room number : [%s%d%s] Room zone: [%s%d%s]\r\n"
+                  "-- Room number : [%s%" PRI_IDX "%s] Room zone: [%s%" PRI_IDX "%s]\r\n"
                   "%s1%s) Name        : %s%s\r\n"
                   "%s2%s) Description :\r\n%s%s"
                   "%s3%s) Room flags  : %s%s\r\n"
@@ -720,8 +722,8 @@ void redit_parse(struct descriptor_data *d, char *arg)
         return;
       }
       redit_save_internally(d);
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits room %d.",
-             GET_NAME(d->character), OLC_NUM(d));
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
+             "OLC: %s edits room %" PRI_IDX ".", GET_NAME(d->character), OLC_NUM(d));
       if (CONFIG_OLC_SAVE)
       {
         redit_save_to_disk(real_zone_by_thing(OLC_NUM(d)));

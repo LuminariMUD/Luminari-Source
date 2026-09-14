@@ -1395,7 +1395,7 @@ static void rol_gate_one(struct char_data *ch, const char *alias, int family_fla
 
   if ((rnum = rol_gate_template(alias, family_flag)) == NOBODY)
   {
-    log("SYSERR: RoL gate template '%s' is unavailable for mobile %d", alias, GET_MOB_VNUM(ch));
+    log("SYSERR: RoL gate template '%s' is unavailable for mobile %u", alias, GET_MOB_VNUM(ch));
     return;
   }
   if ((summoned = read_mobile(rnum, REAL)) == NULL)
@@ -1664,14 +1664,14 @@ int rol_waterdeep_ambient_roll_sides(int mobile_vnum)
   return 5;
 }
 
-bool rol_waterdeep_ambient_room_allows(int mobile_vnum, int room_vnum)
+bool rol_waterdeep_ambient_room_allows(int mobile_vnum, int room_vnum_id)
 {
   const struct rol_ambient_mobile_profile *profile = rol_ambient_profile_for(mobile_vnum);
 
   if (profile == NULL)
     return false;
 
-  return profile->profile_id != ROL_AMBIENT_MERCHANT_TWO || room_vnum == 2005400;
+  return profile->profile_id != ROL_AMBIENT_MERCHANT_TWO || room_vnum_id == 2005400;
 }
 
 bool rol_waterdeep_ambient_fighting_allows(int mobile_vnum, bool fighting)
@@ -2094,7 +2094,7 @@ static void rol_death_replace_mobile(struct char_data *ch, const struct rol_deat
   if (profile->replacement_vnum <= 0 ||
       (replacement = read_mobile(profile->replacement_vnum, VIRTUAL)) == NULL)
   {
-    log("SYSERR: RoL death replacement %d for mobile %d is unavailable", profile->replacement_vnum,
+    log("SYSERR: RoL death replacement %d for mobile %u is unavailable", profile->replacement_vnum,
         GET_MOB_VNUM(ch));
     return;
   }
@@ -2117,7 +2117,7 @@ static void rol_death_drop_object(struct char_data *ch, int object_vnum)
 
   if (object_vnum <= 0 || (obj = read_object(object_vnum, VIRTUAL)) == NULL)
   {
-    log("SYSERR: RoL death object %d for mobile %d is unavailable", object_vnum, GET_MOB_VNUM(ch));
+    log("SYSERR: RoL death object %d for mobile %u is unavailable", object_vnum, GET_MOB_VNUM(ch));
     return;
   }
   obj_to_room(obj, IN_ROOM(ch));
@@ -2229,7 +2229,7 @@ static void rol_death_stone_crumble(struct char_data *ch, int object_vnum)
 
   if (object_vnum <= 0 || (pile = read_object(object_vnum, VIRTUAL)) == NULL)
   {
-    log("SYSERR: RoL stone-crumble object %d for mobile %d is unavailable", object_vnum,
+    log("SYSERR: RoL stone-crumble object %d for mobile %u is unavailable", object_vnum,
         GET_MOB_VNUM(ch));
     return;
   }
@@ -2297,7 +2297,7 @@ static void rol_death_split_skeleton(struct char_data *ch)
     replacement = read_mobile(GET_MOB_VNUM(ch), VIRTUAL);
     if (replacement == NULL)
     {
-      log("SYSERR: RoL splitting skeleton cannot load mobile %d", GET_MOB_VNUM(ch));
+      log("SYSERR: RoL splitting skeleton cannot load mobile %u", GET_MOB_VNUM(ch));
       return;
     }
     char_to_room(replacement, IN_ROOM(ch));
@@ -2316,7 +2316,7 @@ static void rol_death_split_mapped(struct char_data *ch, int replacement_vnum)
     replacement = read_mobile(replacement_vnum, VIRTUAL);
     if (replacement == NULL)
     {
-      log("SYSERR: RoL mapped split cannot load mobile %d for mobile %d", replacement_vnum,
+      log("SYSERR: RoL mapped split cannot load mobile %d for mobile %u", replacement_vnum,
           GET_MOB_VNUM(ch));
       return;
     }
@@ -3011,7 +3011,7 @@ int rol_portal_door(struct char_data *ch, void *me, int cmd, const char *argumen
   if (!VALID_ROOM_RNUM(destination))
   {
     send_to_char(ch, "The portal leads nowhere. Please tell a staff member.\r\n");
-    log("SYSERR: RoL portal door object %d has invalid destination %d", GET_OBJ_VNUM(obj),
+    log("SYSERR: RoL portal door object %u has invalid destination %d", GET_OBJ_VNUM(obj),
         GET_OBJ_VAL(obj, 0));
     return TRUE;
   }
@@ -3065,7 +3065,7 @@ int rol_bloodstone_portal(struct char_data *ch, void *me, int cmd, const char *a
   if (!VALID_ROOM_RNUM(destination))
   {
     send_to_char(ch, "The portal leads nowhere. Please tell a staff member.\r\n");
-    log("SYSERR: RoL Bloodstone portal object %d has invalid destination %d", GET_OBJ_VNUM(obj),
+    log("SYSERR: RoL Bloodstone portal object %u has invalid destination %d", GET_OBJ_VNUM(obj),
         GET_OBJ_VAL(obj, 0));
     return TRUE;
   }
@@ -3120,7 +3120,7 @@ int rol_magic_pool(struct char_data *ch, void *me, int cmd, const char *argument
   if (!VALID_ROOM_RNUM(destination))
   {
     send_to_char(ch, "The pool leads nowhere. Please tell a staff member.\r\n");
-    log("SYSERR: RoL magic pool object %d has invalid destination %d", GET_OBJ_VNUM(obj),
+    log("SYSERR: RoL magic pool object %u has invalid destination %d", GET_OBJ_VNUM(obj),
         GET_OBJ_VAL(obj, 0));
     return TRUE;
   }
@@ -3188,8 +3188,8 @@ int rol_auto_distributor(struct char_data *ch, void *me, int cmd, const char *ar
   if (!VALID_ROOM_RNUM(destination))
   {
     send_to_char(ch, "The distributing magic fails. Please tell a staff member.\r\n");
-    log("SYSERR: RoL auto distributor room %d has no valid destination in zone %d", room->number,
-        zone);
+    log("SYSERR: RoL auto distributor room %" PRI_IDX " has no valid destination in zone %" PRI_IDX,
+        room->number, zone);
     return TRUE;
   }
 
@@ -3260,12 +3260,12 @@ bool rol_class_guild_allows(const struct char_data *ch, enum rol_guild_family fa
   }
 }
 
-bool rol_waterdeep_guild_allows(int room_vnum, const struct char_data *ch)
+bool rol_waterdeep_guild_allows(int room_vnum_id, const struct char_data *ch)
 {
   if (ch == NULL || IS_NPC(ch))
     return false;
 
-  switch (room_vnum)
+  switch (room_vnum_id)
   {
   case 2005505:
     return CLASS_LEVEL(ch, CLASS_PALADIN) > 0;
@@ -3356,7 +3356,7 @@ int rol_waterdeep_guild_room(struct char_data *ch, void *me, int cmd, const char
   return guild(ch, me, cmd, argument);
 }
 
-bool rol_guild_guard_allows(int room_vnum, int direction, const struct char_data *ch)
+bool rol_guild_guard_allows(int room_vnum_id, int direction, const struct char_data *ch)
 {
   const struct rol_guild_guard_rule *rule;
   size_t rule_index;
@@ -3365,7 +3365,7 @@ bool rol_guild_guard_allows(int room_vnum, int direction, const struct char_data
        rule_index < sizeof(rol_guild_guard_rules) / sizeof(rol_guild_guard_rules[0]); rule_index++)
   {
     rule = &rol_guild_guard_rules[rule_index];
-    if (rule->room_vnum != room_vnum || rule->direction != direction)
+    if (rule->room_vnum != room_vnum_id || rule->direction != direction)
       continue;
 
     if (rule->class_mask != 0)
@@ -3379,22 +3379,22 @@ bool rol_guild_guard_allows(int room_vnum, int direction, const struct char_data
   return true;
 }
 
-bool rol_guild_guard_protects(int room_vnum)
+bool rol_guild_guard_protects(int room_vnum_id)
 {
   size_t rule_index;
 
   for (rule_index = 0;
        rule_index < sizeof(rol_guild_guard_rules) / sizeof(rol_guild_guard_rules[0]); rule_index++)
-    if (rol_guild_guard_rules[rule_index].room_vnum == room_vnum &&
+    if (rol_guild_guard_rules[rule_index].room_vnum == room_vnum_id &&
         rol_guild_guard_rules[rule_index].protects)
       return true;
 
   return false;
 }
 
-int rol_guild_guard_passage_destination(int room_vnum, int direction)
+int rol_guild_guard_passage_destination(int room_vnum_id, int direction)
 {
-  switch (room_vnum)
+  switch (room_vnum_id)
   {
   case 2002951:
     return direction == NORTH ? 2002952 : 0;
@@ -3439,9 +3439,9 @@ int rol_guild_guard_passage_destination(int room_vnum, int direction)
   }
 }
 
-bool rol_guild_guard_trips_rejected(int room_vnum, int direction)
+bool rol_guild_guard_trips_rejected(int room_vnum_id, int direction)
 {
-  return room_vnum == 2002951 && direction == NORTH;
+  return room_vnum_id == 2002951 && direction == NORTH;
 }
 
 static room_rnum rol_guild_guard_teleport_destination(struct char_data *victim)
@@ -3496,7 +3496,7 @@ static int rol_guild_guard_protection(struct char_data *guard, struct char_data 
       guard, NULL, victim, TO_ROOM);
   send_to_char(victim, "A wrenching pain drains your life force away!\r\n");
 
-  loss = MIN((long)GET_LEVEL(victim) * 5000L, MAX(0L, GET_EXP(victim) - 2L));
+  loss = long_min((long)GET_LEVEL(victim) * 5000L, long_max(0L, GET_EXP(victim) - 2L));
   award_points(victim, AWARD_EXPERIENCE, -loss);
 
   call_magic(guard, victim, NULL, SPELL_DISPEL_MAGIC, 0, 60, CAST_INNATE);
@@ -3599,9 +3599,9 @@ int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argumen
   return TRUE;
 }
 
-static int rol_named_guild_guard_activity(struct char_data *guard, int room_vnum)
+static int rol_named_guild_guard_activity(struct char_data *guard, int room_vnum_id)
 {
-  if (room_vnum != 2005500 || !AWAKE(guard) || FIGHTING(guard) != NULL)
+  if (room_vnum_id != 2005500 || !AWAKE(guard) || FIGHTING(guard) != NULL)
     return FALSE;
 
   switch (dice(2, 5))
@@ -4117,7 +4117,7 @@ int rol_bandit_cargo_value(struct char_data *ch)
     for (obj = wagon->contains; obj != NULL; obj = obj->next_content)
       total += GET_OBJ_COST(obj);
 
-  return (int)MIN((long long)INT_MAX, MAX(0LL, total));
+  return (int)llong_min((long long)INT_MAX, llong_max(0LL, total));
 }
 
 int rol_bandit_fee_gold(int target_vnum, int cargo_value, int alignment, int carried_gold)
@@ -4133,11 +4133,11 @@ int rol_bandit_fee_gold(int target_vnum, int cargo_value, int alignment, int car
   case 2099501:
     return 50;
   case 2099502:
-    return (int)MIN((long long)INT_MAX, (base_platinum / 3) * 10);
+    return (int)llong_min((long long)INT_MAX, (base_platinum / 3) * 10);
   case 2099503:
-    return (int)MIN((long long)INT_MAX, (base_platinum / 2) * 10);
+    return (int)llong_min((long long)INT_MAX, (base_platinum / 2) * 10);
   case 2099504:
-    return (int)MIN((long long)INT_MAX, base_platinum * 10);
+    return (int)llong_min((long long)INT_MAX, base_platinum * 10);
   case 2099505:
     return carried_gold > 0 ? carried_gold : ROL_BANDIT_DEMAND_TAKE_WAGON;
   case 2099506:
@@ -5007,12 +5007,12 @@ static const struct rol_scheduled_gate_profile *rol_scheduled_gate_profile_for(i
 }
 
 static bool rol_scheduled_gate_room_matches(const struct rol_scheduled_gate_profile *profile,
-                                            int room_vnum)
+                                            int room_vnum_id)
 {
   size_t index;
 
   for (index = 0; index < profile->room_count; index++)
-    if (profile->room_vnums[index] == room_vnum)
+    if (profile->room_vnums[index] == room_vnum_id)
       return true;
   return false;
 }
@@ -5727,7 +5727,7 @@ static int rol_waterdeep_bouncer(struct char_data *keeper,
     route[index] = real_room(profile->route[index]);
     if (!VALID_ROOM_RNUM(route[index]))
     {
-      log("SYSERR: RoL Waterdeep bouncer %d has invalid route room %d", GET_MOB_VNUM(keeper),
+      log("SYSERR: RoL Waterdeep bouncer %u has invalid route room %d", GET_MOB_VNUM(keeper),
           profile->route[index]);
       return FALSE;
     }
@@ -5788,7 +5788,7 @@ static int rol_waterdeep_casino_bouncer(struct char_data *keeper)
 
   if (!VALID_ROOM_RNUM(home))
   {
-    log("SYSERR: RoL casino bouncer %d has no valid load room", GET_MOB_VNUM(keeper));
+    log("SYSERR: RoL casino bouncer %u has no valid load room", GET_MOB_VNUM(keeper));
     return FALSE;
   }
   if (IN_ROOM(keeper) != home)
@@ -5803,7 +5803,7 @@ static int rol_waterdeep_casino_bouncer(struct char_data *keeper)
   destination = real_room(ROL_WATERDEEP_CASINO_EXIT_VNUM);
   if (!VALID_ROOM_RNUM(destination))
   {
-    log("SYSERR: RoL casino bouncer %d has invalid exit room %d", GET_MOB_VNUM(keeper),
+    log("SYSERR: RoL casino bouncer %u has invalid exit room %d", GET_MOB_VNUM(keeper),
         ROL_WATERDEEP_CASINO_EXIT_VNUM);
     return FALSE;
   }
@@ -6145,7 +6145,7 @@ int rol_item_blocker(struct char_data *ch, void *me, int cmd, const char *argume
 }
 
 static const struct rol_command_sentinel_profile *
-rol_command_sentinel_profile_for(int mobile_vnum, int room_vnum, int direction)
+rol_command_sentinel_profile_for(int mobile_vnum, int room_vnum_id, int direction)
 {
   size_t index;
 
@@ -6153,20 +6153,20 @@ rol_command_sentinel_profile_for(int mobile_vnum, int room_vnum, int direction)
        index < sizeof(rol_command_sentinel_profiles) / sizeof(rol_command_sentinel_profiles[0]);
        index++)
     if (rol_command_sentinel_profiles[index].mobile_vnum == mobile_vnum &&
-        rol_command_sentinel_profiles[index].room_vnum == room_vnum &&
+        rol_command_sentinel_profiles[index].room_vnum == room_vnum_id &&
         rol_command_sentinel_profiles[index].direction == direction)
       return &rol_command_sentinel_profiles[index];
 
   return NULL;
 }
 
-bool rol_command_sentinel_blocks_passage(int mobile_vnum, int room_vnum, int direction,
+bool rol_command_sentinel_blocks_passage(int mobile_vnum, int room_vnum_id, int direction,
                                          const struct char_data *ch, int chance_roll)
 {
   const struct rol_command_sentinel_profile *profile;
 
   if (ch == NULL || (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT) ||
-      (profile = rol_command_sentinel_profile_for(mobile_vnum, room_vnum, direction)) == NULL)
+      (profile = rol_command_sentinel_profile_for(mobile_vnum, room_vnum_id, direction)) == NULL)
     return false;
 
   switch (profile->rule)
@@ -6333,14 +6333,14 @@ int rol_toll_keeper_destination(int mobile_vnum, bool first_side)
   return first_side || profile->destination_b < 0 ? profile->destination_a : profile->destination_b;
 }
 
-bool rol_toll_keeper_ticket_matches(int mobile_vnum, int room_vnum, int entered_object_vnum,
+bool rol_toll_keeper_ticket_matches(int mobile_vnum, int room_vnum_id, int entered_object_vnum,
                                     int ticket_vnum)
 {
   const struct rol_toll_keeper_profile *profile = rol_toll_keeper_profile_for(mobile_vnum);
 
   return profile != NULL && profile->kind == ROL_TOLL_KEEPER_TICKET &&
-         profile->room_vnum == room_vnum && profile->entered_object_vnum == entered_object_vnum &&
-         profile->ticket_vnum == ticket_vnum;
+         profile->room_vnum == room_vnum_id &&
+         profile->entered_object_vnum == entered_object_vnum && profile->ticket_vnum == ticket_vnum;
 }
 
 bool rol_toll_keeper_payment_syntax_valid(int mobile_vnum, const char *argument)

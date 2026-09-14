@@ -936,21 +936,22 @@ character_creation_guidance_for_profile(const char *profile_id)
   return NULL;
 }
 
-const struct character_creation_background *character_creation_background_for_value(int background)
+const struct character_creation_background *
+character_creation_background_for_value(int background_value)
 {
-  if (background <= BACKGROUND_NONE || background >= NUM_BACKGROUNDS ||
-      backgrounds[background].content_id == NULL)
+  if (background_value <= BACKGROUND_NONE || background_value >= NUM_BACKGROUNDS ||
+      backgrounds[background_value].content_id == NULL)
     return NULL;
 
-  return &backgrounds[background];
+  return &backgrounds[background_value];
 }
 
-const char *character_creation_inspiration_seed(int background,
+const char *character_creation_inspiration_seed(int background_value,
                                                 enum character_creation_inspiration_kind kind,
                                                 int index)
 {
   const struct character_creation_background *record =
-      character_creation_background_for_value(background);
+      character_creation_background_for_value(background_value);
 
   if (record == NULL || kind < 0 || kind >= NUM_CHARACTER_CREATION_INSPIRATION_KINDS || index < 0 ||
       index >= 2)

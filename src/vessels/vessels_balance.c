@@ -11,8 +11,6 @@
 #include "vessels.h"
 #include "mysql.h"
 
-extern MYSQL *conn;
-extern bool mysql_available;
 
 #define VESSEL_BALANCE_DUEL_ARMOR 40
 #define VESSEL_BALANCE_DUEL_SPEED 20

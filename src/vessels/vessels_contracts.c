@@ -20,10 +20,7 @@
 #include "vessels.h"
 #include "mysql.h"
 
-extern MYSQL *conn;
-extern bool mysql_available;
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct room_data *world;
 
 /* Freight pays this many gold per unit per 10 coordinate units of run,
  * on top of the goods' own value. */
@@ -452,7 +449,7 @@ ACMD(do_contractaccept)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   contract_id = atoi(arg);
   if (contract_id <= 0)
   {
@@ -566,7 +563,7 @@ ACMD(do_contractdeliver)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   contract_id = atoi(arg);
   if (contract_id <= 0)
   {
@@ -652,7 +649,7 @@ ACMD(do_contractabandon)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   contract_id = atoi(arg);
   if (contract_id <= 0)
   {

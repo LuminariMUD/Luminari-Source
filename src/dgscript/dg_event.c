@@ -86,7 +86,7 @@ void event_init(void)
   status = event_runtime_init(&config);
   if (status != GAME_SCHEDULER_OK)
   {
-    log("SYSERR: Unable to initialize native timing-wheel runtime (status %d).", status);
+    log("SYSERR: Unable to initialize native timing-wheel runtime (status %u).", status);
     return;
   }
   active_backend = EVENT_BACKEND_GAME_SCHEDULER;
@@ -113,7 +113,7 @@ enum game_scheduler_status event_process_scheduler(const struct game_scheduler_b
   PERF_note_event_process((uint64_t)depth_before, (uint64_t)depth_after,
                           (uint64_t)report->callbacks, 0U);
   if (status != GAME_SCHEDULER_OK)
-    log("SYSERR: Timing-wheel event dispatch failed with status %d.", status);
+    log("SYSERR: Timing-wheel event dispatch failed with status %u.", status);
   return status;
 }
 

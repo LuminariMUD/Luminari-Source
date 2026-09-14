@@ -41,7 +41,7 @@ int ship_info[NUM_OF_SHIPS][4] = {
     {120013, 120010, 120036, 120040},
 };
 
-struct obj_data *find_ship(room_rnum room)
+static struct obj_data *find_ship(room_rnum room)
 {
   int i, j;
   room_rnum ship_room;
@@ -70,7 +70,7 @@ struct obj_data *find_ship(room_rnum room)
   return NULL;
 }
 
-void move_ship(struct obj_data *ship, int dir)
+static void move_ship(struct obj_data *ship, int dir)
 {
   room_rnum new_room;
   room_rnum ship_room;
@@ -296,7 +296,7 @@ SPECIAL(greyhawk_ship_object)
   if (!is_valid_ship(&greyhawk_ships[ship_index]))
   {
     send_to_char(ch, "This ship seems to be broken.\r\n");
-    log("SYSERR: Ship object %d points to inactive or mismatched fleet slot %d", GET_OBJ_VNUM(obj),
+    log("SYSERR: Ship object %u points to inactive or mismatched fleet slot %d", GET_OBJ_VNUM(obj),
         ship_index);
     return 0;
   }
@@ -312,7 +312,7 @@ SPECIAL(greyhawk_ship_object)
   if (greyhawk_ships[ship_index].shiproom != GET_OBJ_VAL(obj, 0))
   {
     send_to_char(ch, "This ship's entrance is not linked correctly.\r\n");
-    log("SYSERR: Ship object %d entrance %d disagrees with fleet slot %d room %d",
+    log("SYSERR: Ship object %u entrance %d disagrees with fleet slot %d room %d",
         GET_OBJ_VNUM(obj), GET_OBJ_VAL(obj, 0), ship_index, greyhawk_ships[ship_index].shiproom);
     return 0;
   }

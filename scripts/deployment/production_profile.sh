@@ -10,6 +10,18 @@
 #   PRODUCTION_SUPPORTED    space-separated hardening features enabled
 #   PRODUCTION_UNSUPPORTED  space-separated hardening features the toolchain
 #                           rejected; the caller must report these
+#   WARNING_TIER            the warning tier that was requested (or "none")
+#   WARNING_CFLAGS          warning flags for that tier, each one probed
+#   WARNING_UNSUPPORTED     tier flags this compiler rejected; the caller must
+#                           report these
+#
+# Warning tiers (--warnings TIER), cumulative:
+#   baseline   clean on every supported compiler; the strict CI builds turn
+#              these into errors with -Werror
+#   migration  known-noisy families tracked by scripts/ci/check_warning_budget.py;
+#              the budget may only shrink, so new code cannot add to them
+#   analysis   compiler-specific diagnostics for the scheduled analysis job,
+#              informational only
 #
 # Exit status is non-zero when the compiler cannot build a trivial program, an
 # option is unknown, or an explicitly requested LTO/PGO profile is unsupported.
@@ -24,12 +36,14 @@ production=0
 lto=0
 pgo_generate=
 pgo_use=
+warning_tier=none
 
 usage()
 {
   cat >&2 <<'USAGE'
 usage: production_profile.sh --cc COMPILER [--cflags FLAGS] [--production]
                              [--lto] [--pgo-generate DIR] [--pgo-use PATH]
+                             [--warnings baseline|migration|analysis]
 USAGE
   exit 2
 }
@@ -70,6 +84,11 @@ while [[ $# -gt 0 ]]; do
       pgo_use=$2
       shift 2
       ;;
+    --warnings)
+      [[ $# -ge 2 ]] || usage
+      warning_tier=$2
+      shift 2
+      ;;
     *)
       usage
       ;;
@@ -80,6 +99,10 @@ done
 if [[ -n "$pgo_generate" && -n "$pgo_use" ]]; then
   fail "--pgo-generate and --pgo-use are mutually exclusive"
 fi
+case $warning_tier in
+  none | baseline | migration | analysis) ;;
+  *) fail "unknown warning tier: $warning_tier" ;;
+esac
 
 work_dir=$(mktemp -d "${TMPDIR:-/tmp}/luminari-production-profile.XXXXXX")
 trap 'rm -rf -- "$work_dir"' EXIT
@@ -144,6 +167,20 @@ if "$cc" -dM -E - </dev/null 2>/dev/null | grep -q '__clang__'; then
   is_clang=1
 fi
 
+# Local suppression, recorded here with its justification rather than in the
+# repository-wide profile: a Clang 22 host with several GCC installations
+# emits a driver note (-Wgcc-install-dir-libstdcxx) on every invocation,
+# which -Werror turns into a failure of every compile and every strict probe
+# below.  It concerns the C++ standard library search path and is irrelevant
+# to this C code base, so it is silenced only where it actually fires.
+warning_cflags=()
+if grep -q 'Wgcc-install-dir-libstdcxx' "$work_dir/probe.log"; then
+  base_cflags="$base_cflags -Wno-gcc-install-dir-libstdcxx"
+  if [[ "$warning_tier" != none ]]; then
+    warning_cflags+=(-Wno-gcc-install-dir-libstdcxx)
+  fi
+fi
+
 cflags=()
 ldflags=()
 supported=()
@@ -197,7 +234,30 @@ if [[ "$production" == 1 ]]; then
   probe_feature stack-protector "-fstack-protector-strong" ""
   probe_feature stack-clash-protection "-fstack-clash-protection" ""
   probe_feature cf-protection "-fcf-protection=full" ""
+  # Accepting the flag is not enough: the linked image only carries the CET
+  # property note when every input object has it, and a toolchain built from
+  # source without --enable-cet (the official gcc container images) drops it
+  # even though it compiles -fcf-protection.  Verify the note on the probe
+  # binary that was just linked with the flag, and demote on failure.
+  if [[ " ${supported[*]-} " == *" cf-protection "* ]] &&
+    ! { readelf -nW "$work_dir/probe" 2>/dev/null | grep -q 'IBT' &&
+        readelf -nW "$work_dir/probe" 2>/dev/null | grep -q 'SHSTK'; }; then
+    filtered=()
+    for flag in "${cflags[@]}"; do
+      [[ "$flag" == -fcf-protection=full ]] || filtered+=("$flag")
+    done
+    cflags=("${filtered[@]}")
+    filtered=()
+    for name in "${supported[@]}"; do
+      [[ "$name" == cf-protection ]] || filtered+=("$name")
+    done
+    supported=("${filtered[@]}")
+    unsupported+=(cf-protection)
+  fi
   probe_feature noexecstack "" "-Wl,-z,noexecstack"
+  # The versioned installer keys on the ELF build ID; distribution compilers
+  # add one by default, a source-built toolchain does not.
+  probe_feature build-id "" "-Wl,--build-id"
 fi
 
 if [[ "$lto" == 1 ]]; then
@@ -235,7 +295,68 @@ if [[ -n "$pgo_use" ]]; then
   ldflags+=("${pgo_flags[@]}")
 fi
 
+# Warning tiers.  Every flag is probed so an older supported compiler simply
+# reports the ones it lacks instead of failing; the caller prints the list.
+warning_unsupported=()
+
+# probe_warning FLAG: keep FLAG when the compiler accepts it without complaint.
+probe_warning()
+{
+  if try_build "$trivial_source" 1 "${warning_cflags[@]}" "$1"; then
+    warning_cflags+=("$1")
+  else
+    warning_unsupported+=("$1")
+  fi
+}
+
+# Baseline: zero occurrences on GCC 13-16 and Clang 18-22 at the time the
+# tiers were introduced, so -Werror is safe.  A new baseline flag must first
+# be proven clean by the migration budget reaching zero for that class.  In C,
+# -Wconversion also enables -Wsign-conversion, so it is switched off here and
+# back on in the analysis tier, whose flags come later.
+baseline_common=(-Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpointer-arith
+  -Wformat-security -Wvla -Wredundant-decls -Wnested-externs -Wmissing-prototypes
+  -Wjump-misses-init -Wshadow -Wdouble-promotion -Wfloat-equal -Wfloat-conversion
+  -Wwrite-strings -Wcast-qual -Wundef -Walloca -Wimplicit-fallthrough -Wconversion
+  -Wno-sign-conversion)
+baseline_gcc=(-Wtrampolines -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-args
+  -Wflex-array-member-not-at-end -Wunterminated-string-initialization -Wcast-align=strict
+  -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wformat-signedness)
+baseline_clang=(-Wcast-align)
+
+# Migration: the null-dereference and alloc-zero checks, which depend on what
+# the optimizer proves and so stay off the -Werror tier.  Never combined with
+# -Werror; scripts/ci/check_warning_budget.py ratchets them down.
+migration_common=(-Wnull-dereference)
+migration_gcc=(-Walloc-zero)
+migration_clang=()
+
+# Analysis: expensive or opinionated, compiler-specific, scheduled only.
+analysis_gcc=(-fanalyzer -Wswitch-enum -Wformat-nonliteral -Wsign-conversion)
+analysis_clang=(-Wswitch-enum -Wformat-nonliteral -Wsign-conversion -Wextra-semi-stmt -Wcomma -Wunreachable-code-aggressive -Wbad-function-cast
+  -Wconditional-uninitialized -Wcovered-switch-default -Wmissing-format-attribute
+  -Wformat-pedantic -Wassign-enum -Wenum-enum-conversion)
+
+tier_flags=("${baseline_common[@]}")
+if [[ "$is_clang" == 1 ]]; then tier_flags+=("${baseline_clang[@]-}"); else tier_flags+=("${baseline_gcc[@]}"); fi
+if [[ "$warning_tier" == migration || "$warning_tier" == analysis ]]; then
+  tier_flags+=("${migration_common[@]}")
+  if [[ "$is_clang" == 1 ]]; then tier_flags+=("${migration_clang[@]-}"); else tier_flags+=("${migration_gcc[@]}"); fi
+fi
+if [[ "$warning_tier" == analysis ]]; then
+  if [[ "$is_clang" == 1 ]]; then tier_flags+=("${analysis_clang[@]}"); else tier_flags+=("${analysis_gcc[@]}"); fi
+fi
+if [[ "$warning_tier" == none ]]; then
+  tier_flags=()
+fi
+for flag in "${tier_flags[@]-}"; do
+  [[ -n "$flag" ]] && probe_warning "$flag"
+done
+
 printf 'PRODUCTION_CFLAGS=%s\n' "${cflags[*]-}"
 printf 'PRODUCTION_LDFLAGS=%s\n' "${ldflags[*]-}"
 printf 'PRODUCTION_SUPPORTED=%s\n' "${supported[*]-}"
 printf 'PRODUCTION_UNSUPPORTED=%s\n' "${unsupported[*]-}"
+printf 'WARNING_TIER=%s\n' "$warning_tier"
+printf 'WARNING_CFLAGS=%s\n' "${warning_cflags[*]-}"
+printf 'WARNING_UNSUPPORTED=%s\n' "${warning_unsupported[*]-}"

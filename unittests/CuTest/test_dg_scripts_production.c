@@ -71,10 +71,10 @@ void Test_dg_production_text_matching_helpers(CuTest *tc)
   char phrase[MAX_INPUT_LENGTH];
   char *remainder;
 
-  CuAssertTrue(tc, is_substring("needle", "a needle in text"));
-  CuAssertTrue(tc, !is_substring("missing", "a needle in text"));
-  CuAssertTrue(tc, word_check("alpha beta gamma", "delta beta"));
-  CuAssertTrue(tc, !word_check("alpha beta", "gamma delta"));
+  CuAssertTrue(tc, is_substring(CuMutableString("needle"), CuMutableString("a needle in text")));
+  CuAssertTrue(tc, !is_substring(CuMutableString("missing"), CuMutableString("a needle in text")));
+  CuAssertTrue(tc, word_check(CuMutableString("alpha beta gamma"), CuMutableString("delta beta")));
+  CuAssertTrue(tc, !word_check(CuMutableString("alpha beta"), CuMutableString("gamma delta")));
 
   remainder = one_phrase(phrase_input, phrase);
   CuAssertStrEquals(tc, "two words", phrase);
@@ -338,7 +338,7 @@ void Test_dg_production_empty_expression_operands_are_safe(CuTest *tc)
   bool found_empty_right = false;
   bool found_empty_left = false;
 
-  trigger.name = "empty operand regression";
+  trigger.name = CuMutableString("empty operand regression");
 
   process_eval(NULL, &script, &trigger, WLD_TRIGGER, empty_right);
   process_eval(NULL, &script, &trigger, WLD_TRIGGER, empty_left);

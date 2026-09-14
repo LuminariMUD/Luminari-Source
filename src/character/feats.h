@@ -155,4 +155,8 @@ ACMD_DECL(do_epicfeats);
 /* just for more clarity in the code */
 #define NO_IARG 0
 
+
+void feat_prereq_race(int featnum, int race);
+void free_feats(void);
+int get_draconic_heritage_subfeat(int feat);
 #endif

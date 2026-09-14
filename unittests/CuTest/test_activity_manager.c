@@ -191,8 +191,8 @@ static void activity_test_begin(CuTest *tc, struct activity_test_fixture *fixtur
   event_init();
   clear_char(&fixture->actor);
   clear_char(&fixture->target);
-  fixture->actor.player.name = "activity actor";
-  fixture->target.player.name = "activity target";
+  fixture->actor.player.name = CuMutableString("activity actor");
+  fixture->target.player.name = CuMutableString("activity target");
   memset(&fixture->descriptor, 0, sizeof(fixture->descriptor));
   fixture->descriptor.character = &fixture->actor;
   fixture->descriptor.output = fixture->descriptor.small_outbuf;
@@ -616,8 +616,8 @@ static void casting_test_begin(CuTest *tc, struct casting_test_fixture *fixture)
   GET_HIT(actor) = GET_HIT(target) = 10;
   GET_MAX_HIT(actor) = GET_MAX_HIT(target) = 100;
   IN_ROOM(actor) = IN_ROOM(target) = 0;
-  actor->player.short_descr = "the caster";
-  target->player.short_descr = "the target";
+  actor->player.short_descr = CuMutableString("the caster");
+  target->player.short_descr = CuMutableString("the target");
   fixture->saved_spell = spell_info[SPELL_CURE_LIGHT];
   memset(&spell_info[SPELL_CURE_LIGHT], 0, sizeof(spell_info[SPELL_CURE_LIGHT]));
   spell_info[SPELL_CURE_LIGHT].name = "cure light";
@@ -642,7 +642,7 @@ static void casting_test_end(struct casting_test_fixture *fixture)
   domain_event_world_forget_character(&fixture->activity.target);
   world = fixture->saved_world;
   top_of_world = fixture->saved_top;
-  CONFIG_SPELLCASTING_TIME_MODE = fixture->saved_mode;
+  CONFIG_SPELLCASTING_TIME_MODE = (ubyte)fixture->saved_mode;
   CONFIG_DIVINE_PREP_TIME = fixture->saved_divine_prep;
   spell_info[SPELL_CURE_LIGHT] = fixture->saved_spell;
 }
@@ -732,7 +732,7 @@ void Test_casting_activity_completes_once_on_native_clock_in_combat(CuTest *tc)
   casting_test_start(tc, &fixture);
   CuAssertTrue(tc, primary_activity_snapshot(&fixture.activity.actor, &snapshot));
   CuAssertIntEquals(tc, PRIMARY_ACTIVITY_CASTING, snapshot.type);
-  CuAssertIntEquals(tc, 2 * PASSES_PER_SEC, snapshot.next_step_pulses);
+  CuAssertIntEquals(tc, 2 * PASSES_PER_SEC, (int)snapshot.next_step_pulses);
   CuAssertTrue(tc, !primary_activity_pause(&fixture.activity.actor, false));
   combat.character = domain_event_character_handle(&fixture.activity.actor);
   combat.opponent = domain_event_character_handle(&fixture.activity.target);
@@ -878,7 +878,7 @@ void Test_casting_player_spends_prepared_spell_once_and_cancel_does_not_refund(C
   collection_add(actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0, 0, 0);
   casting_test_start(tc, &fixture);
   CuAssertTrue(tc, primary_activity_snapshot(actor, &snapshot));
-  CuAssertIntEquals(tc, PASSES_PER_SEC, snapshot.next_step_pulses);
+  CuAssertIntEquals(tc, PASSES_PER_SEC, (int)snapshot.next_step_pulses);
   CuAssertTrue(tc, !is_spell_in_collection(actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0));
   collection_add(actor, CLASS_CLERIC, SPELL_CURE_LIGHT, 0, 0, 0);
   CuAssertIntEquals(tc, 0, cast_spell(actor, &fixture.activity.target, NULL, SPELL_CURE_LIGHT, 0));
@@ -1023,7 +1023,7 @@ void Test_casting_successful_damage_check_keeps_original_deadline(CuTest *tc)
       DOMAIN_EVENT_PUBLISH(fixture.activity.bus, DOMAIN_EVENT_CHARACTER_DAMAGED, &damage));
   CuAssertTrue(tc, primary_activity_snapshot(&fixture.activity.actor, &after));
   CuAssertTrue(tc, before.id == after.id);
-  CuAssertIntEquals(tc, before.next_step_pulses, after.next_step_pulses);
+  CuAssertIntEquals(tc, (int)before.next_step_pulses, (int)after.next_step_pulses);
   casting_test_advance(200);
   CuAssertIntEquals(tc, PRIMARY_ACTIVITY_STATE_COMPLETED, fixture.activity.terminal_state);
   casting_test_end(&fixture);

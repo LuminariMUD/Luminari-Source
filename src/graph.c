@@ -78,7 +78,7 @@ static void bfs_enqueue(room_rnum room, int dir)
 
   CREATE(curr, struct bfs_queue_struct, 1);
   curr->room = room;
-  curr->dir = dir;
+  curr->dir = (char)dir;
   curr->next = 0;
 
   if (queue_tail)
@@ -118,7 +118,8 @@ int find_first_step(room_rnum src, room_rnum target)
 
   if (src == NOWHERE || target == NOWHERE || src > top_of_world || target > top_of_world)
   {
-    log("SYSERR: Illegal value %d or %d passed to find_first_step. (%s)", src, target, __FILE__);
+    log("SYSERR: Illegal value %" PRI_IDX " or %" PRI_IDX " passed to find_first_step. (%s)", src,
+        target, __FILE__);
     return (BFS_ERROR);
   }
 
@@ -210,7 +211,7 @@ ACMD(do_track)
     if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
     {
       snprintf(buf, sizeof(buf), " %s I can't find tracks for anyone named %s\r\n",
-               GET_NAME(ch->master), GET_NAME(vict));
+               GET_NAME(ch->master), arg);
       do_tell(ch, buf, 0, 0);
     }
     return;

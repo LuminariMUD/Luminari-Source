@@ -26,6 +26,6 @@ extern struct spatial_system visual_system;
 /* Functions */
 int spatial_visual_init(void);
 int spatial_visual_emit(int source_x, int source_y, int source_z, const char *description,
-                        float intensity, int range);
+                        double intensity, int range);
 
 #endif /* _SPATIAL_VISUAL_H_ */

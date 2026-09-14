@@ -6,6 +6,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libmariadb-dev libssl-dev libtool mariadb-client mariadb-server netcat-openbsd \
     pandoc pkg-config procps python3 python3-pip python3-venv ripgrep sudo time \
     valgrind zlib1g-dev && rm -rf /var/lib/apt/lists/*
+# Clang 22 from apt.llvm.org, the same source test.yml installs it from.
+RUN apt-get update && apt-get install -y --no-install-recommends gnupg lsb-release wget \
+    software-properties-common && \
+    wget -qO /tmp/llvm.sh https://apt.llvm.org/llvm.sh && bash /tmp/llvm.sh 22 && \
+    rm -f /tmp/llvm.sh && rm -rf /var/lib/apt/lists/*
 RUN python3 -m venv /opt/ci-python
 ENV PATH=/usr/lib/ccache:/opt/ci-python/bin:$PATH PRE_COMMIT_HOME=/opt/pre-commit
 COPY scripts/help-sync/requirements.txt /tmp/help-requirements.txt

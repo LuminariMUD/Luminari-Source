@@ -53,14 +53,13 @@
 #include "point_update_periodic.h"
 
 // external
-extern struct raff_node *raff_list;
 
 static uint64_t next_phenomenon_id = 1U;
 
 static void publish_coordinate_phenomenon(struct char_data *source,
                                           enum domain_world_phenomenon_kind kind, int source_x,
                                           int source_y, int source_z, int visual_range,
-                                          int audio_range, float intensity,
+                                          int audio_range, double intensity,
                                           const char *visual_description,
                                           const char *audio_description)
 {
@@ -220,8 +219,6 @@ int test_resolve_affect_cast_level(struct char_data *ch, int spellnum, int suppl
   return resolve_affect_cast_level(ch, spellnum, supplied_level, modified_level, casttype);
 }
 #endif
-bool save_char_pets(struct char_data *ch);
-void set_vampire_spawn_feats(struct char_data *mob);
 
 /* local file scope function prototypes */
 static int mag_materials(struct char_data *ch, IDXTYPE item0, IDXTYPE item1, IDXTYPE item2,
@@ -1256,7 +1253,7 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
 }
 
 /* added this function to add special wear off handling -zusuk */
-bool spec_wear_off(struct char_data *ch, int skillnum)
+static bool spec_wear_off(struct char_data *ch, int skillnum)
 {
   if (skillnum >= TOP_SKILL_DEFINE)
     return FALSE;
@@ -1281,7 +1278,7 @@ bool spec_wear_off(struct char_data *ch, int skillnum)
 
 /* added this function to add wear off messages for skills -zusuk
    wondering why i didn't just add this to skillo() or whatnot? */
-bool alt_wear_off_msg(struct char_data *ch, int skillnum)
+static bool alt_wear_off_msg(struct char_data *ch, int skillnum)
 {
   if (skillnum <= SPELL_RESERVED_DBC)
     return FALSE;
@@ -1531,7 +1528,7 @@ static size_t update_room_lifetimes(struct room_data *room, uint64_t round, bool
       rounds = raff->lifetime_initialized && round > raff->lifetime_round
                    ? round - raff->lifetime_round
                    : 0U;
-      raff->lifetime_round = MAX(raff->lifetime_round, round);
+      raff->lifetime_round = u64_max(raff->lifetime_round, round);
       raff->lifetime_initialized = true;
     }
     if (raff->timer <= 0 || rounds >= (uint64_t)raff->timer)
@@ -3796,7 +3793,7 @@ static int mag_damage_scaled(int level, struct char_data *ch, struct char_data *
   }
   if (IS_SET(metamagic, METAMAGIC_EMPOWER))
   {
-    dam *= 1.5;
+    dam = (int)(dam * 1.5);
   }
 
   /* Store initial dice damage for Hunter's Precision reroll */
@@ -3905,7 +3902,7 @@ static int mag_damage_scaled(int level, struct char_data *ch, struct char_data *
     /* Check for spell critical */
     if (check_druid_spell_critical(ch))
     {
-      float crit_multiplier = get_druid_spell_critical_multiplier(ch);
+      double crit_multiplier = get_druid_spell_critical_multiplier(ch);
       dam = (int)(dam * crit_multiplier);
       if (crit_multiplier >= 2.0)
         send_to_char(ch, "\tY[Spell Critical - Double Damage!]\tn\r\n");
@@ -4007,7 +4004,7 @@ static int mag_damage_scaled(int level, struct char_data *ch, struct char_data *
     }
 
     if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS))
-      dam *= 0.10;
+      dam = (int)(dam * 0.10);
   }
 
   // dwarven racial bonus to magic, gnomes to illusion
@@ -4221,7 +4218,7 @@ static int mag_damage_scaled(int level, struct char_data *ch, struct char_data *
 
         if (IS_SET(metamagic, METAMAGIC_EMPOWER))
         {
-          reroll_base *= 1.5;
+          reroll_base = (int)(reroll_base * 1.5);
         }
 
         /* If reroll is better, replace base damage and recalculate total */
@@ -4435,7 +4432,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim, struct
 }
 /* Affect durations are combat rounds and update once per PULSE_VIOLENCE. */
 
-bool passed_poison_checks(struct char_data *ch, struct char_data *victim, int casttype, int level)
+static bool passed_poison_checks(struct char_data *ch, struct char_data *victim, int casttype,
+                                 int level)
 {
   if (!can_poison(victim))
   {
@@ -4638,7 +4636,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_CON;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 2));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4653,7 +4651,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_CON;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 4));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4668,7 +4666,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_CON;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 6));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4683,7 +4681,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_STR;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 2));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4698,7 +4696,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_STR;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 4));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4713,7 +4711,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_STR;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 6));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4728,7 +4726,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_DEX;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 2));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4743,7 +4741,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_DEX;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 4));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4758,7 +4756,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_DEX;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 6));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4773,7 +4771,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_INT;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 2));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4788,7 +4786,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_INT;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 4));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4803,7 +4801,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_INT;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 6));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4819,7 +4817,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_WIS;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 2));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4834,7 +4832,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_WIS;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 4));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4849,7 +4847,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_WIS;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 6));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4864,7 +4862,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_CHA;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 2));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4879,7 +4877,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_CHA;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 4));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4894,7 +4892,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_CHA;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 6));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4909,7 +4907,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     af[0].duration = dice(1, 3);
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
     to_vict = "The poison stuns you.";
     to_room = "$n looks stunned.";
@@ -4924,7 +4922,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     af[0].duration = dice(1, 3) + 1;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
     to_vict = "The poison stuns you.";
     to_room = "$n looks stunned.";
@@ -4939,7 +4937,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
     af[0].duration = dice(1, 3) + 2;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
     to_vict = "The poison stuns you.";
     to_room = "$n looks stunned.";
@@ -4955,12 +4953,12 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_STR;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 4));
     af[1].location = APPLY_CON;
     af[1].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[1].duration *= 1.5;
+      af[1].duration = (int)(af[1].duration * 1.5);
     af[1].modifier = -(dice(1, 4));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4975,12 +4973,12 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_STR;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 4));
     af[1].location = APPLY_CON;
     af[1].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[1].duration *= 1.5;
+      af[1].duration = (int)(af[1].duration * 1.5);
     af[1].modifier = -(dice(1, 6));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -4995,12 +4993,12 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_DEX;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 3));
     af[1].location = APPLY_CON;
     af[1].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[1].duration *= 1.5;
+      af[1].duration = (int)(af[1].duration * 1.5);
     af[1].modifier = -(dice(1, 3));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -5008,7 +5006,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     {
       af[2].duration = dice(1, 3);
       if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-        af[2].duration *= 1.5;
+        af[2].duration = (int)(af[2].duration * 1.5);
       SET_BIT_AR(af[2].bitvector, AFF_STUN);
     }
     to_vict = "The poison stuns you.";
@@ -5025,7 +5023,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_DEX;
     af[0].duration = 10;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -(dice(1, 6));
     to_vict = "You feel very sick.";
     to_room = "$n gets violently ill!";
@@ -5514,6 +5512,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_ENERGY_ADAPTATION_SPECIFIED:
+  {
     af[0].duration = level * 120;
     /* NPCs default to fire resistance to avoid accessing player-only data */
     int energy_type = DAM_FIRE;
@@ -5543,6 +5542,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
     }
     break;
+  }
 
   case PSIONIC_ENERGY_ADAPTATION:
     af[0].duration = level * 120;
@@ -9605,7 +9605,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     else
       af[0].duration = level * 12;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-      af[0].duration *= 1.5;
+      af[0].duration = (int)(af[0].duration * 1.5);
     af[0].modifier = -2;
     SET_BIT_AR(af[0].bitvector, AFF_POISON);
     to_vict = "You feel very sick.";
@@ -11118,7 +11118,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     {
       for (i = 0; i < MAX_SPELL_AFFECTS; i++)
       {
-        af[i].duration *= 1.5;
+        af[i].duration = (int)(af[i].duration * 1.5);
       }
     }
 
@@ -11140,13 +11140,13 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     /* Master Enchanter perk - doubles duration of enchantment spells */
     if (spell_info[spellnum].schoolOfMagic == ENCHANTMENT)
     {
-      float enchant_mult = get_master_enchanter_duration_multiplier(ch);
+      double enchant_mult = get_master_enchanter_duration_multiplier(ch);
       if (enchant_mult > 1.0)
       {
         for (i = 0; i < MAX_SPELL_AFFECTS; i++)
         {
           if (af[i].duration > 0)
-            af[i].duration = (int)(af[i].duration * enchant_mult);
+            af[i].duration = (int)((double)af[i].duration * enchant_mult);
         }
       }
     }
@@ -11154,13 +11154,13 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     /* Master Transmuter perk - increases duration of transmutation spells by 50% */
     if (spell_info[spellnum].schoolOfMagic == TRANSMUTATION)
     {
-      float transmute_mult = get_master_transmuter_duration_multiplier(ch);
+      double transmute_mult = get_master_transmuter_duration_multiplier(ch);
       if (transmute_mult > 1.0)
       {
         for (i = 0; i < MAX_SPELL_AFFECTS; i++)
         {
           if (af[i].duration > 0)
-            af[i].duration = (int)(af[i].duration * transmute_mult);
+            af[i].duration = (int)((double)af[i].duration * transmute_mult);
         }
       }
     }
@@ -11180,13 +11180,13 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     if (has_control_effect)
     {
-      float control_mult = get_archmage_control_duration_multiplier(ch);
+      double control_mult = get_archmage_control_duration_multiplier(ch);
       if (control_mult > 1.0)
       {
         for (i = 0; i < MAX_SPELL_AFFECTS; i++)
         {
           if (af[i].duration > 0)
-            af[i].duration = (int)(af[i].duration * control_mult);
+            af[i].duration = (int)((double)af[i].duration * control_mult);
         }
       }
     }
@@ -12064,7 +12064,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
     if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
     {
       /* Debug coordinates */
-      log("DEBUG: Meteor swarm cast by %s in room %d, zone %d (wilderness: %s)", GET_NAME(ch),
+      log("DEBUG: Meteor swarm cast by %s in room %u, zone %u (wilderness: %s)", GET_NAME(ch),
           GET_ROOM_VNUM(IN_ROOM(ch)), GET_ROOM_ZONE(IN_ROOM(ch)),
           ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS) ? "YES" : "NO");
       log("DEBUG: Character coordinates: X_LOC=%d, Y_LOC=%d", X_LOC(ch), Y_LOC(ch));
@@ -12072,7 +12072,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
       /* Distant visual and audio are one synchronous world fact. */
       publish_coordinate_phenomenon(
           ch, DOMAIN_PHENOMENON_MAGIC_APPROACH, X_LOC(ch), Y_LOC(ch),
-          get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 30, 5, 8, 1.5f,
+          get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 30, 5, 8, 1.5,
           "brilliant streaks of crimson and gold fire tear across the starlit heavens",
           "an ominous crescendo of ethereal whistling and deep atmospheric rumbling as the very "
           "air trembles before celestial wrath");
@@ -12081,7 +12081,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
       log("DEBUG: Phase 3 - Meteor descent with range 3");
       publish_coordinate_phenomenon(
           ch, DOMAIN_PHENOMENON_MAGIC_APPROACH, X_LOC(ch), Y_LOC(ch),
-          get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 10, 3, 0, 2.0f,
+          get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 10, 3, 0, 2.0,
           "colossal blazing meteorites plummet through the atmosphere, trailed by molten starfire "
           "crackling with primordial flame",
           NULL);
@@ -12355,7 +12355,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
         {
           publish_coordinate_phenomenon(
               ch, DOMAIN_PHENOMENON_MAGIC_IMPACT, X_LOC(ch), Y_LOC(ch),
-              get_modified_elevation(X_LOC(ch), Y_LOC(ch)), 2, 20, 2.5f,
+              get_modified_elevation(X_LOC(ch), Y_LOC(ch)), 2, 20, 2.5,
               "cataclysmic eruptions of azure and crimson flame burst from the earth as celestial "
               "hammers shatter the ground, sending waves of molten rock skyward",
               "earth-shaking detonations rivaling mountain avalanches as cosmic forces unleash "
@@ -13372,9 +13372,9 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       GET_REAL_DAMROLL(mob) = GET_DAMROLL(mob) =
           GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
       mob->mob_specials.damnodice =
-          mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100);
       mob->mob_specials.damsizedice =
-          mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100);
     }
     else if (GET_LEVEL(mob) <= 20)
     {
@@ -13386,9 +13386,9 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       GET_REAL_DAMROLL(mob) = GET_DAMROLL(mob) =
           GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
       mob->mob_specials.damnodice =
-          mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100);
       mob->mob_specials.damsizedice =
-          mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100);
     }
     else
     {
@@ -13400,9 +13400,9 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       GET_REAL_DAMROLL(mob) = GET_DAMROLL(mob) =
           GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
       mob->mob_specials.damnodice =
-          mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100);
       mob->mob_specials.damsizedice =
-          mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100);
     }
 
     /* summon augmentation feat */
@@ -13557,7 +13557,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     }
     if (!IS_NPC(ch) && get_greater_summons_damage(ch) > 0)
     {
-      mob->mob_specials.damnodice += get_greater_summons_damage(ch);
+      mob->mob_specials.damnodice =
+          (byte)(mob->mob_specials.damnodice + get_greater_summons_damage(ch));
       mob->mob_specials.damsizedice += 6; /* +1d6 damage */
       GET_DAMROLL(mob) += get_greater_summons_damage(ch);
       send_to_char(ch, "\tG[Greater Summons +1d6 dmg]\tn ");
@@ -13771,11 +13772,11 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
 
   /* black mantle reduces effectiveness of healing by 20% */
   if (AFF_FLAGGED(victim, AFF_BLACKMANTLE) || AFF_FLAGGED(ch, AFF_BLACKMANTLE))
-    healing = (float)healing * 0.8;
+    healing = (int)((double)healing * 0.8);
 
   /* healing domain */
   if (HAS_FEAT(ch, FEAT_EMPOWERED_HEALING))
-    healing = (float)healing * 1.50;
+    healing = (int)((double)healing * 1.50);
 
   // vampire bonuses / penalties for feeding
   // vampire bonuses / penalties for feeding
@@ -14348,7 +14349,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     /* Heal also restores health, so don't give the "no effect" message if the
      * target isn't afflicted by the 'blindness' spell. */
     msg_not_affected = FALSE;
-    /* fall-through */
+    [[fallthrough]];
   case SPELL_CURE_BLIND:
     /* this has fall-through from above */
     spell = SPELL_BLINDNESS;
@@ -15088,9 +15089,12 @@ void mag_creations(int level __attribute__((unused)), struct char_data *ch, stru
   if (!(tobj = read_object_reason(object_vnum, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)))
   {
     send_to_char(
-        ch, "I seem to have goofed.  Please let staff know these values:  spell %d, obj %d\r\n",
+        ch,
+        "I seem to have goofed.  Please let staff know these values:  spell %d, obj %" PRI_IDX
+        "\r\n",
         spellnum, object_vnum);
-    log("SYSERR: spell_creations, spell %d, obj %d: obj not found", spellnum, object_vnum);
+    log("SYSERR: spell_creations, spell %d, obj %" PRI_IDX ": obj not found", spellnum,
+        object_vnum);
     return;
   }
 
@@ -15101,9 +15105,12 @@ void mag_creations(int level __attribute__((unused)), struct char_data *ch, stru
     if (!(portal = read_object_reason(object_vnum, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)))
     {
       send_to_char(
-          ch, "I seem to have goofed.  Please let staff know these values:  spell %d, obj %d\r\n",
+          ch,
+          "I seem to have goofed.  Please let staff know these values:  spell %d, obj %" PRI_IDX
+          "\r\n",
           spellnum, object_vnum);
-      log("SYSERR: spell_creations, spell %d, obj %d: obj not found", spellnum, object_vnum);
+      log("SYSERR: spell_creations, spell %d, obj %" PRI_IDX ": obj not found", spellnum,
+          object_vnum);
       return;
     }
 
@@ -15139,7 +15146,8 @@ void mag_creations(int level __attribute__((unused)), struct char_data *ch, stru
     if (!(portal = read_object_reason(object_vnum, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)))
     {
       send_to_char(ch, "I seem to have goofed.\r\n");
-      log("SYSERR: spell_creations, spell %d, obj %d: obj not found", spellnum, object_vnum);
+      log("SYSERR: spell_creations, spell %d, obj %" PRI_IDX ": obj not found", spellnum,
+          object_vnum);
       return;
     }
 
@@ -15240,7 +15248,6 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
   const char *to_room = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct raff_node *raff = NULL;
-  extern struct raff_node *raff_list;
   room_rnum rnum = NOWHERE;
   bool failure = FALSE;
   event_id IdNum = eNULL; /* eNULL means it must be an affection */

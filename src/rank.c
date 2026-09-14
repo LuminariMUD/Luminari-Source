@@ -27,10 +27,6 @@
 #include "act.h"
 
 /* extern vars */
-extern struct room_data *world;
-extern struct char_data *character_list;
-extern struct descriptor_data *descriptor_list;
-extern struct player_index_element *player_table;
 
 /* extern functions */
 
@@ -314,8 +310,8 @@ static void add_key(const char *key, const char *out, ranktype (*f)(struct char_
   tmp_key->function = f;
   tmp_key->next = NULL;
 
-  maxkeylength = MAX(maxkeylength, strlen(key));
-  maxoutlength = MAX(maxoutlength, strlen(out));
+  maxkeylength = (int)size_max(maxkeylength, strlen(key));
+  maxoutlength = (int)size_max(maxoutlength, strlen(out));
 
   /* append to list */
   if (!key_list)
@@ -339,20 +335,20 @@ char k2[80];
 
 int rank_compare_top(const void *n1, const void *n2)
 {
-  strlcpy(k1, (*((struct rank_data *)n1)).key, sizeof(k1));
-  strlcpy(k2, (*((struct rank_data *)n2)).key, sizeof(k2));
+  strlcpy(k1, ((const struct rank_data *)n1)->key, sizeof(k1));
+  strlcpy(k2, ((const struct rank_data *)n2)->key, sizeof(k2));
   return (strcmp(k2, k1));
 }
 
 int char_compare(const void *n1, const void *n2)
 {
-  return ((*((char *)n1)) - (*((char *)n2)));
+  return ((*((const char *)n1)) - (*((const char *)n2)));
 }
 
 int rank_compare_bot(const void *n1, const void *n2)
 {
-  strlcpy(k1, (*((struct rank_data *)n1)).key, sizeof(k1));
-  strlcpy(k2, (*((struct rank_data *)n2)).key, sizeof(k2));
+  strlcpy(k1, ((const struct rank_data *)n1)->key, sizeof(k1));
+  strlcpy(k2, ((const struct rank_data *)n2)->key, sizeof(k2));
 
   return (strcmp(k1, k2));
 }
@@ -485,8 +481,9 @@ ranktype rank_weight(struct char_data *ch)
 
 ranktype rank_fatness(struct char_data *ch)
 {
-  float bmi;
-  bmi = ((float)GET_WEIGHT(ch) * 10000.0) / (2.2 * (float)GET_HEIGHT(ch) * (float)GET_HEIGHT(ch));
+  double bmi;
+  bmi =
+      ((double)GET_WEIGHT(ch) * 10000.0) / (2.2 * (double)GET_HEIGHT(ch) * (double)GET_HEIGHT(ch));
   snprintf(kbuf, sizeof(kbuf), "%20.2f", bmi);
   return (kbuf);
 } /* end rank_fatness */

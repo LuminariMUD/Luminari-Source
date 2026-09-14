@@ -345,3 +345,5 @@ void add_encounter_record(int encounter_record, int encounter_type, int min_leve
                           int min_number, int max_number, int treasure_table, int char_class,
                           int encounter_strength, int alignment, int race_type, int subrace1,
                           int subrace2, int subrace3, bool hostile, bool sentient, int size);
+
+void set_encounter_terrain_all_roads(int encounter_record);

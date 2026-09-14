@@ -44,12 +44,12 @@
 #include "movement/movement_validation.h"
 #include "character_periodic.h"
 #include "domain_event_world.h"
+#include "quest/missions.h"
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
 /************************************************************/
 
-bool save_char_pets(struct char_data *ch);
 
 /* Reference
 #define SPELL_WALL_OF_FORCE             147
@@ -304,7 +304,7 @@ void create_wall(struct char_data *ch, int room, int dir, int type, int level)
   GET_OBJ_VAL(wall, WALL_TYPE) = type;
   GET_OBJ_VAL(wall, WALL_DIR) = dir;
   GET_OBJ_VAL(wall, WALL_LEVEL) = level; /* in case we can't find wall creator */
-  GET_OBJ_VAL(wall, WALL_IDNUM) = GET_IDNUM(ch);
+  GET_OBJ_VAL(wall, WALL_IDNUM) = (int)GET_IDNUM(ch);
 
   /* all done!  drop the object in the room and let it wreak havoc! */
   obj_to_room(wall, room);
@@ -397,7 +397,7 @@ int isname_obj(char *search, char *list)
     found_name = 1;
   else
   { /* It is embedded inside namelist. Is it preceded by a space? */
-    found_pos = found_in_list - namelist;
+    found_pos = (int)(found_in_list - namelist);
     if (namelist[found_pos - 1] == ' ')
       found_name = 1;
   }
@@ -3040,7 +3040,7 @@ ASPELL(eldritch_blast)
       mag_damage(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, -1, CAST_INNATE);
       mag_affects(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
     }
-    if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN)
+    if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN && target_list)
     {
       while (target_list->iSize > 0)
       {
@@ -3078,8 +3078,6 @@ ASPELL(eldritch_blast)
 
 ASPELL(spell_summon)
 {
-  bool is_mission_mob(struct char_data * ch, struct char_data * mob);
-
   if (ch == NULL || victim == NULL)
     return;
 
@@ -3666,7 +3664,7 @@ ASPELL(spell_resurrect)
 
 ASPELL(spell_transport_via_plants)
 {
-  obj_vnum obj_num = NOTHING;
+  obj_vnum obj_num_id = NOTHING;
   room_rnum to_room = NOWHERE;
   struct obj_data *dest_obj = NULL, *tmp_obj = NULL;
 
@@ -3688,7 +3686,7 @@ ASPELL(spell_transport_via_plants)
     send_to_char(ch, "That plant is not large enough to transport you.\r\n");
     return;
   }
-  obj_num = GET_OBJ_VNUM(obj);
+  obj_num_id = GET_OBJ_VNUM(obj);
 
   // find another of that plant in the world
   for (tmp_obj = object_list; tmp_obj; tmp_obj = tmp_obj->next)
@@ -3697,7 +3695,7 @@ ASPELL(spell_transport_via_plants)
       continue;
 
     // we don't want to transport to a plant in someone's inventory
-    if (GET_OBJ_VNUM(tmp_obj) == obj_num && !tmp_obj->carried_by)
+    if (GET_OBJ_VNUM(tmp_obj) == obj_num_id && !tmp_obj->carried_by)
     {
       dest_obj = tmp_obj;
 
@@ -4068,7 +4066,7 @@ ASPELL(spell_augury)
                      ZOCMD.arg1);
         break;
       case 'L':
-        send_to_char(ch, "%sMay have random treasure in %s [%s%d%s] (%d%%)",
+        send_to_char(ch, "%sMay have random treasure in %s [%s%" PRI_IDX "%s] (%d%%)",
                      ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
                      obj_index[ZOCMD.arg1].vnum, yel, ZOCMD.arg2);
         break;
@@ -4077,21 +4075,24 @@ ASPELL(spell_augury)
                      mob_proto[ZOCMD.arg1].player.short_descr);
         break;
       case 'G':
-        send_to_char(ch, "%sthey may possess %s [%s%d%s].\r\n", ZOCMD.if_flag ? " then " : "",
-                     obj_proto[ZOCMD.arg1].short_description, cyn, obj_index[ZOCMD.arg1].vnum, yel);
+        send_to_char(ch, "%sthey may possess %s [%s%" PRI_IDX "%s].\r\n",
+                     ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
+                     obj_index[ZOCMD.arg1].vnum, yel);
         break;
       case 'O':
-        send_to_char(ch, "%s%s may be found here. [%s%d%s]\r\n", ZOCMD.if_flag ? " then " : "",
-                     obj_proto[ZOCMD.arg1].short_description, cyn, obj_index[ZOCMD.arg1].vnum, yel);
+        send_to_char(ch, "%s%s may be found here. [%s%" PRI_IDX "%s]\r\n",
+                     ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
+                     obj_index[ZOCMD.arg1].vnum, yel);
         break;
       case 'E':
-        send_to_char(ch, "%s they may equip %s  [%s%d%s].\r\n", ZOCMD.if_flag ? " then " : "",
-                     obj_proto[ZOCMD.arg1].short_description, cyn, obj_index[ZOCMD.arg1].vnum, yel);
+        send_to_char(ch, "%s they may equip %s  [%s%" PRI_IDX "%s].\r\n",
+                     ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
+                     obj_index[ZOCMD.arg1].vnum, yel);
         break;
       case 'P':
-        send_to_char(ch, "%s%s [%s%d%s] may be inside %s.\r\n", ZOCMD.if_flag ? " then " : "",
-                     obj_proto[ZOCMD.arg1].short_description, cyn, obj_index[ZOCMD.arg1].vnum, yel,
-                     obj_proto[ZOCMD.arg3].short_description);
+        send_to_char(ch, "%s%s [%s%" PRI_IDX "%s] may be inside %s.\r\n",
+                     ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
+                     obj_index[ZOCMD.arg1].vnum, yel, obj_proto[ZOCMD.arg3].short_description);
         break;
       default:
         break;
@@ -5899,7 +5900,7 @@ ASPELL(spell_call_lycanthrope)
 {
   struct char_data *mob;
   struct domain_entity_handle owner_handle, pet_handle;
-  mob_vnum mob_vnum;
+  mob_vnum mob_vnum_id;
   int hit_points;
   int mob_level;
 
@@ -5911,9 +5912,9 @@ ASPELL(spell_call_lycanthrope)
     return;
   }
 
-  mob_vnum = random_call_lycanthrope_vnum();
-  if (mob_vnum == NOBODY ||
-      (mob = read_mobile_reason(mob_vnum, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)) == NULL)
+  mob_vnum_id = random_call_lycanthrope_vnum();
+  if (mob_vnum_id == NOBODY ||
+      (mob = read_mobile_reason(mob_vnum_id, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)) == NULL)
   {
     log("SYSERR: spell_call_lycanthrope could not find a converted summon prototype");
     send_to_char(ch, "No lycanthrope answers your call. Please report this to staff.\r\n");
@@ -6047,7 +6048,7 @@ MUD_EVENT_CALLBACK(event_rol_tazriks_frenzied_hound)
     return 0;
   }
 
-  snprintf(state, sizeof(state), "%d %d", world[IN_ROOM(caster)].number, strike + 1);
+  snprintf(state, sizeof(state), "%" PRI_IDX " %d", world[IN_ROOM(caster)].number, strike + 1);
   next_state = strdup(state);
   if (next_state == NULL)
   {
@@ -6069,7 +6070,7 @@ ASPELL(spell_tazriks_frenzied_hound)
 
   send_to_room(IN_ROOM(ch),
                "A vortex to the Abyss opens in midair. From it springs a slavering hellhound!\r\n");
-  snprintf(state, sizeof(state), "%d 0", world[IN_ROOM(ch)].number);
+  snprintf(state, sizeof(state), "%" PRI_IDX " 0", world[IN_ROOM(ch)].number);
   NEW_EVENT(eROL_TAZRIKS_FRENZIED_HOUND, ch, state, PULSE_VIOLENCE);
 }
 

@@ -575,7 +575,7 @@ SPECIAL(flamekissed_instrument)
   if (ch == NULL || argument == NULL)
     return 0;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch,
                  "Say an instrument subtype while wearing this instrument to transform it. "

@@ -38,7 +38,7 @@ struct name_rec
 struct control_rec
 {
   int level;
-  char *level_name;
+  const char *level_name;
 };
 
 struct level_rec
@@ -62,7 +62,7 @@ struct level_rec *levels = 0;
  * Creates a linked list of level records based on the static level_params
  * array, setting up the data structures needed for wizard list generation.
  */
-void initialize(void)
+static void initialize(void)
 {
   struct level_rec *tmp;
   int i = 0;
@@ -82,13 +82,10 @@ void initialize(void)
   }
 }
 
-void read_file(void)
-{
-  void add_name(byte level, char *name);
-  char *CAP(char *txt);
-  int get_line(FILE * fl, char *buf);
-  bitvector_t asciiflag_conv(const char *flag);
+void add_name(byte level, char *name);
 
+static void read_file(void)
+{
   FILE *fl;
   int recs, i, last = 0, level = 0, flags = 0;
   char index_name[40], line[256], bits[64];
@@ -117,10 +114,10 @@ void read_file(void)
       continue;
     }
     CAP(name);
-    flags = asciiflag_conv(bits);
+    flags = (int)asciiflag_conv(bits);
     if (level >= MIN_LEVEL && !(IS_SET(flags, PINDEX_NOWIZLIST)) &&
         !(IS_SET(flags, PINDEX_DELETED)))
-      add_name(level, name);
+      add_name((byte)level, name);
   }
   fclose(fl);
 }
@@ -174,7 +171,7 @@ void add_name(byte level, char *name)
   }
 }
 
-void sort_names(void)
+static void sort_names(void)
 {
   struct level_rec *curr_level;
   struct name_rec *a, *b;
@@ -197,7 +194,7 @@ void sort_names(void)
   }
 }
 
-void write_wizlist(FILE *out, int minlev, int maxlev)
+static void write_wizlist(FILE *out, int minlev, int maxlev)
 {
   char buf[100];
   struct level_rec *curr_level;
@@ -213,7 +210,7 @@ void write_wizlist(FILE *out, int minlev, int maxlev)
   {
     if (curr_level->params->level < minlev || curr_level->params->level > maxlev)
       continue;
-    i = 39 - (strlen(curr_level->params->level_name) >> 1);
+    i = (int)(39 - (strlen(curr_level->params->level_name) >> 1));
     for (j = 1; j <= i; j++)
       fputc(' ', out);
     fprintf(out, "%s\n", curr_level->params->level_name);
@@ -234,7 +231,7 @@ void write_wizlist(FILE *out, int minlev, int maxlev)
           fprintf(out, IMM_LMARG);
         else
         {
-          i = 40 - (strlen(buf) >> 1);
+          i = (int)(40 - (strlen(buf) >> 1));
           for (j = 1; j <= i; j++)
             fputc(' ', out);
         }
@@ -260,7 +257,7 @@ void write_wizlist(FILE *out, int minlev, int maxlev)
         fprintf(out, "%s%s\n", IMM_LMARG, buf);
       else
       {
-        i = 40 - (strlen(buf) >> 1);
+        i = (int)(40 - (strlen(buf) >> 1));
         for (j = 1; j <= i; j++)
           fputc(' ', out);
         fprintf(out, "%s\n", buf);

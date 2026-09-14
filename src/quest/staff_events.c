@@ -591,7 +591,7 @@ static int staff_event_mud_hours_to_ticks(int hours)
   ticks = (game_tick_t)STAFF_EVENT_MUD_HOUR_TICKS -
           (game_tick_t)pulse % (game_tick_t)STAFF_EVENT_MUD_HOUR_TICKS;
   ticks += (game_tick_t)(hours - 1) * (game_tick_t)STAFF_EVENT_MUD_HOUR_TICKS;
-  return (int)MIN((game_tick_t)INT_MAX, ticks);
+  return (int)u64_min((game_tick_t)INT_MAX, ticks);
 }
 
 /*
@@ -696,7 +696,7 @@ int get_event_delay(void)
  * - Minimizes function call overhead through batch processing
  * - Wilderness system handles room allocation efficiently
  */
-static void spawn_jackalope_batch(int mob_vnum, int count, uint64_t incarnation)
+static void spawn_jackalope_batch(int mob_vnum_id, int count, uint64_t incarnation)
 {
   int i = 0;       /* Loop counter */
   int x_coord = 0; /* Random X coordinate for spawning */
@@ -715,7 +715,7 @@ static void spawn_jackalope_batch(int mob_vnum, int count, uint64_t incarnation)
     get_cached_coordinates(&x_coord, &y_coord);
 
     /* Load the mob at the cached coordinates */
-    wild_mobile_loader(mob_vnum, x_coord, y_coord);
+    wild_mobile_loader(mob_vnum_id, x_coord, y_coord);
   }
 }
 
@@ -768,13 +768,13 @@ void count_jackalope_mobs(int *easy_count, int *med_count, int *hard_count)
   {
     if (IS_NPC(l))
     {
-      mob_rnum mob_rnum = GET_MOB_RNUM(l);
+      mob_rnum mob_rnum_id = GET_MOB_RNUM(l);
 
-      if (mob_rnum == easy_rnum && easy_count)
+      if (mob_rnum_id == easy_rnum && easy_count)
         (*easy_count)++;
-      else if (mob_rnum == med_rnum && med_count)
+      else if (mob_rnum_id == med_rnum && med_count)
         (*med_count)++;
-      else if (mob_rnum == hard_rnum && hard_count)
+      else if (mob_rnum_id == hard_rnum && hard_count)
         (*hard_count)++;
     }
   }
@@ -856,7 +856,8 @@ void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord)
   /* Validate location bounds before accessing world array */
   if (location == NOWHERE || location > top_of_world)
   {
-    log("SYSERR: Invalid location %d in wild_mobile_loader for mob vnum %d", location, mobile_vnum);
+    log("SYSERR: Invalid location %" PRI_IDX " in wild_mobile_loader for mob vnum %d", location,
+        mobile_vnum);
     extract_char(mob); /* Clean up created mob to prevent memory leak */
     return;
   }
@@ -2551,7 +2552,7 @@ void init_object_pool(void)
  * Get a pre-allocated object from the pool.
  * Falls back to standard object creation if pool is empty.
  */
-struct obj_data *get_pooled_object(int obj_vnum)
+struct obj_data *get_pooled_object(int obj_vnum_id)
 {
   int i = 0;
   obj_pool_node_t *node = NULL;
@@ -2564,7 +2565,7 @@ struct obj_data *get_pooled_object(int obj_vnum)
   {
     for (node = object_pool[i]; node; node = node->next)
     {
-      if (node->obj_vnum == obj_vnum && !node->in_use && node->obj)
+      if (node->obj_vnum == obj_vnum_id && !node->in_use && node->obj)
       {
         node->in_use = TRUE;
         return node->obj;
@@ -2573,7 +2574,7 @@ struct obj_data *get_pooled_object(int obj_vnum)
   }
 
   /* Pool exhausted or object type not pooled - fall back to standard creation */
-  return read_object_reason(obj_vnum, VIRTUAL, PERF_ENTITY_QUEST);
+  return read_object_reason(obj_vnum_id, VIRTUAL, PERF_ENTITY_QUEST);
 }
 
 /*
@@ -3048,7 +3049,7 @@ static int test_performance_optimizations(void)
   log("Running Performance Optimization Tests...");
 
   /* Test coordinate caching performance */
-  int start_time = time(NULL);
+  int start_time = (int)time(NULL);
   int i = 0;
 
   for (i = 0; i < 1000; i++)
@@ -3057,7 +3058,7 @@ static int test_performance_optimizations(void)
     get_cached_coordinates(&x, &y);
   }
 
-  int end_time = time(NULL);
+  int end_time = (int)time(NULL);
   int duration = end_time - start_time;
 
   TEST_ASSERT(duration < 5,
@@ -3066,12 +3067,12 @@ static int test_performance_optimizations(void)
   /* Test hash table performance vs linear search */
   init_hash_tables();
 
-  start_time = time(NULL);
+  start_time = (int)time(NULL);
   for (i = 0; i < 1000; i++)
   {
     hash_lookup_event(EASY_JACKALOPE);
   }
-  end_time = time(NULL);
+  end_time = (int)time(NULL);
   int hash_duration = end_time - start_time;
 
   TEST_ASSERT(hash_duration < 2, "Hash table lookup performance acceptable");

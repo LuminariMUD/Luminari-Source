@@ -14,6 +14,7 @@
 
 #include "utils.h" /* for ACMD macro */
 #include "help.h"  /* for help_entry_list */
+#include "mob/mob_autoroll.h"
 
 #define _OASISOLC 0x206 /* 2.0.6 */
 
@@ -796,7 +797,6 @@ void medit_parse(struct descriptor_data *d, char *arg);
 void medit_string_cleanup(struct descriptor_data *d, int terminator);
 ACMD_DECL(do_oasis_medit);
 void medit_autoroll_stats(struct descriptor_data *d);
-void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
 
 /* public functions from oedit.c */
 void oedit_setup_existing(struct descriptor_data *d, int rnum, int mode);
@@ -899,7 +899,7 @@ void study_disp_evolution_confirm(struct descriptor_data *d);
 void study_show_evolution_select_bottom_text(struct descriptor_data *d);
 void study_summoner_aspect_select(struct descriptor_data *d);
 void study_disp_aspect_confirm(struct descriptor_data *d);
-char *levelup_show_necromancer_cast_type(struct char_data *ch);
+const char *levelup_show_necromancer_cast_type(struct char_data *ch);
 bool has_necromancer_cast_type_unchosen(struct char_data *ch);
 
 /* public functions from msgedit.c */
@@ -928,4 +928,11 @@ void show_dragon_rider_bond_menu(struct descriptor_data *d);
 void show_dragonrider_bond_type(struct descriptor_data *d);
 void show_dragonrider_mount_type(struct descriptor_data *d);
 
+
+bool zedit_get_levels(struct descriptor_data *d, char *buf);
+
+void reset_training_points(struct char_data *ch);
+void perform_mob_name_list(struct char_data *ch, char *arg);
+int compute_ranged_weapon_actual_value(int list_value);
+void perform_zone_restat(struct descriptor_data *d);
 #endif /* _OASIS_H_ */

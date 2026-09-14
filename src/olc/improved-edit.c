@@ -13,6 +13,7 @@
 #include "improved-edit.h"
 #include "dgscript/dg_scripts.h"
 #include "modify.h"
+#include "dgscript/dg_olc.h"
 
 void send_editor_help(struct descriptor_data *d)
 {
@@ -203,7 +204,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
     /* in case line_low is negative or zero */
     line_low = MAX(1, line_low);
 
-    format_text(d->str, flags, d, d->max_str, line_low, line_high);
+    format_text(d->str, flags, d, (unsigned int)d->max_str, line_low, line_high);
     write_to_output(d, "Text formatted with%s indent.\r\n", (indent ? "" : "out"));
     break;
   case PARSE_REPLACE:
@@ -236,9 +237,10 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
     {
       return;
     }
-    else if ((total_len = ((strlen(t) - strlen(s)) + strlen(*d->str))) <= d->max_str)
+    else if ((total_len = ((unsigned int)((strlen(t) - strlen(s)) + strlen(*d->str)))) <=
+             d->max_str)
     {
-      if ((replaced = replace_str(d->str, s, t, rep_all, d->max_str)) > 0)
+      if ((replaced = replace_str(d->str, s, t, rep_all, (unsigned int)d->max_str)) > 0)
       {
         write_to_output(d, "Replaced %d occurance%sof '%s' with '%s'.\r\n", replaced,
                         ((replaced != 1) ? "s " : " "), s, t);
@@ -311,7 +313,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
       *t = '\0';
       RECREATE(*d->str, char, strlen(*d->str) + 3);
 
-      write_to_output(d, "%d line%sdeleted.\r\n", total_len, (total_len != 1 ? "s " : " "));
+      write_to_output(d, "%u line%sdeleted.\r\n", total_len, (total_len != 1 ? "s " : " "));
     }
     else
     {
@@ -386,7 +388,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
     else
       strcat(buf, t);
     /* This is kind of annoying...but some people like it. */
-    sprintf(buf + strlen(buf), "\r\n%d line%sshown.\r\n", total_len, (total_len != 1) ? "s " : " ");
+    sprintf(buf + strlen(buf), "\r\n%u line%sshown.\r\n", total_len, (total_len != 1) ? "s " : " ");
     page_string(d, buf, TRUE);
     break;
   case PARSE_LIST_NUM:
@@ -740,7 +742,7 @@ int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned
         CAP(start);
       }
 
-      line_chars += strlen(start);
+      line_chars += (int)(strlen(start));
       strlcat(formatted, start, sizeof(formatted));
 
       *flow = temp;
@@ -777,12 +779,13 @@ int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned
 
   if (strlen(formatted) + 1 > maxlen)
     formatted[maxlen - 1] = '\0';
-  RECREATE(*ptr_string, char, MIN(maxlen, strlen(formatted) + 1));
+  RECREATE(*ptr_string, char, size_min(maxlen, strlen(formatted) + 1));
   memcpy(*ptr_string, formatted, strlen(formatted) + 1);
   return 1;
 }
 
-int replace_str(char **string, char *pattern, char *replacement, int rep_all, unsigned int max_size)
+int replace_str(char **string, const char *pattern, const char *replacement, int rep_all,
+                unsigned int max_size)
 {
   char *replace_buffer = NULL;
   char *flow, *jetsam, temp;
@@ -823,7 +826,7 @@ int replace_str(char **string, char *pattern, char *replacement, int rep_all, un
     {
       i++;
       flow += strlen(pattern);
-      len = ((char *)flow - (char *)*string) - strlen(pattern);
+      len = (int)(((char *)flow - (char *)*string) - strlen(pattern));
       memcpy(replace_buffer, *string, len);
       replace_buffer[len] = '\0';
       strlcat(replace_buffer, replacement, max_size + 1);
@@ -831,15 +834,13 @@ int replace_str(char **string, char *pattern, char *replacement, int rep_all, un
     }
   }
 
-  if (i <= 0)
-    return 0;
-  else
+  if (i > 0)
   {
     RECREATE(*string, char, strlen(replace_buffer) + 3);
     memcpy(*string, replace_buffer, strlen(replace_buffer) + 1);
   }
   free(replace_buffer);
-  return i;
+  return i > 0 ? i : 0;
 }
 
 #endif

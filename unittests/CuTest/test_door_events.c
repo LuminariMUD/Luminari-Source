@@ -54,7 +54,7 @@ static void door_fixture_start(CuTest *tc, struct door_fixture *f)
   f->exits[1].to_room = 0;
   f->exits[0].exit_info = f->exits[1].exit_info = EX_ISDOOR | EX_CLOSED | DOOR_LOCK_FLAGS;
   clear_char(&f->owner);
-  f->owner.player.name = (char *)"watcher";
+  f->owner.player.name = CuMutableString("watcher");
   f->owner.player_specials = &f->specials;
   GET_POS(&f->owner) = POS_STANDING;
   IN_ROOM(&f->owner) = 0;
@@ -265,7 +265,7 @@ void TestDoorScriptPublishersAndRemoval(CuTest *tc)
   clear_char(&mobile);
   SET_BIT_AR(MOB_FLAGS(&mobile), MOB_ISNPC);
   IN_ROOM(&mobile) = 0;
-  mobile.player.name = (char *)"scripted";
+  mobile.player.name = CuMutableString("scripted");
   door_observe(tc, &f, 0);
   do_ready(&f.owner, "rest on door open north", 0, 0);
   wld_command_interpreter(&f.rooms[0], wopen);
@@ -335,8 +335,8 @@ void TestDoorCommandsPublishOnlySuccessfulRoomChanges(CuTest *tc)
   REMOVE_BIT_AR(MOB_FLAGS(&f.owner), MOB_ISNPC);
 
   clear_object(&chest);
-  chest.name = (char *)"chest";
-  chest.short_description = (char *)"a chest";
+  chest.name = CuMutableString("chest");
+  chest.short_description = CuMutableString("a chest");
   GET_OBJ_TYPE(&chest) = ITEM_CONTAINER;
   GET_OBJ_VAL(&chest, 1) = CONT_CLOSEABLE | CONT_CLOSED;
   IN_ROOM(&chest) = 0;
@@ -407,8 +407,8 @@ void TestDoorOlcReplacementCancelsWithoutOpening(CuTest *tc)
   *f.rooms[0].dir_option[NORTH] = f.exits[0];
   draft = f.rooms[0];
   draft.dir_option[NORTH] = &f.exits[0];
-  draft.name = (char *)"edited room";
-  draft.description = (char *)"An edited room.\r\n";
+  draft.name = CuMutableString("edited room");
+  draft.description = CuMutableString("An edited room.\r\n");
   do_ready(&f.owner, "rest on door open north", 0, 0);
   CuAssertTrue(tc, copy_room(&f.rooms[0], &draft));
   CuAssertPtrEquals(tc, NULL, f.owner.ready_action);
@@ -431,10 +431,10 @@ void TestDoorScriptVetoDoesNotPublish(CuTest *tc)
   script.trig_list = &trigger;
   trigger.trigger_type = WTRIG_DOOR;
   trigger.narg = 100;
-  trigger.name = (char *)"door veto";
+  trigger.name = CuMutableString("door veto");
   trigger.nr = NOTHING;
   trigger.cmdlist = &command;
-  command.cmd = (char *)"return 0";
+  command.cmd = CuMutableString("return 0");
   SCRIPT(&f.rooms[0]) = &script;
   do_gen_door(&f.owner, "door north", 0, SCMD_OPEN);
   CuAssertIntEquals(tc, 0, f.notifications);
@@ -524,8 +524,8 @@ static void ready_attack_target(struct door_fixture *f, struct char_data *target
   clear_char(target);
   memset(specials, 0, sizeof(*specials));
   target->player_specials = specials;
-  target->player.name = "caster";
-  target->player.short_descr = "the caster";
+  target->player.name = CuMutableString("caster");
+  target->player.short_descr = CuMutableString("the caster");
   SET_BIT_AR(MOB_FLAGS(target), MOB_ISNPC);
   IN_ROOM(target) = 0;
   GET_POS(target) = POS_STANDING;

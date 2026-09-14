@@ -31,7 +31,7 @@ struct vessel_lookout_direction
 struct vessel_lookout_contact
 {
   int shipnum;
-  float range;
+  double range;
   int bearing;
   int delta_z;
 };
@@ -233,7 +233,7 @@ static int vessel_lookout_collect_contacts(const struct greyhawk_ship_data *ship
                                            struct vessel_lookout_contact *contacts)
 {
   const struct greyhawk_ship_data *other;
-  float range;
+  double range;
   int ship_z;
   int count;
   int i;

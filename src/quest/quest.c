@@ -128,7 +128,7 @@ int is_complete(struct char_data *ch, qst_vnum vnum)
 }
 
 /* Check if a quest has been accepted but not completed */
-int is_accepted_not_complete(struct char_data *ch, qst_vnum vnum)
+static int is_accepted_not_complete(struct char_data *ch, qst_vnum vnum)
 {
   int i;
 
@@ -154,7 +154,7 @@ int is_quest_target_mob(struct char_data *ch, struct char_data *mob)
       continue;
 
     rnum = real_quest(GET_QUEST(ch, index));
-    if (rnum == NOTHING || rnum == NOWHERE)
+    if (rnum == NOTHING)
       continue;
 
     /* Check if this quest involves this mob */
@@ -169,7 +169,7 @@ int is_quest_target_mob(struct char_data *ch, struct char_data *mob)
     {
       char kill_list_copy[MAX_STRING_LENGTH];
       char *mob_vnum_str;
-      mob_vnum mob_vnum;
+      mob_vnum mob_vnum_id;
 
       strncpy(kill_list_copy, QST_KLIST(rnum), sizeof(kill_list_copy) - 1);
       kill_list_copy[sizeof(kill_list_copy) - 1] = '\0';
@@ -177,8 +177,8 @@ int is_quest_target_mob(struct char_data *ch, struct char_data *mob)
       mob_vnum_str = strtok(kill_list_copy, ",");
       while (mob_vnum_str)
       {
-        mob_vnum = atoi(mob_vnum_str);
-        if (mob_vnum == GET_MOB_VNUM(mob))
+        mob_vnum_id = atoi(mob_vnum_str);
+        if (mob_vnum_id == GET_MOB_VNUM(mob))
           return TRUE;
         mob_vnum_str = strtok(NULL, ",");
       }
@@ -203,7 +203,7 @@ int is_quest_target_obj(struct char_data *ch, struct obj_data *obj)
       continue;
 
     rnum = real_quest(GET_QUEST(ch, index));
-    if (rnum == NOTHING || rnum == NOWHERE)
+    if (rnum == NOTHING)
       continue;
 
     /* Check if this quest involves this object */
@@ -448,9 +448,10 @@ void assign_the_quests(void)
   {
     if (QST_MASTER(rnum) == NOBODY || QST_MASTER(rnum) <= 0)
     {
-      log("QUEST ERROR: Quest #%d '%s' has no questmaster mob assigned.", QST_NUM(rnum),
+      log("QUEST ERROR: Quest #%" PRI_IDX " '%s' has no questmaster mob assigned.", QST_NUM(rnum),
           QST_NAME(rnum) ? QST_NAME(rnum) : "UNNAMED");
-      log("QUEST FIX: Use 'qedit %d' and set a questmaster mob vnum (the NPC who gives this "
+      log("QUEST FIX: Use 'qedit %" PRI_IDX
+          "' and set a questmaster mob vnum (the NPC who gives this "
           "quest).",
           QST_NUM(rnum));
       log("QUEST FIX: Common questmaster vnums: Check 'vnum mob questmaster' or create a new NPC.");
@@ -463,19 +464,22 @@ void assign_the_quests(void)
     }
     if ((mrnum = real_mobile(QST_MASTER(rnum))) == NOBODY)
     {
-      log("QUEST ERROR: Quest #%d '%s' has questmaster mob vnum #%d which doesn't exist.",
+      log("QUEST ERROR: Quest #%" PRI_IDX " '%s' has questmaster mob vnum #%" PRI_IDX
+          " which doesn't exist.",
           QST_NUM(rnum), QST_NAME(rnum) ? QST_NAME(rnum) : "UNNAMED", QST_MASTER(rnum));
-      log("QUEST FIX: Either create mob #%d using 'medit %d', OR change the questmaster in 'qedit "
-          "%d'.",
+      log("QUEST FIX: Either create mob #%" PRI_IDX " using 'medit %" PRI_IDX
+          "', OR change the questmaster in 'qedit "
+          "%" PRI_IDX "'.",
           QST_MASTER(rnum), QST_MASTER(rnum), QST_NUM(rnum));
       log("QUEST FIX: Use 'vnum mob questmaster' to find existing questmaster mobs.");
       continue;
     }
     if (mrnum <= 0)
     {
-      log("QUEST ERROR: Quest #%d '%s' has an invalid questmaster mob (negative rnum).",
+      log("QUEST ERROR: Quest #%" PRI_IDX " '%s' has an invalid questmaster mob (negative rnum).",
           QST_NUM(rnum), QST_NAME(rnum) ? QST_NAME(rnum) : "UNNAMED");
-      log("QUEST FIX: This is a data corruption issue. Use 'qedit %d' to reassign the questmaster.",
+      log("QUEST FIX: This is a data corruption issue. Use 'qedit %" PRI_IDX
+          "' to reassign the questmaster.",
           QST_NUM(rnum));
       continue;
     }
@@ -490,7 +494,7 @@ void assign_the_quests(void)
       definition = spec_registry_find_by_handler(secondary_handler);
       secondary_name = definition != NULL ? definition->canonical_name : "unregistered-callback";
     }
-    snprintf(source_location, sizeof(source_location), "quest #%d", QST_NUM(rnum));
+    snprintf(source_location, sizeof(source_location), "quest #%" PRI_IDX, QST_NUM(rnum));
     contribution.source = SPEC_BINDING_SOURCE_QUEST;
     contribution.requested_name = "questmaster";
     contribution.handler_name = "Questmaster";
@@ -682,7 +686,7 @@ void complete_quest(struct char_data *ch, int index)
   /* any quest point reward for this quest?  Each message reports what was applied. */
   if (IS_HAPPYHOUR && IS_HAPPYQP)
   {
-    happy_qp = (int)(QST_POINTS(rnum) * (((float)(100 + HAPPY_QP)) / (float)100));
+    happy_qp = (int)(QST_POINTS(rnum) * (((double)(100 + HAPPY_QP)) / (double)100));
     happy_qp = MAX(happy_qp, 0);
     awarded = award_quest_points(ch, happy_qp);
   }
@@ -698,7 +702,7 @@ void complete_quest(struct char_data *ch, int index)
   {
     if ((IS_HAPPYHOUR) && (IS_HAPPYGOLD))
     {
-      happy_gold = (int)(QST_GOLD(rnum) * (((float)(100 + HAPPY_GOLD)) / (float)100));
+      happy_gold = (int)(QST_GOLD(rnum) * (((double)(100 + HAPPY_GOLD)) / (double)100));
       happy_gold = MAX(happy_gold, 0);
       awarded = award_gold(ch, happy_gold);
     }
@@ -891,7 +895,7 @@ void generic_complete_quest(struct char_data *ch, int index)
     char buf[128] = {'\0'};
 
     /* we should be in the clear to tag this player with a completed quest */
-    snprintf(buf, sizeof(buf), "%d", vnum); /* sending vnum to event of quest */
+    snprintf(buf, sizeof(buf), "%" PRI_IDX, vnum); /* sending vnum to event of quest */
     attach_mud_event(new_mud_event(eQUEST_COMPLETE, ch, buf), 1);
   }
 }
@@ -1167,14 +1171,14 @@ void list_quests(struct char_data *ch, zone_rnum zone, qst_vnum vmin, qst_vnum v
                    "----- ------- -------------------------------------------- -----------\r\n");
   for (rnum = 0; rnum < total_quests; rnum++)
     if (QST_NUM(rnum) >= bottom && QST_NUM(rnum) <= top)
-      send_to_char(ch, "\tg%4d\tn) [\tg%-5d\tn] \tc%-44.44s\tn \ty[%5d]\tn\r\n", ++counter,
-                   QST_NUM(rnum), QST_DESC(rnum),
+      send_to_char(ch, "\tg%4d\tn) [\tg%-5" PRI_IDX "\tn] \tc%-44.44s\tn \ty[%5" PRI_IDX "]\tn\r\n",
+                   ++counter, QST_NUM(rnum), QST_DESC(rnum),
                    QST_MASTER(rnum) == NOBODY ? 0 : QST_MASTER(rnum));
   if (!counter)
     send_to_char(ch, "None found.\r\n");
 }
 
-void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH])
+static void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 {
   int i = 0, counter = 0, num_arg = -1;
   qst_rnum rnum = NOTHING;
@@ -1247,7 +1251,7 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 
 /* rewrote this so quest objects can be equipped -zusuk */
 /* 2nd re-write to allow for taking multiple quests -z */
-void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_INPUT_LENGTH])
+static void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_INPUT_LENGTH])
 {
   qst_vnum vnum = NOTHING;
   qst_rnum rnum = NOWHERE;
@@ -1466,7 +1470,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
 
 /* lists available quests, can also accept vnum or list-number to view
  details of a specific quest */
-void quest_list(struct char_data *ch, struct char_data *qm, char argument[MAX_INPUT_LENGTH])
+static void quest_list(struct char_data *ch, struct char_data *qm, char argument[MAX_INPUT_LENGTH])
 {
   qst_vnum vnum;
   qst_rnum rnum;
@@ -1477,7 +1481,7 @@ void quest_list(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     send_to_char(ch, "That is not a valid quest!\r\n");
   else if (QST_INFO(rnum))
   {
-    send_to_char(ch, "Complete Details on Quest %d \tc%s\tn:\r\n%s", vnum, QST_DESC(rnum),
+    send_to_char(ch, "Complete Details on Quest %" PRI_IDX " \tc%s\tn:\r\n%s", vnum, QST_DESC(rnum),
                  QST_INFO(rnum));
     if (QST_PREV(rnum) != NOTHING)
       send_to_char(ch, "You have to have completed quest %s first.\r\n",
@@ -1542,7 +1546,7 @@ void quest_quit(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 }
 
 /* will give player current status on their quest they are working on */
-void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
+static void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 {
   qst_rnum rnum;
   int index = -1;
@@ -1558,7 +1562,8 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
         send_to_char(ch, " (Index: %d) This quest slot is available.\r\n", index);
       }
       else
-        send_to_char(ch, "(Index: %d) - %s [vnum %d]\r\n", index, QST_NAME(rnum), QST_NUM(rnum));
+        send_to_char(ch, "(Index: %d) - %s [vnum %" PRI_IDX "]\r\n", index, QST_NAME(rnum),
+                     QST_NUM(rnum));
     }
     send_to_char(ch, "You can provide the quest index from your queue to check specific progress "
                      "details (ex. quest progress <index # above>).\r\n");
@@ -1614,16 +1619,16 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     {
     case AQ_OBJ_FIND: /* Acquire Object */
     {
-      obj_rnum obj_rnum = real_object(QST_TARGET(rnum));
-      if (obj_rnum != NOTHING)
-        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", obj_proto[obj_rnum].short_description);
+      obj_rnum obj_rnum_id = real_object(QST_TARGET(rnum));
+      if (obj_rnum_id != NOTHING)
+        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", obj_proto[obj_rnum_id].short_description);
       break;
     }
     case AQ_ROOM_FIND: /* Find Room */
     {
-      room_rnum room_rnum = real_room(QST_TARGET(rnum));
-      if (room_rnum != NOWHERE)
-        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", world[room_rnum].name);
+      room_rnum room_rnum_id = real_room(QST_TARGET(rnum));
+      if (room_rnum_id != NOWHERE)
+        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", world[room_rnum_id].name);
       break;
     }
     case AQ_MOB_FIND:    /* Find Mob */
@@ -1632,23 +1637,23 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     case AQ_DIALOGUE:    /* Dialogue Quest */
     case AQ_MOB_RESOLVE: /* Resolve Mob Nonlethally */
     {
-      mob_rnum mob_rnum = real_mobile(QST_TARGET(rnum));
-      if (mob_rnum != NOBODY)
-        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", mob_proto[mob_rnum].player.short_descr);
+      mob_rnum mob_rnum_id = real_mobile(QST_TARGET(rnum));
+      if (mob_rnum_id != NOBODY)
+        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", mob_proto[mob_rnum_id].player.short_descr);
       break;
     }
     case AQ_OBJ_RETURN: /* Return Object */
     {
-      obj_rnum obj_rnum = real_object(QST_TARGET(rnum));
-      if (obj_rnum != NOTHING)
-        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", obj_proto[obj_rnum].short_description);
+      obj_rnum obj_rnum_id = real_object(QST_TARGET(rnum));
+      if (obj_rnum_id != NOTHING)
+        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", obj_proto[obj_rnum_id].short_description);
       break;
     }
     case AQ_ROOM_CLEAR: /* Clear Room */
     {
-      room_rnum room_rnum = real_room(QST_TARGET(rnum));
-      if (room_rnum != NOWHERE)
-        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", world[room_rnum].name);
+      room_rnum room_rnum_id = real_room(QST_TARGET(rnum));
+      if (room_rnum_id != NOWHERE)
+        send_to_char(ch, "\tcQuest Target:\tn %s\r\n", world[room_rnum_id].name);
       break;
     }
     case AQ_MOB_MULTI_KILL: /* Kill Multiple Mobs */
@@ -1668,13 +1673,13 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
         while (mob_vnum_str != NULL)
         {
           mob_vnum mvnum = atoi(mob_vnum_str);
-          mob_rnum mob_rnum = real_mobile(mvnum);
+          mob_rnum mob_rnum_id = real_mobile(mvnum);
 
-          if (mob_rnum != NOBODY)
+          if (mob_rnum_id != NOBODY)
           {
             if (!first)
               send_to_char(ch, ", ");
-            send_to_char(ch, "%s", mob_proto[mob_rnum].player.short_descr);
+            send_to_char(ch, "%s", mob_proto[mob_rnum_id].player.short_descr);
             first = FALSE;
           }
 
@@ -1716,7 +1721,7 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 }
 
 /* displays a list of quests available at given quest master */
-void quest_show(struct char_data *ch, mob_vnum qm)
+static void quest_show(struct char_data *ch, mob_vnum qm)
 {
   qst_rnum rnum;
   int counter = 0;
@@ -1731,7 +1736,8 @@ void quest_show(struct char_data *ch, mob_vnum qm)
         "-----------\r\n");
     for (rnum = 0; rnum < total_quests; rnum++)
       if (qm == QST_MASTER(rnum))
-        send_to_char(ch, "\tg%4d\tn) \tc%-52.52s\tn \ty(%6d)\tn \ty(%3s)\tn \ty(%3s)\tn\r\n",
+        send_to_char(ch,
+                     "\tg%4d\tn) \tc%-52.52s\tn \ty(%6" PRI_IDX ")\tn \ty(%3s)\tn \ty(%3s)\tn\r\n",
                      ++counter, QST_NAME(rnum), QST_NUM(rnum),
                      (is_complete(ch, QST_NUM(rnum)) ? "Yes" : "No "),
                      ((IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) ? "Yes" : "No "));
@@ -1758,7 +1764,7 @@ void quest_show(struct char_data *ch, mob_vnum qm)
 }
 
 /* allows staff to assign a quest as completed to given target */
-void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
+static void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 {
   char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *victim = NULL;
@@ -1804,7 +1810,7 @@ void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 }
 
 /* allows staff to view detailed info about any quest in game */
-void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
+static void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 {
   qst_rnum rnum = NOTHING;
   mob_rnum qmrnum = NOBODY;
@@ -1935,7 +1941,8 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     /* display time! */
     send_to_char(
         ch,
-        "VNum  : [\ty%5d\tn], RNum: [\ty%5d\tn] -- Questmaster: [\ty%5d\tn] \ty%s\tn\r\n"
+        "VNum  : [\ty%5" PRI_IDX "\tn], RNum: [\ty%5" PRI_IDX
+        "\tn] -- Questmaster: [\ty%5d\tn] \ty%s\tn\r\n"
         "Name  : \ty%s\tn\r\n"
         "Desc  : \ty%s\tn\r\n"
         "Accept Message:\r\n\tc%s\tn"
@@ -1944,7 +1951,7 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
         "Type  : \ty%s\tn\r\n"
         "Target: \ty%d\tn \ty%s\tn, Quantity: \ty%d\tn\r\n"
         "Value : \ty%d\tn, Penalty: \ty%d\tn, Min Level: \ty%2d\tn, Max Level: \ty%2d\tn\r\n"
-        "Gold Reward: \ty%d\tn, Exp Reward: \ty%d\tn, Obj Reward: \ty(%d)\tn %s\r\n"
+        "Gold Reward: \ty%d\tn, Exp Reward: \ty%d\tn, Obj Reward: \ty(%" PRI_IDX ")\tn %s\r\n"
         "Quest Race Reward: %s (%d)\r\n"
         "Quest Follower Reward: %s (%d)\r\n"
         "Flags : \tc%s\tn\r\n",
@@ -1981,13 +1988,13 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     if (QST_PREV(rnum) == NOTHING)
       send_to_char(ch, " \tyNone.\tn\r\n");
     else
-      send_to_char(ch, " [\ty%5d\tn] \tc%s\tn\r\n", QST_PREV(rnum),
+      send_to_char(ch, " [\ty%5" PRI_IDX "\tn] \tc%s\tn\r\n", QST_PREV(rnum),
                    QST_DESC(real_quest(QST_PREV(rnum))));
     send_to_char(ch, "Next  :");
     if (QST_NEXT(rnum) == NOTHING)
       send_to_char(ch, " \tyNone.\tn\r\n");
     else
-      send_to_char(ch, " [\ty%5d\tn] \tc%s\tn\r\n", QST_NEXT(rnum),
+      send_to_char(ch, " [\ty%5" PRI_IDX "\tn] \tc%s\tn\r\n", QST_NEXT(rnum),
                    QST_DESC(real_quest(QST_NEXT(rnum))));
   }
 }
@@ -2204,7 +2211,7 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
     return;
   }
 
-  int total_quests = mysql_num_rows(result);
+  int total_quests_value = (int)mysql_num_rows(result);
 
   send_to_char(ch, "%-13s %-42.42s | %-25s | %-30s | %-7s | %s\r\n", "Quest Num", "Quest Name",
                "Quest Master", "Location", "Min Lvl", "Status");
@@ -2214,15 +2221,15 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
   if (!is_staff && next_quest_vnum != -1)
   {
     qst_rnum qrnum = real_quest(next_quest_vnum);
-    char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum)) ? "(missing quest)"
-                                                                             : QST_NAME(qrnum);
-    mob_vnum qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? NOBODY : QST_MASTER(qrnum);
-    char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
-                        ? "(no master)"
-                        : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
+    const char *qname =
+        (qrnum == NOTHING || !QST_NAME(qrnum)) ? "(missing quest)" : QST_NAME(qrnum);
+    mob_vnum qm_vnum = (qrnum == NOTHING) ? NOBODY : QST_MASTER(qrnum);
+    const char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
+                              ? "(no master)"
+                              : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
 
     /* Find the quest master's room */
-    char *qm_room = "(not found)";
+    const char *qm_room = "(not found)";
     if (qm_vnum != NOBODY && real_mobile(qm_vnum) != NOBODY)
     {
       struct char_data *mob_instance;
@@ -2238,7 +2245,7 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
       }
     }
 
-    int min_level = (qrnum == NOTHING || qrnum == NOWHERE) ? 0 : QST_MINLEVEL(qrnum);
+    int min_level = (qrnum == NOTHING) ? 0 : QST_MINLEVEL(qrnum);
 
     snprintf(quest_name, sizeof(quest_name), "%s", qname);
     snprintf(quest_master, sizeof(quest_master), "%s", qm_name);
@@ -2255,15 +2262,15 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
   if (!is_staff && current_quest_vnum != -1)
   {
     qst_rnum qrnum = real_quest(current_quest_vnum);
-    char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum)) ? "(missing quest)"
-                                                                             : QST_NAME(qrnum);
-    mob_vnum qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? NOBODY : QST_MASTER(qrnum);
-    char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
-                        ? "(no master)"
-                        : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
+    const char *qname =
+        (qrnum == NOTHING || !QST_NAME(qrnum)) ? "(missing quest)" : QST_NAME(qrnum);
+    mob_vnum qm_vnum = (qrnum == NOTHING) ? NOBODY : QST_MASTER(qrnum);
+    const char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
+                              ? "(no master)"
+                              : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
 
     /* Find the quest master's room */
-    char *qm_room = "(not found)";
+    const char *qm_room = "(not found)";
     if (qm_vnum != NOBODY && real_mobile(qm_vnum) != NOBODY)
     {
       struct char_data *mob_instance;
@@ -2279,7 +2286,7 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
       }
     }
 
-    int min_level = (qrnum == NOTHING || qrnum == NOWHERE) ? 0 : QST_MINLEVEL(qrnum);
+    int min_level = (qrnum == NOTHING) ? 0 : QST_MINLEVEL(qrnum);
 
     snprintf(quest_name, sizeof(quest_name), "%s", qname);
     snprintf(quest_master, sizeof(quest_master), "%s", qm_name);
@@ -2322,15 +2329,15 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
 
     quest_count++;
 
-    char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum)) ? "(missing quest)"
-                                                                             : QST_NAME(qrnum);
-    mob_vnum qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? NOBODY : QST_MASTER(qrnum);
-    char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
-                        ? "(no master)"
-                        : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
+    const char *qname =
+        (qrnum == NOTHING || !QST_NAME(qrnum)) ? "(missing quest)" : QST_NAME(qrnum);
+    mob_vnum qm_vnum = (qrnum == NOTHING) ? NOBODY : QST_MASTER(qrnum);
+    const char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
+                              ? "(no master)"
+                              : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
 
     /* Find the quest master's room */
-    char *qm_room = "(not found)";
+    const char *qm_room = "(not found)";
     if (qm_vnum != NOBODY && real_mobile(qm_vnum) != NOBODY)
     {
       struct char_data *mob_instance;
@@ -2346,7 +2353,7 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
       }
     }
 
-    int min_level = (qrnum == NOTHING || qrnum == NOWHERE) ? 0 : QST_MINLEVEL(qrnum);
+    int min_level = (qrnum == NOTHING) ? 0 : QST_MINLEVEL(qrnum);
 
     snprintf(quest_name, sizeof(quest_name), "%s", qname);
     snprintf(quest_master, sizeof(quest_master), "%s", qm_name);
@@ -2366,7 +2373,7 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
     send_to_char(ch, "(No quests have been added yet.)\r\n");
   else if (limit > 0 &&
            quest_count <
-               total_quests -
+               total_quests_value -
                    ((!is_staff && (current_quest_vnum != -1 || next_quest_vnum != -1)) ? 1 : 0))
     send_to_char(ch,
                  "\r\nShowing latest %d quest%s. Use 'questline show %d <number>' or 'questline "
@@ -2623,7 +2630,7 @@ ACMDU(do_questline)
     int quest_vnum = atoi(arg2);
     int position = *arg3 ? atoi(arg3) : 0;
     qst_rnum qrnum = real_quest(quest_vnum);
-    if (qrnum == NOTHING || qrnum == NOWHERE)
+    if (qrnum == NOTHING)
     {
       send_to_char(ch, "Quest vnum %d does not exist.\r\n", quest_vnum);
       return;
@@ -2704,7 +2711,8 @@ ACMD(do_aqref)
 
   if (GET_LEVEL(ch) < LVL_IMMORT)
   {
-    snprintf(buf, sizeof(buf), "(GC) %s did a reference check for (%d).", GET_NAME(ch), vnum);
+    snprintf(buf, sizeof(buf), "(GC) %s did a reference check for (%" PRI_IDX ").", GET_NAME(ch),
+             vnum);
     log("%s", buf);
     return;
   }
@@ -2720,25 +2728,29 @@ ACMD(do_aqref)
     if (QST_OBJ(i) && QST_OBJ(i) == vnum)
     {
       found = TRUE;
-      send_to_char(ch, "(%d) \tCREWARD\tn %s (\tW%d\tn) from %s (\tW%d\tn)\r\n", QST_NUM(i),
-                   obj_proto[real_num].short_description, vnum,
+      send_to_char(ch,
+                   "(%" PRI_IDX ") \tCREWARD\tn %s (\tW%" PRI_IDX "\tn) from %s (\tW%" PRI_IDX
+                   "\tn)\r\n",
+                   QST_NUM(i), obj_proto[real_num].short_description, vnum,
                    mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
     }
 
     if ((QST_TYPE(i) == AQ_OBJ_FIND) && QST_TARGET(i) > 0 && (obj_vnum)QST_TARGET(i) == vnum)
     {
       found = TRUE;
-      send_to_char(ch, "(%d) \tCFIND\tn %s (\tW%d\tn) for %s (\tW%d\tn)\r\n", QST_NUM(i),
-                   obj_proto[real_num].short_description, vnum,
-                   mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
+      send_to_char(
+          ch, "(%" PRI_IDX ") \tCFIND\tn %s (\tW%" PRI_IDX "\tn) for %s (\tW%" PRI_IDX "\tn)\r\n",
+          QST_NUM(i), obj_proto[real_num].short_description, vnum,
+          mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
     }
 
     if ((QST_TYPE(i) == AQ_OBJ_RETURN) && QST_TARGET(i) > 0 && (obj_vnum)QST_TARGET(i) == vnum)
     {
       found = TRUE;
-      send_to_char(ch, "(%d) \tCRETURN\tn %s (\tW%d\tn) to %s (\tW%d\tn)\r\n", QST_NUM(i),
-                   obj_proto[real_num].short_description, vnum,
-                   mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
+      send_to_char(
+          ch, "(%" PRI_IDX ") \tCRETURN\tn %s (\tW%" PRI_IDX "\tn) to %s (\tW%" PRI_IDX "\tn)\r\n",
+          QST_NUM(i), obj_proto[real_num].short_description, vnum,
+          mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
     }
   }
 

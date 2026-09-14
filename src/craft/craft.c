@@ -39,10 +39,10 @@
 #include "quest/quest.h"
 #include "combat/assign_wpn_armor.h"
 #include "olc/genolc.h"
+#include "olc/genobj.h"
 #include "wilderness/resource_system.h"
 #include "wilderness/harvest.h"
 
-extern MYSQL *conn;
 
 /* global variables */
 int mining_nodes = 0;
@@ -193,7 +193,7 @@ int weapon_damage_c[NUM_SIZES][2] = {
  * we have 3 charts above trying to accomodate most weapons you could
  *   possibly ecnounter
  * returns TRUE if successful, FALSE if failed */
-bool scale_damage(struct char_data *ch, struct obj_data *weapon, int new_size)
+static bool scale_damage(struct char_data *ch, struct obj_data *weapon, int new_size)
 {
   int num_of_dice = 0;       // number-of-dice rolled for weapon dam
   int size_of_dice = 0;      // size-of-dice rolled for weapon dam
@@ -285,7 +285,7 @@ bool scale_damage(struct char_data *ch, struct obj_data *weapon, int new_size)
 /* this function will switch the material of an item based on the
    conversion crafting system
  */
-int convert_material(int material)
+static int convert_material(int material)
 {
   switch (material)
   {
@@ -337,7 +337,7 @@ int test_legacy_supply_order_skill(int material)
 #endif
 
 /* simple function to reset craft data */
-void reset_craft(struct char_data *ch)
+static void reset_craft(struct char_data *ch)
 {
   /* initialize values */
   GET_CRAFTING_TYPE(ch) = 0; // SCMD_ of craft
@@ -364,7 +364,7 @@ void reset_acraft(struct char_data *ch)
 
 /* compartmentalized auto-quest crafting reporting since its done
    a few times in the code */
-void cquest_report(struct char_data *ch)
+static void cquest_report(struct char_data *ch)
 {
   if (GET_AUTOCQUEST_VNUM(ch))
   {
@@ -380,8 +380,8 @@ void cquest_report(struct char_data *ch)
                  "Once completed/turned-in you will receive the"
                  " following:\r\n"
                  "You will receive %d reputation points.\r\n"
-                 "%d gold will be awarded to you.\r\n"
-                 "You will receive %d experience points.\r\n"
+                 "%u gold will be awarded to you.\r\n"
+                 "You will receive %u experience points.\r\n"
                  "(type 'supplyorder complete' at the supply office)\r\n",
                  GET_AUTOCQUEST_QP(ch), GET_AUTOCQUEST_GOLD(ch), GET_AUTOCQUEST_EXP(ch));
   }
@@ -425,7 +425,7 @@ void cquest_report(struct char_data *ch)
  */
 
 /* this function returns an appropriate keyword(s) based on material */
-char *node_keywords(int material)
+static char *node_keywords(int material)
 {
   /* reference */
   /* steel      - vein of dull ore */
@@ -474,7 +474,7 @@ char *node_keywords(int material)
 }
 
 /* this function returns an appropriate short-desc based on material */
-char *node_sdesc(int material)
+static char *node_sdesc(int material)
 {
   /* reference */
   /* steel      - vein of dull ore */
@@ -522,7 +522,7 @@ char *node_sdesc(int material)
 }
 
 /* this function returns an appropriate desc based on material */
-char *node_desc(int material)
+static char *node_desc(int material)
 {
   /* reference */
   /* steel      - vein of dull ore */
@@ -571,7 +571,7 @@ char *node_desc(int material)
 
 /* a function to try and make an intelligent(?) decision
    about what material a harvesting node should be */
-int random_node_material(int allowed)
+static int random_node_material(int allowed)
 {
   int rand = 0;
 
@@ -813,14 +813,11 @@ void reset_harvesting_rooms(void)
       GET_OBJ_VAL(obj, 0) = dice(2, 3);
 
       /* strdup()ed in node_foo() functions */
-      if (obj->name)
-        free(obj->name);
+      free_object_string(obj, obj->name);
       obj->name = node_keywords(GET_OBJ_MATERIAL(obj));
-      if (obj->short_description)
-        free(obj->short_description);
+      free_object_string(obj, obj->short_description);
       obj->short_description = node_sdesc(GET_OBJ_MATERIAL(obj));
-      if (obj->description)
-        free(obj->description);
+      free_object_string(obj, obj->description);
       obj->description = node_desc(GET_OBJ_MATERIAL(obj));
       obj_to_room(obj, cnt);
     }
@@ -833,7 +830,7 @@ void reset_harvesting_rooms(void)
 
 // combine essence to make them stronger
 
-int augment(struct obj_data *kit, struct char_data *ch)
+static int augment(struct obj_data *kit, struct char_data *ch)
 {
   struct obj_data *obj = NULL, *essence_one = NULL, *essence_two = NULL;
   int num_objs = 0, cost = 0, level_diff = 0, success_chance = 0;
@@ -948,7 +945,7 @@ int augment(struct obj_data *kit, struct char_data *ch)
   award_gold(ch, -cost);
 
   GET_CRAFTING_TYPE(ch) = SCMD_AUGMENT;
-  GET_CRAFTING_TICKS(ch) = 10 - fast_craft_bonus;
+  GET_CRAFTING_TICKS(ch) = (ubyte)(10 - fast_craft_bonus);
   GET_CRAFTING_OBJ(ch) = essence_one;
   send_to_char(ch, "You begin to augment %s.\r\n", essence_one->short_description);
   act("$n begins to augment $p.", FALSE, ch, essence_one, 0, TO_ROOM);
@@ -972,10 +969,10 @@ int augment(struct obj_data *kit, struct char_data *ch)
 // requires multiples of exactly 10 of same mat to do the converstion
 
 /*  !! still under construction - zusuk !! */
-int convert(struct obj_data *kit, struct char_data *ch)
+static int convert(struct obj_data *kit, struct char_data *ch)
 {
   int cost = 500; /* flat cost */
-  int num_mats = 0, material = -1, obj_vnum = 0;
+  int num_mats = 0, material = -1, obj_vnum_id = 0;
   struct obj_data *new_mat = NULL, *obj = NULL;
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
 
@@ -1013,7 +1010,7 @@ int convert(struct obj_data *kit, struct char_data *ch)
           return 1;
         }
         num_mats++; /* we found matching material */
-        obj_vnum = GET_OBJ_VNUM(obj);
+        obj_vnum_id = GET_OBJ_VNUM(obj);
       }
     }
   }
@@ -1066,16 +1063,16 @@ int convert(struct obj_data *kit, struct char_data *ch)
 
   GET_CRAFTING_BONUS(ch) = 10 + MIN(60, GET_OBJ_LEVEL(new_mat));
   GET_CRAFTING_TYPE(ch) = SCMD_CONVERT;
-  GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
+  GET_CRAFTING_TICKS(ch) = (ubyte)(5 - fast_craft_bonus);
   GET_CRAFTING_OBJ(ch) = new_mat;
-  GET_CRAFTING_REPEAT(ch) = MAX(0, (num_mats / 10) + 1);
+  GET_CRAFTING_REPEAT(ch) = (ubyte)MAX(0, (num_mats / 10) + 1);
 
   obj_from_obj(new_mat);
 
-  obj_vnum = GET_OBJ_VNUM(kit);
+  obj_vnum_id = GET_OBJ_VNUM(kit);
   obj_from_char(kit);
   extract_obj(kit);
-  kit = read_object(obj_vnum, VIRTUAL);
+  kit = read_object(obj_vnum_id, VIRTUAL);
 
   obj_to_char(kit, ch);
 
@@ -1089,7 +1086,7 @@ int convert(struct obj_data *kit, struct char_data *ch)
 }
 
 /* rename an object */
-int restring(char *argument, struct obj_data *kit, struct char_data *ch)
+static int restring(char *argument, struct obj_data *kit, struct char_data *ch)
 {
   int num_objs = 0, cost;
   struct obj_data *obj = NULL;
@@ -1194,22 +1191,20 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
   parse_at(argument);
 
   /* success!! */
-  if (obj->name)
-    free(obj->name);
+  free_object_string(obj, obj->name);
   obj->name = strdup(argument);
   strip_colors(obj->name);
-  if (obj->short_description)
-    free(obj->short_description);
+  free_object_string(obj, obj->short_description);
   obj->short_description = strdup(argument);
   snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
-  if (obj->description)
-    free(obj->description);
-  if (obj->description)
-    free(obj->description);
+  free_object_string(obj, obj->description);
   obj->description = strdup(buf);
   if (obj->ex_description)
   {
-    free_ex_descriptions(obj->ex_description);
+    /* A live object shares its prototype's extra descriptions until changed. */
+    if (obj_proto == NULL || !VALID_OBJ_RNUM(obj) ||
+        obj->ex_description != obj_proto[GET_OBJ_RNUM(obj)].ex_description)
+      free_ex_descriptions(obj->ex_description);
     struct extra_descr_data *new_descr;
     CREATE(new_descr, struct extra_descr_data, 1);
     new_descr->keyword = strdup(argument);
@@ -1217,7 +1212,7 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
     obj->ex_description = new_descr;
   }
   GET_CRAFTING_TYPE(ch) = SCMD_RESTRING;
-  GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
+  GET_CRAFTING_TICKS(ch) = (ubyte)(5 - fast_craft_bonus);
   GET_CRAFTING_OBJ(ch) = obj;
 
   send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n", cost);
@@ -1238,7 +1233,7 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
 }
 
 /* change extra description of an object */
-int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
+static int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
 {
   int num_objs = 0, cost;
   struct obj_data *obj = NULL;
@@ -1341,7 +1336,7 @@ int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
   obj->ex_description = new_descr;
 
   GET_CRAFTING_TYPE(ch) = SCMD_REDESC;
-  GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
+  GET_CRAFTING_TICKS(ch) = (ubyte)(5 - fast_craft_bonus);
   GET_CRAFTING_OBJ(ch) = obj;
 
   send_to_char(ch, "It cost you %d gold in supplies to create this item.\r\n", cost);
@@ -1361,9 +1356,9 @@ int redesc(char *argument, struct obj_data *kit, struct char_data *ch)
 }
 
 /* autocraft - crafting quest command */
-int autocraft(struct obj_data *kit, struct char_data *ch)
+static int autocraft(struct obj_data *kit, struct char_data *ch)
 {
-  int material, obj_vnum, num_mats = 0;
+  int material, obj_vnum_id, num_mats = 0;
   struct obj_data *obj = NULL;
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
 
@@ -1409,7 +1404,7 @@ int autocraft(struct obj_data *kit, struct char_data *ch)
                        material_name[GET_AUTOCQUEST_MATERIAL(ch)]);
           return 1;
         }
-        obj_vnum = GET_OBJ_VNUM(obj);
+        obj_vnum_id = GET_OBJ_VNUM(obj);
         num_mats++; /* we found matching material */
         if (num_mats > SUPPLYORDER_MATS)
         {
@@ -1438,15 +1433,15 @@ int autocraft(struct obj_data *kit, struct char_data *ch)
   }
 
   GET_CRAFTING_TYPE(ch) = SCMD_SUPPLYORDER;
-  GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
+  GET_CRAFTING_TICKS(ch) = (ubyte)(5 - fast_craft_bonus);
   GET_AUTOCQUEST_GOLD(ch) += GET_LEVEL(ch);
   send_to_char(ch, "You begin a supply order for %s.\r\n", GET_AUTOCQUEST_DESC(ch));
   act("$n begins a supply order.", FALSE, ch, NULL, 0, TO_ROOM);
 
-  obj_vnum = GET_OBJ_VNUM(kit);
+  obj_vnum_id = GET_OBJ_VNUM(kit);
   obj_from_char(kit);
   extract_obj(kit);
-  kit = read_object(obj_vnum, VIRTUAL);
+  kit = read_object(obj_vnum_id, VIRTUAL);
   obj_to_char(kit, ch);
   save_char(ch, 0);
   Crash_crashsave(ch);
@@ -1456,7 +1451,7 @@ int autocraft(struct obj_data *kit, struct char_data *ch)
 }
 
 /* resize an object, also will change weapon damage */
-int resize(char *argument, struct obj_data *kit, struct char_data *ch)
+static int resize(char *argument, struct obj_data *kit, struct char_data *ch)
 {
   int num_objs = 0, newsize, cost;
   struct obj_data *obj = NULL;
@@ -1568,7 +1563,7 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch)
   if (cost == 0)
     GET_CRAFTING_TICKS(ch) = 1;
   else
-    GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
+    GET_CRAFTING_TICKS(ch) = (ubyte)(5 - fast_craft_bonus);
 
   obj_to_char(obj, ch);
   save_char(ch, 0);
@@ -1610,18 +1605,15 @@ static void update_bone_armor_descriptions(struct obj_data *obj, char *argument)
 
   parse_at(argument);
 
-  if (obj->name)
-    free(obj->name);
+  free_object_string(obj, obj->name);
   obj->name = strdup(argument);
   strip_colors(obj->name);
 
-  if (obj->short_description)
-    free(obj->short_description);
+  free_object_string(obj, obj->short_description);
   obj->short_description = strdup(argument);
 
   snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
-  if (obj->description)
-    free(obj->description);
+  free_object_string(obj, obj->description);
   obj->description = strdup(buf);
 }
 
@@ -1638,7 +1630,7 @@ void test_update_bone_armor_descriptions(struct obj_data *obj, char *argument)
 #endif
 
 /* change armor from original material to bone material */
-int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
+static int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
 {
   int num_objs = 0, cost;
   struct obj_data *obj = NULL;
@@ -1656,7 +1648,7 @@ int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
     send_to_char(ch, "You must place one armor item in the kit.\r\n");
     return 1;
   }
-  if (num_objs > 1)
+  if (num_objs > 1 || obj == NULL)
   {
     send_to_char(ch, "Only one item should be inside the kit.\r\n");
     return 1;
@@ -1714,7 +1706,7 @@ int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
   if (cost == 0)
     GET_CRAFTING_TICKS(ch) = 1;
   else
-    GET_CRAFTING_TICKS(ch) = MAX(1, 5 - fast_craft_bonus);
+    GET_CRAFTING_TICKS(ch) = (ubyte)MAX(1, 5 - fast_craft_bonus);
 
   obj_to_char(obj, ch);
   save_char(ch, 0);
@@ -1725,7 +1717,7 @@ int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
 }
 
 /* change armor or weapon from one type to another */
-int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
+static int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
 {
   int num_objs = 0, cost;
   struct obj_data *obj = NULL;
@@ -1913,19 +1905,16 @@ int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
     snprintf(buf, sizeof(buf), "a reforged %s %s", armor_list[GET_OBJ_VAL(obj, 1)].name, bonus);
   }
 
-  if (obj->name)
-    free(obj->name);
+  free_object_string(obj, obj->name);
   obj->name = strdup(buf);
   strip_colors(obj->name);
-  if (obj->short_description)
-    free(obj->short_description);
+  free_object_string(obj, obj->short_description);
   obj->short_description = strdup(buf);
 
   /* Fix string memory leak - CAP modifies the string in-place, but strdup creates a leak */
   char *temp_str = strdup(obj->short_description);
   snprintf(buf, sizeof(buf), "%s lies here.", CAP(temp_str));
-  if (obj->description)
-    free(obj->description);
+  free_object_string(obj, obj->description);
   obj->description = strdup(buf);
   free(temp_str);
 
@@ -1939,7 +1928,7 @@ int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
   if (cost == 0)
     GET_CRAFTING_TICKS(ch) = 1;
   else
-    GET_CRAFTING_TICKS(ch) = 10 - fast_craft_bonus;
+    GET_CRAFTING_TICKS(ch) = (ubyte)(10 - fast_craft_bonus);
 
   obj_to_char(obj, ch);
   save_char(ch, 0);
@@ -1950,7 +1939,7 @@ int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
 }
 
 /* convert magic objects to essence */
-int disenchant(struct obj_data *kit, struct char_data *ch)
+static int disenchant(struct obj_data *kit, struct char_data *ch)
 {
   struct obj_data *obj = NULL;
   int num_objs = 0, essence_level = 0;
@@ -2011,7 +2000,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch)
   }
 
   GET_CRAFTING_TYPE(ch) = SCMD_DISENCHANT;
-  GET_CRAFTING_TICKS(ch) = MAX(2, 11 - fast_craft_bonus);
+  GET_CRAFTING_TICKS(ch) = (ubyte)MAX(2, 11 - fast_craft_bonus);
   GET_CRAFTING_OBJ(ch) = NULL;
 
   send_to_char(ch, "You begin to disenchant %s.\r\n", obj->short_description);
@@ -2063,7 +2052,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch)
  */
 #define CREATE_STRING_LIMIT 80
 
-int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
+static int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj = NULL, *mold = NULL, *crystal = NULL, *material = NULL, *essence = NULL;
@@ -2471,16 +2460,13 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
     parse_at(argument);
 
     /* restringing aspect */
-    if (mold->short_description)
-      free(mold->short_description);
+    free_object_string(mold, mold->short_description);
     mold->short_description = strdup(argument);
     snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
-    if (mold->description)
-      free(mold->description);
+    free_object_string(mold, mold->description);
     mold->description = strdup(buf);
     strip_colors(argument);
-    if (mold->name)
-      free(mold->name);
+    free_object_string(mold, mold->name);
     mold->name = strdup(argument); /*keywords, leave last*/
 
     send_to_char(ch, "You begin to craft %s.\r\n", mold->short_description);
@@ -2490,7 +2476,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
     obj_from_obj(mold); /* extracting this causes issues, solution? */
     GET_CRAFTING_TYPE(ch) = SCMD_CRAFT;
     fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
-    GET_CRAFTING_TICKS(ch) = 11 - fast_craft_bonus;
+    GET_CRAFTING_TICKS(ch) = (ubyte)(11 - fast_craft_bonus);
     int kit_obj_vnum = GET_OBJ_VNUM(kit);
     obj_from_room(kit);
     extract_obj(kit);
@@ -2514,7 +2500,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
 
 SPECIAL(crafting_kit)
 {
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "This is a crafting kit. You can use the following commands:\r\n");
     send_to_char(ch, "  resize      - Resize armor or weapons\r\n");
@@ -2756,6 +2742,8 @@ SPECIAL(crafting_quest)
       break;
     }
 
+    if (GET_AUTOCQUEST_DESC(ch))
+      free(GET_AUTOCQUEST_DESC(ch));
     GET_AUTOCQUEST_DESC(ch) = strdup(desc);
     GET_AUTOCQUEST_MAKENUM(ch) = AUTOCQUEST_MAKENUM;
     if (!rand_number(0, 20))
@@ -2798,7 +2786,7 @@ SPECIAL(crafting_quest)
                  "make %s.  We expect you to make %d before you can collect your "
                  "reward.  Good luck!  Once completed you will receive the "
                  "following:  You will receive %d quest points."
-                 "  %d gold will be given to you.  You will receive %d "
+                 "  %u gold will be given to you.  You will receive %u "
                  "experience points.\r\n",
                  desc, GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_QP(ch), GET_AUTOCQUEST_GOLD(ch),
                  GET_AUTOCQUEST_EXP(ch));
@@ -2839,6 +2827,7 @@ SPECIAL(crafting_quest)
 /* the event driver for crafting */
 MUD_EVENT_CALLBACK(event_crafting)
 {
+  int i = 0; /* shared by the repeat loops of several subcommands */
   struct char_data *ch;
   struct mud_event_data *pMudEvent;
   struct obj_data *obj2 = NULL;
@@ -2979,7 +2968,6 @@ MUD_EVENT_CALLBACK(event_crafting)
       snprintf(buf, sizeof(buf), "$n creates $p (x%d).", GET_CRAFTING_REPEAT(ch));
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
-      int i = 0;
       for (i = 1; i < GET_CRAFTING_REPEAT(ch); i++)
       {
         obj2 = read_object(GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)), VIRTUAL);
@@ -3591,7 +3579,7 @@ ACMD(do_harvest)
     return;
   }
 
-  GET_CRAFTING_TYPE(ch) = sub_command;
+  GET_CRAFTING_TYPE(ch) = (ubyte)sub_command;
   GET_CRAFTING_TICKS(ch) = 5;
   GET_CRAFTING_OBJ(ch) = obj;
 

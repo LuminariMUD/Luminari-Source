@@ -18,9 +18,9 @@
 /* ===== CONSTANTS ===== */
 
 /* Resource level thresholds for description variations */
-#define RESOURCE_ABUNDANT_THRESHOLD 0.75f
-#define RESOURCE_MODERATE_THRESHOLD 0.40f
-#define RESOURCE_SPARSE_THRESHOLD 0.15f
+#define RESOURCE_ABUNDANT_THRESHOLD 0.75
+#define RESOURCE_MODERATE_THRESHOLD 0.40
+#define RESOURCE_SPARSE_THRESHOLD 0.15
 
 /* Description detail levels */
 #define DESC_BRIEF 1
@@ -60,15 +60,15 @@
 /* Resource state for description generation */
 struct resource_state
 {
-  float vegetation_level;
-  float mineral_level;
-  float water_level;
-  float herb_level;
-  float game_level;
-  float wood_level;
-  float stone_level;
-  float clay_level;
-  float salt_level;
+  double vegetation_level;
+  double mineral_level;
+  double water_level;
+  double herb_level;
+  double game_level;
+  double wood_level;
+  double stone_level;
+  double clay_level;
+  double salt_level;
 };
 
 /* Environmental context for descriptions */
@@ -81,7 +81,7 @@ struct environmental_context
   int artificial_light; /* Light from non-natural sources (torches, spells, etc.) */
   int natural_light;    /* Light from sun/moon only */
   int terrain_type;
-  float elevation;
+  double elevation;
   bool near_water;
   bool in_forest;
   bool in_mountains;
@@ -113,18 +113,19 @@ void add_wildlife_presence(char *desc, struct resource_state *state,
                            struct environmental_context *context);
 
 /* Resource level categorization */
-const char *get_resource_abundance_category(float level);
-const char *get_vegetation_description(float level, int season);
-const char *get_mineral_description(float level, int terrain_type);
-const char *get_water_description(float level, int season, int weather);
+const char *get_resource_abundance_category(double level);
+const char *get_vegetation_description(double level, int season);
+const char *get_mineral_description(double level, int terrain_type);
+const char *get_water_description(double level, int season, int weather);
 
 /* Utility functions */
 int get_current_season(void);
 int get_terrain_type(room_rnum room);
-int calculate_total_light_level(room_rnum room);
 int calculate_artificial_light_level(room_rnum room);
 int calculate_natural_light_level(room_rnum room);
 
 #endif /* ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS */
 
+
+void safe_strcat(char *dest, const char *src);
 #endif /* RESOURCE_DESCRIPTIONS_H */

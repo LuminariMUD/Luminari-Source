@@ -35,7 +35,6 @@
 #include "movement_messages.h"
 
 /* External functions */
-bool can_hear_sneaking(struct char_data *observer, struct char_data *sneaker);
 
 /**
  * Display leave messages when a character exits a room

@@ -53,11 +53,11 @@ int race_sort_info[NUM_EXTENDED_RACES + 1];
 /* start race code! */
 
 /* this will set the appropriate gender for a given race */
-void set_race_genders(int race, int neuter, int male, int female)
+static void set_race_genders(int race, int neuter, int male, int female)
 {
-  race_list[race].genders[0] = neuter;
-  race_list[race].genders[1] = male;
-  race_list[race].genders[2] = female;
+  race_list[race].genders[0] = (sbyte)neuter;
+  race_list[race].genders[1] = (sbyte)male;
+  race_list[race].genders[2] = (sbyte)female;
 }
 
 /* this will set the ability modifiers of the given race to whatever base
@@ -66,15 +66,15 @@ const char *abil_mod_names[NUM_ABILITY_MODS + 1] = {
     /* an unfortunate necessity to make this constant array - we didn't make
      the modifiers same order as the structs.h version */
     "Str", "Con", "Int", "Wis", "Dex", "Cha", "\n"};
-void set_race_abilities(int race, int str_mod, int con_mod, int int_mod, int wis_mod, int dex_mod,
-                        int cha_mod)
+static void set_race_abilities(int race, int str_mod, int con_mod, int int_mod, int wis_mod,
+                               int dex_mod, int cha_mod)
 {
-  race_list[race].ability_mods[0] = str_mod;
-  race_list[race].ability_mods[1] = con_mod;
-  race_list[race].ability_mods[2] = int_mod;
-  race_list[race].ability_mods[3] = wis_mod;
-  race_list[race].ability_mods[4] = dex_mod;
-  race_list[race].ability_mods[5] = cha_mod;
+  race_list[race].ability_mods[0] = (byte)str_mod;
+  race_list[race].ability_mods[1] = (byte)con_mod;
+  race_list[race].ability_mods[2] = (byte)int_mod;
+  race_list[race].ability_mods[3] = (byte)wis_mod;
+  race_list[race].ability_mods[4] = (byte)dex_mod;
+  race_list[race].ability_mods[5] = (byte)cha_mod;
 }
 int get_race_stat(int race, int stat)
 {
@@ -153,8 +153,7 @@ const char *character_wear_slot_restriction(const struct char_data *ch, int wear
 
   /* leonine frame: feat-driven, so any race granted it loses the slots.
    * get_feat_value() only reads the character. */
-  if ((wear_slot == WEAR_LEGS || wear_slot == WEAR_FEET) &&
-      HAS_FEAT((struct char_data *)ch, FEAT_LEONINE_FRAME))
+  if ((wear_slot == WEAR_LEGS || wear_slot == WEAR_FEET) && HAS_FEAT(ch, FEAT_LEONINE_FRAME))
     return "Your four-legged body cannot wear leg or foot equipment.";
 
   /* four-arm slots: feat-driven like the leonine frame, checked for NPCs too.
@@ -185,55 +184,55 @@ bool character_can_use_wear_slot(const struct char_data *ch, int wear_slot)
 }
 
 /* appropriate alignments for given race */
-void set_race_alignments(int race, int lg, int ng, int cg, int ln, int tn, int cn, int le, int ne,
-                         int ce)
+static void set_race_alignments(int race, int lg, int ng, int cg, int ln, int tn, int cn, int le,
+                                int ne, int ce)
 {
-  race_list[race].alignments[0] = lg;
-  race_list[race].alignments[1] = ng;
-  race_list[race].alignments[2] = cg;
-  race_list[race].alignments[3] = ln;
-  race_list[race].alignments[4] = tn;
-  race_list[race].alignments[5] = cn;
-  race_list[race].alignments[6] = le;
-  race_list[race].alignments[7] = ne;
-  race_list[race].alignments[8] = ce;
+  race_list[race].alignments[0] = (sbyte)lg;
+  race_list[race].alignments[1] = (sbyte)ng;
+  race_list[race].alignments[2] = (sbyte)cg;
+  race_list[race].alignments[3] = (sbyte)ln;
+  race_list[race].alignments[4] = (sbyte)tn;
+  race_list[race].alignments[5] = (sbyte)cn;
+  race_list[race].alignments[6] = (sbyte)le;
+  race_list[race].alignments[7] = (sbyte)ne;
+  race_list[race].alignments[8] = (sbyte)ce;
 }
 
 /* set the attack types this race will use when not wielding */
-void set_race_attack_types(int race, int hit, int sting, int whip, int slash, int bite,
-                           int bludgeon, int crush, int pound, int claw, int maul, int thrash,
-                           int pierce, int blast, int punch, int stab, int slice, int thrust,
-                           int hack, int rake, int peck, int smash, int trample, int charge,
-                           int gore)
+static void set_race_attack_types(int race, int hit, int sting, int whip, int slash, int bite,
+                                  int bludgeon, int crush, int pound, int claw, int maul,
+                                  int thrash, int pierce, int blast, int punch, int stab, int slice,
+                                  int thrust, int hack, int rake, int peck, int smash, int trample,
+                                  int charge, int gore)
 {
-  race_list[race].attack_types[0] = hit;
-  race_list[race].attack_types[1] = sting;
-  race_list[race].attack_types[2] = whip;
-  race_list[race].attack_types[3] = slash;
-  race_list[race].attack_types[4] = bite;
-  race_list[race].attack_types[5] = bludgeon;
-  race_list[race].attack_types[6] = crush;
-  race_list[race].attack_types[7] = pound;
-  race_list[race].attack_types[8] = claw;
-  race_list[race].attack_types[9] = maul;
-  race_list[race].attack_types[10] = thrash;
-  race_list[race].attack_types[11] = pierce;
-  race_list[race].attack_types[12] = blast;
-  race_list[race].attack_types[13] = punch;
-  race_list[race].attack_types[14] = stab;
-  race_list[race].attack_types[15] = slice;
-  race_list[race].attack_types[16] = thrust;
-  race_list[race].attack_types[17] = hack;
-  race_list[race].attack_types[18] = rake;
-  race_list[race].attack_types[19] = peck;
-  race_list[race].attack_types[20] = smash;
-  race_list[race].attack_types[21] = trample;
-  race_list[race].attack_types[22] = charge;
-  race_list[race].attack_types[23] = gore;
+  race_list[race].attack_types[0] = (byte)hit;
+  race_list[race].attack_types[1] = (byte)sting;
+  race_list[race].attack_types[2] = (byte)whip;
+  race_list[race].attack_types[3] = (byte)slash;
+  race_list[race].attack_types[4] = (byte)bite;
+  race_list[race].attack_types[5] = (byte)bludgeon;
+  race_list[race].attack_types[6] = (byte)crush;
+  race_list[race].attack_types[7] = (byte)pound;
+  race_list[race].attack_types[8] = (byte)claw;
+  race_list[race].attack_types[9] = (byte)maul;
+  race_list[race].attack_types[10] = (byte)thrash;
+  race_list[race].attack_types[11] = (byte)pierce;
+  race_list[race].attack_types[12] = (byte)blast;
+  race_list[race].attack_types[13] = (byte)punch;
+  race_list[race].attack_types[14] = (byte)stab;
+  race_list[race].attack_types[15] = (byte)slice;
+  race_list[race].attack_types[16] = (byte)thrust;
+  race_list[race].attack_types[17] = (byte)hack;
+  race_list[race].attack_types[18] = (byte)rake;
+  race_list[race].attack_types[19] = (byte)peck;
+  race_list[race].attack_types[20] = (byte)smash;
+  race_list[race].attack_types[21] = (byte)trample;
+  race_list[race].attack_types[22] = (byte)charge;
+  race_list[race].attack_types[23] = (byte)gore;
 }
 
 /* function to initialize the whole race list to empty values */
-void initialize_races(void)
+static void initialize_races(void)
 {
   int i = 0, wear_slot = 0;
 
@@ -294,13 +293,13 @@ static void add_race(int race, const char *name, const char *type, const char *t
 }
 
 /* extension of details added to race */
-static void set_race_details(int race, const char *descrip, const char *morph_to_char,
-                             const char *morph_to_room)
+static void set_race_details(int race, const char *descrip, const char *morph_to_char_value,
+                             const char *morph_to_room_value)
 {
   race_list[race].descrip = strdup(descrip); /* Description of race */
   /* message to send to room if transforming to this particular race */
-  race_list[race].morph_to_char = strdup(morph_to_char);
-  race_list[race].morph_to_room = strdup(morph_to_room);
+  race_list[race].morph_to_char = strdup(morph_to_char_value);
+  race_list[race].morph_to_room = strdup(morph_to_room_value);
 }
 
 /*
@@ -312,7 +311,8 @@ void favored_class_female(int race, int favored_class) {
 
 /* our little mini struct series for assigning feats to a race  */
 /* create/allocate memory for the racefeatassign struct */
-struct race_feat_assign *create_feat_assign_races(int feat_num, int level_received, bool stacks)
+static struct race_feat_assign *create_feat_assign_races(int feat_num, int level_received,
+                                                         bool stacks)
 {
   struct race_feat_assign *feat_assign = NULL;
 
@@ -324,7 +324,7 @@ struct race_feat_assign *create_feat_assign_races(int feat_num, int level_receiv
   return feat_assign;
 }
 /* actual function called to perform the feat assignment */
-void feat_race_assignment(int race_num, int feat_num, int level_received, bool stacks)
+static void feat_race_assignment(int race_num, int feat_num, int level_received, bool stacks)
 {
   struct race_feat_assign *feat_assign = NULL;
 
@@ -337,7 +337,7 @@ void feat_race_assignment(int race_num, int feat_num, int level_received, bool s
 
 /* our little mini struct series for assigning affects to a race  */
 /* create/allocate memory for the struct */
-struct affect_assign *create_affect_assign(int affect_num, int level_received)
+static struct affect_assign *create_affect_assign(int affect_num, int level_received)
 {
   struct affect_assign *aff_assign = NULL;
 
@@ -348,7 +348,7 @@ struct affect_assign *create_affect_assign(int affect_num, int level_received)
   return aff_assign;
 }
 /* actual function called to perform the affect assignment */
-void affect_assignment(int race_num, int affect_num, int level_received)
+static void affect_assignment(int race_num, int affect_num, int level_received)
 {
   struct affect_assign *aff_assign = NULL;
 
@@ -360,7 +360,7 @@ void affect_assignment(int race_num, int affect_num, int level_received)
 }
 
 /* determines if ch qualifies for a race */
-bool race_is_available(struct char_data *ch, int race_num)
+static bool race_is_available(struct char_data *ch, int race_num)
 {
   // dumb-dumb check
   if (race_num < 0 || race_num >= NUM_EXTENDED_RACES)
@@ -406,7 +406,7 @@ bool race_is_selectable_for_creation(struct char_data *ch, int race_num)
 /*****************************/
 
 /* this will be a general list of all pc races */
-void display_pc_races(struct char_data *ch)
+static void display_pc_races(struct char_data *ch)
 {
   struct descriptor_data *d = ch->desc;
   int counter, columns = 0;
@@ -469,7 +469,7 @@ bool display_race_info(struct char_data *ch, const char *racename)
     if (stat_mod != 0)
     {
       found = TRUE;
-      len = snprintf_append(buf, sizeof(buf), len, "%s %s%d ", abil_mod_names[i],
+      len = snprintf_append(buf, sizeof(buf), (int)len, "%s %s%d ", abil_mod_names[i],
                             (stat_mod > 0) ? "+" : "", stat_mod);
     }
   }
@@ -498,7 +498,7 @@ bool display_race_info(struct char_data *ch, const char *racename)
 }
 
 /* function to view a list of feats race is granted */
-bool view_race_feats(struct char_data *ch, const char *racename)
+static bool view_race_feats(struct char_data *ch, const char *racename)
 {
   int race = RACE_UNDEFINED;
   struct race_feat_assign *feat_assign = NULL;
@@ -3463,9 +3463,14 @@ int parse_race_long(const char *arg_in)
 bitvector_t find_race_bitvector(const char *arg)
 {
   size_t rpos, ret = 0;
+  int race;
 
   for (rpos = 0; (size_t)rpos < strlen(arg); rpos++)
-    ret |= (1 << parse_race(arg[rpos]));
+  {
+    race = parse_race(arg[rpos]);
+    if (race >= 0)
+      ret |= (1 << race);
+  }
 
   return (ret);
 }

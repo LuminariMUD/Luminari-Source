@@ -38,7 +38,7 @@ SPECIAL(tia_rapier)
 {
   struct char_data *vict = NULL;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: dancing parry - on parry will do a light vamp attack\r\n");
     send_to_char(ch, "Proc: dragon strike - 120 to 200 energy damage\r\n");
@@ -54,7 +54,7 @@ SPECIAL(tia_rapier)
   if (!vict)
     return 0;
 
-  if (!strcmp(argument, "parry"))
+  if (argument && !strcmp(argument, "parry"))
   {
     act("\tLYour \tcrapier \tCglows brightly\tL as it steals some \trlifeforce\tn "
         "\tLfrom $N \tLand transfers it back to you.\tn",

@@ -133,9 +133,13 @@ static int rol_beholder_attack(struct char_data *ch, bool major)
   if (ch == NULL || !IS_NPC(ch) || (victim = FIGHTING(ch)) == NULL || rand_number(0, 2) != 0)
     return FALSE;
 
-  spells = major ? major_spells : minor_spells;
-  spell_count = major ? sizeof(major_spells) / sizeof(major_spells[0])
-                      : sizeof(minor_spells) / sizeof(minor_spells[0]);
+  spells = minor_spells;
+  spell_count = sizeof(minor_spells) / sizeof(minor_spells[0]);
+  if (major)
+  {
+    spells = major_spells;
+    spell_count = sizeof(major_spells) / sizeof(major_spells[0]);
+  }
   spell_index = (size_t)rand_number(0, (int)spell_count - 1);
 
   act("One of $n's eyestalks fixes its gaze upon $N!", FALSE, ch, NULL, victim, TO_NOTVICT);

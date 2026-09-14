@@ -984,15 +984,6 @@ void reset_preparation_time(struct char_data *ch, int class);
      */
 int free_arcana_slots(struct char_data *ch);
 
-/**
-     * isEpicSpell - Check if spell is epic level
-     * @spellnum: Spell number to check
-     *
-     * Epic spells have special rules and requirements.
-     * Currently not implemented.
-     * Returns: TRUE if epic spell, FALSE otherwise
-     */
-bool isEpicSpell(int spellnum);
 
 /* UTILITY FUNCTIONS */
 
@@ -1181,6 +1172,8 @@ ACMD_DECL(do_consign_to_oblivion);
 #define KNOWN_SPELLS(ch, ch_class) ((ch)->player_specials->saved.known_spells[ch_class])
 
 /** END defines **/
+
+void assign_feat_spell_slots(int ch_class);
 
 #ifdef __cplusplus
 }

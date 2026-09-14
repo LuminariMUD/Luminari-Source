@@ -26,22 +26,17 @@
 #include "screen.h"
 
 /* Simple absolute value function to avoid math.h conflicts */
-static float simple_fabs(float value)
+static double simple_fabs(double value)
 {
   return (value < 0) ? -value : value;
 }
 
 /* Forward declarations for wilderness functions not in headers */
-extern int get_temperature(int map, int x, int y);
-extern int get_moisture(int map, int x, int y);
 
 /* Forward declarations for region integration */
 /* Phase 4b: Region Effects Forward Declarations */
 
 /* Forward declarations for enhanced material functions */
-int get_enhanced_wilderness_material_id(int category, int subtype);
-const char *get_enhanced_material_name(int category, int subtype, int quality);
-int get_enhanced_material_crafting_value(int category, int subtype, int quality);
 
 /* Global resource configuration array */
 struct resource_config resource_configs[NUM_RESOURCE_TYPES] = {
@@ -91,10 +86,10 @@ static struct resource_abundance abundance_levels[] = {
 /* ===== CORE RESOURCE CALCULATION FUNCTIONS ===== */
 
 /* Main resource calculation function - lazy evaluation with caching */
-float calculate_current_resource_level(int resource_type, int x, int y)
+double calculate_current_resource_level(int resource_type, int x, int y)
 {
   struct resource_cache_node *cached;
-  float calculated_values[NUM_RESOURCE_TYPES];
+  double calculated_values[NUM_RESOURCE_TYPES];
   int i;
 
   if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES)
@@ -113,7 +108,7 @@ float calculate_current_resource_level(int resource_type, int x, int y)
   /* Cache miss - calculate all resource types for this grid position */
   for (i = 0; i < NUM_RESOURCE_TYPES; i++)
   {
-    float base_value = get_base_resource_value(i, x, y);
+    double base_value = get_base_resource_value(i, x, y);
 
     /* Apply region modifiers */
     base_value = apply_region_resource_modifiers(i, x, y, base_value);
@@ -144,7 +139,7 @@ float calculate_current_resource_level(int resource_type, int x, int y)
 }
 
 /* Get base resource value from Perlin noise */
-float get_base_resource_value(int resource_type, int x, int y)
+double get_base_resource_value(int resource_type, int x, int y)
 {
   if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES)
   {
@@ -159,11 +154,11 @@ float get_base_resource_value(int resource_type, int x, int y)
   int moisture = get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y);   /* Moisture level */
 
   /* Normalize environmental factors to 0.0-1.0 range */
-  float norm_elevation = elevation / 255.0f;
-  float norm_temperature = temperature / 255.0f;
-  float norm_moisture = moisture / 255.0f;
+  double norm_elevation = elevation / 255.0;
+  double norm_temperature = temperature / 255.0;
+  double norm_moisture = moisture / 255.0;
 
-  float final_value = 0.0f;
+  double final_value = 0.0;
 
   /* Apply resource-specific distribution logic */
   switch (resource_type)
@@ -171,96 +166,96 @@ float get_base_resource_value(int resource_type, int x, int y)
   case RESOURCE_VEGETATION:
     /* Primarily environmental with subtle natural variation */
     {
-      float elevation_factor = 1.0f - ((norm_elevation - 0.4f) * (norm_elevation - 0.4f)) * 2.5f;
-      if (elevation_factor < 0.1f)
-        elevation_factor = 0.1f;
-      float environmental = (elevation_factor * 0.4f) + (norm_moisture * 0.4f) +
-                            (1.0f - simple_fabs(norm_temperature - 0.5f) * 0.2f);
+      double elevation_factor = 1.0 - ((norm_elevation - 0.4) * (norm_elevation - 0.4)) * 2.5;
+      if (elevation_factor < 0.1)
+        elevation_factor = 0.1;
+      double environmental = (elevation_factor * 0.4) + (norm_moisture * 0.4) +
+                             (1.0 - simple_fabs(norm_temperature - 0.5) * 0.2);
 
       /* Add subtle natural variation (10% influence) */
       double norm_x = x / (double)(WILD_X_SIZE / 16.0);
       double norm_y = y / (double)(WILD_Y_SIZE / 16.0);
       double micro_noise = PerlinNoise2D(config->noise_layer, norm_x, norm_y, 3.0, 2.0, 4);
-      float micro_factor = (micro_noise + 1.0f) / 2.0f;
+      double micro_factor = (micro_noise + 1.0) / 2.0;
 
-      final_value = (environmental * 0.9f) + (micro_factor * 0.1f);
+      final_value = (environmental * 0.9) + (micro_factor * 0.1);
     }
     break;
 
   case RESOURCE_WATER:
     /* Environmental water distribution with terrain-specific modifiers */
-    final_value = (1.0f - norm_elevation * 0.8f) + (norm_moisture * 0.5f);
+    final_value = (1.0 - norm_elevation * 0.8) + (norm_moisture * 0.5);
 
     /* Desert terrain penalty - severely limit water in arid regions */
     /* Desert conditions: temperature > 25°C (98/255 = ~0.38) and moisture < 80 (80/255 = ~0.31) */
     if (temperature > 25 && moisture < 80)
     {
       /* Severe desert penalty - reduce water to 5-15% of normal */
-      final_value *= 0.10f; /* 90% reduction */
+      final_value *= 0.10; /* 90% reduction */
 
       /* Ultra-arid conditions get even less water */
       if (moisture < 40)
-      {                      /* Extremely dry desert */
-        final_value *= 0.5f; /* Additional 50% reduction (total ~5% of normal) */
+      {                     /* Extremely dry desert */
+        final_value *= 0.5; /* Additional 50% reduction (total ~5% of normal) */
       }
     }
     /* Semi-arid conditions - moderate penalty */
     else if (temperature > 20 && moisture < 120)
     {
       /* Semi-desert conditions - reduce water by 40% */
-      final_value *= 0.6f;
+      final_value *= 0.6;
     }
     break;
 
   case RESOURCE_HERBS:
     /* Primarily environmental with subtle natural variation */
     {
-      float environmental =
-          (norm_moisture * 0.3f) + (norm_temperature * 0.3f) + ((1.0f - norm_elevation) * 0.4f);
+      double environmental =
+          (norm_moisture * 0.3) + (norm_temperature * 0.3) + ((1.0 - norm_elevation) * 0.4);
 
       /* Add subtle natural variation (15% influence) */
       double norm_x = x / (double)(WILD_X_SIZE / 12.0);
       double norm_y = y / (double)(WILD_Y_SIZE / 12.0);
       double micro_noise = PerlinNoise2D(config->noise_layer + 1, norm_x, norm_y, 2.5, 2.0, 3);
-      float micro_factor = (micro_noise + 1.0f) / 2.0f;
+      double micro_factor = (micro_noise + 1.0) / 2.0;
 
-      final_value = (environmental * 0.85f) + (micro_factor * 0.15f);
+      final_value = (environmental * 0.85) + (micro_factor * 0.15);
     }
     break;
 
   case RESOURCE_GAME:
     /* Primarily environmental with natural variation for animal movement patterns */
     {
-      float vegetation_proxy = (norm_moisture * 0.4f) + ((1.0f - norm_elevation) * 0.3f);
-      float water_proxy = (1.0f - norm_elevation * 0.6f) + (norm_moisture * 0.3f);
-      float environmental = (vegetation_proxy * 0.6f) + (water_proxy * 0.4f);
+      double vegetation_proxy = (norm_moisture * 0.4) + ((1.0 - norm_elevation) * 0.3);
+      double water_proxy = (1.0 - norm_elevation * 0.6) + (norm_moisture * 0.3);
+      double environmental = (vegetation_proxy * 0.6) + (water_proxy * 0.4);
 
       /* Add natural variation for animal movement (20% influence) */
       double norm_x = x / (double)(WILD_X_SIZE / 8.0);
       double norm_y = y / (double)(WILD_Y_SIZE / 8.0);
       double animal_noise = PerlinNoise2D(config->noise_layer + 2, norm_x, norm_y, 2.0, 2.2, 5);
-      float animal_factor = (animal_noise + 1.0f) / 2.0f;
+      double animal_factor = (animal_noise + 1.0) / 2.0;
 
-      final_value = (environmental * 0.8f) + (animal_factor * 0.2f);
+      final_value = (environmental * 0.8) + (animal_factor * 0.2);
     }
     break;
 
   case RESOURCE_WOOD:
     /* Primarily environmental with natural forest variation */
     {
-      float tree_elevation = 1.0f - ((norm_elevation - 0.5f) * (norm_elevation - 0.5f)) * 3.0f;
-      if (tree_elevation < 0.1f)
-        tree_elevation = 0.1f;
-      float environmental =
-          (tree_elevation * 0.5f) + (norm_moisture * 0.3f) + (norm_temperature * 0.2f);
+      double tree_elevation = 1.0 - ((norm_elevation - 0.5) * (norm_elevation - 0.5)) * 3.0;
+      if (tree_elevation < 0.1)
+        tree_elevation = 0.1;
+      double environmental =
+          (tree_elevation * 0.5) + (norm_moisture * 0.3) + (norm_temperature * 0.2);
 
       /* Add natural forest variation (15% influence) */
       double norm_x = x / (double)(WILD_X_SIZE / 10.0);
       double norm_y = y / (double)(WILD_Y_SIZE / 10.0);
       double forest_noise = PerlinNoise2D(config->noise_layer + 3, norm_x, norm_y, 2.8, 2.0, 4);
-      float forest_factor = (forest_noise + 1.0f) / 2.0f;
+      double forest_factor = (forest_noise + 1.0) / 2.0;
 
-      final_value = (environmental * 0.85f) + (forest_factor * 0.15f);
+      final_value = (environmental * 0.85) + (forest_factor * 0.15);
     }
     break;
 
@@ -272,11 +267,11 @@ float get_base_resource_value(int resource_type, int x, int y)
       double norm_x = x / (double)(WILD_X_SIZE / 4.0);
       double norm_y = y / (double)(WILD_Y_SIZE / 4.0);
       double geological_noise = PerlinNoise2D(config->noise_layer, norm_x, norm_y, 2.0, 2.0, 8);
-      float geological_factor = (geological_noise + 1.0f) / 2.0f;
+      double geological_factor = (geological_noise + 1.0) / 2.0;
 
       /* Combine geological formations with elevation preference for minerals */
-      float environmental_factor = norm_elevation * 0.6f + 0.2f; /* Higher at elevation */
-      final_value = (geological_factor * 0.7f) + (environmental_factor * 0.3f);
+      double environmental_factor = norm_elevation * 0.6 + 0.2; /* Higher at elevation */
+      final_value = (geological_factor * 0.7) + (environmental_factor * 0.3);
     }
     break;
 
@@ -287,23 +282,22 @@ float get_base_resource_value(int resource_type, int x, int y)
       double norm_x = x / (double)(WILD_X_SIZE / 4.0);
       double norm_y = y / (double)(WILD_Y_SIZE / 4.0);
       double geological_noise = PerlinNoise2D(config->noise_layer, norm_x, norm_y, 2.0, 2.0, 8);
-      float geological_factor = (geological_noise + 1.0f) / 2.0f;
+      double geological_factor = (geological_noise + 1.0) / 2.0;
 
       /* Clay and salt form in specific geological + environmental conditions */
-      float environmental_factor = (norm_moisture * 0.4f) + ((1.0f - norm_elevation) * 0.6f);
-      final_value = (geological_factor * 0.5f) + (environmental_factor * 0.5f);
+      double environmental_factor = (norm_moisture * 0.4) + ((1.0 - norm_elevation) * 0.6);
+      final_value = (geological_factor * 0.5) + (environmental_factor * 0.5);
     }
     break;
 
   default:
     /* Fallback - balanced environmental factors */
-    final_value =
-        (norm_moisture * 0.4f) + (norm_temperature * 0.3f) + ((1.0f - norm_elevation) * 0.3f);
+    final_value = (norm_moisture * 0.4) + (norm_temperature * 0.3) + ((1.0 - norm_elevation) * 0.3);
     break;
   }
 
   /* Apply base multiplier and clamp to valid range */
-  float normalized = final_value * config->base_multiplier;
+  double normalized = final_value * config->base_multiplier;
 
   /* Use manual limit to avoid MIN/MAX macro issues */
   if (normalized < 0.0)
@@ -314,7 +308,7 @@ float get_base_resource_value(int resource_type, int x, int y)
 }
 
 /* Apply harvest history and regeneration */
-float apply_harvest_regeneration(int resource_type, float base_value, struct resource_node *node)
+double apply_harvest_regeneration(int resource_type, double base_value, struct resource_node *node)
 {
   if (!node || resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES)
   {
@@ -323,17 +317,17 @@ float apply_harvest_regeneration(int resource_type, float base_value, struct res
 
   struct resource_config *config = &resource_configs[resource_type];
 
-  float consumed = node->consumed_amount[resource_type];
+  double consumed = node->consumed_amount[resource_type];
   if (consumed <= 0.0)
     return base_value;
 
   /* Calculate time-based regeneration */
   time_t now = time(NULL);
   time_t last_harvest = node->last_harvest[resource_type];
-  float hours_passed = (now - last_harvest) / 3600.0;
+  double hours_passed = (double)((double)(now - last_harvest) / 3600.0);
 
   /* Regenerate based on time and config */
-  float regenerated = consumed * config->regen_rate_per_hour * hours_passed;
+  double regenerated = consumed * config->regen_rate_per_hour * hours_passed;
   consumed -= regenerated;
 
   /* Update the node (lazy update) */
@@ -350,7 +344,7 @@ float apply_harvest_regeneration(int resource_type, float base_value, struct res
 }
 
 /* Apply environmental modifiers (seasonal and weather) */
-float apply_environmental_modifiers(int resource_type, int x, int y, float base_value)
+double apply_environmental_modifiers(int resource_type, int x, int y, double base_value)
 {
   if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES)
   {
@@ -358,7 +352,7 @@ float apply_environmental_modifiers(int resource_type, int x, int y, float base_
   }
 
   struct resource_config *config = &resource_configs[resource_type];
-  float modifier = 1.0;
+  double modifier = 1.0;
 
   /* Seasonal effects */
   if (config->seasonal_affected)
@@ -377,7 +371,7 @@ float apply_environmental_modifiers(int resource_type, int x, int y, float base_
 }
 
 /* Get terrain-specific resource multipliers */
-float get_terrain_resource_multiplier(int resource_type, int terrain_type)
+double get_terrain_resource_multiplier(int resource_type, int terrain_type)
 {
   switch (resource_type)
   {
@@ -385,33 +379,33 @@ float get_terrain_resource_multiplier(int resource_type, int terrain_type)
     switch (terrain_type)
     {
     case SECT_FOREST:
-      return 2.5f; /* Forests have abundant wood */
+      return 2.5; /* Forests have abundant wood */
     case SECT_HILLS:
     case SECT_FIELD:
-      return 0.3f; /* Some scattered trees */
+      return 0.3; /* Some scattered trees */
     case SECT_MARSHLAND:
-      return 0.5f; /* Some wetland trees */
+      return 0.5; /* Some wetland trees */
     default:
-      return 0.1f; /* Very little wood in other terrain */
+      return 0.1; /* Very little wood in other terrain */
     }
 
   case RESOURCE_VEGETATION:
     switch (terrain_type)
     {
     case SECT_FOREST:
-      return 1.8f; /* Dense undergrowth */
+      return 1.8; /* Dense undergrowth */
     case SECT_FIELD:
-      return 1.5f; /* Grasslands and crops */
+      return 1.5; /* Grasslands and crops */
     case SECT_HILLS:
-      return 1.2f; /* Hill vegetation */
+      return 1.2; /* Hill vegetation */
     case SECT_MARSHLAND:
-      return 1.4f; /* Marsh plants */
+      return 1.4; /* Marsh plants */
     case SECT_DESERT:
-      return 0.2f; /* Very sparse desert vegetation */
+      return 0.2; /* Very sparse desert vegetation */
     case SECT_HIGH_MOUNTAIN:
-      return 0.1f; /* Minimal alpine vegetation */
+      return 0.1; /* Minimal alpine vegetation */
     default:
-      return 1.0f;
+      return 1.0;
     }
 
   case RESOURCE_STONE:
@@ -419,18 +413,18 @@ float get_terrain_resource_multiplier(int resource_type, int terrain_type)
     {
     case SECT_MOUNTAIN:
     case SECT_HIGH_MOUNTAIN:
-      return 2.0f; /* Rocky areas have more stone */
+      return 2.0; /* Rocky areas have more stone */
     case SECT_HILLS:
-      return 1.3f; /* Some rock outcrops */
+      return 1.3; /* Some rock outcrops */
     case SECT_DESERT:
-      return 1.2f; /* Desert rocks */
+      return 1.2; /* Desert rocks */
     case SECT_WATER_SWIM:
     case SECT_WATER_NOSWIM:
     case SECT_OCEAN:
     case SECT_UNDERWATER:
-      return 0.1f; /* Very little stone in water */
+      return 0.1; /* Very little stone in water */
     default:
-      return 1.0f;
+      return 1.0;
     }
 
   case RESOURCE_WATER:
@@ -440,74 +434,74 @@ float get_terrain_resource_multiplier(int resource_type, int terrain_type)
     case SECT_WATER_NOSWIM:
     case SECT_OCEAN:
     case SECT_UNDERWATER:
-      return 2.5f; /* Abundant water in water terrain */
+      return 2.5; /* Abundant water in water terrain */
     case SECT_MARSHLAND:
-      return 1.8f; /* Wetlands have good water */
+      return 1.8; /* Wetlands have good water */
     case SECT_FOREST:
-      return 1.2f; /* Forests retain moisture */
+      return 1.2; /* Forests retain moisture */
     case SECT_DESERT:
-      return 0.1f; /* Very little water in desert */
+      return 0.1; /* Very little water in desert */
     case SECT_HIGH_MOUNTAIN:
-      return 0.3f; /* Limited water at high altitude */
+      return 0.3; /* Limited water at high altitude */
     default:
-      return 1.0f;
+      return 1.0;
     }
 
   case RESOURCE_GAME:
     switch (terrain_type)
     {
     case SECT_FOREST:
-      return 1.5f; /* Forests provide good wildlife habitat */
+      return 1.5; /* Forests provide good wildlife habitat */
     case SECT_FIELD:
-      return 1.2f; /* Grasslands support some game */
+      return 1.2; /* Grasslands support some game */
     case SECT_HILLS:
-      return 1.1f; /* Hills have some wildlife */
+      return 1.1; /* Hills have some wildlife */
     case SECT_DESERT:
-      return 0.4f; /* Limited desert wildlife */
+      return 0.4; /* Limited desert wildlife */
     case SECT_HIGH_MOUNTAIN:
-      return 0.5f; /* Some mountain animals */
+      return 0.5; /* Some mountain animals */
     case SECT_WATER_SWIM:
     case SECT_WATER_NOSWIM:
     case SECT_OCEAN:
     case SECT_UNDERWATER:
-      return 0.2f; /* Minimal land-based game near water */
+      return 0.2; /* Minimal land-based game near water */
     default:
-      return 1.0f;
+      return 1.0;
     }
 
   case RESOURCE_HERBS:
     switch (terrain_type)
     {
     case SECT_FOREST:
-      return 1.6f; /* Rich forest herbs */
+      return 1.6; /* Rich forest herbs */
     case SECT_FIELD:
-      return 1.3f; /* Meadow herbs */
+      return 1.3; /* Meadow herbs */
     case SECT_HILLS:
-      return 1.1f; /* Hill herbs */
+      return 1.1; /* Hill herbs */
     case SECT_MARSHLAND:
-      return 1.4f; /* Wetland herbs */
+      return 1.4; /* Wetland herbs */
     case SECT_DESERT:
-      return 0.3f; /* Limited desert herbs */
+      return 0.3; /* Limited desert herbs */
     case SECT_HIGH_MOUNTAIN:
-      return 0.2f; /* Very few alpine herbs */
+      return 0.2; /* Very few alpine herbs */
     default:
-      return 1.0f;
+      return 1.0;
     }
 
   default:
-    return 1.0f; /* No terrain modifier for other resources */
+    return 1.0; /* No terrain modifier for other resources */
   }
 }
 
 /* Region resource modifier function for individual resource calculations */
-float apply_region_resource_modifiers(int resource_type, int x, int y, float base_value)
+double apply_region_resource_modifiers(int resource_type, int x, int y, double base_value)
 {
   /* Apply terrain-based resource multipliers */
   zone_rnum wild_zone = real_zone(WILD_ZONE_VNUM);
   if (wild_zone != NOWHERE)
   {
     int terrain_type = get_modified_sector_type(wild_zone, x, y);
-    float terrain_multiplier = get_terrain_resource_multiplier(resource_type, terrain_type);
+    double terrain_multiplier = get_terrain_resource_multiplier(resource_type, terrain_type);
     base_value *= terrain_multiplier;
   }
 
@@ -538,7 +532,7 @@ void apply_json_resource_modifiers(struct resource_node *resources __attribute__
 /* ===== ENVIRONMENTAL MODIFIER FUNCTIONS ===== */
 
 /* Get seasonal modifier for resource type */
-float get_seasonal_modifier(int resource_type)
+double get_seasonal_modifier(int resource_type)
 {
   switch (resource_type)
   {
@@ -607,7 +601,7 @@ float get_seasonal_modifier(int resource_type)
 }
 
 /* Get weather modifier for resource type */
-float get_weather_modifier(int resource_type, int weather)
+double get_weather_modifier(int resource_type, int weather)
 {
   switch (resource_type)
   {
@@ -730,7 +724,7 @@ void cleanup_old_resource_nodes(void)
 /* ===== RESOURCE QUALITY AND DESCRIPTION FUNCTIONS ===== */
 
 int determine_resource_quality(int resource_type, int x __attribute__((unused)),
-                               int y __attribute__((unused)), float level)
+                               int y __attribute__((unused)), double level)
 {
   if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES || level <= 0.0)
   {
@@ -757,7 +751,7 @@ int determine_resource_quality(int resource_type, int x __attribute__((unused)),
   return RESOURCE_QUALITY_POOR;
 }
 
-const char *get_abundance_description(float level)
+const char *get_abundance_description(double level)
 {
   int i;
   for (i = 0; (size_t)i < sizeof(abundance_levels) / sizeof(struct resource_abundance); i++)
@@ -770,7 +764,7 @@ const char *get_abundance_description(float level)
   return "depleted";
 }
 
-const char *get_quality_description(int resource_type, int x, int y, float level)
+const char *get_quality_description(int resource_type, int x, int y, double level)
 {
   int quality = determine_resource_quality(resource_type, x, y, level);
 
@@ -817,12 +811,12 @@ int parse_resource_type(const char *arg)
 
 /* ===== RESOURCE MAPPING AND DISPLAY ===== */
 
-char get_resource_map_symbol_with_coords(float level, int x, int y)
+char get_resource_map_symbol_with_coords(double level, int x, int y)
 {
   /* Use coordinate-based micro-variation to soften boundaries */
   /* This creates more natural transitions without randomness */
-  float micro_noise = ((x * 7 + y * 13) % 100) / 2000.0; /* ±0.025 variation */
-  float adjusted_level = level + micro_noise;
+  double micro_noise = ((x * 7 + y * 13) % 100) / 2000.0; /* ±0.025 variation */
+  double adjusted_level = level + micro_noise;
 
   /* Clamp to valid range */
   if (adjusted_level < 0.0)
@@ -844,7 +838,7 @@ char get_resource_map_symbol_with_coords(float level, int x, int y)
   return ' ';   /* None */
 }
 
-char get_resource_map_symbol(float level)
+char get_resource_map_symbol(double level)
 {
   /* Fallback for calls without coordinates */
   if (level >= 0.8)
@@ -860,7 +854,7 @@ char get_resource_map_symbol(float level)
   return ' ';   /* None */
 }
 
-const char *get_resource_color(float level)
+const char *get_resource_color(double level)
 {
   if (level >= 0.8)
     return "\tG"; /* Green - Very High */
@@ -958,7 +952,7 @@ struct resource_cache_node *cache_find_resource_values(int x, int y)
 }
 
 /* Store resource values in cache */
-void cache_store_resource_values(int x, int y, float values[NUM_RESOURCE_TYPES])
+void cache_store_resource_values(int x, int y, double values[NUM_RESOURCE_TYPES])
 {
   int cache_x, cache_y;
   int i;
@@ -1118,7 +1112,7 @@ void shutdown_resource_system(void)
 void show_resource_survey(struct char_data *ch)
 {
   int x, y, i;
-  float resource_level;
+  double resource_level;
   zone_rnum zrnum;
   int terrain_type;
 
@@ -1243,7 +1237,7 @@ void show_terrain_survey(struct char_data *ch)
 void show_debug_survey(struct char_data *ch)
 {
   int x, y, i;
-  float resource_level, base_value, modified_value;
+  double resource_level, base_value, modified_value;
   zone_rnum zrnum;
 
   if (!ch || IN_ROOM(ch) == NOWHERE)
@@ -1287,32 +1281,34 @@ void show_debug_survey(struct char_data *ch)
 
   /* Region effects analysis */
   {
-    struct region_list *regions = NULL;
+    struct region_list *regions_value = NULL;
     struct region_list *curr_region = NULL;
     zone_rnum zone = real_zone(WILD_ZONE_VNUM);
 
     if (zone != NOWHERE)
     {
-      regions = get_enclosing_regions(zone, x, y);
-      if (regions)
+      regions_value = get_enclosing_regions(zone, x, y);
+      if (regions_value)
       {
         send_to_char(ch, "\r\nRegion Effects:\r\n");
 
-        for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
+        for (curr_region = regions_value; curr_region != NULL; curr_region = curr_region->next)
         {
           if (curr_region->rnum != NOWHERE && curr_region->rnum <= top_of_region_table)
           {
             region_vnum vnum = region_table[curr_region->rnum].vnum;
             char *name = region_table[curr_region->rnum].name;
 
-            send_to_char(ch, "  Region: %s (vnum %d)\r\n", name ? name : "Unknown", vnum);
+            send_to_char(ch, "  Region: %s (vnum %" PRI_IDX ")\r\n", name ? name : "Unknown", vnum);
             send_to_char(
-                ch, "    Effects: (New effects system - use 'resourceadmin effects region %d')\r\n",
+                ch,
+                "    Effects: (New effects system - use 'resourceadmin effects region %" PRI_IDX
+                "')\r\n",
                 vnum);
           }
         }
 
-        free_region_list(regions);
+        free_region_list(regions_value);
       }
       else
       {
@@ -1351,7 +1347,7 @@ void show_debug_survey(struct char_data *ch)
 void show_resource_map(struct char_data *ch, int resource_type, int radius)
 {
   int center_x, center_y, x, y, map_x, map_y;
-  float resource_level;
+  double resource_level;
   char symbol;
   const char *color;
   zone_rnum zrnum;
@@ -1406,12 +1402,12 @@ void show_resource_map(struct char_data *ch, int resource_type, int radius)
       }
       else
       {
-        float base_level = calculate_current_resource_level(resource_type, x, y);
+        double base_level = calculate_current_resource_level(resource_type, x, y);
         /* Get depletion level directly by coordinates - much more accurate! */
-        zone_rnum zrnum = world[IN_ROOM(ch)].zone;
-        int zone_vnum = zone_table[zrnum].number;
-        float depletion_level =
-            get_resource_depletion_level_by_coords(x, y, zone_vnum, resource_type);
+        zone_rnum inner_zrnum = world[IN_ROOM(ch)].zone;
+        int zone_vnum_id = zone_table[inner_zrnum].number;
+        double depletion_level =
+            get_resource_depletion_level_by_coords(x, y, zone_vnum_id, resource_type);
         resource_level = base_level * depletion_level;
 
         symbol = get_resource_map_symbol_with_coords(resource_level, x, y);
@@ -1429,19 +1425,19 @@ void show_resource_map(struct char_data *ch, int resource_type, int radius)
   send_to_char(ch, "Current location (\tW@\tn): (%d, %d)\r\n", center_x, center_y);
 
   /* Show resource level at current location - with depletion adjustment */
-  float base_level = calculate_current_resource_level(resource_type, center_x, center_y);
-  float depletion_level = get_resource_depletion_level(IN_ROOM(ch), resource_type);
+  double base_level = calculate_current_resource_level(resource_type, center_x, center_y);
+  double depletion_level = get_resource_depletion_level(IN_ROOM(ch), resource_type);
   resource_level = base_level * depletion_level;
 
   send_to_char(ch, "Current %s level: %s (%.1f%% effective, %.1f%% base)\r\n",
                resource_names[resource_type], get_abundance_description(resource_level),
-               resource_level * 100.0f, base_level * 100.0f);
+               resource_level * 100.0, base_level * 100.0);
 }
 
 void show_resource_detail(struct char_data *ch, int resource_type)
 {
   int x, y;
-  float resource_level;
+  double resource_level;
   zone_rnum zrnum;
 
   if (!ch || IN_ROOM(ch) == NOWHERE)
@@ -1475,7 +1471,7 @@ void show_resource_detail(struct char_data *ch, int resource_type)
 
   resource_level = calculate_current_resource_level(resource_type, x, y);
   send_to_char(ch, "\r\nResource Level: %s (%.2f%%)\r\n", get_abundance_description(resource_level),
-               resource_level * 100.0f);
+               resource_level * 100.0);
 
   send_to_char(ch, "Description: %s\r\n", resource_configs[resource_type].description);
   send_to_char(ch, "Harvest Skill: %s\r\n",
@@ -1867,7 +1863,7 @@ bool is_wilderness_only_material(int category __attribute__((unused)),
 }
 
 /* Material harvesting functions */
-int determine_harvested_material_subtype(int resource_type, int x, int y, float level)
+int determine_harvested_material_subtype(int resource_type, int x, int y, double level)
 {
   /* Use coordinates and level to determine subtype */
   /* Higher quality/rare areas produce better materials */
@@ -1899,7 +1895,7 @@ int determine_harvested_material_subtype(int resource_type, int x, int y, float 
 
 int calculate_material_quality_from_resource(int resource_type __attribute__((unused)),
                                              int x __attribute__((unused)),
-                                             int y __attribute__((unused)), float level)
+                                             int y __attribute__((unused)), double level)
 {
   /* Map resource level to quality tiers */
   if (level >= 0.9)
@@ -2104,7 +2100,7 @@ int get_enhanced_material_crafting_value(int category, int subtype, int quality)
 const char *get_enhanced_material_description(int category, int subtype, int quality)
 {
   static char enhanced_desc_buf[512];
-  const char *material_name = get_enhanced_material_name(category, subtype, quality);
+  const char *material_name_value = get_enhanced_material_name(category, subtype, quality);
   const char *crafting_use = "";
 
   /* Determine crafting applications */
@@ -2139,7 +2135,7 @@ const char *get_enhanced_material_description(int category, int subtype, int qua
   snprintf(enhanced_desc_buf, sizeof(enhanced_desc_buf),
            "A sample of %s, carefully harvested from the wilderness. "
            "This material is prized for %s and retains its natural potency.",
-           material_name, crafting_use);
+           material_name_value, crafting_use);
 
   return enhanced_desc_buf;
 }
@@ -2171,11 +2167,11 @@ void integrate_wilderness_harvest_with_crafting(struct char_data *ch, int catego
   add_material_to_storage(ch, category, subtype, quality, amount);
 
   /* Also add crafting value to show integration */
-  const char *material_name = get_enhanced_material_name(category, subtype, quality);
+  const char *material_name_value = get_enhanced_material_name(category, subtype, quality);
   send_to_char(ch,
                "\\cY[Enhanced Crafting]\\cn The %s has a crafting value of %d and can be used "
                "in advanced LuminariMUD recipes.\\r\\n",
-               material_name, crafting_value);
+               material_name_value, crafting_value);
 }
 
 /* Enhanced materials display with crafting integration */
@@ -2362,7 +2358,7 @@ int attempt_wilderness_harvest(struct char_data *ch, int resource_type)
 {
   int x, y, skill_level, success_roll;
   int category, subtype, quality, quantity;
-  float resource_level;
+  double resource_level;
 
   if (wilderness_harvest_crafting_enabled())
     return start_wilderness_crafting_harvest(ch, resource_type);
@@ -2420,7 +2416,7 @@ int attempt_wilderness_harvest(struct char_data *ch, int resource_type)
   int difficulty = get_harvest_difficulty(resource_type, resource_level);
 
   /* Phase 6: Apply depletion penalty to success */
-  float depletion_modifier = get_harvest_success_modifier(IN_ROOM(ch), resource_type);
+  double depletion_modifier = get_harvest_success_modifier(IN_ROOM(ch), resource_type);
   success_roll = (int)(success_roll * depletion_modifier);
 
   if (success_roll < difficulty)
@@ -2444,14 +2440,14 @@ int attempt_wilderness_harvest(struct char_data *ch, int resource_type)
 
   if (added > 0)
   {
-    const char *material_name = get_full_material_name(category, subtype, quality);
-    send_to_char(ch, "You successfully harvest %d units of %s.\r\n", added, material_name);
+    const char *material_name_value = get_full_material_name(category, subtype, quality);
+    send_to_char(ch, "You successfully harvest %d units of %s.\r\n", added, material_name_value);
 
     /* Phase 7: Apply depletion WITH cascade effects */
     apply_harvest_depletion_with_cascades(IN_ROOM(ch), resource_type, added);
 
     /* Phase 6: Provide feedback on resource condition */
-    float new_depletion = get_resource_depletion_level(IN_ROOM(ch), resource_type);
+    double new_depletion = get_resource_depletion_level(IN_ROOM(ch), resource_type);
     log("DEBUG: Resource %s - depletion level: %.3f, thresholds: severe<0.3, warning<0.6",
         resource_names[resource_type], new_depletion);
     if (new_depletion < 0.3)
@@ -2732,7 +2728,7 @@ int get_harvest_skill(int resource_type)
   }
 }
 
-int get_harvest_difficulty(int resource_type, float resource_level)
+int get_harvest_difficulty(int resource_type, double resource_level)
 {
   /* Base difficulty varies by resource type */
   int base_difficulty = 50;
@@ -2814,7 +2810,7 @@ int calculate_harvest_quantity(struct char_data *ch __attribute__((unused)),
 void show_harvestable_resources(struct char_data *ch)
 {
   int x, y, i;
-  float resource_level;
+  double resource_level;
 
   x = world[IN_ROOM(ch)].coords[0];
   y = world[IN_ROOM(ch)].coords[1];
@@ -2828,8 +2824,8 @@ void show_harvestable_resources(struct char_data *ch)
     if (resource_level > 0.1 &&
         (!wilderness_harvest_crafting_enabled() || wilderness_harvest_available(ch, i, false)))
     { /* Only show harvestable resources */
-      float depletion_level = get_resource_depletion_level(IN_ROOM(ch), i);
-      float effective_level =
+      double depletion_level = get_resource_depletion_level(IN_ROOM(ch), i);
+      double effective_level =
           resource_level * depletion_level; /* Calculate true available amount */
       send_to_char(
           ch, "  \tG%-12s\tn: %s (harvest %s)\r\n", resource_names[i],

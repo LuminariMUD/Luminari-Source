@@ -169,6 +169,8 @@ void Test_event_runtime_profiles_native_semantic_callbacks(CuTest *tc)
   copied_profiles = profile_count < 32U ? profile_count : 32U;
   profile = find_runtime_profile(profiles, copied_profiles, "test.native.profiled");
   CuAssertPtrNotNull(tc, profile);
+  if (profile == NULL)
+    return;
   CuAssertIntEquals(tc, 3, (int)profile->calls);
   CuAssertIntEquals(tc, 4, (int)profile->scheduled);
   CuAssertIntEquals(tc, 2, (int)profile->rescheduled);

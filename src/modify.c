@@ -100,7 +100,9 @@ void strip_colors(char *str)
   char *p = str;
   char *n = str;
 
-  while (p && *p)
+  if (str == NULL)
+    return;
+  while (*p)
   {
     if (*p == '@')
     {
@@ -336,24 +338,25 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
 {
   if (PLR_FLAGGED(d->character, PLR_MAILING))
   {
-    if (action == STRINGADD_SAVE && *d->str)
+    if (action == STRINGADD_SAVE && d->str && *d->str)
     {
       store_mail(d->mail_to, GET_IDNUM(d->character), *d->str);
       write_to_output(d, "Message sent!\r\n");
-      notify_if_playing(d->character, d->mail_to);
+      notify_if_playing(d->character, (int)d->mail_to);
     }
     else
       write_to_output(d, "Mail aborted.\r\n");
     act("$n stops writing mail.", TRUE, d->character, NULL, NULL, TO_ROOM);
     free(*d->str);
     free(d->str);
+    d->str = NULL;
   }
 
   /* We have no way of knowing which slot the post was sent to so we can only
    * give the message.   */
   if (d->mail_to >= BOARD_MAGIC)
   {
-    board_save_board(d->mail_to - BOARD_MAGIC);
+    board_save_board((int)(d->mail_to - BOARD_MAGIC));
     if (action == STRINGADD_ABORT)
     {
       act("$n stops writing to the board.", TRUE, d->character, NULL, NULL, TO_ROOM);
@@ -363,7 +366,7 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
 
   if (PLR_FLAGGED(d->character, PLR_IDEA))
   {
-    if (action == STRINGADD_SAVE && *d->str)
+    if (action == STRINGADD_SAVE && d->str && *d->str)
     {
       write_to_output(d, "Idea saved!  Changes are implemented in this order:"
                          "  1) bug fixes, 2) ideas parallel to short term development"
@@ -386,7 +389,7 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
 
   if (PLR_FLAGGED(d->character, PLR_BUG))
   {
-    if (action == STRINGADD_SAVE && *d->str)
+    if (action == STRINGADD_SAVE && d->str && *d->str)
     {
       write_to_output(d, "Bug saved!  Changes are implemented in this order:"
                          "  1) bug fixes, 2) ideas parallel to short term development"
@@ -409,7 +412,7 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
 
   if (PLR_FLAGGED(d->character, PLR_TYPO))
   {
-    if (action == STRINGADD_SAVE && *d->str)
+    if (action == STRINGADD_SAVE && d->str && *d->str)
     {
       write_to_output(d, "Typo saved!\r\n");
       act("$n finishes submitting a typo.", TRUE, d->character, NULL, NULL, TO_ROOM);
@@ -922,12 +925,12 @@ void page_string(struct descriptor_data *d, char *str, int keep_internal)
 }
 
 /* The call that displays the next page. */
-void show_string(struct descriptor_data *d, char *input)
+void show_string(struct descriptor_data *d, const char *input)
 {
   char buffer[MAX_STRING_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'};
   int diff;
 
-  any_one_arg(input, buf);
+  any_one_arg_c(input, buf, sizeof(buf));
 
   /* Q is for quit. :) */
   if (LOWER(*buf) == 'q')
@@ -981,7 +984,7 @@ void show_string(struct descriptor_data *d, char *input)
   } /* Or if we have more to show.... */
   else
   {
-    diff = d->showstr_vector[d->showstr_page + 1] - d->showstr_vector[d->showstr_page];
+    diff = (int)(d->showstr_vector[d->showstr_page + 1] - d->showstr_vector[d->showstr_page]);
     if (diff > MAX_STRING_LENGTH - 3) /* 3=\r\n\0 */
       diff = MAX_STRING_LENGTH - 3;
     strncpy(buffer, d->showstr_vector[d->showstr_page],
@@ -1010,8 +1013,6 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
     write_to_output(d, "Mail aborted.\r\n");
   else
   {
-    extern MYSQL *conn;
-
     /* Check the connection, reconnect if necessary. */
     if (!MYSQL_PING_CONN(conn))
     {
@@ -1040,8 +1041,6 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
 
     if (found)
     {
-      extern MYSQL *conn2;
-
       /* Check the connection, reconnect if necessary. */
       if (!MYSQL_PING_CONN(conn2))
       {
@@ -1106,7 +1105,7 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
                 GET_NAME(d->character), query);
           }
 
-          last_id = mysql_insert_id(conn);
+          last_id = (int)mysql_insert_id(conn);
 
           if (last_id > 0 && strcmp(row[0], GET_NAME(ch)))
           {
@@ -1225,8 +1224,6 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
  */
 static void board_post_string_cleanup(struct descriptor_data *d, int action)
 {
-  extern void mysql_board_finish_post(struct descriptor_data * d, int save);
-
   if (!d->str)
   {
     log("SYSERR: board_post_string_cleanup: CON_BOARD_POST with NULL d->str");

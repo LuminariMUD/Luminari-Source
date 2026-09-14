@@ -104,7 +104,7 @@ static int zedit_create_index(int znum)
 
 /* lists classes appropriate for hlqedit
    UNFINISHED for Luminari usage */
-void hlqedit_show_classes(struct descriptor_data *d)
+static void hlqedit_show_classes(struct descriptor_data *d)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   int i;
@@ -119,7 +119,7 @@ void hlqedit_show_classes(struct descriptor_data *d)
 /*
  *  this is the first step in editing an existing or new quest
  */
-void hlqedit_setup(struct descriptor_data *d, mob_rnum mob)
+static void hlqedit_setup(struct descriptor_data *d, mob_rnum mob)
 {
   struct quest_entry *quest = NULL;
   struct quest_entry *qexist = NULL;
@@ -202,7 +202,7 @@ void hlqedit_setup(struct descriptor_data *d, mob_rnum mob)
 }
 
 /* utility function that finds quest entry with given num */
-struct quest_entry *getquest(struct descriptor_data *d, int num)
+static struct quest_entry *getquest(struct descriptor_data *d, int num)
 {
   struct quest_entry *quest;
   int a = 1;
@@ -217,7 +217,7 @@ struct quest_entry *getquest(struct descriptor_data *d, int num)
 }
 
 /* utility function, links quest chain*/
-void hlqedit_addtoout(struct descriptor_data *d, struct quest_command *qcom)
+static void hlqedit_addtoout(struct descriptor_data *d, struct quest_command *qcom)
 {
   struct quest_command *qlast;
 
@@ -243,7 +243,7 @@ void hlqedit_addtoout(struct descriptor_data *d, struct quest_command *qcom)
    save with a separate command - it is now changed to autosave to
    disk whenever its saved internally
  */
-int hlqedit_save_internally(struct descriptor_data *d)
+static int hlqedit_save_internally(struct descriptor_data *d)
 {
   struct char_data *i = NULL;
   struct char_data *ch = NULL;
@@ -353,7 +353,7 @@ int hlqedit_save_to_disk(zone_rnum zone_num)
   }
 
   fprintf(fp, "$~\n");
-  snprintf(buf2, sizeof(buf2), "%s/%d.hlq", HLQST_PREFIX, zone_table[zone_num].number);
+  snprintf(buf2, sizeof(buf2), "%s/%" PRI_IDX ".hlq", HLQST_PREFIX, zone_table[zone_num].number);
   if (!finish_file_save(fp, buf, buf2))
     return FALSE;
 
@@ -374,7 +374,7 @@ int hlqedit_save_to_disk(zone_rnum zone_num)
 /*
  * For extra descriptions.
  */
-void hlqedit_disp_incommand_menu(struct descriptor_data *d)
+static void hlqedit_disp_incommand_menu(struct descriptor_data *d)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
@@ -389,7 +389,7 @@ void hlqedit_disp_incommand_menu(struct descriptor_data *d)
   OLC_MODE(d) = HLQEDIT_INCOMMAND;
 }
 
-void hlqedit_disp_outcommand_menu(struct descriptor_data *d)
+static void hlqedit_disp_outcommand_menu(struct descriptor_data *d)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
@@ -417,7 +417,7 @@ void hlqedit_disp_outcommand_menu(struct descriptor_data *d)
   OLC_MODE(d) = HLQEDIT_OUTCOMMANDMENU;
 }
 
-void hlqedit_disp_spells(struct descriptor_data *d)
+static void hlqedit_disp_spells(struct descriptor_data *d)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
@@ -455,7 +455,7 @@ void hlqedit_disp_menu(struct descriptor_data *d)
     OLC_QUESTENTRY(d) = 0;
   }
 
-  snprintf(buf, sizeof(buf), "\r\n---- Quests for %s (vnum: %d)\r\n", GET_NAME(OLC_MOB(d)),
+  snprintf(buf, sizeof(buf), "\r\n---- Quests for %s (vnum: %u)\r\n", GET_NAME(OLC_MOB(d)),
            GET_MOB_VNUM(OLC_MOB(d)));
   send_to_char(d->character, "%s", buf);
 
@@ -505,7 +505,7 @@ void hlqedit_disp_menu(struct descriptor_data *d)
 
 /* message displayed upon finishing a quest's step
  */
-void hlqedit_init_replymsg(struct descriptor_data *d)
+static void hlqedit_init_replymsg(struct descriptor_data *d)
 {
   char *msg = NULL;
 
@@ -544,8 +544,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     case 'y':
     case 'Y':
       saved_to_disk = hlqedit_save_internally(d);
-      snprintf(buf, sizeof(buf), "OLC: %s edits hl quest %d%s.", GET_NAME(d->character), OLC_NUM(d),
-               saved_to_disk ? "" : " (disk save failed)");
+      snprintf(buf, sizeof(buf), "OLC: %s edits hl quest %" PRI_IDX "%s.", GET_NAME(d->character),
+               OLC_NUM(d), saved_to_disk ? "" : " (disk save failed)");
       log("%s", buf);
       OLC_MOB(d) = 0;
       cleanup_olc(d, CLEANUP_STRUCTS);

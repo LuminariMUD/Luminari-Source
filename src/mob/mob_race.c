@@ -49,6 +49,7 @@ void npc_racial_behave(struct char_data *ch)
     {
     case 1:
       do_rage(ch, 0, 0, 0);
+      break;
     default:
       break;
     }

@@ -141,7 +141,7 @@ bool rol_ship_periodic_register_event_type(void)
   status = event_runtime_register_type(&config, &rol_ship_event_type);
   if (status != GAME_SCHEDULER_OK)
   {
-    log("SYSERR: unable to register native event type 'vessel.rol.agenda' (status %d).", status);
+    log("SYSERR: unable to register native event type 'vessel.rol.agenda' (status %u).", status);
     return false;
   }
   return true;
@@ -582,11 +582,12 @@ static int rol_ship_control_look(struct char_data *ch, int ship_index, const cha
                state->capacity);
   if (GET_LEVEL(ch) >= LVL_IMMORT)
   {
-    send_to_char(
-        ch, "  size: %d, rooms: %d, repeat: %d, timers: %d/%d, exterior: %d\r\n", state->size,
-        rol_ship_definitions[ship_index].last_interior_vnum -
-            rol_ship_definitions[ship_index].first_interior_vnum + 1,
-        state->repeat, state->action_timer, state->move_timer, GET_ROOM_VNUM(IN_ROOM(state->hull)));
+    send_to_char(ch, "  size: %d, rooms: %" PRI_IDX ", repeat: %d, timers: %d/%d, exterior: %u\r\n",
+                 state->size,
+                 rol_ship_definitions[ship_index].last_interior_vnum -
+                     rol_ship_definitions[ship_index].first_interior_vnum + 1,
+                 state->repeat, state->action_timer, state->move_timer,
+                 GET_ROOM_VNUM(IN_ROOM(state->hull)));
   }
   return true;
 }
@@ -994,7 +995,8 @@ static void rol_ship_route_tick(int ship_index)
   {
     state->route_sailing = false;
     state->route_path = NULL;
-    log("SYSERR: RoL ship %d contains an invalid route direction.", definition->hull_vnum);
+    log("SYSERR: RoL ship %" PRI_IDX " contains an invalid route direction.",
+        definition->hull_vnum);
     return;
   }
   state->velocity = state->max_speed;

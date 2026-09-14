@@ -12,7 +12,8 @@
 
 #include <stdio.h>
 
-static void spec_assign_table_set_error(char *error, size_t error_size, const char *format, ...)
+__attribute__((format(printf, 3, 4))) static void
+spec_assign_table_set_error(char *error, size_t error_size, const char *format, ...)
 {
   va_list arguments;
 

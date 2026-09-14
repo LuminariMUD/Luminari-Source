@@ -29,7 +29,7 @@ void reconcile_player_offline_cooldowns(struct char_data *ch, int64_t saved_at_e
 int hit_gain(struct char_data *ch);
 int move_gain(struct char_data *ch);
 void set_title(struct char_data *ch, char *title);
-void set_imm_title(struct char_data *ch, char *title);
+void set_imm_title(struct char_data *ch, const char *title);
 void run_autowiz(void);
 void gain_condition(struct char_data *ch, int condition, int value);
 void check_idling(struct char_data *ch);
@@ -51,11 +51,15 @@ long int pet_stored_id_at(struct char_data *owner, int position);
 void point_update_global_one(void);
 void point_update_character_one(struct char_data *ch);
 bool point_update_object_one(struct obj_data *obj);
-void increase_anger(struct char_data *ch, float amount);
+void increase_anger(struct char_data *ch, double amount);
 void vamp_blood_drain(struct char_data *ch, struct char_data *vict);
 
 #ifdef __cplusplus
 }
 #endif
+
+void check_auto_happy_hour(void);
+void process_auction_events(void);
+void recharge_activated_items(void);
 
 #endif /* LIMITS_H */

@@ -56,6 +56,8 @@ WCMD(do_wdamage);
 WCMD(do_wat);
 WCMD(do_wmove);
 WCMD(do_wlog);
+WCMD(do_wrolroomflag);
+WCMD(do_wroldamage);
 
 /* attaches room vnum to msg and sends it to script_log */
 void wld_log(room_data *room, const char *format, ...)
@@ -69,7 +71,7 @@ void wld_log(room_data *room, const char *format, ...)
   vsnprintf(message, sizeof(message), format, args);
   va_end(args);
 
-  script_log("Room %d :: %s", room->number, message);
+  script_log("Room %" PRI_IDX " :: %s", room->number, message);
 }
 
 /* sends str to room */
@@ -175,15 +177,15 @@ WCMD(do_wsend)
 WCMD(do_wzoneecho)
 {
   zone_rnum zone;
-  char room_num[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'}, *msg;
+  char room_num_id[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'}, *msg;
 
-  msg = any_one_arg(argument, room_num);
+  msg = any_one_arg(argument, room_num_id);
   skip_spaces(&msg);
 
-  if (!*room_num || !*msg)
+  if (!*room_num_id || !*msg)
     wld_log(room, "wzoneecho called with too few args");
 
-  else if ((zone = real_zone_by_thing(atoi(room_num))) == NOWHERE)
+  else if ((zone = real_zone_by_thing(atoi(room_num_id))) == NOWHERE)
     wld_log(room, "wzoneecho called for nonexistant zone");
 
   else
@@ -816,7 +818,7 @@ void wld_command_interpreter(room_data *room, char *argument)
   line = any_one_arg(argument, arg);
 
   /* find the command */
-  for (length = strlen(arg), cmd = 0; *wld_cmd_info[cmd].command != '\n'; cmd++)
+  for (length = (int)strlen(arg), cmd = 0; *wld_cmd_info[cmd].command != '\n'; cmd++)
     if (!strncmp(wld_cmd_info[cmd].command, arg, length))
       break;
 

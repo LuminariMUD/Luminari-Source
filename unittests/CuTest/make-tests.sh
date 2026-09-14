@@ -5,8 +5,27 @@
 # Prints to stdout.
 # Author: Asim Jalis
 # Date: 01/08/2003
+#
+# With --prototypes, prints a header declaring every Test function instead.
+# CuTest.h includes it in the root suite so test files compiled with
+# -Wmissing-prototypes see a previous declaration of each test.
 
+PROTOTYPES=0
+if test "$1" = "--prototypes" ; then PROTOTYPES=1 ; shift ; fi
 if test $# -eq 0 ; then FILES=*.c ; else FILES=$* ; fi
+
+if test $PROTOTYPES -eq 1 ; then
+    echo '/* This is auto-generated code by make-tests.sh --prototypes. */'
+    echo '#ifndef CUTEST_TEST_PROTOTYPES_H'
+    echo '#define CUTEST_TEST_PROTOTYPES_H'
+    echo
+    cat $FILES | grep '^void Test' |
+        sed -e 's/(.*$//' \
+            -e 's/$/(CuTest *tc);/'
+    echo
+    echo '#endif /* CUTEST_TEST_PROTOTYPES_H */'
+    exit 0
+fi
 
 echo '
 
@@ -15,6 +34,8 @@ echo '
 #include <stdlib.h>
 #include <string.h>
 
+/* The runner declares the tests itself; see make-tests.sh --prototypes. */
+#define CUTEST_RUNNER
 #include "CuTest.h"
 
 extern FILE *logfile;
@@ -38,7 +59,7 @@ cat $FILES | grep '^void Test' |
 echo \
 '
 
-int RunAllTests(void)
+static int RunAllTests(void)
 {
     CuString *output = CuStringNew();
     CuSuite* suite = CuSuiteNew();

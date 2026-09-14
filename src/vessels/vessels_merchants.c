@@ -20,10 +20,7 @@
 #include "quest/missions.h"
 #include "constants.h"
 
-extern MYSQL *conn;
-extern bool mysql_available;
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct char_data *character_list;
 
 #define VESSEL_MERCHANT_RETRY_SECONDS 300
 #define VESSEL_MERCHANT_NAME_LENGTH 128
@@ -561,7 +558,7 @@ static bool vessel_merchant_activate_profile(const struct vessel_merchant_profil
     return FALSE;
   }
 
-  ship->speed = MAX(1, ship->maxspeed / 2);
+  ship->speed = (short)MAX(1, ship->maxspeed / 2);
   ship->setspeed = ship->speed;
   if (!schedule_create(ship, profile->route_id, profile->schedule_interval_hours, 0) ||
       !schedule_trigger_departure(ship))
@@ -1296,7 +1293,8 @@ ACMD(do_vmerchant)
   long parsed_id;
   int merchant_id;
 
-  three_arguments_u((char *)argument, action, id_arg, confirmation);
+  three_arguments(argument, action, sizeof(action), id_arg, sizeof(id_arg), confirmation,
+                  sizeof(confirmation));
   if (!*action || !str_cmp(action, "list"))
   {
     vessel_merchant_list(ch);

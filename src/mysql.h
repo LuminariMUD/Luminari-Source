@@ -69,6 +69,8 @@ extern MYSQL_POOL *mysql_pool;
 
 /* Legacy compatibility - these will be removed in future */
 extern MYSQL *conn;
+extern MYSQL *conn2;
+extern MYSQL *conn3;
 
 /* Global flag to track MySQL availability */
 extern bool mysql_available;
@@ -222,4 +224,12 @@ struct region_proximity_list *get_nearby_regions(zone_rnum zone, int x, int y, i
 char **tokenize(const char *input, const char *delim);
 void free_tokens(char **tokens);
 
+
+struct path_data;
+void insert_path(struct path_data *path);
+bool delete_path(region_vnum vnum);
+
+void after_world_load();
+void save_paths();
+void save_regions();
 #endif

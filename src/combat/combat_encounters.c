@@ -568,8 +568,11 @@ static void activate_participant(struct combat_encounter_participant *participan
     due = (uint64_t)pulse + delay;
   if (participant->encounter->resolving)
   {
-    due = MAX(due, (uint64_t)pulse + (semantic_rounds ? COMBAT_ENCOUNTER_ROUND_DELAY
-                                                      : COMBAT_ENCOUNTER_JOIN_GUARD));
+    uint64_t guard = COMBAT_ENCOUNTER_JOIN_GUARD;
+
+    if (semantic_rounds)
+      guard = COMBAT_ENCOUNTER_ROUND_DELAY;
+    due = u64_max(due, (uint64_t)pulse + guard);
     participant->pending_activation = true;
   }
   else
@@ -773,7 +776,7 @@ static void transfer_participant(struct combat_encounter_data *survivor,
   {
     if (semantic_rounds && survivor->resolving)
       participant->next_due =
-          MAX(participant->next_due, (uint64_t)pulse + COMBAT_ENCOUNTER_ROUND_DELAY);
+          u64_max(participant->next_due, (uint64_t)pulse + COMBAT_ENCOUNTER_ROUND_DELAY);
     due_insert(survivor, participant);
   }
 }
@@ -808,7 +811,7 @@ static void merge_now(struct combat_encounter_data *survivor,
       participant->character->combat_encounter = survivor;
     if (semantic_rounds && survivor->resolving)
       participant->next_due =
-          MAX(participant->next_due, (uint64_t)pulse + COMBAT_ENCOUNTER_ROUND_DELAY);
+          u64_max(participant->next_due, (uint64_t)pulse + COMBAT_ENCOUNTER_ROUND_DELAY);
     pending_append(survivor, participant);
   }
   absorbed->participants = NULL;
@@ -1131,7 +1134,7 @@ static bool register_encounter_round_event_type(void)
   status = event_runtime_register_type(&config, &encounter_round_event_type);
   if (status != GAME_SCHEDULER_OK)
   {
-    log("SYSERR: unable to register native event type 'combat.encounter.round' (status %d).",
+    log("SYSERR: unable to register native event type 'combat.encounter.round' (status %u).",
         status);
     return false;
   }
@@ -1290,7 +1293,8 @@ bool combat_encounter_action_consume(struct char_data *character, action_type ac
   if (participant == NULL || action < atSTANDARD || action > atSWIFT)
     return false;
   ready_turn = participant->turns_started + semantic_rounds_for_delay(duration);
-  participant->action_ready_turn[action] = MAX(participant->action_ready_turn[action], ready_turn);
+  participant->action_ready_turn[action] =
+      u64_max(participant->action_ready_turn[action], ready_turn);
   participant->action_notice_pending[action] = true;
   counter_increment(&cumulative_stats.action_budgets_spent);
   return true;

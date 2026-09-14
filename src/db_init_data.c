@@ -521,17 +521,17 @@ void populate_resource_types_data(void)
 
   log("Populating resource types reference data...");
 
-  char *resource_data[] = {"INSERT IGNORE INTO resource_types (resource_id, resource_name, "
-                           "resource_description, base_rarity) VALUES "
-                           "(1, 'Iron Ore', 'Common iron ore deposits', 0.80),"
-                           "(2, 'Copper Ore', 'Copper ore veins', 0.75),"
-                           "(3, 'Silver Ore', 'Precious silver deposits', 0.40),"
-                           "(4, 'Gold Ore', 'Valuable gold veins', 0.20),"
-                           "(5, 'Mithril Ore', 'Legendary mithril deposits', 0.05),"
-                           "(6, 'Timber', 'Standard wood resources', 0.90),"
-                           "(7, 'Stone', 'Basic stone quarries', 0.95),"
-                           "(8, 'Magical Crystals', 'Enchanted crystal formations', 0.15);",
-                           NULL};
+  const char *resource_data[] = {"INSERT IGNORE INTO resource_types (resource_id, resource_name, "
+                                 "resource_description, base_rarity) VALUES "
+                                 "(1, 'Iron Ore', 'Common iron ore deposits', 0.80),"
+                                 "(2, 'Copper Ore', 'Copper ore veins', 0.75),"
+                                 "(3, 'Silver Ore', 'Precious silver deposits', 0.40),"
+                                 "(4, 'Gold Ore', 'Valuable gold veins', 0.20),"
+                                 "(5, 'Mithril Ore', 'Legendary mithril deposits', 0.05),"
+                                 "(6, 'Timber', 'Standard wood resources', 0.90),"
+                                 "(7, 'Stone', 'Basic stone quarries', 0.95),"
+                                 "(8, 'Magical Crystals', 'Enchanted crystal formations', 0.15);",
+                                 NULL};
 
   int i;
   for (i = 0; resource_data[i] != NULL; i++)
@@ -564,15 +564,16 @@ void populate_material_categories_data(void)
 
   log("Populating material categories reference data...");
 
-  char *material_data[] = {"INSERT IGNORE INTO material_categories (category_id, category_name, "
-                           "category_description) VALUES "
-                           "(1, 'Cloth', 'Lightweight fabric materials'),"
-                           "(2, 'Leather', 'Treated animal hide'),"
-                           "(3, 'Chain', 'Interlocked metal links'),"
-                           "(4, 'Scale', 'Overlapping metal plates'),"
-                           "(5, 'Plate', 'Solid metal armor plates'),"
-                           "(6, 'Mithril', 'Magical lightweight metal');",
-                           NULL};
+  const char *material_data[] = {
+      "INSERT IGNORE INTO material_categories (category_id, category_name, "
+      "category_description) VALUES "
+      "(1, 'Cloth', 'Lightweight fabric materials'),"
+      "(2, 'Leather', 'Treated animal hide'),"
+      "(3, 'Chain', 'Interlocked metal links'),"
+      "(4, 'Scale', 'Overlapping metal plates'),"
+      "(5, 'Plate', 'Solid metal armor plates'),"
+      "(6, 'Mithril', 'Magical lightweight metal');",
+      NULL};
 
   int i;
   for (i = 0; material_data[i] != NULL; i++)
@@ -605,14 +606,14 @@ void populate_material_qualities_data(void)
 
   log("Populating material qualities reference data...");
 
-  char *quality_data[] = {"INSERT IGNORE INTO material_qualities (quality_id, quality_name, "
-                          "quality_description, rarity_multiplier, value_multiplier) VALUES "
-                          "(1, 'Poor', 'Below average quality materials', 1.50, 0.70),"
-                          "(2, 'Average', 'Standard quality materials', 1.00, 1.00),"
-                          "(3, 'Good', 'Above average quality materials', 0.75, 1.30),"
-                          "(4, 'Excellent', 'High quality materials', 0.50, 1.60),"
-                          "(5, 'Masterwork', 'Exceptional quality materials', 0.25, 2.00);",
-                          NULL};
+  const char *quality_data[] = {"INSERT IGNORE INTO material_qualities (quality_id, quality_name, "
+                                "quality_description, rarity_multiplier, value_multiplier) VALUES "
+                                "(1, 'Poor', 'Below average quality materials', 1.50, 0.70),"
+                                "(2, 'Average', 'Standard quality materials', 1.00, 1.00),"
+                                "(3, 'Good', 'Above average quality materials', 0.75, 1.30),"
+                                "(4, 'Excellent', 'High quality materials', 0.50, 1.60),"
+                                "(5, 'Masterwork', 'Exceptional quality materials', 0.25, 2.00);",
+                                NULL};
 
   int i;
   for (i = 0; quality_data[i] != NULL; i++)
@@ -645,7 +646,7 @@ void populate_region_effects_data(void)
 
   log("Populating region effects reference data...");
 
-  char *effects_data[] = {
+  const char *effects_data[] = {
       "INSERT IGNORE INTO region_effects (effect_id, effect_name, effect_type, effect_description) "
       "VALUES "
       "(1, 'Fertile Soil', 'resource', 'Rich soil increases agricultural yields'),"
@@ -665,7 +666,7 @@ void populate_region_effects_data(void)
     }
   }
 
-  char *relationships_data[] = {
+  const char *relationships_data[] = {
       "INSERT IGNORE INTO resource_relationships (source_resource, "
       "target_resource, effect_type, effect_magnitude, description) VALUES "
       "(1, 6, 'enhancement', 1.300, 'Iron enhances timber processing "
@@ -706,13 +707,13 @@ void populate_ai_config_data(void)
 
   log("Populating AI configuration reference data...");
 
-  char *ai_data[] = {"INSERT IGNORE INTO ai_config (config_key, config_value) VALUES "
-                     "('max_tokens', '150'),"
-                     "('temperature', '0.7'),"
-                     "('response_timeout', '10'),"
-                     "('enable_personality', 'true'),"
-                     "('debug_mode', 'false');",
-                     NULL};
+  const char *ai_data[] = {"INSERT IGNORE INTO ai_config (config_key, config_value) VALUES "
+                           "('max_tokens', '150'),"
+                           "('temperature', '0.7'),"
+                           "('response_timeout', '10'),"
+                           "('enable_personality', 'true'),"
+                           "('debug_mode', 'false');",
+                           NULL};
 
   int i;
   for (i = 0; ai_data[i] != NULL; i++)
@@ -1406,7 +1407,7 @@ int verify_wilderness_resource_tables(void)
 /* Verify AI service tables exist */
 int verify_ai_service_tables(void)
 {
-  char *tables[] = {"ai_config", "ai_npc_personalities", "ai_cache", "ai_requests"};
+  const char *tables[] = {"ai_config", "ai_npc_personalities", "ai_cache", "ai_requests"};
   int num_tables = sizeof(tables) / sizeof(tables[0]);
   char query[1024];
   int i;
@@ -1470,7 +1471,7 @@ int verify_crafting_system_tables(void)
 /* Verify housing system tables exist */
 int verify_housing_system_tables(void)
 {
-  char *tables[] = {"house_data"};
+  const char *tables[] = {"house_data"};
   int num_tables = sizeof(tables) / sizeof(tables[0]);
   char query[1024];
   int i;

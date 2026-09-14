@@ -64,7 +64,7 @@ struct semantic_boundary_trace
 static void encounter_test_character(struct char_data *character, const char *name)
 {
   clear_char(character);
-  character->player.name = (char *)name;
+  character->player.name = CuMutableString(name);
 }
 
 static unsigned long encounter_test_begin_mode(CuTest *tc, bool encounter_mode,
@@ -1032,11 +1032,11 @@ static void verify_semantic_clock_merge(CuTest *tc, bool with_defense)
   event_test_advance();
   CuAssertIntEquals(tc, 6, (int)trace.count);
   CuAssertTrue(tc, combat_encounter_get_turn(&first, &snapshot));
-  CuAssertIntEquals(tc, 2, snapshot.turn_serial);
-  CuAssertIntEquals(tc, 6 RL_SEC, snapshot.pulses_until_next_turn);
+  CuAssertIntEquals(tc, 2, (int)snapshot.turn_serial);
+  CuAssertIntEquals(tc, 6 RL_SEC, (int)snapshot.pulses_until_next_turn);
   CuAssertTrue(tc, combat_encounter_get_turn(&second, &snapshot));
-  CuAssertIntEquals(tc, 1, snapshot.turn_serial);
-  CuAssertIntEquals(tc, 6 RL_SEC, snapshot.pulses_until_next_turn);
+  CuAssertIntEquals(tc, 1, (int)snapshot.turn_serial);
+  CuAssertIntEquals(tc, 6 RL_SEC, (int)snapshot.pulses_until_next_turn);
   CuAssertIntEquals(tc, 1, event_queue_depth());
 
   if (with_defense)
@@ -1146,37 +1146,37 @@ void Test_combat_turn_clock_survives_departure_and_reports_following_turn_in_cal
   CuAssertTrue(tc, combat_encounter_join(&first, &second, 1 RL_SEC));
   CuAssertTrue(tc, combat_encounter_join(&second, &first, 1 RL_SEC));
   CuAssertTrue(tc, combat_encounter_get_turn(&first, &snapshot));
-  CuAssertIntEquals(tc, 0, snapshot.turn_serial);
-  CuAssertIntEquals(tc, 6 RL_SEC, snapshot.pulses_until_next_turn);
+  CuAssertIntEquals(tc, 0, (int)snapshot.turn_serial);
+  CuAssertIntEquals(tc, 6 RL_SEC, (int)snapshot.pulses_until_next_turn);
   CuAssertTrue(tc, !snapshot.dispatching);
 
   /* A late event resolves one turn; it must not expose its overdue deadline as
    * the next turn to effects admitted from inside that turn. */
   pulse = start_pulse + (8 RL_SEC);
   CuAssertTrue(tc, combat_encounter_get_turn(&first, &snapshot));
-  CuAssertIntEquals(tc, 0, snapshot.pulses_until_next_turn);
+  CuAssertIntEquals(tc, 0, (int)snapshot.pulses_until_next_turn);
   event_test_advance();
   CuAssertTrue(tc, trace.available && trace.snapshot.dispatching);
-  CuAssertIntEquals(tc, 1, trace.snapshot.turn_serial);
-  CuAssertIntEquals(tc, 6 RL_SEC, trace.snapshot.pulses_until_next_turn);
+  CuAssertIntEquals(tc, 1, (int)trace.snapshot.turn_serial);
+  CuAssertIntEquals(tc, 6 RL_SEC, (int)trace.snapshot.pulses_until_next_turn);
 
   pulse += 2 RL_SEC;
   CuAssertTrue(tc, combat_encounter_get_turn(&first, &snapshot));
-  CuAssertIntEquals(tc, 4 RL_SEC, snapshot.pulses_until_next_turn);
+  CuAssertIntEquals(tc, 4 RL_SEC, (int)snapshot.pulses_until_next_turn);
   encounter_test_leave(&first, COMBAT_ENCOUNTER_DEPARTURE_MOVED);
   encounter_test_leave(&second, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
   CuAssertTrue(tc, !combat_encounter_get_turn(&first, &snapshot));
-  CuAssertIntEquals(tc, 1, first.combat_turn_serial);
+  CuAssertIntEquals(tc, 1, (int)first.combat_turn_serial);
 
   FIGHTING(&first) = &second;
   FIGHTING(&second) = &first;
   CuAssertTrue(tc, combat_encounter_join(&first, &second, 1 RL_SEC));
   CuAssertTrue(tc, combat_encounter_join(&second, &first, 1 RL_SEC));
   CuAssertTrue(tc, combat_encounter_get_turn(&first, &snapshot));
-  CuAssertIntEquals(tc, 1, snapshot.turn_serial);
+  CuAssertIntEquals(tc, 1, (int)snapshot.turn_serial);
   pulse += 6 RL_SEC;
   event_test_advance();
-  CuAssertIntEquals(tc, 2, trace.snapshot.turn_serial);
+  CuAssertIntEquals(tc, 2, (int)trace.snapshot.turn_serial);
   CuAssertTrue(tc, trace.snapshot.dispatching);
 
   encounter_test_leave(&first, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);

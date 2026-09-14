@@ -70,7 +70,8 @@ static void debug_output_init(struct event_debug_output *output, char *buffer, s
     buffer[0] = '\0';
 }
 
-static void debug_output_line(struct event_debug_output *output, const char *format, ...)
+__attribute__((format(printf, 2, 3))) static void
+debug_output_line(struct event_debug_output *output, const char *format, ...)
 {
   char line[512];
   size_t line_length;
@@ -140,7 +141,7 @@ static size_t parse_limit(const char *text, size_t fallback)
     return fallback;
   if (!parse_uint64(text, &parsed) || parsed == 0)
     return 0;
-  return (size_t)MIN(parsed, EVENT_DEBUG_MAX_LIMIT);
+  return (size_t)u64_min(parsed, EVENT_DEBUG_MAX_LIMIT);
 }
 
 size_t event_debug_render_help(char *buffer, size_t capacity, int width)
@@ -169,7 +170,7 @@ size_t event_debug_render_help(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "eventdebug subscriptions [limit]");
   debug_output_line(&output, "eventdebug subscriptions <kind> <target> [limit]");
   debug_output_line(&output, "eventdebug help");
-  debug_output_line(&output, "");
+  debug_output_line(&output, "%s", "");
   debug_output_line(&output, "Owner kinds:");
   debug_output_line(&output, " world descriptor character room");
   debug_output_line(&output, " region object zone encounter vessel");
@@ -216,7 +217,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   render_live_owner_counts(&output, &event_stats);
   memset(&service_stats, 0, sizeof(service_stats));
   runtime_services_get_stats(&service_stats);
-  debug_output_line(&output, "");
+  debug_output_line(&output, "%s", "");
   debug_output_line(&output, "Runtime services");
   debug_output_line(&output, "  mode: %s",
                     service_stats.scheduled ? "named scheduled events" : event_debug_mode(false));
@@ -226,7 +227,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "  schedule failures: %" PRIu64, service_stats.schedule_failures);
   if (event_stats.scheduler_stats_available)
   {
-    debug_output_line(&output, "");
+    debug_output_line(&output, "%s", "");
     debug_output_line(&output, "Scheduler queues");
     debug_output_line(&output, "  types: %zu (%s)", event_stats.scheduler.registered_type_count,
                       event_runtime_types_are_sealed() ? "sealed" : "open");
@@ -241,7 +242,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
     debug_output_line(&output, "  overflow: %zu", event_stats.scheduler.overflow_count);
     debug_output_line(&output, "  owner records: %zu", event_stats.scheduler.owner_count);
     debug_output_line(&output, "  timed ingress: main thread only");
-    debug_output_line(&output, "");
+    debug_output_line(&output, "%s", "");
     debug_output_line(&output, "Scheduler lifecycle");
     debug_output_line(&output, "  scheduled: %" PRIu64, event_stats.scheduler.total_scheduled);
     debug_output_line(&output, "  callbacks: %" PRIu64, event_stats.scheduler.total_callbacks);
@@ -285,7 +286,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
     debug_output_line(&output, "Legacy storage metrics unavailable.");
   memset(&encounter_stats, 0, sizeof(encounter_stats));
   combat_encounter_get_stats(&encounter_stats);
-  debug_output_line(&output, "");
+  debug_output_line(&output, "%s", "");
   debug_output_line(&output, "Combat encounters");
   debug_output_line(&output, "  mode: %s",
                     !encounter_stats.encounter_mode   ? "character rollback"
@@ -321,7 +322,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
                     encounter_stats.admission_failures, encounter_stats.stale_encounter_callbacks);
   memset(&activity_stats, 0, sizeof(activity_stats));
   primary_activity_get_stats(&activity_stats);
-  debug_output_line(&output, "");
+  debug_output_line(&output, "%s", "");
   debug_output_line(&output, "Primary activities");
   debug_output_line(&output, "  active/high-water: %zu/%zu", activity_stats.active,
                     activity_stats.high_water);
@@ -332,7 +333,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "  delayed/rejected: %" PRIu64 "/%" PRIu64, activity_stats.delayed,
                     activity_stats.rejected_commands);
   debug_output_line(&output, "  stale callbacks: %" PRIu64, activity_stats.stale_callbacks);
-  debug_output_line(&output, "");
+  debug_output_line(&output, "%s", "");
   debug_output_line(&output, "Character owners");
   debug_output_line(&output, "  mode: %s", event_debug_mode(character_periodic_events_enabled()));
   debug_output_line(&output, "  members/scheduled/mismatch: %zu/%zu/%zu",
@@ -343,7 +344,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
                     character_periodic_d20_round_executions(),
                     character_periodic_device_executions(),
                     character_periodic_timed_quest_executions());
-  debug_output_line(&output, "");
+  debug_output_line(&output, "%s", "");
   debug_output_line(&output, "Autonomous mobile agendas");
   debug_output_line(&output, "  mode: %s", event_debug_mode(active_world_enabled()));
   debug_output_line(&output, "  active/cooling: %zu/%zu",
@@ -367,7 +368,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "  capacity/rejected: %zu/%" PRIu64,
                     active_world_mobile_admission_limit(),
                     active_world_mobile_admission_rejections());
-  debug_output_line(&output, "");
+  debug_output_line(&output, "%s", "");
   debug_output_line(&output, "Discovery registries");
   debug_output_line(&output, "  DG time members m/o/r: %zu/%zu/%zu",
                     dg_time_registry_count(MOB_TRIGGER), dg_time_registry_count(OBJ_TRIGGER),
@@ -389,7 +390,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
                     movement_trail_entries_removed());
   memset(&ingress_stats, 0, sizeof(ingress_stats));
   i3_get_ingress_stats(&ingress_stats);
-  debug_output_line(&output, "");
+  debug_output_line(&output, "%s", "");
   debug_output_line(&output, "Worker ingress (I3)");
   debug_output_line(&output, "  status: %s", ingress_stats.available ? "online" : "offline");
   debug_output_line(&output, "  depth: %zu/%zu", ingress_stats.depth, ingress_stats.capacity);
@@ -398,7 +399,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "  wake failures: %" PRIu64, ingress_stats.wake_failures);
   memset(&ai_ingress_stats, 0, sizeof(ai_ingress_stats));
   ai_events_get_ingress_stats(&ai_ingress_stats);
-  debug_output_line(&output, "");
+  debug_output_line(&output, "%s", "");
   debug_output_line(&output, "Worker ingress (AI)");
   debug_output_line(&output, "  status: %s", ai_ingress_stats.available ? "online" : "offline");
   debug_output_line(&output, "  depth: %zu/%zu", ai_ingress_stats.depth, ai_ingress_stats.capacity);
@@ -408,7 +409,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "  rejected: %" PRIu64, ai_ingress_stats.rejected);
   debug_output_line(&output, "  wake/schedule failures: %" PRIu64 "/%" PRIu64,
                     ai_ingress_stats.wake_failures, ai_ingress_stats.schedule_failures);
-  debug_output_line(&output, "");
+  debug_output_line(&output, "%s", "");
   bus = domain_event_runtime_bus();
   memset(&domain_stats, 0, sizeof(domain_stats));
   domain_event_bus_get_stats(bus, &domain_stats);
@@ -425,7 +426,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
                     domain_stats.subscription_deliveries, domain_stats.subscription_cancellations);
   debug_output_line(&output, "  rejected chains: %" PRIu64, domain_stats.rejected_causal_chains);
   debug_output_line(&output, "  max depth: %u", domain_stats.maximum_depth);
-  debug_output_line(&output, "");
+  debug_output_line(&output, "%s", "");
   debug_output_line(&output, "Use 'eventdebug help' for filters.");
   return output.length;
 }
@@ -455,7 +456,7 @@ size_t event_debug_render_queue(char *buffer, size_t capacity, int width,
   size_t matched;
   size_t index;
 
-  limit = MIN(MAX(limit, 1U), EVENT_DEBUG_MAX_LIMIT);
+  limit = size_min(size_max(limit, 1U), EVENT_DEBUG_MAX_LIMIT);
   memset(snapshots, 0, sizeof(snapshots));
   returned = 0;
   matched = event_debug_inspect(filter, snapshots, limit, &returned);
@@ -466,12 +467,12 @@ size_t event_debug_render_queue(char *buffer, size_t capacity, int width,
   debug_output_line(&output, "Payloads: redacted");
   for (index = 0; index < returned; index++)
   {
-    debug_output_line(&output, "");
+    debug_output_line(&output, "%s", "");
     render_event_snapshot(&output, &snapshots[index]);
   }
   if (matched > returned)
   {
-    debug_output_line(&output, "");
+    debug_output_line(&output, "%s", "");
     debug_output_line(&output, "%zu more event(s) matched.", matched - returned);
   }
   return output.length;
@@ -489,11 +490,11 @@ size_t event_debug_render_profiles(char *buffer, size_t capacity, int width, siz
   game_event_type_id_t event_type;
   size_t live;
 
-  limit = MIN(MAX(limit, 1U), EVENT_DEBUG_MAX_LIMIT);
+  limit = size_min(size_max(limit, 1U), EVENT_DEBUG_MAX_LIMIT);
   debug_output_init(&output, buffer, capacity, width);
   total = PERF_get_event_profiles(NULL, 0U);
-  offset = MIN(offset, total);
-  shown = MIN(total - offset, limit);
+  offset = size_min(offset, total);
+  shown = size_min(total - offset, limit);
   debug_output_title(&output, "Event Callback Types");
   debug_output_line(&output, "Registered: %zu", total);
   debug_output_line(&output, "Showing: %zu", shown);
@@ -517,7 +518,7 @@ size_t event_debug_render_profiles(char *buffer, size_t capacity, int width, siz
       filter.type_equals = snapshots[index].identity;
       live = event_debug_inspect(&filter, NULL, 0, NULL);
     }
-    debug_output_line(&output, "");
+    debug_output_line(&output, "%s", "");
     debug_output_line(&output, "%s", snapshots[index].identity);
     debug_output_line(&output, "  live: %zu", live);
     debug_output_line(&output, "  calls: %" PRIu64, snapshots[index].calls);
@@ -582,14 +583,14 @@ size_t event_debug_render_domain(char *buffer, size_t capacity, int width, const
   debug_output_line(&output, "Rejected chains: %" PRIu64, bus_stats.rejected_causal_chains);
   memset(types, 0, sizeof(types));
   total_types = domain_event_inspect_types(bus, types, EVENT_DEBUG_DOMAIN_TYPE_LIMIT);
-  type_count = MIN(total_types, EVENT_DEBUG_DOMAIN_TYPE_LIMIT);
+  type_count = size_min(total_types, EVENT_DEBUG_DOMAIN_TYPE_LIMIT);
   matched = 0;
   for (type_index = 0; type_index < type_count; type_index++)
   {
     if (!domain_type_matches(&types[type_index], type_filter))
       continue;
     matched++;
-    debug_output_line(&output, "");
+    debug_output_line(&output, "%s", "");
     debug_output_line(&output, "0x%08" PRIx32 " %s", types[type_index].type,
                       types[type_index].name);
     debug_output_line(&output, "  payload bytes: %zu", types[type_index].payload_size);
@@ -671,7 +672,7 @@ size_t event_debug_render_subscriptions(char *buffer, size_t capacity, int width
   size_t shown;
   size_t index;
 
-  limit = MIN(MAX(limit, 1U), EVENT_DEBUG_MAX_LIMIT);
+  limit = size_min(size_max(limit, 1U), EVENT_DEBUG_MAX_LIMIT);
   memset(subscriptions, 0, sizeof(subscriptions));
   debug_output_init(&output, buffer, capacity, width);
   debug_output_title(&output, "Domain Subscriptions");
@@ -690,7 +691,7 @@ size_t event_debug_render_subscriptions(char *buffer, size_t capacity, int width
     matched = domain_event_inspect_entity_subscriptions(bus, *entity, subscriptions, limit);
   else
     matched = domain_event_inspect_subscriptions(bus, NULL, subscriptions, limit);
-  shown = MIN(matched, limit);
+  shown = size_min(matched, limit);
   debug_output_line(&output, "Matched/showing: %zu/%zu", matched, shown);
   for (index = 0U; index < shown; index++)
   {
@@ -699,7 +700,7 @@ size_t event_debug_render_subscriptions(char *buffer, size_t capacity, int width
     memset(&type_stats, 0, sizeof(type_stats));
     if (domain_event_get_type_stats(bus, subscriptions[index].type, &type_stats) == DOMAIN_EVENT_OK)
       type_name = type_stats.name;
-    debug_output_line(&output, "");
+    debug_output_line(&output, "%s", "");
     debug_output_line(&output, "#%" PRIu64 " %s", subscriptions[index].handle.id,
                       subscriptions[index].identity);
     debug_output_line(&output, "  event: %s (0x%08" PRIx32 ")", type_name,
@@ -756,18 +757,20 @@ static bool event_debug_parse_entity_kind(const char *name, enum event_debug_ent
 }
 
 static bool event_debug_select_entity(struct char_data *ch, enum event_debug_entity_kind kind,
-                                      char *target, struct event_debug_filter *filter,
+                                      const char *target, struct event_debug_filter *filter,
                                       struct domain_entity_handle *domain_entity)
 {
   struct char_data *character;
   struct obj_data *object;
   room_rnum room;
   uint64_t vnum;
+  char target_buf[MAX_INPUT_LENGTH]; /* the lookups consume a dot prefix */
 
   if (ch == NULL || filter == NULL)
     return false;
   if (target == NULL)
     target = "";
+  strlcpy(target_buf, target, sizeof(target_buf));
   if (domain_entity != NULL)
     *domain_entity = domain_entity_handle_none();
   filter->owner_set = true;
@@ -776,7 +779,8 @@ static bool event_debug_select_entity(struct char_data *ch, enum event_debug_ent
   {
   case EVENT_DEBUG_ENTITY_PLAYER:
   case EVENT_DEBUG_ENTITY_MOBILE:
-    if (*target == '\0' || (character = get_char_vis(ch, target, NULL, FIND_CHAR_WORLD)) == NULL ||
+    if (*target == '\0' ||
+        (character = get_char_vis(ch, target_buf, NULL, FIND_CHAR_WORLD)) == NULL ||
         (kind == EVENT_DEBUG_ENTITY_PLAYER && IS_NPC(character)) ||
         (kind == EVENT_DEBUG_ENTITY_MOBILE && !IS_NPC(character)))
     {
@@ -790,7 +794,7 @@ static bool event_debug_select_entity(struct char_data *ch, enum event_debug_ent
       *domain_entity = domain_event_character_handle(character);
     break;
   case EVENT_DEBUG_ENTITY_OBJECT:
-    if (*target == '\0' || (object = get_obj_vis(ch, target, NULL)) == NULL)
+    if (*target == '\0' || (object = get_obj_vis(ch, target_buf, NULL)) == NULL)
     {
       send_to_char(ch, "No visible object matches '%s'.\r\n", target);
       return false;

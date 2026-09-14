@@ -6,6 +6,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <float.h>
 #include <math.h>
 #include "structs.h"
 #include "utils.h"
@@ -475,7 +476,7 @@ const struct vessel_terrain_caps *get_vessel_terrain_caps(enum vessel_class vess
   /* Bounds check - default to VESSEL_SHIP for invalid types */
   if (vessel_type < 0 || vessel_type >= NUM_VESSEL_TYPES)
   {
-    log("SYSERR: get_vessel_terrain_caps: Invalid vessel type %d, defaulting to VESSEL_SHIP",
+    log("SYSERR: get_vessel_terrain_caps: Invalid vessel type %u, defaulting to VESSEL_SHIP",
         vessel_type);
     return &vessel_terrain_data[VESSEL_SHIP];
   }
@@ -577,7 +578,7 @@ static bool vessel_can_traverse_sector(enum vessel_class vessel_type, int sector
     return FALSE;
   }
 
-  return caps->terrain_speed_mod[sector_type] != 0;
+  return caps->terrain_speed_mod[sector_type] > 0.0;
 }
 
 /**
@@ -687,7 +688,7 @@ int get_vessel_cargo_capacity(enum vessel_class vessel_type)
 
   if (vessel_type < 0 || vessel_type >= NUM_VESSEL_TYPES)
   {
-    log("SYSERR: get_vessel_cargo_capacity: Invalid vessel type %d, defaulting to VESSEL_SHIP",
+    log("SYSERR: get_vessel_cargo_capacity: Invalid vessel type %u, defaulting to VESSEL_SHIP",
         vessel_type);
     return vessel_cargo_capacity[VESSEL_SHIP];
   }
@@ -753,21 +754,6 @@ void vessel_initialize_condition(struct greyhawk_ship_data *ship, int armor)
 }
 
 /* Forward declarations for Greyhawk functions */
-void greyhawk_getstatus(int slot, int rnum);
-void greyhawk_getposition(int slot, int rnum);
-void greyhawk_dispweapon(int slot, int rnum);
-int greyhawk_weaprange(int shipnum, int slot, char range);
-int greyhawk_bearing(float x1, float y1, float x2, float y2);
-float greyhawk_range(float x1, float y1, float z1, float x2, float y2, float z2);
-void greyhawk_dispcontact(int i);
-int greyhawk_getcontacts(int shipnum);
-void greyhawk_setcontact(int i, struct obj_data *obj, int shipnum, int xoffset, int yoffset);
-int greyhawk_getarc(int ship1, int ship2);
-int greyhawk_loadship(int template, int to_room, short int x_cord, short int y_cord,
-                      short int z_cord);
-void greyhawk_nameship(char *name, int shipnum);
-bool greyhawk_setsail(int class, int shipnum);
-void greyhawk_initialize_ships(void);
 
 /* ========================================================================= */
 /* WILDERNESS ROOM ALLOCATION HELPER                                        */
@@ -1293,14 +1279,14 @@ int greyhawk_weaprange(int shipnum, int slot, char range)
   switch (range)
   {
   case GREYHAWK_SHRTRANGE:
-    return (int)((float)(greyhawk_ships[shipnum].slot[slot].val0 -
-                         greyhawk_ships[shipnum].slot[slot].val1) /
+    return (int)((double)(greyhawk_ships[shipnum].slot[slot].val0 -
+                          greyhawk_ships[shipnum].slot[slot].val1) /
                      3 +
                  greyhawk_ships[shipnum].slot[slot].val1);
   case GREYHAWK_MEDRANGE:
-    return (int)((float)((greyhawk_ships[shipnum].slot[slot].val0 -
-                          greyhawk_ships[shipnum].slot[slot].val1) /
-                         3) *
+    return (int)((double)((greyhawk_ships[shipnum].slot[slot].val0 -
+                           greyhawk_ships[shipnum].slot[slot].val1) /
+                          3) *
                      2 +
                  greyhawk_ships[shipnum].slot[slot].val1);
   case GREYHAWK_LNGRANGE:
@@ -1318,26 +1304,19 @@ int greyhawk_weaprange(int shipnum, int slot, char range)
  * @param y2 Target Y coordinate
  * @return Bearing in degrees (0-360)
  */
-int greyhawk_bearing(float x1, float y1, float x2, float y2)
+int greyhawk_bearing(double x1, double y1, double x2, double y2)
 {
   int val;
 
-  if (y1 == y2)
+  /* due east or west; the general case below also covers due north and south */
+  if (fabs(y2 - y1) < DBL_EPSILON)
   {
     if (x1 > x2)
       return 270;
     return 90;
   }
 
-  if (x1 == x2)
-  {
-    if (y1 > y2)
-      return 180;
-    else
-      return 0;
-  }
-
-  val = atan((x2 - x1) / (y2 - y1)) * 180 / M_PI;
+  val = (int)(atan((x2 - x1) / (y2 - y1)) * 180 / M_PI);
 
   if (y1 < y2)
   {
@@ -1361,11 +1340,11 @@ int greyhawk_bearing(float x1, float y1, float x2, float y2)
  * @param z2 Target Z coordinate
  * @return 3D distance
  */
-float greyhawk_range(float x1, float y1, float z1, float x2, float y2, float z2)
+double greyhawk_range(double x1, double y1, double z1, double x2, double y2, double z2)
 {
-  float dx = x2 - x1;
-  float dy = y2 - y1;
-  float dz = z2 - z1;
+  double dx = x2 - x1;
+  double dy = y2 - y1;
+  double dz = z2 - z1;
 
   return sqrt((dx * dx) + (dy * dy) + (dz * dz));
 }
@@ -1435,7 +1414,7 @@ void greyhawk_initialize_ships(void)
       world[interior_rnum].ship = ship;
 
       log("Greyhawk: Test vessel initialized in slot 1 - interior room 70003 "
-          "(rnum %d), location (-66, 92)",
+          "(rnum %" PRI_IDX "), location (-66, 92)",
           interior_rnum);
     }
     else
@@ -1481,7 +1460,7 @@ int vessel_relink_world_objects(void)
     ship = &greyhawk_ships[shipnum];
     if (ship->shiproom != GET_OBJ_VAL(obj, 0))
     {
-      log("SYSERR: Ship object %d entrance %d disagrees with fleet slot %d room %d",
+      log("SYSERR: Ship object %u entrance %d disagrees with fleet slot %d room %d",
           GET_OBJ_VNUM(obj), GET_OBJ_VAL(obj, 0), shipnum, ship->shiproom);
       continue;
     }
@@ -1489,21 +1468,21 @@ int vessel_relink_world_objects(void)
     interior_rnum = real_room(ship->shiproom);
     if (interior_rnum == NOWHERE)
     {
-      log("SYSERR: Ship object %d cannot relink missing interior room %d", GET_OBJ_VNUM(obj),
+      log("SYSERR: Ship object %u cannot relink missing interior room %d", GET_OBJ_VNUM(obj),
           ship->shiproom);
       continue;
     }
 
     if (ship->shipobj != NULL && ship->shipobj != obj && IN_ROOM(ship->shipobj) != NOWHERE)
     {
-      log("SYSERR: Fleet slot %d has duplicate live ship objects %d and %d", shipnum,
+      log("SYSERR: Fleet slot %d has duplicate live ship objects %u and %u", shipnum,
           GET_OBJ_VNUM(ship->shipobj), GET_OBJ_VNUM(obj));
       continue;
     }
 
     if (!vessel_place_hull_object(ship, obj))
     {
-      log("SYSERR: Ship object %d could not be placed for fleet slot %d", GET_OBJ_VNUM(obj),
+      log("SYSERR: Ship object %u could not be placed for fleet slot %d", GET_OBJ_VNUM(obj),
           shipnum);
       continue;
     }
@@ -1607,9 +1586,9 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
   }
 
   /* Commit coordinates only after room allocation and departure clearance. */
-  greyhawk_ships[shipnum].x = (float)new_x;
-  greyhawk_ships[shipnum].y = (float)new_y;
-  greyhawk_ships[shipnum].z = (float)new_z;
+  greyhawk_ships[shipnum].x = (double)new_x;
+  greyhawk_ships[shipnum].y = (double)new_y;
+  greyhawk_ships[shipnum].z = (double)new_z;
 
   /* Update ship's location to the wilderness room */
   greyhawk_ships[shipnum].location = world[wilderness_room].number;
@@ -2076,7 +2055,8 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
 
   /* Adjust ship speed based on terrain and weather, then credit the
    * sailmaster's handling bonus (see vessels_crew.c) */
-  greyhawk_ships[shipnum].speed = (greyhawk_ships[shipnum].setspeed * speed_modifier) / 100;
+  greyhawk_ships[shipnum].speed =
+      (short)((greyhawk_ships[shipnum].setspeed * speed_modifier) / 100);
   greyhawk_ships[shipnum].speed += greyhawk_ships[shipnum].sailcrew.speedadjust;
   if (greyhawk_ships[shipnum].speed > greyhawk_ships[shipnum].maxspeed &&
       greyhawk_ships[shipnum].maxspeed > 0)
@@ -2327,8 +2307,8 @@ ACMD(do_greyhawk_speed)
   }
 
   /* Set the new speed */
-  greyhawk_ships[shipnum].setspeed = new_speed;
-  greyhawk_ships[shipnum].speed = new_speed;
+  greyhawk_ships[shipnum].setspeed = (short)new_speed;
+  greyhawk_ships[shipnum].speed = (short)new_speed;
 
   /* Apply terrain modifiers using actual vessel type */
   {
@@ -2338,7 +2318,7 @@ ACMD(do_greyhawk_speed)
     int speed_modifier = get_vessel_position_speed_modifier(
         vtype, terrain_type, 0, (int)greyhawk_ships[shipnum].x, (int)greyhawk_ships[shipnum].y,
         (int)greyhawk_ships[shipnum].z, &altitude_lane);
-    greyhawk_ships[shipnum].speed = (new_speed * speed_modifier) / 100;
+    greyhawk_ships[shipnum].speed = (short)((new_speed * speed_modifier) / 100);
 
     /* Send feedback */
     if (new_speed == 0)
@@ -2473,7 +2453,7 @@ ACMD(do_greyhawk_heading)
 struct contact_entry
 {
   int shipnum;
-  float range;
+  double range;
   int bearing;
 };
 
@@ -2527,8 +2507,8 @@ ACMD(do_greyhawk_contacts)
   {
     if (is_valid_ship(&greyhawk_ships[i]) && i != shipnum)
     {
-      float range = greyhawk_range(ship_x, ship_y, ship_z, greyhawk_ships[i].x, greyhawk_ships[i].y,
-                                   greyhawk_ships[i].z);
+      double range = greyhawk_range(ship_x, ship_y, ship_z, greyhawk_ships[i].x,
+                                    greyhawk_ships[i].y, greyhawk_ships[i].z);
 
       if (range <= CONTACT_DETECTION_RANGE)
       {

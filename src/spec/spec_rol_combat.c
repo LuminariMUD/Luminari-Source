@@ -951,9 +951,10 @@ bool rol_planar_screech_health_allows(int hit, int max_hit)
 
 int rol_planar_screech_cooldown_seconds(int mobile_vnum)
 {
-  return rol_planar_burst_profile(mobile_vnum, NULL, NULL, NULL) &&
-                 rol_monster_combat_profile_for(mobile_vnum)->effect ==
-                     ROL_MONSTER_PLANAR_VROCK_BURSTS
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+
+  return rol_planar_burst_profile(mobile_vnum, NULL, NULL, NULL) && profile != NULL &&
+                 profile->effect == ROL_MONSTER_PLANAR_VROCK_BURSTS
              ? SECS_PER_MUD_DAY
              : 0;
 }
@@ -2404,7 +2405,7 @@ static int rol_monster_replace(struct spec_event_context *context, struct char_d
   replacement = read_mobile(replacement_vnum, VIRTUAL);
   if (replacement == NULL)
   {
-    log("SYSERR: RoL monster %d cannot load replacement %d", GET_MOB_VNUM(ch), replacement_vnum);
+    log("SYSERR: RoL monster %u cannot load replacement %d", GET_MOB_VNUM(ch), replacement_vnum);
     return FALSE;
   }
   char_to_room(replacement, IN_ROOM(ch));
@@ -2566,7 +2567,7 @@ static bool rol_monster_summon_helper(struct char_data *ch, int mobile_vnum,
 
   if ((helper = read_mobile(mobile_vnum, VIRTUAL)) == NULL)
   {
-    log("SYSERR: RoL monster %d cannot load helper %d", GET_MOB_VNUM(ch), mobile_vnum);
+    log("SYSERR: RoL monster %u cannot load helper %d", GET_MOB_VNUM(ch), mobile_vnum);
     return false;
   }
   char_to_room(helper, IN_ROOM(ch));
@@ -4229,7 +4230,7 @@ static int rol_monster_command(struct spec_event_context *context,
     if (fleeing)
     {
       act("As you turn to flee, $n trips you!", FALSE, ch, NULL, actor, TO_VICT);
-      GET_POS(actor) = MIN(GET_POS(actor), POS_SITTING);
+      GET_POS(actor) = (byte)MIN(GET_POS(actor), POS_SITTING);
     }
     else
       act("As you try to leave, $n leaps in front of you!", FALSE, ch, NULL, actor, TO_VICT);
@@ -4493,7 +4494,7 @@ static int rol_monster_vortex_guardian_death(struct char_data *ch)
   door_state_begin(&operation, IN_ROOM(ch), NORTH, false, DOMAIN_DOOR_GAMEPLAY);
   north_exit = world[IN_ROOM(ch)].dir_option[NORTH];
   if (north_exit == NULL)
-    log("SYSERR: RoL Vortex Guardian has no northern exit to block in room %d",
+    log("SYSERR: RoL Vortex Guardian has no northern exit to block in room %u",
         GET_ROOM_VNUM(IN_ROOM(ch)));
   else
     SET_BIT(north_exit->exit_info, EX_BLOCKED);
@@ -4976,9 +4977,9 @@ static struct char_data *rol_monster_room_mobile(struct char_data *ch, int mobil
   return NULL;
 }
 
-static void rol_monster_move_to_vnum(struct char_data *ch, int room_vnum)
+static void rol_monster_move_to_vnum(struct char_data *ch, int room_vnum_id)
 {
-  room_rnum destination = real_room(room_vnum);
+  room_rnum destination = real_room(room_vnum_id);
 
   if (!VALID_ROOM_RNUM(destination) || ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
     return;

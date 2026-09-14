@@ -25,12 +25,12 @@
 #include "clan.h"
 #include "mysql.h"
 #include "modify.h"
+#include "new_mail.h"
 
 void perform_mail_delete(struct char_data *ch, int mnum);
 void perform_mail_list(struct char_data *ch, int type);
 void perform_mail_read(struct char_data *ch, int mnum);
 
-extern MYSQL *conn;
 extern struct clan_type *clan_info;
 
 void send_editor_help(struct descriptor_data *d);
@@ -273,7 +273,11 @@ ACMD(do_new_mail)
         return;
       }
 
+      if (ch->player_specials->new_mail_receiver)
+        free(ch->player_specials->new_mail_receiver);
       ch->player_specials->new_mail_receiver = strdup(arg5);
+      if (ch->player_specials->new_mail_subject)
+        free(ch->player_specials->new_mail_subject);
       ch->player_specials->new_mail_subject = strdup(arg6);
       if (ch->player_specials->new_mail_content)
       {
@@ -310,10 +314,8 @@ void perform_mail_list(struct char_data *ch, int type)
   MYSQL_ROW row = NULL;
   MYSQL_RES *res2 = NULL;
   MYSQL_ROW row2 = NULL;
-  extern MYSQL *conn2;
   MYSQL_RES *res3 = NULL;
   MYSQL_ROW row3 = NULL;
-  extern MYSQL *conn3;
 
   /* Check the connection, reconnect if necessary. */
   if (!MYSQL_PING_CONN(conn))
@@ -448,7 +450,6 @@ void perform_mail_read(struct char_data *ch, int mnum)
 {
   MYSQL_RES *res = NULL;
   MYSQL_ROW row = NULL;
-  extern MYSQL *conn2;
 
   /* Check the connection, reconnect if necessary. */
   if (!MYSQL_PING_CONN(conn))
@@ -678,10 +679,8 @@ int new_mail_alert(struct char_data *ch, bool silent)
   MYSQL_ROW row = NULL;
   MYSQL_RES *res2 = NULL;
   MYSQL_ROW row2 = NULL;
-  extern MYSQL *conn2;
   MYSQL_RES *res3 = NULL;
   MYSQL_ROW row3 = NULL;
-  extern MYSQL *conn3;
 
   /* Check the connection, reconnect if necessary. */
   if (!MYSQL_PING_CONN(conn))

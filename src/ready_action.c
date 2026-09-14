@@ -105,7 +105,7 @@ static int compare_lateness(const void *left, const void *right)
 void ready_action_latency_read(struct ready_action_latency *stats)
 {
   uint64_t sorted[READY_LATENCY_CAPACITY];
-  size_t count = MIN(ready_callbacks, READY_LATENCY_CAPACITY);
+  size_t count = u64_min(ready_callbacks, READY_LATENCY_CAPACITY);
 
   if (stats == NULL)
     return;
@@ -400,7 +400,7 @@ bool ready_action_runtime_init(void)
   status = event_runtime_register_type(&config, &ready_execution_event_type);
   if (status != GAME_SCHEDULER_OK)
   {
-    log("SYSERR: unable to register native event type 'action.ready.execute' (status %d).", status);
+    log("SYSERR: unable to register native event type 'action.ready.execute' (status %u).", status);
     return false;
   }
   config.name = "action.ready.expire";
@@ -784,7 +784,7 @@ ACMD(do_ready)
   {
     clause = door_clause;
     clause_length = strlen(" on door open");
-    two_arguments((char *)clause + clause_length, direction_name, sizeof(direction_name), extra,
+    two_arguments(clause + clause_length, direction_name, sizeof(direction_name), extra,
                   sizeof(extra));
     for (direction = 0; direction < DIR_COUNT; direction++)
       if (*direction_name != '\0' && is_abbrev(direction_name, dirs[direction]))
@@ -816,8 +816,8 @@ ACMD(do_ready)
     direction = -1;
     on_casting = false;
     on_ally = true;
-    tail = one_argument((char *)clause + clause_length, ally_name, sizeof(ally_name));
-    tail = one_argument((char *)tail, extra, sizeof(extra));
+    tail = one_argument(clause + clause_length, ally_name, sizeof(ally_name));
+    tail = one_argument(tail, extra, sizeof(extra));
     while (isspace((unsigned char)*tail))
       tail++;
     if (*ally_name == '\0' || strcasecmp(extra, "attacked") || *tail != '\0')

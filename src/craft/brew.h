@@ -22,4 +22,8 @@ struct obj_data *create_multi_spell_potion(int *spell_nums, int num_spells, stru
 ACMD_DECL(do_brew);
 MUD_EVENT_CALLBACK(event_brewing);
 
+
+bool alchemist_can_brew_spell(struct char_data *ch, int spellnum);
+void consume_brew_materials(struct char_data *ch, int spell_num);
+bool has_brew_materials(struct char_data *ch, int spell_num);
 #endif /* BREW_H */

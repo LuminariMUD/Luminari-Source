@@ -177,7 +177,7 @@ struct char_file_u_plrtoascii
 int sprintascii(char *out, bitvector_t bits);
 int plr_filename(char *orig_name, char *filename);
 
-void convert(char *filename)
+static void convert(char *filename)
 {
   FILE *fl, *outfile, *index_file;
   struct char_file_u_plrtoascii player;
@@ -205,7 +205,7 @@ void convert(char *filename)
 
   for (;;)
   {
-    j = fread(&player, sizeof(struct char_file_u_plrtoascii), 1, fl);
+    j = (int)fread(&player, sizeof(struct char_file_u_plrtoascii), 1, fl);
 
     if (feof(fl))
     {
@@ -481,7 +481,7 @@ int sprintascii(char *out, bitvector_t bits)
 {
   int i, j = 0;
   /* 32 bits, don't just add letters to try to get more unless your bitvector_t is also as large. */
-  char *flags = "abcdefghijklmnopqrstuvwxyzABCDEF";
+  const char *flags = "abcdefghijklmnopqrstuvwxyzABCDEF";
 
   for (i = 0; flags[i] != '\0'; i++)
     if (bits & (1 << i))

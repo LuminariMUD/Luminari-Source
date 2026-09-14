@@ -381,8 +381,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
       if (CLASS_LEVEL(ch, CLASS_ROGUE) >= 15)
         return TRUE;
     }
-    else
-      return FALSE;
+    return FALSE;
 
     /* berserker */
   case SKILL_RAGE:

@@ -1,0 +1,3 @@
+# Migration-tier warning budget for clang-22.
+# Distinct warning sites per class; may only shrink. Regenerate with
+# scripts/ci/check_warning_budget.py --compiler clang-22 --log LOG --update

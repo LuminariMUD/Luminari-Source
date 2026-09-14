@@ -193,9 +193,11 @@ ACMD(do_oasis_oedit)
   /* If we need to save, save the objects. */
   if (save)
   {
-    send_to_char(ch, "Saving all objects in zone %d.\r\n", zone_table[OLC_ZNUM(d)].number);
-    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s saves object info for zone %d.",
-           GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
+    send_to_char(ch, "Saving all objects in zone %" PRI_IDX ".\r\n",
+                 zone_table[OLC_ZNUM(d)].number);
+    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE,
+           "OLC: %s saves object info for zone %" PRI_IDX ".", GET_NAME(ch),
+           zone_table[OLC_ZNUM(d)].number);
 
     /* Save the objects in this zone. */
     save_objects(OLC_ZNUM(d));
@@ -223,8 +225,8 @@ ACMD(do_oasis_oedit)
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
   /* Log the OLC message. */
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d", GET_NAME(ch),
-         zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %" PRI_IDX " allowed zone %d",
+         GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
 static void oedit_setup_new(struct descriptor_data *d)
@@ -352,7 +354,7 @@ void oedit_save_internally(struct descriptor_data *d)
         case 'P':
           if (OLC_ZONE(dsc)->cmd[i].arg3 >= 0 && (obj_rnum)OLC_ZONE(dsc)->cmd[i].arg3 >= robj_num)
             OLC_ZONE(dsc)->cmd[i].arg3++;
-          /* Fall through. */
+          [[fallthrough]];
         case 'E':
         case 'G':
         case 'O':
@@ -545,7 +547,7 @@ static void oedit_disp_prompt_apply_menu(struct descriptor_data *d)
   OLC_MODE(d) = OEDIT_PROMPT_APPLY;
 }
 
-void oedit_disp_prompt_spellbook_menu(struct descriptor_data *d)
+static void oedit_disp_prompt_spellbook_menu(struct descriptor_data *d)
 {
   int counter, columns, i, u = 0;
 
@@ -728,7 +730,7 @@ static void oedit_disp_specab_activation_method_menu(struct descriptor_data *d)
                   cyn, bits, nrm);
 }
 
-void oedit_disp_specab_bane_race(struct descriptor_data *d)
+static void oedit_disp_specab_bane_race(struct descriptor_data *d)
 {
   int counter, columns = 0;
 
@@ -743,7 +745,7 @@ void oedit_disp_specab_bane_race(struct descriptor_data *d)
   write_to_output(d, "\r\n%sEnter race number : ", nrm);
 }
 
-void oedit_disp_specab_bane_subrace(struct descriptor_data *d)
+static void oedit_disp_specab_bane_subrace(struct descriptor_data *d)
 {
   int counter, columns = 0;
 
@@ -1839,7 +1841,7 @@ static void oedit_disp_wear_menu(struct descriptor_data *d)
                   cyn, bits, nrm);
 }
 
-bool remove_special_ability(struct obj_data *obj, int number __attribute__((unused)))
+static bool remove_special_ability(struct obj_data *obj, int number __attribute__((unused)))
 {
   // struct obj_special_ability *current = obj->special_abilities;
   // struct obj_special_ability *next;
@@ -1892,7 +1894,7 @@ bool remove_special_ability(struct obj_data *obj, int number __attribute__((unus
   // return deleted;
 }
 
-struct obj_special_ability *get_specab_by_position(struct obj_data *obj, int position)
+static struct obj_special_ability *get_specab_by_position(struct obj_data *obj, int position)
 {
   int i;
   struct obj_special_ability *specab;
@@ -1938,7 +1940,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
 
   write_to_output(
       d,
-      "-- Item number : [%s%d%s]\r\n"
+      "-- Item number : [%s%" PRI_IDX "%s]\r\n"
       "%s1%s) Keywords : %s%s\r\n"
       "%s2%s) S-Desc   : %s%s\r\n"
       "%s3%s) L-Desc   :-\r\n%s%s\r\n"
@@ -2046,7 +2048,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
       "%sM%s) Min Level              : %s%d\r\n"
       "%sP%s) Perm Affects           : %s%s\r\n"
       "%sV%s) Perm2 Affects (AFF2)   : %s%s\r\n"
-      "%sR%s) Mob Recipient          : %s%d\r\n"
+      "%sR%s) Mob Recipient          : %s%" PRI_IDX "\r\n"
       "%sS%s) Script                 : %s%s\r\n"
       "%sT%s) Spellbook menu\r\n"
       "%sEQ Rating (save/exit to update, under development): %s%d\r\n"
@@ -2094,7 +2096,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
 void oedit_parse(struct descriptor_data *d, char *arg)
 {
   int number, min_val = 0, i = 0, count = 0;
-  long max_val = 0;
+  int max_val = 0;
   char *oldtext = NULL;
   struct obj_data *obj;
   // int this_missile = -1;
@@ -2156,8 +2158,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     case 'y':
     case 'Y':
       oedit_save_internally(d);
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits obj %d",
-             GET_NAME(d->character), OLC_NUM(d));
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
+             "OLC: %s edits obj %" PRI_IDX, GET_NAME(d->character), OLC_NUM(d));
       if (CONFIG_OLC_SAVE)
       {
         oedit_save_to_disk(real_zone_by_thing(OLC_NUM(d)));
@@ -2219,7 +2221,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
         iedit_commit_existing(obj, OLC_OBJ(d));
         OLC_OBJ(d) = NULL;
 
-        log("OLC: %s iedit a unique #%d", GET_NAME(d->character), GET_OBJ_VNUM(obj));
+        log("OLC: %s iedit a unique #%u", GET_NAME(d->character), GET_OBJ_VNUM(obj));
 
         if (d->character)
         {
@@ -3559,6 +3561,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_PROMPT_SPELLBOOK:
+  {
     if ((number = atoi(arg)) == 0)
       break;
     else if (number < 0 || number > SPELLBOOK_SIZE)
@@ -3590,6 +3593,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     OLC_MODE(d) = OEDIT_SPELLBOOK;
     oedit_disp_spellbook_menu(d);
     return;
+  }
 
   case OEDIT_SPELLBOOK:
     if ((number = atoi(arg)) == 0)
@@ -3632,8 +3636,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
         memset((char *)OLC_OBJ(d)->sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
       }
 
-      OLC_OBJ(d)->sbinfo[OLC_VAL(d)].spellname = number;
-      OLC_OBJ(d)->sbinfo[OLC_VAL(d)].pages = MAX(1, lowest_spell_level(number) / 2);
+      OLC_OBJ(d)->sbinfo[OLC_VAL(d)].spellname = (ush_int)number;
+      OLC_OBJ(d)->sbinfo[OLC_VAL(d)].pages = (ubyte)MAX(1, lowest_spell_level(number) / 2);
       ;
       oedit_disp_prompt_spellbook_menu(d);
     }
@@ -3921,9 +3925,10 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       oedit_disp_assign_weapon_specab_menu(d);
       return;
     case WEAPON_SPECAB_SPELL_STORING: /* Val 1: SPELL NUMBER */
-        ;
+      [[fallthrough]];
     default:;
     }
+    break;
   case OEDIT_SPECAB_VALUE_2:
     switch (OLC_SPECAB(d)->ability)
     {
@@ -3942,21 +3947,24 @@ void oedit_parse(struct descriptor_data *d, char *arg)
 
       return;
     case WEAPON_SPECAB_SPELL_STORING: /* Val 2: SPELL LEVEL */
-        ;
+      [[fallthrough]];
     default:;
     }
+    break;
 
   case OEDIT_SPECAB_VALUE_3:
     switch (OLC_SPECAB(d)->ability)
     {
     default:;
     }
+    break;
 
   case OEDIT_SPECAB_VALUE_4:
     switch (OLC_SPECAB(d)->ability)
     {
     default:;
     }
+    break;
 
   default:
     mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: Reached default case in oedit_parse()!");

@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-bool sect_no_weather(struct char_data *ch);
 
 void Test_pvp_policy_blocks_combat_damage_and_player_controlled_pets(CuTest *tc)
 {
@@ -56,11 +55,11 @@ void Test_pvp_policy_blocks_combat_damage_and_player_controlled_pets(CuTest *tc)
 
   attacker.player_specials = &attacker_specials;
   defender.player_specials = &defender_specials;
-  attacker.player.name = "Aggressor";
-  defender.player.name = "Defender";
-  monster.player.short_descr = "a pvp policy monster";
-  attacker_pet.player.short_descr = "an attacker pet";
-  defender_pet.player.short_descr = "a defender pet";
+  attacker.player.name = CuMutableString("Aggressor");
+  defender.player.name = CuMutableString("Defender");
+  monster.player.short_descr = CuMutableString("a pvp policy monster");
+  attacker_pet.player.short_descr = CuMutableString("an attacker pet");
+  defender_pet.player.short_descr = CuMutableString("a defender pet");
   SET_BIT_AR(MOB_FLAGS(&monster), MOB_ISNPC);
   SET_BIT_AR(MOB_FLAGS(&attacker_pet), MOB_ISNPC);
   SET_BIT_AR(MOB_FLAGS(&defender_pet), MOB_ISNPC);
@@ -269,7 +268,7 @@ void Test_empty_list_iteration_is_a_clean_noop(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, merge_iterator(&iterator, &list));
   CuAssertPtrEquals(tc, NULL, iterator.pList);
   CuAssertPtrEquals(tc, NULL, iterator.pItem);
-  CuAssertIntEquals(tc, 0, list.iIterators);
+  CuAssertIntEquals(tc, 0, (int)list.iIterators);
 }
 
 void Test_combat_perk_group_iterators_detach_on_matches_and_completion(CuTest *tc)
@@ -302,8 +301,8 @@ void Test_combat_perk_group_iterators_detach_on_matches_and_completion(CuTest *t
 
   ch.player_specials = &ch_specials;
   ally.player_specials = &ally_specials;
-  ch.player.name = "perk iterator character";
-  ally.player.name = "perk iterator ally";
+  ch.player.name = CuMutableString("perk iterator character");
+  ally.player.name = CuMutableString("perk iterator ally");
   GET_LEVEL(&ch) = 10;
   GET_LEVEL(&ally) = 10;
   IN_ROOM(&ch) = 0;
@@ -327,7 +326,7 @@ void Test_combat_perk_group_iterators_detach_on_matches_and_completion(CuTest *t
   ally.player_specials->saved.perks = &telepathic_bond;
 
   CuAssertIntEquals(tc, 1, get_inquisitor_telepathic_bond_bonus(&ch));
-  CuAssertIntEquals(tc, 0, members.iIterators);
+  CuAssertIntEquals(tc, 0, (int)members.iIterators);
 
   ally.player_specials->saved.perks = NULL;
   GET_LEVEL(&ally) = LVL_STAFF;
@@ -343,23 +342,23 @@ void Test_combat_perk_group_iterators_detach_on_matches_and_completion(CuTest *t
   compute_armor_class(NULL, &ch, FALSE, MODE_ARMOR_CLASS_NORMAL);
   world = saved_world;
   top_of_world = saved_top_of_world;
-  CuAssertIntEquals(tc, 0, members.iIterators);
+  CuAssertIntEquals(tc, 0, (int)members.iIterators);
 
   CuAssertTrue(tc, group_has_paladin_aura_of_protection(&ch));
-  CuAssertIntEquals(tc, 0, members.iIterators);
+  CuAssertIntEquals(tc, 0, (int)members.iIterators);
 
   CuAssertTrue(tc, group_has_paladin_aura_of_life(&ch));
-  CuAssertIntEquals(tc, 0, members.iIterators);
+  CuAssertIntEquals(tc, 0, (int)members.iIterators);
 
   CuAssertPtrEquals(tc, &ally, test_find_divine_sacrifice_defender(&ch));
-  CuAssertIntEquals(tc, 0, members.iIterators);
+  CuAssertIntEquals(tc, 0, (int)members.iIterators);
 
   GET_LEVEL(&ally) = 10;
   REMOVE_BIT_AR(PRF_FLAGS(&ally), PRF_HOLYLIGHT);
   GET_EQ(&ally, WEAR_SHIELD) = NULL;
 
   test_apply_group_sacred_vengeance(&ch);
-  CuAssertIntEquals(tc, 0, members.iIterators);
+  CuAssertIntEquals(tc, 0, (int)members.iIterators);
 }
 
 void Test_combat_production_damage_type_validation(CuTest *tc)
@@ -467,8 +466,8 @@ void Test_litany_of_righteousness_dazzles_the_evil_target(CuTest *tc)
   memset(&room, 0, sizeof(room));
   ch.player_specials = &ch_player_specials;
   victim.player_specials = &victim_player_specials;
-  ch.player.name = "litany test caster";
-  victim.player.name = "litany test target";
+  ch.player.name = CuMutableString("litany test caster");
+  victim.player.name = CuMutableString("litany test target");
   GET_LEVEL(&ch) = 10;
   GET_LEVEL(&victim) = 10;
   GET_ALIGNMENT(&ch) = 1000;
@@ -553,7 +552,7 @@ void Test_capped_kill_experience_does_not_report_zero_award(CuTest *tc)
   descriptor.pProtocol = ProtocolCreate();
   ch.desc = &descriptor;
   ch.player_specials = &player_specials;
-  ch.player.name = "kill experience test character";
+  ch.player.name = CuMutableString("kill experience test character");
   IN_ROOM(&ch) = NOWHERE;
   GET_CLASS(&ch) = CLASS_WARRIOR;
   GET_LEVEL(&ch) = 12;
@@ -624,12 +623,12 @@ void Test_happy_hour_kill_experience_is_boosted_once(CuTest *tc)
   descriptor.pProtocol = ProtocolCreate();
   ch.desc = &descriptor;
   ch.player_specials = &player_specials;
-  ch.player.name = "happy hour test character";
+  ch.player.name = CuMutableString("happy hour test character");
   IN_ROOM(&ch) = NOWHERE;
   GET_CLASS(&ch) = CLASS_WARRIOR;
   GET_LEVEL(&ch) = 12;
   ch.player_specials->saved.stage_info.current_stage = 1;
-  victim.player.name = "happy hour test victim";
+  victim.player.name = CuMutableString("happy hour test victim");
   victim.player_specials = &dummy_mob;
   SET_BIT_AR(MOB_FLAGS(&victim), MOB_ISNPC);
   IN_ROOM(&victim) = NOWHERE;
@@ -711,7 +710,7 @@ void Test_lich_touch_self_heal_ignores_single_file_reach(CuTest *tc)
   SET_BIT_AR(ROOM_FLAGS(0), ROOM_SINGLEFILE);
   room.people = &ch;
   ch.player_specials = &player_specials;
-  ch.player.name = "lich touch test character";
+  ch.player.name = CuMutableString("lich touch test character");
   IN_ROOM(&ch) = 0;
   GET_REAL_RACE(&ch) = RACE_LICH;
   GET_LEVEL(&ch) = 30;
@@ -810,7 +809,7 @@ void Test_combat_reaction_queue_is_bounded_fifo_and_handle_safe(CuTest *tc)
   CuAssertIntEquals(
       tc, COMBAT_REACTION_DEQUEUE_STALE,
       combat_reaction_dequeue_damage(&queue, &damage_packet, &resolved_source, &resolved_target));
-  CuAssertIntEquals(tc, 1, queue.stale);
+  CuAssertIntEquals(tc, 1, (int)queue.stale);
 
   combat_reaction_queue_init(&queue);
   for (index = 0U; index < COMBAT_REACTION_CAPACITY; index++)
@@ -818,9 +817,9 @@ void Test_combat_reaction_queue_is_bounded_fifo_and_handle_safe(CuTest *tc)
                                                     DAM_SLICE, ATTACK_TYPE_PRIMARY));
   CuAssertTrue(tc, !combat_reaction_enqueue_damage(&queue, &source, &target, 1, TYPE_HIT, DAM_SLICE,
                                                    ATTACK_TYPE_PRIMARY));
-  CuAssertIntEquals(tc, COMBAT_REACTION_CAPACITY, queue.count);
-  CuAssertIntEquals(tc, COMBAT_REACTION_CAPACITY, queue.scheduled);
-  CuAssertIntEquals(tc, 1, queue.dropped);
+  CuAssertIntEquals(tc, COMBAT_REACTION_CAPACITY, (int)queue.count);
+  CuAssertIntEquals(tc, COMBAT_REACTION_CAPACITY, (int)queue.scheduled);
+  CuAssertIntEquals(tc, 1, (int)queue.dropped);
 
   domain_event_world_forget_character(&source);
   domain_event_world_forget_character(&target);
@@ -845,16 +844,16 @@ void Test_combat_reaction_enqueue_rejects_unusable_packets(CuTest *tc)
                                                    ATTACK_TYPE_PRIMARY));
   CuAssertTrue(tc, !combat_reaction_enqueue_damage(&queue, &source, &target, -1, TYPE_HIT,
                                                    DAM_SLICE, ATTACK_TYPE_PRIMARY));
-  CuAssertIntEquals(tc, 0, queue.count);
-  CuAssertIntEquals(tc, 0, queue.scheduled);
-  CuAssertIntEquals(tc, 0, queue.dropped);
-  CuAssertIntEquals(tc, 0, queue.stale);
+  CuAssertIntEquals(tc, 0, (int)queue.count);
+  CuAssertIntEquals(tc, 0, (int)queue.scheduled);
+  CuAssertIntEquals(tc, 0, (int)queue.dropped);
+  CuAssertIntEquals(tc, 0, (int)queue.stale);
 
   /* Zero damage is a legitimate packet and still occupies a slot. */
   CuAssertTrue(tc, combat_reaction_enqueue_damage(&queue, &source, &target, 0, TYPE_HIT, DAM_SLICE,
                                                   ATTACK_TYPE_PRIMARY));
-  CuAssertIntEquals(tc, 1, queue.count);
-  CuAssertIntEquals(tc, 1, queue.scheduled);
+  CuAssertIntEquals(tc, 1, (int)queue.count);
+  CuAssertIntEquals(tc, 1, (int)queue.scheduled);
 
   domain_event_world_forget_character(&source);
   domain_event_world_forget_character(&target);
@@ -919,9 +918,9 @@ void Test_combat_state_derives_attackers_from_live_characters(CuTest *tc)
 
   saved_character_list = character_list;
   character_list = &first;
-  CuAssertIntEquals(tc, 2, combat_state_count_attackers(&victim));
-  CuAssertIntEquals(tc, 1, combat_state_count_attackers(&first));
-  CuAssertIntEquals(tc, 0, combat_state_count_attackers(NULL));
+  CuAssertIntEquals(tc, 2, (int)combat_state_count_attackers(&victim));
+  CuAssertIntEquals(tc, 1, (int)combat_state_count_attackers(&first));
+  CuAssertIntEquals(tc, 0, (int)combat_state_count_attackers(NULL));
   character_list = saved_character_list;
 }
 

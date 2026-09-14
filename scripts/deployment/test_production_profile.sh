@@ -83,13 +83,21 @@ empty=$("$profile" --cc "$cc") || fail "bare probe failed"
 [[ -z "$(field "$empty" PRODUCTION_CFLAGS)" ]] || fail "bare probe emitted CFLAGS"
 [[ -z "$(field "$empty" PRODUCTION_LDFLAGS)" ]] || fail "bare probe emitted LDFLAGS"
 
-# 4. A program built with the profile passes the ELF verifier.
+# 4. A program built with the profile passes the ELF verifier.  A toolchain
+#    that cannot mark the image with the CET property reports cf-protection as
+#    unsupported, and then that is the only property the verifier may miss.
+unsupported=$(field "$output" PRODUCTION_UNSUPPORTED)
 # shellcheck disable=SC2086
 "$cc" $cflags $ldflags -o "$test_root/hardened" "$test_root/helper.c" ||
   fail "could not build the hardened helper"
-"$verify" "$test_root/hardened" >"$test_root/hardened.log" 2>&1 ||
+if "$verify" "$test_root/hardened" >"$test_root/hardened.log" 2>&1; then
+  grep -q 'result: PASS' "$test_root/hardened.log" || fail "verifier did not report PASS"
+elif [[ " $unsupported " == *" cf-protection "* ]]; then
+  grep -q 'MISSING: cf-protection$' "$test_root/hardened.log" ||
+    fail "hardened helper failed verification beyond cf-protection: $(cat "$test_root/hardened.log")"
+else
   fail "hardened helper failed verification: $(cat "$test_root/hardened.log")"
-grep -q 'result: PASS' "$test_root/hardened.log" || fail "verifier did not report PASS"
+fi
 
 # 5. The verifier rejects the same program built with default flags, whatever
 #    hardening the distribution toolchain applies on its own.
@@ -119,5 +127,30 @@ done
 if "$verify" "$test_root/helper.c" >/dev/null 2>&1; then
   fail "verifier accepted a non-ELF file"
 fi
+
+# 8. Warning tiers: every key is present, the baseline is the -Wall -Wextra
+#    floor, the tiers are cumulative, and only known tiers are accepted.
+for key in WARNING_TIER WARNING_CFLAGS WARNING_UNSUPPORTED; do
+  grep -q "^$key=" <<< "$empty" || fail "probe output lacks $key"
+done
+[[ "$(field "$empty" WARNING_TIER)" == none ]] || fail "bare probe reported a warning tier"
+[[ -z "$(field "$empty" WARNING_CFLAGS)" ]] || fail "bare probe emitted warning flags"
+baseline=$("$profile" --cc "$cc" --warnings baseline) || fail "baseline warning probe failed"
+baseline_flags=$(field "$baseline" WARNING_CFLAGS)
+[[ " $baseline_flags " == *" -Wall "* && " $baseline_flags " == *" -Wextra "* ]] ||
+  fail "baseline tier lacks -Wall -Wextra: $baseline_flags"
+[[ " $baseline_flags " != *" -Wnull-dereference "* ]] || fail "baseline tier carries a migration flag"
+migration=$("$profile" --cc "$cc" --warnings migration) || fail "migration warning probe failed"
+migration_flags=$(field "$migration" WARNING_CFLAGS)
+for flag in $baseline_flags; do
+  [[ " $migration_flags " == *" $flag "* ]] || fail "migration tier dropped baseline flag $flag"
+done
+[[ " $migration_flags " == *" -Wnull-dereference "* ]] || fail "migration tier lacks -Wnull-dereference"
+if "$profile" --cc "$cc" --warnings pedantic >/dev/null 2>&1; then
+  fail "probe accepted an unknown warning tier"
+fi
+# shellcheck disable=SC2086
+"$cc" $baseline_flags -Werror -o "$test_root/baseline" "$test_root/helper.c" ||
+  fail "the helper does not build cleanly under the baseline tier with -Werror"
 
 printf 'production profile test: PASS (%s: %s)\n' "$cc" "$supported"

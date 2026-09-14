@@ -106,8 +106,8 @@ static bool spec_typed_begin(struct spec_typed_fixture *fixture)
 
   clear_char(&fixture->actor);
   fixture->actor.player_specials = &fixture->player_specials;
-  fixture->actor.player.name = "typed procedure actor";
-  fixture->actor.player.short_descr = "typed procedure actor";
+  fixture->actor.player.name = CuMutableString("typed procedure actor");
+  fixture->actor.player.short_descr = CuMutableString("typed procedure actor");
   GET_LEVEL(&fixture->actor) = 20;
   GET_POS(&fixture->actor) = POS_STANDING;
   IN_ROOM(&fixture->actor) = 0;

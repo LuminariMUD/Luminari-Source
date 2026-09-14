@@ -183,7 +183,7 @@ int delete_quest(qst_rnum rnum)
 
   rznum = real_zone_by_thing(QST_NUM(rnum));
 
-  log("GenOLC: delete_quest: Deleting quest #%d (%s).", QST_NUM(rnum), QST_NAME(rnum));
+  log("GenOLC: delete_quest: Deleting quest #%" PRI_IDX " (%s).", QST_NUM(rnum), QST_NAME(rnum));
 
   /* make a note of the quest master's secondary spec proc */
   tempfunc = QST_FUNC(rnum);
@@ -245,15 +245,16 @@ int save_quests(zone_rnum zone_num)
   if (zone_num < 0 || zone_num > top_of_zone_table)
   {
 #endif
-    log("SYSERR: GenOLC: save_quests: Invalid zone number %d passed! (0-%d)", zone_num,
-        top_of_zone_table);
+    log("SYSERR: GenOLC: save_quests: Invalid zone number %" PRI_IDX " passed! (0-%" PRI_IDX ")",
+        zone_num, top_of_zone_table);
     return FALSE;
   }
 
-  log("GenOLC: save_quests: Saving quests in zone #%d (%d-%d).", zone_table[zone_num].number,
-      genolc_zone_bottom(zone_num), zone_table[zone_num].top);
+  log("GenOLC: save_quests: Saving quests in zone #%" PRI_IDX " (%" PRI_IDX "-%" PRI_IDX ").",
+      zone_table[zone_num].number, genolc_zone_bottom(zone_num), zone_table[zone_num].top);
 
-  snprintf(filename, sizeof(filename), "%s/%d.new", QST_PREFIX, zone_table[zone_num].number);
+  snprintf(filename, sizeof(filename), "%s/%" PRI_IDX ".new", QST_PREFIX,
+           zone_table[zone_num].number);
   if (!(sf = fopen_restricted(filename, "w")))
   {
     perror("SYSERR: save_quests");
@@ -278,7 +279,7 @@ int save_quests(zone_rnum zone_num)
       strip_cr(quest_kill_list);
       /* Save the quest details to the file.  */
       sprintascii(quest_flags, QST_FLAGS(rnum));
-      fprintf(sf, "#%d\n", QST_NUM(rnum));
+      fprintf(sf, "#%" PRI_IDX "\n", QST_NUM(rnum));
       fprintf(sf, "%s%c\n", convert_from_tabs(QST_NAME(rnum) ? QST_NAME(rnum) : "Untitled"),
               STRING_TERMINATOR);
       fprintf(sf, "%s%c\n", convert_from_tabs(quest_desc), STRING_TERMINATOR);
@@ -310,7 +311,8 @@ int save_quests(zone_rnum zone_num)
   fprintf(sf, "$~\n");
 
   /* Old file we're replacing. */
-  snprintf(oldname, sizeof(oldname), "%s/%d.qst", QST_PREFIX, zone_table[zone_num].number);
+  snprintf(oldname, sizeof(oldname), "%s/%" PRI_IDX ".qst", QST_PREFIX,
+           zone_table[zone_num].number);
   if (!finish_file_save(sf, filename, oldname))
     return FALSE;
 

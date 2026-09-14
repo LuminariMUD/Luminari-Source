@@ -2112,7 +2112,8 @@ static bool spec_name_equals(const char *left, const char *right)
   return *left_cursor == *right_cursor;
 }
 
-static bool spec_validation_error(char *error, size_t error_size, const char *format, ...)
+__attribute__((format(printf, 3, 4))) static bool
+spec_validation_error(char *error, size_t error_size, const char *format, ...)
 {
   va_list arguments;
 
@@ -2314,7 +2315,7 @@ static bool spec_validate_definition(const struct spec_definition *definition, s
       definition->builder_visibility != SPEC_BUILDER_VISIBLE)
     return spec_validation_error(error, error_size,
                                  "definition[%zu] '%s': builder_visibility %d is invalid", index,
-                                 definition->canonical_name, definition->builder_visibility);
+                                 definition->canonical_name, (int)definition->builder_visibility);
 
   if (definition->legacy_handler != NULL)
   {

@@ -101,9 +101,9 @@ ACMD(do_action)
   {
     if (*part)
     {
-      act(action->char_body_found, 0, ch, (struct obj_data *)part, vict, TO_CHAR | TO_SLEEP);
-      act(action->others_body_found, action->hide, ch, (struct obj_data *)part, vict, TO_NOTVICT);
-      act(action->vict_body_found, action->hide, ch, (struct obj_data *)part, vict, TO_VICT);
+      act(action->char_body_found, 0, ch, (void *)part, vict, TO_CHAR | TO_SLEEP);
+      act(action->others_body_found, action->hide, ch, (void *)part, vict, TO_NOTVICT);
+      act(action->vict_body_found, action->hide, ch, (void *)part, vict, TO_VICT);
     }
     else
     {
@@ -161,9 +161,9 @@ void create_command_list(void)
       soc_mess_list[j].act_nr = k;
       complete_cmd_info[k].command = soc_mess_list[j].command;
       complete_cmd_info[k].sort_as = soc_mess_list[j].sort_as;
-      complete_cmd_info[k].minimum_position = soc_mess_list[j].min_char_position;
+      complete_cmd_info[k].minimum_position = (byte)soc_mess_list[j].min_char_position;
       complete_cmd_info[k].command_pointer = do_action;
-      complete_cmd_info[k].minimum_level = soc_mess_list[j++].min_level_char;
+      complete_cmd_info[k].minimum_level = (sh_int)soc_mess_list[j++].min_level_char;
       complete_cmd_info[k++].subcmd = 0;
     }
   }
@@ -261,7 +261,7 @@ ACMD(do_gmote)
   half_chop_c(argument, buf, sizeof(buf), arg, sizeof(arg));
 
   if (subcmd)
-    for (length = strlen(buf), cmd = 0; *complete_cmd_info[cmd].command != '\n'; cmd++)
+    for (length = (int)strlen(buf), cmd = 0; *complete_cmd_info[cmd].command != '\n'; cmd++)
       if (!strncmp(complete_cmd_info[cmd].command, buf, length))
         break;
 

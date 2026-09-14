@@ -96,23 +96,23 @@ int is_wilderness_material_craftable(int category, int subtype, int quality)
 /**
  * Get effective crafting value of wilderness material
  */
-float get_wilderness_crafting_value(int category, int subtype, int quality)
+double get_wilderness_crafting_value(int category, int subtype, int quality)
 {
   // Quality affects crafting value
   switch (quality)
   {
   case 1:
-    return 0.5f; // Poor quality - half value
+    return 0.5; // Poor quality - half value
   case 2:
-    return 1.0f; // Common - standard value
+    return 1.0; // Common - standard value
   case 3:
-    return 1.5f; // Uncommon - 50% bonus
+    return 1.5; // Uncommon - 50% bonus
   case 4:
-    return 2.0f; // Rare - double value
+    return 2.0; // Rare - double value
   case 5:
-    return 3.0f; // Legendary - triple value
+    return 3.0; // Legendary - triple value
   default:
-    return 1.0f;
+    return 1.0;
   }
 }
 

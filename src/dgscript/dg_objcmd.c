@@ -74,7 +74,7 @@ static void obj_log(obj_data *obj, const char *format, ...)
   vsnprintf(message, sizeof(message), format, args);
   va_end(args);
 
-  script_log("Obj (%s, VNum %d):: %s", obj->short_description, GET_OBJ_VNUM(obj), message);
+  script_log("Obj (%s, VNum %u):: %s", obj->short_description, GET_OBJ_VNUM(obj), message);
 }
 
 /* returns the real room number that the object or object's carrier is in */
@@ -888,7 +888,7 @@ static OCMD(do_oat)
     extract_obj(object);
 }
 
-OCMD(do_objbind)
+static OCMD(do_objbind)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   char_data *ch;
@@ -904,7 +904,7 @@ OCMD(do_objbind)
   if ((ch = get_char_by_obj(obj, buf)))
   {
     if (!IS_NPC(ch))
-      GET_OBJ_BOUND_ID(obj) = GET_IDNUM(ch);
+      GET_OBJ_BOUND_ID(obj) = (int)GET_IDNUM(ch);
     else
       obj_log(obj, "target for objbind is NPC");
   }
@@ -994,7 +994,7 @@ void obj_command_interpreter(obj_data *obj, char *argument)
   line = any_one_arg(argument, arg);
 
   /* find the command */
-  for (length = strlen(arg), cmd = 0; *obj_cmd_info[cmd].command != '\n'; cmd++)
+  for (length = (int)strlen(arg), cmd = 0; *obj_cmd_info[cmd].command != '\n'; cmd++)
     if (!strncmp(obj_cmd_info[cmd].command, arg, length))
       break;
 

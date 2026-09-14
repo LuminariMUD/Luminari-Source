@@ -72,11 +72,8 @@
 #include "vessels/routing.h"
 #include "perfmon.h"
 
-extern MYSQL *conn;
 
 /* Forward reference: helper loaders for attached structures on an account */
-void load_account_characters(struct account_data *account);
-void load_account_unlocks(struct account_data *account);
 static void account_persistence_mark_clean(struct account_data *account);
 
 /* Simple aliases for boolean-like flags used in this file. */
@@ -96,7 +93,7 @@ static void account_persistence_mark_clean(struct account_data *account);
   Notes:
     - No bounds checking here; callers should ensure 'race' is in range.
 */
-int locked_race_cost(int race)
+static int locked_race_cost(int race)
 {
   return (race_list[race].unlock_cost);
 }
@@ -331,8 +328,8 @@ ACMD(do_accexp)
         if (!race_is_creation_eligible(i) || !is_locked_race(i) || has_unlocked_race(ch, i))
           continue;
 
-        int cost = locked_race_cost(i);
-        send_to_char(ch, "%s (%d account experience)\r\n", race_list[i].type, cost);
+        int inner_cost = locked_race_cost(i);
+        send_to_char(ch, "%s (%d account experience)\r\n", race_list[i].type, inner_cost);
       }
     }
 
@@ -634,7 +631,7 @@ int load_account(char *name, struct account_data *account)
   Notes:
     - Should be called before load_account_characters when duplicates are detected
 */
-void cleanup_duplicate_characters(struct account_data *account)
+static void cleanup_duplicate_characters(struct account_data *account)
 {
   PREPARED_STMT *duplicates;
   PREPARED_STMT *removal;
@@ -810,7 +807,7 @@ void load_account_unlocks(struct account_data *account)
 }
 
 /*
-  get_char_account_name(char *name)
+  get_char_account_name(const char *name)
   Purpose: Given a character name, return a newly-allocated string with the
            owning account name, or NULL if not found.
   Parameters:
@@ -822,7 +819,7 @@ void load_account_unlocks(struct account_data *account)
     - Uses proper SQL escaping to prevent injection.
     - If multiple rows are returned, it frees the previous copy and keeps the last.
 */
-char *get_char_account_name(char *name)
+char *get_char_account_name(const char *name)
 {
   PREPARED_STMT *statement;
   const char *value;
@@ -1332,8 +1329,8 @@ void show_account_menu(struct descriptor_data *d)
                   if (CLASS_LEVEL(tch, inc))
                   {
                     if (classCount)
-                      len = snprintf_append(buf, sizeof(buf), len, "/");
-                    len = snprintf_append(buf, sizeof(buf), len, "%s", CLSLIST_CLRABBRV(inc));
+                      len = snprintf_append(buf, sizeof(buf), (int)len, "/");
+                    len = snprintf_append(buf, sizeof(buf), (int)len, "%s", CLSLIST_CLRABBRV(inc));
                     classCount++;
                   }
                 }

@@ -107,8 +107,7 @@ double get_hint_seasonal_weight(struct region_hint *hint, int season);
 double get_hint_resource_weight(struct region_hint *hint, double *resource_levels);
 
 /* Utility functions */
-bool hint_matches_conditions(struct region_hint *hint, struct description_context *context);
-char *get_hint_category_name(int category);
+const char *get_hint_category_name(int category);
 char *parse_json_string_value(const char *json, const char *key);
 double parse_json_double_value(const char *json, const char *key);
 
@@ -118,7 +117,6 @@ void log_hint_usage(int hint_id, room_rnum room, struct char_data *ch,
 void update_hint_analytics(int region_vnum);
 
 /* Integration with existing systems */
-char *enhance_wilderness_description_with_hints(struct char_data *ch, room_rnum room);
 void integrate_hints_with_resource_descriptions(void);
 
 /* Configuration */

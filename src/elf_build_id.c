@@ -48,24 +48,27 @@ static int scan_self_build_id(struct dl_phdr_info *info, size_t size, void *data
 
     while (note + sizeof(ElfW(Nhdr)) <= note_end)
     {
-      const ElfW(Nhdr) *nhdr = (const ElfW(Nhdr) *)note;
+      ElfW(Nhdr) nhdr; /* copied: the note bytes need not be aligned for the header */
       const char *name = note + sizeof(ElfW(Nhdr));
-      const char *desc = name + ((nhdr->n_namesz + 3) & ~(ElfW(Word))3);
+      const char *desc;
 
-      if (desc > note_end || (size_t)(note_end - desc) < nhdr->n_descsz)
+      memcpy(&nhdr, note, sizeof(nhdr));
+      desc = name + ((nhdr.n_namesz + 3) & ~(ElfW(Word))3);
+
+      if (desc > note_end || (size_t)(note_end - desc) < nhdr.n_descsz)
         break;
 
-      if (nhdr->n_type == NT_GNU_BUILD_ID && nhdr->n_namesz == 4 && memcmp(name, "GNU", 4) == 0 &&
-          nhdr->n_descsz > 0 && nhdr->n_descsz <= (sizeof(self_elf_build_id) - 1) / 2)
+      if (nhdr.n_type == NT_GNU_BUILD_ID && nhdr.n_namesz == 4 && memcmp(name, "GNU", 4) == 0 &&
+          nhdr.n_descsz > 0 && nhdr.n_descsz <= (sizeof(self_elf_build_id) - 1) / 2)
       {
         ElfW(Word) byte = 0;
 
-        for (byte = 0; byte < nhdr->n_descsz; byte++)
+        for (byte = 0; byte < nhdr.n_descsz; byte++)
           snprintf(self_elf_build_id + (byte * 2), 3, "%02x", (unsigned char)desc[byte]);
         return 1;
       }
 
-      note = desc + ((nhdr->n_descsz + 3) & ~(ElfW(Word))3);
+      note = desc + ((nhdr.n_descsz + 3) & ~(ElfW(Word))3);
     }
   }
 

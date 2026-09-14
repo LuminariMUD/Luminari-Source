@@ -18,18 +18,15 @@
 #include "helpers.h"
 #include "mysql.h"
 #include "comms/mysql_boards.h"
+#include "bedit.h"
 
 /*-------------------------------------------------------------------*/
 /* External variables */
-extern struct mysql_board_config *mysql_board_configs;
-extern int mysql_num_boards;
-extern MYSQL *conn;
 
 /*-------------------------------------------------------------------*/
 /* Function prototypes */
 void bedit_setup_new(struct descriptor_data *d);
 void bedit_setup_existing(struct descriptor_data *d, int board_id);
-void bedit_parse(struct descriptor_data *d, char *arg);
 void bedit_disp_menu(struct descriptor_data *d);
 void bedit_disp_board_type_menu(struct descriptor_data *d);
 void bedit_save_to_disk(struct descriptor_data *d);
@@ -274,7 +271,7 @@ void bedit_disp_menu(struct descriptor_data *d)
   char buf[MAX_STRING_LENGTH];
   char board_name_buf[MAX_INPUT_LENGTH];
 
-  board = (struct mysql_board_config *)OLC_STORAGE(d);
+  board = (void *)OLC_STORAGE(d);
 
   /* Parse @ color codes in board name for display */
   if (B_NAME(board))
@@ -346,7 +343,7 @@ void bedit_save_internally(struct descriptor_data *d)
   struct mysql_board_config *board, *old_board;
   int i, found = FALSE;
 
-  board = (struct mysql_board_config *)OLC_STORAGE(d);
+  board = (void *)OLC_STORAGE(d);
 
   /* Check if this is an existing board or new one */
   for (i = 0; i < mysql_num_boards; i++)
@@ -409,7 +406,7 @@ void bedit_save_to_disk(struct descriptor_data *d)
   char escaped_name[513];
   char buf[MAX_STRING_LENGTH];
 
-  board = (struct mysql_board_config *)OLC_STORAGE(d);
+  board = (void *)OLC_STORAGE(d);
 
   /* Check if global connection exists */
   if (!conn)
@@ -466,7 +463,7 @@ void bedit_parse(struct descriptor_data *d, char *arg)
   struct mysql_board_config *board;
   int number;
 
-  board = (struct mysql_board_config *)OLC_STORAGE(d);
+  board = (void *)OLC_STORAGE(d);
 
   switch (OLC_MODE(d))
   {

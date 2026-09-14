@@ -188,7 +188,7 @@ void *dg_time_registry_resolve_owner(struct script_data *script)
       return script->owner;
     break;
   case WLD_TRIGGER:
-    room = real_room(script->owner_vnum);
+    room = real_room((room_vnum)script->owner_vnum);
     if (room != NOWHERE && SCRIPT(&world[room]) == script)
       return &world[room];
     break;
@@ -294,7 +294,7 @@ size_t dg_time_registry_validate(int owner_type)
       invalid++;
     else if (owner_type == WLD_TRIGGER)
     {
-      room = real_room(script->owner_vnum);
+      room = real_room((room_vnum)script->owner_vnum);
       if (room == NOWHERE || SCRIPT(&world[room]) != script)
         invalid++;
     }
@@ -332,7 +332,7 @@ void *dg_random_registry_resolve_owner(struct script_data *script)
       return script->owner;
     break;
   case WLD_TRIGGER:
-    room = real_room(script->owner_vnum);
+    room = real_room((room_vnum)script->owner_vnum);
     if (room != NOWHERE && SCRIPT(&world[room]) == script)
       return &world[room];
     break;
@@ -515,7 +515,7 @@ void free_context_vars(struct script_data *sc, long context)
 }
 
 /* Remove var name from var_list. Returns 1 if found, else 0. */
-int remove_var(struct trig_var_data **var_list, char *name)
+int remove_var(struct trig_var_data **var_list, const char *name)
 {
   struct trig_var_data *i, *j;
 

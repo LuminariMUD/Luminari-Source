@@ -29,8 +29,6 @@
 #include "movement_falling.h"
 
 /* External functions */
-extern int do_simple_move(struct char_data *ch, int dir, int need_specials_check);
-extern int change_position(struct char_data *ch, int new_position);
 
 /* falling system */
 

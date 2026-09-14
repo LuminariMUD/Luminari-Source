@@ -21,7 +21,21 @@ dnl Find the 'more' program
 AC_CHECK_PROGS(MORE, less most more cat)
 
 dnl Checks for programs.
+dnl Feature detection must not depend on the warning policy.  Autoconf's own
+dnl probes (AC_CHECK_FUNCS declares each function as "char f(void)") warn
+dnl under -Wall and would flip to "not found" under a caller's -Werror,
+dnl activating fallback definitions.  Keep -Werror out of every probe and put
+dnl it back on the compile line at the end, after the last check.
+dnl An unset CFLAGS must stay unset so AC_PROG_CC still supplies -g -O2.
+luminari_user_cflags_set=${CFLAGS+set}
+luminari_user_cflags=$CFLAGS
+if test "x$luminari_user_cflags_set" = xset; then
+  CFLAGS=`printf '%s\n' "$CFLAGS" | sed 's/\(^\| \)-Werror\(=[^ ]*\)\?\( \|$\)/ /g'`
+fi
 AC_PROG_CC
+if test "x$luminari_user_cflags_set" != xset; then
+  luminari_user_cflags=$CFLAGS
+fi
 PKG_PROG_PKG_CONFIG
 PKG_CHECK_MODULES([LIBEVENT], [libevent_core >= 2.1.12], [],
   [AC_MSG_ERROR([libevent core 2.1.12-stable or newer is required; install the libevent development package])])
@@ -55,52 +69,24 @@ if test "x$CSTD_CFLAGS" = "x-std=gnu2x"; then
   AC_MSG_NOTICE([using the compiler's legacy gnu2x spelling for GNU C23])
 fi
 
-dnl If we're using gcc, use gcc options.
-dnl If not, test for various common switches to make a 'cc' compiler
-dnl compile the project.
-if test "x$GCC" = xyes; then
-
-  dnl Determine if gcc -Wall causes warnings on isascii(), etc.
-  AC_CACHE_CHECK(whether ${CC-cc} -Wall also needs -Wno-char-subscripts,
-	ac_cv_char_warn,
-  [
-    OLDCFLAGS=$CFLAGS
-    CFLAGS="$CFLAGS -Wall -Werror"
-    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <ctype.h>]],
-       [[ int i; char c = '0';
-         i = isascii(c);
-         i = isdigit(c);
-         i = isprint(c);
-       ]])], [ac_cv_char_warn=no], [ac_cv_char_warn=yes])
-    CFLAGS=$OLDCFLAGS
-  ])
-
-  dnl If Determine if gcc can accept -Wno-char-subscripts
-  AC_CACHE_CHECK(whether ${CC-cc} accepts -Wno-char-subscripts, ac_cv_gcc_ncs,
-  [
-    OLDCFLAGS=$CFLAGS
-    CFLAGS="$CFLAGS -Wno-char-subscripts"
-    AC_COMPILE_IFELSE([AC_LANG_PROGRAM()], [ac_cv_gcc_ncs=yes], [ac_cv_gcc_ncs=no])
-    CFLAGS=$OLDCFLAGS
-  ])
-
-  dnl If Determine if gcc can accept -fno-builtin
-  AC_CACHE_CHECK(whether ${CC-cc} accepts -fno-builtin, ac_cv_gcc_fnb,
-  [
-    OLDCFLAGS=$CFLAGS
-    CFLAGS="$CFLAGS -fno-builtin"
-    AC_COMPILE_IFELSE([AC_LANG_PROGRAM()], [ac_cv_gcc_fnb=yes], [ac_cv_gcc_fnb=no])
-    CFLAGS=$OLDCFLAGS
-  ])
-
-  dnl Keep the default warning set aligned with the CMake build.
-  MYFLAGS="-Wall -Wextra"
-
-else
-  dnl We aren't using gcc so we can't assume any special flags.
-  MYFLAGS=""
-
-fi
+dnl Warning policy.  The tiers live in scripts/deployment/production_profile.sh,
+dnl which CMake calls too, so both builds apply the same probed flag set.
+dnl Only the baseline tier may be combined with -Werror; the migration tier is
+dnl held to a shrinking budget by scripts/ci/check_warning_budget.py instead.
+AC_ARG_ENABLE([warning-tier],
+  [AS_HELP_STRING([--enable-warning-tier=TIER],
+    [warning tier: baseline (default), migration (budgeted), or analysis (scheduled diagnostics)])],
+  [], [enable_warning_tier=baseline])
+AC_ARG_ENABLE([werror],
+  [AS_HELP_STRING([--enable-werror],
+    [treat baseline warnings as errors, as the strict CI builds do])],
+  [], [enable_werror=no])
+case $enable_warning_tier in
+  baseline | migration | analysis) ;;
+  *) AC_MSG_ERROR([unknown warning tier: $enable_warning_tier]) ;;
+esac
+AS_IF([test "x$enable_werror" != xno && test "x$enable_warning_tier" != xbaseline],
+  [AC_MSG_ERROR([--enable-werror applies to the baseline tier only; the $enable_warning_tier tier is tracked by its warning budget])])
 
 dnl Production build profile.  scripts/deployment/production_profile.sh is the
 dnl single source of truth shared with CMake: it feature-detects the
@@ -125,7 +111,7 @@ AC_ARG_WITH([pgo-use],
 
 PRODUCTION_CFLAGS=""
 PRODUCTION_LDFLAGS=""
-production_profile_args=""
+production_profile_args="--warnings $enable_warning_tier"
 AS_IF([test "x$enable_production" != xno],
   [production_profile_args="$production_profile_args --production"])
 AS_IF([test "x$enable_lto" != xno],
@@ -135,35 +121,42 @@ AS_IF([test "x$with_pgo_generate" != xno],
 AS_IF([test "x$with_pgo_use" != xno],
   [production_profile_args="$production_profile_args --pgo-use $with_pgo_use"])
 
-if test "x$production_profile_args" != x; then
-  AC_MSG_CHECKING([the production build profile for $CC])
-  production_profile_output=`$SHELL "$srcdir/scripts/deployment/production_profile.sh" \
-    --cc "$CC" --cflags "$CSTD_CFLAGS" $production_profile_args 2>conftest.profile.err`
-  production_profile_status=$?
-  if test $production_profile_status -ne 0; then
-    AC_MSG_RESULT([failed])
-    cat conftest.profile.err >&AS_MESSAGE_LOG_FD
-    production_profile_error=`cat conftest.profile.err`
-    rm -f conftest.profile.err
-    AC_MSG_ERROR([$production_profile_error])
-  fi
+AC_MSG_CHECKING([the build profile for $CC])
+production_profile_output=`$SHELL "$srcdir/scripts/deployment/production_profile.sh" \
+  --cc "$CC" --cflags "$CSTD_CFLAGS" $production_profile_args 2>conftest.profile.err`
+production_profile_status=$?
+if test $production_profile_status -ne 0; then
+  AC_MSG_RESULT([failed])
+  cat conftest.profile.err >&AS_MESSAGE_LOG_FD
+  production_profile_error=`cat conftest.profile.err`
   rm -f conftest.profile.err
-  PRODUCTION_CFLAGS=`printf '%s\n' "$production_profile_output" | sed -n 's/^PRODUCTION_CFLAGS=//p'`
-  PRODUCTION_LDFLAGS=`printf '%s\n' "$production_profile_output" | sed -n 's/^PRODUCTION_LDFLAGS=//p'`
-  production_supported=`printf '%s\n' "$production_profile_output" | sed -n 's/^PRODUCTION_SUPPORTED=//p'`
-  production_unsupported=`printf '%s\n' "$production_profile_output" | sed -n 's/^PRODUCTION_UNSUPPORTED=//p'`
-  AC_MSG_RESULT([$PRODUCTION_CFLAGS $PRODUCTION_LDFLAGS])
-  AC_MSG_NOTICE([production hardening enabled: ${production_supported:-none}])
-  for production_feature in $production_unsupported; do
-    AC_MSG_WARN([hardening feature not supported by $CC and left out: $production_feature])
-  done
-  dnl Automake compiles with $(AM_CFLAGS) $(CFLAGS), so anything carried in
-  dnl AM_CFLAGS loses to a user CFLAGS such as -D_FORTIFY_SOURCE=2.  Append the
-  dnl profile to CFLAGS/LDFLAGS themselves, after the user's values, so the
-  dnl repository policy is the last word exactly as it is under CMake.
-  CFLAGS="$CFLAGS $PRODUCTION_CFLAGS"
-  LDFLAGS="$LDFLAGS $PRODUCTION_LDFLAGS"
+  AC_MSG_ERROR([$production_profile_error])
 fi
+rm -f conftest.profile.err
+PRODUCTION_CFLAGS=`printf '%s\n' "$production_profile_output" | sed -n 's/^PRODUCTION_CFLAGS=//p'`
+PRODUCTION_LDFLAGS=`printf '%s\n' "$production_profile_output" | sed -n 's/^PRODUCTION_LDFLAGS=//p'`
+production_supported=`printf '%s\n' "$production_profile_output" | sed -n 's/^PRODUCTION_SUPPORTED=//p'`
+production_unsupported=`printf '%s\n' "$production_profile_output" | sed -n 's/^PRODUCTION_UNSUPPORTED=//p'`
+WARNING_CFLAGS=`printf '%s\n' "$production_profile_output" | sed -n 's/^WARNING_CFLAGS=//p'`
+warning_unsupported=`printf '%s\n' "$production_profile_output" | sed -n 's/^WARNING_UNSUPPORTED=//p'`
+AC_MSG_RESULT([${PRODUCTION_CFLAGS:-default} $PRODUCTION_LDFLAGS])
+AS_IF([test "x$enable_production" != xno],
+  [AC_MSG_NOTICE([production hardening enabled: ${production_supported:-none}])])
+for production_feature in $production_unsupported; do
+  AC_MSG_WARN([hardening feature not supported by $CC and left out: $production_feature])
+done
+MYFLAGS="$WARNING_CFLAGS"
+AS_IF([test "x$enable_werror" != xno], [MYFLAGS="$MYFLAGS -Werror"])
+AC_MSG_NOTICE([warning tier $enable_warning_tier for $CC: $MYFLAGS])
+for warning_flag in $warning_unsupported; do
+  AC_MSG_WARN([warning flag not supported by $CC and left out: $warning_flag])
+done
+dnl Automake compiles with $(AM_CFLAGS) $(CFLAGS), so anything carried in
+dnl AM_CFLAGS loses to a user CFLAGS such as -D_FORTIFY_SOURCE=2.  Append the
+dnl profile to CFLAGS/LDFLAGS themselves, after the user's values, so the
+dnl repository policy is the last word exactly as it is under CMake.
+luminari_profile_cflags=$PRODUCTION_CFLAGS
+LDFLAGS="$LDFLAGS $PRODUCTION_LDFLAGS"
 
 dnl Checks for libraries.  We check for the library only if the function is
 dnl not available without the library.
@@ -223,7 +216,7 @@ EOF
   fi
 
   AC_CACHE_CHECK([for struct in_addr], ac_cv_struct_in_addr,
-    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[$headers]],[[struct in_addr tp; tp.s_addr;]])], [ac_cv_struct_in_addr=yes], [ac_cv_struct_in_addr=no])])
+    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[$headers]],[[struct in_addr tp = {0}; return tp.s_addr != 0;]])], [ac_cv_struct_in_addr=yes], [ac_cv_struct_in_addr=no])])
 
   if test $ac_cv_struct_in_addr = yes; then
     AC_DEFINE([HAVE_STRUCT_IN_ADDR], [1], [Define if struct in_addr is available])
@@ -236,7 +229,7 @@ if test $ac_cv_header_sys_socket_h = no; then
   ac_cv_socklen_t = no;
 else
   AC_CACHE_CHECK([for typedef socklen_t], ac_cv_socklen_t,
-    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/socket.h>]],[[socklen_t sl; sl=0;]])], [ac_cv_socklen_t=yes], [ac_cv_socklen_t=no])])
+    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/socket.h>]],[[socklen_t sl = 0; return (int)sl;]])], [ac_cv_socklen_t=yes], [ac_cv_socklen_t=no])])
 fi
 
 if test $ac_cv_socklen_t = no; then
@@ -246,7 +239,7 @@ fi
 
 dnl Checks for library functions.
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(gettimeofday select snprintf strcasecmp strdup strerror stricmp strlcpy strncasecmp strnicmp strstr vsnprintf)
+AC_CHECK_FUNCS(gettimeofday select snprintf strcasecmp strdup strerror stricmp strlcat strlcpy strncasecmp strnicmp strstr vsnprintf)
 
 dnl Check for functions that parse IP addresses
 ORIGLIBS=$LIBS
@@ -256,6 +249,10 @@ LIBS=$ORIGLIBS
 
 dnl Check for prototypes - removed custom AC_CHECK_PROTO macros
 dnl Modern compilers have standard prototypes for these functions
+
+dnl Every probe is done: restore the caller's CFLAGS verbatim (including any
+dnl -Werror) and append the profile so the repository policy is the last word.
+CFLAGS="$luminari_user_cflags $luminari_profile_cflags"
 
 AC_CONFIG_FILES([Makefile util/Makefile])
 AC_OUTPUT

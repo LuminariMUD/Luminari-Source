@@ -56,16 +56,6 @@ static int castle_twin_proc(struct char_data *ch, int cmd, char *arg, int ctlnum
 /******************************************************************/
 
 /* Special procedures for Kings Castle by Pjotr. Coded by Sapowox. */
-SPECIAL_DECL(CastleGuard);
-SPECIAL_DECL(James);
-SPECIAL_DECL(cleaning);
-SPECIAL_DECL(DicknDavid);
-SPECIAL_DECL(tim);
-SPECIAL_DECL(tom);
-SPECIAL_DECL(king_welmar);
-SPECIAL_DECL(training_master);
-SPECIAL_DECL(peter);
-SPECIAL_DECL(jerry);
 
 /* IMPORTANT! The below defined number is the zone number of the Kings Castle.
  * Change it to apply to your chosen zone number.
@@ -89,7 +79,7 @@ static void castle_mob_spec_recorded(mob_vnum mobnum, spec_legacy_handler handle
   if (rmr == NOBODY)
   {
     if (!mini_mud)
-      log("SYSERR: assign_kings_castle(): can't find mob #%d.", vmv);
+      log("SYSERR: assign_kings_castle(): can't find mob #%" PRI_IDX ".", vmv);
     /* SYSERR_DESC: When the castle_mob_spec() function is given a mobnum
      * that does not correspond to a mod loaded (when not in minimud mode),
      * this error will result. */
@@ -647,7 +637,7 @@ static int castle_twin_proc(struct char_data *ch, int cmd, char *arg, int ctlnum
       do_npc_rescue(ch, king);
   }
 
-  if ((twin = find_npc_by_name(ch, twinname, strlen(twinname))) != NULL)
+  if ((twin = find_npc_by_name(ch, twinname, (int)strlen(twinname))) != NULL)
     if (FIGHTING(twin) && 2 * GET_HIT(twin) < GET_HIT(ch))
       do_npc_rescue(ch, twin);
 

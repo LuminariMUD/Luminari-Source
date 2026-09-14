@@ -15,9 +15,11 @@
 #include "../../src/comms/boards.h"
 #include "../../src/obj/item.h"
 #include "../../src/olc/genmob.h"
+#include "../../src/olc/genobj.h"
 #include "../../src/olc/genolc.h"
 #include "../../src/olc/genwld.h"
 #include "../../src/olc/genzon.h"
+#include "../../src/olc/improved-edit.h"
 #include "../../src/olc/oasis.h"
 #include "../../src/character/class.h"
 #include "../../src/character/feats.h"
@@ -692,7 +694,7 @@ void Test_room_trigger_attachments_are_idempotent_and_reset_restorable(CuTest *t
   trigger_index_entry.proto = &trigger_prototype;
   trigger_prototype.nr = 0;
   trigger_prototype.attach_type = WLD_TRIGGER;
-  trigger_prototype.name = "room trigger attachment fixture";
+  trigger_prototype.name = CuMutableString("room trigger attachment fixture");
   proto_attachment.vnum = 123;
   room.number = 456;
   room.proto_script = &proto_attachment;
@@ -760,12 +762,12 @@ void Test_skillset_reports_explicit_administrator_override_policy(CuTest *tc)
   descriptor.pProtocol = ProtocolCreate();
   staff.desc = &descriptor;
   staff.player_specials = &staff_specials;
-  staff.player.name = "skillsetter";
+  staff.player.name = CuMutableString("skillsetter");
   GET_LEVEL(&staff) = LVL_IMPL;
   IN_ROOM(&staff) = 0;
 
   target.player_specials = &target_specials;
-  target.player.name = "skilltarget";
+  target.player.name = CuMutableString("skilltarget");
   GET_CLASS(&target) = CLASS_WIZARD;
   GET_LEVEL(&target) = 1;
   IN_ROOM(&target) = 0;
@@ -953,37 +955,37 @@ void Test_roomtransfer_moves_all_room_people_and_objects(CuTest *tc)
 
   staff.desc = &staff_descriptor;
   staff.player_specials = &staff_specials;
-  staff.player.name = "roomtransfer implementor";
-  staff.player.title = "";
+  staff.player.name = CuMutableString("roomtransfer implementor");
+  staff.player.title = CuMutableString("");
   GET_LEVEL(&staff) = LVL_IMPL - 1;
   GET_POS(&staff) = POS_STANDING;
   IN_ROOM(&staff) = 1;
 
   player.desc = &player_descriptor;
   player.player_specials = &player_specials;
-  player.player.name = "roomtransfer player";
-  player.player.title = "";
+  player.player.name = CuMutableString("roomtransfer player");
+  player.player.title = CuMutableString("");
   GET_LEVEL(&player) = 1;
   GET_POS(&player) = POS_STANDING;
   IN_ROOM(&player) = 0;
 
   mobile.player_specials = &dummy_mob;
-  mobile.player.short_descr = "a roomtransfer mobile";
+  mobile.player.short_descr = CuMutableString("a roomtransfer mobile");
   SET_BIT_AR(MOB_FLAGS(&mobile), MOB_ISNPC);
   GET_LEVEL(&mobile) = 1;
   GET_POS(&mobile) = POS_STANDING;
   IN_ROOM(&mobile) = 0;
 
   rooms[0].number = 100;
-  rooms[0].name = "Roomtransfer Source";
-  rooms[0].description = "The source room used by the roomtransfer test.\r\n";
+  rooms[0].name = CuMutableString("Roomtransfer Source");
+  rooms[0].description = CuMutableString("The source room used by the roomtransfer test.\r\n");
   rooms[0].zone = 0;
   rooms[0].sector_type = SECT_INSIDE;
   rooms[0].people = &player;
   player.next_in_room = &mobile;
   rooms[1].number = 200;
-  rooms[1].name = "Roomtransfer Destination";
-  rooms[1].description = "The destination room used by the roomtransfer test.\r\n";
+  rooms[1].name = CuMutableString("Roomtransfer Destination");
+  rooms[1].description = CuMutableString("The destination room used by the roomtransfer test.\r\n");
   rooms[1].zone = 0;
   rooms[1].sector_type = SECT_INSIDE;
   rooms[1].people = &staff;
@@ -994,13 +996,13 @@ void Test_roomtransfer_moves_all_room_people_and_objects(CuTest *tc)
   zone.min_level = -1;
   zone.max_level = LVL_IMPL;
 
-  first_object.name = "first roomtransfer object";
-  first_object.short_description = "the first roomtransfer object";
-  first_object.description = "The first roomtransfer object is here.";
+  first_object.name = CuMutableString("first roomtransfer object");
+  first_object.short_description = CuMutableString("the first roomtransfer object");
+  first_object.description = CuMutableString("The first roomtransfer object is here.");
   GET_OBJ_TYPE(&first_object) = ITEM_OTHER;
-  second_object.name = "second roomtransfer object";
-  second_object.short_description = "the second roomtransfer object";
-  second_object.description = "The second roomtransfer object is here.";
+  second_object.name = CuMutableString("second roomtransfer object");
+  second_object.short_description = CuMutableString("the second roomtransfer object");
+  second_object.description = CuMutableString("The second roomtransfer object is here.");
   GET_OBJ_TYPE(&second_object) = ITEM_OTHER;
 
   saved_world = world;
@@ -1134,16 +1136,16 @@ void Test_uint32_indices_parse_and_render_high_stat_vnums(CuTest *tc)
   descriptor.pProtocol = ProtocolCreate();
   staff.desc = &descriptor;
   staff.player_specials = &staff_specials;
-  staff.player.name = "indexstat";
+  staff.player.name = CuMutableString("indexstat");
   GET_LEVEL(&staff) = LVL_IMPL;
   GET_POS(&staff) = POS_STANDING;
   IN_ROOM(&staff) = 1;
 
   mobile.player_specials = &dummy_mob;
-  mobile.player.name = "highmobile";
-  mobile.player.short_descr = "a high-vnum mobile";
-  mobile.player.long_descr = "A high-vnum mobile is here.\r\n";
-  mobile.player.description = "A mobile used to test high VNUM stat output.\r\n";
+  mobile.player.name = CuMutableString("highmobile");
+  mobile.player.short_descr = CuMutableString("a high-vnum mobile");
+  mobile.player.long_descr = CuMutableString("A high-vnum mobile is here.\r\n");
+  mobile.player.description = CuMutableString("A mobile used to test high VNUM stat output.\r\n");
   SET_BIT_AR(MOB_FLAGS(&mobile), MOB_ISNPC);
   GET_MOB_RNUM(&mobile) = 0;
   GET_LEVEL(&mobile) = 1;
@@ -1151,26 +1153,26 @@ void Test_uint32_indices_parse_and_render_high_stat_vnums(CuTest *tc)
   IN_ROOM(&mobile) = 1;
 
   rooms[0].number = 1;
-  rooms[0].name = "Low VNUM Fixture Room";
+  rooms[0].name = CuMutableString("Low VNUM Fixture Room");
   rooms[0].zone = 0;
   rooms[1].number = high_vnum;
-  rooms[1].name = "High VNUM Stat Room";
-  rooms[1].description = "A room used to test high VNUM stat output.\r\n";
+  rooms[1].name = CuMutableString("High VNUM Stat Room");
+  rooms[1].description = CuMutableString("A room used to test high VNUM stat output.\r\n");
   rooms[1].zone = 0;
   rooms[1].light = 1;
   rooms[1].people = &mobile;
   zone.number = UINT32_C(40000000);
   zone.bot = high_vnum;
   zone.top = high_vnum;
-  zone.name = "High VNUM Zone";
-  zone.builders = "Test";
+  zone.name = CuMutableString("High VNUM Zone");
+  zone.builders = CuMutableString("Test");
   zone.cmd = &zone_command;
   zone_command.command = 'S';
   mobile_index.vnum = high_vnum;
 
-  object.name = "high object";
-  object.short_description = "a high-vnum object";
-  object.description = "A high-vnum object lies here.";
+  object.name = CuMutableString("high object");
+  object.short_description = CuMutableString("a high-vnum object");
+  object.description = CuMutableString("A high-vnum object lies here.");
   GET_OBJ_RNUM(&object) = 0;
   GET_OBJ_TYPE(&object) = ITEM_OTHER;
   object_index.vnum = high_vnum;
@@ -1546,7 +1548,7 @@ void Test_column_list_applies_uses_item_width_for_auto_columns(CuTest *tc)
   descriptor.pProtocol = ProtocolCreate();
   ch.desc = &descriptor;
   ch.player_specials = &player_specials;
-  ch.player.name = "column list test character";
+  ch.player.name = CuMutableString("column list test character");
   GET_SCREEN_WIDTH(&ch) = 80;
   GET_PAGE_LENGTH(&ch) = 100;
 
@@ -1598,7 +1600,7 @@ void Test_column_list_pages_complete_output_with_visible_separators(CuTest *tc)
   descriptor.pProtocol = ProtocolCreate();
   ch.desc = &descriptor;
   ch.player_specials = &player_specials;
-  ch.player.name = "column separator test character";
+  ch.player.name = CuMutableString("column separator test character");
   GET_SCREEN_WIDTH(&ch) = 30;
   GET_PAGE_LENGTH(&ch) = 100;
 
@@ -1643,7 +1645,7 @@ void Test_column_list_maximum_page_settings_stay_within_descriptor_capacity(CuTe
   descriptor.pProtocol = ProtocolCreate();
   ch.desc = &descriptor;
   ch.player_specials = &player_specials;
-  ch.player.name = "maximum pager boundary test character";
+  ch.player.name = CuMutableString("maximum pager boundary test character");
   GET_SCREEN_WIDTH(&ch) = 200;
   GET_PAGE_LENGTH(&ch) = 255;
 
@@ -1668,7 +1670,7 @@ void Test_column_list_maximum_page_settings_stay_within_descriptor_capacity(CuTe
     descriptor.bufptr = 0;
     descriptor.bufspace = descriptor.large_outbuf ? LARGE_BUFSIZE - 1 : SMALL_BUFSIZE - 1;
     if (descriptor.showstr_count > 0)
-      show_string(&descriptor, "");
+      show_string(&descriptor, CuMutableString(""));
   }
 
   if (descriptor.bufspace == 0 || strstr(descriptor.output, "OVERFLOW") != NULL)
@@ -1954,7 +1956,7 @@ static void assert_undead_respec_preserves_size(CuTest *tc, int race, int class_
   clear_char(&ch);
   memset(&player_specials, 0, sizeof(player_specials));
   ch.player_specials = &player_specials;
-  ch.player.name = "undead respec test character";
+  ch.player.name = CuMutableString("undead respec test character");
   GET_REAL_RACE(&ch) = race;
   GET_REAL_SIZE(&ch) = original_size;
   GET_LEVEL(&ch) = 30;
@@ -2160,4 +2162,52 @@ void Test_upstream_script_formatter_preserves_depth_line_and_output_limits(CuTes
   formatted = NULL;
   CuAssertTrue(tc, !dg_format_script_text("if 1\r\nend\r\n", 8, &formatted, error, sizeof(error)));
   CuAssertPtrEquals(tc, NULL, formatted);
+}
+
+void Test_replace_str_without_a_match_keeps_the_string(CuTest *tc)
+{
+  char *text;
+
+  text = strdup("the quick fox");
+  CuAssertPtrNotNull(tc, text);
+
+  CuAssertIntEquals(tc, 0, replace_str(&text, "wolf", "dog", 0, 100));
+  CuAssertStrEquals(tc, "the quick fox", text);
+  CuAssertIntEquals(tc, 0, replace_str(&text, "wolf", "dog", 1, 100));
+  CuAssertStrEquals(tc, "the quick fox", text);
+  CuAssertIntEquals(tc, 1, replace_str(&text, "quick", "slow", 0, 100));
+  CuAssertStrEquals(tc, "the slow fox", text);
+
+  free(text);
+}
+
+void Test_free_object_string_keeps_prototype_strings(CuTest *tc)
+{
+  struct obj_data prototype;
+  struct obj_data object;
+  struct obj_data *saved_obj_proto;
+  obj_rnum saved_top_of_objt;
+
+  memset(&prototype, 0, sizeof(prototype));
+  prototype.name = CuMutableString("prototype keywords");
+  prototype.short_description = CuMutableString("a prototype");
+  GET_OBJ_RNUM(&prototype) = 0;
+  object = prototype;
+
+  saved_obj_proto = obj_proto;
+  saved_top_of_objt = top_of_objt;
+  obj_proto = &prototype;
+  top_of_objt = 0;
+
+  /* CuMutableString is not heap memory, so freeing it would abort the suite. */
+  free_object_string(&object, object.name);
+  free_object_string(&object, object.short_description);
+  object.name = strdup("restrung keywords");
+  CuAssertPtrNotNull(tc, object.name);
+  free_object_string(&object, object.name);
+
+  obj_proto = saved_obj_proto;
+  top_of_objt = saved_top_of_objt;
+  CuAssertStrEquals(tc, "prototype keywords", prototype.name);
+  CuAssertStrEquals(tc, "a prototype", prototype.short_description);
 }

@@ -29,7 +29,7 @@ struct perception_candidate
   struct domain_entity_handle observer;
   uint32_t senses;
   unsigned int distance;
-  float intensity;
+  double intensity;
 };
 
 static size_t perception_limit = SPATIAL_EVENT_MAX_PERCEPTIONS;
@@ -62,7 +62,7 @@ static bool observer_can_use_sense(struct char_data *observer, uint32_t sense,
 
 static bool add_perception_candidate(struct perception_candidate *candidates, size_t *count,
                                      struct char_data *observer, uint32_t sense,
-                                     unsigned int distance, float intensity,
+                                     unsigned int distance, double intensity,
                                      enum domain_world_phenomenon_kind kind)
 {
   struct domain_entity_handle identity;
@@ -78,7 +78,7 @@ static bool add_perception_candidate(struct perception_candidate *candidates, si
     {
       candidates[index].senses |= sense;
       candidates[index].distance = MIN(candidates[index].distance, distance);
-      candidates[index].intensity = MAX(candidates[index].intensity, intensity);
+      candidates[index].intensity = FLOATMAX(candidates[index].intensity, intensity);
       return true;
     }
   if (*count >= perception_limit || *count >= SPATIAL_EVENT_MAX_PERCEPTIONS)
@@ -202,7 +202,7 @@ static void deliver_through_rooms(struct domain_event_bus *bus,
       for (ch = world[room].people; ch != NULL; ch = ch->next_in_room)
       {
         (void)add_perception_candidate(candidates, candidate_count, ch, sense, distance,
-                                       phenomenon->intensity / (float)(distance + 1U),
+                                       phenomenon->intensity / (double)(distance + 1U),
                                        phenomenon->kind);
         if (!IS_NPC(ch) && ch->desc != NULL && description != NULL)
           send_to_char(ch, "\r\n%s\r\n", description);
@@ -228,17 +228,17 @@ static void deliver_through_rooms(struct domain_event_bus *bus,
   }
 }
 
-static float coordinate_channel_intensity(struct char_data *observer,
-                                          const struct domain_world_phenomenon *phenomenon,
-                                          uint32_t sense)
+static double coordinate_channel_intensity(struct char_data *observer,
+                                           const struct domain_world_phenomenon *phenomenon,
+                                           uint32_t sense)
 {
   struct spatial_context *spatial;
   struct spatial_system *system;
   const char *description;
-  float intensity = 0.0f;
+  double intensity = 0.0;
 
   if (!observer_can_use_sense(observer, sense, phenomenon->kind))
-    return 0.0f;
+    return 0.0;
   system = sense == DOMAIN_WORLD_PHENOMENON_VISUAL ? &visual_system : &audio_system;
   description = sense == DOMAIN_WORLD_PHENOMENON_VISUAL ? phenomenon->visual_description
                                                         : phenomenon->audio_description;
@@ -248,7 +248,7 @@ static float coordinate_channel_intensity(struct char_data *observer,
   if (spatial == NULL)
   {
     note_perception_rejection("spatial context allocation");
-    return 0.0f;
+    return 0.0;
   }
   if (spatial_setup_context(spatial, phenomenon->source_x, phenomenon->source_y,
                             phenomenon->source_z, observer, description) == SPATIAL_SUCCESS)
@@ -271,9 +271,9 @@ static bool collect_coordinate_room(const struct domain_world_phenomenon *phenom
 {
   struct char_data *observer;
   uint32_t senses;
-  float visual_intensity;
-  float audio_intensity;
-  float distance;
+  double visual_intensity;
+  double audio_intensity;
+  double distance;
   int x;
   int y;
 
@@ -281,8 +281,8 @@ static bool collect_coordinate_room(const struct domain_world_phenomenon *phenom
     return true;
   x = world[room].coords[X_COORD];
   y = world[room].coords[Y_COORD];
-  distance = hypotf((float)(x - phenomenon->source_x), (float)(y - phenomenon->source_y));
-  if (distance < (float)phenomenon->minimum_range || distance > (float)max_range)
+  distance = hypot((double)(x - phenomenon->source_x), (double)(y - phenomenon->source_y));
+  if (distance < (double)phenomenon->minimum_range || distance > (double)max_range)
     return true;
   for (observer = world[room].people; observer != NULL; observer = observer->next_in_room)
   {
@@ -292,28 +292,28 @@ static bool collect_coordinate_room(const struct domain_world_phenomenon *phenom
       return false;
     }
     senses = 0U;
-    visual_intensity = 0.0f;
-    audio_intensity = 0.0f;
+    visual_intensity = 0.0;
+    audio_intensity = 0.0;
     if ((phenomenon->channels & DOMAIN_WORLD_PHENOMENON_VISUAL) != 0U &&
-        distance <= (float)phenomenon->visual_range)
+        distance <= (double)phenomenon->visual_range)
     {
       visual_intensity =
           coordinate_channel_intensity(observer, phenomenon, DOMAIN_WORLD_PHENOMENON_VISUAL);
-      if (visual_intensity > 0.0f)
+      if (visual_intensity > 0.0)
         senses |= DOMAIN_WORLD_PHENOMENON_VISUAL;
     }
     if ((phenomenon->channels & DOMAIN_WORLD_PHENOMENON_AUDIBLE) != 0U &&
-        distance <= (float)phenomenon->audio_range)
+        distance <= (double)phenomenon->audio_range)
     {
       audio_intensity =
           coordinate_channel_intensity(observer, phenomenon, DOMAIN_WORLD_PHENOMENON_AUDIBLE);
-      if (audio_intensity > 0.0f)
+      if (audio_intensity > 0.0)
         senses |= DOMAIN_WORLD_PHENOMENON_AUDIBLE;
     }
     if (senses != 0U &&
         !add_perception_candidate(candidates, candidate_count, observer, senses,
-                                  (unsigned int)ceilf(distance),
-                                  MAX(visual_intensity, audio_intensity), phenomenon->kind))
+                                  (unsigned int)ceil(distance),
+                                  FLOATMAX(visual_intensity, audio_intensity), phenomenon->kind))
       return false;
   }
   return true;
@@ -423,6 +423,6 @@ uint64_t spatial_event_perception_rejections(void)
 #ifdef LUMINARI_CUTEST
 void spatial_event_set_perception_limit_for_test(size_t limit)
 {
-  perception_limit = MIN(limit, SPATIAL_EVENT_MAX_PERCEPTIONS);
+  perception_limit = size_min(limit, SPATIAL_EVENT_MAX_PERCEPTIONS);
 }
 #endif

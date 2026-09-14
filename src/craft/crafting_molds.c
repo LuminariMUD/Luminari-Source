@@ -58,7 +58,7 @@
 #define MOLD_OBJ_VNUM 208
 #define MOLD_OBJ_COST 100
 
-void create_crafting_mold(struct char_data *ch, int selection, int type)
+static void create_crafting_mold(struct char_data *ch, int selection, int type)
 {
   if (!ch)
     return;

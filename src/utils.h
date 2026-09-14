@@ -50,22 +50,16 @@
                              int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
 
 /* "unsafe" version of ACMD. Commands that still require non const argument due to using
-   unsafe operations on argument */
+   unsafe operations on argument. The body gets a writable copy, which is empty when the
+   caller passed NULL. */
 #define ACMDU(name)                                                                                \
   static void impl_##name##_(struct char_data *ch, char *argument, int cmd, int subcmd);           \
   void name(struct char_data *ch, const char *argument, int cmd, int subcmd)                       \
   {                                                                                                \
+    char arg_buf[MAX_INPUT_LENGTH];                                                                \
     PERF_PROF_ENTER(pr_, #name);                                                                   \
-    if (!argument)                                                                                 \
-    {                                                                                              \
-      impl_##name##_(ch, NULL, cmd, subcmd);                                                       \
-    }                                                                                              \
-    else                                                                                           \
-    {                                                                                              \
-      char arg_buf[MAX_INPUT_LENGTH];                                                              \
-      strlcpy(arg_buf, argument, sizeof(arg_buf));                                                 \
-      impl_##name##_(ch, arg_buf, cmd, subcmd);                                                    \
-    }                                                                                              \
+    strlcpy(arg_buf, argument ? argument : "", sizeof(arg_buf));                                   \
+    impl_##name##_(ch, arg_buf, cmd, subcmd);                                                      \
     PERF_PROF_EXIT(pr_);                                                                           \
   }                                                                                                \
   static void impl_##name##_(struct char_data *ch __attribute__((unused)),                         \
@@ -212,9 +206,7 @@ bool can_understand_language(struct char_data *ch, int language);
 int num_blackguard_cruelties_known(struct char_data *ch);
 sbyte has_blackguard_cruelties_unchosen(struct char_data *ch);
 sbyte has_blackguard_cruelties_unchosen_study(struct char_data *ch);
-bool affected_by_aura_of_cowardice(struct char_data *ch);
 bool affected_by_aura_of_despair(struct char_data *ch);
-int sector_type_to_terrain_type(int sector);
 bool has_aura_of_courage(struct char_data *ch);
 bool pvp_ok_single(struct char_data *ch, bool display);
 int comp_cha_cost(struct char_data *ch, int number);
@@ -317,13 +309,13 @@ int get_spell_duration_bonus(struct char_data *ch);
 bool ok_call_mob_vnum(int mob_num);
 int convert_material_vnum(int obj_vnum);
 void basic_mud_log(const char *format, ...) __attribute__((format(printf, 1, 2)));
-void basic_mud_vlog(const char *format, va_list args);
+void basic_mud_vlog(const char *format, va_list args) __attribute__((format(printf, 1, 0)));
 int touch(const char *path);
 void mudlog(int type, int level, int file, const char *str, ...)
     __attribute__((format(printf, 4, 5)));
 int rand_number(int from, int to);
 bool is_in_water(struct char_data *ch);
-float rand_float(float from, float to);
+double rand_float(double from, double to);
 bool do_not_list_spell(int spellnum);
 void set_x_y_coords(int start, int *x, int *y, int *room);
 bool is_paladin_mount(struct char_data *ch, struct char_data *victim);
@@ -357,7 +349,7 @@ void apply_mob_stat_modifiers(struct char_data *mob);
 struct time_info_data *age(struct char_data *ch);
 int num_pc_in_room(struct room_data *room);
 void core_dump_real(const char *who, int line);
-int count_color_chars(char *string);
+int count_color_chars(const char *string);
 bool char_has_infra(struct char_data *ch);
 bool char_has_ultra(struct char_data *ch);
 bool has_true_sight(struct char_data *ch);
@@ -375,7 +367,7 @@ int levenshtein_distance(const char *s1, const char *s2);
 struct time_info_data *real_time_passed(time_t t2, time_t t1);
 struct time_info_data *mud_time_passed(time_t t2, time_t t1);
 void prune_crlf(char *txt);
-void column_list(struct char_data *ch, int num_cols, const char **list, int list_length,
+void column_list(struct char_data *ch, int num_cols, const char *const *list, int list_length,
                  bool show_nums);
 void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_cols,
                          const char **list, int list_length, bool show_nums);
@@ -407,7 +399,7 @@ bool rol_race_is_good(int race);
 bool rol_race_is_evil(int race);
 int get_race_by_name(char *racename);
 int get_subrace_by_name(char *racename);
-char *convert_from_tabs(char *string);
+char *convert_from_tabs(const char *string);
 bool is_weapon_wielded_two_handed(struct obj_data *obj, struct char_data *ch);
 int count_non_protocol_chars(const char *str);
 const char *a_or_an(const char *string);
@@ -481,8 +473,9 @@ bool second_pair_rejects_object(const struct obj_data *obj, int pos);
 bool rol_object_wear_conflicts(struct char_data *ch, struct obj_data *obj, int where);
 int warlock_spell_type(int spellnum);
 int get_number_of_spellcasting_classes(struct char_data *ch);
-struct char_data *get_mob_follower(struct char_data *ch, int mob_type);
-void send_combat_roll_info(struct char_data *ch, const char *messg, ...);
+struct char_data *get_mob_follower(const struct char_data *ch, int mob_type);
+void send_combat_roll_info(struct char_data *ch, const char *messg, ...)
+    __attribute__((format(printf, 2, 3)));
 bool show_combat_roll(struct char_data *ch);
 struct obj_data *get_char_bag(struct char_data *ch, int bagnum);
 int get_psp_regen_amount(struct char_data *ch);
@@ -498,7 +491,8 @@ void draw_line(struct char_data *ch, int length, char first, char second);
 void text_line(struct char_data *ch, const char *text, int length, char first, char second);
 
 /* Time formatting */
-bool format_time_string(time_t when, const char *format, char *buf, size_t size);
+bool format_time_string(time_t when, const char *format, char *buf, size_t size)
+    __attribute__((format(strftime, 2, 0)));
 /* Formats a time_t into a thread-unsafe static buffer in the form "YYYY-MM-DD HH:MM:SS".
  * Returns a pointer to a static buffer that will be overwritten on subsequent calls. */
 const char *format_time_ymd_hms(time_t when);
@@ -513,7 +507,7 @@ bool ensure_dir_exists(const char *path);
 bool finish_file_save(FILE *stream, const char *temporary_path, const char *destination_path);
 
 /* Feats */
-int get_feat_value(struct char_data *ch, int featnum);
+int get_feat_value(const struct char_data *ch, int featnum);
 
 /* Public functions made available form weather.c */
 void weather_and_time(int mode);
@@ -532,7 +526,9 @@ int str_cmp(const char *arg1, const char *arg2);
 int strn_cmp(const char *arg1, const char *arg2, int n);
 #endif
 
+#if !defined(HAVE_STRLCAT)
 size_t strlcat(char *buf, const char *src, size_t bufsz);
+#endif
 int snprintf_append(char *buffer, size_t buffer_size, int offset, const char *format, ...)
     __attribute__((format(printf, 4, 5)));
 
@@ -551,8 +547,43 @@ unsigned long circle_random(void);
 
 int MAX(int a, int b);
 int MIN(int a, int b);
-float FLOATMAX(float a, float b);
-float FLOATMIN(float a, float b);
+/* MIN and MAX take int, so a wider argument is truncated before the
+ * comparison.  Use the width-matched forms for long, size_t, uint64_t, and
+ * long long values. */
+static inline long long_min(long a, long b)
+{
+  return a < b ? a : b;
+}
+static inline long long_max(long a, long b)
+{
+  return a > b ? a : b;
+}
+static inline size_t size_min(size_t a, size_t b)
+{
+  return a < b ? a : b;
+}
+static inline size_t size_max(size_t a, size_t b)
+{
+  return a > b ? a : b;
+}
+static inline uint64_t u64_min(uint64_t a, uint64_t b)
+{
+  return a < b ? a : b;
+}
+static inline uint64_t u64_max(uint64_t a, uint64_t b)
+{
+  return a > b ? a : b;
+}
+static inline long long llong_min(long long a, long long b)
+{
+  return a < b ? a : b;
+}
+static inline long long llong_max(long long a, long long b)
+{
+  return a > b ? a : b;
+}
+double FLOATMAX(double a, double b);
+double FLOATMIN(double a, double b);
 char *CAP(char *txt);
 char *UNCAP(char *txt);
 
@@ -569,7 +600,7 @@ bool is_grouped_in_room(struct char_data *ch);
 /* in act.informative.c */
 void look_at_room(struct char_data *ch, int mode);
 void add_history(struct char_data *ch, const char *msg, int type);
-void look_at_room_number(struct char_data *ch, int ignore_brief, long room_number);
+void look_at_room_number(struct char_data *ch, int ignore_brief, room_rnum room_number);
 /* in spec_procs.c but connected to act.informative.c */
 void ship_lookout(struct char_data *ch);
 
@@ -706,16 +737,20 @@ void char_from_furniture(struct char_data *ch);
  * @param head Pointer to the head of the linked list.
  * @param next The variable name pointing to the next in the list.
  * */
-#define REMOVE_FROM_LIST(item, head, next)                                                         \
+#define REMOVE_FROM_LIST(item, head, next) REMOVE_FROM_LIST_USING(item, head, next, temp)
+
+/* REMOVE_FROM_LIST with an explicit cursor variable, for a scope that already
+ * uses temp for a list of another type. */
+#define REMOVE_FROM_LIST_USING(item, head, next, cursor)                                           \
   if ((item) == (head))                                                                            \
     head = (item)->next;                                                                           \
   else                                                                                             \
   {                                                                                                \
-    temp = head;                                                                                   \
-    while (temp && (temp->next != (item)))                                                         \
-      temp = temp->next;                                                                           \
-    if (temp)                                                                                      \
-      temp->next = (item)->next;                                                                   \
+    cursor = head;                                                                                 \
+    while (cursor && (cursor->next != (item)))                                                     \
+      cursor = cursor->next;                                                                       \
+    if (cursor)                                                                                    \
+      cursor->next = (item)->next;                                                                 \
   }
 
 /* Connect 'link' to the end of a double-linked list
@@ -796,7 +831,7 @@ void char_from_furniture(struct char_data *ch);
 #define Q_BIT(x) (1U << ((x) % 32))
 
 /** 1 if bit is set in the bitarray represented by var, 0 if not. */
-#define IS_SET_AR(var, bit) ((var)[Q_FIELD(bit)] & Q_BIT(bit))
+#define IS_SET_AR(var, bit) ((unsigned int)(var)[Q_FIELD(bit)] & Q_BIT(bit))
 
 /** Set a specific bit in the bitarray represented by var to 1. */
 #define SET_BIT_AR(var, bit) ((var)[Q_FIELD(bit)] |= Q_BIT(bit))
@@ -1580,7 +1615,7 @@ void char_from_furniture(struct char_data *ch);
 #define SET_ABILITY(ch, i, pct)                                                                    \
   do                                                                                               \
   {                                                                                                \
-    CHECK_PLAYER_SPECIAL((ch), (ch)->player_specials->saved.abilities[i]) = pct;                   \
+    CHECK_PLAYER_SPECIAL((ch), (ch)->player_specials->saved.abilities[i]) = (ubyte)(pct);          \
   } while (0)
 
 /* Levelup - data storage for study command. */
@@ -1589,7 +1624,7 @@ void char_from_furniture(struct char_data *ch);
 /* Feats */
 /*#define MOB_FEATS(ch)           ((ch)->char_specials.saved.feats[i])*/
 #define MOB_HAS_FEAT(ch, i) ((ch)->char_specials.mob_feats[i])
-#define MOB_SET_FEAT(ch, i, j) ((ch)->char_specials.mob_feats[i] = j)
+#define MOB_SET_FEAT(ch, i, j) ((ch)->char_specials.mob_feats[i] = (byte)(j))
 
 #define GET_FEAT_POINTS(ch) (ch->player_specials->saved.feat_points)
 #define GET_EPIC_FEAT_POINTS(ch) (ch->player_specials->saved.epic_feat_points)
@@ -3108,6 +3143,18 @@ bool has_reach(struct char_data *ch);
 #define GET_NSUPPLY_NUM_MADE(ch) (ch->player_specials->saved.new_supply_num_made)
 #define GET_NSUPPLY_COOLDOWN(ch) (ch->player_specials->saved.new_supply_cooldown)
 
+
+void set_vampire_spawn_feats(struct char_data *mob);
+bool sect_no_weather(struct char_data *ch);
+
+bool can_paralyze(struct char_data *ch);
+void clear_group_marks(struct char_data *ch, struct char_data *victim);
+bool display_dam_type(int dam_type);
+room_vnum get_direction_vnum(room_rnum room_origin, int direction);
+bool is_exit_locked(struct char_data *ch, int dir);
+bool is_ghost(struct char_data *ch);
+bool is_swimming(struct char_data *ch);
+int spell_level_ch(struct char_data *ch, int spell);
 #endif /* _UTILS_H_ */
 
 /*EOF*/

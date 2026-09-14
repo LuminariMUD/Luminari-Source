@@ -177,7 +177,6 @@ void init_perks(void)
 
   /* Define Alchemist Perks */
   define_alchemist_perks();
-  void define_alchemist_perks(void);
 
   /* Define Psionicist Perks */
   define_psionicist_perks();
@@ -14183,8 +14182,8 @@ int calculate_stage_xp_needed(struct char_data *ch)
     return 0;
 
   /* Calculate total XP needed for this level */
-  next_level_xp = level_exp(ch, current_level + 1);
-  current_level_xp = level_exp(ch, current_level);
+  next_level_xp = (int)level_exp(ch, current_level + 1);
+  current_level_xp = (int)level_exp(ch, current_level);
   xp_for_level = next_level_xp - current_level_xp;
 
   /* Each stage is 25% of the level */
@@ -14235,7 +14234,7 @@ bool check_stage_advancement(struct char_data *ch, int *perk_points_awarded)
     return FALSE;
 
   /* Calculate how much XP we have within this level */
-  current_level_xp = level_exp(ch, GET_LEVEL(ch));
+  current_level_xp = (int)level_exp(ch, GET_LEVEL(ch));
   stage_xp_needed = calculate_stage_xp_needed(ch);
 
   /* Check if we have enough XP to advance stages */
@@ -14555,7 +14554,8 @@ void set_perk_toggle(struct char_data *ch, int perk_id, bool state)
   if (state)
     ch->player_specials->saved.perk_toggles[byte_index] |= (1 << bit_index);
   else
-    ch->player_specials->saved.perk_toggles[byte_index] &= ~(1 << bit_index);
+    ch->player_specials->saved.perk_toggles[byte_index] =
+        (byte)(ch->player_specials->saved.perk_toggles[byte_index] & (~(1 << bit_index)));
 }
 
 /**
@@ -15266,8 +15266,8 @@ int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded)
     /* Check if the weapon is ranged - if so, don't apply bonus */
     if (GET_OBJ_TYPE(wielded) == ITEM_WEAPON || GET_OBJ_TYPE(wielded) == ITEM_FIREWEAPON)
     {
-      int weapon_type = GET_OBJ_VAL(wielded, 0);
-      if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+      int weapon_type_value = GET_OBJ_VAL(wielded, 0);
+      if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_RANGED))
         return 0; /* No bonus for ranged weapons */
     }
 
@@ -15316,8 +15316,8 @@ int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded)
     /* Check if the weapon is ranged - if so, don't apply bonus */
     if (GET_OBJ_TYPE(wielded) == ITEM_WEAPON || GET_OBJ_TYPE(wielded) == ITEM_FIREWEAPON)
     {
-      int weapon_type = GET_OBJ_VAL(wielded, 0);
-      if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+      int weapon_type_value = GET_OBJ_VAL(wielded, 0);
+      if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_RANGED))
         return 0; /* No bonus for ranged weapons */
     }
 
@@ -15444,7 +15444,7 @@ int get_perk_ranged_sneak_attack_bonus(struct char_data *ch)
 int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded, int attack_type)
 {
   int bonus = 0;
-  int weapon_type;
+  int weapon_type_value;
 
   if (!ch || IS_NPC(ch))
     return 0;
@@ -15455,8 +15455,8 @@ int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded
   if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON && GET_OBJ_TYPE(wielded) != ITEM_FIREWEAPON)
     return 0;
 
-  weapon_type = GET_OBJ_VAL(wielded, 0);
-  if (weapon_type <= WEAPON_TYPE_UNDEFINED || weapon_type >= NUM_WEAPON_TYPES)
+  weapon_type_value = GET_OBJ_VAL(wielded, 0);
+  if (weapon_type_value <= WEAPON_TYPE_UNDEFINED || weapon_type_value >= NUM_WEAPON_TYPES)
     return 0;
 
   /* Archer's Focus I: +1 to-hit per rank (max 3 ranks) */
@@ -15480,7 +15480,7 @@ int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded
 int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded, int attack_type)
 {
   int bonus = 0;
-  int weapon_type;
+  int weapon_type_value;
 
   if (!ch || IS_NPC(ch))
     return 0;
@@ -15491,8 +15491,8 @@ int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielde
   if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON && GET_OBJ_TYPE(wielded) != ITEM_FIREWEAPON)
     return 0;
 
-  weapon_type = GET_OBJ_VAL(wielded, 0);
-  if (weapon_type <= WEAPON_TYPE_UNDEFINED || weapon_type >= NUM_WEAPON_TYPES)
+  weapon_type_value = GET_OBJ_VAL(wielded, 0);
+  if (weapon_type_value <= WEAPON_TYPE_UNDEFINED || weapon_type_value >= NUM_WEAPON_TYPES)
     return 0;
 
   /* Steady Aim I: +1 damage per rank (max 3 ranks) */
@@ -18484,8 +18484,8 @@ static const char *save_type_names[] = {"Fortitude", "Reflex", "Will", "Poison",
  * @param perk The perk to display
  * @param char_perk The character's current rank in this perk (can be NULL)
  */
-void display_perk_details(struct char_data *ch, struct perk_data *perk,
-                          struct char_perk_data *char_perk)
+static void display_perk_details(struct char_data *ch, struct perk_data *perk,
+                                 struct char_perk_data *char_perk)
 {
   int current_rank = char_perk ? char_perk->current_rank : 0;
   int class_id = perk->associated_class;
@@ -18661,7 +18661,7 @@ static bool meets_prerequisites_not_purchased(struct char_data *ch, int perk_id,
  * @param ch The character viewing perks
  * @param class_id The class to show perks for
  */
-void list_perks_for_class(struct char_data *ch, int class_id)
+static void list_perks_for_class(struct char_data *ch, int class_id)
 {
   int perk_ids[NUM_PERKS];
   int count, i, j;
@@ -18801,7 +18801,7 @@ void list_perks_for_class(struct char_data *ch, int class_id)
  *
  * @param ch The character
  */
-void list_my_perks(struct char_data *ch)
+static void list_my_perks(struct char_data *ch)
 {
   struct char_perk_data *char_perk;
   struct perk_data *perk;
@@ -18988,8 +18988,9 @@ ACMD(do_perk)
     if (purchase_perk(ch, perk_id, class_id))
     {
       char_perk = find_char_perk(ch, perk_id, class_id);
-      send_to_char(ch, "\tGYou have purchased rank %d of '%s'!\tn\r\n", char_perk->current_rank,
-                   perk->name);
+      if (char_perk != NULL)
+        send_to_char(ch, "\tGYou have purchased rank %d of '%s'!\tn\r\n", char_perk->current_rank,
+                     perk->name);
       send_to_char(ch, "Remaining perk points for %s: \tY%d\tn\r\n", class_names[class_id],
                    get_perk_points(ch, class_id));
 
@@ -19009,7 +19010,7 @@ ACMD(do_perk)
     /* No perk specified - show list of toggleable perks */
     if (!*arg2)
     {
-      struct char_perk_data *char_perk;
+      struct char_perk_data *inner_char_perk;
       struct perk_data *perk_def;
       int count = 0;
 
@@ -19017,15 +19018,16 @@ ACMD(do_perk)
       send_to_char(ch, "\tW%-4s %-30s %-8s\tn\r\n", "ID", "Name", "Status");
       send_to_char(ch, "---- ------------------------------ --------\r\n");
 
-      for (char_perk = ch->player_specials->saved.perks; char_perk; char_perk = char_perk->next)
+      for (inner_char_perk = ch->player_specials->saved.perks; inner_char_perk;
+           inner_char_perk = inner_char_perk->next)
       {
-        perk_def = get_perk_by_id(char_perk->perk_id);
+        perk_def = get_perk_by_id(inner_char_perk->perk_id);
         if (!perk_def || !perk_def->toggleable)
           continue;
 
-        send_to_char(ch, "%-4d %-30s %s%-8s\tn\r\n", char_perk->perk_id, perk_def->name,
-                     is_perk_toggled_on(ch, char_perk->perk_id) ? "\tG" : "\tr",
-                     is_perk_toggled_on(ch, char_perk->perk_id) ? "ON" : "OFF");
+        send_to_char(ch, "%-4d %-30s %s%-8s\tn\r\n", inner_char_perk->perk_id, perk_def->name,
+                     is_perk_toggled_on(ch, inner_char_perk->perk_id) ? "\tG" : "\tr",
+                     is_perk_toggled_on(ch, inner_char_perk->perk_id) ? "ON" : "OFF");
         count++;
       }
 
@@ -19039,15 +19041,15 @@ ACMD(do_perk)
     }
 
     /* Toggle the specified perk */
-    int perk_id = -1;
+    int inner_perk_id = -1;
     struct perk_data *perk_def;
     bool current_state, new_state;
 
     /* Try to find the perk by number first */
     if (is_number(arg2))
     {
-      perk_id = atoi(arg2);
-      if (perk_id < 0 || perk_id >= NUM_PERKS)
+      inner_perk_id = atoi(arg2);
+      if (inner_perk_id < 0 || inner_perk_id >= NUM_PERKS)
       {
         send_to_char(ch, "Invalid perk number.\r\n");
         return;
@@ -19063,12 +19065,12 @@ ACMD(do_perk)
           continue;
         if (is_abbrev(arg2, perk_list[i].name))
         {
-          perk_id = i;
+          inner_perk_id = i;
           break;
         }
       }
 
-      if (perk_id == -1)
+      if (inner_perk_id == -1)
       {
         send_to_char(ch, "No such perk found.\r\n");
         return;
@@ -19076,14 +19078,14 @@ ACMD(do_perk)
     }
 
     /* Check if character has this perk */
-    if (!has_perk(ch, perk_id))
+    if (!has_perk(ch, inner_perk_id))
     {
       send_to_char(ch, "You don't have that perk.\r\n");
       return;
     }
 
     /* Get perk definition */
-    perk_def = get_perk_by_id(perk_id);
+    perk_def = get_perk_by_id(inner_perk_id);
     if (!perk_def)
     {
       send_to_char(ch, "Error: Invalid perk.\r\n");
@@ -19098,9 +19100,9 @@ ACMD(do_perk)
     }
 
     /* Toggle it */
-    current_state = is_perk_toggled_on(ch, perk_id);
+    current_state = is_perk_toggled_on(ch, inner_perk_id);
     new_state = !current_state;
-    set_perk_toggle(ch, perk_id, new_state);
+    set_perk_toggle(ch, inner_perk_id, new_state);
 
     send_to_char(ch, "You have toggled '%s' %s%s%s.\r\n", perk_def->name, new_state ? "\tG" : "\tr",
                  new_state ? "ON" : "OFF", "\tn");
@@ -19358,7 +19360,6 @@ int get_master_of_elements_override(struct char_data *ch, int dam_type)
 {
   int preferred_type;
   char buf[MAX_STRING_LENGTH];
-  extern const char *damtypes[];
 
   if (!ch || IS_NPC(ch))
     return dam_type;
@@ -19706,7 +19707,7 @@ int get_arcane_annihilation_dc_bonus(struct char_data *ch)
  * @param ch The character
  * @return Duration multiplier (2.0 or 1.0)
  */
-float get_master_enchanter_duration_multiplier(struct char_data *ch)
+double get_master_enchanter_duration_multiplier(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch))
     return 1.0;
@@ -19724,7 +19725,7 @@ float get_master_enchanter_duration_multiplier(struct char_data *ch)
  * @param ch The character
  * @return Duration multiplier (1.5 or 1.0)
  */
-float get_master_transmuter_duration_multiplier(struct char_data *ch)
+double get_master_transmuter_duration_multiplier(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch))
     return 1.0;
@@ -19743,7 +19744,7 @@ float get_master_transmuter_duration_multiplier(struct char_data *ch)
  * @param ch The character
  * @return Duration multiplier (1.5 or 1.0)
  */
-float get_archmage_control_duration_multiplier(struct char_data *ch)
+double get_archmage_control_duration_multiplier(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch))
     return 1.0;
@@ -20470,8 +20471,8 @@ int get_monk_weapon_ac_bonus(struct char_data *ch, struct obj_data *weapon)
     return 0;
 
   /* Check if weapon is quarterstaff or kama */
-  int weapon_type = GET_OBJ_VAL(weapon, 0);
-  if (weapon_type == WEAPON_TYPE_QUARTERSTAFF || weapon_type == WEAPON_TYPE_KAMA)
+  int weapon_type_value = GET_OBJ_VAL(weapon, 0);
+  if (weapon_type_value == WEAPON_TYPE_QUARTERSTAFF || weapon_type_value == WEAPON_TYPE_KAMA)
     return 1;
 
   return 0;
@@ -20493,8 +20494,8 @@ int get_monk_weapon_attack_bonus(struct char_data *ch, struct obj_data *weapon)
     return 0;
 
   /* Check if weapon is quarterstaff or kama */
-  int weapon_type = GET_OBJ_VAL(weapon, 0);
-  if (weapon_type == WEAPON_TYPE_QUARTERSTAFF || weapon_type == WEAPON_TYPE_KAMA)
+  int weapon_type_value = GET_OBJ_VAL(weapon, 0);
+  if (weapon_type_value == WEAPON_TYPE_QUARTERSTAFF || weapon_type_value == WEAPON_TYPE_KAMA)
     return 1;
 
   return 0;
@@ -20516,8 +20517,8 @@ int get_monk_weapon_damage_bonus(struct char_data *ch, struct obj_data *weapon)
     return 0;
 
   /* Check if weapon is quarterstaff or kama */
-  int weapon_type = GET_OBJ_VAL(weapon, 0);
-  if (weapon_type == WEAPON_TYPE_QUARTERSTAFF || weapon_type == WEAPON_TYPE_KAMA)
+  int weapon_type_value = GET_OBJ_VAL(weapon, 0);
+  if (weapon_type_value == WEAPON_TYPE_QUARTERSTAFF || weapon_type_value == WEAPON_TYPE_KAMA)
     return 1;
 
   return 0;
@@ -20635,7 +20636,7 @@ bool check_druid_spell_critical(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-float get_druid_spell_critical_multiplier(struct char_data *ch __attribute__((unused)))
+double get_druid_spell_critical_multiplier(struct char_data *ch __attribute__((unused)))
 {
   return 1.0;
 }
@@ -22524,7 +22525,7 @@ int get_bard_fencers_footwork_ac_bonus(struct char_data *ch)
 {
   struct obj_data *wielded;
   int bonus = 0;
-  int weapon_type;
+  int weapon_type_value;
   bool is_finesse = FALSE;
 
   if (!ch || IS_NPC(ch))
@@ -22541,12 +22542,12 @@ int get_bard_fencers_footwork_ac_bonus(struct char_data *ch)
   if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
     return 0;
 
-  weapon_type = GET_OBJ_VAL(wielded, 0);
+  weapon_type_value = GET_OBJ_VAL(wielded, 0);
 
   /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
   if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
     is_finesse = TRUE;
-  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+  if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_BALANCED))
     is_finesse = TRUE;
 
   /* Grant bonus if finesse weapon */
@@ -22581,7 +22582,7 @@ int get_bard_fencers_footwork_reflex_bonus(struct char_data *ch)
 {
   struct obj_data *wielded;
   int bonus = 0;
-  int weapon_type;
+  int weapon_type_value;
   bool is_finesse = FALSE;
 
   if (!ch || IS_NPC(ch))
@@ -22598,12 +22599,12 @@ int get_bard_fencers_footwork_reflex_bonus(struct char_data *ch)
   if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
     return 0;
 
-  weapon_type = GET_OBJ_VAL(wielded, 0);
+  weapon_type_value = GET_OBJ_VAL(wielded, 0);
 
   /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
   if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
     is_finesse = TRUE;
-  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+  if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_BALANCED))
     is_finesse = TRUE;
 
   /* Grant bonus if finesse weapon */
@@ -22653,7 +22654,7 @@ int get_bard_precise_strike_i_bonus(struct char_data *ch)
 {
   struct obj_data *wielded;
   int bonus = 0;
-  int weapon_type;
+  int weapon_type_value;
   int damage_type;
   bool is_finesse = FALSE;
 
@@ -22668,13 +22669,13 @@ int get_bard_precise_strike_i_bonus(struct char_data *ch)
   if (!wielded || GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
     return 0;
 
-  weapon_type = GET_OBJ_VAL(wielded, 0);
+  weapon_type_value = GET_OBJ_VAL(wielded, 0);
   damage_type = GET_OBJ_VAL(wielded, 3);
 
   /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
   if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
     is_finesse = TRUE;
-  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+  if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_BALANCED))
     is_finesse = TRUE;
 
   /* Check if finesse weapon with correct damage type */
@@ -22772,7 +22773,7 @@ int get_bard_fencers_footwork_ii_ac_bonus(struct char_data *ch)
 {
   struct obj_data *wielded;
   int bonus = 0;
-  int weapon_type;
+  int weapon_type_value;
   bool is_finesse = FALSE;
 
   if (!ch || IS_NPC(ch))
@@ -22789,12 +22790,12 @@ int get_bard_fencers_footwork_ii_ac_bonus(struct char_data *ch)
   if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
     return 0;
 
-  weapon_type = GET_OBJ_VAL(wielded, 0);
+  weapon_type_value = GET_OBJ_VAL(wielded, 0);
 
   /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
   if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
     is_finesse = TRUE;
-  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+  if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_BALANCED))
     is_finesse = TRUE;
 
   /* Grant bonus if finesse weapon */
@@ -22830,7 +22831,7 @@ int get_bard_fencers_footwork_ii_reflex_bonus(struct char_data *ch)
 {
   struct obj_data *wielded;
   int bonus = 0;
-  int weapon_type;
+  int weapon_type_value;
   bool is_finesse = FALSE;
 
   if (!ch || IS_NPC(ch))
@@ -22847,12 +22848,12 @@ int get_bard_fencers_footwork_ii_reflex_bonus(struct char_data *ch)
   if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
     return 0;
 
-  weapon_type = GET_OBJ_VAL(wielded, 0);
+  weapon_type_value = GET_OBJ_VAL(wielded, 0);
 
   /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
   if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
     is_finesse = TRUE;
-  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+  if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_BALANCED))
     is_finesse = TRUE;
 
   /* Grant bonus if finesse weapon */
@@ -22903,7 +22904,7 @@ int get_bard_precise_strike_ii_bonus(struct char_data *ch)
 {
   struct obj_data *wielded;
   int bonus = 0;
-  int weapon_type;
+  int weapon_type_value;
   int damage_type;
   bool is_finesse = FALSE;
 
@@ -22918,13 +22919,13 @@ int get_bard_precise_strike_ii_bonus(struct char_data *ch)
   if (!wielded || GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
     return 0;
 
-  weapon_type = GET_OBJ_VAL(wielded, 0);
+  weapon_type_value = GET_OBJ_VAL(wielded, 0);
   damage_type = GET_OBJ_VAL(wielded, 3);
 
   /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
   if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
     is_finesse = TRUE;
-  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+  if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_BALANCED))
     is_finesse = TRUE;
 
   /* Check if finesse weapon with correct damage type */
@@ -22978,7 +22979,7 @@ bool has_bard_duelists_poise(struct char_data *ch)
 int get_bard_duelists_poise_crit_confirm_bonus(struct char_data *ch)
 {
   struct obj_data *wielded;
-  int weapon_type;
+  int weapon_type_value;
 
   if (!ch || IS_NPC(ch))
     return 0;
@@ -22991,12 +22992,12 @@ int get_bard_duelists_poise_crit_confirm_bonus(struct char_data *ch)
   if (!wielded || GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
     return 0;
 
-  weapon_type = GET_OBJ_VAL(wielded, 0);
+  weapon_type_value = GET_OBJ_VAL(wielded, 0);
 
   /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
   if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
     return 2;
-  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+  if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_BALANCED))
     return 2;
 
   return 0;
@@ -23012,7 +23013,7 @@ int get_bard_duelists_poise_crit_confirm_bonus(struct char_data *ch)
 int get_bard_duelists_poise_threat_range_bonus(struct char_data *ch)
 {
   struct obj_data *wielded;
-  int weapon_type;
+  int weapon_type_value;
 
   if (!ch || IS_NPC(ch))
     return 0;
@@ -23025,12 +23026,12 @@ int get_bard_duelists_poise_threat_range_bonus(struct char_data *ch)
   if (!wielded || GET_OBJ_TYPE(wielded) != ITEM_WEAPON)
     return 0;
 
-  weapon_type = GET_OBJ_VAL(wielded, 0);
+  weapon_type_value = GET_OBJ_VAL(wielded, 0);
 
   /* Check if finesse weapon: size < wielder OR has WEAPON_FLAG_BALANCED */
   if (GET_OBJ_SIZE(wielded) < GET_SIZE(ch))
     return 1;
-  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_BALANCED))
+  if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_BALANCED))
     return 1;
 
   return 0;

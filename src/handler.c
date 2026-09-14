@@ -299,7 +299,7 @@ int is_name(const char *str, const char *namelist)
 /* allow abbreviations */
 #define WHITESPACE " \t"
 #define KEYWORDJOIN "-"
-int isname_tok(const char *str, const char *namelist)
+static int isname_tok(const char *str, const char *namelist)
 {
   char *newlist = NULL;
   char *curtok = NULL;
@@ -361,8 +361,8 @@ int isname(const char *str, const char *namelist)
 }
 
 /* modify a character's given apply-type (loc) by value */
-void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod,
-                      const char *msg __attribute__((unused)))
+static void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod,
+                             const char *msg __attribute__((unused)))
 {
   switch (loc)
   {
@@ -593,14 +593,14 @@ void affect_modify_ar(struct char_data *ch, byte loc, sh_int mod, int bitv[], bo
       for (j = 0; j < 32; j++)
         if (IS_SET_AR(bitv, (i * 32) + j))
           REMOVE_BIT_AR(AFF_FLAGS(ch), (i * 32) + j);
-    mod = -mod;
+    mod = (sh_int)-mod;
   }
 
   aff_apply_modify(ch, loc, mod, "affect_modify_ar");
 }
 
-int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int except_eq,
-                       int except_spell)
+static int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int except_eq,
+                              int except_spell)
 {
   struct affected_type *af = NULL;
   int i = 0, j = 0;
@@ -1077,12 +1077,12 @@ int affect_total_sub(struct char_data *ch)
           temp_mod = GET_EQ(ch, i)->affected[j].modifier;
           if (is_weapon_wielded_two_handed(GET_EQ(ch, i), ch))
             temp_mod *= 2;
-          affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location, temp_mod,
+          affect_modify_ar(ch, (byte)GET_EQ(ch, i)->affected[j].location, (sh_int)temp_mod,
                            GET_OBJ_AFFECT(GET_EQ(ch, i)), FALSE);
         }
         else
         {
-          affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
+          affect_modify_ar(ch, (byte)(GET_EQ(ch, i)->affected[j].location),
                            0, // GET_EQ(ch, i)->affected[j].modifier,
                            GET_OBJ_AFFECT(GET_EQ(ch, i)), FALSE);
         }
@@ -1095,9 +1095,9 @@ int affect_total_sub(struct char_data *ch)
   {
     // affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
     if (BONUS_TYPE_STACKS(af->bonus_type))
-      affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
+      affect_modify_ar(ch, (byte)af->location, (sh_int)af->modifier, af->bitvector, FALSE);
     else
-      affect_modify_ar(ch, af->location, 0, af->bitvector, FALSE);
+      affect_modify_ar(ch, (byte)af->location, 0, af->bitvector, FALSE);
   }
 
   /* Adjust the modifiers to APPLY_ fields. */
@@ -1108,7 +1108,7 @@ int affect_total_sub(struct char_data *ch)
     {
       modifier += calculate_best_mod(ch, i, j, -1, -1);
     }
-    aff_apply_modify(ch, i, -modifier, "affect_total_sub");
+    aff_apply_modify(ch, (byte)i, (sh_int)-modifier, "affect_total_sub");
     // affect_modify_ar(ch, i, modifier, empty_bits, FALSE);
   }
 
@@ -1145,12 +1145,12 @@ void affect_total_plus(struct char_data *ch, int at_armor)
           temp_mod = GET_EQ(ch, i)->affected[j].modifier;
           if (is_weapon_wielded_two_handed(GET_EQ(ch, i), ch))
             temp_mod *= 2;
-          affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location, temp_mod,
+          affect_modify_ar(ch, (byte)GET_EQ(ch, i)->affected[j].location, (sh_int)temp_mod,
                            GET_OBJ_AFFECT(GET_EQ(ch, i)), TRUE);
         }
         else
         {
-          affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
+          affect_modify_ar(ch, (byte)(GET_EQ(ch, i)->affected[j].location),
                            0, // GET_EQ(ch, i)->affected[j].modifier,
                            GET_OBJ_AFFECT(GET_EQ(ch, i)), TRUE);
         }
@@ -1163,9 +1163,9 @@ void affect_total_plus(struct char_data *ch, int at_armor)
   {
     // affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
     if (BONUS_TYPE_STACKS(af->bonus_type))
-      affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
+      affect_modify_ar(ch, (byte)af->location, (sh_int)af->modifier, af->bitvector, TRUE);
     else
-      affect_modify_ar(ch, af->location, 0, af->bitvector, TRUE);
+      affect_modify_ar(ch, (byte)af->location, 0, af->bitvector, TRUE);
   }
 
   /* Adjust the modifiers to APPLY_ fields. */
@@ -1174,7 +1174,7 @@ void affect_total_plus(struct char_data *ch, int at_armor)
     modifier = 0;
     for (j = 0; j < NUM_BONUS_TYPES; j++)
       modifier += calculate_best_mod(ch, i, j, -1, -1);
-    aff_apply_modify(ch, i, modifier, "affect_total_plus");
+    aff_apply_modify(ch, (byte)i, (sh_int)modifier, "affect_total_plus");
     // affect_modify_ar(ch, i, modifier, empty_bits, TRUE);
   }
 
@@ -1228,7 +1228,8 @@ struct msdp_affect_writer
   bool overflow;
 };
 
-static bool append_msdp_affect_data(struct msdp_affect_writer *writer, const char *format, ...)
+__attribute__((format(printf, 2, 3))) static bool
+append_msdp_affect_data(struct msdp_affect_writer *writer, const char *format, ...)
 {
   va_list args;
   int written;
@@ -1468,20 +1469,20 @@ void affect_to_char_source(struct char_data *ch, struct affected_type *af, long 
   character_periodic_sync(ch);
 
   /*affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);*/
-  affect_modify_ar(ch, af->location, 0, af->bitvector, TRUE);
+  affect_modify_ar(ch, (byte)af->location, 0, af->bitvector, TRUE);
 
   if (BONUS_TYPE_STACKS(af->bonus_type))
   {
-    affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
+    affect_modify_ar(ch, (byte)af->location, (sh_int)af->modifier, af->bitvector, TRUE);
   }
   else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell))
   {
-    aff_apply_modify(ch, af->location,
-                     -calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell),
+    aff_apply_modify(ch, (byte)af->location,
+                     (sh_int)-calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell),
                      "affect_to_char");
     /*affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location,
              af->bonus_type, -1, af->spell), empty_bits, FALSE);*/
-    affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
+    affect_modify_ar(ch, (byte)af->location, (sh_int)af->modifier, af->bitvector, TRUE);
   }
 
   affect_total(ch);
@@ -1516,16 +1517,16 @@ void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
   if (IS_SET_AR(af->bitvector, AFF_CONFUSED))
     ch->confuser_idnum = 0;
 
-  affect_modify_ar(ch, af->location, 0, af->bitvector, FALSE);
+  affect_modify_ar(ch, (byte)af->location, 0, af->bitvector, FALSE);
 
   if (BONUS_TYPE_STACKS(af->bonus_type))
   {
-    affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
+    affect_modify_ar(ch, (byte)af->location, (sh_int)af->modifier, af->bitvector, FALSE);
   }
   else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell))
   {
-    aff_apply_modify(ch, af->location,
-                     calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell),
+    aff_apply_modify(ch, (byte)af->location,
+                     (sh_int)calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell),
                      "affect_remove_no_total");
   }
 
@@ -1533,13 +1534,13 @@ void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
   if (af->location == APPLY_DR)
   {
     /* Remove the dr. */
-    struct damage_reduction_type *temp, *dr, *next_dr; /* Used by REMOVE_FROM_LIST */
+    struct damage_reduction_type *dr_temp, *dr, *next_dr;
     for (dr = GET_DR(ch); dr != NULL; dr = next_dr)
     {
       next_dr = dr->next; /* Save next pointer before potential removal */
       if (dr->spell == af->spell)
       {
-        REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+        REMOVE_FROM_LIST_USING(dr, GET_DR(ch), next, dr_temp);
         free(dr); /* Free the damage reduction structure */
       }
     }
@@ -1582,16 +1583,16 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   if (IS_SET_AR(af->bitvector, AFF_CONFUSED))
     ch->confuser_idnum = 0;
 
-  affect_modify_ar(ch, af->location, 0, af->bitvector, FALSE);
+  affect_modify_ar(ch, (byte)af->location, 0, af->bitvector, FALSE);
 
   if (BONUS_TYPE_STACKS(af->bonus_type))
   {
-    affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
+    affect_modify_ar(ch, (byte)af->location, (sh_int)af->modifier, af->bitvector, FALSE);
   }
   else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell))
   {
-    aff_apply_modify(ch, af->location,
-                     calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell),
+    aff_apply_modify(ch, (byte)af->location,
+                     (sh_int)calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell),
                      "affect_remove");
     // affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), empty_bits, TRUE);
     //  affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
@@ -1601,13 +1602,13 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   if (af->location == APPLY_DR)
   {
     /* Remove the dr. */
-    struct damage_reduction_type *temp, *dr, *next_dr; /* Used by REMOVE_FROM_LIST */
+    struct damage_reduction_type *dr_temp, *dr, *next_dr;
     for (dr = GET_DR(ch); dr != NULL; dr = next_dr)
     {
       next_dr = dr->next; /* Save next pointer before potential removal */
       if (dr->spell == af->spell)
       {
-        REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+        REMOVE_FROM_LIST_USING(dr, GET_DR(ch), next, dr_temp);
         free(dr); /* Free the damage reduction structure */
       }
     }
@@ -1901,13 +1902,13 @@ void check_room_lighting(room_rnum room, struct char_data *ch, bool enter)
   {
     if (enter)
     {
-      world[room].light += value;
-      world[room].globe += val2;
+      world[room].light = (byte)(world[room].light + (value));
+      world[room].globe = (byte)(world[room].globe + (val2));
     }
     else
     {
-      world[room].light -= value;
-      world[room].globe -= val2;
+      world[room].light = (byte)(world[room].light - (value));
+      world[room].globe = (byte)(world[room].globe - (val2));
       if (world[room].light < 0)
         world[room].light = 0;
       if (world[room].globe < 0)
@@ -2055,8 +2056,8 @@ void char_to_room_cause(struct char_data *ch, room_rnum room, struct char_data *
 
   if (ch == NULL || room == NOWHERE || room > top_of_world)
   {
-    log("SYSERR: Illegal value(s) passed to char_to_room. (Room: %d/%d Ch: %p)", room, top_of_world,
-        ch);
+    log("SYSERR: Illegal value(s) passed to char_to_room. (Room: %" PRI_IDX "/%" PRI_IDX " Ch: %p)",
+        room, top_of_world, ch);
     return;
   }
   else
@@ -2586,7 +2587,7 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
   {
     r_rnum = IN_ROOM(ch);
 
-    log("SYSERR: Char/Loc [%d][%d] is already equipped: %s, %s", GET_MOB_VNUM(ch),
+    log("SYSERR: Char/Loc [%u][%u] is already equipped: %s, %s", GET_MOB_VNUM(ch),
         GET_ROOM_VNUM(r_rnum), GET_NAME(ch), obj->short_description);
     return;
   }
@@ -2641,7 +2642,7 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
 
   GET_EQ(ch, pos) = obj;
   obj->worn_by = ch;
-  obj->worn_on = pos;
+  obj->worn_on = (sh_int)pos;
 
   /* Object special abilities, process for ACTMTD_WEAR */
   process_item_abilities(obj, ch, NULL, ACTMTD_WEAR, NULL);
@@ -2667,26 +2668,27 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
     /* Here is where we need to see if these affects ACTUALLY apply,
      * based on the bonus types. */
 
-    affect_modify_ar(ch, obj->affected[j].location,
+    affect_modify_ar(ch, (byte)obj->affected[j].location,
                      0, // obj->affected[j].modifier,
                      GET_OBJ_AFFECT(obj), TRUE);
 
     if ((obj->affected[j].modifier) < 0)
     {
-      affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier,
+      affect_modify_ar(ch, (byte)obj->affected[j].location, (sh_int)obj->affected[j].modifier,
                        GET_OBJ_AFFECT(obj), TRUE);
     }
     else if ((obj->affected[j].modifier) > calculate_best_mod(ch, obj->affected[j].location,
                                                               obj->affected[j].bonus_type, pos, -1))
     {
-      affect_modify_ar(ch, obj->affected[j].location,
-                       is_weapon_wielded_two_handed(obj, ch) ? obj->affected[j].modifier * 2
-                                                             : obj->affected[j].modifier,
+      affect_modify_ar(ch, (byte)obj->affected[j].location,
+                       (sh_int)(is_weapon_wielded_two_handed(obj, ch)
+                                    ? obj->affected[j].modifier * 2
+                                    : obj->affected[j].modifier),
                        GET_OBJ_AFFECT(obj), TRUE);
-      aff_apply_modify(
-          ch, obj->affected[j].location,
-          -calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1),
-          "equip_char");
+      aff_apply_modify(ch, (byte)obj->affected[j].location,
+                       (sh_int)-calculate_best_mod(ch, obj->affected[j].location,
+                                                   obj->affected[j].bonus_type, pos, -1),
+                       "equip_char");
       // affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, FALSE);
     }
   }
@@ -2738,26 +2740,27 @@ struct obj_data *unequip_char(struct char_data *ch, int pos)
   {
     /* Here is where we need to see if these affects ACTUALLY apply,
      * based on the bonus types. */
-    affect_modify_ar(ch, obj->affected[j].location,
+    affect_modify_ar(ch, (byte)obj->affected[j].location,
                      0, // obj->affected[j].modifier,
                      GET_OBJ_AFFECT(obj), FALSE);
 
     if ((obj->affected[j].modifier) < 0)
     {
-      affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier,
+      affect_modify_ar(ch, (byte)obj->affected[j].location, (sh_int)obj->affected[j].modifier,
                        GET_OBJ_AFFECT(obj), FALSE);
     }
     else if ((obj->affected[j].modifier) > calculate_best_mod(ch, obj->affected[j].location,
                                                               obj->affected[j].bonus_type, pos, -1))
     {
-      affect_modify_ar(ch, obj->affected[j].location,
-                       is_weapon_wielded_two_handed(obj, ch) ? obj->affected[j].modifier * 2
-                                                             : obj->affected[j].modifier,
+      affect_modify_ar(ch, (byte)obj->affected[j].location,
+                       (sh_int)(is_weapon_wielded_two_handed(obj, ch)
+                                    ? obj->affected[j].modifier * 2
+                                    : obj->affected[j].modifier),
                        GET_OBJ_AFFECT(obj), FALSE);
-      aff_apply_modify(
-          ch, obj->affected[j].location,
-          calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1),
-          "equip_char");
+      aff_apply_modify(ch, (byte)obj->affected[j].location,
+                       (sh_int)calculate_best_mod(ch, obj->affected[j].location,
+                                                  obj->affected[j].bonus_type, pos, -1),
+                       "equip_char");
       // affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, TRUE);
     }
   }
@@ -2779,6 +2782,8 @@ int get_number(char **name)
 
   /* Make a working copy of name */
   namebuf = strdup(*name);
+  if (namebuf == NULL)
+    return retval;
 
   if ((ppos = strchr(namebuf, '.')) != NULL)
   {
@@ -2815,7 +2820,6 @@ struct obj_data *get_obj_num(obj_rnum nr)
 {
   struct obj_data *obj;
   int hash_key;
-  extern struct obj_rnum_hash_bucket obj_rnum_hash[];
 
   if (nr == NOTHING)
     return NULL;
@@ -2872,8 +2876,8 @@ void obj_to_room(struct obj_data *object, room_rnum room)
   if (object != NULL && (object->transfer_extracting || IN_ROOM(object) == room))
     return;
   if (!object || room == NOWHERE || room > top_of_world)
-    log("SYSERR: Illegal value(s) passed to obj_to_room. (Room #%d/%d, obj %p)", room, top_of_world,
-        object);
+    log("SYSERR: Illegal value(s) passed to obj_to_room. (Room #%" PRI_IDX "/%" PRI_IDX ", obj %p)",
+        room, top_of_world, object);
   else
   {
     /* Room contents are deliberately newest-first. Combat autoloot and other
@@ -2905,7 +2909,7 @@ void obj_from_room(struct obj_data *object)
 
   if (!object || IN_ROOM(object) == NOWHERE)
   {
-    log("SYSERR: NULL object (%p) or obj not in a room (%d) passed to obj_from_room", object,
+    log("SYSERR: NULL object (%p) or obj not in a room (%u) passed to obj_from_room", object,
         object != NULL ? IN_ROOM(object) : NOWHERE);
     return;
   }
@@ -2950,7 +2954,7 @@ void obj_to_obj(struct obj_data *obj, struct obj_data *obj_to)
   {
     if (tmp_obj == obj)
     {
-      log("SYSERR: Circular containment detected! Object %s (#%d) would contain itself.",
+      log("SYSERR: Circular containment detected! Object %s (#%u) would contain itself.",
           obj->short_description ? obj->short_description : "UNDEFINED", GET_OBJ_VNUM(obj));
       return;
     }
@@ -3100,7 +3104,7 @@ void extract_obj(struct obj_data *obj)
     }
     else
     {
-      log("SYSERR: Attempt to decrement object count below 0 - vnum %d, rnum %d",
+      log("SYSERR: Attempt to decrement object count below 0 - vnum %" PRI_IDX ", rnum %" PRI_IDX,
           obj_index[GET_OBJ_RNUM(obj)].vnum, GET_OBJ_RNUM(obj));
     }
   }
@@ -3446,7 +3450,7 @@ void extract_char(struct char_data *ch)
   {
     if (MOB_FLAGGED(ch, MOB_NOTDEADYET))
     {
-      log("WARNING: extract_char() called on mob %s (vnum %d) already marked for extraction",
+      log("WARNING: extract_char() called on mob %s (vnum %u) already marked for extraction",
           GET_NAME(ch), GET_MOB_VNUM(ch));
       return; /* Already pending extraction, don't double-count */
     }
@@ -3527,14 +3531,14 @@ void extract_pending_chars(void)
       if (MOB_FLAGGED(vict, MOB_NOTDEADYET))
       {
         mob_count++;
-        log("  DEBUG: Found MOB with NOTDEADYET still set: %s (vnum %d, room %d)", GET_NAME(vict),
-            GET_MOB_VNUM(vict), IN_ROOM(vict));
+        log("  DEBUG: Found MOB with NOTDEADYET still set: %s (vnum %u, room %" PRI_IDX ")",
+            GET_NAME(vict), GET_MOB_VNUM(vict), IN_ROOM(vict));
       }
       else if (PLR_FLAGGED(vict, PLR_NOTDEADYET))
       {
         plr_count++;
-        log("  DEBUG: Found PLAYER with NOTDEADYET still set: %s (room %d)", GET_NAME(vict),
-            IN_ROOM(vict));
+        log("  DEBUG: Found PLAYER with NOTDEADYET still set: %s (room %" PRI_IDX ")",
+            GET_NAME(vict), IN_ROOM(vict));
       }
     }
 

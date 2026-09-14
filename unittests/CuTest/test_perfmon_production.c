@@ -281,6 +281,8 @@ void Test_perfmon_reports_bounded_game_loop_telemetry(CuTest *tc)
     }
   }
   CuAssertPtrNotNull(tc, profile);
+  if (profile == NULL)
+    return;
   CuAssertIntEquals(tc, 1, (int)profile->late_callbacks);
   CuAssertIntEquals(tc, 2, (int)profile->lateness_p50_ticks);
   CuAssertIntEquals(tc, 3, (int)profile->lateness_p95_ticks);
@@ -394,8 +396,8 @@ void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
   zone.top = 99;
   mobile_index.vnum = 1;
   mobile_index.number = 3;
-  mobile_prototype.player.name = (char *)"extraction test mobile";
-  mobile_prototype.player.short_descr = (char *)"an extraction test mobile";
+  mobile_prototype.player.name = CuMutableString("extraction test mobile");
+  mobile_prototype.player.short_descr = CuMutableString("an extraction test mobile");
   saved_world = world;
   saved_top_of_world = top_of_world;
   saved_zone_table = zone_table;
@@ -665,7 +667,7 @@ void Test_player_live_entry_registers_loaded_timed_affects(CuTest *tc)
   affected_registry_reset_for_test();
   clear_char(&player);
   player.player_specials = &dummy_mob;
-  player.player.short_descr = (char *)"affected registry player";
+  player.player.short_descr = CuMutableString("affected registry player");
   new_affect(&affect);
   affect.duration = 2;
   affect_to_char(&player, &affect);
@@ -710,7 +712,7 @@ void Test_player_live_entry_registers_for_point_updates(CuTest *tc)
   point_update_periodic_init();
   clear_char(&player);
   player.player_specials = &dummy_mob;
-  player.player.short_descr = (char *)"point update player";
+  player.player.short_descr = CuMutableString("point update player");
 
   saved_character_list = character_list;
   character_list = NULL;

@@ -240,7 +240,6 @@ int get_apply_no_repeat_category(int apply);
 bool is_valid_spell_circle_for_class(int circle, int ch_class);
 
 // in assign_wpn_armor.c
-int get_wear_location_by_armor_type(int type);
 
 // staff tool to load random items
 ACMD_DECL(do_loadmagic);
@@ -255,6 +254,15 @@ SPECIAL_DECL(bazaar);
 #define TYPE_WAND 3
 #define TYPE_STAFF 4
 
+
+void assign_weighted_bonuses(void);
+
+void assign_weighted_random_bonuses(struct obj_data *obj __attribute__((unused)),
+                                    int olevel __attribute__((unused)),
+                                    int num_bonuses __attribute__((unused)));
+int choose_cloth_material(void);
+int choose_metal_material(void);
+int choose_precious_metal_material(void);
 #endif /* TREASURE_H */
 
 /*eof*/

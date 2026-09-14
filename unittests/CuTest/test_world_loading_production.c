@@ -384,7 +384,7 @@ void Test_world_loading_production_zone_reset_dispatch_and_whitespace(CuTest *tc
     zone_table = calloc(1, sizeof(*zone_table));
     if (zone_table == NULL)
       _exit(2);
-    test_load_zones(input, "reset-fixture.zon");
+    test_load_zones(input, CuMutableString("reset-fixture.zon"));
     commands = zone_table[0].cmd;
     if (top_of_zone_table != 0 || commands[0].command != 'I' || commands[0].if_flag != 1 ||
         commands[0].arg1 != 75 || commands[0].line != 5 || commands[1].command != 'I' ||
@@ -431,7 +431,7 @@ void Test_world_loading_production_zone_header_forms_and_diagnostics(CuTest *tc)
         fprintf(input, "%d ", values[i]);
       fputs("\nS\n$\n", input);
       rewind(input);
-      test_load_zones(input, "header-fixture.zon");
+      test_load_zones(input, CuMutableString("header-fixture.zon"));
       zone = &zone_table[count - 4];
       used = count >= 14 ? 14 : count >= 11 ? 11 : count >= 10 ? 10 : 4;
       if (zone->bot != 10000 || zone->top != 10099 || zone->lifespan != 30 ||
@@ -482,7 +482,7 @@ void Test_world_loading_production_zone_without_builder_preserves_first_reset(Cu
     zone_table = calloc(1, sizeof(*zone_table));
     if (zone_table == NULL)
       _exit(2);
-    test_load_zones(input, "legacy-fixture.zon");
+    test_load_zones(input, CuMutableString("legacy-fixture.zon"));
     if (strcmp(zone_table[0].name, "Legacy zone") != 0 ||
         strcmp(zone_table[0].builders, "None.") != 0 || zone_table[0].cmd[0].command != 'I' ||
         zone_table[0].cmd[0].line != 4 || zone_table[0].cmd[1].command != 'S')
@@ -517,7 +517,7 @@ void Test_world_loading_production_unsupported_zone_reset_reports_line(CuTest *t
     zone_table = calloc(1, sizeof(*zone_table));
     if (zone_table == NULL)
       _exit(2);
-    test_load_zones(input, "unsupported-fixture.zon");
+    test_load_zones(input, CuMutableString("unsupported-fixture.zon"));
     _exit(0);
   }
   assert_world_loader_child(tc, child, 1);

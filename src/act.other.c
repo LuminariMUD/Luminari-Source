@@ -98,7 +98,6 @@ static void print_group(struct char_data *ch);
 static void display_group_list(struct char_data *ch);
 
 // external functions
-bool save_char_pets(struct char_data *ch);
 
 /*****************/
 
@@ -136,7 +135,7 @@ void show_exchange_rates(struct char_data *ch)
 }
 #endif
 
-void show_exchange_rates(struct char_data *ch)
+static void show_exchange_rates(struct char_data *ch)
 {
   send_to_char(ch,
                "Usage: cexchange <currency source> <amount to purchase of exchange currency>\r\n");
@@ -158,7 +157,7 @@ ACMD(do_cexchange)
 {
   char arg1[MAX_STRING_LENGTH] = {'\0'};
   char arg2[MAX_STRING_LENGTH] = {'\0'};
-  float amount = 0.0, cost = 0.0;
+  double amount = 0.0, cost = 0.0;
   int source = 0, xp_excess = 0, xp_profit = 0;
 
   /*debug*/
@@ -238,14 +237,14 @@ ACMD(do_cexchange)
     cost = ACCEXP_EXCHANGE_RATE * amount;
 
     /* cap for account xp currently */
-    if ((amount + (float)GET_ACCEXP_DESC(ch)) > 99999999.9)
+    if ((amount + (double)GET_ACCEXP_DESC(ch)) > 99999999.9)
     {
       send_to_char(ch, "Account experience caps at 100mil.\r\n");
       return;
     }
 
     /* xp has to be overflow! */
-    xp_excess = (GET_EXP(ch) - level_exp(ch, (LVL_IMMORT - 1)));
+    xp_excess = ((int)(GET_EXP(ch) - level_exp(ch, (LVL_IMMORT - 1))));
 
     /* can we afford it? if so, go ahead and make exchange */
     if (xp_excess < cost)
@@ -277,7 +276,7 @@ ACMD(do_cexchange)
     cost = GOLD_EXCHANGE_RATE * amount;
 
     /* can we afford it? if so, go ahead and make exchange */
-    if ((float)GET_ACCEXP_DESC(ch) < cost)
+    if ((double)GET_ACCEXP_DESC(ch) < cost)
     {
       send_to_char(ch, "You do not have enough account exp, you need %d total (you have %d).\r\n",
                    (int)cost, GET_ACCEXP_DESC(ch));
@@ -285,7 +284,7 @@ ACMD(do_cexchange)
     }
 
     /* the purse has to hold the gold before any account exp is taken */
-    if (amount > award_capacity(ch, AWARD_GOLD))
+    if (amount > (double)award_capacity(ch, AWARD_GOLD))
     {
       send_to_char(ch, "You cannot carry that much more gold.\r\n");
       return;
@@ -311,7 +310,7 @@ ACMD(do_cexchange)
     cost = QP_EXCHANGE_RATE * amount;
 
     /* can we afford it? if so, go ahead and make exchange */
-    if ((float)GET_GOLD(ch) < cost)
+    if ((double)GET_GOLD(ch) < cost)
     {
       send_to_char(ch,
                    "You do not have enough gold on hand, you need %d total on "
@@ -321,7 +320,7 @@ ACMD(do_cexchange)
     }
 
     /* quest points cap, so check the room before any gold is taken */
-    if (amount > award_capacity(ch, AWARD_QUEST_POINTS))
+    if (amount > (double)award_capacity(ch, AWARD_QUEST_POINTS))
     {
       send_to_char(ch, "Quest points cap at %d.\r\n", MAX_QUEST_POINTS);
       return;
@@ -370,7 +369,7 @@ ACMD(do_cexchange)
     }
 
     /* can we afford it? if so, go ahead and make exchange */
-    if ((float)GET_QUESTPOINTS(ch) < cost)
+    if ((double)GET_QUESTPOINTS(ch) < cost)
     {
       send_to_char(ch, "You do not have enough quest points, you need %d total (you have %d).\r\n",
                    (int)cost, GET_QUESTPOINTS(ch));
@@ -409,7 +408,7 @@ ACMD(do_cexchange)
   char arg1[MAX_STRING_LENGTH] = {'\0'};
   char arg2[MAX_STRING_LENGTH] = {'\0'};
   char arg3[MAX_STRING_LENGTH] = {'\0'};
-  float amount = 0.0, cost = 0.0, pool = 0.0;
+  double amount = 0.0, cost = 0.0, pool = 0.0;
   int source = 0, exchange = 0;
 
   /*temp*/
@@ -490,23 +489,23 @@ ACMD(do_cexchange)
   switch (exchange)
   {
   case SRC_DST_ACCEXP:
-    cost = (float)ACCEXP_EXCHANGE_RATE * amount;
+    cost = (double)ACCEXP_EXCHANGE_RATE * amount;
 
     /* cap for account xp currently */
-    if ((amount + (float)GET_ACCEXP_DESC(ch)) > 99999999.9)
+    if ((amount + (double)GET_ACCEXP_DESC(ch)) > 99999999.9)
     {
       send_to_char(ch, "Account experience caps at 100mil.\r\n");
       return;
     }
     break;
   case SRC_DST_QP:
-    cost = (float)QP_EXCHANGE_RATE * amount;
+    cost = (double)QP_EXCHANGE_RATE * amount;
     break;
   case SRC_DST_GOLD:
-    cost = (float)GOLD_EXCHANGE_RATE * amount;
+    cost = (double)GOLD_EXCHANGE_RATE * amount;
     break;
   case SRC_DST_EXP:
-    cost = (float)EXP_EXCHANGE_RATE * amount;
+    cost = (double)EXP_EXCHANGE_RATE * amount;
     break;
 
   default: /* should never get here */
@@ -520,7 +519,7 @@ ACMD(do_cexchange)
   {
 
   case SRC_DST_ACCEXP:
-    pool = cost / ((float)ACCEXP_EXCHANGE_RATE); /* amount we need */
+    pool = cost / ((double)ACCEXP_EXCHANGE_RATE); /* amount we need */
 
     if (pool < 1.0)
     {
@@ -541,7 +540,7 @@ ACMD(do_cexchange)
     break;
 
   case SRC_DST_QP:
-    pool = cost / ((float)QP_EXCHANGE_RATE); /* amount we need */
+    pool = cost / ((double)QP_EXCHANGE_RATE); /* amount we need */
 
     if (pool < 1.0)
     {
@@ -561,7 +560,7 @@ ACMD(do_cexchange)
     break;
 
   case SRC_DST_GOLD:
-    pool = cost / ((float)GOLD_EXCHANGE_RATE); /* amount we need */
+    pool = cost / ((double)GOLD_EXCHANGE_RATE); /* amount we need */
 
     if (pool < 1.0)
     {
@@ -583,7 +582,7 @@ ACMD(do_cexchange)
     break;
 
   case SRC_DST_EXP:
-    pool = cost / ((float)EXP_EXCHANGE_RATE); /* amount we need */
+    pool = cost / ((double)EXP_EXCHANGE_RATE); /* amount we need */
 
     if (pool <= 0.0)
     {
@@ -1538,7 +1537,7 @@ ACMD(do_applypoison)
           (int)(GET_OBJ_VAL(poison, 3) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1));
       weapon->weapon_poison.poison = GET_OBJ_VAL(poison, 0);
       weapon->weapon_poison.poison_level =
-          (int)MIN(30, GET_OBJ_VAL(poison, 1) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1));
+          MIN(30, (int)(GET_OBJ_VAL(poison, 1) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1)));
       snprintf(buf1, sizeof(buf1),
                "\tnYou apply your innate poison \tnonto $p\tn by covering it with your venomous "
                "saliva...");
@@ -1552,7 +1551,7 @@ ACMD(do_applypoison)
           (int)(GET_OBJ_VAL(poison, 3) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1));
       weapon->weapon_poison.poison = GET_OBJ_VAL(poison, 0);
       weapon->weapon_poison.poison_level =
-          (int)MIN(30, GET_OBJ_VAL(poison, 1) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1));
+          MIN(30, (int)(GET_OBJ_VAL(poison, 1) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1)));
       snprintf(buf1, sizeof(buf1), "\tnYou carefully apply the contents of %s \tnonto $p\tn...",
                poison->short_description);
       snprintf(buf2, sizeof(buf2), "$n \tncarefully applies the contents of %s \tnonto $p\tn...",
@@ -1634,7 +1633,7 @@ ACMD(do_sorcerer_arcane_apotheosis)
   prep_time = compute_spells_prep_time(ch, CLASS_SORCERER, circle, false);
   innate_magic_add(ch, CLASS_SORCERER, circle, METAMAGIC_NONE, prep_time, false);
 
-  APOTHEOSIS_SLOTS(ch) += circle;
+  APOTHEOSIS_SLOTS(ch) = (byte)(APOTHEOSIS_SLOTS(ch) + (circle));
 
   act("You focus your arcane power.", FALSE, ch, 0, 0, TO_CHAR);
   act("$n focuses $s arcane power.", FALSE, ch, 0, 0, TO_ROOM);
@@ -2023,8 +2022,8 @@ void perform_call(struct char_data *ch, int call_type, int level)
   if (!ok_call_mob_vnum(mob_num))
   {
     send_to_char(ch, "This call type is not completely set up. Please inform a staff member.\r\n");
-    mudlog(NRM, LVL_IMMORT, TRUE, "ERROR: Invalid mob vnum %d for call type %d by %s", mob_num,
-           call_type, GET_NAME(ch));
+    mudlog(NRM, LVL_IMMORT, TRUE, "ERROR: Invalid mob vnum %" PRI_IDX " for call type %d by %s",
+           mob_num, call_type, GET_NAME(ch));
     return;
   }
   if (level >= LVL_IMMORT)
@@ -2040,8 +2039,8 @@ void perform_call(struct char_data *ch, int call_type, int level)
   if (!(mob = read_mobile(mob_num, VIRTUAL)))
   {
     send_to_char(ch, "You don't quite remember how to call that creature.\r\n");
-    mudlog(NRM, LVL_IMMORT, TRUE, "ERROR: Failed to load mob %d for %s companion call by %s",
-           mob_num,
+    mudlog(NRM, LVL_IMMORT, TRUE,
+           "ERROR: Failed to load mob %" PRI_IDX " for %s companion call by %s", mob_num,
            call_type == MOB_SHADOW       ? "shadow"
            : call_type == MOB_EIDOLON    ? "eidolon"
            : call_type == MOB_C_ANIMAL   ? "animal"
@@ -2999,8 +2998,6 @@ ACMD(do_golemrepair)
   }
 
   /* Check if we can repair the golem (validates materials, combat status, etc) */
-  extern bool can_repair_golem(struct char_data * ch, struct char_data * golem,
-                               int *material_needed, int *material_type);
   if (!can_repair_golem(ch, golem, &material_needed, &material_type))
     return;
 
@@ -3016,7 +3013,6 @@ ACMD(do_golemrepair)
   }
 
   /* Make the Arcana skill check */
-  extern int get_golem_repair_dc(int golem_type, int golem_size);
   dc = get_golem_repair_dc(golem_type, golem_size);
   roll = d20(ch);
   skill = get_craft_skill_value(ch, ABILITY_ARCANA);
@@ -3331,7 +3327,7 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
   int tempXP;
 
   /* in the clear! */
-  tempXP = GET_EXP(ch);
+  tempXP = (int)GET_EXP(ch);
   original_size = GET_REAL_SIZE(ch);
   preserve_original_size = GET_REAL_RACE(ch) == RACE_LICH || GET_REAL_RACE(ch) == RACE_VAMPIRE;
 
@@ -3683,7 +3679,7 @@ void set_bonus_attributes(struct char_data *ch, int str, int con, int dex, int a
   GET_DISGUISE_AC(ch) = ac;
 }
 
-void init_wild_shape_mods(struct wild_shape_mods *abil_mods)
+static void init_wild_shape_mods(struct wild_shape_mods *abil_mods)
 {
   abil_mods->strength = 0;
   abil_mods->constitution = 0;
@@ -4150,8 +4146,8 @@ At 12th level, a druid can use wild shape to change into a Huge elemental or a
  * shape now functions as elemental body IV. When taking the form of a plant, the
  * druid's wild shape now functions as plant shape III.
  */
-int display_eligible_wildshape_races(struct char_data *ch, const char *argument, int silent,
-                                     int mode)
+static int display_eligible_wildshape_races(struct char_data *ch, const char *argument, int silent,
+                                            int mode)
 {
   int i = 0;
   struct wild_shape_mods abil_mods;
@@ -4217,7 +4213,7 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
         case SIZE_COLOSSAL:
           if (HAS_FEAT(ch, FEAT_COLOSSAL_WILD_SHAPE))
             break;
-
+          [[fallthrough]];
         case SIZE_FINE:
         default:
           continue;
@@ -4251,7 +4247,7 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
         case SIZE_COLOSSAL:
           if (HAS_FEAT(ch, FEAT_COLOSSAL_WILD_SHAPE))
             break;
-
+          [[fallthrough]];
         case SIZE_DIMINUTIVE:
         case SIZE_TINY:
         case SIZE_FINE:
@@ -4287,7 +4283,7 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
         case SIZE_COLOSSAL:
           if (HAS_FEAT(ch, FEAT_COLOSSAL_WILD_SHAPE))
             break;
-
+          [[fallthrough]];
         case SIZE_DIMINUTIVE:
         case SIZE_TINY:
         case SIZE_FINE:
@@ -4328,10 +4324,11 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
     set_wild_shape_mods(i, &abil_mods);
     if (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE) && mode == 0)
     {
-      abil_mods.strength += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-      abil_mods.dexterity += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-      abil_mods.constitution += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-      abil_mods.natural_armor += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+      abil_mods.strength = (byte)(abil_mods.strength + (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE)));
+      abil_mods.dexterity = (byte)(abil_mods.dexterity + (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE)));
+      abil_mods.constitution = (byte)(abil_mods.constitution + (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE)));
+      abil_mods.natural_armor =
+          (byte)(abil_mods.natural_armor + (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE)));
     }
     if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), TRANSMUTATION) && mode == 1)
     { // polymorph
@@ -4373,7 +4370,7 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
     return i; /* specific race */
 }
 
-void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac)
+static void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac)
 {
   struct affected_type af[WILDSHAPE_AFFECTS];
   int i = 0;
@@ -4421,7 +4418,7 @@ void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac)
 }
 
 /* also clean up anything else assigned such as affections */
-void cleanup_wildshape_feats(struct char_data *ch)
+static void cleanup_wildshape_feats(struct char_data *ch)
 {
   int counter = 0;
   int race = GET_DISGUISE_RACE(ch);
@@ -4520,7 +4517,7 @@ void cleanup_wildshape_feats(struct char_data *ch)
 }
 
 /* we also set other special abilities here */
-void assign_wildshape_feats(struct char_data *ch)
+static void assign_wildshape_feats(struct char_data *ch)
 {
   int counter = 0;
   int shifter_level = CLASS_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_SHIFTER);
@@ -4629,6 +4626,7 @@ void assign_wildshape_feats(struct char_data *ch)
   case 2:
   case 1:
     MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    [[fallthrough]];
   default:
     break;
   }
@@ -4884,15 +4882,15 @@ bool wildshape_engine(struct char_data *ch, const char *argument, int mode)
 
   /* we're in the clear, set the wildshape race! */
   SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
-  GET_DISGUISE_RACE(ch) = i;
+  GET_DISGUISE_RACE(ch) = (sh_int)i;
   /* determine modifiers */
   set_wild_shape_mods(GET_DISGUISE_RACE(ch), &abil_mods);
   if (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE) && mode == 0) // wildshape
   {
-    abil_mods.strength += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-    abil_mods.dexterity += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-    abil_mods.constitution += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-    abil_mods.natural_armor += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+    abil_mods.strength = (byte)(abil_mods.strength + (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE)));
+    abil_mods.dexterity = (byte)(abil_mods.dexterity + (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE)));
+    abil_mods.constitution = (byte)(abil_mods.constitution + (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE)));
+    abil_mods.natural_armor = (byte)(abil_mods.natural_armor + (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE)));
   }
   if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), TRANSMUTATION) && mode == 1)
   { // polymorph
@@ -5071,7 +5069,7 @@ void perform_shapechange(struct char_data *ch, char *arg, int mode)
       list_forms(ch);
       return;
     }
-    IS_MORPHED(ch) = form;
+    IS_MORPHED(ch) = (ubyte)form;
     if (mode == 1)
       GET_SHAPECHANGES(ch)
     --;
@@ -5259,7 +5257,7 @@ ACMD(do_shapechange)
 
 /*****************************/
 
-int display_eligible_disguise_races(struct char_data *ch, const char *argument, int silent)
+static int display_eligible_disguise_races(struct char_data *ch, const char *argument, int silent)
 {
   int i = 0;
 
@@ -5272,6 +5270,7 @@ int display_eligible_disguise_races(struct char_data *ch, const char *argument, 
       {
         break;
       }
+      [[fallthrough]];
     default:
       continue;
     }
@@ -5376,7 +5375,7 @@ ACMD(do_disguise)
   }
 
   /* we're in the clear, set the disguise race! */
-  GET_DISGUISE_RACE(ch) = i;
+  GET_DISGUISE_RACE(ch) = (sh_int)i;
   affect_total(ch);
   save_char(ch, 0);
   Crash_crashsave(ch);
@@ -5636,20 +5635,20 @@ void record_quit_feedback(struct char_data *ch, const char *reason)
 
   format_time_string(now, "%Y-%m-%d %H:%M:%S", time_buf, sizeof(time_buf));
 
-  FILE *logfile = fopen_restricted(QUIT_FEEDBACK_FILE, "a");
-  if (!logfile)
+  FILE *logfile_value = fopen_restricted(QUIT_FEEDBACK_FILE, "a");
+  if (!logfile_value)
   {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: Could not open %s for quit feedback: %s",
            QUIT_FEEDBACK_FILE, strerror(errno));
     return;
   }
 
-  fprintf(logfile, "[%s] %s (Account: %s, %s %s, Room: %d, Host: %s): %s\n", time_buf, GET_NAME(ch),
-          account, race_name, class_breakdown,
+  fprintf(logfile_value, "[%s] %s (Account: %s, %s %s, Room: %d, Host: %s): %s\n", time_buf,
+          GET_NAME(ch), account, race_name, class_breakdown,
           IN_ROOM(ch) != NOWHERE ? (int)GET_ROOM_VNUM(IN_ROOM(ch)) : -1, host,
           *cleaned ? cleaned : "(no reason provided)");
 
-  fclose(logfile);
+  fclose(logfile_value);
 
   /* Notify online staff of the quit feedback entry */
   mudlog(BRF, LVL_STAFF, TRUE, "QUIT FEEDBACK: %s (Account: %s, %s %s): %s", GET_NAME(ch), account,
@@ -6599,7 +6598,7 @@ ACMD(do_fly)
 
 /* Helper function for 'search' command.
  * Returns the DC of the search attempt to find the specified door. */
-int get_hidden_door_dc(struct char_data *ch, int door)
+static int get_hidden_door_dc(struct char_data *ch, int door)
 {
   /* (Taken from the d&d 3.5e SRD)
    * Task	                                                Search DC
@@ -7172,7 +7171,8 @@ ACMD(do_steal)
       /* Steal some gold coins */
       gold = (GET_GOLD(vict) * rand_number(1, 10)) / 100;
       gold = MIN(1782, gold);
-      gold = MIN(gold, award_capacity(ch, AWARD_GOLD)); /* only what the thief can carry */
+      gold =
+          (int)long_min(gold, award_capacity(ch, AWARD_GOLD)); /* only what the thief can carry */
       if (gold > 0)
       {
         award_gold(ch, gold);
@@ -7607,7 +7607,7 @@ static void print_group(struct char_data *ch)
 {
   struct char_data *k = NULL;
   const char *hp_clr = NULL, *psp_clr = NULL, *mv_clr = NULL;
-  float hp_pct = 0.0, psp_pct = 0.0, mv_pct = 0.0;
+  double hp_pct = 0.0, psp_pct = 0.0, mv_pct = 0.0;
 
   send_to_char(ch, "Your group consists of:\r\n");
 
@@ -7619,7 +7619,7 @@ static void print_group(struct char_data *ch)
 
   while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
   {
-    hp_pct = ((float)GET_HIT(k)) / ((float)GET_MAX_HIT(k)) * 100.00;
+    hp_pct = ((double)GET_HIT(k)) / ((double)GET_MAX_HIT(k)) * 100.00;
     if (hp_pct >= 100.0)
       hp_clr = CBWHT(ch, C_NRM);
     else if (hp_pct >= 95.0)
@@ -7637,7 +7637,7 @@ static void print_group(struct char_data *ch)
     else
       hp_clr = CBFRED(ch, C_NRM);
 
-    mv_pct = ((float)GET_MOVE(k)) / ((float)GET_MAX_MOVE(k)) * 100.00;
+    mv_pct = ((double)GET_MOVE(k)) / ((double)GET_MAX_MOVE(k)) * 100.00;
     if (mv_pct >= 100.0)
       mv_clr = CBWHT(ch, C_NRM);
     else if (mv_pct >= 95.0)
@@ -7655,7 +7655,7 @@ static void print_group(struct char_data *ch)
     else
       mv_clr = CBFRED(ch, C_NRM);
 
-    psp_pct = ((float)GET_PSP(k)) / ((float)GET_MAX_PSP(k)) * 100.00;
+    psp_pct = ((double)GET_PSP(k)) / ((double)GET_MAX_PSP(k)) * 100.00;
     if (GET_PSIONIC_LEVEL(k) <= 0)
       psp_clr = CBWHT(ch, C_NRM);
     else if (psp_pct >= 100.0)
@@ -7681,7 +7681,7 @@ static void print_group(struct char_data *ch)
         GET_NAME(k), IN_ROOM(ch) == IN_ROOM(k) ? "\tYInRoom\tn" : "\tRAbsent\tn", hp_clr,
         GET_HIT(k), GET_MAX_HIT(k), psp_clr, (GET_PSIONIC_LEVEL(k) <= 0) ? 0 : GET_PSP(k),
         (GET_PSIONIC_LEVEL(k) <= 0) ? 0 : GET_MAX_PSP(k), mv_clr, GET_MOVE(k), GET_MAX_MOVE(k),
-        (long)MAX(0, level_exp(k, GET_LEVEL(k) + 1) - GET_EXP(k)), CCNRM(ch, C_NRM));
+        (long)long_max(0, level_exp(k, GET_LEVEL(k) + 1) - GET_EXP(k)), CCNRM(ch, C_NRM));
   }
 }
 
@@ -8085,9 +8085,9 @@ ACMD(do_greport)
   }
 
   const char *hp_clr = NULL, *psp_clr = NULL, *mv_clr = NULL;
-  float hp_pct = 0.0, psp_pct = 0.0, mv_pct = 0.0;
+  double hp_pct = 0.0, psp_pct = 0.0, mv_pct = 0.0;
 
-  hp_pct = ((float)GET_HIT(ch)) / ((float)GET_MAX_HIT(ch)) * 100.00;
+  hp_pct = ((double)GET_HIT(ch)) / ((double)GET_MAX_HIT(ch)) * 100.00;
   if (hp_pct >= 100.0)
     hp_clr = CBWHT(ch, C_NRM);
   else if (hp_pct >= 95.0)
@@ -8105,7 +8105,7 @@ ACMD(do_greport)
   else
     hp_clr = CBFRED(ch, C_NRM);
 
-  mv_pct = ((float)GET_MOVE(ch)) / ((float)GET_MAX_MOVE(ch)) * 100.00;
+  mv_pct = ((double)GET_MOVE(ch)) / ((double)GET_MAX_MOVE(ch)) * 100.00;
   if (mv_pct >= 100.0)
     mv_clr = CBWHT(ch, C_NRM);
   else if (mv_pct >= 95.0)
@@ -8125,7 +8125,7 @@ ACMD(do_greport)
 
   if (IS_PSI_TYPE(ch))
   {
-    psp_pct = ((float)GET_PSP(ch)) / ((float)GET_MAX_PSP(ch)) * 100.00;
+    psp_pct = ((double)GET_PSP(ch)) / ((double)GET_MAX_PSP(ch)) * 100.00;
     if (psp_pct >= 100.0)
       psp_clr = CBWHT(ch, C_NRM);
     else if (psp_pct >= 95.0)
@@ -8161,7 +8161,7 @@ ACMD(do_report)
   // send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dM, %d/%dV\r\n",
   send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dV, %d/%dP, %ld XP TNL\r\n", GET_NAME(ch),
                GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch), GET_PSP(ch),
-               GET_MAX_PSP(ch), (long)MAX(0, level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch)));
+               GET_MAX_PSP(ch), (long)long_max(0, level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch)));
 }
 
 ACMD(do_split)
@@ -8277,7 +8277,7 @@ ACMD(do_split)
 }
 
 /* lazy hack to fix some troublesome staves in-game */
-bool invalid_staff_spell(int spell_num)
+static bool invalid_staff_spell(int spell_num)
 {
   bool is_invalid = FALSE;
 
@@ -8442,7 +8442,7 @@ ACMD(do_use)
   switch (subcmd)
   {
   case SCMD_RECITE:
-
+  {
     spell = GET_OBJ_VAL(mag_item, 1);
 
     /* remove curse, dispel invis and identify you can use regardless */
@@ -8593,6 +8593,7 @@ ACMD(do_use)
       }
     }
     break;
+  }
 
   case SCMD_USE:
   case SCMD_INVOKE:
@@ -9213,7 +9214,7 @@ ACMD(do_gen_tog)
     {
       time_t current_time = time(0);
       time_t time_since_enabled = current_time - GET_PVP_TIMER(ch);
-      int minutes_remaining = 15 - (time_since_enabled / 60);
+      int minutes_remaining = (int)(15 - (time_since_enabled / 60));
 
       if (time_since_enabled < (15 * 60)) /* 15 minutes in seconds */
       {
@@ -9559,7 +9560,7 @@ ACMD(do_diplomacy)
   // need to make this do something Zusuk :P
 }
 
-void show_happyhour(struct char_data *ch)
+static void show_happyhour(struct char_data *ch)
 {
   char happyexp[80], happygold[80], happyqp[80], happytreasure[80];
   int secs_left;
@@ -10463,7 +10464,7 @@ static void show_hint_index(struct char_data *ch, int roll)
 
 void show_hint_one(struct char_data *ch)
 {
-  show_hint_index(ch, dice(1, NUM_HINTS) - 1);
+  show_hint_index(ch, dice(1, (int)NUM_HINTS) - 1);
 }
 
 
@@ -10736,7 +10737,7 @@ ACMDU(do_holyweapon)
   save_char(ch, 0);
 }
 
-int total_fiendish_boon_levels(struct char_data *ch)
+static int total_fiendish_boon_levels(struct char_data *ch)
 {
   int num = CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 4;
   if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 30)
@@ -10744,7 +10745,7 @@ int total_fiendish_boon_levels(struct char_data *ch)
   return num;
 }
 
-int active_fiendish_boon_levels(struct char_data *ch)
+static int active_fiendish_boon_levels(struct char_data *ch)
 {
   int i = 0, num = 0;
 
@@ -10844,7 +10845,7 @@ ACMD(do_buff)
   bool found = false;
   struct char_data *target;
 
-  half_chop((char *)argument, arg1, arg2);
+  half_chop_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1)
   {
@@ -11707,9 +11708,6 @@ ACMD(do_deadly_power)
   ((obj) ? (OBJVAL_FLAGGED(obj, CONT_PICKPROOF)) : (EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF)))
 #define DOOR_IS_CLOSED(ch, obj, door) (!(DOOR_IS_OPEN(ch, obj, door)))
 #define DOOR_IS_LOCKED(ch, obj, door) (!(DOOR_IS_UNLOCKED(ch, obj, door)))
-#define DOOR_KEY(ch, obj, door)                                                                    \
-  ((obj) ? ((GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST) ? 0 : GET_OBJ_VAL(obj, 2))                  \
-         : (EXIT(ch, door)->key))
 
 ACMD(do_pick_lock)
 {
@@ -11868,7 +11866,7 @@ ACMDU(do_device)
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
   char arg2[MAX_INPUT_LENGTH] = {'\0'};
   char arg3[MAX_INPUT_LENGTH] = {'\0'};
-  char *remaining_args;
+  const char *remaining_args;
   int spell_num = -1, artificer_level = 0;
   int i = 0, j = 0, spell_level = 0;
   int device_count_by_level[5] = {0, 0, 0, 0, 0};
@@ -11917,7 +11915,7 @@ ACMDU(do_device)
   else
     max_spell_level = 1; /* 1st level spells only */
 
-  remaining_args = (char *)two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  remaining_args = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   one_argument(remaining_args, arg3, sizeof(arg3));
 
   /* Count existing devices by spell level using player invention data */
@@ -12036,8 +12034,10 @@ ACMDU(do_device)
     /* Check if device creation is on cooldown from destroying a device */
     if (ch->player_specials->saved.device_creation_cooldown > time(0))
     {
-      int minutes_left = (ch->player_specials->saved.device_creation_cooldown - time(0)) / 60;
-      int seconds_left = (ch->player_specials->saved.device_creation_cooldown - time(0)) % 60;
+      int minutes_left =
+          (int)((ch->player_specials->saved.device_creation_cooldown - time(0)) / 60);
+      int seconds_left =
+          (int)((ch->player_specials->saved.device_creation_cooldown - time(0)) % 60);
       send_to_char(ch,
                    "You must wait %d minute%s and %d second%s before creating another device.\r\n",
                    minutes_left, (minutes_left == 1) ? "" : "s", seconds_left,
@@ -12099,11 +12099,11 @@ ACMDU(do_device)
     int highest_device_level = 0;
 
     /* Parse spell arguments from the full argument string */
-    char *parse_ptr = (char *)argument;
+    const char *parse_ptr = argument;
     char temp_word[MAX_INPUT_LENGTH];
 
     /* Skip past "create" */
-    parse_ptr = (char *)one_argument(parse_ptr, temp_word, sizeof(temp_word));
+    parse_ptr = one_argument(parse_ptr, temp_word, sizeof(temp_word));
 
     /* Parse each spell name, handling quotes for multi-word spells */
     while (*parse_ptr && num_spells < max_spells)
@@ -12263,12 +12263,12 @@ ACMDU(do_device)
       for (j = 0; j < inv->num_spells; j++)
       {
         int spellnum = inv->spell_effects[j];
-        int spell_level = 0;
+        int inner_spell_level = 0;
 
         /* Prefer persisted assigned level if available */
         if (inv->spell_levels[j] > 0)
         {
-          spell_level = inv->spell_levels[j];
+          inner_spell_level = inv->spell_levels[j];
         }
         else
         {
@@ -12277,15 +12277,15 @@ ACMDU(do_device)
           /* Use the lower of wizard or cleric level (if both are available) */
           if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT)
           {
-            spell_level = MIN(wizard_level, cleric_level);
+            inner_spell_level = MIN(wizard_level, cleric_level);
           }
           else if (wizard_level < LVL_IMMORT)
           {
-            spell_level = wizard_level;
+            inner_spell_level = wizard_level;
           }
           else if (cleric_level < LVL_IMMORT)
           {
-            spell_level = cleric_level;
+            inner_spell_level = cleric_level;
           }
           else
           {
@@ -12293,9 +12293,9 @@ ACMDU(do_device)
           }
         }
 
-        if (spell_level >= 1 && spell_level <= 7)
+        if (inner_spell_level >= 1 && inner_spell_level <= 7)
         {
-          int circle = (spell_level + 1) / 2 - 1;
+          int circle = (inner_spell_level + 1) / 2 - 1;
           if (circle >= 0 && circle < 4)
             used_circles[circle]++;
         }
@@ -12462,12 +12462,12 @@ ACMDU(do_device)
     int total_spell_levels = 0;
     for (i = 0; i < num_spells; i++)
     {
-      int spell_level = spell_info[spell_nums[i]].min_level[CLASS_WIZARD];
-      if (spell_level >= LVL_IMMORT)
-        spell_level = spell_info[spell_nums[i]].min_level[CLASS_CLERIC];
-      if (spell_level < LVL_IMMORT && spell_level >= 1)
+      int inner_spell_level = spell_info[spell_nums[i]].min_level[CLASS_WIZARD];
+      if (inner_spell_level >= LVL_IMMORT)
+        inner_spell_level = spell_info[spell_nums[i]].min_level[CLASS_CLERIC];
+      if (inner_spell_level < LVL_IMMORT && inner_spell_level >= 1)
       {
-        total_spell_levels += spell_level;
+        total_spell_levels += inner_spell_level;
       }
     }
 
@@ -12546,8 +12546,8 @@ ACMDU(do_device)
     skip_spaces(&argument);
 
     /* Get the full name from remaining_args after the device number */
-    char *name_start = (char *)two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
-    skip_spaces(&name_start); /* Remove leading spaces from the new name */
+    const char *name_start = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+    skip_spaces_c(&name_start); /* Remove leading spaces from the new name */
     char new_name[MAX_INVENTION_SHORTDESC];
     snprintf(new_name, sizeof(new_name), "%s", name_start);
     struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
@@ -12585,8 +12585,8 @@ ACMDU(do_device)
     /* Check if this specific device is on cooldown */
     if (inv->cooldown_expires > time(0))
     {
-      int hours_left = (inv->cooldown_expires - time(0)) / 3600;
-      int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
+      int hours_left = (int)((inv->cooldown_expires - time(0)) / 3600);
+      int minutes_left = (int)(((inv->cooldown_expires - time(0)) % 3600) / 60);
       if (hours_left > 0)
       {
         send_to_char(
@@ -12791,7 +12791,7 @@ ACMDU(do_device)
       return;
     }
     /* Get the full spell name from remaining_args after the device number */
-    char *spell_start = (char *)two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+    const char *spell_start = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
     char spell_name[MAX_INPUT_LENGTH];
     snprintf(spell_name, sizeof(spell_name), "%s", spell_start);
     spell_num = find_skill_num(spell_name);
@@ -12977,11 +12977,11 @@ ACMDU(do_device)
           {
             /* Calculate total spell circles for explosion damage */
             int total_circles = 0;
-            int j;
-            for (j = 0; j < inv->num_spells; j++)
+            int inner_j;
+            for (inner_j = 0; inner_j < inv->num_spells; inner_j++)
             {
-              int spell_circle = compute_spells_circle(ch, CLASS_WIZARD, inv->spell_effects[j],
-                                                       METAMAGIC_NONE, DOMAIN_UNDEFINED);
+              int spell_circle = compute_spells_circle(
+                  ch, CLASS_WIZARD, inv->spell_effects[inner_j], METAMAGIC_NONE, DOMAIN_UNDEFINED);
               total_circles += spell_circle;
             }
 
@@ -13070,10 +13070,10 @@ ACMDU(do_device)
 
     for (i = 0; i < inv->num_spells; i++)
     {
-      int spell_num = inv->spell_effects[i];
-      if (spell_num > 0 && spell_num < NUM_SPELLS)
+      int inner_spell_num = inv->spell_effects[i];
+      if (inner_spell_num > 0 && inner_spell_num < NUM_SPELLS)
       {
-        call_magic(ch, target, NULL, spell_num, 0, artificer_level, CAST_DEVICE);
+        call_magic(ch, target, NULL, inner_spell_num, 0, artificer_level, CAST_DEVICE);
       }
     }
 
@@ -13139,7 +13139,7 @@ ACMDU(do_device)
           if (remaining_space > 0)
           {
             strncat(spell_list, spell_name, remaining_space);
-            spell_list_len += strlen(spell_name);
+            spell_list_len += (int)(strlen(spell_name));
             if (spell_list_len >= 195)
             {
               spell_list[195] = '\0';
@@ -13312,8 +13312,8 @@ ACMDU(do_device)
     /* Check if device is broken */
     if (inv->cooldown_expires > time(0) && inv->uses == 0)
     {
-      int hours_left = (inv->cooldown_expires - time(0)) / 3600;
-      int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
+      int hours_left = (int)((inv->cooldown_expires - time(0)) / 3600);
+      int minutes_left = (int)(((inv->cooldown_expires - time(0)) % 3600) / 60);
       send_to_char(ch, "  Status: BROKEN - will be repaired in %d hours, %d minutes\r\n",
                    hours_left, minutes_left);
     }
@@ -13325,8 +13325,8 @@ ACMDU(do_device)
     /* Show cooldown information */
     if (inv->cooldown_expires > time(0))
     {
-      int hours_left = (inv->cooldown_expires - time(0)) / 3600;
-      int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
+      int hours_left = (int)((inv->cooldown_expires - time(0)) / 3600);
+      int minutes_left = (int)(((inv->cooldown_expires - time(0)) % 3600) / 60);
       if (inv->uses == 0)
       {
         send_to_char(ch,
@@ -13378,7 +13378,7 @@ ACMDU(do_device)
 
   if (is_abbrev(arg1, "spells"))
   {
-    int spell_num;
+    int inner_spell_num;
 
     if (!*arg2)
     {
@@ -13427,10 +13427,10 @@ ACMDU(do_device)
                                     : "5th+");
 
       /* First pass: collect all spells at this level */
-      for (spell_num = 1; spell_num < NUM_SPELLS; spell_num++)
+      for (inner_spell_num = 1; inner_spell_num < NUM_SPELLS; inner_spell_num++)
       {
-        int spell_circle =
-            compute_spells_circle(ch, spell_class, spell_num, METAMAGIC_NONE, DOMAIN_UNDEFINED);
+        int spell_circle = compute_spells_circle(ch, spell_class, inner_spell_num, METAMAGIC_NONE,
+                                                 DOMAIN_UNDEFINED);
         if (spell_circle == spell_level)
         {
           if (!spells_found)
@@ -13438,7 +13438,7 @@ ACMDU(do_device)
             send_to_char(ch, "%s", level_header);
             spells_found = 1;
           }
-          strncpy(spell_names[spell_count], spell_info[spell_num].name, 49);
+          strncpy(spell_names[spell_count], spell_info[inner_spell_num].name, 49);
           spell_names[spell_count][49] = '\0'; /* Ensure null termination */
           spell_count++;
           if (spell_count >= 100)
@@ -13512,11 +13512,11 @@ ACMDU(do_device)
       for (j = 0; j < inv->num_spells; j++)
       {
         int spellnum = inv->spell_effects[j];
-        int spell_level = 0;
+        int inner_spell_level = 0;
 
         if (inv->spell_levels[j] > 0)
         {
-          spell_level = inv->spell_levels[j];
+          inner_spell_level = inv->spell_levels[j];
         }
         else
         {
@@ -13525,15 +13525,15 @@ ACMDU(do_device)
           /* Use the lower of wizard or cleric level (if both are available) */
           if (wizard_level < LVL_IMMORT && cleric_level < LVL_IMMORT)
           {
-            spell_level = MIN(wizard_level, cleric_level);
+            inner_spell_level = MIN(wizard_level, cleric_level);
           }
           else if (wizard_level < LVL_IMMORT)
           {
-            spell_level = wizard_level;
+            inner_spell_level = wizard_level;
           }
           else if (cleric_level < LVL_IMMORT)
           {
-            spell_level = cleric_level;
+            inner_spell_level = cleric_level;
           }
           else
           {
@@ -13541,9 +13541,9 @@ ACMDU(do_device)
           }
         }
 
-        if (spell_level >= 1 && spell_level <= 7)
+        if (inner_spell_level >= 1 && inner_spell_level <= 7)
         {
-          int circle = (spell_level + 1) / 2 - 1;
+          int circle = (inner_spell_level + 1) / 2 - 1;
           if (circle >= 0 && circle < 4)
             used_circles[circle]++;
         }
@@ -13594,7 +13594,7 @@ ACMDU(do_device)
     // Show global device creation cooldown first
     if (ch->player_specials->saved.device_creation_cooldown > time(0))
     {
-      int seconds_left = ch->player_specials->saved.device_creation_cooldown - time(0);
+      int seconds_left = (int)(ch->player_specials->saved.device_creation_cooldown - time(0));
       int minutes_left = (seconds_left % 3600) / 60;
       int hours_left = seconds_left / 3600;
       seconds_left = seconds_left % 60;
@@ -13616,9 +13616,9 @@ ACMDU(do_device)
       if (inv->cooldown_expires > time(0))
       {
         found_any_cooldowns = 1;
-        int hours_left = (inv->cooldown_expires - time(0)) / 3600;
-        int minutes_left = ((inv->cooldown_expires - time(0)) % 3600) / 60;
-        int seconds_left = (inv->cooldown_expires - time(0)) % 60;
+        int hours_left = (int)((inv->cooldown_expires - time(0)) / 3600);
+        int minutes_left = (int)(((inv->cooldown_expires - time(0)) % 3600) / 60);
+        int seconds_left = (int)((inv->cooldown_expires - time(0)) % 60);
         if (hours_left > 0)
         {
           send_to_char(ch, "  [%d] %s - COOLDOWN: %d hour%s, %d minute%s, %d second%s\r\n", i + 1,
@@ -13888,7 +13888,7 @@ MUD_EVENT_CALLBACK(event_device_progress)
 
   /* Get time remaining on creation event */
   long time_remaining_passes = mud_event_remaining(creation_event);
-  int time_remaining_seconds = time_remaining_passes / PASSES_PER_SEC;
+  int time_remaining_seconds = (int)(time_remaining_passes / PASSES_PER_SEC);
 
   /* Safety: if time remaining is <= 0, finalize immediately (fallback) */
   if (time_remaining_seconds <= 0)

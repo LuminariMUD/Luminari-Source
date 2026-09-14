@@ -41,8 +41,6 @@
 #define IS_SET(flag, bit) ((flag) & (bit))
 #define SET_BIT(var, bit) ((var) |= (bit))
 
-int atoi(const char *str);
-long atol(const char *str);
 
 /* Mail index flags - taken from mail.h */
 #define MINDEX_DELETED FLAG(0)  /* Mail has been marked for deletion     */
@@ -62,7 +60,7 @@ long atol(const char *str);
 #define MAIL_READ 5     /* Mail has been read by recipient         */
 #define MAIL_DRAFT 6    /* Mail is a draft (not yet sent)          */
 
-void walkdir(FILE *index_file, char *dir);
+void walkdir(FILE *index_file, const char *dir);
 int get_line(FILE *fl, char *buf);
 long asciiflag_conv(char *flag);
 int sprintascii(char *out, long bits);
@@ -123,7 +121,7 @@ int main(int argc, char **argv)
  * @param filename The filename to parse
  * @return Base filename without extension, or NULL if not a .ml file
  */
-char *parsefilename(char *filename)
+static char *parsefilename(char *filename)
 {
   static char copy[1024];
   char *extension;
@@ -143,7 +141,7 @@ char *parsefilename(char *filename)
 }
 
 /* Search file for a specific tag line, return text after tag, or NULL if not found */
-char *findLine(FILE *plr_file, char *tag)
+static char *findLine(FILE *plr_file, const char *tag)
 {
   static char line[5000];
   rewind(plr_file);
@@ -158,31 +156,31 @@ char *findLine(FILE *plr_file, char *tag)
   return NULL;
 }
 /* Search file for mail ID and convert to long */
-long parse_mailid(FILE *plr_file)
+static long parse_mailid(FILE *plr_file)
 {
   return atol(findLine(plr_file, "MlID:"));
 }
 
 /* Search file for sender ID and convert to long */
-long parse_sender(FILE *plr_file)
+static long parse_sender(FILE *plr_file)
 {
   return atol(findLine(plr_file, "Send:"));
 }
 
 /* Search file for recipient ID and convert to long */
-long parse_recipient(FILE *plr_file)
+static long parse_recipient(FILE *plr_file)
 {
   return atoi(findLine(plr_file, "Reci:"));
 }
 
 /* Search file for date/time mail was sent and convert to long */
-long parse_send_time(FILE *plr_file)
+static long parse_send_time(FILE *plr_file)
 {
   return atoi(findLine(plr_file, "Sent:"));
 }
 
 /* Search file for mail subject and return as string */
-char *parse_subject(FILE *plr_file)
+static char *parse_subject(FILE *plr_file)
 {
   static char subj[5000]; /* matches findLine buffer size */
   char *txt = findLine(plr_file, "Subj:");
@@ -191,7 +189,7 @@ char *parse_subject(FILE *plr_file)
 }
 
 /* Search file for mail flags and return as bitvector */
-int parse_mail_flags(FILE *plr_file)
+static int parse_mail_flags(FILE *plr_file)
 {
   int fl[4], ret = 0;
   char *txt, f1[33], f2[33], f3[33], f4[33];
@@ -201,10 +199,10 @@ int parse_mail_flags(FILE *plr_file)
     /* Read the flags */
     if (sscanf(txt, "%32s %32s %32s %32s", f1, f2, f3, f4) == 4)
     {
-      fl[0] = asciiflag_conv(f1);
-      fl[1] = asciiflag_conv(f2);
-      fl[2] = asciiflag_conv(f3);
-      fl[3] = asciiflag_conv(f4);
+      fl[0] = (int)asciiflag_conv(f1);
+      fl[1] = (int)asciiflag_conv(f2);
+      fl[2] = (int)asciiflag_conv(f3);
+      fl[3] = (int)asciiflag_conv(f4);
 
       /* convert from mail flags to mail index flags */
       if (IS_SET_AR(fl, MAIL_DELETED))
@@ -233,23 +231,6 @@ int parse_mail_flags(FILE *plr_file)
   return (ret);
 }
 
-int parseadminlevel(FILE *plr_file, int level)
-{
-  char *fromFile = findLine(plr_file, "Admn:");
-  if (fromFile != NULL)
-    return atoi(fromFile);
-
-  if (level >= 30)
-    return level - 30;
-  else
-    return 0;
-}
-
-long parselast(FILE *plr_file)
-{
-  return atol(findLine(plr_file, "Last:"));
-}
-
 /**
  * Recursively walk directory tree and process .ml files
  *
@@ -259,7 +240,7 @@ long parselast(FILE *plr_file)
  * @param index_file Output file for the index
  * @param dir Directory to scan
  */
-void walkdir(FILE *index_file, char *dir)
+void walkdir(FILE *index_file, const char *dir)
 {
   char filename_qfd[1000], *subject, bits[65];
   struct dirent *dp;
@@ -363,7 +344,7 @@ int get_line(FILE *fl, char *buf)
   } while (*temp == '*' || *temp == '\n' || *temp == '\r');
 
   /* Last line of file doesn't always have a \n, but it should. */
-  sl = strlen(temp);
+  sl = (int)strlen(temp);
   while (sl > 0 && (temp[sl - 1] == '\n' || temp[sl - 1] == '\r'))
     temp[--sl] = '\0';
 
@@ -399,7 +380,7 @@ int sprintascii(char *out, long bits)
 {
   int i, j = 0;
   /* 32 bits, don't just add letters to try to get more unless your bitvector_t is also as large. */
-  char *flags = "abcdefghijklmnopqrstuvwxyzABCDEF";
+  const char *flags = "abcdefghijklmnopqrstuvwxyzABCDEF";
 
   for (i = 0; flags[i] != '\0'; i++)
     if (bits & (1 << i))

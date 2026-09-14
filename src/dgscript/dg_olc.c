@@ -85,7 +85,8 @@ static void warn_room_trigger_source_overlap(const struct room_data *room)
           command->arg2 == (int)trigger_rnum && command->arg3 == (int)room_rnum_value)
       {
         mudlog(BRF, LVL_BUILDER, TRUE,
-               "TRIGGER WARNING: Room #%" PRI_IDX " and zone #%d line %d both attach trigger #%d"
+               "TRIGGER WARNING: Room #%" PRI_IDX " and zone #%" PRI_IDX
+               " line %d both attach trigger #%d"
                "; keep the redit attachment and remove the redundant zedit command.",
                room->number, zone_table[room->zone].number, command->line, proto_trigger->vnum);
         break;
@@ -169,8 +170,9 @@ ACMD(do_oasis_trigedit)
   act("$n starts using OLC.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d [trigger](allowed zone %d)",
-         GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+  mudlog(CMP, LVL_IMMORT, TRUE,
+         "OLC: %s starts editing zone %" PRI_IDX " [trigger](allowed zone %d)", GET_NAME(ch),
+         zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
 /* Called when a mob or object is being saved to disk, so its script can be
@@ -279,7 +281,7 @@ static void trigedit_disp_menu(struct descriptor_data *d)
   clear_screen(d);
 
   write_to_output(d,
-                  "Trigger Editor [%s%d%s]\r\n\r\n"
+                  "Trigger Editor [%s%" PRI_IDX "%s]\r\n\r\n"
                   "%s1)%s Name         : %s%s\r\n"
                   "%s2)%s Intended for : %s%s\r\n"
                   "%s3)%s Trigger types: %s%s\r\n"
@@ -396,9 +398,9 @@ void trigedit_parse(struct descriptor_data *d, char *arg)
     {
     case 'y':
       trigedit_save(d);
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits trigger %d",
-             GET_NAME(d->character), OLC_NUM(d));
-      /* fall through */
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
+             "OLC: %s edits trigger %" PRI_IDX, GET_NAME(d->character), OLC_NUM(d));
+      [[fallthrough]];
     case 'n':
       cleanup_olc(d, CLEANUP_ALL);
       return;
@@ -422,7 +424,7 @@ void trigedit_parse(struct descriptor_data *d, char *arg)
 
   case TRIGEDIT_INTENDED:
     if ((atoi(arg) >= MOB_TRIGGER) || (atoi(arg) <= WLD_TRIGGER))
-      OLC_TRIG(d)->attach_type = atoi(arg);
+      OLC_TRIG(d)->attach_type = (byte)atoi(arg);
     OLC_VAL(d)
     ++;
     break;

@@ -88,7 +88,7 @@ bool help_sync_barrier_active_at(const char *path, char *owner, size_t owner_siz
 
   if (owner != NULL && owner_size > 0)
   {
-    if (fgets(owner, owner_size, lock_file) == NULL)
+    if (fgets(owner, (int)owner_size, lock_file) == NULL)
       strlcpy(owner, "unknown", owner_size);
     else
       owner[strcspn(owner, "\r\n")] = '\0';
@@ -244,8 +244,6 @@ void space_to_minus(char *str)
  */
 static struct help_entry_list *search_help_table(const char *argument, int level)
 {
-  extern struct help_index_element *help_table;
-  extern int top_of_helpt;
   struct help_entry_list *help_entries = NULL, *new_entry = NULL, *cur = NULL;
   int i;
 
@@ -803,7 +801,7 @@ struct help_keyword_list *get_help_keywords(const char *tag)
   return keywords;
 }
 
-struct help_keyword_list *soundex_search_help_keywords(const char *argument, int level)
+static struct help_keyword_list *soundex_search_help_keywords(const char *argument, int level)
 {
   PREPARED_STMT *pstmt;
   struct help_keyword_list *keywords = NULL, *new_keyword = NULL, *cur = NULL;
@@ -1821,7 +1819,7 @@ static void add_to_help_cache(const char *argument, int level, struct help_entry
   }
 
   /* If cache is full, remove oldest entry */
-  if (help_cache_count >= HELP_CACHE_SIZE)
+  if (help_cache_count >= HELP_CACHE_SIZE && help_cache != NULL)
   {
     oldest = help_cache;
     oldest_time = help_cache->timestamp;

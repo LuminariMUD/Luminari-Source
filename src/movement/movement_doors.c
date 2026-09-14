@@ -32,7 +32,6 @@
 #include "movement_doors.h"
 
 /* External functions */
-extern int skill_check(struct char_data *ch, int ability, int dc);
 extern const char *get_walkto_landmark_name(int number);
 extern int walkto_vnum_to_list_row(room_vnum vnum);
 

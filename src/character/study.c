@@ -297,13 +297,13 @@ void finalize_study(struct descriptor_data *d)
 
   /* Finalize the chosen data, applying the levelup structure to
    * the character structure. */
-  GET_FEAT_POINTS(ch) = LEVELUP(ch)->feat_points;
-  GET_CLASS_FEATS(ch, LEVELUP(ch)->class) = LEVELUP(ch)->class_feat_points;
-  GET_EPIC_FEAT_POINTS(ch) = LEVELUP(ch)->epic_feat_points;
-  GET_EPIC_CLASS_FEATS(ch, LEVELUP(ch)->class) = LEVELUP(ch)->epic_class_feat_points;
+  GET_FEAT_POINTS(ch) = (byte)(LEVELUP(ch)->feat_points);
+  GET_CLASS_FEATS(ch, LEVELUP(ch)->class) = (byte)(LEVELUP(ch)->class_feat_points);
+  GET_EPIC_FEAT_POINTS(ch) = (byte)(LEVELUP(ch)->epic_feat_points);
+  GET_EPIC_CLASS_FEATS(ch, LEVELUP(ch)->class) = (byte)(LEVELUP(ch)->epic_class_feat_points);
   GET_PRACTICES(ch) = LEVELUP(ch)->practices;
   GET_TRAINS(ch) = LEVELUP(ch)->trains;
-  GET_BOOSTS(ch) = LEVELUP(ch)->num_boosts;
+  GET_BOOSTS(ch) = (ubyte)(LEVELUP(ch)->num_boosts);
 
   GET_REAL_STR(ch) = LEVELUP(ch)->str;
   GET_REAL_DEX(ch) = LEVELUP(ch)->dex;
@@ -527,7 +527,7 @@ void finalize_study(struct descriptor_data *d)
   add_domain_feats(ch);
 }
 
-void use_boost_point(struct char_data *ch, int stat)
+static void use_boost_point(struct char_data *ch, int stat)
 {
   struct descriptor_data *d = ch->desc;
 
@@ -601,7 +601,7 @@ ACMD(do_study)
   display_main_menu(d);
 }
 
-bool add_levelup_feat(struct descriptor_data *d, int feat)
+static bool add_levelup_feat(struct descriptor_data *d, int feat)
 {
   struct char_data *ch = d->character;
   int feat_type = 0;
@@ -907,7 +907,7 @@ void sorc_study_menu(struct descriptor_data *d, int circle)
   OLC_MODE(d) = STUDY_SPELLS;
 }
 
-void warlock_known_spells_disp_menu(struct descriptor_data *d)
+static void warlock_known_spells_disp_menu(struct descriptor_data *d)
 {
   int class_level =
       CLASS_LEVEL(d->character, CLASS_WARLOCK) + BONUS_CASTER_LEVEL(d->character, CLASS_WARLOCK);
@@ -1068,7 +1068,7 @@ static void inquisitor_known_spells_disp_menu(struct descriptor_data *d)
 }
 
 /* the menu for each circle, inquisitor */
-void inquisitor_study_menu(struct descriptor_data *d, int circle)
+static void inquisitor_study_menu(struct descriptor_data *d, int circle)
 {
   int class_level = CLASS_LEVEL(d->character, CLASS_INQUISITOR) +
                     BONUS_CASTER_LEVEL(d->character, CLASS_INQUISITOR);
@@ -1111,7 +1111,7 @@ void inquisitor_study_menu(struct descriptor_data *d, int circle)
 }
 
 /* the menu for each circle, warlock */
-void warlock_study_menu(struct descriptor_data *d, int circle)
+static void warlock_study_menu(struct descriptor_data *d, int circle)
 {
   int class_level =
       CLASS_LEVEL(d->character, CLASS_WARLOCK) + BONUS_CASTER_LEVEL(d->character, CLASS_WARLOCK);
@@ -1239,7 +1239,7 @@ void summoner_study_menu(struct descriptor_data *d, int circle)
   OLC_MODE(d) = SUMMONER_STUDY_SPELLS;
 }
 
-void psionicist_study_menu(struct descriptor_data *d, int circle)
+static void psionicist_study_menu(struct descriptor_data *d, int circle)
 {
   int counter, columns = 0;
 
@@ -1823,7 +1823,7 @@ bool has_necromancer_cast_type_unchosen(struct char_data *ch)
   return (LEVELUP(ch)->necromancer_bonus_levels == 0);
 }
 
-char *levelup_show_necromancer_cast_type(struct char_data *ch)
+const char *levelup_show_necromancer_cast_type(struct char_data *ch)
 {
   switch (LEVELUP(ch)->necromancer_bonus_levels)
   {
@@ -2187,14 +2187,14 @@ static void set_domain_menu(struct descriptor_data *d)
   OLC_MODE(d) = STUDY_SET_DOMAINS;
 }
 
-void print_school_info(struct descriptor_data *d, int school_number)
+static void print_school_info(struct descriptor_data *d, int school_number)
 {
   write_to_output(d, "\r\n");
   write_to_output(d, "%s\r\n", school_benefits[school_number]);
   write_to_output(d, "\r\n");
 }
 
-void print_domain_info(struct descriptor_data *d, int domain_number)
+static void print_domain_info(struct descriptor_data *d, int domain_number)
 {
   int j = 0;
 
@@ -2374,7 +2374,7 @@ static void familiar_menu(struct descriptor_data *d)
 }
 
 /* Helper function for the below menu */
-bool can_study_feat_type(struct char_data *ch, int feat_type)
+static bool can_study_feat_type(struct char_data *ch, int feat_type)
 {
   int i = 0;
   bool result = FALSE;
@@ -3233,7 +3233,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     {
     case 'y':
     case 'Y':
-      tempXP = GET_EXP(ch);
+      tempXP = (int)GET_EXP(ch);
       /* Make sure that players can't make wildshaped forms permanent.*/
       SUBRACE(ch) = 0;
       IS_MORPHED(ch) = 0;
@@ -3293,7 +3293,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
 
     for (i = 0; (size_t)i < strlen(arg); i++)
-      arg[i] = tolower(arg[i]);
+      arg[i] = (char)tolower(arg[i]);
 
     if (is_abbrev(arg, "quit"))
     {
@@ -3347,7 +3347,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
 
   case STUDY_MAIN_SKILLS_MENU:
-
+  {
     if (!*arg)
     {
       send_to_char(d->character, "\r\nPlease type the full name of the skill you wish to increase "
@@ -3431,6 +3431,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     main_skills_disp_menu(d);
 
     break;
+  }
 
   case STUDY_SELECT_ALC_DISCOVERY:
     number = atoi(arg);
@@ -4735,7 +4736,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       set_domain_submenu(d);
       return;
     }
-    GET_1ST_DOMAIN(ch) = number;
+    GET_1ST_DOMAIN(ch) = (byte)number;
     write_to_output(d, "Choice selected.\r\n");
     print_domain_info(d, number);
     OLC_MODE(d) = STUDY_SET_DOMAINS;
@@ -4764,7 +4765,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       set_domain_submenu(d);
       return;
     }
-    GET_2ND_DOMAIN(ch) = number;
+    GET_2ND_DOMAIN(ch) = (byte)number;
     write_to_output(d, "Choice selected.\r\n");
     print_domain_info(d, number);
     OLC_MODE(d) = STUDY_SET_DOMAINS;
@@ -4820,7 +4821,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       set_school_submenu(d);
       return;
     }
-    GET_SPECIALTY_SCHOOL(ch) = number;
+    GET_SPECIALTY_SCHOOL(ch) = (byte)number;
     write_to_output(d, "Choice selected.\r\n");
     OLC_MODE(d) = STUDY_SET_SCHOOL;
     print_school_info(d, number);
@@ -4862,7 +4863,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       set_preferred_arcane(d);
       return;
     }
-    GET_PREFERRED_ARCANE(ch) = number;
+    GET_PREFERRED_ARCANE(ch) = (byte)number;
     write_to_output(d, "Choice selected.\r\n");
     OLC_MODE(d) = STUDY_SET_P_CASTER;
     set_preferred_caster(d);
@@ -4877,7 +4878,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       set_preferred_divine(d);
       return;
     }
-    GET_PREFERRED_DIVINE(ch) = number;
+    GET_PREFERRED_DIVINE(ch) = (byte)number;
     write_to_output(d, "Choice selected.\r\n");
     OLC_MODE(d) = STUDY_SET_P_CASTER;
     set_preferred_caster(d);
@@ -5796,7 +5797,7 @@ void study_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "Invalid race!\r\n");
       else
       {
-        GET_FAVORED_ENEMY(d->character, LEVELUP(d->character)->favored_slot) = number;
+        GET_FAVORED_ENEMY(d->character, LEVELUP(d->character)->favored_slot) = (ubyte)number;
         favored_enemy_menu(d);
         OLC_MODE(d) = FAVORED_ENEMY;
         return;
@@ -5970,7 +5971,7 @@ void study_show_evolution_select_bottom_text(struct descriptor_data *d)
                      "about.\r\nYour Choice: ");
 }
 
-void study_show_aspect_select_bottom_text(struct descriptor_data *d)
+static void study_show_aspect_select_bottom_text(struct descriptor_data *d)
 {
   int num_evos = HAS_REAL_FEAT(d->character, FEAT_ASPECT) +
                  HAS_REAL_FEAT(d->character, FEAT_GREATER_ASPECT) +

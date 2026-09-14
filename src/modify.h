@@ -20,12 +20,10 @@
 #define _MODIFY_H_
 
 /* Public functions */
-void show_string(struct descriptor_data *d, char *input);
+void show_string(struct descriptor_data *d, const char *input);
 void smash_tilde(char *str);
 void strip_colors(char *str);
-void parse_at(char *str);
 void parse_tab(char *str);
-void sentence_case(char *str);
 void paginate_string(char *str, struct descriptor_data *d);
 /** @todo should this really be in modify.c? */
 ACMD_DECL(do_skillset);

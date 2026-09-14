@@ -25,7 +25,7 @@ static void init_autoroll_mobile(struct char_data *mob, int level, int race, int
   GET_REAL_RACE(mob) = race;
   GET_REAL_SIZE(mob) = SIZE_MEDIUM;
   mob->points.size = SIZE_MEDIUM;
-  GET_MOB_TIER(mob) = tier;
+  GET_MOB_TIER(mob) = (sbyte)tier;
 }
 
 void Test_mob_tier_formula_v1_hit_point_vectors(CuTest *tc)
@@ -151,7 +151,7 @@ void Test_autoroll_mob_standard_restores_level_34_base(CuTest *tc)
   CuAssertIntEquals(tc, 6, GET_HITROLL(&mob));
   CuAssertIntEquals(tc, 10, GET_DAMROLL(&mob));
   CuAssertIntEquals(tc, 440, mob.points.armor);
-  CuAssertIntEquals(tc, 106700, GET_EXP(&mob));
+  CuAssertIntEquals(tc, 106700, (int)GET_EXP(&mob));
   CuAssertIntEquals(tc, 540, GET_GOLD(&mob));
   circle_srandom((unsigned long)time(NULL));
 }
@@ -174,7 +174,7 @@ void Test_autoroll_mob_unspecified_matches_standard_base(CuTest *tc)
   CuAssertIntEquals(tc, GET_HITROLL(&standard), GET_HITROLL(&unspecified));
   CuAssertIntEquals(tc, GET_DAMROLL(&standard), GET_DAMROLL(&unspecified));
   CuAssertIntEquals(tc, standard.points.armor, unspecified.points.armor);
-  CuAssertIntEquals(tc, GET_EXP(&standard), GET_EXP(&unspecified));
+  CuAssertIntEquals(tc, (int)GET_EXP(&standard), (int)GET_EXP(&unspecified));
   CuAssertIntEquals(tc, GET_GOLD(&standard), GET_GOLD(&unspecified));
   CuAssertIntEquals(tc, MOB_TIER_UNSPECIFIED, GET_MOB_TIER(&unspecified));
   circle_srandom((unsigned long)time(NULL));
@@ -192,7 +192,7 @@ void Test_autoroll_mob_tier_adds_to_complete_level_34_base(CuTest *tc)
   CuAssertIntEquals(tc, 8, GET_HITROLL(&mob));
   CuAssertIntEquals(tc, 11, GET_DAMROLL(&mob));
   CuAssertIntEquals(tc, 450, mob.points.armor);
-  CuAssertIntEquals(tc, 106700, GET_EXP(&mob));
+  CuAssertIntEquals(tc, 106700, (int)GET_EXP(&mob));
   CuAssertIntEquals(tc, 540, GET_GOLD(&mob));
   circle_srandom((unsigned long)time(NULL));
 }

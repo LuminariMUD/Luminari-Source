@@ -24,11 +24,7 @@
 
 /* External variables */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct room_data *world;
-extern room_rnum top_of_world;
 
-extern MYSQL *conn;
-extern bool mysql_available;
 
 #define NUM_SHIP_ROOM_TYPES (ROOM_TYPE_DECK + 1)
 #define MAX_SHIP_ROOM_TEMPLATE_TRIGGERS 8
@@ -304,16 +300,16 @@ static void attach_ship_room_template_triggers(room_rnum room, enum ship_room_ty
     trigger_rnum = real_trigger(trigger_vnum);
     if (trigger_rnum == NOTHING)
     {
-      log("SYSERR: Generated ship room %d cannot attach missing trigger %d", world[room].number,
-          trigger_vnum);
+      log("SYSERR: Generated ship room %" PRI_IDX " cannot attach missing trigger %" PRI_IDX,
+          world[room].number, trigger_vnum);
       continue;
     }
 
     trigger = read_trigger(trigger_rnum);
     if (trigger == NULL)
     {
-      log("SYSERR: Generated ship room %d could not instantiate trigger %d", world[room].number,
-          trigger_vnum);
+      log("SYSERR: Generated ship room %" PRI_IDX " could not instantiate trigger %" PRI_IDX,
+          world[room].number, trigger_vnum);
       continue;
     }
 
@@ -507,7 +503,7 @@ bool ship_has_interior_rooms(struct greyhawk_ship_data *ship)
 int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
 {
   room_rnum new_room;
-  int room_vnum;
+  int room_vnum_id;
   zone_rnum room_zone;
   const struct room_template *template = NULL;
   struct room_data room;
@@ -526,25 +522,25 @@ int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
 
   if (!template)
   {
-    log("SYSERR: No template found for room type %d", type);
+    log("SYSERR: No template found for room type %u", type);
     return NOWHERE;
   }
 
   /* Allocate a new room vnum using the reserved ship interior range */
-  room_vnum = SHIP_INTERIOR_VNUM_BASE + (ship->shipnum * MAX_SHIP_ROOMS) + ship->num_rooms;
+  room_vnum_id = SHIP_INTERIOR_VNUM_BASE + (ship->shipnum * MAX_SHIP_ROOMS) + ship->num_rooms;
 
   /* Validate VNUM is within allowed range */
-  if (room_vnum > SHIP_INTERIOR_VNUM_MAX)
+  if (room_vnum_id > SHIP_INTERIOR_VNUM_MAX)
   {
-    log("SYSERR: Ship interior VNUM %d exceeds maximum %d (ship %d, room %d)", room_vnum,
+    log("SYSERR: Ship interior VNUM %d exceeds maximum %d (ship %d, room %d)", room_vnum_id,
         SHIP_INTERIOR_VNUM_MAX, ship->shipnum, ship->num_rooms);
     return NOWHERE;
   }
 
   /* Check if room already exists (VNUM collision) */
-  if (real_room(room_vnum) != NOWHERE)
+  if (real_room(room_vnum_id) != NOWHERE)
   {
-    log("SYSERR: Room vnum %d already exists for ship %d!", room_vnum, ship->shipnum);
+    log("SYSERR: Room vnum %d already exists for ship %d!", room_vnum_id, ship->shipnum);
     return NOWHERE;
   }
 
@@ -555,10 +551,10 @@ int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
     return NOWHERE;
   }
 
-  room_zone = real_zone_by_thing(room_vnum);
+  room_zone = real_zone_by_thing(room_vnum_id);
   if (room_zone == NOWHERE)
   {
-    log("SYSERR: No zone owns ship interior room vnum %d", room_vnum);
+    log("SYSERR: No zone owns ship interior room vnum %d", room_vnum_id);
     return NOWHERE;
   }
 
@@ -571,7 +567,7 @@ int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
                      ship->name);
 
   memset(&room, 0, sizeof(room));
-  room.number = room_vnum;
+  room.number = room_vnum_id;
   room.zone = room_zone;
   room.name = room_name;
   room.description = room_description;
@@ -590,18 +586,18 @@ int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
   new_room = add_runtime_room(&room);
   if (new_room == NOWHERE)
   {
-    log("SYSERR: Failed to insert ship interior room vnum %d", room_vnum);
+    log("SYSERR: Failed to insert ship interior room vnum %d", room_vnum_id);
     return NOWHERE;
   }
 
   attach_ship_room_template_triggers(new_room, type);
-  return room_vnum;
+  return room_vnum_id;
 }
 
 /* Add a room to the ship */
 void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
 {
-  room_vnum room_vnum;
+  room_vnum room_vnum_id;
 
   if (ship->num_rooms >= MAX_SHIP_ROOMS)
   {
@@ -609,14 +605,14 @@ void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
     return;
   }
 
-  room_vnum = create_ship_room(ship, type);
-  if (room_vnum == NOWHERE)
+  room_vnum_id = create_ship_room(ship, type);
+  if (room_vnum_id == NOWHERE)
   {
     return;
   }
 
   /* Add to ship's room list */
-  ship->room_vnums[ship->num_rooms] = room_vnum;
+  ship->room_vnums[ship->num_rooms] = room_vnum_id;
   ship->room_templates[ship->num_rooms] = type;
   ship->num_rooms++;
 
@@ -624,7 +620,7 @@ void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
   switch (type)
   {
   case ROOM_TYPE_BRIDGE:
-    ship->bridge_room = room_vnum;
+    ship->bridge_room = room_vnum_id;
     break;
   case ROOM_TYPE_CARGO:
   {
@@ -633,7 +629,7 @@ void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
     {
       if (ship->cargo_rooms[i] == 0)
       {
-        ship->cargo_rooms[i] = room_vnum;
+        ship->cargo_rooms[i] = room_vnum_id;
         break;
       }
     }
@@ -646,7 +642,7 @@ void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
     {
       if (ship->crew_quarters[i] == 0)
       {
-        ship->crew_quarters[i] = room_vnum;
+        ship->crew_quarters[i] = room_vnum_id;
         break;
       }
     }
@@ -655,7 +651,7 @@ void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
   case ROOM_TYPE_AIRLOCK:
     if (ship->entrance_room == 0)
     {
-      ship->entrance_room = room_vnum;
+      ship->entrance_room = room_vnum_id;
     }
     break;
   default:
@@ -759,7 +755,7 @@ void generate_ship_interior(struct greyhawk_ship_data *ship)
   }
 
   /* Discovery algorithm for additional rooms */
-  ship->discovery_chance = 30.0; /* 30% chance for additional rooms */
+  ship->discovery_chance = 30; /* 30% chance for additional rooms */
 
   while (ship->num_rooms < max_rooms)
   {
@@ -828,7 +824,7 @@ void generate_ship_interior(struct greyhawk_ship_data *ship)
   /* Generate connections between rooms */
   generate_room_connections(ship);
 
-  log("Generated %d rooms for %s (vessel type %d)", ship->num_rooms, ship->name, ship->vessel_type);
+  log("Generated %d rooms for %s (vessel type %u)", ship->num_rooms, ship->name, ship->vessel_type);
 }
 
 /* Create connections between ship rooms */
@@ -1348,8 +1344,8 @@ int vessel_reclaim_interior_rooms(struct greyhawk_ship_data *ship, room_rnum eva
 
     if (world[interior].ship != ship)
     {
-      log("SYSERR: Refusing to reclaim room %d not owned by ship %d", world[interior].number,
-          ship->shipnum);
+      log("SYSERR: Refusing to reclaim room %" PRI_IDX " not owned by ship %d",
+          world[interior].number, ship->shipnum);
       continue;
     }
 
@@ -1405,7 +1401,7 @@ int vessel_reclaim_interior_rooms(struct greyhawk_ship_data *ship, room_rnum eva
 bool room_has_outside_view(room_rnum room)
 {
   struct greyhawk_ship_data *ship;
-  int room_vnum;
+  int room_vnum_id;
   int i;
 
   if (room == NOWHERE)
@@ -1415,16 +1411,16 @@ bool room_has_outside_view(room_rnum room)
   if (!ship)
     return FALSE;
 
-  room_vnum = world[room].number;
+  room_vnum_id = world[room].number;
 
   /* Bridge always has a view */
-  if (room_vnum == ship->bridge_room)
+  if (room_vnum_id == ship->bridge_room)
     return TRUE;
 
   /* Check if it's a deck room */
   for (i = 0; i < ship->num_rooms; i++)
   {
-    if (ship->room_vnums[i] == room_vnum)
+    if (ship->room_vnums[i] == room_vnum_id)
     {
       /* Check room name for "Deck" */
       if (world[room].name && strstr(world[room].name, "Deck"))
@@ -1767,7 +1763,7 @@ room_rnum get_ship_exit(struct greyhawk_ship_data *ship, room_rnum current, int 
 bool is_passage_blocked(struct greyhawk_ship_data *ship, room_rnum room, int dir)
 {
   int i;
-  int room_vnum;
+  int room_vnum_id;
 
   if (!ship)
   {
@@ -1784,19 +1780,20 @@ bool is_passage_blocked(struct greyhawk_ship_data *ship, room_rnum room, int dir
     return FALSE;
   }
 
-  room_vnum = world[room].number;
+  room_vnum_id = world[room].number;
 
   /* Search connections for the passage */
   for (i = 0; i < ship->num_connections; i++)
   {
     /* Check forward direction */
-    if (ship->connections[i].from_room == room_vnum && ship->connections[i].direction == dir)
+    if (ship->connections[i].from_room == room_vnum_id && ship->connections[i].direction == dir)
     {
       return ship->connections[i].is_locked;
     }
 
     /* Check reverse direction */
-    if (ship->connections[i].to_room == room_vnum && ship->connections[i].direction == rev_dir[dir])
+    if (ship->connections[i].to_room == room_vnum_id &&
+        ship->connections[i].direction == rev_dir[dir])
     {
       return ship->connections[i].is_locked;
     }
@@ -1825,6 +1822,7 @@ void do_move_ship_interior(struct char_data *ch, int dir)
   struct greyhawk_ship_data *ship;
   struct greyhawk_ship_data *target_ship;
   room_rnum dest_room;
+  char dir_name[MAX_INPUT_LENGTH] = {'\0'};
 
   /* Validate character pointer */
   if (!ch)
@@ -1889,14 +1887,16 @@ void do_move_ship_interior(struct char_data *ch, int dir)
   }
 
   /* Send departure message to room */
-  act("$n moves $T.", TRUE, ch, 0, (void *)dirs[dir], TO_ROOM);
+  strlcpy(dir_name, dirs[dir], sizeof(dir_name));
+  act("$n moves $T.", TRUE, ch, 0, dir_name, TO_ROOM);
 
   /* Move the character */
   char_from_room(ch);
   char_to_room(ch, dest_room);
 
   /* Send arrival message to new room */
-  act("$n arrives from $T.", TRUE, ch, 0, (void *)dirs[rev_dir[dir]], TO_ROOM);
+  strlcpy(dir_name, dirs[rev_dir[dir]], sizeof(dir_name));
+  act("$n arrives from $T.", TRUE, ch, 0, dir_name, TO_ROOM);
 
   /* Show the new room */
   look_at_room(ch, 0);

@@ -86,7 +86,7 @@ extern int happy_hour_gold_bonus;
 extern int happy_hour_treasure_bonus;
 
 extern int medit_advanced_stats;
-extern float min_pop_to_claim;
+extern double min_pop_to_claim;
 extern int ibt_autosave;
 /*
  * Variables not controlled by cedit

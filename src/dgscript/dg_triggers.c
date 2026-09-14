@@ -76,8 +76,8 @@ int is_substring(char *sub, char *string)
 
   if ((s = str_str(string, sub)))
   {
-    int len = strlen(string);
-    int sublen = strlen(sub);
+    int len = (int)strlen(string);
+    int sublen = (int)strlen(sub);
 
     /* check front */
     if ((s == string || isspace(*(s - 1)) || ispunct(*(s - 1))) &&
@@ -394,8 +394,8 @@ int command_mtrigger(char_data *actor, char *cmd, char *argument)
 
         if (!GET_TRIG_ARG(t) || !*GET_TRIG_ARG(t))
         {
-          mudlog(NRM, LVL_BUILDER, TRUE, "SYSERR: Command Trigger #%d has no text argument!",
-                 GET_TRIG_VNUM(t));
+          mudlog(NRM, LVL_BUILDER, TRUE,
+                 "SYSERR: Command Trigger #%" PRI_IDX " has no text argument!", GET_TRIG_VNUM(t));
           continue;
         }
 
@@ -439,8 +439,8 @@ void speech_mtrigger(char_data *actor, char *str)
 
         if (!GET_TRIG_ARG(t) || !*GET_TRIG_ARG(t))
         {
-          mudlog(NRM, LVL_BUILDER, TRUE, "SYSERR: Speech Trigger #%d has no text argument!",
-                 GET_TRIG_VNUM(t));
+          mudlog(NRM, LVL_BUILDER, TRUE,
+                 "SYSERR: Speech Trigger #%" PRI_IDX " has no text argument!", GET_TRIG_VNUM(t));
           continue;
         }
 
@@ -484,7 +484,7 @@ void act_mtrigger(const char_data *ch, char *str, char_data *actor, char_data *v
 
       if (!GET_TRIG_ARG(t) || !*GET_TRIG_ARG(t))
       {
-        mudlog(NRM, LVL_BUILDER, TRUE, "SYSERR: Act Trigger #%d has no text argument!",
+        mudlog(NRM, LVL_BUILDER, TRUE, "SYSERR: Act Trigger #%" PRI_IDX " has no text argument!",
                GET_TRIG_VNUM(t));
         continue;
       }
@@ -719,20 +719,21 @@ static const char *damage_trigger_attack_mode_name(int attack_mode)
   return attack_types[attack_mode];
 }
 
-static int resolve_damage_trigger_result(int mob_vnum, int original_damage, int driver_result,
+static int resolve_damage_trigger_result(int mob_vnum_id, int original_damage, int driver_result,
                                          bool explicit_return)
 {
   if (driver_result == SCRIPT_ERROR_CODE)
   {
-    script_log("Damage trigger on mob %d failed; preserving %d damage", mob_vnum, original_damage);
+    script_log("Damage trigger on mob %d failed; preserving %d damage", mob_vnum_id,
+               original_damage);
     return original_damage;
   }
   if (!explicit_return)
     return original_damage;
   if (driver_result < -1)
   {
-    script_log("Damage trigger on mob %d returned invalid damage %d; preventing damage", mob_vnum,
-               driver_result);
+    script_log("Damage trigger on mob %d returned invalid damage %d; preventing damage",
+               mob_vnum_id, driver_result);
     return -1;
   }
   return driver_result;
@@ -802,7 +803,8 @@ int damage_mtrigger(char_data *actor, char_data *victim, int dam, int attack_id,
           GET_POS(victim) <= POS_DEAD)
         return -1;
       if (yielded && !explicit_return)
-        script_log("Damage trigger %d on mob %d waited before setting a return; preserving %d "
+        script_log("Damage trigger %" PRI_IDX
+                   " on mob %u waited before setting a return; preserving %d "
                    "pending damage",
                    GET_TRIG_VNUM(t), GET_MOB_VNUM(victim), original_damage);
       return resolve_damage_trigger_result(GET_MOB_VNUM(victim), original_damage, ret_val,
@@ -1020,8 +1022,8 @@ int cmd_otrig(obj_data *obj, char_data *actor, char *cmd, char *argument, int cm
 
       if (IS_SET(GET_TRIG_NARG(t), cmd_type) && (!GET_TRIG_ARG(t) || !*GET_TRIG_ARG(t)))
       {
-        mudlog(NRM, LVL_BUILDER, TRUE, "SYSERR: O-Command Trigger #%d has no text argument!",
-               GET_TRIG_VNUM(t));
+        mudlog(NRM, LVL_BUILDER, TRUE,
+               "SYSERR: O-Command Trigger #%" PRI_IDX " has no text argument!", GET_TRIG_VNUM(t));
         continue;
       }
 
@@ -1486,8 +1488,8 @@ int command_wtrigger(char_data *actor, char *cmd, char *argument)
 
     if (!GET_TRIG_ARG(t) || !*GET_TRIG_ARG(t))
     {
-      mudlog(NRM, LVL_BUILDER, TRUE, "SYSERR: W-Command Trigger #%d has no text argument!",
-             GET_TRIG_VNUM(t));
+      mudlog(NRM, LVL_BUILDER, TRUE,
+             "SYSERR: W-Command Trigger #%" PRI_IDX " has no text argument!", GET_TRIG_VNUM(t));
       continue;
     }
 
@@ -1527,7 +1529,7 @@ void speech_wtrigger(char_data *actor, char *str)
 
     if (!GET_TRIG_ARG(t) || !*GET_TRIG_ARG(t))
     {
-      mudlog(NRM, LVL_BUILDER, TRUE, "SYSERR: W-Speech Trigger #%d has no text argument!",
+      mudlog(NRM, LVL_BUILDER, TRUE, "SYSERR: W-Speech Trigger #%" PRI_IDX " has no text argument!",
              GET_TRIG_VNUM(t));
       continue;
     }

@@ -37,7 +37,7 @@ static bool sedit_numeric_input_is_valid(int mode, const char *arg);
 static bool sedit_numeric_input_is_valid(int mode, const char *arg)
 {
   char *end;
-  float value;
+  double value;
 
   if (mode <= SEDIT_NUMERICAL_RESPONSE)
     return true;
@@ -47,7 +47,7 @@ static bool sedit_numeric_input_is_valid(int mode, const char *arg)
     return false;
 
   end = NULL;
-  value = strtof(arg, &end);
+  value = strtod(arg, &end);
   return end != arg && *end == '\0' && isfinite(value);
 }
 
@@ -164,9 +164,10 @@ ACMD(do_oasis_sedit)
 
   if (save)
   {
-    send_to_char(ch, "Saving all shops in zone %d.\r\n", zone_table[OLC_ZNUM(d)].number);
-    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s saves shop info for zone %d.",
-           GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
+    send_to_char(ch, "Saving all shops in zone %" PRI_IDX ".\r\n", zone_table[OLC_ZNUM(d)].number);
+    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE,
+           "OLC: %s saves shop info for zone %" PRI_IDX ".", GET_NAME(ch),
+           zone_table[OLC_ZNUM(d)].number);
 
     /* Save the shops to the shop file. */
     save_shops(OLC_ZNUM(d));
@@ -191,8 +192,8 @@ ACMD(do_oasis_sedit)
   act("$n starts using OLC.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d", GET_NAME(ch),
-         zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %" PRI_IDX " allowed zone %d",
+         GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
 static void sedit_setup_new(struct descriptor_data *d)
@@ -254,8 +255,9 @@ static void sedit_products_menu(struct descriptor_data *d)
   write_to_output(d, "##     VNUM     Product\r\n");
   for (i = 0; S_PRODUCT(shop, i) != NOTHING; i++)
   {
-    write_to_output(d, "%2d - [%s%5d%s] - %s%s%s\r\n", i, cyn, obj_index[S_PRODUCT(shop, i)].vnum,
-                    nrm, yel, obj_proto[S_PRODUCT(shop, i)].short_description, nrm);
+    write_to_output(d, "%2d - [%s%5" PRI_IDX "%s] - %s%s%s\r\n", i, cyn,
+                    obj_index[S_PRODUCT(shop, i)].vnum, nrm, yel,
+                    obj_proto[S_PRODUCT(shop, i)].short_description, nrm);
   }
   write_to_output(d,
                   "\r\n"
@@ -281,7 +283,7 @@ static void sedit_compact_rooms_menu(struct descriptor_data *d)
   {
     if (real_room(S_ROOM(shop, i)) != NOWHERE)
     {
-      write_to_output(d, "%2d - [@\t%5d\tn] - \ty%s\tn\r\n", i, S_ROOM(shop, i),
+      write_to_output(d, "%2d - [@\t%5" PRI_IDX "\tn] - \ty%s\tn\r\n", i, S_ROOM(shop, i),
                       world[real_room(S_ROOM(shop, i))].name);
     }
     else
@@ -320,7 +322,7 @@ static void sedit_rooms_menu(struct descriptor_data *d)
     if (rnum == NOWHERE)
       S_ROOM(shop, i) = rnum = 0;
 
-    write_to_output(d, "%2d - [%s%5d%s] - %s%s%s\r\n", i, cyn, S_ROOM(shop, i), nrm, yel,
+    write_to_output(d, "%2d - [%s%5" PRI_IDX "%s] - %s%s%s\r\n", i, cyn, S_ROOM(shop, i), nrm, yel,
                     world[rnum].name, nrm);
   }
   write_to_output(d,
@@ -428,7 +430,7 @@ static void sedit_disp_menu(struct descriptor_data *d)
   sprintbit(S_NOTRADE(shop), trade_letters, buf1, sizeof(buf1));
   sprintbit(S_BITVECTOR(shop), shop_bits, buf2, sizeof(buf2));
   write_to_output(d,
-                  "-- Shop Number : [%s%d%s]\r\n"
+                  "-- Shop Number : [%s%" PRI_IDX "%s]\r\n"
                   "%s0%s) Keeper      : [%s%d%s] %s%s\r\n"
                   "%s1%s) Open 1      : %s%4d%s          %s2%s) Close 1     : %s%4d\r\n"
                   "%s3%s) Open 2      : %s%4d%s          %s4%s) Close 2     : %s%4d\r\n"
@@ -481,8 +483,8 @@ void sedit_parse(struct descriptor_data *d, char *arg)
     case 'y':
     case 'Y':
       sedit_save_internally(d);
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits shop %d",
-             GET_NAME(d->character), OLC_NUM(d));
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
+             "OLC: %s edits shop %" PRI_IDX, GET_NAME(d->character), OLC_NUM(d));
       if (CONFIG_OLC_SAVE)
       {
         sedit_save_to_disk(real_zone_by_thing(OLC_NUM(d)));
@@ -751,10 +753,10 @@ void sedit_parse(struct descriptor_data *d, char *arg)
     S_CLOSE2(OLC_SHOP(d)) = LIMIT(atoi(arg), 0, 28);
     break;
   case SEDIT_BUY_PROFIT:
-    sscanf(arg, "%f", &S_BUYPROFIT(OLC_SHOP(d)));
+    sscanf(arg, "%lf", &S_BUYPROFIT(OLC_SHOP(d)));
     break;
   case SEDIT_SELL_PROFIT:
-    sscanf(arg, "%f", &S_SELLPROFIT(OLC_SHOP(d)));
+    sscanf(arg, "%lf", &S_SELLPROFIT(OLC_SHOP(d)));
     break;
   case SEDIT_TYPE_MENU:
     OLC_VAL(d) = LIMIT(atoi(arg), 0, NUM_ITEM_TYPES - 1);

@@ -21,7 +21,6 @@
 #include "act.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct room_data *world;
 extern int wild_waterline;
 
 /* Repair amounts per shiprepair invocation (dockside pace lands in the
@@ -570,7 +569,7 @@ void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause)
     /* Subsystem degradation from structural hits */
     if (arc == GREYHAWK_FORE && ship->mainsail > 0)
     {
-      ship->mainsail = (ship->mainsail > spill) ? ship->mainsail - spill : 0;
+      ship->mainsail = (ship->mainsail > spill) ? (unsigned char)(ship->mainsail - spill) : 0;
       if (ship->mainsail == 0)
       {
         send_to_ship(ship, "The rigging collapses! The ship is dead in the water.");
@@ -580,7 +579,7 @@ void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause)
     }
     if (arc == GREYHAWK_REAR && ship->turnrate > 0)
     {
-      ship->turnrate = (ship->turnrate > spill) ? ship->turnrate - spill : 0;
+      ship->turnrate = (ship->turnrate > spill) ? (unsigned char)(ship->turnrate - spill) : 0;
       if (ship->turnrate == 0)
       {
         send_to_ship(ship, "The rudder is smashed! The helm no longer answers.");
@@ -666,7 +665,7 @@ static void vessel_ai_return_fire(int shipnum)
   struct greyhawk_ship_data *ship = &greyhawk_ships[shipnum];
   struct greyhawk_ship_data *target;
   struct greyhawk_ship_slot *weapon;
-  float range;
+  double range;
   int target_num;
   int fire_arc;
   int attack_roll;
@@ -701,7 +700,7 @@ static void vessel_ai_return_fire(int shipnum)
     {
       continue;
     }
-    if (weapon->val0 > 0 && range > (float)weapon->val0)
+    if (weapon->val0 > 0 && range > (double)weapon->val0)
     {
       continue;
     }
@@ -817,7 +816,7 @@ ACMD(do_shipfire)
   struct greyhawk_ship_slot *weapon;
   char arg1[MAX_INPUT_LENGTH];
   char arg2[MAX_INPUT_LENGTH];
-  float range;
+  double range;
   int slot_num;
   int target_num;
   int fire_arc;
@@ -833,7 +832,7 @@ ACMD(do_shipfire)
     return;
   }
 
-  two_arguments_u((char *)argument, arg1, arg2);
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   if (!*arg1 || !*arg2)
   {
     send_to_char(ch, "Usage: shipfire <slot 0-%d> <target ship>\r\n", GREYHAWK_MAXSLOTS - 1);
@@ -876,7 +875,7 @@ ACMD(do_shipfire)
 
   /* Range gate: use the weapon's long range (val0) */
   range = greyhawk_range(ship->x, ship->y, ship->z, target->x, target->y, target->z);
-  if (weapon->val0 > 0 && range > (float)weapon->val0)
+  if (weapon->val0 > 0 && range > (double)weapon->val0)
   {
     send_to_char(ch, "%s is out of range (%.1f vs %d).\r\n", target->name, range,
                  (int)weapon->val0);
@@ -953,7 +952,7 @@ ACMD(do_shiprepair)
   {                                                                                                \
     if ((cur) < (max))                                                                             \
     {                                                                                              \
-      (cur) = ((max) - (cur) > (amt)) ? (cur) + (amt) : (max);                                     \
+      (cur) = (typeof(cur))(((max) - (cur) > (amt)) ? (cur) + (amt) : (max));                      \
       repaired = 1;                                                                                \
     }                                                                                              \
   } while (0)

@@ -61,7 +61,7 @@ static int House_get_filename(room_vnum vnum, char *filename, size_t maxlen)
   if (vnum == NOWHERE)
     return (0);
 
-  snprintf(filename, maxlen, LIB_HOUSE "%d.house", vnum);
+  snprintf(filename, maxlen, LIB_HOUSE "%" PRI_IDX ".house", vnum);
   return (1);
 }
 
@@ -235,14 +235,14 @@ void House_delete_file(room_vnum vnum)
   if (!(fl = fopen(filename, "rb")))
   {
     if (errno != ENOENT)
-      log("SYSERR: Error deleting house file #%d. (1): %s", vnum, strerror(errno));
+      log("SYSERR: Error deleting house file #%" PRI_IDX ". (1): %s", vnum, strerror(errno));
     return;
   }
 
   fclose(fl);
 
   if (remove(filename) < 0)
-    log("SYSERR: Error deleting house file #%d. (2): %s", vnum, strerror(errno));
+    log("SYSERR: Error deleting house file #%" PRI_IDX ". (2): %s", vnum, strerror(errno));
 }
 
 /* List all objects in a house file */
@@ -259,7 +259,7 @@ static void House_listrent(struct char_data *ch, room_vnum vnum)
 
   if (!(fl = fopen(filename, "rb")))
   {
-    send_to_char(ch, "No objects on file for house #%d.\r\n", vnum);
+    send_to_char(ch, "No objects on file for house #%" PRI_IDX ".\r\n", vnum);
     return;
   }
 
@@ -271,7 +271,7 @@ static void House_listrent(struct char_data *ch, room_vnum vnum)
 
   for (current = loaded; current != NULL; current = current->next)
     len =
-        snprintf_append(buf, sizeof(buf), len, " [%5d] (%5dau) %s\r\n", GET_OBJ_VNUM(current->obj),
+        snprintf_append(buf, sizeof(buf), len, " [%5u] (%5dau) %s\r\n", GET_OBJ_VNUM(current->obj),
                         GET_OBJ_RENT(current->obj), current->obj->short_description);
 
   /* now it's safe to free the obj_save_data list - all members of it
@@ -317,6 +317,7 @@ void House_save_control(void)
       (size_t)num_of_houses)
   {
     perror("SYSERR: Unable to save house control file.");
+    fclose(fl);
     return;
   }
 
@@ -391,7 +392,7 @@ void hcontrol_list_houses(struct char_data *ch, char *arg)
 {
   house_rnum house;
   int i;
-  char *timestr, *temp;
+  const char *timestr, *temp;
   char built_on[128], last_pay[128], own_name[MAX_NAME_LENGTH + 1];
 
   if (arg && *arg)
@@ -429,7 +430,7 @@ void hcontrol_list_houses(struct char_data *ch, char *arg)
 
     if (house_control[i].built_on)
     {
-      timestr = (char *)format_time_ymd_hms(house_control[i].built_on);
+      timestr = format_time_ymd_hms(house_control[i].built_on);
       /* Copy only YYYY-MM-DD */
       strlcpy(built_on, timestr, sizeof(built_on));
       built_on[10] = '\0';
@@ -440,7 +441,7 @@ void hcontrol_list_houses(struct char_data *ch, char *arg)
 
     if (house_control[i].last_payment)
     {
-      timestr = (char *)format_time_ymd_hms(house_control[i].last_payment);
+      timestr = format_time_ymd_hms(house_control[i].last_payment);
       /* Copy only YYYY-MM-DD */
       strlcpy(last_pay, timestr, sizeof(last_pay));
       last_pay[10] = '\0';
@@ -451,9 +452,9 @@ void hcontrol_list_houses(struct char_data *ch, char *arg)
     /* Now we need a copy of the owner's name to capitalize. -gg 6/21/98 */
     strlcpy(own_name, temp,
             sizeof(own_name)); /* strcpy: OK (names guaranteed <= MAX_NAME_LENGTH+1) */
-    send_to_char(ch, "%7d %7d  %-10s    %2d    %-12s %s\r\n", house_control[i].vnum,
-                 house_control[i].atrium, built_on, house_control[i].num_of_guests, CAP(own_name),
-                 last_pay);
+    send_to_char(ch, "%7" PRI_IDX " %7" PRI_IDX "  %-10s    %2d    %-12s %s\r\n",
+                 house_control[i].vnum, house_control[i].atrium, built_on,
+                 house_control[i].num_of_guests, CAP(own_name), last_pay);
 
     House_list_guests(ch, i, TRUE);
   }
@@ -507,7 +508,7 @@ static void hcontrol_build_house(struct char_data *ch, char *arg)
     return;
   }
 
-  if ((exit_num = search_block(arg1, dirs, FALSE)) < 0)
+  if ((exit_num = (sh_int)search_block(arg1, dirs, FALSE)) < 0)
   {
     send_to_char(ch, "'%s' is not a valid direction.\r\n", arg1);
     return;
@@ -515,7 +516,7 @@ static void hcontrol_build_house(struct char_data *ch, char *arg)
 
   if (TOROOM(real_house, exit_num) == NOWHERE)
   {
-    send_to_char(ch, "There is no exit %s from room %d.\r\n", dirs[exit_num], virt_house);
+    send_to_char(ch, "There is no exit %s from room %" PRI_IDX ".\r\n", dirs[exit_num], virt_house);
     return;
   }
 
@@ -583,12 +584,13 @@ static void hcontrol_destroy_house(struct char_data *ch, char *arg)
   }
 
   if ((real_atrium = real_room(house_control[house].atrium)) == NOWHERE)
-    log("SYSERR: House %d had invalid atrium %d!", atoi(arg), house_control[house].atrium);
+    log("SYSERR: House %d had invalid atrium %" PRI_IDX "!", atoi(arg),
+        house_control[house].atrium);
   else
     REMOVE_BIT_AR(ROOM_FLAGS(real_atrium), ROOM_ATRIUM);
 
   if ((real_house = real_room(house_control[house].vnum)) == NOWHERE)
-    log("SYSERR: House %d had invalid vnum %d!", atoi(arg), house_control[house].vnum);
+    log("SYSERR: House %d had invalid vnum %" PRI_IDX "!", atoi(arg), house_control[house].vnum);
   else
   {
     REMOVE_BIT_AR(ROOM_FLAGS(real_house), ROOM_HOUSE);
@@ -721,8 +723,8 @@ int House_can_enter(struct char_data *ch, room_vnum house)
 
     zvnum = zone_table[real_zone_by_thing(house_control[i].vnum)].number;
 
-    log("(HCE) Zone: %d, Clan ID: %d, Clanhall Zone: %d", zvnum, GET_CLAN(ch),
-        clan_list[GET_CLAN(ch)].hall);
+    log("(HCE) Zone: %" PRI_IDX ", Clan ID: %" PRI_IDX ", Clanhall Zone: %" PRI_IDX, zvnum,
+        GET_CLAN(ch), clan_list[GET_CLAN(ch)].hall);
 
     if ((GET_CLAN(ch) > 0) && (clan_list[GET_CLAN(ch)].hall == zvnum))
       return (1);
@@ -730,7 +732,8 @@ int House_can_enter(struct char_data *ch, room_vnum house)
     break;
 
   default:
-    mudlog(CMP, LVL_IMPL, TRUE, "SYSERR: Invalid house type in room %d", house_control[i].vnum);
+    mudlog(CMP, LVL_IMPL, TRUE, "SYSERR: Invalid house type in room %" PRI_IDX,
+           house_control[i].vnum);
     break;
   }
 
@@ -828,7 +831,7 @@ ACMD(do_house)
     send_to_char(ch, "Only the primary owner can set guests.\r\n");
   else if (!*arg)
     House_list_guests(ch, i, FALSE);
-  else if ((id = get_id_by_name(arg)) < 0)
+  else if ((id = (int)get_id_by_name(arg)) < 0)
     send_to_char(ch, "No such player.\r\n");
   else if (id == GET_IDNUM(ch))
     send_to_char(ch, "It's your house!\r\n");
@@ -1264,7 +1267,7 @@ static void hcontrol_convert_houses(struct char_data *ch)
 
   for (i = 0; i < num_of_houses; i++)
   {
-    send_to_char(ch, "  %d", house_control[i].vnum);
+    send_to_char(ch, "  %" PRI_IDX, house_control[i].vnum);
 
     if (!ascii_convert_house(ch, house_control[i].vnum))
     {
@@ -1309,8 +1312,8 @@ static int ascii_convert_house(struct char_data *ch, obj_vnum vnum)
   while (!feof(in))
   {
     struct obj_file_elem object;
-    if (fread(&object, sizeof(struct obj_file_elem), 1, in) != 1)
-      return (0);
+    if (fread(&object, sizeof(struct obj_file_elem), 1, in) != 1 && !ferror(in))
+      break; /* end of file */
     if (ferror(in))
     {
       perror("SYSERR: Reading house file in House_load");

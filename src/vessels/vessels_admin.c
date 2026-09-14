@@ -20,8 +20,6 @@
 #include "act.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
-extern struct room_data *world;
-extern room_rnum top_of_world;
 
 /* Warn operators when the shared wilderness dynamic room pool crosses this
  * utilization percentage (vessel product requirements Section 5, invariant 3). */
@@ -329,7 +327,7 @@ ACMD(do_shiplist)
   int pool_total = 0;
   int i;
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   summary_only = !str_cmp(arg, "summary");
   if (*arg && !summary_only)
   {
@@ -410,7 +408,7 @@ ACMD(do_shipgoto)
   room_rnum target = NOWHERE;
   int slot;
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   if (!*arg)
   {
     send_to_char(ch, "Go to which ship slot? See 'shiplist'.\r\n");
@@ -474,7 +472,7 @@ ACMD(do_shipfix)
   unsigned char old_turnrate;
   int slot;
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   if (!*arg)
   {
     send_to_char(ch, "Repair which ship slot? See 'shiplist'.\r\n");
@@ -557,7 +555,7 @@ ACMD(do_shippurge)
   int slot;
   int i;
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   parsed_slot = strtol(arg, &end, 10);
   if (!*arg || *end != '\0' || parsed_slot < 2 || parsed_slot >= GREYHAWK_MAXSHIPS)
   {

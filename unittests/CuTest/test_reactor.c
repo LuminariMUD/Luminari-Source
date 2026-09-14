@@ -78,7 +78,7 @@ void Test_reactor_driver_selection_and_monotonic_clock(CuTest *tc)
   usleep(2000);
   after = luminari_reactor_monotonic_usec();
   CuAssertTrue(tc, after > before);
-  CuAssertPtrNotNull(tc, (void *)luminari_reactor_library_version());
+  CuAssertPtrNotNull(tc, luminari_reactor_library_version());
 }
 
 static void count_signal(int signal_number, void *context)

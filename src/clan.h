@@ -122,7 +122,7 @@ struct diplomacy_data
   /**< The skill number, defined in spells.h           */
   int skill;
   /**< The popularity increase this skill causes       */
-  float increase;
+  double increase;
   /**< The number of ticks that must pass between uses */
   int wait;
 };
@@ -137,7 +137,7 @@ struct claim_data
   /**< The VNUM of the current controlling clan       */
   clan_vnum clan;
   /**< Popularity Values for the zone for each clan   */
-  float popularity[MAX_CLANS];
+  double popularity[MAX_CLANS];
   /**< Linked list pointer to the next claim_data     */
   struct claim_data *next;
 };
@@ -276,7 +276,6 @@ ACMD_DECL(do_clanbenefits);
 
 ACMD_DECL(do_clanset);
 ACMD_DECL(do_clantalk);
-ACMD_DECL(do_claninvest);
 clan_vnum zone_is_clanhall(zone_vnum z);
 zone_vnum get_clanhall_by_char(struct char_data *ch);
 int get_clan_taxrate(struct char_data *ch);
@@ -302,8 +301,8 @@ bool save_claims(void);
 void load_claims(void);
 
 /* Popularity handling functions */
-float get_popularity(zone_vnum zn, clan_vnum cn);
-void increase_popularity(zone_vnum zn, clan_vnum cn, float amt);
+double get_popularity(zone_vnum zn, clan_vnum cn);
+void increase_popularity(zone_vnum zn, clan_vnum cn, double amt);
 void show_zone_popularities(struct char_data *ch, struct claim_data *this_claim);
 void show_clan_popularities(struct char_data *ch, clan_vnum c_v);
 void show_popularity(struct char_data *ch, char *arg);
@@ -311,7 +310,7 @@ void check_diplomacy(void);
 void update_clan_member_cache(clan_rnum c);
 void update_all_clan_caches(void);
 void update_clan_activity(clan_vnum c);
-void log_clan_activity(clan_vnum c, const char *format, ...);
+void log_clan_activity(clan_vnum c, const char *format, ...) __attribute__((format(printf, 2, 3)));
 void log_clan_error(const char *function, const char *format, ...)
     __attribute__((format(printf, 2, 3)));
 
@@ -341,7 +340,7 @@ void clanedit_string_cleanup(struct descriptor_data *d, int terminator);
 
 #ifndef __CLAN_C__
 /* External globals (proably needed by any file that loads this header) */
-extern struct clan_data *clan_list;
-extern int num_of_clans;
 //extern struct clan_rec clan[MAX_CLANS];
 #endif
+
+void free_single_clan_data(struct clan_data *c);

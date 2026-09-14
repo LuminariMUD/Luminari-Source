@@ -1,3 +1,4 @@
+#include <math.h>
 #include "CuTest.h"
 #include "test_spec_fixtures.h"
 
@@ -623,7 +624,7 @@ static void initialize_test_npc(struct char_data *ch, const char *name, room_rnu
   clear_char(ch);
   SET_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
   ch->player_specials = &dummy_mob;
-  ch->player.short_descr = (char *)name;
+  ch->player.short_descr = CuMutableString(name);
   GET_LEVEL(ch) = 10;
   GET_POS(ch) = POS_STANDING;
   GET_HIT(ch) = 100;
@@ -647,13 +648,13 @@ static void begin_gameplay_fixture(struct gameplay_fixture *fixture)
   fixture->rooms[0].number = 100;
   fixture->rooms[0].zone = 0;
   fixture->rooms[0].sector_type = SECT_INSIDE;
-  fixture->rooms[0].name = "End-to-end origin";
-  fixture->rooms[0].description = "A production-linked test room.\r\n";
+  fixture->rooms[0].name = CuMutableString("End-to-end origin");
+  fixture->rooms[0].description = CuMutableString("A production-linked test room.\r\n");
   fixture->rooms[1].number = 101;
   fixture->rooms[1].zone = 0;
   fixture->rooms[1].sector_type = SECT_INSIDE;
-  fixture->rooms[1].name = "End-to-end destination";
-  fixture->rooms[1].description = "A second production-linked test room.\r\n";
+  fixture->rooms[1].name = CuMutableString("End-to-end destination");
+  fixture->rooms[1].description = CuMutableString("A second production-linked test room.\r\n");
   fixture->exits[0].key = NOTHING;
   fixture->exits[0].to_room = 1;
   fixture->exits[1].key = NOTHING;
@@ -1188,8 +1189,8 @@ void Test_gameplay_pet_wait_holds_position_until_explicit_recall(CuTest *tc)
   bool waited, automatic, recalled, followed;
 
   begin_gameplay_fixture(&fixture);
-  fixture.actor.player.name = (char *)"owner";
-  fixture.victim.player.name = (char *)"companion";
+  fixture.actor.player.name = CuMutableString("owner");
+  fixture.victim.player.name = CuMutableString("companion");
   fixture.victim.master = &fixture.actor;
   SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
   link.follower = &fixture.victim;
@@ -1225,9 +1226,9 @@ void Test_gameplay_dg_single_target_teleport_moves_the_targets_pets(CuTest *tc)
 
   begin_gameplay_fixture(&fixture);
   initialize_test_npc(&pet, "target companion", 0);
-  fixture.actor.player.name = (char *)"teleporter";
-  fixture.victim.player.name = (char *)"target";
-  pet.player.name = (char *)"companion";
+  fixture.actor.player.name = CuMutableString("teleporter");
+  fixture.victim.player.name = CuMutableString("target");
+  pet.player.name = CuMutableString("companion");
   pet.master = &fixture.victim;
   SET_BIT_AR(AFF_FLAGS(&pet), AFF_CHARM);
   fixture.victim.next_in_room = &pet;
@@ -1261,7 +1262,7 @@ void Test_gameplay_pet_ids_select_identical_names_without_bypassing_range_or_own
 
   begin_gameplay_fixture(&fixture);
   initialize_test_npc(&other, "other companion", 0);
-  other.player.name = fixture.victim.player.name = (char *)"companion";
+  other.player.name = fixture.victim.player.name = CuMutableString("companion");
   fixture.victim.next_in_room = &other;
   fixture.victim.master = other.master = &fixture.actor;
   fixture.victim.pet_data_id = 21;
@@ -1309,8 +1310,8 @@ void Test_gameplay_pet_behavior_selection_preserves_ownership_and_control(CuTest
 
   begin_gameplay_fixture(&fixture);
   initialize_test_npc(&other, "other companion", 0);
-  other.player.name = (char *)"companion";
-  fixture.victim.player.name = (char *)"companion";
+  other.player.name = CuMutableString("companion");
+  fixture.victim.player.name = CuMutableString("companion");
   fixture.victim.next_in_room = &other;
   fixture.victim.master = &fixture.actor;
   other.master = &fixture.actor;
@@ -1405,7 +1406,7 @@ static void verify_golem_completion_resources(CuTest *tc, int mode)
 
   begin_gameplay_fixture(&fixture);
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
-  fixture.actor.player.name = (char *)"constructor";
+  fixture.actor.player.name = CuMutableString("constructor");
   fixture.actor.player_specials = &specials;
   fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
   GET_PFILEPOS(&fixture.actor) = -1;
@@ -1422,7 +1423,7 @@ static void verify_golem_completion_resources(CuTest *tc, int mode)
   initialize_test_npc(&prototype, "wood golem", NOWHERE);
   GET_REAL_RACE(&prototype) = mode == 7 || mode == 8 ? RACE_TYPE_ANIMAL : RACE_TYPE_CONSTRUCT;
   SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
-  prototype.player.name = (char *)"golem";
+  prototype.player.name = CuMutableString("golem");
   GET_MOB_RNUM(&prototype) = 0;
   GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
   GET_REAL_MAX_MOVE(&prototype) = 100;
@@ -1728,14 +1729,14 @@ static bool verify_authored_constructs(const char *sandbox, char *error, size_t 
     if (i == 1)
     {
       int cast_index;
-      struct descriptor_data feedback = {0};
+      struct descriptor_data inner_feedback = {0};
 
-      ch->player.name = (char *)"petcaller";
-      feedback.output = feedback.small_outbuf;
-      feedback.bufspace = SMALL_BUFSIZE - 1;
-      feedback.character = ch;
-      feedback.pProtocol = ProtocolCreate();
-      ch->desc = &feedback;
+      ch->player.name = CuMutableString("petcaller");
+      inner_feedback.output = inner_feedback.small_outbuf;
+      inner_feedback.bufspace = SMALL_BUFSIZE - 1;
+      inner_feedback.character = ch;
+      inner_feedback.pProtocol = ProtocolCreate();
+      ch->desc = &inner_feedback;
       GET_MAX_HIT(ch) = GET_REAL_MAX_HIT(ch) = 200;
       if (complete_cmd_info == NULL)
         create_command_list();
@@ -1748,7 +1749,7 @@ static bool verify_authored_constructs(const char *sandbox, char *error, size_t 
       do_order(ch, "healer cast 'cure critic' absent", 0, 0);
       if (pet->mob_specials.known_spell_slots[SPELL_CURE_CRITIC] != 2 ||
           !is_action_available(pet, atSTANDARD, false) ||
-          strstr(feedback.output, "find the target") == NULL)
+          strstr(inner_feedback.output, "find the target") == NULL)
         return false;
       for (cast_index = 0; cast_index < 3; cast_index++)
       {
@@ -1761,18 +1762,18 @@ static bool verify_authored_constructs(const char *sandbox, char *error, size_t 
         {
           snprintf(error, error_size, "ordered healer cast %d failed: hp=%d slots=%d: %.300s",
                    cast_index, GET_HIT(ch), pet->mob_specials.known_spell_slots[SPELL_CURE_CRITIC],
-                   feedback.output);
+                   inner_feedback.output);
           return false;
         }
         if (cast_index < 2 && is_action_available(pet, atSTANDARD, false))
           return false;
       }
       if (npc_can_cast(pet, SPELL_CURE_CRITIC) ||
-          strstr(feedback.output, "Your pet cannot cast that spell") == NULL)
+          strstr(inner_feedback.output, "Your pet cannot cast that spell") == NULL)
         return false;
       clear_char_event_list(ch);
       ch->desc = NULL;
-      ProtocolDestroy(feedback.pProtocol);
+      ProtocolDestroy(inner_feedback.pProtocol);
     }
     extract_char(pet);
     extract_pending_chars();
@@ -1908,7 +1909,7 @@ void Test_gameplay_golem_minor_repairs_cost_materials_and_pending_destruction_ca
   do_destroygolem(ch, "victim", 0, 0);
   no_reward =
       GET_CRAFT_MAT(ch, CRAFT_MAT_MAPLE_WOOD) == 100 && GET_CRAFT_MAT(ch, CRAFT_MAT_BRONZE) == 0;
-  CONFIG_CRAFTING_SYSTEM = saved_system;
+  CONFIG_CRAFTING_SYSTEM = (ubyte)saved_system;
   REMOVE_BIT_AR(MOB_FLAGS(golem), MOB_NOTDEADYET);
   golem->master = NULL;
   end_gameplay_fixture(&fixture);
@@ -2116,7 +2117,7 @@ void Test_gameplay_natural_pet_attacks_bypass_only_eligible_damage_reduction(CuT
   matching_physical = apply_damage_reduction(pet, target, weapon, 20, false);
   physical.bypass_val[0] = DR_DAMTYPE_SLASHING;
   mismatched_physical = apply_damage_reduction(pet, target, weapon, 20, false);
-  weapon_list[0].damageTypes = saved_damage_types;
+  weapon_list[0].damageTypes = (ush_int)saved_damage_types;
   extract_obj(weapon);
   GET_DR(target) = NULL;
   end_gameplay_fixture(&f);
@@ -2169,7 +2170,7 @@ void Test_gameplay_juggernaut_failed_publication_retains_daily_use(CuTest *tc)
   add_char_perk(owner, PERK_PSIONICIST_HARDENED_CONSTRUCTS_II, CLASS_PSIONICIST);
   f.mobile_index[0].vnum = MOB_ECTOPLASMIC_SHAMBLER;
   initialize_test_npc(&prototype, "shambler", NOWHERE);
-  prototype.player.name = (char *)"shambler";
+  prototype.player.name = CuMutableString("shambler");
   GET_MOB_RNUM(&prototype) = 0;
   GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = GET_PSP(&prototype) = 100;
   SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
@@ -2224,6 +2225,8 @@ void Test_gameplay_juggernaut_failed_publication_retains_daily_use(CuTest *tc)
   mag_summons(20, owner, NULL, PSIONIC_ECTOPLASMIC_SHAMBLER, 0, CAST_SPELL);
   pet = owner->followers != NULL ? owner->followers->follower : NULL;
   CuAssertPtrNotNull(tc, pet);
+  if (pet == NULL)
+    return;
   ordinary[0] = GET_HITROLL(pet);
   ordinary[1] = GET_DAMROLL(pet);
   ordinary[2] = GET_AC(pet);
@@ -2236,6 +2239,8 @@ void Test_gameplay_juggernaut_failed_publication_retains_daily_use(CuTest *tc)
   mag_summons(20, owner, NULL, PSIONIC_ECTOPLASMIC_SHAMBLER, 0, CAST_SPELL);
   pet = owner->followers != NULL ? owner->followers->follower : NULL;
   CuAssertPtrNotNull(tc, pet);
+  if (pet == NULL)
+    return;
   CuAssertIntEquals(tc, GET_AC(pet) + 30, ordinary[2]);
   CuAssertIntEquals(tc, GET_MAX_HIT(pet), GET_HIT(pet));
   extract_char(pet);
@@ -2284,7 +2289,7 @@ static void verify_nature_summon_scaling(CuTest *tc, int mob_level, int scaling)
   GET_PFILEPOS(&f.actor) = -1;
   f.mobile_index[0].vnum = MOB_DIRE_BADGER;
   initialize_test_npc(&prototype, "badger", NOWHERE);
-  prototype.player.name = (char *)"badger";
+  prototype.player.name = CuMutableString("badger");
   GET_LEVEL(&prototype) = mob_level;
   GET_REAL_HITROLL(&prototype) = GET_HITROLL(&prototype) = 4;
   GET_REAL_DAMROLL(&prototype) = GET_DAMROLL(&prototype) = 6;
@@ -2301,6 +2306,8 @@ static void verify_nature_summon_scaling(CuTest *tc, int mob_level, int scaling)
     mag_summons(10, &f.actor, NULL, SPELL_SUMMON_NATURES_ALLY_1, 0, CAST_SPELL);
     pet = f.actor.followers != NULL ? f.actor.followers->follower : NULL;
     CuAssertPtrNotNull(tc, pet);
+    if (pet == NULL)
+      return;
     if (mode == 0)
     {
       affect_total(pet);
@@ -2375,7 +2382,7 @@ void Test_gameplay_alpha_bond_saves_survive_recalculation_without_stacking(CuTes
   GET_ANIMAL_COMPANION(&f.actor) = MOB_DIRE_BADGER;
   f.mobile_index[0].vnum = MOB_DIRE_BADGER;
   initialize_test_npc(&prototype, "badger", NOWHERE);
-  prototype.player.name = (char *)"badger";
+  prototype.player.name = CuMutableString("badger");
   GET_MOB_RNUM(&prototype) = 0;
   GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = GET_PSP(&prototype) = 100;
   SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
@@ -2388,6 +2395,8 @@ void Test_gameplay_alpha_bond_saves_survive_recalculation_without_stacking(CuTes
     perform_call(&f.actor, MOB_C_ANIMAL, 10);
     pet = f.actor.followers != NULL ? f.actor.followers->follower : NULL;
     CuAssertPtrNotNull(tc, pet);
+    if (pet == NULL)
+      return;
     for (i = 0; i < 3; i++)
       if (mode == 0)
         base[i] = GET_SAVE(pet, saves[i]);
@@ -2760,7 +2769,7 @@ void Test_gameplay_necromancer_calls_and_recalls_undead_cohort(CuTest *tc)
   owner = &fixture.actor;
   REMOVE_BIT_AR(MOB_FLAGS(owner), MOB_ISNPC);
   owner->player_specials = &specials;
-  owner->player.name = (char *)"cohortcaller";
+  owner->player.name = CuMutableString("cohortcaller");
   owner->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
   GET_PFILEPOS(owner) = -1;
   GET_CLASS(owner) = CLASS_NECROMANCER;
@@ -2774,7 +2783,7 @@ void Test_gameplay_necromancer_calls_and_recalls_undead_cohort(CuTest *tc)
   KNOWS_EVOLUTION(owner, EVOLUTION_UNDEAD_APPEARANCE) = 1;
   GET_EIDOLON_BASE_FORM(owner) = EIDOLON_BASE_FORM_BIPED;
   initialize_test_npc(&prototype, "cohort", NOWHERE);
-  prototype.player.name = (char *)"cohort";
+  prototype.player.name = CuMutableString("cohort");
   GET_MOB_RNUM(&prototype) = 0;
   GET_REAL_RACE(&prototype) = RACE_TYPE_OUTSIDER;
   GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = GET_PSP(&prototype) = 100;
@@ -2835,7 +2844,7 @@ void Test_gameplay_dragonrider_calls_every_authored_mount_and_recalls_without_re
     owner = &fixture.actor;
     REMOVE_BIT_AR(MOB_FLAGS(owner), MOB_ISNPC);
     owner->player_specials = &specials;
-    owner->player.name = (char *)"dragoncaller";
+    owner->player.name = CuMutableString("dragoncaller");
     owner->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
     GET_PFILEPOS(owner) = -1;
     GET_CLASS(owner) = CLASS_DRAGONRIDER;
@@ -2849,7 +2858,7 @@ void Test_gameplay_dragonrider_calls_every_authored_mount_and_recalls_without_re
     denied =
         denied && owner->followers == NULL && char_has_mud_event(owner, eC_DRAGONMOUNT) == NULL;
     initialize_test_npc(&prototype, "dragon", NOWHERE);
-    prototype.player.name = (char *)"dragon";
+    prototype.player.name = CuMutableString("dragon");
     GET_MOB_RNUM(&prototype) = 0;
     GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = GET_PSP(&prototype) = 100;
     mob_proto = &prototype;
@@ -2905,7 +2914,7 @@ void Test_gameplay_companion_creation_sets_bond_and_preserves_failed_call_cooldo
   event_free_all();
   event_init();
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
-  fixture.actor.player.name = (char *)"caller";
+  fixture.actor.player.name = CuMutableString("caller");
   fixture.actor.player_specials = &specials;
   fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
   GET_PFILEPOS(&fixture.actor) = -1;
@@ -2917,7 +2926,7 @@ void Test_gameplay_companion_creation_sets_bond_and_preserves_failed_call_cooldo
       fixture.actor.followers == NULL && char_has_mud_event(&fixture.actor, eC_FAMILIAR) == NULL;
   initialize_test_npc(&prototype, "familiar", NOWHERE);
   SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
-  prototype.player.name = (char *)"familiar";
+  prototype.player.name = CuMutableString("familiar");
   GET_MOB_RNUM(&prototype) = 0;
   GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
   GET_REAL_MAX_MOVE(&prototype) = 100;
@@ -2985,7 +2994,7 @@ static void verify_item_pet_acquisition(CuTest *tc, bool horn)
 
   initialize_test_npc(&prototype, "summoned follower", NOWHERE);
   SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
-  prototype.player.name = (char *)"follower";
+  prototype.player.name = CuMutableString("follower");
   GET_MOB_RNUM(&prototype) = 0;
   GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
   GET_REAL_MAX_MOVE(&prototype) = 100;
@@ -3041,7 +3050,7 @@ void Test_gameplay_retainer_call_preserves_cooldown_and_rejects_remote_duplicate
   begin_gameplay_fixture(&fixture);
   REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
   ch->player_specials = &specials;
-  ch->player.name = (char *)"squire";
+  ch->player.name = CuMutableString("squire");
   ch->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
   GET_PFILEPOS(ch) = -1;
   GET_CHA(ch) = 18;
@@ -3052,7 +3061,7 @@ void Test_gameplay_retainer_call_preserves_cooldown_and_rejects_remote_duplicate
   failed = ch->followers == NULL && GET_RETAINER_COOLDOWN(ch) == 0;
   initialize_test_npc(&prototype, "retainer", NOWHERE);
   SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
-  prototype.player.name = (char *)"retainer";
+  prototype.player.name = CuMutableString("retainer");
   GET_MOB_RNUM(&prototype) = 0;
   GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
   GET_REAL_MAX_MOVE(&prototype) = 100;
@@ -3096,7 +3105,7 @@ void Test_gameplay_innate_animation_sets_source_flag_and_retains_failed_use(CuTe
   event_init();
   REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
   ch->player_specials = &specials;
-  ch->player.name = (char *)"animator";
+  ch->player.name = CuMutableString("animator");
   ch->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
   GET_PFILEPOS(ch) = -1;
   GET_LEVEL(ch) = 31;
@@ -3107,7 +3116,7 @@ void Test_gameplay_innate_animation_sets_source_flag_and_retains_failed_use(CuTe
   failed = ch->followers == NULL && char_has_mud_event(ch, eANIMATEDEAD) == NULL;
   initialize_test_npc(&prototype, "animated mummy", NOWHERE);
   SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
-  prototype.player.name = (char *)"mummy";
+  prototype.player.name = CuMutableString("mummy");
   GET_MOB_RNUM(&prototype) = 0;
   GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
   GET_REAL_MAX_MOVE(&prototype) = 100;
@@ -3185,7 +3194,7 @@ void Test_gameplay_e2e_movement_trail_statistics_follow_live_world(CuTest *tc)
   memset(&player_specials, 0, sizeof(player_specials));
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
   fixture.actor.player_specials = &player_specials;
-  fixture.actor.player.name = "fixture player";
+  fixture.actor.player.name = CuMutableString("fixture player");
 
   initial_trails = count_live_movement_trails();
   move_result = perform_move(&fixture.actor, NORTH, FALSE);
@@ -3286,6 +3295,8 @@ static int pet_order_test_mode;
 static int pet_order_test_dispatches;
 
 /* Exercise callbacks through the real command table and interpreter. */
+ACMD_DECL(pet_order_test_command);
+
 ACMD(pet_order_test_command)
 {
   pet_order_test_last = ch;
@@ -3327,14 +3338,14 @@ static void verify_pet_group_orders(CuTest *tc, int mode, int expected)
   saved_command = complete_cmd_info[command];
   complete_cmd_info[command].command_pointer = pet_order_test_command;
 
-  fixture.actor.player.name = (char *)"owner";
-  fixture.victim.player.name = (char *)"companion";
+  fixture.actor.player.name = CuMutableString("owner");
+  fixture.victim.player.name = CuMutableString("companion");
   SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
   fixture.victim.master = &fixture.actor;
   pet_order_test_owner = &fixture.actor;
   initialize_test_npc(&prototype, "another companion", NOWHERE);
   SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
-  prototype.player.name = (char *)"companion";
+  prototype.player.name = CuMutableString("companion");
   GET_MOB_RNUM(&prototype) = 0;
   GET_PSP(&prototype) = 100; /* Native prototype HP upper bound. */
   GET_REAL_MAX_HIT(&prototype) = 100;
@@ -3429,7 +3440,7 @@ void Test_gameplay_pet_shop_unavailable_stock_preserves_payment(CuTest *tc)
   fixture.actor.next_in_room = NULL;
   fixture.rooms[1].people = &fixture.victim;
   IN_ROOM(&fixture.victim) = 1;
-  fixture.victim.player.name = "puppy";
+  fixture.victim.player.name = CuMutableString("puppy");
   GET_MOB_RNUM(&fixture.victim) = NOBODY;
   initialize_test_npc(&prototype, "puppy", NOWHERE);
   GET_MOB_RNUM(&prototype) = 0;
@@ -3545,7 +3556,7 @@ static void verify_pet_shop_payment_and_recovery(CuTest *tc, int currency, bool 
   GET_CHA(&fixture.actor) = 10;
   GET_REAL_STR(&fixture.actor) = fixture.actor.aff_abils.str = 18;
   GET_REAL_DEX(&fixture.actor) = fixture.actor.aff_abils.dex = 18;
-  fixture.actor.player.name = (char *)"petbuyer";
+  fixture.actor.player.name = CuMutableString("petbuyer");
   GET_GOLD(&fixture.actor) = currency == 0 ? 10000 : 0;
   GET_QUESTPOINTS(&fixture.actor) = currency == ITEM_QUEST ? 10000 : 0;
   initialize_test_npc(&prototype, "purchased companion", NOWHERE);
@@ -3705,7 +3716,7 @@ static void verify_native_summon_batch(CuTest *tc, int spell, int expected, bool
   for (i = 0; i < 4; i++)
   {
     initialize_test_npc(&prototypes[i], "summoned creature", NOWHERE);
-    prototypes[i].player.name = "summoned creature";
+    prototypes[i].player.name = CuMutableString("summoned creature");
     SET_BIT_AR(MOB_FLAGS(&prototypes[i]), MOB_CUSTOM_MOB_STATS);
     GET_MOB_RNUM(&prototypes[i]) = i;
     GET_PSP(&prototypes[i]) = GET_REAL_MAX_HIT(&prototypes[i]) = GET_REAL_MAX_MOVE(&prototypes[i]) =
@@ -3856,19 +3867,19 @@ void Test_gameplay_elemental_choices_are_owned_by_each_cast_and_preserve_limits(
 {
   struct char_data first = {0}, second = {0};
   struct player_special_data specials = {0};
-  const int spells[] = {SPELL_SUMMON_CREATURE_7,     SPELL_SUMMON_CREATURE_8,
-                        SPELL_SUMMON_CREATURE_9,     SPELL_SUMMON_NATURES_ALLY_7,
-                        SPELL_SUMMON_NATURES_ALLY_8, SPELL_SUMMON_NATURES_ALLY_9};
+  const int spells_value[] = {SPELL_SUMMON_CREATURE_7,     SPELL_SUMMON_CREATURE_8,
+                              SPELL_SUMMON_CREATURE_9,     SPELL_SUMMON_NATURES_ALLY_7,
+                              SPELL_SUMMON_NATURES_ALLY_8, SPELL_SUMMON_NATURES_ALLY_9};
   size_t i;
 
   first.player_specials = &specials;
-  for (i = 0; i < sizeof(spells) / sizeof(spells[0]); i++)
+  for (i = 0; i < sizeof(spells_value) / sizeof(spells_value[0]); i++)
   {
-    CuAssertTrue(tc, set_pet_summon_choice(&first, spells[i], "air"));
-    CuAssertTrue(tc, set_pet_summon_choice(&second, spells[i], "earth"));
-    CuAssertIntEquals(tc, MOB_AIR_ELEMENTAL, pet_summon_choice_mob(&first, spells[i]));
-    CuAssertIntEquals(tc, MOB_EARTH_ELEMENTAL, pet_summon_choice_mob(&second, spells[i]));
-    verify_native_summon_batch(tc, spells[i], 1, true);
+    CuAssertTrue(tc, set_pet_summon_choice(&first, spells_value[i], "air"));
+    CuAssertTrue(tc, set_pet_summon_choice(&second, spells_value[i], "earth"));
+    CuAssertIntEquals(tc, MOB_AIR_ELEMENTAL, pet_summon_choice_mob(&first, spells_value[i]));
+    CuAssertIntEquals(tc, MOB_EARTH_ELEMENTAL, pet_summon_choice_mob(&second, spells_value[i]));
+    verify_native_summon_batch(tc, spells_value[i], 1, true);
   }
   CuAssertTrue(tc, set_pet_summon_choice(&first, SPELL_GENIEKIND, "marid"));
   CuAssertTrue(tc, set_pet_summon_choice(&second, SPELL_GENIEKIND, "efreeti"));
@@ -3891,7 +3902,7 @@ void Test_gameplay_dismiss_refuses_gear_and_preserves_pets_after_save_failure(Cu
   bool gear_retained, failed_save_retained;
 
   begin_gameplay_fixture(&fixture);
-  fixture.victim.player.name = "companion";
+  fixture.victim.player.name = CuMutableString("companion");
   fixture.victim.master = &fixture.actor;
   SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_CHARM);
   fixture.victim.carrying = &gear;
@@ -3902,7 +3913,7 @@ void Test_gameplay_dismiss_refuses_gear_and_preserves_pets_after_save_failure(Cu
   gear_retained = !MOB_FLAGGED(&fixture.victim, MOB_NOTDEADYET) && fixture.victim.carrying == &gear;
   fixture.victim.carrying = NULL;
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
-  fixture.actor.player.name = "owner";
+  fixture.actor.player.name = CuMutableString("owner");
   fixture.actor.player_specials = &specials;
   fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
   fixture.victim.pet_data_id = 901;
@@ -3937,7 +3948,7 @@ static void verify_expiring_pet_assets(CuTest *tc, int mode)
   event_free_all();
   event_init();
   initialize_test_npc(&prototype, "dismissed charmie", NOWHERE);
-  prototype.player.name = (char *)"charmie";
+  prototype.player.name = CuMutableString("charmie");
   GET_MOB_RNUM(&prototype) = 0;
   GET_PSP(&prototype) = 100;
   GET_REAL_MAX_HIT(&prototype) = 100;
@@ -4475,7 +4486,8 @@ void Test_gameplay_e2e_dg_trigger_parse_and_execute(CuTest *tc)
       if (fixture.rooms[0].script != NULL)
       {
         add_trigger(fixture.rooms[0].script, read_trigger(0), -1);
-        trigger_result = command_wtrigger(&fixture.actor, "probe", "");
+        trigger_result =
+            command_wtrigger(&fixture.actor, CuMutableString("probe"), CuMutableString(""));
         for (variable = fixture.rooms[0].script->global_vars; variable != NULL;
              variable = variable->next)
         {
@@ -4762,8 +4774,8 @@ static void verify_readied_cast_outcome(CuTest *tc, int outcome)
   event_init();
   REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
   f.actor.player_specials = &specials;
-  f.actor.player.name = "watcher";
-  f.victim.player.name = "caster";
+  f.actor.player.name = CuMutableString("watcher");
+  f.victim.player.name = CuMutableString("caster");
   f.actor.next = &f.victim;
   character_list = &f.actor;
   f.rooms[0].light = 1;
@@ -4846,7 +4858,7 @@ static void verify_readied_cast_outcome(CuTest *tc, int outcome)
     free_list(f.actor.events);
   if (f.victim.events != NULL)
     free_list(f.victim.events);
-  CONFIG_SPELLCASTING_TIME_MODE = saved_mode;
+  CONFIG_SPELLCASTING_TIME_MODE = (ubyte)saved_mode;
   spell_info[SPELL_CURE_LIGHT] = saved_spell;
   character_list = saved_characters;
   pulse = saved_pulse;
@@ -4932,10 +4944,10 @@ void Test_gameplay_movement_fact_waits_for_entry_script_acceptance(CuTest *tc)
   script.trig_list = &trigger;
   trigger.trigger_type = WTRIG_ENTER;
   trigger.narg = 100;
-  trigger.name = (char *)"entry veto";
+  trigger.name = CuMutableString("entry veto");
   trigger.nr = NOTHING;
   trigger.cmdlist = &command;
-  command.cmd = (char *)"return 0";
+  command.cmd = CuMutableString("return 0");
   SCRIPT(&f.rooms[1]) = &script;
 
   rejected = perform_move(&f.actor, NORTH, FALSE);
@@ -5133,7 +5145,7 @@ void Test_gameplay_quest_delivery_consumes_one_committed_item_once(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
   f.actor.player_specials = &specials;
-  f.actor.player.name = "delivery fixture";
+  f.actor.player.name = CuMutableString("delivery fixture");
   for (i = 0; i < MAX_CURRENT_QUESTS; i++)
     GET_QUEST(&f.actor, i) = NOTHING;
   aquest_table = &quest;
@@ -5193,7 +5205,7 @@ void Test_gameplay_quest_resolution_skill_and_witness_use_committed_facts(CuTest
   begin_gameplay_fixture(&f);
   REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
   f.actor.player_specials = &specials;
-  f.actor.player.name = "objective fixture";
+  f.actor.player.name = CuMutableString("objective fixture");
   descriptor.output = descriptor.small_outbuf;
   descriptor.bufspace = SMALL_BUFSIZE - 1;
   descriptor.character = &f.actor;
@@ -5261,7 +5273,7 @@ void Test_gameplay_quest_resolution_skill_and_witness_use_committed_facts(CuTest
   phenomenon.source = domain_event_character_handle(&f.victim);
   phenomenon.source_room = domain_event_room_handle(0);
   phenomenon.kind = DOMAIN_PHENOMENON_FIRE;
-  phenomenon.intensity = 1.0f;
+  phenomenon.intensity = 1.0;
   phenomenon.channels = DOMAIN_WORLD_PHENOMENON_VISUAL;
   phenomenon.propagation = DOMAIN_WORLD_PROPAGATE_ROOMS;
   phenomenon.visual_range = 0;
@@ -5357,7 +5369,7 @@ static void verify_owned_craft_lifecycle(CuTest *tc, bool move_instead)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
   f.actor.player_specials = &specials;
-  f.actor.player.name = "craft fixture";
+  f.actor.player.name = CuMutableString("craft fixture");
   for (i = 0; i < MAX_CURRENT_QUESTS; i++)
     GET_QUEST(&f.actor, i) = NOTHING;
   descriptor.output = descriptor.small_outbuf;
@@ -5466,7 +5478,7 @@ static void verify_native_transport(CuTest *tc, int mode)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
   f.actor.player_specials = &specials;
-  f.actor.player.name = "transport fixture";
+  f.actor.player.name = CuMutableString("transport fixture");
   for (i = 0; i < MAX_CURRENT_QUESTS; i++)
     GET_QUEST(&f.actor, i) = NOTHING;
   descriptor.output = descriptor.small_outbuf;
@@ -5637,8 +5649,8 @@ void Test_gameplay_transport_group_admission_precedes_fare_and_departure(CuTest 
     passenger = i == 0 ? &f.actor : &f.victim;
     REMOVE_BIT_AR(MOB_FLAGS(passenger), MOB_ISNPC);
     passenger->player_specials = i == 0 ? &actor_specials : &companion_specials;
-    passenger->player.name = i == 0 ? "transport leader" : "transport companion";
-    passenger->player.title = "";
+    passenger->player.name = CuMutableString(i == 0 ? "transport leader" : "transport companion");
+    passenger->player.title = CuMutableString("");
     IN_ROOM(passenger) = 1;
     for (j = 0; j < MAX_CURRENT_QUESTS; j++)
       GET_QUEST(passenger, j) = NOTHING;
@@ -5704,7 +5716,7 @@ static void verify_buff_sequence_lifecycle(CuTest *tc, int mode)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
   f.actor.player_specials = &specials;
-  f.actor.player.name = "buff fixture";
+  f.actor.player.name = CuMutableString("buff fixture");
   for (i = 0; i < MAX_CURRENT_QUESTS; i++)
     GET_QUEST((&f.actor), i) = NOTHING;
   descriptor.output = descriptor.small_outbuf;
@@ -5801,8 +5813,8 @@ static void verify_buff_sequence_casting(CuTest *tc, int mode)
   actor = &f.actor;
   REMOVE_BIT_AR(MOB_FLAGS(actor), MOB_ISNPC);
   actor->player_specials = &specials;
-  actor->player.name = "buffcaster";
-  actor->player.title = "";
+  actor->player.name = CuMutableString("buffcaster");
+  actor->player.title = CuMutableString("");
   CLASS_LEVEL(actor, CLASS_CLERIC) = 10;
   actor->real_abils.wis = actor->aff_abils.wis = 18;
   GET_SKILL(actor, SPELL_CURE_LIGHT) = 99;
@@ -5811,11 +5823,11 @@ static void verify_buff_sequence_casting(CuTest *tc, int mode)
   if (mode == 2)
   {
     initialize_test_npc(&decoy, "a guard", 0);
-    decoy.player.name = "guard";
+    decoy.player.name = CuMutableString("guard");
     decoy.next_in_room = &f.victim;
     actor->next_in_room = &decoy;
-    f.victim.player.name = "guard";
-    f.victim.player.short_descr = "a guard";
+    f.victim.player.name = CuMutableString("guard");
+    f.victim.player.short_descr = CuMutableString("a guard");
     GET_BUFF_TARGET(actor) = &f.victim;
     GET_HIT(&f.victim) = 10;
     GET_MAX_HIT(&f.victim) = 100;
@@ -5865,7 +5877,7 @@ static void verify_buff_sequence_casting(CuTest *tc, int mode)
   ProtocolDestroy(descriptor.pProtocol);
   actor->desc = NULL;
   actor->next_in_room = &f.victim;
-  CONFIG_SPELLCASTING_TIME_MODE = saved_mode;
+  CONFIG_SPELLCASTING_TIME_MODE = (ubyte)saved_mode;
   CONFIG_DIVINE_PREP_TIME = saved_divine_prep;
   spell_info[SPELL_CURE_LIGHT].min_level[CLASS_CLERIC] = saved_min_level;
   pulse = saved_pulse;
@@ -6090,8 +6102,8 @@ static void verify_counterspell_reaction(CuTest *tc, int scenario)
   event_init();
   REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
   f.actor.player_specials = &specials;
-  f.actor.player.name = "watcher";
-  f.victim.player.name = "caster";
+  f.actor.player.name = CuMutableString("watcher");
+  f.victim.player.name = CuMutableString("caster");
   f.actor.next = &f.victim;
   character_list = &f.actor;
   f.rooms[0].light = 1;
@@ -6130,7 +6142,7 @@ static void verify_counterspell_reaction(CuTest *tc, int scenario)
     initialize_test_npc(&competitor, "the other counterer", 0);
     REMOVE_BIT_AR(MOB_FLAGS(&competitor), MOB_ISNPC);
     competitor.player_specials = &competitor_specials;
-    competitor.player.name = "counterer";
+    competitor.player.name = CuMutableString("counterer");
     GET_CLASS(&competitor) = CLASS_CLERIC;
     CLASS_LEVEL((&competitor), CLASS_CLERIC) = 10;
     GET_ABILITY(&competitor, ABILITY_SPELLCRAFT) = 100;
@@ -6270,7 +6282,7 @@ counterspell_cleanup:
     free_list(f.actor.events);
   if (f.victim.events != NULL)
     free_list(f.victim.events);
-  CONFIG_SPELLCASTING_TIME_MODE = saved_mode;
+  CONFIG_SPELLCASTING_TIME_MODE = (ubyte)saved_mode;
   CONFIG_DIVINE_PREP_TIME = saved_prep;
   CONFIG_PK_ALLOWED = saved_pk;
   spell_info[SPELL_CURE_LIGHT] = saved_spell;
@@ -6379,8 +6391,8 @@ static void verify_committed_attack_boundary(CuTest *tc, int scenario)
   f.actor.next = &f.victim;
   character_list = &f.actor;
   f.rooms[0].light = 1;
-  f.actor.player.name = "attacker";
-  f.victim.player.name = "target";
+  f.actor.player.name = CuMutableString("attacker");
+  f.victim.player.name = CuMutableString("target");
   GET_HIT(&f.victim) = GET_MAX_HIT(&f.victim) = 100000;
   if (scenario == 2)
     SET_BIT_AR(ROOM_FLAGS(0), ROOM_PEACEFUL);
@@ -6425,13 +6437,13 @@ static void verify_committed_attack_boundary(CuTest *tc, int scenario)
     script.trig_list = &trigger;
     trigger.trigger_type = MTRIG_FIGHT;
     trigger.narg = 100;
-    trigger.name = (char *)"attack entry mutation";
+    trigger.name = CuMutableString("attack entry mutation");
     trigger.nr = NOTHING;
     trigger.cmdlist = &command;
-    command.cmd = scenario == 5    ? (char *)"mteleport target 101"
-                  : scenario == 6  ? (char *)"mgoto 101"
-                  : scenario == 10 ? (char *)"mjunk all.pouch"
-                                   : (char *)"mjunk all.sword";
+    command.cmd = CuMutableString(scenario == 5    ? "mteleport target 101"
+                                  : scenario == 6  ? "mgoto 101"
+                                  : scenario == 10 ? "mjunk all.pouch"
+                                                   : "mjunk all.sword");
     SCRIPT(&f.actor) = &script;
     FIGHTING(&f.actor) = &f.victim;
     if (scenario == 7)
@@ -6582,11 +6594,11 @@ static void verify_ally_readiness(CuTest *tc, int scenario)
   event_free_all();
   event_init();
   initialize_test_npc(&foe, "the attacker", 0);
-  foe.player.name = "foe";
+  foe.player.name = CuMutableString("foe");
   REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
   f.actor.player_specials = &specials;
-  f.actor.player.name = "protector";
-  f.victim.player.name = "ally";
+  f.actor.player.name = CuMutableString("protector");
+  f.victim.player.name = CuMutableString("ally");
   f.victim.master = scenario == 6 ? NULL : &f.actor;
   f.actor.next = &f.victim;
   f.victim.next = &foe;
@@ -6887,7 +6899,7 @@ static void verify_tactical_defense_clock(CuTest *tc, int scenario)
     combat_encounter_leave(&f.victim, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
     FIGHTING(&f.actor) = FIGHTING(&f.victim) = NULL;
     CuAssertIntEquals(tc, 3 RL_SEC, tactical_defense_remaining(&f.actor));
-    CuAssertIntEquals(tc, 0, f.actor.defensive_casting_turn);
+    CuAssertIntEquals(tc, 0, (int)f.actor.defensive_casting_turn);
     if (scenario == 6)
     {
       FIGHTING(&f.actor) = &f.victim;
@@ -7363,7 +7375,7 @@ static void verify_billowing_cloud_exposure(CuTest *tc, int scenario)
   if (scenario == 3 || scenario == 6)
   {
     CuAssertIntEquals(tc, 0, trace.count);
-    CuAssertIntEquals(tc, 0, tactical_room_hazard_exposures());
+    CuAssertIntEquals(tc, 0, (int)tactical_room_hazard_exposures());
     CuAssertTrue(tc, tactical_room_hazard_exposure_rejections() ==
                          rejected_before + (scenario == 3 ? 1U : 0U));
   }
@@ -7371,7 +7383,7 @@ static void verify_billowing_cloud_exposure(CuTest *tc, int scenario)
   {
     CuAssertIntEquals(tc, scenario == 5 ? 2 : 1, trace.count);
     CuAssertTrue(tc, trace.source_identity == source->source_identity);
-    CuAssertIntEquals(tc, scenario == 5 ? 2 : 1, tactical_room_hazard_exposures());
+    CuAssertIntEquals(tc, scenario == 5 ? 2 : 1, (int)tactical_room_hazard_exposures());
   }
 
   if (scenario == 0)
@@ -7410,7 +7422,7 @@ static void verify_billowing_cloud_exposure(CuTest *tc, int scenario)
   {
     rem_room_aff(source);
     source = NULL;
-    CuAssertIntEquals(tc, 0, tactical_room_hazard_exposures());
+    CuAssertIntEquals(tc, 0, (int)tactical_room_hazard_exposures());
     pulse += 6 RL_SEC;
     event_test_advance();
     CuAssertIntEquals(tc, 1, trace.count);
@@ -7421,7 +7433,7 @@ static void verify_billowing_cloud_exposure(CuTest *tc, int scenario)
     event_test_advance();
     CuAssertIntEquals(tc, 1, trace.count);
     CuAssertPtrEquals(tc, NULL, raff_list);
-    CuAssertIntEquals(tc, 0, tactical_room_hazard_exposures());
+    CuAssertIntEquals(tc, 0, (int)tactical_room_hazard_exposures());
     source = NULL;
   }
   else if (scenario == 5)
@@ -7442,11 +7454,11 @@ static void verify_billowing_cloud_exposure(CuTest *tc, int scenario)
     CuAssertTrue(tc, combat_encounter_join(&fixture.actor, &fixture.victim, 1));
     CuAssertTrue(tc, combat_encounter_join(&fixture.victim, &fixture.actor, 1));
     CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
-    CuAssertIntEquals(tc, 0, tactical_room_hazard_exposures());
+    CuAssertIntEquals(tc, 0, (int)tactical_room_hazard_exposures());
     event_free_all();
     event_init();
     CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
-    CuAssertIntEquals(tc, 2, tactical_room_hazard_exposures());
+    CuAssertIntEquals(tc, 2, (int)tactical_room_hazard_exposures());
     pulse += 6 RL_SEC;
     event_test_advance();
     CuAssertIntEquals(tc, 2, trace.count);
@@ -7741,7 +7753,7 @@ void Test_gameplay_npc_phenomenon_interest_replaces_expires_and_investigates(CuT
   perceived.kind = DOMAIN_PHENOMENON_MAGIC_IMPACT;
   perceived.senses = DOMAIN_WORLD_PHENOMENON_AUDIBLE;
   perceived.distance = 1U;
-  perceived.intensity = 1.0f;
+  perceived.intensity = 1.0;
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     DOMAIN_EVENT_PUBLISH(domain_event_runtime_bus(),
                                          DOMAIN_EVENT_PHENOMENON_PERCEIVED, &perceived));
@@ -7816,7 +7828,7 @@ void Test_gameplay_search_commits_after_owned_work_and_cancels_on_movement(CuTes
   begin_gameplay_fixture(&fixture);
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
   fixture.actor.player_specials = &specials;
-  fixture.actor.player.name = "search fixture";
+  fixture.actor.player.name = CuMutableString("search fixture");
   GET_LEVEL(&fixture.actor) = LVL_IMPL;
   GET_ABILITY(&fixture.actor, ABILITY_PERCEPTION) = 100;
   fixture.rooms[0].light = 1;
@@ -7970,7 +7982,7 @@ void Test_copyover_pet_preflight_retains_linkdead_pets_on_failure_and_retries(Cu
   mysql_available = true;
   begin_gameplay_fixture(&fixture);
   initialize_test_npc(&prototype, "a copyover companion", NOWHERE);
-  prototype.player.name = (char *)"companion";
+  prototype.player.name = CuMutableString("companion");
   GET_MOB_RNUM(&prototype) = 0;
   GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = 100;
   mob_proto = &prototype;
@@ -7980,8 +7992,8 @@ void Test_copyover_pet_preflight_retains_linkdead_pets_on_failure_and_retries(Cu
   menu.player_specials = &menu_specials;
   connected.player_specials = &connected_specials;
   linkdead.player_specials = &linkdead_specials;
-  connected.player.name = (char *)"CopyoverConnected";
-  linkdead.player.name = (char *)"CopyoverLinkdead";
+  connected.player.name = CuMutableString("CopyoverConnected");
+  linkdead.player.name = CuMutableString("CopyoverLinkdead");
   GET_IDNUM(&connected) = 5301;
   GET_IDNUM(&linkdead) = 5302;
   connected.player.time.birth = linkdead.player.time.birth = (time_t)1234;
@@ -8169,7 +8181,7 @@ static void verify_named_pet_keeper_round_trip(CuTest *tc, bool eidolon)
   }
   saved_prototypes = mob_proto;
   initialize_test_npc(&prototype, "a stabled companion", NOWHERE);
-  prototype.player.name = (char *)"companion";
+  prototype.player.name = CuMutableString("companion");
   GET_MOB_RNUM(&prototype) = 0;
   GET_PSP(&prototype) = 100;
   GET_REAL_MAX_HIT(&prototype) = 100;
@@ -8183,7 +8195,7 @@ static void verify_named_pet_keeper_round_trip(CuTest *tc, bool eidolon)
 
   clear_char(&owner);
   owner.player_specials = &owner_specials;
-  owner.player.name = (char *)"KeeperOwner";
+  owner.player.name = CuMutableString("KeeperOwner");
   GET_LEVEL(&owner) = 20;
   GET_PFILEPOS(&owner) = -1;
   GET_REAL_RACE(&owner) = RACE_HUMAN;
@@ -8215,9 +8227,9 @@ static void verify_named_pet_keeper_round_trip(CuTest *tc, bool eidolon)
   saved_obj_proto = obj_proto;
   saved_top_objt = top_of_objt;
   clear_object(&object_prototype);
-  object_prototype.name = (char *)"token";
-  object_prototype.short_description = (char *)"a keeper token";
-  object_prototype.description = (char *)"A keeper token lies here.";
+  object_prototype.name = CuMutableString("token");
+  object_prototype.short_description = CuMutableString("a keeper token");
+  object_prototype.description = CuMutableString("A keeper token lies here.");
   object_index.vnum = 900;
   object_index.number = 0;
   obj_proto = &object_prototype;
@@ -8561,7 +8573,7 @@ void Test_owner_death_stores_surviving_pets_within_capacity(CuTest *tc)
   begin_gameplay_fixture(&fixture);
   saved_prototypes = mob_proto;
   initialize_test_npc(&prototype, "a surviving companion", NOWHERE);
-  prototype.player.name = (char *)"companion";
+  prototype.player.name = CuMutableString("companion");
   GET_MOB_RNUM(&prototype) = 0;
   GET_PSP(&prototype) = 100;
   GET_REAL_MAX_HIT(&prototype) = 100;
@@ -8570,7 +8582,7 @@ void Test_owner_death_stores_surviving_pets_within_capacity(CuTest *tc)
 
   clear_char(&owner);
   owner.player_specials = &owner_specials;
-  owner.player.name = (char *)"DyingOwner";
+  owner.player.name = CuMutableString("DyingOwner");
   GET_LEVEL(&owner) = 20;
   GET_POS(&owner) = POS_STANDING;
   GET_IDNUM(&owner) = 6001;
@@ -8636,7 +8648,7 @@ void Test_unseen_servant_handles_items_only_while_conjured(CuTest *tc)
   begin_gameplay_fixture(&fixture);
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
   fixture.actor.player_specials = &specials;
-  fixture.actor.player.name = (char *)"servant caster";
+  fixture.actor.player.name = CuMutableString("servant caster");
   GET_LEVEL(&fixture.actor) = 10;
 
   crate = create_obj();
@@ -8746,12 +8758,12 @@ void Test_gameplay_output_preferences_persist_and_failed_changes_roll_back(CuTes
   /* Restoring defaults revokes consent, even with MSP already negotiated. */
   descriptor.pProtocol->bMSP = true;
   do_oasis_prefedit(source, "", 0, 0);
-  prefedit_parse(&descriptor, "d");
+  prefedit_parse(&descriptor, CuMutableString("d"));
   defaults_muted = !IS_SET_AR(OLC_PREFS(&descriptor)->pref_flags, PRF_SOUND);
-  prefedit_parse(&descriptor, "d");
+  prefedit_parse(&descriptor, CuMutableString("d"));
   defaults_idempotent = !IS_SET_AR(OLC_PREFS(&descriptor)->pref_flags, PRF_SOUND);
-  prefedit_parse(&descriptor, "q");
-  prefedit_parse(&descriptor, "y");
+  prefedit_parse(&descriptor, CuMutableString("q"));
+  prefedit_parse(&descriptor, CuMutableString("y"));
   defaults_result = load_char(name, loaded);
   defaults_saved = descriptor.olc == NULL && !PRF_FLAGGED(loaded, PRF_SOUND) &&
                    PRF_FLAGGED(loaded, PRF_SCREEN_READER) && descriptor.pProtocol->bMSP &&
@@ -8846,7 +8858,7 @@ void Test_gameplay_screen_reader_hides_actual_prompts_but_keeps_input_instructio
   begin_gameplay_fixture(&fixture);
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
   fixture.actor.player_specials = &specials;
-  fixture.actor.player.name = (char *)"Accessibility fixture";
+  fixture.actor.player.name = CuMutableString("Accessibility fixture");
   fixture.actor.desc = &descriptor;
   descriptor.character = &fixture.actor;
   descriptor.output = descriptor.small_outbuf;
@@ -8890,7 +8902,7 @@ static void verify_screen_reader_room_text(CuTest *tc, bool wilderness)
   begin_gameplay_fixture(&fixture);
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
   fixture.actor.player_specials = &specials;
-  fixture.actor.player.name = (char *)"Accessibility fixture";
+  fixture.actor.player.name = CuMutableString("Accessibility fixture");
   fixture.actor.desc = &descriptor;
   fixture.rooms[0].light = 1;
   fixture.rooms[0].people = NULL;
@@ -8953,7 +8965,7 @@ void Test_gameplay_prefedit_sound_keeps_capability_and_rolls_back_failed_save(Cu
   begin_gameplay_fixture(&fixture);
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
   fixture.actor.player_specials = &specials;
-  fixture.actor.player.name = (char *)"Accessibility fixture";
+  fixture.actor.player.name = CuMutableString("Accessibility fixture");
   fixture.actor.desc = &descriptor;
   descriptor.character = &fixture.actor;
   descriptor.output = descriptor.small_outbuf;
@@ -8966,21 +8978,21 @@ void Test_gameplay_prefedit_sound_keeps_capability_and_rolls_back_failed_save(Cu
   copied = IS_SET_AR(OLC_PREFS(&descriptor)->pref_flags, PRF_SCREEN_READER) &&
            IS_SET_AR(OLC_PREFS(&descriptor)->pref_flags, PRF_SOUND);
   OLC_MODE(&descriptor) = PREFEDIT_TOGGLE_MENU;
-  prefedit_parse(&descriptor, "r");
+  prefedit_parse(&descriptor, CuMutableString("r"));
   capability_retained =
       !descriptor.pProtocol->bMSP && !IS_SET_AR(OLC_PREFS(&descriptor)->pref_flags, PRF_SOUND);
   OLC_MODE(&descriptor) = PREFEDIT_CONFIRM_SAVE;
   CuAssertPtrNotNull(tc, getcwd(directory, sizeof(directory)));
   CuAssertPtrNotNull(tc, mkdtemp(failure_directory));
   CuAssertIntEquals(tc, 0, chdir(failure_directory));
-  prefedit_parse(&descriptor, "y");
+  prefedit_parse(&descriptor, CuMutableString("y"));
   CuAssertIntEquals(tc, 0, chdir(directory));
   rmdir(failure_directory);
   rolled_back = PRF_FLAGGED(&fixture.actor, PRF_SCREEN_READER) &&
                 PRF_FLAGGED(&fixture.actor, PRF_SOUND) && descriptor.olc != NULL &&
                 OLC_MODE(&descriptor) == PREFEDIT_CONFIRM_SAVE;
   no_success = strstr(descriptor.output, "Preferences saved.") == NULL;
-  prefedit_parse(&descriptor, "n");
+  prefedit_parse(&descriptor, CuMutableString("n"));
   fixture.actor.desc = NULL;
   ProtocolDestroy(descriptor.pProtocol);
   if (descriptor.large_outbuf != NULL)
@@ -9019,7 +9031,7 @@ static void verify_artifact_pet_acquisition(CuTest *tc, int mode, int artifact)
   if (created_commands)
     create_command_list();
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
-  fixture.actor.player.name = (char *)"nightmareowner";
+  fixture.actor.player.name = CuMutableString("nightmareowner");
   fixture.actor.player_specials = &specials;
   fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
   GET_PFILEPOS(&fixture.actor) = -1;
@@ -9031,7 +9043,7 @@ static void verify_artifact_pet_acquisition(CuTest *tc, int mode, int artifact)
   GET_OBJ_RNUM(&sword) = 0;
   GET_EQ(&fixture.actor, WEAR_WIELD_1) = &sword;
   initialize_test_npc(&prototype, "nightmare", NOWHERE);
-  prototype.player.name = (char *)"nightmare";
+  prototype.player.name = CuMutableString("nightmare");
   SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
   GET_MOB_RNUM(&prototype) = 0;
   GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
@@ -9127,7 +9139,7 @@ static void verify_quest_pet_reward_admission(CuTest *tc, int mode)
 
   begin_gameplay_fixture(&fixture);
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
-  fixture.actor.player.name = (char *)"questpetowner";
+  fixture.actor.player.name = CuMutableString("questpetowner");
   fixture.actor.player_specials = &specials;
   fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
   GET_PFILEPOS(&fixture.actor) = -1;
@@ -9140,7 +9152,7 @@ static void verify_quest_pet_reward_admission(CuTest *tc, int mode)
   aquest_table = &quest;
   total_quests = 1;
   quest.vnum = 700;
-  quest.done = (char *)"Your service is complete.";
+  quest.done = CuMutableString("Your service is complete.");
   quest.follower_reward = RETAINER_MOB_VNUM;
   quest.obj_reward = NOTHING;
   quest.race_reward = mode == 4 ? RACE_LICH : mode == 5 ? RACE_VAMPIRE : RACE_UNDEFINED;
@@ -9150,7 +9162,7 @@ static void verify_quest_pet_reward_admission(CuTest *tc, int mode)
   GET_QUEST(&fixture.actor, 0) = quest.vnum;
   GET_QUEST_COUNTER(&fixture.actor, 0) = 0;
   initialize_test_npc(&prototype, "quest follower", NOWHERE);
-  prototype.player.name = (char *)"follower";
+  prototype.player.name = CuMutableString("follower");
   SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
   GET_MOB_RNUM(&prototype) = 0;
   GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
@@ -9390,7 +9402,7 @@ static void verify_mounted_charge_damage(CuTest *tc, bool lance, bool spirited)
   initialize_test_npc(&mount, "charge mount", 0);
   REMOVE_BIT_AR(MOB_FLAGS(&f.actor), MOB_ISNPC);
   f.actor.player_specials = &specials;
-  f.victim.player.name = "victim";
+  f.victim.player.name = CuMutableString("victim");
   GET_REAL_DAMROLL(&f.actor) = GET_DAMROLL(&f.actor) = 20;
   SET_FEAT(&f.actor, FEAT_SPIRITED_CHARGE, spirited);
   if (lance)
@@ -9638,7 +9650,7 @@ void Test_gameplay_mount_restrictions_and_riding_do_not_grant_ownership(CuTest *
   SET_ABILITY(&f.actor, ABILITY_RIDE, 100);
   f.victim.points.size = GET_REAL_SIZE(&f.victim) = SIZE_LARGE;
   GET_LEVEL(&f.victim) = 1;
-  f.victim.player.name = (char *)"horse";
+  f.victim.player.name = CuMutableString("horse");
   SET_BIT_AR(MOB_FLAGS(&f.victim), MOB_MOUNTABLE);
   SET_BIT_AR(AFF_FLAGS(&f.victim), AFF_TAMED);
   for (mode = 0; mode < 5; mode++)
@@ -9704,7 +9716,7 @@ static void verify_corpse_animation_eligibility(CuTest *tc, int mode, bool charg
   event_free_all();
   event_init();
   initialize_test_npc(&prototype, "animated zombie", NOWHERE);
-  prototype.player.name = (char *)"zombie";
+  prototype.player.name = CuMutableString("zombie");
   SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
   GET_MOB_RNUM(&prototype) = 0;
   GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = 100;
@@ -9806,7 +9818,7 @@ void Test_gameplay_pet_death_preserves_corpse_loot_but_blocks_reanimation(CuTest
   event_free_all();
   event_init();
   initialize_test_npc(&prototype, "summoned beast", NOWHERE);
-  prototype.player.name = (char *)"beast";
+  prototype.player.name = CuMutableString("beast");
   SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
   GET_MOB_RNUM(&prototype) = 0;
   GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = GET_REAL_MAX_MOVE(&prototype) = 100;
@@ -9857,7 +9869,7 @@ static void verify_auto_raise_admission(CuTest *tc, int mode)
   event_free_all();
   event_init();
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
-  fixture.actor.player.name = (char *)"autoraiseowner";
+  fixture.actor.player.name = CuMutableString("autoraiseowner");
   fixture.actor.player_specials = &specials;
   fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
   GET_PFILEPOS(&fixture.actor) = -1;
@@ -9869,7 +9881,7 @@ static void verify_auto_raise_admission(CuTest *tc, int mode)
   for (i = 0; i < 2; i++)
   {
     initialize_test_npc(&prototypes[i], "animated undead", NOWHERE);
-    prototypes[i].player.name = (char *)"undead";
+    prototypes[i].player.name = CuMutableString("undead");
     SET_BIT_AR(MOB_FLAGS(&prototypes[i]), MOB_CUSTOM_MOB_STATS);
     GET_MOB_RNUM(&prototypes[i]) = i;
     GET_PSP(&prototypes[i]) = GET_REAL_MAX_HIT(&prototypes[i]) = GET_REAL_MAX_MOVE(&prototypes[i]) =
@@ -9974,7 +9986,7 @@ static void verify_auto_raise_direct_kill(CuTest *tc, int mode)
   event_free_all();
   event_init();
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
-  fixture.actor.player.name = (char *)"killraiser";
+  fixture.actor.player.name = CuMutableString("killraiser");
   fixture.actor.player_specials = &specials;
   fixture.actor.pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
   GET_PFILEPOS(&fixture.actor) = -1;
@@ -9983,7 +9995,7 @@ static void verify_auto_raise_direct_kill(CuTest *tc, int mode)
   SET_FEAT(&fixture.actor, FEAT_SUMMON_UNDEAD, 1);
   SET_BIT_AR(PRF_FLAGS(&fixture.actor), PRF_AUTORAISE);
   initialize_test_npc(&prototype, "a beast", NOWHERE);
-  prototype.player.name = (char *)"beast";
+  prototype.player.name = CuMutableString("beast");
   SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
   GET_MOB_RNUM(&prototype) = 0;
   GET_LEVEL(&prototype) = 1;
@@ -10136,7 +10148,6 @@ void Test_gameplay_autoraise_toggle_requires_the_native_class_ability(CuTest *tc
   ProtocolDestroy(descriptor.pProtocol);
 }
 
-void quest_quit(struct char_data *ch, char argument[MAX_STRING_LENGTH]);
 
 /* Quest rewards report the amounts actually applied at a balance limit, happy hour boosts quest
  * experience once, inside award_experience(), and a quit penalty reports what was taken. */
@@ -10158,7 +10169,7 @@ void Test_gameplay_quest_rewards_report_applied_amounts_with_one_happy_hour_bonu
   CONFIG_MAX_EXP_GAIN = 100000;
   CONFIG_EXPERIENCE_MULTIPLIER = 100;
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
-  fixture.actor.player.name = (char *)"questrewardee";
+  fixture.actor.player.name = CuMutableString("questrewardee");
   fixture.actor.player_specials = &specials;
   specials.saved.stage_info.current_stage = 1;
   GET_PFILEPOS(&fixture.actor) = -1;
@@ -10175,7 +10186,7 @@ void Test_gameplay_quest_rewards_report_applied_amounts_with_one_happy_hour_bonu
   aquest_table = &quest;
   total_quests = 1;
   quest.vnum = 701;
-  quest.done = (char *)"Your service is complete.";
+  quest.done = CuMutableString("Your service is complete.");
   quest.follower_reward = NOBODY;
   quest.obj_reward = NOTHING;
   quest.race_reward = RACE_UNDEFINED;
@@ -10243,7 +10254,7 @@ void Test_gameplay_retainer_sale_waits_for_room_in_the_purse(CuTest *tc)
   begin_gameplay_fixture(&fixture);
   REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
   ch->player_specials = &specials;
-  ch->player.name = (char *)"squire";
+  ch->player.name = CuMutableString("squire");
   ch->pet_roster_load_state = PET_ROSTER_LOAD_FAILED;
   GET_PFILEPOS(ch) = -1;
   GET_CHA(ch) = 18;
@@ -10252,7 +10263,7 @@ void Test_gameplay_retainer_sale_waits_for_room_in_the_purse(CuTest *tc)
   initialize_test_npc(&prototype, "retainer", NOWHERE);
   SET_BIT_AR(MOB_FLAGS(&prototype), MOB_CUSTOM_MOB_STATS);
   SET_BIT_AR(MOB_FLAGS(&prototype), MOB_RETAINER);
-  prototype.player.name = (char *)"retainer";
+  prototype.player.name = CuMutableString("retainer");
   GET_MOB_RNUM(&prototype) = 0;
   GET_PSP(&prototype) = GET_REAL_MAX_HIT(&prototype) = 100;
   GET_REAL_MAX_MOVE(&prototype) = 100;
@@ -10307,7 +10318,7 @@ void Test_gameplay_shop_sales_conserve_gold_within_the_purse_limit(CuTest *tc)
   begin_gameplay_fixture(&fixture);
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
   fixture.actor.player_specials = &specials;
-  fixture.actor.player.name = (char *)"seller";
+  fixture.actor.player.name = CuMutableString("seller");
   GET_PFILEPOS(&fixture.actor) = -1;
   GET_CLAN(&fixture.actor) = NO_CLAN;
   for (index = 0; index < 2; index++)
@@ -10522,7 +10533,7 @@ void Test_gameplay_freight_delivery_waits_until_the_payment_fits(CuTest *tc)
 
   begin_gameplay_fixture(&fixture);
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
-  fixture.actor.player.name = (char *)"freighter";
+  fixture.actor.player.name = CuMutableString("freighter");
   fixture.actor.player_specials = &specials;
   GET_LEVEL(&fixture.actor) = 10;
   descriptor.character = &fixture.actor;
@@ -10658,7 +10669,7 @@ void Test_wilderness_harvest_tools_use_vnum_and_best_inventory_or_equipment_tier
     equipment = equipment && wilderness_harvest_tool_quality(&actor) == tier;
     GET_EQ(&actor, WEAR_HOLD_1) = NULL;
   }
-  tools[0].name = "legendary harvest tool";
+  tools[0].name = CuMutableString("legendary harvest tool");
   indexes[0].vnum = HARVEST_TOOL_LAST + 1;
   actor.carrying = &tools[0];
   highest = wilderness_harvest_tool_quality(&actor) == 0;
@@ -10784,7 +10795,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   MYSQL_ROW row;
   char query[512];
   char directory[PATH_MAX], temporary[] = "/tmp/luminari-harvest-XXXXXX";
-  float levels[NUM_RESOURCE_TYPES];
+  double levels[NUM_RESOURCE_TYPES];
   int i, x, y, mining_x, mining_y, roll, quality, before, result[17] = {0};
   FILE *env;
   char command[] = "harvest vegetation";
@@ -10796,7 +10807,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   begin_gameplay_fixture(&fixture);
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
   fixture.actor.player_specials = &specials;
-  fixture.actor.player.name = "harvest fixture";
+  fixture.actor.player.name = CuMutableString("harvest fixture");
   fixture.actor.desc = &descriptor;
   GET_LEVEL(&fixture.actor) = 10;
   descriptor.output = descriptor.small_outbuf;
@@ -10840,7 +10851,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   init_perlin(NOISE_MATERIAL_PLANE_MOISTURE, NOISE_MATERIAL_PLANE_MOISTURE_SEED);
   init_perlin(NOISE_MATERIAL_PLANE_ELEV_DIST, NOISE_MATERIAL_PLANE_ELEV_DIST_SEED);
   for (i = 0; i < NUM_RESOURCE_TYPES; i++)
-    levels[i] = 0.9f;
+    levels[i] = 0.9;
   for (x = -100; x <= 100; x += 10)
   {
     y = x / 2;
@@ -10886,7 +10897,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   /* A visible legacy node still reaches its original inventory-capacity rule.
    * The category route succeeds with the same full physical inventory. */
   node.item_number = 0;
-  node.name = "vein";
+  node.name = CuMutableString("vein");
   fixture.rooms[0].contents = &node;
   index.vnum = HARVESTING_NODE;
   IS_CARRYING_N(&fixture.actor) = CAN_CARRY_N(&fixture.actor);
@@ -10924,7 +10935,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
         result[10] && row && atoi(row[0]) == GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN);
     if (sql_result)
       mysql_free_result(sql_result);
-    result[10] = result[10] && get_resource_depletion_level(0, RESOURCE_HERBS) < 1.0f;
+    result[10] = result[10] && get_resource_depletion_level(0, RESOURCE_HERBS) < 1.0;
   }
   reset_harvest_fixture_output(&descriptor, database);
 
@@ -11003,7 +11014,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   Y_LOC(&fixture.actor) = y;
   char_to_room_cause(&fixture.actor, 0, NULL, DOMAIN_RELOCATION_WALK, SOUTH);
   do_harvest(&fixture.actor, "vegetation", 0, 0);
-  levels[RESOURCE_VEGETATION] = 0.0f;
+  levels[RESOURCE_VEGETATION] = 0.0;
   cache_store_resource_values(x, y, levels);
   pulse += PULSE_VIOLENCE;
   event_test_advance();
@@ -11013,7 +11024,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   do_harvest(&fixture.actor, "vegetation", 0, 0);
   do_harvest(&fixture.actor, "unknown", 0, 0);
   result[7] = !primary_activity_snapshot(&fixture.actor, &snapshot);
-  levels[RESOURCE_VEGETATION] = 0.9f;
+  levels[RESOURCE_VEGETATION] = 0.9;
   cache_store_resource_values(x, y, levels);
 
   /* Capacity failure must not deplete resources or award progression. */
@@ -11028,7 +11039,8 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
                GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_GATHERING) == 0 &&
                strstr(descriptor.output, "cannot hold") != NULL;
   if (database)
-    result[11] = result[11] && get_resource_depletion_level(0, RESOURCE_VEGETATION) == 1.0f;
+    result[11] =
+        result[11] && fabs(get_resource_depletion_level(0, RESOURCE_VEGETATION) - 1.0) < 0.0001;
   GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) = before;
   reset_harvest_fixture_output(&descriptor, database);
 

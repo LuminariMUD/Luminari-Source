@@ -69,7 +69,7 @@ static void setup_innate_char(struct char_data *ch, struct player_special_data *
   clear_char(ch);
   GET_ATTACK_QUEUE(ch) = create_attack_queue();
   ch->player_specials = specials;
-  ch->player.name = (char *)name;
+  ch->player.name = CuMutableString(name);
   ch->desc = descriptor;
   IN_ROOM(ch) = 0;
   GET_LEVEL(ch) = 10;
@@ -175,10 +175,10 @@ static void innate_fixture_open_north(struct innate_fixture *fixture)
   fixture->north.key = NOTHING;
   fixture->north.to_room = 1;
   fixture->rooms[0].dir_option[NORTH] = &fixture->north;
-  fixture->rooms[0].name = (char *)"Charge origin";
-  fixture->rooms[0].description = (char *)"A test room.\r\n";
-  fixture->rooms[1].name = (char *)"Charge destination";
-  fixture->rooms[1].description = (char *)"Another test room.\r\n";
+  fixture->rooms[0].name = CuMutableString("Charge origin");
+  fixture->rooms[0].description = CuMutableString("A test room.\r\n");
+  fixture->rooms[1].name = CuMutableString("Charge destination");
+  fixture->rooms[1].description = CuMutableString("Another test room.\r\n");
 }
 
 /* put both fixture characters in one group with a real member list */
@@ -781,11 +781,11 @@ void TestUndeadFealtyAndCalmingAggressionRules(CuTest *tc)
 
 /* ---- Phase 2: passive offence ---- */
 
-static void make_test_weapon(struct obj_data *obj, int weapon_type)
+static void make_test_weapon(struct obj_data *obj, int weapon_type_value)
 {
   memset(obj, 0, sizeof(*obj));
   GET_OBJ_TYPE(obj) = ITEM_WEAPON;
-  GET_OBJ_VAL(obj, 0) = weapon_type;
+  GET_OBJ_VAL(obj, 0) = weapon_type_value;
 }
 
 /* Weapon-family mastery scales with level and only for a matching weapon. */
@@ -1210,7 +1210,7 @@ void TestMassDispelSkipsAlliesAndNeverStartsAFight(CuTest *tc)
    * goes with the strip.  Caster level 30 against a level 1 mob makes the
    * d20 dispel check (30 + 1 vs at most 1 + 20) certain. */
   SET_BIT_AR(MOB_FLAGS(&fixture.other), MOB_ISNPC);
-  fixture.other.player.short_descr = (char *)"innate two";
+  fixture.other.player.short_descr = CuMutableString("innate two");
   GET_LEVEL(&fixture.other) = 1;
   CLASS_LEVEL(caster, CLASS_WIZARD) = 30;
   do_racial_sla(&fixture.ch, "", 0, SCMD_RSLA_MASS_DISPEL);
@@ -1261,8 +1261,8 @@ void TestShadowJumpNeedsShadowInBothRooms(CuTest *tc)
   memset(&zone, 0, sizeof(zone));
   zone_table = &zone;
   top_of_zone_table = 0;
-  fixture.ch.player.title = (char *)"";
-  fixture.other.player.title = (char *)"";
+  fixture.ch.player.title = CuMutableString("");
+  fixture.other.player.title = CuMutableString("");
   fixture.ch.next_in_room = NULL;
   IN_ROOM(&fixture.other) = 1;
   fixture.rooms[1].people = &fixture.other;
@@ -1275,7 +1275,7 @@ void TestShadowJumpNeedsShadowInBothRooms(CuTest *tc)
 
   /* teleport's unique-mob guards apply */
   SET_BIT_AR(MOB_FLAGS(&fixture.other), MOB_ISNPC);
-  fixture.other.player.short_descr = (char *)"innate two";
+  fixture.other.player.short_descr = CuMutableString("innate two");
   SET_BIT_AR(MOB_FLAGS(&fixture.other), MOB_NOTELEPORT);
   spell_shadow_jump(10, &fixture.ch, &fixture.other, NULL, CAST_INNATE);
   CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.ch));
@@ -1432,7 +1432,7 @@ static void begin_racial_cast_fixture(CuTest *tc, struct innate_fixture *fixture
   /* the runtime's periodic services recompute a player's max hit from class levels while the
    * cast runs, so the heal target is a mobile with real points */
   SET_BIT_AR(MOB_FLAGS(&fixture->other), MOB_ISNPC);
-  fixture->other.player.short_descr = (char *)"innate two";
+  fixture->other.player.short_descr = CuMutableString("innate two");
   GET_REAL_MAX_HIT(&fixture->ch) = 100;
   GET_REAL_MAX_HIT(&fixture->other) = 100;
   /* a mortal casting an at-will racial cantrip: no spell preparation, real timed cast */
@@ -1457,7 +1457,7 @@ static void end_racial_cast_fixture(struct innate_fixture *fixture,
     fixture->ch.events = NULL;
   }
   spell_info[SPELL_CURE_LIGHT] = *saved_spell;
-  CONFIG_SPELLCASTING_TIME_MODE = saved_mode;
+  CONFIG_SPELLCASTING_TIME_MODE = (ubyte)saved_mode;
   pulse = saved_pulse;
   end_innate_fixture(fixture);
 }
@@ -1554,7 +1554,7 @@ static void make_innate_other_a_monster(struct innate_fixture *fixture)
   fixture->mob_index_swapped = TRUE;
 
   SET_BIT_AR(MOB_FLAGS(&fixture->other), MOB_ISNPC);
-  fixture->other.player.short_descr = (char *)"innate two";
+  fixture->other.player.short_descr = CuMutableString("innate two");
   GET_HIT(&fixture->other) = 5000;
   GET_MAX_HIT(&fixture->other) = 5000;
   GET_REAL_MAX_HIT(&fixture->other) = 5000;
@@ -1592,7 +1592,7 @@ void TestBullChargeReachesAnAdjacentRoom(CuTest *tc)
 
   begin_innate_fixture(&fixture);
   innate_fixture_open_north(&fixture);
-  fixture.ch.player.title = (char *)"";
+  fixture.ch.player.title = CuMutableString("");
   make_innate_other_a_monster(&fixture);
   CuAssertTrue(tc, settle_innate_player_hit_points(&fixture.ch) > 0);
   GET_MOVE(&fixture.ch) = 100;
@@ -1720,8 +1720,8 @@ void TestBullChargeStunFollowsTheFortitudeSave(CuTest *tc)
   unsigned long seed;
 
   begin_innate_fixture(&fixture);
-  fixture.ch.player.title = (char *)"";
-  fixture.other.player.title = (char *)"";
+  fixture.ch.player.title = CuMutableString("");
+  fixture.other.player.title = CuMutableString("");
   seed = innate_seed_for_ordinary_d20();
 
   /* an unshakable target */
@@ -1755,7 +1755,7 @@ void TestBloodlustEngagesAndReleasesAtHalfHitPoints(CuTest *tc)
   int max_hit = 0, below_half = 0, at_least_half = 0;
 
   begin_innate_fixture(&fixture);
-  fixture.ch.player.title = (char *)"";
+  fixture.ch.player.title = CuMutableString("");
   make_innate_other_a_monster(&fixture);
   FIGHTING(&fixture.ch) = &fixture.other;
   max_hit = settle_innate_player_hit_points(&fixture.ch);
@@ -1797,7 +1797,7 @@ void TestBloodlustRefusesCastingAndFleeing(CuTest *tc)
   struct innate_fixture fixture;
 
   begin_innate_fixture(&fixture);
-  fixture.ch.player.title = (char *)"";
+  fixture.ch.player.title = CuMutableString("");
   make_innate_other_a_monster(&fixture);
   FIGHTING(&fixture.ch) = &fixture.other;
   SET_FEAT(&fixture.ch, FEAT_BLOODLUST, 1);

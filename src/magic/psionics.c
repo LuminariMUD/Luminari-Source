@@ -34,7 +34,7 @@ void spello(int spl, const char *name, int max_psp, int min_psp, int psp_change,
             int targets, int violent, int routines, const char *wearoff, int time, int memtime,
             int school, bool quest);
 
-void unused_psionic_power(int pwr)
+static void unused_psionic_power(int pwr)
 {
   psionic_powers[pwr].psp_cost = 0;
   psionic_powers[pwr].can_augment = false;
@@ -44,20 +44,20 @@ void unused_psionic_power(int pwr)
   psionic_powers[pwr].is_epic = false;
 }
 
-void psiono(int pwr, const char *name, int psp_cost, bool can_augment, int augment_amount,
-            int max_augment, int power_type, int targets, int violent, int routines,
-            const char *wearoff, int time)
+static void psiono(int pwr, const char *name, int psp_cost, bool can_augment, int augment_amount,
+                   int max_augment, int power_type, int targets, int violent, int routines,
+                   const char *wearoff, int time)
 {
-  psionic_powers[pwr].psp_cost = psp_cost;
+  psionic_powers[pwr].psp_cost = (short)psp_cost;
   psionic_powers[pwr].can_augment = can_augment;
   psionic_powers[pwr].augment_amount = augment_amount;
   psionic_powers[pwr].max_augment = max_augment;
-  psionic_powers[pwr].power_type = power_type;
+  psionic_powers[pwr].power_type = (short)power_type;
   spello(pwr, name, 0, 0, 0, POS_FIGHTING, targets, violent, routines, wearoff, time, 0, NOSCHOOL,
          false);
 }
 
-void epic_psionic_power(int pwr)
+static void epic_psionic_power(int pwr)
 {
   psionic_powers[pwr].is_epic = true;
 }
@@ -328,7 +328,7 @@ ACMD(do_manifest)
 {
   char augment[200], pass_arg[200], final_pass[201];
 
-  half_chop((char *)argument, augment, pass_arg);
+  half_chop_c(argument, augment, sizeof(augment), pass_arg, sizeof(pass_arg));
 
   // Safety check.  Should be handled by resetCastingData in spell_parser.c
   GET_AUGMENT_PSP(ch) = 0;

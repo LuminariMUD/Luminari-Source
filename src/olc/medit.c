@@ -79,7 +79,7 @@ bool medit_mode_requires_number_for_test(int mode)
 }
 #endif
 
-void medit_add_class_feats(struct descriptor_data *d)
+static void medit_add_class_feats(struct descriptor_data *d)
 {
   int cl = 0, lvl = 0;
   struct char_data *mob = OLC_MOB(d);
@@ -106,7 +106,7 @@ void medit_add_class_feats(struct descriptor_data *d)
   }
 }
 
-void medit_clear_all_feats(struct descriptor_data *d)
+static void medit_clear_all_feats(struct descriptor_data *d)
 {
   struct char_data *mob = OLC_MOB(d);
   int i = 0;
@@ -120,7 +120,7 @@ void medit_clear_all_feats(struct descriptor_data *d)
   }
 }
 
-void medit_clear_all_spells(struct descriptor_data *d)
+static void medit_clear_all_spells(struct descriptor_data *d)
 {
   struct char_data *mob = OLC_MOB(d);
   int i = 0;
@@ -134,7 +134,7 @@ void medit_clear_all_spells(struct descriptor_data *d)
   }
 }
 
-bool does_mob_have_feats(struct char_data *mob)
+static bool does_mob_have_feats(struct char_data *mob)
 {
   if (!mob)
     return false;
@@ -149,7 +149,7 @@ bool does_mob_have_feats(struct char_data *mob)
   return false;
 }
 
-bool does_mob_have_spells(struct char_data *mob)
+static bool does_mob_have_spells(struct char_data *mob)
 {
   if (!mob)
     return false;
@@ -164,7 +164,7 @@ bool does_mob_have_spells(struct char_data *mob)
 }
 
 
-void medit_disp_add_feats(struct descriptor_data *d)
+static void medit_disp_add_feats(struct descriptor_data *d)
 {
   int i = 0, count = 0;
 
@@ -188,7 +188,7 @@ void medit_disp_add_feats(struct descriptor_data *d)
   write_to_output(d, "\r\nPlease enter the name of the feat you wish to toggle: ");
 }
 
-void medit_disp_add_spells(struct descriptor_data *d)
+static void medit_disp_add_spells(struct descriptor_data *d)
 {
   int i = 0, count = 0;
 
@@ -314,9 +314,11 @@ ACMD(do_oasis_medit)
   /* If save is TRUE, save the mobiles. */
   if (save)
   {
-    send_to_char(ch, "Saving all mobiles in zone %d.\r\n", zone_table[OLC_ZNUM(d)].number);
-    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s saves mobile info for zone %d.",
-           GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
+    send_to_char(ch, "Saving all mobiles in zone %" PRI_IDX ".\r\n",
+                 zone_table[OLC_ZNUM(d)].number);
+    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE,
+           "OLC: %s saves mobile info for zone %" PRI_IDX ".", GET_NAME(ch),
+           zone_table[OLC_ZNUM(d)].number);
 
     /* Save the mobiles. */
     save_mobiles(OLC_ZNUM(d));
@@ -344,8 +346,8 @@ ACMD(do_oasis_medit)
   act("$n starts using OLC.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d", GET_NAME(ch),
-         zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %" PRI_IDX " allowed zone %d",
+         GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
 static void medit_save_to_disk(zone_vnum foo)
@@ -752,7 +754,7 @@ static void medit_disp_aff2_flags(struct descriptor_data *d)
 
 // needs to be fixed/finished
 
-void delete_echo_entry(struct char_data *mob, int entry_num)
+static void delete_echo_entry(struct char_data *mob, int entry_num)
 {
   int i = 0;
 
@@ -832,7 +834,7 @@ static void medit_disp_menu(struct descriptor_data *d)
     specname = get_spec_func_name(OLC(d)->specmob);
 
   write_to_output(d,
-                  "-- Mob Number:  [%s%d%s]\r\n"
+                  "-- Mob Number:  [%s%" PRI_IDX "%s]\r\n"
                   "%s1%s) Sex: %s%-7.7s%s	         %s2%s) Keywords: %s%s\r\n"
                   "%s3%s) S-Desc: %s%s\r\n"
                   "%s4%s) L-Desc:-\r\n%s%s\r\n"
@@ -948,7 +950,7 @@ static void medit_disp_resistances_menu(struct descriptor_data *d)
 
   write_to_output(
       d,
-      "-- RESISTANCES -- Mob Number:  %s[%s%d%s]%s\r\n"
+      "-- RESISTANCES -- Mob Number:  %s[%s%" PRI_IDX "%s]%s\r\n"
       "(%sA%s) Fire:     %s[%s%4d%s]%s   (%sK%s) Bludgeon: %s[%s%4d%s]%s\r\n"
       "(%sB%s) Cold:     %s[%s%4d%s]%s   (%sL%s) Sound:    %s[%s%4d%s]%s\r\n"
       "(%sC%s) Air:      %s[%s%4d%s]%s   (%sM%s) Poison:   %s[%s%4d%s]%s\r\n"
@@ -997,7 +999,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d)
   /* Top section - standard stats */
   write_to_output(
       d,
-      "-- Mob Number:  %s[%s%d%s]%s\r\n"
+      "-- Mob Number:  %s[%s%" PRI_IDX "%s]%s\r\n"
       "(%s1%s) Level:       %s[%s%4d%s]%s\r\n"
       "(%s2%s) %sAuto Set Stats (*set level/race/class first)%s\r\n\r\n"
       "Hit Points  (xdy+z):        Bare Hand Damage (xdy+z): \r\n"
@@ -1130,8 +1132,8 @@ void medit_parse(struct descriptor_data *d, char *arg)
     case 'Y':
       /* Save the mob in memory and to disk. */
       medit_save_internally(d);
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits mob %d",
-             GET_NAME(d->character), OLC_NUM(d));
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
+             "OLC: %s edits mob %" PRI_IDX, GET_NAME(d->character), OLC_NUM(d));
       if (CONFIG_OLC_SAVE)
       {
         medit_save_to_disk(zone_table[real_zone_by_thing(OLC_NUM(d))].number);
@@ -1468,7 +1470,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case MEDIT_ECHO_FREQUENCY:
-    ECHO_FREQ(OLC_MOB(d)) = LIMIT(i, 0, 100);
+    ECHO_FREQ(OLC_MOB(d)) = (byte)LIMIT(i, 0, 100);
     OLC_VAL(d) = TRUE;
     medit_disp_echo_menu(d);
     return;
@@ -1999,13 +2001,13 @@ void medit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case MEDIT_NDD:
-    GET_NDD(OLC_MOB(d)) = LIMIT(i, 0, 30);
+    GET_NDD(OLC_MOB(d)) = (byte)LIMIT(i, 0, 30);
     OLC_VAL(d) = TRUE;
     medit_disp_stats_menu(d);
     return;
 
   case MEDIT_SDD:
-    GET_SDD(OLC_MOB(d)) = LIMIT(i, 0, 127);
+    GET_SDD(OLC_MOB(d)) = (byte)LIMIT(i, 0, 127);
     OLC_VAL(d) = TRUE;
     medit_disp_stats_menu(d);
     return;
@@ -2232,7 +2234,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     i--;
     if (i == POS_FIGHTING)
       i = POS_STANDING;
-    GET_POS(OLC_MOB(d)) = LIMIT(i, 0, NUM_POSITIONS);
+    GET_POS(OLC_MOB(d)) = (byte)LIMIT(i, 0, NUM_POSITIONS);
     break;
 
   case MEDIT_DEFAULT_POS:
@@ -2240,11 +2242,11 @@ void medit_parse(struct descriptor_data *d, char *arg)
     i--;
     if (i == POS_FIGHTING)
       i = POS_STANDING;
-    GET_DEFAULT_POS(OLC_MOB(d)) = LIMIT(i, 0, NUM_POSITIONS);
+    GET_DEFAULT_POS(OLC_MOB(d)) = (byte)LIMIT(i, 0, NUM_POSITIONS);
     break;
 
   case MEDIT_ATTACK:
-    GET_ATTACK(OLC_MOB(d)) = LIMIT(i, 0, NUM_ATTACK_TYPES - 1);
+    GET_ATTACK(OLC_MOB(d)) = (byte)LIMIT(i, 0, NUM_ATTACK_TYPES - 1);
     break;
 
   case MEDIT_LEVEL:
@@ -2283,23 +2285,23 @@ void medit_parse(struct descriptor_data *d, char *arg)
 
   case MEDIT_SUB_RACE_1:
     if (i == 99)
-      GET_SUBRACE(OLC_MOB(d), 0) = rand_number(1, NUM_SUB_RACES - 1);
+      GET_SUBRACE(OLC_MOB(d), 0) = (byte)rand_number(1, NUM_SUB_RACES - 1);
     else
-      GET_SUBRACE(OLC_MOB(d), 0) = LIMIT(i, 0, NUM_SUB_RACES - 1);
+      GET_SUBRACE(OLC_MOB(d), 0) = (byte)LIMIT(i, 0, NUM_SUB_RACES - 1);
     break;
 
   case MEDIT_SUB_RACE_2:
     if (i == 99)
-      GET_SUBRACE(OLC_MOB(d), 1) = rand_number(1, NUM_SUB_RACES - 1);
+      GET_SUBRACE(OLC_MOB(d), 1) = (byte)rand_number(1, NUM_SUB_RACES - 1);
     else
-      GET_SUBRACE(OLC_MOB(d), 1) = LIMIT(i, 0, NUM_SUB_RACES - 1);
+      GET_SUBRACE(OLC_MOB(d), 1) = (byte)LIMIT(i, 0, NUM_SUB_RACES - 1);
     break;
 
   case MEDIT_SUB_RACE_3:
     if (i == 99)
-      GET_SUBRACE(OLC_MOB(d), 2) = rand_number(1, NUM_SUB_RACES - 1);
+      GET_SUBRACE(OLC_MOB(d), 2) = (byte)rand_number(1, NUM_SUB_RACES - 1);
     else
-      GET_SUBRACE(OLC_MOB(d), 2) = LIMIT(i, 0, NUM_SUB_RACES - 1);
+      GET_SUBRACE(OLC_MOB(d), 2) = (byte)LIMIT(i, 0, NUM_SUB_RACES - 1);
     break;
 
   case MEDIT_CLASS:
@@ -2571,8 +2573,8 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   mobs_hps = (level * level) + (level * 10);
 
   /* damage dice default */
-  GET_NDD(mob) = 1;     /* number damage dice */
-  GET_SDD(mob) = level; /* size of damage dice */
+  GET_NDD(mob) = 1;           /* number damage dice */
+  GET_SDD(mob) = (byte)level; /* size of damage dice */
 
   /* armor class default, d20 system * 10 */
   armor_class += level * 10; // 110 (11) - 400 (40)
@@ -2586,14 +2588,14 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   {
   case CLASS_WIZARD:
     mobs_hps = mobs_hps * 2 / 5;
-    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 2 / 5);
     armor_class -= 60;
     GET_INT(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
     break;
   case CLASS_PSIONICIST:
     mobs_hps = mobs_hps * 2 / 5;
-    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 2 / 5);
     armor_class -= 60;
     GET_INT(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
@@ -2603,14 +2605,14 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
     GET_CHA(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
     mobs_hps = mobs_hps * 2 / 5;
-    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 2 / 5);
     armor_class -= 60;
     break;
   case CLASS_NECROMANCER:
     GET_CHA(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
     mobs_hps = mobs_hps * 2 / 5;
-    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 2 / 5);
     armor_class -= 60;
     break;
   case CLASS_ROGUE:
@@ -2624,7 +2626,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   case CLASS_BARD:
     GET_CHA(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
-    GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 4 / 5);
     mobs_hps = mobs_hps * 3 / 5;
     armor_class -= 50;
     break;
@@ -2637,7 +2639,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   case CLASS_CLERIC:
     (mob)->aff_abils.str += bonus;
     GET_WIS(mob) += bonus;
-    GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 4 / 5);
     mobs_hps = mobs_hps * 4 / 5;
     armor_class -= 10;
     break;
@@ -2645,7 +2647,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   case CLASS_SHIFTER:
     GET_WIS(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
-    GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 4 / 5);
     mobs_hps = mobs_hps * 4 / 5;
     armor_class -= 50;
     break;
@@ -2695,9 +2697,9 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
     GET_CHA(mob) += bonus;
     break;
   case CLASS_MYSTIC_THEURGE:
-    mobs_hps = mobs_hps * 3 / 5;         // Average of cleric (4) and wizard (2)
-    GET_SDD(mob) = GET_SDD(mob) * 3 / 5; // Average of cleric (4) and wizard (2)
-    armor_class -= 60;                   // Use wizard-level AC.
+    mobs_hps = mobs_hps * 3 / 5;                 // Average of cleric (4) and wizard (2)
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 3 / 5); // Average of cleric (4) and wizard (2)
+    armor_class -= 60;                           // Use wizard-level AC.
     // Wizard stat bonuses
     GET_INT(mob) += bonus;
     (mob)->aff_abils.dex += bonus;
@@ -2709,7 +2711,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   default:
     /* if we ned up here, just using wizard stats as default */
     mobs_hps = mobs_hps * 2 / 5;
-    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    GET_SDD(mob) = (byte)(GET_SDD(mob) * 2 / 5);
     armor_class -= 60;
     break;
   }
@@ -2803,7 +2805,7 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   damage_bonus = GET_DAMROLL(mob);
   if (!mob_tier_apply_autostat_bonuses(GET_MOB_TIER(mob), &mobs_hps, &hitroll, &armor_class,
                                        &damage_bonus))
-    log("SYSERR: autoroll_mob received invalid tier %d or hit points for mob %d", GET_MOB_TIER(mob),
+    log("SYSERR: autoroll_mob received invalid tier %d or hit points for mob %u", GET_MOB_TIER(mob),
         GET_MOB_VNUM(mob));
   else
   {

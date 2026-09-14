@@ -37,6 +37,7 @@
 #include "mob/mob_utils.h"
 #include "character/evolutions.h"
 #include "olc/oasis.h"
+#include "olc/genobj.h"
 #include "quest/quest.h"
 #include "character/backgrounds.h"
 #include "character/perks.h"
@@ -152,15 +153,19 @@ int vampire_cloak_typed(struct spec_event_context *context)
     if (strlen(desc) > 80)
     {
       send_to_char(ch, "That description is too long.\r\n");
+      return 1;
     }
 
     snprintf(old_description, sizeof(old_description), "%s", obj->short_description);
     parse_at(desc);
+    free_object_string(obj, obj->short_description);
     obj->short_description = strdup(desc);
     send_to_char(ch, "You have renamed '%s' to '%s'.\r\n", old_description, desc);
     strip_colors(desc);
+    free_object_string(obj, obj->name);
     obj->name = strdup(desc);
     snprintf(long_description, sizeof(long_description), "%s is here.", CAP(desc));
+    free_object_string(obj, obj->description);
     obj->description = strdup(long_description);
     return 1;
   }

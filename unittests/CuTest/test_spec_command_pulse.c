@@ -275,7 +275,7 @@ static void spec_pulse_prepare_mobile_activity(struct spec_pulse_fixture *fixtur
   now = time(NULL);
   mobile->nr = 0;
   IN_ROOM(mobile) = 0;
-  mobile->player.short_descr = "pulse mobile";
+  mobile->player.short_descr = CuMutableString("pulse mobile");
   GET_LEVEL(mobile) = 0;
   GET_HIT(mobile) = 10;
   GET_POS(mobile) = POS_RESTING;
@@ -300,7 +300,7 @@ static void spec_pulse_add_second_mobile(struct spec_pulse_fixture *fixture,
   now = time(NULL);
   mobile->nr = 1;
   IN_ROOM(mobile) = 0;
-  mobile->player.short_descr = "second pulse mobile";
+  mobile->player.short_descr = CuMutableString("second pulse mobile");
   GET_LEVEL(mobile) = 0;
   GET_HIT(mobile) = 10;
   GET_POS(mobile) = POS_RESTING;
@@ -518,7 +518,7 @@ void Test_spec_command_no_specials_bypasses_special_dispatch(CuTest *tc)
   IN_ROOM(&fixture.actor) = 0;
   GET_POS(&fixture.actor) = POS_STANDING;
   GET_LEVEL(&fixture.actor) = 0;
-  fixture.actor.player.short_descr = "command actor";
+  fixture.actor.player.short_descr = CuMutableString("command actor");
   fixture.rooms[0].func = spec_pulse_record_callback;
   fixture.recorder.return_count = 1;
   fixture.recorder.returns[0] = 1;

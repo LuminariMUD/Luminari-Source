@@ -706,7 +706,7 @@ void Test_spec_registry_accessors_reject_extreme_inputs(CuTest *tc)
 
 void Test_spec_registry_rejects_missing_table_and_text(CuTest *tc)
 {
-  struct spec_definition definition;
+  struct spec_definition definition = {0};
 
   spec_test_expect_invalid(tc, NULL, 1, "table is null");
   spec_test_expect_invalid(tc, &definition, 0, "table is empty");

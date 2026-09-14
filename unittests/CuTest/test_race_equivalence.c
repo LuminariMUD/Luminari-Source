@@ -75,9 +75,9 @@ static void cleanup_race_equivalence_descriptor(struct descriptor_data *descript
 static void init_race_equipment_object(struct obj_data *obj, const char *name, int wear_flag)
 {
   clear_object(obj);
-  obj->name = (char *)name;
-  obj->short_description = (char *)name;
-  obj->description = (char *)name;
+  obj->name = CuMutableString(name);
+  obj->short_description = CuMutableString(name);
+  obj->description = CuMutableString(name);
   GET_OBJ_TYPE(obj) = ITEM_ARMOR;
   GET_OBJ_SIZE(obj) = SIZE_LARGE;
   SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_TAKE);

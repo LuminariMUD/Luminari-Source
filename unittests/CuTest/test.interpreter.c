@@ -269,7 +269,7 @@ void Test_paralyzed_players_can_reach_safe_quit_handler(CuTest *tc)
   memset(&descriptor, 0, sizeof(descriptor));
   memset(&player_specials, 0, sizeof(player_specials));
   ch.player_specials = &player_specials;
-  ch.player.name = "paralyzed quit test character";
+  ch.player.name = CuMutableString("paralyzed quit test character");
   ch.desc = &descriptor;
   descriptor.character = &ch;
   descriptor.output = descriptor.small_outbuf;

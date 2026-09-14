@@ -386,7 +386,7 @@ bool add_clan(struct clan_data *this_clan)
   /* Does clan already exist? */
   if (real_clan(this_clan->vnum) != NO_CLAN)
   {
-    log_clan_error(__func__, "Attempted to add duplicate clan vnum %d", this_clan->vnum);
+    log_clan_error(__func__, "Attempted to add duplicate clan vnum %" PRI_IDX, this_clan->vnum);
     return FALSE;
   }
 
@@ -434,7 +434,7 @@ bool remove_clan(clan_vnum c_v)
   /* Does clan exist? */
   if ((c_n = real_clan(c_v)) == NO_CLAN)
   {
-    log_clan_error(__func__, "Attempted to remove non-existent clan vnum %d", c_v);
+    log_clan_error(__func__, "Attempted to remove non-existent clan vnum %" PRI_IDX, c_v);
     return FALSE;
   }
 
@@ -541,10 +541,10 @@ bool set_clan(struct char_data *ch, clan_vnum c_v)
 
   GET_CLAN(ch) = clan_list[c_n].vnum;
   save_char(ch, 0);
-  if ((p_i = get_ptable_by_name(GET_NAME(ch))) < 0)
+  if ((p_i = (int)get_ptable_by_name(GET_NAME(ch))) < 0)
   {
     log_clan_error(__func__,
-                   "Unable to get player_table index for %s (ID: %ld) when setting clan %d",
+                   "Unable to get player_table index for %s (ID: %ld) when setting clan %" PRI_IDX,
                    GET_NAME(ch), GET_IDNUM(ch), c_v);
     return FALSE;
   }
@@ -867,14 +867,14 @@ void log_clan_activity(clan_vnum c, const char *format, ...)
   char filename[256];
   FILE *fl;
   time_t ct;
-  char *tmstr;
+  const char *tmstr;
   clan_rnum cr = real_clan(c);
 
   if (cr == NO_CLAN || cr >= (clan_rnum)num_of_clans)
     return;
 
   /* Create filename */
-  snprintf(filename, sizeof(filename), "%sclan_%d.log", CLAN_LOG_DIR, c);
+  snprintf(filename, sizeof(filename), "%sclan_%" PRI_IDX ".log", CLAN_LOG_DIR, c);
 
   /* Open file in append mode */
   if (!(fl = fopen_restricted(filename, "a")))
@@ -893,7 +893,7 @@ void log_clan_activity(clan_vnum c, const char *format, ...)
 
   /* Get current time */
   ct = time(0);
-  tmstr = (char *)format_time_ymd_hms(ct);
+  tmstr = format_time_ymd_hms(ct);
 
   /* Format the message */
   va_start(args, format);
@@ -961,7 +961,7 @@ bool validate_clan_data(struct clan_data *clan, bool fix_errors)
   /* Check VNUM validity */
   if (clan->vnum == 0 || clan->vnum == NO_CLAN)
   {
-    log_clan_error(__func__, "Invalid clan vnum: %d", clan->vnum);
+    log_clan_error(__func__, "Invalid clan vnum: %" PRI_IDX, clan->vnum);
     valid = FALSE;
     if (fix_errors)
     {
@@ -973,35 +973,36 @@ bool validate_clan_data(struct clan_data *clan, bool fix_errors)
   /* Check clan name */
   if (!clan->clan_name || strlen(clan->clan_name) == 0)
   {
-    log_clan_error(__func__, "Clan %d has NULL or empty name", clan->vnum);
+    log_clan_error(__func__, "Clan %" PRI_IDX " has NULL or empty name", clan->vnum);
     valid = FALSE;
     if (fix_errors)
     {
       clan->clan_name = strdup("Unnamed Clan");
-      log_clan_error(__func__, "Fixed: Set default name for clan %d", clan->vnum);
+      log_clan_error(__func__, "Fixed: Set default name for clan %" PRI_IDX, clan->vnum);
     }
   }
   else if (strlen(clan->clan_name) > MAX_CLAN_NAME)
   {
-    log_clan_error(__func__, "Clan %d name too long: %zu chars", clan->vnum,
+    log_clan_error(__func__, "Clan %" PRI_IDX " name too long: %zu chars", clan->vnum,
                    strlen(clan->clan_name));
     valid = FALSE;
     if (fix_errors)
     {
       clan->clan_name[MAX_CLAN_NAME] = '\0';
-      log_clan_error(__func__, "Fixed: Truncated clan %d name", clan->vnum);
+      log_clan_error(__func__, "Fixed: Truncated clan %" PRI_IDX " name", clan->vnum);
     }
   }
 
   /* Check ranks */
   if (clan->ranks == 0 || clan->ranks > MAX_CLANRANKS)
   {
-    log_clan_error(__func__, "Clan %d has invalid rank count: %d", clan->vnum, clan->ranks);
+    log_clan_error(__func__, "Clan %" PRI_IDX " has invalid rank count: %d", clan->vnum,
+                   clan->ranks);
     valid = FALSE;
     if (fix_errors)
     {
       clan->ranks = DEFAULT_CLAN_RANKS;
-      log_clan_error(__func__, "Fixed: Reset clan %d ranks to default %d", clan->vnum,
+      log_clan_error(__func__, "Fixed: Reset clan %" PRI_IDX " ranks to default %d", clan->vnum,
                      DEFAULT_CLAN_RANKS);
     }
   }
@@ -1011,14 +1012,15 @@ bool validate_clan_data(struct clan_data *clan, bool fix_errors)
   {
     if (!clan->rank_name[i])
     {
-      log_clan_error(__func__, "Clan %d rank %d has NULL name", clan->vnum, i);
+      log_clan_error(__func__, "Clan %" PRI_IDX " rank %d has NULL name", clan->vnum, i);
       valid = FALSE;
       if (fix_errors)
       {
         char rank_name[32];
         snprintf(rank_name, sizeof(rank_name), "Rank %d", i + 1);
         clan->rank_name[i] = strdup(rank_name);
-        log_clan_error(__func__, "Fixed: Set default name for clan %d rank %d", clan->vnum, i);
+        log_clan_error(__func__, "Fixed: Set default name for clan %" PRI_IDX " rank %d",
+                       clan->vnum, i);
       }
     }
   }
@@ -1028,14 +1030,15 @@ bool validate_clan_data(struct clan_data *clan, bool fix_errors)
   {
     if (clan->privilege[i] > clan->ranks)
     {
-      log_clan_error(__func__, "Clan %d privilege %d requires rank %d but only %d ranks exist",
+      log_clan_error(__func__,
+                     "Clan %" PRI_IDX " privilege %d requires rank %d but only %d ranks exist",
                      clan->vnum, i, clan->privilege[i], clan->ranks);
       valid = FALSE;
       if (fix_errors)
       {
         clan->privilege[i] = clan->ranks;
-        log_clan_error(__func__, "Fixed: Set clan %d privilege %d to max rank %d", clan->vnum, i,
-                       clan->ranks);
+        log_clan_error(__func__, "Fixed: Set clan %" PRI_IDX " privilege %d to max rank %d",
+                       clan->vnum, i, clan->ranks);
       }
     }
   }
@@ -1043,24 +1046,26 @@ bool validate_clan_data(struct clan_data *clan, bool fix_errors)
   /* Check financial data */
   if (clan->treasure < 0)
   {
-    log_clan_error(__func__, "Clan %d has negative treasury: %ld", clan->vnum, clan->treasure);
+    log_clan_error(__func__, "Clan %" PRI_IDX " has negative treasury: %ld", clan->vnum,
+                   clan->treasure);
     valid = FALSE;
     if (fix_errors)
     {
       clan->treasure = 0;
-      log_clan_error(__func__, "Fixed: Reset clan %d treasury to 0", clan->vnum);
+      log_clan_error(__func__, "Fixed: Reset clan %" PRI_IDX " treasury to 0", clan->vnum);
     }
   }
 
   /* Check tax rate */
   if (clan->taxrate < 0 || clan->taxrate > 100)
   {
-    log_clan_error(__func__, "Clan %d has invalid tax rate: %d%%", clan->vnum, clan->taxrate);
+    log_clan_error(__func__, "Clan %" PRI_IDX " has invalid tax rate: %d%%", clan->vnum,
+                   clan->taxrate);
     valid = FALSE;
     if (fix_errors)
     {
       clan->taxrate = MAX(0, MIN(clan->taxrate, 100));
-      log_clan_error(__func__, "Fixed: Clamped clan %d tax rate to %d%%", clan->vnum,
+      log_clan_error(__func__, "Fixed: Clamped clan %" PRI_IDX " tax rate to %d%%", clan->vnum,
                      clan->taxrate);
     }
   }
@@ -1068,28 +1073,28 @@ bool validate_clan_data(struct clan_data *clan, bool fix_errors)
   /* Check member limits */
   if (clan->max_members < 0)
   {
-    log_clan_error(__func__, "Clan %d has negative member limit: %d", clan->vnum,
+    log_clan_error(__func__, "Clan %" PRI_IDX " has negative member limit: %d", clan->vnum,
                    clan->max_members);
     valid = FALSE;
     if (fix_errors)
     {
       clan->max_members = DEFAULT_MAX_MEMBERS;
-      log_clan_error(__func__, "Fixed: Reset clan %d member limit to default %d", clan->vnum,
-                     DEFAULT_MAX_MEMBERS);
+      log_clan_error(__func__, "Fixed: Reset clan %" PRI_IDX " member limit to default %d",
+                     clan->vnum, DEFAULT_MAX_MEMBERS);
     }
   }
 
   /* Check statistics consistency */
   if (clan->highest_member_count < clan->cached_member_count)
   {
-    log_clan_error(__func__, "Clan %d highest member count (%d) < current count (%d)", clan->vnum,
-                   clan->highest_member_count, clan->cached_member_count);
+    log_clan_error(__func__, "Clan %" PRI_IDX " highest member count (%d) < current count (%d)",
+                   clan->vnum, clan->highest_member_count, clan->cached_member_count);
     valid = FALSE;
     if (fix_errors)
     {
       clan->highest_member_count = clan->cached_member_count;
-      log_clan_error(__func__, "Fixed: Updated clan %d highest member count to %d", clan->vnum,
-                     clan->highest_member_count);
+      log_clan_error(__func__, "Fixed: Updated clan %" PRI_IDX " highest member count to %d",
+                     clan->vnum, clan->highest_member_count);
     }
   }
 
@@ -1678,7 +1683,8 @@ ACMD(do_clanaward)
   if ((c_r = real_clan(GET_CLAN(ch))) == NO_CLAN)
   {
     send_to_char(ch, "Sorry, unable to award clanpoints at this time!\r\n");
-    log("SYSERR: %s has invalid clan ID (%d) in do_clanaward", GET_NAME(ch), GET_CLAN(ch));
+    log("SYSERR: %s has invalid clan ID (%" PRI_IDX ") in do_clanaward", GET_NAME(ch),
+        GET_CLAN(ch));
     return;
   }
 
@@ -1694,7 +1700,7 @@ ACMD(do_clanaward)
     return;
   }
 
-  GET_CLANPOINTS(l) += num_cp;
+  GET_CLANPOINTS(l) += (int)(num_cp);
   CLAN_BANK(c_r) -= (num_cp * 10);
 
   send_to_char(l, "%sCLAN: You have been awarded %s%ld%s clan points!%s\r\n", CCMAG(l, C_NRM),
@@ -1756,8 +1762,8 @@ ACMD(do_clanclaim)
     return;
   }
 
-  log("%s claiming zone %d: Current Clan=%d, New Clan=%d", GET_NAME(ch), zv, get_owning_clan(zv),
-      GET_CLAN(ch));
+  log("%s claiming zone %" PRI_IDX ": Current Clan=%" PRI_IDX ", New Clan=%" PRI_IDX, GET_NAME(ch),
+      zv, get_owning_clan(zv), GET_CLAN(ch));
 
   if (add_claim_by_char(ch, zv) != NULL)
   {
@@ -1773,9 +1779,9 @@ ACMD(do_clanclaim)
     }
 
     send_to_char(ch, "The locals rejoice and welcome your clans claim.\r\n");
-    mudlog(NRM, LVL_IMMORT, TRUE, "(CLAN) %s has claimed %s [%d] for %s [%d]", GET_NAME(ch),
-           zone_table[real_zone(zv)].name, zv, clan_list[real_clan(GET_CLAN(ch))].clan_name,
-           GET_CLAN(ch));
+    mudlog(NRM, LVL_IMMORT, TRUE, "(CLAN) %s has claimed %s [%" PRI_IDX "] for %s [%" PRI_IDX "]",
+           GET_NAME(ch), zone_table[real_zone(zv)].name, zv,
+           clan_list[real_clan(GET_CLAN(ch))].clan_name, GET_CLAN(ch));
     game_info("\tC%s has been claimed by %s!\r\n", zone_table[real_zone(zv)].name,
               clan_list[real_clan(GET_CLAN(ch))].clan_name);
 
@@ -1784,7 +1790,7 @@ ACMD(do_clanclaim)
 
     /* Log the claim */
     log_clan_activity(GET_CLAN(ch), "%s claimed zone %s [%d]", GET_NAME(ch),
-                      zone_table[real_zone(zv)].name, zv);
+                      zone_table[real_zone(zv)].name, (int)zv);
 
     save_claims();
   }
@@ -1792,8 +1798,8 @@ ACMD(do_clanclaim)
   {
     send_to_char(ch, "Sorry, your claim failed.\r\n");
     mudlog(NRM, LVL_IMMORT, TRUE,
-           "(CLAN) %s has FAILED to claim %s [%d]"
-           " for %s [%d]",
+           "(CLAN) %s has FAILED to claim %s [%" PRI_IDX "]"
+           " for %s [%" PRI_IDX "]",
            GET_NAME(ch), zone_table[real_zone(zv)].name, zv,
            clan_list[real_clan(GET_CLAN(ch))].clan_name, GET_CLAN(ch));
   }
@@ -1854,17 +1860,17 @@ ACMD(do_clancreate)
   if (strlen(c_n) > MAX_CLAN_NAME)
   {
     /* Ensure we don't cut in the middle of a color code */
-    int i = MAX_CLAN_NAME;
-    while (i > 0 && c_n[i - 1] == '@')
+    int inner_i = MAX_CLAN_NAME;
+    while (inner_i > 0 && c_n[inner_i - 1] == '@')
     {
-      i--;
+      inner_i--;
     }
     /* If we have an odd number of @, we're in the middle of a color code */
-    if ((MAX_CLAN_NAME - i) % 2 == 1 && i > 0)
+    if ((MAX_CLAN_NAME - inner_i) % 2 == 1 && inner_i > 0)
     {
-      i--; /* Back up one more to include the @ */
+      inner_i--; /* Back up one more to include the @ */
     }
-    c_n[i] = '\0';
+    c_n[inner_i] = '\0';
   }
 
   v = highest_clan_vnum() + 1;
@@ -1901,13 +1907,13 @@ ACMD(do_clancreate)
     if (!new_clan.rank_name[i])
     {
       /* Free already allocated ranks */
-      int j;
-      for (j = 0; j < 6; j++)
+      int inner_j;
+      for (inner_j = 0; inner_j < 6; inner_j++)
       {
-        if (new_clan.rank_name[j])
+        if (new_clan.rank_name[inner_j])
         {
-          free(new_clan.rank_name[j]);
-          new_clan.rank_name[j] = NULL;
+          free(new_clan.rank_name[inner_j]);
+          new_clan.rank_name[inner_j] = NULL;
         }
       }
       if (new_clan.clan_name)
@@ -1956,7 +1962,7 @@ ACMD(do_clancreate)
   /* Member (Rank 5): Claim zones      */
   new_clan.privilege[CP_CLAIM] = RANK_LEADERONLY;
 
-  send_to_char(ch, "Adding clan '%s' (Leader: %s) at VNUM %d\r\n", c_n, GET_NAME(l), v);
+  send_to_char(ch, "Adding clan '%s' (Leader: %s) at VNUM %" PRI_IDX "\r\n", c_n, GET_NAME(l), v);
   if (add_clan(&new_clan))
   {
     send_to_char(ch, "Clan added successfully.\r\n");
@@ -2204,7 +2210,7 @@ ACMD(do_clanbalance)
     return;
   }
 
-  amt = clan_list[(c_n)].treasure;
+  amt = (int)clan_list[(c_n)].treasure;
   send_to_char(ch, "The Clan bank balance is:\tW %d\tn\r\n", amt);
 }
 
@@ -2288,7 +2294,7 @@ ACMD(do_clandeposit)
 
   if ((clan_list[(c_n)].treasure + amt) > MAX_BANK)
   {
-    amt = MAX_BANK - clan_list[(c_n)].treasure;
+    amt = (int)(MAX_BANK - clan_list[(c_n)].treasure);
     if (amt > 0)
     {
       send_to_char(ch, "The clan's bank account is almost FULL! You fill it"
@@ -2389,8 +2395,8 @@ ACMD(do_clandestroy)
       {
         send_to_char(ch, "Invalid clan VNUM specified.\r\n");
         send_to_char(ch,
-                     "The clan you entered %d, doesn't match your"
-                     " clan %d.\r\n",
+                     "The clan you entered %" PRI_IDX ", doesn't match your"
+                     " clan %" PRI_IDX ".\r\n",
                      real_clan(atoi(buf2)), real_clan(GET_CLAN(ch)));
         return;
       }
@@ -2810,7 +2816,7 @@ ACMD(do_claninfo) /* Information about clans */
                          "Members  Power\r\n");
       mems = count_clan_members(i);
       pow = count_clan_power(i);
-      send_to_char(ch, "[%5d]  %-*s%s  %7d  %5d\r\n", clan_list[i].vnum,
+      send_to_char(ch, "[%5" PRI_IDX "]  %-*s%s  %7d  %5d\r\n", clan_list[i].vnum,
                    30 + count_color_chars(clan_list[i].clan_name), clan_list[i].clan_name, QNRM,
                    mems, pow);
     }
@@ -2893,12 +2899,13 @@ ACMD(do_claninfo) /* Information about clans */
         zone_rnum zr = real_zone(clan_list[i].hall);
         if (zr != NOWHERE)
         {
-          send_to_char(ch, "Hall Zone: %s%s (#%d)%s\r\n", QCYN, zone_table[zr].name,
+          send_to_char(ch, "Hall Zone: %s%s (#%" PRI_IDX ")%s\r\n", QCYN, zone_table[zr].name,
                        clan_list[i].hall, QNRM);
         }
         else
         {
-          send_to_char(ch, "Hall Zone: %sInvalid Zone (#%d)%s\r\n", QRED, clan_list[i].hall, QNRM);
+          send_to_char(ch, "Hall Zone: %sInvalid Zone (#%" PRI_IDX ")%s\r\n", QRED,
+                       clan_list[i].hall, QNRM);
         }
       }
 
@@ -3062,7 +3069,7 @@ ACMD(do_clanlist) /* List of clan members */
       if ((c = real_clan(GET_CLAN(ch))) == NO_CLAN)
       {
         send_to_char(ch, "Your clan is invalid - see the syslog!\r\n");
-        log("SYSERR: Player %s has clan VNUM %d, but clan isn't found in "
+        log("SYSERR: Player %s has clan VNUM %" PRI_IDX ", but clan isn't found in "
             "clan_list",
             GET_NAME(ch), GET_CLAN(ch));
         return;
@@ -3083,7 +3090,7 @@ ACMD(do_clanlist) /* List of clan members */
     if ((c = real_clan(GET_CLAN(ch))) == NO_CLAN)
     {
       send_to_char(ch, "Your clan is invalid - tell an Imm!\r\n");
-      log("SYSERR: Player %s has clan VNUM %d, but clan isn't found in "
+      log("SYSERR: Player %s has clan VNUM %" PRI_IDX ", but clan isn't found in "
           "clan_list",
           GET_NAME(ch), GET_CLAN(ch));
       return;
@@ -3458,7 +3465,7 @@ ACMD(do_clanwhere)
   if ((c = real_clan(GET_CLAN(ch))) == NO_CLAN)
   {
     send_to_char(ch, "Your clan is invalid - tell an Imm!\r\n");
-    log("SYSERR: Player %s has clan VNUM %d, but clan isn't found in"
+    log("SYSERR: Player %s has clan VNUM %" PRI_IDX ", but clan isn't found in"
         " clan_list",
         GET_NAME(ch), GET_CLAN(ch));
     return;
@@ -3576,7 +3583,7 @@ ACMD(do_clanwithdraw)
 
   if ((clan_list[(c_n)].treasure - amt) < 0)
   {
-    amt = clan_list[(c_n)].treasure;
+    amt = (int)clan_list[(c_n)].treasure;
     if (amt > 0)
     {
       send_to_char(ch, "The clan's bank account is almost EMPTY! You take"
@@ -3650,7 +3657,7 @@ ACMD(do_clanunclaim)
   /* Check if the implementor has permission to edit this zone */
   if (!can_edit_zone(ch, zr))
   {
-    send_to_char(ch, "You don't have permission to edit zone %d.\r\n", z);
+    send_to_char(ch, "You don't have permission to edit zone %" PRI_IDX ".\r\n", z);
     return;
   }
 
@@ -3709,12 +3716,12 @@ ACMD(do_clanally)
 
     /* Show current allies */
     int count = 0;
-    int i;
-    for (i = 0; i < num_of_clans; i++)
+    int inner_i;
+    for (inner_i = 0; inner_i < num_of_clans; inner_i++)
     {
-      if (clan_list[my_clan].allies[i])
+      if (clan_list[my_clan].allies[inner_i])
       {
-        send_to_char(ch, "  - %s\r\n", clan_list[i].clan_name);
+        send_to_char(ch, "  - %s\r\n", clan_list[inner_i].clan_name);
         count++;
       }
     }
@@ -3867,12 +3874,12 @@ ACMD(do_clanwar)
 
     /* Show current wars */
     int count = 0;
-    int i;
-    for (i = 0; i < num_of_clans; i++)
+    int inner_i;
+    for (inner_i = 0; inner_i < num_of_clans; inner_i++)
     {
-      if (clan_list[my_clan].at_war[i])
+      if (clan_list[my_clan].at_war[inner_i])
       {
-        send_to_char(ch, "  - %s", clan_list[i].clan_name);
+        send_to_char(ch, "  - %s", clan_list[inner_i].clan_name);
         if (clan_list[my_clan].war_timer > 0)
         {
           send_to_char(ch, " (war ends in %d hours)", clan_list[my_clan].war_timer);
@@ -4023,7 +4030,7 @@ ACMD(do_clanlog)
   }
 
   /* Build filename */
-  snprintf(filename, sizeof(filename), "%sclan_%d.log", CLAN_LOG_DIR, GET_CLAN(ch));
+  snprintf(filename, sizeof(filename), "%sclan_%" PRI_IDX ".log", CLAN_LOG_DIR, GET_CLAN(ch));
 
   /* Open log file */
   if (!(fl = fopen(filename, "r")))
@@ -4148,7 +4155,7 @@ ACMD(do_clanstats)
   send_to_char(ch, "  Member Retention Rate: %s%.1f%%%s\r\n",
                clan->total_members_joined > 0 ? QYEL : QNRM,
                clan->total_members_joined > 0
-                   ? ((float)(clan->total_members_joined - clan->total_members_left) /
+                   ? ((double)(clan->total_members_joined - clan->total_members_left) /
                       clan->total_members_joined * 100.0)
                    : 0.0,
                QNRM);
@@ -4160,7 +4167,7 @@ ACMD(do_clanstats)
   send_to_char(ch, "  Territory Retention Rate: %s%.1f%%%s\r\n",
                clan->total_zones_claimed > 0 ? QYEL : QNRM,
                clan->total_zones_claimed > 0
-                   ? ((float)clan->current_zones_owned / clan->total_zones_claimed * 100.0)
+                   ? ((double)clan->current_zones_owned / clan->total_zones_claimed * 100.0)
                    : 0.0,
                QNRM);
 
@@ -4170,7 +4177,7 @@ ACMD(do_clanstats)
   send_to_char(ch, "  PK Losses: %s%d%s\r\n", QRED, clan->pk_lose, QNRM);
   send_to_char(ch, "  Win Rate: %s%.1f%%%s\r\n", (clan->pk_win + clan->pk_lose) > 0 ? QYEL : QNRM,
                (clan->pk_win + clan->pk_lose) > 0
-                   ? ((float)clan->pk_win / (clan->pk_win + clan->pk_lose) * 100.0)
+                   ? ((double)clan->pk_win / (clan->pk_win + clan->pk_lose) * 100.0)
                    : 0.0,
                QNRM);
   send_to_char(ch, "  Times Raided: %s%d%s\r\n", QRED, clan->raided, QNRM);
@@ -4200,7 +4207,7 @@ ACMD(do_clanstats)
   send_to_char(ch, "  Total Clan Power: %s%d%s\r\n", QYEL, count_clan_power(c_n), QNRM);
   send_to_char(
       ch, "  Average Member Level: %s%.1f%s\r\n", QYEL,
-      count_clan_members(c_n) > 0 ? ((float)count_clan_power(c_n) / count_clan_members(c_n)) : 0.0,
+      count_clan_members(c_n) > 0 ? ((double)count_clan_power(c_n) / count_clan_members(c_n)) : 0.0,
       QNRM);
 
   /* Footer */
@@ -4318,43 +4325,42 @@ struct claim_data *get_claim_by_zone(zone_vnum z_num)
   return NULL;
 }
 
-void remove_claim_from_list(struct claim_data *rem_claim)
+/* Unlink rem_claim from claim_list; true when it was listed. */
+static bool unlink_claim(const struct claim_data *rem_claim)
 {
   struct claim_data *this_claim = NULL;
 
-  if (!claim_list)
-    return;
+  if (!claim_list || rem_claim == NULL)
+    return false;
 
-  /* Check the main claim list */
-  for (this_claim = claim_list; this_claim && this_claim != rem_claim;
+  if (claim_list == rem_claim)
+  {
+    claim_list = claim_list->next;
+    return true;
+  }
+  for (this_claim = claim_list; this_claim && this_claim->next != rem_claim;
        this_claim = this_claim->next)
     ;
   if (this_claim == NULL)
-    return;
-
-  /* We found the claim in the list, remove it */
-  if (this_claim == claim_list)
-  {
-    /* 1st item - move the main claim_list pointer */
-    claim_list = claim_list->next;
-    free_claim(this_claim);
-  }
-  else
-  {
-    for (this_claim = claim_list; this_claim && this_claim->next != rem_claim;
-         this_claim = this_claim->next)
-      ;
-    this_claim->next = rem_claim->next;
-    free_claim(rem_claim);
-  }
+    return false;
+  this_claim->next = rem_claim->next;
+  return true;
 }
 
+/* Remove a listed claim and free it; an unlisted claim is left alone. */
+void remove_claim_from_list(struct claim_data *rem_claim)
+{
+  if (unlink_claim(rem_claim))
+    free(rem_claim);
+}
+
+/* Free a claim, unlinking it first if it is still listed.  The two functions
+ * used to call each other, so freeing a listed claim freed it twice. */
 void free_claim(struct claim_data *this_claim)
 {
   if (this_claim)
   {
-    if (get_claim_by_zone(this_claim->zn) != NULL)
-      remove_claim_from_list(this_claim);
+    unlink_claim(this_claim);
     free(this_claim);
   }
 }
@@ -4499,7 +4505,7 @@ void show_clan_claims(struct char_data *ch, clan_vnum c)
       zn = real_zone(CLAIM_ZONE(this_claim));
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
       {
-        send_to_char(ch, "%s[%s%3d%s]%s %-30s%s Claimed by %s\r\n", QCYN, QYEL,
+        send_to_char(ch, "%s[%s%3" PRI_IDX "%s]%s %-30s%s Claimed by %s\r\n", QCYN, QYEL,
                      zone_table[zn].number, QCYN, QNRM, zone_table[zn].name, QNRM,
                      get_name_by_id(CLAIM_CLAIMANT(this_claim)));
       }
@@ -4543,14 +4549,14 @@ long get_claimant_id(zone_vnum z)
 /*************************************************************************
  End of Zone Claim code - Start of Claim Popularity code
  ************************************************************************/
-float get_popularity(zone_vnum zn, clan_vnum cn)
+double get_popularity(zone_vnum zn, clan_vnum cn)
 {
   struct claim_data *this_claim = NULL, *found_claim = NULL;
   clan_rnum c_r;
 
   if (real_zone(zn) == NOWHERE)
   {
-    log("(CLAIMS) Invalid zone vnum %d passed to get_popularity.", zn);
+    log("(CLAIMS) Invalid zone vnum %" PRI_IDX " passed to get_popularity.", zn);
     return (0.0);
   }
 
@@ -4567,23 +4573,23 @@ float get_popularity(zone_vnum zn, clan_vnum cn)
 
   if ((c_r = real_clan(cn)) == NO_CLAN)
   {
-    log("(CLAIMS) get_popularity failed for clan %d, due to clan not found!", cn);
+    log("(CLAIMS) get_popularity failed for clan %" PRI_IDX ", due to clan not found!", cn);
     return (0.0);
   }
 
   return (found_claim->popularity[c_r]);
 }
 
-void increase_popularity(zone_vnum zn, clan_vnum cn, float amt)
+void increase_popularity(zone_vnum zn, clan_vnum cn, double amt)
 {
   int i, i_rand, j, count = 0;
-  float tot_vals = 0.0, share_vals, new_val = 0.0, val_diff, vals[MAX_CLANS];
+  double tot_vals = 0.0, share_vals, new_val = 0.0, val_diff, vals[MAX_CLANS];
   struct claim_data *this_claim = NULL, *found_claim = NULL;
   clan_rnum c_r;
 
   if (real_zone(zn) == NOWHERE)
   {
-    log("(CLAIMS) Invalid zone vnum %d passed to increase_popularity.", zn);
+    log("(CLAIMS) Invalid zone vnum %" PRI_IDX " passed to increase_popularity.", zn);
     return;
   }
 
@@ -4600,7 +4606,7 @@ void increase_popularity(zone_vnum zn, clan_vnum cn, float amt)
 
   if (!found_claim)
   {
-    log("(CLAIMS) Increase popularity failed for zone %d, due to zone "
+    log("(CLAIMS) Increase popularity failed for zone %" PRI_IDX ", due to zone "
         "not found!",
         zn);
     return;
@@ -4608,7 +4614,7 @@ void increase_popularity(zone_vnum zn, clan_vnum cn, float amt)
 
   if ((c_r = real_clan(cn)) == NO_CLAN)
   {
-    log("(CLAIMS) Increase popularity failed for clan %d, due to clan "
+    log("(CLAIMS) Increase popularity failed for clan %" PRI_IDX ", due to clan "
         "not found!",
         cn);
     return;
@@ -4680,7 +4686,7 @@ void show_zone_popularities(struct char_data *ch, struct claim_data *this_claim)
 {
   zone_rnum z_r;
   int i, j, numbars;
-  float tot = 0.0;
+  double tot = 0.0;
   char bar[14];
 
   if (!this_claim)
@@ -4710,7 +4716,8 @@ void show_zone_popularities(struct char_data *ch, struct claim_data *this_claim)
   }
   else
   {
-    log("Zone %d returned rnum %d in show_zone_popularities", this_claim->zn, z_r);
+    log("Zone %" PRI_IDX " returned rnum %" PRI_IDX " in show_zone_popularities", this_claim->zn,
+        z_r);
   }
   (void)tot;
 }
@@ -4744,7 +4751,7 @@ void show_clan_popularities(struct char_data *ch, clan_vnum c_v)
         bar[12] = '\0';
         if (GET_LEVEL(ch) >= LVL_IMMORT && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
         {
-          send_to_char(ch, "%s[%s%3d%s]%s %-30s%s: %3.2f%% %s[%s%s%s]%s\r\n", QCYN, QYEL,
+          send_to_char(ch, "%s[%s%3" PRI_IDX "%s]%s %-30s%s: %3.2f%% %s[%s%s%s]%s\r\n", QCYN, QYEL,
                        this_claim->zn, QCYN, QNRM, zone_table[z_r].name, QNRM,
                        this_claim->popularity[c_r], QCYN, QYEL, bar, QCYN, QNRM);
         }
@@ -4785,7 +4792,7 @@ void show_popularity(struct char_data *ch, char *arg)
     // Show all claim popularities
     for (this_claim = claim_list; this_claim; this_claim = this_claim->next)
     {
-      log("this_claim->zn=%d", this_claim->zn);
+      log("this_claim->zn=%" PRI_IDX, this_claim->zn);
       show_zone_popularities(ch, this_claim);
       cz++;
     }
@@ -4947,7 +4954,7 @@ ACMD(do_clanset)
   }
 
   mudlog(CMP, LVL_IMPL, TRUE,
-         "CLANSET: clan=%d, field=%d (%s), "
+         "CLANSET: clan=%" PRI_IDX ", field=%d (%s), "
          "val_arg=%s (by %s)",
          clannum, l, fields[l].cmd, val_arg, GET_NAME(ch));
 
@@ -4969,7 +4976,7 @@ ACMD(do_clanset)
       send_to_char(ch, "Memory allocation failed. Changes not saved.\r\n");
       return;
     }
-    snprintf(buf, sizeof(buf), "Clan ID %d: Name is now: %s%s", clan_list[clannum].vnum,
+    snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": Name is now: %s%s", clan_list[clannum].vnum,
              CLAN_NAME(clannum), QNRM);
     break;
 
@@ -4979,7 +4986,7 @@ ACMD(do_clanset)
       send_to_char(ch, "You MUST have between 1 and %d ranks in a clan!", MAX_CLANRANKS);
       return;
     }
-    clan_list[clannum].ranks = value;
+    clan_list[clannum].ranks = (ubyte)value;
     /* Erase all the old rank names that are now outside the range (if any) */
     for (i = value; i < MAX_CLANRANKS; i++)
     {
@@ -4989,8 +4996,8 @@ ACMD(do_clanset)
         clan_list[clannum].rank_name[i] = NULL;
       }
     }
-    snprintf(buf, sizeof(buf), "Clan ID %d: Number of ranks set to %d%s", clan_list[clannum].vnum,
-             clan_list[clannum].ranks, QNRM);
+    snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": Number of ranks set to %d%s",
+             clan_list[clannum].vnum, clan_list[clannum].ranks, QNRM);
     break;
 
     /* clanset <clannum> rankname <rank id> <val_arg>*/
@@ -5017,8 +5024,8 @@ ACMD(do_clanset)
       return;
     }
 
-    snprintf(buf, sizeof(buf), "Clan ID %d: Rank %d changed to \"%s%s\"", clan_list[clannum].vnum,
-             rankid, rankname, QNRM);
+    snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": Rank %d changed to \"%s%s\"",
+             clan_list[clannum].vnum, rankid, rankname, QNRM);
     break;
   case 3: /* clanset clannum treasure <value>*/
     if ((value < 0) || (value > MAX_GOLD))
@@ -5027,7 +5034,7 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].treasure = value;
-    snprintf(buf, sizeof(buf), "Clan ID %d: Treasure (clan bank) set to %s\r\n",
+    snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": Treasure (clan bank) set to %s\r\n",
              clan_list[clannum].vnum, add_commas(value));
     break;
   case 4: /* clanset clannum clannhall <value>*/
@@ -5042,8 +5049,8 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].hall = value;
-    snprintf(buf, sizeof(buf), "Clan ID %d: Clanhall zone set to %d\r\n", clan_list[clannum].vnum,
-             value);
+    snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": Clanhall zone set to %d\r\n",
+             clan_list[clannum].vnum, value);
     break;
   case 5: /* clanset clannum applev <value>*/
     if ((value < 1) || (value >= LVL_IMMORT))
@@ -5052,7 +5059,7 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].applev = value;
-    snprintf(buf, sizeof(buf), "Clan ID %d: Application Level set to %d\r\n",
+    snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": Application Level set to %d\r\n",
              clan_list[clannum].vnum, value);
     break;
   case 6: /* clanset clannum appfee <value>*/
@@ -5062,8 +5069,8 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].appfee = value;
-    snprintf(buf, sizeof(buf), "Clan ID %d: Application Fee set to %s\r\n", clan_list[clannum].vnum,
-             add_commas(value));
+    snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": Application Fee set to %s\r\n",
+             clan_list[clannum].vnum, add_commas(value));
     break;
   case 7: /* clanset clannum tax <value>*/
     if ((value < 0) || (value > 40))
@@ -5078,7 +5085,8 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].taxrate = value;
-    snprintf(buf, sizeof(buf), "Clan ID %d: Tax set to %d%%\r\n", clan_list[clannum].vnum, value);
+    snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": Tax set to %d%%\r\n", clan_list[clannum].vnum,
+             value);
     break;
   case 8: /* clanset clannum skills <id> <value>*/
     /* Clan spells functionality removed - no longer part of system design */
@@ -5121,8 +5129,8 @@ ACMD(do_clanset)
       send_to_char(ch, "Memory allocation failed. Changes not saved.\r\n");
       return;
     }
-    snprintf(buf, sizeof(buf), "Clan ID %d: Clan plan is now: \r\n%s\tn", clan_list[clannum].vnum,
-             clan_list[clannum].description);
+    snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": Clan plan is now: \r\n%s\tn",
+             clan_list[clannum].vnum, clan_list[clannum].description);
     break;
   case 10: /* clanset clannum atwar <clan id>*/
     if (!strcmp(val_arg, "clear"))
@@ -5151,7 +5159,7 @@ ACMD(do_clanset)
         clan_list[clannum].at_war[value] = TRUE;
         send_to_char(ch, "%s%s is no longer at war with %s%s", clan_list[clannum].clan_name, QNRM,
                      clan_list[value].clan_name, QNRM);
-        snprintf(buf, sizeof(buf), "Clan ID %d: At War Clan %s removed.\r\n",
+        snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": At War Clan %s removed.\r\n",
                  clan_list[clannum].vnum, clan_list[value].clan_name);
       }
       else
@@ -5159,8 +5167,8 @@ ACMD(do_clanset)
         clan_list[clannum].allies[value] = TRUE;
         send_to_char(ch, "%s%s is now at war with %s%s", clan_list[clannum].clan_name, QNRM,
                      clan_list[value].clan_name, QNRM);
-        snprintf(buf, sizeof(buf), "Clan ID %d: At War Clan set to %s\r\n", clan_list[clannum].vnum,
-                 clan_list[value].clan_name);
+        snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": At War Clan set to %s\r\n",
+                 clan_list[clannum].vnum, clan_list[value].clan_name);
       }
     }
     break;
@@ -5191,16 +5199,16 @@ ACMD(do_clanset)
         clan_list[clannum].allies[value] = TRUE;
         send_to_char(ch, "%s%s is no longer allied with %s%s", clan_list[clannum].clan_name, QNRM,
                      clan_list[value].clan_name, QNRM);
-        snprintf(buf, sizeof(buf), "Clan ID %d: Ally Clan %s removed.\r\n", clan_list[clannum].vnum,
-                 clan_list[value].clan_name);
+        snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": Ally Clan %s removed.\r\n",
+                 clan_list[clannum].vnum, clan_list[value].clan_name);
       }
       else
       {
         clan_list[clannum].allies[value] = TRUE;
         send_to_char(ch, "%s%s is now allied with %s%s", clan_list[clannum].clan_name, QNRM,
                      clan_list[value].clan_name, QNRM);
-        snprintf(buf, sizeof(buf), "Clan ID %d: Ally Clan set to %s\r\n", clan_list[clannum].vnum,
-                 clan_list[value].clan_name);
+        snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": Ally Clan set to %s\r\n",
+                 clan_list[clannum].vnum, clan_list[value].clan_name);
       }
     }
     break;
@@ -5211,7 +5219,7 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].war_timer = value;
-    snprintf(buf, sizeof(buf), "Clan ID %d: War Timer set to %d ticks.\r\n",
+    snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": War Timer set to %d ticks.\r\n",
              clan_list[clannum].vnum, value);
     break;
   case 13: /* clanset clannum pkwin <value>*/
@@ -5221,8 +5229,8 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].pk_win = value;
-    snprintf(buf, sizeof(buf), "Clan ID %d: PK Wins set to %d.\r\n", clan_list[clannum].vnum,
-             value);
+    snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": PK Wins set to %d.\r\n",
+             clan_list[clannum].vnum, value);
     break;
   case 14: /* clanset clannum pklose <value>*/
     if ((value < 0) || (value > 30000))
@@ -5231,8 +5239,8 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].pk_lose = value;
-    snprintf(buf, sizeof(buf), "Clan ID %d: PK Losses set to %d.\r\n", clan_list[clannum].vnum,
-             value);
+    snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": PK Losses set to %d.\r\n",
+             clan_list[clannum].vnum, value);
     break;
   case 15: /* clanset clannum pklose <value>*/
     if ((value < 0) || (value > 30000))
@@ -5241,8 +5249,8 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].raided = value;
-    snprintf(buf, sizeof(buf), "Clan ID %d: PK Raided set to %d.\r\n", clan_list[clannum].vnum,
-             value);
+    snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": PK Raided set to %d.\r\n",
+             clan_list[clannum].vnum, value);
     break;
 
   case 16: /* clanset <clannum> abbrev <val_arg>*/
@@ -5259,7 +5267,7 @@ ACMD(do_clanset)
       send_to_char(ch, "Memory allocation failed. Changes not saved.\r\n");
       return;
     }
-    snprintf(buf, sizeof(buf), "Clan ID %d: ABREV is now: %s%s", clan_list[clannum].vnum,
+    snprintf(buf, sizeof(buf), "Clan ID %" PRI_IDX ": ABREV is now: %s%s", clan_list[clannum].vnum,
              CLAN_ABREV(clannum), QNRM);
     break;
 
@@ -5407,8 +5415,8 @@ ACMD(do_clantalk)
 
     if (imm)
     {
-      snprintf(buf2, sizeof(buf2), "[%sClan %d - %s %s] ", CBWHT(i->character, C_NRM), c_id,
-               clan_list[c_id - 1].abrev, CBWHT(i->character, C_NRM));
+      snprintf(buf2, sizeof(buf2), "[%sClan %" PRI_IDX " - %s %s] ", CBWHT(i->character, C_NRM),
+               c_id, clan_list[c_id - 1].abrev, CBWHT(i->character, C_NRM));
       strlcat(buf2, buf, sizeof(buf2));
       msg = act(buf2, TRUE, ch, 0, i->character, TO_VICT);
       add_history(i->character, msg, HIST_CLANTALK);

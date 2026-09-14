@@ -10,6 +10,10 @@
 
 char *CuStrAlloc(int size);
 char *CuStrCopy(const char *old);
+/* A writable copy of text for fixtures that store it in a char * field.  Copies
+ * live in a fixed arena for the whole run and are never freed, like the string
+ * literals they replace. */
+char *CuMutableString(const char *text);
 
 #define CU_ALLOC(TYPE) ((TYPE *)malloc(sizeof(TYPE)))
 
@@ -29,7 +33,8 @@ CuString *CuStringNew(void);
 void CuStringRead(CuString *str, const char *path);
 void CuStringAppend(CuString *str, const char *text);
 void CuStringAppendChar(CuString *str, char ch);
-void CuStringAppendFormat(CuString *str, const char *format, ...);
+void CuStringAppendFormat(CuString *str, const char *format, ...)
+    __attribute__((format(printf, 2, 3)));
 void CuStringInsert(CuString *str, const char *text, int pos);
 void CuStringResize(CuString *str, int newSize);
 void CuStringDelete(CuString *str);
@@ -119,5 +124,12 @@ void CuSuiteAddSuite(CuSuite *testSuite, CuSuite *testSuite2);
 void CuSuiteRun(CuSuite *testSuite);
 void CuSuiteSummary(CuSuite *testSuite, CuString *summary);
 void CuSuiteDetails(CuSuite *testSuite, CuString *details);
+
+/* The root suite's build generates a prototype for every Test function
+ * (make-tests.sh --prototypes) so test files satisfy -Wmissing-prototypes.
+ * The generated runner declares the tests itself. */
+#if defined(LUMINARI_CUTEST) && !defined(CUTEST_RUNNER)
+#include "test_prototypes.h"
+#endif
 
 #endif /* CU_TEST_H */

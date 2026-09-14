@@ -296,16 +296,16 @@ int award_experience(struct char_data *ch, int gain, int mode)
     }
 
     // leadership bonus
-    gain = (int)((float)gain * ((float)leadership_exp_multiplier(ch) / (float)(100)));
+    gain = (int)((double)gain * ((double)leadership_exp_multiplier(ch) / (double)(100)));
     /* newbie bonus */
     if (GET_LEVEL(ch) <= NEWBIE_LEVEL)
-      gain += (int)((float)gain * ((float)NEWBIE_EXP / (float)(100)));
+      gain += (int)((double)gain * ((double)NEWBIE_EXP / (double)(100)));
 
     if (HAS_FEAT(ch, FEAT_ADAPTABILITY))
-      gain += (int)((float)gain * .05);
+      gain += (int)((double)gain * .05);
 
     if (HAS_FEAT(ch, FEAT_BG_HERMIT) && get_party_size_same_room(ch) == 1)
-      gain += (int)((float)gain * .05);
+      gain += (int)((double)gain * .05);
 
     /* flat rate for now! (halfed the rate for testing purposes) */
     if (rand_number(0, 1) && ch && ch->desc && ch->desc->account)
@@ -365,7 +365,7 @@ int award_experience(struct char_data *ch, int gain, int mode)
       {
         gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_25 * 4);
       }
-      gain = MIN(gain_cap, gain);
+      gain = (int)long_min(gain_cap, gain);
       break;
     case AWARD_EXP_MODE_GROUP:
     case AWARD_EXP_MODE_SOLO:
@@ -402,13 +402,13 @@ int award_experience(struct char_data *ch, int gain, int mode)
       {
         gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_25);
       }
-      gain = MIN(gain_cap, gain);
+      gain = (int)long_min(gain_cap, gain);
       break;
     }
 
     /* happy hour bonus, purposely applied after above caps */
     if ((IS_HAPPYHOUR) && (IS_HAPPYEXP))
-      gain += (int)((float)gain * ((float)HAPPY_EXP / (float)(100)));
+      gain += (int)((double)gain * ((double)HAPPY_EXP / (double)(100)));
 
     /* put an absolute cap on the max gain per kill */
     gain = MIN(CONFIG_MAX_EXP_GAIN, gain);
@@ -463,7 +463,7 @@ int award_experience_uncapped(struct char_data *ch, int gain, bool is_ress)
   if (!is_ress)
   {
     if ((IS_HAPPYHOUR) && (IS_HAPPYEXP))
-      gain += (int)((float)gain * ((float)HAPPY_EXP / (float)(100)));
+      gain += (int)((double)gain * ((double)HAPPY_EXP / (double)(100)));
   }
 
   gain = (int)award_points(ch, AWARD_EXPERIENCE, gain);

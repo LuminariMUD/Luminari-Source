@@ -34,8 +34,6 @@
 #include "mud_event.h"
 #include "act.h"
 
-extern struct room_data *world;
-extern struct char_data *character_list;
 
 struct encounter_data encounter_table[NUM_ENCOUNTER_TYPES];
 
@@ -67,17 +65,17 @@ void add_encounter_record(int encounter_record, int encounter_type, int min_leve
   encounter_table[encounter_record].sentient = sentient;
 }
 
-void set_encounter_description(int encounter_record, const char *description)
+static void set_encounter_description(int encounter_record, const char *description)
 {
   encounter_table[encounter_record].description = description;
 }
 
-void set_encounter_long_description(int encounter_record, const char *long_description)
+static void set_encounter_long_description(int encounter_record, const char *long_description)
 {
   encounter_table[encounter_record].long_description = long_description;
 }
 
-void initialize_encounter_table(void)
+static void initialize_encounter_table(void)
 {
   int i, j;
 
@@ -110,19 +108,19 @@ void initialize_encounter_table(void)
   }
 }
 
-void add_encounter_sector(int encounter_record, int sector_type)
+static void add_encounter_sector(int encounter_record, int sector_type)
 {
   encounter_table[encounter_record].sector_types[sector_type] = true;
 }
 
-void set_encounter_terrain_any(int encounter_record)
+static void set_encounter_terrain_any(int encounter_record)
 {
   int j;
   for (j = 0; j < NUM_ROOM_SECTORS; j++)
     encounter_table[encounter_record].sector_types[j] = true;
 }
 
-void set_encounter_terrain_all_surface(int encounter_record)
+static void set_encounter_terrain_all_surface(int encounter_record)
 {
   encounter_table[encounter_record].sector_types[SECT_INSIDE] = true;
   encounter_table[encounter_record].sector_types[SECT_INSIDE_ROOM] = true;
@@ -148,7 +146,7 @@ void set_encounter_terrain_all_surface(int encounter_record)
   encounter_table[encounter_record].sector_types[SECT_BEACH] = true;
 }
 
-void set_encounter_terrain_all_underdark(int encounter_record)
+static void set_encounter_terrain_all_underdark(int encounter_record)
 {
   encounter_table[encounter_record].sector_types[SECT_UD_WILD] = true;
   encounter_table[encounter_record].sector_types[SECT_UD_CITY] = true;
@@ -165,7 +163,7 @@ void set_encounter_terrain_all_roads(int encounter_record)
   encounter_table[encounter_record].sector_types[SECT_ROAD_INT] = true;
 }
 
-void set_encounter_terrain_all_water(int encounter_record)
+static void set_encounter_terrain_all_water(int encounter_record)
 {
   encounter_table[encounter_record].sector_types[SECT_WATER_SWIM] = true;
   encounter_table[encounter_record].sector_types[SECT_WATER_NOSWIM] = true;
@@ -1590,7 +1588,7 @@ int get_exploration_dc(struct char_data *ch)
   if (STATE(ch->desc) != CON_PLAYING)
     return 9999;
 
-  int dc = ((int)GET_LEVEL(ch) / 1.5) + 15;
+  int dc = (int)(((int)GET_LEVEL(ch) / 1.5) + 15);
 
   return dc;
 }
@@ -1722,9 +1720,9 @@ void check_random_encounter(struct char_data *ch)
         {
           // set mob details
           GET_REAL_RACE(mob) = encounter_table[j].race_type;
-          GET_SUBRACE(mob, 0) = encounter_table[j].subrace[0];
-          GET_SUBRACE(mob, 1) = encounter_table[j].subrace[1];
-          GET_SUBRACE(mob, 2) = encounter_table[j].subrace[2];
+          GET_SUBRACE(mob, 0) = (byte)encounter_table[j].subrace[0];
+          GET_SUBRACE(mob, 1) = (byte)encounter_table[j].subrace[1];
+          GET_SUBRACE(mob, 2) = (byte)encounter_table[j].subrace[2];
           mob->mob_specials.hostile = encounter_table[j].hostile;
           if (mob->mob_specials.hostile)
             mob->mob_specials.aggro_timer = 5;
@@ -2118,7 +2116,7 @@ void give_gold_to_encounter_mob(struct char_data *ch, int amount)
   }
 }
 
-void encounter_command_description(struct char_data *ch)
+static void encounter_command_description(struct char_data *ch)
 {
   if (!ch)
     return;

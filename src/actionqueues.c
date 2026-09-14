@@ -21,7 +21,7 @@
 #include "combat/combat_encounters.h"
 
 /* Initialize the queue, must be performed on any new queues. */
-struct queue_type *create_queue()
+static struct queue_type *create_queue()
 {
   struct queue_type *queue = NULL;
 
@@ -74,6 +74,8 @@ void clear_action_queue(struct queue_type *queue)
     while (queue->size > 0)
     {
       action = dequeue_action(queue);
+      if (action == NULL)
+        break;
 
       /* Free the memory. */
       free(action->argument);
@@ -96,6 +98,8 @@ void clear_attack_queue(struct queue_type *queue)
     while (queue->size > 0)
     {
       attack = dequeue_attack(queue);
+      if (attack == NULL)
+        break;
 
       /* Free the memory. */
       free(attack->argument);
@@ -105,7 +109,7 @@ void clear_attack_queue(struct queue_type *queue)
   /* Send a custom MSDP event so clients can manage queue displays. */
 };
 
-void enqueue(struct queue_type *queue, void *data)
+static void enqueue(struct queue_type *queue, void *data)
 {
   struct queue_element_type *el = NULL;
 
@@ -141,7 +145,7 @@ void enqueue_attack(struct queue_type *queue, struct attack_action_data *attack)
   /* Send a custom MSDP event so clients can manage queue displays */
 };
 
-void *dequeue(struct queue_type *queue)
+static void *dequeue(struct queue_type *queue)
 {
   void *data;
   struct queue_element_type *el;
@@ -196,7 +200,7 @@ struct attack_action_data *dequeue_attack(struct queue_type *queue)
   return attack;
 }
 
-void *peek(struct queue_type *queue)
+static void *peek(struct queue_type *queue)
 {
   if (queue == NULL)
     return NULL;
@@ -239,6 +243,8 @@ void execute_next_action(struct char_data *ch)
     return;
 
   action = dequeue_action(GET_QUEUE(ch));
+  if (action == NULL)
+    return;
   argument = action->argument;
   free(action);
   command_interpreter(ch, argument);

@@ -16,9 +16,12 @@ runs:
       env:
         EXTRA_PACKAGES: ${{ inputs.packages }}
       run: |
-        sudo apt-get update
+        # Compiler-image container jobs run as root without sudo.
+        sudo=sudo
+        if [[ "$(id -u)" == 0 ]]; then sudo=; fi
+        $sudo apt-get update
         # EXTRA_PACKAGES is a whitespace-separated list of trusted workflow package names.
-        sudo apt-get install -y \
+        $sudo apt-get install -y \
           autoconf automake build-essential ccache cmake libcurl4-openssl-dev libevent-dev \
           libgd-dev libjson-c-dev libmariadb-dev libssl-dev libtool pkg-config zlib1g-dev \
           $EXTRA_PACKAGES

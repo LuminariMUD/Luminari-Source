@@ -4085,7 +4085,7 @@ void begin_preparing(struct char_data *ch, int class)
  */
 int compute_spells_prep_time(struct char_data *ch, int class, int circle, int domain)
 {
-  float prep_time = 0.0;
+  double prep_time = 0.0;
   int bonus_time = 0;
   int stat_bonus = 0;
   int level_bonus = 0;
@@ -4102,7 +4102,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   if (circle > 1 && PREP_TIME_INTERVALS > (INT_MAX - BASE_PREP_TIME) / (circle - 1))
   {
     log("SYSERR: Integer overflow detected in prep time calculation");
-    prep_time = (float)(INT_MAX / 10); /* Set to a large but safe value */
+    prep_time = (double)(INT_MAX / 10); /* Set to a large but safe value */
   }
   else
   {
@@ -4229,7 +4229,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
    */
   if (HAS_FEAT(ch, FEAT_WIZ_MEMORIZATION))
   {
-    int feat_bonus = prep_time / 6;
+    int feat_bonus = (int)(prep_time / 6);
     if (feat_bonus > INT_MAX - bonus_time)
     {
       log("SYSERR: Integer overflow in bonus_time (wiz memorization)");
@@ -4246,7 +4246,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
    */
   if (HAS_FEAT(ch, FEAT_FASTER_MEMORIZATION))
   {
-    int feat_bonus = prep_time / 4;
+    int feat_bonus = (int)(prep_time / 4);
     if (feat_bonus > INT_MAX - bonus_time)
     {
       log("SYSERR: Integer overflow in bonus_time (faster memorization)");
@@ -4263,7 +4263,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
    */
   if (IN_ROOM(ch) != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
   {
-    int room_bonus = prep_time / 4;
+    int room_bonus = (int)(prep_time / 4);
     if (room_bonus > INT_MAX - bonus_time)
     {
       log("SYSERR: Integer overflow in bonus_time (regen room)");
@@ -4364,14 +4364,14 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   /* Swift Extraction: 20% prep speed for alchemists */
   if (class == CLASS_ALCHEMIST && !IS_NPC(ch) && has_alchemist_swift_extraction(ch))
   {
-    int swift_bonus = prep_time / 5; /* 20% reduction */
+    int swift_bonus = (int)(prep_time / 5); /* 20% reduction */
     prep_time -= swift_bonus;
   }
 
   /* Final cap: preparation time cannot be less than the spell's circle
    * This ensures higher level spells always take meaningful time
    */
-  return (MAX(circle, prep_time));
+  return MAX(circle, (int)prep_time);
 }
 
 /* look at top of the queue, and reset preparation time of that entry */

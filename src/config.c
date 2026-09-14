@@ -323,7 +323,7 @@ int medit_advanced_stats = YES;
 
 /* clan claim options */
 /* percentage popularity at which a zone can be claimed (Note: a float, so add .0 to the end for whole numbers) */
-float min_pop_to_claim = 75.0;
+double min_pop_to_claim = 75.0;
 /* Does "bug resolve" autosave ? */
 int ibt_autosave = YES;
 

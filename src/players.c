@@ -54,6 +54,7 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include "obj/objsave.h"
 
 #define LOAD_HIT 0
 #define LOAD_PSP 1
@@ -138,7 +139,6 @@ static void load_wands(FILE *fl, struct char_data *ch);
 static void load_staves(FILE *fl, struct char_data *ch);
 static void load_discoveries(FILE *fl, struct char_data *ch);
 void load_temp_evolutions(FILE *fl, struct char_data *ch);
-bool save_char_pets(struct char_data *ch);
 static void load_mercies(FILE *fl, struct char_data *ch);
 static void load_cruelties(FILE *fl, struct char_data *ch);
 static void load_buffs(FILE *fl, struct char_data *ch);
@@ -197,8 +197,6 @@ static char *build_pet_keyword_list(const char *saved_keywords, const char *prot
 
 
 // external functions
-void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
-bool pet_save_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum);
 
 /* New version to build player index for ASCII Player Files. Generate index
  * table for the player file. */
@@ -261,8 +259,8 @@ void build_player_index(void)
     name_length = strlen(arg2) + 1;
     CREATE(player_table[i].name, char, name_length);
     memcpy(player_table[i].name, arg2, name_length);
-    player_table[i].flags = asciiflag_conv(bits);
-    top_idnum = MAX(top_idnum, player_table[i].id);
+    player_table[i].flags = (int)asciiflag_conv(bits);
+    top_idnum = long_max(top_idnum, player_table[i].id);
   }
 
   fclose(plr_index);
@@ -281,7 +279,7 @@ int create_entry(char *name)
     pos = top_of_p_table = 0;
     CREATE(player_table, struct player_index_element, 1);
   }
-  else if ((pos = get_ptable_by_name(name)) == -1)
+  else if ((pos = (int)get_ptable_by_name(name)) == -1)
   { /* new name */
     i = ++top_of_p_table + 1;
 
@@ -309,7 +307,7 @@ int create_entry(char *name)
 
 /* Remove an entry from the in-memory player index table.               *
  * Requires the 'pos' value returned by the get_ptable_by_name function */
-void remove_player_from_index(int pos)
+static void remove_player_from_index(int pos)
 {
   int i;
 
@@ -518,7 +516,7 @@ int load_char(const char *name, struct char_data *ch)
   trig_data *t = NULL;
   trig_rnum t_rnum = NOTHING;
 
-  if ((id = get_ptable_by_name(name)) < 0)
+  if ((id = (int)get_ptable_by_name(name)) < 0)
     return (-1);
   else
   {
@@ -893,34 +891,34 @@ int load_char(const char *name, struct char_data *ch)
           if (sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4) == 4)
           {
             PLR_FLAGS(ch)
-            [0] = asciiflag_conv(f1);
+            [0] = (int)asciiflag_conv(f1);
             PLR_FLAGS(ch)
-            [1] = asciiflag_conv(f2);
+            [1] = (int)asciiflag_conv(f2);
             PLR_FLAGS(ch)
-            [2] = asciiflag_conv(f3);
+            [2] = (int)asciiflag_conv(f3);
             PLR_FLAGS(ch)
-            [3] = asciiflag_conv(f4);
+            [3] = (int)asciiflag_conv(f4);
           }
           else
             PLR_FLAGS(ch)
-          [0] = asciiflag_conv(line);
+          [0] = (int)asciiflag_conv(line);
         }
         else if (!strcmp(tag, "Aff "))
         {
           if (sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4) == 4)
           {
             AFF_FLAGS(ch)
-            [0] = asciiflag_conv(f1);
+            [0] = (int)asciiflag_conv(f1);
             AFF_FLAGS(ch)
-            [1] = asciiflag_conv(f2);
+            [1] = (int)asciiflag_conv(f2);
             AFF_FLAGS(ch)
-            [2] = asciiflag_conv(f3);
+            [2] = (int)asciiflag_conv(f3);
             AFF_FLAGS(ch)
-            [3] = asciiflag_conv(f4);
+            [3] = (int)asciiflag_conv(f4);
           }
           else
             AFF_FLAGS(ch)
-          [0] = asciiflag_conv(line);
+          [0] = (int)asciiflag_conv(line);
         }
         else if (!strcmp(tag, "AExp"))
           GET_ARTISAN_EXP(ch) = atoi(line);
@@ -946,7 +944,7 @@ int load_char(const char *name, struct char_data *ch)
 
       case 'B':
         if (!strcmp(tag, "Badp"))
-          GET_BAD_PWS(ch) = atoi(line);
+          GET_BAD_PWS(ch) = (ubyte)atoi(line);
         else if (!strcmp(tag, "BGnd"))
           GET_BACKGROUND(ch) = atoi(line);
         else if (!strcmp(tag, "BgFx"))
@@ -984,7 +982,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Bomb"))
           load_bombs(fl, ch);
         else if (!strcmp(tag, "Bost"))
-          GET_BOOSTS(ch) = atoi(line);
+          GET_BOOSTS(ch) = (ubyte)atoi(line);
         else if (!strcmp(tag, "Bank"))
           GET_BANK_GOLD(ch) = atoi(line);
         else if (!strcmp(tag, "Brth"))
@@ -1008,10 +1006,10 @@ int load_char(const char *name, struct char_data *ch)
             log("load_char: %s combat feat record out of range: %s", GET_NAME(ch), line);
             break;
           }
-          ch->char_specials.saved.combat_feats[i][0] = asciiflag_conv(f1);
-          ch->char_specials.saved.combat_feats[i][1] = asciiflag_conv(f2);
-          ch->char_specials.saved.combat_feats[i][2] = asciiflag_conv(f3);
-          ch->char_specials.saved.combat_feats[i][3] = asciiflag_conv(f4);
+          ch->char_specials.saved.combat_feats[i][0] = (int)asciiflag_conv(f1);
+          ch->char_specials.saved.combat_feats[i][1] = (int)asciiflag_conv(f2);
+          ch->char_specials.saved.combat_feats[i][2] = (int)asciiflag_conv(f3);
+          ch->char_specials.saved.combat_feats[i][3] = (int)asciiflag_conv(f4);
         }
         else if (!strcmp(tag, "Cfpt"))
           load_class_feat_points(fl, ch);
@@ -1044,9 +1042,9 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Cvnm"))
           GET_AUTOCQUEST_VNUM(ch) = atoi(line);
         else if (!strcmp(tag, "Cmnm"))
-          GET_AUTOCQUEST_MAKENUM(ch) = atoi(line);
+          GET_AUTOCQUEST_MAKENUM(ch) = (ubyte)atoi(line);
         else if (!strcmp(tag, "Cqps"))
-          GET_AUTOCQUEST_QP(ch) = atoi(line);
+          GET_AUTOCQUEST_QP(ch) = (ubyte)atoi(line);
         else if (!strcmp(tag, "Cexp"))
           GET_AUTOCQUEST_EXP(ch) = atoi(line);
         else if (!strcmp(tag, "Cgld"))
@@ -1054,7 +1052,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Cdsc"))
           GET_AUTOCQUEST_DESC(ch) = strdup(line);
         else if (!strcmp(tag, "Cmat"))
-          GET_AUTOCQUEST_MATERIAL(ch) = atoi(line);
+          GET_AUTOCQUEST_MATERIAL(ch) = (ubyte)atoi(line);
         else if (!strcmp(tag, "ChEn"))
           ch->player_specials->saved.channel_energy_type = atoi(line);
         else if (!strcmp(tag, "CrAf"))
@@ -1169,7 +1167,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "DRMd"))
           GET_DR_MOD(ch) = atoi(line);
         else if (!strcmp(tag, "Drnk"))
-          GET_COND(ch, DRUNK) = atoi(line);
+          GET_COND(ch, DRUNK) = (sbyte)atoi(line);
         else if (!strcmp(tag, "Drol"))
           GET_REAL_DAMROLL(ch) = atoi(line);
         else if (!strcmp(tag, "Disc"))
@@ -1177,7 +1175,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "DipT"))
           GET_DIPTIMER(ch) = atoi(line);
         else if (!strcmp(tag, "DRac"))
-          GET_DISGUISE_RACE(ch) = atoi(line);
+          GET_DISGUISE_RACE(ch) = (sh_int)atoi(line);
         else if (!strcmp(tag, "DDex"))
           GET_DISGUISE_DEX(ch) = atoi(line);
         else if (!strcmp(tag, "DStr"))
@@ -1187,9 +1185,9 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "DAC "))
           GET_DISGUISE_AC(ch) = atoi(line);
         else if (!strcmp(tag, "Dom1"))
-          GET_1ST_DOMAIN(ch) = atoi(line);
+          GET_1ST_DOMAIN(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "Dom2"))
-          GET_2ND_DOMAIN(ch) = atoi(line);
+          GET_2ND_DOMAIN(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "DrMU"))
           DRAGON_MAGIC_USES(ch) = atoi(line);
         else if (!strcmp(tag, "DrMT"))
@@ -1212,7 +1210,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Ecfp"))
           load_epic_class_feat_points(fl, ch);
         else if (!strcmp(tag, "Efpt"))
-          GET_EPIC_FEAT_POINTS(ch) = atoi(line);
+          GET_EPIC_FEAT_POINTS(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "EidB"))
           GET_EIDOLON_BASE_FORM(ch) = atoi(line);
         else if (!strcmp(tag, "EidC"))
@@ -1231,7 +1229,7 @@ int load_char(const char *name, struct char_data *ch)
 
       case 'F':
         if (!strcmp(tag, "Frez"))
-          GET_FREEZE_LEV(ch) = atoi(line);
+          GET_FREEZE_LEV(ch) = (byte)atoi(line);
         if (!strcmp(tag, "FBAB"))
           FIXED_BAB(ch) = atoi(line);
         else if (!strcmp(tag, "FaEn"))
@@ -1259,7 +1257,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "FLGU"))
           FLEETING_GLANCE_USES(ch) = atoi(line);
         else if (!strcmp(tag, "Ftpt"))
-          GET_FEAT_POINTS(ch) = atoi(line);
+          GET_FEAT_POINTS(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "FSWT"))
           FEY_SHADOW_WALK_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "FSWU"))
@@ -1319,7 +1317,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Hrol"))
           GET_REAL_HITROLL(ch) = atoi(line);
         else if (!strcmp(tag, "Hung"))
-          GET_COND(ch, HUNGER) = atoi(line);
+          GET_COND(ch, HUNGER) = (sbyte)atoi(line);
         break;
 
       case 'I':
@@ -1338,7 +1336,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Int "))
           GET_REAL_INT(ch) = atoi(line);
         else if (!strcmp(tag, "Invs"))
-          GET_INVIS_LEV(ch) = atoi(line);
+          GET_INVIS_LEV(ch) = (sh_int)atoi(line);
         else if (!strcmp(tag, "InFT"))
           INCORPOREAL_FORM_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "InFU"))
@@ -1388,7 +1386,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Mote"))
           load_craft_motes_onhand(fl, ch);
         else if (!strcmp(tag, "Mrph"))
-          IS_MORPHED(ch) = atol(line);
+          IS_MORPHED(ch) = (ubyte)(atol(line));
         else if (!strcmp(tag, "MFrm"))
           MERGE_FORMS_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "Mrcy"))
@@ -1405,17 +1403,17 @@ int load_char(const char *name, struct char_data *ch)
               CREATE(ch->player_specials, struct player_special_data, 1);
             }
             /* Find the first empty slot to load this material */
-            int i;
-            for (i = 0; i < MAX_STORED_MATERIALS; i++)
+            int inner_i;
+            for (inner_i = 0; inner_i < MAX_STORED_MATERIALS; inner_i++)
             {
-              if (ch->player_specials->saved.stored_materials[i].quantity == 0)
+              if (ch->player_specials->saved.stored_materials[inner_i].quantity == 0)
               {
                 if (validate_material_data(category, subtype, quality) && quantity > 0)
                 {
-                  ch->player_specials->saved.stored_materials[i].category = category;
-                  ch->player_specials->saved.stored_materials[i].subtype = subtype;
-                  ch->player_specials->saved.stored_materials[i].quality = quality;
-                  ch->player_specials->saved.stored_materials[i].quantity = quantity;
+                  ch->player_specials->saved.stored_materials[inner_i].category = category;
+                  ch->player_specials->saved.stored_materials[inner_i].subtype = subtype;
+                  ch->player_specials->saved.stored_materials[inner_i].quality = quality;
+                  ch->player_specials->saved.stored_materials[inner_i].quantity = quantity;
                 }
                 break;
               }
@@ -1476,7 +1474,7 @@ int load_char(const char *name, struct char_data *ch)
 
       case 'P':
         if (!strcmp(tag, "Page"))
-          GET_PAGE_LENGTH(ch) = atoi(line);
+          GET_PAGE_LENGTH(ch) = (ubyte)atoi(line);
         else if (!strcmp(tag, "Pass"))
           strlcpy(GET_PASSWD(ch), line, sizeof(ch->player.passwd));
         else if (!strcmp(tag, "Potn"))
@@ -1505,25 +1503,25 @@ int load_char(const char *name, struct char_data *ch)
           if (parsed == 4)
           {
             PRF_FLAGS(ch)
-            [0] = asciiflag_conv(f1);
+            [0] = (int)asciiflag_conv(f1);
             PRF_FLAGS(ch)
-            [1] = asciiflag_conv(f2);
+            [1] = (int)asciiflag_conv(f2);
             PRF_FLAGS(ch)
-            [2] = asciiflag_conv(f3);
+            [2] = (int)asciiflag_conv(f3);
             PRF_FLAGS(ch)
-            [3] = asciiflag_conv(f4);
+            [3] = (int)asciiflag_conv(f4);
           }
           else if (parsed == 1)
             PRF_FLAGS(ch)
-          [0] = asciiflag_conv(f1);
+          [0] = (int)asciiflag_conv(f1);
           else log("load_char: %s has an invalid preference flag record: %s", GET_NAME(ch), line);
         }
         else if (!strcmp(tag, "PrQu"))
           load_spell_prep_queue(fl, ch);
         else if (!strcmp(tag, "PCAr"))
-          GET_PREFERRED_ARCANE(ch) = atoi(line);
+          GET_PREFERRED_ARCANE(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "PCDi"))
-          GET_PREFERRED_DIVINE(ch) = atoi(line);
+          GET_PREFERRED_DIVINE(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "PSP "))
           load_HMVS(ch, line, LOAD_PSP);
         else if (!strcmp(tag, "PSRg"))
@@ -1609,7 +1607,7 @@ int load_char(const char *name, struct char_data *ch)
           int power_strike_value;
           if (sscanf(line, "%d", &power_strike_value) == 1)
           {
-            ch->player_specials->saved.power_strike = power_strike_value;
+            ch->player_specials->saved.power_strike = (sbyte)power_strike_value;
           }
         }
         else if (!strcmp(tag, "PPsS"))
@@ -1806,9 +1804,9 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "ResK"))
           GET_REAL_RESISTANCES(ch, 20) = atoi(line);
         else if (!strcmp(tag, "RSc1"))
-          GET_1ST_RESTRICTED_SCHOOL(ch) = atoi(line);
+          GET_1ST_RESTRICTED_SCHOOL(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "RSc2"))
-          GET_2ND_RESTRICTED_SCHOOL(ch) = atoi(line);
+          GET_2ND_RESTRICTED_SCHOOL(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "RetC"))
           GET_RETAINER_COOLDOWN(ch) = atoi(line);
         else if (!strcmp(tag, "BDsU"))
@@ -1860,14 +1858,14 @@ int load_char(const char *name, struct char_data *ch)
             log("load_char: %s school feat record out of range: %s", GET_NAME(ch), line);
             break;
           }
-          ch->char_specials.saved.school_feats[i] = asciiflag_conv(f1);
+          ch->char_specials.saved.school_feats[i] = (int)asciiflag_conv(f1);
         }
         else if (!strcmp(tag, "Scrl"))
           load_scrolls(fl, ch);
         else if (!strcmp(tag, "Scrg"))
           GET_SCROUNGE_COOLDOWN(ch) = atoi(line);
         else if (!strcmp(tag, "ScrW"))
-          GET_SCREEN_WIDTH(ch) = atoi(line);
+          GET_SCREEN_WIDTH(ch) = (ubyte)atoi(line);
         else if (!strcmp(tag, "SpWC"))
           GET_SPIRITUAL_WEAPON_COOLDOWN(ch) = atoi(line);
         else if (!strcmp(tag, "IrMC"))
@@ -1891,13 +1889,13 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Stav"))
           load_staves(fl, ch);
         else if (!strcmp(tag, "Slyr"))
-          GET_SLAYER_JUDGEMENT(ch) = atoi(line);
+          GET_SLAYER_JUDGEMENT(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "SySt"))
           HAS_SET_STATS_STUDY(ch) = atoi(line);
         else if (!strcmp(tag, "Str "))
           load_HMVS(ch, line, LOAD_STRENGTH);
         else if (!strcmp(tag, "SSch"))
-          GET_SPECIALTY_SCHOOL(ch) = atoi(line);
+          GET_SPECIALTY_SCHOOL(ch) = (byte)atoi(line);
         else if (!strcmp(tag, "SpNM"))
           GET_NSUPPLY_NUM_MADE(ch) = atoi(line);
         else if (!strcmp(tag, "SpCd"))
@@ -1998,7 +1996,7 @@ int load_char(const char *name, struct char_data *ch)
           }
         }
         else if (!strcmp(tag, "Tmpl"))
-          GET_TEMPLATE(ch) = atoi(line);
+          GET_TEMPLATE(ch) = (ubyte)atoi(line);
         else if (!strcmp(tag, "Tlpt"))
           GET_TALENT_POINTS(ch) = atoi(line);
         else if (!strcmp(tag, "Tlbt"))
@@ -2009,13 +2007,14 @@ int load_char(const char *name, struct char_data *ch)
           ch->player_specials->saved.talents_bits[0] = b1;
           ch->player_specials->saved.talents_bits[1] = b2;
           {
-            int t;
-            for (t = 1; t < 64; t++)
+            int inner_t;
+            for (inner_t = 1; inner_t < 64; inner_t++)
             {
-              unsigned int idx = (t / 32);
-              unsigned int mask = (1U << (t % 32));
-              if (((idx == 0 ? b1 : b2) & mask) && ch->player_specials->saved.talent_ranks[t] == 0)
-                ch->player_specials->saved.talent_ranks[t] = 1;
+              unsigned int idx = (inner_t / 32);
+              unsigned int mask = (1U << (inner_t % 32));
+              if (((idx == 0 ? b1 : b2) & mask) &&
+                  ch->player_specials->saved.talent_ranks[inner_t] == 0)
+                ch->player_specials->saved.talent_ranks[inner_t] = 1;
             }
           }
         }
@@ -2026,12 +2025,12 @@ int load_char(const char *name, struct char_data *ch)
           int consumed = 0;
           const char *p = line;
           int val;
-          int t;
-          for (t = 0; t < 64; t++)
+          int inner_t;
+          for (inner_t = 0; inner_t < 64; inner_t++)
           {
             if (sscanf(p, "%d%n", &val, &consumed) == 1)
             {
-              ch->player_specials->saved.talent_ranks[t] = (ubyte)MAX(0, MIN(255, val));
+              ch->player_specials->saved.talent_ranks[inner_t] = (ubyte)MAX(0, MIN(255, val));
               p += consumed;
             }
             else
@@ -2041,7 +2040,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "TEvo"))
           load_temp_evolutions(fl, ch);
         else if (!strcmp(tag, "Thir"))
-          GET_COND(ch, THIRST) = atoi(line);
+          GET_COND(ch, THIRST) = (sbyte)atoi(line);
         else if (!strcmp(tag, "Thr1"))
           GET_REAL_SAVE(ch, 0) = atoi(line);
         else if (!strcmp(tag, "Thr2"))
@@ -2170,7 +2169,7 @@ int load_char(const char *name, struct char_data *ch)
     restore_status =
         mud_event_restore_character_record(ch, &pending_event->record, (int64_t)time(NULL));
     if (restore_status != MUD_EVENT_RESTORE_OK && restore_status != MUD_EVENT_RESTORE_EXPIRED)
-      log("SYSERR: Ignoring durable event %d for %s: %s.", pending_event->record.event_type,
+      log("SYSERR: Ignoring durable event %u for %s: %s.", pending_event->record.event_type,
           GET_NAME(ch), mud_event_restore_status_name(restore_status));
     free(pending_event);
   }
@@ -2210,7 +2209,8 @@ int load_char(const char *name, struct char_data *ch)
 /* Write the vital data of a player to the player file. */
 
 static bool append_player_save_buffer(char **buffer, size_t *capacity, size_t *used,
-                                      const char *format, ...);
+                                      const char *format, ...)
+    __attribute__((format(printf, 4, 5)));
 
 /* Helper function for save_char to optimize string operations */
 static bool buffer_write_string_field(char **buffer, size_t *capacity, size_t *used,
@@ -2366,6 +2366,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   char *write_buffer = NULL;
   size_t buffer_size = 65536; /* 64KB initial buffer */
   size_t buffer_used = 0;
+  unsigned int b1, b2; /* legacy talent bitset words */
 
   /* Performance timing */
   struct timeval start_time, end_time;
@@ -2436,7 +2437,7 @@ bool save_char_checked(struct char_data *ch, int mode)
     /* Only update the time.played and time.logon if the character is playing. */
     if (STATE(ch->desc) == CON_PLAYING)
     {
-      ch->player.time.played += time(0) - ch->player.time.logon;
+      ch->player.time.played += (int)(time(0) - ch->player.time.logon);
       ch->player.time.logon = time(0);
     }
   }
@@ -2469,7 +2470,7 @@ bool save_char_checked(struct char_data *ch, int mode)
           !mud_event_make_durable_record(ch, pMudEvent, save_epoch,
                                          &saved_events[saved_event_count]))
       {
-        log("SYSERR: Unable to serialize persisted event %d (%s) for %s.", pMudEvent->iId,
+        log("SYSERR: Unable to serialize persisted event %u (%s) for %s.", pMudEvent->iId,
             mud_event_index[pMudEvent->iId].event_name, GET_NAME(ch));
         save_ok = FALSE;
         continue;
@@ -2651,7 +2652,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   BUFFER_WRITE("Plyd: %d\n", ch->player.time.played);
   BUFFER_WRITE("Last: %ld\n", (long)ch->player.time.logon);
   BUFFER_WRITE("CkAt: %" PRId64 "\n", save_epoch);
-  BUFFER_WRITE("LstR: %d\n", GET_LAST_ROOM(ch));
+  BUFFER_WRITE("LstR: %d\n", (int)GET_LAST_ROOM(ch));
 
   if (GET_LAST_MOTD(ch) != PFDEF_LASTMOTD)
     BUFFER_WRITE("Lmot: %d\n", (int)GET_LAST_MOTD(ch));
@@ -2701,7 +2702,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   BUFFER_WRITE("MiXp: %ld\n", GET_MISSION_EXP(ch));
   BUFFER_WRITE("MiDf: %d\n", GET_MISSION_DIFFICULTY(ch));
   BUFFER_WRITE("MiRN: %d\n", GET_MISSION_NPC_NAME_NUM(ch));
-  BUFFER_WRITE("MiRm: %d\n", GET_CURRENT_MISSION_ROOM(ch));
+  BUFFER_WRITE("MiRm: %d\n", (int)GET_CURRENT_MISSION_ROOM(ch));
 
   if (GET_QUIT_SURVEY_DONE(ch))
     BUFFER_WRITE("QSvy: %d\n", GET_QUIT_SURVEY_DONE(ch));
@@ -2790,7 +2791,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   if (GET_INVIS_LEV(ch) != PFDEF_INVISLEV)
     BUFFER_WRITE("Invs: %d\n", GET_INVIS_LEV(ch));
   if (GET_LOADROOM(ch) != PFDEF_LOADROOM)
-    BUFFER_WRITE("Room: %d\n", GET_LOADROOM(ch));
+    BUFFER_WRITE("Room: %d\n", (int)GET_LOADROOM(ch));
   if (ch->player_specials->saved.active_fiendish_boons != 0)
     BUFFER_WRITE("FdBn: %d\n", ch->player_specials->saved.active_fiendish_boons);
   if (ch->player_specials->saved.channel_energy_type != 0)
@@ -2844,7 +2845,8 @@ bool save_char_checked(struct char_data *ch, int mode)
     BUFFER_WRITE(" %d", ch->player_specials->saved.talent_ranks[i]);
   BUFFER_WRITE("\n");
   /* Also write a zeroed legacy bitset for compatibility, or synthesize from ranks */
-  unsigned int b1 = 0, b2 = 0;
+  b1 = 0;
+  b2 = 0;
   for (i = 1; i < 64; i++)
     if (ch->player_specials->saved.talent_ranks[i] > 0)
     {
@@ -2970,15 +2972,15 @@ bool save_char_checked(struct char_data *ch, int mode)
     BUFFER_WRITE("BSlT: %d\n", GET_BONUS_SLOTS_REGEN_TIMER(ch));
   BUFFER_WRITE("God : %d\n", GET_DEITY(ch));
   if (GET_AUTOCQUEST_VNUM(ch) != PFDEF_AUTOCQUEST_VNUM)
-    BUFFER_WRITE("Cvnm: %d\n", GET_AUTOCQUEST_VNUM(ch));
+    BUFFER_WRITE("Cvnm: %d\n", (int)GET_AUTOCQUEST_VNUM(ch));
   if (GET_AUTOCQUEST_MAKENUM(ch) != PFDEF_AUTOCQUEST_MAKENUM)
     BUFFER_WRITE("Cmnm: %d\n", GET_AUTOCQUEST_MAKENUM(ch));
   if (GET_AUTOCQUEST_QP(ch) != PFDEF_AUTOCQUEST_QP)
     BUFFER_WRITE("Cqps: %d\n", GET_AUTOCQUEST_QP(ch));
   if (GET_AUTOCQUEST_EXP(ch) != PFDEF_AUTOCQUEST_EXP)
-    BUFFER_WRITE("Cexp: %d\n", GET_AUTOCQUEST_EXP(ch));
+    BUFFER_WRITE("Cexp: %d\n", (int)GET_AUTOCQUEST_EXP(ch));
   if (GET_AUTOCQUEST_GOLD(ch) != PFDEF_AUTOCQUEST_GOLD)
-    BUFFER_WRITE("Cgld: %d\n", GET_AUTOCQUEST_GOLD(ch));
+    BUFFER_WRITE("Cgld: %d\n", (int)GET_AUTOCQUEST_GOLD(ch));
   if (GET_AUTOCQUEST_DESC(ch) != PFDEF_AUTOCQUEST_DESC)
     BUFFER_WRITE("Cdsc: %s\n", GET_AUTOCQUEST_DESC(ch));
   if (GET_AUTOCQUEST_MATERIAL(ch) != PFDEF_AUTOCQUEST_MATERIAL)
@@ -3063,7 +3065,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   {
     BUFFER_WRITE("Qest:\n");
     for (i = 0; i < GET_NUM_QUESTS(ch); i++)
-      BUFFER_WRITE("%d\n", ch->player_specials->saved.completed_quests[i]);
+      BUFFER_WRITE("%d\n", (int)ch->player_specials->saved.completed_quests[i]);
     BUFFER_WRITE("%d\n", (int)NOTHING);
   }
 
@@ -3102,7 +3104,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   if (GET_DIPTIMER(ch) != PFDEF_DIPTIMER)
     BUFFER_WRITE("DipT: %d\n", GET_DIPTIMER(ch));
   if (GET_CLAN(ch) != PFDEF_CLAN)
-    BUFFER_WRITE("Cln : %d\n", GET_CLAN(ch));
+    BUFFER_WRITE("Cln : %d\n", (int)GET_CLAN(ch));
   if (GET_CLANRANK(ch) != PFDEF_CLANRANK)
     BUFFER_WRITE("Clrk: %d\n", GET_CLANRANK(ch));
   if (GET_CLANPOINTS(ch) != PFDEF_CLANPOINTS)
@@ -3120,12 +3122,12 @@ bool save_char_checked(struct char_data *ch, int mode)
   if (SCRIPT(ch))
   {
     for (t = TRIGGERS(SCRIPT(ch)); t; t = t->next)
-      BUFFER_WRITE("Trig: %d\n", GET_TRIG_VNUM(t));
+      BUFFER_WRITE("Trig: %d\n", (int)GET_TRIG_VNUM(t));
   }
 
   if (ch->desc)
   {
-    BUFFER_WRITE("GMCP: %d\n", ch->desc->pProtocol->bGMCP);
+    BUFFER_WRITE("GMCP: %d\n", (int)ch->desc->pProtocol->bGMCP);
     BUFFER_WRITE("XTrm: %d\n", ch->desc->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt);
     BUFFER_WRITE("UTF8: %d\n", ch->desc->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt);
   }
@@ -3140,7 +3142,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   // save devices from do_device here
   if (ch->player_specials->saved.num_inventions > 0)
   {
-    int j;
+    int inner_j;
     BUFFER_WRITE("Dvis:\n");
     BUFFER_WRITE("%d\n", ch->player_specials->saved.num_inventions);
     for (i = 0; i < ch->player_specials->saved.num_inventions; i++)
@@ -3153,17 +3155,17 @@ bool save_char_checked(struct char_data *ch, int mode)
       BUFFER_WRITE("%d %d %d %d %ld\n", inv->num_spells, inv->duration, inv->reliability, inv->uses,
                    (long)inv->cooldown_expires);
       /* Save spell effects */
-      for (j = 0; j < inv->num_spells && j < MAX_INVENTION_SPELLS; j++)
-        BUFFER_WRITE("%d\n", inv->spell_effects[j]);
+      for (inner_j = 0; inner_j < inv->num_spells && inner_j < MAX_INVENTION_SPELLS; inner_j++)
+        BUFFER_WRITE("%d\n", inv->spell_effects[inner_j]);
       /* Fill remaining spell slots with -1 */
-      for (j = inv->num_spells; j < MAX_INVENTION_SPELLS; j++)
+      for (inner_j = inv->num_spells; inner_j < MAX_INVENTION_SPELLS; inner_j++)
         BUFFER_WRITE("-1\n");
 
       /* Save chosen spell levels (marker + values for backward compatibility) */
       BUFFER_WRITE("Lvls:\n");
-      for (j = 0; j < inv->num_spells && j < MAX_INVENTION_SPELLS; j++)
-        BUFFER_WRITE("%d\n", inv->spell_levels[j]);
-      for (j = inv->num_spells; j < MAX_INVENTION_SPELLS; j++)
+      for (inner_j = 0; inner_j < inv->num_spells && inner_j < MAX_INVENTION_SPELLS; inner_j++)
+        BUFFER_WRITE("%d\n", inv->spell_levels[inner_j]);
+      for (inner_j = inv->num_spells; inner_j < MAX_INVENTION_SPELLS; inner_j++)
         BUFFER_WRITE("0\n");
     }
     BUFFER_WRITE("-1\n"); /* terminator */
@@ -3489,7 +3491,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   BUFFER_WRITE("PTog: ");
   for (i = 0; i < 32; i++)
   {
-    BUFFER_WRITE("%02x", ch->player_specials->saved.perk_toggles[i]);
+    BUFFER_WRITE("%02x", (unsigned int)ch->player_specials->saved.perk_toggles[i]);
   }
   BUFFER_WRITE("\n");
 
@@ -3725,9 +3727,10 @@ bool save_char_checked(struct char_data *ch, int mode)
     for (saved_event_index = 0; saved_event_index < saved_event_count; saved_event_index++)
     {
       record = &saved_events[saved_event_index];
-      BUFFER_WRITE("%d %u %" PRId64 " %" PRId64 " %" PRId64 " %d %" PRId64 "\n", record->event_type,
-                   record->schema_version, record->owner_id, record->remaining_ticks,
-                   record->saved_at_epoch, record->payload_value, record->recovery_interval_ticks);
+      BUFFER_WRITE("%d %u %" PRId64 " %" PRId64 " %" PRId64 " %d %" PRId64 "\n",
+                   (int)record->event_type, record->schema_version, record->owner_id,
+                   record->remaining_ticks, record->saved_at_epoch, record->payload_value,
+                   record->recovery_interval_ticks);
     }
     BUFFER_WRITE("-1\n");
   }
@@ -3943,7 +3946,7 @@ save_char_restore:
     return FALSE;
   }
 
-  if ((id = get_ptable_by_name(GET_NAME(ch))) < 0)
+  if ((id = (int)get_ptable_by_name(GET_NAME(ch))) < 0)
   {
     PERF_PROF_EXIT(pr_save_char_checked_);
     return FALSE;
@@ -4303,11 +4306,10 @@ static void load_dr(FILE *f1, struct char_data *ch)
     }
     if (num > 0)
     {
-      /* Set the DR data.*/
-      CREATE(dr, struct damage_reduction_type, 1);
-
       if (n_vars == 5)
       {
+        /* Set the DR data.*/
+        CREATE(dr, struct damage_reduction_type, 1);
         dr->duration = 0; /* Initialize duration field - CRITICAL FIX (loaded from file) */
         dr->amount = num2;
         dr->max_damage = num3;
@@ -4998,7 +5000,7 @@ static void load_judgements(FILE *fl, struct char_data *ch)
     sscanf(line, "%d", &num);
     if (num != -1)
     {
-      IS_JUDGEMENT_ACTIVE(ch, i) = num;
+      IS_JUDGEMENT_ACTIVE(ch, i) = (byte)num;
       i++;
     }
   } while (num != -1);
@@ -5048,7 +5050,7 @@ static void load_favored_enemy(FILE *fl, struct char_data *ch)
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
     if (num >= 0 && num < MAX_ENEMIES)
-      GET_FAVORED_ENEMY(ch, num) = num2;
+      GET_FAVORED_ENEMY(ch, num) = (ubyte)num2;
   } while (num != -1);
 }
 
@@ -5062,7 +5064,7 @@ static void load_favored_terrains(FILE *fl, struct char_data *ch)
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
     if (num != -1 && num >= 0 && num < MAX_ENEMIES)
-      GET_FAVORED_TERRAINS(ch, num) = num2;
+      GET_FAVORED_TERRAINS(ch, num) = (sbyte)num2;
   } while (num != -1);
 }
 
@@ -5149,7 +5151,7 @@ static void load_abilities(FILE *fl, struct char_data *ch)
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
     if (num != 0)
-      GET_ABILITY(ch, num) = num2;
+      GET_ABILITY(ch, num) = (ubyte)num2;
   } while (num != 0);
 }
 
@@ -5258,8 +5260,7 @@ static void load_devices(FILE *fl, struct char_data *ch)
       /* No levels section in save; use default 0s and stash pre-read line for next loop/terminator */
       for (spell_idx = 0; spell_idx < MAX_INVENTION_SPELLS; spell_idx++)
         inv->spell_levels[spell_idx] = 0;
-      strncpy(pre_line, line, sizeof(pre_line) - 1);
-      pre_line[sizeof(pre_line) - 1] = '\0';
+      snprintf(pre_line, sizeof(pre_line), "%s", line);
       has_pre_line = 1;
     }
   }
@@ -5371,7 +5372,7 @@ void load_class_feat_points(FILE *fl, struct char_data *ch)
 
     if ((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
       return;
-    GET_CLASS_FEATS(ch, cls) = pts;
+    GET_CLASS_FEATS(ch, cls) = (byte)pts;
   } while (1);
 }
 
@@ -5386,7 +5387,7 @@ void load_epic_class_feat_points(FILE *fl, struct char_data *ch)
 
     if ((num_fields = sscanf(line, "%d %d", &cls, &pts)) == 1)
       return;
-    GET_EPIC_CLASS_FEATS(ch, cls) = pts;
+    GET_EPIC_CLASS_FEATS(ch, cls) = (byte)pts;
   } while (1);
 }
 
@@ -5757,22 +5758,23 @@ bool update_player_last_on_single(struct char_data *ch)
   if (GET_LEVEL(ch) < LVL_IMMORT)
   {
     int inc, class_count = 0;
-    len = snprintf_append(classes_list, sizeof(classes_list), len, "[%2d %4s ", GET_LEVEL(ch),
+    len = snprintf_append(classes_list, sizeof(classes_list), (int)len, "[%2d %4s ", GET_LEVEL(ch),
                           RACE_ABBR_REAL(ch));
     for (inc = 0; inc < MAX_CLASSES; inc++)
     {
       if (CLASS_LEVEL(ch, inc))
       {
         if (class_count)
-          len = snprintf_append(classes_list, sizeof(classes_list), len, "|");
-        len = snprintf_append(classes_list, sizeof(classes_list), len, "%s", CLSLIST_ABBRV(inc));
+          len = snprintf_append(classes_list, sizeof(classes_list), (int)len, "|");
+        len =
+            snprintf_append(classes_list, sizeof(classes_list), (int)len, "%s", CLSLIST_ABBRV(inc));
         class_count++;
       }
     }
-    class_len = strlen(classes_list) - count_color_chars(classes_list);
+    class_len = (int)(strlen(classes_list) - count_color_chars(classes_list));
     while (class_len < 11)
     {
-      len = snprintf_append(classes_list, sizeof(classes_list), len, " ");
+      len = snprintf_append(classes_list, sizeof(classes_list), (int)len, " ");
       class_len++;
     }
     snprintf(char_info, sizeof(char_info), "%s]", classes_list);
@@ -6328,8 +6330,8 @@ static void apply_pet_runtime_state(struct char_data *pet, const struct pet_runt
   GET_REAL_MAX_PSP(pet) = state->max_psp;
   GET_REAL_HITROLL(pet) = state->hitroll;
   GET_REAL_DAMROLL(pet) = state->damroll;
-  pet->mob_specials.damnodice = state->damnodice;
-  pet->mob_specials.damsizedice = state->damsizedice;
+  pet->mob_specials.damnodice = (byte)state->damnodice;
+  pet->mob_specials.damsizedice = (byte)state->damsizedice;
   GET_ALIGNMENT(pet) = state->alignment;
   for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
     GET_REAL_SAVE(pet, i) = state->saves[i];
@@ -7154,27 +7156,27 @@ static struct char_data *prepare_saved_pet_row(struct char_data *ch, MYSQL_ROW r
       GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
       GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
       mob->mob_specials.damnodice =
-          mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100);
       mob->mob_specials.damsizedice =
-          mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100);
     }
     else if (GET_LEVEL(mob) <= 20)
     {
       GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
       GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
       mob->mob_specials.damnodice =
-          mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100);
       mob->mob_specials.damsizedice =
-          mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100);
     }
     else
     {
       GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
       GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
       mob->mob_specials.damnodice =
-          mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100);
       mob->mob_specials.damsizedice =
-          mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+          (byte)(mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100);
     }
   }
   log("Pet for %s: %s, loaded.", GET_NAME(ch), GET_NAME(mob));
@@ -7486,7 +7488,7 @@ void load_char_pets(struct char_data *ch)
     return;
   }
 
-  capacity = (int)MIN(mysql_num_rows(result), (my_ulonglong)INT_MAX);
+  capacity = (int)u64_min(mysql_num_rows(result), (my_ulonglong)INT_MAX);
   if (capacity > 0)
   {
     CREATE(staged, struct char_data *, capacity);

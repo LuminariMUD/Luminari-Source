@@ -1292,7 +1292,7 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define MOB_EPIC_PALADIN_MOUNT_SMALL 92
 #define MOB_EPIC_BLACKGUARD_MOUNT 1238
 #define MOB_BLACKGUARD_MOUNT 1234
-#define MOB_ADV_BLACKGUARD_MOUNT 1234
+#define MOB_ADV_BLACKGUARD_MOUNT 1236
 #define MAX_MERCS 3
 /***  end misc defines ****/
 /**********************/
@@ -5789,8 +5789,8 @@ struct extra_descr_data
 struct obj_flag_data
 {
   int value[NUM_OBJ_VAL_POSITIONS]; /**< Values of the item (see list)    */
-  byte type_flag;                   /**< Type of item			    */
-  byte prof_flag;                   // proficiency associated with item
+  int type_flag;                    /**< Type of item			    */
+  int prof_flag;                    // proficiency associated with item
   int level;                        /**< Minimum level to use object	    */
   int wear_flags[TW_ARRAY_MAX];     /**< Where you can wear it, if wearable */
   int extra_flags[EF_ARRAY_MAX];    /**< If it hums, glows, etc.	    */
@@ -5802,8 +5802,8 @@ struct obj_flag_data
   int bitvector2[AF_ARRAY_MAX];     /**< Affects 2 characters           */
   int i_sort;                       /**< What 'bag' is it sorted into in the inventory? */
 
-  byte material; // what material is the item made of?
-  int size;      // how big is the object?
+  int material; // what material is the item made of?
+  int size;     // how big is the object?
 
   int spec_timer[SPEC_TIMER_MAX]; /* For timed procs - from homeland*/
   int bound_id;                   /* ID of player this item is bound to */
@@ -5813,7 +5813,7 @@ struct obj_flag_data
  * and already have a player base and don't want to do a player wipe. */
 struct obj_affected_type
 {
-  byte location;  /**< Which ability to change (APPLY_XXX) */
+  int location;   /**< Which ability to change (APPLY_XXX) */
   int modifier;   /**< How much it changes by              */
   int bonus_type; /**< What type of bonus is this. */
   int specific;   // for feats and skills
@@ -6291,14 +6291,14 @@ struct char_player_data
   char *long_descr;                     /**< PC / NPC look description */
   char *description;                    /**< NPC Extra descriptions */
   char *title;                          /**< PC / NPC title */
-  byte sex;                             /**< PC / NPC sex */
-  byte chclass;                         /**< PC / NPC class */
-  byte level;                           /**< PC / NPC level */
+  int sex;                              /**< PC / NPC sex */
+  int chclass;                          /**< PC / NPC class */
+  int level;                            /**< PC / NPC level */
   struct time_data time;                /**< PC AGE in days */
-  ubyte weight;                         /**< PC / NPC weight */
-  ubyte height;                         /**< PC / NPC height */
-  sh_int race;                          // Persistent concrete race ID
-  byte pc_subrace;                      // SubRace
+  int weight;                           /**< PC / NPC weight */
+  int height;                           /**< PC / NPC height */
+  int race;                             // Persistent concrete race ID
+  int pc_subrace;                       // SubRace
   char *walkin;                         // NPC (for now) walkin message
   char *walkout;                        // NPC (for now) walkout message
   char *background;                     // Character Backgrounds
@@ -6320,14 +6320,14 @@ struct char_player_data
  * player strength). */
 struct char_ability_data
 {
-  sbyte str;   /**< Strength.  */
-  sbyte intel; /**< Intelligence */
-  sbyte wis;   /**< Wisdom */
-  sbyte dex;   /**< Dexterity */
-  sbyte con;   /**< Constitution */
-  sbyte cha;   /**< Charisma */
+  int str;   /**< Strength.  */
+  int intel; /**< Intelligence */
+  int wis;   /**< Wisdom */
+  int dex;   /**< Dexterity */
+  int con;   /**< Constitution */
+  int cha;   /**< Charisma */
 
-  /*unused*/ sbyte str_add; /**< Strength multiplier if str = 18. Usually from 0 to 100 */
+  /*unused*/ int str_add; /**< Strength multiplier if str = 18. Usually from 0 to 100 */
 };
 #define NUM_ABILITY_MODS 6
 
@@ -6337,27 +6337,27 @@ struct char_ability_data
 /* Character 'points', or health statistics. (we have points and real_points) */
 struct char_point_data
 {
-  int psp;               /**< Current psp level  */
-  int max_psp;           /**< Max psp level */
-  int hit;               /**< Curent hit point, or health, level */
-  int max_hit;           /**< Max hit point, or health, level */
-  int move;              /**< Current move point, or stamina, level */
-  int max_move;          /**< Max move point, or stamina, level */
-  sh_int armor;          /**< armor class */
-  sh_int disguise_armor; /**< disguise armor class bonus */
-  sh_int spell_res;      /**< spell resistance */
+  int psp;            /**< Current psp level  */
+  int max_psp;        /**< Max psp level */
+  int hit;            /**< Curent hit point, or health, level */
+  int max_hit;        /**< Max hit point, or health, level */
+  int move;           /**< Current move point, or stamina, level */
+  int max_move;       /**< Max move point, or stamina, level */
+  int armor;          /**< armor class */
+  int disguise_armor; /**< disguise armor class bonus */
+  int spell_res;      /**< spell resistance */
 
   int gold;        /**< Current gold carried on character */
   int bank_gold;   /**< Gold the char has in a bank account	*/
   long int exp;    /**< The experience points, or value, of the character. */
   int artisan_exp; /**< Artisan experience points from supply orders */
 
-  sbyte hitroll; /**< Any bonus or penalty to the hit roll */
-  sbyte damroll; /**< Any bonus or penalty to the damage roll */
+  int hitroll; /**< Any bonus or penalty to the hit roll */
+  int damroll; /**< Any bonus or penalty to the damage roll */
 
-  int size;                                        /**< size */
-  sh_int apply_saving_throw[NUM_OF_SAVING_THROWS]; /**< Saving throw (Bonuses) */
-  sh_int resistances[NUM_DAM_TYPES];               /**< resistances (dam-types) */
+  int size;                                     /**< size */
+  int apply_saving_throw[NUM_OF_SAVING_THROWS]; /**< Saving throw (Bonuses) */
+  int resistances[NUM_DAM_TYPES];               /**< resistances (dam-types) */
 
   /* note - if you add something new here, make sure to check
      handler.c reset_char_points() to see if it needs to be added */
@@ -7101,7 +7101,7 @@ struct player_special_data
   /* levelup data structure - Saved data for study process. */
   struct level_data *levelup;
 
-  byte dc_bonus;                /* used to apply dc bonuses, usually to spells.
+  int dc_bonus;                 /* used to apply dc bonuses, usually to spells.
                     Must be reset to zero manually after applying the bonus */
   byte arcane_apotheosis_slots; /* used with the apotheosis command to store spell slots
                                    to be used in place of wand or staff charges.  These stored
@@ -7187,7 +7187,7 @@ struct mob_special_data
   byte default_pos;           /**< Default position (standing, sleeping, etc.) */
   byte damnodice;             /**< The number of dice to roll for damage */
   byte damsizedice;           /**< The size of each die rolled for damage. */
-  float frustration_level;    /**< The anger/frustration level of the mob */
+  double frustration_level;   /**< The anger/frustration level of the mob */
   byte subrace[MAX_SUBRACES]; // SubRace
   sbyte tier;                 /**< Encounter-strength tier, or -1 for legacy */
   struct quest_entry *quest;  // quest info for a mob (homeland-port)
@@ -7260,9 +7260,9 @@ struct mob_special_data
 /** An affect structure. */
 struct affected_type
 {
-  sh_int spell;                 /**< The spell that caused this */
-  sh_int duration;              /**< For how long its effects will last      */
-  sh_int modifier;              /**< Added/subtracted to/from apropriate ability     */
+  int spell;                    /**< The spell that caused this */
+  int duration;                 /**< For how long its effects will last      */
+  int modifier;                 /**< Added/subtracted to/from apropriate ability     */
   int location;                 /**< Tells which ability to change(APPLY_XXX). */
   int bitvector[AF_ARRAY_MAX];  /**< Tells which bits to set (AFF_XXX). */
   int bitvector2[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF2_XXX). */
@@ -7271,7 +7271,7 @@ struct affected_type
   long source_id; /**< Runtime source owner; zero for ordinary affects. */
 
   struct affected_type *next; /**< The next affect in the list of affects. */
-  sh_int specific;
+  int specific;
 };
 
 /* The Maximum number of types that can be required to bypass DR. */
@@ -7975,7 +7975,7 @@ struct game_data
   int map_size;                /**< Default size for map command         */
   int minimap_size;            /**< Default size for mini-map (automap)  */
   int script_players;          /**< Is attaching scripts to players allowed? */
-  float min_pop_to_claim;      /**< Minimum popularity percentage required to claim a zone */
+  double min_pop_to_claim;     /**< Minimum popularity percentage required to claim a zone */
   int use_introduction_system; /**< Use the introduction system for character names? */
   int perk_system;             /**< Is the perk system enabled? */
 
@@ -8228,7 +8228,7 @@ struct account_data
 struct race_data
 {
   /* displaying the race */
-  char *name;         /* lower case no-spaces (for like accessing help file) */
+  const char *name;   /* lower case no-spaces (for like accessing help file) */
   char *type;         /* full capitalized and spaced version */
   char *type_color;   /* full colored, capitalized and spaced version */
   char *abbrev;       /* 4 letter abbreviation */

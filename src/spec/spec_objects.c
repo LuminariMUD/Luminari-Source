@@ -116,7 +116,7 @@ SPECIAL(monk_glove)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Shock damage.\r\n");
     return TRUE;
@@ -149,7 +149,7 @@ SPECIAL(monk_glove_cold)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Cold damage.\r\n");
     return TRUE;
@@ -181,7 +181,7 @@ SPECIAL(spikeshield)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "On shieldpunch, procs 'spikes', on shieldblock procs "
                      "'life steal.'\r\n");
@@ -269,7 +269,7 @@ SPECIAL(viperdagger)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Slowness or Harm.\r\n");
     return TRUE;
@@ -312,7 +312,7 @@ SPECIAL(ches)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Invoke haste by keyword 'ches' once per day.  Procs shock "
                      "on critical.\r\n");
@@ -411,7 +411,7 @@ SPECIAL(courage)
   struct obj_data *courage = (struct obj_data *)me;
   int wpn_level = 0;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     if (GET_OBJ_VNUM(courage) == COURAGE_MACE)
       send_to_char(ch, "Invoke by whiper 'courage' once every 3 days: mass enhance\r\n");
@@ -472,7 +472,7 @@ SPECIAL(flamingwhip)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Fire Damage.\r\n");
     return TRUE;
@@ -501,7 +501,7 @@ SPECIAL(helmblade)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc vs Evil: Cure Serious or Dispel Evil.\r\n");
     return TRUE;
@@ -549,7 +549,7 @@ SPECIAL(flaming_scimitar)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "???\r\n");
     return TRUE;
@@ -615,7 +615,7 @@ SPECIAL(frosty_scimitar)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "???\r\n");
     return TRUE;
@@ -677,7 +677,7 @@ SPECIAL(disruption_mace)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Flame Strike.\r\n");
     return TRUE;
@@ -705,7 +705,7 @@ SPECIAL(forest_idol)
 
   struct obj_data *obj = (struct obj_data *)me;
 
-    if (!cmd && !strcmp(argument, "identify"))
+    if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "???.\r\n");
     return TRUE;
@@ -729,7 +729,7 @@ SPECIAL(haste_bracers)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Haste once per week on keyword 'quicksilver.'\r\n");
     return TRUE;
@@ -786,7 +786,7 @@ SPECIAL(xvim_normal)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "???");
     return TRUE;
@@ -893,7 +893,7 @@ SPECIAL(xvim_artifact)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "???");
     return TRUE;
@@ -1030,7 +1030,7 @@ SPECIAL(dragonbone_hammer)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Ice Dagger.\r\n");
     return TRUE;
@@ -1053,7 +1053,7 @@ SPECIAL(prismorb)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Prismatic Spray.\r\n");
     return TRUE;
@@ -1081,7 +1081,7 @@ SPECIAL(dorfaxe)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc vs Evil: Clangeddins Wrath.\r\n");
     return TRUE;
@@ -1129,7 +1129,7 @@ SPECIAL(acidstaff)
 {
   struct char_data *victim = NULL;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Acid Arrow.\r\n");
     return TRUE;
@@ -1169,7 +1169,7 @@ SPECIAL(sarn)
 
   int num = 18;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Harm, more effective for Duergar.\r\n");
     return TRUE;
@@ -1213,7 +1213,7 @@ SPECIAL(purity)
 
   int dam = 0;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc:  Holy Light - in combat randomly inflict 2d24 holy damage.\r\n");
     return TRUE;
@@ -1298,7 +1298,7 @@ SPECIAL(etherealness)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc:  Slow.\r\n");
     return TRUE;
@@ -1328,7 +1328,7 @@ SPECIAL(star_circlet)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc in combat: Divine Arcane Recall\r\n");
     return TRUE;
@@ -1385,7 +1385,7 @@ SPECIAL(greatsword)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc:  Silver Flames.\r\n");
     return TRUE;
@@ -1424,7 +1424,7 @@ SPECIAL(fog_dagger)
   struct affected_type af;
   struct affected_type af2;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Procs paralysis on backstab, whisper 'haze' for foggy"
                      " cloud.\r\n");
@@ -1511,7 +1511,7 @@ SPECIAL(tyrantseye)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "???\r\n");
     return TRUE;
@@ -1579,7 +1579,7 @@ SPECIAL(spiderdagger)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Procs darkfire in combat and by Invoking Lloth she protects any drow.\r\n");
     return TRUE;
@@ -1637,7 +1637,7 @@ SPECIAL(sparksword)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Shock damage.\r\n");
     return TRUE;
@@ -1668,7 +1668,8 @@ SPECIAL(nutty_bracer)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  /* Pulse calls arrive with a NULL argument; only a command carries text. */
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Randomly lash out...\r\n");
     return TRUE;
@@ -1708,7 +1709,7 @@ SPECIAL(whisperwind)
   int s = 0, i = 0;
   struct char_data *pet = NULL;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Procs cyclone, whisper 'blur' for attack blur, whisper"
                      " 'wind' to summon weapon spirit, whisper 'smite' for harm and "
@@ -1920,7 +1921,7 @@ SPECIAL(ancient_moonblade)
   int s = 0, i = 0;
   struct char_data *pet = NULL;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Procs cyclone, whisper 'blur' for attack blur, whisper"
                      " 'wind' to summon weapon spirit, whisper 'smite' for harm and "
@@ -2126,7 +2127,7 @@ SPECIAL(celestial_sword)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Whisper 'revive' to resurrect from your last corpse every 2 days (don't have "
                      "to be in the same room).\r\n"
@@ -2265,7 +2266,7 @@ SPECIAL(floating_teleport)
   if (cmd)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "This appears to be a floating (moving) portal.\r\n");
     return TRUE;
@@ -2290,7 +2291,7 @@ SPECIAL(vengeance)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Procs mass cure light and word of faith.\r\n");
     return TRUE;
@@ -2345,7 +2346,7 @@ SPECIAL(bloodaxe)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc:  Bite.\r\n");
     return TRUE;
@@ -2408,7 +2409,7 @@ SPECIAL(skullsmasher)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc:  Knockdown.\r\n");
     return TRUE;
@@ -2459,7 +2460,7 @@ SPECIAL(acidsword)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Acid corrosion.\r\n");
     return TRUE;
@@ -2523,7 +2524,7 @@ SPECIAL(malevolence)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Attack Blur (3-5 bonus attacks on proc)\r\n");
     return TRUE;
@@ -2573,7 +2574,7 @@ SPECIAL(rune_scimitar)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Attack Blur (4-7 bonus attacks on proc)\r\n");
     send_to_char(
@@ -2620,7 +2621,7 @@ SPECIAL(rune_scimitar)
   }
 
   /* parry proc */
-  else if (!strcmp(argument, "parry") && rand_number(0, 3))
+  else if (argument && !strcmp(argument, "parry") && rand_number(0, 3))
   {
     act("\tLAs you parry the attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
         "\tLfrom $N \tLand transfers it back to you.\tn",
@@ -2639,7 +2640,7 @@ SPECIAL(rune_scimitar)
   }
 
   /* dodge proc */
-  else if (!strcmp(argument, "dodge") && !rand_number(0, 3))
+  else if (argument && !strcmp(argument, "dodge") && !rand_number(0, 3))
   {
     act("\tLAs you dodge the attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
         "\tLfrom $N \tLand transfers it back to you.\tn",
@@ -2671,7 +2672,7 @@ SPECIAL(snakewhip)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc:  Drow-only, Snake-Bite.\r\n");
     return TRUE;
@@ -2754,7 +2755,7 @@ SPECIAL(tormblade)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc only vs Evil:  Dispel Magic randomly on hit.\r\n"
                      "                    Torms Protection of Evil on critical hits.\r\n");
@@ -2807,7 +2808,7 @@ SPECIAL(witherdirk)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Contagion\r\n");
     return TRUE;
@@ -2847,7 +2848,7 @@ SPECIAL(air_sphere)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Electric Shock, on saying 'storm', haste and "
                      "chain lightning.\r\n");
@@ -2929,7 +2930,7 @@ SPECIAL(bolthammer)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc:  Lightning bolt.\r\n");
     return TRUE;
@@ -2997,7 +2998,7 @@ SPECIAL(rughnark)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: magical damage 25+10d4 for high level monks.  Will work better for "
                      "non-good monks\r\n");
@@ -3053,7 +3054,7 @@ SPECIAL(speed_gaunts)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(
         ch, "Proc: Extra attacks & chance to do a powerful vamp attack (powerful monks only)\r\n");
@@ -3145,7 +3146,7 @@ SPECIAL(magma)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: magmaburst (fire damage for monk.)\r\n");
     return TRUE;
@@ -3192,7 +3193,7 @@ SPECIAL(halberd)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc:  blur, stun, slow.\r\n");
     return TRUE;
@@ -3281,14 +3282,14 @@ SPECIAL(clanportal)
 {
   int iPlayerClan = -1;
   struct obj_data *obj = (struct obj_data *)me;
-  struct obj_data *port;
+  struct obj_data *port_value;
   zone_vnum z;
   room_vnum r;
   char obj_name[MAX_INPUT_LENGTH] = {'\0'};
   room_rnum was_in = IN_ROOM(ch);
   struct follow_type *k;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "This appears to be a clan portal.\r\n");
     return TRUE;
@@ -3300,12 +3301,12 @@ SPECIAL(clanportal)
   argument = one_argument_u(argument, obj_name);
 
   /* Check that the player is trying to enter THIS portal */
-  if (!(port = get_obj_in_list_vis(ch, obj_name, NULL, world[(IN_ROOM(ch))].contents)))
+  if (!(port_value = get_obj_in_list_vis(ch, obj_name, NULL, world[(IN_ROOM(ch))].contents)))
   {
     return (FALSE);
   }
 
-  if (port != obj)
+  if (port_value != obj)
     return (FALSE);
 
   iPlayerClan = GET_CLAN(ch);
@@ -3341,8 +3342,8 @@ SPECIAL(clanportal)
     return TRUE;
   }
 
-  act("$n enters $p, and vanishes!", FALSE, ch, port, 0, TO_ROOM);
-  act("You enter $p, and you are transported elsewhere", FALSE, ch, port, 0, TO_CHAR);
+  act("$n enters $p, and vanishes!", FALSE, ch, port_value, 0, TO_ROOM);
+  act("You enter $p, and you are transported elsewhere", FALSE, ch, port_value, 0, TO_CHAR);
   char_from_room(ch);
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(real_room(r)), ZONE_WILDERNESS))
@@ -3505,7 +3506,7 @@ SPECIAL(angel_leggings)
   if (DEBUGMODE)
     send_to_char(ch, "Debug - Mark 2\r\n");
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Invoke fly by keyword 'Elysium'.\r\n");
     return TRUE;
@@ -3578,7 +3579,7 @@ SPECIAL(dragon_robes)
   if (DEBUGMODE)
     send_to_char(ch, "Debug - Mark 2\r\n");
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Invoke displace by keyword 'Power'.\r\n");
     return TRUE;
@@ -3643,7 +3644,7 @@ SPECIAL(dragon_robes)
 SPECIAL(storage_chest) {
   if (cmd)
     return FALSE;
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "This is a player storage chest.\r\n");
     return TRUE;
@@ -3694,7 +3695,7 @@ SPECIAL(storage_chest) {
 /* from homeland */
 SPECIAL(clang_bracer)
 {
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Dwarf and Group Only.  Invoke battle prowess by saying 'argenoth'.\r\n");
     return TRUE;
@@ -3765,7 +3766,7 @@ SPECIAL(menzo_chokers)
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  if (!cmd && argument && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "For Drow, finding pair will give +1 to hitroll.\r\n");
     return TRUE;

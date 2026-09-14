@@ -55,7 +55,8 @@ static void apply_object_assignments(const struct spec_obj_assignment *rows, siz
                                            sizeof(error));
     if (definition == NULL)
     {
-      log("SYSERR: Skipping declarative object assignment for #%d: %s", rows[index].vnum, error);
+      log("SYSERR: Skipping declarative object assignment for #%" PRI_IDX ": %s", rows[index].vnum,
+          error);
       continue;
     }
     spec_assign_object(rows[index].vnum, spec_definition_callback(definition),

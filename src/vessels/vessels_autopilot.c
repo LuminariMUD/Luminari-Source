@@ -21,11 +21,8 @@
 #define SCHEDULE_ROUTE_VALIDATION_MAX_STEPS 10000
 
 /* External MySQL connection variables */
-extern MYSQL *conn;
-extern bool mysql_available;
 
 /* External time structure for schedule timing */
-extern struct time_info_data time_info;
 
 /* External ship data array from vessels.c */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
@@ -257,7 +254,7 @@ int autopilot_resume(struct greyhawk_ship_data *ship)
  * @param name Name of the waypoint
  * @return Index of new waypoint, or -1 on failure
  */
-int waypoint_add(struct ship_route *route, float x, float y, float z, const char *name)
+int waypoint_add(struct ship_route *route, double x, double y, double z, const char *name)
 {
   int idx;
 
@@ -277,7 +274,7 @@ int waypoint_add(struct ship_route *route, float x, float y, float z, const char
   route->waypoints[idx].x = x;
   route->waypoints[idx].y = y;
   route->waypoints[idx].z = z;
-  route->waypoints[idx].tolerance = 5.0f;
+  route->waypoints[idx].tolerance = 5.0;
   route->waypoints[idx].wait_time = 0;
   route->waypoints[idx].flags = 0;
 
@@ -970,10 +967,10 @@ struct waypoint_node *waypoint_db_load(int waypoint_id)
   {
     node->data.name[0] = '\0';
   }
-  node->data.x = (float)atof(row[2]);
-  node->data.y = (float)atof(row[3]);
-  node->data.z = (float)atof(row[4]);
-  node->data.tolerance = (float)atof(row[5]);
+  node->data.x = (double)atof(row[2]);
+  node->data.y = (double)atof(row[3]);
+  node->data.z = (double)atof(row[4]);
+  node->data.tolerance = (double)atof(row[5]);
   node->data.wait_time = atoi(row[6]);
   node->data.flags = atoi(row[7]);
   node->next = NULL;
@@ -1721,10 +1718,10 @@ void load_all_waypoints(void)
     {
       node->data.name[0] = '\0';
     }
-    node->data.x = (float)atof(row[2]);
-    node->data.y = (float)atof(row[3]);
-    node->data.z = (float)atof(row[4]);
-    node->data.tolerance = (float)atof(row[5]);
+    node->data.x = (double)atof(row[2]);
+    node->data.y = (double)atof(row[3]);
+    node->data.z = (double)atof(row[4]);
+    node->data.tolerance = (double)atof(row[5]);
     node->data.wait_time = atoi(row[6]);
     node->data.flags = atoi(row[7]);
     node->next = NULL;
@@ -1890,22 +1887,22 @@ void save_all_routes(void)
  * @param wp The waypoint to calculate distance to
  * @return The distance in coordinate units, or -1.0 on error
  */
-float calculate_distance_to_waypoint(const struct greyhawk_ship_data *ship,
-                                     const struct waypoint *wp)
+double calculate_distance_to_waypoint(const struct greyhawk_ship_data *ship,
+                                      const struct waypoint *wp)
 {
-  float dx, dy, dz;
-  float distance;
+  double dx, dy, dz;
+  double distance;
 
   if (ship == NULL)
   {
     log("SYSERR: calculate_distance_to_waypoint called with NULL ship");
-    return -1.0f;
+    return -1.0;
   }
 
   if (wp == NULL)
   {
     log("SYSERR: calculate_distance_to_waypoint called with NULL waypoint");
-    return -1.0f;
+    return -1.0;
   }
 
   dx = wp->x - ship->x;
@@ -1913,7 +1910,7 @@ float calculate_distance_to_waypoint(const struct greyhawk_ship_data *ship,
   dz = wp->z - ship->z;
 
   /* Calculate 3D Euclidean distance */
-  distance = (float)sqrt((double)(dx * dx + dy * dy + dz * dz));
+  distance = (double)sqrt((double)(dx * dx + dy * dy + dz * dz));
 
   return distance;
 }
@@ -1930,19 +1927,19 @@ float calculate_distance_to_waypoint(const struct greyhawk_ship_data *ship,
  * @param dx Output: normalized X direction component
  * @param dy Output: normalized Y direction component
  */
-void calculate_heading_to_waypoint(struct greyhawk_ship_data *ship, struct waypoint *wp, float *dx,
-                                   float *dy)
+void calculate_heading_to_waypoint(struct greyhawk_ship_data *ship, struct waypoint *wp, double *dx,
+                                   double *dy)
 {
-  float raw_dx, raw_dy;
-  float distance;
+  double raw_dx, raw_dy;
+  double distance;
 
   if (ship == NULL || wp == NULL || dx == NULL || dy == NULL)
   {
     log("SYSERR: calculate_heading_to_waypoint called with NULL parameter");
     if (dx != NULL)
-      *dx = 0.0f;
+      *dx = 0.0;
     if (dy != NULL)
-      *dy = 0.0f;
+      *dy = 0.0;
     return;
   }
 
@@ -1950,13 +1947,13 @@ void calculate_heading_to_waypoint(struct greyhawk_ship_data *ship, struct waypo
   raw_dy = wp->y - ship->y;
 
   /* Calculate 2D distance for normalization */
-  distance = (float)sqrt((double)(raw_dx * raw_dx + raw_dy * raw_dy));
+  distance = (double)sqrt((double)(raw_dx * raw_dx + raw_dy * raw_dy));
 
-  if (distance < 0.001f)
+  if (distance < 0.001)
   {
     /* Already at waypoint or very close */
-    *dx = 0.0f;
-    *dy = 0.0f;
+    *dx = 0.0;
+    *dy = 0.0;
     return;
   }
 
@@ -1974,8 +1971,8 @@ void calculate_heading_to_waypoint(struct greyhawk_ship_data *ship, struct waypo
  */
 int check_waypoint_arrival(const struct greyhawk_ship_data *ship, const struct waypoint *wp)
 {
-  float distance;
-  float tolerance;
+  double distance;
+  double tolerance;
 
   if (ship == NULL || wp == NULL)
   {
@@ -1984,7 +1981,7 @@ int check_waypoint_arrival(const struct greyhawk_ship_data *ship, const struct w
   }
 
   distance = calculate_distance_to_waypoint(ship, wp);
-  if (distance < 0.0f)
+  if (distance < 0.0)
   {
     /* Error in distance calculation */
     return FALSE;
@@ -1992,9 +1989,9 @@ int check_waypoint_arrival(const struct greyhawk_ship_data *ship, const struct w
 
   /* Use waypoint tolerance, default to 5.0 if not set */
   tolerance = wp->tolerance;
-  if (tolerance <= 0.0f)
+  if (tolerance <= 0.0)
   {
-    tolerance = 5.0f;
+    tolerance = 5.0;
   }
 
   return (distance <= tolerance) ? TRUE : FALSE;
@@ -2141,9 +2138,9 @@ void handle_waypoint_arrival(struct greyhawk_ship_data *ship)
  * C casts truncate toward zero, so adding 0.5 only works for positive
  * coordinates. lroundf handles both signs symmetrically.
  */
-int vessel_autopilot_grid_coordinate(float coordinate)
+int vessel_autopilot_grid_coordinate(double coordinate)
 {
-  return (int)lroundf(coordinate);
+  return (int)lround(coordinate);
 }
 
 /**
@@ -2155,31 +2152,31 @@ int vessel_autopilot_grid_coordinate(float coordinate)
  * vessels also cannot overshoot and oscillate around a waypoint.
  */
 bool vessel_autopilot_next_position(const struct greyhawk_ship_data *ship,
-                                    const struct waypoint *wp, float speed, int *target_x,
+                                    const struct waypoint *wp, double speed, int *target_x,
                                     int *target_y, int *target_z)
 {
-  float dx;
-  float dy;
-  float dz;
-  float distance;
-  float travel;
-  float scale;
+  double dx;
+  double dy;
+  double dz;
+  double distance;
+  double travel;
+  double scale;
 
   if (ship == NULL || wp == NULL || target_x == NULL || target_y == NULL || target_z == NULL)
   {
     return FALSE;
   }
 
-  if (speed <= 0.0f)
+  if (speed <= 0.0)
   {
-    speed = 1.0f;
+    speed = 1.0;
   }
 
   dx = wp->x - ship->x;
   dy = wp->y - ship->y;
   dz = wp->z - ship->z;
-  distance = (float)sqrt((double)(dx * dx + dy * dy + dz * dz));
-  if (distance < 0.001f)
+  distance = (double)sqrt((double)(dx * dx + dy * dy + dz * dz));
+  if (distance < 0.001)
   {
     return FALSE;
   }
@@ -2207,7 +2204,7 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
 {
   struct autopilot_data *ap;
   struct waypoint *wp;
-  float speed;
+  double speed;
   int target_x;
   int target_y;
   int target_z;
@@ -2232,10 +2229,10 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
   }
 
   /* Get ship speed (use current_speed or a default) */
-  speed = (float)ship->speed;
-  if (speed <= 0.0f)
+  speed = (double)ship->speed;
+  if (speed <= 0.0)
   {
-    speed = 1.0f; /* Minimum movement speed */
+    speed = 1.0; /* Minimum movement speed */
   }
 
   target_z = vessel_autopilot_grid_coordinate(wp->z);
@@ -2320,7 +2317,7 @@ void process_waiting_vessel(struct greyhawk_ship_data *ship)
   {
     /* Wait complete, advance to next waypoint */
     ap->wait_remaining = 0;
-    ship->speed = MIN(MAX(0, ship->setspeed), ship->maxspeed);
+    ship->speed = (short)MIN(MAX(0, ship->setspeed), ship->maxspeed);
     ap->state = AUTOPILOT_TRAVELING;
     VSSL_DEBUG_AUTO("Ship %d wait complete, advancing to next waypoint", ship->shipnum);
     advance_to_next_waypoint(ship);
@@ -2850,7 +2847,7 @@ ACMD(do_setwaypoint)
   wp.x = ship->x;
   wp.y = ship->y;
   wp.z = ship->z;
-  wp.tolerance = 5.0f;
+  wp.tolerance = 5.0;
   wp.wait_time = 0;
   wp.flags = 0;
   strncpy(wp.name, arg, AUTOPILOT_NAME_LENGTH - 1);
@@ -3065,7 +3062,7 @@ ACMD(do_addtoroute)
   }
 
   /* Parse arguments */
-  two_arguments_u((char *)argument, route_arg, wp_arg);
+  two_arguments(argument, route_arg, sizeof(route_arg), wp_arg, sizeof(wp_arg));
   if (!*route_arg || !*wp_arg)
   {
     send_to_char(ch, "Usage: addtoroute <route> <waypoint>\r\n");
@@ -3736,7 +3733,7 @@ static bool scheduled_route_is_traversable(const struct greyhawk_ship_data *ship
   struct greyhawk_ship_data probe;
   struct waypoint_node *wp_node;
   const struct waypoint *wp;
-  float speed;
+  double speed;
   int target_x;
   int target_y;
   int target_z;
@@ -3758,7 +3755,7 @@ static bool scheduled_route_is_traversable(const struct greyhawk_ship_data *ship
   }
 
   probe = *ship;
-  speed = probe.speed > 0 ? (float)probe.speed : 1.0f;
+  speed = probe.speed > 0 ? (double)probe.speed : 1.0;
   legs = route_node->num_waypoints + (route_node->loop ? 1 : 0);
   steps = 0;
 
@@ -3795,17 +3792,17 @@ static bool scheduled_route_is_traversable(const struct greyhawk_ship_data *ship
         return FALSE;
       }
 
-      probe.x = (float)target_x;
-      probe.y = (float)target_y;
-      probe.z = (float)target_z;
+      probe.x = (double)target_x;
+      probe.y = (double)target_y;
+      probe.z = (double)target_z;
     }
 
     if (wp->wait_time > 0 && probe.setspeed > 0)
     {
-      speed = (float)MIN(probe.setspeed, probe.maxspeed);
-      if (speed <= 0.0f)
+      speed = (double)MIN(probe.setspeed, probe.maxspeed);
+      if (speed <= 0.0)
       {
-        speed = 1.0f;
+        speed = 1.0;
       }
     }
   }

@@ -43,13 +43,13 @@
    were removed - use WATERLINE and elevation thresholds instead */
 
 /* Wrapper for perlin noise function */
-static float pnoise(float x, float y, int noise_type)
+static double pnoise(double x, double y, int noise_type)
 {
   /* Use the 2D perlin noise function from perlin.h */
   double vec[2];
   vec[0] = x * 0.01;
   vec[1] = y * 0.01;
-  return (float)noise2(noise_type, vec);
+  return (double)noise2(noise_type, vec);
 }
 
 /* Map dimensions */
@@ -71,9 +71,6 @@ static float pnoise(float x, float y, int noise_type)
 #define CRYSTAL NOISE_CRYSTAL
 
 /* External functions from wilderness.c */
-extern int get_elevation(int map, int x, int y);
-extern int get_temperature(int map, int x, int y);
-extern int get_sector_type(int elevation, int temperature, int moisture);
 
 /* Safe macros for wilderness map access with bounds checking */
 #define SAFE_MAP_BOUNDS(x, y) ((x) >= 0 && (x) < MAP_WIDTH && (y) >= 0 && (y) < MAP_HEIGHT)
@@ -95,7 +92,7 @@ extern int get_sector_type(int elevation, int temperature, int moisture);
 extern const char *sector_types[];
 
 /* Function to get noise seed - simple implementation */
-int get_noise_seed(int layer)
+static int get_noise_seed(int layer)
 {
   /* Return predefined seeds based on layer type */
   switch (layer)
@@ -179,15 +176,15 @@ int get_biome_at(int x, int y)
 }
 
 /* Get resource density at coordinates */
-float get_resource_density(int x, int y, int resource_type)
+double get_resource_density(int x, int y, int resource_type)
 {
-  float nx, ny, value;
+  double nx, ny, value;
 
   if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT)
     return 0.0;
 
-  nx = (float)x / MAP_WIDTH;
-  ny = (float)y / MAP_HEIGHT;
+  nx = (double)x / MAP_WIDTH;
+  ny = (double)y / MAP_HEIGHT;
 
   /* Use appropriate noise layer for resource type */
   switch (resource_type)
@@ -243,11 +240,11 @@ float get_resource_density(int x, int y, int resource_type)
 }
 
 /* Calculate Euclidean distance between two points */
-float calculate_distance(int x1, int y1, int x2, int y2)
+double calculate_distance(int x1, int y1, int x2, int y2)
 {
   int dx = x2 - x1;
   int dy = y2 - y1;
-  return sqrt((float)(dx * dx + dy * dy));
+  return sqrt((double)(dx * dx + dy * dy));
 }
 
 /* Get cardinal/intercardinal direction from one point to another */
@@ -255,12 +252,12 @@ int get_direction(int from_x, int from_y, int to_x, int to_y)
 {
   int dx = to_x - from_x;
   int dy = to_y - from_y;
-  float angle;
+  double angle;
 
   if (dx == 0 && dy == 0)
     return 0; /* Same location */
 
-  angle = atan2((float)dy, (float)dx) * 180.0 / M_PI;
+  angle = atan2((double)dy, (double)dx) * 180.0 / M_PI;
 
   /* Convert angle to 8-way direction */
   if (angle < -157.5 || angle >= 157.5)
@@ -413,16 +410,16 @@ void analyze_world_grid(FILE *fp, struct terrain_stats *stats)
   /* Calculate averages and percentages */
   if (sample_count > 0)
   {
-    stats->avg_elevation = total_elev / sample_count;
-    stats->avg_temp = total_temp / sample_count;
-    stats->avg_moisture = total_moist / sample_count;
+    stats->avg_elevation = (int)(total_elev / sample_count);
+    stats->avg_temp = (int)(total_temp / sample_count);
+    stats->avg_moisture = (int)(total_moist / sample_count);
   }
 
   for (sector = 0; sector < NUM_ROOM_SECTORS; sector++)
   {
     if (stats->total_tiles > 0)
       stats->sector_percentages[sector] =
-          (float)stats->sector_counts[sector] * 100.0 / stats->total_tiles;
+          (double)stats->sector_counts[sector] * 100.0 / stats->total_tiles;
   }
 
   /* Write statistics to file */
@@ -440,9 +437,9 @@ void analyze_world_grid(FILE *fp, struct terrain_stats *stats)
   }
 
   fprintf(fp, "- Land Coverage: %.1f%% (%d tiles)\n",
-          (float)land_tiles * 100.0 / stats->total_tiles, land_tiles);
+          (double)land_tiles * 100.0 / stats->total_tiles, land_tiles);
   fprintf(fp, "- Ocean Coverage: %.1f%% (%d tiles)\n",
-          (float)(stats->total_tiles - land_tiles) * 100.0 / stats->total_tiles,
+          (double)(stats->total_tiles - land_tiles) * 100.0 / stats->total_tiles,
           stats->total_tiles - land_tiles);
 
   fprintf(fp, "\n### Sector Distribution\n");
@@ -623,7 +620,7 @@ struct landmass_info *detect_landmasses(FILE *fp)
 
   for (current = landmasses; current; current = current->next)
   {
-    char *classification;
+    const char *classification;
     if (current->tile_count > 100000)
       classification = "Continent";
     else if (current->tile_count > 10000)
@@ -884,7 +881,7 @@ void analyze_climate_zones(FILE *fp)
             : zone_idx == 3 ? "Subtropical"
                             : "Tropical",
             zones[zone_idx].min_y, zones[zone_idx].max_y, zones[zone_idx].avg_temperature,
-            (float)zone_tiles[zone_idx] * 100.0 / (MAP_WIDTH * MAP_HEIGHT),
+            (double)zone_tiles[zone_idx] * 100.0 / (MAP_WIDTH * MAP_HEIGHT),
             zones[zone_idx].description);
   }
 
@@ -897,12 +894,12 @@ void analyze_climate_zones(FILE *fp)
 }
 
 /* Calculate actual correlation between two resources */
-float calculate_resource_correlation(int res1, int res2)
+static double calculate_resource_correlation(int res1, int res2)
 {
   int x, y, samples = 0;
-  float sum1 = 0, sum2 = 0, sum12 = 0;
-  float sum1sq = 0, sum2sq = 0;
-  float d1, d2, correlation;
+  double sum1 = 0, sum2 = 0, sum12 = 0;
+  double sum1sq = 0, sum2sq = 0;
+  double d1, d2, correlation;
 
   /* Sample the world at regular intervals */
   for (y = 0; y < MAP_HEIGHT; y += 64)
@@ -924,11 +921,11 @@ float calculate_resource_correlation(int res1, int res2)
   /* Calculate Pearson correlation coefficient */
   if (samples > 0)
   {
-    float mean1 = sum1 / samples;
-    float mean2 = sum2 / samples;
-    float numerator = (sum12 / samples) - (mean1 * mean2);
-    float denom1 = sqrt((sum1sq / samples) - (mean1 * mean1));
-    float denom2 = sqrt((sum2sq / samples) - (mean2 * mean2));
+    double mean1 = sum1 / samples;
+    double mean2 = sum2 / samples;
+    double numerator = (sum12 / samples) - (mean1 * mean2);
+    double denom1 = sqrt((sum1sq / samples) - (mean1 * mean1));
+    double denom2 = sqrt((sum2sq / samples) - (mean2 * mean2));
 
     if (denom1 > 0 && denom2 > 0)
     {
@@ -952,11 +949,11 @@ void analyze_resource_distribution(FILE *fp)
                                   "Wood",       "Stone",    "Crystal", "Clay",  "Salt"};
   int num_resources = 10; /* Analyzing all 10 resources */
   int resource, x, y, r1, r2;
-  float density, max_density[10], total_density[10];
+  double density, max_density[10], total_density[10];
   int hotspot_x[10][10], hotspot_y[10][10];
-  float hotspot_density[10][10];
+  double hotspot_density[10][10];
   int tiles_sampled;
-  float correlations[10][10];
+  double correlations[10][10];
 
   report_progress("Analyzing resources", 0);
 
@@ -1066,7 +1063,7 @@ void analyze_resource_distribution(FILE *fp)
   {
     for (r2 = r1 + 1; r2 < num_resources; r2++)
     {
-      float corr = correlations[r1][r2];
+      double corr = correlations[r1][r2];
       if (fabs(corr) > 0.3)
       { /* Only show meaningful correlations */
         const char *strength;
@@ -1116,7 +1113,7 @@ void analyze_spatial_relationships(FILE *fp)
   }
 
   /* Count regions and provide basic statistics */
-  num_regions = mysql_num_rows(regions_result);
+  num_regions = (int)mysql_num_rows(regions_result);
   fprintf(fp, "### Region Statistics\n\n");
   fprintf(fp, "Total regions in database: %d\n\n", num_regions);
 
@@ -1153,7 +1150,7 @@ void map_transition_zones(FILE *fp)
   int transition_count = 0;
   int sharp_edges = 0, gradual_edges = 0, ecotones = 0;
   int dx, dy;
-  float gradient_strength;
+  double gradient_strength;
   struct transition_zone *transitions = NULL;
   int transition_capacity = 1000;
   int sample_rate = 16; /* Sample every 16 tiles for performance */
@@ -1218,7 +1215,7 @@ void map_transition_zones(FILE *fp)
               }
 
               gradient_strength =
-                  (float)similar_count / ((2 * check_radius + 1) * (2 * check_radius + 1));
+                  (double)similar_count / ((2 * check_radius + 1) * (2 * check_radius + 1));
 
               transitions[transition_count].x = x;
               transitions[transition_count].y = y;
@@ -1458,7 +1455,7 @@ void analyze_civilization_potential(FILE *fp)
   int score_count = 0;
   int score_capacity;
   int i;
-  float max_overall = 0.0;
+  double max_overall = 0.0;
 
   fprintf(fp, "\n## Civilization Potential Analysis\n\n");
   report_progress("Analyzing civilization potential", 0);
@@ -1485,7 +1482,7 @@ void analyze_civilization_potential(FILE *fp)
       score->y = y;
 
       /* Water access - check for water within 50 tiles */
-      float min_water_dist = 1000.0;
+      double min_water_dist = 1000.0;
       int search_radius = 50;
       int sx, sy;
 
@@ -1499,7 +1496,7 @@ void analyze_civilization_potential(FILE *fp)
           {
             if (!is_land_tile(check_x, check_y))
             {
-              float dist = calculate_distance(x, y, check_x, check_y);
+              double dist = calculate_distance(x, y, check_x, check_y);
               if (dist < min_water_dist)
                 min_water_dist = dist;
             }
@@ -1518,7 +1515,7 @@ void analyze_civilization_potential(FILE *fp)
       {
         score->resource_richness += get_resource_density(x, y, resource_types[r]);
       }
-      score->resource_richness = MIN(1.0, score->resource_richness / 3.0);
+      score->resource_richness = FLOATMIN(1.0, score->resource_richness / 3.0);
 
       /* Terrain difficulty based on elevation and sector */
       int elevation = GET_MAP_ELEV(x, y);
@@ -1618,7 +1615,7 @@ void analyze_civilization_potential(FILE *fp)
   for (i = 0; i < MIN(10, score_count); i++)
   {
     int best_idx = -1;
-    float best_score = -1.0;
+    double best_score = -1.0;
     int j;
 
     for (j = 0; j < score_count; j++)
@@ -2261,7 +2258,7 @@ void write_continental_geography(FILE *fp, struct landmass_info *landmasses)
     {
       fprintf(fp, "#### Continent %d\n", current->id);
       fprintf(fp, "- **Size**: %d tiles (%.1f%% of world)\n", current->tile_count,
-              (float)current->tile_count * 100.0 / (MAP_WIDTH * MAP_HEIGHT));
+              (double)current->tile_count * 100.0 / (MAP_WIDTH * MAP_HEIGHT));
       fprintf(fp, "- **Bounds**: (%d,%d) to (%d,%d)\n", current->min_x, current->min_y,
               current->max_x, current->max_y);
       fprintf(fp, "- **Dimensions**: %d x %d tiles\n", current->max_x - current->min_x,
@@ -2316,7 +2313,7 @@ void write_elevation_analysis(FILE *fp)
   for (band = 0; band < 10; band++)
   {
     fprintf(fp, "| %d-%d m | %d | %.1f%% |\n", band * 50, (band + 1) * 50, elevation_bands[band],
-            (float)elevation_bands[band] * 100.0 / total_sampled);
+            (double)elevation_bands[band] * 100.0 / total_sampled);
   }
 
   fprintf(fp, "\n### Topographical Features\n\n");
@@ -2424,7 +2421,7 @@ void write_climate_analysis(FILE *fp)
   int i;
   for (i = 0; i < 5; i++)
   {
-    fprintf(fp, "| %s | %.1f%% | ", zone_names[i], (float)temp_zones[i] * 100.0 / total_sampled);
+    fprintf(fp, "| %s | %.1f%% | ", zone_names[i], (double)temp_zones[i] * 100.0 / total_sampled);
 
     switch (i)
     {
@@ -2486,7 +2483,7 @@ void write_biome_distribution(FILE *fp)
     if (biome_counts[i] > 0)
     {
       fprintf(fp, "| %s | %d | %.1f%% | ", sector_types[i], biome_counts[i],
-              (float)biome_counts[i] * 100.0 / total_sampled);
+              (double)biome_counts[i] * 100.0 / total_sampled);
 
       /* Add characteristics based on sector type */
       switch (i)
@@ -2541,7 +2538,7 @@ void write_resource_analysis(FILE *fp)
     fprintf(fp, "| %s | ", resource_names[i]);
 
     /* Estimate abundance */
-    float avg_density = 0.5; /* Simplified */
+    double avg_density = 0.5; /* Simplified */
     if (i == 2)
       avg_density = 0.7; /* Water more common */
     if (i == 7)
@@ -2674,7 +2671,7 @@ void calculate_accessibility_matrix(FILE *fp)
   int sample_points[10][2]; /* Up to 10 sample points */
   int num_points = 0;
   int i, j, x, y;
-  float distances[10][10];
+  double distances[10][10];
   /* int accessibility[10][10]; - removed unused variable */
 
   fprintf(fp, "\n## Accessibility Matrix\n\n");
@@ -2748,9 +2745,9 @@ void calculate_diversity_indices(FILE *fp)
   int resource_presence[10];
   int total_samples = 0;
   int x, y, i;
-  float shannon_index = 0.0;
-  float simpson_index = 0.0;
-  float evenness = 0.0;
+  double shannon_index = 0.0;
+  double simpson_index = 0.0;
+  double evenness = 0.0;
 
   fprintf(fp, "\n## Biodiversity Indices\n\n");
   fprintf(fp, "Measuring ecological diversity across the world.\n\n");
@@ -2794,19 +2791,19 @@ void calculate_diversity_indices(FILE *fp)
   {
     if (biome_counts[i] > 0)
     {
-      float proportion = (float)biome_counts[i] / total_samples;
-      shannon_index -= proportion * logf(proportion);
+      double proportion = (double)biome_counts[i] / total_samples;
+      shannon_index -= proportion * log(proportion);
     }
   }
   fprintf(fp, "- **H' = %.3f** (higher values indicate greater diversity)\n", shannon_index);
-  fprintf(fp, "- **H'max = %.3f** (maximum possible diversity)\n", log((float)NUM_ROOM_SECTORS));
+  fprintf(fp, "- **H'max = %.3f** (maximum possible diversity)\n", log((double)NUM_ROOM_SECTORS));
 
   /* Calculate Simpson's Index */
   for (i = 0; i < NUM_ROOM_SECTORS; i++)
   {
     if (biome_counts[i] > 0)
     {
-      float proportion = (float)biome_counts[i] / total_samples;
+      double proportion = (double)biome_counts[i] / total_samples;
       simpson_index += proportion * proportion;
     }
   }
@@ -2815,9 +2812,9 @@ void calculate_diversity_indices(FILE *fp)
   fprintf(fp, "- **D = %.3f** (0 = no diversity, 1 = infinite diversity)\n\n", simpson_index);
 
   /* Calculate Evenness */
-  if (log((float)NUM_ROOM_SECTORS) > 0)
+  if (log((double)NUM_ROOM_SECTORS) > 0)
   {
-    evenness = shannon_index / log((float)NUM_ROOM_SECTORS);
+    evenness = shannon_index / log((double)NUM_ROOM_SECTORS);
   }
   fprintf(fp, "### Pielou's Evenness Index\n\n");
   fprintf(fp, "- **J' = %.3f** (0 = uneven, 1 = perfectly even)\n\n", evenness);
@@ -2830,7 +2827,7 @@ void calculate_diversity_indices(FILE *fp)
   {
     const char *resource_names[] = {"Vegetation", "Minerals", "Water",   "Herbs", "Game",
                                     "Wood",       "Stone",    "Crystal", "Clay",  "Salt"};
-    float coverage = (float)resource_presence[i] / total_samples * 100;
+    double coverage = (double)resource_presence[i] / total_samples * 100;
     fprintf(fp, "| %s | %d | %.1f%% |\n", resource_names[i], resource_presence[i], coverage);
   }
   fprintf(fp, "\n");
@@ -2886,9 +2883,9 @@ void calculate_exploration_coverage(FILE *fp)
 
   /* Calculate percentages */
   int total_samples = (MAP_WIDTH / 16) * (MAP_HEIGHT / 16);
-  float explored_pct = (float)explored_tiles / total_samples * 100;
-  float accessible_pct = (float)accessible_tiles / total_samples * 100;
-  float hazardous_pct = (float)hazardous_tiles / total_samples * 100;
+  double explored_pct = (double)explored_tiles / total_samples * 100;
+  double accessible_pct = (double)accessible_tiles / total_samples * 100;
+  double hazardous_pct = (double)hazardous_tiles / total_samples * 100;
 
   fprintf(fp, "### Global Coverage Statistics\n\n");
   fprintf(fp, "- **Explorable Area**: %.1f%% of world\n", explored_pct);
@@ -2903,8 +2900,8 @@ void calculate_exploration_coverage(FILE *fp)
   const char *zone_names[] = {"Arctic", "Subarctic", "Temperate", "Subtropical", "Tropical"};
   for (y = 0; y < 5; y++)
   {
-    float zone_coverage =
-        zone_totals[y] > 0 ? (float)coverage_by_zone[y] / zone_totals[y] * 100 : 0;
+    double zone_coverage =
+        zone_totals[y] > 0 ? (double)coverage_by_zone[y] / zone_totals[y] * 100 : 0;
     fprintf(fp, "| %s | %d | %d | %.1f%% |\n", zone_names[y], coverage_by_zone[y], zone_totals[y],
             zone_coverage);
   }
@@ -2912,7 +2909,7 @@ void calculate_exploration_coverage(FILE *fp)
   fprintf(fp, "\n### Exploration Difficulty Index\n\n");
   fprintf(fp, "- **Easy** (Plains, Roads): %.1f%%\n", accessible_pct);
   fprintf(fp, "- **Moderate** (Forest, Hills): %.1f%%\n",
-          (float)(explored_tiles - accessible_tiles) / total_samples * 100);
+          (double)(explored_tiles - accessible_tiles) / total_samples * 100);
   fprintf(fp, "- **Difficult** (Mountains, Deep Water): %.1f%%\n", hazardous_pct);
   fprintf(fp, "\n");
 }
@@ -2924,7 +2921,7 @@ void calculate_fractal_dimensions(FILE *fp)
   int num_sizes = 7;
   int box_counts[7];
   int i, x, y, bx, by;
-  float fractal_dim = 0.0;
+  double fractal_dim = 0.0;
 
   fprintf(fp, "\n## Fractal Dimension Analysis\n\n");
   fprintf(fp, "Measuring terrain complexity using box-counting method.\n\n");
@@ -2971,7 +2968,7 @@ void calculate_fractal_dimensions(FILE *fp)
     box_counts[i] = count;
     if (count > 0)
     {
-      fprintf(fp, "| %d | %d | %.3f | %.3f |\n", size, count, log(1.0 / size), log((float)count));
+      fprintf(fp, "| %d | %d | %.3f | %.3f |\n", size, count, log(1.0 / size), log((double)count));
     }
   }
 
@@ -2979,7 +2976,7 @@ void calculate_fractal_dimensions(FILE *fp)
   /* Simplified calculation - in practice would use proper regression */
   if (box_counts[0] > 0 && box_counts[num_sizes - 1] > 0)
   {
-    fractal_dim = (log((float)box_counts[0]) - log((float)box_counts[num_sizes - 1])) /
+    fractal_dim = (log((double)box_counts[0]) - log((double)box_counts[num_sizes - 1])) /
                   (log(1.0 / box_sizes[0]) - log(1.0 / box_sizes[num_sizes - 1]));
   }
 
@@ -3019,10 +3016,10 @@ void model_economic_potential(FILE *fp)
   struct economic_zone
   {
     int x, y;
-    float agriculture_score;
-    float mining_score;
-    float trade_score;
-    float total_score;
+    double agriculture_score;
+    double mining_score;
+    double trade_score;
+    double total_score;
   } top_zones[10];
   /* int num_zones = 0; - removed unused variable */
   int x, y, i;
@@ -3041,7 +3038,7 @@ void model_economic_potential(FILE *fp)
   {
     for (x = 64; x < MAP_WIDTH - 64; x += 128)
     {
-      float agri_score = 0, mine_score = 0, trade_score = 0;
+      double agri_score = 0, mine_score = 0, trade_score = 0;
       int sample_count = 0;
       int sx, sy;
 
@@ -3068,8 +3065,8 @@ void model_economic_potential(FILE *fp)
           }
 
           /* Mining potential */
-          float mineral_density = get_resource_density(sx, sy, 1); /* Minerals */
-          float stone_density = get_resource_density(sx, sy, 6);   /* Stone */
+          double mineral_density = get_resource_density(sx, sy, 1); /* Minerals */
+          double stone_density = get_resource_density(sx, sy, 6);   /* Stone */
           mine_score += (mineral_density + stone_density) * 0.5;
 
           /* Trade potential (proximity to water and roads) */
@@ -3088,7 +3085,7 @@ void model_economic_potential(FILE *fp)
         trade_score /= sample_count;
       }
 
-      float total = (agri_score * 0.4 + mine_score * 0.3 + trade_score * 0.3);
+      double total = (agri_score * 0.4 + mine_score * 0.3 + trade_score * 0.3);
 
       /* Check if this zone makes top 10 */
       if (total > top_zones[9].total_score)
@@ -3144,11 +3141,11 @@ void model_economic_potential(FILE *fp)
     }
   }
 
-  fprintf(fp, "- **Road Coverage**: %.1f%% of world\n", (float)road_tiles / total_tiles * 100);
-  fprintf(fp, "- **Navigable Water**: %.1f%% of world\n", (float)water_tiles / total_tiles * 100);
+  fprintf(fp, "- **Road Coverage**: %.1f%% of world\n", (double)road_tiles / total_tiles * 100);
+  fprintf(fp, "- **Navigable Water**: %.1f%% of world\n", (double)water_tiles / total_tiles * 100);
   fprintf(fp, "- **Trade Network Density**: ");
 
-  float trade_density = (float)(road_tiles + water_tiles) / total_tiles;
+  double trade_density = (double)(road_tiles + water_tiles) / total_tiles;
   if (trade_density < 0.1)
     fprintf(fp, "Low - isolated economy\n");
   else if (trade_density < 0.25)
@@ -3187,7 +3184,7 @@ void write_landmasses_json(FILE *fp, struct landmass_info *landmasses)
     fprintf(fp, "      \"dominant_biome\": \"%s\",\n", lm->dominant_biome);
 
     /* Classify landmass */
-    char *classification;
+    const char *classification;
     if (lm->tile_count > 100000)
       classification = "continent";
     else if (lm->tile_count > 10000)
@@ -3211,9 +3208,9 @@ void write_landmasses_json(FILE *fp, struct landmass_info *landmasses)
 void write_resources_json(FILE *fp)
 {
   int x, y, res_type, r1, r2;
-  float max_densities[10] = {0};
+  double max_densities[10] = {0};
   int hotspot_x[10] = {0}, hotspot_y[10] = {0};
-  float correlations[10][10];
+  double correlations[10][10];
 
   fprintf(fp, "\n```json\n");
   fprintf(fp, "{\n  \"resource_analysis\": {\n");
@@ -3225,7 +3222,7 @@ void write_resources_json(FILE *fp)
     {
       for (x = 0; x < MAP_WIDTH; x += 32)
       {
-        float density = get_resource_density(x, y, res_type);
+        double density = get_resource_density(x, y, res_type);
         if (density > max_densities[res_type])
         {
           max_densities[res_type] = density;
@@ -3238,8 +3235,8 @@ void write_resources_json(FILE *fp)
 
   fprintf(fp, "    \"resources\": [\n");
 
-  char *resource_names[] = {"vegetation", "minerals", "water",   "herbs", "game",
-                            "wood",       "stone",    "crystal", "clay",  "salt"};
+  const char *resource_names[] = {"vegetation", "minerals", "water",   "herbs", "game",
+                                  "wood",       "stone",    "crystal", "clay",  "salt"};
 
   int r;
   for (r = 0; r < 10; r++)
@@ -3463,11 +3460,11 @@ void write_path_network_json(FILE *fp)
 /* Dijkstra's shortest path algorithm for optimal pathfinding */
 void calculate_dijkstra_paths(FILE *fp, int source_x, int source_y, int dest_x, int dest_y)
 {
-  float *distance;
+  double *distance;
   int *visited, *previous_x, *previous_y;
   int current_x, current_y, neighbor_x, neighbor_y;
   int i, min_idx, path_length = 0;
-  float min_dist, new_dist, terrain_cost;
+  double min_dist, new_dist, terrain_cost;
   int path_x[1000], path_y[1000];
   int max_search_radius, dx, dy, search_iterations = 0;
   int max_iterations = 50000; /* Limit iterations to prevent infinite loops */
@@ -3475,28 +3472,28 @@ void calculate_dijkstra_paths(FILE *fp, int source_x, int source_y, int dest_x, 
   /* Calculate maximum search radius based on distance between points */
   dx = abs(dest_x - source_x);
   dy = abs(dest_y - source_y);
-  max_search_radius = (int)((dx + dy) * 1.5f) + 100; /* Add buffer for obstacles */
+  max_search_radius = (int)((dx + dy) * 1.5) + 100; /* Add buffer for obstacles */
   if (max_search_radius > 500)
     max_search_radius = 500; /* Cap at reasonable size */
 
-  CREATE(distance, float, MAP_WIDTH *MAP_HEIGHT);
+  CREATE(distance, double, MAP_WIDTH *MAP_HEIGHT);
   CREATE(visited, int, MAP_WIDTH *MAP_HEIGHT);
   CREATE(previous_x, int, MAP_WIDTH *MAP_HEIGHT);
   CREATE(previous_y, int, MAP_WIDTH *MAP_HEIGHT);
 
   for (i = 0; i < MAP_WIDTH * MAP_HEIGHT; i++)
   {
-    distance[i] = 999999.0f;
+    distance[i] = 999999.0;
     visited[i] = 0;
     previous_x[i] = -1;
     previous_y[i] = -1;
   }
 
-  distance[source_y * MAP_WIDTH + source_x] = 0.0f;
+  distance[source_y * MAP_WIDTH + source_x] = 0.0;
 
   while (search_iterations < max_iterations)
   {
-    min_dist = 999999.0f;
+    min_dist = 999999.0;
     min_idx = -1;
 
     /* Only search within reasonable radius of source and destination */
@@ -3515,7 +3512,7 @@ void calculate_dijkstra_paths(FILE *fp, int source_x, int source_y, int dest_x, 
       }
     }
 
-    if (min_idx == -1 || min_dist >= 999999.0f)
+    if (min_idx == -1 || min_dist >= 999999.0)
       break;
 
     current_x = min_idx % MAP_WIDTH;
@@ -3535,16 +3532,16 @@ void calculate_dijkstra_paths(FILE *fp, int source_x, int source_y, int dest_x, 
         if (neighbor_x == current_x && neighbor_y == current_y)
           continue;
 
-        terrain_cost = 1.0f;
+        terrain_cost = 1.0;
         if (GET_MAP_SECTOR(neighbor_x, neighbor_y) == SECT_MOUNTAIN)
-          terrain_cost = 5.0f;
+          terrain_cost = 5.0;
         else if (GET_MAP_SECTOR(neighbor_x, neighbor_y) == SECT_WATER_SWIM)
-          terrain_cost = 3.0f;
+          terrain_cost = 3.0;
         else if (GET_MAP_SECTOR(neighbor_x, neighbor_y) == SECT_FOREST)
-          terrain_cost = 2.0f;
+          terrain_cost = 2.0;
 
         if (neighbor_x != current_x && neighbor_y != current_y)
-          terrain_cost *= 1.414f;
+          terrain_cost *= 1.414;
 
         new_dist = distance[min_idx] + terrain_cost;
 
@@ -3694,8 +3691,8 @@ void write_ocean_json(FILE *fp)
 void analyze_noise_spectrum(FILE *fp)
 {
   int x, y, freq;
-  float amplitude[16], frequency[16];
-  float total_power, dominant_freq;
+  double amplitude[16], frequency[16];
+  double total_power, dominant_freq;
   int sample_size = 256;
 
   fprintf(fp, "\n### Spectral Analysis of Noise Layers\n\n");
@@ -3703,8 +3700,8 @@ void analyze_noise_spectrum(FILE *fp)
 
   for (freq = 0; freq < 16; freq++)
   {
-    frequency[freq] = (float)freq / 16.0f;
-    amplitude[freq] = 0.0f;
+    frequency[freq] = (double)freq / 16.0;
+    amplitude[freq] = 0.0;
 
     for (y = 0; y < sample_size; y += 16)
     {
@@ -3717,8 +3714,8 @@ void analyze_noise_spectrum(FILE *fp)
     amplitude[freq] /= (sample_size * sample_size / 256);
   }
 
-  total_power = 0.0f;
-  dominant_freq = 0.0f;
+  total_power = 0.0;
+  dominant_freq = 0.0;
   for (freq = 0; freq < 16; freq++)
   {
     total_power += amplitude[freq] * amplitude[freq];
@@ -3739,7 +3736,7 @@ void analyze_noise_spectrum(FILE *fp)
 
   fprintf(fp, "\n- Total spectral power: %.3f\n", total_power);
   fprintf(fp, "- Dominant frequency: %.3f\n", dominant_freq);
-  fprintf(fp, "- Spectral balance: %s\n\n", total_power > 0.5f ? "Good" : "Needs adjustment");
+  fprintf(fp, "- Spectral balance: %s\n\n", total_power > 0.5 ? "Good" : "Needs adjustment");
 }
 
 /* Main function to generate the complete knowledge base */

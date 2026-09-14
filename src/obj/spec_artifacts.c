@@ -1814,15 +1814,15 @@ void artifact_boot(void)
           free(art->first_account);
         art->first_account = strdup(rec.first_account);
 
-        art->first_claimed_at = (time_t)MAX(0L, rec.first_claimed_at);
-        art->last_claimed_at = (time_t)MAX(0L, rec.last_claimed_at);
+        art->first_claimed_at = (time_t)long_max(0L, rec.first_claimed_at);
+        art->last_claimed_at = (time_t)long_max(0L, rec.last_claimed_at);
         art->claim_count = MAX(0, rec.claim_count);
         art->transfer_count = MAX(0, rec.transfer_count);
         art->destroy_count = MAX(0, rec.destroy_count);
         art->recovery_count = MAX(0, rec.recovery_count);
         art->override_count = MAX(0, rec.override_count);
         art->discovered = rec.discovered ? TRUE : FALSE;
-        art->discovered_at = (time_t)MAX(0L, rec.discovered_at);
+        art->discovered_at = (time_t)long_max(0L, rec.discovered_at);
       }
       else if (artifact_is_owned(rec.vnum))
       {
@@ -2959,19 +2959,19 @@ void artifact_on_extract(struct obj_data *obj)
 /* Single-instance enforcement.  TRUE means the just-loaded object must be
  * extracted again: someone already owns this artifact, or an instance is
  * already in play. */
-int artifact_block_zone_load(obj_rnum obj_rnum)
+int artifact_block_zone_load(obj_rnum obj_rnum_id)
 {
   int vnum = 0;
 
-  if (!art_index || obj_rnum == NOTHING)
+  if (!art_index || obj_rnum_id == NOTHING)
     return FALSE;
 
-  vnum = obj_index[obj_rnum].vnum;
+  vnum = obj_index[obj_rnum_id].vnum;
 
   if (artifact_search(vnum) < 0)
     return FALSE;
 
-  if (obj_index[obj_rnum].number > 0)
+  if (obj_index[obj_rnum_id].number > 0)
     return TRUE;
 
   if (artifact_is_owned(vnum) && artifact_by_vnum(vnum)->instance_persisted)

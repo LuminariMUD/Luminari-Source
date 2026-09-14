@@ -44,7 +44,6 @@
 #include "../../src/spec/spec_effects.h"
 
 /* Production look helper exercised by Wyrmfang's danger-sense contract. */
-void check_dangersense(struct char_data *ch, room_rnum room);
 
 /* --------------------------------------------------------------------------
  * The fixture
@@ -171,8 +170,8 @@ static void artint_make_npc(struct char_data *ch, const char *name, room_rnum ro
   clear_char(ch);
   SET_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
   ch->player_specials = &dummy_mob;
-  ch->player.short_descr = (char *)name;
-  ch->player.name = (char *)name;
+  ch->player.short_descr = CuMutableString(name);
+  ch->player.name = CuMutableString(name);
   GET_LEVEL(ch) = 15;
   GET_POS(ch) = POS_STANDING;
   GET_HIT(ch) = 400;
@@ -222,9 +221,9 @@ static int artint_begin(struct artint_fixture *fixture)
     fixture->indexes[i].vnum = artint_vnums[i];
     clear_object(&fixture->protos[i]);
     GET_OBJ_RNUM(&fixture->protos[i]) = i;
-    fixture->protos[i].name = (char *)"artifact test";
-    fixture->protos[i].short_description = (char *)"a test artifact";
-    fixture->protos[i].description = (char *)"A test artifact lies here.";
+    fixture->protos[i].name = CuMutableString("artifact test");
+    fixture->protos[i].short_description = CuMutableString("a test artifact");
+    fixture->protos[i].description = CuMutableString("A test artifact lies here.");
     GET_OBJ_TYPE(&fixture->protos[i]) = ITEM_WEAPON;
   }
 
@@ -235,13 +234,13 @@ static int artint_begin(struct artint_fixture *fixture)
   fixture->rooms[0].number = 169900;
   fixture->rooms[0].zone = 0;
   fixture->rooms[0].sector_type = SECT_INSIDE;
-  fixture->rooms[0].name = (char *)"Artifact integration origin";
-  fixture->rooms[0].description = (char *)"A production-linked artifact test room.\r\n";
+  fixture->rooms[0].name = CuMutableString("Artifact integration origin");
+  fixture->rooms[0].description = CuMutableString("A production-linked artifact test room.\r\n");
   fixture->rooms[1].number = 169999;
   fixture->rooms[1].zone = 0;
   fixture->rooms[1].sector_type = SECT_INSIDE;
-  fixture->rooms[1].name = (char *)"Artifact integration annex";
-  fixture->rooms[1].description = (char *)"A second artifact test room.\r\n";
+  fixture->rooms[1].name = CuMutableString("Artifact integration annex");
+  fixture->rooms[1].description = CuMutableString("A second artifact test room.\r\n");
 
   fixture->zones[0].number = 1699;
   fixture->zones[0].bot = 169900;
@@ -335,9 +334,9 @@ static void artint_instance(struct artint_fixture *fixture, struct obj_data *obj
 {
   clear_object(obj);
   GET_OBJ_RNUM(obj) = artint_rnum_of(vnum);
-  obj->name = (char *)"artifact test";
-  obj->short_description = (char *)"a test artifact";
-  obj->description = (char *)"A test artifact lies here.";
+  obj->name = CuMutableString("artifact test");
+  obj->short_description = CuMutableString("a test artifact");
+  obj->description = CuMutableString("A test artifact lies here.");
   GET_OBJ_TYPE(obj) = ITEM_WEAPON;
   IN_ROOM(obj) = NOWHERE;
   (void)fixture;
@@ -407,8 +406,8 @@ static int artint_run_lethal_outer_hook(struct artint_fixture *fixture, struct o
   clear_char(&mobile_proto);
   SET_BIT_AR(MOB_FLAGS(&mobile_proto), MOB_ISNPC);
   mobile_proto.player_specials = &dummy_mob;
-  mobile_proto.player.name = (char *)"artifact lethal target";
-  mobile_proto.player.short_descr = (char *)"an artifact lethal target";
+  mobile_proto.player.name = CuMutableString("artifact lethal target");
+  mobile_proto.player.short_descr = CuMutableString("an artifact lethal target");
   GET_MOB_RNUM(&mobile_proto) = 0;
   GET_LEVEL(&mobile_proto) = 1;
   GET_CLASS(&mobile_proto) = CLASS_WARRIOR;
@@ -1354,7 +1353,7 @@ void Test_artifact_integration_every_active_ability_is_reachable(CuTest *tc)
   {
     art = artifact_by_vnum(ability_vnums[i]);
     CuAssertPtrNotNull(tc, art);
-    CuAssertPtrNotNull(tc, (void *)art->ability_name);
+    CuAssertPtrNotNull(tc, art->ability_name);
 
     artint_instance(&fixture, &obj, ability_vnums[i]);
     artint_carry(&fixture, &obj);
@@ -1365,7 +1364,7 @@ void Test_artifact_integration_every_active_ability_is_reachable(CuTest *tc)
       CLASS_LEVEL(actor, art->class_restrict) = art->class_min_level;
 
     artint_clear_output(&fixture);
-    do_artifact(&fixture.actor, (char *)"abilities", 0, 0);
+    do_artifact(&fixture.actor, "abilities", 0, 0);
     if (artint_said(&fixture, art->ability_name))
       listed++;
 
@@ -1495,7 +1494,7 @@ void Test_artifact_integration_active_abilities_obey_class_oaths(CuTest *tc)
   divine_info_hidden = !artint_said(&fixture, "divineward");
 
   artint_clear_output(&fixture);
-  do_artifact(&fixture.actor, (char *)"abilities", 0, 0);
+  do_artifact(&fixture.actor, "abilities", 0, 0);
   divine_list_hidden = !artint_said(&fixture, "divineward") && artint_said(&fixture, "withholds");
 
   psp_before = GET_PSP(&fixture.actor);
@@ -1543,7 +1542,7 @@ void Test_artifact_integration_active_abilities_obey_class_oaths(CuTest *tc)
   doom_info_hidden = !artint_said(&fixture, "doomblast");
 
   artint_clear_output(&fixture);
-  do_artifact(&fixture.actor, (char *)"abilities", 0, 0);
+  do_artifact(&fixture.actor, "abilities", 0, 0);
   doom_list_hidden = !artint_said(&fixture, "doomblast") && artint_said(&fixture, "withholds");
 
   psp_before = GET_PSP(&fixture.actor);
@@ -2855,11 +2854,11 @@ void Test_artifact_integration_player_commands_produce_output(CuTest *tc)
   }
 
   artint_clear_output(&fixture);
-  do_artifact(&fixture.actor, (char *)"help", 0, 0);
+  do_artifact(&fixture.actor, "help", 0, 0);
   help_ok = (fixture.descriptor.output[0] != '\0');
 
   artint_clear_output(&fixture);
-  do_artifact(&fixture.actor, (char *)"list", 0, 0);
+  do_artifact(&fixture.actor, "list", 0, 0);
   list_empty_ok = (fixture.descriptor.output[0] != '\0');
 
   artint_instance(&fixture, &obj, ART_VNUM_AEGIS);
@@ -2867,23 +2866,23 @@ void Test_artifact_integration_player_commands_produce_output(CuTest *tc)
   artifact_obj_to_char(&obj, &fixture.actor);
 
   artint_clear_output(&fixture);
-  do_artifact(&fixture.actor, (char *)"list", 0, 0);
+  do_artifact(&fixture.actor, "list", 0, 0);
   list_shows_held = artint_said(&fixture, "a test artifact");
 
   artint_clear_output(&fixture);
-  do_artifact(&fixture.actor, (char *)"roster", 0, 0);
+  do_artifact(&fixture.actor, "roster", 0, 0);
   roster_ok = (fixture.descriptor.output[0] != '\0');
 
   artint_clear_output(&fixture);
-  do_artifact(&fixture.actor, (char *)"progress", 0, 0);
+  do_artifact(&fixture.actor, "progress", 0, 0);
   progress_ok = (fixture.descriptor.output[0] != '\0');
 
   artint_clear_output(&fixture);
-  do_artifact(&fixture.actor, (char *)"info artifact", 0, 0);
+  do_artifact(&fixture.actor, "info artifact", 0, 0);
   info_ok = (fixture.descriptor.output[0] != '\0');
 
   artint_clear_output(&fixture);
-  do_artifact(&fixture.actor, (char *)"nonsense", 0, 0);
+  do_artifact(&fixture.actor, "nonsense", 0, 0);
   usage_ok = artint_said(&fixture, "Usage: artifact");
 
   artint_uncarry(&fixture, &obj);
@@ -2918,7 +2917,7 @@ void Test_artifact_integration_chronicle_hides_an_undiscovered_name(CuTest *tc)
 
   /* Undiscovered: the roster carries the lore but not the name. */
   artint_clear_output(&fixture);
-  do_artifact(&fixture.actor, (char *)"roster", 0, 0);
+  do_artifact(&fixture.actor, "roster", 0, 0);
   hidden_before = !artint_said(&fixture, "a test artifact");
 
   /* Claiming it is what makes it public. */
@@ -2928,7 +2927,7 @@ void Test_artifact_integration_chronicle_hides_an_undiscovered_name(CuTest *tc)
   CuAssertIntEquals(tc, TRUE, art->discovered);
 
   artint_clear_output(&fixture);
-  do_artifact(&fixture.actor, (char *)"roster", 0, 0);
+  do_artifact(&fixture.actor, "roster", 0, 0);
   named_after = artint_said(&fixture, "a test artifact");
 
   artint_uncarry(&fixture, &obj);
@@ -2953,15 +2952,15 @@ void Test_artifact_integration_staff_commands_report_the_registry(CuTest *tc)
   GET_LEVEL(&fixture.actor) = LVL_IMPL;
 
   artint_clear_output(&fixture);
-  do_testartifact(&fixture.actor, (char *)"list", 0, 0);
+  do_testartifact(&fixture.actor, "list", 0, 0);
   list_ok = (fixture.descriptor.output[0] != '\0');
 
   artint_clear_output(&fixture);
-  do_testartifact(&fixture.actor, (char *)"verify", 0, 0);
+  do_testartifact(&fixture.actor, "verify", 0, 0);
   verify_ok = (fixture.descriptor.output[0] != '\0');
 
   artint_clear_output(&fixture);
-  do_testartifact(&fixture.actor, (char *)"", 0, 0);
+  do_testartifact(&fixture.actor, "", 0, 0);
   usage_ok = (fixture.descriptor.output[0] != '\0');
 
   GET_LEVEL(&fixture.actor) = 20;
@@ -2995,7 +2994,7 @@ void Test_artifact_integration_staff_spawn_refuses_a_durably_owned_artifact(CuTe
 
   GET_LEVEL(&fixture.actor) = LVL_IMPL;
   artint_clear_output(&fixture);
-  do_testartifact(&fixture.actor, (char *)"spawn 169911", 0, 0);
+  do_testartifact(&fixture.actor, "spawn 169911", 0, 0);
   refused = (fixture.descriptor.output[0] != '\0');
   owner_untouched = !str_cmp(art->owner, "Someoneelse");
   persistence_untouched = art->instance_persisted;

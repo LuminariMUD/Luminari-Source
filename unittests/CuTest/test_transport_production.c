@@ -95,7 +95,7 @@ void Test_transport_landmark_regions_accept_names_and_city(CuTest *tc)
   room_fixture.number = 103000;
   room_fixture.zone = 0;
   zone_fixture.number = 1030;
-  zone_fixture.name = "Ashenport";
+  zone_fixture.name = CuMutableString("Ashenport");
   world = &room_fixture;
   top_of_world = 0;
   zone_table = &zone_fixture;
@@ -115,7 +115,7 @@ void Test_transport_landmark_regions_accept_names_and_city(CuTest *tc)
     top_of_world = saved_top_of_world;
     zone_table = saved_zone_table;
     top_of_zone_table = saved_top_of_zone_table;
-    CONFIG_LANDMARK_SYSTEM = saved_landmark_system;
+    CONFIG_LANDMARK_SYSTEM = (ubyte)saved_landmark_system;
     CuFail(tc, "could not initialize the landmark descriptor");
     return;
   }
@@ -141,7 +141,7 @@ void Test_transport_landmark_regions_accept_names_and_city(CuTest *tc)
   top_of_world = saved_top_of_world;
   zone_table = saved_zone_table;
   top_of_zone_table = saved_top_of_zone_table;
-  CONFIG_LANDMARK_SYSTEM = saved_landmark_system;
+  CONFIG_LANDMARK_SYSTEM = (ubyte)saved_landmark_system;
 
   CuAssertIntEquals(tc, 1030, get_walkto_landmark_region_vnum("1030"));
   CuAssertIntEquals(tc, NOWHERE, get_walkto_landmark_region_vnum("103"));
@@ -529,11 +529,11 @@ void Test_vessel_production_geometry_and_type_data(CuTest *tc)
 {
   const struct vessel_terrain_caps *caps;
 
-  CuAssertIntEquals(tc, 0, greyhawk_bearing(0.0f, 0.0f, 0.0f, 1.0f));
-  CuAssertIntEquals(tc, 90, greyhawk_bearing(0.0f, 0.0f, 1.0f, 0.0f));
-  CuAssertIntEquals(tc, 180, greyhawk_bearing(0.0f, 1.0f, 0.0f, 0.0f));
-  CuAssertIntEquals(tc, 270, greyhawk_bearing(1.0f, 0.0f, 0.0f, 0.0f));
-  CuAssertDblEquals(tc, 13.0, greyhawk_range(0.0f, 0.0f, 0.0f, 3.0f, 4.0f, 12.0f), 0.001);
+  CuAssertIntEquals(tc, 0, greyhawk_bearing(0.0, 0.0, 0.0, 1.0));
+  CuAssertIntEquals(tc, 90, greyhawk_bearing(0.0, 0.0, 1.0, 0.0));
+  CuAssertIntEquals(tc, 180, greyhawk_bearing(0.0, 1.0, 0.0, 0.0));
+  CuAssertIntEquals(tc, 270, greyhawk_bearing(1.0, 0.0, 0.0, 0.0));
+  CuAssertDblEquals(tc, 13.0, greyhawk_range(0.0, 0.0, 0.0, 3.0, 4.0, 12.0), 0.001);
 
   CuAssertStrEquals(tc, "Airship", get_vessel_type_name(VESSEL_AIRSHIP));
   CuAssertStrEquals(tc, "Unknown Vessel", get_vessel_type_name((enum vessel_class)99));
@@ -617,8 +617,8 @@ void Test_vessel_production_autopilot_lifecycle(CuTest *tc)
   CuAssertTrue(tc, ship.autopilot->movement_steps == 0);
   CuAssertTrue(tc, ship.autopilot->waypoint_arrivals == 0);
   CuAssertTrue(tc, ship.autopilot->route_completions == 0);
-  CuAssertIntEquals(tc, 0, waypoint_add(route, 3.0f, 4.0f, 12.0f, "first"));
-  CuAssertIntEquals(tc, 1, waypoint_add(route, 8.0f, 4.0f, 12.0f, "second"));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, 3.0, 4.0, 12.0, "first"));
+  CuAssertIntEquals(tc, 1, waypoint_add(route, 8.0, 4.0, 12.0, "second"));
   CuAssertTrue(tc, autopilot_start(&ship, route));
 
   waypoint = waypoint_get_current(&ship);
@@ -650,15 +650,15 @@ void Test_vessel_production_waypoint_mutation_and_heading(CuTest *tc)
 {
   struct greyhawk_ship_data ship;
   struct ship_route *route;
-  float dx;
-  float dy;
+  double dx;
+  double dy;
 
   memset(&ship, 0, sizeof(ship));
   route = route_create(NULL);
   CuAssertPtrNotNull(tc, route);
 
-  CuAssertIntEquals(tc, 0, waypoint_add(route, 3.0f, 4.0f, 0.0f, "first"));
-  CuAssertIntEquals(tc, 1, waypoint_add(route, 9.0f, 9.0f, 0.0f, "second"));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, 3.0, 4.0, 0.0, "first"));
+  CuAssertIntEquals(tc, 1, waypoint_add(route, 9.0, 9.0, 0.0, "second"));
   calculate_heading_to_waypoint(&ship, &route->waypoints[0], &dx, &dy);
   CuAssertDblEquals(tc, 0.6, dx, 0.001);
   CuAssertDblEquals(tc, 0.8, dy, 0.001);
@@ -685,8 +685,8 @@ void Test_vessel_autopilot_wait_stops_and_resumes_cruise_speed(CuTest *tc)
 
   CuAssertPtrNotNull(tc, route);
   CuAssertPtrNotNull(tc, autopilot_init(&ship));
-  CuAssertIntEquals(tc, 0, waypoint_add(route, 0.0f, 0.0f, 0.0f, "port"));
-  CuAssertIntEquals(tc, 1, waypoint_add(route, 10.0f, 0.0f, 0.0f, "channel"));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, 0.0, 0.0, 0.0, "port"));
+  CuAssertIntEquals(tc, 1, waypoint_add(route, 10.0, 0.0, 0.0, "channel"));
   route->waypoints[0].wait_time = 5;
   CuAssertTrue(tc, autopilot_start(&ship, route));
 
@@ -715,11 +715,11 @@ void Test_vessel_autopilot_wait_stops_and_resumes_cruise_speed(CuTest *tc)
 
 void Test_vessel_autopilot_rounds_signed_wilderness_coordinates(CuTest *tc)
 {
-  CuAssertIntEquals(tc, 64, vessel_autopilot_grid_coordinate(63.95f));
-  CuAssertIntEquals(tc, 63, vessel_autopilot_grid_coordinate(63.40f));
-  CuAssertIntEquals(tc, -64, vessel_autopilot_grid_coordinate(-63.95f));
-  CuAssertIntEquals(tc, -63, vessel_autopilot_grid_coordinate(-63.40f));
-  CuAssertIntEquals(tc, -64, vessel_autopilot_grid_coordinate(-63.50f));
+  CuAssertIntEquals(tc, 64, vessel_autopilot_grid_coordinate(63.95));
+  CuAssertIntEquals(tc, 63, vessel_autopilot_grid_coordinate(63.40));
+  CuAssertIntEquals(tc, -64, vessel_autopilot_grid_coordinate(-63.95));
+  CuAssertIntEquals(tc, -63, vessel_autopilot_grid_coordinate(-63.40));
+  CuAssertIntEquals(tc, -64, vessel_autopilot_grid_coordinate(-63.50));
 }
 
 void Test_vessel_autopilot_moves_on_all_three_axes_without_overshoot(CuTest *tc)
@@ -733,31 +733,31 @@ void Test_vessel_autopilot_moves_on_all_three_axes_without_overshoot(CuTest *tc)
   memset(&ship, 0, sizeof(ship));
   memset(&waypoint, 0, sizeof(waypoint));
 
-  waypoint.z = 50.0f;
+  waypoint.z = 50.0;
   CuAssertTrue(
-      tc, vessel_autopilot_next_position(&ship, &waypoint, 10.0f, &target_x, &target_y, &target_z));
+      tc, vessel_autopilot_next_position(&ship, &waypoint, 10.0, &target_x, &target_y, &target_z));
   CuAssertIntEquals(tc, 0, target_x);
   CuAssertIntEquals(tc, 0, target_y);
   CuAssertIntEquals(tc, 10, target_z);
 
-  waypoint.x = 3.0f;
-  waypoint.y = 4.0f;
-  waypoint.z = 0.0f;
+  waypoint.x = 3.0;
+  waypoint.y = 4.0;
+  waypoint.z = 0.0;
   CuAssertTrue(
-      tc, vessel_autopilot_next_position(&ship, &waypoint, 2.0f, &target_x, &target_y, &target_z));
+      tc, vessel_autopilot_next_position(&ship, &waypoint, 2.0, &target_x, &target_y, &target_z));
   CuAssertIntEquals(tc, 1, target_x);
   CuAssertIntEquals(tc, 2, target_y);
   CuAssertIntEquals(tc, 0, target_z);
 
   CuAssertTrue(
-      tc, vessel_autopilot_next_position(&ship, &waypoint, 10.0f, &target_x, &target_y, &target_z));
+      tc, vessel_autopilot_next_position(&ship, &waypoint, 10.0, &target_x, &target_y, &target_z));
   CuAssertIntEquals(tc, 3, target_x);
   CuAssertIntEquals(tc, 4, target_y);
   CuAssertIntEquals(tc, 0, target_z);
 
-  waypoint.z = 12.0f;
+  waypoint.z = 12.0;
   CuAssertTrue(
-      tc, vessel_autopilot_next_position(&ship, &waypoint, 13.0f, &target_x, &target_y, &target_z));
+      tc, vessel_autopilot_next_position(&ship, &waypoint, 13.0, &target_x, &target_y, &target_z));
   CuAssertIntEquals(tc, 3, target_x);
   CuAssertIntEquals(tc, 4, target_y);
   CuAssertIntEquals(tc, 12, target_z);
@@ -777,7 +777,7 @@ void Test_vessel_autopilot_pauses_after_untraversable_waypoint(CuTest *tc)
 
   CuAssertPtrNotNull(tc, route);
   CuAssertPtrNotNull(tc, autopilot_init(&ship));
-  CuAssertIntEquals(tc, 0, waypoint_add(route, 0.0f, 0.0f, 10.0f, "invalid altitude"));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, 0.0, 0.0, 10.0, "invalid altitude"));
   CuAssertTrue(tc, autopilot_start(&ship, route));
 
   process_traveling_vessel(&ship);
@@ -841,17 +841,17 @@ void Test_vessel_region_features_use_wilderness_thresholds(CuTest *tc)
 
   fixture[0].vnum = 7200020;
   fixture[0].zone = 0;
-  fixture[0].name = "Outer Test Lane";
+  fixture[0].name = CuMutableString("Outer Test Lane");
   fixture[0].region_type = REGION_ALTITUDE_LANE;
   fixture[0].region_props = 100;
   fixture[0].vertices = feature_polygon;
   fixture[0].num_vertices = 5;
   fixture[1] = fixture[0];
   fixture[1].vnum = 7200010;
-  fixture[1].name = "Priority Test Lane";
+  fixture[1].name = CuMutableString("Priority Test Lane");
   fixture[2] = fixture[0];
   fixture[2].vnum = 7200030;
-  fixture[2].name = "Test Sky Island";
+  fixture[2].name = CuMutableString("Test Sky Island");
   fixture[2].region_type = REGION_SKY_ISLAND;
   fixture[2].region_props = 200;
 
@@ -1023,30 +1023,30 @@ void Test_vessel_combat_firing_arcs(CuTest *tc)
 
   memset(&greyhawk_ships[A], 0, sizeof(greyhawk_ships[A]));
   memset(&greyhawk_ships[B], 0, sizeof(greyhawk_ships[B]));
-  greyhawk_ships[A].x = 0.0f;
-  greyhawk_ships[A].y = 0.0f;
+  greyhawk_ships[A].x = 0.0;
+  greyhawk_ships[A].y = 0.0;
   greyhawk_ships[A].heading = 0; /* facing north (+y) */
 
-  greyhawk_ships[B].x = 0.0f;
-  greyhawk_ships[B].y = 10.0f; /* due north */
+  greyhawk_ships[B].x = 0.0;
+  greyhawk_ships[B].y = 10.0; /* due north */
   CuAssertIntEquals(tc, GREYHAWK_FORE, greyhawk_getarc(A, B));
 
-  greyhawk_ships[B].x = 10.0f;
-  greyhawk_ships[B].y = 0.0f; /* due east */
+  greyhawk_ships[B].x = 10.0;
+  greyhawk_ships[B].y = 0.0; /* due east */
   CuAssertIntEquals(tc, GREYHAWK_STARBOARD, greyhawk_getarc(A, B));
 
-  greyhawk_ships[B].x = -10.0f;
-  greyhawk_ships[B].y = 0.0f; /* due west */
+  greyhawk_ships[B].x = -10.0;
+  greyhawk_ships[B].y = 0.0; /* due west */
   CuAssertIntEquals(tc, GREYHAWK_PORT, greyhawk_getarc(A, B));
 
-  greyhawk_ships[B].x = 0.0f;
-  greyhawk_ships[B].y = -10.0f; /* due south */
+  greyhawk_ships[B].x = 0.0;
+  greyhawk_ships[B].y = -10.0; /* due south */
   CuAssertIntEquals(tc, GREYHAWK_REAR, greyhawk_getarc(A, B));
 
   /* Heading east flips north to the port arc */
   greyhawk_ships[A].heading = 90;
-  greyhawk_ships[B].x = 0.0f;
-  greyhawk_ships[B].y = 10.0f;
+  greyhawk_ships[B].x = 0.0;
+  greyhawk_ships[B].y = 10.0;
   CuAssertIntEquals(tc, GREYHAWK_PORT, greyhawk_getarc(A, B));
 
   memset(&greyhawk_ships[A], 0, sizeof(greyhawk_ships[A]));
@@ -1134,10 +1134,10 @@ void Test_vessel_combat_npc_duel_harness(CuTest *tc)
 
   duel_arm_ship(&greyhawk_ships[A], A, "duelist alpha");
   duel_arm_ship(&greyhawk_ships[B], B, "duelist beta");
-  greyhawk_ships[A].x = 0.0f;
-  greyhawk_ships[A].y = 0.0f;
-  greyhawk_ships[B].x = 10.0f;
-  greyhawk_ships[B].y = 0.0f;
+  greyhawk_ships[A].x = 0.0;
+  greyhawk_ships[A].y = 0.0;
+  greyhawk_ships[B].x = 10.0;
+  greyhawk_ships[B].y = 0.0;
 
   /* Open hostilities in both directions */
   greyhawk_ships[A].last_attacker = B;
@@ -1520,13 +1520,13 @@ void Test_vessel_piracy_resolves_canonical_regions_in_memory(CuTest *tc)
 
   region_fixture[0].vnum = 7100020;
   region_fixture[0].zone = 0;
-  region_fixture[0].name = "Western Outer Waters";
+  region_fixture[0].name = CuMutableString("Western Outer Waters");
   region_fixture[0].region_type = REGION_GEOGRAPHIC;
   region_fixture[0].vertices = western_polygon;
   region_fixture[0].num_vertices = 5;
   region_fixture[1] = region_fixture[0];
   region_fixture[1].vnum = 7100010;
-  region_fixture[1].name = "Western Inner Waters";
+  region_fixture[1].name = CuMutableString("Western Inner Waters");
   region_fixture[2] = region_fixture[0];
   region_fixture[2].vnum = 7100000;
   region_fixture[2].region_type = REGION_ENCOUNTER;
@@ -1535,7 +1535,7 @@ void Test_vessel_piracy_resolves_canonical_regions_in_memory(CuTest *tc)
   region_fixture[3].zone = 1;
   region_fixture[4] = region_fixture[0];
   region_fixture[4].vnum = 7100030;
-  region_fixture[4].name = "Eastern Waters";
+  region_fixture[4].name = CuMutableString("Eastern Waters");
   region_fixture[4].vertices = eastern_polygon;
 
   saved_region_table = region_table;
@@ -1698,7 +1698,7 @@ void Test_vessel_shiptalk_is_scoped_to_one_ship(CuTest *tc)
   world = room_fixture;
   top_of_world = 2;
 
-  speaker.player.name = "Corr";
+  speaker.player.name = CuMutableString("Corr");
   speaker.player_specials = &speaker_specials;
   speaker.char_specials.position = POS_STANDING;
   speaker.in_room = 0;
@@ -1707,7 +1707,7 @@ void Test_vessel_shiptalk_is_scoped_to_one_ship(CuTest *tc)
   speaker_descriptor.output = speaker_descriptor.small_outbuf;
   speaker_descriptor.bufspace = SMALL_BUFSIZE - 1;
 
-  crew.player.name = "Mira";
+  crew.player.name = CuMutableString("Mira");
   crew.player_specials = &speaker_specials;
   crew.char_specials.position = POS_STANDING;
   crew.in_room = 1;
@@ -1716,7 +1716,7 @@ void Test_vessel_shiptalk_is_scoped_to_one_ship(CuTest *tc)
   crew_descriptor.output = crew_descriptor.small_outbuf;
   crew_descriptor.bufspace = SMALL_BUFSIZE - 1;
 
-  outsider.player.name = "Vex";
+  outsider.player.name = CuMutableString("Vex");
   outsider.player_specials = &speaker_specials;
   outsider.char_specials.position = POS_STANDING;
   outsider.in_room = 2;

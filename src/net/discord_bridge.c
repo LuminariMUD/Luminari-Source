@@ -335,14 +335,14 @@ void shutdown_discord_bridge(void)
 }
 
 /* Start the Discord server socket */
-int start_discord_server(int port)
+int start_discord_server(int port_value)
 {
   struct sockaddr_in sa;
   int opt = 1;
   int retries = 3;
   int retry_delay = 1;
 
-  DISCORD_DEBUG("start_discord_server() called with port %d", port);
+  DISCORD_DEBUG("start_discord_server() called with port %d", port_value);
 
   if (!discord_bridge)
   {
@@ -400,10 +400,11 @@ int start_discord_server(int port)
   /* Bind to port - INADDR_ANY allows connections from any interface */
   memset(&sa, 0, sizeof(sa));
   sa.sin_family = AF_INET;
-  sa.sin_port = htons(port);
+  sa.sin_port = htons((uint16_t)port_value);
   sa.sin_addr.s_addr = htonl(INADDR_ANY); /* Binds to 0.0.0.0 - accepts from any interface */
 
-  DISCORD_DEBUG("Attempting to bind socket %d to 0.0.0.0:%d", discord_bridge->server_socket, port);
+  DISCORD_DEBUG("Attempting to bind socket %d to 0.0.0.0:%d", discord_bridge->server_socket,
+                port_value);
 
   /* Try binding with retries for copyover recovery */
   while (retries > 0)
@@ -413,7 +414,7 @@ int start_discord_server(int port)
     if (bind(discord_bridge->server_socket, (struct sockaddr *)&sa, sizeof(sa)) == 0)
     {
       /* Success */
-      DISCORD_DEBUG("Socket bound to port %d on attempt %d", port, (4 - retries));
+      DISCORD_DEBUG("Socket bound to port %d on attempt %d", port_value, (4 - retries));
       break;
     }
 
@@ -438,16 +439,16 @@ int start_discord_server(int port)
     {
       log("WARNING: Port %d is in use (EADDRINUSE), will retry in %d second(s)... (%d retries "
           "left)",
-          port, retry_delay, retries);
+          port_value, retry_delay, retries);
       sleep(retry_delay);
     }
     else
     {
       log("ERROR: Discord bridge bind failed after all retries: %s (errno=%d)",
           strerror(saved_errno), saved_errno);
-      log("ERROR: Port %d remains in use after 3 attempts", port);
-      log("HINT: Check if another process is using port %d with: netstat -tulpn | grep %d", port,
-          port);
+      log("ERROR: Port %d remains in use after 3 attempts", port_value);
+      log("HINT: Check if another process is using port %d with: netstat -tulpn | grep %d",
+          port_value, port_value);
       CLOSE_SOCKET(discord_bridge->server_socket);
       discord_bridge->server_socket = INVALID_SOCKET;
       return 0;
@@ -464,7 +465,7 @@ int start_discord_server(int port)
     return 0;
   }
 
-  DISCORD_DEBUG("Socket listening on port %d", port);
+  DISCORD_DEBUG("Socket listening on port %d", port_value);
   discord_bridge->state = DISCORD_STATE_LISTENING;
   DISCORD_DEBUG("Discord bridge state set to LISTENING (%d)", discord_bridge->state);
   return 1;
@@ -484,7 +485,7 @@ void accept_discord_connection(void)
   new_socket = accept(discord_bridge->server_socket, (struct sockaddr *)&peer, &peer_len);
   if (new_socket == INVALID_SOCKET)
   {
-    if (errno != EAGAIN && errno != EWOULDBLOCK)
+    if (!errno_would_block(errno))
     {
       log("SYSERR: Discord bridge accept failed: %s", strerror(errno));
     }
@@ -575,7 +576,7 @@ void process_discord_input(void)
 
   if (bytes_read < 0)
   {
-    if (errno != EAGAIN && errno != EWOULDBLOCK)
+    if (!errno_would_block(errno))
     {
       log("SYSERR: Discord bridge recv error: %s", strerror(errno));
       close_discord_connection();
@@ -589,7 +590,7 @@ void process_discord_input(void)
     return;
   }
 
-  discord_bridge->inbuf_len += bytes_read;
+  discord_bridge->inbuf_len += (int)(bytes_read);
   discord_bridge->inbuf[discord_bridge->inbuf_len] = '\0';
   discord_bridge->last_activity = time(NULL); /* Update activity timestamp */
 
@@ -606,7 +607,7 @@ void process_discord_input(void)
     /* Move remaining data to beginning of buffer */
     memmove(discord_bridge->inbuf, newline + 1,
             discord_bridge->inbuf_len - (newline - discord_bridge->inbuf + 1));
-    discord_bridge->inbuf_len -= (newline - discord_bridge->inbuf + 1);
+    discord_bridge->inbuf_len -= (int)((newline - discord_bridge->inbuf + 1));
   }
 
   /* Check for buffer overflow */
@@ -634,7 +635,7 @@ void process_discord_output(void)
 
   if (bytes_sent < 0)
   {
-    if (errno != EAGAIN && errno != EWOULDBLOCK)
+    if (!errno_would_block(errno))
     {
       log("SYSERR: Discord bridge send error: %s", strerror(errno));
       close_discord_connection();
@@ -647,7 +648,7 @@ void process_discord_output(void)
   {
     memmove(discord_bridge->outbuf, discord_bridge->outbuf + bytes_sent,
             discord_bridge->outbuf_len - bytes_sent);
-    discord_bridge->outbuf_len -= bytes_sent;
+    discord_bridge->outbuf_len -= (int)(bytes_sent);
   }
 }
 
@@ -662,7 +663,7 @@ void send_to_discord(const char *channel, const char *name, const char *message,
 
   /* Build JSON message */
   json = build_discord_json(channel, name, message, emoted);
-  json_len = strlen(json);
+  json_len = (int)strlen(json);
 
   /* Check buffer space */
   if (discord_bridge->outbuf_len + json_len + 2 >= DISCORD_BRIDGE_BUFFER_SIZE)

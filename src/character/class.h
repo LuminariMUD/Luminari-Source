@@ -120,7 +120,6 @@ void roll_real_abils(struct char_data *ch);
 void process_race_level_feats(struct char_data *ch);
 void process_class_level_feats(struct char_data *ch, int class);
 byte saving_throws(struct char_data *, int type);
-int BAB(struct char_data *ch);
 const char *titles(int chclass, int level);
 int modify_class_ability(struct char_data *ch, int ability, int class);
 int is_class_skill(struct char_data *ch, int ability);
@@ -154,4 +153,8 @@ extern struct guild_info_type guild_info[];
 
 #endif /* __CLASS_C__ */
 
+
+void class_prereq_attribute(int class_num, int attribute, int value);
+void class_prereq_weapon_proficiency(int class_num);
+void process_level_feats(struct char_data *ch, int class __attribute__((unused)));
 #endif /* _CLASS_H_*/

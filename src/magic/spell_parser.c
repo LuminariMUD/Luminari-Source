@@ -56,8 +56,8 @@ struct spell_info_type spell_info[TOP_SKILL_DEFINE + 1];
 struct spell_info_type skill_info[TOP_SKILL_DEFINE + 1];
 char cast_arg2[MAX_INPUT_LENGTH] = {'\0'};
 char cast_arg3[MAX_INPUT_LENGTH] = {'\0'};
-const char *unused_spellname = "!UNUSED!";       /* So we can get &unused_spellname */
-const char *unused_wearoff = "!UNUSED WEAROFF!"; /* So we can get &unused_wearoff */
+const char *unused_spellname = "!UNUSED!";  /* So we can get &unused_spellname */
+char unused_wearoff[] = "!UNUSED WEAROFF!"; /* Compared by address, never freed. */
 
 /* Local (File Scope) Function Prototypes */
 static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
@@ -300,7 +300,7 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
       if (!strncmp(syls[j].org, lbuf + ofs, strlen(syls[j].org)))
       {
         strlcat(buf, syls[j].news, sizeof(buf)); /* strcat: BAD */
-        ofs += strlen(syls[j].org);
+        ofs += (int)(strlen(syls[j].org));
         break;
       }
     }
@@ -1789,7 +1789,7 @@ static void interrupt_casting(struct char_data *ch, enum primary_activity_end_re
     resetCastingData(ch);
 }
 
-int castingCheckOk(struct char_data *ch)
+static int castingCheckOk(struct char_data *ch)
 {
   int spellnum = CASTING_SPELLNUM(ch);
   int metamagic = CASTING_METAMAGIC(ch);
@@ -2014,7 +2014,7 @@ void test_clear_bard_spell_perks(struct char_data *ch)
 #endif
 
 /* moment of completion of spell casting */
-void finishCasting(struct char_data *ch)
+static void finishCasting(struct char_data *ch)
 {
   bool trigger_symphonic;
 
@@ -2502,10 +2502,8 @@ static long casting_activity_step(struct char_data *ch, void *target, void *cont
     // do all our checks
     if (!castingCheckOk(ch))
       return 0;
-    else
-    { /* we cleared all our casting checks! */
-      return 0;
-    }
+
+    return 0;
   }
 }
 
@@ -4366,9 +4364,9 @@ void spello(int spl, const char *name, int max_psp, int min_psp, int psp_change,
   spell_info[spl].psp_max = max_psp;
   spell_info[spl].psp_min = min_psp;
   spell_info[spl].psp_change = psp_change;
-  spell_info[spl].min_position = minpos;
+  spell_info[spl].min_position = (byte)minpos;
   spell_info[spl].targets = targets;
-  spell_info[spl].violent = violent;
+  spell_info[spl].violent = (byte)violent;
   spell_info[spl].routines = routines;
   spell_info[spl].name = name;
   if (wearoff == 0)
@@ -4377,14 +4375,14 @@ void spello(int spl, const char *name, int max_psp, int min_psp, int psp_change,
     snprintf(buf, sizeof(buf), "Your '%s' effect has expired", name);
     /* Free previous allocation if it exists and is not a constant */
     if (spell_info[spl].wear_off_msg && spell_info[spl].wear_off_msg != unused_wearoff)
-      free((char *)spell_info[spl].wear_off_msg);
+      free(spell_info[spl].wear_off_msg);
     spell_info[spl].wear_off_msg = strdup(buf);
   }
   else
   {
     /* Free previous allocation if it exists and is not a constant */
     if (spell_info[spl].wear_off_msg && spell_info[spl].wear_off_msg != unused_wearoff)
-      free((char *)spell_info[spl].wear_off_msg);
+      free(spell_info[spl].wear_off_msg);
     /* Always strdup to ensure we own the memory and can safely free it later */
     spell_info[spl].wear_off_msg = strdup(wearoff);
   }
@@ -4398,7 +4396,7 @@ void spello(int spl, const char *name, int max_psp, int min_psp, int psp_change,
   spell_info[spl].actual_ability = true;
 }
 
-void CantCast(int spl)
+static void CantCast(int spl)
 {
   spell_info[spl].cant_cast = true;
   spell_info[spl].no_player = true;
@@ -4446,7 +4444,7 @@ void unused_spell(int spl)
 
   /* Release the owned wear-off text before resetting an initialized slot. */
   if (spell_info[spl].wear_off_msg && spell_info[spl].wear_off_msg != unused_wearoff)
-    free((char *)spell_info[spl].wear_off_msg);
+    free(spell_info[spl].wear_off_msg);
 
   for (i = 0; i < NUM_CLASSES; i++)
     spell_info[spl].min_level[i] = LVL_IMPL + 1;
@@ -4470,7 +4468,7 @@ void unused_spell(int spl)
   spell_info[spl].actual_ability = FALSE;
 }
 
-void unused_skill(int spl)
+static void unused_skill(int spl)
 {
   int i;
 

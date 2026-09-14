@@ -19,7 +19,7 @@ void TestSelfElfBuildIdIsReadable(CuTest *tc)
   const char *build_id;
 
   build_id = get_self_elf_build_id();
-  CuAssertPtrNotNull(tc, (void *)build_id);
+  CuAssertPtrNotNull(tc, build_id);
 }
 
 void TestSelfElfBuildIdIsLowercaseHex(CuTest *tc)
@@ -58,7 +58,7 @@ void TestSelfElfBuildIdIgnoresEnvironment(CuTest *tc)
 
   setenv("LUMINARI_ELF_BUILD_ID", "deadbeefdeadbeefdeadbeef", 1);
   build_id = get_self_elf_build_id();
-  CuAssertPtrNotNull(tc, (void *)build_id);
+  CuAssertPtrNotNull(tc, build_id);
   CuAssertStrEquals(tc, expected, build_id);
 
   if (saved_copy != NULL)

@@ -23,7 +23,7 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 struct vessel_tactical_contact
 {
   int shipnum;
-  float range;
+  double range;
   int bearing;
   int delta_z;
 };
@@ -348,13 +348,14 @@ static int vessel_tactical_compare_contacts(const void *first, const void *secon
   return first_contact->shipnum - second_contact->shipnum;
 }
 
-static bool vessel_tactical_region_recorded(const region_rnum *regions, int count, region_rnum rnum)
+static bool vessel_tactical_region_recorded(const region_rnum *regions_value, int count,
+                                            region_rnum rnum)
 {
   int i;
 
   for (i = 0; i < count; i++)
   {
-    if (regions[i] == rnum)
+    if (regions_value[i] == rnum)
     {
       return TRUE;
     }
@@ -362,7 +363,7 @@ static bool vessel_tactical_region_recorded(const region_rnum *regions, int coun
   return FALSE;
 }
 
-static int vessel_tactical_collect_regions(struct wild_map_tile **map, region_rnum *regions)
+static int vessel_tactical_collect_regions(struct wild_map_tile **map, region_rnum *regions_value)
 {
   region_rnum rnum;
   int count;
@@ -380,13 +381,13 @@ static int vessel_tactical_collect_regions(struct wild_map_tile **map, region_rn
         rnum = map[x][y].regions[i];
         if (!vessel_tactical_region_valid(rnum) ||
             !vessel_tactical_region_type_visible(region_table[rnum].region_type) ||
-            vessel_tactical_region_recorded(regions, count, rnum))
+            vessel_tactical_region_recorded(regions_value, count, rnum))
         {
           continue;
         }
         if (count < VESSEL_TACTICAL_REGION_LIMIT)
         {
-          regions[count++] = rnum;
+          regions_value[count++] = rnum;
         }
       }
     }
@@ -401,7 +402,7 @@ vessel_tactical_collect_contacts(const struct greyhawk_ship_data *ship,
                                  int contact_status[VESSEL_TACTICAL_SIZE][VESSEL_TACTICAL_SIZE])
 {
   const struct greyhawk_ship_data *other;
-  float range;
+  double range;
   int sight_range;
   int ship_x;
   int ship_y;
@@ -466,7 +467,7 @@ vessel_tactical_collect_contacts(const struct greyhawk_ship_data *ship,
   return count;
 }
 
-static void vessel_tactical_render_regions(struct char_data *ch, const region_rnum *regions,
+static void vessel_tactical_render_regions(struct char_data *ch, const region_rnum *regions_value,
                                            int region_count)
 {
   const struct region_data *region;
@@ -481,7 +482,7 @@ static void vessel_tactical_render_regions(struct char_data *ch, const region_rn
   send_to_char(ch, "   Charted regions:\r\n");
   for (i = 0; i < region_count; i++)
   {
-    region = &region_table[regions[i]];
+    region = &region_table[regions_value[i]];
     send_to_char(ch, "     - %s (%s)\r\n", region->name ? region->name : "Unnamed region",
                  vessel_tactical_region_type_name(region->region_type));
   }
@@ -525,7 +526,7 @@ ACMD(do_greyhawk_tactical)
   struct wild_map_tile map_data[VESSEL_TACTICAL_SIZE * VESSEL_TACTICAL_SIZE];
   struct wild_map_tile *map[VESSEL_TACTICAL_SIZE];
   struct vessel_tactical_contact contacts[GREYHAWK_ACTIVE_SHIP_CAPACITY];
-  region_rnum regions[VESSEL_TACTICAL_REGION_LIMIT];
+  region_rnum regions_value[VESSEL_TACTICAL_REGION_LIMIT];
   char display[VESSEL_TACTICAL_SIZE][VESSEL_TACTICAL_SIZE];
   int contact_counts[VESSEL_TACTICAL_SIZE][VESSEL_TACTICAL_SIZE];
   int contact_status[VESSEL_TACTICAL_SIZE][VESSEL_TACTICAL_SIZE];
@@ -603,7 +604,7 @@ ACMD(do_greyhawk_tactical)
     }
   }
   display[VESSEL_TACTICAL_RADIUS][VESSEL_TACTICAL_RADIUS] = '@';
-  region_count = vessel_tactical_collect_regions(map, regions);
+  region_count = vessel_tactical_collect_regions(map, regions_value);
 
   send_to_char(ch, "\r\n              WILDERNESS TACTICAL CHART\r\n");
   send_to_char(ch, "   Position: (%d, %d, %d)   Heading: %d deg %s\r\n", ship_x, ship_y, ship_z,
@@ -631,6 +632,6 @@ ACMD(do_greyhawk_tactical)
                "\r\n   Terrain: ~ Deep  . Shoal  = River  # Coast  ^ Land  : Beach  D Port\r\n");
   send_to_char(ch, "   Overlays: + Region edge  o 5u ring  O 10u ring  @ Your vessel\r\n");
   send_to_char(ch, "   Contacts: V Sound  B Battered  C Crippled  X Sinking  M Multiple\r\n");
-  vessel_tactical_render_regions(ch, regions, region_count);
+  vessel_tactical_render_regions(ch, regions_value, region_count);
   vessel_tactical_render_contacts(ch, contacts, contact_count);
 }

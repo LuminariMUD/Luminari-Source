@@ -78,4 +78,6 @@ ACMD_DECL(do_hcontrol);
 ACMD_DECL(do_house);
 ACMD_DECL(do_hsort);
 
+
+bool is_house_owner(struct char_data *ch, room_vnum room);
 #endif /* _HOUSE_H_ */

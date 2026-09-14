@@ -59,7 +59,7 @@ extern int num_of_houses;
 
 /* debug, comment out to disable */ //#define PLAYER_SHOP_DEBUG
 
-bool valid_player_shop_item(struct char_data *ch, struct obj_data *obj)
+static bool valid_player_shop_item(struct char_data *ch, struct obj_data *obj)
 {
   if (!obj)
     return FALSE;
@@ -84,7 +84,8 @@ bool valid_player_shop_item(struct char_data *ch, struct obj_data *obj)
    return object based on argument
    will accept an index value that corresponds to the order of the items
      in the shop storage room (for argument) */
-struct obj_data *find_player_shop_obj(struct char_data *ch, char *argument, room_rnum private_room)
+static struct obj_data *find_player_shop_obj(struct char_data *ch, char *argument,
+                                             room_rnum private_room)
 {
   bool is_number = FALSE;
   int index = 0, num = 1 /*starting index*/;

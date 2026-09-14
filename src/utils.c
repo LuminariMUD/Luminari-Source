@@ -50,6 +50,7 @@
 #include "char_descs.h"
 #include "obj/treasure.h"
 #include "character/perks.h"
+#include "help.h"
 #include <time.h>
 
 #ifdef CIRCLE_WINDOWS
@@ -1180,7 +1181,7 @@ struct follower_count_data
   int general_used;
 };
 
-bool isGenieKind(int vnum)
+static bool isGenieKind(int vnum)
 {
   switch (vnum)
   {
@@ -1397,13 +1398,13 @@ int select_restorable_followers(struct char_data *ch, struct char_data **pets, i
   return selected;
 }
 
-bool can_add_follower(struct char_data *ch, int mob_vnum)
+bool can_add_follower(struct char_data *ch, int mob_vnum_id)
 {
   mob_rnum rnum;
 
   if (ch == NULL || mob_proto == NULL || mob_index == NULL || top_of_mobt == (mob_rnum)NOBODY)
     return false;
-  rnum = real_mobile(mob_vnum);
+  rnum = real_mobile(mob_vnum_id);
   if (rnum == NOBODY)
     return false;
   return can_add_follower_mobile(ch, &mob_proto[rnum]);
@@ -1445,14 +1446,14 @@ int summoned_follower_flag(int spell)
   }
 }
 
-bool can_add_summoned_followers(struct char_data *ch, int mob_vnum, int spell, int count)
+bool can_add_summoned_followers(struct char_data *ch, int mob_vnum_id, int spell, int count)
 {
   struct follower_count_data counts;
   int flag, maximum;
   size_t category;
 
   if (ch == NULL || mob_proto == NULL || mob_index == NULL || top_of_mobt == NOBODY ||
-      real_mobile(mob_vnum) == NOBODY)
+      real_mobile(mob_vnum_id) == NOBODY)
     return false;
   flag = summoned_follower_flag(spell);
   maximum = spell == SPELL_ELEMENTAL_SWARM  ? 8
@@ -1477,13 +1478,13 @@ bool can_add_summoned_followers(struct char_data *ch, int mob_vnum, int spell, i
     count_followers(ch, -1, NOBODY, &counts);
     for (category = FOLLOWER_GENIE; category < FOLLOWER_RULE_COUNT; category++)
       if (follower_rules[category].flag == flag)
-        return counts.categories[category] + follower_control_cost(category, mob_vnum) <=
+        return counts.categories[category] + follower_control_cost(category, mob_vnum_id) <=
                follower_category_limit(ch, category);
     return false;
   }
   if (flag >= 0)
     return can_add_follower_by_flag(ch, flag);
-  return can_add_follower(ch, mob_vnum);
+  return can_add_follower(ch, mob_vnum_id);
 }
 
 /* Native count queries and PETS display use the same accounting as admission. */
@@ -2963,20 +2964,20 @@ int rand_number(int from, int to)
    * circle_random() though, which shouldn't have that problem. Mean and
    * standard deviation of both are identical (within the realm of statistical
    * identity) if the rand() implementation is non-broken. */
-  return ((circle_random() % (to - from + 1)) + from);
+  return (int)(((circle_random() % (to - from + 1)) + from));
 }
 
 /** floating-point version of the random number function above.
  * @param from The lower bounds of the random number.
  * @param to The upper bounds of the random number.
  * @retval int The resulting randomly generated number. */
-float rand_float(float from, float to)
+double rand_float(double from, double to)
 {
-  float ret;
+  double ret;
   /* error checking in case people call this incorrectly */
   if (from > to)
   {
-    float tmp = from;
+    double tmp = from;
     from = to;
     to = tmp;
     log("SYSERR: rand_float() should be called with lowest, then highest. (%f, %f), not (%f, %f).",
@@ -3022,7 +3023,7 @@ int MIN(int a, int b)
   return (a < b ? a : b);
 }
 
-float FLOATMIN(float a, float b)
+double FLOATMIN(double a, double b)
 {
   return (a < b ? a : b);
 }
@@ -3036,7 +3037,7 @@ int MAX(int a, int b)
   return (a > b ? a : b);
 }
 
-float FLOATMAX(float a, float b)
+double FLOATMAX(double a, double b)
 {
   return (a > b ? a : b);
 }
@@ -3095,6 +3096,7 @@ char *UNCAP(char *txt)
   return (txt);
 }
 
+#if !defined(HAVE_STRLCAT)
 /*
 Returns total length of the string that would have been created.
 */
@@ -3116,6 +3118,7 @@ size_t strlcat(char *buf, const char *src, size_t bufsz)
 
   return rtn;
 }
+#endif
 
 /*
  * Appends formatted text at a tracked buffer offset and returns the new,
@@ -3507,16 +3510,16 @@ struct time_info_data *real_time_passed(time_t t2, time_t t1)
 
   secs = t2 - t1;
 
-  now.hours = (secs / SECS_PER_REAL_HOUR) % 24; /* 0..23 hours */
+  now.hours = (int)((secs / SECS_PER_REAL_HOUR) % 24); /* 0..23 hours */
   secs -= SECS_PER_REAL_HOUR * now.hours;
 
-  now.day = (secs / SECS_PER_REAL_DAY) % 35; /* 0..34 days  */
+  now.day = (int)((secs / SECS_PER_REAL_DAY) % 35); /* 0..34 days  */
   secs -= SECS_PER_REAL_DAY * now.day;
 
-  now.month = (secs / (SECS_PER_REAL_YEAR / 12)) % 12; /* 0..11 months */
+  now.month = (int)((secs / (SECS_PER_REAL_YEAR / 12)) % 12); /* 0..11 months */
   secs -= (SECS_PER_REAL_YEAR / 12) * now.month;
 
-  now.year = (secs / SECS_PER_REAL_YEAR);
+  now.year = (sh_int)((secs / SECS_PER_REAL_YEAR));
   secs -= SECS_PER_REAL_YEAR * now.year;
 
   return (&now);
@@ -3535,16 +3538,16 @@ struct time_info_data *mud_time_passed(time_t t2, time_t t1)
 
   secs = t2 - t1;
 
-  now.hours = (secs / SECS_PER_MUD_HOUR) % 24; /* 0..23 hours */
+  now.hours = (int)((secs / SECS_PER_MUD_HOUR) % 24); /* 0..23 hours */
   secs -= SECS_PER_MUD_HOUR * now.hours;
 
-  now.day = (secs / SECS_PER_MUD_DAY) % 35; /* 0..34 days  */
+  now.day = (int)((secs / SECS_PER_MUD_DAY) % 35); /* 0..34 days  */
   secs -= SECS_PER_MUD_DAY * now.day;
 
-  now.month = (secs / SECS_PER_MUD_MONTH) % 17; /* 0..16 months */
+  now.month = (int)((secs / SECS_PER_MUD_MONTH) % 17); /* 0..16 months */
   secs -= SECS_PER_MUD_MONTH * now.month;
 
-  now.year = (secs / SECS_PER_MUD_YEAR); /* 0..XX? years */
+  now.year = (sh_int)((secs / SECS_PER_MUD_YEAR)); /* 0..XX? years */
 
   return (&now);
 }
@@ -3583,7 +3586,7 @@ struct time_info_data *age(struct char_data *ch)
   for (af = ch->affected; af; af = af->next)
     if (af->location == APPLY_AGE)
       age_modifier += af->modifier;
-  player_age.year = MAX(17, player_age.year + age_modifier);
+  player_age.year = (sh_int)MAX(17, player_age.year + age_modifier);
 
   return (&player_age);
 }
@@ -3806,7 +3809,7 @@ int get_line(FILE *fl, char *buf)
   } while (*temp == '*' || *temp == '\n' || *temp == '\r');
 
   /* Last line of file doesn't always have a \n, but it should. */
-  sl = strlen(temp);
+  sl = (int)strlen(temp);
   while (sl > 0 && (temp[sl - 1] == '\n' || temp[sl - 1] == '\r'))
     temp[--sl] = '\0';
 
@@ -4036,7 +4039,7 @@ void core_dump_real(const char *who, int line)
  * empty space once the color codes are converted and made non-printable.
  * @param string The string in which to check for color codes.
  * @retval int the number of color codes found. */
-int count_color_chars(char *string)
+int count_color_chars(const char *string)
 {
   int i, len;
   int num = 0;
@@ -4044,7 +4047,7 @@ int count_color_chars(char *string)
   if (!string || !*string)
     return 0;
 
-  len = strlen(string);
+  len = (int)strlen(string);
   for (i = 0; i < len; i++)
   {
     while (string[i] == '\t')
@@ -4194,7 +4197,7 @@ bool room_is_daylit(room_rnum room)
 {
   if (!VALID_ROOM_RNUM(room))
   {
-    log("room_is_daylit: Invalid room rnum %d. (0-%d)", room, top_of_world);
+    log("room_is_daylit: Invalid room rnum %" PRI_IDX ". (0-%" PRI_IDX ")", room, top_of_world);
     return (FALSE);
   }
 
@@ -4255,7 +4258,7 @@ bool room_is_dark(room_rnum room)
 
   if (!VALID_ROOM_RNUM(room))
   {
-    log("room_is_dark: Invalid room rnum %d. (0-%d)", room, top_of_world);
+    log("room_is_dark: Invalid room rnum %" PRI_IDX ". (0-%" PRI_IDX ")", room, top_of_world);
     return (FALSE);
   }
 
@@ -4392,7 +4395,7 @@ bool is_room_in_sunlight(room_rnum room)
 int levenshtein_distance(const char *s1, const char *s2)
 {
   int **d, i, j;
-  int s1_len = strlen(s1), s2_len = strlen(s2);
+  int s1_len = (int)strlen(s1), s2_len = (int)strlen(s2);
 
   CREATE(d, int *, s1_len + 1);
 
@@ -4507,7 +4510,7 @@ void char_from_buff_targets(struct char_data *ch)
      list_length - So we can work with lists that don't end with /n
      show_nums   - when set to TRUE, it will show a number before the list entry.
  */
-void column_list(struct char_data *ch, int num_cols, const char **list, int list_length,
+void column_list(struct char_data *ch, int num_cols, const char *const *list, int list_length,
                  bool show_nums)
 {
   size_t max_len = 0;
@@ -4842,7 +4845,7 @@ int file_tail(FILE *file, char *buf, size_t bufsize, int lines_to_read)
   {
     do
     {
-      c = fgetc(file);
+      c = (char)fgetc(file);
     } while (c != '\n');
 
     lines_read++;
@@ -4937,7 +4940,7 @@ int file_numlines(FILE *file)
 
   while (!feof(file))
   {
-    c = fgetc(file);
+    c = (char)fgetc(file);
     if (c == '\n')
     {
       numlines++;
@@ -5254,7 +5257,6 @@ const char *strpaste(const char *str1, const char *str2, const char *joiner)
 /* with given name, returns character structure if found */
 struct char_data *is_playing(char *vict_name)
 {
-  extern struct descriptor_data *descriptor_list;
   struct descriptor_data *i, *next_i;
   char name_copy[MAX_NAME_LENGTH + 1];
 
@@ -5284,7 +5286,7 @@ char *add_commas(long num)
   next_string = (next_string + 1) % (sizeof(comma_strings) / sizeof(comma_strings[0]));
 
   snprintf(num_string, sizeof(num_string), "%ld", num);
-  len = strlen(num_string);
+  len = (int)strlen(num_string);
 
   for (i = 0; num_string[i]; i++)
   {
@@ -5363,7 +5365,7 @@ int get_subrace_by_name(char *racename)
 }
 
 /* parse tabs function */
-char *convert_from_tabs(char *string)
+char *convert_from_tabs(const char *string)
 {
   static char buf[MAX_STRING_LENGTH * 8];
 
@@ -5491,7 +5493,7 @@ const char *get_align_by_num(int align)
   return "Unknown";
 }
 /* Feats */
-int get_feat_value(struct char_data *ch, int featnum)
+int get_feat_value(const struct char_data *ch, int featnum)
 {
   struct obj_data *obj;
   struct char_data *mob = NULL;
@@ -5544,17 +5546,16 @@ int get_feat_value(struct char_data *ch, int featnum)
  * supports itself. */
 bool has_four_arms(const struct char_data *ch)
 {
-  struct char_data *mutable_ch = (struct char_data *)ch;
   struct obj_data *obj;
   int i, j;
 
   if (ch == NULL)
     return false;
 
-  if (IS_NPC(ch) || (AFF_FLAGGED(mutable_ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(mutable_ch)))
-    return MOB_HAS_FEAT(mutable_ch, FEAT_FOUR_ARMS) > 0;
+  if (IS_NPC(ch) || (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)))
+    return MOB_HAS_FEAT(ch, FEAT_FOUR_ARMS) > 0;
 
-  if (HAS_REAL_FEAT(mutable_ch, FEAT_FOUR_ARMS) > 0)
+  if (HAS_REAL_FEAT(ch, FEAT_FOUR_ARMS) > 0)
     return true;
 
   for (j = 0; j < NUM_WEARS; j++)
@@ -5963,13 +5964,13 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum)
     {
       /* This is odd - This field should always be populated for daily-use abilities,
        * maybe some legacy code or bad id. */
-      log("SYSERR: 2 sVariables field is NULL for daily-use-cooldown-event: %d", iId);
+      log("SYSERR: 2 sVariables field is NULL for daily-use-cooldown-event: %u", iId);
     }
     else
     {
       if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
       {
-        log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %d",
+        log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %u",
             iId);
         uses = 0;
       }
@@ -6012,13 +6013,13 @@ int daily_uses_remaining(struct char_data *ch, int featnum)
     {
       /* This is odd - This field should always be populated for daily-use abilities,
        * maybe some legacy code or bad id. */
-      log("SYSERR: 3 sVariables field is NULL for daily-use-cooldown-event: %d", iId);
+      log("SYSERR: 3 sVariables field is NULL for daily-use-cooldown-event: %u", iId);
     }
     else
     {
       if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
       {
-        log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %d",
+        log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %u",
             iId);
         uses = 0;
       }
@@ -6066,13 +6067,13 @@ int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab)
     {
       /* This is odd - This field should always be populated for daily-use abilities,
        * maybe some legacy code or bad id. */
-      log("SYSERR: 4 sVariables field is NULL for daily-use-cooldown-event: %d", iId);
+      log("SYSERR: 4 sVariables field is NULL for daily-use-cooldown-event: %u", iId);
     }
     else
     {
       if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
       {
-        log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %d",
+        log("SYSERR: In start_daily_use_cooldown, bad sVariables for daily-use-cooldown-event: %u",
             iId);
         uses = 0;
       }
@@ -6115,13 +6116,13 @@ int daily_item_specab_uses_remaining(struct obj_data *obj, int specab)
     {
       /* This is odd - This field should always be populated for daily-use abilities,
        * maybe some legacy code or bad id. */
-      log("SYSERR: 5 sVariables field is NULL for daily-use-cooldown-event: %d", iId);
+      log("SYSERR: 5 sVariables field is NULL for daily-use-cooldown-event: %u", iId);
     }
     else
     {
       if (sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1)
       {
-        log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %d",
+        log("SYSERR: In daily_uses_remaining, bad sVariables for daily-use-cooldown-event: %u",
             iId);
         uses = 0;
       }
@@ -6167,7 +6168,7 @@ const char *text_line_string(const char *text, int length, char first, char seco
   int i = 0, j = 0;
   static char buf[MAX_STRING_LENGTH] = {'\0'}; /* Note - static! */
 
-  text_length = strlen(text);
+  text_length = (int)strlen(text);
   text_print_length = count_non_protocol_chars(text);
 
   pre_length = (length - (text_print_length)) / 2; /* (length - (text length + '[  ]'))/2 */
@@ -7741,13 +7742,13 @@ int find_ability_num_by_name(char *name)
   int i = 0, j = 0;
 
   for (i = 0; (size_t)i < strlen(name); i++)
-    name[i] = tolower(name[i]);
+    name[i] = (char)tolower(name[i]);
 
   for (j = START_GENERAL_ABILITIES; j < NUM_ABILITIES; j++)
   {
     snprintf(skOne, sizeof(skOne), "%s", ability_names[j]);
     for (i = 0; (size_t)i < strlen(skOne); i++)
-      skOne[i] = tolower(skOne[i]);
+      skOne[i] = (char)tolower(skOne[i]);
     if (!strcmp(name, skOne))
       return j;
   }
@@ -9166,7 +9167,7 @@ char *randstring(int length)
   if (length < 1 || length > 255)
     return NULL;
 
-  char buf[length + 1];
+  char buf[256];
   char char_list[64];
   int i = 0;
 
@@ -9618,7 +9619,7 @@ int get_spellcasting_class(struct char_data *ch)
 }
 
 // will return true if the sector type offers opportunity for cover
-bool can_room_sector_give_cover(int type)
+static bool can_room_sector_give_cover(int type)
 {
   switch (type)
   {
@@ -9634,7 +9635,7 @@ bool can_room_sector_give_cover(int type)
 }
 
 // will return true if the character has cover
-bool has_cover(struct char_data *ch, struct char_data *t)
+static bool has_cover(struct char_data *ch, struct char_data *t)
 {
   if (!ch || !t)
     return false;
@@ -9968,7 +9969,7 @@ const char *apply_types_lowercase(int apply_type)
 
   for (i = 0; (size_t)i < strlen(apply_text); i++)
   {
-    apply_text[i] = tolower(apply_text[i]);
+    apply_text[i] = (char)tolower(apply_text[i]);
     if (apply_text[i] == '-')
       apply_text[i] = ' ';
   }
@@ -10691,7 +10692,7 @@ bool has_reach(struct char_data *ch)
 // This will return the desired mob follower or NULL if not found.
 // mob_type refers to the mob flag normally associated with the call
 // command.
-struct char_data *get_mob_follower(struct char_data *ch, int mob_type)
+struct char_data *get_mob_follower(const struct char_data *ch, int mob_type)
 {
   struct follow_type *k = NULL, *next = NULL;
 

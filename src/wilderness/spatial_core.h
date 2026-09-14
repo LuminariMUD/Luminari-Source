@@ -16,8 +16,8 @@
 #include "structs.h"
 
 /* Spatial System Configuration */
-#define SPATIAL_MAX_RANGE 2000.0f
-#define SPATIAL_MIN_THRESHOLD 0.1f
+#define SPATIAL_MAX_RANGE 2000.0
+#define SPATIAL_MIN_THRESHOLD 0.1
 #define SPATIAL_MAX_MESSAGE_LENGTH 1024
 #define SPATIAL_MAX_OBSTACLES 100
 #define SPATIAL_MAX_NEARBY_ENTITIES 50
@@ -70,7 +70,7 @@ struct spatial_obstacle
 {
   int x, y, z;
   int terrain_type;
-  float obstruction_factor; /* 0.0 = no obstruction, 1.0 = complete block */
+  double obstruction_factor; /* 0.0 = no obstruction, 1.0 = complete block */
   char *description;
 };
 
@@ -86,9 +86,9 @@ struct obstacle_list
 struct nearby_entity
 {
   struct char_data *entity;
-  float distance;
+  double distance;
   int entity_type; /* PC, NPC, etc. */
-  float interference_factor;
+  double interference_factor;
 };
 
 /* List of nearby entities */
@@ -104,9 +104,9 @@ struct spatial_context
 {
   /* Source Information */
   int source_x, source_y, source_z;
-  char *source_description;
+  const char *source_description;
   int stimulus_type;
-  float base_intensity;
+  double base_intensity;
   void *source_data; /* Additional stimulus-specific data */
 
   /* Observer Information */
@@ -117,21 +117,21 @@ struct spatial_context
   /* Environmental Factors */
   int weather_conditions;
   int time_of_day;
-  float magical_field_strength;
+  double magical_field_strength;
   int terrain_difficulty;
 
   /* Audio-specific data */
   int audio_frequency; /* Audio frequency band for sound calculations */
 
   /* Calculated Values */
-  float distance;
-  float distance_attenuation;
+  double distance;
+  double distance_attenuation;
   spatial_direction_t direction; /* Direction from observer to source */
-  float direction_precision;     /* 0.0-1.0, precision of direction */
-  float effective_range;
-  float obstruction_factor;
-  float environmental_modifier;
-  float final_intensity;
+  double direction_precision;    /* 0.0-1.0, precision of direction */
+  double effective_range;
+  double obstruction_factor;
+  double environmental_modifier;
+  double final_intensity;
 
   /* Working Data */
   struct obstacle_list obstacles;
@@ -150,9 +150,9 @@ struct spatial_context
 /* STRATEGY 1: STIMULUS STRATEGY - How the event is generated/processed */
 struct stimulus_strategy
 {
-  char *name;
+  const char *name;
   int stimulus_type;
-  float base_range;
+  double base_range;
 
   /* Core Functions */
   int (*calculate_intensity)(struct spatial_context *ctx);
@@ -167,24 +167,24 @@ struct stimulus_strategy
   /* Strategy metadata */
   bool enabled;
   int usage_count;
-  float performance_factor; /* For optimization */
+  double performance_factor; /* For optimization */
 };
 
 /* STRATEGY 2: LINE OF SIGHT STRATEGY - How transmission is blocked */
 struct los_strategy
 {
-  char *name;
+  const char *name;
   int supported_stimulus_types; /* Bitmask of supported types */
 
   /* Core Functions */
-  int (*calculate_obstruction)(struct spatial_context *ctx, float *obstruction_factor);
+  int (*calculate_obstruction)(struct spatial_context *ctx, double *obstruction_factor);
   int (*get_blocking_elements)(struct spatial_context *ctx, struct obstacle_list *obstacles);
   bool (*can_transmit_through)(int terrain_type, int stimulus_type);
 
   /* Optional Functions */
   int (*precompute_los_data)(struct spatial_context *ctx);
   int (*cache_los_result)(struct spatial_context *ctx);
-  int (*get_cached_los_result)(struct spatial_context *ctx, float *cached_obstruction);
+  int (*get_cached_los_result)(struct spatial_context *ctx, double *cached_obstruction);
 
   /* Strategy metadata */
   bool enabled;
@@ -196,13 +196,13 @@ struct los_strategy
 /* STRATEGY 3: MODIFIER STRATEGY - Environmental effects on transmission */
 struct modifier_strategy
 {
-  char *name;
+  const char *name;
   int applicable_stimulus_types; /* Bitmask of applicable types */
 
   /* Core Functions */
-  int (*apply_environmental_modifiers)(struct spatial_context *ctx, float *range_mod,
-                                       float *clarity_mod);
-  int (*calculate_interference)(struct spatial_context *ctx, float *interference);
+  int (*apply_environmental_modifiers)(struct spatial_context *ctx, double *range_mod,
+                                       double *clarity_mod);
+  int (*calculate_interference)(struct spatial_context *ctx, double *interference);
   int (*modify_message)(struct spatial_context *ctx, char *message, size_t max_len);
 
   /* Optional Functions */
@@ -211,13 +211,13 @@ struct modifier_strategy
 
   /* Strategy metadata */
   bool enabled;
-  float modifier_strength; /* 0.0-1.0 for variable strength */
+  double modifier_strength; /* 0.0-1.0 for variable strength */
 };
 
 /* UNIFIED SPATIAL SYSTEM */
 struct spatial_system
 {
-  char *system_name;
+  const char *system_name;
   int system_id;
 
   /* The three strategies */
@@ -227,13 +227,13 @@ struct spatial_system
 
   /* System configuration */
   bool enabled;
-  float global_range_multiplier;
-  float global_intensity_multiplier;
+  double global_range_multiplier;
+  double global_intensity_multiplier;
 
   /* Performance tracking */
   int total_processed;
   int successful_transmissions;
-  float avg_processing_time_ms;
+  double avg_processing_time_ms;
 };
 
 /* Core Processing Functions */
@@ -263,12 +263,12 @@ int spatial_register_los_strategy(struct los_strategy *strategy);
 int spatial_register_modifier_strategy(struct modifier_strategy *strategy);
 
 /* Utility Functions */
-float spatial_calculate_3d_distance(int x1, int y1, int z1, int x2, int y2, int z2);
+double spatial_calculate_3d_distance(int x1, int y1, int z1, int x2, int y2, int z2);
 spatial_direction_t spatial_calculate_direction(int observer_x, int observer_y, int observer_z,
                                                 int source_x, int source_y, int source_z,
-                                                float *precision);
-const char *spatial_direction_to_string(spatial_direction_t direction, float distance);
-bool spatial_is_in_range(struct spatial_context *ctx, float max_range);
+                                                double *precision);
+const char *spatial_direction_to_string(spatial_direction_t direction, double distance);
+bool spatial_is_in_range(struct spatial_context *ctx, double max_range);
 int spatial_get_terrain_type(int x, int y);
 
 /* Weather Data Access Functions */
@@ -278,12 +278,12 @@ int spatial_get_raw_weather(struct char_data *observer);
 /* Cache Management */
 int spatial_init_cache(void);
 void spatial_cleanup_cache(void);
-int spatial_cache_result(struct spatial_context *ctx, float result);
-int spatial_get_cached_result(struct spatial_context *ctx, float *cached_result);
+int spatial_cache_result(struct spatial_context *ctx, double result);
+int spatial_get_cached_result(struct spatial_context *ctx, double *cached_result);
 
 /* Debug and Logging */
-void spatial_log(const char *format, ...);
-void spatial_debug(const char *format, ...);
+void spatial_log(const char *format, ...) __attribute__((format(printf, 1, 2)));
+void spatial_debug(const char *format, ...) __attribute__((format(printf, 1, 2)));
 const char *spatial_error_string(int error_code);
 
 /* Global Variables */

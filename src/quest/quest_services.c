@@ -69,7 +69,7 @@ SPECIAL(replace_quest_item)
           obj = read_object_reason(QST_OBJ(rnum), VIRTUAL, PERF_ENTITY_QUEST);
           if (obj)
           {
-            send_to_char(ch, "\tg%5d\tn) \tc%-52.52s\tn \ty%s\tn\r\n", QST_NUM(rnum),
+            send_to_char(ch, "\tg%5" PRI_IDX "\tn) \tc%-52.52s\tn \ty%s\tn\r\n", QST_NUM(rnum),
                          QST_DESC(rnum), obj->short_description);
           }
         }

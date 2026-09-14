@@ -77,7 +77,7 @@ size_t rol_darkhold_object_profile_count(void)
 }
 
 bool rol_darkhold_object_profile(int object_vnum, enum rol_darkhold_object_kind *kind,
-                                 int *room_vnum, int *destination_vnum)
+                                 int *room_vnum_id, int *destination_vnum)
 {
   const struct rol_darkhold_object_profile_data *profile =
       rol_darkhold_object_profile_for(object_vnum);
@@ -86,8 +86,8 @@ bool rol_darkhold_object_profile(int object_vnum, enum rol_darkhold_object_kind 
     return false;
   if (kind != NULL)
     *kind = profile->kind;
-  if (room_vnum != NULL)
-    *room_vnum = profile->room_vnum;
+  if (room_vnum_id != NULL)
+    *room_vnum_id = profile->room_vnum;
   if (destination_vnum != NULL)
     *destination_vnum = profile->destination_vnum;
   return true;

@@ -89,7 +89,7 @@ int is_wilderness_material_craftable(int category, int subtype, int quality);
  * @param quality Material quality
  * @return Effective value multiplier for crafting
  */
-float get_wilderness_crafting_value(int category, int subtype, int quality);
+double get_wilderness_crafting_value(int category, int subtype, int quality);
 
 /**
  * Display crafting materials inventory

@@ -72,6 +72,8 @@
 #include "combat/combat_reactions.h"
 #include "combat/combat_state.h"
 #include "activity_manager.h"
+#include "vessels/transport.h"
+#include "craft/crafting_new.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -88,8 +90,6 @@
 #define CELESTIAL_LEVIATHAN 13700
 
 // external functions
-bool save_char_pets(struct char_data *ch);
-int hands_used(struct char_data *ch);
 
 /* Weapon attack texts
  * don't forget to add to constants.c attack_hit_types */
@@ -228,7 +228,7 @@ bool is_tanking(struct char_data *ch)
 
 /* code to check if vict is going to be auto-rescued by someone while
  being attacked by ch */
-void guard_check(struct char_data *ch, struct char_data *vict)
+static void guard_check(struct char_data *ch, struct char_data *vict)
 {
   struct char_data *tch;
   struct char_data *next_tch;
@@ -311,7 +311,7 @@ bool bloodlust_holds_the_fight(struct char_data *ch)
    the engine for fleeing */
 void perform_flee(struct char_data *ch)
 {
-  int i, found = 0, fleeOptions[DIR_COUNT];
+  int i, found = 0, fleeOptions[NUM_OF_DIRS];
 
   /* disqualifications? */
   if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_DAZED) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
@@ -1324,7 +1324,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   case POS_RESTING:
     if (HAS_FEAT(ch, FEAT_GROUNDFIGHTING))
       break;
-    /* fallthrough */
+    [[fallthrough]];
   case POS_STUNNED:
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
     ac_penalty -= 2;
@@ -1566,7 +1566,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
 
 // the whole update_pos system probably needs to be rethought -zusuk
 
-void update_pos_dam(struct char_data *victim)
+static void update_pos_dam(struct char_data *victim)
 {
   if (HAS_FEAT(victim, FEAT_DEATHLESS_FRENZY) && affected_by_spell(victim, SKILL_RAGE))
   {
@@ -2126,7 +2126,7 @@ static void make_pc_corpse(struct char_data *ch)
 
   GET_OBJ_VAL(corpse, 3) = 1; /* corpse identifier */
 
-  GET_OBJ_VAL(corpse, 4) = GET_IDNUM(ch); /* save the ID on the object value */
+  GET_OBJ_VAL(corpse, 4) = (int)GET_IDNUM(ch); /* save the ID on the object value */
 
   GET_OBJ_VAL(corpse, 5) = GET_LOST_XP(ch); /* save the xp loss into the object */
 
@@ -2188,8 +2188,6 @@ static struct domain_entity_handle make_corpse(struct char_data *ch, bool animat
   if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_GOLEM) && ch->master)
   {
     /* Recover materials (25% of original cost) from golem death */
-    extern void recover_golem_materials(struct char_data * ch, struct char_data * golem,
-                                        int recovery_percent);
     recover_golem_materials(ch->master, ch, 25);
   }
 
@@ -2387,7 +2385,7 @@ void death_cry(struct char_data *ch)
 }
 
 /* this message is a replacement in our new (temporary?) death system */
-void death_message(struct char_data *ch)
+static void death_message(struct char_data *ch)
 {
   GUI_CMBT_OPEN(ch);
   send_to_char(ch, "\r\n");
@@ -2416,7 +2414,7 @@ void death_message(struct char_data *ch)
 
 /* Added quest completion for all group members if they are in the room.
  * Oct 6, 2014 - Ornir. */
-void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
+static void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
 {
   struct group_data *group = NULL;
   struct char_data *k = NULL;
@@ -2749,7 +2747,7 @@ struct combat_death_result combat_death_apply(struct char_data *ch, struct char_
 
   struct char_data *temp;
   struct descriptor_data *pt;
-  int xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
+  int xp_to_lvl = (int)(level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch)));
   int penalty = xp_to_lvl / XP_LOSS_FACTOR;
 
   penalty = penalty * CONFIG_DEATH_EXP_LOSS / 100;
@@ -2974,7 +2972,7 @@ static void group_gain(struct char_data *ch, struct char_data *victim)
     party_level /= tot_members;
 
   /* total XP received, round up to the nearest tot_members */
-  tot_gain = (GET_EXP(victim) / 3) + tot_members - 1;
+  tot_gain = (int)((GET_EXP(victim) / 3) + tot_members - 1);
 
   /* Calculate level-difference bonus */
   if (GET_LEVEL(victim) > party_level)
@@ -3026,7 +3024,7 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
   int exp = 0;
 
   /* the base exp is the totally victim's exp divided by 3, limited by config */
-  exp = MIN(CONFIG_MAX_EXP_GAIN, GET_EXP(victim) / 3);
+  exp = (int)long_min(CONFIG_MAX_EXP_GAIN, GET_EXP(victim) / 3);
 
   /* Calculate level-difference bonus */
   if (GET_LEVEL(victim) > GET_LEVEL(ch))
@@ -3959,6 +3957,7 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += get_evolution_appearance_save_bonus(ch);
     if (HAS_EVOLUTION(ch, EVOLUTION_FIENDISH_APPEARANCE))
       dam_reduction += get_evolution_appearance_save_bonus(ch);
+    break;
   case DAM_CELESTIAL_POISON:
     break;
   case DAM_DISEASE:
@@ -4001,25 +4000,25 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
  * weapon used for the attack matches the feat's family or type */
 int racial_weapon_mastery_bonus(struct char_data *ch, struct obj_data *wielded)
 {
-  int weapon_type = 0, family = 0, bonus = 0;
+  int weapon_type_value = 0, family = 0, bonus = 0;
 
   if (!ch || !wielded)
     return 0;
-  weapon_type = GET_WEAPON_TYPE(wielded);
-  if (weapon_type <= 0 || weapon_type >= NUM_WEAPON_TYPES)
+  weapon_type_value = GET_WEAPON_TYPE(wielded);
+  if (weapon_type_value <= 0 || weapon_type_value >= NUM_WEAPON_TYPES)
     return 0;
   bonus = MIN(3, GET_LEVEL(ch) / 8);
   if (bonus <= 0)
     return 0;
-  family = weapon_list[weapon_type].weaponFamily;
+  family = weapon_list[weapon_type_value].weaponFamily;
 
   if (family == WEAPON_FAMILY_AXE && HAS_FEAT(ch, FEAT_AXE_MASTERY))
     return bonus;
   if (family == WEAPON_FAMILY_HAMMER && HAS_FEAT(ch, FEAT_HAMMER_MASTERY))
     return bonus;
-  if (weapon_type == WEAPON_TYPE_LONG_SWORD && HAS_FEAT(ch, FEAT_LONGSWORD_MASTERY))
+  if (weapon_type_value == WEAPON_TYPE_LONG_SWORD && HAS_FEAT(ch, FEAT_LONGSWORD_MASTERY))
     return bonus;
-  if (weapon_type == WEAPON_TYPE_GREAT_SWORD && HAS_FEAT(ch, FEAT_GREATSWORD_MASTERY))
+  if (weapon_type_value == WEAPON_TYPE_GREAT_SWORD && HAS_FEAT(ch, FEAT_GREATSWORD_MASTERY))
     return bonus;
 
   return 0;
@@ -5213,7 +5212,7 @@ static int damage_handling_with_weapon(struct char_data *ch, struct char_data *v
   bool is_spell = FALSE;
   bool is_ranged;
   int damage_reduction = 0, dr_reduction = 0;
-  float damtype_reduction = 0;
+  double damtype_reduction = 0;
 
   is_ranged = is_ranged_weapon_attack(attack_mode);
 
@@ -5421,7 +5420,7 @@ static int damage_handling_with_weapon(struct char_data *ch, struct char_data *v
 
     else if (is_spell && IS_NPC(ch))
     {
-      dam *= 0.75;
+      dam = (int)(dam * 0.75);
     }
 
     else if (!is_spell && victim && IS_EVIL(victim) &&
@@ -5514,8 +5513,8 @@ static int damage_handling_with_weapon(struct char_data *ch, struct char_data *v
     // some damage types cannot be reduced or resisted, such as a vampire's blood drain ability
     if (can_dam_be_resisted(dam_type))
     {
-      damtype_reduction = (float)compute_damtype_reduction(victim, dam_type, ch, attacktype);
-      damtype_reduction = (((float)(damtype_reduction / 100.0)) * (float)dam);
+      damtype_reduction = (double)compute_damtype_reduction(victim, dam_type, ch, attacktype);
+      damtype_reduction = (((double)(damtype_reduction / 100.0)) * (double)dam);
       dam -= (int)damtype_reduction;
     }
 
@@ -5737,14 +5736,14 @@ static int damage_handling_with_weapon(struct char_data *ch, struct char_data *v
   return dam;
 }
 
-int damage_handling(struct char_data *ch, struct char_data *victim, int dam, int attacktype,
-                    int dam_type)
+#ifdef LUMINARI_CUTEST
+static int damage_handling(struct char_data *ch, struct char_data *victim, int dam, int attacktype,
+                           int dam_type)
 {
   return damage_handling_with_weapon(ch, victim, dam, attacktype, dam_type, ATTACK_TYPE_PRIMARY,
                                      NULL);
 }
 
-#ifdef LUMINARI_CUTEST
 int test_damage_handling(struct char_data *ch, struct char_data *victim, int dam, int attacktype,
                          int dam_type)
 {
@@ -5865,7 +5864,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
 
   if (!IS_NPC(victim))
   { // forget victim, log
-    mudlog(BRF, LVL_IMMORT, TRUE, "%s killed by %s (%d) at %s (%d)", GET_NAME(victim), GET_NAME(ch),
+    mudlog(BRF, LVL_IMMORT, TRUE, "%s killed by %s (%u) at %s (%u)", GET_NAME(victim), GET_NAME(ch),
            GET_MOB_VNUM(ch), world[IN_ROOM(victim)].name, GET_ROOM_VNUM(IN_ROOM(victim)));
     if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_MEMORY))
       forget(ch, victim);
@@ -5909,9 +5908,9 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
   { // determine gold before corpse created
     if ((IS_HAPPYHOUR) && (IS_HAPPYGOLD))
     {
-      happy_gold = (long)(GET_GOLD(victim) * (((float)(HAPPY_GOLD)) / (float)100));
-      happy_gold = MAX(0, happy_gold);
-      award_gold(victim, happy_gold);
+      happy_gold = (long)(GET_GOLD(victim) * (((double)(HAPPY_GOLD)) / (double)100));
+      happy_gold = long_max(0, happy_gold);
+      award_gold(victim, (int)happy_gold);
     }
     local_gold = GET_GOLD(victim);
     snprintf(local_buf, sizeof(local_buf), "%ld", (long)local_gold);
@@ -6630,7 +6629,7 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
     room_rnum combat_room = IN_ROOM(ch);
     int threshold = get_char_affect_modifier(victim, SPELL_LIFE_SHIELD, APPLY_SPECIAL);
     int lifedam = 0;
-    struct affected_type *af = NULL;
+    struct affected_type *inner_af = NULL;
     bool remove_spell = false;
 
     if (threshold > dam / 2)
@@ -6642,12 +6641,12 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
       threshold = dam / 2;
     }
     lifedam = dam / 2;
-    for (af = victim->affected; af; af = af->next)
+    for (inner_af = victim->affected; inner_af; inner_af = inner_af->next)
     {
-      if (af->spell == SPELL_LIFE_SHIELD && af->location == APPLY_SPECIAL)
+      if (inner_af->spell == SPELL_LIFE_SHIELD && inner_af->location == APPLY_SPECIAL)
       {
-        af->modifier -= threshold;
-        if (af->modifier <= 0)
+        inner_af->modifier -= threshold;
+        if (inner_af->modifier <= 0)
         {
           remove_spell = true;
           break;
@@ -6703,14 +6702,14 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
     send_to_char(victim,
                  "In damage() function, Position: %d, HP: %d, DAM: %d, Attacker %s, You: %s\r\n",
                  GET_POS(victim), GET_HIT(victim), dam, GET_NAME(ch), GET_NAME(victim));
-    int weapon_type = w_type - TOP_ATTACK_TYPES;
-    if (weapon_type < 0 || weapon_type >= NUM_ATTACK_TYPES)
+    int weapon_type_value = w_type - TOP_ATTACK_TYPES;
+    if (weapon_type_value < 0 || weapon_type_value >= NUM_ATTACK_TYPES)
     {
-      send_to_char(ch, "Weapon-type: %d!!", weapon_type);
+      send_to_char(ch, "Weapon-type: %d!!", weapon_type_value);
     }
     else
     {
-      send_to_char(ch, "Weapon-type: %s", attack_hit_types[weapon_type]);
+      send_to_char(ch, "Weapon-type: %s", attack_hit_types[weapon_type_value]);
     }
     send_to_char(ch, ", Dam-type: %s, Attack mode: %d\r\n", damtypes[dam_type], attack_type);
   }
@@ -8649,8 +8648,8 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded, struc
 #define CRIT_MULTI_MIN 2
 #define CRIT_MULTI_MAX 7
 
-int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded,
-                                  struct char_data *victim, int attack_type)
+static int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded,
+                                         struct char_data *victim, int attack_type)
 {
   int crit_multi = 2;
 
@@ -8748,8 +8747,8 @@ int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded
    #define MODE_DISPLAY_PRIMARY  2
    #define MODE_DISPLAY_OFFHAND  3
    #define MODE_DISPLAY_RANGED   4 */
-int compute_dam_dice(struct char_data *ch, struct char_data *victim, struct obj_data *wielded,
-                     int mode, int attack_type)
+static int compute_dam_dice(struct char_data *ch, struct char_data *victim,
+                            struct obj_data *wielded, int mode, int attack_type)
 {
   int diceOne = 0, diceTwo = 0;
   bool is_ranged;
@@ -9025,8 +9024,8 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim, struct obj_
 }
 
 /* simple test for testing (confirming) critical hit */
-int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll, int calc_bab,
-                    int victim_ac, struct char_data *victim, int attack_type)
+static int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll,
+                           int calc_bab, int victim_ac, struct char_data *victim, int attack_type)
 {
   int threat_range, confirm_roll = d20(ch) + calc_bab;
   int powerful_being = 0;
@@ -9216,14 +9215,14 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
       dam *= 2;
       break;
     case POS_STUNNED:
-      dam *= 1.25;
+      dam = (int)(dam * 1.25);
       break;
     case POS_INCAP:
-      dam *= 1.5;
+      dam = (int)(dam * 1.5);
       break;
     case POS_MORTALLYW:
     case POS_DEAD:
-      dam *= 1.75;
+      dam = (int)(dam * 1.75);
       break;
     case POS_STANDING:
     case POS_FIGHTING:
@@ -10039,8 +10038,8 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam)
 #undef IRONSKIN_ABSORB
 
 /* for weapon bypassing damage resistance handling */
-bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *dr,
-                        struct char_data *ch)
+static bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *dr,
+                               struct char_data *ch)
 {
   bool passed = FALSE;
   int i = 0;
@@ -10356,7 +10355,7 @@ void weapon_poison(struct char_data *ch, struct char_data *victim, struct obj_da
 /* this function will call the spell-casting ability of the
    given weapon (wpn) attacker (ch) has when attacking vict
    these are always 'violent' spells */
-void weapon_spells(struct char_data *ch, struct char_data *vict, struct obj_data *wpn)
+static void weapon_spells(struct char_data *ch, struct char_data *vict, struct obj_data *wpn)
 {
   int weapon_touch_spell = 0;
 
@@ -10975,7 +10974,7 @@ static int compute_attack_bonus_full_with_weapon(
   case POS_RESTING:
     if (HAS_FEAT(ch, FEAT_GROUNDFIGHTING)) /* fights as well from the ground */
       break;
-    /* fallthrough */
+    [[fallthrough]];
   case POS_SLEEPING:
   case POS_STUNNED:
   case POS_INCAP:
@@ -12525,7 +12524,7 @@ void attacks_of_opportunity(struct char_data *victim, int penalty)
 }
 
 /* Perform an attack of opportunity from every character engaged with ch. */
-void teamwork_attacks_of_opportunity(struct char_data *victim, int penalty, int featnum)
+static void teamwork_attacks_of_opportunity(struct char_data *victim, int penalty, int featnum)
 {
   struct char_data *ch;
 
@@ -12540,10 +12539,10 @@ void teamwork_attacks_of_opportunity(struct char_data *victim, int penalty, int 
   }
 }
 
-int wildshape_weapon_type(struct char_data *ch)
+static int wildshape_weapon_type(struct char_data *ch)
 {
   int w_type_array[NUM_ATTACK_TYPES];
-  int weapon_type = TYPE_HIT;
+  int weapon_type_value = TYPE_HIT;
   int count = 0;
   int race = 0;
 
@@ -12579,9 +12578,9 @@ int wildshape_weapon_type(struct char_data *ch)
 
     /* list built, pick random */
     if (count <= 0) /* dummy check */
-      weapon_type = TYPE_HIT;
+      weapon_type_value = TYPE_HIT;
     else
-      weapon_type = w_type_array[rand_number(0, count - 1)];
+      weapon_type_value = w_type_array[rand_number(0, count - 1)];
   } /* handle old shapechange system */
   else
   {
@@ -12617,7 +12616,7 @@ int wildshape_weapon_type(struct char_data *ch)
       break;
     }
     /* pick random */
-    weapon_type = w_type_array[rand_number(0, count)];
+    weapon_type_value = w_type_array[rand_number(0, count)];
   }
   if (IS_PIXIE(ch))
   {
@@ -12627,13 +12626,14 @@ int wildshape_weapon_type(struct char_data *ch)
     w_type_array[++count] = TYPE_STING;
   }
 
-  return weapon_type;
+  return weapon_type_value;
 }
 
 /* a function that will return the weapon-type being used based on attack_type
  * and wielded data */
-int determine_weapon_type(struct char_data *ch, struct char_data *victim __attribute__((unused)),
-                          struct obj_data *wielded, int attack_type)
+static int determine_weapon_type(struct char_data *ch,
+                                 struct char_data *victim __attribute__((unused)),
+                                 struct obj_data *wielded, int attack_type)
 {
   int w_type = TYPE_HIT, count = 0;
   int w_type_array[NUM_ATTACK_TYPES];
@@ -12779,7 +12779,7 @@ int determine_weapon_type(struct obj_data *wielded) {
  */
 
 /* arrow imbued with spell will now activate */
-void imbued_arrow(struct char_data *ch, struct char_data *vict, struct obj_data *missile)
+static void imbued_arrow(struct char_data *ch, struct char_data *vict, struct obj_data *missile)
 {
   int original_loc = NOWHERE;
 
@@ -12844,10 +12844,11 @@ void imbued_arrow(struct char_data *ch, struct char_data *vict, struct obj_data 
 }
 
 /* called from hit() */
-enum projectile_disposition handle_missed_attack(struct char_data *ch, struct char_data *victim,
-                                                 int type, int w_type, int dam_type,
-                                                 int attack_type, struct obj_data *attack_weapon,
-                                                 struct obj_data *projectile)
+static enum projectile_disposition handle_missed_attack(struct char_data *ch,
+                                                        struct char_data *victim, int type,
+                                                        int w_type, int dam_type, int attack_type,
+                                                        struct obj_data *attack_weapon,
+                                                        struct obj_data *projectile)
 {
   GET_CONSECUTIVE_HITS(ch) = 0;
 
@@ -12954,7 +12955,7 @@ enum projectile_disposition handle_missed_attack(struct char_data *ch, struct ch
 }
 
 /* is ch sneak attacking victim? */
-int can_sneak_attack(struct char_data *ch, struct char_data *victim)
+static int can_sneak_attack(struct char_data *ch, struct char_data *victim)
 {
   /* we will check for disqualifiers first */
 
@@ -13056,11 +13057,11 @@ static int fist_air_callback(struct char_data *ch, struct char_data *tch, void *
 }
 
 /* called from hit() */
-int handle_successful_attack(struct char_data *ch, struct char_data *victim,
-                             struct obj_data *wielded, int dam, int w_type, int type, int diceroll,
-                             int is_critical, int attack_type, int dam_type,
-                             struct obj_data *projectile, bool *attack_context_invalidated,
-                             enum projectile_disposition *projectile_disposition)
+static int handle_successful_attack(struct char_data *ch, struct char_data *victim,
+                                    struct obj_data *wielded, int dam, int w_type, int type,
+                                    int diceroll, int is_critical, int attack_type, int dam_type,
+                                    struct obj_data *projectile, bool *attack_context_invalidated,
+                                    enum projectile_disposition *projectile_disposition)
 {
   struct domain_entity_handle attacker_handle = domain_event_character_handle(ch);
   struct domain_entity_handle victim_handle = domain_event_character_handle(victim);
@@ -13898,13 +13899,13 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
         if (save_result == FALSE)
         {
-          struct affected_type af;
-          af.spell = SKILL_BLEEDING_ATTACK;
-          af.duration = 5;
-          af.modifier = 1; /* 1d6 per round */
-          af.location = APPLY_NONE;
-          SET_BIT_AR(af.bitvector, AFF_BLEED);
-          affect_to_char(victim, &af);
+          struct affected_type inner_af;
+          inner_af.spell = SKILL_BLEEDING_ATTACK;
+          inner_af.duration = 5;
+          inner_af.modifier = 1; /* 1d6 per round */
+          inner_af.location = APPLY_NONE;
+          SET_BIT_AR(inner_af.bitvector, AFF_BLEED);
+          affect_to_char(victim, &inner_af);
           send_to_char(victim, "\tRYou begin bleeding from the wound!\tn\r\n");
           send_to_char(ch, "\tWYour strike causes your opponent to bleed!\tn\r\n");
         }
@@ -13926,13 +13927,13 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
         if (save_result == FALSE)
         {
-          struct affected_type af;
-          af.spell = SKILL_CRIPPLING_STRIKE;
-          af.duration = 3;
-          af.modifier = 0;
-          af.location = APPLY_NONE;
-          SET_BIT_AR(af.bitvector, AFF_CRIPPLED);
-          affect_to_char(victim, &af);
+          struct affected_type inner_af;
+          inner_af.spell = SKILL_CRIPPLING_STRIKE;
+          inner_af.duration = 3;
+          inner_af.modifier = 0;
+          inner_af.location = APPLY_NONE;
+          SET_BIT_AR(inner_af.bitvector, AFF_CRIPPLED);
+          affect_to_char(victim, &inner_af);
           send_to_char(victim, "\tRYou feel your movement crippled!\tn\r\n");
           send_to_char(ch, "\tWYour strike cripples your opponent's movement!\tn\r\n");
         }
@@ -13957,7 +13958,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
           if (save_result == FALSE)
           {
-            struct affected_type af;
+            struct affected_type inner_af;
 
             if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
             {
@@ -13985,11 +13986,11 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
             }
 
             /* Apply 4 round cooldown on victim to prevent being pressure pointed again */
-            af.spell = SKILL_PRESSURE_POINT_STRIKE;
-            af.duration = 4;
-            af.modifier = 0;
-            af.location = APPLY_NONE;
-            affect_to_char(victim, &af);
+            inner_af.spell = SKILL_PRESSURE_POINT_STRIKE;
+            inner_af.duration = 4;
+            inner_af.modifier = 0;
+            inner_af.location = APPLY_NONE;
+            affect_to_char(victim, &inner_af);
           }
           else
           {
@@ -14280,12 +14281,12 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
                            : 0;
         if (!savingthrow(ch, victim, SAVING_WILL, save_mod, CAST_INNATE, bg_level, ENCHANTMENT))
         {
-          struct affected_type af;
-          new_affect(&af);
-          af.spell = SKILL_SMITE_GOOD;
-          af.duration = MAX(2, (bg_level / 6));
-          SET_BIT_AR(af.bitvector, AFF_SHAKEN);
-          affect_to_char(victim, &af);
+          struct affected_type inner_af;
+          new_affect(&inner_af);
+          inner_af.spell = SKILL_SMITE_GOOD;
+          inner_af.duration = MAX(2, (bg_level / 6));
+          SET_BIT_AR(inner_af.bitvector, AFF_SHAKEN);
+          affect_to_char(victim, &inner_af);
           act("\tDYour profane smite terrifies $N!\tn", FALSE, ch, 0, victim, TO_CHAR);
           act("\tD$n's profane smite terrifies you!\tn", FALSE, ch, 0, victim, TO_VICT | TO_SLEEP);
           act("\tD$n's profane smite terrifies $N!\tn", FALSE, ch, 0, victim, TO_NOTVICT);
@@ -14300,12 +14301,12 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
         if (!savingthrow(ch, victim, SAVING_WILL, 0, CAST_INNATE, pal_level, NOSCHOOL))
         {
-          struct affected_type af;
-          new_affect(&af);
-          af.spell = SPELL_BLINDNESS;
-          af.duration = 2; /* 2 rounds */
-          SET_BIT_AR(af.bitvector, AFF_BLIND);
-          affect_to_char(victim, &af);
+          struct affected_type inner_af;
+          new_affect(&inner_af);
+          inner_af.spell = SPELL_BLINDNESS;
+          inner_af.duration = 2; /* 2 rounds */
+          SET_BIT_AR(inner_af.bitvector, AFF_BLIND);
+          affect_to_char(victim, &inner_af);
 
           act("\tWYour righteous strike blinds $N with holy radiance!\tn", FALSE, ch, 0, victim,
               TO_CHAR);
@@ -14491,12 +14492,12 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       !is_ranged_weapon_attack(attack_type) && !affected_by_spell(victim, SPELL_SLOW) &&
       dice(1, 100) <= 5)
   {
-    struct affected_type af;
-    new_affect(&af);
-    af.spell = SPELL_SLOW;
-    af.duration = 3;
-    SET_BIT_AR(af.bitvector, AFF_SLOW);
-    affect_to_char(victim, &af);
+    struct affected_type inner_af;
+    new_affect(&inner_af);
+    inner_af.spell = SPELL_SLOW;
+    inner_af.duration = 3;
+    SET_BIT_AR(inner_af.bitvector, AFF_SLOW);
+    affect_to_char(victim, &inner_af);
     send_to_char(victim, "\tRYou feel your movements slow down!\tn\r\n");
     send_to_char(ch, "\tW[CRIPPLING STRIKE!]\tn Your strike slows your opponent!\r\n");
     act("$n's strike slows $N's movements!", FALSE, ch, 0, victim, TO_NOTVICT);
@@ -15496,7 +15497,7 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
         break;
     }
 
-    if (--afx->modifier <= 0)
+    if (afx != NULL && --afx->modifier <= 0)
       affect_from_char(victim, SPELL_PROTECTION_FROM_ARROWS);
 
     act("An invisible barrier forces $n's shot wide.", FALSE, ch, 0, victim, TO_ROOM);
@@ -15561,12 +15562,12 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
       if (rand_number(1, 100) <= crippling_chance)
       {
         /* Apply slow effect for 3 rounds - no save */
-        struct affected_type af = {0};
-        new_affect(&af);
-        af.spell = AFFECT_BERSERKER_CRIPPLING_BLOW;
-        af.duration = 3;
-        SET_BIT_AR(af.bitvector, AFF_SLOW);
-        affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+        struct affected_type inner_af = {0};
+        new_affect(&inner_af);
+        inner_af.spell = AFFECT_BERSERKER_CRIPPLING_BLOW;
+        inner_af.duration = 3;
+        SET_BIT_AR(inner_af.bitvector, AFF_SLOW);
+        affect_join(victim, &inner_af, TRUE, FALSE, FALSE, FALSE);
         act("\tR[\tDCRIPPLING BLOW\tR]\tn $n's devastating strike cripples your movement!", FALSE,
             ch, 0, victim, TO_VICT);
         act("\tR[\tDCRIPPLING BLOW\tR]\tn Your critical strike cripples $N's movement!", FALSE, ch,
@@ -15610,12 +15611,12 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
     if (can_stun(victim) &&
         !savingthrow(ch, victim, SAVING_FORT, dc, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
     {
-      struct affected_type af = {0};
-      new_affect(&af);
-      af.spell = AFFECT_BERSERKER_STUNNING_BLOW;
-      af.duration = 2;
-      SET_BIT_AR(af.bitvector, AFF_STUN);
-      affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+      struct affected_type inner_af = {0};
+      new_affect(&inner_af);
+      inner_af.spell = AFFECT_BERSERKER_STUNNING_BLOW;
+      inner_af.duration = 2;
+      SET_BIT_AR(inner_af.bitvector, AFF_STUN);
+      affect_join(victim, &inner_af, TRUE, FALSE, FALSE, FALSE);
 
       act("\tY[\tRSTUNNING BLOW\tY]\tn $n's overwhelming attack \tYSTUNS\tn you!", FALSE, ch, 0,
           victim, TO_VICT);
@@ -15637,14 +15638,14 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
     int debuff_modifier = get_bard_frostbite_natural_20_debuff(ch);
     if (debuff_modifier < 0)
     {
-      struct affected_type af = {0};
-      new_affect(&af);
-      af.spell = AFFECT_BARD_FROSTBITE_REFRAIN_I;
-      af.location = APPLY_HITROLL;
-      af.duration = 1;               /* 1 round */
-      af.modifier = debuff_modifier; /* -1 to attack */
-      af.bonus_type = BONUS_TYPE_UNDEFINED;
-      affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
+      struct affected_type inner_af = {0};
+      new_affect(&inner_af);
+      inner_af.spell = AFFECT_BARD_FROSTBITE_REFRAIN_I;
+      inner_af.location = APPLY_HITROLL;
+      inner_af.duration = 1;               /* 1 round */
+      inner_af.modifier = debuff_modifier; /* -1 to attack */
+      inner_af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &inner_af, FALSE, FALSE, FALSE, FALSE);
 
       act("\tC[\tBFROSTBITE\tC]\tn Your frostbite refrain freezes $N's movements, making them "
           "sluggish!",
@@ -15665,26 +15666,26 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
 
     if (attack_debuff < 0)
     {
-      struct affected_type af = {0};
-      new_affect(&af);
-      af.spell = AFFECT_BARD_FROSTBITE_REFRAIN_II;
-      af.location = APPLY_HITROLL;
-      af.duration = 1;             /* 1 round */
-      af.modifier = attack_debuff; /* -2 to attack */
-      af.bonus_type = BONUS_TYPE_UNDEFINED;
-      affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
+      struct affected_type inner_af = {0};
+      new_affect(&inner_af);
+      inner_af.spell = AFFECT_BARD_FROSTBITE_REFRAIN_II;
+      inner_af.location = APPLY_HITROLL;
+      inner_af.duration = 1;             /* 1 round */
+      inner_af.modifier = attack_debuff; /* -2 to attack */
+      inner_af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &inner_af, FALSE, FALSE, FALSE, FALSE);
     }
 
     if (ac_debuff < 0)
     {
-      struct affected_type af = {0};
-      new_affect(&af);
-      af.spell = AFFECT_BARD_FROSTBITE_REFRAIN_II;
-      af.location = APPLY_AC_NEW;
-      af.duration = 1;         /* 1 round */
-      af.modifier = ac_debuff; /* -1 to AC */
-      af.bonus_type = BONUS_TYPE_UNDEFINED;
-      affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
+      struct affected_type inner_af = {0};
+      new_affect(&inner_af);
+      inner_af.spell = AFFECT_BARD_FROSTBITE_REFRAIN_II;
+      inner_af.location = APPLY_AC_NEW;
+      inner_af.duration = 1;         /* 1 round */
+      inner_af.modifier = ac_debuff; /* -1 to AC */
+      inner_af.bonus_type = BONUS_TYPE_UNDEFINED;
+      affect_join(victim, &inner_af, FALSE, FALSE, FALSE, FALSE);
     }
 
     act("\tC[\tBFROSTBITE\tC]\tn Your enhanced frostbite refrain DEEPLY freezes $N, sapping their "
@@ -15782,14 +15783,14 @@ static int resolve_hit(struct char_data *ch, struct char_data *victim, int type,
   {
     if (dice(1, 100) <= 15) /* 15% chance */
     {
-      struct affected_type af;
-      new_affect(&af);
-      af.spell = STATUS_AFFECT_STAGGERED;
-      af.location = APPLY_SPECIAL;
-      af.duration = 2;
-      af.modifier = 1;
-      SET_BIT_AR(af.bitvector, AFF_STAGGERED);
-      affect_to_char(victim, &af);
+      struct affected_type inner_af;
+      new_affect(&inner_af);
+      inner_af.spell = STATUS_AFFECT_STAGGERED;
+      inner_af.location = APPLY_SPECIAL;
+      inner_af.duration = 2;
+      inner_af.modifier = 1;
+      SET_BIT_AR(inner_af.bitvector, AFF_STAGGERED);
+      affect_to_char(victim, &inner_af);
 
       act("\tRYour overwhelming power attack staggers $N!\tn", FALSE, ch, 0, victim, TO_CHAR);
       act("\tR$n's overwhelming power attack staggers YOU!\tn", FALSE, ch, 0, victim, TO_VICT);
@@ -15867,7 +15868,7 @@ int is_dual_wielding(struct char_data *ch)
 #define MODE_IMP_2_WPN 2   /* improved two weapon fighting - extra attack at -5 */
 #define MODE_GREAT_2_WPN 3 /* greater two weapon fighting - extra attack at -10 */
 #define MODE_EPIC_2_WPN 4  /* perfect two weapon fighting - extra attack */
-int is_skilled_dualer(struct char_data *ch, int mode)
+static int is_skilled_dualer(struct char_data *ch, int mode)
 {
   switch (mode)
   {
@@ -17361,7 +17362,7 @@ MUD_EVENT_CALLBACK(event_combat_round)
   return 2 RL_SEC; /* 6 second rounds, hack! */
 }
 
-void handle_cleave(struct char_data *ch)
+static void handle_cleave(struct char_data *ch)
 {
   struct char_data *tch = NULL;
   bool found = false;
@@ -17410,7 +17411,7 @@ void handle_cleave(struct char_data *ch)
   }
 }
 
-void handle_smash_defense(struct char_data *ch)
+static void handle_smash_defense(struct char_data *ch)
 {
   struct char_data *vict = FIGHTING(ch);
   bool semantic_used = false;

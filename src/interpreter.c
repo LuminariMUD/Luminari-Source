@@ -96,6 +96,9 @@
 #include "rol_feats.h"
 #include "activity_manager.h"
 #include "password.h"
+#include "clan_economy.h"
+#include "vessels/transport_unified.h"
+#include "help.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -107,16 +110,12 @@ static bool perform_new_char_dupe_check(struct descriptor_data *d);
 static int sort_commands_helper(const void *a, const void *b);
 
 // external functions
-void load_char_pets(struct char_data *ch);
-void update_player_last_on(void);
 
 /* globals defined here, used here and elsewhere */
 int *cmd_sort_info = NULL;
 
 struct command_info *complete_cmd_info;
 
-ACMD_DECL(do_reboot);
-ACMD_DECL(do_relock);
 
 /* This is the Master Command List. You can put new commands in, take commands
  * out, change the order they appear in, etc.  You can adjust the "priority"
@@ -6683,7 +6682,7 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
       return;
   }
 
-  for (length = strlen(arg), cmd = 0; *complete_cmd_info[cmd].command != '\n'; cmd++)
+  for (length = (int)strlen(arg), cmd = 0; *complete_cmd_info[cmd].command != '\n'; cmd++)
     if (complete_cmd_info[cmd].command_pointer != do_action &&
         !strncmp(complete_cmd_info[cmd].command, arg, length))
       if (GET_LEVEL(ch) >= complete_cmd_info[cmd].minimum_level)
@@ -6692,7 +6691,7 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
   /* it's not a 'real' command, so it's a social */
 
   if (*complete_cmd_info[cmd].command == '\n')
-    for (length = strlen(arg), cmd = 0; *complete_cmd_info[cmd].command != '\n'; cmd++)
+    for (length = (int)strlen(arg), cmd = 0; *complete_cmd_info[cmd].command != '\n'; cmd++)
       if (complete_cmd_info[cmd].command_pointer == do_action &&
           !strncmp(complete_cmd_info[cmd].command, arg, length))
         if (GET_LEVEL(ch) >= complete_cmd_info[cmd].minimum_level)
@@ -6728,8 +6727,8 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
   }
   else if ((AFF_FLAGGED(ch, AFF_PARALYZED)) && GET_LEVEL(ch) < LVL_IMMORT &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
-           !is_casting_command((char *)complete_cmd_info[cmd].command) &&
-           !is_valid_paralyzed_command((char *)complete_cmd_info[cmd].command))
+           !is_casting_command(complete_cmd_info[cmd].command) &&
+           !is_valid_paralyzed_command(complete_cmd_info[cmd].command))
   {
     send_to_char(ch, "You try, but you are unable to move due to paralysis!\r\n");
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
@@ -6741,8 +6740,8 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
   }
   else if ((AFF_FLAGGED(ch, AFF_STUN)) && GET_LEVEL(ch) < LVL_IMMORT &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
-           !is_casting_command((char *)complete_cmd_info[cmd].command) &&
-           !is_valid_paralyzed_command((char *)complete_cmd_info[cmd].command))
+           !is_casting_command(complete_cmd_info[cmd].command) &&
+           !is_valid_paralyzed_command(complete_cmd_info[cmd].command))
   {
     send_to_char(ch, "You try, but you are unable to move due to being stunned!\r\n");
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
@@ -6754,8 +6753,8 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
   }
   else if ((char_has_mud_event(ch, eSTUNNED)) && GET_LEVEL(ch) < LVL_IMMORT &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
-           !is_casting_command((char *)complete_cmd_info[cmd].command) &&
-           !is_valid_paralyzed_command((char *)complete_cmd_info[cmd].command))
+           !is_casting_command(complete_cmd_info[cmd].command) &&
+           !is_valid_paralyzed_command(complete_cmd_info[cmd].command))
   {
     send_to_char(ch, "You try, but you are unable to move due to being under a stun effect!\r\n");
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
@@ -6767,8 +6766,8 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
   }
   else if (AFF_FLAGGED(ch, AFF_DAZED) && GET_LEVEL(ch) < LVL_IMPL &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
-           !is_casting_command((char *)complete_cmd_info[cmd].command) &&
-           !is_valid_paralyzed_command((char *)complete_cmd_info[cmd].command))
+           !is_casting_command(complete_cmd_info[cmd].command) &&
+           !is_valid_paralyzed_command(complete_cmd_info[cmd].command))
     send_to_char(ch, "You are too dazed to do anything!\r\n");
   else if (!IS_NPC(ch) && PLR_FLAGGED(ch, PLR_FROZEN) && GET_LEVEL(ch) < LVL_IMPL)
     send_to_char(ch, "You try, but the mind-numbing cold prevents you...\r\n");
@@ -7453,7 +7452,7 @@ static int perform_dupe_check(struct descriptor_data *d)
   struct char_data *target = NULL, *ch, *next_ch;
   int mode = 0;
   int pref_temp = 0; /* for "last" log */
-  int id = GET_IDNUM(d->character);
+  int id = (int)GET_IDNUM(d->character);
 
   /* Now that this descriptor has successfully logged in, disconnect all
    * other descriptors controlling a character with the same ID number. */
@@ -7471,7 +7470,7 @@ static int perform_dupe_check(struct descriptor_data *d)
 
       write_to_output(d, "\r\nMultiple login detected -- disconnecting.\r\n");
       STATE(k) = CON_CLOSE;
-      pref_temp = GET_PREF(k->character);
+      pref_temp = (int)GET_PREF(k->character);
       if (!target)
       {
         target = k->original;
@@ -7494,7 +7493,7 @@ static int perform_dupe_check(struct descriptor_data *d)
     else if (k->character && GET_IDNUM(k->character) == id)
     {
       /* Character taking over their own body. */
-      pref_temp = GET_PREF(k->character);
+      pref_temp = (int)GET_PREF(k->character);
 
       if (!target && STATE(k) == CON_PLAYING)
       {
@@ -7539,7 +7538,7 @@ static int perform_dupe_check(struct descriptor_data *d)
     {
       target = ch;
       mode = RECON;
-      pref_temp = GET_PREF(ch);
+      pref_temp = (int)GET_PREF(ch);
       continue;
     }
 
@@ -7706,7 +7705,7 @@ int enter_player_game(struct descriptor_data *d)
     CREATE(d->character->bags, struct bag_data, 1);
 
   if (PLR_FLAGGED(d->character, PLR_INVSTART))
-    GET_INVIS_LEV(d->character) = GET_LEVEL(d->character);
+    GET_INVIS_LEV(d->character) = (sh_int)GET_LEVEL(d->character);
 
   /* We have to place the character in a room before equipping them
    * or equip_char() will gripe about the person in NOWHERE. */
@@ -8206,10 +8205,12 @@ void nanny(struct descriptor_data *d, char *arg)
             !strcasecmp(GET_ACCOUNT_NAME(d->character), d->account->name))
         {
           /* Character was created with this account - auto re-link without password */
-          int i;
-          for (i = 0; (i < MAX_CHARS_PER_ACCOUNT) && (d->account->character_names[i] != NULL); i++)
+          int inner_i;
+          for (inner_i = 0;
+               (inner_i < MAX_CHARS_PER_ACCOUNT) && (d->account->character_names[inner_i] != NULL);
+               inner_i++)
             ;
-          if (i == MAX_CHARS_PER_ACCOUNT)
+          if (inner_i == MAX_CHARS_PER_ACCOUNT)
           {
             write_to_output(d,
                             "You have reached the maximum number of characters on this account.\r\n"
@@ -8217,22 +8218,22 @@ void nanny(struct descriptor_data *d, char *arg)
           }
           else
           {
-            d->account->character_names[i] = strdup(GET_NAME(d->character));
+            d->account->character_names[inner_i] = strdup(GET_NAME(d->character));
 
             /* Ensure the character exists in MySQL player_data table */
             if (mysql_available && conn)
             {
-              char buf[2048];
+              char inner_buf[2048];
               char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(d->character));
               if (escaped_name)
               {
                 /* First try to INSERT the character (in case it doesn't exist) */
-                snprintf(buf, sizeof(buf),
+                snprintf(inner_buf, sizeof(inner_buf),
                          "INSERT IGNORE INTO player_data (name, account_id, last_online) "
                          "VALUES ('%s', %d, NOW())",
                          escaped_name, d->account->id);
 
-                if (mysql_query(conn, buf))
+                if (mysql_query(conn, inner_buf))
                 {
                   log("SYSERR: Unable to INSERT character %s into player_data: %s",
                       GET_NAME(d->character), mysql_error(conn));
@@ -8332,7 +8333,7 @@ void nanny(struct descriptor_data *d, char *arg)
         {
           /* Make sure old files are removed so the new player doesn't get the
            * deleted player's equipment. */
-          player_i = get_ptable_by_name(tmp_name);
+          player_i = (int)get_ptable_by_name(tmp_name);
           if (player_i < 0 || !remove_player(player_i))
           {
             write_to_output(
@@ -9584,7 +9585,7 @@ void nanny(struct descriptor_data *d, char *arg)
   {
     int previous_preferences[PR_ARRAY_MAX];
     int previous_wimp = GET_WIMP_LEV(d->character);
-    int previous_session_id = GET_PREF(d->character);
+    int previous_session_id = (int)GET_PREF(d->character);
     int previous_color = d->pProtocol->pVariables[eMSDP_256_COLORS] != NULL
                              ? d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt
                              : 0;
@@ -10179,7 +10180,7 @@ void nanny(struct descriptor_data *d, char *arg)
       if (selfdelete_fastwipe)
       {
         player_removed = FALSE;
-        if ((player_i = get_ptable_by_name(GET_NAME(d->character))) >= 0)
+        if ((player_i = (int)get_ptable_by_name(GET_NAME(d->character))) >= 0)
         {
           SET_BIT(player_table[player_i].flags, PINDEX_SELFDELETE);
           player_removed = remove_player(player_i);
@@ -10263,8 +10264,6 @@ void nanny(struct descriptor_data *d, char *arg)
     else if (d->reply_to_post_id > 0)
     {
       /* This is a reply - handle differently */
-      extern void mysql_board_handle_reply_title(struct descriptor_data * d,
-                                                 char *additional_subject);
       mysql_board_handle_reply_title(d, arg);
     }
     else
@@ -10499,7 +10498,7 @@ bool command_can_be_used_while_casting(int cmd)
   return true;
 }
 
-bool is_casting_command(char *command)
+bool is_casting_command(const char *command)
 {
   if (!strcmp(command, "cast") || !strcmp(command, "imbibe") || !strcmp(command, "shadowcast") ||
       !strcmp(command, "buff") || !strcmp(command, "manifest"))
@@ -10508,7 +10507,7 @@ bool is_casting_command(char *command)
   return false;
 }
 
-bool is_valid_paralyzed_command(char *command)
+bool is_valid_paralyzed_command(const char *command)
 {
   if (!strcmp(command, "look") || !strcmp(command, "trip") || !strcmp(command, "group") ||
       !strcmp(command, "hp") || !strcmp(command, "affects") || !strcmp(command, "idea") ||

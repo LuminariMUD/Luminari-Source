@@ -83,7 +83,7 @@ static void spec_mechanics_initialize_npc(struct char_data *ch, const char *name
   clear_char(ch);
   SET_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
   ch->player_specials = &dummy_mob;
-  ch->player.short_descr = (char *)name;
+  ch->player.short_descr = CuMutableString(name);
   GET_LEVEL(ch) = 10;
   GET_POS(ch) = POS_STANDING;
   GET_HIT(ch) = 100;
@@ -109,11 +109,11 @@ static void spec_mechanics_begin(struct spec_mechanics_fixture *fixture)
   fixture->rooms[0].number = 6100;
   fixture->rooms[0].zone = 0;
   fixture->rooms[0].sector_type = SECT_INSIDE;
-  fixture->rooms[0].name = "Special mechanic origin";
+  fixture->rooms[0].name = CuMutableString("Special mechanic origin");
   fixture->rooms[1].number = 6101;
   fixture->rooms[1].zone = 0;
   fixture->rooms[1].sector_type = SECT_INSIDE;
-  fixture->rooms[1].name = "Special mechanic destination";
+  fixture->rooms[1].name = CuMutableString("Special mechanic destination");
   fixture->zones[0].number = 61;
   fixture->zones[0].bot = 6100;
   fixture->zones[0].top = 6199;
@@ -515,9 +515,9 @@ void Test_spec_rol_shared_mobile_adapters_preserve_source_boundaries(CuTest *tc)
   CuAssertIntEquals(tc, 100, rol_umberhulk_proc_chance(70));
 
   SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ROL_DEMON);
-  fixture.actor.player.short_descr = "babau demon";
+  fixture.actor.player.short_descr = CuMutableString("babau demon");
   CuAssertIntEquals(tc, SECS_PER_MUD_DAY, rol_planar_gate_cooldown_seconds(&fixture.actor));
-  fixture.actor.player.short_descr = "babau demon nogate";
+  fixture.actor.player.short_descr = CuMutableString("babau demon nogate");
   CuAssertIntEquals(tc, 0, rol_planar_gate_cooldown_seconds(&fixture.actor));
 
   CuAssertTrue(tc, !rol_handle_conjured_death(&fixture.actor));
@@ -571,7 +571,7 @@ void Test_spec_rol_magic_pool_damages_and_transports_matching_entry(CuTest *tc)
   saved_complete_cmd_info = complete_cmd_info;
   complete_cmd_info = commands;
 
-  fixture.worn.name = "ruby pool";
+  fixture.worn.name = CuMutableString("ruby pool");
   GET_OBJ_VAL(&fixture.worn, 0) = 6101;
   GET_OBJ_VAL(&fixture.worn, 1) = 25;
 
@@ -599,8 +599,8 @@ void Test_spec_rol_bloodstone_portal_transports_and_applies_stress(CuTest *tc)
   saved_complete_cmd_info = complete_cmd_info;
   complete_cmd_info = commands;
 
-  fixture.worn.name = "shimmering portal";
-  fixture.worn.short_description = "a shimmering portal";
+  fixture.worn.name = CuMutableString("shimmering portal");
+  fixture.worn.short_description = CuMutableString("a shimmering portal");
   IN_ROOM(&fixture.worn) = 0;
   fixture.rooms[0].contents = &fixture.worn;
   GET_OBJ_VAL(&fixture.worn, 0) = 6101;
@@ -656,8 +656,8 @@ void Test_spec_rol_portal_door_preserves_destination_and_race_gates(CuTest *tc)
   saved_complete_cmd_info = complete_cmd_info;
   complete_cmd_info = commands;
 
-  fixture.worn.name = "rainbow portal";
-  fixture.worn.short_description = "a rainbow portal";
+  fixture.worn.name = CuMutableString("rainbow portal");
+  fixture.worn.short_description = CuMutableString("a rainbow portal");
   IN_ROOM(&fixture.worn) = 0;
   fixture.rooms[0].contents = &fixture.worn;
   GET_OBJ_VAL(&fixture.worn, 0) = 6101;
@@ -724,8 +724,8 @@ void Test_spec_rol_travel_portal_preserves_profiles_and_common_transit(CuTest *t
   CuAssertTrue(tc, rol_travel_portal_actor_allowed(2000882, &fixture.actor));
   CuAssertTrue(tc, !rol_travel_portal_actor_allowed(2021500, &fixture.actor));
 
-  fixture.worn.name = "dimensional fold";
-  fixture.worn.short_description = "a dimensional fold";
+  fixture.worn.name = CuMutableString("dimensional fold");
+  fixture.worn.short_description = CuMutableString("a dimensional fold");
   fixture.object_indexes[0].vnum = 2000882;
   GET_OBJ_VAL(&fixture.worn, 0) = 6101;
   IN_ROOM(&fixture.worn) = 0;
@@ -736,8 +736,8 @@ void Test_spec_rol_travel_portal_preserves_profiles_and_common_transit(CuTest *t
 
   char_from_room(&fixture.actor);
   char_to_room(&fixture.actor, 0);
-  fixture.worn.name = "glowing portal";
-  fixture.worn.short_description = "the glowing portal";
+  fixture.worn.name = CuMutableString("glowing portal");
+  fixture.worn.short_description = CuMutableString("the glowing portal");
   fixture.object_indexes[0].vnum = 2005515;
   GET_OBJ_VAL(&fixture.worn, 0) = 6101;
   GET_OBJ_VAL(&fixture.worn, 1) = 25;
@@ -1207,7 +1207,7 @@ void Test_spec_rol_sister_knight_preserves_family_identity_and_alert_guard(CuTes
   GET_MOB_RNUM(&fixture.actor) = 0;
   GET_MOB_RNUM(&helper) = 0;
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ISNPC);
-  fixture.target.player.name = "sister attacker";
+  fixture.target.player.name = CuMutableString("sister attacker");
   fixture.target.player_specials = &player_specials;
   FIGHTING(&fixture.actor) = &fixture.target;
 
@@ -1252,7 +1252,7 @@ void Test_spec_rol_alert_callers_share_profiles_without_losing_composed_breaths(
   GET_MOB_RNUM(&fixture.actor) = 0;
   GET_MOB_RNUM(&helper) = 1;
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ISNPC);
-  fixture.target.player.name = "alert target";
+  fixture.target.player.name = CuMutableString("alert target");
   fixture.target.player_specials = &player_specials;
   FIGHTING(&fixture.actor) = &fixture.target;
 
@@ -1415,13 +1415,13 @@ void Test_spec_rol_planar_gate_full_summon_recipes_are_bounded(CuTest *tc)
   spec_mechanics_begin(&fixture);
   SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ROL_DEMON);
 
-  fixture.actor.player.short_descr = "babau demon";
+  fixture.actor.player.short_descr = CuMutableString("babau demon");
   CuAssertIntEquals(tc, 2, rol_planar_gate_summon_option_count(&fixture.actor));
-  fixture.actor.player.short_descr = "balor demon";
+  fixture.actor.player.short_descr = CuMutableString("balor demon");
   CuAssertIntEquals(tc, 6, rol_planar_gate_summon_option_count(&fixture.actor));
-  fixture.actor.player.short_descr = "hezrou demon";
+  fixture.actor.player.short_descr = CuMutableString("hezrou demon");
   CuAssertIntEquals(tc, 6, rol_planar_gate_summon_option_count(&fixture.actor));
-  fixture.actor.player.short_descr = "hezrou demon nogate";
+  fixture.actor.player.short_descr = CuMutableString("hezrou demon nogate");
   CuAssertIntEquals(tc, 0, rol_planar_gate_summon_option_count(&fixture.actor));
   CuAssertIntEquals(tc, 0, rol_planar_gate_summon_option_count(NULL));
 
@@ -1443,9 +1443,9 @@ void Test_spec_rol_vortex_knight_last_peer_creates_timed_portal(CuTest *tc)
   clear_object(&prototype);
   GET_OBJ_RNUM(&prototype) = 0;
   GET_OBJ_TYPE(&prototype) = ITEM_PORTAL;
-  prototype.name = "silver portal";
-  prototype.short_description = "a silver portal";
-  prototype.description = "A silver portal lies upon the western wall.";
+  prototype.name = CuMutableString("silver portal");
+  prototype.short_description = CuMutableString("a silver portal");
+  prototype.description = CuMutableString("A silver portal lies upon the western wall.");
   obj_proto = &prototype;
   top_of_objt = 0;
   fixture.mobile_indexes[0].vnum = 2093003;
@@ -1493,8 +1493,8 @@ void Test_spec_rol_white_pudding_death_splits_into_two_mapped_mobiles(CuTest *tc
   memset(prototypes, 0, sizeof(prototypes));
   spec_mechanics_initialize_npc(&prototypes[0], "white pudding", NOWHERE);
   spec_mechanics_initialize_npc(&prototypes[1], "smaller white pudding", NOWHERE);
-  prototypes[0].player.name = "white pudding";
-  prototypes[1].player.name = "smaller white pudding";
+  prototypes[0].player.name = CuMutableString("white pudding");
+  prototypes[1].player.name = CuMutableString("smaller white pudding");
   GET_MOB_RNUM(&prototypes[0]) = 0;
   GET_MOB_RNUM(&prototypes[1]) = 1;
   mob_proto = prototypes;
@@ -1585,9 +1585,9 @@ void Test_spec_rol_darkhold_elemental_deaths_drop_mapped_objects_and_keep_corpse
   object_list = NULL;
   clear_object(&prototype);
   GET_OBJ_RNUM(&prototype) = 0;
-  prototype.name = "darkhold elemental reward";
-  prototype.short_description = "a Darkhold elemental reward";
-  prototype.description = "A Darkhold elemental reward lies here.";
+  prototype.name = CuMutableString("darkhold elemental reward");
+  prototype.short_description = CuMutableString("a Darkhold elemental reward");
+  prototype.description = CuMutableString("A Darkhold elemental reward lies here.");
   obj_proto = &prototype;
   top_of_objt = 0;
   GET_MOB_RNUM(&fixture.actor) = 0;
@@ -1622,29 +1622,29 @@ void Test_spec_rol_darkhold_profiles_preserve_source_identities_and_timing(CuTes
   bool shadow_fiend;
   int denominator;
   int destination_vnum;
-  int room_vnum;
+  int room_vnum_id;
   size_t index;
 
   CuAssertIntEquals(tc, 11, (int)rol_darkhold_object_profile_count());
   for (index = 0; index < sizeof(summon_skulls) / sizeof(summon_skulls[0]); index++)
   {
-    CuAssertTrue(tc, rol_darkhold_object_profile(summon_skulls[index], &kind, &room_vnum,
+    CuAssertTrue(tc, rol_darkhold_object_profile(summon_skulls[index], &kind, &room_vnum_id,
                                                  &destination_vnum));
     CuAssertIntEquals(tc, ROL_DARKHOLD_OBJECT_SUMMON_SKULL, kind);
-    CuAssertIntEquals(tc, -1, room_vnum);
+    CuAssertIntEquals(tc, -1, room_vnum_id);
     CuAssertIntEquals(tc, 2094500, destination_vnum);
   }
-  CuAssertTrue(tc, rol_darkhold_object_profile(2094504, &kind, &room_vnum, &destination_vnum));
+  CuAssertTrue(tc, rol_darkhold_object_profile(2094504, &kind, &room_vnum_id, &destination_vnum));
   CuAssertIntEquals(tc, ROL_DARKHOLD_OBJECT_PASSAGE_SKULL, kind);
-  CuAssertIntEquals(tc, 2094666, room_vnum);
+  CuAssertIntEquals(tc, 2094666, room_vnum_id);
   CuAssertIntEquals(tc, -1, destination_vnum);
-  CuAssertTrue(tc, rol_darkhold_object_profile(2094508, &kind, &room_vnum, &destination_vnum));
+  CuAssertTrue(tc, rol_darkhold_object_profile(2094508, &kind, &room_vnum_id, &destination_vnum));
   CuAssertIntEquals(tc, ROL_DARKHOLD_OBJECT_SOUTH_GEM, kind);
-  CuAssertIntEquals(tc, 2094667, room_vnum);
+  CuAssertIntEquals(tc, 2094667, room_vnum_id);
   CuAssertIntEquals(tc, 2094673, destination_vnum);
-  CuAssertTrue(tc, rol_darkhold_object_profile(2094509, &kind, &room_vnum, &destination_vnum));
+  CuAssertTrue(tc, rol_darkhold_object_profile(2094509, &kind, &room_vnum_id, &destination_vnum));
   CuAssertIntEquals(tc, ROL_DARKHOLD_OBJECT_NORTH_GEM, kind);
-  CuAssertIntEquals(tc, 2094668, room_vnum);
+  CuAssertIntEquals(tc, 2094668, room_vnum_id);
   CuAssertIntEquals(tc, 2094674, destination_vnum);
   CuAssertTrue(tc, !rol_darkhold_object_profile(2094512, NULL, NULL, NULL));
 
@@ -1808,8 +1808,8 @@ void Test_spec_rol_deaths_head_initializes_tree_and_grows_carried_seed(CuTest *t
   character_list = NULL;
   spec_mechanics_initialize_npc(&prototypes[0], "ordinary fixture mobile", NOWHERE);
   spec_mechanics_initialize_npc(&prototypes[1], "Death's Head sapling", NOWHERE);
-  prototypes[0].player.name = "ordinary fixture mobile";
-  prototypes[1].player.name = "death head sapling";
+  prototypes[0].player.name = CuMutableString("ordinary fixture mobile");
+  prototypes[1].player.name = CuMutableString("death head sapling");
   GET_MOB_RNUM(&prototypes[0]) = 0;
   GET_MOB_RNUM(&prototypes[1]) = 1;
   mob_proto = prototypes;
@@ -1835,7 +1835,7 @@ void Test_spec_rol_deaths_head_initializes_tree_and_grows_carried_seed(CuTest *t
 
   clear_object(&seed);
   GET_OBJ_RNUM(&seed) = 0;
-  seed.short_description = "a Death's Head seed";
+  seed.short_description = CuMutableString("a Death's Head seed");
   seed.carried_by = &fixture.target;
   fixture.target.carrying = &seed;
   memset(&event, 0, sizeof(event));
@@ -1908,8 +1908,8 @@ void Test_spec_rol_darkhold_objects_open_source_profiled_passages(CuTest *tc)
   fixture.rooms[0].number = 2094666;
   fixture.rooms[1].number = 2094673;
   fixture.object_indexes[0].vnum = 2094504;
-  fixture.worn.name = "crystalline musical skull";
-  fixture.worn.short_description = "a crystalline musical skull";
+  fixture.worn.name = CuMutableString("crystalline musical skull");
+  fixture.worn.short_description = CuMutableString("a crystalline musical skull");
   IN_ROOM(&fixture.worn) = 0;
   fixture.rooms[0].contents = &fixture.worn;
   exit.exit_info = EX_ISDOOR | EX_BLOCKED;
@@ -1926,8 +1926,8 @@ void Test_spec_rol_darkhold_objects_open_source_profiled_passages(CuTest *tc)
   fixture.rooms[0].number = 2094667;
   fixture.rooms[1].number = 2094673;
   fixture.object_indexes[0].vnum = 2094508;
-  fixture.worn.name = "ruby aquamarine gem";
-  fixture.worn.short_description = "an aquamarine gem";
+  fixture.worn.name = CuMutableString("ruby aquamarine gem");
+  fixture.worn.short_description = CuMutableString("an aquamarine gem");
   IN_ROOM(&fixture.worn) = NOWHERE;
   fixture.rooms[0].contents = NULL;
   fixture.worn.carried_by = &fixture.actor;
@@ -1974,8 +1974,8 @@ void Test_spec_rol_darkhold_dragon_and_bastard_sword_preserve_event_payloads(CuT
   CuAssertTrue(tc, !EXIT_FLAGGED(&exit, EX_LOCKED));
 
   fixture.object_indexes[0].vnum = 2094566;
-  fixture.worn.name = "great platinum hilted bastard sword";
-  fixture.worn.short_description = "a great bastard sword";
+  fixture.worn.name = CuMutableString("great platinum hilted bastard sword");
+  fixture.worn.short_description = CuMutableString("a great bastard sword");
   fixture.worn.worn_by = &fixture.actor;
   fixture.worn.worn_on = WEAR_WIELD_1;
   GET_EQ(&fixture.actor, WEAR_WIELD_1) = &fixture.worn;
@@ -2530,7 +2530,7 @@ void Test_spec_rol_lavatubes_automaton_preserves_exit_pair_cycle(CuTest *tc)
 
   fixture.object_indexes[0].vnum = 2012027;
   fixture.object_indexes[0].func = rol_lavatubes_object;
-  fixture.worn.name = "lever";
+  fixture.worn.name = CuMutableString("lever");
   fixture.worn.in_room = 1;
   GET_OBJ_TYPE(&fixture.worn) = ITEM_SWITCH;
   GET_OBJ_VAL(&fixture.worn, 1) = 2012158;
@@ -3068,9 +3068,9 @@ void Test_spec_rol_undermountain_lifecycle_profiles_preserve_source_contracts(Cu
   clear_object(&prototype);
   GET_OBJ_RNUM(&prototype) = 0;
   GET_OBJ_TYPE(&prototype) = ITEM_WEAPON;
-  prototype.name = "golden dagger";
-  prototype.short_description = "a golden dagger";
-  prototype.description = "A golden dagger lies here.";
+  prototype.name = CuMutableString("golden dagger");
+  prototype.short_description = CuMutableString("a golden dagger");
+  prototype.description = CuMutableString("A golden dagger lies here.");
   obj_proto = &prototype;
   top_of_objt = 0;
 
@@ -3097,9 +3097,9 @@ void Test_spec_rol_undermountain_lifecycle_profiles_preserve_source_contracts(Cu
   fixture.rooms[0].dir_option[NORTH] = &north_exit;
   fixture.mobile_indexes[0].vnum = 2093002;
   fixture.object_indexes[0].vnum = 2093005;
-  prototype.name = "vortex";
-  prototype.short_description = "a vortex";
-  prototype.description = "A vortex spins here.";
+  prototype.name = CuMutableString("vortex");
+  prototype.short_description = CuMutableString("a vortex");
+  prototype.description = CuMutableString("A vortex spins here.");
   CuAssertIntEquals(tc, TRUE, rol_monster_combat_typed(&context));
   CuAssertTrue(tc, IS_SET(north_exit.exit_info, EX_BLOCKED));
   spawned = fixture.rooms[0].contents;
@@ -3250,8 +3250,8 @@ void Test_spec_rol_drow_conclave_alarm_profiles_and_redeployment(CuTest *tc)
   CuAssertIntEquals(tc, 2093147, rol_drow_conclave_destination_vnum(2));
   CuAssertIntEquals(tc, 2093155, rol_drow_conclave_destination_vnum(3));
   CuAssertIntEquals(tc, -1, rol_drow_conclave_destination_vnum(4));
-  CuAssertPtrEquals(tc, NULL, (void *)rol_drow_conclave_combat_line(0));
-  CuAssertPtrEquals(tc, NULL, (void *)rol_drow_conclave_combat_line(7));
+  CuAssertPtrEquals(tc, NULL, rol_drow_conclave_combat_line(0));
+  CuAssertPtrEquals(tc, NULL, rol_drow_conclave_combat_line(7));
   for (index = 0; index < sizeof(combat_lines) / sizeof(combat_lines[0]); index++)
     CuAssertStrEquals(tc, combat_lines[index], rol_drow_conclave_combat_line((int)index + 1));
 
@@ -3261,7 +3261,7 @@ void Test_spec_rol_drow_conclave_alarm_profiles_and_redeployment(CuTest *tc)
     fixture.rooms[room_index].number = 2093146 + room_index;
     fixture.rooms[room_index].zone = 0;
     fixture.rooms[room_index].sector_type = SECT_INSIDE;
-    fixture.rooms[room_index].name = "Drow conclave test room";
+    fixture.rooms[room_index].name = CuMutableString("Drow conclave test room");
   }
   fixture.zones[0].number = 20931;
   fixture.zones[0].bot = 2093100;
@@ -3995,7 +3995,7 @@ void Test_spec_rol_item_blocker_preserves_direction_and_aggressor_gate(CuTest *t
   saved_complete_cmd_info = complete_cmd_info;
   complete_cmd_info = commands;
   REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
-  fixture.actor.player.name = "blocked traveler";
+  fixture.actor.player.name = CuMutableString("blocked traveler");
   fixture.actor.player_specials = &player_specials;
   SET_BIT_AR(MOB_FLAGS(&fixture.target), MOB_AGGRESSIVE);
 
@@ -4007,7 +4007,7 @@ void Test_spec_rol_item_blocker_preserves_direction_and_aggressor_gate(CuTest *t
 
   commands[1].command = "unlock";
   GET_OBJ_VAL(&fixture.worn, 0) = NORTH;
-  north_exit.keyword = "gate";
+  north_exit.keyword = CuMutableString("gate");
   fixture.rooms[0].dir_option[NORTH] = &north_exit;
   CuAssertIntEquals(tc, TRUE, rol_item_blocker(&fixture.actor, &fixture.worn, 1, "gate north"));
   SET_BIT(north_exit.exit_info, EX_HIDDEN);

@@ -118,7 +118,8 @@ static int sell_price(struct obj_data *obj, int shop_nr, struct char_data *keepe
 static int ok_shop_room(int shop_nr, room_vnum room);
 static int add_to_shop_list(struct shop_buy_data *list, int type, int *len, int *val);
 static int end_read_list(struct shop_buy_data *list, int len, int error);
-static void read_line(FILE *shop_f, const char *string, void *data);
+static void read_line(FILE *shop_f, const char *string, void *data)
+    __attribute__((format(scanf, 2, 0)));
 static void format_shop_message(char *dest, size_t dest_size, const char *message, const char *name,
                                 int amount);
 
@@ -165,7 +166,7 @@ static void format_shop_message(char *dest, size_t dest_size, const char *messag
 
     if (replacement)
     {
-      copy_len = MIN(strlen(replacement), dest_size - used - 1);
+      copy_len = size_min(strlen(replacement), dest_size - used - 1);
       memcpy(dest + used, replacement, copy_len);
       used += copy_len;
       cursor += 2;
@@ -188,11 +189,11 @@ bool shop_background_access_allowed(bitvector_t shop_flags, bool has_criminal, b
   return TRUE;
 }
 
-float shop_background_hometown_price_multiplier(bool eligible, bool in_hometown, bool buying)
+double shop_background_hometown_price_multiplier(bool eligible, bool in_hometown, bool buying)
 {
   if (!eligible || !in_hometown)
-    return 1.0f;
-  return buying ? 0.90f : 1.10f;
+    return 1.0;
+  return buying ? 0.90 : 1.10;
 }
 
 bool shop_room_access_allowed(bitvector_t shop_flags, bool room_listed)
@@ -200,11 +201,11 @@ bool shop_room_access_allowed(bitvector_t shop_flags, bool room_listed)
   return room_listed || IS_SET(shop_flags, ROAMING_SHOP);
 }
 
-float shop_rol_cheat_price_multiplier(bool cheated, bool buying)
+double shop_rol_cheat_price_multiplier(bool cheated, bool buying)
 {
   if (!cheated)
-    return 1.0f;
-  return buying ? 2.0f : 0.5f;
+    return 1.0;
+  return buying ? 2.0 : 0.5;
 }
 
 bool shop_rol_magic_allowed(bitvector_t shop_flags)
@@ -440,7 +441,7 @@ static int evaluate_expression(struct obj_data *obj, char *expr)
         end = ptr;
         while (*ptr && !isspace(*ptr) && find_oper_num(*ptr) == (int)NOTHING)
           ptr++;
-        token_len = MIN((size_t)(ptr - end), sizeof(name) - 1);
+        token_len = size_min((size_t)(ptr - end), sizeof(name) - 1);
         memcpy(name, end, token_len);
         name[token_len] = '\0';
         for (eindex = 0; *extra_bits[eindex] != '\n'; eindex++)
@@ -574,7 +575,7 @@ static char *times_message(struct obj_data *obj, char *name, int num)
 
   if (obj)
     len = strlcpy(buf, obj->short_description, sizeof(buf));
-  else
+  else if (name)
   {
     if ((ptr = strchr(name, '.')) == NULL)
       ptr = name;
@@ -582,6 +583,8 @@ static char *times_message(struct obj_data *obj, char *name, int num)
       ptr++;
     len = snprintf(buf, sizeof(buf), "%s %s", AN(ptr), ptr);
   }
+  else
+    len = strlcpy(buf, "something", sizeof(buf));
 
   if (num > 1 && len < sizeof(buf))
     snprintf(buf + len, sizeof(buf) - len, " (x %d)", num);
@@ -685,21 +688,21 @@ int shop_haggle_score(struct char_data *ch)
 static int buy_price(struct obj_data *obj, int shop_nr, struct char_data *seller,
                      struct char_data *buyer)
 {
-  float price = 0.0;
-  float modifiers = 0.0;
+  double price = 0.0;
+  double modifiers = 0.0;
 
-  modifiers = (float)shop_haggle_score(seller);
-  modifiers -= (float)shop_haggle_score(buyer);
+  modifiers = (double)shop_haggle_score(seller);
+  modifiers -= (double)shop_haggle_score(buyer);
   price = 1.0 + modifiers / 70.0;
-  price *= (float)GET_OBJ_COST(obj);
-  price *= (float)SHOP_BUYPROFIT(shop_nr);
+  price *= (double)GET_OBJ_COST(obj);
+  price *= (double)SHOP_BUYPROFIT(shop_nr);
   price *= shop_rol_cheat_price_multiplier(
       shop_customer_restriction_matches(SHOP_ROL_CHEAT_WITH(shop_nr), buyer), TRUE);
   price *= shop_background_hometown_price_multiplier(HAS_FEAT(buyer, FEAT_BG_FOLK_HERO) ||
                                                          HAS_FEAT(buyer, FEAT_BG_NOBLE),
                                                      is_in_hometown(buyer), TRUE);
 
-  price = MAX(1, price);
+  price = FLOATMAX(1.0, price);
 
   /* Apply clan discount if applicable */
   price = apply_clan_shop_discount((int)price, buyer, shop_nr);
@@ -711,15 +714,15 @@ static int buy_price(struct obj_data *obj, int shop_nr, struct char_data *seller
 static int sell_price(struct obj_data *obj, int shop_nr, struct char_data *keeper,
                       struct char_data *seller)
 {
-  float buying_price = (float)buy_price(obj, shop_nr, keeper, seller);
-  float price = 0.0;
-  float modifiers = 0.0;
+  double buying_price = (double)buy_price(obj, shop_nr, keeper, seller);
+  double price = 0.0;
+  double modifiers = 0.0;
 
-  modifiers = (float)shop_haggle_score(keeper);
-  modifiers -= (float)shop_haggle_score(seller);
+  modifiers = (double)shop_haggle_score(keeper);
+  modifiers -= (double)shop_haggle_score(seller);
   price = 1.0 - modifiers / 70.0;
-  price *= (float)GET_OBJ_COST(obj);
-  price *= (float)SHOP_SELLPROFIT(shop_nr);
+  price *= (double)GET_OBJ_COST(obj);
+  price *= (double)SHOP_SELLPROFIT(shop_nr);
   price *= shop_rol_cheat_price_multiplier(
       shop_customer_restriction_matches(SHOP_ROL_CHEAT_WITH(shop_nr), seller), FALSE);
   price *= shop_background_hometown_price_multiplier(HAS_FEAT(seller, FEAT_BG_FOLK_HERO) ||
@@ -1586,7 +1589,8 @@ static void read_line(FILE *shop_f, const char *string, void *data)
 
   if (!get_line(shop_f, buf) || sscanf(buf, string, data) != 1)
   {
-    log("SYSERR: Error in shop #%d, near '%s' with '%s'", SHOP_NUM(top_shop), buf, string);
+    log("SYSERR: Error in shop #%" PRI_IDX ", near '%s' with '%s'", SHOP_NUM(top_shop), buf,
+        string);
     exit(1);
   }
 }
@@ -1699,22 +1703,23 @@ static char *read_shop_message(int mnum, room_vnum shr, FILE *shop_f, const char
     {
       if (ss == 0)
       {
-        log("SYSERR: Shop #%d has %%d before %%s, message #%d.", shr, mnum);
+        log("SYSERR: Shop #%" PRI_IDX " has %%d before %%s, message #%d.", shr, mnum);
         err++;
       }
       ds++;
     }
     else if (tbuf[cht + 1] != '%')
     {
-      log("SYSERR: Shop #%d has invalid format '%%%c' in message #%d.", shr, tbuf[cht + 1], mnum);
+      log("SYSERR: Shop #%" PRI_IDX " has invalid format '%%%c' in message #%d.", shr,
+          tbuf[cht + 1], mnum);
       err++;
     }
   }
 
   if (ss > 1 || ds > 1)
   {
-    log("SYSERR: Shop #%d has too many specifiers for message #%d. %%s=%d %%d=%d", shr, mnum, ss,
-        ds);
+    log("SYSERR: Shop #%" PRI_IDX " has too many specifiers for message #%d. %%s=%d %%d=%d", shr,
+        mnum, ss, ds);
     err++;
   }
 
@@ -1859,7 +1864,7 @@ void assign_the_shopkeepers(void)
       definition = spec_registry_find_by_handler(secondary_handler);
       secondary_name = definition != NULL ? definition->canonical_name : "unregistered-callback";
     }
-    snprintf(source_location, sizeof(source_location), "shop #%d", SHOP_NUM(cindex));
+    snprintf(source_location, sizeof(source_location), "shop #%" PRI_IDX, SHOP_NUM(cindex));
     contribution.source = SPEC_BINDING_SOURCE_SHOP;
     contribution.requested_name = "shop_keeper";
     contribution.handler_name = "shop_keeper";
@@ -1922,7 +1927,7 @@ static void list_all_shops(struct char_data *ch)
   const char *list_all_shops_header =
       " ##   Virtual   Where    Keeper    Buy   Sell   Customers\r\n"
       "---------------------------------------------------------\r\n";
-  int shop_nr, headerlen = strlen(list_all_shops_header);
+  int shop_nr, headerlen = (int)strlen(list_all_shops_header);
   size_t len = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'}, buf1[16];
 
@@ -1946,13 +1951,14 @@ static void list_all_shops(struct char_data *ch)
       strlcpy(buf1, "<NONE>", sizeof(buf1)); /* strcpy: OK (for 'buf1 >= 7') */
     else
       snprintf(
-          buf1, sizeof(buf1), "%6d",
+          buf1, sizeof(buf1), "%6" PRI_IDX,
           mob_index[SHOP_KEEPER(shop_nr)].vnum); /* sprintf: OK (for 'buf1 >= 11', 32-bit int) */
 
-    len += snprintf(buf + len, sizeof(buf) - len, "%3d   %6d   %6d    %s   %3.2f   %3.2f    %s\r\n",
-                    shop_nr + 1, SHOP_NUM(shop_nr), SHOP_ROOM(shop_nr, 0), buf1,
-                    SHOP_SELLPROFIT(shop_nr), SHOP_BUYPROFIT(shop_nr),
-                    customer_string(shop_nr, FALSE));
+    len +=
+        snprintf(buf + len, sizeof(buf) - len,
+                 "%3d   %6" PRI_IDX "   %6" PRI_IDX "    %s   %3.2f   %3.2f    %s\r\n", shop_nr + 1,
+                 SHOP_NUM(shop_nr), SHOP_ROOM(shop_nr, 0), buf1, SHOP_SELLPROFIT(shop_nr),
+                 SHOP_BUYPROFIT(shop_nr), customer_string(shop_nr, FALSE));
   }
 
   page_string(ch->desc, buf, TRUE);
@@ -1964,7 +1970,7 @@ static void list_detailed_shop(struct char_data *ch, int shop_nr)
   int sindex, column, flag = 1, found = 0;
   /* char *ptrsave; */
 
-  send_to_char(ch, "Vnum:       [%5d], Rnum: [%5d]\r\n", SHOP_NUM(shop_nr), shop_nr + 1);
+  send_to_char(ch, "Vnum:       [%5" PRI_IDX "], Rnum: [%5d]\r\n", SHOP_NUM(shop_nr), shop_nr + 1);
 
   send_to_char(ch, "Rooms:      ");
   column = 12; /* ^^^ strlen ^^^ */
@@ -1981,9 +1987,10 @@ static void list_detailed_shop(struct char_data *ch, int shop_nr)
     }
 
     if ((temp = real_room(SHOP_ROOM(shop_nr, sindex))) != NOWHERE)
-      linelen = snprintf(buf1, sizeof(buf1), "%s (#%d)", world[temp].name, GET_ROOM_VNUM(temp));
+      linelen = snprintf(buf1, sizeof(buf1), "%s (#%u)", world[temp].name, GET_ROOM_VNUM(temp));
     else
-      linelen = snprintf(buf1, sizeof(buf1), "<UNKNOWN> (#%d)", SHOP_ROOM(shop_nr, sindex));
+      linelen =
+          snprintf(buf1, sizeof(buf1), "<UNKNOWN> (#%" PRI_IDX ")", SHOP_ROOM(shop_nr, sindex));
 
     /* Implementing word-wrapping: assumes screen-size == 80 */
     if (linelen + column >= 78 && column >= 20)
@@ -2003,7 +2010,7 @@ static void list_detailed_shop(struct char_data *ch, int shop_nr)
   send_to_char(ch, "\r\nShopkeeper: ");
   if (SHOP_KEEPER(shop_nr) != NOBODY)
   {
-    send_to_char(ch, "%s (#%d), Special Function: %s\r\n",
+    send_to_char(ch, "%s (#%" PRI_IDX "), Special Function: %s\r\n",
                  GET_NAME(&mob_proto[SHOP_KEEPER(shop_nr)]), mob_index[SHOP_KEEPER(shop_nr)].vnum,
                  YESNO(SHOP_FUNC(shop_nr)));
 
@@ -2058,7 +2065,7 @@ static void list_detailed_shop(struct char_data *ch, int shop_nr)
       send_to_char(ch, ", ");
       column += 2;
     }
-    linelen = snprintf(buf1, sizeof(buf1), "%s (#%d)",
+    linelen = snprintf(buf1, sizeof(buf1), "%s (#%" PRI_IDX ")",
                        obj_proto[SHOP_PRODUCT(shop_nr, sindex)].short_description,
                        obj_index[SHOP_PRODUCT(shop_nr, sindex)].vnum);
 
@@ -2104,7 +2111,7 @@ static void list_detailed_shop(struct char_data *ch, int shop_nr)
 
     if (!send_to_char(ch, "%s", buf1))
       return;
-    column += linelen;
+    column += (int)(linelen);
   }
   if (!sindex)
     send_to_char(ch, "Buys:       Nothing!");

@@ -76,7 +76,7 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
   }
   else
   {
-    log("DEBUG: Room %d not detected as wilderness, using original descriptions",
+    log("DEBUG: Room %u not detected as wilderness, using original descriptions",
         GET_ROOM_VNUM(room));
   }
 #else
@@ -112,7 +112,7 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
                                             "east",      "southeast", "south",
                                             "southwest", "west",      "northwest"};
 
-  struct region_list *regions = NULL;
+  struct region_list *regions_value = NULL;
   struct region_list *curr_region = NULL;
   struct region_proximity_list *nearby_regions = NULL;
   struct region_proximity_list *curr_nearby_region = NULL;
@@ -161,16 +161,16 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 	 * as we are setting a description on the room itself. */
 
   /* Get the enclosing regions. */
-  regions =
+  regions_value =
       get_enclosing_regions(GET_ROOM_ZONE(room), world[room].coords[0], world[room].coords[1]);
 
-  for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
+  for (curr_region = regions_value; curr_region != NULL; curr_region = curr_region->next)
   {
     /* Bounds check to prevent segfault */
     if (!region_table || curr_region->rnum == NOWHERE || curr_region->rnum > top_of_region_table)
     {
-      log("SYSERR: Invalid region rnum %d in gen_room_description for room %d", curr_region->rnum,
-          world[room].number);
+      log("SYSERR: Invalid region rnum %" PRI_IDX " in gen_room_description for room %" PRI_IDX,
+          curr_region->rnum, world[room].number);
       continue;
     }
 
@@ -363,7 +363,7 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 
     for (i = 0; i < 8; i++)
     {
-      if (curr_nearby_region->dirs[i])
+      if (curr_nearby_region->dirs[i] > 0.0)
       {
         if (curr_nearby_region->dirs[i] > max_area)
         {
@@ -461,7 +461,7 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
   }
 
   /* Free the region list before returning */
-  free_region_list(regions);
+  free_region_list(regions_value);
 
   return strdup(rdesc);
 }

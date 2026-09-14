@@ -98,7 +98,8 @@ struct where_output_buffer
   bool failed;
 };
 
-static bool append_where_output(struct where_output_buffer *output, const char *format, ...);
+static bool append_where_output(struct where_output_buffer *output, const char *format, ...)
+    __attribute__((format(printf, 2, 3)));
 static void print_object_location(int num, const struct obj_data *obj, struct char_data *ch,
                                   struct where_output_buffer *output, int depth);
 
@@ -188,6 +189,7 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
   int count = 0, dcount = 0;
   bool has_subrace = false;
   char subraces[MEDIUM_STRING] = {'\0'};
+  char race_name[MEDIUM_STRING] = {'\0'};
 
   if (IS_NPC(tch))
   {
@@ -225,8 +227,13 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
   if (!IS_NPC(tch))
     send_to_char(ch, "%s is %d years, %d months, %d days and %d hours old.\r\n", GET_NAME(tch),
                  age(tch)->year, age(tch)->month, age(tch)->day, age(tch)->hours);
-  send_to_char(ch, "Race: %s%s.\r\n",
-               !IS_NPC(tch) ? CAP(race_list[GET_RACE(tch)].name) : race_family_types[GET_RACE(tch)],
+  /* CAP writes in place; the race keyword itself must stay lower case */
+  if (!IS_NPC(tch))
+  {
+    strlcpy(race_name, race_list[GET_RACE(tch)].name, sizeof(race_name));
+    CAP(race_name);
+  }
+  send_to_char(ch, "Race: %s%s.\r\n", !IS_NPC(tch) ? race_name : race_family_types[GET_RACE(tch)],
                has_subrace ? subraces : "");
   if (!AFF_FLAGGED(tch, AFF_HIDE_ALIGNMENT))
     send_to_char(ch, "Alignment: %s.\r\n", get_align_by_num(GET_ALIGNMENT(tch)));
@@ -342,12 +349,12 @@ void check_dangersense(struct char_data *ch, room_rnum room)
     send_to_char(ch, "\tRYou feel \trdanger\tR there.\tn\r\n");
 }
 
-void show_obj_info(struct obj_data *obj, struct char_data *ch)
+static void show_obj_info(struct obj_data *obj, struct char_data *ch)
 {
   int size = GET_OBJ_SIZE(obj);
   int material = GET_OBJ_MATERIAL(obj);
   int type = GET_OBJ_TYPE(obj);
-  int weapon_type = GET_WEAPON_TYPE(obj);
+  int weapon_type_value = GET_WEAPON_TYPE(obj);
   int armor_val = GET_OBJ_VAL(obj, 1);
   int i = 0;
 
@@ -358,8 +365,8 @@ void show_obj_info(struct obj_data *obj, struct char_data *ch)
     material = 0;
   if (type < 0 || type >= NUM_ITEM_TYPES)
     type = 0;
-  if (weapon_type < 0 || weapon_type >= NUM_WEAPON_TYPES)
-    weapon_type = 0;
+  if (weapon_type_value < 0 || weapon_type_value >= NUM_WEAPON_TYPES)
+    weapon_type_value = 0;
   if (armor_val < 0 || armor_val >= NUM_SPEC_ARMOR_TYPES)
     armor_val = 0;
 
@@ -371,7 +378,8 @@ void show_obj_info(struct obj_data *obj, struct char_data *ch)
   switch (type)
   {
   case ITEM_WEAPON:
-    send_to_char(ch, "Weapon: %s ", weapon_type ? weapon_list[weapon_type].name : "???");
+    send_to_char(ch, "Weapon: %s ",
+                 weapon_type_value ? weapon_list[weapon_type_value].name : "???");
 
     /* check load-status of a reloadable weapon (such as crossbow) */
     if (is_reloading_weapon(ch, obj, TRUE))
@@ -453,11 +461,11 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
 
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
     {
-      send_to_char(ch, "[%d] ", GET_OBJ_VNUM(obj));
+      send_to_char(ch, "[%u] ", GET_OBJ_VNUM(obj));
       if (SCRIPT(obj))
       {
         if (!TRIGGERS(SCRIPT(obj))->next)
-          send_to_char(ch, "[T%d] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(obj))));
+          send_to_char(ch, "[T%" PRI_IDX "] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(obj))));
         else
           send_to_char(ch, "[TRIGS] ");
       }
@@ -469,11 +477,11 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
   case SHOW_OBJ_SHORT:
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
     {
-      send_to_char(ch, "[%d] ", GET_OBJ_VNUM(obj));
+      send_to_char(ch, "[%u] ", GET_OBJ_VNUM(obj));
       if (SCRIPT(obj))
       {
         if (!TRIGGERS(SCRIPT(obj))->next)
-          send_to_char(ch, "[T%d] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(obj))));
+          send_to_char(ch, "[T%" PRI_IDX "] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(obj))));
         else
           send_to_char(ch, "[TRIGS] ");
       }
@@ -908,12 +916,12 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
   {
     if (IS_NPC(i))
-      send_to_char(ch, "[%d] ", GET_MOB_VNUM(i));
+      send_to_char(ch, "[%u] ", GET_MOB_VNUM(i));
     send_to_char(ch, "[%2d] ", GET_LEVEL(i));
     if (SCRIPT(i) && TRIGGERS(SCRIPT(i)))
     {
       if (!TRIGGERS(SCRIPT(i))->next)
-        send_to_char(ch, "[T%d] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(i))));
+        send_to_char(ch, "[T%" PRI_IDX "] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(i))));
       else
         send_to_char(ch, "[TRIGS] ");
     }
@@ -1326,13 +1334,13 @@ static void do_auto_exits(struct char_data *ch)
 
 /* Kel: Function used by farseeing characters (later clair, wizeye) to
   look in a room, takes on the real room number, NOT vnum (from homeland) */
-void look_at_room_number(struct char_data *ch, int ignore_brief, long room_number)
+void look_at_room_number(struct char_data *ch, int ignore_brief, room_rnum room_number)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!ch->desc)
     return;
-  if (room_number < 0)
+  if (room_number == NOWHERE || room_number > top_of_world)
     return;
   if (IS_SET_AR(ROOM_FLAGS(room_number), ROOM_FOG) && GET_LEVEL(ch) < LVL_IMMORT)
   {
@@ -1373,7 +1381,7 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
     list_char_to_char(world[room_number].people, ch);
     return;
   }
-  else if (!IS_DARK(ch->in_room) && ultra_blind(ch, room_number))
+  else if (!IS_DARK(ch->in_room) && ultra_blind(ch, (room_rnum)room_number))
   {
     send_to_char(ch, "\tWIt is far too bright to see anything...\tn\r\n");
     return;
@@ -1382,7 +1390,7 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
   {
     sprintbitarray(ROOM_FLAGS(room_number), room_bits, RF_ARRAY_MAX, buf);
-    send_to_char(ch, "\tc[%5d]\tn %s \tc[ %s] %s\tn", GET_ROOM_VNUM(room_number),
+    send_to_char(ch, "\tc[%5u]\tn %s \tc[ %s] %s\tn", GET_ROOM_VNUM(room_number),
                  world[room_number].name, buf, sector_types[(world[room_number].sector_type)]);
   }
   else
@@ -1560,14 +1568,14 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   {
     sprintbitarray(ROOM_FLAGS(IN_ROOM(ch)), room_bits, RF_ARRAY_MAX, buf);
     send_to_char(ch, "%s", CCCYN(ch, C_NRM));
-    send_to_char(ch, "[%5d]%s ", GET_ROOM_VNUM(IN_ROOM(ch)), CCNRM(ch, C_NRM));
+    send_to_char(ch, "[%5u]%s ", GET_ROOM_VNUM(IN_ROOM(ch)), CCNRM(ch, C_NRM));
     send_to_char(ch, "%s %s[ %s] ", world[IN_ROOM(ch)].name, CCCYN(ch, C_NRM), buf);
 
     if (SCRIPT(rm))
     {
       send_to_char(ch, "[T");
       for (t = TRIGGERS(SCRIPT(rm)); t; t = t->next)
-        send_to_char(ch, " %d", GET_TRIG_VNUM(t));
+        send_to_char(ch, " %" PRI_IDX, GET_TRIG_VNUM(t));
       send_to_char(ch, "]");
     }
   }
@@ -1790,10 +1798,7 @@ static void look_in_obj(struct char_data *ch, char *arg)
   }
   else if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK)
   {
-    if (GET_LEVEL(ch) < LVL_IMMORT)
-      display_spells(ch, obj, 0);
-    else
-      display_spells(ch, obj, 0);
+    display_spells(ch, obj, 0);
   }
   else if (GET_OBJ_TYPE(obj) == ITEM_SCROLL)
   {
@@ -1963,8 +1968,8 @@ static void append_carrier_room(struct char_data *carrier, struct char_data *ch,
                                 struct where_output_buffer *output)
 {
   if (PRF_FLAGGED(ch, PRF_VERBOSE) && IN_ROOM(carrier) != NOWHERE)
-    append_where_output(output, "%37s in [%5d] %s%s\r\n", " - ", GET_ROOM_VNUM(IN_ROOM(carrier)),
-                        world[IN_ROOM(carrier)].name, QNRM);
+    append_where_output(output, "%37s in [%5d] %s%s\r\n", " - ",
+                        (int)GET_ROOM_VNUM(IN_ROOM(carrier)), world[IN_ROOM(carrier)].name, QNRM);
 }
 
 static void print_object_location(int num, const struct obj_data *obj, struct char_data *ch,
@@ -1981,18 +1986,18 @@ static void print_object_location(int num, const struct obj_data *obj, struct ch
   if (SCRIPT(obj) && TRIGGERS(SCRIPT(obj)))
   {
     if (!TRIGGERS(SCRIPT(obj))->next)
-      append_where_output(output, "[T%d] ", GET_TRIG_VNUM(TRIGGERS(SCRIPT(obj))));
+      append_where_output(output, "[T%d] ", (int)(GET_TRIG_VNUM(TRIGGERS(SCRIPT(obj)))));
     else
       append_where_output(output, "[TRIGS] ");
   }
 
   if (IN_ROOM(obj) != NOWHERE)
-    append_where_output(output, "[%5d] %s%s\r\n", GET_ROOM_VNUM(IN_ROOM(obj)),
+    append_where_output(output, "[%5d] %s%s\r\n", (int)GET_ROOM_VNUM(IN_ROOM(obj)),
                         world[IN_ROOM(obj)].name, QNRM);
   else if (obj->carried_by)
   {
     if (PRF_FLAGGED(ch, PRF_SHOWVNUMS) && IS_NPC(obj->carried_by))
-      append_where_output(output, "carried by [%5d] %s%s\r\n", GET_MOB_VNUM(obj->carried_by),
+      append_where_output(output, "carried by [%5d] %s%s\r\n", (int)GET_MOB_VNUM(obj->carried_by),
                           PERS(obj->carried_by, ch), QNRM);
     else
       append_where_output(output, "carried by %s%s\r\n", PERS(obj->carried_by, ch), QNRM);
@@ -2001,7 +2006,7 @@ static void print_object_location(int num, const struct obj_data *obj, struct ch
   else if (obj->worn_by)
   {
     if (PRF_FLAGGED(ch, PRF_SHOWVNUMS) && IS_NPC(obj->worn_by))
-      append_where_output(output, "worn by [%5d] %s%s\r\n", GET_MOB_VNUM(obj->worn_by),
+      append_where_output(output, "worn by [%5d] %s%s\r\n", (int)GET_MOB_VNUM(obj->worn_by),
                           PERS(obj->worn_by, ch), QNRM);
     else
       append_where_output(output, "worn by %s%s\r\n", PERS(obj->worn_by, ch), QNRM);
@@ -2095,7 +2100,7 @@ static void perform_immort_where(struct char_data *ch, const char *arg)
   struct obj_data *k;
   struct descriptor_data *d;
   struct where_output_buffer output = {NULL, 0, 0, FALSE};
-  int mob_num = 0, obj_num = 0;
+  int mob_num = 0, obj_num_id = 0;
   bool found = FALSE;
 
   if (!*arg)
@@ -2112,12 +2117,12 @@ static void perform_immort_where(struct char_data *ch, const char *arg)
         {
           if (d->original)
             append_where_output(&output, "%-8s%s - [%5d] %s%s (in %s%s)\r\n", GET_NAME(i), QNRM,
-                                GET_ROOM_VNUM(IN_ROOM(d->character)),
+                                (int)GET_ROOM_VNUM(IN_ROOM(d->character)),
                                 world[IN_ROOM(d->character)].name, QNRM, GET_NAME(d->character),
                                 QNRM);
           else
             append_where_output(&output, "%-8s%s %s[%s%5d%s]%s %-*s%s %s%s\r\n", GET_NAME(i), QNRM,
-                                QCYN, QYEL, GET_ROOM_VNUM(IN_ROOM(i)), QCYN, QNRM,
+                                QCYN, QYEL, (int)GET_ROOM_VNUM(IN_ROOM(i)), QCYN, QNRM,
                                 30 + count_color_chars(world[IN_ROOM(i)].name),
                                 world[IN_ROOM(i)].name, QNRM,
                                 zone_table[(world[IN_ROOM(i)].zone)].name, QNRM);
@@ -2137,11 +2142,11 @@ static void perform_immort_where(struct char_data *ch, const char *arg)
     {
       found = TRUE;
       append_where_output(&output, "M%4d. %-25s%s - [%5d] %-25s%s", ++mob_num, GET_NAME(i), QNRM,
-                          GET_ROOM_VNUM(IN_ROOM(i)), world[IN_ROOM(i)].name, QNRM);
+                          (int)GET_ROOM_VNUM(IN_ROOM(i)), world[IN_ROOM(i)].name, QNRM);
       if (SCRIPT(i) && TRIGGERS(SCRIPT(i)))
       {
         if (!TRIGGERS(SCRIPT(i))->next)
-          append_where_output(&output, "[T%d]", GET_TRIG_VNUM(TRIGGERS(SCRIPT(i))));
+          append_where_output(&output, "[T%d]", (int)(GET_TRIG_VNUM(TRIGGERS(SCRIPT(i)))));
         else
           append_where_output(&output, "[TRIGS]");
       }
@@ -2157,7 +2162,7 @@ static void perform_immort_where(struct char_data *ch, const char *arg)
     if (CAN_SEE_OBJ(ch, k) && isname(arg, k->name))
     {
       found = TRUE;
-      print_object_location(++obj_num, k, ch, &output, 0);
+      print_object_location(++obj_num_id, k, ch, &output, 0);
     }
   }
 
@@ -2398,7 +2403,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   // Device creation cooldown (global for artificer)
   if (k->player_specials->saved.device_creation_cooldown > time(0))
   {
-    int seconds_left = k->player_specials->saved.device_creation_cooldown - time(0);
+    int seconds_left = (int)(k->player_specials->saved.device_creation_cooldown - time(0));
     int minutes_left = (seconds_left % 3600) / 60;
     int hours_left = seconds_left / 3600;
     seconds_left = seconds_left % 60;
@@ -2948,7 +2953,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   {
     time_t current_time = time(0);
     time_t time_since_enabled = current_time - GET_PVP_TIMER(k);
-    int seconds_remaining = (15 * 60) - time_since_enabled;
+    int seconds_remaining = (int)((15 * 60) - time_since_enabled);
     char timebuf[100];
 
     if (seconds_remaining < 60)
@@ -2978,7 +2983,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   }
 }
 
-void perform_damage_reduction(struct char_data *ch, struct char_data *k)
+static void perform_damage_reduction(struct char_data *ch, struct char_data *k)
 {
   send_to_char(ch, "\tC");
   text_line(ch, "\tYDamage Reduction Breakdown\tC", 80, '-', '-');
@@ -3488,7 +3493,7 @@ ACMD(do_masterlist)
   else if (is_abbrev(argument, "spells"))
   {
     /* Support subcommands: next|prev|page N|quit for pager navigation */
-    char *sub = (char *)argument + strlen("spells");
+    const char *sub = argument + strlen("spells");
     while (*sub == ' ')
       sub++;
     if (!*sub)
@@ -3522,7 +3527,7 @@ ACMD(do_masterlist)
     }
     else if (is_abbrev(sub, "page"))
     {
-      char *p = sub + strlen("page");
+      const char *p = sub + strlen("page");
       while (*p == ' ')
         p++;
       if (isdigit(*p))
@@ -3715,7 +3720,7 @@ ACMD(do_gold)
     send_to_char(ch, "You have %d gold coins.\r\n", GET_GOLD(ch));
 }
 
-char *get_ability_command_feat_name(int i)
+static char *get_ability_command_feat_name(int i)
 {
   if (i == FEAT_STUNNING_FIST)
     return strdup("ki points");
@@ -5757,7 +5762,7 @@ static void display_identity_section(struct char_data *ch, int line_length)
 static void display_vitals_section(struct char_data *ch, int line_length)
 {
   struct time_info_data playing_time;
-  float height = GET_HEIGHT(ch);
+  double height = (double)GET_HEIGHT(ch);
 
   skore_section_header(ch, "\tR*** VITALS & CONDITION ***\tC", line_length, "\tC");
 
@@ -5807,14 +5812,15 @@ static void display_experience_section(struct char_data *ch, int line_length)
 
   /* Experience progress bar */
   int exp_needed =
-      (GET_LEVEL(ch) >= LVL_IMMORT ? 0 : level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
-  int exp_current = (GET_LEVEL(ch) >= LVL_IMMORT
-                         ? 1
-                         : GET_EXP(ch) - (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
-  int exp_total =
-      (GET_LEVEL(ch) >= LVL_IMMORT ? 1
-                                   : level_exp(ch, GET_LEVEL(ch) + 1) -
-                                         (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
+      (int)(GET_LEVEL(ch) >= LVL_IMMORT ? 0 : level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch));
+  int exp_current =
+      (int)(GET_LEVEL(ch) >= LVL_IMMORT
+                ? 1
+                : GET_EXP(ch) - (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
+  int exp_total = (int)(GET_LEVEL(ch) >= LVL_IMMORT
+                            ? 1
+                            : level_exp(ch, GET_LEVEL(ch) + 1) -
+                                  (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0));
 
   if (GET_LEVEL(ch) < LVL_IMMORT)
   {
@@ -5833,9 +5839,9 @@ static void display_experience_section(struct char_data *ch, int line_length)
       if (current_stage < STAGES_PER_LEVEL)
       {
         /* Calculate XP within current stage */
-        int base_level_xp = (GET_LEVEL(ch) > 1 ? level_exp(ch, GET_LEVEL(ch)) : 0);
+        int base_level_xp = (GET_LEVEL(ch) > 1 ? (int)level_exp(ch, GET_LEVEL(ch)) : 0);
         int stage_start_xp = base_level_xp + (stage_xp_needed * (current_stage - 1));
-        stage_xp = GET_EXP(ch) - stage_start_xp;
+        stage_xp = (int)(GET_EXP(ch) - stage_start_xp);
 
         send_to_char(ch, "\tc             \tn \tYStage:\tn %d/4 \tc|\tn \tYStage XP:\tn %s/%s\r\n",
                      current_stage, add_commas(stage_xp), add_commas(stage_xp_needed));
@@ -6630,7 +6636,7 @@ ACMD(do_skore)
     {
       for (i = 0; i < 8; i++)
       {
-        GET_SCORE_SECTION_ORDER(ch, i) = i;
+        GET_SCORE_SECTION_ORDER(ch, i) = (byte)i;
       }
     }
 
@@ -6656,7 +6662,7 @@ ACMD(do_skore)
         /* Reset to default order */
         for (j = 0; j < 8; j++)
         {
-          GET_SCORE_SECTION_ORDER(ch, j) = j;
+          GET_SCORE_SECTION_ORDER(ch, j) = (byte)j;
         }
         break;
       }
@@ -6871,7 +6877,7 @@ ACMD(do_scoreconfig)
       send_to_char(ch, "Valid widths are: 80, 120, or 160 characters.\r\n");
       return;
     }
-    GET_SCORE_DISPLAY_WIDTH(ch) = width;
+    GET_SCORE_DISPLAY_WIDTH(ch) = (byte)width;
 
     // Update preference flags for compatibility
     if (width == 120 || width == 160)
@@ -7147,7 +7153,7 @@ ACMD(do_scoreconfig)
     {
       for (i = 0; i < 8; i++)
       {
-        GET_SCORE_SECTION_ORDER(ch, i) = i;
+        GET_SCORE_SECTION_ORDER(ch, i) = (byte)i;
       }
       old_position = section_id;
     }
@@ -7156,7 +7162,7 @@ ACMD(do_scoreconfig)
     if (old_position != position)
     {
       byte temp = GET_SCORE_SECTION_ORDER(ch, position);
-      GET_SCORE_SECTION_ORDER(ch, position) = section_id;
+      GET_SCORE_SECTION_ORDER(ch, position) = (byte)section_id;
       GET_SCORE_SECTION_ORDER(ch, old_position) = temp;
     }
 
@@ -7175,7 +7181,7 @@ ACMD(do_scoreconfig)
     /* Reset custom section order to default */
     for (i = 0; i < 8; i++)
     {
-      GET_SCORE_SECTION_ORDER(ch, i) = i;
+      GET_SCORE_SECTION_ORDER(ch, i) = (byte)i;
     }
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_CLASSIC);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_SCORE_NOCOLOR);
@@ -7209,7 +7215,7 @@ ACMD(do_inventory)
   }
 }
 
-int count_bag_contents(struct char_data *ch, int bagnum)
+static int count_bag_contents(struct char_data *ch, int bagnum)
 {
   struct obj_data *obj;
   int count = 0;
@@ -7260,7 +7266,7 @@ int count_bag_contents(struct char_data *ch, int bagnum)
   return count;
 }
 
-void show_bags_summary(struct char_data *ch)
+static void show_bags_summary(struct char_data *ch)
 {
   if (!ch)
     return;
@@ -7360,7 +7366,7 @@ ACMD(do_bags)
   }
 }
 
-bool show_wear_slot_in_eq(int wear_slot)
+static bool show_wear_slot_in_eq(int wear_slot)
 {
   switch (wear_slot)
   {
@@ -7553,11 +7559,11 @@ ACMD(do_who)
   /* int length = 0; */     /* Currently unused */
   /* int padding = 0; */    /* Currently unused */
 
-  char *account_names[CONFIG_MAX_PLAYING];
+  char **account_names = NULL;
   int num_accounts = 0, x = 0, y = 0;
 
-  for (i = 0; i < CONFIG_MAX_PLAYING; i++)
-    account_names[i] = NULL;
+  /* Sized by a runtime setting, so it lives on the heap (no VLAs). */
+  CREATE(account_names, char *, CONFIG_MAX_PLAYING);
 
   struct
   {
@@ -7637,16 +7643,18 @@ ACMD(do_who)
         break;
       case 't':
         half_chop(buf1, arg, buf);
-        showrace = find_race_bitvector(arg);
+        showrace = (int)find_race_bitvector(arg);
         break;
       default:
         send_to_char(ch, "%s", WHO_FORMAT);
+        free(account_names);
         return;
       }
     }
     else
     {
       send_to_char(ch, "%s", WHO_FORMAT);
+      free(account_names);
       return;
     }
   }
@@ -7804,16 +7812,16 @@ ACMD(do_who)
             if (CLASS_LEVEL(tch, inc))
             {
               if (classCount)
-                len = snprintf_append(classes_list, sizeof(classes_list), len, "/");
-              len = snprintf_append(classes_list, sizeof(classes_list), len, "%s",
+                len = snprintf_append(classes_list, sizeof(classes_list), (int)len, "/");
+              len = snprintf_append(classes_list, sizeof(classes_list), (int)len, "%s",
                                     CLSLIST_CLRABBRV(inc));
               classCount++;
             }
           }
-          class_len = strlen(classes_list) - count_color_chars(classes_list);
+          class_len = (int)(strlen(classes_list) - count_color_chars(classes_list));
           while (class_len < 11)
           {
-            len = snprintf_append(classes_list, sizeof(classes_list), len, " ");
+            len = snprintf_append(classes_list, sizeof(classes_list), (int)len, " ");
             class_len++;
           }
           send_to_char(ch, "%s]", classes_list);
@@ -7942,6 +7950,9 @@ ACMD(do_who)
     send_to_char(ch, "\tWA staff-ran event is taking place! Type \tRstaffevent\tW to see the "
                      "current event info.\tn\r\n");
   }
+  for (x = 0; x < CONFIG_MAX_PLAYING; x++)
+    free(account_names[x]);
+  free(account_names);
 }
 
 #define USERS_FORMAT                                                                               \
@@ -8222,8 +8233,8 @@ ACMD(do_levels)
 
   for (i = min_lev; i < max_lev; i++)
   {
-    len = snprintf_append(buf, sizeof(buf), len, "[%2d] %8ld-%-8ld : ", (int)i, level_exp(ch, i),
-                          level_exp(ch, i + 1) - 1);
+    len = snprintf_append(buf, sizeof(buf), (int)len, "[%2d] %8ld-%-8ld : ", (int)i,
+                          level_exp(ch, i), level_exp(ch, i + 1) - 1);
     if (len >= sizeof(buf) - 1)
       break;
 
@@ -8233,13 +8244,13 @@ ACMD(do_levels)
     {
     case SEX_MALE:
     case SEX_NEUTRAL:
-      len = snprintf_append(buf, sizeof(buf), len, "%s\r\n", titles(GET_CLASS(ch), i));
+      len = snprintf_append(buf, sizeof(buf), (int)len, "%s\r\n", titles(GET_CLASS(ch), i));
       break;
     case SEX_FEMALE:
-      len = snprintf_append(buf, sizeof(buf), len, "%s\r\n", titles(GET_CLASS(ch), i));
+      len = snprintf_append(buf, sizeof(buf), (int)len, "%s\r\n", titles(GET_CLASS(ch), i));
       break;
     default:
-      len = snprintf_append(buf, sizeof(buf), len, "Oh dear.  You seem to be sexless.\r\n");
+      len = snprintf_append(buf, sizeof(buf), (int)len, "Oh dear.  You seem to be sexless.\r\n");
       break;
     }
     if (len >= sizeof(buf) - 1)
@@ -8247,7 +8258,7 @@ ACMD(do_levels)
   }
 
   if (max_lev == LVL_IMMORT)
-    len = snprintf_append(buf, sizeof(buf), len, "[%2d] %8ld          : Immortality\r\n",
+    len = snprintf_append(buf, sizeof(buf), (int)len, "[%2d] %8ld          : Immortality\r\n",
                           LVL_IMMORT, level_exp(ch, LVL_IMMORT));
   page_string(ch->desc, buf, TRUE);
 }
@@ -8637,7 +8648,7 @@ ACMD(do_toggle)
     return;
   }
 
-  len = strlen(arg);
+  len = (int)strlen(arg);
   for (toggle = 0; *tog_messages[toggle].command != '\n'; toggle++)
     if (!strncmp(arg, tog_messages[toggle].command, len))
       break;
@@ -8786,7 +8797,7 @@ ACMD(do_toggle)
       send_to_char(ch, "Your current page length is set to %d lines.", GET_PAGE_LENGTH(ch));
     else if (is_number(arg2))
     {
-      GET_PAGE_LENGTH(ch) = MIN(MAX(atoi(arg2), 5), 255);
+      GET_PAGE_LENGTH(ch) = (ubyte)(MIN(MAX(atoi(arg2), 5), 255));
       send_to_char(ch, "Okay, your page length is now set to %d lines.", GET_PAGE_LENGTH(ch));
     }
     else
@@ -8797,7 +8808,7 @@ ACMD(do_toggle)
       send_to_char(ch, "Your current screen width is set to %d characters.", GET_SCREEN_WIDTH(ch));
     else if (is_number(arg2))
     {
-      GET_SCREEN_WIDTH(ch) = MIN(MAX(atoi(arg2), 40), 200);
+      GET_SCREEN_WIDTH(ch) = (ubyte)(MIN(MAX(atoi(arg2), 40), 200));
       send_to_char(ch, "Okay, your screen width is now set to %d characters.",
                    GET_SCREEN_WIDTH(ch));
     }
@@ -8860,9 +8871,8 @@ ACMD(do_toggle)
 }
 
 /* new wizhelp function, courtesy of paragon codebase -zusuk */
-void do_wizhelp(struct char_data *ch)
+static void do_wizhelp(struct char_data *ch)
 {
-  extern int *cmd_sort_info;
   int no = 1, i, cmd_num;
   int level;
   int commands_per_row;
@@ -9189,7 +9199,7 @@ ACMD(do_whois)
   {
     format_time_string(victim->player.time.logon, "%a %b %d %Y", buf, sizeof(buf));
 
-    hours = (time(0) - victim->player.time.logon) / 3600;
+    hours = (int)((time(0) - victim->player.time.logon) / 3600);
 
     if (!got_from_file)
     {
@@ -9252,7 +9262,7 @@ ACMD(do_whois)
     free_char(victim);
 }
 
-bool get_zone_levels(zone_rnum znum, char *buf)
+static bool get_zone_levels(zone_rnum znum, char *buf)
 {
   /* Create a string for the level restrictions for this zone. */
   if ((zone_table[znum].min_level == -1) && (zone_table[znum].max_level == -1))
@@ -9417,7 +9427,7 @@ ACMD(do_areas)
       len = snprintf_append(buf, sizeof(buf), len, "\tn(%3d) %s%-*.*s\tn %s%.64s\tn\r\n", ++zcount,
                             overlap ? QRED : QCYN, name_width, name_width, zone_table[i].name,
                             lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
-      snprintf(zone_num, sizeof(zone_num), " \tc[%3d]\tn  ", zone_table[i].number);
+      snprintf(zone_num, sizeof(zone_num), " \tc[%3" PRI_IDX "]\tn  ", zone_table[i].number);
       snprintf(areas[num_areas], sizeof(areas[num_areas]), "\tn %-*.*s\tn %s%s%.64s\tn\r\n",
                name_width, name_width, zone_table[i].name, zone_num, lev_set ? "\tc" : "\tn",
                lev_set ? lev_str : "All Levels");
@@ -9592,7 +9602,7 @@ ACMD(do_survey)
   room_rnum nr, to_room;
   room_vnum first, last;
   int j, x, y, i;
-  float resource_level;
+  double resource_level;
   struct room_data *target_room = NULL;
   char arg[MAX_INPUT_LENGTH];
 
@@ -9678,12 +9688,12 @@ ACMD(do_survey)
     send_to_char(ch, "Elevation: %d\r\n", get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
 
     /* Phase 6: Add basic resource conservation summary */
-    float avg_depletion = 0.0;
+    double avg_depletion = 0.0;
     int depletion_count = 0;
     for (i = 0; i < 3; i++)
     { /* Check major resources: herbs, minerals, wood */
       int resource_types[] = {RESOURCE_HERBS, RESOURCE_MINERALS, RESOURCE_WOOD};
-      float depletion = get_resource_depletion_level(IN_ROOM(ch), resource_types[i]);
+      double depletion = get_resource_depletion_level(IN_ROOM(ch), resource_types[i]);
       avg_depletion += depletion;
       depletion_count++;
     }
@@ -9724,10 +9734,10 @@ ACMD(do_survey)
       resource_level = calculate_current_resource_level(i, x, y);
       if (resource_level > 0.05)
       { /* Only show resources with meaningful levels */
-        float depletion_level = get_resource_depletion_level(IN_ROOM(ch), i);
-        float effective_level =
+        double depletion_level = get_resource_depletion_level(IN_ROOM(ch), i);
+        double effective_level =
             resource_level * depletion_level; /* Calculate true available amount */
-        float harvest_modifier = get_harvest_success_modifier(IN_ROOM(ch), i);
+        double harvest_modifier = get_harvest_success_modifier(IN_ROOM(ch), i);
 
         send_to_char(
             ch, "  \tG%-12s\tn: %s", resource_names[i],
@@ -9761,7 +9771,7 @@ ACMD(do_survey)
   {
     /* Resource minimap */
     char arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH];
-    int resource_type = -1, radius = 7, i;
+    int resource_type = -1, radius = 7, inner_i;
 
     /* Skip past "map" and get the resource type and radius */
     argument = one_argument(argument, arg, sizeof(arg));   /* Skip "map" */
@@ -9771,9 +9781,9 @@ ACMD(do_survey)
     if (!*arg2)
     {
       send_to_char(ch, "Available resource types for mapping:\r\n");
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      for (inner_i = 0; inner_i < NUM_RESOURCE_TYPES; inner_i++)
       {
-        send_to_char(ch, "  %d. %s\r\n", i, resource_names[i]);
+        send_to_char(ch, "  %d. %s\r\n", inner_i, resource_names[inner_i]);
       }
       send_to_char(ch, "\r\nUsage: survey map <resource_type> [radius]\r\n");
       send_to_char(ch, "Example: survey map vegetation 10\r\n");
@@ -9788,11 +9798,11 @@ ACMD(do_survey)
     else
     {
       /* Try to match by name */
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      for (inner_i = 0; inner_i < NUM_RESOURCE_TYPES; inner_i++)
       {
-        if (is_abbrev(arg2, resource_names[i]))
+        if (is_abbrev(arg2, resource_names[inner_i]))
         {
-          resource_type = i;
+          resource_type = inner_i;
           break;
         }
       }
@@ -9820,7 +9830,7 @@ ACMD(do_survey)
   {
     /* Detailed resource analysis */
     char arg2[MAX_INPUT_LENGTH];
-    int resource_type = -1, i;
+    int resource_type = -1, inner_i;
 
     /* Skip past "detail" and get the resource type */
     argument = one_argument(argument, arg, sizeof(arg)); /* Skip "detail" */
@@ -9829,9 +9839,9 @@ ACMD(do_survey)
     if (!*arg2)
     {
       send_to_char(ch, "Available resource types for detailed analysis:\r\n");
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      for (inner_i = 0; inner_i < NUM_RESOURCE_TYPES; inner_i++)
       {
-        send_to_char(ch, "  %d. %s\r\n", i, resource_names[i]);
+        send_to_char(ch, "  %d. %s\r\n", inner_i, resource_names[inner_i]);
       }
       send_to_char(ch, "\r\nUsage: survey detail <resource_type>\r\n");
       send_to_char(ch, "Example: survey detail minerals\r\n");
@@ -9846,11 +9856,11 @@ ACMD(do_survey)
     else
     {
       /* Try to match by name */
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      for (inner_i = 0; inner_i < NUM_RESOURCE_TYPES; inner_i++)
       {
-        if (is_abbrev(arg2, resource_names[i]))
+        if (is_abbrev(arg2, resource_names[inner_i]))
         {
-          resource_type = i;
+          resource_type = inner_i;
           break;
         }
       }
@@ -9896,7 +9906,7 @@ ACMD(do_survey)
   {
     /* Phase 7: Cascade effect preview */
     char arg2[MAX_INPUT_LENGTH];
-    int resource_type = -1, i;
+    int resource_type = -1, inner_i;
 
     /* Get resource type argument */
     argument = one_argument(argument, arg, sizeof(arg)); /* Skip "cascade" */
@@ -9906,9 +9916,10 @@ ACMD(do_survey)
     {
       send_to_char(ch, "Usage: survey cascade <resource_type>\r\n");
       send_to_char(ch, "Available resources: ");
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      for (inner_i = 0; inner_i < NUM_RESOURCE_TYPES; inner_i++)
       {
-        send_to_char(ch, "%s%s", resource_names[i], i < NUM_RESOURCE_TYPES - 1 ? ", " : "\r\n");
+        send_to_char(ch, "%s%s", resource_names[inner_i],
+                     inner_i < NUM_RESOURCE_TYPES - 1 ? ", " : "\r\n");
       }
       return;
     }
@@ -9920,11 +9931,11 @@ ACMD(do_survey)
     }
     else
     {
-      for (i = 0; i < NUM_RESOURCE_TYPES; i++)
+      for (inner_i = 0; inner_i < NUM_RESOURCE_TYPES; inner_i++)
       {
-        if (is_abbrev(arg2, resource_names[i]))
+        if (is_abbrev(arg2, resource_names[inner_i]))
         {
-          resource_type = i;
+          resource_type = inner_i;
           break;
         }
       }
@@ -10071,7 +10082,7 @@ ACMD(do_exits)
     len++;
 
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS) && !EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
-      send_to_char(ch, "%-5s - [%5d]%s %s\r\n", dirs[door], GET_ROOM_VNUM(EXIT(ch, door)->to_room),
+      send_to_char(ch, "%-5s - [%5u]%s %s\r\n", dirs[door], GET_ROOM_VNUM(EXIT(ch, door)->to_room),
                    EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? " [HIDDEN]" : "",
                    world[EXIT(ch, door)->to_room].name);
     else if (CONFIG_DISP_CLOSED_DOORS && EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
@@ -10217,7 +10228,7 @@ ACMD(do_rank)
   do_slug_rank(ch, argument);
 }
 
-void display_weapon_families(struct char_data *ch)
+static void display_weapon_families(struct char_data *ch)
 {
   int i = 0;
 
@@ -10307,7 +10318,7 @@ ACMD(do_armorlist)
   send_to_char(ch, "\tDType 'weaponlist' to see a list of weapon types\tn\r\n");
 }
 
-int is_weapon_proficient(int weapon, int type)
+static int is_weapon_proficient(int weapon, int type)
 {
   if (type == WPT_SIMPLE)
   {
@@ -10465,18 +10476,6 @@ int is_weapon_proficient(int weapon, int type)
     }
   }
   else if (type == WPT_DWARF)
-  {
-    switch (weapon)
-    {
-    case WEAPON_TYPE_BATTLE_AXE:
-    case WEAPON_TYPE_HEAVY_PICK:
-    case WEAPON_TYPE_WARHAMMER:
-    case WEAPON_TYPE_DWARVEN_WAR_AXE:
-    case WEAPON_TYPE_DWARVEN_URGOSH:
-      return TRUE;
-    }
-  }
-  else if (type == WPT_DUERGAR)
   {
     switch (weapon)
     {
@@ -11151,7 +11150,7 @@ ACMD(do_touch_spells)
   }
 }
 
-bool char_has_any_item_activation_abilities(struct char_data *ch)
+static bool char_has_any_item_activation_abilities(struct char_data *ch)
 {
   if (!ch)
     return false;
@@ -11267,7 +11266,7 @@ ACMD(do_roomvnum)
     return;
   }
 
-  send_to_char(ch, "This room's vnum is %d.\r\n", world[IN_ROOM(ch)].number);
+  send_to_char(ch, "This room's vnum is %" PRI_IDX ".\r\n", world[IN_ROOM(ch)].number);
   return;
 }
 
@@ -11303,7 +11302,7 @@ ACMDU(do_wearapplies)
   {
     snprintf(wears, sizeof(wears), "%s", wear_bits[i]);
     for (j = 0; (size_t)j < strlen(wears); j++)
-      wears[j] = tolower(wears[j]);
+      wears[j] = (char)tolower(wears[j]);
 
     if (is_abbrev(argument, wears))
       break;
@@ -11328,7 +11327,7 @@ ACMDU(do_wearapplies)
   }
 
   send_to_char(ch, "\tCApply Types for Wear Location %s:\tn\r\n", wear_bits[wear_loc]);
-  column_list(ch, 3, (const char **)apply_list, count, FALSE);
+  column_list(ch, 3, (const char *const *)apply_list, count, FALSE);
   send_to_char(ch, "\r\n");
 }
 
@@ -11418,12 +11417,12 @@ ACMD(do_conservation)
                  CCNRM(ch, C_NRM));
     send_to_char(ch, "Your sustainable harvesting practices across resource types:\r\n\r\n");
 
-    float total_score = 0.0;
+    double total_score = 0.0;
     int count = 0;
 
     for (i = 0; i < NUM_RESOURCE_TYPES; i++)
     {
-      float score = get_player_conservation_score(ch);
+      double score = get_player_conservation_score(ch);
       const char *status = get_conservation_status_name(score);
 
       send_to_char(ch, "  %-12s: %s%s%s (%.1f/5.0)\r\n", get_resource_name(i), CCYEL(ch, C_NRM),
@@ -11435,7 +11434,7 @@ ACMD(do_conservation)
 
     if (count > 0)
     {
-      float avg_score = total_score / count;
+      double avg_score = total_score / count;
       const char *overall_status = get_conservation_status_name(avg_score);
 
       send_to_char(ch, "\r\n%sOverall Rating: %s%s %s(%.1f/5.0)%s\r\n", CCWHT(ch, C_NRM),
@@ -11459,19 +11458,19 @@ ACMD(do_conservation)
     send_to_char(ch, "%sConservation Status%s\r\n", CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
     send_to_char(ch, "==================\r\n");
 
-    float total_score = 0.0;
+    double total_score = 0.0;
     int count = 0;
 
     for (i = 0; i < NUM_RESOURCE_TYPES; i++)
     {
-      float score = get_player_conservation_score(ch);
+      double score = get_player_conservation_score(ch);
       total_score += score;
       count++;
     }
 
     if (count > 0)
     {
-      float avg_score = total_score / count;
+      double avg_score = total_score / count;
       const char *status = get_conservation_status_name(avg_score);
 
       send_to_char(ch, "Your overall conservation rating: %s%s%s (%.1f/5.0)\r\n", CCYEL(ch, C_NRM),

@@ -23,15 +23,8 @@
 #include "wilderness/wilderness.h"
 
 /* External variables */
-extern MYSQL *conn;
-extern bool mysql_available;
 
 /* Function prototypes */
-bool save_ship_interior(struct greyhawk_ship_data *ship);
-void load_ship_interior(struct greyhawk_ship_data *ship);
-void save_docking_record(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2,
-                         const char *dock_type);
-void end_docking_record(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2);
 void save_cargo_manifest(struct greyhawk_ship_data *ship, int cargo_room, struct obj_data *cargo);
 void load_cargo_manifest(struct greyhawk_ship_data *ship);
 void save_crew_roster(struct greyhawk_ship_data *ship, struct char_data *npc, const char *role);
@@ -238,7 +231,7 @@ bool save_ship_interior(struct greyhawk_ship_data *ship)
            "room_vnums, bridge_room, entrance_room, "
            "cargo_room1, cargo_room2, cargo_room3, cargo_room4, cargo_room5, "
            "room_data) "
-           "VALUES (%d, %d, '%s', '%s', '%s', %d, %d, '%s', %d, %d, "
+           "VALUES (%d, %u, '%s', '%s', '%s', %d, %d, '%s', %d, %d, "
            "%d, %d, %d, %d, %d, '%s') "
            "ON DUPLICATE KEY UPDATE "
            "vessel_type=VALUES(vessel_type), vessel_name=VALUES(vessel_name), "
@@ -899,17 +892,17 @@ bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
   column++;
   ship->location = row[column] ? atoi(row[column]) : 0;
   column++;
-  ship->x = row[column] ? strtof(row[column], NULL) : 0.0f;
+  ship->x = row[column] ? strtod(row[column], NULL) : 0.0;
   column++;
-  ship->y = row[column] ? strtof(row[column], NULL) : 0.0f;
+  ship->y = row[column] ? strtod(row[column], NULL) : 0.0;
   column++;
-  ship->z = row[column] ? strtof(row[column], NULL) : 0.0f;
+  ship->z = row[column] ? strtod(row[column], NULL) : 0.0;
   column++;
-  ship->dx = row[column] ? strtof(row[column], NULL) : 0.0f;
+  ship->dx = row[column] ? strtod(row[column], NULL) : 0.0;
   column++;
-  ship->dy = row[column] ? strtof(row[column], NULL) : 0.0f;
+  ship->dy = row[column] ? strtod(row[column], NULL) : 0.0;
   column++;
-  ship->dz = row[column] ? strtof(row[column], NULL) : 0.0f;
+  ship->dz = row[column] ? strtod(row[column], NULL) : 0.0;
   column++;
   ship->heading = row[column] ? (short int)atoi(row[column]) : 0;
   column++;
@@ -1240,7 +1233,8 @@ void save_cargo_manifest(struct greyhawk_ship_data *ship, int cargo_room, struct
            "INSERT INTO ship_cargo_manifest "
            "(ship_id, cargo_room, item_vnum, item_name, item_count, item_weight) "
            "VALUES (%d, %d, %d, '%s', %d, %d)",
-           ship->shipnum, cargo_room, GET_OBJ_VNUM(cargo), escaped_name, 1, GET_OBJ_WEIGHT(cargo));
+           ship->shipnum, cargo_room, (int)GET_OBJ_VNUM(cargo), escaped_name, 1,
+           GET_OBJ_WEIGHT(cargo));
 
   if (mysql_query(conn, query))
   {
@@ -1256,7 +1250,7 @@ void load_cargo_manifest(struct greyhawk_ship_data *ship)
   char query[MAX_STRING_LENGTH];
   struct obj_data *cargo;
   room_rnum cargo_room;
-  obj_rnum obj_num;
+  obj_rnum obj_num_id;
 
   if (!mysql_available || !ship)
   {
@@ -1283,15 +1277,15 @@ void load_cargo_manifest(struct greyhawk_ship_data *ship)
   while ((row = mysql_fetch_row(result)))
   {
     cargo_room = real_room(atoi(row[0]));
-    obj_num = real_object(atoi(row[1]));
+    obj_num_id = real_object(atoi(row[1]));
 
-    if (cargo_room != NOWHERE && obj_num != NOTHING)
+    if (cargo_room != NOWHERE && obj_num_id != NOTHING)
     {
-      cargo = read_object_reason(obj_num, REAL, PERF_ENTITY_VESSEL);
+      cargo = read_object_reason(obj_num_id, REAL, PERF_ENTITY_VESSEL);
       if (cargo)
       {
         obj_to_room(cargo, cargo_room);
-        log("Info: Loaded cargo item %d to room %d on ship %d", GET_OBJ_VNUM(cargo),
+        log("Info: Loaded cargo item %u to room %" PRI_IDX " on ship %d", GET_OBJ_VNUM(cargo),
             world[cargo_room].number, ship->shipnum);
       }
     }
@@ -1318,7 +1312,8 @@ void save_crew_roster(struct greyhawk_ship_data *ship, struct char_data *npc, co
            "INSERT INTO ship_crew_roster "
            "(ship_id, npc_vnum, npc_name, crew_role, assigned_room) "
            "VALUES (%d, %d, '%s', '%s', %d)",
-           ship->shipnum, GET_MOB_VNUM(npc), escaped_name, role ? role : "crew", IN_ROOM(npc));
+           ship->shipnum, (int)GET_MOB_VNUM(npc), escaped_name, role ? role : "crew",
+           (int)IN_ROOM(npc));
 
   if (mysql_query(conn, query))
   {
@@ -1703,8 +1698,8 @@ void load_all_ship_interiors(void)
 
     if (ship->id[0] == '\0')
     {
-      ship->id[0] = 'A' + (shipnum / 26) % 26;
-      ship->id[1] = 'A' + shipnum % 26;
+      ship->id[0] = (char)('A' + (shipnum / 26) % 26);
+      ship->id[1] = (char)('A' + shipnum % 26);
       ship->id[2] = '\0';
     }
 

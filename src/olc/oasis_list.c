@@ -97,7 +97,7 @@ void perform_mob_name_list(struct char_data *ch, char *arg)
   return;
 }
 
-void perform_mob_flag_list(struct char_data *ch, char *arg)
+static void perform_mob_flag_list(struct char_data *ch, char *arg)
 {
   mob_rnum num;
   int mob_flag, found = 0, len;
@@ -140,7 +140,7 @@ void perform_mob_flag_list(struct char_data *ch, char *arg)
   return;
 }
 
-void perform_mob_level_list(struct char_data *ch, char *arg)
+static void perform_mob_level_list(struct char_data *ch, char *arg)
 {
   mob_rnum num;
   int mob_level, found = 0, len;
@@ -181,7 +181,7 @@ void perform_mob_level_list(struct char_data *ch, char *arg)
   return;
 }
 
-void add_to_obj_list(struct obj_list_item *lst, int num_items, obj_vnum nvo, int nval)
+static void add_to_obj_list(struct obj_list_item *lst, int num_items, obj_vnum nvo, int nval)
 {
   int j, tmp_v;
   obj_vnum tmp_ov;
@@ -203,7 +203,7 @@ void add_to_obj_list(struct obj_list_item *lst, int num_items, obj_vnum nvo, int
 }
 
 /* list objects by type */
-void perform_obj_type_list(struct char_data *ch, char *arg)
+static void perform_obj_type_list(struct char_data *ch, char *arg)
 {
   obj_rnum num;
   int itemtype, v1, v2 = -1, v3 = -1, v4 = -1, v5 = -1, found = 0, len = 0;
@@ -292,14 +292,6 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
             tmp_len =
                 snprintf(buf + len, sizeof(buf) - len,
                          "%s%3d%s) %10" PRI_IDX " INVALID, CHECK THIS OBJECT (effect-range)\r\n",
-                         QGRN, ++found, QNRM, ov);
-            break;
-          }
-          if (v3 < TRAP_SPECIAL_PARALYSIS && v3 >= LAST_SPELL_DEFINE)
-          { /* invalid trap effects check 2 */
-            tmp_len =
-                snprintf(buf + len, sizeof(buf) - len,
-                         "%s%3d%s) %10" PRI_IDX " INVALID, CHECK THIS OBJECT (effect-range-2)\r\n",
                          QGRN, ++found, QNRM, ov);
             break;
           }
@@ -595,7 +587,7 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
 }
 
 /* this function is ran for doing:  olist worn <slot> */
-void perform_obj_worn_list(struct char_data *ch, char *arg)
+static void perform_obj_worn_list(struct char_data *ch, char *arg)
 {
   obj_rnum num;
   int wearloc, found = 0, len = 0, i = 0;
@@ -670,7 +662,7 @@ void perform_obj_worn_list(struct char_data *ch, char *arg)
   return;
 }
 
-void perform_obj_aff_list(struct char_data *ch, char *arg)
+static void perform_obj_aff_list(struct char_data *ch, char *arg)
 {
   obj_rnum num;
   int i, apply, v1 = 0, found = 0, len = 0, tmp_len = 0;
@@ -772,7 +764,7 @@ void perform_obj_aff_list(struct char_data *ch, char *arg)
   page_string(ch->desc, buf, TRUE);
 }
 
-void perform_obj_perms_list(struct char_data *ch, char *arg)
+static void perform_obj_perms_list(struct char_data *ch, char *arg)
 {
   obj_rnum num = 0;
   int found = 0, len = 0, tmp_len = 0;
@@ -803,13 +795,13 @@ void perform_obj_perms_list(struct char_data *ch, char *arg)
     if (obj && OBJAFF_FLAGGED(obj, flag_num))
     {
       ov = obj_index[num].vnum;
-      tmp_len = snprintf(
-          buf + len, sizeof(buf) - len,
-          "%s%4d%s) %s[%s%10" PRI_IDX "%s] %s(%s%10" PRI_IDX "%s)%s %-*s%s [%s]%s%s\r\n", QGRN,
-          ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number, QNRM, QCYN,
-          42 + count_color_chars(obj_proto[num].short_description),
-          obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag],
-          QNRM, obj_proto[num].proto_script ? " [TRIG]" : "");
+      tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                         "%s%4d%s) %s[%s%10" PRI_IDX "%s] %s(%s%10d%s)%s %-*s%s [%s]%s%s\r\n", QGRN,
+                         ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number,
+                         QNRM, QCYN, 42 + count_color_chars(obj_proto[num].short_description),
+                         obj_proto[num].short_description, QYEL,
+                         item_types[obj_proto[num].obj_flags.type_flag], QNRM,
+                         obj_proto[num].proto_script ? " [TRIG]" : "");
       len += tmp_len;
       if (len >= (MAX_STRING_LENGTH - SMALL_STRING))
         break; /* zusuk put this check here */
@@ -819,7 +811,7 @@ void perform_obj_perms_list(struct char_data *ch, char *arg)
   page_string(ch->desc, buf, TRUE);
 }
 
-void perform_obj_perms2_list(struct char_data *ch, char *arg)
+static void perform_obj_perms2_list(struct char_data *ch, char *arg)
 {
   obj_rnum num = 0;
   int found = 0, len = 0, tmp_len = 0;
@@ -850,13 +842,13 @@ void perform_obj_perms2_list(struct char_data *ch, char *arg)
     if (obj && OBJAFF2_FLAGGED(obj, flag_num))
     {
       ov = obj_index[num].vnum;
-      tmp_len = snprintf(
-          buf + len, sizeof(buf) - len,
-          "%s%4d%s) %s[%s%10" PRI_IDX "%s] %s(%s%10" PRI_IDX "%s)%s %-*s%s [%s]%s%s\r\n", QGRN,
-          ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number, QNRM, QCYN,
-          42 + count_color_chars(obj_proto[num].short_description),
-          obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag],
-          QNRM, obj_proto[num].proto_script ? " [TRIG]" : "");
+      tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                         "%s%4d%s) %s[%s%10" PRI_IDX "%s] %s(%s%10d%s)%s %-*s%s [%s]%s%s\r\n", QGRN,
+                         ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number,
+                         QNRM, QCYN, 42 + count_color_chars(obj_proto[num].short_description),
+                         obj_proto[num].short_description, QYEL,
+                         item_types[obj_proto[num].obj_flags.type_flag], QNRM,
+                         obj_proto[num].proto_script ? " [TRIG]" : "");
       len += tmp_len;
       if (len >= (MAX_STRING_LENGTH - SMALL_STRING))
         break; /* zusuk put this check here */
@@ -866,7 +858,7 @@ void perform_obj_perms2_list(struct char_data *ch, char *arg)
   page_string(ch->desc, buf, TRUE);
 }
 
-void perform_obj_name_list(struct char_data *ch, char *arg)
+static void perform_obj_name_list(struct char_data *ch, char *arg)
 {
   obj_rnum num;
   int found = 0, len = 0, tmp_len = 0;
@@ -884,13 +876,13 @@ void perform_obj_name_list(struct char_data *ch, char *arg)
     if (is_name(arg, obj_proto[num].name))
     {
       ov = obj_index[num].vnum;
-      tmp_len = snprintf(
-          buf + len, sizeof(buf) - len,
-          "%s%4d%s) %s[%s%10" PRI_IDX "%s] %s(%s%10" PRI_IDX "%s)%s %-*s%s [%s]%s%s\r\n", QGRN,
-          ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number, QNRM, QCYN,
-          42 + count_color_chars(obj_proto[num].short_description),
-          obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag],
-          QNRM, obj_proto[num].proto_script ? " [TRIG]" : "");
+      tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                         "%s%4d%s) %s[%s%10" PRI_IDX "%s] %s(%s%10d%s)%s %-*s%s [%s]%s%s\r\n", QGRN,
+                         ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number,
+                         QNRM, QCYN, 42 + count_color_chars(obj_proto[num].short_description),
+                         obj_proto[num].short_description, QYEL,
+                         item_types[obj_proto[num].obj_flags.type_flag], QNRM,
+                         obj_proto[num].proto_script ? " [TRIG]" : "");
       len += tmp_len;
       if (len >= (MAX_STRING_LENGTH - SMALL_STRING))
         break; /* zusuk put this check here */
@@ -1062,16 +1054,16 @@ ACMD(do_oasis_list)
     }
     else if (is_abbrev(arg, "level") || is_abbrev(arg, "flags"))
     {
-      int i;
+      int inner_i;
 
       if (!*arg2)
       {
         send_to_char(ch, "Which mobile flag or level do you want to list?\r\n");
-        for (i = 0; i < NUM_MOB_FLAGS; i++)
+        for (inner_i = 0; inner_i < NUM_MOB_FLAGS; inner_i++)
         {
-          send_to_char(ch, "%s%2d%s-%s%-14s%s", CCNRM(ch, C_NRM), i, CCNRM(ch, C_NRM),
-                       CCYEL(ch, C_NRM), action_bits[i], CCNRM(ch, C_NRM));
-          if (!((i + 1) % 4))
+          send_to_char(ch, "%s%2d%s-%s%-14s%s", CCNRM(ch, C_NRM), inner_i, CCNRM(ch, C_NRM),
+                       CCYEL(ch, C_NRM), action_bits[inner_i], CCNRM(ch, C_NRM));
+          if (!((inner_i + 1) % 4))
             send_to_char(ch, "\r\n");
         }
         send_to_char(ch, "\r\n");
@@ -1332,7 +1324,7 @@ static void list_regions(struct char_data *ch, int requested_type)
   char properties[32];
   const char *type_name;
 
-  len = strlcpy(
+  len = (int)strlcpy(
       buf,
       "Ind|VNum      | Name                                |Type        |Properties\r\n"
       "--- ---------- ------------------------------------- ------------ ---------------\r\n",
@@ -1405,7 +1397,7 @@ static void list_paths(struct char_data *ch, int requested_type)
   int counter = 0, len;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  len = strlcpy(
+  len = (int)strlcpy(
       buf,
       "Ind|VNum      | Name                                |Type        |Glyphs\r\n"
       "--- ---------- ------------------------------------- ------------ ---------------\r\n",
@@ -1469,10 +1461,10 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
     return;
   }
 
-  len = strlcpy(buf,
-                "Index  VNum       Room Name                                    Exits\r\n"
-                "-----  ---------- -------------------------------------------- -----\r\n",
-                sizeof(buf));
+  len = (int)strlcpy(buf,
+                     "Index  VNum       Room Name                                    Exits\r\n"
+                     "-----  ---------- -------------------------------------------- -----\r\n",
+                     sizeof(buf));
 
   if (!top_of_world)
     return;
@@ -1569,10 +1561,11 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
     top = vmax;
   }
 
-  len = strlcpy(buf,
-                "Ind|VNum      |Lv|T|Al|Rac|Cls|E|Mobile Name                                 \r\n"
-                "--- ---------- -- - -- --- --- - ------------------------------------------- \r\n",
-                sizeof(buf));
+  len = (int)strlcpy(
+      buf,
+      "Ind|VNum      |Lv|T|Al|Rac|Cls|E|Mobile Name                                 \r\n"
+      "--- ---------- -- - -- --- --- - ------------------------------------------- \r\n",
+      sizeof(buf));
   if (!top_of_mobt)
     return;
 
@@ -1650,10 +1643,11 @@ static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmi
     top = vmax;
   }
 
-  len = strlcpy(buf,
-                "VNum       #  D Object Name                  Type         Lv [B] + Specific\r\n"
-                "---------- -- - ---------------------------- ------------ -- ----------------\r\n",
-                sizeof(buf));
+  len = (int)strlcpy(
+      buf,
+      "VNum       #  D Object Name                  Type         Lv [B] + Specific\r\n"
+      "---------- -- - ---------------------------- ------------ -- ----------------\r\n",
+      sizeof(buf));
 
   if (!top_of_objt)
     return;
@@ -1675,7 +1669,7 @@ static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmi
         }
       }
 
-      len2 = strlcpy(wears_text, "\ty", sizeof(wears_text));
+      len2 = (int)strlcpy(wears_text, "\ty", sizeof(wears_text));
       if (obj_proto[i].obj_flags.type_flag == ITEM_WORN)
       {
         for (j = 1; j < NUM_ITEM_WEARS; j++)

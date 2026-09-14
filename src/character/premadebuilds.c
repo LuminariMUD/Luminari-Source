@@ -681,7 +681,7 @@ void add_human_premade_stats(struct char_data *ch, int chclass)
   }
 }
 
-void add_premade_sorcerer_spells(struct char_data *ch, int level)
+static void add_premade_sorcerer_spells(struct char_data *ch, int level)
 {
   int chclass = CLASS_SORCERER;
   switch (level)
@@ -772,7 +772,7 @@ void add_premade_sorcerer_spells(struct char_data *ch, int level)
   }
 }
 
-void add_premade_bard_spells(struct char_data *ch, int level)
+static void add_premade_bard_spells(struct char_data *ch, int level)
 {
   int chclass = CLASS_BARD;
   switch (level)
@@ -841,7 +841,7 @@ void add_premade_bard_spells(struct char_data *ch, int level)
   }
 }
 
-void add_premade_inquisitor_spells(struct char_data *ch, int level)
+static void add_premade_inquisitor_spells(struct char_data *ch, int level)
 {
   int chclass = CLASS_INQUISITOR;
   switch (level)
@@ -926,7 +926,7 @@ void add_premade_inquisitor_spells(struct char_data *ch, int level)
   }
 }
 
-void add_premade_summoner_spells(struct char_data *ch, int level)
+static void add_premade_summoner_spells(struct char_data *ch, int level)
 {
   int chclass = CLASS_SUMMONER;
   switch (level)
@@ -1008,7 +1008,7 @@ void add_premade_summoner_spells(struct char_data *ch, int level)
   }
 }
 
-void add_premade_warlock_invocations(struct char_data *ch, int level)
+static void add_premade_warlock_invocations(struct char_data *ch, int level)
 {
   int chclass = CLASS_WARLOCK;
   switch (level)
@@ -1050,21 +1050,21 @@ void add_premade_warlock_invocations(struct char_data *ch, int level)
   }
 }
 
-void add_premade_evolution(struct char_data *ch, int evo)
+static void add_premade_evolution(struct char_data *ch, int evo)
 {
   send_to_char(ch, "\tM[summoner] Your eidolon has gained the '%s' evolution!\r\n\tn",
                evolution_list[evo].name);
   KNOWS_EVOLUTION(ch, evo)++;
 }
 
-void add_premade_aspect(struct char_data *ch, int evo)
+static void add_premade_aspect(struct char_data *ch, int evo)
 {
   send_to_char(ch, "\tM[summoner] You have gained the '%s' aspect!\r\n\tn",
                evolution_list[evo].name);
   HAS_REAL_EVOLUTION(ch, evo)++;
 }
 
-void add_premade_summoner_evolutions(struct char_data *ch, int level)
+static void add_premade_summoner_evolutions(struct char_data *ch, int level)
 {
   switch (level)
   {
@@ -1112,7 +1112,7 @@ void add_premade_summoner_evolutions(struct char_data *ch, int level)
   }
 }
 
-void add_premade_alchemist_discoveries(struct char_data *ch, int level)
+static void add_premade_alchemist_discoveries(struct char_data *ch, int level)
 {
   int disc = 0;
   switch (level)
@@ -1195,7 +1195,7 @@ void add_premade_alchemist_discoveries(struct char_data *ch, int level)
   }
 }
 
-void add_premade_psionicist_powers(struct char_data *ch, int level)
+static void add_premade_psionicist_powers(struct char_data *ch, int level)
 {
   int chclass = CLASS_PSIONICIST;
   switch (level)
@@ -1285,7 +1285,7 @@ void add_premade_psionicist_powers(struct char_data *ch, int level)
   }
 }
 
-void levelup_psionicist(struct char_data *ch, int level, bool verbose)
+static void levelup_psionicist(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_PSIONICIST;
   switch (level)
@@ -1455,7 +1455,7 @@ void levelup_rogue(struct char_data *ch, int level, bool verbose)
   increase_skills(ch, chclass, TRUE, level);
 }
 
-void levelup_monk(struct char_data *ch, int level, bool verbose)
+static void levelup_monk(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_MONK;
   switch (level)
@@ -1503,7 +1503,7 @@ void levelup_monk(struct char_data *ch, int level, bool verbose)
   increase_skills(ch, chclass, TRUE, level);
 }
 
-void levelup_cleric(struct char_data *ch, int level, bool verbose)
+static void levelup_cleric(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_CLERIC;
   switch (level)
@@ -1558,7 +1558,7 @@ void levelup_cleric(struct char_data *ch, int level, bool verbose)
   increase_skills(ch, chclass, TRUE, level);
 }
 
-void levelup_berserker(struct char_data *ch, int level, bool verbose)
+static void levelup_berserker(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_BERSERKER;
   switch (level)
@@ -1606,7 +1606,7 @@ void levelup_berserker(struct char_data *ch, int level, bool verbose)
   increase_skills(ch, chclass, TRUE, level);
 }
 
-void levelup_wizard(struct char_data *ch, int level, bool verbose)
+static void levelup_wizard(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_WIZARD;
   switch (level)
@@ -1662,7 +1662,7 @@ void levelup_wizard(struct char_data *ch, int level, bool verbose)
   increase_skills(ch, chclass, TRUE, level);
 }
 
-void levelup_sorcerer(struct char_data *ch, int level, bool verbose)
+static void levelup_sorcerer(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_SORCERER;
   switch (level)
@@ -1726,7 +1726,7 @@ void levelup_sorcerer(struct char_data *ch, int level, bool verbose)
   add_premade_sorcerer_spells(ch, level);
 }
 
-void levelup_paladin(struct char_data *ch, int level, bool verbose)
+static void levelup_paladin(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_PALADIN;
   switch (level)
@@ -1775,7 +1775,7 @@ void levelup_paladin(struct char_data *ch, int level, bool verbose)
 }
 
 
-void levelup_blackguard(struct char_data *ch, int level, bool verbose)
+static void levelup_blackguard(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_BLACKGUARD;
   switch (level)
@@ -1823,7 +1823,7 @@ void levelup_blackguard(struct char_data *ch, int level, bool verbose)
   increase_skills(ch, chclass, TRUE, level);
 }
 
-void levelup_druid(struct char_data *ch, int level, bool verbose)
+static void levelup_druid(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_DRUID;
   switch (level)
@@ -1875,7 +1875,7 @@ void levelup_druid(struct char_data *ch, int level, bool verbose)
   increase_skills(ch, chclass, TRUE, level);
 }
 
-void levelup_ranger(struct char_data *ch, int level, bool verbose)
+static void levelup_ranger(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_RANGER;
   switch (level)
@@ -1946,7 +1946,7 @@ void levelup_ranger(struct char_data *ch, int level, bool verbose)
   increase_skills(ch, chclass, TRUE, level);
 }
 
-void levelup_bard(struct char_data *ch, int level, bool verbose)
+static void levelup_bard(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_BARD;
   switch (level)
@@ -1995,7 +1995,7 @@ void levelup_bard(struct char_data *ch, int level, bool verbose)
   add_premade_bard_spells(ch, level);
 }
 
-void levelup_warlock(struct char_data *ch, int level, bool verbose)
+static void levelup_warlock(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_WARLOCK;
   switch (level)
@@ -2044,7 +2044,7 @@ void levelup_warlock(struct char_data *ch, int level, bool verbose)
   add_premade_warlock_invocations(ch, level);
 }
 
-void levelup_inquisitor(struct char_data *ch, int level, bool verbose)
+static void levelup_inquisitor(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_INQUISITOR;
   switch (level)
@@ -2094,7 +2094,7 @@ void levelup_inquisitor(struct char_data *ch, int level, bool verbose)
   add_premade_inquisitor_spells(ch, level);
 }
 
-void levelup_alchemist(struct char_data *ch, int level, bool verbose)
+static void levelup_alchemist(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_ALCHEMIST;
   switch (level)
@@ -2143,7 +2143,7 @@ void levelup_alchemist(struct char_data *ch, int level, bool verbose)
   add_premade_alchemist_discoveries(ch, level);
 }
 
-void levelup_summoner(struct char_data *ch, int level, bool verbose)
+static void levelup_summoner(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_SUMMONER;
   switch (level)
@@ -2198,7 +2198,7 @@ void levelup_summoner(struct char_data *ch, int level, bool verbose)
   add_premade_summoner_evolutions(ch, level);
 }
 
-void levelup_artificer(struct char_data *ch, int level, bool verbose)
+static void levelup_artificer(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_ARTIFICER;
   switch (level)

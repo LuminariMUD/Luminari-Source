@@ -27,11 +27,6 @@
 #include "character/perks.h"
 
 // external functions
-int attack_roll(struct char_data *ch, struct char_data *victim, int attack_type, int is_touch,
-                int attack_number);
-int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, int dam_type,
-           int attack_type);
-int is_player_grouped(struct char_data *target, struct char_data *group);
 
 const char *alchemical_discovery_names[NUM_ALC_DISCOVERIES] = {"normal bomb",
                                                                "acid bomb",
@@ -661,7 +656,8 @@ ACMD(do_bombs)
       }
     }
 
-    int action_type = KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS) ? ACTION_MOVE : ACTION_STANDARD;
+    int action_type_value =
+        KNOWS_DISCOVERY(ch, ALC_DISC_FAST_BOMBS) ? ACTION_MOVE : ACTION_STANDARD;
     bool quick_proc = FALSE;
 
     int quick_chance = get_alchemist_quick_bomb_chance(ch);
@@ -669,13 +665,13 @@ ACMD(do_bombs)
     {
       if (is_action_available(ch, ACTION_SWIFT, FALSE))
       {
-        action_type = ACTION_SWIFT;
+        action_type_value = ACTION_SWIFT;
         quick_proc = TRUE;
         send_to_char(ch, "You react instantly and ready a bomb as a swift action!\r\n");
       }
     }
 
-    if (!is_action_available(ch, action_type, TRUE))
+    if (!is_action_available(ch, action_type_value, TRUE))
       return;
 
     if (!target)
@@ -1829,7 +1825,7 @@ void perform_bomb_direct_healing(struct char_data *ch, struct char_data *victim,
   }
 
   if (HAS_FEAT(ch, FEAT_BOMB_MASTERY))
-    healing *= 1.5;
+    healing = (int)(healing * 1.5);
 
   if (to_vict != NULL)
     act(to_vict, FALSE, victim, 0, ch, TO_CHAR);
@@ -3531,7 +3527,7 @@ ACMD(do_swallow)
                        "or constitution (-cha)?\r\n");
       return;
     }
-    perform_mutagen(ch, strdup(arg2), alchemical_bonus);
+    perform_mutagen(ch, arg2, alchemical_bonus);
   }
   else if (is_abbrev(arg1, "elemental-mutagen"))
   {
@@ -3549,7 +3545,7 @@ ACMD(do_swallow)
                    "skill.\r\n");
       return;
     }
-    perform_elemental_mutagen(ch, strdup(arg2), alchemical_bonus);
+    perform_elemental_mutagen(ch, arg2, alchemical_bonus);
   }
   else if (is_abbrev(arg1, "cognatogen"))
   {
@@ -3564,7 +3560,7 @@ ACMD(do_swallow)
                        "(-dex) or charisma (-con)?\r\n");
       return;
     }
-    perform_cognatogen(ch, strdup(arg2), alchemical_bonus);
+    perform_cognatogen(ch, arg2, alchemical_bonus);
   }
   else if (is_abbrev(arg1, "inspiring-cognatogen"))
   {
@@ -3875,13 +3871,13 @@ ACMD(do_psychokinetic)
 
       affect_to_char(victim, &af2);
 
-      struct affected_type *af = NULL;
-      for (af = ch->affected; af; af = af->next)
+      struct affected_type *inner_af = NULL;
+      for (inner_af = ch->affected; inner_af; inner_af = inner_af->next)
       {
-        if (af->spell == ALC_DISC_AFFECT_PSYCHOKINETIC)
+        if (inner_af->spell == ALC_DISC_AFFECT_PSYCHOKINETIC)
         {
-          af->modifier -= 1;
-          if (af->modifier <= 0)
+          inner_af->modifier -= 1;
+          if (inner_af->modifier <= 0)
           {
             affect_from_char(ch, ALC_DISC_AFFECT_PSYCHOKINETIC);
             send_to_char(ch, "You have launched the last of your psychokinetic spirits.\r\n");
@@ -3971,10 +3967,11 @@ ACMD(do_poisontouch)
   USE_STANDARD_ACTION(ch);
 }
 
-int find_discovery_num(char *name)
+static int find_discovery_num(char *name)
 {
   int index, ok;
-  char *temp, *temp2;
+  const char *temp;
+  char *temp2;
   char first[256], first2[256];
 
   /* PHASE 1: Check for exact match first (case-insensitive) */
@@ -3988,14 +3985,13 @@ int find_discovery_num(char *name)
   for (index = 0; index < NUM_ALC_DISCOVERIES; index++)
   {
     ok = TRUE;
-    /* It won't be changed, but other uses of this function elsewhere may. */
-    temp = any_one_arg((char *)alchemical_discovery_names[index], first);
+    temp = any_one_arg_c(alchemical_discovery_names[index], first, sizeof(first));
     temp2 = any_one_arg(name, first2);
     while (*first && *first2 && ok)
     {
       if (!is_abbrev(first2, first))
         ok = FALSE;
-      temp = any_one_arg(temp, first);
+      temp = any_one_arg_c(temp, first, sizeof(first));
       temp2 = any_one_arg(temp2, first2);
     }
     if (ok && !*first2 && !*first)
@@ -4069,10 +4065,11 @@ bool display_discovery_info(struct char_data *ch, char *discoveryname)
   return TRUE;
 }
 
-int find_grand_discovery_num(char *name)
+static int find_grand_discovery_num(char *name)
 {
   int index, ok;
-  char *temp, *temp2;
+  const char *temp;
+  char *temp2;
   char first[256], first2[256];
 
   for (index = 1; index < NUM_GR_ALC_DISCOVERIES; index++)
@@ -4081,14 +4078,13 @@ int find_grand_discovery_num(char *name)
       return (index);
 
     ok = TRUE;
-    /* It won't be changed, but other uses of this function elsewhere may. */
-    temp = any_one_arg((char *)grand_alchemical_discovery_names[index], first);
+    temp = any_one_arg_c(grand_alchemical_discovery_names[index], first, sizeof(first));
     temp2 = any_one_arg(name, first2);
     while (*first && *first2 && ok)
     {
       if (!is_abbrev(first2, first))
         ok = FALSE;
-      temp = any_one_arg(temp, first);
+      temp = any_one_arg_c(temp, first, sizeof(first));
       temp2 = any_one_arg(temp2, first2);
     }
     if (ok && !*first2 && !*first)

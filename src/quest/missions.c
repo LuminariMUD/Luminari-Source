@@ -43,7 +43,6 @@
 #include "hunts.h"
 
 /* inits */
-int is_player_grouped(struct char_data *target, struct char_data *group);
 
 /* constants */
 const char *const mission_details[][MISSION_DETAIL_FIELDS] = {
@@ -305,16 +304,14 @@ long get_mission_reward(char_data *ch, int reward_type)
 {
   int reward = 0;
   int level = GET_LEVEL(ch);
-  float mult = MAX(0, GET_MISSION_DIFFICULTY(ch));
-
-  if (mult == 0)
-    mult = 0.5;
+  int difficulty = MAX(0, GET_MISSION_DIFFICULTY(ch));
+  double mult = difficulty > 0 ? (double)difficulty : 0.5;
 
   switch (reward_type)
   {
   case MISSION_CREDITS:
     reward = 40 + dice(level * 2, 3);
-    reward *= 5 + (mult * 2);
+    reward = (int)(reward * (5 + (mult * 2)));
     break;
   case MISSION_STANDING:
     reward = (int)(50 * mult);
@@ -361,12 +358,12 @@ void clear_mission_mobs(char_data *ch)
   }
 }
 
-void increase_mob_difficulty(struct char_data *mob, int difficulty)
+static void increase_mob_difficulty(struct char_data *mob, int difficulty)
 {
   switch (difficulty)
   {
   case MISSION_DIFF_EASY:
-    GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 0.5;
+    GET_REAL_MAX_HIT(mob) = (int)(GET_REAL_MAX_HIT(mob) * 0.5);
     GET_HITROLL(mob) -= 2;
     GET_DAMROLL(mob) -= 2;
     mob->points.armor -= 30;
@@ -390,7 +387,7 @@ void increase_mob_difficulty(struct char_data *mob, int difficulty)
     mob->points.armor += 80;
     break;
   case MISSION_DIFF_SEVERE:
-    GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 7.5;
+    GET_REAL_MAX_HIT(mob) = (int)(GET_REAL_MAX_HIT(mob) * 7.5);
     GET_HITROLL(mob) += 6;
     GET_DAMROLL(mob) += 6;
     mob->points.armor += 100;
@@ -406,13 +403,13 @@ int select_mission_coords(int start)
   int x = 0, y = 0;
   int terrain = 0;
   room_rnum room = NOWHERE;
-  int room_vnum = 0;
+  int room_vnum_id = 0;
 
   y = dice(1, 21) - 10;
   x = dice(1, 21) - 10;
 
-  room_vnum = get_hunt_room(start, x, y);
-  room = real_room(room_vnum);
+  room_vnum_id = get_hunt_room(start, x, y);
+  room = real_room(room_vnum_id);
 
   terrain = world[room].sector_type;
 
@@ -427,10 +424,10 @@ int select_mission_coords(int start)
   case SECT_INSIDE:
   case SECT_INSIDE_ROOM:
     select_hunt_coords(start);
-    return room_vnum;
+    return room_vnum_id;
   }
 
-  return room_vnum;
+  return room_vnum_id;
 }
 
 void create_mission_mobs(char_data *ch)
@@ -472,7 +469,7 @@ void create_mission_mobs(char_data *ch)
     mob->points.armor -= 40;
 
     GET_REAL_MAX_HIT(mob) = GET_HIT(mob);
-    GET_NDD(mob) = GET_SDD(mob) = MAX(2, GET_LEVEL(mob) / 6) + GET_MISSION_DIFFICULTY(ch);
+    GET_NDD(mob) = GET_SDD(mob) = (byte)(MAX(2, GET_LEVEL(mob) / 6) + GET_MISSION_DIFFICULTY(ch));
     award_set_points(mob, AWARD_EXPERIENCE, (GET_LEVEL(mob) * GET_LEVEL(mob) * 75));
     award_set_points(mob, AWARD_GOLD, (GET_LEVEL(mob) * 10));
 
@@ -547,7 +544,7 @@ void create_mission_mobs(char_data *ch)
       if (i > 0)
       {
         snprintf(buf, sizeof(buf), "%ld", GET_IDNUM(ch));
-        do_follow(mob, strdup(buf), 0, 0);
+        do_follow(mob, buf, 0, 0);
       }
     }
   }
@@ -640,7 +637,7 @@ void apply_mission_rewards(char_data *ch)
                award_gold(ch, (int)GET_MISSION_CREDITS(ch)));
 
   send_to_char(ch, "You have earned %d experience points for completing your mission.\r\n",
-               award_experience(ch, GET_MISSION_EXP(ch), AWARD_EXP_MODE_QUEST));
+               award_experience(ch, (int)GET_MISSION_EXP(ch), AWARD_EXP_MODE_QUEST));
 
   send_to_char(ch, "You've received a random loot drop!\r\n");
   award_magic_item(1, ch, quick_grade_check(level));

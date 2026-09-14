@@ -1733,12 +1733,12 @@ struct spell_info_type
       [NUM_CLASSES]; /* the level [class] gets this spell (lvl_impl + 1, if they don't get */
   int routines;
   byte violent;
-  int targets;              /* See below for use with TAR_XXX  */
-  const char *name;         /* Input size not limited. Originates from string constants. */
-  const char *wear_off_msg; /* Input size not limited. Originates from string constants. */
-  int time;                 /* casting time */
-  int memtime;              /* mem time */
-  int schoolOfMagic;        // school of magic, category for skills
+  int targets;        /* See below for use with TAR_XXX  */
+  const char *name;   /* Input size not limited. Originates from string constants. */
+  char *wear_off_msg; /* Owned copy, or unused_wearoff for an unused slot. */
+  int time;           /* casting time */
+  int memtime;        /* mem time */
+  int schoolOfMagic;  // school of magic, category for skills
 
   bool quest; // is this a quest spell?
 
@@ -1860,7 +1860,6 @@ ASPELL(spell_summon_instrument);
 ASPELL(spell_teleport);
 ASPELL(spell_shadow_jump);
 ASPELL(spell_transport_via_plants);
-ASPELL(spell_resurrect);
 ASPELL(spell_wall_of_fire);
 ASPELL(spell_wall_of_thorns);
 ASPELL(spell_wall_of_force);
@@ -2161,11 +2160,13 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 extern struct spell_info_type spell_info[];
 extern struct spell_info_type skill_info[];
 extern struct wall_information wallinfo[];
-extern char cast_arg2[];
+extern char cast_arg2[MAX_INPUT_LENGTH];
 extern char cast_arg3[];
 extern const char *unused_spellname;
 extern const int skills_alphabetic[NUM_SKILLS_IN_GAME];
 
 #endif /* __SPELL_PARSER_C__ */
 
+
+void create_wall(struct char_data *ch, int room, int dir, int type, int level);
 #endif /* _SPELLS_H_ */

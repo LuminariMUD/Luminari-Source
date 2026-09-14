@@ -41,7 +41,6 @@
 #include "mysql.h"
 #include "desc_engine.h"
 
-void insert_path(struct path_data *path);
 
 struct kdtree *kd_wilderness_rooms = NULL;
 
@@ -171,7 +170,7 @@ void initialize_wilderness_lists()
 }
 
 /* Get the value of the radial/box gradient at the specified (x,y) coordinate. */
-double get_radial_gradient(int x, int y)
+static double get_radial_gradient(int x, int y)
 {
   int cx, cy;
   int xsize = WILD_X_SIZE;
@@ -270,7 +269,7 @@ int get_elevation(int map, int x, int y)
   /* Apply the radial gradient. */
   result *= get_radial_gradient(x, y);
 
-  return 255 * result;
+  return (int)(255 * result);
 }
 
 /* Get elevation with region modifications but maintaining wilderness scale (0-255) */
@@ -321,7 +320,7 @@ int get_modified_elevation(int x, int y)
 }
 
 /* Get elevation in meters relative to wilderness sea level */
-float get_elevation_relative_sea_level(int x, int y)
+double get_elevation_relative_sea_level(int x, int y)
 {
   /* Get modified elevation in wilderness scale */
   int wilderness_elevation = get_modified_elevation(x, y);
@@ -335,16 +334,16 @@ float get_elevation_relative_sea_level(int x, int y)
   /* Convert to approximate meters */
   /* Assuming the wilderness scale represents reasonable elevation ranges */
   /* Scale factor: each unit above sea level = ~8 meters (gives ~1000m max height) */
-  float meters_above_sea_level = (float)elevation_above_sea_level * 8.0f;
+  double meters_above_sea_level = (double)elevation_above_sea_level * 8.0;
 
   /* Below sea level areas are treated as 0-5m (coastal/underwater) */
-  if (meters_above_sea_level < 0.0f)
+  if (meters_above_sea_level < 0.0)
   {
     /* Scale underwater areas to 0-5m depth */
-    float depth_ratio = (float)(-elevation_above_sea_level) / (float)sea_level;
-    if (depth_ratio > 1.0f)
-      depth_ratio = 1.0f;
-    return depth_ratio * 5.0f; /* 0-5m above sea level for underwater/coastal */
+    double depth_ratio = (double)(-elevation_above_sea_level) / (double)sea_level;
+    if (depth_ratio > 1.0)
+      depth_ratio = 1.0;
+    return depth_ratio * 5.0; /* 0-5m above sea level for underwater/coastal */
   }
 
   return meters_above_sea_level;
@@ -359,7 +358,7 @@ int get_weather(int x, int y)
   time_t now;
 
   now = time(NULL);
-  time_base = now % 100000;
+  time_base = (double)(now % 100000);
 
   time_base = time_base / (double)(100000.0);
   trans_x = x / (double)(WILD_X_SIZE / 1.0);
@@ -371,7 +370,7 @@ int get_weather(int x, int y)
   result = (result + 1) / 2.0;
   //log("DEBUG: Weather - %f %f %f %f", trans_x, trans_y, time_base, result);
 
-  return 255 * result;
+  return (int)(255 * result);
 }
 
 int get_moisture(int map, int x, int y)
@@ -388,7 +387,7 @@ int get_moisture(int map, int x, int y)
   /* Normalize over 0..1 */
   result = (result + 1) / 2.0;
 
-  return 255 * result;
+  return (int)(255 * result);
 }
 
 int get_temperature(int map, int x, int y)
@@ -411,8 +410,8 @@ int get_temperature(int map, int x, int y)
   pct = (double)(dist / (double)(WILD_Y_SIZE - equator));
 
   /* Return the temp. */
-  temp = (max_temp - (max_temp - min_temp) * pct) -
-         (MAX(1.5 * get_elevation(map, x, y) - WATERLINE, 0)) / 10;
+  temp = (int)((max_temp - (max_temp - min_temp) * pct) -
+               (MAX((int)(1.5 * get_elevation(map, x, y) - WATERLINE), 0)) / 10);
 
   return temp;
 }
@@ -425,7 +424,7 @@ int get_temperature(int map, int x, int y)
 int get_comprehensive_elevation(int x, int y, zone_rnum zone)
 {
   int base_elevation, modified_elevation;
-  struct region_list *regions = NULL;
+  struct region_list *regions_value = NULL;
   struct region_list *curr_region = NULL;
 
   /* Get base elevation from noise layer */
@@ -436,10 +435,10 @@ int get_comprehensive_elevation(int x, int y, zone_rnum zone)
   if (zone != NOWHERE)
   {
     /* Get enclosing regions to check for elevation modifications */
-    regions = get_enclosing_regions(zone, x, y);
+    regions_value = get_enclosing_regions(zone, x, y);
 
     /* Apply region-based elevation modifications */
-    for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
+    for (curr_region = regions_value; curr_region != NULL; curr_region = curr_region->next)
     {
       /* Check if region_table is valid and rnum is within bounds */
       if (region_table && curr_region->rnum <= top_of_region_table)
@@ -470,13 +469,13 @@ int get_comprehensive_elevation(int x, int y, zone_rnum zone)
     }
 
     /* Free the region list */
-    if (regions)
+    if (regions_value)
     {
       struct region_list *temp;
-      while (regions)
+      while (regions_value)
       {
-        temp = regions;
-        regions = regions->next;
+        temp = regions_value;
+        regions_value = regions_value->next;
         free(temp);
       }
     }
@@ -574,17 +573,17 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       map[x][y].weather = get_weather(x + x_offset, y + y_offset);
 
       /* Map should reflect changes from regions */
-      struct region_list *regions = NULL;
+      struct region_list *regions_value = NULL;
       struct region_list *curr_region = NULL;
       struct path_list *paths = NULL;
       struct path_list *curr_path = NULL;
 
       /* Get the enclosing regions. */
-      regions = get_enclosing_regions(real_zone(WILD_ZONE_VNUM), x + x_offset, y + y_offset);
+      regions_value = get_enclosing_regions(real_zone(WILD_ZONE_VNUM), x + x_offset, y + y_offset);
       paths = get_enclosing_paths(real_zone(WILD_ZONE_VNUM), x + x_offset, y + y_offset);
       //log("-> MAP: Processing location (%d, %d)", x + x_offset, y + y_offset);
       /* Override default values with region-based values. */
-      for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
+      for (curr_region = regions_value; curr_region != NULL; curr_region = curr_region->next)
       {
         /* Add this region to the tile's region list */
         if (map[x][y].num_regions < 24)
@@ -596,7 +595,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
         /* Check if region_table is valid and rnum is within bounds */
         if (!region_table || curr_region->rnum > top_of_region_table)
         {
-          log("SYSERR: Invalid region rnum %d in get_map_elev", curr_region->rnum);
+          log("SYSERR: Invalid region rnum %" PRI_IDX " in get_map_elev", curr_region->rnum);
           continue;
         }
 
@@ -650,7 +649,7 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
       }
 
       /* Free the region and path lists after use */
-      free_region_list(regions);
+      free_region_list(regions_value);
       free_path_list(paths);
     }
   }
@@ -786,7 +785,7 @@ int get_sector_type(int elevation, int temperature, int moisture)
 /* Get the sector type, modified by regions and paths. */
 int get_modified_sector_type(zone_rnum zone, int x, int y)
 {
-  struct region_list *regions = NULL;
+  struct region_list *regions_value = NULL;
   struct region_list *curr_region = NULL;
   struct path_list *paths = NULL;
   struct path_list *curr_path = NULL;
@@ -794,7 +793,7 @@ int get_modified_sector_type(zone_rnum zone, int x, int y)
   int elev, temp, mois;
 
   /* Get the enclosing regions. */
-  regions = get_enclosing_regions(zone, x, y);
+  regions_value = get_enclosing_regions(zone, x, y);
   /* Get the enclosing paths. */
   paths = get_enclosing_paths(zone, x, y);
 
@@ -805,12 +804,12 @@ int get_modified_sector_type(zone_rnum zone, int x, int y)
   sector_type = get_sector_type(elev, temp, mois);
 
   /* Override default values with region-based values. */
-  for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
+  for (curr_region = regions_value; curr_region != NULL; curr_region = curr_region->next)
   {
     /* Check if region_table is valid and rnum is within bounds */
     if (!region_table || curr_region->rnum > top_of_region_table)
     {
-      log("SYSERR: Invalid region rnum %d in assign_wilderness_room", curr_region->rnum);
+      log("SYSERR: Invalid region rnum %" PRI_IDX " in assign_wilderness_room", curr_region->rnum);
       continue;
     }
 
@@ -851,7 +850,7 @@ int get_modified_sector_type(zone_rnum zone, int x, int y)
   }
 
   /* Free the region and path lists before returning */
-  free_region_list(regions);
+  free_region_list(regions_value);
   free_path_list(paths);
 
   return sector_type;
@@ -973,7 +972,7 @@ void assign_wilderness_room(room_rnum room, int x, int y)
    * CRITICAL: Always check against these pointers before calling free()
    * to prevent crashes from attempting to free static memory.
    */
-  struct region_list *regions = NULL;
+  struct region_list *regions_value = NULL;
   struct region_list *curr_region = NULL;
   struct path_list *paths = NULL;
   struct path_list *curr_path = NULL;
@@ -990,7 +989,7 @@ void assign_wilderness_room(room_rnum room, int x, int y)
   world[room].wilderness_coordinates_set = true;
 
   /* Get the enclosing regions. */
-  regions = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);
+  regions_value = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);
   /* Get the enclosing paths. */
   paths = get_enclosing_paths(GET_ROOM_ZONE(room), x, y);
 
@@ -1011,12 +1010,12 @@ void assign_wilderness_room(room_rnum room, int x, int y)
                                             get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y));
 
   /* Override default values with region-based values. */
-  for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
+  for (curr_region = regions_value; curr_region != NULL; curr_region = curr_region->next)
   {
     /* Check if region_table is valid and rnum is within bounds */
     if (!region_table || curr_region->rnum > top_of_region_table)
     {
-      log("SYSERR: Invalid region rnum %d in assign_wilderness_room", curr_region->rnum);
+      log("SYSERR: Invalid region rnum %" PRI_IDX " in assign_wilderness_room", curr_region->rnum);
       continue;
     }
 
@@ -1077,7 +1076,7 @@ void assign_wilderness_room(room_rnum room, int x, int y)
   world[room].description = wilderness_desc;
 
   /* Free the region and path lists after use */
-  free_region_list(regions);
+  free_region_list(regions_value);
   free_path_list(paths);
 }
 
@@ -1102,7 +1101,7 @@ void mark_wilderness_room_occupied(room_rnum room)
   }
 }
 
-void line_vis(struct wild_map_tile **map, int x, int y, int x2, int y2)
+static void line_vis(struct wild_map_tile **map, int x, int y, int x2, int y2)
 {
   int i = 0;
   int visibility = 10;
@@ -1766,9 +1765,10 @@ char *gen_ascii_wilderness_map(int size, int x, int y, int map_type)
 
   char *mapstring = NULL;
 
-  struct wild_map_tile *data = malloc(sizeof(struct wild_map_tile) * xsize * ysize);
+  struct wild_map_tile *data;
 
-  map = malloc(sizeof(struct wild_map_tile *) * xsize);
+  CREATE(data, struct wild_map_tile, (size_t)xsize * (size_t)ysize);
+  CREATE(map, struct wild_map_tile *, (size_t)xsize);
 
   for (i = 0; i < xsize; i++)
   {
@@ -1861,23 +1861,23 @@ void save_map_to_file(const char *fn, int xsize, int ysize)
                                     get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, -y));
 
       /* Map should reflect changes from regions */
-      struct region_list *regions = NULL;
+      struct region_list *regions_value = NULL;
       struct region_list *curr_region = NULL;
       struct path_list *paths = NULL;
       struct path_list *curr_path = NULL;
 
       /* Get the enclosing regions. */
-      regions = get_enclosing_regions(real_zone(WILD_ZONE_VNUM), x, -y);
+      regions_value = get_enclosing_regions(real_zone(WILD_ZONE_VNUM), x, -y);
       /* Get the enclosing paths. */
       paths = get_enclosing_paths(real_zone(WILD_ZONE_VNUM), x, -y);
 
       /* Override default values with region-based values. */
-      for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
+      for (curr_region = regions_value; curr_region != NULL; curr_region = curr_region->next)
       {
         /* Check if region_table is valid and rnum is within bounds */
         if (!region_table || curr_region->rnum > top_of_region_table)
         {
-          log("SYSERR: Invalid region rnum %d in wilderness function", curr_region->rnum);
+          log("SYSERR: Invalid region rnum %" PRI_IDX " in wilderness function", curr_region->rnum);
           continue;
         }
 
@@ -1934,12 +1934,18 @@ void save_map_to_file(const char *fn, int xsize, int ysize)
         gdImageSetPixel(im, x + xsize / 2, ysize / 2 + y, color_by_sector[sector_type]);
 
       /* Free the region and path lists after use */
-      free_region_list(regions);
+      free_region_list(regions_value);
       free_path_list(paths);
     }
   }
 
   out = fopen_restricted(fn, "wb");
+  if (out == NULL)
+  {
+    log("SYSERR: Unable to open %s for writing: %s", fn, strerror(errno));
+    gdImageDestroy(im);
+    return;
+  }
   gdImagePng(im, out);
   fclose(out);
   gdImageDestroy(im);
@@ -1993,6 +1999,12 @@ void save_noise_to_file(int idx, const char *fn, int xsize, int ysize, int zoom)
   }
 
   out = fopen_restricted(fn, "wb");
+  if (out == NULL)
+  {
+    log("SYSERR: Unable to open %s for writing: %s", fn, strerror(errno));
+    gdImageDestroy(im);
+    return;
+  }
   gdImagePng(im, out);
   fclose(out);
   gdImageDestroy(im);
@@ -2129,18 +2141,18 @@ void generate_river(struct char_data *ch, int dir, region_vnum vnum, const char 
                                   get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, x, y));
 
     /* Should reflect changes from regions */
-    struct region_list *regions = NULL;
+    struct region_list *regions_value = NULL;
     struct region_list *curr_region = NULL;
     struct path_list *paths = NULL;
     struct path_list *curr_path = NULL;
 
     /* Get the enclosing regions. */
-    regions = get_enclosing_regions(real_zone(WILD_ZONE_VNUM), x, y);
+    regions_value = get_enclosing_regions(real_zone(WILD_ZONE_VNUM), x, y);
     /* Get the enclosing paths. */
     paths = get_enclosing_paths(real_zone(WILD_ZONE_VNUM), x, y);
 
     /* Override default values with region-based values. */
-    for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
+    for (curr_region = regions_value; curr_region != NULL; curr_region = curr_region->next)
     {
       switch (region_table[curr_region->rnum].region_type)
       {
@@ -2187,7 +2199,7 @@ void generate_river(struct char_data *ch, int dir, region_vnum vnum, const char 
     kd_res_free(set);
 
     /* Free the region and path lists after use */
-    free_region_list(regions);
+    free_region_list(regions_value);
     free_path_list(paths);
   }
 
@@ -2198,6 +2210,12 @@ void generate_river(struct char_data *ch, int dir, region_vnum vnum, const char 
   river.path_type = 5; /* Corresponds to river glyphs in the db */
   river.path_props = PATH_STREAM;
   river.num_vertices = num_vertices;
+  if (num_vertices == 0)
+  {
+    free(river.name);
+    send_to_char(ch, "A river cannot start in water.\r\n");
+    return;
+  }
 
   CREATE(river.vertices, struct vertex, num_vertices);
 

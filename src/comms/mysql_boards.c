@@ -31,10 +31,6 @@
 #include "mysql_boards.h"
 
 /* External Variables */
-extern MYSQL *conn;
-extern struct room_data *world;
-extern struct index_data *obj_index;
-extern room_rnum top_of_world;
 
 /* External Commands - original versions before board interception */
 void do_look(struct char_data *ch, const char *argument, int cmd, int subcmd);
@@ -246,7 +242,7 @@ void mysql_board_load_configs(void)
     return;
 
   /* Count rows first */
-  mysql_num_boards = mysql_num_rows(result);
+  mysql_num_boards = (int)mysql_num_rows(result);
 
   if (mysql_board_configs)
   {
@@ -291,13 +287,13 @@ void mysql_board_load_configs(void)
 /*
  * Get board configuration for a specific object vnum
  */
-struct mysql_board_config *mysql_board_get_config_by_obj(int obj_vnum)
+struct mysql_board_config *mysql_board_get_config_by_obj(int obj_vnum_id)
 {
   int i;
 
   for (i = 0; i < mysql_num_boards; i++)
   {
-    if (mysql_board_configs[i].obj_vnum == obj_vnum && mysql_board_configs[i].active)
+    if (mysql_board_configs[i].obj_vnum == obj_vnum_id && mysql_board_configs[i].active)
     {
       return &mysql_board_configs[i];
     }
@@ -522,7 +518,7 @@ struct mysql_board_post *mysql_board_get_post(int board_id, int post_id)
   }
 
   /* Allocate and populate post structure */
-  post = (struct mysql_board_post *)malloc(sizeof(struct mysql_board_post));
+  CREATE(post, struct mysql_board_post, 1);
   post->post_id = atoi(row[0]);
   post->board_id = atoi(row[1]);
   post->title = strdup(row[2]);
@@ -535,6 +531,11 @@ struct mysql_board_post *mysql_board_get_post(int board_id, int post_id)
   post->deleted = (atoi(row[9]) == 1);
 
   mysql_free_result(result);
+  if (!post->title || !post->body || !post->author)
+  {
+    mysql_board_free_post(post);
+    return NULL;
+  }
   return post;
 }
 
@@ -1471,7 +1472,7 @@ void mysql_board_handle_reply_title(struct descriptor_data *d, char *additional_
   d->board_title = strdup(full_title);
 
   /* Calculate size needed for quoted body */
-  quoted_length = strlen(original_post->body) * 2 + 1000; /* Extra space for formatting */
+  quoted_length = (int)(strlen(original_post->body) * 2 + 1000); /* Extra space for formatting */
   quoted_body = malloc(quoted_length);
 
   if (!quoted_body)
@@ -1494,7 +1495,7 @@ void mysql_board_handle_reply_title(struct descriptor_data *d, char *additional_
     if (line_end)
     {
       /* Copy line to temp buffer */
-      int line_len = line_end - line_start;
+      int line_len = (int)(line_end - line_start);
       if (line_len >= MAX_STRING_LENGTH - 1)
       {
         line_len = MAX_STRING_LENGTH - 2;
@@ -1528,7 +1529,7 @@ void mysql_board_handle_reply_title(struct descriptor_data *d, char *additional_
   strcat(quoted_body, "\r\n--- Reply is below this line ---\r\n\r\n");
 
   /* Set up string editor with quoted content */
-  d->str = (char **)malloc(sizeof(char *));
+  CREATE(d->str, char *, 1);
   *(d->str) = strdup(quoted_body);
   d->max_str = MAX_BOARD_BODY_LENGTH;
   d->backstr = NULL;
@@ -1937,7 +1938,7 @@ ACMD(do_boardcheck)
             if (*p == '\t' && *(p + 1))
             {
               /* Copy color code */
-              int len = strlen(display_name);
+              int len = (int)strlen(display_name);
               if (len < 69)
               {
                 display_name[len] = *p++;
@@ -1948,7 +1949,7 @@ ACMD(do_boardcheck)
             else
             {
               /* Copy regular character */
-              int len = strlen(display_name);
+              int len = (int)strlen(display_name);
               if (len < 69)
               {
                 display_name[len] = *p++;
@@ -2111,7 +2112,7 @@ ACMD(do_boardfind)
         if (*p == '\t' && *(p + 1))
         {
           /* Copy color code */
-          int len = strlen(display_name);
+          int len = (int)strlen(display_name);
           if (len < 49)
           {
             display_name[len] = *p++;
@@ -2122,7 +2123,7 @@ ACMD(do_boardfind)
         else
         {
           /* Copy regular character */
-          int len = strlen(display_name);
+          int len = (int)strlen(display_name);
           if (len < 49)
           {
             display_name[len] = *p++;
@@ -2163,7 +2164,7 @@ ACMD(do_boardfind)
         char room_truncated[33];
         strncpy(room_truncated, world[obj->in_room].name, 32);
         room_truncated[32] = '\0';
-        snprintf(display_location, sizeof(display_location), "\tCRoom [\tY%5d\tC] %.32s\tn",
+        snprintf(display_location, sizeof(display_location), "\tCRoom [\tY%5u\tC] %.32s\tn",
                  GET_ROOM_VNUM(obj->in_room), room_truncated);
       }
       else if (obj->in_obj)
@@ -2178,7 +2179,7 @@ ACMD(do_boardfind)
         }
         else if (obj->in_obj->in_room != NOWHERE)
         {
-          snprintf(display_location, sizeof(display_location), "\tCIn container at: [\tY%5d\tC]\tn",
+          snprintf(display_location, sizeof(display_location), "\tCIn container at: [\tY%5u\tC]\tn",
                    GET_ROOM_VNUM(obj->in_obj->in_room));
         }
         else
@@ -2228,7 +2229,7 @@ ACMD(do_boardfind)
         if (*p == '\t' && *(p + 1))
         {
           /* Copy color code */
-          int len = strlen(display_name);
+          int len = (int)strlen(display_name);
           if (len < 49)
           {
             display_name[len] = *p++;
@@ -2239,7 +2240,7 @@ ACMD(do_boardfind)
         else
         {
           /* Copy regular character */
-          int len = strlen(display_name);
+          int len = (int)strlen(display_name);
           if (len < 49)
           {
             display_name[len] = *p++;

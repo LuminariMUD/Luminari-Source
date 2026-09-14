@@ -232,7 +232,7 @@ void wild_map_cache_invalidate(void);
 int get_elevation(int map, int x, int y);
 int get_comprehensive_elevation(int x, int y, zone_rnum zone);
 int get_modified_elevation(int x, int y);
-float get_elevation_relative_sea_level(int x, int y);
+double get_elevation_relative_sea_level(int x, int y);
 int get_sector_type(int elevation, int temperature, int moisture);
 int get_weather(int x, int y);
 void show_wilderness_map(struct char_data *ch, int size, int x, int y);
@@ -246,7 +246,6 @@ void generate_river(struct char_data *ch, int dir, region_vnum vnum, const char 
 int get_modified_sector_type(zone_rnum zone, int x, int y);
 
 /* World Knowledge Base Generation */
-void generate_wilderness_knowledge_base(const char *output_filename);
 
 /* Wilderness */
 
@@ -300,4 +299,7 @@ struct path_list
   struct path_list *next;
 };
 
+
+int get_moisture(int map, int x, int y);
+int get_temperature(int map, int x, int y);
 #endif

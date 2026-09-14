@@ -23,12 +23,10 @@
 #define READ_SIZE 256
 
 /* Function prototypes */
-int atoi(const char *str);
-long atol(const char *str);
-int walkdir(FILE *index_file, char *dir);
+int walkdir(FILE *index_file, const char *dir);
 int get_line(FILE *fl, char *buf);
 char *parsename(char *filename);
-char *findLine(FILE *plr_file, char *tag);
+char *findLine(FILE *plr_file, const char *tag);
 long parseid(FILE *plr_file);
 int parselevel(FILE *plr_file);
 int parseadminlevel(FILE *plr_file, int level);
@@ -113,7 +111,7 @@ char *parsename(char *filename)
  * @param tag Tag to search for (e.g., "Id  :", "Levl:")
  * @return Pointer to content after tag, or NULL if not found
  */
-char *findLine(FILE *plr_file, char *tag)
+char *findLine(FILE *plr_file, const char *tag)
 {
   static char line[5000];
   rewind(plr_file);
@@ -193,7 +191,7 @@ long parselast(FILE *plr_file)
  * @param index_file Output file for the index
  * @param dir Directory to scan
  */
-int walkdir(FILE *index_file, char *dir)
+int walkdir(FILE *index_file, const char *dir)
 {
   char filename_qfd[1000];
   struct dirent *dp;
@@ -323,7 +321,7 @@ int get_line(FILE *fl, char *buf)
   } while (*temp == '*' || *temp == '\n' || *temp == '\r');
 
   /* Remove trailing newlines and carriage returns */
-  sl = strlen(temp);
+  sl = (int)strlen(temp);
   while (sl > 0 && (temp[sl - 1] == '\n' || temp[sl - 1] == '\r'))
     temp[--sl] = '\0';
 

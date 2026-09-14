@@ -29,12 +29,10 @@
 #include "brew.h"
 
 /* External function declarations */
-extern int find_skill_num(char *name);
 extern int spell_school(int spellnum);
-extern void save_char(struct char_data *ch, int load_room);
 
 /* Map CRAFT_SKILL_* constants to ABILITY_* constants */
-int craft_skill_to_ability(int craft_skill)
+static int craft_skill_to_ability(int craft_skill)
 {
   switch (craft_skill)
   {
@@ -58,8 +56,6 @@ int craft_skill_to_ability(int craft_skill)
 }
 
 /* Forward declarations */
-struct obj_data *create_potion(int spell_num, struct char_data *ch);
-struct obj_data *create_multi_spell_potion(int *spell_nums, int num_spells, struct char_data *ch);
 
 /* Mud event for brewing completion */
 MUD_EVENT_CALLBACK(event_brewing)
@@ -549,7 +545,7 @@ bool alchemist_can_brew_spell(struct char_data *ch, int spellnum)
 }
 
 /* Get the minimum spell circle across all classes that can cast it */
-int get_minimum_spell_circle(int spellnum)
+static int get_minimum_spell_circle(int spellnum)
 {
   int class, min_circle = 10, min_level;
 
@@ -575,7 +571,7 @@ int get_minimum_spell_circle(int spellnum)
 }
 
 /* Function to find a spell by full name (case-insensitive, partial match) */
-int find_spell_by_name(char *name)
+static int find_spell_by_name(char *name)
 {
   int i, j;
   char temp_name[MAX_INPUT_LENGTH];
@@ -587,7 +583,7 @@ int find_spell_by_name(char *name)
   /* Convert input to lowercase for comparison */
   strcpy(temp_name, name);
   for (i = 0; temp_name[i]; i++)
-    temp_name[i] = tolower(temp_name[i]);
+    temp_name[i] = (char)tolower(temp_name[i]);
 
   /* Check for exact matches first */
   for (i = 1; i <= TOP_SPELL_DEFINE; i++)
@@ -597,7 +593,7 @@ int find_spell_by_name(char *name)
 
     strcpy(spell_name, spell_info[i].name);
     for (j = 0; spell_name[j]; j++)
-      spell_name[j] = tolower(spell_name[j]);
+      spell_name[j] = (char)tolower(spell_name[j]);
 
     if (!strcmp(temp_name, spell_name))
       return i;
@@ -611,7 +607,7 @@ int find_spell_by_name(char *name)
 
     strcpy(spell_name, spell_info[i].name);
     for (j = 0; spell_name[j]; j++)
-      spell_name[j] = tolower(spell_name[j]);
+      spell_name[j] = (char)tolower(spell_name[j]);
 
     if (is_abbrev(temp_name, spell_name))
       return i;
@@ -621,7 +617,7 @@ int find_spell_by_name(char *name)
 }
 
 /* Check if character can brew the spell */
-bool can_brew_spell(struct char_data *ch, int spell_num)
+static bool can_brew_spell(struct char_data *ch, int spell_num)
 {
   int spell_level = 0;
 
@@ -940,7 +936,7 @@ ACMD(do_brew)
   int total_motes_by_type[NUM_CRAFT_MOTES] = {0};
   int total_gold = 0, brew_time = 0;
   int num_spells = 0, highest_circle = 0, i;
-  float cost_multiplier = 1.0;
+  double cost_multiplier = 1.0;
   struct mud_event_data *pMudEvent = NULL;
   const char *arg_ptr;
   int brewing_skill, dc;
@@ -1241,6 +1237,3 @@ ACMD(do_brew)
 #include "helpers.h"
 
 /* External function declarations */
-extern int find_skill_num(char *name);
-extern int spell_school(int spellnum);
-extern void save_char(struct char_data *ch, int load_room);

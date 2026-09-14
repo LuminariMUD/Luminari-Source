@@ -38,7 +38,7 @@ extern int weighted_object_bonuses[NUM_ITEM_WEARS][NUM_APPLIES];
 /***  utility functions ***/
 
 /* utility function to label 'rare grade' gear */
-const char *label_rare_grade(int rare_grade)
+static const char *label_rare_grade(int rare_grade)
 {
   switch (rare_grade)
   {
@@ -53,7 +53,7 @@ const char *label_rare_grade(int rare_grade)
 }
 
 /* utility function to determine 'rare grade' - extra special items */
-int determine_rare_grade()
+static int determine_rare_grade()
 {
   int roll = 0, rare_grade = RARE_GRADE_NORMAL;
 
@@ -175,7 +175,7 @@ int determine_rnd_misc_cat()
 }
 
 /* this function is used to inform ch and surrounding of a bazaar purchase */
-void say_bazaar(struct char_data *ch, struct obj_data *obj)
+static void say_bazaar(struct char_data *ch, struct obj_data *obj)
 {
   if (ch && obj)
   {
@@ -187,7 +187,7 @@ void say_bazaar(struct char_data *ch, struct obj_data *obj)
 }
 
 /* this function is used to inform ch and surrounding of a treasure drop */
-void say_treasure(struct char_data *ch, struct obj_data *obj)
+static void say_treasure(struct char_data *ch, struct obj_data *obj)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
@@ -367,7 +367,7 @@ int choose_cloth_material(void)
 }
 
 /* determine appropriate stat bonus apply for this piece of gear */
-int determine_stat_apply(int wear)
+static int determine_stat_apply(int wear)
 {
   int stat = APPLY_NONE;
 
@@ -551,7 +551,7 @@ int determine_stat_apply(int wear)
 }
 
 /* pick a random feat to put on our special items */
-int apply_bonus_feat(int rare_grade)
+static int apply_bonus_feat(int rare_grade)
 {
   /* just in case */
   if (rare_grade <= RARE_GRADE_NORMAL)
@@ -651,7 +651,7 @@ int adjust_bonus_value(int apply_location, int bonus)
 /* assign bonus-types to the bonus */
 
 /* called by: cp_modify_object_applies() */
-int adjust_bonus_type(int apply_location)
+static int adjust_bonus_type(int apply_location)
 {
   switch (apply_location)
   {
@@ -777,7 +777,8 @@ void determine_treasure(struct char_data *ch, struct char_data *mob)
   }
 }
 
-void award_random_magic_armor(struct char_data *ch, int grade)
+#if defined(USE_NEW_CRAFTING_SYSTEM)
+static void award_random_magic_armor(struct char_data *ch, int grade)
 {
   if (dice(1, 3) != 3)
     award_magic_armor_suit(ch, grade);
@@ -785,7 +786,7 @@ void award_random_magic_armor(struct char_data *ch, int grade)
     award_magic_armor(ch, grade, ITEM_WEAR_SHIELD);
 }
 
-void award_random_expendible_item(struct char_data *ch, int grade)
+static void award_random_expendible_item(struct char_data *ch, int grade)
 {
   switch (dice(1, 8))
   {
@@ -810,6 +811,7 @@ void award_random_expendible_item(struct char_data *ch, int grade)
     break;
   }
 }
+#endif
 
 #if defined(USE_NEW_CRAFTING_SYSTEM)
 /* character should get treasure, roll dice for what items to give out */
@@ -1897,10 +1899,10 @@ void award_magic_ammo(struct char_data *ch, int grade)
   obj2->short_description = strdup(desc);
   obj3->short_description = strdup(desc);
   obj4->short_description = strdup(desc);
-  desc[0] = toupper(desc[0]);
+  desc[0] = (char)toupper(desc[0]);
   strlcpy(desc5, desc, sizeof(desc5));
   strlcat(desc5, " is lying here.", sizeof(desc5));
-  desc5[0] = toupper(desc5[0]);
+  desc5[0] = (char)toupper(desc5[0]);
   obj->description = strdup(desc5);
   obj2->description = strdup(desc5);
   obj3->description = strdup(desc5);
@@ -1931,7 +1933,7 @@ void award_magic_ammo(struct char_data *ch, int grade)
  * 3)  determine Creation Points
  * 4)  determine AC bonus (Always first stat...)
  * 5)  craft description based on object and bonuses */
-void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool silent_mode)
+static void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool silent_mode)
 {
   struct obj_data *obj = NULL;
   int roll = 0, armor_desc_roll = 0, crest_num = 0;
@@ -2073,7 +2075,7 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   obj->name = strdup(keywords);
   // Set descriptions
   obj->short_description = strdup(desc);
-  desc[0] = toupper(desc[0]);
+  desc[0] = (char)toupper(desc[0]);
   dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " is lying here.");
   if (dcount > 0)
     dlen += dcount;
@@ -2218,7 +2220,7 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot)
   obj->name = strdup(keywords);
   // Set descriptions
   obj->short_description = strdup(desc);
-  desc[0] = toupper(desc[0]);
+  desc[0] = (char)toupper(desc[0]);
   strlcat(desc, " is lying here.", sizeof(desc));
   obj->description = strdup(desc);
 
@@ -2458,10 +2460,10 @@ void award_magic_armor_suit(struct char_data *ch, int grade)
   head->short_description = strdup(desch);
   arms->short_description = strdup(desca);
   legs->short_description = strdup(descl);
-  descb[0] = toupper(descb[0]);
-  desch[0] = toupper(desch[0]);
-  desca[0] = toupper(desca[0]);
-  descl[0] = toupper(descl[0]);
+  descb[0] = (char)toupper(descb[0]);
+  desch[0] = (char)toupper(desch[0]);
+  desca[0] = (char)toupper(desca[0]);
+  descl[0] = (char)toupper(descl[0]);
   strlcat(descb, " is lying here.", sizeof(descb));
   strlcat(desch, " is lying here.", sizeof(desch));
   strlcat(desca, " is lying here.", sizeof(desca));
@@ -2929,14 +2931,14 @@ void award_magic_weapon(struct char_data *ch, int grade)
              material_name[GET_OBJ_MATERIAL(obj)], hilt_color, handle_types[roll3]);
     obj->name = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s",
-             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
+             a_or_an(material_name[GET_OBJ_MATERIAL(obj)]), material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name, a_or_an(hilt_color), hilt_color,
+             handle_types[roll3]);
     obj->short_description = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s lies here.",
-             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
+             a_or_an(material_name[GET_OBJ_MATERIAL(obj)]), material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name, a_or_an(hilt_color), hilt_color,
+             handle_types[roll3]);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
@@ -2962,13 +2964,12 @@ void award_magic_weapon(struct char_data *ch, int grade)
     snprintf(buf, MAX_STRING_LENGTH, "%s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
              material_name[GET_OBJ_MATERIAL(obj)]);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s",
-             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s", a_or_an(material_name[GET_OBJ_MATERIAL(obj)]),
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s lies here.",
-             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+             a_or_an(material_name[GET_OBJ_MATERIAL(obj)]), material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
   }
@@ -2987,7 +2988,8 @@ void award_magic_weapon(struct char_data *ch, int grade)
  */
 #define SHORT_STRING 80
 
-void give_magic_weapon(struct char_data *ch, int selection, int enchantment, bool silent_mode)
+static void give_magic_weapon(struct char_data *ch, int selection, int enchantment,
+                              bool silent_mode)
 {
   struct obj_data *obj = NULL;
   int roll = 0;
@@ -3130,14 +3132,14 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
              material_name[GET_OBJ_MATERIAL(obj)], hilt_color, handle_types[roll3]);
     obj->name = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s",
-             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
+             a_or_an(material_name[GET_OBJ_MATERIAL(obj)]), material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name, a_or_an(hilt_color), hilt_color,
+             handle_types[roll3]);
     obj->short_description = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s lies here.",
-             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
+             a_or_an(material_name[GET_OBJ_MATERIAL(obj)]), material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name, a_or_an(hilt_color), hilt_color,
+             handle_types[roll3]);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
@@ -3163,13 +3165,12 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
     snprintf(buf, MAX_STRING_LENGTH, "%s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
              material_name[GET_OBJ_MATERIAL(obj)]);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s",
-             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s", a_or_an(material_name[GET_OBJ_MATERIAL(obj)]),
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s lies here.",
-             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+             a_or_an(material_name[GET_OBJ_MATERIAL(obj)]), material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
   }
@@ -3760,6 +3761,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
     GET_OBJ_VAL(obj, INSTRUMENT_VALUE_DIFFICULTY_REDUCTION) = dice(1, level) + 5;
     GET_OBJ_VAL(obj, INSTRUMENT_VALUE_EFFECTIVENESS) = dice(1, (level + 5) / 5);
     GET_OBJ_VAL(obj, INSTRUMENT_VALUE_BREAKABILITY) = dice(1, level) / 5;
+    break;
   default:
     break;
   }
@@ -3883,7 +3885,7 @@ void load_treasure(char_data *mob)
 
 /* utility function for bazaar below - misc armoring such
    as rings, necklaces, bracelets, etc */
-void disp_misc_type_menu(struct char_data *ch)
+static void disp_misc_type_menu(struct char_data *ch)
 {
   send_to_char(ch, "1) finger\r\n"
                    "2) neck\r\n"
@@ -4937,7 +4939,7 @@ bool is_resist_physical_apply(int bonus)
   return false;
 }
 
-bool is_everywhere_apply(int bonus)
+static bool is_everywhere_apply(int bonus)
 {
   if (is_spell_slot_apply(bonus))
     return true;
@@ -5438,8 +5440,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 1;
     else if (olevel >= 6)
       return 1;
-    else if (olevel >= 3)
-      return 0;
     else
       return 0;
 
@@ -5532,10 +5532,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 1;
     else if (olevel >= 9)
       return 1;
-    else if (olevel >= 6)
-      return 0;
-    else if (olevel >= 3)
-      return 0;
     else
       return 0;
 
@@ -5556,10 +5552,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 1;
     else if (olevel >= 9)
       return 1;
-    else if (olevel >= 6)
-      return 0;
-    else if (olevel >= 3)
-      return 0;
     else
       return 0;
 
@@ -5582,10 +5574,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 2;
     else if (olevel >= 9)
       return 2;
-    else if (olevel >= 6)
-      return 1;
-    else if (olevel >= 3)
-      return 1;
     else
       return 1;
 
@@ -5609,8 +5597,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 1;
     else if (olevel >= 6)
       return 1;
-    else if (olevel >= 3)
-      return 0;
     else
       return 0;
 
@@ -5631,10 +5617,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 2;
     else if (olevel >= 9)
       return 2;
-    else if (olevel >= 6)
-      return 1;
-    else if (olevel >= 3)
-      return 1;
     else
       return 1;
 
@@ -5698,10 +5680,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 1;
     else if (olevel >= 9)
       return 1;
-    else if (olevel >= 6)
-      return 0;
-    else if (olevel >= 3)
-      return 0;
     else
       return 0;
 
@@ -5724,8 +5702,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 2;
     else if (olevel >= 6)
       return 2;
-    else if (olevel >= 3)
-      return 1;
     else
       return 1;
 
@@ -5748,8 +5724,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 2;
     else if (olevel >= 6)
       return 2;
-    else if (olevel >= 3)
-      return 1;
     else
       return 1;
 
@@ -5772,8 +5746,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 15;
     else if (olevel >= 6)
       return 10;
-    else if (olevel >= 3)
-      return 5;
     else
       return 5;
 
@@ -5796,8 +5768,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 2;
     else if (olevel >= 6)
       return 2;
-    else if (olevel >= 3)
-      return 1;
     else
       return 1;
 
@@ -5820,8 +5790,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 3;
     else if (olevel >= 6)
       return 2;
-    else if (olevel >= 3)
-      return 1;
     else
       return 1;
 
@@ -5844,8 +5812,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 2;
     else if (olevel >= 6)
       return 2;
-    else if (olevel >= 3)
-      return 1;
     else
       return 1;
 
@@ -5866,10 +5832,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 2;
     else if (olevel >= 9)
       return 2;
-    else if (olevel >= 6)
-      return 1;
-    else if (olevel >= 3)
-      return 1;
     else
       return 1;
 
@@ -5951,8 +5913,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 6;
     else if (olevel >= 6)
       return 6;
-    else if (olevel >= 3)
-      return 5;
     else
       return 5;
 
@@ -5998,10 +5958,6 @@ int get_gear_bonus_amount_by_level(int bonus, int olevel)
       return 1;
     else if (olevel >= 9)
       return 1;
-    else if (olevel >= 6)
-      return 0;
-    else if (olevel >= 3)
-      return 0;
     else
       return 0;
 
@@ -6135,7 +6091,7 @@ void assign_weighted_bonuses(void)
   }
 }
 
-bool obj_has_bonus_already(struct obj_data *obj, int apply)
+static bool obj_has_bonus_already(struct obj_data *obj, int apply)
 {
   int i;
 
@@ -6173,7 +6129,7 @@ int get_first_wear_slot(struct obj_data *obj)
   return ITEM_WEAR_TAKE;
 }
 
-int get_apply_type_from_apply(int apply)
+static int get_apply_type_from_apply(int apply)
 {
   switch (apply)
   {
@@ -6293,7 +6249,7 @@ int choose_random_apply_type(void)
     return APPLY_TYPE_SPELL_ENHANCE;
 }
 
-int choose_random_apply(struct obj_data *obj)
+static int choose_random_apply(struct obj_data *obj)
 {
   int i, j, total = 0, count = 0;
   int apply = -1;

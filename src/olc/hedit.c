@@ -56,7 +56,7 @@ static bool hedit_execute_two_string_statement(const char *query, const char *fi
 
 struct helpcheck_keyword_index
 {
-  const char **items;
+  char **items;
   size_t count;
   size_t capacity;
 };
@@ -98,7 +98,7 @@ static void free_helpcheck_keyword_index(struct helpcheck_keyword_index *index)
     return;
 
   for (i = 0; i < index->count; i++)
-    free((void *)index->items[i]);
+    free(index->items[i]);
   free(index->items);
   memset(index, 0, sizeof(*index));
 }
@@ -109,7 +109,7 @@ static void free_helpcheck_keyword_index(struct helpcheck_keyword_index *index)
 static bool load_helpcheck_keyword_index(struct helpcheck_keyword_index *index, int level)
 {
   PREPARED_STMT *pstmt;
-  const char **resized_items;
+  char **resized_items;
   const char *keyword;
   size_t new_capacity;
   bool success;
@@ -235,7 +235,7 @@ static bool validate_help_tag(const char *tag, struct descriptor_data *d)
   }
 
   /* Check length boundaries */
-  len = strlen(tag);
+  len = (int)strlen(tag);
   if (len < MIN_TAG_LENGTH)
   {
     write_to_output(d, "Help tag too short (minimum %d characters).\r\n", MIN_TAG_LENGTH);
@@ -300,7 +300,7 @@ static bool validate_help_keyword(const char *keyword, struct descriptor_data *d
   }
 
   /* Check length boundaries */
-  len = strlen(keyword);
+  len = (int)strlen(keyword);
   if (len < MIN_KEYWORD_LENGTH)
   {
     write_to_output(d, "Keyword too short (minimum %d characters).\r\n", MIN_KEYWORD_LENGTH);
@@ -352,7 +352,7 @@ static bool validate_help_content(const char *content, struct descriptor_data *d
   }
 
   /* Check length */
-  len = strlen(content);
+  len = (int)strlen(content);
   if (len > MAX_STRING_LENGTH)
   {
     write_to_output(d, "Help content too long (maximum %d characters).\r\n", MAX_STRING_LENGTH);
@@ -642,7 +642,7 @@ static bool hedit_save_to_db(struct descriptor_data *d)
   }
   else
   {
-    char *editor_name = GET_NAME(d->character) ? GET_NAME(d->character) : "Unknown";
+    const char *editor_name = GET_NAME(d->character) ? GET_NAME(d->character) : "Unknown";
     if (mysql_stmt_bind_param_string(pstmt, 0, editor_name) &&
         mysql_stmt_bind_param_string(pstmt, 1, tag_lower))
     {
@@ -985,7 +985,7 @@ static void hedit_disp_keywords_menu(struct descriptor_data *d)
   OLC_MODE(d) = HEDIT_KEYWORD_MENU;
 }
 
-bool hedit_delete_keyword(struct help_entry_list *entry, int num)
+static bool hedit_delete_keyword(struct help_entry_list *entry, int num)
 {
   int i;
   bool found = FALSE;
@@ -1489,18 +1489,18 @@ ACMD(do_helpcheck)
         complete_cmd_info[i].minimum_level >= 0)
     {
       checked++;
-      if (!helpcheck_keyword_array_has_prefix(keywords.items, keywords.count,
+      if (!helpcheck_keyword_array_has_prefix((const char *const *)keywords.items, keywords.count,
                                               complete_cmd_info[i].command))
       {
-        len = snprintf_append(buf, sizeof(buf), len, "%-20.20s%s", complete_cmd_info[i].command,
-                              (++count % 3 ? "" : "\r\n"));
+        len = snprintf_append(buf, sizeof(buf), (int)len, "%-20.20s%s",
+                              complete_cmd_info[i].command, (++count % 3 ? "" : "\r\n"));
         if (len >= sizeof(buf) - 1)
           break;
       }
     }
   }
   if (count % 3)
-    len = snprintf_append(buf, sizeof(buf), len, "\r\n");
+    len = snprintf_append(buf, sizeof(buf), (int)len, "\r\n");
 
   free_helpcheck_keyword_index(&keywords);
 
@@ -1723,8 +1723,6 @@ static const char *get_level_name(int level)
     return "Staff";
   else if (level == LVL_GRSTAFF)
     return "Greater Staff";
-  else if (level == LVL_GRSTAFF)
-    return "Greater Staff";
   else if (level == LVL_IMPL)
     return "Implementor";
   else if (level > 0 && level < LVL_IMMORT)
@@ -1739,15 +1737,7 @@ static const char *get_level_name(int level)
 }
 
 /* Forward declarations for command functions used in categorization */
-ACMD_DECL(do_move);
-ACMD_DECL(do_action);
 ACMD_DECL(do_gen_cast);
-ACMD_DECL(do_gen_comm);
-ACMD_DECL(do_gen_door);
-ACMD_DECL(do_gen_ps);
-ACMD_DECL(do_gen_tog);
-ACMD_DECL(do_write);
-ACMD_DECL(do_activate);
 
 /* Get command category based on function pointer and name patterns */
 static const char *get_command_category(struct command_info *cmd)
@@ -1803,18 +1793,18 @@ static const char *get_command_category(struct command_info *cmd)
 }
 
 /* Get action type description */
-static const char *get_action_type_desc(int action_type)
+static const char *get_action_type_desc(int action_type_value)
 {
   /* Handle combined action flags */
-  if (action_type & ACTION_STANDARD && action_type & ACTION_MOVE)
+  if (action_type_value & ACTION_STANDARD && action_type_value & ACTION_MOVE)
     return "Requires both standard and move actions";
-  if (action_type & ACTION_STANDARD)
+  if (action_type_value & ACTION_STANDARD)
     return "Requires a standard action";
-  if (action_type & ACTION_MOVE)
+  if (action_type_value & ACTION_MOVE)
     return "Requires a move action";
-  if (action_type & ACTION_SWIFT)
+  if (action_type_value & ACTION_SWIFT)
     return "Requires a swift action";
-  if (action_type == ACTION_NONE)
+  if (action_type_value == ACTION_NONE)
     return "No action required";
 
   return "";
@@ -2367,7 +2357,7 @@ static void perform_helpgen(struct char_data *ch, const char *argument,
       return;
     }
 
-    int keywords_deleted = mysql_affected_rows(conn);
+    int keywords_deleted = (int)mysql_affected_rows(conn);
 
     /* Delete help entries */
     snprintf(query, sizeof(query), "DELETE FROM help_entries WHERE auto_generated = TRUE");
@@ -2378,7 +2368,7 @@ static void perform_helpgen(struct char_data *ch, const char *argument,
       return;
     }
 
-    int entries_deleted = mysql_affected_rows(conn);
+    int entries_deleted = (int)mysql_affected_rows(conn);
 
     send_to_char(ch, "Deleted %d auto-generated help entries and %d keywords.\r\n", entries_deleted,
                  keywords_deleted);
@@ -2456,7 +2446,7 @@ static void perform_helpgen(struct char_data *ch, const char *argument,
 
         if (mysql_query(conn, query) == 0)
         {
-          int deleted = mysql_affected_rows(conn);
+          int deleted = (int)mysql_affected_rows(conn);
           send_to_char(ch, "  Deleted %d orphaned keywords.\r\n", deleted);
           fixed += deleted;
         }
@@ -3164,7 +3154,7 @@ static struct help_entry_list *parse_help_entry(FILE *fp, int *min_level)
     }
 
     /* Add line to content */
-    int line_len = strlen(line);
+    int line_len = (int)strlen(line);
     if ((size_t)(content_len + line_len) < sizeof(content) - 1)
     {
       strlcat(content, line, sizeof(content));
@@ -3181,6 +3171,12 @@ static struct help_entry_list *parse_help_entry(FILE *fp, int *min_level)
 
   /* Generate tag from first keyword */
   char *first_keyword = strdup(keywords);
+  if (!entry->keywords || !entry->entry || !first_keyword)
+  {
+    free(first_keyword);
+    free_help_entry(entry);
+    return NULL;
+  }
   char *space = strchr(first_keyword, ' ');
   char *p;
   if (space)
@@ -3269,7 +3265,7 @@ static int import_entry_with_resolution(struct char_data *ch __attribute__((unus
           escaped_size *= 2;
           RECREATE(escaped_keywords, char, escaped_size);
         }
-        escaped_len = snprintf_append(escaped_keywords, escaped_size, escaped_len, ", ");
+        escaped_len = snprintf_append(escaped_keywords, escaped_size, (int)escaped_len, ", ");
       }
       first_keyword = 0;
 
@@ -3280,8 +3276,8 @@ static int import_entry_with_resolution(struct char_data *ch __attribute__((unus
         escaped_size *= 2;
         RECREATE(escaped_keywords, char, escaped_size);
       }
-      escaped_len =
-          snprintf_append(escaped_keywords, escaped_size, escaped_len, "'%s'", escaped_keyword);
+      escaped_len = snprintf_append(escaped_keywords, escaped_size, (int)escaped_len, "'%s'",
+                                    escaped_keyword);
 
       token = strtok_r(NULL, " ", &rest);
     }
@@ -3402,6 +3398,13 @@ static int import_entry_with_resolution(struct char_data *ch __attribute__((unus
 
       free(entry->tag);
       entry->tag = strdup(new_tag);
+      if (!entry->tag)
+      {
+        snprintf(msg_buf, msg_size, "  [ERROR] %s - out of memory\r\n", entry->keywords);
+        if (existing_help_tag)
+          free(existing_help_tag);
+        return -1;
+      }
       snprintf_append(msg_buf, msg_size, 0, "  [MERGED] %s (as %s)\r\n", entry->keywords, new_tag);
     }
     else if (!str_cmp(mode, "skip"))
@@ -3533,7 +3536,8 @@ static int import_help_hlp_file(struct char_data *ch, const char *mode)
       RECREATE(output_buf, char, new_size);                                                        \
       output_size = new_size;                                                                      \
     }                                                                                              \
-    output_len = snprintf_append(output_buf, output_size, output_len, fmt, ##__VA_ARGS__);         \
+    output_len =                                                                                   \
+        (size_t)snprintf_append(output_buf, output_size, (int)output_len, fmt, ##__VA_ARGS__);     \
   } while (0)
 
   /* Open the help.hlp file */
@@ -3646,7 +3650,6 @@ static int import_help_hlp_file(struct char_data *ch, const char *mode)
     if (imported > 0)
     {
       /* Clear the help cache */
-      extern void clear_help_cache(void);
       clear_help_cache();
       APPEND_TO_BUF("\r\nHelp cache cleared. New entries are now available.\r\n");
     }

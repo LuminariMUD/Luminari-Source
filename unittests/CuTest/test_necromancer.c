@@ -241,11 +241,11 @@ void Test_necromancer_bone_armor_replaces_owned_descriptions_once(CuTest *tc)
   free(armor.description);
 }
 
-static void setup_necromancer_test_armor(struct obj_data *armor, int armor_type, int material)
+static void setup_necromancer_test_armor(struct obj_data *armor, int armor_type_value, int material)
 {
   clear_object(armor);
   GET_OBJ_TYPE(armor) = ITEM_ARMOR;
-  GET_OBJ_VAL(armor, 1) = armor_type;
+  GET_OBJ_VAL(armor, 1) = armor_type_value;
   GET_OBJ_MATERIAL(armor) = material;
 }
 
@@ -275,8 +275,8 @@ void Test_necromancer_bone_armor_mixed_materials_receive_no_reduction(CuTest *tc
 
   spell_failure = compute_gear_spell_failure(&ch);
 
-  armor_list[SPEC_ARMOR_TYPE_PADDED].spellFail = saved_body_spell_failure;
-  armor_list[SPEC_ARMOR_TYPE_PADDED_HEAD].spellFail = saved_head_spell_failure;
+  armor_list[SPEC_ARMOR_TYPE_PADDED].spellFail = (ubyte)saved_body_spell_failure;
+  armor_list[SPEC_ARMOR_TYPE_PADDED_HEAD].spellFail = (ubyte)saved_head_spell_failure;
 
   CuAssertIntEquals(tc, 30, spell_failure);
 }
@@ -307,8 +307,8 @@ void Test_necromancer_bone_armor_all_bone_applies_each_real_rank(CuTest *tc)
 
   spell_failure = compute_gear_spell_failure(&ch);
 
-  armor_list[SPEC_ARMOR_TYPE_PADDED].spellFail = saved_body_spell_failure;
-  armor_list[SPEC_ARMOR_TYPE_PADDED_HEAD].spellFail = saved_head_spell_failure;
+  armor_list[SPEC_ARMOR_TYPE_PADDED].spellFail = (ubyte)saved_body_spell_failure;
+  armor_list[SPEC_ARMOR_TYPE_PADDED_HEAD].spellFail = (ubyte)saved_head_spell_failure;
 
   CuAssertIntEquals(tc, 10, spell_failure);
 }

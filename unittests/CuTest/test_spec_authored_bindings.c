@@ -29,7 +29,8 @@ static const unsigned int spec_binding_test_vnums[SPEC_TEST_OWNER_COUNT] = {
     1403U,
 };
 
-static void spec_binding_test_set_error(char *error, size_t error_size, const char *format, ...)
+__attribute__((format(printf, 3, 4))) static void
+spec_binding_test_set_error(char *error, size_t error_size, const char *format, ...)
 {
   va_list arguments;
 
@@ -67,7 +68,7 @@ static bool spec_binding_test_record_matches(const struct spec_binding *binding,
 {
   if (binding == NULL)
   {
-    spec_binding_test_set_error(error, error_size, "owner %d has no authored binding", owner);
+    spec_binding_test_set_error(error, error_size, "owner %d has no authored binding", (int)owner);
     return false;
   }
   if (binding->owner != spec_binding_test_owners[owner] ||
@@ -78,7 +79,7 @@ static bool spec_binding_test_record_matches(const struct spec_binding *binding,
       strstr(binding->source_location, location_fragment) == NULL)
   {
     spec_binding_test_set_error(error, error_size,
-                                "owner %d authored binding metadata did not match", owner);
+                                "owner %d authored binding metadata did not match", (int)owner);
     return false;
   }
   if (canonical_name == NULL)
@@ -86,7 +87,7 @@ static bool spec_binding_test_record_matches(const struct spec_binding *binding,
     if (binding->definition != NULL)
     {
       spec_binding_test_set_error(error, error_size,
-                                  "owner %d unexpectedly resolved an unknown name", owner);
+                                  "owner %d unexpectedly resolved an unknown name", (int)owner);
       return false;
     }
   }
@@ -94,7 +95,7 @@ static bool spec_binding_test_record_matches(const struct spec_binding *binding,
            strcmp(binding->definition->canonical_name, canonical_name) != 0)
   {
     spec_binding_test_set_error(error, error_size,
-                                "owner %d resolved the wrong canonical definition", owner);
+                                "owner %d resolved the wrong canonical definition", (int)owner);
     return false;
   }
 

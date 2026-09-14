@@ -43,7 +43,6 @@
  *
  * This tight coupling is intentional for performance.
  */
-extern struct ai_service_state ai_state;
 
 /**
  * Add or update a response in the cache

@@ -76,7 +76,7 @@ char *fread_string(FILE *fl, const char *error)
   return (rslt);
 }
 
-void do_list(FILE *shop_f, FILE *newshop_f, int max)
+static void do_list(FILE *shop_f, FILE *newshop_f, int max)
 {
   int count, temp;
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -100,12 +100,12 @@ void do_list(FILE *shop_f, FILE *newshop_f, int max)
   fprintf(newshop_f, "-1\n");
 }
 
-void do_float(FILE *shop_f, FILE *newshop_f)
+static void do_float(FILE *shop_f, FILE *newshop_f)
 {
-  float f;
+  double f;
   char str[512];
 
-  if (fscanf(shop_f, "%f \n", &f) != 1)
+  if (fscanf(shop_f, "%lf \n", &f) != 1)
   {
     fprintf(stderr, "Error reading float value\n");
     exit(1);
@@ -117,7 +117,7 @@ void do_float(FILE *shop_f, FILE *newshop_f)
   fprintf(newshop_f, "%s \n", str);
 }
 
-void do_int(FILE *shop_f, FILE *newshop_f)
+static void do_int(FILE *shop_f, FILE *newshop_f)
 {
   int i;
 
@@ -129,7 +129,7 @@ void do_int(FILE *shop_f, FILE *newshop_f)
   fprintf(newshop_f, "%d \n", i);
 }
 
-void do_string(FILE *shop_f, FILE *newshop_f, char *msg)
+static void do_string(FILE *shop_f, FILE *newshop_f, char *msg)
 {
   char *ptr;
 

@@ -322,7 +322,7 @@ obj_data *get_obj_by_obj(obj_data *obj, char *name);
 obj_data *get_obj_in_room(room_data *room, char *name);
 obj_data *get_obj_by_room(room_data *room, char *name);
 int trgvar_in_room(room_vnum vnum);
-obj_data *get_obj_in_list(char *name, obj_data *list);
+obj_data *get_obj_in_list(const char *name, obj_data *list);
 obj_data *get_object_in_equip(char_data *ch, char *name);
 void check_time_triggers(void);
 void find_uid_name(char *uid, char *name, size_t nlen);
@@ -330,11 +330,11 @@ void do_sstat_room(struct char_data *ch, room_data *r);
 void do_sstat_object(char_data *ch, obj_data *j);
 void do_sstat_character(char_data *ch, char_data *k);
 void add_trigger(struct script_data *sc, trig_data *t, int loc);
-void script_vlog(const char *format, va_list args);
+void script_vlog(const char *format, va_list args) __attribute__((format(printf, 1, 0)));
 void script_log(const char *format, ...) __attribute__((format(printf, 1, 2)));
 char *matching_quote(char *p);
 struct room_data *dg_room_of_obj(struct obj_data *obj);
-bool check_flags_by_name_ar(int *array, int numflags, char *search, const char *namelist[]);
+bool check_flags_by_name_ar(int *array, int numflags, const char *search, const char *namelist[]);
 void read_saved_vars_ascii(FILE *file, struct char_data *ch, int count);
 void save_char_vars_ascii(FILE *file, struct char_data *ch);
 int perform_set_dg_var(struct char_data *ch, struct char_data *vict, char *val_arg);
@@ -398,7 +398,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
 void free_var_el(struct trig_var_data *var);
 void free_varlist(struct trig_var_data *vd);
 void free_context_vars(struct script_data *sc, long context);
-int remove_var(struct trig_var_data **var_list, char *name);
+int remove_var(struct trig_var_data **var_list, const char *name);
 void free_trigger(trig_data *trig);
 void extract_trigger(struct trig_data *trig);
 void extract_script(struct script_data **script);
@@ -495,7 +495,6 @@ ACMD_DECL(do_mclanally);
 /* from dg_olc.c... thinking these should be moved to oasis.h */
 void trigedit_save(struct descriptor_data *d);
 void trigedit_string_cleanup(struct descriptor_data *d, int terminator);
-int format_script(struct descriptor_data *d);
 void trigedit_setup_existing(struct descriptor_data *d, int rtrg_num, int mode);
 
 /* from dg_objcmd.c */

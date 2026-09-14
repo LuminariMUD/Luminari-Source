@@ -18,8 +18,6 @@
 #include "mysql.h"
 #include "comms/new_mail.h"
 
-extern MYSQL *conn;
-extern bool mysql_available;
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
 /* Insurance premium is a fraction of the insured value */
@@ -547,7 +545,7 @@ ACMD(do_shipupgrade)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -645,7 +643,7 @@ ACMD(do_shipinsure)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {

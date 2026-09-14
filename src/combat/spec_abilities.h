@@ -122,7 +122,7 @@ extern const char *activation_methods[];
 #define NUM_SPECABS 65 /* Number of Special Abilities */
 
 char *get_weapon_specab_default_command_word(int specab);
-bool obj_has_special_ability(struct obj_data *obj, int ability);
+bool obj_has_special_ability(const struct obj_data *obj, int ability);
 struct obj_special_ability *get_obj_special_ability(struct obj_data *obj, int ability);
 int process_armor_abilities(struct char_data *ch, struct char_data *victim, int actmtd,
                             const char *cmdword);

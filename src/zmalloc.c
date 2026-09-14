@@ -81,7 +81,7 @@ void zmalloc_init(void)
 void zdump(meminfo *m)
 {
 #define MAX_ZDUMP_SIZE 32
-  const unsigned char *hextab = (unsigned char *)"0123456789ABCDEF";
+  const unsigned char *hextab = (const unsigned char *)"0123456789ABCDEF";
   unsigned char hexline[37], ascline[17], *hexp, *ascp, *inp;
   int len, c = 1;
 
@@ -287,7 +287,7 @@ char *zstrdup(const char *src, char *file, int line)
 {
   char *result;
 #ifndef NO_MEMORY_STRDUP
-  result = (char *)zmalloc(strlen(src) + 1, file, line);
+  result = (char *)zmalloc((int)(strlen(src) + 1), file, line);
   if (!result)
     return NULL;
   strcpy(result, src);
@@ -306,6 +306,9 @@ void zmalloc_check()
   meminfo *m, *next_m;
   const char *admonishemnt;
   int total_leak = 0, num_leaks = 0, i;
+
+  if (zfd == NULL)
+    return;
 
   fprintf(zfd, "\n------------ Checking leaks ------------\n\n");
 
@@ -360,11 +363,8 @@ void zmalloc_check()
     fprintf(zfd, "zmalloc: Congratulations: leak-free code!\n");
   }
 
-  if (zfd)
-  {
-    fflush(zfd);
-    fclose(zfd);
-  }
+  fflush(zfd);
+  fclose(zfd);
 }
 
 void pad_check(meminfo *m)

@@ -47,9 +47,7 @@
 #include "wilderness/wilderness.h"
 
 /* externs */
-extern char cast_arg2[MAX_INPUT_LENGTH];
 
-int roll_initiative(struct char_data *ch);
 
 /**
  * Queue preflights pass NULL while listing command availability and the raw
@@ -269,7 +267,6 @@ static void maybe_consume_ki(struct char_data *ch, int feat_id)
 
   start_daily_use_cooldown(ch, feat_id);
 }
-void create_wall(struct char_data *ch, int room, int dir, int type, int level);
 
 /* defines */
 #define RAGE_AFFECTS 7
@@ -280,7 +277,7 @@ void create_wall(struct char_data *ch, int room, int dir, int type, int level);
 /**** Utility functions *******/
 
 // Centralize the rage bonus calculation logic.
-int get_rage_bonus(struct char_data *ch)
+static int get_rage_bonus(struct char_data *ch)
 {
   int bonus;
 
@@ -476,7 +473,7 @@ void perform_smokebomb(struct char_data *ch)
   call_magic(ch, ch, NULL, SPELL_DARKNESS, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
 }
 
-void perform_miststance(struct char_data *ch)
+static void perform_miststance(struct char_data *ch)
 {
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
@@ -488,7 +485,7 @@ void perform_miststance(struct char_data *ch)
   call_magic(ch, ch, NULL, SPELL_GASEOUS_FORM, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
 }
 
-void perform_icerabbit(struct char_data *ch, struct char_data *vict)
+static void perform_icerabbit(struct char_data *ch, struct char_data *vict)
 {
   int dam = 0;
   bool same_room = FALSE;
@@ -573,8 +570,8 @@ void perform_voidstrike(struct char_data *ch)
 }
 
 /* Way of Four Elements - Tier 3 Abilities */
-int flamesofphoenix_callback(struct char_data *ch, struct char_data *tch,
-                             void *data __attribute__((unused)))
+static int flamesofphoenix_callback(struct char_data *ch, struct char_data *tch,
+                                    void *data __attribute__((unused)))
 {
   int dam, save_level;
   struct affected_type af;
@@ -622,7 +619,7 @@ int flamesofphoenix_callback(struct char_data *ch, struct char_data *tch,
   return TRUE;
 }
 
-void perform_flamesofphoenix(struct char_data *ch)
+static void perform_flamesofphoenix(struct char_data *ch)
 {
   int targets_hit;
 
@@ -642,8 +639,8 @@ void perform_flamesofphoenix(struct char_data *ch)
   }
 }
 
-int waveofrollingearth_callback(struct char_data *ch, struct char_data *tch,
-                                void *data __attribute__((unused)))
+static int waveofrollingearth_callback(struct char_data *ch, struct char_data *tch,
+                                       void *data __attribute__((unused)))
 {
   int dam, save_level;
 
@@ -695,7 +692,7 @@ int waveofrollingearth_callback(struct char_data *ch, struct char_data *tch,
   return TRUE;
 }
 
-void perform_waveofrollingearth(struct char_data *ch)
+static void perform_waveofrollingearth(struct char_data *ch)
 {
   int targets_hit;
 
@@ -715,7 +712,7 @@ void perform_waveofrollingearth(struct char_data *ch)
   }
 }
 
-void perform_ridethewind(struct char_data *ch)
+static void perform_ridethewind(struct char_data *ch)
 {
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
@@ -727,7 +724,7 @@ void perform_ridethewind(struct char_data *ch)
   call_magic(ch, ch, NULL, SPELL_FLY, 0, CLASS_LEVEL(ch, CLASS_MONK), CAST_INNATE);
 }
 
-void perform_eternalmountaindefense(struct char_data *ch)
+static void perform_eternalmountaindefense(struct char_data *ch)
 {
   struct affected_type af;
   struct damage_reduction_type *new_dr;
@@ -922,8 +919,8 @@ MUD_EVENT_CALLBACK(event_fist_of_four_thunders)
   return 0;
 }
 
-int fistoffourthunders_callback(struct char_data *ch, struct char_data *tch,
-                                void *data __attribute__((unused)))
+static int fistoffourthunders_callback(struct char_data *ch, struct char_data *tch,
+                                       void *data __attribute__((unused)))
 {
   int dam;
 
@@ -946,7 +943,7 @@ int fistoffourthunders_callback(struct char_data *ch, struct char_data *tch,
   return TRUE;
 }
 
-void perform_fistoffourthunders(struct char_data *ch)
+static void perform_fistoffourthunders(struct char_data *ch)
 {
   int targets_hit;
 
@@ -970,7 +967,7 @@ void perform_fistoffourthunders(struct char_data *ch)
   }
 }
 
-void perform_riverofhungryflame(struct char_data *ch, int dir)
+static void perform_riverofhungryflame(struct char_data *ch, int dir)
 {
   struct obj_data *wall = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
@@ -1010,8 +1007,8 @@ void perform_riverofhungryflame(struct char_data *ch, int dir)
 /* Way of Four Elements - Tier 4 Capstone Abilities */
 
 /* Callback for Breath of Winter AoE effect */
-int breathofwinter_callback(struct char_data *ch, struct char_data *tch,
-                            void *data __attribute__((unused)))
+static int breathofwinter_callback(struct char_data *ch, struct char_data *tch,
+                                   void *data __attribute__((unused)))
 {
   int save_level, dam;
   struct affected_type af;
@@ -1050,7 +1047,7 @@ int breathofwinter_callback(struct char_data *ch, struct char_data *tch,
   return 1; /* Target was affected */
 }
 
-void perform_breathofwinter(struct char_data *ch)
+static void perform_breathofwinter(struct char_data *ch)
 {
   /* Consume ki (25% chance free while Avatar active) */
   maybe_consume_ki(ch, FEAT_STUNNING_FIST);
@@ -1064,7 +1061,7 @@ void perform_breathofwinter(struct char_data *ch)
   aoe_effect(ch, SKILL_BREATH_OF_WINTER, breathofwinter_callback, NULL);
 }
 
-void perform_elementalembodiment(struct char_data *ch, int element_type)
+static void perform_elementalembodiment(struct char_data *ch, int element_type)
 {
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
@@ -1099,7 +1096,7 @@ void perform_elementalembodiment(struct char_data *ch, int element_type)
   }
 }
 
-void perform_firesnake(struct char_data *ch)
+static void perform_firesnake(struct char_data *ch)
 {
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
@@ -1114,7 +1111,7 @@ void perform_firesnake(struct char_data *ch)
 /* rp_surprise_accuracy engine */
 
 /* The surprise-accuracy is reliant on rage */
-void perform_surpriseaccuracy(struct char_data *ch)
+static void perform_surpriseaccuracy(struct char_data *ch)
 {
   struct affected_type af;
 
@@ -1133,7 +1130,7 @@ void perform_surpriseaccuracy(struct char_data *ch)
 /* rp_come_and_get_me engine */
 
 /* The come and get me is reliant on rage */
-void perform_comeandgetme(struct char_data *ch)
+static void perform_comeandgetme(struct char_data *ch)
 {
   struct affected_type af;
 
@@ -1152,7 +1149,7 @@ void perform_comeandgetme(struct char_data *ch)
 /* rp_powerful_blow engine */
 
 /* The powerful blow is reliant on rage */
-void perform_powerfulblow(struct char_data *ch)
+static void perform_powerfulblow(struct char_data *ch)
 {
   struct affected_type af;
 
@@ -1169,7 +1166,7 @@ void perform_powerfulblow(struct char_data *ch)
 }
 
 /* inner fire engine */
-void perform_inner_fire(struct char_data *ch)
+static void perform_inner_fire(struct char_data *ch)
 {
   struct affected_type af[INNER_FIRE_AFFECTS];
   int bonus = 0, duration = 0, i = 0;
@@ -1205,7 +1202,7 @@ void perform_inner_fire(struct char_data *ch)
 }
 
 /* sacred flames engine */
-void perform_sacred_flames(struct char_data *ch)
+static void perform_sacred_flames(struct char_data *ch)
 {
   struct affected_type af;
   int bonus = 0, duration = 0;
@@ -1462,7 +1459,7 @@ bool bull_charge_stun(struct char_data *ch, struct char_data *vict)
   return TRUE;
 }
 
-void perform_charge(struct char_data *ch, struct char_data *vict)
+static void perform_charge(struct char_data *ch, struct char_data *vict)
 {
   struct affected_type af[CHARGE_AFFECTS];
   int i = 0;
@@ -1601,6 +1598,7 @@ static void perform_bull_charge(struct char_data *ch, int dir, char *name)
 {
   struct char_data *vict = NULL;
   room_rnum to_room = NOWHERE;
+  char dir_name[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!*name)
   {
@@ -1636,8 +1634,9 @@ static void perform_bull_charge(struct char_data *ch, int dir, char *name)
     return;
   }
 
-  act("You lower your head and charge $T!", FALSE, ch, NULL, (void *)dirs[dir], TO_CHAR);
-  act("$n lowers $s head and charges $T!", FALSE, ch, NULL, (void *)dirs[dir], TO_ROOM);
+  strlcpy(dir_name, dirs[dir], sizeof(dir_name));
+  act("You lower your head and charge $T!", FALSE, ch, NULL, dir_name, TO_CHAR);
+  act("$n lowers $s head and charges $T!", FALSE, ch, NULL, dir_name, TO_ROOM);
   if (!perform_move_full(ch, dir, TRUE, true))
     return;
   if (IN_ROOM(vict) != IN_ROOM(ch))
@@ -2215,7 +2214,7 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict)
  *
  * Note - Charging gives +2 to your attack
  */
-bool perform_shieldcharge(struct char_data *ch, struct char_data *vict)
+static bool perform_shieldcharge(struct char_data *ch, struct char_data *vict)
 {
   struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
 
@@ -2278,7 +2277,7 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict)
 /* shieldslam engine :
  * Perform the shield slam, check for proficiency and the required
  * equipment, also check for any enhancing feats. */
-bool perform_shieldslam(struct char_data *ch, struct char_data *vict)
+static bool perform_shieldslam(struct char_data *ch, struct char_data *vict)
 {
   struct affected_type af;
   struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
@@ -2425,7 +2424,7 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict)
   }
 }
 
-void apply_paladin_mercies(struct char_data *ch, struct char_data *vict)
+static void apply_paladin_mercies(struct char_data *ch, struct char_data *vict)
 {
   if (!ch || !vict)
     return;
@@ -4055,7 +4054,7 @@ ACMD(do_defensive_stance)
   if (HAS_FEAT(ch, FEAT_BULWARK_OF_DEFENSE))
   {
     bonus = 6;
-    duration *= 1.5;
+    duration = (int)(duration * 1.5);
   }
 
   send_to_char(ch, "\tcYou take on a \tWdefensive stance\tc!\tn\r\n");
@@ -4247,14 +4246,14 @@ ACMD(do_rage)
       int dc = 10 + GET_LEVEL(ch) + GET_CHA_BONUS(ch);
       if (!savingthrow(ch, tch, SAVING_WILL, dc, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
       {
-        struct affected_type af;
+        struct affected_type inner_af;
         int blind_duration = dice(1, 4); // 1d4 rounds
 
-        new_affect(&af);
-        af.spell = SKILL_RAGE;
-        af.duration = blind_duration;
-        SET_BIT_AR(af.bitvector, AFF_BLIND);
-        affect_to_char(tch, &af);
+        new_affect(&inner_af);
+        inner_af.spell = SKILL_RAGE;
+        inner_af.duration = blind_duration;
+        SET_BIT_AR(inner_af.bitvector, AFF_BLIND);
+        affect_to_char(tch, &inner_af);
 
         act("Your rage blinds $N with overwhelming fury!", FALSE, ch, 0, tch, TO_CHAR);
         act("$n's rage blinds you with overwhelming fury!", FALSE, ch, 0, tch, TO_VICT);
@@ -4877,7 +4876,7 @@ ACMD(do_hit)
         for (i = 0; (size_t)i < strlen(mob_keys); i++)
           if (mob_keys[i] == ' ')
             mob_keys[i] = '-';
-        do_hit(ch, strdup(mob_keys), cmd, subcmd);
+        do_hit(ch, mob_keys, cmd, subcmd);
 
         // reach attacks get extra attack when combat starts
         if (has_reach(ch))
@@ -5411,7 +5410,7 @@ ACMD(do_disengage)
 }
 
 /* taunt engine */
-int perform_taunt(struct char_data *ch, struct char_data *vict)
+static int perform_taunt(struct char_data *ch, struct char_data *vict)
 {
   int attempt = d20(ch), resist = 10;
   int success = 0;
@@ -5531,7 +5530,7 @@ ACMD(do_taunt)
   perform_taunt(ch, vict);
 }
 
-int perform_intimidate(struct char_data *ch, struct char_data *vict)
+static int perform_intimidate(struct char_data *ch, struct char_data *vict)
 {
   int success = 0;
   int attempt = d20(ch), resist = 10;
@@ -6461,7 +6460,7 @@ static int fear_aura_callback(struct char_data *ch, struct char_data *tch, void 
 }
 
 /* the engine for dragon fear mechanic */
-int perform_fear_aura(struct char_data *ch)
+static int perform_fear_aura(struct char_data *ch)
 {
   int cast_level;
 
@@ -6738,7 +6737,7 @@ ACMD(do_pixiedust)
   send_to_char(ch, "You have %d pixie dust uses left.\r\n", PIXIE_DUST_USES(ch));
 }
 
-void perform_red_dragon_magic(struct char_data *ch, const char *argument)
+static void perform_red_dragon_magic(struct char_data *ch, const char *argument)
 {
   struct char_data *vict = NULL;
   char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
@@ -6843,7 +6842,7 @@ void perform_red_dragon_magic(struct char_data *ch, const char *argument)
   }
 }
 
-void perform_blue_dragon_magic(struct char_data *ch, const char *argument)
+static void perform_blue_dragon_magic(struct char_data *ch, const char *argument)
 {
   struct char_data *vict = NULL;
   char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
@@ -6949,7 +6948,7 @@ void perform_blue_dragon_magic(struct char_data *ch, const char *argument)
   }
 }
 
-void perform_green_dragon_magic(struct char_data *ch, const char *argument)
+static void perform_green_dragon_magic(struct char_data *ch, const char *argument)
 {
   struct char_data *vict = NULL;
   char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
@@ -7055,7 +7054,7 @@ void perform_green_dragon_magic(struct char_data *ch, const char *argument)
   }
 }
 
-void perform_black_dragon_magic(struct char_data *ch, const char *argument)
+static void perform_black_dragon_magic(struct char_data *ch, const char *argument)
 {
   struct char_data *vict = NULL;
   char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
@@ -7160,7 +7159,7 @@ void perform_black_dragon_magic(struct char_data *ch, const char *argument)
   }
 }
 
-void perform_white_dragon_magic(struct char_data *ch, const char *argument)
+static void perform_white_dragon_magic(struct char_data *ch, const char *argument)
 {
   struct char_data *vict = NULL;
   char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
@@ -8103,7 +8102,7 @@ int perform_tailsweep(struct char_data *ch)
   return vict_count;
 }
 
-void perform_stones_endurance(struct char_data *ch)
+static void perform_stones_endurance(struct char_data *ch)
 {
   struct affected_type af;
 
@@ -9789,7 +9788,7 @@ ACMD(do_powerstrike)
     return;
   }
 
-  GET_POWER_STRIKE(ch) = value;
+  GET_POWER_STRIKE(ch) = (sbyte)value;
 
   if (value == 0)
   {
@@ -10374,7 +10373,7 @@ MUD_EVENT_CALLBACK(event_radiant_aura)
 }
 
 /* drow faerie fire engine */
-void perform_faerie_fire(struct char_data *ch, struct char_data *vict)
+static void perform_faerie_fire(struct char_data *ch, struct char_data *vict)
 {
   PREREQ_NOT_PEACEFUL_ROOM();
 
@@ -10532,7 +10531,7 @@ ACMDCHECK(can_impromptu)
 }
 
 /* impromptu sneak attack engine */
-void perform_impromptu(struct char_data *ch, struct char_data *vict)
+static void perform_impromptu(struct char_data *ch, struct char_data *vict)
 {
   if (vict == ch)
   {
@@ -10556,7 +10555,7 @@ void perform_impromptu(struct char_data *ch, struct char_data *vict)
 }
 
 /* seeker arrow engine */
-void perform_seekerarrow(struct char_data *ch, struct char_data *vict)
+static void perform_seekerarrow(struct char_data *ch, struct char_data *vict)
 {
   if (vict == ch)
   {
@@ -10675,8 +10674,11 @@ ACMD(do_faeriefire)
   /* find the victim */
   vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
 
+  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    vict = FIGHTING(ch);
+
   /* we have a disqualifier here due to action system */
-  if (!FIGHTING(ch) && !vict)
+  if (!vict)
   {
     send_to_char(ch, "Who do you want to faerie fire?\r\n");
     return;
@@ -10685,8 +10687,6 @@ ACMD(do_faeriefire)
   {
     /* we allow this */
   }
-  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
-    vict = FIGHTING(ch);
 
   perform_faerie_fire(ch, vict);
 }
@@ -10705,8 +10705,11 @@ ACMD(do_kick)
   /* find the victim */
   vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
 
+  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    vict = FIGHTING(ch);
+
   /* we have a disqualifier here due to action system */
-  if (!FIGHTING(ch) && !vict)
+  if (!vict)
   {
     send_to_char(ch, "Who do you want to kick?\r\n");
     return;
@@ -10716,8 +10719,6 @@ ACMD(do_kick)
     send_to_char(ch, "You kick yourself.\r\n");
     return;
   }
-  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
-    vict = FIGHTING(ch);
 
   perform_kick(ch, vict);
 }
@@ -11350,7 +11351,7 @@ ACMD(do_charge)
         for (i = 0; (size_t)i < strlen(mob_keys); i++)
           if (mob_keys[i] == ' ')
             mob_keys[i] = '-';
-        do_charge(ch, strdup(mob_keys), cmd, subcmd);
+        do_charge(ch, mob_keys, cmd, subcmd);
 
         return;
       }
@@ -12123,7 +12124,7 @@ provoke attacks of opportunity.
 Feinting as a Move Action:
 With the Improved Feint feat, you can attempt a feint as a move action.
  */
-int perform_feint(struct char_data *ch, struct char_data *vict)
+static int perform_feint(struct char_data *ch, struct char_data *vict)
 {
   int bluff_skill_check = 0;
   int dc_bab_wisdom = 0;
@@ -12259,7 +12260,7 @@ ACMD(do_feint)
 }
 
 /* disarm mechanic */
-int perform_disarm(struct char_data *ch, struct char_data *vict, int mod)
+static int perform_disarm(struct char_data *ch, struct char_data *vict, int mod)
 {
   int pos;
   struct obj_data *wielded = NULL;
@@ -12447,7 +12448,7 @@ ACMD(do_disarm)
 }
 
 /* sunder mechanic - opposed attack rolls to break weapon/shield */
-int perform_sunder(struct char_data *ch, struct char_data *vict, int mod)
+static int perform_sunder(struct char_data *ch, struct char_data *vict, int mod)
 {
   int pos;
   struct obj_data *target_item = NULL;
@@ -12895,7 +12896,7 @@ static int lich_fear_callback(struct char_data *ch, struct char_data *tch, void 
   return 1;
 }
 
-bool perform_lichfear(struct char_data *ch)
+static bool perform_lichfear(struct char_data *ch)
 {
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE))
   {
@@ -14136,7 +14137,7 @@ ACMDU(do_favored_terrain)
   {
     if (GET_FAVORED_TERRAINS(ch, i) < 0)
     {
-      GET_FAVORED_TERRAINS(ch, i) = terrain;
+      GET_FAVORED_TERRAINS(ch, i) = (sbyte)terrain;
       send_to_char(
           ch, "Favored terrain added to slot %d: %s. You gain +2 initiative and Stealth there.\r\n",
           i, terrain_types[terrain]);
@@ -14295,7 +14296,7 @@ ACMDU(do_inquisitor_favored_enemy)
   {
     if (GET_FAVORED_ENEMY(ch, i) < 0)
     {
-      GET_FAVORED_ENEMY(ch, i) = enemy_type;
+      GET_FAVORED_ENEMY(ch, i) = (ubyte)enemy_type;
       send_to_char(
           ch,
           "Favored enemy added to slot %d: %s. You gain +%d attack, damage, and +%d AC against "
@@ -14362,7 +14363,7 @@ ACMDU(do_greater_judgment)
   act("$n has selected a new greater judgment type.", FALSE, ch, 0, 0, TO_ROOM);
 }
 
-void perform_bane(struct char_data *ch)
+static void perform_bane(struct char_data *ch)
 {
   struct affected_type af;
   char buf[200];
@@ -14479,7 +14480,7 @@ ACMDU(do_slayer)
     return;
   }
 
-  GET_SLAYER_JUDGEMENT(ch) = i;
+  GET_SLAYER_JUDGEMENT(ch) = (byte)i;
   send_to_char(
       ch,
       "You assign %s as your slayer enabled judgement.  "
@@ -14912,8 +14913,11 @@ ACMD(do_slam)
   /* find the victim */
   vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
 
+  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    vict = FIGHTING(ch);
+
   /* we have a disqualifier here due to action system */
-  if (!FIGHTING(ch) && !vict)
+  if (!vict)
   {
     send_to_char(ch, "Who do you want to slam?\r\n");
     return;
@@ -14923,8 +14927,6 @@ ACMD(do_slam)
     send_to_char(ch, "You slam yourself.\r\n");
     return;
   }
-  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
-    vict = FIGHTING(ch);
 
   perform_slam(ch, vict);
 }
@@ -16086,7 +16088,7 @@ ACMD(do_gloryscall)
 /* Water Whip - Monk Four Elements perk ability */
 /* Prepares your next unarmed attack to deal bonus water damage and potentially entangle */
 
-void perform_waterwhip(struct char_data *ch)
+static void perform_waterwhip(struct char_data *ch)
 {
   struct affected_type af;
 
@@ -16126,7 +16128,7 @@ ACMD(do_waterwhip)
 /* Gong of the Summit - Monk Four Elements perk ability */
 /* Prepares your next unarmed attack to deal bonus sound damage and potentially deafen */
 
-void perform_gongsummit(struct char_data *ch)
+static void perform_gongsummit(struct char_data *ch)
 {
   struct affected_type af;
 
@@ -16165,7 +16167,7 @@ ACMD(do_gongsummit)
 
 /* Fist of Unbroken Air - AoE force attack that damages and potentially knocks down enemies */
 
-void perform_fistair(struct char_data *ch)
+static void perform_fistair(struct char_data *ch)
 {
   struct affected_type af;
 
@@ -16205,8 +16207,8 @@ ACMD(do_fistair)
 /* Flowing River - AoE water attack that damages and extinguishes fire effects */
 
 /* Callback for flowing river AoE effect */
-int flowingriver_callback(struct char_data *ch, struct char_data *tch,
-                          void *data __attribute__((unused)))
+static int flowingriver_callback(struct char_data *ch, struct char_data *tch,
+                                 void *data __attribute__((unused)))
 {
   int dam;
 
@@ -16241,7 +16243,7 @@ int flowingriver_callback(struct char_data *ch, struct char_data *tch,
   return TRUE;
 }
 
-void perform_flowingriver(struct char_data *ch)
+static void perform_flowingriver(struct char_data *ch)
 {
   int targets_hit;
 
@@ -16287,8 +16289,8 @@ ACMD(do_flowingriver)
 /* Sweeping Cinder Strike - Cone AoE fire attack that damages and sets targets on fire */
 
 /* Callback for sweeping cinder strike AoE effect */
-int sweepingcinder_callback(struct char_data *ch, struct char_data *tch,
-                            void *data __attribute__((unused)))
+static int sweepingcinder_callback(struct char_data *ch, struct char_data *tch,
+                                   void *data __attribute__((unused)))
 {
   int dam, save_level;
   struct affected_type af;
@@ -16327,7 +16329,7 @@ int sweepingcinder_callback(struct char_data *ch, struct char_data *tch,
   return TRUE;
 }
 
-void perform_sweepingcinder(struct char_data *ch)
+static void perform_sweepingcinder(struct char_data *ch)
 {
   int targets_hit;
 
@@ -16371,8 +16373,8 @@ ACMD(do_sweepingcinder)
 /* Rush of the Gale Spirits - Creates a gust of wind that knocks down flying enemies and pushes back others */
 
 /* Callback for gale rush AoE effect */
-int galerush_callback(struct char_data *ch, struct char_data *tch,
-                      void *data __attribute__((unused)))
+static int galerush_callback(struct char_data *ch, struct char_data *tch,
+                             void *data __attribute__((unused)))
 {
   int save_level, dam;
   struct affected_type af;
@@ -16441,7 +16443,7 @@ int galerush_callback(struct char_data *ch, struct char_data *tch,
   return TRUE;
 }
 
-void perform_galerush(struct char_data *ch)
+static void perform_galerush(struct char_data *ch)
 {
   int targets_hit;
 
@@ -16652,24 +16654,24 @@ ACMD(do_masscurewounds)
 }
 
 /* Helper functions for Nature's Wrath */
-bool has_beast_master_capstone(struct char_data *ch)
+static bool has_beast_master_capstone(struct char_data *ch)
 {
   /* Check if character has Beast Master capstone perk */
   return has_perk(ch, PERK_RANGER_NATURES_WRATH);
 }
 
-int GET_NATURES_WRATH_COOLDOWN(struct char_data *ch)
+static int GET_NATURES_WRATH_COOLDOWN(struct char_data *ch)
 {
   /* Retrieve cooldown value (seconds) from player struct */
   return ch->natures_wrath_cooldown;
 }
 
-void SET_NATURES_WRATH_COOLDOWN(struct char_data *ch, int seconds)
+static void SET_NATURES_WRATH_COOLDOWN(struct char_data *ch, int seconds)
 {
   ch->natures_wrath_cooldown = seconds;
 }
 
-void apply_natures_wrath_buff(struct char_data *ch)
+static void apply_natures_wrath_buff(struct char_data *ch)
 {
   /* Nature's Wrath: +4 to all stats, +2d8 damage, fast healing 5 for 10 rounds */
   struct affected_type af;

@@ -41,9 +41,6 @@
 #include "vessels/vessels.h"
 
 /* External function prototypes */
-void npc_offensive_spells(struct char_data *ch);
-void npc_racial_behave(struct char_data *ch);
-bool mob_knows_assigned_spells(struct char_data *ch);
 
 
 static bool mobile_activity_owner_eligible(const struct char_data *ch)
@@ -89,7 +86,7 @@ static bool mobile_resource_recovery_blocked(const struct char_data *ch)
 {
   return FIGHTING(ch) != NULL || !AWAKE(ch) || IS_CASTING(ch) || AFF_FLAGGED(ch, AFF_STUN) ||
          AFF_FLAGGED(ch, AFF_PARALYZED) || AFF_FLAGGED(ch, AFF_DAZED) ||
-         char_has_mud_event((struct char_data *)ch, eSTUNNED) || AFF_FLAGGED(ch, AFF_NAUSEATED);
+         char_has_mud_event(ch, eSTUNNED) || AFF_FLAGGED(ch, AFF_NAUSEATED);
 }
 
 static bool mobile_has_resource_recovery_work(const struct char_data *ch)
@@ -105,7 +102,7 @@ mobile_work_mask mobile_activity_room_reaction_reasons(const struct char_data *c
       MOB_FLAGGED(ch, MOB_ROL_AGGR_RACE_GOOD) || MOB_FLAGGED(ch, MOB_AGGR_EVIL) ||
       MOB_FLAGGED(ch, MOB_AGGR_NEUTRAL) || MOB_FLAGGED(ch, MOB_AGGR_GOOD) || MEMORY(ch) != NULL ||
       MOB_FLAGGED(ch, MOB_ROL_ARCHER) || IS_NPC_CASTER(ch) || IS_PSIONIC(ch) ||
-      mob_has_known_spells((struct char_data *)ch))
+      mob_has_known_spells(ch))
     return MOBILE_WORK_ROOM_REACTION;
   return MOBILE_WORK_NONE;
 }
@@ -192,7 +189,7 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
   int door = 0, found = FALSE, max = 0, where = -1;
   struct char_data *room_people = NULL; /* Cache for room occupants */
   SPECIAL_DECL(*spec_func);             /* Cache for spec proc function */
-  int mob_rnum = 0;                     /* Cache for mob rnum */
+  int mob_rnum_id = 0;                  /* Cache for mob rnum */
   bool disabled = false;
   size_t nodes_visited = 0;
 
@@ -226,12 +223,12 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     /* not the AWAKE() type of checks are inside the spec_procs */
     if ((requested_work & MOBILE_WORK_SPEC_ACTIVITY) && MOB_FLAGGED(ch, MOB_SPEC) && !no_specials)
     {
-      mob_rnum = GET_MOB_RNUM(ch); /* Cache the rnum lookup */
-      spec_func = mob_index[mob_rnum].func;
+      mob_rnum_id = GET_MOB_RNUM(ch); /* Cache the rnum lookup */
+      spec_func = mob_index[mob_rnum_id].func;
 
       if (spec_func == NULL)
       {
-        log("MOB ERROR: Mobile '%s' (vnum #%d) has the SPEC flag set but no special procedure "
+        log("MOB ERROR: Mobile '%s' (vnum #%u) has the SPEC flag set but no special procedure "
             "assigned.",
             GET_NAME(ch), GET_MOB_VNUM(ch));
         log("MOB FIX: Either remove the SPEC flag from this mob in medit, OR add it to the "
@@ -239,7 +236,7 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
         log("MOB FIX: Common spec procs: shop_keeper, guild_guard, snake, cityguard, receptionist, "
             "cryogenicist, postmaster, bank.");
         log("MOB NOTE: The SPEC flag has been automatically removed to prevent further errors. Use "
-            "'medit %d' and check 'mob flags'.",
+            "'medit %u' and check 'mob flags'.",
             GET_MOB_VNUM(ch));
         REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_SPEC);
       }

@@ -1021,11 +1021,12 @@ static bool flat_json_members_are_unique(const char *payload, size_t payload_byt
     key_length = 0;
     while (cursor < end && *cursor != '"')
     {
-      unsigned char byte = (unsigned char)*cursor++;
+      unsigned char byte_value = (unsigned char)*cursor++;
 
-      if (byte == '\\' || byte < 0x20 || byte >= 0x7f || key_length + 1 >= sizeof(key))
+      if (byte_value == '\\' || byte_value < 0x20 || byte_value >= 0x7f ||
+          key_length + 1 >= sizeof(key))
         return FALSE;
-      key[key_length++] = (char)byte;
+      key[key_length++] = (char)byte_value;
     }
     if (cursor >= end || *cursor++ != '"' || key_length == 0 || key_count >= 12)
       return FALSE;
@@ -1132,7 +1133,7 @@ static json_object *parse_editor_envelope(const char *payload)
   error = json_tokener_get_error(tokener);
   parsed_bytes = json_tokener_get_parse_end(tokener);
 
-  cursor = payload + MIN(parsed_bytes, payload_bytes);
+  cursor = payload + size_min(parsed_bytes, payload_bytes);
   cursor = skip_json_whitespace(cursor, payload + payload_bytes);
   if (error != json_tokener_success || root == NULL ||
       !json_object_is_type(root, json_type_object) || cursor != payload + payload_bytes)
@@ -1570,7 +1571,7 @@ static bool accept_editor_chunk(struct descriptor_data *d, json_object *root, in
   }
 
   remaining = transfer->total_bytes - transfer->received_bytes;
-  expected_bytes = MIN(remaining, (size_t)WEB_ONBOARDING_EDITOR_MAX_CHUNK_BYTES);
+  expected_bytes = size_min(remaining, (size_t)WEB_ONBOARDING_EDITOR_MAX_CHUNK_BYTES);
   if (decoded_bytes != expected_bytes ||
       transfer->received_bytes + decoded_bytes > transfer->total_bytes)
   {
@@ -2279,9 +2280,9 @@ static void build_account_characters(struct json_writer *w, struct descriptor_da
       if (CLASS_LEVEL(tch, class_index))
       {
         if (class_count)
-          classes_len = snprintf_append(classes, sizeof(classes), classes_len, "/");
-        classes_len =
-            snprintf_append(classes, sizeof(classes), classes_len, "%s", CLSLIST_NAME(class_index));
+          classes_len = snprintf_append(classes, sizeof(classes), (int)classes_len, "/");
+        classes_len = snprintf_append(classes, sizeof(classes), (int)classes_len, "%s",
+                                      CLSLIST_NAME(class_index));
         class_count++;
       }
     }
@@ -2482,17 +2483,17 @@ static const struct onboarding_error_info *find_onboarding_error(int error)
 
 static void build_error(struct json_writer *w, int error)
 {
-  const struct onboarding_error_info *info = find_onboarding_error(error);
+  const struct onboarding_error_info *info_value = find_onboarding_error(error);
 
-  if (info == NULL)
+  if (info_value == NULL)
     return;
 
   json_raw(w, ",\"error\":{");
-  json_field_string(w, "code", info->code, 40);
+  json_field_string(w, "code", info_value->code, 40);
   json_raw(w, ",");
-  json_field_string(w, "message", info->message, 160);
+  json_field_string(w, "message", info_value->message, 160);
   json_raw(w, ",");
-  json_field_string(w, "field", info->field, 40);
+  json_field_string(w, "field", info_value->field, 40);
   json_raw(w, "}");
 }
 
@@ -2935,37 +2936,37 @@ static void build_background_choices(struct json_writer *w, struct descriptor_da
 
   for (position = start + 1; position <= end; position++)
   {
-    int background = backgrounds_listed_alphabetically[position];
+    int background_value = backgrounds_listed_alphabetically[position];
     int feat = BACKGROUND_NONE;
     char skill_bonuses[200];
     const struct character_creation_background *content =
-        character_creation_background_for_value(background);
+        character_creation_background_for_value(background_value);
 
-    if (background <= BACKGROUND_NONE || background >= NUM_BACKGROUNDS ||
-        background_list[background].name == NULL)
+    if (background_value <= BACKGROUND_NONE || background_value >= NUM_BACKGROUNDS ||
+        background_list[background_value].name == NULL)
       continue;
-    feat = background_list[background].feat;
+    feat = background_list[background_value].feat;
 
     choice_separator(w, &first);
     json_raw(w, "{");
-    json_field_string(w, "id", background_stable_id(background), 64);
+    json_field_string(w, "id", background_stable_id(background_value), 64);
     json_raw(w, ",");
-    json_field_string(w, "label", background_list[background].name, 64);
+    json_field_string(w, "label", background_list[background_value].name, 64);
     json_raw(w, ",");
-    json_field_string(w, "wireValue", background_wire_value(background), 64);
+    json_field_string(w, "wireValue", background_wire_value(background_value), 64);
     json_raw(w, ",");
     json_field_bool(w, "enabled", TRUE);
     json_raw(w, ",");
-    json_field_string(w, "mediaKey", background_media_key(background), 64);
+    json_field_string(w, "mediaKey", background_media_key(background_value), 64);
     if (content != NULL && content->story_promise != NULL)
     {
       json_raw(w, ",");
       json_field_string(w, "summary", content->story_promise, 240);
     }
-    if (background_list[background].desc != NULL)
+    if (background_list[background_value].desc != NULL)
     {
       json_raw(w, ",");
-      json_field_string_truncated(w, "description", background_list[background].desc, 900);
+      json_field_string_truncated(w, "description", background_list[background_value].desc, 900);
     }
     json_raw(w, ",");
     json_field_bool(w, "inspectable", TRUE);
@@ -2974,8 +2975,8 @@ static void build_background_choices(struct json_writer *w, struct descriptor_da
                            content != NULL ? character_creation_content_provenance() : NULL);
 
     snprintf(skill_bonuses, sizeof(skill_bonuses), "%s +2, %s +2",
-             ability_names[background_list[background].skills[0]],
-             ability_names[background_list[background].skills[1]]);
+             ability_names[background_list[background_value].skills[0]],
+             ability_names[background_list[background_value].skills[1]]);
     json_raw(w, ",\"facts\":[{");
     json_field_string(w, "label", "Skill bonuses", 40);
     json_raw(w, ",");
@@ -3046,15 +3047,15 @@ static void build_idea_background_choices(struct json_writer *w, int state)
 
   for (position = 1; position < NUM_BACKGROUNDS; position++)
   {
-    int background = backgrounds_listed_alphabetically[position];
+    int background_value = backgrounds_listed_alphabetically[position];
     char description[720];
     const struct character_creation_background *content =
-        character_creation_background_for_value(background);
-    const char *first_seed = character_creation_inspiration_seed(background, kind, 0);
-    const char *second_seed = character_creation_inspiration_seed(background, kind, 1);
+        character_creation_background_for_value(background_value);
+    const char *first_seed = character_creation_inspiration_seed(background_value, kind, 0);
+    const char *second_seed = character_creation_inspiration_seed(background_value, kind, 1);
 
-    if (background <= BACKGROUND_NONE || background >= NUM_BACKGROUNDS ||
-        background_list[background].name == NULL)
+    if (background_value <= BACKGROUND_NONE || background_value >= NUM_BACKGROUNDS ||
+        background_list[background_value].name == NULL)
       continue;
 
     description[0] = '\0';
@@ -3065,24 +3066,24 @@ static void build_idea_background_choices(struct json_writer *w, int state)
     snprintf(wire, sizeof(wire), "%d", position);
     choice_separator(w, &first);
     json_raw(w, "{");
-    json_field_string(w, "id", background_stable_id(background), 64);
+    json_field_string(w, "id", background_stable_id(background_value), 64);
     json_raw(w, ",");
-    json_field_string(w, "label", background_list[background].name, 64);
+    json_field_string(w, "label", background_list[background_value].name, 64);
     json_raw(w, ",");
     json_field_string(w, "wireValue", wire, 16);
     json_raw(w, ",");
     json_field_bool(w, "enabled", TRUE);
     json_raw(w, ",");
-    json_field_string(w, "mediaKey", background_media_key(background), 64);
+    json_field_string(w, "mediaKey", background_media_key(background_value), 64);
     if (content != NULL && content->story_promise != NULL)
     {
       json_raw(w, ",");
       json_field_string(w, "summary", content->story_promise, 240);
     }
-    else if (background_list[background].desc != NULL)
+    else if (background_list[background_value].desc != NULL)
     {
       json_raw(w, ",");
-      json_field_string_truncated(w, "summary", background_list[background].desc, 400);
+      json_field_string_truncated(w, "summary", background_list[background_value].desc, 400);
     }
     if (description[0] != '\0')
     {
@@ -3091,7 +3092,7 @@ static void build_idea_background_choices(struct json_writer *w, int state)
     }
     json_raw(w, ",");
     json_field_bool(w, "inspectable",
-                    description[0] != '\0' || background_list[background].desc != NULL);
+                    description[0] != '\0' || background_list[background_value].desc != NULL);
     if (content != NULL)
       build_content_metadata(w, content->content_id, CHARACTER_CREATION_COMPASS_CANON_VERSION,
                              character_creation_content_provenance());
@@ -3978,7 +3979,7 @@ static void build_selected_detail(struct json_writer *w, struct descriptor_data 
   struct char_data *ch = d->character;
   char id[64];
   char fact_value[200];
-  int background = BACKGROUND_NONE;
+  int background_value = BACKGROUND_NONE;
   int region = REGION_NONE;
   int deity = 0;
   int feat = 0;
@@ -4009,31 +4010,31 @@ static void build_selected_detail(struct json_writer *w, struct descriptor_data 
 
   if (screen->state == CON_BACKGROUND_ARCHTYPE_CONFIRM && d->roleplay_pending.background_active)
   {
-    background = d->roleplay_pending.background;
-    if (background <= BACKGROUND_NONE || background >= NUM_BACKGROUNDS ||
-        background_list[background].name == NULL)
+    background_value = d->roleplay_pending.background;
+    if (background_value <= BACKGROUND_NONE || background_value >= NUM_BACKGROUNDS ||
+        background_list[background_value].name == NULL)
       return;
 
-    feat = background_list[background].feat;
-    background_content = character_creation_background_for_value(background);
+    feat = background_list[background_value].feat;
+    background_content = character_creation_background_for_value(background_value);
     json_raw(w, "\"detail\":{");
-    json_field_string(w, "id", background_stable_id(background), 64);
+    json_field_string(w, "id", background_stable_id(background_value), 64);
     json_raw(w, ",");
-    json_field_string(w, "label", background_list[background].name, 64);
+    json_field_string(w, "label", background_list[background_value].name, 64);
     json_raw(w, ",");
-    json_field_string(w, "mediaKey", background_media_key(background), 64);
-    if (background_list[background].desc != NULL)
+    json_field_string(w, "mediaKey", background_media_key(background_value), 64);
+    if (background_list[background_value].desc != NULL)
     {
       json_raw(w, ",");
-      json_field_string_truncated(w, "description", background_list[background].desc, 900);
+      json_field_string_truncated(w, "description", background_list[background_value].desc, 900);
     }
     build_content_metadata(
         w, background_content != NULL ? background_content->content_id : NULL,
         background_content != NULL ? CHARACTER_CREATION_COMPASS_CANON_VERSION : NULL,
         background_content != NULL ? character_creation_content_provenance() : NULL);
     snprintf(fact_value, sizeof(fact_value), "%s +2, %s +2",
-             ability_names[background_list[background].skills[0]],
-             ability_names[background_list[background].skills[1]]);
+             ability_names[background_list[background_value].skills[0]],
+             ability_names[background_list[background_value].skills[1]]);
     json_raw(w, ",\"facts\":[{");
     json_field_string(w, "label", "Skill bonuses", 40);
     json_raw(w, ",");
@@ -4435,8 +4436,8 @@ static void emit_outbound_transfer_frame(struct descriptor_data *d)
 
   if (transfer->sent_bytes < transfer->total_bytes)
   {
-    raw_bytes = MIN(transfer->total_bytes - transfer->sent_bytes,
-                    (size_t)WEB_ONBOARDING_EDITOR_MAX_CHUNK_BYTES);
+    raw_bytes = size_min(transfer->total_bytes - transfer->sent_bytes,
+                         (size_t)WEB_ONBOARDING_EDITOR_MAX_CHUNK_BYTES);
 
     encoded_bytes = EVP_EncodeBlock((unsigned char *)encoded,
                                     transfer->content + transfer->sent_bytes, (int)raw_bytes);

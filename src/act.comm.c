@@ -80,8 +80,8 @@ ACMDU(do_rsay)
     {
       strlcpy(type, "exclaim", sizeof(type));
     }
-    else if (argument[strlen(argument) - 1] == '.' && argument[strlen(argument) - 2] == '.' &&
-             argument[strlen(argument) - 3] == '.')
+    else if (strlen(argument) >= 3 && argument[strlen(argument) - 1] == '.' &&
+             argument[strlen(argument) - 2] == '.' && argument[strlen(argument) - 3] == '.')
     {
       strlcpy(type, "mutter", sizeof(type));
     }
@@ -187,8 +187,8 @@ ACMDU(do_say)
     {
       strlcpy(type, "exclaim", sizeof(type));
     }
-    else if (argument[strlen(argument) - 1] == '.' && argument[strlen(argument) - 2] == '.' &&
-             argument[strlen(argument) - 3] == '.')
+    else if (strlen(argument) >= 3 && argument[strlen(argument) - 1] == '.' &&
+             argument[strlen(argument) - 2] == '.' && argument[strlen(argument) - 3] == '.')
     {
       strlcpy(type, "mutter", sizeof(type));
     }
@@ -272,8 +272,8 @@ ACMDU(do_osay)
     {
       strlcpy(type, "exclaim", sizeof(type));
     }
-    else if (argument[strlen(argument) - 1] == '.' && argument[strlen(argument) - 2] == '.' &&
-             argument[strlen(argument) - 3] == '.')
+    else if (strlen(argument) >= 3 && argument[strlen(argument) - 1] == '.' &&
+             argument[strlen(argument) - 2] == '.' && argument[strlen(argument) - 3] == '.')
     {
       strlcpy(type, "mutter", sizeof(type));
     }
@@ -1190,7 +1190,7 @@ ACMDU(do_skillcheck)
         continue;
       snprintf(abilname, sizeof(abilname), "%s", ability_names[i]);
       for (j = 0; (size_t)j < strlen(abilname); j++)
-        abilname[j] = tolower(abilname[j]);
+        abilname[j] = (char)tolower(abilname[j]);
       if (is_abbrev(skill, abilname))
       {
         snprintf(abiltext, strlen(abiltext), "%s", ability_names[i]);

@@ -237,9 +237,9 @@ int i3_save_config(const char *filename);
 int i3_configure_feature(const char *feature, const char *state);
 
 /* Logging */
-void i3_log(const char *format, ...);
-void i3_error(const char *format, ...);
-void i3_debug(const char *format, ...);
+void i3_log(const char *format, ...) __attribute__((format(printf, 1, 2)));
+void i3_error(const char *format, ...) __attribute__((format(printf, 1, 2)));
+void i3_debug(const char *format, ...) __attribute__((format(printf, 1, 2)));
 
 /* JSON helpers - implementation specific */
 void *i3_create_request(const char *method, void *params);

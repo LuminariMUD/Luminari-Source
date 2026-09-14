@@ -117,7 +117,7 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
   case 1:
     if (perform_knockdown(ch, vict, SKILL_TRIP, true, true))
       break;
-    /* fallthrough */
+    [[fallthrough]];
   case 2:
     if (perform_dirtkick(ch, vict))
     {
@@ -126,7 +126,7 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
     }
     else
       send_to_char(ch, "Failed dirtkick\r\n");
-    /* fallthrough */
+    [[fallthrough]];
   default:
     if (perform_backstab(ch, vict))
       break;
@@ -197,6 +197,7 @@ void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
   case 2:
     if (perform_shieldpunch(ch, vict))
       break;
+    [[fallthrough]];
   default:
     break;
   }
@@ -236,7 +237,7 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
 void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
                         int engaged __attribute__((unused)))
 {
-  float percent = ((float)GET_HIT(ch) / (float)GET_MAX_HIT(ch)) * 100.0;
+  double percent = ((double)GET_HIT(ch) / (double)GET_MAX_HIT(ch)) * 100.0;
 
   /* list of skills to use:
    1) call mount

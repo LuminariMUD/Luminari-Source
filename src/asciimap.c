@@ -295,7 +295,8 @@ static void MapArea(room_rnum room, struct char_data *ch, int x, int y, int min,
       map[x + door_offsets[door][0]][y + door_offsets[door][1]] = vdoor_marks[door];
       if (map[x + offsets[door][0]][y + offsets[door][1]] == SECT_EMPTY)
         MapArea(room, ch, x + offsets[door][0], y + offsets[door][1], min, max,
-                xpos + door_offsets[door][0], ypos + door_offsets[door][1], worldmap);
+                (sh_int)(xpos + door_offsets[door][0]), (sh_int)(ypos + door_offsets[door][1]),
+                worldmap);
       continue;
     }
 
@@ -382,23 +383,27 @@ static void MapArea(room_rnum room, struct char_data *ch, int x, int y, int min,
       switch (door)
       {
       case NORTH:
-        prospect_xpos = ns_size;
+        prospect_xpos = (sh_int)ns_size;
         __attribute__((fallthrough));
       case SOUTH:
-        prospect_ypos = world[prospect_room].dir_option[rev_dir[door]] ? y_exit_pos : ew_size / 2;
+        prospect_ypos =
+            (sh_int)(world[prospect_room].dir_option[rev_dir[door]] ? y_exit_pos : ew_size / 2);
         break;
       case WEST:
-        prospect_ypos = ew_size;
+        prospect_ypos = (sh_int)ew_size;
         __attribute__((fallthrough));
       case EAST:
-        prospect_xpos = world[prospect_room].dir_option[rev_dir[door]] ? x_exit_pos : ns_size / 2;
+        prospect_xpos =
+            (sh_int)(world[prospect_room].dir_option[rev_dir[door]] ? x_exit_pos : ns_size / 2);
         break;
       case NORTHEAST:
       case NORTHWEST:
       case SOUTHEAST:
       case SOUTHWEST:
-        prospect_xpos = world[prospect_room].dir_option[rev_dir[door]] ? x_exit_pos : ns_size / 2;
-        prospect_ypos = world[prospect_room].dir_option[rev_dir[door]] ? y_exit_pos : ew_size / 2;
+        prospect_xpos =
+            (sh_int)(world[prospect_room].dir_option[rev_dir[door]] ? x_exit_pos : ns_size / 2);
+        prospect_ypos =
+            (sh_int)(world[prospect_room].dir_option[rev_dir[door]] ? y_exit_pos : ew_size / 2);
         break;
       }
 
@@ -468,7 +473,8 @@ const char *get_map_string(struct char_data *ch, room_vnum target_room)
       map[x][y] = (!(y % 2) && !worldmap) ? DOOR_NONE : SECT_EMPTY;
 
   /* starts the mapping with the center room */
-  MapArea(target_room, ch, centre, centre, min, max, ns_size / 2, ew_size / 2, worldmap);
+  MapArea(target_room, ch, centre, centre, min, max, (sh_int)(ns_size / 2), (sh_int)(ew_size / 2),
+          worldmap);
   map[centre][centre] = SECT_HERE;
   return CompactStringMap(centre, size);
 }
@@ -607,7 +613,8 @@ void perform_map(struct char_data *ch, const char *argument, bool worldmap)
       map[x][y] = (!(y % 2) && !worldmap) ? DOOR_NONE : SECT_EMPTY;
 
   /* starts the mapping with the centre room */
-  MapArea(IN_ROOM(ch), ch, centre, centre, min, max, ns_size / 2, ew_size / 2, worldmap);
+  MapArea(IN_ROOM(ch), ch, centre, centre, min, max, (sh_int)(ns_size / 2), (sh_int)(ew_size / 2),
+          worldmap);
 
   /* marks the center, where ch is */
   map[centre][centre] = SECT_HERE;
@@ -723,7 +730,8 @@ void str_and_map(char *str, struct char_data *ch, room_vnum target_room)
       map[x][y] = (!(y % 2) && !worldmap) ? DOOR_NONE : SECT_EMPTY;
 
   /* starts the mapping with the center room */
-  MapArea(target_room, ch, centre, centre, min, max, ns_size / 2, ew_size / 2, worldmap);
+  MapArea(target_room, ch, centre, centre, min, max, (sh_int)(ns_size / 2), (sh_int)(ew_size / 2),
+          worldmap);
   map[centre][centre] = SECT_HERE;
 
   /* char_size = rooms + doors + padding */

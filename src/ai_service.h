@@ -147,7 +147,7 @@ struct ai_config
   char openai_endpoint[256]; /* OPENAI_API_ENDPOINT */
   char model[64];            /* AI_MODEL: gpt-4o-mini, etc */
   int max_tokens;            /* AI_MAX_TOKENS */
-  float temperature;         /* AI_TEMPERATURE / 10 */
+  double temperature;        /* AI_TEMPERATURE / 10 */
   int timeout_ms;            /* AI_TIMEOUT_MS */
 
   /* Ollama settings */
@@ -155,9 +155,9 @@ struct ai_config
   char ollama_model[64];     /* OLLAMA_MODEL */
   int ollama_timeout_ms;     /* OLLAMA_TIMEOUT_MS */
   int ollama_max_tokens;     /* OLLAMA_MAX_TOKENS (num_predict) */
-  float ollama_temperature;  /* OLLAMA_TEMPERATURE / 10 */
+  double ollama_temperature; /* OLLAMA_TEMPERATURE / 10 */
   int ollama_top_k;          /* OLLAMA_TOP_K */
-  float ollama_top_p;        /* OLLAMA_TOP_P / 100 */
+  double ollama_top_p;       /* OLLAMA_TOP_P / 100 */
 
   /* General settings */
   int max_retries;             /* AI_MAX_RETRIES */

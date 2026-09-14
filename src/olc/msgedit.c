@@ -386,15 +386,17 @@ ACMD(do_msgedit)
   act("$n starts using OLC.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing message %d", GET_NAME(ch), OLC_NUM(d));
+  mudlog(CMP, LVL_IMMORT, TRUE, "OLC: %s starts editing message %" PRI_IDX, GET_NAME(ch),
+         OLC_NUM(d));
 }
 
 static void msgedit_main_menu(struct descriptor_data *d)
 {
   get_char_colors(d->character);
 
-  write_to_output(d, "%sMsg Edit: %s[%s%dx%d%s] [%s$n: Attacker | $N: Victim%s]%s\r\n", cyn, grn,
-                  yel, OLC_NUM(d), OLC_MSG_LIST(d)->number_of_attacks, grn, yel, grn, nrm);
+  write_to_output(d, "%sMsg Edit: %s[%s%" PRI_IDX "x%d%s] [%s$n: Attacker | $N: Victim%s]%s\r\n",
+                  cyn, grn, yel, OLC_NUM(d), OLC_MSG_LIST(d)->number_of_attacks, grn, yel, grn,
+                  nrm);
   write_to_output(d, "%s1%s) %sAction Type: %s%d %s[%s%s%s]%s\r\n", grn, yel, cyn, yel,
                   OLC_MSG_LIST(d)->a_type, grn, yel,
                   OLC_MSG_LIST(d)->a_type < TOP_SKILL_DEFINE

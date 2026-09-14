@@ -154,7 +154,7 @@ int trgvar_in_room(room_vnum vnum)
  * @retval obj_data * Pointer to the object if it is found in the list of
  * objects, NULL if the object is not found in the list.
  */
-obj_data *get_obj_in_list(char *name, obj_data *list)
+obj_data *get_obj_in_list(const char *name, obj_data *list)
 {
   obj_data *i;
   long id;
@@ -904,7 +904,7 @@ static bool schedule_trig_wait(struct trig_data *trig, void *go, int type, long 
     log("SYSERR: unable to replace a DG wait while its prior event is dispatching.");
     return false;
   }
-  when = MAX(when, 1L);
+  when = long_max(when, 1L);
   CREATE(wait_event_obj, struct wait_event_data, 1);
   wait_event_obj->trigger = trig;
   wait_event_obj->go = go;
@@ -979,7 +979,7 @@ bool dg_wait_runtime_init(void)
   status = event_runtime_register_type(&config, &dg_wait_event_type);
   if (status != GAME_SCHEDULER_OK)
   {
-    log("SYSERR: unable to register native event type 'dg.trigger.wait' (status %d).", status);
+    log("SYSERR: unable to register native event type 'dg.trigger.wait' (status %u).", status);
     return false;
   }
   return true;
@@ -1089,7 +1089,8 @@ static void do_stat_trigger(struct char_data *ch, trig_data *trig)
     return;
   }
 
-  len += snprintf(sb, sizeof(sb), "Name: '%s%s%s',  VNum: [%s%5d%s], RNum: [%5d]\r\n",
+  len += snprintf(sb, sizeof(sb),
+                  "Name: '%s%s%s',  VNum: [%s%5" PRI_IDX "%s], RNum: [%5" PRI_IDX "]\r\n",
                   CCYEL(ch, C_NRM), GET_TRIG_NAME(trig), CCNRM(ch, C_NRM), CCGRN(ch, C_NRM),
                   GET_TRIG_VNUM(trig), CCNRM(ch, C_NRM), GET_TRIG_RNUM(trig));
 
@@ -1172,7 +1173,9 @@ static void script_stat(char_data *ch, struct script_data *sc)
 
   for (t = TRIGGERS(sc); t; t = t->next)
   {
-    send_to_char(ch, "\r\n  \tCTrigger:\tn %s, \tCVNum: [\tn%5d\tC], RNum: [\tn%5d\tC]\tn\r\n",
+    send_to_char(ch,
+                 "\r\n  \tCTrigger:\tn %s, \tCVNum: [\tn%5" PRI_IDX "\tC], RNum: [\tn%5" PRI_IDX
+                 "\tC]\tn\r\n",
                  GET_TRIG_NAME(t), GET_TRIG_VNUM(t), GET_TRIG_RNUM(t));
 
     if (t->attach_type == OBJ_TRIGGER)
@@ -1364,11 +1367,11 @@ ACMD(do_attach)
     add_trigger(SCRIPT(victim), trig, loc);
 
     if (IS_NPC(victim))
-      send_to_char(ch, "Trigger %d (%s) attached to %s [%d].\r\n", tn, GET_TRIG_NAME(trig),
-                   GET_SHORT(victim), GET_MOB_VNUM(victim));
+      send_to_char(ch, "Trigger %" PRI_IDX " (%s) attached to %s [%u].\r\n", tn,
+                   GET_TRIG_NAME(trig), GET_SHORT(victim), GET_MOB_VNUM(victim));
     else
-      send_to_char(ch, "Trigger %d (%s) attached to player named %s.\r\n", tn, GET_TRIG_NAME(trig),
-                   GET_NAME(victim));
+      send_to_char(ch, "Trigger %" PRI_IDX " (%s) attached to player named %s.\r\n", tn,
+                   GET_TRIG_NAME(trig), GET_NAME(victim));
   }
   else if (is_abbrev(arg, "object") || is_abbrev(arg, "otr"))
   {
@@ -1411,7 +1414,7 @@ ACMD(do_attach)
     dg_script_bind_owner(SCRIPT(object), object, OBJ_TRIGGER);
     add_trigger(SCRIPT(object), trig, loc);
 
-    send_to_char(ch, "Trigger %d (%s) attached to %s [%d].\r\n", tn, GET_TRIG_NAME(trig),
+    send_to_char(ch, "Trigger %" PRI_IDX " (%s) attached to %s [%u].\r\n", tn, GET_TRIG_NAME(trig),
                  (object->short_description ? object->short_description : object->name),
                  GET_OBJ_VNUM(object));
   }
@@ -1447,7 +1450,7 @@ ACMD(do_attach)
 
     if (dg_script_has_trigger_rnum(SCRIPT(room), rn))
     {
-      send_to_char(ch, "Trigger %d is already attached to room %" PRI_IDX ".\r\n", tn,
+      send_to_char(ch, "Trigger %" PRI_IDX " is already attached to room %" PRI_IDX ".\r\n", tn,
                    world[rnum].number);
       return;
     }
@@ -1463,8 +1466,8 @@ ACMD(do_attach)
     dg_script_bind_owner(SCRIPT(room), room, WLD_TRIGGER);
     add_trigger(SCRIPT(room), trig, loc);
 
-    send_to_char(ch, "Trigger %d (%s) attached to room %d.\r\n", tn, GET_TRIG_NAME(trig),
-                 world[rnum].number);
+    send_to_char(ch, "Trigger %" PRI_IDX " (%s) attached to room %" PRI_IDX ".\r\n", tn,
+                 GET_TRIG_NAME(trig), world[rnum].number);
   }
   else
     send_to_char(ch, "Please specify 'mob', 'obj', or 'room'.\r\n");
@@ -2029,7 +2032,7 @@ static struct cmdlist_element *find_end(trig_data *trig, struct cmdlist_element 
 
   if (!(cl->next))
   { /* rryan: if this is the last line, theres no end */
-    script_log("Trigger VNum %d has 'if' without 'end'. (error 1)", GET_TRIG_VNUM(trig));
+    script_log("Trigger VNum %" PRI_IDX " has 'if' without 'end'. (error 1)", GET_TRIG_VNUM(trig));
     return cl;
   }
 
@@ -2046,13 +2049,14 @@ static struct cmdlist_element *find_end(trig_data *trig, struct cmdlist_element 
     /* thanks to Russell Ryan for this fix */
     if (!c->next)
     { /* rryan: this is the last line, we didn't find an end. */
-      script_log("Trigger VNum %d has 'if' without 'end'. (error 2)", GET_TRIG_VNUM(trig));
+      script_log("Trigger VNum %" PRI_IDX " has 'if' without 'end'. (error 2)",
+                 GET_TRIG_VNUM(trig));
       return c;
     }
   }
 
   /* rryan: we didn't find an end */
-  script_log("Trigger VNum %d has 'if' without 'end'. (error 3)", GET_TRIG_VNUM(trig));
+  script_log("Trigger VNum %" PRI_IDX " has 'if' without 'end'. (error 3)", GET_TRIG_VNUM(trig));
   return c;
 }
 
@@ -2096,7 +2100,8 @@ static struct cmdlist_element *find_else_end(trig_data *trig, struct cmdlist_ele
     /* thanks to Russell Ryan for this fix */
     if (!c->next)
     { /* rryan: this is the last line, return. */
-      script_log("Trigger VNum %d has 'if' without 'end'. (error 4)", GET_TRIG_VNUM(trig));
+      script_log("Trigger VNum %" PRI_IDX " has 'if' without 'end'. (error 4)",
+                 GET_TRIG_VNUM(trig));
       return c;
     }
   }
@@ -2105,7 +2110,7 @@ static struct cmdlist_element *find_else_end(trig_data *trig, struct cmdlist_ele
   for (p = c->cmd; *p && isspace(*p); p++)
     ; /* skip spaces */
   if (strn_cmp("end", p, 3))
-    script_log("Trigger VNum %d has 'if' without 'end'. (error 5)", GET_TRIG_VNUM(trig));
+    script_log("Trigger VNum %" PRI_IDX " has 'if' without 'end'. (error 5)", GET_TRIG_VNUM(trig));
   return c;
 }
 
@@ -2127,7 +2132,7 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
 
   if (!*arg)
   {
-    script_log("Trigger: %s, VNum %d. wait w/o an arg: '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". wait w/o an arg: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), cl->cmd);
     return;
   }
@@ -2141,7 +2146,7 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
       min = (hr % 100) + ((hr / 100) * 60);
     else
     {
-      script_log("Trigger: %s, VNum %d. wait until with invalid time format: '%s'",
+      script_log("Trigger: %s, VNum %" PRI_IDX ". wait until with invalid time format: '%s'",
                  GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), arg);
       return;
     }
@@ -2172,8 +2177,8 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
   owner = dg_wait_owner(go, type);
   if (!game_event_owner_is_valid(owner))
   {
-    script_log("Trigger: %s, VNum %d. wait has no valid runtime owner.", GET_TRIG_NAME(trig),
-               GET_TRIG_VNUM(trig));
+    script_log("Trigger: %s, VNum %" PRI_IDX ". wait has no valid runtime owner.",
+               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig));
     return;
   }
   if (!schedule_trig_wait(trig, go, type, when, owner, false))
@@ -2193,7 +2198,7 @@ static void process_set(struct script_data *sc, trig_data *trig, char *cmd)
 
   if (!*name)
   {
-    script_log("Trigger: %s, VNum %d. set w/o an arg: '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". set w/o an arg: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), cmd);
     return;
   }
@@ -2214,7 +2219,7 @@ void process_eval(void *go, struct script_data *sc, trig_data *trig, int type, c
 
   if (!*name)
   {
-    script_log("Trigger: %s, VNum %d. eval w/o an arg: '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". eval w/o an arg: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), cmd);
     return;
   }
@@ -2240,14 +2245,14 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig, in
 
   if (!*trignum_s)
   {
-    script_log("Trigger: %s, VNum %d. attach w/o an arg: '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". attach w/o an arg: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), cmd);
     return;
   }
 
   if (!id_p || !*id_p || atoi(id_p) == 0)
   {
-    script_log("Trigger: %s, VNum %d. attach invalid id arg: '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". attach invalid id arg: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), cmd);
     return;
   }
@@ -2256,7 +2261,7 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig, in
   eval_expr(id_p, result, go, sc, trig, type);
   if (!(id = atoi(result)))
   {
-    script_log("Trigger: %s, VNum %d. attach invalid id arg: '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". attach invalid id arg: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), cmd);
     return;
   }
@@ -2269,8 +2274,8 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig, in
       r = find_room(id);
       if (!r)
       {
-        script_log("Trigger: %s, VNum %d. attach invalid id arg: '%s'", GET_TRIG_NAME(trig),
-                   GET_TRIG_VNUM(trig), cmd);
+        script_log("Trigger: %s, VNum %" PRI_IDX ". attach invalid id arg: '%s'",
+                   GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
         return;
       }
     }
@@ -2278,9 +2283,9 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig, in
 
   /* locate and load the trigger specified */
   trignum = real_trigger(atoi(trignum_s));
-  if (trignum == NOTHING || !(newtrig = read_trigger(trignum)))
+  if (trignum == NOTHING || !(newtrig = read_trigger((int)trignum)))
   {
-    script_log("Trigger: %s, VNum %d. attach invalid trigger: '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". attach invalid trigger: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), trignum_s);
     return;
   }
@@ -2289,7 +2294,7 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig, in
   {
     if (!IS_NPC(c) && !CONFIG_SCRIPT_PLAYERS)
     {
-      script_log("Trigger: %s, VNum %d. attach invalid target: '%s'", GET_TRIG_NAME(trig),
+      script_log("Trigger: %s, VNum %" PRI_IDX ". attach invalid target: '%s'", GET_TRIG_NAME(trig),
                  GET_TRIG_VNUM(trig), GET_NAME(c));
       return;
     }
@@ -2335,14 +2340,14 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig, in
 
   if (!*trignum_s)
   {
-    script_log("Trigger: %s, VNum %d. detach w/o an arg: '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". detach w/o an arg: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), cmd);
     return;
   }
 
   if (!id_p || !*id_p || atoi(id_p) == 0)
   {
-    script_log("Trigger: %s, VNum %d. detach invalid id arg: '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". detach invalid id arg: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), cmd);
     return;
   }
@@ -2351,7 +2356,7 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig, in
   eval_expr(id_p, result, go, sc, trig, type);
   if (!(id = atoi(result)))
   {
-    script_log("Trigger: %s, VNum %d. detach invalid id arg: '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". detach invalid id arg: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), cmd);
     return;
   }
@@ -2364,8 +2369,8 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig, in
       r = find_room(id);
       if (!r)
       {
-        script_log("Trigger: %s, VNum %d. detach invalid id arg: '%s'", GET_TRIG_NAME(trig),
-                   GET_TRIG_VNUM(trig), cmd);
+        script_log("Trigger: %s, VNum %" PRI_IDX ". detach invalid id arg: '%s'",
+                   GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
         return;
       }
     }
@@ -2493,7 +2498,7 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int t
 
   if (!*varname)
   {
-    script_log("Trigger: %s, VNum %d. makeuid w/o an arg: '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". makeuid w/o an arg: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), cmd);
 
     return;
@@ -2501,7 +2506,7 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int t
 
   if (!*arg)
   {
-    script_log("Trigger: %s, VNum %d. makeuid invalid id arg: '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". makeuid invalid id arg: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), cmd);
     return;
   }
@@ -2514,7 +2519,7 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int t
     uid[0] = UID_CHAR;
     if (strlcpy(uid + 1, result, sizeof(uid) - 1) >= sizeof(uid) - 1)
     {
-      script_log("Trigger: %s, VNum %d. makeuid result is too long", GET_TRIG_NAME(trig),
+      script_log("Trigger: %s, VNum %" PRI_IDX ". makeuid result is too long", GET_TRIG_NAME(trig),
                  GET_TRIG_VNUM(trig));
       return;
     }
@@ -2523,7 +2528,7 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int t
   { /* a lot more work without it */
     if (!*name)
     {
-      script_log("Trigger: %s, VNum %d. makeuid needs name: '%s'", GET_TRIG_NAME(trig),
+      script_log("Trigger: %s, VNum %" PRI_IDX ". makeuid needs name: '%s'", GET_TRIG_NAME(trig),
                  GET_TRIG_VNUM(trig), cmd);
       return;
     }
@@ -2587,7 +2592,7 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int t
     }
     else
     {
-      script_log("Trigger: %s, VNum %d. makeuid syntax error: '%s'", GET_TRIG_NAME(trig),
+      script_log("Trigger: %s, VNum %" PRI_IDX ". makeuid syntax error: '%s'", GET_TRIG_NAME(trig),
                  GET_TRIG_VNUM(trig), cmd);
 
       return;
@@ -2607,7 +2612,7 @@ static int process_return(trig_data *trig, char *cmd, bool *explicit_return)
 
   if (!*arg2)
   {
-    script_log("Trigger: %s, VNum %d. return w/o an arg: '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". return w/o an arg: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), cmd);
 
     return 1;
@@ -2630,7 +2635,7 @@ static void process_unset(struct script_data *sc, trig_data *trig, char *cmd)
 
   if (!*var)
   {
-    script_log("Trigger: %s, VNum %d. unset w/o an arg: '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". unset w/o an arg: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), cmd);
     return;
   }
@@ -2662,8 +2667,8 @@ static void process_remote(struct script_data *sc, trig_data *trig, char *cmd)
 
   if (!*buf || !*buf2)
   {
-    script_log("Trigger: %s, VNum %d. remote: invalid arguments '%s'", GET_TRIG_NAME(trig),
-               GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %" PRI_IDX ". remote: invalid arguments '%s'",
+               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
     return;
   }
 
@@ -2679,15 +2684,15 @@ static void process_remote(struct script_data *sc, trig_data *trig, char *cmd)
 
   if (!vd)
   {
-    script_log("Trigger: %s, VNum %d. local var '%s' not found in remote call", GET_TRIG_NAME(trig),
-               GET_TRIG_VNUM(trig), buf);
+    script_log("Trigger: %s, VNum %" PRI_IDX ". local var '%s' not found in remote call",
+               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), buf);
     return;
   }
   /* find the target script from the uid number */
   uid = atoi(buf2);
   if (uid <= 0)
   {
-    script_log("Trigger: %s, VNum %d. remote: illegal uid '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". remote: illegal uid '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), buf2);
     return;
   }
@@ -2710,7 +2715,7 @@ static void process_remote(struct script_data *sc, trig_data *trig, char *cmd)
   }
   else
   {
-    script_log("Trigger: %s, VNum %d. remote: uid '%ld' invalid", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". remote: uid '%ld' invalid", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), uid);
     return;
   }
@@ -2868,8 +2873,8 @@ static void process_rdelete(struct script_data *sc, trig_data *trig, char *cmd)
 
   if (!*buf || !*buf2)
   {
-    script_log("Trigger: %s, VNum %d. rdelete: invalid arguments '%s'", GET_TRIG_NAME(trig),
-               GET_TRIG_VNUM(trig), cmd);
+    script_log("Trigger: %s, VNum %" PRI_IDX ". rdelete: invalid arguments '%s'",
+               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), cmd);
     return;
   }
 
@@ -2877,7 +2882,7 @@ static void process_rdelete(struct script_data *sc, trig_data *trig, char *cmd)
   uid = atoi(buf2);
   if (uid <= 0)
   {
-    script_log("Trigger: %s, VNum %d. rdelete: illegal uid '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". rdelete: illegal uid '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), buf2);
     return;
   }
@@ -2896,7 +2901,7 @@ static void process_rdelete(struct script_data *sc, trig_data *trig, char *cmd)
   }
   else
   {
-    script_log("Trigger: %s, VNum %d. remote: uid '%ld' invalid", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". remote: uid '%ld' invalid", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), uid);
     return;
   }
@@ -2938,7 +2943,7 @@ static void process_global(struct script_data *sc, trig_data *trig, char *cmd, l
 
   if (!*var)
   {
-    script_log("Trigger: %s, VNum %d. global w/o an arg: '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". global w/o an arg: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), cmd);
     return;
   }
@@ -2949,8 +2954,8 @@ static void process_global(struct script_data *sc, trig_data *trig, char *cmd, l
 
   if (!vd)
   {
-    script_log("Trigger: %s, VNum %d. local var '%s' not found in global call", GET_TRIG_NAME(trig),
-               GET_TRIG_VNUM(trig), var);
+    script_log("Trigger: %s, VNum %" PRI_IDX ". local var '%s' not found in global call",
+               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), var);
     return;
   }
 
@@ -2969,7 +2974,7 @@ static void process_context(struct script_data *sc, trig_data *trig, char *cmd)
 
   if (!*var)
   {
-    script_log("Trigger: %s, VNum %d. context w/o an arg: '%s'", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". context w/o an arg: '%s'", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig), cmd);
     return;
   }
@@ -3034,13 +3039,13 @@ static void dg_letter_value(struct script_data *sc, trig_data *trig, char *cmd)
 
   if (num < 1)
   {
-    script_log("Trigger #%d : dg_letter number < 1!", GET_TRIG_VNUM(trig));
+    script_log("Trigger #%" PRI_IDX " : dg_letter number < 1!", GET_TRIG_VNUM(trig));
     return;
   }
 
   if ((size_t)num > strlen(string))
   {
-    script_log("Trigger #%d : dg_letter number > strlen!", GET_TRIG_VNUM(trig));
+    script_log("Trigger #%" PRI_IDX " : dg_letter number > strlen!", GET_TRIG_VNUM(trig));
     return;
   }
 
@@ -3267,8 +3272,6 @@ static int script_driver_impl(struct script_call_args *args, struct script_drive
   }
 #endif
 
-  void obj_command_interpreter(obj_data * obj, char *argument);
-  void wld_command_interpreter(struct room_data * room, char *argument);
 
   /* Debug for DG script parameter corruption issues - enable with SCRIPT_DEBUG */
 #ifdef SCRIPT_DEBUG
@@ -3328,7 +3331,8 @@ static int script_driver_impl(struct script_call_args *args, struct script_drive
       }
       else
       {
-        script_log("FATAL: Cannot determine trigger type from flags for trigger %d (flags=%ld)",
+        script_log("FATAL: Cannot determine trigger type from flags for trigger %" PRI_IDX
+                   " (flags=%ld)",
                    GET_TRIG_VNUM(trig), GET_TRIG_TYPE(trig));
         return 0;
       }
@@ -3377,15 +3381,15 @@ static int script_driver_impl(struct script_call_args *args, struct script_drive
       switch (type)
       {
       case MOB_TRIGGER:
-        script_log("  MOB details: name='%s', vnum=%d", GET_NAME((char_data *)go),
+        script_log("  MOB details: name='%s', vnum=%u", GET_NAME((char_data *)go),
                    GET_MOB_VNUM((char_data *)go));
         break;
       case OBJ_TRIGGER:
-        script_log("  OBJ details: name='%s', vnum=%d", ((obj_data *)go)->short_description,
+        script_log("  OBJ details: name='%s', vnum=%u", ((obj_data *)go)->short_description,
                    GET_OBJ_VNUM((obj_data *)go));
         break;
       case WLD_TRIGGER:
-        script_log("  ROOM details: name='%s', vnum=%d", ((room_data *)go)->name,
+        script_log("  ROOM details: name='%s', vnum=%" PRI_IDX, ((room_data *)go)->name,
                    ((room_data *)go)->number);
         break;
       }
@@ -3399,19 +3403,20 @@ static int script_driver_impl(struct script_call_args *args, struct script_drive
 
   if (depth > MAX_SCRIPT_DEPTH)
   {
-    script_log("Trigger %d recursed beyond maximum allowed depth.", GET_TRIG_VNUM(trig));
+    script_log("Trigger %" PRI_IDX " recursed beyond maximum allowed depth.", GET_TRIG_VNUM(trig));
     switch (type)
     {
     case MOB_TRIGGER:
-      script_log("It was attached to %s [%d]", GET_NAME((char_data *)go),
+      script_log("It was attached to %s [%u]", GET_NAME((char_data *)go),
                  GET_MOB_VNUM((char_data *)go));
       break;
     case OBJ_TRIGGER:
-      script_log("It was attached to %s [%d]", ((obj_data *)go)->short_description,
+      script_log("It was attached to %s [%u]", ((obj_data *)go)->short_description,
                  GET_OBJ_VNUM((obj_data *)go));
       break;
     case WLD_TRIGGER:
-      script_log("It was attached to %s [%d]", ((room_data *)go)->name, ((room_data *)go)->number);
+      script_log("It was attached to %s [%" PRI_IDX "]", ((room_data *)go)->name,
+                 ((room_data *)go)->number);
       break;
     }
 
@@ -3455,7 +3460,7 @@ static int script_driver_impl(struct script_call_args *args, struct script_drive
       /* If not in an if-block, ignore the extra 'else[if]' and warn about it. */
       if (GET_TRIG_DEPTH(trig) == 1)
       {
-        script_log("Trigger VNum %d has 'else' without 'if'.", GET_TRIG_VNUM(trig));
+        script_log("Trigger VNum %" PRI_IDX " has 'else' without 'if'.", GET_TRIG_VNUM(trig));
         continue;
       }
       cl = find_end(trig, cl);
@@ -3467,7 +3472,7 @@ static int script_driver_impl(struct script_call_args *args, struct script_drive
       temp = find_done(cl);
       if (!temp)
       {
-        script_log("Trigger VNum %d has 'while' without 'done'.", GET_TRIG_VNUM(trig));
+        script_log("Trigger VNum %" PRI_IDX " has 'while' without 'done'.", GET_TRIG_VNUM(trig));
         return ret_val;
       }
       if (process_if(p + 6, go, sc, trig, type))
@@ -3489,7 +3494,7 @@ static int script_driver_impl(struct script_call_args *args, struct script_drive
       /* If not in an if-block, ignore the extra 'end' and warn about it. */
       if (GET_TRIG_DEPTH(trig) == 1)
       {
-        script_log("Trigger VNum %d has 'end' without 'if'.", GET_TRIG_VNUM(trig));
+        script_log("Trigger VNum %" PRI_IDX " has 'end' without 'if'.", GET_TRIG_VNUM(trig));
         continue;
       }
       GET_TRIG_DEPTH(trig)
@@ -3520,7 +3525,7 @@ static int script_driver_impl(struct script_call_args *args, struct script_drive
           }
           if (GET_TRIG_LOOPS(trig) >= 100)
           {
-            script_log("Trigger VNum %d has looped 100 times!!!", GET_TRIG_VNUM(trig));
+            script_log("Trigger VNum %" PRI_IDX " has looped 100 times!!!", GET_TRIG_VNUM(trig));
             break;
           }
         }
@@ -3533,6 +3538,11 @@ static int script_driver_impl(struct script_call_args *args, struct script_drive
     else if (!strn_cmp("break", p, 5))
     {
       cl = find_done(cl);
+      if (!cl)
+      {
+        script_log("Trigger VNum %" PRI_IDX " has 'break' without 'done'.", GET_TRIG_VNUM(trig));
+        return ret_val;
+      }
     }
     else if (!strn_cmp("case", p, 4))
     {
@@ -3714,7 +3724,7 @@ static struct cmdlist_element *find_case(struct trig_data *trig, struct cmdlist_
                                          void *go, struct script_data *sc, int type, char *cond)
 {
   char result[MAX_INPUT_LENGTH] = {'\0'};
-  struct cmdlist_element *c;
+  struct cmdlist_element *c, *done;
   char *p, *buf = NULL;
 
   eval_expr(cond, result, go, sc, trig, type);
@@ -3728,7 +3738,19 @@ static struct cmdlist_element *find_case(struct trig_data *trig, struct cmdlist_
       ;
 
     if (!strn_cmp("while ", p, 6) || !strn_cmp("switch", p, 6))
-      c = find_done(c);
+    {
+      done = find_done(c);
+      if (!done)
+      {
+        /* A nested block without its done runs to the end of the trigger. */
+        while (c->next)
+          c = c->next;
+        return c;
+      }
+      c = done;
+      if (!c->next)
+        return c;
+    }
     else if (!strn_cmp("case ", p, 5))
     {
       buf = (char *)malloc(MAX_STRING_LENGTH);
@@ -3768,7 +3790,12 @@ static struct cmdlist_element *find_done(struct cmdlist_element *cl)
       ;
 
     if (!strn_cmp("while ", p, 6) || !strn_cmp("switch ", p, 7))
+    {
       c = find_done(c);
+      /* A nested block that runs to the end leaves this one without its done. */
+      if (!c || !c->next)
+        return NULL;
+    }
     else if (!strn_cmp("done", p, 3))
       return c;
   }
@@ -4147,7 +4174,7 @@ void remove_from_lookup_table(long uid)
   log("remove_from_lookup. UID %ld not found.", uid);
 }
 
-bool check_flags_by_name_ar(int *array, int numflags, char *search, const char *namelist[])
+bool check_flags_by_name_ar(int *array, int numflags, const char *search, const char *namelist[])
 {
   int i, item = -1;
 

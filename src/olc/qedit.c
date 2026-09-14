@@ -165,9 +165,10 @@ ACMD(do_oasis_qedit)
 
   if (save)
   {
-    send_to_char(ch, "Saving all quests in zone %d.\r\n", zone_table[OLC_ZNUM(d)].number);
-    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE, "OLC: %s saves quest info for zone %d.",
-           GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
+    send_to_char(ch, "Saving all quests in zone %" PRI_IDX ".\r\n", zone_table[OLC_ZNUM(d)].number);
+    mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(ch)), TRUE,
+           "OLC: %s saves quest info for zone %" PRI_IDX ".", GET_NAME(ch),
+           zone_table[OLC_ZNUM(d)].number);
 
     /**************************************************************************/
     /** Save the quest to the quest file.                                    **/
@@ -194,8 +195,8 @@ ACMD(do_oasis_qedit)
   act("$n starts using OLC.", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(BRF, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d", GET_NAME(ch),
-         zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
+  mudlog(BRF, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %" PRI_IDX " allowed zone %d",
+         GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
 /* initialize a blank quest for usage */
@@ -438,7 +439,7 @@ static void qedit_disp_menu(struct descriptor_data *d)
 
   write_to_output(
       d,
-      "-- Quest Number    : \tn[\tc%6d\tn]\r\n"
+      "-- Quest Number    : \tn[\tc%6" PRI_IDX "\tn]\r\n"
       "\tg 1\tn) Quest Name     : \ty%s\r\n"
       "\tg 2\tn) Description    : \ty%s\r\n"
       "\tg 3\tn) Accept Message\r\n\ty%s"
@@ -529,7 +530,7 @@ void show_quest_dialogue_menu(struct descriptor_data *d)
 }
 
 /* For quest type.  */
-void qedit_disp_type_menu(struct descriptor_data *d)
+static void qedit_disp_type_menu(struct descriptor_data *d)
 {
   clear_screen(d);
   column_list(d->character, 0, quest_types, NUM_AQ_TYPES, TRUE);
@@ -538,7 +539,7 @@ void qedit_disp_type_menu(struct descriptor_data *d)
 }
 
 /* For quest flags.  */
-void qedit_disp_flag_menu(struct descriptor_data *d)
+static void qedit_disp_flag_menu(struct descriptor_data *d)
 {
   char bits[MAX_STRING_LENGTH] = {'\0'};
 
@@ -571,15 +572,15 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     case 'Y':
       send_to_char(d->character, "Saving Quest to memory.\r\n");
       qedit_save_internally(d);
-      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits quest %d",
-             GET_NAME(d->character), OLC_NUM(d));
+      mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
+             "OLC: %s edits quest %" PRI_IDX, GET_NAME(d->character), OLC_NUM(d));
       if (CONFIG_OLC_SAVE)
       {
         qedit_save_to_disk(real_zone_by_thing(OLC_NUM(d)));
-        write_to_output(d, "Quest %d saved to disk.\r\n", OLC_NUM(d));
+        write_to_output(d, "Quest %" PRI_IDX " saved to disk.\r\n", OLC_NUM(d));
       }
       else
-        write_to_output(d, "Quest %d saved to memory.\r\n", OLC_NUM(d));
+        write_to_output(d, "Quest %" PRI_IDX " saved to memory.\r\n", OLC_NUM(d));
       cleanup_olc(d, CLEANUP_STRUCTS);
       return;
     case 'n':

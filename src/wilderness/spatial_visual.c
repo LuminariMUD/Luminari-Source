@@ -19,13 +19,14 @@
 #include "comm.h"
 #include "wilderness.h"
 #include "spatial_core.h"
+#include "spatial_visual.h"
 
 /* Visual System Constants */
-#define VISUAL_BASE_RANGE 1000.0f
-#define VISUAL_CLARITY_EXCELLENT 1.0f
-#define VISUAL_CLARITY_GOOD 0.8f
-#define VISUAL_CLARITY_POOR 0.5f
-#define VISUAL_CLARITY_TERRIBLE 0.2f
+#define VISUAL_BASE_RANGE 1000.0
+#define VISUAL_CLARITY_EXCELLENT 1.0
+#define VISUAL_CLARITY_GOOD 0.8
+#define VISUAL_CLARITY_POOR 0.5
+#define VISUAL_CLARITY_TERRIBLE 0.2
 
 /* Visual message types */
 typedef enum
@@ -43,57 +44,15 @@ static int visual_generate_message(struct spatial_context *ctx, char *output, si
 static int visual_apply_effects(struct spatial_context *ctx);
 static bool visual_should_process_observer(struct spatial_context *ctx);
 
-static int physical_calculate_obstruction(struct spatial_context *ctx, float *obstruction_factor);
+static int physical_calculate_obstruction(struct spatial_context *ctx, double *obstruction_factor);
 static int physical_get_obstacles(struct spatial_context *ctx, struct obstacle_list *obstacles);
 static bool physical_can_transmit(int terrain_type, int stimulus_type);
 
-static int weather_terrain_apply_modifiers(struct spatial_context *ctx, float *range_mod,
-                                           float *clarity_mod);
-static int weather_terrain_calculate_interference(struct spatial_context *ctx, float *interference);
+static int weather_terrain_apply_modifiers(struct spatial_context *ctx, double *range_mod,
+                                           double *clarity_mod);
+static int weather_terrain_calculate_interference(struct spatial_context *ctx,
+                                                  double *interference);
 
-/*
- * Calculate effective range based on elevation differences
- * Higher observers or elevated targets can see farther horizontally
- */
-static float calculate_elevation_range_modifier(int observer_elevation, int target_elevation,
-                                                int base_range)
-{
-  int elevation_diff = abs(target_elevation - observer_elevation);
-
-  /* Significant elevation differences increase horizontal visibility */
-  if (elevation_diff > 50)
-  {
-    /* Each 100 units of elevation difference adds 50% more range, max 2x */
-    float elevation_bonus = (elevation_diff / 100.0f) * 0.5f;
-    if (elevation_bonus > 1.0f)
-      elevation_bonus = 1.0f; /* Cap at 2x range */
-    return base_range * (1.0f + elevation_bonus);
-  }
-
-  /* Same elevation = normal range */
-  return base_range;
-}
-
-/*
- * Check if observer can see target using elevation-aware horizontal distance
- */
-static bool elevation_aware_visibility_check(int observer_x, int observer_y, int observer_elevation,
-                                             int target_x, int target_y, int target_elevation,
-                                             int base_range)
-{
-  /* Calculate horizontal distance only */
-  float horizontal_distance = sqrt((observer_x - target_x) * (observer_x - target_x) +
-                                   (observer_y - target_y) * (observer_y - target_y));
-
-  /* Get effective range based on elevation advantage */
-  float effective_range =
-      calculate_elevation_range_modifier(observer_elevation, target_elevation, base_range);
-
-  spatial_log("DEBUG: Horizontal distance: %.2f, effective range: %.2f (base: %d)",
-              horizontal_distance, effective_range, base_range);
-
-  return horizontal_distance <= effective_range;
-}
 static int weather_terrain_modify_message(struct spatial_context *ctx, char *message,
                                           size_t max_len);
 
@@ -108,7 +67,7 @@ struct stimulus_strategy visual_stimulus_strategy = {
     .should_process_observer = visual_should_process_observer,
     .enabled = TRUE,
     .usage_count = 0,
-    .performance_factor = 1.0f};
+    .performance_factor = 1.0};
 
 /* PHYSICAL LINE OF SIGHT STRATEGY */
 struct los_strategy physical_los_strategy = {
@@ -130,7 +89,7 @@ struct modifier_strategy weather_terrain_modifier_strategy = {
     .calculate_interference = weather_terrain_calculate_interference,
     .modify_message = weather_terrain_modify_message,
     .enabled = TRUE,
-    .modifier_strength = 1.0f};
+    .modifier_strength = 1.0};
 
 /* VISUAL SYSTEM CONFIGURATION */
 struct spatial_system visual_system = {.system_name = "Visual",
@@ -139,8 +98,8 @@ struct spatial_system visual_system = {.system_name = "Visual",
                                        .line_of_sight = &physical_los_strategy,
                                        .modifiers = &weather_terrain_modifier_strategy,
                                        .enabled = TRUE,
-                                       .global_range_multiplier = 1.0f,
-                                       .global_intensity_multiplier = 1.0f};
+                                       .global_range_multiplier = 1.0,
+                                       .global_intensity_multiplier = 1.0};
 
 /*
  * Visual Stimulus Strategy Implementation
@@ -151,7 +110,7 @@ struct spatial_system visual_system = {.system_name = "Visual",
  */
 static int visual_calculate_intensity(struct spatial_context *ctx)
 {
-  float distance_factor;
+  double distance_factor;
 
   if (!ctx)
   {
@@ -161,12 +120,12 @@ static int visual_calculate_intensity(struct spatial_context *ctx)
   /* Calculate distance falloff - visual intensity decreases with distance */
   if (ctx->distance <= 0.0)
   {
-    distance_factor = 1.0f; /* Same location */
+    distance_factor = 1.0; /* Same location */
   }
   else
   {
     /* Use inverse square law modified for gameplay */
-    distance_factor = 1.0f / (1.0f + (ctx->distance / 100.0f));
+    distance_factor = 1.0 / (1.0 + (ctx->distance / 100.0));
   }
 
   ctx->distance_attenuation = distance_factor;
@@ -186,7 +145,7 @@ static int visual_calculate_intensity(struct spatial_context *ctx)
 static int visual_generate_message(struct spatial_context *ctx, char *output, size_t max_len)
 {
   visual_message_type_t msg_type;
-  float clarity = ctx->final_intensity;
+  double clarity = ctx->final_intensity;
 
   spatial_log("SPATIAL: visual_generate_message called - ctx=%p, output=%p, source_desc=%p", ctx,
               output, ctx ? ctx->source_description : NULL);
@@ -200,19 +159,19 @@ static int visual_generate_message(struct spatial_context *ctx, char *output, si
   }
 
   /* Determine message type based on final intensity - adjusted for dramatic spell effects */
-  if (clarity >= 0.6f)
+  if (clarity >= 0.6)
   {
     msg_type = VISUAL_MSG_CLEAR;
   }
-  else if (clarity >= 0.4f)
+  else if (clarity >= 0.4)
   {
     msg_type = VISUAL_MSG_DISTANT;
   }
-  else if (clarity >= 0.25f)
+  else if (clarity >= 0.25)
   {
     msg_type = VISUAL_MSG_OBSCURED;
   }
-  else if (clarity >= 0.1f)
+  else if (clarity >= 0.1)
   {
     msg_type = VISUAL_MSG_SILHOUETTE;
   }
@@ -297,7 +256,8 @@ static int visual_generate_message(struct spatial_context *ctx, char *output, si
     break;
   }
 
-  spatial_debug("Generated visual message (clarity %.3f, type %d): %s", clarity, msg_type, output);
+  spatial_debug("Generated visual message (clarity %.3f, type %d): %s", clarity, (int)msg_type,
+                output);
 
   spatial_log("SPATIAL: visual_generate_message returning SUCCESS");
   return SPATIAL_SUCCESS;
@@ -356,19 +316,19 @@ static bool visual_should_process_observer(struct spatial_context *ctx)
 /*
  * Calculate physical obstruction based on terrain
  */
-static int physical_calculate_obstruction(struct spatial_context *ctx, float *obstruction_factor)
+static int physical_calculate_obstruction(struct spatial_context *ctx, double *obstruction_factor)
 {
-  float total_obstruction = 0.0f;
+  double total_obstruction = 0.0;
   int steps, i;
   int dx, dy, step_x, step_y;
-  float step_size;
+  double step_size;
 
   if (!ctx || !obstruction_factor)
   {
     return SPATIAL_ERROR_INVALID_PARAM;
   }
 
-  *obstruction_factor = 0.0f;
+  *obstruction_factor = 0.0;
 
   /* Simple line-of-sight calculation using Bresenham-like algorithm */
   dx = abs(ctx->observer_x - ctx->source_x);
@@ -381,12 +341,12 @@ static int physical_calculate_obstruction(struct spatial_context *ctx, float *ob
     return SPATIAL_SUCCESS;
   }
 
-  step_size = 1.0f / steps;
+  step_size = 1.0 / steps;
 
   /* Check terrain along the line */
   for (i = 1; i < steps; i++)
   {
-    float progress = i * step_size;
+    double progress = i * step_size;
     step_x = ctx->source_x + (int)(progress * (ctx->observer_x - ctx->source_x));
     step_y = ctx->source_y + (int)(progress * (ctx->observer_y - ctx->source_y));
 
@@ -399,25 +359,25 @@ static int physical_calculate_obstruction(struct spatial_context *ctx, float *ob
       /* No obstruction */
       break;
     case 1: /* Light forest */
-      total_obstruction += 0.1f;
+      total_obstruction += 0.1;
       break;
     case 2: /* Dense forest */
-      total_obstruction += 0.3f;
+      total_obstruction += 0.3;
       break;
     case 3: /* Mountains */
-      total_obstruction += 0.8f;
+      total_obstruction += 0.8;
       break;
     case 4: /* Hills */
-      total_obstruction += 0.2f;
+      total_obstruction += 0.2;
       break;
     default:
-      total_obstruction += 0.1f;
+      total_obstruction += 0.1;
       break;
     }
   }
 
   /* Cap obstruction at 100% */
-  *obstruction_factor = MIN(total_obstruction, 1.0f);
+  *obstruction_factor = FLOATMIN(total_obstruction, 1.0);
 
   spatial_debug("Physical obstruction calculated: %.3f over %d steps", *obstruction_factor, steps);
 
@@ -481,13 +441,13 @@ static bool physical_can_transmit(int terrain_type, int stimulus_type)
 /*
  * Apply weather and terrain modifiers to range and clarity
  */
-static int weather_terrain_apply_modifiers(struct spatial_context *ctx, float *range_mod,
-                                           float *clarity_mod)
+static int weather_terrain_apply_modifiers(struct spatial_context *ctx, double *range_mod,
+                                           double *clarity_mod)
 {
-  float weather_range_mod = 1.0f;
-  float weather_clarity_mod = 1.0f;
-  float time_range_mod = 1.0f;
-  float time_clarity_mod = 1.0f;
+  double weather_range_mod = 1.0;
+  double weather_clarity_mod = 1.0;
+  double time_range_mod = 1.0;
+  double time_clarity_mod = 1.0;
 
   if (!ctx || !range_mod || !clarity_mod)
   {
@@ -498,24 +458,24 @@ static int weather_terrain_apply_modifiers(struct spatial_context *ctx, float *r
   switch (ctx->weather_conditions)
   {
   case 0: /* Clear */
-    weather_range_mod = 1.0f;
-    weather_clarity_mod = 1.0f;
+    weather_range_mod = 1.0;
+    weather_clarity_mod = 1.0;
     break;
   case 1: /* Cloudy */
-    weather_range_mod = 0.9f;
-    weather_clarity_mod = 0.9f;
+    weather_range_mod = 0.9;
+    weather_clarity_mod = 0.9;
     break;
   case 2: /* Rainy */
-    weather_range_mod = 0.6f;
-    weather_clarity_mod = 0.7f;
+    weather_range_mod = 0.6;
+    weather_clarity_mod = 0.7;
     break;
   case 3: /* Foggy */
-    weather_range_mod = 0.3f;
-    weather_clarity_mod = 0.4f;
+    weather_range_mod = 0.3;
+    weather_clarity_mod = 0.4;
     break;
   case 4: /* Storm */
-    weather_range_mod = 0.2f;
-    weather_clarity_mod = 0.3f;
+    weather_range_mod = 0.2;
+    weather_clarity_mod = 0.3;
     break;
   }
 
@@ -523,18 +483,18 @@ static int weather_terrain_apply_modifiers(struct spatial_context *ctx, float *r
   switch (ctx->time_of_day)
   {
   case SUN_LIGHT: /* Daytime - normal visibility */
-    time_range_mod = 1.0f;
-    time_clarity_mod = 1.0f;
+    time_range_mod = 1.0;
+    time_clarity_mod = 1.0;
     break;
   case SUN_RISE: /* Dawn - slightly reduced visibility */
   case SUN_SET:  /* Dusk - slightly reduced visibility */
-    time_range_mod = 0.8f;
-    time_clarity_mod = 0.9f;
+    time_range_mod = 0.8;
+    time_clarity_mod = 0.9;
     break;
   case SUN_DARK: /* Night - greatly reduced visibility */
   default:
-    time_range_mod = 0.3f;
-    time_clarity_mod = 0.5f;
+    time_range_mod = 0.3;
+    time_clarity_mod = 0.5;
     break;
   }
 
@@ -556,7 +516,7 @@ static int weather_terrain_apply_modifiers(struct spatial_context *ctx, float *r
 /*
  * Calculate environmental interference
  */
-static int weather_terrain_calculate_interference(struct spatial_context *ctx, float *interference)
+static int weather_terrain_calculate_interference(struct spatial_context *ctx, double *interference)
 {
   if (!ctx || !interference)
   {
@@ -564,19 +524,19 @@ static int weather_terrain_calculate_interference(struct spatial_context *ctx, f
   }
 
   /* Basic interference calculation - can be expanded */
-  *interference = 0.0f;
+  *interference = 0.0;
 
   /* Add interference based on weather */
   switch (ctx->weather_conditions)
   {
   case 2: /* Rain */
-    *interference += 0.2f;
+    *interference += 0.2;
     break;
   case 3: /* Fog */
-    *interference += 0.5f;
+    *interference += 0.5;
     break;
   case 4: /* Storm */
-    *interference += 0.7f;
+    *interference += 0.7;
     break;
   }
 
@@ -707,7 +667,7 @@ int spatial_visual_init(void)
 
 /* Deliver one event-driven sight to eligible active wilderness players. */
 int spatial_visual_emit(int source_x, int source_y, int source_z, const char *description,
-                        float intensity, int range)
+                        double intensity, int range)
 {
   struct spatial_context *ctx;
   struct char_data *ch;
@@ -734,7 +694,7 @@ int spatial_visual_emit(int source_x, int source_y, int source_z, const char *de
   ctx->source_x = source_x;
   ctx->source_y = source_y;
   ctx->source_z = source_z;
-  ctx->source_description = (char *)description; /* Borrowed for synchronous delivery. */
+  ctx->source_description = description; /* Borrowed for synchronous delivery. */
   ctx->base_intensity = intensity;
 
   /* Only connected observers can receive a sight; do not traverse the NPC population. */
@@ -779,276 +739,5 @@ int spatial_visual_emit(int source_x, int source_y, int source_z, const char *de
   spatial_free_context(ctx);
 
   spatial_log("Visual event processed for %d players", processed_count);
-  return SPATIAL_SUCCESS;
-}
-
-/*
- * Meteor Swarm Spatial Effects - Phase 1: Distant meteors appearing in sky
- */
-int spatial_visual_meteor_approach(int meteor_x, int meteor_y, const char *meteor_desc,
-                                   int visual_range)
-{
-  struct spatial_context *ctx;
-  struct char_data *ch;
-  int processed_count = 0;
-
-  if (!meteor_desc)
-  {
-    return SPATIAL_ERROR_INVALID_PARAM;
-  }
-
-  spatial_log("Meteor approach visual at (%d, %d): %s", meteor_x, meteor_y, meteor_desc);
-
-  /* Create properly initialized context */
-  ctx = spatial_create_context();
-  if (!ctx)
-  {
-    spatial_log("ERROR: Failed to create spatial context");
-    return SPATIAL_ERROR_MEMORY;
-  }
-
-  /* Set source information - elevation will be set per observer */
-  ctx->source_x = meteor_x;
-  ctx->source_y = meteor_y;
-  ctx->source_z = 0;                             /* Will be updated per observer */
-  ctx->source_description = (char *)meteor_desc; /* Borrowed for synchronous delivery. */
-  ctx->base_intensity = 1.5;                     /* High intensity for dramatic meteor approach */
-
-  /* Use extended range for distant meteors */
-  ctx->effective_range = visual_range;
-
-  /* Process for all wilderness players within extended range */
-  for (ch = character_list; ch; ch = ch->next)
-  {
-    if (IS_NPC(ch) || !ch->desc)
-      continue;
-    if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
-      continue;
-
-    /* Debug: Log player coordinates */
-    spatial_log("DEBUG: Checking player %s at coords (%d, %d)",
-                GET_NAME(ch) ? GET_NAME(ch) : "UNKNOWN", X_LOC(ch), Y_LOC(ch));
-
-    /* Check if player can see meteors using elevation-aware horizontal visibility */
-    int player_elevation = get_modified_elevation(X_LOC(ch), Y_LOC(ch));
-    int meteor_elevation = player_elevation + 20; /* Meteors 20 units above ground level */
-
-    spatial_log("DEBUG: Player elevation: %d, Meteor elevation: %d", player_elevation,
-                meteor_elevation);
-
-    if (!elevation_aware_visibility_check(X_LOC(ch), Y_LOC(ch), player_elevation, meteor_x,
-                                          meteor_y, meteor_elevation, visual_range))
-    {
-      spatial_log("DEBUG: Player %s cannot see meteors (outside elevation-aware range)",
-                  GET_NAME(ch));
-      continue;
-    }
-
-    spatial_log("DEBUG: Player %s within elevation-aware range, processing visual effect",
-                GET_NAME(ch));
-
-    /* Set observer information */
-    ctx->observer = ch;
-    ctx->observer_x = X_LOC(ch);
-    ctx->observer_y = Y_LOC(ch);
-    ctx->observer_z = player_elevation;
-
-    /* Set meteor elevation relative to this observer */
-    ctx->source_z = meteor_elevation;
-    ctx->active_system = &visual_system;
-
-    /* Calculate proper 3D distance for intensity */
-    ctx->distance = spatial_calculate_3d_distance(X_LOC(ch), Y_LOC(ch), player_elevation, meteor_x,
-                                                  meteor_y, meteor_elevation);
-
-    /* Update direction calculation for this observer */
-    spatial_update_direction(ctx);
-
-    /* Process visual stimulus */
-    int result = spatial_process_stimulus(ctx, &visual_system);
-
-    if (result == SPATIAL_SUCCESS)
-    {
-      send_to_char(ch, "\r\n%s\r\n", ctx->processed_message);
-      processed_count++;
-      spatial_log("Meteor approach visual delivered to %s", GET_NAME(ch));
-    }
-  }
-
-  /* Cleanup */
-  spatial_free_context(ctx);
-
-  spatial_log("Meteor approach processed for %d players", processed_count);
-  return SPATIAL_SUCCESS;
-}
-
-/*
- * Meteor Swarm Spatial Effects - Phase 3: Meteors descending toward target
- */
-int spatial_visual_meteor_descent(int meteor_x, int meteor_y, const char *meteor_desc,
-                                  int visual_range)
-{
-  struct spatial_context *ctx;
-  struct char_data *ch;
-  int processed_count = 0;
-
-  if (!meteor_desc)
-  {
-    return SPATIAL_ERROR_INVALID_PARAM;
-  }
-
-  spatial_log("Meteor descent visual at (%d, %d): %s", meteor_x, meteor_y, meteor_desc);
-
-  /* Create properly initialized context */
-  ctx = spatial_create_context();
-  if (!ctx)
-  {
-    spatial_log("ERROR: Failed to create spatial context");
-    return SPATIAL_ERROR_MEMORY;
-  }
-
-  /* Set source information - elevation will be set per observer */
-  ctx->source_x = meteor_x;
-  ctx->source_y = meteor_y;
-  ctx->source_z = 0;                             /* Will be updated per observer */
-  ctx->source_description = (char *)meteor_desc; /* Borrowed for synchronous delivery. */
-  ctx->base_intensity = 2.0;                     /* Very intense descending meteors */
-
-  /* Use closer range for descending meteors */
-  ctx->effective_range = visual_range;
-
-  /* Process for all wilderness players within range */
-  for (ch = character_list; ch; ch = ch->next)
-  {
-    if (IS_NPC(ch) || !ch->desc)
-      continue;
-    if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
-      continue;
-
-    /* Check if player can see descending meteors using elevation-aware horizontal visibility */
-    int player_elevation = get_modified_elevation(X_LOC(ch), Y_LOC(ch));
-    int meteor_elevation = player_elevation + 10; /* Meteors 10 units above ground, descending */
-
-    if (!elevation_aware_visibility_check(X_LOC(ch), Y_LOC(ch), player_elevation, meteor_x,
-                                          meteor_y, meteor_elevation, visual_range))
-    {
-      continue;
-    }
-
-    /* Set observer information for meteor descent */
-    ctx->observer = ch;
-    ctx->observer_x = X_LOC(ch);
-    ctx->observer_y = Y_LOC(ch);
-    ctx->observer_z = player_elevation;
-
-    /* Set meteor elevation relative to this observer */
-    ctx->source_z = meteor_elevation;
-    ctx->active_system = &visual_system;
-
-    /* Calculate proper 3D distance for intensity */
-    ctx->distance = spatial_calculate_3d_distance(X_LOC(ch), Y_LOC(ch), player_elevation, meteor_x,
-                                                  meteor_y, meteor_elevation);
-
-    /* Update direction calculation for this observer */
-    spatial_update_direction(ctx);
-
-    /* Update direction calculation for this observer */
-    spatial_update_direction(ctx);
-
-    /* Process visual stimulus */
-    int result = spatial_process_stimulus(ctx, &visual_system);
-
-    if (result == SPATIAL_SUCCESS)
-    {
-      send_to_char(ch, "\r\n%s\r\n", ctx->processed_message);
-      processed_count++;
-      spatial_log("Meteor descent visual delivered to %s", GET_NAME(ch));
-    }
-  }
-
-  /* Cleanup */
-  spatial_free_context(ctx);
-
-  spatial_log("Meteor descent processed for %d players", processed_count);
-  return SPATIAL_SUCCESS;
-}
-
-/*
- * Meteor Swarm Spatial Effects - Impact Audio/Visual
- */
-int spatial_visual_meteor_impact(int impact_x, int impact_y, const char *impact_desc, int range)
-{
-  struct spatial_context *ctx;
-  struct char_data *ch;
-  int processed_count = 0;
-
-  if (!impact_desc)
-  {
-    return SPATIAL_ERROR_INVALID_PARAM;
-  }
-
-  spatial_log("Meteor impact at (%d, %d): %s", impact_x, impact_y, impact_desc);
-
-  /* Create properly initialized context */
-  ctx = spatial_create_context();
-  if (!ctx)
-  {
-    spatial_log("ERROR: Failed to create spatial context");
-    return SPATIAL_ERROR_MEMORY;
-  }
-
-  /* Set source information */
-  ctx->source_x = impact_x;
-  ctx->source_y = impact_y;
-  ctx->source_z = 0;                             /* Ground level impact */
-  ctx->source_description = (char *)impact_desc; /* Borrowed for synchronous delivery. */
-  ctx->base_intensity = 2.5;                     /* Extremely intense ground impact explosion */
-
-  /* Process for all wilderness players within range */
-  for (ch = character_list; ch; ch = ch->next)
-  {
-    if (IS_NPC(ch) || !ch->desc)
-      continue;
-    if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
-      continue;
-
-    /* Check if player is within range - impacts are ground level, use horizontal distance only */
-    float horizontal_distance = sqrt((X_LOC(ch) - impact_x) * (X_LOC(ch) - impact_x) +
-                                     (Y_LOC(ch) - impact_y) * (Y_LOC(ch) - impact_y));
-    if (horizontal_distance > range)
-      continue;
-
-    /* Set observer information for meteor impact */
-    int player_elevation = get_modified_elevation(X_LOC(ch), Y_LOC(ch));
-    ctx->observer = ch;
-    ctx->observer_x = X_LOC(ch);
-    ctx->observer_y = Y_LOC(ch);
-    ctx->observer_z = player_elevation;
-
-    /* Set impact source at ground level (player elevation as reference) */
-    ctx->source_z = player_elevation;
-    ctx->active_system = &visual_system;
-
-    /* Use horizontal distance for ground-level impact intensity */
-    ctx->distance = horizontal_distance;
-
-    /* Update direction calculation for this observer */
-    spatial_update_direction(ctx);
-
-    /* Process visual stimulus */
-    int result = spatial_process_stimulus(ctx, &visual_system);
-
-    if (result == SPATIAL_SUCCESS)
-    {
-      send_to_char(ch, "\r\n%s\r\n", ctx->processed_message);
-      processed_count++;
-      spatial_log("Meteor impact visual delivered to %s", GET_NAME(ch));
-    }
-  }
-
-  /* Cleanup */
-  spatial_free_context(ctx);
-
-  spatial_log("Meteor impact processed for %d players", processed_count);
   return SPATIAL_SUCCESS;
 }

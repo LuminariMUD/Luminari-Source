@@ -90,8 +90,8 @@ static void ashenport_initialize_npc(struct char_data *ch, const char *name)
   clear_char(ch);
   SET_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
   ch->player_specials = &dummy_mob;
-  ch->player.name = (char *)name;
-  ch->player.short_descr = (char *)name;
+  ch->player.name = CuMutableString(name);
+  ch->player.short_descr = CuMutableString(name);
   GET_LEVEL(ch) = 10;
   GET_POS(ch) = POS_STANDING;
   GET_HIT(ch) = 100;
@@ -263,13 +263,13 @@ static bool ashenport_fixture_begin(struct ashenport_welcome_fixture *fixture)
   fixture->rooms[0].number = ASHENPORT_WELCOME_ROOM;
   fixture->rooms[0].zone = 0;
   fixture->rooms[0].sector_type = SECT_INSIDE;
-  fixture->rooms[0].name = "Ashenport welcome";
-  fixture->rooms[0].description = "The Ashenport welcome room.\r\n";
+  fixture->rooms[0].name = CuMutableString("Ashenport welcome");
+  fixture->rooms[0].description = CuMutableString("The Ashenport welcome room.\r\n");
   fixture->rooms[1].number = ASHENPORT_ELSEWHERE_ROOM;
   fixture->rooms[1].zone = 0;
   fixture->rooms[1].sector_type = SECT_INSIDE;
-  fixture->rooms[1].name = "Ashenport elsewhere";
-  fixture->rooms[1].description = "A second Ashenport room.\r\n";
+  fixture->rooms[1].name = CuMutableString("Ashenport elsewhere");
+  fixture->rooms[1].description = CuMutableString("A second Ashenport room.\r\n");
   fixture->zone.number = 0;
   fixture->zone.bot = ASHENPORT_WELCOME_ROOM;
   fixture->zone.top = ASHENPORT_ELSEWHERE_ROOM;
@@ -284,7 +284,7 @@ static bool ashenport_fixture_begin(struct ashenport_welcome_fixture *fixture)
   mob_index = &fixture->mobile_index;
   top_of_mobt = 0;
   ashenport_initialize_npc(&fixture->mobile_prototype, "ashenport welcome proto");
-  fixture->mobile_prototype.player.name = "ashenport welcome proto";
+  fixture->mobile_prototype.player.name = CuMutableString("ashenport welcome proto");
   fixture->mobile_prototype.nr = 0;
   GET_PSP(&fixture->mobile_prototype) = 100;
   mob_proto = &fixture->mobile_prototype;

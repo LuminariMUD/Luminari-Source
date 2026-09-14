@@ -50,7 +50,6 @@
 #include "point_update_periodic.h"
 
 // external functions
-bool save_char_pets(struct char_data *ch);
 
 #define PLAYER_COOLDOWN_TICK_SECONDS 6
 #define BONUS_SLOT_REGEN_TICKS 5
@@ -155,7 +154,7 @@ void reconcile_player_offline_cooldowns(struct char_data *ch, int64_t saved_at_e
   if (ch == NULL || IS_NPC(ch) || ch->player_specials == NULL || saved_at_epoch <= 0 ||
       now_epoch <= 0 || (saved_at_epoch > now_epoch && saved_at_epoch - now_epoch > 300))
     return;
-  elapsed_seconds = MAX(0, now_epoch - saved_at_epoch);
+  elapsed_seconds = long_max(0, now_epoch - saved_at_epoch);
   elapse_fight_to_death_cooldown(ch, elapsed_seconds, false);
   elapsed_ticks = elapsed_seconds / PLAYER_COOLDOWN_TICK_SECONDS;
   if (elapsed_ticks <= 0)
@@ -230,7 +229,7 @@ bool death_check(struct char_data *ch)
 }
 
 /* engine for checking a room-affect to see if it fires */
-void room_aff_tick(struct raff_node *raff)
+static void room_aff_tick(struct raff_node *raff)
 {
   struct room_data *caster_room = NULL;
   struct char_data *caster = NULL;
@@ -311,7 +310,7 @@ void room_aff_tick(struct raff_node *raff)
 }
 
 /* Advance character afflictions during environment and recovery work. */
-void affliction_tick(struct char_data *ch)
+static void affliction_tick(struct char_data *ch)
 {
   /* cloudkill */
   if (CLOUDKILL(ch))
@@ -427,7 +426,7 @@ void mount_cleanup(struct char_data *ch)
 
 /* a tick counter that checks for room-based hazards, like
  * falling/drowning/lava/etc */
-void hazard_tick(struct char_data *ch)
+static void hazard_tick(struct char_data *ch)
 {
   /* falling */
   if (char_should_fall(ch, TRUE) && !char_has_mud_event(ch, eFALLING))
@@ -557,7 +556,7 @@ int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6)
  * @param ch The character to check
  * @return Total healing bonus from all auras in range
  */
-int get_healing_aura_regen_bonus(struct char_data *ch)
+static int get_healing_aura_regen_bonus(struct char_data *ch)
 {
   struct char_data *aura_caster = NULL;
   int total_bonus = 0;
@@ -661,7 +660,7 @@ int get_healing_aura_regen_bonus(struct char_data *ch)
 }
 
 /* we do the math for our hps regen per tick here -zusuk */
-int regen_hps(struct char_data *ch)
+static int regen_hps(struct char_data *ch)
 {
   int hp = 0;
 
@@ -922,23 +921,23 @@ void regen_update(struct char_data *ch)
   /* Bleeding Attack damage processing */
   if (AFF_FLAGGED(ch, AFF_BLEED) && affected_by_spell(ch, SKILL_BLEEDING_ATTACK))
   {
-    int found = 0;
-    struct char_data *tch = NULL;
+    int inner_found = 0;
+    struct char_data *inner_tch = NULL;
 
     /* In combat, damage comes from the attacker */
     if (FIGHTING(ch) || dice(1, 2) == 2)
     {
-      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+      for (inner_tch = world[IN_ROOM(ch)].people; inner_tch; inner_tch = inner_tch->next_in_room)
       {
-        if (!IS_NPC(tch) && FIGHTING(tch) == ch)
+        if (!IS_NPC(inner_tch) && FIGHTING(inner_tch) == ch)
         {
-          damage(tch, ch, dice(1, 6), SKILL_BLEEDING_ATTACK, DAM_PUNCTURE, FALSE);
-          found = 1;
+          damage(inner_tch, ch, dice(1, 6), SKILL_BLEEDING_ATTACK, DAM_PUNCTURE, FALSE);
+          inner_found = 1;
           break;
         }
       }
 
-      if (!found)
+      if (!inner_found)
         damage(ch, ch, dice(1, 6), SKILL_BLEEDING_ATTACK, DAM_PUNCTURE, FALSE);
       update_pos(ch);
       return;
@@ -1292,7 +1291,7 @@ void set_title(struct char_data *ch, char *title)
   }
 }
 
-void set_imm_title(struct char_data *ch, char *title)
+void set_imm_title(struct char_data *ch, const char *title)
 {
   if (GET_LEVEL(ch) < LVL_IMMORT)
     return;
@@ -1308,10 +1307,7 @@ void set_imm_title(struct char_data *ch, char *title)
   }
   else
   {
-    if (strlen(title) > MAX_IMM_TITLE_LENGTH)
-      title[MAX_IMM_TITLE_LENGTH] = '\0';
-
-    GET_IMM_TITLE(ch) = strdup(title);
+    GET_IMM_TITLE(ch) = strndup(title, MAX_IMM_TITLE_LENGTH);
   }
 }
 
@@ -1358,10 +1354,10 @@ void gain_condition(struct char_data *ch, int condition, int value)
 
   intoxicated = (GET_COND(ch, DRUNK) > 0);
 
-  GET_COND(ch, condition) += value;
+  GET_COND(ch, condition) = (sbyte)(GET_COND(ch, condition) + (value));
 
-  GET_COND(ch, condition) = MAX(0, GET_COND(ch, condition));
-  GET_COND(ch, condition) = MIN(24, GET_COND(ch, condition));
+  GET_COND(ch, condition) = (sbyte)MAX(0, GET_COND(ch, condition));
+  GET_COND(ch, condition) = (sbyte)MIN(24, GET_COND(ch, condition));
 
   if (GET_COND(ch, condition) || PLR_FLAGGED(ch, PLR_WRITING))
     return;
@@ -1469,7 +1465,7 @@ void recharge_activated_items(void)
                 snprintf(where_name, sizeof(where_name), "%s", equipment_types[i]);
                 for (j = 0; (size_t)j < strlen(where_name); j++)
                 {
-                  where_name[j] = tolower(where_name[j]);
+                  where_name[j] = (char)tolower(where_name[j]);
                 }
                 snprintf(buf, sizeof(buf), "$p, %s, regains 1 charge of '%s'.", where_name,
                          spell_info[obj->activate_spell[ACT_SPELL_SPELLNUM]].name);
@@ -2437,10 +2433,10 @@ bool point_update_object_one(struct obj_data *obj)
   return true;
 }
 
-void increase_anger(struct char_data *ch, float amount)
+void increase_anger(struct char_data *ch, double amount)
 {
   if (IS_NPC(ch) && GET_ANGER(ch) <= MAX_ANGER)
-    GET_ANGER(ch) = MIN(MAX(GET_ANGER(ch) + amount, 0), MAX_ANGER);
+    GET_ANGER(ch) = FLOATMIN(FLOATMAX(GET_ANGER(ch) + amount, 0.0), MAX_ANGER);
 }
 
 // function that performs the "meat" of the vampiric blood drain mechanic!
@@ -2794,7 +2790,7 @@ void check_auto_happy_hour(void)
 
   mytime = time(0);
 
-  m = (mytime / 60) % 60;
+  m = (int)((mytime / 60) % 60);
 
   if (m == 0)
   {

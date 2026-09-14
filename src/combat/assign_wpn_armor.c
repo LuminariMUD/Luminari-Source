@@ -330,7 +330,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
 }
 
 /* is weapon out of ammo? */
-bool weapon_needs_reload(struct char_data *ch, struct obj_data *weapon, bool silent_mode)
+static bool weapon_needs_reload(struct char_data *ch, struct obj_data *weapon, bool silent_mode)
 {
   /* object value 5 is for loaded status */
   if (GET_OBJ_VAL(weapon, 5) > 0)
@@ -342,7 +342,7 @@ bool weapon_needs_reload(struct char_data *ch, struct obj_data *weapon, bool sil
   return TRUE;
 }
 
-bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent_mode)
+static bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent_mode)
 {
   switch (GET_OBJ_VAL(wielded, 0))
   {
@@ -451,7 +451,7 @@ bool ready_to_reload(struct char_data *ch, struct obj_data *wielded, bool silent
    then run reload_weapon() for actual reloading
    finally burn up appropriate action
  * @returns:  true if success */
-bool process_load_weapon(struct char_data *ch, struct obj_data *weapon, bool silent_mode)
+static bool process_load_weapon(struct char_data *ch, struct obj_data *weapon, bool silent_mode)
 {
   /* position check */
   if (GET_POS(ch) <= POS_STUNNED)
@@ -829,13 +829,11 @@ static void setweapon(int type, const char *name, int numDice, int diceSize, int
                       int range, int weaponFamily, int size, int material, int handle_type,
                       int head_type, const char *description)
 {
-  if (weapon_type[type] != NULL)
-    free((char *)weapon_type[type]);
-  weapon_type[type] = strdup(name);
+  weapon_type[type] = name;
   weapon_list[type].name = name;
-  weapon_list[type].numDice = numDice;
-  weapon_list[type].diceSize = diceSize;
-  weapon_list[type].critRange = critRange;
+  weapon_list[type].numDice = (sbyte)numDice;
+  weapon_list[type].diceSize = (ubyte)diceSize;
+  weapon_list[type].critRange = (sbyte)critRange;
   if (critMult == 2)
     weapon_list[type].critMult = CRIT_X2;
   else if (critMult == 3)
@@ -846,20 +844,20 @@ static void setweapon(int type, const char *name, int numDice, int diceSize, int
     weapon_list[type].critMult = CRIT_X5;
   else if (critMult == 6)
     weapon_list[type].critMult = CRIT_X6;
-  weapon_list[type].weaponFlags = weaponFlags;
-  weapon_list[type].cost = cost;
-  weapon_list[type].damageTypes = damageTypes;
-  weapon_list[type].weight = weight;
-  weapon_list[type].range = range;
-  weapon_list[type].weaponFamily = weaponFamily;
-  weapon_list[type].size = size;
-  weapon_list[type].material = material;
-  weapon_list[type].handle_type = handle_type;
-  weapon_list[type].head_type = head_type;
+  weapon_list[type].weaponFlags = (ush_int)weaponFlags;
+  weapon_list[type].cost = (ush_int)cost;
+  weapon_list[type].damageTypes = (ush_int)damageTypes;
+  weapon_list[type].weight = (ush_int)weight;
+  weapon_list[type].range = (ubyte)range;
+  weapon_list[type].weaponFamily = (ush_int)weaponFamily;
+  weapon_list[type].size = (byte)size;
+  weapon_list[type].material = (ubyte)material;
+  weapon_list[type].handle_type = (ubyte)handle_type;
+  weapon_list[type].head_type = (ubyte)head_type;
   weapon_list[type].description = description;
 }
 
-void initialize_weapons(int type)
+static void initialize_weapons(int type)
 {
   weapon_list[type].name = "unused weapon";
   weapon_list[type].description = "unused weapon";
@@ -1343,7 +1341,7 @@ void load_weapons(void)
    ch is wearing */
 int compute_gear_armor_type(struct char_data *ch)
 {
-  int armor_type = ARMOR_TYPE_NONE, armor_compare = ARMOR_TYPE_NONE, i;
+  int armor_type_value = ARMOR_TYPE_NONE, armor_compare = ARMOR_TYPE_NONE, i;
   struct obj_data *obj = NULL;
 
   for (i = 0; i < NUM_WEARS; i++)
@@ -1355,14 +1353,14 @@ int compute_gear_armor_type(struct char_data *ch)
       armor_compare = armor_list[GET_OBJ_VAL(obj, 1)].armorType;
       if (armor_compare == ARMOR_TYPE_HEAVY && HAS_FEAT(ch, FEAT_ARMORED_MOBILITY))
         armor_compare = ARMOR_TYPE_MEDIUM;
-      if (armor_compare < ARMOR_TYPE_SHIELD && armor_compare > armor_type)
+      if (armor_compare < ARMOR_TYPE_SHIELD && armor_compare > armor_type_value)
       {
-        armor_type = armor_compare;
+        armor_type_value = armor_compare;
       }
     }
   }
 
-  return armor_type;
+  return armor_type_value;
 }
 
 int compute_gear_shield_type(struct char_data *ch)
@@ -1387,8 +1385,8 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
 {
   struct obj_data *obj = NULL;
   int enhancement_bonus = 0;
-  float counter = 0.0;
-  float num_pieces = 0.0;
+  double counter = 0.0;
+  double num_pieces = 0.0;
 
   /* we're going to check slot-by-slot */
 
@@ -1409,7 +1407,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
       counter += 1.1;
       break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
     /* DON'T increment num_pieces, should get full bang for buck on shields */
   }
 
@@ -1417,7 +1415,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
   if (affected_by_spell(ch, SPELL_LITANY_OF_DEFENSE))
     counter *= 2;
 
-  enhancement_bonus += counter;
+  enhancement_bonus = (int)(enhancement_bonus + counter);
   counter = 0.1; /* reset the counter for all other slots */
   /* end SPECIAL HANDLING FOR SHIELD */
 
@@ -1438,7 +1436,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
       counter += 1.1;
       break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
   /* head */
@@ -1458,7 +1456,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
       counter += 1.1;
       break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
   /* legs */
@@ -1478,7 +1476,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
       counter += 1.1;
       break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
   /* arms */
@@ -1498,7 +1496,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
       counter += 1.1;
       break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
   /* lower arms (four arms): one more averaged piece, only when worn */
@@ -1518,7 +1516,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
       counter += 1.1;
       break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
   enhancement_bonus += MAX(0, (int)(counter / num_pieces));
@@ -1877,21 +1875,21 @@ static void setarmor(int type, const char *name, int armorType, int cost, int ar
                      int weight, int material, int wear, const char *description)
 {
   armor_list[type].name = name;
-  armor_list[type].armorType = armorType;
-  armor_list[type].cost = cost;
-  armor_list[type].armorBonus = armorBonus;
-  armor_list[type].dexBonus = dexBonus;
-  armor_list[type].armorCheck = armorCheck;
-  armor_list[type].spellFail = spellFail;
-  armor_list[type].thirtyFoot = thirtyFoot;
-  armor_list[type].twentyFoot = twentyFoot;
-  armor_list[type].weight = weight;
-  armor_list[type].material = material;
+  armor_list[type].armorType = (ubyte)armorType;
+  armor_list[type].cost = (ush_int)cost;
+  armor_list[type].armorBonus = (ubyte)armorBonus;
+  armor_list[type].dexBonus = (ubyte)dexBonus;
+  armor_list[type].armorCheck = (byte)armorCheck;
+  armor_list[type].spellFail = (ubyte)spellFail;
+  armor_list[type].thirtyFoot = (ubyte)thirtyFoot;
+  armor_list[type].twentyFoot = (ubyte)twentyFoot;
+  armor_list[type].weight = (ush_int)weight;
+  armor_list[type].material = (ubyte)material;
   armor_list[type].wear = wear;
   armor_list[type].description = description;
 }
 
-void initialize_armor(int type)
+static void initialize_armor(int type)
 {
   armor_list[type].name = "unused armor";
   armor_list[type].description = "unused armor";
@@ -2238,7 +2236,7 @@ ACMD(do_weaponlist_old)
     sprintbit(weapon_list[type].damageTypes, weapon_damage_types, buf3, sizeof(buf3));
 
     len =
-        snprintf_append(buf, sizeof(buf), len,
+        snprintf_append(buf, sizeof(buf), (int)len,
                         "\tW%s\tn, Dam: %dd%d, Threat: %d, Crit-Multi: %d, Flags: %s, Cost: %d, "
                         "Dam-Types: %s, Weight: %d, Range: %d, Family: %s, Size: %s, Material: %s, "
                         "Handle: %s, Head: %s.\r\n",
@@ -2262,12 +2260,12 @@ ACMD(do_armorlist_old)
 
   for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
   {
-    len = snprintf_append(buf, sizeof(buf), len,
+    len = snprintf_append(buf, sizeof(buf), (int)len,
                           "\tW%s\tn, Type: %s, Cost: %d, "
                           "AC: %.1f, Max Dex: %d, Armor Penalty: %d, Spell Fail: %d, Weight: %d, "
                           "Material: %s\r\n",
                           armor_list[i].name, armor_type[armor_list[i].armorType],
-                          armor_list[i].cost, (float)armor_list[i].armorBonus / 10.0,
+                          armor_list[i].cost, (double)armor_list[i].armorBonus / 10.0,
                           armor_list[i].dexBonus, armor_list[i].armorCheck, armor_list[i].spellFail,
                           armor_list[i].weight, material_name[armor_list[i].material]);
   }

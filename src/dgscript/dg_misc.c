@@ -49,6 +49,11 @@ void do_dg_cast(void *go, struct script_data *sc __attribute__((unused)), trig_d
   {
   case MOB_TRIGGER:
     caster = (struct char_data *)go;
+    if (!caster)
+    {
+      script_log("dg_do_cast: unknown mob caster!");
+      return;
+    }
     break;
   case WLD_TRIGGER:
     caster_room = (struct room_data *)go;
@@ -71,15 +76,15 @@ void do_dg_cast(void *go, struct script_data *sc __attribute__((unused)), trig_d
   s = strtok(cmd, "'");
   if (s == NULL)
   {
-    script_log("Trigger: %s, VNum %d. dg_cast needs spell name.", GET_TRIG_NAME(trig),
+    script_log("Trigger: %s, VNum %" PRI_IDX ". dg_cast needs spell name.", GET_TRIG_NAME(trig),
                GET_TRIG_VNUM(trig));
     return;
   }
   s = strtok(NULL, "'");
   if (s == NULL)
   {
-    script_log("Trigger: %s, VNum %d. dg_cast needs spell name in `'s.", GET_TRIG_NAME(trig),
-               GET_TRIG_VNUM(trig));
+    script_log("Trigger: %s, VNum %" PRI_IDX ". dg_cast needs spell name in `'s.",
+               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig));
     return;
   }
   t = strtok(NULL, "\0");
@@ -88,8 +93,8 @@ void do_dg_cast(void *go, struct script_data *sc __attribute__((unused)), trig_d
   spellnum = find_skill_num(s);
   if ((spellnum < 1) || (spellnum > MAX_SPELLS))
   {
-    script_log("Trigger: %s, VNum %d. dg_cast: invalid spell name (%s)", GET_TRIG_NAME(trig),
-               GET_TRIG_VNUM(trig), orig_cmd);
+    script_log("Trigger: %s, VNum %" PRI_IDX ". dg_cast: invalid spell name (%s)",
+               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), orig_cmd);
     return;
   }
 
@@ -120,15 +125,15 @@ void do_dg_cast(void *go, struct script_data *sc __attribute__((unused)), trig_d
 
     if (!target)
     {
-      script_log("Trigger: %s, VNum %d. dg_cast: target not found (%s)", GET_TRIG_NAME(trig),
-                 GET_TRIG_VNUM(trig), orig_cmd);
+      script_log("Trigger: %s, VNum %" PRI_IDX ". dg_cast: target not found (%s)",
+                 GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), orig_cmd);
       return;
     }
   }
 
   if (IS_SET(SINFO.routines, MAG_GROUPS))
   {
-    script_log("Trigger: %s, VNum %d. dg_cast: group spells not permitted (%s)",
+    script_log("Trigger: %s, VNum %" PRI_IDX ". dg_cast: group spells not permitted (%s)",
                GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), orig_cmd);
     return;
   }
@@ -183,7 +188,8 @@ void do_dg_affect(void *go __attribute__((unused)), struct script_data *sc __att
   /* make sure all parameters are present */
   if (!*charname || !*property || !*value_p || !*duration_p)
   {
-    script_log("Trigger: %s, VNum %d. dg_affect usage: <target> <property> <value> <duration>",
+    script_log("Trigger: %s, VNum %" PRI_IDX
+               ". dg_affect usage: <target> <property> <value> <duration>",
                GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig));
     return;
   }
@@ -192,8 +198,8 @@ void do_dg_affect(void *go __attribute__((unused)), struct script_data *sc __att
   duration = atoi(duration_p);
   if (duration <= 0)
   {
-    script_log("Trigger: %s, VNum %d. dg_affect: need positive duration!", GET_TRIG_NAME(trig),
-               GET_TRIG_VNUM(trig));
+    script_log("Trigger: %s, VNum %" PRI_IDX ". dg_affect: need positive duration!",
+               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig));
     script_log("Line was: dg_affect %s %s %s %s (%d)", charname, property, value_p, duration_p,
                duration);
     return;
@@ -227,8 +233,8 @@ void do_dg_affect(void *go __attribute__((unused)), struct script_data *sc __att
 
   if (!type)
   { /* property not found */
-    script_log("Trigger: %s, VNum %d. dg_affect: unknown property '%s'!", GET_TRIG_NAME(trig),
-               GET_TRIG_VNUM(trig), property);
+    script_log("Trigger: %s, VNum %" PRI_IDX ". dg_affect: unknown property '%s'!",
+               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), property);
     return;
   }
 
@@ -236,8 +242,8 @@ void do_dg_affect(void *go __attribute__((unused)), struct script_data *sc __att
   ch = get_char(charname);
   if (!ch)
   {
-    script_log("Trigger: %s, VNum %d. dg_affect: cannot locate target!", GET_TRIG_NAME(trig),
-               GET_TRIG_VNUM(trig));
+    script_log("Trigger: %s, VNum %" PRI_IDX ". dg_affect: cannot locate target!",
+               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig));
     return;
   }
 

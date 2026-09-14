@@ -60,7 +60,7 @@ static void setup_test_char(struct char_data *ch, struct player_special_data *sp
   clear_char(ch);
   GET_ATTACK_QUEUE(ch) = create_attack_queue();
   ch->player_specials = specials;
-  ch->player.name = (char *)name;
+  ch->player.name = CuMutableString(name);
   ch->desc = descriptor;
   IN_ROOM(ch) = 0;
   GET_LEVEL(ch) = 10;

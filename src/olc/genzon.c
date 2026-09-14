@@ -100,7 +100,8 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
     /* Check if new zone's bottom is within existing zone's range */
     if (bottom >= zone_table[i].bot && bottom <= zone_table[i].top)
     {
-      snprintf(buf, sizeof(buf), "Room range overlaps with zone %d (rooms %d-%d).\r\n",
+      snprintf(buf, sizeof(buf),
+               "Room range overlaps with zone %" PRI_IDX " (rooms %" PRI_IDX "-%" PRI_IDX ").\r\n",
                zone_table[i].number, zone_table[i].bot, zone_table[i].top);
       *error = strdup(buf);
       return NOWHERE;
@@ -109,7 +110,8 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
     /* Check if new zone's top is within existing zone's range */
     if (top >= zone_table[i].bot && top <= zone_table[i].top)
     {
-      snprintf(buf, sizeof(buf), "Room range overlaps with zone %d (rooms %d-%d).\r\n",
+      snprintf(buf, sizeof(buf),
+               "Room range overlaps with zone %" PRI_IDX " (rooms %" PRI_IDX "-%" PRI_IDX ").\r\n",
                zone_table[i].number, zone_table[i].bot, zone_table[i].top);
       *error = strdup(buf);
       return NOWHERE;
@@ -118,7 +120,9 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
     /* Check if new zone completely contains an existing zone */
     if (bottom <= zone_table[i].bot && top >= zone_table[i].top)
     {
-      snprintf(buf, sizeof(buf), "Room range completely contains zone %d (rooms %d-%d).\r\n",
+      snprintf(buf, sizeof(buf),
+               "Room range completely contains zone %" PRI_IDX " (rooms %" PRI_IDX "-%" PRI_IDX
+               ").\r\n",
                zone_table[i].number, zone_table[i].bot, zone_table[i].top);
       *error = strdup(buf);
       return NOWHERE;
@@ -126,29 +130,31 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   }
 
   /* Create the zone file. */
-  snprintf(buf, sizeof(buf), "%s/%d.zon", ZON_PREFIX, vzone_num);
+  snprintf(buf, sizeof(buf), "%s/%" PRI_IDX ".zon", ZON_PREFIX, vzone_num);
   if (!(fp = fopen_restricted(buf, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new zone file.");
     *error = "Could not write zone file.\r\n";
     return NOWHERE;
   }
-  fprintf(fp, "#%d\nNone~\nNew Zone~\n%d %d 30 2\nS\n$\n", vzone_num, bottom, top);
+  fprintf(fp, "#%" PRI_IDX "\nNone~\nNew Zone~\n%" PRI_IDX " %" PRI_IDX " 30 2\nS\n$\n", vzone_num,
+          bottom, top);
   fclose(fp);
 
   /* Create the room file. */
-  snprintf(buf, sizeof(buf), "%s/%d.wld", WLD_PREFIX, vzone_num);
+  snprintf(buf, sizeof(buf), "%s/%" PRI_IDX ".wld", WLD_PREFIX, vzone_num);
   if (!(fp = fopen_restricted(buf, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new world file.");
     *error = "Could not write world file.\r\n";
     return NOWHERE;
   }
-  fprintf(fp, "#%d\nThe Beginning~\nNot much here.\n~\n%d 0 0\nS\n$\n", bottom, vzone_num);
+  fprintf(fp, "#%" PRI_IDX "\nThe Beginning~\nNot much here.\n~\n%" PRI_IDX " 0 0\nS\n$\n", bottom,
+          vzone_num);
   fclose(fp);
 
   /* Create the mobile file. */
-  snprintf(buf, sizeof(buf), "%s/%d.mob", MOB_PREFIX, vzone_num);
+  snprintf(buf, sizeof(buf), "%s/%" PRI_IDX ".mob", MOB_PREFIX, vzone_num);
   if (!(fp = fopen_restricted(buf, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new mob file.");
@@ -159,7 +165,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   fclose(fp);
 
   /* Create the object file. */
-  snprintf(buf, sizeof(buf), "%s/%d.obj", OBJ_PREFIX, vzone_num);
+  snprintf(buf, sizeof(buf), "%s/%" PRI_IDX ".obj", OBJ_PREFIX, vzone_num);
   if (!(fp = fopen_restricted(buf, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new obj file.");
@@ -170,7 +176,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   fclose(fp);
 
   /* Create the shop file. */
-  snprintf(buf, sizeof(buf), "%s/%d.shp", SHP_PREFIX, vzone_num);
+  snprintf(buf, sizeof(buf), "%s/%" PRI_IDX ".shp", SHP_PREFIX, vzone_num);
   if (!(fp = fopen_restricted(buf, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new shop file.");
@@ -181,7 +187,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   fclose(fp);
 
   /* Create the quests file */
-  snprintf(buf, sizeof(buf), "%s/%d.qst", QST_PREFIX, vzone_num);
+  snprintf(buf, sizeof(buf), "%s/%" PRI_IDX ".qst", QST_PREFIX, vzone_num);
   if (!(fp = fopen_restricted(buf, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new quest file");
@@ -192,7 +198,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   fclose(fp);
 
   /* Create the hlquest file (homeland-port) */
-  snprintf(buf, sizeof(buf), "%s/%d.hlq", HLQST_PREFIX, vzone_num);
+  snprintf(buf, sizeof(buf), "%s/%" PRI_IDX ".hlq", HLQST_PREFIX, vzone_num);
   if (!(fp = fopen_restricted(buf, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new hlquest file");
@@ -203,7 +209,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   fclose(fp);
 
   /* Create the trigger file. */
-  snprintf(buf, sizeof(buf), "%s/%d.trg", TRG_PREFIX, vzone_num);
+  snprintf(buf, sizeof(buf), "%s/%" PRI_IDX ".trg", TRG_PREFIX, vzone_num);
   if (!(fp = fopen_restricted(buf, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new trigger file");
@@ -373,7 +379,7 @@ int create_world_index(int znum, const char *type)
   return TRUE;
 }
 
-void remove_room_zone_commands(zone_rnum zone, room_rnum room_num)
+void remove_room_zone_commands(zone_rnum zone, room_rnum room_num_id)
 {
   int subcmd = 0, cmd_room = -2;
 
@@ -399,7 +405,7 @@ void remove_room_zone_commands(zone_rnum zone, room_rnum room_num)
     default:
       break;
     }
-    if (cmd_room >= 0 && (room_rnum)cmd_room == room_num)
+    if (cmd_room >= 0 && (room_rnum)cmd_room == room_num_id)
       remove_cmd_from_list(&zone_table[zone].cmd, subcmd);
     else
       subcmd++;
@@ -425,15 +431,15 @@ int save_zone(zone_rnum zone_num)
   if (zone_num < 0 || zone_num > top_of_zone_table)
   {
 #endif
-    log("SYSERR: GenOLC: save_zone: Invalid real zone number %d. (0-%d)", zone_num,
-        top_of_zone_table);
+    log("SYSERR: GenOLC: save_zone: Invalid real zone number %" PRI_IDX ". (0-%" PRI_IDX ")",
+        zone_num, top_of_zone_table);
     return FALSE;
   }
 
-  snprintf(fname, sizeof(fname), "%s/%d.new", ZON_PREFIX, zone_table[zone_num].number);
+  snprintf(fname, sizeof(fname), "%s/%" PRI_IDX ".new", ZON_PREFIX, zone_table[zone_num].number);
   if (!(zfile = fopen_restricted(fname, "w")))
   {
-    mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: save_zones:  Can't write zone %d.",
+    mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: save_zones:  Can't write zone %" PRI_IDX ".",
            zone_table[zone_num].number);
     return FALSE;
   }
@@ -446,10 +452,10 @@ int save_zone(zone_rnum zone_num)
   {
     // Print zone header to file.
     fprintf(zfile,
-            "#%d\n"
+            "#%" PRI_IDX "\n"
             "%s~\n"
             "%s~\n"
-            "%d %d %d %d\n",
+            "%" PRI_IDX " %" PRI_IDX " %d %d\n",
             zone_table[zone_num].number,
             (zone_table[zone_num].builders && *zone_table[zone_num].builders)
                 ? zone_table[zone_num].builders
@@ -469,10 +475,11 @@ int save_zone(zone_rnum zone_num)
 
     /* Print zone header to file. */
     fprintf(zfile,
-            "#%d\n"
+            "#%" PRI_IDX "\n"
             "%s~\n"
             "%s~\n"
-            "%d %d %d %d %s %s %s %s %d %d %d %d %d %d\n", /* New tbaMUD data line */
+            "%" PRI_IDX " %" PRI_IDX
+            " %d %d %s %s %s %s %d %d %d %d %d %d\n", /* New tbaMUD data line */
             zone_table[zone_num].number,
             (zone_table[zone_num].builders && *zone_table[zone_num].builders)
                 ? zone_table[zone_num].builders
@@ -633,7 +640,8 @@ int save_zone(zone_rnum zone_num)
               ZCMD(zone_num, subcmd).sarg2);
   }
   fputs("S\n$\n", zfile);
-  snprintf(oldname, sizeof(oldname), "%s/%d.zon", ZON_PREFIX, zone_table[zone_num].number);
+  snprintf(oldname, sizeof(oldname), "%s/%" PRI_IDX ".zon", ZON_PREFIX,
+           zone_table[zone_num].number);
   if (!finish_file_save(zfile, fname, oldname))
     return FALSE;
 
@@ -687,6 +695,8 @@ static void remove_cmd_from_list(struct reset_com **list, int pos)
 
   /* Count number of commands (not including terminator). */
   count = count_commands(*list);
+  if (count <= 0)
+    return; /* only the terminator: nothing to remove */
 
   /* Value is 'count' because we didn't include the terminator above but since
    * we're deleting one thing anyway we want one less. */

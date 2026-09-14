@@ -694,17 +694,17 @@ int save_config(IDXTYPE nowhere __attribute__((unused)))
 
   fprintf(fl,
           "* The virtual number of the room that mortals should enter at.\n"
-          "mortal_start_room = %d\n\n",
+          "mortal_start_room = %" PRI_IDX "\n\n",
           CONFIG_MORTAL_START);
 
   fprintf(fl,
           "* The virtual number of the room that immorts should enter at.\n"
-          "immort_start_room = %d\n\n",
+          "immort_start_room = %" PRI_IDX "\n\n",
           CONFIG_IMMORTAL_START);
 
   fprintf(fl,
           "* The virtual number of the room that frozen people should enter at.\n"
-          "frozen_start_room = %d\n\n",
+          "frozen_start_room = %" PRI_IDX "\n\n",
           CONFIG_FROZEN_START);
 
   fprintf(fl,
@@ -1435,12 +1435,12 @@ static void cedit_disp_room_numbers(struct descriptor_data *d)
 
   write_to_output(d,
                   "\r\n\r\n"
-                  "%sA%s) Mortal Start Room   : %s%d\r\n"
-                  "%sB%s) Immortal Start Room : %s%d\r\n"
-                  "%sC%s) Frozen Start Room   : %s%d\r\n"
-                  "%s1%s) Donation Room #1    : %s%d\r\n"
-                  "%s2%s) Donation Room #2    : %s%d\r\n"
-                  "%s3%s) Donation Room #3    : %s%d\r\n"
+                  "%sA%s) Mortal Start Room   : %s%" PRI_IDX "\r\n"
+                  "%sB%s) Immortal Start Room : %s%" PRI_IDX "\r\n"
+                  "%sC%s) Frozen Start Room   : %s%" PRI_IDX "\r\n"
+                  "%s1%s) Donation Room #1    : %s%" PRI_IDX "\r\n"
+                  "%s2%s) Donation Room #2    : %s%" PRI_IDX "\r\n"
+                  "%s3%s) Donation Room #3    : %s%" PRI_IDX "\r\n"
                   "%sQ%s) Exit To The Main Menu\r\n"
                   "Enter your choice : ",
                   grn, nrm, cyn, OLC_CONFIG(d)->room_nums.mortal_start_room, grn, nrm, cyn,
@@ -1531,7 +1531,7 @@ static void cedit_disp_autowiz_options(struct descriptor_data *d)
 void cedit_parse(struct descriptor_data *d, char *arg)
 {
   char *oldtext = NULL;
-  float f_num;
+  double f_num;
   int i;
 
   switch (OLC_MODE(d))
@@ -3294,7 +3294,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case CEDIT_DFLT_PORT:
-    OLC_CONFIG(d)->operation.DFLT_PORT = atoi(arg);
+    OLC_CONFIG(d)->operation.DFLT_PORT = (ush_int)atoi(arg);
     cedit_disp_operation_options(d);
     break;
 
@@ -3414,7 +3414,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     break;
   case CEDIT_POPULARITY:
-    if (sscanf(arg, "%f", &f_num) != 1)
+    if (sscanf(arg, "%lf", &f_num) != 1)
     {
       write_to_output(d, "Please enter a number from 0 to 100.\r\n");
       cedit_disp_game_play_options(d);
@@ -3427,7 +3427,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
   case CEDIT_SET_BAG_SYSTEM:
     if (*arg)
     {
-      OLC_CONFIG(d)->extra.bag_system = (MIN(NUM_BAG_SYSTEMS, MAX(1, atoi(arg))) - 1);
+      OLC_CONFIG(d)->extra.bag_system = ((ubyte)(MIN(NUM_BAG_SYSTEMS, MAX(1, atoi(arg))) - 1));
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3435,7 +3435,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
   case CEDIT_SET_CRAFTING_SYSTEM:
     if (*arg)
     {
-      OLC_CONFIG(d)->extra.crafting_system = (MIN(NUM_CRAFTING_SYSTEMS, MAX(1, atoi(arg))) - 1);
+      OLC_CONFIG(d)->extra.crafting_system =
+          ((ubyte)(MIN(NUM_CRAFTING_SYSTEMS, MAX(1, atoi(arg))) - 1));
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3443,7 +3444,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
   case CEDIT_SET_LANDMARK_SYSTEM:
     if (*arg)
     {
-      OLC_CONFIG(d)->extra.landmarks_system = (MIN(NUM_LANDMARK_SYSTEMS, MAX(1, atoi(arg))) - 1);
+      OLC_CONFIG(d)->extra.landmarks_system =
+          ((ubyte)(MIN(NUM_LANDMARK_SYSTEMS, MAX(1, atoi(arg))) - 1));
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3452,7 +3454,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (*arg)
     {
       OLC_CONFIG(d)->extra.new_player_gear =
-          (MIN(NUM_NEW_PLAYER_GEAR_OPTIONS, MAX(1, atoi(arg))) - 1);
+          (ubyte)(MIN(NUM_NEW_PLAYER_GEAR_OPTIONS, MAX(1, atoi(arg))) - 1);
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3461,7 +3463,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (*arg)
     {
       OLC_CONFIG(d)->extra.allow_cexchange =
-          (MIN(NUM_ALLOW_CEXCHANGE_OPTIONS, MAX(1, atoi(arg))) - 1);
+          (ubyte)(MIN(NUM_ALLOW_CEXCHANGE_OPTIONS, MAX(1, atoi(arg))) - 1);
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3470,7 +3472,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (*arg)
     {
       OLC_CONFIG(d)->extra.wilderness_system =
-          (MIN(NUM_WILDERNESS_SYSTEM_OPTIONS, MAX(1, atoi(arg))) - 1);
+          (ubyte)(MIN(NUM_WILDERNESS_SYSTEM_OPTIONS, MAX(1, atoi(arg))) - 1);
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3478,7 +3480,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
   case CEDIT_SET_MELEE_EXP:
     if (*arg)
     {
-      OLC_CONFIG(d)->extra.melee_exp_option = (MIN(NUM_EXP_OPTIONS, MAX(1, atoi(arg))) - 1);
+      OLC_CONFIG(d)->extra.melee_exp_option =
+          ((ubyte)(MIN(NUM_EXP_OPTIONS, MAX(1, atoi(arg))) - 1));
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3486,7 +3489,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
   case CEDIT_SET_SPELL_CAST_EXP:
     if (*arg)
     {
-      OLC_CONFIG(d)->extra.spell_cast_exp_option = (MIN(NUM_EXP_OPTIONS, MAX(1, atoi(arg))) - 1);
+      OLC_CONFIG(d)->extra.spell_cast_exp_option =
+          ((ubyte)(MIN(NUM_EXP_OPTIONS, MAX(1, atoi(arg))) - 1));
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3495,7 +3499,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (*arg)
     {
       OLC_CONFIG(d)->extra.spellcasting_time_mode =
-          (MIN(NUM_SPELLCASTING_TIME_OPTIONS, MAX(1, atoi(arg))) - 1);
+          (ubyte)(MIN(NUM_SPELLCASTING_TIME_OPTIONS, MAX(1, atoi(arg))) - 1);
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3503,7 +3507,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
   case CEDIT_SET_VESSEL_SYSTEM:
     if (*arg)
     {
-      OLC_CONFIG(d)->extra.vessel_system = (MIN(NUM_VESSEL_SYSTEM_OPTIONS, MAX(1, atoi(arg))) - 1);
+      OLC_CONFIG(d)->extra.vessel_system =
+          ((ubyte)(MIN(NUM_VESSEL_SYSTEM_OPTIONS, MAX(1, atoi(arg))) - 1));
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3511,7 +3516,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
   case CEDIT_SET_ARCANE_MOON_PHASES:
     if (*arg)
     {
-      OLC_CONFIG(d)->extra.arcane_moon_phases = (MIN(2, MAX(1, atoi(arg))) - 1);
+      OLC_CONFIG(d)->extra.arcane_moon_phases = ((ubyte)(MIN(2, MAX(1, atoi(arg))) - 1));
     }
     cedit_disp_extra_game_play_options(d);
     break;
@@ -3520,7 +3525,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     if (*arg)
     {
       OLC_CONFIG(d)->extra.auto_dl_mudlet_package =
-          (MIN(NUM_AUTO_DL_MUDLET_PACKAGE_OPTIONS, MAX(1, atoi(arg))) - 1);
+          (ubyte)(MIN(NUM_AUTO_DL_MUDLET_PACKAGE_OPTIONS, MAX(1, atoi(arg))) - 1);
     }
     cedit_disp_extra_game_play_options(d);
     break;
