@@ -424,6 +424,49 @@ stacks per grant, and `mag_damage()` reads it through `HAS_FEAT()` for every
 spell-number damage roll. Price it from the race point table when a race takes
 it; spell DCs are left to the existing focus feats.
 
+`FEAT_EXTRA_ARMS`, the one stackable innate in the set, is the general
+"one more arm" trait: `perform_attacks()` in `src/combat/fight.c` adds one
+melee attack at full base attack bonus per rank, after the ranged routines so
+launchers and thrown weapons never gain it. It brings no equipment slots.
+
+The Duris Thri-Kreen four-arm mechanic is `FEAT_FOUR_ARMS`, tested through
+`has_four_arms()` in `src/utils.c` (never a race constant). Grant sources
+are mob feats for NPCs and disguised wild shapes, the character's own feat,
+and `APPLY_FEAT` items worn in ordinary slots; an item in one of the seven
+four-arm slots cannot sustain the arms. The slots are appended after the
+tail (`WEAR_WIELD_3`, `WEAR_WIELD_4`, `WEAR_WIELD_2H_2`, `WEAR_ARMS_2`,
+`WEAR_HANDS_2`, `WEAR_WRIST_R2`, `WEAR_WRIST_L2`; `NUM_WEARS` 51) and reuse
+the wield, arms, hands and wrist wear flags. `hands_have()` adds two hands;
+`hands_used()` counts the second pair. Weapons form two pairs: a pair holds
+its two one-handers or its one two-hander, never both, and the second pair
+takes melee weapons only (`second_pair_rejects_object()`), enforced in
+`perform_wear_impl()` and again in `equip_char()` so zone loads and object
+restoration cannot bypass it. Two-armed characters keep the old first-pair
+behavior. Lower sleeves join `apply_ac()`, enhancement, spell failure, armor
+penalty, max Dexterity, sleeve proficiency and whole-body conflicts.
+Saved object `Loc` 45..51 restore into the new slots; `auto_equip()` holds
+four-arm gear whose provider item comes later in the record set and
+`crash_restore_records()` retries it once the whole set is loaded. Losing
+the capability is reconciled by `four_arms_reconcile()` from
+`affect_total()`: the seven slots empty into inventory in a fixed order and
+the old hand positions are trimmed to two hands (held items first, primary
+weapon last). `save_char()` brackets its unequip/re-equip cycle with
+`four_arms_defer_begin()`/`four_arms_defer_end()` so a temporarily removed
+provider never moves gear. Combat: `ATTACK_TYPE_THIRD` and `ATTACK_TYPE_FOURTH` are the second pair's
+attacks. `get_wielded()` resolves them to WIELD_3/WIELD_2H_2 and
+WIELD_4 (or the lower double weapon), and every pair-specific rule (two-hand
+strength, power attack, the spare-hand bonus, two-weapon penalties via
+`second_pair_dual_wielding_penalty()`, weapon-finesse) reads the attacking
+weapon's own pair through `attack_pair_two_hand_slot()`; the first pair's
+two-hander no longer rewrites a THIRD or FOURTH attack. In
+`perform_attacks()`, `perform_second_pair_attacks()` runs after every
+ordinary attack of the round: it mirrors the planned base, offhand, haste,
+bonus and trained-offhand opportunities with stable ordinals and iterative
+penalties, rolls each once in its own phase (50 percent, +25 with
+two-weapon training, +25 with improved training, `is_skilled_dualer()`), adds
+the floor of the summed chances in count mode, and prints rows in display
+mode. The design record is `docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md`.
+
 When `NUM_FEATS` moves, regenerate `scripts/world/wtool_constants.json` with
 `python3 scripts/world/wtool.py constants sync --write`. Player-facing text
 lives in both `lib/text/help/help.hlp` and the help database; the Duris set is

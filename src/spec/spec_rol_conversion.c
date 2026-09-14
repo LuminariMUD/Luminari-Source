@@ -7380,6 +7380,23 @@ static int rol_weapon_slot(const struct char_data *ch, const struct obj_data *ob
   return -1;
 }
 
+/* the attack type delivered from a wield slot (four arms: the lower pair) */
+static int rol_weapon_slot_attack_type(int slot)
+{
+  switch (slot)
+  {
+  case WEAR_WIELD_OFFHAND:
+    return ATTACK_TYPE_OFFHAND;
+  case WEAR_WIELD_3:
+  case WEAR_WIELD_2H_2:
+    return ATTACK_TYPE_THIRD;
+  case WEAR_WIELD_4:
+    return ATTACK_TYPE_FOURTH;
+  default:
+    return ATTACK_TYPE_PRIMARY;
+  }
+}
+
 static bool rol_weapon_primary_slot(int slot)
 {
   return slot == WEAR_WIELD_1 || slot == WEAR_WIELD_2H;
@@ -8711,8 +8728,7 @@ static int rol_weapon_phase6_command(struct spec_event_context *context,
     attacks = dice(4, 3);
     act("Your $p blurs into a flurry of blows against $N!", FALSE, ch, obj, victim, TO_CHAR);
     rol_weapon_extra_attacks(ch, obj, victim, attacks,
-                             rol_weapon_slot(ch, obj) == WEAR_WIELD_OFFHAND ? ATTACK_TYPE_OFFHAND
-                                                                            : ATTACK_TYPE_PRIMARY);
+                             rol_weapon_slot_attack_type(rol_weapon_slot(ch, obj)));
     point_update_object_spec_timer_set(obj, 0, 24);
     return TRUE;
   }
@@ -9156,9 +9172,7 @@ static int rol_weapon_hit(struct spec_event_context *context,
     if (burst != 1)
       GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + GET_LEVEL(ch) * 3);
     if (burst == 1)
-      rol_weapon_extra_attacks(ch, obj, victim, 1,
-                               slot == WEAR_WIELD_OFFHAND ? ATTACK_TYPE_OFFHAND
-                                                          : ATTACK_TYPE_PRIMARY);
+      rol_weapon_extra_attacks(ch, obj, victim, 1, rol_weapon_slot_attack_type(slot));
     act("Dark mystical power surges from your $p and consumes you.", FALSE, ch, obj, victim,
         TO_CHAR);
     return TRUE;

@@ -30,6 +30,10 @@ ACMD_DECL(do_accexp);
 int has_unlocked_race(struct char_data *ch, int race);
 int has_unlocked_class(struct char_data *ch, int class);
 int hands_available(struct char_data *ch);
+int hands_used(struct char_data *ch);
+int hands_needed(struct char_data *ch, struct obj_data *obj);
+int is_wielding_type(struct char_data *ch);
+extern const int eq_ordering_1[NUM_WEARS];
 int get_speed(struct char_data *ch, sbyte to_display);
 bool is_locked_race(int race);
 

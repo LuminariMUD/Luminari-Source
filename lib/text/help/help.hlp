@@ -3479,6 +3479,19 @@ be forced.
 
 See also: FEAT INFO DOORBASH, OPEN, UNLOCK
 #0
+EXTRA-ARMS
+
+Extra Arms
+
+Requires: the extra arms feat (racial innate)
+
+Extra limbs join every melee round. Each rank of this innate grants one
+additional melee attack at your full base attack bonus, with no penalty
+to that swing. It brings no additional equipment slots and does nothing
+with ranged or thrown attacks.
+
+See also: FEAT INFO EXTRA ARMS, ATTACKS
+#0
 EYELESS
 
 Eyeless
@@ -3501,6 +3514,41 @@ Your eyes were made for the woods. You gain +4 to perception checks in
 forest sectors.
 
 See also: FEAT INFO FOREST SIGHT
+#0
+FOUR-ARMS
+
+Four Arms
+
+Requires: the four arms feat (racial innate)
+
+Two more arms.  A second weapon pair lets you wield two more one-handed
+weapons, or a second two-handed weapon, in your lower hands: four
+one-handers, two two-handers, or a two-hander beside a pair of one-handers.
+Each pair holds either its one-handers or its two-hander, never both.  Held
+items and shields draw on the same four hands, so three weapons and a
+shield, or two weapons and two held items, also fit.  The lower hands
+manage melee weapons only: no bows, crossbows or slings there, and the
+usual rule of one ranged weapon and no mixing of ranged and melee still
+counts every hand.
+
+In combat the lower arms mirror the upper ones.  Each swing your upper
+arms are entitled to (the basic attack, the offhand attack when the lower
+pair holds two weapons, haste, and the extra attacks from base attack bonus,
+flurry and two-weapon training) is also attempted by the lower pair with
+its own weapons and its own penalties.  Each such swing lands only some of
+the time: 50 percent, 75 percent with two-weapon fighting and 100 percent
+with improved two-weapon fighting (or the ranger equivalents).  Vital
+strike disables the lower swings.  The ATTACKS command lists them with
+their chance.
+
+You also gain a second set of sleeves and gloves and two more wrist slots.
+Lower sleeves count as armor like the upper ones.  Wear, wield and remove
+work as before; the lower slots take the overflow.
+
+An item that grants four arms must be worn in an ordinary slot.  Gear in the
+extra slots cannot itself be what keeps the arms.
+
+See also: FEAT INFO FOUR ARMS, WIELD, WEAR, EXTRA-ARMS
 #0
 GREATSWORD-MASTERY
 

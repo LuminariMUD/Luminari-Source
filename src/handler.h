@@ -22,6 +22,11 @@ void affect_total_plus(struct char_data *ch, int at_armor);
 void affect_total(struct char_data *ch);
 void affect_batch_begin(struct char_data *ch);
 void affect_batch_end(struct char_data *ch);
+/* four-arm lifecycle (src/obj/act.item.c): bracket temporary provider
+ * removal with defer begin/end; reconcile runs from affect_total() */
+void four_arms_defer_begin(struct char_data *ch);
+void four_arms_defer_end(struct char_data *ch);
+void four_arms_reconcile(struct char_data *ch);
 void affect_to_char(struct char_data *ch, struct affected_type *af);
 void affect_to_char_source(struct char_data *ch, struct affected_type *af, long source_id);
 void affect_remove(struct char_data *ch, struct affected_type *af);

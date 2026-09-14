@@ -13,6 +13,7 @@
 #include "../../src/character/feats.h"
 #include "../../src/character/race.h"
 #include "../../src/character/skill_lists.h"
+#include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/character/class.h"
 #include "../../src/combat/fight.h"
 #include "../../src/comm.h"
@@ -215,7 +216,8 @@ void TestDurisInnateFeatsAreRegisteredAsInnates(CuTest *tc)
     CuAssertTrue(tc, strcmp(feat_list[feat].name, "Unused Feat") != 0);
     CuAssertTrue(tc, feat_list[feat].in_game);
     CuAssertTrue(tc, !feat_list[feat].can_learn);
-    CuAssertTrue(tc, !feat_list[feat].can_stack);
+    /* extra arms is the one rank-per-arm innate; everything else is a single grant */
+    CuAssertIntEquals(tc, feat == FEAT_EXTRA_ARMS, feat_list[feat].can_stack != 0);
     CuAssertIntEquals(tc, FEAT_TYPE_INNATE_ABILITY, feat_list[feat].feat_type);
   }
   /* the racial casting-speed pair follows the same rules but stacks per rank */
@@ -227,7 +229,7 @@ void TestDurisInnateFeatsAreRegisteredAsInnates(CuTest *tc)
     CuAssertTrue(tc, feat_list[feat].can_stack);
     CuAssertIntEquals(tc, FEAT_TYPE_INNATE_ABILITY, feat_list[feat].feat_type);
   }
-  CuAssertIntEquals(tc, FEAT_BLOODLUST + 1, FEAT_LAST_FEAT);
+  CuAssertIntEquals(tc, FEAT_FOUR_ARMS + 1, FEAT_LAST_FEAT);
 
   /* the repurposed haste feat follows the same rules */
   CuAssertTrue(tc, feat_list[FEAT_HASTE].in_game);
@@ -861,6 +863,43 @@ void TestBattleFrenzyGate(CuTest *tc)
   SET_BIT_AR(MOB_FLAGS(&fixture.other), MOB_ISNPC);
   GET_REAL_RACE(&fixture.other) = RACE_TYPE_ANIMAL;
   CuAssertTrue(tc, !battle_frenzy_applies(&fixture.ch, &fixture.other, ATTACK_TYPE_PRIMARY));
+
+  end_innate_fixture(&fixture);
+}
+
+/* Extra arms adds one melee attack per rank and never touches the ranged count. */
+void TestExtraArmsAddMeleeAttacksPerRankOnly(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  struct obj_data bow;
+  int melee_attacks, ranged_attacks;
+
+  begin_innate_fixture(&fixture);
+  if (!IS_SET(weapon_list[WEAPON_TYPE_LONG_BOW].weaponFlags, WEAPON_FLAG_RANGED))
+    load_weapons();
+  make_test_weapon(&bow, WEAPON_TYPE_LONG_BOW);
+
+#define RETURN_NUM_ATTACKS 1
+#define PHASE_0 0
+  melee_attacks = perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0);
+  GET_EQ(&fixture.ch, WEAR_WIELD_1) = &bow;
+  ranged_attacks = perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0);
+  GET_EQ(&fixture.ch, WEAR_WIELD_1) = NULL;
+
+  SET_FEAT(&fixture.ch, FEAT_EXTRA_ARMS, 1);
+  CuAssertIntEquals(tc, melee_attacks + 1,
+                    perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0));
+
+  /* the Thri-Kreen shape: two extra arms, two extra swings */
+  SET_FEAT(&fixture.ch, FEAT_EXTRA_ARMS, 2);
+  CuAssertIntEquals(tc, melee_attacks + 2,
+                    perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0));
+
+  GET_EQ(&fixture.ch, WEAR_WIELD_1) = &bow;
+  CuAssertIntEquals(tc, ranged_attacks, perform_attacks(&fixture.ch, RETURN_NUM_ATTACKS, PHASE_0));
+  GET_EQ(&fixture.ch, WEAR_WIELD_1) = NULL;
+#undef PHASE_0
+#undef RETURN_NUM_ATTACKS
 
   end_innate_fixture(&fixture);
 }

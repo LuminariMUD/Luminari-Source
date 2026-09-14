@@ -1780,8 +1780,17 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define WEAR_CRAFT_WEAPON_HAMMER 41 /* weaponsmith's hammer (weaponsmithing) */
 #define WEAR_ON_BACK 42             /* currently unused; reserved for compatibility */
 #define WEAR_TAIL 43                /* worn on the tail */
+/* Four-arm positions (FEAT_FOUR_ARMS): a second weapon pair and the doubled
+ * limb slots.  Appended so every older position and saved Loc stays fixed. */
+#define WEAR_WIELD_3 44    /* third hand weapon */
+#define WEAR_WIELD_4 45    /* fourth hand weapon */
+#define WEAR_WIELD_2H_2 46 /* two-hand weapon, second pair */
+#define WEAR_ARMS_2 47     /* lower arms */
+#define WEAR_HANDS_2 48    /* lower hands */
+#define WEAR_WRIST_R2 49   /* lower right wrist */
+#define WEAR_WRIST_L2 50   /* lower left wrist */
 /** Total number of available equipment lcoations */
-#define NUM_WEARS 44
+#define NUM_WEARS 51
 /**/
 
 /* ranged combat */
@@ -3063,11 +3072,17 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define FEAT_SLOW_CASTING 1317
 #define FEAT_BULL_CHARGE 1318
 #define FEAT_BLOODLUST 1319
+/* Thri-Kreen four-arm stand-in: one extra melee attack per rank, see
+ * docs/systems/GAME_MECHANICS_SYSTEMS.md */
+#define FEAT_EXTRA_ARMS 1320
+/* Thri-Kreen four arms: second weapon pair and doubled arm, hand and wrist
+ * slots (WEAR_WIELD_3 .. WEAR_WRIST_L2), see has_four_arms() */
+#define FEAT_FOUR_ARMS 1321
 
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1320
+#define FEAT_LAST_FEAT 1322
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1321
+#define NUM_FEATS 1323
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -5354,6 +5369,12 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define ATTACK_TYPE_PRIMARY_EVO_REND 20
 #define ATTACK_TYPE_PRIMARY_EVO_TRAMPLE 21
 #define ATTACK_TYPE_THROWN 22
+/* four arms: the second weapon pair (WEAR_WIELD_3/WEAR_WIELD_4/WEAR_WIELD_2H_2) */
+#define ATTACK_TYPE_THIRD 23  /* lower primary hand */
+#define ATTACK_TYPE_FOURTH 24 /* lower offhand */
+/* count of the ATTACK_TYPE_* combat modes above (attack_types[] labels);
+ * NUM_ATTACK_TYPES below is the unrelated weapon hit-type count */
+#define NUM_COMBAT_ATTACK_TYPES 25
 
 /* Non-persistent runtime intent for attacks that consume a physical projectile. */
 #define PROJECTILE_MODE_NONE 0
@@ -5982,6 +6003,9 @@ struct obj_data
   bool transfer_pending;
   bool transfer_extracting;
   bool transfer_disposed;
+  /* saved four-arm wear position + 1 awaiting its provider during a load;
+   * 0 when not pending (runtime-only) */
+  int four_arms_restore_slot;
 
   struct obj_flag_data obj_flags;                    /**< Object information */
   struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< affects */
@@ -7582,6 +7606,12 @@ struct char_data
   long int confuser_idnum;
   bool preserve_organs_procced;
   bool mute_equip_messages;
+  /* four arms (FEAT_FOUR_ARMS) lifecycle, runtime-only: while defer > 0 a
+   * capability loss is noted but not acted on; reconciling guards re-entry. */
+  int four_arms_defer;
+  bool four_arms_reconciling;
+  bool four_arms_dirty;
+  bool four_arms_active; /* last completed check found four arms */
 
   /* PERFMON lifecycle attribution for NPC instances; runtime-only. */
   int perf_origin_zone_vnum;

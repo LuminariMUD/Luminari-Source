@@ -30,6 +30,7 @@
 #include "objsave.h"
 #include "perfmon.h"
 #include "point_update_periodic.h"
+#include "character/race.h"
 
 #define OBJSAVE_DB 1
 
@@ -69,6 +70,8 @@ static void Crash_cryosave(struct char_data *ch, int cost);
 static int Crash_load_objs(struct char_data *ch);
 static int handle_obj(struct obj_data *obj, struct char_data *ch, int locate,
                       struct obj_data **cont_rows);
+static int crash_restore_records(struct char_data *ch, obj_save_data *loaded,
+                                 struct obj_data **cont_row, bool load_sheaths);
 static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_data *ch,
                                             room_vnum house_vnum, FILE *fp, int locate,
                                             bool persist_database);
@@ -768,6 +771,27 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
       if (!object_can_wear_on_tail(obj))
         location = LOC_INVENTORY;
       break;
+    /* four-arm positions: same wear flags as the slots they double; the
+     * anatomy and second-pair checks happen in equip_char() */
+    case WEAR_WIELD_3:
+    case WEAR_WIELD_4:
+    case WEAR_WIELD_2H_2:
+      if (!CAN_WEAR(obj, ITEM_WEAR_WIELD))
+        location = LOC_INVENTORY;
+      break;
+    case WEAR_ARMS_2:
+      if (!CAN_WEAR(obj, ITEM_WEAR_ARMS))
+        location = LOC_INVENTORY;
+      break;
+    case WEAR_HANDS_2:
+      if (!CAN_WEAR(obj, ITEM_WEAR_HANDS))
+        location = LOC_INVENTORY;
+      break;
+    case WEAR_WRIST_R2:
+    case WEAR_WRIST_L2:
+      if (!CAN_WEAR(obj, ITEM_WEAR_WRIST))
+        location = LOC_INVENTORY;
+      break;
 
     default:
       location = LOC_INVENTORY;
@@ -775,6 +799,16 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
 
     if (location > 0 && j != WEAR_TAIL && object_is_dedicated_tail_gear(obj))
       location = LOC_INVENTORY;
+
+    /* a four-arm slot whose provider has not been restored yet: hold the
+     * item in inventory and let four_arms_restore_deferred() retry once the
+     * whole record set is in place (provider order in the file is free) */
+    obj->four_arms_restore_slot = 0;
+    if (location > 0 && is_four_arm_wear_slot(j) && !character_can_use_wear_slot(ch, j))
+    {
+      obj->four_arms_restore_slot = j + 1;
+      location = LOC_INVENTORY;
+    }
 
     //    mudlog(BRF, LVL_IMMORT, TRUE, "DEBUG: autoeq for %s: %s worn in position %d.", GET_NAME(ch),obj->name, location);
 
@@ -800,8 +834,10 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
   }
   if (location <= 0) /* Inventory */
   {
-    if (GET_OBJ_SORT(obj) > 0 && GET_OBJ_TYPE(obj) != ITEM_CONTAINER &&
-        GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH)
+    /* a deferred four-arm item must stay in ch->carrying for the retry; its
+     * bag sort is applied by four_arms_restore_deferred() if it stays out */
+    if (obj->four_arms_restore_slot <= 0 && GET_OBJ_SORT(obj) > 0 &&
+        GET_OBJ_TYPE(obj) != ITEM_CONTAINER && GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH)
       obj_to_bag(ch, obj, GET_OBJ_SORT(obj));
     else
       obj_to_char(obj, ch);
@@ -3137,15 +3173,7 @@ static int Crash_load_objs(struct char_data *ch)
   else
     loaded = objsave_parse_objects(fl);
 
-  for (current = loaded; current != NULL; current = current->next)
-  {
-    num_objs += handle_obj(current->obj, ch, current->locate, cont_row);
-    if (CAN_WEAR(current->obj, ITEM_WEAR_SHEATH))
-    {
-      log("SHEATH1");
-      load_sheath_contents(ch, current->obj, current->db_idnum);
-    }
-  }
+  num_objs += crash_restore_records(ch, loaded, cont_row, true);
 
   /* now it's safe to free the obj_save_data list - all members of it
    * have been put in the correct lists by handle_obj() */
@@ -3168,6 +3196,66 @@ static int Crash_load_objs(struct char_data *ch)
     return 0;
   else
     return 1;
+}
+
+/* Retry four-arm gear that auto_equip() held back because its provider came
+ * later in the record set.  Contents travel with the object.  Gear whose
+ * provider never arrived stays in inventory with its saved slot cleared. */
+static void four_arms_restore_deferred(struct char_data *ch)
+{
+  struct obj_data *obj, *next_obj;
+  int slot, sort;
+
+  for (obj = ch->carrying; obj != NULL; obj = next_obj)
+  {
+    next_obj = obj->next_content;
+    if (obj->four_arms_restore_slot <= 0)
+      continue;
+    slot = obj->four_arms_restore_slot - 1;
+    sort = GET_OBJ_SORT(obj); /* obj_from_char() clears the saved bag sort */
+    obj->four_arms_restore_slot = 0;
+    if (character_can_use_wear_slot(ch, slot) && GET_EQ(ch, slot) == NULL &&
+        !second_pair_rejects_object(obj, slot))
+    {
+      obj_from_char(obj);
+      equip_char(ch, obj, slot); /* refusal puts it back into inventory */
+      if (GET_EQ(ch, slot) == obj)
+        continue;
+    }
+    /* staying in inventory: the ordinary bag sort it was saved with
+     * (obj_to_bag() drops the object silently without bag storage) */
+    if (ch->bags != NULL && sort > 0 && GET_OBJ_TYPE(obj) != ITEM_CONTAINER &&
+        GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH)
+    {
+      obj_from_char(obj);
+      GET_OBJ_SORT(obj) = sort;
+      obj_to_bag(ch, obj, sort);
+    }
+  }
+}
+
+/* Restore a parsed record set onto a character: providers and dependents in
+ * any order, capacity checked once at the end.  Returns the object count. */
+static int crash_restore_records(struct char_data *ch, obj_save_data *loaded,
+                                 struct obj_data **cont_row, bool load_sheaths)
+{
+  obj_save_data *current;
+  int num_objs = 0;
+
+  four_arms_defer_begin(ch);
+  for (current = loaded; current != NULL; current = current->next)
+  {
+    num_objs += handle_obj(current->obj, ch, current->locate, cont_row);
+    if (load_sheaths && CAN_WEAR(current->obj, ITEM_WEAR_SHEATH))
+    {
+      log("SHEATH1");
+      load_sheath_contents(ch, current->obj, current->db_idnum);
+    }
+  }
+  four_arms_restore_deferred(ch);
+  four_arms_defer_end(ch);
+
+  return num_objs;
 }
 
 static int handle_obj(struct obj_data *temp, struct char_data *ch, int locate,
@@ -3305,9 +3393,7 @@ int test_restore_loaded_objects(struct char_data *ch, obj_save_data *loaded)
   obj_save_data *current;
   int count;
 
-  count = 0;
-  for (current = loaded; current; current = current->next)
-    count += handle_obj(current->obj, ch, current->locate, cont_row);
+  count = crash_restore_records(ch, loaded, cont_row, false);
 
   while (loaded)
   {
@@ -3705,10 +3791,7 @@ enum pet_object_load_status pet_load_objs(struct char_data *ch, struct char_data
     return PET_OBJECT_LOAD_FAILED;
   }
 
-  for (current = loaded; current != NULL; current = current->next)
-  {
-    num_objs += handle_obj(current->obj, ch, current->locate, cont_row);
-  }
+  num_objs += crash_restore_records(ch, loaded, cont_row, false);
   (void)num_objs;
   /* now it's safe to free the obj_save_data list - all members of it
    * have been put in the correct lists by handle_obj() */

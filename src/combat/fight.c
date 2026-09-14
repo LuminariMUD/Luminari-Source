@@ -146,6 +146,8 @@ int test_get_bard_warbeat_opening_attacks(void)
 
 /* local file scope utility functions */
 struct obj_data *get_wielded(struct char_data *ch, int attack_type);
+static struct obj_data *pair_two_hander(struct char_data *ch, int attack_type);
+static bool spare_hand_for_attack(struct char_data *ch, int attack_type);
 static void perform_group_gain(struct char_data *ch, int base, struct char_data *victim);
 static void dam_message(int dam, struct char_data *ch, struct char_data *victim, int w_type,
                         int attack_type, struct obj_data *projectile);
@@ -947,7 +949,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   {
     bonuses[BONUS_TYPE_SHIELD]++;
   }
-  else if (!IS_NPC(ch) && GET_EQ(ch, WEAR_WIELD_OFFHAND) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE))
+  else if (!IS_NPC(ch) && (GET_EQ(ch, WEAR_WIELD_OFFHAND) || GET_EQ(ch, WEAR_WIELD_4)) &&
+           HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE))
   {
     bonuses[BONUS_TYPE_SHIELD]++;
   }
@@ -957,8 +960,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     bonuses[BONUS_TYPE_SHIELD]++;
   }
 
-  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_WEAPON_MASTERY) &&
-      (GET_EQ(ch, WEAR_WIELD_1) || GET_EQ(ch, WEAR_WIELD_OFFHAND || GET_EQ(ch, WEAR_WIELD_2H))))
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_WEAPON_MASTERY) && is_wielding_type(ch) != -1)
   {
     bonuses[BONUS_TYPE_DEFLECTION] += 2;
   }
@@ -1040,6 +1042,23 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4),
                     get_char_affect_modifier(ch, SPELL_MAGIC_VESTMENT, APPLY_SPECIAL));
   }
+  if ((ac_piece = GET_EQ(ch, WEAR_ARMS_2)) != NULL && GET_OBJ_TYPE(ac_piece) == ITEM_ARMOR)
+  {
+    switch (GET_OBJ_MATERIAL(ac_piece))
+    {
+    case MATERIAL_ADAMANTINE:
+    case MATERIAL_MITHRIL:
+    case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DRAGONSCALE:
+    case MATERIAL_DRAGONBONE:
+    case MATERIAL_DIAMOND:
+    case MATERIAL_DARKWOOD:
+      ac_bonus++;
+      break;
+    }
+    ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4),
+                    get_char_affect_modifier(ch, SPELL_MAGIC_VESTMENT, APPLY_SPECIAL));
+  }
   if ((ac_piece = GET_EQ(ch, WEAR_LEGS)) != NULL && GET_OBJ_TYPE(ac_piece) == ITEM_ARMOR)
   {
     switch (GET_OBJ_MATERIAL(ac_piece))
@@ -1059,7 +1078,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   }
 
   // important! We're dividing the total bonuses from body, head, arms and legs by 4.  Then we add shield at the end.
-  ac_bonus /= 4;
+  /* averaged over the worn pieces: four ordinary slots, five with lower sleeves */
+  ac_bonus /=
+      (GET_EQ(ch, WEAR_ARMS_2) != NULL && GET_OBJ_TYPE(GET_EQ(ch, WEAR_ARMS_2)) == ITEM_ARMOR) ? 5
+                                                                                               : 4;
 
   if ((ac_piece = GET_EQ(ch, WEAR_SHIELD)) != NULL && GET_OBJ_TYPE(ac_piece) == ITEM_ARMOR)
   {
@@ -3409,7 +3431,9 @@ static int skill_message_with_projectile(int dam, struct char_data *ch, struct c
   }
 
   /* attacker weapon */
-  if (GET_EQ(ch, WEAR_WIELD_2H))
+  if (is_second_pair_attack(dualing))
+    weap = get_wielded(ch, dualing); /* four arms: the lower-arm weapon */
+  else if (GET_EQ(ch, WEAR_WIELD_2H))
     weap = GET_EQ(ch, WEAR_WIELD_2H);
   else if (dualing == 1)
     weap = GET_EQ(ch, WEAR_WIELD_OFFHAND);
@@ -4999,6 +5023,15 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type __attribute
     damage_reduction += 1;
     if (display)
       send_to_char(ch, "%-30s: %d\r\n", "Dragonskin Arms Armor", 1);
+  }
+  if (GET_EQ(ch, WEAR_ARMS_2) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_ARMS_2)) == ITEM_ARMOR &&
+      ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_ARMS_2)) == MATERIAL_DRAGONHIDE) ||
+       (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_ARMS_2)) == MATERIAL_DRAGONSCALE) ||
+       (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_ARMS_2)) == MATERIAL_DRAGONBONE)))
+  {
+    damage_reduction += 1;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Dragonskin Lower Arms Armor", 1);
   }
   if (GET_EQ(ch, WEAR_LEGS) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_LEGS)) == ITEM_ARMOR &&
       ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_LEGS)) == MATERIAL_DRAGONHIDE) ||
@@ -7318,8 +7351,39 @@ static int compute_damage_bonus_with_projectile(struct char_data *ch, struct cha
     }
     break;
 
+  case ATTACK_TYPE_THIRD: /* four arms: mirrors the primary rules on its own pair */
+    if (str_bonus >= 0 && !IS_WILDSHAPED(ch) && !IS_MORPHED(ch) &&
+        pair_two_hander(ch, attack_type) == wielded && wielded && !OBJ_FLAGGED(wielded, ITEM_AGILE))
+    {
+      dambonus += str_bonus * 3 / 2;
+      if (display_mode)
+        send_to_char(ch, "%s from 2Hand Weapon (lower arms): \tR%d\tn\r\n", strength,
+                     str_bonus * 3 / 2);
+    }
+    else if (spare_hand_for_attack(ch, attack_type))
+    {
+      dambonus += str_bonus + 2;
+      if (display_mode)
+        send_to_char(ch, "%s from 1Hand Weapon, free lower hand: \tR%d\tn\r\n", strength,
+                     str_bonus + 2);
+    }
+    else
+    {
+      dambonus += str_bonus;
+      if (display_mode)
+        send_to_char(ch, "%s bonus: \tR%d\tn\r\n", strength, str_bonus);
+    }
+    if (wielded && wielded->tinker_bonus > 0)
+    {
+      dambonus += wielded->tinker_bonus;
+      if (display_mode)
+        send_to_char(ch, "Tinker bonus: \tR1\tn\r\n");
+    }
+    break;
+
   case ATTACK_TYPE_OFFHAND:
   case ATTACK_TYPE_OFFHAND_SNEAK:
+  case ATTACK_TYPE_FOURTH: /* four arms: offhand rules */
     dambonus += str_bonus / 2;
     if (display_mode)
       send_to_char(ch, "Offhand %s bonus: \tR%d\tn\r\n", strength, str_bonus / 2);
@@ -7678,8 +7742,9 @@ static int compute_damage_bonus_with_projectile(struct char_data *ch, struct cha
   }
 
   /* Wilderness Warrior: Dual Strike I - off-hand weapon damage bonus */
-  if ((attack_type == ATTACK_TYPE_OFFHAND || attack_type == ATTACK_TYPE_OFFHAND_SNEAK) &&
-      is_dual_wielding(ch))
+  if (attack_is_offhand_role(attack_type) &&
+      (is_second_pair_attack(attack_type) ? is_dual_wielding_second_pair(ch)
+                                          : is_dual_wielding(ch)))
   {
     int dual_strike_bonus = get_ranger_dual_strike_offhand(ch);
     if (dual_strike_bonus > 0)
@@ -7852,7 +7917,8 @@ static int compute_damage_bonus_with_projectile(struct char_data *ch, struct cha
     pa_bonus += get_berserker_power_attack_bonus(ch);
     pa_bonus += get_berserker_power_attack_mastery_3_bonus(ch);
 
-    if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch))
+    if (pair_two_hander(ch, attack_type) != NULL &&
+        (!is_second_pair_attack(attack_type) || pair_two_hander(ch, attack_type) == wielded))
     {
       dambonus += pa_bonus * 2; /* 2h weapons gets 2x bonus */
       if (display_mode)
@@ -8693,7 +8759,16 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim, struct obj_
     wielded = find_equipped_launcher(ch, NULL);
 
   // just information mode
-  if (mode == MODE_DISPLAY_PRIMARY)
+  if ((mode == MODE_DISPLAY_PRIMARY || mode == MODE_DISPLAY_OFFHAND) &&
+      is_second_pair_attack(attack_type))
+  {
+    /* four arms: the row describes the lower-arm weapon that delivers it */
+    if (wielded)
+      show_obj_to_char(wielded, ch, SHOW_OBJ_SHORT, 0);
+    else
+      send_to_char(ch, "Bare-hands\r\n");
+  }
+  else if (mode == MODE_DISPLAY_PRIMARY)
   {
     if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     {
@@ -9103,8 +9178,10 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
   else if (!wielded)
     wielded = get_wielded(ch, attack_type);
 
+  /* the first pair's two-hander rewrites first-pair melee attacks; a THIRD or
+   * FOURTH attack keeps its identity and reads its own pair */
   if (GET_EQ(ch, WEAR_WIELD_2H) && mode != MODE_DISPLAY_RANGED &&
-      !is_ranged_weapon_attack(attack_type))
+      !is_ranged_weapon_attack(attack_type) && !is_second_pair_attack(attack_type))
     attack_type = ATTACK_TYPE_TWOHAND;
 
   /* calculate how much damage to do with a given hit() */
@@ -10596,6 +10673,17 @@ struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
   case ATTACK_TYPE_TWOHAND:
     wielded = GET_EQ(ch, WEAR_WIELD_2H);
     break;
+  case ATTACK_TYPE_THIRD: /* four arms: second pair, primary role */
+    wielded = GET_EQ(ch, WEAR_WIELD_3);
+    if (!wielded)
+      wielded = GET_EQ(ch, WEAR_WIELD_2H_2);
+    break;
+  case ATTACK_TYPE_FOURTH: /* four arms: second pair, offhand role */
+    if (is_using_double_weapon_at(ch, WEAR_WIELD_2H_2))
+      wielded = GET_EQ(ch, WEAR_WIELD_2H_2);
+    else
+      wielded = GET_EQ(ch, WEAR_WIELD_4);
+    break;
   default:
     /* Natural, evolution, psionic, and spell attacks are not delivered by
      * the primary weapon.  Treating an unknown attack as primary falsely
@@ -10604,6 +10692,60 @@ struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
   }
 
   return wielded;
+}
+
+/* Weapon pairs.  The first pair is WIELD_1/OFFHAND/2H and delivers
+ * PRIMARY/OFFHAND attacks; with four arms the second pair is
+ * WIELD_3/WIELD_4/2H_2 and delivers THIRD/FOURTH attacks.  Pair-specific
+ * rules (two-hand strength, power attack, two-weapon penalties, the spare
+ * hand) read the attacking weapon's own pair, never the other one. */
+bool is_second_pair_attack(int attack_type)
+{
+  return attack_type == ATTACK_TYPE_THIRD || attack_type == ATTACK_TYPE_FOURTH;
+}
+
+bool attack_is_offhand_role(int attack_type)
+{
+  return attack_type == ATTACK_TYPE_OFFHAND || attack_type == ATTACK_TYPE_OFFHAND_SNEAK ||
+         attack_type == ATTACK_TYPE_FOURTH;
+}
+
+int attack_pair_two_hand_slot(int attack_type)
+{
+  return is_second_pair_attack(attack_type) ? WEAR_WIELD_2H_2 : WEAR_WIELD_2H;
+}
+
+/* the pair's two-hander when it is a real two-hander (a double weapon counts
+ * as two one-handers) */
+static struct obj_data *pair_two_hander(struct char_data *ch, int attack_type)
+{
+  int slot = attack_pair_two_hand_slot(attack_type);
+
+  if (GET_EQ(ch, slot) == NULL || is_using_double_weapon_at(ch, slot))
+    return NULL;
+  return GET_EQ(ch, slot);
+}
+
+/* second pair dual wielding: a weapon in the fourth hand or a double weapon
+ * held by the lower arms; no racial exception */
+int is_dual_wielding_second_pair(struct char_data *ch)
+{
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
+    return FALSE;
+  if (GET_EQ(ch, WEAR_WIELD_4) || is_using_double_weapon_at(ch, WEAR_WIELD_2H_2))
+    return TRUE;
+  return FALSE;
+}
+
+/* the spare hand of a one-hander: the first pair's primary claims a free hand
+ * first, the third hand takes the next one (primary-pair-first allocation) */
+static bool spare_hand_for_attack(struct char_data *ch, int attack_type)
+{
+  int claimed_by_first_pair = GET_EQ(ch, WEAR_WIELD_2H) ? 0 : 1;
+
+  if (attack_type == ATTACK_TYPE_THIRD)
+    return hands_available(ch) > claimed_by_first_pair;
+  return hands_available(ch) > 0;
 }
 
 #ifdef LUMINARI_CUTEST
@@ -10670,16 +10812,17 @@ static int compute_attack_bonus_full_with_weapon(
     send_to_char(ch, "%2d: %-50s\r\n", BAB(ch), "Base Attack Bonus");
   }
 
-  if (is_dual_wielding(ch))
+  if (is_second_pair_attack(attack_type) ? is_dual_wielding_second_pair(ch) : is_dual_wielding(ch))
   {
-    calc_bab += dual_wielding_penalty(
-        ch, (attack_type == ATTACK_TYPE_OFFHAND || attack_type == ATTACK_TYPE_OFFHAND_SNEAK));
+    int pair_penalty =
+        is_second_pair_attack(attack_type)
+            ? second_pair_dual_wielding_penalty(ch, attack_is_offhand_role(attack_type))
+            : dual_wielding_penalty(ch, attack_is_offhand_role(attack_type));
+
+    calc_bab += pair_penalty;
     if (display)
     {
-      send_to_char(ch, "%2d: %-50s\r\n",
-                   dual_wielding_penalty(ch, (attack_type == ATTACK_TYPE_OFFHAND ||
-                                              attack_type == ATTACK_TYPE_OFFHAND_SNEAK)),
-                   "Two Weapon Fighting");
+      send_to_char(ch, "%2d: %-50s\r\n", pair_penalty, "Two Weapon Fighting");
     }
 
     /* Wilderness Warrior: Two-Weapon Focus I - reduces TWF penalty */
@@ -10720,6 +10863,8 @@ static int compute_attack_bonus_full_with_weapon(
   case ATTACK_TYPE_PRIMARY:
   case ATTACK_TYPE_PRIMARY_SNEAK:
   case ATTACK_TYPE_OFFHAND_SNEAK:
+  case ATTACK_TYPE_THIRD:
+  case ATTACK_TYPE_FOURTH:
     if (wielded && HAS_FEAT(ch, FEAT_WEAPON_FINESSE) && is_using_light_weapon(ch, wielded) &&
         GET_DEX_BONUS(ch) > GET_STR_BONUS(ch))
     {
@@ -11634,8 +11779,8 @@ static int compute_attack_bonus_full_with_weapon(
 
   // -2 penalty if wielding a large weapon in one hand
   // through the monkey grip and powerful build feats
-  if (wielded && wielded != GET_EQ(ch, WEAR_WIELD_2H) && GET_OBJ_SIZE(wielded) > GET_SIZE(ch) &&
-      hands_needed_full(ch, wielded, FALSE) != 0)
+  if (wielded && wielded != GET_EQ(ch, attack_pair_two_hand_slot(attack_type)) &&
+      GET_OBJ_SIZE(wielded) > GET_SIZE(ch) && hands_needed_full(ch, wielded, FALSE) != 0)
   {
     calc_bab -= 2;
     if (display)
@@ -12110,15 +12255,12 @@ int combat_maneuver_check(struct char_data *ch, struct char_data *vict, int comb
 
   /* CMB = Base attack bonus + Strength modifier + special size modifier, etc */
   cm_bonus = compute_cmb(ch, combat_maneuver_type) + attack_roll;
-  if (HAS_FEAT(ch, FEAT_WEAPON_MASTERY_2) &&
-      (GET_EQ(ch, WEAR_WIELD_1) || GET_EQ(ch, WEAR_WIELD_OFFHAND || GET_EQ(ch, WEAR_WIELD_2H))))
+  if (HAS_FEAT(ch, FEAT_WEAPON_MASTERY_2) && is_wielding_type(ch) != -1)
     cm_bonus += 6;
 
   /* CMD = 10 + Base attack bonus + Strength modifier + Dexterity modifier + special size modifier + miscellaneous modifiers */
   cm_defense = compute_cmd(vict, combat_maneuver_type);
-  if (HAS_FEAT(vict, FEAT_WEAPON_MASTERY_2) &&
-      (GET_EQ(vict, WEAR_WIELD_1) ||
-       GET_EQ(vict, WEAR_WIELD_OFFHAND || GET_EQ(vict, WEAR_WIELD_2H))))
+  if (HAS_FEAT(vict, FEAT_WEAPON_MASTERY_2) && is_wielding_type(vict) != -1)
     cm_defense += 6;
 
   /* other modifications based on what type of maneuver (note: the combat maneuver
@@ -15844,6 +15986,102 @@ int valid_fight_cond(struct char_data *ch, bool strict)
 #define PHASE_2 2
 #define PHASE_3 3
 
+static bool attack_number_runs_in_phase(int attack_number, int phase);
+
+/* Four arms: one second-pair attack candidate.  It takes the next ordinal
+ * (consumed whether or not its mirror roll succeeds, so later attacks never
+ * move phases), adds its chance to the expected total, prints its row in
+ * display mode, and in the normal routine rolls once, in its own phase, after
+ * the fight is verified.  A missing weapon is no candidate at all. */
+static void second_pair_candidate(struct char_data *ch, int mode, int phase, int *ordinal,
+                                  int *expected, int chance, int attack_type,
+                                  struct obj_data *weapon, int penalty, const char *label)
+{
+  if (weapon == NULL)
+    return;
+  (*ordinal)++;
+  *expected += chance;
+
+  if (mode == DISPLAY_ROUTINE_POTENTIAL)
+  {
+    send_to_char(ch, "%s, Attack Bonus:  %d (%d%% chance); ", label,
+                 compute_attack_bonus(ch, ch, attack_type) + penalty, chance);
+    compute_hit_damage(ch, ch, TYPE_UNDEFINED_WTYPE, NO_DICEROLL,
+                       attack_type == ATTACK_TYPE_THIRD ? MODE_DISPLAY_PRIMARY
+                                                        : MODE_DISPLAY_OFFHAND,
+                       FALSE, attack_type, 0);
+  }
+  else if (mode == NORMAL_ATTACK_ROUTINE && attack_number_runs_in_phase(*ordinal, phase) &&
+           valid_fight_cond(ch, FALSE) && rand_number(1, 100) <= chance)
+  {
+    hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, attack_type);
+  }
+}
+
+/* Four arms: the second weapon pair mirrors the first pair's attack
+ * opportunities from the round's planned counters: the third-hand base swing,
+ * the fourth-hand swing when the pair is dual, the haste swing, the BAB and
+ * flurry bonus swings with their iterative penalties, and the trained extra
+ * fourth-hand swings.  Mirror chance: 50 percent, +25 with effective
+ * two-weapon training, +25 with improved training (is_skilled_dualer(), so
+ * NPC training counts the same way).  Returns the count-mode addition: the
+ * floor of the summed chances, rounded once. */
+static int perform_second_pair_attacks(struct char_data *ch, int mode, int phase, int first_ordinal,
+                                       int base_penalty, int planned_bonus, int planned_max_bab,
+                                       bool hasted)
+{
+  struct obj_data *third, *fourth;
+  bool dual;
+  int chance, ordinal = first_ordinal, expected = 0, penalty = base_penalty, i;
+  int max_bab = planned_max_bab;
+
+  if (!has_four_arms(ch) || VITAL_STRIKING(ch) || IS_WILDSHAPED(ch) || IS_MORPHED(ch))
+    return 0;
+  third = get_wielded(ch, ATTACK_TYPE_THIRD);
+  fourth = get_wielded(ch, ATTACK_TYPE_FOURTH);
+  dual = is_dual_wielding_second_pair(ch) && fourth != NULL;
+  if (third == NULL && !dual)
+    return 0;
+
+  chance = 50 + (is_skilled_dualer(ch, MODE_2_WPN) ? 25 : 0) +
+           (is_skilled_dualer(ch, MODE_IMP_2_WPN) ? 25 : 0);
+
+  second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_THIRD, third,
+                        penalty, "Third hand");
+  if (dual)
+    second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_FOURTH, fourth,
+                          penalty * 2, "Fourth hand");
+  if (hasted)
+  {
+    max_bab--;
+    second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_THIRD, third,
+                          penalty, "Third hand (Haste)");
+  }
+  for (i = 0; i < planned_bonus; i++)
+  {
+    if (max_bab > 0)
+      max_bab--;
+    else
+      penalty -= 5;
+    second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_THIRD, third,
+                          penalty, "Third hand Bonus");
+  }
+  if (dual && !IS_NPC(ch))
+  {
+    if (is_skilled_dualer(ch, MODE_IMP_2_WPN))
+      second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_FOURTH,
+                            fourth, TWO_WPN_PNLTY, "Fourth hand (Improved 2 Weapon Fighting)");
+    if (is_skilled_dualer(ch, MODE_GREAT_2_WPN))
+      second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_FOURTH,
+                            fourth, GREAT_TWO_PNLY, "Fourth hand (Great 2 Weapon Fighting)");
+    if (is_skilled_dualer(ch, MODE_EPIC_2_WPN))
+      second_pair_candidate(ch, mode, phase, &ordinal, &expected, chance, ATTACK_TYPE_FOURTH,
+                            fourth, EPIC_TWO_PNLTY, "Fourth hand (Epic 2 Weapon Fighting)");
+  }
+
+  return expected / 100;
+}
+
 /* Report whether a 1-based attack number belongs to the given attack phase.
  * PHASE_0 runs the whole routine at once; otherwise attacks round-robin across
  * phases 1..3, so attack N runs in phase ((N - 1) % 3) + 1. */
@@ -15874,6 +16112,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   struct obj_data *wielded = NULL;
   int wpn_reload_status = 0;
   int projectile_attack_type = ATTACK_TYPE_RANGED;
+  int second_pair_base_penalty = 0, second_pair_planned_bonus = 0;
+  int second_pair_planned_max_bab = 0;
+  bool second_pair_hasted = FALSE;
 
   /* Check position..  we don't check < POS_STUNNED anymore */
   if (GET_POS(ch) == POS_DEAD)
@@ -16309,6 +16550,23 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     attacks_at_max_bab -= drop_an_attack_at_max_bab;
   /***/
   /*  End ranged attacks ---------------------------------------------------- */
+
+  /* extra arms (the Thri-Kreen four-arm stand-in): each rank of the racial
+   * innate is one more melee attack at full base attack bonus.  It sits after
+   * the ranged routines on purpose so bows and thrown weapons never gain it. */
+  if (HAS_FEAT(ch, FEAT_EXTRA_ARMS) > 0)
+  {
+    bonus_mainhand_attacks += HAS_FEAT(ch, FEAT_EXTRA_ARMS);
+    attacks_at_max_bab += HAS_FEAT(ch, FEAT_EXTRA_ARMS);
+  }
+
+  /* four arms: the second pair mirrors this round's planned counters, read
+   * here before the first pair's loops consume them */
+  second_pair_base_penalty = penalty;
+  second_pair_planned_bonus = bonus_mainhand_attacks;
+  second_pair_planned_max_bab = attacks_at_max_bab;
+  second_pair_hasted = AFF_FLAGGED(ch, AFF_HASTE) ||
+                       (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_BLINDING_SPEED)) || has_speed_weapon(ch);
 
   /************************/
   /* Process Melee Attacks -------------------------------------------------- */
@@ -16768,6 +17026,11 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       }
     }
   }
+
+  /* four arms: the second pair, after every ordinary attack of the round */
+  numAttacks += perform_second_pair_attacks(ch, mode, phase, numAttacks, second_pair_base_penalty,
+                                            second_pair_planned_bonus, second_pair_planned_max_bab,
+                                            second_pair_hasted);
   return numAttacks;
 }
 #ifdef LUMINARI_CUTEST
@@ -17747,7 +18010,9 @@ void perform_violence(struct char_data *ch, int phase)
   else if (AFF_FLAGGED(ch, AFF_GRAPPLED) &&
            (!is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_1)) ||
             !is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_OFFHAND)) ||
-            GET_EQ(ch, WEAR_WIELD_2H)))
+            !is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_3)) ||
+            !is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_4)) || GET_EQ(ch, WEAR_WIELD_2H) ||
+            GET_EQ(ch, WEAR_WIELD_2H_2)))
     send_to_char(ch, "You need to fight unarmed or with light weapons (both hands possible) while "
                      "grappling or being grappled! (options: remove weapon<s>, grapple <target>, "
                      "'freegrapple' to release or 'struggle' to try to escape)\r\n");
@@ -17821,25 +18086,27 @@ int get_monk_stunning_fist_dc(struct char_data *ch)
   return dc;
 }
 
+static int dual_wielding_penalty_for(struct char_data *ch, bool offhand, struct obj_data *wielded);
+
 int dual_wielding_penalty(struct char_data *ch, bool offhand)
 {
-  int penalty = 0;
-  struct obj_data *wielded = NULL;
+  return dual_wielding_penalty_for(ch, offhand,
+                                   GET_EQ(ch, offhand ? WEAR_WIELD_OFFHAND : WEAR_WIELD_1));
+}
 
-  if (offhand)
-  {
-    penalty = -10;
-    wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
-    if (!wielded)
-      return 0;
-  }
-  else
-  {
-    penalty = -6;
-    wielded = GET_EQ(ch, WEAR_WIELD_1);
-    if (!wielded)
-      return 0;
-  }
+/* four arms: the same table read from the second pair's own one-hand slots */
+int second_pair_dual_wielding_penalty(struct char_data *ch, bool offhand)
+{
+  return dual_wielding_penalty_for(ch, offhand, GET_EQ(ch, offhand ? WEAR_WIELD_4 : WEAR_WIELD_3));
+}
+
+static int dual_wielding_penalty_for(struct char_data *ch, bool offhand, struct obj_data *wielded)
+{
+  int penalty = 0;
+
+  if (!wielded)
+    return 0;
+  penalty = offhand ? -10 : -6;
 
   if (is_using_light_weapon(ch, wielded) || HAS_FEAT(ch, FEAT_OVERSIZED_TWO_WEAPON_FIGHTING))
   {

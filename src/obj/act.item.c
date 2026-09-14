@@ -4151,6 +4151,14 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where)
 
       {"$n wears $p on $s tail.", "You wear $p on your tail."},
 
+      {"$n wields $p in $s third hand.", "You wield $p in your third hand."},
+      {"$n wields $p in $s fourth hand.", "You wield $p in your fourth hand."},
+      {"$n wields $p with $s lower two hands.", "You wield $p with your lower two hands."},
+      {"$n wears $p on $s lower arms.", "You wear $p on your lower arms."},
+      {"$n wears $p on $s lower hands.", "You wear $p on your lower hands."},
+      {"$n puts $p on around $s lower right wrist.",
+       "You put $p on around your lower right wrist."},
+      {"$n puts $p on around $s lower left wrist.", "You put $p on around your lower left wrist."},
   };
 
   /* extinguished light! */
@@ -4187,6 +4195,13 @@ int hands_used(struct char_data *ch)
     num += 2;
   if (GET_EQ(ch, WEAR_HOLD_2H))
     num += 2;
+  /* second weapon pair (four arms): melee only, so no ranged hand surcharge */
+  if (GET_EQ(ch, WEAR_WIELD_3))
+    num++;
+  if (GET_EQ(ch, WEAR_WIELD_4))
+    num++;
+  if (GET_EQ(ch, WEAR_WIELD_2H_2))
+    num += 2;
   return (num);
 }
 
@@ -4200,7 +4215,11 @@ static int hands_have(struct char_data *ch)
     break;
   }
 
-  if (KNOWS_DISCOVERY(ch, ALC_DISC_VESTIGIAL_ARM))
+  if (has_four_arms(ch))
+    num += 2;
+
+  /* reconciliation runs from affect_total() on partially built characters too */
+  if (ch->player_specials != NULL && KNOWS_DISCOVERY(ch, ALC_DISC_VESTIGIAL_ARM))
     num++;
 
   // if (GET_LEVEL(ch) >= LVL_IMPL)
@@ -4217,6 +4236,115 @@ int hands_available(struct char_data *ch)
     return -1;
   }
   return (hands_have(ch) - hands_used(ch));
+}
+
+/* Four-arm lifecycle.  Losing the capability (last provider item removed,
+ * feat cleared, a form whose mob feats lack it) closes the seven four-arm
+ * slots and shrinks the hand budget.  Reconciliation runs from affect_total()
+ * once the change is complete; callers that temporarily strip providers, such
+ * as save_char()'s unequip/re-equip cycle and object restoration, bracket the
+ * work with four_arms_defer_begin()/four_arms_defer_end() so a mid-cycle state
+ * never moves valid equipment.  Displacement uses the object-transfer
+ * machinery, runs the remove trigger for its side effects without letting a
+ * veto keep gear in a slot the body no longer has, and moves items to
+ * inventory (never the room), bypassing inventory limits like a forced
+ * remove.  Removal order: the second weapon pair, lower wrists, lower hands,
+ * lower arms; then, while the old positions still exceed the hand budget,
+ * held items, the offhand weapon, the shield, the two-hander and last the
+ * primary weapon. */
+static const int four_arms_slot_removal_order[] = {WEAR_WIELD_2H_2, WEAR_WIELD_4,  WEAR_WIELD_3,
+                                                   WEAR_WRIST_L2,   WEAR_WRIST_R2, WEAR_HANDS_2,
+                                                   WEAR_ARMS_2};
+static const int four_arms_hand_trim_order[] = {WEAR_HOLD_2H,       WEAR_HOLD_2, WEAR_HOLD_1,
+                                                WEAR_WIELD_OFFHAND, WEAR_SHIELD, WEAR_WIELD_2H,
+                                                WEAR_WIELD_1};
+
+static void four_arms_displace(struct char_data *ch, int pos)
+{
+  struct domain_object_transfer_operation operation;
+  struct obj_data *obj = GET_EQ(ch, pos);
+
+  if (obj == NULL)
+    return;
+
+  domain_object_transfer_begin(&operation, obj, ch, DOMAIN_TRANSFER_RESTORE);
+  /* the trigger may move or purge the object; re-read the slot afterwards */
+  (void)remove_otrigger(obj, ch);
+  if (GET_EQ(ch, pos) == obj && !obj->transfer_extracting)
+  {
+    if (!ch->mute_equip_messages)
+    {
+      act("You can no longer keep hold of $p and tuck it into your inventory.", FALSE, ch, obj, 0,
+          TO_CHAR);
+      act("$n stops using $p.", TRUE, ch, obj, 0, TO_ROOM);
+    }
+    obj_to_char(unequip_char(ch, pos), ch);
+  }
+  domain_object_transfer_finish(&operation);
+}
+
+void four_arms_defer_begin(struct char_data *ch)
+{
+  if (ch == NULL)
+    return;
+  ch->four_arms_defer++;
+}
+
+void four_arms_defer_end(struct char_data *ch)
+{
+  if (ch == NULL)
+    return;
+  if (ch->four_arms_defer <= 0)
+  {
+    log("SYSERR: four_arms_defer_end without a matching begin for %s", GET_NAME(ch));
+    ch->four_arms_defer = 0;
+    return;
+  }
+  if (--ch->four_arms_defer == 0)
+    four_arms_reconcile(ch);
+}
+
+void four_arms_reconcile(struct char_data *ch)
+{
+  size_t i;
+  bool extra_gear = false;
+
+  if (ch == NULL || ch->four_arms_reconciling || DEAD(ch))
+    return;
+  if (ch->four_arms_defer > 0 || ch->char_specials.affect_batch_depth > 0)
+  {
+    ch->four_arms_dirty = TRUE;
+    return;
+  }
+  ch->four_arms_dirty = FALSE;
+
+  if (has_four_arms(ch))
+  {
+    ch->four_arms_active = TRUE;
+    return;
+  }
+
+  for (i = 0; i < sizeof(four_arms_slot_removal_order) / sizeof(int); i++)
+    if (GET_EQ(ch, four_arms_slot_removal_order[i]))
+      extra_gear = true;
+  /* the hand-budget trim is a consequence of losing four arms, never a
+   * general audit of a two-armed character's equipment */
+  if (!extra_gear && !(ch->four_arms_active && hands_used(ch) > hands_have(ch)))
+  {
+    ch->four_arms_active = FALSE;
+    return;
+  }
+
+  ch->four_arms_reconciling = TRUE;
+  for (i = 0; i < sizeof(four_arms_slot_removal_order) / sizeof(int); i++)
+    four_arms_displace(ch, four_arms_slot_removal_order[i]);
+  /* four arms can hold two weapons and two held items entirely in the old
+   * positions: trim to the budget, keeping the primary weapon longest */
+  for (i = 0;
+       i < sizeof(four_arms_hand_trim_order) / sizeof(int) && hands_used(ch) > hands_have(ch); i++)
+    four_arms_displace(ch, four_arms_hand_trim_order[i]);
+  ch->four_arms_reconciling = FALSE;
+  ch->four_arms_active = FALSE;
 }
 
 int hands_needed(struct char_data *ch, struct obj_data *obj)
@@ -4273,9 +4401,10 @@ bool rol_object_wear_conflicts(struct char_data *ch, struct obj_data *obj, int w
   head = GET_EQ(ch, WEAR_HEAD);
 
   if (where == WEAR_BODY && OBJ_FLAGGED(obj, ITEM_ROL_WHOLE_BODY) &&
-      (GET_EQ(ch, WEAR_ARMS) || GET_EQ(ch, WEAR_LEGS)))
+      (GET_EQ(ch, WEAR_ARMS) || GET_EQ(ch, WEAR_ARMS_2) || GET_EQ(ch, WEAR_LEGS)))
     return true;
-  if ((where == WEAR_ARMS || where == WEAR_LEGS) && body && OBJ_FLAGGED(body, ITEM_ROL_WHOLE_BODY))
+  if ((where == WEAR_ARMS || where == WEAR_ARMS_2 || where == WEAR_LEGS) && body &&
+      OBJ_FLAGGED(body, ITEM_ROL_WHOLE_BODY))
     return true;
   if (where == WEAR_HEAD && OBJ_FLAGGED(obj, ITEM_ROL_WHOLE_HEAD) &&
       (GET_EQ(ch, WEAR_FACE) || GET_EQ(ch, WEAR_EYES)))
@@ -4297,6 +4426,67 @@ int is_wielding_type(struct char_data *ch)
   if (GET_EQ(ch, WEAR_WIELD_2H))
     return GET_OBJ_TYPE(GET_EQ(ch, WEAR_WIELD_2H));
 
+  if (GET_EQ(ch, WEAR_WIELD_3))
+    return GET_OBJ_TYPE(GET_EQ(ch, WEAR_WIELD_3));
+
+  if (GET_EQ(ch, WEAR_WIELD_4))
+    return GET_OBJ_TYPE(GET_EQ(ch, WEAR_WIELD_4));
+
+  if (GET_EQ(ch, WEAR_WIELD_2H_2))
+    return GET_OBJ_TYPE(GET_EQ(ch, WEAR_WIELD_2H_2));
+
+  return -1;
+}
+
+/* Storage rules for the two weapon pairs.  A pair holds either one-handers in
+ * its two one-hand positions or a single two-hander in its 2H position, never
+ * both.  The first pair keeps its old lenient behavior for two-armed
+ * characters; with four arms both pairs are exclusive, so a one-hander skips a
+ * pair whose 2H position is in use and a two-hander needs an empty pair.
+ * Held items and shields are separate: they only draw on the hand budget. */
+static bool wield_pair_has_one_handers(struct char_data *ch, int two_hand_pos)
+{
+  if (two_hand_pos == WEAR_WIELD_2H_2)
+    return GET_EQ(ch, WEAR_WIELD_3) != NULL || GET_EQ(ch, WEAR_WIELD_4) != NULL;
+  return GET_EQ(ch, WEAR_WIELD_1) != NULL || GET_EQ(ch, WEAR_WIELD_OFFHAND) != NULL;
+}
+
+/* first free one-hand weapon position, or the last candidate when all are full
+ * so the caller reports the occupied slot */
+static int pick_one_hand_wield_slot(struct char_data *ch)
+{
+  if (!has_four_arms(ch))
+    return GET_EQ(ch, WEAR_WIELD_1) ? WEAR_WIELD_OFFHAND : WEAR_WIELD_1;
+
+  if (!GET_EQ(ch, WEAR_WIELD_2H))
+  {
+    if (!GET_EQ(ch, WEAR_WIELD_1))
+      return WEAR_WIELD_1;
+    if (!GET_EQ(ch, WEAR_WIELD_OFFHAND))
+      return WEAR_WIELD_OFFHAND;
+  }
+  if (!GET_EQ(ch, WEAR_WIELD_2H_2))
+  {
+    if (!GET_EQ(ch, WEAR_WIELD_3))
+      return WEAR_WIELD_3;
+    if (!GET_EQ(ch, WEAR_WIELD_4))
+      return WEAR_WIELD_4;
+  }
+  return WEAR_WIELD_4;
+}
+
+/* two-hand weapon position, or -1 when no pair of hands is free of weapons */
+static int pick_two_hand_wield_slot(struct char_data *ch)
+{
+  if (!has_four_arms(ch))
+    return WEAR_WIELD_2H;
+
+  if (!GET_EQ(ch, WEAR_WIELD_2H) && !wield_pair_has_one_handers(ch, WEAR_WIELD_2H))
+    return WEAR_WIELD_2H;
+  if (!GET_EQ(ch, WEAR_WIELD_2H_2) && !wield_pair_has_one_handers(ch, WEAR_WIELD_2H_2))
+    return WEAR_WIELD_2H_2;
+  if (GET_EQ(ch, WEAR_WIELD_2H) && GET_EQ(ch, WEAR_WIELD_2H_2))
+    return WEAR_WIELD_2H_2;
   return -1;
 }
 
@@ -4361,7 +4551,14 @@ static void perform_wear_impl(struct char_data *ch, struct obj_data *obj, int wh
                            ITEM_WEAR_CRAFT_NEEDLE,
                            ITEM_WEAR_CRAFT_WEAPON_HAMMER,
                            ITEM_WEAR_ON_BACK,
-                           ITEM_WEAR_TAIL};
+                           ITEM_WEAR_TAIL,
+                           ITEM_WEAR_WIELD, /* WEAR_WIELD_3 */
+                           ITEM_WEAR_WIELD, /* WEAR_WIELD_4 */
+                           ITEM_WEAR_WIELD, /* WEAR_WIELD_2H_2 */
+                           ITEM_WEAR_ARMS,  /* WEAR_ARMS_2 */
+                           ITEM_WEAR_HANDS, /* WEAR_HANDS_2 */
+                           ITEM_WEAR_WRIST, /* WEAR_WRIST_R2 */
+                           ITEM_WEAR_WRIST /* WEAR_WRIST_L2 */};
 
   const char *const already_wearing[NUM_WEARS] = {
       "You're already using a light.\r\n",                                  // 0
@@ -4407,7 +4604,14 @@ static void perform_wear_impl(struct char_data *ch, struct obj_data *obj, int wh
       "You already have a sewing needle equipped.\r\n",
       "You already have a weaponsmith's hammer equipped.\r\n",
       "You already have something equipped on your back.\r\n",
-      "You are already wearing something on your tail.\r\n"};
+      "You are already wearing something on your tail.\r\n",
+      "Your hands are full.\r\n", /* WEAR_WIELD_3 */
+      "Your hands are full.\r\n", /* WEAR_WIELD_4 */
+      "Your hands are full.\r\n", /* WEAR_WIELD_2H_2 */
+      "You're already wearing something on both sets of arms.\r\n",
+      "You're already wearing something on both sets of hands.\r\n",
+      "YOU SHOULD NEVER SEE THIS MESSAGE.  PLEASE REPORT.\r\n", /* WEAR_WRIST_R2 */
+      "You're already wearing something around all four of your wrists.\r\n"};
 
   /* we are looking for some quick exits */
   if (IS_PET(ch) && IS_INCORPOREAL(ch))
@@ -4524,8 +4728,9 @@ static void perform_wear_impl(struct char_data *ch, struct obj_data *obj, int wh
       where != WEAR_CRAFT_AXE && where != WEAR_CRAFT_KNIFE && where != WEAR_CRAFT_PICKAXE &&
       where != WEAR_CRAFT_ALCHEMY && where != WEAR_CRAFT_ARMOR_HAMMER &&
       where != WEAR_CRAFT_JEWEL_PLIERS && where != WEAR_CRAFT_NEEDLE &&
-      where != WEAR_CRAFT_WEAPON_HAMMER && where != WEAR_ON_BACK &&
-      (where != WEAR_TAIL || !object_is_ring(obj)))
+      where != WEAR_CRAFT_WEAPON_HAMMER && where != WEAR_ON_BACK && where != WEAR_WIELD_3 &&
+      where != WEAR_WIELD_4 && where != WEAR_WIELD_2H_2 && where != WEAR_WRIST_R2 &&
+      where != WEAR_WRIST_L2 && (where != WEAR_TAIL || !object_is_ring(obj)))
   {
     if (GET_OBJ_SIZE(obj) < GET_SIZE(ch))
     {
@@ -4544,6 +4749,17 @@ static void perform_wear_impl(struct char_data *ch, struct obj_data *obj, int wh
       (where == WEAR_EAR_R) || (where == WEAR_ANKLE_R))
     if (GET_EQ(ch, where))
       where++;
+
+  /* four arms: the lower limbs take the overflow from the upper ones */
+  if (has_four_arms(ch))
+  {
+    if (where == WEAR_WRIST_L && GET_EQ(ch, where))
+      where = GET_EQ(ch, WEAR_WRIST_R2) ? WEAR_WRIST_L2 : WEAR_WRIST_R2;
+    if (where == WEAR_ARMS && GET_EQ(ch, where))
+      where = WEAR_ARMS_2;
+    if (where == WEAR_HANDS && GET_EQ(ch, where))
+      where = WEAR_HANDS_2;
+  }
 
   // juggling with hands code -zusuk
   if (where == WEAR_WIELD_1 || where == WEAR_WIELD_OFFHAND || where == WEAR_HOLD_1 ||
@@ -4564,11 +4780,35 @@ static void perform_wear_impl(struct char_data *ch, struct obj_data *obj, int wh
 
     // next throw the item in the first available slot
     //  is the item in one of the primary slots?
-    if ((where == WEAR_WIELD_1) || (where == WEAR_HOLD_1))
-      if (GET_EQ(ch, where))
-        where += 2;
+    if (where == WEAR_HOLD_1 && GET_EQ(ch, where))
+      where += 2;
+    if (where == WEAR_WIELD_1)
+      where = pick_one_hand_wield_slot(ch);
+    if (where == WEAR_WIELD_2H)
+    {
+      where = pick_two_hand_wield_slot(ch);
+      if (where < 0)
+      {
+        send_to_char(ch, "You would need to free a pair of hands of weapons to do that.\r\n");
+        return;
+      }
+    }
   }
   // end juggling hands code
+
+  /* the resolved position must pass the same anatomy and pair rules as the
+   * requested one; equip_char() enforces both again for every other path */
+  wear_restriction = character_wear_slot_restriction(ch, where);
+  if (wear_restriction != NULL)
+  {
+    send_to_char(ch, "%s\r\n", wear_restriction);
+    return;
+  }
+  if (second_pair_rejects_object(obj, where))
+  {
+    send_to_char(ch, "Your lower arms can only manage melee weapons.\r\n");
+    return;
+  }
 
   if (GET_EQ(ch, where))
   {
@@ -4640,6 +4880,13 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
                                                "weaponsmith's hammer",
                                                "on-back",
                                                "tail",
+                                               "!RESERVED!", // (wielded third)
+                                               "!RESERVED!", // (wielded fourth)
+                                               "!RESERVED!", // (wielded twohanded 2)
+                                               "!RESERVED!", // (lower arms)
+                                               "!RESERVED!", // (lower hands)
+                                               "!RESERVED!", // (lower right wrist)
+                                               "!RESERVED!", // 50 (lower left wrist)
                                                "\n"};
 
   if (!arg || !*arg)
@@ -4905,7 +5152,7 @@ ACMD(do_wield)
     send_to_char(ch, "You are already using a ranged weapon!\r\n");
     /* wielding a weapon, now trying to dual wield a ranged weapon */
   }
-  else if (obj && (GET_EQ(ch, WEAR_WIELD_1) || GET_EQ(ch, WEAR_WIELD_OFFHAND)) &&
+  else if (obj && is_wielding_type(ch) != -1 &&
            IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_RANGED))
   {
     send_to_char(ch, "You can't equip a ranged weapon while already wielding another weapon!\r\n");

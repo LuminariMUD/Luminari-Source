@@ -584,7 +584,10 @@ const char *attack_types[] = {
     "Evolution (Rend)",
     "Evolution (Trample)",
     "Thrown",
+    "Third hand",  /* four arms */
+    "Fourth hand", /* four arms */
 };
+CHECK_TABLE_SIZE(attack_types, NUM_COMBAT_ATTACK_TYPES);
 
 const char *instrument_names[] = {"Lyre", "Flute", "Horn", "Drum", "Harp", "Mandolin",
                                   /**/
@@ -1783,6 +1786,13 @@ const char *wear_where[] = {
     "\tC{Sewing Needle}\tn      ", // WEAR_CRAFT_NEEDLE
     "\tC{Weaponsmith Hammer}\tn ", // WEAR_CRAFT_WEAPON_HAMMER
     "\tY{Worn On Back}\tn       ",    "\tY{Worn On Tail}\tn       ",
+    "\tR{Wielded Third}\tn      ",    /* WEAR_WIELD_3 */
+    "\tR{Wielded Fourth}\tn     ",    /* WEAR_WIELD_4 */
+    "\tR{Wielded Twohanded 2}\tn",    /* WEAR_WIELD_2H_2 */
+    "\tY\t+{Worn On Lower Arms}\tn ", /* WEAR_ARMS_2 */
+    "\tY{Worn On Lower Hands}\tn",    /* WEAR_HANDS_2 */
+    "\tY{Worn Around Wrist}\tn  ",    /* WEAR_WRIST_R2 */
+    "\tY{Worn Around Wrist}\tn  ",    /* WEAR_WRIST_L2 */
 };
 CHECK_TABLE_SIZE(wear_where, NUM_WEARS);
 
@@ -1833,6 +1843,13 @@ const char *equipment_types[] = {"Used as light", // 0
                                  "Weaponsmith hammer (weaponsmithing)", // WEAR_CRAFT_WEAPON_HAMMER
                                  "Worn on back",
                                  "Worn on tail",
+                                 "Wielded in third hand",         /* WEAR_WIELD_3 */
+                                 "Wielded in fourth hand",        /* WEAR_WIELD_4 */
+                                 "Wielded twohands, second pair", /* WEAR_WIELD_2H_2 */
+                                 "Worn on lower arms",            /* WEAR_ARMS_2 */
+                                 "Worn on lower hands",           /* WEAR_HANDS_2 */
+                                 "Worn around lower right wrist", /* WEAR_WRIST_R2 */
+                                 "Worn around lower left wrist",  /* WEAR_WRIST_L2 */
                                  "\n"};
 CHECK_TABLE_SIZE(equipment_types, NUM_WEARS + 1);
 

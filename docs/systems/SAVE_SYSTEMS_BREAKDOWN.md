@@ -38,11 +38,47 @@ Levl: 1
 - **Format**: Custom binary/text format
 - **Functions**: `Crash_save()`, `Crash_rentsave()` in `objsave.c`
 - **Contains**:
-  - Equipment worn by character
+  - Equipment worn by character (`Loc` is wear position + 1; positions 44..50,
+    the four-arm slots added for issue #168, serialize as `Loc` 45..51 and
+    restore only for a character with four arms, otherwise to inventory)
   - Inventory items
   - Bag contents (10 bags per player)
   - Object properties and modifications
   - Rent information and costs
+
+##### Four-arm wear positions and rollback (issue #168)
+
+Positions 44..50 (`WEAR_WIELD_3` .. `WEAR_WRIST_L2`) exist since the Four
+Arms feature; `Loc` 44 is still the tail. `auto_equip()` restores them only
+for a character whose four arms are active once the whole record set is
+loaded (`crash_restore_records()` in `src/obj/objsave.c`); otherwise the
+item goes to inventory with its contents. Readers differ on unknown
+positions: the player flat-file and general database parsers redirect a
+`Loc` beyond the wear table to inventory, while the strict pet parser
+(`pet_object_graph_valid()`) rejects the whole pet record set.
+
+Rolling back to a binary without these positions therefore needs data
+preparation first, in this order, on an isolated copy before production:
+
+1. Back up `lib/plrobjs/`, the pet object tables and every zone file that
+   carries `E` commands with positions 44..50.
+2. With the new binary still running, remove four-arm gear from online
+   characters (the `remove` command or a staff-run `four_arms_reconcile()`
+   equivalent by clearing the feat), then save. This handles only online
+   characters.
+3. Normalize offline records with the new binary or a reviewed conversion:
+   rewrite `Loc` 45..51 to 0 (inventory) in player object files and in the
+   optional database object tables, and rewrite pet records the same way so
+   the strict parser does not reject them. Zone `E` commands with positions
+   44..50 must be changed or removed.
+4. Clear feat 1321 (`FEAT_FOUR_ARMS`) from player records and item
+   `APPLY_FEAT` modifiers, or the old binary's feat bounds will reject it.
+5. Only then install the old binary. Verify with a copy of a converted player
+   and a pet on the isolated fixture before touching production.
+
+`TestFourArmsUnknownSavedSlotFallsBackToInventory` and the pet persistence
+tests cover the two reader behaviors in the current binary; they do not
+prove cross-version compatibility.
 
 #### 3. Clan System
 - **Location**: `lib/etc/clans`

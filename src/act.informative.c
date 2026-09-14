@@ -141,9 +141,13 @@ const int eq_ordering_1[NUM_WEARS] = {
     WEAR_WAIST,               //<worn about waist>
     WEAR_SHEATH,              //<worn as sheath>
     WEAR_ARMS,                //<worn on arms>
+    WEAR_ARMS_2,              //<worn on lower arms>
     WEAR_WRIST_R,             //<worn around wrist>
     WEAR_WRIST_L,             //<worn around wrist>
+    WEAR_WRIST_R2,            //<worn around lower wrist>
+    WEAR_WRIST_L2,            //<worn around lower wrist>
     WEAR_HANDS,               //<worn on hands>
+    WEAR_HANDS_2,             //<worn on lower hands>
     WEAR_FINGER_R,            //<worn on finger>
     WEAR_FINGER_L,            //<worn on finger>
     WEAR_WIELD_1,             //<wielding/held slots>
@@ -152,6 +156,9 @@ const int eq_ordering_1[NUM_WEARS] = {
     WEAR_HOLD_2,              //<wielding/held slots>
     WEAR_WIELD_2H,            //<wielding/held slots>
     WEAR_HOLD_2H,             //<wielding/held slots>
+    WEAR_WIELD_3,             //<second weapon pair>
+    WEAR_WIELD_4,             //<second weapon pair>
+    WEAR_WIELD_2H_2,          //<second weapon pair>
     WEAR_INSTRUMENT,          //<worn as instrument>
     WEAR_SHIELD,              //<worn as shield>
     WEAR_LEGS,                //<worn on legs>
@@ -4224,11 +4231,12 @@ ACMD(do_damage)
 #undef DISPLAY_ROUTINE_POTENTIAL
     send_to_char(ch, "\tC");
     text_line(ch, "\tYTo view bonus breakdown: \tC", line_length, '-', '-');
-    text_line(ch, "\tYattacks unarmed|primary|offhand|ranged|thrown|bomb|psionic\tC", line_length,
-              '-', '-');
+    text_line(ch, "\tYattacks unarmed|primary|offhand|third|fourth|ranged|thrown|bomb|psionic\tC",
+              line_length, '-', '-');
     text_line(ch, "\tYattacks primary-sneak|offhand-sneak|eldritch|twohand|evolution\tC",
               line_length, '-', '-');
-    text_line(ch, "\tYdamage hit|primary|offhand|ranged|thrown\tC", line_length, '-', '-');
+    text_line(ch, "\tYdamage hit|primary|offhand|third|fourth|ranged|thrown\tC", line_length, '-',
+              '-');
     send_to_char(ch, "\tn");
 
     return;
@@ -4247,6 +4255,16 @@ ACMD(do_damage)
   {
     mode = MODE_DISPLAY_OFFHAND;
     attack_type = ATTACK_TYPE_OFFHAND;
+  }
+  else if (is_abbrev(arg, "third"))
+  {
+    mode = MODE_DISPLAY_PRIMARY;
+    attack_type = ATTACK_TYPE_THIRD;
+  }
+  else if (is_abbrev(arg, "fourth"))
+  {
+    mode = MODE_DISPLAY_OFFHAND;
+    attack_type = ATTACK_TYPE_FOURTH;
   }
   else if (is_abbrev(arg, "ranged"))
   {
@@ -4296,11 +4314,12 @@ ACMD(do_attacks)
 #undef DISPLAY_ROUTINE_POTENTIAL
     send_to_char(ch, "\tC");
     text_line(ch, "\tYTo view bonus breakdown: \tC", line_length, '-', '-');
-    text_line(ch, "\tYattacks unarmed|primary|offhand|ranged|thrown|bomb|psionic\tC", line_length,
-              '-', '-');
+    text_line(ch, "\tYattacks unarmed|primary|offhand|third|fourth|ranged|thrown|bomb|psionic\tC",
+              line_length, '-', '-');
     text_line(ch, "\tYattacks primary-sneak|offhand-sneak|eldritch|twohand|evolution\tC",
               line_length, '-', '-');
-    text_line(ch, "\tYdamage hit|primary|offhand|ranged|thrown\tC", line_length, '-', '-');
+    text_line(ch, "\tYdamage hit|primary|offhand|third|fourth|ranged|thrown\tC", line_length, '-',
+              '-');
     send_to_char(ch, "\tn");
 
     return;
@@ -4316,6 +4335,14 @@ ACMD(do_attacks)
   else if (is_abbrev(arg, "offhand"))
   {
     attack_type = ATTACK_TYPE_OFFHAND;
+  }
+  else if (is_abbrev(arg, "third"))
+  {
+    attack_type = ATTACK_TYPE_THIRD;
+  }
+  else if (is_abbrev(arg, "fourth"))
+  {
+    attack_type = ATTACK_TYPE_FOURTH;
   }
   else if (is_abbrev(arg, "primary-sneak"))
   {
@@ -7386,6 +7413,9 @@ ACMD(do_equipment)
         case WEAR_WIELD_1:
         case WEAR_WIELD_OFFHAND:
         case WEAR_WIELD_2H:
+        case WEAR_WIELD_3:
+        case WEAR_WIELD_4:
+        case WEAR_WIELD_2H_2:
           if (!is_proficient_with_weapon(ch, GET_WEAPON_TYPE(GET_EQ(ch, eq_ordering_1[i]))))
             send_to_char(ch, "(not proficient) ");
           break;
@@ -7402,6 +7432,7 @@ ACMD(do_equipment)
             send_to_char(ch, "(not proficient) ");
           break;
         case WEAR_ARMS:
+        case WEAR_ARMS_2:
           if (!is_proficient_with_sleeves(ch))
             send_to_char(ch, "(not proficient) ");
           break;

@@ -74,6 +74,7 @@ int get_agile_weapon_dex_bonus(struct char_data *ch);
 struct obj_data *is_using_ranged_weapon(struct char_data *ch, bool silent_mode);
 // bool *is_ranged_weapon(struct obj_data *obj);
 bool is_using_double_weapon(struct char_data *ch);
+bool is_using_double_weapon_at(struct char_data *ch, int slot);
 bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded);
 
 int is_proficient_with_weapon(struct char_data *ch, int weapon_type);

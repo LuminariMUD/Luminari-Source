@@ -157,6 +157,15 @@ const char *character_wear_slot_restriction(const struct char_data *ch, int wear
       HAS_FEAT((struct char_data *)ch, FEAT_LEONINE_FRAME))
     return "Your four-legged body cannot wear leg or foot equipment.";
 
+  /* four-arm slots: feat-driven like the leonine frame, checked for NPCs too.
+   * The doubled slot then follows its base position's anatomy rules. */
+  if (is_four_arm_wear_slot(wear_slot))
+  {
+    if (!has_four_arms(ch))
+      return "You would need four arms to use that equipment slot.";
+    wear_slot = four_arm_slot_base(wear_slot);
+  }
+
   if (IS_NPC(ch))
     return NULL;
 

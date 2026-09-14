@@ -2342,6 +2342,7 @@ bool save_char_checked(struct char_data *ch, int mode)
 {
   FILE *fl;
   bool save_ok = TRUE;
+  bool four_arms_deferred = FALSE;
   bool old_mute_equip_messages = FALSE;
   const char *account_name = NULL;
   char filename[40] = {'\0'}, bits[127] = {'\0'}, bits2[127] = {'\0'}, bits3[127] = {'\0'},
@@ -2401,9 +2402,8 @@ bool save_char_checked(struct char_data *ch, int mode)
     if (!append_player_save_buffer(&write_buffer, &buffer_size, &buffer_used, __VA_ARGS__))        \
     {                                                                                              \
       log("SYSERR: save_char: Buffer formatting or allocation failed");                            \
-      free(write_buffer);                                                                          \
-      PERF_PROF_EXIT(pr_save_char_checked_);                                                       \
-      return FALSE;                                                                                \
+      save_ok = FALSE;                                                                             \
+      goto save_char_restore; /* re-equip, re-affect, end the four-arm deferral */                 \
     }                                                                                              \
   } while (0)
 
@@ -2414,9 +2414,8 @@ bool save_char_checked(struct char_data *ch, int mode)
                                    field_value))                                                   \
     {                                                                                              \
       log("SYSERR: save_char: String buffer formatting or allocation failed");                     \
-      free(write_buffer);                                                                          \
-      PERF_PROF_EXIT(pr_save_char_checked_);                                                       \
-      return FALSE;                                                                                \
+      save_ok = FALSE;                                                                             \
+      goto save_char_restore;                                                                      \
     }                                                                                              \
   } while (0)
 
@@ -2485,6 +2484,10 @@ bool save_char_checked(struct char_data *ch, int mode)
    * and wear messages while the equipment hooks run. */
   old_mute_equip_messages = ch->mute_equip_messages;
   ch->mute_equip_messages = TRUE;
+  /* providers leave and return with the rest of the gear: no four-arm
+   * reconciliation until the matching re-equip pass below has finished */
+  four_arms_defer_begin(ch);
+  four_arms_deferred = TRUE;
   for (i = 0; i < NUM_WEARS; i++)
   {
     if (GET_EQ(ch, i))
@@ -3865,6 +3868,10 @@ bool save_char_checked(struct char_data *ch, int mode)
     }
   }
 
+/* A buffer failure above lands here with save_ok FALSE: the file is closed
+ * and everything stripped for serialization is put back before returning. */
+save_char_restore:
+
   /*
    * Flush explicitly so a full disk or quota is reported here rather than
    * being swallowed. Deliberately no early return: the code below restores the
@@ -3925,8 +3932,16 @@ bool save_char_checked(struct char_data *ch, int mode)
   }
 
   ch->mute_equip_messages = old_mute_equip_messages;
+  if (four_arms_deferred)
+    four_arms_defer_end(ch);
 
   /* end char_to_store code */
+
+  if (!save_ok)
+  {
+    PERF_PROF_EXIT(pr_save_char_checked_);
+    return FALSE;
+  }
 
   if ((id = get_ptable_by_name(GET_NAME(ch))) < 0)
   {
