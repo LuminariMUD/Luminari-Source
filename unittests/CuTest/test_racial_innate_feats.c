@@ -112,6 +112,12 @@ static void end_innate_char(struct char_data *ch, struct descriptor_data *descri
   ch->desc = NULL;
   if (descriptor->pProtocol != NULL)
     ProtocolDestroy(descriptor->pProtocol);
+  if (descriptor->large_outbuf != NULL)
+  {
+    free(descriptor->large_outbuf->text);
+    free(descriptor->large_outbuf);
+    descriptor->large_outbuf = NULL;
+  }
 }
 
 static void end_innate_fixture(struct innate_fixture *fixture)
