@@ -576,7 +576,13 @@ int vessel_commodity_price(int base_price, int supply)
   {
     return INT_MAX;
   }
-  return (int)llong_max(1, price);
+  /* A plain clamp: Clang 22.1.8 at -O2 drops the INT_MAX check above when the
+   * lower bound is taken with llong_max (see the strict C23 toolchain notes). */
+  if (price < 1)
+  {
+    return 1;
+  }
+  return (int)price;
 }
 
 /**
