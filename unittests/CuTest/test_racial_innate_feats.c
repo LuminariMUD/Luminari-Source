@@ -1503,6 +1503,52 @@ void Test_racial_casting_feats_apply_in_standard_action_mode(CuTest *tc)
   end_racial_cast_fixture(&fixture, &saved_spell, saved_mode, saved_pulse);
 }
 
+/* A timed cast's start message leads with the flourish of that cast's own metamagic: the flourish
+ * is copied ahead of the formatted chant, and a plain cast that follows shows no stale flourish. */
+void Test_timed_cast_start_message_shows_the_current_metamagic_flourish(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  struct spell_info_type saved_spell;
+  const int metamagic_by_cast[2] = {METAMAGIC_STILL, METAMAGIC_NONE};
+  char seen[2][SMALL_BUFSIZE];
+  const char *flourish;
+  int saved_mode;
+  int cast;
+  unsigned long saved_pulse;
+  unsigned int tick;
+  bool resolved = true;
+
+  begin_racial_cast_fixture(tc, &fixture, &saved_spell, &saved_mode, &saved_pulse);
+  CONFIG_SPELLCASTING_TIME_MODE = 1;
+  for (cast = 0; cast < 2; cast++)
+  {
+    fixture.other_descriptor.small_outbuf[0] = '\0';
+    fixture.other_descriptor.output = fixture.other_descriptor.small_outbuf;
+    fixture.other_descriptor.bufptr = 0;
+    fixture.other_descriptor.bufspace = SMALL_BUFSIZE - 1;
+    /* a self-cast leaves the other character as the only watcher in the room */
+    resolved = cast_spell(&fixture.ch, &fixture.ch, NULL, SPELL_CURE_LIGHT,
+                          metamagic_by_cast[cast]) == 1 &&
+               IS_CASTING(&fixture.ch) && resolved;
+    strlcpy(seen[cast], fixture.other_descriptor.output, sizeof(seen[cast]));
+    for (tick = 0; tick < 10U * PASSES_PER_SEC && IS_CASTING(&fixture.ch); tick++)
+    {
+      pulse++;
+      event_test_advance();
+    }
+    resolved = resolved && !IS_CASTING(&fixture.ch);
+  }
+  end_racial_cast_fixture(&fixture, &saved_spell, saved_mode, saved_pulse);
+
+  CuAssertTrue(tc, resolved);
+  flourish = strstr(seen[0], "motionless");
+  CuAssertPtrNotNull(tc, flourish);
+  CuAssertPtrNotNull(tc, strstr(flourish, "innate one"));
+  /* without a flourish the message opens with the capitalized caster name */
+  CuAssertPtrNotNull(tc, strstr(seen[1], "Innate one"));
+  CuAssertPtrEquals(tc, NULL, strstr(seen[1], "motionless"));
+}
+
 /* Spell power decision: no racial spell-power feat.  FEAT_ENHANCED_SPELL_DAMAGE is granted by
  * the race level-feat path without any class prerequisite, stacks per grant, and mag_damage()
  * reads it through HAS_FEAT() for every spell-number damage roll. */

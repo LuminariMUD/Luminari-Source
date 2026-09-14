@@ -394,8 +394,8 @@ static void increase_mob_difficulty(struct char_data *mob, int difficulty)
     break;
   }
   award_set_points(mob, AWARD_EXPERIENCE,
-                   GET_LEVEL(mob) * GET_LEVEL(mob) * (75 + (10 * difficulty)));
-  award_set_points(mob, AWARD_GOLD, GET_LEVEL(mob) * (10 + difficulty));
+                   (long)GET_LEVEL(mob) * GET_LEVEL(mob) * (75 + (10 * difficulty)));
+  award_set_points(mob, AWARD_GOLD, (long)GET_LEVEL(mob) * (10 + difficulty));
 }
 
 int select_mission_coords(int start)

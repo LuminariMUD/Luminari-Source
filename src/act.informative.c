@@ -3200,7 +3200,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
       else
       { // rounds
         snprintf(buf, sizeof(buf), "[%2d round%s  ] ", (aff->duration + 1),
-                 ((aff->duration + 1) > 1 ? "s" : " "));
+                 (aff->duration > 0 ? "s" : " "));
       }
 
       /* name */

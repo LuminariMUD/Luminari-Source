@@ -265,11 +265,11 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
                       struct obj_data *tobj, bool start)
 {
   char lbuf[MEDIUM_STRING] = {'\0'}, buf[MEDIUM_STRING] = {'\0'}, buf1[LONG_STRING] = {'\0'},
-       buf2[LONG_STRING] = {'\0'};             /* FIXME */
-  char format_buf[MAX_STRING_LENGTH] = {'\0'}; /* Phase 4: For metamagic prefix */
+       buf2[LONG_STRING] = {'\0'}; /* FIXME */
   const char *format;
   const char *school_format = NULL;
-  const char *meta_prefix = NULL;
+  const char *meta_prefix = "";
+  size_t prefix_len;
   struct char_data *i;
   int j, ofs = 0, dc_of_id = 0, attempt = 0;
   int school = NOSCHOOL;
@@ -378,22 +378,20 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
   }
 
   /*
-   * Phase 4: Prepend metamagic visual prefix to format string.
+   * Phase 4: Prepend metamagic visual prefix to the message.
    * This adds dramatic descriptions for metamagic modifiers that are
-   * visible to observers in the room.
+   * visible to observers in the room.  The prefix is copied as text
+   * ahead of the formatted message and is never part of the format.
    */
   if (start && has_visual_metamagic(metamagic))
-  {
     meta_prefix = build_metamagic_prefix(metamagic);
-    if (meta_prefix != NULL && meta_prefix[0] != '\0')
-    {
-      snprintf(format_buf, sizeof(format_buf), "%s%s", meta_prefix, format);
-      format = format_buf;
-    }
-  }
 
-  snprintf(buf1, sizeof(buf1), format, spell_name(spellnum));
-  snprintf(buf2, sizeof(buf2), format, buf);
+  prefix_len = strlcpy(buf1, meta_prefix, sizeof(buf1));
+  if (prefix_len >= sizeof(buf1))
+    prefix_len = sizeof(buf1) - 1;
+  strlcpy(buf2, buf1, sizeof(buf2));
+  snprintf(buf1 + prefix_len, sizeof(buf1) - prefix_len, format, spell_name(spellnum));
+  snprintf(buf2 + prefix_len, sizeof(buf2) - prefix_len, format, buf);
 
   for (i = world[IN_ROOM(ch)].people; i; i = i->next_in_room)
   {
@@ -3233,6 +3231,9 @@ will be using for casting this spell */
         casting_time = 2;
     }
 
+    /* the start message shows this cast's metamagic flourish */
+    CASTING_METAMAGIC(ch) = metamagic;
+
     /* casting time entry point */
     if (CASTING_CLASS(ch) == CLASS_ALCHEMIST)
     {
@@ -3255,7 +3256,6 @@ will be using for casting this spell */
     CASTING_TCH(ch) = tch;
     CASTING_TOBJ(ch) = tobj;
     CASTING_SPELLNUM(ch) = spellnum;
-    CASTING_METAMAGIC(ch) = metamagic;
 
     if (!start_casting_activity(ch))
     {

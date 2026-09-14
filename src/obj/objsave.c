@@ -86,8 +86,6 @@ static obj_save_data *objsave_parse_objects_db_pet(struct char_data *owner, long
 static void log_pet_object_failure(const char *operation, struct char_data *owner,
                                    long int pet_idnum, int obj_vnum, unsigned int error_code,
                                    const char *detail);
-int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch,
-                                      long int sheath_idnum, int sheath_slot);
 void load_sheath_contents(struct char_data *ch, struct obj_data *sheath, long int idnum);
 obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum, int sheath_slot,
                                                struct obj_data *sheath);
@@ -1265,6 +1263,37 @@ bool pet_save_objs(struct char_data *ch, struct char_data *owner, long int pet_i
   return true;
 }
 
+#ifdef OBJSAVE_DB
+/* Start a player's object save transaction and delete the rows it replaces. */
+static bool objsave_begin_player_save(struct char_data *ch)
+{
+  char query[256];
+  char *escaped_name;
+  bool deleted = false;
+
+  if (mysql_query(conn, "start transaction;"))
+  {
+    log("SYSERR: Unable to start transaction for saving of player object data: %s",
+        mysql_error(conn));
+    return false;
+  }
+  /* Delete existing save data.  In the future may just flag these for deletion. */
+  escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  if (escaped_name != NULL)
+  {
+    snprintf(query, sizeof(query), "delete from player_save_objs where name = '%s';", escaped_name);
+    deleted = !mysql_query(conn, query);
+    free(escaped_name);
+  }
+  if (!deleted)
+  {
+    log("SYSERR: Unable to delete player object save data: %s", mysql_error(conn));
+    mysql_query(conn, "rollback;");
+  }
+  return deleted;
+}
+#endif
+
 void Crash_crashsave(struct char_data *ch)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
@@ -1281,21 +1310,8 @@ void Crash_crashsave(struct char_data *ch)
     return;
 
 #ifdef OBJSAVE_DB
-  char del_buf[2048];
-  if (mysql_query(conn, "start transaction;"))
+  if (!objsave_begin_player_save(ch))
   {
-    log("SYSERR: Unable to start transaction for saving of player object data: %s",
-        mysql_error(conn));
-    fclose(fp);
-    return;
-  }
-  /* Delete existing save data.  In the future may just flag these for deletion. */
-  snprintf(del_buf, sizeof(del_buf), "delete from player_save_objs where name = '%s';",
-           GET_NAME(ch));
-  if (mysql_query(conn, del_buf))
-  {
-    log("SYSERR: Unable to delete player object save data: %s", mysql_error(conn));
-    mysql_query(conn, "rollback;");
     fclose(fp);
     return;
   }
@@ -1384,21 +1400,8 @@ void Crash_idlesave(struct char_data *ch)
     return;
 
 #ifdef OBJSAVE_DB
-  char del_buf[2048];
-  if (mysql_query(conn, "start transaction;"))
+  if (!objsave_begin_player_save(ch))
   {
-    log("SYSERR: Unable to start transaction for saving of player object data: %s",
-        mysql_error(conn));
-    fclose(fp);
-    return;
-  }
-  /* Delete existing save data.  In the future may just flag these for deletion. */
-  snprintf(del_buf, sizeof(del_buf), "delete from player_save_objs where name = '%s';",
-           GET_NAME(ch));
-  if (mysql_query(conn, del_buf))
-  {
-    log("SYSERR: Unable to delete player object save data: %s", mysql_error(conn));
-    mysql_query(conn, "rollback;");
     fclose(fp);
     return;
   }
@@ -1523,21 +1526,8 @@ void Crash_rentsave(struct char_data *ch, int cost)
     return;
 
 #ifdef OBJSAVE_DB
-  char del_buf[2048];
-  if (mysql_query(conn, "start transaction;"))
+  if (!objsave_begin_player_save(ch))
   {
-    log("SYSERR: Unable to start transaction for saving of player object data: %s",
-        mysql_error(conn));
-    fclose(fp);
-    return;
-  }
-  /* Delete existing save data.  In the future may just flag these for deletion. */
-  snprintf(del_buf, sizeof(del_buf), "delete from player_save_objs where name = '%s';",
-           GET_NAME(ch));
-  if (mysql_query(conn, del_buf))
-  {
-    log("SYSERR: Unable to delete player object save data: %s", mysql_error(conn));
-    mysql_query(conn, "rollback;");
     fclose(fp);
     return;
   }
@@ -1623,12 +1613,20 @@ static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, stru
 {
 #ifdef OBJSAVE_DB
   char buf[2048]; /* For MySQL insert. */
+  char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  bool updated = false;
 
-  snprintf(buf, sizeof(buf),
-           "update player_data set obj_save_header = '%d %ld %d %d %d %d'"
-           "where name = '%s';",
-           rentcode, (long)time(0), cost_per_day, GET_GOLD(ch), GET_BANK_GOLD(ch), 0, GET_NAME(ch));
-  if (mysql_query(conn, buf))
+  if (escaped_name != NULL)
+  {
+    snprintf(buf, sizeof(buf),
+             "update player_data set obj_save_header = '%d %ld %d %d %d %d'"
+             "where name = '%s';",
+             rentcode, (long)time(0), cost_per_day, GET_GOLD(ch), GET_BANK_GOLD(ch), 0,
+             escaped_name);
+    updated = !mysql_query(conn, buf);
+    free(escaped_name);
+  }
+  if (!updated)
   {
     log("SYSERR: Unable to INSERT obj_save_header into PLAYER_DATA: %s", mysql_error(conn));
     return FALSE;
@@ -4475,6 +4473,8 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
   char buf1[4096]; /* Reduced from MAX_STRING_LENGTH */
   struct obj_data *temp = NULL;
   struct obj_special_ability *specab = NULL;
+  PREPARED_STMT *statement;
+  bool saved;
 
   /* load up the object */
   if (GET_OBJ_VNUM(obj) != NOTHING)
@@ -4494,13 +4494,7 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
   else
     *buf1 = 0;
 
-  snprintf(ins_buf, sizeof(ins_buf),
-           "insert into player_save_objs_sheathed (id, sheath_obj_id, sheathed_position, "
-           "owner_name, serialized_obj) values (NULL, '%ld', %d, '%s', '",
-           sheath_idnum, sheath_slot, GET_NAME(ch));
-
-  snprintf(line_buf, sizeof(line_buf), "#%d\n", (int)GET_OBJ_VNUM(obj));
-  strlcat(ins_buf, line_buf, sizeof(ins_buf));
+  snprintf(ins_buf, sizeof(ins_buf), "#%d\n", (int)GET_OBJ_VNUM(obj));
 
   /**** start checks for modifications to default object! ***/
   /* is object modified from default values? */
@@ -4692,15 +4686,19 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
 
   /*** end checks for object modifications ****/
 
-  snprintf(line_buf, sizeof(line_buf), "');");
-  strlcat(ins_buf, line_buf, sizeof(ins_buf));
-  if (mysql_query(conn, ins_buf))
-  {
-    log("SYSERR: Unable to INSERT into player_save_objs_sheathed: %s\n%s\n", mysql_error(conn),
-        ins_buf);
-    extract_obj(temp);
-    return 1;
-  }
+  statement = mysql_stmt_create(conn);
+  saved =
+      strlen(ins_buf) < sizeof(ins_buf) - 1 && statement != NULL &&
+      mysql_stmt_prepare_query(statement, "INSERT INTO player_save_objs_sheathed (sheath_obj_id, "
+                                          "sheathed_position, owner_name, serialized_obj) "
+                                          "VALUES (?, ?, ?, ?)") &&
+      mysql_stmt_bind_param_long(statement, 0, sheath_idnum) &&
+      mysql_stmt_bind_param_int(statement, 1, sheath_slot) &&
+      mysql_stmt_bind_param_string(statement, 2, GET_NAME(ch)) &&
+      mysql_stmt_bind_param_string(statement, 3, ins_buf) && mysql_stmt_execute_prepared(statement);
+  mysql_stmt_cleanup(statement);
+  if (!saved)
+    log("SYSERR: Unable to save sheathed object record for %s.", GET_NAME(ch));
 
   extract_obj(temp);
 

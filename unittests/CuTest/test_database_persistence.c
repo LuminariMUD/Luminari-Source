@@ -2205,7 +2205,11 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
                               "serialized_obj TEXT)") == 0 &&
       mysql_query(connection,
                   "CREATE TEMPORARY TABLE house_data ("
-                  "idnum INT AUTO_INCREMENT PRIMARY KEY, vnum INT, serialized_obj TEXT)") == 0;
+                  "idnum INT AUTO_INCREMENT PRIMARY KEY, vnum INT, serialized_obj TEXT)") == 0 &&
+      mysql_query(connection, "CREATE TEMPORARY TABLE player_save_objs_sheathed ("
+                              "id INT AUTO_INCREMENT PRIMARY KEY, sheath_obj_id BIGINT, "
+                              "sheathed_position INT, owner_name VARCHAR(100), "
+                              "serialized_obj TEXT)") == 0;
   for (mode = 0; matched && mode < sizeof(modes) / sizeof(modes[0]); mode++)
   {
     matched = mysql_query(connection, modes[mode]) == 0 &&
@@ -2240,6 +2244,25 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
               row[1] != NULL && atoi(row[0]) == (int)NOWHERE && strcmp(row[1], serialized) == 0;
     if (result != NULL)
       mysql_free_result(result);
+
+    /* A sheathed object keeps its quoted text under the sheath row and slot. */
+    matched = matched && mysql_query(connection, "DELETE FROM player_save_objs_sheathed") == 0;
+    objsave_save_obj_record_db_sheath(obj, &ch, 77, 2);
+    if (mysql_query(connection, "SELECT sheath_obj_id, sheathed_position, owner_name, "
+                                "serialized_obj FROM player_save_objs_sheathed") != 0)
+      matched = false;
+    result = mysql_store_result(connection);
+    row = result != NULL ? mysql_fetch_row(result) : NULL;
+    matched = matched && row != NULL && mysql_num_rows(result) == 1 && row[0] != NULL &&
+              row[1] != NULL && row[2] != NULL && row[3] != NULL && atoi(row[0]) == 77 &&
+              atoi(row[1]) == 2 && strcmp(row[2], owner_name) == 0 &&
+              strncmp(row[3], "#-1\n", 4) == 0 &&
+              strstr(row[3], "\nName: blade'); DROP TABLE player_save_objs; --\n") != NULL &&
+              strstr(row[3], "\nShrt: a 'quoted' blade\\edge\n") != NULL &&
+              strstr(row[3], "\nEDes:\nblade's edge~\n"
+                             "A 'quoted' description with \\ and a newline.\n~\n") != NULL;
+    if (result != NULL)
+      mysql_free_result(result);
   }
 
   /* Oversized keywords must not become valid but partial database records. */
@@ -2249,9 +2272,11 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
   extra->keyword[100000] = '\0';
   objsave_save_obj_record_db(obj, &ch, NOWHERE, fixture, 3);
   objsave_save_obj_record_db(obj, NULL, NOWHERE, fixture, 3);
+  objsave_save_obj_record_db_sheath(obj, &ch, 77, 2);
   matched = matched &&
             query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs", -1) == 1 &&
-            query_single_int(connection, "SELECT COUNT(*) FROM house_data", -1) == 1;
+            query_single_int(connection, "SELECT COUNT(*) FROM house_data", -1) == 1 &&
+            query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs_sheathed", -1) == 1;
 
   /* Delimiters still terminate both fields, even with an oversized suffix. */
   extra->keyword[4] = '~';
@@ -2285,9 +2310,11 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
   }
   objsave_save_obj_record_db(obj, &ch, NOWHERE, fixture, 3);
   objsave_save_obj_record_db(obj, NULL, NOWHERE, fixture, 3);
+  objsave_save_obj_record_db_sheath(obj, &ch, 77, 2);
   matched = matched &&
             query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs", -1) == 1 &&
-            query_single_int(connection, "SELECT COUNT(*) FROM house_data", -1) == 1;
+            query_single_int(connection, "SELECT COUNT(*) FROM house_data", -1) == 1 &&
+            query_single_int(connection, "SELECT COUNT(*) FROM player_save_objs_sheathed", -1) == 1;
 
   free(obj->arcane_mark);
   obj->arcane_mark = NULL;

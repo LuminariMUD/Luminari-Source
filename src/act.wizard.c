@@ -5754,7 +5754,7 @@ ACMD(do_links)
 #define MAX_DAMROLL_ALLOWED MAX(GET_LEVEL(mob) / 5, 1)
 #define MAX_HITROLL_ALLOWED MAX(GET_LEVEL(mob) / 3, 1)
 #define MAX_MOB_GOLD_ALLOWED GET_LEVEL(mob) * 20
-#define MAX_EXP_ALLOWED GET_LEVEL(mob) * GET_LEVEL(mob) * 120
+#define MAX_EXP_ALLOWED ((long)GET_LEVEL(mob) * GET_LEVEL(mob) * 120)
 #define MAX_LEVEL_ALLOWED LVL_IMPL
 #define GET_OBJ_AVG_DAM(obj) (((GET_OBJ_VAL(obj, 2) + 1) / 2.0) * GET_OBJ_VAL(obj, 1))
 /* arbitrary limit for per round dam */
@@ -5988,7 +5988,7 @@ ACMD(do_zcheck)
                               GET_GOLD(mob), MAX_MOB_GOLD_ALLOWED);
 
       if (GET_EXP(mob) > MAX_EXP_ALLOWED && (found = 1))
-        len = snprintf_append(buf, sizeof(buf), (int)len, "- Has %ld experience (limit: %d)\r\n",
+        len = snprintf_append(buf, sizeof(buf), (int)len, "- Has %ld experience (limit: %ld)\r\n",
                               GET_EXP(mob), MAX_EXP_ALLOWED);
       if ((AFF_FLAGGED(mob, AFF_CHARM) || AFF_FLAGGED(mob, AFF_POISON)) && (found = 1))
         len = snprintf_append(buf, sizeof(buf), (int)len,
