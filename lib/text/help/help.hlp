@@ -3932,6 +3932,19 @@ You will see a list of bloodline options for sorcerer in the STUDY menu.
 
 See also:  <name of bloodline>-BLOODLINE
 #0
+BLOODLUST
+
+Bloodlust (racial drawback)
+
+Requires: the bloodlust feat
+
+Whenever a combat round finds you below half of your hit points a red haze
+of bloodlust takes you. While it holds you cannot cast or manifest a
+spell, and you cannot flee the fight. It lets go the first round that finds
+you at half hit points or more, or a few rounds after the fight ends.
+
+See also: FEAT INFO BLOODLUST, BULL-CHARGE
+#0
 BLUFF
 
 Bluff
@@ -4727,6 +4740,23 @@ MUD's code. Ask your friendly implementor if you need to make one.
 
 See also: MAIL, READ, WRITE, SPECIALS
 #1
+BULL-CHARGE BULLCHARGE
+
+Bull Charge
+
+Usage: charge <direction> <target>
+       charge <target>
+Requires: the bull charge feat (racial innate)
+
+Your charge carries the weight of a bull. Naming a direction lets you
+thunder through that exit and slam into a foe in the next room; every
+door, terrain and single-file rule of ordinary movement still applies.
+Whether you charge across a room or across an exit, a charge whose opening
+blow lands stuns the victim for one round unless they pass a Fortitude save
+(DC 10 + your level). Creatures that cannot be stunned shrug it off.
+
+See also: CHARGE, FEAT INFO BULL CHARGE, BLOODLUST
+#0
 BURNING-HANDS
 
 	D-----------------------------------------------------------------	n
@@ -5546,13 +5576,15 @@ Charge Combat Maneuver
 Ride by attack allows a full phase of attacks charging.
 Spirited charge gives double damage on all melee attacks with a weapon,
  triple damage with lance attacks
+Bull charge (racial innate) lets you charge into an adjacent room with
+ 'charge <direction> <target>' and stuns on a charge that connects
 	n
 	m>Description / Notes:	n
 	n
 charge towards your opponent, if charging while mounted and wielding
 a lance, do double damage
 	n
-	YSee also:	n  COMBAT-MANEUVERS
+	YSee also:	n  COMBAT-MANEUVERS, BULL-CHARGE
 	n
 #0
 CHARLATAN

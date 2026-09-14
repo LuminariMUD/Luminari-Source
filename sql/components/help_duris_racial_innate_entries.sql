@@ -752,3 +752,38 @@ See also: FEAT INFO SLOW CASTING, FAST-CASTING, QUICKEN-SPELL', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SLOW-CASTING', 'SLOW-CASTING');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('BULL-CHARGE', 'Bull Charge
+
+Usage: charge <direction> <target>
+       charge <target>
+Requires: the bull charge feat (racial innate)
+
+Your charge carries the weight of a bull. Naming a direction lets you
+thunder through that exit and slam into a foe in the next room; every
+door, terrain and single-file rule of ordinary movement still applies.
+Whether you charge across a room or across an exit, a charge whose opening
+blow lands stuns the victim for one round unless they pass a Fortitude save
+(DC 10 + your level). Creatures that cannot be stunned shrug it off.
+
+See also: CHARGE, FEAT INFO BULL CHARGE, BLOODLUST', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('BULL-CHARGE', 'BULL-CHARGE');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('BULL-CHARGE', 'BULLCHARGE');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('BLOODLUST', 'Bloodlust (racial drawback)
+
+Requires: the bloodlust feat
+
+Whenever a combat round finds you below half of your hit points a red haze
+of bloodlust takes you. While it holds you cannot cast or manifest a
+spell, and you cannot flee the fight. It lets go the first round that finds
+you at half hit points or more, or a few rounds after the fight ends.
+
+See also: FEAT INFO BLOODLUST, BULL-CHARGE', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('BLOODLUST', 'BLOODLUST');

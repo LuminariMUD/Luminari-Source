@@ -575,6 +575,7 @@ ACMDCHECK(can_hitall);
 ACMD_DECL(do_guard);
 ACMDCHECK(can_guard);
 ACMD_DECL(do_charge);
+bool bull_charge_stun(struct char_data *ch, struct char_data *vict);
 ACMDCHECK(can_charge);
 ACMD_DECL(do_circle);
 ACMDCHECK(can_circle);

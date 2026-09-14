@@ -24,6 +24,7 @@
 #include "../../src/lists.h"
 #include "../../src/magic/spells.h"
 #include "../../src/mud_event.h"
+#include "../../src/movement/movement_tracks.h"
 #include "../../src/mudlim.h"
 #include "../../src/net/protocol.h"
 #include "../../src/obj/shop.h"
@@ -32,6 +33,7 @@
 #include "../../src/wilderness/resource_system.h"
 
 #include <string.h>
+#include <time.h>
 
 struct innate_fixture
 {
@@ -47,6 +49,10 @@ struct innate_fixture
   room_rnum saved_top_of_world;
   struct weather_data saved_weather;
   struct group_data group;
+  struct index_data mobile_index[1]; /* hit() resolves a mob prototype by vnum */
+  struct index_data *saved_mob_index;
+  mob_rnum saved_top_of_mobt;
+  bool mob_index_swapped;
 };
 
 static void setup_innate_char(struct char_data *ch, struct player_special_data *specials,
@@ -64,6 +70,7 @@ static void setup_innate_char(struct char_data *ch, struct player_special_data *
   GET_POS(ch) = POS_STANDING;
   GET_HIT(ch) = 100;
   GET_MAX_HIT(ch) = 100;
+  GET_REAL_MAX_HIT(ch) = 100; /* affect_total() rebuilds the maximum from here */
 
   memset(descriptor, 0, sizeof(*descriptor));
   descriptor->character = ch;
@@ -128,6 +135,11 @@ static void end_innate_fixture(struct innate_fixture *fixture)
   (void)event_test_select_backend(EVENT_BACKEND_UNINITIALIZED);
   if (fixture->group.members != NULL)
     free_list(fixture->group.members);
+  if (fixture->mob_index_swapped)
+  {
+    mob_index = fixture->saved_mob_index;
+    top_of_mobt = fixture->saved_top_of_mobt;
+  }
   world = fixture->saved_world;
   top_of_world = fixture->saved_top_of_world;
   character_list = fixture->saved_character_list;
@@ -161,7 +173,7 @@ void TestDurisInnateFeatsAreRegisteredAsInnates(CuTest *tc)
 
   begin_innate_fixture(&fixture);
 
-  for (feat = FEAT_SUN_VULNERABILITY; feat <= FEAT_SUMMON_HORDE; feat++)
+  for (feat = FEAT_SUN_VULNERABILITY; feat < FEAT_LAST_FEAT; feat++)
   {
     CuAssertPtrNotNull(tc, feat_list[feat].name);
     CuAssertTrue(tc, strcmp(feat_list[feat].name, "Unused Feat") != 0);
@@ -179,7 +191,7 @@ void TestDurisInnateFeatsAreRegisteredAsInnates(CuTest *tc)
     CuAssertTrue(tc, feat_list[feat].can_stack);
     CuAssertIntEquals(tc, FEAT_TYPE_INNATE_ABILITY, feat_list[feat].feat_type);
   }
-  CuAssertIntEquals(tc, FEAT_SLOW_CASTING + 1, FEAT_LAST_FEAT);
+  CuAssertIntEquals(tc, FEAT_BLOODLUST + 1, FEAT_LAST_FEAT);
 
   /* the repurposed haste feat follows the same rules */
   CuAssertTrue(tc, feat_list[FEAT_HASTE].in_game);
@@ -1452,5 +1464,231 @@ void Test_enhanced_spell_damage_is_race_assignable_and_stacks(CuTest *tc)
   CuAssertIntEquals(tc, 2, HAS_FEAT(&fixture.ch, FEAT_ENHANCED_SPELL_DAMAGE));
 
   race_list[race].featassign_list = saved_head;
+/* make the second fixture character a monster with a lot of hit points so a
+ * player may fight it and never kill it */
+static void make_innate_other_a_monster(struct innate_fixture *fixture)
+{
+  fixture->saved_mob_index = mob_index;
+  fixture->saved_top_of_mobt = top_of_mobt;
+  fixture->mobile_index[0].vnum = 1;
+  mob_index = fixture->mobile_index;
+  top_of_mobt = 0;
+  fixture->mob_index_swapped = TRUE;
+
+  SET_BIT_AR(MOB_FLAGS(&fixture->other), MOB_ISNPC);
+  fixture->other.player.short_descr = (char *)"innate two";
+  GET_HIT(&fixture->other) = 5000;
+  GET_MAX_HIT(&fixture->other) = 5000;
+  GET_REAL_MAX_HIT(&fixture->other) = 5000;
+}
+
+/* affect_total() recomputes a player's maximum hit points from level and
+ * Constitution, so settle it once and return the settled maximum */
+static int settle_innate_player_hit_points(struct char_data *ch)
+{
+  GET_REAL_CON(ch) = 12;
+  affect_total(ch);
+  GET_HIT(ch) = GET_MAX_HIT(ch);
+  return GET_MAX_HIT(ch);
+}
+
+/* throw away everything written to the fixture descriptor so far */
+static void reset_innate_output(struct descriptor_data *descriptor)
+{
+  descriptor->output = descriptor->small_outbuf;
+  descriptor->bufptr = 0;
+  descriptor->bufspace = SMALL_BUFSIZE - 1;
+  descriptor->small_outbuf[0] = '\0';
+}
+
+/* Bull charge: 'charge <direction> <target>' crosses the exit and charges the
+ * target there; without the feat a direction is just an unknown target, and
+ * the exit and the target must both exist. */
+void TestBullChargeReachesAnAdjacentRoom(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  struct room_direction_data north;
+  struct zone_data zone;
+  struct zone_data *saved_zone_table = zone_table;
+  zone_rnum saved_top_of_zone_table = top_of_zone_table;
+
+  begin_innate_fixture(&fixture);
+  memset(&zone, 0, sizeof(zone));
+  zone.min_level = -1;
+  zone.max_level = LVL_IMPL;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+  movement_trail_registry_shutdown();
+
+  memset(&north, 0, sizeof(north));
+  north.key = NOTHING;
+  north.to_room = 1;
+  fixture.rooms[0].dir_option[NORTH] = &north;
+  fixture.rooms[0].name = (char *)"Charge origin";
+  fixture.rooms[0].description = (char *)"A test room.\r\n";
+  fixture.rooms[1].name = (char *)"Charge destination";
+  fixture.rooms[1].description = (char *)"Another test room.\r\n";
+  fixture.ch.player.title = (char *)"";
+  make_innate_other_a_monster(&fixture);
+  CuAssertTrue(tc, settle_innate_player_hit_points(&fixture.ch) > 0);
+  GET_MOVE(&fixture.ch) = 100;
+  GET_MAX_MOVE(&fixture.ch) = 100;
+
+  fixture.ch.next_in_room = NULL;
+  IN_ROOM(&fixture.other) = 1;
+  fixture.rooms[1].people = &fixture.other;
+
+  /* without the feat a direction is just an unknown target */
+  do_charge(&fixture.ch, "north two", 0, 0);
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.ch));
+  CuAssertTrue(tc, FIGHTING(&fixture.ch) == NULL);
+
+  SET_FEAT(&fixture.ch, FEAT_BULL_CHARGE, 1);
+
+  /* no exit that way */
+  do_charge(&fixture.ch, "south two", 0, 0);
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.ch));
+
+  /* nobody by that name over there */
+  do_charge(&fixture.ch, "north nobody", 0, 0);
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.ch));
+  CuAssertTrue(tc, FIGHTING(&fixture.ch) == NULL);
+
+  /* the charge crosses the exit and lands */
+  do_charge(&fixture.ch, "north two", 0, 0);
+  CuAssertIntEquals(tc, 1, IN_ROOM(&fixture.ch));
+  CuAssertTrue(tc, FIGHTING(&fixture.ch) == &fixture.other);
+  CuAssertTrue(tc, FIGHTING(&fixture.other) == &fixture.ch);
+
+  stop_fighting(&fixture.ch);
+  stop_fighting(&fixture.other);
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+  end_innate_fixture(&fixture);
+}
+
+/* seed the generator so the next d20 is neither a natural 1 nor a natural 20 */
+static unsigned long innate_seed_for_ordinary_d20(void)
+{
+  unsigned long seed;
+  int roll;
+
+  for (seed = 1;; seed++)
+  {
+    circle_srandom(seed);
+    roll = rand_number(1, 20);
+    if (roll > 1 && roll < 20)
+    {
+      circle_srandom(seed);
+      return seed;
+    }
+  }
+}
+
+/* The charge stun is a one-round stun event gated by a Fortitude save, and a
+ * target that cannot be stunned is never stunned. */
+void TestBullChargeStunFollowsTheFortitudeSave(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  unsigned long seed;
+
+  begin_innate_fixture(&fixture);
+  fixture.ch.player.title = (char *)"";
+  fixture.other.player.title = (char *)"";
+  seed = innate_seed_for_ordinary_d20();
+
+  /* an unshakable target */
+  SET_FEAT(&fixture.other, FEAT_TOUGH_AS_BONE, 1);
+  CuAssertTrue(tc, !bull_charge_stun(&fixture.ch, &fixture.other));
+  CuAssertTrue(tc, char_has_mud_event(&fixture.other, eSTUNNED) == NULL);
+  SET_FEAT(&fixture.other, FEAT_TOUGH_AS_BONE, 0);
+
+  /* a passed save keeps the target on its feet */
+  GET_SAVE(&fixture.other, SAVING_FORT) = 1000;
+  circle_srandom(seed);
+  CuAssertTrue(tc, !bull_charge_stun(&fixture.ch, &fixture.other));
+  CuAssertTrue(tc, char_has_mud_event(&fixture.other, eSTUNNED) == NULL);
+
+  /* a failed save stuns for one round */
+  GET_SAVE(&fixture.other, SAVING_FORT) = -1000;
+  circle_srandom(seed);
+  CuAssertTrue(tc, bull_charge_stun(&fixture.ch, &fixture.other));
+  CuAssertPtrNotNull(tc, char_has_mud_event(&fixture.other, eSTUNNED));
+
+  circle_srandom((unsigned long)time(NULL));
+  end_innate_fixture(&fixture);
+}
+
+/* Bloodlust takes hold when a combat round finds the character below half hit
+ * points and lets go once they are back at half or more; without the feat the
+ * round check does nothing. */
+void TestBloodlustEngagesAndReleasesAtHalfHitPoints(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  int max_hit = 0, below_half = 0, at_least_half = 0;
+
+  begin_innate_fixture(&fixture);
+  fixture.ch.player.title = (char *)"";
+  make_innate_other_a_monster(&fixture);
+  FIGHTING(&fixture.ch) = &fixture.other;
+  max_hit = settle_innate_player_hit_points(&fixture.ch);
+  CuAssertTrue(tc, max_hit >= 4);
+  below_half = (max_hit - 1) / 2;
+  at_least_half = (max_hit + 1) / 2;
+
+  GET_HIT(&fixture.ch) = below_half;
+  bloodlust_round_check(&fixture.ch);
+  CuAssertTrue(tc, !affected_by_spell(&fixture.ch, SKILL_BLOODLUST));
+
+  SET_FEAT(&fixture.ch, FEAT_BLOODLUST, 1);
+  bloodlust_round_check(&fixture.ch);
+  CuAssertTrue(tc, affected_by_spell(&fixture.ch, SKILL_BLOODLUST));
+
+  /* half is not below half */
+  GET_HIT(&fixture.ch) = at_least_half;
+  bloodlust_round_check(&fixture.ch);
+  CuAssertTrue(tc, !affected_by_spell(&fixture.ch, SKILL_BLOODLUST));
+
+  /* the combat round itself runs the check */
+  GET_HIT(&fixture.ch) = below_half;
+  perform_violence(&fixture.ch, 1);
+  CuAssertTrue(tc, affected_by_spell(&fixture.ch, SKILL_BLOODLUST));
+
+  GET_HIT(&fixture.ch) = max_hit;
+  perform_violence(&fixture.ch, 1);
+  CuAssertTrue(tc, !affected_by_spell(&fixture.ch, SKILL_BLOODLUST));
+
+  stop_fighting(&fixture.ch);
+  stop_fighting(&fixture.other);
+  end_innate_fixture(&fixture);
+}
+
+/* While the bloodlust holds, casting is refused at the spell engine and fleeing
+ * is refused at the flee engine. */
+void TestBloodlustRefusesCastingAndFleeing(CuTest *tc)
+{
+  struct innate_fixture fixture;
+
+  begin_innate_fixture(&fixture);
+  fixture.ch.player.title = (char *)"";
+  make_innate_other_a_monster(&fixture);
+  FIGHTING(&fixture.ch) = &fixture.other;
+  SET_FEAT(&fixture.ch, FEAT_BLOODLUST, 1);
+  GET_HIT(&fixture.ch) = (settle_innate_player_hit_points(&fixture.ch) - 1) / 2;
+  bloodlust_round_check(&fixture.ch);
+  CuAssertTrue(tc, affected_by_spell(&fixture.ch, SKILL_BLOODLUST));
+
+  reset_innate_output(&fixture.ch_descriptor);
+  CuAssertIntEquals(tc, 0, cast_spell(&fixture.ch, &fixture.other, NULL, SPELL_MAGIC_MISSILE, 0));
+  CuAssertTrue(tc, !IS_CASTING(&fixture.ch));
+  CuAssertPtrNotNull(tc, strstr(fixture.ch_descriptor.output, "no room for the focus to cast"));
+
+  reset_innate_output(&fixture.ch_descriptor);
+  perform_flee(&fixture.ch);
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.ch));
+  CuAssertTrue(tc, FIGHTING(&fixture.ch) == &fixture.other);
+  CuAssertPtrNotNull(tc, strstr(fixture.ch_descriptor.output, "will not let you leave"));
+
+  stop_fighting(&fixture.ch);
   end_innate_fixture(&fixture);
 }
