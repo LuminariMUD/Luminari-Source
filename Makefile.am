@@ -562,6 +562,11 @@ unittests/CuTest/AllTests.c: $(cutest_test_files) unittests/CuTest/make-tests.sh
 unittests/CuTest/test_prototypes.h: $(cutest_test_files) unittests/CuTest/make-tests.sh
 	unittests/CuTest/make-tests.sh --prototypes $(cutest_test_files) > $@
 
+# BUILT_SOURCES only orders the all, check, and install targets; `make cutest`
+# (the sanitizer, coverage, and memory-check jobs) must still wait for the
+# generated prototypes that CuTest.h includes.
+$(cutest_OBJECTS): unittests/CuTest/test_prototypes.h
+
 BUILT_SOURCES = build_identity.h unittests/CuTest/AllTests.c unittests/CuTest/test_prototypes.h
 
 # Clean up generated files
