@@ -1822,6 +1822,7 @@ void do_move_ship_interior(struct char_data *ch, int dir)
   struct greyhawk_ship_data *ship;
   struct greyhawk_ship_data *target_ship;
   room_rnum dest_room;
+  char dir_name[MAX_INPUT_LENGTH] = {'\0'};
 
   /* Validate character pointer */
   if (!ch)
@@ -1886,14 +1887,16 @@ void do_move_ship_interior(struct char_data *ch, int dir)
   }
 
   /* Send departure message to room */
-  act("$n moves $T.", TRUE, ch, 0, (void *)dirs[dir], TO_ROOM);
+  strlcpy(dir_name, dirs[dir], sizeof(dir_name));
+  act("$n moves $T.", TRUE, ch, 0, dir_name, TO_ROOM);
 
   /* Move the character */
   char_from_room(ch);
   char_to_room(ch, dest_room);
 
   /* Send arrival message to new room */
-  act("$n arrives from $T.", TRUE, ch, 0, (void *)dirs[rev_dir[dir]], TO_ROOM);
+  strlcpy(dir_name, dirs[rev_dir[dir]], sizeof(dir_name));
+  act("$n arrives from $T.", TRUE, ch, 0, dir_name, TO_ROOM);
 
   /* Show the new room */
   look_at_room(ch, 0);

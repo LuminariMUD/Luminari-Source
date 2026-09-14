@@ -3344,8 +3344,8 @@ void return_efficient_saved_materials(struct char_data *ch)
   }
 }
 
-bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int skill, char *method,
-                              int exp, int dc)
+bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int skill,
+                              const char *method, int exp, int dc)
 {
   if (!ch || !obj)
     return FALSE;
@@ -6800,7 +6800,7 @@ void craft_resize_complete(struct char_data *ch, struct obj_data *obj)
  * @param ch The character for which to retrieve the supply order item description.
  * @return A pointer to the description of the supply order item.
  */
-char *get_supply_order_item_desc(struct char_data *ch)
+const char *get_supply_order_item_desc(struct char_data *ch)
 {
   int recipe = get_current_craft_project_recipe(ch);
   int variant = GET_CRAFT(ch).craft_variant;
@@ -6818,7 +6818,7 @@ char *get_supply_order_item_desc(struct char_data *ch)
 
   // Don't use strdup to avoid memory management issues
   // Return pointer to static string instead
-  return (char *)crafting_recipes[recipe].variant_descriptions[variant];
+  return crafting_recipes[recipe].variant_descriptions[variant];
 }
 
 int determine_supply_order_exp(struct char_data *ch)

@@ -328,7 +328,7 @@ ACMD(do_manifest)
 {
   char augment[200], pass_arg[200], final_pass[201];
 
-  half_chop((char *)argument, augment, pass_arg);
+  half_chop_c(argument, augment, sizeof(augment), pass_arg, sizeof(pass_arg));
 
   // Safety check.  Should be handled by resetCastingData in spell_parser.c
   GET_AUGMENT_PSP(ch) = 0;

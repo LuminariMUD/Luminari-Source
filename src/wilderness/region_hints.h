@@ -107,7 +107,7 @@ double get_hint_seasonal_weight(struct region_hint *hint, int season);
 double get_hint_resource_weight(struct region_hint *hint, double *resource_levels);
 
 /* Utility functions */
-char *get_hint_category_name(int category);
+const char *get_hint_category_name(int category);
 char *parse_json_string_value(const char *json, const char *key);
 double parse_json_double_value(const char *json, const char *key);
 

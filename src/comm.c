@@ -211,7 +211,7 @@ static void flush_queues(struct descriptor_data *d);
 static void nonblock(socket_t s);
 static int perform_subst(struct descriptor_data *t, char *orig, char *subst);
 static void record_usage(void);
-static char *make_prompt(struct descriptor_data *point);
+static const char *make_prompt(struct descriptor_data *point);
 static void check_idle_passwords(void);
 static void init_descriptor(struct descriptor_data *newd, int desc);
 static void persistence_schedule_minute(int include_crash_and_houses);
@@ -2727,7 +2727,7 @@ void echo_on(struct descriptor_data *d)
    have to use protocolOutput function to parse it
  * note - i just parse the whole string now, add all the color you want */
 /** Build state-specific prompts while preserving protocol delimiters for reader mode. */
-static char *make_prompt(struct descriptor_data *d)
+static const char *make_prompt(struct descriptor_data *d)
 {
   static char prompt[MAX_PROMPT_LENGTH] = {'\0'};
   int door = 0, slen = 0, i = 0;
@@ -3235,7 +3235,7 @@ static char *make_prompt(struct descriptor_data *d)
    * with a little experimentation I was able to approach 350 - 02/02/2013 */
   /* send_to_char(d->character, "%d", prompt_size); */
 
-  return ((char *)ProtocolOutput(d, prompt, &prompt_size));
+  return ProtocolOutput(d, prompt, &prompt_size);
 }
 
 #ifdef LUMINARI_CUTEST

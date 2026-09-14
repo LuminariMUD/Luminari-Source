@@ -10844,7 +10844,7 @@ ACMD(do_buff)
   bool found = false;
   struct char_data *target;
 
-  half_chop((char *)argument, arg1, arg2);
+  half_chop_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1)
   {
@@ -11865,7 +11865,7 @@ ACMDU(do_device)
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
   char arg2[MAX_INPUT_LENGTH] = {'\0'};
   char arg3[MAX_INPUT_LENGTH] = {'\0'};
-  char *remaining_args;
+  const char *remaining_args;
   int spell_num = -1, artificer_level = 0;
   int i = 0, j = 0, spell_level = 0;
   int device_count_by_level[5] = {0, 0, 0, 0, 0};
@@ -11914,7 +11914,7 @@ ACMDU(do_device)
   else
     max_spell_level = 1; /* 1st level spells only */
 
-  remaining_args = (char *)two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  remaining_args = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   one_argument(remaining_args, arg3, sizeof(arg3));
 
   /* Count existing devices by spell level using player invention data */
@@ -12098,11 +12098,11 @@ ACMDU(do_device)
     int highest_device_level = 0;
 
     /* Parse spell arguments from the full argument string */
-    char *parse_ptr = (char *)argument;
+    const char *parse_ptr = argument;
     char temp_word[MAX_INPUT_LENGTH];
 
     /* Skip past "create" */
-    parse_ptr = (char *)one_argument(parse_ptr, temp_word, sizeof(temp_word));
+    parse_ptr = one_argument(parse_ptr, temp_word, sizeof(temp_word));
 
     /* Parse each spell name, handling quotes for multi-word spells */
     while (*parse_ptr && num_spells < max_spells)
@@ -12545,8 +12545,8 @@ ACMDU(do_device)
     skip_spaces(&argument);
 
     /* Get the full name from remaining_args after the device number */
-    char *name_start = (char *)two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
-    skip_spaces(&name_start); /* Remove leading spaces from the new name */
+    const char *name_start = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+    skip_spaces_c(&name_start); /* Remove leading spaces from the new name */
     char new_name[MAX_INVENTION_SHORTDESC];
     snprintf(new_name, sizeof(new_name), "%s", name_start);
     struct player_invention *inv = &ch->player_specials->saved.inventions[inv_idx];
@@ -12790,7 +12790,7 @@ ACMDU(do_device)
       return;
     }
     /* Get the full spell name from remaining_args after the device number */
-    char *spell_start = (char *)two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+    const char *spell_start = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
     char spell_name[MAX_INPUT_LENGTH];
     snprintf(spell_name, sizeof(spell_name), "%s", spell_start);
     spell_num = find_skill_num(spell_name);

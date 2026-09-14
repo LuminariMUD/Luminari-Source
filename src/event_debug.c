@@ -756,18 +756,20 @@ static bool event_debug_parse_entity_kind(const char *name, enum event_debug_ent
 }
 
 static bool event_debug_select_entity(struct char_data *ch, enum event_debug_entity_kind kind,
-                                      char *target, struct event_debug_filter *filter,
+                                      const char *target, struct event_debug_filter *filter,
                                       struct domain_entity_handle *domain_entity)
 {
   struct char_data *character;
   struct obj_data *object;
   room_rnum room;
   uint64_t vnum;
+  char target_buf[MAX_INPUT_LENGTH]; /* the lookups consume a dot prefix */
 
   if (ch == NULL || filter == NULL)
     return false;
   if (target == NULL)
     target = "";
+  strlcpy(target_buf, target, sizeof(target_buf));
   if (domain_entity != NULL)
     *domain_entity = domain_entity_handle_none();
   filter->owner_set = true;
@@ -776,7 +778,8 @@ static bool event_debug_select_entity(struct char_data *ch, enum event_debug_ent
   {
   case EVENT_DEBUG_ENTITY_PLAYER:
   case EVENT_DEBUG_ENTITY_MOBILE:
-    if (*target == '\0' || (character = get_char_vis(ch, target, NULL, FIND_CHAR_WORLD)) == NULL ||
+    if (*target == '\0' ||
+        (character = get_char_vis(ch, target_buf, NULL, FIND_CHAR_WORLD)) == NULL ||
         (kind == EVENT_DEBUG_ENTITY_PLAYER && IS_NPC(character)) ||
         (kind == EVENT_DEBUG_ENTITY_MOBILE && !IS_NPC(character)))
     {
@@ -790,7 +793,7 @@ static bool event_debug_select_entity(struct char_data *ch, enum event_debug_ent
       *domain_entity = domain_event_character_handle(character);
     break;
   case EVENT_DEBUG_ENTITY_OBJECT:
-    if (*target == '\0' || (object = get_obj_vis(ch, target, NULL)) == NULL)
+    if (*target == '\0' || (object = get_obj_vis(ch, target_buf, NULL)) == NULL)
     {
       send_to_char(ch, "No visible object matches '%s'.\r\n", target);
       return false;

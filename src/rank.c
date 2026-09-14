@@ -335,20 +335,20 @@ char k2[80];
 
 int rank_compare_top(const void *n1, const void *n2)
 {
-  strlcpy(k1, (*((struct rank_data *)n1)).key, sizeof(k1));
-  strlcpy(k2, (*((struct rank_data *)n2)).key, sizeof(k2));
+  strlcpy(k1, ((const struct rank_data *)n1)->key, sizeof(k1));
+  strlcpy(k2, ((const struct rank_data *)n2)->key, sizeof(k2));
   return (strcmp(k2, k1));
 }
 
 int char_compare(const void *n1, const void *n2)
 {
-  return ((*((char *)n1)) - (*((char *)n2)));
+  return ((*((const char *)n1)) - (*((const char *)n2)));
 }
 
 int rank_compare_bot(const void *n1, const void *n2)
 {
-  strlcpy(k1, (*((struct rank_data *)n1)).key, sizeof(k1));
-  strlcpy(k2, (*((struct rank_data *)n2)).key, sizeof(k2));
+  strlcpy(k1, ((const struct rank_data *)n1)->key, sizeof(k1));
+  strlcpy(k2, ((const struct rank_data *)n2)->key, sizeof(k2));
 
   return (strcmp(k1, k2));
 }

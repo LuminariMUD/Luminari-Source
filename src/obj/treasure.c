@@ -2931,14 +2931,14 @@ void award_magic_weapon(struct char_data *ch, int grade)
              material_name[GET_OBJ_MATERIAL(obj)], hilt_color, handle_types[roll3]);
     obj->name = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s",
-             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
+             a_or_an(material_name[GET_OBJ_MATERIAL(obj)]), material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name, a_or_an(hilt_color), hilt_color,
+             handle_types[roll3]);
     obj->short_description = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s lies here.",
-             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
+             a_or_an(material_name[GET_OBJ_MATERIAL(obj)]), material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name, a_or_an(hilt_color), hilt_color,
+             handle_types[roll3]);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
@@ -2964,13 +2964,12 @@ void award_magic_weapon(struct char_data *ch, int grade)
     snprintf(buf, MAX_STRING_LENGTH, "%s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
              material_name[GET_OBJ_MATERIAL(obj)]);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s",
-             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s", a_or_an(material_name[GET_OBJ_MATERIAL(obj)]),
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s lies here.",
-             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+             a_or_an(material_name[GET_OBJ_MATERIAL(obj)]), material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
   }
@@ -3133,14 +3132,14 @@ static void give_magic_weapon(struct char_data *ch, int selection, int enchantme
              material_name[GET_OBJ_MATERIAL(obj)], hilt_color, handle_types[roll3]);
     obj->name = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s",
-             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
+             a_or_an(material_name[GET_OBJ_MATERIAL(obj)]), material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name, a_or_an(hilt_color), hilt_color,
+             handle_types[roll3]);
     obj->short_description = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s with %s %s %s lies here.",
-             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name,
-             a_or_an(hilt_color), hilt_color, handle_types[roll3]);
+             a_or_an(material_name[GET_OBJ_MATERIAL(obj)]), material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name, a_or_an(hilt_color), hilt_color,
+             handle_types[roll3]);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
 
@@ -3166,13 +3165,12 @@ static void give_magic_weapon(struct char_data *ch, int selection, int enchantme
     snprintf(buf, MAX_STRING_LENGTH, "%s %s", weapon_list[GET_WEAPON_TYPE(obj)].name,
              material_name[GET_OBJ_MATERIAL(obj)]);
     obj->name = strdup(buf);
-    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s",
-             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
+    snprintf(buf, MAX_STRING_LENGTH, "%s %s %s", a_or_an(material_name[GET_OBJ_MATERIAL(obj)]),
              material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
     obj->short_description = strdup(buf);
     snprintf(buf, MAX_STRING_LENGTH, "%s %s %s lies here.",
-             a_or_an((char *)material_name[GET_OBJ_MATERIAL(obj)]),
-             material_name[GET_OBJ_MATERIAL(obj)], weapon_list[GET_WEAPON_TYPE(obj)].name);
+             a_or_an(material_name[GET_OBJ_MATERIAL(obj)]), material_name[GET_OBJ_MATERIAL(obj)],
+             weapon_list[GET_WEAPON_TYPE(obj)].name);
     *buf = UPPER(*buf);
     obj->description = strdup(buf);
   }

@@ -141,6 +141,8 @@ char **roleplay_text_field_slot(struct char_data *ch, enum roleplay_text_field f
     return &ch->player.bonds;
   case ROLEPLAY_TEXT_FIELD_FLAWS:
     return &ch->player.flaws;
+  case ROLEPLAY_TEXT_FIELD_INVALID:
+  case ROLEPLAY_TEXT_FIELD_COUNT:
   default:
     return NULL;
   }
@@ -148,13 +150,30 @@ char **roleplay_text_field_slot(struct char_data *ch, enum roleplay_text_field f
 
 const char *roleplay_text_field_value(const struct char_data *ch, enum roleplay_text_field field)
 {
-  char **slot = NULL;
-
   if (ch == NULL)
     return NULL;
 
-  slot = roleplay_text_field_slot((struct char_data *)ch, field);
-  return slot != NULL ? *slot : NULL;
+  switch (field)
+  {
+  case ROLEPLAY_TEXT_FIELD_LONG_DESCRIPTION:
+    return ch->player.description;
+  case ROLEPLAY_TEXT_FIELD_BACKGROUND_STORY:
+    return ch->player.background;
+  case ROLEPLAY_TEXT_FIELD_GOALS:
+    return ch->player.goals;
+  case ROLEPLAY_TEXT_FIELD_PERSONALITY:
+    return ch->player.personality;
+  case ROLEPLAY_TEXT_FIELD_IDEALS:
+    return ch->player.ideals;
+  case ROLEPLAY_TEXT_FIELD_BONDS:
+    return ch->player.bonds;
+  case ROLEPLAY_TEXT_FIELD_FLAWS:
+    return ch->player.flaws;
+  case ROLEPLAY_TEXT_FIELD_INVALID:
+  case ROLEPLAY_TEXT_FIELD_COUNT:
+  default:
+    return NULL;
+  }
 }
 
 static void roleplay_text_wipe(void *memory, size_t bytes)

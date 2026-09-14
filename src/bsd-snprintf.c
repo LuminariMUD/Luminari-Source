@@ -104,8 +104,8 @@
 
 static void dopr(char *buffer, size_t maxlen, const char *format, va_list args);
 
-static void fmtstr(char *buffer, size_t *currlen, size_t maxlen, char *value, int flags, int min,
-                   int max);
+static void fmtstr(char *buffer, size_t *currlen, size_t maxlen, const char *value, int flags,
+                   int min, int max);
 
 static void fmtint(char *buffer, size_t *currlen, size_t maxlen, long value, int base, int min,
                    int max, int flags);
@@ -419,8 +419,8 @@ static void dopr(char *buffer, size_t maxlen, const char *format, va_list args)
     buffer[maxlen - 1] = '\0';
 }
 
-static void fmtstr(char *buffer, size_t *currlen, size_t maxlen, char *value, int flags, int min,
-                   int max)
+static void fmtstr(char *buffer, size_t *currlen, size_t maxlen, const char *value, int flags,
+                   int min, int max)
 {
   int padlen, strln; /* amount to pad */
   int cnt = 0;
@@ -737,12 +737,12 @@ int main(void)
 #define LONG_STRING 1024
   char buf1[LONG_STRING] = {'\0'};
   char buf2[LONG_STRING] = {'\0'};
-  char *fp_fmt[] = {"%-1.5f", "%1.5f",  "%123.9f", "%10.5f", "% 10.5f", "%+22.9f",
-                    "%+4.9f", "%01.3f", "%4f",     "%3.1f",  "%3.2f",   NULL};
+  const char *fp_fmt[] = {"%-1.5f", "%1.5f",  "%123.9f", "%10.5f", "% 10.5f", "%+22.9f",
+                          "%+4.9f", "%01.3f", "%4f",     "%3.1f",  "%3.2f",   NULL};
   double fp_nums[] = {-1.5,  134.21, 91340.2, 341.1234, 0203.9, 0.96,   0.996, 0.9996,
                       1.996, 4.136,  2.01,    2.001,    -2.01,  -2.001, 0};
-  char *int_fmt[] = {"%-1.5d",   "%1.5d",  "%123.9d", "%5.5d", "%10.5d", "% 10.5d",
-                     "%+22.33d", "%01.3d", "%4d",     "%lld",  "%qd",    NULL};
+  const char *int_fmt[] = {"%-1.5d",   "%1.5d",  "%123.9d", "%5.5d", "%10.5d", "% 10.5d",
+                           "%+22.33d", "%01.3d", "%4d",     "%lld",  "%qd",    NULL};
   long long int_nums[] = {-1, 134, 91340, 341, 0203, 0, 9999999};
   int x, y;
   int fail = 0;

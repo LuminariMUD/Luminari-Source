@@ -6727,8 +6727,8 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
   }
   else if ((AFF_FLAGGED(ch, AFF_PARALYZED)) && GET_LEVEL(ch) < LVL_IMMORT &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
-           !is_casting_command((char *)complete_cmd_info[cmd].command) &&
-           !is_valid_paralyzed_command((char *)complete_cmd_info[cmd].command))
+           !is_casting_command(complete_cmd_info[cmd].command) &&
+           !is_valid_paralyzed_command(complete_cmd_info[cmd].command))
   {
     send_to_char(ch, "You try, but you are unable to move due to paralysis!\r\n");
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
@@ -6740,8 +6740,8 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
   }
   else if ((AFF_FLAGGED(ch, AFF_STUN)) && GET_LEVEL(ch) < LVL_IMMORT &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
-           !is_casting_command((char *)complete_cmd_info[cmd].command) &&
-           !is_valid_paralyzed_command((char *)complete_cmd_info[cmd].command))
+           !is_casting_command(complete_cmd_info[cmd].command) &&
+           !is_valid_paralyzed_command(complete_cmd_info[cmd].command))
   {
     send_to_char(ch, "You try, but you are unable to move due to being stunned!\r\n");
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
@@ -6753,8 +6753,8 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
   }
   else if ((char_has_mud_event(ch, eSTUNNED)) && GET_LEVEL(ch) < LVL_IMMORT &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
-           !is_casting_command((char *)complete_cmd_info[cmd].command) &&
-           !is_valid_paralyzed_command((char *)complete_cmd_info[cmd].command))
+           !is_casting_command(complete_cmd_info[cmd].command) &&
+           !is_valid_paralyzed_command(complete_cmd_info[cmd].command))
   {
     send_to_char(ch, "You try, but you are unable to move due to being under a stun effect!\r\n");
     if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
@@ -6766,8 +6766,8 @@ static void command_interpreter_impl(struct char_data *ch, char *argument)
   }
   else if (AFF_FLAGGED(ch, AFF_DAZED) && GET_LEVEL(ch) < LVL_IMPL &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
-           !is_casting_command((char *)complete_cmd_info[cmd].command) &&
-           !is_valid_paralyzed_command((char *)complete_cmd_info[cmd].command))
+           !is_casting_command(complete_cmd_info[cmd].command) &&
+           !is_valid_paralyzed_command(complete_cmd_info[cmd].command))
     send_to_char(ch, "You are too dazed to do anything!\r\n");
   else if (!IS_NPC(ch) && PLR_FLAGGED(ch, PLR_FROZEN) && GET_LEVEL(ch) < LVL_IMPL)
     send_to_char(ch, "You try, but the mind-numbing cold prevents you...\r\n");
@@ -10498,7 +10498,7 @@ bool command_can_be_used_while_casting(int cmd)
   return true;
 }
 
-bool is_casting_command(char *command)
+bool is_casting_command(const char *command)
 {
   if (!strcmp(command, "cast") || !strcmp(command, "imbibe") || !strcmp(command, "shadowcast") ||
       !strcmp(command, "buff") || !strcmp(command, "manifest"))
@@ -10507,7 +10507,7 @@ bool is_casting_command(char *command)
   return false;
 }
 
-bool is_valid_paralyzed_command(char *command)
+bool is_valid_paralyzed_command(const char *command)
 {
   if (!strcmp(command, "look") || !strcmp(command, "trip") || !strcmp(command, "group") ||
       !strcmp(command, "hp") || !strcmp(command, "affects") || !strcmp(command, "idea") ||

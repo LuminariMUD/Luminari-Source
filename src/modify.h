@@ -20,7 +20,7 @@
 #define _MODIFY_H_
 
 /* Public functions */
-void show_string(struct descriptor_data *d, char *input);
+void show_string(struct descriptor_data *d, const char *input);
 void smash_tilde(char *str);
 void strip_colors(char *str);
 void parse_tab(char *str);

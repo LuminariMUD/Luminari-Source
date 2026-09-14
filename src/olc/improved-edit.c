@@ -784,7 +784,8 @@ int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned
   return 1;
 }
 
-int replace_str(char **string, char *pattern, char *replacement, int rep_all, unsigned int max_size)
+int replace_str(char **string, const char *pattern, const char *replacement, int rep_all,
+                unsigned int max_size)
 {
   char *replace_buffer = NULL;
   char *flow, *jetsam, temp;

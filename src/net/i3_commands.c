@@ -110,7 +110,7 @@ void do_i3chat(struct char_data *ch, const char *argument, int cmd, int subcmd)
   char channel[64];
   char arg_copy[MAX_INPUT_LENGTH];
   const char *message;
-  char *arg_ptr;
+  const char *arg_ptr;
   i3_channel_t *channel_info;
 
   UNUSED_VAR(cmd);
@@ -125,7 +125,7 @@ void do_i3chat(struct char_data *ch, const char *argument, int cmd, int subcmd)
   /* Make a copy to work with */
   strlcpy(arg_copy, argument, sizeof(arg_copy));
   arg_ptr = arg_copy;
-  i3_skip_spaces((const char **)&arg_ptr);
+  i3_skip_spaces(&arg_ptr);
 
   /* Check if a channel was specified */
   message = i3_one_argument(arg_ptr, channel, sizeof(channel));

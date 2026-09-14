@@ -693,7 +693,7 @@ int spatial_visual_emit(int source_x, int source_y, int source_z, const char *de
   ctx->source_x = source_x;
   ctx->source_y = source_y;
   ctx->source_z = source_z;
-  ctx->source_description = (char *)description; /* Borrowed for synchronous delivery. */
+  ctx->source_description = description; /* Borrowed for synchronous delivery. */
   ctx->base_intensity = intensity;
 
   /* Only connected observers can receive a sight; do not traverse the NPC population. */

@@ -397,7 +397,7 @@ bool mud_event_is_live(const struct mud_event_data *pMudEvent);
 long mud_event_remaining(const struct mud_event_data *pMudEvent);
 void mud_event_cancel(struct mud_event_data *pMudEvent);
 void mud_event_detach_owner(struct mud_event_data *pMudEvent);
-struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId);
+struct mud_event_data *char_has_mud_event(const struct char_data *ch, event_id iId);
 struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId);      // Ornir
 struct mud_event_data *obj_has_mud_event(struct obj_data *obj, event_id iId);       // Ornir
 struct mud_event_data *region_has_mud_event(struct region_data *reg, event_id iId); // Ornir

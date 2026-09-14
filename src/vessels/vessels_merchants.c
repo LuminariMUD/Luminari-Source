@@ -1293,7 +1293,8 @@ ACMD(do_vmerchant)
   long parsed_id;
   int merchant_id;
 
-  three_arguments_u((char *)argument, action, id_arg, confirmation);
+  three_arguments(argument, action, sizeof(action), id_arg, sizeof(id_arg), confirmation,
+                  sizeof(confirmation));
   if (!*action || !str_cmp(action, "list"))
   {
     vessel_merchant_list(ch);

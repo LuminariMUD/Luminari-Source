@@ -832,7 +832,7 @@ ACMD(do_shipfire)
     return;
   }
 
-  two_arguments_u((char *)argument, arg1, arg2);
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   if (!*arg1 || !*arg2)
   {
     send_to_char(ch, "Usage: shipfire <slot 0-%d> <target ship>\r\n", GREYHAWK_MAXSLOTS - 1);

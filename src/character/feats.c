@@ -7621,13 +7621,13 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg,
 /* simple debug command to make sure we have all our assigns set up */
 ACMD(do_featlisting)
 {
-  const char **lines;
+  char **lines;
   char *line;
   size_t line_size;
   int count = 0;
   int i = 0;
 
-  CREATE(lines, const char *, FEAT_LAST_FEAT);
+  CREATE(lines, char *, FEAT_LAST_FEAT);
 
   for (i = 1; i < FEAT_LAST_FEAT; i++)
   {
@@ -7641,10 +7641,10 @@ ACMD(do_featlisting)
   }
 
   send_to_char(ch, "Registered feats (%d):\r\n", count);
-  column_list(ch, 1, lines, count, FALSE);
+  column_list(ch, 1, (const char *const *)lines, count, FALSE);
 
   for (i = 0; i < count; i++)
-    free((char *)lines[i]);
+    free(lines[i]);
   free(lines);
 }
 

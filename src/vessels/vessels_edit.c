@@ -789,7 +789,7 @@ ACMD(do_shipbuy)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   if (!*arg)
   {
     send_to_char(ch, "Buy which hull? See 'shipbrowse' for the catalog.\r\n");
@@ -889,7 +889,7 @@ ACMD(do_shipcustomize)
   char value[MAX_INPUT_LENGTH];
   char old_value[VESSEL_CUSTOMIZATION_LENGTH];
   char *end;
-  char *remainder;
+  const char *remainder;
   const char *current_value;
   const char *field_name;
   bool paint_field;
@@ -908,7 +908,7 @@ ACMD(do_shipcustomize)
     return;
   }
 
-  remainder = one_argument_u((char *)argument, field);
+  remainder = one_argument(argument, field, sizeof(field));
   if (!*field || !str_cmp(field, "show"))
   {
     send_to_char(ch, "Vessel customization for %s:\r\n", ship->name);
@@ -936,7 +936,7 @@ ACMD(do_shipcustomize)
     return;
   }
 
-  skip_spaces(&remainder);
+  skip_spaces_c(&remainder);
   strlcpy(value, remainder, sizeof(value));
   end = value + strlen(value);
   while (end > value && isspace((unsigned char)end[-1]))
@@ -1031,7 +1031,7 @@ ACMD(do_vedit)
     return;
   }
 
-  remainder = one_argument_u((char *)argument, arg1);
+  remainder = one_argument(argument, arg1, sizeof(arg1));
 
   if (!*arg1)
   {
@@ -1051,13 +1051,13 @@ ACMD(do_vedit)
   }
   else if (!str_cmp(arg1, "new"))
   {
-    remainder = one_argument_u((char *)remainder, arg2);
+    remainder = one_argument(remainder, arg2, sizeof(arg2));
     skip_spaces_c(&remainder);
     vedit_new(ch, arg2, remainder);
   }
   else if (!str_cmp(arg1, "show"))
   {
-    one_argument_u((char *)remainder, arg2);
+    one_argument(remainder, arg2, sizeof(arg2));
     if (!*arg2)
     {
       send_to_char(ch, "%s", VEDIT_USAGE);
@@ -1067,8 +1067,8 @@ ACMD(do_vedit)
   }
   else if (!str_cmp(arg1, "set"))
   {
-    remainder = one_argument_u((char *)remainder, arg2);
-    remainder = one_argument_u((char *)remainder, arg3);
+    remainder = one_argument(remainder, arg2, sizeof(arg2));
+    remainder = one_argument(remainder, arg3, sizeof(arg3));
     skip_spaces_c(&remainder);
     if (!*arg2 || !*arg3 || !*remainder)
     {
@@ -1079,7 +1079,7 @@ ACMD(do_vedit)
   }
   else if (!str_cmp(arg1, "delete"))
   {
-    one_argument_u((char *)remainder, arg2);
+    one_argument(remainder, arg2, sizeof(arg2));
     if (!*arg2)
     {
       send_to_char(ch, "%s", VEDIT_USAGE);
@@ -1089,7 +1089,7 @@ ACMD(do_vedit)
   }
   else if (!str_cmp(arg1, "spawn"))
   {
-    one_argument_u((char *)remainder, arg2);
+    one_argument(remainder, arg2, sizeof(arg2));
     if (!*arg2)
     {
       send_to_char(ch, "%s", VEDIT_USAGE);
@@ -1099,7 +1099,7 @@ ACMD(do_vedit)
   }
   else if (!str_cmp(arg1, "spawnpublic"))
   {
-    one_argument_u((char *)remainder, arg2);
+    one_argument(remainder, arg2, sizeof(arg2));
     if (!*arg2)
     {
       send_to_char(ch, "%s", VEDIT_USAGE);

@@ -7439,6 +7439,8 @@ static void invoke_staff(struct char_data *ch, char *argument)
 
 ACMD(do_use_consumable)
 {
+  char consumable_arg[MAX_INPUT_LENGTH] = {'\0'};
+
   if (!PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
   {
     do_use(ch, argument, 0, subcmd);
@@ -7451,19 +7453,21 @@ ACMD(do_use_consumable)
     return;
   }
 
+  /* the consumable parsers take a mutable argument */
+  strlcpy(consumable_arg, argument, sizeof(consumable_arg));
   switch (subcmd)
   {
   case SCMD_QUAFF:
-    quaff_potion(ch, (char *)argument);
+    quaff_potion(ch, consumable_arg);
     return;
   case SCMD_RECITE:
-    recite_scroll(ch, (char *)argument);
+    recite_scroll(ch, consumable_arg);
     return;
   case SCMD_USE:
-    use_wand(ch, (char *)argument);
+    use_wand(ch, consumable_arg);
     return;
   case SCMD_INVOKE:
-    invoke_staff(ch, (char *)argument);
+    invoke_staff(ch, consumable_arg);
     return;
   }
 }
@@ -8252,9 +8256,10 @@ ACMDU(do_tinker)
 #define SORTFROM_SYNTAX                                                                            \
   "Syntax is: sortfrom (item-name) bag1|bag2|bag3|bag4|bag5|bag6|bag7|bag8|bag9|bag10\r\n"
 
-void sort_object_bag(struct char_data *ch, char *objname, int subcmd, int bagnum)
+void sort_object_bag(struct char_data *ch, const char *objname, int subcmd, int bagnum)
 {
   char bagname[MEDIUM_STRING] = {'\0'};
+  char objname_buf[MAX_INPUT_LENGTH] = {'\0'}; /* get_obj_in_list_vis consumes a dot prefix */
   struct obj_data *obj, *next_obj;
 
 
@@ -8330,7 +8335,9 @@ void sort_object_bag(struct char_data *ch, char *objname, int subcmd, int bagnum
   }
 
 
-  if (!(obj = get_obj_in_list_vis(ch, objname, NULL, subcmd == SCMD_SORTTO ? ch->carrying : bag)))
+  strlcpy(objname_buf, objname, sizeof(objname_buf));
+  if (!(obj =
+            get_obj_in_list_vis(ch, objname_buf, NULL, subcmd == SCMD_SORTTO ? ch->carrying : bag)))
   {
     send_to_char(ch, "You don't seem to be carrying that item.\r\n");
     return;

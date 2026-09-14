@@ -60,7 +60,7 @@
 #define MAIL_READ 5     /* Mail has been read by recipient         */
 #define MAIL_DRAFT 6    /* Mail is a draft (not yet sent)          */
 
-void walkdir(FILE *index_file, char *dir);
+void walkdir(FILE *index_file, const char *dir);
 int get_line(FILE *fl, char *buf);
 long asciiflag_conv(char *flag);
 int sprintascii(char *out, long bits);
@@ -141,7 +141,7 @@ static char *parsefilename(char *filename)
 }
 
 /* Search file for a specific tag line, return text after tag, or NULL if not found */
-static char *findLine(FILE *plr_file, char *tag)
+static char *findLine(FILE *plr_file, const char *tag)
 {
   static char line[5000];
   rewind(plr_file);
@@ -240,7 +240,7 @@ static int parse_mail_flags(FILE *plr_file)
  * @param index_file Output file for the index
  * @param dir Directory to scan
  */
-void walkdir(FILE *index_file, char *dir)
+void walkdir(FILE *index_file, const char *dir)
 {
   char filename_qfd[1000], *subject, bits[65];
   struct dirent *dp;
@@ -380,7 +380,7 @@ int sprintascii(char *out, long bits)
 {
   int i, j = 0;
   /* 32 bits, don't just add letters to try to get more unless your bitvector_t is also as large. */
-  char *flags = "abcdefghijklmnopqrstuvwxyzABCDEF";
+  const char *flags = "abcdefghijklmnopqrstuvwxyzABCDEF";
 
   for (i = 0; flags[i] != '\0'; i++)
     if (bits & (1 << i))

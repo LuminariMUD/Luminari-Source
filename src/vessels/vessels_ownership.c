@@ -505,7 +505,7 @@ ACMD(do_shippermit)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   if (!*arg)
   {
     send_to_char(ch, "Permit whom to take the helm?\r\n");
@@ -556,7 +556,7 @@ ACMD(do_shiprevoke)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   if (!*arg)
   {
     send_to_char(ch, "Revoke whose helm permit?\r\n");
@@ -642,7 +642,7 @@ ACMD(do_shipdeed)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   if (!*arg)
   {
     send_to_char(ch, "Deed %s to whom? (They must be here with you.)\r\n", ship->name);

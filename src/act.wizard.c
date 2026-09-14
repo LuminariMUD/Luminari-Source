@@ -4067,7 +4067,7 @@ ACMD(do_show)
 /* The shoplist command - lists all shops with zone, room, and keeper info */
 ACMD(do_shoplist)
 {
-  const char **lines;
+  char **lines;
   char line[MAX_STRING_LENGTH];
   int shop_nr, room_idx;
   room_rnum room_rnum_val;
@@ -4081,7 +4081,7 @@ ACMD(do_shoplist)
   int line_capacity;
 
   line_capacity = MAX(0, top_shop + 1) + 5;
-  CREATE(lines, const char *, line_capacity);
+  CREATE(lines, char *, line_capacity);
   lines[line_count++] = strdup("\tcShop Listing\tn");
   snprintf(line, sizeof(line), "%-6s %-6s %-24s %-6s %-24s %-6s %-20s", "Shop#", "Zone#", "Zone",
            "Room#", "Room", "Mob#", "Shopkeeper");
@@ -4152,9 +4152,9 @@ ACMD(do_shoplist)
   snprintf(line, sizeof(line), "Total shops: %d", shop_count);
   lines[line_count++] = strdup(line);
 
-  column_list(ch, 1, lines, line_count, FALSE);
+  column_list(ch, 1, (const char *const *)lines, line_count, FALSE);
   for (shop_nr = 0; shop_nr < line_count; shop_nr++)
-    free((char *)lines[shop_nr]);
+    free(lines[shop_nr]);
   free(lines);
 }
 
@@ -12729,7 +12729,7 @@ ACMD(do_settestchar)
   }
 
   /* Parse: settestchar <character> race <race_name> classes <class1>:<level1> [class2>:<level2>] [class3>:<level3>] */
-  half_chop_c((char *)argument, arg, sizeof(arg), buf, sizeof(buf));
+  half_chop_c(argument, arg, sizeof(arg), buf, sizeof(buf));
 
   if (!*arg)
   {

@@ -1291,7 +1291,7 @@ void set_title(struct char_data *ch, char *title)
   }
 }
 
-void set_imm_title(struct char_data *ch, char *title)
+void set_imm_title(struct char_data *ch, const char *title)
 {
   if (GET_LEVEL(ch) < LVL_IMMORT)
     return;
@@ -1307,10 +1307,7 @@ void set_imm_title(struct char_data *ch, char *title)
   }
   else
   {
-    if (strlen(title) > MAX_IMM_TITLE_LENGTH)
-      title[MAX_IMM_TITLE_LENGTH] = '\0';
-
-    GET_IMM_TITLE(ch) = strdup(title);
+    GET_IMM_TITLE(ch) = strndup(title, MAX_IMM_TITLE_LENGTH);
   }
 }
 

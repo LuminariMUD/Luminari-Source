@@ -314,7 +314,7 @@ ACMD(do_dockfees)
                  CLAN_NAME(owner_clan));
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   if (!*arg)
   {
     send_to_char(ch, "Use 'dockfees pay' to settle the balance before departure.\r\n");
@@ -794,7 +794,7 @@ ACMD(do_vtradecheck)
   long requested_trades = 1000;
   bool passed;
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   if (*arg)
   {
     errno = 0;
@@ -1199,7 +1199,7 @@ ACMD(do_cargobuy)
     return;
   }
 
-  two_arguments_u((char *)argument, arg1, arg2);
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   if (!*arg1 || !*arg2)
   {
     send_to_char(ch, "Usage: cargobuy <commodity> <quantity>\r\n");
@@ -1294,7 +1294,7 @@ ACMD(do_cargosell)
     return;
   }
 
-  two_arguments_u((char *)argument, arg1, arg2);
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   if (!*arg1)
   {
     send_to_char(ch, "Usage: cargosell <commodity> <quantity|all>\r\n");

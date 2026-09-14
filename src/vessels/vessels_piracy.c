@@ -967,7 +967,7 @@ ACMD(do_bounty)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   target = *arg ? arg : GET_NAME(ch);
 
   bounty = vessel_get_bounty(target);

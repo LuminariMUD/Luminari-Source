@@ -867,7 +867,7 @@ void log_clan_activity(clan_vnum c, const char *format, ...)
   char filename[256];
   FILE *fl;
   time_t ct;
-  char *tmstr;
+  const char *tmstr;
   clan_rnum cr = real_clan(c);
 
   if (cr == NO_CLAN || cr >= (clan_rnum)num_of_clans)
@@ -893,7 +893,7 @@ void log_clan_activity(clan_vnum c, const char *format, ...)
 
   /* Get current time */
   ct = time(0);
-  tmstr = (char *)format_time_ymd_hms(ct);
+  tmstr = format_time_ymd_hms(ct);
 
   /* Format the message */
   va_start(args, format);

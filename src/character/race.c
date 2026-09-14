@@ -153,8 +153,7 @@ const char *character_wear_slot_restriction(const struct char_data *ch, int wear
 
   /* leonine frame: feat-driven, so any race granted it loses the slots.
    * get_feat_value() only reads the character. */
-  if ((wear_slot == WEAR_LEGS || wear_slot == WEAR_FEET) &&
-      HAS_FEAT((struct char_data *)ch, FEAT_LEONINE_FRAME))
+  if ((wear_slot == WEAR_LEGS || wear_slot == WEAR_FEET) && HAS_FEAT(ch, FEAT_LEONINE_FRAME))
     return "Your four-legged body cannot wear leg or foot equipment.";
 
   /* four-arm slots: feat-driven like the leonine frame, checked for NPCs too.

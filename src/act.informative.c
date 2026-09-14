@@ -188,6 +188,7 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
   int count = 0, dcount = 0;
   bool has_subrace = false;
   char subraces[MEDIUM_STRING] = {'\0'};
+  char race_name[MEDIUM_STRING] = {'\0'};
 
   if (IS_NPC(tch))
   {
@@ -225,8 +226,13 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
   if (!IS_NPC(tch))
     send_to_char(ch, "%s is %d years, %d months, %d days and %d hours old.\r\n", GET_NAME(tch),
                  age(tch)->year, age(tch)->month, age(tch)->day, age(tch)->hours);
-  send_to_char(ch, "Race: %s%s.\r\n",
-               !IS_NPC(tch) ? CAP(race_list[GET_RACE(tch)].name) : race_family_types[GET_RACE(tch)],
+  /* CAP writes in place; the race keyword itself must stay lower case */
+  if (!IS_NPC(tch))
+  {
+    strlcpy(race_name, race_list[GET_RACE(tch)].name, sizeof(race_name));
+    CAP(race_name);
+  }
+  send_to_char(ch, "Race: %s%s.\r\n", !IS_NPC(tch) ? race_name : race_family_types[GET_RACE(tch)],
                has_subrace ? subraces : "");
   if (!AFF_FLAGGED(tch, AFF_HIDE_ALIGNMENT))
     send_to_char(ch, "Alignment: %s.\r\n", get_align_by_num(GET_ALIGNMENT(tch)));
@@ -3489,7 +3495,7 @@ ACMD(do_masterlist)
   else if (is_abbrev(argument, "spells"))
   {
     /* Support subcommands: next|prev|page N|quit for pager navigation */
-    char *sub = (char *)argument + strlen("spells");
+    const char *sub = argument + strlen("spells");
     while (*sub == ' ')
       sub++;
     if (!*sub)
@@ -3523,7 +3529,7 @@ ACMD(do_masterlist)
     }
     else if (is_abbrev(sub, "page"))
     {
-      char *p = sub + strlen("page");
+      const char *p = sub + strlen("page");
       while (*p == ' ')
         p++;
       if (isdigit(*p))
@@ -11335,7 +11341,7 @@ ACMDU(do_wearapplies)
   }
 
   send_to_char(ch, "\tCApply Types for Wear Location %s:\tn\r\n", wear_bits[wear_loc]);
-  column_list(ch, 3, (const char **)apply_list, count, FALSE);
+  column_list(ch, 3, (const char *const *)apply_list, count, FALSE);
   send_to_char(ch, "\r\n");
 }
 

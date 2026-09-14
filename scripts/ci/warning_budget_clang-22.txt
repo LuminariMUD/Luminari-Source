@@ -3,13 +3,11 @@
 # scripts/ci/check_warning_budget.py --compiler clang-22 --log LOG --update
 alloca 1
 cast-align 6
-cast-qual 100
 enum-enum-conversion 1
 format-nonliteral 23
 implicit-int-conversion 523
 implicit-int-conversion-on-negation 5
-incompatible-pointer-types-discards-qualifiers 191
 missing-format-attribute 29
 sign-conversion 3331
-switch-enum 45
+switch-enum 44
 undef 8

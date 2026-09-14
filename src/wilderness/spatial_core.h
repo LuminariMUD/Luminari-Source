@@ -104,7 +104,7 @@ struct spatial_context
 {
   /* Source Information */
   int source_x, source_y, source_z;
-  char *source_description;
+  const char *source_description;
   int stimulus_type;
   double base_intensity;
   void *source_data; /* Additional stimulus-specific data */
@@ -150,7 +150,7 @@ struct spatial_context
 /* STRATEGY 1: STIMULUS STRATEGY - How the event is generated/processed */
 struct stimulus_strategy
 {
-  char *name;
+  const char *name;
   int stimulus_type;
   double base_range;
 
@@ -173,7 +173,7 @@ struct stimulus_strategy
 /* STRATEGY 2: LINE OF SIGHT STRATEGY - How transmission is blocked */
 struct los_strategy
 {
-  char *name;
+  const char *name;
   int supported_stimulus_types; /* Bitmask of supported types */
 
   /* Core Functions */
@@ -196,7 +196,7 @@ struct los_strategy
 /* STRATEGY 3: MODIFIER STRATEGY - Environmental effects on transmission */
 struct modifier_strategy
 {
-  char *name;
+  const char *name;
   int applicable_stimulus_types; /* Bitmask of applicable types */
 
   /* Core Functions */
@@ -217,7 +217,7 @@ struct modifier_strategy
 /* UNIFIED SPATIAL SYSTEM */
 struct spatial_system
 {
-  char *system_name;
+  const char *system_name;
   int system_id;
 
   /* The three strategies */

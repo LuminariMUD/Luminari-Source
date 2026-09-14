@@ -476,7 +476,7 @@ int spatial_setup_context(struct spatial_context *ctx, int source_x, int source_
   ctx->source_x = source_x;
   ctx->source_y = source_y;
   ctx->source_z = source_z;
-  ctx->source_description = (char *)description; /* Assume managed elsewhere */
+  ctx->source_description = description; /* Assume managed elsewhere */
 
   /* Observer information */
   ctx->observer = observer;

@@ -461,8 +461,9 @@ ACMD(do_db_info)
 
     /* Core player system tables */
     send_to_char(ch, "\tc[PLAYER SYSTEM]\tn\r\n");
-    char *player_tables[] = {"player_data",      "player_index", "pfiles",     "character_skills",
-                             "character_spells", "rent_info",    "crash_files"};
+    const char *player_tables[] = {"player_data",      "player_index",     "pfiles",
+                                   "character_skills", "character_spells", "rent_info",
+                                   "crash_files"};
     int num_tables = sizeof(player_tables) / sizeof(player_tables[0]);
     int i;
     for (i = 0; i < num_tables; i++)
@@ -472,8 +473,9 @@ ACMD(do_db_info)
 
     /* Object system tables */
     send_to_char(ch, "\tc[OBJECT SYSTEM]\tn\r\n");
-    char *object_tables[] = {"object_prototypes",         "object_instances", "object_affects",
-                             "object_extra_descriptions", "mob_prototypes",   "mob_instances"};
+    const char *object_tables[] = {"object_prototypes", "object_instances",
+                                   "object_affects",    "object_extra_descriptions",
+                                   "mob_prototypes",    "mob_instances"};
     num_tables = sizeof(object_tables) / sizeof(object_tables[0]);
     for (i = 0; i < num_tables; i++)
     {
@@ -482,7 +484,7 @@ ACMD(do_db_info)
 
     /* Region system tables */
     send_to_char(ch, "\tc[REGION SYSTEM]\tn\r\n");
-    char *region_tables[] = {"region_data", "path_data", "region_index", "path_index"};
+    const char *region_tables[] = {"region_data", "path_data", "region_index", "path_index"};
     num_tables = sizeof(region_tables) / sizeof(region_tables[0]);
     for (i = 0; i < num_tables; i++)
     {
@@ -563,8 +565,8 @@ ACMD(do_db_info)
       return;
     }
 
-    char *procedures[] = {"bresenham_line", "calculate_distance", "find_path_between_regions",
-                          "get_regions_within_distance", "update_resource_distribution"};
+    const char *procedures[] = {"bresenham_line", "calculate_distance", "find_path_between_regions",
+                                "get_regions_within_distance", "update_resource_distribution"};
     int num_procedures = sizeof(procedures) / sizeof(procedures[0]);
     int i;
 

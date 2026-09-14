@@ -8228,7 +8228,7 @@ struct account_data
 struct race_data
 {
   /* displaying the race */
-  char *name;         /* lower case no-spaces (for like accessing help file) */
+  const char *name;   /* lower case no-spaces (for like accessing help file) */
   char *type;         /* full capitalized and spaced version */
   char *type_color;   /* full colored, capitalized and spaced version */
   char *abbrev;       /* 4 letter abbreviation */

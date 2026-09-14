@@ -86,7 +86,7 @@ static bool mobile_resource_recovery_blocked(const struct char_data *ch)
 {
   return FIGHTING(ch) != NULL || !AWAKE(ch) || IS_CASTING(ch) || AFF_FLAGGED(ch, AFF_STUN) ||
          AFF_FLAGGED(ch, AFF_PARALYZED) || AFF_FLAGGED(ch, AFF_DAZED) ||
-         char_has_mud_event((struct char_data *)ch, eSTUNNED) || AFF_FLAGGED(ch, AFF_NAUSEATED);
+         char_has_mud_event(ch, eSTUNNED) || AFF_FLAGGED(ch, AFF_NAUSEATED);
 }
 
 static bool mobile_has_resource_recovery_work(const struct char_data *ch)
@@ -102,7 +102,7 @@ mobile_work_mask mobile_activity_room_reaction_reasons(const struct char_data *c
       MOB_FLAGGED(ch, MOB_ROL_AGGR_RACE_GOOD) || MOB_FLAGGED(ch, MOB_AGGR_EVIL) ||
       MOB_FLAGGED(ch, MOB_AGGR_NEUTRAL) || MOB_FLAGGED(ch, MOB_AGGR_GOOD) || MEMORY(ch) != NULL ||
       MOB_FLAGGED(ch, MOB_ROL_ARCHER) || IS_NPC_CASTER(ch) || IS_PSIONIC(ch) ||
-      mob_has_known_spells((struct char_data *)ch))
+      mob_has_known_spells(ch))
     return MOBILE_WORK_ROOM_REACTION;
   return MOBILE_WORK_NONE;
 }

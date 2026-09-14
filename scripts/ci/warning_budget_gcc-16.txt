@@ -4,14 +4,12 @@
 alloc-zero 1
 alloca 1
 cast-align 8
-cast-qual 100
 conversion 533
-discarded-qualifiers 191
 duplicated-branches 21
 duplicated-cond 3
 format-nonliteral 25
 logical-op 31
 null-dereference 49
 sign-conversion 1808
-switch-enum 45
+switch-enum 44
 undef 8

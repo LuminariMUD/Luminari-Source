@@ -1598,6 +1598,7 @@ static void perform_bull_charge(struct char_data *ch, int dir, char *name)
 {
   struct char_data *vict = NULL;
   room_rnum to_room = NOWHERE;
+  char dir_name[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!*name)
   {
@@ -1633,8 +1634,9 @@ static void perform_bull_charge(struct char_data *ch, int dir, char *name)
     return;
   }
 
-  act("You lower your head and charge $T!", FALSE, ch, NULL, (void *)dirs[dir], TO_CHAR);
-  act("$n lowers $s head and charges $T!", FALSE, ch, NULL, (void *)dirs[dir], TO_ROOM);
+  strlcpy(dir_name, dirs[dir], sizeof(dir_name));
+  act("You lower your head and charge $T!", FALSE, ch, NULL, dir_name, TO_CHAR);
+  act("$n lowers $s head and charges $T!", FALSE, ch, NULL, dir_name, TO_ROOM);
   if (!perform_move_full(ch, dir, TRUE, true))
     return;
   if (IN_ROOM(vict) != IN_ROOM(ch))

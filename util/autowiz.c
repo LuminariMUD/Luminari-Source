@@ -38,7 +38,7 @@ struct name_rec
 struct control_rec
 {
   int level;
-  char *level_name;
+  const char *level_name;
 };
 
 struct level_rec

@@ -3970,7 +3970,8 @@ ACMD(do_poisontouch)
 static int find_discovery_num(char *name)
 {
   int index, ok;
-  char *temp, *temp2;
+  const char *temp;
+  char *temp2;
   char first[256], first2[256];
 
   /* PHASE 1: Check for exact match first (case-insensitive) */
@@ -3984,14 +3985,13 @@ static int find_discovery_num(char *name)
   for (index = 0; index < NUM_ALC_DISCOVERIES; index++)
   {
     ok = TRUE;
-    /* It won't be changed, but other uses of this function elsewhere may. */
-    temp = any_one_arg((char *)alchemical_discovery_names[index], first);
+    temp = any_one_arg_c(alchemical_discovery_names[index], first, sizeof(first));
     temp2 = any_one_arg(name, first2);
     while (*first && *first2 && ok)
     {
       if (!is_abbrev(first2, first))
         ok = FALSE;
-      temp = any_one_arg(temp, first);
+      temp = any_one_arg_c(temp, first, sizeof(first));
       temp2 = any_one_arg(temp2, first2);
     }
     if (ok && !*first2 && !*first)
@@ -4068,7 +4068,8 @@ bool display_discovery_info(struct char_data *ch, char *discoveryname)
 static int find_grand_discovery_num(char *name)
 {
   int index, ok;
-  char *temp, *temp2;
+  const char *temp;
+  char *temp2;
   char first[256], first2[256];
 
   for (index = 1; index < NUM_GR_ALC_DISCOVERIES; index++)
@@ -4077,14 +4078,13 @@ static int find_grand_discovery_num(char *name)
       return (index);
 
     ok = TRUE;
-    /* It won't be changed, but other uses of this function elsewhere may. */
-    temp = any_one_arg((char *)grand_alchemical_discovery_names[index], first);
+    temp = any_one_arg_c(grand_alchemical_discovery_names[index], first, sizeof(first));
     temp2 = any_one_arg(name, first2);
     while (*first && *first2 && ok)
     {
       if (!is_abbrev(first2, first))
         ok = FALSE;
-      temp = any_one_arg(temp, first);
+      temp = any_one_arg_c(temp, first, sizeof(first));
       temp2 = any_one_arg(temp2, first2);
     }
     if (ok && !*first2 && !*first)

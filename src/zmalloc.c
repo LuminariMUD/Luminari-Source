@@ -81,7 +81,7 @@ void zmalloc_init(void)
 void zdump(meminfo *m)
 {
 #define MAX_ZDUMP_SIZE 32
-  const unsigned char *hextab = (unsigned char *)"0123456789ABCDEF";
+  const unsigned char *hextab = (const unsigned char *)"0123456789ABCDEF";
   unsigned char hexline[37], ascline[17], *hexp, *ascp, *inp;
   int len, c = 1;
 

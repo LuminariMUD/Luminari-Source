@@ -52,8 +52,8 @@ void show_account_menu(struct descriptor_data *d);
 void remove_char_from_account(struct char_data *ch, struct account_data *account);
 char *get_char_account_name(const char *name);
 
-bool is_casting_command(char *command);
-bool is_valid_paralyzed_command(char *command);
+bool is_casting_command(const char *command);
+bool is_valid_paralyzed_command(const char *command);
 
 
 void show_character_rp_menu(struct descriptor_data *d);

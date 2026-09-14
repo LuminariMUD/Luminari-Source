@@ -29,7 +29,7 @@ void reconcile_player_offline_cooldowns(struct char_data *ch, int64_t saved_at_e
 int hit_gain(struct char_data *ch);
 int move_gain(struct char_data *ch);
 void set_title(struct char_data *ch, char *title);
-void set_imm_title(struct char_data *ch, char *title);
+void set_imm_title(struct char_data *ch, const char *title);
 void run_autowiz(void);
 void gain_condition(struct char_data *ch, int condition, int value);
 void check_idling(struct char_data *ch);

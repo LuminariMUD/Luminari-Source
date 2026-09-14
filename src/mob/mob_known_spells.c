@@ -173,7 +173,7 @@ int categorize_known_spell(int spellnum)
 }
 
 /* Check if mob has any known spells */
-bool mob_has_known_spells(struct char_data *ch)
+bool mob_has_known_spells(const struct char_data *ch)
 {
   int i = 0;
 

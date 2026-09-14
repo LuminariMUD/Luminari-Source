@@ -906,6 +906,10 @@ ACMD(do_export_zone)
   char archive_name[MAX_EXPORT_FILENAME] = {'\0'};
   char archive_path[MAX_INPUT_LENGTH] = {'\0'};
   char *tar_arguments[13];
+  static const char *const export_extensions[] = {"info", "wld", "zon", "mob", "obj", "trg", "shp"};
+  char export_files[7][MAX_INPUT_LENGTH];
+  char tar_program[] = "tar", tar_flags[] = "-czf";
+  int export_index;
   int success;
 
   /* Export paths are relative to lib/, the server's working directory. */
@@ -993,16 +997,15 @@ ACMD(do_export_zone)
     return;
   }
 
-  tar_arguments[0] = "tar";
-  tar_arguments[1] = "-czf";
+  tar_arguments[0] = tar_program;
+  tar_arguments[1] = tar_flags;
   tar_arguments[2] = archive_path;
-  tar_arguments[3] = "../lib/world/export/qq.info";
-  tar_arguments[4] = "../lib/world/export/qq.wld";
-  tar_arguments[5] = "../lib/world/export/qq.zon";
-  tar_arguments[6] = "../lib/world/export/qq.mob";
-  tar_arguments[7] = "../lib/world/export/qq.obj";
-  tar_arguments[8] = "../lib/world/export/qq.trg";
-  tar_arguments[9] = "../lib/world/export/qq.shp";
+  for (export_index = 0; export_index < 7; export_index++)
+  {
+    snprintf(export_files[export_index], sizeof(export_files[export_index]), "%sqq.%s", path,
+             export_extensions[export_index]);
+    tar_arguments[3 + export_index] = export_files[export_index];
+  }
   tar_arguments[10] = NULL;
 
   if (!run_export_program("tar", tar_arguments))

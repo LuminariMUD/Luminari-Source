@@ -545,7 +545,7 @@ ACMD(do_shipupgrade)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -643,7 +643,7 @@ ACMD(do_shipinsure)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {

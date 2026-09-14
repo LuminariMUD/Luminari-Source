@@ -365,7 +365,7 @@ void stop_auction(int type, struct char_data *ch);
 void check_auction(void);
 void auc_send_to_all(char *messg, bool buyer);
 void list_consumables(struct char_data *ch, int type);
-void sort_object_bag(struct char_data *ch, char *objname, int subcmd, int bagnum);
+void sort_object_bag(struct char_data *ch, const char *objname, int subcmd, int bagnum);
 /* do_look, do_inventory utility functions */
 void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show,
                       int mxp_type);

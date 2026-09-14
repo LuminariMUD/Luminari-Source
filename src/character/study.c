@@ -1823,7 +1823,7 @@ bool has_necromancer_cast_type_unchosen(struct char_data *ch)
   return (LEVELUP(ch)->necromancer_bonus_levels == 0);
 }
 
-char *levelup_show_necromancer_cast_type(struct char_data *ch)
+const char *levelup_show_necromancer_cast_type(struct char_data *ch)
 {
   switch (LEVELUP(ch)->necromancer_bonus_levels)
   {

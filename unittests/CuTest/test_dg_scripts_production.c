@@ -71,10 +71,10 @@ void Test_dg_production_text_matching_helpers(CuTest *tc)
   char phrase[MAX_INPUT_LENGTH];
   char *remainder;
 
-  CuAssertTrue(tc, is_substring("needle", CuMutableString("a needle in text")));
-  CuAssertTrue(tc, !is_substring("missing", CuMutableString("a needle in text")));
-  CuAssertTrue(tc, word_check("alpha beta gamma", CuMutableString("delta beta")));
-  CuAssertTrue(tc, !word_check("alpha beta", CuMutableString("gamma delta")));
+  CuAssertTrue(tc, is_substring(CuMutableString("needle"), CuMutableString("a needle in text")));
+  CuAssertTrue(tc, !is_substring(CuMutableString("missing"), CuMutableString("a needle in text")));
+  CuAssertTrue(tc, word_check(CuMutableString("alpha beta gamma"), CuMutableString("delta beta")));
+  CuAssertTrue(tc, !word_check(CuMutableString("alpha beta"), CuMutableString("gamma delta")));
 
   remainder = one_phrase(phrase_input, phrase);
   CuAssertStrEquals(tc, "two words", phrase);

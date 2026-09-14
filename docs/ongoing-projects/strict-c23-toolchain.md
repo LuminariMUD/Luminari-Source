@@ -90,15 +90,14 @@ warning debt, and feature detection that strict flags cannot influence.
 
 ## Budget snapshot
 
-| Compiler | At the start | Now (after step 3.2) |
+| Compiler | At the start | Now (after step 3.4) |
 |----------|--------------|----------------------|
-| GCC 16.2 | 11363 sites, 24 classes | 2824 sites, 14 classes |
-| Clang 22.1.8 | 22878 sites, 23 classes | 4263 sites, 12 classes |
+| GCC 16.2 | 11363 sites, 24 classes | 2532 sites, 12 classes |
+| Clang 22.1.8 | 22878 sites, 23 classes | 3971 sites, 10 classes |
 
 Largest remaining classes: sign conversion (GCC 1808, Clang 3331), value
-conversion (GCC 533, Clang `implicit-int-conversion` 523), and the
-production half of the discarded-qualifier warnings (191 each) with
-`cast-qual` (100 each).
+conversion (GCC 533, Clang `implicit-int-conversion` 523), and the small
+classes of step 3.5.
 
 ## Burn-down progress
 
@@ -127,6 +126,7 @@ per compiler.
 | 3.3 | 265 shadowing declarations renamed within their scope | 3822 | 5279 |
 | 3.3 tail | `REMOVE_FROM_LIST_USING`; last three renames; `shadow` at zero; flag promoted to baseline | 3818 | 5275 |
 | 3.2 | `float` is `double`; unused kdtree float API removed; float `MIN`/`MAX` clamps fixed; float-to-int conversions explicit; float classes at zero and promoted to baseline | 2824 | 4263 |
+| 3.4 | const string tables, read-only string parameters, owned strings through mutable pointers; qualifier classes at zero | 2532 | 3971 |
 
 Every step was also verified with a host `make test` (1483 tests pass) before
 it was committed, and each promotion to the baseline tier was first built at
@@ -229,7 +229,7 @@ Notes from step 2.5:
   tests instead.
 - The production half of the class (about 290 sites: string tables declared
   `char *[]`, `one_argument_u((char *)argument, ...)`, `findLine` in the index
-  tools) is step 3.4.
+  tools) was left for step 3.4, which is done.
 
 Notes from step 1.3 (first pass):
 
@@ -365,6 +365,43 @@ Notes from step 3.2:
   it), so listing it in the baseline keeps float-to-integer narrowing fatal
   while the rest of `-Wconversion` stays on the budget.
 
+Notes from step 3.4:
+
+- `-Wwrite-strings` types string literals as `const char[]`. String tables
+  and locals initialized from literals are `const char *` now (31
+  declarations, found by walking back from each GCC site to its declaration),
+  and so are the spatial strategy names, the autowiz level names, and the race
+  keyword field.
+- Functions that only read a string parameter take `const char *`: `findLine`
+  and `walkdir` in the index tools, `create_craft_skill_check`,
+  `show_string`, `replace_str`, `convert_from_tabs`, `is_casting_command`,
+  `is_valid_paralyzed_command`, `set_imm_title`, and `sort_object_bag`.
+  Functions that return literals return `const char *`, and
+  `get_feat_value`, `get_mob_follower`, `char_has_mud_event`,
+  `mob_has_known_spells`, and `obj_has_special_ability` take const objects,
+  which removed the casts their const callers needed.
+- The vessel commands cast their `const` argument to reach
+  `one_argument_u` and friends; they call the bounded `one_argument`,
+  `two_arguments`, and `three_arguments` now, which skip fill words the same
+  way.
+- Writes that went through those casts: `lore_id_vict` ran `CAP` on the
+  shared race keyword in `race_list`, so one lore display capitalized the
+  keyword for every later use; it capitalizes a copy now. `set_imm_title` wrote
+  a terminator into an overlong caller title and copies with `strndup`
+  instead. `sort_object_bag` and the event debug entity lookup copy their
+  argument before `get_number` strips a numeric dot prefix from it in place,
+  and the stored consumable commands copy theirs for parsers that take
+  `char *`.
+- Owned strings are held through mutable pointers (`wear_off_msg`, the help
+  keyword index, the feat and shop listings, known names), and `column_list`
+  takes `const char *const *`, which such arrays reach with a cast that adds
+  qualifiers only. Weapon type names point at their literals instead of heap
+  copies of them. Zone export builds its `tar` arguments in local buffers
+  because `execvp` takes `char *const[]`.
+- The pre-commit hook pins clang-format 18.1.8 and never formats
+  `src/olc/genolc.c` or `src/utils.h`; format with that binary and leave
+  those two files alone, or the hook and a local clang-format disagree.
+
 ## Remaining work
 
 1. GitHub-side confirmation. Container jobs, the apt.llvm.org install step,
@@ -380,9 +417,8 @@ Notes from step 3.2:
    sites. These are candidate bugs, not noise, and deserve their own issue.
 4. Burn down the rest of the migration budget. Steps 0, 1.1, 1.2, and 2.1 to
    2.6 are done (see the progress table), step 1.3 is done for 64-bit
-   narrowing, and steps 3.1 to 3.3 are done. Left: step 3 (production
-   write-strings and cast-qual, small classes, the rest of GCC `conversion`),
-   and the step 4 sign-conversion decision.
+   narrowing, and steps 3.1 to 3.4 are done. Left: step 3.5 (small classes
+   and the rest of GCC `conversion`) and the step 4 sign-conversion decision.
 5. Cadence. Bump the current versions in `test.yml`,
    `scripts/ci/local/Dockerfile*`, and the setup guide within a month of each
    GCC or LLVM point release; raise the minimum when the runner image drops a
@@ -476,8 +512,7 @@ migration list to the baseline list in `production_profile.sh`.
    sixteen declarations: seven case bodies braced, two declarations hoisted.
 2. `double-promotion` and `float-conversion` (done; see the step 3.2 notes).
 3. `shadow` (done; see the step 3.3 notes).
-4. `-Wwrite-strings` in `src/` (188): the 23 in `bsd-snprintf.c` are
-   `findLine` and friends taking `char *`; constify the parameters.
+4. `-Wwrite-strings` and `cast-qual` in `src/` (done; see the step 3.4 notes).
 5. Small classes, one sitting: `null-dereference` 48, `switch-enum` 45,
    `logical-op` 31, `format-nonliteral` 25,
    `float-equal` 22, `duplicated-branches` 21, `cast-align` 8, `undef` 8,

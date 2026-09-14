@@ -4510,7 +4510,7 @@ void char_from_buff_targets(struct char_data *ch)
      list_length - So we can work with lists that don't end with /n
      show_nums   - when set to TRUE, it will show a number before the list entry.
  */
-void column_list(struct char_data *ch, int num_cols, const char **list, int list_length,
+void column_list(struct char_data *ch, int num_cols, const char *const *list, int list_length,
                  bool show_nums)
 {
   size_t max_len = 0;
@@ -5365,7 +5365,7 @@ int get_subrace_by_name(char *racename)
 }
 
 /* parse tabs function */
-char *convert_from_tabs(char *string)
+char *convert_from_tabs(const char *string)
 {
   static char buf[MAX_STRING_LENGTH * 8];
 
@@ -5493,7 +5493,7 @@ const char *get_align_by_num(int align)
   return "Unknown";
 }
 /* Feats */
-int get_feat_value(struct char_data *ch, int featnum)
+int get_feat_value(const struct char_data *ch, int featnum)
 {
   struct obj_data *obj;
   struct char_data *mob = NULL;
@@ -5546,17 +5546,16 @@ int get_feat_value(struct char_data *ch, int featnum)
  * supports itself. */
 bool has_four_arms(const struct char_data *ch)
 {
-  struct char_data *mutable_ch = (struct char_data *)ch;
   struct obj_data *obj;
   int i, j;
 
   if (ch == NULL)
     return false;
 
-  if (IS_NPC(ch) || (AFF_FLAGGED(mutable_ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(mutable_ch)))
-    return MOB_HAS_FEAT(mutable_ch, FEAT_FOUR_ARMS) > 0;
+  if (IS_NPC(ch) || (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)))
+    return MOB_HAS_FEAT(ch, FEAT_FOUR_ARMS) > 0;
 
-  if (HAS_REAL_FEAT(mutable_ch, FEAT_FOUR_ARMS) > 0)
+  if (HAS_REAL_FEAT(ch, FEAT_FOUR_ARMS) > 0)
     return true;
 
   for (j = 0; j < NUM_WEARS; j++)
@@ -10693,7 +10692,7 @@ bool has_reach(struct char_data *ch)
 // This will return the desired mob follower or NULL if not found.
 // mob_type refers to the mob flag normally associated with the call
 // command.
-struct char_data *get_mob_follower(struct char_data *ch, int mob_type)
+struct char_data *get_mob_follower(const struct char_data *ch, int mob_type)
 {
   struct follow_type *k = NULL, *next = NULL;
 

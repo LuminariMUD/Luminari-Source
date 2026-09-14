@@ -615,7 +615,7 @@ void log_hint_usage(int hint_id, room_rnum room, struct char_data *ch,
   }
 }
 
-char *get_hint_category_name(int category)
+const char *get_hint_category_name(int category)
 {
   switch (category)
   {

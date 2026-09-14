@@ -190,7 +190,7 @@ bool is_throwable_weapon(struct char_data *ch, const struct obj_data *obj)
   if (IS_SET(weapon_list[weapon_type_value].weaponFlags, WEAPON_FLAG_RANGED))
     return FALSE;
 
-  return obj_has_special_ability((struct obj_data *)obj, WEAPON_SPECAB_THROWING);
+  return obj_has_special_ability(obj, WEAPON_SPECAB_THROWING);
 }
 
 bool can_store_projectile_in_ammo_pouch(struct char_data *ch, const struct obj_data *obj)

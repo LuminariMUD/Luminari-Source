@@ -520,7 +520,7 @@ ACMD(do_shiphire)
     return;
   }
 
-  two_arguments_u((char *)argument, arg1, arg2);
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   if (!*arg1 || !*arg2)
   {
     send_to_char(ch, "Usage: shiphire <position> <tier>\r\n");
@@ -596,7 +596,7 @@ ACMD(do_shipdismiss)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   position = vessel_crew_position_by_name(arg);
   if (position < 0)
   {

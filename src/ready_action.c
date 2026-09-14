@@ -784,7 +784,7 @@ ACMD(do_ready)
   {
     clause = door_clause;
     clause_length = strlen(" on door open");
-    two_arguments((char *)clause + clause_length, direction_name, sizeof(direction_name), extra,
+    two_arguments(clause + clause_length, direction_name, sizeof(direction_name), extra,
                   sizeof(extra));
     for (direction = 0; direction < DIR_COUNT; direction++)
       if (*direction_name != '\0' && is_abbrev(direction_name, dirs[direction]))
@@ -816,8 +816,8 @@ ACMD(do_ready)
     direction = -1;
     on_casting = false;
     on_ally = true;
-    tail = one_argument((char *)clause + clause_length, ally_name, sizeof(ally_name));
-    tail = one_argument((char *)tail, extra, sizeof(extra));
+    tail = one_argument(clause + clause_length, ally_name, sizeof(ally_name));
+    tail = one_argument(tail, extra, sizeof(extra));
     while (isspace((unsigned char)*tail))
       tail++;
     if (*ally_name == '\0' || strcasecmp(extra, "attacked") || *tail != '\0')

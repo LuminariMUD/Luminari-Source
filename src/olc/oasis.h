@@ -899,7 +899,7 @@ void study_disp_evolution_confirm(struct descriptor_data *d);
 void study_show_evolution_select_bottom_text(struct descriptor_data *d);
 void study_summoner_aspect_select(struct descriptor_data *d);
 void study_disp_aspect_confirm(struct descriptor_data *d);
-char *levelup_show_necromancer_cast_type(struct char_data *ch);
+const char *levelup_show_necromancer_cast_type(struct char_data *ch);
 bool has_necromancer_cast_type_unchosen(struct char_data *ch);
 
 /* public functions from msgedit.c */

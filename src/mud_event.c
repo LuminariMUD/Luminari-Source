@@ -1302,7 +1302,7 @@ int mud_event_test_cleanup_count(void)
 }
 #endif
 
-struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId)
+struct mud_event_data *char_has_mud_event(const struct char_data *ch, event_id iId)
 {
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;

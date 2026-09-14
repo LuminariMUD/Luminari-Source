@@ -620,7 +620,7 @@ struct landmass_info *detect_landmasses(FILE *fp)
 
   for (current = landmasses; current; current = current->next)
   {
-    char *classification;
+    const char *classification;
     if (current->tile_count > 100000)
       classification = "Continent";
     else if (current->tile_count > 10000)
@@ -3184,7 +3184,7 @@ void write_landmasses_json(FILE *fp, struct landmass_info *landmasses)
     fprintf(fp, "      \"dominant_biome\": \"%s\",\n", lm->dominant_biome);
 
     /* Classify landmass */
-    char *classification;
+    const char *classification;
     if (lm->tile_count > 100000)
       classification = "continent";
     else if (lm->tile_count > 10000)
@@ -3235,8 +3235,8 @@ void write_resources_json(FILE *fp)
 
   fprintf(fp, "    \"resources\": [\n");
 
-  char *resource_names[] = {"vegetation", "minerals", "water",   "herbs", "game",
-                            "wood",       "stone",    "crystal", "clay",  "salt"};
+  const char *resource_names[] = {"vegetation", "minerals", "water",   "herbs", "game",
+                                  "wood",       "stone",    "crystal", "clay",  "salt"};
 
   int r;
   for (r = 0; r < 10; r++)

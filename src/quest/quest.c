@@ -2221,15 +2221,16 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
   if (!is_staff && next_quest_vnum != -1)
   {
     qst_rnum qrnum = real_quest(next_quest_vnum);
-    char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum)) ? "(missing quest)"
-                                                                             : QST_NAME(qrnum);
+    const char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum))
+                            ? "(missing quest)"
+                            : QST_NAME(qrnum);
     mob_vnum qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? NOBODY : QST_MASTER(qrnum);
-    char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
-                        ? "(no master)"
-                        : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
+    const char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
+                              ? "(no master)"
+                              : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
 
     /* Find the quest master's room */
-    char *qm_room = "(not found)";
+    const char *qm_room = "(not found)";
     if (qm_vnum != NOBODY && real_mobile(qm_vnum) != NOBODY)
     {
       struct char_data *mob_instance;
@@ -2262,15 +2263,16 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
   if (!is_staff && current_quest_vnum != -1)
   {
     qst_rnum qrnum = real_quest(current_quest_vnum);
-    char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum)) ? "(missing quest)"
-                                                                             : QST_NAME(qrnum);
+    const char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum))
+                            ? "(missing quest)"
+                            : QST_NAME(qrnum);
     mob_vnum qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? NOBODY : QST_MASTER(qrnum);
-    char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
-                        ? "(no master)"
-                        : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
+    const char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
+                              ? "(no master)"
+                              : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
 
     /* Find the quest master's room */
-    char *qm_room = "(not found)";
+    const char *qm_room = "(not found)";
     if (qm_vnum != NOBODY && real_mobile(qm_vnum) != NOBODY)
     {
       struct char_data *mob_instance;
@@ -2329,15 +2331,16 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
 
     quest_count++;
 
-    char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum)) ? "(missing quest)"
-                                                                             : QST_NAME(qrnum);
+    const char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum))
+                            ? "(missing quest)"
+                            : QST_NAME(qrnum);
     mob_vnum qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? NOBODY : QST_MASTER(qrnum);
-    char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
-                        ? "(no master)"
-                        : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
+    const char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
+                              ? "(no master)"
+                              : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
 
     /* Find the quest master's room */
-    char *qm_room = "(not found)";
+    const char *qm_room = "(not found)";
     if (qm_vnum != NOBODY && real_mobile(qm_vnum) != NOBODY)
     {
       struct char_data *mob_instance;

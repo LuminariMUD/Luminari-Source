@@ -303,7 +303,7 @@ void initialize_special_abilities(void)
                              0, EVOCATION, 2, weapon_specab_wounding);
 }
 
-bool obj_has_special_ability(struct obj_data *obj, int ability)
+bool obj_has_special_ability(const struct obj_data *obj, int ability)
 {
   struct obj_special_ability *specab = NULL;
 

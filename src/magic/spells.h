@@ -1733,12 +1733,12 @@ struct spell_info_type
       [NUM_CLASSES]; /* the level [class] gets this spell (lvl_impl + 1, if they don't get */
   int routines;
   byte violent;
-  int targets;              /* See below for use with TAR_XXX  */
-  const char *name;         /* Input size not limited. Originates from string constants. */
-  const char *wear_off_msg; /* Input size not limited. Originates from string constants. */
-  int time;                 /* casting time */
-  int memtime;              /* mem time */
-  int schoolOfMagic;        // school of magic, category for skills
+  int targets;        /* See below for use with TAR_XXX  */
+  const char *name;   /* Input size not limited. Originates from string constants. */
+  char *wear_off_msg; /* Owned copy, or unused_wearoff for an unused slot. */
+  int time;           /* casting time */
+  int memtime;        /* mem time */
+  int schoolOfMagic;  // school of magic, category for skills
 
   bool quest; // is this a quest spell?
 

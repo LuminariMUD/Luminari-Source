@@ -373,7 +373,7 @@ int levenshtein_distance(const char *s1, const char *s2);
 struct time_info_data *real_time_passed(time_t t2, time_t t1);
 struct time_info_data *mud_time_passed(time_t t2, time_t t1);
 void prune_crlf(char *txt);
-void column_list(struct char_data *ch, int num_cols, const char **list, int list_length,
+void column_list(struct char_data *ch, int num_cols, const char *const *list, int list_length,
                  bool show_nums);
 void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_cols,
                          const char **list, int list_length, bool show_nums);
@@ -405,7 +405,7 @@ bool rol_race_is_good(int race);
 bool rol_race_is_evil(int race);
 int get_race_by_name(char *racename);
 int get_subrace_by_name(char *racename);
-char *convert_from_tabs(char *string);
+char *convert_from_tabs(const char *string);
 bool is_weapon_wielded_two_handed(struct obj_data *obj, struct char_data *ch);
 int count_non_protocol_chars(const char *str);
 const char *a_or_an(const char *string);
@@ -479,7 +479,7 @@ bool second_pair_rejects_object(const struct obj_data *obj, int pos);
 bool rol_object_wear_conflicts(struct char_data *ch, struct obj_data *obj, int where);
 int warlock_spell_type(int spellnum);
 int get_number_of_spellcasting_classes(struct char_data *ch);
-struct char_data *get_mob_follower(struct char_data *ch, int mob_type);
+struct char_data *get_mob_follower(const struct char_data *ch, int mob_type);
 void send_combat_roll_info(struct char_data *ch, const char *messg, ...);
 bool show_combat_roll(struct char_data *ch);
 struct obj_data *get_char_bag(struct char_data *ch, int bagnum);
@@ -511,7 +511,7 @@ bool ensure_dir_exists(const char *path);
 bool finish_file_save(FILE *stream, const char *temporary_path, const char *destination_path);
 
 /* Feats */
-int get_feat_value(struct char_data *ch, int featnum);
+int get_feat_value(const struct char_data *ch, int featnum);
 
 /* Public functions made available form weather.c */
 void weather_and_time(int mode);

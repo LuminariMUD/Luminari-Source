@@ -273,8 +273,8 @@ int verify_database_procedures(void)
     return FALSE;
   }
 
-  char *procedures[] = {"bresenham_line", "calculate_distance", "find_path_between_regions",
-                        "get_regions_within_distance"};
+  const char *procedures[] = {"bresenham_line", "calculate_distance", "find_path_between_regions",
+                              "get_regions_within_distance"};
 
   int num_procedures = sizeof(procedures) / sizeof(procedures[0]);
   char query[1024];
@@ -370,7 +370,7 @@ void repair_database_if_needed(void)
   /* Check for common issues and attempt automatic repair */
 
   /* 1. Missing indexes on critical tables */
-  char *index_queries[] = {
+  const char *index_queries[] = {
       "CREATE INDEX IF NOT EXISTS idx_player_name ON player_data(name)",
       "CREATE INDEX IF NOT EXISTS idx_object_vnum ON object_prototypes(vnum)",
       "CREATE SPATIAL INDEX IF NOT EXISTS idx_region_geometry ON region_data(geometry)",
@@ -441,7 +441,7 @@ void log_database_startup_stats(void)
   }
 
   /* Check key table status */
-  char *key_tables[] = {"player_data", "object_prototypes", "region_data", "resource_types"};
+  const char *key_tables[] = {"player_data", "object_prototypes", "region_data", "resource_types"};
   int num_tables = sizeof(key_tables) / sizeof(key_tables[0]);
   int i;
 

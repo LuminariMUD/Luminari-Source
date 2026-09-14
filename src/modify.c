@@ -922,12 +922,12 @@ void page_string(struct descriptor_data *d, char *str, int keep_internal)
 }
 
 /* The call that displays the next page. */
-void show_string(struct descriptor_data *d, char *input)
+void show_string(struct descriptor_data *d, const char *input)
 {
   char buffer[MAX_STRING_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'};
   int diff;
 
-  any_one_arg(input, buf);
+  any_one_arg_c(input, buf, sizeof(buf));
 
   /* Q is for quit. :) */
   if (LOWER(*buf) == 'q')

@@ -449,7 +449,7 @@ ACMD(do_contractaccept)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   contract_id = atoi(arg);
   if (contract_id <= 0)
   {
@@ -563,7 +563,7 @@ ACMD(do_contractdeliver)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   contract_id = atoi(arg);
   if (contract_id <= 0)
   {
@@ -649,7 +649,7 @@ ACMD(do_contractabandon)
     return;
   }
 
-  one_argument_u((char *)argument, arg);
+  one_argument(argument, arg, sizeof(arg));
   contract_id = atoi(arg);
   if (contract_id <= 0)
   {

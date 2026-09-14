@@ -3062,7 +3062,7 @@ ACMD(do_addtoroute)
   }
 
   /* Parse arguments */
-  two_arguments_u((char *)argument, route_arg, wp_arg);
+  two_arguments(argument, route_arg, sizeof(route_arg), wp_arg, sizeof(wp_arg));
   if (!*route_arg || !*wp_arg)
   {
     send_to_char(ch, "Usage: addtoroute <route> <waypoint>\r\n");

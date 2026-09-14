@@ -56,7 +56,7 @@ static bool hedit_execute_two_string_statement(const char *query, const char *fi
 
 struct helpcheck_keyword_index
 {
-  const char **items;
+  char **items;
   size_t count;
   size_t capacity;
 };
@@ -98,7 +98,7 @@ static void free_helpcheck_keyword_index(struct helpcheck_keyword_index *index)
     return;
 
   for (i = 0; i < index->count; i++)
-    free((void *)index->items[i]);
+    free(index->items[i]);
   free(index->items);
   memset(index, 0, sizeof(*index));
 }
@@ -109,7 +109,7 @@ static void free_helpcheck_keyword_index(struct helpcheck_keyword_index *index)
 static bool load_helpcheck_keyword_index(struct helpcheck_keyword_index *index, int level)
 {
   PREPARED_STMT *pstmt;
-  const char **resized_items;
+  char **resized_items;
   const char *keyword;
   size_t new_capacity;
   bool success;
@@ -642,7 +642,7 @@ static bool hedit_save_to_db(struct descriptor_data *d)
   }
   else
   {
-    char *editor_name = GET_NAME(d->character) ? GET_NAME(d->character) : "Unknown";
+    const char *editor_name = GET_NAME(d->character) ? GET_NAME(d->character) : "Unknown";
     if (mysql_stmt_bind_param_string(pstmt, 0, editor_name) &&
         mysql_stmt_bind_param_string(pstmt, 1, tag_lower))
     {
@@ -1489,7 +1489,7 @@ ACMD(do_helpcheck)
         complete_cmd_info[i].minimum_level >= 0)
     {
       checked++;
-      if (!helpcheck_keyword_array_has_prefix(keywords.items, keywords.count,
+      if (!helpcheck_keyword_array_has_prefix((const char *const *)keywords.items, keywords.count,
                                               complete_cmd_info[i].command))
       {
         len = snprintf_append(buf, sizeof(buf), (int)len, "%-20.20s%s",

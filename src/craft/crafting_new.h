@@ -283,8 +283,8 @@ void reset_craft_materials(struct char_data *ch, bool verbose, bool reimburse);
 int get_craft_project_level(struct char_data *ch);
 int get_enhancement_mote_type(struct char_data *ch, int type, int spec);
 void show_craft_progress_meter(void);
-bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int skill, char *method,
-                              int exp, int dc);
+bool create_craft_skill_check(struct char_data *ch, struct obj_data *obj, int skill,
+                              const char *method, int exp, int dc);
 int get_craft_material_final_level_adjustment(struct char_data *ch);
 int craft_material_to_obj_material(int craftmat);
 void show_refine_noargs(struct char_data *ch);
@@ -292,7 +292,7 @@ bool is_refine_ready(struct char_data *ch, bool verbose);
 void craft_refine_complete(struct char_data *ch);
 int get_craft_skill_value(struct char_data *ch, int skill_num);
 void craft_resize_complete(struct char_data *ch, struct obj_data *obj);
-char *get_supply_order_item_desc(struct char_data *ch);
+const char *get_supply_order_item_desc(struct char_data *ch);
 int determine_supply_order_exp(struct char_data *ch);
 void craft_supplyorder_complete(struct char_data *ch);
 void reset_crafting_obj(struct char_data *ch);

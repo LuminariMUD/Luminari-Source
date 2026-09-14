@@ -2121,15 +2121,15 @@ static char *make_ollama_request(const char *prompt)
 char *generate_fallback_response(const char *prompt)
 {
   char *ollama_response;
-  static char *fallback_responses[] = {"I don't understand what you're saying.",
-                                       "Could you repeat that?",
-                                       "I'm not sure how to respond to that.",
-                                       "Hmmmmm...",
-                                       "...",
-                                       NULL};
+  static const char *fallback_responses[] = {"I don't understand what you're saying.",
+                                             "Could you repeat that?",
+                                             "I'm not sure how to respond to that.",
+                                             "Hmmmmm...",
+                                             "...",
+                                             NULL};
   int num_responses = 0;
   int choice;
-  char **ptr;
+  const char **ptr;
 
   /* First, try to get response from Ollama (local LLM) */
   AI_DEBUG("Attempting Ollama fallback for prompt: '%.50s%s'", prompt,
@@ -2479,14 +2479,14 @@ static void *ai_thread_worker(void *arg)
   /* If all AI failed, get generic fallback (don't call generate_fallback_response as it tries Ollama again) */
   if (!response && !ai_shutdown_is_requested())
   {
-    static char *fallback_responses[] = {"I don't understand what you're saying.",
-                                         "Could you repeat that?",
-                                         "I'm not sure how to respond to that.",
-                                         "...",
-                                         "I see.",
-                                         NULL};
+    static const char *fallback_responses[] = {"I don't understand what you're saying.",
+                                               "Could you repeat that?",
+                                               "I'm not sure how to respond to that.",
+                                               "...",
+                                               "I see.",
+                                               NULL};
     int num_responses = 0;
-    char **ptr;
+    const char **ptr;
     for (ptr = fallback_responses; *ptr; ptr++)
     {
       num_responses++;

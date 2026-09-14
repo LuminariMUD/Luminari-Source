@@ -749,7 +749,7 @@ int spatial_audio_emit(int source_x, int source_y, int source_z, const char *sou
   ctx->source_x = source_x;
   ctx->source_y = source_y;
   ctx->source_z = source_z;
-  ctx->source_description = (char *)sound_desc; /* Borrowed for synchronous delivery. */
+  ctx->source_description = sound_desc; /* Borrowed for synchronous delivery. */
   ctx->base_intensity = intensity;
   ctx->audio_frequency = frequency;
 
