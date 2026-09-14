@@ -619,10 +619,13 @@ Notes from the local CI run and the analyzer triage:
 
 ## Remaining work
 
-1. GitHub-side confirmation. Container jobs, the apt.llvm.org install step, and
-   `actions/cache` inside the `gcc:16.2` container cannot be replicated locally.
-   Pull request #185 is open; watch its first run, where the compiler check step
-   is the first thing that would fail if the runner's toolchain differs.
+1. GitHub-side confirmation. The first GitHub run of pull request #185 (merged
+   as `706318e9f`) found one gap local CI could not see: the strict gcc-16 jobs
+   run in the `gcc:16.2` container and reach MariaDB as `mariadb`, which the
+   test runtime preparer rejected as a non-loopback host. The preparer now
+   accepts that service name in CI, and the local runner resolves it the same
+   way instead of rewriting the host; confirm the next `master` run of Build &
+   Test passes.
 2. Done: `toolchain-analysis.yml` ran by hand on `master` after the merge (run
    34894872217) and passed. The GCC 16.2 analysis build took 5 minutes 46
    seconds, 6.5 minutes for the whole job against its 120-minute timeout, and
