@@ -430,7 +430,7 @@ take the higher.
 | Ally-scaling defence (+1 AC and +2 saves per feat-holding ally, max 5) | Rrakkma | 1.5 |
 | Chance to absorb a damaging spell (level/2 percent) | Spell Absorb | 2 |
 | Caster level bonus (level / 6) | Magical Heritage | 2 |
-| Casting one tick faster per rank (one rank makes ordinary spells instant) | Fast Casting | 5 first rank, 1 each further |
+| Casting one tick faster per rank (one rank makes one-tick spells instant; longer casts keep their remaining ticks) | Fast Casting | 5 first rank, 1 each further |
 
 **Drawback refund.** Drawbacks subtract from RP but, like ability penalties,
 are capped: total refund may not exceed 25 percent of the tier budget. A race
