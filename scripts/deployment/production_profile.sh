@@ -311,23 +311,23 @@ probe_warning()
 
 # Baseline: zero occurrences on GCC 13-16 and Clang 18-22 at the time the
 # tiers were introduced, so -Werror is safe.  A new baseline flag must first
-# be proven clean by the migration budget reaching zero for that class.
+# be proven clean by the migration budget reaching zero for that class.  In C,
+# -Wconversion also enables -Wsign-conversion, so it is switched off here and
+# back on in the analysis tier, whose flags come later.
 baseline_common=(-Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpointer-arith
   -Wformat-security -Wvla -Wredundant-decls -Wnested-externs -Wmissing-prototypes
   -Wjump-misses-init -Wshadow -Wdouble-promotion -Wfloat-equal -Wfloat-conversion
-  -Wwrite-strings -Wcast-qual -Wundef -Walloca -Wimplicit-fallthrough)
+  -Wwrite-strings -Wcast-qual -Wundef -Walloca -Wimplicit-fallthrough -Wconversion
+  -Wno-sign-conversion)
 baseline_gcc=(-Wtrampolines -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-args
   -Wflex-array-member-not-at-end -Wunterminated-string-initialization -Wcast-align=strict
   -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wformat-signedness)
 baseline_clang=(-Wcast-align)
 
-# Migration: value conversion, which the strict-C23 audit found in bulk, and
-# the null-dereference and alloc-zero checks, which depend on what the
-# optimizer proves and so stay off the -Werror tier.  In C, -Wconversion also
-# enables -Wsign-conversion, so it is switched off here and back on in the
-# analysis tier, whose flags come later.  Never combined with -Werror;
-# scripts/ci/check_warning_budget.py ratchets them down.
-migration_common=(-Wconversion -Wno-sign-conversion -Wnull-dereference)
+# Migration: the null-dereference and alloc-zero checks, which depend on what
+# the optimizer proves and so stay off the -Werror tier.  Never combined with
+# -Werror; scripts/ci/check_warning_budget.py ratchets them down.
+migration_common=(-Wnull-dereference)
 migration_gcc=(-Walloc-zero)
 migration_clang=()
 

@@ -139,13 +139,13 @@ baseline=$("$profile" --cc "$cc" --warnings baseline) || fail "baseline warning 
 baseline_flags=$(field "$baseline" WARNING_CFLAGS)
 [[ " $baseline_flags " == *" -Wall "* && " $baseline_flags " == *" -Wextra "* ]] ||
   fail "baseline tier lacks -Wall -Wextra: $baseline_flags"
-[[ " $baseline_flags " != *" -Wconversion "* ]] || fail "baseline tier carries a migration flag"
+[[ " $baseline_flags " != *" -Wnull-dereference "* ]] || fail "baseline tier carries a migration flag"
 migration=$("$profile" --cc "$cc" --warnings migration) || fail "migration warning probe failed"
 migration_flags=$(field "$migration" WARNING_CFLAGS)
 for flag in $baseline_flags; do
   [[ " $migration_flags " == *" $flag "* ]] || fail "migration tier dropped baseline flag $flag"
 done
-[[ " $migration_flags " == *" -Wconversion "* ]] || fail "migration tier lacks -Wconversion"
+[[ " $migration_flags " == *" -Wnull-dereference "* ]] || fail "migration tier lacks -Wnull-dereference"
 if "$profile" --cc "$cc" --warnings pedantic >/dev/null 2>&1; then
   fail "probe accepted an unknown warning tier"
 fi

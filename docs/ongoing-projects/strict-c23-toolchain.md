@@ -37,7 +37,7 @@ warning debt, and feature detection that strict flags cannot influence.
   -Wpointer-arith -Wformat-security -Wvla -Wredundant-decls -Wnested-externs
   -Wmissing-prototypes -Wjump-misses-init -Wshadow -Wdouble-promotion
   -Wfloat-equal -Wfloat-conversion -Wwrite-strings -Wcast-qual -Wundef -Walloca
-  -Wimplicit-fallthrough`, plus GCC's `-Wtrampolines -Walloc-size
+  -Wimplicit-fallthrough -Wconversion -Wno-sign-conversion`, plus GCC's `-Wtrampolines -Walloc-size
   -Wbidi-chars=any -Wcalloc-transposed-args -Wflex-array-member-not-at-end
   -Wunterminated-string-initialization -Wcast-align=strict -Wduplicated-cond
   -Wduplicated-branches -Wlogical-op -Wformat-signedness` and Clang's
@@ -45,9 +45,9 @@ warning debt, and feature detection that strict flags cannot influence.
   the Clang flag were promoted from the migration tier by steps 2.3 to 3.5.
   Clang 18 does not know `-Wjump-misses-init`, so the probe drops it there.
   Clean on all four compilers; `-Werror` is refused with any other tier.
-- Migration tier: value conversion (`-Wconversion`), plus `-Wnull-dereference` and
-  GCC's `-Walloc-zero`, which depend on what the optimizer proves and so stay
-  on the budget at zero rather than under `-Werror`. Held by
+- Migration tier: `-Wnull-dereference` and GCC's `-Walloc-zero`, which depend
+  on what the optimizer proves and so stay on the budget at zero rather than
+  under `-Werror`. Held by
   `scripts/ci/check_warning_budget.py` against `scripts/ci/warning_budget_gcc-16.txt`
   and `scripts/ci/warning_budget_clang-22.txt`; growth in any class fails the
   new `warning-budget` job. Counting is by distinct site with make output sync,
@@ -131,7 +131,7 @@ per compiler.
 | 3.4 | const string tables, read-only string parameters, owned strings through mutable pointers; qualifier classes at zero and promoted to baseline | 2532 | 3971 |
 | 3.5 | logic defects, dead branches, null guards, format attributes; `switch-enum` and `format-nonliteral` to the analysis tier; nine flags promoted to baseline | 2336 | 3853 |
 | 4 | `-Wsign-conversion` to the analysis tier; value conversion stays on the budget | 529 | 523 |
-| 5 | explicit narrowing casts, compound assignments, `dc_bonus` widened | 0 | 0 |
+| 5 | explicit narrowing casts, compound assignments, `dc_bonus` widened; `-Wconversion` promoted to baseline | 0 | 0 |
 
 Every step was also verified with a host `make test` (1483 tests pass) before
 it was committed, and each promotion to the baseline tier was first built at
@@ -509,6 +509,9 @@ Notes from the value conversion pass:
   instead of a `byte` that wrapped past 127. The logon record keeps its `int`
   fields and casts the `long` ids, because `struct last_entry` is written with
   `fwrite`.
+- `-Wconversion` moved to the baseline tier, with `-Wno-sign-conversion` after
+  it, after clean baseline builds with GCC 13 and Clang 18. The analysis
+  tier's `-Wsign-conversion` still comes later on its command line.
 - `check_warning_budget.py` refused every log without warnings, taking it for a
   build without the migration tier, so a clean migration build would have failed
   the budget job. It now accepts such a log when the budget file lists no
