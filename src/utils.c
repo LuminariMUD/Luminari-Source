@@ -31,6 +31,7 @@
 #include "character/feats.h"
 #include "combat/spec_abilities.h"
 #include "combat/assign_wpn_armor.h"
+#include "combat/projectiles.h"
 #include "wilderness/wilderness.h"
 #include "magic/domains_schools.h"
 #include "constants.h"
@@ -5533,6 +5534,100 @@ int get_feat_value(struct char_data *ch, int featnum)
   }
 
   return featval;
+}
+
+/* Four-arm capability (FEAT_FOUR_ARMS).  Grant sources, each tested on its
+ * own: mob feats for NPCs and for a PC in a wild shape with a disguise race,
+ * the PC's own feat, and APPLY_FEAT gear in ordinary slots.  An item worn in
+ * one of the four-arm slots may benefit from the arms but can never sustain
+ * them, so restoration does not depend on record order and no equipment
+ * supports itself. */
+bool has_four_arms(const struct char_data *ch)
+{
+  struct char_data *mutable_ch = (struct char_data *)ch;
+  struct obj_data *obj;
+  int i, j;
+
+  if (ch == NULL)
+    return false;
+
+  if (IS_NPC(ch) || (AFF_FLAGGED(mutable_ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(mutable_ch)))
+    return MOB_HAS_FEAT(mutable_ch, FEAT_FOUR_ARMS) > 0;
+
+  if (HAS_REAL_FEAT(mutable_ch, FEAT_FOUR_ARMS) > 0)
+    return true;
+
+  for (j = 0; j < NUM_WEARS; j++)
+  {
+    if (is_four_arm_wear_slot(j) || (obj = GET_EQ(ch, j)) == NULL)
+      continue;
+    for (i = 0; i < MAX_OBJ_AFFECT; i++)
+      if (obj->affected[i].location == APPLY_FEAT && obj->affected[i].modifier == FEAT_FOUR_ARMS)
+        return true;
+  }
+
+  return false;
+}
+
+/* The seven positions that exist only with four arms. */
+bool is_four_arm_wear_slot(int pos)
+{
+  switch (pos)
+  {
+  case WEAR_WIELD_3:
+  case WEAR_WIELD_4:
+  case WEAR_WIELD_2H_2:
+  case WEAR_ARMS_2:
+  case WEAR_HANDS_2:
+  case WEAR_WRIST_R2:
+  case WEAR_WRIST_L2:
+    return true;
+  default:
+    return false;
+  }
+}
+
+/* The second weapon pair: the three storage positions of the lower arms. */
+bool is_second_pair_wield_slot(int pos)
+{
+  return pos == WEAR_WIELD_3 || pos == WEAR_WIELD_4 || pos == WEAR_WIELD_2H_2;
+}
+
+/* The ordinary position that a four-arm slot doubles.  Base anatomy rules for
+ * that position (race tables, forms) carry over to the doubled slot. */
+int four_arm_slot_base(int pos)
+{
+  switch (pos)
+  {
+  case WEAR_WIELD_3:
+    return WEAR_WIELD_1;
+  case WEAR_WIELD_4:
+    return WEAR_WIELD_OFFHAND;
+  case WEAR_WIELD_2H_2:
+    return WEAR_WIELD_2H;
+  case WEAR_ARMS_2:
+    return WEAR_ARMS;
+  case WEAR_HANDS_2:
+    return WEAR_HANDS;
+  case WEAR_WRIST_R2:
+    return WEAR_WRIST_R;
+  case WEAR_WRIST_L2:
+    return WEAR_WRIST_L;
+  default:
+    return pos;
+  }
+}
+
+/* The second pair takes melee weapons only: no launchers and no ranged
+ * fire-weapons, so the one-launcher policy and its hand cost stay on the
+ * first pair.  Shared by the wear command and equip_char(). */
+bool second_pair_rejects_object(const struct obj_data *obj, int pos)
+{
+  if (obj == NULL || !is_second_pair_wield_slot(pos))
+    return false;
+  if (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON)
+    return true;
+  return is_launcher_weapon(obj);
 }
 
 int find_armor_type(int specType)

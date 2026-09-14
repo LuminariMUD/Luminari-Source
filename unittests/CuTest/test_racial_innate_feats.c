@@ -154,7 +154,7 @@ void TestDurisInnateFeatsAreRegisteredAsInnates(CuTest *tc)
 
   begin_innate_fixture(&fixture);
 
-  for (feat = FEAT_SUN_VULNERABILITY; feat <= FEAT_EXTRA_ARMS; feat++)
+  for (feat = FEAT_SUN_VULNERABILITY; feat <= FEAT_FOUR_ARMS; feat++)
   {
     CuAssertPtrNotNull(tc, feat_list[feat].name);
     CuAssertTrue(tc, strcmp(feat_list[feat].name, "Unused Feat") != 0);
@@ -164,7 +164,7 @@ void TestDurisInnateFeatsAreRegisteredAsInnates(CuTest *tc)
     CuAssertIntEquals(tc, feat == FEAT_EXTRA_ARMS, feat_list[feat].can_stack != 0);
     CuAssertIntEquals(tc, FEAT_TYPE_INNATE_ABILITY, feat_list[feat].feat_type);
   }
-  CuAssertIntEquals(tc, FEAT_EXTRA_ARMS + 1, FEAT_LAST_FEAT);
+  CuAssertIntEquals(tc, FEAT_FOUR_ARMS + 1, FEAT_LAST_FEAT);
 
   /* the repurposed haste feat follows the same rules */
   CuAssertTrue(tc, feat_list[FEAT_HASTE].in_game);

@@ -410,13 +410,29 @@ skip 18, so from the dire wolf onward each comment reads one higher than the
 real index; the warg and horde rows are real indexes 36 and 37 and are
 annotated as such.
 
-The Duris Thri-Kreen four-arm mechanic is deliberately not the full version
-(two more weapon slots, save-format migration, doubled wrist, sleeve and
-glove slots). The stand-in is `FEAT_EXTRA_ARMS`, the one stackable innate in
-the set: `perform_attacks()` in `src/combat/fight.c` adds one melee attack at
-full base attack bonus per rank, after the ranged routines so launchers and
-thrown weapons never gain it. Grant two ranks for the Thri-Kreen shape.
-Pricing is recorded in `docs/guides/PLAYER_RACES_REFERENCE.md`.
+`FEAT_EXTRA_ARMS`, the one stackable innate in the set, is the general
+"one more arm" trait: `perform_attacks()` in `src/combat/fight.c` adds one
+melee attack at full base attack bonus per rank, after the ranged routines so
+launchers and thrown weapons never gain it. It brings no equipment slots.
+
+The Duris Thri-Kreen four-arm mechanic is `FEAT_FOUR_ARMS`, tested through
+`has_four_arms()` in `src/utils.c` (never a race constant). Grant sources
+are mob feats for NPCs and disguised wild shapes, the character's own feat,
+and `APPLY_FEAT` items worn in ordinary slots; an item in one of the seven
+four-arm slots cannot sustain the arms. The slots are appended after the
+tail (`WEAR_WIELD_3`, `WEAR_WIELD_4`, `WEAR_WIELD_2H_2`, `WEAR_ARMS_2`,
+`WEAR_HANDS_2`, `WEAR_WRIST_R2`, `WEAR_WRIST_L2`; `NUM_WEARS` 51) and reuse
+the wield, arms, hands and wrist wear flags. `hands_have()` adds two hands;
+`hands_used()` counts the second pair. Weapons form two pairs: a pair holds
+its two one-handers or its one two-hander, never both, and the second pair
+takes melee weapons only (`second_pair_rejects_object()`), enforced in
+`perform_wear_impl()` and again in `equip_char()` so zone loads and object
+restoration cannot bypass it. Two-armed characters keep the old first-pair
+behavior. Lower sleeves join `apply_ac()`, enhancement, spell failure, armor
+penalty, max Dexterity, sleeve proficiency and whole-body conflicts.
+Saved object `Loc` 45..51 restore into the new slots. The design record is
+`docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md`; combat routing for the
+second pair is tracked there.
 
 When `NUM_FEATS` moves, regenerate `scripts/world/wtool_constants.json` with
 `python3 scripts/world/wtool.py constants sync --write`. Player-facing text

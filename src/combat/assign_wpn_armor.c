@@ -1494,6 +1494,26 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
     counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
+  /* lower arms (four arms): one more averaged piece, only when worn */
+  obj = GET_EQ(ch, WEAR_ARMS_2);
+  if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR)
+  {
+    num_pieces += 0.99;
+    switch (GET_OBJ_MATERIAL(obj))
+    {
+    case MATERIAL_ADAMANTINE:
+    case MATERIAL_MITHRIL:
+    case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DRAGONSCALE:
+    case MATERIAL_DRAGONBONE:
+    case MATERIAL_DIAMOND:
+    case MATERIAL_DARKWOOD:
+      counter += 1.1;
+      break;
+    }
+    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+  }
+
   enhancement_bonus += MAX(0, (int)(counter / num_pieces));
 
   return enhancement_bonus;
@@ -1511,7 +1531,8 @@ int compute_gear_spell_failure(struct char_data *ch)
   {
     obj = GET_EQ(ch, i);
     if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
-        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS || i == WEAR_SHIELD))
+        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS || i == WEAR_ARMS_2 ||
+         i == WEAR_SHIELD))
     {
       /* All equipped armor pieces must be bone to receive the Necromancer reduction. */
       has_armor = true;
@@ -1568,7 +1589,8 @@ int compute_gear_armor_penalty(struct char_data *ch)
   {
     obj = GET_EQ(ch, i);
     if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
-        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS || i == WEAR_SHIELD))
+        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS || i == WEAR_ARMS_2 ||
+         i == WEAR_SHIELD))
     {
       count++;
       /* ok we have an armor piece... */
@@ -1635,7 +1657,8 @@ int compute_gear_max_dex(struct char_data *ch)
   {
     obj = GET_EQ(ch, i);
     if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
-        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS || i == WEAR_SHIELD))
+        (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS || i == WEAR_ARMS_2 ||
+         i == WEAR_SHIELD))
     {
       /* ok we have an armor piece... */
       armor_max_dexterity = armor_list[GET_OBJ_VAL(obj, 1)].dexBonus;
@@ -1758,13 +1781,8 @@ int is_proficient_with_helm(struct char_data *ch)
   return FALSE;
 }
 
-int is_proficient_with_sleeves(struct char_data *ch)
+static int is_proficient_with_sleeve_piece(struct char_data *ch, struct obj_data *arm_armor)
 {
-  struct obj_data *arm_armor = GET_EQ(ch, WEAR_ARMS);
-
-  if (IS_NPC(ch))
-    return FALSE;
-
   if (!arm_armor)
     return TRUE;
 
@@ -1790,6 +1808,16 @@ int is_proficient_with_sleeves(struct char_data *ch)
   }
 
   return FALSE;
+}
+
+/* both sleeve pieces must be usable: the upper arms and, with four arms, the lower */
+int is_proficient_with_sleeves(struct char_data *ch)
+{
+  if (IS_NPC(ch))
+    return FALSE;
+
+  return is_proficient_with_sleeve_piece(ch, GET_EQ(ch, WEAR_ARMS)) &&
+         is_proficient_with_sleeve_piece(ch, GET_EQ(ch, WEAR_ARMS_2));
 }
 
 int is_proficient_with_leggings(struct char_data *ch)

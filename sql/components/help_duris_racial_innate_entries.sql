@@ -738,3 +738,31 @@ See also: FEAT INFO EXTRA ARMS, ATTACKS', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('EXTRA-ARMS', 'EXTRA-ARMS');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('FOUR-ARMS', 'Four Arms
+
+Requires: the four arms feat (racial innate)
+
+Two more arms.  A second weapon pair lets you wield two more one-handed
+weapons, or a second two-handed weapon, in your lower hands: four
+one-handers, two two-handers, or a two-hander beside a pair of one-handers.
+Each pair holds either its one-handers or its two-hander, never both.  Held
+items and shields draw on the same four hands, so three weapons and a
+shield, or two weapons and two held items, also fit.  The lower hands
+manage melee weapons only: no bows, crossbows or slings there, and the
+usual rule of one ranged weapon and no mixing of ranged and melee still
+counts every hand.
+
+You also gain a second set of sleeves and gloves and two more wrist slots.
+Lower sleeves count as armor like the upper ones.  Wear, wield and remove
+work as before; the lower slots take the overflow.
+
+An item that grants four arms must be worn in an ordinary slot.  Gear in the
+extra slots cannot itself be what keeps the arms.
+
+See also: FEAT INFO FOUR ARMS, WIELD, WEAR, EXTRA-ARMS', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FOUR-ARMS', 'FOUR-ARMS');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('FOUR-ARMS', 'FOURARMS');

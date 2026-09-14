@@ -431,6 +431,7 @@ take the higher.
 | Chance to absorb a damaging spell (level/2 percent) | Spell Absorb | 2 |
 | Caster level bonus (level / 6) | Magical Heritage | 2 |
 | Extra melee attack at full attack bonus, per rank | Extra Arms | 3 per rank |
+| Second weapon pair and doubled arm, hand, wrist slots | Four Arms | provisional, unvalidated |
 
 **Drawback refund.** Drawbacks subtract from RP but, like ability penalties,
 are capped: total refund may not exceed 25 percent of the tier budget. A race
@@ -450,11 +451,14 @@ players route around drawbacks and keep the power.
 | Blind in direct sunlight | Dayblind | -4 |
 | 10 percent more damage from spells | Magic Vulnerability | -1 |
 
-Extra Arms is the stand-in chosen for the Duris Thri-Kreen four-arm
-mechanic (issue #168): the study priced four wielded weapons plus doubled
-wrist, sleeve and glove slots at 8 RP, so the two-rank Thri-Kreen grant
-(two extra full-bonus swings, no extra slots, no save-format change) is
-priced at 6 RP. A single rank at 3 RP is the general "one more arm" trait.
+Extra Arms is the general "one more arm" trait at 3 RP per rank (one extra
+full-bonus swing, no extra slots). The Duris Thri-Kreen four-arm mechanic
+(issue #168) is the separate Four Arms innate: a second weapon pair plus
+doubled sleeve, glove and wrist slots. Its price is provisional and not yet
+validated; the study's 8 RP figure exceeds the single-trait cap of every tier,
+so the race's tier and cost are open decisions recorded in
+`docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md`. Do not grant both traits
+automatically.
 
 Alignment restrictions and forced class respecs are not priced. They shape
 who plays the race; they do not change how strong the race is once played.

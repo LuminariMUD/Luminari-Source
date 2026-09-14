@@ -1,6 +1,9 @@
 # Thri-Kreen four-arm wielding: Duris study and LuminariMUD mapping
 
-Status: reviewed design study for issue #168, updated 2026-09-14. The extra-attack
+Status: implementation in progress on branch
+`feat/168-thri-kreen-four-arm-wielding`, updated 2026-09-14. Step 1 of the
+sequence in Part 4 is implemented and tested; steps 2 to 4 are open. See
+"Part 0: progress and handoff" for the exact state. The extra-attack
 stand-in first proposed for this issue was rejected; the target is the full
 mechanic: real weapon slots, real doubled limb slots, real extra swings, and
 a save format that carries them. Duris source verified at
@@ -25,6 +28,79 @@ Companion references: the Duris racial mechanics gap list and race conversion
 study (revision-pinned links in issue #168), race point budgets in
 `docs/guides/PLAYER_RACES_REFERENCE.md`, save format in
 `docs/systems/SAVE_SYSTEMS_BREAKDOWN.md`.
+
+## Part 0: progress and handoff
+
+Read this first when taking the work over. Parts 1 to 4 are the reviewed
+design; the line numbers in them are from the review baseline and have
+moved. Every item below is on the branch; nothing here is on `master`.
+
+### Done: step 1 (constants, feat, tables, eligibility, hand budget, placement)
+
+| Area | What exists now |
+|------|-----------------|
+| Constants | `WEAR_WIELD_3` 44 .. `WEAR_WRIST_L2` 50, `NUM_WEARS` 51, `FEAT_FOUR_ARMS` 1317, `FEAT_LAST_FEAT` 1318, `NUM_FEATS` 1319 in `src/structs.h`. Attack types THIRD/FOURTH are not added yet (step 3). |
+| Capability | `has_four_arms()`, `is_four_arm_wear_slot()`, `is_second_pair_wield_slot()`, `four_arm_slot_base()`, `second_pair_rejects_object()` in `src/utils.c`, declared in `src/utils.h`. Grant sources: mob feats (NPC, disguised wild shape), `HAS_REAL_FEAT`, `APPLY_FEAT` gear in ordinary slots only. |
+| Feat | `feato(FEAT_FOUR_ARMS, ...)` in `assign_feats()`: innate, in game, not learnable, not stackable. `test_racial_innate_feats.c` sentinel moved to `FEAT_FOUR_ARMS + 1`. |
+| Anatomy gate | `character_wear_slot_restriction()` refuses the seven slots without the capability before the NPC early return, then maps each doubled slot to its base slot for the race table (Trelux cannot use lower hands). |
+| Hand budget | `hands_have()` +2 with four arms (Vestigial Arm still stacks); `hands_used()` counts WIELD_3/WIELD_4 as one and WIELD_2H_2 as two. |
+| Placement | In `src/obj/act.item.c`: `pick_one_hand_wield_slot()` and `pick_two_hand_wield_slot()` implement the pair rules; `perform_wear_impl()` re-runs the anatomy gate and the second-pair check on the resolved slot; sleeves, gloves and wrists overflow to the lower slots; all seven positions are in `wear_bitvectors`, `already_wearing`, `wear_message` and the `find_eq_pos` keyword table (as `!RESERVED!`, reached through the base keywords). `is_wielding_type()` and the `wield` ranged policy see the second pair. |
+| Shared boundary | `equip_char()` drops to inventory on the anatomy gate or `second_pair_rejects_object()`, so zone `E`, `auto_equip()` and pets cannot bypass them. |
+| Armor consumers | `apply_ac()`, `compute_gear_enhancement_bonus()` (lower piece counted only when worn), spell failure, armor penalty, max Dex, `is_proficient_with_sleeves()` (both pieces), the AC enhancement and dragonskin DR blocks in `fight.c`, and `rol_object_wear_conflicts()`. `do_equipment()` marks proficiency on all wield slots and lower sleeves. |
+| Display | `wear_where`, `equipment_types` (zedit lists them), `eq_ordering_1` (lower arms after arms, lower wrists after wrists, lower hands after hands, second pair after the first pair). |
+| Persistence | Seven `auto_equip()` cases in `src/obj/objsave.c` (`Loc` 45..51). No provider/dependent ordering or deferred cleanup yet (step 2). |
+| Help/docs | `FOUR-ARMS` entry in `lib/text/help/help.hlp` and `sql/components/help_duris_racial_innate_entries.sql`, applied to the development database and verified identical. `GAME_MECHANICS_SYSTEMS.md`, `PLAYER_RACES_REFERENCE.md` (stand-in text reconciled, Four Arms price marked provisional) and `SAVE_SYSTEMS_BREAKDOWN.md` updated. `wtool_constants.json` regenerated. |
+| Tests | `unittests/CuTest/test_four_arms.c` (eight `TestFourArms*` cases through `perform_wear()`, `equip_char()` and `test_auto_equip_loaded_object()`), registered in `Makefile.am` and `CMakeLists.txt`. `test_race_equivalence.c` expects the seven slots closed for a plain human. Full `make test` passes (1462 tests). |
+
+Decisions taken in step 1 that Part 3 left open:
+
+- Two-armed characters keep the old first-pair placement exactly (a
+  Vestigial Arm alchemist may still put a one-hander beside a two-hander).
+  Pair exclusivity is enforced only while the character has four arms.
+- A one-hander fills WIELD_1, OFFHAND, WIELD_3, WIELD_4 in that order,
+  skipping a pair whose 2H position is used. A two-hander takes the first
+  pair with no weapons at all; with a one-hander in each pair it is refused
+  with "free a pair of hands of weapons" even when two hands are free.
+- Launchers and fire-weapons are refused in the second pair; the one-ranged
+  and no-mixing policy checks every wield slot through `is_wielding_type()`.
+- Held items and shields stay on the existing slots and share the budget.
+
+### Open: step 2 (loss handling, save/restore ordering)
+
+Not started. Today, losing the capability while wearing extra-slot gear
+leaves that gear equipped: `hands_available()` logs a SYSERR and returns -1,
+`character_wear_slot_restriction()` reports the slot as closed, and nothing
+removes the items. Required per Part 3 "Removal, save bookkeeping and loss
+of the feat": a reconciliation at completed transitions with per-character
+deferral across `save_char()`'s unequip/re-equip, the documented removal
+order, forced transfers via the object-transfer machinery, and restoration
+that places ordinary-slot providers before dependent extra-slot gear
+regardless of record order. Tests listed in Part 4 under "Grant
+intrinsically..." and "Save a fully equipped item-supported PC...".
+
+### Open: step 3 (combat routing and second-pair attacks)
+
+Not started. `get_wielded()`, `is_dual_wielding()`,
+`dual_wielding_penalty()`, `compute_hit_damage()` (the WIELD_2H rewrite to
+`ATTACK_TYPE_TWOHAND`), `perform_attacks()` and the display modes still know
+only the first pair. Weapons in WIELD_3/WIELD_4/WIELD_2H_2 currently equip
+but never swing. See Part 3 "Combat routing and attack generation".
+
+### Open: step 4 (release decisions)
+
+Race registration, RP price and tier, psionic defence, venom, mount rule.
+See Part 3 "Race data" and "Race point price". Rollback procedure for the
+save format still needs the fixture test described in "Persistence and
+rollback".
+
+### How to verify
+
+```
+make -j$(nproc) cutest && CUTEST_FILTER=FourArms ./cutest
+make -j$(nproc) test && make install
+python3 scripts/ci/check_build_parity.py
+python3 scripts/world/wtool.py constants sync --check
+```
 
 ## Part 1: how Duris does it
 

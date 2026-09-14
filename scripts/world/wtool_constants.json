@@ -136,7 +136,7 @@
     },
     "NUM_FEATS": {
       "source": "src/structs.h:NUM_FEATS",
-      "value": 1318
+      "value": 1319
     },
     "NUM_GENDERS": {
       "source": "src/structs.h:NUM_GENDERS",
@@ -188,7 +188,7 @@
     },
     "NUM_WEARS": {
       "source": "src/structs.h:NUM_WEARS",
-      "value": 44
+      "value": 51
     },
     "PORTAL_CHECKFLAGS": {
       "source": "src/structs.h:PORTAL_CHECKFLAGS",
@@ -5682,6 +5682,48 @@
           "name": "Worn on tail",
           "required_wear_index": 34,
           "required_wear_macro": "ITEM_WEAR_TAIL"
+        },
+        {
+          "index": 44,
+          "name": "Wielded in third hand",
+          "required_wear_index": 13,
+          "required_wear_macro": "ITEM_WEAR_WIELD"
+        },
+        {
+          "index": 45,
+          "name": "Wielded in fourth hand",
+          "required_wear_index": 13,
+          "required_wear_macro": "ITEM_WEAR_WIELD"
+        },
+        {
+          "index": 46,
+          "name": "Wielded twohands, second pair",
+          "required_wear_index": 13,
+          "required_wear_macro": "ITEM_WEAR_WIELD"
+        },
+        {
+          "index": 47,
+          "name": "Worn on lower arms",
+          "required_wear_index": 8,
+          "required_wear_macro": "ITEM_WEAR_ARMS"
+        },
+        {
+          "index": 48,
+          "name": "Worn on lower hands",
+          "required_wear_index": 7,
+          "required_wear_macro": "ITEM_WEAR_HANDS"
+        },
+        {
+          "index": 49,
+          "name": "Worn around lower right wrist",
+          "required_wear_index": 12,
+          "required_wear_macro": "ITEM_WEAR_WRIST"
+        },
+        {
+          "index": 50,
+          "name": "Worn around lower left wrist",
+          "required_wear_index": 12,
+          "required_wear_macro": "ITEM_WEAR_WRIST"
         }
       ],
       "source_names": "src/constants.c:equipment_types",

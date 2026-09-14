@@ -1024,6 +1024,23 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4),
                     get_char_affect_modifier(ch, SPELL_MAGIC_VESTMENT, APPLY_SPECIAL));
   }
+  if ((ac_piece = GET_EQ(ch, WEAR_ARMS_2)) != NULL && GET_OBJ_TYPE(ac_piece) == ITEM_ARMOR)
+  {
+    switch (GET_OBJ_MATERIAL(ac_piece))
+    {
+    case MATERIAL_ADAMANTINE:
+    case MATERIAL_MITHRIL:
+    case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DRAGONSCALE:
+    case MATERIAL_DRAGONBONE:
+    case MATERIAL_DIAMOND:
+    case MATERIAL_DARKWOOD:
+      ac_bonus++;
+      break;
+    }
+    ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4),
+                    get_char_affect_modifier(ch, SPELL_MAGIC_VESTMENT, APPLY_SPECIAL));
+  }
   if ((ac_piece = GET_EQ(ch, WEAR_LEGS)) != NULL && GET_OBJ_TYPE(ac_piece) == ITEM_ARMOR)
   {
     switch (GET_OBJ_MATERIAL(ac_piece))
@@ -4983,6 +5000,15 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type __attribute
     damage_reduction += 1;
     if (display)
       send_to_char(ch, "%-30s: %d\r\n", "Dragonskin Arms Armor", 1);
+  }
+  if (GET_EQ(ch, WEAR_ARMS_2) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_ARMS_2)) == ITEM_ARMOR &&
+      ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_ARMS_2)) == MATERIAL_DRAGONHIDE) ||
+       (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_ARMS_2)) == MATERIAL_DRAGONSCALE) ||
+       (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_ARMS_2)) == MATERIAL_DRAGONBONE)))
+  {
+    damage_reduction += 1;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Dragonskin Lower Arms Armor", 1);
   }
   if (GET_EQ(ch, WEAR_LEGS) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_LEGS)) == ITEM_ARMOR &&
       ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_LEGS)) == MATERIAL_DRAGONHIDE) ||

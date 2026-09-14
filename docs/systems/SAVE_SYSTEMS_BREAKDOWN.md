@@ -38,7 +38,9 @@ Levl: 1
 - **Format**: Custom binary/text format
 - **Functions**: `Crash_save()`, `Crash_rentsave()` in `objsave.c`
 - **Contains**:
-  - Equipment worn by character
+  - Equipment worn by character (`Loc` is wear position + 1; positions 44..50,
+    the four-arm slots added for issue #168, serialize as `Loc` 45..51 and
+    restore only for a character with four arms, otherwise to inventory)
   - Inventory items
   - Bag contents (10 bags per player)
   - Object properties and modifications

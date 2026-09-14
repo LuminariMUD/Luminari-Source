@@ -768,6 +768,27 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
       if (!object_can_wear_on_tail(obj))
         location = LOC_INVENTORY;
       break;
+    /* four-arm positions: same wear flags as the slots they double; the
+     * anatomy and second-pair checks happen in equip_char() */
+    case WEAR_WIELD_3:
+    case WEAR_WIELD_4:
+    case WEAR_WIELD_2H_2:
+      if (!CAN_WEAR(obj, ITEM_WEAR_WIELD))
+        location = LOC_INVENTORY;
+      break;
+    case WEAR_ARMS_2:
+      if (!CAN_WEAR(obj, ITEM_WEAR_ARMS))
+        location = LOC_INVENTORY;
+      break;
+    case WEAR_HANDS_2:
+      if (!CAN_WEAR(obj, ITEM_WEAR_HANDS))
+        location = LOC_INVENTORY;
+      break;
+    case WEAR_WRIST_R2:
+    case WEAR_WRIST_L2:
+      if (!CAN_WEAR(obj, ITEM_WEAR_WRIST))
+        location = LOC_INVENTORY;
+      break;
 
     default:
       location = LOC_INVENTORY;

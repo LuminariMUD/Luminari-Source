@@ -6183,6 +6183,13 @@ void assign_feats(void)
         "Extra limbs join every melee round.  Each rank of this innate grants one additional "
         "melee attack at your full base attack bonus.  It brings no additional equipment slots "
         "and does nothing with ranged weapons.");
+  feato(FEAT_FOUR_ARMS, "four arms", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "second weapon pair plus lower arm, hand and wrist slots",
+        "Two more arms.  You can wield a second pair of weapons (two more one-handers, or a "
+        "second two-hander), and wear a second set of sleeves and gloves and two more wrist "
+        "items.  Held items and shields draw on the same four hands.  The second pair takes "
+        "melee weapons only.  Gear worn in the extra slots cannot itself be what grants "
+        "the arms.");
   feat_prereq_ability(FEAT_SHADOW, ABILITY_STEALTH, 21);
   feat_prereq_attribute(FEAT_CALM, AB_CHA, 19);
   feat_prereq_ability(FEAT_ESTABLISH_CAMP, ABILITY_SURVIVAL, 3);

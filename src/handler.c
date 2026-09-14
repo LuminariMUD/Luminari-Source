@@ -2436,6 +2436,7 @@ int apply_ac(struct char_data *ch, int eq_pos)
   case WEAR_HEAD:
   case WEAR_LEGS:
   case WEAR_ARMS:
+  case WEAR_ARMS_2:
   case WEAR_SHIELD:
   case WEAR_TAIL:
     factor = 1;
@@ -2600,7 +2601,7 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
     obj_to_char(obj, ch);
     return;
   }
-  if (!character_can_use_wear_slot(ch, pos))
+  if (!character_can_use_wear_slot(ch, pos) || second_pair_rejects_object(obj, pos))
   {
     obj_to_char(obj, ch);
     return;
