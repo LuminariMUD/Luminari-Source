@@ -36,11 +36,12 @@ warning debt, and feature detection that strict flags cannot influence.
 - Baseline tier: `-Wall -Wextra -Wstrict-prototypes -Wold-style-definition
   -Wpointer-arith -Wformat-security -Wvla -Wredundant-decls -Wnested-externs
   -Wmissing-prototypes -Wjump-misses-init -Wshadow -Wdouble-promotion
-  -Wfloat-equal -Wfloat-conversion` plus GCC's `-Wtrampolines
+  -Wfloat-equal -Wfloat-conversion -Wwrite-strings -Wcast-qual` plus GCC's
+  `-Wtrampolines
   -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-args
   -Wflex-array-member-not-at-end -Wunterminated-string-initialization`. The
-  last eight common flags were promoted from the migration tier by steps 2.3,
-  2.4, 3.1, 3.3, and 3.2; Clang 18 does not know `-Wjump-misses-init`, so the probe
+  last ten common flags were promoted from the migration tier by steps 2.3,
+  2.4, 3.1, 3.3, 3.2, and 3.4; Clang 18 does not know `-Wjump-misses-init`, so the probe
   drops it there. Clean on all four
   compilers; `-Werror` is refused with any other tier.
 - Migration tier: conversions, switch coverage, `-Wformat=2`,
@@ -126,7 +127,7 @@ per compiler.
 | 3.3 | 265 shadowing declarations renamed within their scope | 3822 | 5279 |
 | 3.3 tail | `REMOVE_FROM_LIST_USING`; last three renames; `shadow` at zero; flag promoted to baseline | 3818 | 5275 |
 | 3.2 | `float` is `double`; unused kdtree float API removed; float `MIN`/`MAX` clamps fixed; float-to-int conversions explicit; float classes at zero and promoted to baseline | 2824 | 4263 |
-| 3.4 | const string tables, read-only string parameters, owned strings through mutable pointers; qualifier classes at zero | 2532 | 3971 |
+| 3.4 | const string tables, read-only string parameters, owned strings through mutable pointers; qualifier classes at zero and promoted to baseline | 2532 | 3971 |
 
 Every step was also verified with a host `make test` (1483 tests pass) before
 it was committed, and each promotion to the baseline tier was first built at
@@ -401,6 +402,8 @@ Notes from step 3.4:
 - The pre-commit hook pins clang-format 18.1.8 and never formats
   `src/olc/genolc.c` or `src/utils.h`; format with that binary and leave
   those two files alone, or the hook and a local clang-format disagree.
+- `-Wwrite-strings` and `-Wcast-qual` moved to the baseline tier after clean
+  baseline builds with GCC 13 and Clang 18.
 
 ## Remaining work
 

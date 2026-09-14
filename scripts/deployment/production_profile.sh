@@ -314,7 +314,8 @@ probe_warning()
 # be proven clean by the migration budget reaching zero for that class.
 baseline_common=(-Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpointer-arith
   -Wformat-security -Wvla -Wredundant-decls -Wnested-externs -Wmissing-prototypes
-  -Wjump-misses-init -Wshadow -Wdouble-promotion -Wfloat-equal -Wfloat-conversion)
+  -Wjump-misses-init -Wshadow -Wdouble-promotion -Wfloat-equal -Wfloat-conversion
+  -Wwrite-strings -Wcast-qual)
 baseline_gcc=(-Wtrampolines -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-args
   -Wflex-array-member-not-at-end -Wunterminated-string-initialization)
 baseline_clang=()
@@ -324,9 +325,9 @@ baseline_clang=()
 # allocation size, duplicated logic, fallthrough).  Never combined with
 # -Werror; scripts/ci/check_warning_budget.py ratchets them down.
 migration_common=(-Wconversion -Wsign-conversion
-  -Wswitch-enum -Wcast-qual -Wundef
+  -Wswitch-enum -Wundef
   -Wnull-dereference -Wformat=2
-  -Walloca -Wimplicit-fallthrough -Wwrite-strings)
+  -Walloca -Wimplicit-fallthrough)
 migration_gcc=(-Wformat-signedness -Wcast-align=strict -Walloc-zero -Wduplicated-cond
   -Wduplicated-branches -Wlogical-op)
 migration_clang=(-Wcast-align)
