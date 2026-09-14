@@ -35,11 +35,12 @@ warning debt, and feature detection that strict flags cannot influence.
   `CMakeLists.txt` (`LUMINARI_WARNING_TIER`). `DEVELOPER_MODE` is gone.
 - Baseline tier: `-Wall -Wextra -Wstrict-prototypes -Wold-style-definition
   -Wpointer-arith -Wformat-security -Wvla -Wredundant-decls -Wnested-externs
-  -Wmissing-prototypes -Wjump-misses-init -Wshadow` plus GCC's `-Wtrampolines
+  -Wmissing-prototypes -Wjump-misses-init -Wshadow -Wdouble-promotion
+  -Wfloat-equal -Wfloat-conversion` plus GCC's `-Wtrampolines
   -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-args
   -Wflex-array-member-not-at-end -Wunterminated-string-initialization`. The
-  last five common flags were promoted from the migration tier by steps 2.3,
-  2.4, 3.1, and 3.3; Clang 18 does not know `-Wjump-misses-init`, so the probe
+  last eight common flags were promoted from the migration tier by steps 2.3,
+  2.4, 3.1, 3.3, and 3.2; Clang 18 does not know `-Wjump-misses-init`, so the probe
   drops it there. Clean on all four
   compilers; `-Werror` is refused with any other tier.
 - Migration tier: conversions, switch coverage, `-Wformat=2`,
@@ -125,7 +126,7 @@ per compiler.
 | 3.1 | case-local declarations scoped or hoisted; `jump-misses-init` at zero; flag promoted to baseline | 4087 | 5437 |
 | 3.3 | 265 shadowing declarations renamed within their scope | 3822 | 5279 |
 | 3.3 tail | `REMOVE_FROM_LIST_USING`; last three renames; `shadow` at zero; flag promoted to baseline | 3818 | 5275 |
-| 3.2 | `float` is `double`; unused kdtree float API removed; float `MIN`/`MAX` clamps fixed; float-to-int conversions explicit; float classes at zero | 2824 | 4263 |
+| 3.2 | `float` is `double`; unused kdtree float API removed; float `MIN`/`MAX` clamps fixed; float-to-int conversions explicit; float classes at zero and promoted to baseline | 2824 | 4263 |
 
 Every step was also verified with a host `make test` (1483 tests pass) before
 it was committed, and each promotion to the baseline tier was first built at
@@ -358,6 +359,11 @@ Notes from step 3.2:
   suite caught two that compared the new doubles against `float` literals.
 - The bundled `snprintf` converts its `long double` values explicitly, and
   `util/shopconv` reads profit factors as `double`.
+- `-Wdouble-promotion`, `-Wfloat-equal`, and `-Wfloat-conversion` moved to the
+  baseline tier after clean baseline builds with GCC 13 and Clang 18.
+  `-Wfloat-conversion` was never listed on its own (`-Wconversion` enables
+  it), so listing it in the baseline keeps float-to-integer narrowing fatal
+  while the rest of `-Wconversion` stays on the budget.
 
 ## Remaining work
 
