@@ -24,6 +24,7 @@
 #include "quest/quest.h"
 #include "combat/assign_wpn_armor.h"
 #include "olc/genolc.h"
+#include "olc/genobj.h"
 #include "crafting_new.h"
 #include "activity_manager.h"
 #include "actions.h"
@@ -46,7 +47,6 @@
 #include "crafting_recipes.h"
 
 
-int copy_object(struct obj_data *to, struct obj_data *from);
 void process_craft_critical_success(struct char_data *ch, struct obj_data *obj);
 int get_rapid_talent_bonus(struct char_data *ch, int skill);
 int get_insightful_talent_bonus(struct char_data *ch, int skill);
@@ -11209,7 +11209,7 @@ static void impl_do_reforge_new_(struct char_data *ch, char *argument,
       char *updated = replace_substring_ci(obj->name, obj->restring_identifier, new_type_str);
       if (updated)
       {
-        free(obj->name);
+        free_object_string(obj, obj->name);
         obj->name = updated;
       }
     }
@@ -11221,7 +11221,7 @@ static void impl_do_reforge_new_(struct char_data *ch, char *argument,
           replace_substring_ci(obj->short_description, obj->restring_identifier, new_type_str);
       if (updated)
       {
-        free(obj->short_description);
+        free_object_string(obj, obj->short_description);
         obj->short_description = updated;
       }
     }
@@ -11233,7 +11233,7 @@ static void impl_do_reforge_new_(struct char_data *ch, char *argument,
           replace_substring_ci(obj->description, obj->restring_identifier, new_type_str);
       if (updated2)
       {
-        free(obj->description);
+        free_object_string(obj, obj->description);
         obj->description = updated2;
       }
     }

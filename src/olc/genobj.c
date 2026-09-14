@@ -531,6 +531,24 @@ void free_object_strings_proto(struct obj_data *obj)
     free(obj->restring_identifier);
 }
 
+/* Free one of an object's strings unless the object still shares it with its
+ * prototype. A prototype always owns its own strings. */
+void free_object_string(const struct obj_data *obj, char *str)
+{
+  const struct obj_data *proto;
+
+  if (str == NULL)
+    return;
+  if (obj_proto != NULL && VALID_OBJ_RNUM(obj))
+  {
+    proto = &obj_proto[GET_OBJ_RNUM(obj)];
+    if (proto != obj && (str == proto->name || str == proto->description ||
+                         str == proto->short_description || str == proto->action_description))
+      return;
+  }
+  free(str);
+}
+
 static void copy_object_strings(struct obj_data *to, struct obj_data *from)
 {
   to->name = from->name ? strdup(from->name) : NULL;

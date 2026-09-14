@@ -15,6 +15,7 @@
 #include "../../src/comms/boards.h"
 #include "../../src/obj/item.h"
 #include "../../src/olc/genmob.h"
+#include "../../src/olc/genobj.h"
 #include "../../src/olc/genolc.h"
 #include "../../src/olc/genwld.h"
 #include "../../src/olc/genzon.h"
@@ -2178,4 +2179,35 @@ void Test_replace_str_without_a_match_keeps_the_string(CuTest *tc)
   CuAssertStrEquals(tc, "the slow fox", text);
 
   free(text);
+}
+
+void Test_free_object_string_keeps_prototype_strings(CuTest *tc)
+{
+  struct obj_data prototype;
+  struct obj_data object;
+  struct obj_data *saved_obj_proto;
+  obj_rnum saved_top_of_objt;
+
+  memset(&prototype, 0, sizeof(prototype));
+  prototype.name = CuMutableString("prototype keywords");
+  prototype.short_description = CuMutableString("a prototype");
+  GET_OBJ_RNUM(&prototype) = 0;
+  object = prototype;
+
+  saved_obj_proto = obj_proto;
+  saved_top_of_objt = top_of_objt;
+  obj_proto = &prototype;
+  top_of_objt = 0;
+
+  /* CuMutableString is not heap memory, so freeing it would abort the suite. */
+  free_object_string(&object, object.name);
+  free_object_string(&object, object.short_description);
+  object.name = strdup("restrung keywords");
+  CuAssertPtrNotNull(tc, object.name);
+  free_object_string(&object, object.name);
+
+  obj_proto = saved_obj_proto;
+  top_of_objt = saved_top_of_objt;
+  CuAssertStrEquals(tc, "prototype keywords", prototype.name);
+  CuAssertStrEquals(tc, "a prototype", prototype.short_description);
 }

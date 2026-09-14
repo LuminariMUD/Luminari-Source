@@ -39,6 +39,7 @@
 #include "quest/quest.h"
 #include "combat/assign_wpn_armor.h"
 #include "olc/genolc.h"
+#include "olc/genobj.h"
 #include "wilderness/resource_system.h"
 #include "wilderness/harvest.h"
 
@@ -812,14 +813,11 @@ void reset_harvesting_rooms(void)
       GET_OBJ_VAL(obj, 0) = dice(2, 3);
 
       /* strdup()ed in node_foo() functions */
-      if (obj->name)
-        free(obj->name);
+      free_object_string(obj, obj->name);
       obj->name = node_keywords(GET_OBJ_MATERIAL(obj));
-      if (obj->short_description)
-        free(obj->short_description);
+      free_object_string(obj, obj->short_description);
       obj->short_description = node_sdesc(GET_OBJ_MATERIAL(obj));
-      if (obj->description)
-        free(obj->description);
+      free_object_string(obj, obj->description);
       obj->description = node_desc(GET_OBJ_MATERIAL(obj));
       obj_to_room(obj, cnt);
     }
@@ -1193,22 +1191,20 @@ static int restring(char *argument, struct obj_data *kit, struct char_data *ch)
   parse_at(argument);
 
   /* success!! */
-  if (obj->name)
-    free(obj->name);
+  free_object_string(obj, obj->name);
   obj->name = strdup(argument);
   strip_colors(obj->name);
-  if (obj->short_description)
-    free(obj->short_description);
+  free_object_string(obj, obj->short_description);
   obj->short_description = strdup(argument);
   snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
-  if (obj->description)
-    free(obj->description);
-  if (obj->description)
-    free(obj->description);
+  free_object_string(obj, obj->description);
   obj->description = strdup(buf);
   if (obj->ex_description)
   {
-    free_ex_descriptions(obj->ex_description);
+    /* A live object shares its prototype's extra descriptions until changed. */
+    if (obj_proto == NULL || !VALID_OBJ_RNUM(obj) ||
+        obj->ex_description != obj_proto[GET_OBJ_RNUM(obj)].ex_description)
+      free_ex_descriptions(obj->ex_description);
     struct extra_descr_data *new_descr;
     CREATE(new_descr, struct extra_descr_data, 1);
     new_descr->keyword = strdup(argument);
@@ -1609,18 +1605,15 @@ static void update_bone_armor_descriptions(struct obj_data *obj, char *argument)
 
   parse_at(argument);
 
-  if (obj->name)
-    free(obj->name);
+  free_object_string(obj, obj->name);
   obj->name = strdup(argument);
   strip_colors(obj->name);
 
-  if (obj->short_description)
-    free(obj->short_description);
+  free_object_string(obj, obj->short_description);
   obj->short_description = strdup(argument);
 
   snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
-  if (obj->description)
-    free(obj->description);
+  free_object_string(obj, obj->description);
   obj->description = strdup(buf);
 }
 
@@ -1912,19 +1905,16 @@ static int reforge(char *argument, struct obj_data *kit, struct char_data *ch)
     snprintf(buf, sizeof(buf), "a reforged %s %s", armor_list[GET_OBJ_VAL(obj, 1)].name, bonus);
   }
 
-  if (obj->name)
-    free(obj->name);
+  free_object_string(obj, obj->name);
   obj->name = strdup(buf);
   strip_colors(obj->name);
-  if (obj->short_description)
-    free(obj->short_description);
+  free_object_string(obj, obj->short_description);
   obj->short_description = strdup(buf);
 
   /* Fix string memory leak - CAP modifies the string in-place, but strdup creates a leak */
   char *temp_str = strdup(obj->short_description);
   snprintf(buf, sizeof(buf), "%s lies here.", CAP(temp_str));
-  if (obj->description)
-    free(obj->description);
+  free_object_string(obj, obj->description);
   obj->description = strdup(buf);
   free(temp_str);
 
@@ -2470,16 +2460,13 @@ static int create(char *argument, struct obj_data *kit, struct char_data *ch, in
     parse_at(argument);
 
     /* restringing aspect */
-    if (mold->short_description)
-      free(mold->short_description);
+    free_object_string(mold, mold->short_description);
     mold->short_description = strdup(argument);
     snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
-    if (mold->description)
-      free(mold->description);
+    free_object_string(mold, mold->description);
     mold->description = strdup(buf);
     strip_colors(argument);
-    if (mold->name)
-      free(mold->name);
+    free_object_string(mold, mold->name);
     mold->name = strdup(argument); /*keywords, leave last*/
 
     send_to_char(ch, "You begin to craft %s.\r\n", mold->short_description);
