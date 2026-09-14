@@ -16294,15 +16294,6 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   /***/
   /*  End ranged attacks ---------------------------------------------------- */
 
-  /* extra arms (the Thri-Kreen four-arm stand-in): each rank of the racial
-   * innate is one more melee attack at full base attack bonus.  It sits after
-   * the ranged routines on purpose so bows and thrown weapons never gain it. */
-  if (HAS_FEAT(ch, FEAT_EXTRA_ARMS) > 0)
-  {
-    bonus_mainhand_attacks += HAS_FEAT(ch, FEAT_EXTRA_ARMS);
-    attacks_at_max_bab += HAS_FEAT(ch, FEAT_EXTRA_ARMS);
-  }
-
   /************************/
   /* Process Melee Attacks -------------------------------------------------- */
   // melee: now lets determine base attack(s) and resulting possible penalty

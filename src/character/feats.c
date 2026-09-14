@@ -6177,12 +6177,6 @@ void assign_feats(void)
         "summonhorde: call orc warriors to your side 1/day",
         "You can use 'summonhorde' once per day to call two to four orc warriors who follow you "
         "for a time.");
-  /* stackable: the Thri-Kreen four-arm stand-in, one rank per extra arm */
-  feato(FEAT_EXTRA_ARMS, "extra arms", TRUE, FALSE, TRUE, FEAT_TYPE_INNATE_ABILITY,
-        "one extra melee attack per rank at your full attack bonus",
-        "Extra limbs join every melee round.  Each rank of this innate grants one additional "
-        "melee attack at your full base attack bonus.  It brings no additional equipment slots "
-        "and does nothing with ranged weapons.");
   feat_prereq_ability(FEAT_SHADOW, ABILITY_STEALTH, 21);
   feat_prereq_attribute(FEAT_CALM, AB_CHA, 19);
   feat_prereq_ability(FEAT_ESTABLISH_CAMP, ABILITY_SURVIVAL, 3);
