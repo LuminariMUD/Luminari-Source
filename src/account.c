@@ -807,7 +807,7 @@ void load_account_unlocks(struct account_data *account)
 }
 
 /*
-  get_char_account_name(char *name)
+  get_char_account_name(const char *name)
   Purpose: Given a character name, return a newly-allocated string with the
            owning account name, or NULL if not found.
   Parameters:
@@ -819,7 +819,7 @@ void load_account_unlocks(struct account_data *account)
     - Uses proper SQL escaping to prevent injection.
     - If multiple rows are returned, it frees the previous copy and keeps the last.
 */
-char *get_char_account_name(char *name)
+char *get_char_account_name(const char *name)
 {
   PREPARED_STMT *statement;
   const char *value;

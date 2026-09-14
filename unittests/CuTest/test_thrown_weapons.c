@@ -389,19 +389,19 @@ void Test_mixed_projectile_pouch_survives_object_save_load(CuTest *tc)
   initialize_test_object(&throwable, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
   memset(&room, 0, sizeof(room));
 
-  ch.player.name = (char *)"ProjectileSaver";
+  ch.player.name = CuMutableString("ProjectileSaver");
   IN_ROOM(&ch) = 0;
   GET_POS(&ch) = POS_STANDING;
   SET_BIT_AR(GET_OBJ_WEAR(&pouch), ITEM_WEAR_AMMO_POUCH);
-  pouch.name = (char *)"mixed projectile pouch";
-  pouch.short_description = (char *)"a mixed projectile pouch";
-  pouch.description = (char *)"A mixed projectile pouch lies here.";
-  missile.name = (char *)"test arrow";
-  missile.short_description = (char *)"a test arrow";
-  missile.description = (char *)"A test arrow lies here.";
-  throwable.name = (char *)"test javelin";
-  throwable.short_description = (char *)"a test javelin";
-  throwable.description = (char *)"A test javelin lies here.";
+  pouch.name = CuMutableString("mixed projectile pouch");
+  pouch.short_description = CuMutableString("a mixed projectile pouch");
+  pouch.description = CuMutableString("A mixed projectile pouch lies here.");
+  missile.name = CuMutableString("test arrow");
+  missile.short_description = CuMutableString("a test arrow");
+  missile.description = CuMutableString("A test arrow lies here.");
+  throwable.name = CuMutableString("test javelin");
+  throwable.short_description = CuMutableString("a test javelin");
+  throwable.description = CuMutableString("A test javelin lies here.");
 
   saved_world = world;
   saved_top_of_world = top_of_world;
@@ -644,8 +644,8 @@ void Test_detached_projectile_miss_is_finalized_once_in_target_room(CuTest *tc)
   initialize_test_object(&pouch, ITEM_AMMO_POUCH, 10);
   initialize_test_object(&projectile, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
   memset(rooms, 0, sizeof(rooms));
-  attacker.player.name = (char *)"thrower";
-  target.player.name = (char *)"target";
+  attacker.player.name = CuMutableString("thrower");
+  target.player.name = CuMutableString("target");
   IN_ROOM(&attacker) = 0;
   IN_ROOM(&target) = 1;
   GET_POS(&attacker) = POS_STANDING;
@@ -673,7 +673,7 @@ void Test_detached_projectile_miss_is_finalized_once_in_target_room(CuTest *tc)
   pouch.worn_on = WEAR_AMMO_POUCH;
   pouch.contains = &projectile;
   projectile.in_obj = &pouch;
-  projectile.short_description = (char *)"a test javelin";
+  projectile.short_description = CuMutableString("a test javelin");
 
   initialize_projectile_attack_context(&context, ATTACK_TYPE_THROWN);
   context.attack_weapon = &projectile;
@@ -724,8 +724,8 @@ void Test_returning_wielded_projectile_re_equips_original_anchor(CuTest *tc)
   memset(&returning, 0, sizeof(returning));
   memset(rooms, 0, sizeof(rooms));
   load_weapons();
-  attacker.player.name = (char *)"returning thrower";
-  target.player.name = (char *)"returning target";
+  attacker.player.name = CuMutableString("returning thrower");
+  target.player.name = CuMutableString("returning target");
   attacker.real_abils.str = attacker.aff_abils.str = 10;
   attacker.real_abils.dex = attacker.aff_abils.dex = 10;
   target.real_abils.str = target.aff_abils.str = 10;
@@ -753,8 +753,8 @@ void Test_returning_wielded_projectile_re_equips_original_anchor(CuTest *tc)
 
   returning.ability = WEAPON_SPECAB_RETURNING;
   projectile.special_abilities = &returning;
-  projectile.name = (char *)"returning test javelin";
-  projectile.short_description = (char *)"a returning test javelin";
+  projectile.name = CuMutableString("returning test javelin");
+  projectile.short_description = CuMutableString("a returning test javelin");
   GET_EQ(&attacker, WEAR_WIELD_1) = &projectile;
   projectile.worn_by = &attacker;
   projectile.worn_on = WEAR_WIELD_1;
@@ -809,8 +809,8 @@ void Test_snatch_precedes_returning_and_respects_carry_capacity(CuTest *tc)
   initialize_test_object(&projectile, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
   memset(&returning, 0, sizeof(returning));
   memset(rooms, 0, sizeof(rooms));
-  attacker.player.name = (char *)"snatched thrower";
-  target.player.name = (char *)"snatcher";
+  attacker.player.name = CuMutableString("snatched thrower");
+  target.player.name = CuMutableString("snatcher");
   target.real_abils.str = target.aff_abils.str = 10;
   target.real_abils.dex = target.aff_abils.dex = 10;
   IN_ROOM(&attacker) = 0;
@@ -837,7 +837,7 @@ void Test_snatch_precedes_returning_and_respects_carry_capacity(CuTest *tc)
 
   returning.ability = WEAPON_SPECAB_RETURNING;
   projectile.special_abilities = &returning;
-  projectile.short_description = (char *)"a snatched returning javelin";
+  projectile.short_description = CuMutableString("a snatched returning javelin");
   GET_EQ(&attacker, WEAR_AMMO_POUCH) = &pouch;
   pouch.worn_by = &attacker;
   pouch.worn_on = WEAR_AMMO_POUCH;
@@ -894,8 +894,8 @@ void Test_projectile_finalizer_handles_pending_death_and_extraction(CuTest *tc)
   memset(&returning, 0, sizeof(returning));
   memset(rooms, 0, sizeof(rooms));
 
-  attacker.player.name = (char *)"pending-death thrower";
-  target.player.name = (char *)"pending-death target";
+  attacker.player.name = CuMutableString("pending-death thrower");
+  target.player.name = CuMutableString("pending-death target");
   IN_ROOM(&attacker) = 0;
   IN_ROOM(&target) = 1;
   GET_POS(&attacker) = POS_STANDING;
@@ -1024,9 +1024,9 @@ void Test_throw_command_registration_and_shared_target_gates(CuTest *tc)
   memset(rooms, 0, sizeof(rooms));
   memset(&north_exit, 0, sizeof(north_exit));
   memset(&zone, 0, sizeof(zone));
-  attacker.player.name = (char *)"thrower";
-  target.player.name = (char *)"target";
-  target.player.short_descr = (char *)"target";
+  attacker.player.name = CuMutableString("thrower");
+  target.player.name = CuMutableString("target");
+  target.player.short_descr = CuMutableString("target");
   SET_BIT_AR(MOB_FLAGS(&target), MOB_ISNPC);
   target.player_specials = &dummy_mob;
   GET_LEVEL(&attacker) = 10;
@@ -1141,8 +1141,8 @@ void Test_selected_throwable_drives_combat_statistics_and_poison(CuTest *tc)
   memset(&room, 0, sizeof(room));
   load_weapons();
 
-  attacker.player.name = (char *)"statistics thrower";
-  victim.player.name = (char *)"statistics target";
+  attacker.player.name = CuMutableString("statistics thrower");
+  victim.player.name = CuMutableString("statistics target");
   GET_LEVEL(&attacker) = 1;
   GET_LEVEL(&victim) = 1;
   GET_POS(&attacker) = POS_STANDING;
@@ -1251,7 +1251,7 @@ void Test_selected_throwable_drives_combat_statistics_and_poison(CuTest *tc)
   selected.weapon_poison.poison = SPELL_POISON;
   selected.weapon_poison.poison_level = 5;
   selected.weapon_poison.poison_hits = 1;
-  selected.short_description = (char *)"a selected poisoned javelin";
+  selected.short_description = CuMutableString("a selected poisoned javelin");
   weapon_poison(&attacker, &victim, &selected, &selected);
   CuAssertIntEquals(tc, 2, anchor.weapon_poison.poison_hits);
   CuAssertIntEquals(tc, 0, selected.weapon_poison.poison_hits);
@@ -1332,8 +1332,8 @@ void Test_final_thrown_anchor_exhaustion_stops_reciprocal_combat(CuTest *tc)
 
   initialize_test_character(&attacker, &attacker_specials);
   initialize_test_character(&target, &target_specials);
-  attacker.player.name = (char *)"exhausted thrower";
-  target.player.name = (char *)"reciprocal target";
+  attacker.player.name = CuMutableString("exhausted thrower");
+  target.player.name = CuMutableString("reciprocal target");
   GET_HIT(&attacker) = GET_MAX_HIT(&attacker) = 100;
   GET_HIT(&target) = GET_MAX_HIT(&target) = 100;
   GET_POS(&attacker) = POS_FIGHTING;
@@ -1384,7 +1384,7 @@ void Test_collect_recovers_throwables_from_room_and_corpse(CuTest *tc)
   memset(&room, 0, sizeof(room));
   load_weapons();
 
-  ch.player.name = (char *)"collector";
+  ch.player.name = CuMutableString("collector");
   ch.real_abils.str = ch.aff_abils.str = 10;
   ch.real_abils.dex = ch.aff_abils.dex = 10;
   IN_ROOM(&ch) = 0;

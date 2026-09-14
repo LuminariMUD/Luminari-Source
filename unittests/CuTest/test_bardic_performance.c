@@ -61,7 +61,7 @@ static void begin_bardic_fixture(struct bardic_fixture *fixture)
   clear_char(&fixture->bard);
   GET_ATTACK_QUEUE(&fixture->bard) = create_attack_queue();
   fixture->bard.player_specials = &fixture->player_specials;
-  fixture->bard.player.name = "bardic performance test character";
+  fixture->bard.player.name = CuMutableString("bardic performance test character");
   fixture->bard.desc = &fixture->descriptor;
   IN_ROOM(&fixture->bard) = 0;
   GET_LEVEL(&fixture->bard) = 10;
@@ -205,7 +205,7 @@ static void initialize_bardic_test_pc(struct char_data *ch, struct player_specia
   memset(specials, 0, sizeof(*specials));
   clear_char(ch);
   ch->player_specials = specials;
-  ch->player.name = (char *)name;
+  ch->player.name = CuMutableString(name);
   IN_ROOM(ch) = 0;
   GET_LEVEL(ch) = 10;
   GET_POS(ch) = POS_STANDING;
@@ -218,7 +218,7 @@ static void initialize_bardic_test_npc(struct char_data *ch, const char *name)
   clear_char(ch);
   SET_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
   ch->player_specials = &dummy_mob;
-  ch->player.short_descr = (char *)name;
+  ch->player.short_descr = CuMutableString(name);
   IN_ROOM(ch) = 0;
   GET_LEVEL(ch) = 10;
   GET_POS(ch) = POS_STANDING;
@@ -239,8 +239,8 @@ static void initialize_bardic_test_perk(struct char_perk_data *perk, int perk_id
 static void initialize_bardic_test_instrument(struct obj_data *instrument, int subtype)
 {
   clear_object(instrument);
-  instrument->name = (char *)"test instrument";
-  instrument->short_description = (char *)"a test instrument";
+  instrument->name = CuMutableString("test instrument");
+  instrument->short_description = CuMutableString("a test instrument");
   GET_OBJ_TYPE(instrument) = ITEM_INSTRUMENT;
   GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_TYPE) = subtype;
 }
@@ -797,7 +797,7 @@ void Test_legacy_npc_perform_cooldown_is_not_an_active_song(CuTest *tc)
   clear_char(&npc);
   SET_BIT_AR(MOB_FLAGS(&npc), MOB_ISNPC);
   npc.player_specials = &dummy_mob;
-  npc.player.short_descr = "a legacy performing test NPC";
+  npc.player.short_descr = CuMutableString("a legacy performing test NPC");
   IN_ROOM(&npc) = 0;
   GET_POS(&npc) = POS_STANDING;
   fixture.bard.next_in_room = &npc;
@@ -819,7 +819,7 @@ void Test_active_npc_bard_receives_performance_pulses(CuTest *tc)
   clear_char(&npc);
   SET_BIT_AR(MOB_FLAGS(&npc), MOB_ISNPC);
   npc.player_specials = &dummy_mob;
-  npc.player.short_descr = "an active performing test NPC";
+  npc.player.short_descr = CuMutableString("an active performing test NPC");
   IN_ROOM(&npc) = 0;
   GET_LEVEL(&npc) = 10;
   GET_POS(&npc) = POS_STANDING;
@@ -890,7 +890,7 @@ void Test_bardic_performance_applies_only_meaningful_affect_slots(CuTest *tc)
   clear_char(&target);
   SET_BIT_AR(MOB_FLAGS(&target), MOB_ISNPC);
   target.player_specials = &dummy_mob;
-  target.player.short_descr = "a bardic affect target";
+  target.player.short_descr = CuMutableString("a bardic affect target");
   IN_ROOM(&target) = 0;
   GET_LEVEL(&target) = 10;
   GET_POS(&target) = POS_STANDING;
@@ -931,7 +931,7 @@ void Test_bardic_base_performance_matrix_matches_documented_mechanics(CuTest *tc
   clear_char(&target);
   SET_BIT_AR(MOB_FLAGS(&target), MOB_ISNPC);
   target.player_specials = &dummy_mob;
-  target.player.short_descr = "a bardic matrix target";
+  target.player.short_descr = CuMutableString("a bardic matrix target");
   IN_ROOM(&target) = 0;
   GET_LEVEL(&target) = 10;
   GET_POS(&target) = POS_STANDING;
@@ -1050,7 +1050,7 @@ void Test_bardic_offensive_performances_use_their_documented_saves(CuTest *tc)
   clear_char(&target);
   SET_BIT_AR(MOB_FLAGS(&target), MOB_ISNPC);
   target.player_specials = &dummy_mob;
-  target.player.short_descr = "a bardic saving throw target";
+  target.player.short_descr = CuMutableString("a bardic saving throw target");
   IN_ROOM(&target) = 0;
   GET_LEVEL(&target) = 10;
   GET_POS(&target) = POS_STANDING;
@@ -1186,7 +1186,7 @@ void Test_bardic_affect_timing_uses_one_refresh_clock(CuTest *tc)
   clear_char(&target);
   SET_BIT_AR(MOB_FLAGS(&target), MOB_ISNPC);
   target.player_specials = &dummy_mob;
-  target.player.short_descr = "a bardic timing target";
+  target.player.short_descr = CuMutableString("a bardic timing target");
   IN_ROOM(&target) = 0;
   GET_POS(&target) = POS_STANDING;
   fixture.bard.next_in_room = &target;
@@ -1234,14 +1234,14 @@ void Test_bardic_affect_refresh_preserves_other_performers_sources(CuTest *tc)
   memset(&second_specials, 0, sizeof(second_specials));
   clear_char(&second_bard);
   second_bard.player_specials = &second_specials;
-  second_bard.player.name = "second bardic source";
+  second_bard.player.name = CuMutableString("second bardic source");
   IN_ROOM(&second_bard) = 0;
   GET_POS(&second_bard) = POS_STANDING;
 
   clear_char(&target);
   SET_BIT_AR(MOB_FLAGS(&target), MOB_ISNPC);
   target.player_specials = &dummy_mob;
-  target.player.short_descr = "a shared bardic target";
+  target.player.short_descr = CuMutableString("a shared bardic target");
   IN_ROOM(&target) = 0;
   GET_POS(&target) = POS_STANDING;
 
@@ -1298,7 +1298,7 @@ void Test_bardic_targets_respect_hearing_construct_and_condition_immunities(CuTe
   clear_char(&target);
   SET_BIT_AR(MOB_FLAGS(&target), MOB_ISNPC);
   target.player_specials = &dummy_mob;
-  target.player.short_descr = "an immune bardic target";
+  target.player.short_descr = CuMutableString("an immune bardic target");
   IN_ROOM(&target) = 0;
   GET_POS(&target) = POS_STANDING;
   GET_HIT(&target) = 1;
@@ -1350,7 +1350,7 @@ void Test_bardic_foe_effects_use_standard_defenses_and_debuff_signs(CuTest *tc)
   clear_char(&target);
   SET_BIT_AR(MOB_FLAGS(&target), MOB_ISNPC);
   target.player_specials = &dummy_mob;
-  target.player.short_descr = "a bardic foe target";
+  target.player.short_descr = CuMutableString("a bardic foe target");
   IN_ROOM(&target) = 0;
   GET_POS(&target) = POS_DEAD;
 
@@ -1397,8 +1397,8 @@ void Test_group_verses_are_reentrant_and_message_only_actual_recipients(CuTest *
   clear_char(&bystander);
   member.player_specials = &member_specials;
   bystander.player_specials = &bystander_specials;
-  member.player.name = "bardic group member";
-  bystander.player.name = "bardic bystander";
+  member.player.name = CuMutableString("bardic group member");
+  bystander.player.name = CuMutableString("bardic bystander");
   IN_ROOM(&member) = 0;
   IN_ROOM(&bystander) = 0;
   GET_POS(&member) = POS_STANDING;

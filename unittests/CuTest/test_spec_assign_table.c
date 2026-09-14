@@ -30,14 +30,14 @@ void Test_spec_assign_table_resolves_converted_production_rows(CuTest *tc)
   /* The two hard-coded assignments converted in Phase 02. Both are object rows
    * whose VNUM has a traced symbolic constant. */
   crafting_kit = spec_assign_table_resolve("Crafting Kit", SPEC_OWNER_OBJECT, error, sizeof(error));
-  CuAssertPtrNotNull(tc, (void *)crafting_kit);
+  CuAssertPtrNotNull(tc, crafting_kit);
   CuAssertStrEquals(tc, "Crafting Kit", crafting_kit->canonical_name);
   CuAssertPtrNotNull(tc, (void *)spec_definition_callback(crafting_kit));
   CuAssertStrEquals(tc, "", error);
 
   vampire_cloak =
       spec_assign_table_resolve("Vampire Cloak", SPEC_OWNER_OBJECT, error, sizeof(error));
-  CuAssertPtrNotNull(tc, (void *)vampire_cloak);
+  CuAssertPtrNotNull(tc, vampire_cloak);
   CuAssertStrEquals(tc, "Vampire Cloak", vampire_cloak->canonical_name);
   CuAssertPtrNotNull(tc, (void *)spec_definition_callback(vampire_cloak));
   CuAssertPtrNotNull(tc, (void *)vampire_cloak->typed_handler);
@@ -52,8 +52,8 @@ void Test_spec_assign_table_resolve_accepts_aliases(CuTest *tc)
   by_canonical = spec_assign_table_resolve("Guild", SPEC_OWNER_MOBILE, NULL, 0);
   by_alias = spec_assign_table_resolve("Guildmaster", SPEC_OWNER_MOBILE, NULL, 0);
 
-  CuAssertPtrNotNull(tc, (void *)by_canonical);
-  CuAssertPtrEquals(tc, (void *)by_canonical, (void *)by_alias);
+  CuAssertPtrNotNull(tc, by_canonical);
+  CuAssertPtrEquals(tc, by_canonical, by_alias);
   /* An alias never becomes canonical through the table. */
   CuAssertStrEquals(tc, "Guild", by_alias->canonical_name);
 }
@@ -62,18 +62,17 @@ void Test_spec_assign_table_rejects_unknown_and_empty_names(CuTest *tc)
 {
   char error[256];
 
-  CuAssertPtrEquals(tc, NULL,
-                    (void *)spec_assign_table_resolve("No Such Procedure", SPEC_OWNER_MOBILE, error,
-                                                      sizeof(error)));
+  CuAssertPtrEquals(
+      tc, NULL,
+      spec_assign_table_resolve("No Such Procedure", SPEC_OWNER_MOBILE, error, sizeof(error)));
   CuAssertTrue(tc, strstr(error, "no registered definition") != NULL);
   CuAssertTrue(tc, strstr(error, "No Such Procedure") != NULL);
 
-  CuAssertPtrEquals(
-      tc, NULL, (void *)spec_assign_table_resolve(NULL, SPEC_OWNER_OBJECT, error, sizeof(error)));
+  CuAssertPtrEquals(tc, NULL,
+                    spec_assign_table_resolve(NULL, SPEC_OWNER_OBJECT, error, sizeof(error)));
   CuAssertTrue(tc, strstr(error, "empty definition name") != NULL);
 
-  CuAssertPtrEquals(tc, NULL,
-                    (void *)spec_assign_table_resolve("", SPEC_OWNER_ROOM, error, sizeof(error)));
+  CuAssertPtrEquals(tc, NULL, spec_assign_table_resolve("", SPEC_OWNER_ROOM, error, sizeof(error)));
   CuAssertTrue(tc, strstr(error, "empty definition name") != NULL);
 }
 
@@ -84,19 +83,17 @@ void Test_spec_assign_table_rejects_owner_mismatch(CuTest *tc)
   /* "Crafting Kit" is object-only; a mobile or room row naming it is a
    * programmer error, not a content error. */
   CuAssertPtrEquals(
-      tc, NULL,
-      (void *)spec_assign_table_resolve("Crafting Kit", SPEC_OWNER_MOBILE, error, sizeof(error)));
+      tc, NULL, spec_assign_table_resolve("Crafting Kit", SPEC_OWNER_MOBILE, error, sizeof(error)));
   CuAssertTrue(tc, strstr(error, "does not support that owner type") != NULL);
 
   CuAssertPtrEquals(
-      tc, NULL,
-      (void *)spec_assign_table_resolve("Crafting Kit", SPEC_OWNER_ROOM, error, sizeof(error)));
+      tc, NULL, spec_assign_table_resolve("Crafting Kit", SPEC_OWNER_ROOM, error, sizeof(error)));
   CuAssertTrue(tc, strstr(error, "does not support that owner type") != NULL);
 
   /* "Wizard Library" is room-only. */
   CuAssertPtrEquals(
       tc, NULL,
-      (void *)spec_assign_table_resolve("Wizard Library", SPEC_OWNER_OBJECT, error, sizeof(error)));
+      spec_assign_table_resolve("Wizard Library", SPEC_OWNER_OBJECT, error, sizeof(error)));
   CuAssertTrue(tc, strstr(error, "does not support that owner type") != NULL);
 }
 
@@ -106,14 +103,12 @@ void Test_spec_assign_table_rejects_invalid_owner_mask(CuTest *tc)
 
   /* A combined mask names no single owner type and must not resolve. */
   CuAssertPtrEquals(tc, NULL,
-                    (void *)spec_assign_table_resolve("Crafting Kit",
-                                                      SPEC_OWNER_OBJECT | SPEC_OWNER_MOBILE, error,
-                                                      sizeof(error)));
+                    spec_assign_table_resolve("Crafting Kit", SPEC_OWNER_OBJECT | SPEC_OWNER_MOBILE,
+                                              error, sizeof(error)));
   CuAssertTrue(tc, strstr(error, "invalid owner mask") != NULL);
 
   CuAssertPtrEquals(
-      tc, NULL,
-      (void *)spec_assign_table_resolve("Crafting Kit", SPEC_OWNER_NONE, error, sizeof(error)));
+      tc, NULL, spec_assign_table_resolve("Crafting Kit", SPEC_OWNER_NONE, error, sizeof(error)));
   CuAssertTrue(tc, strstr(error, "invalid owner mask") != NULL);
 }
 
@@ -125,13 +120,13 @@ void Test_spec_assign_table_rejects_definitions_that_forbid_legacy_assignment(Cu
   /* "Temple Healer" is world-data binding only. A hard-coded row must not be
    * able to install it behind the builder's back. */
   definition = spec_registry_find_by_name("Temple Healer");
-  CuAssertPtrNotNull(tc, (void *)definition);
+  CuAssertPtrNotNull(tc, definition);
   CuAssertTrue(tc,
                !spec_definition_allows_binding(definition, SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT));
 
   CuAssertPtrEquals(
       tc, NULL,
-      (void *)spec_assign_table_resolve("Temple Healer", SPEC_OWNER_MOBILE, error, sizeof(error)));
+      spec_assign_table_resolve("Temple Healer", SPEC_OWNER_MOBILE, error, sizeof(error)));
   CuAssertTrue(tc, strstr(error, "does not permit legacy assignment") != NULL);
 }
 
@@ -211,10 +206,8 @@ void Test_spec_assign_table_tolerates_absent_error_buffer(CuTest *tc)
   };
 
   /* Callers that only need the verdict must not be forced to supply a buffer. */
-  CuAssertPtrEquals(tc, NULL,
-                    (void *)spec_assign_table_resolve("Nope", SPEC_OWNER_MOBILE, NULL, 0));
-  CuAssertPtrNotNull(tc,
-                     (void *)spec_assign_table_resolve("Crafting Kit", SPEC_OWNER_OBJECT, NULL, 0));
+  CuAssertPtrEquals(tc, NULL, spec_assign_table_resolve("Nope", SPEC_OWNER_MOBILE, NULL, 0));
+  CuAssertPtrNotNull(tc, spec_assign_table_resolve("Crafting Kit", SPEC_OWNER_OBJECT, NULL, 0));
   CuAssertTrue(tc, !spec_assign_table_validate_objects(
                        objects, sizeof(objects) / sizeof(objects[0]), NULL, 0));
 }
@@ -227,8 +220,7 @@ void Test_spec_binding_source_name_reports_stable_labels(CuTest *tc)
   CuAssertStrEquals(tc, "parser hook", spec_binding_source_name(SPEC_BINDING_SOURCE_PARSER_HOOK));
   CuAssertStrEquals(tc, "shop", spec_binding_source_name(SPEC_BINDING_SOURCE_SHOP));
   CuAssertStrEquals(tc, "quest", spec_binding_source_name(SPEC_BINDING_SOURCE_QUEST));
-  CuAssertPtrEquals(tc, NULL, (void *)spec_binding_source_name(SPEC_BINDING_SOURCE_NONE));
-  CuAssertPtrEquals(
-      tc, NULL,
-      (void *)spec_binding_source_name(SPEC_BINDING_SOURCE_WORLD | SPEC_BINDING_SOURCE_SHOP));
+  CuAssertPtrEquals(tc, NULL, spec_binding_source_name(SPEC_BINDING_SOURCE_NONE));
+  CuAssertPtrEquals(tc, NULL,
+                    spec_binding_source_name(SPEC_BINDING_SOURCE_WORLD | SPEC_BINDING_SOURCE_SHOP));
 }

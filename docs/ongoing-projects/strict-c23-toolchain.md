@@ -35,13 +35,14 @@ warning debt, and feature detection that strict flags cannot influence.
   `CMakeLists.txt` (`LUMINARI_WARNING_TIER`). `DEVELOPER_MODE` is gone.
 - Baseline tier: `-Wall -Wextra -Wstrict-prototypes -Wold-style-definition
   -Wpointer-arith -Wformat-security -Wvla -Wredundant-decls -Wnested-externs
-  -Wmissing-prototypes` (the last three promoted by steps 2.3 and 2.4) plus GCC's `-Wtrampolines
-  -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-args
-  -Wflex-array-member-not-at-end -Wunterminated-string-initialization`. Clean
-  on all four compilers; `-Werror` is refused with any other tier.
-- Migration tier: conversions, shadowing, switch coverage, missing prototypes,
-  `-Wformat=2`, allocation, duplicated conditions and branches, logical
-  operators, fallthrough, `-Wwrite-strings`. Held by
+  -Wmissing-prototypes` plus GCC's `-Wtrampolines -Walloc-size
+  -Wbidi-chars=any -Wcalloc-transposed-args -Wflex-array-member-not-at-end
+  -Wunterminated-string-initialization`. The last three common flags were
+  promoted from the migration tier by steps 2.3 and 2.4. Clean on all four
+  compilers; `-Werror` is refused with any other tier.
+- Migration tier: conversions, shadowing, switch coverage, `-Wformat=2`,
+  allocation, duplicated conditions and branches, logical operators,
+  fallthrough, `-Wwrite-strings`. Held by
   `scripts/ci/check_warning_budget.py` against `scripts/ci/warning_budget_gcc-16.txt`
   and `scripts/ci/warning_budget_clang-22.txt`; growth in any class fails the
   new `warning-budget` job. Counting is by distinct site with make output sync,
@@ -86,14 +87,17 @@ warning debt, and feature detection that strict flags cannot influence.
 
 ## Budget snapshot
 
-| Compiler | Distinct sites | Classes |
-|----------|----------------|---------|
-| GCC 16.2 | 11363 | 24 |
-| Clang 22.1.8 | 22878 | 23 |
+| Compiler | At the start | Now (after step 2.5) |
+|----------|--------------|----------------------|
+| GCC 16.2 | 11363 sites, 24 classes | 5188 sites, 19 classes |
+| Clang 22.1.8 | 22878 sites, 23 classes | 6675 sites, 20 classes |
 
-Largest classes: sign conversion, value conversion, missing prototypes,
-`-Wformat=` signedness (GCC), switch default, jump-misses-init,
-double promotion, discarded qualifiers.
+Largest remaining classes: sign conversion (GCC 1853, Clang 3383), value
+conversion (GCC 1263, Clang `implicit-int-conversion` about 525),
+double promotion (about 555 each), jump-misses-init (446 and 579),
+`size_t` and `long` narrowing (Clang `shorten-64-to-32` 602), float
+conversion, shadowing, and the production half of the discarded-qualifier
+warnings.
 
 ## Burn-down progress
 
@@ -114,7 +118,11 @@ per compiler.
 | 2.2, 2.3 | format conversions, redundant and nested declarations | 6427 | 7946 |
 | 2.6 | explicit fallthrough; `-Wredundant-decls` and `-Wnested-externs` promoted to baseline | 6427 | 7913 |
 | 2.4 | `static` file-local functions, prototypes in owning headers, dead code removed; `-Wmissing-prototypes` promoted to baseline | 5775 | 7262 |
+| 2.5 | const-correct test fixtures and five read-only parameters | 5188 | 6675 |
 
+Every step was also verified with a host `make test` (1483 tests pass) before
+it was committed, and each promotion to the baseline tier was first built at
+the baseline tier with GCC 13 and Clang 18.
 Also fixed on the way: the budget check counted only `file:line:col: error:`
 lines, so a build that stopped on a missing header (`fatal error:`), a linker
 failure, or a make `***` line still reported a trustworthy count. The CI step
@@ -194,6 +202,27 @@ Notes from step 2.4:
   `get_time_weight_for_category`, `init_hint_cache`, `load_contextual_hints`,
   and `get_base_regeneration_rate`.
 
+Notes from step 2.5:
+
+- C23 static-storage compound literals would have been the natural writable
+  literal, but Clang 18 rejects them. Test fixtures that store a string in a
+  `char *` field now call `CuMutableString`, which copies into a fixed 8 MB
+  arena that lives for the whole run and is never freed, like the literals it
+  replaces (no heap, so no leak reports).
+- Casts on literals passed to parameters that are already `const char *`, and
+  `(void *)` casts inside `CuAssertPtr*`, were simply removed.
+- `count_color_chars`, `check_flags_by_name_ar`, `remove_var`,
+  `get_char_account_name`, and `get_obj_in_list` never write their string
+  argument and now take `const char *`. Functions that do write
+  (`trigedit_parse` through `smash_tilde`, `nanny`), would cascade into
+  non-const helpers (`find_skill_num`, `is_substring`, `show_string`,
+  `test_load_zones`), or sit in a function-pointer table typed `char *`
+  (`prefedit_parse` in `nanny`'s OLC dispatch) receive a mutable copy from the
+  tests instead.
+- The production half of the class (about 290 sites: string tables declared
+  `char *[]`, `one_argument_u((char *)argument, ...)`, `findLine` in the index
+  tools) is step 3.4.
+
 ## Remaining work
 
 1. GitHub-side confirmation. Container jobs, the apt.llvm.org install step,
@@ -207,7 +236,11 @@ Notes from step 2.4:
    reported 66 `malloc-leak`, 39 `null-dereference`, 27
    `possible-null-argument`, 10 `out-of-bounds`, and 4 `use-after-free`
    sites. These are candidate bugs, not noise, and deserve their own issue.
-4. Burn down the migration budget following the plan in the next section.
+4. Burn down the rest of the migration budget. Steps 0, 1.1, 1.2, and 2.1 to
+   2.6 are done (see the progress table). Left: step 1.3 (`size_t` and `long`
+   narrowing), step 3 (jump-misses-init, float promotion and conversion,
+   shadowing, production write-strings and cast-qual, small classes), and the
+   step 4 sign-conversion decision.
 5. Cadence. Bump the current versions in `test.yml`,
    `scripts/ci/local/Dockerfile*`, and the setup guide within a month of each
    GCC or LLVM point release; raise the minimum when the runner image drops a
@@ -234,12 +267,12 @@ migration list to the baseline list in `production_profile.sh`.
 | `IS_SET_AR` in `src/utils.h` | about 11000 Clang `sign-conversion` | the `&` of an `int` array element with the `unsigned` `Q_BIT` mask converts the element; `IS_NPC` alone is 3084 sites, `GET_NAME` 1248, `AFF_FLAGGED` 939, the `*_FLAGGED` family and every colour macro (they expand to `PRF_FLAGGED`) the rest |
 | `sh_int` and `byte` fields in `struct affected_type` and friends | about 1450 GCC `conversion`, about 1000 Clang `implicit-int-conversion` | 975 sites are `int` to `sh_int`, 281 `int` to `byte`, 195 `int` to `sbyte`; `src/magic/magic.c` alone has 509 |
 | generated test prototypes | 1485 of 2123 `missing-prototypes` | every `Test*` function in `unittests/CuTest/` |
-| GCC fix-it patch for `-Wformat` | 964 GCC `format=` | all are `%d` with an unsigned or vnum argument; GCC emits fix-its for these |
+| scripted `-Wformat` conversions | 964 GCC `format=` | all are `%d` with an unsigned or vnum argument; GCC's fix-it turned out to be a no-op, see the step 2.2 notes |
 | four files for `jump-misses-init` | 579 | `magic.c` 303, `players.c` 135, `study.c` 66, `act.item.c` 43 |
 | `float` locals in `src/wilderness/` | most of 554 `double-promotion` and 303 `float-conversion` | three wilderness files hold over 200 sites |
 | duplicate `extern` lines | 567 `redundant-decls` | 27 redeclare `conn`, 18 `world`, 17 `mysql_available` |
 
-### Step 0: tooling (half a day)
+### Step 0: tooling (done)
 
 - Add `--list CLASS` to `scripts/ci/check_warning_budget.py` that prints the
   distinct sites of one class grouped by file, and `--by-token CLASS` that
@@ -255,7 +288,7 @@ migration list to the baseline list in `production_profile.sh`.
     is a `case` label jumping over an initialized declaration, which the
     style guide already forbids (declarations at the top of blocks).
 
-### Step 1: header and type roots (one day, about 14000 sites)
+### Step 1: header and type roots (1.1 and 1.2 done)
 
 1. `IS_SET_AR`: cast the array element to `unsigned int` before the mask, or
    store flag arrays as `unsigned int` if the ASCII loaders and savers agree.
@@ -272,15 +305,14 @@ migration list to the baseline list in `production_profile.sh`.
    the local to `size_t` where it only feeds another size, cast where it feeds
    an `int` API. Scripted with the site list; review by file.
 
-### Step 2: generated and scripted edits (one day, about 3500 sites)
+### Step 2: generated and scripted edits (done)
 
 1. Make `unittests/CuTest/make-tests.sh` also write
    `unittests/CuTest/test_prototypes.h` and include it from `CuTest.h`. Both
    build systems already run the generator before compiling. Clears 1485.
-2. Build once with `-fdiagnostics-generate-patch` on GCC 16.2 with the
-   migration tier and apply only the `-Wformat` hunks. Clears 964 in one
-   commit; review the hunks that pick `%u` for a `vnum` and use `PRI_IDX`
-   there instead.
+2. `-Wformat` conversions. The plan was to apply GCC's
+   `-fdiagnostics-generate-patch` hunks, but GCC 16.2 rewrites `%d` as `%d`,
+   so a column-driven script did the work instead (notes above).
 3. Delete the flagged `extern` lines for `redundant-decls`: a script that
    removes a flagged line when it is a single-line declaration ending in `;`
    and the same symbol is declared in an included header. Clears 567.
@@ -308,8 +340,8 @@ migration list to the baseline list in `production_profile.sh`.
    `region_vnum` shadow typedefs and globals. Rename per function.
 4. `-Wwrite-strings` in `src/` (188): the 23 in `bsd-snprintf.c` are
    `findLine` and friends taking `char *`; constify the parameters.
-5. Small classes, one sitting: `null-dereference` 60, `switch-enum` 45,
-   `nested-externs` 44, `logical-op` 31, `format-nonliteral` 25,
+5. Small classes, one sitting: `null-dereference` 48, `switch-enum` 45,
+   `logical-op` 31, `format-nonliteral` 25,
    `float-equal` 22, `duplicated-branches` 21, `cast-align` 8, `undef` 8,
    `alloca` 4, `duplicated-cond` 3, `alloc-zero` 1. The `null-dereference`
    sites are candidate bugs; the rest are style and fold into whatever is
@@ -328,16 +360,17 @@ not for every `int` index to become `size_t`.
 
 ### Expected trajectory
 
-| After | GCC 16.2 sites | Clang 22.1.8 sites |
-|-------|----------------|--------------------|
-| today | 11363 | 22878 |
-| step 1 | about 9500 | about 8500 |
-| step 2 | about 5800 | about 5300 |
-| step 3 | about 2800 | about 3000 |
-| step 4 | 0 or the sign-conversion tail | same |
+| After | GCC 16.2 expected | GCC actual | Clang 22.1.8 expected | Clang actual |
+|-------|-------------------|------------|-----------------------|--------------|
+| start | 11363 | 11363 | 22878 | 22878 |
+| steps 1.1, 1.2 | about 9500 | 8010 | about 8500 | 7955 |
+| step 2 | about 5800 | 5188 | about 5300 | 6675 |
+| step 3 | about 2800 | | about 3000 | |
+| step 4 | 0 or the sign-conversion tail | | same | |
 
-Each step is its own pull request so the budget files shrink in reviewable
-increments and a regression in one class is visible in the diff of one file.
+The steps landed as separate commits on the `strict-c23-toolchain` branch,
+each with its lowered budget files, rather than as separate pull requests.
+
 
 When items 1 and 2 are confirmed, this document's enduring content is already
 in the setup, CMake, and testing guides; file items 3 and 4 as issues and

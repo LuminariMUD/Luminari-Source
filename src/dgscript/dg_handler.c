@@ -515,7 +515,7 @@ void free_context_vars(struct script_data *sc, long context)
 }
 
 /* Remove var name from var_list. Returns 1 if found, else 0. */
-int remove_var(struct trig_var_data **var_list, char *name)
+int remove_var(struct trig_var_data **var_list, const char *name)
 {
   struct trig_var_data *i, *j;
 

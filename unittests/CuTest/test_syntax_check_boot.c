@@ -467,14 +467,14 @@ void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)
       _exit(20);
     close(output_pipe[1]);
 
-    argv[0] = (char *)"luminari";
+    argv[0] = CuMutableString("luminari");
     if (config_file != NULL)
     {
-      argv[1] = (char *)"-f";
-      argv[2] = (char *)config_file;
-      argv[3] = (char *)"-c";
-      argv[4] = (char *)"-q";
-      argv[5] = (char *)"-d";
+      argv[1] = CuMutableString("-f");
+      argv[2] = CuMutableString(config_file);
+      argv[3] = CuMutableString("-c");
+      argv[4] = CuMutableString("-q");
+      argv[5] = CuMutableString("-d");
       argv[6] = data_dir;
       argv[7] = NULL;
       argv[8] = NULL;
@@ -482,9 +482,9 @@ void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)
     }
     else
     {
-      argv[1] = (char *)"-c";
-      argv[2] = (char *)"-q";
-      argv[3] = (char *)"-d";
+      argv[1] = CuMutableString("-c");
+      argv[2] = CuMutableString("-q");
+      argv[3] = CuMutableString("-d");
       argv[4] = data_dir;
       argv[5] = NULL;
       argv[6] = NULL;
@@ -999,7 +999,7 @@ static void verify_durable_event_parser(CuTest *tc, unsigned int version)
   CuAssertPtrNotNull(tc, fixture);
   if (fixture == NULL)
     return;
-  ch.player.name = "parser fixture";
+  ch.player.name = CuMutableString("parser fixture");
   field_count = version == 1U ? 6U : 7U;
   snprintf(header, sizeof(header), "%u", version);
 
@@ -1061,7 +1061,7 @@ void Test_durable_event_parser_rejects_unsupported_headers(CuTest *tc)
   size_t index;
   FILE *fixture;
 
-  ch.player.name = "parser fixture";
+  ch.player.name = CuMutableString("parser fixture");
   for (index = 0; index < sizeof(headers) / sizeof(headers[0]); index++)
   {
     fixture = tmpfile();

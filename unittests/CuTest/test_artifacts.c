@@ -112,7 +112,7 @@ static void artifact_test_object(struct obj_data *obj, obj_rnum rnum)
     rnum = trorxek_rnum;
   clear_object(obj);
   GET_OBJ_RNUM(obj) = rnum;
-  obj->short_description = "a test artifact";
+  obj->short_description = CuMutableString("a test artifact");
 }
 
 /* artifact_save() writes to a path relative to the working directory, which

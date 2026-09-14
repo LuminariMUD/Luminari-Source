@@ -214,8 +214,8 @@ static void spec_combat_prepare_mobile_turn(struct spec_combat_fixture *fixture)
   spec_combat_set_mobile_flags(victim, false);
   mobile->nr = 0;
   victim->nr = 1;
-  mobile->player.short_descr = "combat special mobile";
-  victim->player.short_descr = "combat target";
+  mobile->player.short_descr = CuMutableString("combat special mobile");
+  victim->player.short_descr = CuMutableString("combat target");
   IN_ROOM(mobile) = 0;
   IN_ROOM(victim) = 0;
   GET_POS(mobile) = POS_FIGHTING;
@@ -918,8 +918,8 @@ void Test_spec_typed_bank_survives_quest_shop_compatibility_nesting(CuTest *tc)
 
   actor = &fixture.characters[0];
   keeper = &fixture.characters[1];
-  actor->player.name = "phase six depositor";
-  keeper->player.short_descr = "phase six shopkeeper";
+  actor->player.name = CuMutableString("phase six depositor");
+  keeper->player.short_descr = CuMutableString("phase six shopkeeper");
   spec_combat_set_mobile_flags(keeper, false);
   keeper->nr = 0;
   IN_ROOM(actor) = 0;

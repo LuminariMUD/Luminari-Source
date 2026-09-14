@@ -26,6 +26,26 @@ char *CuStrCopy(const char *old)
   return newStr;
 }
 
+#define CU_MUTABLE_ARENA_SIZE (8 * 1024 * 1024)
+
+char *CuMutableString(const char *text)
+{
+  static char arena[CU_MUTABLE_ARENA_SIZE];
+  static size_t used;
+  size_t length = strlen(text) + 1;
+  char *copy;
+
+  if (length > sizeof(arena) - used)
+  {
+    fprintf(stderr, "CuMutableString: fixture string arena exhausted\n");
+    abort();
+  }
+  copy = arena + used;
+  memcpy(copy, text, length);
+  used += length;
+  return copy;
+}
+
 /*-------------------------------------------------------------------------*
  * CuString
  *-------------------------------------------------------------------------*/

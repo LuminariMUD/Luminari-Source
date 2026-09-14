@@ -70,7 +70,7 @@ static void begin_study_pet_fixture(CuTest *tc, struct study_pet_fixture *fixtur
   memset(fixture, 0, sizeof(*fixture));
   clear_char(&fixture->ch);
   fixture->ch.player_specials = &fixture->specials;
-  fixture->ch.player.name = "study pet tester";
+  fixture->ch.player.name = CuMutableString("study pet tester");
   GET_LEVEL(&fixture->ch) = 10;
   GET_CLASS(&fixture->ch) = CLASS_DRUID;
   SET_FEAT(&fixture->ch, FEAT_ANIMAL_COMPANION, 1);

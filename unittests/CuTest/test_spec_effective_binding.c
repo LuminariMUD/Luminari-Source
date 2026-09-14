@@ -328,7 +328,7 @@ static void spec_effective_precedence_begin(struct spec_effective_precedence_fix
   fixture->shops[0].keeper = 1;
   fixture->shops[0].in_room = fixture->shop_rooms;
   fixture->quests[0].vnum = 600;
-  fixture->quests[0].name = "Effective precedence quest";
+  fixture->quests[0].name = CuMutableString("Effective precedence quest");
   fixture->quests[0].qm = 1201;
   fixture->zones[0].number = 150;
   fixture->zones[0].bot = 900000;

@@ -191,8 +191,8 @@ static void activity_test_begin(CuTest *tc, struct activity_test_fixture *fixtur
   event_init();
   clear_char(&fixture->actor);
   clear_char(&fixture->target);
-  fixture->actor.player.name = "activity actor";
-  fixture->target.player.name = "activity target";
+  fixture->actor.player.name = CuMutableString("activity actor");
+  fixture->target.player.name = CuMutableString("activity target");
   memset(&fixture->descriptor, 0, sizeof(fixture->descriptor));
   fixture->descriptor.character = &fixture->actor;
   fixture->descriptor.output = fixture->descriptor.small_outbuf;
@@ -616,8 +616,8 @@ static void casting_test_begin(CuTest *tc, struct casting_test_fixture *fixture)
   GET_HIT(actor) = GET_HIT(target) = 10;
   GET_MAX_HIT(actor) = GET_MAX_HIT(target) = 100;
   IN_ROOM(actor) = IN_ROOM(target) = 0;
-  actor->player.short_descr = "the caster";
-  target->player.short_descr = "the target";
+  actor->player.short_descr = CuMutableString("the caster");
+  target->player.short_descr = CuMutableString("the target");
   fixture->saved_spell = spell_info[SPELL_CURE_LIGHT];
   memset(&spell_info[SPELL_CURE_LIGHT], 0, sizeof(spell_info[SPELL_CURE_LIGHT]));
   spell_info[SPELL_CURE_LIGHT].name = "cure light";

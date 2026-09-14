@@ -166,7 +166,7 @@ static void begin_pet_policy_fixture(struct pet_policy_fixture *fixture, int cou
     SET_BIT_AR(AFF_FLAGS(&fixture->pets[i]), AFF_CHARM);
     GET_MOB_RNUM(&fixture->pets[i]) = real_mobile(RETAINER_MOB_VNUM);
     fixture->pets[i].master = &fixture->owner;
-    fixture->pets[i].player.short_descr = "companion";
+    fixture->pets[i].player.short_descr = CuMutableString("companion");
     fixture->links[i].follower = &fixture->pets[i];
     if (i + 1 < count)
       fixture->links[i].next = &fixture->links[i + 1];

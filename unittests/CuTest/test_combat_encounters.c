@@ -64,7 +64,7 @@ struct semantic_boundary_trace
 static void encounter_test_character(struct char_data *character, const char *name)
 {
   clear_char(character);
-  character->player.name = (char *)name;
+  character->player.name = CuMutableString(name);
 }
 
 static unsigned long encounter_test_begin_mode(CuTest *tc, bool encounter_mode,

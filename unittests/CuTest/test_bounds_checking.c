@@ -269,7 +269,7 @@ void Test_scan_distance_labels_cover_every_farsee_range(CuTest *tc)
 
   memset(&ch, 0, sizeof(ch));
   memset(&descriptor, 0, sizeof(descriptor));
-  ch.player.name = "scan target";
+  ch.player.name = CuMutableString("scan target");
   ch.desc = &descriptor;
   descriptor.character = &ch;
   descriptor.output = descriptor.small_outbuf;

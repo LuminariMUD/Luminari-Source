@@ -140,9 +140,9 @@ void Test_player_rename_memory_preflight_is_bounded_and_case_insensitive(CuTest 
   memset(&live_target, 0, sizeof(live_target));
   memset(&live_specials, 0, sizeof(live_specials));
   fixture[0].id = 101;
-  fixture[0].name = "sourcechar";
+  fixture[0].name = CuMutableString("sourcechar");
   fixture[1].id = 202;
-  fixture[1].name = "TARGETCHAR";
+  fixture[1].name = CuMutableString("TARGETCHAR");
   player_table = fixture;
   top_of_p_table = 1;
   character_list = NULL;
@@ -151,8 +151,8 @@ void Test_player_rename_memory_preflight_is_bounded_and_case_insensitive(CuTest 
   index_collision_status =
       player_rename_memory_preflight_for_test(&victim, "Sourcechar", "Targetchar");
 
-  fixture[1].name = "otherchar";
-  live_target.player.name = "TARGETCHAR";
+  fixture[1].name = CuMutableString("otherchar");
+  live_target.player.name = CuMutableString("TARGETCHAR");
   live_target.player_specials = &live_specials;
   character_list = &live_target;
   live_collision_status =
@@ -164,7 +164,7 @@ void Test_player_rename_memory_preflight_is_bounded_and_case_insensitive(CuTest 
 
   victim.char_specials.saved.idnum = 101;
   fixture[1].id = 101;
-  fixture[1].name = "sourcechar";
+  fixture[1].name = CuMutableString("sourcechar");
   duplicate_source_status =
       player_rename_memory_preflight_for_test(&victim, "Sourcechar", "Unusedchar");
 
@@ -461,8 +461,8 @@ void Test_saved_clone_does_not_free_shared_prototype_strings(CuTest *tc)
 
   memset(&prototype, 0, sizeof(prototype));
   memset(&clone, 0, sizeof(clone));
-  prototype.player.name = "shared prototype name";
-  prototype.player.short_descr = "shared prototype short";
+  prototype.player.name = CuMutableString("shared prototype name");
+  prototype.player.short_descr = CuMutableString("shared prototype short");
   mob_proto = &prototype;
   top_of_mobt = 0;
   clone.nr = 0;
@@ -505,7 +505,7 @@ void Test_missing_player_specials_has_no_account_name(CuTest *tc)
 
   memset(&character, 0, sizeof(character));
 
-  CuAssertPtrEquals(tc, NULL, (void *)player_file_account_name(&character));
+  CuAssertPtrEquals(tc, NULL, player_file_account_name(&character));
 }
 
 void Test_live_account_name_takes_precedence_for_save(CuTest *tc)
@@ -522,7 +522,7 @@ void Test_live_account_name_takes_precedence_for_save(CuTest *tc)
   character.player_specials = &player_specials;
   character.desc = &descriptor;
   descriptor.account = &account;
-  account.name = "LiveAccount";
+  account.name = CuMutableString("LiveAccount");
   GET_ACCOUNT_NAME(&character) = strdup("LoadedAccount");
 
   CuAssertStrEquals(tc, "LiveAccount", player_file_account_name(&character));
@@ -544,7 +544,7 @@ void Test_empty_live_account_name_falls_back_to_stored_name(CuTest *tc)
   character.player_specials = &player_specials;
   character.desc = &descriptor;
   descriptor.account = &account;
-  account.name = "";
+  account.name = CuMutableString("");
   GET_ACCOUNT_NAME(&character) = strdup("LoadedAccount");
 
   CuAssertStrEquals(tc, "LoadedAccount", player_file_account_name(&character));

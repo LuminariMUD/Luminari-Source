@@ -4039,7 +4039,7 @@ void core_dump_real(const char *who, int line)
  * empty space once the color codes are converted and made non-printable.
  * @param string The string in which to check for color codes.
  * @retval int the number of color codes found. */
-int count_color_chars(char *string)
+int count_color_chars(const char *string)
 {
   int i, len;
   int num = 0;

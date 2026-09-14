@@ -159,17 +159,17 @@ void Test_arcane_mark_workflow_reports_and_displays_applied_signature(CuTest *tc
   descriptor.pProtocol = ProtocolCreate();
   ch.desc = &descriptor;
   ch.player_specials = &player_specials;
-  ch.player.name = "arcane mark test character";
+  ch.player.name = CuMutableString("arcane mark test character");
   GET_LEVEL(&ch) = 1;
   GET_POS(&ch) = POS_STANDING;
   IN_ROOM(&ch) = 0;
   ch.carrying = &obj;
   obj.carried_by = &ch;
-  obj.name = "test token";
-  obj.short_description = "a test token";
-  obj.description = "A test token is here.";
+  obj.name = CuMutableString("test token");
+  obj.short_description = CuMutableString("a test token");
+  obj.description = CuMutableString("A test token is here.");
   room.number = 1;
-  room.name = "Arcane Mark Test Room";
+  room.name = CuMutableString("Arcane Mark Test Room");
   room.light = 1;
   room.people = &ch;
 
@@ -269,22 +269,22 @@ void Test_arcane_mark_staff_character_stat_reports_signature(CuTest *tc)
   descriptor.pProtocol = ProtocolCreate();
   staff.desc = &descriptor;
   staff.player_specials = &staff_specials;
-  staff.player.name = "arcane mark staff";
+  staff.player.name = CuMutableString("arcane mark staff");
   GET_LEVEL(&staff) = LVL_IMPL;
   GET_POS(&staff) = POS_STANDING;
   IN_ROOM(&staff) = 0;
 
   target.player_specials = &target_specials;
-  target.player.name = "marktarget";
-  target.player.title = "the Marked";
-  target.player.description = "A character used for arcane mark stat testing.\r\n";
+  target.player.name = CuMutableString("marktarget");
+  target.player.title = CuMutableString("the Marked");
+  target.player.description = CuMutableString("A character used for arcane mark stat testing.\r\n");
   GET_ARCANE_MARK(&target) = strdup("Staff-visible Sigil");
   GET_LEVEL(&target) = 1;
   GET_POS(&target) = POS_STANDING;
   IN_ROOM(&target) = 0;
 
   room.number = 1;
-  room.name = "Arcane Mark Stat Test Room";
+  room.name = CuMutableString("Arcane Mark Stat Test Room");
   room.light = 1;
   room.people = &target;
 
@@ -346,7 +346,7 @@ void Test_arcane_mark_preserves_full_signature_limit(CuTest *tc)
   descriptor.pProtocol = ProtocolCreate();
   ch.desc = &descriptor;
   ch.player_specials = &player_specials;
-  ch.player.name = "arcane mark length test character";
+  ch.player.name = CuMutableString("arcane mark length test character");
 
   if (descriptor.pProtocol == NULL)
   {
@@ -456,7 +456,7 @@ void Test_warlock_darkness_lasts_fifteen_rounds(CuTest *tc)
   memset(&player_specials, 0, sizeof(player_specials));
   memset(&room, 0, sizeof(room));
   ch.player_specials = &player_specials;
-  ch.player.name = "warlock darkness test character";
+  ch.player.name = CuMutableString("warlock darkness test character");
   IN_ROOM(&ch) = 0;
   GET_CLASS(&ch) = CLASS_WARLOCK;
   GET_LEVEL(&ch) = 6;
@@ -511,7 +511,7 @@ void Test_legacy_crafting_reports_modified_experience(CuTest *tc)
   descriptor.pProtocol = ProtocolCreate();
   ch.desc = &descriptor;
   ch.player_specials = &player_specials;
-  ch.player.name = "legacy crafting experience test character";
+  ch.player.name = CuMutableString("legacy crafting experience test character");
   IN_ROOM(&ch) = NOWHERE;
   GET_CLASS(&ch) = CLASS_WARRIOR;
   GET_LEVEL(&ch) = 6;
@@ -573,9 +573,9 @@ void Test_spells_production_name_and_level_lookup(CuTest *tc)
 
   CuAssertStrEquals(tc, "Coverage Missile", spell_name(SPELL_MAGIC_MISSILE));
   CuAssertIntEquals(tc, 3, lowest_spell_level(SPELL_MAGIC_MISSILE));
-  CuAssertIntEquals(tc, SPELL_MAGIC_MISSILE, find_skill_num("coverage missile"));
-  CuAssertIntEquals(tc, SPELL_MAGIC_MISSILE, find_skill_num("cov mis"));
-  CuAssertIntEquals(tc, -1, find_skill_num("not a real coverage spell"));
+  CuAssertIntEquals(tc, SPELL_MAGIC_MISSILE, find_skill_num(CuMutableString("coverage missile")));
+  CuAssertIntEquals(tc, SPELL_MAGIC_MISSILE, find_skill_num(CuMutableString("cov mis")));
+  CuAssertIntEquals(tc, -1, find_skill_num(CuMutableString("not a real coverage spell")));
 
   spell_info[SPELL_MAGIC_MISSILE].name = saved_name;
   for (i = 0; i < NUM_CLASSES; i++)
@@ -589,8 +589,8 @@ void Test_cure_critical_spell_names_are_canonical(CuTest *tc)
 
   CuAssertStrEquals(tc, "cure critical", spell_name(SPELL_CURE_CRITIC));
   CuAssertStrEquals(tc, "mass cure critical", spell_name(SPELL_MASS_CURE_CRIT));
-  CuAssertIntEquals(tc, SPELL_CURE_CRITIC, find_skill_num("cure critic"));
-  CuAssertIntEquals(tc, SPELL_MASS_CURE_CRIT, find_skill_num("mass cure critic"));
+  CuAssertIntEquals(tc, SPELL_CURE_CRITIC, find_skill_num(CuMutableString("cure critic")));
+  CuAssertIntEquals(tc, SPELL_MASS_CURE_CRIT, find_skill_num(CuMutableString("mass cure critic")));
 }
 
 void Test_spells_production_cantrip_bounds(CuTest *tc)
@@ -616,7 +616,7 @@ void Test_sharpened_edge_duration_is_ten_minutes_per_level(CuTest *tc)
   clear_char(&ch);
   SET_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
   ch.player_specials = &dummy_mob;
-  ch.player.short_descr = "sharpened edge test character";
+  ch.player.short_descr = CuMutableString("sharpened edge test character");
   GET_LEVEL(&ch) = 5;
 
   mag_affects(GET_LEVEL(&ch), &ch, &ch, NULL, PSIONIC_SHARPENED_EDGE, SAVING_WILL, CAST_INNATE, 0);
@@ -655,7 +655,7 @@ void Test_magic_fang_accepts_animal_wild_shapes(CuTest *tc)
   top_of_world = 0;
   room.people = target;
   ch.player_specials = &player_specials;
-  ch.player.name = "animal wild shape test character";
+  ch.player.name = CuMutableString("animal wild shape test character");
   IN_ROOM(target) = 0;
   GET_LEVEL(target) = 10;
   GET_CLASS(target) = CLASS_DRUID;
@@ -718,7 +718,7 @@ void Test_eidolon_basic_magic_is_at_will(CuTest *tc)
   top_of_world = 0;
   room.people = &eidolon;
   eidolon.player_specials = &dummy_mob;
-  eidolon.player.short_descr = "an eidolon basic magic test creature";
+  eidolon.player.short_descr = CuMutableString("an eidolon basic magic test creature");
   IN_ROOM(&eidolon) = 0;
   GET_LEVEL(&eidolon) = 10;
   GET_CLASS(&eidolon) = CLASS_WIZARD;
@@ -791,7 +791,7 @@ void Test_aasimar_innate_spells_use_daily_charges(CuTest *tc)
   top_of_world = 0;
   room.people = &ch;
   ch.player_specials = &player_specials;
-  ch.player.name = "aasimar healing hands test character";
+  ch.player.name = CuMutableString("aasimar healing hands test character");
   IN_ROOM(&ch) = 0;
   GET_LEVEL(&ch) = 10;
   GET_POS(&ch) = POS_STANDING;
@@ -855,7 +855,7 @@ void Test_group_heal_restores_health_and_cures_blindness(CuTest *tc)
   room.people = &ch;
   SET_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
   ch.player_specials = &dummy_mob;
-  ch.player.short_descr = "group heal test character";
+  ch.player.short_descr = CuMutableString("group heal test character");
   IN_ROOM(&ch) = 0;
   GET_LEVEL(&ch) = 20;
   GET_REAL_MAX_HIT(&ch) = 100;
@@ -904,8 +904,8 @@ void Test_positive_channel_energy_heals_grouped_living_targets(CuTest *tc)
 
   ch.player_specials = &ch_specials;
   ally.player_specials = &ally_specials;
-  ch.player.name = "positive channel test caster";
-  ally.player.name = "positive channel test ally";
+  ch.player.name = CuMutableString("positive channel test caster");
+  ally.player.name = CuMutableString("positive channel test ally");
   GET_CLASS(&ch) = CLASS_CLERIC;
   GET_LEVEL(&ch) = 4;
   CLASS_LEVEL((&ch), CLASS_CLERIC) = 4;
@@ -991,7 +991,7 @@ void Test_domain_command_labels_granted_spell_circles(CuTest *tc)
   memset(&descriptor, 0, sizeof(descriptor));
   memset(&player_specials, 0, sizeof(player_specials));
   ch.player_specials = &player_specials;
-  ch.player.name = "domain command test character";
+  ch.player.name = CuMutableString("domain command test character");
   GET_PAGE_LENGTH(&ch) = PAGE_LENGTH;
   ch.desc = &descriptor;
   descriptor.character = &ch;
@@ -1011,7 +1011,7 @@ void Test_domain_command_labels_granted_spell_circles(CuTest *tc)
            spell_info[domain_list[DOMAIN_AIR].domain_spells[0]].name);
   found_circle = descriptor.showstr_head != NULL && strstr(descriptor.showstr_head, expected);
 
-  show_string(&descriptor, "q");
+  show_string(&descriptor, CuMutableString("q"));
   ch.desc = NULL;
   cleanup_test_descriptor(&descriptor);
 
@@ -1034,7 +1034,7 @@ void Test_inquisitor_war_domain_power_word_kill_uses_sixth_circle_level_gate(CuT
   memset(&descriptor, 0, sizeof(descriptor));
   memset(&player_specials, 0, sizeof(player_specials));
   ch.player_specials = &player_specials;
-  ch.player.name = "inquisitor power word kill test character";
+  ch.player.name = CuMutableString("inquisitor power word kill test character");
   ch.desc = &descriptor;
   descriptor.character = &ch;
   descriptor.output = descriptor.small_outbuf;
@@ -1180,7 +1180,7 @@ void Test_inquisitor_healing_touch_uses_reconciled_domain_feat(CuTest *tc)
   memset(&player_specials, 0, sizeof(player_specials));
   memset(&room, 0, sizeof(room));
   ch.player_specials = &player_specials;
-  ch.player.name = "inquisitor healing touch test character";
+  ch.player.name = CuMutableString("inquisitor healing touch test character");
   CLASS_LEVEL((&ch), CLASS_INQUISITOR) = 10;
   GET_LEVEL(&ch) = 10;
   GET_1ST_DOMAIN(&ch) = DOMAIN_HEALING;
@@ -1388,7 +1388,7 @@ void Test_skill_numbered_affect_expiration_dispatches_wearoff(CuTest *tc)
   clear_char(&ch);
   memset(&descriptor, 0, sizeof(descriptor));
   ch.player_specials = &dummy_mob;
-  ch.player.short_descr = "wear-off test character";
+  ch.player.short_descr = CuMutableString("wear-off test character");
   SET_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
   ch.desc = &descriptor;
   descriptor.character = &ch;
@@ -1441,7 +1441,7 @@ void Test_affect_wearoff_callback_can_remove_the_cached_successor(CuTest *tc)
 
   clear_char(&ch);
   ch.player_specials = &dummy_mob;
-  ch.player.short_descr = "affect mutation test character";
+  ch.player.short_descr = CuMutableString("affect mutation test character");
   SET_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
   GET_LEVEL(&ch) = 20;
   GET_HIT(&ch) = 1000;
@@ -1482,7 +1482,7 @@ void Test_mag_unaffects_removes_multi_node_spell_groups_safely(CuTest *tc)
 
   clear_char(&ch);
   ch.player_specials = &dummy_mob;
-  ch.player.short_descr = "unaffects mutation test character";
+  ch.player.short_descr = CuMutableString("unaffects mutation test character");
   SET_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
 
   new_affect(&af);
@@ -1518,7 +1518,7 @@ void Test_restoration_checks_the_affected_spell_not_the_cast_spell(CuTest *tc)
 
   clear_char(&ch);
   ch.player_specials = &dummy_mob;
-  ch.player.short_descr = "restoration test character";
+  ch.player.short_descr = CuMutableString("restoration test character");
   SET_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
 
   new_affect(&af);
@@ -1575,7 +1575,7 @@ void Test_legacy_no_skill_craft_is_available_without_a_skill_array_lookup(CuTest
   memset(&craft_item, 0, sizeof(craft_item));
 
   ch.player_specials = &player_specials;
-  ch.player.name = "no-skill craft test character";
+  ch.player.name = CuMutableString("no-skill craft test character");
   ch.desc = &descriptor;
   descriptor.character = &ch;
   descriptor.output = descriptor.small_outbuf;
@@ -1588,7 +1588,7 @@ void Test_legacy_no_skill_craft_is_available_without_a_skill_array_lookup(CuTest
     return;
   }
 
-  craft.craft_name = "No Skill Test Craft";
+  craft.craft_name = CuMutableString("No Skill Test Craft");
   craft.craft_skill = -1;
   craft.craft_skill_level = 0;
   craft.requirements = &requirements;
@@ -1650,7 +1650,7 @@ void Test_group_inspiration_affects_finish_with_nested_group_calculations(CuTest
   memset(&room, 0, sizeof(room));
 
   ch.player_specials = &player_specials;
-  ch.player.name = "group inspiration test character";
+  ch.player.name = CuMutableString("group inspiration test character");
   ch.desc = &descriptor;
   descriptor.character = &ch;
   descriptor.output = descriptor.small_outbuf;
@@ -1670,7 +1670,7 @@ void Test_group_inspiration_affects_finish_with_nested_group_calculations(CuTest
 
   SET_BIT_AR(MOB_FLAGS(&pet), MOB_ISNPC);
   pet.player_specials = &dummy_mob;
-  pet.player.short_descr = "group inspiration test pet";
+  pet.player.short_descr = CuMutableString("group inspiration test pet");
   GET_LEVEL(&pet) = 20;
   GET_POS(&pet) = POS_STANDING;
   IN_ROOM(&pet) = 0;
@@ -1743,7 +1743,7 @@ void Test_split_enchantment_uses_perk_ownership_and_nonnegative_cooldowns(CuTest
   memset(&split_perk, 0, sizeof(split_perk));
   memset(&room, 0, sizeof(room));
   ch.player_specials = &player_specials;
-  ch.player.name = "split enchantment test character";
+  ch.player.name = CuMutableString("split enchantment test character");
   ch.desc = &descriptor;
   descriptor.character = &ch;
   descriptor.output = descriptor.small_outbuf;
@@ -1905,7 +1905,7 @@ void Test_player_toggle_messages_match_resulting_state(CuTest *tc)
   memset(&descriptor, 0, sizeof(descriptor));
   memset(&player_specials, 0, sizeof(player_specials));
   ch.player_specials = &player_specials;
-  ch.player.name = "toggle message test character";
+  ch.player.name = CuMutableString("toggle message test character");
   ch.desc = &descriptor;
   descriptor.character = &ch;
   descriptor.output = descriptor.small_outbuf;
@@ -1963,11 +1963,11 @@ void Test_nature_and_survival_lookup_preserve_one_skill_slot(CuTest *tc)
   ch.player_specials = &specials;
   CuAssertIntEquals(tc, 29, ABILITY_NATURE);
   CuAssertIntEquals(tc, ABILITY_NATURE, ABILITY_SURVIVAL);
-  CuAssertIntEquals(tc, ABILITY_NATURE, find_ability_num("nature"));
-  CuAssertIntEquals(tc, ABILITY_NATURE, find_ability_num("SURVIVAL"));
-  CuAssertIntEquals(tc, ABILITY_NATURE, find_ability_num("surv"));
-  CuAssertIntEquals(tc, -1, find_ability_num("survivalist"));
-  CuAssertIntEquals(tc, -1, find_ability_num(""));
+  CuAssertIntEquals(tc, ABILITY_NATURE, find_ability_num(CuMutableString("nature")));
+  CuAssertIntEquals(tc, ABILITY_NATURE, find_ability_num(CuMutableString("SURVIVAL")));
+  CuAssertIntEquals(tc, ABILITY_NATURE, find_ability_num(CuMutableString("surv")));
+  CuAssertIntEquals(tc, -1, find_ability_num(CuMutableString("survivalist")));
+  CuAssertIntEquals(tc, -1, find_ability_num(CuMutableString("")));
   CuAssertIntEquals(tc, -1, find_ability_num(NULL));
   SET_ABILITY(&ch, ABILITY_SURVIVAL, 7);
   CuAssertIntEquals(tc, 7, GET_ABILITY(&ch, ABILITY_NATURE));

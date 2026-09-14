@@ -3,7 +3,7 @@
 # scripts/ci/check_warning_budget.py --compiler clang-22 --log LOG --update
 alloca 4
 cast-align 6
-cast-qual 394
+cast-qual 100
 double-promotion 557
 enum-enum-conversion 1
 float-conversion 94
@@ -13,7 +13,7 @@ implicit-float-conversion 221
 implicit-int-conversion 527
 implicit-int-conversion-on-negation 6
 implicit-int-float-conversion 128
-incompatible-pointer-types-discards-qualifiers 484
+incompatible-pointer-types-discards-qualifiers 191
 jump-misses-init 579
 missing-format-attribute 29
 shadow 164

@@ -70,7 +70,7 @@ static void begin_four_arm_fixture(struct four_arm_fixture *fixture)
   fixture->ch.points.size = SIZE_MEDIUM;
   GET_LEVEL(&fixture->ch) = 10;
   GET_POS(&fixture->ch) = POS_STANDING;
-  fixture->ch.player.name = (char *)"four arm tester";
+  fixture->ch.player.name = CuMutableString("four arm tester");
 }
 
 static void end_four_arm_fixture(struct four_arm_fixture *fixture)
@@ -104,9 +104,9 @@ static void reset_output(struct four_arm_fixture *fixture)
 static void init_weapon(struct obj_data *obj, const char *name, int weapon_type, int size)
 {
   clear_object(obj);
-  obj->name = (char *)name;
-  obj->short_description = (char *)name;
-  obj->description = (char *)name;
+  obj->name = CuMutableString(name);
+  obj->short_description = CuMutableString(name);
+  obj->description = CuMutableString(name);
   GET_OBJ_TYPE(obj) = ITEM_WEAPON;
   GET_OBJ_VAL(obj, 0) = weapon_type;
   GET_OBJ_SIZE(obj) = size;
@@ -118,9 +118,9 @@ static void init_armor(struct obj_data *obj, const char *name, int wear_flag, in
                        int armor_family)
 {
   clear_object(obj);
-  obj->name = (char *)name;
-  obj->short_description = (char *)name;
-  obj->description = (char *)name;
+  obj->name = CuMutableString(name);
+  obj->short_description = CuMutableString(name);
+  obj->description = CuMutableString(name);
   GET_OBJ_TYPE(obj) = ITEM_ARMOR;
   GET_OBJ_SIZE(obj) = SIZE_MEDIUM;
   GET_OBJ_VAL(obj, 0) = ac;
@@ -516,9 +516,9 @@ void TestFourArmsSlotTablesAreComplete(CuTest *tc)
 static void init_held(struct obj_data *obj, const char *name)
 {
   clear_object(obj);
-  obj->name = (char *)name;
-  obj->short_description = (char *)name;
-  obj->description = (char *)name;
+  obj->name = CuMutableString(name);
+  obj->short_description = CuMutableString(name);
+  obj->description = CuMutableString(name);
   GET_OBJ_TYPE(obj) = ITEM_OTHER;
   GET_OBJ_SIZE(obj) = SIZE_MEDIUM;
   SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_TAKE);
@@ -1057,8 +1057,8 @@ static void init_combat_npc(struct char_data *ch, const char *name)
   clear_char(ch);
   SET_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
   ch->player_specials = &dummy_mob;
-  ch->player.short_descr = (char *)name;
-  ch->player.name = (char *)name;
+  ch->player.short_descr = CuMutableString(name);
+  ch->player.name = CuMutableString(name);
   GET_LEVEL(ch) = 1;
   GET_POS(ch) = POS_STANDING;
   GET_HIT(ch) = 100000;

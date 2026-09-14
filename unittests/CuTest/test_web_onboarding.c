@@ -233,7 +233,7 @@ void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
   CuAssertStrEquals(tc, "homelands-1.0.0", CHARACTER_CREATION_HOMELAND_CANON_VERSION);
   CuAssertStrEquals(tc, "homeland-languages-1.0.0", CHARACTER_CREATION_LANGUAGE_CANON_VERSION);
   CuAssertStrEquals(tc, "character-compass-1.0.0", CHARACTER_CREATION_COMPASS_CANON_VERSION);
-  CuAssertPtrNotNull(tc, (void *)character_creation_content_provenance());
+  CuAssertPtrNotNull(tc, character_creation_content_provenance());
 
   for (region = 1; region < NUM_REGIONS; region++)
   {
@@ -241,7 +241,7 @@ void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
         character_creation_homeland_for_region(region);
     int previous = 0;
 
-    CuAssertPtrNotNull(tc, (void *)homeland);
+    CuAssertPtrNotNull(tc, homeland);
     if (homeland == NULL)
       continue;
     homeland_count++;
@@ -254,7 +254,7 @@ void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
     CuAssertTrue(tc, homeland->description != NULL && strlen(homeland->description) > 200);
     CuAssertTrue(tc, homeland->provenance != NULL && homeland->provenance[0] != '\0');
     CuAssertTrue(tc, homeland->language != LANG_COMMON);
-    CuAssertPtrNotNull(tc, (void *)character_creation_language_for_index(homeland->language));
+    CuAssertPtrNotNull(tc, character_creation_language_for_index(homeland->language));
 
     for (previous = 1; previous < region; previous++)
     {
@@ -292,7 +292,7 @@ void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
     const struct character_creation_guidance *guidance =
         character_creation_guidance_for_profile(profile_ids[profile_index]);
 
-    CuAssertPtrNotNull(tc, (void *)guidance);
+    CuAssertPtrNotNull(tc, guidance);
     if (guidance == NULL)
       continue;
     CuAssertTrue(tc, guidance->hub_summary != NULL && guidance->hub_summary[0] != '\0');
@@ -307,7 +307,7 @@ void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
     const struct character_creation_background *content =
         character_creation_background_for_value(background);
 
-    CuAssertPtrNotNull(tc, (void *)content);
+    CuAssertPtrNotNull(tc, content);
     if (content == NULL)
       continue;
     CuAssertIntEquals(tc, background, content->background);
@@ -323,7 +323,7 @@ void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
             background, (enum character_creation_inspiration_kind)kind, seed_index);
         int previous_seed = 0;
 
-        CuAssertPtrNotNull(tc, (void *)seed);
+        CuAssertPtrNotNull(tc, seed);
         if (seed == NULL)
           continue;
         CuAssertTrue(tc, seed[0] != '\0');
@@ -348,8 +348,8 @@ void TestEveryBackgroundHasNonPlaceholderMechanicMetadata(CuTest *tc)
     int feat = background_list[background].feat;
 
     CuAssertTrue(tc, feat > 0 && feat < NUM_FEATS);
-    CuAssertPtrNotNull(tc, (void *)feat_list[feat].name);
-    CuAssertPtrNotNull(tc, (void *)feat_list[feat].description);
+    CuAssertPtrNotNull(tc, feat_list[feat].name);
+    CuAssertPtrNotNull(tc, feat_list[feat].description);
     CuAssertTrue(tc,
                  feat_list[feat].name != NULL && strcmp(feat_list[feat].name, "Unused Feat") != 0);
     CuAssertTrue(tc, feat_list[feat].description != NULL &&
@@ -524,7 +524,7 @@ void TestWebOnboardingMediaKeysAreStableAndBounded(CuTest *tc)
   for (index = 0; index < NUM_RACES; index++)
   {
     const char *key = web_onboarding_race_media_key(index);
-    CuAssertPtrNotNull(tc, (void *)key);
+    CuAssertPtrNotNull(tc, key);
     CuAssertTrue(tc, strncmp(key, "race/", 5) == 0);
   }
 }
@@ -1540,7 +1540,8 @@ void TestCharacterCreationLifecycleAndWorkflowActionsAreSourceOwned(CuTest *tc)
   CuAssertTrue(tc, character_creation_resume(&d));
   CuAssertIntEquals(tc, CON_SETPREFS, STATE(&d));
   CuAssertTrue(tc, PRF_FLAGGED(character, PRF_SCREEN_READER));
-  nanny(&d, "yes"); /* The injected save failure must undo recommended settings only. */
+  nanny(&d, CuMutableString(
+                "yes")); /* The injected save failure must undo recommended settings only. */
   CuAssertIntEquals(tc, CON_SETPREFS, STATE(&d));
   CuAssertTrue(tc, PRF_FLAGGED(character, PRF_SCREEN_READER));
   CuAssertTrue(tc, !PRF_FLAGGED(character, PRF_DISPGOLD));
@@ -2672,8 +2673,8 @@ void TestRoleplayFactionCommitRollsBackCharacterAndPlayerIndex(CuTest *tc)
   CuAssertTrue(tc, init_editor_descriptor(&d, &ch, &specials, CON_CHAR_RP_MENU));
   if (d.pProtocol == NULL)
     return;
-  ch.player.name = "synthetic-roleplay-character";
-  fixture[0].name = "synthetic-roleplay-character";
+  ch.player.name = CuMutableString("synthetic-roleplay-character");
+  fixture[0].name = CuMutableString("synthetic-roleplay-character");
   fixture[0].clan = 17;
   player_table = fixture;
   top_of_p_table = 0;

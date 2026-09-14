@@ -154,7 +154,7 @@ int trgvar_in_room(room_vnum vnum)
  * @retval obj_data * Pointer to the object if it is found in the list of
  * objects, NULL if the object is not found in the list.
  */
-obj_data *get_obj_in_list(char *name, obj_data *list)
+obj_data *get_obj_in_list(const char *name, obj_data *list)
 {
   obj_data *i;
   long id;
@@ -4152,7 +4152,7 @@ void remove_from_lookup_table(long uid)
   log("remove_from_lookup. UID %ld not found.", uid);
 }
 
-bool check_flags_by_name_ar(int *array, int numflags, char *search, const char *namelist[])
+bool check_flags_by_name_ar(int *array, int numflags, const char *search, const char *namelist[])
 {
   int i, item = -1;
 

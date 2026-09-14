@@ -577,7 +577,7 @@ void TestRolSpellKitLevelAndMulticlassBoundaries(CuTest *tc)
   clear_char(&ch);
   memset(&specials, 0, sizeof(specials));
   ch.player_specials = &specials;
-  ch.player.name = "spell access tester";
+  ch.player.name = CuMutableString("spell access tester");
   GET_LEVEL(&ch) = 30;
 
   CLASS_LEVEL((&ch), CLASS_CLERIC) = 10;
@@ -626,7 +626,7 @@ void TestElementalistEmbodimentsRequireMasterOfElementsForPreparation(CuTest *tc
   memset(&specials, 0, sizeof(specials));
   memset(&master, 0, sizeof(master));
   ch.player_specials = &specials;
-  ch.player.name = "elementalist";
+  ch.player.name = CuMutableString("elementalist");
   GET_LEVEL(&ch) = 30;
   CLASS_LEVEL((&ch), CLASS_WIZARD) = 13;
   init_class(&ch, CLASS_WIZARD, 13);
@@ -659,7 +659,7 @@ void TestBattlechanterSpellUsesBardKnownSpellPath(CuTest *tc)
   clear_char(&ch);
   memset(&specials, 0, sizeof(specials));
   ch.player_specials = &specials;
-  ch.player.name = "battlechanter";
+  ch.player.name = CuMutableString("battlechanter");
   GET_LEVEL(&ch) = 16;
   GET_CLASS(&ch) = CLASS_BARD;
   CLASS_LEVEL((&ch), CLASS_BARD) = 16;
@@ -689,7 +689,7 @@ void TestMasterOfElementsRequiresTwoFocusedElementPerks(CuTest *tc)
   memset(&fire, 0, sizeof(fire));
   memset(&cold, 0, sizeof(cold));
   ch.player_specials = &specials;
-  ch.player.name = "perk tester";
+  ch.player.name = CuMutableString("perk tester");
   GET_LEVEL(&ch) = 1;
   CLASS_LEVEL((&ch), CLASS_WIZARD) = 1;
   specials.saved.perk_points[CLASS_WIZARD] = 100;
@@ -722,7 +722,7 @@ void TestDireRaiderWolfBondRequiresRangerWarriorMulticlass(CuTest *tc)
   clear_char(&ch);
   memset(&specials, 0, sizeof(specials));
   ch.player_specials = &specials;
-  ch.player.name = "dire raider";
+  ch.player.name = CuMutableString("dire raider");
   SET_FEAT(&ch, FEAT_ANIMAL_COMPANION, 1);
 
   CLASS_LEVEL((&ch), CLASS_RANGER) = 3;
@@ -795,8 +795,8 @@ void TestElementalEmbodimentsPreserveProfilesAndLinkedCleanup(CuTest *tc)
     memset(&target_specials, 0, sizeof(target_specials));
     caster.player_specials = &caster_specials;
     target.player_specials = &target_specials;
-    caster.player.name = "elementalist";
-    target.player.name = "subject";
+    caster.player.name = CuMutableString("elementalist");
+    target.player.name = CuMutableString("subject");
     GET_LEVEL(&caster) = 20;
     GET_LEVEL(&target) = 10;
     GET_REAL_RACE(&caster) = RACE_HUMAN;

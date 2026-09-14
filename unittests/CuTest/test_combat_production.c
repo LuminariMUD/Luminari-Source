@@ -55,11 +55,11 @@ void Test_pvp_policy_blocks_combat_damage_and_player_controlled_pets(CuTest *tc)
 
   attacker.player_specials = &attacker_specials;
   defender.player_specials = &defender_specials;
-  attacker.player.name = "Aggressor";
-  defender.player.name = "Defender";
-  monster.player.short_descr = "a pvp policy monster";
-  attacker_pet.player.short_descr = "an attacker pet";
-  defender_pet.player.short_descr = "a defender pet";
+  attacker.player.name = CuMutableString("Aggressor");
+  defender.player.name = CuMutableString("Defender");
+  monster.player.short_descr = CuMutableString("a pvp policy monster");
+  attacker_pet.player.short_descr = CuMutableString("an attacker pet");
+  defender_pet.player.short_descr = CuMutableString("a defender pet");
   SET_BIT_AR(MOB_FLAGS(&monster), MOB_ISNPC);
   SET_BIT_AR(MOB_FLAGS(&attacker_pet), MOB_ISNPC);
   SET_BIT_AR(MOB_FLAGS(&defender_pet), MOB_ISNPC);
@@ -301,8 +301,8 @@ void Test_combat_perk_group_iterators_detach_on_matches_and_completion(CuTest *t
 
   ch.player_specials = &ch_specials;
   ally.player_specials = &ally_specials;
-  ch.player.name = "perk iterator character";
-  ally.player.name = "perk iterator ally";
+  ch.player.name = CuMutableString("perk iterator character");
+  ally.player.name = CuMutableString("perk iterator ally");
   GET_LEVEL(&ch) = 10;
   GET_LEVEL(&ally) = 10;
   IN_ROOM(&ch) = 0;
@@ -466,8 +466,8 @@ void Test_litany_of_righteousness_dazzles_the_evil_target(CuTest *tc)
   memset(&room, 0, sizeof(room));
   ch.player_specials = &ch_player_specials;
   victim.player_specials = &victim_player_specials;
-  ch.player.name = "litany test caster";
-  victim.player.name = "litany test target";
+  ch.player.name = CuMutableString("litany test caster");
+  victim.player.name = CuMutableString("litany test target");
   GET_LEVEL(&ch) = 10;
   GET_LEVEL(&victim) = 10;
   GET_ALIGNMENT(&ch) = 1000;
@@ -552,7 +552,7 @@ void Test_capped_kill_experience_does_not_report_zero_award(CuTest *tc)
   descriptor.pProtocol = ProtocolCreate();
   ch.desc = &descriptor;
   ch.player_specials = &player_specials;
-  ch.player.name = "kill experience test character";
+  ch.player.name = CuMutableString("kill experience test character");
   IN_ROOM(&ch) = NOWHERE;
   GET_CLASS(&ch) = CLASS_WARRIOR;
   GET_LEVEL(&ch) = 12;
@@ -623,12 +623,12 @@ void Test_happy_hour_kill_experience_is_boosted_once(CuTest *tc)
   descriptor.pProtocol = ProtocolCreate();
   ch.desc = &descriptor;
   ch.player_specials = &player_specials;
-  ch.player.name = "happy hour test character";
+  ch.player.name = CuMutableString("happy hour test character");
   IN_ROOM(&ch) = NOWHERE;
   GET_CLASS(&ch) = CLASS_WARRIOR;
   GET_LEVEL(&ch) = 12;
   ch.player_specials->saved.stage_info.current_stage = 1;
-  victim.player.name = "happy hour test victim";
+  victim.player.name = CuMutableString("happy hour test victim");
   victim.player_specials = &dummy_mob;
   SET_BIT_AR(MOB_FLAGS(&victim), MOB_ISNPC);
   IN_ROOM(&victim) = NOWHERE;
@@ -710,7 +710,7 @@ void Test_lich_touch_self_heal_ignores_single_file_reach(CuTest *tc)
   SET_BIT_AR(ROOM_FLAGS(0), ROOM_SINGLEFILE);
   room.people = &ch;
   ch.player_specials = &player_specials;
-  ch.player.name = "lich touch test character";
+  ch.player.name = CuMutableString("lich touch test character");
   IN_ROOM(&ch) = 0;
   GET_REAL_RACE(&ch) = RACE_LICH;
   GET_LEVEL(&ch) = 30;

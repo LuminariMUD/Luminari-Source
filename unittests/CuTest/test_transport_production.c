@@ -95,7 +95,7 @@ void Test_transport_landmark_regions_accept_names_and_city(CuTest *tc)
   room_fixture.number = 103000;
   room_fixture.zone = 0;
   zone_fixture.number = 1030;
-  zone_fixture.name = "Ashenport";
+  zone_fixture.name = CuMutableString("Ashenport");
   world = &room_fixture;
   top_of_world = 0;
   zone_table = &zone_fixture;
@@ -841,17 +841,17 @@ void Test_vessel_region_features_use_wilderness_thresholds(CuTest *tc)
 
   fixture[0].vnum = 7200020;
   fixture[0].zone = 0;
-  fixture[0].name = "Outer Test Lane";
+  fixture[0].name = CuMutableString("Outer Test Lane");
   fixture[0].region_type = REGION_ALTITUDE_LANE;
   fixture[0].region_props = 100;
   fixture[0].vertices = feature_polygon;
   fixture[0].num_vertices = 5;
   fixture[1] = fixture[0];
   fixture[1].vnum = 7200010;
-  fixture[1].name = "Priority Test Lane";
+  fixture[1].name = CuMutableString("Priority Test Lane");
   fixture[2] = fixture[0];
   fixture[2].vnum = 7200030;
-  fixture[2].name = "Test Sky Island";
+  fixture[2].name = CuMutableString("Test Sky Island");
   fixture[2].region_type = REGION_SKY_ISLAND;
   fixture[2].region_props = 200;
 
@@ -1520,13 +1520,13 @@ void Test_vessel_piracy_resolves_canonical_regions_in_memory(CuTest *tc)
 
   region_fixture[0].vnum = 7100020;
   region_fixture[0].zone = 0;
-  region_fixture[0].name = "Western Outer Waters";
+  region_fixture[0].name = CuMutableString("Western Outer Waters");
   region_fixture[0].region_type = REGION_GEOGRAPHIC;
   region_fixture[0].vertices = western_polygon;
   region_fixture[0].num_vertices = 5;
   region_fixture[1] = region_fixture[0];
   region_fixture[1].vnum = 7100010;
-  region_fixture[1].name = "Western Inner Waters";
+  region_fixture[1].name = CuMutableString("Western Inner Waters");
   region_fixture[2] = region_fixture[0];
   region_fixture[2].vnum = 7100000;
   region_fixture[2].region_type = REGION_ENCOUNTER;
@@ -1535,7 +1535,7 @@ void Test_vessel_piracy_resolves_canonical_regions_in_memory(CuTest *tc)
   region_fixture[3].zone = 1;
   region_fixture[4] = region_fixture[0];
   region_fixture[4].vnum = 7100030;
-  region_fixture[4].name = "Eastern Waters";
+  region_fixture[4].name = CuMutableString("Eastern Waters");
   region_fixture[4].vertices = eastern_polygon;
 
   saved_region_table = region_table;
@@ -1698,7 +1698,7 @@ void Test_vessel_shiptalk_is_scoped_to_one_ship(CuTest *tc)
   world = room_fixture;
   top_of_world = 2;
 
-  speaker.player.name = "Corr";
+  speaker.player.name = CuMutableString("Corr");
   speaker.player_specials = &speaker_specials;
   speaker.char_specials.position = POS_STANDING;
   speaker.in_room = 0;
@@ -1707,7 +1707,7 @@ void Test_vessel_shiptalk_is_scoped_to_one_ship(CuTest *tc)
   speaker_descriptor.output = speaker_descriptor.small_outbuf;
   speaker_descriptor.bufspace = SMALL_BUFSIZE - 1;
 
-  crew.player.name = "Mira";
+  crew.player.name = CuMutableString("Mira");
   crew.player_specials = &speaker_specials;
   crew.char_specials.position = POS_STANDING;
   crew.in_room = 1;
@@ -1716,7 +1716,7 @@ void Test_vessel_shiptalk_is_scoped_to_one_ship(CuTest *tc)
   crew_descriptor.output = crew_descriptor.small_outbuf;
   crew_descriptor.bufspace = SMALL_BUFSIZE - 1;
 
-  outsider.player.name = "Vex";
+  outsider.player.name = CuMutableString("Vex");
   outsider.player_specials = &speaker_specials;
   outsider.char_specials.position = POS_STANDING;
   outsider.in_room = 2;

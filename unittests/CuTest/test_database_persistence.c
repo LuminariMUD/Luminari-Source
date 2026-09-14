@@ -178,9 +178,9 @@ static void check_restored_object_registries(CuTest *tc, bool database)
   {
     clear_object(&prototypes[i]);
     prototypes[i].item_number = i;
-    prototypes[i].name = (char *)"registry fixture";
-    prototypes[i].short_description = (char *)"a registry fixture";
-    prototypes[i].description = (char *)"A registry fixture is here.";
+    prototypes[i].name = CuMutableString("registry fixture");
+    prototypes[i].short_description = CuMutableString("a registry fixture");
+    prototypes[i].description = CuMutableString("A registry fixture is here.");
     indexes[i].vnum = 91001 + i;
   }
   SET_BIT_AR(GET_OBJ_EXTRA(&prototypes[0]), ITEM_AUTOPROC);
@@ -388,7 +388,7 @@ static void initialize_pet_save_fixture(struct pet_save_fixture *fixture)
   clear_object(&fixture->inventory_object);
   clear_object(&fixture->contained_object);
 
-  fixture->owner.player.name = (char *)"SnapshotOwner";
+  fixture->owner.player.name = CuMutableString("SnapshotOwner");
   fixture->owner.player_specials = &fixture->owner_specials;
   fixture->owner.desc = &fixture->descriptor;
   fixture->descriptor.character = &fixture->owner;
@@ -400,10 +400,10 @@ static void initialize_pet_save_fixture(struct pet_save_fixture *fixture)
 
   SET_BIT_AR(MOB_FLAGS(&fixture->first_pet), MOB_ISNPC);
   SET_BIT_AR(AFF_FLAGS(&fixture->first_pet), AFF_CHARM);
-  fixture->first_pet.player.name = (char *)"FirstPet's marker";
-  fixture->first_pet.player.short_descr = (char *)"the first pet's saved form";
-  fixture->first_pet.player.long_descr = (char *)"The first pet's saved form is here.";
-  fixture->first_pet.player.description = (char *)"A transaction pet's description.";
+  fixture->first_pet.player.name = CuMutableString("FirstPet's marker");
+  fixture->first_pet.player.short_descr = CuMutableString("the first pet's saved form");
+  fixture->first_pet.player.long_descr = CuMutableString("The first pet's saved form is here.");
+  fixture->first_pet.player.description = CuMutableString("A transaction pet's description.");
   GET_LEVEL(&fixture->first_pet) = 8;
   GET_HIT(&fixture->first_pet) = 71;
   GET_REAL_MAX_HIT(&fixture->first_pet) = 90;
@@ -421,10 +421,11 @@ static void initialize_pet_save_fixture(struct pet_save_fixture *fixture)
 
   SET_BIT_AR(MOB_FLAGS(&fixture->second_pet), MOB_ISNPC);
   SET_BIT_AR(AFF_FLAGS(&fixture->second_pet), AFF_CHARM);
-  fixture->second_pet.player.name = (char *)"SecondPet's marker";
-  fixture->second_pet.player.short_descr = (char *)"the second pet's saved form";
-  fixture->second_pet.player.long_descr = (char *)"The second pet's saved form is here.";
-  fixture->second_pet.player.description = (char *)"Another transaction pet's description.";
+  fixture->second_pet.player.name = CuMutableString("SecondPet's marker");
+  fixture->second_pet.player.short_descr = CuMutableString("the second pet's saved form");
+  fixture->second_pet.player.long_descr = CuMutableString("The second pet's saved form is here.");
+  fixture->second_pet.player.description =
+      CuMutableString("Another transaction pet's description.");
   GET_LEVEL(&fixture->second_pet) = 9;
   GET_HIT(&fixture->second_pet) = 81;
   GET_REAL_MAX_HIT(&fixture->second_pet) = 100;
@@ -435,20 +436,20 @@ static void initialize_pet_save_fixture(struct pet_save_fixture *fixture)
   GET_REAL_WIS(&fixture->second_pet) = 13;
   GET_REAL_CHA(&fixture->second_pet) = 8;
 
-  fixture->equipped_object.name = (char *)"pet's test collar";
-  fixture->equipped_object.short_description = (char *)"a pet's test collar";
-  fixture->equipped_object.description = (char *)"A pet's test collar lies here.";
+  fixture->equipped_object.name = CuMutableString("pet's test collar");
+  fixture->equipped_object.short_description = CuMutableString("a pet's test collar");
+  fixture->equipped_object.description = CuMutableString("A pet's test collar lies here.");
   fixture->first_pet.equipment[0] = &fixture->equipped_object;
 
-  fixture->inventory_object.name = (char *)"pet's carried token";
-  fixture->inventory_object.short_description = (char *)"a pet's carried token";
-  fixture->inventory_object.description = (char *)"A pet's carried token lies here.";
+  fixture->inventory_object.name = CuMutableString("pet's carried token");
+  fixture->inventory_object.short_description = CuMutableString("a pet's carried token");
+  fixture->inventory_object.description = CuMutableString("A pet's carried token lies here.");
   fixture->inventory_object.carried_by = &fixture->second_pet;
   fixture->second_pet.carrying = &fixture->inventory_object;
 
-  fixture->contained_object.name = (char *)"pet's nested token";
-  fixture->contained_object.short_description = (char *)"a pet's nested token";
-  fixture->contained_object.description = (char *)"A pet's nested token lies here.";
+  fixture->contained_object.name = CuMutableString("pet's nested token");
+  fixture->contained_object.short_description = CuMutableString("a pet's nested token");
+  fixture->contained_object.description = CuMutableString("A pet's nested token lies here.");
   fixture->contained_object.in_obj = &fixture->inventory_object;
   fixture->inventory_object.contains = &fixture->contained_object;
 }
@@ -663,7 +664,7 @@ void Test_race_equivalence_account_unlock_database_round_trip(CuTest *tc)
 
   if (schema_created && protocol_created)
   {
-    saved_account.name = (char *)"RaceEquivalenceAccount";
+    saved_account.name = CuMutableString("RaceEquivalenceAccount");
     strlcpy(saved_account.password, "test-password", sizeof(saved_account.password));
     saved_account.experience = 63000;
     for (race_index = 0; race_index < (int)(sizeof(races) / sizeof(races[0])); race_index++)
@@ -989,7 +990,7 @@ void Test_pet_restore_failure_blocks_snapshot_replacement(CuTest *tc)
           "ALTER TABLE pet_save_objs ADD creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP") == 0;
   /* Saved objects are addressed by pet row, so the owner name plays no part in
    * the lookup: a pet row without objects is empty whatever the owner is called. */
-  fixture.owner.player.name = (char *)"No Pet's Owner";
+  fixture.owner.player.name = CuMutableString("No Pet's Owner");
   empty = pet_load_objs(&fixture.second_pet, &fixture.owner, 699) == PET_OBJECT_LOAD_EMPTY;
   mysql_test_fail_nth_query(1);
   failed = pet_load_objs(&fixture.second_pet, &fixture.owner, 699) == PET_OBJECT_LOAD_FAILED;
@@ -998,7 +999,7 @@ void Test_pet_restore_failure_blocks_snapshot_replacement(CuTest *tc)
       retained &&
       mysql_query(connection, "INSERT INTO pet_save_objs (pet_idnum,owner_name,serialized_obj) "
                               "VALUES (701,'SnapshotOwner','')") == 0;
-  fixture.owner.player.name = (char *)"SnapshotOwner";
+  fixture.owner.player.name = CuMutableString("SnapshotOwner");
   malformed = pet_load_objs(&fixture.second_pet, &fixture.owner, 701) == PET_OBJECT_LOAD_FAILED;
   retained = retained &&
              mysql_query(connection,
@@ -1103,7 +1104,7 @@ void Test_pet_object_decoder_validates_fields_and_preserves_text(CuTest *tc)
   CuAssertPtrNotNull(tc, connection);
   clear_char(&owner);
   clear_char(&pet);
-  owner.player.name = (char *)"CodecOwner";
+  owner.player.name = CuMutableString("CodecOwner");
   SET_BIT_AR(MOB_FLAGS(&pet), MOB_ISNPC);
   conn = connection;
   rejected = create_pet_snapshot_temporary_schema(connection) &&
@@ -1302,7 +1303,7 @@ void Test_pet_rows_follow_a_renamed_owner_and_ignore_the_freed_name(CuTest *tc)
   schema_created = create_pet_snapshot_temporary_schema(connection);
 
   initialize_pet_save_fixture(&renamed);
-  renamed.owner.player.name = (char *)"OldName";
+  renamed.owner.player.name = CuMutableString("OldName");
   GET_IDNUM(&renamed.owner) = 7001;
   renamed.owner.player.time.birth = (time_t)500;
   saved_before_rename = schema_created && save_char_pets(&renamed.owner);
@@ -1311,7 +1312,7 @@ void Test_pet_rows_follow_a_renamed_owner_and_ignore_the_freed_name(CuTest *tc)
   saved_after_rename =
       mysql_query(connection, "UPDATE pet_data SET owner_name = 'NewName'") == 0 &&
       mysql_query(connection, "UPDATE pet_save_objs SET owner_name = 'NewName'") == 0;
-  renamed.owner.player.name = (char *)"NewName";
+  renamed.owner.player.name = CuMutableString("NewName");
   renamed.timed_affect.duration = 30;
   saved_after_rename = saved_after_rename && save_char_pets(&renamed.owner);
   renamed_rows = query_single_int(
@@ -1320,7 +1321,7 @@ void Test_pet_rows_follow_a_renamed_owner_and_ignore_the_freed_name(CuTest *tc)
 
   /* A different character created with the freed name owns none of them. */
   initialize_pet_save_fixture(&newcomer);
-  newcomer.owner.player.name = (char *)"OldName";
+  newcomer.owner.player.name = CuMutableString("OldName");
   newcomer.owner.followers = NULL;
   GET_IDNUM(&newcomer.owner) = 7002;
   newcomer.owner.player.time.birth = (time_t)600;
@@ -1462,7 +1463,7 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
     forced_save_result = save_char_pets(&fixture.owner);
     overflow_rollback_passed =
         overflow_rollback_passed && !forced_save_result && old_pet_snapshot_is_intact(connection);
-    fixture.equipped_object.name = (char *)"pet's test collar";
+    fixture.equipped_object.name = CuMutableString("pet's test collar");
     free(oversized_object_name);
   }
 
@@ -1659,9 +1660,9 @@ static void begin_pet_lifetime_world(struct pet_lifetime_world *w)
     clear_char(&w->prototypes[i]);
     SET_BIT_AR(MOB_FLAGS(&w->prototypes[i]), MOB_ISNPC);
     GET_MOB_RNUM(&w->prototypes[i]) = i;
-    w->prototypes[i].player.name = (char *)(i == 0 ? "lifetime hound" : "lifetime decoy");
-    w->prototypes[i].player.short_descr = (char *)(i == 0 ? "a lifetime hound" : "a decoy");
-    w->prototypes[i].player.long_descr = (char *)"A lifetime fixture stands here.";
+    w->prototypes[i].player.name = CuMutableString(i == 0 ? "lifetime hound" : "lifetime decoy");
+    w->prototypes[i].player.short_descr = CuMutableString(i == 0 ? "a lifetime hound" : "a decoy");
+    w->prototypes[i].player.long_descr = CuMutableString("A lifetime fixture stands here.");
     GET_LEVEL(&w->prototypes[i]) = 5;
     GET_HIT(&w->prototypes[i]) = 10;
     GET_PSP(&w->prototypes[i]) = 10;
@@ -1671,8 +1672,8 @@ static void begin_pet_lifetime_world(struct pet_lifetime_world *w)
   w->room.number = 100;
   w->room.zone = 0;
   w->room.sector_type = SECT_INSIDE;
-  w->room.name = (char *)"Lifetime room";
-  w->room.description = (char *)"A lifetime fixture room.\r\n";
+  w->room.name = CuMutableString("Lifetime room");
+  w->room.description = CuMutableString("A lifetime fixture room.\r\n");
   w->zone.number = 0;
   w->zone.bot = 0;
   w->zone.top = 30000;
@@ -1792,7 +1793,7 @@ void Test_pet_lifetime_survives_snapshot_restore_and_keeper_release(CuTest *tc)
   SET_BIT_AR(MOB_FLAGS(&session_pet), MOB_ISNPC);
   SET_BIT_AR(AFF_FLAGS(&session_pet), AFF_CHARM);
   GET_MOB_RNUM(&session_pet) = 0;
-  session_pet.player.name = (char *)"session summon";
+  session_pet.player.name = CuMutableString("session summon");
   session_pet.pet_source_spell = SPELL_SUMMON_CREATURE_1;
   memset(&session_follower, 0, sizeof(session_follower));
   session_follower.follower = &session_pet;
@@ -2185,7 +2186,7 @@ void Test_object_saves_bind_player_house_and_serialized_text(CuTest *tc)
   mysql_available = true;
   clear_char(&ch);
   ch.player_specials = &specials;
-  ch.player.name = (char *)owner_name;
+  ch.player.name = CuMutableString(owner_name);
   obj = create_obj();
   obj->name = strdup("blade'); DROP TABLE player_save_objs; --");
   obj->short_description = strdup("a 'quoted' blade\\edge");
@@ -2509,7 +2510,7 @@ static const char *check_account_tier_binds_values(MYSQL *connection, const char
   memset(&ch, 0, sizeof(ch));
   memset(&specials, 0, sizeof(specials));
   ch.player_specials = &specials;
-  ch.player.name = (char *)character_name;
+  ch.player.name = CuMutableString(character_name);
 
   ACCOUNT_CHECK((0) == (mysql_query(connection, sql_mode)),
                 "(0) == (mysql_query(connection, sql_mode))");
@@ -2519,9 +2520,9 @@ static const char *check_account_tier_binds_values(MYSQL *connection, const char
   ACCOUNT_CHECK(schema_created, "schema_created");
 
   /* Core row with every string carrying hostile characters, plus unlock sets. */
-  account.name = (char *)account_name;
+  account.name = CuMutableString(account_name);
   strlcpy(account.password, password, sizeof(account.password));
-  account.email = (char *)email;
+  account.email = CuMutableString(email);
   account.experience = 1234;
   account.quit_survey_completed = true;
   account.races[0] = 3;
@@ -2530,8 +2531,8 @@ static const char *check_account_tier_binds_values(MYSQL *connection, const char
   ACCOUNT_CHECK(save_account_checked(&account), "save_account_checked(&account)");
   ACCOUNT_CHECK(account.id > 0, "account.id > 0");
 
-  ACCOUNT_CHECK((0) == (load_account((char *)lookup_name, &loaded)),
-                "(0) == (load_account((char *)lookup_name, &loaded))");
+  ACCOUNT_CHECK((0) == (load_account(CuMutableString(lookup_name), &loaded)),
+                "(0) == (load_account(CuMutableString(lookup_name), &loaded))");
   ACCOUNT_CHECK((loaded.name) != NULL && strcmp(account_name, loaded.name) == 0,
                 "(loaded.name) != NULL && strcmp(account_name, loaded.name) == 0");
   ACCOUNT_CHECK((loaded.password) != NULL && strcmp(password, loaded.password) == 0,
@@ -2560,8 +2561,8 @@ static const char *check_account_tier_binds_values(MYSQL *connection, const char
   account.experience = 99;
   account.quit_survey_completed = false;
   ACCOUNT_CHECK(save_account_checked(&account), "save_account_checked(&account)");
-  ACCOUNT_CHECK((0) == (load_account((char *)account_name, &loaded)),
-                "(0) == (load_account((char *)account_name, &loaded))");
+  ACCOUNT_CHECK((0) == (load_account(CuMutableString(account_name), &loaded)),
+                "(0) == (load_account(CuMutableString(account_name), &loaded))");
   ACCOUNT_CHECK((void *)(NULL) == (void *)(loaded.email),
                 "(void *)(NULL) == (void *)(loaded.email)");
   ACCOUNT_CHECK((99) == (loaded.experience), "(99) == (loaded.experience)");
@@ -2580,7 +2581,7 @@ static const char *check_account_tier_binds_values(MYSQL *connection, const char
                 "account.character_names[0]) == 0");
   ACCOUNT_CHECK((void *)(NULL) == (void *)(account.character_names[1]),
                 "(void *)(NULL) == (void *)(account.character_names[1])");
-  owner_name = get_char_account_name((char *)character_name);
+  owner_name = get_char_account_name(character_name);
   ACCOUNT_CHECK((owner_name) != NULL, "(owner_name) != NULL");
   ACCOUNT_CHECK((owner_name) != NULL && strcmp(account_name, owner_name) == 0,
                 "(owner_name) != NULL && strcmp(account_name, owner_name) == 0");
@@ -2619,8 +2620,8 @@ static const char *check_account_tier_binds_values(MYSQL *connection, const char
                 "(0) == (query_single_int(connection, count_query, -1))");
   ACCOUNT_CHECK((void *)(NULL) == (void *)(account.character_names[0]),
                 "(void *)(NULL) == (void *)(account.character_names[0])");
-  ACCOUNT_CHECK((void *)(NULL) == (void *)(get_char_account_name((char *)character_name)),
-                "(void *)(NULL) == (void *)(get_char_account_name((char *)character_name))");
+  ACCOUNT_CHECK((void *)(NULL) == (void *)(get_char_account_name(character_name)),
+                "(void *)(NULL) == (void *)(get_char_account_name(character_name))");
   free(escaped_name);
 
   for (slot = 0; slot < MAX_CHARS_PER_ACCOUNT; slot++)

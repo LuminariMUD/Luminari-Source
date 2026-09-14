@@ -355,7 +355,7 @@ void apply_mob_stat_modifiers(struct char_data *mob);
 struct time_info_data *age(struct char_data *ch);
 int num_pc_in_room(struct room_data *room);
 void core_dump_real(const char *who, int line);
-int count_color_chars(char *string);
+int count_color_chars(const char *string);
 bool char_has_infra(struct char_data *ch);
 bool char_has_ultra(struct char_data *ch);
 bool has_true_sight(struct char_data *ch);

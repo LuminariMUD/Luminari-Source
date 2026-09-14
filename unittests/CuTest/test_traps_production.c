@@ -107,8 +107,8 @@ static void initialize_rol_object_trap(struct obj_data *obj, int effect, int dam
                                        int charges)
 {
   clear_object(obj);
-  obj->name = "test trapped object";
-  obj->short_description = "a test trapped object";
+  obj->name = CuMutableString("test trapped object");
+  obj->short_description = CuMutableString("a test trapped object");
   SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_TRAPPED);
   GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_EFFECT) = effect;
   GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_DAMAGE) = damage_type;
@@ -152,7 +152,7 @@ void Test_traps_rol_object_trigger_consumes_charge_and_applies_sleep(CuTest *tc)
   memset(&player_specials, 0, sizeof(player_specials));
   memset(&room, 0, sizeof(room));
   ch.player_specials = &player_specials;
-  ch.player.name = "trap tester";
+  ch.player.name = CuMutableString("trap tester");
   GET_LEVEL(&ch) = 1;
   GET_POS(&ch) = POS_STANDING;
   IN_ROOM(&ch) = 0;

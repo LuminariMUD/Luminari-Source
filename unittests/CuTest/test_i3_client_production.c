@@ -373,7 +373,7 @@ void Test_i3_direct_message_lookup_does_not_require_a_viewer(CuTest *tc)
 
   memset(&player, 0, sizeof(player));
   memset(&player_specials, 0, sizeof(player_specials));
-  player.player.name = "TargetPlayer";
+  player.player.name = CuMutableString("TargetPlayer");
   player.player_specials = &player_specials;
 
   saved_character_list = character_list;
@@ -408,7 +408,7 @@ void Test_i3_channel_echo_suppression_matches_only_local_sender(CuTest *tc)
   memset(&player, 0, sizeof(player));
   memset(&player_specials, 0, sizeof(player_specials));
   memset(&event, 0, sizeof(event));
-  player.player.name = "Kohdee";
+  player.player.name = CuMutableString("Kohdee");
   player.player_specials = &player_specials;
 
   i3_test_setup();
@@ -524,8 +524,8 @@ void Test_i3_presence_snapshot_uses_playing_descriptors(CuTest *tc)
   memset(&descriptor, 0, sizeof(descriptor));
   memset(&player, 0, sizeof(player));
   memset(&player_specials, 0, sizeof(player_specials));
-  player.player.name = "PresenceTester";
-  player.player.title = "\tCthe Network Tester\tn";
+  player.player.name = CuMutableString("PresenceTester");
+  player.player.title = CuMutableString("\tCthe Network Tester\tn");
   player.player.level = 34;
   player.player.race = RACE_HUMAN;
   player.player_specials = &player_specials;

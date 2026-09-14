@@ -877,9 +877,9 @@ static void verify_ready_action_filters_entry_then_runs_through_interpreter(CuTe
   clear_char(&entrant);
   clear_char(&stranger);
   room.number = 100;
-  owner.player.name = (char *)"owner";
-  entrant.player.name = (char *)"entrant";
-  stranger.player.name = (char *)"stranger";
+  owner.player.name = CuMutableString("owner");
+  entrant.player.name = CuMutableString("entrant");
+  stranger.player.name = CuMutableString("stranger");
   owner.player_specials = &owner_specials;
   entrant.player_specials = &entrant_specials;
   stranger.player_specials = &stranger_specials;
@@ -1024,7 +1024,7 @@ void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
   struct char_data victim;
 
   clear_char(&victim);
-  victim.player.name = "domain event death victim";
+  victim.player.name = CuMutableString("domain event death victim");
   victim.next = NULL;
   character_list = &victim;
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
@@ -1090,7 +1090,7 @@ static void active_world_prepare_character(struct char_data *ch, bool npc, room_
 {
   clear_char(ch);
   IN_ROOM(ch) = room;
-  ch->player.name = npc ? "scheduled mobile" : "observing player";
+  ch->player.name = CuMutableString(npc ? "scheduled mobile" : "observing player");
   if (npc)
   {
     SET_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
@@ -1154,8 +1154,8 @@ void TestActiveWorldSchedulesOnlyConcreteAutonomousWorkWithoutPlayers(CuTest *tc
   active_world_prepare_character(&wanderer, true, 0);
   idle.player_specials = &dummy_mob;
   wanderer.player_specials = &dummy_mob;
-  idle.player.short_descr = (char *)"idle sentinel";
-  wanderer.player.short_descr = (char *)"offscreen wanderer";
+  idle.player.short_descr = CuMutableString("idle sentinel");
+  wanderer.player.short_descr = CuMutableString("offscreen wanderer");
   SET_BIT_AR(MOB_FLAGS(&idle), MOB_SENTINEL);
   idle.next = &wanderer;
   idle.next_in_room = &wanderer;
@@ -1251,7 +1251,7 @@ void TestActiveWorldKeepsRolSpecialActivityScheduledDuringCombat(CuTest *tc)
   active_world_prepare_character(&mobile, true, 0);
   active_world_prepare_character(&opponent, false, 0);
   mobile.player_specials = &dummy_mob;
-  mobile.player.short_descr = (char *)"RoL combat mobile";
+  mobile.player.short_descr = CuMutableString("RoL combat mobile");
   SET_BIT_AR(MOB_FLAGS(&mobile), MOB_SPEC);
   SET_BIT_AR(MOB_FLAGS(&mobile), MOB_SENTINEL);
   FIGHTING(&mobile) = &opponent;
@@ -1331,7 +1331,7 @@ void TestActiveWorldDormantPopulationDoesNotCreateScheduledWork(CuTest *tc)
     active_world_prepare_character(&mobiles[index], true, 0);
     mobiles[index].player_specials = &dummy_mob;
     mobiles[index].player.short_descr =
-        index == dormant_count ? (char *)"scheduled wanderer" : (char *)"dormant sentinel";
+        CuMutableString(index == dormant_count ? "scheduled wanderer" : "dormant sentinel");
     if (index < dormant_count)
       SET_BIT_AR(MOB_FLAGS(&mobiles[index]), MOB_SENTINEL);
     if (index < dormant_count)
@@ -1588,21 +1588,21 @@ void TestActiveWorldReactionsAndScavengingAreDemandDriven(CuTest *tc)
   room.sector_type = SECT_INSIDE;
   active_world_prepare_character(&player, false, 0);
   player.player_specials = &player_specials;
-  player.player.name = (char *)"observer";
+  player.player.name = CuMutableString("observer");
   SET_BIT_AR(PRF_FLAGS(&player), PRF_NOHASSLE);
   active_world_prepare_character(&aggressive, true, 0);
   aggressive.player_specials = &dummy_mob;
-  aggressive.player.short_descr = (char *)"reactive sentinel";
+  aggressive.player.short_descr = CuMutableString("reactive sentinel");
   SET_BIT_AR(MOB_FLAGS(&aggressive), MOB_SENTINEL);
   SET_BIT_AR(MOB_FLAGS(&aggressive), MOB_AGGRESSIVE);
   active_world_prepare_character(&scavenger, true, 0);
   scavenger.player_specials = &dummy_mob;
-  scavenger.player.short_descr = (char *)"reactive scavenger";
+  scavenger.player.short_descr = CuMutableString("reactive scavenger");
   SET_BIT_AR(MOB_FLAGS(&scavenger), MOB_SENTINEL);
   SET_BIT_AR(MOB_FLAGS(&scavenger), MOB_SCAVENGER);
   clear_object(&object);
-  object.name = (char *)"test treasure";
-  object.short_description = (char *)"test treasure";
+  object.name = CuMutableString("test treasure");
+  object.short_description = CuMutableString("test treasure");
   GET_OBJ_COST(&object) = 100;
   SET_BIT_AR(GET_OBJ_WEAR(&object), ITEM_WEAR_TAKE);
   SET_BIT_AR(GET_OBJ_EXTRA(&object), ITEM_GLOW);
@@ -1722,7 +1722,7 @@ void TestIdleNpcPeriodicWorkIsSeparateFromAutonomousAgenda(CuTest *tc)
   room.number = 100;
   active_world_prepare_character(&mobile, true, 0);
   mobile.player_specials = &dummy_mob;
-  mobile.player.short_descr = (char *)"idle periodic mobile";
+  mobile.player.short_descr = CuMutableString("idle periodic mobile");
   SET_BIT_AR(MOB_FLAGS(&mobile), MOB_SENTINEL);
   GET_HIT(&mobile) = GET_REAL_MAX_HIT(&mobile) = GET_MAX_HIT(&mobile) = 100;
   GET_MOVE(&mobile) = GET_REAL_MAX_MOVE(&mobile) = GET_MAX_MOVE(&mobile) = 100;
@@ -2247,7 +2247,7 @@ void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
   memset(&room, 0, sizeof(room));
   clear_char(&ch);
   ch.player_specials = &dummy_mob;
-  ch.player.short_descr = (char *)"affected owner test character";
+  ch.player.short_descr = CuMutableString("affected owner test character");
   room.number = 100;
   world = &room;
   top_of_world = 0;
@@ -2426,7 +2426,7 @@ void TestAffectedOwnerAdmissionAndLegacyRollbackAreExclusive(CuTest *tc)
   memset(&room, 0, sizeof(room));
   clear_char(&ch);
   ch.player_specials = &dummy_mob;
-  ch.player.short_descr = (char *)"affected rollback test character";
+  ch.player.short_descr = CuMutableString("affected rollback test character");
   room.number = 101;
   world = &room;
   top_of_world = 0;
@@ -2468,7 +2468,7 @@ void TestAffectedOwnerAdmissionAndLegacyRollbackAreExclusive(CuTest *tc)
   memset(&room, 0, sizeof(room));
   clear_char(&ch);
   ch.player_specials = &dummy_mob;
-  ch.player.short_descr = (char *)"affected rollback test character";
+  ch.player.short_descr = CuMutableString("affected rollback test character");
   room.number = 101;
   raff_list = NULL;
 
@@ -2528,8 +2528,8 @@ void TestAffectedOwnerCapacityRefillsAfterLifecycleCancellation(CuTest *tc)
   clear_char(&second);
   first.player_specials = &dummy_mob;
   second.player_specials = &dummy_mob;
-  first.player.short_descr = (char *)"first refill test character";
-  second.player.short_descr = (char *)"second refill test character";
+  first.player.short_descr = CuMutableString("first refill test character");
+  second.player.short_descr = CuMutableString("second refill test character");
   rooms[0].number = 102;
   rooms[1].number = 103;
   world = rooms;
@@ -2869,7 +2869,7 @@ void TestCharacterPeriodicSchedulesPerformingNpcWithoutOtherWork(CuTest *tc)
   world = &room;
   top_of_world = 0;
   npc.player_specials = &dummy_mob;
-  npc.player.short_descr = (char *)"performing periodic test mobile";
+  npc.player.short_descr = CuMutableString("performing periodic test mobile");
   SET_BIT_AR(MOB_FLAGS(&npc), MOB_ISNPC);
   IN_ROOM(&npc) = 0;
   GET_HIT(&npc) = GET_REAL_MAX_HIT(&npc) = GET_MAX_HIT(&npc) = 100;
@@ -2933,7 +2933,7 @@ void TestCharacterPeriodicSchedulesInWorldMixedWorkByOwner(CuTest *tc)
   top_of_world = 0;
 
   npc.player_specials = &dummy_mob;
-  npc.player.short_descr = (char *)"periodic test mobile";
+  npc.player.short_descr = CuMutableString("periodic test mobile");
   SET_BIT_AR(MOB_FLAGS(&npc), MOB_ISNPC);
   IN_ROOM(&npc) = 0;
   GET_LEVEL(&npc) = 1;
@@ -2944,7 +2944,7 @@ void TestCharacterPeriodicSchedulesInWorldMixedWorkByOwner(CuTest *tc)
   npc.char_specials.terror_cooldown = 2;
 
   player.player_specials = &specials;
-  player.player.name = (char *)"Periodic test player";
+  player.player.name = CuMutableString("Periodic test player");
   player.desc = &descriptor;
   descriptor.character = &player;
   descriptor.output = descriptor.small_outbuf;
@@ -3051,7 +3051,7 @@ void TestCharacterPeriodicTypedMovementAdmitsInWorldOwner(CuTest *tc)
   memset(&moved, 0, sizeof(moved));
   clear_char(&ch);
   ch.player_specials = &dummy_mob;
-  ch.player.short_descr = (char *)"movement-admitted mobile";
+  ch.player.short_descr = CuMutableString("movement-admitted mobile");
   SET_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
   ch.char_specials.daze_cooldown = 2;
   room.number = 1401;
@@ -3773,7 +3773,7 @@ void TestWorldPhenomenonRoomPropagation(CuTest *tc)
   rooms[1].dir_option[EAST] = &second_exit;
 
   adjacent.player_specials = &adjacent_specials;
-  adjacent.player.name = "Adjacent observer";
+  adjacent.player.name = CuMutableString("Adjacent observer");
   adjacent.desc = &adjacent_desc;
   IN_ROOM(&adjacent) = 1;
   adjacent_desc.character = &adjacent;
@@ -3784,7 +3784,7 @@ void TestWorldPhenomenonRoomPropagation(CuTest *tc)
   rooms[1].people = &adjacent;
 
   distant.player_specials = &distant_specials;
-  distant.player.name = "Distant observer";
+  distant.player.name = CuMutableString("Distant observer");
   distant.desc = &distant_desc;
   IN_ROOM(&distant) = 2;
   distant_desc.character = &distant;
@@ -3795,14 +3795,14 @@ void TestWorldPhenomenonRoomPropagation(CuTest *tc)
   rooms[2].people = &distant;
 
   source.player_specials = &source_specials;
-  source.player.name = "phenomenon source";
+  source.player.name = CuMutableString("phenomenon source");
   SET_BIT_AR(MOB_FLAGS(&source), MOB_ISNPC);
   GET_FACTION(&source) = 7;
   IN_ROOM(&source) = 0;
   rooms[0].people = &source;
 
   npc_observer.player_specials = &npc_specials;
-  npc_observer.player.name = "phenomenon observer";
+  npc_observer.player.name = CuMutableString("phenomenon observer");
   SET_BIT_AR(MOB_FLAGS(&npc_observer), MOB_ISNPC);
   GET_FACTION(&npc_observer) = 7;
   IN_ROOM(&npc_observer) = 1;
@@ -3917,7 +3917,7 @@ void TestDomainObjectFreeNotifiesActivityBeforeTargetMemoryIsReleased(CuTest *tc
 
   clear_char(&actor);
   actor.player_specials = &dummy_mob;
-  actor.player.name = "object activity owner";
+  actor.player.name = CuMutableString("object activity owner");
   character_list = &actor;
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
   event_free_all();
@@ -3970,7 +3970,7 @@ void TestDomainRawAndScriptDamagePublishActualLossOnce(CuTest *tc)
 
   clear_char(&actor);
   actor.player_specials = &dummy_mob;
-  actor.player.name = "raw damage target";
+  actor.player.name = CuMutableString("raw damage target");
   GET_POS(&actor) = POS_STANDING;
   GET_HIT(&actor) = 10;
   GET_MAX_HIT(&actor) = 100;
