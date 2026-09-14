@@ -2621,7 +2621,7 @@ SPECIAL(rune_scimitar)
   }
 
   /* parry proc */
-  else if (!strcmp(argument, "parry") && rand_number(0, 3))
+  else if (argument && !strcmp(argument, "parry") && rand_number(0, 3))
   {
     act("\tLAs you parry the attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
         "\tLfrom $N \tLand transfers it back to you.\tn",

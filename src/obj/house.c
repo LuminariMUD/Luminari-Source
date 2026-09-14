@@ -1311,8 +1311,8 @@ static int ascii_convert_house(struct char_data *ch, obj_vnum vnum)
   while (!feof(in))
   {
     struct obj_file_elem object;
-    if (fread(&object, sizeof(struct obj_file_elem), 1, in) != 1)
-      return (0);
+    if (fread(&object, sizeof(struct obj_file_elem), 1, in) != 1 && !ferror(in))
+      break; /* end of file */
     if (ferror(in))
     {
       perror("SYSERR: Reading house file in House_load");

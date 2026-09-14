@@ -4325,45 +4325,42 @@ struct claim_data *get_claim_by_zone(zone_vnum z_num)
   return NULL;
 }
 
-void remove_claim_from_list(struct claim_data *rem_claim)
+/* Unlink rem_claim from claim_list; true when it was listed. */
+static bool unlink_claim(const struct claim_data *rem_claim)
 {
   struct claim_data *this_claim = NULL;
 
-  if (!claim_list)
-    return;
+  if (!claim_list || rem_claim == NULL)
+    return false;
 
-  /* Check the main claim list */
-  for (this_claim = claim_list; this_claim && this_claim != rem_claim;
+  if (claim_list == rem_claim)
+  {
+    claim_list = claim_list->next;
+    return true;
+  }
+  for (this_claim = claim_list; this_claim && this_claim->next != rem_claim;
        this_claim = this_claim->next)
     ;
   if (this_claim == NULL)
-    return;
-
-  /* We found the claim in the list, remove it */
-  if (this_claim == claim_list)
-  {
-    /* 1st item - move the main claim_list pointer */
-    claim_list = claim_list->next;
-    free_claim(this_claim);
-  }
-  else
-  {
-    for (this_claim = claim_list; this_claim && this_claim->next != rem_claim;
-         this_claim = this_claim->next)
-      ;
-    if (this_claim == NULL)
-      return;
-    this_claim->next = rem_claim->next;
-    free_claim(rem_claim);
-  }
+    return false;
+  this_claim->next = rem_claim->next;
+  return true;
 }
 
+/* Remove a listed claim and free it; an unlisted claim is left alone. */
+void remove_claim_from_list(struct claim_data *rem_claim)
+{
+  if (unlink_claim(rem_claim))
+    free(rem_claim);
+}
+
+/* Free a claim, unlinking it first if it is still listed.  The two functions
+ * used to call each other, so freeing a listed claim freed it twice. */
 void free_claim(struct claim_data *this_claim)
 {
   if (this_claim)
   {
-    if (get_claim_by_zone(this_claim->zn) != NULL)
-      remove_claim_from_list(this_claim);
+    unlink_claim(this_claim);
     free(this_claim);
   }
 }

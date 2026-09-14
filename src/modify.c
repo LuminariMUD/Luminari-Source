@@ -338,7 +338,7 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
 {
   if (PLR_FLAGGED(d->character, PLR_MAILING))
   {
-    if (action == STRINGADD_SAVE && *d->str)
+    if (action == STRINGADD_SAVE && d->str && *d->str)
     {
       store_mail(d->mail_to, GET_IDNUM(d->character), *d->str);
       write_to_output(d, "Message sent!\r\n");
@@ -349,6 +349,7 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
     act("$n stops writing mail.", TRUE, d->character, NULL, NULL, TO_ROOM);
     free(*d->str);
     free(d->str);
+    d->str = NULL;
   }
 
   /* We have no way of knowing which slot the post was sent to so we can only
@@ -365,7 +366,7 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
 
   if (PLR_FLAGGED(d->character, PLR_IDEA))
   {
-    if (action == STRINGADD_SAVE && *d->str)
+    if (action == STRINGADD_SAVE && d->str && *d->str)
     {
       write_to_output(d, "Idea saved!  Changes are implemented in this order:"
                          "  1) bug fixes, 2) ideas parallel to short term development"
@@ -388,7 +389,7 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
 
   if (PLR_FLAGGED(d->character, PLR_BUG))
   {
-    if (action == STRINGADD_SAVE && *d->str)
+    if (action == STRINGADD_SAVE && d->str && *d->str)
     {
       write_to_output(d, "Bug saved!  Changes are implemented in this order:"
                          "  1) bug fixes, 2) ideas parallel to short term development"
@@ -411,7 +412,7 @@ static void playing_string_cleanup(struct descriptor_data *d, int action)
 
   if (PLR_FLAGGED(d->character, PLR_TYPO))
   {
-    if (action == STRINGADD_SAVE && *d->str)
+    if (action == STRINGADD_SAVE && d->str && *d->str)
     {
       write_to_output(d, "Typo saved!\r\n");
       act("$n finishes submitting a typo.", TRUE, d->character, NULL, NULL, TO_ROOM);

@@ -54,7 +54,7 @@ SPECIAL(tia_rapier)
   if (!vict)
     return 0;
 
-  if (!strcmp(argument, "parry"))
+  if (argument && !strcmp(argument, "parry"))
   {
     act("\tLYour \tcrapier \tCglows brightly\tL as it steals some \trlifeforce\tn "
         "\tLfrom $N \tLand transfers it back to you.\tn",

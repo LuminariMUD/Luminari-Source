@@ -3396,23 +3396,21 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format, va_list a
 {
   const char *text_overflow = "\r\nOVERFLOW\r\n";
   static char txt[MAX_STRING_LENGTH] = {'\0'};
-  size_t wantsize = 0;
   int size = 0;
 
   /* if we're in the overflow state already, ignore this new output */
   if (t->bufspace == 0)
     return (0);
 
-  wantsize = size = vsnprintf(txt, sizeof(txt), format, args);
+  size = vsnprintf(txt, sizeof(txt), format, args);
 
-  /* this block is Kavir's protocol */
-  strlcpy(txt, ProtocolOutput(t, txt, (int *)&wantsize), sizeof(txt));
-  size = (int)wantsize;
+  /* this block is Kavir's protocol; it reads and returns the length as an int */
+  strlcpy(txt, ProtocolOutput(t, txt, &size), sizeof(txt));
   if (t->pProtocol->WriteOOB > 0)
     --t->pProtocol->WriteOOB;
 
   /* If exceeding the size of the buffer, truncate it for the overflow message */
-  if (size < 0 || wantsize >= sizeof(txt))
+  if (size < 0 || (size_t)size >= sizeof(txt))
   {
     size = sizeof(txt) - 1;
     strlcpy(txt + size - strlen(text_overflow), text_overflow,

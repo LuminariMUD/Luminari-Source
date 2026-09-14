@@ -3463,9 +3463,14 @@ int parse_race_long(const char *arg_in)
 bitvector_t find_race_bitvector(const char *arg)
 {
   size_t rpos, ret = 0;
+  int race;
 
   for (rpos = 0; (size_t)rpos < strlen(arg); rpos++)
-    ret |= (1 << parse_race(arg[rpos]));
+  {
+    race = parse_race(arg[rpos]);
+    if (race >= 0)
+      ret |= (1 << race);
+  }
 
   return (ret);
 }

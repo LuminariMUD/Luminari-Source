@@ -1939,6 +1939,12 @@ void save_map_to_file(const char *fn, int xsize, int ysize)
   }
 
   out = fopen_restricted(fn, "wb");
+  if (out == NULL)
+  {
+    log("SYSERR: Unable to open %s for writing: %s", fn, strerror(errno));
+    gdImageDestroy(im);
+    return;
+  }
   gdImagePng(im, out);
   fclose(out);
   gdImageDestroy(im);
@@ -1992,6 +1998,12 @@ void save_noise_to_file(int idx, const char *fn, int xsize, int ysize, int zoom)
   }
 
   out = fopen_restricted(fn, "wb");
+  if (out == NULL)
+  {
+    log("SYSERR: Unable to open %s for writing: %s", fn, strerror(errno));
+    gdImageDestroy(im);
+    return;
+  }
   gdImagePng(im, out);
   fclose(out);
   gdImageDestroy(im);

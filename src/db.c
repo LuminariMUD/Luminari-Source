@@ -6835,7 +6835,7 @@ char *fread_line(FILE *fp)
   *pline = '\0';
 
   /* Since tildes generally aren't found at the end of lines, this seems workable. Will enable reading old configs. */
-  if (line[strlen(line) - 1] == '~')
+  if (*line && line[strlen(line) - 1] == '~')
     line[strlen(line) - 1] = '\0';
 
   return (line);
@@ -6898,7 +6898,7 @@ int fread_flags(FILE *fp, int *fg, int fg_size)
   *pline = '\0';
 
   /* Since tildes generally aren't found at the end of lines, this seems workable. Will enable reading old configs. */
-  if (line[strlen(line) - 1] == '~')
+  if (*line && line[strlen(line) - 1] == '~')
     line[strlen(line) - 1] = '\0';
 
   /* We now have a line of text with all the flags on it - let's convert it */

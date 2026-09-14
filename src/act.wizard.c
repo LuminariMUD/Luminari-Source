@@ -2926,7 +2926,11 @@ static void list_llog_entries(struct char_data *ch)
   {
     format_time_string(llast.time, "%a %b %d %Y %H:%M:%S", timestr, sizeof(timestr));
     send_to_char(ch, "%10s     %d     %s     %s\r\n", llast.username, llast.punique,
-                 last_array[llast.close_type], timestr);
+                 llast.close_type >= 0 &&
+                         (size_t)llast.close_type < sizeof(last_array) / sizeof(last_array[0])
+                     ? last_array[llast.close_type]
+                     : "Unknown",
+                 timestr);
     if (fread(&llast, sizeof(struct last_entry), 1, fp) != 1 && !feof(fp))
     {
       log("SYSERR: Failed to read from last file");

@@ -80,8 +80,8 @@ ACMDU(do_rsay)
     {
       strlcpy(type, "exclaim", sizeof(type));
     }
-    else if (argument[strlen(argument) - 1] == '.' && argument[strlen(argument) - 2] == '.' &&
-             argument[strlen(argument) - 3] == '.')
+    else if (strlen(argument) >= 3 && argument[strlen(argument) - 1] == '.' &&
+             argument[strlen(argument) - 2] == '.' && argument[strlen(argument) - 3] == '.')
     {
       strlcpy(type, "mutter", sizeof(type));
     }
@@ -187,8 +187,8 @@ ACMDU(do_say)
     {
       strlcpy(type, "exclaim", sizeof(type));
     }
-    else if (argument[strlen(argument) - 1] == '.' && argument[strlen(argument) - 2] == '.' &&
-             argument[strlen(argument) - 3] == '.')
+    else if (strlen(argument) >= 3 && argument[strlen(argument) - 1] == '.' &&
+             argument[strlen(argument) - 2] == '.' && argument[strlen(argument) - 3] == '.')
     {
       strlcpy(type, "mutter", sizeof(type));
     }
@@ -272,8 +272,8 @@ ACMDU(do_osay)
     {
       strlcpy(type, "exclaim", sizeof(type));
     }
-    else if (argument[strlen(argument) - 1] == '.' && argument[strlen(argument) - 2] == '.' &&
-             argument[strlen(argument) - 3] == '.')
+    else if (strlen(argument) >= 3 && argument[strlen(argument) - 1] == '.' &&
+             argument[strlen(argument) - 2] == '.' && argument[strlen(argument) - 3] == '.')
     {
       strlcpy(type, "mutter", sizeof(type));
     }
