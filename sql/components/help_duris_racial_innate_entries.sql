@@ -762,8 +762,10 @@ Requires: the bull charge feat (racial innate)
 
 Your charge carries the weight of a bull. Naming a direction lets you
 thunder through that exit and slam into a foe in the next room; every
-door, terrain and single-file rule of ordinary movement still applies.
-Whether you charge across a room or across an exit, a charge whose opening
+door, terrain and single-file rule of ordinary movement still applies,
+and a peaceful room refuses the charge before you set off. Only a foe you
+can see counts as a target. Whether you charge across a room or across an
+exit, a charge whose opening
 blow lands stuns the victim for one round unless they pass a Fortitude save
 (DC 10 + your level). Creatures that cannot be stunned shrug it off.
 
@@ -780,8 +782,9 @@ Requires: the bloodlust feat
 
 Whenever a combat round finds you below half of your hit points a red haze
 of bloodlust takes you. While it holds you cannot cast or manifest a
-spell, and you cannot flee the fight. It lets go the first round that finds
-you at half hit points or more, or a few rounds after the fight ends.
+spell, and you cannot leave the fight: flee, a directed flee and disengage
+are all refused. It lets go the first round that finds you at half hit
+points or more, or a few rounds after the fight ends.
 
 See also: FEAT INFO BLOODLUST, BULL-CHARGE', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),

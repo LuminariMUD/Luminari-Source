@@ -31,13 +31,15 @@
 #include "../../src/pet_vnums.h"
 #include "../../src/vessels/vessels.h"
 #include "../../src/wilderness/resource_system.h"
+#include "../../src/wilderness/kdtree.h"
+#include "../../src/wilderness/wilderness.h"
 
 #include <string.h>
 #include <time.h>
 
 struct innate_fixture
 {
-  struct room_data rooms[3]; /* call_magic() only checks rooms strictly below top_of_world */
+  struct room_data rooms[4]; /* call_magic() only checks rooms strictly below top_of_world */
   struct char_data ch;
   struct char_data other;
   struct player_special_data ch_specials;
@@ -53,6 +55,11 @@ struct innate_fixture
   struct index_data *saved_mob_index;
   mob_rnum saved_top_of_mobt;
   bool mob_index_swapped;
+  struct zone_data zone; /* movement needs a zone row for level checks and flags */
+  struct room_direction_data north;
+  struct zone_data *saved_zone_table;
+  zone_rnum saved_top_of_zone_table;
+  bool zone_swapped;
 };
 
 static void setup_innate_char(struct char_data *ch, struct player_special_data *specials,
@@ -140,10 +147,37 @@ static void end_innate_fixture(struct innate_fixture *fixture)
     mob_index = fixture->saved_mob_index;
     top_of_mobt = fixture->saved_top_of_mobt;
   }
+  if (fixture->zone_swapped)
+  {
+    zone_table = fixture->saved_zone_table;
+    top_of_zone_table = fixture->saved_top_of_zone_table;
+  }
   world = fixture->saved_world;
   top_of_world = fixture->saved_top_of_world;
   character_list = fixture->saved_character_list;
   weather_info = fixture->saved_weather;
+}
+
+/* open an exit from room 0 north into room 1 under a single fixture zone so
+ * the movement engine can carry a character across it */
+static void innate_fixture_open_north(struct innate_fixture *fixture)
+{
+  fixture->saved_zone_table = zone_table;
+  fixture->saved_top_of_zone_table = top_of_zone_table;
+  fixture->zone.min_level = -1;
+  fixture->zone.max_level = LVL_IMPL;
+  zone_table = &fixture->zone;
+  top_of_zone_table = 0;
+  fixture->zone_swapped = TRUE;
+  movement_trail_registry_shutdown();
+
+  fixture->north.key = NOTHING;
+  fixture->north.to_room = 1;
+  fixture->rooms[0].dir_option[NORTH] = &fixture->north;
+  fixture->rooms[0].name = (char *)"Charge origin";
+  fixture->rooms[0].description = (char *)"A test room.\r\n";
+  fixture->rooms[1].name = (char *)"Charge destination";
+  fixture->rooms[1].description = (char *)"Another test room.\r\n";
 }
 
 /* put both fixture characters in one group with a real member list */
@@ -175,6 +209,8 @@ void TestDurisInnateFeatsAreRegisteredAsInnates(CuTest *tc)
 
   for (feat = FEAT_SUN_VULNERABILITY; feat < FEAT_LAST_FEAT; feat++)
   {
+    if (feat == FEAT_FAST_CASTING || feat == FEAT_SLOW_CASTING)
+      continue; /* the stacking pair is checked below */
     CuAssertPtrNotNull(tc, feat_list[feat].name);
     CuAssertTrue(tc, strcmp(feat_list[feat].name, "Unused Feat") != 0);
     CuAssertTrue(tc, feat_list[feat].in_game);
@@ -1464,6 +1500,9 @@ void Test_enhanced_spell_damage_is_race_assignable_and_stacks(CuTest *tc)
   CuAssertIntEquals(tc, 2, HAS_FEAT(&fixture.ch, FEAT_ENHANCED_SPELL_DAMAGE));
 
   race_list[race].featassign_list = saved_head;
+  end_innate_fixture(&fixture);
+}
+
 /* make the second fixture character a monster with a lot of hit points so a
  * player may fight it and never kill it */
 static void make_innate_other_a_monster(struct innate_fixture *fixture)
@@ -1502,41 +1541,33 @@ static void reset_innate_output(struct descriptor_data *descriptor)
 }
 
 /* Bull charge: 'charge <direction> <target>' crosses the exit and charges the
- * target there; without the feat a direction is just an unknown target, and
- * the exit and the target must both exist. */
+ * target there; without the feat a direction is just an unknown target, the
+ * exit and the target must both exist, an unseen namesake ahead of the target
+ * does not hide it, and a peaceful destination refuses the charge. */
 void TestBullChargeReachesAnAdjacentRoom(CuTest *tc)
 {
   struct innate_fixture fixture;
-  struct room_direction_data north;
-  struct zone_data zone;
-  struct zone_data *saved_zone_table = zone_table;
-  zone_rnum saved_top_of_zone_table = top_of_zone_table;
+  struct char_data decoy;
+  struct player_special_data decoy_specials;
+  struct descriptor_data decoy_descriptor;
 
   begin_innate_fixture(&fixture);
-  memset(&zone, 0, sizeof(zone));
-  zone.min_level = -1;
-  zone.max_level = LVL_IMPL;
-  zone_table = &zone;
-  top_of_zone_table = 0;
-  movement_trail_registry_shutdown();
-
-  memset(&north, 0, sizeof(north));
-  north.key = NOTHING;
-  north.to_room = 1;
-  fixture.rooms[0].dir_option[NORTH] = &north;
-  fixture.rooms[0].name = (char *)"Charge origin";
-  fixture.rooms[0].description = (char *)"A test room.\r\n";
-  fixture.rooms[1].name = (char *)"Charge destination";
-  fixture.rooms[1].description = (char *)"Another test room.\r\n";
+  innate_fixture_open_north(&fixture);
   fixture.ch.player.title = (char *)"";
   make_innate_other_a_monster(&fixture);
   CuAssertTrue(tc, settle_innate_player_hit_points(&fixture.ch) > 0);
   GET_MOVE(&fixture.ch) = 100;
   GET_MAX_MOVE(&fixture.ch) = 100;
 
+  /* an invisible namesake stands ahead of the target in the destination */
+  memset(&decoy_specials, 0, sizeof(decoy_specials));
+  setup_innate_char(&decoy, &decoy_specials, &decoy_descriptor, "innate two");
+  SET_BIT_AR(AFF_FLAGS(&decoy), AFF_INVISIBLE);
+  IN_ROOM(&decoy) = 1;
+  decoy.next_in_room = &fixture.other;
   fixture.ch.next_in_room = NULL;
   IN_ROOM(&fixture.other) = 1;
-  fixture.rooms[1].people = &fixture.other;
+  fixture.rooms[1].people = &decoy;
 
   /* without the feat a direction is just an unknown target */
   do_charge(&fixture.ch, "north two", 0, 0);
@@ -1554,16 +1585,73 @@ void TestBullChargeReachesAnAdjacentRoom(CuTest *tc)
   CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.ch));
   CuAssertTrue(tc, FIGHTING(&fixture.ch) == NULL);
 
-  /* the charge crosses the exit and lands */
+  /* a peaceful destination refuses the charge before anyone moves */
+  SET_BIT_AR(ROOM_FLAGS(1), ROOM_PEACEFUL);
+  reset_innate_output(&fixture.ch_descriptor);
+  do_charge(&fixture.ch, "north two", 0, 0);
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.ch));
+  CuAssertTrue(tc, FIGHTING(&fixture.ch) == NULL);
+  CuAssertTrue(tc, FIGHTING(&fixture.other) == NULL);
+  CuAssertPtrNotNull(tc, strstr(fixture.ch_descriptor.output, "cannot charge in"));
+  REMOVE_BIT_AR(ROOM_FLAGS(1), ROOM_PEACEFUL);
+
+  /* the charge crosses the exit and lands on the visible namesake */
   do_charge(&fixture.ch, "north two", 0, 0);
   CuAssertIntEquals(tc, 1, IN_ROOM(&fixture.ch));
   CuAssertTrue(tc, FIGHTING(&fixture.ch) == &fixture.other);
   CuAssertTrue(tc, FIGHTING(&fixture.other) == &fixture.ch);
+  CuAssertTrue(tc, FIGHTING(&decoy) == NULL);
 
   stop_fighting(&fixture.ch);
   stop_fighting(&fixture.other);
-  zone_table = saved_zone_table;
-  top_of_zone_table = saved_top_of_zone_table;
+  end_innate_char(&decoy, &decoy_descriptor);
+  end_innate_fixture(&fixture);
+}
+
+/* In the wilderness an exit points at the sentinel room, so the charge
+ * resolves the adjacent tile by coordinates and never searches the sentinel. */
+void TestBullChargeResolvesWildernessTilesByCoordinates(CuTest *tc)
+{
+  struct innate_fixture fixture;
+  struct kdtree *saved_kd_wilderness_rooms = kd_wilderness_rooms;
+  struct room_direction_data south, east;
+
+  begin_innate_fixture(&fixture);
+  innate_fixture_open_north(&fixture);
+  SET_BIT_AR(fixture.zone.zone_flags, ZONE_WILDERNESS);
+  /* every wilderness exit points at the sentinel */
+  south = fixture.north;
+  east = fixture.north;
+  fixture.rooms[0].dir_option[SOUTH] = &south;
+  fixture.rooms[0].dir_option[EAST] = &east;
+  fixture.rooms[1].number = WILD_ROOM_VNUM_START; /* the sentinel every exit points at */
+  fixture.rooms[2].number = WILD_ROOM_VNUM_START + 1;
+  fixture.rooms[2].coords[0] = 0;
+  fixture.rooms[2].coords[1] = 1; /* one tile north of the origin at (0, 0) */
+  fixture.rooms[3].number = WILD_ROOM_VNUM_START + 2;
+  fixture.rooms[3].coords[0] = 0;
+  fixture.rooms[3].coords[1] = -1;
+  top_of_world = 3;
+  kd_wilderness_rooms = NULL;
+  initialize_wilderness_lists();
+  SET_FEAT(&fixture.ch, FEAT_BULL_CHARGE, 1);
+
+  CuAssertIntEquals(tc, 2, bull_charge_destination(&fixture.ch, NORTH));
+  CuAssertIntEquals(tc, 3, bull_charge_destination(&fixture.ch, SOUTH));
+  CuAssertIntEquals(tc, NOWHERE, bull_charge_destination(&fixture.ch, EAST));
+
+  /* a body in the sentinel is not to the north */
+  fixture.ch.next_in_room = NULL;
+  IN_ROOM(&fixture.other) = 1;
+  fixture.rooms[1].people = &fixture.other;
+  reset_innate_output(&fixture.ch_descriptor);
+  do_charge(&fixture.ch, "north two", 0, 0);
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.ch));
+  CuAssertTrue(tc, FIGHTING(&fixture.ch) == NULL);
+  CuAssertPtrNotNull(tc, strstr(fixture.ch_descriptor.output, "nobody like that"));
+
+  kd_free(kd_wilderness_rooms);
+  kd_wilderness_rooms = saved_kd_wilderness_rooms;
   end_innate_fixture(&fixture);
 }
 
@@ -1689,6 +1777,30 @@ void TestBloodlustRefusesCastingAndFleeing(CuTest *tc)
   CuAssertTrue(tc, FIGHTING(&fixture.ch) == &fixture.other);
   CuAssertPtrNotNull(tc, strstr(fixture.ch_descriptor.output, "will not let you leave"));
 
-  stop_fighting(&fixture.ch);
+  /* a directed flee through an open exit is refused the same way */
+  innate_fixture_open_north(&fixture);
+  SET_FEAT(&fixture.ch, FEAT_SPRING_ATTACK, 1);
+  GET_MOVE(&fixture.ch) = 100;
+  GET_MAX_MOVE(&fixture.ch) = 100;
+  reset_innate_output(&fixture.ch_descriptor);
+  do_flee(&fixture.ch, "north", 0, 0);
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.ch));
+  CuAssertTrue(tc, FIGHTING(&fixture.ch) == &fixture.other);
+  CuAssertPtrNotNull(tc, strstr(fixture.ch_descriptor.output, "will not let you leave"));
+
+  /* disengaging from a foe that is not fighting back is refused too */
+  FIGHTING(&fixture.other) = NULL;
+  reset_innate_output(&fixture.ch_descriptor);
+  do_disengage(&fixture.ch, "", 0, 0);
+  CuAssertTrue(tc, FIGHTING(&fixture.ch) == &fixture.other);
+  CuAssertPtrNotNull(tc, strstr(fixture.ch_descriptor.output, "will not let you leave"));
+
+  /* and all three open up once the bloodlust lets go */
+  GET_HIT(&fixture.ch) = GET_MAX_HIT(&fixture.ch);
+  bloodlust_round_check(&fixture.ch);
+  CuAssertTrue(tc, !affected_by_spell(&fixture.ch, SKILL_BLOODLUST));
+  do_disengage(&fixture.ch, "", 0, 0);
+  CuAssertTrue(tc, FIGHTING(&fixture.ch) == NULL);
+
   end_innate_fixture(&fixture);
 }

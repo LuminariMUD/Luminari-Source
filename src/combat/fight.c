@@ -292,6 +292,19 @@ void guard_check(struct char_data *ch, struct char_data *vict)
   }
 }
 
+/* bloodlust (racial drawback) will not let go of the fight: every path out of
+ * combat (flee, directed flee, disengage) asks here first.  TRUE refuses. */
+bool bloodlust_holds_the_fight(struct char_data *ch)
+{
+  if (!affected_by_spell(ch, SKILL_BLOODLUST))
+    return FALSE;
+
+  GUI_CMBT_OPEN(ch);
+  send_to_char(ch, "Your bloodlust will not let you leave the fight!\r\n");
+  GUI_CMBT_CLOSE(ch);
+  return TRUE;
+}
+
 /* rewritten subfunction
    the engine for fleeing */
 void perform_flee(struct char_data *ch)
@@ -312,14 +325,8 @@ void perform_flee(struct char_data *ch)
     return;
   }
 
-  /* bloodlust (racial drawback) will not let go of the fight */
-  if (affected_by_spell(ch, SKILL_BLOODLUST))
-  {
-    GUI_CMBT_OPEN(ch);
-    send_to_char(ch, "Your bloodlust will not let you leave the fight!\r\n");
-    GUI_CMBT_CLOSE(ch);
+  if (bloodlust_holds_the_fight(ch))
     return;
-  }
 
   /* got to be in a position to flee */
   if (GET_POS(ch) <= POS_SITTING)

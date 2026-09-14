@@ -44,6 +44,7 @@
 #include "character/evolutions.h"
 #include "character/perks.h"
 #include "magic/spell_prep.h"
+#include "wilderness/wilderness.h"
 
 /* externs */
 extern char cast_arg2[MAX_INPUT_LENGTH];
@@ -1526,7 +1527,9 @@ void perform_charge(struct char_data *ch, struct char_data *vict)
       bull_charge_stun(ch, vict);
   }
 
-  if (vict && vict != ch)
+  /* hit() refuses a peaceful room, so do not start the fight it refused */
+  if (vict && vict != ch && !ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL) &&
+      !ROOM_FLAGGED(IN_ROOM(vict), ROOM_PEACEFUL))
   {
     if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL))
       set_fighting(ch, vict);
@@ -1537,6 +1540,59 @@ void perform_charge(struct char_data *ch, struct char_data *vict)
   }
 }
 #undef CHARGE_AFFECTS
+
+/* bull charge (racial innate): the room one step through the exit, resolved
+ * the way do_simple_move() resolves it.  A wilderness exit points at the
+ * sentinel room, so the destination is the tile at the adjacent coordinates;
+ * NOWHERE when no room holds that tile yet (nobody can be standing there). */
+room_rnum bull_charge_destination(struct char_data *ch, int dir)
+{
+  int x = X_LOC(ch), y = Y_LOC(ch);
+
+  if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS) ||
+      EXIT(ch, dir)->to_room != real_room(WILD_ROOM_VNUM_START))
+    return EXIT(ch, dir)->to_room;
+
+  switch (dir)
+  {
+  case NORTH:
+    y++;
+    break;
+  case SOUTH:
+    y--;
+    break;
+  case EAST:
+    x++;
+    break;
+  case WEST:
+    x--;
+    break;
+  default:
+    return NOWHERE;
+  }
+  return find_room_by_coordinates(x, y);
+}
+
+/* bull charge (racial innate): the first character in the room that matches
+ * the name and that ch can see; unseen matches are skipped, as in
+ * get_char_room_vis(). */
+static struct char_data *bull_charge_target(struct char_data *ch, char *name, room_rnum room)
+{
+  struct char_data *i = NULL;
+  int number = get_number(&name);
+
+  if (room == NOWHERE || number == 0)
+    return NULL;
+
+  for (i = world[room].people; i; i = i->next_in_room)
+  {
+    if (!isname(name, i->player.name) || !CAN_SEE(ch, i))
+      continue;
+    if (--number == 0)
+      return i;
+  }
+  return NULL;
+}
 
 /* bull charge (racial innate): 'charge <direction> <target>' moves one room
  * through the exit and charges the named target there.  The movement engine
@@ -1567,17 +1623,22 @@ static void perform_bull_charge(struct char_data *ch, int dir, char *name)
     return;
   }
 
-  to_room = EXIT(ch, dir)->to_room;
-  vict = get_char_room(name, NULL, to_room);
-  if (!vict || !CAN_SEE(ch, vict))
+  to_room = bull_charge_destination(ch, dir);
+  vict = bull_charge_target(ch, name, to_room);
+  if (!vict)
   {
     send_to_char(ch, "You see nobody like that to the %s.\r\n", dirs[dir]);
+    return;
+  }
+  if (ROOM_FLAGGED(to_room, ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "That place has such a peaceful, easy feeling... you cannot charge in.\r\n");
     return;
   }
 
   act("You lower your head and charge $T!", FALSE, ch, NULL, (void *)dirs[dir], TO_CHAR);
   act("$n lowers $s head and charges $T!", FALSE, ch, NULL, (void *)dirs[dir], TO_ROOM);
-  if (!perform_move_full(ch, dir, TRUE, true) || IN_ROOM(ch) != to_room)
+  if (!perform_move_full(ch, dir, TRUE, true))
     return;
   if (IN_ROOM(vict) != IN_ROOM(ch))
   {
@@ -5252,6 +5313,9 @@ ACMD(do_flee)
     }
   }
 
+  if (bloodlust_holds_the_fight(ch))
+    return;
+
   if (argument)
     one_argument(argument, arg, sizeof(arg));
 
@@ -5328,6 +5392,8 @@ ACMD(do_disengage)
       send_to_char(ch, "You are too busy fighting for your life!\r\n");
       return;
     }
+    if (bloodlust_holds_the_fight(ch))
+      return;
 
     /* don't forget to remove the fight event! */
     if (char_has_mud_event(ch, eCOMBAT_ROUND))
