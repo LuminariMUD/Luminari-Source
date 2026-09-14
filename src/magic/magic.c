@@ -11146,7 +11146,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
         for (i = 0; i < MAX_SPELL_AFFECTS; i++)
         {
           if (af[i].duration > 0)
-            af[i].duration = (int)(af[i].duration * enchant_mult);
+            af[i].duration = (int)((float)af[i].duration * enchant_mult);
         }
       }
     }
@@ -11160,7 +11160,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
         for (i = 0; i < MAX_SPELL_AFFECTS; i++)
         {
           if (af[i].duration > 0)
-            af[i].duration = (int)(af[i].duration * transmute_mult);
+            af[i].duration = (int)((float)af[i].duration * transmute_mult);
         }
       }
     }
@@ -11186,7 +11186,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
         for (i = 0; i < MAX_SPELL_AFFECTS; i++)
         {
           if (af[i].duration > 0)
-            af[i].duration = (int)(af[i].duration * control_mult);
+            af[i].duration = (int)((float)af[i].duration * control_mult);
         }
       }
     }

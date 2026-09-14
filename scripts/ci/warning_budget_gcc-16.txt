@@ -5,7 +5,7 @@ alloc-zero 1
 alloca 4
 cast-align 8
 cast-qual 399
-conversion 2463
+conversion 1263
 discarded-qualifiers 486
 double-promotion 554
 duplicated-branches 21
@@ -18,9 +18,9 @@ jump-misses-init 446
 logical-op 31
 missing-prototypes 640
 nested-externs 44
-null-dereference 60
+null-dereference 49
 redundant-decls 567
 shadow 274
-sign-conversion 1855
+sign-conversion 1853
 switch-enum 45
 undef 8

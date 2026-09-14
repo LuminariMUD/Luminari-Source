@@ -5757,7 +5757,7 @@ static void display_identity_section(struct char_data *ch, int line_length)
 static void display_vitals_section(struct char_data *ch, int line_length)
 {
   struct time_info_data playing_time;
-  float height = GET_HEIGHT(ch);
+  float height = (float)GET_HEIGHT(ch);
 
   skore_section_header(ch, "\tR*** VITALS & CONDITION ***\tC", line_length, "\tC");
 

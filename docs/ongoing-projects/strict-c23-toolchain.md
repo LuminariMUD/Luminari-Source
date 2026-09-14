@@ -109,6 +109,7 @@ per compiler.
 | 0 | `--list` and `--by-token`; `-Wswitch-default` dropped | 10706 | 22221 |
 | 1.1 | `IS_SET_AR` casts the element before the mask | 10706 | 10578 |
 | 2.1 | generated `test_prototypes.h` | 9223 | 9095 |
+| 1.2 | `int` affect, ability, point, player and object fields | 8010 | 7955 |
 
 Also fixed on the way: the budget check counted only `file:line:col: error:`
 lines, so a build that stopped on a missing header (`fatal error:`), a linker
