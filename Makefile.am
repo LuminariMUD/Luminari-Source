@@ -583,6 +583,11 @@ build_identity.h: FORCE_BUILD_IDENTITY scripts/deployment/generate_build_identit
 # BUILT_SOURCES ordering.  Both variants of constants.o include this header.
 src/constants.$(OBJEXT) src/cutest-constants.$(OBJEXT): build_identity.h
 
+# GCC's analyzer needs more than 30 GiB for load_class_list, which registers
+# every class in one function, so class.c is compiled without it.
+analyzer_exclude = $(if $(filter -fanalyzer,$(MYFLAGS)),-fno-analyzer)
+src/character/class.$(OBJEXT) src/character/cutest-class.$(OBJEXT): CFLAGS += $(analyzer_exclude)
+
 # Stage the server away from the mutable launch alias. The install hook below
 # promotes it into an immutable build-ID release and updates bin/luminari.
 bindir = $(top_builddir)/bin/.luminari-install

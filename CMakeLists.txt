@@ -321,6 +321,11 @@ target_include_directories(luminari_build INTERFACE
 
 # Warning flags come from the shared, probed tier list above.
 target_compile_options(luminari_build INTERFACE ${LUMINARI_WARNING_CFLAGS_LIST})
+# GCC's analyzer needs more than 30 GiB for load_class_list, which registers
+# every class in one function, so class.c is compiled without it.
+if ("-fanalyzer" IN_LIST LUMINARI_WARNING_CFLAGS_LIST)
+    set_source_files_properties(src/character/class.c PROPERTIES COMPILE_OPTIONS -fno-analyzer)
+endif()
 # The versioned installer and the copyover identity line key on the ELF build
 # ID.  Distribution compilers emit one by default; a toolchain built from
 # source (the official gcc container images) does not, so ask for it.
