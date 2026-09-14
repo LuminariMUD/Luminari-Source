@@ -3561,6 +3561,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case OEDIT_PROMPT_SPELLBOOK:
+  {
     if ((number = atoi(arg)) == 0)
       break;
     else if (number < 0 || number > SPELLBOOK_SIZE)
@@ -3592,6 +3593,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     OLC_MODE(d) = OEDIT_SPELLBOOK;
     oedit_disp_spellbook_menu(d);
     return;
+  }
 
   case OEDIT_SPELLBOOK:
     if ((number = atoi(arg)) == 0)

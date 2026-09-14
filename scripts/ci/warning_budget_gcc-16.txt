@@ -13,10 +13,9 @@ duplicated-cond 3
 float-conversion 299
 float-equal 22
 format-nonliteral 25
-jump-misses-init 446
 logical-op 31
 null-dereference 49
-shadow 271
+shadow 269
 sign-conversion 1814
 switch-enum 45
 undef 8

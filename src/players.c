@@ -2364,6 +2364,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   char *write_buffer = NULL;
   size_t buffer_size = 65536; /* 64KB initial buffer */
   size_t buffer_used = 0;
+  unsigned int b1, b2; /* legacy talent bitset words */
 
   /* Performance timing */
   struct timeval start_time, end_time;
@@ -2842,7 +2843,8 @@ bool save_char_checked(struct char_data *ch, int mode)
     BUFFER_WRITE(" %d", ch->player_specials->saved.talent_ranks[i]);
   BUFFER_WRITE("\n");
   /* Also write a zeroed legacy bitset for compatibility, or synthesize from ranks */
-  unsigned int b1 = 0, b2 = 0;
+  b1 = 0;
+  b2 = 0;
   for (i = 1; i < 64; i++)
     if (ch->player_specials->saved.talent_ranks[i] > 0)
     {

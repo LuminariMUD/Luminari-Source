@@ -5512,6 +5512,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_ENERGY_ADAPTATION_SPECIFIED:
+  {
     af[0].duration = level * 120;
     /* NPCs default to fire resistance to avoid accessing player-only data */
     int energy_type = DAM_FIRE;
@@ -5541,6 +5542,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
       break;
     }
     break;
+  }
 
   case PSIONIC_ENERGY_ADAPTATION:
     af[0].duration = level * 120;

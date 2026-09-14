@@ -8441,7 +8441,7 @@ ACMD(do_use)
   switch (subcmd)
   {
   case SCMD_RECITE:
-
+  {
     spell = GET_OBJ_VAL(mag_item, 1);
 
     /* remove curse, dispel invis and identify you can use regardless */
@@ -8592,6 +8592,7 @@ ACMD(do_use)
       }
     }
     break;
+  }
 
   case SCMD_USE:
   case SCMD_INVOKE:

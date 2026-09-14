@@ -320,6 +320,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
 
   case ITEM_WEAPON: /* 5 */
+  {
     /* weapon poison */
     if (item->weapon_poison.poison)
     {
@@ -496,8 +497,10 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
 
     break;
+  }
 
   case ITEM_ARMOR: /* 9 */
+  {
     if (mode == ITEM_STAT_MODE_IMMORTAL)
     {
       send_to_char(ch, "AC-apply: [%d], Enhancement Bonus: +%d\r\n", GET_OBJ_VAL(item, 0),
@@ -615,6 +618,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
 
     break;
+  }
 
   case ITEM_CONTAINER: /* 15 */
     sprintbit(GET_OBJ_VAL(item, 1), container_bits, buf, sizeof(buf));
@@ -1014,6 +1018,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
 
   case ITEM_WALL: /* 40 */
+  {
     /* quick out */
     if (GET_OBJ_VAL(item, WALL_TYPE) >= NUM_WALL_TYPES || GET_OBJ_VAL(item, WALL_TYPE) < 0)
     {
@@ -1080,6 +1085,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
 
     break;
+  }
 
   case ITEM_BOWL: /* 41 */
     break;

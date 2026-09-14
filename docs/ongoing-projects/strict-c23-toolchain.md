@@ -122,6 +122,7 @@ per compiler.
 | 1.3a | explicit casts where 64-bit values narrow to `int` outside macros; `oedit` `max_val` is `int` | 4793 | 6278 |
 | 1.3b | width-matched `long_min`, `size_min`, `u64_min` and friends where `MIN` and `MAX` truncated their arguments | 4701 | 6183 |
 | 1.3c | narrowing inside macros and multi-line expressions; clan return widened; `look_at_room_number` guard fixed; Clang `shorten-64-to-32` at zero | 4535 | 6018 |
+| 3.1 | case-local declarations scoped or hoisted; `jump-misses-init` at zero | 4087 | 5437 |
 
 Every step was also verified with a host `make test` (1483 tests pass) before
 it was committed, and each promotion to the baseline tier was first built at
@@ -274,6 +275,18 @@ Notes from step 1.3 (third pass):
   migration tier until GCC's `-Wconversion`, which covers the same family plus
   `int` to narrower types, is also empty.
 
+Notes from step 3.1:
+
+- Every warning traced back to an initialized local declared inside one
+  `case` body of a long switch, which each later label jumped over; bracing
+  that body scopes the declaration to its case.
+- Bracing is wrong when a later case uses the variable: `event_crafting`'s
+  divide subcommand declared the loop counter that the other repeat loops
+  assign and reuse, so it is declared at the top of the function instead.
+- Clang also reported the `goto save_char_restore` in every `BUFFER_WRITE`
+  after `save_char_checked` declared the legacy talent bitset words mid-function;
+  they are declared with the other locals now.
+
 - The production half of the class (about 290 sites: string tables declared
   `char *[]`, `one_argument_u((char *)argument, ...)`, `findLine` in the index
   tools) is step 3.4.
@@ -292,8 +305,8 @@ Notes from step 1.3 (third pass):
    `possible-null-argument`, 10 `out-of-bounds`, and 4 `use-after-free`
    sites. These are candidate bugs, not noise, and deserve their own issue.
 4. Burn down the rest of the migration budget. Steps 0, 1.1, 1.2, and 2.1 to
-   2.6 are done (see the progress table), and step 1.3 is done for 64-bit
-   narrowing. Left: step 3 (jump-misses-init, float promotion and conversion,
+   2.6 are done (see the progress table), step 1.3 is done for 64-bit
+   narrowing, and step 3.1 is done. Left: step 3 (float promotion and conversion,
    shadowing, production write-strings and cast-qual, small classes), and the
    step 4 sign-conversion decision.
 5. Cadence. Bump the current versions in `test.yml`,
@@ -385,8 +398,8 @@ migration list to the baseline list in `production_profile.sh`.
 
 ### Step 3: file-focused hand work (two to three days, about 2500 sites)
 
-1. `jump-misses-init` (579): wrap each offending `case` body in braces or
-   hoist the declaration. Four files; `magic.c` is half of it.
+1. `jump-misses-init` (done). The 446 GCC and 579 Clang sites came from
+   sixteen declarations: seven case bodies braced, two declarations hoisted.
 2. `double-promotion` and `float-conversion` (857 GCC, about 1000 Clang):
    change `float` to `double` in the wilderness and resource files, and give
    the float-typed struct fields explicit casts at the assignment. Performance

@@ -2838,6 +2838,7 @@ SPECIAL(crafting_quest)
 /* the event driver for crafting */
 MUD_EVENT_CALLBACK(event_crafting)
 {
+  int i = 0; /* shared by the repeat loops of several subcommands */
   struct char_data *ch;
   struct mud_event_data *pMudEvent;
   struct obj_data *obj2 = NULL;
@@ -2978,7 +2979,6 @@ MUD_EVENT_CALLBACK(event_crafting)
       snprintf(buf, sizeof(buf), "$n creates $p (x%d).", GET_CRAFTING_REPEAT(ch));
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
-      int i = 0;
       for (i = 1; i < GET_CRAFTING_REPEAT(ch); i++)
       {
         obj2 = read_object(GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)), VIRTUAL);

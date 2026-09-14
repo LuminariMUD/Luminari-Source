@@ -3347,7 +3347,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
 
   case STUDY_MAIN_SKILLS_MENU:
-
+  {
     if (!*arg)
     {
       send_to_char(d->character, "\r\nPlease type the full name of the skill you wish to increase "
@@ -3431,6 +3431,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     main_skills_disp_menu(d);
 
     break;
+  }
 
   case STUDY_SELECT_ALC_DISCOVERY:
     number = atoi(arg);
