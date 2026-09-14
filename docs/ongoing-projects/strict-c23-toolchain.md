@@ -600,7 +600,7 @@ Notes from the local CI run and the analyzer triage:
    out-of-bounds, leak-of-handle, and uninitialized-value classes are triaged
    (see the notes above); the `malloc-leak` and `null-dereference` classes
    still deserve their own issue.
-4. Burn down the rest of the migration budget. Steps 0, 1.1, 1.2, and 2.1 to
+4. Done: the migration budget is burned down. Steps 0, 1.1, 1.2, and 2.1 to
    2.6 are done (see the progress table), step 1.3 is done for 64-bit
    narrowing, steps 3 and 4 are done, and value conversion is at zero, so the
    budget files list no classes.
