@@ -16,8 +16,9 @@ a save format that carries them. Duris source verified at
 
 Review baseline: LuminariMUD `6a048b0d34fe0f17faea30577d87bac72b5ec3d3`,
 Duris `9e0bfac624aa19eccbfc8045edbfa8cfddfb575f` (both clean when traced).
-Line numbers below refer to those revisions. This is a plan, not an
-implemented feature. Race conversion and RP prices below remain proposals.
+Line numbers below refer to those revisions. Parts 1 to 4 preserve the
+original design study as reviewed; Part 0 records what the branch actually
+implements. Race conversion and RP prices below remain proposals.
 
 Review disposition: retain the seven appended slots, feat gate and numeric
 save format. Use shared hand capacity and small weapon-pair helpers; do not
@@ -39,7 +40,11 @@ moved. Every item below is on the branch; nothing here is on `master`.
 
 ### Done: step 1 (constants, feat, tables, eligibility, hand budget, placement)
 
-| Area | What exists now |
+Snapshot at the end of step 1. Two rows mention work that was still open at
+that point (attack types, deferred cleanup); steps 2 and 3 below record where
+it landed.
+
+| Area | What exists at the end of step 1 |
 |------|-----------------|
 | Constants | `WEAR_WIELD_3` 44 .. `WEAR_WRIST_L2` 50, `NUM_WEARS` 51, `FEAT_FOUR_ARMS` 1317, `FEAT_LAST_FEAT` 1318, `NUM_FEATS` 1319 in `src/structs.h`. Attack types THIRD/FOURTH are not added yet (step 3). |
 | Capability | `has_four_arms()`, `is_four_arm_wear_slot()`, `is_second_pair_wield_slot()`, `four_arm_slot_base()`, `second_pair_rejects_object()` in `src/utils.c`, declared in `src/utils.h`. Grant sources: mob feats (NPC, disguised wild shape), `HAS_REAL_FEAT`, `APPLY_FEAT` gear in ordinary slots only. |
@@ -159,6 +164,20 @@ each recorded in Part 3:
 4. Cannot ride: separate mount-only rule or omit.
 5. Ability adjustments: re-evaluate the study's +2/+1/-4/-4/+3/-3 proposal
    after the psionic/cold interpretation is corrected.
+
+Review follow-ups (PR #181, applied after step 4): the armor-class
+enhancement average divides by five only when lower sleeves are worn
+(`TestFourArmsLowerSleevesAverageIntoArmorEnhancement`); a deferred four-arm
+item stays in `ch->carrying` for the retry and only then takes its saved bag
+sort, which `obj_from_char()` would otherwise clear
+(`TestFourArmsDeferredRestoreHonorsBagSort`); `save_char_checked()` routes
+every buffer failure through the shared restoration (`save_char_restore`),
+so gear, affects and the four-arm deferral are always put back;
+`NUM_COMBAT_ATTACK_TYPES` (25) counts the `ATTACK_TYPE_*` modes separately
+from the weapon hit types, `attack_types[]` has "Third hand"/"Fourth hand"
+labels with a size check, the damage-trigger mode name honors them, the
+`attacks`/`damage` display commands accept `third` and `fourth`, and the RoL
+weapon procs deliver extra attacks with the slot's own attack type.
 
 Everything else in the acceptance list is either covered by a test named
 above or recorded as a deliberate deviation in the step notes. Not done, by

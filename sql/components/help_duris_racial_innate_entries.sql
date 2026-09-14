@@ -732,7 +732,7 @@ Requires: the extra arms feat (racial innate)
 Extra limbs join every melee round. Each rank of this innate grants one
 additional melee attack at your full base attack bonus, with no penalty
 to that swing. It brings no additional equipment slots and does nothing
-with ranged weapons.
+with ranged or thrown attacks.
 
 See also: FEAT INFO EXTRA ARMS, ATTACKS', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),

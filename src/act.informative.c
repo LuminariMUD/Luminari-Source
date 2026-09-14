@@ -4231,11 +4231,12 @@ ACMD(do_damage)
 #undef DISPLAY_ROUTINE_POTENTIAL
     send_to_char(ch, "\tC");
     text_line(ch, "\tYTo view bonus breakdown: \tC", line_length, '-', '-');
-    text_line(ch, "\tYattacks unarmed|primary|offhand|ranged|thrown|bomb|psionic\tC", line_length,
-              '-', '-');
+    text_line(ch, "\tYattacks unarmed|primary|offhand|third|fourth|ranged|thrown|bomb|psionic\tC",
+              line_length, '-', '-');
     text_line(ch, "\tYattacks primary-sneak|offhand-sneak|eldritch|twohand|evolution\tC",
               line_length, '-', '-');
-    text_line(ch, "\tYdamage hit|primary|offhand|ranged|thrown\tC", line_length, '-', '-');
+    text_line(ch, "\tYdamage hit|primary|offhand|third|fourth|ranged|thrown\tC", line_length, '-',
+              '-');
     send_to_char(ch, "\tn");
 
     return;
@@ -4254,6 +4255,16 @@ ACMD(do_damage)
   {
     mode = MODE_DISPLAY_OFFHAND;
     attack_type = ATTACK_TYPE_OFFHAND;
+  }
+  else if (is_abbrev(arg, "third"))
+  {
+    mode = MODE_DISPLAY_PRIMARY;
+    attack_type = ATTACK_TYPE_THIRD;
+  }
+  else if (is_abbrev(arg, "fourth"))
+  {
+    mode = MODE_DISPLAY_OFFHAND;
+    attack_type = ATTACK_TYPE_FOURTH;
   }
   else if (is_abbrev(arg, "ranged"))
   {
@@ -4303,11 +4314,12 @@ ACMD(do_attacks)
 #undef DISPLAY_ROUTINE_POTENTIAL
     send_to_char(ch, "\tC");
     text_line(ch, "\tYTo view bonus breakdown: \tC", line_length, '-', '-');
-    text_line(ch, "\tYattacks unarmed|primary|offhand|ranged|thrown|bomb|psionic\tC", line_length,
-              '-', '-');
+    text_line(ch, "\tYattacks unarmed|primary|offhand|third|fourth|ranged|thrown|bomb|psionic\tC",
+              line_length, '-', '-');
     text_line(ch, "\tYattacks primary-sneak|offhand-sneak|eldritch|twohand|evolution\tC",
               line_length, '-', '-');
-    text_line(ch, "\tYdamage hit|primary|offhand|ranged|thrown\tC", line_length, '-', '-');
+    text_line(ch, "\tYdamage hit|primary|offhand|third|fourth|ranged|thrown\tC", line_length, '-',
+              '-');
     send_to_char(ch, "\tn");
 
     return;
@@ -4323,6 +4335,14 @@ ACMD(do_attacks)
   else if (is_abbrev(arg, "offhand"))
   {
     attack_type = ATTACK_TYPE_OFFHAND;
+  }
+  else if (is_abbrev(arg, "third"))
+  {
+    attack_type = ATTACK_TYPE_THIRD;
+  }
+  else if (is_abbrev(arg, "fourth"))
+  {
+    attack_type = ATTACK_TYPE_FOURTH;
   }
   else if (is_abbrev(arg, "primary-sneak"))
   {

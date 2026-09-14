@@ -1062,7 +1062,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   }
 
   // important! We're dividing the total bonuses from body, head, arms and legs by 4.  Then we add shield at the end.
-  ac_bonus /= 4;
+  /* averaged over the worn pieces: four ordinary slots, five with lower sleeves */
+  ac_bonus /=
+      (GET_EQ(ch, WEAR_ARMS_2) != NULL && GET_OBJ_TYPE(GET_EQ(ch, WEAR_ARMS_2)) == ITEM_ARMOR) ? 5
+                                                                                               : 4;
 
   if ((ac_piece = GET_EQ(ch, WEAR_SHIELD)) != NULL && GET_OBJ_TYPE(ac_piece) == ITEM_ARMOR)
   {

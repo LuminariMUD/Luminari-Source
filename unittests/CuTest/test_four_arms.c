@@ -1274,3 +1274,91 @@ void TestFourArmsUnknownSavedSlotFallsBackToInventory(CuTest *tc)
   CuAssertIntEquals(tc, 0, sword.four_arms_restore_slot);
   end_four_arm_fixture(&fixture);
 }
+
+/* Lower sleeves join the armor enhancement average in both numerator and
+ * denominator: an equal lower piece leaves the averaged bonus unchanged. */
+void TestFourArmsLowerSleevesAverageIntoArmorEnhancement(CuTest *tc)
+{
+  struct four_arm_fixture fixture;
+  struct obj_data upper, lower;
+  int one_piece, both_pieces;
+
+  begin_four_arm_fixture(&fixture);
+  SET_FEAT(&fixture.ch, FEAT_FOUR_ARMS, 1);
+  init_armor(&upper, "upper sleeves", ITEM_WEAR_ARMS, 0, SPEC_ARMOR_TYPE_LEATHER_ARMS);
+  init_armor(&lower, "lower sleeves", ITEM_WEAR_ARMS, 0, SPEC_ARMOR_TYPE_LEATHER_ARMS);
+  GET_OBJ_VAL(&upper, 4) = 4;
+  GET_OBJ_VAL(&lower, 4) = 4;
+
+  equip_char(&fixture.ch, &upper, WEAR_ARMS);
+  one_piece = compute_armor_class(&fixture.ch, &fixture.ch, FALSE, MODE_ARMOR_CLASS_NORMAL);
+  equip_char(&fixture.ch, &lower, WEAR_ARMS_2);
+  both_pieces = compute_armor_class(&fixture.ch, &fixture.ch, FALSE, MODE_ARMOR_CLASS_NORMAL);
+  CuAssertIntEquals(tc, one_piece, both_pieces);
+  CuAssertPtrEquals(tc, &lower, unequip_char(&fixture.ch, WEAR_ARMS_2));
+  one_piece = compute_gear_enhancement_bonus(&fixture.ch);
+  equip_char(&fixture.ch, &lower, WEAR_ARMS_2);
+  CuAssertIntEquals(tc, one_piece, compute_gear_enhancement_bonus(&fixture.ch));
+
+  end_four_arm_fixture(&fixture);
+}
+
+/* A deferred four-arm item saved with a bag sort still retries from
+ * inventory; one whose provider never arrives ends up in its bag. */
+void TestFourArmsDeferredRestoreHonorsBagSort(CuTest *tc)
+{
+  struct four_arm_fixture fixture;
+  struct obj_data ring, sword;
+  struct obj_data *loaded;
+  obj_save_data *records;
+  FILE *file;
+
+  begin_four_arm_fixture(&fixture);
+  CREATE(fixture.ch.bags, struct bag_data, 1); /* players own bag storage */
+  init_armor(&ring, "a four-armed ring", ITEM_WEAR_FINGER, 0, 0);
+  grant_feat_on_object(&ring, FEAT_FOUR_ARMS);
+  init_weapon(&sword, "a sorted sword", WEAPON_TYPE_LONG_SWORD, SIZE_MEDIUM);
+  GET_OBJ_SORT(&sword) = 2;
+
+  file = tmpfile();
+  CuAssertPtrNotNull(tc, file);
+  CuAssertTrue(tc, test_objsave_save_obj_record(&sword, &fixture.ch, file, WEAR_WIELD_3 + 1));
+  CuAssertTrue(tc, test_objsave_save_obj_record(&ring, &fixture.ch, file, WEAR_FINGER_R + 1));
+  fputs("$~\n", file);
+  rewind(file);
+  records = objsave_parse_objects(file);
+  fclose(file);
+  CuAssertPtrNotNull(tc, records);
+  GET_OBJ_SORT(records->obj) = 2; /* prototype-less test records keep no sort */
+  CuAssertIntEquals(tc, 2, test_restore_loaded_objects(&fixture.ch, records));
+  loaded = GET_EQ(&fixture.ch, WEAR_WIELD_3);
+  CuAssertPtrNotNull(tc, loaded);
+  CuAssertStrEquals(tc, "a sorted sword", loaded->short_description);
+  CuAssertIntEquals(tc, 0, count_carried(&fixture.ch));
+  extract_everything(&fixture.ch);
+
+  /* no provider: the sword lands in bag 2, not loose in inventory */
+  file = tmpfile();
+  CuAssertPtrNotNull(tc, file);
+  CuAssertTrue(tc, test_objsave_save_obj_record(&sword, &fixture.ch, file, WEAR_WIELD_3 + 1));
+  fputs("$~\n", file);
+  rewind(file);
+  records = objsave_parse_objects(file);
+  fclose(file);
+  CuAssertPtrNotNull(tc, records);
+  GET_OBJ_SORT(records->obj) = 2;
+  CuAssertIntEquals(tc, 1, test_restore_loaded_objects(&fixture.ch, records));
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.ch, WEAR_WIELD_3));
+  CuAssertIntEquals(tc, 0, count_carried(&fixture.ch));
+  CuAssertPtrNotNull(tc, fixture.ch.bags);
+  CuAssertPtrNotNull(tc, fixture.ch.bags->bag2);
+  loaded = fixture.ch.bags->bag2;
+  CuAssertStrEquals(tc, "a sorted sword", loaded->short_description);
+  CuAssertIntEquals(tc, 0, loaded->four_arms_restore_slot);
+  obj_from_bag(&fixture.ch, loaded, 2);
+  extract_obj(loaded);
+  free(fixture.ch.bags);
+  fixture.ch.bags = NULL;
+
+  end_four_arm_fixture(&fixture);
+}

@@ -5368,6 +5368,9 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 /* four arms: the second weapon pair (WEAR_WIELD_3/WEAR_WIELD_4/WEAR_WIELD_2H_2) */
 #define ATTACK_TYPE_THIRD 23  /* lower primary hand */
 #define ATTACK_TYPE_FOURTH 24 /* lower offhand */
+/* count of the ATTACK_TYPE_* combat modes above (attack_types[] labels);
+ * NUM_ATTACK_TYPES below is the unrelated weapon hit-type count */
+#define NUM_COMBAT_ATTACK_TYPES 25
 
 /* Non-persistent runtime intent for attacks that consume a physical projectile. */
 #define PROJECTILE_MODE_NONE 0

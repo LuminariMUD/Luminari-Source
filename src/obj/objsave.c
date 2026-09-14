@@ -834,8 +834,10 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
   }
   if (location <= 0) /* Inventory */
   {
-    if (GET_OBJ_SORT(obj) > 0 && GET_OBJ_TYPE(obj) != ITEM_CONTAINER &&
-        GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH)
+    /* a deferred four-arm item must stay in ch->carrying for the retry; its
+     * bag sort is applied by four_arms_restore_deferred() if it stays out */
+    if (obj->four_arms_restore_slot <= 0 && GET_OBJ_SORT(obj) > 0 &&
+        GET_OBJ_TYPE(obj) != ITEM_CONTAINER && GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH)
       obj_to_bag(ch, obj, GET_OBJ_SORT(obj));
     else
       obj_to_char(obj, ch);
@@ -3202,7 +3204,7 @@ static int Crash_load_objs(struct char_data *ch)
 static void four_arms_restore_deferred(struct char_data *ch)
 {
   struct obj_data *obj, *next_obj;
-  int slot;
+  int slot, sort;
 
   for (obj = ch->carrying; obj != NULL; obj = next_obj)
   {
@@ -3210,12 +3212,25 @@ static void four_arms_restore_deferred(struct char_data *ch)
     if (obj->four_arms_restore_slot <= 0)
       continue;
     slot = obj->four_arms_restore_slot - 1;
+    sort = GET_OBJ_SORT(obj); /* obj_from_char() clears the saved bag sort */
     obj->four_arms_restore_slot = 0;
-    if (!character_can_use_wear_slot(ch, slot) || GET_EQ(ch, slot) != NULL ||
-        second_pair_rejects_object(obj, slot))
-      continue;
-    obj_from_char(obj);
-    equip_char(ch, obj, slot); /* refusal puts it back into inventory */
+    if (character_can_use_wear_slot(ch, slot) && GET_EQ(ch, slot) == NULL &&
+        !second_pair_rejects_object(obj, slot))
+    {
+      obj_from_char(obj);
+      equip_char(ch, obj, slot); /* refusal puts it back into inventory */
+      if (GET_EQ(ch, slot) == obj)
+        continue;
+    }
+    /* staying in inventory: the ordinary bag sort it was saved with
+     * (obj_to_bag() drops the object silently without bag storage) */
+    if (ch->bags != NULL && sort > 0 && GET_OBJ_TYPE(obj) != ITEM_CONTAINER &&
+        GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH)
+    {
+      obj_from_char(obj);
+      GET_OBJ_SORT(obj) = sort;
+      obj_to_bag(ch, obj, sort);
+    }
   }
 }
 

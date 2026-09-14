@@ -714,7 +714,7 @@ static const char *damage_trigger_attack_name(int attack_id)
 
 static const char *damage_trigger_attack_mode_name(int attack_mode)
 {
-  if (attack_mode < ATTACK_TYPE_PRIMARY || attack_mode > ATTACK_TYPE_PRIMARY_EVO_TRAMPLE)
+  if (attack_mode < ATTACK_TYPE_PRIMARY || attack_mode >= NUM_COMBAT_ATTACK_TYPES)
     return "unknown";
   return attack_types[attack_mode];
 }

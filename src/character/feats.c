@@ -6179,12 +6179,12 @@ void assign_feats(void)
         "for a time.");
   /* stackable: the Thri-Kreen four-arm stand-in, one rank per extra arm */
   feato(FEAT_EXTRA_ARMS, "extra arms", TRUE, FALSE, TRUE, FEAT_TYPE_INNATE_ABILITY,
-        "one extra melee attack per rank at your full attack bonus",
+        "one extra melee attack per rank at full BAB",
         "Extra limbs join every melee round.  Each rank of this innate grants one additional "
         "melee attack at your full base attack bonus.  It brings no additional equipment slots "
         "and does nothing with ranged weapons.");
   feato(FEAT_FOUR_ARMS, "four arms", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "second weapon pair plus lower arm, hand and wrist slots",
+        "second weapon pair and doubled arm slots",
         "Two more arms.  You can wield a second pair of weapons (two more one-handers, or a "
         "second two-hander), and wear a second set of sleeves and gloves and two more wrist "
         "items.  Held items and shields draw on the same four hands.  The second pair takes "

@@ -584,7 +584,10 @@ const char *attack_types[] = {
     "Evolution (Rend)",
     "Evolution (Trample)",
     "Thrown",
+    "Third hand",  /* four arms */
+    "Fourth hand", /* four arms */
 };
+CHECK_TABLE_SIZE(attack_types, NUM_COMBAT_ATTACK_TYPES);
 
 const char *instrument_names[] = {"Lyre", "Flute", "Horn", "Drum", "Harp", "Mandolin",
                                   /**/
