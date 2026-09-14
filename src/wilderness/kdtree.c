@@ -220,54 +220,7 @@ int kd_insert(struct kdtree *tree, const double *pos, void *data)
   return 0;
 }
 
-int kd_insertf(struct kdtree *tree, const float *pos, void *data)
-{
-  static double sbuf[16];
-  double *bptr, *buf = 0;
-  int res, dim = tree->dim;
-
-  if (dim > 16)
-  {
-#ifndef NO_ALLOCA
-    if (dim <= 256)
-      bptr = buf = alloca(dim * sizeof *bptr);
-    else
-#endif
-        if (!(bptr = buf = malloc(dim * sizeof *bptr)))
-    {
-      return -1;
-    }
-  }
-  else
-  {
-    bptr = buf = sbuf;
-  }
-
-  while (dim-- > 0)
-  {
-    *bptr++ = *pos++;
-  }
-
-  res = kd_insert(tree, buf, data);
-#ifndef NO_ALLOCA
-  if (tree->dim > 256)
-#else
-  if (tree->dim > 16)
-#endif
-    free(buf);
-  return res;
-}
-
 int kd_insert3(struct kdtree *tree, double x, double y, double z, void *data)
-{
-  double buf[3];
-  buf[0] = x;
-  buf[1] = y;
-  buf[2] = z;
-  return kd_insert(tree, buf, data);
-}
-
-int kd_insert3f(struct kdtree *tree, float x, float y, float z, void *data)
 {
   double buf[3];
   buf[0] = x;
@@ -498,55 +451,7 @@ struct kdres *kd_nearest(struct kdtree *kd, const double *pos)
   }
 }
 
-struct kdres *kd_nearestf(struct kdtree *tree, const float *pos)
-{
-  static double sbuf[16];
-  double *bptr, *buf = 0;
-  int dim = tree->dim;
-  struct kdres *res;
-
-  if (dim > 16)
-  {
-#ifndef NO_ALLOCA
-    if (dim <= 256)
-      bptr = buf = alloca(dim * sizeof *bptr);
-    else
-#endif
-        if (!(bptr = buf = malloc(dim * sizeof *bptr)))
-    {
-      return 0;
-    }
-  }
-  else
-  {
-    bptr = buf = sbuf;
-  }
-
-  while (dim-- > 0)
-  {
-    *bptr++ = *pos++;
-  }
-
-  res = kd_nearest(tree, buf);
-#ifndef NO_ALLOCA
-  if (tree->dim > 256)
-#else
-  if (tree->dim > 16)
-#endif
-    free(buf);
-  return res;
-}
-
 struct kdres *kd_nearest3(struct kdtree *tree, double x, double y, double z)
-{
-  double pos[3];
-  pos[0] = x;
-  pos[1] = y;
-  pos[2] = z;
-  return kd_nearest(tree, pos);
-}
-
-struct kdres *kd_nearest3f(struct kdtree *tree, float x, float y, float z)
 {
   double pos[3];
   pos[0] = x;
@@ -608,55 +513,7 @@ struct kdres *kd_nearest_range(struct kdtree *kd, const double *pos, double rang
   return rset;
 }
 
-struct kdres *kd_nearest_rangef(struct kdtree *kd, const float *pos, float range)
-{
-  static double sbuf[16];
-  double *bptr, *buf = 0;
-  int dim = kd->dim;
-  struct kdres *res;
-
-  if (dim > 16)
-  {
-#ifndef NO_ALLOCA
-    if (dim <= 256)
-      bptr = buf = alloca(dim * sizeof *bptr);
-    else
-#endif
-        if (!(bptr = buf = malloc(dim * sizeof *bptr)))
-    {
-      return 0;
-    }
-  }
-  else
-  {
-    bptr = buf = sbuf;
-  }
-
-  while (dim-- > 0)
-  {
-    *bptr++ = *pos++;
-  }
-
-  res = kd_nearest_range(kd, buf, range);
-#ifndef NO_ALLOCA
-  if (kd->dim > 256)
-#else
-  if (kd->dim > 16)
-#endif
-    free(buf);
-  return res;
-}
-
 struct kdres *kd_nearest_range3(struct kdtree *tree, double x, double y, double z, double range)
-{
-  double buf[3];
-  buf[0] = x;
-  buf[1] = y;
-  buf[2] = z;
-  return kd_nearest_range(tree, buf, range);
-}
-
-struct kdres *kd_nearest_range3f(struct kdtree *tree, float x, float y, float z, float range)
 {
   double buf[3];
   buf[0] = x;
@@ -706,47 +563,17 @@ void *kd_res_item(struct kdres *rset, double *pos)
   return 0;
 }
 
-void *kd_res_itemf(struct kdres *rset, float *pos)
-{
-  if (rset->riter)
-  {
-    if (pos)
-    {
-      int i;
-      for (i = 0; i < rset->tree->dim; i++)
-      {
-        pos[i] = rset->riter->item->pos[i];
-      }
-    }
-    return rset->riter->item->data;
-  }
-  return 0;
-}
-
 void *kd_res_item3(struct kdres *rset, double *x, double *y, double *z)
 {
   if (rset->riter)
   {
-    if (*x)
+    if (x)
       *x = rset->riter->item->pos[0];
-    if (*y)
+    if (y)
       *y = rset->riter->item->pos[1];
-    if (*z)
+    if (z)
       *z = rset->riter->item->pos[2];
-  }
-  return 0;
-}
-
-void *kd_res_item3f(struct kdres *rset, float *x, float *y, float *z)
-{
-  if (rset->riter)
-  {
-    if (*x)
-      *x = rset->riter->item->pos[0];
-    if (*y)
-      *y = rset->riter->item->pos[1];
-    if (*z)
-      *z = rset->riter->item->pos[2];
+    return rset->riter->item->data;
   }
   return 0;
 }

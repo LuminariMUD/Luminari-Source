@@ -102,10 +102,10 @@ static void do_list(FILE *shop_f, FILE *newshop_f, int max)
 
 static void do_float(FILE *shop_f, FILE *newshop_f)
 {
-  float f;
+  double f;
   char str[512];
 
-  if (fscanf(shop_f, "%f \n", &f) != 1)
+  if (fscanf(shop_f, "%lf \n", &f) != 1)
   {
     fprintf(stderr, "Error reading float value\n");
     exit(1);

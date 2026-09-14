@@ -54,13 +54,13 @@ enum cascade_effect_types
 /* Resource relationship structure */
 struct resource_relationship
 {
-  int source_resource;    /* Resource being harvested */
-  int target_resource;    /* Resource being affected */
-  int effect_type;        /* Type of cascade effect */
-  float effect_magnitude; /* Strength of effect (-1.0 to +1.0) */
-  float threshold_min;    /* Minimum threshold for effect */
-  float threshold_max;    /* Maximum threshold for effect */
-  char description[256];  /* Human readable description */
+  int source_resource;     /* Resource being harvested */
+  int target_resource;     /* Resource being affected */
+  int effect_type;         /* Type of cascade effect */
+  double effect_magnitude; /* Strength of effect (-1.0 to +1.0) */
+  double threshold_min;    /* Minimum threshold for effect */
+  double threshold_max;    /* Maximum threshold for effect */
+  char description[256];   /* Human readable description */
 };
 
 /* Ecosystem health tracking structure */
@@ -70,9 +70,9 @@ struct ecosystem_health
   int x_coord;
   int y_coord;
   int health_state;
-  float health_score; /* Overall health 0.0-1.0 */
+  double health_score; /* Overall health 0.0-1.0 */
   time_t last_updated;
-  float resource_levels[NUM_RESOURCE_TYPES];
+  double resource_levels[NUM_RESOURCE_TYPES];
 };
 
 /* Player conservation tracking structure */
@@ -82,10 +82,10 @@ struct player_conservation
   int zone_vnum;
   int x_coord;
   int y_coord;
-  float conservation_score; /* 0.0-1.0 conservation rating */
+  double conservation_score; /* 0.0-1.0 conservation rating */
   int total_harvests;
   int sustainable_harvests;
-  float ecosystem_damage; /* Cumulative damage caused */
+  double ecosystem_damage; /* Cumulative damage caused */
   time_t last_harvest;
 };
 
@@ -98,7 +98,7 @@ void apply_cascade_effects(room_rnum room, int source_resource, int quantity);
 void apply_harvest_depletion_with_cascades(room_rnum room, int resource_type, int quantity);
 
 /* Get relationship strength between two resources */
-float get_resource_relationship_strength(int source_resource, int target_resource);
+double get_resource_relationship_strength(int source_resource, int target_resource);
 
 /* Load resource relationships from database */
 void load_resource_relationships(void);
@@ -110,13 +110,13 @@ void check_ecosystem_thresholds(room_rnum room);
 
 /* Calculate overall ecosystem health */
 int get_ecosystem_state(room_rnum room);
-float calculate_ecosystem_health_score(room_rnum room);
+double calculate_ecosystem_health_score(room_rnum room);
 
 /* Update ecosystem health in database */
 void update_ecosystem_health(room_rnum room);
 
 /* Apply ecosystem-wide modifiers based on health */
-void apply_ecosystem_modifiers(room_rnum room, int resource_type, float *base_value);
+void apply_ecosystem_modifiers(room_rnum room, int resource_type, double *base_value);
 
 /* Get ecosystem health description */
 const char *get_ecosystem_state_name(int state);
@@ -129,14 +129,14 @@ void update_player_conservation_score(struct char_data *ch, int resource_type, i
                                       bool sustainable);
 
 /* Get player conservation score for area */
-float get_player_conservation_score(struct char_data *ch, room_rnum room);
+double get_player_conservation_score(struct char_data *ch, room_rnum room);
 
 /* Calculate if harvest is sustainable */
 bool is_harvest_sustainable(room_rnum room, int resource_type, int quantity);
 
 /* Log cascade effect for debugging */
 void log_cascade_effect(room_rnum room, int source_resource, int target_resource,
-                        float effect_magnitude, struct char_data *ch);
+                        double effect_magnitude, struct char_data *ch);
 
 /* ===== ENHANCED SURVEY FUNCTIONS ===== */
 
@@ -158,13 +158,13 @@ void show_conservation_impact(struct char_data *ch, room_rnum room);
 const char *get_resource_type_name(int resource_type);
 
 /* Calculate ecosystem recovery rate based on health */
-float get_ecosystem_recovery_modifier(int ecosystem_state);
+double get_ecosystem_recovery_modifier(int ecosystem_state);
 
 /* Check if ecosystem is in critical state */
 bool is_ecosystem_critical(room_rnum room);
 
 /* Get cascade effect color coding for display */
-const char *get_cascade_effect_color(float magnitude);
+const char *get_cascade_effect_color(double magnitude);
 
 /* Cleanup old ecosystem data */
 void cleanup_ecosystem_data(void);

@@ -346,7 +346,7 @@ static double vessel_encounter_distance_squared_to_segment(double x, double y, d
   segment_squared = segment_x * segment_x + segment_y * segment_y;
   projection =
       segment_squared > 0.0 ? (point_x * segment_x + point_y * segment_y) / segment_squared : 0.0;
-  projection = MAX(0.0, MIN(1.0, projection));
+  projection = FLOATMAX(0.0, FLOATMIN(1.0, projection));
   point_x = x - (start_x + projection * segment_x);
   point_y = y - (start_y + projection * segment_y);
   return point_x * point_x + point_y * point_y;

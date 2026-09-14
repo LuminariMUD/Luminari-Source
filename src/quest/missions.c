@@ -304,16 +304,14 @@ long get_mission_reward(char_data *ch, int reward_type)
 {
   int reward = 0;
   int level = GET_LEVEL(ch);
-  float mult = MAX(0, GET_MISSION_DIFFICULTY(ch));
-
-  if (mult == 0)
-    mult = 0.5;
+  int difficulty = MAX(0, GET_MISSION_DIFFICULTY(ch));
+  double mult = difficulty > 0 ? (double)difficulty : 0.5;
 
   switch (reward_type)
   {
   case MISSION_CREDITS:
     reward = 40 + dice(level * 2, 3);
-    reward *= 5 + (mult * 2);
+    reward = (int)(reward * (5 + (mult * 2)));
     break;
   case MISSION_STANDING:
     reward = (int)(50 * mult);
@@ -365,7 +363,7 @@ static void increase_mob_difficulty(struct char_data *mob, int difficulty)
   switch (difficulty)
   {
   case MISSION_DIFF_EASY:
-    GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 0.5;
+    GET_REAL_MAX_HIT(mob) = (int)(GET_REAL_MAX_HIT(mob) * 0.5);
     GET_HITROLL(mob) -= 2;
     GET_DAMROLL(mob) -= 2;
     mob->points.armor -= 30;
@@ -389,7 +387,7 @@ static void increase_mob_difficulty(struct char_data *mob, int difficulty)
     mob->points.armor += 80;
     break;
   case MISSION_DIFF_SEVERE:
-    GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 7.5;
+    GET_REAL_MAX_HIT(mob) = (int)(GET_REAL_MAX_HIT(mob) * 7.5);
     GET_HITROLL(mob) += 6;
     GET_DAMROLL(mob) += 6;
     mob->points.armor += 100;

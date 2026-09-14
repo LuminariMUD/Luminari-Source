@@ -41,7 +41,7 @@ static bool regeneration_logging_enabled = TRUE;
 /* ===== HELPER FUNCTIONS ===== */
 
 /* Get base regeneration rate for a resource type */
-float get_base_regeneration_rate(int resource_type)
+double get_base_regeneration_rate(int resource_type)
 {
   switch (resource_type)
   {
@@ -71,8 +71,8 @@ float get_base_regeneration_rate(int resource_type)
 }
 
 /* Log regeneration event to database */
-void log_regeneration_event(int zone_vnum_id, int x, int y, int resource_type, float old_level,
-                            float new_level, float regen_amount, const char *regen_type)
+void log_regeneration_event(int zone_vnum_id, int x, int y, int resource_type, double old_level,
+                            double new_level, double regen_amount, const char *regen_type)
 {
   char query[MAX_STRING_LENGTH];
 
@@ -159,9 +159,9 @@ void show_regeneration_history(struct char_data *ch, int zone_vnum_id, int x, in
   while ((row = mysql_fetch_row(result)))
   {
     int resource_type = atoi(row[0]);
-    float old_level = atof(row[1]);
-    float new_level = atof(row[2]);
-    float regen_amount = atof(row[3]);
+    double old_level = atof(row[1]);
+    double new_level = atof(row[2]);
+    double regen_amount = atof(row[3]);
 
     send_to_char(ch, "%-12d %-8.3f %-8.3f %-10.3f %-10s %s\r\n", resource_type, old_level,
                  new_level, regen_amount, row[4], row[5]);

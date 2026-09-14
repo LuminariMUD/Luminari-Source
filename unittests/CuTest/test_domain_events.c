@@ -3823,7 +3823,7 @@ void TestWorldPhenomenonRoomPropagation(CuTest *tc)
   phenomenon.source_room = domain_event_room_handle(0);
   phenomenon.kind = DOMAIN_PHENOMENON_ALARM;
   phenomenon.source_faction = GET_FACTION(&source);
-  phenomenon.intensity = 1.0f;
+  phenomenon.intensity = 1.0;
   phenomenon.visual_range = 2;
   phenomenon.audio_range = 2;
   phenomenon.minimum_range = 1;

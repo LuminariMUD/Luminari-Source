@@ -157,7 +157,7 @@ ACMD(do_cexchange)
 {
   char arg1[MAX_STRING_LENGTH] = {'\0'};
   char arg2[MAX_STRING_LENGTH] = {'\0'};
-  float amount = 0.0, cost = 0.0;
+  double amount = 0.0, cost = 0.0;
   int source = 0, xp_excess = 0, xp_profit = 0;
 
   /*debug*/
@@ -237,7 +237,7 @@ ACMD(do_cexchange)
     cost = ACCEXP_EXCHANGE_RATE * amount;
 
     /* cap for account xp currently */
-    if ((amount + (float)GET_ACCEXP_DESC(ch)) > 99999999.9)
+    if ((amount + (double)GET_ACCEXP_DESC(ch)) > 99999999.9)
     {
       send_to_char(ch, "Account experience caps at 100mil.\r\n");
       return;
@@ -276,7 +276,7 @@ ACMD(do_cexchange)
     cost = GOLD_EXCHANGE_RATE * amount;
 
     /* can we afford it? if so, go ahead and make exchange */
-    if ((float)GET_ACCEXP_DESC(ch) < cost)
+    if ((double)GET_ACCEXP_DESC(ch) < cost)
     {
       send_to_char(ch, "You do not have enough account exp, you need %d total (you have %d).\r\n",
                    (int)cost, GET_ACCEXP_DESC(ch));
@@ -284,7 +284,7 @@ ACMD(do_cexchange)
     }
 
     /* the purse has to hold the gold before any account exp is taken */
-    if (amount > award_capacity(ch, AWARD_GOLD))
+    if (amount > (double)award_capacity(ch, AWARD_GOLD))
     {
       send_to_char(ch, "You cannot carry that much more gold.\r\n");
       return;
@@ -310,7 +310,7 @@ ACMD(do_cexchange)
     cost = QP_EXCHANGE_RATE * amount;
 
     /* can we afford it? if so, go ahead and make exchange */
-    if ((float)GET_GOLD(ch) < cost)
+    if ((double)GET_GOLD(ch) < cost)
     {
       send_to_char(ch,
                    "You do not have enough gold on hand, you need %d total on "
@@ -320,7 +320,7 @@ ACMD(do_cexchange)
     }
 
     /* quest points cap, so check the room before any gold is taken */
-    if (amount > award_capacity(ch, AWARD_QUEST_POINTS))
+    if (amount > (double)award_capacity(ch, AWARD_QUEST_POINTS))
     {
       send_to_char(ch, "Quest points cap at %d.\r\n", MAX_QUEST_POINTS);
       return;
@@ -369,7 +369,7 @@ ACMD(do_cexchange)
     }
 
     /* can we afford it? if so, go ahead and make exchange */
-    if ((float)GET_QUESTPOINTS(ch) < cost)
+    if ((double)GET_QUESTPOINTS(ch) < cost)
     {
       send_to_char(ch, "You do not have enough quest points, you need %d total (you have %d).\r\n",
                    (int)cost, GET_QUESTPOINTS(ch));
@@ -408,7 +408,7 @@ ACMD(do_cexchange)
   char arg1[MAX_STRING_LENGTH] = {'\0'};
   char arg2[MAX_STRING_LENGTH] = {'\0'};
   char arg3[MAX_STRING_LENGTH] = {'\0'};
-  float amount = 0.0, cost = 0.0, pool = 0.0;
+  double amount = 0.0, cost = 0.0, pool = 0.0;
   int source = 0, exchange = 0;
 
   /*temp*/
@@ -489,23 +489,23 @@ ACMD(do_cexchange)
   switch (exchange)
   {
   case SRC_DST_ACCEXP:
-    cost = (float)ACCEXP_EXCHANGE_RATE * amount;
+    cost = (double)ACCEXP_EXCHANGE_RATE * amount;
 
     /* cap for account xp currently */
-    if ((amount + (float)GET_ACCEXP_DESC(ch)) > 99999999.9)
+    if ((amount + (double)GET_ACCEXP_DESC(ch)) > 99999999.9)
     {
       send_to_char(ch, "Account experience caps at 100mil.\r\n");
       return;
     }
     break;
   case SRC_DST_QP:
-    cost = (float)QP_EXCHANGE_RATE * amount;
+    cost = (double)QP_EXCHANGE_RATE * amount;
     break;
   case SRC_DST_GOLD:
-    cost = (float)GOLD_EXCHANGE_RATE * amount;
+    cost = (double)GOLD_EXCHANGE_RATE * amount;
     break;
   case SRC_DST_EXP:
-    cost = (float)EXP_EXCHANGE_RATE * amount;
+    cost = (double)EXP_EXCHANGE_RATE * amount;
     break;
 
   default: /* should never get here */
@@ -519,7 +519,7 @@ ACMD(do_cexchange)
   {
 
   case SRC_DST_ACCEXP:
-    pool = cost / ((float)ACCEXP_EXCHANGE_RATE); /* amount we need */
+    pool = cost / ((double)ACCEXP_EXCHANGE_RATE); /* amount we need */
 
     if (pool < 1.0)
     {
@@ -540,7 +540,7 @@ ACMD(do_cexchange)
     break;
 
   case SRC_DST_QP:
-    pool = cost / ((float)QP_EXCHANGE_RATE); /* amount we need */
+    pool = cost / ((double)QP_EXCHANGE_RATE); /* amount we need */
 
     if (pool < 1.0)
     {
@@ -560,7 +560,7 @@ ACMD(do_cexchange)
     break;
 
   case SRC_DST_GOLD:
-    pool = cost / ((float)GOLD_EXCHANGE_RATE); /* amount we need */
+    pool = cost / ((double)GOLD_EXCHANGE_RATE); /* amount we need */
 
     if (pool < 1.0)
     {
@@ -582,7 +582,7 @@ ACMD(do_cexchange)
     break;
 
   case SRC_DST_EXP:
-    pool = cost / ((float)EXP_EXCHANGE_RATE); /* amount we need */
+    pool = cost / ((double)EXP_EXCHANGE_RATE); /* amount we need */
 
     if (pool <= 0.0)
     {
@@ -1537,7 +1537,7 @@ ACMD(do_applypoison)
           (int)(GET_OBJ_VAL(poison, 3) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1));
       weapon->weapon_poison.poison = GET_OBJ_VAL(poison, 0);
       weapon->weapon_poison.poison_level =
-          (int)MIN(30, GET_OBJ_VAL(poison, 1) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1));
+          MIN(30, (int)(GET_OBJ_VAL(poison, 1) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1)));
       snprintf(buf1, sizeof(buf1),
                "\tnYou apply your innate poison \tnonto $p\tn by covering it with your venomous "
                "saliva...");
@@ -1551,7 +1551,7 @@ ACMD(do_applypoison)
           (int)(GET_OBJ_VAL(poison, 3) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1));
       weapon->weapon_poison.poison = GET_OBJ_VAL(poison, 0);
       weapon->weapon_poison.poison_level =
-          (int)MIN(30, GET_OBJ_VAL(poison, 1) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1));
+          MIN(30, (int)(GET_OBJ_VAL(poison, 1) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1)));
       snprintf(buf1, sizeof(buf1), "\tnYou carefully apply the contents of %s \tnonto $p\tn...",
                poison->short_description);
       snprintf(buf2, sizeof(buf2), "$n \tncarefully applies the contents of %s \tnonto $p\tn...",
@@ -7606,7 +7606,7 @@ static void print_group(struct char_data *ch)
 {
   struct char_data *k = NULL;
   const char *hp_clr = NULL, *psp_clr = NULL, *mv_clr = NULL;
-  float hp_pct = 0.0, psp_pct = 0.0, mv_pct = 0.0;
+  double hp_pct = 0.0, psp_pct = 0.0, mv_pct = 0.0;
 
   send_to_char(ch, "Your group consists of:\r\n");
 
@@ -7618,7 +7618,7 @@ static void print_group(struct char_data *ch)
 
   while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
   {
-    hp_pct = ((float)GET_HIT(k)) / ((float)GET_MAX_HIT(k)) * 100.00;
+    hp_pct = ((double)GET_HIT(k)) / ((double)GET_MAX_HIT(k)) * 100.00;
     if (hp_pct >= 100.0)
       hp_clr = CBWHT(ch, C_NRM);
     else if (hp_pct >= 95.0)
@@ -7636,7 +7636,7 @@ static void print_group(struct char_data *ch)
     else
       hp_clr = CBFRED(ch, C_NRM);
 
-    mv_pct = ((float)GET_MOVE(k)) / ((float)GET_MAX_MOVE(k)) * 100.00;
+    mv_pct = ((double)GET_MOVE(k)) / ((double)GET_MAX_MOVE(k)) * 100.00;
     if (mv_pct >= 100.0)
       mv_clr = CBWHT(ch, C_NRM);
     else if (mv_pct >= 95.0)
@@ -7654,7 +7654,7 @@ static void print_group(struct char_data *ch)
     else
       mv_clr = CBFRED(ch, C_NRM);
 
-    psp_pct = ((float)GET_PSP(k)) / ((float)GET_MAX_PSP(k)) * 100.00;
+    psp_pct = ((double)GET_PSP(k)) / ((double)GET_MAX_PSP(k)) * 100.00;
     if (GET_PSIONIC_LEVEL(k) <= 0)
       psp_clr = CBWHT(ch, C_NRM);
     else if (psp_pct >= 100.0)
@@ -8084,9 +8084,9 @@ ACMD(do_greport)
   }
 
   const char *hp_clr = NULL, *psp_clr = NULL, *mv_clr = NULL;
-  float hp_pct = 0.0, psp_pct = 0.0, mv_pct = 0.0;
+  double hp_pct = 0.0, psp_pct = 0.0, mv_pct = 0.0;
 
-  hp_pct = ((float)GET_HIT(ch)) / ((float)GET_MAX_HIT(ch)) * 100.00;
+  hp_pct = ((double)GET_HIT(ch)) / ((double)GET_MAX_HIT(ch)) * 100.00;
   if (hp_pct >= 100.0)
     hp_clr = CBWHT(ch, C_NRM);
   else if (hp_pct >= 95.0)
@@ -8104,7 +8104,7 @@ ACMD(do_greport)
   else
     hp_clr = CBFRED(ch, C_NRM);
 
-  mv_pct = ((float)GET_MOVE(ch)) / ((float)GET_MAX_MOVE(ch)) * 100.00;
+  mv_pct = ((double)GET_MOVE(ch)) / ((double)GET_MAX_MOVE(ch)) * 100.00;
   if (mv_pct >= 100.0)
     mv_clr = CBWHT(ch, C_NRM);
   else if (mv_pct >= 95.0)
@@ -8124,7 +8124,7 @@ ACMD(do_greport)
 
   if (IS_PSI_TYPE(ch))
   {
-    psp_pct = ((float)GET_PSP(ch)) / ((float)GET_MAX_PSP(ch)) * 100.00;
+    psp_pct = ((double)GET_PSP(ch)) / ((double)GET_MAX_PSP(ch)) * 100.00;
     if (psp_pct >= 100.0)
       psp_clr = CBWHT(ch, C_NRM);
     else if (psp_pct >= 95.0)

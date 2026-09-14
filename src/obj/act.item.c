@@ -512,10 +512,10 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
 
       if (mode == ITEM_STAT_MODE_G_LORE)
         send_to_group(NULL, GROUP(ch), "AC-apply: [%.1f], Enhancement Bonus: +%d\r\n",
-                      (float)GET_OBJ_VAL(item, 0) / 10.0, GET_ENHANCEMENT_BONUS(item));
+                      (double)GET_OBJ_VAL(item, 0) / 10.0, GET_ENHANCEMENT_BONUS(item));
       else
         send_to_char(ch, "AC-apply: [%.1f], Enhancement Bonus: +%d\r\n",
-                     (float)GET_OBJ_VAL(item, 0) / 10.0, GET_ENHANCEMENT_BONUS(item));
+                     (double)GET_OBJ_VAL(item, 0) / 10.0, GET_ENHANCEMENT_BONUS(item));
     }
     /* values defined by armor type */
     int armor_val = GET_OBJ_VAL(item, 1);
@@ -5298,7 +5298,7 @@ ACMD(do_loot)
       continue;
     if (subcmd == SCMD_PILFER)
     {
-      if (skill_check(ch, ABILITY_SLEIGHT_OF_HAND, d20(ch) + (GET_LEVEL(tch) * 0.75)))
+      if (skill_check(ch, ABILITY_SLEIGHT_OF_HAND, d20(ch) + (int)(GET_LEVEL(tch) * 0.75)))
       {
         pilfer = true;
         continue;

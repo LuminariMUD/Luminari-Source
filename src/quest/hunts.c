@@ -486,7 +486,7 @@ void create_hunt_mob(room_rnum room, int which_hunt)
   award_set_points(mob, AWARD_EXPERIENCE, (GET_LEVEL(mob) * GET_LEVEL(mob) * 500));
   award_set_points(mob, AWARD_GOLD, (GET_LEVEL(mob) * 100));
   set_alignment(mob, hunt_table[which_hunt].alignment);
-  GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 7.5;
+  GET_REAL_MAX_HIT(mob) = (int)(GET_REAL_MAX_HIT(mob) * 7.5);
   GET_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob);
   GET_HIT(mob) = GET_MAX_HIT(mob);
   GET_HITROLL(mob) += GET_LEVEL(mob) / 5;

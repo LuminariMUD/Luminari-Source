@@ -7187,7 +7187,7 @@ struct mob_special_data
   byte default_pos;           /**< Default position (standing, sleeping, etc.) */
   byte damnodice;             /**< The number of dice to roll for damage */
   byte damsizedice;           /**< The size of each die rolled for damage. */
-  float frustration_level;    /**< The anger/frustration level of the mob */
+  double frustration_level;   /**< The anger/frustration level of the mob */
   byte subrace[MAX_SUBRACES]; // SubRace
   sbyte tier;                 /**< Encounter-strength tier, or -1 for legacy */
   struct quest_entry *quest;  // quest info for a mob (homeland-port)
@@ -7975,7 +7975,7 @@ struct game_data
   int map_size;                /**< Default size for map command         */
   int minimap_size;            /**< Default size for mini-map (automap)  */
   int script_players;          /**< Is attaching scripts to players allowed? */
-  float min_pop_to_claim;      /**< Minimum popularity percentage required to claim a zone */
+  double min_pop_to_claim;     /**< Minimum popularity percentage required to claim a zone */
   int use_introduction_system; /**< Use the introduction system for character names? */
   int perk_system;             /**< Is the perk system enabled? */
 

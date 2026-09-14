@@ -266,7 +266,7 @@ void gettimeofday(struct timeval *t, struct timezone *dummy)
   DWORD millisec = GetTickCount();
 #elif defined(CIRCLE_MACINTOSH)
   unsigned long int millisec;
-  millisec = (int)((float)TickCount() * 1000.0 / 60.0);
+  millisec = (int)((double)TickCount() * 1000.0 / 60.0);
 #endif
 
   t->tv_sec = (int)(millisec / 1000);
@@ -2798,7 +2798,8 @@ static char *make_prompt(struct descriptor_data *d)
     else
     {
       /* display hit points */
-      float hit_percent = (float)GET_HIT(d->character) / (float)GET_MAX_HIT(d->character) * 100.0;
+      double hit_percent =
+          (double)GET_HIT(d->character) / (double)GET_MAX_HIT(d->character) * 100.0;
 
       if (PRF_FLAGGED(d->character, PRF_DISPHP) && len < sizeof(prompt))
       {
@@ -3695,7 +3696,7 @@ static int new_descriptor(socket_t s)
   if (CONFIG_PROTOCOL_NEGOTIATION)
   {
     /* Attach Event */
-    NEW_EVENT(ePROTOCOLS, newd, NULL, 1.5 * PASSES_PER_SEC);
+    NEW_EVENT(ePROTOCOLS, newd, NULL, (long)(1.5 * PASSES_PER_SEC));
     /* KaVir's plugin*/
     write_to_output(newd, "Attempting to Detect Client, Please Wait...\r\n");
     ProtocolNegotiate(newd);

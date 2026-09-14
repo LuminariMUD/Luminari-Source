@@ -20,9 +20,9 @@ void show_shops(struct char_data *ch, char *arg);
 int ok_damage_shopkeeper(struct char_data *ch, struct char_data *victim);
 void destroy_shops(void);
 bool shop_background_access_allowed(bitvector_t shop_flags, bool has_criminal, bool has_noble);
-float shop_background_hometown_price_multiplier(bool eligible, bool in_hometown, bool buying);
+double shop_background_hometown_price_multiplier(bool eligible, bool in_hometown, bool buying);
 bool shop_room_access_allowed(bitvector_t shop_flags, bool room_listed);
-float shop_rol_cheat_price_multiplier(bool cheated, bool buying);
+double shop_rol_cheat_price_multiplier(bool cheated, bool buying);
 int shop_haggle_score(struct char_data *ch);
 bool shop_rol_magic_allowed(bitvector_t shop_flags);
 
@@ -39,8 +39,8 @@ struct shop_data
 {
   room_vnum vnum;             /* Virtual number of this shop		*/
   obj_vnum *producing;        /* Which item to produce (virtual)	*/
-  float profit_buy;           /* Factor to multiply cost with		*/
-  float profit_sell;          /* Factor to multiply cost with		*/
+  double profit_buy;          /* Factor to multiply cost with		*/
+  double profit_sell;         /* Factor to multiply cost with		*/
   struct shop_buy_data *type; /* Which items to trade			*/
   char *no_such_item1;        /* Message if keeper hasn't got an item	*/
   char *no_such_item2;        /* Message if player hasn't got an item	*/

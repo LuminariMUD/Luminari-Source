@@ -1387,8 +1387,8 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
 {
   struct obj_data *obj = NULL;
   int enhancement_bonus = 0;
-  float counter = 0.0;
-  float num_pieces = 0.0;
+  double counter = 0.0;
+  double num_pieces = 0.0;
 
   /* we're going to check slot-by-slot */
 
@@ -1409,7 +1409,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
       counter += 1.1;
       break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
     /* DON'T increment num_pieces, should get full bang for buck on shields */
   }
 
@@ -1417,7 +1417,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
   if (affected_by_spell(ch, SPELL_LITANY_OF_DEFENSE))
     counter *= 2;
 
-  enhancement_bonus += counter;
+  enhancement_bonus = (int)(enhancement_bonus + counter);
   counter = 0.1; /* reset the counter for all other slots */
   /* end SPECIAL HANDLING FOR SHIELD */
 
@@ -1438,7 +1438,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
       counter += 1.1;
       break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
   /* head */
@@ -1458,7 +1458,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
       counter += 1.1;
       break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
   /* legs */
@@ -1478,7 +1478,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
       counter += 1.1;
       break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
   /* arms */
@@ -1498,7 +1498,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
       counter += 1.1;
       break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
   /* lower arms (four arms): one more averaged piece, only when worn */
@@ -1518,7 +1518,7 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
       counter += 1.1;
       break;
     }
-    counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
+    counter += (double)GET_OBJ_VAL(obj, 4) * 1.01;
   }
 
   enhancement_bonus += MAX(0, (int)(counter / num_pieces));
@@ -2267,7 +2267,7 @@ ACMD(do_armorlist_old)
                           "AC: %.1f, Max Dex: %d, Armor Penalty: %d, Spell Fail: %d, Weight: %d, "
                           "Material: %s\r\n",
                           armor_list[i].name, armor_type[armor_list[i].armorType],
-                          armor_list[i].cost, (float)armor_list[i].armorBonus / 10.0,
+                          armor_list[i].cost, (double)armor_list[i].armorBonus / 10.0,
                           armor_list[i].dexBonus, armor_list[i].armorCheck, armor_list[i].spellFail,
                           armor_list[i].weight, material_name[armor_list[i].material]);
   }

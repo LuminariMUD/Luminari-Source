@@ -5758,7 +5758,7 @@ static void display_identity_section(struct char_data *ch, int line_length)
 static void display_vitals_section(struct char_data *ch, int line_length)
 {
   struct time_info_data playing_time;
-  float height = (float)GET_HEIGHT(ch);
+  double height = (double)GET_HEIGHT(ch);
 
   skore_section_header(ch, "\tR*** VITALS & CONDITION ***\tC", line_length, "\tC");
 
@@ -9598,7 +9598,7 @@ ACMD(do_survey)
   room_rnum nr, to_room;
   room_vnum first, last;
   int j, x, y, i;
-  float resource_level;
+  double resource_level;
   struct room_data *target_room = NULL;
   char arg[MAX_INPUT_LENGTH];
 
@@ -9684,12 +9684,12 @@ ACMD(do_survey)
     send_to_char(ch, "Elevation: %d\r\n", get_elevation(NOISE_MATERIAL_PLANE_ELEV, x, y));
 
     /* Phase 6: Add basic resource conservation summary */
-    float avg_depletion = 0.0;
+    double avg_depletion = 0.0;
     int depletion_count = 0;
     for (i = 0; i < 3; i++)
     { /* Check major resources: herbs, minerals, wood */
       int resource_types[] = {RESOURCE_HERBS, RESOURCE_MINERALS, RESOURCE_WOOD};
-      float depletion = get_resource_depletion_level(IN_ROOM(ch), resource_types[i]);
+      double depletion = get_resource_depletion_level(IN_ROOM(ch), resource_types[i]);
       avg_depletion += depletion;
       depletion_count++;
     }
@@ -9730,10 +9730,10 @@ ACMD(do_survey)
       resource_level = calculate_current_resource_level(i, x, y);
       if (resource_level > 0.05)
       { /* Only show resources with meaningful levels */
-        float depletion_level = get_resource_depletion_level(IN_ROOM(ch), i);
-        float effective_level =
+        double depletion_level = get_resource_depletion_level(IN_ROOM(ch), i);
+        double effective_level =
             resource_level * depletion_level; /* Calculate true available amount */
-        float harvest_modifier = get_harvest_success_modifier(IN_ROOM(ch), i);
+        double harvest_modifier = get_harvest_success_modifier(IN_ROOM(ch), i);
 
         send_to_char(
             ch, "  \tG%-12s\tn: %s", resource_names[i],
@@ -11425,12 +11425,12 @@ ACMD(do_conservation)
                  CCNRM(ch, C_NRM));
     send_to_char(ch, "Your sustainable harvesting practices across resource types:\r\n\r\n");
 
-    float total_score = 0.0;
+    double total_score = 0.0;
     int count = 0;
 
     for (i = 0; i < NUM_RESOURCE_TYPES; i++)
     {
-      float score = get_player_conservation_score(ch);
+      double score = get_player_conservation_score(ch);
       const char *status = get_conservation_status_name(score);
 
       send_to_char(ch, "  %-12s: %s%s%s (%.1f/5.0)\r\n", get_resource_name(i), CCYEL(ch, C_NRM),
@@ -11442,7 +11442,7 @@ ACMD(do_conservation)
 
     if (count > 0)
     {
-      float avg_score = total_score / count;
+      double avg_score = total_score / count;
       const char *overall_status = get_conservation_status_name(avg_score);
 
       send_to_char(ch, "\r\n%sOverall Rating: %s%s %s(%.1f/5.0)%s\r\n", CCWHT(ch, C_NRM),
@@ -11466,19 +11466,19 @@ ACMD(do_conservation)
     send_to_char(ch, "%sConservation Status%s\r\n", CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
     send_to_char(ch, "==================\r\n");
 
-    float total_score = 0.0;
+    double total_score = 0.0;
     int count = 0;
 
     for (i = 0; i < NUM_RESOURCE_TYPES; i++)
     {
-      float score = get_player_conservation_score(ch);
+      double score = get_player_conservation_score(ch);
       total_score += score;
       count++;
     }
 
     if (count > 0)
     {
-      float avg_score = total_score / count;
+      double avg_score = total_score / count;
       const char *status = get_conservation_status_name(avg_score);
 
       send_to_char(ch, "Your overall conservation rating: %s%s%s (%.1f/5.0)\r\n", CCYEL(ch, C_NRM),

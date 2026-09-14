@@ -755,7 +755,7 @@ void generate_ship_interior(struct greyhawk_ship_data *ship)
   }
 
   /* Discovery algorithm for additional rooms */
-  ship->discovery_chance = 30.0; /* 30% chance for additional rooms */
+  ship->discovery_chance = 30; /* 30% chance for additional rooms */
 
   while (ship->num_rooms < max_rooms)
   {

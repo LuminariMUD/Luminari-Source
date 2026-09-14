@@ -1819,7 +1819,7 @@ byte saving_throws(struct char_data *ch, int type)
   }
 
   int i, save = 0;
-  float counter = 1.1;
+  double counter = 1.1;
 
   /* actual pc calculation, added float for more(?) accuracy */
   for (i = 0; i < MAX_CLASSES; i++)
@@ -1827,9 +1827,9 @@ byte saving_throws(struct char_data *ch, int type)
     if (CLASS_LEVEL(ch, i))
     { // found class and level
       if (CLSLIST_SAVES(i, type))
-        counter += (float)CLASS_LEVEL(ch, i) / 2.0;
+        counter += (double)CLASS_LEVEL(ch, i) / 2.0;
       else
-        counter += (float)CLASS_LEVEL(ch, i) / 4.0;
+        counter += (double)CLASS_LEVEL(ch, i) / 4.0;
     }
   }
 
@@ -1860,7 +1860,7 @@ int NUM_ATTACKS_BAB(struct char_data *ch)
 int ACTUAL_BAB(struct char_data *ch)
 {
   int i = 0, level = 0, bab = 0;
-  float counter = 0.0;
+  double counter = 0.0;
   if (IS_NPC(ch))
     return BAB_OLD(ch);
 
@@ -1874,14 +1874,14 @@ int ACTUAL_BAB(struct char_data *ch)
         switch (CLSLIST_BAB(i))
         {
         case M:
-          counter += (float)level * 3.0 / 4.0;
+          counter += (double)level * 3.0 / 4.0;
           break;
         case H:
-          counter += (float)level;
+          counter += (double)level;
           break;
         case L:
         default:
-          counter += (float)level / 2.0;
+          counter += (double)level / 2.0;
           break;
         }
       }
@@ -1928,7 +1928,7 @@ int BAB_OLD(struct char_data *ch)
   }
 
   int i, bab = 0, level, wildshape_level = 0;
-  float counter = 0.0;
+  double counter = 0.0;
 
   /* wildshape */
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
@@ -1944,14 +1944,14 @@ int BAB_OLD(struct char_data *ch)
       switch (CLSLIST_BAB(i))
       {
       case M:
-        counter += (float)level * 3.0 / 4.0;
+        counter += (double)level * 3.0 / 4.0;
         break;
       case H:
-        counter += (float)level;
+        counter += (double)level;
         break;
       case L:
       default:
-        counter += (float)level / 2.0;
+        counter += (double)level / 2.0;
         break;
       }
     }
@@ -3553,21 +3553,21 @@ void advance_level(struct char_data *ch, int class)
   if (GET_LEVEL(ch) == 20)
   {
     int level = 0;
-    float counter = 0.0;
+    double counter = 0.0;
     for (i = 0; i < MAX_CLASSES; i++)
     {
       level = MIN(20, CLASS_LEVEL(ch, i));
       switch (CLSLIST_BAB(i))
       {
       case M:
-        counter += (float)level * 3.0 / 4.0;
+        counter += (double)level * 3.0 / 4.0;
         break;
       case H:
-        counter += (float)level;
+        counter += (double)level;
         break;
       case L:
       default:
-        counter += (float)level / 2.0;
+        counter += (double)level / 2.0;
         break;
       }
     }

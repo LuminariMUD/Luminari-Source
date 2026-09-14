@@ -22,11 +22,11 @@
 #include "spatial_visual.h"
 
 /* Visual System Constants */
-#define VISUAL_BASE_RANGE 1000.0f
-#define VISUAL_CLARITY_EXCELLENT 1.0f
-#define VISUAL_CLARITY_GOOD 0.8f
-#define VISUAL_CLARITY_POOR 0.5f
-#define VISUAL_CLARITY_TERRIBLE 0.2f
+#define VISUAL_BASE_RANGE 1000.0
+#define VISUAL_CLARITY_EXCELLENT 1.0
+#define VISUAL_CLARITY_GOOD 0.8
+#define VISUAL_CLARITY_POOR 0.5
+#define VISUAL_CLARITY_TERRIBLE 0.2
 
 /* Visual message types */
 typedef enum
@@ -44,13 +44,14 @@ static int visual_generate_message(struct spatial_context *ctx, char *output, si
 static int visual_apply_effects(struct spatial_context *ctx);
 static bool visual_should_process_observer(struct spatial_context *ctx);
 
-static int physical_calculate_obstruction(struct spatial_context *ctx, float *obstruction_factor);
+static int physical_calculate_obstruction(struct spatial_context *ctx, double *obstruction_factor);
 static int physical_get_obstacles(struct spatial_context *ctx, struct obstacle_list *obstacles);
 static bool physical_can_transmit(int terrain_type, int stimulus_type);
 
-static int weather_terrain_apply_modifiers(struct spatial_context *ctx, float *range_mod,
-                                           float *clarity_mod);
-static int weather_terrain_calculate_interference(struct spatial_context *ctx, float *interference);
+static int weather_terrain_apply_modifiers(struct spatial_context *ctx, double *range_mod,
+                                           double *clarity_mod);
+static int weather_terrain_calculate_interference(struct spatial_context *ctx,
+                                                  double *interference);
 
 static int weather_terrain_modify_message(struct spatial_context *ctx, char *message,
                                           size_t max_len);
@@ -66,7 +67,7 @@ struct stimulus_strategy visual_stimulus_strategy = {
     .should_process_observer = visual_should_process_observer,
     .enabled = TRUE,
     .usage_count = 0,
-    .performance_factor = 1.0f};
+    .performance_factor = 1.0};
 
 /* PHYSICAL LINE OF SIGHT STRATEGY */
 struct los_strategy physical_los_strategy = {
@@ -88,7 +89,7 @@ struct modifier_strategy weather_terrain_modifier_strategy = {
     .calculate_interference = weather_terrain_calculate_interference,
     .modify_message = weather_terrain_modify_message,
     .enabled = TRUE,
-    .modifier_strength = 1.0f};
+    .modifier_strength = 1.0};
 
 /* VISUAL SYSTEM CONFIGURATION */
 struct spatial_system visual_system = {.system_name = "Visual",
@@ -97,8 +98,8 @@ struct spatial_system visual_system = {.system_name = "Visual",
                                        .line_of_sight = &physical_los_strategy,
                                        .modifiers = &weather_terrain_modifier_strategy,
                                        .enabled = TRUE,
-                                       .global_range_multiplier = 1.0f,
-                                       .global_intensity_multiplier = 1.0f};
+                                       .global_range_multiplier = 1.0,
+                                       .global_intensity_multiplier = 1.0};
 
 /*
  * Visual Stimulus Strategy Implementation
@@ -109,7 +110,7 @@ struct spatial_system visual_system = {.system_name = "Visual",
  */
 static int visual_calculate_intensity(struct spatial_context *ctx)
 {
-  float distance_factor;
+  double distance_factor;
 
   if (!ctx)
   {
@@ -119,12 +120,12 @@ static int visual_calculate_intensity(struct spatial_context *ctx)
   /* Calculate distance falloff - visual intensity decreases with distance */
   if (ctx->distance <= 0.0)
   {
-    distance_factor = 1.0f; /* Same location */
+    distance_factor = 1.0; /* Same location */
   }
   else
   {
     /* Use inverse square law modified for gameplay */
-    distance_factor = 1.0f / (1.0f + (ctx->distance / 100.0f));
+    distance_factor = 1.0 / (1.0 + (ctx->distance / 100.0));
   }
 
   ctx->distance_attenuation = distance_factor;
@@ -144,7 +145,7 @@ static int visual_calculate_intensity(struct spatial_context *ctx)
 static int visual_generate_message(struct spatial_context *ctx, char *output, size_t max_len)
 {
   visual_message_type_t msg_type;
-  float clarity = ctx->final_intensity;
+  double clarity = ctx->final_intensity;
 
   spatial_log("SPATIAL: visual_generate_message called - ctx=%p, output=%p, source_desc=%p", ctx,
               output, ctx ? ctx->source_description : NULL);
@@ -158,19 +159,19 @@ static int visual_generate_message(struct spatial_context *ctx, char *output, si
   }
 
   /* Determine message type based on final intensity - adjusted for dramatic spell effects */
-  if (clarity >= 0.6f)
+  if (clarity >= 0.6)
   {
     msg_type = VISUAL_MSG_CLEAR;
   }
-  else if (clarity >= 0.4f)
+  else if (clarity >= 0.4)
   {
     msg_type = VISUAL_MSG_DISTANT;
   }
-  else if (clarity >= 0.25f)
+  else if (clarity >= 0.25)
   {
     msg_type = VISUAL_MSG_OBSCURED;
   }
-  else if (clarity >= 0.1f)
+  else if (clarity >= 0.1)
   {
     msg_type = VISUAL_MSG_SILHOUETTE;
   }
@@ -314,19 +315,19 @@ static bool visual_should_process_observer(struct spatial_context *ctx)
 /*
  * Calculate physical obstruction based on terrain
  */
-static int physical_calculate_obstruction(struct spatial_context *ctx, float *obstruction_factor)
+static int physical_calculate_obstruction(struct spatial_context *ctx, double *obstruction_factor)
 {
-  float total_obstruction = 0.0f;
+  double total_obstruction = 0.0;
   int steps, i;
   int dx, dy, step_x, step_y;
-  float step_size;
+  double step_size;
 
   if (!ctx || !obstruction_factor)
   {
     return SPATIAL_ERROR_INVALID_PARAM;
   }
 
-  *obstruction_factor = 0.0f;
+  *obstruction_factor = 0.0;
 
   /* Simple line-of-sight calculation using Bresenham-like algorithm */
   dx = abs(ctx->observer_x - ctx->source_x);
@@ -339,12 +340,12 @@ static int physical_calculate_obstruction(struct spatial_context *ctx, float *ob
     return SPATIAL_SUCCESS;
   }
 
-  step_size = 1.0f / steps;
+  step_size = 1.0 / steps;
 
   /* Check terrain along the line */
   for (i = 1; i < steps; i++)
   {
-    float progress = i * step_size;
+    double progress = i * step_size;
     step_x = ctx->source_x + (int)(progress * (ctx->observer_x - ctx->source_x));
     step_y = ctx->source_y + (int)(progress * (ctx->observer_y - ctx->source_y));
 
@@ -357,25 +358,25 @@ static int physical_calculate_obstruction(struct spatial_context *ctx, float *ob
       /* No obstruction */
       break;
     case 1: /* Light forest */
-      total_obstruction += 0.1f;
+      total_obstruction += 0.1;
       break;
     case 2: /* Dense forest */
-      total_obstruction += 0.3f;
+      total_obstruction += 0.3;
       break;
     case 3: /* Mountains */
-      total_obstruction += 0.8f;
+      total_obstruction += 0.8;
       break;
     case 4: /* Hills */
-      total_obstruction += 0.2f;
+      total_obstruction += 0.2;
       break;
     default:
-      total_obstruction += 0.1f;
+      total_obstruction += 0.1;
       break;
     }
   }
 
   /* Cap obstruction at 100% */
-  *obstruction_factor = MIN(total_obstruction, 1.0f);
+  *obstruction_factor = FLOATMIN(total_obstruction, 1.0);
 
   spatial_debug("Physical obstruction calculated: %.3f over %d steps", *obstruction_factor, steps);
 
@@ -439,13 +440,13 @@ static bool physical_can_transmit(int terrain_type, int stimulus_type)
 /*
  * Apply weather and terrain modifiers to range and clarity
  */
-static int weather_terrain_apply_modifiers(struct spatial_context *ctx, float *range_mod,
-                                           float *clarity_mod)
+static int weather_terrain_apply_modifiers(struct spatial_context *ctx, double *range_mod,
+                                           double *clarity_mod)
 {
-  float weather_range_mod = 1.0f;
-  float weather_clarity_mod = 1.0f;
-  float time_range_mod = 1.0f;
-  float time_clarity_mod = 1.0f;
+  double weather_range_mod = 1.0;
+  double weather_clarity_mod = 1.0;
+  double time_range_mod = 1.0;
+  double time_clarity_mod = 1.0;
 
   if (!ctx || !range_mod || !clarity_mod)
   {
@@ -456,24 +457,24 @@ static int weather_terrain_apply_modifiers(struct spatial_context *ctx, float *r
   switch (ctx->weather_conditions)
   {
   case 0: /* Clear */
-    weather_range_mod = 1.0f;
-    weather_clarity_mod = 1.0f;
+    weather_range_mod = 1.0;
+    weather_clarity_mod = 1.0;
     break;
   case 1: /* Cloudy */
-    weather_range_mod = 0.9f;
-    weather_clarity_mod = 0.9f;
+    weather_range_mod = 0.9;
+    weather_clarity_mod = 0.9;
     break;
   case 2: /* Rainy */
-    weather_range_mod = 0.6f;
-    weather_clarity_mod = 0.7f;
+    weather_range_mod = 0.6;
+    weather_clarity_mod = 0.7;
     break;
   case 3: /* Foggy */
-    weather_range_mod = 0.3f;
-    weather_clarity_mod = 0.4f;
+    weather_range_mod = 0.3;
+    weather_clarity_mod = 0.4;
     break;
   case 4: /* Storm */
-    weather_range_mod = 0.2f;
-    weather_clarity_mod = 0.3f;
+    weather_range_mod = 0.2;
+    weather_clarity_mod = 0.3;
     break;
   }
 
@@ -481,18 +482,18 @@ static int weather_terrain_apply_modifiers(struct spatial_context *ctx, float *r
   switch (ctx->time_of_day)
   {
   case SUN_LIGHT: /* Daytime - normal visibility */
-    time_range_mod = 1.0f;
-    time_clarity_mod = 1.0f;
+    time_range_mod = 1.0;
+    time_clarity_mod = 1.0;
     break;
   case SUN_RISE: /* Dawn - slightly reduced visibility */
   case SUN_SET:  /* Dusk - slightly reduced visibility */
-    time_range_mod = 0.8f;
-    time_clarity_mod = 0.9f;
+    time_range_mod = 0.8;
+    time_clarity_mod = 0.9;
     break;
   case SUN_DARK: /* Night - greatly reduced visibility */
   default:
-    time_range_mod = 0.3f;
-    time_clarity_mod = 0.5f;
+    time_range_mod = 0.3;
+    time_clarity_mod = 0.5;
     break;
   }
 
@@ -514,7 +515,7 @@ static int weather_terrain_apply_modifiers(struct spatial_context *ctx, float *r
 /*
  * Calculate environmental interference
  */
-static int weather_terrain_calculate_interference(struct spatial_context *ctx, float *interference)
+static int weather_terrain_calculate_interference(struct spatial_context *ctx, double *interference)
 {
   if (!ctx || !interference)
   {
@@ -522,19 +523,19 @@ static int weather_terrain_calculate_interference(struct spatial_context *ctx, f
   }
 
   /* Basic interference calculation - can be expanded */
-  *interference = 0.0f;
+  *interference = 0.0;
 
   /* Add interference based on weather */
   switch (ctx->weather_conditions)
   {
   case 2: /* Rain */
-    *interference += 0.2f;
+    *interference += 0.2;
     break;
   case 3: /* Fog */
-    *interference += 0.5f;
+    *interference += 0.5;
     break;
   case 4: /* Storm */
-    *interference += 0.7f;
+    *interference += 0.7;
     break;
   }
 
@@ -665,7 +666,7 @@ int spatial_visual_init(void)
 
 /* Deliver one event-driven sight to eligible active wilderness players. */
 int spatial_visual_emit(int source_x, int source_y, int source_z, const char *description,
-                        float intensity, int range)
+                        double intensity, int range)
 {
   struct spatial_context *ctx;
   struct char_data *ch;

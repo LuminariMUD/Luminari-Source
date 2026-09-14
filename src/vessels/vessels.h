@@ -415,7 +415,7 @@ struct vessel_terrain_caps
   bool can_traverse_underwater; /* Submarine diving */
   int min_water_depth;          /* Minimum depth required */
   int max_altitude;             /* Maximum flight altitude */
-  float terrain_speed_mod[40];  /* Speed modifier by terrain type (max sector types) */
+  double terrain_speed_mod[40]; /* Speed modifier by terrain type (max sector types) */
 };
 
 /* Extended vessel data for wilderness integration */
@@ -424,8 +424,8 @@ struct vessel_wilderness_data
   int x_coord;                             /* Wilderness X coordinate (-1024 to +1024) */
   int y_coord;                             /* Wilderness Y coordinate (-1024 to +1024) */
   int z_coord;                             /* Elevation/depth (airships/submarines) */
-  float heading;                           /* Direction in degrees (0-360) */
-  float speed;                             /* Current speed in coords/tick */
+  double heading;                          /* Direction in degrees (0-360) */
+  double speed;                            /* Current speed in coords/tick */
   enum vessel_class vessel_class;          /* Type of vessel */
   struct vessel_terrain_caps capabilities; /* Terrain capabilities */
 };
@@ -1199,11 +1199,11 @@ struct route_node;
  */
 struct waypoint
 {
-  float x;                          /* Target X coordinate */
-  float y;                          /* Target Y coordinate */
-  float z;                          /* Target Z coordinate (altitude/depth) */
+  double x;                         /* Target X coordinate */
+  double y;                         /* Target Y coordinate */
+  double z;                         /* Target Z coordinate (altitude/depth) */
   char name[AUTOPILOT_NAME_LENGTH]; /* Waypoint name */
-  float tolerance;                  /* Arrival distance threshold */
+  double tolerance;                 /* Arrival distance threshold */
   int wait_time;                    /* Seconds to wait at waypoint */
   int flags;                        /* Waypoint flags (future use) */
 };
@@ -1307,8 +1307,8 @@ struct greyhawk_ship_data
   unsigned char maxslots;              /* Maximum number of equipment slots */
 
   /* Position and Movement */
-  float x, y, z;    /* Current coordinates */
-  float dx, dy, dz; /* Delta movement vectors */
+  double x, y, z;    /* Current coordinates */
+  double dx, dy, dz; /* Delta movement vectors */
 
   /* Crew */
   struct greyhawk_ship_crew sailcrew; /* Sailing crew */
@@ -1364,7 +1364,7 @@ struct greyhawk_ship_data
   int max_docked_ships; /* How many can dock */
 
   /* Room discovery */
-  float discovery_chance;             /* Probability of additional rooms */
+  int discovery_chance;               /* Percent chance of additional rooms */
   int room_templates[MAX_SHIP_ROOMS]; /* enum ship_room_type for each room */
 
   /* Phase 3: Autopilot system */
@@ -1440,11 +1440,11 @@ struct greyhawk_ship_data
 /* Greyhawk Contact Data Structure (for radar/sensors) */
 struct greyhawk_contact_data
 {
-  int shipnum; /* Ship number being tracked */
-  int x, y, z; /* Contact coordinates */
-  int bearing; /* Bearing to contact */
-  float range; /* Range to contact */
-  char arc[3]; /* Firing arc (F/P/R/S) */
+  int shipnum;  /* Ship number being tracked */
+  int x, y, z;  /* Contact coordinates */
+  int bearing;  /* Bearing to contact */
+  double range; /* Range to contact */
+  char arc[3];  /* Firing arc (F/P/R/S) */
 };
 
 /* ========================================================================= */
@@ -1467,8 +1467,8 @@ void greyhawk_getposition(int slot, int rnum);
 void greyhawk_dispweapon(int slot, int rnum);
 
 /* Navigation and Movement Functions */
-int greyhawk_bearing(float x1, float y1, float x2, float y2);
-float greyhawk_range(float x1, float y1, float z1, float x2, float y2, float z2);
+int greyhawk_bearing(double x1, double y1, double x2, double y2);
+double greyhawk_range(double x1, double y1, double z1, double x2, double y2, double z2);
 int greyhawk_weaprange(int shipnum, int slot, char range);
 
 /* Contact and Radar Functions */
@@ -1617,7 +1617,7 @@ int autopilot_pause(struct greyhawk_ship_data *ship);
 int autopilot_resume(struct greyhawk_ship_data *ship);
 
 /* Waypoint Management Functions */
-int waypoint_add(struct ship_route *route, float x, float y, float z, const char *name);
+int waypoint_add(struct ship_route *route, double x, double y, double z, const char *name);
 int waypoint_remove(struct ship_route *route, int index);
 void waypoint_clear_all(struct ship_route *route);
 struct waypoint *waypoint_get_current(struct greyhawk_ship_data *ship);
@@ -1632,16 +1632,16 @@ int route_activate(struct ship_route *route);
 int route_deactivate(struct ship_route *route);
 
 /* Path-Following Functions (Session 03) */
-float calculate_distance_to_waypoint(const struct greyhawk_ship_data *ship,
-                                     const struct waypoint *wp);
-void calculate_heading_to_waypoint(struct greyhawk_ship_data *ship, struct waypoint *wp, float *dx,
-                                   float *dy);
+double calculate_distance_to_waypoint(const struct greyhawk_ship_data *ship,
+                                      const struct waypoint *wp);
+void calculate_heading_to_waypoint(struct greyhawk_ship_data *ship, struct waypoint *wp, double *dx,
+                                   double *dy);
 int check_waypoint_arrival(const struct greyhawk_ship_data *ship, const struct waypoint *wp);
 int advance_to_next_waypoint(struct greyhawk_ship_data *ship);
 void handle_waypoint_arrival(struct greyhawk_ship_data *ship);
-int vessel_autopilot_grid_coordinate(float coordinate);
+int vessel_autopilot_grid_coordinate(double coordinate);
 bool vessel_autopilot_next_position(const struct greyhawk_ship_data *ship,
-                                    const struct waypoint *wp, float speed, int *target_x,
+                                    const struct waypoint *wp, double speed, int *target_x,
                                     int *target_y, int *target_z);
 int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship);
 void process_waiting_vessel(struct greyhawk_ship_data *ship);

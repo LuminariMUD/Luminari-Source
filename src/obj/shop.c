@@ -188,11 +188,11 @@ bool shop_background_access_allowed(bitvector_t shop_flags, bool has_criminal, b
   return TRUE;
 }
 
-float shop_background_hometown_price_multiplier(bool eligible, bool in_hometown, bool buying)
+double shop_background_hometown_price_multiplier(bool eligible, bool in_hometown, bool buying)
 {
   if (!eligible || !in_hometown)
-    return 1.0f;
-  return buying ? 0.90f : 1.10f;
+    return 1.0;
+  return buying ? 0.90 : 1.10;
 }
 
 bool shop_room_access_allowed(bitvector_t shop_flags, bool room_listed)
@@ -200,11 +200,11 @@ bool shop_room_access_allowed(bitvector_t shop_flags, bool room_listed)
   return room_listed || IS_SET(shop_flags, ROAMING_SHOP);
 }
 
-float shop_rol_cheat_price_multiplier(bool cheated, bool buying)
+double shop_rol_cheat_price_multiplier(bool cheated, bool buying)
 {
   if (!cheated)
-    return 1.0f;
-  return buying ? 2.0f : 0.5f;
+    return 1.0;
+  return buying ? 2.0 : 0.5;
 }
 
 bool shop_rol_magic_allowed(bitvector_t shop_flags)
@@ -687,21 +687,21 @@ int shop_haggle_score(struct char_data *ch)
 static int buy_price(struct obj_data *obj, int shop_nr, struct char_data *seller,
                      struct char_data *buyer)
 {
-  float price = 0.0;
-  float modifiers = 0.0;
+  double price = 0.0;
+  double modifiers = 0.0;
 
-  modifiers = (float)shop_haggle_score(seller);
-  modifiers -= (float)shop_haggle_score(buyer);
+  modifiers = (double)shop_haggle_score(seller);
+  modifiers -= (double)shop_haggle_score(buyer);
   price = 1.0 + modifiers / 70.0;
-  price *= (float)GET_OBJ_COST(obj);
-  price *= (float)SHOP_BUYPROFIT(shop_nr);
+  price *= (double)GET_OBJ_COST(obj);
+  price *= (double)SHOP_BUYPROFIT(shop_nr);
   price *= shop_rol_cheat_price_multiplier(
       shop_customer_restriction_matches(SHOP_ROL_CHEAT_WITH(shop_nr), buyer), TRUE);
   price *= shop_background_hometown_price_multiplier(HAS_FEAT(buyer, FEAT_BG_FOLK_HERO) ||
                                                          HAS_FEAT(buyer, FEAT_BG_NOBLE),
                                                      is_in_hometown(buyer), TRUE);
 
-  price = MAX(1, price);
+  price = FLOATMAX(1.0, price);
 
   /* Apply clan discount if applicable */
   price = apply_clan_shop_discount((int)price, buyer, shop_nr);
@@ -713,15 +713,15 @@ static int buy_price(struct obj_data *obj, int shop_nr, struct char_data *seller
 static int sell_price(struct obj_data *obj, int shop_nr, struct char_data *keeper,
                       struct char_data *seller)
 {
-  float buying_price = (float)buy_price(obj, shop_nr, keeper, seller);
-  float price = 0.0;
-  float modifiers = 0.0;
+  double buying_price = (double)buy_price(obj, shop_nr, keeper, seller);
+  double price = 0.0;
+  double modifiers = 0.0;
 
-  modifiers = (float)shop_haggle_score(keeper);
-  modifiers -= (float)shop_haggle_score(seller);
+  modifiers = (double)shop_haggle_score(keeper);
+  modifiers -= (double)shop_haggle_score(seller);
   price = 1.0 - modifiers / 70.0;
-  price *= (float)GET_OBJ_COST(obj);
-  price *= (float)SHOP_SELLPROFIT(shop_nr);
+  price *= (double)GET_OBJ_COST(obj);
+  price *= (double)SHOP_SELLPROFIT(shop_nr);
   price *= shop_rol_cheat_price_multiplier(
       shop_customer_restriction_matches(SHOP_ROL_CHEAT_WITH(shop_nr), seller), FALSE);
   price *= shop_background_hometown_price_multiplier(HAS_FEAT(seller, FEAT_BG_FOLK_HERO) ||

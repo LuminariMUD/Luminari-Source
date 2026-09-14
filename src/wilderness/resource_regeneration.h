@@ -16,10 +16,10 @@ void set_regeneration_logging_enabled(bool enabled);
 bool is_regeneration_logging_enabled(void);
 
 /* Regeneration logging */
-void log_regeneration_event(int zone_vnum, int x, int y, int resource_type, float old_level,
-                            float new_level, float regen_amount, const char *regen_type);
+void log_regeneration_event(int zone_vnum, int x, int y, int resource_type, double old_level,
+                            double new_level, double regen_amount, const char *regen_type);
 void show_regeneration_history(struct char_data *ch, int zone_vnum, int x, int y, int limit);
 
 
-float get_base_regeneration_rate(int resource_type);
+double get_base_regeneration_rate(int resource_type);
 #endif /* RESOURCE_REGENERATION_H */

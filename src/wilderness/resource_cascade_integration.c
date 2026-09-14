@@ -315,7 +315,7 @@ void show_resource_relationships(struct char_data *ch, room_rnum room)
   {
     int source_resource = atoi(row[0]);
     int target_resource = atoi(row[1]);
-    float effect_magnitude = atof(row[2]);
+    double effect_magnitude = atof(row[2]);
     const char *description = row[3];
 
     if (source_resource >= 0 && source_resource < NUM_RESOURCE_TYPES && target_resource >= 0 &&
@@ -347,7 +347,7 @@ void show_resource_relationships(struct char_data *ch, room_rnum room)
 /* Show player conservation impact */
 void show_conservation_impact(struct char_data *ch, room_rnum room)
 {
-  float conservation_score;
+  double conservation_score;
   int ecosystem_state;
   int x, y;
 

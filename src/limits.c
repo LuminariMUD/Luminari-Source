@@ -2436,10 +2436,10 @@ bool point_update_object_one(struct obj_data *obj)
   return true;
 }
 
-void increase_anger(struct char_data *ch, float amount)
+void increase_anger(struct char_data *ch, double amount)
 {
   if (IS_NPC(ch) && GET_ANGER(ch) <= MAX_ANGER)
-    GET_ANGER(ch) = MIN(MAX(GET_ANGER(ch) + amount, 0), MAX_ANGER);
+    GET_ANGER(ch) = FLOATMIN(FLOATMAX(GET_ANGER(ch) + amount, 0.0), MAX_ANGER);
 }
 
 // function that performs the "meat" of the vampiric blood drain mechanic!

@@ -111,9 +111,9 @@ void init_resource_depletion_database(void)
 /* ===== REGENERATION FUNCTIONS ===== */
 
 /* Get resource-specific regeneration rate per hour */
-float get_resource_regeneration_rate(int resource_type)
+double get_resource_regeneration_rate(int resource_type)
 {
-  float base_rate;
+  double base_rate;
 
   /* Base regeneration rates per hour */
   switch (resource_type)
@@ -157,17 +157,17 @@ float get_resource_regeneration_rate(int resource_type)
 }
 
 /* Get resource regeneration rate with seasonal and weather modifiers applied */
-float get_modified_regeneration_rate(int resource_type, int x, int y)
+double get_modified_regeneration_rate(int resource_type, int x, int y)
 {
-  float base_rate = get_resource_regeneration_rate(resource_type);
-  float seasonal_modifier = get_seasonal_modifier(resource_type);
-  float weather_modifier = get_weather_modifier(resource_type, get_weather(x, y));
+  double base_rate = get_resource_regeneration_rate(resource_type);
+  double seasonal_modifier = get_seasonal_modifier(resource_type);
+  double weather_modifier = get_weather_modifier(resource_type, get_weather(x, y));
 
   return base_rate * seasonal_modifier * weather_modifier;
 }
 
 /* Calculate regeneration based on time passed since last harvest with seasonal/weather modifiers */
-float calculate_regeneration_amount(int resource_type, time_t last_harvest_time, int x, int y)
+double calculate_regeneration_amount(int resource_type, time_t last_harvest_time, int x, int y)
 {
   time_t current_time = time(NULL);
   double hours_passed =
@@ -176,8 +176,8 @@ float calculate_regeneration_amount(int resource_type, time_t last_harvest_time,
   if (hours_passed <= 0)
     return 0.0;
 
-  float regen_rate = get_modified_regeneration_rate(resource_type, x, y);
-  float regeneration = hours_passed * regen_rate;
+  double regen_rate = get_modified_regeneration_rate(resource_type, x, y);
+  double regeneration = hours_passed * regen_rate;
 
   /* Cap regeneration to prevent overflow */
   if (regeneration > 1.0)
@@ -194,7 +194,7 @@ void apply_lazy_regeneration(room_rnum room, int resource_type)
   MYSQL_RES *result;
   MYSQL_ROW row;
   int x, y, zone_vnum_id;
-  float current_depletion = 1.0;
+  double current_depletion = 1.0;
   time_t last_harvest_time = 0;
 
   if (room == NOWHERE || resource_type < 0)
@@ -234,11 +234,11 @@ void apply_lazy_regeneration(room_rnum room, int resource_type)
     last_harvest_time = (time_t)atol(row[1]);
 
     /* Calculate regeneration with seasonal and weather modifiers */
-    float regeneration = calculate_regeneration_amount(resource_type, last_harvest_time, x, y);
+    double regeneration = calculate_regeneration_amount(resource_type, last_harvest_time, x, y);
 
     if (regeneration > 0.0)
     {
-      float new_depletion = current_depletion + regeneration;
+      double new_depletion = current_depletion + regeneration;
       if (new_depletion > 1.0)
         new_depletion = 1.0; /* Cap at fully available */
 
@@ -267,7 +267,7 @@ void apply_lazy_regeneration(room_rnum room, int resource_type)
 /* ===== BASIC DEPLETION FUNCTIONS ===== */
 
 /* Get resource-specific depletion rate based on resource type */
-float get_resource_depletion_rate(int resource_type)
+double get_resource_depletion_rate(int resource_type)
 {
   switch (resource_type)
   {
@@ -297,12 +297,12 @@ float get_resource_depletion_rate(int resource_type)
 }
 
 /* Get the current depletion level for a resource at a location (0.0-1.0) */
-float get_resource_depletion_level(room_rnum room, int resource_type)
+double get_resource_depletion_level(room_rnum room, int resource_type)
 {
   char query[MAX_STRING_LENGTH];
   MYSQL_RES *result;
   MYSQL_ROW row;
-  float depletion_level = 1.0; /* Default to fully available */
+  double depletion_level = 1.0; /* Default to fully available */
   int x, y, zone_vnum_id;
 
   if (room == NOWHERE || resource_type < 0)
@@ -312,7 +312,7 @@ float get_resource_depletion_level(room_rnum room, int resource_type)
   if (!mysql_available || !conn)
   {
     /* Simple mock depletion based on room number for testing */
-    float base_depletion = (room % 100) / 1000.0; /* 0.0-0.099 */
+    double base_depletion = (room % 100) / 1000.0; /* 0.0-0.099 */
     if (base_depletion < 0.0)
       base_depletion = 0.0;
     if (base_depletion > 1.0)
@@ -359,12 +359,12 @@ float get_resource_depletion_level(room_rnum room, int resource_type)
 }
 
 /* Get the current depletion level for a resource at specific coordinates (0.0-1.0) */
-float get_resource_depletion_level_by_coords(int x, int y, int zone_vnum_id, int resource_type)
+double get_resource_depletion_level_by_coords(int x, int y, int zone_vnum_id, int resource_type)
 {
   char query[MAX_STRING_LENGTH];
   MYSQL_RES *result;
   MYSQL_ROW row;
-  float depletion_level = 1.0; /* Default to fully available */
+  double depletion_level = 1.0; /* Default to fully available */
 
   if (resource_type < 0)
     return 1.0;
@@ -373,7 +373,7 @@ float get_resource_depletion_level_by_coords(int x, int y, int zone_vnum_id, int
   if (!mysql_available || !conn)
   {
     /* Simple mock depletion based on coordinates for testing */
-    float base_depletion = ((x + y) % 100) / 1000.0; /* 0.0-0.099 */
+    double base_depletion = ((x + y) % 100) / 1000.0; /* 0.0-0.099 */
     if (base_depletion < 0.0)
       base_depletion = 0.0;
     if (base_depletion > 1.0)
@@ -432,8 +432,8 @@ void apply_harvest_depletion(room_rnum room, int resource_type, int quantity)
   zone_vnum_id = zone_table[world[room].zone].number;
 
   /* Calculate depletion amount based on quantity harvested and resource type */
-  float base_depletion_rate = get_resource_depletion_rate(resource_type);
-  float depletion_amount = quantity * base_depletion_rate;
+  double base_depletion_rate = get_resource_depletion_rate(resource_type);
+  double depletion_amount = quantity * base_depletion_rate;
   if (depletion_amount > 0.25)
     depletion_amount = 0.25; /* Cap at 25% per harvest */
 
@@ -470,7 +470,7 @@ void apply_harvest_depletion_with_cascades(room_rnum room, int resource_type, in
 /* Apply cascade effects based on the ecological relationship matrix */
 void apply_cascade_effects(room_rnum room, int source_resource, int quantity)
 {
-  float cascade_amount;
+  double cascade_amount;
 
   if (room == NOWHERE || source_resource < 0 || source_resource >= NUM_RESOURCE_TYPES ||
       quantity <= 0)
@@ -487,130 +487,130 @@ void apply_cascade_effects(room_rnum room, int source_resource, int quantity)
   {
   case RESOURCE_VEGETATION:
     /* VEGETATION → HERBS (-), GAME (-), CLAY (+) */
-    cascade_amount = quantity * 0.03f; /* -3% effect */
+    cascade_amount = quantity * 0.03; /* -3% effect */
     apply_single_cascade_effect(room, RESOURCE_HERBS, -cascade_amount,
                                 "vegetation harvesting damages herb root systems");
 
-    cascade_amount = quantity * 0.02f; /* -2% effect */
+    cascade_amount = quantity * 0.02; /* -2% effect */
     apply_single_cascade_effect(room, RESOURCE_GAME, -cascade_amount,
                                 "vegetation removal disrupts game habitats");
 
-    cascade_amount = quantity * 0.01f; /* +1% effect */
+    cascade_amount = quantity * 0.01; /* +1% effect */
     apply_single_cascade_effect(room, RESOURCE_CLAY, cascade_amount,
                                 "plant removal exposes clay deposits");
     break;
 
   case RESOURCE_HERBS:
     /* HERBS → VEGETATION (-), GAME (-) */
-    cascade_amount = quantity * 0.02f; /* -2% effect */
+    cascade_amount = quantity * 0.02; /* -2% effect */
     apply_single_cascade_effect(room, RESOURCE_VEGETATION, -cascade_amount,
                                 "herb harvesting damages vegetation root networks");
 
-    cascade_amount = quantity * 0.01f; /* -1% effect */
+    cascade_amount = quantity * 0.01; /* -1% effect */
     apply_single_cascade_effect(room, RESOURCE_GAME, -cascade_amount,
                                 "herb harvesting reduces game food sources");
     break;
 
   case RESOURCE_MINERALS:
     /* MINERALS → CRYSTAL (--), WATER (-), STONE (+) */
-    cascade_amount = quantity * 0.08f; /* -8% strong effect */
+    cascade_amount = quantity * 0.08; /* -8% strong effect */
     apply_single_cascade_effect(room, RESOURCE_CRYSTAL, -cascade_amount,
                                 "heavy mining operations destroy crystal formations");
 
-    cascade_amount = quantity * 0.03f; /* -3% effect */
+    cascade_amount = quantity * 0.03; /* -3% effect */
     apply_single_cascade_effect(room, RESOURCE_WATER, -cascade_amount,
                                 "mining disrupts groundwater systems");
 
-    cascade_amount = quantity * 0.02f; /* +2% effect */
+    cascade_amount = quantity * 0.02; /* +2% effect */
     apply_single_cascade_effect(room, RESOURCE_STONE, cascade_amount,
                                 "mining exposes stone deposits");
     break;
 
   case RESOURCE_CRYSTAL:
     /* CRYSTAL → MINERALS (-), STONE (-) */
-    cascade_amount = quantity * 0.04f; /* -4% effect */
+    cascade_amount = quantity * 0.04; /* -4% effect */
     apply_single_cascade_effect(room, RESOURCE_MINERALS, -cascade_amount,
                                 "crystal extraction affects mineral ore veins");
 
-    cascade_amount = quantity * 0.02f; /* -2% effect */
+    cascade_amount = quantity * 0.02; /* -2% effect */
     apply_single_cascade_effect(room, RESOURCE_STONE, -cascade_amount,
                                 "precision crystal mining weakens stone integrity");
     break;
 
   case RESOURCE_WOOD:
     /* WOOD → VEGETATION (-), HERBS (-), GAME (-) */
-    cascade_amount = quantity * 0.05f; /* -5% effect */
+    cascade_amount = quantity * 0.05; /* -5% effect */
     apply_single_cascade_effect(room, RESOURCE_VEGETATION, -cascade_amount,
                                 "tree removal changes canopy and sunlight patterns");
 
-    cascade_amount = quantity * 0.04f; /* -4% effect */
+    cascade_amount = quantity * 0.04; /* -4% effect */
     apply_single_cascade_effect(room, RESOURCE_HERBS, -cascade_amount,
                                 "deforestation disrupts herb microclimates");
 
-    cascade_amount = quantity * 0.06f; /* -6% effect */
+    cascade_amount = quantity * 0.06; /* -6% effect */
     apply_single_cascade_effect(room, RESOURCE_GAME, -cascade_amount,
                                 "tree removal destroys game habitats");
     break;
 
   case RESOURCE_GAME:
     /* GAME → VEGETATION (+), HERBS (+) */
-    cascade_amount = quantity * 0.03f; /* +3% effect */
+    cascade_amount = quantity * 0.03; /* +3% effect */
     apply_single_cascade_effect(room, RESOURCE_VEGETATION, cascade_amount,
                                 "reduced game population decreases grazing pressure");
 
-    cascade_amount = quantity * 0.02f; /* +2% effect */
+    cascade_amount = quantity * 0.02; /* +2% effect */
     apply_single_cascade_effect(room, RESOURCE_HERBS, cascade_amount,
                                 "less wildlife reduces herb trampling");
     break;
 
   case RESOURCE_STONE:
     /* STONE → MINERALS (-), CRYSTAL (-), CLAY (+) */
-    cascade_amount = quantity * 0.03f; /* -3% effect */
+    cascade_amount = quantity * 0.03; /* -3% effect */
     apply_single_cascade_effect(room, RESOURCE_MINERALS, -cascade_amount,
                                 "quarrying operations disrupt mineral ore seams");
 
-    cascade_amount = quantity * 0.05f; /* -5% effect */
+    cascade_amount = quantity * 0.05; /* -5% effect */
     apply_single_cascade_effect(room, RESOURCE_CRYSTAL, -cascade_amount,
                                 "stone quarrying vibrations shatter crystal formations");
 
-    cascade_amount = quantity * 0.03f; /* +3% effect */
+    cascade_amount = quantity * 0.03; /* +3% effect */
     apply_single_cascade_effect(room, RESOURCE_CLAY, cascade_amount,
                                 "quarrying exposes sediment layers containing clay");
     break;
 
   case RESOURCE_WATER:
     /* WATER → CLAY (+), VEGETATION (+), HERBS (+) */
-    cascade_amount = quantity * 0.04f; /* +4% effect */
+    cascade_amount = quantity * 0.04; /* +4% effect */
     apply_single_cascade_effect(room, RESOURCE_CLAY, cascade_amount,
                                 "water harvesting exposes lakebed clay deposits");
 
-    cascade_amount = quantity * 0.02f; /* +2% effect */
+    cascade_amount = quantity * 0.02; /* +2% effect */
     apply_single_cascade_effect(room, RESOURCE_VEGETATION, cascade_amount,
                                 "irrigation effect from water use");
 
-    cascade_amount = quantity * 0.03f; /* +3% effect */
+    cascade_amount = quantity * 0.03; /* +3% effect */
     apply_single_cascade_effect(room, RESOURCE_HERBS, cascade_amount,
                                 "medicinal plants benefit from water irrigation");
     break;
 
   case RESOURCE_CLAY:
     /* CLAY → WATER (-), VEGETATION (-) */
-    cascade_amount = quantity * 0.025f; /* -2.5% effect */
+    cascade_amount = quantity * 0.025; /* -2.5% effect */
     apply_single_cascade_effect(room, RESOURCE_WATER, -cascade_amount,
                                 "clay extraction diverts water from natural systems");
 
-    cascade_amount = quantity * 0.015f; /* -1.5% effect */
+    cascade_amount = quantity * 0.015; /* -1.5% effect */
     apply_single_cascade_effect(room, RESOURCE_VEGETATION, -cascade_amount,
                                 "clay harvesting disturbs vegetation root systems");
     break;
 
   case RESOURCE_SALT:
     /* SALT → WATER (-), VEGETATION (--) */
-    cascade_amount = quantity * 0.06f; /* -6% effect */
+    cascade_amount = quantity * 0.06; /* -6% effect */
     apply_single_cascade_effect(room, RESOURCE_WATER, -cascade_amount,
                                 "salt harvesting depletes brine pools and water sources");
 
-    cascade_amount = quantity * 0.08f; /* -8% strong effect */
+    cascade_amount = quantity * 0.08; /* -8% strong effect */
     apply_single_cascade_effect(room, RESOURCE_VEGETATION, -cascade_amount,
                                 "salt extraction causes soil salinization");
     break;
@@ -622,12 +622,12 @@ void apply_cascade_effects(room_rnum room, int source_resource, int quantity)
 }
 
 /* Apply a single cascade effect to a target resource */
-void apply_single_cascade_effect(room_rnum room, int target_resource, float effect_magnitude,
+void apply_single_cascade_effect(room_rnum room, int target_resource, double effect_magnitude,
                                  const char *description)
 {
   char query[MAX_STRING_LENGTH];
   int x, y, zone_vnum_id;
-  float current_depletion, new_depletion;
+  double current_depletion, new_depletion;
 
   if (room == NOWHERE || target_resource < 0 || target_resource >= NUM_RESOURCE_TYPES)
     return;
@@ -647,7 +647,7 @@ void apply_single_cascade_effect(room_rnum room, int target_resource, float effe
   if (effect_magnitude < 0.0)
   {
     /* Negative effect - deplete target resource */
-    float depletion_amount = (effect_magnitude < 0.0) ? -effect_magnitude : effect_magnitude;
+    double depletion_amount = (effect_magnitude < 0.0) ? -effect_magnitude : effect_magnitude;
     if (depletion_amount > 0.25)
       depletion_amount = 0.25; /* Cap cascade effects */
 
@@ -670,7 +670,7 @@ void apply_single_cascade_effect(room_rnum room, int target_resource, float effe
   else if (effect_magnitude > 0.0)
   {
     /* Positive effect - enhance target resource */
-    float enhancement_amount = effect_magnitude;
+    double enhancement_amount = effect_magnitude;
     if (enhancement_amount > 0.25)
       enhancement_amount = 0.25; /* Cap cascade effects */
 
@@ -798,7 +798,7 @@ const char *ecosystem_state_names[] = {"Pristine", "Healthy",   "Stressed",
 /* Calculate ecosystem health based on average resource levels */
 int get_ecosystem_state(room_rnum room)
 {
-  float total_health = 0.0;
+  double total_health = 0.0;
   int resource_count = 0;
   int i;
 
@@ -808,7 +808,7 @@ int get_ecosystem_state(room_rnum room)
   /* Calculate average resource depletion level */
   for (i = 0; i < NUM_RESOURCE_TYPES; i++)
   {
-    float depletion_level = get_resource_depletion_level(room, i);
+    double depletion_level = get_resource_depletion_level(room, i);
     total_health += depletion_level;
     resource_count++;
   }
@@ -816,7 +816,7 @@ int get_ecosystem_state(room_rnum room)
   if (resource_count == 0)
     return 1; /* Default to healthy if no data */
 
-  float average_health = total_health / resource_count;
+  double average_health = total_health / resource_count;
 
   /* Determine ecosystem state based on average health */
   if (average_health >= 0.80)
@@ -834,7 +834,7 @@ int get_ecosystem_state(room_rnum room)
 void show_ecosystem_analysis(struct char_data *ch, room_rnum room)
 {
   int ecosystem_state, x, y, i;
-  float total_health = 0.0;
+  double total_health = 0.0;
   int critical_resources = 0;
 
   if (!ch || room == NOWHERE)
@@ -856,7 +856,7 @@ void show_ecosystem_analysis(struct char_data *ch, room_rnum room)
   send_to_char(ch, "\r\n\tcResource Status:\tn\r\n");
   for (i = 0; i < NUM_RESOURCE_TYPES; i++)
   {
-    float level = get_resource_depletion_level(room, i);
+    double level = get_resource_depletion_level(room, i);
     total_health += level;
 
     const char *status_color = level > 0.6 ? "\tG" : level > 0.3 ? "\tY" : "\tR";
@@ -901,7 +901,7 @@ void show_ecosystem_analysis(struct char_data *ch, room_rnum room)
 /* Check if harvest should fail due to resource depletion */
 bool should_harvest_fail_due_to_depletion(room_rnum room, int resource_type)
 {
-  float resource_level = get_resource_depletion_level(room, resource_type);
+  double resource_level = get_resource_depletion_level(room, resource_type);
 
   /* If resource level is below 10%, chance of failure */
   if (resource_level < 0.1)
@@ -914,12 +914,12 @@ bool should_harvest_fail_due_to_depletion(room_rnum room, int resource_type)
 }
 
 /* Get harvest success modifier based on resource availability */
-float get_harvest_success_modifier(room_rnum room, int resource_type)
+double get_harvest_success_modifier(room_rnum room, int resource_type)
 {
-  float resource_level = get_resource_depletion_level(room, resource_type);
+  double resource_level = get_resource_depletion_level(room, resource_type);
 
   /* Full resources = 1.0 modifier, depleted resources = 0.5 modifier */
-  float modifier = 0.5 + (resource_level * 0.5);
+  double modifier = 0.5 + (resource_level * 0.5);
 
   /* Ensure reasonable bounds */
   if (modifier < 0.1)
@@ -931,7 +931,7 @@ float get_harvest_success_modifier(room_rnum room, int resource_type)
 }
 
 /* Get a descriptive name for the depletion level */
-const char *get_depletion_level_name(float resource_level)
+const char *get_depletion_level_name(double resource_level)
 {
   if (resource_level >= 0.9)
     return "abundant";
@@ -969,7 +969,7 @@ void update_conservation_score(struct char_data *ch, int resource_type __attribu
   player_id = GET_IDNUM(ch);
 
   /* Calculate score adjustment */
-  float score_change = sustainable ? 0.01 : -0.02; /* +1% for sustainable, -2% for unsustainable */
+  double score_change = sustainable ? 0.01 : -0.02; /* +1% for sustainable, -2% for unsustainable */
 
   /* Insert or update conservation score */
   snprintf(query, sizeof(query),
@@ -993,12 +993,12 @@ void update_conservation_score(struct char_data *ch, int resource_type __attribu
 }
 
 /* Get a player's conservation score for a resource type */
-float get_player_conservation_score(struct char_data *ch)
+double get_player_conservation_score(struct char_data *ch)
 {
   char query[MAX_STRING_LENGTH];
   MYSQL_RES *result;
   MYSQL_ROW row;
-  float conservation_score = 0.5; /* Default neutral score */
+  double conservation_score = 0.5; /* Default neutral score */
   long player_id;
 
   if (!ch || IS_NPC(ch))
@@ -1043,7 +1043,7 @@ float get_player_conservation_score(struct char_data *ch)
 }
 
 /* Get a descriptive name for conservation status */
-const char *get_conservation_status_name(float score)
+const char *get_conservation_status_name(double score)
 {
   if (score >= 0.8)
     return "excellent conservationist";
@@ -1076,9 +1076,9 @@ void show_resource_conservation_status(struct char_data *ch, int x, int y)
   send_to_char(ch, "\tc========================\tn\r\n");
 
   /* Show basic conservation info for now */
-  float herb_level = get_resource_depletion_level(room, RESOURCE_HERBS);
-  float ore_level = get_resource_depletion_level(room, RESOURCE_MINERALS);
-  float wood_level = get_resource_depletion_level(room, RESOURCE_WOOD);
+  double herb_level = get_resource_depletion_level(room, RESOURCE_HERBS);
+  double ore_level = get_resource_depletion_level(room, RESOURCE_MINERALS);
+  double wood_level = get_resource_depletion_level(room, RESOURCE_WOOD);
 
   send_to_char(ch, "\tGHerbs:\tn %s (%.0f%% available)\r\n", get_depletion_level_name(herb_level),
                herb_level * 100);
@@ -1138,10 +1138,10 @@ void show_regeneration_analysis(struct char_data *ch, int x, int y)
   while ((row = mysql_fetch_row(result)))
   {
     int resource_type = atoi(row[0]);
-    float depletion_level = atof(row[1]);
+    double depletion_level = atof(row[1]);
     time_t last_harvest = (time_t)atol(row[2]);
     double hours_since = difftime(current_time, last_harvest) / 3600.0;
-    float regen_rate = get_resource_regeneration_rate(resource_type);
+    double regen_rate = get_resource_regeneration_rate(resource_type);
 
     send_to_char(ch, "%-17s | %6.1f%% | %9.1f%% | %18.1f\r\n", resource_names_value[resource_type],
                  depletion_level * 100.0, regen_rate * 100.0, hours_since);

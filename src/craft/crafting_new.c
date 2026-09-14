@@ -6500,7 +6500,7 @@ int get_level_adjustment_by_apply_and_modifier(int apply, int mod, int btype)
     return 0;
 
   int level_adj = 0; // this is the level adjustment returned, added to the object min level to use
-  float div = 1.0;   // this is how much to divide the modifier by.
+  double div = 1.0;  // this is how much to divide the modifier by.
 
   switch (apply)
   {
@@ -6597,14 +6597,14 @@ int get_level_adjustment_by_apply_and_modifier(int apply, int mod, int btype)
   if (btype == BONUS_TYPE_ENHANCEMENT)
     div /= 2;
 
-  level_adj = (int)MAX(1, mod * div);
+  level_adj = MAX(1, (int)(mod * div));
 
   return level_adj;
 }
 
 int get_level_adjustment_by_enhancement_bonus(int bonus_amt)
 {
-  return bonus_amt * 3.75;
+  return (int)(bonus_amt * 3.75);
 }
 
 int get_craft_obj_level(struct obj_data *obj, struct char_data *ch)
@@ -9850,7 +9850,7 @@ int get_golem_mote_requirements(int golem_type, int golem_size, int *mote_types,
 {
   int base_motes = 0;
   int i = 0;
-  float size_multiplier = 1.0;
+  double size_multiplier = 1.0;
 
   if (!mote_types || !mote_amounts)
     return 0;

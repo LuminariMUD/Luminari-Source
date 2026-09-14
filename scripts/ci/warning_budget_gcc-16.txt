@@ -2,19 +2,16 @@
 # Distinct warning sites per class; may only shrink. Regenerate with
 # scripts/ci/check_warning_budget.py --compiler gcc-16 --log LOG --update
 alloc-zero 1
-alloca 4
+alloca 1
 cast-align 8
 cast-qual 100
-conversion 645
+conversion 533
 discarded-qualifiers 191
-double-promotion 552
 duplicated-branches 21
 duplicated-cond 3
-float-conversion 299
-float-equal 22
 format-nonliteral 25
 logical-op 31
 null-dereference 49
-sign-conversion 1814
+sign-conversion 1808
 switch-enum 45
 undef 8

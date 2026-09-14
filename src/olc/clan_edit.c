@@ -737,7 +737,7 @@ void load_claims(void)
 {
   FILE *fl;
   int i, j, gl = 0, cn;
-  float pop;
+  double pop;
   char tag[6], line[MAX_INPUT_LENGTH + 1];
   struct claim_data c, *newc = NULL;
 
@@ -808,7 +808,7 @@ void load_claims(void)
               }
               else
               {
-                if (sscanf(line, "%d %f", &cn, &pop) != 2)
+                if (sscanf(line, "%d %lf", &cn, &pop) != 2)
                 {
                   log("SYSERR: Invalid popularity line in claims file (zone ID: %" PRI_IDX
                       ", line %d)",

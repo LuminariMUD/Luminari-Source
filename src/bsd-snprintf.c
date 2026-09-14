@@ -332,7 +332,7 @@ static void dopr(char *buffer, size_t maxlen, const char *format, va_list args)
         if (cflags == DP_C_LDOUBLE)
           fvalue = va_arg(args, long double);
         else
-          fvalue = va_arg(args, double);
+          fvalue = (long double)va_arg(args, double);
         /* um, floating point? */
         fmtfp(buffer, &currlen, maxlen, fvalue, min, max, flags);
         break;
@@ -343,7 +343,7 @@ static void dopr(char *buffer, size_t maxlen, const char *format, va_list args)
         if (cflags == DP_C_LDOUBLE)
           fvalue = va_arg(args, long double);
         else
-          fvalue = va_arg(args, double);
+          fvalue = (long double)va_arg(args, double);
         break;
       case 'G':
         flags |= DP_F_UP;
@@ -352,7 +352,7 @@ static void dopr(char *buffer, size_t maxlen, const char *format, va_list args)
         if (cflags == DP_C_LDOUBLE)
           fvalue = va_arg(args, long double);
         else
-          fvalue = va_arg(args, double);
+          fvalue = (long double)va_arg(args, double);
         break;
       case 'c':
         dopr_outch(buffer, &currlen, maxlen, va_arg(args, int));
@@ -560,10 +560,10 @@ static long double dopr_pow10(int exp)
 
 static long dopr_round(long double value)
 {
-  long intpart = value;
+  long intpart = (long)value;
 
   value -= intpart;
-  if (value >= 0.5)
+  if (value >= 0.5L)
     intpart++;
 
   return intpart;
@@ -600,7 +600,7 @@ static void fmtfp(char *buffer, size_t *currlen, size_t maxlen, long double fval
   else if (flags & DP_F_SPACE)
     signvalue = ' ';
 
-  intpart = ufvalue;
+  intpart = (long)ufvalue;
 
   /*
 	 * Sorry, we only support 9 digits past the decimal because of our
@@ -617,7 +617,7 @@ static void fmtfp(char *buffer, size_t *currlen, size_t maxlen, long double fval
   if (fracpart >= dopr_pow10(max))
   {
     intpart++;
-    fracpart -= dopr_pow10(max);
+    fracpart -= (long)dopr_pow10(max);
   }
 
   /* Convert integer part */
@@ -752,7 +752,7 @@ int main(void)
 
   for (x = 0; fp_fmt[x] != NULL; x++)
   {
-    for (y = 0; fp_nums[y] != 0; y++)
+    for (y = 0; y < (int)(sizeof(fp_nums) / sizeof(fp_nums[0])) - 1; y++)
     {
       snprintf(buf1, sizeof(buf1), fp_fmt[x], fp_nums[y]);
       sprintf(buf2, fp_fmt[x], fp_nums[y]);

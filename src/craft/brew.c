@@ -936,7 +936,7 @@ ACMD(do_brew)
   int total_motes_by_type[NUM_CRAFT_MOTES] = {0};
   int total_gold = 0, brew_time = 0;
   int num_spells = 0, highest_circle = 0, i;
-  float cost_multiplier = 1.0;
+  double cost_multiplier = 1.0;
   struct mud_event_data *pMudEvent = NULL;
   const char *arg_ptr;
   int brewing_skill, dc;

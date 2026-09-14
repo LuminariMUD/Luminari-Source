@@ -51,7 +51,7 @@ long int pet_stored_id_at(struct char_data *owner, int position);
 void point_update_global_one(void);
 void point_update_character_one(struct char_data *ch);
 bool point_update_object_one(struct obj_data *obj);
-void increase_anger(struct char_data *ch, float amount);
+void increase_anger(struct char_data *ch, double amount);
 void vamp_blood_drain(struct char_data *ch, struct char_data *vict);
 
 #ifdef __cplusplus

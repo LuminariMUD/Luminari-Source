@@ -4052,7 +4052,7 @@ ACMD(do_defensive_stance)
   if (HAS_FEAT(ch, FEAT_BULWARK_OF_DEFENSE))
   {
     bonus = 6;
-    duration *= 1.5;
+    duration = (int)(duration * 1.5);
   }
 
   send_to_char(ch, "\tcYou take on a \tWdefensive stance\tc!\tn\r\n");

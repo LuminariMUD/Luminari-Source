@@ -48,7 +48,7 @@ void apply_cascade_effects(room_rnum room, int source_resource, int quantity)
   MYSQL_RES *result;
   MYSQL_ROW row;
   int target_resource;
-  float effect_magnitude, current_depletion, cascade_amount;
+  double effect_magnitude, current_depletion, cascade_amount;
   int x, y, zone_vnum;
 
   if (room == NOWHERE || source_resource < 0 || source_resource >= NUM_RESOURCE_TYPES)
@@ -100,7 +100,7 @@ void apply_cascade_effects(room_rnum room, int source_resource, int quantity)
     if (effect_magnitude < 0.0)
     {
       /* Negative effect - deplete target resource */
-      float new_depletion = current_depletion - cascade_amount;
+      double new_depletion = current_depletion - cascade_amount;
       if (new_depletion < 0.0)
         new_depletion = 0.0;
 
@@ -117,7 +117,7 @@ void apply_cascade_effects(room_rnum room, int source_resource, int quantity)
     else
     {
       /* Positive effect - enhance target resource */
-      float new_depletion = current_depletion + cascade_amount;
+      double new_depletion = current_depletion + cascade_amount;
       if (new_depletion > 1.0)
         new_depletion = 1.0;
 
@@ -164,7 +164,7 @@ void apply_harvest_depletion_with_cascades(room_rnum room, int resource_type, in
 /* Calculate overall ecosystem health */
 int get_ecosystem_state(room_rnum room)
 {
-  float health_score = calculate_ecosystem_health_score(room);
+  double health_score = calculate_ecosystem_health_score(room);
 
   if (health_score >= ECOSYSTEM_PRISTINE_THRESHOLD)
     return ECOSYSTEM_PRISTINE;
@@ -179,9 +179,9 @@ int get_ecosystem_state(room_rnum room)
 }
 
 /* Calculate ecosystem health score (0.0-1.0) */
-float calculate_ecosystem_health_score(room_rnum room)
+double calculate_ecosystem_health_score(room_rnum room)
 {
-  float total_score = 0.0;
+  double total_score = 0.0;
   int resource_count = 0;
   int i;
 
@@ -191,7 +191,7 @@ float calculate_ecosystem_health_score(room_rnum room)
   /* Calculate average resource depletion level */
   for (i = 0; i < NUM_RESOURCE_TYPES; i++)
   {
-    float depletion_level = get_resource_depletion_level(room, i);
+    double depletion_level = get_resource_depletion_level(room, i);
     total_score += depletion_level;
     resource_count++;
   }
@@ -208,7 +208,7 @@ void update_ecosystem_health(room_rnum room)
   char query[MAX_STRING_LENGTH];
   int x, y, zone_vnum;
   int health_state;
-  float health_score;
+  double health_score;
 
   if (room == NOWHERE || !mysql_available || !conn)
     return;
@@ -244,7 +244,7 @@ void update_ecosystem_health(room_rnum room)
 void show_ecosystem_analysis(struct char_data *ch, room_rnum room)
 {
   int ecosystem_state;
-  float health_score;
+  double health_score;
   int x, y;
 
   if (!ch || room == NOWHERE)
@@ -270,7 +270,7 @@ void show_ecosystem_analysis(struct char_data *ch, room_rnum room)
   int i;
   for (i = 0; i < NUM_RESOURCE_TYPES; i++)
   {
-    float level = get_resource_depletion_level(room, i);
+    double level = get_resource_depletion_level(room, i);
     const char *color = level > 0.6 ? "\tG" : level > 0.3 ? "\tY" : "\tR";
     const char *status = level > 0.8   ? "abundant"
                          : level > 0.6 ? "healthy"
@@ -334,7 +334,7 @@ void show_cascade_preview(struct char_data *ch, room_rnum room, int resource_typ
   while ((row = mysql_fetch_row(result)))
   {
     int target_resource = atoi(row[0]);
-    float effect_magnitude = atof(row[1]);
+    double effect_magnitude = atof(row[1]);
     const char *description = row[2];
 
     if (target_resource >= 0 && target_resource < NUM_RESOURCE_TYPES)
@@ -378,7 +378,7 @@ const char *get_ecosystem_state_description(int state)
 
 /* Log cascade effect for debugging */
 void log_cascade_effect(room_rnum room, int source_resource, int target_resource,
-                        float effect_magnitude, struct char_data *ch)
+                        double effect_magnitude, struct char_data *ch)
 {
   char query[MAX_STRING_LENGTH];
   int x, y, zone_vnum;

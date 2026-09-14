@@ -922,26 +922,26 @@ void get_resource_state(room_rnum room, struct resource_state *state)
   y = world[room].coords[1];
 
   /* Get base resource levels and apply depletion from harvesting */
-  float base_vegetation = calculate_current_resource_level(RESOURCE_VEGETATION, x, y);
-  float base_minerals = calculate_current_resource_level(RESOURCE_MINERALS, x, y);
-  float base_water = calculate_current_resource_level(RESOURCE_WATER, x, y);
-  float base_herbs = calculate_current_resource_level(RESOURCE_HERBS, x, y);
-  float base_game = calculate_current_resource_level(RESOURCE_GAME, x, y);
-  float base_wood = calculate_current_resource_level(RESOURCE_WOOD, x, y);
-  float base_stone = calculate_current_resource_level(RESOURCE_STONE, x, y);
-  float base_clay = calculate_current_resource_level(RESOURCE_CLAY, x, y);
-  float base_salt = calculate_current_resource_level(RESOURCE_SALT, x, y);
+  double base_vegetation = calculate_current_resource_level(RESOURCE_VEGETATION, x, y);
+  double base_minerals = calculate_current_resource_level(RESOURCE_MINERALS, x, y);
+  double base_water = calculate_current_resource_level(RESOURCE_WATER, x, y);
+  double base_herbs = calculate_current_resource_level(RESOURCE_HERBS, x, y);
+  double base_game = calculate_current_resource_level(RESOURCE_GAME, x, y);
+  double base_wood = calculate_current_resource_level(RESOURCE_WOOD, x, y);
+  double base_stone = calculate_current_resource_level(RESOURCE_STONE, x, y);
+  double base_clay = calculate_current_resource_level(RESOURCE_CLAY, x, y);
+  double base_salt = calculate_current_resource_level(RESOURCE_SALT, x, y);
 
   /* Apply depletion levels from harvesting to get actual current state */
-  float depletion_vegetation = get_resource_depletion_level(room, RESOURCE_VEGETATION);
-  float depletion_minerals = get_resource_depletion_level(room, RESOURCE_MINERALS);
-  float depletion_water = get_resource_depletion_level(room, RESOURCE_WATER);
-  float depletion_herbs = get_resource_depletion_level(room, RESOURCE_HERBS);
-  float depletion_game = get_resource_depletion_level(room, RESOURCE_GAME);
-  float depletion_wood = get_resource_depletion_level(room, RESOURCE_WOOD);
-  float depletion_stone = get_resource_depletion_level(room, RESOURCE_STONE);
-  float depletion_clay = get_resource_depletion_level(room, RESOURCE_CLAY);
-  float depletion_salt = get_resource_depletion_level(room, RESOURCE_SALT);
+  double depletion_vegetation = get_resource_depletion_level(room, RESOURCE_VEGETATION);
+  double depletion_minerals = get_resource_depletion_level(room, RESOURCE_MINERALS);
+  double depletion_water = get_resource_depletion_level(room, RESOURCE_WATER);
+  double depletion_herbs = get_resource_depletion_level(room, RESOURCE_HERBS);
+  double depletion_game = get_resource_depletion_level(room, RESOURCE_GAME);
+  double depletion_wood = get_resource_depletion_level(room, RESOURCE_WOOD);
+  double depletion_stone = get_resource_depletion_level(room, RESOURCE_STONE);
+  double depletion_clay = get_resource_depletion_level(room, RESOURCE_CLAY);
+  double depletion_salt = get_resource_depletion_level(room, RESOURCE_SALT);
 
   /* Calculate final effective resource levels (base * depletion) */
   state->vegetation_level = base_vegetation * depletion_vegetation;
@@ -1177,21 +1177,21 @@ void get_environmental_context(room_rnum room, struct environmental_context *con
     if (ZONE_FLAGGED(zone, ZONE_WILDERNESS))
     {
       /* Use elevation relative to sea level for realistic descriptions */
-      float elevation_meters = get_elevation_relative_sea_level(inner_x, inner_y);
+      double elevation_meters = get_elevation_relative_sea_level(inner_x, inner_y);
 
       /* Convert to 0.0-1.0 scale for consistency with existing description logic */
       /* Using a reasonable max elevation for scaling (1000m) */
-      context->elevation = elevation_meters / 1000.0f;
+      context->elevation = elevation_meters / 1000.0;
 
       /* Clamp to ensure we stay within expected range */
-      if (context->elevation > 1.0f)
-        context->elevation = 1.0f;
-      if (context->elevation < 0.0f)
-        context->elevation = 0.0f;
+      if (context->elevation > 1.0)
+        context->elevation = 1.0;
+      if (context->elevation < 0.0)
+        context->elevation = 0.0;
     }
     else
     {
-      context->elevation = 0.5f; /* Default for non-wilderness */
+      context->elevation = 0.5; /* Default for non-wilderness */
     }
   }
   else
@@ -1201,23 +1201,23 @@ void get_environmental_context(room_rnum room, struct environmental_context *con
     {
     case SECT_MOUNTAIN:
     case SECT_HIGH_MOUNTAIN:
-      context->elevation = 0.8f + (float)(rand() % 20) / 100.0f; /* 0.8-1.0 */
+      context->elevation = 0.8 + (double)(rand() % 20) / 100.0; /* 0.8-1.0 */
       break;
     case SECT_HILLS:
-      context->elevation = 0.6f + (float)(rand() % 20) / 100.0f; /* 0.6-0.8 */
+      context->elevation = 0.6 + (double)(rand() % 20) / 100.0; /* 0.6-0.8 */
       break;
     case SECT_WATER_SWIM:
     case SECT_WATER_NOSWIM:
     case SECT_OCEAN:
     case SECT_UNDERWATER:
-      context->elevation = 0.0f + (float)(rand() % 30) / 100.0f; /* 0.0-0.3 */
+      context->elevation = 0.0 + (double)(rand() % 30) / 100.0; /* 0.0-0.3 */
       break;
     case SECT_BEACH:
     case SECT_MARSHLAND:
-      context->elevation = 0.15f + (float)(rand() % 20) / 100.0f; /* 0.15-0.35 */
+      context->elevation = 0.15 + (double)(rand() % 20) / 100.0; /* 0.15-0.35 */
       break;
     default:
-      context->elevation = 0.4f + (float)(rand() % 20) / 100.0f; /* 0.4-0.6 */
+      context->elevation = 0.4 + (double)(rand() % 20) / 100.0; /* 0.4-0.6 */
       break;
     }
   }
@@ -2356,25 +2356,25 @@ void add_elevation_details(char *desc, struct environmental_context *context)
   if (rand() % 100 < 40)
   {
     /* Get actual elevation in meters by converting back from 0.0-1.0 scale */
-    float elevation_meters = context->elevation * 1000.0f;
+    double elevation_meters = context->elevation * 1000.0;
 
     /* Choose elevation template based on actual elevation in meters */
-    if (elevation_meters <= 5.0f)
+    if (elevation_meters <= 5.0)
     {
       /* Sea level and very low elevations (0-5m) */
       safe_strcat(desc, elevation_sea_level[rand() % 20]);
     }
-    else if (elevation_meters <= 50.0f)
+    else if (elevation_meters <= 50.0)
     {
       /* Lowlands (5-50m) */
       safe_strcat(desc, elevation_lowlands[rand() % 20]);
     }
-    else if (elevation_meters <= 200.0f)
+    else if (elevation_meters <= 200.0)
     {
       /* Hills (50-200m) */
       safe_strcat(desc, elevation_hills[rand() % 20]);
     }
-    else if (elevation_meters <= 500.0f)
+    else if (elevation_meters <= 500.0)
     {
       /* Mountains (200-500m) */
       safe_strcat(desc, elevation_mountains[rand() % 20]);
@@ -2410,7 +2410,7 @@ int get_terrain_type(room_rnum room)
   return world[room].sector_type;
 }
 
-const char *get_resource_abundance_category(float level)
+const char *get_resource_abundance_category(double level)
 {
   if (level >= RESOURCE_ABUNDANT_THRESHOLD)
     return "abundant";

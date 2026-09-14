@@ -665,7 +665,7 @@ static void vessel_ai_return_fire(int shipnum)
   struct greyhawk_ship_data *ship = &greyhawk_ships[shipnum];
   struct greyhawk_ship_data *target;
   struct greyhawk_ship_slot *weapon;
-  float range;
+  double range;
   int target_num;
   int fire_arc;
   int attack_roll;
@@ -700,7 +700,7 @@ static void vessel_ai_return_fire(int shipnum)
     {
       continue;
     }
-    if (weapon->val0 > 0 && range > (float)weapon->val0)
+    if (weapon->val0 > 0 && range > (double)weapon->val0)
     {
       continue;
     }
@@ -816,7 +816,7 @@ ACMD(do_shipfire)
   struct greyhawk_ship_slot *weapon;
   char arg1[MAX_INPUT_LENGTH];
   char arg2[MAX_INPUT_LENGTH];
-  float range;
+  double range;
   int slot_num;
   int target_num;
   int fire_arc;
@@ -875,7 +875,7 @@ ACMD(do_shipfire)
 
   /* Range gate: use the weapon's long range (val0) */
   range = greyhawk_range(ship->x, ship->y, ship->z, target->x, target->y, target->z);
-  if (weapon->val0 > 0 && range > (float)weapon->val0)
+  if (weapon->val0 > 0 && range > (double)weapon->val0)
   {
     send_to_char(ch, "%s is out of range (%.1f vs %d).\r\n", target->name, range,
                  (int)weapon->val0);

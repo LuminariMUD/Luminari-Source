@@ -363,7 +363,7 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 
     for (i = 0; i < 8; i++)
     {
-      if (curr_nearby_region->dirs[i])
+      if (curr_nearby_region->dirs[i] > 0.0)
       {
         if (curr_nearby_region->dirs[i] > max_area)
         {

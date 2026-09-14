@@ -141,9 +141,9 @@ void spatial_shutdown_system(void)
  */
 int spatial_process_stimulus(struct spatial_context *ctx, struct spatial_system *system)
 {
-  float obstruction_factor = 0.0;
-  float range_modifier = 1.0;
-  float clarity_modifier = 1.0;
+  double obstruction_factor = 0.0;
+  double range_modifier = 1.0;
+  double clarity_modifier = 1.0;
   clock_t start_time, end_time;
 
   if (!ctx || !system)
@@ -532,11 +532,11 @@ void spatial_update_direction(struct spatial_context *ctx)
 /*
  * Calculate 3D distance between two points
  */
-float spatial_calculate_3d_distance(int x1, int y1, int z1, int x2, int y2, int z2)
+double spatial_calculate_3d_distance(int x1, int y1, int z1, int x2, int y2, int z2)
 {
-  float dx = (float)(x2 - x1);
-  float dy = (float)(y2 - y1);
-  float dz = (float)(z2 - z1);
+  double dx = (double)(x2 - x1);
+  double dy = (double)(y2 - y1);
+  double dz = (double)(z2 - z1);
 
   return sqrt(dx * dx + dy * dy + dz * dz);
 }
@@ -546,7 +546,7 @@ float spatial_calculate_3d_distance(int x1, int y1, int z1, int x2, int y2, int 
  */
 spatial_direction_t spatial_calculate_direction(int observer_x, int observer_y, int observer_z,
                                                 int source_x, int source_y, int source_z,
-                                                float *precision)
+                                                double *precision)
 {
   int dx = source_x - observer_x;
   int dy = source_y - observer_y;
@@ -577,7 +577,7 @@ spatial_direction_t spatial_calculate_direction(int observer_x, int observer_y, 
   }
 
   /* Calculate horizontal distance */
-  float horizontal_dist = sqrt(dx * dx + dy * dy);
+  double horizontal_dist = sqrt(dx * dx + dy * dy);
 
   /* If primarily vertical movement, adjust precision */
   if (precision && abs(dz) > horizontal_dist * 2)
@@ -586,7 +586,7 @@ spatial_direction_t spatial_calculate_direction(int observer_x, int observer_y, 
   }
 
   /* Calculate angle for horizontal direction (atan2 handles all quadrants) */
-  float angle = atan2(dy, dx) * 180.0 / M_PI;
+  double angle = atan2(dy, dx) * 180.0 / M_PI;
   if (angle < 0)
     angle += 360;
 
@@ -621,7 +621,7 @@ spatial_direction_t spatial_calculate_direction(int observer_x, int observer_y, 
 /*
  * Convert direction to descriptive string based on distance
  */
-const char *spatial_direction_to_string(spatial_direction_t direction, float distance)
+const char *spatial_direction_to_string(spatial_direction_t direction, double distance)
 {
   static char direction_buffers[4][64]; /* Rotating buffers to avoid overwrites */
   static int buffer_index = 0;
@@ -695,7 +695,7 @@ const char *spatial_direction_to_string(spatial_direction_t direction, float dis
 /*
  * Check if context is within range
  */
-bool spatial_is_in_range(struct spatial_context *ctx, float max_range)
+bool spatial_is_in_range(struct spatial_context *ctx, double max_range)
 {
   if (!ctx)
     return FALSE;
@@ -786,14 +786,14 @@ void spatial_cleanup_cache(void)
 }
 
 int spatial_cache_result(struct spatial_context *ctx __attribute__((unused)),
-                         float result __attribute__((unused)))
+                         double result __attribute__((unused)))
 {
   /* TODO: Implement result caching */
   return SPATIAL_SUCCESS;
 }
 
 int spatial_get_cached_result(struct spatial_context *ctx __attribute__((unused)),
-                              float *cached_result __attribute__((unused)))
+                              double *cached_result __attribute__((unused)))
 {
   /* TODO: Implement cache lookup */
   return SPATIAL_ERROR_NOT_IMPLEMENTED;

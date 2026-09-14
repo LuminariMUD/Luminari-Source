@@ -5897,7 +5897,7 @@ ACMD(do_zcheck)
   IDXTYPE i = 0;
   int j = 0, k = 0, l = 0, m = 0, found = 0; /* found is used as a 'send now' flag*/
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  float avg_dam;
+  double avg_dam;
   size_t len = 0;
   // struct extra_descr_data *ext, *ext2;
   one_argument(argument, buf, sizeof(buf));
@@ -11351,7 +11351,7 @@ ACMD(do_resourceadmin)
   char arg[MAX_INPUT_LENGTH];
   const char *remaining_args;
   int x, y, i;
-  float resource_level;
+  double resource_level;
 
   remaining_args = one_argument(argument, arg, sizeof(arg));
 
@@ -11428,7 +11428,7 @@ ACMD(do_resourceadmin)
     for (i = 0; i < NUM_RESOURCE_TYPES; i++)
     {
       resource_level = calculate_current_resource_level(i, x, y);
-      send_to_char(ch, "%-15s: %6.2f%% (%s)\r\n", resource_names[i], resource_level * 100.0f,
+      send_to_char(ch, "%-15s: %6.2f%% (%s)\r\n", resource_names[i], resource_level * 100.0,
                    get_abundance_description(resource_level));
     }
 
@@ -11469,7 +11469,7 @@ ACMD(do_resourceadmin)
     for (i = 0; i < NUM_RESOURCE_TYPES; i++)
     {
       resource_level = calculate_current_resource_level(i, x, y);
-      send_to_char(ch, "%-15s: %6.2f%% (%s)\r\n", resource_names[i], resource_level * 100.0f,
+      send_to_char(ch, "%-15s: %6.2f%% (%s)\r\n", resource_names[i], resource_level * 100.0,
                    get_abundance_description(resource_level));
     }
 
@@ -12671,7 +12671,7 @@ ACMD(do_terrainapi)
       if (server->total_requests > 0 && uptime > 0)
       {
         send_to_char(ch, "  Requests per second: %.2f\r\n",
-                     (float)server->total_requests / (float)uptime);
+                     (double)server->total_requests / (double)uptime);
       }
     }
     else

@@ -239,7 +239,7 @@ void init_ai_service(void)
   AI_DEBUG("  OpenAI model: %s", ai_state.config->model);
   ai_state.config->max_tokens = DEFAULT_AI_MAX_TOKENS;
   AI_DEBUG("  OpenAI max tokens: %d", ai_state.config->max_tokens);
-  ai_state.config->temperature = 0.3f; /* Default for consistent NPC responses */
+  ai_state.config->temperature = 0.3; /* Default for consistent NPC responses */
   AI_DEBUG("  OpenAI temperature: %.2f", ai_state.config->temperature);
   ai_state.config->timeout_ms = DEFAULT_AI_TIMEOUT_MS;
   AI_DEBUG("  OpenAI timeout: %d ms", ai_state.config->timeout_ms);
@@ -255,11 +255,11 @@ void init_ai_service(void)
   AI_DEBUG("  Ollama timeout: %d ms", ai_state.config->ollama_timeout_ms);
   ai_state.config->ollama_max_tokens = DEFAULT_OLLAMA_MAX_TOKENS;
   AI_DEBUG("  Ollama max tokens: %d", ai_state.config->ollama_max_tokens);
-  ai_state.config->ollama_temperature = (float)DEFAULT_OLLAMA_TEMPERATURE / 10.0f;
+  ai_state.config->ollama_temperature = (double)DEFAULT_OLLAMA_TEMPERATURE / 10.0;
   AI_DEBUG("  Ollama temperature: %.2f", ai_state.config->ollama_temperature);
   ai_state.config->ollama_top_k = DEFAULT_OLLAMA_TOP_K;
   AI_DEBUG("  Ollama top_k: %d", ai_state.config->ollama_top_k);
-  ai_state.config->ollama_top_p = (float)DEFAULT_OLLAMA_TOP_P / 100.0f;
+  ai_state.config->ollama_top_p = (double)DEFAULT_OLLAMA_TOP_P / 100.0;
   AI_DEBUG("  Ollama top_p: %.2f", ai_state.config->ollama_top_p);
 
   /* General settings */
@@ -625,7 +625,7 @@ void load_ai_config(void)
   AI_DEBUG("  OpenAI max tokens: %d", ai_state.config->max_tokens);
 
   /* OpenAI Temperature (integer 0-10, divided by 10) */
-  ai_state.config->temperature = (float)get_env_int("AI_TEMPERATURE", 3) / 10.0f;
+  ai_state.config->temperature = (double)get_env_int("AI_TEMPERATURE", 3) / 10.0;
   AI_DEBUG("  OpenAI temperature: %.2f", ai_state.config->temperature);
 
   /* OpenAI Timeout with validation */
@@ -682,7 +682,7 @@ void load_ai_config(void)
 
   /* Ollama Temperature (integer 0-10, divided by 10) */
   ai_state.config->ollama_temperature =
-      (float)get_env_int("OLLAMA_TEMPERATURE", DEFAULT_OLLAMA_TEMPERATURE) / 10.0f;
+      (double)get_env_int("OLLAMA_TEMPERATURE", DEFAULT_OLLAMA_TEMPERATURE) / 10.0;
   AI_DEBUG("  Ollama temperature: %.2f", ai_state.config->ollama_temperature);
 
   /* Ollama Top-K */
@@ -690,7 +690,7 @@ void load_ai_config(void)
   AI_DEBUG("  Ollama top_k: %d", ai_state.config->ollama_top_k);
 
   /* Ollama Top-P (integer 0-100, divided by 100) */
-  ai_state.config->ollama_top_p = (float)get_env_int("OLLAMA_TOP_P", DEFAULT_OLLAMA_TOP_P) / 100.0f;
+  ai_state.config->ollama_top_p = (double)get_env_int("OLLAMA_TOP_P", DEFAULT_OLLAMA_TOP_P) / 100.0;
   AI_DEBUG("  Ollama top_p: %.2f", ai_state.config->ollama_top_p);
 
   /*=========================================================================
@@ -1792,7 +1792,7 @@ static char *build_ollama_json_request(const char *prompt)
   int escape_result;
   const char *model;
   int num_predict;
-  float temperature, top_p;
+  double temperature, top_p;
   int top_k;
 
   AI_DEBUG("Building Ollama JSON request for prompt: '%.50s%s'", prompt,
@@ -1811,9 +1811,9 @@ static char *build_ollama_json_request(const char *prompt)
   {
     model = DEFAULT_OLLAMA_MODEL;
     num_predict = DEFAULT_OLLAMA_MAX_TOKENS;
-    temperature = (float)DEFAULT_OLLAMA_TEMPERATURE / 10.0f;
+    temperature = (double)DEFAULT_OLLAMA_TEMPERATURE / 10.0;
     top_k = DEFAULT_OLLAMA_TOP_K;
-    top_p = (float)DEFAULT_OLLAMA_TOP_P / 100.0f;
+    top_p = (double)DEFAULT_OLLAMA_TOP_P / 100.0;
   }
 
   AI_DEBUG("  Using model: %s, num_predict: %d, temp: %.2f, top_k: %d, top_p: %.2f", model,

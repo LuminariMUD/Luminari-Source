@@ -23,7 +23,7 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 struct vessel_tactical_contact
 {
   int shipnum;
-  float range;
+  double range;
   int bearing;
   int delta_z;
 };
@@ -402,7 +402,7 @@ vessel_tactical_collect_contacts(const struct greyhawk_ship_data *ship,
                                  int contact_status[VESSEL_TACTICAL_SIZE][VESSEL_TACTICAL_SIZE])
 {
   const struct greyhawk_ship_data *other;
-  float range;
+  double range;
   int sight_range;
   int ship_x;
   int ship_y;

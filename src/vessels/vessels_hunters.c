@@ -996,7 +996,7 @@ void vessel_hunter_tick_one(struct greyhawk_ship_data *hunter)
   waypoint.x = target->x;
   waypoint.y = target->y;
   waypoint.z = target->z;
-  if (vessel_autopilot_next_position(hunter, &waypoint, (float)speed, &target_x, &target_y,
+  if (vessel_autopilot_next_position(hunter, &waypoint, (double)speed, &target_x, &target_y,
                                      &target_z) &&
       (target_x != (int)hunter->x || target_y != (int)hunter->y || target_z != (int)hunter->z))
   {

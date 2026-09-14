@@ -122,7 +122,7 @@ struct diplomacy_data
   /**< The skill number, defined in spells.h           */
   int skill;
   /**< The popularity increase this skill causes       */
-  float increase;
+  double increase;
   /**< The number of ticks that must pass between uses */
   int wait;
 };
@@ -137,7 +137,7 @@ struct claim_data
   /**< The VNUM of the current controlling clan       */
   clan_vnum clan;
   /**< Popularity Values for the zone for each clan   */
-  float popularity[MAX_CLANS];
+  double popularity[MAX_CLANS];
   /**< Linked list pointer to the next claim_data     */
   struct claim_data *next;
 };
@@ -301,8 +301,8 @@ bool save_claims(void);
 void load_claims(void);
 
 /* Popularity handling functions */
-float get_popularity(zone_vnum zn, clan_vnum cn);
-void increase_popularity(zone_vnum zn, clan_vnum cn, float amt);
+double get_popularity(zone_vnum zn, clan_vnum cn);
+void increase_popularity(zone_vnum zn, clan_vnum cn, double amt);
 void show_zone_popularities(struct char_data *ch, struct claim_data *this_claim);
 void show_clan_popularities(struct char_data *ch, clan_vnum c_v);
 void show_popularity(struct char_data *ch, char *arg);

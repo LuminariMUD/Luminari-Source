@@ -1825,7 +1825,7 @@ void perform_bomb_direct_healing(struct char_data *ch, struct char_data *victim,
   }
 
   if (HAS_FEAT(ch, FEAT_BOMB_MASTERY))
-    healing *= 1.5;
+    healing = (int)(healing * 1.5);
 
   if (to_vict != NULL)
     act(to_vict, FALSE, victim, 0, ch, TO_CHAR);

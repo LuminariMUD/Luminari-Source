@@ -4155,7 +4155,7 @@ ACMD(do_clanstats)
   send_to_char(ch, "  Member Retention Rate: %s%.1f%%%s\r\n",
                clan->total_members_joined > 0 ? QYEL : QNRM,
                clan->total_members_joined > 0
-                   ? ((float)(clan->total_members_joined - clan->total_members_left) /
+                   ? ((double)(clan->total_members_joined - clan->total_members_left) /
                       clan->total_members_joined * 100.0)
                    : 0.0,
                QNRM);
@@ -4167,7 +4167,7 @@ ACMD(do_clanstats)
   send_to_char(ch, "  Territory Retention Rate: %s%.1f%%%s\r\n",
                clan->total_zones_claimed > 0 ? QYEL : QNRM,
                clan->total_zones_claimed > 0
-                   ? ((float)clan->current_zones_owned / clan->total_zones_claimed * 100.0)
+                   ? ((double)clan->current_zones_owned / clan->total_zones_claimed * 100.0)
                    : 0.0,
                QNRM);
 
@@ -4177,7 +4177,7 @@ ACMD(do_clanstats)
   send_to_char(ch, "  PK Losses: %s%d%s\r\n", QRED, clan->pk_lose, QNRM);
   send_to_char(ch, "  Win Rate: %s%.1f%%%s\r\n", (clan->pk_win + clan->pk_lose) > 0 ? QYEL : QNRM,
                (clan->pk_win + clan->pk_lose) > 0
-                   ? ((float)clan->pk_win / (clan->pk_win + clan->pk_lose) * 100.0)
+                   ? ((double)clan->pk_win / (clan->pk_win + clan->pk_lose) * 100.0)
                    : 0.0,
                QNRM);
   send_to_char(ch, "  Times Raided: %s%d%s\r\n", QRED, clan->raided, QNRM);
@@ -4207,7 +4207,7 @@ ACMD(do_clanstats)
   send_to_char(ch, "  Total Clan Power: %s%d%s\r\n", QYEL, count_clan_power(c_n), QNRM);
   send_to_char(
       ch, "  Average Member Level: %s%.1f%s\r\n", QYEL,
-      count_clan_members(c_n) > 0 ? ((float)count_clan_power(c_n) / count_clan_members(c_n)) : 0.0,
+      count_clan_members(c_n) > 0 ? ((double)count_clan_power(c_n) / count_clan_members(c_n)) : 0.0,
       QNRM);
 
   /* Footer */
@@ -4550,7 +4550,7 @@ long get_claimant_id(zone_vnum z)
 /*************************************************************************
  End of Zone Claim code - Start of Claim Popularity code
  ************************************************************************/
-float get_popularity(zone_vnum zn, clan_vnum cn)
+double get_popularity(zone_vnum zn, clan_vnum cn)
 {
   struct claim_data *this_claim = NULL, *found_claim = NULL;
   clan_rnum c_r;
@@ -4581,10 +4581,10 @@ float get_popularity(zone_vnum zn, clan_vnum cn)
   return (found_claim->popularity[c_r]);
 }
 
-void increase_popularity(zone_vnum zn, clan_vnum cn, float amt)
+void increase_popularity(zone_vnum zn, clan_vnum cn, double amt)
 {
   int i, i_rand, j, count = 0;
-  float tot_vals = 0.0, share_vals, new_val = 0.0, val_diff, vals[MAX_CLANS];
+  double tot_vals = 0.0, share_vals, new_val = 0.0, val_diff, vals[MAX_CLANS];
   struct claim_data *this_claim = NULL, *found_claim = NULL;
   clan_rnum c_r;
 
@@ -4687,7 +4687,7 @@ void show_zone_popularities(struct char_data *ch, struct claim_data *this_claim)
 {
   zone_rnum z_r;
   int i, j, numbars;
-  float tot = 0.0;
+  double tot = 0.0;
   char bar[14];
 
   if (!this_claim)

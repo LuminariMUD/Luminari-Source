@@ -3113,7 +3113,7 @@ static int Crash_load_objs(struct char_data *ch)
   if (rentcode == RENT_RENTED || rentcode == RENT_TIMEDOUT)
   {
     snprintf(str, sizeof(str), "%d", SECS_PER_REAL_DAY);
-    num_of_days = (int)((float)(time(0) - timed) / (float)atoi(str));
+    num_of_days = (int)((double)(time(0) - timed) / (double)atoi(str));
     cost = (unsigned int)(netcost * num_of_days);
     if (cost > (unsigned int)GET_GOLD(ch) + (unsigned int)GET_BANK_GOLD(ch))
     {

@@ -37,7 +37,7 @@ static bool sedit_numeric_input_is_valid(int mode, const char *arg);
 static bool sedit_numeric_input_is_valid(int mode, const char *arg)
 {
   char *end;
-  float value;
+  double value;
 
   if (mode <= SEDIT_NUMERICAL_RESPONSE)
     return true;
@@ -47,7 +47,7 @@ static bool sedit_numeric_input_is_valid(int mode, const char *arg)
     return false;
 
   end = NULL;
-  value = strtof(arg, &end);
+  value = strtod(arg, &end);
   return end != arg && *end == '\0' && isfinite(value);
 }
 
@@ -753,10 +753,10 @@ void sedit_parse(struct descriptor_data *d, char *arg)
     S_CLOSE2(OLC_SHOP(d)) = LIMIT(atoi(arg), 0, 28);
     break;
   case SEDIT_BUY_PROFIT:
-    sscanf(arg, "%f", &S_BUYPROFIT(OLC_SHOP(d)));
+    sscanf(arg, "%lf", &S_BUYPROFIT(OLC_SHOP(d)));
     break;
   case SEDIT_SELL_PROFIT:
-    sscanf(arg, "%f", &S_SELLPROFIT(OLC_SHOP(d)));
+    sscanf(arg, "%lf", &S_SELLPROFIT(OLC_SHOP(d)));
     break;
   case SEDIT_TYPE_MENU:
     OLC_VAL(d) = LIMIT(atoi(arg), 0, NUM_ITEM_TYPES - 1);

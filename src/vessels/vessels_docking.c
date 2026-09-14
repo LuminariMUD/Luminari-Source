@@ -34,7 +34,7 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 /* Check if two ships are in docking range */
 bool ships_in_docking_range(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2)
 {
-  float distance;
+  double distance;
 
   VSSL_DEBUG_ENTER("ships_in_docking_range");
 

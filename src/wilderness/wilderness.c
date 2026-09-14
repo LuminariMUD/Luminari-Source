@@ -269,7 +269,7 @@ int get_elevation(int map, int x, int y)
   /* Apply the radial gradient. */
   result *= get_radial_gradient(x, y);
 
-  return 255 * result;
+  return (int)(255 * result);
 }
 
 /* Get elevation with region modifications but maintaining wilderness scale (0-255) */
@@ -320,7 +320,7 @@ int get_modified_elevation(int x, int y)
 }
 
 /* Get elevation in meters relative to wilderness sea level */
-float get_elevation_relative_sea_level(int x, int y)
+double get_elevation_relative_sea_level(int x, int y)
 {
   /* Get modified elevation in wilderness scale */
   int wilderness_elevation = get_modified_elevation(x, y);
@@ -334,16 +334,16 @@ float get_elevation_relative_sea_level(int x, int y)
   /* Convert to approximate meters */
   /* Assuming the wilderness scale represents reasonable elevation ranges */
   /* Scale factor: each unit above sea level = ~8 meters (gives ~1000m max height) */
-  float meters_above_sea_level = (float)elevation_above_sea_level * 8.0f;
+  double meters_above_sea_level = (double)elevation_above_sea_level * 8.0;
 
   /* Below sea level areas are treated as 0-5m (coastal/underwater) */
-  if (meters_above_sea_level < 0.0f)
+  if (meters_above_sea_level < 0.0)
   {
     /* Scale underwater areas to 0-5m depth */
-    float depth_ratio = (float)(-elevation_above_sea_level) / (float)sea_level;
-    if (depth_ratio > 1.0f)
-      depth_ratio = 1.0f;
-    return depth_ratio * 5.0f; /* 0-5m above sea level for underwater/coastal */
+    double depth_ratio = (double)(-elevation_above_sea_level) / (double)sea_level;
+    if (depth_ratio > 1.0)
+      depth_ratio = 1.0;
+    return depth_ratio * 5.0; /* 0-5m above sea level for underwater/coastal */
   }
 
   return meters_above_sea_level;
@@ -370,7 +370,7 @@ int get_weather(int x, int y)
   result = (result + 1) / 2.0;
   //log("DEBUG: Weather - %f %f %f %f", trans_x, trans_y, time_base, result);
 
-  return 255 * result;
+  return (int)(255 * result);
 }
 
 int get_moisture(int map, int x, int y)
@@ -387,7 +387,7 @@ int get_moisture(int map, int x, int y)
   /* Normalize over 0..1 */
   result = (result + 1) / 2.0;
 
-  return 255 * result;
+  return (int)(255 * result);
 }
 
 int get_temperature(int map, int x, int y)
@@ -410,8 +410,8 @@ int get_temperature(int map, int x, int y)
   pct = (double)(dist / (double)(WILD_Y_SIZE - equator));
 
   /* Return the temp. */
-  temp = (max_temp - (max_temp - min_temp) * pct) -
-         (MAX(1.5 * get_elevation(map, x, y) - WATERLINE, 0)) / 10;
+  temp = (int)((max_temp - (max_temp - min_temp) * pct) -
+               (MAX((int)(1.5 * get_elevation(map, x, y) - WATERLINE), 0)) / 10);
 
   return temp;
 }

@@ -583,9 +583,9 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
 
   /* Anchor the ship at the supplied location; wilderness rooms provide real
    * coordinates while authored rooms retain their stable room VNUM. */
-  ship->x = (float)world[exterior_room].coords[0];
-  ship->y = (float)world[exterior_room].coords[1];
-  ship->z = (float)z;
+  ship->x = (double)world[exterior_room].coords[0];
+  ship->y = (double)world[exterior_room].coords[1];
+  ship->z = (double)z;
   ship->location = world[exterior_room].number;
 
   /* Generate the interior before wiring the object so the entrance vnum is

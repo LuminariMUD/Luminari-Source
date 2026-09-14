@@ -82,7 +82,7 @@ struct hint_cache_key
   int weather_condition;
   int time_category;
   int season;
-  float resource_health; /* For resource-dependent hints */
+  double resource_health; /* For resource-dependent hints */
 };
 
 /* Cached hint data with metadata */
@@ -884,9 +884,9 @@ static void apply_boundary_transition_effects(struct region_hint *hints, int hin
  * @param radius Area radius to sample
  * @return Overall resource health: 0.0 (depleted) to 1.0 (abundant)
  */
-static float calculate_regional_resource_health(int x, int y, int radius)
+static double calculate_regional_resource_health(int x, int y, int radius)
 {
-  float total_resources = 0.0;
+  double total_resources = 0.0;
   int sample_count = 0;
   int dx, dy;
 
@@ -904,16 +904,16 @@ static float calculate_regional_resource_health(int x, int y, int radius)
         continue; /* Skip points outside radius */
 
       /* Weight nearby samples more heavily */
-      float weight = 1.0 - ((float)distance / radius);
+      double weight = 1.0 - ((double)distance / radius);
 
       /* Sample key resource types that affect regional atmosphere */
-      float vegetation = calculate_current_resource_level(RESOURCE_VEGETATION, sample_x, sample_y);
-      float water = calculate_current_resource_level(RESOURCE_WATER, sample_x, sample_y);
-      float game = calculate_current_resource_level(RESOURCE_GAME, sample_x, sample_y);
-      float herbs = calculate_current_resource_level(RESOURCE_HERBS, sample_x, sample_y);
+      double vegetation = calculate_current_resource_level(RESOURCE_VEGETATION, sample_x, sample_y);
+      double water = calculate_current_resource_level(RESOURCE_WATER, sample_x, sample_y);
+      double game = calculate_current_resource_level(RESOURCE_GAME, sample_x, sample_y);
+      double herbs = calculate_current_resource_level(RESOURCE_HERBS, sample_x, sample_y);
 
       /* Combine resources with atmospheric relevance weighting */
-      float sample_health = (vegetation * 0.4) + (water * 0.3) + (game * 0.2) + (herbs * 0.1);
+      double sample_health = (vegetation * 0.4) + (water * 0.3) + (game * 0.2) + (herbs * 0.1);
 
       total_resources += sample_health * weight;
       sample_count++;
@@ -923,7 +923,7 @@ static float calculate_regional_resource_health(int x, int y, int radius)
   if (sample_count == 0)
     return 0.5; /* Default to moderate if no samples */
 
-  float average_health = total_resources / sample_count;
+  double average_health = total_resources / sample_count;
 
   /* Clamp to valid range */
   if (average_health < 0.0)
@@ -941,7 +941,7 @@ static float calculate_regional_resource_health(int x, int y, int radius)
  * @param resource_health Overall resource health (0.0-1.0)
  */
 static void apply_resource_based_hint_weighting(struct region_hint *hints, int hint_count,
-                                                float resource_health)
+                                                double resource_health)
 {
   if (!hints || hint_count <= 0)
     return;
@@ -1311,13 +1311,13 @@ static int select_contextual_weighted_hint(struct region_hint *hints, int *hint_
 /* Semantic elements extracted from hints for narrative integration */
 struct narrative_elements
 {
-  char *dominant_mood;      /* "mysterious", "peaceful", "ominous" */
-  char *primary_imagery;    /* "ancient trees", "rolling hills" */
-  char *active_elements;    /* "wind whispers", "shadows dance" */
-  char *sensory_details;    /* "moss-scented air", "distant calls" */
-  char *temporal_aspects;   /* "dawn light", "evening mist" */
-  float integration_weight; /* Strength of influence (0.0-1.0) */
-  int regional_style;       /* Regional style for flow and transitions */
+  char *dominant_mood;       /* "mysterious", "peaceful", "ominous" */
+  char *primary_imagery;     /* "ancient trees", "rolling hills" */
+  char *active_elements;     /* "wind whispers", "shadows dance" */
+  char *sensory_details;     /* "moss-scented air", "distant calls" */
+  char *temporal_aspects;    /* "dawn light", "evening mist" */
+  double integration_weight; /* Strength of influence (0.0-1.0) */
+  int regional_style;        /* Regional style for flow and transitions */
 };
 
 /* Description components for semantic modification */
@@ -2154,7 +2154,7 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
   elements->regional_style = regional_style;
 
   // Initialize integration weight
-  elements->integration_weight = 0.0f;
+  elements->integration_weight = 0.0;
 
   // Debug: Check if hints array is valid
   narrative_debug_log(2, "extract_narrative_elements called with hints=%p", hints);
@@ -2197,7 +2197,7 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
         if (strstr(text, style_adjectives[j]))
         {
           elements->dominant_mood = strdup(style_adjectives[j]);
-          elements->integration_weight += 0.35f; // Higher weight for style match
+          elements->integration_weight += 0.35; // Higher weight for style match
           break;
         }
       }
@@ -2210,7 +2210,7 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
           if (strstr(text, mood_indicators[j]))
           {
             elements->dominant_mood = strdup(mood_indicators[j]);
-            elements->integration_weight += 0.3f;
+            elements->integration_weight += 0.3;
             break;
           }
         }
@@ -2228,7 +2228,7 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
         if (strstr(text, style_verbs[j]))
         {
           elements->active_elements = strdup(style_verbs[j]);
-          elements->integration_weight += 0.3f; // Higher weight for style match
+          elements->integration_weight += 0.3; // Higher weight for style match
           break;
         }
       }
@@ -2241,7 +2241,7 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
           if (strstr(text, action_verbs[j]))
           {
             elements->active_elements = strdup(action_verbs[j]);
-            elements->integration_weight += 0.25f;
+            elements->integration_weight += 0.25;
             break;
           }
         }
@@ -2256,13 +2256,13 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
       {
         char *styled_imagery = apply_regional_style_transformation("ancient", regional_style);
         elements->primary_imagery = styled_imagery;
-        elements->integration_weight += 0.25f; // Higher weight for style transformation
+        elements->integration_weight += 0.25; // Higher weight for style transformation
       }
       else if (strstr(text, "delicate") || strstr(text, "graceful") || strstr(text, "slender"))
       {
         char *styled_imagery = apply_regional_style_transformation("delicate", regional_style);
         elements->primary_imagery = styled_imagery;
-        elements->integration_weight += 0.25f;
+        elements->integration_weight += 0.25;
       }
     }
 
@@ -2272,12 +2272,12 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
       if (hints[i].hint_category == HINT_SOUNDS)
       {
         elements->sensory_details = strdup(text);
-        elements->integration_weight += 0.15f;
+        elements->integration_weight += 0.15;
       }
       else if (hints[i].hint_category == HINT_SCENTS)
       {
         elements->sensory_details = strdup(text);
-        elements->integration_weight += 0.15f;
+        elements->integration_weight += 0.15;
       }
     }
 
@@ -2288,7 +2288,7 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
       if (strstr(text, time))
       {
         elements->temporal_aspects = strdup(text);
-        elements->integration_weight += 0.15f;
+        elements->integration_weight += 0.15;
       }
       // Check for time-of-day keywords
       else if ((strcmp(time, "morning") == 0 &&
@@ -2305,7 +2305,7 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
                  strstr(text, "darkness") || strstr(text, "nocturnal"))))
       {
         elements->temporal_aspects = strdup(text);
-        elements->integration_weight += 0.2f; // Higher weight for matching time context
+        elements->integration_weight += 0.2; // Higher weight for matching time context
       }
     }
   }
@@ -2329,7 +2329,7 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
       {
         elements->primary_imagery = strdup("winter");
       }
-      elements->integration_weight += 0.25f;
+      elements->integration_weight += 0.25;
     }
     else if (season == SEASON_SPRING &&
              (strstr(text, "spring") || strstr(text, "bud") || strstr(text, "green") ||
@@ -2339,7 +2339,7 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
       {
         elements->primary_imagery = strdup("spring");
       }
-      elements->integration_weight += 0.25f;
+      elements->integration_weight += 0.25;
     }
     else if (season == SEASON_SUMMER && (strstr(text, "summer") || strstr(text, "lush") ||
                                          strstr(text, "verdant") || strstr(text, "abundant")))
@@ -2348,7 +2348,7 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
       {
         elements->primary_imagery = strdup("summer");
       }
-      elements->integration_weight += 0.25f;
+      elements->integration_weight += 0.25;
     }
     else if (season == SEASON_AUTUMN &&
              (strstr(text, "autumn") || strstr(text, "fall") || strstr(text, "golden") ||
@@ -2358,14 +2358,14 @@ static struct narrative_elements *extract_narrative_elements(struct region_hint 
       {
         elements->primary_imagery = strdup("autumn");
       }
-      elements->integration_weight += 0.25f;
+      elements->integration_weight += 0.25;
     }
   }
 
   // Cap integration weight at 1.0
-  if (elements->integration_weight > 1.0f)
+  if (elements->integration_weight > 1.0)
   {
-    elements->integration_weight = 1.0f;
+    elements->integration_weight = 1.0;
   }
 
   // Cleanup region profile
@@ -3142,11 +3142,11 @@ struct region_hint *load_contextual_hints_optimized(int region_vnum_id,
     /* Copy priority with contextual adjustment */
     if (row[4])
     {
-      current_hint->priority = atoi(row[4]) * combined_weight;
+      current_hint->priority = (int)(atoi(row[4]) * combined_weight);
     }
     else
     {
-      current_hint->priority = 1.0 * combined_weight;
+      current_hint->priority = (int)(1.0 * combined_weight);
     }
 
     /* Store contextual weight and prepare storage fields */
@@ -3899,7 +3899,7 @@ char *enhance_base_description_with_hints(char *base_description,
   time_category = get_time_of_day_category();
 
   // Calculate resource health for performance-optimized caching
-  float resource_health = calculate_regional_resource_health(x, y, 5);
+  double resource_health = calculate_regional_resource_health(x, y, 5);
 
   // Load contextual hints for current conditions using optimized cached version
   hints = load_contextual_hints_cached(region_vnum_id, weather_condition, time_category,
@@ -3929,7 +3929,7 @@ char *enhance_base_description_with_hints(char *base_description,
     apply_boundary_transition_effects(hints, hint_count, x, y, region_vnum_id);
 
     /* Apply resource-based weighting for dynamic regional atmosphere */
-    float inner_resource_health =
+    double inner_resource_health =
         calculate_regional_resource_health(x, y, 5); /* 5-coordinate radius sampling */
     apply_resource_based_hint_weighting(hints, hint_count, inner_resource_health);
 
@@ -3957,7 +3957,7 @@ char *enhance_base_description_with_hints(char *base_description,
     apply_boundary_transition_effects(hints, hint_count, x, y, region_vnum_id);
 
     /* Apply resource-based weighting for dynamic regional atmosphere */
-    float inner_resource_health =
+    double inner_resource_health =
         calculate_regional_resource_health(x, y, 5); /* 5-coordinate radius sampling */
     apply_resource_based_hint_weighting(hints, hint_count, inner_resource_health);
 
@@ -4028,7 +4028,7 @@ char *layer_hints_on_base_description(char *base_description, struct region_hint
   }
 
   // Only apply semantic integration if we have sufficient elements
-  if (elements->integration_weight < 0.3f)
+  if (elements->integration_weight < 0.3)
   {
     log("DEBUG: Insufficient semantic weight (%.2f), using simple layering",
         elements->integration_weight);
@@ -4495,7 +4495,7 @@ char *create_unified_wilderness_description(zone_rnum zone, int x, int y)
       region_vnum_id, best_region->rnum);
 
   // Calculate resource health for optimized caching
-  float resource_health = calculate_regional_resource_health(x, y, 5);
+  double resource_health = calculate_regional_resource_health(x, y, 5);
 
   // Load contextual hints for current conditions using cached version
   hints = load_contextual_hints_cached(region_vnum_id, weather_condition, time_category,

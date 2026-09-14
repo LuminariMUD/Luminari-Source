@@ -443,10 +443,10 @@ void TestBackgroundShopAccessAndHometownPricingAreExact(CuTest *tc)
   CuAssertTrue(tc, shop_background_access_allowed(BLACK_MARKET_SHOP | NOBLE_SHOP, TRUE, TRUE));
   CuAssertTrue(tc, !shop_background_access_allowed(BLACK_MARKET_SHOP | NOBLE_SHOP, TRUE, FALSE));
 
-  CuAssertTrue(tc, shop_background_hometown_price_multiplier(TRUE, TRUE, TRUE) == 0.90f);
-  CuAssertTrue(tc, shop_background_hometown_price_multiplier(TRUE, TRUE, FALSE) == 1.10f);
-  CuAssertTrue(tc, shop_background_hometown_price_multiplier(FALSE, TRUE, TRUE) == 1.0f);
-  CuAssertTrue(tc, shop_background_hometown_price_multiplier(TRUE, FALSE, FALSE) == 1.0f);
+  CuAssertDblEquals(tc, 0.90, shop_background_hometown_price_multiplier(TRUE, TRUE, TRUE), 0.0001);
+  CuAssertDblEquals(tc, 1.10, shop_background_hometown_price_multiplier(TRUE, TRUE, FALSE), 0.0001);
+  CuAssertDblEquals(tc, 1.0, shop_background_hometown_price_multiplier(FALSE, TRUE, TRUE), 0.0001);
+  CuAssertDblEquals(tc, 1.0, shop_background_hometown_price_multiplier(TRUE, FALSE, FALSE), 0.0001);
 }
 
 void TestRoamingShopRoomAccessIsExplicit(CuTest *tc)
@@ -458,10 +458,10 @@ void TestRoamingShopRoomAccessIsExplicit(CuTest *tc)
 
 void TestRoLShopCheatPricingIsBounded(CuTest *tc)
 {
-  CuAssertTrue(tc, shop_rol_cheat_price_multiplier(FALSE, TRUE) == 1.0f);
-  CuAssertTrue(tc, shop_rol_cheat_price_multiplier(FALSE, FALSE) == 1.0f);
-  CuAssertTrue(tc, shop_rol_cheat_price_multiplier(TRUE, TRUE) == 2.0f);
-  CuAssertTrue(tc, shop_rol_cheat_price_multiplier(TRUE, FALSE) == 0.5f);
+  CuAssertDblEquals(tc, 1.0, shop_rol_cheat_price_multiplier(FALSE, TRUE), 0.0001);
+  CuAssertDblEquals(tc, 1.0, shop_rol_cheat_price_multiplier(FALSE, FALSE), 0.0001);
+  CuAssertDblEquals(tc, 2.0, shop_rol_cheat_price_multiplier(TRUE, TRUE), 0.0001);
+  CuAssertDblEquals(tc, 0.5, shop_rol_cheat_price_multiplier(TRUE, FALSE), 0.0001);
 }
 
 void TestRoLShopMagicPolicyLeavesNativeShopsUnchanged(CuTest *tc)

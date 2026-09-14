@@ -59,7 +59,7 @@ bool wilderness_harvest_available(struct char_data *ch, int category, bool verbo
     return false;
   }
   if (should_harvest_fail_due_to_depletion(IN_ROOM(ch), category) ||
-      calculate_current_resource_level(category, x, y) < 0.1f)
+      calculate_current_resource_level(category, x, y) < 0.1)
   {
     if (verbose)
       send_to_char(ch, "There are insufficient %s resources here to harvest.\r\n",
@@ -245,7 +245,7 @@ static void complete_wilderness_harvest(struct char_data *ch, void *target, void
   struct wilderness_harvest_context *harvest = context;
   int category = harvest->category;
   int skill, rank, roll, success, quality, subtype, quantity, mote, motes;
-  float level;
+  double level;
 
   if (!harvest_recheck(ch, target, context))
     return;

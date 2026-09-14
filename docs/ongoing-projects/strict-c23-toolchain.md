@@ -89,16 +89,15 @@ warning debt, and feature detection that strict flags cannot influence.
 
 ## Budget snapshot
 
-| Compiler | At the start | Now (after step 3.3) |
+| Compiler | At the start | Now (after step 3.2) |
 |----------|--------------|----------------------|
-| GCC 16.2 | 11363 sites, 24 classes | 3818 sites, 17 classes |
-| Clang 22.1.8 | 22878 sites, 23 classes | 5275 sites, 17 classes |
+| GCC 16.2 | 11363 sites, 24 classes | 2824 sites, 14 classes |
+| Clang 22.1.8 | 22878 sites, 23 classes | 4263 sites, 12 classes |
 
-Largest remaining classes: sign conversion (GCC 1814, Clang 3337), value
-conversion (GCC 645, Clang `implicit-int-conversion` 523), double promotion
-(552 and 557), float conversion (GCC 299; Clang 220 implicit, 125 int to
-float, 94 explicit), and the production half of the discarded-qualifier
-warnings (191 each) with `cast-qual` (100 each).
+Largest remaining classes: sign conversion (GCC 1808, Clang 3331), value
+conversion (GCC 533, Clang `implicit-int-conversion` 523), and the
+production half of the discarded-qualifier warnings (191 each) with
+`cast-qual` (100 each).
 
 ## Burn-down progress
 
@@ -126,6 +125,7 @@ per compiler.
 | 3.1 | case-local declarations scoped or hoisted; `jump-misses-init` at zero; flag promoted to baseline | 4087 | 5437 |
 | 3.3 | 265 shadowing declarations renamed within their scope | 3822 | 5279 |
 | 3.3 tail | `REMOVE_FROM_LIST_USING`; last three renames; `shadow` at zero; flag promoted to baseline | 3818 | 5275 |
+| 3.2 | `float` is `double`; unused kdtree float API removed; float `MIN`/`MAX` clamps fixed; float-to-int conversions explicit; float classes at zero | 2824 | 4263 |
 
 Every step was also verified with a host `make test` (1483 tests pass) before
 it was committed, and each promotion to the baseline tier was first built at
@@ -226,6 +226,10 @@ Notes from step 2.5:
   `test_load_zones`), or sit in a function-pointer table typed `char *`
   (`prefedit_parse` in `nanny`'s OLC dispatch) receive a mutable copy from the
   tests instead.
+- The production half of the class (about 290 sites: string tables declared
+  `char *[]`, `one_argument_u((char *)argument, ...)`, `findLine` in the index
+  tools) is step 3.4.
+
 Notes from step 1.3 (first pass):
 
 - `asciiflag_conv` returns a 64-bit `bitvector_t` but every caller stores one
@@ -318,9 +322,42 @@ Notes from step 3.3:
   13 and Clang 18, so a new shadowing declaration now fails the `-Werror`
   jobs instead of the budget.
 
-- The production half of the class (about 290 sites: string tables declared
-  `char *[]`, `one_argument_u((char *)argument, ...)`, `findLine` in the index
-  tools) is step 3.4.
+Notes from step 3.2:
+
+- `float` is `double` in every file outside the kdtree library and the bundled
+  `snprintf`: 798 declarations in 77 files, 447 `f` literal suffixes, four
+  float math calls, `strtof`, and the five `scanf` conversions that read into
+  the changed variables (`%lf` now). Struct fields changed too, instead of the
+  planned casts at each assignment; nothing that changed is written to disk as
+  a binary record.
+- kdtree's float API (`kd_insertf`, `kd_nearestf`, `kd_nearest_rangef`,
+  `kd_res_itemf` and their three-coordinate forms) had no callers and is gone,
+  with three of its `alloca` buffers. `kd_res_item3` tested `*x` instead of
+  `x`, so it dereferenced a null pointer and skipped a zero coordinate, and it
+  always returned 0; it now checks the pointers and returns the item's data
+  like `kd_res_item`.
+- `MIN` and `MAX` truncated doubles to `int`, as step 1.3 found for wide
+  integers. Several were real defects, now calling `FLOATMIN` and `FLOATMAX`:
+  the visual obstruction factor and settlement resource richness were clamped
+  to 0 or 1, the vessel hazard projection likewise, the perception intensity
+  kept for an observer lost its fraction, and `increase_anger` (currently
+  uncalled) could never add less than a whole point. The shop price floor
+  gives the same result either way.
+- The 78 remaining double-to-integer conversions, mostly damage, healing, and
+  duration multipliers such as `dam *= 1.5`, are explicit and truncate as
+  before: a compound assignment becomes `dam = (int)(dam * 1.5)`, and a
+  conversion inside a `MIN` or `MAX` argument casts that argument.
+- The ship record holds a test-enforced 5 KiB budget. Its double coordinates
+  pushed it to 5128 bytes; `discovery_chance`, a percentage compared with
+  `rand_number(1, 100)`, is an `int` now, which brings it back to 5120.
+- Exact floating comparisons: `greyhawk_bearing`'s due-north or due-south
+  branch returned what the general formula already gives and is gone, and
+  its due-east or due-west test uses `DBL_EPSILON`; the mission reward
+  multiplier is derived from the integer difficulty; a zero segment length is
+  `<= 0.0`. Tests compare doubles with `CuAssertDblEquals` or a tolerance; the
+  suite caught two that compared the new doubles against `float` literals.
+- The bundled `snprintf` converts its `long double` values explicitly, and
+  `util/shopconv` reads profit factors as `double`.
 
 ## Remaining work
 
@@ -337,9 +374,9 @@ Notes from step 3.3:
    sites. These are candidate bugs, not noise, and deserve their own issue.
 4. Burn down the rest of the migration budget. Steps 0, 1.1, 1.2, and 2.1 to
    2.6 are done (see the progress table), step 1.3 is done for 64-bit
-   narrowing, and steps 3.1 and 3.3 are done. Left: step 3 (float promotion and
-   conversion, production write-strings and cast-qual, small classes), and the
-   step 4 sign-conversion decision.
+   narrowing, and steps 3.1 to 3.3 are done. Left: step 3 (production
+   write-strings and cast-qual, small classes, the rest of GCC `conversion`),
+   and the step 4 sign-conversion decision.
 5. Cadence. Bump the current versions in `test.yml`,
    `scripts/ci/local/Dockerfile*`, and the setup guide within a month of each
    GCC or LLVM point release; raise the minimum when the runner image drops a
@@ -431,10 +468,7 @@ migration list to the baseline list in `production_profile.sh`.
 
 1. `jump-misses-init` (done). The 446 GCC and 579 Clang sites came from
    sixteen declarations: seven case bodies braced, two declarations hoisted.
-2. `double-promotion` and `float-conversion` (857 GCC, about 1000 Clang):
-   change `float` to `double` in the wilderness and resource files, and give
-   the float-typed struct fields explicit casts at the assignment. Performance
-   is irrelevant on this path.
+2. `double-promotion` and `float-conversion` (done; see the step 3.2 notes).
 3. `shadow` (done; see the step 3.3 notes).
 4. `-Wwrite-strings` in `src/` (188): the 23 in `bsd-snprintf.c` are
    `findLine` and friends taking `char *`; constify the parameters.

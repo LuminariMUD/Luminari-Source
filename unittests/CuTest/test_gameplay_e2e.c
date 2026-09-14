@@ -1,3 +1,4 @@
+#include <math.h>
 #include "CuTest.h"
 #include "test_spec_fixtures.h"
 
@@ -5264,7 +5265,7 @@ void Test_gameplay_quest_resolution_skill_and_witness_use_committed_facts(CuTest
   phenomenon.source = domain_event_character_handle(&f.victim);
   phenomenon.source_room = domain_event_room_handle(0);
   phenomenon.kind = DOMAIN_PHENOMENON_FIRE;
-  phenomenon.intensity = 1.0f;
+  phenomenon.intensity = 1.0;
   phenomenon.channels = DOMAIN_WORLD_PHENOMENON_VISUAL;
   phenomenon.propagation = DOMAIN_WORLD_PROPAGATE_ROOMS;
   phenomenon.visual_range = 0;
@@ -7744,7 +7745,7 @@ void Test_gameplay_npc_phenomenon_interest_replaces_expires_and_investigates(CuT
   perceived.kind = DOMAIN_PHENOMENON_MAGIC_IMPACT;
   perceived.senses = DOMAIN_WORLD_PHENOMENON_AUDIBLE;
   perceived.distance = 1U;
-  perceived.intensity = 1.0f;
+  perceived.intensity = 1.0;
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     DOMAIN_EVENT_PUBLISH(domain_event_runtime_bus(),
                                          DOMAIN_EVENT_PHENOMENON_PERCEIVED, &perceived));
@@ -10786,7 +10787,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   MYSQL_ROW row;
   char query[512];
   char directory[PATH_MAX], temporary[] = "/tmp/luminari-harvest-XXXXXX";
-  float levels[NUM_RESOURCE_TYPES];
+  double levels[NUM_RESOURCE_TYPES];
   int i, x, y, mining_x, mining_y, roll, quality, before, result[17] = {0};
   FILE *env;
   char command[] = "harvest vegetation";
@@ -10842,7 +10843,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   init_perlin(NOISE_MATERIAL_PLANE_MOISTURE, NOISE_MATERIAL_PLANE_MOISTURE_SEED);
   init_perlin(NOISE_MATERIAL_PLANE_ELEV_DIST, NOISE_MATERIAL_PLANE_ELEV_DIST_SEED);
   for (i = 0; i < NUM_RESOURCE_TYPES; i++)
-    levels[i] = 0.9f;
+    levels[i] = 0.9;
   for (x = -100; x <= 100; x += 10)
   {
     y = x / 2;
@@ -10926,7 +10927,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
         result[10] && row && atoi(row[0]) == GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN);
     if (sql_result)
       mysql_free_result(sql_result);
-    result[10] = result[10] && get_resource_depletion_level(0, RESOURCE_HERBS) < 1.0f;
+    result[10] = result[10] && get_resource_depletion_level(0, RESOURCE_HERBS) < 1.0;
   }
   reset_harvest_fixture_output(&descriptor, database);
 
@@ -11005,7 +11006,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   Y_LOC(&fixture.actor) = y;
   char_to_room_cause(&fixture.actor, 0, NULL, DOMAIN_RELOCATION_WALK, SOUTH);
   do_harvest(&fixture.actor, "vegetation", 0, 0);
-  levels[RESOURCE_VEGETATION] = 0.0f;
+  levels[RESOURCE_VEGETATION] = 0.0;
   cache_store_resource_values(x, y, levels);
   pulse += PULSE_VIOLENCE;
   event_test_advance();
@@ -11015,7 +11016,7 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
   do_harvest(&fixture.actor, "vegetation", 0, 0);
   do_harvest(&fixture.actor, "unknown", 0, 0);
   result[7] = !primary_activity_snapshot(&fixture.actor, &snapshot);
-  levels[RESOURCE_VEGETATION] = 0.9f;
+  levels[RESOURCE_VEGETATION] = 0.9;
   cache_store_resource_values(x, y, levels);
 
   /* Capacity failure must not deplete resources or award progression. */
@@ -11030,7 +11031,8 @@ void Test_wilderness_harvest_command_delays_rewards_rechecks_tools_and_preserves
                GET_CRAFT_SKILL_EXP((&fixture.actor), ABILITY_HARVEST_GATHERING) == 0 &&
                strstr(descriptor.output, "cannot hold") != NULL;
   if (database)
-    result[11] = result[11] && get_resource_depletion_level(0, RESOURCE_VEGETATION) == 1.0f;
+    result[11] =
+        result[11] && fabs(get_resource_depletion_level(0, RESOURCE_VEGETATION) - 1.0) < 0.0001;
   GET_CRAFT_MAT((&fixture.actor), CRAFT_MAT_SATIN) = before;
   reset_harvest_fixture_output(&descriptor, database);
 

@@ -1588,7 +1588,7 @@ int get_exploration_dc(struct char_data *ch)
   if (STATE(ch->desc) != CON_PLAYING)
     return 9999;
 
-  int dc = ((int)GET_LEVEL(ch) / 1.5) + 15;
+  int dc = (int)(((int)GET_LEVEL(ch) / 1.5) + 15);
 
   return dc;
 }

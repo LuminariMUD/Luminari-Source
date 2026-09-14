@@ -481,8 +481,9 @@ ranktype rank_weight(struct char_data *ch)
 
 ranktype rank_fatness(struct char_data *ch)
 {
-  float bmi;
-  bmi = ((float)GET_WEIGHT(ch) * 10000.0) / (2.2 * (float)GET_HEIGHT(ch) * (float)GET_HEIGHT(ch));
+  double bmi;
+  bmi =
+      ((double)GET_WEIGHT(ch) * 10000.0) / (2.2 * (double)GET_HEIGHT(ch) * (double)GET_HEIGHT(ch));
   snprintf(kbuf, sizeof(kbuf), "%20.2f", bmi);
   return (kbuf);
 } /* end rank_fatness */

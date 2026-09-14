@@ -2569,7 +2569,7 @@ static double mysql_point_to_segment_dist_sq(double px, double py, double x1, do
   double t;
   double proj_x, proj_y, diff_x, diff_y;
 
-  if (len_sq == 0.0)
+  if (len_sq <= 0.0)
   {
     double dpx = px - x1;
     double dpy = py - y1;

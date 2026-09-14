@@ -246,33 +246,33 @@ enum salt_subtypes
 /* Resource configuration for each type */
 struct resource_config
 {
-  int noise_layer;           /* Which Perlin noise layer to use */
-  float base_multiplier;     /* Global scaling factor (0.0-2.0) */
-  float regen_rate_per_hour; /* Regeneration rate per hour (0.0-1.0) */
-  float depletion_threshold; /* Maximum harvest before depletion (0.0-1.0) */
-  int quality_variance;      /* Quality variation percentage (0-100) */
-  bool seasonal_affected;    /* Whether seasons affect this resource */
-  bool weather_affected;     /* Whether weather affects this resource */
-  int harvest_skill;         /* Associated harvest skill */
-  const char *name;          /* Display name */
-  const char *description;   /* Detailed description */
+  int noise_layer;            /* Which Perlin noise layer to use */
+  double base_multiplier;     /* Global scaling factor (0.0-2.0) */
+  double regen_rate_per_hour; /* Regeneration rate per hour (0.0-1.0) */
+  double depletion_threshold; /* Maximum harvest before depletion (0.0-1.0) */
+  int quality_variance;       /* Quality variation percentage (0-100) */
+  bool seasonal_affected;     /* Whether seasons affect this resource */
+  bool weather_affected;      /* Whether weather affects this resource */
+  int harvest_skill;          /* Associated harvest skill */
+  const char *name;           /* Display name */
+  const char *description;    /* Detailed description */
 };
 
 /* Resource node for KD-tree storage - tracks harvest history */
 struct resource_node
 {
-  int x, y;                                  /* Coordinates */
-  float consumed_amount[NUM_RESOURCE_TYPES]; /* Amount harvested (0.0-1.0) */
-  time_t last_harvest[NUM_RESOURCE_TYPES];   /* Timestamp of last harvest */
-  int harvest_count[NUM_RESOURCE_TYPES];     /* Number of times harvested */
-  struct resource_node *left, *right;        /* KD-tree structure */
+  int x, y;                                   /* Coordinates */
+  double consumed_amount[NUM_RESOURCE_TYPES]; /* Amount harvested (0.0-1.0) */
+  time_t last_harvest[NUM_RESOURCE_TYPES];    /* Timestamp of last harvest */
+  int harvest_count[NUM_RESOURCE_TYPES];      /* Number of times harvested */
+  struct resource_node *left, *right;         /* KD-tree structure */
 };
 
 /* Resource cache node for spatial caching */
 struct resource_cache_node
 {
   int x, y;                                 /* Coordinates */
-  float cached_values[NUM_RESOURCE_TYPES];  /* Cached resource levels */
+  double cached_values[NUM_RESOURCE_TYPES]; /* Cached resource levels */
   time_t cache_time;                        /* When this was cached */
   struct resource_cache_node *left, *right; /* KD-tree structure */
 };
@@ -285,7 +285,7 @@ struct resource_cache_node
 /* Resource abundance descriptions */
 struct resource_abundance
 {
-  float min_level;
+  double min_level;
   const char *description;
   const char *survey_text;
 };
@@ -293,16 +293,16 @@ struct resource_abundance
 /* Function prototypes */
 
 /* Core resource calculation functions */
-float calculate_current_resource_level(int resource_type, int x, int y);
-float get_base_resource_value(int resource_type, int x, int y);
-float apply_environmental_modifiers(int resource_type, int x, int y, float base_value);
-float apply_harvest_regeneration(int resource_type, float base_value, struct resource_node *node);
-float apply_region_resource_modifiers(int resource_type, int x, int y, float base_value);
+double calculate_current_resource_level(int resource_type, int x, int y);
+double get_base_resource_value(int resource_type, int x, int y);
+double apply_environmental_modifiers(int resource_type, int x, int y, double base_value);
+double apply_harvest_regeneration(int resource_type, double base_value, struct resource_node *node);
+double apply_region_resource_modifiers(int resource_type, int x, int y, double base_value);
 
 /* Environmental modifier functions */
-float get_seasonal_modifier(int resource_type);
-float get_weather_modifier(int resource_type, int weather);
-float get_terrain_resource_multiplier(int resource_type, int terrain_type);
+double get_seasonal_modifier(int resource_type);
+double get_weather_modifier(int resource_type, int weather);
+double get_terrain_resource_multiplier(int resource_type, int terrain_type);
 
 /* Resource node management */
 struct resource_node *find_or_create_resource_node(int x, int y);
@@ -312,20 +312,20 @@ void kdtree_remove_resource_node(int x, int y);
 void cleanup_old_resource_nodes(void);
 
 /* Resource quality and description functions */
-int determine_resource_quality(int resource_type, int x, int y, float level);
-const char *get_abundance_description(float level);
-const char *get_quality_description(int resource_type, int x, int y, float level);
+int determine_resource_quality(int resource_type, int x, int y, double level);
+const char *get_abundance_description(double level);
+const char *get_quality_description(int resource_type, int x, int y, double level);
 const char *get_resource_name(int resource_type);
 int parse_resource_type(const char *arg);
 
 /* Resource mapping and display */
-char get_resource_map_symbol(float level);
-char get_resource_map_symbol_with_coords(float level, int x, int y);
-const char *get_resource_color(float level);
+char get_resource_map_symbol(double level);
+char get_resource_map_symbol_with_coords(double level, int x, int y);
+const char *get_resource_color(double level);
 
 /* Resource caching functions */
 struct resource_cache_node *cache_find_resource_values(int x, int y);
-void cache_store_resource_values(int x, int y, float values[NUM_RESOURCE_TYPES]);
+void cache_store_resource_values(int x, int y, double values[NUM_RESOURCE_TYPES]);
 void cache_cleanup_expired(void);
 void cache_clear_all(void);
 int cache_get_stats(int *total_nodes, int *expired_nodes);
@@ -382,8 +382,8 @@ int get_max_subtypes_for_category(int category);
 bool is_wilderness_only_material(int category, int subtype);
 
 /* Material harvesting functions */
-int determine_harvested_material_subtype(int resource_type, int x, int y, float level);
-int calculate_material_quality_from_resource(int resource_type, int x, int y, float level);
+int determine_harvested_material_subtype(int resource_type, int x, int y, double level);
+int calculate_material_quality_from_resource(int resource_type, int x, int y, double level);
 
 /* Material utility functions */
 void init_material_storage(struct char_data *ch);
@@ -419,7 +419,7 @@ int attempt_wilderness_harvest(struct char_data *ch, int resource_type);
 int can_harvest_resource_in_terrain(int resource_type, int sector_type);
 int get_harvest_skill_level(struct char_data *ch, int resource_type);
 int get_harvest_skill(int resource_type);
-int get_harvest_difficulty(int resource_type, float resource_level);
+int get_harvest_difficulty(int resource_type, double resource_level);
 int calculate_harvest_quality(struct char_data *ch, int resource_type, int success_roll,
                               int skill_level);
 int calculate_harvest_quantity(struct char_data *ch, int resource_type, int success_roll,

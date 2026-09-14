@@ -686,7 +686,7 @@ void complete_quest(struct char_data *ch, int index)
   /* any quest point reward for this quest?  Each message reports what was applied. */
   if (IS_HAPPYHOUR && IS_HAPPYQP)
   {
-    happy_qp = (int)(QST_POINTS(rnum) * (((float)(100 + HAPPY_QP)) / (float)100));
+    happy_qp = (int)(QST_POINTS(rnum) * (((double)(100 + HAPPY_QP)) / (double)100));
     happy_qp = MAX(happy_qp, 0);
     awarded = award_quest_points(ch, happy_qp);
   }
@@ -702,7 +702,7 @@ void complete_quest(struct char_data *ch, int index)
   {
     if ((IS_HAPPYHOUR) && (IS_HAPPYGOLD))
     {
-      happy_gold = (int)(QST_GOLD(rnum) * (((float)(100 + HAPPY_GOLD)) / (float)100));
+      happy_gold = (int)(QST_GOLD(rnum) * (((double)(100 + HAPPY_GOLD)) / (double)100));
       happy_gold = MAX(happy_gold, 0);
       awarded = award_gold(ch, happy_gold);
     }

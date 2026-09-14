@@ -5212,7 +5212,7 @@ static int damage_handling_with_weapon(struct char_data *ch, struct char_data *v
   bool is_spell = FALSE;
   bool is_ranged;
   int damage_reduction = 0, dr_reduction = 0;
-  float damtype_reduction = 0;
+  double damtype_reduction = 0;
 
   is_ranged = is_ranged_weapon_attack(attack_mode);
 
@@ -5420,7 +5420,7 @@ static int damage_handling_with_weapon(struct char_data *ch, struct char_data *v
 
     else if (is_spell && IS_NPC(ch))
     {
-      dam *= 0.75;
+      dam = (int)(dam * 0.75);
     }
 
     else if (!is_spell && victim && IS_EVIL(victim) &&
@@ -5513,8 +5513,8 @@ static int damage_handling_with_weapon(struct char_data *ch, struct char_data *v
     // some damage types cannot be reduced or resisted, such as a vampire's blood drain ability
     if (can_dam_be_resisted(dam_type))
     {
-      damtype_reduction = (float)compute_damtype_reduction(victim, dam_type, ch, attacktype);
-      damtype_reduction = (((float)(damtype_reduction / 100.0)) * (float)dam);
+      damtype_reduction = (double)compute_damtype_reduction(victim, dam_type, ch, attacktype);
+      damtype_reduction = (((double)(damtype_reduction / 100.0)) * (double)dam);
       dam -= (int)damtype_reduction;
     }
 
@@ -5908,7 +5908,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
   { // determine gold before corpse created
     if ((IS_HAPPYHOUR) && (IS_HAPPYGOLD))
     {
-      happy_gold = (long)(GET_GOLD(victim) * (((float)(HAPPY_GOLD)) / (float)100));
+      happy_gold = (long)(GET_GOLD(victim) * (((double)(HAPPY_GOLD)) / (double)100));
       happy_gold = long_max(0, happy_gold);
       award_gold(victim, (int)happy_gold);
     }
@@ -9215,14 +9215,14 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
       dam *= 2;
       break;
     case POS_STUNNED:
-      dam *= 1.25;
+      dam = (int)(dam * 1.25);
       break;
     case POS_INCAP:
-      dam *= 1.5;
+      dam = (int)(dam * 1.5);
       break;
     case POS_MORTALLYW:
     case POS_DEAD:
-      dam *= 1.75;
+      dam = (int)(dam * 1.75);
       break;
     case POS_STANDING:
     case POS_FIGHTING:

@@ -19705,7 +19705,7 @@ int get_arcane_annihilation_dc_bonus(struct char_data *ch)
  * @param ch The character
  * @return Duration multiplier (2.0 or 1.0)
  */
-float get_master_enchanter_duration_multiplier(struct char_data *ch)
+double get_master_enchanter_duration_multiplier(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch))
     return 1.0;
@@ -19723,7 +19723,7 @@ float get_master_enchanter_duration_multiplier(struct char_data *ch)
  * @param ch The character
  * @return Duration multiplier (1.5 or 1.0)
  */
-float get_master_transmuter_duration_multiplier(struct char_data *ch)
+double get_master_transmuter_duration_multiplier(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch))
     return 1.0;
@@ -19742,7 +19742,7 @@ float get_master_transmuter_duration_multiplier(struct char_data *ch)
  * @param ch The character
  * @return Duration multiplier (1.5 or 1.0)
  */
-float get_archmage_control_duration_multiplier(struct char_data *ch)
+double get_archmage_control_duration_multiplier(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch))
     return 1.0;
@@ -20634,7 +20634,7 @@ bool check_druid_spell_critical(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-float get_druid_spell_critical_multiplier(struct char_data *ch __attribute__((unused)))
+double get_druid_spell_critical_multiplier(struct char_data *ch __attribute__((unused)))
 {
   return 1.0;
 }

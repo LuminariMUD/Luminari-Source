@@ -4818,13 +4818,13 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
     GET_MAX_HIT(mob) += 500;
 
     if (GET_LEVEL(mob) > 30)
-      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
+      GET_MAX_HIT(mob) = (int)(GET_MAX_HIT(mob) + GET_MAX_HIT(mob) * 0.1);
     if (GET_LEVEL(mob) > 31)
-      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
+      GET_MAX_HIT(mob) = (int)(GET_MAX_HIT(mob) + GET_MAX_HIT(mob) * 0.1);
     if (GET_LEVEL(mob) > 32)
-      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
+      GET_MAX_HIT(mob) = (int)(GET_MAX_HIT(mob) + GET_MAX_HIT(mob) * 0.1);
     if (GET_LEVEL(mob) > 33)
-      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
+      GET_MAX_HIT(mob) = (int)(GET_MAX_HIT(mob) + GET_MAX_HIT(mob) * 0.1);
   }
 
   GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob);
@@ -8307,7 +8307,7 @@ void load_config(void)
   char line[MAX_STRING_LENGTH] = {'\0'};
   char tag[MAX_INPUT_LENGTH] = {'\0'};
   int num = 0;
-  float fl_num = 0.0;
+  double fl_num = 0.0;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   load_default_config();
@@ -8325,7 +8325,7 @@ void load_config(void)
   {
     split_argument(line, tag);
     num = atoi(line);
-    sscanf(line, "%f", &fl_num); /*grab a float number */
+    sscanf(line, "%lf", &fl_num); /*grab a float number */
 
     switch (LOWER(*tag))
     {

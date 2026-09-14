@@ -2971,13 +2971,13 @@ int rand_number(int from, int to)
  * @param from The lower bounds of the random number.
  * @param to The upper bounds of the random number.
  * @retval int The resulting randomly generated number. */
-float rand_float(float from, float to)
+double rand_float(double from, double to)
 {
-  float ret;
+  double ret;
   /* error checking in case people call this incorrectly */
   if (from > to)
   {
-    float tmp = from;
+    double tmp = from;
     from = to;
     to = tmp;
     log("SYSERR: rand_float() should be called with lowest, then highest. (%f, %f), not (%f, %f).",
@@ -3023,7 +3023,7 @@ int MIN(int a, int b)
   return (a < b ? a : b);
 }
 
-float FLOATMIN(float a, float b)
+double FLOATMIN(double a, double b)
 {
   return (a < b ? a : b);
 }
@@ -3037,7 +3037,7 @@ int MAX(int a, int b)
   return (a > b ? a : b);
 }
 
-float FLOATMAX(float a, float b)
+double FLOATMAX(double a, double b)
 {
   return (a > b ? a : b);
 }

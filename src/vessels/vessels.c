@@ -6,6 +6,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <float.h>
 #include <math.h>
 #include "structs.h"
 #include "utils.h"
@@ -577,7 +578,7 @@ static bool vessel_can_traverse_sector(enum vessel_class vessel_type, int sector
     return FALSE;
   }
 
-  return caps->terrain_speed_mod[sector_type] != 0;
+  return caps->terrain_speed_mod[sector_type] > 0.0;
 }
 
 /**
@@ -1278,14 +1279,14 @@ int greyhawk_weaprange(int shipnum, int slot, char range)
   switch (range)
   {
   case GREYHAWK_SHRTRANGE:
-    return (int)((float)(greyhawk_ships[shipnum].slot[slot].val0 -
-                         greyhawk_ships[shipnum].slot[slot].val1) /
+    return (int)((double)(greyhawk_ships[shipnum].slot[slot].val0 -
+                          greyhawk_ships[shipnum].slot[slot].val1) /
                      3 +
                  greyhawk_ships[shipnum].slot[slot].val1);
   case GREYHAWK_MEDRANGE:
-    return (int)((float)((greyhawk_ships[shipnum].slot[slot].val0 -
-                          greyhawk_ships[shipnum].slot[slot].val1) /
-                         3) *
+    return (int)((double)((greyhawk_ships[shipnum].slot[slot].val0 -
+                           greyhawk_ships[shipnum].slot[slot].val1) /
+                          3) *
                      2 +
                  greyhawk_ships[shipnum].slot[slot].val1);
   case GREYHAWK_LNGRANGE:
@@ -1303,26 +1304,19 @@ int greyhawk_weaprange(int shipnum, int slot, char range)
  * @param y2 Target Y coordinate
  * @return Bearing in degrees (0-360)
  */
-int greyhawk_bearing(float x1, float y1, float x2, float y2)
+int greyhawk_bearing(double x1, double y1, double x2, double y2)
 {
   int val;
 
-  if (y1 == y2)
+  /* due east or west; the general case below also covers due north and south */
+  if (fabs(y2 - y1) < DBL_EPSILON)
   {
     if (x1 > x2)
       return 270;
     return 90;
   }
 
-  if (x1 == x2)
-  {
-    if (y1 > y2)
-      return 180;
-    else
-      return 0;
-  }
-
-  val = atan((x2 - x1) / (y2 - y1)) * 180 / M_PI;
+  val = (int)(atan((x2 - x1) / (y2 - y1)) * 180 / M_PI);
 
   if (y1 < y2)
   {
@@ -1346,11 +1340,11 @@ int greyhawk_bearing(float x1, float y1, float x2, float y2)
  * @param z2 Target Z coordinate
  * @return 3D distance
  */
-float greyhawk_range(float x1, float y1, float z1, float x2, float y2, float z2)
+double greyhawk_range(double x1, double y1, double z1, double x2, double y2, double z2)
 {
-  float dx = x2 - x1;
-  float dy = y2 - y1;
-  float dz = z2 - z1;
+  double dx = x2 - x1;
+  double dy = y2 - y1;
+  double dz = z2 - z1;
 
   return sqrt((dx * dx) + (dy * dy) + (dz * dz));
 }
@@ -1592,9 +1586,9 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
   }
 
   /* Commit coordinates only after room allocation and departure clearance. */
-  greyhawk_ships[shipnum].x = (float)new_x;
-  greyhawk_ships[shipnum].y = (float)new_y;
-  greyhawk_ships[shipnum].z = (float)new_z;
+  greyhawk_ships[shipnum].x = (double)new_x;
+  greyhawk_ships[shipnum].y = (double)new_y;
+  greyhawk_ships[shipnum].z = (double)new_z;
 
   /* Update ship's location to the wilderness room */
   greyhawk_ships[shipnum].location = world[wilderness_room].number;
@@ -2458,7 +2452,7 @@ ACMD(do_greyhawk_heading)
 struct contact_entry
 {
   int shipnum;
-  float range;
+  double range;
   int bearing;
 };
 
@@ -2512,8 +2506,8 @@ ACMD(do_greyhawk_contacts)
   {
     if (is_valid_ship(&greyhawk_ships[i]) && i != shipnum)
     {
-      float range = greyhawk_range(ship_x, ship_y, ship_z, greyhawk_ships[i].x, greyhawk_ships[i].y,
-                                   greyhawk_ships[i].z);
+      double range = greyhawk_range(ship_x, ship_y, ship_z, greyhawk_ships[i].x,
+                                    greyhawk_ships[i].y, greyhawk_ships[i].z);
 
       if (range <= CONTACT_DETECTION_RANGE)
       {

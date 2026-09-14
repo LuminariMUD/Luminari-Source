@@ -1531,7 +1531,7 @@ static void cedit_disp_autowiz_options(struct descriptor_data *d)
 void cedit_parse(struct descriptor_data *d, char *arg)
 {
   char *oldtext = NULL;
-  float f_num;
+  double f_num;
   int i;
 
   switch (OLC_MODE(d))
@@ -3414,7 +3414,7 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     break;
   case CEDIT_POPULARITY:
-    if (sscanf(arg, "%f", &f_num) != 1)
+    if (sscanf(arg, "%lf", &f_num) != 1)
     {
       write_to_output(d, "Please enter a number from 0 to 100.\r\n");
       cedit_disp_game_play_options(d);

@@ -237,7 +237,7 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
 void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
                         int engaged __attribute__((unused)))
 {
-  float percent = ((float)GET_HIT(ch) / (float)GET_MAX_HIT(ch)) * 100.0;
+  double percent = ((double)GET_HIT(ch) / (double)GET_MAX_HIT(ch)) * 100.0;
 
   /* list of skills to use:
    1) call mount

@@ -209,7 +209,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
    * an appropriate set of skills, mostly for intelligent, humanoid
    * NPCs. For now, just use the level, although that will be difficult. */
   if (IS_NPC(ch))
-    value += GET_LEVEL(ch) * 0.75;
+    value = (int)(value + GET_LEVEL(ch) * 0.75);
   else
     value += GET_ABILITY(ch, abilityNum);
 

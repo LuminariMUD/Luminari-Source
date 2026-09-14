@@ -626,8 +626,8 @@ int get_distance(struct char_data *ch, int locale, int here, int type)
   dx = xt - xf;
   dy = yt - yf;
 
-  total = pow(dx, 2) + pow(dy, 2);
-  dist = sqrt(total);
+  total = (int)(pow(dx, 2) + pow(dy, 2));
+  dist = (int)(sqrt(total));
 
   return dist / 2;
 }

@@ -217,7 +217,7 @@ struct domain_world_phenomenon
   int visual_range;
   int audio_range;
   int minimum_range;
-  float intensity;
+  double intensity;
   uint32_t channels;
   uint32_t propagation;
   int audio_frequency;
@@ -234,7 +234,7 @@ struct domain_phenomenon_perceived
   enum domain_world_phenomenon_kind kind;
   uint32_t senses;
   unsigned int distance;
-  float intensity;
+  double intensity;
   bool source_known;
 };
 

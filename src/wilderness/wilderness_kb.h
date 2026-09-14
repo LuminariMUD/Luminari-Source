@@ -65,7 +65,7 @@ struct terrain_stats
 {
   int total_tiles;
   int sector_counts[NUM_ROOM_SECTORS];
-  float sector_percentages[NUM_ROOM_SECTORS];
+  double sector_percentages[NUM_ROOM_SECTORS];
   int min_elevation, max_elevation, avg_elevation;
   int min_temp, max_temp, avg_temp;
   int min_moisture, max_moisture, avg_moisture;
@@ -86,7 +86,7 @@ struct resource_hotspot
 {
   int x, y;
   int resource_type;
-  float density;
+  double density;
   struct resource_hotspot *next;
 };
 
@@ -117,7 +117,7 @@ struct spatial_relationship
 {
   int from_x, from_y;
   int to_x, to_y;
-  float distance;
+  double distance;
   int direction;          /* 0-7 for N,NE,E,SE,S,SW,W,NW */
   char relation_type[32]; /* "adjacent", "contains", "overlaps" */
   struct spatial_relationship *next;
@@ -126,16 +126,16 @@ struct spatial_relationship
 struct resource_correlation
 {
   int resource_type_1, resource_type_2;
-  float correlation_coefficient;
+  double correlation_coefficient;
   int co_occurrence_count;
-  float avg_distance_between;
+  double avg_distance_between;
 };
 
 struct transition_zone
 {
   int x, y;
   int from_biome, to_biome;
-  float gradient_strength;
+  double gradient_strength;
   int edge_type; /* 0=sharp, 1=gradual, 2=ecotone */
   int transition_width;
   struct transition_zone *next;
@@ -146,19 +146,19 @@ struct ocean_depth_profile
   int distance_from_shore;
   int avg_depth, min_depth, max_depth;
   int shelf_width;
-  float slope_angle;
+  double slope_angle;
 };
 
 struct habitability_score
 {
   int x, y;
-  float water_access;          /* 0.0-1.0 */
-  float resource_richness;     /* 0.0-1.0 */
-  float terrain_difficulty;    /* 0.0-1.0, lower is better */
-  float defense_rating;        /* 0.0-1.0 */
-  float agriculture_potential; /* 0.0-1.0 */
-  float trade_access;          /* 0.0-1.0 */
-  float overall_score;         /* 0.0-1.0 */
+  double water_access;          /* 0.0-1.0 */
+  double resource_richness;     /* 0.0-1.0 */
+  double terrain_difficulty;    /* 0.0-1.0, lower is better */
+  double defense_rating;        /* 0.0-1.0 */
+  double agriculture_potential; /* 0.0-1.0 */
+  double trade_access;          /* 0.0-1.0 */
+  double overall_score;         /* 0.0-1.0 */
 };
 
 struct network_node
@@ -167,7 +167,7 @@ struct network_node
   int node_type; /* 0=intersection, 1=endpoint, 2=waypoint */
   int *connected_nodes;
   int num_connections;
-  float centrality_score;
+  double centrality_score;
   int is_bottleneck;
   struct network_node *next;
 };
@@ -179,8 +179,8 @@ struct feature_cluster
   int center_x, center_y;
   int *member_coords; /* Flattened x,y pairs */
   int num_members;
-  float density;
-  float avg_distance_between_members;
+  double density;
+  double avg_distance_between_members;
   struct feature_cluster *next;
 };
 
@@ -242,8 +242,8 @@ void write_ocean_json(FILE *fp);
 void report_progress(const char *stage, int percent);
 int is_land_tile(int x, int y);
 int get_biome_at(int x, int y);
-float get_resource_density(int x, int y, int resource_type);
-float calculate_distance(int x1, int y1, int x2, int y2);
+double get_resource_density(int x, int y, int resource_type);
+double calculate_distance(int x1, int y1, int x2, int y2);
 int get_direction(int from_x, int from_y, int to_x, int to_y);
 
 /* Map types for ASCII visualization */
