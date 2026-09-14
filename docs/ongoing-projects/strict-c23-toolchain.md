@@ -623,13 +623,12 @@ Notes from the local CI run and the analyzer triage:
    `actions/cache` inside the `gcc:16.2` container cannot be replicated locally.
    Pull request #185 is open; watch its first run, where the compiler check step
    is the first thing that would fail if the runner's toolchain differs.
-2. Dispatch `toolchain-analysis.yml` once by hand to confirm its wall time fits
-   the job timeout. GitHub dispatches only workflows that exist on the default
-   branch, and this one is new on the branch, so the first manual run has to
-   follow the merge. Locally, with `class.c` left out of the analyzer, a
-   runner-shaped build of the server target took under four minutes and peaked
-   at 6.6 GiB for one compile, well inside the 120-minute timeout and the
-   runner's 16 GiB.
+2. Done: `toolchain-analysis.yml` ran by hand on `master` after the merge (run
+   34894872217) and passed. The GCC 16.2 analysis build took 5 minutes 46
+   seconds, 6.5 minutes for the whole job against its 120-minute timeout, and
+   reported the same 1713 distinct warning sites in 11 classes as the local
+   runner-shaped build. The Clang 22 analysis build took about a minute, and
+   both GNU extension reports passed.
 3. Done: the analyzer triage. Every class is triaged (see the notes above); the
    reports left are the false positives listed there.
 4. Done: the migration budget is burned down. Steps 0, 1.1, 1.2, and 2.1 to
