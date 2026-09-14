@@ -564,11 +564,11 @@ Notes from the local CI run and the analyzer triage:
   over 331 files. The heaviest compiles were `fight.c` (89 seconds, 6.6 GiB),
   `crafting_new.c` (71 seconds), and `magic.c` (3.4 GiB).
   Distinct analyzer sites by class, after the fixes below:
-  54 `malloc-leak`, 23 `null-dereference`, 11 `out-of-bounds`, 7
-  `possible-null-argument`, 4 `possible-null-dereference`, 3
-  `use-of-uninitialized-value`, 3 `fd-leak`, 2 `deref-before-check`, and 1
-  each of `use-after-free`, `null-argument`, `tainted-array-index`, and
-  `imprecise-fp-arithmetic` (111 sites).
+  42 `malloc-leak`, 11 `out-of-bounds`, 7 `possible-null-argument`, 4
+  `possible-null-dereference`, 3 `use-of-uninitialized-value`, 3 `fd-leak`, 2
+  `deref-before-check`, 2 `null-dereference`, and 1 each of
+  `tainted-array-index`, `use-after-free`, `imprecise-fp-arithmetic`, and
+  `null-argument` (78 sites).
   Fixed from the triage: a double free between `free_claim` and
   `remove_claim_from_list`; `ascii_convert_house` returning failure at end of
   file without closing its files; `board_load_board` leaking its `FILE` on
@@ -580,9 +580,27 @@ Notes from the local CI run and the analyzer triage:
   from the logon file. Confirmed false positives: the tokenizer over-reads
   (the array is NULL-terminated), `perform_complex_alias` (indexes are bounded
   by `num_of_tokens`), the Discord and terrain server sockets (every error
-  path closes them), `insert_object`, and `count_commands`. The `malloc-leak`
-  reports and the rest of the `null-dereference` reports still need a
-  dedicated pass.
+  path closes them), `insert_object`, and `count_commands`.
+  A second pass fixed 21 `null-dereference` sites and 24 leaks. `ACMDU` handed a
+  NULL argument to six command bodies, and `buyarmor` and `buyweapons` read the
+  argument of a NULL-argument call; kick, slam, and faerie fire kept a NULL
+  victim when the fight was in another room; a zone `M` command used a mobile
+  that failed to load; `find_case`, `find_done`, and the `break` handler walked
+  off the end of a trigger whose nested `while` or `switch` has no `done`; a
+  quest-complete countdown, a room trap event, and a mob `dg_cast` without a mob
+  used a NULL character or room; and `eldritch_blast`, the connection pool, and
+  bone armor used a pointer they had not checked. The leaks were a `strdup`
+  passed to callees that never free it (`do_hit`, `do_charge`, three alchemy
+  commands, mission mobs, and the vendor armor list), setters that overwrote a
+  string without freeing it (crafting keywords and descriptions, buildwalk, the
+  retainer recipient, new mail, the supply order description, and the vampire
+  cloak rename, which now leaves prototype strings alone), and early returns in
+  `replace_str`, `House_save_control`, `do_eqrating`, and `load_dr`. The two
+  `null-dereference` reports left follow the NULL check inside
+  `get_character_transport` into commands whose character is never NULL. The
+  `malloc-leak` reports left are pointers stored into character, account, OLC,
+  object, and list structures that the analyzer stops tracking; several are
+  setters fixed above for their old value.
 
 ## Remaining work
 
@@ -596,10 +614,12 @@ Notes from the local CI run and the analyzer triage:
    minutes and peaked at 6.6 GiB for one compile, well inside the 120-minute
    timeout and the runner's 16 GiB; the dispatch still has to confirm the
    container and cache steps.
-3. Finish the analyzer triage. The use-after-free, double-free,
-   out-of-bounds, leak-of-handle, and uninitialized-value classes are triaged
-   (see the notes above); the `malloc-leak` and `null-dereference` classes
-   still deserve their own issue.
+3. Finish the analyzer triage. The use-after-free, double-free, out-of-bounds,
+   leak-of-handle, uninitialized-value, `malloc-leak`, and `null-dereference`
+   classes are triaged (see the notes above); the `possible-null-argument`,
+   `possible-null-dereference`, `deref-before-check`, `null-argument`,
+   `tainted-array-index`, and `imprecise-fp-arithmetic` reports (16 sites) are
+   not.
 4. Done: the migration budget is burned down. Steps 0, 1.1, 1.2, and 2.1 to
    2.6 are done (see the progress table), step 1.3 is done for 64-bit
    narrowing, steps 3 and 4 are done, and value conversion is at zero, so the
