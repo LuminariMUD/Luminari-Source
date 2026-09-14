@@ -10464,7 +10464,7 @@ static void show_hint_index(struct char_data *ch, int roll)
 
 void show_hint_one(struct char_data *ch)
 {
-  show_hint_index(ch, dice(1, NUM_HINTS) - 1);
+  show_hint_index(ch, dice(1, (int)NUM_HINTS) - 1);
 }
 
 
