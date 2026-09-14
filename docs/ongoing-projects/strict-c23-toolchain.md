@@ -95,9 +95,11 @@ warning debt, and feature detection that strict flags cannot influence.
   `8584422ae` in 7 minutes (`--jobs 3 --cpus 4`), as they did on `70ff161ed`
   before the `class.c` analyzer exclusion. On the analyzer leak and null fixes
   (`96b8600c6`) 27 passed; the process-memory monitor test raced a fake MUD
-  process that had not finished its exec, and the Clang production-profile
-  job passed again once the test waited for it (`ea2f763ea`). The first run
-  failed as described in the notes below.
+  process that had not finished its exec, and the Clang production-profile job
+  passed again once the test waited for it (`ea2f763ea`). The autorun
+  supervision test raced the same way on `cd8b625b5`, reading `.mud.identity`
+  before autorun wrote it, and all 28 jobs passed on `352b94fb3` once it waited.
+  The first run failed as described in the notes below.
 
 ## Budget snapshot
 
@@ -617,10 +619,10 @@ Notes from the local CI run and the analyzer triage:
 
 ## Remaining work
 
-1. GitHub-side confirmation. Container jobs, the apt.llvm.org install step,
-   and `actions/cache` inside the `gcc:16.2` container cannot be replicated
-   locally. Open the pull request and watch the first run; the compiler check
-   step is the first thing that would fail if the runner's toolchain differs.
+1. GitHub-side confirmation. Container jobs, the apt.llvm.org install step, and
+   `actions/cache` inside the `gcc:16.2` container cannot be replicated locally.
+   Pull request #185 is open; watch its first run, where the compiler check step
+   is the first thing that would fail if the runner's toolchain differs.
 2. Dispatch `toolchain-analysis.yml` once by hand to confirm its wall time fits
    the job timeout. GitHub dispatches only workflows that exist on the default
    branch, and this one is new on the branch, so the first manual run has to
