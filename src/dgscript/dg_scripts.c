@@ -904,7 +904,7 @@ static bool schedule_trig_wait(struct trig_data *trig, void *go, int type, long 
     log("SYSERR: unable to replace a DG wait while its prior event is dispatching.");
     return false;
   }
-  when = MAX(when, 1L);
+  when = long_max(when, 1L);
   CREATE(wait_event_obj, struct wait_event_data, 1);
   wait_event_obj->trigger = trig;
   wait_event_obj->go = go;

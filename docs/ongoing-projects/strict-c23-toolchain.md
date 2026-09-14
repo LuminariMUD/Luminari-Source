@@ -120,6 +120,7 @@ per compiler.
 | 2.4 | `static` file-local functions, prototypes in owning headers, dead code removed; `-Wmissing-prototypes` promoted to baseline | 5775 | 7262 |
 | 2.5 | const-correct test fixtures and five read-only parameters | 5188 | 6675 |
 | 1.3a | explicit casts where 64-bit values narrow to `int` outside macros; `oedit` `max_val` is `int` | 4793 | 6278 |
+| 1.3b | width-matched `long_min`, `size_min`, `u64_min` and friends where `MIN` and `MAX` truncated their arguments | 4701 | 6183 |
 
 Every step was also verified with a host `make test` (1483 tests pass) before
 it was committed, and each promotion to the baseline tier was first built at
@@ -235,6 +236,25 @@ Notes from step 1.3 (first pass):
   `MAX_BANK` (2140000000), both below `INT_MAX`.
 - The object editor's `max_val` was `long` although its largest value is
   400000000.
+
+Notes from step 1.3 (second pass):
+
+- `MIN` and `MAX` are not macros here but `int MIN(int, int)` and
+  `int MAX(int, int)` in `utils.c`, so a wider argument is truncated before
+  the comparison. Seventy calls passed `long`, `size_t`, `uint64_t`, or
+  `long long` values. They now call width-matched `static inline` helpers in
+  `utils.h` (`long_min`/`long_max`, `size_min`/`size_max`,
+  `u64_min`/`u64_max`, `llong_min`/`llong_max`). Several were real defects:
+  - `delay_activity` computed `MIN(LONG_MAX - delay, remaining_delay) + delay`;
+    `LONG_MAX - delay` truncated to `-1 - delay`, so every extension set the
+    remaining delay to -1.
+  - The staff event, transport, and moving-room tick conversions clamped
+    `MIN((game_tick_t)INT_MAX, ticks)` after truncating `ticks`, so a count of
+    2^31 or more came back truncated instead of saturating at `INT_MAX`.
+  - Artifact claim and discovery times passed `time_t` through `int`, which
+    fails after January 2038.
+  - The rent withdrawal in `Crash_load_objs` subtracted gold from an
+    `unsigned long` cost; it now subtracts in signed arithmetic.
 
 - The production half of the class (about 290 sites: string tables declared
   `char *[]`, `one_argument_u((char *)argument, ...)`, `findLine` in the index

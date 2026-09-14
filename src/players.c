@@ -260,7 +260,7 @@ void build_player_index(void)
     CREATE(player_table[i].name, char, name_length);
     memcpy(player_table[i].name, arg2, name_length);
     player_table[i].flags = (int)asciiflag_conv(bits);
-    top_idnum = MAX(top_idnum, player_table[i].id);
+    top_idnum = long_max(top_idnum, player_table[i].id);
   }
 
   fclose(plr_index);
@@ -7484,7 +7484,7 @@ void load_char_pets(struct char_data *ch)
     return;
   }
 
-  capacity = (int)MIN(mysql_num_rows(result), (my_ulonglong)INT_MAX);
+  capacity = (int)u64_min(mysql_num_rows(result), (my_ulonglong)INT_MAX);
   if (capacity > 0)
   {
     CREATE(staged, struct char_data *, capacity);

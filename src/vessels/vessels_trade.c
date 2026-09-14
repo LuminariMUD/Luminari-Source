@@ -576,7 +576,7 @@ int vessel_commodity_price(int base_price, int supply)
   {
     return INT_MAX;
   }
-  return (int)MAX(1, price);
+  return (int)llong_max(1, price);
 }
 
 /**
@@ -647,7 +647,7 @@ static long long vessel_trade_batch_value(int base_price, int supply, int quanti
     unit_value = unit_price;
     if (!buying_from_port)
     {
-      unit_value = MAX(1, (unit_value * TRADE_SELL_PERCENT) / 100);
+      unit_value = llong_max(1, (unit_value * TRADE_SELL_PERCENT) / 100);
     }
     if (total > LLONG_MAX - unit_value)
     {

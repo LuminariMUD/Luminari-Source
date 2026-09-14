@@ -1814,15 +1814,15 @@ void artifact_boot(void)
           free(art->first_account);
         art->first_account = strdup(rec.first_account);
 
-        art->first_claimed_at = (time_t)MAX(0L, rec.first_claimed_at);
-        art->last_claimed_at = (time_t)MAX(0L, rec.last_claimed_at);
+        art->first_claimed_at = (time_t)long_max(0L, rec.first_claimed_at);
+        art->last_claimed_at = (time_t)long_max(0L, rec.last_claimed_at);
         art->claim_count = MAX(0, rec.claim_count);
         art->transfer_count = MAX(0, rec.transfer_count);
         art->destroy_count = MAX(0, rec.destroy_count);
         art->recovery_count = MAX(0, rec.recovery_count);
         art->override_count = MAX(0, rec.override_count);
         art->discovered = rec.discovered ? TRUE : FALSE;
-        art->discovered_at = (time_t)MAX(0L, rec.discovered_at);
+        art->discovered_at = (time_t)long_max(0L, rec.discovered_at);
       }
       else if (artifact_is_owned(rec.vnum))
       {

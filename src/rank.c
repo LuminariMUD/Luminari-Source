@@ -310,8 +310,8 @@ static void add_key(const char *key, const char *out, ranktype (*f)(struct char_
   tmp_key->function = f;
   tmp_key->next = NULL;
 
-  maxkeylength = MAX(maxkeylength, strlen(key));
-  maxoutlength = MAX(maxoutlength, strlen(out));
+  maxkeylength = size_max(maxkeylength, strlen(key));
+  maxoutlength = size_max(maxoutlength, strlen(out));
 
   /* append to list */
   if (!key_list)

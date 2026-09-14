@@ -591,7 +591,7 @@ static int staff_event_mud_hours_to_ticks(int hours)
   ticks = (game_tick_t)STAFF_EVENT_MUD_HOUR_TICKS -
           (game_tick_t)pulse % (game_tick_t)STAFF_EVENT_MUD_HOUR_TICKS;
   ticks += (game_tick_t)(hours - 1) * (game_tick_t)STAFF_EVENT_MUD_HOUR_TICKS;
-  return (int)MIN((game_tick_t)INT_MAX, ticks);
+  return (int)u64_min((game_tick_t)INT_MAX, ticks);
 }
 
 /*

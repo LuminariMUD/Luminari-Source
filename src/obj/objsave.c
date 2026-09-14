@@ -3126,8 +3126,8 @@ static int Crash_load_objs(struct char_data *ch)
     }
     else
     {
-      award_bank_gold(ch, -MAX(cost - GET_GOLD(ch), 0));
-      award_gold(ch, -cost);
+      award_bank_gold(ch, -(int)long_max((long)cost - GET_GOLD(ch), 0L));
+      award_gold(ch, -(int)cost);
       save_char(ch, 0);
     }
   }

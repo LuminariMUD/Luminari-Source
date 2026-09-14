@@ -1031,7 +1031,7 @@ static int get_max_players(void)
     if (limit.rlim_max == RLIM_INFINITY)
       max_descs = CONFIG_MAX_PLAYING + NUM_RESERVED_DESCS;
     else
-      max_descs = MIN(CONFIG_MAX_PLAYING + NUM_RESERVED_DESCS, limit.rlim_max);
+      max_descs = size_min(CONFIG_MAX_PLAYING + NUM_RESERVED_DESCS, limit.rlim_max);
 #else
     max_descs = MIN(CONFIG_MAX_PLAYING + NUM_RESERVED_DESCS, limit.rlim_max);
 #endif

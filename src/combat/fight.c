@@ -3024,7 +3024,7 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
   int exp = 0;
 
   /* the base exp is the totally victim's exp divided by 3, limited by config */
-  exp = MIN(CONFIG_MAX_EXP_GAIN, GET_EXP(victim) / 3);
+  exp = long_min(CONFIG_MAX_EXP_GAIN, GET_EXP(victim) / 3);
 
   /* Calculate level-difference bonus */
   if (GET_LEVEL(victim) > GET_LEVEL(ch))
@@ -5909,7 +5909,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
     if ((IS_HAPPYHOUR) && (IS_HAPPYGOLD))
     {
       happy_gold = (long)(GET_GOLD(victim) * (((float)(HAPPY_GOLD)) / (float)100));
-      happy_gold = MAX(0, happy_gold);
+      happy_gold = long_max(0, happy_gold);
       award_gold(victim, (int)happy_gold);
     }
     local_gold = GET_GOLD(victim);

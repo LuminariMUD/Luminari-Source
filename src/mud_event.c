@@ -97,7 +97,7 @@ static int64_t daily_use_cooldown_ticks(struct char_data *ch, event_id event_typ
     return 0;
 
   cooldown = ((int64_t)SECS_PER_MUD_DAY / daily_uses) * PASSES_PER_SEC;
-  return MIN(cooldown, 864000);
+  return long_min(cooldown, 864000);
 }
 
 static void reconcile_expired_character_event(struct char_data *ch, event_id event_type)
@@ -334,7 +334,7 @@ bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *
 
   remaining_ticks = mud_event_remaining(pMudEvent);
   /* Ready-but-budget-deferred events still own their outstanding charge debt. */
-  remaining_ticks = MAX(1L, remaining_ticks);
+  remaining_ticks = long_max(1L, remaining_ticks);
 
   uses = -1;
   if (policy->payload_policy == MUD_EVENT_PAYLOAD_USES)
@@ -420,7 +420,7 @@ mud_event_restore_character_record(struct char_data *ch,
       reconcile_expired_character_event(ch, record->event_type);
       return MUD_EVENT_RESTORE_EXPIRED;
     }
-    elapsed_ticks = MAX(0, elapsed_seconds) * PASSES_PER_SEC;
+    elapsed_ticks = long_max(0, elapsed_seconds) * PASSES_PER_SEC;
     if (elapsed_ticks >= remaining_ticks && policy->payload_policy == MUD_EVENT_PAYLOAD_USES)
     {
       interval_ticks = record->recovery_interval_ticks;
@@ -1087,7 +1087,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
       status = GAME_SCHEDULER_REGISTRATION_CLOSED;
     else
       status = event_runtime_schedule_owned_after(mud_event_type_ids[pMudEvent->iId],
-                                                  pMudEvent->owner, (game_tick_t)MAX(time, 1L),
+                                                  pMudEvent->owner, (game_tick_t)long_max(time, 1L),
                                                   pMudEvent, &pMudEvent->runtime_handle);
     if (status != GAME_SCHEDULER_OK)
       pMudEvent->runtime_handle = EVENT_RUNTIME_HANDLE_NONE;

@@ -779,7 +779,7 @@ int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned
 
   if (strlen(formatted) + 1 > maxlen)
     formatted[maxlen - 1] = '\0';
-  RECREATE(*ptr_string, char, MIN(maxlen, strlen(formatted) + 1));
+  RECREATE(*ptr_string, char, size_min(maxlen, strlen(formatted) + 1));
   memcpy(*ptr_string, formatted, strlen(formatted) + 1);
   return 1;
 }

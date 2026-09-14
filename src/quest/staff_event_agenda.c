@@ -85,7 +85,7 @@ int staff_event_agenda_ticks(bool delay)
   if (event_runtime_remaining(timers[delay ? AGENDA_DELAY : AGENDA_EXPIRY], &ticks) !=
       GAME_SCHEDULER_OK)
     return 0;
-  return (int)MIN((game_tick_t)INT_MAX, ticks);
+  return (int)u64_min((game_tick_t)INT_MAX, ticks);
 }
 
 bool staff_event_agenda_delay_scheduled(void)
@@ -99,7 +99,7 @@ int staff_event_agenda_seconds(void)
 
   if (event_runtime_remaining(timers[AGENDA_EXPIRY], &ticks) != GAME_SCHEDULER_OK)
     return 0;
-  return (int)MIN((game_tick_t)INT_MAX, ticks / PASSES_PER_SEC + (ticks % PASSES_PER_SEC != 0));
+  return (int)u64_min((game_tick_t)INT_MAX, ticks / PASSES_PER_SEC + (ticks % PASSES_PER_SEC != 0));
 }
 
 bool staff_event_agenda_start(int event_num, int ticks)

@@ -154,7 +154,7 @@ void reconcile_player_offline_cooldowns(struct char_data *ch, int64_t saved_at_e
   if (ch == NULL || IS_NPC(ch) || ch->player_specials == NULL || saved_at_epoch <= 0 ||
       now_epoch <= 0 || (saved_at_epoch > now_epoch && saved_at_epoch - now_epoch > 300))
     return;
-  elapsed_seconds = MAX(0, now_epoch - saved_at_epoch);
+  elapsed_seconds = long_max(0, now_epoch - saved_at_epoch);
   elapse_fight_to_death_cooldown(ch, elapsed_seconds, false);
   elapsed_ticks = elapsed_seconds / PLAYER_COOLDOWN_TICK_SECONDS;
   if (elapsed_ticks <= 0)

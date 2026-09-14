@@ -91,7 +91,7 @@ int moving_room_remaining_seconds(room_rnum rnum)
   if (world == NULL || rnum == NOWHERE || rnum > top_of_world ||
       event_runtime_remaining(world[rnum].moving_room_event, &ticks) != GAME_SCHEDULER_OK)
     return -1;
-  return (int)MIN((game_tick_t)INT_MAX, ticks / PASSES_PER_SEC + (ticks % PASSES_PER_SEC != 0));
+  return (int)u64_min((game_tick_t)INT_MAX, ticks / PASSES_PER_SEC + (ticks % PASSES_PER_SEC != 0));
 }
 
 bool moving_room_event_sync(room_rnum rnum)

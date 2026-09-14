@@ -365,7 +365,7 @@ int award_experience(struct char_data *ch, int gain, int mode)
       {
         gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_25 * 4);
       }
-      gain = MIN(gain_cap, gain);
+      gain = long_min(gain_cap, gain);
       break;
     case AWARD_EXP_MODE_GROUP:
     case AWARD_EXP_MODE_SOLO:
@@ -402,7 +402,7 @@ int award_experience(struct char_data *ch, int gain, int mode)
       {
         gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_25);
       }
-      gain = MIN(gain_cap, gain);
+      gain = long_min(gain_cap, gain);
       break;
     }
 

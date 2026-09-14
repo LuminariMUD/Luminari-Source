@@ -3496,7 +3496,7 @@ static int rol_guild_guard_protection(struct char_data *guard, struct char_data 
       guard, NULL, victim, TO_ROOM);
   send_to_char(victim, "A wrenching pain drains your life force away!\r\n");
 
-  loss = MIN((long)GET_LEVEL(victim) * 5000L, MAX(0L, GET_EXP(victim) - 2L));
+  loss = long_min((long)GET_LEVEL(victim) * 5000L, long_max(0L, GET_EXP(victim) - 2L));
   award_points(victim, AWARD_EXPERIENCE, -loss);
 
   call_magic(guard, victim, NULL, SPELL_DISPEL_MAGIC, 0, 60, CAST_INNATE);
@@ -4117,7 +4117,7 @@ int rol_bandit_cargo_value(struct char_data *ch)
     for (obj = wagon->contains; obj != NULL; obj = obj->next_content)
       total += GET_OBJ_COST(obj);
 
-  return (int)MIN((long long)INT_MAX, MAX(0LL, total));
+  return (int)llong_min((long long)INT_MAX, llong_max(0LL, total));
 }
 
 int rol_bandit_fee_gold(int target_vnum, int cargo_value, int alignment, int carried_gold)
@@ -4133,11 +4133,11 @@ int rol_bandit_fee_gold(int target_vnum, int cargo_value, int alignment, int car
   case 2099501:
     return 50;
   case 2099502:
-    return (int)MIN((long long)INT_MAX, (base_platinum / 3) * 10);
+    return (int)llong_min((long long)INT_MAX, (base_platinum / 3) * 10);
   case 2099503:
-    return (int)MIN((long long)INT_MAX, (base_platinum / 2) * 10);
+    return (int)llong_min((long long)INT_MAX, (base_platinum / 2) * 10);
   case 2099504:
-    return (int)MIN((long long)INT_MAX, base_platinum * 10);
+    return (int)llong_min((long long)INT_MAX, base_platinum * 10);
   case 2099505:
     return carried_gold > 0 ? carried_gold : ROL_BANDIT_DEMAND_TAKE_WAGON;
   case 2099506:

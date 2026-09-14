@@ -210,7 +210,7 @@ static void detach_timer(struct primary_activity *activity, bool preserve_delay)
   handle = activity->timer_handle;
   remaining = activity_timer_remaining(handle);
   if (preserve_delay)
-    activity->remaining_delay = MAX(1L, remaining);
+    activity->remaining_delay = long_max(1L, remaining);
   activity->timer_handle = EVENT_RUNTIME_HANDLE_NONE;
   (void)event_runtime_cancel(handle);
 }
@@ -395,7 +395,7 @@ static bool delay_activity(struct primary_activity *activity, long delay, bool n
   actor = resolve_actor(activity->actor);
   if (activity->state == PRIMARY_ACTIVITY_STATE_PAUSED)
   {
-    activity->remaining_delay = MIN(LONG_MAX - delay, activity->remaining_delay) + delay;
+    activity->remaining_delay = long_min(LONG_MAX - delay, activity->remaining_delay) + delay;
   }
   else if (activity->combat_clock)
   {
@@ -436,7 +436,7 @@ static bool apply_response(struct primary_activity *activity,
   case PRIMARY_ACTIVITY_RESPONSE_PAUSE:
     return pause_activity_internal(activity, notify, false);
   case PRIMARY_ACTIVITY_RESPONSE_DELAY:
-    return delay_activity(activity, MAX(1L, activity->delay_pulses), notify);
+    return delay_activity(activity, long_max(1L, activity->delay_pulses), notify);
   case PRIMARY_ACTIVITY_RESPONSE_RECHECK:
     return activity_recheck_now(activity, PRIMARY_ACTIVITY_END_RECHECK_FAILED);
   case PRIMARY_ACTIVITY_RESPONSE_REJECT:
@@ -602,7 +602,7 @@ static bool schedule_timer(struct primary_activity *activity, long delay)
   payload->actor = activity->actor;
   payload->activity_id = activity->id;
   if (event_runtime_schedule_owned_after(primary_activity_event_type, owner,
-                                         (game_tick_t)MAX(1L, delay), payload,
+                                         (game_tick_t)long_max(1L, delay), payload,
                                          &handle) != GAME_SCHEDULER_OK)
   {
     free(payload);
@@ -610,7 +610,7 @@ static bool schedule_timer(struct primary_activity *activity, long delay)
   }
   payload->event_handle = handle;
   activity->timer_handle = handle;
-  activity->remaining_delay = MAX(1L, delay);
+  activity->remaining_delay = long_max(1L, delay);
   return true;
 }
 
@@ -680,7 +680,7 @@ static void handle_entity_extracted(const struct domain_event_context *context,
   size_t index;
 
   (void)handler_context;
-  ids = calloc(MAX(1U, activity_stats.active), sizeof(*ids));
+  ids = calloc(size_max(1U, activity_stats.active), sizeof(*ids));
   if (ids == NULL)
     return;
   for (activity = activity_head; activity != NULL; activity = activity->next)
@@ -908,7 +908,7 @@ bool primary_activity_start(struct char_data *actor, struct domain_entity_handle
   activity->combat_response = definition->combat_response;
   activity->target_loss_response = definition->target_loss_response;
   activity->command_response = definition->command_response;
-  activity->delay_pulses = MAX(1L, definition->delay_pulses);
+  activity->delay_pulses = long_max(1L, definition->delay_pulses);
   activity->wall_clock = definition->wall_clock;
   activity->cannot_pause = definition->cannot_pause;
   activity->timed_step = definition->timed_step;
@@ -1248,7 +1248,7 @@ static void send_wrapped_field(struct char_data *ch, const char *label, const ch
 
   if (ch == NULL || label == NULL || values == NULL)
     return;
-  label_length = MIN(strlen(label), sizeof(continuation) - 1U);
+  label_length = size_min(strlen(label), sizeof(continuation) - 1U);
   memset(continuation, ' ', label_length);
   continuation[label_length] = '\0';
   strlcpy(copy, values, sizeof(copy));

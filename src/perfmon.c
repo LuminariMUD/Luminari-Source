@@ -1438,8 +1438,8 @@ void PERF_get_event_summary(struct PERF_event_summary *summary)
   summary->process_calls = total_event_process_stats.calls;
   summary->callbacks = total_event_process_stats.callbacks_processed;
   summary->current_depth = total_event_process_stats.latest_depth;
-  summary->high_water_depth =
-      MAX(total_event_process_stats.max_depth_before, total_event_process_stats.max_depth_after);
+  summary->high_water_depth = u64_max(total_event_process_stats.max_depth_before,
+                                      total_event_process_stats.max_depth_after);
   summary->maximum_batch = total_event_process_stats.max_callbacks_per_call;
   summary->scheduled = total_event_lifecycle_stats.scheduled;
   summary->cancelled = total_event_lifecycle_stats.cancelled;

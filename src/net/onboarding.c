@@ -1132,7 +1132,7 @@ static json_object *parse_editor_envelope(const char *payload)
   error = json_tokener_get_error(tokener);
   parsed_bytes = json_tokener_get_parse_end(tokener);
 
-  cursor = payload + MIN(parsed_bytes, payload_bytes);
+  cursor = payload + size_min(parsed_bytes, payload_bytes);
   cursor = skip_json_whitespace(cursor, payload + payload_bytes);
   if (error != json_tokener_success || root == NULL ||
       !json_object_is_type(root, json_type_object) || cursor != payload + payload_bytes)
@@ -1570,7 +1570,7 @@ static bool accept_editor_chunk(struct descriptor_data *d, json_object *root, in
   }
 
   remaining = transfer->total_bytes - transfer->received_bytes;
-  expected_bytes = MIN(remaining, (size_t)WEB_ONBOARDING_EDITOR_MAX_CHUNK_BYTES);
+  expected_bytes = size_min(remaining, (size_t)WEB_ONBOARDING_EDITOR_MAX_CHUNK_BYTES);
   if (decoded_bytes != expected_bytes ||
       transfer->received_bytes + decoded_bytes > transfer->total_bytes)
   {

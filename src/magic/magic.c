@@ -1528,7 +1528,7 @@ static size_t update_room_lifetimes(struct room_data *room, uint64_t round, bool
       rounds = raff->lifetime_initialized && round > raff->lifetime_round
                    ? round - raff->lifetime_round
                    : 0U;
-      raff->lifetime_round = MAX(raff->lifetime_round, round);
+      raff->lifetime_round = u64_max(raff->lifetime_round, round);
       raff->lifetime_initialized = true;
     }
     if (raff->timer <= 0 || rounds >= (uint64_t)raff->timer)

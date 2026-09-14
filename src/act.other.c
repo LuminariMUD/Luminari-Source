@@ -7170,7 +7170,7 @@ ACMD(do_steal)
       /* Steal some gold coins */
       gold = (GET_GOLD(vict) * rand_number(1, 10)) / 100;
       gold = MIN(1782, gold);
-      gold = MIN(gold, award_capacity(ch, AWARD_GOLD)); /* only what the thief can carry */
+      gold = long_min(gold, award_capacity(ch, AWARD_GOLD)); /* only what the thief can carry */
       if (gold > 0)
       {
         award_gold(ch, gold);
@@ -7679,7 +7679,7 @@ static void print_group(struct char_data *ch)
         GET_NAME(k), IN_ROOM(ch) == IN_ROOM(k) ? "\tYInRoom\tn" : "\tRAbsent\tn", hp_clr,
         GET_HIT(k), GET_MAX_HIT(k), psp_clr, (GET_PSIONIC_LEVEL(k) <= 0) ? 0 : GET_PSP(k),
         (GET_PSIONIC_LEVEL(k) <= 0) ? 0 : GET_MAX_PSP(k), mv_clr, GET_MOVE(k), GET_MAX_MOVE(k),
-        (long)MAX(0, level_exp(k, GET_LEVEL(k) + 1) - GET_EXP(k)), CCNRM(ch, C_NRM));
+        (long)long_max(0, level_exp(k, GET_LEVEL(k) + 1) - GET_EXP(k)), CCNRM(ch, C_NRM));
   }
 }
 
@@ -8159,7 +8159,7 @@ ACMD(do_report)
   // send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dM, %d/%dV\r\n",
   send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dV, %d/%dP, %ld XP TNL\r\n", GET_NAME(ch),
                GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch), GET_PSP(ch),
-               GET_MAX_PSP(ch), (long)MAX(0, level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch)));
+               GET_MAX_PSP(ch), (long)long_max(0, level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch)));
 }
 
 ACMD(do_split)

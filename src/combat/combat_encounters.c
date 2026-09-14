@@ -773,7 +773,7 @@ static void transfer_participant(struct combat_encounter_data *survivor,
   {
     if (semantic_rounds && survivor->resolving)
       participant->next_due =
-          MAX(participant->next_due, (uint64_t)pulse + COMBAT_ENCOUNTER_ROUND_DELAY);
+          u64_max(participant->next_due, (uint64_t)pulse + COMBAT_ENCOUNTER_ROUND_DELAY);
     due_insert(survivor, participant);
   }
 }
@@ -808,7 +808,7 @@ static void merge_now(struct combat_encounter_data *survivor,
       participant->character->combat_encounter = survivor;
     if (semantic_rounds && survivor->resolving)
       participant->next_due =
-          MAX(participant->next_due, (uint64_t)pulse + COMBAT_ENCOUNTER_ROUND_DELAY);
+          u64_max(participant->next_due, (uint64_t)pulse + COMBAT_ENCOUNTER_ROUND_DELAY);
     pending_append(survivor, participant);
   }
   absorbed->participants = NULL;
@@ -1290,7 +1290,8 @@ bool combat_encounter_action_consume(struct char_data *character, action_type ac
   if (participant == NULL || action < atSTANDARD || action > atSWIFT)
     return false;
   ready_turn = participant->turns_started + semantic_rounds_for_delay(duration);
-  participant->action_ready_turn[action] = MAX(participant->action_ready_turn[action], ready_turn);
+  participant->action_ready_turn[action] =
+      u64_max(participant->action_ready_turn[action], ready_turn);
   participant->action_notice_pending[action] = true;
   counter_increment(&cumulative_stats.action_budgets_spent);
   return true;

@@ -165,7 +165,7 @@ static void format_shop_message(char *dest, size_t dest_size, const char *messag
 
     if (replacement)
     {
-      copy_len = MIN(strlen(replacement), dest_size - used - 1);
+      copy_len = size_min(strlen(replacement), dest_size - used - 1);
       memcpy(dest + used, replacement, copy_len);
       used += copy_len;
       cursor += 2;
@@ -440,7 +440,7 @@ static int evaluate_expression(struct obj_data *obj, char *expr)
         end = ptr;
         while (*ptr && !isspace(*ptr) && find_oper_num(*ptr) == (int)NOTHING)
           ptr++;
-        token_len = MIN((size_t)(ptr - end), sizeof(name) - 1);
+        token_len = size_min((size_t)(ptr - end), sizeof(name) - 1);
         memcpy(name, end, token_len);
         name[token_len] = '\0';
         for (eindex = 0; *extra_bits[eindex] != '\n'; eindex++)

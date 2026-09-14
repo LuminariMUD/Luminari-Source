@@ -131,7 +131,7 @@ bool rol_deaths_head_mature_wood_drop_enabled(void)
 long rol_deaths_head_source_delay_pulses(int source_pulses)
 {
   source_pulses = MAX(1, source_pulses);
-  return MAX(1L, (long)source_pulses * PASSES_PER_SEC / ROL_DEATHS_HEAD_SOURCE_PASSES_PER_SEC);
+  return long_max(1L, (long)source_pulses * PASSES_PER_SEC / ROL_DEATHS_HEAD_SOURCE_PASSES_PER_SEC);
 }
 
 int rol_deaths_head_seed_damage_min(int growth)

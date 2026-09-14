@@ -11,13 +11,13 @@ float-equal 7
 format-nonliteral 23
 implicit-float-conversion 221
 implicit-int-conversion 527
-implicit-int-conversion-on-negation 6
+implicit-int-conversion-on-negation 5
 implicit-int-float-conversion 128
 incompatible-pointer-types-discards-qualifiers 191
 jump-misses-init 579
 missing-format-attribute 29
 shadow 164
-shorten-64-to-32 205
-sign-conversion 3383
+shorten-64-to-32 133
+sign-conversion 3361
 switch-enum 45
 undef 8

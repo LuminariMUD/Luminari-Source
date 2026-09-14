@@ -551,6 +551,41 @@ unsigned long circle_random(void);
 
 int MAX(int a, int b);
 int MIN(int a, int b);
+/* MIN and MAX take int, so a wider argument is truncated before the
+ * comparison.  Use the width-matched forms for long, size_t, uint64_t, and
+ * long long values. */
+static inline long long_min(long a, long b)
+{
+  return a < b ? a : b;
+}
+static inline long long_max(long a, long b)
+{
+  return a > b ? a : b;
+}
+static inline size_t size_min(size_t a, size_t b)
+{
+  return a < b ? a : b;
+}
+static inline size_t size_max(size_t a, size_t b)
+{
+  return a > b ? a : b;
+}
+static inline uint64_t u64_min(uint64_t a, uint64_t b)
+{
+  return a < b ? a : b;
+}
+static inline uint64_t u64_max(uint64_t a, uint64_t b)
+{
+  return a > b ? a : b;
+}
+static inline long long llong_min(long long a, long long b)
+{
+  return a < b ? a : b;
+}
+static inline long long llong_max(long long a, long long b)
+{
+  return a > b ? a : b;
+}
 float FLOATMAX(float a, float b);
 float FLOATMIN(float a, float b);
 char *CAP(char *txt);

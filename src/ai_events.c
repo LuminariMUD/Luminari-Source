@@ -355,7 +355,7 @@ static bool enqueue_ingress(enum ai_ingress_kind kind, void *payload, game_tick_
     return false;
   item->kind = kind;
   item->payload = payload;
-  item->delay = MAX(delay, 1U);
+  item->delay = u64_max(delay, 1U);
 
   pthread_mutex_lock(&ai_ingress.mutex);
   if (!ai_ingress.accepting || ai_ingress.depth >= AI_EVENT_INGRESS_CAPACITY)

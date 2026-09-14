@@ -423,6 +423,6 @@ uint64_t spatial_event_perception_rejections(void)
 #ifdef LUMINARI_CUTEST
 void spatial_event_set_perception_limit_for_test(size_t limit)
 {
-  perception_limit = MIN(limit, SPATIAL_EVENT_MAX_PERCEPTIONS);
+  perception_limit = size_min(limit, SPATIAL_EVENT_MAX_PERCEPTIONS);
 }
 #endif

@@ -140,7 +140,7 @@ static size_t parse_limit(const char *text, size_t fallback)
     return fallback;
   if (!parse_uint64(text, &parsed) || parsed == 0)
     return 0;
-  return (size_t)MIN(parsed, EVENT_DEBUG_MAX_LIMIT);
+  return (size_t)u64_min(parsed, EVENT_DEBUG_MAX_LIMIT);
 }
 
 size_t event_debug_render_help(char *buffer, size_t capacity, int width)
@@ -455,7 +455,7 @@ size_t event_debug_render_queue(char *buffer, size_t capacity, int width,
   size_t matched;
   size_t index;
 
-  limit = MIN(MAX(limit, 1U), EVENT_DEBUG_MAX_LIMIT);
+  limit = size_min(size_max(limit, 1U), EVENT_DEBUG_MAX_LIMIT);
   memset(snapshots, 0, sizeof(snapshots));
   returned = 0;
   matched = event_debug_inspect(filter, snapshots, limit, &returned);
@@ -489,11 +489,11 @@ size_t event_debug_render_profiles(char *buffer, size_t capacity, int width, siz
   game_event_type_id_t event_type;
   size_t live;
 
-  limit = MIN(MAX(limit, 1U), EVENT_DEBUG_MAX_LIMIT);
+  limit = size_min(size_max(limit, 1U), EVENT_DEBUG_MAX_LIMIT);
   debug_output_init(&output, buffer, capacity, width);
   total = PERF_get_event_profiles(NULL, 0U);
-  offset = MIN(offset, total);
-  shown = MIN(total - offset, limit);
+  offset = size_min(offset, total);
+  shown = size_min(total - offset, limit);
   debug_output_title(&output, "Event Callback Types");
   debug_output_line(&output, "Registered: %zu", total);
   debug_output_line(&output, "Showing: %zu", shown);
@@ -582,7 +582,7 @@ size_t event_debug_render_domain(char *buffer, size_t capacity, int width, const
   debug_output_line(&output, "Rejected chains: %" PRIu64, bus_stats.rejected_causal_chains);
   memset(types, 0, sizeof(types));
   total_types = domain_event_inspect_types(bus, types, EVENT_DEBUG_DOMAIN_TYPE_LIMIT);
-  type_count = MIN(total_types, EVENT_DEBUG_DOMAIN_TYPE_LIMIT);
+  type_count = size_min(total_types, EVENT_DEBUG_DOMAIN_TYPE_LIMIT);
   matched = 0;
   for (type_index = 0; type_index < type_count; type_index++)
   {
@@ -671,7 +671,7 @@ size_t event_debug_render_subscriptions(char *buffer, size_t capacity, int width
   size_t shown;
   size_t index;
 
-  limit = MIN(MAX(limit, 1U), EVENT_DEBUG_MAX_LIMIT);
+  limit = size_min(size_max(limit, 1U), EVENT_DEBUG_MAX_LIMIT);
   memset(subscriptions, 0, sizeof(subscriptions));
   debug_output_init(&output, buffer, capacity, width);
   debug_output_title(&output, "Domain Subscriptions");
@@ -690,7 +690,7 @@ size_t event_debug_render_subscriptions(char *buffer, size_t capacity, int width
     matched = domain_event_inspect_entity_subscriptions(bus, *entity, subscriptions, limit);
   else
     matched = domain_event_inspect_subscriptions(bus, NULL, subscriptions, limit);
-  shown = MIN(matched, limit);
+  shown = size_min(matched, limit);
   debug_output_line(&output, "Matched/showing: %zu/%zu", matched, shown);
   for (index = 0U; index < shown; index++)
   {

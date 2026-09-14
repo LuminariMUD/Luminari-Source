@@ -105,7 +105,7 @@ static int compare_lateness(const void *left, const void *right)
 void ready_action_latency_read(struct ready_action_latency *stats)
 {
   uint64_t sorted[READY_LATENCY_CAPACITY];
-  size_t count = MIN(ready_callbacks, READY_LATENCY_CAPACITY);
+  size_t count = u64_min(ready_callbacks, READY_LATENCY_CAPACITY);
 
   if (stats == NULL)
     return;

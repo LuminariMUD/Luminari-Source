@@ -1825,7 +1825,8 @@ static void editor_test_chunks(struct descriptor_data *d, const char *transfer_i
 
   while (offset < content_bytes)
   {
-    size_t raw_bytes = MIN(content_bytes - offset, (size_t)WEB_ONBOARDING_EDITOR_MAX_CHUNK_BYTES);
+    size_t raw_bytes =
+        size_min(content_bytes - offset, (size_t)WEB_ONBOARDING_EDITOR_MAX_CHUNK_BYTES);
     int encoded_bytes = EVP_EncodeBlock((unsigned char *)encoded, content + offset, (int)raw_bytes);
 
     encoded[encoded_bytes] = '\0';
