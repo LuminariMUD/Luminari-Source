@@ -4306,11 +4306,10 @@ static void load_dr(FILE *f1, struct char_data *ch)
     }
     if (num > 0)
     {
-      /* Set the DR data.*/
-      CREATE(dr, struct damage_reduction_type, 1);
-
       if (n_vars == 5)
       {
+        /* Set the DR data.*/
+        CREATE(dr, struct damage_reduction_type, 1);
         dr->duration = 0; /* Initialize duration field - CRITICAL FIX (loaded from file) */
         dr->amount = num2;
         dr->max_damage = num3;

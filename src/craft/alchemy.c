@@ -3527,7 +3527,7 @@ ACMD(do_swallow)
                        "or constitution (-cha)?\r\n");
       return;
     }
-    perform_mutagen(ch, strdup(arg2), alchemical_bonus);
+    perform_mutagen(ch, arg2, alchemical_bonus);
   }
   else if (is_abbrev(arg1, "elemental-mutagen"))
   {
@@ -3545,7 +3545,7 @@ ACMD(do_swallow)
                    "skill.\r\n");
       return;
     }
-    perform_elemental_mutagen(ch, strdup(arg2), alchemical_bonus);
+    perform_elemental_mutagen(ch, arg2, alchemical_bonus);
   }
   else if (is_abbrev(arg1, "cognatogen"))
   {
@@ -3560,7 +3560,7 @@ ACMD(do_swallow)
                        "(-dex) or charisma (-con)?\r\n");
       return;
     }
-    perform_cognatogen(ch, strdup(arg2), alchemical_bonus);
+    perform_cognatogen(ch, arg2, alchemical_bonus);
   }
   else if (is_abbrev(arg1, "inspiring-cognatogen"))
   {

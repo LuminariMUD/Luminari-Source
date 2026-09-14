@@ -49,6 +49,11 @@ void do_dg_cast(void *go, struct script_data *sc __attribute__((unused)), trig_d
   {
   case MOB_TRIGGER:
     caster = (struct char_data *)go;
+    if (!caster)
+    {
+      script_log("dg_do_cast: unknown mob caster!");
+      return;
+    }
     break;
   case WLD_TRIGGER:
     caster_room = (struct room_data *)go;

@@ -469,7 +469,7 @@ static void set_magical_obj_name(struct obj_data *obj, int level)
 
 SPECIAL(buyarmor)
 {
-  if (!CMD_IS("buy") && !CMD_IS("list"))
+  if (!argument || (!CMD_IS("buy") && !CMD_IS("list")))
     return 0;
 
   struct char_data *keeper = (struct char_data *)me;
@@ -514,7 +514,7 @@ SPECIAL(buyarmor)
       return 1;
     }
     display_buy_armor_types(ch, level, level == 0 ? !is_abbrev(arg1, "mundane") : false,
-                            level == 0 ? strdup(arg2) : strdup(arg1));
+                            level == 0 ? arg2 : arg1);
     return 1;
   }
 
@@ -792,7 +792,7 @@ SPECIAL(pet_shops)
 
 SPECIAL(buyweapons)
 {
-  if (!CMD_IS("buy") && !CMD_IS("list"))
+  if (!argument || (!CMD_IS("buy") && !CMD_IS("list")))
     return 0;
 
   struct char_data *keeper = (struct char_data *)me;

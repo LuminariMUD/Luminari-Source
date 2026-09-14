@@ -273,7 +273,11 @@ ACMD(do_new_mail)
         return;
       }
 
+      if (ch->player_specials->new_mail_receiver)
+        free(ch->player_specials->new_mail_receiver);
       ch->player_specials->new_mail_receiver = strdup(arg5);
+      if (ch->player_specials->new_mail_subject)
+        free(ch->player_specials->new_mail_subject);
       ch->player_specials->new_mail_subject = strdup(arg6);
       if (ch->player_specials->new_mail_content)
       {

@@ -1058,6 +1058,8 @@ static void set_crafting_keywords(struct char_data *ch, const char *arg2)
                                          .materials[0][GET_CRAFT(ch).craft_variant][0]][0]]);
     return;
   }
+  if (GET_CRAFT(ch).keywords)
+    free(GET_CRAFT(ch).keywords);
   GET_CRAFT(ch).keywords = strdup(arg2);
   send_to_char(ch, "You have set the keywords for your crafting item to:\r\n-- %s\r\n", arg2);
   return;
@@ -1106,6 +1108,8 @@ static void set_crafting_short_desc(struct char_data *ch, const char *arg2)
                                          .materials[0][GET_CRAFT(ch).craft_variant][0]][0]]);
     return;
   }
+  if (GET_CRAFT(ch).short_description)
+    free(GET_CRAFT(ch).short_description);
   GET_CRAFT(ch).short_description = strdup(arg2);
   send_to_char(ch, "You have set the short description for your crafting item to:\r\n-- %s\r\n",
                arg2);
@@ -1158,6 +1162,8 @@ static void set_crafting_room_desc(struct char_data *ch, const char *arg2)
                                          .materials[0][GET_CRAFT(ch).craft_variant][0]][0]]);
     return;
   }
+  if (GET_CRAFT(ch).room_description)
+    free(GET_CRAFT(ch).room_description);
   GET_CRAFT(ch).room_description = strdup(arg2);
   send_to_char(ch, "You have set the room description for your crafting item to:\r\n-- %s\r\n",
                arg2);
@@ -1189,6 +1195,8 @@ static void set_crafting_extra_desc(struct char_data *ch, const char *arg2)
     return;
   }
 
+  if (GET_CRAFT(ch).ex_description)
+    free(GET_CRAFT(ch).ex_description);
   GET_CRAFT(ch).ex_description = strdup(arg2);
   send_to_char(ch, "You have set the extra description for your crafting item to:\r\n-- %s\r\n",
                arg2);

@@ -196,7 +196,7 @@ void mysql_pool_init(void)
     pc->thread_id = mysql_thread_id(pc->conn);
 
     /* Add to pool linked list */
-    if (!mysql_pool->connections)
+    if (!prev)
     {
       mysql_pool->connections = pc;
     }

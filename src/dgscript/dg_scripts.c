@@ -3538,6 +3538,11 @@ static int script_driver_impl(struct script_call_args *args, struct script_drive
     else if (!strn_cmp("break", p, 5))
     {
       cl = find_done(cl);
+      if (!cl)
+      {
+        script_log("Trigger VNum %" PRI_IDX " has 'break' without 'done'.", GET_TRIG_VNUM(trig));
+        return ret_val;
+      }
     }
     else if (!strn_cmp("case", p, 4))
     {
@@ -3719,7 +3724,7 @@ static struct cmdlist_element *find_case(struct trig_data *trig, struct cmdlist_
                                          void *go, struct script_data *sc, int type, char *cond)
 {
   char result[MAX_INPUT_LENGTH] = {'\0'};
-  struct cmdlist_element *c;
+  struct cmdlist_element *c, *done;
   char *p, *buf = NULL;
 
   eval_expr(cond, result, go, sc, trig, type);
@@ -3733,7 +3738,19 @@ static struct cmdlist_element *find_case(struct trig_data *trig, struct cmdlist_
       ;
 
     if (!strn_cmp("while ", p, 6) || !strn_cmp("switch", p, 6))
-      c = find_done(c);
+    {
+      done = find_done(c);
+      if (!done)
+      {
+        /* A nested block without its done runs to the end of the trigger. */
+        while (c->next)
+          c = c->next;
+        return c;
+      }
+      c = done;
+      if (!c->next)
+        return c;
+    }
     else if (!strn_cmp("case ", p, 5))
     {
       buf = (char *)malloc(MAX_STRING_LENGTH);
@@ -3773,7 +3790,12 @@ static struct cmdlist_element *find_done(struct cmdlist_element *cl)
       ;
 
     if (!strn_cmp("while ", p, 6) || !strn_cmp("switch ", p, 7))
+    {
       c = find_done(c);
+      /* A nested block that runs to the end leaves this one without its done. */
+      if (!c || !c->next)
+        return NULL;
+    }
     else if (!strn_cmp("done", p, 3))
       return c;
   }

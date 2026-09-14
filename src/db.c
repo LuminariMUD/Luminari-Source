@@ -5741,6 +5741,13 @@ static void reset_zone_transfer_impl(zone_rnum zone)
           rand_number(1, 100) <= ZCMD.arg4)
       {
         mob = read_mobile(ZCMD.arg1, REAL);
+        if (!mob)
+        {
+          push_result(0);
+          rol_last_mob_load = false;
+          tobj = NULL;
+          break;
+        }
 
         if (ZONE_FLAGGED(GET_ROOM_ZONE(ZCMD.arg3), ZONE_WILDERNESS))
         {

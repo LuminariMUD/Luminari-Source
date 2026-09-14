@@ -317,6 +317,7 @@ void House_save_control(void)
       (size_t)num_of_houses)
   {
     perror("SYSERR: Unable to save house control file.");
+    fclose(fl);
     return;
   }
 

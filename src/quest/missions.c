@@ -544,7 +544,7 @@ void create_mission_mobs(char_data *ch)
       if (i > 0)
       {
         snprintf(buf, sizeof(buf), "%ld", GET_IDNUM(ch));
-        do_follow(mob, strdup(buf), 0, 0);
+        do_follow(mob, buf, 0, 0);
       }
     }
   }

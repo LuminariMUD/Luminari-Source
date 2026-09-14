@@ -18,6 +18,7 @@
 #include "../../src/olc/genolc.h"
 #include "../../src/olc/genwld.h"
 #include "../../src/olc/genzon.h"
+#include "../../src/olc/improved-edit.h"
 #include "../../src/olc/oasis.h"
 #include "../../src/character/class.h"
 #include "../../src/character/feats.h"
@@ -2160,4 +2161,21 @@ void Test_upstream_script_formatter_preserves_depth_line_and_output_limits(CuTes
   formatted = NULL;
   CuAssertTrue(tc, !dg_format_script_text("if 1\r\nend\r\n", 8, &formatted, error, sizeof(error)));
   CuAssertPtrEquals(tc, NULL, formatted);
+}
+
+void Test_replace_str_without_a_match_keeps_the_string(CuTest *tc)
+{
+  char *text;
+
+  text = strdup("the quick fox");
+  CuAssertPtrNotNull(tc, text);
+
+  CuAssertIntEquals(tc, 0, replace_str(&text, "wolf", "dog", 0, 100));
+  CuAssertStrEquals(tc, "the quick fox", text);
+  CuAssertIntEquals(tc, 0, replace_str(&text, "wolf", "dog", 1, 100));
+  CuAssertStrEquals(tc, "the quick fox", text);
+  CuAssertIntEquals(tc, 1, replace_str(&text, "quick", "slow", 0, 100));
+  CuAssertStrEquals(tc, "the slow fox", text);
+
+  free(text);
 }

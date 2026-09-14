@@ -1334,6 +1334,8 @@ ACMD(do_retainer)
       return;
     }
 
+    if (GET_RETAINER_MAIL_RECIPIENT(ch))
+      free(GET_RETAINER_MAIL_RECIPIENT(ch));
     GET_RETAINER_MAIL_RECIPIENT(ch) = strdup(arg2);
     send_to_char(ch, "You've set your retainer mail recipient to '%s'.\r\n", arg2);
     return;

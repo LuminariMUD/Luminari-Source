@@ -1655,7 +1655,7 @@ static int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
     send_to_char(ch, "You must place one armor item in the kit.\r\n");
     return 1;
   }
-  if (num_objs > 1)
+  if (num_objs > 1 || obj == NULL)
   {
     send_to_char(ch, "Only one item should be inside the kit.\r\n");
     return 1;
@@ -2755,6 +2755,8 @@ SPECIAL(crafting_quest)
       break;
     }
 
+    if (GET_AUTOCQUEST_DESC(ch))
+      free(GET_AUTOCQUEST_DESC(ch));
     GET_AUTOCQUEST_DESC(ch) = strdup(desc);
     GET_AUTOCQUEST_MAKENUM(ch) = AUTOCQUEST_MAKENUM;
     if (!rand_number(0, 20))

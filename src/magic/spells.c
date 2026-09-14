@@ -3040,7 +3040,7 @@ ASPELL(eldritch_blast)
       mag_damage(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, -1, CAST_INNATE);
       mag_affects(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
     }
-    if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN)
+    if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN && target_list)
     {
       while (target_list->iSize > 0)
       {

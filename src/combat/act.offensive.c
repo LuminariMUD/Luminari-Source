@@ -4876,7 +4876,7 @@ ACMD(do_hit)
         for (i = 0; (size_t)i < strlen(mob_keys); i++)
           if (mob_keys[i] == ' ')
             mob_keys[i] = '-';
-        do_hit(ch, strdup(mob_keys), cmd, subcmd);
+        do_hit(ch, mob_keys, cmd, subcmd);
 
         // reach attacks get extra attack when combat starts
         if (has_reach(ch))
@@ -10674,8 +10674,11 @@ ACMD(do_faeriefire)
   /* find the victim */
   vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
 
+  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    vict = FIGHTING(ch);
+
   /* we have a disqualifier here due to action system */
-  if (!FIGHTING(ch) && !vict)
+  if (!vict)
   {
     send_to_char(ch, "Who do you want to faerie fire?\r\n");
     return;
@@ -10684,8 +10687,6 @@ ACMD(do_faeriefire)
   {
     /* we allow this */
   }
-  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
-    vict = FIGHTING(ch);
 
   perform_faerie_fire(ch, vict);
 }
@@ -10704,8 +10705,11 @@ ACMD(do_kick)
   /* find the victim */
   vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
 
+  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    vict = FIGHTING(ch);
+
   /* we have a disqualifier here due to action system */
-  if (!FIGHTING(ch) && !vict)
+  if (!vict)
   {
     send_to_char(ch, "Who do you want to kick?\r\n");
     return;
@@ -10715,8 +10719,6 @@ ACMD(do_kick)
     send_to_char(ch, "You kick yourself.\r\n");
     return;
   }
-  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
-    vict = FIGHTING(ch);
 
   perform_kick(ch, vict);
 }
@@ -11349,7 +11351,7 @@ ACMD(do_charge)
         for (i = 0; (size_t)i < strlen(mob_keys); i++)
           if (mob_keys[i] == ' ')
             mob_keys[i] = '-';
-        do_charge(ch, strdup(mob_keys), cmd, subcmd);
+        do_charge(ch, mob_keys, cmd, subcmd);
 
         return;
       }
@@ -14911,8 +14913,11 @@ ACMD(do_slam)
   /* find the victim */
   vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
 
+  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    vict = FIGHTING(ch);
+
   /* we have a disqualifier here due to action system */
-  if (!FIGHTING(ch) && !vict)
+  if (!vict)
   {
     send_to_char(ch, "Who do you want to slam?\r\n");
     return;
@@ -14922,8 +14927,6 @@ ACMD(do_slam)
     send_to_char(ch, "You slam yourself.\r\n");
     return;
   }
-  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
-    vict = FIGHTING(ch);
 
   perform_slam(ch, vict);
 }

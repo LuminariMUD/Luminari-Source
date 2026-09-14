@@ -624,6 +624,8 @@ ACMDU(do_buildwalk)
       send_to_char(ch, "That room name is too long.\r\n");
       return;
     }
+    if (GET_BUILDWALK_NAME(ch))
+      free(GET_BUILDWALK_NAME(ch));
     GET_BUILDWALK_NAME(ch) = strdup(arg2);
     send_to_char(ch, "Your buildwalk room name is now '%s'\r\n", arg2);
   }
@@ -639,6 +641,8 @@ ACMDU(do_buildwalk)
       send_to_char(ch, "That room description is too long.\r\n");
       return;
     }
+    if (GET_BUILDWALK_DESC(ch))
+      free(GET_BUILDWALK_DESC(ch));
     GET_BUILDWALK_DESC(ch) = strdup(arg2);
     send_to_char(ch, "Your buildwalk room description is now '%s'\r\n", arg2);
   }

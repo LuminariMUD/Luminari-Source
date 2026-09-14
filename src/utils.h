@@ -50,22 +50,16 @@
                              int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
 
 /* "unsafe" version of ACMD. Commands that still require non const argument due to using
-   unsafe operations on argument */
+   unsafe operations on argument. The body gets a writable copy, which is empty when the
+   caller passed NULL. */
 #define ACMDU(name)                                                                                \
   static void impl_##name##_(struct char_data *ch, char *argument, int cmd, int subcmd);           \
   void name(struct char_data *ch, const char *argument, int cmd, int subcmd)                       \
   {                                                                                                \
+    char arg_buf[MAX_INPUT_LENGTH];                                                                \
     PERF_PROF_ENTER(pr_, #name);                                                                   \
-    if (!argument)                                                                                 \
-    {                                                                                              \
-      impl_##name##_(ch, NULL, cmd, subcmd);                                                       \
-    }                                                                                              \
-    else                                                                                           \
-    {                                                                                              \
-      char arg_buf[MAX_INPUT_LENGTH];                                                              \
-      strlcpy(arg_buf, argument, sizeof(arg_buf));                                                 \
-      impl_##name##_(ch, arg_buf, cmd, subcmd);                                                    \
-    }                                                                                              \
+    strlcpy(arg_buf, argument ? argument : "", sizeof(arg_buf));                                   \
+    impl_##name##_(ch, arg_buf, cmd, subcmd);                                                      \
     PERF_PROF_EXIT(pr_);                                                                           \
   }                                                                                                \
   static void impl_##name##_(struct char_data *ch __attribute__((unused)),                         \

@@ -834,15 +834,13 @@ int replace_str(char **string, const char *pattern, const char *replacement, int
     }
   }
 
-  if (i <= 0)
-    return 0;
-  else
+  if (i > 0)
   {
     RECREATE(*string, char, strlen(replace_buffer) + 3);
     memcpy(*string, replace_buffer, strlen(replace_buffer) + 1);
   }
   free(replace_buffer);
-  return i;
+  return i > 0 ? i : 0;
 }
 
 #endif

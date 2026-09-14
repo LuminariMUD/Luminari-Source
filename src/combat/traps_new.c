@@ -2331,6 +2331,10 @@ MUD_EVENT_CALLBACK(event_trap_triggered)
     break;
   }
 
+  /* Every trap effect below needs a victim. */
+  if (ch == NULL)
+    return 0;
+
   if (pMudEvent->sVariables == NULL)
   {
     /* This is odd - This field should always be populated for traps. */

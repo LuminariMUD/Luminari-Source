@@ -9809,8 +9809,6 @@ ACMD(do_eqrating)
 
     /* has affect locations? */
     obj = &obj_proto[a];
-    if (!obj)
-      return; /* super dummy check */
     for (b = 0; b < MAX_OBJ_AFFECT; b++)
     {
       if ((obj->affected[b].location != APPLY_NONE) && (obj->affected[b].modifier != 0))

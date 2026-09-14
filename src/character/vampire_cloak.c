@@ -59,6 +59,7 @@ int vampire_cloak_typed(struct spec_event_context *context)
 {
   struct char_data *ch;
   struct obj_data *obj;
+  const struct obj_data *proto;
   const char *argument;
   char arg[200];
   char desc[255];
@@ -152,15 +153,24 @@ int vampire_cloak_typed(struct spec_event_context *context)
     if (strlen(desc) > 80)
     {
       send_to_char(ch, "That description is too long.\r\n");
+      return 1;
     }
 
     snprintf(old_description, sizeof(old_description), "%s", obj->short_description);
     parse_at(desc);
+    /* The strings stay shared with the prototype until the first rename. */
+    proto = &obj_proto[GET_OBJ_RNUM(obj)];
+    if (obj->short_description != proto->short_description)
+      free(obj->short_description);
     obj->short_description = strdup(desc);
     send_to_char(ch, "You have renamed '%s' to '%s'.\r\n", old_description, desc);
     strip_colors(desc);
+    if (obj->name != proto->name)
+      free(obj->name);
     obj->name = strdup(desc);
     snprintf(long_description, sizeof(long_description), "%s is here.", CAP(desc));
+    if (obj->description != proto->description)
+      free(obj->description);
     obj->description = strdup(long_description);
     return 1;
   }
