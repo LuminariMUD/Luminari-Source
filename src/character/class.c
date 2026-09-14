@@ -2593,7 +2593,7 @@ void newbieEquipment(struct char_data *ch)
   case CLASS_BERSERKER:
   case CLASS_WARRIOR:
     newbie_give_obj(ch, NOOB_SCALE_MAIL, TRUE); // scale mail
-    /*fallthrough!*/
+    [[fallthrough]];
   case CLASS_RANGER:
 
     newbie_give_obj(ch, NOOB_STUD_LEATHER, TRUE);     // studded leather
@@ -2618,7 +2618,7 @@ void newbieEquipment(struct char_data *ch)
     newbie_give_obj(ch, HARP, FALSE);
     newbie_give_obj(ch, MANDOLIN, FALSE);
 
-    /*FALL THROUGH*/
+    [[fallthrough]];
   case CLASS_ROGUE:
     newbie_give_obj(ch, NOOB_LEATHER_SLEEVES, TRUE);  // leather sleeves
     newbie_give_obj(ch, NOOB_LEATHER_LEGGINGS, TRUE); // leather leggings

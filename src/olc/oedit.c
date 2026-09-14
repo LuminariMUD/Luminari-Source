@@ -354,7 +354,7 @@ void oedit_save_internally(struct descriptor_data *d)
         case 'P':
           if (OLC_ZONE(dsc)->cmd[i].arg3 >= 0 && (obj_rnum)OLC_ZONE(dsc)->cmd[i].arg3 >= robj_num)
             OLC_ZONE(dsc)->cmd[i].arg3++;
-          /* Fall through. */
+          [[fallthrough]];
         case 'E':
         case 'G':
         case 'O':
@@ -3923,9 +3923,10 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       oedit_disp_assign_weapon_specab_menu(d);
       return;
     case WEAPON_SPECAB_SPELL_STORING: /* Val 1: SPELL NUMBER */
-        ;
+      [[fallthrough]];
     default:;
     }
+    break;
   case OEDIT_SPECAB_VALUE_2:
     switch (OLC_SPECAB(d)->ability)
     {
@@ -3944,21 +3945,24 @@ void oedit_parse(struct descriptor_data *d, char *arg)
 
       return;
     case WEAPON_SPECAB_SPELL_STORING: /* Val 2: SPELL LEVEL */
-        ;
+      [[fallthrough]];
     default:;
     }
+    break;
 
   case OEDIT_SPECAB_VALUE_3:
     switch (OLC_SPECAB(d)->ability)
     {
     default:;
     }
+    break;
 
   case OEDIT_SPECAB_VALUE_4:
     switch (OLC_SPECAB(d)->ability)
     {
     default:;
     }
+    break;
 
   default:
     mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: Reached default case in oedit_parse()!");

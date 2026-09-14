@@ -1131,6 +1131,7 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding)
     if (!ch->mute_equip_messages)
       send_to_char(ch, "The shield speaks in your mind, \"I will blind your enemies!  Utter "
                        "'Lumia'!  FOR LUMIA!\"\r\n");
+    break;
   default:
     /* Do nothing. */
     break;

@@ -926,7 +926,7 @@ static char *make_api_request_single(const char *prompt)
   else
   {
     log("AI Service: CURL error: %s", curl_easy_strerror(res));
-    AI_DEBUG("CURL error details: code=%d, message=%s", res, curl_easy_strerror(res));
+    AI_DEBUG("CURL error details: code=%d, message=%s", (int)res, curl_easy_strerror(res));
   }
 
   /* Cleanup */

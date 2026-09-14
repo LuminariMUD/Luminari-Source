@@ -8034,7 +8034,7 @@ static int check_object(struct obj_data *obj)
          */
     }
   }
-    /* Fall through. */
+    [[fallthrough]];
   case ITEM_FOUNTAIN:
     if ((GET_OBJ_VAL(obj, 0) > 0) && (GET_OBJ_VAL(obj, 1) > GET_OBJ_VAL(obj, 0) && (error = TRUE)))
     {

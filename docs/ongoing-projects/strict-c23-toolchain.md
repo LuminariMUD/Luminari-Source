@@ -34,7 +34,8 @@ warning debt, and feature detection that strict flags cannot influence.
   compiler and consumed by both `configure.ac` (`--enable-warning-tier`) and
   `CMakeLists.txt` (`LUMINARI_WARNING_TIER`). `DEVELOPER_MODE` is gone.
 - Baseline tier: `-Wall -Wextra -Wstrict-prototypes -Wold-style-definition
-  -Wpointer-arith -Wformat-security -Wvla` plus GCC's `-Wtrampolines
+  -Wpointer-arith -Wformat-security -Wvla -Wredundant-decls -Wnested-externs`
+  (the last two promoted by step 2.3) plus GCC's `-Wtrampolines
   -Walloc-size -Wbidi-chars=any -Wcalloc-transposed-args
   -Wflex-array-member-not-at-end -Wunterminated-string-initialization`. Clean
   on all four compilers; `-Werror` is refused with any other tier.
@@ -111,6 +112,7 @@ per compiler.
 | 2.1 | generated `test_prototypes.h` | 9223 | 9095 |
 | 1.2 | `int` affect, ability, point, player and object fields | 8010 | 7955 |
 | 2.2, 2.3 | format conversions, redundant and nested declarations | 6427 | 7946 |
+| 2.6 | explicit fallthrough; `-Wredundant-decls` and `-Wnested-externs` promoted to baseline | 6427 | 7913 |
 
 Also fixed on the way: the budget check counted only `file:line:col: error:`
 lines, so a build that stopped on a missing header (`fatal error:`), a linker
@@ -135,6 +137,19 @@ Notes from steps 2.2 and 2.3:
 - `strlcat` is now probed like `strlcpy` (`HAVE_STRLCAT`), so the local
   fallback no longer redeclares the C library function on glibc 2.38 and
   later.
+
+Notes from step 2.6:
+
+- Clang does not accept fallthrough comments; intended fallthroughs now carry
+  `[[fallthrough]];` and cases that only fell into a `break` got their own.
+- `SKILL_DIRT_KICK` in `skill_lists.c` fell into the berserker rage check for
+  a level 20, dexterity 17 character without 15 rogue levels, so such a
+  berserker could use dirt kick. It now returns FALSE.
+- The object editor's special ability value prompts fell through every later
+  prompt into the `SYSERR` default case for abilities without a handler; each
+  prompt now ends in `break`.
+- Before the promotion both flags were built at the baseline tier with GCC 13
+  and Clang 18 (the minimum compilers), all 746 objects, zero warnings.
 
 ## Remaining work
 

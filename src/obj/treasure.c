@@ -3760,6 +3760,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
     GET_OBJ_VAL(obj, INSTRUMENT_VALUE_DIFFICULTY_REDUCTION) = dice(1, level) + 5;
     GET_OBJ_VAL(obj, INSTRUMENT_VALUE_EFFECTIVENESS) = dice(1, (level + 5) / 5);
     GET_OBJ_VAL(obj, INSTRUMENT_VALUE_BREAKABILITY) = dice(1, level) / 5;
+    break;
   default:
     break;
   }

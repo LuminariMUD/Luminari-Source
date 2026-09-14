@@ -386,7 +386,7 @@ static void zedit_new_zone(struct char_data *ch, zone_vnum vzone_num, room_vnum 
     {
     case CON_REDIT:
       OLC_ROOM(dsc)->zone += (OLC_ZNUM(dsc) >= result);
-      /* Fall through. */
+      [[fallthrough]];
     case CON_ZEDIT:
     case CON_MEDIT:
     case CON_SEDIT:
@@ -1032,7 +1032,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
 
       mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
              "OLC: %s edits zone info for room %" PRI_IDX ".", GET_NAME(d->character), OLC_NUM(d));
-      /* FALL THROUGH */
+      [[fallthrough]];
     case 'n':
     case 'N':
       cleanup_olc(d, CLEANUP_ALL);

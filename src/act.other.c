@@ -4213,7 +4213,7 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
         case SIZE_COLOSSAL:
           if (HAS_FEAT(ch, FEAT_COLOSSAL_WILD_SHAPE))
             break;
-
+          [[fallthrough]];
         case SIZE_FINE:
         default:
           continue;
@@ -4247,7 +4247,7 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
         case SIZE_COLOSSAL:
           if (HAS_FEAT(ch, FEAT_COLOSSAL_WILD_SHAPE))
             break;
-
+          [[fallthrough]];
         case SIZE_DIMINUTIVE:
         case SIZE_TINY:
         case SIZE_FINE:
@@ -4283,7 +4283,7 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
         case SIZE_COLOSSAL:
           if (HAS_FEAT(ch, FEAT_COLOSSAL_WILD_SHAPE))
             break;
-
+          [[fallthrough]];
         case SIZE_DIMINUTIVE:
         case SIZE_TINY:
         case SIZE_FINE:
@@ -4625,6 +4625,7 @@ void assign_wildshape_feats(struct char_data *ch)
   case 2:
   case 1:
     MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    [[fallthrough]];
   default:
     break;
   }
@@ -5268,6 +5269,7 @@ int display_eligible_disguise_races(struct char_data *ch, const char *argument, 
       {
         break;
       }
+      [[fallthrough]];
     default:
       continue;
     }

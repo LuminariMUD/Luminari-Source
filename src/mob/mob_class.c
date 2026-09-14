@@ -117,7 +117,7 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
   case 1:
     if (perform_knockdown(ch, vict, SKILL_TRIP, true, true))
       break;
-    /* fallthrough */
+    [[fallthrough]];
   case 2:
     if (perform_dirtkick(ch, vict))
     {
@@ -126,7 +126,7 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
     }
     else
       send_to_char(ch, "Failed dirtkick\r\n");
-    /* fallthrough */
+    [[fallthrough]];
   default:
     if (perform_backstab(ch, vict))
       break;
@@ -197,6 +197,7 @@ void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
   case 2:
     if (perform_shieldpunch(ch, vict))
       break;
+    [[fallthrough]];
   default:
     break;
   }

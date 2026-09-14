@@ -9,7 +9,6 @@ enum-enum-conversion 1
 float-conversion 95
 float-equal 7
 format-nonliteral 23
-implicit-fallthrough 33
 implicit-float-conversion 223
 implicit-int-conversion 527
 implicit-int-conversion-on-negation 6

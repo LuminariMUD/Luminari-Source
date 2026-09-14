@@ -400,7 +400,7 @@ void trigedit_parse(struct descriptor_data *d, char *arg)
       trigedit_save(d);
       mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE,
              "OLC: %s edits trigger %" PRI_IDX, GET_NAME(d->character), OLC_NUM(d));
-      /* fall through */
+      [[fallthrough]];
     case 'n':
       cleanup_olc(d, CLEANUP_ALL);
       return;

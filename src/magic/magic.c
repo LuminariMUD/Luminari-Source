@@ -14346,7 +14346,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     /* Heal also restores health, so don't give the "no effect" message if the
      * target isn't afflicted by the 'blindness' spell. */
     msg_not_affected = FALSE;
-    /* fall-through */
+    [[fallthrough]];
   case SPELL_CURE_BLIND:
     /* this has fall-through from above */
     spell = SPELL_BLINDNESS;

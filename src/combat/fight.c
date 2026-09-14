@@ -1324,7 +1324,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   case POS_RESTING:
     if (HAS_FEAT(ch, FEAT_GROUNDFIGHTING))
       break;
-    /* fallthrough */
+    [[fallthrough]];
   case POS_STUNNED:
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
     ac_penalty -= 2;
@@ -3957,6 +3957,7 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += get_evolution_appearance_save_bonus(ch);
     if (HAS_EVOLUTION(ch, EVOLUTION_FIENDISH_APPEARANCE))
       dam_reduction += get_evolution_appearance_save_bonus(ch);
+    break;
   case DAM_CELESTIAL_POISON:
     break;
   case DAM_DISEASE:
@@ -10973,7 +10974,7 @@ static int compute_attack_bonus_full_with_weapon(
   case POS_RESTING:
     if (HAS_FEAT(ch, FEAT_GROUNDFIGHTING)) /* fights as well from the ground */
       break;
-    /* fallthrough */
+    [[fallthrough]];
   case POS_SLEEPING:
   case POS_STUNNED:
   case POS_INCAP:

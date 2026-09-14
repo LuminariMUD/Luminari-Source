@@ -1010,6 +1010,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       else
         send_to_char(ch, "No special abilities assigned.\r\n");
     }
+    break;
 
   case ITEM_DISGUISE: /* 39 */
     break;
