@@ -15,17 +15,20 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
-      # help.hlp is generated data (hedit export), and the inherited license
-      # is a byte-identical legal archive. Mutating hygiene hooks skip both.
+      # help.hlp is generated data (hedit export), the inherited license is a
+      # byte-identical legal archive, and Archify map pages must match their
+      # delivery receipts byte for byte. Mutating hygiene hooks skip all three.
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
-        exclude: ^(lib/text/help/help\.hlp|docs/legal/CIRCLEMUD_DIKUMUD_LICENSE\.txt)$
+        exclude: ^(lib/text/help/help\.hlp|docs/legal/CIRCLEMUD_DIKUMUD_LICENSE\.txt|docs/architecture-maps/[^/]+\.html)$
       - id: end-of-file-fixer
-        exclude: ^(lib/text/help/help\.hlp|docs/legal/CIRCLEMUD_DIKUMUD_LICENSE\.txt)$
+        exclude: ^(lib/text/help/help\.hlp|docs/legal/CIRCLEMUD_DIKUMUD_LICENSE\.txt|docs/architecture-maps/[^/]+\.html)$
       - id: check-yaml
+      # Archify architecture maps embed their complete interactive viewer
+      # (about 800 KB each), so generated map pages are exempt.
       - id: check-added-large-files
         args: [--maxkb=500]
-        exclude: ^lib/text/help/help\.hlp$
+        exclude: ^(lib/text/help/help\.hlp|docs/architecture-maps/[^/]+\.html)$
       - id: check-merge-conflict
       - id: mixed-line-ending
         args: [--fix=lf]

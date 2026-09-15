@@ -1,0 +1,305 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Change to Merge Workflow",
+    "locale": "en",
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "frontend": {
+          "label": "Developer step"
+        },
+        "backend": {
+          "label": "Build step"
+        },
+        "security": {
+          "label": "Gate"
+        },
+        "messagebus": {
+          "label": "Recovery"
+        },
+        "cloud": {
+          "label": "CI service"
+        }
+      }
+    },
+    "views": [
+      {
+        "id": "happy-path",
+        "label": "Happy path",
+        "focus": [
+          "edit",
+          "parity",
+          "maketest",
+          "install",
+          "hooks",
+          "ci"
+        ],
+        "note": "Keep both build manifests in sync, run the production-linked tests, install, commit, and push."
+      },
+      {
+        "id": "local-gates",
+        "label": "Local gates",
+        "focus": [
+          "parity",
+          "maketest",
+          "install",
+          "run"
+        ],
+        "note": "make test links every game source into cutest; make install leaves only bin/luminari for a port 4100 smoke run."
+      },
+      {
+        "id": "recovery",
+        "label": "Recovery",
+        "focus": [
+          "maketest",
+          "hooks",
+          "fix",
+          "edit"
+        ],
+        "note": "A failing test or a hook that rewrites files sends the change back to the editor before it can be pushed."
+      }
+    ]
+  },
+  "lanes": [
+    {
+      "id": "local",
+      "label": "Developer machine"
+    },
+    {
+      "id": "share",
+      "label": "Commit + GitHub"
+    },
+    {
+      "id": "recover",
+      "label": "Fix + retry",
+      "variant": "exception"
+    }
+  ],
+  "phases": [
+    {
+      "id": "change",
+      "label": "Change",
+      "fromCol": 0,
+      "toCol": 1
+    },
+    {
+      "id": "verify",
+      "label": "Build + verify",
+      "fromCol": 2,
+      "toCol": 3,
+      "variant": "emphasis"
+    },
+    {
+      "id": "share",
+      "label": "Share",
+      "fromCol": 4,
+      "toCol": 5,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": [
+    "edit",
+    "parity",
+    "maketest",
+    "install",
+    "hooks",
+    "ci"
+  ],
+  "semanticChecks": {
+    "allowedRoots": [
+      "edit"
+    ],
+    "allowedTerminals": [
+      "ci",
+      "run"
+    ],
+    "requiredEdges": [
+      {
+        "from": "maketest",
+        "to": "install"
+      }
+    ],
+    "requiredPaths": [
+      {
+        "from": "edit",
+        "to": "ci"
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "edit",
+      "lane": "local",
+      "col": 0,
+      "type": "frontend",
+      "label": "Edit src/",
+      "sublabel": "C23, Allman",
+      "width": 132
+    },
+    {
+      "id": "run",
+      "lane": "local",
+      "col": 4,
+      "type": "frontend",
+      "label": "Run on 4100",
+      "sublabel": "autorun.sh",
+      "width": 132
+    },
+    {
+      "id": "parity",
+      "lane": "local",
+      "col": 1,
+      "type": "security",
+      "label": "Build Parity",
+      "sublabel": "both manifests",
+      "width": 132
+    },
+    {
+      "id": "maketest",
+      "lane": "local",
+      "col": 2,
+      "type": "backend",
+      "label": "make -j test",
+      "sublabel": "production-linked",
+      "width": 132
+    },
+    {
+      "id": "install",
+      "lane": "local",
+      "col": 3,
+      "type": "backend",
+      "label": "make install",
+      "sublabel": "bin/luminari",
+      "width": 132
+    },
+    {
+      "id": "hooks",
+      "lane": "share",
+      "col": 4,
+      "type": "security",
+      "label": "git commit",
+      "sublabel": "pre-commit hooks",
+      "width": 132
+    },
+    {
+      "id": "ci",
+      "lane": "share",
+      "col": 5,
+      "type": "cloud",
+      "label": "GitHub Actions",
+      "sublabel": "8 workflows",
+      "width": 132
+    },
+    {
+      "id": "fix",
+      "lane": "recover",
+      "col": 3,
+      "type": "messagebus",
+      "label": "Fix + Re-run",
+      "sublabel": "failing gate",
+      "width": 132
+    }
+  ],
+  "edges": [
+    {
+      "id": "source-list",
+      "from": "edit",
+      "to": "parity",
+      "label": "files added?",
+      "variant": "emphasis"
+    },
+    {
+      "id": "manifests-match",
+      "from": "parity",
+      "to": "maketest",
+      "label": "in sync",
+      "variant": "emphasis"
+    },
+    {
+      "id": "tests-pass",
+      "from": "maketest",
+      "to": "install",
+      "label": "tests pass",
+      "variant": "emphasis"
+    },
+    {
+      "id": "stage",
+      "from": "install",
+      "to": "hooks",
+      "label": "stage",
+      "variant": "emphasis"
+    },
+    {
+      "id": "push",
+      "from": "hooks",
+      "to": "ci",
+      "label": "git push",
+      "variant": "emphasis"
+    },
+    {
+      "id": "smoke",
+      "from": "install",
+      "to": "run",
+      "label": "smoke test",
+      "variant": "dashed",
+      "role": "branch"
+    },
+    {
+      "id": "test-failure",
+      "from": "maketest",
+      "to": "fix",
+      "label": "failure",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "hook-rewrite",
+      "from": "hooks",
+      "to": "fix",
+      "label": "hook rewrote",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "retry",
+      "from": "fix",
+      "to": "edit",
+      "label": "retry",
+      "variant": "dashed",
+      "role": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Local contract",
+      "items": [
+        "New file: update both manifests",
+        "make test, then make install",
+        "No luminari binary in the root"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Commit hooks",
+      "items": [
+        "clang-format 18.1.8 on C files",
+        "Hygiene: ASCII docs, no artifacts",
+        "pre-push runs a full make"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "GitHub Actions",
+      "items": [
+        "Build & Test: matrix, cutest, fuzz",
+        "Hygiene, Quality, Security",
+        "Pages from docs/, tags release"
+      ]
+    }
+  ]
+}
