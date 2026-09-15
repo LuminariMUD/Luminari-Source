@@ -127,8 +127,9 @@ is absent during work, committed once at the native deadline, and remains hidden
 when committed movement cancels the activity. Existing activity-manager coverage
 proves damage/combat responses, target movement/death, owner extraction, logout
 cleanup, timer admission failure, stale callbacks, pause/resume policy, and
-exactly-once completion. Craft coverage proves reservation/progress behavior and
-logout/restart reconstruction for the existing durable activity.
+exactly-once completion. Craft coverage proves reservation/progress behavior
+and directly exercises reconstruction through `resume_craft_activity()`; no
+production logout/login/restart path currently invokes that helper.
 
 Guarded-rest and expedition integration tests must be added with their first
 concrete implementations. Required cases are: interruption before recovery,

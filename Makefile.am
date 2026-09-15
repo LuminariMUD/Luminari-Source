@@ -976,6 +976,7 @@ EXTRA_DIST = \
 	sql/components/help_billowing_cloud_exposure.sql \
 	sql/components/help_staff_event_agenda_entry.sql \
 	sql/components/help_command_sweep_entries.sql \
+	sql/components/help_crafting_entries.sql \
 	sql/components/help_pet_entries.sql \
 	sql/components/help_dg_damage_trigger.sql \
 	sql/components/help_rol_feat_entries.sql \
@@ -1000,6 +1001,7 @@ EXTRA_DIST = \
 	sql/components/test_vessels_integrity.sql \
 	sql/components/verify_help_arcane_mark_entries.sql \
 	sql/components/verify_help_command_sweep_entries.sql \
+	sql/components/verify_help_crafting_entries.sql \
 	sql/components/verify_help_dg_damage_trigger.sql \
 	sql/components/verify_help_necromancer_entries.sql \
 	sql/components/verify_help_rol_feat_entries.sql \

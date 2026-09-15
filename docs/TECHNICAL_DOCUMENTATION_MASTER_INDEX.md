@@ -190,7 +190,8 @@ This master index provides a comprehensive guide to all technical documentation 
   including converter-owned RoL compatibility flags
 
 ### Equipment & Items
-- **[CRAFTING_SYSTEM_NOTES.md](world_game-data/CRAFTING_SYSTEM_NOTES.md)** - Crafting system design notes (partial; verify against `src/craft/`)
+- **[CRAFTING_SYSTEM_NOTES.md](world_game-data/CRAFTING_SYSTEM_NOTES.md)** - Current crafting
+  modes, recipe/material model, activities, persistence, and resource acquisition
 - **[gear_guide.md](world_game-data/gear_guide.md)** - Combined gear stat distribution (equipment balance, loot generation, stats by wear location)
 
 ---

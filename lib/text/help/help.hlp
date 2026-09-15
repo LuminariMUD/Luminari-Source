@@ -8036,27 +8036,33 @@ Extradesc - optional, displayed when someone looks at the item.
 #0
 CRAFT-ITEMTYPE
 
-Usage: craft itemtype (weapon|armor|jewelry|instrument|misc)
+Usage: craft itemtype <weapon|armor|instrument|misc|golem>
+       newcraft itemtype <weapon|armor|instrument|misc|golem>
 
-This command will set the type of item you will create. This must be set
-before most other craft commands.
+This selects the broad project type before most other project settings.
+Jewelry-oriented recipes are miscellaneous subtypes, so use MISC rather than
+JEWELRY. Golem setup is entered with CRAFT GOLEM or NEWCRAFT GOLEM and requires
+materials-and-motes mode.
 
-See Also: CRAFT
+See Also: CRAFTING
 #0
 CRAFT-MATERIALS
 
+Usage: craft materials <add|remove> <material type>
+       newcraft materials <add|remove> <material type>
+       craftmaterials
+       craftmaterials store <item>
 
-Usage: craft materials (add|remove) (material type)
+CRAFT MATERIALS allocates the exact amount a selected recipe variant needs, or
+returns that allocation. Select item type, specific type and variant first, then
+use CRAFT SHOW to see the required groups and quantities.
 
-This command will add or remove materials to the crafting project. To see what types
-of materials needed for the item, you need to set item type, specific type and variant
-first. Then typing craft show, you'll see the types of materials needed and how many.
-To see a list of your owned materials, type materials.
+CRAFTMATERIALS lists the separate materials-and-motes crafting balances.
+CRAFTMATERIALS STORE deposits a physical ITEM_MATERIAL object into those
+balances. In the default build, MATERIALS displays wilderness material storage
+instead; its behavior depends on a compile-time option.
 
-When you use the command, specifying add or remove, this will automatically add/remove
-the exact number needed, assuming you have enough.
-
-See Also: CRAFT
+See Also: CRAFTING CRAFT-SHOW CRAFTMATERIALS MATERIALS
 #0
 CRAFT-RESET
 
@@ -8172,42 +8178,63 @@ the details of the requirement-flags:
      	cwhich crafts you have the goods to create.	n
 	n
 #0
-ALCHEMICAL-SILVER BREW-POTION CRAFT-TOOLS CRAFT-WAND CRAFTING CRAFTING-CONVERT CRAFTING-SKILLS ENCHANTING ENHANCEMENT ENHANCEMENTS LUMINOUS-THREAD MAGIC-ITEMS QUICK-ALCHEMY SWIFT-ALCHEMY WEAPONTOUCH WILDERNESS-MAT
+CRAFTING
 
-The crafting system on Luminari is heavily influenced by d20MUD's system,
-it was re-written by Zusuk for TBA codebase and adapted to Luminari's
-game mechanics.
+CRAFT and CRAFTSCORE use the crafting mode selected by server configuration:
+mode 0 reports no system, mode 1 opens PRACTICE, and mode 2 opens the
+materials-and-motes project editor. NEWCRAFT opens that editor in every mode.
+CRAFTING is a separate catalog/blueprint command available in every mode.
 
-There are 3 primary elements to the crafting system:
-Creation
-Modification
-Auto-Crafting Quest
+MATERIALS-AND-MOTES EQUIPMENT PROJECT
+Use CRAFT in mode 2, or substitute NEWCRAFT in any mode:
+  newcraft itemtype <weapon|armor|instrument|misc>
+  newcraft specifictype <type>
+  newcraft variant <variant>
+  newcraft materials add <material>
+  newcraft keywords <words>
+  newcraft shortdesc <text>
+  newcraft roomdesc <text>
+  newcraft enhancement <amount>       (optional)
+  newcraft motes add <enhancement|bonus slot>  (when needed)
+  newcraft bonuses ...                (optional)
+  newcraft show
+  newcraft check
+  newcraft start
 
-Creation is done with the CREATE command.  In order to make an item, you
-need a MOLD, materials, optionally an enchantment crystal and money.
-You'll need to take these items and put them inside a -KIT and
-use the CREATE command to make the item.
+Admission checks the selected recipe, descriptions, project allocations and an
+equipped crafting tool. The current code has no woodworking tool slot, so
+carpenter variants cannot pass this check. Other variants also depend on staff
+providing the appropriate crafting-tool objects. The first attempt does not
+reliably require a room station; after an ordinary failure, a retry requires
+the station for the completion skill.
 
-Modification includes:  AUGMENT, CONVERT, RESTRING and RESIZE.  These
-crafting commands require you put the item you want to modify in the
-crafting kit to be used.  Refer to the respective help files for more
-details.
+CRAFTMATERIALS lists crafting balances. CRAFTMATERIALS STORE <item> deposits a
+physical material object. MOTES lists mote balances. SALVAGE <item> requires
+the Salvage feat or Scavenger talent. Wilderness HARVEST can also award
+balances when that integration is enabled.
 
-Auto-Crafting Quest represents local militias need for weapons, armor
-and other war supplies to supplement their battle against the growing
-monster presence in the world.  Refer to the SUPPLYORDER help file for
-more info.
+Crafting is timed work. Moving, combat, damage or losing a required station or
+target can cancel the activity. Harvesting can also stop if its required tool is
+no longer valid. ACTIVITY shows, cancels, pauses or resumes work when supported.
+Offline time does not advance a saved timer, but login/reconnect/copyover does
+not currently reconstruct its activity automatically. Resize work is refunded
+and cleared at load; manually resumed golem work lacks saved selections and
+cannot complete correctly. CRAFT RESET returns equipment-project resources. A
+natural 1 loses reserved materials and motes; an ordinary failure keeps the
+project for another attempt.
 
-To see your crafting proficiency, just type 	YPRAC	n
+OTHER CRAFTING PATHS
+CRAFTING lists or starts catalog crafts and carried blueprints. A carried
+CRAFTING-KIT separately handles CREATE, CHECKCRAFT, RESIZE, RESTRING, REDESC,
+AUGMENT, DISENCHANT, BONEARMOR, REFORGE and AUTOCRAFT where registered.
+SUPPLYORDER and mode-2 golem work use additional project paths. BREW creates
+potions and SCRIBE creates scrolls. No player command currently exposes motes
+refining or motes resizing, and no registered command creates wands.
 
-See Also:  AUGMENT CONVERT RESTRING SUPPLYORDER RESIZE CRAFTCHECK
-            CREATE -KIT AUTOCRAFT DISENCHANT
+See Also: CRAFT-MATERIALS CRAFTING-MOTES CRAFT-SHOW CRAFT-CHECK HARVEST
+          RESIZE SUPPLYORDER ACTIVITY CRAFTS CREATE CRAFTING-KIT BREW SCRIBE
 
-
-See Also:
-http://www.luminarimud.com/forums/topic/crafting-101-2018/
-
-Special thanks to the author, Ellyanor for the contribution!
+Special thanks to Ellyanor for the original crafting help contribution.
 #0
 CRAFTING-KIT CRAFTINGKIT
 
@@ -8229,36 +8256,44 @@ the bonus, the greater the number of motes are required to enchant the item so.
 You can see which bonuses are associated with which mote type, by using the 	Ymotes	n
 command
 #0
-ALCHEMICAL-SILVER ALCHEMY BREW-POTION CHEMISTRY CRAFT-TOOLS CRAFT-WAND CRAFTING-CONVERT CRAFTING-MATERIAL CRAFTING-RECIPES-MATERIALS CRAFTING-SKILLS DISMANTLE FAST-CRAFTER LUMINOUS-THREAD MATERIALS QUICK-ALCHEMY RESOURCE RESOURCES SCROUNGE SWIFT-ALCHEMY TOOLS WEAPONTOUCH WILDERNESS-MAT
+ALCHEMICAL-SILVER ALCHEMY BREW-POTION CHEMISTRY CRAFT-TOOLS CRAFT-WAND CRAFTING-CONVERT CRAFTING-MATERIAL CRAFTING-RECIPES-MATERIALS CRAFTING-SKILLS DISMANTLE ENCHANTING ENHANCEMENT ENHANCEMENTS FAST-CRAFTER LUMINOUS-THREAD MAGIC-ITEMS MATERIALS QUICK-ALCHEMY RESOURCE RESOURCES SCROUNGE SWIFT-ALCHEMY TOOLS WEAPONTOUCH WILDERNESS-MAT
 
-Topic  : Crafting Materials, Refining, and Alchemy
-Usage  : craft materials
-         craft convert <mat1> <mat2>
-         craft tools
-         brew <potion>
-         craft wand
+Topic: Crafting Materials and Adjacent Skills
 
-Crafting allows transforming raw wilderness resources into weapons, armors, potions, and wands.
+CRAFT MATERIALS allocates materials to an equipment project. CRAFT TOOLS,
+CRAFT EQUIPMENT and CRAFT GEAR display equipped support gear in mode 2; the
+equivalent NEWCRAFT arguments work in every mode. CRAFTMATERIALS lists the
+project-system balances and CRAFTMATERIALS STORE deposits a physical material
+object.
 
-DISCIPLINES & SKILLS:
-- Refining & Convert : Convert raw ores, timber, and pelts into worked ingots and leather.
-- Alchemy & Brewing  : Brew potions, concoct extracts, and distill alchemical silver / reagents.
-- Wand & Scribe      : Craft magical wands and scribe arcane scrolls.
-- Fast Crafter       : Feat reducing time needed to craft recipes.
-- Wilderness Mat     : Harvesting wood, stone, plants, and ores from wilderness sectors.
+MATERIALS shows separate wilderness storage in the default build. HARVEST,
+GATHER, MINE and SCROUNGE are resource paths with their own rules. SALVAGE
+requires the Salvage feat or Scavenger talent.
 
-See also: CRAFT, HARVEST, ALCHEMY, BREW, FAST-CRAFTER
+BREW creates potions, ALCHEMY covers discoveries and bombs, and SCRIBE creates
+scrolls. The source contains dormant motes refining/convert-style handlers but
+no registered REFINE or CRAFT WAND creation command. A crafting kit contains a
+CONVERT branch, but CONVERT is not registered for player dispatch.
+
+Enhancement and other magical bonuses are funded with motes in an equipment
+project. CRAFTING-SKILLS and tool requirements are summarized by CRAFTING.
+
+See Also: CRAFTING CRAFT-MATERIALS CRAFTING-MOTES HARVEST ALCHEMY BREW SCRIBE
 #0
 CRAFTS
 
-There is a system of special crafting that includes a universal list of
-special objects AND objects that are available through rare recipes.
+CRAFTING is a separate catalog of special objects and rare blueprint recipes.
+It is available regardless of the configured CRAFT mode.
 
-Usage: craft <no argument> - View all known crafts based on skill
-craft <name of object from list or blueprint> - If you have the required
-items, start crafting it
+Usage: crafting
+       crafting <catalog craft name>
+       crafting <carried blueprint>
 
-See also:  crafting, checkcraft, crafting-kit
+With no argument, CRAFTING lists non-blueprint catalog crafts for which you
+have enough skill. A name starts a listed craft when its object and room
+requirements are met. A carried blueprint identifies a blueprint-only craft.
+
+See Also: CRAFTING-KIT CHECKCRAFT CRAFTING
 #0
 CRASHES
 
@@ -39618,29 +39653,34 @@ See also: AUTOPILOT, SHIP-COMBAT, SHIP-OWNERSHIP, SEASTATE, VEHICLES
 #0
 CRAFTMATERIALS CRAFTSCORE DISEMBARK NOCRAFTPROGRESS REFINE SAIL SALVAGE SHIPDISEMBARK SPLITENCHANTMENT VESSELS-AND-ADVANCED-CRAFTING
 
-Topic  : Vessels, Salvaging, Refining, and Crafting Progress
+Topic  : Vessels, Salvaging, and Crafting Progress
 Usage  : sail [speed | heading]
          shipdisembark
          salvage <item>
-         refine <ore | pelt | wood>
          craftscore
          craftmaterials
+         craftmaterials store <item>
          splitenchantment <item>
          nocraftprogress
          mine
 
 NAUTICAL & CRAFTING COMMANDS:
-- sail             : Sets sail on a captained sea vessel, adjusting speed and nautical heading.
-- shipdisembark    : Safely steps off a docked or anchored vessel onto the shoreline or pier.
-- salvage          : Breaks down unwanted equipment into usable raw metals, essences, and fabrics.
-- refine           : Smelts raw ores into metal ingots or tans pelts into worked leathers.
-- craftscore       : Displays your crafting levels, masteries, recipe completions, and known schematics.
-- craftmaterials   : Lists all crafting materials in your inventory and crafting satchels.
-- splitenchantment : Disenchants magical gear, extracting raw magical essences.
-- nocraftprogress  : Toggles crafting pulse status messages on or off.
-- mine             : Excavates mineral veins and precious ores in subterranean and mountain sectors.
+- sail: controls a captained vessel's speed and heading.
+- shipdisembark: leaves a docked or anchored vessel.
+- salvage: dismantles eligible equipment; requires Salvage or Scavenger.
+- craftscore: displays crafting and harvesting skill progress according to the
+  configured mode.
+- craftmaterials: lists project-system material balances; STORE deposits a
+  physical material object.
+- splitenchantment: extracts enchantment resources from eligible equipment.
+- nocraftprogress: toggles crafting progress messages.
+- mine: gathers supported wilderness mineral resources.
 
-See also: VESSELS, CRAFT, HARVEST, ALCHEMY, FORGEAS
+The source contains a motes refining handler, but no registered REFINE command
+reaches it. REFINE is retained as a search keyword for this limitation, not as
+an available command.
+
+See Also: VESSELS CRAFTING HARVEST ALCHEMY
 #0
 VEVENT
 
