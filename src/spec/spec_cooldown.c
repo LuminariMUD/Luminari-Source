@@ -9,7 +9,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "spec/spec_cooldown.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 struct spec_object_cooldown_state spec_object_cooldown_read(const struct obj_data *obj, int slot)
 {

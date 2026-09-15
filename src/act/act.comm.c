@@ -32,8 +32,8 @@
 #include "quest/quest.h"
 #include "net/discord_bridge.h"
 #include "obj/spec_artifacts.h"
-#include "domain_event_runtime.h"
-#include "domain_event_world.h"
+#include "events/domain_event_runtime.h"
+#include "events/domain_event_world.h"
 
 ACMDU(do_rsay)
 {

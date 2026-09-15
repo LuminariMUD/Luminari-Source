@@ -34,7 +34,7 @@
 #include "comm.h"
 #include "db.h"
 #include "constants.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "wilderness.h"
 #include "kdtree.h"
 

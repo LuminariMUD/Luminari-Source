@@ -10,10 +10,10 @@
 #include "comm.h"
 #include "db.h"
 #include "ai_service.h"
-#include "domain_event_runtime.h"
-#include "domain_event_world.h"
+#include "events/domain_event_runtime.h"
+#include "events/domain_event_world.h"
 #include "dgscript/dg_event.h"
-#include "event_runtime.h"
+#include "events/event_runtime.h"
 
 #include <fcntl.h>
 #include <pthread.h>

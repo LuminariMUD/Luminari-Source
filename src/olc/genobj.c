@@ -24,7 +24,7 @@
 #include "spec/spec_binding.h"
 #include "spec/spec_registry.h"
 #include "spec/spec_effective_binding.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 /* local functions */
 static int update_all_objects(struct obj_data *obj);

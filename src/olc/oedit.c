@@ -37,7 +37,7 @@
 #include "spec/spec_binding.h"
 #include "spec/spec_registry.h"
 #include "spec_menu.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 /* local functions */
 static void oedit_disp_size_menu(struct descriptor_data *d);

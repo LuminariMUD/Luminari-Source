@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "domain_events.h"
+#include "events/domain_events.h"
 struct char_data;
 struct affected_type;
 struct domain_event_bus;

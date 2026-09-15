@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "game_scheduler.h"
+#include "events/game_scheduler.h"
 
 /** Timed-event storage selected once during event_init(). */
 enum event_backend_kind

@@ -152,9 +152,9 @@ Handles summoning of various companion types:
 - `MOB_SHADOW` - Shadow dancer shadows
 - `MOB_EIDOLON` - Summoner eidolons
 
-### Cooldown Events (src/mud_event.h)
+### Cooldown Events (src/events/mud_event.h)
 - `eC_MOUNT` - Paladin mount cooldown
-- `eC_DRAGONMOUNT` - Dragon mount cooldown (src/mud_event.h:198)
+- `eC_DRAGONMOUNT` - Dragon mount cooldown (src/events/mud_event.h:198)
 - `eC_ANIMAL` - Animal companion cooldown
 - `eC_FAMILIAR` - Familiar cooldown
 - `eSUMMONSHADOW` - Shadow cooldown
@@ -250,7 +250,7 @@ Handles summoning of various companion types:
 2. src/utils.h - Macros and function declarations
 3. src/handler.h - Function prototypes
 4. src/act/act.h - Command declarations
-5. src/mud_event.h - Event definitions
+5. src/events/mud_event.h - Event definitions
 
 ### Combat Integration
 1. src/combat/fight.c - Mounted combat mechanics

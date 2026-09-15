@@ -20,7 +20,7 @@
 #include "modify.h"
 #include "movement/graph.h"
 #include "vessels/vessels.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 /* External vessel data for ship boarding. */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];

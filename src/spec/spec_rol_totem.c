@@ -12,7 +12,7 @@
 #include "act/act.h"
 #include "comm.h"
 #include "db.h"
-#include "domain_event_world.h"
+#include "events/domain_event_world.h"
 #include "dgscript/dg_scripts.h"
 #include "handler.h"
 #include "character/rewards.h"

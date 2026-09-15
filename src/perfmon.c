@@ -25,13 +25,13 @@
 #include "dgscript/dg_scripts.h"
 #include "database/mysql.h"
 #include "perfmon.h"
-#include "active_world.h"
-#include "affected_owners.h"
-#include "character_periodic.h"
-#include "point_update_periodic.h"
+#include "events/active_world.h"
+#include "events/affected_owners.h"
+#include "events/character_periodic.h"
+#include "events/point_update_periodic.h"
 #include "vessels/vessel_periodic.h"
 #include "vessels/vessels_rol.h"
-#include "periodic_owners.h"
+#include "events/periodic_owners.h"
 #include "mob/mob_act.h"
 
 static const char *PERF_event_mode_name(bool scheduled)

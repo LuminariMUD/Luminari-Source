@@ -12,7 +12,7 @@
 #ifndef _HANDLER_H_
 #define _HANDLER_H_
 
-#include "domain_event_types.h"
+#include "events/domain_event_types.h"
 #include "mob/mob_memory.h"
 #include "mob/mob_utils.h"
 

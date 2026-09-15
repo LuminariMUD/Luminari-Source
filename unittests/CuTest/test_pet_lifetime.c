@@ -7,9 +7,9 @@
 #include "../../src/db.h"
 #include "../../src/handler.h"
 #include "../../src/magic/spells.h"
-#include "../../src/mud_event.h"
+#include "../../src/events/mud_event.h"
 #include "../../src/dgscript/dg_event.h"
-#include "../../src/event_runtime.h"
+#include "../../src/events/event_runtime.h"
 
 #include <stdlib.h>
 #include <string.h>

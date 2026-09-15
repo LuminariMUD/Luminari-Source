@@ -1,7 +1,7 @@
 #ifndef STAFF_EVENT_AGENDA_H
 #define STAFF_EVENT_AGENDA_H
 
-#include "domain_events.h"
+#include "events/domain_events.h"
 
 enum domain_event_status staff_event_agenda_init(void);
 void staff_event_agenda_shutdown(void);

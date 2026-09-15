@@ -36,7 +36,7 @@
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
-#include "domain_event_world.h"
+#include "events/domain_event_world.h"
 #include "interpreter.h"
 #include "constants.h"
 #include "magic/spells.h"

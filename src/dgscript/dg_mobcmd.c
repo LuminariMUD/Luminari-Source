@@ -17,8 +17,8 @@
 #include "db.h"
 #include "handler.h"
 #include "character/rewards.h"
-#include "domain_event_world.h"
-#include "domain_event_runtime.h"
+#include "events/domain_event_world.h"
+#include "events/domain_event_runtime.h"
 #include "interpreter.h"
 #include "comm.h"
 #include "magic/spells.h"
@@ -30,7 +30,7 @@
 #include "combat/fight.h"
 #include "obj/shop.h"  /* shop keepers and mhunt */
 #include "clan/clan.h" /* clan system */
-#include "active_world.h"
+#include "events/active_world.h"
 
 /* Local file scope functions. */
 static void mob_log(char_data *mob, const char *format, ...) __attribute__((format(printf, 2, 3)));

@@ -24,7 +24,7 @@
 #include "quest/quest.h"
 #include "quest/missions.h"
 #include "constants.h"
-#include "domain_event_types.h"
+#include "events/domain_event_types.h"
 #include "magic/spells.h"
 
 /*-------------------------------------------------------------------*/

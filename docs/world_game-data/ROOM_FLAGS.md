@@ -301,7 +301,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - `src/utils.c` - Darkness calculations (`room_is_daylit()`, `room_is_dark()`, `is_room_in_sunlight()`)
 - `src/wilderness/desc_engine.c` - Dynamic description generation (`gen_room_description()`)
 - `src/magic/magic.c` - Darkness spell interaction (`mag_room()`)
-- `src/mud_event.c` - Temporary darkness removal (`event_countdown()`)
+- `src/events/mud_event.c` - Temporary darkness removal (`event_countdown()`)
 
 ### ROOM_MAGICDARK (Index: 22)
 **Effect:** Creates magical darkness that penetrates normal light sources.

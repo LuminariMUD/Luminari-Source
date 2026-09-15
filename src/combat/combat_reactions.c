@@ -1,6 +1,6 @@
 #include "combat/combat_reactions.h"
 
-#include "domain_event_world.h"
+#include "events/domain_event_world.h"
 
 /* Reset a reaction queue to an empty, unscheduled state.
  * Safe to call on a NULL queue. */

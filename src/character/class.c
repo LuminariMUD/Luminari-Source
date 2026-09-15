@@ -22,7 +22,7 @@
 #include "act/act.h"
 #include "handler.h"
 #include "comm.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "mudlim.h"
 #include "rewards.h"
 #include "feats.h"

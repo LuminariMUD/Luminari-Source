@@ -25,13 +25,13 @@
 #include "character/abilities.h"
 #include "combat/fight.h"
 #include "olc/oasis.h" /* for buildwalk */
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "quest/hlquest.h"
 #include "mudlim.h"
 #include "character/rewards.h"
 #include "wilderness/wilderness.h" /* Wilderness! */
 #include "combat/traps.h"          /* doorbash */
-#include "actions.h"
+#include "events/actions.h"
 #include "combat/traps.h" /* for check_traps() */
 #include "magic/spell_prep.h"
 /* trails.h merged into movement_tracks.h */
@@ -46,8 +46,8 @@
 
 /* Include movement system header */
 #include "movement.h"
-#include "domain_event_runtime.h"
-#include "domain_event_world.h"
+#include "events/domain_event_runtime.h"
+#include "events/domain_event_world.h"
 
 /* Include vessel system for ship interior movement */
 #include "vessels/vessels.h"

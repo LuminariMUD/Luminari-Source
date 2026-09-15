@@ -46,13 +46,13 @@
 #include "modify.h"
 #include "character/race.h"
 #include "clan/clan.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "craft/craft.h"
 #include "obj/treasure.h"
 #include "mudlim.h"
 #include "character/rewards.h"
 #include "combat/spec_abilities.h"
-#include "actions.h"
+#include "events/actions.h"
 #include "character/feats.h"
 #include "combat/assign_wpn_armor.h"
 #include "obj/item.h"
@@ -71,10 +71,10 @@
 #include "constants.h"
 #include "craft/crafting_new.h" /* For golem repair functions */
 #include "olc/genolc.h"
-#include "point_update_periodic.h"
-#include "activity_manager.h"
-#include "domain_event_world.h"
-#include "domain_event_runtime.h"
+#include "events/point_update_periodic.h"
+#include "events/activity_manager.h"
+#include "events/domain_event_world.h"
+#include "events/domain_event_runtime.h"
 #include <time.h>
 
 /* some defines for gain/respec */

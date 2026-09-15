@@ -35,10 +35,10 @@
 #include "character/class.h"
 #include "fight.h"
 #include "utils.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "act/act.h" //perform_wildshapes
 #include "mudlim.h"
-#include "domain_event_world.h"
+#include "events/domain_event_world.h"
 #include "olc/oasis.h" // mob autoroller
 #include "assign_wpn_armor.h"
 #include "character/feats.h"

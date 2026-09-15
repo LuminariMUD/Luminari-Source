@@ -17,7 +17,7 @@
 #include "db.h"
 #include "database/db_init.h"
 #include "handler.h"
-#include "domain_event_world.h"
+#include "events/domain_event_world.h"
 #include "combat/fight.h"
 #include "pfdefaults.h"
 #include "dgscript/dg_scripts.h"
@@ -30,7 +30,7 @@
 #include "quest/quest.h"
 #include "magic/spells.h"
 #include "clan/clan.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "mudlim.h"
 #include "craft/craft.h" // crafting (auto craft quest inits)
 #include "magic/spell_prep.h"

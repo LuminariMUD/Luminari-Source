@@ -16,7 +16,7 @@
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"
 #include "../../src/magic/spells.h"
-#include "../../src/mud_event.h"
+#include "../../src/events/mud_event.h"
 #include "../../src/movement/movement.h"
 #include "../../src/spec/spec_combat.h"
 #include "../../src/spec/spec_context.h"

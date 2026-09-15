@@ -29,10 +29,10 @@
 #include "olc/genzon.h" /* for real_zone_by_thing */
 #include "act/act.h"
 #include "modify.h"
-#include "domain_event_world.h"
-#include "domain_object_transfer.h"
-#include "event_runtime.h"
-#include "point_update_periodic.h"
+#include "events/domain_event_world.h"
+#include "events/domain_object_transfer.h"
+#include "events/event_runtime.h"
+#include "events/point_update_periodic.h"
 
 /* Enable this to debug DG script parameter corruption issues */
 /* #define SCRIPT_DEBUG */

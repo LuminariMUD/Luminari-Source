@@ -10,7 +10,7 @@
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/handler.h"
-#include "../../src/mud_event.h"
+#include "../../src/events/mud_event.h"
 #include "../../src/net/protocol.h"
 
 #include <limits.h>

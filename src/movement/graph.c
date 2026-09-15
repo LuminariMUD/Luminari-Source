@@ -20,11 +20,11 @@
 #include "act/act.h" /* for the do_say command */
 #include "constants.h"
 #include "graph.h"
-#include "active_world.h"
+#include "events/active_world.h"
 #include "character/abilities.h"
 #include "combat/fight.h"
-#include "mud_event.h"
-#include "actions.h"
+#include "events/mud_event.h"
+#include "events/actions.h"
 #include "wilderness/wilderness.h"
 #include "obj/shop.h" /* shopkeepers hunting?! */
 #include "character/evolutions.h"

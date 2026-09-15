@@ -27,8 +27,8 @@
 #include "mudlim.h"
 #include "movement/graph.h"
 #include "dgscript/dg_scripts.h"
-#include "mud_event.h"
-#include "actions.h"
+#include "events/mud_event.h"
+#include "events/actions.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
 #include "character/feats.h"
@@ -42,7 +42,7 @@
 #include "quest/quest.h"
 #include "character/backgrounds.h"
 #include "character/perks.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 SPECIAL(neverwinter_button_control)
 {

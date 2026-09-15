@@ -3,9 +3,9 @@
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
-#include "domain_event_runtime.h"
-#include "domain_event_world.h"
-#include "event_runtime.h"
+#include "events/domain_event_runtime.h"
+#include "events/domain_event_world.h"
+#include "events/event_runtime.h"
 #include "spec/spec_dispatch.h"
 #include "moving_room_events.h"
 

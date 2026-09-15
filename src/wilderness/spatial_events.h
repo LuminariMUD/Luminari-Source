@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "domain_events.h"
+#include "events/domain_events.h"
 
 enum domain_event_status spatial_event_register_handlers(struct domain_event_bus *bus);
 uint64_t spatial_event_perception_rejections(void);

@@ -2,7 +2,7 @@
 
 #include "combat/fight.h"
 #include "db.h"
-#include "domain_event_world.h"
+#include "events/domain_event_world.h"
 
 /* Count the characters currently fighting this victim.
  * Walks the live character list; there is no separate fighting roster. */

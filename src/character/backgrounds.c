@@ -2,7 +2,7 @@
 // From D&D 5e and PF1e
 
 #include "conf.h"
-#include "character_periodic.h"
+#include "events/character_periodic.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"

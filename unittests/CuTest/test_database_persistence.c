@@ -15,14 +15,14 @@
 #include "../../src/net/protocol.h"
 #include "../../src/database/db_init.h"
 #include "../../src/mudlim.h"
-#include "../../src/mud_event.h"
-#include "../../src/domain_event_world.h"
+#include "../../src/events/mud_event.h"
+#include "../../src/events/domain_event_world.h"
 #include "../../src/pet_vnums.h"
 #include "../../src/magic/spells.h"
 #include "../../src/dgscript/dg_event.h"
-#include "../../src/event_runtime.h"
-#include "../../src/periodic_owners.h"
-#include "../../src/point_update_periodic.h"
+#include "../../src/events/event_runtime.h"
+#include "../../src/events/periodic_owners.h"
+#include "../../src/events/point_update_periodic.h"
 
 #include <stdlib.h>
 #include <string.h>

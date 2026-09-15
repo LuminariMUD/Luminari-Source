@@ -23,7 +23,7 @@
 #include "crafting_new.h"
 #include "magic/domains_schools.h"
 #include "helpers.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "crafting_new.h"
 #include "interpreter.h"
 #include "brew.h"

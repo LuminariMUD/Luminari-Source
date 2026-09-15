@@ -20,7 +20,7 @@
 #include "spec_objects.h"
 #include "spec_zone_prisoner.h"
 #include "combat/fight.h"
-#include "actions.h"
+#include "events/actions.h"
 #include "combat/spec_abilities.h"
 #include "obj/treasure.h"
 #include "mob/mob_utils.h"

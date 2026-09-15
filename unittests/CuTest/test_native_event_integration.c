@@ -7,9 +7,9 @@
 #include "../../src/comm.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/ai/ai_service.h"
-#include "../../src/domain_event_world.h"
-#include "../../src/event_debug.h"
-#include "../../src/event_runtime.h"
+#include "../../src/events/domain_event_world.h"
+#include "../../src/events/event_debug.h"
+#include "../../src/events/event_runtime.h"
 #include "../../src/perfmon.h"
 
 #include <stdlib.h>

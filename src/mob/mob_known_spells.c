@@ -12,7 +12,7 @@
 #include "magic/spells.h"
 #include "constants.h"
 #include "mob_known_spells.h"
-#include "active_world.h"
+#include "events/active_world.h"
 
 #define KNOWN_SPELL_SLOT_RECOVERY_SECONDS 60
 

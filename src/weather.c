@@ -15,7 +15,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
-#include "active_world.h"
+#include "events/active_world.h"
 #include "db.h"
 #include "magic/moon_bonus_spells.h" /* For moon bonus spell system */
 

@@ -22,7 +22,7 @@
 #include "screen.h"
 #include "constants.h"
 #include "act/act.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 
 /**
  * Check if one character knows another through introduction

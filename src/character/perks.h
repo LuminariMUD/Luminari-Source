@@ -6,7 +6,7 @@
 #ifndef _PERKS_H_
 #define _PERKS_H_
 
-#include "mud_event.h"
+#include "events/mud_event.h"
 
 /* External declarations */
 extern const char *perk_category_names[];

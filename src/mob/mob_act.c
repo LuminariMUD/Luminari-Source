@@ -27,7 +27,7 @@
 #include "combat/assign_wpn_armor.h"
 #include "combat/fight.h"
 #include "combat/projectiles.h"
-#include "mud_event.h" /* for eSTUNNED */
+#include "events/mud_event.h" /* for eSTUNNED */
 #include "modify.h"
 #include "obj/shop.h"
 #include "quest/quest.h"         /* so you can identify questmaster mobiles */

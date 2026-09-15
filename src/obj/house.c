@@ -25,7 +25,7 @@
 #include "dgscript/dg_scripts.h" /* for load_otriggers() */
 #include "olc/genzon.h"          /* for real_zone_by_thing() */
 #include "perfmon.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 #define MAX_BAG_ROWS 5
 

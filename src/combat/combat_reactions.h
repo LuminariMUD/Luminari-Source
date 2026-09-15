@@ -1,7 +1,7 @@
 #ifndef COMBAT_REACTIONS_H
 #define COMBAT_REACTIONS_H
 
-#include "domain_events.h"
+#include "events/domain_events.h"
 #include "structs.h"
 
 /* Safety bound on pending reactive damage packets.  Reaction chains beyond

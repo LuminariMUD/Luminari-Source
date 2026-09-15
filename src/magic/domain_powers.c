@@ -17,8 +17,8 @@
 #include "spells.h"
 #include "domains_schools.h"
 #include "combat/assign_wpn_armor.h"
-#include "mud_event.h"
-#include "actions.h"
+#include "events/mud_event.h"
+#include "events/actions.h"
 #include "combat/fight.h"
 #include "act/act.h"
 

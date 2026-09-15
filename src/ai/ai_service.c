@@ -32,7 +32,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "ai_service.h"
-#include "domain_event_world.h"
+#include "events/domain_event_world.h"
 #include "dotenv.h"
 #include <curl/curl.h>
 #include <pthread.h>

@@ -141,7 +141,7 @@ This table is checked against `src/quest/quest.h` and the display table in
 | 24 | AQ_DIALOGUE | Dialogue Quest | Mobile VNUM plus dialogue fields. |
 | 25 | AQ_MOB_RESOLVE | Resolve Mob Nonlethally | Mobile VNUM; rescue or successful negotiation. |
 | 26 | AQ_SKILL_SUCCESS | Succeed at Ability | Ability number from `src/magic/spells.h`. |
-| 27 | AQ_WITNESS_PHENOMENON | Witness Phenomenon | Phenomenon kind from `src/domain_event_types.h`; credit requires perception. |
+| 27 | AQ_WITNESS_PHENOMENON | Witness Phenomenon | Phenomenon kind from `src/events/domain_event_types.h`; credit requires perception. |
 
 `AQ_UNDEFINED` is `-1`, outside the indexed display table. It is an explicit
 unavailable state and does not by itself produce a validator finding.

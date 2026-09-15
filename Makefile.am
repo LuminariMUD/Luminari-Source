@@ -41,13 +41,13 @@ luminari_SOURCES = \
 	src/movement/movement_events.c \
 	src/combat/act.offensive.c \
 	src/act/act.other.c \
-	src/ready_action.c \
+	src/events/ready_action.c \
 	src/combat/tactical_effects.c \
 	src/combat/tactical_effects.h \
 	src/act/act.social.c \
 	src/act/act.wizard.c \
-	src/actionqueues.c \
-	src/actions.c \
+	src/events/actionqueues.c \
+	src/events/actions.c \
 	src/olc/aedit.c \
 	src/ai/ai_cache.c \
 	src/ai/ai_events.c \
@@ -135,21 +135,21 @@ luminari_SOURCES = \
 	src/olc/genshp.c \
 	src/olc/genwld.c \
 	src/olc/genzon.c \
-	src/game_scheduler.c \
-	src/game_scheduler.h \
-	src/event_runtime.c \
-	src/event_runtime.h \
-	src/event_handle.h \
-	src/active_world.c \
-	src/active_world.h \
-	src/activity_manager.c \
-	src/activity_manager.h \
-	src/affected_owners.c \
-	src/affected_owners.h \
-	src/character_periodic.c \
-	src/character_periodic.h \
-	src/point_update_periodic.c \
-	src/point_update_periodic.h \
+	src/events/game_scheduler.c \
+	src/events/game_scheduler.h \
+	src/events/event_runtime.c \
+	src/events/event_runtime.h \
+	src/events/event_handle.h \
+	src/events/active_world.c \
+	src/events/active_world.h \
+	src/events/activity_manager.c \
+	src/events/activity_manager.h \
+	src/events/affected_owners.c \
+	src/events/affected_owners.h \
+	src/events/character_periodic.c \
+	src/events/character_periodic.h \
+	src/events/point_update_periodic.c \
+	src/events/point_update_periodic.h \
 	src/vessels/vessel_periodic.c \
 	src/vessels/vessel_periodic.h \
 	src/quest/staff_event_agenda.c \
@@ -160,20 +160,20 @@ luminari_SOURCES = \
 	src/magic/buff_sequence.h \
 	src/vessels/transport_jobs.c \
 	src/vessels/transport_jobs.h \
-	src/periodic_owners.c \
-	src/periodic_owners.h \
-	src/domain_events.c \
-	src/domain_events.h \
-	src/domain_event_types.c \
-	src/domain_event_world.c \
-	src/domain_event_world.h \
-	src/domain_event_types.h \
-	src/domain_event_runtime.c \
-	src/domain_object_transfer.c \
-	src/domain_object_transfer.h \
-	src/domain_event_runtime.h \
-	src/event_debug.c \
-	src/event_debug.h \
+	src/events/periodic_owners.c \
+	src/events/periodic_owners.h \
+	src/events/domain_events.c \
+	src/events/domain_events.h \
+	src/events/domain_event_types.c \
+	src/events/domain_event_world.c \
+	src/events/domain_event_world.h \
+	src/events/domain_event_types.h \
+	src/events/domain_event_runtime.c \
+	src/events/domain_object_transfer.c \
+	src/events/domain_object_transfer.h \
+	src/events/domain_event_runtime.h \
+	src/events/event_debug.c \
+	src/events/event_debug.h \
 	src/net/reactor.c \
 	src/net/reactor.h \
 	src/movement/graph.c \
@@ -214,8 +214,8 @@ luminari_SOURCES = \
 	src/modify.c \
 	src/magic/moon_bonus_spells.c \
 	src/olc/msgedit.c \
-	src/mud_event.c \
-	src/mud_event_list.c \
+	src/events/mud_event.c \
+	src/events/mud_event_list.c \
 	src/database/mysql.c \
 	src/comms/new_mail.c \
 	src/olc/oasis.c \

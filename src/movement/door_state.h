@@ -2,7 +2,7 @@
 #define DOOR_STATE_H
 
 #include "structs.h"
-#include "domain_event_types.h"
+#include "events/domain_event_types.h"
 
 #define DOOR_LOCK_FLAGS (EX_LOCKED | EX_LOCKED_EASY | EX_LOCKED_MEDIUM | EX_LOCKED_HARD)
 

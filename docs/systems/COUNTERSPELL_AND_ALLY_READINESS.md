@@ -7,13 +7,13 @@ production-linked tests are implemented. The full acceptance matrix remains open
 
 ## Existing contracts and simplification
 
-`src/ready_action.c` already owns the standard-action reservation, subscriptions,
+`src/events/ready_action.c` already owns the standard-action reservation, subscriptions,
 six-second out-of-combat expiry, next-semantic-turn expiry, and native queued
 execution. Extend that owner with explicit reaction and trigger kinds. Do not add
 a reaction manager, a second action allowance, a descriptor scan, or a timer for
 each possible adversary. One character still has one readied action.
 
-`src/activity_manager.c` publishes CastingStarted only after timed casting has
+`src/events/activity_manager.c` publishes CastingStarted only after timed casting has
 been admitted and survived ActivityTransitioned observers. It removes a completed
 activity before calling its completion handler. Consequently a reaction cannot
 cancel a spell whose activity has already completed, even if spell resolution is

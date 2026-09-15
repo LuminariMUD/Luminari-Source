@@ -24,7 +24,7 @@
 #include "spec/spec_combat.h"
 #include "spec/spec_context.h"
 #include "spec/spec_rol_pilot.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 static bool rol_identify(struct char_data *ch, int cmd, const char *argument,
                          const char *description)

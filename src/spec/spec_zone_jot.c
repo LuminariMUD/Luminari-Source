@@ -20,10 +20,10 @@
 #include "spec_objects.h"
 #include "spec_zone_jot.h"
 #include "combat/fight.h"
-#include "actions.h"
+#include "events/actions.h"
 #include "magic/domains_schools.h"
 #include "character/evolutions.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 /*****************/
 /* Jot           */

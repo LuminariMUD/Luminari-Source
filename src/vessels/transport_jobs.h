@@ -1,7 +1,7 @@
 #ifndef TRANSPORT_JOBS_H
 #define TRANSPORT_JOBS_H
 
-#include "domain_events.h"
+#include "events/domain_events.h"
 #include "structs.h"
 
 enum domain_event_status transport_jobs_init(struct domain_event_bus *bus);

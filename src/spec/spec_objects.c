@@ -26,8 +26,8 @@
 #include "mudlim.h"
 #include "movement/graph.h"
 #include "dgscript/dg_scripts.h"
-#include "mud_event.h"
-#include "actions.h"
+#include "events/mud_event.h"
+#include "events/actions.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
 #include "character/feats.h"
@@ -45,7 +45,7 @@
 #include "spec/spec_context.h"
 #include "spec/spec_cooldown.h"
 #include "spec/spec_phrase.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 #include "pet_vnums.h"
 
 /*****************************************/

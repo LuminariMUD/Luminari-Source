@@ -22,8 +22,8 @@
 #include "../../src/combat/fight.h"
 #include "../../src/constants.h"
 #include "../../src/dgscript/dg_scripts.h"
-#include "../../src/actionqueues.h"
-#include "../../src/mud_event.h"
+#include "../../src/events/actionqueues.h"
+#include "../../src/events/mud_event.h"
 #include "../../src/net/protocol.h"
 
 struct four_arm_fixture

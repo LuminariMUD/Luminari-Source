@@ -23,14 +23,14 @@
 #include "magic/domains_schools.h"
 #include "magic/spells.h"
 #include "movement/movement.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "spec/spec_combat.h"
 #include "spec/spec_context.h"
 #include "spec/spec_dispatch.h"
 #include "spec/spec_rol_avernus.h"
 #include "spec/spec_rol_conversion.h"
 #include "spec/spec_rol_darkhold.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 #define ROL_BALOR_WHIP_VNUM 2093227
 #define ROL_BALOR_SWORD_VNUM 2093228

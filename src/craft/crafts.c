@@ -22,7 +22,7 @@
 #include "olc/oasis.h"
 #include "olc/genolc.h"
 #include "magic/spells.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "crafts.h"
 #include "obj/item.h"
 #include "crafting_new.h"

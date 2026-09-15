@@ -20,7 +20,7 @@
 #include "constants.h"
 #include "vessels.h"
 #include "vessel_periodic.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "dgscript/dg_scripts.h"
 #include "wilderness/wilderness.h"
 

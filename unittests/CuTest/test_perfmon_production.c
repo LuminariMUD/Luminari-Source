@@ -12,7 +12,7 @@
 #include "../../src/magic/spells.h"
 #include "../../src/olc/hedit.h"
 #include "../../src/perfmon.h"
-#include "../../src/point_update_periodic.h"
+#include "../../src/events/point_update_periodic.h"
 
 #include <stdint.h>
 #include <stdlib.h>

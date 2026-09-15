@@ -12,7 +12,7 @@
 #include "screen.h"
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "comms/mail.h" /**< For the has_mail function */
 #include "act/act.h"
 #include "character/class.h"

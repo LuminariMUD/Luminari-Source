@@ -16,7 +16,7 @@
 #include "../../src/magic/spell_prep.h"
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
-#include "../../src/mud_event.h"
+#include "../../src/events/mud_event.h"
 
 #include <string.h>
 

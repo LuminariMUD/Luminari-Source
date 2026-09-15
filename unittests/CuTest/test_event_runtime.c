@@ -5,7 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/comm.h"
 #include "../../src/dgscript/dg_event.h"
-#include "../../src/event_runtime.h"
+#include "../../src/events/event_runtime.h"
 #include "../../src/perfmon.h"
 
 #include <stdlib.h>

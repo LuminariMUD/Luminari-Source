@@ -20,13 +20,13 @@
 #include "constants.h"
 #include "act/act.h"
 #include "combat/fight.h"
-#include "mud_event.h"
-#include "actions.h"
+#include "events/mud_event.h"
+#include "events/actions.h"
 #include "magic/spell_prep.h"
 #include "movement_position.h"
 #include "config.h"
-#include "active_world.h"
-#include "character_periodic.h"
+#include "events/active_world.h"
+#include "events/character_periodic.h"
 
 /* Functions moved from movement.c */
 

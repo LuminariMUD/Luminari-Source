@@ -26,7 +26,7 @@
 #include "magic/spell_prep.h"
 #include "magic/spells.h"
 #include "mob/mob_utils.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "mudlim.h"
 #include "character/rewards.h"
 #include "obj/shop.h"
@@ -37,7 +37,7 @@
 #include "spec_rol_darkhold.h"
 #include "spec_rol_conversion.h"
 #include "spec_rol_totem.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 #include <limits.h>
 

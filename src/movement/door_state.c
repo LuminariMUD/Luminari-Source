@@ -4,8 +4,8 @@
 #include "utils.h"
 #include "db.h"
 #include "constants.h"
-#include "domain_event_runtime.h"
-#include "domain_event_world.h"
+#include "events/domain_event_runtime.h"
+#include "events/domain_event_world.h"
 #include "door_state.h"
 
 static uint64_t next_exit_identity = 1U;

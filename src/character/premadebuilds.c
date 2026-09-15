@@ -16,7 +16,7 @@
 #include "class.h"
 #include "race.h"
 #include "abilities.h"
-#include "mud_event.h" // for purgemob event
+#include "events/mud_event.h" // for purgemob event
 #include "feats.h"
 #include "combat/spec_abilities.h"
 #include "combat/assign_wpn_armor.h"

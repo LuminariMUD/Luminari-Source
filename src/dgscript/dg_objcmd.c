@@ -21,7 +21,7 @@
 #include "constants.h"
 #include "olc/genzon.h"   /* for access to real_zone_by_thing */
 #include "combat/fight.h" /* for die() */
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 /* Local functions */
 #define OCMD(name)                                                                                 \

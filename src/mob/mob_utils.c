@@ -20,7 +20,7 @@
 #include "act/act.h"
 #include "movement/graph.h"
 #include "combat/fight.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "modify.h"
 #include "mob_memory.h"
 #include "mob_utils.h"

@@ -1,7 +1,7 @@
 #ifndef COMBAT_COMBAT_ENCOUNTERS_H
 #define COMBAT_COMBAT_ENCOUNTERS_H
 
-#include "domain_events.h"
+#include "events/domain_events.h"
 #include "structs.h"
 
 enum combat_encounter_departure_reason

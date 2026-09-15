@@ -21,7 +21,7 @@
 #include "perfmon.h"
 
 #include "wilderness/wilderness.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 
 #define MYSQL_DEBUG 0
 

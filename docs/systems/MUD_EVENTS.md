@@ -9,16 +9,16 @@ retired. Neither libevent nor select I/O driver selects another gameplay clock.
 
 ## Boundaries
 
-- [event_runtime](../../src/event_runtime.h) is the game-facing API for delayed
+- [event_runtime](../../src/events/event_runtime.h) is the game-facing API for delayed
   and recurring work, semantic type registration, inspection, and cancellation.
-- [game_scheduler](../../src/game_scheduler.h) is the private physical wheel.
+- [game_scheduler](../../src/events/game_scheduler.h) is the private physical wheel.
   Only event_runtime owns it; gameplay modules do not call it directly.
 - [dg_event](../../src/dgscript/dg_event.h) bridges process initialization,
   shutdown, deadline inspection, and scheduler advancement. Its historical name
   does not imply a separate DG event engine.
 - [reactor](../../src/net/reactor.c) waits for I/O, signals, or the next deadline.
   Gameplay remains on the main thread for deterministic mutation ordering.
-- [domain_events](../../src/domain_events.h) synchronously publishes immutable,
+- [domain_events](../../src/events/domain_events.h) synchronously publishes immutable,
   borrowed facts after committed state changes. Pre-operation vetoes and value
   changes remain typed decision hooks; notifications cannot undo mutations.
 
@@ -62,7 +62,7 @@ native callback wrapping a scan does not make that scan owner-driven.
 
 ## Table-driven MUD events
 
-[mud_event_list.c](../../src/mud_event_list.c) maps IDs to callbacks, owner kinds,
+[mud_event_list.c](../../src/events/mud_event_list.c) maps IDs to callbacks, owner kinds,
 recovery messages, and feat metadata. Every usable ID registers a native type
 named `mud.<three-digit-id>.<readable-name>`. Entity lists retain MUD payloads,
 not scheduler internals.
@@ -108,7 +108,7 @@ world/database state. Archival PubSub SQL remains data, not executable dispatch.
 
 ## Domain facts and subscriptions
 
-Foundation types are registered in [domain_event_types.c](../../src/domain_event_types.c).
+Foundation types are registered in [domain_event_types.c](../../src/events/domain_event_types.c).
 Runtime publishers use typed payloads and entity-scoped topics. A topic combines
 event type, role, and generation-safe entity identity. Publication uses indexes,
 not a scan of the population or full subscription list.

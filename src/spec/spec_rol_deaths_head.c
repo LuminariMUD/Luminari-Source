@@ -16,7 +16,7 @@
 #include "db.h"
 #include "dgscript/dg_scripts.h"
 #include "handler.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "spec/spec_dispatch.h"
 #include "spec/spec_rol_deaths_head.h"
 

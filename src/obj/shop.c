@@ -17,7 +17,7 @@
 #include "spec/spec_dispatch.h"
 #include "comm.h"
 #include "handler.h"
-#include "domain_object_transfer.h"
+#include "events/domain_object_transfer.h"
 #include "db.h"
 #include "interpreter.h"
 #include "utils.h"

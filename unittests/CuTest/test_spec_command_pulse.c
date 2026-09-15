@@ -13,8 +13,8 @@
 #include "../../src/olc/genwld.h"
 #include "../../src/vessels/vessels_moving_rooms.h"
 #include "../../src/vessels/moving_room_events.h"
-#include "../../src/domain_event_runtime.h"
-#include "../../src/event_runtime.h"
+#include "../../src/events/domain_event_runtime.h"
+#include "../../src/events/event_runtime.h"
 #include "../../src/dgscript/dg_event.h"
 
 #include <limits.h>
@@ -916,7 +916,7 @@ void Test_spec_native_services_and_movement_admission_are_present(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, strstr(source, "process_legacy_luminari_maintenance();"));
   free(source);
   source = NULL;
-  CuAssertTrue(tc, spec_pulse_read_source("src/character_periodic.c", &source));
+  CuAssertTrue(tc, spec_pulse_read_source("src/events/character_periodic.c", &source));
   CuAssertPtrNotNull(tc, strstr(source, "DOMAIN_EVENT_CHARACTER_MOVED"));
   CuAssertPtrNotNull(tc, strstr(source, "character_periodic_sync(ch);"));
   free(source);

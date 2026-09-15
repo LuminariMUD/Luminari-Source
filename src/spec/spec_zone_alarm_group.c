@@ -15,7 +15,7 @@
 #include "handler.h"
 #include "db.h"
 #include "magic/spells.h"
-#include "actions.h"
+#include "events/actions.h"
 #include "movement/graph.h"
 #include "mob/mob_utils.h"
 #include "combat/fight.h"

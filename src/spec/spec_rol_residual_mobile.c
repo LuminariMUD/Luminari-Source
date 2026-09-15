@@ -16,7 +16,7 @@
 #include "interpreter.h"
 #include "magic/domains_schools.h"
 #include "magic/spells.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "mudlim.h"
 #include "character/rewards.h"
 #include "spec/spec_dispatch.h"

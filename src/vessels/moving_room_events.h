@@ -1,7 +1,7 @@
 #ifndef MOVING_ROOM_EVENTS_H
 #define MOVING_ROOM_EVENTS_H
 
-#include "domain_events.h"
+#include "events/domain_events.h"
 #include "structs.h"
 
 enum domain_event_status moving_room_events_init(void);

@@ -19,7 +19,7 @@
 #include "constants.h"
 #include "magic/spell_prep.h"
 #include "character/class.h"
-#include "active_world.h"
+#include "events/active_world.h"
 #include "mob_spellslots.h"
 
 #define MOB_SPELL_SLOT_RECOVERY_SECONDS 300

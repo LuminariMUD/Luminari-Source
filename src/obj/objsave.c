@@ -15,7 +15,7 @@
 #include "comm.h"
 #include "handler.h"
 #include "character/rewards.h"
-#include "domain_object_transfer.h"
+#include "events/domain_object_transfer.h"
 #include "db.h"
 #include "interpreter.h"
 #include "magic/spells.h"
@@ -29,7 +29,7 @@
 #include "spec_artifacts.h"
 #include "objsave.h"
 #include "perfmon.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 #include "character/race.h"
 
 #define OBJSAVE_DB 1

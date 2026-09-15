@@ -26,8 +26,8 @@
 #include "character/rewards.h"
 #include "movement/graph.h"
 #include "dgscript/dg_scripts.h"
-#include "mud_event.h"
-#include "actions.h"
+#include "events/mud_event.h"
+#include "events/actions.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
 #include "character/feats.h"
@@ -42,7 +42,7 @@
 #include "character/backgrounds.h"
 #include "character/perks.h"
 #include "spec/spec_dispatch.h"
-#include "domain_event_world.h"
+#include "events/domain_event_world.h"
 
 SPECIAL(bank)
 {

@@ -34,7 +34,7 @@
 
 #include "structs.h"
 #include "utils.h"
-#include "domain_events.h"
+#include "events/domain_events.h"
 
 /* bool is provided by stdbool.h (via bool.h or directly) or C23+ */
 #include <stdbool.h>

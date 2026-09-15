@@ -7,9 +7,9 @@
 #include "../../src/comm.h"
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_event.h"
-#include "../../src/event_debug.h"
-#include "../../src/event_runtime.h"
-#include "../../src/mud_event.h"
+#include "../../src/events/event_debug.h"
+#include "../../src/events/event_runtime.h"
+#include "../../src/events/mud_event.h"
 #include "../../src/mudlim.h"
 #include "../../src/perfmon.h"
 

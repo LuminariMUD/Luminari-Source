@@ -20,7 +20,7 @@
 #include "constants.h"
 #include "act/act.h"
 #include "combat/fight.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "obj/shop.h"             /* for shop_keeper */
 #include "dgscript/dg_scripts.h"  /* for SCRIPT and TRIGGERS */
 #include "quest/quest.h"          /* for questmaster checks */

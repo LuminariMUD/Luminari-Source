@@ -8,7 +8,7 @@
 #define __SPELL_PARSER_C__
 
 #include "conf.h"
-#include "active_world.h"
+#include "events/active_world.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
@@ -21,11 +21,11 @@
 #include "dgscript/dg_scripts.h"
 #include "combat/fight.h" /* for hit() */
 #include "constants.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "character/class.h"
 #include "character/abilities.h"
 #include "character/feats.h"
-#include "actions.h"
+#include "events/actions.h"
 #include "combat/assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "casting_visuals.h"
@@ -44,10 +44,10 @@
 #include "character/perks.h"
 #include "character/bardic_performance.h"
 
-#include "activity_manager.h"
-#include "domain_event_types.h"
-#include "domain_event_world.h"
-#include "domain_object_transfer.h"
+#include "events/activity_manager.h"
+#include "events/domain_event_types.h"
+#include "events/domain_event_world.h"
+#include "events/domain_object_transfer.h"
 
 #define SINFO spell_info[spellnum]
 

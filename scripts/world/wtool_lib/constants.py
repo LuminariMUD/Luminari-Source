@@ -171,7 +171,7 @@ LIMIT_SPECS = {
     "NUM_AQ_FLAGS": "src/quest/quest.h",
     "NUM_AQ_TYPES": "src/quest/quest.h",
     "NUM_ABILITIES": "src/magic/spells.h",
-    "NUM_DOMAIN_PHENOMENON_KINDS": "src/domain_event_types.h",
+    "NUM_DOMAIN_PHENOMENON_KINDS": "src/events/domain_event_types.h",
     "NUM_CHURCHES": "src/character/class.h",
     "NUM_MISSION_DIFFICULTIES": "src/quest/missions.h",
     "RACE_LICH": "src/structs.h",

@@ -19,7 +19,7 @@
 #include "act/act.h"
 #include "spec_zone_fire_giant.h"
 #include "combat/fight.h"
-#include "actions.h"
+#include "events/actions.h"
 
 /**********************/
 /* Fire Giant Zone(s) */

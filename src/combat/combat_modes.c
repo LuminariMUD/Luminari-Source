@@ -22,9 +22,9 @@
 #include "db.h" /* For dummy_mob */
 #include "magic/spells.h"
 #include "character/class.h" /* For BAB() */
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "combat_modes.h"
-#include "actions.h"
+#include "events/actions.h"
 #include "character/perks.h"
 
 /* Modes that cannot be overlapped:

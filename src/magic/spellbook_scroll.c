@@ -19,8 +19,8 @@
 #include "spellbook_scroll.h"
 #include "db.h"
 #include "comm.h"
-#include "mud_event.h"
-#include "actions.h"
+#include "events/mud_event.h"
+#include "events/actions.h"
 #include "constants.h"
 #include "act/act.h"
 #include "handler.h" // for obj_from_char()

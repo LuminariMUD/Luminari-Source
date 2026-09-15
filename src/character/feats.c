@@ -18,7 +18,7 @@
 #include "modify.h"
 #include "feats.h"
 #include "class.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
 #include "magic/spell_prep.h"

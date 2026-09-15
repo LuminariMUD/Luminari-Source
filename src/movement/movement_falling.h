@@ -12,7 +12,7 @@
 #define MOVEMENT_FALLING_H
 
 /* Include for MUD_EVENT_CALLBACK macro */
-#include "mud_event_callback.h"
+#include "events/mud_event_callback.h"
 
 /* Function declarations for falling mechanics */
 bool obj_should_fall(struct obj_data *obj);

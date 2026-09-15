@@ -25,7 +25,7 @@
 #include "dg_event.h"
 #include "constants.h"
 #include "comm.h" /* For access to the game pulse */
-#include "event_runtime.h"
+#include "events/event_runtime.h"
 #include "perfmon.h"
 #include <limits.h> /* For LONG_MAX used in overflow checks */
 

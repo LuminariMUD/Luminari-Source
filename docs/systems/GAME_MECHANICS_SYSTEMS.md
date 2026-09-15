@@ -393,7 +393,7 @@ Active racial abilities share one table-driven handler: `racial_sla_table[]`
 and `do_racial_sla` in `src/act/act.other.c`, with one `cmd_info[]` row per verb
 whose subcommand indexes the table (`SCMD_RSLA_*` in `src/interpreter.h`).
 Daily uses are `get_daily_uses()` cases in `src/utils.c` backed by persisted
-cooldown events in `src/mud_event.h` and `src/mud_event_list.c`. The handler
+cooldown events in `src/events/mud_event.h` and `src/events/mud_event_list.c`. The handler
 spends the action and the daily use only when the ability commits: a
 `call_magic()` fizzle returns early, a teleport must move the caster, a summon
 must add a follower, and mass dispel applies `perform_dispel()` directly with

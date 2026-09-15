@@ -19,7 +19,7 @@
 #include "genzon.h"
 #include "obj/shop.h"
 #include "dgscript/dg_olc.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "wilderness/wilderness.h"
 #include "oasis.h"
 #include "spec/spec_binding.h"
@@ -28,7 +28,7 @@
 #include "vessels/vessels.h"
 #include "vessels/vessels_moving_rooms.h"
 #include "combat/traps.h"
-#include "affected_owners.h"
+#include "events/affected_owners.h"
 #include "movement/movement_tracks.h"
 
 static int copy_room_with_bindings(struct room_data *to, struct room_data *from,

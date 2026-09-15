@@ -22,8 +22,8 @@
 #include "character/abilities.h"
 #include "combat/fight.h"
 #include "character/feats.h"
-#include "mud_event.h"
-#include "actions.h"
+#include "events/mud_event.h"
+#include "events/actions.h"
 #include "character/class.h"
 #include "movement_validation.h"
 

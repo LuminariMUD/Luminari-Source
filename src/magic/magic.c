@@ -9,7 +9,7 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "character_periodic.h"
+#include "events/character_periodic.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
@@ -25,9 +25,9 @@
 #include "character/abilities.h"
 #include "combat/fight.h"
 #include "utils.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "act/act.h" /* perform_wildshapes */
-#include "actions.h"
+#include "events/actions.h"
 #include "pet_vnums.h"
 #include "mudlim.h"
 #include "character/rewards.h"
@@ -41,16 +41,16 @@
 #include "psionics.h"
 #include "combat/combat_modes.h"
 #include "character/evolutions.h"
-#include "domain_event_runtime.h"
-#include "domain_event_types.h"
-#include "domain_event_world.h"
+#include "events/domain_event_runtime.h"
+#include "events/domain_event_types.h"
+#include "events/domain_event_world.h"
 #include "wilderness/wilderness.h"
 #include "character/perks.h"
 #include "character/bardic_performance.h"
 #include "perfmon.h"
-#include "affected_owners.h"
+#include "events/affected_owners.h"
 #include "database/mysql.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 // external
 

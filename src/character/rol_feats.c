@@ -23,8 +23,8 @@
 #include "constants.h"
 #include "act/act.h"
 #include "combat/fight.h"
-#include "mud_event.h"
-#include "actions.h"
+#include "events/mud_event.h"
+#include "events/actions.h"
 #include "mudlim.h"
 #include "magic/spells.h"
 #include "character/abilities.h"
@@ -33,12 +33,12 @@
 #include "character/evolutions.h"
 #include "magic/domains_schools.h"
 #include "movement/movement.h"
-#include "character_periodic.h"
+#include "events/character_periodic.h"
 #include "bardic_performance.h"
 #include "rol_feats.h"
-#include "activity_manager.h"
-#include "affected_owners.h"
-#include "domain_event_world.h"
+#include "events/activity_manager.h"
+#include "events/affected_owners.h"
+#include "events/domain_event_world.h"
 
 /* the contested check both ends of a tail make */
 #define SHADOW_STEALTH_ROLL(ch) (compute_ability((ch), ABILITY_STEALTH) + d20(ch))

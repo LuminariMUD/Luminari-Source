@@ -18,13 +18,13 @@
 #include "character/rewards.h"
 #include "interpreter.h"
 #include "magic/spells.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "spec_combat.h"
 #include "spec_context.h"
 #include "spec_cooldown.h"
 #include "spec_dispatch.h"
 #include "spec_rol_utility_objects.h"
-#include "point_update_periodic.h"
+#include "events/point_update_periodic.h"
 
 #define ROL_GOODBERRY_VNUM 2000876
 #define ROL_LOOT_BLOCKER_VNUM 2000897

@@ -127,7 +127,7 @@
       "value": 4
     },
     "NUM_DOMAIN_PHENOMENON_KINDS": {
-      "source": "src/domain_event_types.h:NUM_DOMAIN_PHENOMENON_KINDS",
+      "source": "src/events/domain_event_types.h:NUM_DOMAIN_PHENOMENON_KINDS",
       "value": 7
     },
     "NUM_FACTIONS": {

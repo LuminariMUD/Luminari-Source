@@ -20,7 +20,7 @@
 #include "magic/domains_schools.h"
 #include "magic/spell_prep.h"
 #include "magic/spells.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "spec_context.h"
 #include "spec_dispatch.h"
 #include "spec_rol_tarrasque.h"

@@ -23,7 +23,7 @@
 #include "dgscript/dg_scripts.h"
 #include "act/act.h"
 #include "combat/fight.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "obj/house.h" /* for house_can_enter() */
 #include "screen.h"    /* for QNRM, etc */
 #include "craft/craft.h"
@@ -36,14 +36,14 @@
 #include "olc/genzon.h" /* for real_zone_by_thing */
 #include "psionics.h"
 #include "combat/assign_wpn_armor.h"
-#include "actions.h" /* for use_ACTION() */
+#include "events/actions.h" /* for use_ACTION() */
 #include "vessels/transport.h"
 #include "character/evolutions.h"
 #include "character/feats.h"
 #include "vessels/routing.h"
 #include "movement/movement_validation.h"
-#include "character_periodic.h"
-#include "domain_event_world.h"
+#include "events/character_periodic.h"
+#include "events/domain_event_world.h"
 #include "quest/missions.h"
 
 /************************************************************/

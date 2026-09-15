@@ -32,7 +32,7 @@
 #include "magic/spells.h"
 #include "magic/psionics.h"
 #include "magic/domains_schools.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "combat/fight.h"
 #include "combat/fight.h"
 #include "act/act.h"
@@ -41,7 +41,7 @@
 #include "interpreter.h"
 #include "constants.h"
 #include "perks.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 
 /* Forward declarations */
 static void define_wizard_controller_perks(void);

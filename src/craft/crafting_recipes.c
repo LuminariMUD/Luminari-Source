@@ -13,7 +13,7 @@
 #include "db.h"
 #include "craft.h"
 #include "magic/spells.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "modify.h"
 #include "obj/treasure.h"
 #include "mudlim.h"

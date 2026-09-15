@@ -8,7 +8,7 @@
 
 #include "structs.h"
 #include "movement/door_state.h"
-#include "domain_event_world.h"
+#include "events/domain_event_world.h"
 #include "utils.h"
 
 #include "act/act.h"

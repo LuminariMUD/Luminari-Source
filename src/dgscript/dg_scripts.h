@@ -15,7 +15,7 @@
 #ifndef _DG_SCRIPTS_H_
 #define _DG_SCRIPTS_H_
 
-#include "event_runtime.h"
+#include "events/event_runtime.h"
 #include "utils.h" /* To make sure ACMD is defined */
 
 #define MOB_TRIGGER 0

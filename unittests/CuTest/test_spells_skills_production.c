@@ -10,7 +10,7 @@
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/handler.h"
 #include "../../src/modify.h"
-#include "../../src/mud_event.h"
+#include "../../src/events/mud_event.h"
 #include "../../src/mudlim.h"
 #include "../../src/net/protocol.h"
 #include "../../src/character/evolutions.h"
@@ -24,7 +24,7 @@
 #include "../../src/craft/craft.h"
 #include "../../src/craft/crafts.h"
 #include "../../src/obj/item.h"
-#include "../../src/affected_owners.h"
+#include "../../src/events/affected_owners.h"
 
 #include <stdlib.h>
 #include <string.h>

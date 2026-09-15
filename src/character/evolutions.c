@@ -18,7 +18,7 @@
 #include "modify.h"
 #include "feats.h"
 #include "class.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
 #include "magic/spell_prep.h"
@@ -26,7 +26,7 @@
 #include "combat/fight.h"
 #include "olc/oasis.h"
 #include "olc/genolc.h"
-#include "character_periodic.h"
+#include "events/character_periodic.h"
 
 int evolution_sort_info[NUM_EVOLUTIONS];
 struct evolution_info evolution_list[NUM_EVOLUTIONS];

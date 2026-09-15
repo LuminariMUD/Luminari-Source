@@ -19,7 +19,7 @@
 #include "resource_depletion.h"
 #include "resource_regeneration.h"
 #include "database/mysql.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 
 /* ===== REGENERATION CONSTANTS ===== */
 

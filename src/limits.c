@@ -25,10 +25,10 @@
 #include "combat/combat_encounters.h"
 #include "combat/projectiles.h"
 #include "screen.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "mudlim.h"
 #include "act/act.h"
-#include "actions.h"
+#include "events/actions.h"
 #include "magic/domains_schools.h"
 #include "combat/grapple.h"
 #include "constants.h"
@@ -44,10 +44,10 @@
 #include "magic/moon_bonus_spells.h"
 #include "obj/spec_artifacts.h"
 #include "character/rol_feats.h"
-#include "affected_owners.h"
-#include "character_periodic.h"
-#include "active_world.h"
-#include "point_update_periodic.h"
+#include "events/affected_owners.h"
+#include "events/character_periodic.h"
+#include "events/active_world.h"
+#include "events/point_update_periodic.h"
 
 // external functions
 

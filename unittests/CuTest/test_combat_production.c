@@ -19,7 +19,7 @@
 #include "../../src/combat/combat_reactions.h"
 #include "../../src/combat/combat_state.h"
 #include "../../src/combat/grapple.h"
-#include "../../src/domain_event_world.h"
+#include "../../src/events/domain_event_world.h"
 #include "../../src/lists.h"
 #include "../../src/mudlim.h"
 #include "../../src/character/rewards.h"

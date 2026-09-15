@@ -1,7 +1,7 @@
 #ifndef COMBAT_DAMAGE_H
 #define COMBAT_DAMAGE_H
 
-#include "domain_events.h"
+#include "events/domain_events.h"
 #include "structs.h"
 
 /* Outcome of a damage submission.

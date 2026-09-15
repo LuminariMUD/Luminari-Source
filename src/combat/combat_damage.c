@@ -1,6 +1,6 @@
 #include "combat/combat_damage.h"
 
-#include "domain_event_world.h"
+#include "events/domain_event_world.h"
 
 /* Seed a damage result with its participants and requested amount.
  * The status stays REJECTED until a caller sets the real outcome. */

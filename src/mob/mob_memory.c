@@ -9,7 +9,7 @@
  **************************************************************************/
 
 #include "conf.h"
-#include "active_world.h"
+#include "events/active_world.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"

@@ -233,7 +233,7 @@ This is enforced in the color helpers, which check PRF flags before using protoc
 - `src/net/protocol.c` / `src/net/protocol.h`: negotiation logic; capability variables; color helpers.
 - `src/olc/prefedit.c`: player preference editor; applies PRFs and saves; exposes protocol toggles.
 - `src/utils.h`: PRF macros.
-- `src/mud_event.h`: `ePROTOCOLS` event definition.
+- `src/events/mud_event.h`: `ePROTOCOLS` event definition.
 - `src/player/pfdefaults.h`: default bitmasks (e.g., `PFDEF_PREFFLAGS`).
 
 ### Recommended improvements

@@ -7,7 +7,7 @@
 #include <math.h>
 
 #include "conf.h"
-#include "character_periodic.h"
+#include "events/character_periodic.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
@@ -31,7 +31,7 @@
 #include "encounters.h"
 #include "dgscript/dg_scripts.h"
 #include "olc/prefedit.h"
-#include "mud_event.h"
+#include "events/mud_event.h"
 #include "act/act.h"
 
 

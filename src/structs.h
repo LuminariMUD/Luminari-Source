@@ -17,8 +17,8 @@
 #include <time.h>     /* for time_t */
 #include <stddef.h>   /* for size_t */
 #include "bool.h"     /* for bool */
-#include "event_handle.h"
-#include "domain_event_types.h"
+#include "events/event_handle.h"
+#include "events/domain_event_types.h"
 #include "net/protocol.h" /* Kavir Plugin*/
 #include "lists.h"
 

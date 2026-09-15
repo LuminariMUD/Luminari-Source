@@ -17,7 +17,7 @@
 #include "genzon.h"
 #include "dgscript/dg_olc.h"
 #include "magic/spells.h"
-#include "actionqueues.h"
+#include "events/actionqueues.h"
 #include "spec/spec_binding.h"
 #include "spec/spec_registry.h"
 #include "mob/mob_autoroll.h"
