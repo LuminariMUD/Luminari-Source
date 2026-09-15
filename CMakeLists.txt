@@ -1334,6 +1334,12 @@ if(BUILD_TESTS)
         COMMAND Python3::Interpreter scripts/ci/check_sql_interpolation.py
     )
     add_test(
+        NAME header-self-containment
+        COMMAND
+            Python3::Interpreter scripts/ci/check_header_self_containment.py --cc
+            ${CMAKE_C_COMPILER} --build-root ${CMAKE_CURRENT_BINARY_DIR}
+    )
+    add_test(
         NAME help-sync
         COMMAND Python3::Interpreter -m unittest discover -s scripts/help-sync/tests -p test_*.py -v
     )
@@ -1347,6 +1353,7 @@ if(BUILD_TESTS)
         warning-budget-self-test
         sql-interpolation-self-test
         sql-interpolation
+        header-self-containment
         help-sync
         background-help-entries
         PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

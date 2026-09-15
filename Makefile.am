@@ -1088,7 +1088,7 @@ test: run-cutest test-cutest-runner check-build-parity test-clean-archive-runtim
 	test-binary-name-static test-healthcheck test-sql-interpolation test-production-profile \
 	test-warning-budget test-background-help-entries test-demand-driven-architecture test-event-admission \
 	test-event-core-performance-gate test-native-event-architecture test-pubsub-retirement \
-	test-vessel-tooling
+	test-vessel-tooling test-header-self-containment
 
 # Build check programs once before running the suite, alongside the shell gates.
 # An inherited CUTEST_FILTER must not narrow the authoritative run.
@@ -1106,7 +1106,7 @@ run-cutest: check
 	test-sql-interpolation test-production-profile test-warning-budget \
 	test-demand-driven-architecture test-event-admission test-native-event-architecture \
 	test-event-core-performance-gate test-pubsub-retirement \
-	test-vessel-tooling
+	test-vessel-tooling test-header-self-containment
 
 check-world-docs:
 	cd "$(abs_top_srcdir)" && python3 scripts/world/wtool.py constants sync --check
@@ -1188,6 +1188,11 @@ test-warning-budget:
 test-sql-interpolation:
 	cd "$(abs_top_srcdir)" && python3 scripts/ci/check_sql_interpolation.py --self-test
 	cd "$(abs_top_srcdir)" && python3 scripts/ci/check_sql_interpolation.py
+
+# Every header under src/ compiles on its own, apart from the shrinking baseline.
+test-header-self-containment:
+	cd "$(abs_top_srcdir)" && python3 scripts/ci/check_header_self_containment.py \
+		--cc "$(CC)" --build-root "$(abs_top_builddir)"
 
 test-process-memory:
 	./scripts/process-memory/test_process_memory_details.sh
