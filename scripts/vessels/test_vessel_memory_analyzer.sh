@@ -6,14 +6,12 @@ set -euo pipefail
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 analyzer="$script_dir/analyze_vessel_memory_samples.sh"
 
-fail()
-{
+fail() {
   printf 'vessel memory analyzer test: %s\n' "$*" >&2
   exit 1
 }
 
-require_line()
-{
+require_line() {
   local output=$1
   local expected=$2
 
@@ -21,8 +19,7 @@ require_line()
     fail "missing expected output: $expected"
 }
 
-expect_failure()
-{
+expect_failure() {
   local input_file=$1
   local expected_error=$2
   local stderr_file="$test_root/stderr"

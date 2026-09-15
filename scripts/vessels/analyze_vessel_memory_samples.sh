@@ -2,14 +2,12 @@
 
 set -euo pipefail
 
-fail()
-{
+fail() {
   printf 'vessel memory analyzer: %s\n' "$*" >&2
   exit 1
 }
 
-usage()
-{
+usage() {
   cat >&2 <<'USAGE'
 Usage:
   ./scripts/vessels/analyze_vessel_memory_samples.sh [options] <process-samples.tsv>
@@ -28,8 +26,7 @@ bounded-growth pass/fail threshold.
 USAGE
 }
 
-require_value()
-{
+require_value() {
   local option=$1
   local remaining=$2
 
@@ -64,7 +61,7 @@ while (($# > 0)); do
       output_format=$2
       shift 2
       ;;
-    --help|-h)
+    --help | -h)
       usage
       exit 0
       ;;

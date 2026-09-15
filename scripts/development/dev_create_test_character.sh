@@ -6,8 +6,7 @@ script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_root=$(cd "$script_dir/../.." && pwd)
 started_at=$SECONDS
 
-fail()
-{
+fail() {
   printf 'dev test-character creation: %s\n' "$*" >&2
   exit 1
 }
@@ -84,11 +83,11 @@ mud_port=$(awk -F= '
 [[ "$mud_port" =~ ^[0-9]+$ ]] || fail "could not read DFLT_PORT from lib/etc/config"
 
 MUD_CREATE_ACCOUNT="$test_account" \
-MUD_CREATE_CHARACTER="$test_character" \
-MUD_CREATE_PASSWORD="$test_password" \
-MUD_CREATE_PORT="$mud_port" \
-MUD_CREATE_SCREEN_READER="${DEV_MUD_SCREEN_READER:-no}" \
-MUD_CREATE_RECOMMENDED_PREFS="${DEV_MUD_RECOMMENDED_PREFS:-no}" \
+  MUD_CREATE_CHARACTER="$test_character" \
+  MUD_CREATE_PASSWORD="$test_password" \
+  MUD_CREATE_PORT="$mud_port" \
+  MUD_CREATE_SCREEN_READER="${DEV_MUD_SCREEN_READER:-no}" \
+  MUD_CREATE_RECOMMENDED_PREFS="${DEV_MUD_RECOMMENDED_PREFS:-no}" \
   expect -f /dev/stdin <<'EXPECT'
 proc fail {message} {
   puts stderr "dev test-character creation: $message"

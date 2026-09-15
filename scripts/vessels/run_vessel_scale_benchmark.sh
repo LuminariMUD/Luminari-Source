@@ -52,14 +52,12 @@ vessel_perf_sections=(
   vessel_schedules
 )
 
-fail()
-{
+fail() {
   printf 'vessel scale benchmark: %s\n' "$*" >&2
   exit 1
 }
 
-usage()
-{
+usage() {
   printf '%s\n' \
     "Usage:" \
     "  ./scripts/vessels/run_vessel_scale_benchmark.sh start [measurement_seconds]" \
@@ -68,8 +66,7 @@ usage()
   exit 1
 }
 
-metadata_value()
-{
+metadata_value() {
   local metadata_file=$1
   local requested_key=$2
 
@@ -81,8 +78,7 @@ metadata_value()
   ' "$metadata_file"
 }
 
-config_value()
-{
+config_value() {
   local config_file=$1
   local requested_key=$2
 
@@ -113,15 +109,13 @@ config_value()
   ' "$config_file"
 }
 
-active_ferry_soak_unit()
-{
+active_ferry_soak_unit() {
   systemctl --user list-units --type=service --state=active --no-legend \
     "luminari-vessel-ferry-soak-*" 2>/dev/null |
     awk 'NR == 1 { print $1; exit }'
 }
 
-load_database_config()
-{
+load_database_config() {
   [[ -r "$repo_root/lib/.env" ]] || return 1
   [[ -r "$repo_root/lib/mysql_config" ]] || return 1
 
@@ -135,8 +129,7 @@ load_database_config()
   [[ -n "$database_host" && -n "$database_name" && -n "$database_user" ]]
 }
 
-newer_binary_input()
-{
+newer_binary_input() {
   local input_root=$1
   local binary_path=$2
   local candidate
@@ -144,7 +137,7 @@ newer_binary_input()
   [[ -e "$binary_path" ]] || return 2
   for candidate in Makefile Makefile.am CMakeLists.txt configure.ac config.h; do
     if [[ -f "$input_root/$candidate" &&
-          "$input_root/$candidate" -nt "$binary_path" ]]; then
+      "$input_root/$candidate" -nt "$binary_path" ]]; then
       printf '%s\n' "$input_root/$candidate"
       return 0
     fi
@@ -153,8 +146,7 @@ newer_binary_input()
     -newer "$binary_path" -print -quit
 }
 
-database_query()
-{
+database_query() {
   local query=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -162,22 +154,19 @@ database_query()
     "$database_name" --execute="$query"
 }
 
-database_apply()
-{
+database_apply() {
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
     --host="$database_host" --user="$database_user" "$database_name"
 }
 
-write_status()
-{
+write_status() {
   local run_dir=$1
 
   shift
   printf '%s\n' "$*" >"$run_dir/status"
 }
 
-parse_live_system_samples()
-{
+parse_live_system_samples() {
   local input_file=$1
   local output_file=$2
 
@@ -272,8 +261,7 @@ parse_live_system_samples()
   ' "$input_file" >"$output_file"
 }
 
-count_high_volume_progress_logs()
-{
+count_high_volume_progress_logs() {
   local input_file=$1
   local progress_pattern
 
@@ -290,8 +278,7 @@ count_high_volume_progress_logs()
   grep -Eic "$progress_pattern" "$input_file" || true
 }
 
-validate_live_system_samples()
-{
+validate_live_system_samples() {
   local input_file=$1
   local expected_final_label=$2
 
@@ -388,8 +375,7 @@ validate_live_system_samples()
   ' "$input_file"
 }
 
-validate_vessel_tick_row()
-{
+validate_vessel_tick_row() {
   local input_row=$1
 
   input_row=${input_row%$'\r'}
@@ -415,8 +401,7 @@ validate_vessel_tick_row()
   ' <<<"$input_row"
 }
 
-restore_snapshot()
-{
+restore_snapshot() {
   local run_dir=$1
   local baseline_count
   local restored_count
@@ -474,8 +459,7 @@ restore_snapshot()
     "$restored_count" >>"$run_dir/cleanup.log"
 }
 
-start_run()
-{
+start_run() {
   local measurement_seconds=${1:-660}
   local existing_dir
   local existing_metadata
@@ -509,12 +493,12 @@ start_run()
     if [[ -r "$existing_metadata" ]]; then
       existing_unit=$(metadata_value "$existing_metadata" unit)
       if [[ -n "$existing_unit" ]] &&
-         systemctl --user is-active --quiet "$existing_unit"; then
+        systemctl --user is-active --quiet "$existing_unit"; then
         fail "a vessel scale benchmark is already active: $existing_unit"
       fi
     fi
     if [[ -s "$existing_dir/vessel-database-before.sql" &&
-          ! -e "$existing_dir/cleanup.complete" ]]; then
+      ! -e "$existing_dir/cleanup.complete" ]]; then
       fail "the previous run still needs cleanup: $existing_dir"
     fi
   fi
@@ -552,8 +536,7 @@ start_run()
   printf 'Steady measurement window: %s seconds\n' "$measurement_seconds"
 }
 
-show_status()
-{
+show_status() {
   local run_dir
   local metadata_file
   local unit_name
@@ -587,8 +570,7 @@ show_status()
   fi
 }
 
-cleanup_run()
-{
+cleanup_run() {
   local run_dir
   local metadata_file
   local unit_name
@@ -603,7 +585,7 @@ cleanup_run()
   unit_name=$(metadata_value "$metadata_file" unit)
 
   if [[ -n "$unit_name" ]] &&
-     systemctl --user is-active --quiet "$unit_name"; then
+    systemctl --user is-active --quiet "$unit_name"; then
     systemctl --user stop --no-block "$unit_name"
   fi
 
@@ -616,17 +598,16 @@ cleanup_run()
   done
 
   if [[ -s "$run_dir/vessel-database-before.sql" &&
-        ! -e "$run_dir/cleanup.complete" ]]; then
+    ! -e "$run_dir/cleanup.complete" ]]; then
     "$script_dir/run_vessel_scale_benchmark.sh" __restore "$run_dir"
   fi
   [[ ! -s "$run_dir/vessel-database-before.sql" ||
-     -e "$run_dir/cleanup.complete" ]] ||
+    -e "$run_dir/cleanup.complete" ]] ||
     fail "the pre-benchmark database could not be restored"
   printf 'Vessel scale benchmark cleanup is complete: %s\n' "$run_dir"
 }
 
-run_benchmark()
-{
+run_benchmark() {
   local run_dir=$1
   local measurement_seconds=$2
   local app_environment
@@ -780,8 +761,7 @@ run_benchmark()
   cleanup_ok=false
   measurement_pid=""
 
-  finish_worker()
-  {
+  finish_worker() {
     exit_code=${1:-$?}
     trap - EXIT TERM INT
     if [[ -n "$measurement_pid" ]] && kill -0 "$measurement_pid" 2>/dev/null; then
@@ -827,15 +807,13 @@ run_benchmark()
   trap 'failure_reason="benchmark worker received SIGTERM"; exit 143' TERM
   trap 'failure_reason="benchmark worker received SIGINT"; exit 130' INT
 
-  benchmark_fail()
-  {
+  benchmark_fail() {
     failure_reason=$*
     printf 'FAIL: %s\n' "$failure_reason"
     exit 1
   }
 
-  sample_process()
-  {
+  sample_process() {
     local current_pid
 
     current_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
@@ -847,7 +825,7 @@ run_benchmark()
     process_row=$(ps -o rss=,vsz=,nlwp= -p "$current_pid")
     read -r rss vsz threads <<<"$process_row"
     [[ "$rss" =~ ^[0-9]+$ && "$vsz" =~ ^[0-9]+$ &&
-       "$threads" =~ ^[0-9]+$ ]] ||
+      "$threads" =~ ^[0-9]+$ ]] ||
       benchmark_fail "could not read development MUD process metrics"
     descriptors=$(find "/proc/$current_pid/fd" -mindepth 1 -maxdepth 1 | wc -l)
     [[ "$descriptors" =~ ^[0-9]+$ ]] ||
@@ -871,8 +849,7 @@ run_benchmark()
       >>"$run_dir/process-samples.tsv"
   }
 
-  sample_memory_detail()
-  {
+  sample_memory_detail() {
     local label=$1
 
     if ! "$repo_root/scripts/process-memory/sample_process_memory_details.sh" \
@@ -1423,10 +1400,10 @@ SQL
     schedule_count cargo_count weapon_count slot500_room_count \
     combat_fixture_count combat_fixture_weapon_count <<<"$workload_counts"
   [[ "$active_count" == 500 && "$class_count" == 8 &&
-     "$pilot_count" == 500 && "$crew_count" == 2000 &&
-     "$schedule_count" == 500 && "$cargo_count" == 500 &&
-     "$weapon_count" =~ ^[1-9][0-9]*$ && "$slot500_room_count" == 1 &&
-     "$combat_fixture_count" == 2 && "$combat_fixture_weapon_count" == 4 ]] ||
+    "$pilot_count" == 500 && "$crew_count" == 2000 &&
+    "$schedule_count" == 500 && "$cargo_count" == 500 &&
+    "$weapon_count" =~ ^[1-9][0-9]*$ && "$slot500_room_count" == 1 &&
+    "$combat_fixture_count" == 2 && "$combat_fixture_weapon_count" == 4 ]] ||
     benchmark_fail "configured workload counts are incomplete: $workload_counts"
 
   msdp_slot=$(database_query "
@@ -1454,7 +1431,10 @@ SQL
     [[ "$ship_id" =~ ^[1-9][0-9]*$ ]] ||
       benchmark_fail "invalid scheduled-departure ship ID"
   done
-  schedule_id_list=$(IFS=,; printf '%s' "${schedule_ship_ids[*]}")
+  schedule_id_list=$(
+    IFS=,
+    printf '%s' "${schedule_ship_ids[*]}"
+  )
 
   preparation_commands=(
     "shiplist summary"
@@ -1652,9 +1632,9 @@ SQL
   while kill -0 "$measurement_pid" 2>/dev/null; do
     sample_process
     sleep 30
-    elapsed=$(( $(date +%s) - started_epoch ))
-    while ((next_memory_detail < measurement_seconds &&
-            elapsed >= next_memory_detail)); do
+    elapsed=$(($(date +%s) - started_epoch))
+    while ((next_memory_detail < measurement_seconds && \
+      elapsed >= next_memory_detail)); do
       sample_memory_detail "measurement-$next_memory_detail"
       next_memory_detail=$((next_memory_detail + 3600))
     done
@@ -1852,8 +1832,8 @@ SQL
   read -r air_z_sample_count air_z_minimum air_z_maximum \
     <<<"$air_z_sample_summary"
   [[ "$air_z_sample_count" =~ ^[0-9]+$ &&
-     "$air_z_minimum" =~ ^-?[0-9]+$ &&
-     "$air_z_maximum" =~ ^-?[0-9]+$ ]] ||
+    "$air_z_minimum" =~ ^-?[0-9]+$ &&
+    "$air_z_maximum" =~ ^-?[0-9]+$ ]] ||
     benchmark_fail "could not parse the live Kohdee airship Z samples"
   ((air_z_sample_count >= 2)) ||
     benchmark_fail "live Kohdee airship samples did not observe a Z transition"
@@ -1948,8 +1928,7 @@ SQL
   fi
 }
 
-restore_internal()
-{
+restore_internal() {
   local run_dir=$1
 
   case "$run_dir" in

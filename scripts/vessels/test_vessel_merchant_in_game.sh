@@ -93,7 +93,7 @@ while (($# > 0)); do
       temporary_respawn_seconds=$2
       shift 2
       ;;
-    -h|--help)
+    -h | --help)
       printf 'usage: %s [--merchant <name>] [--temporary-respawn <1-59>]\n' \
         "$0"
       exit 0
@@ -108,14 +108,12 @@ done
 umask 077
 mkdir -p "$run_dir"
 
-fail()
-{
+fail() {
   printf 'vessel merchant in-game check: %s\n' "$*" >&2
   exit 1
 }
 
-config_value()
-{
+config_value() {
   local config_file=$1
   local requested_key=$2
 
@@ -146,8 +144,7 @@ config_value()
   ' "$config_file"
 }
 
-newer_binary_input()
-{
+newer_binary_input() {
   local input_root=$1
   local binary_path=$2
   local candidate
@@ -155,7 +152,7 @@ newer_binary_input()
   [[ -e "$binary_path" ]] || return 2
   for candidate in Makefile Makefile.am CMakeLists.txt configure.ac config.h; do
     if [[ -f "$input_root/$candidate" &&
-          "$input_root/$candidate" -nt "$binary_path" ]]; then
+      "$input_root/$candidate" -nt "$binary_path" ]]; then
       printf '%s\n' "$input_root/$candidate"
       return 0
     fi
@@ -164,8 +161,7 @@ newer_binary_input()
     -newer "$binary_path" -print -quit
 }
 
-database_query()
-{
+database_query() {
   local query=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -173,8 +169,7 @@ database_query()
     "$database_name" --execute="$query"
 }
 
-database_execute()
-{
+database_execute() {
   local query=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -182,8 +177,7 @@ database_execute()
     "$database_name" --execute="$query"
 }
 
-database_apply_file()
-{
+database_apply_file() {
   local sql_file=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -191,8 +185,7 @@ database_apply_file()
     "$database_name" <"$sql_file"
 }
 
-database_dump()
-{
+database_dump() {
   local output_file=$1
   local temporary_file="$output_file.tmp"
 
@@ -205,8 +198,7 @@ database_dump()
   mv "$temporary_file" "$output_file"
 }
 
-player_file_value()
-{
+player_file_value() {
   local tag=$1
   local input_file=$2
 
@@ -227,13 +219,11 @@ player_file_value()
   ' "$input_file"
 }
 
-port_is_listening()
-{
+port_is_listening() {
   ss -H -ltn "sport = :$mud_port" 2>/dev/null | grep -q .
 }
 
-active_vessel_workload()
-{
+active_vessel_workload() {
   systemctl --user list-units --type=service --state=active \
     --no-legend --plain 2>/dev/null |
     awk '
@@ -245,13 +235,12 @@ active_vessel_workload()
     '
 }
 
-wait_for_server()
-{
+wait_for_server() {
   local attempt
 
   for ((attempt = 0; attempt < 900; attempt++)); do
     if systemctl --user is-active --quiet "$server_unit" &&
-       port_is_listening; then
+      port_is_listening; then
       return 0
     fi
     sleep 0.1
@@ -259,8 +248,7 @@ wait_for_server()
   return 1
 }
 
-running_binary_sha256()
-{
+running_binary_sha256() {
   local server_pid
 
   server_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
@@ -268,8 +256,7 @@ running_binary_sha256()
   sha256sum "/proc/$server_pid/exe" | awk '{ print $1 }'
 }
 
-start_current_server()
-{
+start_current_server() {
   local working_directory
   local running_sha256
 
@@ -309,8 +296,7 @@ start_current_server()
     fail "the running MUD does not match the installed candidate"
 }
 
-start_server_without_login()
-{
+start_server_without_login() {
   local attempt
   local launched=false
 
@@ -332,8 +318,7 @@ start_server_without_login()
   wait_for_server
 }
 
-run_kohdee_commands()
-{
+run_kohdee_commands() {
   local output_file=$1
 
   shift
@@ -342,8 +327,7 @@ run_kohdee_commands()
     >"$output_file" 2>&1
 }
 
-restore_baseline()
-{
+restore_baseline() {
   local cleanup_status=0
   local database_restored=false
   local player_restored=false
@@ -376,8 +360,8 @@ restore_baseline()
   fi
 
   if cp --preserve=mode,ownership,timestamps \
-       "$run_dir/kohdee.plr.before" "$restore_tmp" &&
-     mv -f "$restore_tmp" "$player_file"; then
+    "$run_dir/kohdee.plr.before" "$restore_tmp" &&
+    mv -f "$restore_tmp" "$player_file"; then
     player_restored=true
   else
     printf 'Kohdee player-file restoration failed.\n' >&2
@@ -387,8 +371,8 @@ restore_baseline()
 
   if [[ "$database_restored" == true ]]; then
     if database_dump "$run_dir/vessel-database-restored.sql" &&
-       cmp -s "$run_dir/vessel-database-before.sql" \
-         "$run_dir/vessel-database-restored.sql"; then
+      cmp -s "$run_dir/vessel-database-before.sql" \
+        "$run_dir/vessel-database-restored.sql"; then
       printf 'The stopped database matches the exact pre-test dump.\n'
     else
       printf 'The restored database differs from the pre-test dump.\n' >&2
@@ -399,7 +383,7 @@ restore_baseline()
   if [[ "$player_restored" == true ]]; then
     restored_player_sha256=$(sha256sum "$player_file" | awk '{ print $1 }')
     if [[ "$restored_player_sha256" != "$baseline_player_sha256" ]] ||
-       ! cmp -s "$run_dir/kohdee.plr.before" "$player_file"; then
+      ! cmp -s "$run_dir/kohdee.plr.before" "$player_file"; then
       printf 'The restored Kohdee player file differs from the baseline.\n' >&2
       cleanup_status=1
     fi
@@ -441,8 +425,7 @@ restore_baseline()
   return 1
 }
 
-finish()
-{
+finish() {
   local exit_status=$?
   local cleanup_status=0
   local elapsed_seconds
@@ -457,7 +440,7 @@ finish()
 
   elapsed_seconds=$(($(date +%s) - started_epoch))
   if [[ "$exit_status" == 0 && "$cleanup_status" == 0 &&
-        "$acceptance_complete" == true ]]; then
+    "$acceptance_complete" == true ]]; then
     {
       printf 'PASS elapsed=%s merchant=%s generation=%s->%s ship=%s->%s ' \
         "$elapsed_seconds" "$merchant_id" "$baseline_generation" \
@@ -501,11 +484,11 @@ for command_name in awk cmp cp date env find flock git grep mariadb \
 done
 
 [[ "$merchant_name" =~ ^[[:alnum:]][[:alnum:]_.-]*(\ [[:alnum:]_.-]+)*$ &&
-   ${#merchant_name} -le 127 ]] ||
+  ${#merchant_name} -le 127 ]] ||
   fail "merchant name contains unsupported characters"
 if [[ -n "$temporary_respawn_seconds" ]]; then
   [[ "$temporary_respawn_seconds" =~ ^[1-9][0-9]*$ &&
-     "$temporary_respawn_seconds" -le 59 ]] ||
+    "$temporary_respawn_seconds" -le 59 ]] ||
     fail "temporary respawn must be from 1 through 59 seconds"
 fi
 
@@ -530,7 +513,7 @@ app_environment=$(config_value "$repo_root/lib/.env" APP_ENV)
   fail "refusing to run because APP_ENV is not development"
 configured_character=$(config_value "$repo_root/lib/.env" DEV_MUD_CHARACTER)
 [[ -z "$configured_character" ||
-   "${configured_character,,}" == "${target_player,,}" ]] ||
+  "${configured_character,,}" == "${target_player,,}" ]] ||
   fail "DEV_MUD_CHARACTER must be Kohdee for this acceptance check"
 
 active_workload_unit=$(active_vessel_workload)
@@ -589,17 +572,17 @@ IFS='|' read -r merchant_id merchant_faction_id merchant_prototype_id \
   baseline_generation baseline_loss_count merchant_commodity_name \
   <<<"$merchant_state"
 [[ "$merchant_id" =~ ^[1-9][0-9]*$ &&
-   "$merchant_faction_id" =~ ^[1-3]$ &&
-   "$merchant_prototype_id" =~ ^[1-9][0-9]*$ &&
-   "$merchant_route_id" =~ ^[1-9][0-9]*$ &&
-   "$merchant_pilot_vnum" =~ ^[1-9][0-9]*$ &&
-   "$merchant_commodity_id" =~ ^[1-9][0-9]*$ &&
-   "$merchant_cargo_quantity" =~ ^[1-9][0-9]*$ &&
-   "$merchant_respawn_delay" =~ ^[1-9][0-9]*$ &&
-   -n "$merchant_commodity_name" &&
-   "$baseline_ship_id" =~ ^[1-9][0-9]*$ && "$baseline_ship_id" -le 500 &&
-   "$baseline_generation" =~ ^[1-9][0-9]*$ &&
-   "$baseline_loss_count" =~ ^[0-9]+$ ]] ||
+  "$merchant_faction_id" =~ ^[1-3]$ &&
+  "$merchant_prototype_id" =~ ^[1-9][0-9]*$ &&
+  "$merchant_route_id" =~ ^[1-9][0-9]*$ &&
+  "$merchant_pilot_vnum" =~ ^[1-9][0-9]*$ &&
+  "$merchant_commodity_id" =~ ^[1-9][0-9]*$ &&
+  "$merchant_cargo_quantity" =~ ^[1-9][0-9]*$ &&
+  "$merchant_respawn_delay" =~ ^[1-9][0-9]*$ &&
+  -n "$merchant_commodity_name" &&
+  "$baseline_ship_id" =~ ^[1-9][0-9]*$ && "$baseline_ship_id" -le 500 &&
+  "$baseline_generation" =~ ^[1-9][0-9]*$ &&
+  "$baseline_loss_count" =~ ^[0-9]+$ ]] ||
   fail "the selected merchant definition or active identity is incomplete"
 
 test_respawn_delay=$merchant_respawn_delay
@@ -662,7 +645,7 @@ printf -v faction_tag 'Fa%02d' "$merchant_faction_id"
 baseline_faction_standing=$(player_file_value "$faction_tag" "$player_file")
 baseline_consequence_highwater=$(player_file_value VMer "$player_file")
 [[ "$baseline_faction_standing" =~ ^-?[0-9]+$ &&
-   "$baseline_consequence_highwater" =~ ^[0-9]+$ ]] ||
+  "$baseline_consequence_highwater" =~ ^[0-9]+$ ]] ||
   fail "Kohdee's faction or merchant high-water state is malformed"
 
 cp --preserve=mode,ownership,timestamps \
@@ -723,7 +706,7 @@ grep -Fq \
   "$run_dir/02-loss-and-recovery.log" ||
   fail "the production sink path was not invoked"
 [[ $(grep -Fc "News of your attack on merchant shipping costs faction standing" \
-       "$run_dir/02-loss-and-recovery.log") -eq 2 ]] ||
+  "$run_dir/02-loss-and-recovery.log") -eq 2 ]] ||
   fail "the attack and total-loss standing consequences were not both delivered"
 grep -Fq "NPC merchant definitions reconciled." \
   "$run_dir/02-loss-and-recovery.log" ||
@@ -750,15 +733,15 @@ IFS='|' read -r attack_standing attack_bounty attack_cargo attack_status \
 IFS='|' read -r sink_standing bounty_delta sink_cargo sink_status \
   sink_consequence_id <<<"$sink_state"
 [[ "$attack_standing" == 25 && "$attack_bounty" == 0 &&
-   "$attack_cargo" == 0 && "$attack_status" == applied &&
-   "$attack_consequence_id" =~ ^[1-9][0-9]*$ ]] ||
+  "$attack_cargo" == 0 && "$attack_status" == applied &&
+  "$attack_consequence_id" =~ ^[1-9][0-9]*$ ]] ||
   fail "the durable attack consequence is incorrect"
 expected_sink_standing=$((merchant_cargo_quantity + 100))
 [[ "$sink_standing" == "$expected_sink_standing" &&
-   "$bounty_delta" =~ ^[1-9][0-9]*$ &&
-   "$sink_cargo" == "$merchant_cargo_quantity" &&
-   "$sink_status" == applied &&
-   "$sink_consequence_id" =~ ^[1-9][0-9]*$ ]] ||
+  "$bounty_delta" =~ ^[1-9][0-9]*$ &&
+  "$sink_cargo" == "$merchant_cargo_quantity" &&
+  "$sink_status" == applied &&
+  "$sink_consequence_id" =~ ^[1-9][0-9]*$ ]] ||
   fail "the cargo-scaled sink consequence or bounty is incorrect"
 standing_penalty_total=$((attack_standing + sink_standing))
 
@@ -781,11 +764,11 @@ IFS='|' read -r replacement_generation replacement_ship_id replacement_loss_coun
 expected_generation=$((baseline_generation + 1))
 expected_loss_count=$((baseline_loss_count + 1))
 [[ "$replacement_generation" == "$expected_generation" &&
-   "$replacement_ship_id" =~ ^[1-9][0-9]*$ &&
-   "$replacement_ship_id" -le 500 &&
-   "$replacement_loss_count" == "$expected_loss_count" &&
-   "$replacement_destroyed_by" == "$target_player" &&
-   "$replacement_due" == 0 && -z "$replacement_error" ]] ||
+  "$replacement_ship_id" =~ ^[1-9][0-9]*$ &&
+  "$replacement_ship_id" -le 500 &&
+  "$replacement_loss_count" == "$expected_loss_count" &&
+  "$replacement_destroyed_by" == "$target_player" &&
+  "$replacement_due" == 0 && -z "$replacement_error" ]] ||
   fail "the merchant registry did not publish the expected replacement generation"
 
 replacement_valid=$(database_query "
@@ -841,8 +824,8 @@ grep -Fq "You: $bounty_delta gold on your head" \
 mutated_faction_standing=$(player_file_value "$faction_tag" "$player_file")
 mutated_consequence_highwater=$(player_file_value VMer "$player_file")
 expected_faction_standing=$((baseline_faction_standing - standing_penalty_total))
-highest_consequence_id=$((attack_consequence_id > sink_consequence_id \
-  ? attack_consequence_id : sink_consequence_id))
+highest_consequence_id=$((attack_consequence_id > sink_consequence_id ? \
+  attack_consequence_id : sink_consequence_id))
 [[ "$mutated_faction_standing" == "$expected_faction_standing" ]] ||
   fail "Kohdee's saved faction standing did not reflect both consequences"
 [[ "$mutated_consequence_highwater" == "$highest_consequence_id" ]] ||

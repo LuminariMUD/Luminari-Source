@@ -4,7 +4,7 @@
 cd /home/krynn/code
 
 # Create a simple temp file to execute in game
-cat > /tmp/spell_dump.txt << 'EOF'
+cat >/tmp/spell_dump.txt <<'EOF'
 # This would need to be run from within the game
 # For now, let's extract spell data from spell_parser.c
 EOF
@@ -12,7 +12,7 @@ EOF
 # Extract spell information from spell_parser.c
 echo "Generating spell HTML from spell_parser.c..."
 
-python3 << 'PYEOF'
+python3 <<'PYEOF'
 import re
 import sys
 from datetime import datetime

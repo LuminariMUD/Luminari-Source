@@ -6,14 +6,12 @@ project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 rename_source="$project_root/src/player/player_rename.c"
 wizard_source="$project_root/src/act/act.wizard.c"
 
-fail()
-{
+fail() {
   echo "character rename static test: $*" >&2
   exit 1
 }
 
-assert_contains()
-{
+assert_contains() {
   local file=$1
   local pattern=$2
 
@@ -21,8 +19,7 @@ assert_contains()
     fail "missing '$pattern' in ${file#"$project_root"/}"
 }
 
-assert_not_contains()
-{
+assert_not_contains() {
   local file=$1
   local pattern=$2
 

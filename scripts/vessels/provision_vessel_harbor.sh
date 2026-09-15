@@ -13,20 +13,17 @@ free_seas_region_vnum=7000002
 pirate_cove_region_vnum=7000003
 bounty_patrol_region_vnum=7000004
 
-cleanup()
-{
+cleanup() {
   find "$temporary_dir" -depth -delete
 }
 trap cleanup EXIT
 
-fail()
-{
+fail() {
   printf 'vessel harbor provisioner: %s\n' "$*" >&2
   exit 1
 }
 
-config_value()
-{
+config_value() {
   local config_file=$1
   local requested_key=$2
 
@@ -57,8 +54,7 @@ config_value()
   ' "$config_file"
 }
 
-ensure_index_entry()
-{
+ensure_index_entry() {
   local index_file=$1
   local entry=$2
   local updated_file="$temporary_dir/index.updated"
@@ -99,8 +95,7 @@ ensure_index_entry()
   mv "$updated_file" "$index_file"
 }
 
-merge_missing_records()
-{
+merge_missing_records() {
   local package_file=$1
   local live_file=$2
   local additions_file="$temporary_dir/records.add"
@@ -178,8 +173,7 @@ merge_missing_records()
   mv "$merged_file" "$live_file"
 }
 
-provision_world_file()
-{
+provision_world_file() {
   local kind=$1
   local filename=$2
   local destination_dir="$repo_root/lib/world/$kind"
@@ -197,8 +191,7 @@ provision_world_file()
   ensure_index_entry "$destination_dir/index" "$filename"
 }
 
-zone_range()
-{
+zone_range() {
   local zone_file=$1
 
   awk '
@@ -209,8 +202,7 @@ zone_range()
   ' "$zone_file"
 }
 
-ensure_vessel_zone_range()
-{
+ensure_vessel_zone_range() {
   local package_file="$package_dir/700.zon"
   local destination_dir="$repo_root/lib/world/zon"
   local live_file="$destination_dir/700.zon"
@@ -279,8 +271,7 @@ ensure_vessel_zone_range()
   ensure_index_entry "$destination_dir/index" "700.zon"
 }
 
-database_scalar()
-{
+database_scalar() {
   local query=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -288,16 +279,14 @@ database_scalar()
     "$database_name" --execute="$query"
 }
 
-apply_database_file()
-{
+apply_database_file() {
   local sql_file=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
     --host="$database_host" --user="$database_user" "$database_name" <"$sql_file"
 }
 
-development_port()
-{
+development_port() {
   awk -F= '
     /^[[:space:]]*DFLT_PORT[[:space:]]*=/ {
       value = $2
@@ -308,8 +297,7 @@ development_port()
   ' "$repo_root/lib/etc/config"
 }
 
-restart_development_mud()
-{
+restart_development_mud() {
   local mud_port
 
   mud_port=$(development_port)
@@ -517,8 +505,7 @@ merchant_id=$(database_scalar \
 [[ "$merchant_id" =~ ^[1-9][0-9]*$ ]] ||
   fail "the harbor NPC merchant definition was not seeded"
 
-refresh_merchant_state()
-{
+refresh_merchant_state() {
   merchant_slot=$(database_scalar \
     "SELECT active_ship_id
        FROM vessel_npc_merchants
@@ -560,8 +547,8 @@ refresh_merchant_state()
 
 refresh_merchant_state
 if [[ ! "$merchant_slot" =~ ^[1-9][0-9]*$ ||
-      ! "$merchant_generation" =~ ^[1-9][0-9]*$ ||
-      "$merchant_runtime_valid" != 1 ]]; then
+  ! "$merchant_generation" =~ ^[1-9][0-9]*$ ||
+  "$merchant_runtime_valid" != 1 ]]; then
   merchant_recovery_output=$(
     "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --commands \
       "vmerchant sync" \
@@ -655,8 +642,8 @@ route_topology_valid=$(database_scalar \
     )")
 
 if [[ "$ferry_was_created" == true || "$pilot_count" != 1 ||
-      "$schedule_count" != 1 || "$active_route_count" != 1 ||
-      "$route_topology_valid" != 1 ]]; then
+  "$schedule_count" != 1 || "$active_route_count" != 1 ||
+  "$route_topology_valid" != 1 ]]; then
   ferry_commands=(
     "shipgoto $ferry_slot"
     "setroute harbor_ferry_loop"
@@ -851,8 +838,8 @@ set -e
 printf '%s\n' "$channel_output"
 
 if ((channel_status != 0)) &&
-   grep -Fq "the master account has no other usable character" \
-     <<<"$channel_output"; then
+  grep -Fq "the master account has no other usable character" \
+    <<<"$channel_output"; then
   "$repo_root/scripts/development/dev_create_test_character.sh" Vesselmate ||
     fail "could not add Vesselmate to the existing master account"
 

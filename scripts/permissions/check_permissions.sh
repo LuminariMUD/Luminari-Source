@@ -16,46 +16,46 @@ NC='\033[0m' # No Color
 
 # Function to check directory permissions
 check_dir() {
-    local dir=$1
-    local expected_perms=$2
-    local description=$3
+  local dir=$1
+  local expected_perms=$2
+  local description=$3
 
-    if [ -d "$dir" ]; then
-        actual_perms=$(stat -c "%a" "$dir" 2>/dev/null)
-        owner=$(stat -c "%U:%G" "$dir" 2>/dev/null)
+  if [ -d "$dir" ]; then
+    actual_perms=$(stat -c "%a" "$dir" 2>/dev/null)
+    owner=$(stat -c "%U:%G" "$dir" 2>/dev/null)
 
-        if [ "$actual_perms" = "$expected_perms" ]; then
-            echo -e "${GREEN}[OK]${NC} $dir - $description"
-            echo "     Permissions: $actual_perms (${owner})"
-        else
-            echo -e "${YELLOW}[WARN]${NC} $dir - $description"
-            echo "     Expected: $expected_perms, Actual: $actual_perms (${owner})"
-        fi
+    if [ "$actual_perms" = "$expected_perms" ]; then
+      echo -e "${GREEN}[OK]${NC} $dir - $description"
+      echo "     Permissions: $actual_perms (${owner})"
     else
-        echo -e "${RED}[MISSING]${NC} $dir - $description"
+      echo -e "${YELLOW}[WARN]${NC} $dir - $description"
+      echo "     Expected: $expected_perms, Actual: $actual_perms (${owner})"
     fi
+  else
+    echo -e "${RED}[MISSING]${NC} $dir - $description"
+  fi
 }
 
 # Function to check file permissions
 check_file() {
-    local file=$1
-    local expected_perms=$2
-    local description=$3
+  local file=$1
+  local expected_perms=$2
+  local description=$3
 
-    if [ -f "$file" ]; then
-        actual_perms=$(stat -c "%a" "$file" 2>/dev/null)
-        owner=$(stat -c "%U:%G" "$file" 2>/dev/null)
+  if [ -f "$file" ]; then
+    actual_perms=$(stat -c "%a" "$file" 2>/dev/null)
+    owner=$(stat -c "%U:%G" "$file" 2>/dev/null)
 
-        if [ "$actual_perms" = "$expected_perms" ]; then
-            echo -e "${GREEN}[OK]${NC} $file - $description"
-            echo "     Permissions: $actual_perms (${owner})"
-        else
-            echo -e "${YELLOW}[WARN]${NC} $file - $description"
-            echo "     Expected: $expected_perms, Actual: $actual_perms (${owner})"
-        fi
+    if [ "$actual_perms" = "$expected_perms" ]; then
+      echo -e "${GREEN}[OK]${NC} $file - $description"
+      echo "     Permissions: $actual_perms (${owner})"
     else
-        echo -e "${RED}[MISSING]${NC} $file - $description"
+      echo -e "${YELLOW}[WARN]${NC} $file - $description"
+      echo "     Expected: $expected_perms, Actual: $actual_perms (${owner})"
     fi
+  else
+    echo -e "${RED}[MISSING]${NC} $file - $description"
+  fi
 }
 
 # Resolve the project root independently of the caller's working directory.
@@ -124,12 +124,12 @@ echo ""
 # Check log files (need write access)
 echo "=== Log Files (Write Required) ==="
 if [ -d "$BASE_DIR/log" ]; then
-    # Check if MUD user can write to log directory
-    if [ -w "$BASE_DIR/log" ]; then
-        echo -e "${GREEN}[OK]${NC} Log directory is writable"
-    else
-        echo -e "${RED}[ERROR]${NC} Log directory is NOT writable"
-    fi
+  # Check if MUD user can write to log directory
+  if [ -w "$BASE_DIR/log" ]; then
+    echo -e "${GREEN}[OK]${NC} Log directory is writable"
+  else
+    echo -e "${RED}[ERROR]${NC} Log directory is NOT writable"
+  fi
 fi
 echo ""
 
@@ -138,18 +138,18 @@ echo "=== Special Permission Checks ==="
 
 # Check if syslog exists and is writable
 if [ -f "$BASE_DIR/log/syslog" ]; then
-    if [ -w "$BASE_DIR/log/syslog" ]; then
-        echo -e "${GREEN}[OK]${NC} syslog is writable"
-    else
-        echo -e "${YELLOW}[WARN]${NC} syslog exists but is NOT writable"
-    fi
+  if [ -w "$BASE_DIR/log/syslog" ]; then
+    echo -e "${GREEN}[OK]${NC} syslog is writable"
+  else
+    echo -e "${YELLOW}[WARN]${NC} syslog exists but is NOT writable"
+  fi
 else
-    echo -e "${YELLOW}[INFO]${NC} syslog does not exist (will be created on startup)"
+  echo -e "${YELLOW}[INFO]${NC} syslog does not exist (will be created on startup)"
 fi
 
 # Check autorun script if it exists
 if [ -f "$BASE_DIR/scripts/autorun/autorun.sh" ]; then
-    check_file "$BASE_DIR/scripts/autorun/autorun.sh" "755" "Autorun script"
+  check_file "$BASE_DIR/scripts/autorun/autorun.sh" "755" "Autorun script"
 fi
 
 echo ""
@@ -171,16 +171,16 @@ echo ""
 
 # Additional SELinux check for CentOS
 echo "=== SELinux Status (CentOS) ==="
-if command -v getenforce &> /dev/null; then
-    selinux_status=$(getenforce)
-    if [ "$selinux_status" = "Enforcing" ]; then
-        echo -e "${YELLOW}[WARN]${NC} SELinux is enforcing - may need additional configuration"
-        echo "     You may need to set appropriate SELinux contexts or create policies"
-    else
-        echo -e "${GREEN}[OK]${NC} SELinux status: $selinux_status"
-    fi
+if command -v getenforce &>/dev/null; then
+  selinux_status=$(getenforce)
+  if [ "$selinux_status" = "Enforcing" ]; then
+    echo -e "${YELLOW}[WARN]${NC} SELinux is enforcing - may need additional configuration"
+    echo "     You may need to set appropriate SELinux contexts or create policies"
+  else
+    echo -e "${GREEN}[OK]${NC} SELinux status: $selinux_status"
+  fi
 else
-    echo "SELinux not found (not a concern)"
+  echo "SELinux not found (not a concern)"
 fi
 
 echo ""

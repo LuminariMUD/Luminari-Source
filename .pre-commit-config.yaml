@@ -19,6 +19,12 @@ repos:
       - id: ruff-format
         types_or: [python]
 
+  # Shell: shfmt takes its settings from .editorconfig.
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.14.1-1
+    hooks:
+      - id: shfmt
+
   # General file hygiene
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0

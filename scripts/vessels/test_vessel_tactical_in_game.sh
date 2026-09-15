@@ -54,14 +54,12 @@ server_restart_needed=false
 umask 077
 mkdir -p "$run_dir"
 
-fail()
-{
+fail() {
   printf 'vessel %s in-game check: %s\n' "$acceptance_mode" "$*" >&2
   exit 1
 }
 
-config_value()
-{
+config_value() {
   local config_file=$1
   local requested_key=$2
 
@@ -92,8 +90,7 @@ config_value()
   ' "$config_file"
 }
 
-newer_binary_input()
-{
+newer_binary_input() {
   local input_root=$1
   local binary_path=$2
   local candidate
@@ -101,7 +98,7 @@ newer_binary_input()
   [[ -e "$binary_path" ]] || return 2
   for candidate in Makefile Makefile.am CMakeLists.txt configure.ac config.h; do
     if [[ -f "$input_root/$candidate" &&
-          "$input_root/$candidate" -nt "$binary_path" ]]; then
+      "$input_root/$candidate" -nt "$binary_path" ]]; then
       printf '%s\n' "$input_root/$candidate"
       return 0
     fi
@@ -110,8 +107,7 @@ newer_binary_input()
     -newer "$binary_path" -print -quit
 }
 
-database_query()
-{
+database_query() {
   local query=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -119,8 +115,7 @@ database_query()
     "$database_name" --execute="$query"
 }
 
-database_apply_file()
-{
+database_apply_file() {
   local sql_file=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults \
@@ -128,13 +123,11 @@ database_apply_file()
     <"$sql_file"
 }
 
-port_is_listening()
-{
+port_is_listening() {
   ss -H -ltn "sport = :$mud_port" 2>/dev/null | grep -q .
 }
 
-active_vessel_workload()
-{
+active_vessel_workload() {
   systemctl --user list-units --type=service --state=active \
     --no-legend --plain 2>/dev/null |
     awk '
@@ -146,13 +139,12 @@ active_vessel_workload()
     '
 }
 
-wait_for_server()
-{
+wait_for_server() {
   local attempt
 
   for ((attempt = 0; attempt < 900; attempt++)); do
     if systemctl --user is-active --quiet "$server_unit" &&
-       port_is_listening; then
+      port_is_listening; then
       return 0
     fi
     sleep 0.1
@@ -160,8 +152,7 @@ wait_for_server()
   return 1
 }
 
-stop_development_mud()
-{
+stop_development_mud() {
   local attempt
 
   if systemctl --user is-active --quiet "$server_unit"; then
@@ -177,8 +168,7 @@ stop_development_mud()
   return 1
 }
 
-start_server_without_login()
-{
+start_server_without_login() {
   local attempt
   local launched=false
 
@@ -201,8 +191,7 @@ start_server_without_login()
   server_restart_needed=false
 }
 
-running_binary_sha256()
-{
+running_binary_sha256() {
   local server_pid
 
   server_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
@@ -210,16 +199,14 @@ running_binary_sha256()
   sha256sum "/proc/$server_pid/exe" | awk '{ print $1 }'
 }
 
-tactical_runtime_slots()
-{
+tactical_runtime_slots() {
   database_query "
     SELECT COALESCE(GROUP_CONCAT(ship_id ORDER BY ship_id SEPARATOR ','), '')
       FROM ship_runtime_state
      WHERE prototype_id = $warship_prototype_id;"
 }
 
-run_kohdee_commands()
-{
+run_kohdee_commands() {
   local output_file=$1
 
   shift
@@ -228,15 +215,14 @@ run_kohdee_commands()
     >"$output_file" 2>&1
 }
 
-retire_test_runtime()
-{
+retire_test_runtime() {
   local slots
   local ship_slot
   local -a slot_list
   local -a cleanup_commands
 
   if ! systemctl --user is-active --quiet "$server_unit" ||
-     ! port_is_listening; then
+    ! port_is_listening; then
     start_server_without_login || return 1
   fi
 
@@ -254,8 +240,7 @@ retire_test_runtime()
   [[ -z $(tactical_runtime_slots) ]]
 }
 
-restore_baseline()
-{
+restore_baseline() {
   local cleanup_status=0
   local restored_sha256
   local restore_tmp="$repo_root/lib/plrfiles/K-O/.kohdee.plr.vessel-view-restore-$$"
@@ -267,8 +252,8 @@ restore_baseline()
   retire_test_runtime || cleanup_status=1
   stop_development_mud || cleanup_status=1
   if cp --preserve=mode,ownership,timestamps \
-       "$run_dir/kohdee.plr.before" "$restore_tmp" &&
-     mv -f "$restore_tmp" "$player_file"; then
+    "$run_dir/kohdee.plr.before" "$restore_tmp" &&
+    mv -f "$restore_tmp" "$player_file"; then
     restored_sha256=$(sha256sum "$player_file" | awk '{ print $1 }')
     [[ "$restored_sha256" == "$baseline_player_sha256" ]] || cleanup_status=1
   else
@@ -276,8 +261,8 @@ restore_baseline()
   fi
   if [[ "$acceptance_mode" == boarding ]]; then
     if cp --preserve=mode,ownership,timestamps \
-         "$run_dir/vesselmate.plr.before" "$secondary_restore_tmp" &&
-       mv -f "$secondary_restore_tmp" "$secondary_player_file"; then
+      "$run_dir/vesselmate.plr.before" "$secondary_restore_tmp" &&
+      mv -f "$secondary_restore_tmp" "$secondary_player_file"; then
       secondary_restored_sha256=$(sha256sum "$secondary_player_file" |
         awk '{ print $1 }')
       [[ "$secondary_restored_sha256" == "$baseline_secondary_player_sha256" ]] ||
@@ -301,8 +286,7 @@ restore_baseline()
   return 1
 }
 
-finish()
-{
+finish() {
   local exit_status=$?
   local cleanup_status=0
   local elapsed_seconds
@@ -322,7 +306,7 @@ finish()
   elapsed_seconds=$(($(date +%s) - started_epoch))
 
   if [[ "$exit_status" == 0 && "$cleanup_status" == 0 &&
-        "$acceptance_complete" == true ]]; then
+    "$acceptance_complete" == true ]]; then
     {
       printf 'PASS source_commit=%s binary_sha256=%s elapsed=%s ' \
         "$source_commit" "$candidate_sha256" "$elapsed_seconds"
@@ -468,7 +452,8 @@ if [[ "$acceptance_mode" == boarding ]]; then
   cp --preserve=mode,ownership,timestamps "$secondary_player_file" \
     "$run_dir/vesselmate.plr.before"
   baseline_secondary_player_sha256=$(
-    sha256sum "$run_dir/vesselmate.plr.before" | awk '{ print $1 }')
+    sha256sum "$run_dir/vesselmate.plr.before" | awk '{ print $1 }'
+  )
 fi
 snapshot_ready=true
 cleanup_needed=true
@@ -655,7 +640,7 @@ if [[ "$acceptance_mode" == boarding ]]; then
     fail "Vesselmate did not return to room 1204"
 fi
 if grep -E 'SYSERR:.*(tactical|lookout|narrative|boarding|Boardatk|Boarddef|Starfall Bastion|Starfall Trench|Vailand)' \
-     "$server_log" >"$run_dir/04-related-syserr.log"; then
+  "$server_log" >"$run_dir/04-related-syserr.log"; then
   fail "the server logged a vessel-view SYSERR"
 fi
 

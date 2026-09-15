@@ -7,14 +7,12 @@ installer="$project_root/scripts/deployment/install_versioned_binary.sh"
 test_root=$(mktemp -d "${TMPDIR:-/tmp}/luminari-release-test.XXXXXX")
 helper_pid=
 
-fail()
-{
+fail() {
   printf 'versioned binary install test: %s\n' "$*" >&2
   exit 1
 }
 
-cleanup()
-{
+cleanup() {
   if [[ "$helper_pid" =~ ^[1-9][0-9]*$ ]]; then
     kill -TERM "$helper_pid" 2>/dev/null || true
     wait "$helper_pid" 2>/dev/null || true
@@ -26,14 +24,13 @@ cleanup()
 }
 trap cleanup EXIT
 
-build_helper()
-{
+build_helper() {
   local commit=$1
   local marker=$2
   local output=$3
   local source_file="$test_root/helper-$marker.c"
 
-  cat > "$source_file" <<HELPER
+  cat >"$source_file" <<HELPER
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
@@ -56,8 +53,7 @@ HELPER
 }
 
 # Assert the only supported layout: bin/luminari -> releases/<build-id>/luminari.
-assert_canonical_alias()
-{
+assert_canonical_alias() {
   local bin="$1"
   local build_id="$2"
   local context="$3"
@@ -67,7 +63,7 @@ assert_canonical_alias()
     fail "$context: bin/luminari has the wrong target"
   [[ -x "$bin/luminari" ]] || fail "$context: bin/luminari is not executable"
   [[ $(find "$bin" -maxdepth 1 -mindepth 1 ! -name luminari ! -name releases \
-     ! -name ".*" | wc -l) -eq 0 ]] ||
+    ! -name ".*" | wc -l) -eq 0 ]] ||
     fail "$context: bin holds an unexpected server alias"
 }
 
@@ -98,7 +94,7 @@ build_three=$(readelf -nW "$candidate_three" |
   fail "helper build IDs are missing or identical"
 
 # --- A fresh install produces exactly the canonical release layout.
-"$installer" "$candidate_one" "$install_root/bin" > "$test_root/install-one.log"
+"$installer" "$candidate_one" "$install_root/bin" >"$test_root/install-one.log"
 assert_canonical_alias "$install_root/bin" "$build_one" "first install"
 [[ -f "$install_root/bin/releases/$build_one/luminari.debug" ]] ||
   fail "first release has no debug symbols"
@@ -113,7 +109,7 @@ grep -Fxq "GIT_COMMIT=$commit_one" "$install_root/bin/releases/$build_one/manife
 # --- A running server launched through the alias keeps its immutable release.
 "$install_root/bin/luminari" &
 helper_pid=$!
-printf '%s\n' "$helper_pid" > "$install_root/.mud.pid"
+printf '%s\n' "$helper_pid" >"$install_root/.mud.pid"
 # The background shell may not have exec'd the helper when $! becomes available.
 # Wait for the executable identity being tested rather than racing the fork/exec.
 active_executable=
@@ -127,7 +123,7 @@ done
   fail "the live process did not launch from its immutable release"
 
 # --- A repeated install switches the alias and retains the live release.
-"$installer" "$candidate_two" "$install_root/bin" > "$test_root/install-two.log"
+"$installer" "$candidate_two" "$install_root/bin" >"$test_root/install-two.log"
 assert_canonical_alias "$install_root/bin" "$build_two" "second install"
 [[ $(readlink -f "/proc/$helper_pid/exe") == "$active_executable" ]] ||
   fail "activating a release changed the live process executable"
@@ -137,12 +133,12 @@ assert_canonical_alias "$install_root/bin" "$build_two" "second install"
   fail "second release has no debug symbols"
 
 # --- Installing an already-published release is idempotent.
-"$installer" "$candidate_two" "$install_root/bin" > "$test_root/install-two-again.log"
+"$installer" "$candidate_two" "$install_root/bin" >"$test_root/install-two-again.log"
 assert_canonical_alias "$install_root/bin" "$build_two" "repeated install"
 
 # --- Existing releases must retain the exact immutable three-file layout.
 touch "$install_root/bin/releases/$build_two/unexpected"
-if "$installer" "$candidate_two" "$install_root/bin" > "$test_root/unexpected.log" 2>&1; then
+if "$installer" "$candidate_two" "$install_root/bin" >"$test_root/unexpected.log" 2>&1; then
   fail "installer accepted unexpected release content"
 fi
 grep -Fq "release directory has unexpected content" "$test_root/unexpected.log" ||
@@ -151,8 +147,8 @@ rm -f -- "$install_root/bin/releases/$build_two/unexpected"
 
 manifest="$install_root/bin/releases/$build_two/manifest"
 cp "$manifest" "$test_root/manifest-backup"
-printf 'EXTRA=invalid\n' >> "$manifest"
-if "$installer" "$candidate_two" "$install_root/bin" > "$test_root/manifest.log" 2>&1; then
+printf 'EXTRA=invalid\n' >>"$manifest"
+if "$installer" "$candidate_two" "$install_root/bin" >"$test_root/manifest.log" 2>&1; then
   fail "installer accepted a malformed release manifest"
 fi
 grep -Fq "release manifest has the wrong shape" "$test_root/manifest.log" ||
@@ -162,7 +158,7 @@ cp "$test_root/manifest-backup" "$manifest"
 cp "$manifest" "$test_root/external-manifest"
 rm -f -- "$manifest"
 ln -s "$test_root/external-manifest" "$manifest"
-if "$installer" "$candidate_two" "$install_root/bin" > "$test_root/symlink.log" 2>&1; then
+if "$installer" "$candidate_two" "$install_root/bin" >"$test_root/symlink.log" 2>&1; then
   fail "installer accepted a symlinked release manifest"
 fi
 grep -Fq "release manifest is not a regular file" "$test_root/symlink.log" ||
@@ -176,11 +172,11 @@ helper_pid=
 rm -f -- "$install_root/.mud.pid"
 
 # --- An incomplete release directory is a hard failure that changes nothing.
-"$installer" "$candidate_three" "$install_root/bin" > "$test_root/install-three.log"
+"$installer" "$candidate_three" "$install_root/bin" >"$test_root/install-three.log"
 assert_canonical_alias "$install_root/bin" "$build_three" "third install"
 rm -f -- "$install_root/bin/releases/$build_three/luminari.debug"
 before_canonical=$(readlink "$install_root/bin/luminari")
-if "$installer" "$candidate_three" "$install_root/bin" > "$test_root/incomplete.log" 2>&1; then
+if "$installer" "$candidate_three" "$install_root/bin" >"$test_root/incomplete.log" 2>&1; then
   fail "installer accepted a release with missing debug symbols"
 fi
 [[ $(readlink "$install_root/bin/luminari") == "$before_canonical" ]] ||
@@ -192,7 +188,7 @@ grep -Fq "release debug symbols are not a regular file" "$test_root/incomplete.l
 objcopy --only-keep-debug "$candidate_three" \
   "$install_root/bin/releases/$build_three/luminari.debug"
 install -m 0755 "$candidate_one" "$install_root/bin/releases/$build_three/luminari"
-if "$installer" "$candidate_three" "$install_root/bin" > "$test_root/collision.log" 2>&1; then
+if "$installer" "$candidate_three" "$install_root/bin" >"$test_root/collision.log" 2>&1; then
   fail "installer accepted a build ID collision"
 fi
 grep -Fq "build ID collision" "$test_root/collision.log" ||
@@ -202,12 +198,12 @@ grep -Fq "build ID collision" "$test_root/collision.log" ||
 
 # --- A broken canonical symlink is replaced rather than tripping the installer.
 ln -s releases/deadbeef/luminari "$broken_root/bin/luminari"
-"$installer" "$candidate_one" "$broken_root/bin" > "$test_root/broken.log"
+"$installer" "$candidate_one" "$broken_root/bin" >"$test_root/broken.log"
 assert_canonical_alias "$broken_root/bin" "$build_one" "broken alias recovery"
 
 # --- A directory at the canonical path is rejected outright.
 mkdir -p "$special_root/bin/luminari"
-if "$installer" "$candidate_one" "$special_root/bin" > "$test_root/special.log" 2>&1; then
+if "$installer" "$candidate_one" "$special_root/bin" >"$test_root/special.log" 2>&1; then
   fail "installer accepted a directory at bin/luminari"
 fi
 grep -Fq "bin/luminari is not a symbolic link" "$test_root/special.log" ||
@@ -219,7 +215,7 @@ grep -Fq "bin/luminari is not a symbolic link" "$test_root/special.log" ||
 cp "$candidate_one" "$regular_root/bin/luminari"
 chmod 0755 "$regular_root/bin/luminari"
 regular_sha=$(sha256sum "$regular_root/bin/luminari" | awk '{print $1}')
-if "$installer" "$candidate_two" "$regular_root/bin" > "$test_root/regular.log" 2>&1; then
+if "$installer" "$candidate_two" "$regular_root/bin" >"$test_root/regular.log" 2>&1; then
   fail "installer replaced a regular bin/luminari"
 fi
 [[ $(sha256sum "$regular_root/bin/luminari" | awk '{print $1}') == "$regular_sha" ]] ||
@@ -231,7 +227,7 @@ grep -Fq "bin/luminari is not a symbolic link" "$test_root/regular.log" ||
 
 # --- A special file at the canonical path is rejected.
 mkfifo "$fifo_root/bin/luminari"
-if "$installer" "$candidate_one" "$fifo_root/bin" > "$test_root/fifo.log" 2>&1; then
+if "$installer" "$candidate_one" "$fifo_root/bin" >"$test_root/fifo.log" 2>&1; then
   fail "installer accepted a FIFO at bin/luminari"
 fi
 grep -Fq "bin/luminari is not a symbolic link" "$test_root/fifo.log" ||

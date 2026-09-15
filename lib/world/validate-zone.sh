@@ -3,8 +3,7 @@
 
 set -euo pipefail
 
-usage()
-{
+usage() {
   echo "Usage: $0 <zone_number> [wtool options]" >&2
 }
 
@@ -17,7 +16,7 @@ zone_number=$1
 shift
 
 case "$zone_number" in
-  ''|*[!0-9]*)
+  '' | *[!0-9]*)
     echo "validate-zone.sh: zone_number must be a non-negative integer" >&2
     exit 2
     ;;
@@ -44,7 +43,7 @@ while [ "$#" -gt 0 ]; do
       global_args+=("$1")
       shift
       ;;
-    --world-root|--config|--ignore-code)
+    --world-root | --config | --ignore-code)
       if [ "$#" -lt 2 ]; then
         echo "validate-zone.sh: $1 requires a value" >&2
         exit 2
@@ -52,7 +51,7 @@ while [ "$#" -gt 0 ]; do
       global_args+=("$1" "$2")
       shift 2
       ;;
-    --world-root=*|--config=*|--ignore-code=*)
+    --world-root=* | --config=* | --ignore-code=*)
       global_args+=("$1")
       shift
       ;;
