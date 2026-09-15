@@ -14,6 +14,10 @@ never print or modify credentials.
 - `lib/mysql_config` and `lib/.env` contain credentials: you may read them, never modify them without permission. Edit `lib/mysql_config_example` / `lib/.env.example` instead.
 - When adding or removing a source file, update BOTH `Makefile.am` and `CMakeLists.txt`, then
   run `python3 scripts/ci/check_build_parity.py` (CI blocks on drift).
+- NEVER put stored procedures, stored functions, or multi-statement triggers (anything that needs a
+  `DELIMITER` block) in `.sql` files: every new SQL file must parse with sqlfluff, the SQL formatter,
+  and sqlfluff cannot parse `DELIMITER` blocks. Create them from C in `src/database/db_init.c`, which
+  already does this (`create_vessel_procedures()`, `create_database_procedures()`).
 - All documentation must be valid ASCII, UTF-8, LF line endings.
 - Always trace code; never assume naming conventions.
 - After planning a task and before implementation, read and apply

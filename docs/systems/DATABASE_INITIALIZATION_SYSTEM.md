@@ -198,9 +198,20 @@ startup_database_init();
 
 ## Database Procedures
 
-The system creates essential stored procedures:
-- `bresenham_line()` - Spatial line algorithm for region pathfinding
-- Additional spatial geometry procedures as needed
+Stored routines and multi-statement triggers are created from C in `db_init.c`,
+one statement per `mysql_query_safe()` call:
+- `create_vessel_procedures()` drops and recreates the `cleanup_orphaned_dockings`
+  and `get_active_dockings` procedures.
+- `create_database_procedures()` creates the `bresenham_line()` function (spatial
+  line algorithm for region pathfinding) and the `path_data` and region index
+  maintenance triggers.
+
+Hard rule: never put stored procedures, stored functions, or multi-statement
+triggers (anything that needs a `DELIMITER` block) in `.sql` files. Every new SQL
+file must parse with sqlfluff, the SQL formatter, and sqlfluff cannot parse
+`DELIMITER` blocks. Add new routines to `db_init.c` the same way: drop and
+recreate them, or use `CREATE OR REPLACE` or `IF NOT EXISTS`, and log `SYSERR`
+when the statement fails.
 
 ## Logging
 
