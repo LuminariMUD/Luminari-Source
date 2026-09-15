@@ -419,3 +419,36 @@ sqlfluff on the `.sqlfluffignore` entries and remove any that now parse from bot
 `.sqlfluffignore` and the frozen list in `check_sql_format_policy.py`. Rebuild the
 local CI image after any hook change, as [TESTING_GUIDE.md](TESTING_GUIDE.md)
 describes.
+
+### Blame
+
+`.git-blame-ignore-revs` lists the commits that only reformatted files. GitHub's
+blame view skips them; to make `git blame` skip them too, run this once per
+clone:
+
+```bash
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
+### Branches that predate the formatters
+
+A branch that forked from `master` before the formatters landed can merge
+`master` as it is, but each conflict then also shows the reformatted code around
+the branch's edit. To leave only the edits in conflict, format the branch's own
+files with `master`'s settings first, then merge:
+
+```bash
+git fetch origin
+git checkout origin/master -- .pre-commit-config.yaml .editorconfig ruff.toml \
+  .sqlfluff .sqlfluffignore .mdformat.toml .prettierignore .gersemirc \
+  .php-cs-fixer.dist.php PSScriptAnalyzerSettings.psd1 \
+  scripts/development/format_php.sh scripts/development/format_powershell.ps1 \
+  scripts/ci/check_sql_format_policy.py
+pre-commit run --files $(git diff --name-only --diff-filter=d origin/master...HEAD)
+git commit -am "Format with the repository formatters"
+git merge origin/master
+```
+
+The commit stages the PHP and PowerShell settings files, so it needs both
+runtimes. Rebasing instead of merging replays the branch's earlier, unformatted
+commits, so their conflicts include the reformatted code again.
