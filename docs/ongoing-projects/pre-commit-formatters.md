@@ -26,8 +26,8 @@ was verified before its commit.
 | 1 Python | done | Format Python with ruff | 121 files, +39,840/-38,472; AST identical 121/121; all 542 world-tool tests pass before and after; `wtool.py constants sync --check` passes |
 | 2 Shell | done | Format shell scripts with shfmt | 64 files, +4,209/-4,461; AST identical 63/64, the other being the planned glob rewrite; `bash -n` passes for all 73 regular scripts; the 8 symlinks and the scripts' exec bits intact; pubsub retirement, rename static, and background help checks pass |
 | 3 SQL | done | Format SQL with sqlfluff and keep new SQL under it | 106 files, +4,038/-2,755; token streams identical 106/106; no frozen file changed; the policy self-test rejects 10 bypasses and each of the six bypass trials fails the check; the hook trials behave as planned; the master schema and all 61 applied components load into MariaDB 10.11 as in `integration.yml`; rename static (through `make`), background help, and pubsub retirement checks pass |
-| Markdown prep | next | | |
-| 4 Markdown | | | |
+| Markdown prep | done | Prepare Markdown for mdformat | 33 documents and the 2 regenerated guides, +136/-129; mdformat on the result adds 69 escapes, all in prose: the 28 bracket pairs, 7 footnote asterisks in `gear_guide.md`, and 6 in `phase01_test_results.md` (footnote marks and the A* name); `wtool.py docs --check`, `generate-web-guides.sh --check`, `check-dg-docs.py`, and source hygiene pass |
+| 4 Markdown | next | | |
 | 5 prettier | | | |
 | 6 CMake | | | |
 | 7 PHP | | | |
@@ -52,6 +52,19 @@ Notes for whoever resumes:
   `files` pattern in `.pre-commit-config.yaml` applies to every hook. With
   `exclude: ^sql/new\.sql$` the sqlfluff hook reports "(no files to check)" and
   exits 0. Step 3 closed it in the policy check (see SQL enforcement).
+- `lib/WILD_KB.md` is generated: `generate_wilderness_knowledge_base()` in
+  `src/wilderness/wilderness_kb.c` writes it for a wizard command. The Goal
+  rules out rewriting generated files, so the mdformat hook excludes it next
+  to the changelogs, and the content prep left it alone. The plan had
+  counted it among the formatted files.
+- The content prep went slightly past the plan's list, each for a reason
+  found while tracing the escapes: every `**%cmd% <args>**` item and both
+  operator lists in `SCRIPTING_SYSTEM_DG.md` now use code spans, since GitHub
+  hid `<vnum>`-style arguments as unknown HTML tags and half-converted lists
+  would be inconsistent; the CuTest prototypes got a `c` fence; `*.h` in
+  bold text in `CLAUDE.example.md` had broken the emphasis; and two typos
+  surfaced, a stray `]` in `LUMINARI_OVERVIEW.md` and an unclosed `*` in
+  `INQUISITOR_PERKS.md`.
 
 ## Verdict
 
@@ -84,7 +97,7 @@ Costs:
 | Python | 126 | ruff v0.16.7 `ruff-format`, 4-space | Format | 121 files, +39,841/-38,473 | AST identical in 121 of 121 |
 | Shell | 73, plus 5 symlinks | shfmt v3.14.1 | Format | 64 files, +4,210/-4,462 | AST identical in 62 of 64; the other 2 are planned edits |
 | SQL | 139 | sqlfluff 4.3.0, layout rules only | Format 121; freeze 18; enforce all new SQL | 106 files, +4,038/-2,755 | token streams identical in 106 of 106 |
-| Markdown | 240 | mdformat 1.0.0 with mdformat-gfm 1.0.0, mdformat-frontmatter 2.1.2, mdformat-simple-breaks 0.1.0 | Format, except dated changelogs | 194 files, +6,376/-1,954 | mdformat's render check; idempotent |
+| Markdown | 240 | mdformat 1.0.0 with mdformat-gfm 1.0.0, mdformat-frontmatter 2.1.2, mdformat-simple-breaks 0.1.0 | Format, except dated changelogs and the generated `lib/WILD_KB.md` | 194 files, +6,376/-1,954 (before excluding `lib/WILD_KB.md`) | mdformat's render check; idempotent |
 | YAML, JSON, HTML, CSS, JavaScript | 44 in scope | prettier 3.9.6 | Format; generated files ignored | 32 files, +8,420/-4,024 | `prettier --debug-check` passes on all 44 |
 | CMake | 2 | gersemi 0.29.1 | Format | 2 files, +487/-301 | parity parser output identical after one regex fix |
 | PHP | 7 | php-cs-fixer 3.95.25, `@PER-CS3x0` | Format | 7 files, +278/-250 | `php -l` clean and compiled opcodes identical in 7 of 7 |
@@ -271,8 +284,10 @@ Costs:
     in backticks so no escape is needed; prose such as `[X]` in
     `docs/guides/ultimate-mud-writing-guide.md` keeps its escape. To list the
     lines, run the hook on a scratch copy and search the diff for added
-    `\*`, `\_`, `\[`, or `\<`.
-- `docs/previous_changelogs/` stays byte-identical as a historical record.
+    `\*`, `\_`, `\[`, or `\<`. (Implemented: 218 escapes in 35 files on the
+    tree at the time; 69 prose escapes remain.)
+- `docs/previous_changelogs/` stays byte-identical as a historical record, and
+  the generated `lib/WILD_KB.md` is excluded as well.
   pre-commit skips the `CLAUDE.md` and `GEMINI.md` symlinks; their target
   `AGENTS.md` is formatted.
 - Pandoc renders `docs/web/guides/*.html` from
@@ -433,7 +448,8 @@ and before "General file hygiene".
         name: sqlfluff format
         entry: sqlfluff format --processes 0 --disable-progress-bar
 
-  # Markdown: dated changelogs stay byte-identical historical records.
+  # Markdown: dated changelogs stay byte-identical historical records, and
+  # lib/WILD_KB.md is written by the wilderness knowledge-base command.
   - repo: https://github.com/executablebooks/mdformat
     rev: 1.0.0
     hooks:
@@ -442,7 +458,7 @@ and before "General file hygiene".
           - mdformat-gfm==1.0.0
           - mdformat-frontmatter==2.1.2
           - mdformat-simple-breaks==0.1.0
-        exclude: ^docs/previous_changelogs/
+        exclude: ^(docs/previous_changelogs/|lib/WILD_KB\.md$)
 
   # YAML, JSON, HTML, CSS, and JavaScript; generated and sealed files are in
   # .prettierignore.

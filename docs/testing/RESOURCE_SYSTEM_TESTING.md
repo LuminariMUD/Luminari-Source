@@ -196,8 +196,8 @@ Use `resourceadmin debug` to see detailed information:
 | Metric | Target | Measurement Method |
 |--------|--------|--------------------|
 | Cache Hit Ratio | >80% after exploration | `resourceadmin cache` statistics |
-| Resource Calculation Time | <1ms per location | Server performance monitoring |
-| Memory Usage | <1MB for cache | System monitoring |
+| Resource Calculation Time | `<1ms` per location | Server performance monitoring |
+| Memory Usage | `<1MB` for cache | System monitoring |
 | Cache Expiration | 5 minutes | Test with wait time |
 
 ### **Load Testing**

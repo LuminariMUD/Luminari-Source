@@ -276,7 +276,7 @@ The trap system integrates with these rogue perks:
 - Silent failure (no message) to avoid spam
 
 ### Combat System
-- Trap damage uses existing damage types (DAM_*)
+- Trap damage uses existing damage types (`DAM_*`)
 - Trap effects use existing spell effects where applicable
 - Trap sense bonuses apply to saving throws (SAVING_FORT, SAVING_REFL, SAVING_WILL)
 - Special trap effects may need new affect types

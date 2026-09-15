@@ -525,37 +525,37 @@ These commands control the execution path of the script itself:
 
 These commands directly alter the state of the MUD world:
 
-- **%load% <obj|mob> <vnum> [target][location]**: Loads an instance of an object or mobile into the game. It can be loaded into the room, a player's inventory, or even equipped directly.
-- **%purge% [target]**: Permanently removes a mob or object from the game. If no target is specified, it purges the entity the script is attached to. It is critical to use this command at the end of a script, as purging an entity makes its variables inaccessible.
-- **%teleport% <target> <location_vnum>**: Instantly moves a character or all characters in the room ('all') to a new room.
-- **%damage% <target> <amount>**: Inflicts damage on a target. A negative amount will heal the target.
-- **%door% <room_vnum> <dir> <field> [value]**: A powerful command to manipulate a room's exits. It can create or purge exits, change their flags (e.g., closed, locked), set a key, or change the destination room.
-- **%at% <location_vnum> <command>**: Executes a command in a different room from where the script is running.
+- **`%load% <obj|mob> <vnum> [target][location]`**: Loads an instance of an object or mobile into the game. It can be loaded into the room, a player's inventory, or even equipped directly.
+- **`%purge% [target]`**: Permanently removes a mob or object from the game. If no target is specified, it purges the entity the script is attached to. It is critical to use this command at the end of a script, as purging an entity makes its variables inaccessible.
+- **`%teleport% <target> <location_vnum>`**: Instantly moves a character or all characters in the room ('all') to a new room.
+- **`%damage% <target> <amount>`**: Inflicts damage on a target. A negative amount will heal the target.
+- **`%door% <room_vnum> <dir> <field> [value]`**: A powerful command to manipulate a room's exits. It can create or purge exits, change their flags (e.g., closed, locked), set a key, or change the destination room.
+- **`%at% <location_vnum> <command>`**: Executes a command in a different room from where the script is running.
 
 ### Mobile-Specific Commands
 
 These commands are typically used in scripts attached to mobiles:
 
-- **%force% <target> <command>**: Forces a character to perform a command as if they had typed it themselves.
-- **%mfollow% <target>**: Causes the mob to begin following the target character without the standard "starts following you" message.
-- **%mtransform% <vnum>**: Permanently transforms the mob into a different mob specified by <vnum>. The new mob retains the hit points and script of the original.
+- **`%force% <target> <command>`**: Forces a character to perform a command as if they had typed it themselves.
+- **`%mfollow% <target>`**: Causes the mob to begin following the target character without the standard "starts following you" message.
+- **`%mtransform% <vnum>`**: Permanently transforms the mob into a different mob specified by `<vnum>`. The new mob retains the hit points and script of the original.
 
 ### Object-Specific Commands
 
 These commands are used in scripts attached to objects:
 
-- **%otransform% <vnum>**: Permanently transforms the object into a different one specified by <vnum>, retaining the original script.
-- **%opurge%**: A specific alias for purging the object the script is attached to.
+- **`%otransform% <vnum>`**: Permanently transforms the object into a different one specified by `<vnum>`, retaining the original script.
+- **`%opurge%`**: A specific alias for purging the object the script is attached to.
 
 ### Communication Commands
 
 These commands allow scripts to communicate with players:
 
-- **%echo% <message>**: Sends a message to all characters in the room.
-- **%send% <target> <message>**: Sends a private message to a single target character.
-- **%echoaround% <target> <message>**: Sends a message to everyone in the room except the specified target.
-- **%asound% <message>**: Sends a message to all adjacent rooms, typically as an ambient sound (e.g., "You hear a scream from the north.").
-- **%zoneecho% <room_vnum> <message>**: Sends a message to every room in the zone that contains the specified room vnum.
+- **`%echo% <message>`**: Sends a message to all characters in the room.
+- **`%send% <target> <message>`**: Sends a private message to a single target character.
+- **`%echoaround% <target> <message>`**: Sends a message to everyone in the room except the specified target.
+- **`%asound% <message>`**: Sends a message to all adjacent rooms, typically as an ambient sound (e.g., "You hear a scream from the north.").
+- **`%zoneecho% <room_vnum> <message>`**: Sends a message to every room in the zone that contains the specified room vnum.
 
 A critical and often frustrating issue for new scripters involves pronoun substitution. In echo and send commands, the tilde character (~) is used as a placeholder for pronouns (e.g., ~actor% might expand to "he", "she", or "it" depending on the actor's gender). However, historical versions of the script loader and various text editors could not properly handle the ~ character, leading to script errors or garbage output. Some codebases have modified this to use a different character, such as #. Builders should be aware of this potential pitfall and verify which character their specific MUD version uses for pronoun substitution.
 
@@ -734,10 +734,10 @@ makeuid <variable> <target>      - Create unique ID for target
 
 Expressions are used in if and eval statements to make decisions and perform calculations:
 
-- **Logical**: || (or), && (and), ! (not)
-- **Comparison**: == (equal, case-insensitive for strings), != (not equal), <, >, <=, >=
-- **Substring**: /= (returns true if the right operand is a substring of the left)
-- **Arithmetic**: + (add), - (subtract), * (multiply), / (divide)
+- **Logical**: `||` (or), `&&` (and), `!` (not)
+- **Comparison**: `==` (equal, case-insensitive for strings), `!=` (not equal), `<`, `>`, `<=`, `>=`
+- **Substring**: `/=` (returns true if the right operand is a substring of the left)
+- **Arithmetic**: `+` (add), `-` (subtract), `*` (multiply), `/` (divide)
 
 #### Advanced Commands
 ```
@@ -836,10 +836,10 @@ The direction fields are particularly powerful - %room.north(vnum)% returns the 
 
 Expressions are used in if and eval statements to make decisions and perform calculations. The following operators are supported:
 
-- **Logical**: || (or), && (and), ! (not)
-- **Comparison**: == (equal, case-insensitive for strings), != (not equal), <, >, <=, >=
-- **Substring**: /= (returns true if the right operand is a substring of the left)
-- **Arithmetic**: + (add), - (subtract), * (multiply), / (divide)
+- **Logical**: `||` (or), `&&` (and), `!` (not)
+- **Comparison**: `==` (equal, case-insensitive for strings), `!=` (not equal), `<`, `>`, `<=`, `>=`
+- **Substring**: `/=` (returns true if the right operand is a substring of the left)
+- **Arithmetic**: `+` (add), `-` (subtract), `*` (multiply), `/` (divide)
 
 ## Advanced Scripting Techniques
 
@@ -1064,7 +1064,7 @@ remote quest_state started
 
 ### Debugging Best Practices
 
-1. **Comment your code extensively** using lines that start with *. This is invaluable for future maintenance by yourself or other builders.
+1. **Comment your code extensively** using lines that start with `*`. This is invaluable for future maintenance by yourself or other builders.
 
 2. **Use the %log% command liberally** during development to trace execution and variable states.
 
@@ -1663,7 +1663,7 @@ Adhering to best practices ensures stable and maintainable scripts:
 
 1. **Use the attach/detach workflow** for safely testing new scripts before making them permanent.
 2. **Use the %log% command liberally** during development to trace execution and variable states.
-3. **Comment your code extensively** using lines that start with *. This is invaluable for future maintenance by yourself or other builders.
+3. **Comment your code extensively** using lines that start with `*`. This is invaluable for future maintenance by yourself or other builders.
 4. **Always place %purge% commands at the very end of a script**. Purging an entity immediately removes it and all its associated variables from the game, which can cause subsequent commands in the same script to fail if they try to reference the purged entity.
 5. **Be aware of common pitfalls**, such as the tilde (~) character issue in communication commands, and verify the correct syntax for your MUD's specific codebase.
 

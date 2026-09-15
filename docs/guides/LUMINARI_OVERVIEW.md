@@ -40,7 +40,7 @@ The seeds of LuminariMUD were planted around **1999** when a two kid developers 
 
 Like many passion projects, LuminariMUD faced the realities of life. Both developers had military service, careers, and families demanding their attention. The project was "shelved" multiple times over the years - sometimes for months, sometimes longer. During these dormant periods, the dream of Lumia never truly died. The developers would return when life permitted, adding features, fixing bugs, keeping the flame alive.
 
-Throughout this era, the team played countless other MUDs - **Realms of Aurealis**, **Toril**, **Sojourn**, **Duris**, **Basternae**, **Homeland**, and **GreyhawkMUD** among them. Each experience shaped their vision of what LuminariMUD could become. The tactical depth of these games, combined with their love of tabletop D&D campaigns (especially **Dragonlance** and **Forgotten Realms**), crystallized into an ambitious goal: bring authentic Pathfinder/D&D 3.5 mechanics to the MUD format.]
+Throughout this era, the team played countless other MUDs - **Realms of Aurealis**, **Toril**, **Sojourn**, **Duris**, **Basternae**, **Homeland**, and **GreyhawkMUD** among them. Each experience shaped their vision of what LuminariMUD could become. The tactical depth of these games, combined with their love of tabletop D&D campaigns (especially **Dragonlance** and **Forgotten Realms**), crystallized into an ambitious goal: bring authentic Pathfinder/D&D 3.5 mechanics to the MUD format.
 
 ---
 

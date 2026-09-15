@@ -153,9 +153,9 @@ Pet shops allow players to purchase animal companions. The shop reads available 
 
 **Pet Stats Adjustments:**
 Based on pet level and configuration values:
-- Levels 1-10: Uses CONFIG_SUMMON_LEVEL_1_10_* modifiers
-- Levels 11-20: Uses CONFIG_SUMMON_LEVEL_11_20_* modifiers
-- Levels 21-30: Uses CONFIG_SUMMON_LEVEL_21_30_* modifiers
+- Levels 1-10: Uses `CONFIG_SUMMON_LEVEL_1_10_*` modifiers
+- Levels 11-20: Uses `CONFIG_SUMMON_LEVEL_11_20_*` modifiers
+- Levels 21-30: Uses `CONFIG_SUMMON_LEVEL_21_30_*` modifiers
 
 These modifiers apply to:
 - Hit points (HP)

@@ -1,3 +1,4 @@
+```c
 /* *************************************************************************
  * INTEGRATION EXAMPLE - How to add the database initialization system   *
  * to your existing LuminariMUD codebase                                 *
@@ -199,3 +200,4 @@ void custom_init_luminari_database(void)
  * - Verify foreign key references are correct
  * - Ensure database exists before table creation
  */
+```

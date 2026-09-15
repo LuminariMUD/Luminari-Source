@@ -13,7 +13,7 @@ lib/.env
 **When you desire a build for any reason, simply pause, ask User to run it for you and report the results**
 
 ## Configuration Files (Not in Git)
-**CRITICAL: NEVER EVER touch, overwrite, copy over, or modify ANY *.h configuration files. These contain custom configurations and MUST NOT be touched.**
+**CRITICAL: NEVER EVER touch, overwrite, copy over, or modify ANY `*.h` configuration files. These contain custom configurations and MUST NOT be touched.**
 src/config/campaign.h
 src/config/mud_options.h
 src/config/vnums.h
@@ -138,9 +138,9 @@ settings live in `src/config/campaign.h`.
 - **trails.c/h** - Player tracking system (disabled in some campaigns)
 
 ### Building & Scripting
-- **dg_*.c files** - DG Scripts engine
-- ***edit.c files** - OLC editors
-- **gen*.c files** - Generic creation functions
+- **`dg_*.c` files** - DG Scripts engine
+- **`*edit.c` files** - OLC editors
+- **`gen*.c` files** - Generic creation functions
 
 ### Infrastructure
 - **mysql.c** - Database integration

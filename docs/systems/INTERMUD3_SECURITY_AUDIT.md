@@ -463,8 +463,8 @@ void test_buffer_overflow_protection(void) {
 ## Technical Debt Assessment
 
 ### Code Quality Metrics
-- **Cyclomatic Complexity**: Average 8.2 (Target: <6)
-- **Technical Debt Ratio**: 34% (Target: <20%)
+- **Cyclomatic Complexity**: Average 8.2 (Target: `<6`)
+- **Technical Debt Ratio**: 34% (Target: `<20%`)
 - **Code Coverage**: ~15% (Target: >80%)
 - **Documentation Coverage**: ~25% (Target: >90%)
 

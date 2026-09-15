@@ -104,7 +104,7 @@
 1. **Combat** (fight.c, act.offensive.c): ~24,000 lines
 2. **Magic** (magic.c, spell_parser.c, spell_prep.c): ~23,800 lines
 3. **Character Development** (class.c, race.c, feats.c): ~24,700 lines
-4. **Commands** (act.*.c files): ~50,000+ lines
+4. **Commands** (`act.*.c` files): ~50,000+ lines
 5. **World/Database** (db.c, constants.c): ~14,300 lines
 6. **Crafting/Economy** (crafting_new.c, treasure.c): ~12,400 lines
 
@@ -112,7 +112,7 @@
 - **Most Complex**: Combat, magic, and character systems
 - **Most Content**: 580+ zones with full room/mob/object data
 - **Most Dynamic**: 356 triggers + 507 quests
-- **Most Maintained**: act.*.c command files (player interaction)
+- **Most Maintained**: `act.*.c` command files (player interaction)
 
 ## Summary Statistics
 

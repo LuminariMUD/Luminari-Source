@@ -210,7 +210,7 @@ Expected progression (example for EVOCATION):
 
 ## Known Limitations
 
-1. **Static Buffers**: Functions returning char* use static buffers. Not thread-safe, but MUD is single-threaded so this is acceptable.
+1. **Static Buffers**: Functions returning `char*` use static buffers. Not thread-safe, but MUD is single-threaded so this is acceptable.
 
 2. **Environmental Effects**: Can be disabled via `CASTING_ENV_EFFECTS_ENABLED` if deemed too spammy.
 

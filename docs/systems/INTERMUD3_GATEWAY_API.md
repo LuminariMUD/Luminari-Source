@@ -25,7 +25,7 @@
 - Comprehensive test suite: 1200+ tests with 78% coverage
 - Test pass rate: 98.9% (production-ready)
 - Production uptime: 99.9% with automatic failover
-- Performance: 1000+ messages/second, <50ms average latency
+- Performance: 1000+ messages/second, `<50ms` average latency
 - **PRODUCTION STATUS**: Live deployment on plesk.luminarimud.com with systemd service management since 2025-01-20
 
 ## Overview
@@ -2136,7 +2136,7 @@ asyncio.run(load_test())
 The Intermud3 Gateway has achieved production-ready status with:
 - **Test Coverage**: ~75-78% overall coverage (1200+ comprehensive tests)
 - **Test Pass Rate**: 98.9% (only 8 failures out of 700+ tests)
-- **Performance**: Meets all targets (1000+ msgs/sec, <100ms latency)
+- **Performance**: Meets all targets (1000+ msgs/sec, `<100ms` latency)
 - **Reliability**: Circuit breakers, retry logic, and automatic reconnection
 - **Monitoring**: Health check endpoints and comprehensive metrics
 
@@ -2573,7 +2573,7 @@ class WebI3Bridge:
 ### Support Contacts
 
 - **Gateway Administrator**: max@aiwithapex.com
-- **I3 Network Status**: Check with *i3 router
+- **I3 Network Status**: Check with `*i3` router
 - **Documentation**: See docs/ directory
 - **Issues**: Report through proper channels
 
@@ -2672,7 +2672,7 @@ See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for detailed troubleshooting g
 ### Support Contacts
 
 - **Gateway Administrator**: max@aiwithapex.com
-- **I3 Network Status**: Check with *i3 router
+- **I3 Network Status**: Check with `*i3` router
 - **Documentation**: See [`docs/`](docs/) directory
 - **Issues**: Report through GitHub issues
 

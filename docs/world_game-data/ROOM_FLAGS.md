@@ -1,6 +1,6 @@
 # Room Flags Documentation
 
-This document provides comprehensive information about all room flags (ROOM_*) used in LuminariMUD. Room flags control various mechanics, restrictions, and behaviors of rooms throughout the game world.
+This document provides comprehensive information about all room flags (`ROOM_*`) used in LuminariMUD. Room flags control various mechanics, restrictions, and behaviors of rooms throughout the game world.
 
 ## Table of Contents
 - [Overview](#overview)
@@ -571,7 +571,7 @@ code, so do not expect to find it there.
 | 12 | ROOM_HOUSE_CRASH | House-Crash | House save flag | System |
 | 13 | ROOM_ATRIUM | Atrium | House entrance | Special |
 | 14 | ROOM_OLC | OLC | Being edited | System |
-| 15 | ROOM_BFS_MARK | * | Pathfinding temp | System |
+| 15 | ROOM_BFS_MARK | `*` | Pathfinding temp | System |
 | 16 | ROOM_WORLDMAP | Worldmap | Wilderness map | Special |
 | 17 | ROOM_REGEN | Regenerating | Double regen | Environment |
 | 18 | ROOM_FLY_NEEDED | Fly-Needed | Must fly | Movement |

@@ -106,7 +106,7 @@ The magic section now includes active spell effects with visual duration indicat
 - NPC usage: Verify NPCs can't use scoreconfig
 
 ### 7. Performance
-- Speed: Target <10ms render time
+- Speed: Target `<10ms` render time
 - Memory: No leaks (valgrind test)
 
 ### 8. Client Compatibility
@@ -123,7 +123,7 @@ The magic section now includes active spell effects with visual duration indicat
 1. Add help entries via `hedit skore` and `hedit scoreconfig`
 2. Run valgrind memory tests
 3. Test client compatibility
-4. Performance profiling (<10ms target)
+4. Performance profiling (`<10ms` target)
 
 ### Known Limitations
 - No equipment durability (not in codebase)
@@ -176,7 +176,7 @@ scoreconfig reset
 
 ### Critical Tests
 1. **Memory**: `valgrind --leak-check=full ../bin/luminari`
-2. **Performance**: 100x execution <10ms each
+2. **Performance**: 100x execution `<10ms` each
 3. **Functionality**: All skore variants display correctly
 4. **Configuration**: All scoreconfig options work and persist
 5. **Characters**: Test various classes/levels/races
@@ -185,7 +185,7 @@ scoreconfig reset
 
 ### Success Criteria
 - No crashes/leaks
-- <10ms performance
+- `<10ms` performance
 - Settings persist
 - Client compatibility
 - Help entries work
