@@ -13,6 +13,9 @@ The detailed source of truth is the
 contracts are documented in [MUD events](MUD_EVENTS.md).
 Individual subsystems are indexed in the
 [technical documentation master index](../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md).
+Interactive, source-verified maps of these components, the event core, boot,
+copyover, connection states, and persistence live in the
+[architecture atlas](../architecture-maps/index.html).
 
 ## Components
 

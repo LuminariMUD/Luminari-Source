@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Save and Reload Data Flow",
+    "locale": "en",
+    "viewBox": [
+      1080,
+      540
+    ],
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "world-content",
+        "label": "World content",
+        "focus": [
+          "world",
+          "genolc",
+          "worldfiles",
+          "indexboot",
+          "nextboot"
+        ],
+        "note": "Builders edit prototypes in OLC; writers replace zone files atomically and the next boot reloads them."
+      },
+      {
+        "id": "characters",
+        "label": "Characters",
+        "focus": [
+          "chars",
+          "savechar",
+          "pfiles",
+          "loaders",
+          "nextlogin"
+        ],
+        "note": "Character data round-trips through one player file per character."
+      },
+      {
+        "id": "sql-state",
+        "label": "SQL state",
+        "focus": [
+          "chars",
+          "sqlsaves",
+          "mariadb",
+          "loaders"
+        ],
+        "note": "Accounts, stored items, houses, and pets live in MariaDB tables instead of player files."
+      }
+    ]
+  },
+  "stages": [
+    {
+      "label": "Live state"
+    },
+    {
+      "label": "Writers"
+    },
+    {
+      "label": "Durable stores"
+    },
+    {
+      "label": "Loaders"
+    },
+    {
+      "label": "Next session"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "world",
+      "type": "database",
+      "label": "World + Protos",
+      "sublabel": "edited in OLC",
+      "stage": 0,
+      "row": 0
+    },
+    {
+      "id": "chars",
+      "type": "frontend",
+      "label": "Characters",
+      "sublabel": "char_data, gear",
+      "stage": 0,
+      "row": 2
+    },
+    {
+      "id": "genolc",
+      "type": "backend",
+      "label": "OLC Writers",
+      "sublabel": "gen*.c",
+      "stage": 1,
+      "row": 0
+    },
+    {
+      "id": "savechar",
+      "type": "backend",
+      "label": "Player Saver",
+      "sublabel": "players.c",
+      "stage": 1,
+      "row": 1
+    },
+    {
+      "id": "sqlsaves",
+      "type": "backend",
+      "label": "SQL Writers",
+      "sublabel": "objsave, pets",
+      "stage": 1,
+      "row": 2
+    },
+    {
+      "id": "worldfiles",
+      "type": "database",
+      "label": "lib/world",
+      "sublabel": "zon, wld, mob, obj",
+      "stage": 2,
+      "row": 0
+    },
+    {
+      "id": "pfiles",
+      "type": "database",
+      "label": "lib/plrfiles",
+      "sublabel": "one per character",
+      "stage": 2,
+      "row": 1
+    },
+    {
+      "id": "mariadb",
+      "type": "database",
+      "label": "MariaDB",
+      "sublabel": "accounts, items",
+      "stage": 2,
+      "row": 2,
+      "brand": "mariadb"
+    },
+    {
+      "id": "indexboot",
+      "type": "backend",
+      "label": "index_boot()",
+      "sublabel": "db.c",
+      "stage": 3,
+      "row": 0
+    },
+    {
+      "id": "loaders",
+      "type": "security",
+      "label": "Login Loaders",
+      "sublabel": "account + char",
+      "stage": 3,
+      "row": 1
+    },
+    {
+      "id": "nextboot",
+      "type": "backend",
+      "label": "Next Boot",
+      "sublabel": "boot_db()",
+      "stage": 4,
+      "row": 0
+    },
+    {
+      "id": "nextlogin",
+      "type": "frontend",
+      "label": "Next Login",
+      "sublabel": "nanny()",
+      "stage": 4,
+      "row": 1
+    }
+  ],
+  "flows": [
+    {
+      "id": "zone-edits",
+      "from": "world",
+      "to": "genolc",
+      "label": "zone edits",
+      "variant": "default"
+    },
+    {
+      "id": "atomic-write",
+      "from": "genolc",
+      "to": "worldfiles",
+      "label": ".new + rename",
+      "classification": "authored content",
+      "variant": "emphasis"
+    },
+    {
+      "id": "zone-files",
+      "from": "worldfiles",
+      "to": "indexboot",
+      "label": "zone files",
+      "variant": "default"
+    },
+    {
+      "id": "prototypes",
+      "from": "indexboot",
+      "to": "nextboot",
+      "label": "prototypes",
+      "variant": "emphasis"
+    },
+    {
+      "id": "player-state",
+      "from": "chars",
+      "to": "savechar",
+      "label": "player state",
+      "variant": "default",
+      "fromSide": "top",
+      "toSide": "left",
+      "via": [
+        [
+          100,
+          271
+        ]
+      ]
+    },
+    {
+      "id": "plr-file",
+      "from": "savechar",
+      "to": "pfiles",
+      "label": ".plr file",
+      "variant": "emphasis"
+    },
+    {
+      "id": "player-file",
+      "from": "pfiles",
+      "to": "loaders",
+      "label": "load_char()",
+      "variant": "default"
+    },
+    {
+      "id": "items-pets",
+      "from": "chars",
+      "to": "sqlsaves",
+      "label": "items, pets",
+      "variant": "default"
+    },
+    {
+      "id": "sql-rows",
+      "from": "sqlsaves",
+      "to": "mariadb",
+      "label": "SQL rows",
+      "variant": "emphasis"
+    },
+    {
+      "id": "account-row",
+      "from": "mariadb",
+      "to": "loaders",
+      "label": "account row",
+      "classification": "password hash",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "via": [
+        [
+          745,
+          385
+        ]
+      ]
+    },
+    {
+      "id": "restored",
+      "from": "loaders",
+      "to": "nextlogin",
+      "label": "char_data",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "World content",
+      "items": [
+        "OLC writes .new, then renames",
+        "index_boot() reloads at boot",
+        "Regions and paths load from SQL"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Player state",
+      "items": [
+        ".plr files hold character data",
+        "Items, houses, pets live in SQL",
+        "Accounts load before characters"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Evidence",
+      "items": [
+        "genwld.c: save_rooms() at 497",
+        "players.c: save_char_checked 2341",
+        "objsave.c: player_save_objs 552"
+      ]
+    }
+  ]
+}

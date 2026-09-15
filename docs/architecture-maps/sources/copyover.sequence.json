@@ -1,0 +1,301 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Copyover Hot Reboot",
+    "locale": "en",
+    "viewBox": [
+      960,
+      588
+    ],
+    "column_fit": "spread",
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "prepare",
+        "label": "Prepare",
+        "focus": [
+          "staff",
+          "old",
+          "store",
+          "players"
+        ],
+        "note": "Pets and vessels must save first; any failed save aborts the copyover and players stay connected."
+      },
+      {
+        "id": "checkpoint",
+        "label": "Checkpoint",
+        "focus": [
+          "old",
+          "cofile",
+          "store",
+          "players"
+        ],
+        "note": "Only playing connections are written to copyover.dat; menus, logins, and editors are told and closed."
+      },
+      {
+        "id": "restore",
+        "label": "Restore",
+        "focus": [
+          "new",
+          "cofile",
+          "store",
+          "players"
+        ],
+        "note": "The new image boots the world, reads the descriptor list, reloads each character, and resumes play on the same sockets."
+      }
+    ]
+  },
+  "participants": [
+    {
+      "id": "staff",
+      "type": "external",
+      "label": "Implementor",
+      "sublabel": "copyover cmd"
+    },
+    {
+      "id": "players",
+      "type": "external",
+      "label": "Players",
+      "sublabel": "open sockets"
+    },
+    {
+      "id": "old",
+      "type": "backend",
+      "label": "Old Image",
+      "sublabel": "act.wizard.c"
+    },
+    {
+      "id": "store",
+      "type": "database",
+      "label": "Saves",
+      "sublabel": "player saves"
+    },
+    {
+      "id": "cofile",
+      "type": "database",
+      "label": "copyover.dat",
+      "sublabel": "fd handoff"
+    },
+    {
+      "id": "new",
+      "type": "backend",
+      "label": "New Image",
+      "sublabel": "main() -C"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 207,
+      "label": "Prepare"
+    },
+    {
+      "from": 211,
+      "to": 347,
+      "label": "Checkpoint"
+    },
+    {
+      "from": 351,
+      "to": 375,
+      "label": "Exec"
+    },
+    {
+      "from": 379,
+      "to": 515,
+      "label": "Restore"
+    }
+  ],
+  "messages": [
+    {
+      "id": "request",
+      "from": "staff",
+      "to": "old",
+      "y": 165,
+      "label": "copyover",
+      "variant": "emphasis"
+    },
+    {
+      "id": "save-owned",
+      "from": "old",
+      "to": "store",
+      "y": 193,
+      "label": "pets + vessels saved",
+      "variant": "default"
+    },
+    {
+      "id": "write-boot-time",
+      "from": "old",
+      "to": "cofile",
+      "y": 221,
+      "label": "boot time",
+      "variant": "default"
+    },
+    {
+      "id": "close-menus",
+      "from": "old",
+      "to": "players",
+      "y": 249,
+      "label": "menus + editors closed",
+      "variant": "security"
+    },
+    {
+      "id": "time-stops",
+      "from": "old",
+      "to": "players",
+      "y": 277,
+      "label": "Time stops for a moment",
+      "variant": "default"
+    },
+    {
+      "id": "write-descriptors",
+      "from": "old",
+      "to": "cofile",
+      "y": 305,
+      "label": "fd, name, host per player",
+      "variant": "default"
+    },
+    {
+      "id": "save-players",
+      "from": "old",
+      "to": "store",
+      "y": 333,
+      "label": "save_char() + rent",
+      "variant": "default"
+    },
+    {
+      "id": "exec-image",
+      "from": "old",
+      "to": "new",
+      "y": 361,
+      "label": "execl(-C<fd>, port)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "boot-again",
+      "from": "new",
+      "to": "store",
+      "y": 389,
+      "label": "boot world again",
+      "variant": "default"
+    },
+    {
+      "id": "recover",
+      "from": "new",
+      "to": "cofile",
+      "y": 417,
+      "label": "copyover_recover()",
+      "variant": "default"
+    },
+    {
+      "id": "records",
+      "from": "cofile",
+      "to": "new",
+      "y": 445,
+      "label": "descriptor records",
+      "variant": "return"
+    },
+    {
+      "id": "reload-players",
+      "from": "new",
+      "to": "store",
+      "y": 473,
+      "label": "load_char()",
+      "variant": "default"
+    },
+    {
+      "id": "resume",
+      "from": "new",
+      "to": "players",
+      "y": 501,
+      "label": "Copyover recovery complete",
+      "variant": "emphasis"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "old",
+      "from": 160,
+      "to": 367,
+      "type": "backend"
+    },
+    {
+      "participant": "store",
+      "from": 188,
+      "to": 199,
+      "type": "database"
+    },
+    {
+      "participant": "cofile",
+      "from": 216,
+      "to": 227,
+      "type": "database"
+    },
+    {
+      "participant": "cofile",
+      "from": 300,
+      "to": 311,
+      "type": "database"
+    },
+    {
+      "participant": "store",
+      "from": 328,
+      "to": 339,
+      "type": "database"
+    },
+    {
+      "participant": "new",
+      "from": 356,
+      "to": 507,
+      "type": "backend"
+    },
+    {
+      "participant": "store",
+      "from": 384,
+      "to": 395,
+      "type": "database"
+    },
+    {
+      "participant": "cofile",
+      "from": 412,
+      "to": 451,
+      "type": "database"
+    },
+    {
+      "participant": "store",
+      "from": 468,
+      "to": 479,
+      "type": "database"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "What survives",
+      "items": [
+        "Listener fd passed as -C<fd>",
+        "Every CON_PLAYING connection",
+        "The open log file descriptor"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "What does not",
+      "items": [
+        "Menus, logins, and editors close",
+        "World reboots from files and DB",
+        "Failed saves abort the copyover"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Evidence",
+      "items": [
+        "act.wizard.c: perform_do_copyover()",
+        "comm.c: -C parsed at line 396",
+        "comm.c: copyover_recover() at 597"
+      ]
+    }
+  ]
+}

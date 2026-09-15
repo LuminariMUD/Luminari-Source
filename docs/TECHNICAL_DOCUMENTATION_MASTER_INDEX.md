@@ -1,7 +1,7 @@
 # LuminariMUD Technical Documentation Master Index
 
-Last Updated: 2026-09-06
-Version: 1.8
+Last Updated: 2026-09-15
+Version: 1.9
 
 ## Documentation Overview
 
@@ -42,6 +42,7 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### System Architecture
 - **[ARCHITECTURE.md](systems/ARCHITECTURE.md)** - Verified system overview, component boundaries, and data flow
+- **[Architecture Atlas](architecture-maps/index.html)** - Interactive, source-verified maps of the runtime, event core and its pre-refactor delta, command, boot, copyover, connection, event, save/reload, and change-to-merge flows ([method and receipts](architecture-maps/README.md))
 - **[CORE_SERVER_ARCHITECTURE.md](systems/CORE_SERVER_ARCHITECTURE.md)** - Game loop, networking, and core engine
 - **[MUD_EVENTS.md](systems/MUD_EVENTS.md)** - Timed-event backends, owner lifecycle, persistence, and typed domain-event foundation
 - **[ACTIVE_WORLD.md](systems/ACTIVE_WORLD.md)** - Autonomous NPC owner deadlines and off-screen simulation rules

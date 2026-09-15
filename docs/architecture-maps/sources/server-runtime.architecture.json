@@ -1,0 +1,582 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "LuminariMUD Server Runtime",
+    "locale": "en",
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/LuminariMUD/Luminari-Source",
+      "revision": "0bc67f2c05351e9761d5b4f5c25d66abbd7ea362"
+    },
+    "views": [
+      {
+        "id": "command-path",
+        "label": "Command path",
+        "focus": [
+          "clients",
+          "network",
+          "loop",
+          "interp",
+          "systems",
+          "world"
+        ],
+        "note": "Follow one typed command from the socket, through the interpreter, to a change in the in-memory world."
+      },
+      {
+        "id": "login-path",
+        "label": "Login and accounts",
+        "focus": [
+          "clients",
+          "network",
+          "loop",
+          "nanny",
+          "mariadb"
+        ],
+        "note": "Until a descriptor reaches CON_PLAYING, every line goes to nanny(), which loads and saves accounts in MariaDB."
+      },
+      {
+        "id": "scheduled-work",
+        "label": "Scheduled work",
+        "focus": [
+          "loop",
+          "events",
+          "systems"
+        ],
+        "note": "The loop sleeps until the nearest real deadline, then dispatches a bounded batch of owner callbacks."
+      },
+      {
+        "id": "content-behavior",
+        "label": "Scripts and specials",
+        "focus": [
+          "interp",
+          "scripts",
+          "systems"
+        ],
+        "note": "DG command triggers and special procedures get the first look at a command before its ACMD handler runs."
+      },
+      {
+        "id": "persistence",
+        "label": "Where state lives",
+        "focus": [
+          "systems",
+          "world",
+          "files",
+          "mariadb",
+          "bridges"
+        ],
+        "note": "Authored world files feed boot; MariaDB and player files keep what changes while the game runs."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "clients",
+      "type": "external",
+      "label": "MUD Clients",
+      "sublabel": "telnet, Mudlet, web",
+      "pos": [
+        20,
+        170
+      ],
+      "size": [
+        110,
+        56
+      ]
+    },
+    {
+      "id": "network",
+      "type": "frontend",
+      "label": "Descriptor I/O",
+      "sublabel": "sockets + telnet options",
+      "pos": [
+        191,
+        170
+      ],
+      "size": [
+        150,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/core/comm.c",
+          "line": 3619,
+          "label": "new_descriptor()"
+        },
+        {
+          "path": "src/core/comm.c",
+          "line": 4087,
+          "label": "process_input()"
+        },
+        {
+          "path": "src/net/protocol.c",
+          "line": 792,
+          "label": "ProtocolInput()"
+        }
+      ]
+    },
+    {
+      "id": "loop",
+      "type": "backend",
+      "label": "Game Loop",
+      "sublabel": "main thread, 100 ms ticks",
+      "pos": [
+        434,
+        170
+      ],
+      "size": [
+        150,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/core/comm.c",
+          "line": 1216,
+          "label": "game_loop()"
+        },
+        {
+          "path": "src/core/comm.c",
+          "line": 753,
+          "label": "init_game()"
+        },
+        {
+          "path": "src/net/reactor.c",
+          "line": 429,
+          "label": "reactor wait"
+        }
+      ]
+    },
+    {
+      "id": "interp",
+      "type": "backend",
+      "label": "Command Interpreter",
+      "sublabel": "cmd_info[] dispatch",
+      "pos": [
+        677,
+        170
+      ],
+      "size": [
+        165,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/core/interpreter.c",
+          "line": 6603,
+          "label": "command_interpreter()"
+        },
+        {
+          "path": "src/core/interpreter.c",
+          "line": 141,
+          "label": "cmd_info[] table"
+        }
+      ]
+    },
+    {
+      "id": "systems",
+      "type": "backend",
+      "label": "Game Systems",
+      "sublabel": "combat, magic, characters",
+      "pos": [
+        903,
+        170
+      ],
+      "size": [
+        160,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/combat/fight.c",
+          "line": 6974,
+          "label": "damage()"
+        },
+        {
+          "path": "src/magic/spell_parser.c",
+          "line": 595,
+          "label": "call_magic()"
+        },
+        {
+          "path": "src/core/handler.c",
+          "line": 2047,
+          "label": "char_to_room()"
+        }
+      ]
+    },
+    {
+      "id": "world",
+      "type": "database",
+      "label": "In-Memory World",
+      "sublabel": "rooms, mobs, objects, zones",
+      "pos": [
+        903,
+        300
+      ],
+      "size": [
+        160,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/core/db.c",
+          "line": 1255,
+          "label": "boot_db()"
+        },
+        {
+          "path": "src/core/db.c",
+          "line": 691,
+          "label": "boot_world()"
+        },
+        {
+          "path": "src/core/db.c",
+          "line": 1777,
+          "label": "index_boot()"
+        }
+      ]
+    },
+    {
+      "id": "events",
+      "type": "messagebus",
+      "label": "Event Runtime",
+      "sublabel": "timing wheel + domain events",
+      "pos": [
+        409,
+        40
+      ],
+      "size": [
+        200,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/events/game_scheduler.h",
+          "line": 9,
+          "end_line": 10,
+          "label": "5 x 64 wheel"
+        },
+        {
+          "path": "src/events/event_runtime.c",
+          "line": 451,
+          "label": "event_runtime_advance()"
+        },
+        {
+          "path": "src/events/domain_events.c",
+          "line": 835,
+          "label": "domain_event_publish()"
+        }
+      ]
+    },
+    {
+      "id": "nanny",
+      "type": "security",
+      "label": "Login + Creation",
+      "sublabel": "nanny() connection states",
+      "pos": [
+        409,
+        300
+      ],
+      "size": [
+        200,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/core/interpreter.c",
+          "line": 7868,
+          "label": "nanny()"
+        },
+        {
+          "path": "src/player/account.c",
+          "line": 546,
+          "label": "load_account()"
+        }
+      ]
+    },
+    {
+      "id": "scripts",
+      "type": "backend",
+      "label": "DG Scripts + Specials",
+      "sublabel": "triggers, spec_dispatch()",
+      "pos": [
+        660,
+        300
+      ],
+      "size": [
+        200,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/dgscript/dg_triggers.c",
+          "line": 1467,
+          "label": "command_wtrigger()"
+        },
+        {
+          "path": "src/dgscript/dg_scripts.c",
+          "line": 3669,
+          "label": "script_driver()"
+        },
+        {
+          "path": "src/spec/spec_dispatch.c",
+          "line": 174,
+          "label": "spec_dispatch()"
+        }
+      ]
+    },
+    {
+      "id": "bridges",
+      "type": "backend",
+      "label": "Bridges + AI",
+      "sublabel": "Discord, I3, terrain, Ollama",
+      "pos": [
+        166,
+        300
+      ],
+      "size": [
+        200,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/net/discord_bridge.c",
+          "line": 338,
+          "label": "Discord bridge server"
+        },
+        {
+          "path": "src/net/i3_client.c",
+          "line": 260,
+          "label": "I3 client thread"
+        },
+        {
+          "path": "src/ai/ai_service.c",
+          "line": 2417,
+          "label": "AI worker thread"
+        }
+      ]
+    },
+    {
+      "id": "mariadb",
+      "type": "database",
+      "label": "MariaDB",
+      "sublabel": "accounts, help, regions, saves",
+      "brand": "mariadb",
+      "pos": [
+        660,
+        430
+      ],
+      "size": [
+        200,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/database/mysql.c",
+          "line": 852,
+          "label": "connect_to_mysql()"
+        },
+        {
+          "path": "src/database/mysql.c",
+          "line": 131,
+          "label": "mysql_pool_init()"
+        }
+      ]
+    },
+    {
+      "id": "files",
+      "type": "database",
+      "label": "World + Player Files",
+      "sublabel": "lib/world, lib/plrfiles",
+      "pos": [
+        903,
+        430
+      ],
+      "size": [
+        160,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/core/db.c",
+          "line": 1777,
+          "label": "index_boot()"
+        },
+        {
+          "path": "src/olc/genwld.c",
+          "line": 497,
+          "label": "save_rooms()"
+        },
+        {
+          "path": "src/player/players.c",
+          "line": 2341,
+          "label": "save_char_checked()"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "bin/luminari - one process, main-thread gameplay",
+      "wraps": [
+        "network",
+        "loop",
+        "interp",
+        "systems",
+        "world",
+        "events",
+        "nanny",
+        "scripts",
+        "bridges"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "client-telnet",
+      "from": "clients",
+      "to": "network",
+      "label": "telnet",
+      "variant": "emphasis"
+    },
+    {
+      "id": "input-queue",
+      "from": "network",
+      "to": "loop",
+      "label": "input queue",
+      "variant": "emphasis"
+    },
+    {
+      "id": "playing-input",
+      "from": "loop",
+      "to": "interp",
+      "label": "CON_PLAYING",
+      "variant": "emphasis"
+    },
+    {
+      "id": "acmd-dispatch",
+      "from": "interp",
+      "to": "systems",
+      "label": "ACMD()",
+      "variant": "emphasis"
+    },
+    {
+      "id": "state-mutation",
+      "from": "systems",
+      "to": "world",
+      "label": "handler.c",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        983,
+        240
+      ]
+    },
+    {
+      "id": "login-states",
+      "from": "loop",
+      "to": "nanny",
+      "label": "login states",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        509,
+        240
+      ]
+    },
+    {
+      "id": "due-deadlines",
+      "from": "loop",
+      "to": "events",
+      "label": "due deadlines",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "owner-callbacks",
+      "from": "events",
+      "to": "systems",
+      "label": "owner callbacks",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "top"
+    },
+    {
+      "id": "command-triggers",
+      "from": "interp",
+      "to": "scripts",
+      "label": "command triggers",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "account-auth",
+      "from": "nanny",
+      "to": "mariadb",
+      "label": "accounts",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "left"
+    },
+    {
+      "id": "sql-saves",
+      "from": "systems",
+      "to": "mariadb",
+      "label": "SQL saves",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "labelAt": [
+        1087,
+        370
+      ]
+    },
+    {
+      "id": "world-boot",
+      "from": "files",
+      "to": "world",
+      "label": "index_boot()",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "watched-fds",
+      "from": "bridges",
+      "to": "network",
+      "label": "watched fds",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "bottom"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "One thread owns the game",
+      "items": [
+        "game_loop() waits on the reactor, then drains input, commands, output, and due events",
+        "Commands run immediately; timed work lives on a 5-level, 64-slot timing wheel",
+        "Bridge sockets and the AI result pipe reach the loop only as watched descriptors"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Where state lives",
+      "items": [
+        "Authored world: lib/world flat files, loaded by index_boot() at boot",
+        "Accounts, help, regions, pets, and object saves: MariaDB through a pooled client",
+        "Characters: lib/plrfiles, written by save_char_checked()"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Revision-pinned evidence",
+      "items": [
+        "Repository: github.com/LuminariMUD/Luminari-Source",
+        "Source snapshot: master @ 0bc67f2",
+        "Open any SRC marker to jump to the exact lines at that commit"
+      ]
+    }
+  ]
+}

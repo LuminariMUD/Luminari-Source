@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Server Startup and World Boot",
+    "locale": "en",
+    "viewBox": [1040, 628],
+    "column_fit": "spread",
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "start",
+        "label": "Start",
+        "focus": ["op", "main", "init", "events"],
+        "note": "main() parses flags and changes to the data directory; init_game() opens the listener and starts the event runtimes."
+      },
+      {
+        "id": "world-boot",
+        "label": "World boot",
+        "focus": ["db", "maria", "files"],
+        "note": "boot_db() needs MariaDB before it reads zones, triggers, rooms, mobiles, objects, shops, and quests."
+      },
+      {
+        "id": "enter-loop",
+        "label": "Enter the loop",
+        "focus": ["init", "events", "loop"],
+        "note": "Named services are admitted and timed-event types are sealed before the first game_loop() pass."
+      },
+      {
+        "id": "shutdown",
+        "label": "Shutdown",
+        "focus": ["loop", "init", "op"],
+        "note": "When the loop exits, init_game() saves state, closes sockets, and returns an exit code autorun.sh understands."
+      }
+    ]
+  },
+  "participants": [
+    { "id": "op", "type": "external", "label": "Operator", "sublabel": "autorun.sh" },
+    { "id": "main", "type": "backend", "label": "main()", "sublabel": "comm.c" },
+    { "id": "init", "type": "backend", "label": "init_game()", "sublabel": "comm.c" },
+    { "id": "events", "type": "messagebus", "label": "Event Runtime", "sublabel": "event_init()" },
+    { "id": "db", "type": "backend", "label": "boot_db()", "sublabel": "db.c" },
+    { "id": "maria", "type": "database", "label": "MariaDB", "sublabel": "pooled client", "brand": "mariadb" },
+    { "id": "files", "type": "database", "label": "World Files", "sublabel": "lib/world" },
+    { "id": "loop", "type": "frontend", "label": "game_loop()", "sublabel": "reactor" }
+  ],
+  "segments": [
+    { "from": 150, "to": 231, "label": "Start" },
+    { "from": 241, "to": 431, "label": "Boot world" },
+    { "from": 441, "to": 491, "label": "Admit" },
+    { "from": 501, "to": 555, "label": "Shutdown" }
+  ],
+  "messages": [
+    { "id": "launch", "from": "op", "to": "main", "y": 165, "label": "bin/luminari -d lib", "variant": "emphasis" },
+    { "id": "init-game", "from": "main", "to": "init", "y": 193, "label": "init_game(port)", "variant": "emphasis" },
+    { "id": "start-runtimes", "from": "init", "to": "events", "y": 221, "label": "event + domain runtimes", "variant": "default" },
+    { "id": "boot-db", "from": "init", "to": "db", "y": 253, "label": "boot_db()", "variant": "emphasis" },
+    { "id": "connect-db", "from": "db", "to": "maria", "y": 281, "label": "connect_to_mysql()", "variant": "security" },
+    { "id": "schema-ready", "from": "maria", "to": "db", "y": 309, "label": "required tables ready", "variant": "return" },
+    { "id": "zones-rooms", "from": "db", "to": "files", "y": 337, "label": "index_boot: zon, trg, wld", "variant": "default" },
+    { "id": "regions-paths", "from": "db", "to": "maria", "y": 365, "label": "load_regions(), load_paths()", "variant": "default" },
+    { "id": "mobs-objects", "from": "db", "to": "files", "y": 393, "label": "index_boot: mob, obj, shp, qst", "variant": "default" },
+    { "id": "world-booted", "from": "db", "to": "init", "y": 421, "label": "world booted", "variant": "return" },
+    { "id": "admit-services", "from": "init", "to": "events", "y": 453, "label": "services + seal types", "variant": "default" },
+    { "id": "enter-loop", "from": "init", "to": "loop", "y": 481, "label": "game_loop(mother_desc)", "variant": "emphasis" },
+    { "id": "loop-exits", "from": "loop", "to": "init", "y": 513, "label": "shutdown or reboot", "variant": "return" },
+    { "id": "exit-code", "from": "init", "to": "op", "y": 541, "label": "exit 52 means reboot", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "main", "from": 160, "to": 199, "type": "backend" },
+    { "participant": "init", "from": 188, "to": 547, "type": "backend" },
+    { "participant": "events", "from": 214, "to": 229, "type": "messagebus" },
+    { "participant": "db", "from": 248, "to": 427, "type": "backend" },
+    { "participant": "maria", "from": 276, "to": 315, "type": "database" },
+    { "participant": "files", "from": 332, "to": 343, "type": "database" },
+    { "participant": "maria", "from": 358, "to": 371, "type": "database" },
+    { "participant": "files", "from": 388, "to": 399, "type": "database" },
+    { "participant": "events", "from": 446, "to": 461, "type": "messagebus" },
+    { "participant": "loop", "from": 476, "to": 519, "type": "frontend" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Boot order",
+      "items": ["Spec registry validates before world", "No MariaDB, no world boot", "Event types seal after boot"]
+    },
+    {
+      "dot": "emerald",
+      "title": "Loaded at boot",
+      "items": ["Zones, triggers, rooms from files", "Regions and roads from MariaDB", "Mobs, objects, shops, quests"]
+    },
+    {
+      "dot": "orange",
+      "title": "Shutdown",
+      "items": ["Crash, house, and vessel saves", "Sockets close after the saves", "Exit 52 tells autorun to restart"]
+    }
+  ]
+}

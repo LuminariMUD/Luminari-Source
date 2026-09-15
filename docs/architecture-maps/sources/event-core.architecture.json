@@ -1,0 +1,490 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "LuminariMUD Event-Driven Core",
+    "locale": "en",
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/LuminariMUD/Luminari-Source",
+      "revision": "0bc67f2c05351e9761d5b4f5c25d66abbd7ea362"
+    },
+    "views": [
+      {
+        "id": "readiness",
+        "label": "Readiness to wakeup",
+        "focus": [
+          "io",
+          "reactor",
+          "loop"
+        ],
+        "note": "Descriptors, signals, and the nearest deadline all arrive through a single reactor wait."
+      },
+      {
+        "id": "commands-and-facts",
+        "label": "Commands and facts",
+        "focus": [
+          "loop",
+          "interp",
+          "gamecode",
+          "bus",
+          "subscribers"
+        ],
+        "note": "Commands run directly; a committed state change publishes a typed fact that subscribers handle inline."
+      },
+      {
+        "id": "timed-work",
+        "label": "Timed work",
+        "focus": [
+          "loop",
+          "runtime",
+          "services",
+          "owners",
+          "gamecode"
+        ],
+        "note": "Due events leave the timing wheel in budgeted batches and run owner-scoped behavior."
+      },
+      {
+        "id": "fact-wakeups",
+        "label": "Facts wake owners",
+        "focus": [
+          "gamecode",
+          "bus",
+          "owners"
+        ],
+        "note": "A fact wakes only the owners it affects instead of scanning every character, object, and room."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "io",
+      "type": "external",
+      "label": "Sockets + Pipes",
+      "sublabel": "clients, bridges, AI",
+      "pos": [
+        20,
+        170
+      ],
+      "size": [
+        110,
+        56
+      ]
+    },
+    {
+      "id": "reactor",
+      "type": "frontend",
+      "label": "I/O Reactor",
+      "sublabel": "libevent or select()",
+      "pos": [
+        211,
+        170
+      ],
+      "size": [
+        150,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/net/reactor.c",
+          "line": 129,
+          "label": "luminari_reactor_create()"
+        },
+        {
+          "path": "src/net/reactor.c",
+          "line": 429,
+          "label": "luminari_reactor_wait()"
+        },
+        {
+          "path": "src/core/comm.c",
+          "line": 1168,
+          "label": "reactor_poll_fd_sets()"
+        }
+      ]
+    },
+    {
+      "id": "loop",
+      "type": "backend",
+      "label": "game_loop()",
+      "sublabel": "one pass per wakeup",
+      "pos": [
+        441,
+        170
+      ],
+      "size": [
+        150,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/core/comm.c",
+          "line": 1216,
+          "label": "game_loop()"
+        },
+        {
+          "path": "src/core/comm.c",
+          "line": 1738,
+          "label": "due batch dispatch"
+        },
+        {
+          "path": "src/core/handler.c",
+          "line": 3477,
+          "label": "extract_pending_chars()"
+        }
+      ]
+    },
+    {
+      "id": "interp",
+      "type": "backend",
+      "label": "Interpreter",
+      "sublabel": "commands run directly",
+      "pos": [
+        684,
+        170
+      ],
+      "size": [
+        150,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/core/interpreter.c",
+          "line": 6603,
+          "label": "command_interpreter()"
+        }
+      ]
+    },
+    {
+      "id": "gamecode",
+      "type": "backend",
+      "label": "Game Code",
+      "sublabel": "combat, magic, handler",
+      "pos": [
+        895,
+        170
+      ],
+      "size": [
+        160,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/combat/fight.c",
+          "line": 6974,
+          "label": "damage()"
+        },
+        {
+          "path": "src/magic/spell_parser.c",
+          "line": 595,
+          "label": "call_magic()"
+        },
+        {
+          "path": "src/core/handler.c",
+          "line": 3427,
+          "label": "extract_char()"
+        }
+      ]
+    },
+    {
+      "id": "bus",
+      "type": "messagebus",
+      "label": "Domain Event Bus",
+      "sublabel": "sealed typed facts",
+      "pos": [
+        895,
+        40
+      ],
+      "size": [
+        160,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/events/domain_events.c",
+          "line": 835,
+          "label": "domain_event_publish()"
+        },
+        {
+          "path": "src/events/domain_event_runtime.c",
+          "line": 122,
+          "label": "registry sealed"
+        },
+        {
+          "path": "src/events/domain_event_types.h",
+          "line": 6,
+          "label": "fact types"
+        }
+      ]
+    },
+    {
+      "id": "subscribers",
+      "type": "backend",
+      "label": "Fact Subscribers",
+      "sublabel": "quests, activities, NPCs",
+      "pos": [
+        600,
+        40
+      ],
+      "size": [
+        160,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/quest/quest.c",
+          "line": 3135,
+          "label": "quest handlers"
+        },
+        {
+          "path": "src/events/activity_manager.c",
+          "line": 789,
+          "label": "activity handlers"
+        },
+        {
+          "path": "src/mob/phenomenon_response.c",
+          "line": 207,
+          "label": "NPC perception"
+        }
+      ]
+    },
+    {
+      "id": "runtime",
+      "type": "messagebus",
+      "label": "Game Scheduler",
+      "sublabel": "5 x 64 timing wheel",
+      "pos": [
+        416,
+        300
+      ],
+      "size": [
+        200,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/events/game_scheduler.h",
+          "line": 9,
+          "end_line": 10,
+          "label": "wheel constants"
+        },
+        {
+          "path": "src/events/game_scheduler.c",
+          "line": 1108,
+          "label": "dispatch outcome"
+        },
+        {
+          "path": "src/events/event_runtime.c",
+          "line": 263,
+          "label": "event_runtime_schedule_at()"
+        }
+      ]
+    },
+    {
+      "id": "services",
+      "type": "backend",
+      "label": "Runtime Services",
+      "sublabel": "named cadences",
+      "pos": [
+        416,
+        430
+      ],
+      "size": [
+        200,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/core/comm.c",
+          "line": 2156,
+          "label": "service table"
+        },
+        {
+          "path": "src/core/comm.c",
+          "line": 2473,
+          "label": "runtime_services_init()"
+        }
+      ]
+    },
+    {
+      "id": "owners",
+      "type": "backend",
+      "label": "Owner Events",
+      "sublabel": "NPCs, periodic, affects",
+      "pos": [
+        895,
+        300
+      ],
+      "size": [
+        160,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/events/active_world.c",
+          "line": 522,
+          "label": "active_world_sync_mobile()"
+        },
+        {
+          "path": "src/events/character_periodic.c",
+          "line": 555,
+          "label": "character_periodic_sync()"
+        },
+        {
+          "path": "src/events/periodic_owners.c",
+          "line": 209,
+          "label": "periodic_autoproc_sync()"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "main thread - all gameplay mutation",
+      "wraps": [
+        "reactor",
+        "loop",
+        "interp",
+        "gamecode",
+        "bus",
+        "subscribers",
+        "runtime",
+        "services",
+        "owners"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "readiness",
+      "from": "io",
+      "to": "reactor",
+      "label": "readiness",
+      "variant": "emphasis"
+    },
+    {
+      "id": "wakeup",
+      "from": "reactor",
+      "to": "loop",
+      "label": "wakeup",
+      "variant": "emphasis"
+    },
+    {
+      "id": "input-lines",
+      "from": "loop",
+      "to": "interp",
+      "label": "input lines",
+      "variant": "emphasis"
+    },
+    {
+      "id": "acmd",
+      "from": "interp",
+      "to": "gamecode",
+      "label": "ACMD()",
+      "variant": "emphasis"
+    },
+    {
+      "id": "committed-facts",
+      "from": "gamecode",
+      "to": "bus",
+      "label": "committed facts",
+      "variant": "emphasis",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "typed-handlers",
+      "from": "bus",
+      "to": "subscribers",
+      "label": "typed handlers",
+      "fromSide": "left",
+      "toSide": "right"
+    },
+    {
+      "id": "wake-owners",
+      "from": "bus",
+      "to": "owners",
+      "label": "wake owners",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "right",
+      "labelAt": [
+        1079,
+        240
+      ]
+    },
+    {
+      "id": "due-batch",
+      "from": "loop",
+      "to": "runtime",
+      "label": "due batch",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        516,
+        240
+      ]
+    },
+    {
+      "id": "named-cadence",
+      "from": "runtime",
+      "to": "services",
+      "label": "cadence",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        516,
+        370
+      ]
+    },
+    {
+      "id": "owner-callbacks",
+      "from": "runtime",
+      "to": "owners",
+      "label": "owner callbacks",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "run-behavior",
+      "from": "owners",
+      "to": "gamecode",
+      "label": "behavior",
+      "fromSide": "top",
+      "toSide": "bottom"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Four boundaries (ADR 0002)",
+      "items": [
+        "Reactor: readiness + next deadline",
+        "Scheduler: timed work per owner",
+        "Domain events: facts after commit",
+        "Interpreter: commands run directly"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Bounded by design",
+      "items": [
+        "Callback and time budget per pass",
+        "Fact chains cap at depth 16",
+        "Extraction cancels owned events"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Evidence",
+      "items": [
+        "docs/adr/0002 event-driven core",
+        "Snapshot: master @ 0bc67f2",
+        "Compare: heartbeat delta map"
+      ]
+    }
+  ]
+}

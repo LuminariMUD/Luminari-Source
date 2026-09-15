@@ -1,0 +1,416 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "compare",
+  "type": "architecture",
+  "comparatorVersion": 1,
+  "canonicalVersion": 1,
+  "completeness": "complete",
+  "proofLevel": "revision-pinned",
+  "base": {
+    "title": "Game Loop Before ADR 0002",
+    "rawSha256": "2ed75682b98eb87aaa9f137fe853904a0533ee58fc5105426f6206a57dcb4baa",
+    "semanticSha256": "9c79e3b156196dbae2b0cf10a90a9b4d995a5257387dfdf596ded281e7191db8",
+    "bytes": 6473,
+    "revision": "fbe9366fbde8180b49a211cbcfdf2b2b531a15bd"
+  },
+  "head": {
+    "title": "Event-Driven Core After ADR 0002",
+    "rawSha256": "3d66109d8b0e2e225260fc84d641403becc92281d8b66b2745e309ffc4bcf3ca",
+    "semanticSha256": "ebaafce35e8b6f4e6da527be1008323ebf2383fdb7459c0b43a5f7427e72ea80",
+    "bytes": 10328,
+    "revision": "0bc67f2c05351e9761d5b4f5c25d66abbd7ea362"
+  },
+  "summary": {
+    "components": {
+      "added": 6,
+      "changed": 2,
+      "evidenceChanged": 2,
+      "removed": 3,
+      "moved": 0
+    },
+    "connections": {
+      "added": 8,
+      "changed": 1,
+      "removed": 5,
+      "rerouted": 0
+    },
+    "boundaries": {
+      "added": 0,
+      "changed": 1,
+      "removed": 0,
+      "geometryChanged": 0
+    },
+    "presentationChanged": true,
+    "provenanceChanged": true
+  },
+  "changes": {
+    "components": [
+      {
+        "id": "bus",
+        "headLabel": "Domain Event Bus",
+        "status": "added",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "gamecode",
+        "baseLabel": "Game Code",
+        "headLabel": "Game Code",
+        "status": "evidence-changed",
+        "classifications": [
+          "evidence",
+          "geometry"
+        ],
+        "changedFields": [
+          "/pos",
+          "/sources"
+        ]
+      },
+      {
+        "id": "heartbeat",
+        "baseLabel": "heartbeat()",
+        "status": "removed",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "interp",
+        "baseLabel": "Interpreter",
+        "headLabel": "Interpreter",
+        "status": "evidence-changed",
+        "classifications": [
+          "evidence",
+          "geometry"
+        ],
+        "changedFields": [
+          "/pos",
+          "/sources"
+        ]
+      },
+      {
+        "id": "io",
+        "baseLabel": "Sockets + Pipes",
+        "headLabel": "Sockets + Pipes",
+        "status": "changed",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": [
+          "/sublabel"
+        ]
+      },
+      {
+        "id": "loop",
+        "baseLabel": "game_loop()",
+        "headLabel": "game_loop()",
+        "status": "changed",
+        "classifications": [
+          "evidence",
+          "geometry",
+          "semantic"
+        ],
+        "changedFields": [
+          "/pos",
+          "/size",
+          "/sources",
+          "/sublabel"
+        ]
+      },
+      {
+        "id": "owners",
+        "headLabel": "Owner Events",
+        "status": "added",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "queue",
+        "baseLabel": "Legacy Event Queue",
+        "status": "removed",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "reactor",
+        "headLabel": "I/O Reactor",
+        "status": "added",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "runtime",
+        "headLabel": "Game Scheduler",
+        "status": "added",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "scans",
+        "baseLabel": "World Scans",
+        "status": "removed",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "services",
+        "headLabel": "Runtime Services",
+        "status": "added",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "subscribers",
+        "headLabel": "Fact Subscribers",
+        "status": "added",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      }
+    ],
+    "connections": [
+      {
+        "id": "cadence-scans",
+        "base": {
+          "from": "heartbeat",
+          "to": "scans",
+          "label": "pulse % N"
+        },
+        "status": "removed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "committed-facts",
+        "head": {
+          "from": "gamecode",
+          "to": "bus",
+          "label": "committed facts"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "due-batch",
+        "head": {
+          "from": "loop",
+          "to": "runtime",
+          "label": "due batch"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "event-callbacks",
+        "base": {
+          "from": "queue",
+          "to": "gamecode",
+          "label": "callbacks"
+        },
+        "status": "removed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "event-process",
+        "base": {
+          "from": "heartbeat",
+          "to": "queue",
+          "label": "each pulse"
+        },
+        "status": "removed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "every-pulse",
+        "base": {
+          "from": "loop",
+          "to": "heartbeat",
+          "label": "every pulse"
+        },
+        "status": "removed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "named-cadence",
+        "head": {
+          "from": "runtime",
+          "to": "services",
+          "label": "cadence"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "owner-callbacks",
+        "head": {
+          "from": "runtime",
+          "to": "owners",
+          "label": "owner callbacks"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "readiness",
+        "base": {
+          "from": "io",
+          "to": "loop",
+          "label": "readiness"
+        },
+        "head": {
+          "from": "io",
+          "to": "reactor",
+          "label": "readiness"
+        },
+        "status": "changed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": [
+          "/to"
+        ]
+      },
+      {
+        "id": "run-behavior",
+        "head": {
+          "from": "owners",
+          "to": "gamecode",
+          "label": "behavior"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "scan-work",
+        "base": {
+          "from": "scans",
+          "to": "gamecode",
+          "label": "whole-list loops"
+        },
+        "status": "removed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "typed-handlers",
+        "head": {
+          "from": "bus",
+          "to": "subscribers",
+          "label": "typed handlers"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "wake-owners",
+        "head": {
+          "from": "bus",
+          "to": "owners",
+          "label": "wake owners"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "wakeup",
+        "head": {
+          "from": "reactor",
+          "to": "loop",
+          "label": "wakeup"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      }
+    ],
+    "boundaries": [
+      {
+        "key": "region:main thread - all gameplay mutation",
+        "kind": "region",
+        "label": "main thread - all gameplay mutation",
+        "status": "changed",
+        "classifications": [
+          "scope"
+        ],
+        "changedFields": [
+          "/wraps"
+        ]
+      }
+    ]
+  },
+  "identity": {
+    "components": "components[].id",
+    "connections": "connections[].id (required)",
+    "boundaries": "boundaries[].kind + boundaries[].label (derived)"
+  },
+  "view": {
+    "visualPreset": "classic"
+  },
+  "limitations": [
+    "Authored Architecture IR only; no runtime impact, causality, risk, or mergeability is inferred.",
+    "Boundary identity is conservatively derived from kind + label."
+  ],
+  "artifact": {
+    "sha256": "b67e856cf026300e0b452981e6cf27da07f5b0b0a0358771cce3854a21e80692",
+    "bytes": 2263849
+  },
+  "validation": {
+    "checksPassed": 28,
+    "checkCount": 28,
+    "baseComposition": "pass",
+    "headComposition": "pass"
+  }
+}

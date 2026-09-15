@@ -1,0 +1,329 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Player Command Round Trip",
+    "locale": "en",
+    "viewBox": [
+      1040,
+      632
+    ],
+    "column_fit": "spread",
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "wait-and-read",
+        "label": "Wait and read",
+        "focus": [
+          "client",
+          "reactor",
+          "comm",
+          "protocol"
+        ],
+        "note": "The loop sleeps in the reactor until bytes or a deadline arrive, then strips telnet negotiation from the input."
+      },
+      {
+        "id": "interpret",
+        "label": "Interpret and dispatch",
+        "focus": [
+          "comm",
+          "interp",
+          "triggers",
+          "acmd"
+        ],
+        "note": "command_interpreter() offers the line to DG command triggers before it looks up cmd_info[] and calls the handler."
+      },
+      {
+        "id": "typed-facts",
+        "label": "Typed facts",
+        "focus": [
+          "acmd",
+          "bus"
+        ],
+        "note": "A committed state change can publish a typed fact; subscribers run inline and return before the handler continues."
+      },
+      {
+        "id": "respond",
+        "label": "Respond",
+        "focus": [
+          "acmd",
+          "comm",
+          "protocol",
+          "client"
+        ],
+        "note": "Handlers only queue text; process_output() encodes and writes it when the socket is writable."
+      }
+    ]
+  },
+  "participants": [
+    {
+      "id": "client",
+      "type": "external",
+      "label": "MUD Client",
+      "sublabel": "telnet"
+    },
+    {
+      "id": "reactor",
+      "type": "messagebus",
+      "label": "I/O Reactor",
+      "sublabel": "libevent/select"
+    },
+    {
+      "id": "comm",
+      "type": "backend",
+      "label": "comm.c",
+      "sublabel": "game_loop()"
+    },
+    {
+      "id": "protocol",
+      "type": "frontend",
+      "label": "protocol.c",
+      "sublabel": "telnet options"
+    },
+    {
+      "id": "interp",
+      "type": "backend",
+      "label": "Interpreter",
+      "sublabel": "interpreter.c"
+    },
+    {
+      "id": "triggers",
+      "type": "security",
+      "label": "DG Triggers",
+      "sublabel": "dg_triggers.c"
+    },
+    {
+      "id": "acmd",
+      "type": "backend",
+      "label": "ACMD Handler",
+      "sublabel": "act.*.c"
+    },
+    {
+      "id": "bus",
+      "type": "messagebus",
+      "label": "Domain Events",
+      "sublabel": "typed facts"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 235,
+      "label": "Wait"
+    },
+    {
+      "from": 243,
+      "to": 295,
+      "label": "Decode"
+    },
+    {
+      "from": 303,
+      "to": 411,
+      "label": "Dispatch"
+    },
+    {
+      "from": 419,
+      "to": 471,
+      "label": "Publish"
+    },
+    {
+      "from": 479,
+      "to": 559,
+      "label": "Respond"
+    }
+  ],
+  "messages": [
+    {
+      "id": "arm-wait",
+      "from": "comm",
+      "to": "reactor",
+      "y": 165,
+      "label": "wait(fds, nearest deadline)",
+      "variant": "default"
+    },
+    {
+      "id": "command-bytes",
+      "from": "client",
+      "to": "reactor",
+      "y": 193,
+      "label": "command bytes",
+      "variant": "emphasis"
+    },
+    {
+      "id": "input-ready",
+      "from": "reactor",
+      "to": "comm",
+      "y": 221,
+      "label": "readable",
+      "variant": "return"
+    },
+    {
+      "id": "decode-input",
+      "from": "comm",
+      "to": "protocol",
+      "y": 253,
+      "label": "ProtocolInput()",
+      "variant": "default"
+    },
+    {
+      "id": "plain-text",
+      "from": "protocol",
+      "to": "comm",
+      "y": 281,
+      "label": "text line queued",
+      "variant": "return"
+    },
+    {
+      "id": "interpret-line",
+      "from": "comm",
+      "to": "interp",
+      "y": 313,
+      "label": "command_interpreter()",
+      "variant": "emphasis"
+    },
+    {
+      "id": "offer-triggers",
+      "from": "interp",
+      "to": "triggers",
+      "y": 341,
+      "label": "command triggers",
+      "variant": "dashed"
+    },
+    {
+      "id": "trigger-result",
+      "from": "triggers",
+      "to": "interp",
+      "y": 369,
+      "label": "not handled",
+      "variant": "return"
+    },
+    {
+      "id": "call-handler",
+      "from": "interp",
+      "to": "acmd",
+      "y": 397,
+      "label": "cmd_info[cmd] handler",
+      "variant": "emphasis"
+    },
+    {
+      "id": "publish-fact",
+      "from": "acmd",
+      "to": "bus",
+      "y": 429,
+      "label": "publish committed fact",
+      "variant": "dashed"
+    },
+    {
+      "id": "handlers-return",
+      "from": "bus",
+      "to": "acmd",
+      "y": 457,
+      "label": "subscribers return",
+      "variant": "return"
+    },
+    {
+      "id": "queue-output",
+      "from": "acmd",
+      "to": "comm",
+      "y": 489,
+      "label": "send_to_char() / act()",
+      "variant": "default"
+    },
+    {
+      "id": "encode-output",
+      "from": "comm",
+      "to": "protocol",
+      "y": 517,
+      "label": "ProtocolOutput()",
+      "variant": "default"
+    },
+    {
+      "id": "write-prompt",
+      "from": "comm",
+      "to": "client",
+      "y": 545,
+      "label": "output + prompt",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "reactor",
+      "from": 160,
+      "to": 227,
+      "type": "messagebus"
+    },
+    {
+      "participant": "comm",
+      "from": 160,
+      "to": 551,
+      "type": "backend"
+    },
+    {
+      "participant": "protocol",
+      "from": 248,
+      "to": 287,
+      "type": "frontend"
+    },
+    {
+      "participant": "interp",
+      "from": 308,
+      "to": 403,
+      "type": "backend"
+    },
+    {
+      "participant": "triggers",
+      "from": 336,
+      "to": 375,
+      "type": "security"
+    },
+    {
+      "participant": "acmd",
+      "from": 392,
+      "to": 495,
+      "type": "backend"
+    },
+    {
+      "participant": "bus",
+      "from": 424,
+      "to": 463,
+      "type": "messagebus"
+    },
+    {
+      "participant": "protocol",
+      "from": 510,
+      "to": 526,
+      "type": "frontend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "One loop iteration",
+      "items": [
+        "Reads every ready descriptor first",
+        "One queued command per descriptor",
+        "Output flushes after all commands"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Gates before the handler",
+      "items": [
+        "WAIT_STATE lag skips the descriptor",
+        "DG command triggers see it first",
+        "Position and special-proc checks"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Evidence",
+      "items": [
+        "src/core/comm.c: game_loop() 1216",
+        "src/core/interpreter.c: line 6603",
+        "src/net/protocol.c: lines 792, 1006"
+      ]
+    }
+  ]
+}
