@@ -101,7 +101,7 @@ def parse_cmake_lists(text: str) -> dict[str, list[str]]:
 def parse_cmake_executable(text: str, target: str) -> list[str] | None:
     """Return the raw source tokens of add_executable(<target> ...)."""
     match = re.search(
-        r"^\s*add_executable\(" + re.escape(target) + r"\s*(.*?)\)\s*$",
+        r"^\s*add_executable\(\s*" + re.escape(target) + r"\s*(.*?)\)\s*$",
         text,
         re.S | re.M,
     )
