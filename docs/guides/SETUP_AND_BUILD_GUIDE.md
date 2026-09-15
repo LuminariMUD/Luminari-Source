@@ -328,8 +328,11 @@ sudo apt-get update && sudo apt-get install -y powershell
 ```
 
 `scripts/development/format_php.sh` downloads the pinned php-cs-fixer phar once
-and verifies its sha256, and `scripts/development/format_powershell.ps1` saves
-PSScriptAnalyzer once. Both keep them in
+and checks its sha256 before every run, holding a lock on the cache so runs
+from checkouts that share it take turns; a phar that does not match is
+downloaded again, and a download that does not match fails the hook without
+running. `scripts/development/format_powershell.ps1` saves PSScriptAnalyzer
+once. Both keep them in
 `${LUMINARI_FORMATTER_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/luminari-formatters}`.
 GitHub's Ubuntu 24.04 runner has both runtimes, and the local CI image installs
 them.
