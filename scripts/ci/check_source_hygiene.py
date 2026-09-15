@@ -49,25 +49,74 @@ ASCII_EXCEPTIONS = {
 # Files that are legitimately binary. They still may not be build products
 # and are skipped by the encoding and ASCII checks.
 MEDIA_EXTENSIONS = {
-    ".png", ".jpg", ".jpeg", ".gif", ".ico", ".webp", ".bmp", ".svg",
-    ".wav", ".mp3", ".ogg", ".woff", ".woff2", ".ttf", ".otf", ".eot", ".pdf",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".ico",
+    ".webp",
+    ".bmp",
+    ".svg",
+    ".wav",
+    ".mp3",
+    ".ogg",
+    ".woff",
+    ".woff2",
+    ".ttf",
+    ".otf",
+    ".eot",
+    ".pdf",
 }
 
 # Compiled or measured outputs. The .obj suffix is deliberately absent: in
 # this tree every *.obj file is a text world file, and the magic-byte check
 # still catches a real COFF object.
 ARTIFACT_EXTENSIONS = {
-    ".o", ".lo", ".la", ".a", ".so", ".dylib", ".dll", ".exe", ".ko", ".elf",
-    ".gch", ".pch", ".pyc", ".pyo", ".class",
-    ".gcda", ".gcno", ".gcov", ".profraw", ".profdata", ".sancov",
-    ".dSYM", ".su", ".d", ".Po", ".Plo", ".trs",
+    ".o",
+    ".lo",
+    ".la",
+    ".a",
+    ".so",
+    ".dylib",
+    ".dll",
+    ".exe",
+    ".ko",
+    ".elf",
+    ".gch",
+    ".pch",
+    ".pyc",
+    ".pyo",
+    ".class",
+    ".gcda",
+    ".gcno",
+    ".gcov",
+    ".profraw",
+    ".profdata",
+    ".sancov",
+    ".dSYM",
+    ".su",
+    ".d",
+    ".Po",
+    ".Plo",
+    ".trs",
 }
 
 ARTIFACT_BASENAMES = {
-    "core", "vgcore", "cutest", "luminari", "circle",
-    "CMakeCache.txt", "cmake_install.cmake", "CTestTestfile.cmake",
-    "install_manifest.txt", "compile_commands.json",
-    "config.status", "config.log", "config.cache", "stamp-h1", "conf.h",
+    "core",
+    "vgcore",
+    "cutest",
+    "luminari",
+    "circle",
+    "CMakeCache.txt",
+    "cmake_install.cmake",
+    "CTestTestfile.cmake",
+    "install_manifest.txt",
+    "compile_commands.json",
+    "config.status",
+    "config.log",
+    "config.cache",
+    "stamp-h1",
+    "conf.h",
     "AllTests.c",
 }
 
@@ -76,8 +125,17 @@ ARTIFACT_DIRNAMES = {"CMakeFiles", ".deps", "autom4te.cache", ".libs", "_deps"}
 # Autotools bootstrap outputs. They must not be tracked, but a generated
 # source distribution ships them, so --root skips this set.
 GENERATED_BOOTSTRAP = {
-    "configure", "Makefile.in", "aclocal.m4", "conf.h.in", "config.h.in",
-    "compile", "depcomp", "install-sh", "missing", "test-driver", "ltmain.sh",
+    "configure",
+    "Makefile.in",
+    "aclocal.m4",
+    "conf.h.in",
+    "config.h.in",
+    "compile",
+    "depcomp",
+    "install-sh",
+    "missing",
+    "test-driver",
+    "ltmain.sh",
 }
 
 # Shared-object versions (libfoo.so.1.2) and core dumps (core.1234).
@@ -102,9 +160,7 @@ MAGIC = (
 
 
 def tracked_files():
-    out = subprocess.run(
-        ["git", "ls-files", "-z"], check=True, capture_output=True
-    ).stdout
+    out = subprocess.run(["git", "ls-files", "-z"], check=True, capture_output=True).stdout
     return [p.decode("utf-8", "surrogateescape") for p in out.split(b"\0") if p]
 
 
@@ -190,20 +246,21 @@ def check_ascii(path, full):
         for lineno, line in enumerate(fh, 1):
             for offset, byte in enumerate(line):
                 if byte > 0x7F:
-                    return "non-ASCII byte 0x%02X at line %d column %d" % (
-                        byte, lineno, offset + 1)
+                    return "non-ASCII byte 0x%02X at line %d column %d" % (byte, lineno, offset + 1)
     return None
 
 
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument(
-        "--root", default=None,
+        "--root",
+        default=None,
         help="check every file under this directory (an unpacked source "
-             "distribution) instead of the tracked files")
+        "distribution) instead of the tracked files",
+    )
     parser.add_argument(
-        "paths", nargs="*",
-        help="specific files to check, relative to the repository root")
+        "paths", nargs="*", help="specific files to check, relative to the repository root"
+    )
     args = parser.parse_args(argv)
 
     if args.root and args.paths:
@@ -215,8 +272,8 @@ def main(argv):
         dist_mode = True
     else:
         root = subprocess.run(
-            ["git", "rev-parse", "--show-toplevel"], check=True,
-            capture_output=True, text=True).stdout.strip()
+            ["git", "rev-parse", "--show-toplevel"], check=True, capture_output=True, text=True
+        ).stdout.strip()
         paths = args.paths or tracked_files()
         dist_mode = False
 
@@ -237,8 +294,10 @@ def main(argv):
     for path, check, result in findings:
         print("%s: %s: %s" % (path, check, result))
     if findings:
-        print("%d hygiene finding(s) in %d file(s)." % (
-            len(findings), len({f[0] for f in findings})), file=sys.stderr)
+        print(
+            "%d hygiene finding(s) in %d file(s)." % (len(findings), len({f[0] for f in findings})),
+            file=sys.stderr,
+        )
         return 1
     print("Source hygiene: %d file(s) clean." % len(paths))
     return 0

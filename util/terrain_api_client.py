@@ -13,7 +13,7 @@ import time
 class LuminariTerrainAPI:
     """Python client for LuminariMUD Terrain Bridge API"""
 
-    def __init__(self, host='localhost', port=8182, timeout=5.0):
+    def __init__(self, host="localhost", port=8182, timeout=5.0):
         """
         Initialize the terrain API client
 
@@ -44,22 +44,22 @@ class LuminariTerrainAPI:
 
             # Send JSON request with newline terminator
             request_json = json.dumps(request_data)
-            sock.send((request_json + '\n').encode('utf-8'))
+            sock.send((request_json + "\n").encode("utf-8"))
 
             # Receive response
-            response_data = b''
+            response_data = b""
             while True:
                 chunk = sock.recv(4096)
                 if not chunk:
                     break
                 response_data += chunk
-                if b'\n' in response_data:
+                if b"\n" in response_data:
                     break
 
             sock.close()
 
             # Parse JSON response
-            response_str = response_data.decode('utf-8').strip()
+            response_str = response_data.decode("utf-8").strip()
             return json.loads(response_str)
 
         except socket.timeout:
@@ -92,11 +92,7 @@ class LuminariTerrainAPI:
         Returns:
             dict: Terrain data including elevation, moisture, temperature, sector type
         """
-        request = {
-            "command": "get_terrain",
-            "x": x,
-            "y": y
-        }
+        request = {"command": "get_terrain", "x": x, "y": y}
         return self._send_request(request)
 
     def get_terrain_batch(self, x_min, y_min, x_max, y_max):
@@ -117,17 +113,12 @@ class LuminariTerrainAPI:
             return {
                 "error": "Batch too large (max 1000 coordinates)",
                 "success": False,
-                "requested": total_coords
+                "requested": total_coords,
             }
 
         request = {
             "command": "get_terrain_batch",
-            "params": {
-                "x_min": x_min,
-                "y_min": y_min,
-                "x_max": x_max,
-                "y_max": y_max
-            }
+            "params": {"x_min": x_min, "y_min": y_min, "x_max": x_max, "y_max": y_max},
         }
         return self._send_request(request)
 
@@ -156,10 +147,7 @@ class LuminariTerrainAPI:
         Returns:
             dict: Complete room data with exits, zones, and terrain information
         """
-        request = {
-            "command": "get_room_details",
-            "vnum": vnum
-        }
+        request = {"command": "get_room_details", "vnum": vnum}
         return self._send_request(request)
 
 
@@ -192,11 +180,13 @@ def test_terrain_api():
         result = api.get_terrain(x, y)
         if result.get("success"):
             data = result.get("data", {})
-            print(f"✓ ({x:4d}, {y:4d}): "
-                  f"elev={data.get('elevation', 'N/A'):3d}, "
-                  f"temp={data.get('temperature', 'N/A'):3d}, "
-                  f"moist={data.get('moisture', 'N/A'):3d}, "
-                  f"sector={data.get('sector_type', 'N/A'):2d} ({data.get('sector_name', 'unknown')})")
+            print(
+                f"✓ ({x:4d}, {y:4d}): "
+                f"elev={data.get('elevation', 'N/A'):3d}, "
+                f"temp={data.get('temperature', 'N/A'):3d}, "
+                f"moist={data.get('moisture', 'N/A'):3d}, "
+                f"sector={data.get('sector_type', 'N/A'):2d} ({data.get('sector_name', 'unknown')})"
+            )
         else:
             print(f"✗ ({x:4d}, {y:4d}): {result.get('error')}")
 
@@ -212,9 +202,11 @@ def test_terrain_api():
         # Show first few results
         print("  Sample data (first 5 coordinates):")
         for i, coord in enumerate(data[:5]):
-            print(f"    ({coord.get('x'):2d}, {coord.get('y'):2d}): "
-                  f"elev={coord.get('elevation'):3d}, "
-                  f"sector={coord.get('sector_type'):2d}")
+            print(
+                f"    ({coord.get('x'):2d}, {coord.get('y'):2d}): "
+                f"elev={coord.get('elevation'):3d}, "
+                f"sector={coord.get('sector_type'):2d}"
+            )
     else:
         print(f"✗ Batch request failed: {result.get('error')}")
 
@@ -252,11 +244,13 @@ def test_terrain_api():
             print(f"    Name: {sample_room.get('name', 'N/A')[:50]}")
             print(f"    Coordinates: ({sample_room.get('x', 0)}, {sample_room.get('y', 0)})")
             print(f"    Sector: {sample_room.get('sector_type')}")
-            print(f"    Zone: {sample_room.get('zone_name', 'N/A')} (VNUM: {sample_room.get('zone_vnum')})")
+            print(
+                f"    Zone: {sample_room.get('zone_name', 'N/A')} (VNUM: {sample_room.get('zone_vnum')})"
+            )
 
             # Test 6: Room details for the first room
             print("\n6. Testing room details...")
-            test_vnum = '1000123'  # Use specific test VNUM
+            test_vnum = "1000123"  # Use specific test VNUM
             detail_result = api.get_room_details(test_vnum)
 
             if detail_result.get("success"):
@@ -273,17 +267,19 @@ def test_terrain_api():
                 print(f"  Description: {room_detail.get('description', 'N/A')[:100]}...")
 
                 # Show exits
-                exits = room_detail.get('exits', [])
+                exits = room_detail.get("exits", [])
                 if exits:
                     print(f"  Exits ({len(exits)}):")
                     for exit_info in exits[:3]:  # Show first 3 exits
-                        print(f"    {exit_info.get('direction')}: to room {exit_info.get('to_room_vnum')} "
-                              f"({exit_info.get('to_room_sector_type')})")
+                        print(
+                            f"    {exit_info.get('direction')}: to room {exit_info.get('to_room_vnum')} "
+                            f"({exit_info.get('to_room_sector_type')})"
+                        )
                 else:
                     print("  No exits found")
 
                 # Show room flags
-                flags = [room_detail.get(f'room_flags_{i}', 0) for i in range(4)]
+                flags = [room_detail.get(f"room_flags_{i}", 0) for i in range(4)]
                 print(f"  Room flags: [{', '.join(map(str, flags))}]")
             else:
                 print(f"✗ Room details failed: {detail_result.get('error')}")
@@ -295,20 +291,22 @@ def test_terrain_api():
             coords_count = 0
 
             for room in rooms_data:
-                zone_vnum = room.get('zone_vnum')
+                zone_vnum = room.get("zone_vnum")
                 if zone_vnum and zone_vnum != -1:
                     zones.add(zone_vnum)
 
-                sector = room.get('sector_type')
+                sector = room.get("sector_type")
                 sectors[sector] = sectors.get(sector, 0) + 1
 
-                if room.get('x', 0) != 0 or room.get('y', 0) != 0:
+                if room.get("x", 0) != 0 or room.get("y", 0) != 0:
                     coords_count += 1
 
             print(f"  Sample stats ({total_rooms} rooms total):")
             print(f"    Unique zones: {len(zones)}")
             print(f"    Rooms with coordinates: {coords_count}")
-            print(f"    Most common sector: {max(sectors.items(), key=lambda x: x[1])[0] if sectors else 'N/A'}")
+            print(
+                f"    Most common sector: {max(sectors.items(), key=lambda x: x[1])[0] if sectors else 'N/A'}"
+            )
     else:
         print(f"✗ Static rooms list failed: {result.get('error')}")
 

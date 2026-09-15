@@ -64,9 +64,20 @@ class CleanArchiveTest(unittest.TestCase):
             (self.repo / f"src/config/{name}.example.h").write_text("/* fixture */\n")
         self.git("init", "--quiet")
         self.git("add", ".")
-        self.git("-c", "user.name=Test Fixture", "-c", "user.email=test@example.invalid",
-                 "-c", "core.hooksPath=/dev/null", "-c", "commit.gpgsign=false",
-                 "commit", "--quiet", "-m", "Archive test fixture")
+        self.git(
+            "-c",
+            "user.name=Test Fixture",
+            "-c",
+            "user.email=test@example.invalid",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "--quiet",
+            "-m",
+            "Archive test fixture",
+        )
         (self.repo / "untracked-sentinel").touch()
 
         self.tools = self.root / "tools"
@@ -76,20 +87,33 @@ class CleanArchiveTest(unittest.TestCase):
             executable.write_text(BUILD_TOOL)
             executable.chmod(0o755)
         self.record = self.root / "test-entry-points.jsonl"
-        self.env = {key: value for key, value in os.environ.items()
-                    if not key.startswith(("LUMINARI_TEST_", "GIT_"))}
-        self.env.update(PATH=f"{self.tools}:{os.environ['PATH']}",
-                        TMPDIR=str(self.root), ARCHIVE_TEST_RECORD=str(self.record))
+        self.env = {
+            key: value
+            for key, value in os.environ.items()
+            if not key.startswith(("LUMINARI_TEST_", "GIT_"))
+        }
+        self.env.update(
+            PATH=f"{self.tools}:{os.environ['PATH']}",
+            TMPDIR=str(self.root),
+            ARCHIVE_TEST_RECORD=str(self.record),
+        )
 
     def git(self, *args):
-        subprocess.run(["git", "-C", str(self.repo), *args], check=True,
-                       capture_output=True,
-                       env={key: value for key, value in os.environ.items()
-                            if not key.startswith("GIT_")})
+        subprocess.run(
+            ["git", "-C", str(self.repo), *args],
+            check=True,
+            capture_output=True,
+            env={key: value for key, value in os.environ.items() if not key.startswith("GIT_")},
+        )
 
     def run_archive(self):
-        return subprocess.run(["bash", "scripts/ci/check_clean_archive.sh"],
-                              cwd=self.repo, env=self.env, text=True, capture_output=True)
+        return subprocess.run(
+            ["bash", "scripts/ci/check_clean_archive.sh"],
+            cwd=self.repo,
+            env=self.env,
+            text=True,
+            capture_output=True,
+        )
 
     def records(self):
         return [json.loads(line) for line in self.record.read_text().splitlines()]
@@ -128,9 +152,12 @@ class CleanArchiveTest(unittest.TestCase):
                         self.assertEqual(environment[key], value)
                     self.assertNotIn("LUMINARI_TEST_SKIP_SYNTAX_BOOT", environment)
                     self.assertEqual(environment["LUMINARI_TEST_ROOT"], record["root"])
-                    self.assertEqual(environment["LUMINARI_TEST_SPEC_WORLD_ROOT"],
-                                     str(Path(record["root"]) /
-                                         "unittests/CuTest/fixtures/spec_world_inventory"))
+                    self.assertEqual(
+                        environment["LUMINARI_TEST_SPEC_WORLD_ROOT"],
+                        str(
+                            Path(record["root"]) / "unittests/CuTest/fixtures/spec_world_inventory"
+                        ),
+                    )
                     self.assertNotEqual(record["root"], str(self.repo))
                     self.assertFalse(record["untracked_present"])
                     self.assertFalse(Path(record["root"]).exists())

@@ -54,175 +54,175 @@ _INT_LITERAL = re.compile(r"^-?\d+$")
 
 @dataclass(frozen=True)
 class WeaponEntry:
-  """One row of the target ``weapon_list[]`` table."""
+    """One row of the target ``weapon_list[]`` table."""
 
-  weapon_type: int
-  name: str
-  num_dice: int
-  dice_size: int
-  crit_range: int
-  crit_mult: int
-  weapon_flags: int
-  cost: int
-  damage_types: int
-  weight: int
-  range: int
-  weapon_family: int
-  size: int
-  material: int
-  handle_type: int
-  head_type: int
+    weapon_type: int
+    name: str
+    num_dice: int
+    dice_size: int
+    crit_range: int
+    crit_mult: int
+    weapon_flags: int
+    cost: int
+    damage_types: int
+    weight: int
+    range: int
+    weapon_family: int
+    size: int
+    material: int
+    handle_type: int
+    head_type: int
 
 
 def _strip_comments(text: str) -> str:
-  text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
-  return re.sub(r"//[^\n]*", " ", text)
+    text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
+    return re.sub(r"//[^\n]*", " ", text)
 
 
 @lru_cache(maxsize=4)
 def target_defines(root: Path | None = None) -> dict[str, int]:
-  """Harvest every integer ``#define`` the weapon table can reference."""
+    """Harvest every integer ``#define`` the weapon table can reference."""
 
-  base = root or default_repo_root()
-  header = (base / "src/core/structs.h").read_text(encoding="utf-8", errors="ignore")
-  defines: dict[str, int] = {}
-  for name, body in _DEFINE.findall(header):
-    value = _evaluate(body.strip(), defines)
-    if value is not None:
-      defines[name] = value
-  return defines
+    base = root or default_repo_root()
+    header = (base / "src/core/structs.h").read_text(encoding="utf-8", errors="ignore")
+    defines: dict[str, int] = {}
+    for name, body in _DEFINE.findall(header):
+        value = _evaluate(body.strip(), defines)
+        if value is not None:
+            defines[name] = value
+    return defines
 
 
 def _evaluate(expression: str, defines: dict[str, int]) -> int | None:
-  """Resolve a C integer constant expression over already-known defines.
+    """Resolve a C integer constant expression over already-known defines.
 
-  Only the forms the weapon table actually uses are supported: integer
-  literals, defined names, parenthesized shifts, and ``|`` unions of those.
-  Anything else resolves to None and is skipped rather than guessed at.
-  """
+    Only the forms the weapon table actually uses are supported: integer
+    literals, defined names, parenthesized shifts, and ``|`` unions of those.
+    Anything else resolves to None and is skipped rather than guessed at.
+    """
 
-  text = expression.strip()
-  if not text:
-    return None
-  total = 0
-  for term in text.split("|"):
-    value = _evaluate_term(term.strip(), defines)
-    if value is None:
-      return None
-    total |= value
-  return total
+    text = expression.strip()
+    if not text:
+        return None
+    total = 0
+    for term in text.split("|"):
+        value = _evaluate_term(term.strip(), defines)
+        if value is None:
+            return None
+        total |= value
+    return total
 
 
 def _evaluate_term(term: str, defines: dict[str, int]) -> int | None:
-  while term.startswith("(") and term.endswith(")"):
-    term = term[1:-1].strip()
-  if _INT_LITERAL.match(term):
-    return int(term)
-  shift = re.match(r"^(\d+)\s*<<\s*(\d+)$", term)
-  if shift:
-    return int(shift.group(1)) << int(shift.group(2))
-  if re.match(r"^[A-Za-z_]\w*$", term):
-    return defines.get(term)
-  return None
+    while term.startswith("(") and term.endswith(")"):
+        term = term[1:-1].strip()
+    if _INT_LITERAL.match(term):
+        return int(term)
+    shift = re.match(r"^(\d+)\s*<<\s*(\d+)$", term)
+    if shift:
+        return int(shift.group(1)) << int(shift.group(2))
+    if re.match(r"^[A-Za-z_]\w*$", term):
+        return defines.get(term)
+    return None
 
 
 def _split_arguments(text: str) -> list[str]:
-  """Split one call's argument list on top-level commas."""
+    """Split one call's argument list on top-level commas."""
 
-  arguments: list[str] = []
-  depth = 0
-  in_string = False
-  escaped = False
-  current: list[str] = []
-  for character in text:
-    if in_string:
-      current.append(character)
-      if escaped:
-        escaped = False
-      elif character == "\\":
-        escaped = True
-      elif character == '"':
-        in_string = False
-      continue
-    if character == '"':
-      in_string = True
-      current.append(character)
-    elif character in "([":
-      depth += 1
-      current.append(character)
-    elif character in ")]":
-      depth -= 1
-      current.append(character)
-    elif character == "," and depth == 0:
-      arguments.append("".join(current).strip())
-      current = []
-    else:
-      current.append(character)
-  arguments.append("".join(current).strip())
-  return arguments
+    arguments: list[str] = []
+    depth = 0
+    in_string = False
+    escaped = False
+    current: list[str] = []
+    for character in text:
+        if in_string:
+            current.append(character)
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == '"':
+                in_string = False
+            continue
+        if character == '"':
+            in_string = True
+            current.append(character)
+        elif character in "([":
+            depth += 1
+            current.append(character)
+        elif character in ")]":
+            depth -= 1
+            current.append(character)
+        elif character == "," and depth == 0:
+            arguments.append("".join(current).strip())
+            current = []
+        else:
+            current.append(character)
+    arguments.append("".join(current).strip())
+    return arguments
 
 
 def _call_bodies(text: str, function: str = "setweapon") -> Iterable[str]:
-  for match in re.finditer(r"\b" + re.escape(function) + r"\s*\(", text):
-    depth = 1
-    index = match.end()
-    in_string = False
-    escaped = False
-    while index < len(text) and depth:
-      character = text[index]
-      if in_string:
-        if escaped:
-          escaped = False
-        elif character == "\\":
-          escaped = True
-        elif character == '"':
-          in_string = False
-      elif character == '"':
-        in_string = True
-      elif character == "(":
-        depth += 1
-      elif character == ")":
-        depth -= 1
-      index += 1
-    yield text[match.end():index - 1]
+    for match in re.finditer(r"\b" + re.escape(function) + r"\s*\(", text):
+        depth = 1
+        index = match.end()
+        in_string = False
+        escaped = False
+        while index < len(text) and depth:
+            character = text[index]
+            if in_string:
+                if escaped:
+                    escaped = False
+                elif character == "\\":
+                    escaped = True
+                elif character == '"':
+                    in_string = False
+            elif character == '"':
+                in_string = True
+            elif character == "(":
+                depth += 1
+            elif character == ")":
+                depth -= 1
+            index += 1
+        yield text[match.end() : index - 1]
 
 
 def _string_literal(term: str) -> str:
-  pieces = re.findall(r'"((?:[^"\\]|\\.)*)"', term)
-  return "".join(pieces).encode("ascii", "replace").decode("ascii")
+    pieces = re.findall(r'"((?:[^"\\]|\\.)*)"', term)
+    return "".join(pieces).encode("ascii", "replace").decode("ascii")
 
 
 @lru_cache(maxsize=4)
 def weapon_table(root: Path | None = None) -> dict[int, WeaponEntry]:
-  """Parse ``load_weapons()`` into ``{weapon type: WeaponEntry}``."""
+    """Parse ``load_weapons()`` into ``{weapon type: WeaponEntry}``."""
 
-  base = root or default_repo_root()
-  defines = target_defines(base)
-  source = _strip_comments(
-      (base / "src/combat/assign_wpn_armor.c").read_text(encoding="utf-8", errors="ignore")
-  )
-  table: dict[int, WeaponEntry] = {}
-  for body in _call_bodies(source):
-    arguments = _split_arguments(body)
-    if len(arguments) != len(SETWEAPON_FIELDS) + 1:
-      continue
-    weapon_type = _evaluate(arguments[0], defines)
-    if weapon_type is None:
-      continue
-    fields: dict[str, object] = {}
-    incomplete = False
-    for field, term in zip(SETWEAPON_FIELDS, arguments[1:]):
-      if field == "name":
-        fields[field] = _string_literal(term)
-        continue
-      if field == "description":
-        continue
-      value = _evaluate(term, defines)
-      if value is None:
-        incomplete = True
-        break
-      fields[field] = value
-    if incomplete:
-      continue
-    table[weapon_type] = WeaponEntry(weapon_type=weapon_type, **fields)  # type: ignore[arg-type]
-  return table
+    base = root or default_repo_root()
+    defines = target_defines(base)
+    source = _strip_comments(
+        (base / "src/combat/assign_wpn_armor.c").read_text(encoding="utf-8", errors="ignore")
+    )
+    table: dict[int, WeaponEntry] = {}
+    for body in _call_bodies(source):
+        arguments = _split_arguments(body)
+        if len(arguments) != len(SETWEAPON_FIELDS) + 1:
+            continue
+        weapon_type = _evaluate(arguments[0], defines)
+        if weapon_type is None:
+            continue
+        fields: dict[str, object] = {}
+        incomplete = False
+        for field, term in zip(SETWEAPON_FIELDS, arguments[1:]):
+            if field == "name":
+                fields[field] = _string_literal(term)
+                continue
+            if field == "description":
+                continue
+            value = _evaluate(term, defines)
+            if value is None:
+                incomplete = True
+                break
+            fields[field] = value
+        if incomplete:
+            continue
+        table[weapon_type] = WeaponEntry(weapon_type=weapon_type, **fields)  # type: ignore[arg-type]
+    return table

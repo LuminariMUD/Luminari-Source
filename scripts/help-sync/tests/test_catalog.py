@@ -108,9 +108,7 @@ class CatalogTests(unittest.TestCase):
     def test_independent_fields_and_keyword_additions_merge(self) -> None:
         base_entry = entry("alpha", "old", keywords=("alpha",))
         base = Catalog((base_entry,))
-        development = Catalog(
-            (entry("alpha", "new", keywords=("alpha", "development")),)
-        )
+        development = Catalog((entry("alpha", "new", keywords=("alpha", "development")),))
         production = Catalog(
             (
                 entry(

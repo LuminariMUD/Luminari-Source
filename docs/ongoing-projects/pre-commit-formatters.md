@@ -1,20 +1,54 @@
 # Pre-commit formatters for every maintained file type
 
-Status: plan only, not started. Written 2026-09-15 on the development host
-(`APP_ENV=development`) against `570193508`, the tip of `master` and of
-`chore/pre-commit-clang-tidy`, and revised the same day with the owner's
-decisions: Python at 4-space indentation, mdformat tuned for this repository,
-the 18 unparseable legacy SQL files frozen while every other SQL file is
-enforced, and PHP and PowerShell formatted with their own runtimes. Every
-number and result below was measured on scratch copies and a scratch clone of
-that revision with the exact versions pinned here. The checkout was not
-modified and nothing was installed on the host: PHP ran from the official
-`php:8.3-cli` image and PowerShell from its release archive.
+Status: in progress on `chore/pre-commit-clang-tidy`; Progress below is the
+resume point. The plan was written 2026-09-15 on the development host
+(`APP_ENV=development`) against `570193508`, the tip of `master`, and revised
+the same day with the owner's decisions: Python at 4-space indentation,
+mdformat tuned for this repository, the 18 unparseable legacy SQL files frozen
+while every other SQL file is enforced, and PHP and PowerShell formatted with
+their own runtimes. Every number and result in the plan was measured on
+scratch copies and a scratch clone of that revision with the exact versions
+pinned here; planning modified no checkout and installed nothing on the host.
 
 Goal: every hand-maintained text file type is formatted by one pinned tool that
 runs in the pre-commit hook and in CI, with its settings in one place, no
 behavior change, and no rewriting of generated, sealed, or archival files. New
 SQL cannot opt out.
+
+## Progress
+
+One commit per step on `chore/pre-commit-clang-tidy`, following Implementation
+sequence; `git log --oneline 570193508..` lists them. Each row records what
+was verified before its commit.
+
+| Step | State | Commit | Verified |
+| --- | --- | --- | --- |
+| 1 Python | done | Format Python with ruff | 121 files, +39,840/-38,472; AST identical 121/121; all 542 world-tool tests pass before and after; `wtool.py constants sync --check` passes |
+| 2 Shell | next | | |
+| 3 SQL | | | |
+| Markdown prep | | | |
+| 4 Markdown | | | |
+| 5 prettier | | | |
+| 6 CMake | | | |
+| 7 PHP | | | |
+| 8 PowerShell | | | |
+| 9 CI, image, docs | | | |
+| 10 after merge | | | |
+
+Notes for whoever resumes:
+
+- Change counts match the dry run exactly, except that a supporting change
+  (+1/-1) is counted in the step that makes it, not in the formatting step.
+- Step 0 is not done: this host has no passwordless sudo, so neither runtime
+  is installed system-wide. Until the owner runs the Step 0 commands, PHP runs
+  through a `php` shim first on `PATH`:
+  `exec docker run --rm -i -u "$(id -u):$(id -g)" -v "$PWD:$PWD" -v "$LUMINARI_FORMATTER_CACHE:$LUMINARI_FORMATTER_CACHE" -e LUMINARI_FORMATTER_CACHE -w "$PWD" php:8.3-cli php "$@"`
+  (its output is byte-identical to Ubuntu's `php8.3-cli`, see PHP), and
+  PowerShell 7.6.6 runs from the extracted release archive.
+- Found during implementation, a sixth SQL bypass: a top-level `exclude` or
+  `files` pattern in `.pre-commit-config.yaml` applies to every hook. With
+  `exclude: ^sql/new\.sql$` the sqlfluff hook reports "(no files to check)" and
+  exits 0. Step 3 closes it in the policy check (see SQL enforcement).
 
 ## Verdict
 

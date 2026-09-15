@@ -184,7 +184,9 @@ def classify_terrain(rgb: tuple[int, int, int]) -> TerrainSpec:
     return closest_terrain(rgb)
 
 
-def update_world_file(world_file: Path, assignments: dict[int, TerrainSpec]) -> tuple[int, Counter[str]]:
+def update_world_file(
+    world_file: Path, assignments: dict[int, TerrainSpec]
+) -> tuple[int, Counter[str]]:
     lines = world_file.read_text().splitlines(keepends=True)
     counts: Counter[str] = Counter()
     updated = 0
@@ -213,7 +215,7 @@ def update_world_file(world_file: Path, assignments: dict[int, TerrainSpec]) -> 
         flags[-1] = str(terrain.sector)
 
         lines[title_index] = f"{terrain.title}~\n"
-        lines[desc_start:desc_end + 1] = [f"{terrain.description}\n", "~\n"]
+        lines[desc_start : desc_end + 1] = [f"{terrain.description}\n", "~\n"]
         lines[flags_index] = " ".join(flags) + "\n"
 
         counts[terrain.key] += 1

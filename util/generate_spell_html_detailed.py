@@ -16,54 +16,54 @@ from datetime import datetime
 def strip_color_codes(text):
     """Remove MUD color codes like \\tn, \\tW, \\tD, etc."""
     # Remove color codes like \tn, \tW, \tD, etc.
-    text = re.sub(r'\\t[a-zA-Z0-9]', '', text)
+    text = re.sub(r"\\t[a-zA-Z0-9]", "", text)
     return text
 
 
 def clean_display_text(text):
     """Clean text for display by removing literal backslash escapes."""
     # Remove literal \n and \t that are stored as backslash-n and backslash-t
-    text = text.replace('\\n', '\n').replace('\\t', '    ')
+    text = text.replace("\\n", "\n").replace("\\t", "    ")
     # Remove backslashes at end of lines (likely from formatting)
-    text = re.sub(r'\\\s*$', '', text, flags=re.MULTILINE)
-    text = re.sub(r'\\\s*\n', '\n', text)
+    text = re.sub(r"\\\s*$", "", text, flags=re.MULTILINE)
+    text = re.sub(r"\\\s*\n", "\n", text)
     # Clean up excessive whitespace but preserve line breaks
-    lines = [line.strip() for line in text.split('\n')]
+    lines = [line.strip() for line in text.split("\n")]
     # Remove empty lines
     lines = [line for line in lines if line]
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
 # Read MySQL config
 def get_mysql_config():
     config = {
-        'host': 'localhost',
-        'port': 3306,
-        'database': 'luminari',
-        'user': 'luminari',
-        'password': ''
+        "host": "localhost",
+        "port": 3306,
+        "database": "luminari",
+        "user": "luminari",
+        "password": "",
     }
 
     # Try to read from mysql_config file
     try:
-        with open('lib/mysql_config', 'r') as f:
+        with open("lib/mysql_config", "r") as f:
             for line in f:
                 line = line.strip()
-                if line and not line.startswith('#'):
-                    parts = line.split('=', 1)
+                if line and not line.startswith("#"):
+                    parts = line.split("=", 1)
                     if len(parts) == 2:
                         key = parts[0].strip().lower()
-                        value = parts[1].strip().strip('"\'')
-                        if 'host' in key:
-                            config['host'] = value
-                        elif 'database' in key or key == 'db':
-                            config['database'] = value
-                        elif 'user' in key or key == 'username':
-                            config['user'] = value
-                        elif 'password' in key or key == 'pass':
-                            config['password'] = value
-                        elif 'port' in key:
-                            config['port'] = int(value)
+                        value = parts[1].strip().strip("\"'")
+                        if "host" in key:
+                            config["host"] = value
+                        elif "database" in key or key == "db":
+                            config["database"] = value
+                        elif "user" in key or key == "username":
+                            config["user"] = value
+                        elif "password" in key or key == "pass":
+                            config["password"] = value
+                        elif "port" in key:
+                            config["port"] = int(value)
     except Exception as e:
         print(f"Warning: Could not read mysql_config: {e}")
 
@@ -77,45 +77,45 @@ def extract_class_spells():
 
     # Map of class numbers to names
     class_names = {
-        'CLASS_WIZARD': 'Wizard',
-        'CLASS_CLERIC': 'Cleric',
-        'CLASS_ROGUE': 'Rogue',
-        'CLASS_WARRIOR': 'Warrior',
-        'CLASS_MONK': 'Monk',
-        'CLASS_DRUID': 'Druid',
-        'CLASS_BERSERKER': 'Berserker',
-        'CLASS_SORCERER': 'Sorcerer',
-        'CLASS_PALADIN': 'Paladin',
-        'CLASS_BLACKGUARD': 'Blackguard',
-        'CLASS_RANGER': 'Ranger',
-        'CLASS_BARD': 'Bard',
-        'CLASS_PSIONICIST': 'Psionicist',
-        'CLASS_WEAPON_MASTER': 'Weapon Master',
-        'CLASS_ARCANE_ARCHER': 'Arcane Archer',
-        'CLASS_ARCANE_SHADOW': 'Arcane Shadow',
-        'CLASS_ELDRITCH_KNIGHT': 'Eldritch Knight',
-        'CLASS_SPELLSWORD': 'Spellsword',
-        'CLASS_SACRED_FIST': 'Sacred Fist',
-        'CLASS_STALWART_DEFENDER': 'Stalwart Defender',
-        'CLASS_ALCHEMIST': 'Alchemist',
-        'CLASS_INQUISITOR': 'Inquisitor',
-        'CLASS_SUMMONER': 'Summoner',
-        'CLASS_NECROMANCER': 'Necromancer',
-        'CLASS_SHADOW_DANCER': 'Shadow Dancer',
+        "CLASS_WIZARD": "Wizard",
+        "CLASS_CLERIC": "Cleric",
+        "CLASS_ROGUE": "Rogue",
+        "CLASS_WARRIOR": "Warrior",
+        "CLASS_MONK": "Monk",
+        "CLASS_DRUID": "Druid",
+        "CLASS_BERSERKER": "Berserker",
+        "CLASS_SORCERER": "Sorcerer",
+        "CLASS_PALADIN": "Paladin",
+        "CLASS_BLACKGUARD": "Blackguard",
+        "CLASS_RANGER": "Ranger",
+        "CLASS_BARD": "Bard",
+        "CLASS_PSIONICIST": "Psionicist",
+        "CLASS_WEAPON_MASTER": "Weapon Master",
+        "CLASS_ARCANE_ARCHER": "Arcane Archer",
+        "CLASS_ARCANE_SHADOW": "Arcane Shadow",
+        "CLASS_ELDRITCH_KNIGHT": "Eldritch Knight",
+        "CLASS_SPELLSWORD": "Spellsword",
+        "CLASS_SACRED_FIST": "Sacred Fist",
+        "CLASS_STALWART_DEFENDER": "Stalwart Defender",
+        "CLASS_ALCHEMIST": "Alchemist",
+        "CLASS_INQUISITOR": "Inquisitor",
+        "CLASS_SUMMONER": "Summoner",
+        "CLASS_NECROMANCER": "Necromancer",
+        "CLASS_SHADOW_DANCER": "Shadow Dancer",
     }
 
     try:
-        with open('src/class.c', 'r', encoding='latin-1') as f:
+        with open("src/class.c", "r", encoding="latin-1") as f:
             content = f.read()
 
         # Find all spell_assignment() calls
         # Pattern: spell_assignment(CLASS_NAME, SPELL_NAME, level);
-        pattern = r'spell_assignment\(\s*(CLASS_\w+),\s*SPELL_(\w+),\s*(\d+)\s*\);'
+        pattern = r"spell_assignment\(\s*(CLASS_\w+),\s*SPELL_(\w+),\s*(\d+)\s*\);"
         matches = re.findall(pattern, content)
 
         for class_const, spell_const, level in matches:
             # Convert SPELL_CONSTANT to spell name (lowercase with underscores to spaces)
-            spell_name = spell_const.lower().replace('_', ' ')
+            spell_name = spell_const.lower().replace("_", " ")
             class_name = class_names.get(class_const, class_const)
             level = int(level)
 
@@ -136,7 +136,7 @@ def extract_class_spells():
 def extract_spells():
     spells = {}
 
-    with open('src/spell_parser.c', 'r', encoding='latin-1') as f:
+    with open("src/spell_parser.c", "r", encoding="latin-1") as f:
         content = f.read()
 
     # Find all spello() calls
@@ -144,14 +144,11 @@ def extract_spells():
     matches = re.findall(spell_pattern, content, re.MULTILINE | re.DOTALL)
 
     for spell_const, spell_name in matches:
-        spells[spell_name.lower()] = {
-            'name': spell_name,
-            'constant': spell_const,
-            'help': None
-        }
+        spells[spell_name.lower()] = {"name": spell_name, "constant": spell_const, "help": None}
 
     print(f"Extracted {len(spells)} spells from spell_parser.c")
     return spells
+
 
 # Get help entries from MySQL
 def get_help_entries():
@@ -177,18 +174,18 @@ def get_help_entries():
         """
 
         # Execute via mysql command-line client
-        cmd = ['mysql']
-        cmd.extend(['-h', config['host']])
-        cmd.extend(['-P', str(config['port'])])
-        cmd.extend(['-u', config['user']])
+        cmd = ["mysql"]
+        cmd.extend(["-h", config["host"]])
+        cmd.extend(["-P", str(config["port"])])
+        cmd.extend(["-u", config["user"]])
 
         # Add password if present (no space between -p and password)
-        if config.get('password'):
+        if config.get("password"):
             cmd.append(f"-p{config['password']}")
 
-        cmd.extend(['-D', config['database']])
-        cmd.extend(['-e', query])
-        cmd.extend(['--batch', '--skip-column-names'])
+        cmd.extend(["-D", config["database"]])
+        cmd.extend(["-e", query])
+        cmd.extend(["--batch", "--skip-column-names"])
 
         result = subprocess.run(cmd, capture_output=True, text=True)
 
@@ -197,27 +194,27 @@ def get_help_entries():
             return help_data
 
         # Parse output using custom separator
-        for line in result.stdout.strip().split('\n'):
-            if not line or '||FIELD||' not in line:
+        for line in result.stdout.strip().split("\n"):
+            if not line or "||FIELD||" not in line:
                 continue
-            parts = line.split('||FIELD||')
+            parts = line.split("||FIELD||")
             if len(parts) >= 5:  # We expect 5 parts (tag, entry, min_level, last_updated, keywords)
                 tag = parts[0]
-                entry = parts[1] if parts[1] != 'NULL' else ''
+                entry = parts[1] if parts[1] != "NULL" else ""
                 # Handle embedded newlines in entry (\\n becomes actual newline)
-                entry = entry.replace('\\n', '\n')
+                entry = entry.replace("\\n", "\n")
 
                 try:
-                    min_level = int(parts[2]) if parts[2] != 'NULL' and parts[2].isdigit() else 0
+                    min_level = int(parts[2]) if parts[2] != "NULL" and parts[2].isdigit() else 0
                 except (ValueError, AttributeError):
                     min_level = 0
 
                 help_data[tag.lower()] = {
-                    'tag': tag,
-                    'entry': entry,
-                    'min_level': min_level,
-                    'last_updated': parts[3] if parts[3] != 'NULL' else '',
-                    'keywords': parts[4] if len(parts) > 4 and parts[4] != 'NULL' else ''
+                    "tag": tag,
+                    "entry": entry,
+                    "min_level": min_level,
+                    "last_updated": parts[3] if parts[3] != "NULL" else "",
+                    "keywords": parts[4] if len(parts) > 4 and parts[4] != "NULL" else "",
                 }
 
         print(f"Retrieved {len(help_data)} help entries from database")
@@ -228,15 +225,16 @@ def get_help_entries():
 
     return help_data
 
+
 # Generate HTML
 def generate_html(spells, help_data, class_spells):
     # Filter spells to only include those assigned to classes
     filtered_spells = {}
     for spell_key, spell_data in spells.items():
-        spell_name = spell_data['name']
+        spell_name = spell_data["name"]
 
         # Skip UNUSED spells
-        if '!UNUSED!' in spell_name:
+        if "!UNUSED!" in spell_name:
             continue
 
         # Only include if assigned to a class
@@ -246,7 +244,9 @@ def generate_html(spells, help_data, class_spells):
         else:
             # Try alternate formats
             for key in class_spells:
-                if key == spell_name.lower().replace(' ', '-') or key == spell_name.lower().replace(' ', ''):
+                if key == spell_name.lower().replace(" ", "-") or key == spell_name.lower().replace(
+                    " ", ""
+                ):
                     found = True
                     break
 
@@ -331,32 +331,36 @@ def generate_html(spells, help_data, class_spells):
 """
 
     # Add alphabet navigation
-    for letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
+    for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
         html += f'        <a href="#letter-{letter}">{letter}</a>\n'
 
-    html += """    </div>
+    html += (
+        """    </div>
 </div>
 
 <div class="container">
     <h1 id="top">⚡ Luminari MUD Spell Compendium ⚡</h1>
     <div class="subtitle">
-        <p>Generated: """ + datetime.now().strftime('%B %d, %Y at %H:%M') + f"""</p>
+        <p>Generated: """
+        + datetime.now().strftime("%B %d, %Y at %H:%M")
+        + f"""</p>
         <p><span class="stats-badge">📚 {spell_count_total} Total Spells</span></p>
         <p style="margin-top: 10px; font-size: 14px;">💡 <em>Click on any spell name to expand and view details</em></p>
     </div>
 
 """
+    )
 
     # Sort spells alphabetically
     sorted_spells = sorted(filtered_spells.items(), key=lambda x: x[0])
 
     # Group by first letter
-    current_letter = ''
+    current_letter = ""
     spell_count = 0
 
     for spell_key, spell_data in sorted_spells:
-        spell_name = spell_data['name']
-        first_letter = spell_name[0].upper() if spell_name else 'A'
+        spell_name = spell_data["name"]
+        first_letter = spell_name[0].upper() if spell_name else "A"
 
         spell_count += 1
 
@@ -370,9 +374,9 @@ def generate_html(spells, help_data, class_spells):
         html += f'        <div class="spell-header" onclick="toggleSpell(\'{spell_id}\')">\n'
         html += '            <div class="spell-header-left">\n'
         html += f'                <div class="spell-name">{spell_name}</div>\n'
-        html += '            </div>\n'
+        html += "            </div>\n"
         html += f'            <div class="toggle-icon" id="icon-{spell_id}">▼</div>\n'
-        html += '        </div>\n'
+        html += "        </div>\n"
         html += f'        <div class="spell-details" id="details-{spell_id}">\n'
         html += '            <div class="spell-content">\n'
 
@@ -381,9 +385,9 @@ def generate_html(spells, help_data, class_spells):
         lookup_keys = [
             spell_key,
             spell_name.lower(),
-            spell_name.lower().replace(' ', '-'),
-            'spell-' + spell_name.lower().replace(' ', '-'),
-            spell_name.lower().replace(' ', '')
+            spell_name.lower().replace(" ", "-"),
+            "spell-" + spell_name.lower().replace(" ", "-"),
+            spell_name.lower().replace(" ", ""),
         ]
 
         help_entry = None
@@ -394,29 +398,39 @@ def generate_html(spells, help_data, class_spells):
 
         if help_entry:
             # Parse help entry for structured data
-            entry_text = help_entry['entry']
+            entry_text = help_entry["entry"]
 
             # Display keywords if available
-            if help_entry.get('keywords'):
+            if help_entry.get("keywords"):
                 html += '                <div style="margin-bottom: 15px;">\n'
-                for keyword in help_entry['keywords'].split(','):
+                for keyword in help_entry["keywords"].split(","):
                     keyword = keyword.strip()
                     if keyword:
-                        html += f'                    <span class="keyword-tag">🔑 {keyword}</span>\n'
-                html += '                </div>\n'
+                        html += (
+                            f'                    <span class="keyword-tag">🔑 {keyword}</span>\n'
+                        )
+                html += "                </div>\n"
 
             # Try to extract structured information
             # First strip color codes for clean parsing
             clean_text = strip_color_codes(entry_text)
             info_dict = {}
-            lines = clean_text.split('\n')
+            lines = clean_text.split("\n")
             for line in lines:
-                if ':' in line and ('Usage' in line or 'School' in line or 'Target' in line or
-                                   'Duration' in line or 'Saving' in line or 'Magic' in line or
-                                   'Damage' in line or 'Accumulative' in line or 'Discipline' in line):
-                    parts = line.split(':', 1)
+                if ":" in line and (
+                    "Usage" in line
+                    or "School" in line
+                    or "Target" in line
+                    or "Duration" in line
+                    or "Saving" in line
+                    or "Magic" in line
+                    or "Damage" in line
+                    or "Accumulative" in line
+                    or "Discipline" in line
+                ):
+                    parts = line.split(":", 1)
                     if len(parts) == 2:
-                        key = parts[0].strip(' >-')
+                        key = parts[0].strip(" >-")
                         value = clean_display_text(parts[1])
                         if value and key:
                             info_dict[key] = value
@@ -425,70 +439,86 @@ def generate_html(spells, help_data, class_spells):
             if info_dict:
                 html += '                <div class="info-grid">\n'
 
-                for key in ['Usage', 'School of Magic', 'Discipline', 'Target(s)', 'Duration',
-                           'Saving Throw', 'Magic Resist', 'Damage Type', 'Accumulative']:
+                for key in [
+                    "Usage",
+                    "School of Magic",
+                    "Discipline",
+                    "Target(s)",
+                    "Duration",
+                    "Saving Throw",
+                    "Magic Resist",
+                    "Damage Type",
+                    "Accumulative",
+                ]:
                     if key in info_dict:
                         html += f'                    <div class="info-label">{key}:</div>\n'
-                        html += f'                    <div class="info-value">{info_dict[key]}</div>\n'
+                        html += (
+                            f'                    <div class="info-value">{info_dict[key]}</div>\n'
+                        )
 
-                html += '                </div>\n'
+                html += "                </div>\n"
 
             # Display class information
             # Check if this spell is available to any classes
             spell_classes = class_spells.get(spell_key) or class_spells.get(spell_name.lower())
             if not spell_classes:
                 # Try with hyphens and without spaces
-                spell_classes = (class_spells.get(spell_name.lower().replace(' ', '-')) or
-                               class_spells.get(spell_name.lower().replace(' ', '')))
+                spell_classes = class_spells.get(
+                    spell_name.lower().replace(" ", "-")
+                ) or class_spells.get(spell_name.lower().replace(" ", ""))
 
             if spell_classes:
                 # Sort by level, then by class name
                 spell_classes = sorted(spell_classes, key=lambda x: (x[1], x[0]))
 
                 html += '                <div style="margin: 20px 0; padding: 15px; background: #fff8e1; border-radius: 8px; border-left: 4px solid #ffa000;">\n'
-                html += '                    <strong>🎓 Available to Classes:</strong><br>\n'
+                html += "                    <strong>🎓 Available to Classes:</strong><br>\n"
                 html += '                    <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;">\n'
 
                 for class_name, level in spell_classes:
                     html += f'                        <span style="background: #fff; padding: 6px 12px; border-radius: 15px; border: 2px solid #ffa000; font-size: 13px;">\n'
-                    html += f'                            <strong>{class_name}</strong> (Level {level})\n'
-                    html += '                        </span>\n'
+                    html += f"                            <strong>{class_name}</strong> (Level {level})\n"
+                    html += "                        </span>\n"
 
-                html += '                    </div>\n'
-                html += '                </div>\n'
+                html += "                    </div>\n"
+                html += "                </div>\n"
 
             # Display description
             # Extract description part (after the >Description: marker)
-            description = ''
+            description = ""
             desc_started = False
             for line in lines:
                 if desc_started:
                     # Stop at "See also" section
-                    if line.strip().startswith('>See also') or 'See also' in line:
+                    if line.strip().startswith(">See also") or "See also" in line:
                         break
-                    description += line + '\n'
-                elif '>Description:' in line or ('>Description' in line and ':' in line):
+                    description += line + "\n"
+                elif ">Description:" in line or (">Description" in line and ":" in line):
                     desc_started = True
                     # Check if description is on same line
-                    parts = line.split(':', 1)
+                    parts = line.split(":", 1)
                     if len(parts) == 2 and parts[1].strip():
-                        description += parts[1].strip() + '\n'
+                        description += parts[1].strip() + "\n"
 
             if description.strip():
                 # Clean up the description - remove extra whitespace and "See also" lines
-                desc_lines = [line for line in description.strip().split('\n') if line.strip() and 'See also' not in line]
-                clean_desc = clean_display_text('\n'.join(desc_lines))
+                desc_lines = [
+                    line
+                    for line in description.strip().split("\n")
+                    if line.strip() and "See also" not in line
+                ]
+                clean_desc = clean_display_text("\n".join(desc_lines))
 
                 html += '                <div class="spell-description">\n'
-                html += '                    <strong>📖 Description:</strong><br>\n'
-                html += f'                    <p>{clean_desc}</p>\n'
-                html += '                </div>\n'
+                html += "                    <strong>📖 Description:</strong><br>\n"
+                html += f"                    <p>{clean_desc}</p>\n"
+                html += "                </div>\n"
 
             # Full entry if we want it
             # html += f'        <details><summary>View Full Help Entry</summary><pre>{entry_text}</pre></details>\n'
 
             # Metadata
-            if help_entry.get('last_updated'):
+            if help_entry.get("last_updated"):
                 html += f'                <div style="margin-top: 15px; color: #6c757d; font-size: 12px;">Last Updated: {help_entry["last_updated"]}</div>\n'
 
         else:
@@ -499,28 +529,29 @@ def generate_html(spells, help_data, class_spells):
             spell_classes = class_spells.get(spell_key) or class_spells.get(spell_name.lower())
             if not spell_classes:
                 # Try with hyphens and without spaces
-                spell_classes = (class_spells.get(spell_name.lower().replace(' ', '-')) or
-                               class_spells.get(spell_name.lower().replace(' ', '')))
+                spell_classes = class_spells.get(
+                    spell_name.lower().replace(" ", "-")
+                ) or class_spells.get(spell_name.lower().replace(" ", ""))
 
             if spell_classes:
                 # Sort by level, then by class name
                 spell_classes = sorted(spell_classes, key=lambda x: (x[1], x[0]))
 
                 html += '                <div style="margin: 20px 0; padding: 15px; background: #fff8e1; border-radius: 8px; border-left: 4px solid #ffa000;">\n'
-                html += '                    <strong>🎓 Available to Classes:</strong><br>\n'
+                html += "                    <strong>🎓 Available to Classes:</strong><br>\n"
                 html += '                    <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;">\n'
 
                 for class_name, level in spell_classes:
                     html += f'                        <span style="background: #fff; padding: 6px 12px; border-radius: 15px; border: 2px solid #ffa000; font-size: 13px;">\n'
-                    html += f'                            <strong>{class_name}</strong> (Level {level})\n'
-                    html += '                        </span>\n'
+                    html += f"                            <strong>{class_name}</strong> (Level {level})\n"
+                    html += "                        </span>\n"
 
-                html += '                    </div>\n'
-                html += '                </div>\n'
+                html += "                    </div>\n"
+                html += "                </div>\n"
 
-        html += '            </div>\n'  # Close spell-content
-        html += '        </div>\n'      # Close spell-details
-        html += '    </div>\n\n'        # Close spell-block
+        html += "            </div>\n"  # Close spell-content
+        html += "        </div>\n"  # Close spell-details
+        html += "    </div>\n\n"  # Close spell-block
 
     # Footer
     html += """    <div style="margin-top: 50px; padding: 30px; background: white; border-radius: 12px; text-align: center;">
@@ -550,35 +581,42 @@ def level_to_circle(class_name, level):
         return "Epic"
 
     # Wizard, Cleric, Druid: Circle 1 at level 1, Circle 2 at 3, then every 2 levels up to Circle 9 at 17
-    if class_name in ['Wizard', 'Cleric', 'Druid']:
-        if level == 1: return 1
+    if class_name in ["Wizard", "Cleric", "Druid"]:
+        if level == 1:
+            return 1
         if level >= 3:
             circle = 2 + ((level - 3) // 2)
             return min(circle, 9)
         return None
 
     # Sorcerer: Circle 1 at level 1, Circle 2 at 4, then every 2 levels up to Circle 9 at 18
-    if class_name == 'Sorcerer':
-        if level == 1: return 1
+    if class_name == "Sorcerer":
+        if level == 1:
+            return 1
         if level >= 4:
             circle = 2 + ((level - 4) // 2)
             return min(circle, 9)
         return None
 
     # Alchemist, Bard, Inquisitor, Summoner: Circle 1 at level 1, Circle 2 at 4, every 3 levels up to Circle 6 at 16
-    if class_name in ['Alchemist', 'Bard', 'Inquisitor', 'Summoner']:
-        if level == 1: return 1
+    if class_name in ["Alchemist", "Bard", "Inquisitor", "Summoner"]:
+        if level == 1:
+            return 1
         if level >= 4:
             circle = 2 + ((level - 4) // 3)
             return min(circle, 6)
         return None
 
     # Paladin, Ranger, Blackguard: Circle 1 at level 6, Circle 2 at 10, Circle 3 at 12, Circle 4 at 15
-    if class_name in ['Paladin', 'Ranger', 'Blackguard']:
-        if level >= 15: return 4
-        if level >= 12: return 3
-        if level >= 10: return 2
-        if level >= 6: return 1
+    if class_name in ["Paladin", "Ranger", "Blackguard"]:
+        if level >= 15:
+            return 4
+        if level >= 12:
+            return 3
+        if level >= 10:
+            return 2
+        if level >= 6:
+            return 1
         return None
 
     # For any other class, return level as-is (fallback)
@@ -601,7 +639,7 @@ def generate_class_html(spells, help_data, class_spells):
             if not spell_data:
                 # Try alternate formats
                 for key, data in spells.items():
-                    if data['name'].lower() == spell_name:
+                    if data["name"].lower() == spell_name:
                         spell_data = data
                         break
 
@@ -614,7 +652,9 @@ def generate_class_html(spells, help_data, class_spells):
     # Sort spells within each class by circle, then alphabetically
     # Epic spells (string) should come last, numeric circles come first
     for class_name in class_spell_map:
-        class_spell_map[class_name].sort(key=lambda x: (x[1] == "Epic", x[1] if x[1] != "Epic" else 999, x[0]))
+        class_spell_map[class_name].sort(
+            key=lambda x: (x[1] == "Epic", x[1] if x[1] != "Epic" else 999, x[0])
+        )
 
     # Generate HTML
     html = f"""<!DOCTYPE html>
@@ -721,34 +761,38 @@ def generate_class_html(spells, help_data, class_spells):
         if i < len(sorted_classes) - 1:
             html += '        <span class="navbar-divider">•</span>\n'
 
-    html += """    </div>
+    html += (
+        """    </div>
 </div>
 
 <div class="container">
     <h1 id="top">⚡ Luminari MUD - Spells by Class ⚡</h1>
     <div class="subtitle">
-        <p>Generated: """ + datetime.now().strftime('%B %d, %Y at %H:%M') + f"""</p>
+        <p>Generated: """
+        + datetime.now().strftime("%B %d, %Y at %H:%M")
+        + f"""</p>
         <p><span class="stats-badge">🎓 {len(class_spell_map)} Classes</span></p>
         <p style="margin-top: 10px; font-size: 14px;">💡 <em>Click on any class name to expand and view their spells</em></p>
     </div>
 
 """
+    )
 
     # Generate each class section
     class_count = 0
     for class_name in sorted_classes:
         class_count += 1
         spell_list = class_spell_map[class_name]
-        class_id = class_name.replace(' ', '-')
+        class_id = class_name.replace(" ", "-")
 
         html += f'    <div class="class-block" id="class-{class_id}">\n'
         html += f'        <div class="class-header" onclick="toggleClass(\'{class_id}\')">\n'
-        html += '            <div>\n'
+        html += "            <div>\n"
         html += f'                <div class="class-name">{class_name}</div>\n'
         html += f'                <div class="class-spell-count">{len(spell_list)} spells available</div>\n'
-        html += '            </div>\n'
+        html += "            </div>\n"
         html += f'            <div class="toggle-icon" id="class-icon-{class_id}">▼</div>\n'
-        html += '        </div>\n'
+        html += "        </div>\n"
         html += f'        <div class="class-details" id="class-details-{class_id}">\n'
         html += '            <div class="class-content">\n'
 
@@ -763,30 +807,32 @@ def generate_class_html(spells, help_data, class_spells):
         spell_counter = 0
         for circle in sorted(spells_by_circle.keys(), key=lambda x: (x != "Epic", x)):
             html += f'                <div class="level-section">\n'
-            epic_class = ' epic' if circle == "Epic" else ''
+            epic_class = " epic" if circle == "Epic" else ""
             circle_label = circle if circle == "Epic" else f"Circle {circle}"
             html += f'                    <div class="level-header{epic_class}">{circle_label} Spells</div>\n'
 
-            for spell_name, level, spell_data in sorted(spells_by_circle[circle], key=lambda x: x[0]):
+            for spell_name, level, spell_data in sorted(
+                spells_by_circle[circle], key=lambda x: x[0]
+            ):
                 spell_counter += 1
                 spell_id = f"{class_id}-spell{spell_counter}"
 
                 html += f'                    <div class="spell-item" onclick="toggleSpell(\'{spell_id}\')">\n'
                 html += '                        <div class="spell-item-header">\n'
-                html += '                            <div>\n'
+                html += "                            <div>\n"
                 html += f'                                <div class="spell-item-name">{spell_data["name"]} <span style="color: #666; font-size: 0.85em;">(Level {level})</span></div>\n'
-                html += '                            </div>\n'
+                html += "                            </div>\n"
                 html += f'                            <div class="spell-item-icon" id="spell-icon-{spell_id}">▼</div>\n'
-                html += '                        </div>\n'
+                html += "                        </div>\n"
                 html += f'                        <div class="spell-item-details" id="spell-details-{spell_id}">\n'
 
                 # Get help entry - try multiple variations including spell- prefix
                 lookup_keys = [
                     spell_name,
-                    spell_data['name'].lower(),
-                    spell_data['name'].lower().replace(' ', '-'),
-                    'spell-' + spell_data['name'].lower().replace(' ', '-'),
-                    spell_data['name'].lower().replace(' ', '')
+                    spell_data["name"].lower(),
+                    spell_data["name"].lower().replace(" ", "-"),
+                    "spell-" + spell_data["name"].lower().replace(" ", "-"),
+                    spell_data["name"].lower().replace(" ", ""),
                 ]
 
                 help_entry = None
@@ -796,28 +842,36 @@ def generate_class_html(spells, help_data, class_spells):
                         break
 
                 if help_entry:
-                    entry_text = help_entry['entry']
+                    entry_text = help_entry["entry"]
 
                     # Display keywords
-                    if help_entry.get('keywords'):
+                    if help_entry.get("keywords"):
                         html += '                            <div style="margin-bottom: 10px;">\n'
-                        for keyword in help_entry['keywords'].split(','):
+                        for keyword in help_entry["keywords"].split(","):
                             keyword = keyword.strip()
                             if keyword:
                                 html += f'                                <span class="keyword-tag">🔑 {keyword}</span>\n'
-                        html += '                            </div>\n'
+                        html += "                            </div>\n"
 
                     # Extract structured info
                     clean_text = strip_color_codes(entry_text)
                     info_dict = {}
-                    lines = clean_text.split('\n')
+                    lines = clean_text.split("\n")
                     for line in lines:
-                        if ':' in line and ('Usage' in line or 'School' in line or 'Target' in line or
-                                           'Duration' in line or 'Saving' in line or 'Magic' in line or
-                                           'Damage' in line or 'Accumulative' in line or 'Discipline' in line):
-                            parts = line.split(':', 1)
+                        if ":" in line and (
+                            "Usage" in line
+                            or "School" in line
+                            or "Target" in line
+                            or "Duration" in line
+                            or "Saving" in line
+                            or "Magic" in line
+                            or "Damage" in line
+                            or "Accumulative" in line
+                            or "Discipline" in line
+                        ):
+                            parts = line.split(":", 1)
                             if len(parts) == 2:
-                                key = parts[0].strip(' >-')
+                                key = parts[0].strip(" >-")
                                 value = clean_display_text(parts[1])
                                 if value and key:
                                     info_dict[key] = value
@@ -825,50 +879,65 @@ def generate_class_html(spells, help_data, class_spells):
                     # Display info grid
                     if info_dict:
                         html += '                            <div class="info-grid">\n'
-                        for key in ['Usage', 'School of Magic', 'Discipline', 'Target(s)', 'Duration',
-                                   'Saving Throw', 'Magic Resist', 'Damage Type', 'Accumulative']:
+                        for key in [
+                            "Usage",
+                            "School of Magic",
+                            "Discipline",
+                            "Target(s)",
+                            "Duration",
+                            "Saving Throw",
+                            "Magic Resist",
+                            "Damage Type",
+                            "Accumulative",
+                        ]:
                             if key in info_dict:
                                 html += f'                                <div class="info-label">{key}:</div>\n'
                                 html += f'                                <div class="info-value">{info_dict[key]}</div>\n'
-                        html += '                            </div>\n'
+                        html += "                            </div>\n"
 
                     # Extract and display description (look for >Description: marker)
-                    description = ''
+                    description = ""
                     desc_started = False
                     for line in lines:
                         if desc_started:
                             # Stop at "See also" section
-                            if line.strip().startswith('>See also') or 'See also' in line:
+                            if line.strip().startswith(">See also") or "See also" in line:
                                 break
-                            description += line + '\n'
-                        elif '>Description:' in line or ('>Description' in line and ':' in line):
+                            description += line + "\n"
+                        elif ">Description:" in line or (">Description" in line and ":" in line):
                             desc_started = True
-                            parts = line.split(':', 1)
+                            parts = line.split(":", 1)
                             if len(parts) == 2 and parts[1].strip():
-                                description += parts[1].strip() + '\n'
+                                description += parts[1].strip() + "\n"
 
                     if description.strip():
-                        desc_lines = [line for line in description.strip().split('\n') if line.strip() and 'See also' not in line]
-                        clean_desc = clean_display_text('\n'.join(desc_lines))
+                        desc_lines = [
+                            line
+                            for line in description.strip().split("\n")
+                            if line.strip() and "See also" not in line
+                        ]
+                        clean_desc = clean_display_text("\n".join(desc_lines))
                         html += '                            <div class="spell-description">\n'
-                        html += '                                <strong>📖 Description:</strong><br>\n'
-                        html += f'                                <p>{clean_desc}</p>\n'
-                        html += '                            </div>\n'
+                        html += (
+                            "                                <strong>📖 Description:</strong><br>\n"
+                        )
+                        html += f"                                <p>{clean_desc}</p>\n"
+                        html += "                            </div>\n"
 
                     # Last updated
-                    if help_entry.get('last_updated'):
+                    if help_entry.get("last_updated"):
                         html += f'                            <div style="margin-top: 12px; color: #6c757d; font-size: 11px;">Last Updated: {help_entry["last_updated"]}</div>\n'
                 else:
                     html += '                            <div class="no-help">⚠️ No detailed help information available for this spell yet.</div>\n'
 
-                html += '                        </div>\n'  # Close spell-item-details
-                html += '                    </div>\n'  # Close spell-item
+                html += "                        </div>\n"  # Close spell-item-details
+                html += "                    </div>\n"  # Close spell-item
 
-            html += '                </div>\n'  # Close level-section
+            html += "                </div>\n"  # Close level-section
 
-        html += '            </div>\n'  # Close class-content
-        html += '        </div>\n'  # Close class-details
-        html += '    </div>\n\n'  # Close class-block
+        html += "            </div>\n"  # Close class-content
+        html += "        </div>\n"  # Close class-details
+        html += "    </div>\n\n"  # Close class-block
 
     # Footer
     html += """    <div style="margin-top: 50px; padding: 30px; background: white; border-radius: 12px; text-align: center;">
@@ -904,7 +973,7 @@ def main():
     matched = 0
     for spell_key in spells:
         if spell_key in help_data:
-            spells[spell_key]['help'] = help_data[spell_key]
+            spells[spell_key]["help"] = help_data[spell_key]
             matched += 1
 
     print(f"Matched {matched} spells with help entries")
@@ -916,8 +985,8 @@ def main():
     html = generate_html(spells, help_data, class_spells)
 
     # Write spell-organized file
-    output_file = 'docs/spells_reference.html'
-    with open(output_file, 'w') as f:
+    output_file = "docs/spells_reference.html"
+    with open(output_file, "w") as f:
         f.write(html)
 
     print(f"\n✅ Spell HTML file generated: {output_file}")
@@ -926,8 +995,8 @@ def main():
     class_html = generate_class_html(spells, help_data, class_spells)
 
     # Write class-organized file
-    class_output_file = 'docs/spells_by_class.html'
-    with open(class_output_file, 'w') as f:
+    class_output_file = "docs/spells_by_class.html"
+    with open(class_output_file, "w") as f:
         f.write(class_html)
 
     print(f"✅ Class HTML file generated: {class_output_file}")
@@ -938,7 +1007,10 @@ def main():
         assigned_spells.add(spell_name)
 
     print(f"📊 Total spells documented: {len(assigned_spells)}")
-    print(f"🎓 Total classes with spells: {len(set(cn for sl in class_spells.values() for cn, _ in sl))}")
+    print(
+        f"🎓 Total classes with spells: {len(set(cn for sl in class_spells.values() for cn, _ in sl))}"
+    )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

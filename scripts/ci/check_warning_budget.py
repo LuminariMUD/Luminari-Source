@@ -94,7 +94,7 @@ def list_sites(seen, cls, by_token):
             except OSError:
                 # An unreadable file keeps source empty; the key falls back to "?" below.
                 pass
-            fragment = source[int(col) - 1:]
+            fragment = source[int(col) - 1 :]
             match = re.match(r"[A-Za-z_][A-Za-z_0-9]*", fragment)
             key = match.group(0) if match else fragment[:12].strip() or "?"
         else:
@@ -125,7 +125,9 @@ def write_baseline(path, compiler, counts):
     with open(path, "w", encoding="ascii", newline="\n") as handle:
         handle.write(f"# Migration-tier warning budget for {compiler}.\n")
         handle.write("# Distinct warning sites per class; may only shrink. Regenerate with\n")
-        handle.write(f"# scripts/ci/check_warning_budget.py --compiler {compiler} --log LOG --update\n")
+        handle.write(
+            f"# scripts/ci/check_warning_budget.py --compiler {compiler} --log LOG --update\n"
+        )
         for cls in sorted(counts):
             handle.write(f"{cls} {counts[cls]}\n")
 
@@ -173,7 +175,9 @@ collect2: error: ld returned 1 exit status
     counts, errors = count_warnings(log)
     assert counts == {"conversion": 1, "missing-prototypes": 1, "format=": 1}, counts
     assert errors == 4, errors
-    failures, improvements = compare(counts, {"conversion": 1, "missing-prototypes": 2, "format=": 1})
+    failures, improvements = compare(
+        counts, {"conversion": 1, "missing-prototypes": 2, "format=": 1}
+    )
     assert failures == [], failures
     assert improvements == ["-Wmissing-prototypes: 1 is below budget 2"], improvements
     failures, _ = compare(counts, {"conversion": 0, "missing-prototypes": 1})
@@ -197,8 +201,11 @@ def main():
     parser.add_argument("--update", action="store_true", help="lower the baseline; refuses growth")
     parser.add_argument("--report", action="store_true", help="print counts without comparing")
     parser.add_argument("--list", metavar="CLASS", help="print one class's sites grouped by file")
-    parser.add_argument("--by-token", metavar="CLASS",
-                        help="print one class's sites grouped by the identifier at the column")
+    parser.add_argument(
+        "--by-token",
+        metavar="CLASS",
+        help="print one class's sites grouped by the identifier at the column",
+    )
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
@@ -218,13 +225,17 @@ def main():
     for _site, cls in seen:
         counts[cls] = counts.get(cls, 0) + 1
     total = sum(counts.values())
-    print(f"{args.compiler}: {total} distinct warning sites in {len(counts)} classes, {errors} errors")
+    print(
+        f"{args.compiler}: {total} distinct warning sites in {len(counts)} classes, {errors} errors"
+    )
     for cls in sorted(counts, key=lambda name: (-counts[name], name)):
         print(f"  {counts[cls]:7d}  -W{cls}")
     if args.report:
         return 0
     if errors:
-        print("the build log contains compiler errors; the count is not trustworthy", file=sys.stderr)
+        print(
+            "the build log contains compiler errors; the count is not trustworthy", file=sys.stderr
+        )
         return 1
     path = baseline_path(args.compiler)
     baseline = read_baseline(path)
@@ -243,12 +254,17 @@ def main():
         print(f"wrote {os.path.relpath(path, REPO_ROOT)}")
         return 0
     if not os.path.exists(path):
-        print(f"no baseline at {os.path.relpath(path, REPO_ROOT)}; create it with --update", file=sys.stderr)
+        print(
+            f"no baseline at {os.path.relpath(path, REPO_ROOT)}; create it with --update",
+            file=sys.stderr,
+        )
         return 1
     for line in improvements:
         print("improved: " + line)
     if improvements:
-        print(f"lower the budget with: scripts/ci/check_warning_budget.py --compiler {args.compiler} --log LOG --update")
+        print(
+            f"lower the budget with: scripts/ci/check_warning_budget.py --compiler {args.compiler} --log LOG --update"
+        )
     if failures:
         print("warning budget exceeded:", file=sys.stderr)
         for line in failures:

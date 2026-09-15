@@ -31,398 +31,423 @@ _NAMED_TARGET = re.compile(
 
 @dataclass(frozen=True)
 class Action:
-  speech: bool
-  hide: bool
-  message: str
-  target: str | None = None
-  victim_message: str | None = None
+    speech: bool
+    hide: bool
+    message: str
+    target: str | None = None
+    victim_message: str | None = None
 
 
 @dataclass(frozen=True)
 class SourceSocial:
-  hide: bool
-  room_no_arg: str | None
-  room_found: str | None
-  victim_found: str | None
-  room_auto: str | None
+    hide: bool
+    room_no_arg: str | None
+    room_found: str | None
+    victim_found: str | None
+    room_auto: str | None
 
 
 @dataclass(frozen=True)
 class Outcome:
-  roll: int
-  actions: tuple[Action, ...]
+    roll: int
+    actions: tuple[Action, ...]
 
 
 @dataclass(frozen=True)
 class Profile:
-  name: str
-  vnums: tuple[int, ...]
-  roll_min: int
-  roll_max: int
-  dice_count: int
-  dice_sides: int
-  require_awake: bool
-  require_sleeping: bool
-  suppress_fighting: bool
-  devour_order: str
-  outcomes: tuple[Outcome, ...]
+    name: str
+    vnums: tuple[int, ...]
+    roll_min: int
+    roll_max: int
+    dice_count: int
+    dice_sides: int
+    require_awake: bool
+    require_sleeping: bool
+    suppress_fighting: bool
+    devour_order: str
+    outcomes: tuple[Outcome, ...]
 
 
 def _matching_brace(text: str, opening: int) -> int:
-  depth = 0
-  quote: str | None = None
-  escaped = False
-  line_comment = False
-  block_comment = False
-  index = opening
-  while index < len(text):
-    char = text[index]
-    following = text[index + 1] if index + 1 < len(text) else ""
-    if line_comment:
-      if char == "\n":
-        line_comment = False
-    elif block_comment:
-      if char == "*" and following == "/":
-        block_comment = False
+    depth = 0
+    quote: str | None = None
+    escaped = False
+    line_comment = False
+    block_comment = False
+    index = opening
+    while index < len(text):
+        char = text[index]
+        following = text[index + 1] if index + 1 < len(text) else ""
+        if line_comment:
+            if char == "\n":
+                line_comment = False
+        elif block_comment:
+            if char == "*" and following == "/":
+                block_comment = False
+                index += 1
+        elif quote is not None:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = None
+        elif char == "/" and following == "/":
+            line_comment = True
+            index += 1
+        elif char == "/" and following == "*":
+            block_comment = True
+            index += 1
+        elif char in {'"', "'"}:
+            quote = char
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return index
         index += 1
-    elif quote is not None:
-      if escaped:
-        escaped = False
-      elif char == "\\":
-        escaped = True
-      elif char == quote:
-        quote = None
-    elif char == "/" and following == "/":
-      line_comment = True
-      index += 1
-    elif char == "/" and following == "*":
-      block_comment = True
-      index += 1
-    elif char in {'"', "'"}:
-      quote = char
-    elif char == "{":
-      depth += 1
-    elif char == "}":
-      depth -= 1
-      if depth == 0:
-        return index
-    index += 1
-  raise ValueError("unclosed C brace")
+    raise ValueError("unclosed C brace")
 
 
 def _function_body(text: str, name: str) -> str:
-  match = re.search(rf"\bint\s+{re.escape(name)}\s*\([^)]*\)\s*\{{", text)
-  if match is None:
-    raise ValueError(f"source function not found: {name}")
-  opening = text.find("{", match.start())
-  return text[opening + 1 : _matching_brace(text, opening)]
+    match = re.search(rf"\bint\s+{re.escape(name)}\s*\([^)]*\)\s*\{{", text)
+    if match is None:
+        raise ValueError(f"source function not found: {name}")
+    opening = text.find("{", match.start())
+    return text[opening + 1 : _matching_brace(text, opening)]
 
 
 def _decode_c_strings(source: str) -> str:
-  tokens = re.findall(r'"(?:\\.|[^"\\])*"', source, re.DOTALL)
-  if not tokens:
-    raise ValueError("missing C string literal")
-  return "".join(ast.literal_eval(token) for token in tokens)
+    tokens = re.findall(r'"(?:\\.|[^"\\])*"', source, re.DOTALL)
+    if not tokens:
+        raise ValueError("missing C string literal")
+    return "".join(ast.literal_eval(token) for token in tokens)
 
 
 def _social_message(lines: list[str], index: int) -> str | None:
-  if index >= len(lines) or lines[index] == "#":
-    return None
-  return lines[index]
+    if index >= len(lines) or lines[index] == "#":
+        return None
+    return lines[index]
 
 
 def _source_socials(source_root: Path) -> dict[str, SourceSocial | None]:
-  command_numbers: dict[str, int] = {}
-  header = (source_root / "src/interp.h").read_text(encoding="ascii")
-  for name, value in re.findall(r"^#define\s+CMD_([A-Za-z0-9_]+)\s+(\d+)\s*$", header, re.MULTILINE):
-    command_numbers[name] = int(value)
+    command_numbers: dict[str, int] = {}
+    header = (source_root / "src/interp.h").read_text(encoding="ascii")
+    for name, value in re.findall(
+        r"^#define\s+CMD_([A-Za-z0-9_]+)\s+(\d+)\s*$", header, re.MULTILINE
+    ):
+        command_numbers[name] = int(value)
 
-  messages: dict[int, SourceSocial | None] = {}
-  actions = (source_root / "lib/misc/actions").read_text(encoding="ascii")
-  for block in re.split(r"\n\s*\n", actions):
-    lines = block.lstrip("\n").splitlines()
-    if not lines:
-      continue
-    match = re.fullmatch(r"(\d+)\s+(\d+)\s+\d+", lines[0])
-    if match is None or len(lines) < 3:
-      continue
-    command = int(match.group(1))
-    room_message = lines[2]
-    messages[command] = SourceSocial(
-        bool(int(match.group(2))),
-        None if room_message == "#" else room_message,
-        _social_message(lines, 4),
-        _social_message(lines, 5),
-        _social_message(lines, 8),
-    )
-
-  return {name: messages.get(value) for name, value in command_numbers.items()}
-
-
-def _parse_actions(segment: str, socials: dict[str, SourceSocial | None],
-                   named_targets: dict[str, str]) -> tuple[Action, ...]:
-  actions: list[Action] = []
-  for match in _ACTION_CALL.finditer(segment):
-    if match.group("say") is not None:
-      actions.append(Action(True, False, _decode_c_strings(match.group("say"))))
-    elif match.group("act") is not None:
-      actions.append(
-          Action(False, match.group("hide") in {"TRUE", "1"}, _decode_c_strings(match.group("act")))
-      )
-    else:
-      social = socials.get(match.group("social"))
-      if social is None:
-        continue
-      if match.group("social_arg") in {"0", "NULL"}:
-        if social.room_no_arg is not None:
-          actions.append(Action(False, social.hide, social.room_no_arg))
-        continue
-      if match.group("target") is not None:
-        target = _decode_c_strings(match.group("target"))
-      else:
-        social_arg = match.group("social_arg")
-        try:
-          target = named_targets[social_arg]
-        except KeyError as error:
-          raise ValueError(
-              f"missing target assignment for {match.group('social')}: {social_arg}"
-          ) from error
-      if target == "me":
-        if social.room_auto is not None:
-          actions.append(Action(False, social.hide, social.room_auto, "$self"))
-      elif social.room_found is not None or social.victim_found is not None:
-        actions.append(
-            Action(
-                False,
-                social.hide,
-                social.room_found or "",
-                target,
-                social.victim_found,
-            )
+    messages: dict[int, SourceSocial | None] = {}
+    actions = (source_root / "lib/misc/actions").read_text(encoding="ascii")
+    for block in re.split(r"\n\s*\n", actions):
+        lines = block.lstrip("\n").splitlines()
+        if not lines:
+            continue
+        match = re.fullmatch(r"(\d+)\s+(\d+)\s+\d+", lines[0])
+        if match is None or len(lines) < 3:
+            continue
+        command = int(match.group(1))
+        room_message = lines[2]
+        messages[command] = SourceSocial(
+            bool(int(match.group(2))),
+            None if room_message == "#" else room_message,
+            _social_message(lines, 4),
+            _social_message(lines, 5),
+            _social_message(lines, 8),
         )
-  return tuple(actions)
+
+    return {name: messages.get(value) for name, value in command_numbers.items()}
 
 
-def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int, ...],
-                   socials: dict[str, SourceSocial | None]) -> Profile:
-  body = _function_body((source_root / relative).read_text(encoding="ascii"), name)
-  named_targets = {
-      match.group("name"): _decode_c_strings(match.group("target"))
-      for match in _NAMED_TARGET.finditer(body)
-  }
-  devour_calls = len(re.findall(r"\bdevour\s*\(", body))
-  inline_devour = all(
-      marker in body
-      for marker in ("ITEM_FOOD", "ITEM_CORPSE", "obj_from_obj", "extract_obj")
-  )
-  devour_order = DEVOUR_PROFILE_ORDER.get(name, "none")
-  if devour_order not in {"none", "before", "after"}:
-    raise ValueError(f"{name}: invalid devour composition order: {devour_order}")
-  devour_shapes = devour_calls + int(inline_devour)
-  if (devour_order == "none" and devour_shapes != 0) or (
-      devour_order != "none" and devour_shapes != 1
-  ):
-    raise ValueError(
-        f"{name}: devour composition expected {0 if devour_order == 'none' else 1} source "
-        f"shape, found {devour_shapes}"
+def _parse_actions(
+    segment: str, socials: dict[str, SourceSocial | None], named_targets: dict[str, str]
+) -> tuple[Action, ...]:
+    actions: list[Action] = []
+    for match in _ACTION_CALL.finditer(segment):
+        if match.group("say") is not None:
+            actions.append(Action(True, False, _decode_c_strings(match.group("say"))))
+        elif match.group("act") is not None:
+            actions.append(
+                Action(
+                    False,
+                    match.group("hide") in {"TRUE", "1"},
+                    _decode_c_strings(match.group("act")),
+                )
+            )
+        else:
+            social = socials.get(match.group("social"))
+            if social is None:
+                continue
+            if match.group("social_arg") in {"0", "NULL"}:
+                if social.room_no_arg is not None:
+                    actions.append(Action(False, social.hide, social.room_no_arg))
+                continue
+            if match.group("target") is not None:
+                target = _decode_c_strings(match.group("target"))
+            else:
+                social_arg = match.group("social_arg")
+                try:
+                    target = named_targets[social_arg]
+                except KeyError as error:
+                    raise ValueError(
+                        f"missing target assignment for {match.group('social')}: {social_arg}"
+                    ) from error
+            if target == "me":
+                if social.room_auto is not None:
+                    actions.append(Action(False, social.hide, social.room_auto, "$self"))
+            elif social.room_found is not None or social.victim_found is not None:
+                actions.append(
+                    Action(
+                        False,
+                        social.hide,
+                        social.room_found or "",
+                        target,
+                        social.victim_found,
+                    )
+                )
+    return tuple(actions)
+
+
+def _parse_profile(
+    source_root: Path,
+    name: str,
+    relative: str,
+    vnums: tuple[int, ...],
+    socials: dict[str, SourceSocial | None],
+) -> Profile:
+    body = _function_body((source_root / relative).read_text(encoding="ascii"), name)
+    named_targets = {
+        match.group("name"): _decode_c_strings(match.group("target"))
+        for match in _NAMED_TARGET.finditer(body)
+    }
+    devour_calls = len(re.findall(r"\bdevour\s*\(", body))
+    inline_devour = all(
+        marker in body for marker in ("ITEM_FOOD", "ITEM_CORPSE", "obj_from_obj", "extract_obj")
     )
-  switch = re.search(
-      r"switch\s*\(\s*(number|dice)\s*\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)\s*\)\s*\{",
-      body,
-  )
-  outcomes: list[Outcome] = []
-  random_kind = "number"
-  if switch is None:
-    chance = re.search(
-        r"if\s*\(\s*!\s*number\s*\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)\s*\)\s*\{",
+    devour_order = DEVOUR_PROFILE_ORDER.get(name, "none")
+    if devour_order not in {"none", "before", "after"}:
+        raise ValueError(f"{name}: invalid devour composition order: {devour_order}")
+    devour_shapes = devour_calls + int(inline_devour)
+    if (devour_order == "none" and devour_shapes != 0) or (
+        devour_order != "none" and devour_shapes != 1
+    ):
+        raise ValueError(
+            f"{name}: devour composition expected {0 if devour_order == 'none' else 1} source "
+            f"shape, found {devour_shapes}"
+        )
+    switch = re.search(
+        r"switch\s*\(\s*(number|dice)\s*\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)\s*\)\s*\{",
         body,
     )
-    if chance is None:
-      raise ValueError(
-          f"{name}: expected one random switch or zero-roll conditional"
-      )
-    if len(re.findall(r"\bnumber\s*\(", body)) != 1:
-      raise ValueError(f"{name}: zero-roll conditional must be the only random-number call")
-    opening = body.find("{", chance.start())
-    segment = body[opening + 1 : _matching_brace(body, opening)]
-    raw_calls = len(re.findall(r"\b(?:act|mobsay|do_action)\s*\(", segment))
-    parsed_actions = _parse_actions(segment, socials, named_targets)
-    if raw_calls != len(list(_ACTION_CALL.finditer(segment))):
-      raise ValueError(f"{name}: unsupported action expression in zero-roll conditional")
-    if raw_calls == 0 or "return TRUE" not in segment:
-      raise ValueError(f"{name}: zero-roll conditional must emit an action and return true")
-    outcomes.append(Outcome(0, parsed_actions))
-    first_value = int(chance.group(1))
-    second_value = int(chance.group(2))
-  else:
-    opening = body.find("{", switch.start())
-    switch_body = body[opening + 1 : _matching_brace(body, opening)]
-    labels = list(re.finditer(r"\b(case\s+(-?\d+)\s*:|default\s*:)", switch_body))
-    pending_rolls: list[int] = []
+    outcomes: list[Outcome] = []
+    random_kind = "number"
+    if switch is None:
+        chance = re.search(
+            r"if\s*\(\s*!\s*number\s*\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)\s*\)\s*\{",
+            body,
+        )
+        if chance is None:
+            raise ValueError(f"{name}: expected one random switch or zero-roll conditional")
+        if len(re.findall(r"\bnumber\s*\(", body)) != 1:
+            raise ValueError(f"{name}: zero-roll conditional must be the only random-number call")
+        opening = body.find("{", chance.start())
+        segment = body[opening + 1 : _matching_brace(body, opening)]
+        raw_calls = len(re.findall(r"\b(?:act|mobsay|do_action)\s*\(", segment))
+        parsed_actions = _parse_actions(segment, socials, named_targets)
+        if raw_calls != len(list(_ACTION_CALL.finditer(segment))):
+            raise ValueError(f"{name}: unsupported action expression in zero-roll conditional")
+        if raw_calls == 0 or "return TRUE" not in segment:
+            raise ValueError(f"{name}: zero-roll conditional must emit an action and return true")
+        outcomes.append(Outcome(0, parsed_actions))
+        first_value = int(chance.group(1))
+        second_value = int(chance.group(2))
+    else:
+        opening = body.find("{", switch.start())
+        switch_body = body[opening + 1 : _matching_brace(body, opening)]
+        labels = list(re.finditer(r"\b(case\s+(-?\d+)\s*:|default\s*:)", switch_body))
+        pending_rolls: list[int] = []
 
-    for index, label in enumerate(labels):
-      if label.group(2) is None:
+        for index, label in enumerate(labels):
+            if label.group(2) is None:
+                if pending_rolls:
+                    raise ValueError(f"{name}: unresolved fall-through before default")
+                continue
+            roll = int(label.group(2))
+            segment_end = labels[index + 1].start() if index + 1 < len(labels) else len(switch_body)
+            segment = switch_body[label.end() : segment_end]
+            raw_calls = len(re.findall(r"\b(?:act|mobsay|do_action)\s*\(", segment))
+            parsed_actions = _parse_actions(segment, socials, named_targets)
+            if raw_calls == 0 and "return TRUE" not in segment:
+                pending_rolls.append(roll)
+                continue
+            if raw_calls != len(list(_ACTION_CALL.finditer(segment))):
+                raise ValueError(f"{name}: unsupported action expression in case {roll}")
+            for outcome_roll in (*pending_rolls, roll):
+                outcomes.append(Outcome(outcome_roll, parsed_actions))
+            pending_rolls.clear()
+
         if pending_rolls:
-          raise ValueError(f"{name}: unresolved fall-through before default")
-        continue
-      roll = int(label.group(2))
-      segment_end = labels[index + 1].start() if index + 1 < len(labels) else len(switch_body)
-      segment = switch_body[label.end() : segment_end]
-      raw_calls = len(re.findall(r"\b(?:act|mobsay|do_action)\s*\(", segment))
-      parsed_actions = _parse_actions(segment, socials, named_targets)
-      if raw_calls == 0 and "return TRUE" not in segment:
-        pending_rolls.append(roll)
-        continue
-      if raw_calls != len(list(_ACTION_CALL.finditer(segment))):
-        raise ValueError(f"{name}: unsupported action expression in case {roll}")
-      for outcome_roll in (*pending_rolls, roll):
-        outcomes.append(Outcome(outcome_roll, parsed_actions))
-      pending_rolls.clear()
+            raise ValueError(f"{name}: unresolved trailing fall-through cases")
 
-    if pending_rolls:
-      raise ValueError(f"{name}: unresolved trailing fall-through cases")
-
-    random_kind = switch.group(1)
-    first_value = int(switch.group(2))
-    second_value = int(switch.group(3))
-  if random_kind == "dice":
-    if first_value <= 0 or second_value <= 0:
-      raise ValueError(f"{name}: dice values must be positive")
-    roll_min = first_value
-    roll_max = first_value * second_value
-    dice_count = first_value
-    dice_sides = second_value
-  else:
-    roll_min = first_value
-    roll_max = second_value
-    dice_count = 0
-    dice_sides = 0
-  if any(outcome.roll < roll_min or outcome.roll > roll_max for outcome in outcomes):
-    raise ValueError(f"{name}: case outside random range")
-  return Profile(
-      name,
-      vnums,
-      roll_min,
-      roll_max,
-      dice_count,
-      dice_sides,
-      "AWAKE(ch)" in body,
-      "STAT_SLEEPING" in body,
-      "IS_FIGHTING(ch)" in body,
-      devour_order,
-      tuple(sorted(outcomes, key=lambda outcome: outcome.roll)),
-  )
+        random_kind = switch.group(1)
+        first_value = int(switch.group(2))
+        second_value = int(switch.group(3))
+    if random_kind == "dice":
+        if first_value <= 0 or second_value <= 0:
+            raise ValueError(f"{name}: dice values must be positive")
+        roll_min = first_value
+        roll_max = first_value * second_value
+        dice_count = first_value
+        dice_sides = second_value
+    else:
+        roll_min = first_value
+        roll_max = second_value
+        dice_count = 0
+        dice_sides = 0
+    if any(outcome.roll < roll_min or outcome.roll > roll_max for outcome in outcomes):
+        raise ValueError(f"{name}: case outside random range")
+    return Profile(
+        name,
+        vnums,
+        roll_min,
+        roll_max,
+        dice_count,
+        dice_sides,
+        "AWAKE(ch)" in body,
+        "STAT_SLEEPING" in body,
+        "IS_FIGHTING(ch)" in body,
+        devour_order,
+        tuple(sorted(outcomes, key=lambda outcome: outcome.roll)),
+    )
 
 
 def load_profiles(source_root: Path) -> tuple[Profile, ...]:
-  socials = _source_socials(source_root)
-  return tuple(
-      _parse_profile(source_root, name, relative, vnums, socials)
-      for name, (relative, vnums) in sorted(PROFILE_SOURCES.items())
-  )
+    socials = _source_socials(source_root)
+    return tuple(
+        _parse_profile(source_root, name, relative, vnums, socials)
+        for name, (relative, vnums) in sorted(PROFILE_SOURCES.items())
+    )
 
 
 def _identifier(name: str) -> str:
-  return "ROL_SOURCE_PERIODIC_" + re.sub(r"[^A-Za-z0-9]+", "_", name).upper()
+    return "ROL_SOURCE_PERIODIC_" + re.sub(r"[^A-Za-z0-9]+", "_", name).upper()
 
 
 def _c_string(value: str) -> str:
-  return json.dumps(value, ensure_ascii=True)
+    return json.dumps(value, ensure_ascii=True)
 
 
 def render(source_root: Path) -> str:
-  profiles = load_profiles(source_root)
-  source_paths = sorted({relative for relative, _vnums in PROFILE_SOURCES.values()})
-  source_paths.extend(["src/interp.h", "lib/misc/actions"])
-  digest = hashlib.sha256()
-  for relative in source_paths:
-    digest.update(relative.encode("ascii"))
-    digest.update((source_root / relative).read_bytes())
+    profiles = load_profiles(source_root)
+    source_paths = sorted({relative for relative, _vnums in PROFILE_SOURCES.values()})
+    source_paths.extend(["src/interp.h", "lib/misc/actions"])
+    digest = hashlib.sha256()
+    for relative in source_paths:
+        digest.update(relative.encode("ascii"))
+        digest.update((source_root / relative).read_bytes())
 
-  output = [
-      "/* Generated by scripts/world/generate_rol_periodic_profiles.py.",
-      " * Do not edit directly; regenerate from the assessed RoL source tree.",
-      f" * Source digest: {digest.hexdigest()}",
-      " */",
-      "",
-      "enum rol_source_periodic_profile_id",
-      "{",
-  ]
-  for profile in profiles:
-    output.append(f"  {_identifier(profile.name)},")
-  output.extend(["};", "", "static const struct rol_source_periodic_profile rol_source_periodic_profiles[] = {"])
-  profile_rows = sorted(
-      (vnum, profile)
-      for profile in profiles
-      for vnum in profile.vnums
-  )
-  for vnum, profile in profile_rows:
-    require_awake = "true" if profile.require_awake else "false"
-    require_sleeping = "true" if profile.require_sleeping else "false"
-    suppress = "true" if profile.suppress_fighting else "false"
-    devour = {
-        "none": "ROL_SOURCE_PERIODIC_DEVOUR_NONE",
-        "before": "ROL_SOURCE_PERIODIC_DEVOUR_BEFORE",
-        "after": "ROL_SOURCE_PERIODIC_DEVOUR_AFTER",
-    }[profile.devour_order]
-    output.append(
-        f"    {{{vnum}, {_identifier(profile.name)}, {profile.roll_min}, {profile.roll_max}, "
-        f"{profile.dice_count}, {profile.dice_sides}, {require_awake}, {require_sleeping}, "
-        f"{suppress}, {devour}}},"
+    output = [
+        "/* Generated by scripts/world/generate_rol_periodic_profiles.py.",
+        " * Do not edit directly; regenerate from the assessed RoL source tree.",
+        f" * Source digest: {digest.hexdigest()}",
+        " */",
+        "",
+        "enum rol_source_periodic_profile_id",
+        "{",
+    ]
+    for profile in profiles:
+        output.append(f"  {_identifier(profile.name)},")
+    output.extend(
+        [
+            "};",
+            "",
+            "static const struct rol_source_periodic_profile rol_source_periodic_profiles[] = {",
+        ]
     )
-  output.extend(["};", "", "static const struct rol_source_periodic_outcome rol_source_periodic_outcomes[] = {"])
+    profile_rows = sorted((vnum, profile) for profile in profiles for vnum in profile.vnums)
+    for vnum, profile in profile_rows:
+        require_awake = "true" if profile.require_awake else "false"
+        require_sleeping = "true" if profile.require_sleeping else "false"
+        suppress = "true" if profile.suppress_fighting else "false"
+        devour = {
+            "none": "ROL_SOURCE_PERIODIC_DEVOUR_NONE",
+            "before": "ROL_SOURCE_PERIODIC_DEVOUR_BEFORE",
+            "after": "ROL_SOURCE_PERIODIC_DEVOUR_AFTER",
+        }[profile.devour_order]
+        output.append(
+            f"    {{{vnum}, {_identifier(profile.name)}, {profile.roll_min}, {profile.roll_max}, "
+            f"{profile.dice_count}, {profile.dice_sides}, {require_awake}, {require_sleeping}, "
+            f"{suppress}, {devour}}},"
+        )
+    output.extend(
+        [
+            "};",
+            "",
+            "static const struct rol_source_periodic_outcome rol_source_periodic_outcomes[] = {",
+        ]
+    )
 
-  action_index = 0
-  flattened_actions: list[Action] = []
-  for profile in profiles:
-    output.append(f"    /* {profile.name} */")
-    for outcome in profile.outcomes:
-      output.append(
-          f"    {{{_identifier(profile.name)}, {outcome.roll}, {action_index}, {len(outcome.actions)}}},"
-      )
-      flattened_actions.extend(outcome.actions)
-      action_index += len(outcome.actions)
-  output.extend(["};", "", "static const struct rol_source_periodic_action rol_source_periodic_actions[] = {"])
-  for action in flattened_actions:
-    if action.speech:
-      kind = "ROL_SOURCE_PERIODIC_SPEECH"
-    elif action.target is not None:
-      kind = "ROL_SOURCE_PERIODIC_TARGET_ACTION"
-    else:
-      kind = "ROL_SOURCE_PERIODIC_ROOM_ACTION"
-    hide = "true" if action.hide else "false"
-    row = f"    {{{kind}, {hide}, {_c_string(action.message)}"
-    if action.target is not None:
-      victim_message = "NULL" if action.victim_message is None else _c_string(action.victim_message)
-      row += f", {_c_string(action.target)}, {victim_message}"
-    else:
-      row += ", NULL, NULL"
-    output.append(row + "},")
-  output.extend(["};", ""])
-  return "\n".join(output)
+    action_index = 0
+    flattened_actions: list[Action] = []
+    for profile in profiles:
+        output.append(f"    /* {profile.name} */")
+        for outcome in profile.outcomes:
+            output.append(
+                f"    {{{_identifier(profile.name)}, {outcome.roll}, {action_index}, {len(outcome.actions)}}},"
+            )
+            flattened_actions.extend(outcome.actions)
+            action_index += len(outcome.actions)
+    output.extend(
+        [
+            "};",
+            "",
+            "static const struct rol_source_periodic_action rol_source_periodic_actions[] = {",
+        ]
+    )
+    for action in flattened_actions:
+        if action.speech:
+            kind = "ROL_SOURCE_PERIODIC_SPEECH"
+        elif action.target is not None:
+            kind = "ROL_SOURCE_PERIODIC_TARGET_ACTION"
+        else:
+            kind = "ROL_SOURCE_PERIODIC_ROOM_ACTION"
+        hide = "true" if action.hide else "false"
+        row = f"    {{{kind}, {hide}, {_c_string(action.message)}"
+        if action.target is not None:
+            victim_message = (
+                "NULL" if action.victim_message is None else _c_string(action.victim_message)
+            )
+            row += f", {_c_string(action.target)}, {victim_message}"
+        else:
+            row += ", NULL, NULL"
+        output.append(row + "},")
+    output.extend(["};", ""])
+    return "\n".join(output)
 
 
 def main() -> int:
-  parser = argparse.ArgumentParser(description=__doc__)
-  parser.add_argument("--source-root", type=Path, required=True)
-  parser.add_argument("--output", type=Path)
-  parser.add_argument("--check", action="store_true")
-  args = parser.parse_args()
-  generated = render(args.source_root.resolve())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--source-root", type=Path, required=True)
+    parser.add_argument("--output", type=Path)
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args()
+    generated = render(args.source_root.resolve())
 
-  if args.output is None:
-    print(generated, end="")
+    if args.output is None:
+        print(generated, end="")
+        return 0
+    if args.check:
+        if not args.output.is_file() or args.output.read_text(encoding="ascii") != generated:
+            print(f"stale generated profile table: {args.output}")
+            return 1
+        print(f"generated profile table is current: {args.output}")
+        return 0
+    args.output.write_text(generated, encoding="ascii", newline="\n")
+    print(f"generated {args.output}")
     return 0
-  if args.check:
-    if not args.output.is_file() or args.output.read_text(encoding="ascii") != generated:
-      print(f"stale generated profile table: {args.output}")
-      return 1
-    print(f"generated profile table is current: {args.output}")
-    return 0
-  args.output.write_text(generated, encoding="ascii", newline="\n")
-  print(f"generated {args.output}")
-  return 0
 
 
 if __name__ == "__main__":
-  raise SystemExit(main())
+    raise SystemExit(main())

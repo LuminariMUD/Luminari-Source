@@ -29,9 +29,8 @@ class HelpSyncError(RuntimeError):
 
 
 def canonical_json_bytes(value: Any) -> bytes:
-    return (
-        json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-        .encode("utf-8")
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode(
+        "utf-8"
     )
 
 
@@ -151,9 +150,7 @@ class HelpEntry:
             if normalized.tag == tag:
                 raise HelpSyncError(f"help entry {tag!r} cannot relate to itself")
             if normalized.tag in related_by_tag:
-                raise HelpSyncError(
-                    f"help entry {tag!r} repeats related topic {normalized.tag!r}"
-                )
+                raise HelpSyncError(f"help entry {tag!r} repeats related topic {normalized.tag!r}")
             related_by_tag[normalized.tag] = normalized
         try:
             min_level = int(self.min_level)
@@ -174,7 +171,9 @@ class HelpEntry:
         object.__setattr__(self, "category", normalize_category(self.category))
         object.__setattr__(self, "auto_generated", bool(self.auto_generated))
         object.__setattr__(
-            self, "related_topics", tuple(sorted(related_by_tag.values(), key=lambda item: item.tag))
+            self,
+            "related_topics",
+            tuple(sorted(related_by_tag.values(), key=lambda item: item.tag)),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -283,9 +282,9 @@ def legacy_entries_for_catalog(catalog: Catalog) -> tuple[LegacyHelpEntry, ...]:
     for entry in catalog.entries:
         keywords = sorted(
             {
-            _legacy_alias(entry.tag),
-            *(_legacy_alias(keyword) for keyword in entry.keywords),
-            *(_legacy_alias(alias) for alias in entry.aliases),
+                _legacy_alias(entry.tag),
+                *(_legacy_alias(keyword) for keyword in entry.keywords),
+                *(_legacy_alias(alias) for alias in entry.aliases),
             }
         )
         for line in entry.body.splitlines():
@@ -309,13 +308,10 @@ def legacy_entries_for_catalog(catalog: Catalog) -> tuple[LegacyHelpEntry, ...]:
             projected_size = len((key_line + "\r\n" + entry.body).encode("utf-8"))
             if projected_size > MAX_HELP_ENTRY_BYTES:
                 raise HelpSyncError(
-                    f"legacy help projection for {entry.tag!r} exceeds "
-                    f"{MAX_HELP_ENTRY_BYTES} bytes"
+                    f"legacy help projection for {entry.tag!r} exceeds {MAX_HELP_ENTRY_BYTES} bytes"
                 )
             entries.append(
-                LegacyHelpEntry(
-                    keywords=tuple(chunk), body=entry.body, min_level=entry.min_level
-                )
+                LegacyHelpEntry(keywords=tuple(chunk), body=entry.body, min_level=entry.min_level)
             )
     return tuple(entries)
 
@@ -463,9 +459,7 @@ def _merge_membership_set(
 ) -> frozenset[str]:
     result: set[str] = set()
     for item in base | development | production:
-        merged, conflict = _merge_scalar(
-            item in base, item in development, item in production
-        )
+        merged, conflict = _merge_scalar(item in base, item in development, item in production)
         if conflict:
             raise AssertionError("three-way Boolean set membership cannot diverge")
         if merged:
@@ -493,9 +487,7 @@ def _merge_related(
                 {
                     "field": f"related_topics.{tag}",
                     "base": None if base_value is _MISSING else base_value,
-                    "development": (
-                        None if development_value is _MISSING else development_value
-                    ),
+                    "development": (None if development_value is _MISSING else development_value),
                     "production": None if production_value is _MISSING else production_value,
                 }
             )
@@ -735,7 +727,9 @@ def merge_catalogs(
             conflicts.append(tag_conflict)
 
     if rename_targets:
-        candidate_catalog = _rewrite_catalog_tags(Catalog(tuple(candidate.values())), rename_targets)
+        candidate_catalog = _rewrite_catalog_tags(
+            Catalog(tuple(candidate.values())), rename_targets
+        )
     else:
         candidate_catalog = Catalog(tuple(candidate.values()))
 
@@ -757,9 +751,7 @@ def merge_catalogs(
     )
 
 
-def resolve_merge(
-    result: MergeResult, resolutions: Mapping[str, Mapping[str, Any]]
-) -> MergeResult:
+def resolve_merge(result: MergeResult, resolutions: Mapping[str, Mapping[str, Any]]) -> MergeResult:
     candidate = result.candidate.by_tag
     unresolved: list[dict[str, Any]] = []
     authorized_deletions = set(result.authorized_deletions)
@@ -782,9 +774,7 @@ def resolve_merge(
             chosen = None
             authorized_deletions.add(normalize_tag(conflict["tag"]))
         else:
-            raise HelpSyncError(
-                f"resolution {conflict['id']} has invalid choice {choice!r}"
-            )
+            raise HelpSyncError(f"resolution {conflict['id']} has invalid choice {choice!r}")
 
         output_tag = normalize_tag(conflict["output_tag"])
         candidate.pop(output_tag, None)
@@ -794,9 +784,7 @@ def resolve_merge(
 
     resolved_catalog = Catalog(tuple(candidate.values()))
     if rename_targets:
-        relation_only_mapping = {
-            old: new for old, new in rename_targets.items() if old != new
-        }
+        relation_only_mapping = {old: new for old, new in rename_targets.items() if old != new}
         entries = []
         for entry in resolved_catalog.entries:
             related = tuple(
@@ -835,11 +823,15 @@ def catalog_delta(
         before = source_map.get(tag)
         after = target_map.get(tag)
         if before is None and after is not None:
-            additions.append({"tag": tag, "after": after.to_dict(), "after_hash": after.content_hash})
+            additions.append(
+                {"tag": tag, "after": after.to_dict(), "after_hash": after.content_hash}
+            )
         elif before is not None and after is None:
             if tag not in allowed:
                 raise HelpSyncError(f"delta would implicitly delete help entry {tag!r}")
-            deletions.append({"tag": tag, "before": before.to_dict(), "before_hash": before.content_hash})
+            deletions.append(
+                {"tag": tag, "before": before.to_dict(), "before_hash": before.content_hash}
+            )
         elif before is not None and after is not None and before != after:
             updates.append(
                 {
@@ -888,12 +880,8 @@ def build_plan_core(
         "sealed": result.sealed,
         "conflicts": list(result.conflicts),
         "tombstones": {
-            "development": sorted(
-                normalize_tag(tag) for tag in tombstones.get("development", ())
-            ),
-            "production": sorted(
-                normalize_tag(tag) for tag in tombstones.get("production", ())
-            ),
+            "development": sorted(normalize_tag(tag) for tag in tombstones.get("development", ())),
+            "production": sorted(normalize_tag(tag) for tag in tombstones.get("production", ())),
         },
         "renames": [rename.to_dict() for rename in renames],
         "authorized_deletions": list(result.authorized_deletions),
