@@ -28,7 +28,7 @@
 #include "screen.h"    /* for QNRM, etc */
 #include "craft/craft.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "obj/item.h"
 #include "obj/treasure.h"
 #include "domains_schools.h"

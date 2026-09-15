@@ -17,7 +17,7 @@
 #include "magic/spells.h"
 #include "spec_zone_air_plane.h"
 #include "combat/fight.h"
-#include "graph.h"
+#include "movement/graph.h"
 
 /* call allies to help yan */
 bool yan_yell(struct char_data *ch)

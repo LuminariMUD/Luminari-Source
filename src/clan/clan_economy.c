@@ -16,7 +16,7 @@
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "interpreter.h"
 #include "clan.h"
 #include "clan_economy.h"

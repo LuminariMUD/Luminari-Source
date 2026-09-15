@@ -33,7 +33,7 @@
 #include "modify.h" // for parse_at()
 #include "obj/treasure.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "character/abilities.h"
 #include "obj/item.h"
 #include "quest/quest.h"

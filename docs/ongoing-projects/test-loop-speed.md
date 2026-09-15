@@ -77,7 +77,7 @@ server-startup 1 = 30.
 
 Other facts that shape the plan:
 
-- `LUMINARI_IO_DRIVER` is read at run time (`src/reactor.c`); the libevent and select jobs
+- `LUMINARI_IO_DRIVER` is read at run time (`src/net/reactor.c`); the libevent and select jobs
   build identical binaries.
 - `quality.yml` `compile-check` builds with `-Wall -Wextra` and never fails; `AM_CFLAGS`
   already carries those flags and the CMake `ci-*` presets build with `-Werror`.

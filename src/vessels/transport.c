@@ -21,7 +21,7 @@
 #include "character/feats.h"
 #include "character/class.h"
 #include "handler.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "constants.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
@@ -35,7 +35,7 @@
 #include "../character_periodic.h"
 #include "dgscript/dg_scripts.h"
 #include "wilderness/wilderness.h"
-#include "graph.h"
+#include "movement/graph.h"
 #include "routing.h"
 
 

@@ -19,7 +19,7 @@
 #include "act/act.h"
 #include "spec_zone_kings_castle.h"
 #include "combat/fight.h"
-#include "graph.h"
+#include "movement/graph.h"
 #include "mud_event.h"
 #include "actions.h"
 #include "magic/domains_schools.h"

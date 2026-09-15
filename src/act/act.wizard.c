@@ -52,7 +52,7 @@
 #include "craft/craft.h"
 #include "quest/hlquest.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "combat/spec_abilities.h"
 #include "wilderness/wilderness.h"
 #include "wilderness/wilderness_kb.h"

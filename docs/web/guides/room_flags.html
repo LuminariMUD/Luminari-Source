@@ -395,8 +395,9 @@ Prevents bardic performances from functioning - Blocks sound-based
 spells (exception for psionics) - Staff can override (LVL_STAFF+)</p>
 <p><strong>Code References:</strong> - <code>src/act/act.comm.c</code> -
 Communication blocking (<code>is_tell_ok()</code>,
-<code>do_gen_comm()</code>) - <code>src/bardic_performance.c</code> -
-Bardic performance prevention (<code>can_perform()</code>) -
+<code>do_gen_comm()</code>) -
+<code>src/character/bardic_performance.c</code> - Bardic performance
+prevention (<code>can_perform()</code>) -
 <code>src/magic/spell_parser.c</code> - Spell casting restriction
 (psionics exempt) (<code>say_spell()</code>, <code>cast_spell()</code>)
 - <code>src/act/act.social.c</code> - Social action blocking
@@ -514,8 +515,8 @@ gust of wind spell</p>
 <p><strong>Code References:</strong> -
 <code>src/act/act.informative.c</code> - Vision restrictions
 (<code>look_at_room_number()</code>, <code>look_at_room()</code>,
-<code>look_in_direction()</code>) - <code>src/asciimap.c</code> -
-Automap limitation (<code>do_map()</code>) -
+<code>look_in_direction()</code>) - <code>src/movement/asciimap.c</code>
+- Automap limitation (<code>do_map()</code>) -
 <code>src/magic/spells.c</code> - Gust of wind removes fog
 (<code>perform_dispel()</code>) - <code>src/utils.c</code> - Weather and
 vision checks (<code>ultra_blind()</code>,
@@ -527,9 +528,10 @@ algorithms - NPCs won&#x2019;t track players through these rooms - Used for
 anti-tracking zones and rivers</p>
 <p><strong>Code References:</strong> -
 <code>src/movement/movement_tracks.c</code> - Track skill blocking
-(<code>should_create_tracks()</code>) - <code>src/graph.c</code> -
-Pathfinding restriction - <code>src/mob/mob_act.c</code> - NPC tracking
-limitation (owner-local mobile agenda)</p>
+(<code>should_create_tracks()</code>) -
+<code>src/movement/graph.c</code> - Pathfinding restriction -
+<code>src/mob/mob_act.c</code> - NPC tracking limitation (owner-local
+mobile agenda)</p>
 <hr />
 <h2 id="special-room-types">Special Room Types</h2>
 <h3 id="room_house-index-11">ROOM_HOUSE (Index: 11)</h3>
@@ -575,10 +577,11 @@ display - Used for wilderness travel system - Affects routing and
 navigation commands</p>
 <p><strong>Code References:</strong> -
 <code>src/act/act.informative.c</code> - Automap checks
-(<code>do_survey()</code>) - <code>src/asciimap.c</code> - Map rendering
-(<code>show_worldmap()</code>) - <code>src/vessels/routing.c</code> -
-Navigation system (<code>start_flight_to_destination_luminari()</code>)
-- <code>src/act/act.wizard.c</code> - Administrative flag setting
+(<code>do_survey()</code>) - <code>src/movement/asciimap.c</code> - Map
+rendering (<code>show_worldmap()</code>) -
+<code>src/vessels/routing.c</code> - Navigation system
+(<code>start_flight_to_destination_luminari()</code>) -
+<code>src/act/act.wizard.c</code> - Administrative flag setting
 (<code>do_setworldsect()</code>)</p>
 <h3 id="room_vehicle-index-40">ROOM_VEHICLE (Index: 40)</h3>
 <p><strong>Effect:</strong> Marks room as part of a vehicle or vessel. -
@@ -641,8 +644,8 @@ certain cleanup operations - Temporary flag during world editing</p>
 algorithms. - Marks rooms as visited during Breadth-First Search -
 Automatically cleared after pathfinding completes - Should never be
 permanently set on rooms - Internal system flag</p>
-<p><strong>Code References:</strong> - <code>src/graph.c</code> -
-Pathfinding algorithm - <code>src/act/act.wizard.c</code> - Cleanup
+<p><strong>Code References:</strong> - <code>src/movement/graph.c</code>
+- Pathfinding algorithm - <code>src/act/act.wizard.c</code> - Cleanup
 detection (<code>do_zcheck()</code>)</p>
 <hr />
 <h2 id="size-restrictions">Size Restrictions</h2>

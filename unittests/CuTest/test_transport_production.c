@@ -6,7 +6,7 @@
 #include "../../src/utils.h"
 #include "../../src/comm.h"
 #include "../../src/db.h"
-#include "../../src/graph.h"
+#include "../../src/movement/graph.h"
 #include "../../src/perfmon.h"
 #include "../../src/net/protocol.h"
 #include "../../src/vessels/vessels.h"

@@ -10,7 +10,7 @@
 
 #include "structs.h"
 #include "utils.h"
-#include "graph.h"
+#include "movement/graph.h"
 
 #include "act/act.h"
 #include "comm.h"

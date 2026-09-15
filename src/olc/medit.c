@@ -20,7 +20,7 @@
 #include "genshp.h"
 #include "oasis.h"
 #include "handler.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "constants.h"
 #include "improved-edit.h"
 #include "dgscript/dg_olc.h"

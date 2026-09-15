@@ -21,7 +21,7 @@
 #include "character/feats.h"
 #include "character/class.h"
 #include "handler.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "constants.h"
 #include "assign_wpn_armor.h"
 #include "magic/domains_schools.h"

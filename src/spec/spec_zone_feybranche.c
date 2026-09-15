@@ -16,7 +16,7 @@
 #include "magic/spells.h"
 #include "spec_zone_feybranche.h"
 #include "combat/fight.h"
-#include "graph.h"
+#include "movement/graph.h"
 
 /* from homeland */
 SPECIAL(feybranche)

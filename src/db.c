@@ -106,7 +106,7 @@
 #include "mob/mob_spellslots.h"
 #include "mob/mob_known_spells.h"
 #include "magic/moon_bonus_spells.h" /* For moon-based bonus spell slots */
-#include "bardic_performance.h"
+#include "character/bardic_performance.h"
 #include "perfmon.h"
 
 /*  declarations of most of the 'global' variables */

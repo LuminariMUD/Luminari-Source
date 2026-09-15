@@ -4,7 +4,7 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
-#include "../../src/asciimap.h"
+#include "../../src/movement/asciimap.h"
 #include "../../src/comm.h"
 #include "../../src/db.h"
 #include "../../src/interpreter.h"

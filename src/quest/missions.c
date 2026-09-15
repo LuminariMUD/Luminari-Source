@@ -20,7 +20,7 @@
 #include "character/race.h"
 #include "combat/fight.h"
 #include "modify.h"
-#include "asciimap.h"
+#include "movement/asciimap.h"
 #include "magic/spells.h"
 #include "clan/clan.h"
 #include "craft/craft.h" // auto crafting quest
@@ -34,10 +34,10 @@
 #include "craft/alchemy.h"
 #include "character/premadebuilds.h"
 #include "missions.h"
-#include "random_names.h"
+#include "mob/random_names.h"
 #include "olc/oasis.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "olc/genmob.h"
 #include "obj/treasure.h" /* for magic awards */
 #include "hunts.h"

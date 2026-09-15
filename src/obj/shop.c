@@ -32,7 +32,7 @@
 #include "screen.h"
 #include "character/race.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "item.h"
 #include "character/backgrounds.h"
 #include "clan/clan_economy.h"

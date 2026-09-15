@@ -14,7 +14,7 @@
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "interpreter.h"
 #include "vessels.h"
 #include "database/mysql.h"

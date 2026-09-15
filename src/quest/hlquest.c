@@ -24,7 +24,7 @@
 #include "actions.h"
 #include "magic/spell_prep.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 
 /* cheesy lich hack */
 #define LICH_QUEST 9999

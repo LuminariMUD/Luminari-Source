@@ -28,7 +28,7 @@
 #include "mud_event.h"
 #include "quest/hlquest.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "wilderness/wilderness.h" /* Wilderness! */
 #include "combat/traps.h"          /* doorbash */
 #include "actions.h"
@@ -51,7 +51,7 @@
 
 /* Include vessel system for ship interior movement */
 #include "vessels/vessels.h"
-#include "rol_feats.h"
+#include "character/rol_feats.h"
 
 #define ZONE_MINLVL(rnum) (zone_table[(rnum)].min_level)
 

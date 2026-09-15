@@ -14,7 +14,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "handler.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "domain_object_transfer.h"
 #include "db.h"
 #include "interpreter.h"

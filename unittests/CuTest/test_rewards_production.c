@@ -1,4 +1,4 @@
-/* Production-linked regressions for the reward API in src/rewards.c and the staff
+/* Production-linked regressions for the reward API in src/character/rewards.c and the staff
  * award command, which lists the same award types. */
 
 #include "CuTest.h"
@@ -13,7 +13,7 @@
 #include "../../src/act/act.h"
 #include "../../src/handler.h"
 #include "../../src/net/protocol.h"
-#include "../../src/rewards.h"
+#include "../../src/character/rewards.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -73,7 +73,7 @@ static void reward_actor_release(struct reward_actor *actor)
   actor->ch.desc = NULL;
 }
 
-/** Read the balance an award type changes, independently of src/rewards.c. */
+/** Read the balance an award type changes, independently of src/character/rewards.c. */
 static long reward_balance(struct char_data *ch, int type)
 {
   switch (type)

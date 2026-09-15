@@ -23,7 +23,7 @@
 #include "olc/oasis.h"
 #include "olc/genolc.h"
 #include "dgscript/dg_scripts.h"
-#include "char_descs.h"
+#include "character/char_descs.h"
 #include "character/deities.h"
 #include "helpers.h"
 

@@ -5,7 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/comm.h"
-#include "../../src/reactor.h"
+#include "../../src/net/reactor.h"
 
 #include <signal.h>
 #include <stdint.h>

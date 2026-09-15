@@ -11,7 +11,7 @@
 #include "../../src/activity_manager.h"
 #include "../../src/actions.h"
 #include "../../src/act/act.h"
-#include "../../src/bardic_performance.h"
+#include "../../src/character/bardic_performance.h"
 #include "../../src/character/abilities.h"
 #include "../../src/constants.h"
 #include "../../src/character/feats.h"
@@ -28,7 +28,7 @@
 #include "../../src/character/class.h"
 #include "../../src/mud_event.h"
 #include "../../src/net/protocol.h"
-#include "../../src/rol_feats.h"
+#include "../../src/character/rol_feats.h"
 
 #include <string.h>
 

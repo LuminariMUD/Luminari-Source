@@ -33,7 +33,7 @@
 #include "quest/hlquest.h"
 #include "combat/fight.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "handler.h"
 #include "actions.h"
 #include "combat/traps.h" /* for check_traps() */

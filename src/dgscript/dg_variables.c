@@ -29,7 +29,7 @@
 #include "character/race.h"
 #include "clan/clan.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "character/feats.h"
 
 /* Utility functions */

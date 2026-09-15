@@ -531,8 +531,8 @@ If a new `.c` file is added, update both `Makefile.am` and `CMakeLists.txt`.
 | `src/comm.c` | Per-pulse emission and descriptor lifecycle |
 | `src/net/protocol.c` | Reserved MSDP capability and action dispatch |
 | `src/interpreter.c` | Authoritative account and core creation state machine |
-| `src/roleplay.c` | Role-play field IDs, limits, validation, and checked commits |
-| `src/char_descs.c` | Generated short-description states and checked commit |
+| `src/character/roleplay.c` | Role-play field IDs, limits, validation, and checked commits |
+| `src/character/char_descs.c` | Generated short-description states and checked commit |
 | `src/player/account.c` | Account data, unlocks, membership, and account menu |
 | `src/structs.h` | Descriptor tracking and `CON_*` state definitions |
 | `unittests/CuTest/test_web_onboarding.c` | Production-linked behavior and boundary tests |

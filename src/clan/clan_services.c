@@ -15,7 +15,7 @@
 #include "db.h"
 #include "act/act.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "magic/spells.h"
 #include "clan_services.h"
 #include "clan.h"

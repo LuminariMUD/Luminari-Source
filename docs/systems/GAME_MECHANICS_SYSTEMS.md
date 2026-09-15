@@ -802,7 +802,7 @@ bool make_saving_throw(struct char_data *ch, int save_type, int difficulty) {
 
 ## Reward API
 
-`src/rewards.h` and `src/rewards.c` are the single entry point for gameplay changes to
+`src/character/rewards.h` and `src/character/rewards.c` are the single entry point for gameplay changes to
 experience, quest points, account experience, gold, bank gold, and the progression pools that
 staff can award. Combat, quests, missions, hunts, treasure and lootboxes, scripts, crafting,
 shops, vessels, clans, and staff commands all call this API. Production-linked regressions

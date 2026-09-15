@@ -50,7 +50,7 @@
 #include "craft/craft.h"
 #include "obj/treasure.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "combat/spec_abilities.h"
 #include "actions.h"
 #include "character/feats.h"

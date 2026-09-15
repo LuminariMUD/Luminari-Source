@@ -16,7 +16,7 @@ retired. Neither libevent nor select I/O driver selects another gameplay clock.
 - [dg_event](../../src/dgscript/dg_event.h) bridges process initialization,
   shutdown, deadline inspection, and scheduler advancement. Its historical name
   does not imply a separate DG event engine.
-- [reactor](../../src/reactor.c) waits for I/O, signals, or the next deadline.
+- [reactor](../../src/net/reactor.c) waits for I/O, signals, or the next deadline.
   Gameplay remains on the main thread for deterministic mutation ordering.
 - [domain_events](../../src/domain_events.h) synchronously publishes immutable,
   borrowed facts after committed state changes. Pre-operation vetoes and value

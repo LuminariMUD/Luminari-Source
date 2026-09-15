@@ -209,7 +209,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 
 **Code References:**
 - `src/act/act.comm.c` - Communication blocking (`is_tell_ok()`, `do_gen_comm()`)
-- `src/bardic_performance.c` - Bardic performance prevention (`can_perform()`)
+- `src/character/bardic_performance.c` - Bardic performance prevention (`can_perform()`)
 - `src/magic/spell_parser.c` - Spell casting restriction (psionics exempt) (`say_spell()`, `cast_spell()`)
 - `src/act/act.social.c` - Social action blocking (`do_gmote()`)
 
@@ -333,7 +333,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 
 **Code References:**
 - `src/act/act.informative.c` - Vision restrictions (`look_at_room_number()`, `look_at_room()`, `look_in_direction()`)
-- `src/asciimap.c` - Automap limitation (`do_map()`)
+- `src/movement/asciimap.c` - Automap limitation (`do_map()`)
 - `src/magic/spells.c` - Gust of wind removes fog (`perform_dispel()`)
 - `src/utils.c` - Weather and vision checks (`ultra_blind()`, `is_room_in_sunlight()`)
 
@@ -346,7 +346,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 
 **Code References:**
 - `src/movement/movement_tracks.c` - Track skill blocking (`should_create_tracks()`)
-- `src/graph.c` - Pathfinding restriction
+- `src/movement/graph.c` - Pathfinding restriction
 - `src/mob/mob_act.c` - NPC tracking limitation (owner-local mobile agenda)
 
 ---
@@ -396,7 +396,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 
 **Code References:**
 - `src/act/act.informative.c` - Automap checks (`do_survey()`)
-- `src/asciimap.c` - Map rendering (`show_worldmap()`)
+- `src/movement/asciimap.c` - Map rendering (`show_worldmap()`)
 - `src/vessels/routing.c` - Navigation system (`start_flight_to_destination_luminari()`)
 - `src/act/act.wizard.c` - Administrative flag setting (`do_setworldsect()`)
 
@@ -471,7 +471,7 @@ code, so do not expect to find it there.
 - Internal system flag
 
 **Code References:**
-- `src/graph.c` - Pathfinding algorithm
+- `src/movement/graph.c` - Pathfinding algorithm
 - `src/act/act.wizard.c` - Cleanup detection (`do_zcheck()`)
 
 ---

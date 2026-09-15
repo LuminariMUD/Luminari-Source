@@ -11,7 +11,7 @@
 #include "db.h"
 #include "interpreter.h"
 #include "handler.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "comm.h"
 #include "character/race.h"
 #include "magic/spells.h"

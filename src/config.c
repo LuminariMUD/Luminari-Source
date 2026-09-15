@@ -16,7 +16,7 @@
 #include "utils.h"
 #include "interpreter.h" /* alias_data definition for structs.h */
 #include "config.h"
-#include "asciimap.h"
+#include "movement/asciimap.h"
 
 /* Update:  The following constants and variables are now the default values
  * for backwards compatibility with the new cedit game configurator.  If you

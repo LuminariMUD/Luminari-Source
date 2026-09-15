@@ -19,7 +19,7 @@
 #include "spec_rooms.h"
 #include "combat/fight.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 
 SPECIAL(dump)
 {

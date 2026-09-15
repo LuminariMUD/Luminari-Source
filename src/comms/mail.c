@@ -21,7 +21,7 @@
 #include "mail.h"
 #include "modify.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 
 /* local (file scope) function prototypes */
 static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman, int cmd,

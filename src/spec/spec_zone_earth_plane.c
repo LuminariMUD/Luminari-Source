@@ -17,7 +17,7 @@
 #include "magic/spells.h"
 #include "spec_zone_earth_plane.h"
 #include "combat/fight.h"
-#include "graph.h"
+#include "movement/graph.h"
 
 /* from homeland */
 SPECIAL(ogremoch)

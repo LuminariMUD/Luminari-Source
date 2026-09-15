@@ -18,7 +18,7 @@ Every source file lives in one directory directly under `src/`. No behavior chan
 | 4 | `database/` | done |
 | 5 | `player/` | done |
 | 6 | `act/` | done |
-| 7 | into existing directories | todo |
+| 7 | into existing directories | done |
 | 8 | `events/` | todo |
 | 9 | `core/` | todo |
 | 10 | `config/`, local-header guard, regression guard | todo; needs the owner's header move |

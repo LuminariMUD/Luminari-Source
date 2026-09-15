@@ -56,7 +56,7 @@
 #include "utils.h"
 #include "db.h"
 #include "handler.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "character/feats.h"
 #include "dgscript/dg_scripts.h"
 #include "comm.h"

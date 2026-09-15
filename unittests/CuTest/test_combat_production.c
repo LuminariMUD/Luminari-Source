@@ -22,7 +22,7 @@
 #include "../../src/domain_event_world.h"
 #include "../../src/lists.h"
 #include "../../src/mudlim.h"
-#include "../../src/rewards.h"
+#include "../../src/character/rewards.h"
 #include "../../src/net/protocol.h"
 
 #include <stdlib.h>

@@ -198,7 +198,7 @@ along with `player_mail_read.player_name` and
 
 The introduction feature is a file-based fan-out relationship. Every player's
 `Intr:` block stores names of other characters, and
-[`knows_character()`](../../src/introduce.c#L28) compares those strings to
+[`knows_character()`](../../src/character/introduce.c#L28) compares those strings to
 `GET_NAME(vict)`. The deployed configuration currently has
 `use_introduction_system = 0`, but the data format and runtime feature still
 exist. A rename must have an explicit policy for these references before that

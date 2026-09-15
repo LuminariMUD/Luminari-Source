@@ -25,7 +25,7 @@
 #include "clan.h"
 #include "clan_benefits.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "olc/oasis.h" /* for can_edit_zone */
 #include "clan_transactions.h"
 

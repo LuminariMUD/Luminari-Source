@@ -25,8 +25,8 @@
 #include "handler.h"
 #include "character/deities.h"
 #include "constants.h"
-#include "rewards.h"
-#include "roleplay.h"
+#include "character/rewards.h"
+#include "character/roleplay.h"
 #include "craft/crafting_new.h"
 #include "build_identity.h"
 

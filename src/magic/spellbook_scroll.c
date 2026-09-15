@@ -24,7 +24,7 @@
 #include "constants.h"
 #include "act/act.h"
 #include "handler.h" // for obj_from_char()
-#include "rewards.h"
+#include "character/rewards.h"
 #include "character/abilities.h"
 #include "spell_prep.h"
 #include "obj/item.h"

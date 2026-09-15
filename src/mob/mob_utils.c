@@ -18,7 +18,7 @@
 #include "handler.h"
 #include "magic/spells.h"
 #include "act/act.h"
-#include "graph.h"
+#include "movement/graph.h"
 #include "combat/fight.h"
 #include "mud_event.h"
 #include "modify.h"

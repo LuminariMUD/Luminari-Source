@@ -15,7 +15,7 @@
 #include "comm.h"
 #include "magic/spells.h"
 #include "handler.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "constants.h"
 #include "act/act.h"
 #include "character/class.h"

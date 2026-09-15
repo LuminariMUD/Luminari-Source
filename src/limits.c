@@ -13,7 +13,7 @@
 #include <time.h>
 #include "structs.h"
 #include "utils.h"
-#include "tactical_effects.h"
+#include "combat/tactical_effects.h"
 #include "magic/spells.h"
 #include "comm.h"
 #include "db.h"
@@ -43,7 +43,7 @@
 #include "character/perks.h"
 #include "magic/moon_bonus_spells.h"
 #include "obj/spec_artifacts.h"
-#include "rol_feats.h"
+#include "character/rol_feats.h"
 #include "affected_owners.h"
 #include "character_periodic.h"
 #include "active_world.h"

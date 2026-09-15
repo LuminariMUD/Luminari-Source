@@ -234,7 +234,7 @@ domain-specific mutability rules. Their handlers use descriptor-local pending
 values and checked commit helpers so a rejected or failed save can restore the
 previous character and player-index state. The seven free-text fields share
 field IDs, field-specific byte limits, UTF-8 validation, normalization, and
-`save_char_checked()` through `src/roleplay.c`.
+`save_char_checked()` through `src/character/roleplay.c`.
 
 ## Checked and Legacy Save APIs
 
@@ -296,8 +296,8 @@ When changing account or character creation:
 | `src/interpreter.c` | `nanny()` account, creation, character-menu, and play transitions |
 | `src/player/account.c` | Account load/save, membership, unlocks, and account menu |
 | `src/player/players.c` | Character files, checked saves, loads, and player index |
-| `src/roleplay.c` | Role-play field authority, pending selections, checked commits |
-| `src/char_descs.c` | Generated short-description workflow |
+| `src/character/roleplay.c` | Role-play field authority, pending selections, checked commits |
+| `src/character/char_descs.c` | Generated short-description workflow |
 | `src/comm.c` | Descriptor lifecycle, input queue, and game-loop dispatch |
 | `src/net/protocol.c` | Telnet negotiation, no-echo, MSDP parsing |
 | `src/net/onboarding.c` | Structured presentation adapter |

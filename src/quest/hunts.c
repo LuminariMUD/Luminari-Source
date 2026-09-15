@@ -15,7 +15,7 @@
 #include "olc/oasis.h"
 #include "screen.h"
 #include "handler.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "constants.h"
 #include "interpreter.h"
 #include "character/race.h"

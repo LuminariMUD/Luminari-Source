@@ -15,7 +15,7 @@
 #include "db.h"
 #include "dgscript/dg_scripts.h"
 #include "handler.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "interpreter.h"
 #include "magic/spells.h"
 #include "mud_event.h"

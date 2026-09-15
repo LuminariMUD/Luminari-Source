@@ -15,7 +15,7 @@
 #include "domain_event_world.h"
 #include "dgscript/dg_scripts.h"
 #include "handler.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "interpreter.h"
 #include "olc/oasis.h"
 #include "spec_rol_totem.h"

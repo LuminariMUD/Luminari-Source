@@ -15,7 +15,7 @@
 #include "handler.h"
 #include "db.h"
 #include "magic/spells.h"
-#include "graph.h"
+#include "movement/graph.h"
 #include "movement/movement.h"
 #include "movement/movement_position.h"
 #include "spec_zone_ttf.h"

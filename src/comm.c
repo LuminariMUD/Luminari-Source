@@ -54,7 +54,7 @@
 #ifdef HAVE_ARPA_TELNET_H
 #include <arpa/telnet.h>
 #else
-#include "telnet.h"
+#include "net/telnet.h"
 #endif
 
 /* end conf.h dependent includes */
@@ -103,7 +103,7 @@
 #include "wilderness/wilderness.h"
 #include "magic/spell_prep.h"
 #include "perfmon.h"
-#include "reactor.h"
+#include "net/reactor.h"
 #include "event_runtime.h"
 #include "domain_event_runtime.h"
 #include "active_world.h"
@@ -115,11 +115,11 @@
 #include "elf_build_id.h"
 #include "database/mysql.h"
 #include "net/onboarding.h"
-#include "roleplay.h"
+#include "character/roleplay.h"
 #include "help.h"
 #include "vessels/transport.h"
 #include "quest/hunts.h"
-#include "bardic_performance.h" /* for the bard performance pulse */
+#include "character/bardic_performance.h" /* for the bard performance pulse */
 #include "craft/crafting_new.h"
 #include "ai/ai_service.h"             /* for shutdown_ai_service() */
 #include "net/discord_bridge.h"        /* Discord bridge integration */
@@ -129,7 +129,7 @@
 #include "vessels/moving_room_events.h"
 #include "vessels/vessels_rol.h"
 #include "vessels/vessel_periodic.h"
-#include "asciimap.h"
+#include "movement/asciimap.h"
 #include "obj/spec_artifacts.h"
 
 #ifndef INVALID_SOCKET

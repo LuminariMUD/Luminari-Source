@@ -23,7 +23,7 @@
 #include "magic/spells.h"
 #include "constants.h"
 #include "act/act.h"
-#include "graph.h"
+#include "movement/graph.h"
 #include "combat/assign_wpn_armor.h"
 #include "combat/fight.h"
 #include "combat/projectiles.h"

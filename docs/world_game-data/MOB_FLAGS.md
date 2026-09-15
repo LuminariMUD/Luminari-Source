@@ -318,7 +318,7 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 **Code References:**
 - `src/mob/mob_memory.c` - Memory system check (`is_in_memory()`)
 - `src/combat/fight.c` - Adding to memory (`dam_killed_vict()`, `damage()`, `hit()`)
-- `src/graph.c` - Pathfinding to remembered enemies (`hunt_victim()`)
+- `src/movement/graph.c` - Pathfinding to remembered enemies (`hunt_victim()`)
 
 ### MOB_HELPER (Index: 12)
 **Effect:** Mobile assists other NPCs fighting against players.

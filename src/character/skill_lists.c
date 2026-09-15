@@ -22,7 +22,7 @@
 #include "modify.h"
 #include "clan/clan.h"
 #include "mudlim.h"
-#include "graph.h"
+#include "movement/graph.h"
 #include "dgscript/dg_scripts.h"
 #include "mud_event.h"
 #include "actions.h"

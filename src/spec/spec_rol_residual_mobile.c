@@ -18,7 +18,7 @@
 #include "magic/spells.h"
 #include "mud_event.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "spec/spec_dispatch.h"
 #include "spec/spec_rol_conversion.h"
 

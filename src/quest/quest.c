@@ -24,7 +24,7 @@
 #include "domain_event_world.h"
 #include "act/act.h" /* for do_tell */
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "mud_event.h"
 #include "missions.h"
 #include "obj/house.h"

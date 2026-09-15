@@ -16,7 +16,7 @@
 #include "db.h"
 #include "magic/spells.h"
 #include "actions.h"
-#include "graph.h"
+#include "movement/graph.h"
 #include "mob/mob_utils.h"
 #include "combat/fight.h"
 #include "movement/movement_position.h"

@@ -18,7 +18,7 @@
 #include "act/act.h"
 #include "vessels_legacy.h"
 #include "modify.h"
-#include "graph.h"
+#include "movement/graph.h"
 #include "vessels/vessels.h"
 #include "point_update_periodic.h"
 

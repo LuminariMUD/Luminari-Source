@@ -20,7 +20,7 @@
 #include "handler.h"
 #include "db.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "magic/spells.h"
 #include "screen.h"
 #include "player/pfdefaults.h"
@@ -36,7 +36,7 @@
 #include "combat/fight.h"
 #include "combat/combat_encounters.h"
 #include "modify.h"
-#include "asciimap.h"
+#include "movement/asciimap.h"
 #include "clan/clan.h"
 #include "craft/craft.h" // auto crafting quest
 #include "wilderness/wilderness.h"
@@ -57,7 +57,7 @@
 #include "wilderness/resource_depletion.h" /* Phase 6: Conservation system */
 #include "wilderness/resource_system.h"
 #include "craft/crafting_new.h"
-#include "roleplay.h"
+#include "character/roleplay.h"
 #include "magic/spell_prep.h"
 #include "comms/boards.h"
 #include "comms/mysql_boards.h" /* MySQL board system */

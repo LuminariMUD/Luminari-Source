@@ -18,7 +18,7 @@
 #include "mud_event.h"
 #include "actions.h"
 #include "mudlim.h"
-#include "rewards.h"
+#include "character/rewards.h"
 #include "constants.h"
 #include "fight.h"
 #include "dgscript/dg_scripts.h"

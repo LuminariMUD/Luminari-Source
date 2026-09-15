@@ -16,7 +16,7 @@
 #endif
 
 #include "utils.h"
-#include "tactical_effects.h"
+#include "combat/tactical_effects.h"
 #include "comm.h"
 #include "db.h"
 #include "handler.h"

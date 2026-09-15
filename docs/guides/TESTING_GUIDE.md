@@ -207,7 +207,7 @@ cleanup, all thirteen base performances, source-owned refresh, duration and
 target defenses, affect batching and bounded `AFFECTS` serialization, spell
 scope, group auras, and perk damage/save direction.
 
-Behavior changes in `src/bardic_performance.c`, Bard performance registrations,
+Behavior changes in `src/character/bardic_performance.c`, Bard performance registrations,
 or performance-linked perk helpers must extend this suite rather than creating
 a standalone mirror of production behavior. Structured frame construction and
 descriptor backpressure remain owned by the focused protocol parser harness.

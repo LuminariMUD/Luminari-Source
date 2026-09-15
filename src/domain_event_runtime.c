@@ -7,7 +7,7 @@
 #include "mob/phenomenon_response.h"
 
 #include "active_world.h"
-#include "tactical_effects.h"
+#include "combat/tactical_effects.h"
 #include "activity_manager.h"
 #include "ai/ai_service.h"
 #include "affected_owners.h"

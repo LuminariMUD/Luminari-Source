@@ -10,7 +10,7 @@
 #include "../../src/actionqueues.h"
 #include "../../src/interpreter.h"
 #include "../../src/combat/combat_encounters.h"
-#include "../../src/tactical_effects.h"
+#include "../../src/combat/tactical_effects.h"
 #include "../../src/combat/fight.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/domain_event_world.h"

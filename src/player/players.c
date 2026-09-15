@@ -13,7 +13,7 @@
 #include "structs.h"
 #include "vessels/transport_jobs.h"
 #include "utils.h"
-#include "tactical_effects.h"
+#include "combat/tactical_effects.h"
 #include "db.h"
 #include "database/db_init.h"
 #include "handler.h"
@@ -47,7 +47,7 @@
 #include "wilderness/resource_system.h"
 #include "character/character_creation.h"
 #include "vessels/vessels.h"
-#include "bardic_performance.h"
+#include "character/bardic_performance.h"
 #include "perfmon.h"
 #include <inttypes.h>
 #include <stdint.h>

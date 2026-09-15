@@ -42,8 +42,8 @@ luminari_SOURCES = \
 	src/combat/act.offensive.c \
 	src/act/act.other.c \
 	src/ready_action.c \
-	src/tactical_effects.c \
-	src/tactical_effects.h \
+	src/combat/tactical_effects.c \
+	src/combat/tactical_effects.h \
 	src/act/act.social.c \
 	src/act/act.wizard.c \
 	src/actionqueues.c \
@@ -54,7 +54,7 @@ luminari_SOURCES = \
 	src/ai/ai_security.c \
 	src/ai/ai_service.c \
 	src/craft/alchemy.c \
-	src/asciimap.c \
+	src/movement/asciimap.c \
 	src/combat/assign_wpn_armor.c \
 	src/combat/projectiles.c \
 	src/combat/projectiles.h \
@@ -64,14 +64,14 @@ luminari_SOURCES = \
 	src/character/character_creation.c \
 	src/character/character_creation_content.c \
 	src/player/ban.c \
-	src/bardic_performance.c \
+	src/character/bardic_performance.c \
 	src/comms/boards.c \
 	src/olc/bedit.c \
 	src/comms/mysql_boards.c \
 	src/bsd-snprintf.c \
 	src/craft/brew.c \
 	src/olc/cedit.c \
-	src/char_descs.c \
+	src/character/char_descs.c \
 	src/clan/clan.c \
 	src/clan/clan_services.c \
 	src/clan/clan_economy.c \
@@ -174,9 +174,9 @@ luminari_SOURCES = \
 	src/domain_event_runtime.h \
 	src/event_debug.c \
 	src/event_debug.h \
-	src/reactor.c \
-	src/reactor.h \
-	src/graph.c \
+	src/net/reactor.c \
+	src/net/reactor.h \
+	src/movement/graph.c \
 	src/combat/grapple.c \
 	src/handler.c \
 	src/olc/hedit.c \
@@ -190,7 +190,7 @@ luminari_SOURCES = \
 	src/comms/ibt.c \
 	src/olc/improved-edit.c \
 	src/interpreter.c \
-	src/introduce.c \
+	src/character/introduce.c \
 	src/wilderness/kdtree.c \
 	src/limits.c \
 	src/lists.c \
@@ -256,10 +256,10 @@ luminari_SOURCES = \
 	src/quest/quest_services.c \
 	src/character/race.c \
 	src/random.c \
-	src/random_names.c \
+	src/mob/random_names.c \
 	src/player/rank.c \
-	src/rewards.c \
-	src/rol_feats.c \
+	src/character/rewards.c \
+	src/character/rol_feats.c \
 	src/olc/redit.c \
 	src/wilderness/resource_system.c \
 	src/wilderness/harvest.c \
@@ -268,7 +268,7 @@ luminari_SOURCES = \
 	src/wilderness/resource_depletion.c \
 	src/wilderness/resource_descriptions.c \
 	src/wilderness/resource_regeneration.c \
-	src/roleplay.c \
+	src/character/roleplay.c \
 	src/vessels/routing.c \
 	src/olc/sedit.c \
 	src/olc/spec_menu.c \
