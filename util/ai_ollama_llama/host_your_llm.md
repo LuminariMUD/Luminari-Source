@@ -562,8 +562,8 @@ echo "=== Verification Complete ==="
 ## LuminariMUD-Specific Notes
 
 ### Integration Points
-- **Primary code**: `src/ai_service.c` - Contains Ollama integration
-- **Configuration**: `src/ai_service.h` - Model and endpoint settings
+- **Primary code**: `src/ai/ai_service.c` - Contains Ollama integration
+- **Configuration**: `src/ai/ai_service.h` - Model and endpoint settings
 - **Test utility**: `test_ollama_ai.c` - Standalone testing tool
 - **Documentation**: `docs/systems/AI_SERVICE_README.md` - Complete AI system docs
 

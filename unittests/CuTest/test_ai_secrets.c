@@ -1,4 +1,4 @@
-/* Regression tests for the OpenAI API key lifecycle in src/ai_security.c.
+/* Regression tests for the OpenAI API key lifecycle in src/ai/ai_security.c.
  * Covers store/copy/clear boundaries, caller-buffer sanitization, runtime
  * injection priority, and proof that the key never reaches the log. */
 
@@ -12,7 +12,7 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
-#include "../../src/ai_service.h"
+#include "../../src/ai/ai_service.h"
 
 extern FILE *logfile;
 

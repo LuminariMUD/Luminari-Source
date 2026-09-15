@@ -28,7 +28,7 @@
 #include "quest/hlquest.h"
 #include "constants.h"
 #include "magic/spells.h"
-#include "ai_service.h"
+#include "ai/ai_service.h"
 #include "quest/quest.h"
 #include "net/discord_bridge.h"
 #include "obj/spec_artifacts.h"

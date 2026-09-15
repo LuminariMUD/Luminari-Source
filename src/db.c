@@ -56,7 +56,7 @@
 #include "comms/ibt.h"
 #include "obj/spec_artifacts.h"
 #include "mud_event.h"
-#include "ai_service.h"
+#include "ai/ai_service.h"
 #include "character/class.h"
 #include "clan.h"
 #include "clan_economy.h"

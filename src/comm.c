@@ -121,7 +121,7 @@
 #include "quest/hunts.h"
 #include "bardic_performance.h" /* for the bard performance pulse */
 #include "craft/crafting_new.h"
-#include "ai_service.h"                /* for shutdown_ai_service() */
+#include "ai/ai_service.h"             /* for shutdown_ai_service() */
 #include "net/discord_bridge.h"        /* Discord bridge integration */
 #include "wilderness/terrain_bridge.h" /* Terrain bridge API server */
 #include "net/i3_client.h"             /* Intermud3 client */

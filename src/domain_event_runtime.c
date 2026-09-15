@@ -9,7 +9,7 @@
 #include "active_world.h"
 #include "tactical_effects.h"
 #include "activity_manager.h"
-#include "ai_service.h"
+#include "ai/ai_service.h"
 #include "affected_owners.h"
 #include "character_periodic.h"
 #include "combat/combat_encounters.h"

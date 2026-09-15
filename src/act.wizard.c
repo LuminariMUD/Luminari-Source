@@ -65,7 +65,7 @@
 #include "wilderness/resource_system.h"
 #include "character/feats.h"
 #include "magic/domains_schools.h"
-#include "ai_service.h"
+#include "ai/ai_service.h"
 #include "craft/crafts.h" /* NewCraft */
 #include "account.h"
 #include "craft/alchemy.h"

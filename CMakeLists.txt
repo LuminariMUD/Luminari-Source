@@ -367,10 +367,10 @@ set(SRC_C_FILES
     src/actionqueues.c
     src/actions.c
     src/olc/aedit.c
-    src/ai_cache.c
-    src/ai_events.c
-    src/ai_security.c
-    src/ai_service.c
+    src/ai/ai_cache.c
+    src/ai/ai_events.c
+    src/ai/ai_security.c
+    src/ai/ai_service.c
     src/craft/alchemy.c
     src/asciimap.c
     src/combat/assign_wpn_armor.c

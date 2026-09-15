@@ -16,7 +16,7 @@
 #include "combat/combat_encounters.h"
 #include "active_world.h"
 #include "activity_manager.h"
-#include "ai_service.h"
+#include "ai/ai_service.h"
 #include "character_periodic.h"
 #include "dgscript/dg_scripts.h"
 #include "movement/movement_tracks.h"

@@ -106,8 +106,8 @@ semantic_types=(
   'mobile.autonomous.agenda|src/active_world.c'
   'activity.primary.step|src/activity_manager.c'
   'combat.encounter.round|src/combat/combat_encounters.c'
-  'ai.response.delivery|src/ai_events.c'
-  'ai.request.retry|src/ai_events.c'
+  'ai.response.delivery|src/ai/ai_events.c'
+  'ai.request.retry|src/ai/ai_events.c'
   'service.persistence_batch|src/comm.c'
 )
 for registration in "${semantic_types[@]}"; do

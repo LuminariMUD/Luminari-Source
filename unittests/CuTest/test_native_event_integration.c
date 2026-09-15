@@ -6,7 +6,7 @@
 #include "../../src/utils.h"
 #include "../../src/comm.h"
 #include "../../src/dgscript/dg_event.h"
-#include "../../src/ai_service.h"
+#include "../../src/ai/ai_service.h"
 #include "../../src/domain_event_world.h"
 #include "../../src/event_debug.h"
 #include "../../src/event_runtime.h"

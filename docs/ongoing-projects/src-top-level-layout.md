@@ -13,7 +13,7 @@ Every source file lives in one directory directly under `src/`. No behavior chan
 |---|-------|-------|
 | 0 | `conf.h` to the build root | done |
 | 1 | delete `trails.h` | done |
-| 2 | `ai/` | todo |
+| 2 | `ai/` | done |
 | 3 | `clan/` | todo |
 | 4 | `database/` | todo |
 | 5 | `player/` | todo |
