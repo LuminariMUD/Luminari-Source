@@ -3955,6 +3955,13 @@ protocol_error_t ProtocolTestAppendMSSPPair(char *apBuffer, size_t aBufferSize, 
 /* Macro for readability, but you can remove it if you don't like it */
 #define FUNCTION_CALL(f) "", f
 
+/*
+ * Every row of the MSSP table below gives a variable name and either a static
+ * value or a FUNCTION_CALL pair, leaving the remaining MSSP_t member to
+ * aggregate zero-initialization; -Wmissing-field-initializers reports each such
+ * row. Scope: SendMSSP, to the matching pop. Owner: the MSSP table. Expires
+ * when every row initializes every member.
+ */
 #if defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"

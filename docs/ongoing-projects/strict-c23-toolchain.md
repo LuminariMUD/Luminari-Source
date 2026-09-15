@@ -48,8 +48,8 @@ warning debt, and feature detection that strict flags cannot influence.
 - Analysis tier: GCC `-fanalyzer` and Clang's opinionated extras, plus
   `-Wswitch-enum` and `-Wformat-nonliteral` (moved out of the budget by step
   3.5), `-Wsign-conversion` (step 4), and an ISO C23 `-Wpedantic` extension
-  report, in the weekly, non-blocking
-  `.github/workflows/toolchain-analysis.yml`. GCC's analyzer skips
+  report, in the weekly `.github/workflows/toolchain-analysis.yml`, where only
+  the GCC analyzer classes are budgeted (issue #89). GCC's analyzer skips
   `src/character/class.c` (see the notes on the local analyzer run).
 
 ### Feature detection
@@ -405,9 +405,9 @@ Notes from step 3.4:
   qualifiers only. Weapon type names point at their literals instead of heap
   copies of them. Zone export builds its `tar` arguments in local buffers
   because `execvp` takes `char *const[]`.
-- The pre-commit hook pins clang-format 18.1.8 and never formats
-  `src/olc/genolc.c` or `src/core/utils.h`; format with that binary and leave
-  those two files alone, or the hook and a local clang-format disagree.
+- The pre-commit hook pins clang-format 18.1.8; format with that binary, or the
+  hook and a local clang-format disagree. The hook no longer skips
+  `src/olc/genolc.c` and `src/core/utils.h` (issue #89).
 - `-Wwrite-strings` and `-Wcast-qual` moved to the baseline tier after clean
   baseline builds with GCC 13 and Clang 18.
 

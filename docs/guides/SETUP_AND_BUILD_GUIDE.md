@@ -160,7 +160,7 @@ lacks one reports it and continues.
 | -- | -- | -- |
 | `baseline` | `-Wall -Wextra` plus prototype hygiene, format security, `-Wvla`, and the GCC allocation-size and flexible-array checks | errors on every pull request (`--enable-werror`, `LUMINARI_WERROR=ON`) |
 | `migration` | conversions, shadowing, switch coverage, missing prototypes, `-Wformat=2`, allocation, duplicated conditions and branches, logical-operator mistakes, fallthrough, `-Wwrite-strings` | a per-compiler budget that may only shrink |
-| `analysis` | GCC `-fanalyzer`; Clang's opinionated extras | scheduled, informational |
+| `analysis` | GCC `-fanalyzer`; Clang's opinionated extras | scheduled; GCC's `-Wanalyzer-*` classes have a budget that may only shrink, the rest is informational (see [Static Analysis](#static-analysis)) |
 
 Select a tier with `./configure --enable-warning-tier=migration` or
 `cmake -DLUMINARI_WARNING_TIER=migration`. `-Werror` is refused with any
@@ -203,7 +203,7 @@ ctest -j"$(nproc)" --preset dev
 cmake --install build/dev
 ```
 
-`dev-clang`, `ci-gcc`, `ci-clang`, `sanitizers`, `coverage`,
+`dev-clang`, `ci-gcc`, `ci-clang`, `analysis`, `sanitizers`, `coverage`,
 `release-hardened`, and `cross-aarch64` cover the other supported workflows.
 Options such as `LUMINARI_WARNING_TIER`, `LUMINARI_WERROR`, and
 `LUMINARI_SANITIZERS` are documented in the [CMake build guide](../development/CMAKE_BUILD_GUIDE.md).
@@ -356,8 +356,6 @@ them.
   `wtool.py constants sync --check` compares.
 - Listed in `.sqlfluffignore`: 18 legacy SQL files that the MariaDB dialect
   cannot parse (see below).
-- `src/olc/genolc.c` and `src/core/utils.h`, excluded from clang-format in
-  `.pre-commit-config.yaml`.
 - World files, `lib/text/help/help.hlp`, and the legal archive have no
   formatter: they are written by OLC, hedit, or tools, or kept byte-identical.
 
@@ -452,3 +450,157 @@ git merge origin/master
 The commit stages the PHP and PowerShell settings files, so it needs both
 runtimes. Rebasing instead of merging replays the branch's earlier, unformatted
 commits, so their conflicts include the reformatted code again.
+
+## Static Analysis
+
+Four gates hold static analysis at its current findings. Each keeps a baseline
+of the findings that predate it: a new finding fails CI, and a baseline may only
+shrink.
+
+| Gate | Tool | Runs in | Baseline |
+| -- | -- | -- | -- |
+| clang-tidy, including the Clang static analyzer | clang-tidy 22.1.8, pinned in `scripts/ci/clang-tidy-requirements.txt` | Code Quality: the translation units each pull request or push changes; the whole tree weekly and on manual runs | `scripts/ci/clang_tidy_baseline.txt`, findings per file and check |
+| GCC static analyzer | GCC 16.2 `-fanalyzer` in the `gcc:16.2` image | Toolchain analysis: the server, weekly | `scripts/ci/warning_budget_gcc-16-analyzer.txt`, sites per `-Wanalyzer-*` class |
+| Header self-containment | the configured compiler | `make test` and CTest, so every CI job that runs them | `scripts/ci/header_self_containment_baseline.txt`, headers that do not compile alone yet |
+| CodeQL source coverage | CodeQL with the `security-extended` queries | Security | none: every production source must be in the database |
+
+Findings depend on the configuration headers. CI and every baseline use the
+`src/config/*.example.h` templates, so a checkout with customized local headers
+can report different findings. `python3 scripts/ci/local/run.py --job quality-clang-tidy`
+reproduces the clang-tidy job exactly, including its changed-unit selection.
+
+### clang-tidy
+
+`.clang-tidy` is the only configuration: the enabled checks, their options, and
+each disabled check with its scope, reason, owner, and expiry.
+`scripts/ci/check_clang_tidy.py` passes it with `--config-file` and refuses any
+clang-tidy but the pinned release.
+
+The compilation database comes from `cmake --preset analysis`, which configures
+with Clang and exports `build/analysis/compile_commands.json` without building:
+the server, the production-linked test suite, and the utilities. The check
+refuses a database written by another compiler, whose flags clang-tidy would
+report, and one without a command for every C source in `luminari_SOURCES` and
+`cutest_test_files`. A source that also builds into `cutest` is analyzed once,
+with the server's command.
+
+Findings are distinct (file, line, column, check) sites, counted per file and
+check. A count above the baseline, including a check that appears in a file for
+the first time, fails and prints every site of that file and check; a lower
+count is reported. `--base REF` analyzes the sources changed since `REF` and
+every source that includes a changed header, and compares a header's counts only
+when all of its includers were analyzed. A change to `.clang-tidy`, the CMake
+files, the pin, the baseline, the check itself, or the production profile
+analyzes the whole tree. Pull requests and pushes run with `--base HEAD^1`; the
+weekly and manual runs analyze everything.
+
+Each run writes the complete clang-tidy output (`clang-tidy.log`) and a JSON
+report (`clang-tidy-report.json`: tool version, mode, analyzed units, every
+finding, and the failures) to `--report-dir`, by default
+`build/analysis/clang-tidy-report`. CI uploads it as the `clang-tidy-report`
+artifact, also when the check fails.
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r scripts/ci/clang-tidy-requirements.txt
+cmake --preset analysis   # add -DCMAKE_C_COMPILER=clang-18 where there is no clang command
+# The pull-request check: sources changed since the merge base.
+.venv/bin/python scripts/ci/check_clang_tidy.py --build-dir build/analysis \
+  --clang-tidy .venv/bin/clang-tidy --base "$(git merge-base origin/master HEAD)"
+# The weekly check: the whole tree.
+.venv/bin/python scripts/ci/check_clang_tidy.py --build-dir build/analysis \
+  --clang-tidy .venv/bin/clang-tidy
+# After fixing findings, record the lower counts from a whole-tree run.
+.venv/bin/python scripts/ci/check_clang_tidy.py --build-dir build/analysis \
+  --clang-tidy .venv/bin/clang-tidy --update
+```
+
+Fix a new finding. For a false positive, put
+`/* NOLINTNEXTLINE(check-name) -- reason */` on the line above it. The check
+fails a suppression that does not name its checks, uses a wildcard, names a
+check the pinned release does not have, or gives no reason after `--`. A check
+that is wrong for the whole code base is disabled in `.clang-tidy` instead, with
+its scope, reason, owner, and expiry. `--update` refuses to raise a count; when
+a file moves, rename its baseline entries in the same change. To adopt a new
+clang-tidy release, change the pin, delete the baseline, run `--update` to record
+the release's first baseline, and review that diff like any other change in
+findings.
+
+### GCC static analyzer
+
+The weekly `analysis` job in `toolchain-analysis.yml` builds the server with the
+analysis warning tier. With GCC 16.2 it compares the `-Wanalyzer-*` classes with
+their budget, which also refuses a build log that contains a compiler error; the
+other analysis-tier classes, the Clang 22 build, and the ISO C23 extension report
+are informational. `src/character/class.c` is compiled without the analyzer,
+which needs more than 30 GiB for it; the exclusion in `Makefile.am` and
+`CMakeLists.txt` records its owner and expiry.
+
+```bash
+rm -rf /tmp/luminari-gcc-analysis && mkdir /tmp/luminari-gcc-analysis
+git archive HEAD | tar -x -C /tmp/luminari-gcc-analysis
+for header in campaign mud_options vnums; do
+  cp /tmp/luminari-gcc-analysis/src/config/$header.example.h \
+    /tmp/luminari-gcc-analysis/src/config/$header.h
+done
+docker build -t luminari-ci:local-gcc-16.2 -f scripts/ci/local/Dockerfile.gcc-16.2 .
+docker run --rm --user "$(id -u):$(id -g)" -v /tmp/luminari-gcc-analysis:/src -w /src \
+  luminari-ci:local-gcc-16.2 bash -c '
+    cmake -S . -B build/analysis -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+      -DLUMINARI_WARNING_TIER=analysis -DBUILD_TESTS=OFF &&
+    cmake --build build/analysis -j8 --target luminari -- -k --output-sync=target \
+      >build/analysis/build.log 2>&1'
+scripts/ci/check_warning_budget.py --compiler gcc-16-analyzer --classes '^analyzer-' \
+  --log /tmp/luminari-gcc-analysis/build/analysis/build.log
+```
+
+After fixing analyzer findings, add `--update` to the last command.
+
+### Header self-containment
+
+Every header under `src/` must compile on its own: a translation unit holding
+only `#include "dir/header.h"` must pass `-fsyntax-only -Werror` with nothing but
+the build root (for `conf.h`) and `src/` on the include path.
+`scripts/ci/header_self_containment_baseline.txt` lists the headers that do not
+yet. Any other header that fails fails `make test` and CTest, which run the check
+with the configured compiler; a listed header that now compiles alone is
+reported. Compilers disagree about a few default diagnostics (GCC 14 accepts 24
+listed headers that GCC 13 and 16 and Clang 18 and 22 reject), so the list is the
+union over the supported compilers, and `--update` drops only the headers that
+pass with every compiler it is given.
+
+```bash
+make test-header-self-containment
+ctest --test-dir build/dev -R header-self-containment
+# After fixing headers:
+scripts/ci/check_header_self_containment.py --build-root . \
+  --cc gcc-13 --cc gcc-16 --cc clang-18 --cc clang-22 --update
+```
+
+### CodeQL source coverage
+
+After CodeQL analyzes the traced build, `scripts/ci/check_codeql_coverage.py`
+reads the database's source archive and fails when a C source in
+`luminari_SOURCES` is missing, so a source the traced build skipped cannot drop
+out of the results unnoticed. With the CodeQL CLI, from a configured checkout:
+
+```bash
+make clean
+codeql database create /tmp/luminari-codeql --language=cpp --command='make -j8'
+scripts/ci/check_codeql_coverage.py --database /tmp/luminari-codeql
+```
+
+### Suppressions
+
+A suppression names the diagnostic and records its scope, reason, owner, and
+expiry beside it:
+
+| Suppression | Where it is recorded |
+| -- | -- |
+| A clang-tidy check, everywhere | `.clang-tidy` |
+| One clang-tidy finding | `/* NOLINTNEXTLINE(check) -- reason */` on the line above, enforced by the clang-tidy check; it expires when the check stops reporting that line |
+| A compiler warning in one block | a comment above the `#pragma GCC diagnostic push` |
+| A warning flag in a build profile | a comment beside it in `scripts/deployment/production_profile.sh` |
+| The GCC analyzer for one file | the comment beside the exclusion in `Makefile.am` and `CMakeLists.txt` |
+| A block clang-format must not reflow | a comment above `/* clang-format off */` |
+| Findings that predate a gate | that gate's baseline, which may only shrink |

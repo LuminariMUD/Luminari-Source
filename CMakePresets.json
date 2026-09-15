@@ -41,6 +41,16 @@
       "cacheVariables": { "CMAKE_C_COMPILER": "clang" }
     },
     {
+      "name": "analysis",
+      "displayName": "Compilation database for clang-tidy (Clang, tests and utilities)",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
       "name": "sanitizers",
       "displayName": "AddressSanitizer + UndefinedBehaviorSanitizer",
       "inherits": "base",

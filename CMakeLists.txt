@@ -415,7 +415,10 @@ target_include_directories(
 # Warning flags come from the shared, probed tier list above.
 target_compile_options(luminari_build INTERFACE ${LUMINARI_WARNING_CFLAGS_LIST})
 # GCC's analyzer needs more than 30 GiB for load_class_list, which registers
-# every class in one function, so class.c is compiled without it.
+# every class in one function, so class.c is compiled without it. Owner: class
+# registration in src/character/class.c. Expires when load_class_list is split
+# into functions the analyzer finishes within a CI runner's memory; remove the
+# matching exclusion in Makefile.am at the same time.
 if("-fanalyzer" IN_LIST LUMINARI_WARNING_CFLAGS_LIST)
     set_source_files_properties(src/character/class.c PROPERTIES COMPILE_OPTIONS -fno-analyzer)
 endif()
@@ -1331,6 +1334,16 @@ if(BUILD_TESTS)
         COMMAND Python3::Interpreter scripts/ci/check_sql_interpolation.py
     )
     add_test(
+        NAME clang-tidy-gate-self-test
+        COMMAND Python3::Interpreter scripts/ci/check_clang_tidy.py --self-test
+    )
+    add_test(
+        NAME header-self-containment
+        COMMAND
+            Python3::Interpreter scripts/ci/check_header_self_containment.py --cc
+            ${CMAKE_C_COMPILER} --build-root ${CMAKE_CURRENT_BINARY_DIR}
+    )
+    add_test(
         NAME help-sync
         COMMAND Python3::Interpreter -m unittest discover -s scripts/help-sync/tests -p test_*.py -v
     )
@@ -1344,6 +1357,8 @@ if(BUILD_TESTS)
         warning-budget-self-test
         sql-interpolation-self-test
         sql-interpolation
+        clang-tidy-gate-self-test
+        header-self-containment
         help-sync
         background-help-entries
         PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

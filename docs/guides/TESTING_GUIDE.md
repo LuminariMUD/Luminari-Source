@@ -765,21 +765,25 @@ binary with select, verifies the installed server's real-port startup, health en
 and graceful shutdown through autorun, then checks clean-tree and source-distribution
 hygiene. Both I/O drivers retain the complete behavioral suite.
 
-The strict GCC/Clang CMake jobs still fail on warnings; `toolchain-analysis.yml` runs the
-analysis warning tier and the ISO C23 extension report on a weekly schedule without blocking
-anything. All five production-profile server
+The strict GCC/Clang CMake jobs still fail on warnings. `quality.yml` runs every pinned
+formatter hook and the clang-tidy baseline, which analyzes the translation units a pull request
+changes and the whole tree weekly. `toolchain-analysis.yml` runs the analysis warning tier and the
+ISO C23 extension report weekly; only its GCC analyzer classes are budgeted. `make test` and CTest
+check that every header outside its baseline compiles on its own, and the CodeQL job fails when
+its database lacks a production source; see
+[Static Analysis](SETUP_AND_BUILD_GUIDE.md#static-analysis). All five production-profile server
 builds retain binary hardening verification; hardened tests run with Autotools/GCC 14 and
 CMake/Clang. Each build system has an independent clean-archive job. Sanitizers, protocol
 fuzzing, Valgrind, coverage floors, CodeQL, world tools, parity, formatting, source hygiene,
-database migrations, and world validation remain. The duplicate warnings build and the
-clang-tidy job that ignored all findings have been removed.
+database migrations, and world validation remain.
 
 `.github/actions/setup-build` supplies dependencies, missing example headers, and compiler
 caching by job, compiler/profile, build configuration, and commit. Cache restoration never
 replaces running a check.
 
 For the local matrix, install Docker and Python's PyYAML, then build the dependency image
-once (rebuild when its Dockerfile, help-sync requirements, or pre-commit configuration changes):
+once (rebuild when its Dockerfile, help-sync requirements, clang-tidy pin, or pre-commit
+configuration changes):
 
 ```sh
 docker build -t luminari-ci:local-fast -f scripts/ci/local/Dockerfile .
@@ -801,7 +805,9 @@ formatters need. A shared compiler cache defaults to
 `~/.cache/luminari-ci/ccache`; `--cache` overrides it. Jobs use a stable `/workspace` path.
 
 `--job NAME` selects one name from `--list`. `--results DIR` retains per-job logs, coverage
-artifacts, and a timed `summary.json`; failures produce a nonzero exit. Run the complete
+artifacts, and a timed `summary.json`; failures produce a nonzero exit. Each snapshot's parent
+commit is the merge base with `--base` (default `origin/master`), so a job that diffs against
+`HEAD^1`, such as the clang-tidy baseline, sees the branch's changes as it does on GitHub. Run the complete
 matrix on the final commit after iterating with the host suite. GitHub action downloads,
 cache/upload services, CodeQL, and dependency review are verified on GitHub rather than
 emulated locally. Unsupported workflow expressions or actions fail explicitly.

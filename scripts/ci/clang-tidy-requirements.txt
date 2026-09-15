@@ -1,0 +1,3 @@
+# The clang-tidy release scripts/ci/check_clang_tidy.py runs; its baseline,
+# scripts/ci/clang_tidy_baseline.txt, is recorded with exactly this version.
+clang-tidy==22.1.8
