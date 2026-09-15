@@ -6,14 +6,12 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/../.." && pwd)"
 port_map="${PORT_MAP_FILE:-$repo_root/../PORT-MAP.md}"
 
-fail()
-{
+fail() {
   echo "FAIL: $*" >&2
   exit 1
 }
 
-require_pattern()
-{
+require_pattern() {
   local description=$1
   local pattern=$2
   local path=$3
@@ -21,8 +19,7 @@ require_pattern()
   grep -Eq "$pattern" "$path" || fail "$description is not configured in $path"
 }
 
-require_reservation()
-{
+require_reservation() {
   local port=$1
 
   awk -F '|' -v expected_port="$port" '

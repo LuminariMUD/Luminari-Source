@@ -30,16 +30,14 @@ MUD_PID_FILE="${PROJECT_ROOT}/.mud.pid"
 LOG_FILE="${PROJECT_ROOT}/log/memory-monitor.log"
 DEFAULT_OUTPUT="${PROJECT_ROOT}/log/process-memory-timeseries.tsv"
 DEFAULT_INTERVAL=30
-DEFAULT_ALERT_THRESHOLD=1024  # KiB/min
+DEFAULT_ALERT_THRESHOLD=1024 # KiB/min
 
-fail()
-{
+fail() {
   printf 'memory monitor: %s\n' "$*" >&2
   exit 1
 }
 
-log_msg()
-{
+log_msg() {
   local level="$1"
   shift
   local timestamp
@@ -48,8 +46,7 @@ log_msg()
   printf '[%s] memory-monitor [%s]: %s\n' "$timestamp" "$level" "$*" | tee -a "$LOG_FILE"
 }
 
-usage()
-{
+usage() {
   cat <<'EOF' >&2
 Usage:
   ./scripts/process-memory/monitor_process_memory.sh start [options]
@@ -75,8 +72,7 @@ EOF
 # Confirm a PID is running an executable from this checkout's bin tree. A bare
 # process-name probe can select an unrelated MUD on a shared host, so ownership
 # is proved from /proc rather than assumed from the executable's name.
-pid_owned_by_checkout()
-{
+pid_owned_by_checkout() {
   local pid="$1"
   local process_exe=""
 
@@ -87,8 +83,7 @@ pid_owned_by_checkout()
 
 # Resolve the MUD PID for this checkout. The project PID file is the only
 # discovery source; anything it cannot prove is treated as no target at all.
-find_mud_pid()
-{
+find_mud_pid() {
   local explicit_pid="${1:-}"
   local candidate_pid=""
 
@@ -102,7 +97,7 @@ find_mud_pid()
   fi
 
   [[ -r "$MUD_PID_FILE" ]] || return 1
-  IFS= read -r candidate_pid < "$MUD_PID_FILE" || true
+  IFS= read -r candidate_pid <"$MUD_PID_FILE" || true
   [[ "$candidate_pid" =~ ^[1-9][0-9]*$ ]] || return 1
   [[ -d "/proc/$candidate_pid" ]] || return 1
   pid_owned_by_checkout "$candidate_pid" || return 1
@@ -111,8 +106,7 @@ find_mud_pid()
   return 0
 }
 
-read_pid_file()
-{
+read_pid_file() {
   local pid_file="$1"
   local pid=""
 
@@ -120,7 +114,7 @@ read_pid_file()
     return 1
   fi
 
-  IFS= read -r pid < "$pid_file" || true
+  IFS= read -r pid <"$pid_file" || true
   if [[ ! "$pid" =~ ^[1-9][0-9]*$ ]]; then
     return 1
   fi
@@ -133,8 +127,7 @@ read_pid_file()
   return 1
 }
 
-take_sample()
-{
+take_sample() {
   local target_pid="$1"
   local sample_label="$2"
   local status_file="/proc/$target_pid/status"
@@ -152,7 +145,7 @@ take_sample()
   else
     # Built-in parsing fallback
     awk -v status_file="$status_file" -v smaps_file="$smaps_file" \
-        -v epoch="$epoch" -v pid="$target_pid" -v label="$sample_label" '
+      -v epoch="$epoch" -v pid="$target_pid" -v label="$sample_label" '
       FILENAME == status_file {
         if ($1 == "VmSize:") vm_size = $2
         else if ($1 == "VmRSS:") vm_rss = $2
@@ -188,8 +181,7 @@ take_sample()
   fi
 }
 
-cmd_sample()
-{
+cmd_sample() {
   local explicit_pid=""
   local label="live"
 
@@ -217,8 +209,7 @@ cmd_sample()
   take_sample "$target_pid" "$label"
 }
 
-cmd_daemon()
-{
+cmd_daemon() {
   local interval="$DEFAULT_INTERVAL"
   local output_file="$DEFAULT_OUTPUT"
   local explicit_pid=""
@@ -257,9 +248,9 @@ cmd_daemon()
   # Print header if file is empty or does not exist
   if [[ ! -s "$output_file" ]]; then
     if [[ -x "$SAMPLER_SCRIPT" ]]; then
-      "$SAMPLER_SCRIPT" --header > "$output_file"
+      "$SAMPLER_SCRIPT" --header >"$output_file"
     else
-      printf 'epoch\tlabel\tpid\tvm_size_kib\tvm_rss_kib\trss_anon_kib\trss_file_kib\trss_shmem_kib\tvm_data_kib\tvm_swap_kib\theap_size_kib\theap_rss_kib\theap_private_dirty_kib\n' > "$output_file"
+      printf 'epoch\tlabel\tpid\tvm_size_kib\tvm_rss_kib\trss_anon_kib\trss_file_kib\trss_shmem_kib\tvm_data_kib\tvm_swap_kib\theap_size_kib\theap_rss_kib\theap_private_dirty_kib\n' >"$output_file"
     fi
   fi
 
@@ -294,26 +285,26 @@ cmd_daemon()
 
     local row
     if row="$(take_sample "$current_pid" "$label")"; then
-      printf '%s\n' "$row" >> "$output_file"
+      printf '%s\n' "$row" >>"$output_file"
       sample_count=$((sample_count + 1))
 
       local epoch anon
-      epoch="$(awk -F '\t' '{ print $1 }' <<< "$row")"
-      anon="$(awk -F '\t' '{ print $6 }' <<< "$row")"
+      epoch="$(awk -F '\t' '{ print $1 }' <<<"$row")"
+      anon="$(awk -F '\t' '{ print $6 }' <<<"$row")"
 
-      if (( first_epoch == 0 )); then
+      if ((first_epoch == 0)); then
         first_epoch="$epoch"
         first_anon="$anon"
       fi
 
       # Calculate rolling growth rate if window >= 60 seconds
-      if (( epoch - first_epoch >= 60 )); then
+      if ((epoch - first_epoch >= 60)); then
         local elapsed_min growth_kib rate_kib_min
-        elapsed_min=$(( (epoch - first_epoch) / 60 ))
-        growth_kib=$(( anon - first_anon ))
-        if (( elapsed_min > 0 )); then
-          rate_kib_min=$(( growth_kib / elapsed_min ))
-          if (( rate_kib_min >= alert_threshold )) && (( epoch - last_alert_time >= 300 )); then
+        elapsed_min=$(((epoch - first_epoch) / 60))
+        growth_kib=$((anon - first_anon))
+        if ((elapsed_min > 0)); then
+          rate_kib_min=$((growth_kib / elapsed_min))
+          if ((rate_kib_min >= alert_threshold)) && ((epoch - last_alert_time >= 300)); then
             last_alert_time="$epoch"
             log_msg "ALERT" "High memory growth detected! Anon RSS increased by ${growth_kib} KiB over ${elapsed_min} min (${rate_kib_min} KiB/min). PID: ${current_pid}, Current Anon RSS: ${anon} KiB"
           fi
@@ -330,8 +321,7 @@ cmd_daemon()
   done
 }
 
-cmd_start()
-{
+cmd_start() {
   local interval="$DEFAULT_INTERVAL"
   local output_file="$DEFAULT_OUTPUT"
   local explicit_pid=""
@@ -385,17 +375,16 @@ cmd_start()
 
   # Launch daemon in background. Auto-discovery stays unpinned so the daemon
   # can find a replacement process after copyover or restart.
-  nohup "$SCRIPT_PATH" "${daemon_args[@]}" >> "$LOG_FILE" 2>&1 &
+  nohup "$SCRIPT_PATH" "${daemon_args[@]}" >>"$LOG_FILE" 2>&1 &
   local daemon_pid=$!
 
-  printf '%s\n' "$daemon_pid" > "$PID_FILE"
+  printf '%s\n' "$daemon_pid" >"$PID_FILE"
   log_msg "INFO" "Memory monitor started with daemon PID $daemon_pid targeting MUD PID $target_pid"
   printf 'Memory monitor started (Daemon PID: %s, Monitored PID: %s, Output: %s)\n' \
     "$daemon_pid" "$target_pid" "$output_file"
 }
 
-cmd_stop()
-{
+cmd_stop() {
   local daemon_pid
   if ! daemon_pid="$(read_pid_file "$PID_FILE")"; then
     rm -f "$PID_FILE"
@@ -414,8 +403,7 @@ cmd_stop()
   printf 'Memory monitor stopped (PID %s).\n' "$daemon_pid"
 }
 
-cmd_status()
-{
+cmd_status() {
   local daemon_pid
   if daemon_pid="$(read_pid_file "$PID_FILE")"; then
     printf 'Status: RUNNING\n'
@@ -425,9 +413,9 @@ cmd_status()
     fi
     if [[ -f "$DEFAULT_OUTPUT" ]]; then
       local count
-      count="$(wc -l < "$DEFAULT_OUTPUT" 2>/dev/null || echo 0)"
+      count="$(wc -l <"$DEFAULT_OUTPUT" 2>/dev/null || echo 0)"
       printf 'Output file: %s (%d rows)\n' "$DEFAULT_OUTPUT" "$count"
-      if (( count > 1 )); then
+      if ((count > 1)); then
         printf 'Latest sample:\n'
         tail -n 1 "$DEFAULT_OUTPUT"
       fi
@@ -436,14 +424,13 @@ cmd_status()
     printf 'Status: STOPPED\n'
     if [[ -f "$DEFAULT_OUTPUT" ]]; then
       local count
-      count="$(wc -l < "$DEFAULT_OUTPUT" 2>/dev/null || echo 0)"
+      count="$(wc -l <"$DEFAULT_OUTPUT" 2>/dev/null || echo 0)"
       printf 'Previous output file exists: %s (%d rows)\n' "$DEFAULT_OUTPUT" "$count"
     fi
   fi
 }
 
-cmd_report()
-{
+cmd_report() {
   local input_file="$DEFAULT_OUTPUT"
   local alert_threshold="$DEFAULT_ALERT_THRESHOLD"
 
@@ -618,7 +605,7 @@ case "${1:-}" in
     shift
     cmd_report "$@"
     ;;
-  -h|--help)
+  -h | --help)
     usage
     ;;
   *)

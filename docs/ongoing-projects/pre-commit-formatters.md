@@ -24,8 +24,8 @@ was verified before its commit.
 | Step | State | Commit | Verified |
 | --- | --- | --- | --- |
 | 1 Python | done | Format Python with ruff | 121 files, +39,840/-38,472; AST identical 121/121; all 542 world-tool tests pass before and after; `wtool.py constants sync --check` passes |
-| 2 Shell | next | | |
-| 3 SQL | | | |
+| 2 Shell | done | Format shell scripts with shfmt | 64 files, +4,209/-4,461; AST identical 63/64, the other being the planned glob rewrite; `bash -n` passes for all 73 regular scripts; the 8 symlinks and the scripts' exec bits intact; pubsub retirement, rename static, and background help checks pass |
+| 3 SQL | next | | |
 | Markdown prep | | | |
 | 4 Markdown | | | |
 | 5 prettier | | | |
@@ -39,6 +39,9 @@ Notes for whoever resumes:
 
 - Change counts match the dry run exactly, except that a supporting change
   (+1/-1) is counted in the step that makes it, not in the formatting step.
+- Exec-bit checks must look only at files a step touched: `core.fileMode` is
+  false here, and 62 unrelated tracked files (C sources, docs, `.gitkeep`) are
+  already 100755 in the index but not executable on disk.
 - Step 0 is not done: this host has no passwordless sudo, so neither runtime
   is installed system-wide. Until the owner runs the Step 0 commands, PHP runs
   through a `php` shim first on `PATH`:

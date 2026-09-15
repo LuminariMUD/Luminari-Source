@@ -4,14 +4,12 @@ set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
-fail()
-{
+fail() {
   echo "pubsub retirement test: $*" >&2
   exit 1
 }
 
-assert_absent()
-{
+assert_absent() {
   local pattern=$1
   shift
   if grep -Fq -- "$pattern" "$@"; then
@@ -20,8 +18,8 @@ assert_absent()
 }
 
 shopt -s nullglob
-retired_sources=("$project_root"/src/pubsub/*.[ch])
-(( ${#retired_sources[@]} == 0 )) || fail "src/pubsub still contains source files"
+retired_sources=("$project_root"/src/pubsub/*.c "$project_root"/src/pubsub/*.h)
+((${#retired_sources[@]} == 0)) || fail "src/pubsub still contains source files"
 
 runtime_files=(
   "$project_root/src/core/comm.c"

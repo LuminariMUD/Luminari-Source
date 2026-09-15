@@ -56,14 +56,12 @@ state_snapshots[variables]="$run_dir/kohdee.mem.before"
 umask 077
 mkdir -p "$run_dir"
 
-fail()
-{
+fail() {
   printf 'vessel derelict in-game check: %s\n' "$*" >&2
   exit 1
 }
 
-config_value()
-{
+config_value() {
   local config_file=$1
   local requested_key=$2
 
@@ -94,8 +92,7 @@ config_value()
   ' "$config_file"
 }
 
-newer_binary_input()
-{
+newer_binary_input() {
   local input_root=$1
   local binary_path=$2
   local candidate
@@ -103,7 +100,7 @@ newer_binary_input()
   [[ -e "$binary_path" ]] || return 2
   for candidate in Makefile Makefile.am CMakeLists.txt configure.ac config.h; do
     if [[ -f "$input_root/$candidate" &&
-          "$input_root/$candidate" -nt "$binary_path" ]]; then
+      "$input_root/$candidate" -nt "$binary_path" ]]; then
       printf '%s\n' "$input_root/$candidate"
       return 0
     fi
@@ -112,8 +109,7 @@ newer_binary_input()
     -newer "$binary_path" -print -quit
 }
 
-database_query()
-{
+database_query() {
   local query=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -121,8 +117,7 @@ database_query()
     "$database_name" --execute="$query"
 }
 
-database_dump_player_objects()
-{
+database_dump_player_objects() {
   MYSQL_PWD="$database_password" mariadb-dump --no-defaults \
     --host="$database_host" --user="$database_user" \
     --no-create-info --skip-comments --skip-dump-date --skip-lock-tables \
@@ -131,8 +126,7 @@ database_dump_player_objects()
     "$database_name" player_save_objs
 }
 
-database_player_state()
-{
+database_player_state() {
   database_query "
     SELECT CONCAT('HEADER|', HEX(obj_save_header))
       FROM player_data
@@ -145,8 +139,7 @@ database_player_state()
      ORDER BY creation_date, HEX(serialized_obj), idnum;"
 }
 
-database_target_object_counts()
-{
+database_target_object_counts() {
   database_query "
     SELECT CONCAT(
              COALESCE(SUM(LEFT(serialized_obj, 6) = '#70010'), 0), '|',
@@ -156,8 +149,7 @@ database_target_object_counts()
      WHERE BINARY name = '$target_player';"
 }
 
-player_file_value()
-{
+player_file_value() {
   local tag=$1
   local input_file=$2
 
@@ -178,8 +170,7 @@ player_file_value()
   ' "$input_file"
 }
 
-file_target_object_counts()
-{
+file_target_object_counts() {
   local input_file=$1
   local log_count
   local chart_count
@@ -191,13 +182,11 @@ file_target_object_counts()
   printf '%s|%s|%s\n' "$log_count" "$chart_count" "$salvage_count"
 }
 
-port_is_listening()
-{
+port_is_listening() {
   ss -H -ltn "sport = :$mud_port" 2>/dev/null | grep -q .
 }
 
-active_vessel_workload()
-{
+active_vessel_workload() {
   systemctl --user list-units --type=service --state=active \
     --no-legend --plain 2>/dev/null |
     awk '
@@ -209,13 +198,12 @@ active_vessel_workload()
     '
 }
 
-wait_for_server()
-{
+wait_for_server() {
   local attempt
 
   for ((attempt = 0; attempt < 900; attempt++)); do
     if systemctl --user is-active --quiet "$server_unit" &&
-       port_is_listening; then
+      port_is_listening; then
       return 0
     fi
     sleep 0.1
@@ -223,8 +211,7 @@ wait_for_server()
   return 1
 }
 
-running_binary_sha256()
-{
+running_binary_sha256() {
   local server_pid
 
   server_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
@@ -232,8 +219,7 @@ running_binary_sha256()
   sha256sum "/proc/$server_pid/exe" | awk '{ print $1 }'
 }
 
-stop_server()
-{
+stop_server() {
   local attempt
 
   if systemctl --user is-active --quiet "$server_unit"; then
@@ -246,8 +232,7 @@ stop_server()
   return 1
 }
 
-start_server_without_login()
-{
+start_server_without_login() {
   local attempt
   local launched=false
 
@@ -269,8 +254,7 @@ start_server_without_login()
   wait_for_server
 }
 
-run_kohdee_commands()
-{
+run_kohdee_commands() {
   local output_file=$1
 
   shift
@@ -279,8 +263,7 @@ run_kohdee_commands()
     >"$output_file" 2>&1
 }
 
-snapshot_player_state()
-{
+snapshot_player_state() {
   local key
   local path
   local snapshot
@@ -303,8 +286,7 @@ snapshot_player_state()
   done
 }
 
-snapshot_database_state()
-{
+snapshot_database_state() {
   database_header_hex=$(database_query "
     SELECT HEX(obj_save_header)
       FROM player_data
@@ -328,8 +310,7 @@ snapshot_database_state()
   database_state_sha256=$(sha256sum "$database_state_snapshot" | awk '{ print $1 }')
 }
 
-verify_player_state_restored()
-{
+verify_player_state_restored() {
   local key
   local path
   local snapshot
@@ -345,15 +326,14 @@ verify_player_state_restored()
       restored_sha256=$(sha256sum "$path" | awk '{ print $1 }')
       restored_stat=$(stat -c '%a|%u|%g|%Y|%s' "$path")
       [[ "$restored_sha256" == "${state_sha256[$key]}" &&
-         "$restored_stat" == "${state_stat[$key]}" ]] || return 1
+        "$restored_stat" == "${state_stat[$key]}" ]] || return 1
     else
       [[ ! -e "$path" ]] || return 1
     fi
   done
 }
 
-restore_player_state()
-{
+restore_player_state() {
   local key
   local path
   local snapshot
@@ -374,8 +354,7 @@ restore_player_state()
   done
 }
 
-restore_database_state()
-{
+restore_database_state() {
   {
     printf 'START TRANSACTION;\n'
     printf "DELETE FROM player_save_objs WHERE BINARY name = '%s';\n" \
@@ -389,16 +368,14 @@ restore_database_state()
     --host="$database_host" --user="$database_user" "$database_name"
 }
 
-verify_database_state_restored()
-{
+verify_database_state_restored() {
   local restored_state="$run_dir/kohdee-database-state.restored"
 
   database_player_state >"$restored_state" || return 1
   cmp -s "$database_state_snapshot" "$restored_state"
 }
 
-restore_baseline()
-{
+restore_baseline() {
   local cleanup_status=0
   local restored_derelict_state
   local running_sha256
@@ -448,8 +425,7 @@ restore_baseline()
   return 1
 }
 
-finish()
-{
+finish() {
   local exit_status=$?
   local cleanup_status=0
   local elapsed_seconds
@@ -464,7 +440,7 @@ finish()
 
   elapsed_seconds=$(($(date +%s) - started_epoch))
   if [[ "$exit_status" == 0 && "$cleanup_status" == 0 &&
-        "$acceptance_complete" == true ]]; then
+    "$acceptance_complete" == true ]]; then
     {
       printf 'PASS elapsed=%s derelict_slot=%s gold=%s->%s ' \
         "$elapsed_seconds" "$derelict_slot" "$baseline_gold" "$observed_gold"
@@ -519,7 +495,7 @@ app_environment=$(config_value "$repo_root/lib/.env" APP_ENV)
   fail "refusing to run because APP_ENV is not development"
 configured_character=$(config_value "$repo_root/lib/.env" DEV_MUD_CHARACTER)
 [[ -z "$configured_character" ||
-   "${configured_character,,}" == "${target_player,,}" ]] ||
+  "${configured_character,,}" == "${target_player,,}" ]] ||
   fail "DEV_MUD_CHARACTER must be Kohdee"
 
 active_workload_unit=$(active_vessel_workload)
@@ -631,7 +607,7 @@ if grep -Eq '^blackwake_(log_found|log_read|chart_found|chart_read|salvage_recov
 fi
 for target_vnum in 70010 70011 70012; do
   if [[ ${state_present[objects]} == 1 ]] &&
-     grep -Fqx "#$target_vnum" "${state_snapshots[objects]}"; then
+    grep -Fqx "#$target_vnum" "${state_snapshots[objects]}"; then
     fail "Kohdee already has Blackwake object $target_vnum in the file-backed inventory"
   fi
 done
@@ -700,12 +676,12 @@ if grep -Fq '( 2) [7001' "$run_dir/03-discovery-before-restart.log"; then
   fail "the first discovery session duplicated a Blackwake object"
 fi
 [[ $(grep -Fxc \
-       "[70010] [T70013] the Blackwake captain's ash-stained log" \
-       "$run_dir/03-discovery-before-restart.log" || true) == 2 ]] ||
+  "[70010] [T70013] the Blackwake captain's ash-stained log" \
+  "$run_dir/03-discovery-before-restart.log" || true) == 2 ]] ||
   fail "the first discovery inventories did not expose exactly one captain log"
 [[ $(grep -Fxc \
-       "[70011] [T70014] the Blackwake's salt-stiff chart" \
-       "$run_dir/03-discovery-before-restart.log" || true) == 1 ]] ||
+  "[70011] [T70014] the Blackwake's salt-stiff chart" \
+  "$run_dir/03-discovery-before-restart.log" || true) == 1 ]] ||
   fail "the first discovery inventories did not expose exactly one chart"
 
 [[ -f "$player_file" && -f "$object_file" ]] ||
@@ -778,15 +754,15 @@ if grep -Fq '( 2) [7001' "$run_dir/04-discovery-after-restart.log"; then
   fail "a Blackwake object duplicated across the hard restart"
 fi
 [[ $(grep -Fxc \
-       "[70010] [T70013] the Blackwake captain's ash-stained log" \
-       "$run_dir/04-discovery-after-restart.log" || true) == 1 ]] ||
+  "[70010] [T70013] the Blackwake captain's ash-stained log" \
+  "$run_dir/04-discovery-after-restart.log" || true) == 1 ]] ||
   fail "the post-restart inventory did not contain exactly one captain log"
 [[ $(grep -Fxc \
-       "[70011] [T70014] the Blackwake's salt-stiff chart" \
-       "$run_dir/04-discovery-after-restart.log" || true) == 1 ]] ||
+  "[70011] [T70014] the Blackwake's salt-stiff chart" \
+  "$run_dir/04-discovery-after-restart.log" || true) == 1 ]] ||
   fail "the post-restart inventory did not contain exactly one chart"
 [[ $(grep -Fxc '[70012] a corroded bronze tidefinder gear' \
-       "$run_dir/04-discovery-after-restart.log" || true) == 1 ]] ||
+  "$run_dir/04-discovery-after-restart.log" || true) == 1 ]] ||
   fail "the post-restart inventory did not contain exactly one salvage object"
 
 observed_gold=$((baseline_gold + 180))

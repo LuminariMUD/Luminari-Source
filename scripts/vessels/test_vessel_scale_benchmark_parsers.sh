@@ -7,8 +7,7 @@ repo_root=$(cd "$script_dir/../.." && pwd)
 runner="$script_dir/run_vessel_scale_benchmark.sh"
 spawn_safe_command="spawn_commands+=(\"shiplist summary\" \"goto \$benchmark_safe_room\")"
 
-fail()
-{
+fail() {
   printf 'vessel scale parser test: %s\n' "$*" >&2
   exit 1
 }
@@ -187,10 +186,10 @@ fare_dock_line=$(grep -nF '"goto 1000389"' <<<"$fare_commands" | head -1 |
   cut -d: -f1)
 fare_board_line=$(grep -nF '"board ferry"' <<<"$fare_commands" | cut -d: -f1)
 [[ "$fare_wait_line" =~ ^[0-9]+$ && "$fare_disembark_line" =~ ^[0-9]+$ &&
-   "$fare_dock_line" =~ ^[0-9]+$ && "$fare_board_line" =~ ^[0-9]+$ &&
-   "$fare_wait_line" -lt "$fare_disembark_line" &&
-   "$fare_disembark_line" -lt "$fare_dock_line" &&
-   "$fare_dock_line" -lt "$fare_board_line" ]] ||
+  "$fare_dock_line" =~ ^[0-9]+$ && "$fare_board_line" =~ ^[0-9]+$ &&
+  "$fare_wait_line" -lt "$fare_disembark_line" &&
+  "$fare_disembark_line" -lt "$fare_dock_line" &&
+  "$fare_dock_line" -lt "$fare_board_line" ]] ||
   fail "harbor fare gate does not stop and resolve the canonical west dock before boarding"
 
 live_input="$test_root/live-input.log"

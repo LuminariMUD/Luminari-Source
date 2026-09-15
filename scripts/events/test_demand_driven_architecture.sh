@@ -15,8 +15,7 @@ service_needed_body=$(mktemp)
 default_comm=$(mktemp)
 trap 'rm -f "$agenda_body" "$scheduled_body" "$service_needed_body" "$default_comm"' EXIT
 
-fail()
-{
+fail() {
   echo "demand-driven architecture test: $*" >&2
   exit 1
 }
@@ -25,8 +24,7 @@ fail()
 # below would then fail with a message blaming the source instead of the
 # script. Check the capture itself first so a formatting change reports as a
 # stale anchor rather than a phantom regression.
-require_capture()
-{
+require_capture() {
   [[ -s $1 ]] || fail "could not locate $2 in $3; the capture anchor in this script is stale"
 }
 
@@ -47,7 +45,7 @@ grep -q 'mobile_activity_run_scheduled(ch, due);' "$agenda_body" ||
   fail "the mobile agenda no longer dispatches only its due reason mask"
 
 if grep -Eq '(^|[^[:alnum:]_])(character_list|object_list|mobile_activity_run_legacy_(cycle|slice)|mobile_activity_run_one)([^[:alnum:]_]|$)' \
-    "$agenda_body"; then
+  "$agenda_body"; then
   cat "$agenda_body" >&2
   fail "the normal mobile agenda contains a global discovery or legacy dispatch path"
 fi

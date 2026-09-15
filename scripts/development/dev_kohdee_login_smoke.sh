@@ -6,19 +6,16 @@ script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_root=$(cd "$script_dir/../.." && pwd)
 started_at=$SECONDS
 
-fail()
-{
+fail() {
   printf 'dev character login smoke: %s\n' "$*" >&2
   exit 1
 }
 
-need_command()
-{
+need_command() {
   command -v "$1" >/dev/null 2>&1 || fail "required command not found: $1"
 }
 
-port_is_listening()
-{
+port_is_listening() {
   ss -H -ltn "sport = :$mud_port" 2>/dev/null | grep -q .
 }
 
@@ -113,7 +110,7 @@ if [[ $# -gt 0 ]]; then
       fail "--vessel-msdp-check requires one ship slot from 1 through 500"
   elif [[ "$mode" == "vessel-channel-check" ]]; then
     [[ ($# -eq 1 || $# -eq 2) &&
-       "$1" =~ ^[1-9][0-9]*$ && "$1" -le 500 ]] ||
+      "$1" =~ ^[1-9][0-9]*$ && "$1" -le 500 ]] ||
       fail "--vessel-channel-check requires a ship slot from 1 through 500 and an optional crew character"
     if [[ $# -eq 2 ]]; then
       [[ "$2" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
@@ -211,7 +208,7 @@ smoke_password="${DEV_MUD_ACCOUNT_PASSWORD:-${GAME_MASTER_ACCOUNT_PASSWORD:-}}"
 [[ -n "$smoke_password" ]] ||
   fail "DEV_MUD_ACCOUNT_PASSWORD or GAME_MASTER_ACCOUNT_PASSWORD is not set"
 if [[ ("$mode" == "vessel-channel-check" ||
-       "$mode" == "vessel-boarding-check") && $# -eq 2 ]]; then
+  "$mode" == "vessel-boarding-check") && $# -eq 2 ]]; then
   if [[ "${2,,}" == "${smoke_character,,}" ]]; then
     fail "$mode requires two different character names"
   fi
@@ -235,7 +232,7 @@ if port_is_listening; then
   # Identify the listener by PID and executable rather than by process name:
   # a name match would accept an unrelated MUD bound to the same port.
   listener=$(ss -H -ltnp "sport = :$mud_port" 2>/dev/null || true)
-  listener_pid=$(sed -n 's/.*pid=\([0-9]\{1,\}\).*/\1/p' <<< "$listener" | head -n 1)
+  listener_pid=$(sed -n 's/.*pid=\([0-9]\{1,\}\).*/\1/p' <<<"$listener" | head -n 1)
   [[ "$listener_pid" =~ ^[1-9][0-9]*$ ]] ||
     fail "could not identify the process listening on port $mud_port"
   listener_exe=$(readlink -f -- "/proc/$listener_pid/exe" 2>/dev/null || true)
@@ -246,7 +243,7 @@ if port_is_listening; then
   printf 'Reusing the development MUD on port %s.\n' "$mud_port"
 else
   if ! systemctl is-active --quiet mariadb 2>/dev/null &&
-     ! systemctl is-active --quiet mysql 2>/dev/null; then
+    ! systemctl is-active --quiet mysql 2>/dev/null; then
     fail "MariaDB/MySQL is not active"
   fi
 
@@ -294,9 +291,9 @@ else
 fi
 
 MUD_SMOKE_ACCOUNT="$smoke_account" \
-MUD_SMOKE_ACCOUNT_PASSWORD="$smoke_password" \
-MUD_SMOKE_CHARACTER="$smoke_character" \
-MUD_SMOKE_PORT="$mud_port" \
+  MUD_SMOKE_ACCOUNT_PASSWORD="$smoke_password" \
+  MUD_SMOKE_CHARACTER="$smoke_character" \
+  MUD_SMOKE_PORT="$mud_port" \
   expect -f /dev/stdin -- "$mode" "$@" <<'EXPECT'
 proc fail {message} {
   puts stderr "dev character login smoke: $message"

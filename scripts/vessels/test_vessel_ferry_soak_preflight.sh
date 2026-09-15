@@ -6,8 +6,7 @@ set -euo pipefail
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 runner="$script_dir/run_vessel_ferry_soak.sh"
 
-fail()
-{
+fail() {
   printf 'vessel ferry preflight test: %s\n' "$*" >&2
   exit 1
 }
@@ -46,8 +45,7 @@ printf '%s\n' \
   'exit 1' >"$failing_helper"
 chmod +x "$helper" "$failing_helper"
 
-systemctl()
-{
+systemctl() {
   if [[ "$*" == "--user is-active --quiet test-mud.service" ]]; then
     [[ -f "$active_marker" ]]
     return
@@ -55,8 +53,7 @@ systemctl()
   return 1
 }
 
-timeout()
-{
+timeout() {
   local limit=$1
 
   [[ "$limit" == 120 ]] || return 1
@@ -85,8 +82,7 @@ if ensure_local_mud_available "test-mud.service" "$server_log" \
   "$helper" "$bootstrap_output"; then
   fail "active service without its log unexpectedly passed"
 fi
-[[ "$local_mud_error" == \
-  "test-mud.service is active but its MUD log is unavailable" ]] ||
+[[ "$local_mud_error" == "test-mud.service is active but its MUD log is unavailable" ]] ||
   fail "active service without a log reported the wrong error"
 
 rm -f "$active_marker"
@@ -94,8 +90,7 @@ if ensure_local_mud_available "test-mud.service" "$server_log" \
   "$failing_helper" "$bootstrap_output"; then
   fail "failing stopped-service bootstrap unexpectedly passed"
 fi
-[[ "$local_mud_error" == \
-  "the Kohdee login helper could not start the local MUD" ]] ||
+[[ "$local_mud_error" == "the Kohdee login helper could not start the local MUD" ]] ||
   fail "failing stopped-service bootstrap reported the wrong error"
 
 printf 'PASS: vessel ferry preflight bootstraps a stopped MUD and rejects invalid states.\n'

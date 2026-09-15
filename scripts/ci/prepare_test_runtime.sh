@@ -13,7 +13,7 @@ fi
 
 runtime_dir=$(readlink -m -- "$runtime_dir")
 case "$runtime_dir" in
-  /|"$repo_root"|"$repo_root/lib"|"$repo_root/lib"/*)
+  / | "$repo_root" | "$repo_root/lib" | "$repo_root/lib"/*)
     printf 'Refusing to prepare a protected or broad runtime directory: %s\n' "$runtime_dir" >&2
     exit 2
     ;;
@@ -42,25 +42,25 @@ fi
 # which only CI runners (GitHub or the local runner) are trusted to provide.
 ci_service_host=0
 if [[ "$LUMINARI_TEST_MYSQL_HOST" == mariadb &&
-      ( "${GITHUB_ACTIONS:-}" == true || "${LUMINARI_LOCAL_CI:-}" == 1 ) ]]; then
+  ("${GITHUB_ACTIONS:-}" == true || "${LUMINARI_LOCAL_CI:-}" == 1) ]]; then
   ci_service_host=1
 fi
 if [[ "$ci_service_host" != 1 &&
-      "$LUMINARI_TEST_MYSQL_HOST" != localhost &&
-      "$LUMINARI_TEST_MYSQL_HOST" != ::1 &&
-      ! "$LUMINARI_TEST_MYSQL_HOST" =~ ^127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+  "$LUMINARI_TEST_MYSQL_HOST" != localhost &&
+  "$LUMINARI_TEST_MYSQL_HOST" != ::1 &&
+  ! "$LUMINARI_TEST_MYSQL_HOST" =~ ^127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
   printf 'The CI runtime preparer only accepts a loopback or CI service database host.\n' >&2
   exit 2
 fi
 case "$LUMINARI_TEST_MYSQL_DATABASE" in
-  *test*|*ci*) ;;
+  *test* | *ci*) ;;
   *)
     printf 'The database name must identify an isolated test or CI database.\n' >&2
     exit 2
     ;;
 esac
 if [[ ! "$LUMINARI_TEST_MYSQL_DATABASE" =~ ^[A-Za-z0-9_]+$ ]] ||
-   [[ ! "$LUMINARI_TEST_MYSQL_PORT" =~ ^[0-9]+$ ]]; then
+  [[ ! "$LUMINARI_TEST_MYSQL_PORT" =~ ^[0-9]+$ ]]; then
   printf 'The test database name or port has an invalid format.\n' >&2
   exit 2
 fi
@@ -105,7 +105,7 @@ fi
 
 MYSQL_PWD="$LUMINARI_TEST_MYSQL_PASSWORD" \
   "$database_client" "${database_options[@]}" "$LUMINARI_TEST_MYSQL_DATABASE" \
-  < "$repo_root/sql/master_schema.sql"
+  <"$repo_root/sql/master_schema.sql"
 MYSQL_PWD="$LUMINARI_TEST_MYSQL_PASSWORD" \
   "$database_client" "${database_options[@]}" "$LUMINARI_TEST_MYSQL_DATABASE" <<'SQL'
 INSERT INTO region_data
@@ -130,8 +130,7 @@ mkdir -p "$runtime_dir"/plrfiles/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
 mkdir -p "$runtime_dir"/plrobjs/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
 mkdir -p "$runtime_dir"/world/{zon,wld,mob,obj,shp,trg,qst,hlq}
 
-append_index_entry()
-{
+append_index_entry() {
   local entry=$1
   local index_file=$2
   local temporary_index="${index_file}.ci-runtime"
@@ -148,7 +147,7 @@ append_index_entry()
         print "$"
       }
     }
-  ' "$index_file" > "$temporary_index"
+  ' "$index_file" >"$temporary_index"
   mv "$temporary_index" "$index_file"
 }
 
@@ -173,33 +172,33 @@ done
   printf 'mysql_database = %s\n' "$LUMINARI_TEST_MYSQL_DATABASE"
   printf 'mysql_username = %s\n' "$LUMINARI_TEST_MYSQL_USER"
   printf 'mysql_password = %s\n' "$LUMINARI_TEST_MYSQL_PASSWORD"
-} > "$runtime_dir/mysql_config"
+} >"$runtime_dir/mysql_config"
 
 {
   printf 'mortal_start_room = 3001\n'
   printf 'immort_start_room = 3002\n'
   printf 'frozen_start_room = 3000\n'
-} > "$runtime_dir/etc/config"
+} >"$runtime_dir/etc/config"
 
-printf 'Welcome to LuminariMUD\n' > "$runtime_dir/text/news"
-printf 'LuminariMUD Credits\n' > "$runtime_dir/text/credits"
-printf 'Message of the Day\n' > "$runtime_dir/text/motd"
-printf 'Immortal MOTD\n' > "$runtime_dir/text/imotd"
-printf 'Welcome\n' > "$runtime_dir/text/greetings"
-printf 'Help System\n' > "$runtime_dir/text/help/help"
-printf 'Immortal Help\n' > "$runtime_dir/text/help/ihelp"
-printf '$\n' > "$runtime_dir/text/help/index"
+printf 'Welcome to LuminariMUD\n' >"$runtime_dir/text/news"
+printf 'LuminariMUD Credits\n' >"$runtime_dir/text/credits"
+printf 'Message of the Day\n' >"$runtime_dir/text/motd"
+printf 'Immortal MOTD\n' >"$runtime_dir/text/imotd"
+printf 'Welcome\n' >"$runtime_dir/text/greetings"
+printf 'Help System\n' >"$runtime_dir/text/help/help"
+printf 'Immortal Help\n' >"$runtime_dir/text/help/ihelp"
+printf '$\n' >"$runtime_dir/text/help/index"
 cp "$repo_root/lib/world/artifacts/artifacts.hlp" "$runtime_dir/text/help/"
 append_index_entry artifacts.hlp "$runtime_dir/text/help/index"
-printf 'Info\n' > "$runtime_dir/text/info"
-printf 'Wizlist\n' > "$runtime_dir/text/wizlist"
-printf 'Immlist\n' > "$runtime_dir/text/immlist"
-printf 'Policies\n' > "$runtime_dir/text/policies"
-printf 'Handbook\n' > "$runtime_dir/text/handbook"
-printf 'Background\n' > "$runtime_dir/text/background"
-printf '*\n' > "$runtime_dir/misc/messages"
-printf '$\n' > "$runtime_dir/misc/xnames"
-cat > "$runtime_dir/misc/socials.new" <<'SOCIALS'
+printf 'Info\n' >"$runtime_dir/text/info"
+printf 'Wizlist\n' >"$runtime_dir/text/wizlist"
+printf 'Immlist\n' >"$runtime_dir/text/immlist"
+printf 'Policies\n' >"$runtime_dir/text/policies"
+printf 'Handbook\n' >"$runtime_dir/text/handbook"
+printf 'Background\n' >"$runtime_dir/text/background"
+printf '*\n' >"$runtime_dir/misc/messages"
+printf '$\n' >"$runtime_dir/misc/xnames"
+cat >"$runtime_dir/misc/socials.new" <<'SOCIALS'
 ~wave wave 0 5 0 0
 You wave.
 $n waves.

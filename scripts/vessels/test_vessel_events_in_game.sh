@@ -42,14 +42,12 @@ server_restart_needed=false
 umask 077
 mkdir -p "$run_dir"
 
-fail()
-{
+fail() {
   printf 'vessel event in-game check: %s\n' "$*" >&2
   exit 1
 }
 
-config_value()
-{
+config_value() {
   local config_file=$1
   local requested_key=$2
 
@@ -80,8 +78,7 @@ config_value()
   ' "$config_file"
 }
 
-player_file_value()
-{
+player_file_value() {
   local tag=$1
   local input_file=$2
 
@@ -102,8 +99,7 @@ player_file_value()
   ' "$input_file"
 }
 
-newer_binary_input()
-{
+newer_binary_input() {
   local input_root=$1
   local binary_path=$2
   local candidate
@@ -111,7 +107,7 @@ newer_binary_input()
   [[ -e "$binary_path" ]] || return 2
   for candidate in Makefile Makefile.am CMakeLists.txt configure.ac config.h; do
     if [[ -f "$input_root/$candidate" &&
-          "$input_root/$candidate" -nt "$binary_path" ]]; then
+      "$input_root/$candidate" -nt "$binary_path" ]]; then
       printf '%s\n' "$input_root/$candidate"
       return 0
     fi
@@ -120,8 +116,7 @@ newer_binary_input()
     -newer "$binary_path" -print -quit
 }
 
-database_query()
-{
+database_query() {
   local query=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -129,8 +124,7 @@ database_query()
     "$database_name" --execute="$query"
 }
 
-database_execute()
-{
+database_execute() {
   local query=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -138,8 +132,7 @@ database_execute()
     "$database_name" --execute="$query"
 }
 
-database_apply_file()
-{
+database_apply_file() {
   local sql_file=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -147,8 +140,7 @@ database_apply_file()
     "$database_name" <"$sql_file"
 }
 
-database_dump_events()
-{
+database_dump_events() {
   local output_file=$1
   local temporary_file="$output_file.tmp"
 
@@ -161,13 +153,11 @@ database_dump_events()
   mv "$temporary_file" "$output_file"
 }
 
-port_is_listening()
-{
+port_is_listening() {
   ss -H -ltn "sport = :$mud_port" 2>/dev/null | grep -q .
 }
 
-active_vessel_workload()
-{
+active_vessel_workload() {
   systemctl --user list-units --type=service --state=active \
     --no-legend --plain 2>/dev/null |
     awk '
@@ -179,13 +169,12 @@ active_vessel_workload()
     '
 }
 
-wait_for_server()
-{
+wait_for_server() {
   local attempt
 
   for ((attempt = 0; attempt < 900; attempt++)); do
     if systemctl --user is-active --quiet "$server_unit" &&
-       port_is_listening; then
+      port_is_listening; then
       return 0
     fi
     sleep 0.1
@@ -193,8 +182,7 @@ wait_for_server()
   return 1
 }
 
-stop_development_mud()
-{
+stop_development_mud() {
   local attempt
 
   if systemctl --user is-active --quiet "$server_unit"; then
@@ -210,8 +198,7 @@ stop_development_mud()
   return 1
 }
 
-start_server_without_login()
-{
+start_server_without_login() {
   local attempt
   local launched=false
 
@@ -234,8 +221,7 @@ start_server_without_login()
   server_restart_needed=false
 }
 
-running_binary_sha256()
-{
+running_binary_sha256() {
   local server_pid
 
   server_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
@@ -243,8 +229,7 @@ running_binary_sha256()
   sha256sum "/proc/$server_pid/exe" | awk '{ print $1 }'
 }
 
-event_prototype_slots()
-{
+event_prototype_slots() {
   database_query "
     SELECT COALESCE(GROUP_CONCAT(runtime.ship_id ORDER BY runtime.ship_id
                                 SEPARATOR ','), '')
@@ -252,8 +237,7 @@ event_prototype_slots()
      WHERE runtime.prototype_id IN ($raft_prototype_id, $warship_prototype_id);"
 }
 
-run_kohdee_commands()
-{
+run_kohdee_commands() {
   local output_file=$1
 
   shift
@@ -262,15 +246,14 @@ run_kohdee_commands()
     >"$output_file" 2>&1
 }
 
-retire_test_runtime()
-{
+retire_test_runtime() {
   local slots
   local ship_slot
   local -a slot_list
   local -a cleanup_commands
 
   if ! systemctl --user is-active --quiet "$server_unit" ||
-     ! port_is_listening; then
+    ! port_is_listening; then
     start_server_without_login || return 1
   fi
 
@@ -291,8 +274,7 @@ retire_test_runtime()
   [[ $(database_query 'SELECT COUNT(*) FROM vessel_event_runtimes;') == 0 ]]
 }
 
-restore_baseline()
-{
+restore_baseline() {
   local cleanup_status=0
   local restored_sha256
   local restore_tmp="$repo_root/lib/plrfiles/K-O/.kohdee.plr.event-restore-$$"
@@ -316,8 +298,8 @@ restore_baseline()
   fi
 
   if cp --preserve=mode,ownership,timestamps \
-       "$run_dir/kohdee.plr.before" "$restore_tmp" &&
-     mv -f "$restore_tmp" "$player_file"; then
+    "$run_dir/kohdee.plr.before" "$restore_tmp" &&
+    mv -f "$restore_tmp" "$player_file"; then
     restored_sha256=$(sha256sum "$player_file" | awk '{ print $1 }')
     [[ "$restored_sha256" == "$baseline_player_sha256" ]] || cleanup_status=1
   else
@@ -340,8 +322,7 @@ restore_baseline()
   return 1
 }
 
-finish()
-{
+finish() {
   local exit_status=$?
   local cleanup_status=0
   local elapsed_seconds
@@ -361,7 +342,7 @@ finish()
   elapsed_seconds=$(($(date +%s) - started_epoch))
 
   if [[ "$exit_status" == 0 && "$cleanup_status" == 0 &&
-        "$acceptance_complete" == true ]]; then
+    "$acceptance_complete" == true ]]; then
     {
       printf 'PASS source_commit=%s binary_sha256=%s elapsed=%s ' \
         "$source_commit" "$candidate_sha256" "$elapsed_seconds"
@@ -629,8 +610,8 @@ grep -Fqx 'Room: 1204' "$player_file" ||
 database_apply_file "$repo_root/sql/components/verify_vessels_phase16.sql" \
   >"$run_dir/03-phase16-verification.log"
 if [[ -f "$server_log" ]] &&
-   grep -E 'SYSERR:.*(vessel event|ghost fleet|vessel_showcase|vessel_event_)' \
-     "$server_log" >"$run_dir/04-related-syserr.log"; then
+  grep -E 'SYSERR:.*(vessel event|ghost fleet|vessel_showcase|vessel_event_)' \
+    "$server_log" >"$run_dir/04-related-syserr.log"; then
   fail "the server logged a Phase 16 event SYSERR"
 fi
 

@@ -38,8 +38,7 @@ pgo_generate=
 pgo_use=
 warning_tier=none
 
-usage()
-{
+usage() {
   cat >&2 <<'USAGE'
 usage: production_profile.sh --cc COMPILER [--cflags FLAGS] [--production]
                              [--lto] [--pgo-generate DIR] [--pgo-use PATH]
@@ -48,8 +47,7 @@ USAGE
   exit 2
 }
 
-fail()
-{
+fail() {
   printf 'production profile: %s\n' "$*" >&2
   exit 1
 }
@@ -108,7 +106,7 @@ work_dir=$(mktemp -d "${TMPDIR:-/tmp}/luminari-production-profile.XXXXXX")
 trap 'rm -rf -- "$work_dir"' EXIT
 
 trivial_source="$work_dir/trivial.c"
-cat > "$trivial_source" <<'SOURCE'
+cat >"$trivial_source" <<'SOURCE'
 #include <stdio.h>
 #include <string.h>
 
@@ -122,7 +120,7 @@ int main(int argc, char **argv)
 SOURCE
 
 fortify_source="$work_dir/fortify.c"
-cat > "$fortify_source" <<'SOURCE'
+cat >"$fortify_source" <<'SOURCE'
 #include <string.h>
 
 #if !defined(__USE_FORTIFY_LEVEL) || __USE_FORTIFY_LEVEL < 3
@@ -142,8 +140,7 @@ SOURCE
 # try_build SOURCE STRICT FLAGS...: compile and link SOURCE with FLAGS.  With
 # STRICT=1 every warning is fatal so a flag that is merely tolerated (for
 # example "unused command-line argument") counts as unsupported.
-try_build()
-{
+try_build() {
   local source=$1
   local strict=$2
   shift 2
@@ -160,7 +157,7 @@ try_build()
 
 # shellcheck disable=SC2086
 "$cc" $base_cflags -o "$work_dir/probe" "$trivial_source" >"$work_dir/probe.log" 2>&1 ||
-  fail "$cc cannot build a trivial program: $(tr '\n' ' ' < "$work_dir/probe.log")"
+  fail "$cc cannot build a trivial program: $(tr '\n' ' ' <"$work_dir/probe.log")"
 
 is_clang=0
 if "$cc" -dM -E - </dev/null 2>/dev/null | grep -q '__clang__'; then
@@ -188,8 +185,7 @@ unsupported=()
 
 # probe_feature NAME CFLAGS LDFLAGS [SOURCE]: enable one hardening feature when
 # the toolchain accepts it, otherwise record it as unsupported.
-probe_feature()
-{
+probe_feature() {
   local name=$1
   local feature_cflags=$2
   local feature_ldflags=$3
@@ -241,7 +237,7 @@ if [[ "$production" == 1 ]]; then
   # binary that was just linked with the flag, and demote on failure.
   if [[ " ${supported[*]-} " == *" cf-protection "* ]] &&
     ! { readelf -nW "$work_dir/probe" 2>/dev/null | grep -q 'IBT' &&
-        readelf -nW "$work_dir/probe" 2>/dev/null | grep -q 'SHSTK'; }; then
+      readelf -nW "$work_dir/probe" 2>/dev/null | grep -q 'SHSTK'; }; then
     filtered=()
     for flag in "${cflags[@]}"; do
       [[ "$flag" == -fcf-protection=full ]] || filtered+=("$flag")
@@ -267,7 +263,7 @@ if [[ "$lto" == 1 ]]; then
     lto_flag=-flto=auto
   fi
   try_build "$trivial_source" 0 -O2 "${cflags[@]}" "$lto_flag" "${ldflags[@]}" "$lto_flag" ||
-    fail "$cc does not support link-time optimization ($lto_flag): $(tr '\n' ' ' < "$work_dir/probe.log")"
+    fail "$cc does not support link-time optimization ($lto_flag): $(tr '\n' ' ' <"$work_dir/probe.log")"
   cflags+=("$lto_flag")
   ldflags+=("$lto_flag")
 fi
@@ -276,7 +272,7 @@ if [[ -n "$pgo_generate" ]]; then
   pgo_flags=("-fprofile-generate=$pgo_generate")
   try_build "$trivial_source" 0 -O2 "${cflags[@]}" "${pgo_flags[@]}" "${ldflags[@]}" \
     "${pgo_flags[@]}" ||
-    fail "$cc does not support profile generation: $(tr '\n' ' ' < "$work_dir/probe.log")"
+    fail "$cc does not support profile generation: $(tr '\n' ' ' <"$work_dir/probe.log")"
   cflags+=("${pgo_flags[@]}")
   ldflags+=("${pgo_flags[@]}")
 fi
@@ -290,7 +286,7 @@ if [[ -n "$pgo_use" ]]; then
   fi
   try_build "$trivial_source" 0 -O2 "${cflags[@]}" "${pgo_flags[@]}" "${ldflags[@]}" \
     "${pgo_flags[@]}" ||
-    fail "$cc rejected the profile data at $pgo_use: $(tr '\n' ' ' < "$work_dir/probe.log")"
+    fail "$cc rejected the profile data at $pgo_use: $(tr '\n' ' ' <"$work_dir/probe.log")"
   cflags+=("${pgo_flags[@]}")
   ldflags+=("${pgo_flags[@]}")
 fi
@@ -300,8 +296,7 @@ fi
 warning_unsupported=()
 
 # probe_warning FLAG: keep FLAG when the compiler accepts it without complaint.
-probe_warning()
-{
+probe_warning() {
   if try_build "$trivial_source" 1 "${warning_cflags[@]}" "$1"; then
     warning_cflags+=("$1")
   else

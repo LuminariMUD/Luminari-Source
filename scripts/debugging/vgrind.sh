@@ -16,16 +16,16 @@ echo "🎯 Running focused valgrind - 20 minute timeout to catch the big leaks..
 # 20-minute timeout to allow full game loading in valgrind
 # Focus on definite leaks and errors that matter
 timeout 20m valgrind \
-    --leak-check=full \
-    --show-leak-kinds=definite \
-    --track-origins=yes \
-    --show-reachable=no \
-    --error-limit=yes \
-    --num-callers=20 \
-    --malloc-fill=0xAB \
-    --free-fill=0xCD \
-    --log-file="$LOG_DIR/valgrind_focused_${TIMESTAMP}.log" \
-    "$PROJECT_ROOT/bin/luminari" -q 4100
+  --leak-check=full \
+  --show-leak-kinds=definite \
+  --track-origins=yes \
+  --show-reachable=no \
+  --error-limit=yes \
+  --num-callers=20 \
+  --malloc-fill=0xAB \
+  --free-fill=0xCD \
+  --log-file="$LOG_DIR/valgrind_focused_${TIMESTAMP}.log" \
+  "$PROJECT_ROOT/bin/luminari" -q 4100
 
 echo ""
 echo "Analysis complete! Found the big problems in up to 20 minutes."

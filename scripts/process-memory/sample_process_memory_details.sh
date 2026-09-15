@@ -2,14 +2,12 @@
 
 set -euo pipefail
 
-fail()
-{
+fail() {
   printf 'process memory detail sampler: %s\n' "$*" >&2
   exit 1
 }
 
-usage()
-{
+usage() {
   printf '%s\n' \
     "Usage:" \
     "  ./scripts/process-memory/sample_process_memory_details.sh --header" \
@@ -18,15 +16,13 @@ usage()
   exit 1
 }
 
-print_header()
-{
+print_header() {
   printf 'epoch\tlabel\tpid\tvm_size_kib\tvm_rss_kib\trss_anon_kib\t'
   printf 'rss_file_kib\trss_shmem_kib\tvm_data_kib\tvm_swap_kib\t'
   printf 'heap_size_kib\theap_rss_kib\theap_private_dirty_kib\n'
 }
 
-parse_snapshot()
-{
+parse_snapshot() {
   local status_file=$1
   local smaps_file=$2
   local epoch=$3
@@ -41,7 +37,7 @@ parse_snapshot()
     fail "label must contain only letters, digits, dot, underscore, or hyphen"
 
   awk -v status_file="$status_file" -v smaps_file="$smaps_file" \
-      -v epoch="$epoch" -v pid="$pid" -v label="$label" '
+    -v epoch="$epoch" -v pid="$pid" -v label="$label" '
     function reject(message) {
       print "process memory detail sampler: " message > "/dev/stderr"
       invalid = 1
@@ -89,8 +85,7 @@ parse_snapshot()
   ' "$status_file" "$smaps_file"
 }
 
-validate_series()
-{
+validate_series() {
   local input_file=$1
 
   [[ -r "$input_file" ]] || fail "sample file is not readable: $input_file"

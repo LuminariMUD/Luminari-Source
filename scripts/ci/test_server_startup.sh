@@ -12,8 +12,7 @@ server_pid=
 supervisor_pid=
 
 # Poll in 0.1 s steps until the process is gone; returns 1 when it is still alive.
-wait_for_exit()
-{
+wait_for_exit() {
   local pid="$1" tenths="$2"
   local _attempt
   for ((_attempt = 0; _attempt < tenths; _attempt++)); do
@@ -25,8 +24,7 @@ wait_for_exit()
 
 # Every teardown wait is bounded: a server or supervisor that ignores SIGTERM is
 # killed instead of blocking the job until the runner's limit.
-stop_supervisor()
-{
+stop_supervisor() {
   [[ -n "$supervisor_pid" ]] || return 0
   (cd "$sandbox" && MUD_PORT=4100 ./scripts/autorun/autorun.sh stop) >/dev/null 2>&1 || true
   if [[ -n "$server_pid" ]] && ! wait_for_exit "$server_pid" 100; then
@@ -41,15 +39,13 @@ stop_supervisor()
   supervisor_pid=
 }
 
-cleanup()
-{
+cleanup() {
   stop_supervisor
   rm -rf "$sandbox"
 }
 trap cleanup EXIT
 
-fail()
-{
+fail() {
   printf '%s\n' "$*" >&2
   tail -n 100 "$server_log" "$sandbox/launcher.log" 2>/dev/null || true
   exit 1
@@ -65,19 +61,19 @@ setsid bash -c "
   cd '$sandbox' &&
   MUD_PORT=4100 MUD_FLAGS='-f lib/etc/config -d lib -o $server_log -q -s' \
     AUTORUN_STATE_INTERVAL=0.2 exec ./scripts/autorun/autorun.sh foreground
-" > "$sandbox/launcher.log" 2>&1 &
+" >"$sandbox/launcher.log" 2>&1 &
 supervisor_pid=$!
 
 for _attempt in {1..200}; do
   if [[ -s "$sandbox/.mud.pid" ]]; then
-    read -r server_pid < "$sandbox/.mud.pid"
+    read -r server_pid <"$sandbox/.mud.pid"
     if kill -0 "$server_pid" 2>/dev/null && nc -z 127.0.0.1 4100 2>/dev/null; then
       break
     fi
   fi
   sleep 0.1
 done
-[[ -n "$server_pid" ]] && kill -0 "$server_pid" 2>/dev/null && \
+[[ -n "$server_pid" ]] && kill -0 "$server_pid" 2>/dev/null &&
   nc -z 127.0.0.1 4100 2>/dev/null || fail 'Server did not accept connections on port 4100'
 echo 'Server is accepting connections on port 4100'
 LUMINARI_HEALTH_URL=http://127.0.0.1:4182/health LUMINARI_HEALTH_TIMEOUT_SECONDS=20 \
@@ -87,10 +83,10 @@ if grep -qi SYSERR "$server_log"; then
   fail 'Unexpected SYSERR found during startup'
 fi
 
-(cd "$sandbox" && MUD_PORT=4100 ./scripts/autorun/autorun.sh stop) >> "$sandbox/launcher.log" 2>&1
+(cd "$sandbox" && MUD_PORT=4100 ./scripts/autorun/autorun.sh stop) >>"$sandbox/launcher.log" 2>&1
 for _attempt in {1..100}; do
-  if grep -q 'MUD server exited with code 0' "$sandbox/launcher.log" && \
-     grep -q 'Autorun terminated gracefully' "$sandbox/launcher.log"; then
+  if grep -q 'MUD server exited with code 0' "$sandbox/launcher.log" &&
+    grep -q 'Autorun terminated gracefully' "$sandbox/launcher.log"; then
     break
   fi
   sleep 0.1

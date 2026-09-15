@@ -20,14 +20,12 @@ restart_needed=false
 
 mkdir -p "$run_dir"
 
-fail()
-{
+fail() {
   printf 'vessel campaign provisioner: %s\n' "$*" >&2
   exit 1
 }
 
-config_value()
-{
+config_value() {
   local config_file=$1
   local requested_key=$2
 
@@ -58,8 +56,7 @@ config_value()
   ' "$config_file"
 }
 
-ensure_index_entry()
-{
+ensure_index_entry() {
   local index_file=$1
   local entry=$2
   local updated_file="$run_dir/index.updated"
@@ -98,8 +95,7 @@ ensure_index_entry()
   mv "$updated_file" "$index_file"
 }
 
-record_identity()
-{
+record_identity() {
   local world_file=$1
   local vnum=$2
 
@@ -113,8 +109,7 @@ record_identity()
   ' "$world_file"
 }
 
-remove_campaign_object_records()
-{
+remove_campaign_object_records() {
   local package_file=$1
   local live_file=$2
   local stripped_file="$run_dir/objects.stripped"
@@ -141,8 +136,7 @@ remove_campaign_object_records()
   mv "$stripped_file" "$live_file"
 }
 
-merge_campaign_object_records()
-{
+merge_campaign_object_records() {
   local package_file=$1
   local live_file=$2
   local additions_file="$run_dir/objects.add"
@@ -194,8 +188,7 @@ merge_campaign_object_records()
   mv "$merged_file" "$live_file"
 }
 
-provision_campaign_world()
-{
+provision_campaign_world() {
   local object_package="$package_dir/700.obj"
   local reset_package="$package_dir/700.resets"
   local object_file="$repo_root/lib/world/obj/700.obj"
@@ -224,7 +217,7 @@ provision_campaign_world()
       live_identity=$(record_identity "$candidate" "$vnum")
       [[ -z "$live_identity" ]] && continue
       [[ "$candidate" == "$object_file" &&
-         "$live_identity" == "$expected_identity" ]] ||
+        "$live_identity" == "$expected_identity" ]] ||
         fail "campaign object VNUM $vnum collides in $candidate"
     done
   done
@@ -257,8 +250,7 @@ provision_campaign_world()
   ensure_index_entry "$repo_root/lib/world/zon/index" '700.zon'
 }
 
-database_scalar()
-{
+database_scalar() {
   local query=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -266,8 +258,7 @@ database_scalar()
     "$database_name" --execute="$query"
 }
 
-database_execute()
-{
+database_execute() {
   local query=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -275,8 +266,7 @@ database_execute()
     "$database_name" --execute="$query"
 }
 
-apply_database_file()
-{
+apply_database_file() {
   local sql_file=$1
 
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
@@ -284,13 +274,11 @@ apply_database_file()
     "$database_name" <"$sql_file"
 }
 
-port_is_listening()
-{
+port_is_listening() {
   ss -H -ltn "sport = :$mud_port" 2>/dev/null | grep -q .
 }
 
-stop_development_mud()
-{
+stop_development_mud() {
   local attempt
 
   if systemctl --user is-active --quiet "$server_unit"; then
@@ -303,16 +291,14 @@ stop_development_mud()
   fail "development port $mud_port remained active"
 }
 
-start_development_mud()
-{
+start_development_mud() {
   local output_file=${1:-"$run_dir/01-boot.log"}
 
   "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" >"$output_file" 2>&1
   restart_needed=false
 }
 
-reset_campaign_runtime()
-{
+reset_campaign_runtime() {
   local reset_valid
 
   database_execute "
@@ -358,8 +344,7 @@ reset_campaign_runtime()
     fail "the campaign merchant runtime could not be reset safely"
 }
 
-recover_server()
-{
+recover_server() {
   local exit_status=$?
 
   trap - EXIT
@@ -578,8 +563,8 @@ after_position=${first_session_positions[first_position_count - 1]}
   fail "the campaign merchant did not move during the actual-character window"
 
 if [[ -f "$server_log" ]] &&
-   grep -E 'SYSERR:.*(Vailand Ironwind|Vailand Iron Passage|100001[3-6])' \
-     "$server_log" >"$run_dir/03-first-related-syserr.log"; then
+  grep -E 'SYSERR:.*(Vailand Ironwind|Vailand Iron Passage|100001[3-6])' \
+    "$server_log" >"$run_dir/03-first-related-syserr.log"; then
   fail "the server logged a campaign vessel SYSERR"
 fi
 
@@ -608,11 +593,11 @@ restart_state=$(database_scalar "
 IFS='|' read -r restart_slot restart_generation restart_autopilot \
   restart_speed restart_x restart_y <<<"$restart_state"
 [[ "$restart_slot" == "$merchant_slot" &&
-   "$restart_generation" == "$merchant_generation" &&
-   "$restart_autopilot" =~ ^[12]$ &&
-   "$restart_speed" =~ ^[1-9][0-9]*$ &&
-   "$restart_x" =~ ^-?[0-9]+$ && "$restart_y" =~ ^-?[0-9]+$ &&
-   "$restart_x|$restart_y" == "$persisted_after_first" ]] ||
+  "$restart_generation" == "$merchant_generation" &&
+  "$restart_autopilot" =~ ^[12]$ &&
+  "$restart_speed" =~ ^[1-9][0-9]*$ &&
+  "$restart_x" =~ ^-?[0-9]+$ && "$restart_y" =~ ^-?[0-9]+$ &&
+  "$restart_x|$restart_y" == "$persisted_after_first" ]] ||
   fail "the campaign merchant identity or autopilot did not survive restart"
 
 timeout 150 "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" --commands \
@@ -657,8 +642,8 @@ restart_after_position=${restart_session_positions[restart_position_count - 1]}
   fail "the campaign merchant did not resume movement after restart"
 
 if [[ -f "$server_log" ]] &&
-   grep -E 'SYSERR:.*(Vailand Ironwind|Vailand Iron Passage|100001[3-6])' \
-     "$server_log" >"$run_dir/06-restart-related-syserr.log"; then
+  grep -E 'SYSERR:.*(Vailand Ironwind|Vailand Iron Passage|100001[3-6])' \
+    "$server_log" >"$run_dir/06-restart-related-syserr.log"; then
   fail "the restarted server logged a campaign vessel SYSERR"
 fi
 
@@ -688,16 +673,16 @@ final_state=$(database_scalar "
 IFS='|' read -r final_slot final_generation final_autopilot final_x final_y \
   <<<"$final_state"
 [[ "$final_slot" == "$merchant_slot" &&
-   "$final_generation" == "$merchant_generation" &&
-   "$final_autopilot" =~ ^[12]$ &&
-   "$final_x" =~ ^-?[0-9]+$ && "$final_y" =~ ^-?[0-9]+$ &&
-   "$final_x" -ge -612 && "$final_x" -le -584 &&
-   "$final_y" -ge 440 && "$final_y" -le 470 ]] ||
+  "$final_generation" == "$merchant_generation" &&
+  "$final_autopilot" =~ ^[12]$ &&
+  "$final_x" =~ ^-?[0-9]+$ && "$final_y" =~ ^-?[0-9]+$ &&
+  "$final_x" -ge -612 && "$final_x" -le -584 &&
+  "$final_y" -ge 440 && "$final_y" -le 470 ]] ||
   fail "the final campaign merchant baseline is not in North Vailand waters"
 
 if [[ -f "$server_log" ]] &&
-   grep -E 'SYSERR:.*(Vailand Ironwind|Vailand Iron Passage|100001[3-6])' \
-     "$server_log" >"$run_dir/08-final-related-syserr.log"; then
+  grep -E 'SYSERR:.*(Vailand Ironwind|Vailand Iron Passage|100001[3-6])' \
+    "$server_log" >"$run_dir/08-final-related-syserr.log"; then
   fail "the final server start logged a campaign vessel SYSERR"
 fi
 

@@ -10,8 +10,7 @@ pid_path="$test_root/mariadb.pid"
 log_path="$test_root/mariadb.log"
 server_pid=
 
-cleanup()
-{
+cleanup() {
   if [[ -n "$server_pid" ]] && kill -0 "$server_pid" 2>/dev/null; then
     kill "$server_pid"
     wait "$server_pid" 2>/dev/null || true
@@ -20,20 +19,17 @@ cleanup()
 }
 trap cleanup EXIT
 
-fail()
-{
+fail() {
   echo "character rename schema test: $*" >&2
   exit 1
 }
 
-sql()
-{
+sql() {
   mariadb --no-defaults --batch --skip-column-names \
     --socket="$socket_path" -u root rename_test "$@"
 }
 
-assert_sql()
-{
+assert_sql() {
   local query=$1
   local expected=$2
   local actual
@@ -67,7 +63,7 @@ mariadb-admin --no-defaults --socket="$socket_path" -u root ping >/dev/null 2>&1
 
 mariadb --no-defaults --socket="$socket_path" -u root \
   -e "CREATE DATABASE rename_test CHARACTER SET utf8mb4"
-sql < "$project_root/sql/master_schema.sql"
+sql <"$project_root/sql/master_schema.sql"
 
 # Exercise optional deployed objects that are intentionally discovered at
 # runtime rather than required in every schema.
@@ -109,8 +105,8 @@ sql -e "
   INSERT INTO player_mail_read (player_name, mail_id)
     VALUES ('LegacyReader', @legacy_mail_id);
 "
-sql < "$project_root/sql/components/character_rename_transactional_schema.sql" >/dev/null
-sql < "$project_root/sql/components/vessels_phase15_schema.sql" >/dev/null
+sql <"$project_root/sql/components/character_rename_transactional_schema.sql" >/dev/null
+sql <"$project_root/sql/components/vessels_phase15_schema.sql" >/dev/null
 assert_sql "
   SELECT COUNT(*) FROM information_schema.TABLES
   WHERE TABLE_SCHEMA=DATABASE()

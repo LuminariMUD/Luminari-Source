@@ -39,7 +39,7 @@ fi
 
 stale=0
 for entry in "${GUIDES[@]}"; do
-  IFS='|' read -r source basename title subtitle <<< "$entry"
+  IFS='|' read -r source basename title subtitle <<<"$entry"
   target="$OUTDIR/$basename"
 
   if [ ! -f "$source" ]; then

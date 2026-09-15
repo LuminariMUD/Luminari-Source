@@ -16,8 +16,7 @@ set -euo pipefail
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 cd "$project_root"
 
-fail()
-{
+fail() {
   printf 'binary name static test: %s\n' "$*" >&2
   exit 1
 }
@@ -47,8 +46,7 @@ patterns=(
 
 # Exempt only necessary detector/spec text and repository-mandated frozen
 # history. These are not runtime compatibility paths.
-is_allowed_path()
-{
+is_allowed_path() {
   local candidate=$1
 
   case "$candidate" in
@@ -58,7 +56,10 @@ is_allowed_path()
   return 1
 }
 
-pattern_expression=$(IFS='|'; printf '%s' "${patterns[*]}")
+pattern_expression=$(
+  IFS='|'
+  printf '%s' "${patterns[*]}"
+)
 violations=()
 
 while IFS= read -r line; do

@@ -9,8 +9,8 @@ LOG_DIR="$REPO_ROOT/log"
 LOG_FILE="$LOG_DIR/gdb_debug.log"
 
 if [ ! -f "$BIN_PATH" ]; then
-    echo "ERROR: $BIN_PATH not found. Build the project first (try './scripts/cbuild.sh')."
-    exit 1
+  echo "ERROR: $BIN_PATH not found. Build the project first (try './scripts/cbuild.sh')."
+  exit 1
 fi
 
 mkdir -p "$LOG_DIR"
@@ -50,12 +50,12 @@ GDB_INIT_FILE="$(mktemp "$SCRIPT_DIR/.gdbinit_mud.XXXXXX")"
 GDB_COMMANDS_FILE="$(mktemp "$SCRIPT_DIR/.gdbcommands.XXXXXX")"
 
 cleanup() {
-    rm -f "$GDB_INIT_FILE" "$GDB_COMMANDS_FILE"
+  rm -f "$GDB_INIT_FILE" "$GDB_COMMANDS_FILE"
 }
 
 trap cleanup EXIT
 
-cat > "$GDB_INIT_FILE" <<'EOF'
+cat >"$GDB_INIT_FILE" <<'EOF'
 # MUD-specific GDB settings
 define mud_status
     printf "=== MUD Status ===\n"
@@ -152,7 +152,7 @@ end
 printf "MUD debugging extensions loaded. Type 'mudhelp' for commands.\n"
 EOF
 
-cat > "$GDB_COMMANDS_FILE" <<EOF
+cat >"$GDB_COMMANDS_FILE" <<EOF
 set pagination off
 set print pretty on
 set print array on
@@ -177,6 +177,6 @@ source $GDB_INIT_FILE
 echo \n
 EOF
 
-echo "run -q $PORT" >> "$GDB_COMMANDS_FILE"
+echo "run -q $PORT" >>"$GDB_COMMANDS_FILE"
 
 gdb -x "$GDB_COMMANDS_FILE" "$BIN_PATH"

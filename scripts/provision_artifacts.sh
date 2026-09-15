@@ -7,21 +7,21 @@ PROJECT_ROOT="${LUMINARI_PROJECT_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 PACKAGE_DIR="$PROJECT_ROOT/lib/world/artifacts"
 
 ensure_index_entry() {
-    local index_file="$1"
-    local entry="$2"
-    local temp_file
+  local index_file="$1"
+  local entry="$2"
+  local temp_file
 
-    if [[ ! -f "$index_file" ]]; then
-        printf '%s\n$\n' "$entry" > "$index_file"
-        return
-    fi
+  if [[ ! -f "$index_file" ]]; then
+    printf '%s\n$\n' "$entry" >"$index_file"
+    return
+  fi
 
-    if grep -Fqx "$entry" "$index_file"; then
-        return
-    fi
+  if grep -Fqx "$entry" "$index_file"; then
+    return
+  fi
 
-    temp_file="$(mktemp "${index_file}.artifact.XXXXXX")"
-    awk -v entry="$entry" '
+  temp_file="$(mktemp "${index_file}.artifact.XXXXXX")"
+  awk -v entry="$entry" '
         BEGIN {
             entry_number = entry + 0
         }
@@ -44,22 +44,22 @@ ensure_index_entry() {
                 print "$"
             }
         }
-    ' "$index_file" > "$temp_file"
-    chmod --reference="$index_file" "$temp_file"
-    mv "$temp_file" "$index_file"
+    ' "$index_file" >"$temp_file"
+  chmod --reference="$index_file" "$temp_file"
+  mv "$temp_file" "$index_file"
 }
 
 # Add object prototypes from the package that the live file does not have
 # yet.  Records that already exist are never touched: a builder may have
 # edited them through OLC, and that edit is authoritative.
 merge_missing_objects() {
-    local package_file="$1"
-    local live_file="$2"
-    local temp_file
+  local package_file="$1"
+  local live_file="$2"
+  local temp_file
 
-    temp_file="$(mktemp "${live_file}.artifact.XXXXXX")"
+  temp_file="$(mktemp "${live_file}.artifact.XXXXXX")"
 
-    awk -v live="$live_file" '
+  awk -v live="$live_file" '
         # Collect the vnums the live file already defines.
         BEGIN {
             while ((getline line < live) > 0)
@@ -75,11 +75,11 @@ merge_missing_objects() {
         }
         /^\$~/ { emit = 0 }
         emit { print }
-    ' "$package_file" > "$temp_file"
+    ' "$package_file" >"$temp_file"
 
-    if [[ -s "$temp_file" ]]; then
-        # Splice the new records in ahead of the terminator.
-        awk -v add="$temp_file" '
+  if [[ -s "$temp_file" ]]; then
+    # Splice the new records in ahead of the terminator.
+    awk -v add="$temp_file" '
             /^\$~/ && !done {
                 while ((getline line < add) > 0)
                     print line
@@ -87,24 +87,24 @@ merge_missing_objects() {
                 done = 1
             }
             { print }
-        ' "$live_file" > "${temp_file}.merged"
-        chmod --reference="$live_file" "${temp_file}.merged"
-        mv "${temp_file}.merged" "$live_file"
-    fi
+        ' "$live_file" >"${temp_file}.merged"
+    chmod --reference="$live_file" "${temp_file}.merged"
+    mv "${temp_file}.merged" "$live_file"
+  fi
 
-    rm -f "$temp_file"
+  rm -f "$temp_file"
 }
 
 # Add reset commands from the package that the live zone does not have yet.
 # Existing resets are never rewritten or reordered.
 merge_missing_resets() {
-    local package_file="$1"
-    local live_file="$2"
-    local temp_file
+  local package_file="$1"
+  local live_file="$2"
+  local temp_file
 
-    temp_file="$(mktemp "${live_file}.artifact.XXXXXX")"
+  temp_file="$(mktemp "${live_file}.artifact.XXXXXX")"
 
-    awk -v live="$live_file" '
+  awk -v live="$live_file" '
         BEGIN {
             while ((getline line < live) > 0)
                 if (line ~ /^O /) {
@@ -118,10 +118,10 @@ merge_missing_resets() {
             if (!((f[3] + 0) in have))
                 print
         }
-    ' "$package_file" > "$temp_file"
+    ' "$package_file" >"$temp_file"
 
-    if [[ -s "$temp_file" ]]; then
-        awk -v add="$temp_file" '
+  if [[ -s "$temp_file" ]]; then
+    awk -v add="$temp_file" '
             /^S$/ && !done {
                 while ((getline line < add) > 0)
                     print line
@@ -129,42 +129,42 @@ merge_missing_resets() {
                 done = 1
             }
             { print }
-        ' "$live_file" > "${temp_file}.merged"
-        chmod --reference="$live_file" "${temp_file}.merged"
-        mv "${temp_file}.merged" "$live_file"
-    fi
+        ' "$live_file" >"${temp_file}.merged"
+    chmod --reference="$live_file" "${temp_file}.merged"
+    mv "${temp_file}.merged" "$live_file"
+  fi
 
-    rm -f "$temp_file"
+  rm -f "$temp_file"
 }
 
 provision_world_file() {
-    local kind="$1"
-    local filename="1699.$kind"
-    local destination_dir="$PROJECT_ROOT/lib/world/$kind"
+  local kind="$1"
+  local filename="1699.$kind"
+  local destination_dir="$PROJECT_ROOT/lib/world/$kind"
 
-    mkdir -p "$destination_dir"
-    if [[ ! -f "$destination_dir/$filename" ]]; then
-        cp "$PACKAGE_DIR/$filename" "$destination_dir/$filename"
-    else
-        # The file exists from an earlier provision, so it must not be
-        # replaced wholesale - but artifacts added to the package since then
-        # still have to reach the world.  Add what is missing, change
-        # nothing that is already there.
-        case "$kind" in
-            obj) merge_missing_objects "$PACKAGE_DIR/$filename" "$destination_dir/$filename" ;;
-            zon) merge_missing_resets "$PACKAGE_DIR/$filename" "$destination_dir/$filename" ;;
-        esac
-    fi
-    ensure_index_entry "$destination_dir/index" "$filename"
+  mkdir -p "$destination_dir"
+  if [[ ! -f "$destination_dir/$filename" ]]; then
+    cp "$PACKAGE_DIR/$filename" "$destination_dir/$filename"
+  else
+    # The file exists from an earlier provision, so it must not be
+    # replaced wholesale - but artifacts added to the package since then
+    # still have to reach the world.  Add what is missing, change
+    # nothing that is already there.
+    case "$kind" in
+      obj) merge_missing_objects "$PACKAGE_DIR/$filename" "$destination_dir/$filename" ;;
+      zon) merge_missing_resets "$PACKAGE_DIR/$filename" "$destination_dir/$filename" ;;
+    esac
+  fi
+  ensure_index_entry "$destination_dir/index" "$filename"
 }
 
 for kind in zon wld mob obj; do
-    provision_world_file "$kind"
+  provision_world_file "$kind"
 done
 
 mkdir -p "$PROJECT_ROOT/lib/text/help"
 if [[ ! -f "$PROJECT_ROOT/lib/text/help/artifacts.hlp" ]]; then
-    cp "$PACKAGE_DIR/artifacts.hlp" "$PROJECT_ROOT/lib/text/help/artifacts.hlp"
+  cp "$PACKAGE_DIR/artifacts.hlp" "$PROJECT_ROOT/lib/text/help/artifacts.hlp"
 fi
 ensure_index_entry "$PROJECT_ROOT/lib/text/help/index" "artifacts.hlp"
 

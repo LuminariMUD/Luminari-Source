@@ -15,28 +15,25 @@ verify="$project_root/scripts/deployment/verify_hardened_binary.sh"
 cc=${CC:-cc}
 test_root=$(mktemp -d "${TMPDIR:-/tmp}/luminari-production-profile-test.XXXXXX")
 
-fail()
-{
+fail() {
   printf 'production profile test: %s\n' "$*" >&2
   exit 1
 }
 
-cleanup()
-{
+cleanup() {
   if [[ -d "$test_root" ]] && [[ $(basename "$test_root") == luminari-production-profile-test.* ]]; then
     rm -rf -- "$test_root"
   fi
 }
 trap cleanup EXIT
 
-field()
-{
-  awk -F= -v key="$2" '$1 == key {print substr($0, index($0, "=") + 1); exit}' <<< "$1"
+field() {
+  awk -F= -v key="$2" '$1 == key {print substr($0, index($0, "=") + 1); exit}' <<<"$1"
 }
 
 # The helper mirrors src/core/constants.c: the marker section exists only when the
 # profile's LUMINARI_PRODUCTION_PROFILE definition reaches the compile line.
-cat > "$test_root/helper.c" <<'HELPER'
+cat >"$test_root/helper.c" <<'HELPER'
 #include <stdio.h>
 #include <string.h>
 
@@ -68,7 +65,7 @@ fi
 # 2. The production probe emits the contract keys and the optimization policy.
 output=$("$profile" --cc "$cc" --production) || fail "production probe failed for $cc"
 for key in PRODUCTION_CFLAGS PRODUCTION_LDFLAGS PRODUCTION_SUPPORTED PRODUCTION_UNSUPPORTED; do
-  grep -q "^$key=" <<< "$output" || fail "probe output lacks $key"
+  grep -q "^$key=" <<<"$output" || fail "probe output lacks $key"
 done
 cflags=$(field "$output" PRODUCTION_CFLAGS)
 ldflags=$(field "$output" PRODUCTION_LDFLAGS)
@@ -131,7 +128,7 @@ fi
 # 8. Warning tiers: every key is present, the baseline is the -Wall -Wextra
 #    floor, the tiers are cumulative, and only known tiers are accepted.
 for key in WARNING_TIER WARNING_CFLAGS WARNING_UNSUPPORTED; do
-  grep -q "^$key=" <<< "$empty" || fail "probe output lacks $key"
+  grep -q "^$key=" <<<"$empty" || fail "probe output lacks $key"
 done
 [[ "$(field "$empty" WARNING_TIER)" == none ]] || fail "bare probe reported a warning tier"
 [[ -z "$(field "$empty" WARNING_CFLAGS)" ]] || fail "bare probe emitted warning flags"
