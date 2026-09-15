@@ -1,8 +1,8 @@
 # Pre-commit formatters for every maintained file type
 
-Status: Steps 1 to 9 are done and verified on `chore/pre-commit-clang-tidy`;
-Step 0's host runtimes and Step 10 remain for the owner. Progress below is the
-resume point. The plan was written 2026-09-15 on the development host
+Status: Steps 0 to 9 are done and verified on `chore/pre-commit-clang-tidy`,
+and PR #191 is open for review; Step 10 follows the merge. Progress below is
+the resume point. The plan was written 2026-09-15 on the development host
 (`APP_ENV=development`) against `570193508`, the tip of `master`, and revised
 the same day with the owner's decisions: Python at 4-space indentation,
 mdformat tuned for this repository, the 18 unparseable legacy SQL files frozen
@@ -43,12 +43,12 @@ Notes for whoever resumes:
 - Exec-bit checks must look only at files a step touched: `core.fileMode` is
   false here, and 62 unrelated tracked files (C sources, docs, `.gitkeep`) are
   already 100755 in the index but not executable on disk.
-- Step 0 is not done: this host has no passwordless sudo, so neither runtime
-  is installed system-wide. Until the owner runs the Step 0 commands, PHP runs
-  through a `php` shim first on `PATH`:
-  `exec docker run --rm -i -u "$(id -u):$(id -g)" -v "$PWD:$PWD" -v "$LUMINARI_FORMATTER_CACHE:$LUMINARI_FORMATTER_CACHE" -e LUMINARI_FORMATTER_CACHE -w "$PWD" php:8.3-cli php "$@"`
-  (its output is byte-identical to Ubuntu's `php8.3-cli`, see PHP), and
-  PowerShell 7.6.6 runs from the extracted release archive.
+- Step 0 is done: `php8.3-cli` (PHP 8.3.6) and PowerShell 7.6.6 are installed
+  on the development host from the Step 0 commands, and both hooks pass
+  natively there, downloading php-cs-fixer and PSScriptAnalyzer into an empty
+  default cache. Steps 7 and 8 were verified earlier through a `php` shim into
+  the `php:8.3-cli` image and the PowerShell release archive, whose output is
+  byte-identical.
 - Found during implementation, a sixth SQL bypass: a top-level `exclude` or
   `files` pattern in `.pre-commit-config.yaml` applies to every hook. With
   `exclude: ^sql/new\.sql$` the sqlfluff hook reports "(no files to check)" and
