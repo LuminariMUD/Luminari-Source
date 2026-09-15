@@ -25,7 +25,7 @@
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "templates.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "olc/oasis.h"
 
 

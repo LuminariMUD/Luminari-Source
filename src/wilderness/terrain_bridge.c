@@ -18,7 +18,7 @@
 #include "terrain_bridge.h"
 #include "wilderness.h"
 #include "modify.h" /* For strip_colors() */
-#include "mysql.h"
+#include "database/mysql.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>

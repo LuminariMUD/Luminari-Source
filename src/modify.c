@@ -29,7 +29,7 @@
 #include "comms/ibt.h"
 #include "constants.h"
 #include <mariadb/mysql.h> // We add this for additional mysql functions such as mysql_insert_id, etc.
-#include "mysql.h"         // For mysql_escape_string_alloc
+#include "database/mysql.h" // For mysql_escape_string_alloc
 #include "character/feats.h"
 
 /* local (file scope) function prototpyes  */

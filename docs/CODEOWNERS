@@ -39,8 +39,8 @@ docs/                  @LuminariMUD/docs-team
 CLAUDE.md              @LuminariMUD/core-team
 
 # Database
-src/mysql.c            @LuminariMUD/database-team
-src/db_init.c          @LuminariMUD/database-team
+src/database/mysql.c            @LuminariMUD/database-team
+src/database/db_init.c          @LuminariMUD/database-team
 src/comms/mysql_boards.c @LuminariMUD/database-team
 sql/                   @LuminariMUD/database-team
 

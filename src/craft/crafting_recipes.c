@@ -3,7 +3,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "utils.h"
 #include "comm.h"
 #include "magic/spells.h"

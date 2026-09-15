@@ -12,7 +12,7 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "db.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "lists.h"
 #include "help.h"
 #include "character/feats.h"

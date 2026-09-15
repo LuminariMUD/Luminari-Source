@@ -26,8 +26,8 @@ retired_sources=("$project_root"/src/pubsub/*.[ch])
 runtime_files=(
   "$project_root/src/comm.c"
   "$project_root/src/db.c"
-  "$project_root/src/db_init.c"
-  "$project_root/src/db_startup_init.c"
+  "$project_root/src/database/db_init.c"
+  "$project_root/src/database/db_startup_init.c"
   "$project_root/src/interpreter.c"
   "$project_root/src/player_rename.c"
 )

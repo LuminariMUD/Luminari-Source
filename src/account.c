@@ -52,7 +52,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "utils.h"
 #include "db.h"
 #include "handler.h"

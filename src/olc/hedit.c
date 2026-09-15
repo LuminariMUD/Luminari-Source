@@ -25,7 +25,7 @@
 #include "hedit.h"
 #include "modify.h"
 #include "help.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include <sys/stat.h> /* For file stat */
 #include <time.h>     /* For time functions */
 #include <ctype.h>    /* For isspace */

@@ -15,7 +15,7 @@
 #include <inttypes.h>
 #include <math.h>
 #include "vessels.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "wilderness/wilderness.h"
 
 #define SCHEDULE_ROUTE_VALIDATION_MAX_STEPS 10000

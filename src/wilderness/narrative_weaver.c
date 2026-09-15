@@ -21,7 +21,7 @@
 #include "utils.h"
 #include "db.h"
 #include "wilderness.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "region_hints.h"
 #include "resource_descriptions.h"
 #include "narrative_weaver.h"

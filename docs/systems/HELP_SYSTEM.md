@@ -134,7 +134,7 @@ player input in a help SQL component.
 
 ## Connection Details
 - **Config File:** `lib/mysql_config`
-- **Connection:** Managed through `src/mysql.c` using prepared statements
+- **Connection:** Managed through `src/database/mysql.c` using prepared statements
 - **Status:** FUNCTIONAL - Database connection verified and operational
 
 ## Database Schema
@@ -827,8 +827,8 @@ Debug output includes:
 ## Database Integration
 - **`src/db.c`** - Contains `load_help()` function for file-based loading, help_table management
 - **`src/db.h`** - Defines `help_index_element` structure, declares help_table global
-- **`src/mysql.c`** - MySQL connection handling, escape functions used by help system
-- **`src/db_init.c`** - Database table creation and initialization
+- **`src/database/mysql.c`** - MySQL connection handling, escape functions used by help system
+- **`src/database/db_init.c`** - Database table creation and initialization
 
 ## Command Integration
 - **`src/interpreter.c`** - Registers help commands (help, hedit, helpcheck, hindex, helpgen)

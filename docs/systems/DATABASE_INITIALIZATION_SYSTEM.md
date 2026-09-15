@@ -18,11 +18,11 @@ This system provides a complete, production-safe database initialization framewo
 
 ### Core Files
 
-1. **`src/db_init.h`** - Header with all function prototypes
-2. **`src/db_init.c`** - Table creation functions (34+ tables)
-3. **`src/db_init_data.c`** - Safe data population functions
-4. **`src/db_startup_init.c`** - Startup initialization
-5. **`src/db_admin_commands.c`** - Admin commands for database management
+1. **`src/database/db_init.h`** - Header with all function prototypes
+2. **`src/database/db_init.c`** - Table creation functions (34+ tables)
+3. **`src/database/db_init_data.c`** - Safe data population functions
+4. **`src/database/db_startup_init.c`** - Startup initialization
+5. **`src/database/db_admin_commands.c`** - Admin commands for database management
 
 ### Database Tables Managed
 

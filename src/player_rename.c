@@ -13,7 +13,7 @@
 #include "db.h"
 #include "ban.h"
 #include "helpers.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "account.h"
 #include "net/protocol.h"
 #include "movement/movement_tracks.h"

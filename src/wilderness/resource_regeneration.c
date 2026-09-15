@@ -18,7 +18,7 @@
 #include "resource_system.h"
 #include "resource_depletion.h"
 #include "resource_regeneration.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "mud_event.h"
 
 /* ===== REGENERATION CONSTANTS ===== */

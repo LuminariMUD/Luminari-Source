@@ -60,15 +60,15 @@ Use autorun for the subsequent development start, not `luminari.service`.
 ## Handle Luminari's database contract
 
 The server gets its database connection from `lib/mysql_config`; `DB_*` entries in `lib/.env`
-are not a substitute for tracing `src/mysql.c`. Inspect the configured runtime read-only before
+are not a substitute for tracing `src/database/mysql.c`. Inspect the configured runtime read-only before
 repairing it, keeping credentials out of command arguments and output.
 
 Luminari initializes missing tables and runs embedded, versioned migrations during startup:
 
-- `src/db_startup_init.c`: `startup_database_init()` and `initialize_missing_tables()`;
-- `src/db_init.c`: `run_database_migrations()`, `run_pet_persistence_migrations()`, and
+- `src/database/db_startup_init.c`: `startup_database_init()` and `initialize_missing_tables()`;
+- `src/database/db_init.c`: `run_database_migrations()`, `run_pet_persistence_migrations()`, and
   `schema_migrations` bookkeeping;
-- `src/db_init_data.c`: required player-table and pet-persistence verification.
+- `src/database/db_init_data.c`: required player-table and pet-persistence verification.
 
 Trace these current requirements and any affected subsystem's checked-in SQL. Recorded migration
 versions are evidence of application, not proof that the current columns, indexes, and engines

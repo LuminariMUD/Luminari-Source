@@ -23,7 +23,7 @@
 #include "obj/house.h"
 #include "dgscript/dg_scripts.h"
 #include "clan/clan.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "modify.h"
 #include "new_mail.h"
 

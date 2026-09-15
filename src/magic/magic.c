@@ -49,7 +49,7 @@
 #include "bardic_performance.h"
 #include "perfmon.h"
 #include "affected_owners.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "point_update_periodic.h"
 
 // external

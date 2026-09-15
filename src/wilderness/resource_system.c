@@ -18,7 +18,7 @@
 #include "harvest.h"
 #include "resource_depletion.h"    /* Phase 6: Add depletion system */
 #include "resource_descriptions.h" /* For elevation functions */
-#include "mysql.h"
+#include "database/mysql.h"
 #include "magic/spells.h"
 #include "olc/genolc.h"
 #include "constants.h"

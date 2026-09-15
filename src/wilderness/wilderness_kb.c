@@ -16,7 +16,7 @@
 #include "db.h"
 #include "wilderness.h"
 #include "perlin.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "wilderness_kb.h"
 /* Include math.h after utils.h and undefine log macro to avoid conflict */
 #undef log

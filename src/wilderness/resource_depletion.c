@@ -17,7 +17,7 @@
 #include "resource_system.h"
 #include "resource_depletion.h"
 #include "resource_regeneration.h"
-#include "mysql.h"
+#include "database/mysql.h"
 
 /* ===== DATABASE INITIALIZATION ===== */
 

@@ -5,7 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/comm.h"
-#include "../../src/mysql.h"
+#include "../../src/database/mysql.h"
 #include "../../src/wilderness/wilderness.h"
 
 #include <string.h>

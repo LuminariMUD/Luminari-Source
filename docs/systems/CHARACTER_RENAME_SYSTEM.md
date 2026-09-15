@@ -479,7 +479,7 @@ not be folded into those counts.
 
 There is also schema drift to resolve or explicitly accommodate:
 
-- [`src/db_init.c`](../../src/db_init.c#L147) creates `player_data.account_id`.
+- [`src/database/db_init.c`](../../src/database/db_init.c#L147) creates `player_data.account_id`.
 - The current
   [`sql/master_schema.sql`](../../sql/master_schema.sql#L31) definition does not
   include `account_id`.

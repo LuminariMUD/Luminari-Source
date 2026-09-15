@@ -19,7 +19,7 @@
 #include "house.h"
 #include "constants.h"
 #include "modify.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "clan/clan.h"
 #include "act.h"                 /* for perform_save() */
 #include "dgscript/dg_scripts.h" /* for load_otriggers() */

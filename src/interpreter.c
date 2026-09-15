@@ -88,7 +88,7 @@
 #include "craft/crafting_new.h"
 #include "craft/brew.h"
 #include "character/talents.h" /* crafting/harvesting talent system */
-#include "mysql.h"
+#include "database/mysql.h"
 #include "comms/mysql_boards.h"
 #include "olc/bedit.h" /* MySQL board system */
 #include "obj/spec_artifacts.h"

@@ -38,7 +38,7 @@
 #include "wilderness.h"
 #include "kdtree.h"
 
-#include "mysql.h"
+#include "database/mysql.h"
 #include "desc_engine.h"
 
 

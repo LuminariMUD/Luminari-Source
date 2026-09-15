@@ -31,7 +31,7 @@
 #include "obj/shop.h"
 #include "obj/shop.h"
 #include "act.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "copyover_diagnostic.h"
 #include "olc/genzon.h" /* for real_zone_by_thing */
 #include "character/class.h"
@@ -8763,7 +8763,7 @@ ACMD(do_singlefile)
 
 #include "wilderness/wilderness.h"
 #include "wilderness/kdtree.h"
-#include "mysql.h"
+#include "database/mysql.h"
 
 /* Command to generate a wilderness river. */
 ACMD(do_genriver)

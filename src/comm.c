@@ -113,7 +113,7 @@
 #include "periodic_owners.h"
 #include "dotenv.h"
 #include "elf_build_id.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "net/onboarding.h"
 #include "roleplay.h"
 #include "help.h"

@@ -16,7 +16,7 @@
 #include "genolc.h"
 #include "interpreter.h"
 #include "helpers.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "comms/mysql_boards.h"
 #include "bedit.h"
 

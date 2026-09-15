@@ -23,7 +23,7 @@
 #include "handler.h"
 #include "dgscript/dg_event.h"
 #include "dgscript/dg_scripts.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "perfmon.h"
 #include "active_world.h"
 #include "affected_owners.h"

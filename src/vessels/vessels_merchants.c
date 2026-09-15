@@ -15,7 +15,7 @@
 #include "interpreter.h"
 #include "vessels.h"
 #include "vessel_periodic.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "wilderness/wilderness.h"
 #include "quest/missions.h"
 #include "constants.h"

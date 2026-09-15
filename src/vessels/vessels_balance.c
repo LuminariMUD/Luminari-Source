@@ -9,7 +9,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "vessels.h"
-#include "mysql.h"
+#include "database/mysql.h"
 
 
 #define VESSEL_BALANCE_DUEL_ARMOR 40

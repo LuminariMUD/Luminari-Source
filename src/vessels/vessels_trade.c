@@ -17,7 +17,7 @@
 #include "rewards.h"
 #include "interpreter.h"
 #include "vessels.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "clan/clan.h"
 
 #include <errno.h>

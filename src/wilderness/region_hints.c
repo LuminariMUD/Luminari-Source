@@ -15,7 +15,7 @@
 #include "utils.h"
 #include "db.h"
 #include "comm.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "region_hints.h"
 #include "wilderness.h"
 

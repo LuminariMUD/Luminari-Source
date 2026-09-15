@@ -43,7 +43,7 @@
 #include "item.h"
 #include "character/feats.h"
 #include "craft/alchemy.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "magic/metamagic_science.h"
 #include "treasure.h"
 #include "craft/crafts.h"

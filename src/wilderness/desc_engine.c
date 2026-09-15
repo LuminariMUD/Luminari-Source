@@ -16,7 +16,7 @@
 #include "dgscript/dg_event.h"
 #include "db.h"
 #include "constants.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "desc_engine.h"
 #include "narrative_weaver.h"
 #include "wilderness.h"

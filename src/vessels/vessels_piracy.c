@@ -17,7 +17,7 @@
 #include "interpreter.h"
 #include "vessels.h"
 #include "wilderness/wilderness.h"
-#include "mysql.h"
+#include "database/mysql.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 

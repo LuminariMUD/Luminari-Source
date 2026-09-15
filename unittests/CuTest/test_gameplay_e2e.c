@@ -74,7 +74,7 @@
 #include "../../src/spec/spec_mobiles.h"
 #include "../../src/mud_event.h"
 #include "../../src/mudlim.h"
-#include "../../src/mysql.h"
+#include "../../src/database/mysql.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/dotenv.h"
 

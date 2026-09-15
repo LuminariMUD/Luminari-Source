@@ -15,7 +15,7 @@ Every source file lives in one directory directly under `src/`. No behavior chan
 | 1 | delete `trails.h` | done |
 | 2 | `ai/` | done |
 | 3 | `clan/` | done |
-| 4 | `database/` | todo |
+| 4 | `database/` | done |
 | 5 | `player/` | todo |
 | 6 | `act/` | todo |
 | 7 | into existing directories | todo |

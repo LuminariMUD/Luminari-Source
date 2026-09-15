@@ -113,7 +113,7 @@ ownership evidence in the
 
 ## Database Layer
 
-- MariaDB/MySQL is required. Access it through the established `src/mysql.c` integration and C
+- MariaDB/MySQL is required. Access it through the established `src/database/mysql.c` integration and C
   client dependency.
 - Keep connection details in the existing local credential files and environment, never in source.
 - Escape or parameterize untrusted data according to existing database helpers; never concatenate
@@ -191,7 +191,7 @@ ownership evidence in the
 | Development startup | Syntax-check boot | `./bin/luminari -c -d lib` |
 | Observability | Autorun structured crash capture | `scripts/autorun/autorun.sh`, `log/last_error_*.json` |
 | Git hooks | pre-commit | `.pre-commit-config.yaml` |
-| Database | MariaDB/MySQL C client | `src/mysql.c`, `sql/`, `lib/mysql_config` |
+| Database | MariaDB/MySQL C client | `src/database/mysql.c`, `sql/`, `lib/mysql_config` |
 
 Autorun writes abnormal-exit context atomically as mode `0600` JSON under the existing ignored
 `log/` runtime directory. The record includes immutable release identity and exact core/backtrace

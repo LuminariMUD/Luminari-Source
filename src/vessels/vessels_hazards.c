@@ -16,7 +16,7 @@
 #include "interpreter.h"
 #include "vessels.h"
 #include "wilderness/wilderness.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "constants.h"
 #include "act.h"
 

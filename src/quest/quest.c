@@ -28,8 +28,8 @@
 #include "mud_event.h"
 #include "missions.h"
 #include "obj/house.h"
-#include "mysql.h"
-#include "db_init.h"
+#include "database/mysql.h"
+#include "database/db_init.h"
 #include "dgscript/dg_scripts.h" /* for load_mtrigger() */
 #include "modify.h"
 #include "spec/spec_effective_binding.h"

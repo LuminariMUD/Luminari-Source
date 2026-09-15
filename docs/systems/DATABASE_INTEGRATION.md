@@ -234,7 +234,7 @@ void save_room_state(room_rnum room) {
 
 #### Prepared Statements
 
-`src/mysql.h` provides the `PREPARED_STMT` wrapper. It is the default way to
+`src/database/mysql.h` provides the `PREPARED_STMT` wrapper. It is the default way to
 run any SQL that carries a data value: the statement text stays constant and
 every value is bound, so quoting, character sets, backslashes, and the session
 `sql_mode` cannot change the statement's meaning. `src/account.c` is the

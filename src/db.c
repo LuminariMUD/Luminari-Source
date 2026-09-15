@@ -76,9 +76,9 @@
 #include "wilderness/perlin.h"
 #include "wilderness/wilderness.h"
 #include "wilderness/resource_system.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "comms/mysql_boards.h" /* MySQL board system */
-#include "db_init.h"
+#include "database/db_init.h"
 #include "character/feats.h"
 #include "actionqueues.h"
 #include "magic/domains_schools.h"

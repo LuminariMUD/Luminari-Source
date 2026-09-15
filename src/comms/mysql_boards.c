@@ -27,7 +27,7 @@
 #include "character/deities.h"
 #include "helpers.h"
 
-#include "mysql.h"
+#include "database/mysql.h"
 #include "mysql_boards.h"
 
 /* External Variables */

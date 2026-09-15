@@ -1,5 +1,5 @@
 -- Canonical help-content schema for new installations.
--- Existing installations are upgraded by the collision-safe migrations in src/db_init.c.
+-- Existing installations are upgraded by the collision-safe migrations in src/database/db_init.c.
 
 CREATE TABLE IF NOT EXISTS help_entries (
   id INT AUTO_INCREMENT PRIMARY KEY,

@@ -55,7 +55,7 @@
 #include "handler.h"
 #include "wilderness/wilderness.h"
 #include "quest/quest.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "act.h"
 #include "craft/brew.h" /* Include for brewing events */
 

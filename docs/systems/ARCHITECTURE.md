@@ -20,7 +20,7 @@ Individual subsystems are indexed in the
 |-----------|----------|---------|
 | Game loop and networking | `src/comm.c`, `src/net/` | Connections, protocol handling, native deadlines, and shutdown |
 | Command dispatch | `src/interpreter.c`, `src/act.*.c`, feature directories | Command parsing, authorization, and behavior |
-| World boot and persistence | `src/db.c`, `src/mysql.c`, `lib/world/`, `sql/` | Flat-file world loading and required MariaDB state |
+| World boot and persistence | `src/db.c`, `src/database/mysql.c`, `lib/world/`, `sql/` | Flat-file world loading and required MariaDB state |
 | Core data and mutation | `src/structs.h`, `src/utils.h`, `src/handler.c` | Shared structures, macros, and object/character lifecycle |
 | Game systems | `src/combat/`, `src/magic/`, `src/character/`, `src/obj/` | Combat, spells and skills, characters, items, shops, and trade |
 | Content behavior | `src/dgscript/`, `src/spec/`, feature owners | DG Scripts, special-procedure control/runtime compatibility, and feature-owned callbacks |

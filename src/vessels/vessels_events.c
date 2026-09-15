@@ -15,7 +15,7 @@
 #include "vessel_periodic.h"
 #include "wilderness/wilderness.h"
 #include "act.h"
-#include "mysql.h"
+#include "database/mysql.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 

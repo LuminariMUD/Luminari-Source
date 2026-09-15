@@ -35,7 +35,7 @@
 #define OBJSAVE_DB 1
 
 #ifdef OBJSAVE_DB
-#include "mysql.h"
+#include "database/mysql.h"
 #endif
 
 /* these factors should be unique integers */

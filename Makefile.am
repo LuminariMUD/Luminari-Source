@@ -89,10 +89,10 @@ luminari_SOURCES = \
 	src/craft/crafting_recipes.c \
 	src/craft/crafts.c \
 	src/db.c \
-	src/db_init.c \
-	src/db_init_data.c \
-	src/db_startup_init.c \
-	src/db_admin_commands.c \
+	src/database/db_init.c \
+	src/database/db_init_data.c \
+	src/database/db_startup_init.c \
+	src/database/db_admin_commands.c \
 	src/character/deities.c \
 	src/wilderness/desc_engine.c \
 	src/dgscript/dg_comm.c \
@@ -216,7 +216,7 @@ luminari_SOURCES = \
 	src/olc/msgedit.c \
 	src/mud_event.c \
 	src/mud_event_list.c \
-	src/mysql.c \
+	src/database/mysql.c \
 	src/comms/new_mail.c \
 	src/olc/oasis.c \
 	src/olc/oasis_copy.c \

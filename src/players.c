@@ -15,7 +15,7 @@
 #include "utils.h"
 #include "tactical_effects.h"
 #include "db.h"
-#include "db_init.h"
+#include "database/db_init.h"
 #include "handler.h"
 #include "domain_event_world.h"
 #include "combat/fight.h"
@@ -23,7 +23,7 @@
 #include "dgscript/dg_scripts.h"
 #include "comm.h"
 #include "interpreter.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "olc/genolc.h"          /* for strip_cr */
 #include "config.h"              /* for pclean_criteria[] */
 #include "dgscript/dg_scripts.h" /* To enable saving of player variables to disk */

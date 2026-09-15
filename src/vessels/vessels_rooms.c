@@ -17,7 +17,7 @@
 #include "act.h"
 #include "modify.h"
 #include "dgscript/dg_scripts.h"
-#include "mysql.h"
+#include "database/mysql.h"
 #include "perfmon.h"
 #include "olc/genwld.h"
 #include "olc/genzon.h"
