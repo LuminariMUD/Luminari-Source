@@ -21,16 +21,16 @@ Every source file lives in one directory directly under `src/`. No behavior chan
 | 7 | into existing directories | done |
 | 8 | `events/` | done |
 | 9 | `core/` | done |
-| 10 | `config/`, local-header guard, regression guard | committed, verified in a replica; checkouts move their headers |
-| 11 | rules text and remaining prose | committed |
+| 10 | `config/`, local-header guard, regression guard | done |
+| 11 | rules text and remaining prose | done |
 
 To resume: `git log --oneline origin/master..arch-n-worktree` lists the landed batches, one
 commit each. Follow [Per-batch steps](#per-batch-steps) for the next row and update this
 table in the same commit.
 
-Batches 10 and 11 stay local until the owner moves this checkout's headers: the pre-push
-hook runs `make`, which stops at the guard until then. After the move, run the final
-verification below, then push.
+All batches are pushed. The owner authorized moving this checkout's local headers on
+2026-09-15, and the final verification below then ran here. Every other checkout,
+production included, runs the one-time move before its next build.
 
 Baseline on `ad8105421`: a clean Autotools build has no warnings, and `make -j16 test`
 passes (1,487 cutest tests); the clean build, tests, and install take about a minute.
@@ -77,6 +77,8 @@ Adopted 2026-09-15 when implementation began:
 7. The regression guard also rejects tracked `.c` and `.h` files directly under `src/`,
    not only manifest entries: 53 of the 74 top-level headers are in no manifest, so a new
    unlisted header would pass a manifest-only check.
+8. The local-header guard is permanent instead of being removed after every checkout moves;
+   the owner asked that nothing be deferred (2026-09-15).
 
 ## Rules after the change
 
@@ -269,8 +271,9 @@ Guard, in the same batch: `configure.ac` and `CMakeLists.txt` stop with an error
 of the three local headers still exists directly under `src/`, printing the move command,
 and `deploy.sh` and `setup.sh` stop with the same message before their copy step. Spell the
 old paths through a loop variable or brace expansion so a later run of the script does not
-rewrite them. Keep the guard until every known checkout has moved, then remove it; file an
-issue for that when the batch lands.
+rewrite them. The guard stays permanently: it
+costs a few lines per file and turns a stray header from old instructions into a clear
+error, so there is no removal issue.
 
 Operator step, once per checkout (development, production, and each worktree). The owner
 runs it, because agents may not modify these files. This checkout cannot build the
@@ -406,6 +409,29 @@ After pulling the final batch, in each checkout:
   the move message.
 - `MUD_PORT=4100 ./scripts/autorun/autorun.sh`, then log in, since `comm.c` and `db.c`
   moved.
+
+### Results (2026-09-15)
+
+In this checkout, after the owner authorized the header move:
+
+- The scratch-header guard proof stopped both `./configure` and `cmake` with the move
+  command.
+- A clean Autotools build had no warnings. `make test` (1,487 cutest tests),
+  `make test-world-tools` (542), `make test-protocol` (31), both character-rename checks,
+  and `make install` passed, and nothing remained directly under `src/`.
+- `check_build_parity.py`, `wtool.py docs --check`, `wtool.py constants sync --check`,
+  `check_configure_probes.sh`, and `pre-commit run clang-format --all-files` passed.
+- The `ci-gcc` CMake build passed `ctest` 29/29. The `ci-clang` build passed 28/29: only
+  `cutest-runner` failed, on this host's `-Wgcc-install-dir-libstdcxx` error (clang-22
+  sees both GCC 13 and GCC 16 here). That test and its CuTest inputs are unchanged since
+  the base commit.
+- Run without the CI runtime, `check_clean_archive.sh` failed its syntax-boot test because
+  the archive had no MariaDB configuration. The script needs the runtime from
+  `scripts/ci/prepare_test_runtime.sh` or `LUMINARI_TEST_SKIP_SYNTAX_BOOT=1`.
+- The dev MUD restarted under `autorun.sh` on the installed build of `d8c4aeb45` (status:
+  active matches installed), and `dev_kohdee_login_smoke.sh` logged Kohdee in and out.
+- The local CI runner, which supplies the clean-archive runtime and the CI compilers, is
+  running on the pushed branch head; its result will replace this line.
 
 ## Documentation (batch 11)
 
