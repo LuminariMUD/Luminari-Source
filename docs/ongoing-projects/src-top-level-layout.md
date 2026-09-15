@@ -1,8 +1,8 @@
 # Empty the top of src/
 
-Started 2026-09-15 on branch `arch-n-worktree` (base `ad8105421`). Implementation is in
-progress; [Progress](#progress) is the resume point for a new session. Counts come from
-`scripts/development/move_top_level_sources.py --dry-run` on the base.
+Completed 2026-09-15 on branch `arch-n-worktree` (base `ad8105421`): every batch landed,
+and the final verification and the local CI matrix passed (see [Results](#results-2026-09-15)).
+Counts come from `scripts/development/move_top_level_sources.py --dry-run` on the base.
 
 Goal: no `.c`, `.h`, or `.o` file directly under `src/` - tracked, generated, or local.
 Every source file lives in one directory directly under `src/`. No behavior change.
@@ -24,9 +24,12 @@ Every source file lives in one directory directly under `src/`. No behavior chan
 | 10 | `config/`, local-header guard, regression guard | done |
 | 11 | rules text and remaining prose | done |
 
-To resume: `git log --oneline origin/master..arch-n-worktree` lists the landed batches, one
-commit each. Follow [Per-batch steps](#per-batch-steps) for the next row and update this
-table in the same commit.
+`git log --oneline origin/master..arch-n-worktree` lists the batch commits, one each, plus
+the guide-regeneration fix after batch 6 and the verification records. What remains is the
+owner's: merging the branch, and the one-time header move in every other checkout,
+production included, before its next build. When the branch merges, the durable rules
+already live in AGENTS.md, CONVENTIONS.md, README_development.md, and the setup guides, so
+this file and the move script can be deleted (`docs/ongoing-projects/README.md`).
 
 All batches are pushed. The owner authorized moving this checkout's local headers on
 2026-09-15, and the final verification below then ran here. Every other checkout,
