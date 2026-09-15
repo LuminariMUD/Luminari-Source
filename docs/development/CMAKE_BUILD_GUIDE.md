@@ -13,7 +13,7 @@ and declaration style.
 ## Prerequisites
 
 | Dependency | Minimum | Ubuntu package |
-|------------|---------|----------------|
+| -- | -- | -- |
 | CMake | 3.21 | `cmake` |
 | GCC or Clang with GNU C23 | GCC 13 / Clang 16 | `gcc` or `clang` |
 | pkg-config | any | `pkg-config` |
@@ -63,7 +63,7 @@ preset has matching `--build` and (where tests apply) `ctest` presets and
 writes to `build/<preset>`.
 
 | Preset | Purpose |
-|--------|---------|
+| -- | -- |
 | `dev` | Debug build with tests and utilities, system compiler |
 | `dev-clang` | The same with `clang` |
 | `ci-gcc` | RelWithDebInfo, baseline warning tier with `-Werror`, blocking in CI (Debug and Release, GCC 13 and 16.2) |
@@ -98,7 +98,7 @@ All options are declared in `CMakeLists.txt` and printed in the configuration
 summary.
 
 | Option | Default | Effect |
-|--------|---------|--------|
+| -- | -- | -- |
 | `BUILD_UTILS` | `ON` | Build the `util/` helper programs |
 | `BUILD_TESTS` | `OFF` | Build `cutest` and register the CTest entries |
 | `LUMINARI_WARNING_TIER` | `baseline` | `baseline`, `migration`, or `analysis`; see the compiler policy in the [setup and build guide](../guides/SETUP_AND_BUILD_GUIDE.md#compiler-policy-and-warning-tiers) |

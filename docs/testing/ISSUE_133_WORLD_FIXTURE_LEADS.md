@@ -31,8 +31,7 @@ part of this change.
   starts at animal prototypes `16501+` and has no mobile `16500`; that live
   range was not overwritten.
 - Before this change, current and default position values included out-of-range
-  `10` and `POS_FIGHTING` (`8`). The wakeup visibility test had to `force golem
-  stand`, which took the "stops floating around" default path.
+  `10` and `POS_FIGHTING` (`8`). The wakeup visibility test had to `force golem stand`, which took the "stops floating around" default path.
 - Intermediate `$` terminators after each record meant the parser and C boot
   loaded only `16500`. Those extra terminators were removed so `16501`-`16511`
   remain loadable records in the same file. One `$` remains at end of file.

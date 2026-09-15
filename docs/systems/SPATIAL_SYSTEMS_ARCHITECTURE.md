@@ -12,7 +12,8 @@
 The Luminari MUD spatial systems provide immersive, realistic visual and audio awareness for players through a sophisticated triple strategy pattern architecture. Both visual and audio systems are fully implemented, tested, and integrated into the game engine, offering distance-based perception with environmental effects including terrain occlusion, weather modifications, and frequency-specific audio propagation.
 
 ### Key Features Implemented
-- [OK] **Visual System**: Distance-based sight with terrain occlusion and weather effects  
+
+- [OK] **Visual System**: Distance-based sight with terrain occlusion and weather effects
 - [OK] **Audio System**: Frequency-specific sound propagation with realistic distance dropoff
 - [OK] **Triple Strategy Pattern**: Extensible architecture for future spatial systems
 - [OK] **Environmental Integration**: Weather, terrain, and elevation effects
@@ -48,6 +49,7 @@ Each spatial system implements three distinct strategy layers:
 ### Core Components
 
 #### File Structure
+
 ```
 src/
 |-- spatial_core.c/.h      # Core framework and strategy interfaces
@@ -56,6 +58,7 @@ src/
 ```
 
 #### Integration Points
+
 - **Startup**: `spatial_init_system()`, `spatial_visual_init()`, and
   `spatial_audio_init()` are called in `db.c`
 - **Gameplay**: Publishers emit typed `WorldPhenomenon` facts; the spatial
@@ -72,15 +75,18 @@ and remains active behind the native domain-event boundary. See
 ## Visual System Implementation
 
 ### Visual Distance Strategy
+
 **Purpose**: Calculate visibility based on distance with realistic dropoff
 
 **Key Features:**
+
 - Squared distance attenuation for realistic perspective
 - Close-range clarity preservation (`distance <= 5` units)
 - Base visibility range: 1500 units
 - Progressive intensity degradation
 
 **Distance Formula:**
+
 ```c
 distance_factor = 1.0f / (1.0f + ((distance * distance) / (base_range * 0.05f)));
 if (distance > 5.0f) {
@@ -88,10 +94,12 @@ if (distance > 5.0f) {
 }
 ```
 
-### Visual Line of Sight Strategy  
+### Visual Line of Sight Strategy
+
 **Purpose**: Implement terrain-based occlusion effects
 
 **Terrain Effects:**
+
 - **Mountains**: Complete sight blocking (intensity = 0.0)
 - **Hills**: Significant reduction (`intensity *= 0.4`)
 - **Forests**: Moderate blocking (`intensity *= 0.7`)
@@ -100,30 +108,35 @@ if (distance > 5.0f) {
 - **Indoor**: Complete blocking unless same room
 
 **Elevation Advantage:**
+
 - Higher elevation provides visibility bonus
 - Calculation: `elevation_bonus = (source_z - observer_z) * 0.1f`
 - Capped at reasonable limits for game balance
 
 ### Weather/Lighting Modifier Strategy
+
 **Purpose**: Apply environmental conditions to visibility
 
 **Weather Effects:**
+
 - **Clear**: No modification
 - **Fog**: Significant reduction (`intensity *= 0.3`)
 - **Rain**: Moderate reduction (`intensity *= 0.8`)
 - **Storm**: Severe reduction (`intensity *= 0.5`)
 
 **Lighting Conditions:**
+
 - **Daylight**: Full visibility
 - **Twilight**: Moderate reduction (`intensity *= 0.7`)
 - **Night**: Significant reduction (`intensity *= 0.4`)
 - **Darkness**: Severe reduction (`intensity *= 0.2`)
 
 ### Visual Message Types
+
 Based on final calculated intensity:
 
 | Intensity Range | Message Type | Example |
-|----------------|--------------|---------|
+| -- | -- | -- |
 | >= 0.8 | Clear | "You see a merchant ship sailing." |
 | >= 0.6 | Distant | "In the distance, you glimpse a merchant ship." |
 | >= 0.4 | Shadowy | "You catch a glimpse of movement in the distance." |
@@ -135,9 +148,11 @@ Based on final calculated intensity:
 ## Audio System Implementation
 
 ### Audio Stimulus Strategy
+
 **Purpose**: Calculate sound intensity with frequency-specific propagation
 
 **Frequency Types:**
+
 ```c
 typedef enum {
     AUDIO_FREQ_LOW = 0,    // Thunder, drums - travels far
@@ -147,6 +162,7 @@ typedef enum {
 ```
 
 **Distance Formula (More Aggressive than Visual):**
+
 ```c
 // Exponential decay with steep initial dropoff
 distance_factor = 1.0f / (1.0f + ((distance * distance) / (effective_range * 0.01f)));
@@ -165,9 +181,11 @@ if (frequency == AUDIO_FREQ_HIGH) {
 ```
 
 ### Acoustic Line of Sight Strategy
+
 **Purpose**: Model sound blocking and transmission through terrain
 
 **Terrain Acoustic Properties:**
+
 - **Mountains**: Significant blocking (`intensity *= 0.2`)
 - **Hills**: Moderate blocking (`intensity *= 0.6`)
 - **Forests**: Sound dampening (`intensity *= 0.8`)
@@ -175,19 +193,22 @@ if (frequency == AUDIO_FREQ_HIGH) {
 - **Urban**: Echo effects (`intensity *= 0.9`)
 
 ### Weather/Terrain Audio Modifier Strategy
+
 **Purpose**: Environmental effects on sound transmission
 
 **Weather Acoustic Effects:**
+
 - **Clear**: Optimal transmission
 - **Wind**: Direction-dependent effects
 - **Rain**: Sound dampening (`intensity *= 0.7`)
 - **Fog**: Slight dampening (`intensity *= 0.9`)
 
 ### Audio Message Types
+
 Based on final calculated intensity with natural directional language:
 
 | Intensity Range | Message Type | Example |
-|----------------|--------------|---------|
+| -- | -- | -- |
 | >= 0.8 | Clear | "You clearly hear rumbling thunder." |
 | >= 0.5 | Distant | "You hear rumbling thunder in the distance from the west." |
 | >= 0.3 | Muffled | "You hear the muffled sound of rumbling thunder from the west." |
@@ -200,6 +221,7 @@ Based on final calculated intensity with natural directional language:
 ## Integration and Usage
 
 ### System Initialization
+
 ```c
 // Called during MUD startup in db.c
 int spatial_systems_init(void) {
@@ -227,6 +249,7 @@ spatial strategy engine directly. There is no player or staff PubSub command
 surface.
 
 ### Context Processing Flow
+
 ```c
 int spatial_process_context(struct spatial_context *ctx) {
     // 1. Validate input parameters
@@ -243,17 +266,20 @@ int spatial_process_context(struct spatial_context *ctx) {
 ## Performance Characteristics
 
 ### Optimization Features
+
 - **Early Termination**: Skip expensive calculations if intensity drops below threshold
 - **Efficient Strategy Chaining**: Each strategy can modify or abort the chain
 - **Minimal Memory Allocation**: Stack-based context structures
 - **Caching-Friendly**: Localized data access patterns
 
 ### Computational Complexity
+
 - **O(1)** per spatial context processing
 - **O(n)** where n = number of observers for broadcast events
 - **Optimized Distance Calculations**: 3D Euclidean with integer coordinate handling
 
 ### Memory Usage
+
 - **Minimal Heap Allocation**: Primary operations use stack-based structures
 - **Strategy State**: Small static structures for each strategy type
 - **No Memory Leaks**: RAII-style resource management
@@ -263,6 +289,7 @@ int spatial_process_context(struct spatial_context *ctx) {
 ## Development Guidelines
 
 ### Adding New Spatial Systems
+
 1. **Define Stimulus Type**: Add new enum value to `spatial_stimulus_type_t`
 2. **Implement Strategies**: Create three strategy functions following the pattern
 3. **Register Strategy Chain**: Add initialization to `spatial_systems_init()`
@@ -270,6 +297,7 @@ int spatial_process_context(struct spatial_context *ctx) {
 5. **Implement Message Generation**: Create appropriate output formatting
 
 ### Strategy Implementation Pattern
+
 ```c
 // Strategy function signature
 typedef int (*spatial_strategy_func_t)(struct spatial_context *ctx);
@@ -288,6 +316,7 @@ static int my_calculate_primary(struct spatial_context *ctx) {
 ```
 
 ### Testing Best Practices
+
 1. **Unit Testing**: Test each strategy independently
 2. **Integration Testing**: Exercise direct spatial API callers in the source-linked suite
 3. **Distance Testing**: Verify realistic intensity curves at various distances
@@ -299,6 +328,7 @@ static int my_calculate_primary(struct spatial_context *ctx) {
 ## Error Handling and Debugging
 
 ### Error Codes
+
 ```c
 #define SPATIAL_SUCCESS                 0
 #define SPATIAL_ERROR_INVALID_PARAM    -1
@@ -308,12 +338,14 @@ static int my_calculate_primary(struct spatial_context *ctx) {
 ```
 
 ### Debugging Features
+
 - **Comprehensive Logging**: Detailed intensity calculations and strategy results
 - **Parameter Validation**: Input validation at each strategy level
 - **Strategy Chain Tracing**: Track execution flow through strategy chains
 - **Performance Monitoring**: Built-in timing for optimization analysis
 
 ### Common Issues and Solutions
+
 1. **Distance Too Permissive**: Adjust distance formula constants for steeper dropoff
 2. **Terrain Not Blocking**: Verify terrain type mapping and intensity multiplication
 3. **Audio Direction Wrong**: Ensure directional calculations use "from" not "to"
@@ -324,18 +356,21 @@ static int my_calculate_primary(struct spatial_context *ctx) {
 ## Future Enhancement Roadmap
 
 ### Immediate Opportunities (Next Sprint)
+
 1. **Dynamic Weather Integration**: Connect to existing MUD weather system
 2. **Time of Day Effects**: Integrate with day/night cycle
 3. **Real Elevation Data**: Use actual room elevation values if available
 4. **Performance Profiling**: Add detailed performance metrics
 
 ### Medium-Term Features (Future Releases)
+
 1. **Extended Audio Frequencies**: Support for specific sound types
 2. **Advanced Terrain Effects**: Caves, canyons, echo chambers
 3. **Multi-Source Events**: Multiple simultaneous spatial stimuli
 4. **Player Perception Skills**: Abilities that enhance spatial awareness
 
 ### Long-Term Vision (Future Consideration)
+
 1. **3D Spatial Visualization**: Web-based spatial event mapping
 2. **Client Audio Integration**: Actual sound effects for supporting clients
 3. **Machine Learning Enhancement**: AI-optimized terrain effect calculations
@@ -348,6 +383,7 @@ static int my_calculate_primary(struct spatial_context *ctx) {
 The Luminari MUD spatial systems represent a **complete, production-ready implementation** that significantly enhances player immersion through realistic environmental awareness. The triple strategy pattern provides a robust, extensible foundation for future spatial features while maintaining excellent performance and code quality.
 
 **Key Achievements:**
+
 - [OK] **Complete Implementation**: Both visual and audio systems fully functional
 - [OK] **Natural Integration**: Seamless integration with existing MUD systems
 - [OK] **Realistic Behavior**: Physics-based calculations with environmental effects
@@ -362,23 +398,27 @@ The Luminari MUD spatial systems represent a **complete, production-ready implem
 ## Quick Reference
 
 ### Key Files
+
 - `src/wilderness/spatial_core.c/.h` - Core framework
-- `src/wilderness/spatial_visual.c` - Visual system implementation  
+- `src/wilderness/spatial_visual.c` - Visual system implementation
 - `src/wilderness/spatial_audio.c` - Audio system implementation
 
 ### Key Functions
+
 ```c
 int spatial_systems_init(void);                               // System initialization
 int spatial_process_context(struct spatial_context *ctx);     // Process spatial event
 ```
 
 ### Important Constants
+
 ```c
 #define AUDIO_BASE_RANGE 1500        // Base audio transmission range
 #define AUDIO_THUNDER_RANGE 3000     // Extended range for thunder
 ```
 
 ### Contact and Support
+
 - **Codebase**: `/home/jamie/Luminari-Source/src/spatial_*`
 - **Documentation**: `/home/jamie/Luminari-Source/docs/systems/`
 - **Testing**: Use the source-linked spatial and gameplay tests

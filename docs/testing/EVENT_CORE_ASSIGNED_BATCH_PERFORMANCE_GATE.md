@@ -84,7 +84,7 @@ MariaDB 10.11.14. The production MUD remained independently active on its then-c
 database restored from the same snapshot.
 
 | Backend | Commands / timeouts | p50 / p95 / p99 / max (ms) | Lateness p99 / max (ticks) | First / final RSS median (KiB) | Final ratio | RSS slope (MiB/min) | Result |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| -- | -: | -: | -: | -: | -: | -: | -- |
 | libevent | 4,808 / 0 | 0.335 / 0.646 / 0.889 / 18.001 | 1 / 1 | 1,584,136 / 1,598,672 | 1.009176 | 0.294276 | pass |
 | select | 4,808 / 0 | 0.288 / 0.602 / 1.662 / 15.125 | 1 / 1 | 1,586,646 / 1,600,890 | 1.008977 | 0.288524 | pass |
 

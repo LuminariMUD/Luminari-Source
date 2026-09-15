@@ -78,7 +78,7 @@ This table is checked against `src/quest/hlquest.h` by
 `wtool docs --check`.
 
 | Index | Macro | Marker | Meaning |
-|-------|-------|--------|---------|
+| -- | -- | -- | -- |
 | 0 | QUEST_ASK | `A` | Match spoken keywords and return a reply. |
 | 1 | QUEST_GIVE | `Q` | Consume matching inputs, then execute outputs. |
 | 2 | QUEST_ROOM | `R` | Execute when the host/player interaction occurs in the named room. |
@@ -89,7 +89,7 @@ The code ordering is checked against the enum in `src/quest/hlquest.h` and the
 persisted code table in `src/olc/hlqedit.c`.
 
 | Index | Macro | Code | Meaning | Runtime legality |
-|-------|-------|------|---------|------------------|
+| -- | -- | -- | -- | -- |
 | 0 | QUEST_COMMAND_COINS | `C` | Coins | GIVE input or output. |
 | 1 | QUEST_COMMAND_ITEM | `I` | Item | GIVE input or output. |
 | 2 | QUEST_COMMAND_LOAD_OBJECT_INROOM | `O` | Load object in room | Output only. |
@@ -147,7 +147,7 @@ first-match and execution behavior in the runtime view.
 ## Command Values and Locations
 
 | Code | `value` contract | `location` contract |
-|------|------------------|---------------------|
+| -- | -- | -- |
 | `C` | Non-negative coins through `MAX_GOLD` (2140000000). | Unused; canonical value is `0`. |
 | `I` | Existing object VNUM. | Unused; canonical value is `0`. |
 | `O` | Existing object VNUM. | Existing room VNUM, or `0` for the current room. |

@@ -94,7 +94,7 @@ manual-download alias, but `Client.GUI` must advertise the stable filename.
 The delivery paths are gated by an administrator-controlled flag.
 
 | Aspect | Location |
-| --- | --- |
+| -- | -- |
 | Macro | `CONFIG_AUTO_DL_MUDLET_PACKAGE` in `src/core/utils.h` |
 | Storage field | `auto_dl_mudlet_package` in `struct config_data` |
 | Default | `0` (`No`) in `init_config()` in `src/core/db.c` |
@@ -144,7 +144,7 @@ A commented-out legacy `PerformHandshake()` implementation also contains a
 ## What an existing installation does
 
 | Profile state | Result after receiving the advertisement |
-| --- | --- |
+| -- | -- |
 | `LuminariGUI` is absent | Mudlet downloads and installs it |
 | `LuminariGUI` is present and stored server version is `6` | No download |
 | Present, but stored server version differs | Mudlet replaces it with the advertised build |

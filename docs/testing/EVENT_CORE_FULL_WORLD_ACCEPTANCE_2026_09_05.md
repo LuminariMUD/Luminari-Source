@@ -52,7 +52,7 @@ an event failure, and social-command content is not certified by this run.
 ## Pre-Retirement Gameplay Evidence
 
 | Check | Observed result | Evidence under the private runtime |
-| --- | --- | --- |
+| -- | -- | -- |
 | Full-world boot | 762 zones, 91,735 rooms, 27,067 mobile prototypes | syslog |
 | Initial scheduler health | 43,236 live events; 38,993 mobile agendas; zero overdue work, failed callbacks, admission rejections, or registry mismatch | evidence/baseline-session.txt |
 | Offscreen combat | Two disposable mobs continued fighting while Aster was in another zone for 25 seconds; health fell from 500 to 480/482; encounter timer remained scheduled | evidence/offscreen-combat-controlled.txt |
@@ -171,7 +171,7 @@ old heartbeat gameplay body and rollback population services. Named global
 services remain for genuinely shared world/connection work.
 
 | Old responsibility | Native admission/deadline | Acceptance coverage |
-| --- | --- | --- |
+| -- | -- | -- |
 | Mobile thinking | Concrete wander, patrol, hunt, special, echo, recovery and local-reaction work in active_world.c | Full-world offscreen wandering; GLOBAL script starts offscreen fight; TestIdleNpcPeriodicWorkIsSeparateFromAutonomousAgenda |
 | Hostility, scavenging, hunting | State mutation and room-local reaction admission | TestActiveWorldReactionsAndScavengingAreDemandDriven includes real mhunt assignment; hunt target generation invalidation test |
 | Posture and perception wakeups | Position, visibility, affect and room changes resynchronize relevant owners | Prior same-branch live posture/visibility logs in event-wakeup-2026-09-05; current production-linked regressions rerun |

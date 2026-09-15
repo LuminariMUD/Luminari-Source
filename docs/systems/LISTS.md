@@ -185,7 +185,7 @@ These diagnostics identify caller defects; they are not normal gameplay messages
 ## Performance
 
 | Operation | Complexity |
-| --- | --- |
+| -- | -- |
 | `create_list` | O(1), plus O(1) registry append |
 | `add_to_list` | O(1) |
 | `find_in_list` | O(n) |

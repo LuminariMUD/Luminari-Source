@@ -44,7 +44,7 @@ The harness calls `ProtocolInput()` and selected public protocol helpers through
 minimal source-compatible doubles:
 
 | Double | Purpose |
-|--------|---------|
+| -- | -- |
 | `struct descriptor_data` fixture | Holds `pProtocol`, output pointer, and source parser state. |
 | `ProtocolCreate()` / `ProtocolDestroy()` | Allocates and releases real `protocol_t` state for each case. |
 | `write_to_output()` stub | Captures protocol writes without opening a socket. |
@@ -86,7 +86,7 @@ protocol grammar and document the grammar source. Do not paste live bytes.
 ## Case Matrix
 
 | Area | Harness Case | Current Coverage |
-|------|--------------|------------------|
+| -- | -- | -- |
 | Doubled IAC | `TestProtocolParser_DoubledIacLiteral` | Validates `IAC IAC` becomes one literal 255 byte in command output. |
 | Telnet NUL | `TestProtocolParser_NulPaddingIsIgnored` | Validates NUL transport padding does not terminate or enter command text. |
 | Split IAC | `TestProtocolParser_SplitIacIsRetained` | Validates negotiation state is retained across calls and following command text remains intact. |

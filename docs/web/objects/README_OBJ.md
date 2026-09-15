@@ -23,6 +23,7 @@ The object data is generated from the LuminariMUD MySQL database using a Python 
 ### Prerequisites
 
 1. **Python 3** with **pymysql** module:
+
    ```bash
    sudo apt install python3-pymysql
    ```
@@ -67,6 +68,7 @@ python3 util/export_objectdb_to_json.py /path/to/output.json
 ### Default Output Location
 
 By default, the script exports to:
+
 ```
 docs/web/data/objects.json
 ```
@@ -76,7 +78,9 @@ docs/web/data/objects.json
 The object database uses the following MySQL tables:
 
 ### object_database_items (Expected Schema)
+
 The web interface expects these columns:
+
 - `idnum` - Unique identifier
 - `object_vnum` - Virtual number (in-game ID)
 - `object_name` - Display name
@@ -91,6 +95,7 @@ The web interface expects these columns:
 - `weapon_special_ability` - Special abilities
 
 ### Related Tables (Expected)
+
 - `object_database_wear_slots` - Where the object can be worn
 - `object_database_bonuses` - Stat bonuses and their types
 - `object_database_obj_flags` - Object flags (magic, no-drop, etc.)
@@ -99,6 +104,7 @@ The web interface expects these columns:
 ### Current Database Schema (As of Nov 2025)
 
 **Note**: The current `luminari` database has a **simpler schema** with integer codes:
+
 - `item_type` (integer) instead of `object_type` (string)
 - `material` (integer) instead of material name (string)
 - **Missing columns**: `zone_name`, `enhancement_bonus`, `weapon_spell_*`, `weapon_special_ability`
@@ -106,12 +112,14 @@ The web interface expects these columns:
 - **Database is currently empty** (0 objects)
 
 To populate the web interface with real data, you'll need to either:
+
 1. **Extend the database schema** with the additional columns/tables (recommended)
 2. **Update the export script** to convert integer codes to readable strings and generate missing data
 
 ## Filtered Items
 
 The following zones are excluded from the public database:
+
 - Code Items (DO NOT EDIT)
 - Builder Academy Zone
 - Airship / Carriage Rooms
@@ -131,6 +139,7 @@ Items with the "Mold" flag are also excluded.
 ## Search Features
 
 ### Basic Search
+
 - **Object Name**: Text search (partial matching)
 - **Object Type**: Weapon, Armor/Shield, Container, etc.
 - **Specific Type**: Depends on Object Type selected (long sword, plate armor, etc.)
@@ -138,13 +147,16 @@ Items with the "Mold" flag are also excluded.
 - **Zone**: Filter by source zone
 
 ### Advanced Filters
+
 - **Weapon Group**: Axe, Blade, Monk, Polearm, Ranged, etc.
 - **Level Range**: Min/Max level requirements
 - **Wear Slot**: Filter by equipment slot
 - **Bonus Type**: Filter by bonus properties (Strength, Hitroll, AC, etc.)
 
 ### Weapon Groups
+
 Predefined weapon groups for easy filtering:
+
 - **Axe**: Throwing axe, battle axe, great axe, etc.
 - **Double-Weapon**: Two-bladed weapons
 - **Hammer**: Maces, clubs, warhammers, flails
@@ -157,7 +169,9 @@ Predefined weapon groups for easy filtering:
 ## Display Format
 
 ### Object Rows
+
 Each object displays:
+
 - **VNUM**: Virtual number for builders
 - **Level**: Minimum level to equip
 - **Type**: Object category
@@ -166,7 +180,9 @@ Each object displays:
 - **Price**: Gold cost
 
 ### Detailed Information
+
 Expanding each row shows:
+
 - **Bonuses**: Stat bonuses with type and modifier
 - **Flags**: Object flags (Magic, Glow, etc.)
 - **Sets**: Permanent affects/set bonuses
@@ -182,6 +198,7 @@ The object database is linked from the main documentation portal at `/web/index.
 ## Future Enhancements
 
 Potential improvements:
+
 - [ ] Export to CSV/PDF
 - [ ] Comparison tool (compare two objects side-by-side)
 - [ ] Advanced statistics (most common materials, level distribution)
@@ -192,21 +209,25 @@ Potential improvements:
 ## Troubleshooting
 
 ### "Failed to load object data" Error
+
 1. Check that `../data/objects.json` exists
 2. Verify the JSON file is valid (no syntax errors)
 3. Check browser console for specific errors
 
 ### Empty Database
+
 1. Run the export script to generate data
 2. Verify database contains object_database tables
 3. Check that database credentials are correct
 
 ### Slow Performance
+
 1. Large datasets may take time to load initially
 2. Consider splitting into multiple JSON files by type
 3. Enable browser caching for the JSON file
 
 ### Missing Objects
+
 1. Check if objects are in filtered zones (see exclusion list above)
 2. Verify objects don't have "Mold" flag
 3. Ensure database export completed successfully
@@ -214,6 +235,7 @@ Potential improvements:
 ## Contributing
 
 When adding features or fixing bugs:
+
 1. Test with large datasets (1000+ objects)
 2. Verify mobile responsiveness
 3. Maintain consistent design with web portal

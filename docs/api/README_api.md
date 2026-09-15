@@ -15,7 +15,7 @@ server to use another listener port.
 ### Routes
 
 | Method | Path | Success | Meaning |
-|--------|------|---------|---------|
+| -- | -- | -- | -- |
 | `GET`, `HEAD` | `/health` | 200 | Game loop is serving and MariaDB is reachable |
 | `GET`, `HEAD` | `/health/ready` | 200 | Alias of `/health` |
 | `GET`, `HEAD` | `/health/live` | 200 | Initialized game loop is serving; database is not checked |
@@ -46,7 +46,7 @@ configuration:
 ```
 
 | Variable | Default | Purpose |
-|----------|---------|---------|
+| -- | -- | -- |
 | `LUMINARI_HEALTH_URL` | `http://127.0.0.1:8182/health` | Readiness URL |
 | `LUMINARI_HEALTH_REQUEST_TIMEOUT_SECONDS` | `3` | Per-request curl timeout |
 | `LUMINARI_HEALTH_TIMEOUT_SECONDS` | `90` | Total `--wait` deadline |

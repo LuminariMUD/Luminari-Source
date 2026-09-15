@@ -7,6 +7,7 @@ This system provides a complete, production-safe database initialization framewo
 ## [!] CRITICAL SAFETY FEATURES
 
 **This system is designed to be production-safe:**
+
 - [OK] **NEVER overwrites existing data**
 - [OK] **Checks for existing table data before populating**
 - [OK] **Only adds data to newly created empty tables**
@@ -27,39 +28,47 @@ This system provides a complete, production-safe database initialization framewo
 ### Database Tables Managed
 
 **Account System:**
+
 - account_data
 - account_stats
 
 **Player Data:**
+
 - player_data (character information)
 - player_saves (save data)
 
 **Equipment & Items:**
+
 - object_data
 - weapon_data
 - armor_data
 - treasure_data
 
 **Spells & Magic:**
+
 - spell_data
 - scroll_data
 - spellbook_data
 
 **World & Geography:**
+
 - room_data
 - zone_data
 - shop_data
 - help_data
 
 **Clans & Organizations:**
+
 - clan_data
 - member_data
 
 **Combat & Skills:**
+
 - fight_data
 - affect_data
 
 **Crafting & Resources:**
+
 - material_categories (with reference data)
 - material_types
 - resource_types (with reference data)
@@ -67,14 +76,17 @@ This system provides a complete, production-safe database initialization framewo
 - resource_depletion_events
 
 **Mail System:**
+
 - mail_data
 - mudmail_data
 
 **Admin & Logging:**
+
 - ban_data
 - staff_events
 
 **Region System (Spatial):**
+
 - region_data (NEVER populated - managed by wildedit)
 - path_data (NEVER populated - managed by wildedit)
 - region_index (NEVER populated - managed by wildedit)
@@ -87,6 +99,7 @@ This system provides a complete, production-safe database initialization framewo
 ### Automatic Startup Initialization
 
 The system automatically runs during MUD startup:
+
 ```c
 // Called in boot_db() after MySQL connection
 startup_database_init();
@@ -97,18 +110,23 @@ This performs essential table creation and safe data population.
 ### Manual Administration Commands
 
 **Database Status Command:**
+
 ```
 database status
 ```
+
 Shows status of all database tables and reference data.
 
 **Full Database Initialization:**
+
 ```
 db_init_system
 ```
+
 Performs complete database initialization (Level 34 Implementor only).
 
 **Individual System Initialization:**
+
 ```
 db_init_system accounts
 db_init_system player
@@ -128,6 +146,7 @@ db_init_system admin
 ### Data Protection
 
 Every data population function includes:
+
 ```c
 // Check if table already has data
 if (table_has_data(table_name)) {
@@ -139,6 +158,7 @@ if (table_has_data(table_name)) {
 ### Region System Special Handling
 
 The region system is managed by the `wildedit` program:
+
 ```c
 void populate_region_system_data() {
     log("SYSINIT: Region data (region_data, path_data, region_index, path_index) "
@@ -150,14 +170,16 @@ void populate_region_system_data() {
 ### Production Schema Compliance
 
 All table structures and INSERT statements use exact production database schema:
+
 - Uses `resource_id` (not `id`) in resource_types table
-- Uses `category_id` (not `id`) in material_categories table  
+- Uses `category_id` (not `id`) in material_categories table
 - Uses `vnum` (not `region_id`) in region_data table
 - Preserves all existing column names and types
 
 ## Reference Data Included
 
 ### Material Categories
+
 - Stone
 - Wood
 - Metal
@@ -169,6 +191,7 @@ All table structures and INSERT statements use exact production database schema:
 - Special
 
 ### Resource Types
+
 - Stone (Granite, Marble, Obsidian, etc.)
 - Wood (Oak, Pine, Mahogany, etc.)
 - Metal (Iron, Steel, Mithril, etc.)
@@ -178,12 +201,14 @@ All table structures and INSERT statements use exact production database schema:
 ## Integration Points
 
 ### Build System
+
 ```makefile
 # Added to Makefile.am
 luminari_SOURCES = ... db_init.c db_init_data.c db_startup_init.c db_admin_commands.c
 ```
 
 ### Command System
+
 ```c
 // Added to interpreter.c command table
 {"database", POS_DEAD, do_database, LVL_IMPL, 0},
@@ -191,6 +216,7 @@ luminari_SOURCES = ... db_init.c db_init_data.c db_startup_init.c db_admin_comma
 ```
 
 ### Startup Sequence
+
 ```c
 // Added to db.c boot_db() function
 startup_database_init();
@@ -200,6 +226,7 @@ startup_database_init();
 
 Stored routines and multi-statement triggers are created from C in `db_init.c`,
 one statement per `mysql_query_safe()` call:
+
 - `create_vessel_procedures()` drops and recreates the `cleanup_orphaned_dockings`
   and `get_active_dockings` procedures.
 - `create_database_procedures()` creates the `bresenham_line()` function (spatial
@@ -216,6 +243,7 @@ when the statement fails.
 ## Logging
 
 All operations are logged with appropriate detail:
+
 - Table creation attempts
 - Data population results
 - Safety check outcomes
@@ -224,6 +252,7 @@ All operations are logged with appropriate detail:
 ## Testing
 
 The system has been tested with:
+
 - [OK] Clean database initialization
 - [OK] Existing production database preservation
 - [OK] Partial table scenarios
@@ -233,12 +262,14 @@ The system has been tested with:
 ## Maintenance
 
 ### Adding New Tables
+
 1. Add table creation to appropriate `init_*_tables()` function in `db_init.c`
 2. Add data population to corresponding function in `db_init_data.c`
 3. Include safety checks using `table_has_data()`
 4. Update function prototypes in `db_init.h`
 
 ### Modifying Reference Data
+
 1. Update population functions in `db_init_data.c`
 2. Ensure safety checks remain in place
 3. Test on development database first
@@ -246,6 +277,7 @@ The system has been tested with:
 ## Production Deployment
 
 This system is safe for production deployment:
+
 1. Backup your database (standard precaution)
 2. Deploy code with normal MUD restart
 3. System will automatically initialize missing tables

@@ -16,6 +16,7 @@
 ## Status Update (2025-01-20)
 
 **PRODUCTION READY**: The Intermud3 Gateway API Protocol implementation is complete and live in production:
+
 - Full JSON-RPC 2.0 API with WebSocket and TCP support
 - Complete event distribution system with priority queuing and subscriptions
 - Authentication middleware with API keys, rate limiting, and IP filtering
@@ -50,23 +51,28 @@ This guide provides step-by-step instructions for integrating your MUD server wi
 *Section Updated: 2025-08-26T05:00:00Z*
 
 ### System Requirements
+
 - Network connectivity to the I3 Gateway
 - Support for WebSocket or TCP socket connections
 - JSON parsing capabilities
 - Basic async/event handling (recommended)
 
 ### Gateway Requirements
+
 - Running Intermud3 Gateway service
 - Valid API key for your MUD
 - Network access to gateway host/port
 
 ### Development Environment
+
 - Text editor or IDE
 - Testing tools (curl, websocat, or custom client)
 - Access to MUD server code
 
 ### Available Client Libraries
+
 The gateway provides official client libraries to simplify integration:
+
 - **Python Client** (`clients/python/i3_client.py`): Full async/sync support
 - **JavaScript/Node.js Client** (`clients/javascript/i3-client.js`): With TypeScript definitions (`i3-client.d.ts`)
 - **CircleMUD/tbaMUD Client** (`clients/circlemud/`): Native C integration
@@ -90,6 +96,7 @@ docker network inspect bridge  # Check gateway connectivity
 ### Port Configuration
 
 The gateway uses these default ports (configurable):
+
 - **8080**: WebSocket API (ws:// or wss://)
 - **8081**: TCP Socket API (line-delimited JSON)
 - **9090**: Metrics endpoint (Prometheus format)
@@ -110,6 +117,7 @@ export ALL_PROXY=socks5://proxy.example.com:1080
 ### DNS Requirements
 
 Ensure your MUD can resolve the gateway hostname:
+
 ```bash
 # Test DNS resolution
 nslookup your-gateway-host.com
@@ -122,6 +130,7 @@ echo "192.168.1.100 i3-gateway.local" >> /etc/hosts
 ### Connection Keepalive
 
 Configure TCP keepalive for persistent connections:
+
 ```bash
 # Linux kernel parameters
 echo 600 > /proc/sys/net/ipv4/tcp_keepalive_time
@@ -150,6 +159,7 @@ api:
 ### 2. Test Basic Connection
 
 Using websocat (WebSocket testing tool):
+
 ```bash
 # Install websocat (if not already installed)
 cargo install websocat
@@ -159,6 +169,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"authenticate","params":{"api_key":"your-
 ```
 
 Expected response:
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -180,6 +191,7 @@ echo '{"jsonrpc":"2.0","id":2,"method":"tell","params":{"target_mud":"DemoMUD","
 ### Alternative Testing Methods (No websocat)
 
 Using curl for testing:
+
 ```bash
 # Test health endpoint
 curl http://localhost:8080/health
@@ -190,12 +202,14 @@ wscat -c ws://localhost:8080/ws
 ```
 
 Using telnet for TCP API:
+
 ```bash
 telnet localhost 8081
 {"jsonrpc":"2.0","id":1,"method":"authenticate","params":{"api_key":"your-api-key"}}
 ```
 
 Using Python for testing:
+
 ```python
 import asyncio
 import websockets
@@ -223,6 +237,7 @@ asyncio.run(test_connection())
 ### Requesting an API Key
 
 Contact the gateway administrator with:
+
 1. **MUD Name**: Unique identifier for your MUD
 2. **Contact Email**: For administrative communications
 3. **MUD Type**: CircleMUD, LPMud, DikuMUD, etc.
@@ -234,6 +249,7 @@ Contact the gateway administrator with:
 **NEVER commit API keys to version control!**
 
 #### Environment Variables (Recommended)
+
 ```bash
 # .env file (add to .gitignore)
 I3_API_KEY=your-secret-api-key-here
@@ -244,6 +260,7 @@ export $(cat .env | xargs)
 ```
 
 #### Configuration File (Alternative)
+
 ```yaml
 # config/secrets.yaml (add to .gitignore)
 api:
@@ -255,6 +272,7 @@ api:
 ```
 
 #### Key Vault Integration
+
 ```python
 # Using system keyring (Python example)
 import keyring
@@ -364,11 +382,13 @@ class APIKeyMonitor:
 ### Step 1: Choose Your Transport Protocol
 
 #### Option A: WebSocket (Recommended)
+
 - **Pros**: Real-time bidirectional communication, automatic reconnection
 - **Cons**: Requires WebSocket library
 - **Best for**: Modern MUDs, real-time applications
 
 #### Option B: TCP Socket
+
 - **Pros**: Simple implementation, universal compatibility
 - **Cons**: Manual message framing, less efficient
 - **Best for**: Legacy systems, simple integrations
@@ -2134,6 +2154,7 @@ asyncio.run(load_test())
 ### Gateway Production Readiness
 
 The Intermud3 Gateway has achieved production-ready status with:
+
 - **Test Coverage**: ~75-78% overall coverage (1200+ comprehensive tests)
 - **Test Pass Rate**: 98.9% (only 8 failures out of 700+ tests)
 - **Performance**: Meets all targets (1000+ msgs/sec, `<100ms` latency)
@@ -2459,6 +2480,7 @@ class WebI3Bridge:
 ### Pre-Integration Requirements
 
 - [ ] **MUD Information Gathered**
+
   - MUD name (must be unique on I3 network)
   - MUD port number
   - Admin email address
@@ -2466,6 +2488,7 @@ class WebI3Bridge:
   - MUD status (open, development, testing)
 
 - [ ] **Technical Prerequisites**
+
   - Network connectivity to gateway server
   - JSON parsing capability in MUD codebase
   - Socket support (WebSocket or TCP)
@@ -2475,11 +2498,13 @@ class WebI3Bridge:
 ### Gateway Setup
 
 - [ ] **API Key Generation**
+
   - Request API key from gateway administrator
   - Store API key securely (environment variable or config file)
   - Never commit API key to version control
 
 - [ ] **Connection Configuration**
+
   - Gateway WebSocket URL: `ws://gateway-host:8080/ws`
   - Gateway TCP endpoint: `gateway-host:8081`
   - Backup gateway endpoints (if available)
@@ -2487,24 +2512,28 @@ class WebI3Bridge:
 ### Implementation Checklist
 
 - [ ] **Basic Connection Setup**
+
   - [ ] Implement socket connection to gateway
   - [ ] Implement authentication flow
   - [ ] Handle connection errors and reconnection
   - [ ] Test basic ping/pong keepalive
 
 - [ ] **Core I3 Services**
+
   - [ ] Implement tell sending and receiving
   - [ ] Add channel subscription and messaging
   - [ ] Implement who/finger queries
   - [ ] Add locate service support
 
 - [ ] **Event Processing**
+
   - [ ] Handle tell_received events
   - [ ] Process channel_message events
   - [ ] Update mudlist on mud_online/offline events
   - [ ] Implement error_occurred handling
 
 - [ ] **Advanced Features**
+
   - [ ] Add channel administration commands
   - [ ] Implement emoteto support
   - [ ] Add user cache updates
@@ -2513,18 +2542,21 @@ class WebI3Bridge:
 ### Testing Checklist
 
 - [ ] **Unit Testing**
+
   - [ ] Test authentication flow
   - [ ] Test message encoding/decoding
   - [ ] Test error handling
   - [ ] Test reconnection logic
 
 - [ ] **Integration Testing**
+
   - [ ] Connect to test gateway
   - [ ] Send and receive tells
   - [ ] Join and use channels
   - [ ] Query other MUDs (who, finger)
 
 - [ ] **Load Testing**
+
   - [ ] Test with expected message volume
   - [ ] Verify memory usage is stable
   - [ ] Check for message queue backlogs
@@ -2533,24 +2565,28 @@ class WebI3Bridge:
 ### Production Readiness
 
 - [ ] **Security**
+
   - [ ] API key stored securely
   - [ ] Input validation on all I3 messages
   - [ ] Rate limiting implemented
   - [ ] Spam/abuse protection in place
 
 - [ ] **Monitoring**
+
   - [ ] Connection status monitoring
   - [ ] Message queue monitoring
   - [ ] Error logging and alerting
   - [ ] Performance metrics collection
 
 - [ ] **Documentation**
+
   - [ ] Player commands documented
   - [ ] Admin commands documented
   - [ ] Configuration options documented
   - [ ] Troubleshooting guide created
 
 - [ ] **Deployment**
+
   - [ ] Production configuration tested
   - [ ] Backup gateway configured
   - [ ] Automatic reconnection tested
@@ -2559,12 +2595,14 @@ class WebI3Bridge:
 ### Post-Integration
 
 - [ ] **Verification**
+
   - [ ] Visible in I3 mudlist
   - [ ] Can exchange tells with other MUDs
   - [ ] Channel participation working
   - [ ] All services responding correctly
 
 - [ ] **Optimization**
+
   - [ ] Performance metrics reviewed
   - [ ] Message batching optimized
   - [ ] Cache settings tuned
@@ -2582,11 +2620,13 @@ class WebI3Bridge:
 See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for detailed troubleshooting guidance.
 
 ## MUD Onboarding Checklist
+
 *Updated: 2025-01-20*
 
 ### Pre-Integration Requirements
 
 - [ ] **MUD Information Gathered**
+
   - MUD name (must be unique on I3 network)
   - MUD port number (4100 local development; 4100 production)
   - Admin email address
@@ -2595,6 +2635,7 @@ See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for detailed troubleshooting g
   - Base mudlib/driver information
 
 - [ ] **Technical Prerequisites**
+
   - Network connectivity to gateway server (ports 8080/8081)
   - JSON parsing capability in MUD codebase
   - Socket support (WebSocket or TCP)
@@ -2604,12 +2645,14 @@ See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for detailed troubleshooting g
 ### Gateway Setup
 
 - [ ] **API Key Generation**
+
   - Request API key from gateway administrator (max@aiwithapex.com)
   - Store API key securely in environment variables
   - Never commit API key to version control
   - Test API key with demo endpoints
 
 - [ ] **Connection Configuration**
+
   - Gateway WebSocket URL: `ws://gateway-host:8080/ws` (production)
   - Gateway TCP endpoint: `gateway-host:8081` (production)
   - Development endpoints: `ws://localhost:8080/ws` (if testing locally)
@@ -2618,24 +2661,28 @@ See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for detailed troubleshooting g
 ### Implementation Checklist
 
 - [ ] **Basic Connection Setup**
+
   - [ ] Implement socket connection to gateway
   - [ ] Implement authentication flow
   - [ ] Handle connection errors and reconnection
   - [ ] Test basic ping/pong keepalive
 
 - [ ] **Core I3 Services**
+
   - [ ] Implement tell sending and receiving
   - [ ] Add channel subscription and messaging
   - [ ] Implement who/finger queries
   - [ ] Add locate service support
 
 - [ ] **Event Processing**
+
   - [ ] Handle `tell_received` events
   - [ ] Process `channel_message` events
   - [ ] Update mudlist on mud_online/offline events
   - [ ] Implement `error_occurred` handling
 
 - [ ] **Advanced Features**
+
   - [ ] Add channel administration commands
   - [ ] Implement `emoteto` support
   - [ ] Add user cache updates
@@ -2644,12 +2691,14 @@ See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for detailed troubleshooting g
 ### Testing Checklist
 
 - [ ] **Unit Testing**
+
   - [ ] Test authentication flow
   - [ ] Test message encoding/decoding
   - [ ] Test error handling
   - [ ] Test reconnection logic
 
 - [ ] **Integration Testing**
+
   - [ ] Connect to test gateway
   - [ ] Send and receive tells
   - [ ] Join and use channels
@@ -2658,12 +2707,14 @@ See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for detailed troubleshooting g
 ### Production Readiness
 
 - [ ] **Security**
+
   - [ ] API key stored securely
   - [ ] Input validation on all I3 messages
   - [ ] Rate limiting implemented
   - [ ] Spam/abuse protection in place
 
 - [ ] **Monitoring**
+
   - [ ] Connection status monitoring
   - [ ] Message queue monitoring
   - [ ] Error logging and alerting
@@ -2706,11 +2757,13 @@ See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for detailed troubleshooting g
 ### Common Connection Issues
 
 **Problem: Gateway won't start**
+
 ```
 ERROR: Failed to bind to port 8080
 ```
 
 *Solution: Check if port is already in use*
+
 ```bash
 # On Linux/macOS
 netstat -tulpn | grep :8080
@@ -2722,11 +2775,13 @@ netstat -an | findstr :8080
 ```
 
 **Problem: Authentication failures**
+
 ```
 ERROR: Invalid API key
 ```
 
 *Solution: Verify API key configuration*
+
 ```bash
 # Check config file format and hierarchy
 python -c "import yaml; print(yaml.safe_load(open('config/config.yaml'))['api']['auth']['api_keys'])"
@@ -2736,11 +2791,13 @@ python -c "import yaml; yaml.safe_load(open('config/config.yaml'))"
 ```
 
 **Problem: WebSocket connection refused**
+
 ```
 ERROR: Connection refused to ws://localhost:8080/ws
 ```
 
 *Solution: Verify service status and endpoints*
+
 ```bash
 # Check if service is running
 sudo systemctl status intermud3-gateway
@@ -2755,6 +2812,7 @@ sudo journalctl -u intermud3-gateway -f
 ### Performance Issues
 
 **High latency or timeouts:**
+
 1. Check system resources: `htop`, `iotop`
 2. Monitor gateway metrics at `http://localhost:9090/metrics`
 3. Review gateway logs for performance bottlenecks
@@ -2762,6 +2820,7 @@ sudo journalctl -u intermud3-gateway -f
 5. Consider horizontal scaling for high-traffic deployments
 
 **Memory leaks or high memory usage:**
+
 1. Monitor process memory: `ps aux | grep python`
 2. Check for connection leaks in client code
 3. Review garbage collection settings
@@ -2770,6 +2829,7 @@ sudo journalctl -u intermud3-gateway -f
 ### Configuration Issues
 
 **YAML configuration errors:**
+
 ```bash
 # Validate configuration syntax
 python -m src --check-config -c config/config.yaml

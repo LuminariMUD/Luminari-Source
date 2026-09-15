@@ -6,15 +6,15 @@ The Resource Regeneration System is a comprehensive environmental simulation tha
 
 ## Table of Contents
 
-1. [System Architecture](#system-architecture)
-2. [Core Components](#core-components)
-3. [Regeneration Mechanics](#regeneration-mechanics)
-4. [Seasonal Modifiers](#seasonal-modifiers)
-5. [Weather Effects](#weather-effects)
-6. [Database Schema](#database-schema)
-7. [Implementation Details](#implementation-details)
-8. [Configuration](#configuration)
-9. [Testing and Debugging](#testing-and-debugging)
+01. [System Architecture](#system-architecture)
+02. [Core Components](#core-components)
+03. [Regeneration Mechanics](#regeneration-mechanics)
+04. [Seasonal Modifiers](#seasonal-modifiers)
+05. [Weather Effects](#weather-effects)
+06. [Database Schema](#database-schema)
+07. [Implementation Details](#implementation-details)
+08. [Configuration](#configuration)
+09. [Testing and Debugging](#testing-and-debugging)
 10. [Performance Considerations](#performance-considerations)
 
 ## System Architecture
@@ -22,6 +22,7 @@ The Resource Regeneration System is a comprehensive environmental simulation tha
 ### Lazy Evaluation Model
 
 The system uses **lazy evaluation** instead of periodic updates:
+
 - Resources regenerate only when players enter wilderness rooms
 - Calculation based on time elapsed since last visit/harvest
 - Reduces server load compared to continuous background processing
@@ -39,7 +40,7 @@ The system uses **lazy evaluation** instead of periodic updates:
 ### Files Involved
 
 | File | Purpose |
-|------|---------|
+| -- | -- |
 | `src/wilderness/resource_depletion.c` | Core regeneration logic and database operations |
 | `src/wilderness/resource_depletion.h` | Function prototypes and constants |
 | `src/wilderness/resource_system.c` | Seasonal and weather modifier functions |
@@ -81,7 +82,7 @@ float get_weather_modifier(int resource_type, int weather_value);
 Each resource type has a different base regeneration rate per hour:
 
 | Resource Type | Base Rate/Hour | Description |
-|---------------|----------------|-------------|
+| -- | -- | -- |
 | Vegetation | 12% | Fast-growing plants and foliage |
 | Herbs | 8% | Medicinal and magical plants |
 | Water | 20% | Surface water sources |
@@ -112,30 +113,34 @@ The system uses the game's built-in time system (`time_info.month`) with 17 mont
 ### Season Definitions
 
 - **Winter**: Months 0-2, 12-16
-- **Spring**: Months 3-5  
+- **Spring**: Months 3-5
 - **Summer**: Months 6-8
 - **Autumn**: Months 9-11
 
 ### Resource-Specific Seasonal Effects
 
 #### Vegetation & Herbs
+
 - **Winter**: 30% rate (dormancy, freezing)
 - **Spring**: 180% rate (explosive growth)
 - **Summer**: 120% rate (optimal growing conditions)
 - **Autumn**: 70% rate (preparing for dormancy)
 
 #### Game Animals
+
 - **Winter**: 50% rate (hibernation, migration)
 - **Spring**: 130% rate (breeding season, young animals)
 - **Summer**: 100% rate (normal activity)
 - **Autumn**: 110% rate (fattening for winter)
 
 #### Wood (Trees)
+
 - **Winter**: 80% rate (slow growth)
 - **Spring**: 120% rate (active growing season)
 - **Summer/Autumn**: 100% rate (normal growth)
 
 #### Water Sources
+
 - Seasonal effects are overridden by weather patterns
 - Spring tends to have higher precipitation
 - Summer may have increased evaporation
@@ -145,29 +150,34 @@ The system uses the game's built-in time system (`time_info.month`) with 17 mont
 ### Weather Value Ranges
 
 The wilderness weather system generates values 0-255:
+
 - **0-177**: Clear weather
-- **178-199**: Light rain/drizzle  
+- **178-199**: Light rain/drizzle
 - **200-224**: Heavy rain
 - **225+**: Thunderstorms
 
 ### Weather-Specific Modifiers
 
 #### Clear Weather (0-177)
+
 - **Water**: 80% rate (increased evaporation)
 - **Game**: 120% rate (animals more active)
 - **Other resources**: 100% rate (normal)
 
 #### Light Rain (178-199)
+
 - **Water/Clay**: 120% rate (gentle precipitation)
 - **Vegetation/Herbs**: 110% rate (beneficial moisture)
 - **Other resources**: 100% rate
 
 #### Heavy Rain (200-224)
+
 - **Water/Clay**: 150% rate (significant precipitation)
 - **Vegetation/Herbs**: 130% rate (abundant water)
 - **Game**: 80% rate (animals seek shelter)
 
 #### Thunderstorms (225+)
+
 - **Water/Clay**: 200% rate (intense precipitation)
 - **Vegetation/Herbs**: 70% rate (storm damage)
 - **Game**: 50% rate (animals hide from storms)
@@ -211,7 +221,7 @@ CREATE TABLE resource_depletion (
 ### Key Fields
 
 - **zone_vnum**: Wilderness zone identifier
-- **x_coord, y_coord**: Precise wilderness coordinates  
+- **x_coord, y_coord**: Precise wilderness coordinates
 - **resource_type**: Integer representing resource type (0-9)
 - **depletion_level**: Current availability (0.0 = depleted, 1.0 = fully available)
 - **last_harvest**: Timestamp of last interaction (for regeneration calculation)
@@ -235,6 +245,7 @@ if (ROOM_FLAGGED(dest, ROOM_WILDERNESS)) {
 ### Coordinate-Based Tracking
 
 Unlike room-based systems, this uses precise coordinates:
+
 - Supports dynamic wilderness generation
 - Maintains consistency across room reloads
 - Enables fine-grained location tracking
@@ -290,11 +301,13 @@ if (weather_value >= 225) {
 ### Debug Commands
 
 #### Show Resource Status
+
 ```
 survey detailed  // Shows current resource levels and regeneration info
 ```
 
 #### Admin Commands
+
 ```
 regen status <zone> <x> <y>  // Show regeneration data for coordinates
 regen force <zone> <x> <y>   // Force regeneration calculation
@@ -365,8 +378,9 @@ log("REGEN: %s at (%d,%d) - Base: %.3f, Season: %.3f, Weather: %.3f, Final: %.3f
 ### Error Handling
 
 The system includes comprehensive error handling:
+
 - Database connection failures
-- Invalid coordinate ranges  
+- Invalid coordinate ranges
 - Malformed timestamps
 - Resource type validation
 

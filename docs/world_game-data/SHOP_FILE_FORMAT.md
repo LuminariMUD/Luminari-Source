@@ -149,7 +149,7 @@ An unrecognised type name that is also not a number logs
 Seven tilde-terminated strings, in this fixed order:
 
 | # | Sent when |
-|---|-----------|
+| -- | -- |
 | 1 | The shop does not stock the requested item |
 | 2 | The player does not have the item they are trying to sell |
 | 3 | The shop will not buy this kind of item |
@@ -171,7 +171,7 @@ An integer selecting the shopkeeper's reaction when it runs out of money.
 A bitvector controlling shopkeeper behavior:
 
 | Bit value | Constant | Effect |
-|-----------|----------|--------|
+| -- | -- | -- |
 | 1 | `WILL_START_FIGHT` | The shopkeeper will attack thieves |
 | 2 | `WILL_BANK_MONEY` | Excess gold is moved to the shop's bank |
 | 4 | `HAS_UNLIMITED_CASH` | Reserved; unlimited-cash behavior is disabled |

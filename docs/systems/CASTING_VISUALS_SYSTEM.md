@@ -27,7 +27,7 @@ ever disagree.
 ### Feature families
 
 | Feature | Entry points | Behavior |
-|---------|-------------|----------|
+| -- | -- | -- |
 | **School-themed visuals** | `get_spell_school_index()`, `get_casting_school_name()`, `get_school_start_msg()`, `get_school_complete_msg()` | Each school of magic gets its own start and completion imagery instead of one generic message. Varies by target type. |
 | **Class casting styles** | `get_class_casting_style()` | A wizard's bookish precision reads differently from a sorcerer's raw instinct or a cleric's invocation. |
 | **Metamagic signatures** | `get_metamagic_visual()` | Quickened, maximized, empowered, extended and similar metamagic show visibly in the casting. |
@@ -65,15 +65,15 @@ machinery that the module above decorates.
 
 ## Table of Contents
 
-1. [Core Data Structures](#core-data-structures)
-2. [Key Functions](#key-functions)
-3. [Casting Start Visuals](#casting-start-visuals)
-4. [Casting Progress Visuals](#casting-progress-visuals)
-5. [Casting Completion Visuals](#casting-completion-visuals)
-6. [Casting Interruption/Abort Visuals](#casting-interruptionabort-visuals)
-7. [Syllable Obfuscation System](#syllable-obfuscation-system)
-8. [Spellcraft Identification](#spellcraft-identification)
-9. [Consumable Item Visuals](#consumable-item-visuals)
+01. [Core Data Structures](#core-data-structures)
+02. [Key Functions](#key-functions)
+03. [Casting Start Visuals](#casting-start-visuals)
+04. [Casting Progress Visuals](#casting-progress-visuals)
+05. [Casting Completion Visuals](#casting-completion-visuals)
+06. [Casting Interruption/Abort Visuals](#casting-interruptionabort-visuals)
+07. [Syllable Obfuscation System](#syllable-obfuscation-system)
+08. [Spellcraft Identification](#spellcraft-identification)
+09. [Consumable Item Visuals](#consumable-item-visuals)
 10. [Magic Failure Visuals](#magic-failure-visuals)
 11. [File Locations](#file-locations)
 
@@ -129,7 +129,7 @@ struct obj_data *castingTOBJ; // target object of spell
 ### Primary Functions (spell_parser.c)
 
 | Function | Line | Purpose |
-|----------|------|---------|
+| -- | -- | -- |
 | `say_spell()` | 231-338 | Displays casting visual messages to room |
 | `resetCastingData()` | 1435-1444 | Clears all casting state variables |
 | `castingCheckOk()` | 1446-1528 | Validates casting can continue |
@@ -143,7 +143,7 @@ struct obj_data *castingTOBJ; // target object of spell
 ### Support Functions
 
 | Function | File | Purpose |
-|----------|------|---------|
+| -- | -- | -- |
 | `change_position()` | movement_position.c:381 | Position change interrupt |
 | `command_can_be_used_while_casting()` | interpreter.c:4816 | Command whitelist check |
 
@@ -154,6 +154,7 @@ struct obj_data *castingTOBJ; // target object of spell
 ### Standard Spell Casting (spell_parser.c:2201-2205)
 
 **To Caster:**
+
 ```
 You begin casting your spell...
 ```
@@ -161,13 +162,14 @@ You begin casting your spell...
 **To Room (via say_spell with start=TRUE):**
 
 | Target Type | Message Format |
-|-------------|----------------|
+| -- | -- |
 | Self | `$n weaves $s hands in an intricate pattern and begins to chant the words, '<spell>'` |
 | Character | `$n weaves $s hands in an intricate pattern and begins to chant the words, '<spell>' at $N` |
 | Object | `$n stares at $p and begins chanting the words, '<spell>'` |
 | No target | `$n begins chanting the words, '<spell>'` |
 
 **Message to Target (if targeting another character):**
+
 ```
 $n weaves $s hands in an intricate pattern and begins to chant the words, '<spell>' at you.
 ```
@@ -175,21 +177,25 @@ $n weaves $s hands in an intricate pattern and begins to chant the words, '<spel
 ### Class-Specific Start Messages
 
 #### Alchemist (spell_parser.c:2193-2194)
+
 ```
 To Caster: You begin preparing your extract...
 To Room:   $n begins preparing an extract.
 ```
 
 #### Psionicist (spell_parser.c:2198-2199)
+
 ```
 To Caster: You begin to manifest your power...
 To Room:   $n begins manifesting a power.
 ```
 
 ### Instant Cast (No Casting Time) (spell_parser.c:2163)
+
 ```
 To Caster: Okay.  (CONFIG_OK)
 ```
+
 Then `say_spell()` is called with `start=FALSE` for completion message.
 
 ---
@@ -205,11 +211,13 @@ During each casting tick, the caster sees:
 ```
 
 Where:
+
 - **Action** = "Casting" (spells), "Preparing" (alchemist), or "Manifesting" (psionicist)
 - **Metamagic modifiers** (if any): "quickened ", "empowered ", "silent ", "still ", "extended ", "maximized "
 - **Asterisks** = One `*` per remaining casting time unit
 
 **Example:**
+
 ```
 Casting: empowered extended fireball ****
 ```
@@ -223,18 +231,20 @@ Casting: empowered extended fireball ****
 **Visual to Room (via say_spell with start=FALSE):**
 
 | Target Type | Message Format |
-|-------------|----------------|
+| -- | -- |
 | Self | `$n closes $s eyes and utters the words, '<spell>'` |
 | Character | `$n stares at $N and utters the words, '<spell>'` |
 | Object | `$n stares at $p and utters the words, '<spell>'` |
 | No target | `$n utters the words, '<spell>'` |
 
 **Message to Target:**
+
 ```
 $n stares at you and utters the words, '<spell>'.
 ```
 
 **Completion Message to Caster:**
+
 ```
 You complete your spell...     (standard)
 You complete the extract...    (alchemist)
@@ -242,6 +252,7 @@ You complete your manifestation... (psionicist)
 ```
 
 ### Double Manifestation (Psionicist) (spell_parser.c:1599)
+
 ```
 [DOUBLE MANIFEST!]
 ```
@@ -251,79 +262,96 @@ You complete your manifestation... (psionicist)
 ## Casting Interruption/Abort Visuals
 
 ### Voluntary Abort (spell_parser.c:2264)
+
 **Command:** `abort`
+
 ```
 To Caster: You abort your spell.
 ```
 
 ### Concentration Check Failed (spell_parser.c:208-209)
+
 ```
 To Caster: You lost your concentration!
 To Room:   $n's concentration is lost, and spell is aborted!
 ```
 
 ### Deafness Fumble (spell_parser.c:198-199)
+
 ```
 To Caster: Your deafness has made you fumble your spell!
 To Room:   $n seems to have fumbled his spell for some reason.
 ```
 
 ### Position Change Interrupt (movement_position.c:393-395)
+
 Triggered when position drops to SITTING or below during casting:
+
 ```
 To Room:   $n's spell is interrupted!
 To Caster: Your spell is aborted!
 ```
 
 ### Position Check Failed (spell_parser.c:1455-1457)
+
 ```
 To Room:   $n is unable to continue $s spell in $s current position!
 To Caster: You are unable to continue your spell in your current position! (spell aborted)
 ```
 
 ### Target Object Unavailable (spell_parser.c:1466-1468)
+
 ```
 To Room:   $n is unable to continue $s spell!
 To Caster: You are unable to find the object for your spell! (spell aborted)
 ```
 
 ### Target Vanished (spell_parser.c:1488-1490)
+
 ```
 To Room:   $n is unable to continue $s spell!
 To Caster: Your target has vanished! (spell aborted)
 ```
 
 ### Target Left Room (spell_parser.c:1499-1501)
+
 ```
 To Room:   $n is unable to continue $s spell!
 To Caster: You are unable to find the target for your spell! (spell aborted)
 ```
 
 ### Nauseated (spell_parser.c:1509-1511)
+
 ```
 To Caster: You are too nauseated to continue casting!
 To Room:   $n seems to be too nauseated to continue casting!
 ```
 
 ### Dazed/Stunned/Paralyzed (spell_parser.c:1519-1521)
+
 ```
 To Caster: You are unable to continue casting!
 To Room:   $n seems to be unable to continue casting!
 ```
 
 ### Busy Casting Message (interpreter.c:1408)
+
 When attempting non-whitelisted commands while casting:
+
 ```
 You are too busy casting [you can 'abort' the spell]...
 ```
 
 ### Already Casting (spell_parser.c:1888)
+
 ```
 You are already attempting to cast!
 ```
 
 ### Not Casting (spell_parser.c:2260)
+
 When trying to abort while not casting:
+
 ```
 You aren't casting!
 ```
@@ -333,6 +361,7 @@ You aren't casting!
 ## Syllable Obfuscation System
 
 ### Purpose
+
 Converts spell names into "magical sounding" phrases for observers who fail spellcraft checks.
 
 ### Syllable Table (spell_parser.c:72-137)
@@ -384,6 +413,7 @@ static struct syllable syls[] = {
 ```
 
 ### Example Conversions
+
 - "cure light" -> "qefo dutph" (approximate)
 - "fireball" -> "yufovir" (approximate)
 
@@ -394,11 +424,13 @@ static struct syllable syls[] = {
 ### Mechanism (spell_parser.c:311-319)
 
 Observers in the room make a spellcraft check:
+
 - **DC:** 20 (hardcoded as `dc_of_id`)
 - **Check:** `compute_ability(observer, ABILITY_SPELLCRAFT) + d20()`
 - **NPC fallback:** `10 + d20()`
 
 ### Results
+
 - **Success (attempt > dc_of_id):** See actual spell name
 - **Failure:** See obfuscated syllables
 
@@ -407,18 +439,21 @@ Observers in the room make a spellcraft check:
 ## Consumable Item Visuals
 
 ### Potion Quaffing (act.item.c:6541-6546)
+
 ```
 To Caster: You quaff a potion of '<spell name>'.
 To Room:   $n quaffs a potion
 ```
 
 ### Scroll Recitation (act.item.c:6651-6656)
+
 ```
 To Caster: You recite a scroll of '<spell name>'.
 To Room:   $n recites a scroll.
 ```
 
 ### Wand Use (act.item.c:6766-6772)
+
 ```
 To Caster: You point a wand of '<spell>' at $N.
 To Target: $n points a wand at YOU!
@@ -426,13 +461,16 @@ To Room:   $n points a wand at $N.
 ```
 
 ### Staff Invocation (act.item.c:6856-6861)
+
 ```
 To Caster: You invoke a staff of '<spell>'.
 To Room:   $n invokes a staff.
 ```
 
 ### With Metamagic
+
 All consumable messages include metamagic prefixes when applicable:
+
 ```
 You quaff a potion of 'empowered cure light'.
 ```
@@ -442,25 +480,30 @@ You quaff a potion of 'empowered cure light'.
 ## Magic Failure Visuals
 
 ### Anti-Magic Room/Zone (spell_parser.c:528-529, 542-543)
+
 ```
 To Caster: Your magic fizzles out and dies!
 To Room:   $n's magic fizzles out and dies...
 ```
 
 ### Peaceful Room (spell_parser.c:557-558)
+
 For violent spells in peaceful rooms:
+
 ```
 To Caster: A flash of white light fills the room, dispelling your violent magic!
 To Room:   White light from no particular source suddenly fills the room, then vanishes.
 ```
 
 ### Arcane Spell Failure (armor penalty) (spell_parser.c:607-608, 619-620)
+
 ```
 To Caster: Your armor ends up hampering your spell! (arcane spell failure)
 To Room:   $n's spell is hampered by $s armor!
 ```
 
 ### Inert Spell (magic.c:12882)
+
 ```
 Your spell is completely inert!
 ```
@@ -472,7 +515,7 @@ Your spell is completely inert!
 ### Primary Files
 
 | File | Key Content |
-|------|-------------|
+| -- | -- |
 | `src/magic/spell_parser.c` | Core casting system, say_spell(), event_casting() |
 | `src/core/structs.h` | Casting data structures (char_special_data) |
 | `src/core/utils.h` | `CASTING_*` macros |
@@ -485,7 +528,7 @@ Your spell is completely inert!
 ### Line Number Quick Reference
 
 | Component | File:Line |
-|-----------|-----------|
+| -- | -- |
 | Syllable table | spell_parser.c:72-137 |
 | say_spell() | spell_parser.c:231-338 |
 | concentration_check() | spell_parser.c:151-215 |
@@ -507,6 +550,7 @@ Your spell is completely inert!
 ## Commands Allowed While Casting
 
 The following commands can be used while casting (interpreter.c:4819-4847):
+
 - look, group, affects, gtell, gsay
 - equipment, inventory, who, score
 - queue, help, feat, tnl, prefedit
@@ -520,11 +564,13 @@ The following commands can be used while casting (interpreter.c:4819-4847):
 ## Events System Integration
 
 ### Casting Event (mud_event.h:34)
+
 ```c
 eCASTING,  // casting time event
 ```
 
 ### Event Creation (spell_parser.c:2215-2219)
+
 ```c
 // NPC casting - 2 passes per second
 NEW_EVENT(eCASTING, ch, NULL, 2 * PASSES_PER_SEC);
@@ -538,7 +584,7 @@ NEW_EVENT(eCASTING, ch, NULL, 1 * PASSES_PER_SEC);
 ## Color Codes Used
 
 | Code | Color | Usage |
-|------|-------|-------|
+| -- | -- | -- |
 | `\tn` | Normal | Reset color |
 | `\tc` | Cyan | Casting action text |
 | `\tC` | Bright Cyan | Spell name |

@@ -20,7 +20,7 @@ copyover, connection states, and persistence live in the
 ## Components
 
 | Component | Location | Purpose |
-|-----------|----------|---------|
+| -- | -- | -- |
 | Game loop and networking | `src/core/comm.c`, `src/net/` | Connections, protocol handling, native deadlines, and shutdown |
 | Command dispatch | `src/core/interpreter.c`, `src/act/`, feature directories | Command parsing, authorization, and behavior |
 | World boot and persistence | `src/core/db.c`, `src/database/mysql.c`, `lib/world/`, `sql/` | Flat-file world loading and required MariaDB state |

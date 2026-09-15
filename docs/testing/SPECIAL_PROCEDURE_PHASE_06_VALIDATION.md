@@ -21,7 +21,7 @@ explicitly that effective history is diagnostic rather than a persisted dispatch
 ## Requirement Decisions
 
 | Phase 06 requirement | Evidence | Decision |
-|----------------------|----------|----------|
+| -- | -- | -- |
 | Gather prototype-composition use cases | `room_data` and `index_data` each own one callback and one authored binding. Mobile `SpecProc`, object `Z`, and room `Z` each load and write one name. `SHOP_FUNC` and `QST_FUNC` are runtime-only saved callback fields. | The only concrete composition is the established shop/quest wrapper nesting. No persisted general chain is justified. |
 | Design inner-chain order without changing outer traversal | Existing boot order installs original assignments, then shop wrappers, then quest wrappers. Each wrapper invokes its saved secondary first; nonzero consumes and zero falls through. | Preserve `questmaster -> shop_keeper -> original` exactly. Do not add an inner-chain dispatcher or alter outer command-owner traversal. |
 | Migrate shop and quest secondaries deliberately | `assign_the_shopkeepers()` and `assign_the_quests()` save before replacing the prototype callback. Gateways preserve actor, owner, command, and argument. Existing and new CuTest coverage exercises stop and fallthrough. | Retain the explicit compatibility wrappers. A general-chain migration would add policy and persistence without another consumer. |
@@ -64,7 +64,7 @@ This contract is not a prototype handler chain:
 The audit traced all three authored formats and their writers:
 
 | Owner | Loader | Writer | Cardinality |
-|-------|--------|--------|-------------|
+| -- | -- | -- | -- |
 | Mobile | `SpecProc:` in `src/core/db.c` | `src/olc/genmob.c` | Zero or one name |
 | Object | `Z` in `src/core/db.c` | `src/olc/genobj.c` | Zero or one name |
 | Room | `Z` in `src/core/db.c` | `src/olc/genwld.c` | Zero or one name |
@@ -76,7 +76,7 @@ implicit conversion. There is therefore no changed persistence to version or mig
 ## Lifecycle Audit
 
 | Concrete lifecycle need | Existing owner |
-|-------------------------|----------------|
+| -- | -- |
 | Room reset after zone commands | `WTRIG_RESET` via `reset_wtrigger()` in the zone reset owner |
 | Room enter, leave, login, random, and time behavior | Existing DG world triggers |
 | Mobile and object load, death, timer, movement, and time behavior | Existing DG mobile/object triggers |

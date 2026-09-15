@@ -7,7 +7,7 @@ staging host, staging URL, staging database, or `--staging` deployment mode.
 ## Environment Boundaries
 
 | Environment | Verified repository contract |
-|-------------|------------------------------|
+| -- | -- |
 | Development | Local checkout; `lib/.env` declares `APP_ENV=development`; direct or autorun startup against non-production data |
 | Production | Self-managed systemd service using `luminari.service`; changes require an approved release and operator action |
 
@@ -18,7 +18,7 @@ development state fail closed when the marker is absent or not `development`.
 ## Local Configuration Files
 
 | Local file | Tracked example | Purpose |
-|------------|-----------------|---------|
+| -- | -- | -- |
 | `src/config/campaign.h` | `src/config/campaign.example.h` | Local Luminari compile-time settings |
 | `src/config/mud_options.h` | `src/config/mud_options.example.h` | Compile-time game options |
 | `src/config/vnums.h` | `src/config/vnums.example.h` | Symbolic virtual-number configuration |
@@ -69,7 +69,7 @@ install, restart, or probe production.
 ## Runtime Variables
 
 | Variable | Default | Consumer |
-|----------|---------|----------|
+| -- | -- | -- |
 | `MUD_PORT` | `4100` | Local autorun game port |
 | `MUD_FLAGS` | `-q` | Autorun server flags |
 | `TERRAIN_API_PORT` | `8182` | Loopback Terrain and health listener |

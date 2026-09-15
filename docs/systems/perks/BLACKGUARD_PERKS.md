@@ -66,6 +66,7 @@ Design goal: three thematic trees, each with 4 tiers; Tiers 1-3 have 4 perks eac
   - Pact of the Grave: Auto-revive 1/day at low hp with burst of negative energy damage to enemies/heal to allies.
 
 ## Implementation guardrails
+
 - Use profane typing; align DR bypass with existing alignment flags.
 - Fear stacking: cap at cower; only specified perks erode immunity.
 - Swift-action economy: enforce 1/round; avoid free stacking with other conversions.

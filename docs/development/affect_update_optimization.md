@@ -1,9 +1,11 @@
 # affect_update() Performance Optimization
 
 ## Problem
+
 The `affect_update()` function was consuming 30% CPU constantly due to inefficient processing of all characters every 6 seconds.
 
 ## Root Causes
+
 1. **Unnecessary MSDP Updates**: Every character (including NPCs) was getting full MSDP affect updates every 6 seconds
 2. **NPCs Don't Need MSDP**: NPCs don't have client connections and can't receive MSDP data
 3. **No Protocol Checking**: Even players without native MSDP or its GMCP fallback were getting expensive string operations
@@ -12,6 +14,7 @@ The `affect_update()` function was consuming 30% CPU constantly due to inefficie
 ## Optimizations Implemented
 
 ### 1. Skip MSDP Updates for NPCs (magic.c)
+
 ```c
 /* Skip MSDP updates for NPCs - they don't have descriptors and can't receive MSDP data */
 if (!IS_NPC(i))
@@ -19,6 +22,7 @@ if (!IS_NPC(i))
 ```
 
 ### 2. Early Exit Checks in update_msdp_affects() (handler.c)
+
 ```c
 /* Early exit if no character, no descriptor, or character is an NPC */
 if (!ch || !ch->desc || IS_NPC(ch))
@@ -31,7 +35,9 @@ if (!ch->desc->pProtocol ||
 ```
 
 ### 3. Performance Logging
+
 Added logging to track the number of characters processed every 100 updates (10 minutes):
+
 ```c
 /* Log performance metrics every 100 updates (10 minutes) */
 if (update_count % 100 == 0)
@@ -42,18 +48,22 @@ if (update_count % 100 == 0)
 ```
 
 ## Expected Performance Improvement
+
 - **NPCs**: 100% reduction in MSDP processing overhead (typically 90%+ of all characters)
 - **Players without MSDP or its GMCP fallback**: 100% reduction in string operations
 - **Overall**: Expected 80-90% reduction in CPU usage from affect_update()
 
 ## Testing
+
 1. Monitor CPU usage before and after changes
 2. Check performance logs for character counts
 3. Verify native MSDP and the GMCP fallback still work for compatible clients
 4. Ensure affects still expire correctly for all characters
 
 ### 4. Skip NPCs Without Affects
+
 Added early exit for NPCs that have no affects to avoid unnecessary processing:
+
 ```c
 /* Skip characters with no affects for better performance */
 if (!i->affected && IS_NPC(i))
@@ -61,6 +71,7 @@ if (!i->affected && IS_NPC(i))
 ```
 
 ## Future Optimizations
+
 1. Consider caching MSDP strings and only rebuilding when affects change
 2. Reduce affect_update frequency or stagger updates across multiple pulses
 3. Implement more efficient string building (single sprintf vs multiple strlcat)

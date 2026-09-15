@@ -26,7 +26,7 @@ semantic name and claims, and `eventdebug` exposes the native
 ## Skill classification
 
 | Work | Decision | Claims | Progress and interruption | Resource boundary |
-| --- | --- | --- | --- | --- |
+| -- | -- | -- | -- | -- |
 | Full-room search | Owned atomic activity, implemented | Attention, vision, standard and move actions; stationary, distracted, obvious | One six-second interval; movement, damage, combat, invalid room or lost sight cancels; no partial result survives | No materials; rolls and discoveries commit only on completion |
 | Lockpicking | Keep immediate until a multi-stage lock interaction is authored | Hands, attention, fine manipulation, move action | The current single check and door mutation are one synchronous transaction. If later staged, progress belongs to the exact door/container generation and movement, damage, combat or target change cancels it | A future consumable pick must be reserved after admission and consumed at an explicitly committed attempt, never before admission |
 | Trap disarming | Keep immediate until traps expose stable instance identity and staged work | Hands, attention, vision, fine manipulation, full-round action | Current success/failure/trigger is one authoritative transaction. A timer without a stable trap generation could complete against a replacement | A future kit charge is consumed when the attempt result commits, including an authored trigger-on-failure result |

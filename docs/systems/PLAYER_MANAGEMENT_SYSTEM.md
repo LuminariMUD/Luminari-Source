@@ -20,7 +20,7 @@ layer.
 ## Data Ownership
 
 | Data | Runtime owner | Durable owner |
-| --- | --- | --- |
+| -- | -- | -- |
 | Account name, password hash, email, experience | `struct account_data` | MariaDB `account_data` |
 | Account character membership | `account->character_names[]` | MariaDB `player_data.account_id` |
 | Unlocked races and classes | `account->races[]`, `account->classes[]` | MariaDB unlock tables |
@@ -60,7 +60,7 @@ negotiation is configured, otherwise in `CON_ACCOUNT_NAME`. Protocol
 negotiation eventually returns to `CON_ACCOUNT_NAME`.
 
 | Stage | State or states | Server behavior |
-| --- | --- | --- |
+| -- | -- | -- |
 | Protocol negotiation | `CON_GET_PROTOCOL` | Telnet capability negotiation and greeting |
 | Account identity | `CON_ACCOUNT_NAME` | Validates the entered name and tries `load_account()` |
 | New-account confirmation | `CON_ACCOUNT_NAME_CONFIRM` | Spelling, ban, and lock checks |
@@ -137,7 +137,7 @@ before the rollout, or accept those resets.
 The current new-character sequence is:
 
 | Order | State | Authoritative behavior |
-| ---: | --- | --- |
+| -: | -- | -- |
 | 1 | `CON_GET_NAME` | Parses and validates the name, checks reserved words, and checks uniqueness |
 | 2 | `CON_NAME_CNFRM` | Confirms spelling; repeats ban, lock, and duplicate checks |
 | 3 | `CON_QSEX` | Accepts male or female |
@@ -292,7 +292,7 @@ When changing account or character creation:
 ## Key Files
 
 | File | Responsibility |
-| --- | --- |
+| -- | -- |
 | `src/core/interpreter.c` | `nanny()` account, creation, character-menu, and play transitions |
 | `src/player/account.c` | Account load/save, membership, unlocks, and account menu |
 | `src/player/players.c` | Character files, checked saves, loads, and player index |

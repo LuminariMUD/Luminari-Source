@@ -240,8 +240,7 @@ The procedure and `MOB_ROL_TOTEM_SPIRIT` flag are converter-owned and should not
 unrelated objects or mobiles.
 
 The five `RoL Ship` definitions preserve the source system for seven converted fixed-interior
-ships. `RoL Ship` is assigned to a hull object, `RoL Ship Control` to its panel object, `RoL Ship
-Exit` and `RoL Ship Lookout` to interior rooms, and `RoL Ship Navigator` to the route mobile. The
+ships. `RoL Ship` is assigned to a hull object, `RoL Ship Control` to its panel object, `RoL Ship Exit` and `RoL Ship Lookout` to interior rooms, and `RoL Ship Navigator` to the route mobile. The
 navigator requires `MOB_SPEC` for its combat-turn crew response. The converter owns the hull,
 interior, route, and navigator associations; assigning one of these procedures to unrelated content
 does not create a new operable ship.
@@ -251,15 +250,18 @@ does not create a new operable ship.
 The selected SpecProc is stored by name and resolved at boot.
 
 - Mobs (E-spec block):
+
   - Line written inside the `E` specs section:
     - `SpecProc: <Name>`
 
 - Objects:
+
   - A `Z` block is added:
     - Line 1: `Z`
     - Line 2: `<Name>`
 
 - Rooms:
+
   - A `Z` block is added before the terminating `S` line:
     - Line 1: `Z`
     - Line 2: `<Name>`
@@ -387,8 +389,7 @@ production-linked evidence, see
   compatibility but does not create a duplicate menu row; selecting the entry saves `Guild`.
 - `Guild` is the mobile-owned training procedure. `RoL Guild Room` exposes the same current
   training service through an unrestricted converted room binding. `RoL Mage Guild Room`,
-  `RoL Thief Guild Room`, `RoL Warrior Guild Room`, `RoL Cleric Guild Room`, and `RoL Bard Guild
-  Room` expose it only to matching class families; any qualifying class in a multiclass build is
+  `RoL Thief Guild Room`, `RoL Warrior Guild Room`, `RoL Cleric Guild Room`, and `RoL Bard Guild Room` expose it only to matching class families; any qualifying class in a multiclass build is
   sufficient. `RoL Waterdeep Guild Room` applies the room-specific gate for twelve converted
   Waterdeep guilds. All seven room procedures are available only in `redit`.
 - A procedure hidden from builders, disallowed for world binding, or incompatible with the edited
@@ -417,6 +418,7 @@ production-linked evidence, see
 - File merge conflicts: the `SpecProc`/`Z` entries are safe to keep; ensure the SpecProc name remains on its own line as shown above.
 
 ## Examples
+
 - Mob E-spec example snippet:
   - `SpecProc: Receptionist`
 - Object snippet:

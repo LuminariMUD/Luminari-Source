@@ -135,13 +135,13 @@ band assumption.
 The only source-zone normalization in the completed corpus is
 `mytheast.zon`: malformed source header `#81700` represents logical zones
 817-818 and therefore maps to zone 20817, entities 2081700-2081899, and top
-2081899. This is an evidence-backed package exception, not a general
+2081899\. This is an evidence-backed package exception, not a general
 divide-by-100 rule.
 
 The similarly named packages coexist; similarity is never lineage evidence:
 
 | Existing Luminari content, unchanged | Imported RoL content, additive |
-|--------------------------------------|--------------------------------|
+| -- | -- |
 | Trail zone 1507 and 150xxx entities | RoL source zone 507 at zone 20507 and 20507xx entities |
 | Hulburg zone 1591 and 159xxx entities | RoL source zone 591 at zone 20591 and 20591xx entities |
 | Jotunheim zone 1960 and 196xxx entities | RoL source zone 960 at zone 20960 and 20960xx entities |
@@ -195,7 +195,7 @@ The source root must contain `areas/`. The command follows the selection paths
 in `EXAMPLE/RealmsOfLuminari/src/build_areas.c`:
 
 | Manifest | Selected kinds |
-|----------|----------------|
+| -- | -- |
 | `areas/AREA` | `zon`, `wld`, `soc` |
 | `areas/AREA.mobobj` | `mob`, `obj` |
 | `areas/SHOP` | `shp` |
@@ -212,7 +212,7 @@ numbers.
 Every physical file has one primary status:
 
 | Status | Meaning |
-|--------|---------|
+| -- | -- |
 | `active` | Its kind-specific manifest selects the basename; the file is included. |
 | `disabled` | A column-zero disabled entry names the file; it is inventoried but excluded. |
 | `unlisted` | No active or disabled entry names the file; it is inventoried but excluded. |
@@ -260,7 +260,7 @@ input bytes, policy, tool version, source revision, or target revision.
 The bundle contains:
 
 | Path | Evidence |
-|------|----------|
+| -- | -- |
 | `run-manifest.json` | Run identity, revisions, policy, artifact hashes, and acceptance summary |
 | `source-inventory.json` | Active source manifests, packages, hashes, and exclusions |
 | `target-inventory.json` | Target indexes, hashes, missing entries, and orphaned files |
@@ -683,7 +683,7 @@ wld/30.wld:42: error REF001: exit destination room 3099 does not exist [room 300
 The code prefix identifies the validation layer:
 
 | Prefix | Area |
-|--------|------|
+| -- | -- |
 | `SRC` | Physical lines, strings, and numeric tokens |
 | `FLG` | Flat-file flag encoding (four chunks normally, one for quest flags) |
 | `IDX` | `index` and `index.mini` membership |
@@ -700,7 +700,7 @@ implementation. Neither code can be emitted any more, so `--ignore-code` entries
 for them are unnecessary.
 
 | Code | Was | Why it is retired |
-|------|-----|-------------------|
+| -- | -- | -- |
 | `SEM004` | Warning on empty or known-placeholder descriptive text | Fired on every in-progress builder record and on legitimate short-form text, drowning the actionable findings. |
 | `SEM006` | Warning on a physical exit with no reverse exit | One-way connections are a deliberate, widespread mechanic in the legacy zones. |
 
@@ -720,8 +720,7 @@ check only warns after every entrance has been ruled out:
   destination ranges are honored, whichever zone the portal object lives in.
 - **DG scripts.** No trigger teleports into the room or wires a runtime exit to
   it. The parser reads literal room vnums out of `mteleport`/`oteleport`/
-  `wteleport`, `mat`/`oat`/`wat`, `mgoto`, and the `*door <room> <dir> room
-  <vnum>` form, in both the type-specific spelling and the portable `%teleport%`
+  `wteleport`, `mat`/`oat`/`wat`, `mgoto`, and the `*door <room> <dir> room <vnum>` form, in both the type-specific spelling and the portable `%teleport%`
   / `%at%` / `%goto%` / `%door%` spelling. A vnum supplied through a script
   variable cannot be resolved and is not counted.
 - **Zone flags.** The owning zone is neither `ZONE_CLOSED` nor
@@ -736,7 +735,7 @@ exemptions: rooms walkable onward from them are reachable too.
 Room level-range records use two additional stable findings:
 
 | Code | Severity | Contract |
-|------|----------|----------|
+| -- | -- | -- |
 | `WLD036` | Error | Room `R` record is malformed or repeated. |
 | `SEM034` | Error | Room entry level bounds are outside `-1` or `1..LVL_IMPL`, or reversed. |
 | `SEM035` | Error | An `ITEM_TRAPPED` RoL compatibility payload in object values 10-15 is invalid. |
@@ -746,7 +745,7 @@ Quest-system finding codes added in version 0.2.0 are stable. A code marked
 unsafe form.
 
 | Code | Severity | Contract |
-|------|----------|----------|
+| -- | -- | -- |
 | `QST001` | Error | Unsafe physical line width. |
 | `QST002` | Error | Missing or unterminated tilde string. |
 | `QST003` | Error | Tilde string exceeds the loader storage limit. |
@@ -767,7 +766,7 @@ unsafe form.
 | `QST041` | Error | Quest VNUMs are not strictly increasing within a package. |
 
 | Code | Severity | Contract |
-|------|----------|----------|
+| -- | -- | -- |
 | `HLQ001` | Error | Unsafe physical or comment line width. |
 | `HLQ002` | Error | Missing or unterminated tilde string. |
 | `HLQ003` | Error | Tilde string exceeds the loader storage limit. |
@@ -787,7 +786,7 @@ unsafe form.
 | `HLQ041` | Error | Host VNUMs are not strictly increasing within a package. |
 
 | Code | Severity | Contract |
-|------|----------|----------|
+| -- | -- | -- |
 | `REF032` | Error | A QST typed reference is missing. |
 | `REF033` | Error | A QST reference resolves only as the wrong record type. |
 | `REF034` | Error | An HLQ typed reference is missing. |
@@ -812,7 +811,7 @@ check. The detailed field contracts and limits are in
 Exit status is part of the command contract:
 
 | Status | Meaning |
-|--------|---------|
+| -- | -- |
 | 0 | No active errors; warnings are allowed unless `--strict` is set |
 | 1 | Data findings failed the requested check, or a lookup was not found |
 | 2 | Usage, configuration, filesystem, or other operational failure |
@@ -1042,7 +1041,7 @@ python3 scripts/world/wtool.py refs hlquest 374
 Zone 3 contained no quest-system finding. The zone command still returned
 status 1 because other selected world formats had existing errors. All four
 lookups returned status 0: QST 300 had one outgoing edge, and HLQ host 374 had
-19. Full-world lookup JSON also reported `lookup_parse_errors: 3849`; a found
+19\. Full-world lookup JSON also reported `lookup_parse_errors: 3849`; a found
 record does not imply that unrelated world data is clean.
 
 The hash-guarded `validate --all` audit parsed an inventory of 182 QST files

@@ -17,7 +17,7 @@ is authoritative.
 ## File Map
 
 | File | Responsibility |
-| --- | --- |
+| -- | -- |
 | `src/obj/spec_artifacts.h` | VNUMs, data model, tunables, and public API |
 | `src/obj/spec_artifacts.c` | Registry, persistence, gameplay, and commands |
 | `unittests/CuTest/test_artifacts.c` | Registry, persistence, and table tests |
@@ -30,7 +30,7 @@ is authoritative.
 The main integration points are:
 
 | File | Integration |
-| --- | --- |
+| -- | -- |
 | `src/core/db.c` | Boot, shutdown, and zone-reset single-instance guards |
 | `src/core/comm.c` | Dirty registry flush during the periodic character save |
 | `src/core/handler.c` | Object acquisition, movement, equip, unequip, and extraction |
@@ -51,7 +51,7 @@ live in `src/obj/spec_artifacts.h`; do not add them to the local
 The provisioning source is expected at `lib/world/artifacts/`:
 
 | Source file | Required content |
-| --- | --- |
+| -- | -- |
 | `1699.obj` | Object prototypes 169901-169911 and 169913-169918 |
 | `1699.wld` | Vault room 169900 |
 | `1699.zon` | Zone reset commands for the artifact objects |
@@ -214,7 +214,7 @@ unheld container, or no longer in play.
 ## Binding
 
 | Binding | When it binds | Who may use it afterward |
-| --- | --- | --- |
+| -- | -- | -- |
 | None | Never | Any holder |
 | Bind on Pickup | First player pickup | The recorded character |
 | Bind on Equip | First wear | The recorded character |
@@ -249,7 +249,7 @@ not scale with artifact level. When multiple equipped artifacts apply, only
 the highest resistance for the incoming damage type is used.
 
 | Bucket | Damage types |
-| --- | --- |
+| -- | -- |
 | Physical | Slice, puncture, force, and bleeding |
 | Elemental | Fire, cold, air, earth, acid, electric, water, light, and sound |
 | Magical | Every other damage type |
@@ -262,7 +262,7 @@ Artifact resistance applies only to player victims.
 Five artifacts require ten levels in a named class:
 
 | Artifact | Required class |
-| --- | --- |
+| -- | -- |
 | Trorxek | Druid |
 | Amaukekel | Cleric |
 | Fade | Rogue |
@@ -292,7 +292,7 @@ exempt from the oath.
 Artifact XP is cumulative and is not spent at level-up:
 
 | Transition | Cumulative XP required |
-| --- | --- |
+| -- | -- |
 | 1 -> 2 | 100 |
 | 2 -> 3 | 300 |
 | 3 -> 4 | 600 |
@@ -306,7 +306,7 @@ registry.
 ### XP awards
 
 | Event | XP | Recipient |
-| --- | --- | --- |
+| -- | -- | -- |
 | First equip while XP is zero | 10 | That artifact |
 | Damaging hit on an NPC | 1 | One random equipped artifact |
 | Critical damaging hit on an NPC | 3 | One random equipped artifact |
@@ -336,7 +336,7 @@ VNUM 169900 is the Vault of Ages room, and 169912 is the Oaken Defender
 mobile. Neither is an artifact registry entry.
 
 | VNUM | Artifact | Binding | Oath | Active ability | Combat proc | Called effects |
-| --- | --- | --- | --- | --- | --- | --- |
+| -- | -- | -- | -- | -- | -- | -- |
 | 169901 | Trorxek, the Staff of Ancient Oaks | Equip | Druid | - | 12% | 4 |
 | 169902 | Amaukekel, the Rod of Light | Equip | Cleric | `divineward` | - | 3 |
 | 169903 | Fade, the Shadowblade | Equip | Rogue | - | 16% generic + 1-in-16 siphon | 4 |
@@ -369,7 +369,7 @@ production-linked identity regression all use that form.
 Every artifact declares one row in `artifact_contracts[]`:
 
 | Field | Meaning |
-| --- | --- |
+| -- | -- |
 | `acquisition` | boss, quest, exploration chain, seasonal, staff event, recovery-only, or vault-staged |
 | `campaigns` | bitmask of the campaigns the artifact exists in |
 | `owner_policy` | whether the chronicle names the current bearer |
@@ -401,7 +401,7 @@ rules. What remains research-only is the three whose object prototypes are
 missing from the source checkout:
 
 | Candidate | Source completeness | Potential role |
-| --- | --- | --- |
+| -- | -- | -- |
 | Homeland VNUM 501 | Procedure only; prototype missing | Dark-avenger flurry and summoned-companion concepts |
 | Homeland VNUM 513 | Procedure only; prototype missing | Weighted multi-outcome halberd control proc |
 | Homeland VNUM 599 | Procedure only; prototype missing | Alignment-conditioned protection and dispel proc |
@@ -424,7 +424,7 @@ claims it; adopting it is a data change, not new code.
 ## Player Commands
 
 | Command | Purpose |
-| --- | --- |
+| -- | -- |
 | `artifact` or `artifact help` | Explain artifacts, binding, oaths, and progression |
 | `artifact roster` | The public chronicle: every artifact and its state |
 | `artifact chronicle <name>` | Lore, acquisition, and custody history for one artifact |
@@ -446,7 +446,7 @@ registry when asked, so there is no second list to go stale.
 Each artifact is shown in one of five states:
 
 | State | Meaning |
-| --- | --- |
+| -- | -- |
 | `unawakened` | nobody has ever claimed it; its name is not printed |
 | `unclaimed` | it has been claimed before and is free again |
 | `held` | a live instance is carried or worn by someone in play |
@@ -483,7 +483,7 @@ answer "what has happened to it". No binding, uniqueness, or zone-reset check
 ever consults them.
 
 | Field | Written when |
-| --- | --- |
+| -- | -- |
 | `first_owner`, `first_account`, `first_claimed_at` | the first claim, once, and never rewritten |
 | `last_claimed_at`, `claim_count` | every claim by a new owner |
 | `transfer_count` | every release back into the world |
@@ -502,7 +502,7 @@ channel, the displayed help, and the runtime dispatch all come from the same
 row of `artifact_effects[]`.
 
 | Channel | Player input |
-| --- | --- |
+| -- | -- |
 | `ART_INVOKE_SAY` | `say <phrase>` |
 | `ART_INVOKE_WHISPER` | `whisper <someone> <phrase>` |
 | `ART_INVOKE_COMMAND` | `invoke <phrase>` |
@@ -537,7 +537,7 @@ unset policy, a progressive policy without table rows, or any row owned by a
 non-progressive policy.
 
 | Policy | Contract |
-| --- | --- |
+| -- | -- |
 | `ART_PASSIVE_NONE` | The current identity has no passive status package. |
 | `ART_PASSIVE_REJECT_LEGACY` | A historical package was audited and deliberately not adopted. |
 | `ART_PASSIVE_PROGRESSIVE` | One or more validated `artifact_passives[]` rows define the package. |
@@ -562,7 +562,7 @@ current template remains authoritative where present; an old protection flag
 does not add another resistance implicitly.
 
 | Artifact | Rejected Realms states | Current identity retained |
-| --- | --- | --- |
+| -- | -- | -- |
 | Trorxek | Detect invisibility, barkskin, elemental protection, detect good/evil | Druid oath, scaling nature statistics, magical resistance, critical blind, and four nature calls |
 | Amaukekel | Farsee, detect invisibility, infravision, elemental protection, detect good/evil | Cleric oath, magical resistance, `divineward`, and three light/life calls |
 | Fade | Detect invisibility, haste, sneak, fire protection, detect good/evil | Rogue oath, movement and physical resistance, generic strike, independent siphon, and four shadow calls |
@@ -593,7 +593,7 @@ Two temporary artifact powers in the same group never stack. The one already
 running holds; the second refuses, costs nothing, and says so.
 
 | Group | Members |
-| --- | --- |
+| -- | -- |
 | `ART_STACK_COMBAT_SURGE` | Twilight's surge, Doombringer's `enrage me doombringer` |
 | `ART_STACK_MORALE` | Courage's group invocation |
 | `ART_STACK_WARD` | Icedge's rime, Wyrmfang's hunter's sight, and `ART_SIG_WARD` if claimed |
@@ -621,7 +621,7 @@ callable handler table. Table-driven signature powers select a shape from
 this reusable library:
 
 | Shape | Behavior |
-| --- | --- |
+| -- | -- |
 | `ART_SIG_KNOCKDOWN` | Reflex DC `21 + artifact_level + wielder Strength bonus + wielder Constitution bonus` or knocked to sitting, honoring `MOB_NOBASH`, freedom of movement, incorporeality, and already-down targets |
 | `ART_SIG_MERCY` | Heals while its bearer is below 60% health, strikes while healthy |
 | `ART_SIG_WARD` | On an eligible critical, a group-exclusive ward that bypasses `sig_chance`; otherwise `sig_chance` to dispel |
@@ -679,7 +679,7 @@ Binding, PSP cost, and per-artifact cooldown are checked before the effect
 runs.
 
 | Command | Artifact | Cost | Cooldown | Effect |
-| --- | --- | --- | --- | --- |
+| -- | -- | -- | -- | -- |
 | `soulstrike [target]` | Kelrarin's Hammer | 50 PSP | 300 sec | Negative damage; opponent default |
 | `divineward` | Amaukekel | 100 PSP | 600 sec | Sanctuary for `5 + artifact_level` rounds |
 | `doomblast` | Doombringer | 75 PSP | 180 sec | Room attack; at most five targets |
@@ -700,7 +700,7 @@ an attempt rate. If the chance succeeds, the proc kind is
 `rand_number(1, artifact_level)`.
 
 | Roll | Effect |
-| --- | --- |
+| -- | -- |
 | 1 | `dice(level, 6)` negative soul damage |
 | 2 | `dice(level, 4)` self-heal when wounded |
 | 3 | Fear for `1 + level / 2` rounds |
@@ -726,7 +726,7 @@ hit.
 ## Signature Weapon Procedures
 
 | Artifact | Behavior |
-| --- | --- |
+| -- | -- |
 | Trorxek | Every eligible critical hit blinds for `1 + level / 2` rounds |
 | Fade | 1-in-16 siphon against a living non-dragon NPC; `40 * artifact_level` negative damage and 25% actual-damage healing |
 | Doombringer | 1-in-31 burst against an NPC; one extra main-hand attack per artifact level, up to five |
@@ -806,7 +806,7 @@ starts only that slot's recharge and awards 25 XP. Failed target checks do
 not spend the recharge. Recharges are persisted and survive a restart.
 
 | Artifact | Phrase | Recharge | Effect |
-| --- | --- | --- | --- |
+| -- | -- | -- | -- |
 | Trorxek | `come oaken defender` | 1 week | Summon the level-scaled Oaken Defender follower |
 | Trorxek | `carpet of death` | 1 day | Invoke `SPELL_CREEPING_DOOM` |
 | Trorxek | `forest path home` | 1 hour | Invoke `SPELL_WORD_OF_RECALL` |
@@ -877,7 +877,7 @@ the group.
 `testartifact` requires `LVL_STAFF`.
 
 | Command | Purpose |
-| --- | --- |
+| -- | -- |
 | `testartifact status` | Count owned, dropped, and unowned entries; show memory and data path |
 | `testartifact verify` | Check live duplicates, levels, owners, prototypes, and table metadata |
 | `testartifact save` | Write v2.4 state immediately |
@@ -908,7 +908,7 @@ memory - sub-threshold XP, cooldown stamps, and unsaved ownership changes.
 It now flushes dirty state first; `reload discard` is the explicit opt-out.
 
 All seventeen objects currently reset into the private Vault of Ages room
-169900. That is a staff staging area, not a player-facing distribution
+169900\. That is a staff staging area, not a player-facing distribution
 mechanism. Each artifact's contract declares its intended acquisition route;
 implementing that route in live content remains a builder decision.
 
@@ -949,7 +949,7 @@ Do not begin by adding a VNUM-specific function. First classify the requested
 change so it lands in the smallest existing extension surface:
 
 | Change | Preferred implementation |
-| --- | --- |
+| -- | -- |
 | Stat, resistance, binding, oath, or generic proc balance | Edit the artifact's `artifact_templates[]` row |
 | Existing signature behavior on another weapon | Select an existing `ART_SIG_*` shape in the template row |
 | New behavior that another artifact could reasonably reuse | Add one `ART_SIG_*` shape, one helper, and one reusable-proc dispatch case |
@@ -1022,7 +1022,7 @@ that result is true.
 This separates three failures that look identical in combat text:
 
 | Question | Where to verify it |
-| --- | --- |
+| -- | -- |
 | Did the character receive a normal attack? | The in-game `attacks` display and the attack loop in `fight.c` |
 | Was the correct weapon attributed to that attack? | `get_wielded()` and a negative test for every non-weapon attack type |
 | Did the artifact have a power to roll? | Its template `sig_proc`, `sig_chance`, and signature dispatch case |
@@ -1101,7 +1101,7 @@ Every new or repaired weapon power should cover these cases in the
 production-linked suite:
 
 | Area | Required evidence |
-| --- | --- |
+| -- | -- |
 | Template wiring | Expected VNUM selects the expected shape and chance |
 | Eligibility | A positive hit with the artifact can proc; a miss, dead target, non-artifact, and wrong weapon cannot |
 | Weapon attribution | Primary, offhand, two-handed, and ranged mappings work; natural and spell-like attacks return no weapon |

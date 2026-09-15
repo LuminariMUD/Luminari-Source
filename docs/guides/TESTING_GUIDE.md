@@ -293,25 +293,25 @@ database migration or recovery.
 
 The completed conversion remains accepted only while all of these conditions hold:
 
-1. Every active source zone has one evidence-backed normalized identity at the source
-   zone VNUM plus 20000.
-2. Every active, non-excluded room, mobile, and object is at its typed source VNUM plus
-   2000000; distinct source identities remain distinct.
-3. `mytheast` remains zone 20817 with entities 2081700-2081899.
-4. Existing Luminari Trail 1507, Hulburg 1591, Jotunheim 1960, and artifacts
-   169901-169910 remain byte-preserved while the similarly named RoL packages use
-   independent reserved identities.
-5. No RoL action, including a source-internal `MERGE`, targets an existing Luminari
-   record.
-6. Every typed cross-zone, key, quest, shop, reset, portal, SOC, DG, mobile, and object
-   edge either resolves inside the RoL namespace or has an explicit source-invalid
-   disposition; cross-world typed references are zero.
-7. RoL compatibility markers occur only on reserved-namespace owners, and every
-   hard-coded seven-digit identity in the RoL mechanics modules is in 2000000-2999999.
-8. Preserved target and OLC content changes only through an explicit, evidence-backed
-   record action; the final import patches zero preserved Luminari records.
-9. The read-only persistence gate proves that every RoL VNUM currently stored by the
-   development game resolves to exactly one candidate definition.
+01. Every active source zone has one evidence-backed normalized identity at the source
+    zone VNUM plus 20000.
+02. Every active, non-excluded room, mobile, and object is at its typed source VNUM plus
+    2000000; distinct source identities remain distinct.
+03. `mytheast` remains zone 20817 with entities 2081700-2081899.
+04. Existing Luminari Trail 1507, Hulburg 1591, Jotunheim 1960, and artifacts
+    169901-169910 remain byte-preserved while the similarly named RoL packages use
+    independent reserved identities.
+05. No RoL action, including a source-internal `MERGE`, targets an existing Luminari
+    record.
+06. Every typed cross-zone, key, quest, shop, reset, portal, SOC, DG, mobile, and object
+    edge either resolves inside the RoL namespace or has an explicit source-invalid
+    disposition; cross-world typed references are zero.
+07. RoL compatibility markers occur only on reserved-namespace owners, and every
+    hard-coded seven-digit identity in the RoL mechanics modules is in 2000000-2999999.
+08. Preserved target and OLC content changes only through an explicit, evidence-backed
+    record action; the final import patches zero preserved Luminari records.
+09. The read-only persistence gate proves that every RoL VNUM currently stored by the
+    development game resolves to exactly one candidate definition.
 10. The assembled world adds no normalized baseline finding, and touched records have
     no unresolved finding.
 11. Syntax and local-development-database boots, reset and walkthrough evidence, focused tests,

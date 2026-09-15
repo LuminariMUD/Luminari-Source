@@ -105,13 +105,13 @@ authorize a uniform license claim for this repository.
 - [ ] The change is scoped and its current behavior was traced.
 - [ ] New or changed behavior has appropriate tests.
 - [ ] `make test` and `make install` pass, or the pull request explains the
-      exact reproducible blocker.
+  exact reproducible blocker.
 - [ ] Both build manifests agree when source membership changed.
 - [ ] Relevant docs, help SQL, and changelog entries are current.
 - [ ] New third-party material has complete provenance and preserves all
-      required notices.
+  required notices.
 - [ ] No credential, protected local configuration, root `luminari`, or temporary
-      validation artifact is included.
+  validation artifact is included.
 - [ ] The pull request explains any migration, rollout, or rollback step.
 
 Project conduct is governed by [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and

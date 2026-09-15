@@ -35,7 +35,7 @@ legacy warning where they remain linked.
 ### Coverage Summary
 
 | Area | Required | Found | Status |
-|------|---------:|------:|--------|
+| -- | -: | -: | -- |
 | Root files (`README.md`, `CONTRIBUTING.md`, `LICENSE`) | 3 | 3 | Updated and current for audited claims |
 | Standard docs entry points | 7 | 7 | Architecture, onboarding, development, environments, deployment, incident response, and API present |
 | Code ownership | 1 | 1 | Existing owner assignments preserved; moved source paths corrected |
@@ -120,7 +120,7 @@ example project snapshots rather than current project entry points.
 ### Corrections Made
 
 | Finding | Evidence | Resolution |
-|---------|----------|------------|
+| -- | -- | -- |
 | Root README duplicated Quick Start and used obsolete commands | Root file compared with deploy/autorun help and Make targets | Replaced with one verified setup path and authoritative test/install gate |
 | User docs and deploy output said port 4000 | Current local defaults use 4100 and the systemd unit pins production to 4100 | Updated docs and deploy output for the environment-specific ports |
 | Environment guide invented staging URL, database, variables, and `--staging` | Deploy help has no staging option; repository state defines development/production safety only | Replaced with verified boundaries and variables |
@@ -134,7 +134,7 @@ example project snapshots rather than current project entry points.
 ### Evidence Ledger
 
 | Area | Document | Codebase or Spec Evidence | Result |
-|------|----------|---------------------------|--------|
+| -- | -- | -- | -- |
 | Project state | This report | Phase 00 closeout snapshot retained in Git history | P00 complete; 9 sessions; non-monorepo |
 | Phase manifest | Phase-focused docs | First session `Base Commit` plus `git diff --name-only fced8f85..HEAD` | Authoritative transition manifest established |
 | Phase semantics | Phase 00 docs | Nine implementation records, retained in Git history after consolidation | Read and synchronized |
@@ -206,7 +206,7 @@ current evidence.
 ### Source-of-Truth Map
 
 | Question | Authoritative document |
-|----------|------------------------|
+| -- | -- |
 | Why the product exists and what release means | [Vessel System Product Requirements](product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md) |
 | Which architecture was chosen and why | [0001-unified-vessel-system.md](adr/0001-unified-vessel-system.md) |
 | What the current implementation does | [VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md) |

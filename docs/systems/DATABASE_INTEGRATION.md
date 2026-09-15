@@ -46,6 +46,7 @@ void mysql_ping_connection() {
 ### 1. Player Data Tables
 
 #### `player_data` - Core Player Information
+
 ```sql
 CREATE TABLE player_data (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -67,6 +68,7 @@ CREATE TABLE player_data (
 ```
 
 #### `player_abilities` - Character Abilities
+
 ```sql
 CREATE TABLE player_abilities (
     player_id INT,
@@ -81,6 +83,7 @@ CREATE TABLE player_abilities (
 ```
 
 #### `player_skills` - Skill Ranks and Bonuses
+
 ```sql
 CREATE TABLE player_skills (
     player_id INT,
@@ -95,6 +98,7 @@ CREATE TABLE player_skills (
 ### 2. World State Tables
 
 #### `room_data` - Room Information
+
 ```sql
 CREATE TABLE room_data (
     vnum INT PRIMARY KEY,
@@ -108,6 +112,7 @@ CREATE TABLE room_data (
 ```
 
 #### `object_instances` - Object State
+
 ```sql
 CREATE TABLE object_instances (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -123,6 +128,7 @@ CREATE TABLE object_instances (
 ### 3. Game Statistics Tables
 
 #### `combat_logs` - Combat Statistics
+
 ```sql
 CREATE TABLE combat_logs (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -141,6 +147,7 @@ CREATE TABLE combat_logs (
 ### Player Data Management
 
 #### Loading Player Data
+
 ```c
 struct char_data *load_player_from_db(const char *name) {
     PREPARED_STMT *statement;
@@ -176,6 +183,7 @@ struct char_data *load_player_from_db(const char *name) {
 ```
 
 #### Saving Player Data
+
 ```c
 void save_player_to_db(struct char_data *ch) {
     PREPARED_STMT *statement;
@@ -203,6 +211,7 @@ void save_player_to_db(struct char_data *ch) {
 ### World State Persistence
 
 #### Room State Management
+
 ```c
 void save_room_state(room_rnum room) {
     PREPARED_STMT *statement;
@@ -282,6 +291,7 @@ Binding notes:
 ## Database Schema Management
 
 ### Schema Versioning
+
 ```sql
 CREATE TABLE schema_version (
     version INT PRIMARY KEY,
@@ -294,6 +304,7 @@ VALUES (1, 'Initial schema creation');
 ```
 
 ### Migration System
+
 ```c
 void check_database_version() {
     MYSQL_RES *result;
@@ -320,7 +331,9 @@ void check_database_version() {
 ```
 
 ### Recent Schema Changes (2025)
+
 Several tables have been updated to include missing `idnum` columns for proper foreign key relationships:
+
 - Added `idnum` column to various player-related tables for consistent referencing
 - Ensures all player data can be properly linked via player ID
 - Fixes issues with orphaned records in related tables
@@ -328,6 +341,7 @@ Several tables have been updated to include missing `idnum` columns for proper f
 ## Performance Optimization
 
 ### Connection Pooling
+
 ```c
 #define MAX_DB_CONNECTIONS 5
 MYSQL *connection_pool[MAX_DB_CONNECTIONS];
@@ -401,6 +415,7 @@ void batch_save_players() {
 ## Error Handling and Recovery
 
 ### Transaction Management
+
 ```c
 bool execute_transaction(const char **queries, int count) {
     int i;
@@ -422,6 +437,7 @@ bool execute_transaction(const char **queries, int count) {
 ```
 
 ### Backup and Recovery
+
 ```c
 void backup_player_data() {
     char backup_file[256];
@@ -447,6 +463,7 @@ void backup_player_data() {
 ## Configuration
 
 ### Database Configuration Options
+
 ```c
 // In campaign.h
 #define MYSQL_SERVER "localhost"
@@ -462,6 +479,7 @@ void backup_player_data() {
 ```
 
 ### Runtime Configuration
+
 ```c
 void configure_mysql_connection() {
     unsigned int timeout = DB_CONNECTION_TIMEOUT;
@@ -479,6 +497,7 @@ void configure_mysql_connection() {
 ## Monitoring and Maintenance
 
 ### Database Health Checks
+
 ```c
 void check_database_health() {
     MYSQL_RES *result;
@@ -502,6 +521,7 @@ void check_database_health() {
 ```
 
 ### Performance Monitoring
+
 ```c
 void log_database_stats() {
     MYSQL_RES *result;
@@ -520,6 +540,7 @@ void log_database_stats() {
 ## Security Considerations
 
 ### SQL Injection Prevention
+
 - Bind every data value (user, world, file, service, or database derived) with
   the `PREPARED_STMT` API. Escaping with `mysql_real_escape_string()` is a
   legacy compatibility technique, not the default abstraction.
@@ -535,6 +556,7 @@ void log_database_stats() {
   the remaining inventory for #98.
 
 ### Connection Security
+
 - Use secure passwords for database users
 - Limit database user privileges
 - Enable SSL connections when possible

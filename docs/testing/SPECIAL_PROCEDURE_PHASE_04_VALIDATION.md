@@ -25,7 +25,7 @@ legacy `SPECIAL` ABI, add a general callback chain, or alter world-file persiste
 ## Contract and Consumer Matrix
 
 | Contract | Explicit Rule | Real Consumers | Focused Evidence |
-|----------|---------------|----------------|------------------|
+| -- | -- | -- | -- |
 | Typed event shape | One owner bit and one event bit; compatible owner/event pair; required owner, actor, target, argument, and moving-room payload | Every event-specific gateway through `spec_dispatch_legacy()` | Valid and invalid owner, event, target, and moving-room contexts; invalid dispatch never calls the handler |
 | Exact worn object | Actor is live, not pending extraction, in a valid room, and both `worn_by` and the wear slot point to the invoking object | `obj_proc_ready()`, both monk gloves, `stability_boots`, `hellfire` | Same-rnum copy is rejected while the exact instance succeeds |
 | Live combat target | Actor and target are live, not pending extraction, in valid equal rooms; current-opponent identity is optional | `snake`, `wizard`, both monk gloves, safe damage wrapper | Current, missing-current, cross-room, and dead-target cases |
@@ -65,7 +65,7 @@ Existing identify text documents the two invoked phrases, so no helpfile migrati
 ## Acceptance Matrix
 
 | Exit Criterion | Evidence | Result |
-|----------------|----------|--------|
+| -- | -- | -- |
 | Pointer-identity context validation for representative objects and mobiles | Exact worn-object validation is shared by object callbacks; live combat validation is shared by mobile and object callbacks. | PASS |
 | Opt-in parsing after accepted-input characterization | Pure matcher and direct callback tests preserve exact command, leading-space, case, tab, and trailing-space behavior. | PASS |
 | Explicit cooldown clock, storage, bounds, persistence, and commit rules | Header contract, bounded implementation, two object consumers, and focused state tests agree. | PASS |

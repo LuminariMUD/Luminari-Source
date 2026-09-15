@@ -1,4 +1,5 @@
 # Aider Configuration for LuminariMUD World Editing
+
 *Customized for LuminariMUD's Pathfinder/D&D 3.5 implementation*
 
 ## Step 1: Create LuminariMUD-Specific Configuration
@@ -281,11 +282,13 @@ When editing LuminariMUD world files, follow these guidelines:
 
 Example:
 ```
-   The ancient stone walls of this chamber bear the scars of countless
+
+The ancient stone walls of this chamber bear the scars of countless
 battles, with deep gouges and burn marks telling tales of violence.
 Flickering torchlight casts dancing shadows across scattered bones and
 rusted weapons. A musty smell of decay hangs heavy in the air, broken
 only by a faint draft from the darkened passage leading north.
+
 ```
 
 ## NPC/Mobile Creation
@@ -370,6 +373,7 @@ EOF
 ## Step 5: Working with World Files
 
 ### Start Aider for World Editing
+
 ```bash
 # Navigate to MUD directory
 cd /mnt/c/Projects/Luminari-Source
@@ -386,6 +390,7 @@ luminari-zone 30
 ```
 
 ### Common World Editing Commands
+
 ```bash
 # In aider prompt:
 
@@ -409,6 +414,7 @@ luminari-zone 30
 ## Step 6: Backup and Testing Workflow
 
 ### Create Backup Scripts
+
 ```bash
 # Create backup script
 cat > backup-zone.sh << 'EOF'
@@ -440,6 +446,7 @@ chmod +x backup-zone.sh
 ```
 
 ### Safe Editing Workflow
+
 ```bash
 # 1. Backup the zone
 ./backup-zone.sh 100
@@ -500,6 +507,7 @@ source ~/.bashrc
 ## Step 8: Templates for Common Tasks
 
 ### Creating a New Shop
+
 ```
 > Create a potion shop for room 10050. The shopkeeper should be a
 > level 15 alchemist with Int 16, Wis 14. Sell healing potions (light,
@@ -508,6 +516,7 @@ source ~/.bashrc
 ```
 
 ### Adding a Quest NPC
+
 ```
 > Add a quest giver NPC to room 10051. Level 20 retired adventurer with
 > scars and stories. Should have dialogue about three different quests:
@@ -518,6 +527,7 @@ source ~/.bashrc
 ```
 
 ### Creating a Dungeon Sequence
+
 ```
 > Create rooms 10060-10065 as a goblin warren. Include:
 > - Entrance with guards (10060)
@@ -530,6 +540,7 @@ source ~/.bashrc
 ```
 
 ### Balancing Items
+
 ```
 > Review all weapons in zone 100 and adjust their stats for level 15-20
 > range. Ensure damage dice, bonuses, and special properties are
@@ -539,6 +550,7 @@ source ~/.bashrc
 ## Step 9: Testing Your Changes
 
 ### In-Game Commands for Testing
+
 ```
 # Implementor/Admin commands:
 goto <room_vnum>      # Teleport to room
@@ -556,6 +568,7 @@ vnum room <keyword>  # Find room vnums
 ```
 
 ### Validation Script
+
 ```bash
 # Create validation script
 cat > validate-zone.sh << 'EOF'
@@ -609,6 +622,7 @@ grep ERROR syslog | tail
 ## Important Reminders
 
 ### DO's:
+
 -  ALWAYS backup before editing
 -  Use `--no-git` flag for world files
 -  Test changes before live deployment
@@ -619,6 +633,7 @@ grep ERROR syslog | tail
 -  Use the climate system appropriately
 
 ### DON'Ts:
+
 - L NEVER commit world files to git
 - L NEVER change existing VNUMs
 - L NEVER edit lib/plrfiles/ or player data

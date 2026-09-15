@@ -190,7 +190,7 @@ ownership evidence in the
 ## Local Development Tools
 
 | Category | Tool | Configuration or entry point |
-|----------|------|------------------------------|
+| -- | -- | -- |
 | Compiler | GNU-compatible C23 compiler | `configure.ac`, `CMakeLists.txt` |
 | Formatter | clang-format | `.clang-format` |
 | Linter/static analysis | clang-tidy | `.clang-tidy` |
@@ -209,7 +209,7 @@ paths without copying configuration or credential values.
 ## CI/CD
 
 | Bundle | Workflow or configuration | Enforced contract |
-|--------|---------------------------|-------------------|
+| -- | -- | -- |
 | Quality | `.github/workflows/quality.yml` | clang-format, clang-tidy, and warning-clean build |
 | Tests | `.github/workflows/test.yml` | Production-linked CuTest, world tools, sanitizers, Valgrind, MariaDB, and coverage |
 | Security | `.github/workflows/security.yml` | Secret scanning, CodeQL, and dependency review |
@@ -223,7 +223,7 @@ hosts.
 ## Infrastructure
 
 | Component | Provider or entry point | Contract |
-|-----------|-------------------------|----------|
+| -- | -- | -- |
 | Hosting | Self-managed systemd | `luminari.service` supervises `scripts/autorun/autorun.sh` |
 | Database | MariaDB/MySQL | Required runtime dependency; credentials stay in `lib/mysql_config` |
 | Health | Luminari loopback HTTP | `/health` checks game-loop and MariaDB readiness on port 8182 |

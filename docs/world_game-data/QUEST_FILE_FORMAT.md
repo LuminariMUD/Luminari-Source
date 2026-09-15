@@ -74,7 +74,7 @@ several fields.
 ## Field Reference
 
 | Field | Meaning |
-|-------|---------|
+| -- | -- |
 | `quest-vnum` | Unique quest identity and lookup number. |
 | `name` | Short builder-facing quest name. |
 | `description` | Player-facing quest description. |
@@ -113,7 +113,7 @@ This table is checked against `src/quest/quest.h` and the display table in
 `src/quest/quest.c` by `wtool docs --check`.
 
 | Index | Macro | Display name | Target contract |
-|-------|-------|--------------|-----------------|
+| -- | -- | -- | -- |
 | 0 | AQ_OBJ_FIND | Acquire Object | Object VNUM. |
 | 1 | AQ_ROOM_FIND | Find Room | Room VNUM. |
 | 2 | AQ_MOB_FIND | Find Mob | Mobile VNUM. |
@@ -152,7 +152,7 @@ The serialized token uses the normal ASCII bit notation, but only one token
 is present on the numeric row.
 
 | Bit | Macro | Display name | Meaning |
-|-----|-------|--------------|---------|
+| -- | -- | -- | -- |
 | 0 | AQ_REPEATABLE | REPEATABLE | The quest may be completed repeatedly. |
 | 1 | AQ_REPLACE_OBJ_REWARD | REPLACE-OBJ-REWARD | A lost object reward may be acquired again. |
 
@@ -170,7 +170,7 @@ QEDIT enforces or truncates to these source-backed limits. The validator
 reports values that hand-edited files can place outside them.
 
 | Field | Valid persisted value |
-|-------|-----------------------|
+| -- | -- |
 | Name | At most 39 bytes (`MAX_QUEST_NAME - 1`). |
 | Description | At most 74 bytes (`MAX_QUEST_DESC - 1`). |
 | Accept, completion, quit messages | At most 4095 bytes each (`MAX_QUEST_MSG - 1`). |

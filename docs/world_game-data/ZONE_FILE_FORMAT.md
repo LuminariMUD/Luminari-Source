@@ -48,7 +48,7 @@ $
 It selects the longest supported form that can be parsed.
 
 | Field | Name | Meaning |
-|-------|------|---------|
+| -- | -- | -- |
 | 1 | `bot` | Lowest vnum in the zone |
 | 2 | `top` | Highest vnum in the zone |
 | 3 | `lifespan` | Minutes between resets |
@@ -79,7 +79,7 @@ force a shorter form and produces the same warning.
 ### `reset_mode`
 
 | Value | Behavior |
-|-------|----------|
+| -- | -- |
 | 0 | Never reset |
 | 1 | Reset only when the zone is empty of players |
 | 2 | Reset on schedule regardless of who is present |
@@ -96,7 +96,7 @@ of digits is read as decimal; anything else is read as letters. `0` is the
 usual "no flags" value.
 
 | Bit | Flag |
-|-----|------|
+| -- | -- |
 | 0 | Closed |
 | 1 | No-Immortal |
 | 2 | Quest |
@@ -144,7 +144,7 @@ also produce diagnostics; see [Room exit diagnostics](#room-exit-diagnostics).
 ### Command Summary
 
 | Char | Purpose | Args after the if-flag |
-|------|---------|------------------------|
+| -- | -- | -- |
 | `M` | Load a mobile into a room | mob vnum, max existing, room vnum, [load %] |
 | `O` | Load an object into a room | obj vnum, max existing, room vnum, [load %] |
 | `P` | Put an object inside another object | obj vnum, max existing, container vnum, [load %] |
@@ -202,7 +202,7 @@ The `D` command's third argument selects a combination of closed, locked, and
 hidden states with three difficulty tiers each:
 
 | State | Effect |
-|-------|--------|
+| -- | -- |
 | 0 | Open and unlocked |
 | 1 | Closed |
 | 2 | Closed and locked (easy) |

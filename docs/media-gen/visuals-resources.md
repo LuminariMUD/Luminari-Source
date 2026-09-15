@@ -4,7 +4,7 @@
 - Many game-art hubs mix CC0 with Creative Commons variants like CC BY, where attribution in your credits or documentation is mandatory, so you must check per-asset license labels. [reddit](https://www.reddit.com/r/gamedev/comments/1m76pm4/the_ultimate_free_game_dev_asset_list_50_sites/)
 - Meta-lists like "awesome-cc0" and general free-asset roundups explicitly mark CC0 versus "varies" and are good starting points when you want to bias toward zero-attribution pipelines. [hackingtons](https://www.hackingtons.com/free-game-art)
 
-***
+---
 
 ## No-attribution visual asset sites (CC0 / equivalent)
 
@@ -13,7 +13,7 @@ These are suitable for "no credits screen required" builds (though you can still
 ### Game-art & general visual assets
 
 | Site | What you get | License / attribution | Notes |
-|---|---|---|---|
+| -- | -- | -- | -- |
 | **Kenney.nl** | ~40k+ 2D sprites, tilesets, UI elements, plus 3D models and audio for games. [github](https://github.com/madjin/awesome-cc0) | Marked CC0; no attribution needed for personal or commercial use. [github](https://github.com/madjin/awesome-cc0) | Very consistent art style and packs; recommended starting point for prototypes and board-game iconography. [hackingtons](https://www.hackingtons.com/free-game-art) |
 | **Quaternius** | Large packs of 3D characters, props, environments for low-poly games. [github](https://github.com/madjin/awesome-cc0) | CC0; free for any use without credit. [github](https://github.com/madjin/awesome-cc0) | Good for stylized fantasy minis, board-game pieces, and environment tokens. [github](https://github.com/madjin/awesome-cc0) |
 | **Poly Haven** | 3D models, HDRI skyboxes, and PBR textures. [github](https://github.com/madjin/awesome-cc0) | 100% CC0; no attribution required. [github](https://github.com/madjin/awesome-cc0) | Ideal for realistic boards, terrain tiles, and lighting backdrops. [github](https://github.com/madjin/awesome-cc0) |
@@ -29,14 +29,14 @@ These are suitable for "no credits screen required" builds (though you can still
 ### Icons & UI graphics with no attribution
 
 | Site | What you get | License / attribution | Notes |
-|---|---|---|---|
+| -- | -- | -- | -- |
 | **Icons8 - free icons** | Large sets of UI icons in multiple styles (flat, glyph, etc.). [icons8](https://icons8.com/icons/set/no-attribution) | "Free icons for commercial use without attribution"; you can use them without credit in apps and games. [icons8](https://icons8.com/icons/set/no-attribution) | Good for HUD, menus, settings, and system icons in digital board-game UIs. [icons8](https://icons8.com/icons/set/no-attribution) |
 | **IconScout - "No Attribution" collection** | 2,000+ icons flagged as "No Attribution". [iconscout](https://iconscout.com/free-icons/no-attribution) | Specifically labeled as icons for commercial and personal use "no attribution". [iconscout](https://iconscout.com/free-icons/no-attribution) | Filter by this collection to keep UI fully attribution-free. [iconscout](https://iconscout.com/free-icons/no-attribution) |
 | **UXWing** | Free vector icons in SVG and PNG. [bestwebdesignfreebies](https://bestwebdesignfreebies.com/free-icons-websites-with-no-attribution-required/) | Blog list notes "no attribution required" for UXWing. [bestwebdesignfreebies](https://bestwebdesignfreebies.com/free-icons-websites-with-no-attribution-required/) | Simple, clean UI icons for rules screens, settings, etc. [bestwebdesignfreebies](https://bestwebdesignfreebies.com/free-icons-websites-with-no-attribution-required/) |
 | **Reshot** | Icons and illustrations under "Reshot Free License". [bestwebdesignfreebies](https://bestwebdesignfreebies.com/free-icons-websites-with-no-attribution-required/) | License explicitly allows commercial/non-commercial use without required attribution (credit appreciated but optional). [bestwebdesignfreebies](https://bestwebdesignfreebies.com/free-icons-websites-with-no-attribution-required/) | Useful for more illustrative UI and card icons. [bestwebdesignfreebies](https://bestwebdesignfreebies.com/free-icons-websites-with-no-attribution-required/) |
 | **GraphicBurger** | Icon kits, UI kits, and mockups sourced from various designers. [bestwebdesignfreebies](https://bestwebdesignfreebies.com/free-icons-websites-with-no-attribution-required/) | Resources described as royalty-free for personal and commercial projects "no attribution or link back required". [bestwebdesignfreebies](https://bestwebdesignfreebies.com/free-icons-websites-with-no-attribution-required/) | Good for polished UI sets and menus for digital board games. [bestwebdesignfreebies](https://bestwebdesignfreebies.com/free-icons-websites-with-no-attribution-required/) |
 
-***
+---
 
 ## Sites where attribution or per-asset license checks are needed
 
@@ -45,7 +45,7 @@ These are powerful resources but you must read the license on each asset; many a
 ### Mixed-license game-art hubs
 
 | Site | What you get | License / attribution | Notes |
-|---|---|---|---|
+| -- | -- | -- | -- |
 | **OpenGameArt.org** | Huge collection of 2D sprites, tilesets, textures, 3D models, music, and SFX. [youtube](https://www.youtube.com/watch?v=WJozBnrGHKE) | Licenses clearly shown per asset; many are CC BY or similar and require attribution, some are CC0. [youtube](https://www.youtube.com/watch?v=WJozBnrGHKE) | Excellent variety for fantasy board games, but build a habit of storing license/author metadata with each download. [youtube](https://www.youtube.com/watch?v=WJozBnrGHKE) |
 | **itch.io - general "Assets" section** | Free and paid asset packs: sprites, tiles, UI, 3D models. [hackingtons](https://www.hackingtons.com/free-game-art) | License "varies"; authors choose their licenses, some require credit or have additional conditions. [hackingtons](https://www.hackingtons.com/free-game-art) | Strong for niche art styles and themed packs; treat license as per-pack, not global. [hackingtons](https://www.hackingtons.com/free-game-art) |
 | **CraftPix.net (free section)** | Free game sprites and themed packs. [hackingtons](https://www.hackingtons.com/free-game-art) | Roundups highlight free sprites; license terms per pack, some marked as no attribution needed, others with conditions. [hackingtons](https://www.hackingtons.com/free-game-art) | Good source for fantasy sprites and tiles; always read the per-pack license. [hackingtons](https://www.hackingtons.com/free-game-art) |
@@ -55,12 +55,12 @@ These are powerful resources but you must read the license on each asset; many a
 ### Board-game / illustration-oriented sources
 
 | Site | What you get | License / attribution | Notes |
-|---|---|---|---|
+| -- | -- | -- | -- |
 | **Freepik - fantasy board-game illustrations** | Vectors, PSDs, and stock illustrations specifically tagged for "fantasy board game illustration". [freepik](https://www.freepik.com/free-photos-vectors/fantasy-board-game-illustration) | Listed as "Free for commercial use" but Freepik's free tier generally requires following its license page; check per resource for any attribution requirement. [freepik](https://www.freepik.com/free-photos-vectors/fantasy-board-game-illustration) | Strong fit for card art, boards, and cover art when you're comfortable adding credits or license mentions. [freepik](https://www.freepik.com/free-photos-vectors/fantasy-board-game-illustration) |
 | **Game-Icons.net** | Thousands of SVG icons themed around game mechanics and fantasy items. [hackingtons](https://www.hackingtons.com/free-game-art) | Marked as CC BY (Creative Commons Attribution) in game-asset lists, so attribution is required. [hackingtons](https://www.hackingtons.com/free-game-art) | Perfect for power icons, abilities, status effects in board games, but must be credited (e.g., in rulebook or credits screen). [hackingtons](https://www.hackingtons.com/free-game-art) |
 | **SVGRepo (general vectors)** | Large library of SVG icons and graphics, with many game-suitable items. [gameidea](https://gameidea.org/complete-list-of-free-game-assets/) | Mix of licenses; many CC BY or similar requiring attribution, some public-domain. [gameidea](https://gameidea.org/complete-list-of-free-game-assets/) | Good for tokens and iconography; treat each SVG as its own license unit. [gameidea](https://gameidea.org/complete-list-of-free-game-assets/) |
 
-***
+---
 
 ## Meta-lists and aggregators (for "comprehensive" coverage)
 
@@ -75,7 +75,7 @@ Instead of manually hunting every site, you can lean on a few curated lists desi
 
 These meta-lists are useful if you want to script scraping or build internal catalogs for your own asset browser.
 
-***
+---
 
 ## Practical usage tips for your pipeline
 

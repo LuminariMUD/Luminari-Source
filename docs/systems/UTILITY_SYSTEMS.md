@@ -9,6 +9,7 @@ LuminariMUD includes several utility systems that provide essential infrastructu
 ### Core Logging Architecture
 
 #### Log Types and Levels
+
 ```c
 // Log types defined in structs.h
 #define SYSLOG    0    // System messages
@@ -28,6 +29,7 @@ LuminariMUD includes several utility systems that provide essential infrastructu
 ```
 
 #### Logging Functions
+
 ```c
 // Basic logging function
 void basic_mud_log(const char *format, ...) {
@@ -88,6 +90,7 @@ void mudlog(int type, int level, int file, const char *str, ...) {
 ### Specialized Logging
 
 #### Performance Logging
+
 ```c
 void log_performance_data(const char *function, long execution_time) {
   static FILE *perf_log = NULL;
@@ -114,6 +117,7 @@ void log_performance_data(const char *function, long execution_time) {
 ```
 
 #### Security Logging
+
 ```c
 void log_security_event(struct char_data *ch, const char *event, const char *details) {
   FILE *sec_log = fopen("../log/security.log", "a");
@@ -138,6 +142,7 @@ void log_security_event(struct char_data *ch, const char *event, const char *det
 ### Channel System
 
 #### Channel Structure
+
 ```c
 struct channel_data {
   char *name;           // Channel name
@@ -161,6 +166,7 @@ struct channel_data channels[] = {
 ```
 
 #### Channel Communication
+
 ```c
 ACMD(do_gen_comm) {
   struct descriptor_data *i;
@@ -219,6 +225,7 @@ ACMD(do_gen_comm) {
 ### Mail System
 
 #### Mail Structure
+
 ```c
 struct mail_index_type {
   long position;        // Position in mail file
@@ -239,6 +246,7 @@ struct mail_data {
 ```
 
 #### Mail Functions
+
 ```c
 // Send mail
 void send_mail(long to, long from, const char *subject, const char *message) {
@@ -323,6 +331,7 @@ ACMD(do_mail) {
 ## Event System
 
 ### Event Structure
+
 ```c
 struct mud_event_data {
   event_id iId;                    // Event ID
@@ -347,6 +356,7 @@ typedef enum {
 ```
 
 ### Event Management
+
 ```c
 // Create new event
 struct mud_event_data *new_mud_event(event_id iId, void *pStruct, long lDelay) {
@@ -397,6 +407,7 @@ void process_events() {
 ```
 
 ### Common Event Functions
+
 ```c
 // Combat round event
 EVENTFUNC(combat_round_event) {
@@ -442,6 +453,7 @@ EVENTFUNC(regen_event) {
 ## Board System
 
 ### Board Structure
+
 ```c
 struct board_data {
   int vnum;                    // Board virtual number
@@ -467,6 +479,7 @@ struct message_data {
 ```
 
 ### Board Operations
+
 ```c
 // Read board message
 ACMD(do_look_at_board) {
@@ -561,10 +574,10 @@ ACMD(do_write_board) {
 }
 ```
 
-
 ## Utility Commands
 
 ### System Information
+
 ```c
 ACMD(do_uptime) {
   time_t uptime = time(0) - boot_time;
@@ -613,6 +626,7 @@ ACMD(do_memory) {
 ```
 
 ### Maintenance Tools
+
 ```c
 ACMD(do_purge_players) {
   int days_inactive, purged = 0;

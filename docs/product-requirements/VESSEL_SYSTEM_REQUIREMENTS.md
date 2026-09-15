@@ -268,7 +268,7 @@ record; implementation and automated actual-character checks do not substitute
 for human beta evidence.
 
 | Gate | State | Owner | Evidence or exit condition |
-|---|---|---|---|
+| -- | -- | -- | -- |
 | Development mechanics and final preflight | Complete | Engineering | The 306-test suite, strict Memcheck, protocol/tooling gates, kill switch, debug-off, help, lifecycle recovery, and 500-vessel run pass; see [VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md) and [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md). |
 | Production-snapshot schema rehearsal | Complete | Database operator | Forward, verification, idempotence, rollback, full restore, reapply, and database checks pass without production writes; see [VESSEL_SCHEMA_DEPLOYMENT.md](../deployment/VESSEL_SCHEMA_DEPLOYMENT.md#august-2-2026-production-snapshot-record). |
 | Player-data balance | Open | Product owner | Collect real beta data, then tune combat time-to-kill, crew wages, freight margins, refit costs, insurance, and dock fees. The deterministic duel/economy report is mechanical evidence only. |
@@ -278,7 +278,7 @@ for human beta evidence.
 ## 9. Principal Risks
 
 | Risk | Mitigation |
-|------|------------|
+| -- | -- |
 | Gameplay scope expands without a releasable core | Preserve independent capability slices and cut optional events or cosmetics before safety, ownership, combat, or economy |
 | Combat or economy balance changes repeatedly | Keep numbers data-driven and use duel, trade, soak, and beta simulations |
 | PvP vessel actions bypass consent | Route every hostile action through the shared PvP gate and test each entry point |

@@ -54,7 +54,7 @@ the same perception fact rather than being embedded in propagation.
 Every integration must be classified before it is bridged:
 
 | Gateway | Boundary | Rule |
-|---|---|---|
+| -- | -- | -- |
 | DG leave/entry/greet and blocking special procedures | Pre-operation decision | May veto or redirect before a committed fact exists. |
 | Command-intercepting special procedures | Pre-operation decision | Retain synchronous command ownership; publish a later outcome only if a consumer needs it. |
 | Committed movement, transfer, damage and death | Post-operation notification | Consumers re-resolve handles and never undo the operation. |
@@ -68,7 +68,7 @@ Every integration must be classified before it is bridged:
 Three appended quest types preserve every existing persisted type number:
 
 | Type | Authored target | Authoritative input |
-|---|---|---|
+| -- | -- | -- |
 | `AQ_MOB_RESOLVE` (25) | Mobile VNUM | A committed rescue or negotiation in the actor's current room. |
 | `AQ_SKILL_SUCCESS` (26) | Ability number | A successful completed ability check. Dialogue publishes the exact roll, modifier and DC; room search publishes its composite result. |
 | `AQ_WITNESS_PHENOMENON` (27) | Phenomenon kind | `PhenomenonPerceived` for that player with at least one usable sense. |

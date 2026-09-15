@@ -30,6 +30,7 @@ int main(int argc, char **argv)
 ```
 
 **Key Command Line Options:**
+
 - `-f <file>` - Specify a configuration file using a safe library-relative path
 - `-o <file>` - Specify log file
 - `-d <dir>` - Set data directory
@@ -118,6 +119,7 @@ void game_loop(socket_t local_mother_desc)
 ```
 
 **Timing System:**
+
 - **Runtime resolution:** monotonic 100 ms ticks, without a mandatory 100 ms wake
 - **Sleep mechanism:** reactor readiness plus the nearest scheduler or queued-wait deadline
 - **Timed work:** generation-aware semantic owner events on one timing wheel
@@ -137,11 +139,13 @@ named service event.
 The server uses BSD sockets for network communication:
 
 **Mother Socket (`mother_desc`):**
+
 - Listens for new incoming connections
 - Bound to specified port (default varies by configuration)
 - Non-blocking mode for connection acceptance
 
 **Descriptor Management:**
+
 - Each client connection gets a `descriptor_data` structure
 - Linked list of all active descriptors (`descriptor_list`)
 - File descriptor sets for `select()` system call
@@ -173,12 +177,14 @@ for (d = descriptor_list; d; d = next_d) {
 ### Input/Output System
 
 **Input Processing:**
+
 - Raw socket data read into buffers
 - Line-based command parsing
 - Alias expansion and command queuing
 - State-based processing (login, playing, editing, etc.)
 
 **Output Processing:**
+
 - Buffered output system with queues
 - Color code processing
 - Protocol handling (telnet, MSDP, etc.)
@@ -271,6 +277,7 @@ static void signal_setup(void)
 ```
 
 **Signal Functions:**
+
 - `reread_wizlists()` - Reload administrator lists
 - `checkpointing()` - Force save all player data
 - `hupsig()` - Initiate graceful shutdown
@@ -318,7 +325,7 @@ Special-procedure setup is a compatibility control plane around the existing sin
 on mobile, object, and room prototypes. It has three separate state layers:
 
 | Layer | Owner | Authority |
-|-------|-------|-----------|
+| -- | -- | -- |
 | Immutable definition | `src/spec/spec_registry.c` | Stable identity, aliases, owners, events, prerequisites, visibility, and allowed sources. |
 | Authored binding | Prototype-owned `struct spec_binding` | Exact world or explicit OLC request used by persistence and content diagnostics. |
 | Effective history | Prototype-owned `struct spec_effective_binding` | Ordered observation of boot callback writes, collisions, wrappers, and final slot. |
@@ -672,16 +679,19 @@ subsystem.
 ## Memory Management
 
 **Buffer Pools:**
+
 - Pre-allocated buffer pools for common operations
 - Reduces malloc/free overhead
 - Configurable buffer sizes
 
 **Descriptor Management:**
+
 - Linked list of active connections
 - Automatic cleanup on disconnect
 - Memory leak prevention
 
 **World Data:**
+
 - Static allocation for world structures
 - Reference counting for shared data
 - Cleanup functions for shutdown
@@ -689,12 +699,14 @@ subsystem.
 ## Error Handling and Logging
 
 **Logging System:**
+
 - Configurable log levels
 - Timestamped entries
 - Separate error streams
 - Rotation and archival support
 
 **Error Recovery:**
+
 - Graceful handling of network errors
 - Automatic cleanup of corrupted connections
 - Core dump generation for debugging

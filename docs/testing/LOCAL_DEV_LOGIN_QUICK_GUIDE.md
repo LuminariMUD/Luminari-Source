@@ -82,8 +82,7 @@ The dynamic at-sea narrative passes actual-character acceptance under
 `/tmp/luminari-vessel-narrative-check-1000/runs/20260802T115413Z-1685068`.
 Kohdee boarded a moving Vailand warship under live overcast 167/255 weather,
 read movement- and weather-aware at-sea prose with a Vailand Passage hint, and
-forced the matching production ambient formatter through `vesseldebug
-ambient`. The 34-second run verified the eight-row content package, purged the
+forced the matching production ambient formatter through `vesseldebug ambient`. The 34-second run verified the eight-row content package, purged the
 temporary hull, restored Kohdee's exact player file and room 1204, and
 restarted the tested binary from source `547e54b3`.
 
@@ -332,7 +331,7 @@ trench. It also proves the Aetherwind lane's effective speed 12 at Z 100,
 Shardspire at `(469, 0, 200)`, three cargo rooms and a 40,000-pound transport
 hold, and one magical voyage across Plains, River, Z -10, and Z 10. No weapon
 is fired. All temporary hulls must be purged and Kohdee must finish in room
-1204. Failure recovery removes only runtimes created from these eight owned
+1204\. Failure recovery removes only runtimes created from these eight owned
 prototypes and returns Kohdee to the safe room.
 
 The passing artifact is
@@ -803,7 +802,7 @@ autopilot at 213,780, encounters at 149,653, and schedules at 24,889. The
 memory series is `REPORT_ONLY`: RSS rose 786,784 to 854,412 KiB across 1,861
 seconds while movement trails rose 30,426 to 289,000; threads stayed 2 and
 descriptors 11-12. Cleanup restored six vessels and the exact binary on PID
-522541. Fix the three production hotspots before starting the next full run.
+522541\. Fix the three production hotspots before starting the next full run.
 
 The next candidate bounded those hotspots for the seventh launch. Payroll
 uses 100 stable batches, so no more than five of the 500 slots become payable
@@ -946,7 +945,7 @@ tests with zero errors and zero definite, indirect, or possible loss; required
 Final preflight repeated the complete gate after Phase 17. The first launch,
 `20260802T145814Z-2035247`, failed safely during harbor setup because the dock
 wait returned at the correct west coordinates while the ferry still had speed
-2. `@wait-vessel-dock` now requires the matching coordinates and `Speed: 0 /`;
+2\. `@wait-vessel-dock` now requires the matching coordinates and `Speed: 0 /`;
 the tooling test locks that stopped-state requirement. The next launch,
 `20260802T151047Z-2061276`, reached all 500 ships but stopped before timing
 because its surface and submarine Z probes issued `setsail up` at speed 0 and
@@ -1525,16 +1524,16 @@ nc 127.0.0.1 4100
 
 Then follow this sequence:
 
-1. At the account-name prompt, enter the value of `GAME_MASTER_ACCOUNT`.
-2. At `Password:`, enter `GAME_MASTER_ACCOUNT_PASSWORD`.
-3. At the account menu, choose the numbered row whose Name column is exactly
-   `Kohdee`.
-4. At `PRESS RETURN`, press Enter.
-5. At the character menu, enter `1` to enter the game.
-6. Confirm that the welcome message and room display appear.
-7. Enter `quit` to leave the game world for the character menu.
-8. At the character menu, enter `0` to return to the account menu.
-9. At the account menu, enter `Q`.
+01. At the account-name prompt, enter the value of `GAME_MASTER_ACCOUNT`.
+02. At `Password:`, enter `GAME_MASTER_ACCOUNT_PASSWORD`.
+03. At the account menu, choose the numbered row whose Name column is exactly
+    `Kohdee`.
+04. At `PRESS RETURN`, press Enter.
+05. At the character menu, enter `1` to enter the game.
+06. Confirm that the welcome message and room display appear.
+07. Enter `quit` to leave the game world for the character menu.
+08. At the character menu, enter `0` to return to the account menu.
+09. At the account menu, enter `Q`.
 10. Confirm `Quitting.` and close the local client if it does not exit by
     itself.
 

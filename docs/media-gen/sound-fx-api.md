@@ -114,13 +114,13 @@ containment.
 The request contract below follows the official API reference as verified on
 2026-07-15.
 
-| Item           | Value                                                         |
-| -------------- | ------------------------------------------------------------- |
-| Method         | `POST`                                                        |
-| URL            | `https://api.elevenlabs.io/v1/sound-generation`               |
-| Authentication | `xi-api-key: ${ELEVENLABS_API_KEY}`                           |
-| Request        | `application/json`                                            |
-| Success        | Binary generated audio with response metadata in HTTP headers |
+| Item | Value |
+| -- | -- |
+| Method | `POST` |
+| URL | `https://api.elevenlabs.io/v1/sound-generation` |
+| Authentication | `xi-api-key: ${ELEVENLABS_API_KEY}` |
+| Request | `application/json` |
+| Success | Binary generated audio with response metadata in HTTP headers |
 
 Although the endpoint schema renders `xi-api-key` as optional, the official
 authentication guide requires an API key for API requests. Project tooling must
@@ -128,9 +128,9 @@ treat it as required.
 
 ### Query parameter
 
-| Name            | Required | Project treatment                                                                                                                               |
-| --------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `output_format` | No       | Record the exact selected enum. Values use `codec_sample_rate_bitrate`; availability and higher-quality formats can depend on the account plan. |
+| Name | Required | Project treatment |
+| -- | -- | -- |
+| `output_format` | No | Record the exact selected enum. Values use `codec_sample_rate_bitrate`; availability and higher-quality formats can depend on the account plan. |
 
 Do not copy a stale list of all output enums into project tooling. Re-read the
 live API reference before the pilot and final batches. The current overview says
@@ -140,13 +140,13 @@ browser decode, size, and quality thresholds.
 
 ### JSON request body
 
-| Field              | Required | Current default           | Rules and Project Adventure treatment                                                                                    |
-| ------------------ | -------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `text`             | Yes      | None                      | Original cue brief only. Do not include archive text, artist names, copied signatures, private data, or unreleased copy. |
-| `loop`             | No       | `false`                   | Smooth looping is available only with `eleven_text_to_sound_v2`. Keep false for the current one-shot catalog.            |
-| `duration_seconds` | No       | `null`                    | API reference range is 0.5 through 30 seconds; null lets the model infer duration.                                       |
-| `prompt_influence` | No       | `0.3`                     | Range 0 through 1. Higher values follow the prompt more literally and reduce variation.                                  |
-| `model_id`         | No       | `eleven_text_to_sound_v2` | Set explicitly in a recorded production request so the provenance record does not depend on a moving default.            |
+| Field | Required | Current default | Rules and Project Adventure treatment |
+| -- | -- | -- | -- |
+| `text` | Yes | None | Original cue brief only. Do not include archive text, artist names, copied signatures, private data, or unreleased copy. |
+| `loop` | No | `false` | Smooth looping is available only with `eleven_text_to_sound_v2`. Keep false for the current one-shot catalog. |
+| `duration_seconds` | No | `null` | API reference range is 0.5 through 30 seconds; null lets the model infer duration. |
+| `prompt_influence` | No | `0.3` | Range 0 through 1. Higher values follow the prompt more literally and reduce variation. |
+| `model_id` | No | `eleven_text_to_sound_v2` | Set explicitly in a recorded production request so the provenance record does not depend on a moving default. |
 
 The overview currently states a 0.1-second lower duration bound while the API
 reference states 0.5 seconds. Treat the endpoint reference as the integration
@@ -298,15 +298,15 @@ the exact bytes, record bounded provenance, and promote nothing automatically.
 
 Start from one checklist role and write a cue brief with these fields:
 
-| Field                   | Prompt content                                                                                      |
-| ----------------------- | --------------------------------------------------------------------------------------------------- |
-| Role                    | Exact checklist event and whether it is essential, meaning-bearing, or decorative.                  |
-| Source and material     | What physically or synthetically produces the sound.                                                |
-| Action                  | Impact, movement, pulse, scrape, release, rise, decay, or another concrete acoustic event.          |
-| Timing                  | One-shot or loop, target duration, attack speed, sustain, and tail.                                 |
-| Perspective and space   | Close, distant, dry, reflected, narrow, broad, or otherwise mix-relevant placement.                 |
-| Intensity and frequency | Subtle through terminal, plus the frequency range that should remain clear around music and cues.   |
-| Exclusions              | No voice, words, singing, music, melody, clipping, excessive tail, or other role-specific failures. |
+| Field | Prompt content |
+| -- | -- |
+| Role | Exact checklist event and whether it is essential, meaning-bearing, or decorative. |
+| Source and material | What physically or synthetically produces the sound. |
+| Action | Impact, movement, pulse, scrape, release, rise, decay, or another concrete acoustic event. |
+| Timing | One-shot or loop, target duration, attack speed, sustain, and tail. |
+| Perspective and space | Close, distant, dry, reflected, narrow, broad, or otherwise mix-relevant placement. |
+| Intensity and frequency | Subtle through terminal, plus the frequency range that should remain clear around music and cues. |
+| Exclusions | No voice, words, singing, music, melody, clipping, excessive tail, or other role-specific failures. |
 
 A useful prompt describes an audio asset, not game lore. Keep the same validated
 material and mix vocabulary across a cue family, then change only the event,
@@ -314,14 +314,10 @@ intensity, or variation being tested.
 
 Examples for candidate briefs:
 
-- Menu navigation: `Very short neutral interface tick, precise soft transient,
-dry and quiet, repeat-safe, no voice, no words, no music, no melody`.
-- Major threat: `Short rising mechanical-and-air warning, immediate readable
-attack, restrained tail, clear over combat, no voice, no words, no music`.
-- Player damage: `Compact layered impact with a brittle energy crack, urgent but
-not cinematic, close perspective, short tail, no vocalization, no music`.
-- Tonic use: `Brief restorative liquid-and-resonance shimmer, health and energy
-recovery, warm release, no voice, no melody, under one second`.
+- Menu navigation: `Very short neutral interface tick, precise soft transient, dry and quiet, repeat-safe, no voice, no words, no music, no melody`.
+- Major threat: `Short rising mechanical-and-air warning, immediate readable attack, restrained tail, clear over combat, no voice, no words, no music`.
+- Player damage: `Compact layered impact with a brittle energy crack, urgent but not cinematic, close perspective, short tail, no vocalization, no music`.
+- Tonic use: `Brief restorative liquid-and-resonance shimmer, health and energy recovery, warm release, no voice, no melody, under one second`.
 
 Do not prompt with an artist, franchise, branded sonic logo, recognizable song,
 third-party character, archive proper noun, copied narrative phrase, or a request
@@ -384,21 +380,21 @@ contract](../../engineering/data-contracts.md#audio-source-and-provenance) and
 
 Every generated candidate that remains under consideration should record:
 
-| Field                      | Required evidence                                                                                     |
-| -------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Candidate ID               | Unique local identity that is not a runtime cue ID.                                                   |
-| Intended cue role          | Checklist role and intended game use.                                                                 |
-| Provider and product       | ElevenLabs Sound Effects.                                                                             |
-| Model and feature status   | Exact model ID and confirmation that the feature was not a prohibited beta for the intended use.      |
-| Generation time            | ISO timestamp binding the request to then-current plan and terms.                                     |
-| Account entitlement class  | Paid or research-only class without account secrets or unnecessary personal data.                     |
-| Prompt and options         | Exact prompt, loop, duration, prompt influence, and output format.                                    |
-| Provider request metadata  | Safe request, trace, cost, or history identity when available.                                        |
-| Original response          | Byte length, media facts, and SHA-256.                                                                |
-| Deterministic modifications | Selection, trimming, arrangement, layering, fades, processing, mixing, and mastering recipes.        |
-| Accepted master and export  | Master hash, deterministic export recipe, runtime hash, size, codec, rate, channels, and loop points. |
-| Validation                  | Rights, originality, similarity, unwanted speech or music, mix, decode, and archive-boundary results. |
-| Disposition                 | Research-only, rejected, selected, accepted, superseded, or shipped after all autonomous checks pass. |
+| Field | Required evidence |
+| -- | -- |
+| Candidate ID | Unique local identity that is not a runtime cue ID. |
+| Intended cue role | Checklist role and intended game use. |
+| Provider and product | ElevenLabs Sound Effects. |
+| Model and feature status | Exact model ID and confirmation that the feature was not a prohibited beta for the intended use. |
+| Generation time | ISO timestamp binding the request to then-current plan and terms. |
+| Account entitlement class | Paid or research-only class without account secrets or unnecessary personal data. |
+| Prompt and options | Exact prompt, loop, duration, prompt influence, and output format. |
+| Provider request metadata | Safe request, trace, cost, or history identity when available. |
+| Original response | Byte length, media facts, and SHA-256. |
+| Deterministic modifications | Selection, trimming, arrangement, layering, fades, processing, mixing, and mastering recipes. |
+| Accepted master and export | Master hash, deterministic export recipe, runtime hash, size, codec, rate, channels, and loop points. |
+| Validation | Rights, originality, similarity, unwanted speech or music, mix, decode, and archive-boundary results. |
+| Disposition | Research-only, rejected, selected, accepted, superseded, or shipped after all autonomous checks pass. |
 
 Provider request metadata supports investigation but does not replace the
 original-response hash, prompt record, entitlement evidence, acoustic
@@ -406,17 +402,17 @@ validation, or project acceptance record.
 
 ## Failure, cancellation, duplicate, and retry behavior
 
-| Condition                                       | Treatment                                                                                                                           |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Invalid request or unsupported option           | Correct the cue brief or request; do not retry unchanged.                                                                           |
-| Missing, invalid, or under-scoped key           | Stop the provider path without output; use the configured licensed fallback and preserve credential restrictions.                   |
-| Insufficient credits or unavailable plan        | Stop the provider path; apply the configured free/licensed fallback without increasing the budget.                                  |
-| IP allowlist or permission rejection            | Stop the provider path; keep the restriction intact and apply the configured licensed fallback.                                     |
-| Rate limit                                      | Apply bounded exponential backoff and retain the same candidate operation identity.                                                 |
-| Concurrency limit                               | Wait for current requests to finish; do not increase parallelism.                                                                   |
-| Timeout, `5xx`, or service unavailable          | Retry a bounded number of times only while the same validated request remains current.                                              |
-| Cancellation, stale batch, or superseded brief  | Abort or ignore the response, remove partial scratch output, and never promote it.                                                  |
-| Duplicate request or repeated callback          | Keep a distinct candidate identity; never overwrite, double-charge a production record, or claim deterministic reproduction.        |
+| Condition | Treatment |
+| -- | -- |
+| Invalid request or unsupported option | Correct the cue brief or request; do not retry unchanged. |
+| Missing, invalid, or under-scoped key | Stop the provider path without output; use the configured licensed fallback and preserve credential restrictions. |
+| Insufficient credits or unavailable plan | Stop the provider path; apply the configured free/licensed fallback without increasing the budget. |
+| IP allowlist or permission rejection | Stop the provider path; keep the restriction intact and apply the configured licensed fallback. |
+| Rate limit | Apply bounded exponential backoff and retain the same candidate operation identity. |
+| Concurrency limit | Wait for current requests to finish; do not increase parallelism. |
+| Timeout, `5xx`, or service unavailable | Retry a bounded number of times only while the same validated request remains current. |
+| Cancellation, stale batch, or superseded brief | Abort or ignore the response, remove partial scratch output, and never promote it. |
+| Duplicate request or repeated callback | Keep a distinct candidate identity; never overwrite, double-charge a production record, or claim deterministic reproduction. |
 | Empty, oversized, corrupt, or undecodable audio | Quarantine or delete the scratch candidate, retain a safe failure record, and preserve every previously accepted source and output. |
 
 The general API error guide documents `400` validation, `401` authentication,
@@ -462,24 +458,24 @@ must not be promoted later merely because the account subsequently changes plan.
 ## Batch checklist
 
 - [ ] The hybrid file-source mode matches the versioned manifest scope, or the
-      batch is explicitly research-only.
+  batch is explicitly research-only.
 - [ ] The cue roles come from the current conservative audio checklist.
 - [ ] The exact prompts contain no archive terms, copied signatures, artist
-      imitation, private data, speech, singing, music, or melody.
+  imitation, private data, speech, singing, music, or melody.
 - [ ] The key is restricted, locally loaded from `.env`, and absent from command
-      output and retained artifacts.
+  output and retained artifacts.
 - [ ] The plan, non-beta feature status, terms, opt-out, pricing, and usage budget
-      have been rechecked.
+  have been rechecked.
 - [ ] Candidate IDs, output paths, byte limits, timeouts, cancellation, bounded
-      retry, partial cleanup, and duplicate behavior are defined.
+  retry, partial cleanup, and duplicate behavior are defined.
 - [ ] Every successful response receives exact request metadata and an original
-      byte hash before editing.
+  byte hash before editing.
 - [ ] Autonomous selection, deterministic edits, mix, originality, and
-      similarity validator results plus rejection reasons are recorded.
+  similarity validator results plus rejection reasons are recorded.
 - [ ] Accepted masters and runtime exports have deterministic recipes, stable
-      project IDs, hashes, provenance, and complete manifest coverage.
+  project IDs, hashes, provenance, and complete manifest coverage.
 - [ ] The packaged game makes no ElevenLabs or other vendor request and remains
-      fully playable with audio muted or unavailable.
+  fully playable with audio muted or unavailable.
 
 ## Reverification
 

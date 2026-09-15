@@ -29,7 +29,7 @@ Apply schema phases in ascending order. Later phases extend or depend on earlier
 tables.
 
 | Phase | Install | Verify | Rollback | Purpose |
-|---|---|---|---|---|
+| -- | -- | -- | -- | -- |
 | 2 | `vessels_phase2_schema.sql` | `verify_vessels_schema.sql` | `vessels_phase2_rollback.sql` | Interiors, docking, room templates, cargo, and crew |
 | 4 | `vessels_phase4_schema.sql` | `verify_vessels_phase4.sql` | `vessels_phase4_rollback.sql` | Builder ship prototypes |
 | 6 | `vessels_phase6_schema.sql` | `verify_vessels_phase6.sql` | `vessels_phase6_rollback.sql` | Ownership, upgrades, insurance, wages, permits, and hired crew |
@@ -109,24 +109,24 @@ eight prototypes before guarded rollback.
 Before changing a shared or production-like database:
 
 - [ ] Confirm the checkout and database are the intended environment. This
-      repository's `lib/.env` is local configuration and must not be modified.
+  repository's `lib/.env` is local configuration and must not be modified.
 - [ ] Rehearse the exact install and rollback on a recent production snapshot.
 - [ ] Schedule the maintenance window and name the operator with rollback
-      authority.
+  authority.
 - [ ] Record the application commit, schema inventory, row counts, and current
-      vessel ownership/cargo census.
+  vessel ownership/cargo census.
 - [ ] Create a consistent database backup that includes routines and triggers,
-      then prove it can be read and restored into an isolated database.
+  then prove it can be read and restored into an isolated database.
 - [ ] Confirm every install, verify, and rollback file comes from the same
-      reviewed source revision.
+  reviewed source revision.
 - [ ] Stop vessel writes before migration. Set the cedit vessel option to
-      `Off`, confirm a gated command reports that the system is disabled, and
-      confirm `shiplist` remains available for recovery. The flag gates vessel
-      command dispatch and both heartbeat tick groups.
+  `Off`, confirm a gated command reports that the system is disabled, and
+  confirm `shiplist` remains available for recovery. The flag gates vessel
+  command dispatch and both heartbeat tick groups.
 - [ ] Keep the previous application binary and configuration available.
 - [ ] Confirm `vdebug status` reports `compiled out` in the candidate build.
-      Debug support is available only in an explicit development build compiled
-      with `-DVESSEL_SYSTEM_DEBUG=1`.
+  Debug support is available only in an explicit development build compiled
+  with `-DVESSEL_SYSTEM_DEBUG=1`.
 
 Do not expose credentials in shell history or command output. Use the approved
 MySQL client configuration for the target environment.
@@ -135,24 +135,24 @@ MySQL client configuration for the target environment.
 
 Use an isolated clone of a recent production backup.
 
-1. Restore the snapshot into the rehearsal database.
-2. Start the matching pre-migration application and capture a baseline:
-   - Owned ships and owner names.
-   - Interior, cargo, crew, route, schedule, and encounter row counts.
-   - Representative ship records selected for post-migration comparison.
-3. Stop application writes.
-4. Apply each schema component in ascending order, then apply the reviewed
-   campaign, narrative, derelict, and frontier content packages with their
-   matching world records.
-5. Run every matching schema and content verification script.
-6. Apply `help_vessel_entries.sql`, run
-   `verify_help_vessel_entries.sql`, and complete the in-game command-keyword
-   sweep.
-7. Start the candidate application and run the manual vessel regression.
-8. Exercise reboot and copyover with ships under way, in combat, and carrying
-   cargo.
-9. Stop writes, execute the rollback plan, restore the previous application,
-   and compare the recovered data with the baseline.
+01. Restore the snapshot into the rehearsal database.
+02. Start the matching pre-migration application and capture a baseline:
+    - Owned ships and owner names.
+    - Interior, cargo, crew, route, schedule, and encounter row counts.
+    - Representative ship records selected for post-migration comparison.
+03. Stop application writes.
+04. Apply each schema component in ascending order, then apply the reviewed
+    campaign, narrative, derelict, and frontier content packages with their
+    matching world records.
+05. Run every matching schema and content verification script.
+06. Apply `help_vessel_entries.sql`, run
+    `verify_help_vessel_entries.sql`, and complete the in-game command-keyword
+    sweep.
+07. Start the candidate application and run the manual vessel regression.
+08. Exercise reboot and copyover with ships under way, in combat, and carrying
+    cargo.
+09. Stop writes, execute the rollback plan, restore the previous application,
+    and compare the recovered data with the baseline.
 10. Record commands, durations, results, and any manual intervention in the
     deployment record.
 

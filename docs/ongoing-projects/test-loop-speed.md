@@ -30,7 +30,7 @@ levels: one edit on the host, `make test-all` on the host, and the full CI matri
 Host loop (this worktree, after `make clean && make -j16`):
 
 | Step | Time |
-|------|------|
+| -- | -- |
 | Cold `make -j16 cutest` (400 objects, `-O2`) | 14.2 s wall, 3 min CPU |
 | Cold `make -j16` (server) | 13.2 s wall |
 | Edit one `.c`, `make -j16 cutest` | about 3 s (draft measurement) |
@@ -45,14 +45,14 @@ Host loop (this worktree, after `make clean && make -j16`):
 Script sub-targets of `make test` and `make test-all`, run one at a time on the host:
 
 | Target | Time | Note |
-|--------|------|------|
+| -- | -- | -- |
 | `test-autorun-supervision` | 21.7 s | 7.6 s is the hardcoded 5 s fastboot sleep in `autorun.sh`; the rest is 1 s watchdog/state intervals and a `sleep 1.2` |
 | `test-world-tools` | 10.1 s | 6.7 s Python unit tests, 2.1 s doc checks (test-all only) |
 | `test-vessel-tooling` | 9.0 s | all of it is `test_monitor_process_memory.sh` (fixed sleeps 2.5 + 1.5 + 2.5 s) |
 | `test-process-memory` | 8.8 s | the same two scripts again (test-all only) |
 | `test-character-rename-schema` | 2.6 s | starts a disposable `mariadbd` |
-| `test-sql-interpolation` | 1.8 s | |
-| the other 15 targets | under 1.3 s each | |
+| `test-sql-interpolation` | 1.8 s |  |
+| the other 15 targets | under 1.3 s each |  |
 
 Boot profile (14 gdb samples during "Loading mobs"): 13 samples in `affect_total` /
 `calculate_best_mod`, called from `interpret_espec` (`src/core/db.c:3423`). Every espec keyword
@@ -61,7 +61,7 @@ line ends with `affect_total(mob_proto + i)`; `parse_simple_mob` calls it once m
 GitHub, one push (24 jobs, wall about 17 min):
 
 | Job | Wall | What dominates |
-|-----|------|----------------|
+| -- | -- | -- |
 | Production-linked tests (libevent / select) | 8m35s / 7m35s | 377 s single-core build of server + cutest inside `make test-all`, then about 90 s of tests |
 | Clean archive, both build systems | 6m05s | four `-j4` builds plus two full test runs |
 | Behavioral tests | 6m22s | 73 s `make -j4`, then 207 s single-core cutest build inside `make test` |
@@ -69,7 +69,7 @@ GitHub, one push (24 jobs, wall about 17 min):
 | CMake gcc / clang | 4m29s / 3m47s | 149 s build, 66 s serial ctest |
 | Coverage, sanitizers, memory check | 2m47s to 4m22s | one instrumented build each |
 | CodeQL | 5m32s | its own build; cannot run locally |
-| world-tools, parity, hygiene, format, lint, compile-check, integration | under 2 min each | |
+| world-tools, parity, hygiene, format, lint, compile-check, integration | under 2 min each |  |
 
 Server compiles per PR today: cmake 4, clean-archive 4, behavioral 2, unit-tests 4,
 production-profile 10, sanitizers 1, memory 1, coverage 1, compile-check 1, CodeQL 1,
@@ -123,8 +123,7 @@ record the two sizes and `cmp` result in the PR body; `make -j16 test-all` green
   Document `make -j$(nproc) test` as the normal invocation. Optionally make the `cutest`
   run a prerequisite target (`run-cutest`) so it overlaps the shell tests instead of
   running after them.
-- Turn `test-all` into a prerequisite list (`test test-world-tools test-protocol
-  test-character-rename-static test-character-rename-schema`) with `$(MAKE) install` as
+- Turn `test-all` into a prerequisite list (`test test-world-tools test-protocol test-character-rename-static test-character-rename-schema`) with `$(MAKE) install` as
   the only recipe line, so `-j` applies to it too.
 - Drop `test-process-memory` from `test-all`; `test-vessel-tooling` (inside `test`)
   already runs both scripts. Keep the standalone target.
@@ -239,7 +238,7 @@ instrumented jobs (valgrind, ASan, coverage).
 ## Expected results
 
 | Loop | Today | After Phases 1 to 4 | After all phases |
-|------|-------|---------------------|------------------|
+| -- | -- | -- | -- |
 | Edit one file, rerun one test file | 3 s build + 33 s cutest | 3 s + under 1 s (`CUTEST_FILTER`) | same |
 | `make test` on the host | about 70 s serial | about 10 s (`-j16`) | same |
 | `make test-all` on the host | about 1.5 min | about 15 s | same |

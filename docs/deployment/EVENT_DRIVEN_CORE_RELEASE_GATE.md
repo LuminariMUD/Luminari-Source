@@ -22,7 +22,7 @@ time on an unmerged branch does not start the period.
 Record these identities:
 
 | Field | Required value |
-|-------|----------------|
+| -- | -- |
 | Merge commit on `master` | Full SHA |
 | Release tag | `v*.*.*` tag containing the merge |
 | GitHub release | Release URL |
@@ -224,7 +224,7 @@ waiting on this data-retention decision.
 ## 7. Sign-off
 
 | Decision | Reviewer | UTC timestamp | Evidence link |
-|----------|----------|---------------|---------------|
+| -- | -- | -- | -- |
 | Stable release completed |  |  |  |
 | No archival SQL reader/recovery dependency |  |  |  |
 | PubSub backup verified |  |  |  |

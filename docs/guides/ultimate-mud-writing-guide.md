@@ -45,23 +45,27 @@ Before writing a single description, crystallize your zone's purpose:
 ### The Golden Rules
 
 #### 1. **Show, Don't Tell (or Command)**
-[X] "You feel a chill run down your spine."  
+
+\[X\] "You feel a chill run down your spine."\
 [OK] "A sudden drop in temperature raises goosebumps along exposed skin."
 
-[X] "The sight makes you sick."  
+\[X\] "The sight makes you sick."\
 [OK] "The stench of decay mingles with something sweeter, more cloying."
 
 #### 2. **Active Voice Reigns Supreme**
-[X] "The room is filled with dusty books."  
+
+\[X\] "The room is filled with dusty books."\
 [OK] "Dusty tomes crowd every available surface."
 
-[X] "There is a fountain that is broken."  
+\[X\] "There is a fountain that is broken."\
 [OK] "A cracked fountain spills water across crumbling tiles."
 
 #### 3. **Every Room is Unique**
+
 Never clone descriptions. Even similar rooms deserve individual attention. Players will stop reading if they encounter copy-paste content.
 
 #### 4. **Respect Player Agency**
+
 - Never use "you" in descriptions
 - Don't impose actions ("You step carefully")
 - Don't dictate emotions ("You feel afraid")
@@ -70,7 +74,9 @@ Never clone descriptions. Even similar rooms deserve individual attention. Playe
 ### The Subtler Arts
 
 #### **Sensory Layering**
+
 Engage multiple senses in each description:
+
 - **Sight** - The obvious, but go beyond color
 - **Sound** - Ambient noise adds atmosphere
 - **Smell** - Often forgotten, always evocative
@@ -78,7 +84,9 @@ Engage multiple senses in each description:
 - **Taste** - When appropriate (dusty air, salt spray)
 
 #### **Environmental Storytelling**
+
 Every detail should whisper stories:
+
 - Claw marks on furniture suggest past violence
 - Wilted flowers hint at abandonment
 - Fresh footprints create tension
@@ -90,17 +98,20 @@ Every detail should whisper stories:
 ### Room Titles: Your First Impression
 
 **Do:**
+
 - Make them specific and evocative
 - Capitalize like book titles
 - Keep them concise but descriptive
 
 **Examples:**
+
 - [OK] "Beneath the Weeping Willow"
 - [OK] "The Alchemist's Ruined Workshop"
-- [X] "A Room"
-- [X] "Main Street"
+- [x] "A Room"
+- [x] "Main Street"
 
 **Never:**
+
 - End titles with periods
 - Use generic names
 - Include colors (unless absolutely essential)
@@ -108,6 +119,7 @@ Every detail should whisper stories:
 ### Room Descriptions: The Heart of Your Zone
 
 #### **Optimal Length**
+
 3-8 lines of text. Enough to paint a picture, not so much that players' eyes glaze over.
 
 #### **Structure for Success**
@@ -117,6 +129,7 @@ Every detail should whisper stories:
 3. **Atmospheric Close** - Mood, ambiance, or subtle hints
 
 **Example:**
+
 ```
 Ancient stone arches frame this circular chamber, their surfaces carved with
 symbols that seem to shift in the flickering torchlight. Channels cut into
@@ -128,15 +141,18 @@ rituals.
 ### Avoiding Common Description Sins
 
 #### **Directional Bias**
-[X] "To the north, you see a castle."  
+
+\[X\] "To the north, you see a castle."\
 [OK] "A castle's silhouette dominates the horizon."
 
 #### **Movement Bias**
-[X] "As you walk along the path..."  
+
+\[X\] "As you walk along the path..."\
 [OK] "A winding path cuts through the underbrush."
 
 #### **Temporal Bias**
-[X] "The morning sun shines brightly."  
+
+\[X\] "The morning sun shines brightly."\
 [OK] "Daylight filters through the canopy." (if your MUD has day/night cycles)
 
 ---
@@ -148,6 +164,7 @@ rituals.
 Every mob should feel like it belongs:
 
 **Humanoid Example:**
+
 ```
 This grizzled merchant's face tells a story of hard-won success, deep lines
 mapping years of sharp deals and narrow escapes. His fingers, adorned with
@@ -156,6 +173,7 @@ goods that aren't there.
 ```
 
 **Creature Example:**
+
 ```
 Muscles ripple beneath the dire wolf's matted fur as it paces, yellow eyes
 never blinking. Scars crisscross its muzzle, and one ear hangs torn and
@@ -171,6 +189,7 @@ useless. Its presence fills the clearing with primal menace.
 ### The Power of Interaction
 
 Every major noun in your descriptions should be interactive:
+
 - Room mentions "ancient murals"? Let players examine them
 - Description includes "strange scratches"? Make them reveal something
 - "Dusty tomes" mentioned? At least some should be readable
@@ -194,6 +213,7 @@ Every major noun in your descriptions should be interactive:
 4. **Progressive Detail** - Each examination can reveal more
 
 **Example Chain:**
+
 - `look altar` -> Reveals bloodstains
 - `look bloodstains` -> Shows they form a pattern
 - `look pattern` -> Recognizable as a summoning circle
@@ -248,31 +268,38 @@ Before considering your zone complete:
 ## Common Pitfalls & How to Avoid Them
 
 ### The Clone Zone
-**Problem**: Copy-pasted rooms  
+
+**Problem**: Copy-pasted rooms\
 **Solution**: Even similar rooms need unique details. Vary your descriptions.
 
 ### The Empty Stage
-**Problem**: Rooms without purpose  
+
+**Problem**: Rooms without purpose\
 **Solution**: Every room should advance story, atmosphere, or gameplay.
 
 ### The Uninteractive World
-**Problem**: Described items can't be examined  
+
+**Problem**: Described items can't be examined\
 **Solution**: If you write it, code it.
 
 ### The Emotion Dictator
-**Problem**: Telling players how they feel  
+
+**Problem**: Telling players how they feel\
 **Solution**: Evoke emotions through environmental details.
 
 ### The Time Traveler
-**Problem**: Descriptions assume specific times/seasons  
+
+**Problem**: Descriptions assume specific times/seasons\
 **Solution**: Write universally unless your MUD supports dynamic time.
 
 ### The Mind Reader
-**Problem**: Describing player thoughts or actions  
+
+**Problem**: Describing player thoughts or actions\
 **Solution**: Describe only what exists, not reactions to it.
 
 ### The Rainbow Zone
-**Problem**: Excessive color use  
+
+**Problem**: Excessive color use\
 **Solution**: Less is more. Much more.
 
 ---
@@ -286,6 +313,7 @@ Remember: **You're not just building rooms - you're crafting experiences.**
 ### The Ultimate Test
 
 Read your descriptions aloud. Do they:
+
 - Paint clear mental pictures?
 - Flow naturally?
 - Avoid repetition?

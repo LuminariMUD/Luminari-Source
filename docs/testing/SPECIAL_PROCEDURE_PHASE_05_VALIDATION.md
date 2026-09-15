@@ -27,7 +27,7 @@ and logs and clears STOP for notification-only events without discarding invalid
 ## Converted Procedures
 
 | Definition | Owners and Events | Removed Inference | Compatibility Result |
-|------------|-------------------|-------------------|----------------------|
+| -- | -- | -- | -- |
 | Bank | Mobile/object command; object identify | Identification uses `SPEC_EVENT_ITEM_IDENTIFY`, not command zero plus the string `identify`. | Canonical name `Bank`, callback pointer `bank`, mobile/object assignments, commands, messages, and returns remain stable. |
 | Vampire Cloak | Object command and identify | Identification uses event identity; command execution uses the context owner instead of locating another same-VNUM object through ambient equipment state. | Canonical name `Vampire Cloak`, callback pointer `vampire_cloak`, `setcloak` command/output, assignment, and persistence remain stable. The invoking cloak must be the exact instance worn in `WEAR_ABOUT`. |
 
@@ -39,7 +39,7 @@ declared by `src/obj/vendor.h` and `src/character/vampire_cloak.h`.
 The source inventory after conversion is:
 
 | Population | Count |
-|------------|------:|
+| -- | -: |
 | Source-level `SPECIAL(...)` definitions | 196 |
 | Typed callback-slot adapters | 2 |
 | Remaining legacy behavior implementations | 194 |
@@ -64,7 +64,7 @@ The production registry counts are asserted through `spec_registry_count()`,
 ## Acceptance Matrix
 
 | Exit Criterion | Evidence | Result |
-|----------------|----------|--------|
+| -- | -- | -- |
 | Typed handlers run behind existing event gateways | All gateways use `spec_dispatch()`; reverse lookup selects typed or exact legacy dispatch. | PASS |
 | Definitions have one valid implementation shape | Boot validation rejects mixed, incomplete, or colliding typed-adapter definitions. | PASS |
 | Persisted identities remain stable | Callback reverse lookup, authored binding, OLC selection, and assignment tests retain `Bank` and `Vampire Cloak`. | PASS |

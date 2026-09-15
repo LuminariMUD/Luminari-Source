@@ -1,6 +1,7 @@
 # Comprehensive Trap System Implementation
 
 ## Overview
+
 This document describes the new trap system for Luminari MUD, based on Neverwinter Nights mechanics.
 
 ## What Has Been Implemented
@@ -8,6 +9,7 @@ This document describes the new trap system for Luminari MUD, based on Neverwint
 ### 1. Data Structures (structs.h)
 
 #### Trap Constants
+
 - **20 Trap Types**: acid blob, acid splash, electrical, fire, frost, gas, holy, negative, sonic, spike, tangle, dart, pit, dispel, ambush, boulder, wall smash, spider horde, glyph, skeletal hands
 - **5 Severity Levels**: minor, average, strong, deadly, epic
 - **7 Trigger Types**: enter room, leave room, open door, unlock door, open container, unlock container, get object
@@ -16,6 +18,7 @@ This document describes the new trap system for Luminari MUD, based on Neverwint
 - **9 Trap Flags**: detected, disarmed, triggered, auto-generated, recoverable, area effect, one-shot, magical, mechanical
 
 #### Trap Data Structure
+
 ```c
 struct trap_data {
     int trap_type;               // Type of trap (TRAP_TYPE_*)
@@ -43,12 +46,14 @@ struct trap_data {
 ```
 
 #### Integration with Existing Structures
+
 - **obj_data**: Added `struct trap_data *trap` field for traps on containers/doors
 - **room_data**: Added `struct trap_data *traps` field for room traps (linked list, supports multiple traps)
 
 ### 2. Zone/Room/Object Flags
 
 #### Flags Used
+
 - `ZONE_RANDOM_TRAPS` (13): Auto-generate traps randomly throughout the zone on reset
 - `ROOM_RANDOM_TRAP` (36): Always auto-generate trap in this specific room on zone reset
 - `ITEM_TRAPPED` (113): This object has a trap attached (informational flag)
@@ -64,6 +69,7 @@ For example, a zone with 100 rooms and `ZONE_RANDOM_TRAPS` flag will get approxi
 When set on a specific room, that room will ALWAYS get a trap during zone reset, regardless of whether the zone has the `ZONE_RANDOM_TRAPS` flag. This allows builders to mark specific dangerous rooms (treasure rooms, boss lairs, etc.) as always trapped.
 
 **Priority System:**
+
 1. Rooms with `ROOM_RANDOM_TRAP` flag always get traps (100% chance)
 2. Other rooms in zones with `ZONE_RANDOM_TRAPS` flag have ~3% chance (1 in 33)
 
@@ -73,6 +79,7 @@ Set automatically when a trap is attached to an object (container/door). This is
 ### 3. Trap System Functions (combat/traps.h & combat/traps_new.c)
 
 #### Trap Creation and Management
+
 ```c
 struct trap_data *create_trap(int trap_type, int severity, int trigger_type);
 void free_trap(struct trap_data *trap);
@@ -84,6 +91,7 @@ void remove_trap_from_object(struct obj_data *obj);
 ```
 
 #### Trap Generation System
+
 ```c
 struct trap_data *generate_random_trap(int zone_level);
 int determine_trap_severity(int zone_level);
@@ -94,6 +102,7 @@ void auto_generate_object_trap(struct obj_data *obj, int zone_level);
 ```
 
 #### Trap Data Tables
+
 - `trap_severity_table[NUM_TRAP_SEVERITIES]`: DCs and damage multipliers by severity
 - `trap_type_table[NUM_TRAP_TYPES]`: Templates for each trap type with:
   - Trap name
@@ -110,30 +119,35 @@ void auto_generate_object_trap(struct obj_data *obj, int zone_level);
 The system automatically scales trap properties based on severity and zone level:
 
 #### Minor (Level 1-5)
+
 - Detect DC: 15
 - Disarm DC: 15
 - Save DC: 15
 - Example: 3d6 acid blob, 2d8 acid splash
 
 #### Average (Level 6-10)
+
 - Detect DC: 20
 - Disarm DC: 20
 - Save DC: 20
 - Example: 6d6 acid blob, 3d8 acid splash
 
 #### Strong (Level 11-15)
+
 - Detect DC: 25
 - Disarm DC: 25
 - Save DC: 25
 - Example: 12d6 acid blob, 5d8 acid splash
 
 #### Deadly (Level 16-20)
+
 - Detect DC: 25
 - Disarm DC: 30
 - Save DC: 25
 - Example: 18d6 acid blob, 8d8 acid splash
 
 #### Epic (Level 21+)
+
 - Detect DC: 35
 - Disarm DC: 35
 - Save DC: 35
@@ -142,6 +156,7 @@ The system automatically scales trap properties based on severity and zone level
 ## What Needs To Be Implemented
 
 ### 5. Trap Detection & Disarming (TODO)
+
 - Detection with Perception skill + perk bonuses
 - Disarming with Disable Device skill + perk bonuses
 - Integration with PERK_ROGUE_TRAPFINDING_EXPERT
@@ -149,6 +164,7 @@ The system automatically scales trap properties based on severity and zone level
 - Visual indicators when traps are detected
 
 ### 6. Trap Triggering & Effects (TODO)
+
 - Check for trigger conditions (enter room, open door, etc.)
 - Apply damage with proper damage types
 - Apply special effects (paralysis, stun, slow, etc.)
@@ -158,36 +174,42 @@ The system automatically scales trap properties based on severity and zone level
 - Integration with existing spell effect system
 
 ### 7. Trap Component Recovery (TODO)
+
 - PERK_ROGUE_TRAP_SCAVENGER implementation
 - Component value calculation based on trap severity
 - Component item creation
 - Recovery skill check
 
 ### 8. Player Commands (TODO)
+
 - Update `do_detecttrap` to use new system
 - Update `do_disabletrap` to use new system
 - Add `do_trapinfo` for detailed trap information
 - Update command help files
 
 ### 9. OLC Integration (TODO)
+
 - Add trap editing to oedit for placing traps on objects
 - Add trap editing to redit for placing traps in rooms
 - Trap property editors (type, severity, trigger, DCs, etc.)
 - Trap flag editors
 
 ### 10. Zone Reset Integration (TODO)
+
 - Call `auto_generate_zone_traps()` during zone reset
 - Handle ZONE_RANDOM_TRAPS flag
 - Handle ROOM_RANDOM_TRAP flag
 - Clean up auto-generated traps on reset
 
 ### 11. Legacy System Migration (TODO)
+
 - Convert old ITEM_TRAP objects to new system
 - Migrate existing trap objects in world files
 - Update documentation
 - Backward compatibility layer
 
 ### 12. Balance & Testing (TODO)
+
 - Test all trap types and severities
 - Balance damage values
 - Balance DCs for different level ranges
@@ -199,6 +221,7 @@ The system automatically scales trap properties based on severity and zone level
 ## Example Usage (When Complete)
 
 ### Builder Creating a Trap
+
 ```
 > oedit <container_vnum>
 > trap add
@@ -209,6 +232,7 @@ Trigger: open_container
 ```
 
 ### Player Detecting a Trap
+
 ```
 > detect trap
 You carefully search for traps...
@@ -216,6 +240,7 @@ You notice a fire trap!
 ```
 
 ### Player Disarming a Trap
+
 ```
 > disable trap
 You attempt to disable the trap... SUCCESS!
@@ -223,6 +248,7 @@ You recover some trap components.
 ```
 
 ### Auto-Generated Traps
+
 ```
 Zone reset occurs...
 TRAP: Auto-generated fire trap (severity: strong) in room 12345
@@ -233,13 +259,16 @@ TRAP: Auto-generated 5 traps in zone 123
 ## Files Modified/Created
 
 ### Modified
+
 1. `src/core/structs.h` - Added trap constants, struct trap_data, updated room_data and obj_data
 2. `src/combat/traps.h` - Complete rewrite with new function prototypes and data structures
 
 ### Created
+
 1. `src/combat/traps_new.c` - New trap system implementation (partial, needs completion)
 
 ### To Be Modified
+
 1. `src/olc/oedit.c` - Needs trap editing support
 2. `src/olc/redit.c` - Needs trap editing support
 3. `src/core/db.c` - Needs zone reset integration
@@ -249,33 +278,40 @@ TRAP: Auto-generated 5 traps in zone 123
 ## Integration Points
 
 ### Feat System
+
 - `FEAT_TRAPFINDING` (136): Rogues get at level 1, reduces trap detect DC by 4
 - `FEAT_TRAP_SENSE` (119): Rogues/Berserkers get every 3 levels, +1/rank to saves vs traps
 
 ### Perk System
+
 The trap system integrates with these rogue perks:
+
 - `PERK_ROGUE_TRAPFINDING_EXPERT_1` (109): +3/rank to find/disable traps (max 3 ranks)
 - `PERK_ROGUE_TRAPFINDING_EXPERT_2` (113): +4/rank to find/disable traps (max 2 ranks, requires Expert I)
 - `PERK_ROGUE_TRAP_SENSE_1` (116): +2/rank to saves/AC vs traps (max 2 ranks)
 - `PERK_ROGUE_TRAP_SCAVENGER` (118): Salvage trap components from disabled traps
 
 **Implemented Functions:**
+
 - `get_perk_trapfinding_bonus()` - Returns total bonus from trapfinding perks
 - `get_perk_trap_sense_bonus()` - Returns total bonus from trap sense perks
 - `get_trapfinding_bonus()` - Combines all trapfinding bonuses (reduces trap DCs)
 - `get_trap_sense_bonus()` - Combines FEAT_TRAP_SENSE + perks (bonus to saves vs traps)
 
 ### Skill System
+
 - `ABILITY_PERCEPTION`: Used to detect traps (includes perk bonuses)
 - `ABILITY_DISABLE_DEVICE`: Used to disarm traps (includes perk bonuses)
 
 **Autosearch System:**
+
 - PRF_AUTOSEARCH flag enables automatic trap detection on room entry
 - Uses half perception skill + trapfinding bonuses + trap sense bonuses
 - Grants reduced experience (50% of normal) for automatic detection
 - Silent failure (no message) to avoid spam
 
 ### Combat System
+
 - Trap damage uses existing damage types (`DAM_*`)
 - Trap effects use existing spell effects where applicable
 - Trap sense bonuses apply to saving throws (SAVING_FORT, SAVING_REFL, SAVING_WILL)
@@ -294,13 +330,13 @@ The trap system integrates with these rogue perks:
 
 ## Next Steps
 
-1. Complete the trap trigger and effect system
-2. Implement trap detection and disarming
-3. Add perk integration
-4. Create player commands
-5. Add OLC support
-6. Integrate with zone reset system
-7. Test and balance
-8. Update documentation
-9. Migrate legacy traps
+01. Complete the trap trigger and effect system
+02. Implement trap detection and disarming
+03. Add perk integration
+04. Create player commands
+05. Add OLC support
+06. Integrate with zone reset system
+07. Test and balance
+08. Update documentation
+09. Migrate legacy traps
 10. Deploy to production

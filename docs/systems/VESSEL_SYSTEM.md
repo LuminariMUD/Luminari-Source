@@ -18,15 +18,15 @@ for what shipped when see
 
 ## Table of Contents
 
-1. [System Overview](#system-overview)
-2. [Architecture](#architecture)
-3. [Data Structures](#data-structures)
-4. [Vessel Types and Capabilities](#vessel-types-and-capabilities)
-5. [API Reference](#api-reference)
-6. [Player Commands](#player-commands)
-7. [Integration Testing Workflows](#integration-testing-workflows)
-8. [Vehicle-in-Vessel Mechanics](#vehicle-in-vessel-mechanics)
-9. [Performance Characteristics](#performance-characteristics)
+01. [System Overview](#system-overview)
+02. [Architecture](#architecture)
+03. [Data Structures](#data-structures)
+04. [Vessel Types and Capabilities](#vessel-types-and-capabilities)
+05. [API Reference](#api-reference)
+06. [Player Commands](#player-commands)
+07. [Integration Testing Workflows](#integration-testing-workflows)
+08. [Vehicle-in-Vessel Mechanics](#vehicle-in-vessel-mechanics)
+09. [Performance Characteristics](#performance-characteristics)
 10. [Key Constants](#key-constants)
 11. [Database Schema](#database-schema)
 12. [File Inventory](#file-inventory)
@@ -64,14 +64,14 @@ and operator controls in one system.
 ### Two-Tier Transport Architecture
 
 | Tier | Type | Memory | Interior | Use Case |
-|------|------|--------|----------|----------|
+| -- | -- | -- | -- | -- |
 | **Vessel** | Ships, airships, submarines | 5,104-byte base struct | Multi-room | Exploration, cargo, combat |
 | **Vehicle** | Carts, wagons, mounts | 152-byte base struct | None | Land travel, cargo, transport |
 
 ### System Components
 
 | Component | Description | Source Files |
-|-----------|-------------|--------------|
+| -- | -- | -- |
 | Core Vessels | Ship management, coordinates, movement | vessels.c, vessels.h |
 | Periodic Ownership | Per-vessel deadlines, global service deadline, rollback | vessel_periodic.c |
 | Tactical Chart | Wilderness terrain, regions, range rings, contacts | vessels_tactical.c |
@@ -150,7 +150,7 @@ the route, set the desired speed, and resume autopilot.
 Vessels extend the wilderness system; they do not create a separate geography.
 
 | Wilderness signal | Vessel behavior |
-|-------------------|-----------------|
+| -- | -- |
 | Dynamic room pool | Characters and exterior hulls keep their coordinate room occupied; co-located hulls share it |
 | Generated sector | The central position update and direct-movement preflight gate traversal; speed rules consume the resulting sector |
 | Bathymetry | Draft, grounding, and submarine crush depth |
@@ -189,8 +189,7 @@ the canonical in-memory polygons, rejects failed thresholds, and chooses the
 lowest VNUM when equal types overlap. An altitude lane applies only to
 airships and magical vessels; its multiplier remains capped by the normal
 150-percent speed ceiling. `seastate` exposes each active feature and its
-threshold. Builders can use `reglist type 5`, `reglist type 6`, `reglist type
-7`, and `pathlist type 5` without paging unrelated records.
+threshold. Builders can use `reglist type 5`, `reglist type 6`, `reglist type 7`, and `pathlist type 5` without paging unrelated records.
 
 ### State Machine
 
@@ -202,6 +201,7 @@ DAMAGED <-------+
 ```
 
 Autopilot States:
+
 ```
 OFF --> TRAVELING --> WAITING --> COMPLETE
           ^   |         |
@@ -285,7 +285,7 @@ struct greyhawk_ship_data {
 **Critical Linkages** (established during boarding in `src/vessels/vessels_legacy.c`):
 
 | Linkage | Purpose |
-|---------|---------|
+| -- | -- |
 | `world[room].ship = &greyhawk_ships[idx]` | Interior room -> Ship data (enables disembark, ship commands) |
 | `greyhawk_ships[idx].shipobj = obj` | Ship data -> Ship object (enables coordinate sync to move object) |
 | `GET_OBJ_VAL(obj, 1) = idx` | Ship object -> Ship index (stored in object file) |
@@ -342,7 +342,7 @@ per-movement logging.
 ### Vessel Classifications
 
 | Type | Terrain | Speed | Rooms | Generated Room Types |
-|------|---------|-------|-------|----------------------|
+| -- | -- | -- | -- | -- |
 | RAFT | Rivers, shallow | Slow | 1-2 | Bridge |
 | BOAT | Coastal | Moderate | 2-4 | Bridge, Quarters |
 | SHIP | Ocean | Moderate | 3-8 | Bridge, Quarters, Cargo, Deck |
@@ -368,7 +368,7 @@ struct vessel_terrain_caps {
 ### Terrain Speed Modifiers
 
 | Terrain | Surface Vessels | Airships | Submarines |
-|---------|----------------|----------|------------|
+| -- | -- | -- | -- |
 | Ocean/Deep Water | 100% | 100% | 100% |
 | Shallow Water | 75% | 100% | 0% (blocked) |
 | Rivers | 50-100% (by type) | 100% | 0% (blocked) |
@@ -378,7 +378,7 @@ struct vessel_terrain_caps {
 ### Vehicle System
 
 | Type | Capacity | Base Speed | Terrain |
-|------|----------|------------|---------|
+| -- | -- | -- | -- |
 | `VEHICLE_CART` | 1 pass, 200 lbs | 80% | Road, plains |
 | `VEHICLE_WAGON` | 4 pass, 1000 lbs | 60% | Road, plains, forest |
 | `VEHICLE_MOUNT` | 1 pass, 100 lbs | 120% | Most terrain |
@@ -391,7 +391,7 @@ struct vessel_terrain_caps {
 **Speed Modifiers by Terrain**:
 
 | Terrain | Cart | Wagon | Mount | Carriage |
-|---------|------|-------|-------|----------|
+| -- | -- | -- | -- | -- |
 | Road | 150% | 150% | 150% | 150% |
 | Plains | 100% | 100% | 100% | 100% |
 | Forest | 50% | 75% | 100% | 50% |
@@ -479,7 +479,7 @@ void vehicle_save_all(void);      void vehicle_load_all(void);
 ### Vessel Commands
 
 | Command | Description | Usage |
-|---------|-------------|-------|
+| -- | -- | -- |
 | board | Board a vessel | `board <ship>` |
 | greyhawk_tactical | Display tactical map | `tactical` |
 | greyhawk_status | Show ship status | `shipstatus` |
@@ -636,7 +636,7 @@ restored exactly. The production-linked suite passes 302 tests.
 ### Autopilot Commands
 
 | Command | Description | Usage |
-|---------|-------------|-------|
+| -- | -- | -- |
 | autopilot | Toggle autopilot | `autopilot on/off/status` |
 | setwaypoint | Create waypoint | `setwaypoint <name>` |
 | listwaypoints | List waypoints | `listwaypoints` |
@@ -649,7 +649,7 @@ restored exactly. The production-linked suite passes 302 tests.
 ### Operator Commands (Phases 09, 14, 15, and 16)
 
 | Command | Description | Usage |
-|---------|-------------|-------|
+| -- | -- | -- |
 | shiplist | Fleet overview + room pool health | `shiplist [summary]` |
 | shipgoto | Teleport aboard a vessel | `shipgoto <slot>` |
 | shipfix | Restore a vessel to full condition | `shipfix <slot>` |
@@ -708,7 +708,7 @@ command cannot manufacture a fun rating or authorize rollout.
 ### Living World Commands (Phase 08)
 
 | Command | Description | Usage |
-|---------|-------------|-------|
+| -- | -- | -- |
 | seastate | Weather, depth, visibility, hull state | `seastate` |
 
 Hazards and encounters (`src/vessels/vessels_hazards.c`) read only wilderness
@@ -760,7 +760,7 @@ ordinary player vessel.
 ### Showcase Event Commands (Phase 16)
 
 | Command | Description | Usage |
-|---------|-------------|-------|
+| -- | -- | -- |
 | vevent status | Show the active event, participants, scores, and objectives | `vevent status` |
 | vevent join | Enter the current vessel; a skirmish requires a team | `vevent join [red\|blue]` |
 | vevent leaderboard | Show durable event rankings | `vevent leaderboard [regatta\|skirmish\|ghost]` |
@@ -791,7 +791,7 @@ name through the authoritative player index rather than the unrelated
 ### Cargo & Trade Commands (Phase 07)
 
 | Command | Description | Usage |
-|---------|-------------|-------|
+| -- | -- | -- |
 | market | List a port's commodity prices | `market` |
 | cargobuy | Load bulk goods (dock only) | `cargobuy <commodity> <qty>` |
 | cargosell | Sell bulk goods (dock only) | `cargosell <commodity> [qty\|all]` |
@@ -896,7 +896,7 @@ the removed name's bounty.
 ### Ownership & Shipyard Commands (Phase 06)
 
 | Command | Description | Usage |
-|---------|-------------|-------|
+| -- | -- | -- |
 | shipbrowse | Shipyard catalog with prices | `shipbrowse` |
 | shipbuy | Buy a hull at a dock, become owner | `shipbuy <id>` |
 | shipchristen | Owner: rename the ship | `shipchristen <name>` |
@@ -943,7 +943,7 @@ the character and closing the database claim.
 ### Naval Combat Commands (Phase 05)
 
 | Command | Description | Usage |
-|---------|-------------|-------|
+| -- | -- | -- |
 | shipfire | Fire a weapon slot at another ship | `shipfire <slot> <target>` |
 | shiprepair | Slow at-sea repairs (stationary only) | `shiprepair` |
 | claimship | Capture from an uncontested bridge | `claimship` |
@@ -967,7 +967,7 @@ Ownership changes and permanent owner removal clear inherited consent.
 ### Builder Commands (Phase 04)
 
 | Command | Description | Usage |
-|---------|-------------|-------|
+| -- | -- | -- |
 | vedit | Ship prototype editor (LVL_BUILDER) | `vedit list/new/show/set/delete/spawn/spawnpublic` |
 
 `vedit new <class 0-7> <name>` creates a prototype in `ship_prototypes` with
@@ -1006,14 +1006,14 @@ ship-class interiors.
 ### NPC Pilot Commands
 
 | Command | Description | Usage |
-|---------|-------------|-------|
+| -- | -- | -- |
 | assignpilot | Assign NPC pilot | `assignpilot <npc>` |
 | unassignpilot | Remove NPC pilot | `unassignpilot` |
 
 ### Schedule Commands
 
 | Command | Description | Usage |
-|---------|-------------|-------|
+| -- | -- | -- |
 | setschedule | Set schedule and optional public fare | `setschedule <route> <interval> [fare]` |
 | clearschedule | Clear schedule | `clearschedule` |
 | showschedule | Display schedule | `showschedule` |
@@ -1021,7 +1021,7 @@ ship-class interiors.
 ### Vehicle Commands
 
 | Command | Description | Usage |
-|---------|-------------|-------|
+| -- | -- | -- |
 | vmount | Mount vehicle | `vmount <vehicle>` |
 | vdismount | Dismount vehicle | `vdismount` |
 | drive | Drive vehicle | `drive <direction>` |
@@ -1034,7 +1034,7 @@ ship-class interiors.
 ### Unified Transport Commands
 
 | Command | Description | Usage |
-|---------|-------------|-------|
+| -- | -- | -- |
 | transport_enter | Enter any transport | `tenter <transport>` |
 | exit_transport | Exit transport | `texit` |
 | transport_go | Move transport | `tgo <direction>` |
@@ -1120,7 +1120,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 ### Memory Usage
 
 | Component | Per unit | Maximum | Base total |
-|-----------|----------|---------|------------|
+| -- | -- | -- | -- |
 | Vessel | 5,104 bytes | 500 | About 2.43 MiB |
 | Vehicle | 152 bytes | 1,000 | About 148 KB |
 | Autopilot | 72 bytes | Optional per vessel | Up to about 36 KB |
@@ -1129,7 +1129,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 ### Structure Sizes
 
 | Structure | Size |
-|-----------|------|
+| -- | -- |
 | `struct greyhawk_ship_data` | 5,104 bytes |
 | `struct vehicle_data` | 152 bytes |
 | `struct waypoint` | 88 bytes |
@@ -1157,7 +1157,7 @@ historical measurements, and the limits of the current evidence.
 ## Key Constants
 
 | Constant | Value | Description |
-|----------|-------|-------------|
+| -- | -- | -- |
 | `GREYHAWK_MAXSHIPS` | 501 | Fleet-slot array entries, including reserved slot 0 |
 | `GREYHAWK_ACTIVE_SHIP_CAPACITY` | 500 | Maximum concurrent active vessels |
 | `MAX_SHIP_ROOMS` | 20 | Maximum interior rooms per vessel |
@@ -1176,7 +1176,7 @@ historical measurements, and the limits of the current evidence.
 ### Tables (Auto-created at startup)
 
 | Table | Purpose |
-|-------|---------|
+| -- | -- |
 | `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards |
 | `ship_interiors` | Vessel identity, rooms, cosmetics, owner, upgrades, insurance, and wage state |
 | `ship_runtime_state` | Live hull, position, condition, room type, autopilot, PvP grace, and dock-fee snapshot |
@@ -1389,7 +1389,7 @@ and armor limits.
 The current package owns this acceptance matrix:
 
 | Class | Prototype | Actual-character capability proof |
-|-------|-----------|-----------------------------------|
+| -- | -- | -- |
 | Raft | Sablebranch Raft | River movement, 300-pound hold, one-room interior |
 | Boat | Sablebranch Riverboat | River movement, 2,000-pound hold, crew quarters |
 | Ship | Starfall Survey Ship | Ocean movement, main deck, 12,000-pound hold |
@@ -1549,7 +1549,7 @@ and the trigger was removed.
 ### Core Implementation
 
 | File | Purpose |
-|------|---------|
+| -- | -- |
 | `src/vessels/vessels.h` | Structures, constants, prototypes (includes vehicle definitions) |
 | `src/vessels/vessels.c` | Core commands, wilderness movement, terrain system |
 | `src/vessels/vessel_periodic.c` | Bounded vessel owner/service deadlines and rollback selection |
@@ -1583,7 +1583,7 @@ and the trigger was removed.
 ### Content and Development Acceptance
 
 | File | Purpose |
-|------|---------|
+| -- | -- |
 | `lib/world/vessel_derelict/700.obj` | Blackwake log, chart, and tidefinder objects |
 | `lib/world/vessel_derelict/700.trg` | Guarded room and object discovery-chain DG programs |
 | `scripts/vessels/provision_vessel_derelict.sh` | Development-only world/SQL provisioning and restart proof |
@@ -1597,7 +1597,7 @@ and the trigger was removed.
 ### Database
 
 | File | Purpose |
-|------|---------|
+| -- | -- |
 | `src/database/db_init.c` | Table creation (init_vessel_system_tables) |
 | `src/database/db_init_data.c` | Template population |
 | `sql/components/vessels_phase2_*` | Core schema, rollback, and verification |
@@ -1632,7 +1632,7 @@ and the trigger was removed.
 ### Legacy (Disabled)
 
 | File | Purpose |
-|------|---------|
+| -- | -- |
 | `src/vessels_src.c` | Old CWG/Outcast code (#if 0) |
 | `src/vessels_src.h` | Old headers (#if 0) |
 
@@ -1649,7 +1649,7 @@ and the trigger was removed.
 ### Internal Dependencies
 
 | File | Purpose |
-|------|---------|
+| -- | -- |
 | `src/wilderness/wilderness.c` | Coordinate system and room allocation |
 | `src/core/weather.c` | Weather integration via `get_weather()` |
 | `src/vessels/vessels_legacy.c` | Boarding special procedure (`greyhawk_ship_object`), establishes critical linkages |
@@ -1670,7 +1670,7 @@ and the trigger was removed.
 **Zone 213** (Legacy test zone):
 
 | VNUM | Purpose |
-|------|---------|
+| -- | -- |
 | Room 21300 | Dock room with DOCKABLE flag |
 | Room 21398 | Ship interior (control room) |
 | Room 21399 | Additional ship interior |
@@ -1679,7 +1679,7 @@ and the trigger was removed.
 **Zone 700** (Current test zone - see [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md)):
 
 | VNUM | Purpose |
-|------|---------|
+| -- | -- |
 | Object 70002 | Current broken fixture (ITEM_GREYHAWK_SHIP, ship_index=0; see Known Issues) |
 | Room 70003 | Test vessel interior room |
 | Room 1000389 | Wilderness dock location at (-66, 92) |
@@ -1691,7 +1691,7 @@ and the trigger was removed.
 ### Quick Reference
 
 | Issue | Check First | Solution |
-|-------|-------------|----------|
+| -- | -- | -- |
 | Vessel not moving | Speed, dock status | `undock`, `speed 10`, `autopilot resume` |
 | Cannot board | Room DOCKABLE flag | Move to dock room, check `entrance_room` |
 | Interior nav fails | Room connections | `ship_rooms` to verify, regenerate if needed |
@@ -1704,7 +1704,7 @@ and the trigger was removed.
 ### Database Issues
 
 | Issue | Cause | Solution |
-|-------|-------|----------|
+| -- | -- | -- |
 | FK constraint errors | Parent record missing | Save to `ship_interiors` before cargo/crew |
 | Stored procedures fail | Missing EXECUTE privilege | `GRANT EXECUTE ON luminari_mudprod.* TO 'luminari_mud'@'localhost';` |
 | Movement pause cannot persist | Database connection/runtime row | Check the one matching `SYSERR`, then repair persistence before resuming |
@@ -1762,7 +1762,7 @@ bounded failure diagnostics before the persisted pause prevents repeated
 output.
 
 | Runtime category | Covers |
-|------------------|--------|
+| -- | -- |
 | `core` | General vessel operations and interior generation |
 | `move` | Position updates, terrain checks, speed modifiers, blocked moves, and room allocation |
 | `auto` | Autopilot state transitions, tick summaries, and travel steps |
@@ -1883,7 +1883,7 @@ or keyword count is insufficient once later phases extend the system.
 ## Risk Assessment
 
 | Risk | Impact | Mitigation |
-|------|--------|------------|
+| -- | -- | -- |
 | Fleet-slot and object identity diverge | Commands address the wrong ship or lose the exterior object | Keep one canonical slot identity, validate every boundary, cover legacy and `vedit` paths |
 | Shared wilderness rooms are exhausted | Vessels interfere with all wilderness travelers | Monitor pool pressure, reclaim rooms, and test graceful degradation |
 | Due vessel work exceeds 25 ms | Game-loop latency at fleet scale | Benchmark all live subsystems together at 500 ships and inspect owner/service attribution |

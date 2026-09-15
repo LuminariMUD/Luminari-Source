@@ -1,21 +1,23 @@
 # Wilderness-Crafting Integration Testing Guide
 
-**Document Version:** 1.0  
-**Date:** August 10, 2025  
-**System Status:** [OK] Phase 4.5 Enhanced Integration Implemented  
-**Testing Priority:** HIGH - New Integration System  
+**Document Version:** 1.0\
+**Date:** August 10, 2025\
+**System Status:** [OK] Phase 4.5 Enhanced Integration Implemented\
+**Testing Priority:** HIGH - New Integration System
 
 ---
 
 ## **Quick Start Integration Testing Checklist**
 
 ### **Prerequisites**
+
 - [ ] MUD server compiled with enhanced integration (default LuminariMUD campaign)
 - [ ] Character with wilderness access and crafting skills
 - [ ] Test character in default campaign (not DL/FR)
 - [ ] Understanding of both wilderness materials and crafting systems
 
 ### **5-Minute Integration Smoke Test**
+
 1. [ ] Enter wilderness area
 2. [ ] Harvest materials: `gather herbs` or `mine metals`
 3. [ ] Check materials storage: `materials` - verify enhanced display
@@ -31,7 +33,9 @@
 **Objective:** Verify enhanced material display works only in LuminariMUD campaign
 
 **Test Steps:**
+
 1. **Default Campaign Testing:**
+
    ```
    materials                    # Should show enhanced display
    materials list              # Should show crafting integration info
@@ -39,6 +43,7 @@
    ```
 
 2. **Campaign Safety Testing:**
+
    ```
    # Switch to DL campaign (if available)
    campaign dl                 # Or equivalent command
@@ -54,6 +59,7 @@
    ```
 
 **Expected Results:**
+
 - **LuminariMUD**: Enhanced materials display with crafting integration info
 - **DL/FR Campaigns**: Basic materials display without crafting features
 - **No errors**: Campaign switching should be seamless
@@ -67,7 +73,9 @@
 **Objective:** Verify harvested materials integrate with enhanced crafting system
 
 **Test Steps:**
+
 1. **Harvest Multiple Material Types:**
+
    ```
    # Test different categories
    gather herbs                # Should harvest herb materials
@@ -77,6 +85,7 @@
    ```
 
 2. **Verify Enhanced Storage:**
+
    ```
    materials                   # Check enhanced display shows:
                               # - Material hierarchy preserved
@@ -85,6 +94,7 @@
    ```
 
 3. **Test Quality Integration:**
+
    ```
    # Harvest same material multiple times to get different qualities
    gather herbs                # Multiple attempts for quality variation
@@ -92,6 +102,7 @@
    ```
 
 **Expected Results:**
+
 - Materials harvested show in enhanced format
 - Quality levels (Poor -> Legendary) map to crafting grades
 - Each material shows potential crafting uses
@@ -106,7 +117,9 @@
 **Objective:** Verify enhanced material IDs work correctly with integration
 
 **Test Steps:**
+
 1. **Harvest Test Materials:**
+
    ```
    gather herbs common         # Get common quality herbs
    mine iron rare              # Get rare quality iron
@@ -114,6 +127,7 @@
    ```
 
 2. **Check Enhanced IDs (Admin/Debug):**
+
    ```
    # If debug commands available:
    materials debug             # Should show material IDs 1000+
@@ -121,6 +135,7 @@
    ```
 
 3. **Verify ID Consistency:**
+
    ```
    materials                   # Note material listings
    # Exit and re-enter game
@@ -128,6 +143,7 @@
    ```
 
 **Expected Results:**
+
 - Enhanced materials get IDs in 1000+ range
 - IDs consistent across sessions
 - Integration functions work with enhanced IDs
@@ -141,7 +157,9 @@
 **Objective:** Test core integration functions work correctly
 
 **Test Steps:**
+
 1. **Test Material Addition Integration:**
+
    ```
    # Start with empty material storage
    materials clear             # If available
@@ -153,6 +171,7 @@
    ```
 
 2. **Test Enhanced Descriptions:**
+
    ```
    materials detail iron       # Should show enhanced description
    materials detail herbs      # Should show crafting applications
@@ -160,6 +179,7 @@
    ```
 
 3. **Test Quality-Based Values:**
+
    ```
    # Compare same material, different qualities
    materials compare iron poor common rare
@@ -167,6 +187,7 @@
    ```
 
 **Expected Results:**
+
 - Integration functions execute without errors
 - Enhanced descriptions include crafting information
 - Quality affects crafting values appropriately
@@ -178,6 +199,7 @@
 ## **Technical Validation Tests**
 
 ### **Compilation Safety Test**
+
 ```bash
 # Test campaign-safe compilation
 cd /home/jamie/Luminari-Source
@@ -191,6 +213,7 @@ grep -i "integration\|wilderness.*craft" build_output.log
 ```
 
 ### **Memory and Stability Test**
+
 ```bash
 # Run with debug flags if available
 ./luminari -d
@@ -204,6 +227,7 @@ valgrind --leak-check=full ./luminari
 ```
 
 ### **Database Integrity Test**
+
 ```sql
 -- If using MySQL for material storage
 SELECT * FROM player_materials WHERE material_id >= 1000;
@@ -219,22 +243,28 @@ WHERE category BETWEEN 0 AND 6 AND quality BETWEEN 1 AND 5;
 ## **Common Issues and Troubleshooting**
 
 ### **Issue: Enhanced features not appearing**
+
 **Symptoms:** Materials command shows basic display even in default campaign
 **Solutions:**
+
 1. Verify compilation: `grep ENABLE_WILDERNESS_CRAFTING_INTEGRATION src/*.o`
 2. Check local feature settings: Ensure wilderness crafting integration is enabled
 3. Restart server: Enhanced features may need server restart
 
 ### **Issue: Integration functions not triggering**
+
 **Symptoms:** Materials add to storage but no integration processing
 **Solutions:**
+
 1. Check `add_material_to_storage` function calls integration
 2. Verify `integrate_wilderness_harvest_with_crafting` is implemented
 3. Check for conditional compilation flags
 
 ### **Issue: Material IDs inconsistent**
+
 **Symptoms:** Enhanced material IDs change between sessions
 **Solutions:**
+
 1. Verify `get_enhanced_wilderness_material_id` calculation
 2. Check material data persistence
 3. Validate category/subtype/quality consistency
@@ -287,7 +317,7 @@ _________________________________
 Once basic integration testing passes, prepare for:
 
 1. **Enhanced Recipe Testing**: Test recipes using wilderness materials
-2. **Quality Bonus Testing**: Verify quality affects crafting outcomes  
+2. **Quality Bonus Testing**: Verify quality affects crafting outcomes
 3. **Wilderness Crafting Stations**: Test special crafting locations
 4. **Cross-System Integration**: Test with other game systems
 

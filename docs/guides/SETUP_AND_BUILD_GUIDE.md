@@ -132,7 +132,7 @@ The build is GNU C23 on GCC or Clang. Two compiler generations are supported
 and both are exercised by blocking CI jobs on every pull request:
 
 | Role | GCC | Clang | Where CI gets it |
-|------|-----|-------|------------------|
+| -- | -- | -- | -- |
 | Minimum | 13 | 18 | the `ubuntu-latest` runner image |
 | Current | 16.2 | 22.1.8 | the `gcc:16.2` container image; apt.llvm.org |
 
@@ -157,7 +157,7 @@ the two builds apply the same set; each flag is probed, and a compiler that
 lacks one reports it and continues.
 
 | Tier | Contents | Enforcement |
-|------|----------|-------------|
+| -- | -- | -- |
 | `baseline` | `-Wall -Wextra` plus prototype hygiene, format security, `-Wvla`, and the GCC allocation-size and flexible-array checks | errors on every pull request (`--enable-werror`, `LUMINARI_WERROR=ON`) |
 | `migration` | conversions, shadowing, switch coverage, missing prototypes, `-Wformat=2`, allocation, duplicated conditions and branches, logical-operator mistakes, fallthrough, `-Wwrite-strings` | a per-compiler budget that may only shrink |
 | `analysis` | GCC `-fanalyzer`; Clang's opinionated extras | scheduled, informational |
@@ -232,7 +232,7 @@ Autotools options.
 ```
 
 The checked-in runtime configuration defaults to the reserved local game port
-4100. While the server runs, verify the loopback health listener from another
+4100\. While the server runs, verify the loopback health listener from another
 terminal:
 
 ```bash

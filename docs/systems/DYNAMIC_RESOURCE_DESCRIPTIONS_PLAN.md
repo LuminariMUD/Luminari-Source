@@ -1,8 +1,8 @@
 # Dynamic Resource-Based Descriptions Integration Plan
 
-**Document Version**: 1.0  
-**Date**: August 11, 2025  
-**Author**: Development Team  
+**Document Version**: 1.0\
+**Date**: August 11, 2025\
+**Author**: Development Team\
 **Related Systems**: Resource Depletion, Dynamic Descriptions
 
 ## Overview
@@ -14,8 +14,9 @@ This document outlines the integration of LuminariMUD's resource depletion syste
 **Goal**: Create rich, immersive environmental storytelling that naturally reflects ecological state without being preachy about sustainability.
 
 **Focus**: Beautiful, detailed descriptions that change organically based on:
+
 - Current resource abundance/scarcity
-- Seasonal and temporal variations  
+- Seasonal and temporal variations
 - Player interaction history
 - Natural regeneration cycles
 - Ecological interconnections
@@ -45,6 +46,7 @@ enables the supported Luminari behavior.
 **Goal**: Replace basic resource checks with rich, varied descriptions that naturally reflect resource states
 
 **Description Philosophy**:
+
 - **Abundant Resources**: Lush, vibrant, thriving landscapes
 - **Moderate Resources**: Balanced, lived-in, natural variation
 - **Depleted Resources**: Sparse, weathered, quiet landscapes
@@ -52,12 +54,15 @@ enables the supported Luminari behavior.
 **Example Transformations**:
 
 **High Vegetation + High Minerals + Moderate Water**:
+
 > "Ancient oaks stretch their gnarled branches skyward, their roots intertwined with glittering veins of copper that peek through the rich, dark soil. A gentle stream winds between moss-covered boulders, its clear waters reflecting the dappled sunlight filtering through the emerald canopy."
 
 **Low Vegetation + High Minerals + Low Water**:
+
 > "Scattered pine stumps dot the hillside like weathered monuments, while exposed granite faces reveal seams of precious metals that catch the harsh sunlight. The dry streambed shows only smooth stones and the occasional glint of mineral deposits where water once flowed."
 
 **Recovering Vegetation + Moderate Resources**:
+
 > "Young saplings push eagerly through the undergrowth, creating a patchwork of light and shadow across the forest floor. Wildflowers bloom in small clearings where fallen logs slowly return to the earth, enriching the soil with their decay."
 
 ### Phase 2: Temporal and Interaction Layering
@@ -67,6 +72,7 @@ enables the supported Luminari behavior.
 **Implementation Areas**:
 
 1. **Regeneration Cycles as Natural Beauty**
+
    ```c
    // Early regeneration
    "The first tender shoots of spring grass pierce through last autumn's fallen leaves."
@@ -81,6 +87,7 @@ enables the supported Luminari behavior.
    ```
 
 2. **Subtle Interaction Traces**
+
    ```c
    // Recent harvesting (natural, not accusatory)
    "Fresh stumps mark where trees recently stood, leaving sun-dappled clearings
@@ -98,11 +105,13 @@ enables the supported Luminari behavior.
 **Focus Areas**:
 
 1. **Resource Synergy Descriptions**
+
    - How water levels affect vegetation descriptions
-   - How mineral presence influences soil and plant descriptions  
+   - How mineral presence influences soil and plant descriptions
    - How vegetation affects wildlife and atmosphere descriptions
 
 2. **Seasonal Integration**
+
    ```c
    // Spring with good water + recovering vegetation
    "Meltwater feeds eager new growth as the forest awakens from winter's rest."
@@ -117,6 +126,7 @@ enables the supported Luminari behavior.
    ```
 
 3. **Geographic Variation**
+
    - Hillside vs. valley descriptions
    - Proximity to water sources
    - Elevation and exposure effects
@@ -128,6 +138,7 @@ enables the supported Luminari behavior.
 **Features**:
 
 1. **Micro-Ecosystem Details**
+
    ```c
    // High biodiversity areas
    "Butterflies dance between wildflowers while songbirds call from hidden nests
@@ -143,11 +154,13 @@ enables the supported Luminari behavior.
    ```
 
 2. **Weather and Resource Interaction**
+
    - How rain affects depleted vs. abundant areas differently
    - How sun and drought impact various resource levels
    - Seasonal variations based on current resource state
 
 3. **Time-of-Day Variations**
+
    - Dawn descriptions that highlight resource abundance
    - Midday descriptions showing resource accessibility
    - Evening descriptions emphasizing atmosphere and mood
@@ -215,27 +228,33 @@ static const char *wildlife_active = ". Small creatures move through the %s unde
 **Same Location, Different Resource States**:
 
 ### Abundant State
+
 > "Ancient oak and maple trees tower overhead, their massive trunks rising from rich, dark earth shot through with veins of copper and silver. A crystal-clear brook winds between lichen-covered boulders, feeding beds of wild mint and watercress that flourish along its banks. Shafts of golden sunlight pierce the emerald canopy, illuminating a carpet of wildflowers that attracts clouds of butterflies and the gentle hum of bees."
 
 ### Moderate State
+
 > "Mature hardwood trees create a pleasant woodland grove, their sturdy trunks emerging from soil enriched by countless seasons of fallen leaves. A steady stream flows over smooth stones, its gentle murmur mixing with the rustle of small creatures in the underbrush. Scattered wildflowers add splashes of color to the dappled forest floor."
 
 ### Sparse State
+
 > "Weathered oak stumps and scattered saplings mark this quiet hillside, where hardy grasses and wildflowers have claimed the sunny clearings. A narrow creek traces a winding path through smooth stones and dried earth, creating small pools that reflect the open sky above. The peaceful solitude is broken only by the distant call of birds and the whisper of wind through the sparse canopy."
 
 ## Technical Files to Modify
 
 ### Core Files
+
 - `src/wilderness/desc_engine.c` - Enhanced description generation
 - `src/config/campaign.h` - Local wilderness feature settings
 - `src/act/act.informative.c` - Integration with look command
 - `src/wilderness/wilderness.c` - Wilderness room handling
 
 ### New Files
+
 - `src/wilderness/resource_descriptions.c` - Resource-to-description mapping
 - `src/wilderness/resource_descriptions.h` - Function prototypes and templates
 
 ### Database Considerations
+
 - Optional: Description caching table for performance
 - Optional: Description history tracking for temporal effects
 
@@ -252,18 +271,20 @@ static const char *wildlife_active = ". Small creatures move through the %s unde
 
 **Week 1**: Basic resource depletion integration with existing description engine
 **Week 2**: Temporal and interaction layering
-**Week 3**: Ecological interconnection storytelling  
+**Week 3**: Ecological interconnection storytelling\
 **Week 4**: Testing and refinement
 
 ## Configuration Options
 
 ### Admin-Configurable Settings
+
 - Description update frequency
 - Level of detail (1-5 scale)
 - Enable/disable specific narrative elements
 - Performance optimization settings
 
 ### Player Options
+
 - Preference for detailed vs. brief descriptions
 - Temporal awareness (show/hide time-based changes)
 

@@ -16,7 +16,7 @@ material instead.
 ## Related documents
 
 | Document | What it covers |
-|----------|----------------|
+| -- | -- |
 | [ADDING_NEW_RACE_GUIDE.md](ADDING_NEW_RACE_GUIDE.md) | Developer procedure for adding a race: ID allocation, `assign_races()` registry, creation wiring, mechanics, unlock gate, transformation-only races, help, persistence, tests, deployment |
 | [PLAYER_CLASSES_REFERENCE.md](PLAYER_CLASSES_REFERENCE.md) | Playable classes, prestige prerequisites (including the race rows Arcane Archer checks), class unlock costs, and the class side of race/class alignment compatibility |
 | [ADDING_NEW_PLAYER_CLASS_GUIDE.md](ADDING_NEW_PLAYER_CLASS_GUIDE.md) | Class registry and the race/class compatibility and unlock rules that character creation enforces |
@@ -29,7 +29,7 @@ material instead.
 Source of truth for every table below:
 
 | Data | Where it is defined |
-|------|---------------------|
+| -- | -- |
 | Race IDs and synonyms | `src/core/structs.h` (`RACE_*` defines, `NUM_EXTENDED_RACES`) |
 | Registry entries | `assign_races()` in `src/character/race.c` via `add_race()`, `set_race_abilities()`, `set_race_alignments()`, `set_race_attack_types()`, `set_race_wear_restriction()`, `feat_race_assignment()`, and `race_list[].racial_language` |
 | Unlock and availability | `is_locked_race()`, `has_unlocked_race()`, `locked_race_cost()`, `do_accexp()` in `src/player/account.c`; `race_is_creation_eligible()`, `race_is_selectable_for_creation()` in `src/character/race.c` |
@@ -79,7 +79,7 @@ lists only the restriction; "any" means all nine alignments are allowed.
 ### Normal races (always available)
 
 | Race | ID | Size | STR/CON/INT/WIS/DEX/CHA | Alignment | Language |
-|------|----|------|-------------------------|-----------|----------|
+| -- | -- | -- | -- | -- | -- |
 | Human | 0 | Medium | 0/0/0/0/0/0 | any | - |
 | Moon Elf | 1 | Medium | 0/0/0/+1/+2/0 | any | - |
 | Mountain Dwarf | 2 | Medium | +2/+2/0/0/0/0 | any | - |
@@ -111,7 +111,7 @@ the older constant name still appears in legacy help keywords (`RACE-ELF`,
 ### Advanced races (1000 account experience, level adjustment +2)
 
 | Race | ID | Size | Family | STR/CON/INT/WIS/DEX/CHA | Alignment | Language |
-|------|----|------|--------|-------------------------|-----------|----------|
+| -- | -- | -- | -- | -- | -- | -- |
 | HalfTroll | 3 | Large | Humanoid | +2/+4/-2/-2/+2/-2 | not LG or NG | - |
 | ArcanaGolem | 10 | Medium | Humanoid | 0/0/+3/+3/0/+3 | any | - |
 | Drow | 11 | Medium | Humanoid | 0/0/+4/+2/+2/+2 | any | - |
@@ -123,7 +123,7 @@ the older constant name still appears in legacy help keywords (`RACE-ELF`,
 ### Epic races (level adjustment +10)
 
 | Race | ID | Size | Family | Cost | STR/CON/INT/WIS/DEX/CHA | Alignment | Language |
-|------|----|------|--------|------|-------------------------|-----------|----------|
+| -- | -- | -- | -- | -- | -- | -- | -- |
 | CrystalDwarf | 4 | Medium | Humanoid | 30000 | +2/+4/0/+4/+2/+2 | any | - |
 | Trelux | 9 | Small | Humanoid | 30000 | +4/+4/0/0/+4/0 | any | - |
 | Fae | 25 | Tiny | Humanoid | 50000 | -4/0/0/0/+10/+6 | non-lawful only | Elven |
@@ -132,7 +132,7 @@ the older constant name still appears in legacy help keywords (`RACE-ELF`,
 ### Transformation-only races (not purchasable, not selectable at creation)
 
 | Race | ID | Size | Family | STR/CON/INT/WIS/DEX/CHA | Alignment |
-|------|----|------|--------|-------------------------|-----------|
+| -- | -- | -- | -- | -- | -- |
 | Lich | 45 | Medium | Undead | 0/+2/+6/+2/+2/+6 | evil only (LE, NE, CE) |
 | Vampire | 46 | Medium | Undead | +6/+4/+2/+2/+4/+4 | any |
 
@@ -168,154 +168,188 @@ game and `feat info <name>` show the player-facing text. Unarmed attack verbs
 default to hit and punch; only races with a different set are listed.
 
 ### Human
+
 Quick To Master, Skilled.
 
 ### Moon Elf
+
 Infravision, Weapon Proficiency Elf, Sleep Enchantment Immunity, Keen Senses,
 Resistance To Enchantments, Elf Racial Adjustment, Moon Elf Racial Adjustment,
 Moon Elf Bathed In Moonlight, Moon Elf Lunar Magic.
 
 ### High Elf
+
 Infravision, Weapon Proficiency Elf, Sleep Enchantment Immunity, Keen Senses,
 Resistance To Enchantments, Elf Racial Adjustment, High Elf Racial Adjustment,
 High Elf Cantrip, High Elf Linguist.
 
 ### Wild Elf
+
 Infravision, Weapon Proficiency Elf, Sleep Enchantment Immunity, Keen Senses,
 Resistance To Enchantments, Elf Racial Adjustment, Wood Elf Racial Adjustment,
 Wood Elf Fleetness, Wood Elf Mask Of The Wild.
 
 ### Half Elf
+
 Infravision, Weapon Proficiency Elf, Half Blood, Adaptability, Keen Senses,
 Resistance To Enchantments, Half Elf Racial Adjustment.
 
 ### Half Drow
+
 Infravision, Weapon Proficiency Drow, Half Blood, Half Drow Spell Resistance,
 Keen Senses, Resistance To Enchantments, Half Drow Racial Adjustment.
 
 ### Dragonborn
+
 Dragonborn Breath, Dragonborn Resistance, Dragonborn Fury, Dragonborn Racial
 Adjustment.
 
 ### Tiefling
+
 Infravision, Tiefling Hellish Resistance, Bloodhunt, Tiefling Racial
 Adjustment, Tiefling Magic.
 
 ### Aasimar
+
 Ultravision, Astral Majesty, Celestial Resistance, Aasimar Racial Adjustment,
 Aasimar Healing Hands, Aasimar Light Bearer.
 
 ### Tabaxi
+
 Infravision, Tabaxi Racial Adjustment, Tabaxi Cats Claws, Tabaxi Cats Talent,
 Tabaxi Feline Agility. Unarmed attacks: hit, claw, punch, rake.
 
 ### Mountain Dwarf
+
 Infravision, Poison Resist, Stability, Spell Hardiness, Combat Training Vs
 Giants, Dwarf Racial Adjustment, Shield Dwarf Racial Adjustment, Shield Dwarf
 Armor Training, Armor Proficiency Light, Armor Proficiency Medium, Encumbered
 Resilience, Dwarven Weapon Proficiency.
 
 ### Gold Dwarf
+
 Ultravision, Poison Resist, Stability, Spell Hardiness, Combat Training Vs
 Giants, Dwarf Racial Adjustment, Gold Dwarf Racial Adjustment, Gold Dwarf
 Toughness, Encumbered Resilience, Dwarven Weapon Proficiency.
 
 ### Lightfoot Halfling
+
 Infravision, Shadow Hopper, Lucky, Combat Training Vs Giants, Halfling Racial
 Adjustment, Lightfoot Halfling Racial Adjustment, Naturally Stealthy.
 
 ### Stout Halfling
+
 Infravision, Shadow Hopper, Lucky, Combat Training Vs Giants, Halfling Racial
 Adjustment, Stout Halfling Racial Adjustment, Stout Resilience.
 
 ### Rock Gnome
+
 Infravision, Combat Training Vs Giants, Resistance To Illusions, Illusion
 Affinity, Tinker Focus, Gnome Racial Adjustment, Gnomish Tinkering, Rock Gnome
 Racial Adjustment, Artificers Lore, Tinker.
 
 ### Forest Gnome
+
 Infravision, Combat Training Vs Giants, Resistance To Illusions, Illusion
 Affinity, Tinker Focus, Gnome Racial Adjustment, Forest Gnome Racial
 Adjustment, Speak With Beasts, Natural Illusionist.
 
 ### HalfOrc
+
 Ultravision, Half Orc Racial Adjustment, Menacing, Relentless Endurance, Savage
 Attacks.
 
 ### Shade
+
 Ultravision, One With Shadow, Shadowfell Mind, Practiced Sneak, Shade Racial
 Adjustment.
 
 ### Goliath
+
 Natural Athlete, Mountain Born, Powerful Build, Stones Endurance, Goliath
 Racial Adjustment.
 
 ### Goblin
+
 Ultravision, Goblin Racial Adjustment, Nimble Escape, Fast Movement, Stubborn
 Mind, Fury Of The Small.
 
 ### Hobgoblin
+
 Ultravision, Hobgoblin Racial Adjustment, Stubborn Mind, Authoritative, Fortune
 Of The Many.
 
 ### HalfTroll (advanced)
+
 Ultravision, Troll Regeneration, Weakness To Fire, Weakness To Acid, Strong
 Against Poison, Strong Against Disease, Half Troll Racial Adjustment.
 
 ### ArcanaGolem (advanced)
+
 Spellbattle, Spell Vulnerability, Enchantment Vulnerability, Physical
 Vulnerability, Magical Heritage, Arcana Golem Racial Adjustment.
 
 ### Drow (advanced)
+
 Ultravision, Sleep Enchantment Immunity, Keen Senses, Resistance To
 Enchantments, Weapon Proficiency Drow, Drow Racial Adjustment, Drow Spell
 Resistance, SLA Faerie Fire, SLA Levitate, SLA Darkness, Light Blindness, Drow
 Innate Magic.
 
 ### Duergar (advanced)
+
 Ultravision, Light Blindness, Duergar Racial Adjustment, Duergar Magic,
 Paralysis Resist, Phantasm Resist, Strong Spell Hardiness, SLA Enlarge, SLA
 Strength, SLA Invis, Affinity Spot, Affinity Listen, Affinity Move Silent,
 Poison Resist, Stability, Combat Training Vs Giants.
 
 ### Half-Ogre (advanced)
+
 Ultravision, Powerful Build, Strong Against Poison, Armor Skin x2 (stacking).
 Unarmed attacks: hit, pound, punch, smash.
 
 ### Wemic (advanced)
+
 Infravision, Natural Athlete, Powerful Build, Claws And Bite, Survival
 Instinct, Hardy, Leonine Frame. Unarmed attacks: bite, claw, trample. Cannot
 wear leg or foot equipment.
 
 ### Yuan-Ti (advanced)
+
 Ultravision, Poison Bite, Poison Immunity, Stubborn Mind, Armor Skin x2
 (stacking). Unarmed attacks: bite, thrash. Cannot wear face, leg, or foot
 equipment.
 
 ### CrystalDwarf (epic)
+
 Infravision, Crystal Body, Crystal Fist, Vital, Hardy, Crystal Skin, Poison
 Resist, Combat Training Vs Giants, Crystal Dwarf Racial Adjustment.
 
 ### Trelux (epic)
+
 Ultravision, Vital, Hardy, Vulnerable To Cold, Trelux Exoskeleton, Leap, Wings,
 Trelux Eq, Trelux Pincers, Insectbeing. Unarmed attacks: bite, claw, pierce,
 stab. Cannot use finger, hands, shield, wield, hold, leg, or foot slots.
 
 ### Half-Illithid (epic)
+
 Ultravision, Quick Mind, Stubborn Mind, SLA Levitate, Armor Skin x3 (stacking),
 Vital, Hardy. Unarmed attacks: hit, thrash, punch.
 
 ### Fae (epic)
+
 Ultravision, Dodge, Fae Racial Adjustment, Fae Magic, Fae Resistance, Fae
 Senses, Fae Flight.
 
 ### Lich (transformation only)
+
 Unarmed Strike, Improved Unarmed Strike, Armor Skin x5 (stacking), Ultravision,
 Vital, Hardy, Lich Racial Adjustment, Lich Spell Resist, Lich Dam Resist, Lich
 Touch, Lich Rejuv, Lich Fear, Electric Immunity, Cold Immunity. Unarmed
 attacks: hit, thrash, punch, rake, smash.
 
 ### Vampire (transformation only)
+
 Alertness, Combat Reflexes, Dodge, Improved Initiative, Lightning Reflexes,
 Toughness, Vampire Natural Armor, Vampire Damage Reduction, Vampire Energy
 Resistance, Vampire Fast Healing, Vampire Weaknesses, Vampire Blood Drain,
@@ -340,7 +374,7 @@ game already has four distinct acquisition classes, and the two upper ones
 have no published reference to lean on:
 
 | Tier | Registry marker | How acquired | Existing standard |
-|------|-----------------|--------------|-------------------|
+| -- | -- | -- | -- |
 | Normal | `IS_NORMAL`, cost 0, LA +0 | Creation | d20 core races: assumed balanced |
 | Advanced | `IS_ADVANCE`, cost 1000, LA +2 | Account unlock | d20 races published with a level adjustment (drow, duergar) |
 | Epic | `IS_EPIC_R`, cost 30000 or 50000, LA +10 | Account unlock | None |
@@ -356,7 +390,9 @@ Guide race builder but priced against what this server's feats actually do.
 
 Score a race as:
 
-    RP = ability points + size points + trait points - drawback refund
+```
+RP = ability points + size points + trait points - drawback refund
+```
 
 **Ability points.** Sum every positive modifier at face value. Sum the
 magnitudes of the penalties and subtract them, but credit at most 4 points of
@@ -376,7 +412,7 @@ When a trait is not listed, price it by the closest row; when two rows fit,
 take the higher.
 
 | Trait class | Example in game | RP |
-|-------------|-----------------|----|
+| -- | -- | -- |
 | Infravision | Most races | 0.5 |
 | Ultravision | Drow, Duergar, HalfOrc | 1 |
 | Weapon or armor proficiency group | Elf, Dwarven, Shield Dwarf armor training | 0.5 to 1 |
@@ -441,7 +477,7 @@ that is only affordable because of its drawbacks is fragile in play, because
 players route around drawbacks and keep the power.
 
 | Drawback | Example | RP |
-|----------|---------|----|
+| -- | -- | -- |
 | Light Blindness | Drow, Duergar | -2 |
 | 50 percent vulnerability, one type | Weakness To Fire | -2 |
 | 20 to 25 percent vulnerability, one type | Weakness To Acid, Vulnerable To Cold | -1 |
@@ -470,7 +506,7 @@ who plays the race; they do not change how strong the race is once played.
 ### Tier budgets
 
 | Tier | Target RP | Acceptable band | Notes |
-|------|-----------|-----------------|-------|
+| -- | -- | -- | -- |
 | Normal | 7 | 5 to 9 | Matches the spread of the stock d20 races already in the registry |
 | Advanced | 14 | 12 to 16 | Roughly double a normal race, consistent with LA +2 in d20 |
 | Epic | 24 | 20 to 28 | Chosen from the current epic median; see calibration below |
@@ -480,8 +516,10 @@ The step from each tier to the next is deliberately about +7 to +10 RP for
 Advanced and Epic, and about +25 for Epic quest. Expressed as a formula that
 also covers future tiers:
 
-    budget(tier) = 7 + 7 * tier_index          for tier_index 0..2
-    budget(quest) = 2 * budget(epic)
+```
+budget(tier) = 7 + 7 * tier_index          for tier_index 0..2
+budget(quest) = 2 * budget(epic)
+```
 
 with tier_index 0 = Normal, 1 = Advanced, 2 = Epic. Quest races are allowed a
 larger jump because they are gated by content difficulty rather than by
@@ -509,7 +547,7 @@ Scores use the pricing table above with no per-race tuning. Ability is after
 the penalty cap, Trait is traits minus drawbacks.
 
 | Race | Tier | Ability | Size | Trait | RP | Versus band |
-|------|------|---------|------|-------|----|-------------|
+| -- | -- | -- | -- | -- | -- | -- |
 | Human | Normal | 0 | 0 | 4.5 | 4.5 | low |
 | Moon Elf | Normal | 3 | 0 | 4.5 | 7.5 | in band |
 | Mountain Dwarf | Normal | 4 | 0 | 4.5 | 8.5 | in band |
@@ -574,7 +612,7 @@ These are recommendations for a future balance pass, listed in priority
 order. None has been applied.
 
 | Race | Direction | Change that reaches the band |
-|------|-----------|------------------------------|
+| -- | -- | -- |
 | ArcanaGolem | raise to about 14 | Remove Physical Vulnerability (-2 AC), or replace the three vulnerabilities with a single -2 to fortitude saves and add Hardy |
 | HalfTroll | raise to about 13 | Add Hardy (+1 hp per level) and either Powerful Build or Strong Against Disease upgraded to disease immunity; the regeneration is already the right kind of scaling trait |
 | Half-Ogre | raise to about 13 | Add a third Armor Skin stack and a scaling trait, for example +1 damage per 4 levels with two-handed weapons |

@@ -23,7 +23,7 @@ A class is ready when:
 Additional requirements depend on the class:
 
 | Class type | Required path |
-|------------|---------------|
+| -- | -- |
 | Selectable base | Terminal/web creation, exact help, gear, custom build, and premade policy |
 | Prestige | Rejected by creation/respec; available through qualified `gain` |
 | Account-locked | `accexp class`, SQL reload, and consistent access checks |
@@ -35,7 +35,7 @@ Additional requirements depend on the class:
 Record the following decisions. They determine which later sections apply.
 
 | Area | Decision |
-|------|----------|
+| -- | -- |
 | Identity | `CLASS_*` symbol, permanent ID, registry name, aliases, and help/media slug |
 | Availability | Base or prestige, `in_game`, account lock, unlock cost, and maximum class level |
 | Progression | BAB, hit die, movement, trains, saves, and epic class-feat interval |
@@ -141,7 +141,7 @@ spell structures unless a separate migration of the legacy fixed-column format i
 Update the exact numeric position in each applicable location:
 
 | Location | Required change |
-|----------|-----------------|
+| -- | -- |
 | `src/core/structs.h` | Permanent `CLASS_*` ID and class bounds |
 | `src/core/constants.c` | Names, description, preparation, and consign entries |
 | `src/character/class.c` | Complete `load_class_list()` registration |
@@ -192,7 +192,7 @@ the first earlier class.
 Trace each relevant integration point:
 
 | Integration point | Required work |
-|-------------------|---------------|
+| -- | -- |
 | `level_exp()` | Add the class; omission logs a `SYSERR` and returns `123456` |
 | `advance_level()` | Verify HP, movement, trains, fixed BAB, feat points, and special branches |
 | `init_class()` | Reconcile first-class and login-time access idempotently |
@@ -300,7 +300,7 @@ Provision matching client art or record the fallback as an explicit release choi
 Start from the closest actual storage model:
 
 | Model | Useful references |
-|-------|-------------------|
+| -- | -- |
 | Prepared queues | Wizard, Cleric, Druid, Paladin, Ranger, Blackguard |
 | Spontaneous slots | Sorcerer, Bard, Inquisitor, Summoner |
 | Extracts | Alchemist |
