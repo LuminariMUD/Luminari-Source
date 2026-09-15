@@ -1,7 +1,7 @@
 # Player Races Reference
 
 Status: source-backed reference, verified 2026-09-11 against `src/character/race.c`,
-`src/account.c`, `src/structs.h`, `src/quest/quest.c`, `src/quest/hlquest.c`,
+`src/player/account.c`, `src/structs.h`, `src/quest/quest.c`, `src/quest/hlquest.c`,
 `src/spec/spec_rol_conversion.c`, `src/character/feats.c`, `src/constants.c`,
 `src/combat/fight.c`, and `src/limits.c`.
 
@@ -32,7 +32,7 @@ Source of truth for every table below:
 |------|---------------------|
 | Race IDs and synonyms | `src/structs.h` (`RACE_*` defines, `NUM_EXTENDED_RACES`) |
 | Registry entries | `assign_races()` in `src/character/race.c` via `add_race()`, `set_race_abilities()`, `set_race_alignments()`, `set_race_attack_types()`, `set_race_wear_restriction()`, `feat_race_assignment()`, and `race_list[].racial_language` |
-| Unlock and availability | `is_locked_race()`, `has_unlocked_race()`, `locked_race_cost()`, `do_accexp()` in `src/account.c`; `race_is_creation_eligible()`, `race_is_selectable_for_creation()` in `src/character/race.c` |
+| Unlock and availability | `is_locked_race()`, `has_unlocked_race()`, `locked_race_cost()`, `do_accexp()` in `src/player/account.c`; `race_is_creation_eligible()`, `race_is_selectable_for_creation()` in `src/character/race.c` |
 | Feat text | `feato()` calls in `assign_feats()` in `src/character/feats.c` |
 | Lich and Vampire conversion | `src/quest/quest.c`, `src/quest/hlquest.c`, `src/spec/spec_rol_conversion.c` |
 

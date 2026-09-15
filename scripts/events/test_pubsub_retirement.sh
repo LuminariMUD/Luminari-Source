@@ -29,7 +29,7 @@ runtime_files=(
   "$project_root/src/database/db_init.c"
   "$project_root/src/database/db_startup_init.c"
   "$project_root/src/interpreter.c"
-  "$project_root/src/player_rename.c"
+  "$project_root/src/player/player_rename.c"
 )
 
 for symbol in pubsub_init pubsub_process_message_queue pubsub_db_create_tables \

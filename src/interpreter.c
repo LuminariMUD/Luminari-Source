@@ -19,7 +19,7 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "db.h"
-#include "account.h"
+#include "player/account.h"
 #include "magic/spells.h"
 #include "handler.h"
 #include "domain_object_transfer.h"
@@ -31,7 +31,7 @@
 #include "dgscript/dg_scripts.h"
 #include "constants.h"
 #include "act.h" /* ACMDs located within the act*.c files, char-creation help */
-#include "ban.h"
+#include "player/ban.h"
 #include "net/i3_client.h" /* I3 command declarations */
 #include "character/class.h"
 #include "graph.h"
@@ -95,7 +95,7 @@
 #include "net/onboarding.h"
 #include "rol_feats.h"
 #include "activity_manager.h"
-#include "password.h"
+#include "player/password.h"
 #include "clan/clan_economy.h"
 #include "vessels/transport_unified.h"
 #include "help.h"

@@ -184,7 +184,7 @@ conversion post-state, consumption, or reload transaction.
 ## 2. Resolve the numeric ID before implementation
 
 Race IDs are durable data, not reorderable enum positions. The player file
-writes the number as `Race: <id>` in `src/players.c`; account unlocks store the
+writes the number as `Race: <id>` in `src/player/players.c`; account unlocks store the
 number as `unlocked_races.race_id`; other SQL and world data can also retain
 numeric race references. Never renumber or reuse a released ID.
 
@@ -265,7 +265,7 @@ following common consumers:
 |--------|----------------|
 | `src/interpreter.c` | Terminal creation menus, direct validation, and race help dispatch |
 | `src/db.c` | `init_char()` applies the shared creation-eligibility policy |
-| `src/account.c` | Account-XP listing and purchase apply the shared sparse policy |
+| `src/player/account.c` | Account-XP listing and purchase apply the shared sparse policy |
 | `src/net/onboarding.c` | Web catalog policy and keyed sparse media lookup |
 | `src/utils.c` | `get_race_by_name()` scans creation-eligible sparse entries |
 | `src/character/race.c` | Random basic-race selection and extended registry allocation |
@@ -530,7 +530,7 @@ only the menu is not enforcement.
   supported configuration; use zero for a free race.
 
 For a creation-selectable locked race, verify all of these paths in
-`src/account.c`. Its race listing and purchase scan the extended registry but
+`src/player/account.c`. Its race listing and purchase scan the extended registry but
 must filter every entry through `race_is_creation_eligible()`:
 
 - `accexp race` lists it with the correct cost;
@@ -920,7 +920,7 @@ renumber, reuse, or erase the ID.
 | Ability build paths | `src/character/premadebuilds.c`, `src/character/study.c` |
 | Feat IDs and registry | `src/structs.h`, `src/character/feats.c` |
 | Feat mechanics | The subsystem that owns the feature |
-| Account unlock and hard-lock policy | `src/account.c`, `unlocked_races` |
+| Account unlock and hard-lock policy | `src/player/account.c`, `unlocked_races` |
 | Web catalog and media | `src/net/onboarding.c` |
 | Respec behavior | `respec_engine()` in `src/act.other.c` |
 | Dedicated Lich rite | `src/spec/spec_rol_conversion.c`, `src/spec/spec_registry.c` |
@@ -932,7 +932,7 @@ renumber, reuse, or erase the ID.
 | Quest validator tests | `scripts/world/tests/test_semantics.py` |
 | Quest race-reward format | `docs/world_game-data/QUEST_FILE_FORMAT.md` |
 | Legacy quest format | `docs/world_game-data/HLQUEST_FILE_FORMAT.md` |
-| Character persistence | `src/players.c`, `Race:` |
+| Character persistence | `src/player/players.c`, `Race:` |
 | Help architecture | `docs/systems/HELP_SYSTEM.md` |
 | Flat help mirror | `lib/text/help/help.hlp` |
 | SQL help authority | `sql/components/help_race_<slug>_entries.sql` |

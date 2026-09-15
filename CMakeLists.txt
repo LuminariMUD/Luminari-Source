@@ -353,7 +353,7 @@ endif()
 # ========== Source files ==========
 # Main C source files
 set(SRC_C_FILES
-    src/account.c
+    src/player/account.c
     src/act.comm.c
     src/act.comm.do_spec_comm.c
     src/act.informative.c
@@ -381,7 +381,7 @@ set(SRC_C_FILES
     src/character/guild_services.c
     src/character/character_creation.c
     src/character/character_creation_content.c
-    src/ban.c
+    src/player/ban.c
     src/bardic_performance.c
     src/olc/bedit.c
     src/comms/boards.c
@@ -540,12 +540,12 @@ set(SRC_C_FILES
     src/obj/objsave.c
     src/obj/player_shop.c
     src/olc/oedit.c
-    src/password.c
+    src/player/password.c
     src/perfmon.c
     src/character/perks.c
     src/wilderness/perlin.c
-    src/player_rename.c
-    src/players.c
+    src/player/player_rename.c
+    src/player/players.c
     src/olc/prefedit.c
     src/character/premadebuilds.c
     src/net/msdp_json.c
@@ -559,7 +559,7 @@ set(SRC_C_FILES
     src/character/race.c
     src/random.c
     src/random_names.c
-    src/rank.c
+    src/player/rank.c
     src/rewards.c
     src/olc/redit.c
     src/wilderness/resource_system.c
@@ -721,7 +721,7 @@ set(SRC_C_FILES
     src/net/i3_utils.c
     src/pet_vnums.h
     src/elf_build_id.h
-    src/player_rename.h
+    src/player/player_rename.h
     src/tactical_effects.h
 )
 

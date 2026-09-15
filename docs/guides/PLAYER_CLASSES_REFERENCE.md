@@ -1,7 +1,7 @@
 # Player Classes Reference
 
 Status: source-backed reference, verified 2026-09-11 against `src/character/class.c`,
-`src/structs.h`, `src/account.c`, `src/act.other.c`, `src/interpreter.c`,
+`src/structs.h`, `src/player/account.c`, `src/act.other.c`, `src/interpreter.c`,
 `src/net/onboarding.c`, `src/magic/spell_prep.c`, `src/utils.c`, `src/utils.h`,
 `src/handler.c`, `src/character/perks.c`, `src/character/premadebuilds.c`, and
 `src/constants.c`.
@@ -42,7 +42,7 @@ Source of truth for every table below:
 | Creation alignment rule | `valid_align_by_class()` in `src/character/class.c`; `valid_class_race_alignment()` in `src/character/race.c` |
 | `gain` and respec eligibility | `class_is_available()` and `meets_class_prerequisite()` in `src/character/class.c`; `do_gain()` and `do_respec()` in `src/act.other.c` |
 | Creation filters | `nanny()` `CON_QCLASS` in `src/interpreter.c`; `web_onboarding_class_selectable()` region in `src/net/onboarding.c` |
-| Unlock and cost | `has_unlocked_class()` and `do_accexp()` in `src/account.c` |
+| Unlock and cost | `has_unlocked_class()` and `do_accexp()` in `src/player/account.c` |
 | Per-level gains | `advance_level()` in `src/character/class.c` |
 | Stat and hit/dam caps | `compute_char_cap()` in `src/handler.c` |
 | Perk routing | `class_to_perk_class()` and `check_stage_advancement()` in `src/character/perks.c` |

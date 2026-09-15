@@ -20,8 +20,8 @@ src/obj/house.c 1
 src/obj/objsave.c 11
 src/olc/bedit.c 1
 src/olc/hedit.c 15
-src/player_rename.c 10
-src/players.c 19
+src/player/player_rename.c 10
+src/player/players.c 19
 src/quest/quest.c 15
 src/vessels/vehicles.c 3
 src/vessels/vessels_autopilot.c 17

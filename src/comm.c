@@ -82,7 +82,7 @@
 #include "constants.h" /* For mud versions */
 #include "comms/boards.h"
 #include "act.h"
-#include "ban.h"
+#include "player/ban.h"
 #include "olc/msgedit.h"
 #include "combat/fight.h"
 #include "magic/spells.h" /* for affect_update */

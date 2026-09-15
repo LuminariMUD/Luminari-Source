@@ -12,7 +12,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
-#include "password.h"
+#include "player/password.h"
 #include "spec/spec_binding.h"
 #include "spec/spec_effective_binding.h"
 #include "spec/spec_registry.h"
@@ -45,7 +45,7 @@
 #include "modify.h"
 #include "quest/quest.h"
 #include "magic/spell_prep.h"
-#include "ban.h"
+#include "player/ban.h"
 #include "screen.h"
 #include "mud_event.h"
 #include "clan/clan.h"
@@ -67,7 +67,7 @@
 #include "magic/domains_schools.h"
 #include "ai/ai_service.h"
 #include "craft/crafts.h" /* NewCraft */
-#include "account.h"
+#include "player/account.h"
 #include "craft/alchemy.h"
 #include "mud_event.h"
 #include "character/premadebuilds.h"
@@ -82,7 +82,7 @@
 #include "mob/mob_spellslots.h" /* for show_mob_spell_slots */
 #include "olc/genshp.h"
 #include "obj/treasure.h"
-#include "player_rename.h"
+#include "player/player_rename.h"
 #include "net/i3_client.h"
 #include "net/discord_bridge.h"
 

@@ -12,7 +12,7 @@ Tested revision
 ---------------
 
 Branch fix/issue-162-pet-durability-limits on top of master 4bfc60abb, with
-the src/players.c change that stops the restore path from adding the
+the src/player/players.c change that stops the restore path from adding the
 mercenary flag to a hireling that did not carry it live.  Installed release
 ELF build ID 6f24742333ca2d65b1863cad3d0b735790924a05.
 

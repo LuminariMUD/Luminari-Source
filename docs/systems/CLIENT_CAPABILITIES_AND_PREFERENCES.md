@@ -71,7 +71,7 @@ Once a player chooses a character and logs in, the server loads their PRF flags 
 
 Load-time PRF parsing (ASCII pfiles):
 
-```1217:1229:src/players.c
+```1217:1229:src/player/players.c
       else if (!strcmp(tag, "Pref"))
       {
         if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4)
@@ -88,7 +88,7 @@ Load-time PRF parsing (ASCII pfiles):
 
 Save-time PRF writing:
 
-```1841:1845:src/players.c
+```1841:1845:src/player/players.c
   sprintascii(bits, PRF_FLAGS(ch)[0]);
   sprintascii(bits2, PRF_FLAGS(ch)[1]);
   sprintascii(bits3, PRF_FLAGS(ch)[2]);
@@ -178,7 +178,7 @@ Prefedit also exposes some protocol toggles (session capabilities) directly on t
 
 Save-time of these persisted fields:
 
-```2158:2163:src/players.c
+```2158:2163:src/player/players.c
   if (ch->desc)
   {
     BUFFER_WRITE( "GMCP: %d\n", ch->desc->pProtocol->bGMCP);
@@ -189,13 +189,13 @@ Save-time of these persisted fields:
 
 Load-time of these persisted fields:
 
-```1452:1455:src/players.c
+```1452:1455:src/player/players.c
       case 'U':
         if (!strcmp(tag, "UTF8") && ch->desc)
           ch->desc->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt = atoi(line);
 ```
 
-```1478:1480:src/players.c
+```1478:1480:src/player/players.c
       case 'X':
         if (!strcmp(tag, "XTrm") && ch->desc)
           ch->desc->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = atoi(line);
@@ -229,12 +229,12 @@ This is enforced in the color helpers, which check PRF flags before using protoc
 - `src/comm.c`: new connection handling; starts negotiation; shows greetings.
 - `src/interpreter.c`: account/character selection, enter-game flow, recommended PRF prompt, protocol info event.
 - `src/db.c`: `init_char()` one-time PRF defaults for new characters; `reset_char()`.
-- `src/players.c`: load/save of PRFs and persisted protocol fields (`Pref`, `UTF8`, `XTrm`, `GMCP`).
+- `src/player/players.c`: load/save of PRFs and persisted protocol fields (`Pref`, `UTF8`, `XTrm`, `GMCP`).
 - `src/net/protocol.c` / `src/net/protocol.h`: negotiation logic; capability variables; color helpers.
 - `src/olc/prefedit.c`: player preference editor; applies PRFs and saves; exposes protocol toggles.
 - `src/utils.h`: PRF macros.
 - `src/mud_event.h`: `ePROTOCOLS` event definition.
-- `src/pfdefaults.h`: default bitmasks (e.g., `PFDEF_PREFFLAGS`).
+- `src/player/pfdefaults.h`: default bitmasks (e.g., `PFDEF_PREFFLAGS`).
 
 ### Recommended improvements
 1. **Persist more protocol toggles (optional)**

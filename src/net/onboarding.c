@@ -26,7 +26,7 @@
 #include "character/race.h"
 #include "constants.h"
 #include "protocol.h"
-#include "account.h"
+#include "player/account.h"
 #include "character/backgrounds.h"
 #include "character/deities.h"
 #include "roleplay.h"

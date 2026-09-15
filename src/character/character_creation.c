@@ -5,7 +5,7 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "db.h"
-#include "account.h"
+#include "player/account.h"
 #include "roleplay.h"
 #include "premadebuilds.h"
 #include "character_creation.h"

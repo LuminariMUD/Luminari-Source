@@ -64,7 +64,7 @@
 #include "magic/spell_lists.h"
 #include "character/premadebuilds.h"
 #include "quest/staff_events.h"
-#include "account.h"
+#include "player/account.h"
 #include "character/deities.h"
 #include "character/evolutions.h"
 #include "combat/traps.h" /* For trap system functions */

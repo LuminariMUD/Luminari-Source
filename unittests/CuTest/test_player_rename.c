@@ -5,7 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/db.h"
-#include "../../src/player_rename.h"
+#include "../../src/player/player_rename.h"
 
 #include <fcntl.h>
 #include <unistd.h>

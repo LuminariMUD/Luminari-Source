@@ -16,7 +16,7 @@ Every source file lives in one directory directly under `src/`. No behavior chan
 | 2 | `ai/` | done |
 | 3 | `clan/` | done |
 | 4 | `database/` | done |
-| 5 | `player/` | todo |
+| 5 | `player/` | done |
 | 6 | `act/` | todo |
 | 7 | into existing directories | todo |
 | 8 | `events/` | todo |

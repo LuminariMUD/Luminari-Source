@@ -24,7 +24,7 @@ bin_PROGRAMS = luminari
 # Source files for the main program
 luminari_SOURCES = \
 	src/pet_vnums.h \
-	src/account.c \
+	src/player/account.c \
 	src/act.comm.c \
 	src/act.comm.do_spec_comm.c \
 	src/act.informative.c \
@@ -63,7 +63,7 @@ luminari_SOURCES = \
 	src/character/guild_services.c \
 	src/character/character_creation.c \
 	src/character/character_creation_content.c \
-	src/ban.c \
+	src/player/ban.c \
 	src/bardic_performance.c \
 	src/comms/boards.c \
 	src/olc/bedit.c \
@@ -225,12 +225,12 @@ luminari_SOURCES = \
 	src/obj/objsave.c \
 	src/obj/player_shop.c \
 	src/olc/oedit.c \
-	src/password.c \
+	src/player/password.c \
 	src/perfmon.c \
 	src/wilderness/perlin.c \
-	src/player_rename.c \
-	src/player_rename.h \
-	src/players.c \
+	src/player/player_rename.c \
+	src/player/player_rename.h \
+	src/player/players.c \
 	src/olc/prefedit.c \
 	src/character/premadebuilds.c \
 	src/net/msdp_json.c \
@@ -257,7 +257,7 @@ luminari_SOURCES = \
 	src/character/race.c \
 	src/random.c \
 	src/random_names.c \
-	src/rank.c \
+	src/player/rank.c \
 	src/rewards.c \
 	src/rol_feats.c \
 	src/olc/redit.c \

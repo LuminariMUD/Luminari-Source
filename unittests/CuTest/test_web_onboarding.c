@@ -18,7 +18,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/comm.h"
-#include "../../src/account.h"
+#include "../../src/player/account.h"
 #include "../../src/act.h"
 #include "../../src/interpreter.h"
 #include "../../src/asciimap.h"

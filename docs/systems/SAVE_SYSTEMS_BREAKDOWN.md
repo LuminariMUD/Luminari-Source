@@ -142,7 +142,7 @@ These systems use MySQL database storage exclusively.
 #### 2. Persistent Followers (Pets, Summons, and Cohorts)
 
 - **Tables**: `pet_data`, `pet_save_objs`
-- **Functions**: `save_char_pets()` and `load_char_pets()` in `src/players.c`;
+- **Functions**: `save_char_pets()` and `load_char_pets()` in `src/player/players.c`;
   recursive object storage in `src/obj/objsave.c`
 - **Contents**: One base row per saved charmed follower, serialized runtime state,
   and its equipped, carried, and nested objects

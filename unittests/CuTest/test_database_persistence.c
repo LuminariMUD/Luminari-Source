@@ -4,7 +4,7 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
-#include "../../src/account.h"
+#include "../../src/player/account.h"
 #include "../../src/act.h"
 #include "../../src/character/race.h"
 #include "../../src/comm.h"
@@ -1308,7 +1308,7 @@ void Test_pet_rows_follow_a_renamed_owner_and_ignore_the_freed_name(CuTest *tc)
   renamed.owner.player.time.birth = (time_t)500;
   saved_before_rename = schema_created && save_char_pets(&renamed.owner);
 
-  /* This is exactly what src/player_rename.c rewrites for the pet tables. */
+  /* This is exactly what src/player/player_rename.c rewrites for the pet tables. */
   saved_after_rename =
       mysql_query(connection, "UPDATE pet_data SET owner_name = 'NewName'") == 0 &&
       mysql_query(connection, "UPDATE pet_save_objs SET owner_name = 'NewName'") == 0;

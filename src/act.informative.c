@@ -23,7 +23,7 @@
 #include "rewards.h"
 #include "magic/spells.h"
 #include "screen.h"
-#include "pfdefaults.h"
+#include "player/pfdefaults.h"
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "mud_event.h"

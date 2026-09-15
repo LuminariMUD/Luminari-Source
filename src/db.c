@@ -36,7 +36,7 @@
 #include "active_world.h"
 #include "periodic_owners.h"
 #include "act.h"
-#include "ban.h"
+#include "player/ban.h"
 #include "obj/treasure.h"
 #include "spec/spec_binding.h"
 #include "spec/spec_assign.h"

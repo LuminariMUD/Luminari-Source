@@ -906,8 +906,8 @@ gold, bank, quest points, and experience through `award_set_points()`. `set acce
 ### Direct Writes
 
 Only record construction writes experience, gold, bank gold, quest points, and account
-experience directly: player-file defaults and parsing in `src/players.c`, world parsing and
-first-player setup in `src/db.c`, and account loading and descriptor sync in `src/account.c`. The
+experience directly: player-file defaults and parsing in `src/player/players.c`, world parsing and
+first-player setup in `src/db.c`, and account loading and descriptor sync in `src/player/account.c`. The
 following command lists direct writes of those balances, including macro arguments with one
 nested call; any file it prints bypasses the API:
 

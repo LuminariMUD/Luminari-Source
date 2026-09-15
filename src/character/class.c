@@ -28,7 +28,7 @@
 #include "feats.h"
 #include "class.h"
 #include "combat/assign_wpn_armor.h"
-#include "pfdefaults.h"
+#include "player/pfdefaults.h"
 #include "magic/domains_schools.h"
 #include "modify.h"
 #include "magic/spell_prep.h"

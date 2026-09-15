@@ -36,7 +36,7 @@
 #include "item.h"
 #include "character/backgrounds.h"
 #include "clan/clan_economy.h"
-#include "account.h"
+#include "player/account.h"
 #include "spec/spec_effective_binding.h"
 #include "spec/spec_registry.h"
 

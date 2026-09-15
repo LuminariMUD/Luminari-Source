@@ -12,7 +12,7 @@ a save format that carries them. Duris source verified at
 `/home/aiwithapex/projects/duris`; our side traced in `src/structs.h`,
 `src/obj/act.item.c`, `src/obj/objsave.c`, `src/handler.c`,
 `src/combat/fight.c`, `src/character/race.c`, `src/constants.c`,
-`src/act.informative.c`, `src/players.c`, and `src/db.c`.
+`src/act.informative.c`, `src/player/players.c`, and `src/db.c`.
 
 Review baseline: LuminariMUD `6a048b0d34fe0f17faea30577d87bac72b5ec3d3`,
 Duris `9e0bfac624aa19eccbfc8045edbfa8cfddfb575f` (both clean when traced).
@@ -77,7 +77,7 @@ Decisions taken in step 1 that Part 3 left open:
 | Area | What exists now |
 |------|-----------------|
 | Reconciliation | `four_arms_reconcile()` in `src/obj/act.item.c`, declared in `src/handler.h`. Runs at the end of `affect_total()` (every completed equipment, affect, feat or form change) and at the close of an affect batch. Re-entry guarded by `ch->four_arms_reconciling`; skipped for characters being extracted (`DEAD()`). |
-| Deferral | `four_arms_defer_begin()` / `four_arms_defer_end()` on a runtime counter `ch->four_arms_defer` in `struct char_data`; a loss noticed while deferred sets `four_arms_dirty` and is acted on when the outermost deferral ends. `save_char_checked()` in `src/players.c` brackets its unequip/re-equip cycle (no early returns exist between the two loops). |
+| Deferral | `four_arms_defer_begin()` / `four_arms_defer_end()` on a runtime counter `ch->four_arms_defer` in `struct char_data`; a loss noticed while deferred sets `four_arms_dirty` and is acted on when the outermost deferral ends. `save_char_checked()` in `src/player/players.c` brackets its unequip/re-equip cycle (no early returns exist between the two loops). |
 | Loss action | Order: WIELD_2H_2, WIELD_4, WIELD_3, WRIST_L2, WRIST_R2, HANDS_2, ARMS_2; then, only when the character had four arms at the last completed check (`four_arms_active`) and the old positions exceed the budget: HOLD_2H, HOLD_2, HOLD_1, WIELD_OFFHAND, SHIELD, WIELD_2H, WIELD_1 until it fits. Each displacement wraps a `domain_object_transfer_begin/finish` (`DOMAIN_TRANSFER_RESTORE`), runs `remove_otrigger()` for its side effects but ignores a veto, re-reads the slot in case the trigger moved or purged the object, then `obj_to_char(unequip_char())`: inventory, never the room, inventory limits bypassed. Message: "You can no longer keep hold of $p and tuck it into your inventory." (suppressed under `mute_equip_messages`). |
 | Restoration | `auto_equip()` marks four-arm gear whose slot is closed at that moment with `obj->four_arms_restore_slot` (runtime-only field on `struct obj_data`) and holds it in inventory. `crash_restore_records()` (shared by `Crash_load_objs()`, `pet_load_objs()` and the `test_restore_loaded_objects()` hook) runs the record loop under deferral, then `four_arms_restore_deferred()` retries those objects with their contents, then ends the deferral so capacity is checked once. Gear whose provider never arrives stays in inventory with its marker cleared. Copyover reconnects through `Crash_load()`, so it shares the path. |
 | Tests | `TestFourArmsLossClosesExtraSlots`, `TestFourArmsLossTrimsOldPositionsToCapacity`, `TestFourArmsDeferralSpansProviderCycle` (nested deferral and affect batch), `TestFourArmsLossIgnoresRemoveTriggerVeto` (real DG trigger returning 0), `TestFourArmsRestoreIsOrderIndependent` (flat-file round trip through `objsave_parse_objects()`: provider after dependents, container contents, missing provider). Full suite: 1467 tests pass. |
@@ -417,7 +417,7 @@ penalties, max Dexterity, enhancement and sleeve proficiency in
 `src/combat/assign_wpn_armor.c`, for example. `apply_ac()` in `src/handler.c`
 explicitly recognizes `WEAR_ARMS`. These must include the lower sleeves.
 
-`save_char()` (`src/players.c:2488,3914`) temporarily unequips and re-equips
+`save_char()` (`src/player/players.c:2488,3914`) temporarily unequips and re-equips
 all gear to serialize base character data. This is not a loss of anatomy.
 Any new cleanup must defer across the complete save operation, including
 error paths. Otherwise saving an item-supported character can move valid
@@ -773,10 +773,10 @@ balanced progression across classes.
 | Constants | `src/structs.h` | Seven positions, `NUM_WEARS`, Four Arms feat and both feat bounds, two attack types; any scoped lifecycle state |
 | Slot tables and display | `src/constants.c`, `src/act.informative.c`, `src/obj/act.item.c` | Labels, ordering, messages, keywords, slot/size classification and proficiency output |
 | Feat and capability | `src/character/feats.c`, `src/utils.c`, `src/utils.h` | Registration, effective grant sources, pair-aware two-hand utility |
-| Equipment lifecycle | `src/obj/act.item.c`, `src/obj/item.h`, `src/handler.c`, `src/handler.h`, `src/players.c` | Placement, shared validation, mandatory cleanup, save/load deferral, AC |
+| Equipment lifecycle | `src/obj/act.item.c`, `src/obj/item.h`, `src/handler.c`, `src/handler.h`, `src/player/players.c` | Placement, shared validation, mandatory cleanup, save/load deferral, AC |
 | Anatomy and race data | `src/character/race.c`, relevant registry headers | Extra-slot eligibility and base restriction mapping; playable race registration after conversion/balance decisions |
 | Combat | `src/combat/fight.c`, `src/combat/fight.h`, `src/combat/assign_wpn_armor.c`, `src/combat/assign_wpn_armor.h`, affected offensive selectors | Weapon routing, attack opportunities, phase/count/display behavior, armor and explicit weapon consumers |
-| Persistence | `src/obj/objsave.c`, `src/players.c` | Provider/dependent restore order, final validation, pet lifecycle and fingerprint checks |
+| Persistence | `src/obj/objsave.c`, `src/player/players.c` | Provider/dependent restore order, final validation, pet lifecycle and fingerprint checks |
 | Docs | `docs/systems/SAVE_SYSTEMS_BREAKDOWN.md`, `docs/guides/PLAYER_RACES_REFERENCE.md`, `docs/systems/GAME_MECHANICS_SYSTEMS.md` | Format/rollback notes, correct stand-in description and provisional pricing, mechanic rules |
 | Help | `lib/text/help/help.hlp`, `sql/components/help_duris_racial_innate_entries.sql`, development help database | FOUR-ARMS entry; apply the SQL to the intended development DB and verify both copies agree |
 | Constants sync | `scripts/world/wtool_constants.json` | Regenerate/resync changed constants and bounds |

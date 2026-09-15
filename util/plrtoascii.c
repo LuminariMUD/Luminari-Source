@@ -18,7 +18,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
-#include "pfdefaults.h"
+#include "player/pfdefaults.h"
 
 // first some stock circle 3.0 defines. Change where appropriate.
 #define MAX_NAME_LENGTH 20 /* Used in char_file_u *DO*NOT*CHANGE* */
