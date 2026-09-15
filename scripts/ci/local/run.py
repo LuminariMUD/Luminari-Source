@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import re
 import queue
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -34,6 +35,7 @@ INSTALL_STEPS = {
     "Install Gitleaks",
     "Install container prerequisites",
     "Install Clang 22",
+    "Install clang-tidy",
 }
 
 
@@ -79,6 +81,9 @@ def interpolate(value, matrix):
 def included(condition, matrix):
     if condition is None:
         return True
+    # Report uploads run even after a failed step on GitHub; locally they are skipped.
+    if condition == "always()":
+        return True
     match = re.fullmatch(r"matrix\.([\w-]+) (==|!=) '([^']*)'", condition)
     if not match:
         raise ValueError(f"Unsupported local step condition: {condition}")
@@ -89,22 +94,33 @@ def container_job():
     """Execute one job; its filesystem, process tree, and database are disposable."""
     job = json.loads(Path("/input/job.json").read_text())
     os.chdir("/workspace")
-    subprocess.run(["tar", "-xf", "/input/source.tar"], check=True)
+    git = [
+        "git",
+        "-c",
+        "user.name=Local CI",
+        "-c",
+        "user.email=ci@example.invalid",
+        "-c",
+        "commit.gpgsign=false",
+    ]
     subprocess.run(["git", "init", "-q"], check=True)
-    subprocess.run(["git", "add", "-f", "."], check=True)
+    if job["base"]:
+        # The merge base becomes HEAD^1, the parent a pull request's merge commit
+        # has on GitHub, so jobs that diff against HEAD^1 see the branch's changes.
+        subprocess.run(["tar", "-xf", "/input/base.tar"], check=True)
+        subprocess.run(["git", "add", "-f", "."], check=True)
+        subprocess.run([*git, "commit", "-qm", f"Local CI base {job['base']}"], check=True)
+        for entry in Path(".").iterdir():
+            if entry.name == ".git":
+                continue
+            if entry.is_dir() and not entry.is_symlink():
+                shutil.rmtree(entry)
+            else:
+                entry.unlink()
+    subprocess.run(["tar", "-xf", "/input/source.tar"], check=True)
+    subprocess.run(["git", "add", "-A", "-f", "."], check=True)
     subprocess.run(
-        [
-            "git",
-            "-c",
-            "user.name=Local CI",
-            "-c",
-            "user.email=ci@example.invalid",
-            "-c",
-            "commit.gpgsign=false",
-            "commit",
-            "-qm",
-            f"Local CI snapshot of {job['revision']}",
-        ],
+        [*git, "commit", "--allow-empty", "-qm", f"Local CI snapshot of {job['revision']}"],
         check=True,
     )
     env = dict(os.environ, **job["env"])
@@ -218,8 +234,18 @@ def main():
     parser.add_argument("--timeout", type=int, default=45, help="minutes per container")
     parser.add_argument("--list", action="store_true")
     parser.add_argument("--job", help="run one job name from --list")
+    parser.add_argument(
+        "--base",
+        default="origin/master",
+        help="the snapshot's parent is the merge base of HEAD and this ref, as HEAD^1 is "
+        "for a GitHub pull request (default: origin/master)",
+    )
     args = parser.parse_args()
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
+    merge_base = subprocess.run(
+        ["git", "merge-base", args.base, revision], cwd=root, capture_output=True, text=True
+    )
+    base = merge_base.stdout.strip() if merge_base.returncode == 0 else ""
     jobs = []
     for workflow_name in WORKFLOWS:
         content = subprocess.check_output(
@@ -268,6 +294,7 @@ def main():
                         env=env,
                         steps=steps,
                         revision=revision,
+                        base=base,
                         image=f"luminari-ci:local-{image.replace(':', '-')}" if image else "",
                         database=job.get("services", {}).get("mariadb", {}).get("env"),
                     )
@@ -287,7 +314,7 @@ def main():
     args.cache.mkdir(parents=True, exist_ok=True)
     results = (args.results or Path(tempfile.mkdtemp(prefix="luminari-ci-results-"))).resolve()
     results.mkdir(parents=True, exist_ok=True)
-    print(f"Commit {revision}; results: {results}", flush=True)
+    print(f"Commit {revision} (base {base or 'none'}); results: {results}", flush=True)
     with tempfile.TemporaryDirectory(prefix="luminari-ci-input-") as directory:
         runner = Path(directory, "run.py")
         runner.write_bytes(
@@ -298,6 +325,9 @@ def main():
         source = Path(directory, "source.tar")
         with source.open("wb") as output:
             subprocess.run(["git", "archive", revision], cwd=root, stdout=output, check=True)
+        if base:
+            with Path(directory, "base.tar").open("wb") as output:
+                subprocess.run(["git", "archive", base], cwd=root, stdout=output, check=True)
         start = time.monotonic()
         cpu_groups = queue.Queue()
         for group in range(args.jobs):
@@ -328,6 +358,7 @@ def main():
                 f"/workspace:exec,mode=0755,uid={os.getuid()},gid={os.getgid()}",
                 "-v",
                 f"{source}:/input/source.tar:ro",
+                *(["-v", f"{Path(directory, 'base.tar')}:/input/base.tar:ro"] if base else []),
                 "-v",
                 f"{descriptor}:/input/job.json:ro",
                 "-v",

@@ -1334,6 +1334,10 @@ if(BUILD_TESTS)
         COMMAND Python3::Interpreter scripts/ci/check_sql_interpolation.py
     )
     add_test(
+        NAME clang-tidy-gate-self-test
+        COMMAND Python3::Interpreter scripts/ci/check_clang_tidy.py --self-test
+    )
+    add_test(
         NAME header-self-containment
         COMMAND
             Python3::Interpreter scripts/ci/check_header_self_containment.py --cc
@@ -1353,6 +1357,7 @@ if(BUILD_TESTS)
         warning-budget-self-test
         sql-interpolation-self-test
         sql-interpolation
+        clang-tidy-gate-self-test
         header-self-containment
         help-sync
         background-help-entries
