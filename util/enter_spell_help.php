@@ -14,8 +14,8 @@
 session_start();
 
 // Security: Authentication check for content generation tools
-if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true ||
-    (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['developer', 'content_creator'], true))) {
+if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true
+    || (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['developer', 'content_creator'], true))) {
     error_log("Unauthorized access attempt to enter_spell_help.php from IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
     http_response_code(403);
     die("Access denied. This tool requires content creator authentication.");
@@ -115,7 +115,8 @@ if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE) {
  * @param int $max_length Maximum allowed length
  * @return string|false Sanitized input or false if invalid
  */
-function validateInput($input, $type, $max_length = 1000) {
+function validateInput($input, $type, $max_length = 1000)
+{
     if (strlen($input) > $max_length) {
         return false;
     }
@@ -136,9 +137,10 @@ function validateInput($input, $type, $max_length = 1000) {
 /**
  * Validate CSRF token
  */
-function validateCSRF() {
-    if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) ||
-        !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+function validateCSRF()
+{
+    if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token'])
+        || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
         error_log("CSRF token validation failed");
         http_response_code(403);
         die("CSRF token validation failed. Please refresh and try again.");
@@ -149,8 +151,7 @@ function validateCSRF() {
  * Form Processing - Convert Form Data to Help File Format
  * ===========================================================================*/
 
-if ($_POST)
-{
+if ($_POST) {
     // Security: Validate CSRF token first
     validateCSRF();
     /**
@@ -172,12 +173,15 @@ if ($_POST)
     }
 
     // Determine ability type and set "See also" reference
-    if ($cast_command == "cast")
-        $see_also = "SPELLS";          // Magic spells
-    else if ($cast_command == "imbibe")
-        $see_also = "CONCOCTIONS";     // Alchemist abilities
-    else
-        $see_also = "PSIONICS";        // Psionic powers
+    if ($cast_command == "cast") {
+        $see_also = "SPELLS";
+    }          // Magic spells
+    elseif ($cast_command == "imbibe") {
+        $see_also = "CONCOCTIONS";
+    }     // Alchemist abilities
+    else {
+        $see_also = "PSIONICS";
+    }        // Psionic powers
 
     // Validate and sanitize basic ability information
     $spell_name = validateInput($_POST['spell_name'] ?? '', 'text', 100);
@@ -204,11 +208,12 @@ if ($_POST)
     // School/discipline formatting
     // Magic uses "School of Magic:" while psionics use "Discipline:"
     $school = $_POST['school'];
-    if ($school == "Abjuration" || $school == "Conjuration" || $school == "Divination" || $school == "Enchantment" ||
-        $school == "Illusion" || $school == "Necromancy" || $school == "Transmutation")
+    if ($school == "Abjuration" || $school == "Conjuration" || $school == "Divination" || $school == "Enchantment"
+        || $school == "Illusion" || $school == "Necromancy" || $school == "Transmutation") {
         $school_label = "School of Magic:";
-    else
-        $school_label = "Discipine:      ";  // Note: typo preserved for compatibility
+    } else {
+        $school_label = "Discipine:      ";
+    }  // Note: typo preserved for compatibility
 
     // Combat and resistance information
     $targets = $_POST['targets'];           // Who can be targeted
@@ -246,27 +251,27 @@ if ($_POST)
      * \tn = Normal/reset
      */
     $output = "
-	D>Usage:           	W ".$cast_command." '".$spell_name."'".$can_target."	n
-	D>Accumulative:    	W ".$accumulative." 	n
-	D>Duration:        	W ".$duration." 	n
-	D>".$school_label." 	W ".$school." 	n
-	D>Target(s):       	W ".$targets." 	n
-	D>Magic Resist:    	W ".$magic_resist." 	n
-	D>Saving Throw:    	W ".$saving_throw." 	n
-	D>Damage Type:     	W ".$damage_type." 	n".
+	D>Usage:           	W " . $cast_command . " '" . $spell_name . "'" . $can_target . "	n
+	D>Accumulative:    	W " . $accumulative . " 	n
+	D>Duration:        	W " . $duration . " 	n
+	D>" . $school_label . " 	W " . $school . " 	n
+	D>Target(s):       	W " . $targets . " 	n
+	D>Magic Resist:    	W " . $magic_resist . " 	n
+	D>Saving Throw:    	W " . $saving_throw . " 	n
+	D>Damage Type:     	W " . $damage_type . " 	n"
     // Include PSP cost line only for psionic powers
-    ((strlen($psp_cost) > 0) ?
-"
-	D>PSP Cost:        	W ".$psp_cost." 	n": "")."
+    . ((strlen($psp_cost) > 0)
+? "
+	D>PSP Cost:        	W " . $psp_cost . " 	n" : "") . "
 	D>Description:	n
 	n
-	n".$description."
+	n" . $description . "
 	n
-	n".$augment."
+	n" . $augment . "
 	n
-	YSee also:	n ".$see_also."
+	YSee also:	n " . $see_also . "
 	n";
-?>
+    ?>
 <script>
 /**
  * Copy generated help text to clipboard
@@ -313,8 +318,7 @@ function copyCode() {
     </div>
 </div>
 <?php
-}
-else{
+} else {
     /**
      * Display the spell/power help creation form
      *
@@ -328,7 +332,7 @@ else{
      * 4. Combat properties (saves, resistance, damage)
      * 5. Description and augmentation text
      */
-?>
+    ?>
 <form action="" method="POST">
     <!-- Security: CSRF Protection -->
     <input type="hidden" name="csrf_token" value="<?=htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES | ENT_HTML5, 'UTF-8')?>">
@@ -371,27 +375,27 @@ else{
         <div class="col-sm-6 w-100 text-right font-weight-bold" data-toggle="tooltip" data-placement="bottom" title="What is the school of magic or psychic discipline?">School of Magic/Discipline</div>
         <div class="col-sm-6">
             <?php
-            /**
-             * School/Discipline selection
-             *
-             * Magic Schools (D&D/Pathfinder standard):
-             * - Abjuration: Protection and dispelling
-             * - Conjuration: Summoning and creation
-             * - Divination: Knowledge and detection
-             * - Enchantment: Mind control and influence
-             * - Illusion: Deception and misdirection
-             * - Necromancy: Death and undeath
-             * - Transmutation: Transformation and enhancement
-             *
-             * Psionic Disciplines:
-             * - Clairsentience: Perception and knowledge
-             * - Metacreativity: Creation of objects/energy
-             * - Psychokinesis: Moving objects with mind
-             * - Psychometabolism: Body transformation
-             * - Psychoportation: Teleportation
-             * - Telepathy: Mind reading and control
-             */
-            ?>
+                /**
+                 * School/Discipline selection
+                 *
+                 * Magic Schools (D&D/Pathfinder standard):
+                 * - Abjuration: Protection and dispelling
+                 * - Conjuration: Summoning and creation
+                 * - Divination: Knowledge and detection
+                 * - Enchantment: Mind control and influence
+                 * - Illusion: Deception and misdirection
+                 * - Necromancy: Death and undeath
+                 * - Transmutation: Transformation and enhancement
+                 *
+                 * Psionic Disciplines:
+                 * - Clairsentience: Perception and knowledge
+                 * - Metacreativity: Creation of objects/energy
+                 * - Psychokinesis: Moving objects with mind
+                 * - Psychometabolism: Body transformation
+                 * - Psychoportation: Teleportation
+                 * - Telepathy: Mind reading and control
+                 */
+    ?>
             <select class="w-100" name="school">
                 <!-- Magic Schools -->
                 <option value="Abjuration">Abjuration</option>

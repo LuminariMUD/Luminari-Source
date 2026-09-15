@@ -146,8 +146,8 @@ try {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
-            PDO::MYSQL_ATTR_FOUND_ROWS => true
-        ]
+            PDO::MYSQL_ATTR_FOUND_ROWS => true,
+        ],
     );
 } catch (PDOException $e) {
     error_log("Database connection failed: " . $e->getMessage());
@@ -188,7 +188,7 @@ $wear_slots = [
     "Badge",        // Insignias, medals
     "Instrument",   // Musical instruments (bard equipment)
     "Shoulders",    // Pauldrons, shoulder guards
-    "Ankle"         // Anklets, ankle guards
+    "Ankle",         // Anklets, ankle guards
 ];
 
 /* ===========================================================================
@@ -260,7 +260,7 @@ $bonus_types = [
     "Spell-Potency",     // Spell power
     "Spell-DC",          // Save difficulty
     "Spell-Duration",    // Effect duration
-    "Spell-Penetration"  // SR penetration
+    "Spell-Penetration",  // SR penetration
 ];
 
 /* ===========================================================================
@@ -312,7 +312,7 @@ $sql = "
 try {
     foreach ($pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) as $r) {
         $worn_slot = $r['worn_slot'] ?? '';
-        $total = (int)($r['total'] ?? 0);
+        $total = (int) ($r['total'] ?? 0);
 
         if (isset($row_totals[$worn_slot])) {
             $row_totals[$worn_slot] = $total;
@@ -353,7 +353,7 @@ try {
     foreach ($pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) as $r) {
         $s = $r['slot'] ?? '';
         $b = $r['bonus'] ?? '';
-        $cnt = (int)($r['cnt'] ?? 0);
+        $cnt = (int) ($r['cnt'] ?? 0);
 
         // Security: Validate slot and bonus against our whitelists
         if (!in_array($s, $wear_slots, true)) {

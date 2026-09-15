@@ -14,8 +14,8 @@
 session_start();
 
 // Security: Strict authentication check for code generation tools
-if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true ||
-    !isset($_SESSION['role']) || $_SESSION['role'] !== 'developer') {
+if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true
+    || !isset($_SESSION['role']) || $_SESSION['role'] !== 'developer') {
     error_log("Unauthorized access attempt to enter_hunt.php from IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
     http_response_code(403);
     die("Access denied. This tool requires developer authentication.");
@@ -114,7 +114,8 @@ if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE) {
  * @param int $max_length Maximum allowed length
  * @return string|false Sanitized input or false if invalid
  */
-function validateInput($input, $type, $max_length = 255) {
+function validateInput($input, $type, $max_length = 255)
+{
     if (empty($input) || strlen($input) > $max_length) {
         return false;
     }
@@ -134,7 +135,7 @@ function validateInput($input, $type, $max_length = 255) {
             if (!is_numeric($input) || $input < 0 || $input > 999999) {
                 return false;
             }
-            $input = (int)$input;
+            $input = (int) $input;
             break;
     }
 
@@ -144,9 +145,10 @@ function validateInput($input, $type, $max_length = 255) {
 /**
  * Validate CSRF token
  */
-function validateCSRF() {
-    if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) ||
-        !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+function validateCSRF()
+{
+    if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token'])
+        || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
         error_log("CSRF token validation failed");
         http_response_code(403);
         die("CSRF token validation failed. Please refresh and try again.");
@@ -157,8 +159,7 @@ function validateCSRF() {
  * Form Processing - Convert Form Data to C Code
  * ===========================================================================*/
 
-if ($_POST)
-{
+if ($_POST) {
     // Security: Validate CSRF token first
     validateCSRF();
     /**
@@ -198,8 +199,8 @@ if ($_POST)
 
     // Validate class against whitelist
     $allowed_classes = ['CLASS_WIZARD', 'CLASS_CLERIC', 'CLASS_ROGUE', 'CLASS_WARRIOR',
-                       'CLASS_MONK', 'CLASS_DRUID', 'CLASS_BERSERKER', 'CLASS_SORCERER',
-                       'CLASS_PALADIN', 'CLASS_RANGER', 'CLASS_BARD', 'CLASS_ALCHEMIST'];
+        'CLASS_MONK', 'CLASS_DRUID', 'CLASS_BERSERKER', 'CLASS_SORCERER',
+        'CLASS_PALADIN', 'CLASS_RANGER', 'CLASS_BARD', 'CLASS_ALCHEMIST'];
     $class = $_POST['class'] ?? '';
     if (!in_array($class, $allowed_classes, true)) {
         http_response_code(400);
@@ -208,8 +209,8 @@ if ($_POST)
 
     // Validate alignment against whitelist
     $allowed_alignments = ['LAWFUL_GOOD', 'LAWFUL_NEUTRAL', 'LAWFUL_EVIL',
-                          'NEUTRAL_GOOD', 'TRUE_NEUTRAL', 'NEUTRAL_EVIL',
-                          'CHAOTIC_GOOD', 'CHAOTIC_NEUTRAL', 'CHAOTIC_EVIL'];
+        'NEUTRAL_GOOD', 'TRUE_NEUTRAL', 'NEUTRAL_EVIL',
+        'CHAOTIC_GOOD', 'CHAOTIC_NEUTRAL', 'CHAOTIC_EVIL'];
     $alignment = $_POST['alignment'] ?? '';
     if (!in_array($alignment, $allowed_alignments, true)) {
         http_response_code(400);
@@ -245,11 +246,11 @@ if ($_POST)
      * - subrace1-3: Subrace modifiers
      * - size: Size category
      */
-    $output = "    add_hunt(".$hunt_record.", ".$level.", \"".$name."\", ".
-              " \"".addslashes(str_replace("\"", "'", $desc))."\", "."\n".
-              "      \"".addslashes(str_replace("\"", "'", $long_desc))."\"".
-              ", ".$class.", ".$alignment.", ".$race_type.", \n".
-              "      ".$subrace1.", ".$subrace2.", ".$subrace3.", ".$size." );\n";
+    $output = "    add_hunt(" . $hunt_record . ", " . $level . ", \"" . $name . "\", "
+              . " \"" . addslashes(str_replace("\"", "'", $desc)) . "\", " . "\n"
+              . "      \"" . addslashes(str_replace("\"", "'", $long_desc)) . "\""
+              . ", " . $class . ", " . $alignment . ", " . $race_type . ", \n"
+              . "      " . $subrace1 . ", " . $subrace2 . ", " . $subrace3 . ", " . $size . " );\n";
 
     /**
      * Process special abilities
@@ -260,22 +261,22 @@ if ($_POST)
      * Code formatting: 2 abilities per line for readability
      */
     $i = 0;
-    foreach ($_POST['abilities'] as $key)
-    {
-        $output .= "    add_hunt_ability(".$hunt_record.", ".$key.");";
+    foreach ($_POST['abilities'] as $key) {
+        $output .= "    add_hunt_ability(" . $hunt_record . ", " . $key . ");";
 
         // Format: 2 abilities per line
-        if (($i % 2) == 1)
+        if (($i % 2) == 1) {
             $output .= "\n";
-        else
+        } else {
             $output .= "  ";
+        }
         $i++;
     }
     $output .= "\n";
 
     // Add macro definition for hunts.h
-    $output .= "#define ".$hunt_record."\n";
-?>
+    $output .= "#define " . $hunt_record . "\n";
+    ?>
 <script>
 /**
  * Copy generated code to clipboard
@@ -319,15 +320,14 @@ function copyCode() {
     </div>
 </div>
 <?php
-}
-else{
+} else {
     /**
      * Display the hunt creation form
      *
      * The form is displayed when no POST data is present
      * All fields include Bootstrap tooltips explaining their purpose
      */
-?>
+    ?>
 
 <form action="" method="POST">
     <!-- Security: CSRF Protection -->
@@ -520,20 +520,20 @@ else{
         <div class="col-sm-6 w-100 text-right font-weight-bold" data-toggle="tooltip" data-placement="bottom" title="Special abilities the hunt mob can perform.">Hunt Mob Special Abilities (Multi Select with CTRL+Click)</div>
         <div class="col-sm-6">
             <?php
-            /**
-             * Special ability selection
-             *
-             * Ability categories:
-             * - Status effects: Petrify, charm, fear, paralyze
-             * - Physical attacks: Tail spikes, engulf, swallow, grapple
-             * - Magical attacks: Level drain, corruption
-             * - Breath weapons: Fire, lightning, poison, acid, frost
-             * - Defenses: Magic immunity, regeneration, flight
-             * - Special: Blink, invisibility
-             *
-             * Multiple abilities can be selected to create unique challenges
-             */
-            ?>
+                /**
+                 * Special ability selection
+                 *
+                 * Ability categories:
+                 * - Status effects: Petrify, charm, fear, paralyze
+                 * - Physical attacks: Tail spikes, engulf, swallow, grapple
+                 * - Magical attacks: Level drain, corruption
+                 * - Breath weapons: Fire, lightning, poison, acid, frost
+                 * - Defenses: Magic immunity, regeneration, flight
+                 * - Special: Blink, invisibility
+                 *
+                 * Multiple abilities can be selected to create unique challenges
+                 */
+    ?>
             <select class="w-100" name="abilities[]" size="8" multiple="multiple">
                 <!-- Status Effect Abilities -->
                 <option value="HUNT_ABIL_PETRIFY">Petrification</option>

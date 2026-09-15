@@ -1,4 +1,5 @@
 <?php
+
 /**
  * config.php - Shared Configuration and Utilities for LuminariMUD PHP Tools
  *
@@ -26,12 +27,13 @@ if (!defined('LUMINARI_TOOLS')) {
 /**
  * Security Configuration
  */
-class SecurityConfig {
-
+class SecurityConfig
+{
     /**
      * Initialize security settings
      */
-    public static function init() {
+    public static function init()
+    {
         // Security headers
         header('X-Content-Type-Options: nosniff');
         header('X-Frame-Options: DENY');
@@ -58,7 +60,8 @@ class SecurityConfig {
      * @param array $required_roles Required roles for access
      * @return bool True if authenticated with required role
      */
-    public static function isAuthenticated($required_roles = []) {
+    public static function isAuthenticated($required_roles = [])
+    {
         if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true) {
             return false;
         }
@@ -76,9 +79,10 @@ class SecurityConfig {
      *
      * @throws Exception If CSRF validation fails
      */
-    public static function validateCSRF() {
-        if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) ||
-            !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+    public static function validateCSRF()
+    {
+        if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token'])
+            || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
             error_log("CSRF token validation failed from IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
             http_response_code(403);
             throw new Exception("CSRF token validation failed. Please refresh and try again.");
@@ -89,8 +93,8 @@ class SecurityConfig {
 /**
  * Database Connection Manager
  */
-class DatabaseManager {
-
+class DatabaseManager
+{
     private static $pdo = null;
 
     /**
@@ -99,7 +103,8 @@ class DatabaseManager {
      * @return PDO Database connection
      * @throws Exception If connection fails
      */
-    public static function getConnection() {
+    public static function getConnection()
+    {
         if (self::$pdo === null) {
             self::connect();
         }
@@ -111,7 +116,8 @@ class DatabaseManager {
      *
      * @throws Exception If connection fails
      */
-    private static function connect() {
+    private static function connect()
+    {
         // Get credentials from environment variables
         $host = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?? 'localhost';
         $user = $_ENV['DB_USER'] ?? getenv('DB_USER') ?? '';
@@ -133,8 +139,8 @@ class DatabaseManager {
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                     PDO::ATTR_EMULATE_PREPARES => false,
-                    PDO::MYSQL_ATTR_FOUND_ROWS => true
-                ]
+                    PDO::MYSQL_ATTR_FOUND_ROWS => true,
+                ],
             );
         } catch (PDOException $e) {
             error_log("Database connection failed: " . $e->getMessage());
@@ -146,8 +152,8 @@ class DatabaseManager {
 /**
  * Input Validation Utilities
  */
-class InputValidator {
-
+class InputValidator
+{
     /**
      * Validate and sanitize input
      *
@@ -156,7 +162,8 @@ class InputValidator {
      * @param int $max_length Maximum allowed length
      * @return string|int|false Sanitized input or false if invalid
      */
-    public static function validate($input, $type, $max_length = 255) {
+    public static function validate($input, $type, $max_length = 255)
+    {
         if (strlen($input) > $max_length) {
             return false;
         }
@@ -177,7 +184,7 @@ class InputValidator {
                 if (!is_numeric($input) || $input < 0 || $input > 999999) {
                     return false;
                 }
-                return (int)$input;
+                return (int) $input;
 
             case 'email':
                 return filter_var($input, FILTER_VALIDATE_EMAIL);
@@ -194,7 +201,8 @@ class InputValidator {
      * @param array $allowed_values Whitelist of allowed values
      * @return string|false Valid input or false if not in whitelist
      */
-    public static function validateWhitelist($input, $allowed_values) {
+    public static function validateWhitelist($input, $allowed_values)
+    {
         return in_array($input, $allowed_values, true) ? $input : false;
     }
 }
@@ -202,15 +210,16 @@ class InputValidator {
 /**
  * Error Handling Utilities
  */
-class ErrorHandler {
-
+class ErrorHandler
+{
     /**
      * Handle validation error
      *
      * @param string $message Error message
      * @param int $code HTTP status code
      */
-    public static function validationError($message, $code = 400) {
+    public static function validationError($message, $code = 400)
+    {
         error_log("Validation error: $message from IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
         http_response_code($code);
         die("Error: $message");
@@ -221,7 +230,8 @@ class ErrorHandler {
      *
      * @param Exception $e Database exception
      */
-    public static function databaseError($e) {
+    public static function databaseError($e)
+    {
         error_log("Database error: " . $e->getMessage());
         http_response_code(500);
         die("Database error. Please contact administrator.");
@@ -232,7 +242,8 @@ class ErrorHandler {
      *
      * @param string $tool_name Name of the tool being accessed
      */
-    public static function authenticationError($tool_name) {
+    public static function authenticationError($tool_name)
+    {
         error_log("Unauthorized access attempt to $tool_name from IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
         http_response_code(403);
         die("Access denied. Authentication required for this tool.");
@@ -242,15 +253,16 @@ class ErrorHandler {
 /**
  * Caching Utilities
  */
-class CacheManager {
-
+class CacheManager
+{
     private static $cache_dir = 'cache/';
     private static $default_ttl = 3600; // 1 hour
 
     /**
      * Initialize cache directory
      */
-    public static function init() {
+    public static function init()
+    {
         if (!is_dir(self::$cache_dir)) {
             mkdir(self::$cache_dir, 0755, true);
         }
@@ -262,7 +274,8 @@ class CacheManager {
      * @param string $key Cache key
      * @return mixed|false Cached data or false if not found/expired
      */
-    public static function get($key) {
+    public static function get($key)
+    {
         self::init();
         $file = self::$cache_dir . md5($key) . '.cache';
 
@@ -286,14 +299,15 @@ class CacheManager {
      * @param mixed $data Data to cache
      * @param int $ttl Time to live in seconds
      */
-    public static function set($key, $data, $ttl = null) {
+    public static function set($key, $data, $ttl = null)
+    {
         self::init();
         $ttl = $ttl ?? self::$default_ttl;
         $file = self::$cache_dir . md5($key) . '.cache';
 
         $cache_data = [
             'expires' => time() + $ttl,
-            'content' => $data
+            'content' => $data,
         ];
 
         file_put_contents($file, serialize($cache_data), LOCK_EX);
@@ -304,7 +318,8 @@ class CacheManager {
      *
      * @param string|null $key Specific key to clear, or null for all
      */
-    public static function clear($key = null) {
+    public static function clear($key = null)
+    {
         self::init();
 
         if ($key === null) {
@@ -326,14 +341,15 @@ class CacheManager {
 /**
  * HTML Utilities
  */
-class HTMLHelper {
-
+class HTMLHelper
+{
     /**
      * Generate CSRF token input field
      *
      * @return string HTML input field
      */
-    public static function csrfTokenField() {
+    public static function csrfTokenField()
+    {
         $token = htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
         return "<input type=\"hidden\" name=\"csrf_token\" value=\"$token\">";
     }
@@ -344,7 +360,8 @@ class HTMLHelper {
      * @param string $text Text to escape
      * @return string Escaped text
      */
-    public static function escape($text) {
+    public static function escape($text)
+    {
         return htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 
@@ -354,7 +371,8 @@ class HTMLHelper {
      * @param string $title Page title
      * @return string HTML header
      */
-    public static function getHeader($title) {
+    public static function getHeader($title)
+    {
         $escaped_title = self::escape($title);
         return "<!DOCTYPE html>
 <html lang=\"en\">

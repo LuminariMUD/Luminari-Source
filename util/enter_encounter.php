@@ -14,8 +14,8 @@
 session_start();
 
 // Security: Strict authentication check for code generation tools
-if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true ||
-    !isset($_SESSION['role']) || $_SESSION['role'] !== 'developer') {
+if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true
+    || !isset($_SESSION['role']) || $_SESSION['role'] !== 'developer') {
     error_log("Unauthorized access attempt to enter_encounter.php from IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
     http_response_code(403);
     die("Access denied. This tool requires developer authentication.");
@@ -113,7 +113,8 @@ if (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE) {
  * @param int $max_length Maximum allowed length
  * @return string|false Sanitized input or false if invalid
  */
-function validateInput($input, $type, $max_length = 255) {
+function validateInput($input, $type, $max_length = 255)
+{
     if (empty($input) || strlen($input) > $max_length) {
         return false;
     }
@@ -133,7 +134,7 @@ function validateInput($input, $type, $max_length = 255) {
             if (!is_numeric($input) || $input < 0 || $input > 999999) {
                 return false;
             }
-            $input = (int)$input;
+            $input = (int) $input;
             break;
     }
 
@@ -143,9 +144,10 @@ function validateInput($input, $type, $max_length = 255) {
 /**
  * Validate CSRF token
  */
-function validateCSRF() {
-    if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) ||
-        !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+function validateCSRF()
+{
+    if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token'])
+        || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
         error_log("CSRF token validation failed");
         http_response_code(403);
         die("CSRF token validation failed. Please refresh and try again.");
@@ -156,8 +158,7 @@ function validateCSRF() {
  * Form Processing - Convert Form Data to C Code
  * ===========================================================================*/
 
-if ($_POST)
-{
+if ($_POST) {
     // Security: Validate CSRF token first
     validateCSRF();
     /**
@@ -237,8 +238,8 @@ if ($_POST)
 
     // Validate class against whitelist
     $allowed_classes = ['CLASS_WIZARD', 'CLASS_CLERIC', 'CLASS_ROGUE', 'CLASS_WARRIOR',
-                       'CLASS_MONK', 'CLASS_DRUID', 'CLASS_BERSERKER', 'CLASS_SORCERER',
-                       'CLASS_PALADIN', 'CLASS_RANGER', 'CLASS_BARD', 'CLASS_ALCHEMIST'];
+        'CLASS_MONK', 'CLASS_DRUID', 'CLASS_BERSERKER', 'CLASS_SORCERER',
+        'CLASS_PALADIN', 'CLASS_RANGER', 'CLASS_BARD', 'CLASS_ALCHEMIST'];
     $class = $_POST['class'] ?? '';
     if (!in_array($class, $allowed_classes, true)) {
         http_response_code(400);
@@ -286,15 +287,15 @@ if ($_POST)
      * - sentient: Negotiation possibility flag
      * - size: Size category
      */
-    $output = "    add_encounter_record(".$encounter_record.", ".$encounter_type.", ".$min_level.", ".$max_level.", ".$encounter_group.", \"".$object_name."\", ".
-               $load_chance.", ".$min_number.", ".$max_number.", \n      ".$treasure_table.
-              ", ".$class.", ".$encounter_strength.", ".$alignment.", ".$race_type.", \n".
-            "      ".$subrace1.", ".$subrace2.", ".$subrace3.", ".$hostile.", ".$sentient.", ".$size." );\n";
+    $output = "    add_encounter_record(" . $encounter_record . ", " . $encounter_type . ", " . $min_level . ", " . $max_level . ", " . $encounter_group . ", \"" . $object_name . "\", "
+               . $load_chance . ", " . $min_number . ", " . $max_number . ", \n      " . $treasure_table
+              . ", " . $class . ", " . $encounter_strength . ", " . $alignment . ", " . $race_type . ", \n"
+            . "      " . $subrace1 . ", " . $subrace2 . ", " . $subrace3 . ", " . $hostile . ", " . $sentient . ", " . $size . " );\n";
 
     // Generate description setter calls
     // Note: Double quotes are converted to single quotes to avoid C string issues
-    $output .= "    set_encounter_description(".$encounter_record.", \"".addslashes(str_replace("\"", "'", $desc))."\");\n";
-    $output .= "    set_encounter_long_description(".$encounter_record.", \"".addslashes(str_replace("\"", "'", $long_desc))."\");\n";
+    $output .= "    set_encounter_description(" . $encounter_record . ", \"" . addslashes(str_replace("\"", "'", $desc)) . "\");\n";
+    $output .= "    set_encounter_long_description(" . $encounter_record . ", \"" . addslashes(str_replace("\"", "'", $long_desc)) . "\");\n";
 
     /**
      * Process terrain selections
@@ -310,36 +311,36 @@ if ($_POST)
      * Code formatting: 2 terrain assignments per line for readability
      */
     $i = 0;
-    foreach ($_POST['terrain'] as $key)
-    {
+    foreach ($_POST['terrain'] as $key) {
         // Check for special terrain groupings first
-        if ($key == "SECT_ALL")
-            $output .= "    set_encounter_terrain_any(".$encounter_record.");\n";
-        else if ($key == "SECT_ALL_SURFACE")
-            $output .= "    set_encounter_terrain_all_surface(".$encounter_record.");";
-        else if ($key == "SECT_ALL_UD")
-            $output .= "    set_encounter_terrain_all_underdark(".$encounter_record.");";
-        else if ($key == "SECT_ROADS")  // Fixed: was checking SECT_ALL_SURFACE twice
-            $output .= "    set_encounter_terrain_all_roads(".$encounter_record.");";
-        else if ($key == "SECT_ALL_WATER")
-            $output .= "    set_encounter_terrain_all_water(".$encounter_record.");";
-        else
-            // Individual terrain type
-            $output .= "    add_encounter_sector(".$encounter_record.", ".$key.");";
+        if ($key == "SECT_ALL") {
+            $output .= "    set_encounter_terrain_any(" . $encounter_record . ");\n";
+        } elseif ($key == "SECT_ALL_SURFACE") {
+            $output .= "    set_encounter_terrain_all_surface(" . $encounter_record . ");";
+        } elseif ($key == "SECT_ALL_UD") {
+            $output .= "    set_encounter_terrain_all_underdark(" . $encounter_record . ");";
+        } elseif ($key == "SECT_ROADS") {  // Fixed: was checking SECT_ALL_SURFACE twice
+            $output .= "    set_encounter_terrain_all_roads(" . $encounter_record . ");";
+        } elseif ($key == "SECT_ALL_WATER") {
+            $output .= "    set_encounter_terrain_all_water(" . $encounter_record . ");";
+        } else { // Individual terrain type
+            $output .= "    add_encounter_sector(" . $encounter_record . ", " . $key . ");";
+        }
 
         // Format output: 2 entries per line
-        if (($i % 2) == 1)
+        if (($i % 2) == 1) {
             $output .= "\n";
-        else
+        } else {
             $output .= "  ";
+        }
         $i++;
     }
     $output .= "\n";
 
     // Add macro definitions for encounters.h
-    $output .= "#define ".$encounter_record."\n";
-    $output .= "#define ".$encounter_group."\n";
-?>
+    $output .= "#define " . $encounter_record . "\n";
+    $output .= "#define " . $encounter_group . "\n";
+    ?>
 <script>
 /**
  * Copy generated code to clipboard
@@ -384,15 +385,14 @@ function copyCode() {
     </div>
 </div>
 <?php
-}
-else{
+} else {
     /**
      * Display the encounter creation form
      *
      * The form is displayed when no POST data is present
      * All fields include Bootstrap tooltips explaining their purpose
      */
-?>
+    ?>
 
 <form action="" method="POST">
     <!-- Security: CSRF Protection -->
@@ -660,19 +660,19 @@ else{
         <div class="col-sm-6 w-100 text-right font-weight-bold" data-toggle="tooltip" data-placement="bottom" title="Different terrain types the mob can appear in. All surface/underdark terrains do not include flying or water.">Terrains Encounter Can Spawn In (Multi Select with CTRL+Click)</div>
         <div class="col-sm-6">
             <?php
-            /**
-             * Terrain selection list
-             *
-             * Terrain categories:
-             * - Special groups (ALL, ALL_SURFACE, etc.) - Apply multiple terrains at once
-             * - Surface world terrains - Normal overworld locations
-             * - Underdark terrains - Underground specific locations
-             * - Special terrains - Water, flying, lava, etc.
-             *
-             * Note: Using a special group (like SECT_ALL_SURFACE) will override
-             * individual terrain selections for that category
-             */
-            ?>
+                /**
+                 * Terrain selection list
+                 *
+                 * Terrain categories:
+                 * - Special groups (ALL, ALL_SURFACE, etc.) - Apply multiple terrains at once
+                 * - Surface world terrains - Normal overworld locations
+                 * - Underdark terrains - Underground specific locations
+                 * - Special terrains - Water, flying, lava, etc.
+                 *
+                 * Note: Using a special group (like SECT_ALL_SURFACE) will override
+                 * individual terrain selections for that category
+                 */
+    ?>
             <select class="w-100" name="terrain[]" size="8" multiple="multiple">
                 <!-- Special terrain groups -->
                 <option value="SECT_ALL">All Terrains</option>

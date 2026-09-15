@@ -1,4 +1,5 @@
 <?php
+
 /**
  * autoload.php - PSR-4 Autoloader for LuminariMUD PHP Tools
  *
@@ -91,7 +92,8 @@ if (!class_exists('CacheManager')) {
  * Load environment variables from .env file if it exists
  * This follows the twelve-factor app methodology
  */
-function loadEnvironment(): void {
+function loadEnvironment(): void
+{
     $envFile = __DIR__ . '/.env';
 
     if (!file_exists($envFile)) {
@@ -131,7 +133,8 @@ loadEnvironment();
  *
  * Set appropriate error reporting based on environment
  */
-function configureErrorReporting(): void {
+function configureErrorReporting(): void
+{
     $environment = $_ENV['APP_ENV'] ?? 'production';
 
     switch ($environment) {
@@ -167,7 +170,8 @@ configureErrorReporting();
  *
  * Set security headers for all requests
  */
-function setSecurityHeaders(): void {
+function setSecurityHeaders(): void
+{
     // Prevent MIME type sniffing
     header('X-Content-Type-Options: nosniff');
 
@@ -192,7 +196,8 @@ setSecurityHeaders();
  *
  * Configure secure session settings
  */
-function configureSession(): void {
+function configureSession(): void
+{
     // Session security settings
     ini_set('session.cookie_httponly', '1');
     ini_set('session.cookie_secure', '1');
@@ -216,7 +221,8 @@ configureSession();
  *
  * Set default timezone for the application
  */
-function configureTimezone(): void {
+function configureTimezone(): void
+{
     $timezone = $_ENV['APP_TIMEZONE'] ?? 'UTC';
     date_default_timezone_set($timezone);
 }
