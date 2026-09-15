@@ -22,7 +22,9 @@ RUN python3 -m venv /opt/ci-python
 ENV PATH=/usr/lib/ccache:/opt/ci-python/bin:$PATH PRE_COMMIT_HOME=/opt/pre-commit \
     LUMINARI_FORMATTER_CACHE=/tmp/luminari-formatters
 COPY scripts/help-sync/requirements.txt /tmp/help-requirements.txt
-RUN pip install 'gcovr==8.6' pre-commit PyYAML -r /tmp/help-requirements.txt
+COPY scripts/ci/clang-tidy-requirements.txt /tmp/clang-tidy-requirements.txt
+RUN pip install 'gcovr==8.6' pre-commit PyYAML -r /tmp/help-requirements.txt \
+    -r /tmp/clang-tidy-requirements.txt
 COPY .pre-commit-config.yaml /tmp/hooks/.pre-commit-config.yaml
 RUN cd /tmp/hooks && git init -q && pre-commit install-hooks && \
     chown -R 1000:1000 /opt/pre-commit && rm -rf /tmp/hooks
