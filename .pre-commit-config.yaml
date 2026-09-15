@@ -54,6 +54,12 @@ repos:
       - id: prettier
         types_or: [yaml, json, html, css, javascript]
 
+  # CMake
+  - repo: https://github.com/BlankSpruce/gersemi-pre-commit
+    rev: 0.29.1
+    hooks:
+      - id: gersemi
+
   # General file hygiene
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
