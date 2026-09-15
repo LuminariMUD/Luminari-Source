@@ -83,7 +83,7 @@ bak/
 Makefile
 config.status
 config.cache
-src/conf.h
+conf.h
 
 # Ignore sensitive configuration
 lib/mysql_config

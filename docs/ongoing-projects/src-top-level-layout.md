@@ -11,7 +11,7 @@ Every source file lives in one directory directly under `src/`. No behavior chan
 
 | # | Batch | State |
 |---|-------|-------|
-| 0 | `conf.h` to the build root | verifying |
+| 0 | `conf.h` to the build root | done |
 | 1 | delete `trails.h` | todo |
 | 2 | `ai/` | todo |
 | 3 | `clan/` | todo |

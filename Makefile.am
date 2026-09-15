@@ -9,6 +9,9 @@ SUBDIRS = util
 # The production profile lives in CFLAGS/LDFLAGS (configure appends it after
 # the user's flags) rather than here, where user CFLAGS would override it.
 AM_CFLAGS = @CSTD_CFLAGS@ @MYFLAGS@ @LIBEVENT_CFLAGS@
+# Source includes resolve from src/. The generated conf.h and build_identity.h
+# sit in the build root, which Automake's DEFAULT_INCLUDES already provides.
+AM_CPPFLAGS = -I$(top_srcdir)/src
 # The versioned installer and the copyover identity line key on the ELF build
 # ID.  Distribution compilers emit one by default; a toolchain built from
 # source (the official gcc container images) does not, so ask for it.

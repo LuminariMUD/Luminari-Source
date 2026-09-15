@@ -136,11 +136,11 @@ cmake --preset dev -DCMAKE_C_FLAGS="-march=native"
 
 ## Feature definitions
 
-Configuration writes the same platform macros `configure.ac` produces into the
-gitignored `src/conf.h` from `cmake/cmake_config.h.in`. Keeping the header in
-`src/` matches Autotools and lets the standalone scripts under `scripts/`
-preprocess sources with `-Isrc`. The generated `build_identity.h` lives in the
-build directory.
+Configuration writes the same platform macros `configure.ac` produces into
+`conf.h` in the build directory, from `cmake/cmake_config.h.in`, beside the
+generated `build_identity.h`. Autotools generates both headers in its build
+root. CTest points the standalone scripts that preprocess sources at the build
+directory through `CPPFLAGS`.
 
 The two headers differ only in macros no source consumes: Autotools also
 emits `PACKAGE_*`, `VERSION`, and `HAVE_EVENT2_EVENT_H`. Fallback `pid_t`,

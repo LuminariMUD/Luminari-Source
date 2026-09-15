@@ -22,6 +22,8 @@ PROTOCOL_TEST_CFLAGS ?= -Wall -Wextra $(CSTD_FLAG) -g -O0 \
 	-ffunction-sections -fdata-sections
 PROTOCOL_TEST_LDFLAGS ?= -lm -ljson-c -Wl,--gc-sections
 PROTOCOL_TEST_DEFINES = -DLUMINARI_PROTOCOL_TEST=1
+# The configured build root holds the generated conf.h.
+SOURCE_INCLUDES = -I../.. -I../../src
 
 BUILD_DIR = build
 CUTEST_OBJ = $(BUILD_DIR)/CuTest.o
@@ -60,22 +62,22 @@ $(CUTEST_OBJ): CuTest.c CuTest.h | $(BUILD_DIR)
 
 $(PROTOCOL_PARSER_TEST_OBJ): test_protocol_parser.c CuTest.h \
 		../../src/net/protocol.h ../../src/structs.h | $(BUILD_DIR)
-	$(CC) $(PROTOCOL_TEST_CFLAGS) $(PROTOCOL_TEST_DEFINES) -I../../src \
+	$(CC) $(PROTOCOL_TEST_CFLAGS) $(PROTOCOL_TEST_DEFINES) $(SOURCE_INCLUDES) \
 		-c test_protocol_parser.c -o $@
 
 $(PROTOCOL_SOURCE_OBJ): ../../src/net/protocol.c ../../src/net/protocol.h \
 		../../src/net/msdp_json.h ../../src/structs.h ../../src/net/onboarding.h | $(BUILD_DIR)
-	$(CC) $(PROTOCOL_TEST_CFLAGS) $(PROTOCOL_TEST_DEFINES) -I../../src \
+	$(CC) $(PROTOCOL_TEST_CFLAGS) $(PROTOCOL_TEST_DEFINES) $(SOURCE_INCLUDES) \
 		-c ../../src/net/protocol.c -o $@
 
 $(MSDP_JSON_SOURCE_OBJ): ../../src/net/msdp_json.c ../../src/net/msdp_json.h \
 		../../src/net/protocol.h ../../src/structs.h | $(BUILD_DIR)
-	$(CC) $(PROTOCOL_TEST_CFLAGS) $(PROTOCOL_TEST_DEFINES) -I../../src \
+	$(CC) $(PROTOCOL_TEST_CFLAGS) $(PROTOCOL_TEST_DEFINES) $(SOURCE_INCLUDES) \
 		-c ../../src/net/msdp_json.c -o $@
 
 $(PROTOCOL_ONBOARDING_OBJ): ../../src/net/onboarding.c \
 		../../src/net/onboarding.h ../../src/structs.h | $(BUILD_DIR)
-	$(CC) $(PROTOCOL_TEST_CFLAGS) -DWEB_ONBOARDING_FOCUSED_PROTOCOL_HARNESS=1 -I../../src \
+	$(CC) $(PROTOCOL_TEST_CFLAGS) -DWEB_ONBOARDING_FOCUSED_PROTOCOL_HARNESS=1 $(SOURCE_INCLUDES) \
 		-c ../../src/net/onboarding.c -o $@
 
 $(PROTOCOL_PARSER_TEST_EXE): $(CUTEST_OBJ) $(PROTOCOL_PARSER_TEST_OBJ) \
@@ -84,15 +86,15 @@ $(PROTOCOL_PARSER_TEST_EXE): $(CUTEST_OBJ) $(PROTOCOL_PARSER_TEST_OBJ) \
 
 $(PROTOCOL_FUZZ_OBJ): fuzz_protocol_parser.c ../../src/net/protocol.h \
 		../../src/structs.h ../../src/net/onboarding.h | $(BUILD_DIR)
-	$(FUZZ_CC) $(FUZZ_CFLAGS) -I../../src -c fuzz_protocol_parser.c -o $@
+	$(FUZZ_CC) $(FUZZ_CFLAGS) $(SOURCE_INCLUDES) -c fuzz_protocol_parser.c -o $@
 
 $(PROTOCOL_FUZZ_SOURCE_OBJ): ../../src/net/protocol.c ../../src/net/protocol.h \
 		../../src/net/msdp_json.h ../../src/structs.h ../../src/net/onboarding.h | $(BUILD_DIR)
-	$(FUZZ_CC) $(FUZZ_CFLAGS) -I../../src -c ../../src/net/protocol.c -o $@
+	$(FUZZ_CC) $(FUZZ_CFLAGS) $(SOURCE_INCLUDES) -c ../../src/net/protocol.c -o $@
 
 $(MSDP_JSON_FUZZ_SOURCE_OBJ): ../../src/net/msdp_json.c ../../src/net/msdp_json.h \
 		../../src/net/protocol.h ../../src/structs.h | $(BUILD_DIR)
-	$(FUZZ_CC) $(FUZZ_CFLAGS) -I../../src -c ../../src/net/msdp_json.c -o $@
+	$(FUZZ_CC) $(FUZZ_CFLAGS) $(SOURCE_INCLUDES) -c ../../src/net/msdp_json.c -o $@
 
 $(PROTOCOL_FUZZ_EXE): $(PROTOCOL_FUZZ_OBJ) $(PROTOCOL_FUZZ_SOURCE_OBJ) \
 		$(MSDP_JSON_FUZZ_SOURCE_OBJ)
@@ -100,15 +102,15 @@ $(PROTOCOL_FUZZ_EXE): $(PROTOCOL_FUZZ_OBJ) $(PROTOCOL_FUZZ_SOURCE_OBJ) \
 
 $(PROTOCOL_BENCH_OBJ): bench_protocol_parser.c fuzz_protocol_parser.c \
 		../../src/net/protocol.h ../../src/structs.h ../../src/net/onboarding.h | $(BUILD_DIR)
-	$(PROTOCOL_BENCH_CC) $(PROTOCOL_BENCH_CFLAGS) -I../../src -c bench_protocol_parser.c -o $@
+	$(PROTOCOL_BENCH_CC) $(PROTOCOL_BENCH_CFLAGS) $(SOURCE_INCLUDES) -c bench_protocol_parser.c -o $@
 
 $(PROTOCOL_BENCH_SOURCE_OBJ): ../../src/net/protocol.c ../../src/net/protocol.h \
 		../../src/net/msdp_json.h ../../src/structs.h ../../src/net/onboarding.h | $(BUILD_DIR)
-	$(PROTOCOL_BENCH_CC) $(PROTOCOL_BENCH_CFLAGS) -I../../src -c ../../src/net/protocol.c -o $@
+	$(PROTOCOL_BENCH_CC) $(PROTOCOL_BENCH_CFLAGS) $(SOURCE_INCLUDES) -c ../../src/net/protocol.c -o $@
 
 $(MSDP_JSON_BENCH_SOURCE_OBJ): ../../src/net/msdp_json.c ../../src/net/msdp_json.h \
 		../../src/net/protocol.h ../../src/structs.h | $(BUILD_DIR)
-	$(PROTOCOL_BENCH_CC) $(PROTOCOL_BENCH_CFLAGS) -I../../src -c ../../src/net/msdp_json.c -o $@
+	$(PROTOCOL_BENCH_CC) $(PROTOCOL_BENCH_CFLAGS) $(SOURCE_INCLUDES) -c ../../src/net/msdp_json.c -o $@
 
 $(PROTOCOL_BENCH_EXE): $(PROTOCOL_BENCH_OBJ) $(PROTOCOL_BENCH_SOURCE_OBJ) \
 		$(MSDP_JSON_BENCH_SOURCE_OBJ)

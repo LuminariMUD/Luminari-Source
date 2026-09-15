@@ -954,7 +954,7 @@ Usage: score
 ## Supporting Systems
 - **`src/utils.c/h`** - Utility functions (string handling, memory management)
 - **`src/structs.h`** - Core data structures
-- **`src/conf.h`** - Configuration constants
+- **`conf.h`** - Generated platform configuration (build root)
 - **`src/sysdep.h`** - System dependencies
 
 ---

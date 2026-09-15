@@ -8,7 +8,7 @@ AC_SUBST(NETLIB)
 AC_SUBST(CRYPTLIB)
 AC_SUBST(CSTD_CFLAGS)
 
-AC_CONFIG_HEADERS([src/conf.h:conf.h.in])
+AC_CONFIG_HEADERS([conf.h])
 
 dnl Unknown configure options are fatal by default.  The production profile was
 dnl once requested through an option configure.ac never defined, and the build

@@ -181,7 +181,7 @@ repository-wide tier lists are never weakened to accommodate one site.
 Feature detection is independent of the warning policy: no configure or
 CMake probe uses `-Werror` unless the probe itself requires it, and
 `scripts/ci/check_configure_probes.sh` configures both build systems with
-strict flags and plainly and fails if `src/conf.h` differs.
+strict flags and plainly and fails if the generated `conf.h` differs.
 
 ## CMake
 

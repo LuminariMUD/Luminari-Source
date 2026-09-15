@@ -66,7 +66,7 @@ warning debt, and feature detection that strict flags cannot influence.
   probes no longer emit diagnostics. Three unused `-Werror` probes were
   deleted.
 - `scripts/ci/check_configure_probes.sh` configures both build systems with
-  and without strict flags and fails when `src/conf.h` differs. It caught the
+  and without strict flags and fails when the generated `conf.h` differs. It caught the
   `socklen_t` fallback and the `AC_CHECK_FUNCS` false negatives.
 
 ### Source fixes surfaced by the new compilers and flags

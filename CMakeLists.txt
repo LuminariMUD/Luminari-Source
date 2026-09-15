@@ -35,7 +35,7 @@ include(CheckCCompilerFlag)
 # (check_function_exists declares each function as "char f(void)") warn under
 # -Wall and would flip to "not found" under a caller's -Werror, activating
 # fallback definitions.  Keep -Werror out of every probe and restore the
-# caller's flags once src/conf.h is generated.
+# caller's flags once conf.h is generated.
 set(LUMINARI_USER_C_FLAGS "${CMAKE_C_FLAGS}")
 string(REGEX REPLACE "(^| )-Werror(=[^ ]*)?( |$)" " " CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 
@@ -303,10 +303,9 @@ if (UNIX)
 endif()
 
 # Generate the header included by both the server and utility sources after all
-# platform checks have populated their feature variables. It lands at
-# src/conf.h, the same gitignored location configure.ac uses, because the
-# standalone test scripts under scripts/ preprocess sources with -Isrc.
-configure_file(cmake/cmake_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/conf.h)
+# platform checks have populated their feature variables. As with configure.ac,
+# it lands in the build root, which luminari_build searches ahead of src/.
+configure_file(cmake/cmake_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/conf.h)
 # The profile comes last so the repository policy is the last word, exactly
 # as configure.ac orders it.
 set(CMAKE_C_FLAGS "${LUMINARI_USER_C_FLAGS} ${PRODUCTION_CFLAGS}")

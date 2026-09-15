@@ -2307,6 +2307,7 @@ class RolTransformTests(unittest.TestCase):
             *shlex.split(os.environ.get("CPPFLAGS", "")),
             "-E",
             "-P",
+            f"-I{self.root}",
             f"-I{self.root / 'src'}",
             str(self.root / "src/magic/spell_parser.c"),
         ],
