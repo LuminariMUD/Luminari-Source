@@ -18,3 +18,6 @@ f5100300b316d383b43a1ccb0ef60cecd7807d37
 c10929557f141e9446563e89004d45019a861e9c
 # Format PowerShell with PSScriptAnalyzer
 124f8687c138e05327dc054b0d64faef9af71597
+
+# Format genolc.c and drop the clang-format exclusions
+67ba1f6877883950b9bdf4ed5d896d7103871758
