@@ -67,7 +67,7 @@
 #include "screen.h"
 #include "character/class.h"
 #include "character/race.h"
-#include "act.h"
+#include "act/act.h"
 #include "account.h"
 #include "vessels/routing.h"
 #include "perfmon.h"

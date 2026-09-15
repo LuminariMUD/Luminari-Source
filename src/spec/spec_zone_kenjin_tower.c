@@ -16,7 +16,7 @@
 #include "handler.h"
 #include "db.h"
 #include "magic/spells.h"
-#include "act.h"
+#include "act/act.h"
 #include "spec_zone_kenjin_tower.h"
 
 /* kenjin proc */

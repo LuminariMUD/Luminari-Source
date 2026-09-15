@@ -43,7 +43,7 @@
 #include "combat/fight.h"
 #include "screen.h"
 #include "lists.h"
-#include "act.h"
+#include "act/act.h"
 #include "character/class.h"
 #include "character/evolutions.h"
 #include "olc/oasis.h"

@@ -21,7 +21,7 @@
 #include "obj/house.h"
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
-#include "act.h"
+#include "act/act.h"
 #include "character/abilities.h"
 #include "combat/fight.h"
 #include "olc/oasis.h" /* for buildwalk */

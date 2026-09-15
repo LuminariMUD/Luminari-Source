@@ -1,7 +1,7 @@
 # Formatted SQL sites per file (issue #98 ratchet).
 # Regenerate only after removing sites:
 #   python3 scripts/ci/check_sql_interpolation.py --update
-src/act.wizard.c 15
+src/act/act.wizard.c 15
 src/character/templates.c 22
 src/comms/mysql_boards.c 13
 src/comms/new_mail.c 16

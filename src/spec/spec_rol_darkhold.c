@@ -10,7 +10,7 @@
 #include "movement/door_state.h"
 #include "utils.h"
 
-#include "act.h"
+#include "act/act.h"
 #include "comm.h"
 #include "db.h"
 #include "handler.h"

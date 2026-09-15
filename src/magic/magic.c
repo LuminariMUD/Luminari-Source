@@ -26,7 +26,7 @@
 #include "combat/fight.h"
 #include "utils.h"
 #include "mud_event.h"
-#include "act.h" /* perform_wildshapes */
+#include "act/act.h" /* perform_wildshapes */
 #include "actions.h"
 #include "pet_vnums.h"
 #include "mudlim.h"

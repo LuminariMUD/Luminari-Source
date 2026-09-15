@@ -81,7 +81,7 @@
 #include "screen.h"    /* to support the gemote act type command */
 #include "constants.h" /* For mud versions */
 #include "comms/boards.h"
-#include "act.h"
+#include "act/act.h"
 #include "player/ban.h"
 #include "olc/msgedit.h"
 #include "combat/fight.h"

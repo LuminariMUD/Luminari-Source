@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#include "act.h"
+#include "act/act.h"
 #include "dgscript/dg_event.h"
 #include "domain_events.h"
 

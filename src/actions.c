@@ -18,7 +18,7 @@
 #include "magic/spells.h"
 #include "mud_event.h"
 #include "actions.h"
-#include "act.h"
+#include "act/act.h"
 #include "combat/combat_encounters.h"
 #include "magic/domains_schools.h"
 

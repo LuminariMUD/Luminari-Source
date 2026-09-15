@@ -20,7 +20,7 @@
 #include "interpreter.h"
 #include "db.h"
 #include "handler.h"
-#include "act.h"
+#include "act/act.h"
 #include "magic/spells.h"
 #include "character/class.h"
 #include "character/race.h"

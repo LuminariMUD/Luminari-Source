@@ -24,7 +24,7 @@
 #include "magic/spells.h"
 #include "limits.h"
 #include "screen.h"
-#include "act.h"
+#include "act/act.h"
 
 /* extern vars */
 

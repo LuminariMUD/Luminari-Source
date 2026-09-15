@@ -21,7 +21,7 @@
 #include "db.h"
 #include "screen.h"
 #include "constants.h"
-#include "act.h"
+#include "act/act.h"
 #include "mud_event.h"
 
 /**

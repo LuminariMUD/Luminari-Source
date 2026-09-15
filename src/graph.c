@@ -17,7 +17,7 @@
 #include "handler.h"
 #include "db.h"
 #include "magic/spells.h"
-#include "act.h" /* for the do_say command */
+#include "act/act.h" /* for the do_say command */
 #include "constants.h"
 #include "graph.h"
 #include "active_world.h"

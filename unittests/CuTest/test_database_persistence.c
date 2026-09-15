@@ -5,7 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/player/account.h"
-#include "../../src/act.h"
+#include "../../src/act/act.h"
 #include "../../src/character/race.h"
 #include "../../src/comm.h"
 #include "../../src/db.h"

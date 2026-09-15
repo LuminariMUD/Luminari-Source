@@ -14,7 +14,7 @@
 #include "db.h"
 #include "magic/spells.h"
 #include "constants.h"
-#include "act.h"
+#include "act/act.h"
 #include "character/abilities.h"
 #include "vendor.h"
 #include "character/class.h"

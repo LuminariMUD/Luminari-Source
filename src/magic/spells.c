@@ -21,7 +21,7 @@
 #include "character/perks.h"
 #include "interpreter.h"
 #include "dgscript/dg_scripts.h"
-#include "act.h"
+#include "act/act.h"
 #include "combat/fight.h"
 #include "mud_event.h"
 #include "obj/house.h" /* for house_can_enter() */

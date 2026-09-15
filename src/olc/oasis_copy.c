@@ -26,7 +26,7 @@
 #include "dgscript/dg_scripts.h"
 #include "wilderness/wilderness.h"
 #include "quest/quest.h"
-#include "act.h"
+#include "act/act.h"
 
 /* Local, filescope function prototypes */
 /* Utility function for buildwalk */

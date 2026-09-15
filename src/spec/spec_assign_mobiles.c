@@ -11,7 +11,7 @@
 #include "utils.h"
 #include "db.h"
 
-#include "act.h"
+#include "act/act.h"
 #include "character/backgrounds.h"
 #include "character/guild_services.h"
 #include "character/vampire_cloak.h"

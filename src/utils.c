@@ -25,7 +25,7 @@
 #include "interpreter.h"
 #include "character/class.h"
 #include "character/race.h"
-#include "act.h"
+#include "act/act.h"
 #include "character/abilities.h"
 #include "mud_event.h" // for purgemob event
 #include "character/feats.h"

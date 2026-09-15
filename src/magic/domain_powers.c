@@ -20,7 +20,7 @@
 #include "mud_event.h"
 #include "actions.h"
 #include "combat/fight.h"
-#include "act.h"
+#include "act/act.h"
 
 /* inflict disease with your touch, requires successful touch attack */
 ACMD(do_eviltouch)

@@ -7,12 +7,12 @@ This document provides a comprehensive audit of all mount-related code in the Lu
 ## Core Mount System Files
 
 ### 1. Primary Command Implementation
-- **src/act.other.c**
-  - `ACMD(do_mount)` - src/act.other.c:2421
-  - `ACMD(do_dismount)` - src/act.other.c:2500
-  - `ACMD(do_buck)` - src/act.other.c:2519
-  - `ACMD(do_tame)` - src/act.other.c:2543
-  - `ACMD(do_call)` - src/act.other.c:2029
+- **src/act/act.other.c**
+  - `ACMD(do_mount)` - src/act/act.other.c:2421
+  - `ACMD(do_dismount)` - src/act/act.other.c:2500
+  - `ACMD(do_buck)` - src/act/act.other.c:2519
+  - `ACMD(do_tame)` - src/act/act.other.c:2543
+  - `ACMD(do_call)` - src/act/act.other.c:2029
 
 ### 2. Handler Functions
 - **src/handler.c**
@@ -143,7 +143,7 @@ struct char_data {
 
 ## Call System
 
-### Call Command Implementation (src/act.other.c:1619-2027)
+### Call Command Implementation (src/act/act.other.c:1619-2027)
 Handles summoning of various companion types:
 - `MOB_C_MOUNT` - Paladin/Blackguard mounts
 - `MOB_C_DRAGON` - Dragon mounts
@@ -236,7 +236,7 @@ Handles summoning of various companion types:
 ## Files With Mount References
 
 ### Core Implementation Files
-1. src/act.other.c - Primary mount commands
+1. src/act/act.other.c - Primary mount commands
 2. src/handler.c - Mount/dismount functions
 3. src/movement/movement.c - Movement integration
 4. src/limits.c - Mount validation
@@ -249,7 +249,7 @@ Handles summoning of various companion types:
 1. src/structs.h - Data structures and defines
 2. src/utils.h - Macros and function declarations
 3. src/handler.h - Function prototypes
-4. src/act.h - Command declarations
+4. src/act/act.h - Command declarations
 5. src/mud_event.h - Event definitions
 
 ### Combat Integration

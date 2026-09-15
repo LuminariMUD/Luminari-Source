@@ -27,7 +27,7 @@
 #include "magic/spells.h"
 #include "olc/oasis.h"
 #include "olc/genzon.h" /* for real_zone_by_thing */
-#include "act.h"
+#include "act/act.h"
 #include "modify.h"
 #include "domain_event_world.h"
 #include "domain_object_transfer.h"

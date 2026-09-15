@@ -17,7 +17,7 @@
 #include "screen.h"
 #include "constants.h"
 #include "genolc.h"
-#include "act.h"
+#include "act/act.h"
 
 /* local utility functions */
 static int aedit_find_command(const char *txt);

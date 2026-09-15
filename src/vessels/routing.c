@@ -14,7 +14,7 @@
 #include "interpreter.h"
 #include "character/class.h"
 #include "character/race.h"
-#include "act.h"
+#include "act/act.h"
 #include "character/feats.h"
 #include "constants.h"
 #include "routing.h"

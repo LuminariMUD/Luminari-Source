@@ -68,7 +68,7 @@ rlist 3000 3099    List everything in the vnum range 3000-3099
 lists the zones that builder is assigned to.
 
 Note that `plist` is **not** part of this family - it lists *players* and lives
-in `src/act.wizard.c`.
+in `src/act/act.wizard.c`.
 
 ## OLC Architecture
 

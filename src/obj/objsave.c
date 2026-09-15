@@ -19,7 +19,7 @@
 #include "db.h"
 #include "interpreter.h"
 #include "magic/spells.h"
-#include "act.h"
+#include "act/act.h"
 #include "character/class.h"
 #include "config.h"
 #include "modify.h"

@@ -314,7 +314,7 @@ struct help_cache_entry {
 
 ### hindex - Rebuild Help Index
 **Usage:** `hindex`
-- **Location:** src/act.wizard.c
+- **Location:** src/act/act.wizard.c
 - **Access:** Implementor (LVL_IMPL)
 - **Features:**
   - Rebuilds file-based help index
@@ -832,7 +832,7 @@ Debug output includes:
 
 ## Command Integration
 - **`src/interpreter.c`** - Registers help commands (help, hedit, helpcheck, hindex, helpgen)
-- **`src/act.h`** - Command declarations
+- **`src/act/act.h`** - Command declarations
 - **`src/comm.c`** - Uses help_table for initial help display
 
 ## OLC Framework

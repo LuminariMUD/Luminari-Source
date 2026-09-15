@@ -8,7 +8,7 @@
 #include "structs.h"
 #include "utils.h"
 
-#include "act.h"
+#include "act/act.h"
 #include "character/backgrounds.h"
 #include "spec/spec_registry.h"
 #include "comms/mail.h"

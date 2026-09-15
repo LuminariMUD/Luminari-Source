@@ -18,7 +18,7 @@
 #include "interpreter.h"
 #include "magic/spells.h"
 #include "constants.h"
-#include "act.h"
+#include "act/act.h"
 #include "combat/fight.h"
 #include "mud_event.h"
 #include "obj/shop.h"             /* for shop_keeper */

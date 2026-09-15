@@ -390,7 +390,7 @@ in `assign_races()`, so a new race is data plus feat grants. Feats that exist
 but are assigned to no race are inert until a race grants them.
 
 Active racial abilities share one table-driven handler: `racial_sla_table[]`
-and `do_racial_sla` in `src/act.other.c`, with one `cmd_info[]` row per verb
+and `do_racial_sla` in `src/act/act.other.c`, with one `cmd_info[]` row per verb
 whose subcommand indexes the table (`SCMD_RSLA_*` in `src/interpreter.h`).
 Daily uses are `get_daily_uses()` cases in `src/utils.c` backed by persisted
 cooldown events in `src/mud_event.h` and `src/mud_event_list.c`. The handler

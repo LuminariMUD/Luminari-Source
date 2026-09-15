@@ -22,7 +22,7 @@
 #include "quest.h"
 #include "domain_event_types.h"
 #include "domain_event_world.h"
-#include "act.h" /* for do_tell */
+#include "act/act.h" /* for do_tell */
 #include "mudlim.h"
 #include "rewards.h"
 #include "mud_event.h"

@@ -34,7 +34,7 @@
 #include "talents.h"
 #include "abilities.h"
 #include "skill_lists.h"
-#include "act.h"
+#include "act/act.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */

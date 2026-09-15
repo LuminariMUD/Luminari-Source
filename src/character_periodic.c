@@ -6,7 +6,7 @@
 #include "comm.h"
 #include "db.h"
 #include "dotenv.h"
-#include "act.h"
+#include "act/act.h"
 #include "bardic_performance.h"
 #include "character_periodic.h"
 #include "domain_event_types.h"

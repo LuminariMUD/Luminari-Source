@@ -17,7 +17,7 @@
 #include "vessel_periodic.h"
 #include "wilderness/wilderness.h"
 #include "net/protocol.h"
-#include "act.h"
+#include "act/act.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 

@@ -93,7 +93,7 @@ This was also a data-only repair; it did not fix `change_player_name()`.
 
 ### 1. `change_player_name()` only updates part of the identity
 
-[`change_player_name()`](../../src/act.wizard.c#L7851) currently:
+[`change_player_name()`](../../src/act/act.wizard.c#L7851) currently:
 
 1. checks whether the new name can be loaded;
 2. changes `player_table[i].name`;

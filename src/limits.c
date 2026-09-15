@@ -27,7 +27,7 @@
 #include "screen.h"
 #include "mud_event.h"
 #include "mudlim.h"
-#include "act.h"
+#include "act/act.h"
 #include "actions.h"
 #include "magic/domains_schools.h"
 #include "combat/grapple.h"

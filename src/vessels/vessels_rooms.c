@@ -14,7 +14,7 @@
 #include "db.h"
 #include "vessels.h"
 #include "constants.h"
-#include "act.h"
+#include "act/act.h"
 #include "modify.h"
 #include "dgscript/dg_scripts.h"
 #include "database/mysql.h"

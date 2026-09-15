@@ -202,7 +202,7 @@ Trace each relevant integration point:
 | `compute_char_cap()` | Select an intentional stat-cap category |
 | `newbieEquipment()` | Add every creation-selectable base class; use named VNUMs |
 | Proficiency and item checks | Implement the designed equipment policy |
-| `src/act.wizard.c` | Add the class-level set field and update its gameplay test mapping |
+| `src/act/act.wizard.c` | Add the class-level set field and update its gameplay test mapping |
 
 `GET_CLASS()` is the current or most recently gained class, not a permanent primary-class identity.
 The durable multiclass composition is `CLASS_LEVEL(ch, class)`. Test both multiclass directions and
@@ -253,7 +253,7 @@ own creation check.
 
 ### `gain` and prestige classes
 
-`do_gain()` in `src/act.other.c` resolves the class, calls `class_is_available()`, enforces the
+`do_gain()` in `src/act/act.other.c` resolves the class, calls `class_is_available()`, enforces the
 class cap and `MULTICAP`, handles explicit incompatible pairs, and advances the selected class.
 Verify:
 

@@ -17,7 +17,7 @@
 #include "handler.h"
 #include "magic/spells.h"
 #include "constants.h"
-#include "act.h"
+#include "act/act.h"
 #include "combat/fight.h"
 #include "character/evolutions.h" /* for EVOLUTION_UNDEAD_APPEARANCE */
 #include "mob_utils.h"

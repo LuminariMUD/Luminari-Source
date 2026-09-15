@@ -21,7 +21,7 @@
 #include "modify.h"
 #include "database/mysql.h"
 #include "clan/clan.h"
-#include "act.h"                 /* for perform_save() */
+#include "act/act.h"             /* for perform_save() */
 #include "dgscript/dg_scripts.h" /* for load_otriggers() */
 #include "olc/genzon.h"          /* for real_zone_by_thing() */
 #include "perfmon.h"

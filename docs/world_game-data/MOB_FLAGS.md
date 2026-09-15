@@ -402,7 +402,7 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - Used for horses, griffons, etc.
 
 **Code References:**
-- `src/act.other.c` - Mount command checks (`do_mount()`, `do_tame()`)
+- `src/act/act.other.c` - Mount command checks (`do_mount()`, `do_tame()`)
 - `src/movement/movement_cost.c` - Movement cost adjustments (`get_speed()`)
 - `src/character/evolutions.c` - Eidolon mountable flag (`assign_eidolon_evolutions()`)
 
@@ -744,7 +744,7 @@ running automatic statistics.
 - Changes corpse handling on death
 
 **Code References:**
-- `src/act.other.c` - Golem commands (`do_destroygolem()`, `do_golemrepair()`)
+- `src/act/act.other.c` - Golem commands (`do_destroygolem()`, `do_golemrepair()`)
 - `src/craft/crafting_new.c` - Golem crafting and repair (`has_golem_follower()`, `craft_golem_complete()`, `can_repair_golem()`)
 - `src/utils.c` - Follower tracking (`can_add_follower()`)
 - `src/combat/fight.c` - Corpse generation (`make_corpse()`)
@@ -808,7 +808,7 @@ running automatic statistics.
 - `src/mob/mob_act.c` - Movement, archery, and race aggression
 - `src/combat/fight.c` - Delayed hunter activation
 - `src/spec/spec_rol_conversion.c` - Automatic demon, devil, and umber-hulk behavior
-- `src/act.other.c` - Caught-theft response
+- `src/act/act.other.c` - Caught-theft response
 - `src/utils.h` - Class-role queries
 
 ### MOB_BUFF_OUTSIDE_COMBAT (Index: 96)

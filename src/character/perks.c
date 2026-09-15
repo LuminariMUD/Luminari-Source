@@ -35,7 +35,7 @@
 #include "mud_event.h"
 #include "combat/fight.h"
 #include "combat/fight.h"
-#include "act.h"
+#include "act/act.h"
 #include "combat/fight.h"
 
 #include "interpreter.h"

@@ -18,7 +18,7 @@
 #include "vessel_periodic.h"
 #include "wilderness/wilderness.h"
 #include "constants.h"
-#include "act.h"
+#include "act/act.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 extern int wild_waterline;

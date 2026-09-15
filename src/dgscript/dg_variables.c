@@ -24,7 +24,7 @@
 #include "olc/oasis.h"
 #include "character/class.h"
 #include "quest/quest.h"
-#include "act.h"
+#include "act/act.h"
 #include "olc/genobj.h"
 #include "character/race.h"
 #include "clan/clan.h"

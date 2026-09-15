@@ -25,7 +25,7 @@
 #include "db.h"
 #include "magic/spells.h"
 #include "magic/psionics.h"
-#include "act.h"
+#include "act/act.h"
 #include "fight.h"
 #include "mud_event.h"
 #include "constants.h"

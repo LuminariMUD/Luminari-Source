@@ -14,7 +14,7 @@
 #include "handler.h"
 #include "db.h"
 #include "vessels.h"
-#include "act.h"
+#include "act/act.h"
 #include "character/abilities.h"
 #include "combat/fight.h"
 #include "magic/spells.h"

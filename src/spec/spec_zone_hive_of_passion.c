@@ -14,7 +14,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
-#include "act.h"
+#include "act/act.h"
 #include "spec_zone_hive_of_passion.h"
 
 /* from homeland */

@@ -34,7 +34,7 @@
 #include "craft/alchemy.h"
 #include "quest/missions.h"
 #include "psionics.h"
-#include "act.h"
+#include "act/act.h"
 #include "character/evolutions.h"
 #include "mudlim.h"
 #include "rewards.h"

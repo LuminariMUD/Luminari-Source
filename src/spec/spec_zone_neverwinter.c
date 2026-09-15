@@ -17,7 +17,7 @@
 #include "db.h"
 #include "magic/spells.h"
 #include "constants.h"
-#include "act.h"
+#include "act/act.h"
 #include "spec_zone_neverwinter.h"
 #include "character/class.h"
 #include "combat/fight.h"

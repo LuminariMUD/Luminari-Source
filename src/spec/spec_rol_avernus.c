@@ -11,7 +11,7 @@
 #include "domain_event_world.h"
 #include "utils.h"
 
-#include "act.h"
+#include "act/act.h"
 #include "combat/fight.h"
 #include "comm.h"
 #include "constants.h"

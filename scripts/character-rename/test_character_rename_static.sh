@@ -4,7 +4,7 @@ set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 rename_source="$project_root/src/player/player_rename.c"
-wizard_source="$project_root/src/act.wizard.c"
+wizard_source="$project_root/src/act/act.wizard.c"
 
 fail()
 {

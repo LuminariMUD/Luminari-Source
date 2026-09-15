@@ -19,7 +19,7 @@
 #include "magic/spells.h"
 #include "interpreter.h"
 #include "constants.h"
-#include "act.h"
+#include "act/act.h"
 #include "handler.h"
 #include "comm.h"
 #include "mud_event.h"

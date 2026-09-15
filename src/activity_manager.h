@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "act.h"
+#include "act/act.h"
 #include "domain_events.h"
 #include "structs.h"
 

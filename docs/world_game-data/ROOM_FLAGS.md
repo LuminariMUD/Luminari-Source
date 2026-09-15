@@ -91,7 +91,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 
 **Code References:**
 - `src/movement/movement.c` - Entry restriction (`do_enter()`)
-- `src/act.wizard.c` - Teleport restrictions (`find_target_room()`)
+- `src/act/act.wizard.c` - Teleport restrictions (`find_target_room()`)
 - `src/magic/spells.c` - Spell targeting restrictions (`valid_mortal_tele_dest()`)
 - `src/obj/house.c` - House management integration (`find_house()`, `hcontrol_build_house()`, `hcontrol_destroy_house()`)
 
@@ -138,7 +138,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 **Code References:**
 - `src/magic/spells.c` - Teleport destination check (`valid_mortal_tele_dest()`, `spell_recall()`, `spell_luskan_recall()`)
 - `src/magic/spells.c` - Multiple recall/teleport spell checks (`valid_mortal_tele_dest()`, `spell_recall()`, `spell_luskan_recall()`)
-- `src/act.other.c` - Recall and portal restrictions (`do_abundantstep()`, `do_shadowstep()`)
+- `src/act/act.other.c` - Recall and portal restrictions (`do_abundantstep()`, `do_shadowstep()`)
 
 ### ROOM_NOSUMMON (Index: 24)
 **Effect:** Prevents summoning spells from targeting this room.
@@ -194,11 +194,11 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Staff can bypass with appropriate level
 
 **Code References:**
-- `src/act.informative.c` - Display warnings (`look_at_room_number()`, `look_at_room()`)
+- `src/act/act.informative.c` - Display warnings (`look_at_room_number()`, `look_at_room()`)
 - `src/movement/movement.c` - Entry damage/death (`do_enter()`)
 - `src/mob/mob_act.c` - NPC avoidance (owner-local mobile agenda)
 - `src/magic/spells.c` - Teleport blocking (`valid_mortal_tele_dest()`)
-- `src/act.other.c` - Additional teleport checks (`do_shadowstep()`)
+- `src/act/act.other.c` - Additional teleport checks (`do_shadowstep()`)
 
 ### ROOM_SOUNDPROOF (Index: 5)
 **Effect:** Blocks sound-based abilities and prevents communication.
@@ -208,10 +208,10 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Staff can override (LVL_STAFF+)
 
 **Code References:**
-- `src/act.comm.c` - Communication blocking (`is_tell_ok()`, `do_gen_comm()`)
+- `src/act/act.comm.c` - Communication blocking (`is_tell_ok()`, `do_gen_comm()`)
 - `src/bardic_performance.c` - Bardic performance prevention (`can_perform()`)
 - `src/magic/spell_parser.c` - Spell casting restriction (psionics exempt) (`say_spell()`, `cast_spell()`)
-- `src/act.social.c` - Social action blocking (`do_gmote()`)
+- `src/act/act.social.c` - Social action blocking (`do_gmote()`)
 
 ---
 
@@ -312,7 +312,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 
 **Code References:**
 - `src/utils.c` - Darkness calculations (`room_is_daylit()`, `room_is_dark()`, `is_room_in_sunlight()`)
-- `src/act.informative.c` - Display and description handling (`look_at_room_number()`, `look_at_room()`, `do_scan()`)
+- `src/act/act.informative.c` - Display and description handling (`look_at_room_number()`, `look_at_room()`, `do_scan()`)
 
 ### ROOM_MAGICLIGHT (Index: 23)
 **Effect:** Creates magical light that prevents the room from being dark.
@@ -332,7 +332,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Can be removed by gust of wind spell
 
 **Code References:**
-- `src/act.informative.c` - Vision restrictions (`look_at_room_number()`, `look_at_room()`, `look_in_direction()`)
+- `src/act/act.informative.c` - Vision restrictions (`look_at_room_number()`, `look_at_room()`, `look_in_direction()`)
 - `src/asciimap.c` - Automap limitation (`do_map()`)
 - `src/magic/spells.c` - Gust of wind removes fog (`perform_dispel()`)
 - `src/utils.c` - Weather and vision checks (`ultra_blind()`, `is_room_in_sunlight()`)
@@ -363,7 +363,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 **Code References:**
 - `src/obj/house.c` - House management (`find_house()`, `hcontrol_build_house()`, `hcontrol_destroy_house()`)
 - `src/handler.c` - Crash save integration (`obj_to_room()`, `obj_from_room()`)
-- `src/act.wizard.c` - Teleport restrictions and admin tools (`find_target_room()`, `do_switch()`, `do_zcheck()`)
+- `src/act/act.wizard.c` - Teleport restrictions and admin tools (`find_target_room()`, `do_switch()`, `do_zcheck()`)
 
 ### ROOM_HOUSE_CRASH (Index: 12)
 **Effect:** Marks that items in this house room should be saved.
@@ -395,10 +395,10 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Affects routing and navigation commands
 
 **Code References:**
-- `src/act.informative.c` - Automap checks (`do_survey()`)
+- `src/act/act.informative.c` - Automap checks (`do_survey()`)
 - `src/asciimap.c` - Map rendering (`show_worldmap()`)
 - `src/vessels/routing.c` - Navigation system (`start_flight_to_destination_luminari()`)
-- `src/act.wizard.c` - Administrative flag setting (`do_setworldsect()`)
+- `src/act/act.wizard.c` - Administrative flag setting (`do_setworldsect()`)
 
 ### ROOM_VEHICLE (Index: 40)
 **Effect:** Marks room as part of a vehicle or vessel.
@@ -461,7 +461,7 @@ code, so do not expect to find it there.
 - Temporary flag during world editing
 
 **Code References:**
-- `src/act.wizard.c` - Administrative cleanup avoidance (`do_zcheck()`)
+- `src/act/act.wizard.c` - Administrative cleanup avoidance (`do_zcheck()`)
 
 ### ROOM_BFS_MARK (Index: 15)
 **Effect:** Temporary flag used by pathfinding algorithms.
@@ -472,7 +472,7 @@ code, so do not expect to find it there.
 
 **Code References:**
 - `src/graph.c` - Pathfinding algorithm
-- `src/act.wizard.c` - Cleanup detection (`do_zcheck()`)
+- `src/act/act.wizard.c` - Cleanup detection (`do_zcheck()`)
 
 ---
 
@@ -661,7 +661,7 @@ code, so do not expect to find it there.
 - `src/magic/spell_parser.c` - Magic restriction checks
 - `src/combat/fight.c` - Combat restriction checks
 - `src/utils.c` - Light and vision calculations
-- `src/act.informative.c` - Room description handling
+- `src/act/act.informative.c` - Room description handling
 - `src/obj/house.c` - House system integration
 - `src/vessels/vessels_rooms.c` - Vehicle system integration
 

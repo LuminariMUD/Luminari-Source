@@ -26,7 +26,7 @@
 #include "craft/alchemy.h"
 #include "quest/missions.h"
 #include "psionics.h"
-#include "act.h"
+#include "act/act.h"
 
 struct psionic_power_data psionic_powers[MAX_SPELLS + 1];
 

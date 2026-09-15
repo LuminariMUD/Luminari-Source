@@ -13,7 +13,7 @@
 #include "handler.h"
 #include "db.h"
 #include "screen.h"
-#include "act.h"
+#include "act/act.h"
 #include "modify.h"
 #include "dotenv.h"
 

@@ -21,7 +21,7 @@ void Test_copyover_executes_the_installed_release(CuTest *tc)
   test_root = getenv("LUMINARI_TEST_ROOT");
   if (test_root == NULL || *test_root == '\0')
     test_root = ".";
-  snprintf(source_path, sizeof(source_path), "%s/src/act.wizard.c", test_root);
+  snprintf(source_path, sizeof(source_path), "%s/src/act/act.wizard.c", test_root);
   source_file = fopen(source_path, "r");
   if (source_file == NULL)
   {

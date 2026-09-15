@@ -14,7 +14,7 @@
 #include "dgscript/dg_scripts.h"
 #include "mud_event.h"
 #include "comms/mail.h" /**< For the has_mail function */
-#include "act.h"
+#include "act/act.h"
 #include "character/class.h"
 #include "character/abilities.h"
 #include "character/race.h"

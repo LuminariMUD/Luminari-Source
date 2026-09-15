@@ -11,7 +11,7 @@
 #include "db.h"
 #include "handler.h"
 #include "interpreter.h"
-#include "act.h"
+#include "act/act.h"
 
 #include <sys/resource.h>
 #include <sys/stat.h>

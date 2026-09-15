@@ -23,7 +23,7 @@
 #include "fight.h"
 #include "dgscript/dg_scripts.h"
 #include "magic/spells.h"
-#include "act.h"
+#include "act/act.h"
 #include "character/perks.h"
 #include "traps.h"
 #include "magic/domains_schools.h"

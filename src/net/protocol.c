@@ -23,7 +23,7 @@
 #include "screen.h"
 #include "olc/improved-edit.h"
 #include "dgscript/dg_scripts.h"
-#include "act.h"
+#include "act/act.h"
 #include "modify.h"
 #include "onboarding.h"
 #include "msdp_json.h"

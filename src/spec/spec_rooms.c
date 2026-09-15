@@ -15,7 +15,7 @@
 #include "handler.h"
 #include "db.h"
 #include "constants.h"
-#include "act.h"
+#include "act/act.h"
 #include "spec_rooms.h"
 #include "combat/fight.h"
 #include "mudlim.h"

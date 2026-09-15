@@ -32,7 +32,7 @@
 #include "dgscript/dg_scripts.h"
 #include "olc/prefedit.h"
 #include "mud_event.h"
-#include "act.h"
+#include "act/act.h"
 
 
 struct encounter_data encounter_table[NUM_ENCOUNTER_TYPES];

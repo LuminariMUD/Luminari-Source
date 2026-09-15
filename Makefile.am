@@ -25,9 +25,9 @@ bin_PROGRAMS = luminari
 luminari_SOURCES = \
 	src/pet_vnums.h \
 	src/player/account.c \
-	src/act.comm.c \
-	src/act.comm.do_spec_comm.c \
-	src/act.informative.c \
+	src/act/act.comm.c \
+	src/act/act.comm.do_spec_comm.c \
+	src/act/act.informative.c \
 	src/obj/act.item.c \
 	src/movement/movement.c \
 	src/movement/movement_validation.c \
@@ -40,12 +40,12 @@ luminari_SOURCES = \
 	src/movement/movement_tracks.c \
 	src/movement/movement_events.c \
 	src/combat/act.offensive.c \
-	src/act.other.c \
+	src/act/act.other.c \
 	src/ready_action.c \
 	src/tactical_effects.c \
 	src/tactical_effects.h \
-	src/act.social.c \
-	src/act.wizard.c \
+	src/act/act.social.c \
+	src/act/act.wizard.c \
 	src/actionqueues.c \
 	src/actions.c \
 	src/olc/aedit.c \

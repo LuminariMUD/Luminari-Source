@@ -18,7 +18,7 @@
 #include "wilderness/wilderness.h"
 #include "database/mysql.h"
 #include "constants.h"
-#include "act.h"
+#include "act/act.h"
 
 #include <float.h>
 

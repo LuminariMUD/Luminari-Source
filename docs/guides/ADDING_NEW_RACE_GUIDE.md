@@ -922,7 +922,7 @@ renumber, reuse, or erase the ID.
 | Feat mechanics | The subsystem that owns the feature |
 | Account unlock and hard-lock policy | `src/player/account.c`, `unlocked_races` |
 | Web catalog and media | `src/net/onboarding.c` |
-| Respec behavior | `respec_engine()` in `src/act.other.c` |
+| Respec behavior | `respec_engine()` in `src/act/act.other.c` |
 | Dedicated Lich rite | `src/spec/spec_rol_conversion.c`, `src/spec/spec_registry.c` |
 | Special-procedure builder contract | `docs/guides/OLC_SpecProcs.md` |
 | Lich rite mechanics tests | `unittests/CuTest/test_spec_mechanics.c` |

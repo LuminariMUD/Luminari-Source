@@ -968,7 +968,8 @@ void Test_spec_vessel_owners_have_native_lifecycle_hooks(CuTest *tc)
 
 void Test_spec_character_periodic_control_transfers_resync_owners(CuTest *tc)
 {
-  const char *paths[] = {"src/act.wizard.c", "src/magic/spells.c", "src/character/evolutions.c"};
+  const char *paths[] = {"src/act/act.wizard.c", "src/magic/spells.c",
+                         "src/character/evolutions.c"};
   const char *transfer_markers[] = {"victim->desc = ch->desc;", "eye->desc = ch->desc;",
                                     "eidolon->desc = ch->desc;"};
   const char *new_owner_syncs[] = {"character_periodic_sync(victim);",

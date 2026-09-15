@@ -4,7 +4,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "db.h"
-#include "act.h"
+#include "act/act.h"
 #include "domain_event_runtime.h"
 #include "domain_event_types.h"
 #include "domain_event_world.h"

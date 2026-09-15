@@ -16,7 +16,7 @@
 #include "handler.h"
 #include "db.h"
 #include "discord_bridge.h"
-#include "act.h"
+#include "act/act.h"
 #include "screen.h"
 
 #include <sys/socket.h>

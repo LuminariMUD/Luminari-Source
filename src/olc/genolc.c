@@ -25,7 +25,7 @@
 #include "dgscript/dg_olc.h"
 #include "constants.h"
 #include "interpreter.h"
-#include "act.h"    /* for the space_to_minus function */
+#include "act/act.h"    /* for the space_to_minus function */
 #include "modify.h" /* for smash_tilde */
 #include "quest/quest.h"
 #include "craft/craft.h" // get_obj_material

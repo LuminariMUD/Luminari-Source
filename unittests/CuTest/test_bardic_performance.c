@@ -6,7 +6,7 @@
 #include "../../src/utils.h"
 #include "../../src/actionqueues.h"
 #include "../../src/actions.h"
-#include "../../src/act.h"
+#include "../../src/act/act.h"
 #include "../../src/bardic_performance.h"
 #include "../../src/character/feats.h"
 #include "../../src/character/abilities.h"

@@ -13,7 +13,7 @@
 #include "handler.h"
 #include "db.h"
 #include "screen.h"
-#include "act.h"
+#include "act/act.h"
 #include "i3_client.h"
 #include "i3_utils.h"
 #include <time.h>

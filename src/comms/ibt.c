@@ -21,7 +21,7 @@
 #include "interpreter.h"
 #include "constants.h"
 #include "screen.h"
-#include "act.h"
+#include "act/act.h"
 #include "utils.h"
 #include "ibt.h"
 #include "olc/oasis.h"

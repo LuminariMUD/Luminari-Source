@@ -21,7 +21,7 @@
 #include "genzon.h"
 #include "handler.h"
 #include "improved-edit.h"
-#include "act.h"
+#include "act/act.h"
 #include "hedit.h"
 #include "modify.h"
 #include "help.h"

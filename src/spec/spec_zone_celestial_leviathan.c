@@ -13,7 +13,7 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "magic/spells.h"
-#include "act.h"
+#include "act/act.h"
 #include "spec_zone_celestial_leviathan.h"
 #include "spec_zone_prisoner.h"
 #include "combat/fight.h"

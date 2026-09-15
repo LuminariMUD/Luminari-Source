@@ -9,7 +9,7 @@
 #include "structs.h"
 #include "utils.h"
 
-#include "act.h"
+#include "act/act.h"
 #include "character/guild_services.h"
 #include "character/evolutions.h"
 #include "combat/fight.h"

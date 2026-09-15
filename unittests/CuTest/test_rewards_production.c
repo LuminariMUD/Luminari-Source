@@ -10,7 +10,7 @@
 #include "../../src/comm.h"
 #include "../../src/db.h"
 #include "../../src/constants.h"
-#include "../../src/act.h"
+#include "../../src/act/act.h"
 #include "../../src/handler.h"
 #include "../../src/net/protocol.h"
 #include "../../src/rewards.h"

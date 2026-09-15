@@ -19,7 +19,7 @@
 #include "magic/spells.h"
 #include "constants.h"
 #include <stdint.h>
-#include "act.h"
+#include "act/act.h"
 #include "character/class.h"
 #include "character/race.h"
 #include "wilderness/wilderness.h"

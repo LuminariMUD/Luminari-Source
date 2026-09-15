@@ -18,7 +18,7 @@
 #include "character/race.h"
 #include "character/class.h"
 #include "combat/fight.h"
-#include "act.h"
+#include "act/act.h"
 #include "constants.h"
 #include "mud_event.h"
 #include "actions.h"

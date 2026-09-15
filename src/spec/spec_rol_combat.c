@@ -12,7 +12,7 @@
 
 #include "combat/fight.h"
 #include "combat/combat_state.h"
-#include "act.h"
+#include "act/act.h"
 #include "comm.h"
 #include "db.h"
 #include "dgscript/dg_scripts.h"

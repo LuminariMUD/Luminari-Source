@@ -11,7 +11,7 @@
 #include "combat/fight.h"
 #include "magic/spells.h"
 
-#include "act.h"
+#include "act/act.h"
 #include "comm.h"
 #include "db.h"
 #include "dgscript/dg_scripts.h"

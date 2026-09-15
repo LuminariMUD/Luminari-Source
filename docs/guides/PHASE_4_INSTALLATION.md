@@ -97,7 +97,7 @@ The effects use JSON parameters for maximum flexibility and can be assigned to a
 - `db_init_system wilderness` - Populates the flexible region effects schema with JSON parameters
 - `src/wilderness/resource_system.c` - Enhanced region effects processing with JSON support
 - `src/wilderness/resource_system.h` - Function prototypes for flexible effects system
-- `src/act.wizard.c` - Comprehensive effects management admin commands
+- `src/act/act.wizard.c` - Comprehensive effects management admin commands
 - Documentation updates reflecting new architecture
 
 ## Next Steps

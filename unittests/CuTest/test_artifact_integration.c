@@ -25,7 +25,7 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
-#include "../../src/act.h"
+#include "../../src/act/act.h"
 #include "../../src/comm.h"
 #include "../../src/db.h"
 #include "../../src/handler.h"

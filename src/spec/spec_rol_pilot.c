@@ -13,7 +13,7 @@
 #include "structs.h"
 #include "utils.h"
 
-#include "act.h"
+#include "act/act.h"
 #include "character/evolutions.h"
 #include "comm.h"
 #include "combat/fight.h"

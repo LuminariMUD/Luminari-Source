@@ -22,7 +22,7 @@
 #include "mud_event.h"
 #include "actions.h"
 #include "constants.h"
-#include "act.h"
+#include "act/act.h"
 #include "handler.h" // for obj_from_char()
 #include "rewards.h"
 #include "character/abilities.h"

@@ -12,7 +12,7 @@ a save format that carries them. Duris source verified at
 `/home/aiwithapex/projects/duris`; our side traced in `src/structs.h`,
 `src/obj/act.item.c`, `src/obj/objsave.c`, `src/handler.c`,
 `src/combat/fight.c`, `src/character/race.c`, `src/constants.c`,
-`src/act.informative.c`, `src/player/players.c`, and `src/db.c`.
+`src/act/act.informative.c`, `src/player/players.c`, and `src/db.c`.
 
 Review baseline: LuminariMUD `6a048b0d34fe0f17faea30577d87bac72b5ec3d3`,
 Duris `9e0bfac624aa19eccbfc8045edbfa8cfddfb575f` (both clean when traced).
@@ -678,7 +678,7 @@ not a safe precedent for a pure query.
 
 Audit explicit wield-slot consumers in `src/combat/assign_wpn_armor.c`,
 `src/combat/fight.c`, `src/combat/act.offensive.c`, `src/utils.c`,
-`src/obj/act.item.c` and `src/act.informative.c`: speed, bare-handed/monk
+`src/obj/act.item.c` and `src/act/act.informative.c`: speed, bare-handed/monk
 eligibility, weapon requirements for parry and disarm, double-weapon defenses,
 `skill_message()` weapon selection, and score/equipment output. Distinguish "any weapon equipped" from
 "the weapon delivering this hit"; broadening a global special-ability check
@@ -771,7 +771,7 @@ balanced progression across classes.
 | Area | Files | Change |
 |------|-------|--------|
 | Constants | `src/structs.h` | Seven positions, `NUM_WEARS`, Four Arms feat and both feat bounds, two attack types; any scoped lifecycle state |
-| Slot tables and display | `src/constants.c`, `src/act.informative.c`, `src/obj/act.item.c` | Labels, ordering, messages, keywords, slot/size classification and proficiency output |
+| Slot tables and display | `src/constants.c`, `src/act/act.informative.c`, `src/obj/act.item.c` | Labels, ordering, messages, keywords, slot/size classification and proficiency output |
 | Feat and capability | `src/character/feats.c`, `src/utils.c`, `src/utils.h` | Registration, effective grant sources, pair-aware two-hand utility |
 | Equipment lifecycle | `src/obj/act.item.c`, `src/obj/item.h`, `src/handler.c`, `src/handler.h`, `src/player/players.c` | Placement, shared validation, mandatory cleanup, save/load deferral, AC |
 | Anatomy and race data | `src/character/race.c`, relevant registry headers | Extra-slot eligibility and base restriction mapping; playable race registration after conversion/balance decisions |

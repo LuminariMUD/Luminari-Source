@@ -354,16 +354,16 @@ endif()
 # Main C source files
 set(SRC_C_FILES
     src/player/account.c
-    src/act.comm.c
-    src/act.comm.do_spec_comm.c
-    src/act.informative.c
+    src/act/act.comm.c
+    src/act/act.comm.do_spec_comm.c
+    src/act/act.informative.c
     src/obj/act.item.c
     src/combat/act.offensive.c
-    src/act.other.c
+    src/act/act.other.c
     src/ready_action.c
     src/tactical_effects.c
-    src/act.social.c
-    src/act.wizard.c
+    src/act/act.social.c
+    src/act/act.wizard.c
     src/actionqueues.c
     src/actions.c
     src/olc/aedit.c

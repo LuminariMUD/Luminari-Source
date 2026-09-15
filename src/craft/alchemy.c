@@ -21,7 +21,7 @@
 #include "magic/spell_prep.h"
 #include "alchemy.h"
 #include "actions.h"
-#include "act.h"
+#include "act/act.h"
 #include "combat/fight.h"
 #include "character/evolutions.h"
 #include "character/perks.h"

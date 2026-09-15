@@ -36,8 +36,8 @@ The main integration points are:
 | `src/handler.c` | Object acquisition, movement, equip, unequip, and extraction |
 | `src/obj/objsave.c` | Persistence-safe extraction during player object saves |
 | `src/combat/fight.c` | Resistance, combat XP, generic procs, and signature procs |
-| `src/act.comm.c` | Called-effect phrase handling from `say` |
-| `src/act.comm.do_spec_comm.c` | Called-effect phrase handling from `whisper` |
+| `src/act/act.comm.c` | Called-effect phrase handling from `say` |
+| `src/act/act.comm.do_spec_comm.c` | Called-effect phrase handling from `whisper` |
 | `src/limits.c` | Class-oath burn damage during the player mud-hour point phase |
 | `src/interpreter.c` | Player, ability, and staff command registration |
 | `src/magic/spells.h` | `SPELL_ARTIFACT_BONUS`, `_PASSIVE`, and `_SURGE` affect identifiers |

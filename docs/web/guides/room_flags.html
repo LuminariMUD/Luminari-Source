@@ -277,7 +277,7 @@ this restriction - Used for private meeting rooms and intimate
 spaces</p>
 <p><strong>Code References:</strong> -
 <code>src/movement/movement.c</code> - Entry restriction
-(<code>do_enter()</code>) - <code>src/act.wizard.c</code> - Teleport
+(<code>do_enter()</code>) - <code>src/act/act.wizard.c</code> - Teleport
 restrictions (<code>find_target_room()</code>) -
 <code>src/magic/spells.c</code> - Spell targeting restrictions
 (<code>valid_mortal_tele_dest()</code>) - <code>src/obj/house.c</code> -
@@ -326,7 +326,7 @@ Teleport destination check (<code>valid_mortal_tele_dest()</code>,
 <code>spell_recall()</code>, <code>spell_luskan_recall()</code>) -
 <code>src/magic/spells.c</code> - Multiple recall/teleport spell checks
 (<code>valid_mortal_tele_dest()</code>, <code>spell_recall()</code>,
-<code>spell_luskan_recall()</code>) - <code>src/act.other.c</code> -
+<code>spell_luskan_recall()</code>) - <code>src/act/act.other.c</code> -
 Recall and portal restrictions (<code>do_abundantstep()</code>,
 <code>do_shadowstep()</code>)</p>
 <h3 id="room_nosummon-index-24">ROOM_NOSUMMON (Index: 24)</h3>
@@ -380,26 +380,26 @@ entering/remaining in room. - Used for death traps and hazardous zones -
 NPCs avoid entering death rooms - Teleportation into death rooms is
 blocked - Staff can bypass with appropriate level</p>
 <p><strong>Code References:</strong> -
-<code>src/act.informative.c</code> - Display warnings
+<code>src/act/act.informative.c</code> - Display warnings
 (<code>look_at_room_number()</code>, <code>look_at_room()</code>) -
 <code>src/movement/movement.c</code> - Entry damage/death
 (<code>do_enter()</code>) - <code>src/mob/mob_act.c</code> - NPC
 avoidance (owner-local mobile agenda) - <code>src/magic/spells.c</code>
 - Teleport blocking (<code>valid_mortal_tele_dest()</code>) -
-<code>src/act.other.c</code> - Additional teleport checks
+<code>src/act/act.other.c</code> - Additional teleport checks
 (<code>do_shadowstep()</code>)</p>
 <h3 id="room_soundproof-index-5">ROOM_SOUNDPROOF (Index: 5)</h3>
 <p><strong>Effect:</strong> Blocks sound-based abilities and prevents
 communication. - Blocks tells, shouts, and speech-based communication -
 Prevents bardic performances from functioning - Blocks sound-based
 spells (exception for psionics) - Staff can override (LVL_STAFF+)</p>
-<p><strong>Code References:</strong> - <code>src/act.comm.c</code> -
+<p><strong>Code References:</strong> - <code>src/act/act.comm.c</code> -
 Communication blocking (<code>is_tell_ok()</code>,
 <code>do_gen_comm()</code>) - <code>src/bardic_performance.c</code> -
 Bardic performance prevention (<code>can_perform()</code>) -
 <code>src/magic/spell_parser.c</code> - Spell casting restriction
 (psionics exempt) (<code>say_spell()</code>, <code>cast_spell()</code>)
-- <code>src/act.social.c</code> - Social action blocking
+- <code>src/act/act.social.c</code> - Social action blocking
 (<code>do_gmote()</code>)</p>
 <hr />
 <h2 id="environmental-effects">Environmental Effects</h2>
@@ -496,7 +496,7 @@ darkness effects</p>
 <p><strong>Code References:</strong> - <code>src/utils.c</code> -
 Darkness calculations (<code>room_is_daylit()</code>,
 <code>room_is_dark()</code>, <code>is_room_in_sunlight()</code>) -
-<code>src/act.informative.c</code> - Display and description handling
+<code>src/act/act.informative.c</code> - Display and description handling
 (<code>look_at_room_number()</code>, <code>look_at_room()</code>,
 <code>do_scan()</code>)</p>
 <h3 id="room_magiclight-index-23">ROOM_MAGICLIGHT (Index: 23)</h3>
@@ -512,7 +512,7 @@ characters - Limits automap functionality - Reduces scan range and
 visibility - Staff (LVL_IMMORT+) can see through fog - Can be removed by
 gust of wind spell</p>
 <p><strong>Code References:</strong> -
-<code>src/act.informative.c</code> - Vision restrictions
+<code>src/act/act.informative.c</code> - Vision restrictions
 (<code>look_at_room_number()</code>, <code>look_at_room()</code>,
 <code>look_in_direction()</code>) - <code>src/asciimap.c</code> -
 Automap limitation (<code>do_map()</code>) -
@@ -542,7 +542,7 @@ House management (<code>find_house()</code>,
 <code>hcontrol_build_house()</code>,
 <code>hcontrol_destroy_house()</code>) - <code>src/handler.c</code> -
 Crash save integration (<code>obj_to_room()</code>,
-<code>obj_from_room()</code>) - <code>src/act.wizard.c</code> - Teleport
+<code>obj_from_room()</code>) - <code>src/act/act.wizard.c</code> - Teleport
 restrictions and admin tools (<code>find_target_room()</code>,
 <code>do_switch()</code>, <code>do_zcheck()</code>)</p>
 <h3 id="room_house_crash-index-12">ROOM_HOUSE_CRASH (Index: 12)</h3>
@@ -574,11 +574,11 @@ overworld/wilderness map system. - Enables special worldmap automap
 display - Used for wilderness travel system - Affects routing and
 navigation commands</p>
 <p><strong>Code References:</strong> -
-<code>src/act.informative.c</code> - Automap checks
+<code>src/act/act.informative.c</code> - Automap checks
 (<code>do_survey()</code>) - <code>src/asciimap.c</code> - Map rendering
 (<code>show_worldmap()</code>) - <code>src/vessels/routing.c</code> -
 Navigation system (<code>start_flight_to_destination_luminari()</code>)
-- <code>src/act.wizard.c</code> - Administrative flag setting
+- <code>src/act/act.wizard.c</code> - Administrative flag setting
 (<code>do_setworldsect()</code>)</p>
 <h3 id="room_vehicle-index-40">ROOM_VEHICLE (Index: 40)</h3>
 <p><strong>Effect:</strong> Marks room as part of a vehicle or vessel. -
@@ -634,7 +634,7 @@ conversion</p>
 <p><strong>Effect:</strong> Marks room as being edited in the Online
 Level Creator (OLC). - Used by building/editing system - Prevents
 certain cleanup operations - Temporary flag during world editing</p>
-<p><strong>Code References:</strong> - <code>src/act.wizard.c</code> -
+<p><strong>Code References:</strong> - <code>src/act/act.wizard.c</code> -
 Administrative cleanup avoidance (<code>do_zcheck()</code>)</p>
 <h3 id="room_bfs_mark-index-15">ROOM_BFS_MARK (Index: 15)</h3>
 <p><strong>Effect:</strong> Temporary flag used by pathfinding
@@ -642,7 +642,7 @@ algorithms. - Marks rooms as visited during Breadth-First Search -
 Automatically cleared after pathfinding completes - Should never be
 permanently set on rooms - Internal system flag</p>
 <p><strong>Code References:</strong> - <code>src/graph.c</code> -
-Pathfinding algorithm - <code>src/act.wizard.c</code> - Cleanup
+Pathfinding algorithm - <code>src/act/act.wizard.c</code> - Cleanup
 detection (<code>do_zcheck()</code>)</p>
 <hr />
 <h2 id="size-restrictions">Size Restrictions</h2>
@@ -1123,7 +1123,7 @@ definitions (the <code>ROOM_*</code> define block ending at
 Movement restriction checks - <code>src/magic/spell_parser.c</code> -
 Magic restriction checks - <code>src/combat/fight.c</code> - Combat
 restriction checks - <code>src/utils.c</code> - Light and vision
-calculations - <code>src/act.informative.c</code> - Room description
+calculations - <code>src/act/act.informative.c</code> - Room description
 handling - <code>src/obj/house.c</code> - House system integration -
 <code>src/vessels/vessels_rooms.c</code> - Vehicle system
 integration</p>

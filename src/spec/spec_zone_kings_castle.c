@@ -16,7 +16,7 @@
 #include "db.h"
 #include "constants.h"
 #include "magic/spells.h"
-#include "act.h"
+#include "act/act.h"
 #include "spec_zone_kings_castle.h"
 #include "combat/fight.h"
 #include "graph.h"

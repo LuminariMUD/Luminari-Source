@@ -15,7 +15,7 @@
 #include "handler.h"
 #include "db.h"
 #include "constants.h"
-#include "act.h"
+#include "act/act.h"
 #include "vessels_legacy.h"
 #include "modify.h"
 #include "graph.h"

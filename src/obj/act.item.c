@@ -25,7 +25,7 @@
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "olc/oasis.h"
-#include "act.h"
+#include "act/act.h"
 #include "character/abilities.h"
 #include "quest/quest.h"
 #include "clan/clan.h"

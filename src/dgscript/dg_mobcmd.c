@@ -26,7 +26,7 @@
 #include "graph.h"
 #include "movement/movement.h"
 #include "olc/genzon.h" /* for real_zone_by_thing */
-#include "act.h"
+#include "act/act.h"
 #include "combat/fight.h"
 #include "obj/shop.h"  /* shop keepers and mhunt */
 #include "clan/clan.h" /* clan system */

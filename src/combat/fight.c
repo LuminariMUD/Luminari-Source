@@ -27,7 +27,7 @@
 #include "screen.h"
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
-#include "act.h"
+#include "act/act.h"
 #include "character/abilities.h"
 #include "character/class.h"
 #include "fight.h"

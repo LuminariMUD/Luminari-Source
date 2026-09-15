@@ -35,7 +35,7 @@
 #include "activity_manager.h"
 #include "active_world.h"
 #include "periodic_owners.h"
-#include "act.h"
+#include "act/act.h"
 #include "player/ban.h"
 #include "obj/treasure.h"
 #include "spec/spec_binding.h"

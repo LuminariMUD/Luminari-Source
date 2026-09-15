@@ -21,7 +21,7 @@
 #include "character/race.h"
 #include "wilderness/wilderness.h"
 #include "hunts.h"
-#include "act.h"
+#include "act/act.h"
 #include "combat/spec_abilities.h"
 #include "combat/assign_wpn_armor.h"
 #include "missions.h"

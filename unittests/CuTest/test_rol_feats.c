@@ -10,7 +10,7 @@
 #include "../../src/actionqueues.h"
 #include "../../src/activity_manager.h"
 #include "../../src/actions.h"
-#include "../../src/act.h"
+#include "../../src/act/act.h"
 #include "../../src/bardic_performance.h"
 #include "../../src/character/abilities.h"
 #include "../../src/constants.h"

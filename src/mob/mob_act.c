@@ -22,7 +22,7 @@
 #include "handler.h"
 #include "magic/spells.h"
 #include "constants.h"
-#include "act.h"
+#include "act/act.h"
 #include "graph.h"
 #include "combat/assign_wpn_armor.h"
 #include "combat/fight.h"

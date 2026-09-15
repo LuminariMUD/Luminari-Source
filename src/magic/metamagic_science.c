@@ -16,7 +16,7 @@
 #include "db.h"
 #include "interpreter.h"
 #include "constants.h"
-#include "act.h"
+#include "act/act.h"
 #include "character/class.h"
 #include "combat/fight.h"
 #include "spell_prep.h"

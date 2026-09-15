@@ -13,7 +13,7 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "db.h"
-#include "act.h"
+#include "act/act.h"
 #include "mudlim.h"
 #include "rewards.h"
 #include "magic/spells.h"

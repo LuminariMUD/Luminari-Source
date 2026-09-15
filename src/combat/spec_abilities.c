@@ -36,7 +36,7 @@
 #include "fight.h"
 #include "utils.h"
 #include "mud_event.h"
-#include "act.h" //perform_wildshapes
+#include "act/act.h" //perform_wildshapes
 #include "mudlim.h"
 #include "domain_event_world.h"
 #include "olc/oasis.h" // mob autoroller

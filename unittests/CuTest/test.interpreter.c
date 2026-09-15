@@ -5,7 +5,7 @@
 #include "../../src/utils.h"
 #include "../../src/structs.h"
 #include "../../src/interpreter.h"
-#include "../../src/act.h"
+#include "../../src/act/act.h"
 #include "../../src/craft/craft.h"
 #include "../../src/magic/spells.h"
 #include "../../src/net/protocol.h"

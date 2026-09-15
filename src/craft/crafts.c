@@ -14,7 +14,7 @@
 #include "utils.h"
 #include "db.h"
 #include "comm.h"
-#include "act.h"
+#include "act/act.h"
 #include "handler.h"
 #include "interpreter.h"
 #include "screen.h"

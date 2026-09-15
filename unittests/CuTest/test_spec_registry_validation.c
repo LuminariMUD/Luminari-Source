@@ -5,7 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 
-#include "../../src/act.h"
+#include "../../src/act/act.h"
 #include "../../src/character/backgrounds.h"
 #include "../../src/character/guild_services.h"
 #include "../../src/character/vampire_cloak.h"

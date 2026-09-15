@@ -6,7 +6,7 @@
 #include "../../src/utils.h"
 #include "../../src/db.h"
 #include "../../src/handler.h"
-#include "../../src/act.h"
+#include "../../src/act/act.h"
 #include "../../src/interpreter.h"
 #include "../../src/magic/spells.h"
 #include "../../src/character/feats.h"

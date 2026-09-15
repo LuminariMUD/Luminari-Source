@@ -12,7 +12,7 @@
 #include "utils.h"
 #include "graph.h"
 
-#include "act.h"
+#include "act/act.h"
 #include "comm.h"
 #include "constants.h"
 #include "db.h"

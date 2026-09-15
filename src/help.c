@@ -22,7 +22,7 @@
 #include "craft/alchemy.h"
 #include "constants.h"
 #include "character/deities.h"
-#include "act.h"
+#include "act/act.h"
 #include "character/evolutions.h"
 #include "character/backgrounds.h"
 

@@ -30,7 +30,7 @@
 #include "olc/improved-edit.h"
 #include "dgscript/dg_scripts.h"
 #include "constants.h"
-#include "act.h" /* ACMDs located within the act*.c files, char-creation help */
+#include "act/act.h" /* ACMDs located within the act*.c files, char-creation help */
 #include "player/ban.h"
 #include "net/i3_client.h" /* I3 command declarations */
 #include "character/class.h"

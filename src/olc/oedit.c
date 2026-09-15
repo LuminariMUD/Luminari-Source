@@ -31,7 +31,7 @@
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
 #include "obj/treasure.h" /* set_weapon_object */
-#include "act.h"          /* get_eq_score() */
+#include "act/act.h"      /* get_eq_score() */
 #include "character/feats.h"
 #include "handler.h"
 #include "spec/spec_binding.h"
