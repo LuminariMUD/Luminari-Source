@@ -1,4 +1,4 @@
-Param(
+param(
   [Parameter(Mandatory = $true)][string]$Zone
 )
 
@@ -9,7 +9,7 @@ $date = Get-Date -Format 'yyyyMMdd-HHmm'
 $backupDir = Join-Path $repoRoot "lib/world/backups/$date"
 New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
 
-$exts = 'wld','mob','obj','zon','trg','shp','qst','hlq'
+$exts = 'wld', 'mob', 'obj', 'zon', 'trg', 'shp', 'qst', 'hlq'
 foreach ($ext in $exts) {
   $src = Join-Path $repoRoot ("lib/world/{0}/{1}.{0}" -f $ext, $Zone)
   if (Test-Path -LiteralPath $src) {

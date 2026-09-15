@@ -31,8 +31,8 @@ was verified before its commit.
 | 5 prettier | done | Format YAML, JSON, HTML, CSS, and JavaScript with prettier | 32 of the 44 files in scope, +8,420/-4,024; `prettier --debug-check` passes on all 44 as they were; the parsed YAML or JSON of all 14 reformatted data files is unchanged; `clang-format --dump-config` and `clang-tidy --dump-config` print the same output (only quote style changed); `check-dg-docs.py`, `wtool.py constants sync --check`, `wtool.py docs --check`, the SQL format policy, and all 542 world-tool tests pass |
 | 6 CMake | done | Format CMake with gersemi | 2 files, +487/-301; `gersemi --safe` passes and matches the hook's output; `check_build_parity.py` passes, its parser returns identical sources for the old and new `CMakeLists.txt`, and the old pattern no longer finds `cutest` in the new file; a plain configure and the `ci-gcc` preset each generate identical compile commands (343 and 747), targets (1,054 and 1,273), and test commands (29) from both files; the `ci-gcc` preset builds `luminari` and `cutest` |
 | 7 PHP | done | Format PHP with php-cs-fixer | 7 files, +278/-250; `php -l` clean and compiled opcodes identical in 7 of 7 (PHP 8.3 image); `.php-cs-fixer.dist.php` lints clean; a second run finds nothing; with an empty cache the wrapper downloads the phar and verifies its sha256, and a download that does not match fails with exit 1 without replacing the cached phar; all 9 files of the step byte-identical to the dry run |
-| 8 PowerShell | next |  |  |
-| 9 CI, image, docs |  |  |  |
+| 8 PowerShell | done | Format PowerShell with PSScriptAnalyzer | 5 scripts, +18/-18, and the settings file, formatted by its own hook; parser tokens identical in 5 of 5 (case-insensitive outside strings and comments); a second run changes nothing; LF endings, final newlines, no byte-order marks; with an empty cache the wrapper saves PSScriptAnalyzer 1.25.0 and gives the same output; all 7 files of the step byte-identical to the dry run |
+| 9 CI, image, docs | next |  |  |
 | 10 after merge |  |  |  |
 
 Notes for whoever resumes:
