@@ -49,7 +49,7 @@
 #include "comms/ibt.h"
 #include "mud_event.h"
 #include "character/race.h"
-#include "clan.h"
+#include "clan/clan.h"
 #include "craft/craft.h"
 #include "obj/treasure.h"
 #include "character/feats.h"
@@ -96,7 +96,7 @@
 #include "rol_feats.h"
 #include "activity_manager.h"
 #include "password.h"
-#include "clan_economy.h"
+#include "clan/clan_economy.h"
 #include "vessels/transport_unified.h"
 #include "help.h"
 

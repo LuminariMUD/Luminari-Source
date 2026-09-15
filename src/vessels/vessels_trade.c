@@ -18,7 +18,7 @@
 #include "interpreter.h"
 #include "vessels.h"
 #include "mysql.h"
-#include "clan.h"
+#include "clan/clan.h"
 
 #include <errno.h>
 #include <limits.h>

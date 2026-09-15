@@ -27,7 +27,7 @@
 #include "act.h"
 #include "olc/genobj.h"
 #include "character/race.h"
-#include "clan.h"
+#include "clan/clan.h"
 #include "mudlim.h"
 #include "rewards.h"
 #include "character/feats.h"

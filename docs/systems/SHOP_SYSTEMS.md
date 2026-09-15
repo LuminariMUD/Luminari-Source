@@ -318,7 +318,7 @@ ASSIGNROOM(vnum, pet_shops);
 
 ## Clan Economy Integration
 
-The shop system integrates with the clan economy (`src/clan_economy.c`):
+The shop system integrates with the clan economy (`src/clan/clan_economy.c`):
 
 ### Features
 

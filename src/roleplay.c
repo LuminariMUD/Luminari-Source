@@ -17,7 +17,7 @@
 #include "obj/treasure.h"
 #include "handler.h"
 #include "combat/fight.h"
-#include "clan.h"
+#include "clan/clan.h"
 #include "dgscript/dg_scripts.h"
 #include "character/feats.h"
 #include "constants.h"

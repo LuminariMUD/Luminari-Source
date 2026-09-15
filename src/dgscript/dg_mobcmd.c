@@ -28,8 +28,8 @@
 #include "olc/genzon.h" /* for real_zone_by_thing */
 #include "act.h"
 #include "combat/fight.h"
-#include "obj/shop.h" /* shop keepers and mhunt */
-#include "clan.h"     /* clan system */
+#include "obj/shop.h"  /* shop keepers and mhunt */
+#include "clan/clan.h" /* clan system */
 #include "active_world.h"
 
 /* Local file scope functions. */

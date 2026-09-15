@@ -28,7 +28,7 @@
 #include "act.h"
 #include "character/abilities.h"
 #include "quest/quest.h"
-#include "clan.h"
+#include "clan/clan.h"
 #include "mud_event.h"
 #include "quest/hlquest.h"
 #include "combat/fight.h"

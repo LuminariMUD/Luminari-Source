@@ -20,7 +20,7 @@
 #include "constants.h"
 #include "modify.h"
 #include "mysql.h"
-#include "clan.h"
+#include "clan/clan.h"
 #include "act.h"                 /* for perform_save() */
 #include "dgscript/dg_scripts.h" /* for load_otriggers() */
 #include "olc/genzon.h"          /* for real_zone_by_thing() */

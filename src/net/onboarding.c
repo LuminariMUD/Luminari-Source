@@ -31,7 +31,7 @@
 #include "character/deities.h"
 #include "roleplay.h"
 #include "char_descs.h"
-#include "clan.h"
+#include "clan/clan.h"
 #include "character/feats.h"
 #include "character/character_creation.h"
 #include "character/character_creation_content.h"

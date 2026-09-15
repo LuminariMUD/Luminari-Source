@@ -29,7 +29,7 @@
 #include "dgscript/dg_scripts.h" /* To enable saving of player variables to disk */
 #include "quest/quest.h"
 #include "magic/spells.h"
-#include "clan.h"
+#include "clan/clan.h"
 #include "mud_event.h"
 #include "mudlim.h"
 #include "craft/craft.h" // crafting (auto craft quest inits)

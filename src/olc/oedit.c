@@ -24,7 +24,7 @@
 #include "dgscript/dg_olc.h"
 #include "combat/fight.h"
 #include "modify.h"
-#include "clan.h"
+#include "clan/clan.h"
 #include "craft/craft.h"
 #include "combat/spec_abilities.h"
 #include "character/feats.h"

@@ -21,7 +21,7 @@
 #include "combat/fight.h"
 #include "modify.h"
 #include "obj/house.h"
-#include "clan.h"
+#include "clan/clan.h"
 #include "mudlim.h"
 #include "graph.h"
 #include "dgscript/dg_scripts.h"

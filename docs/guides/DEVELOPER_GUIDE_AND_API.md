@@ -311,7 +311,7 @@ spell sorting and display are declared by `src/magic/spell_lists.h`. General leg
 callbacks use `src/spec/spec_mobiles.h` and `src/spec/spec_rooms.h`; guild services, wizard
 research, and pet-shop commerce use their owner headers under `src/character/`, `src/magic/`, and
 `src/obj/`. Reusable combat/companion callbacks use `src/spec/spec_mobile_archetypes.h`; clan-hall
-services use `src/clan_services.h`. King's Castle assignments and mobile behavior use
+services use `src/clan/clan_services.h`. King's Castle assignments and mobile behavior use
 `src/spec/spec_zone_kings_castle.h`; keep its relative-VNUM helpers and private runtime state with
 that cohesive zone package. Abyss and Crimson Flame procedures use `src/spec/spec_zone_abyss.h` and
 `src/spec/spec_zone_crimson_flame.h`; their room/mobile conversion helpers remain with their zone

@@ -22,7 +22,7 @@
 #include "modify.h"
 #include "asciimap.h"
 #include "magic/spells.h"
-#include "clan.h"
+#include "clan/clan.h"
 #include "craft/craft.h" // auto crafting quest
 #include "wilderness/wilderness.h"
 #include "quest.h" /* so you can identify questmaster mobiles */

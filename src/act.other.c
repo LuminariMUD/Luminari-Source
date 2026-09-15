@@ -45,7 +45,7 @@
 #include "quest/quest.h"
 #include "modify.h"
 #include "character/race.h"
-#include "clan.h"
+#include "clan/clan.h"
 #include "mud_event.h"
 #include "craft/craft.h"
 #include "obj/treasure.h"

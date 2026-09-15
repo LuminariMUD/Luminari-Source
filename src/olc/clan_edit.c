@@ -27,7 +27,7 @@
 #include "interpreter.h" /* one_argument() etc */
 #include "modify.h"      /* string_write etc */
 #include "comms/ibt.h"
-#include "clan.h"
+#include "clan/clan.h"
 
 /* Static internal (only used in clan_edit.c) functions */
 static void clanedit_setup(struct descriptor_data *d); /* Initialize clan editor for a descriptor */

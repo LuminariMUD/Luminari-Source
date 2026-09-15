@@ -45,7 +45,7 @@
 #include "../../src/handler.h"
 #include "../../src/obj/vendor.h"
 #include "../../src/obj/shop.h"
-#include "../../src/clan.h"
+#include "../../src/clan/clan.h"
 #include "../../src/interpreter.h"
 #include "../../src/mob/mob_utils.h"
 #include "../../src/mob/mob_known_spells.h"

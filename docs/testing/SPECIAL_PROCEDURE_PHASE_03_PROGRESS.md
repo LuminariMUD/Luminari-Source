@@ -234,7 +234,7 @@ to the clan subsystem:
   `solid_elemental`, `wraith_elemental`, and `bonedancer`;
 - the legacy `perform_lichdrain()` helper moves with the lich archetype while retaining its global
   name and type; and
-- `src/clan_services.c` and `.h` own `clan_cleric` and `clan_guard`, including clan-hall lookup,
+- `src/clan/clan_services.c` and `.h` own `clan_cleric` and `clan_guard`, including clan-hall lookup,
   membership policy, spell pricing, and entrance blocking.
 
 The dedicated archetype file keeps both general mobile sources below the 1,000-line review prompt.

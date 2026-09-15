@@ -19,7 +19,7 @@
 #include "oasis.h"
 #include "dgscript/dg_scripts.h"
 #include "handler.h"
-#include "clan.h"
+#include "clan/clan.h"
 
 /* Nasty internal macros to clean up the code. */
 //#define ZCMD            (zone_table[OLC_ZNUM(d)].cmd[subcmd])

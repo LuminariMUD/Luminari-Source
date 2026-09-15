@@ -37,7 +37,7 @@
 #include "combat/combat_encounters.h"
 #include "modify.h"
 #include "asciimap.h"
-#include "clan.h"
+#include "clan/clan.h"
 #include "craft/craft.h" // auto crafting quest
 #include "wilderness/wilderness.h"
 #include "quest/quest.h" /* so you can identify questmaster mobiles */

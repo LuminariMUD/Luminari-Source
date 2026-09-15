@@ -22,7 +22,7 @@
 #include "olc/oasis.h"
 #include "obj/house.h"
 #include "dgscript/dg_scripts.h"
-#include "clan.h"
+#include "clan/clan.h"
 #include "mysql.h"
 #include "modify.h"
 #include "new_mail.h"

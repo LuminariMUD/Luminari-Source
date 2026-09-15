@@ -48,7 +48,7 @@
 #include "ban.h"
 #include "screen.h"
 #include "mud_event.h"
-#include "clan.h"
+#include "clan/clan.h"
 #include "craft/craft.h"
 #include "quest/hlquest.h"
 #include "mudlim.h"

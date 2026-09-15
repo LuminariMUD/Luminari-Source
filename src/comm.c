@@ -90,8 +90,8 @@
 #include "quest/quest.h"
 #include "comms/ibt.h" /* for free_ibt_lists */
 #include "mud_event.h"
-#include "clan.h"
-#include "clan_economy.h"
+#include "clan/clan.h"
+#include "clan/clan_economy.h"
 #include "character/class.h" /* needed for level_exp for prompt */
 #include "comms/mail.h"      /* has_mail() */
 #include "comms/new_mail.h"  /* new mail system on prompt */

@@ -389,11 +389,11 @@ set(SRC_C_FILES
     src/bsd-snprintf.c
     src/olc/cedit.c
     src/char_descs.c
-    src/clan.c
-    src/clan_services.c
-    src/clan_economy.c
+    src/clan/clan.c
+    src/clan/clan_services.c
+    src/clan/clan_economy.c
     src/olc/clan_edit.c
-    src/clan_transactions.c
+    src/clan/clan_transactions.c
     src/character/class.c
     src/combat/combat_modes.c
     src/comm.c
