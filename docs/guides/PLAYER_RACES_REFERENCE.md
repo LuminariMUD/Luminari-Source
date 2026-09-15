@@ -492,7 +492,7 @@ players route around drawbacks and keep the power.
 | Uncontrolled rage below half hit points (no casting, no fleeing) | Bloodlust | -2 |
 
 Extra Arms is the general "one more arm" trait at 3 RP per rank (one extra
-full-bonus swing, no extra slots). The Duris Thri-Kreen four-arm mechanic
+full-bonus swing, no extra slots). The Thri-Kreen four-arm mechanic
 (issue #168) is the separate Four Arms innate: a second weapon pair plus
 doubled sleeve, glove and wrist slots. Its price is provisional and not yet
 validated; the study's 8 RP figure exceeds the single-trait cap of every tier,

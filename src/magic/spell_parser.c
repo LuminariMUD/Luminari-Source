@@ -6055,7 +6055,7 @@ void mag_assign_spells(void)
          POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 1, 1, NECROMANCY, FALSE);
   spello(ABILITY_CREATE_VAMPIRE_SPAWN, "create vampiric spawn", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
          FALSE, MAG_SUMMONS, NULL, 1, 1, NECROMANCY, FALSE);
-  /* Duris racial innates, cast through do_racial_sla */
+  /* Sep 2026 racial innates, cast through do_racial_sla */
   spello(ABILITY_SUMMON_WARG, "summon warg", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS,
          NULL, 1, 1, CONJURATION, FALSE);
   spello(ABILITY_SUMMON_HORDE, "summon horde", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,

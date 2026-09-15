@@ -1,4 +1,4 @@
-# Thri-Kreen four-arm wielding: Duris study and LuminariMUD mapping
+# Thri-Kreen four-arm wielding: Sep 2026 study and LuminariMUD mapping
 
 Status: mechanic implemented on branch
 `feat/168-thri-kreen-four-arm-wielding`, updated 2026-09-14. Steps 1 to 3
@@ -8,14 +8,14 @@ on the balance decisions listed in Part 0. See
 "Part 0: progress and handoff" for the exact state. The extra-attack
 stand-in first proposed for this issue was rejected; the target is the full
 mechanic: real weapon slots, real doubled limb slots, real extra swings, and
-a save format that carries them. Duris source verified at
+a save format that carries them. Sep 2026 source verified at
 `/home/aiwithapex/projects/duris`; our side traced in `src/core/structs.h`,
 `src/obj/act.item.c`, `src/obj/objsave.c`, `src/core/handler.c`,
 `src/combat/fight.c`, `src/character/race.c`, `src/core/constants.c`,
 `src/act/act.informative.c`, `src/player/players.c`, and `src/core/db.c`.
 
 Review baseline: LuminariMUD `6a048b0d34fe0f17faea30577d87bac72b5ec3d3`,
-Duris `9e0bfac624aa19eccbfc8045edbfa8cfddfb575f` (both clean when traced).
+Sep 2026 `9e0bfac624aa19eccbfc8045edbfa8cfddfb575f` (both clean when traced).
 Line numbers below refer to those revisions. Parts 1 to 4 preserve the
 original design study as reviewed; Part 0 records what the branch actually
 implements. Race conversion and RP prices below remain proposals.
@@ -27,7 +27,7 @@ new save format. The required additions are lifecycle-safe reconciliation,
 complete armor/weapon consumers, and integration tests. Full race release
 needs the separate balance decisions listed below.
 
-Companion references: the Duris racial mechanics gap list and race conversion
+Companion references: the Sep 2026 racial mechanics gap list and race conversion
 study (revision-pinned links in issue #168), race point budgets in
 `docs/guides/PLAYER_RACES_REFERENCE.md`, save format in
 `docs/systems/SAVE_SYSTEMS_BREAKDOWN.md`.
@@ -56,7 +56,7 @@ it landed.
 | Armor consumers | `apply_ac()`, `compute_gear_enhancement_bonus()` (lower piece counted only when worn), spell failure, armor penalty, max Dex, `is_proficient_with_sleeves()` (both pieces), the AC enhancement and dragonskin DR blocks in `fight.c`, and `rol_object_wear_conflicts()`. `do_equipment()` marks proficiency on all wield slots and lower sleeves. |
 | Display | `wear_where`, `equipment_types` (zedit lists them), `eq_ordering_1` (lower arms after arms, lower wrists after wrists, lower hands after hands, second pair after the first pair). |
 | Persistence | Seven `auto_equip()` cases in `src/obj/objsave.c` (`Loc` 45..51). No provider/dependent ordering or deferred cleanup yet (step 2). |
-| Help/docs | `FOUR-ARMS` entry in `lib/text/help/help.hlp` and `sql/components/help_duris_racial_innate_entries.sql`, applied to the development database and verified identical. `GAME_MECHANICS_SYSTEMS.md`, `PLAYER_RACES_REFERENCE.md` (stand-in text reconciled, Four Arms price marked provisional) and `SAVE_SYSTEMS_BREAKDOWN.md` updated. `wtool_constants.json` regenerated. |
+| Help/docs | `FOUR-ARMS` entry in `lib/text/help/help.hlp` and `sql/components/help_other_racial_innate_entries.sql`, applied to the development database and verified identical. `GAME_MECHANICS_SYSTEMS.md`, `PLAYER_RACES_REFERENCE.md` (stand-in text reconciled, Four Arms price marked provisional) and `SAVE_SYSTEMS_BREAKDOWN.md` updated. `wtool_constants.json` regenerated. |
 | Tests | `unittests/CuTest/test_four_arms.c` (eight `TestFourArms*` cases through `perform_wear()`, `equip_char()` and `test_auto_equip_loaded_object()`), registered in `Makefile.am` and `CMakeLists.txt`. `test_race_equivalence.c` expects the seven slots closed for a plain human. Full `make test` passes (1462 tests). |
 
 Decisions taken in step 1 that Part 3 left open:
@@ -156,7 +156,7 @@ each recorded in Part 3:
    bands. Options: price Four Arms lower with a documented exception,
    accept an Epic race with an exception note, or hold the race until the
    guide's Epic formula/table discrepancy is reconciled.
-2. Psionic defence: choose and price a mapping for Duris's psionic damage
+2. Psionic defence: choose and price a mapping for Sep 2026's psionic damage
    reduction, or omit it and say so.
 3. Venom: `FEAT_POISON_BITE` (1-in-6 poison proc on any damaging hit) is
    amplified by the extra swings; keep it, rescale its gate, or build a real
@@ -194,17 +194,17 @@ python3 scripts/ci/check_build_parity.py
 python3 scripts/world/wtool.py constants sync --check
 ```
 
-## Part 1: how Duris does it
+## Part 1: how Sep 2026 does it
 
 ### The race
 
-Duris Thri-Kreen (`RACE_THRIKREEN`, mob race code `TK`) are seven-foot
+Sep 2026 Thri-Kreen (`RACE_THRIKREEN`, mob race code `TK`) are seven-foot
 insectoid nomads with four arms. Their help entry (`help/duris_help_parsed.hlp`)
 promises: wield up to four weapons at once, "including dual two-handed weapons
 or archery combinations"; four wrist items, two sets of sleeves, two sets of
 gloves; no body armor, footwear, finger rings, or earrings.
 
-| Duris element | Where | Value |
+| Sep 2026 element | Where | Value |
 | -- | -- | -- |
 | Stats (Str/Agi/Dex/Con/Pow/Int/Wis/Cha/Luck) | help entry | 115/130/125/105/70/65/65/75/90 |
 | Innates | `src/classes/innates.c:657` | Dayvision 1, Ultravision 1, Bite 11, Leap 21, Vulnerable to Cold 1 |
@@ -281,7 +281,7 @@ your wrists".
 
 ### The attack round (`src/combat/fight.c` `calculate_attacks()`, line 9117)
 
-Duris builds an array of weapon slots to swing this round with
+Sep 2026 builds an array of weapon slots to swing this round with
 `ADD_ATTACK(slot)`. For the non-monk path:
 
 | Trigger | Base swing | Four-hand mirror | Chance |
@@ -299,7 +299,7 @@ zero skill and 100 percent at 100 skill. The strict comparisons instead give
 49/99 or 44/94 percent. This table is not the whole routine: class-specific
 and high-Dexterity attacks are not all mirrored, and the normal monk path
 does not use this non-monk table. "Roughly doubles" is a heuristic, not an
-exact attack count or damage-per-second result. Duris has no off-hand
+exact attack count or damage-per-second result. Sep 2026 has no off-hand
 strength or hit penalty tied to a slot: `pv_common()` receives only the weapon, so the third weapon is as
 good as the first and the fourth as the second.
 
@@ -315,7 +315,7 @@ slots, and object specials that must be wielded accept any weapon slot
 
 ### Persistence
 
-Duris does not save the slot number as a stable equipment position. Rent
+Sep 2026 does not save the slot number as a stable equipment position. Rent
 files write the equipment array index, and `restore_wear[MAX_WEAR]`
 (`src/core/files.c:4026`) maps THIRD_WEAPON and FOURTH_WEAPON to wear keyword
 12 (wield). On load `wear(ch, obj, 12)` is called, which re-runs
@@ -635,7 +635,7 @@ weapon: WIELD_4 alone must not generate an empty THIRD weapon attack.
 
 The proposed mirror chance is 50 percent, +25 for effective basic two-weapon
 training, +25 for effective improved training. This is a balance proposal,
-not an exact conversion of every Duris roll. Use the same effective training
+not an exact conversion of every Sep 2026 roll. Use the same effective training
 checks for both attack eligibility and the chance (including NPC behavior).
 Keep first-pair double-weapon quirks from leaking into unrelated weapons;
 cover any intentional correction with a baseline regression.
@@ -725,7 +725,7 @@ race still needs a unique registry ID, bounds and creation/account-unlock
 wiring using the existing registration path. The mapping below is provisional;
 it is not a complete race registration patch.
 
-| Duris | Proposed Luminari mapping or unresolved difference |
+| Sep 2026 | Proposed Luminari mapping or unresolved difference |
 | -- | -- |
 | Stats 115/130/125/105/70/65/65/75/90 | Study proposal +2/+1/-4/-4/+3/-3 (Str/Con/Int/Wis/Dex/Cha); re-evaluate after correcting the psionic/cold interpretation |
 | Size Medium | `SIZE_MEDIUM` |
@@ -734,11 +734,11 @@ it is not a complete race registration patch.
 | Dayvision | No separate gameplay mapping proposed |
 | Bite at 11, paralysing venom | `FEAT_POISON_BITE` (59) is an approximation, not a bite attack: the hit path has a 1-in-6 poison-spell proc on damaging hits, including weapons. Gate 6 is the study's proposed level rescaling. Extra weapon hits amplify it; a bite/paralysis implementation is separate work |
 | Leap at 21 | `FEAT_LEAP` at proposed gate 11 |
-| Psionic damage reduction | Duris has a -0.3 `SPLDAM_PSI` multiplier adjustment; select and price a separate psionic-defense mapping before full race release |
-| Cold vulnerability and failed-save slow | `FEAT_VULNERABLE_TO_COLD` gives -20 cold damage reduction; it does not supply Duris's save-against-slow rider |
+| Psionic damage reduction | Sep 2026 has a -0.3 `SPLDAM_PSI` multiplier adjustment; select and price a separate psionic-defense mapping before full race release |
+| Cold vulnerability and failed-save slow | `FEAT_VULNERABLE_TO_COLD` gives -20 cold damage reduction; it does not supply Sep 2026's save-against-slow rider |
 | No body, feet, finger, ear | `set_race_wear_restriction()` for BODY, FEET, FINGER_R/L, EAR_R/L |
 | Cannot ride | Do not grant `FEAT_QUADRUPED_BODY` as a substitute: its knockdown resistance is an unrelated benefit. A mount-only rule is separate conversion work |
-| Devastating Critical deny | No Duris epic-skill mapping proposed |
+| Devastating Critical deny | No Sep 2026 epic-skill mapping proposed |
 | Very bad combat pulse | No race-specific timing proposed; fixed Luminari rounds mean actual damage/proc output needs balancing |
 
 ### Race point price and release decisions
@@ -779,7 +779,7 @@ balanced progression across classes.
 | Combat | `src/combat/fight.c`, `src/combat/fight.h`, `src/combat/assign_wpn_armor.c`, `src/combat/assign_wpn_armor.h`, affected offensive selectors | Weapon routing, attack opportunities, phase/count/display behavior, armor and explicit weapon consumers |
 | Persistence | `src/obj/objsave.c`, `src/player/players.c` | Provider/dependent restore order, final validation, pet lifecycle and fingerprint checks |
 | Docs | `docs/systems/SAVE_SYSTEMS_BREAKDOWN.md`, `docs/guides/PLAYER_RACES_REFERENCE.md`, `docs/systems/GAME_MECHANICS_SYSTEMS.md` | Format/rollback notes, correct stand-in description and provisional pricing, mechanic rules |
-| Help | `lib/text/help/help.hlp`, `sql/components/help_duris_racial_innate_entries.sql`, development help database | FOUR-ARMS entry; apply the SQL to the intended development DB and verify both copies agree |
+| Help | `lib/text/help/help.hlp`, `sql/components/help_other_racial_innate_entries.sql`, development help database | FOUR-ARMS entry; apply the SQL to the intended development DB and verify both copies agree |
 | Constants sync | `scripts/world/wtool_constants.json` | Regenerate/resync changed constants and bounds |
 | Tests/build lists | Existing root CuTest files, optionally `test_four_arms.c`; `Makefile.am`, `CMakeLists.txt` if a file is added | Production-linked regressions and build parity |
 
@@ -853,12 +853,12 @@ update `cutest_SOURCES` and `cutest_test_files` in `Makefile.am` and
 `python3 scripts/ci/check_build_parity.py`. A documentation-only review does
 not require building or starting the MUD.
 
-### Deviations from Duris, recorded
+### Deviations from Sep 2026, recorded
 
 - Proposed mirrors use effective feat training (50/75/100 percent), not the
-  various skill-scaled and strict-comparison rolls in Duris.
+  various skill-scaled and strict-comparison rolls in Sep 2026.
 - The second pair uses Luminari pair penalties and offhand Strength rules.
-  Duris's slower racial combat pulse is not implemented by these changes.
+  Sep 2026's slower racial combat pulse is not implemented by these changes.
 - No extra-hand launchers, third held item, or held implements in weapon slots.
   Throwable melee weapons retain their melee use; thrown counts do not grow.
 - Valid slots restore by number, rather than re-wielding by keyword.

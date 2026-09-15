@@ -1376,7 +1376,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
       bonuses[BONUS_TYPE_SIZE] += 4;
     }
   }
-  /* rrakkma (Duris racial innate): +1 per other grouped ally here with the feat */
+  /* rrakkma (Sep 2026 racial innate): +1 per other grouped ally here with the feat */
   bonuses[BONUS_TYPE_RACIAL] += racial_rrakkma_allies(ch);
   if (bonuses[BONUS_TYPE_SIZE] < 0)
     ac_penalty -= bonuses[BONUS_TYPE_SIZE];
@@ -3993,7 +3993,7 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
 
 // can return negative values, which indicates vulnerability (this is percent)
 // dam_ defines are in spells.h
-/* ---- Duris racial innates ----
+/* ---- Sep 2026 racial innates ----
  * see docs/systems/GAME_MECHANICS_SYSTEMS.md */
 
 /* weapon-family mastery: +1 attack and damage per 8 levels, max +3, while the
@@ -4139,7 +4139,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_da
     }
   }
 
-  /* Duris racial innates */
+  /* Sep 2026 racial innates */
   if (HAS_FEAT(ch, FEAT_MAGIC_VULNERABILITY) && is_spell_or_spell_like(w_type))
     damtype_reduction -= 10;
   if (HAS_FEAT(ch, FEAT_MAGICAL_REDUCTION) && (dam_type == DAM_FORCE || dam_type == DAM_ENERGY))
@@ -5226,7 +5226,7 @@ static int damage_handling_with_weapon(struct char_data *ch, struct char_data *v
     if (dam_type == DAM_POISON && !can_poison(victim))
       return 0;
 
-    /* spell absorb (Duris racial innate): swallow a damaging spell whole */
+    /* spell absorb (Sep 2026 racial innate): swallow a damaging spell whole */
     if (is_spell && rand_number(1, 100) <= racial_spell_absorb_chance(victim))
     {
       act("\tWYou absorb the magic of $n's spell harmlessly!\tn", FALSE, ch, 0, victim, TO_VICT);
@@ -7126,7 +7126,7 @@ static int compute_damage_bonus_with_projectile(struct char_data *ch, struct cha
       send_to_char(ch, "Bloodhunt: \tR1\tn\r\n");
   }
 
-  /* Duris racial innates: hatred, weapon-family mastery, warcaller's fury */
+  /* Sep 2026 racial innates: hatred, weapon-family mastery, warcaller's fury */
   if (ch && vict && HAS_FEAT(ch, FEAT_HATRED) && IS_EVIL(vict))
   {
     dambonus += 2;
@@ -11327,7 +11327,7 @@ static int compute_attack_bonus_full_with_weapon(
       send_to_char(ch, " 1: %-50s\r\n", "Bloodhunt");
   }
 
-  /* Duris racial innates: hatred and weapon-family mastery */
+  /* Sep 2026 racial innates: hatred and weapon-family mastery */
   if (ch && victim && HAS_FEAT(ch, FEAT_HATRED) && IS_EVIL(victim))
   {
     bonuses[BONUS_TYPE_MORALE] += 1;
@@ -14479,7 +14479,7 @@ static int handle_successful_attack(struct char_data *ch, struct char_data *vict
     hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
   }
 
-  /* Battle Frenzy (Duris racial innate): 5% chance per melee hit on a humanoid */
+  /* Battle Frenzy (Sep 2026 racial innate): 5% chance per melee hit on a humanoid */
   if (!victim_is_dead && battle_frenzy_applies(ch, victim, attack_type) && dice(1, 100) <= 5)
   {
     send_to_char(ch, "\tW[BATTLE FRENZY!]\tn\r\n");

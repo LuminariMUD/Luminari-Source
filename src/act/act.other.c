@@ -6200,7 +6200,7 @@ ACMD(do_darkness)
     start_daily_use_cooldown(ch, FEAT_SLA_DARKNESS);
 }
 
-/* Duris racial innates: one table-driven handler for the spell-like abilities.
+/* Sep 2026 racial innates: one table-driven handler for the spell-like abilities.
  * Each verb is its own cmd_info[] row whose subcmd indexes racial_sla_table[]
  * (SCMD_RSLA_* in interpreter.h).  Every row casts its spell with call_magic()
  * at character level and spends one daily use of its feat. */
@@ -6319,7 +6319,7 @@ static int racial_sla_mass_dispel(struct char_data *ch, int spellnum, bool *stri
   return targets;
 }
 
-/* racial spell-like abilities (Duris innates), see racial_sla_table[] */
+/* racial spell-like abilities (Sep 2026 innates), see racial_sla_table[] */
 ACMD(do_racial_sla)
 {
   const struct racial_sla_info *sla = racial_sla_lookup(subcmd);
@@ -6490,7 +6490,7 @@ ACMD(do_racial_sla)
     start_daily_use_cooldown(ch, sla->feat);
 }
 
-/* racial flurry (Duris racial innate), the 'onslaught' command: one extra attack
+/* racial flurry (Sep 2026 racial innate), the 'onslaught' command: one extra attack
  * per round for four rounds, as a short haste affect that does not stack with
  * real haste.  'flurry' itself is shadowed by the monk flurryofblows row. */
 ACMD(do_racial_flurry)

@@ -1878,7 +1878,7 @@ int get_vessel_position_speed_modifier(enum vessel_class vessel_type, int sector
   return modifier;
 }
 
-/* seadog (Duris racial innate): one extra tile per move while at the helm */
+/* seadog (Sep 2026 racial innate): one extra tile per move while at the helm */
 int vessel_pilot_speed_bonus(struct char_data *ch)
 {
   if (ch == NULL || !HAS_FEAT(ch, FEAT_SEADOG))

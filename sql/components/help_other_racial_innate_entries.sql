@@ -1,4 +1,4 @@
--- Help entries for the Duris racial innates converted to feats.
+-- Help entries for the new set of racial innates converted to feats.
 --
 -- One entry per feat; active feats carry their command verb as an extra
 -- keyword where it does not collide with an existing spell entry.

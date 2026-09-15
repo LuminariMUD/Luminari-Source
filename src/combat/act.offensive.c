@@ -1691,7 +1691,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
     return FALSE;
   }
 
-  /* quadruped body (Duris racial innate): only a larger attacker can topple it */
+  /* quadruped body (Sep 2026 racial innate): only a larger attacker can topple it */
   if (HAS_FEAT(vict, FEAT_QUADRUPED_BODY) && GET_SIZE(ch) <= GET_SIZE(vict))
   {
     if (display)
@@ -14550,7 +14550,7 @@ static bool stampede_target(struct char_data *ch, struct char_data *tch)
   return !is_flying(tch);
 }
 
-/* stampede (Duris racial innate): trample every opponent fighting you, knocking
+/* stampede (Sep 2026 racial innate): trample every opponent fighting you, knocking
  * down and striking each you overrun.  Once every three rounds. */
 ACMD(do_stampede)
 {

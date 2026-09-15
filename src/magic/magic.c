@@ -1033,7 +1033,7 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
   if (has_teamwork_feat(vict, FEAT_SHAKE_IT_OFF))
     savethrow += MIN(4, has_teamwork_feat(vict, FEAT_SHAKE_IT_OFF));
 
-  /* rrakkma (Duris racial innate): +2 per other grouped ally here with the feat */
+  /* rrakkma (Sep 2026 racial innate): +2 per other grouped ally here with the feat */
   savethrow += 2 * racial_rrakkma_allies(vict);
 
   if (is_judgement_possible(vict, ch, INQ_JUDGEMENT_PURITY))
@@ -1120,7 +1120,7 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
     }
   }
 
-  /* quick thinking (Duris racial innate): a failed will save may be rerolled once */
+  /* quick thinking (Sep 2026 racial innate): a failed will save may be rerolled once */
   if (diceroll != 20 && (savethrow < challenge || diceroll == 1) &&
       rand_number(1, 100) <= racial_quick_thinking_chance(vict, type))
   {
@@ -12851,7 +12851,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     pfail = 10;
     break;
 
-  /* Duris racial innates */
+  /* Sep 2026 racial innates */
   case ABILITY_SUMMON_WARG:
     msg = 36;
     fmsg = 8;
@@ -13292,13 +13292,13 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       autoroll_mob(mob, TRUE, TRUE);
       break;
 
-    case ABILITY_SUMMON_WARG: /* Duris racial innate: a mount */
+    case ABILITY_SUMMON_WARG: /* Sep 2026 racial innate: a mount */
       GET_LEVEL(mob) = MAX(1, GET_LEVEL(ch) * 2 / 3);
       autoroll_mob(mob, TRUE, TRUE);
       SET_BIT_AR(MOB_FLAGS(mob), MOB_MOUNTABLE);
       break;
 
-    case ABILITY_SUMMON_HORDE: /* Duris racial innate: orcs that drift off later */
+    case ABILITY_SUMMON_HORDE: /* Sep 2026 racial innate: orcs that drift off later */
       GET_LEVEL(mob) = MAX(1, GET_LEVEL(ch) / 2);
       autoroll_mob(mob, TRUE, TRUE);
       attach_mud_event(new_mud_event(ePURGEMOB, mob, NULL), 900 * PASSES_PER_SEC);

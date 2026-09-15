@@ -392,7 +392,7 @@ int apply_feat_bonuses(struct char_data *ch, int bonus_type) {
 ### Racial Innate Feats and Spell-Like Abilities
 
 Race-level abilities are feats, not race checks. Every racial innate (including
-the Duris-derived set added in 2026) is registered with `feato()` as
+the other-derived set added in 2026) is registered with `feato()` as
 `in_game = TRUE`, `can_learn = FALSE`, `FEAT_TYPE_INNATE_ABILITY`, and the
 mechanic that consumes it tests `HAS_FEAT()`; `GET_RACE()` is never the gate.
 Races receive innates through `feat_race_assignment(race, feat, level, stacks)`
@@ -439,7 +439,7 @@ it; spell DCs are left to the existing focus feats.
 melee attack at full base attack bonus per rank, after the ranged routines so
 launchers and thrown weapons never gain it. It brings no equipment slots.
 
-The Duris Thri-Kreen four-arm mechanic is `FEAT_FOUR_ARMS`, tested through
+The Thri-Kreen four-arm mechanic is `FEAT_FOUR_ARMS`, tested through
 `has_four_arms()` in `src/core/utils.c` (never a race constant). Grant sources
 are mob feats for NPCs and disguised wild shapes, the character's own feat,
 and `APPLY_FEAT` items worn in ordinary slots; an item in one of the seven
@@ -479,8 +479,8 @@ mode. The design record is `docs/ongoing-projects/THRI_KREEN_FOUR_ARMS.md`.
 
 When `NUM_FEATS` moves, regenerate `scripts/world/wtool_constants.json` with
 `python3 scripts/world/wtool.py constants sync --write`. Player-facing text
-lives in both `lib/text/help/help.hlp` and the help database; the Duris set is
-tracked as `sql/components/help_duris_racial_innate_entries.sql`, and race
+lives in both `lib/text/help/help.hlp` and the help database; the other set is
+tracked as `sql/components/help_other_racial_innate_entries.sql`, and race
 point pricing is in `docs/guides/PLAYER_RACES_REFERENCE.md`. Production-linked
 coverage is `unittests/CuTest/test_racial_innate_feats.c`.
 
