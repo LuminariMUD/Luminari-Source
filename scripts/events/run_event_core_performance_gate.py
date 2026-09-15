@@ -337,7 +337,9 @@ def clone_player_files(template: Path, source_name: str, rows: list[tuple[str, i
     source_text = source_file.read_text(encoding="utf-8")
     source_objects = next(template.glob(f"plrobjs/*/{source_name.lower()}.objs"), None)
     index_path = template / "plrfiles" / "index"
-    index_lines = [line for line in index_path.read_text(encoding="utf-8").splitlines() if line != "~"]
+    index_lines = [
+        line for line in index_path.read_text(encoding="utf-8").splitlines() if line != "~"
+    ]
     existing_names = {line.split()[1].lower() for line in index_lines if len(line.split()) >= 2}
     epoch = int(time.time())
     for offset, (name, player_id) in enumerate(rows):
@@ -387,7 +389,9 @@ class MudSession:
                 chunk = await asyncio.wait_for(self.reader.read(65536), timeout=remaining)
             except asyncio.TimeoutError as error:
                 tail = clean_output(self.buffer)[-1000:]
-                raise GateFailure(f"{self.name}: timeout waiting for {regex.pattern!r}: {tail}") from error
+                raise GateFailure(
+                    f"{self.name}: timeout waiting for {regex.pattern!r}: {tail}"
+                ) from error
             if not chunk:
                 raise GateFailure(f"{self.name}: connection closed while waiting for output")
             self.buffer += chunk
@@ -683,8 +687,15 @@ def analyze_backend(output_dir: Path, profile: str) -> dict[str, object]:
                 (output_dir / f"{phase}-event-types.txt").read_text(encoding="utf-8")
             )
         }
-    required_zero = tuple(key for key in diagnostics["steady"] if key not in {"live_events", "ready"})
-    missing = [f"{phase}:{key}" for phase, values in diagnostics.items() for key in required_zero if values[key] is None]
+    required_zero = tuple(
+        key for key in diagnostics["steady"] if key not in {"live_events", "ready"}
+    )
+    missing = [
+        f"{phase}:{key}"
+        for phase, values in diagnostics.items()
+        for key in required_zero
+        if values[key] is None
+    ]
     nonzero = {
         f"{phase}:{key}": values[key]
         for phase, values in diagnostics.items()
@@ -751,7 +762,12 @@ def analyze_backend(output_dir: Path, profile: str) -> dict[str, object]:
         )
     ]
     log_result = {"suspicious_lines": suspicious_log_lines, "passed": not suspicious_log_lines}
-    passed = bool(lateness["passed"] and diagnostic_result["passed"] and command["passed"] and log_result["passed"])
+    passed = bool(
+        lateness["passed"]
+        and diagnostic_result["passed"]
+        and command["passed"]
+        and log_result["passed"]
+    )
     if profile == "full":
         passed = passed and bool(memory.get("passed"))
     return {
@@ -789,7 +805,10 @@ async def run_command_client(
         elif action == "get token":
             command, response = "get token", r"You (?:get|pick up)|You don't see|You can't"
         elif action == "drop token":
-            command, response = "drop token", r"You drop|You don't seem|You aren't carrying|You can't"
+            command, response = (
+                "drop token",
+                r"You drop|You don't seem|You aren't carrying|You can't",
+            )
         elif action.startswith("cast"):
             command = action
             response = r"You begin casting|You don't know|You cannot|You can't|already casting"
@@ -808,16 +827,22 @@ async def run_command_client(
         except GateFailure:
             timed_out = 1
         latency_ms = (time.monotonic_ns() - sent_ns) / 1_000_000.0
-        rows.append([now_utc(), client_index, session.name, command, f"{latency_ms:.3f}", timed_out])
+        rows.append(
+            [now_utc(), client_index, session.name, command, f"{latency_ms:.3f}", timed_out]
+        )
         count += 1
     with output.open("a", newline="", encoding="utf-8") as sink:
         csv.writer(sink).writerows(rows)
 
 
-async def rss_sampler(pid: int, backend: str, phase_ref: list[str], output: Path, stop: asyncio.Event) -> None:
+async def rss_sampler(
+    pid: int, backend: str, phase_ref: list[str], output: Path, stop: asyncio.Event
+) -> None:
     with output.open("w", newline="", encoding="utf-8") as sink:
         writer = csv.writer(sink)
-        writer.writerow(["utc", "monotonic", "backend", "phase", "rss_kib", "vmsize_kib", "threads", "load1"])
+        writer.writerow(
+            ["utc", "monotonic", "backend", "phase", "rss_kib", "vmsize_kib", "threads", "load1"]
+        )
         while not stop.is_set():
             values: dict[str, str] = {}
             try:
@@ -922,7 +947,9 @@ async def run_backend(
     shutil.copytree(template_lib, runtime_lib)
     config = runtime_lib / "etc" / "config"
     config.write_text(
-        re.sub(r"(?m)^\s*DFLT_PORT\s*=.*$", f"DFLT_PORT = {port}", config.read_text(encoding="utf-8")),
+        re.sub(
+            r"(?m)^\s*DFLT_PORT\s*=.*$", f"DFLT_PORT = {port}", config.read_text(encoding="utf-8")
+        ),
         encoding="utf-8",
     )
     (runtime_lib / "mysql_config").write_text(
@@ -990,16 +1017,25 @@ async def run_backend(
         while time.monotonic() < deadline:
             if process.poll() is not None:
                 raise GateFailure(f"{backend}: server exited during boot")
-            if server_log.exists() and "Entering game loop." in clean_output(server_log.read_bytes()):
+            if server_log.exists() and "Entering game loop." in clean_output(
+                server_log.read_bytes()
+            ):
                 break
             await asyncio.sleep(0.25)
         else:
             raise GateFailure(f"{backend}: game loop did not become ready")
 
         sampler = asyncio.create_task(
-            rss_sampler(process.pid, backend, phase_ref, output_dir / "process-memory.csv", sampler_stop)
+            rss_sampler(
+                process.pid, backend, phase_ref, output_dir / "process-memory.csv", sampler_stop
+            )
         )
-        admin = await login(port, account, password, read_assignments(repo / "lib" / ".env").get("DEV_MUD_CHARACTER", "Aster"))
+        admin = await login(
+            port,
+            account,
+            password,
+            read_assignments(repo / "lib" / ".env").get("DEV_MUD_CHARACTER", "Aster"),
+        )
         transcript = output_dir / "admin-transcript.txt"
         await admin_command(admin, "toggle pagelength 255", transcript)
         await seed_tokens(admin, transcript)
@@ -1015,7 +1051,9 @@ async def run_backend(
         await asyncio.sleep(durations["idle"])
         await capture_phase(admin, "idle", output_dir)
 
-        sessions.extend([await login(port, account, password, name) for name in TEST_CHARACTERS[2:]])
+        sessions.extend(
+            [await login(port, account, password, name) for name in TEST_CHARACTERS[2:]]
+        )
         await clear_room(admin, FIXTURE_COMBAT_ROOM, transcript)
         await admin_command(admin, f"load mob {FIXTURE_ATTACKER_MOB}", transcript)
         await admin_command(admin, f"load mob {FIXTURE_DEFENDER_MOB}", transcript)
@@ -1026,13 +1064,17 @@ async def run_backend(
 
         command_csv = output_dir / "command-latency.csv"
         with command_csv.open("w", newline="", encoding="utf-8") as sink:
-            csv.writer(sink).writerow(["utc", "client", "character", "command", "latency_ms", "timeout"])
+            csv.writer(sink).writerow(
+                ["utc", "client", "character", "command", "latency_ms", "timeout"]
+            )
         set_phase("command")
         await admin_command(admin, "perfmon reset", transcript)
         command_start = time.monotonic() + 1.0
         await asyncio.gather(
             *(
-                run_command_client(session, index + 1, durations["command"], command_start, command_csv)
+                run_command_client(
+                    session, index + 1, durations["command"], command_start, command_csv
+                )
                 for index, session in enumerate(sessions)
             )
         )
@@ -1114,13 +1156,20 @@ def main() -> int:
     if environment.get("APP_ENV") != "development":
         raise GateFailure("APP_ENV must be development")
     account = environment.get("DEV_MUD_ACCOUNT") or environment.get("GAME_MASTER_ACCOUNT")
-    password = environment.get("DEV_MUD_ACCOUNT_PASSWORD") or environment.get("GAME_MASTER_ACCOUNT_PASSWORD")
+    password = environment.get("DEV_MUD_ACCOUNT_PASSWORD") or environment.get(
+        "GAME_MASTER_ACCOUNT_PASSWORD"
+    )
     source_character = environment.get("DEV_MUD_CHARACTER", "Aster")
     if not account or not password:
         raise GateFailure("development account credentials are unavailable")
 
-    world_source = (args.world_root or repo / ".ci-runtime" / "production-world-20260831" / "world").resolve()
-    if not world_source.is_dir() or sum(1 for path in world_source.rglob("*") if path.is_file()) < 1000:
+    world_source = (
+        args.world_root or repo / ".ci-runtime" / "production-world-20260831" / "world"
+    ).resolve()
+    if (
+        not world_source.is_dir()
+        or sum(1 for path in world_source.rglob("*") if path.is_file()) < 1000
+    ):
         raise GateFailure("a retrieved full-world directory is required")
     stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
     run_root = (args.run_root or repo / f".burnin-runtime-event111-{stamp}").resolve()
@@ -1206,7 +1255,13 @@ def main() -> int:
         )
 
         def reset_database(runtime_lib: Path) -> None:
-            run_checked(root_command + ["--execute=" f"DROP DATABASE IF EXISTS `{DB_NAME}`; CREATE DATABASE `{DB_NAME}` CHARACTER SET utf8mb4;"])
+            run_checked(
+                root_command
+                + [
+                    "--execute="
+                    f"DROP DATABASE IF EXISTS `{DB_NAME}`; CREATE DATABASE `{DB_NAME}` CHARACTER SET utf8mb4;"
+                ]
+            )
             run_checked(root_command + [DB_NAME], stdin=snapshot)
             source = source_character.replace("'", "''")
             statements = []
@@ -1248,11 +1303,15 @@ def main() -> int:
             ["pgrep", "-a", "luminari"], capture_output=True, check=False, text=True
         ).stdout.splitlines()
         provenance = {
-            "source_sha": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip(),
+            "source_sha": subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], cwd=repo, text=True
+            ).strip(),
             "source_dirty_diff_sha": hashlib.sha256(
                 subprocess.check_output(["git", "diff", "--binary", "HEAD"], cwd=repo)
             ).hexdigest(),
-            "binary_sha256": hashlib.sha256((repo / "bin" / "luminari").resolve().read_bytes()).hexdigest(),
+            "binary_sha256": hashlib.sha256(
+                (repo / "bin" / "luminari").resolve().read_bytes()
+            ).hexdigest(),
             "database_snapshot_sha256": snapshot_sha,
             "world_tree_sha256_before_fixture": hash_tree(world_source),
             "world_source_file_count": sum(1 for path in world_source.rglob("*") if path.is_file()),
@@ -1338,7 +1397,9 @@ def main() -> int:
             status_path,
             {"state": "completed", "finished_utc": now_utc(), "summaries": summaries},
         )
-        failed_backends = [summary["backend"] for summary in summaries if not summary["analysis"]["passed"]]
+        failed_backends = [
+            summary["backend"] for summary in summaries if not summary["analysis"]["passed"]
+        ]
         if failed_backends:
             raise GateFailure(
                 f"{args.profile} workload failed evaluated thresholds: {', '.join(failed_backends)}"
@@ -1346,7 +1407,12 @@ def main() -> int:
     except Exception as error:
         write_json(
             status_path,
-            {"state": "failed", "finished_utc": now_utc(), "error": str(error), "completed": summaries},
+            {
+                "state": "failed",
+                "finished_utc": now_utc(),
+                "error": str(error),
+                "completed": summaries,
+            },
         )
         raise
     finally:

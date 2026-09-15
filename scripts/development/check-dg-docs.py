@@ -97,9 +97,7 @@ def check_pages(errors: list[str]) -> dict[Path, DocumentIndex]:
                 if target.is_dir():
                     target /= "index.html"
             if not target.exists():
-                errors.append(
-                    f"{source.relative_to(ROOT)} links to missing {raw_href!r}"
-                )
+                errors.append(f"{source.relative_to(ROOT)} links to missing {raw_href!r}")
                 continue
             if parts.fragment and target.suffix.lower() == ".html":
                 target_index = indexes.get(target)
@@ -109,8 +107,7 @@ def check_pages(errors: list[str]) -> dict[Path, DocumentIndex]:
                     indexes[target] = target_index
                 if parts.fragment not in target_index.ids:
                     errors.append(
-                        f"{source.relative_to(ROOT)} links to missing anchor "
-                        f"{raw_href!r}"
+                        f"{source.relative_to(ROOT)} links to missing anchor {raw_href!r}"
                     )
     return indexes
 
@@ -178,7 +175,9 @@ def js_split_field_names(block: str, group: str) -> list[str]:
     raise ValueError(f"cannot find JS field group {group}")
 
 
-def compare_inventory(label: str, source: list[str], documented: list[str], errors: list[str]) -> None:
+def compare_inventory(
+    label: str, source: list[str], documented: list[str], errors: list[str]
+) -> None:
     source_set = set(source)
     documented_set = set(documented)
     missing = source_set - documented_set

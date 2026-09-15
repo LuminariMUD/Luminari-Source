@@ -11,6 +11,14 @@ repos:
         args: [--style=file]
         exclude: ^src/(olc/genolc\.c|core/utils\.h)$
 
+  # Python: ruff's formatter. The upstream hook also accepts Markdown, whose
+  # embedded code blocks belong to mdformat, so it is limited to Python.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.7
+    hooks:
+      - id: ruff-format
+        types_or: [python]
+
   # General file hygiene
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0

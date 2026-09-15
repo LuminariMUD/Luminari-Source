@@ -15,15 +15,15 @@ def _binding(
     encoding: str = "integer",
     predicate: str | None = None,
 ) -> dict[str, Any]:
-  return {
-      "table": table,
-      "column": column,
-      "record_type": record_type,
-      "encoding": encoding,
-      "predicate": predicate,
-      "consumer": consumer,
-      "evidence": evidence,
-  }
+    return {
+        "table": table,
+        "column": column,
+        "record_type": record_type,
+        "encoding": encoding,
+        "predicate": predicate,
+        "consumer": consumer,
+        "evidence": evidence,
+    }
 
 
 # This table is intentionally explicit. Column-name heuristics missed generic fields such

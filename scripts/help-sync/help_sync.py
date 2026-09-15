@@ -103,9 +103,7 @@ def load_plan(root: Path, reference: str) -> dict[str, Any]:
     elif len(reference) == 64 and all(character in "0123456789abcdef" for character in reference):
         value = read_json(plan_path(root, reference))
     else:
-        raise EndpointError(
-            "plan must be a readable JSON path or a stored 64-character plan ID"
-        )
+        raise EndpointError("plan must be a readable JSON path or a stored 64-character plan ID")
     if not isinstance(value, dict):
         raise EndpointError("plan JSON must be an object")
     validate_plan(value)
@@ -173,9 +171,7 @@ class RemoteEndpoint:
                 "--",
                 *remote_arguments,
             ]
-        remote_command = (
-            f"cd {shlex.quote(self.project)} && " + shlex.join(remote_arguments)
-        )
+        remote_command = f"cd {shlex.quote(self.project)} && " + shlex.join(remote_arguments)
         input_bytes = canonical_json_bytes(payload) + b"\n" if payload is not None else None
         if self.sudo_password:
             input_bytes = self.sudo_password.encode("utf-8") + b"\n" + (input_bytes or b"")
@@ -194,8 +190,7 @@ class RemoteEndpoint:
         if completed.returncode != 0:
             error = completed.stderr.decode("utf-8", errors="replace").strip()
             raise EndpointError(
-                "production endpoint command failed"
-                + (f": {error[-1200:]}" if error else "")
+                "production endpoint command failed" + (f": {error[-1200:]}" if error else "")
             )
         start = output.rfind(JSON_BEGIN + "\n")
         end = output.rfind("\n" + JSON_END)
@@ -220,9 +215,7 @@ class RemoteEndpoint:
         return dict(self.call("verify", payload=candidate.to_dict()))
 
     def write_baseline(self, catalog: Catalog, plan_id: str) -> dict[str, Any]:
-        return dict(
-            self.call("baseline-write", ["--plan-id", plan_id], payload=catalog.to_dict())
-        )
+        return dict(self.call("baseline-write", ["--plan-id", plan_id], payload=catalog.to_dict()))
 
     def rollback(self, run_id: str, expected_hash: str) -> dict[str, Any]:
         return dict(
@@ -315,9 +308,7 @@ def make_plan(
     if repair_integrity:
         result = replace(
             result,
-            candidate=repair_missing_keywords(
-                result.candidate, base, development, production
-            ),
+            candidate=repair_missing_keywords(result.candidate, base, development, production),
         )
     core = build_plan_core(
         base,
@@ -379,9 +370,7 @@ def make_plan(
                 repair["count"] for repair in repairs["orphan_keywords"]
             )
             if covered_issues != len(issues):
-                blockers.append(
-                    f"{side} has integrity issues without a supported explicit repair"
-                )
+                blockers.append(f"{side} has integrity issues without a supported explicit repair")
     if any(not entry.keywords for entry in result.candidate.entries):
         blockers.append("candidate contains entries without database lookup keywords")
     if blockers:
@@ -512,7 +501,9 @@ def plan_summary(plan: Mapping[str, Any]) -> dict[str, Any]:
     return summary
 
 
-def proof_core(plan: Mapping[str, Any], apply_result: Mapping[str, Any], verification: Mapping[str, Any]) -> dict[str, Any]:
+def proof_core(
+    plan: Mapping[str, Any], apply_result: Mapping[str, Any], verification: Mapping[str, Any]
+) -> dict[str, Any]:
     return {
         "format": "luminari-help-sync-development-proof",
         "version": 1,
@@ -548,7 +539,10 @@ def load_development_proof(root: Path, plan: Mapping[str, Any]) -> dict[str, Any
     core = {key: value for key, value in proof.items() if key not in {"proof_id", "recorded_at"}}
     if proof.get("proof_id") != sha256_bytes(canonical_json_bytes(core)):
         raise EndpointError("development proof checksum mismatch")
-    if proof.get("plan_id") != plan["plan_id"] or proof.get("candidate_hash") != plan["candidate_hash"]:
+    if (
+        proof.get("plan_id") != plan["plan_id"]
+        or proof.get("candidate_hash") != plan["candidate_hash"]
+    ):
         raise EndpointError("development proof belongs to a different plan or candidate")
     if proof.get("verified_catalog_hash") != plan["candidate_hash"]:
         raise EndpointError("development proof did not verify the candidate hash")
@@ -557,7 +551,9 @@ def load_development_proof(root: Path, plan: Mapping[str, Any]) -> dict[str, Any
     return proof
 
 
-def preview_production(root: Path, plan: Mapping[str, Any]) -> tuple[dict[str, Any], EndpointSnapshot]:
+def preview_production(
+    root: Path, plan: Mapping[str, Any]
+) -> tuple[dict[str, Any], EndpointSnapshot]:
     if not plan.get("sealed"):
         raise EndpointError("production preview requires a sealed, conflict-free plan")
     load_development_proof(root, plan)
@@ -579,9 +575,7 @@ def preview_production(root: Path, plan: Mapping[str, Any]) -> tuple[dict[str, A
         "plan_id": plan["plan_id"],
         "candidate_hash": plan["candidate_hash"],
         "production_catalog_hash": production_snapshot.catalog.content_hash,
-        "production_integrity_state_hash": production_snapshot.manifest.get(
-            "integrity_state_hash"
-        ),
+        "production_integrity_state_hash": production_snapshot.manifest.get("integrity_state_hash"),
         "production_file_hash": production_snapshot.file_hash,
     }
     preview = {
@@ -592,8 +586,7 @@ def preview_production(root: Path, plan: Mapping[str, Any]) -> tuple[dict[str, A
         "fresh_production_file_hash": production_snapshot.file_hash,
         "production_layer_drift": not production_snapshot.file_matches,
         "backup_destination": (
-            "REMOTE_PROJECT_PATH/lib/text/help/.help-sync/runs/"
-            "<run-id>/production"
+            "REMOTE_PROJECT_PATH/lib/text/help/.help-sync/runs/<run-id>/production"
         ),
         "authorization_token": sha256_bytes(canonical_json_bytes(token_core)),
     }
@@ -809,14 +802,9 @@ def validate_autonomous_plan(plan: Mapping[str, Any], stored_at: Path) -> None:
         )
 
     deletion_count = sum(
-        int(plan[f"{side}_delta"]["counts"]["deletions"])
-        for side in ("development", "production")
+        int(plan[f"{side}_delta"]["counts"]["deletions"]) for side in ("development", "production")
     )
-    if (
-        deletion_count
-        or plan.get("authorized_deletions")
-        or plan.get("renames")
-    ):
+    if deletion_count or plan.get("authorized_deletions") or plan.get("renames"):
         raise EndpointError(
             "autonomous sync refuses deletions and renames; inspect the sealed plan "
             f"{stored_at} and use the explicit reviewed workflow"
@@ -835,13 +823,9 @@ def synchronize_command(root: Path, args: argparse.Namespace) -> int:
 
     require_development(root)
     if not args.authorize_production:
-        raise EndpointError(
-            "sync requires --authorize-production for this bounded end-to-end run"
-        )
+        raise EndpointError("sync requires --authorize-production for this bounded end-to-end run")
     if args.max_passes < 1 or args.max_passes > MAX_SYNC_PASSES:
-        raise EndpointError(
-            f"--max-passes must be between 1 and {MAX_SYNC_PASSES}"
-        )
+        raise EndpointError(f"--max-passes must be between 1 and {MAX_SYNC_PASSES}")
 
     attempts: list[dict[str, Any]] = []
     for pass_number in range(1, args.max_passes + 1):
@@ -895,9 +879,7 @@ def synchronize_command(root: Path, args: argparse.Namespace) -> int:
                 )
                 continue
 
-            development_verification = verify_endpoint(
-                root, "development", candidate
-            )
+            development_verification = verify_endpoint(root, "development", candidate)
             remote = RemoteEndpoint(root)
             production_verification = remote.verify(candidate)
             development_baseline = load_common_baseline(root)
@@ -906,9 +888,7 @@ def synchronize_command(root: Path, args: argparse.Namespace) -> int:
                 development_baseline.content_hash != candidate.content_hash
                 or production_baseline.content_hash != candidate.content_hash
             ):
-                raise EndpointError(
-                    "common baseline did not advance to the verified candidate"
-                )
+                raise EndpointError("common baseline did not advance to the verified candidate")
 
             attempts.append(
                 {
@@ -956,9 +936,7 @@ def synchronize_command(root: Path, args: argparse.Namespace) -> int:
             if barrier.acquired:
                 barrier.release()
 
-    raise EndpointError(
-        f"help catalogs did not quiesce after {args.max_passes} sync passes"
-    )
+    raise EndpointError(f"help catalogs did not quiesce after {args.max_passes} sync passes")
 
 
 def verify_command(root: Path, args: argparse.Namespace) -> int:
@@ -981,9 +959,7 @@ def rollback_command(root: Path, args: argparse.Namespace) -> int:
             raise EndpointError("production rollback requires --authorize-run equal to the run ID")
         result = RemoteEndpoint(root).rollback(args.run_id, args.expected_current_hash)
     else:
-        result = rollback_endpoint(
-            root, "development", args.run_id, args.expected_current_hash
-        )
+        result = rollback_endpoint(root, "development", args.run_id, args.expected_current_hash)
     print(
         json.dumps(
             {
@@ -1053,9 +1029,7 @@ def build_parser() -> argparse.ArgumentParser:
     baseline = subparsers.add_parser(
         "baseline-init", help="explicitly initialize the common baseline on both endpoints"
     )
-    baseline.add_argument(
-        "--source", choices=("development", "production", "file"), required=True
-    )
+    baseline.add_argument("--source", choices=("development", "production", "file"), required=True)
     baseline.add_argument("--catalog-file")
     baseline.add_argument("--authorize-hash", required=True)
 

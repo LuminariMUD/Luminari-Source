@@ -91,9 +91,7 @@ def parse_makefile_am(text: str) -> dict[str, list[str]]:
 def parse_cmake_lists(text: str) -> dict[str, list[str]]:
     """Return variable -> raw tokens for set(VAR ...) blocks, comments stripped."""
     variables: dict[str, list[str]] = {}
-    for match in re.finditer(
-        r"^\s*set\(([A-Za-z_][A-Za-z0-9_]*)\s*(.*?)\)\s*$", text, re.S | re.M
-    ):
+    for match in re.finditer(r"^\s*set\(([A-Za-z_][A-Za-z0-9_]*)\s*(.*?)\)\s*$", text, re.S | re.M):
         name = match.group(1)
         body = re.sub(r"#[^\n]*", "", match.group(2))
         variables[name] = body.split()
@@ -166,12 +164,8 @@ def main() -> int:
     cm_text = (root / "CMakeLists.txt").read_text()
     am_raw = parse_makefile_am(am_text)
     cm_raw = parse_cmake_lists(cm_text)
-    am_vars = {
-        name: expand(am_raw, tokens, MAKE_REFERENCE) for name, tokens in am_raw.items()
-    }
-    cm_vars = {
-        name: expand(cm_raw, tokens, CMAKE_REFERENCE) for name, tokens in cm_raw.items()
-    }
+    am_vars = {name: expand(am_raw, tokens, MAKE_REFERENCE) for name, tokens in am_raw.items()}
+    cm_vars = {name: expand(cm_raw, tokens, CMAKE_REFERENCE) for name, tokens in cm_raw.items()}
 
     problems: list[str] = []
     referenced: set[str] = set()
@@ -194,9 +188,7 @@ def main() -> int:
     )
     am_cutest = am_vars.get("cutest_SOURCES", [])
     if CUTEST_REGISTRY not in am_vars.get("nodist_cutest_SOURCES", []):
-        problems.append(
-            f"  Makefile.am nodist_cutest_SOURCES does not list {CUTEST_REGISTRY}"
-        )
+        problems.append(f"  Makefile.am nodist_cutest_SOURCES does not list {CUTEST_REGISTRY}")
     am_cutest = [entry for entry in am_cutest if entry != CUTEST_REGISTRY]
     problems += report_list(
         "duplicate in Makefile.am cutest_SOURCES",
