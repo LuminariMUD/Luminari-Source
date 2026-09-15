@@ -30,8 +30,8 @@ was verified before its commit.
 | 4 Markdown | done | Format Markdown with mdformat | 192 documents besides this plan, +6,172/-1,784, each byte-identical to a verification clone; guides regenerated, +1,517/-846; the only escapes added are the 69 accepted prose ones; `wtool.py docs --check`, `generate-web-guides.sh --check`, `check-dg-docs.py`, and source hygiene (1,693 files) pass; all 542 world-tool tests pass; the `CLAUDE.md` and `GEMINI.md` symlinks, the changelogs, and `lib/WILD_KB.md` untouched |
 | 5 prettier | done | Format YAML, JSON, HTML, CSS, and JavaScript with prettier | 32 of the 44 files in scope, +8,420/-4,024; `prettier --debug-check` passes on all 44 as they were; the parsed YAML or JSON of all 14 reformatted data files is unchanged; `clang-format --dump-config` and `clang-tidy --dump-config` print the same output (only quote style changed); `check-dg-docs.py`, `wtool.py constants sync --check`, `wtool.py docs --check`, the SQL format policy, and all 542 world-tool tests pass |
 | 6 CMake | done | Format CMake with gersemi | 2 files, +487/-301; `gersemi --safe` passes and matches the hook's output; `check_build_parity.py` passes, its parser returns identical sources for the old and new `CMakeLists.txt`, and the old pattern no longer finds `cutest` in the new file; a plain configure and the `ci-gcc` preset each generate identical compile commands (343 and 747), targets (1,054 and 1,273), and test commands (29) from both files; the `ci-gcc` preset builds `luminari` and `cutest` |
-| 7 PHP | next |  |  |
-| 8 PowerShell |  |  |  |
+| 7 PHP | done | Format PHP with php-cs-fixer | 7 files, +278/-250; `php -l` clean and compiled opcodes identical in 7 of 7 (PHP 8.3 image); `.php-cs-fixer.dist.php` lints clean; a second run finds nothing; with an empty cache the wrapper downloads the phar and verifies its sha256, and a download that does not match fails with exit 1 without replacing the cached phar; all 9 files of the step byte-identical to the dry run |
+| 8 PowerShell | next |  |  |
 | 9 CI, image, docs |  |  |  |
 | 10 after merge |  |  |  |
 
