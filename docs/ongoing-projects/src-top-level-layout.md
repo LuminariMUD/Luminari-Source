@@ -430,8 +430,12 @@ In this checkout, after the owner authorized the header move:
   `scripts/ci/prepare_test_runtime.sh` or `LUMINARI_TEST_SKIP_SYNTAX_BOOT=1`.
 - The dev MUD restarted under `autorun.sh` on the installed build of `d8c4aeb45` (status:
   active matches installed), and `dev_kohdee_login_smoke.sh` logged Kohdee in and out.
-- The local CI runner, which supplies the clean-archive runtime and the CI compilers, is
-  running on the pushed branch head; its result will replace this line.
+- The local CI runner ran all 28 jobs on the pushed head `c2d6fd6b7` in 13 minutes, and
+  every job passed with its success marker in the log: both clean-archive jobs with the
+  CI runtime, all eight CMake builds including clang-22 (`ctest` 29/29), the unit tests,
+  sanitizers, the memory check (0 Valgrind errors), the coverage baseline, both warning
+  budgets, the production profiles, the database-migration and world-validation
+  integrations, format, hygiene, and gitleaks.
 
 ## Documentation (batch 11)
 
