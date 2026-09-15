@@ -54,6 +54,19 @@ them:
 mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/
 ```
 
+### Stale Products at the Top of `src/`
+
+A checkout built before every source moved into a directory under `src/` keeps
+old build products there. Remove them:
+
+```bash
+rm -rf src/*.o src/.deps src/.dirstamp src/stamp-h1 src/conf.h src/pubsub
+```
+
+If `make` does not regenerate the build files on its own, run `autoreconf -fvi`
+and your usual `./configure` command once, and reconfigure existing CMake build
+directories.
+
 ### Clean Rebuild and Test
 
 ```bash
