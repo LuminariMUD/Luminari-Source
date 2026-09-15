@@ -48,8 +48,8 @@ warning debt, and feature detection that strict flags cannot influence.
 - Analysis tier: GCC `-fanalyzer` and Clang's opinionated extras, plus
   `-Wswitch-enum` and `-Wformat-nonliteral` (moved out of the budget by step
   3.5), `-Wsign-conversion` (step 4), and an ISO C23 `-Wpedantic` extension
-  report, in the weekly, non-blocking
-  `.github/workflows/toolchain-analysis.yml`. GCC's analyzer skips
+  report, in the weekly `.github/workflows/toolchain-analysis.yml`, where only
+  the GCC analyzer classes are budgeted (issue #89). GCC's analyzer skips
   `src/character/class.c` (see the notes on the local analyzer run).
 
 ### Feature detection

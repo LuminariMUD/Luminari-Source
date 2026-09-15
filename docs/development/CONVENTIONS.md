@@ -152,13 +152,12 @@ ownership evidence in the
 - If generated configuration is absent, run `autoreconf -fvi` and `./configure` first.
 - Use CMake as a supported secondary build and keep its manifests behaviorally synchronized. Fresh
   CMake test trees require `-DBUILD_TESTS=ON`.
-- Use `.clang-format` for formatting and `.clang-tidy` for configured static analysis.
-  Five clang-tidy checks are disabled on purpose: `bugprone-macro-parentheses` (the codebase uses
-  unparenthesized macro arguments in expected patterns), `bugprone-reserved-identifier` (legacy
-  naming), `bugprone-easily-swappable-parameters` (common in game APIs), and the two
-  `clang-analyzer-security.insecureAPI` checks for deprecated buffer handling and `strcpy`
-  (`snprintf` is the accepted form; legacy `strcpy` sites migrate incrementally). Do not
-  re-enable one without clearing its findings.
+- Use `.clang-format` for formatting and `.clang-tidy` for configured static analysis. Each check
+  `.clang-tidy` disables records its scope, reason, owner, and expiry there. New `sprintf`,
+  `vsprintf`, `strcpy`, and `strcat` calls are findings; `snprintf` is the accepted form. CI fails
+  when a file gains clang-tidy findings beyond `scripts/ci/clang_tidy_baseline.txt`: fix new
+  findings, or silence a false positive with `/* NOLINTNEXTLINE(check) -- reason */`. See
+  [Static Analysis](../guides/SETUP_AND_BUILD_GUIDE.md#static-analysis).
 - Respect the pre-commit hooks, including include-comment alignment changes. Rebuild and retest
   after formatting modifies source.
 - The configured pre-commit package lives in `.venv`; run it with
@@ -193,7 +192,7 @@ ownership evidence in the
 | -- | -- | -- |
 | Compiler | GNU-compatible C23 compiler | `configure.ac`, `CMakeLists.txt` |
 | Formatter | clang-format | `.clang-format` |
-| Linter/static analysis | clang-tidy | `.clang-tidy` |
+| Linter/static analysis | clang-tidy 22.1.8, GCC `-fanalyzer`, CodeQL | `.clang-tidy`, `scripts/ci/check_clang_tidy.py`, `scripts/ci/check_warning_budget.py` |
 | Type safety | GCC/Clang warning tiers, `-Werror` on the baseline | `scripts/deployment/production_profile.sh`, `configure.ac`, `CMakeLists.txt` |
 | Testing | CuTest and protocol parser harness | `Makefile.am`, `unittests/CuTest/Makefile` |
 | Build | Autotools/Automake and CMake | `Makefile.am`, `CMakeLists.txt` |
@@ -210,9 +209,10 @@ paths without copying configuration or credential values.
 
 | Bundle | Workflow or configuration | Enforced contract |
 | -- | -- | -- |
-| Quality | `.github/workflows/quality.yml` | clang-format, clang-tidy, and warning-clean build |
+| Quality | `.github/workflows/quality.yml` | Every pinned formatter hook and the clang-tidy baseline |
 | Tests | `.github/workflows/test.yml` | Production-linked CuTest, world tools, sanitizers, Valgrind, MariaDB, and coverage |
-| Security | `.github/workflows/security.yml` | Secret scanning, CodeQL, and dependency review |
+| Security | `.github/workflows/security.yml` | Secret scanning, CodeQL with a production-source coverage check, and dependency review |
+| Analysis | `.github/workflows/toolchain-analysis.yml` | Weekly analysis warning tier with the GCC analyzer budget, and the ISO C23 extension report |
 | Integration | `.github/workflows/integration.yml` | Schema dry-run, minimal-world validation, and network startup smoke test |
 | Operations | `.github/workflows/release.yml`, `.github/workflows/pages.yml`, `.github/dependabot.yml` | Release artifacts, documentation publishing, and dependency updates |
 
