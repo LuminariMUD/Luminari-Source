@@ -100,6 +100,14 @@ repos:
         language: system
         types: [php]
         require_serial: true
+      # PowerShell: PSScriptAnalyzer formatter with PSScriptAnalyzerSettings.psd1;
+      # needs pwsh on PATH.
+      - id: powershell-format
+        name: PSScriptAnalyzer format
+        entry: pwsh -NoProfile -NonInteractive -File scripts/development/format_powershell.ps1
+        language: system
+        types: [powershell]
+        require_serial: true
       # Every future SQL file stays under the sqlfluff hook.
       - id: sql-format-policy
         name: SQL format policy

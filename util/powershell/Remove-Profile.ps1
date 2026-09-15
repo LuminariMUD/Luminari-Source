@@ -15,7 +15,7 @@ function Remove-ManagedBlock {
   param([string]$Path)
   if (!(Test-Path -LiteralPath $Path)) { return }
   $beginTag = '# BEGIN Luminari-Source'
-  $endTag   = '# END Luminari-Source'
+  $endTag = '# END Luminari-Source'
   $content = [IO.File]::ReadAllText($Path)
   if ($content -notmatch [regex]::Escape($beginTag)) { return }
   $pattern = "(?s)" + [regex]::Escape($beginTag) + ".*?" + [regex]::Escape($endTag)
@@ -29,12 +29,12 @@ function Get-Targets {
   $docs = [Environment]::GetFolderPath('MyDocuments')
   $targets = @()
   if (-not $WinPSOnly) {
-    $targets += @{ Name='PowerShell 7 (CurrentUser, CurrentHost)'; Path = Join-Path $docs 'PowerShell/Microsoft.PowerShell_profile.ps1' }
-    if ($AllHosts) { $targets += @{ Name='PowerShell 7 (CurrentUserAllHosts)'; Path = Join-Path $docs 'PowerShell/profile.ps1' } }
+    $targets += @{ Name = 'PowerShell 7 (CurrentUser, CurrentHost)'; Path = Join-Path $docs 'PowerShell/Microsoft.PowerShell_profile.ps1' }
+    if ($AllHosts) { $targets += @{ Name = 'PowerShell 7 (CurrentUserAllHosts)'; Path = Join-Path $docs 'PowerShell/profile.ps1' } }
   }
   if (-not $Pwsh7Only) {
-    $targets += @{ Name='Windows PowerShell 5.1 (CurrentUser, CurrentHost)'; Path = Join-Path $docs 'WindowsPowerShell/Microsoft.PowerShell_profile.ps1' }
-    if ($AllHosts) { $targets += @{ Name='Windows PowerShell 5.1 (CurrentUserAllHosts)'; Path = Join-Path $docs 'WindowsPowerShell/profile.ps1' } }
+    $targets += @{ Name = 'Windows PowerShell 5.1 (CurrentUser, CurrentHost)'; Path = Join-Path $docs 'WindowsPowerShell/Microsoft.PowerShell_profile.ps1' }
+    if ($AllHosts) { $targets += @{ Name = 'Windows PowerShell 5.1 (CurrentUserAllHosts)'; Path = Join-Path $docs 'WindowsPowerShell/profile.ps1' } }
   }
   return $targets
 }
