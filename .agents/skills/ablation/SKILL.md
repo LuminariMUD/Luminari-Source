@@ -41,7 +41,7 @@ repository rule is a reason to retain work. Hypothetical future use is not.
 Choose a disposition based on that evidence:
 
 | Decision | When it fits |
-| --- | --- |
+| -- | -- |
 | Keep | It supplies required behavior, compatibility, safety, recovery, or verification. |
 | Simplify | The obligation is real, but an existing path or smaller mechanism can satisfy it. |
 | Drop | It has no requirement or demonstrated current risk to address. |

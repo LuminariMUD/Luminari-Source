@@ -49,17 +49,20 @@ Located in `src/obj/shop.h:172-177`:
 ### Pricing System
 
 #### Buy Price Formula
+
 ```c
 price = base_cost * shop_buyprofit * charisma_modifier
 ```
 
 The charisma modifier includes:
+
 - Shopkeeper's CHA + Appraise skill
 - Buyer's CHA + Appraise skill
 - -10 bonus for Folk Hero or Noble backgrounds in hometown
 - Clan shop discounts (if applicable)
 
 #### Sell Price Formula
+
 ```c
 price = base_cost * shop_sellprofit * charisma_modifier
 ```
@@ -71,11 +74,13 @@ Maximum sell price is capped at the buying price to prevent exploits.
 Shops can restrict customers based on:
 
 #### Alignment
+
 - TRADE_NOGOOD
 - TRADE_NOEVIL
 - TRADE_NONEUTRAL
 
 #### Classes
+
 - TRADE_NOWIZARD, TRADE_NOCLERIC, TRADE_NOROGUE
 - TRADE_NOWARRIOR, TRADE_NOMONK, TRADE_NOBERSERKER
 - TRADE_NODRUID (defined but not implemented), TRADE_NOSORCERER, TRADE_NOPALADIN
@@ -84,6 +89,7 @@ Shops can restrict customers based on:
 **Note:** DRUID and BARD class restrictions are defined in shop.h but not fully implemented in the validation code.
 
 #### Races
+
 - TRADE_NOHUMAN, TRADE_NOELF, TRADE_NODWARF
 - TRADE_NOHALFTROLL, TRADE_NOHALFLING
 - TRADE_NOH_ELF, TRADE_NOH_ORC, TRADE_NOGNOME
@@ -96,6 +102,7 @@ Shops can restrict customers based on:
 Located in `src/obj/vendor.c`
 
 Specialized vendors that sell weapons based on vendor level:
+
 - **Level 1-10**: Mundane and masterwork weapons
 - **Level 11-15**: +1 magical weapons
 - **Level 16-20**: +2 magical weapons
@@ -104,10 +111,12 @@ Specialized vendors that sell weapons based on vendor level:
 - **Level 31+**: +5 magical weapons
 
 **Commands:**
+
 - `list [mundane|masterwork]` - View available weapons
 - `buy [mundane|masterwork] <weapon_name>` - Purchase a weapon
 
 **Pricing:**
+
 - Masterwork weapons cost 300 gold more than mundane
 - Magical weapons have enhanced pricing based on bonus level
 
@@ -116,11 +125,13 @@ Specialized vendors that sell weapons based on vendor level:
 Located in `src/obj/vendor.c`
 
 Similar to weapon vendors but for armor:
+
 - Sells body, arms, legs, head armor and shields
 - Enhancement bonuses up to +4 (stops at level 30, unlike weapons which go to +5)
 - Masterwork armor costs 50 gold more per piece (200 for shields)
 
 **Commands:**
+
 - `list [mundane|masterwork] [body|arms|legs|head|shield]` - View available armor
 - `buy [mundane|masterwork] <armor_name>` - Purchase armor
 
@@ -129,11 +140,13 @@ Similar to weapon vendors but for armor:
 Located in `src/craft/crafting_molds.c`
 
 Sell crafting molds for the crafting system:
+
 - **Weapon molds** - For crafting weapons
 - **Armor molds** - For crafting armor pieces
 - **Accessory molds** - For rings, bracers, belts, boots, gloves, necklaces, cloaks
 
 **Commands:**
+
 - `list [weapons|armor|accessories]` - View available molds
 - `buy <mold_name>` - Purchase a mold for 100 gold
 
@@ -146,6 +159,7 @@ Located in `src/obj/vendor.c`
 Pet shops allow players to purchase animal companions. The shop reads available pets from the room adjacent to the shop (room + 1).
 
 **Commands:**
+
 - `list` - View available pets and prices
 - `buy <pet_name> [custom_name]` - Purchase a pet, optionally with a custom name
 
@@ -153,11 +167,13 @@ Pet shops allow players to purchase animal companions. The shop reads available 
 
 **Pet Stats Adjustments:**
 Based on pet level and configuration values:
+
 - Levels 1-10: Uses `CONFIG_SUMMON_LEVEL_1_10_*` modifiers
 - Levels 11-20: Uses `CONFIG_SUMMON_LEVEL_11_20_*` modifiers
 - Levels 21-30: Uses `CONFIG_SUMMON_LEVEL_21_30_*` modifiers
 
 These modifiers apply to:
+
 - Hit points (HP)
 - Armor class (AC)
 - Hit and damage rolls
@@ -170,6 +186,7 @@ Located in `src/obj/vendor.c`
 Alternative pet system using objects that convert to mobile followers when purchased through regular shops.
 
 **How it works:**
+
 1. Object VNUM must match the desired mobile VNUM
 2. When a player purchases an object with the `bought_pet` special procedure
 3. The object is automatically converted to a mobile follower
@@ -183,17 +200,20 @@ Located in `src/obj/player_shop.c`
 Player-owned shops are tied to the house system, allowing players to sell items from their house storage.
 
 **Features:**
+
 - Items are stored in the house's private room
 - Automatic gold collection goes to house storage
 - Supports item identification before purchase
 - Transaction saving prevents duplication exploits
 
 **Commands:**
+
 - `list` - View items for sale
 - `buy <#|item_name>` - Purchase an item
 - `identify <#|item_name>` - Examine an item before buying
 
 **Setup Requirements:**
+
 - House must have an atrium room
 - Shop keeper must be assigned the `player_owned_shops` special procedure
 - Items for sale must be placed in the house storage room
@@ -246,6 +266,7 @@ compatibility composition, not a persisted multiple-procedure chain.
 ### Shop File Format
 
 Shops use a versioned file format (v3.0) with the following structure:
+
 - Shop number (#VNUM)
 - Producing items list
 - Buy/sell profit multipliers
@@ -275,12 +296,14 @@ From `src/obj/shop.h:125-142`:
 ### Global Settings
 
 From `src/obj/shop.h:183-184`:
+
 - **MIN_OUTSIDE_BANK**: 5000 gold (withdrawal threshold)
 - **MAX_OUTSIDE_BANK**: 15000 gold (deposit threshold)
 
 ### Standard Messages
 
 Located in `src/obj/shop.h:186-195`:
+
 - MSG_NOT_OPEN_YET
 - MSG_NOT_REOPEN_YET
 - MSG_CLOSED_FOR_DAY
@@ -311,6 +334,7 @@ ASSIGNROOM(vnum, pet_shops);
 ```
 
 **Standard Shop Assignment Process:**
+
 1. Shop definitions loaded from shop files during boot
 2. Shopkeeper mobs automatically get `shop_keeper` special procedure
 3. Mobs receive `MOB_CUSTOM_GOLD` and `MOB_NO_AI` flags
@@ -323,15 +347,18 @@ The shop system integrates with the clan economy (`src/clan/clan_economy.c`):
 ### Features
 
 1. **Clan Discounts** (`src/obj/shop.c:553`)
+
    - Members get discounts at clan-affiliated shops
    - Discount rates configurable per clan
 
 2. **Transaction Taxes** (`src/obj/shop.c:740,1000`)
+
    - Clan collects taxes on member transactions
    - Applied to both buying and selling
    - Tax rates configurable per clan
 
 3. **Transaction Types**
+
    - TRANS_SHOP_BUY - Buying from shops
    - TRANS_SHOP_SELL - Selling to shops
    - TRANS_PLAYER_TRADE - Player-to-player trades
@@ -383,11 +410,13 @@ The shop system integrates with the clan economy (`src/clan/clan_economy.c`):
 ### Implementation Bugs
 
 1. **Noble Shop Flag Bug** (`src/obj/shop.c:150`)
+
    - The code incorrectly checks `BLACK_MARKET_SHOP` flag when validating `NOBLE_SHOP` access
    - This causes noble shops to not work correctly
    - Fix: Line 150 should check `IS_SET(SHOP_BITVECTOR(shop_nr), NOBLE_SHOP)`
 
 2. **Missing Class Restrictions**
+
    - `TRADE_NODRUID` is defined but not implemented in validation checks
    - `TRADE_NOBARD` is defined but not implemented in validation checks
    - These restrictions won't actually prevent druids/bards from shopping

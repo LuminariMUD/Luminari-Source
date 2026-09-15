@@ -19,7 +19,7 @@ need `mariadb-install-db` and `mariadbd`; help integration needs Python `pymysql
 Set these variables in the test command environment, not in protected configuration files:
 
 | Variable | Required value |
-|----------|----------------|
+| -- | -- |
 | `LUMINARI_TEST_MYSQL_ENABLE` | `1` |
 | `LUMINARI_TEST_MYSQL_HOST` | The verified disposable loopback endpoint |
 | `LUMINARI_TEST_MYSQL_USER` | A disposable test user |

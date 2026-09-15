@@ -1,12 +1,13 @@
 # AI Region Hints Workflow - Updated Architecture Plan
 
-**Date**: August 18, 2025  
-**Status**: Updated for Two-Stage AI Workflow  
+**Date**: August 18, 2025\
+**Status**: Updated for Two-Stage AI Workflow\
 **Purpose**: Define agent responsibilities and workflow for region description -> hints generation
 
 ## Overview
 
 This plan outlines a **two-stage AI workflow**:
+
 1. **Region Creation Agent**: Creates regions with comprehensive descriptions via MCP
 2. **Hint Generation Agent**: Reads region descriptions and generates categorized hints
 
@@ -15,6 +16,7 @@ This architecture supports both AI-generated and manually-created regions, provi
 ## Stage 1: Region Creation Agent (Your MCP Repository)
 
 ### Current MCP Prompt Structure
+
 ```python
 self.register_prompt(
     "create_region",
@@ -100,11 +102,13 @@ self.register_prompt(
 ### Region Creation Agent Responsibilities
 
 #### Primary Outputs
+
 1. **Comprehensive Region Description**: Detailed narrative suitable for hint generation
 2. **Structured Environment Data**: Machine-readable environmental parameters
 3. **Metadata**: Classification and characteristics for database storage
 
 #### Required Output Format
+
 ```json
 {
   "name": "The Silverbrook Wetlands",
@@ -132,37 +136,44 @@ self.register_prompt(
 The `description` field should include:
 
 1. **Geographic Overview** (2-3 sentences)
+
    - Size, shape, and general layout
    - Primary terrain features
    - Elevation and topography
 
 2. **Vegetation & Flora** (2-3 sentences)
+
    - Dominant plant life
    - Understory and ground cover
    - Seasonal variations
    - Unique or magical plants
 
 3. **Wildlife & Fauna** (1-2 sentences)
+
    - Common animals and their behaviors
    - Predators and prey relationships
    - Magical creatures if present
 
 4. **Atmospheric Characteristics** (2-3 sentences)
+
    - Typical sounds, scents, and visual elements
    - Weather patterns and effects
    - Lighting conditions
 
 5. **Cultural/Mystical Elements** (1-2 sentences)
+
    - Legends, ruins, or spiritual significance
    - Supernatural phenomena
    - Historical context
 
 6. **Resources & Hazards** (1-2 sentences)
+
    - Available materials and their accessibility
    - Environmental dangers
    - Movement restrictions
 
 7. **Connections & Context** (1 sentence)
+
    - How it relates to adjacent regions
    - Primary access points
 
@@ -171,6 +182,7 @@ The `description` field should include:
 ### Agent Responsibilities
 
 #### 1. Autonomous Region Discovery
+
 ```python
 # Pseudo-code for agent workflow
 def discover_regions_needing_hints():
@@ -190,6 +202,7 @@ def process_region_queue():
 ```
 
 #### 2. Hint Generation Logic
+
 ```python
 def generate_hints_for_region(region):
     """Generate categorized hints from region description"""
@@ -219,6 +232,7 @@ def generate_hints_for_region(region):
 #### 3. Hint Categories and Generation Rules
 
 ##### **Atmosphere Hints** (3-5 hints per region)
+
 - Extract overall mood and visual character
 - Create 2-3 general atmospheric descriptions
 - Generate 1-2 weather-specific variants
@@ -243,6 +257,7 @@ def generate_atmospheric_hints(context):
 ```
 
 ##### **Flora Hints** (2-4 hints per region)
+
 - Identify plant life from description
 - Create seasonal variations
 - Include resource implications
@@ -267,25 +282,30 @@ def generate_vegetation_hints(context):
 ```
 
 ##### **Fauna Hints** (2-3 hints per region)
+
 - Extract wildlife information
 - Include behavioral details
 - Add magical creatures if present
 
 ##### **Geographic Hints** (2-3 hints per region)
+
 - Describe terrain features
 - Include hazards and obstacles
 - Reference elevation and topography
 
 ##### **Sensory Hints** (2-4 hints per region)
+
 - **Sounds**: Environmental audio elements
 - **Scents**: Atmospheric smells and air quality
 
 ##### **Temporal Hints** (3-6 hints per region)
+
 - **Weather Variants**: How different weather affects the region
 - **Seasonal Changes**: Spring, summer, autumn, winter variations
 - **Time of Day**: Dawn, day, dusk, night differences
 
 ##### **Resource/Mystical Hints** (1-3 hints per region)
+
 - Available materials and accessibility
 - Magical or supernatural elements
 - Cultural/historical significance
@@ -293,6 +313,7 @@ def generate_vegetation_hints(context):
 ### API Integration Requirements
 
 #### MCP API Endpoints (Your MCP Repository)
+
 ```python
 # Endpoint for hint generation agent to query regions
 GET /api/regions/without-hints
@@ -306,6 +327,7 @@ DELETE /api/region-hints/{hint_id}
 ```
 
 #### Database API (LuminariMUD Repository)
+
 ```python
 # Terrain bridge extensions
 {
@@ -331,12 +353,14 @@ DELETE /api/region-hints/{hint_id}
 ## Workflow Implementation
 
 ### 1. Initial Setup Phase
+
 1. **Database Schema**: Deploy region description fields and AI hints tables
 2. **MCP Enhancement**: Update region creation prompt with comprehensive requirements
 3. **API Extensions**: Add hint submission endpoints to terrain bridge
 4. **Agent Development**: Create hint generation agent in separate repository
 
 ### 2. Region Creation Workflow
+
 ```mermaid
 graph TD
     A[MCP Receives Region Request] --> B[Generate Comprehensive Description]
@@ -349,6 +373,7 @@ graph TD
 ```
 
 ### 3. Autonomous Hint Generation
+
 ```python
 # Hint generation agent main loop
 async def main_loop():
@@ -371,12 +396,14 @@ async def main_loop():
 ## Agent Implementation Guidelines
 
 ### Region Creation Agent (MCP Repository)
+
 1. **Enhanced Prompting**: Update prompts to generate comprehensive descriptions
 2. **Quality Validation**: Ensure descriptions meet minimum length and content requirements
 3. **Metadata Extraction**: Parse generated content to identify key characteristics
 4. **Hint Trigger**: Optionally trigger hint generation agent after region creation
 
 ### Hint Generation Agent (Separate Repository)
+
 1. **Natural Language Processing**: Parse region descriptions to extract key elements
 2. **Categorized Generation**: Create hints for each category with appropriate weighting
 3. **Quality Control**: Validate hint quality and appropriateness
@@ -386,16 +413,19 @@ async def main_loop():
 ## Testing Strategy
 
 ### 1. Unit Testing
+
 - Test individual hint generation functions
 - Validate hint categorization accuracy
 - Verify API integration points
 
-### 2. Integration Testing  
+### 2. Integration Testing
+
 - Test end-to-end region creation -> hint generation workflow
 - Validate database consistency
 - Test error recovery scenarios
 
 ### 3. Quality Assurance
+
 - Human review of generated hints for sample regions
 - Consistency checking across similar terrain types
 - Performance testing under load
@@ -403,12 +433,14 @@ async def main_loop():
 ## Success Metrics
 
 ### Quantitative Metrics
+
 - **Coverage**: % of regions with complete hint sets
 - **Quality Score**: Average hint quality ratings
 - **Performance**: Hint generation time per region
 - **Usage**: Hint selection frequency in game
 
 ### Qualitative Metrics
+
 - **Consistency**: Hints match regional character
 - **Variety**: Diverse hint selection prevents repetition
 - **Immersion**: Player feedback on description quality

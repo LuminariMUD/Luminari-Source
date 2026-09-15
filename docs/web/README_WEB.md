@@ -5,6 +5,7 @@ This directory contains the public-facing web documentation portal for LuminariM
 ## Live Site
 
 Once deployed, the portal is accessible at:
+
 - **Main Website**: https://luminarimud.com/ (Play the game!)
 - **Documentation Portal**: https://luminarimud.github.io/Luminari-Source/web/
 - **GitHub Pages Root**: https://luminarimud.github.io/Luminari-Source/
@@ -56,6 +57,7 @@ docs/web/
 ## Design System
 
 ### Color Palette
+
 The web portal uses a consistent purple gradient theme:
 
 - **Primary Gradient**: `#667eea` -> `#764ba2`
@@ -65,12 +67,15 @@ The web portal uses a consistent purple gradient theme:
 - **Background**: `#f8f9fa` (light), `#e9ecef` (medium)
 
 ### Shared Stylesheet
+
 All pages should link to the shared stylesheet:
+
 ```html
 <link rel="stylesheet" href="../assets/css/style.css">
 ```
 
 The stylesheet includes:
+
 - CSS custom properties for theming
 - Reusable components (buttons, cards, badges, alerts)
 - Responsive grid system
@@ -89,6 +94,7 @@ duplicating trigger, command, or field lists in individual pages.
 ### Adding a New HTML Page
 
 1. **Create the HTML file** in the appropriate directory:
+
    ```bash
    # For a guide
    vim docs/web/guides/my-new-guide.html
@@ -98,6 +104,7 @@ duplicating trigger, command, or field lists in individual pages.
    ```
 
 2. **Use the shared stylesheet** in your HTML:
+
    ```html
    <!DOCTYPE html>
    <html lang="en">
@@ -118,6 +125,7 @@ duplicating trigger, command, or field lists in individual pages.
    ```
 
 3. **Add a link** to the landing page (`index.html`):
+
    ```html
    <a href="guides/my-new-guide.html" class="card">
        <h3>My New Guide</h3>
@@ -127,6 +135,7 @@ duplicating trigger, command, or field lists in individual pages.
    ```
 
 4. **Commit and push**:
+
    ```bash
    git add docs/web/
    git commit -m "Add new guide: My New Guide"
@@ -140,6 +149,7 @@ duplicating trigger, command, or field lists in individual pages.
 We use **Pandoc** to convert markdown documentation to styled HTML pages.
 
 ### Prerequisites
+
 ```bash
 # Check if pandoc is installed
 pandoc --version
@@ -151,6 +161,7 @@ sudo apt install pandoc
 ### Using the Pandoc Template
 
 The template is located at `docs/web/assets/pandoc-template.html` and provides:
+
 - Automatic styling with web portal theme
 - Breadcrumb navigation
 - Back-to-top button
@@ -161,6 +172,7 @@ The template is located at `docs/web/assets/pandoc-template.html` and provides:
 ### Conversion Command
 
 **Basic conversion:**
+
 ```bash
 pandoc path/to/file.md \
   -o docs/web/guides/output.html \
@@ -170,6 +182,7 @@ pandoc path/to/file.md \
 ```
 
 **With table of contents:**
+
 ```bash
 pandoc path/to/file.md \
   -o docs/web/guides/output.html \
@@ -198,7 +211,7 @@ The three pages under `docs/web/guides/` are **build output**. Their Markdown
 sources in `docs/world_game-data/` are authoritative:
 
 | Generated page | Markdown source |
-|----------------|-----------------|
+| -- | -- |
 | `guides/oedit.html` | `docs/world_game-data/OEDIT_GUIDE.md` |
 | `guides/mob_flags.html` | `docs/world_game-data/MOB_FLAGS.md` |
 | `guides/room_flags.html` | `docs/world_game-data/ROOM_FLAGS.md` |
@@ -251,6 +264,7 @@ The spell HTML files are generated from the game's spell data using Python scrip
 ### Generation Scripts
 
 Located in `util/`:
+
 - **`generate_spell_html.sh`** - Shell script wrapper
 - **`generate_spell_html_detailed.py`** - Python script that queries MySQL and generates HTML
 
@@ -275,11 +289,13 @@ git push
 ### Spell File Structure
 
 Both spell files are **self-contained** with:
+
 - Embedded CSS (inline `<style>` blocks)
 - Embedded JavaScript (inline `<script>` blocks)
 - No external dependencies
 
 This makes them:
+
 - Fast loading
 - Fully functional offline
 - Easy to distribute
@@ -293,6 +309,7 @@ The object database is a static HTML/JavaScript interface that loads data from a
 ### Architecture
 
 Unlike the self-contained spell pages, the object database uses:
+
 - **Static HTML** (`objects/index.html`) - Interface with embedded JavaScript
 - **JSON Data File** (`data/objects.json`) - Database export
 - **Shared CSS** - Uses web portal's `assets/css/style.css`
@@ -302,6 +319,7 @@ This separation allows updating the data without regenerating the entire page.
 ### Generation Script
 
 Located in `util/`:
+
 - **`export_objectdb_to_json.py`** - Python script that exports MySQL database to JSON
 
 ### Prerequisites
@@ -366,6 +384,7 @@ git push
 ### Database Tables Used
 
 The export script queries these tables:
+
 - `object_database_items` - Main object data
 - `object_database_wear_slots` - Equipment slots
 - `object_database_bonuses` - Stat bonuses
@@ -375,6 +394,7 @@ The export script queries these tables:
 ### Excluded Content
 
 The following zones are filtered out:
+
 - Code Items (DO NOT EDIT)
 - Builder Academy items
 - Player port restrings
@@ -386,6 +406,7 @@ Items with the "Mold" flag are also excluded.
 ### Documentation
 
 See `docs/web/objects/README_OBJ.md` for detailed documentation on:
+
 - Search features
 - Database schema
 - Weapon groups
@@ -405,7 +426,7 @@ See `docs/web/objects/README_OBJ.md` for detailed documentation on:
 ### Where to Put Content
 
 | Content Type | Directory | Example |
-|--------------|-----------|---------|
+| -- | -- | -- |
 | Builder guides | `guides/` | `oedit.html`, `mob_flags.html`, `room_flags.html` |
 | Spell references | `spells/` | `by_class.html`, `reference.html` |
 | Object database | `objects/` | `index.html`, `README_OBJ.md` |
@@ -470,6 +491,7 @@ Trigger manually from GitHub Actions:
 ### Monitoring Deployment
 
 Check deployment status:
+
 - **Actions Tab**: https://github.com/LuminariMUD/Luminari-Source/actions
 - **Look for**: Yellow (running), [OK] Green (success), [X] Red (failed)
 
@@ -478,6 +500,7 @@ Check deployment status:
 The `docs/.nojekyll` file tells GitHub Pages **NOT to use Jekyll** for processing.
 
 **Why this matters:**
+
 - Without `.nojekyll`: Jekyll processes files, breaks custom HTML
 - With `.nojekyll`: Files served as-is, custom styling works
 
@@ -490,24 +513,28 @@ The `docs/.nojekyll` file tells GitHub Pages **NOT to use Jekyll** for processin
 Once deployed, pages are accessible at:
 
 ### Main Pages
+
 ```
 https://luminarimud.github.io/Luminari-Source/           -> Redirect page
 https://luminarimud.github.io/Luminari-Source/web/       -> Landing page
 ```
 
 ### Spell References
+
 ```
 https://luminarimud.github.io/Luminari-Source/web/spells/by_class.html
 https://luminarimud.github.io/Luminari-Source/web/spells/reference.html
 ```
 
 ### Object Database
+
 ```
 https://luminarimud.github.io/Luminari-Source/web/objects/
 https://luminarimud.github.io/Luminari-Source/web/data/objects.json
 ```
 
 ### Guides
+
 ```
 https://luminarimud.github.io/Luminari-Source/web/guides/oedit.html
 https://luminarimud.github.io/Luminari-Source/web/guides/mob_flags.html
@@ -515,6 +542,7 @@ https://luminarimud.github.io/Luminari-Source/web/guides/room_flags.html
 ```
 
 ### DG Scripts
+
 ```
 https://luminarimud.github.io/Luminari-Source/web/dg-scripts/
 https://luminarimud.github.io/Luminari-Source/web/dg-scripts/getting-started.html
@@ -529,6 +557,7 @@ https://luminarimud.github.io/Luminari-Source/web/dg-scripts/dollhouse.html
 ```
 
 ### Assets
+
 ```
 https://luminarimud.github.io/Luminari-Source/web/assets/css/style.css
 https://luminarimud.github.io/Luminari-Source/web/assets/css/dg-scripts.css
@@ -544,6 +573,7 @@ https://luminarimud.github.io/Luminari-Source/web/assets/img/logo.png
 ### Updating the Landing Page
 
 Edit `docs/web/index.html` to:
+
 - Add new sections
 - Update links
 - Modify card descriptions
@@ -552,6 +582,7 @@ Edit `docs/web/index.html` to:
 ### Updating Shared Styles
 
 Edit `docs/web/assets/css/style.css` to:
+
 - Modify color scheme
 - Add new components
 - Update responsive breakpoints
@@ -562,6 +593,7 @@ Edit `docs/web/assets/css/style.css` to:
 ### Broken Links
 
 Check for broken links periodically:
+
 ```bash
 # Install linkchecker
 pip install linkchecker
@@ -577,6 +609,7 @@ linkchecker http://localhost:8000/web/
 Ideas for expanding the web portal:
 
 ### Short Term
+
 - [ ] Convert more markdown guides to HTML
 - [ ] Add search functionality (JavaScript)
 - [ ] Create class/race/feat databases
@@ -584,6 +617,7 @@ Ideas for expanding the web portal:
 - [ ] Implement dark mode toggle
 
 ### Medium Term
+
 - [ ] API documentation section
 - [ ] Interactive character builder
 - [ ] Equipment/loot database
@@ -591,6 +625,7 @@ Ideas for expanding the web portal:
 - [ ] News/changelog feed
 
 ### Long Term
+
 - [ ] Custom domain (e.g., `docs.luminarimud.com`)
 - [ ] Multi-language support
 - [ ] PDF exports of guides
@@ -602,22 +637,26 @@ Ideas for expanding the web portal:
 ## Additional Resources
 
 ### LuminariMUD Links
+
 - **Main Website**: https://luminarimud.com/ (Play the game!)
 - **Discord Community**: https://discord.gg/Me3Tuu4
 - **GitHub Repository**: https://github.com/LuminariMUD/Luminari-Source
 
 ### External Documentation
+
 - **GitHub Pages**: https://docs.github.com/en/pages
 - **Pandoc Manual**: https://pandoc.org/MANUAL.html
 - **HTML5 Guide**: https://developer.mozilla.org/en-US/docs/Web/HTML
 - **CSS Reference**: https://developer.mozilla.org/en-US/docs/Web/CSS
 
 ### Internal Documentation
+
 - **Main README**: `../../README.md`
 - **Technical Docs**: `../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md`
 - **Build Guide**: `../guides/SETUP_AND_BUILD_GUIDE.md`
 
 ### Scripts & Utilities
+
 - **Spell Generator**: `../../util/generate_spell_html_detailed.py`
 - **Pandoc Template**: `assets/pandoc-template.html`
 - **Deployment Workflow**: `../../.github/workflows/pages.yml`
@@ -635,6 +674,7 @@ When adding content to the web portal:
 5. **Write good commit messages** - Explain what and why
 
 ### Commit Message Format
+
 ```
 Add/Update: Brief description
 
@@ -682,6 +722,7 @@ Add/Update: Brief description
 ## Support
 
 For questions or issues:
+
 - **Discord**: https://discord.gg/Me3Tuu4
 - **GitHub Issues**: https://github.com/LuminariMUD/Luminari-Source/issues
 - **Email**: Check repository maintainers

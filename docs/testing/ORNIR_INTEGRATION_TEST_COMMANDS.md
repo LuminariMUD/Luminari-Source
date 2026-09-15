@@ -1,8 +1,8 @@
 # Wilderness-Crafting Integration Testing Commands for `ornir`
 
-**Character:** ornir  
-**Date:** August 10, 2025  
-**Testing:** Phase 5 Wilderness Harvesting Commands + Phase 4.5 Enhanced Integration  
+**Character:** ornir\
+**Date:** August 10, 2025\
+**Testing:** Phase 5 Wilderness Harvesting Commands + Phase 4.5 Enhanced Integration\
 **Status:** [OK] **READY FOR TESTING** - Harvesting commands implemented!
 
 ---
@@ -10,12 +10,14 @@
 ## **Phase 5 Implementation Complete!**
 
 **Status Update:**
+
 - [OK] **Phase 4.5**: Enhanced integration system implemented and ready
 - [OK] **Phase 5**: Material harvesting commands **NOW IMPLEMENTED**
 
 **New Commands Available:**
+
 - `harvest [resource_type]` - Primary harvesting command
-- `gather [resource_type]` - Specialized for herbs, vegetation, game  
+- `gather [resource_type]` - Specialized for herbs, vegetation, game
 - `mine [resource_type]` - Specialized for minerals, crystal, stone
 
 ---
@@ -23,43 +25,55 @@
 ## **Quick 5-Minute Test (Now Functional!)**
 
 ### **Step 1: Enter Wilderness Area**
+
 ```
 goto <wilderness_zone_number>
 ```
+
 **Expected:** You enter a wilderness area
 
 ### **Step 2: Survey Available Resources**
+
 ```
 survey resources
 ```
+
 **Expected:** Shows 10 resource types with availability percentages
 
 ### **Step 3: Test New Harvesting Commands**
+
 ```
 harvest
 ```
+
 **Expected:** Shows harvestable resources and usage instructions
 
 ```
 harvest herbs
 ```
+
 **Expected:** Attempts to harvest herb materials, success based on availability
 
 ```
 gather herbs
 ```
+
 **Expected:** Specialized herb gathering (same as harvest herbs)
 
 ```
 mine minerals
 ```
+
 **Expected:** Attempts to mine mineral resources
 
 ### **Step 4: Check Enhanced Integration**
+
 ```
 materials
 ```
+
 **Expected Basic Results:**
+
 - Simple list of materials with quantities
 - Script-friendly format
 - Works in all campaigns
@@ -67,7 +81,9 @@ materials
 ```
 materials details
 ```
+
 **Expected Enhanced Results (LuminariMUD only):**
+
 - Materials show with enhanced descriptions
 - Crafting applications mentioned for each material
 - Quality levels (poor -> legendary) show different crafting values
@@ -81,28 +97,35 @@ materials details
 ### **Resource Surveying (Pre-Harvest)**
 
 #### **Check Resource Availability:**
+
 ```
 survey resources
 ```
+
 **Expected:** List of 10 resource types with abundance levels
 
 ```
 survey map vegetation 10
 ```
+
 **Expected:** ASCII minimap showing vegetation distribution
 
 ```
 survey detail herbs
 ```
+
 **Expected:** Detailed herb resource analysis for current location
 
 ### **Harvesting Commands Testing**
 
 #### **Primary Harvest Command:**
+
 ```
 harvest
 ```
+
 **Expected:**
+
 ```
 Harvestable resources at this location:
 =====================================
@@ -116,6 +139,7 @@ Specialized commands: gather <type>, mine <type>
 ```
 
 #### **Test Each Resource Type:**
+
 ```
 harvest herbs
 harvest vegetation  
@@ -128,7 +152,9 @@ harvest water
 harvest clay
 harvest salt
 ```
+
 **Expected Results:**
+
 - **Success:** "You successfully harvest X units of [quality] [material_name]."
 - **Failure:** "You fail to harvest any usable [resource_type]."
 - **Insufficient:** "There are insufficient [resource_type] resources here to harvest."
@@ -136,11 +162,13 @@ harvest salt
 **Note:** All 10 resource types now fully supported (fixed water/clay/salt "storage full" bug)
 
 #### **Specialized Commands:**
+
 ```
 gather herbs
 gather vegetation
 gather game
 ```
+
 **Expected:** Works for herbs, vegetation, game only
 
 ```
@@ -149,20 +177,25 @@ mine crystal
 mine stone
 mine salt
 ```
+
 **Expected:** Works for minerals, crystal, stone, salt only
 
 ```
 mine herbs
 ```
+
 **Expected:** "You can only mine: minerals, crystal, stone, or salt."
 
 ### **Integration Verification**
 
 #### **After Each Harvest:**
+
 ```
 materials
 ```
+
 **Expected Basic Display:**
+
 ```
 Your Wilderness Material Storage:
 =====================================
@@ -180,7 +213,9 @@ Storage: 8/100 slots used
 ```
 materials details
 ```
+
 **Expected Enhanced Display (LuminariMUD only):**
+
 ```
 === Enhanced Wilderness Materials (LuminariMUD) ===
 Your materials are preserved with their full hierarchy and quality.
@@ -207,15 +242,18 @@ Enhanced Integration: ACTIVE
 ### **Skill and Success Testing**
 
 #### **Test Success Rates:**
+
 ```
 # Try harvesting same resource multiple times
 harvest herbs
 harvest herbs  
 harvest herbs
 ```
+
 **Expected:** Success rate varies, skill affects outcomes
 
 #### **Test Different Locations:**
+
 ```
 # Move to different wilderness coordinates
 survey resources  # Note differences
@@ -225,6 +263,7 @@ harvest herbs     # Compare success/materials
 ### **Quality and Material Variation**
 
 #### **Test Quality Distribution:**
+
 ```
 # Harvest same resource type multiple times
 harvest herbs
@@ -232,41 +271,50 @@ harvest herbs
 harvest herbs
 materials list herbs
 ```
+
 **Expected:** Different quality levels (poor, common, uncommon, rare, legendary)
 
 #### **Test Material Subtypes:**
+
 ```
 # Multiple harvests should yield different herb subtypes
 harvest herbs (multiple times)
 materials
 ```
+
 **Expected:** Different herb types: marjoram, kingfoil, starlily, etc.
 
 ### **Error Condition Testing**
 
 #### **Test Invalid Commands:**
+
 ```
 harvest
 harvest invalidtype
 harvest
 ```
+
 **Expected:** Appropriate error messages
 
 #### **Test Outside Wilderness:**
+
 ```
 # Go to non-wilderness room
 goto <city_room>
 harvest herbs
 ```
+
 **Expected:** "You can only harvest materials in the wilderness."
 
 #### **Test Resource Exhaustion:**
+
 ```
 # Try harvesting in area with no resources
 goto <barren_wilderness>
 survey resources  # Should show low/no resources
 harvest herbs
 ```
+
 **Expected:** "There are insufficient herbs resources here to harvest."
 
 ---
@@ -274,6 +322,7 @@ harvest herbs
 ## **Expected Success Indicators**
 
 ### [OK] **Harvesting Working Correctly:**
+
 - `harvest` command available and functional
 - `gather` and `mine` commands work with appropriate restrictions
 - Success/failure messages appropriate to resource availability
@@ -281,6 +330,7 @@ harvest herbs
 - Enhanced integration triggers for each harvest
 
 ### [OK] **Integration Working Correctly:**
+
 - Harvested materials appear in enhanced materials display
 - Materials show enhanced descriptions with crafting info
 - Quality levels affect crafting values appropriately
@@ -288,6 +338,7 @@ harvest herbs
 - Campaign safety maintained (basic display in DL/FR if available)
 
 ### [OK] **System Stability:**
+
 - No crashes during harvesting
 - Commands respond appropriately to invalid input
 - Wilderness location checking works correctly
@@ -298,11 +349,13 @@ harvest herbs
 ## **Potential Issues to Watch For**
 
 ### **If Commands Don't Work:**
+
 1. **Command not found:** Verify the current Luminari binary is installed
 2. **Wrong location:** Ensure you're in a wilderness zone
 3. **No resources:** Use `survey resources` to verify availability
 
 ### **If Integration Doesn't Show:**
+
 1. **Basic display only:** Check the wilderness integration feature settings
 2. **No enhanced features:** Verify Phase 4.5 integration compiled correctly
 3. **Empty storage:** Ensure harvesting is actually adding materials
@@ -312,9 +365,10 @@ harvest herbs
 ## **Testing Summary**
 
 **Phase 5 Implementation Status:**
+
 - [OK] Basic harvesting commands (`harvest`, `gather`, `mine`)
 - [OK] Resource availability checking
-- [OK] Skill-based success calculation  
+- [OK] Skill-based success calculation
 - [OK] Quality and subtype determination
 - [OK] Automatic storage integration
 - [OK] Enhanced crafting integration triggers
@@ -331,9 +385,11 @@ harvest herbs
 ### **Material Harvesting Tests**
 
 #### **Test All Resource Categories:**
+
 ```
 survey resources
 ```
+
 **Expected:** Shows 10 resource types with percentages for current location
 
 ```
@@ -341,6 +397,7 @@ gather herbs
 gather herbs
 gather herbs
 ```
+
 **Expected:** Multiple herb harvests with varying quality levels
 
 ```
@@ -348,6 +405,7 @@ mine metals
 mine stone
 mine gems
 ```
+
 **Expected:** Different metal/stone materials harvested
 
 ```
@@ -355,19 +413,24 @@ collect wood
 hunt animals
 hunt game
 ```
+
 **Expected:** Wood and animal materials collected
 
 ```
 forage food
 collect vegetation
 ```
+
 **Expected:** Food and vegetation materials gathered
 
 #### **Check Storage After Each Harvest:**
+
 ```
 materials
 ```
+
 **Expected After Each Harvest:**
+
 - Material count increases
 - **Basic System:** Shows simple material list (all campaigns)
 - **Enhanced System:** Use `materials details` for crafting integration info
@@ -375,7 +438,9 @@ materials
 ```
 materials details
 ```
+
 **Expected Enhanced Results (LuminariMUD only):**
+
 - Detailed crafting applications for each material
 - Quality-based crafting values
 - Enhanced material IDs
@@ -383,35 +448,43 @@ materials details
 ### **Enhanced Display Testing**
 
 #### **Material List Commands:**
+
 ```
 materials
 ```
+
 **Expected:** Basic list format (script-friendly)
 
 ```
 materials details
 ```
+
 **Expected Enhanced (LuminariMUD only):** Detailed list with crafting applications
 
 ```
 materials list herbs
 ```
+
 **Note:** `list`, `search`, `detail` subcommands not yet implemented
 
 #### **Material Search/Detail:**
+
 ```
 materials search iron
 ```
+
 **Note:** Search functionality not yet implemented
 
 ```
 materials detail oak
 ```
+
 **Note:** Individual material detail not yet implemented
 
 ### **Quality System Testing**
 
 #### **Harvest Same Material Multiple Times:**
+
 ```
 gather herbs
 gather herbs
@@ -419,15 +492,19 @@ gather herbs
 gather herbs
 gather herbs
 ```
+
 **Expected:** Different quality herbs (poor -> legendary) with different crafting values
 
 #### **Compare Quality Levels:**
+
 ```
 materials details
 ```
+
 **Expected Enhanced Results:**
+
 - Poor materials: Lower crafting value (poor quality -25%)
-- Common materials: Standard crafting value (common quality +0%)  
+- Common materials: Standard crafting value (common quality +0%)
 - Uncommon materials: Enhanced crafting value (uncommon quality +50%)
 - Rare materials: High crafting value (rare quality +200%)
 - Legendary materials: Maximum crafting value (legendary quality +500%)
@@ -437,10 +514,13 @@ materials details
 ## **Expected Results Summary**
 
 ### **Enhanced Integration Active (LuminariMUD Campaign):**
+
 ```
 materials
 ```
+
 **Should Show (Basic Format):**
+
 ```
 Your Wilderness Material Storage:
 =====================================
@@ -454,7 +534,9 @@ Storage: 4/100 slots used
 ```
 materials details
 ```
+
 **Should Show (Enhanced Format):**
+
 ```
 === Enhanced Wilderness Materials (LuminariMUD) ===
 Your materials are preserved with their full hierarchy and quality.
@@ -484,10 +566,13 @@ Enhanced Integration: ACTIVE
 ```
 
 ### **Basic System Only (DL/FR Campaigns):**
+
 ```
 materials
 ```
+
 **Should Show:**
+
 ```
 === Wilderness Materials Storage ===
 
@@ -507,39 +592,49 @@ Total: 4 material types, 10 units
 ### **If Enhanced Features Don't Appear:**
 
 1. **Check Compilation:**
+
    ```
    whereis
    ```
+
    Verify you're in default campaign, not DL/FR
 
 2. **Test Basic Harvesting:**
+
    ```
    gather herbs
    materials
    ```
+
    If basic harvesting works but no enhanced display, integration may not be compiled
 
 3. **Try Different Material Types:**
+
    ```
    mine iron
    collect oak
    hunt deer
    materials
    ```
+
    Test multiple categories to verify integration
 
 ### **If Nothing Works:**
 
 1. **Verify Wilderness Location:**
+
    ```
    survey resources
    ```
+
    Should show resource percentages (confirms wilderness)
 
 2. **Check Character Permissions:**
+
    ```
    score
    ```
+
    Verify character can access wilderness features
 
 ---
@@ -547,6 +642,7 @@ Total: 4 material types, 10 units
 ## [OK] **Success Criteria**
 
 **Integration Working Correctly If:**
+
 - [OK] Materials harvest successfully in wilderness
 - [OK] Enhanced materials display shows crafting integration (LuminariMUD)
 - [OK] Basic materials display only in DL/FR campaigns
@@ -555,6 +651,7 @@ Total: 4 material types, 10 units
 - [OK] No crashes or errors during testing
 
 **Ready for Next Phase If:**
+
 - [OK] All above criteria met
 - [OK] Enhanced material IDs working (1000+ range)
 - [OK] Integration functions trigger automatically
@@ -562,5 +659,5 @@ Total: 4 material types, 10 units
 
 ---
 
-**Test Duration:** 10-15 minutes for complete testing  
+**Test Duration:** 10-15 minutes for complete testing\
 **Focus:** Verify enhanced integration works for ornir in LuminariMUD campaign while maintaining safety for other campaigns

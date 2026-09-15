@@ -17,8 +17,7 @@ review-size notice. CodeRabbit skipped its review because the PR exceeded its
 checks passed on the original head, but the aggregate CodeQL gate failed on the
 parser and object-save findings. These failures were included in this repair.
 
-The branch was 34 commits behind master. `git rebase --rebase-merges
-origin/master` replayed its history. The two historical merge resolutions kept
+The branch was 34 commits behind master. `git rebase --rebase-merges origin/master` replayed its history. The two historical merge resolutions kept
 the already-integrated runtime implementation and newer specification documents.
 Comparing the rebased tree against the original head showed only master's
 README and header-image additions. No implementation was lost in the rebase.
@@ -78,8 +77,7 @@ mode and NO_BACKSLASH_ESCAPES, and verifies oversized payloads add no rows.
 
 - `make -j8 test`, followed by `make install`: passed, including 1,127 CuTests
   and the root architecture, lifecycle, help-sync, and tooling checks.
-- CMake with `BUILD_TESTS=ON`, `-O1 -g -fsanitize=address,undefined
-  -fno-omit-frame-pointer`, and sanitizer linker flags: production-linked
+- CMake with `BUILD_TESTS=ON`, `-O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer`, and sanitizer linker flags: production-linked
   `cutest` passed all 1,127 tests with `ASAN_OPTIONS=detect_leaks=1:halt_on_error=1`
   and `UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=1`. As in the CI sanitizer
   job, `LUMINARI_TEST_SKIP_SYNTAX_BOOT=1` excludes the separate boot subprocess.

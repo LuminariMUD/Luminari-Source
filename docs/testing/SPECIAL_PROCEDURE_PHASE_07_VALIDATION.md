@@ -16,7 +16,7 @@ precedence, and single-name persistence remain unchanged.
 ## Final Assignment Ownership
 
 | Owner | Responsibility |
-|-------|----------------|
+| -- | -- |
 | `src/spec/spec_assign.c` | Shared owner-typed callback writes and effective-binding provenance. |
 | `src/spec/spec_assign_mobiles.c` | Mobile inventory, retained compatibility branches, and the historical object write that must occur during the mobile phase. |
 | `src/spec/spec_assign_objects.c` | Object inventory, the two-row declarative Luminari table, and its boot validation. |
@@ -93,7 +93,7 @@ CMake lists `src/net/msdp_json.h`. They are excluded from the C-source parity co
 ## Verification Gates
 
 | Gate | Current result |
-|------|----------------|
+| -- | -- |
 | Inventory, direct-include, transitional-path, and protected-file audit | PASS |
 | Incremental Autotools build | PASS |
 | Root production-linked suite | PASS - 590 tests |

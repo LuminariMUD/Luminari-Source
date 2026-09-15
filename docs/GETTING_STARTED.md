@@ -5,6 +5,7 @@
 This guide covers setting up and running LuminariMUD from source code.
 
 ### Prerequisites
+
 - Linux/Unix system (Ubuntu, Debian, CentOS, WSL, macOS)
 - Git installed
 - Internet connection for dependency installation
@@ -12,6 +13,7 @@ This guide covers setting up and running LuminariMUD from source code.
 ## Installation
 
 ### Automated Setup
+
 The recommended approach for most users:
 
 ```bash
@@ -32,6 +34,7 @@ That's it! Connect to `localhost:4100` with any MUD client.
 **What it does:** The script automatically sets up the database, initializes world data, copies config files, and builds the MUD. World initialization is enabled by default (required for the server to start).
 
 ### Setup with Options
+
 For more control over the deployment:
 
 ```bash
@@ -49,6 +52,7 @@ cd Luminari-Source
 ```
 
 The deploy script automatically:
+
 - Installs missing dependencies and builds the game (Autotools preferred)
 - Provisions the `luminari` database and user, loads the compatibility schema,
   and runs the in-code initializers for active systems such as wilderness,
@@ -60,14 +64,17 @@ The deploy script automatically:
 **Note:** Database and world data are both required. The script handles both automatically. You can safely re-run the script to refresh credentials and migrate the schema.
 
 ### Manual Setup
+
 See the [Full Deployment Guide](deployment/DEPLOYMENT_GUIDE.md) for detailed manual setup instructions.
 
 ## Connecting to Your MUD
 
 ### MUD Clients
+
 You can connect using any MUD client:
 
 **Popular Clients:**
+
 - **Mudlet** - Feature-rich, cross-platform (recommended)
 - **MUSHclient** - Windows, powerful scripting
 - **TinTin++** - Terminal-based, Unix/Linux
@@ -76,10 +83,12 @@ You can connect using any MUD client:
 - **MUDRammer** - iOS mobile client
 
 **Basic Connection:**
+
 - Host: `localhost` or `127.0.0.1`
 - Port: `4100` (local development default)
 
 ### First Login
+
 1. Create your first character (automatically gets admin privileges)
 2. Choose name, password, race, and class
 3. Complete character creation
@@ -88,6 +97,7 @@ You can connect using any MUD client:
 ## Essential Commands
 
 ### Basic Commands
+
 ```
 look / l           - Examine your surroundings
 north/south/etc    - Movement (or n/s/e/w/u/d)
@@ -102,6 +112,7 @@ help <topic>       - Access help system
 ```
 
 ### Combat Commands
+
 ```
 kill <target>      - Attack a mobile/player
 flee               - Escape from combat
@@ -111,6 +122,7 @@ cast '<spell>'     - Cast a spell
 ```
 
 ### Character Commands
+
 ```
 score              - View character statistics
 affects / aff      - List active affects
@@ -126,6 +138,7 @@ quit               - Exit the game
 As the first created character, you have access to builder commands:
 
 ### Online Creation (OLC)
+
 ```
 redit              - Room editor
 oedit              - Object editor
@@ -136,6 +149,7 @@ trigedit           - Trigger editor
 ```
 
 ### Zone Management
+
 ```
 zreset             - Reset your current zone
 saveall            - Save all OLC changes
@@ -144,6 +158,7 @@ goto <room#>       - Teleport to room
 ```
 
 ### Admin Commands
+
 ```
 advance <player> <level> - Set player level
 wizhelp            - List immortal commands
@@ -156,6 +171,7 @@ copyover           - Reboot without disconnecting players
 ### Creating Your First Zone
 
 1. **Create a Zone:**
+
 ```
 zedit new 100        - Create zone 100
 zedit 100 name <Zone Name>
@@ -164,6 +180,7 @@ zedit save
 ```
 
 2. **Create Rooms:**
+
 ```
 redit 100            - Create/edit room 100
 redit name <Room Name>
@@ -173,6 +190,7 @@ redit save
 ```
 
 3. **Create Objects:**
+
 ```
 oedit 100            - Create/edit object 100
 oedit name sword
@@ -182,6 +200,7 @@ oedit save
 ```
 
 4. **Create Mobiles (NPCs):**
+
 ```
 medit 100            - Create/edit mobile 100
 medit name guard
@@ -192,6 +211,7 @@ medit save
 ```
 
 5. **Save Everything:**
+
 ```
 saveall              - Save all OLC work
 ```
@@ -199,18 +219,22 @@ saveall              - Save all OLC work
 ## Configuration
 
 ### Main Configuration Files
+
 - `src/config/campaign.h` - Core game settings
 - `src/config/mud_options.h` - Server options
 - `src/config/vnums.h` - Virtual number assignments
 - `lib/etc/config` - Runtime configuration
 
 ### Changing Port
+
 Edit startup command:
+
 ```bash
 ./bin/luminari -q 5000 -d lib  # Run on port 5000
 ```
 
 ### Database Setup (REQUIRED)
+
 See the [Database Initialization Guide](guides/DATABASE_INITIALIZATION_GUIDE.md)
 for MySQL/MariaDB setup details.
 
@@ -219,16 +243,19 @@ for MySQL/MariaDB setup details.
 ### Common Issues
 
 **Can't connect:**
+
 - Verify server is running: `ps aux | grep luminari`
 - Check firewall settings
 - Try `telnet localhost 4100` to test
 
 **Build errors:**
+
 - Ensure all dependencies installed
 - Run `autoreconf -fvi` if Makefile missing
 - Check `log/syslog` for errors
 
 **Missing files:**
+
 - Run `./scripts/deployment/deploy.sh --auto --init-world` to create all required files
 - Check symlinks exist: `ls -la world text etc`
 

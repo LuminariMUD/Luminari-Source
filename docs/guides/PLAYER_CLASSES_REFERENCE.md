@@ -17,7 +17,7 @@ cover. Disabled placeholder classes (IDs 36 and 37) are out of scope.
 ## Related documents
 
 | Document | What it covers |
-|----------|----------------|
+| -- | -- |
 | [ADDING_NEW_PLAYER_CLASS_GUIDE.md](ADDING_NEW_PLAYER_CLASS_GUIDE.md) | Developer procedure for adding a class: ID allocation, `load_class_list()` registry, progression wiring, entry paths (creation, `gain`, respec, `accexp`), casting models, help, persistence, tests |
 | [PLAYER_RACES_REFERENCE.md](PLAYER_RACES_REFERENCE.md) | Playable races, racial feats, race unlock costs, and the race side of race/class alignment compatibility |
 | [ADDING_NEW_RACE_GUIDE.md](ADDING_NEW_RACE_GUIDE.md) | Race registry and the race/class compatibility checks character creation enforces |
@@ -36,7 +36,7 @@ cover. Disabled placeholder classes (IDs 36 and 37) are out of scope.
 Source of truth for every table below:
 
 | Data | Where it is defined |
-|------|---------------------|
+| -- | -- |
 | Class IDs and synonyms | `src/core/structs.h` (`CLASS_*` defines, `NUM_CLASSES`, `NUM_CASTERS`) |
 | Registry entries | `load_class_list()` in `src/character/class.c` via `classo()`, `assign_class_saves()`, `assign_class_abils()`, `assign_class_titles()`, `feat_assignment()`, `spell_assignment()`, and `class_prereq_*()` |
 | Creation alignment rule | `valid_align_by_class()` in `src/character/class.c`; `valid_class_race_alignment()` in `src/character/race.c` |
@@ -157,7 +157,7 @@ general feat gains to epic feats and enables epic class feats.
 is taken in:
 
 | Gain | Rule |
-|------|------|
+| -- | -- |
 | Hit points | full class hit die (no roll) + CON bonus + configured extra HP per level + racial HP bonus + 1 per Toughness rank (+1 for Gold Dwarf Toughness) |
 | Movement | random 10 to (class move gain x 10) + configured extra movement + 10-20 for Endurance, Draconian Gallop, or Fast Movement, + 20 for Wood Elf Fleetness |
 | Skill points (trains) | max(1, class trains + INT bonus), +1 for humans |
@@ -205,7 +205,7 @@ All base classes are always available, cost nothing, and have no level cap other
 than 30 unless noted. Saves list the classes with a good (high) progression.
 
 | Class | ID | Abbrev | BAB | Hit die | Move | Trains | Good saves | Epic class feat every | Max | Alignment |
-|-------|----|--------|-----|---------|------|--------|------------|-----------------------|-----|-----------|
+| -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- |
 | Warrior | 3 | War | high | d10 | 1 | 2 | Fort | 2 | 30 | any |
 | Rogue | 2 | Rog | high | d8 | 2 | 8 | Refl | 4 | 30 | any |
 | Monk | 4 | Mon | high | d8 | 2 | 4 | Fort, Refl, Will | 3 | 30 | lawful only (LG, LN, LE) |
@@ -228,7 +228,7 @@ than 30 unless noted. Saves list the classes with a good (high) progression.
 Primary attributes as stated in the registry:
 
 | Class | Primary attribute note |
-|-------|------------------------|
+| -- | -- |
 | Warrior | Strength, alternatively Dex... Con for survivability, 13 Int unlocks feat chains |
 | Rogue | Dexterity, Con for survivability, Int for skills, Str for combat |
 | Monk | Wisdom, Con/Dex for survivability, Str for combat |
@@ -255,7 +255,7 @@ class levels unless noted. Alignment here is the `gain` prerequisite; "any" mean
 no alignment row is registered.
 
 | Class | ID | Abbrev | Cost | Max | BAB | Hit die | Move | Trains | Good saves | Alignment | Perk routing |
-|-------|----|--------|------|-----|-----|---------|------|--------|------------|-----------|--------------|
+| -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- |
 | Weaponmaster | 11 | WpM | 5000 | 10 | high | d10 | 1 | 2 | Refl | any | Warrior |
 | Stalwart Defender | 13 | SDe | 5000 | 10 | high | d12 | 1 | 2 | Fort, Will | any | Warrior |
 | Duelist | 15 | Due | 5000 | 10 | high | d10 | 1 | 4 | Refl | any | Warrior + Rogue |
@@ -445,7 +445,7 @@ other row is required.
 ### Casting models
 
 | Class | Model | Stat | Circle access | Table |
-|-------|-------|------|---------------|-------|
+| -- | -- | -- | -- | -- |
 | Wizard | prepared (memorization), arcane | INT | circle (level+1)/2, max 9; epic spells at 21 | `wizard_slots` |
 | Cleric | prepared, divine; two domains | WIS | circle (level+1)/2, max 9; epic spells at 21 | `cleric_slots` |
 | Druid | prepared, divine | WIS | circle (level+1)/2, max 9; epic spells at 21 | `druid_slots` |
@@ -486,7 +486,7 @@ Slot and circle progression for a parent class add bonus levels from
 `compute_bonus_caster_level()`:
 
 | Parent classes | Bonus levels added |
-|----------------|--------------------|
+| -- | -- |
 | Wizard, Sorcerer, Bard, Summoner | Arcane Archer x 3/4, Arcane Shadow, Eldritch Knight, Spellsword (level + 1) / 2, Mystic Theurge, Knight of the Shattered Mirror, Necromancer (if it advances that class) |
 | Cleric, Druid, Ranger, Paladin, Inquisitor | Mystic Theurge, Sacred Fist, Knight of the Luminous Thread, Knight of the Pale Throne, Necromancer (if it advances that class) |
 
@@ -1825,7 +1825,7 @@ Titles are assigned by `assign_class_titles()` for level bands 1-4, 5-9, 10-14,
 bands are shown as "-".
 
 | Class | 1-4 | 5-9 | 10-14 | 15-19 | 20-24 | 25-29 | 30 | Immortal | Staff | Greater staff | Default |
-|-------|-----|-----|-------|-------|-------|-------|----|----------|-------|---------------|---------|
+| -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- |
 | Warrior | - | the Mostly Harmless | the Useful in Bar-Fights | the Friend to Violence | the Strong | the Bane of All Enemies | the Exceptionally Dangerous | the Immortal Warlord | the Extirpator | the God of War | the Warrior |
 | Rogue | - | the Rover | the Multifarious | the Illusive | the Swindler | the Marauder | the Volatile | the Immortal Assassin | the Demi God of Thieves | the God of Thieves and Tradesmen | the Rogue |
 | Monk | - | of the Crushing Fist | of the Stomping Foot | of the Directed Motions | of the Disciplined Body | of the Disciplined Mind | of the Mastered Self | the Immortal Monk | the Inquisitor Monk | the God of the Fist | the Monk |

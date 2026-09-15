@@ -1,15 +1,16 @@
 # Discord Chat Bridge System Documentation
 
 ## Table of Contents
-1. [Overview](#overview)
-2. [Architecture](#architecture)
-3. [Installation & Setup](#installation--setup)
-4. [Configuration](#configuration)
-5. [Usage](#usage)
-6. [Protocol Specification](#protocol-specification)
-7. [Security](#security)
-8. [Troubleshooting](#troubleshooting)
-9. [API Reference](#api-reference)
+
+01. [Overview](#overview)
+02. [Architecture](#architecture)
+03. [Installation & Setup](#installation--setup)
+04. [Configuration](#configuration)
+05. [Usage](#usage)
+06. [Protocol Specification](#protocol-specification)
+07. [Security](#security)
+08. [Troubleshooting](#troubleshooting)
+09. [API Reference](#api-reference)
 10. [Development Guide](#development-guide)
 
 ## Overview
@@ -17,6 +18,7 @@
 The Discord Chat Bridge system enables bidirectional real-time communication between LuminariMUD players and Discord users. This allows players to participate in MUD channels through Discord and vice versa, fostering community engagement across platforms.
 
 ### Key Features
+
 - **Bidirectional Communication**: Messages flow seamlessly between MUD and Discord
 - **Channel Mapping**: Configure which MUD channels bridge to Discord channels
 - **Permission Aware**: Respects existing MUD channel permissions
@@ -46,6 +48,7 @@ The Discord Chat Bridge system enables bidirectional real-time communication bet
 ### Data Flow
 
 1. **MUD -> Discord**:
+
    - Player sends message on MUD channel (e.g., `gossip hello`)
    - MUD captures message in `do_gen_comm()`
    - Routes through `route_mud_to_discord()`
@@ -54,6 +57,7 @@ The Discord Chat Bridge system enables bidirectional real-time communication bet
    - Discord bot posts to appropriate Discord channel
 
 2. **Discord -> MUD**:
+
    - Discord user posts in bridged channel
    - Discord bot captures message
    - Builds JSON with channel, username, and content
@@ -65,6 +69,7 @@ The Discord Chat Bridge system enables bidirectional real-time communication bet
 ## Installation & Setup
 
 ### Prerequisites
+
 - LuminariMUD compiled with Discord bridge support
 - Discord bot with appropriate permissions
 - Network connectivity between MUD and Discord bot
@@ -72,6 +77,7 @@ The Discord Chat Bridge system enables bidirectional real-time communication bet
 ### MUD-Side Setup
 
 1. **Compile with Discord Bridge**:
+
    ```bash
    autoreconf -fiv
    ./configure
@@ -79,16 +85,19 @@ The Discord Chat Bridge system enables bidirectional real-time communication bet
    ```
 
 2. **Start the MUD**:
+
    ```bash
    ./scripts/autorun/autorun.sh
    ```
 
 3. **Enable Discord Bridge** (as admin):
+
    ```
    discord start
    ```
 
 4. **Verify Status**:
+
    ```
    discord status
    ```
@@ -98,6 +107,7 @@ The Discord Chat Bridge system enables bidirectional real-time communication bet
 **Official Discord Bot Repository**: https://github.com/LuminariMUD/discord-mud-chat
 
 The official LuminariMUD Discord bridge bot is available at the repository above. It provides:
+
 1. TCP client that connects to MUD on port 8181
 2. JSON message parsing and building
 3. Discord channel mapping
@@ -105,6 +115,7 @@ The official LuminariMUD Discord bridge bot is available at the repository above
 5. Configuration via environment variables
 
 #### Quick Setup with Official Bot:
+
 ```bash
 # Clone the repository
 git clone https://github.com/LuminariMUD/discord-mud-chat.git
@@ -122,6 +133,7 @@ npm start
 ```
 
 #### Manual Implementation Example (Python):
+
 ```python
 import socket
 import json
@@ -158,7 +170,7 @@ mud_message = json.loads(data.strip())
 ### System Limits
 
 | Parameter | Value | Description |
-|-----------|-------|-------------|
+| -- | -- | -- |
 | MAX_INPUT_LENGTH | 65535 | Maximum message length in characters |
 | Rate Limit | 10 msg/sec | Per-channel message rate limit |
 | Connection Timeout | 300 seconds | Idle connection timeout |
@@ -167,11 +179,11 @@ mud_message = json.loads(data.strip())
 
 ### Default Channel Mappings
 
-| MUD Channel | Discord Channel | Status  | Description |
-|------------|----------------|---------|-------------|
-| gossip     | gossip         | Enabled | General chat |
-| auction    | auction        | Enabled | Trade channel |
-| gratz      | gratz          | Enabled | Congratulations |
+| MUD Channel | Discord Channel | Status | Description |
+| -- | -- | -- | -- |
+| gossip | gossip | Enabled | General chat |
+| auction | auction | Enabled | Trade channel |
+| gratz | gratz | Enabled | Congratulations |
 
 ### Adding New Channels
 
@@ -224,6 +236,7 @@ strcpy(discord_bridge->auth_token, "your-secret-token-here");
 ```
 
 Or load from a configuration file:
+
 ```c
 /* Load token from lib/discord_auth.txt */
 FILE *fp = fopen("lib/discord_auth.txt", "r");
@@ -238,7 +251,7 @@ if (fp) {
 Administrators can manage the Discord bridge using these commands:
 
 - `discord start` - Start the Discord bridge server
-- `discord stop` - Stop the Discord bridge server  
+- `discord stop` - Stop the Discord bridge server
 - `discord status` - View connection status and statistics
 
 ## Usage
@@ -246,6 +259,7 @@ Administrators can manage the Discord bridge using these commands:
 ### For MUD Players
 
 Messages from Discord appear with channel-specific prefixes and colors:
+
 ```
 [Discord-gossip] JohnDoe: Hello from Discord!     (in yellow)
 [Discord-auction] JohnDoe: Selling +5 sword      (in magenta)
@@ -253,11 +267,13 @@ Messages from Discord appear with channel-specific prefixes and colors:
 ```
 
 The colors match the corresponding MUD channel colors:
+
 - **Gossip/Chat**: Yellow (same as MUD gossip)
 - **Auction**: Magenta (same as MUD auction)
 - **Gratz**: Green (same as MUD gratz)
 
 Regular channel commands work normally:
+
 ```
 gossip Hello Discord users!
 auction Selling +5 sword of awesome
@@ -267,6 +283,7 @@ gratz Congratulations on level 50!
 ### For Discord Users
 
 Simply type in the configured Discord channels. Messages appear in the MUD with channel identification:
+
 ```
 [Discord-gossip] DiscordUser: Message content     (in yellow)
 [Discord-auction] DiscordUser: Message content    (in magenta)  
@@ -288,6 +305,7 @@ Each channel displays in its corresponding MUD color for visual consistency.
 All messages use JSON encoding with newline delimiters.
 
 #### MUD to Discord
+
 ```json
 {
     "channel": "gossip",
@@ -298,6 +316,7 @@ All messages use JSON encoding with newline delimiters.
 ```
 
 #### Discord to MUD
+
 ```json
 {
     "channel": "gossip",
@@ -309,7 +328,7 @@ All messages use JSON encoding with newline delimiters.
 ### Field Specifications
 
 | Field | Type | Required | Description |
-|-------|------|----------|-------------|
+| -- | -- | -- | -- |
 | channel | string | Yes | Channel identifier |
 | name | string | Yes | Sender's name |
 | message | string | Yes | Message content |
@@ -328,6 +347,7 @@ All messages use JSON encoding with newline delimiters.
 If authentication is enabled (auth token set in MUD), the Discord bot must authenticate before sending messages:
 
 1. **First Message** must be authentication:
+
    ```json
    {
        "channel": "auth",
@@ -337,7 +357,9 @@ If authentication is enabled (auth token set in MUD), the Discord bot must authe
    ```
 
 2. **Success**: Connection remains open, bot can send messages
+
 3. **Failure**: Connection is immediately closed
+
 4. **No Token Set**: Authentication not required (default)
 
 ## Security
@@ -345,27 +367,32 @@ If authentication is enabled (auth token set in MUD), the Discord bot must authe
 ### Implementation Security Features
 
 1. **Connection Limiting**
+
    - Only one Discord bridge connection allowed
    - Additional connections are rejected
 
 2. **Input Validation**
+
    - Empty fields rejected
    - Username sanitization (no @, !, # characters)
    - Message length limits (MAX_INPUT_LENGTH = 65535 characters)
    - Rate limiting (10 messages per second per channel)
 
 3. **Injection Prevention**
+
    - Discord usernames prefixed with `[Discord-channelname]` for identification
    - Special characters filtered
    - MUD commands cannot be executed via Discord
 
 4. **Network Security**
+
    - Non-blocking sockets prevent DoS
    - Graceful error handling
    - Connection timeout management (5 minutes idle)
    - Automatic disconnection on timeout
 
 5. **Authentication** (Optional):
+
    - Token-based authentication support
    - First message must authenticate if enabled
    - Unauthenticated connections rejected
@@ -373,6 +400,7 @@ If authentication is enabled (auth token set in MUD), the Discord bot must authe
 ### Recommended Security Practices
 
 1. **Firewall Configuration**:
+
    ```bash
    # Allow only Discord bot IP
    iptables -A INPUT -p tcp --dport 8181 -s DISCORD_BOT_IP -j ACCEPT
@@ -380,11 +408,13 @@ If authentication is enabled (auth token set in MUD), the Discord bot must authe
    ```
 
 2. **Monitor Logs**:
+
    - Check for connection attempts
    - Review error messages
    - Track message statistics
 
 3. **Rate Limiting**:
+
    - Per-channel limit: 10 messages per second
    - Automatic throttling when limit exceeded
    - Configurable limits per channel
@@ -398,6 +428,7 @@ If authentication is enabled (auth token set in MUD), the Discord bot must authe
 **Symptoms**: `discord start` fails or shows errors
 
 **Solutions**:
+
 1. Check if port 8181 is already in use:
    ```bash
    netstat -an | grep 8181
@@ -413,6 +444,7 @@ If authentication is enabled (auth token set in MUD), the Discord bot must authe
 **Symptoms**: Bot connection fails or times out
 
 **Solutions**:
+
 1. Verify MUD is listening:
    ```bash
    telnet mud.example.com 8181
@@ -426,12 +458,14 @@ If authentication is enabled (auth token set in MUD), the Discord bot must authe
 **Symptoms**: Discord messages don't show in MUD
 
 **Possible Causes**:
+
 1. Channel mapping incorrect
 2. Channel disabled in config
 3. JSON format error
 4. Players have channel turned off
 
 **Debug Steps**:
+
 1. Check MUD logs for JSON parsing errors
 2. Verify channel configuration with `discord status`
 3. Test with a player who has all channels enabled
@@ -442,6 +476,7 @@ If authentication is enabled (auth token set in MUD), the Discord bot must authe
 **Symptoms**: MUD messages don't appear in Discord
 
 **Solutions**:
+
 1. Verify Discord bot is connected: `discord status`
 2. Check if message contains `[Discord-` (loop prevention)
 3. Ensure channel is enabled in configuration
@@ -452,6 +487,7 @@ If authentication is enabled (auth token set in MUD), the Discord bot must authe
 **Symptoms**: Noticeable delay between sending and receiving
 
 **Solutions**:
+
 1. Check network latency between MUD and bot
 2. Monitor server CPU/memory usage
 3. Review message queue sizes
@@ -468,6 +504,7 @@ discord status     - View current connection and statistics
 #### Status Command Output
 
 The `discord status` command displays:
+
 - Server socket state (Active/Inactive)
 - Client connection state (Connected/Disconnected)
 - Authentication status (Disabled/Authenticated/Not Authenticated)
@@ -482,40 +519,50 @@ The `discord status` command displays:
 ### Core Functions
 
 #### `init_discord_bridge()`
+
 Initializes the Discord bridge system, creates server socket, loads configuration.
 
 #### `shutdown_discord_bridge()`
+
 Cleanly shuts down the Discord bridge, closes all connections, saves configuration.
 
 #### `send_to_discord(channel, name, message, emoted)`
+
 Sends a message from MUD to Discord.
 
 **Parameters**:
+
 - `channel`: Target Discord channel name
 - `name`: Sender's name
 - `message`: Message content
 - `emoted`: 1 for emote, 0 for normal
 
 #### `route_discord_to_mud(channel, name, message)`
+
 Routes an incoming Discord message to appropriate MUD channel.
 
 #### `route_mud_to_discord(subcmd, ch, message, emoted)`
+
 Routes a MUD channel message to Discord.
 
 ### Configuration Functions
 
 #### `add_discord_channel(mud_channel, discord_name, scmd, enabled)`
+
 Adds a new channel mapping configuration.
 
 #### `find_discord_channel_by_scmd(scmd)`
+
 Finds channel configuration by MUD subcmd.
 
 ### Utility Functions
 
 #### `strip_mud_colors(text)`
+
 Removes MUD color codes from text before sending to Discord.
 
 #### `is_discord_bridge_active()`
+
 Returns true if Discord bridge is connected and active.
 
 ## Development Guide
@@ -525,16 +572,19 @@ Returns true if Discord bridge is connected and active.
 #### Adding a New Channel
 
 1. Define the channel SCMD in `act.h`:
+
    ```c
    #define SCMD_NEWCHANNEL 10
    ```
 
 2. Add to channel configuration in `load_discord_config()`:
+
    ```c
    add_discord_channel("newchannel", "discord-new", SCMD_NEWCHANNEL, 1);
    ```
 
 3. Map the PRF flag in `route_discord_to_mud()`:
+
    ```c
    case SCMD_NEWCHANNEL:
        channel_flag = PRF_NONEWCHANNEL;
@@ -546,12 +596,14 @@ Returns true if Discord bridge is connected and active.
 Authentication is now fully implemented in the Discord bridge:
 
 1. **Configuration**: Set `auth_token` in `discord_bridge_data`:
+
    ```c
    strcpy(discord_bridge->auth_token, "your-secret-token");
    // Empty string "" means no authentication required
    ```
 
 2. **Bot Authentication**: Send as first message:
+
    ```python
    # Python example
    auth_msg = {
@@ -563,6 +615,7 @@ Authentication is now fully implemented in the Discord bridge:
    ```
 
 3. **Verification**: The MUD automatically:
+
    - Checks first message for auth token
    - Sets authenticated flag on success
    - Closes connection on failure
@@ -622,26 +675,31 @@ src/
 ### Future Enhancements
 
 1. **Rich Message Support**
+
    - Embed support for Discord
    - Markdown formatting
    - Attachments/images
 
 2. **Command Bridge**
+
    - Execute MUD commands from Discord
    - Query game state
    - Administrative functions
 
 3. **Presence Sync**
+
    - Show online players in Discord
    - Player status updates
    - Who list integration
 
 4. **Advanced Security**
+
    - TLS encryption
    - OAuth authentication
    - Rate limiting per user
 
 5. **Statistics & Monitoring**
+
    - Message throughput graphs
    - Latency monitoring
    - Error rate tracking

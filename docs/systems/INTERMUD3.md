@@ -13,16 +13,19 @@ The Intermud3 (I3) system enables LuminariMUD to connect to the global Intermud3
 ### Components
 
 1. **I3 Client** (`src/net/i3_client.c`)
+
    - Manages connection to the I3 Gateway
    - Handles message queuing and threading
    - Processes incoming/outgoing messages
 
 2. **I3 Commands** (`src/net/i3_commands.c`)
+
    - Implements player-facing commands
    - Handles admin functions
    - Manages configuration
 
 3. **I3 Gateway** (External service)
+
    - Runs on localhost:8081 by default
    - Handles I3 protocol complexity
    - Available at: https://github.com/LuminariMUD/Intermud3
@@ -69,7 +72,7 @@ npm start
 ## Player Commands
 
 | Command | Alias | Description | Example |
-|---------|-------|-------------|---------|
+| -- | -- | -- | -- |
 | `i3tell` | `i3t` | Send tell to player on another MUD | `i3tell Bob@TestMUD Hello!` |
 | `i3chat` | `i3c` | Send message to I3 channel | `i3chat Hello everyone!` |
 | `i3who` | `i3w` | List players on a MUD | `i3who TestMUD` |
@@ -101,7 +104,7 @@ i3config who                 # Toggle I3 who queries on/off
 **Command:** `i3admin` (Implementor only)
 
 | Subcommand | Description |
-|------------|-------------|
+| -- | -- |
 | `i3admin status` | Show connection status and details |
 | `i3admin stats` | Display message statistics |
 | `i3admin reconnect` | Force reconnection to gateway |
@@ -126,14 +129,17 @@ lib/
 ### Integration Points
 
 1. **Build System**
+
    - `Makefile.am`: Added to luminari_SOURCES
    - `CMakeLists.txt`: Added to SRC_C_FILES
 
 2. **Command Registration**
+
    - `interpreter.c`: Commands registered in cmd_info[]
    - All commands available at POS_DEAD
 
 3. **Game Loop Integration**
+
    - `comm.c`: Initialization in init_game()
    - `comm.c`: Event processing in heartbeat()
    - `comm.c`: Shutdown handling
@@ -141,6 +147,7 @@ lib/
 ### Threading Model
 
 The I3 client runs in a separate thread to prevent blocking:
+
 - Main thread: Game logic and player commands
 - I3 thread: Network I/O and message processing
 - Communication via thread-safe queues
@@ -148,11 +155,13 @@ The I3 client runs in a separate thread to prevent blocking:
 ### Message Flow
 
 1. **Outgoing Messages:**
+
    ```
    Player Command -> Command Handler -> Queue Command -> I3 Thread -> Gateway
    ```
 
 2. **Incoming Messages:**
+
    ```
    Gateway -> I3 Thread -> Queue Event -> Process Events -> Send to Players
    ```
@@ -177,7 +186,7 @@ The I3 client runs in a separate thread to prevent blocking:
 ### Message Types
 
 | Type | Direction | Description |
-|------|-----------|-------------|
+| -- | -- | -- |
 | welcome | In | Gateway welcome message (triggers auth) |
 | authenticate | Out | Initial authentication |
 | authenticated | In | Authentication success response |
@@ -200,7 +209,7 @@ The I3 client runs in a separate thread to prevent blocking:
 ### Common Problems
 
 | Issue | Solution |
-|-------|----------|
+| -- | -- |
 | "I3 network unavailable" | Check gateway is running |
 | "Failed to connect" | Verify gateway host/port |
 | "Authentication failed" | Check API key in config (format: `API_KEY_LUMINARI:key`) |
@@ -218,16 +227,19 @@ The I3 client runs in a separate thread to prevent blocking:
 ## Security
 
 ### Input Validation
+
 - All user input sanitized
 - Message length limits enforced
 - Command injection prevention
 
 ### Configuration Security
+
 - API key stored in git-ignored file
 - No sensitive data in repository
 - Player preference controls
 
 ### Network Security
+
 - Local gateway connection (no external exposure)
 - Gateway handles external I3 protocol
 - Rate limiting at gateway level
@@ -235,11 +247,13 @@ The I3 client runs in a separate thread to prevent blocking:
 ## Monitoring
 
 ### Logs
+
 - I3 events logged to MUD syslog
 - Connection status in `i3admin status`
 - Statistics via `i3admin stats`
 
 ### Health Checks
+
 ```bash
 # Check connection status
 i3admin status
@@ -282,6 +296,7 @@ i3tell TestUser@TestMUD ping
 ### Debug Logging
 
 The I3 client includes comprehensive debug logging when issues occur:
+
 - Connection attempts and results
 - Authentication flow and API key usage
 - All sent and received messages
@@ -313,6 +328,7 @@ Check the MUD syslog for lines containing "I3: DEBUG" for detailed diagnostics.
 ## Future Enhancements
 
 ### Planned Features
+
 - [ ] Channel moderation tools
 - [ ] Ignore list for players/MUDs
 - [ ] Message history/replay
@@ -320,6 +336,7 @@ Check the MUD syslog for lines containing "I3: DEBUG" for detailed diagnostics.
 - [ ] Web interface integration
 
 ### Protocol Extensions
+
 - [ ] File transfer support
 - [ ] MUD information exchange
 - [ ] Cross-MUD mail system
@@ -334,12 +351,14 @@ Check the MUD syslog for lines containing "I3: DEBUG" for detailed diagnostics.
 ## Maintenance
 
 ### Regular Tasks
+
 - Monitor gateway health
 - Update API keys periodically
 - Review message statistics
 - Check for gateway updates
 
 ### Upgrade Procedure
+
 1. Stop MUD server
 2. Update gateway if needed
 3. Update client code

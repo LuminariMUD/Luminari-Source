@@ -1,15 +1,16 @@
 # LuminariMUD Help System Documentation
 
 ## Table of Contents
-1. [System Overview](#system-overview)
-2. [Maintained Content Workflow](#maintained-content-workflow)
-3. [Database Architecture](#database-architecture)
-4. [Core Components](#core-components)
-5. [User Commands](#user-commands)
-6. [Search Algorithms](#search-algorithms)
-7. [Caching System](#caching-system)
-8. [OLC Help Editor (hedit)](#olc-help-editor-hedit)
-9. [Chain of Responsibility Pattern](#chain-of-responsibility-pattern)
+
+01. [System Overview](#system-overview)
+02. [Maintained Content Workflow](#maintained-content-workflow)
+03. [Database Architecture](#database-architecture)
+04. [Core Components](#core-components)
+05. [User Commands](#user-commands)
+06. [Search Algorithms](#search-algorithms)
+07. [Caching System](#caching-system)
+08. [OLC Help Editor (hedit)](#olc-help-editor-hedit)
+09. [Chain of Responsibility Pattern](#chain-of-responsibility-pattern)
 10. [Help Content Generation](#help-content-generation)
 11. [Migration & Backup](#migration--backup)
 12. [Troubleshooting](#troubleshooting)
@@ -68,6 +69,7 @@
 > source of truth.
 
 The LuminariMUD help system is a sophisticated, multi-layered documentation framework that provides:
+
 - **Database-driven content** with MySQL/MariaDB backend
 - **Intelligent search** with fuzzy matching and soundex algorithms
 - **In-memory caching** for performance optimization
@@ -78,6 +80,7 @@ The LuminariMUD help system is a sophisticated, multi-layered documentation fram
 - **Optional file fallback** - Can use help.hlp if present
 
 ### Key Features
+
 - **3,143+ searchable keywords** mapping to 1,815+ help entries
 - **Level-based access control** (min_level 0-60)
 - **Case-insensitive prefix matching** with partial match support
@@ -133,6 +136,7 @@ player input in a help SQL component.
 ## Database Architecture
 
 ## Connection Details
+
 - **Config File:** `lib/mysql_config`
 - **Connection:** Managed through `src/database/mysql.c` using prepared statements
 - **Status:** FUNCTIONAL - Database connection verified and operational
@@ -142,6 +146,7 @@ player input in a help SQL component.
 ### Primary Tables
 
 #### help_entries (1,815+ rows)
+
 ```sql
 CREATE TABLE help_entries (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -159,6 +164,7 @@ CREATE TABLE help_entries (
 ```
 
 #### help_keywords (3,143+ rows)
+
 ```sql
 CREATE TABLE help_keywords (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -174,6 +180,7 @@ CREATE TABLE help_keywords (
 ### Supporting Tables
 
 #### help_versions (Audit Trail)
+
 ```sql
 CREATE TABLE help_versions (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -189,6 +196,7 @@ CREATE TABLE help_versions (
 ```
 
 #### help_search_history (Analytics)
+
 ```sql
 CREATE TABLE help_search_history (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -202,6 +210,7 @@ CREATE TABLE help_search_history (
 ```
 
 #### help_related_topics (Cross-references)
+
 ```sql
 CREATE TABLE help_related_topics (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -214,6 +223,7 @@ CREATE TABLE help_related_topics (
 ```
 
 ### Migration/Backup Tables
+
 - **help_entries_frmud** - Backup/migration from file-based system
 - **help_keywords_frmud** - Keyword backup/migration
 - **help_topics_backup** - Additional backup table
@@ -223,6 +233,7 @@ CREATE TABLE help_related_topics (
 ## Core Components
 
 ### Architecture Overview
+
 - **Primary Storage:** MySQL/MariaDB database (required)
 - **Optional File Support:** File-based (`lib/text/help/help.hlp`, if present)
 - **Cache Layer:** In-memory LRU cache (50 entries, 5-minute TTL)
@@ -230,13 +241,16 @@ CREATE TABLE help_related_topics (
 - **Content Handlers:** Chain of Responsibility pattern for extensibility
 
 #### Operating Modes
+
 1. **Database-Only Mode (Default)**
+
    - No help.hlp file required
    - All help content stored in MySQL
    - System logs informational message if help.hlp missing
    - Full functionality without file system dependency
 
 2. **Dual Mode (Optional)**
+
    - Uses database as primary source
    - Falls back to help.hlp if database query fails
    - Provides redundancy for critical systems
@@ -244,6 +258,7 @@ CREATE TABLE help_related_topics (
 ### Key Data Structures
 
 #### help_entry_list (src/core/help.h)
+
 ```c
 struct help_entry_list {
     char *tag;           // Unique identifier
@@ -257,6 +272,7 @@ struct help_entry_list {
 ```
 
 #### help_cache_entry (src/core/help.c)
+
 ```c
 struct help_cache_entry {
     char *argument;      // Search term
@@ -272,7 +288,9 @@ struct help_cache_entry {
 ## User Commands
 
 ### help - Main Help Command
+
 **Usage:** `help [topic]`
+
 - **Location:** src/core/help.c:1233 (do_help)
 - **Access:** All players (POS_DEAD)
 - **Features:**
@@ -283,7 +301,9 @@ struct help_cache_entry {
   - Level filtering: Only shows appropriate content
 
 ### helpsearch - Full-text Search
+
 **Usage:** `helpsearch <search term>`
+
 - **Location:** src/core/help.c:1647 (do_helpsearch)
 - **Access:** All players (POS_DEAD)
 - **Features:**
@@ -292,7 +312,9 @@ struct help_cache_entry {
   - Useful for finding related topics
 
 ### hedit - OLC Help Editor
+
 **Usage:** `hedit <tag | new>`
+
 - **Location:** src/olc/hedit.c
 - **Access:** Builders+ (LVL_BUILDER)
 - **Features:**
@@ -303,7 +325,9 @@ struct help_cache_entry {
   - Real-time database updates
 
 ### helpcheck - Validate Help System
+
 **Usage:** `helpcheck`
+
 - **Location:** src/olc/hedit.c
 - **Access:** Immortals (LVL_IMMORT)
 - **Features:**
@@ -313,7 +337,9 @@ struct help_cache_entry {
   - Fails promptly when the required database keyword index is unavailable
 
 ### hindex - Rebuild Help Index
+
 **Usage:** `hindex`
+
 - **Location:** src/act/act.wizard.c
 - **Access:** Implementor (LVL_IMPL)
 - **Features:**
@@ -322,7 +348,9 @@ struct help_cache_entry {
   - Clears cache
 
 ### helpgen - Generate, Import, and Export Help Content
+
 **Usage:** `helpgen <type> [arguments]`
+
 - **Location:** src/olc/hedit.c:1707
 - **Access:** Implementor (LVL_IMPL)
 - **Features:**
@@ -338,6 +366,7 @@ struct help_cache_entry {
 ## Search Algorithms
 
 ### Search Priority Order
+
 1. **Exact Match** - Direct tag or keyword match
 2. **Prefix Match** - Keywords starting with search term
 3. **Partial Match** - Keywords containing search term
@@ -347,7 +376,9 @@ struct help_cache_entry {
 ### Algorithm Details
 
 #### Primary Search (search_help)
+
 **Location:** src/core/help.c:161
+
 ```c
 1. Check cache for recent queries
 2. Normalize search term (lowercase, trim)
@@ -359,14 +390,18 @@ struct help_cache_entry {
 ```
 
 #### Soundex Fuzzy Search
+
 **Location:** src/core/help.c:550
+
 - Uses MySQL SOUNDEX() function
 - Finds phonetically similar keywords
 - Suggests alternatives for typos
 - Example: "comand" suggests "command"
 
 #### Full-text Search
+
 **Location:** src/core/help.c:search_help_fulltext
+
 - Searches within help content
 - Case-insensitive LIKE queries
 - Returns all matching entries
@@ -377,6 +412,7 @@ struct help_cache_entry {
 ## Caching System
 
 ### Cache Configuration
+
 - **Size:** 50 entries (HELP_CACHE_SIZE)
 - **TTL:** 300 seconds (HELP_CACHE_TIMEOUT)
 - **Strategy:** LRU with timestamp-based expiration
@@ -384,7 +420,9 @@ struct help_cache_entry {
 ### Cache Operations
 
 #### Cache Lookup (get_cached_help)
+
 **Location:** src/core/help.c
+
 1. Iterate through cache entries
 2. Match on argument AND level
 3. Check timestamp validity
@@ -392,6 +430,7 @@ struct help_cache_entry {
 5. Purge expired entries periodically
 
 #### Cache Addition (add_to_help_cache)
+
 1. Check cache size limit
 2. Evict oldest entry if full
 3. Deep copy result data
@@ -399,6 +438,7 @@ struct help_cache_entry {
 5. Increment cache counter
 
 #### Cache Purging
+
 - Automatic during lookups
 - Manual via hindex command
 - On server reboot
@@ -409,6 +449,7 @@ struct help_cache_entry {
 ## OLC Help Editor (hedit)
 
 ### Editor Modes
+
 ```c
 HEDIT_MAIN_MENU      - Main editing menu
 HEDIT_ENTRY          - Edit help text
@@ -420,16 +461,20 @@ HEDIT_CONFIRM_DELETE - Delete confirmation
 ```
 
 ### Workflow
+
 1. **Create/Load Entry**
+
    - `hedit new` - Create new entry
    - `hedit <tag>` - Edit existing entry
 
 2. **Edit Content**
+
    - Main text editing with string editor
    - Keyword management (add/remove)
    - Access level configuration
 
 3. **Save Process**
+
    - Validate data integrity
    - Update database tables
    - Update version history
@@ -437,7 +482,9 @@ HEDIT_CONFIRM_DELETE - Delete confirmation
    - Broadcast changes to connected users
 
 ### Database Operations
+
 **Location:** src/olc/hedit.c:331 (hedit_save_to_db)
+
 1. Begin transaction
 2. Delete existing keywords
 3. Insert/update help_entries
@@ -451,9 +498,11 @@ HEDIT_CONFIRM_DELETE - Delete confirmation
 ## Chain of Responsibility Pattern
 
 ### Design Overview
+
 The help system uses a Chain of Responsibility pattern to handle different types of help content. Each handler is responsible for one type of content and can pass requests to the next handler.
 
 ### Handler Structure
+
 ```c
 struct help_handler {
     const char *name;           // Handler identifier
@@ -463,21 +512,24 @@ struct help_handler {
 ```
 
 ### Registered Handlers
-1. **Database Handler** - Primary database searches
-2. **Deity Handler** - Deity-specific help
-3. **Region Handler** - Zone/area information
-4. **Background Handler** - Character backgrounds
-5. **Discovery Handler** - Alchemist discoveries
-6. **Feat Handler** - Feat descriptions
-7. **Evolution Handler** - Summoner evolutions
-8. **Weapon Handler** - Weapon information
-9. **Armor Handler** - Armor information
+
+01. **Database Handler** - Primary database searches
+02. **Deity Handler** - Deity-specific help
+03. **Region Handler** - Zone/area information
+04. **Background Handler** - Character backgrounds
+05. **Discovery Handler** - Alchemist discoveries
+06. **Feat Handler** - Feat descriptions
+07. **Evolution Handler** - Summoner evolutions
+08. **Weapon Handler** - Weapon information
+09. **Armor Handler** - Armor information
 10. **Class Handler** - Class descriptions
 11. **Race Handler** - Race information
 12. **Soundex Handler** - Fuzzy search suggestions
 
 ### Handler Registration
+
 **Location:** src/core/help.c (init_help_handlers)
+
 ```c
 void init_help_handlers(void) {
     register_help_handler("database", handle_database_help);
@@ -492,9 +544,11 @@ void init_help_handlers(void) {
 ## Help Content Generation
 
 ### Auto-Generation System
+
 The helpgen command automatically creates help entries for game elements:
 
 #### Supported Types
+
 - **Classes** - Generate from class definitions
 - **Races** - Generate from race data
 - **Feats** - Generate from feat tables
@@ -504,6 +558,7 @@ The helpgen command automatically creates help entries for game elements:
 - **Armor** - Generate from armor types
 
 #### Generation Process
+
 1. Query game data structures
 2. Format into help text
 3. Set auto_generated flag
@@ -512,6 +567,7 @@ The helpgen command automatically creates help entries for game elements:
 6. Update existing if auto_generated=TRUE
 
 ### Example Usage
+
 ```
 helpgen class warrior
 helpgen race elf
@@ -526,13 +582,17 @@ helpgen spell fireball
 ### Legacy Help File Import System
 
 #### Overview
+
 The `helpgen import` command provides a comprehensive solution for importing the legacy help.hlp file (1,265 entries) into the MySQL database while intelligently handling duplicates and preserving existing content.
 
 #### Command Syntax
+
 ```
 helpgen import <mode>
 ```
+
 **Required modes (no default - must explicitly choose):**
+
 - **preview** - Dry run showing what would be imported without making changes
 - **skip** - Only import new entries, skip any that already exist
 - **merge** - Intelligently merge duplicate keywords with suffixes (`_2`, `_3`)
@@ -541,18 +601,21 @@ helpgen import <mode>
 #### Import Modes
 
 ##### Preview Mode
+
 - Shows what entries would be imported, skipped, or merged
 - No database changes are made
 - Limited to first 100 entries for readability
 - Safe way to test before actual import
 
 ##### Force Mode
+
 - Deletes existing entries that share keywords
 - Replaces with new content from help.hlp
 - Maintains referential integrity
 - Use with caution - data loss possible
 
 ##### Skip Mode (Safest)
+
 - Only imports entries that don't exist in database
 - Skips all entries with matching keywords
 - No data loss or duplication
@@ -560,6 +623,7 @@ helpgen import <mode>
 - Ideal for initial imports to populated database
 
 ##### Merge Mode (Recommended for duplicates)
+
 - Detects entries with duplicate keywords
 - Creates new entries with numeric suffixes (`_2`, `_3`, etc.)
 - Preserves both original and imported content
@@ -569,29 +633,34 @@ helpgen import <mode>
 #### Implementation Details
 
 ##### File Parser
+
 - Reads from `text/help/help.hlp` (relative to lib directory)
 - Parses format: keywords line, content body, #level marker
 - Handles multi-line content and special characters
 - Generates unique tags from first keyword
 
 ##### Duplicate Detection
+
 - Checks each keyword against existing database entries
 - Identifies conflicts before any changes are made
 - Reports exact duplicate counts and affected entries
 
 ##### Database Operations
+
 - Uses transactions for atomicity (all-or-nothing)
 - Dynamic memory allocation prevents buffer overflows
 - Proper SQL escaping prevents injection attacks
 - Automatic cache clearing after successful import
 
 ##### Progress Reporting
+
 - Shows progress every 50 entries during processing
 - Uses pagination system to prevent output overflow
 - Detailed summary with import/skip/error counts
 - Logs all operations to system log
 
 #### Example Import Session
+
 ```
 > helpgen import preview
 Reading help.hlp file from: text/help/help.hlp
@@ -620,7 +689,9 @@ Errors: 0
 ```
 
 #### Post-Import Verification
+
 After import, the database typically contains:
+
 - Original entries preserved with original tags
 - Imported entries with suffixed tags where conflicts existed
 - All keywords properly mapped to appropriate entries
@@ -629,43 +700,51 @@ After import, the database typically contains:
 ### Database to File Export System
 
 #### Overview
+
 The `helpgen export` command provides a comprehensive solution for exporting the MySQL database help entries back to the help.hlp file format. This is useful for backups, migrations, or sharing content.
 
 #### Command Syntax
+
 ```
 helpgen export <mode> [filters]
 ```
 
 **Required modes (no default - must explicitly choose):**
+
 - **preview** - Dry run showing what would be exported without writing files
 - **backup** - Creates timestamped backup before exporting (safest)
 - **force** - Overwrites help.hlp without creating backup
 
 **Optional filters (add after mode):**
+
 - **noauto** - Exclude auto-generated entries
 - **level <num>** - Only export entries accessible at specified level or below
 
 #### Export Modes
 
 ##### Preview Mode
+
 - Shows summary of what would be exported
 - Displays first 20 entries as examples
 - No files are written or modified
 - Safe way to test export parameters
 
 ##### Backup Mode (Recommended)
+
 - Creates timestamped backup (help.hlp.YYYYMMDD_HHMMSS)
 - Then exports current database to help.hlp
 - Preserves previous file version
 - Safe for regular exports
 
 ##### Force Mode
+
 - Directly overwrites help.hlp file
 - No backup created
 - Use with caution
 - Faster for development environments
 
 #### Export Features
+
 - **Proper file format** with keywords, content, and #level markers
 - **File termination** with required $~ marker
 - **Keyword conversion** to uppercase space-separated format
@@ -675,6 +754,7 @@ helpgen export <mode> [filters]
 - **Memory efficient** processing for thousands of entries
 
 #### Example Export Session
+
 ```
 > helpgen export preview
 PREVIEW MODE - No files will be written
@@ -700,6 +780,7 @@ File size: 799709 bytes
 ```
 
 ### File to Database Migration (Legacy Process)
+
 1. Parse help.hlp file format
 2. Extract entries and keywords
 3. Insert into database tables
@@ -709,6 +790,7 @@ File size: 799709 bytes
 ### Backup Procedures
 
 #### Database Backup
+
 ```bash
 # Export help tables
 mysqldump -u user -p database \
@@ -718,12 +800,14 @@ mysqldump -u user -p database \
 ```
 
 #### File Backup
+
 ```bash
 # Backup help files
 tar -czf help_files.tar.gz lib/text/help/
 ```
 
 ### Restoration
+
 ```bash
 # Restore database
 mysql -u user -p database < help_backup.sql
@@ -739,44 +823,55 @@ tar -xzf help_files.tar.gz -C /
 ### Common Issues
 
 #### Database Connection Failed
+
 **Symptoms:** Help returns "No help available"
 **Solution:**
+
 1. Check `lib/mysql_config` settings
 2. Verify MySQL service is running
 3. Test connection with `helpcheck`
 4. Check error logs for details
 
 #### Cache Not Updating
+
 **Symptoms:** Old help content displayed
 **Solution:**
+
 1. Run `hindex` to clear cache
 2. Wait for 5-minute TTL expiration
 3. Check cache size settings
 4. Verify timestamps are correct
 
 #### Missing Help Entries
+
 **Symptoms:** Topics not found
 **Solution:**
+
 1. Check keyword mappings
 2. Verify access levels
 3. Run `helpgen` for auto-content
 4. Check database integrity
 
 #### Slow Search Performance
+
 **Symptoms:** Help commands lag
 **Solution:**
+
 1. Check database indexes
 2. Optimize query performance
 3. Increase cache size
 4. Review search algorithms
 
 ### Debug Mode
+
 Enable help system debugging:
+
 ```c
 #define HELP_DEBUG 1  // In src/core/help.c
 ```
 
 Debug output includes:
+
 - Cache hit/miss statistics
 - Database query details
 - Search algorithm paths
@@ -787,6 +882,7 @@ Debug output includes:
 ## Best Practices
 
 ### Content Guidelines
+
 1. **Clear Titles** - Use descriptive tags
 2. **Multiple Keywords** - Include variations and aliases
 3. **Proper Levels** - Set appropriate access restrictions
@@ -794,6 +890,7 @@ Debug output includes:
 5. **Consistent Format** - Follow established style
 
 ### Performance Optimization
+
 1. **Use Cache** - Leverage caching for common queries
 2. **Index Keywords** - Maintain database indexes
 3. **Batch Updates** - Group database operations
@@ -801,6 +898,7 @@ Debug output includes:
 5. **Profile Queries** - Monitor slow queries
 
 ### Maintenance Tasks
+
 1. **Regular Backups** - Daily database exports
 2. **Cache Monitoring** - Check hit rates
 3. **Keyword Audit** - Remove duplicates
@@ -808,6 +906,7 @@ Debug output includes:
 5. **Performance Analysis** - Review search metrics
 
 ### Security Considerations
+
 1. **SQL Injection** - Use prepared statements
 2. **Access Control** - Enforce level restrictions
 3. **Input Validation** - Sanitize search terms
@@ -819,29 +918,34 @@ Debug output includes:
 # File System Reference
 
 ## Core Implementation Files
+
 - **`src/core/help.c`** (1296 lines) - Main help system implementation, search functions, display logic
 - **`src/core/help.h`** (89 lines) - Help system data structures and function declarations
 - **`src/olc/hedit.c`** (1847 lines) - OLC help editor implementation, database operations
 - **`src/olc/hedit.h`** (31 lines) - Help editor declarations and command definitions
 
 ## Database Integration
+
 - **`src/core/db.c`** - Contains `load_help()` function for file-based loading, help_table management
 - **`src/core/db.h`** - Defines `help_index_element` structure, declares help_table global
 - **`src/database/mysql.c`** - MySQL connection handling, escape functions used by help system
 - **`src/database/db_init.c`** - Database table creation and initialization
 
 ## Command Integration
+
 - **`src/core/interpreter.c`** - Registers help commands (help, hedit, helpcheck, hindex, helpgen)
 - **`src/act/act.h`** - Command declarations
 - **`src/core/comm.c`** - Uses help_table for initial help display
 
 ## OLC Framework
+
 - **`src/olc/oasis.h`** - OLC data structures used by hedit
 - **`src/olc/oasis.c`** - OLC framework functions
 - **`src/olc/genolc.c`** - Generic OLC functions
 - **`src/core/modify.c`** - String editing functions for help text
 
 ## Data Files
+
 - **`lib/text/help/help.hlp`** (799,709 bytes) - Legacy help file database
 - **`lib/text/help/help`** (1,498 bytes) - Default help screen
 - **`lib/text/help/ihelp`** (895 bytes) - Immortal help screen
@@ -849,9 +953,11 @@ Debug output includes:
 - **`lib/text/help/README`** (101 bytes) - Documentation file
 
 ## Configuration Files
+
 - **`lib/mysql_config`** - Database connection parameters
 
 ## Database Tables
+
 - **`help_entries`** - Main help content table (3,271+ entries after import)
 - **`help_keywords`** - Keyword-to-help mappings (7,206+ keywords after import)
 - **`help_entries_frmud`** - Backup/migration table
@@ -863,6 +969,7 @@ Debug output includes:
 ## Appendix A: Configuration Constants
 
 ### Cache Settings (src/core/help.c)
+
 ```c
 #define HELP_CACHE_SIZE     50    // Maximum cached entries
 #define HELP_CACHE_TIMEOUT  300   // Cache TTL in seconds
@@ -870,6 +977,7 @@ Debug output includes:
 ```
 
 ### Access Levels
+
 ```c
 #define LVL_IMPL     60  // Implementor
 #define LVL_GRGOD    59  // Greater God
@@ -879,6 +987,7 @@ Debug output includes:
 ```
 
 ### Editor Permissions
+
 ```c
 #define HEDIT_PERMISSION  LVL_BUILDER  // Minimum level to use hedit
 ```
@@ -890,6 +999,7 @@ Debug output includes:
 ### Common Query Examples
 
 #### Find all help entries for a level
+
 ```sql
 SELECT h.tag, h.entry, GROUP_CONCAT(k.keyword) as keywords
 FROM help_entries h
@@ -899,6 +1009,7 @@ GROUP BY h.tag;
 ```
 
 #### Find orphaned keywords
+
 ```sql
 SELECT k.keyword
 FROM help_keywords k
@@ -907,6 +1018,7 @@ WHERE h.tag IS NULL;
 ```
 
 #### Search history analysis
+
 ```sql
 SELECT search_term, COUNT(*) as search_count,
        SUM(found) as found_count
@@ -918,6 +1030,7 @@ LIMIT 20;
 ```
 
 #### Auto-generated content audit
+
 ```sql
 SELECT tag, updated_at
 FROM help_entries
@@ -930,6 +1043,7 @@ WHERE auto_generated = TRUE
 ## Appendix C: File Format Specifications
 
 ### help.hlp Format
+
 ```
 #<level>
 <keyword1> <keyword2> <keyword3>~
@@ -939,6 +1053,7 @@ WHERE auto_generated = TRUE
 ```
 
 Example:
+
 ```
 #0
 SCORE STATS CHARACTER-INFO~
@@ -952,6 +1067,7 @@ Usage: score
 **Note:** Tables are created programmatically in db_init.c
 
 ## Supporting Systems
+
 - **`src/core/utils.c/h`** - Utility functions (string handling, memory management)
 - **`src/core/structs.h`** - Core data structures
 - **`conf.h`** - Generated platform configuration (build root)

@@ -11,6 +11,7 @@ Luminari MUD uses a hybrid save system combining **ASCII file storage** for prim
 These systems use file-based storage exclusively for persistence.
 
 #### 1. Player Character Data (`.plr` files)
+
 - **Location**: `lib/plrfiles/A-E/playername.plr`
 - **Format**: ASCII text with structured fields
 - **Function**: `save_char()` in `players.c`
@@ -25,6 +26,7 @@ These systems use file-based storage exclusively for persistence.
   - DG Script variables
 
 **Example Structure:**
+
 ```
 Name: PlayerName
 SexC: 1
@@ -34,6 +36,7 @@ Levl: 1
 ```
 
 #### 2. Player Object Files (`.objs` files)
+
 - **Location**: `lib/plrobjs/A-E/playername.objs`
 - **Format**: Custom binary/text format
 - **Functions**: `Crash_save()`, `Crash_rentsave()` in `objsave.c`
@@ -81,6 +84,7 @@ tests cover the two reader behaviors in the current binary; they do not
 prove cross-version compatibility.
 
 #### 3. Clan System
+
 - **Location**: `lib/etc/clans`
 - **Format**: Custom text format
 - **Functions**: `save_clans()`, `save_single_clan()` in `clan_edit.c`
@@ -94,6 +98,7 @@ prove cross-version compatibility.
 **Key Note**: Clans explicitly do NOT use MySQL storage.
 
 #### 4. House/Rent System
+
 - **Location**: `lib/house/`
 - **Format**: Custom rent file format
 - **Functions**: `House_save()`, `House_crashsave()` in `house.c`
@@ -104,6 +109,7 @@ prove cross-version compatibility.
   - Private storage items
 
 #### 5. World Data Files
+
 - **Location**: `lib/world/`
 - **Format**: CircleMUD standard formats
 - **Files**:
@@ -115,11 +121,13 @@ prove cross-version compatibility.
   - `.qst` - Quest definitions
 
 #### 6. Mail System
+
 - **Location**: `lib/mail/`
 - **Format**: Custom mail format
 - **Functions**: Mail handling in `mail.c`
 
 #### 7. Configuration Files
+
 - **Files**: Various `.conf`, `config.*` files
 - **Purpose**: Server configuration and settings
 
@@ -130,6 +138,7 @@ prove cross-version compatibility.
 These systems use MySQL database storage exclusively.
 
 #### 1. Account System
+
 - **Table**: `account_data`
 - **Function**: `save_account()` in `account.c`
 - **Contains**:
@@ -294,6 +303,7 @@ The copyover and restart acceptance run is recorded in
 `docs/testing/pet-copyover-restart-acceptance-2026-09-12.txt`.
 
 #### 3. Wilderness System Data
+
 - **Tables**: `region_data`, `path_data`, `region_index`, `path_index`
 - **Functions**: `load_regions()`, `load_paths()` in `mysql.c`
 - **Contains**:
@@ -303,6 +313,7 @@ The copyover and restart acceptance run is recorded in
   - Wilderness configuration
 
 #### 4. Game Statistics and Analytics
+
 - **Tables**: Multiple analytics tables
 - **Contains**:
   - Combat logs and statistics
@@ -311,6 +322,7 @@ The copyover and restart acceptance run is recorded in
   - Economy data
 
 #### 5. Object Database (Analytics)
+
 - **Tables**: `object_database_*` series
 - **Function**: `save_objects_to_database()` in `db.c`
 - **Purpose**: Complete object catalog for analysis
@@ -321,6 +333,7 @@ The copyover and restart acceptance run is recorded in
   - Object flags and affects
 
 #### 6. Template System
+
 - **Tables**: Template-related tables
 - **Functions**: Various in `templates.c`
 - **Contains**:
@@ -334,12 +347,14 @@ The copyover and restart acceptance run is recorded in
 These systems maintain data in both locations for redundancy or different purposes.
 
 #### 1. Player Object Storage (Optional Database Backup)
+
 - **Primary**: File-based (`.objs` files)
 - **Backup**: MySQL (`player_save_objs` table)
 - **Control**: `#ifdef OBJSAVE_DB` in `objsave.c`
 - **Purpose**: Database backup provides additional security and analytics
 
 **Implementation:**
+
 ```c
 #ifdef OBJSAVE_DB
   // Database transaction for object saving
@@ -354,11 +369,13 @@ These systems maintain data in both locations for redundancy or different purpos
 ```
 
 #### 2. Player Character Data (Backup System)
+
 - **Primary**: ASCII files (`.plr`)
 - **Backup**: MySQL (`player_data` table)
 - **Purpose**: Database provides backup and enables advanced queries
 
 #### 3. House Data (Partial Overlap)
+
 - **Files**: House contents and crash data
 - **Database**: House control information and indexes
 - **Tables**: `house_data`
@@ -370,25 +387,30 @@ These systems maintain data in both locations for redundancy or different purpos
 ### Automatic Save Events
 
 1. **Character Auto-Save**
+
    - Triggered every 5 minutes (configurable)
    - On level gain, important events
    - On logout/quit
 
 2. **Persistent Follower Snapshot**
+
    - Saves playing characters' follower snapshots once per minute
    - Important summon, charm, dismissal, quit, idle, and administrative paths
      save at their lifecycle boundary
 
 3. **Object Crash-Save**
+
    - When `PLR_CRASH` flag is set
    - Equipment changes, inventory modifications
    - Rent/quit situations
 
 4. **House Auto-Save**
+
    - Periodic saves via `House_save_all()`
    - On house modifications
 
 5. **Account Auto-Save**
+
    - On account changes
    - Character creation/deletion
 
@@ -420,11 +442,13 @@ These systems maintain data in both locations for redundancy or different purpos
 ## Error Handling and Recovery
 
 ### File System Recovery
+
 - Backup files (`.bak`, `.orig`)
 - Crash recovery for incomplete saves
 - File locking mechanisms
 
 ### Database Recovery
+
 - Transaction rollbacks on errors
 - Connection recovery and reconnection
 - Data validation before commits
@@ -434,6 +458,7 @@ These systems maintain data in both locations for redundancy or different purpos
 ## Configuration
 
 ### File Storage Settings
+
 ```c
 #define PLR_FILE     0    // Player files
 #define CRASH_FILE   1    // Object crash files
@@ -441,11 +466,13 @@ These systems maintain data in both locations for redundancy or different purpos
 ```
 
 ### Database Integration
+
 ```c
 #define OBJSAVE_DB 1      // Enable database object backup
 ```
 
 ### Performance Tuning
+
 - Buffer sizes for file operations
 - Database connection parameters
 - Auto-save intervals
@@ -455,11 +482,13 @@ These systems maintain data in both locations for redundancy or different purpos
 ## System Dependencies
 
 ### File Dependencies
+
 - Proper file permissions
 - Adequate disk space
 - Directory structure integrity
 
 ### Database Dependencies
+
 - MySQL server availability
 - Spatial extension support
 - Proper table schemas and indexes
@@ -475,11 +504,13 @@ These systems maintain data in both locations for redundancy or different purpos
 3. **Hybrid Data**: Implement both systems with fallback logic
 
 ### Performance Considerations
+
 - Use buffered I/O for large saves
 - Implement proper indexing for database queries
 - Consider save frequency vs. performance impact
 
 ### Error Handling
+
 - Always implement proper cleanup
 - Use transactions for database operations
 - Log errors appropriately for debugging
@@ -489,11 +520,13 @@ These systems maintain data in both locations for redundancy or different purpos
 ## Backup and Maintenance
 
 ### File Backup Strategy
+
 - Regular file system backups
 - Player file rotation policies
 - Log file management
 
 ### Database Backup Strategy
+
 - MySQL dump procedures
 - Point-in-time recovery capabilities
 - Spatial data backup considerations

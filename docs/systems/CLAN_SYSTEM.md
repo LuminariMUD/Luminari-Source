@@ -3,33 +3,41 @@
 ## TODO - Future Enhancements
 
 ### Clan Levels and Experience
+
 **Enhancement**: Add clan progression system
 **Benefit**: Provides long-term goals for clan growth
 **Implementation**:
+
 - Add experience points for clan activities
 - Create level-based benefits and unlocks
 - Implement clan achievements
 
 ### Automated Clan Events
+
 **Enhancement**: Dynamic clan-based content
 **Benefit**: Increases engagement and competition
 **Implementation**:
+
 - Scheduled clan raids
-- Territory defense events  
+- Territory defense events
 - Clan tournaments
 
 ### Clan-Owned Resources
+
 **Enhancement**: Persistent clan assets beyond treasury
 **Benefit**: Deeper economic gameplay
 **Implementation**:
+
 - Clan shops with revenue sharing
 - Resource nodes in controlled territories
 - Clan housing/halls
 
 ### Enhanced Diplomacy
+
 **Enhancement**: More complex inter-clan relationships
 **Benefit**: Richer political gameplay
 **Implementation**:
+
 - Trade agreements
 - Non-aggression pacts
 - Mercenary contracts
@@ -60,6 +68,7 @@ The clan system in LuminariMUD provides a comprehensive framework for player org
 ## Data Structures
 
 ### Main Clan Structure
+
 ```c
 struct clan_data {
     clan_vnum vnum;                  // Unique vnum of this clan (1-65535)
@@ -117,6 +126,7 @@ struct clan_data {
 ```
 
 ### Zone Claim Structure
+
 ```c
 struct claim_data {
     zone_vnum zn;                    // Zone VNUM being claimed
@@ -130,6 +140,7 @@ struct claim_data {
 ## Constants and Limits
 
 ### Basic Limits
+
 - **MAX_CLANS**: 25 (maximum number of clans allowed)
 - **MAX_CLANRANKS**: 15 (maximum ranks per clan)
 - **MAX_CLAN_NAME**: 60 (maximum clan name length)
@@ -139,6 +150,7 @@ struct claim_data {
 - **NO_CLANRANK**: 0 (indicates no rank assigned)
 
 ### System Defaults
+
 - **DEFAULT_CLAN_RANKS**: 6 (default number of ranks in a new clan)
 - **DEFAULT_MAX_MEMBERS**: 50 (default maximum members, 0 = unlimited)
 - **DEFAULT_WAR_DURATION**: 1440 (default war duration in ticks - 48 hours)
@@ -148,10 +160,12 @@ struct claim_data {
 - **RANDOM_CODE_LENGTH**: 6 (length of random code for clan leave confirmation)
 
 ### Performance Settings
+
 - **CLAN_HASH_SIZE**: 127 (prime number for hash table distribution)
 - **MAX_CLAN_LOG_LINES**: 100 (maximum lines to show from clan log)
 
 ### Additional Constants
+
 - **MIN_CLAN_NAME_LENGTH**: 3 (minimum length for clan names)
 - **CLAN_LOG_DIR**: "lib/etc/clan_logs/" (directory for clan log files)
 - **RANK_LEADERONLY**: 0 (special rank value for leader-only privileges)
@@ -161,6 +175,7 @@ struct claim_data {
 The clan system uses a sophisticated privilege system with 21 different permissions:
 
 ### Standard Privileges (`CP_*` constants)
+
 - **CP_AWARD** (0): Award clan points to members
 - **CP_BALANCE** (1): Check clan bank balance
 - **CP_CLAIM** (2): Claim zones for the clan
@@ -175,6 +190,7 @@ The clan system uses a sophisticated privilege system with 21 different permissi
 - **CP_WITHDRAW** (11): Withdraw from clan bank
 
 ### Clan Edit Privileges
+
 - **CP_ALLIED** (12): Set allied clans
 - **CP_APPFEE** (13): Set application fee
 - **CP_APPLEV** (14): Set minimum application level
@@ -190,6 +206,7 @@ The clan system uses a sophisticated privilege system with 21 different permissi
 ### Player Commands
 
 #### Basic Commands (Available to all clan members)
+
 - **`clan`** - Display available clan commands
 - **`clan apply <clan>`** - Apply to join a clan
 - **`clan info [clan]`** - View clan information
@@ -199,9 +216,11 @@ The clan system uses a sophisticated privilege system with 21 different permissi
 - **`clan leave`** - Leave current clan (requires confirmation code)
 
 #### Communication
+
 - **`clantalk <message>`** / **`ct <message>`** - Send message to clan channel
 
 #### Officer Commands (Rank-based permissions)
+
 - **`clan award <player> <points>`** - Award clan points (costs 10 coins per point from clan treasury)
 - **`clan balance`** - Check clan bank balance
 - **`clan claim`** - Claim current zone for clan
@@ -216,18 +235,22 @@ The clan system uses a sophisticated privilege system with 21 different permissi
 - **`clan war <clan>`** - Declare war on another clan
 
 #### Information Commands
+
 - **`clan log [lines]`** - View recent clan activity log
 - **`clan stats`** - View comprehensive clan statistics
 - **`clan benefits`** - View zone control benefits in current zone
 
 #### Economic Commands
+
 - **`claninvest`** - Make investments for the clan (separate from clan command tree)
 
 #### Leader Commands
+
 - **`clan edit`** - Enter clan editing OLC
 - **`clan owner <player>`** - Transfer leadership
 
 ### Immortal Commands
+
 - **`clan create <player> <name>`** - Create new clan (LVL_IMPL)
 - **`clan destroy <clan>`** - Remove clan (LVL_IMPL)
 - **`clan unclaim <zone>`** - Remove zone claims (LVL_IMPL)
@@ -237,7 +260,9 @@ The clan system uses a sophisticated privilege system with 21 different permissi
 ## Clan Ranks System
 
 ### Default Rank Structure
+
 When a clan is created, it starts with 6 ranks:
+
 1. **Rank 1**: Duke (Leader - highest rank)
 2. **Rank 2**: Count (Officer)
 3. **Rank 3**: Baron (Officer)
@@ -248,6 +273,7 @@ When a clan is created, it starts with 6 ranks:
 **Note**: The rank array is 0-indexed, so Duke is at index 0, Count at index 1, etc.
 
 ### Rank Features
+
 - Customizable rank names per clan
 - Each privilege has a minimum rank requirement
 - Leaders (rank 1) always have full access
@@ -257,6 +283,7 @@ When a clan is created, it starts with 6 ranks:
 ## Zone Claiming System
 
 ### Claiming Mechanics
+
 - Clans can claim zones to establish territory
 - Claims tracked in `lib/etc/claims` file
 - Popularity system tracks clan influence per zone
@@ -265,12 +292,14 @@ When a clan is created, it starts with 6 ranks:
 - Zones with ZONE_NOCLAIM flag cannot be claimed
 
 ### Claim Data
+
 - Zone VNUM being claimed
 - Player ID who made the claim
 - Controlling clan VNUM
 - Popularity values for each clan (0-100)
 
 ### Diplomacy Integration
+
 - Diplomacy skills increase zone popularity
 - Regular popularity checks update control
 - Contested zones can change ownership
@@ -278,6 +307,7 @@ When a clan is created, it starts with 6 ranks:
 ## Integration Points
 
 ### Character Data Macros
+
 ```c
 GET_CLAN(ch)       // Returns character's clan VNUM
 GET_CLANRANK(ch)   // Returns character's rank (1=leader)
@@ -286,11 +316,13 @@ IS_IN_CLAN(ch)     // Check if character is in a clan
 ```
 
 ### Player Table Integration
+
 - Clan membership stored in player index
 - Fast lookups for offline player clan data
 - Synchronized with character saves
 
 ### Communication System
+
 - Dedicated clan channel with formatting
 - Channel restrictions based on preferences
 - Integration with noclantalk toggle
@@ -298,6 +330,7 @@ IS_IN_CLAN(ch)     // Check if character is in a clan
 ## Special Features
 
 ### Clan Leave Protection
+
 - Requires typing a 6-character confirmation code
 - Prevents accidental clan departures
 - Code regenerated each attempt
@@ -307,17 +340,20 @@ IS_IN_CLAN(ch)     // Check if character is in a clan
 - Code is freed after successful clan departure
 
 ### Auto-Leadership Succession
+
 - Automatic promotion of highest-ranking officer
 - Activates when leader is removed/deleted
 - Maintains clan continuity
 
 ### War and Alliance System
+
 - Clans can declare war or form alliances
 - Affects PvP interactions between members
 - War status stored in at_war[] array
 - Alliance status stored in allies[] array
 
 ### Zone Control Benefits System
+
 - Clans controlling zones provide bonuses to members in those zones
 - Benefits include regeneration bonuses, experience bonuses, damage bonuses
 - Comprehensive system with 12 different benefit types defined in `clan_benefits.h`
@@ -335,6 +371,7 @@ IS_IN_CLAN(ch)     // Check if character is in a clan
   - **ZONE_SHOP_DISCOUNT**: 10% shop discount
 
 ### Transaction System
+
 - Advanced transaction tracking with rollback capabilities
 - Tracks all clan modifications for data integrity (`begin_clan_transaction`, `commit_clan_transaction`)
 - Automatic cleanup of expired transactions (`cleanup_clan_transactions`)
@@ -353,6 +390,7 @@ IS_IN_CLAN(ch)     // Check if character is in a clan
 - Rollback capability for failed operations (`rollback_clan_transaction`)
 
 ### Economic Features
+
 - Clan investment system for generating returns (`add_clan_investment`, `process_clan_investments`)
 - Shop discounts for clan members in controlled zones (`apply_clan_shop_discount`)
 - Transaction taxation system (`collect_clan_transaction_tax`)
@@ -362,12 +400,14 @@ IS_IN_CLAN(ch)     // Check if character is in a clan
 - Risk-based returns with configurable success rates
 
 ### Advanced Statistics Tracking
+
 - Comprehensive clan statistics including member counts, activity tracking
 - Financial tracking (total deposits, withdrawals, taxes collected)
 - War and diplomacy statistics (wars won/lost, alliances formed)
 - Historical data (date founded, peak member count, total zones claimed)
 
 ### Performance Optimizations
+
 - Hash table system for fast clan lookups (O(1) average case)
 - Hash table structure: `struct clan_hash_entry *clan_hash_table[CLAN_HASH_SIZE]`
 - Cached member count and power calculations with timestamps
@@ -376,12 +416,14 @@ IS_IN_CLAN(ch)     // Check if character is in a clan
 - Single clan save function (`save_single_clan`) for targeted updates
 
 ### Locking System
+
 - Concurrent access control for clan modifications
 - Temporary locks to prevent data corruption
 - Automatic lock expiration and cleanup
 - Multi-user editing protection
 
 ### Activity Logging
+
 - Comprehensive clan activity logging system (`log_clan_activity` function)
 - Timestamped activity tracking (`last_activity` field in clan_data)
 - Automatic log rotation and management
@@ -392,7 +434,9 @@ IS_IN_CLAN(ch)     // Check if character is in a clan
 ## File Formats
 
 ### Clan Save Format (lib/etc/clans)
+
 **Note**: Only non-default values are saved to the file. Fields with zero or default values are omitted to save space.
+
 ```
 * Clans File
 * Number of clans: <count>
@@ -438,6 +482,7 @@ $
 ```
 
 ### Claim Save Format (lib/etc/claims)
+
 ```
 #<zone vnum>
 Claimant: <player ID>
@@ -449,12 +494,14 @@ $
 ## Technical Implementation Details
 
 ### Memory Management
+
 - Dynamic allocation for clan list
 - String data uses strdup() for copies
 - Proper cleanup on clan removal/shutdown
 - Hash table memory management with automatic cleanup
 
 ### Performance Considerations
+
 - Hash table lookups for O(1) clan access (CLAN_HASH_SIZE = 127)
 - Cached member counts and power calculations
 - Periodic cache updates to reduce computation overhead
@@ -462,6 +509,7 @@ $
 - Clan list kept in memory for fast access
 
 ### Error Handling
+
 - Extensive validation of clan data with automatic fixing
 - Graceful handling of missing clans and invalid references
 - Auto-correction of invalid ranks and data corruption
@@ -469,12 +517,14 @@ $
 - Comprehensive error logging and recovery
 
 ### Concurrent Access Control
+
 - Locking mechanism prevents data corruption during edits
 - Automatic lock expiration (60 seconds default)
 - Multi-user editing protection
 - Lock cleanup on player disconnect
 
 ### Data Integrity Features
+
 - Comprehensive data validation functions (`validate_clan_data`, `validate_all_clans`)
 - Automatic clan membership synchronization with player index
 - Transaction system with rollback capabilities
@@ -486,6 +536,7 @@ $
 ## Recent Updates and Current State
 
 ### Active Features
+
 - Full command system implementation with 26 commands (see clan_commands array)
 - Clan creation, management, and deletion with immortal controls
 - Member ranking and permissions system with 21 privilege types
@@ -507,6 +558,7 @@ $
 - Clan leave confirmation system with 6-character random codes
 
 ### New Systems Added
+
 - **Zone Benefits**: HP/mana/movement regen, experience bonuses, damage bonuses, AC bonuses, saving throw bonuses, shop discounts, fast travel, no death penalty
 - **Transaction System**: Complete transaction tracking with rollback capabilities for data integrity
 - **Economic Features**: Clan investments, taxation system, shop integration
@@ -516,6 +568,7 @@ $
 - **Logging**: Activity logging with timestamps and automatic log management
 
 ### Current Capabilities
+
 - Support for up to 25 clans with 15 ranks each
 - Zone control with tangible benefits for members
 - Financial tracking and economic integration
@@ -525,6 +578,7 @@ $
 - Performance optimization for large player bases
 
 ### System Reliability
+
 - Automatic data validation and repair
 - Transaction rollback for error recovery
 - Lock management for concurrent access
@@ -532,7 +586,9 @@ $
 - Graceful error handling with logging
 
 ### Clanset Subcommands (Immortal Use)
+
 Available fields for `clanset <clan> <field> <value>`:
+
 - **`save`** - Save all clan and claims data to disk
 - **`player <name> <field> <value>`** - Modify player clan data
 - **`ranks <number>`** - Set number of ranks for clan
@@ -549,7 +605,9 @@ Available fields for `clanset <clan> <field> <value>`:
 - **`raided <number>`** - Set times raided count
 
 ### Default Privilege Settings
+
 When a new clan is created, the following privileges are leader-only (rank 0):
+
 - **CP_AWARD** - Award clan points
 - **CP_OWNER** - Transfer ownership
 - **CP_CLANEDIT** - Access clan editor
@@ -562,7 +620,9 @@ When a new clan is created, the following privileges are leader-only (rank 0):
 All other privileges default to rank 1 (available to all clan members)
 
 ### Default Clan Creation Values
+
 When a new clan is created, it receives these default settings:
+
 - **Application Level**: 5 (minimum level to apply)
 - **Application Fee**: 0 (no fee required)
 - **Tax Rate**: 0 (no taxation)
@@ -576,6 +636,7 @@ When a new clan is created, it receives these default settings:
 ## Usage Examples
 
 ### Creating a Clan
+
 ```
 > clan create Gandalf "Knights of Valor"
 Adding clan 'Knights of Valor' (Leader: Gandalf) at VNUM 1
@@ -583,6 +644,7 @@ Clan added successfully.
 ```
 
 ### Joining a Clan
+
 ```
 > clan apply Knights
 You apply to join Knights of Valor.
@@ -591,6 +653,7 @@ You will need a clan member with enrollment privileges to approve your applicati
 ```
 
 ### Leaving a Clan (with confirmation)
+
 ```
 > clan leave
 You must type clan leave ABC123 to leave your clan.
@@ -600,12 +663,14 @@ You have left Knights of Valor.
 ```
 
 ### Clan Communication
+
 ```
 > ct Hello clan members!
 [CLAN] Gandalf: Hello clan members!
 ```
 
 ### Managing Members
+
 ```
 > clan promote Frodo
 Frodo has been promoted to Lord!
@@ -617,6 +682,7 @@ Gollum has been demoted to Recruit!
 ## Best Practices
 
 ### For Players
+
 - Choose meaningful clan names and descriptions
 - Set appropriate application requirements
 - Maintain active leadership succession
@@ -624,6 +690,7 @@ Gollum has been demoted to Recruit!
 - Coordinate zone claiming efforts
 
 ### For Administrators
+
 - Monitor clan activity and conflicts
 - Enforce naming standards
 - Resolve inter-clan disputes fairly
@@ -633,30 +700,35 @@ Gollum has been demoted to Recruit!
 ## Important Implementation Notes
 
 ### File Dependencies
+
 - The clan system requires `structs.h` for character and zone data structures
 - Player clan data is stored in both character files and the player index
 - Clan data persistence uses custom text format, not MySQL
 - Hash table implementation requires proper initialization on boot
 
 ### Memory Management
+
 - All clan strings (names, descriptions, rank names) use `strdup()` for allocation
 - Proper cleanup is essential on clan removal and system shutdown
 - Hash table entries are dynamically allocated and must be freed
 - Transaction system maintains temporary data that requires cleanup
 
 ### Performance Considerations
+
 - Hash table provides O(1) average case lookups for clans by VNUM
 - Member count caching reduces expensive player file scanning
 - Single clan saves prevent unnecessary full file rewrites
 - Modification flags prevent redundant save operations
 
 ### Data Integrity
+
 - Player index synchronization is critical for offline player clan data
 - Transaction system provides rollback for failed multi-step operations
 - Validation functions automatically repair corrupted clan data
 - Backup files (.bak) are created during save operations
 
 ### Additional Future Enhancements
+
 - MySQL database integration for better scalability
 - Enhanced war mechanics with objectives
 - Clan achievements/trophies system

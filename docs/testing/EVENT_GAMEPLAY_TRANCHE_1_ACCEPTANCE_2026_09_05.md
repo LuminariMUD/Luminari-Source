@@ -32,7 +32,7 @@ These retained mechanisms are explicit follow-up work, not claimed migrations.
 ## Automated verification
 
 | Check | Result |
-| --- | --- |
+| -- | -- |
 | `make test`, then `make install` | PASS; 1,095 production-linked CuTests plus the make target's script/tool checks. No root server binary left behind. |
 | Four event architecture checks | PASS: demand-driven boundaries, retired API admission, singleton native ownership, PubSub retirement. |
 | CMake Debug with `BUILD_TESTS=ON` | PASS: all 19 CTest targets. |
@@ -75,7 +75,7 @@ received disposable door/trigger edits in rooms 2 and 3. Ordinary development
 the former development port was not restarted. No production deployment occurred.
 
 | Scenario | Observed result |
-| --- | --- |
+| -- | -- |
 | Aster waits in room 2; Mirel opens south from room 3 | One opening notification and one explicit readied SAY command; READY afterward reports no armed action. |
 | Controlled NPC invokes the room's DG door command trigger | One watched opening and one command, using the same runtime bus and deferred callback. |
 | Repeated normal and burst script openings | All 128 measured readied commands executed once. |
@@ -107,7 +107,7 @@ Nearest-rank percentiles exclude the intentional one-pulse readiness delay.
 They include entry and door callbacks and omit cancelled callbacks.
 
 | Workload | Samples | p50 | p95 | p99 | Maximum |
-| --- | ---: | ---: | ---: | ---: | ---: |
+| -- | -: | -: | -: | -: | -: |
 | Normal script opening in otherwise idle player sessions, full-world background work active | 64 | 0 pulses | 0 pulses | 0 pulses | 0 pulses |
 | Burst: 200 adjacent-door state writes (including a no-op), then the watched opening, per sample | 64 | 0 pulses | 0 pulses | 0 pulses | 0 pulses |
 | Final executable: opposite-side, script, burst smoke | 3 | 0 pulses | 0 pulses | 0 pulses | 0 pulses |

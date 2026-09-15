@@ -12,7 +12,7 @@ Pages serves the gallery at
 ## Maps
 
 | Map | Type | Question it answers | Scope |
-| --- | --- | --- | --- |
+| -- | -- | -- | -- |
 | [Server Runtime](server-runtime.html) | Architecture | What runs inside `bin/luminari`, and where does state live? | 12 components, 13 relationships, 30 source references |
 | [Event-Driven Core](event-core.html) | Architecture | How do the reactor, scheduler, and domain events share the main thread? | 10 components, 11 relationships, 24 source references |
 | [Event Core Delta](event-core-delta.html) | Architecture delta | What did the ADR 0002 refactor remove and add? | 14 added, 8 removed, 4 changed facts |
@@ -72,7 +72,7 @@ Those screenshots were also inspected in both themes for crossing lines, masked
 labels, clipped text, and balance.
 
 | Map | Validation | Browser evidence |
-| --- | --- | --- |
+| -- | -- | -- |
 | Server Runtime | 9/9 showcase | pass |
 | Event-Driven Core | 9/9 showcase | pass |
 | Event Core Delta | 28/28 compare | fail: the delta page is taller than the viewport |

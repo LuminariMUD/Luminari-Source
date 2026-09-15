@@ -2,17 +2,17 @@
 
 ## Executive Summary
 
-**Total Project Size**: 401 MB  
-**Total Lines of Code**: ~387,471 lines (C/H files)  
-**World Data Files**: 3,727 files  
-**Active Development Files**: 330 source files (171 C, 159 H)  
+**Total Project Size**: 401 MB\
+**Total Lines of Code**: ~387,471 lines (C/H files)\
+**World Data Files**: 3,727 files\
+**Active Development Files**: 330 source files (171 C, 159 H)
 
 ## Source Code Breakdown
 
 ### Core Language Distribution
 
 | File Type | Count | Lines of Code | Size |
-|-----------|-------|---------------|------|
+| -- | -- | -- | -- |
 | **C Files** | 171 | 345,512 | 12 MB |
 | **Header Files** | 159 | 41,959 | 1.9 MB |
 | **PHP Files** | 7 | 3,296 | ~100 KB |
@@ -21,15 +21,15 @@
 
 ### Top 20 Largest C Files (by lines)
 
-1. `fight.c` - 13,223 lines (Combat system)
-2. `magic.c` - 12,582 lines (Magic system)
-3. `spec_procs.c` - 11,359 lines (Special procedures)
-4. `act.offensive.c` - 10,785 lines (Offensive actions)
-5. `utils.c` - 10,728 lines (Utility functions)
-6. `act.wizard.c` - 10,334 lines (Admin commands)
-7. `class.c` - 10,133 lines (Class system)
-8. `act.other.c` - 9,789 lines (Misc commands)
-9. `act.informative.c` - 9,434 lines (Info commands)
+01. `fight.c` - 13,223 lines (Combat system)
+02. `magic.c` - 12,582 lines (Magic system)
+03. `spec_procs.c` - 11,359 lines (Special procedures)
+04. `act.offensive.c` - 10,785 lines (Offensive actions)
+05. `utils.c` - 10,728 lines (Utility functions)
+06. `act.wizard.c` - 10,334 lines (Admin commands)
+07. `class.c` - 10,133 lines (Class system)
+08. `act.other.c` - 9,789 lines (Misc commands)
+09. `act.informative.c` - 9,434 lines (Info commands)
 10. `feats.c` - 8,909 lines (Feat system)
 11. `act.item.c` - 8,299 lines (Item commands)
 12. `db.c` - 7,564 lines (Database)
@@ -45,7 +45,7 @@
 ### Directory Structure & Sizes
 
 | Directory | Size | Description |
-|-----------|------|-------------|
+| -- | -- | -- |
 | **lib/** | 232 MB | World data, player files, configuration |
 | **src/** | 59 MB | Source code files |
 | **docs/** | 2.3 MB | Documentation |
@@ -56,7 +56,7 @@
 ### World Files Distribution
 
 | File Type | Count | Size | Purpose |
-|-----------|-------|------|---------|
+| -- | -- | -- | -- |
 | **WLD (Rooms)** | 581 | 41 MB | Room descriptions, exits, flags |
 | **MOB (Mobiles)** | 581 | 8.9 MB | NPCs, monsters, stats |
 | **OBJ (Objects)** | 580 | 4.6 MB | Items, equipment, treasures |
@@ -66,13 +66,13 @@
 | **HLQ (HL Quests)** | 321 | - | Homeland quest definitions |
 | **QST (Quests)** | 186 | - | Quest definitions |
 
-**Total World Files**: 3,727  
-**Total World Data Size**: ~58 MB  
+**Total World Files**: 3,727\
+**Total World Data Size**: ~58 MB
 
 ## PHP Utilities Breakdown
 
 | File | Lines | Purpose |
-|------|-------|---------|
+| -- | -- | -- |
 | `enter_encounter.php` | 730 | Encounter management |
 | `enter_hunt.php` | 581 | Hunt system management |
 | `bonuses.php` | 475 | Bonus calculations |
@@ -86,6 +86,7 @@
 ## Codebase Characteristics
 
 ### Scale Indicators
+
 - **Large-scale MUD**: 580+ zones with comprehensive world data
 - **Feature-rich**: Full D&D 3.5/Pathfinder implementation
 - **Mature codebase**: ~387K lines of well-structured C code
@@ -94,6 +95,7 @@
 - **Quest systems**: 507 total quests (186 standard + 321 homeland)
 
 ### Technical Complexity
+
 - **Core Systems**: 171 C files averaging ~2,020 lines each
 - **Modular Design**: Clear separation between subsystems
 - **Database Integration**: MySQL backend for persistence
@@ -101,6 +103,7 @@
 - **Multi-Character**: Account system supporting multiple characters
 
 ### Major Subsystems by Size
+
 1. **Combat** (fight.c, act.offensive.c): ~24,000 lines
 2. **Magic** (magic.c, spell_parser.c, spell_prep.c): ~23,800 lines
 3. **Character Development** (class.c, race.c, feats.c): ~24,700 lines
@@ -109,6 +112,7 @@
 6. **Crafting/Economy** (crafting_new.c, treasure.c): ~12,400 lines
 
 ### Development Activity Areas
+
 - **Most Complex**: Combat, magic, and character systems
 - **Most Content**: 580+ zones with full room/mob/object data
 - **Most Dynamic**: 356 triggers + 507 quests
@@ -117,7 +121,7 @@
 ## Summary Statistics
 
 | Metric | Value |
-|--------|-------|
+| -- | -- |
 | **Total Files** | 4,057+ |
 | **Source Files** | 330 (C/H) |
 | **World Data Files** | 3,727 |
@@ -135,6 +139,7 @@
 ## Codebase Assessment
 
 This is a **mature, large-scale MUD codebase** with:
+
 - Professional-grade architecture (~390K LoC)
 - Comprehensive game content (580+ zones)
 - Full D&D 3.5/Pathfinder ruleset implementation

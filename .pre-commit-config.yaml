@@ -34,6 +34,18 @@ repos:
         name: sqlfluff format
         entry: sqlfluff format --processes 0 --disable-progress-bar
 
+  # Markdown: dated changelogs stay byte-identical historical records, and
+  # lib/WILD_KB.md is written by the wilderness knowledge-base command.
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 1.0.0
+    hooks:
+      - id: mdformat
+        additional_dependencies:
+          - mdformat-gfm==1.0.0
+          - mdformat-frontmatter==2.1.2
+          - mdformat-simple-breaks==0.1.0
+        exclude: ^(docs/previous_changelogs/|lib/WILD_KB\.md$)
+
   # General file hygiene
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0

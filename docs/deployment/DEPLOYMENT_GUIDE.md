@@ -45,7 +45,7 @@ Autotools, builds, and installs `bin/luminari`.
 Verified options from `./scripts/deployment/deploy.sh --help`:
 
 | Option | Behavior |
-|--------|----------|
+| -- | -- |
 | `--auto` | Use defaults without prompts |
 | `--dev` | Development build with debugging tools |
 | `--prod` | Production profile: optimized, hardened, and verified build |
@@ -102,7 +102,7 @@ the profile owns the optimization policy, so leave `CMAKE_BUILD_TYPE` unset;
 configuring both is an error.
 
 | Policy | Setting |
-|--------|---------|
+| -- | -- |
 | Optimization | `-O2` |
 | Debug symbols | `-g`; `make install` splits them into `bin/releases/<build-id>/luminari.debug` |
 | Assertions | Enabled (no `NDEBUG`); a core file beats running on corrupt state |
@@ -211,7 +211,7 @@ glibc 2.39, x86-64) with `PROTOCOL_BENCH_ITERATIONS=2000`, median of five
 rounds over the three corpus inputs:
 
 | Profile | Median per iteration |
-|---------|----------------------|
+| -- | -- |
 | Default `-O2 -g` | 34.2 us |
 | Production (hardened) | 34.6 us |
 | Production + LTO | 33.9 us |
@@ -283,7 +283,7 @@ Use direct startup for local development. For a supervised local process:
 ## CI/CD Pipeline
 
 | Workflow | Trigger | Contract |
-|----------|---------|----------|
+| -- | -- | -- |
 | Code Quality | Push or pull request affecting C sources/config | Formatting, targeted static analysis, warning build |
 | Build & Test | Relevant pushes and pull requests | World tools, production tests, hardened production-profile matrix, sanitizers, Valgrind, coverage, and related gates |
 | Security | Relevant pushes/PRs, manual, twice monthly | Gitleaks, CodeQL, and PR-only dependency review |
@@ -328,7 +328,7 @@ during the 2026-08-21 binary rename cutover. The
 [committed production cutover record][production-health-cutover] establishes:
 
 | Check | Recorded production result on 2026-08-21 |
-|-------|------------------------------------------|
+| -- | -- |
 | Checkout | `3a38a6ae` |
 | Immutable release / ELF build ID | `99d5df5459163ec6705e9262a20cde71e7323f21` |
 | Canonical unit | Installed, reloaded, and confirmed identical to the repository copy |
@@ -340,7 +340,7 @@ during the 2026-08-21 binary rename cutover. The
 Read-only production verification on 2026-09-13, 10:05-10:09 UTC, also passed:
 
 | Check | Observed production result |
-|-------|----------------------------|
+| -- | -- |
 | Environment | `APP_ENV=production` |
 | Running release / ELF build ID | `8d4a8dd8e1932cae25987737eb702fb67c89191e` |
 | Release manifest | `GIT_COMMIT=31b240eb9e83757058f701d54a93936644bc088a`, `GIT_DIRTY=1` |
@@ -363,8 +363,6 @@ This production evidence satisfies the completion criterion in
 The activation was already complete; it does not require another restart to
 close the historical follow-up. Use the probes below to assess current health
 after subsequent releases.
-
-[production-health-cutover]: https://github.com/LuminariMUD/Luminari-Source/blob/aaea5fd9643f897aa5c56acec00698a29377c05c/docs/ongoing-projects/BINARY_RENAME_CIRCLE_TO_LUMINARI.md#2026-08-21---production-maintenance-cutover-complete
 
 ## Readiness and Liveness
 
@@ -442,3 +440,5 @@ the crash archive and its matching immutable executable before rebuilding.
 - [Incident response](../runbooks/incident-response.md)
 
 Last updated: 2026-09-11
+
+[production-health-cutover]: https://github.com/LuminariMUD/Luminari-Source/blob/aaea5fd9643f897aa5c56acec00698a29377c05c/docs/ongoing-projects/BINARY_RENAME_CIRCLE_TO_LUMINARI.md#2026-08-21---production-maintenance-cutover-complete

@@ -387,7 +387,7 @@ and Vesselmate with the MUD stopped, and invokes the login helper's
 existing shared account.
 
 The first attempt sets Kohdee's trained Boarding rank to 0 and Vesselmate's to
-40. It must show Vesselmate as the actual defender, reject the grapple, emit
+40\. It must show Vesselmate as the actual defender, reject the grapple, emit
 the target warning and repelled-lines message, and never run a crossing check.
 The second attempt reverses the ranks. It must show successful grapple and
 crossing totals, move Kohdee onto the target, and deliver the grapple and

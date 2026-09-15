@@ -52,15 +52,15 @@ commit it to the repository.
 The request and defaults below follow the official endpoint OpenAPI contract as
 verified on 2026-07-15.
 
-| Item                | Value                                                   |
-| ------------------- | ------------------------------------------------------- |
-| Method              | `POST`                                                  |
-| URL                 | `https://api.fish.audio/v1/tts`                         |
-| Authentication      | Bearer API key                                          |
-| Request types       | `application/json` or `application/msgpack`             |
-| Required header     | `model`                                                 |
-| Required body field | `text`                                                  |
-| Success             | `200` with chunked binary audio in the requested format |
+| Item | Value |
+| -- | -- |
+| Method | `POST` |
+| URL | `https://api.fish.audio/v1/tts` |
+| Authentication | Bearer API key |
+| Request types | `application/json` or `application/msgpack` |
+| Required header | `model` |
+| Required body field | `text` |
+| Success | `200` with chunked binary audio in the requested format |
 
 Create and manage API keys at the
 [Fish Audio API Keys page](https://fish.audio/app/api-keys/). A local shell or
@@ -103,11 +103,11 @@ destination.
 
 ## Headers
 
-| Header          | Required | Value                                          |
-| --------------- | -------- | ---------------------------------------------- |
-| `Authorization` | Yes      | `Bearer` followed by the Fish Audio API key    |
-| `Content-Type`  | Yes      | `application/json` or `application/msgpack`    |
-| `model`         | Yes      | `s1`, `s2-pro`, `s2.1-pro`, or `s2.1-pro-free` |
+| Header | Required | Value |
+| -- | -- | -- |
+| `Authorization` | Yes | `Bearer` followed by the Fish Audio API key |
+| `Content-Type` | Yes | `application/json` or `application/msgpack` |
+| `model` | Yes | `s1`, `s2-pro`, `s2.1-pro`, or `s2.1-pro-free` |
 
 The official [text-to-speech guide](https://docs.fish.audio/features/text-to-speech)
 describes `s2.1-pro` as the current production recommendation,
@@ -121,27 +121,27 @@ before selecting a production model.
 Fields not marked required are optional. Defaults come from the canonical
 OpenAPI schema rather than from SDK-specific defaults.
 
-| Field                          | Type                                             | Required | Default  | Rules and purpose                                                                                               |
-| ------------------------------ | ------------------------------------------------ | -------- | -------- | --------------------------------------------------------------------------------------------------------------- |
-| `text`                         | string                                           | Yes      | -        | Text to synthesize. Speaker tags are supported for multi-speaker requests.                                      |
-| `reference_id`                 | string, string array, or null                    | No       | `null`   | Saved voice-model ID for one speaker, or one ID per speaker for `s2-pro` dialogue.                              |
-| `references`                   | reference array, nested reference array, or null | No       | -        | Inline zero-shot voice samples. Binary samples require MessagePack.                                             |
-| `temperature`                  | number                                           | No       | `0.7`    | Expressiveness; range `0` through `1`. Higher values are more varied.                                           |
-| `top_p`                        | number                                           | No       | `0.7`    | Nucleus-sampling diversity; range `0` through `1`.                                                              |
-| `prosody`                      | object or null                                   | No       | `null`   | Speed, volume, and optional loudness normalization.                                                             |
-| `chunk_length`                 | integer                                          | No       | `300`    | Text segment size; range `100` through `300`.                                                                   |
-| `normalize`                    | boolean                                          | No       | `true`   | Normalizes English and Chinese text, including numbers.                                                         |
-| `format`                       | string                                           | No       | `mp3`    | `wav`, `pcm`, `mp3`, or `opus`.                                                                                 |
-| `sample_rate`                  | integer or null                                  | No       | `null`   | Output sample rate in hertz. A null value uses the format default.                                              |
-| `mp3_bitrate`                  | integer                                          | No       | `128`    | MP3 only; `64`, `128`, or `192` kbps.                                                                           |
-| `opus_bitrate`                 | integer                                          | No       | `-1000`  | Opus only; `-1000` selects automatic, or use `24000`, `32000`, `48000`, or `64000` bps.                         |
-| `latency`                      | string                                           | No       | `normal` | `normal` favors quality, `balanced` reduces latency, and `low` minimizes latency.                               |
-| `max_new_tokens`               | integer                                          | No       | `1024`   | Maximum audio tokens generated for each text chunk.                                                             |
-| `repetition_penalty`           | number                                           | No       | `1.2`    | Values above `1.0` reduce repeated audio patterns.                                                              |
-| `min_chunk_length`             | integer                                          | No       | `50`     | Minimum characters before a new chunk; range `0` through `100`.                                                 |
-| `condition_on_previous_chunks` | boolean                                          | No       | `true`   | Uses previous audio as context to improve voice consistency.                                                    |
-| `early_stop_threshold`         | number                                           | No       | `1`      | Batch-processing early-stop threshold; range `0` through `1`.                                                   |
-| `features`                     | string array                                     | No       | `[]`     | Request-scoped backend flags. `quality-guard` is documented, but availability depends on the inference backend. |
+| Field | Type | Required | Default | Rules and purpose |
+| -- | -- | -- | -- | -- |
+| `text` | string | Yes | - | Text to synthesize. Speaker tags are supported for multi-speaker requests. |
+| `reference_id` | string, string array, or null | No | `null` | Saved voice-model ID for one speaker, or one ID per speaker for `s2-pro` dialogue. |
+| `references` | reference array, nested reference array, or null | No | - | Inline zero-shot voice samples. Binary samples require MessagePack. |
+| `temperature` | number | No | `0.7` | Expressiveness; range `0` through `1`. Higher values are more varied. |
+| `top_p` | number | No | `0.7` | Nucleus-sampling diversity; range `0` through `1`. |
+| `prosody` | object or null | No | `null` | Speed, volume, and optional loudness normalization. |
+| `chunk_length` | integer | No | `300` | Text segment size; range `100` through `300`. |
+| `normalize` | boolean | No | `true` | Normalizes English and Chinese text, including numbers. |
+| `format` | string | No | `mp3` | `wav`, `pcm`, `mp3`, or `opus`. |
+| `sample_rate` | integer or null | No | `null` | Output sample rate in hertz. A null value uses the format default. |
+| `mp3_bitrate` | integer | No | `128` | MP3 only; `64`, `128`, or `192` kbps. |
+| `opus_bitrate` | integer | No | `-1000` | Opus only; `-1000` selects automatic, or use `24000`, `32000`, `48000`, or `64000` bps. |
+| `latency` | string | No | `normal` | `normal` favors quality, `balanced` reduces latency, and `low` minimizes latency. |
+| `max_new_tokens` | integer | No | `1024` | Maximum audio tokens generated for each text chunk. |
+| `repetition_penalty` | number | No | `1.2` | Values above `1.0` reduce repeated audio patterns. |
+| `min_chunk_length` | integer | No | `50` | Minimum characters before a new chunk; range `0` through `100`. |
+| `condition_on_previous_chunks` | boolean | No | `true` | Uses previous audio as context to improve voice consistency. |
+| `early_stop_threshold` | number | No | `1` | Batch-processing early-stop threshold; range `0` through `1`. |
+| `features` | string array | No | `[]` | Request-scoped backend flags. `quality-guard` is documented, but availability depends on the inference backend. |
 
 Start with the defaults. Change sampling and chunk controls only with repeatable
 transcription, pronunciation, prosody, similarity, and acoustic-quality tests
@@ -149,11 +149,11 @@ against representative game copy.
 
 ### Prosody object
 
-| Field                | Type    | Default | Rules and purpose                                                               |
-| -------------------- | ------- | ------- | ------------------------------------------------------------------------------- |
-| `speed`              | number  | `1`     | Speaking-rate multiplier. The documented range is `0.5` through `2.0`.          |
-| `volume`             | number  | `0`     | Volume adjustment in decibels; positive is louder and negative is quieter.      |
-| `normalize_loudness` | boolean | `true`  | Normalizes perceived loudness. The endpoint schema marks this as `s2-pro` only. |
+| Field | Type | Default | Rules and purpose |
+| -- | -- | -- | -- |
+| `speed` | number | `1` | Speaking-rate multiplier. The documented range is `0.5` through `2.0`. |
+| `volume` | number | `0` | Volume adjustment in decibels; positive is louder and negative is quieter. |
+| `normalize_loudness` | boolean | `true` | Normalizes perceived loudness. The endpoint schema marks this as `s2-pro` only. |
 
 Example:
 
@@ -205,10 +205,10 @@ Do not send multipart form data to this endpoint.
 
 Each `ReferenceAudio` object contains:
 
-| Field   | Type         | Required | Purpose                        |
-| ------- | ------------ | -------- | ------------------------------ |
-| `audio` | binary bytes | Yes      | WAV, MP3, or FLAC voice sample |
-| `text`  | string       | Yes      | Exact transcript of the sample |
+| Field | Type | Required | Purpose |
+| -- | -- | -- | -- |
+| `audio` | binary bytes | Yes | WAV, MP3, or FLAC voice sample |
+| `text` | string | Yes | Exact transcript of the sample |
 
 Fish Audio recommends a clean 10-30 second voice sample with minimal background
 noise. Use only voices and recordings for which the project has the necessary
@@ -300,12 +300,12 @@ array of identifiers in the same order. Inline audio still requires MessagePack.
 The format limits below come from the official endpoint reference as verified on
 2026-07-15.
 
-| Format | Sample rates                                          | Encoding                                | Bitrate choices                   |
-| ------ | ----------------------------------------------------- | --------------------------------------- | --------------------------------- |
-| `wav`  | 8000, 16000, 24000, 32000, or 44100 Hz; default 44100 | 16-bit mono PCM in a WAV container      | Not applicable                    |
-| `pcm`  | 8000, 16000, 24000, 32000, or 44100 Hz; default 44100 | Raw 16-bit mono PCM without a container | Not applicable                    |
-| `mp3`  | 32000 or 44100 Hz; default 44100                      | Mono MP3                                | 64, 128, or 192 kbps; default 128 |
-| `opus` | 48000 Hz                                              | Mono Opus                               | Automatic, 24, 32, 48, or 64 kbps |
+| Format | Sample rates | Encoding | Bitrate choices |
+| -- | -- | -- | -- |
+| `wav` | 8000, 16000, 24000, 32000, or 44100 Hz; default 44100 | 16-bit mono PCM in a WAV container | Not applicable |
+| `pcm` | 8000, 16000, 24000, 32000, or 44100 Hz; default 44100 | Raw 16-bit mono PCM without a container | Not applicable |
+| `mp3` | 32000 or 44100 Hz; default 44100 | Mono MP3 | 64, 128, or 192 kbps; default 128 |
+| `opus` | 48000 Hz | Mono Opus | Automatic, 24, 32, 48, or 64 kbps |
 
 Choose the output extension from `format`. A `200` response is transferred in
 chunks, but the REST request still sends the complete input text up front. Use
@@ -381,9 +381,9 @@ This code belongs in a trusted Node.js process, not in the browser bundle.
 
 ### Success
 
-| Status | Body                 | Handling                                                                          |
-| ------ | -------------------- | --------------------------------------------------------------------------------- |
-| `200`  | Chunked binary audio | Stream or save using the extension selected by `format`. Do not parse it as JSON. |
+| Status | Body | Handling |
+| -- | -- | -- |
+| `200` | Chunked binary audio | Stream or save using the extension selected by `format`. Do not parse it as JSON. |
 
 The OpenAPI response does not promise a filename or a JSON envelope. The caller
 owns file naming and storage.
@@ -415,16 +415,16 @@ validation errors from this endpoint use a JSON array:
 The endpoint schema explicitly declares `401`, `402`, and `422`. The general
 Fish Audio error contract also documents the other statuses below.
 
-| Status | Meaning                                    | Action                                                                |
-| ------ | ------------------------------------------ | --------------------------------------------------------------------- |
-| `400`  | Invalid request or missing voice reference | Correct the parameters or model ID.                                   |
-| `401`  | Missing or invalid API key                 | Check the bearer token and server configuration.                      |
-| `402`  | Insufficient credits                       | Check the account balance and billing configuration.                  |
-| `403`  | Key is not permitted to use the resource   | Check key scope and resource ownership.                               |
-| `404`  | Model or voice not found                   | Check the requested model or `reference_id`.                          |
-| `422`  | Request validation failed                  | Read the validation array and correct the named field.                |
-| `429`  | Rate limit exceeded                        | Retry with bounded exponential backoff and jitter.                    |
-| `5xx`  | Fish Audio service failure                 | Retry with bounded exponential backoff; escalate persistent failures. |
+| Status | Meaning | Action |
+| -- | -- | -- |
+| `400` | Invalid request or missing voice reference | Correct the parameters or model ID. |
+| `401` | Missing or invalid API key | Check the bearer token and server configuration. |
+| `402` | Insufficient credits | Check the account balance and billing configuration. |
+| `403` | Key is not permitted to use the resource | Check key scope and resource ownership. |
+| `404` | Model or voice not found | Check the requested model or `reference_id`. |
+| `422` | Request validation failed | Read the validation array and correct the named field. |
+| `429` | Rate limit exceeded | Retry with bounded exponential backoff and jitter. |
+| `5xx` | Fish Audio service failure | Retry with bounded exponential backoff; escalate persistent failures. |
 
 Retry only `429` and transient `5xx` responses automatically. Other `4xx`
 responses require a request, permission, credential, or billing change. Consult

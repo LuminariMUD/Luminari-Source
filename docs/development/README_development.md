@@ -74,7 +74,7 @@ Never overwrite an existing local configuration with its example template.
 ## Common Commands
 
 | Command | Purpose |
-|---------|---------|
+| -- | -- |
 | `make clean && make -j"$(nproc)"` | Rebuild the configured Autotools tree |
 | `make test` | Run production-linked CuTest and registered shell regressions |
 | `make install` | Activate the tested immutable release as `bin/luminari` |

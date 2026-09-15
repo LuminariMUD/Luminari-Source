@@ -4,8 +4,9 @@
 
 The AI Service integrates both OpenAI's GPT models and local Ollama LLM into LuminariMUD, enabling dynamic NPC dialogue through natural language processing. NPCs with the AI_ENABLED flag can respond intelligently to player messages using context-aware responses. The system features automatic fallback from OpenAI to Ollama, ensuring AI-powered NPCs are always available.
 
-**Current Status**: IMPLEMENTED (January 2025) - Core NPC dialogue with dual AI backend support  
+**Current Status**: IMPLEMENTED (January 2025) - Core NPC dialogue with dual AI backend support\
 **Latest Updates**:
+
 - Ollama model warmup during server startup
 - Enhanced error reporting with specific failure reasons
 - Proper JSON escaping for special characters
@@ -24,6 +25,7 @@ The AI Service integrates both OpenAI's GPT models and local Ollama LLM into Lum
 ## System Architecture & Component Interaction
 
 ### Component Overview
+
 The AI system consists of four tightly integrated components with dual AI backend support:
 
 ```
@@ -72,6 +74,7 @@ The AI system consists of four tightly integrated components with dual AI backen
 ### Component Interactions
 
 1. **Request Flow with Fallback**:
+
    ```
    Player Tell -> ai_service.c -> ai_security.c (sanitize) -> ai_cache.c (check)
                                                               v (miss)
@@ -87,11 +90,13 @@ The AI system consists of four tightly integrated components with dual AI backen
    ```
 
 2. **Threading Model**:
+
    - Main thread: Game loop, never blocks
    - Worker threads: API calls (detached pthreads)
    - Event system: Response delivery with minimal delay
 
 3. **Data Flow Between Components**:
+
    - **ai_service.c -> ai_security.c**: Raw input for sanitization
    - **ai_security.c -> ai_service.c**: Sanitized, safe prompts
    - **ai_service.c -> ai_cache.c**: Cache lookups and storage
@@ -125,6 +130,7 @@ struct ai_thread_request {
 ## Quick Start Guide
 
 ### Prerequisites
+
 - OpenAI API key with GPT-4 access (optional)
 - Ollama installed locally (for fallback/always-on AI)
 - libcurl and pthread libraries installed
@@ -133,11 +139,13 @@ struct ai_thread_request {
 ### Basic Setup (10 minutes)
 
 #### Step 1: Install Dependencies
+
 ```bash
 sudo apt-get install libcurl4-openssl-dev libssl-dev
 ```
 
 #### Step 2: Install Ollama (for fallback AI)
+
 ```bash
 # Install Ollama service
 sudo su -
@@ -156,6 +164,7 @@ ollama list
 ```
 
 #### Step 3: Configure OpenAI (optional)
+
 ```bash
 # Only if you have an OpenAI API key
 cp lib/.env.example lib/.env
@@ -163,6 +172,7 @@ echo "OPENAI_API_KEY=sk-your-api-key-here" >> lib/.env
 ```
 
 #### Step 4: Compile and Enable
+
 ```bash
 # Compile with AI support
 make clean && make
@@ -180,7 +190,9 @@ ai reload
 ## Installation & Configuration
 
 ### Environment Configuration (.env)
+
 Create `lib/.env` with the following settings:
+
 ```bash
 # OpenAI Configuration (optional - system works without it)
 OPENAI_API_KEY=sk-your-api-key-here
@@ -200,6 +212,7 @@ AI_CONTENT_FILTER_ENABLED=true    # Content moderation
 ```
 
 ### Ollama Models
+
 Different models can be used for different performance/quality tradeoffs:
 
 ```bash
@@ -216,6 +229,7 @@ ollama list
 ```
 
 **Model Context Windows**:
+
 - **llama3.2:1b**: 128,000 tokens (~100,000 words) - Excellent for conversation history
 - **llama3.2:3b**: 128,000 tokens - Same capacity, better quality
 - **mistral:7b**: 32,000 tokens (~24,000 words) - Still plenty for NPCs
@@ -223,12 +237,15 @@ ollama list
 Current implementation uses only single prompts. Future enhancements will leverage the large context window for conversation history and world lore.
 
 ### Database Tables
+
 The migration script creates:
+
 - `ai_config` - Runtime configuration storage
 - `ai_interactions` - Interaction history and analytics
 - `ai_cache` - Response caching (memory-based currently)
 
 ### In-Game Commands (Admin Only)
+
 ```
 ai                    # Show service status and statistics
 ai enable            # Enable OpenAI (with Ollama fallback)
@@ -245,16 +262,19 @@ ai reset             # Reset rate limits
 ### Enabling AI for NPCs
 
 1. **Using medit** (when implemented):
+
    ```
    medit <mob_vnum>
    # Toggle AI_ENABLED flag
    ```
 
 2. **Direct flag setting** (current method):
+
    - Set MOB_AI_ENABLED flag (bit 98) on the mobile
    - The NPC will now respond to tells using AI
 
 3. **Testing AI NPCs**:
+
    ```
    tell guard Hello, how are you today?
    # Guard responds with AI (OpenAI or Ollama depending on config)
@@ -263,6 +283,7 @@ ai reset             # Reset rate limits
 ### How It Works
 
 #### When AI is Enabled (OpenAI mode)
+
 1. Player sends tell/say to AI-enabled NPC
 2. Check cache for existing response
 3. If not cached, sanitize and send to OpenAI API
@@ -271,6 +292,7 @@ ai reset             # Reset rate limits
 6. Deliver response to player (typically < 2 seconds)
 
 #### When AI is Disabled (Ollama-only mode)
+
 1. Player sends tell/say to AI-enabled NPC
 2. Check cache for existing response
 3. If not cached, send to local Ollama service
@@ -278,6 +300,7 @@ ai reset             # Reset rate limits
 5. Deliver response to player (typically < 1 second)
 
 ### Response Caching
+
 - Works for both OpenAI and Ollama responses
 - Duplicate messages return cached responses instantly
 - Cache expires after 1 hour
@@ -289,10 +312,12 @@ ai reset             # Reset rate limits
 ### Core Components
 
 #### ai_service.c (Main Service Implementation)
-**Location**: `src/ai/ai_service.c`  
+
+**Location**: `src/ai/ai_service.c`\
 **Purpose**: Main API interface and request handling
 
 **Key Features**:
+
 - Dual backend support (OpenAI + Ollama)
 - CURL-based HTTP client with connection pooling
 - Threading support for non-blocking operations
@@ -300,6 +325,7 @@ ai reset             # Reset rate limits
 - Automatic fallback logic
 
 **Key Functions**:
+
 - `init_ai_service()` - Initialize AI service at boot (called from db.c)
 - `shutdown_ai_service()` - Clean shutdown and resource deallocation
 - `is_ai_enabled()` - Central check for AI service status
@@ -312,6 +338,7 @@ ai reset             # Reset rate limits
 - `ai_reset_rate_limits()` - Admin command to reset limits
 
 **Ollama Integration Functions**:
+
 - `make_ollama_request()` - Sends requests to local Ollama with enhanced error reporting
 - `build_ollama_json_request()` - Formats Ollama API requests with proper JSON escaping
 - `parse_ollama_json_response()` - Extracts Ollama responses from JSON
@@ -320,21 +347,25 @@ ai reset             # Reset rate limits
 - `generate_fallback_response()` - Now tries Ollama before generic responses
 
 **OpenAI Functions**:
+
 - `make_api_request()` - High-level request with retries
 - `make_api_request_single()` - Single API request attempt
 - `build_json_request()` - Build OpenAI JSON request
 - `parse_json_response()` - Parse OpenAI JSON response
 
 **Thread Management**:
+
 - `ai_thread_worker()` - Worker thread function for async requests
 - Thread request structure for communication between threads
 - Detached thread creation for non-blocking operations
 
 #### ai_security.c (Security Layer)
-**Location**: `src/ai/ai_security.c`  
+
+**Location**: `src/ai/ai_security.c`\
 **Purpose**: Security functions for API key handling and input sanitization
 
 **Key Functions**:
+
 - `secure_memset()` - Secure memory clearing (prevents compiler optimization)
 - `ai_api_key_set()` - Store the OpenAI key in the single process-private buffer
 - `ai_api_key_copy()` - Copy the key into a caller-owned buffer (thread-safe)
@@ -342,6 +373,7 @@ ai reset             # Reset rate limits
 - `sanitize_ai_input()` - Critical prompt injection prevention (caller buffer)
 
 **Security Features**:
+
 - Input sanitization for prompt injection prevention
 - One mutex-guarded in-memory copy of the API key, never persisted or logged
 - Secure memory operations to prevent key leakage
@@ -353,16 +385,19 @@ See "Secret Lifecycle and Threat Model" under Security Considerations for the
 honest statement of what is and is not protected.
 
 #### ai_cache.c (Response Caching)
-**Location**: `src/ai/ai_cache.c`  
+
+**Location**: `src/ai/ai_cache.c`\
 **Purpose**: LRU cache implementation for response reuse
 
 **Key Functions**:
+
 - `ai_cache_response()` - Add/update response in cache
 - `ai_cache_get()` - Retrieve cached response by key
 - `ai_cache_clear()` - Clear all cache entries
 - `ai_cache_cleanup()` - Remove expired entries and enforce size limits
 
 **Cache Strategy**:
+
 - In-memory linked list (lost on reboot)
 - Time-based expiration (1 hour TTL)
 - 5000 entries maximum
@@ -372,16 +407,19 @@ honest statement of what is and is not protected.
 - Two-phase cleanup: expired entries first, then oldest
 
 #### ai_events.c (Event System Integration)
-**Location**: `src/ai/ai_events.c`  
+
+**Location**: `src/ai/ai_events.c`\
 **Purpose**: Async response delivery and retry logic
 
 **Key Functions**:
+
 - `queue_ai_response()` - Queue AI response for delivery
 - `queue_ai_request_retry()` - Queue retry for failed requests
 - `ai_response_event()` - Event handler for response delivery
 - `ai_request_retry_event()` - Event handler for request retries
 
 **Event System Features**:
+
 - Integration with MUD event system (mud_event.c)
 - Delayed response delivery for natural flow
 - Character validation to prevent crashes
@@ -390,12 +428,14 @@ honest statement of what is and is not protected.
 - Handles responses from both AI backends
 
 **Thread Safety**:
+
 - Worker threads queue events via `queue_ai_response()`
 - Main thread processes events via event handlers
 - Extensive character validation before delivery
 - Events self-destruct if characters freed
 
 ### Request Flow with Ollama Fallback
+
 ```
 Player Input
     v
@@ -413,6 +453,7 @@ Generic Fallback
 ```
 
 ### Threading Model
+
 - API calls run in detached pthreads
 - Main game loop never blocks
 - Both OpenAI and Ollama use same threading system
@@ -424,12 +465,14 @@ Generic Fallback
 ### Dual Backend Performance
 
 **OpenAI (when enabled)**:
+
 - Response time: 1-2 seconds (uncached)
 - Cost: ~$0.001 per request
 - Model: gpt-5-mini (fast, cost-effective)
 - Timeout: 30 seconds
 
 **Ollama (fallback/primary)**:
+
 - Response time: 0.5-1 second (uncached)
 - Cost: Free (runs locally)
 - Model: llama3.2:1b (configurable)
@@ -438,12 +481,14 @@ Generic Fallback
 - Context window: 128K tokens available (future use)
 
 **Cache (both backends)**:
+
 - Response time: ~0ms (instant)
 - Hit rate: 70%+
 - Capacity: 5000 entries
 - TTL: 1 hour
 
 ### Current Optimizations
+
 - **Dual Backend**: Automatic fallback ensures 99%+ AI availability
 - **Model Selection**: gpt-5-mini for OpenAI, llama3.2:1b for Ollama
 - **Temperature**: 0.3-0.7 (consistent responses)
@@ -454,12 +499,14 @@ Generic Fallback
 - **Zero Delay**: Responses delivered immediately
 
 ### Cost Management
+
 - **OpenAI costs**: ~$0.30 per 1000 interactions (with cache)
 - **Ollama costs**: $0 (runs on your hardware)
 - **Hybrid mode**: Significant cost reduction when Ollama handles failures
 - **Ollama-only mode**: Completely free AI NPCs
 
 ### Resource Usage
+
 - **Memory**: ~10MB for full cache + ~1.2GB for Ollama model
 - **CPU**: Ollama uses 50-70% CPU for 1-2 seconds during generation
 - **Network**: OpenAI requires internet, Ollama is local-only
@@ -467,6 +514,7 @@ Generic Fallback
 ## Security Considerations
 
 ### Current Implementation
+
 - **API Key Storage**: Injected at runtime; see the secret lifecycle below
 - **Input Sanitization**: Escapes special characters, limits length
 - **Prompt Injection Prevention**: Fixed prompt templates
@@ -474,13 +522,13 @@ Generic Fallback
 - **Access Control**: Admin-only configuration
 - **Local Ollama**: No authentication (localhost only)
 
-
 ### Secret Lifecycle and Threat Model
 
 The OpenAI API key is the only secret the AI service handles. The contract is
 deliberately simple so nobody mistakes it for something stronger.
 
 **Sources, in priority order**
+
 1. The process environment variable `OPENAI_API_KEY` (set by systemd
    `Environment=`/`EnvironmentFile=`, a secret manager wrapper, or the shell).
    This is the preferred production path: no at-rest copy is owned by the game.
@@ -488,6 +536,7 @@ deliberately simple so nobody mistakes it for something stronger.
    development. Keep the file mode `0600` and never commit it.
 
 **What the application guarantees**
+
 - The key is held in exactly one mutex-guarded buffer inside `ai_security.c`.
   It is never written to disk, the database, player files, or the response
   cache, and it is never compiled into the binary.
@@ -505,6 +554,7 @@ deliberately simple so nobody mistakes it for something stronger.
   or generic fallback path. No request is ever sent without a key.
 
 **Rotation and revocation**
+
 1. Put the new key where the running server reads it:
    - `lib/.env`: edit the file, then run `ai reload` as staff. The old key
      is overwritten in place; removing the line and reloading wipes it.
@@ -519,12 +569,14 @@ deliberately simple so nobody mistakes it for something stronger.
    a worker thread finish with whichever key they copied when they started.
 
 **Endpoint policy**
+
 - `OPENAI_API_ENDPOINT` must start with `https://`. The bearer key is sent to
   that URL on every request, so a cleartext scheme is refused at load time:
   the value is ignored, the default endpoint is used, and a log line says so.
   A local proxy must therefore terminate TLS itself.
 
 **What is explicitly NOT protected**
+
 - Anyone who can read `lib/.env`, the process environment, process memory, or
   a core dump can read the key. The game does not implement at-rest
   encryption; an application-held wrapping key would offer no real boundary
@@ -534,6 +586,7 @@ deliberately simple so nobody mistakes it for something stronger.
   encrypt the backup outside the game.
 
 ### Best Practices
+
 1. Restrict .env file permissions: `chmod 600 lib/.env`
 2. Never commit .env to version control
 3. Rotate OpenAI API keys regularly
@@ -546,6 +599,7 @@ deliberately simple so nobody mistakes it for something stronger.
 ### Common Issues
 
 **No AI responses at all**
+
 - Check Ollama is running: `systemctl status ollama`
 - Test Ollama: `curl http://localhost:11434/api/generate -d '{"model":"llama3.2:1b","prompt":"Hi","stream":false}'`
 - Check service status: `ai` command in-game
@@ -557,18 +611,21 @@ deliberately simple so nobody mistakes it for something stronger.
   - "Ollama request timed out" - Model loading, increase timeout
 
 **OpenAI not working (but Ollama works)**
+
 - Verify API key in lib/.env
 - Check rate limits with `ai` command
 - Monitor OpenAI status: status.openai.com
 - Fallback to Ollama is automatic
 
 **Ollama not working**
+
 - Ensure Ollama service is running: `sudo systemctl start ollama`
 - Check model is installed: `ollama list`
 - Pull model if missing: `ollama pull llama3.2:1b`
 - Check port 11434 is not blocked
 
 **Slow responses**
+
 - OpenAI: Normal latency 1-2 seconds
 - Ollama: Should be < 1 second locally
 - Check cache hit rate with `ai` command
@@ -576,18 +633,22 @@ deliberately simple so nobody mistakes it for something stronger.
 - First Ollama request after idle may be slower (model loading)
 
 **High costs (OpenAI)**
+
 - Switch to Ollama-only mode: `ai disable`
 - Or increase cache TTL
 - Or use gpt-3.5-turbo for lower priority NPCs
 
 ### Debug Mode
+
 Enable detailed logging:
+
 ```c
 // In ai_service.h, set:
 #define AI_DEBUG_MODE 1
 ```
 
 This enables logging of:
+
 - API request/response flow (both backends)
 - Cache operations with hit/miss details
 - Fallback decisions with reasons
@@ -597,7 +658,7 @@ This enables logging of:
 - JSON request/response content (first 200 chars)
 - CURL operations and HTTP status codes
 - Ollama model warmup process
-- Backend selection ("AI [OpenAI]:", "AI [Ollama]:", "AI [Cache]:", "AI [Fallback]:")
+- Backend selection ("AI \[OpenAI\]:", "AI \[Ollama\]:", "AI \[Cache\]:", "AI \[Fallback\]:")
 
 ## API Reference
 
@@ -635,6 +696,7 @@ bool ai_moderate_content(const char *text);
 ```
 
 ### Security Functions (ai_security.c)
+
 ```c
 // Memory security
 void secure_memset(void *ptr, int value, size_t num);   // Secure clearing
@@ -650,6 +712,7 @@ void sanitize_ai_input(const char *input, char *out, size_t out_size);
 ```
 
 ### Cache Functions (ai_cache.c)
+
 ```c
 // Cache operations
 void ai_cache_response(const char *key, const char *response);   // Add/update
@@ -659,6 +722,7 @@ void ai_cache_cleanup(void);                                     // Remove expir
 ```
 
 ### Event Functions (ai_events.c)
+
 ```c
 // Event queuing
 void queue_ai_response(struct char_data *ch, struct char_data *npc,
@@ -779,7 +843,9 @@ struct ai_request_retry_event {
 ## Testing Tools
 
 ### Test Ollama Integration
+
 A standalone test program is available:
+
 ```bash
 # Compile test program
 gcc -o test_ollama test_ollama_ai.c -lcurl
@@ -792,6 +858,7 @@ gcc -o test_ollama test_ollama_ai.c -lcurl
 ```
 
 ### In-Game Testing
+
 ```bash
 # Test with AI enabled (OpenAI + Ollama fallback)
 ai enable
@@ -809,6 +876,7 @@ ai
 ## Current Limitations & Future Work
 
 ### Implemented Features
+
 - [OK] Basic NPC dialogue via tells
 - [OK] Response caching system
 - [OK] Rate limiting (OpenAI)
@@ -819,6 +887,7 @@ ai
 - [OK] Always-on AI capability
 
 ### Known Limitations
+
 - No application-level at-rest encryption of the API key (by design, see the
   threat model; file permissions and the deployment secret store protect it)
 - No medit integration yet (manual flag setting required)
@@ -828,19 +897,21 @@ ai
 - Ollama model must be pre-downloaded
 
 ### Planned Enhancements
-1. **Editor Support**: medit integration for AI flags
-2. **Persistence**: Database-backed cache
-3. **Features**: Room descriptions, quest generation
-4. **NPC Personalities**: Individual personality traits
-5. **Memory**: Conversation history per player/NPC pair (leverage 128K context)
-6. **Moderation**: ai_moderate_content() implementation
-8. **Dynamic Models**: Per-NPC model selection
-9. **Ollama Config**: Runtime model switching
-10. **Context Enhancement**: Include world lore, zone info, NPC backgrounds
-11. **Conversation Memory**: Track last N exchanges with each player
-12. **Dynamic Prompts**: Context-aware prompts based on game state
+
+01. **Editor Support**: medit integration for AI flags
+02. **Persistence**: Database-backed cache
+03. **Features**: Room descriptions, quest generation
+04. **NPC Personalities**: Individual personality traits
+05. **Memory**: Conversation history per player/NPC pair (leverage 128K context)
+06. **Moderation**: ai_moderate_content() implementation
+07. **Dynamic Models**: Per-NPC model selection
+08. **Ollama Config**: Runtime model switching
+09. **Context Enhancement**: Include world lore, zone info, NPC backgrounds
+10. **Conversation Memory**: Track last N exchanges with each player
+11. **Dynamic Prompts**: Context-aware prompts based on game state
 
 ### Not Yet Implemented
+
 ```c
 // Declared but not implemented:
 char *ai_generate_room_desc(int room_vnum, int sector_type);
@@ -850,6 +921,7 @@ bool ai_moderate_content(const char *text);
 ## Ollama Administration
 
 ### Managing Ollama Service
+
 ```bash
 # Service control
 sudo systemctl start ollama
@@ -869,6 +941,7 @@ ollama show MODEL_NAME           # Show model details
 ```
 
 ### Performance Tuning
+
 ```bash
 # For faster responses (lower quality)
 ollama pull tinyllama
@@ -884,6 +957,7 @@ ollama pull mistral:7b
 ## Contributing
 
 When modifying the AI service:
+
 1. Maintain GNU C23 compatibility and the established source style
 2. Test both OpenAI and Ollama backends
 3. Ensure fallback logic works correctly
@@ -894,6 +968,7 @@ When modifying the AI service:
 ## Support
 
 For issues:
+
 1. Check system logs: `grep AI syslog`
 2. Check Ollama logs: `journalctl -u ollama -n 50`
 3. Enable debug mode (see Troubleshooting)
@@ -904,6 +979,7 @@ For issues:
 ## Implementation Notes
 
 ### File Locations
+
 ```
 src/
 |-- ai_service.c     # Main service implementation
@@ -921,7 +997,9 @@ docs/systems/
 ```
 
 ### JSON Handling
+
 The system uses a custom `json_escape_string()` function so JSON escaping behavior remains explicit and independent of an additional JSON library. This function handles:
+
 - Escape sequences: `\"`, `\\`, `\n`, `\r`, `\t`, `\b`, `\f`
 - Control character filtering (< 0x20)
 - Non-ASCII character filtering (>= 0x80)
@@ -929,6 +1007,7 @@ The system uses a custom `json_escape_string()` function so JSON escaping behavi
 - ASCII-only output for compatibility
 
 ### Startup Sequence
+
 1. `boot_db()` in db.c calls `init_ai_service()`
 2. AI service initializes CURL library globally
 3. Allocates configuration structure with defaults
@@ -940,6 +1019,7 @@ The system uses a custom `json_escape_string()` function so JSON escaping behavi
 9. Sets initialized flag, service ready for requests
 
 ### Shutdown Sequence
+
 1. `shutdown_ai_service()` called during MUD shutdown
 2. Clears all cache entries, freeing memory
 3. Securely clears API key from memory
@@ -950,6 +1030,7 @@ The system uses a custom `json_escape_string()` function so JSON escaping behavi
 8. Clears initialized flag
 
 ### Threading Model
+
 ```
 Main Thread:
 |-- Game loop processing
@@ -964,6 +1045,7 @@ Worker Threads (detached):
 ```
 
 ### Memory Management
+
 - All allocated strings use `strdup()` or `CREATE()` macro
 - Worker threads free their own request structures
 - Event handlers free event data after processing
@@ -972,6 +1054,7 @@ Worker Threads (detached):
   that no longer supplies a key, and per request once libcurl owns the header
 
 ### Error Handling Strategy
+
 1. **API Failures**: Retry with exponential backoff, then Ollama fallback
 2. **Ollama Failures**: Return generic fallback responses
 3. **Memory Failures**: Log error, return NULL or abort operation
@@ -979,7 +1062,9 @@ Worker Threads (detached):
 5. **Rate Limit**: Block request, return NULL
 
 ### Syslog Backend Identification
+
 All AI interactions are logged with backend identification:
+
 - `AI [OpenAI]:` - Response from OpenAI API
 - `AI [Ollama]:` - Response from local Ollama
 - `AI [Cache]:` - Response from cache (any backend)
@@ -987,7 +1072,9 @@ All AI interactions are logged with backend identification:
 - `AI [Retry]:` - Response after retry attempts
 
 ### Debug Mode
+
 When `AI_DEBUG_MODE` is enabled in ai_service.h:
+
 - Detailed function entry/exit logging
 - Parameter validation traces
 - CURL operation details
@@ -999,10 +1086,11 @@ When `AI_DEBUG_MODE` is enabled in ai_service.h:
 
 ---
 
-**Version**: 3.1  
-**Last Updated**: January 2025  
-**Maintainer**: LuminariMUD Development Team  
+**Version**: 3.1\
+**Last Updated**: January 2025\
+**Maintainer**: LuminariMUD Development Team\
 **Key Updates**:
+
 - Added Ollama LLM integration for always-on AI capability
 - Implemented proper JSON escaping for special characters
 - Added model warmup and auto-initialization at boot

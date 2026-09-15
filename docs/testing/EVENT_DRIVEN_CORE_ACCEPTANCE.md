@@ -33,7 +33,7 @@ whole population on every callback.
 ## Architecture Audit
 
 | Requirement | Accepted implementation |
-|-------------|-------------------------|
+| -- | -- |
 | Timed ownership | One process-owned hierarchical timing wheel behind `event_runtime` |
 | Runtime identity | Opaque non-reused event IDs and typed generation-aware owners |
 | Type identity | 272 boot-sealed semantic types on the copied world, including 232 MUD IDs |

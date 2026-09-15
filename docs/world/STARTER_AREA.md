@@ -25,12 +25,12 @@ a working copy, not the tracked source.
 
 ## Rooms
 
-| VNUM | Name               | Notes                                                                    |
-|------|--------------------|--------------------------------------------------------------------------|
-| 0    | The Void           | Fallback room used by legacy tooling; accessible but not player-facing. |
-| 3000 | Arrival Platform   | Entry point for mortal characters; links east into the Hall of Beginnings. |
+| VNUM | Name | Notes |
+| -- | -- | -- |
+| 0 | The Void | Fallback room used by legacy tooling; accessible but not player-facing. |
+| 3000 | Arrival Platform | Entry point for mortal characters; links east into the Hall of Beginnings. |
 | 3001 | Hall of Beginnings | Main staging chamber; west returns to the platform, east leads to the nexus. |
-| 3002 | Immortal Nexus     | Immortal login target; west returns to the hall.                         |
+| 3002 | Immortal Nexus | Immortal login target; west returns to the hall. |
 
 Key characteristics:
 

@@ -36,7 +36,7 @@ Keep three explicit clock policies. Existing effects remain legacy world-cadence
 until their individual application, expiry, behavior and persistence paths migrate.
 
 | Policy | Anchor | Use |
-| --- | --- | --- |
+| -- | -- | -- |
 | Subject-relative | Affected character's semantic turns | Defenses, bleeding, recurring personal saves |
 | Caster-relative | Source character's semantic turns | Effects explicitly lasting until the caster's next turn |
 | World/time | Elapsed scheduler time | Environmental lifetime and non-tactical durations |
@@ -81,7 +81,7 @@ creation. Sources surviving caster logout use that attribution and their stored
 level/DC, rather than requiring a live caster or silently gaining victim stats.
 
 | Hazard | Decision before movement | Committed movement | Continued exposure |
-| --- | --- | --- | --- |
+| -- | -- | -- | -- |
 | Blocking wall/trap | Check both sides and veto before placement | No crossing damage for a failed move | Only if explicitly authored |
 | Damaging directional wall | Normal movement legality | Once per wall source and committed edge traversal | None by default |
 | Area cloud | Normal movement legality | First eligible entry in subject's exposure interval | Subject end phase while still inside |

@@ -1,15 +1,16 @@
 # LuminariMUD Spell Preparation System Knowledge Base
 
 ## Table of Contents
-1. [System Architecture Overview](#1-system-architecture-overview)
-2. [Core Components Catalog](#2-core-components-catalog)
-3. [Data Structures & State Management](#3-data-structures--state-management)
-4. [Key Workflows](#4-key-workflows)
-5. [API Reference](#5-api-reference)
-6. [Configuration & Constants](#6-configuration--constants)
-7. [Integration Points](#7-integration-points)
-8. [Business Rules & Game Mechanics](#8-business-rules--game-mechanics)
-9. [Code Conventions & Patterns](#9-code-conventions--patterns)
+
+01. [System Architecture Overview](#1-system-architecture-overview)
+02. [Core Components Catalog](#2-core-components-catalog)
+03. [Data Structures & State Management](#3-data-structures--state-management)
+04. [Key Workflows](#4-key-workflows)
+05. [API Reference](#5-api-reference)
+06. [Configuration & Constants](#6-configuration--constants)
+07. [Integration Points](#7-integration-points)
+08. [Business Rules & Game Mechanics](#8-business-rules--game-mechanics)
+09. [Code Conventions & Patterns](#9-code-conventions--patterns)
 10. [Modification Hotspots](#10-modification-hotspots)
 11. [Recent Security & Bug Fixes (2025-07-27)](#11-recent-security--bug-fixes-2025-07-27)
 12. [Known Issues & Technical Debt](#12-known-issues--technical-debt)
@@ -22,21 +23,25 @@
 The LuminariMUD spell preparation system handles how spellcasters prepare and manage their spells. It supports two fundamentally different casting paradigms:
 
 ### **Preparation-Based Casters** (Traditional D&D/Pathfinder Model)
+
 - **Classes**: Wizard, Cleric, Druid, Ranger, Paladin, Blackguard, Alchemist
 - **Process**: Choose specific spells -> Queue for preparation -> Wait for completion -> Cast once -> Repeat
 - **Storage**: Preparation Queue -> Spell Collection (when ready)
 
 ### **Spontaneous/Innate Casters** (Flexible Casting Model)
+
 - **Classes**: Sorcerer, Bard, Inquisitor, Summoner, Warlock
 - **Process**: Know spells permanently -> Have spell slots by circle -> Use any slot for any known spell
 - **Storage**: Known Spells List + Innate Magic Queue (available slots)
 - **Note**: Warlock uses invocations (special spell range) with unique mechanics
 
 ### **Special Casters**
+
 - **Psionicist**: Uses psionic powers (PSIONIC_POWER_START to PSIONIC_POWER_END range)
 - **Integration**: Powers work through spell system with special validation
 
 ### **Data Flow Architecture**
+
 ```
 Player Input (memorize/pray/etc.)
         ->
@@ -60,6 +65,7 @@ On successful cast:
 ```
 
 ### **Key Design Decisions**
+
 - **Real-time preparation**: Uses MUD event system, updates every second
 - **Persistent storage**: All spell data saved to player files
 - **Class isolation**: Each class has separate queues/collections
@@ -71,6 +77,7 @@ On successful cast:
 ## 2. Core Components Catalog
 
 ### **spell_prep.c** (Main Implementation - ~4500 lines)
+
 - **Purpose**: Complete spell preparation system implementation
 - **Key responsibilities**:
   - Queue management (add/remove/clear)
@@ -105,6 +112,7 @@ On successful cast:
   - Registered in interpreter.c with subcommands for each class
 
 ### **spell_prep.h** (Interface Definition)
+
 - **Purpose**: Public API and macro definitions
 - **Key responsibilities**:
   - Function declarations
@@ -118,18 +126,21 @@ On successful cast:
   - `KNOWN_SPELLS(ch, class)` - Access known spells
 
 ### **mud_event.c** (Event Handler)
+
 - **Purpose**: Manages timed events including spell preparation
 - **Key function**:
   - `event_preparation()` - Called every second during preparation
 - **Integration**: ePREPARATION event type
 
 ### **spell_parser.c** (Casting Interface)
+
 - **Purpose**: Handles spell casting commands
 - **Integration points**:
   - Calls `spell_prep_gen_check()` before casting
   - Calls `spell_prep_gen_extract()` after successful cast
 
 ### **players.c** (Save/Load Integration)
+
 - **Purpose**: Player file I/O
 - **Integration**: Calls spell_prep save/load functions
 
@@ -169,6 +180,7 @@ struct known_spell_data {
 ```
 
 ### **Storage Locations** (in player_special_data_saved)
+
 ```c
 /* Per-class linked lists */
 struct prep_collection_spell_data *preparation_queue[NUM_CLASSES];
@@ -178,18 +190,21 @@ struct known_spell_data *known_spells[NUM_CLASSES];
 ```
 
 ### **State Tracking**
+
 - **Preparation state**: `PREPARING_STATE(ch, class)` - Boolean per class
 - **Event tracking**: MUD event system handles timing
 - **Metamagic state**: Stored as bitvector with spell
 - **Domain tracking**: Special field for divine casters
 
 ### **Important Constants**
+
 - `NUM_CLASSES`: Total classes in game
 - `NUM_CIRCLES`: 10 (spell circles 0-9, 0 unused)
 - `MAX_SPELLS`: Total spell count
 - `TOP_CIRCLE`: 9 (highest spell circle)
 
 ### **Queue Size Limits** (DoS Protection)
+
 - `MAX_PREP_QUEUE_SIZE`: 125 (preparation queue per class)
 - `MAX_COLLECTION_SIZE`: 250 (spell collection per class)
 - `MAX_INNATE_QUEUE_SIZE`: 125 (innate magic slots per class)
@@ -201,6 +216,7 @@ struct known_spell_data *known_spells[NUM_CLASSES];
 ## 4. Key Workflows
 
 ### **Basic Spell Preparation Sequence** (Wizard Example)
+
 1. **Player types**: `memorize 'magic missile'`
 2. **Command handler** (`do_gen_preparation`):
    - Validates class can cast spell
@@ -221,11 +237,13 @@ struct known_spell_data *known_spells[NUM_CLASSES];
 6. **Spell ready**: Shows in collection, can be cast
 
 ### **Spell Component Checking**
+
 - Currently minimal implementation
 - Wizards must have spellbook (equipment check)
 - No material component consumption yet
 
 ### **Preparation Interruption**
+
 1. **Triggers**: Standing up, entering combat, being moved
 2. **Effect**:
    - Event cancelled
@@ -234,6 +252,7 @@ struct known_spell_data *known_spells[NUM_CLASSES];
 3. **Resume**: Type preparation command again
 
 ### **Casting Workflow**
+
 1. **Player casts**: `cast 'magic missile'`
 2. **Validation** (`spell_prep_gen_check`):
    - Prepared casters: Check collection
@@ -244,6 +263,7 @@ struct known_spell_data *known_spells[NUM_CLASSES];
 4. **Failure**: "You don't have that spell prepared!"
 
 ### **Spontaneous Caster Workflow**
+
 1. **Learn spell**: Via level up, trainer, or feat
 2. **Add to known spells**: `known_spells_add()`
 3. **Recover slots**: `meditate` command
@@ -335,6 +355,7 @@ display_available_slots(ch, class)     // Shows remaining slots
 ## 6. Configuration & Constants
 
 ### **Spell Circles**
+
 - `NUM_CIRCLES`: 10 (0-9, 0 is unused)
 - `TOP_CIRCLE`: 9 (full casters)
 - `TOP_BARD_CIRCLE`: 6
@@ -343,6 +364,7 @@ display_available_slots(ch, class)     // Shows remaining slots
 - `TOP_BLACKGUARD_CIRCLE`: 4
 
 ### **Preparation Times**
+
 - `BASE_PREP_TIME`: 5 seconds (1st circle base)
 - `PREP_TIME_INTERVALS`: 2 seconds per circle above 1st
 - Class multipliers:
@@ -355,6 +377,7 @@ display_available_slots(ch, class)     // Shows remaining slots
   - Other classes: 3.0 (default)
 
 ### **Command Subcommands**
+
 ```c
 #define SCMD_MEMORIZE    1   // Wizard
 #define SCMD_PRAY        2   // Cleric  
@@ -370,16 +393,19 @@ display_available_slots(ch, class)     // Shows remaining slots
 ```
 
 ### **Slot Tables** (from constants.c)
+
 - Located in arrays like `wizard_slots[][]`, `cleric_slots[][]`, etc.
 - For spontaneous casters: `sorcerer_known[][]` tracks known spells, not slots
 - Format: `[level][circle]` = number of slots/known
 - Bonus slots from high ability scores in `spell_bonus[][]`
 
 ### **File Paths**
+
 - Player files: Defined by MUD configuration
 - No spell-specific data files (all in code)
 
 ### **Magic Numbers** (Now Replaced with Constants)
+
 - `PREP_QUEUE_SENTINEL`: "-1 -1 -1 -1 -1" (save file section terminator)
 - `KNOWN_SPELLS_SENTINEL`: "-1 -1" (known spells section terminator)
 - `METAMAGIC_STR_SIZE`: 256 (buffer size for metamagic string building)
@@ -392,37 +418,45 @@ display_available_slots(ch, class)     // Shows remaining slots
 ## 7. Integration Points
 
 ### **Player Character System**
+
 - **Level checks**: `get_class_highest_circle()`, `is_min_level_for_spell()`
 - **Ability scores**: INT/WIS/CHA affect slots and prep time
 - **Skills**: Concentration skill reduces prep time
 - **Feats**: Fast Memorization, Extra Slot, bloodlines
 
 ### **Inventory/Component System**
+
 - **Current**: Minimal - only spellbook check for wizards
 - **Interface**: Equipment checks in `ready_to_prep_spells()`
 - **Future**: Material component consumption planned
 
 ### **Combat System**
+
 - **Interruption**: Combat stops preparation
 - **Casting**: Calls extract/check functions
 - **Metamagic**: Affects casting time and spell level
 
 ### **Magic/Mana System**
+
 - **Separation**: Spell slots != mana points
 - **Integration**: Some feats/abilities may restore slots
 
 ### **Game Loop Integration**
+
 - **Event system**: ePREPARATION fires every second
 - **Position updates**: Check for interruption
 - **Save system**: Hooks in players.c
 
 ### **Message Handling**
+
 - **Player messages**: Via `send_to_char()`
 - **Room messages**: Via `act()` function
 - **Color codes**: Uses MUD color system
 
 ### **Event System Implementation**
+
 The preparation system uses MUD events for timing:
+
 - **Event Type**: `ePREPARATION` (defined in mud_event.h)
 - **Event Data**: Stores class number as string in `sVariables`
   ```c
@@ -445,6 +479,7 @@ The preparation system uses MUD events for timing:
 ## 8. Business Rules & Game Mechanics
 
 ### **Preparation Requirements**
+
 1. **Position**: Must be resting (POS_RESTING)
 2. **Combat**: Cannot prepare during combat
 3. **Status effects**: No paralysis, sleep, etc.
@@ -453,6 +488,7 @@ The preparation system uses MUD events for timing:
 6. **Slots**: Must have available slots for circle
 
 ### **Spell Circle Calculation** (Complex!)
+
 ```
 Base Circle = spell_info[spellnum].min_level[class] / 2
 + Metamagic adjustments:
@@ -466,6 +502,7 @@ Final = 1-9 (capped at class maximum)
 ```
 
 ### **Preparation Time Formula**
+
 ```
 Base = 5 + (2 * (circle - 1))
 -> Class factor (2.0 to 3.0)
@@ -477,6 +514,7 @@ Minimum = 1 second
 ```
 
 ### **Slot Calculation**
+
 ```
 Base slots = class_slots[level][circle]
 + Ability bonus slots = spell_bonus[ability_mod][circle]
@@ -486,12 +524,14 @@ Base slots = class_slots[level][circle]
 ```
 
 ### **Known Spell Limits** (Spontaneous)
+
 - Base from class tables
 - Bonus from INT (psionicist)
 - Bonus from feats (Expanded Knowledge)
 - Bloodline spells don't count against limit
 
 ### **Special Cases**
+
 - **Epic spells**: Planned but not implemented (`isEpicSpell()` always returns FALSE)
 - **Domain spells**: Separate slots for clerics
 - **Bloodline spells**: Free for sorcerers
@@ -500,7 +540,9 @@ Base slots = class_slots[level][circle]
 - **Warlock invocations**: Special spell range with unique mechanics
 
 ### **Warlock Class Details**
+
 Warlocks use a special subset of the spell system called invocations:
+
 - **Spell Range**: Uses regular spell numbers (not a separate range)
 - **Circle Calculation**: Special handling in `compute_spells_circle()`
   - Checks if spell is valid warlock invocation
@@ -510,7 +552,9 @@ Warlocks use a special subset of the spell system called invocations:
 - **Prep Time Factor**: 2.5 (same as clerics/druids)
 
 ### **Psionicist Class Details**
+
 Psionicists integrate with the spell system using psionic powers:
+
 - **Power Range**: `PSIONIC_POWER_START` to `PSIONIC_POWER_END`
 - **Validation**: Special range checking in spell validation
 - **Known Powers**: INT bonus affects number of known powers
@@ -520,12 +564,14 @@ Psionicists integrate with the spell system using psionic powers:
 ## 9. Code Conventions & Patterns
 
 ### **Naming Conventions**
+
 - Functions: `snake_case` (e.g., `prep_queue_add`)
 - Macros: `UPPER_CASE` (e.g., `SPELL_PREP_QUEUE`)
 - Structs: `snake_case_data` suffix
 - Events: `ePASCALCASE` (e.g., `ePREPARATION`)
 
 ### **Error Handling**
+
 ```c
 /* Standard pattern - ALL errors now use SYSERR: prefix */
 if (!ch || !ch->player_specials) {
@@ -548,6 +594,7 @@ if (!new_spell) {
 ```
 
 ### **Memory Management**
+
 ```c
 /* Allocation pattern */
 CREATE(new_spell, struct prep_collection_spell_data, 1);
@@ -562,11 +609,13 @@ current = tmp;
 ```
 
 ### **Linked List Patterns**
+
 - Always add to head (O(1) insertion)
 - Walk with next pointer caching
 - NULL terminate all lists
 
 ### **Common Macros Used**
+
 - `CREATE()`: Allocate memory
 - `GET_LEVEL()`: Character level
 - `GET_CLASS()`: Character class
@@ -574,6 +623,7 @@ current = tmp;
 - `MIN()`, `MAX()`: Bounds checking
 
 ### **Debug Mode**
+
 - **Location**: Top of spell_prep.c
 - **Default**: `#define DEBUGMODE FALSE`
 - **Scope**: Local to spell_prep.c (undefined at end of file)
@@ -596,12 +646,14 @@ current = tmp;
 ## 10. Modification Hotspots
 
 ### **To Add a New Spell**
+
 1. **Define spell**: In spells.h and spell_parser.c
 2. **Set levels**: In `spell_info[].min_level[]`
 3. **Add to lists**: Class spell lists in class.c
 4. **Help entry**: In help files
 
 ### **To Add a New Caster Class**
+
 1. **Constants**: Add `CLASS_*` constant
 2. **Tables**: Add to slot tables in constants.c
 3. **Commands**: Add `SCMD_*` and command in interpreter.c
@@ -609,18 +661,21 @@ current = tmp;
 5. **Prep factor**: Add `*_PREP_TIME_FACTOR`
 
 ### **To Modify Preparation Mechanics**
+
 1. **Timing**: Adjust in `compute_spells_prep_time()`
 2. **Requirements**: Modify `ready_to_prep_spells()`
 3. **Interruption**: Check movement/combat hooks
 4. **Slots**: Modify `compute_slots_by_circle()`
 
 ### **To Change Balance/Timing**
+
 1. **Base times**: BASE_PREP_TIME, PREP_TIME_INTERVALS
 2. **Class factors**: `*_PREP_TIME_FACTOR` defines
 3. **Ability impact**: In prep time calculation
 4. **Feat bonuses**: In respective functions
 
 ### **Extension Points**
+
 - **Components**: Hook in `ready_to_prep_spells()`
 - **Special prep**: Add checks in validation
 - **New metamagic**: Update circle calculation
@@ -631,6 +686,7 @@ current = tmp;
 ## 11. Recent Security & Bug Fixes (2025-07-27)
 
 ### **Critical Security Fixes**
+
 1. **Array Bounds Protection**: Added bounds checking in `assign_feat_spell_slots()` to prevent segfaults when level_counter exceeds slot array size (84 entries)
 2. **Use-After-Free Protection**: Added character validation in `event_preparation()` by checking global character_list before processing events
 3. **Integer Overflow Protection**:
@@ -641,6 +697,7 @@ current = tmp;
 5. **Input Validation**: Added comprehensive validation to `do_gen_preparation()` and `do_consign_to_oblivion()` commands
 
 ### **Data Integrity Fixes**
+
 1. **Domain Array Bounds**: Added validation (0 < domain < NUM_DOMAINS) in display functions
 2. **Save/Load Validation**: Added sscanf() return value checking in all load functions
 3. **NULL Pointer Protection**: Added NULL checks after all CREATE() macro calls
@@ -648,13 +705,15 @@ current = tmp;
 5. **Dangling Pointer Prevention**: Now setting pointers to NULL after freeing in spell_counts cleanup
 
 ### **Performance Optimizations**
+
 1. **star_circlet_proc()**: Reduced LOOP_MAX from 1000 to 100, added early exit conditions
 2. **Function Refactoring**: Split large functions into smaller, focused helper functions:
    - `compute_spells_circle()`: 6 helper functions
-   - `event_preparation()`: 5 helper functions  
+   - `event_preparation()`: 5 helper functions
    - `print_collection()`: 7 helper functions
 
 ### **Thread Safety**
+
 - **Note**: LuminariMUD is single-threaded - no race conditions possible
 - Event system ensures only one preparation event per character
 - Documentation added to clarify single-threaded architecture
@@ -662,6 +721,7 @@ current = tmp;
 ## 12. Known Issues & Technical Debt
 
 ### **TODO/FIXME Comments**
+
 1. **Epic spells**: `isEpicSpell()` always returns FALSE
 2. **Feat-based slots**: `assign_feat_spell_slots()` is NON-FUNCTIONAL
    - Function exists but immediately returns without doing anything
@@ -672,17 +732,20 @@ current = tmp;
 5. **Search mode**: Some functions have unused parameters
 
 ### **Technical Debt**
+
 1. **Dual systems**: Some innate magic code duplicates prep code
 2. **Magic numbers**: Circle/level conversions scattered (partially addressed with constants)
 3. **State redundancy**: Preparing state + event existence
 4. **NPC handling**: Lots of special cases
 
 ### **Performance Considerations**
+
 1. **Linked lists**: O(n) searches, could use hash tables
 2. **Event spam**: One event per preparing character
 3. **Save/load**: Inefficient text format
 
 ### **Potential Bugs** (Many Fixed in 2025-07-27)
+
 1. **Metamagic + domains**: Complex interaction
 2. **Multiclass**: Each class has separate pools
 3. **Level loss**: No cleanup of high-level spells
@@ -693,40 +756,47 @@ current = tmp;
 ## 13. Quick Start Guide
 
 ### **"To add a new spell type, modify..."**
+
 1. Define in spells.h: `#define SPELL_NEW_SPELL 299`
 2. Set info in spell_parser.c: `spello()` call
 3. Add to class lists in class.c spell assignment
 4. Create help entry
 
 ### **"To change preparation time calculation, look at..."**
+
 - Function: `compute_spells_prep_time()` (~line 2670)
 - Factors: Class multipliers at top of spell_prep.h
 - Base values: BASE_PREP_TIME, PREP_TIME_INTERVALS
 
 ### **"To debug preparation failures, check..."**
+
 1. Enable DEBUGMODE in spell_prep.c
 2. Check `ready_to_prep_spells()` conditions
 3. Verify slots with `compute_slots_by_circle()`
 4. Check event with `char_has_mud_event(ch, ePREPARATION)`
 
 ### **"To modify component requirements, update..."**
+
 - Currently: Only spellbook check in `ready_to_prep_spells()`
 - Add checks: In validation section of `do_gen_preparation()`
 - Consumption: After `spell_prep_gen_extract()` in casting
 
 ### **"To add a new metamagic feat..."**
+
 1. Define flag in structs.h metamagic section
 2. Update `compute_spells_circle()` for adjustment
 3. Add parsing in command handlers
 4. Update display functions for name
 
 ### **"To fix slot calculation issues..."**
+
 - Base slots: Tables in constants.c
 - Calculation: `compute_slots_by_circle()`
 - Counting: `count_total_slots()` family
 - Display: `display_available_slots()`
 
 ### **Common Command Testing**
+
 ```
 # Wizard preparation
 memorize 'magic missile'      # Add to queue
@@ -745,7 +815,9 @@ set <player> prep             # Force preparation state
 ```
 
 ### **Integration Checklist**
+
 When modifying the spell system:
+
 - [ ] Update all class switch statements
 - [ ] Check save/load compatibility
 - [ ] Test preparation interruption

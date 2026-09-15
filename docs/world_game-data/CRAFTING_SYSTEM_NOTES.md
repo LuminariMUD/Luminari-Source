@@ -19,12 +19,12 @@ learn crafting skills, and create custom equipment.
 
 ## Known Gaps
 
-* No complete documentation for all crafting commands.
-* No worked examples for each crafting skill.
-* Material acquisition methods are undocumented.
-* The crafting station flags (`ITEM_CRAFTING_FORGE`, `ITEM_CRAFTING_LOOM`, and
+- No complete documentation for all crafting commands.
+- No worked examples for each crafting skill.
+- Material acquisition methods are undocumented.
+- The crafting station flags (`ITEM_CRAFTING_FORGE`, `ITEM_CRAFTING_LOOM`, and
   the rest - see the [OEDIT Guide](OEDIT_GUIDE.md)) are not covered here at all.
-* The nine crafting-tool wear slots are reserved but currently unused; no
+- The nine crafting-tool wear slots are reserved but currently unused; no
   active `ITEM_CRAFTING_TOOL` prototypes exist. See the
   [OEDIT Guide](OEDIT_GUIDE.md#wear-flags-reference) for their assigned bits.
 
@@ -40,7 +40,7 @@ F      D      T       S     M      L       H      G      C      ?      ??
 ## Materials and Skills
 
 | Material class | Gathering skill |
-|----------------|-----------------|
+| -- | -- |
 | Hard metal | Mining |
 | Leather | Hunting |
 | Wood | Foresting |
@@ -50,7 +50,7 @@ F      D      T       S     M      L       H      G      C      ?      ??
 ### Gathering Skills
 
 | Constant | Number | Purpose |
-|----------|--------|---------|
+| -- | -- | -- |
 | `SKILL_MINING` | 2071 | Acquiring hard metals |
 | `SKILL_HUNTING` | 2072 | Acquiring leather, dragonhide |
 | `SKILL_FORESTING` | 2073 | Acquiring wood, darkwood |
@@ -60,7 +60,7 @@ F      D      T       S     M      L       H      G      C      ?      ??
 ### Production Skills
 
 | Constant | Number | Purpose |
-|----------|--------|---------|
+| -- | -- | -- |
 | `SKILL_ARMOR_SMITHING` | 2076 | Creating metal armor |
 | `SKILL_WEAPON_SMITHING` | 2077 | Creating weapons |
 | `SKILL_JEWELRY_MAKING` | 2078 | Creating miscellaneous worn pieces |
@@ -70,7 +70,7 @@ F      D      T       S     M      L       H      G      C      ?      ??
 ### Specialization Skills
 
 | Constant | Number | Purpose |
-|----------|--------|---------|
+| -- | -- | -- |
 | `SKILL_BONE_ARMOR` | 2081 | Create metal-equivalent armor using bone |
 | `SKILL_ELVEN_CRAFTING` | 2082 | Produce lighter armor |
 | `SKILL_MASTERWORK_CRAFTING` | 2083 | Higher chance to produce rare, legendary, or mythic results |
@@ -95,7 +95,7 @@ adamantine
 All of the following are registered in `cmd_info[]` (`src/core/interpreter.c`).
 
 | Command | Effect |
-|---------|--------|
+| -- | -- |
 | `create` | Create/craft an object using materials and skills |
 | `checkcraft` | Check the result the `create` command would produce |
 | `augment` | Combine essences to make them stronger |

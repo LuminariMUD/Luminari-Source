@@ -22,18 +22,18 @@ sequence; `git log --oneline 570193508..` lists them. Each row records what
 was verified before its commit.
 
 | Step | State | Commit | Verified |
-| --- | --- | --- | --- |
+| -- | -- | -- | -- |
 | 1 Python | done | Format Python with ruff | 121 files, +39,840/-38,472; AST identical 121/121; all 542 world-tool tests pass before and after; `wtool.py constants sync --check` passes |
 | 2 Shell | done | Format shell scripts with shfmt | 64 files, +4,209/-4,461; AST identical 63/64, the other being the planned glob rewrite; `bash -n` passes for all 73 regular scripts; the 8 symlinks and the scripts' exec bits intact; pubsub retirement, rename static, and background help checks pass |
 | 3 SQL | done | Format SQL with sqlfluff and keep new SQL under it | 106 files, +4,038/-2,755; token streams identical 106/106; no frozen file changed; the policy self-test rejects 10 bypasses and each of the six bypass trials fails the check; the hook trials behave as planned; the master schema and all 61 applied components load into MariaDB 10.11 as in `integration.yml`; rename static (through `make`), background help, and pubsub retirement checks pass |
-| Markdown prep | done | Prepare Markdown for mdformat | 33 documents and the 2 regenerated guides, +136/-129; mdformat on the result adds 69 escapes, all in prose: the 28 bracket pairs, 7 footnote asterisks in `gear_guide.md`, and 6 in `phase01_test_results.md` (footnote marks and the A* name); `wtool.py docs --check`, `generate-web-guides.sh --check`, `check-dg-docs.py`, and source hygiene pass |
-| 4 Markdown | next | | |
-| 5 prettier | | | |
-| 6 CMake | | | |
-| 7 PHP | | | |
-| 8 PowerShell | | | |
-| 9 CI, image, docs | | | |
-| 10 after merge | | | |
+| Markdown prep | done | Prepare Markdown for mdformat | 33 documents and the 2 regenerated guides, +136/-129; mdformat on the result adds 69 escapes, all in prose: the 28 bracket pairs, 7 footnote asterisks in `gear_guide.md`, and 6 in `phase01_test_results.md` (footnote marks and the `A*` name); `wtool.py docs --check`, `generate-web-guides.sh --check`, `check-dg-docs.py`, and source hygiene pass |
+| 4 Markdown | done | Format Markdown with mdformat | 192 documents besides this plan, +6,172/-1,784, each byte-identical to a verification clone; guides regenerated, +1,517/-846; the only escapes added are the 69 accepted prose ones; `wtool.py docs --check`, `generate-web-guides.sh --check`, `check-dg-docs.py`, and source hygiene (1,693 files) pass; all 542 world-tool tests pass; the `CLAUDE.md` and `GEMINI.md` symlinks, the changelogs, and `lib/WILD_KB.md` untouched |
+| 5 prettier | next |  |  |
+| 6 CMake |  |  |  |
+| 7 PHP |  |  |  |
+| 8 PowerShell |  |  |  |
+| 9 CI, image, docs |  |  |  |
+| 10 after merge |  |  |  |
 
 Notes for whoever resumes:
 
@@ -92,7 +92,7 @@ Costs:
 ## Coverage decisions
 
 | Type | Files | Tool and pin | Decision | One-time change | Proof on this tree |
-| --- | --- | --- | --- | --- | --- |
+| -- | -- | -- | -- | -- | -- |
 | C, C headers | 697 | clang-format v18.1.8 (existing) | Unchanged | none | `pre-commit run --all-files` already passes |
 | Python | 126 | ruff v0.16.7 `ruff-format`, 4-space | Format | 121 files, +39,841/-38,473 | AST identical in 121 of 121 |
 | Shell | 73, plus 5 symlinks | shfmt v3.14.1 | Format | 64 files, +4,210/-4,462 | AST identical in 62 of 64; the other 2 are planned edits |
@@ -234,7 +234,7 @@ Costs:
   with sqlfluff 4.3.0 and the configuration below:
 
 | Does not parse | Write instead |
-| --- | --- |
+| -- | -- |
 | `DELIMITER` blocks for procedures, functions, and compound triggers | create the routine from C, as `src/database/db_init.c` already does for `cleanup_orphaned_dockings` and the `bi_digitalize_linestring` trigger (a hard rule in `AGENTS.md` and `docs/systems/DATABASE_INITIALIZATION_SYSTEM.md`); a single-statement `CREATE TRIGGER ... FOR EACH ROW SET ...;` parses in SQL |
 | `CREATE VIEW IF NOT EXISTS` | `CREATE OR REPLACE VIEW` |
 | `WHERE BINARY tag = 'x'`, `ON BINARY a = b` | `CAST(tag AS BINARY) = 'x'` (`BINARY expr` is shorthand for that cast) |
@@ -242,11 +242,11 @@ Costs:
 | `SOURCE other.sql` | apply each file separately |
 | `DEFAULT (expression)` | a literal default, or set the value where rows are written |
 
-  Also verified to parse as written: `ADD COLUMN IF NOT EXISTS`,
-  `CREATE INDEX IF NOT EXISTS`, `ON DUPLICATE KEY UPDATE`, `PREPARE` and
-  `EXECUTE`, `CREATE EVENT IF NOT EXISTS`, `DROP PROCEDURE IF EXISTS`,
-  `COLLATE utf8mb4_bin`, and table options such as
-  `ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`.
+Also verified to parse as written: `ADD COLUMN IF NOT EXISTS`,
+`CREATE INDEX IF NOT EXISTS`, `ON DUPLICATE KEY UPDATE`, `PREPARE` and
+`EXECUTE`, `CREATE EVENT IF NOT EXISTS`, `DROP PROCEDURE IF EXISTS`,
+`COLLATE utf8mb4_bin`, and table options such as
+`ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`.
 
 ### Markdown: mdformat tuned for this repository
 
@@ -403,7 +403,7 @@ Costs:
 ### Runtimes for PHP and PowerShell
 
 | Where | PHP | PowerShell |
-| --- | --- | --- |
+| -- | -- | -- |
 | Development host (Ubuntu 24.04, WSL2) | `sudo apt-get install -y php8.3-cli` | Microsoft's package repository, then `sudo apt-get install -y powershell` (commands in Step 0) |
 | GitHub `ubuntu-latest` runner (24.04) | PHP 8.3.6 preinstalled | PowerShell 7.6.5 and PSScriptAnalyzer 1.25.0 preinstalled |
 | Local CI image, `scripts/ci/local/Dockerfile` | add `php8.3-cli` to the apt list | add the Microsoft repository and `powershell` |
@@ -666,9 +666,11 @@ prettier read this file.
 - Land it while few branches are open. Today that is PR #190 (5 files in
   scope) and the local unmerged branches `ai-secret-lifecycle-99`,
   `arch-n-worktree`, and `feat-dev`, plus backup branches.
+
 - Fetch first: other sessions push to `master`. Do not commit while a
   background build or test reads the tree, because the hook stashes unstaged
   files while it runs.
+
 - Recipe for a branch that is open when this lands: check out the new config
   and wrapper files from `origin/master` (`.pre-commit-config.yaml`,
   `.editorconfig`, `ruff.toml`, `.sqlfluff`, `.sqlfluffignore`,
@@ -686,7 +688,7 @@ checks, and commit. The Markdown content prep (supporting change 3) is its own
 commit immediately before step 4.
 
 | Step | Commit | Hook id | Also in the commit | Checks |
-| --- | --- | --- | --- | --- |
+| -- | -- | -- | -- | -- |
 | 1 | Python | `ruff-format` | `ruff.toml` | AST comparison; `python -m unittest discover -s scripts/world/tests -t scripts/world -v`; `python scripts/world/wtool.py constants sync --check` |
 | 2 | Shell | `shfmt` | glob rewrite; `[*.sh]` section | `shfmt --to-json` AST comparison; `bash -n` on every script; `git diff --summary` shows no mode changes |
 | 3 | SQL | `sqlfluff-fix`, `sql-format-policy` | `.sqlfluff`; `.sqlfluffignore`; the policy check; rename test string | token-stream comparison; `check_sql_format_policy.py --self-test` and a plain run; `make test-character-rename-static`; `scripts/test_background_help_entries.sh`; `scripts/events/test_pubsub_retirement.sh` |
@@ -703,8 +705,7 @@ directory, not committed:
 - Shell: `shfmt --to-json` output with position objects removed.
 - SQL: token lists after dropping whitespace, with string literals and line
   comments as single tokens.
-- PHP: `php -d zend_extension=opcache -d opcache.enable_cli=1
-  -d opcache.opt_debug_level=0x10000 -r 'opcache_compile_file($argv[1]);'`
+- PHP: `php -d zend_extension=opcache -d opcache.enable_cli=1 -d opcache.opt_debug_level=0x10000 -r 'opcache_compile_file($argv[1]);'`
   output with file paths removed.
 - PowerShell: `[System.Management.Automation.Language.Parser]::ParseInput`
   tokens without newlines, lowercased outside strings and comments.
@@ -737,8 +738,7 @@ the formatting it accompanies.
 
 A scratch clone of `570193508` was taken to the planned end state with the
 real hooks: every config and wrapper, the supporting changes, the fences for
-the two C documents, bulk formatting through `pre-commit run <hook-id>
---all-files` for each formatter, and regenerated guides. PHP ran through a
+the two C documents, bulk formatting through `pre-commit run <hook-id> --all-files` for each formatter, and regenerated guides. PHP ran through a
 `php` shim into the `php:8.3-cli` image and PowerShell from the 7.6.6 archive.
 
 - Each formatter hook passed on its second run.

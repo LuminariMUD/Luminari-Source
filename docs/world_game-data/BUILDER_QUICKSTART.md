@@ -273,7 +273,7 @@ boot again, repeat.
 Common first-boot errors and what they mean:
 
 | Message | Cause |
-|---------|-------|
+| -- | -- |
 | `Format error in second numeric line (expecting 4 or 16 args, got N)` | Object value line has the wrong integer count |
 | `Zone command count mismatch` | A reset command is indented, or `S` is not alone on its line |
 | `Format error in numeric constant line` | The zone header's field count matched none of 14/11/10/4 |

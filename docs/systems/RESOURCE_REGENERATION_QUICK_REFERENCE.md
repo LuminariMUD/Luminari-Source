@@ -3,6 +3,7 @@
 ## Quick Command Reference
 
 ### Player Commands
+
 ```
 survey            - Show basic resource availability
 survey detailed   - Show detailed resource and regeneration info
@@ -10,6 +11,7 @@ harvest <type>    - Harvest resources (triggers regeneration check)
 ```
 
 ### Admin Commands
+
 ```
 regen stats       - Show global regeneration statistics
 regen force <zone> <x> <y> - Force regeneration at coordinates
@@ -19,7 +21,7 @@ show depletion <zone> <x> <y> - Show detailed depletion data
 ## Base Regeneration Rates (per hour)
 
 | Resource | Rate | Notes |
-|----------|------|-------|
+| -- | -- | -- |
 | Vegetation | 12% | Fast-growing plants |
 | Herbs | 8% | Medicinal plants |
 | Water | 20% | Highly weather dependent |
@@ -34,18 +36,21 @@ show depletion <zone> <x> <y> - Show detailed depletion data
 ## Seasonal Multipliers
 
 ### Vegetation/Herbs
+
 - Winter: 30% (dormancy)
 - Spring: 180% (growth explosion)
-- Summer: 120% (optimal conditions)  
+- Summer: 120% (optimal conditions)
 - Autumn: 70% (decline)
 
-### Game Animals  
+### Game Animals
+
 - Winter: 50% (hibernation)
 - Spring: 130% (breeding)
 - Summer: 100% (normal)
 - Autumn: 110% (fattening)
 
 ### Wood
+
 - Winter: 80% (slow growth)
 - Spring: 120% (active growth)
 - Other: 100% (normal)
@@ -53,21 +58,25 @@ show depletion <zone> <x> <y> - Show detailed depletion data
 ## Weather Effects
 
 ### Clear Weather (0-177)
+
 - Water: 80% (evaporation)
 - Game: 120% (active)
 - Others: 100%
 
 ### Light Rain (178-199)
+
 - Water/Clay: 120%
 - Vegetation/Herbs: 110%
 - Others: 100%
 
 ### Heavy Rain (200-224)
+
 - Water/Clay: 150%
 - Vegetation/Herbs: 130%
 - Game: 80% (shelter-seeking)
 
 ### Storms (225+)
+
 - Water/Clay: 200%
 - Vegetation/Herbs: 70% (damage)
 - Game: 50% (hiding)
@@ -75,13 +84,15 @@ show depletion <zone> <x> <y> - Show detailed depletion data
 ## Example Calculations
 
 ### Spring Herbs in Heavy Rain
+
 - Base: 8%/hour
 - Season: 180% (spring)
 - Weather: 130% (rain helps)
 - **Final: 18.72%/hour**
 
 ### Winter Water in Clear Weather
-- Base: 20%/hour  
+
+- Base: 20%/hour
 - Season: 100% (not seasonal)
 - Weather: 80% (evaporation)
 - **Final: 16%/hour**
@@ -89,16 +100,19 @@ show depletion <zone> <x> <y> - Show detailed depletion data
 ## Troubleshooting
 
 ### No Regeneration
+
 1. Check MySQL connection
 2. Verify database initialization
 3. Confirm wilderness room flags
 
 ### Slow Regeneration
+
 1. Check if in correct season
 2. Verify weather conditions
 3. Confirm base rates not modified
 
 ### Database Issues
+
 1. Run `init_resource_depletion_database()`
 2. Check table schema matches docs
 3. Verify coordinate indexing
@@ -106,7 +120,7 @@ show depletion <zone> <x> <y> - Show detailed depletion data
 ## Configuration Files
 
 - **Core Logic**: `src/wilderness/resource_depletion.c`
-- **Modifiers**: `src/wilderness/resource_system.c`  
+- **Modifiers**: `src/wilderness/resource_system.c`
 - **Integration**: `src/core/handler.c`
 - **Database**: Run `db_init_system wilderness`
 
@@ -118,4 +132,5 @@ show depletion <zone> <x> <y> - Show detailed depletion data
 - Scales with player activity, not world size
 
 ---
+
 *For detailed documentation see: docs/systems/RESOURCE_REGENERATION_SYSTEM.md*

@@ -5,6 +5,7 @@
 LuminariMUD implements a sophisticated combat system inspired by Pathfinder/D&D 3.5/d20 rules. The system uses an **event-driven architecture** for combat rounds, multiple attack types, complex damage calculations, and tactical combat maneuvers. Combat features range from basic melee attacks to advanced techniques including grappling, combat modes, special abilities, and evolution-based attacks.
 
 **Key Architecture Features:**
+
 - Event-driven combat rounds (not pulse-based)
 - Action-based system with standard/move/swift actions
 - Condensed combat mode for streamlined output
@@ -34,6 +35,7 @@ if (victim != ch) {
 ```
 
 **Note:** The `set_fighting()` function implementation details are encapsulated, but it manages:
+
 - Combat list management (linked list of combatants)
 - Initiative tracking
 - Combat event scheduling
@@ -49,12 +51,14 @@ int get_initiative_modifier(struct char_data *ch);
 ```
 
 **Initiative Features:**
+
 - d20 roll + modifiers (DEX bonus, feats, etc.)
 - Encounter participants retain the rolled initiative for the fight
 - One event resolves every due participant in deterministic initiative order
 - Dexterity and runtime identity resolve exact ties
 
 **Known Modifiers:**
+
 - Dexterity bonus
 - Improved Initiative feat (+4)
 - Class-specific bonuses
@@ -97,6 +101,7 @@ void combat_run_semantic_round(struct char_data *ch, bool was_hit) {
 ```
 
 **Turn budgets:**
+
 - Standard plus move remaining after the queued intent: full attack rotation
 - Standard only, including staggered combatants: first attack portion
 - No standard action: no automatic attack
@@ -165,6 +170,7 @@ int compute_attack_bonus_full(struct char_data *ch, struct char_data *victim,
 ```
 
 **Attack Resolution Process:**
+
 1. Calculate attack bonus (BAB + modifiers)
 2. Calculate target AC (base 10 + modifiers)
 3. Roll d20 + attack bonus
@@ -218,6 +224,7 @@ Successful Snatch Arrows and explicit object destruction take precedence over Re
 Attack bonuses combine multiple factors (actual implementation in fight.c):
 
 **Base Components:**
+
 - Base Attack Bonus (BAB) from class levels
 - Ability modifiers:
   - STR for melee attacks
@@ -226,21 +233,24 @@ Attack bonuses combine multiple factors (actual implementation in fight.c):
 - Size modifiers
 
 **Equipment Bonuses:**
+
 - Weapon enhancement bonuses
 - Magic weapon properties
 - Agile weapon property (use DEX instead of STR)
 
 **Feat Bonuses:**
+
 - Weapon Focus (+1)
 - Greater Weapon Focus (+1)
 - Point Blank Shot (+1 ranged within same room)
 - Various class-specific feats
 
 **Situational Modifiers:**
+
 - Flanking (+2)
 - Dual wielding penalties:
   - Primary: -6 (or -4 with light weapon)
-  - Off-hand: -10 (or -8 with light weapon)  
+  - Off-hand: -10 (or -8 with light weapon)
   - Reduced by Two-Weapon Fighting feats
 - Combat modes (Power Attack, Combat Expertise)
 - Conditions (prone, grappled, etc.)
@@ -262,6 +272,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
 ```
 
 **AC Components:**
+
 - Base AC: 10
 - Armor bonus (not vs touch)
 - Shield bonus (not vs touch)
@@ -275,6 +286,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
 - Sacred/Profane bonuses
 
 **Special Conditions:**
+
 - Flat-footed: Lose DEX and dodge bonuses
 - Touch attacks: Ignore armor, shield, natural
 - Combat Expertise mode: Trade attack for AC
@@ -298,6 +310,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 ```
 
 **Base Damage Components:**
+
 - Weapon damage dice (e.g., 1d8 for longsword)
 - Ability modifiers:
   - Full STR for primary
@@ -309,6 +322,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 - Critical multipliers (x2, x3, x4)
 
 **Bonus Damage Sources:**
+
 - Damroll (from gear/spells)
 - Feat bonuses (Weapon Specialization, etc.)
 - Class features (Favored Enemy, Smite, etc.)
@@ -327,6 +341,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 ```
 
 **Damage Processing Steps:**
+
 1. **Validation**: Check valid targets, protected mobs, peaceful rooms
 2. **Combat Initialization**: Auto-engage combatants if not fighting
 3. **Damage Reduction**: Apply damage_handling() for resistances
@@ -335,6 +350,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 6. **Death Handling**: Process death if `HP <= 0`
 
 **Special Cases:**
+
 - Self-damage (TYPE_SUFFERING)
 - Pet protection (PRF_CAREFUL_PET)
 - Immortal protection
@@ -346,6 +362,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 The damage_handling() function implements comprehensive mitigation:
 
 **Avoidance Mechanics:**
+
 - **Concealment** (20-50%, can exceed with Vanish)
   - Displacement (50%)
   - Blur/Blinking (20%)
@@ -356,6 +373,7 @@ The damage_handling() function implements comprehensive mitigation:
   - Stalwart Defender (10% with Last Word)
 
 **Damage Reduction:**
+
 - **DR Types**: DR X/material (e.g., DR 10/magic)
 - **Sources**:
   - Class features (Barbarian, etc.)
@@ -365,6 +383,7 @@ The damage_handling() function implements comprehensive mitigation:
 - **Maximum**: 20 for players
 
 **Energy Resistance/Immunity:**
+
 - **Types**: Fire, Cold, Acid, Electric, Sonic
 - **Resistance**: Flat reduction (e.g., Resist 10)
 - **Percentage**: % based reduction
@@ -372,6 +391,7 @@ The damage_handling() function implements comprehensive mitigation:
 - **Vulnerability**: Negative resistance (extra damage)
 
 **Special Defenses:**
+
 - Incorporeal (50% from non-magical)
 - Defensive Roll (avoid death 1/day)
 - Inertial Barrier (PSP absorption)
@@ -392,6 +412,7 @@ void perform_grapple(struct char_data *ch, char *argument);
 ```
 
 **Grapple Mechanics:**
+
 - Both participants gain AFF_GRAPPLED
 - Grappler has dominant position (GRAPPLE_TARGET)
 - Victim is grappled (GRAPPLE_ATTACKER)
@@ -403,6 +424,7 @@ void perform_grapple(struct char_data *ch, char *argument);
   - **Escape**: Break free or reverse grapple
 
 **Restrictions:**
+
 - Need free hands (-4 without two free)
 - Limited to light weapons or unarmed
 - Provokes AoO without Improved Grapple
@@ -410,6 +432,7 @@ void perform_grapple(struct char_data *ch, char *argument);
 ### 2. Other Combat Maneuvers
 
 **Implemented Maneuvers:**
+
 - **Trip** (act.offensive.c): Knock prone
 - **Bash** (act.offensive.c): Shield bash
 - **Charge** (act.offensive.c): +2 attack, -2 AC
@@ -418,6 +441,7 @@ void perform_grapple(struct char_data *ch, char *argument);
 - **Sunder**: Damage equipment
 
 **CMB/CMD System:**
+
 - CMB = BAB + STR + size + misc
 - CMD = 10 + BAB + STR + DEX + size + misc
 - d20 + CMB vs CMD for success
@@ -435,12 +459,14 @@ void teamwork_attacks_of_opportunity(struct char_data *victim, int penalty,
 ```
 
 **AoO Limits:**
+
 - Normal: 1 per round
 - Combat Reflexes: 1 + DEX bonus per round
 - Cannot make while flat-footed (unless Combat Reflexes)
 - Cannot make while grappled/entangled
 
 **Common AoO Triggers:**
+
 - Movement out of threatened area
 - Casting spells (unless defensive)
 - Ranged attacks in melee
@@ -450,6 +476,7 @@ void teamwork_attacks_of_opportunity(struct char_data *victim, int penalty,
 - Unarmed attacks (without Improved Unarmed)
 
 **Teamwork AoOs:**
+
 - Coordinated attacks with allies
 - Requires shared teamwork feats
 - Additional tactical options
@@ -461,6 +488,7 @@ void teamwork_attacks_of_opportunity(struct char_data *victim, int penalty,
 Critical hit system with threat ranges and confirmation:
 
 **Critical Mechanics:**
+
 - **Threat Range**: Usually 20, improved by:
   - Keen weapons (doubles range)
   - Improved Critical feat (doubles range)
@@ -473,6 +501,7 @@ Critical hit system with threat ranges and confirmation:
   - Spell Critical (automatic spell proc)
 
 **Weapon Critical Properties:**
+
 - Longsword: 19-20/x2
 - Rapier: 18-20/x2
 - Greataxe: 20/x3
@@ -483,6 +512,7 @@ Critical hit system with threat ranges and confirmation:
 Sneak attack provides precision damage:
 
 **Sneak Attack Conditions:**
+
 - Target is flanked
 - Target is flat-footed
 - Target denied DEX bonus
@@ -490,12 +520,14 @@ Sneak attack provides precision damage:
 - Target is blinded
 
 **Damage Progression:**
+
 - Rogue: +1d6 per 2 levels
 - Ninja: Similar progression
 - Arcane Trickster: Stacks with base
 - Slayer: Limited progression
 
 **Restrictions:**
+
 - Must be within 30 feet (ranged)
 - Target must have discernible anatomy
 - Immune: Constructs, Oozes, some Undead
@@ -506,24 +538,29 @@ Sneak attack provides precision damage:
 **Implemented Special Attacks:**
 
 **Monk Abilities:**
+
 - **Stunning Fist**: Save or stunned 1 round
 - **Quivering Palm**: Death attack, Fort save
 - **Flurry of Blows**: Extra attacks, -2 penalty
 
 **Ranger/Arcane Archer:**
+
 - **Death Arrow**: Instant death ranged attack
 - **Imbued Arrows**: Spell-storing ammunition
 
 **Rage Powers (Berserker):**
+
 - **Surprise Accuracy**: Auto-hit next attack
 - **Powerful Blow**: Extra damage
 - **Come and Get Me**: Enemies get +4 to hit/damage
 
 **Alchemist:**
+
 - **Bomb Toss**: Splash damage attacks
 - **Exploit Weakness**: Analyze for weak points
 
 **Evolution Attacks (Eidolon):**
+
 - Multiple natural attacks
 - Special properties (grab, poison, bleed)
 - Combination attacks (rend, rake)
@@ -552,23 +589,27 @@ Character positions affect combat capabilities:
 **Major Combat Conditions:**
 
 **Movement/Position:**
+
 - **Prone**: -4 melee attack, +4 AC vs ranged, -4 AC vs melee
 - **Grappled**: -2 attack/AC, no move, limited actions
 - **Pinned**: More severe than grappled, nearly helpless
 - **Entangled**: -2 attack, -4 DEX, half speed
 
 **Awareness:**
+
 - **Flat-footed**: No DEX to AC, no AoOs, vulnerable to sneak
 - **Blinded**: -2 AC, lose DEX to AC, 50% miss in melee
 - **Invisible**: +2 attack, deny opponent DEX
 
 **Mental States:**
+
 - **Stunned**: Drop items, -2 AC, lose DEX, no actions
 - **Confused**: Random actions, may attack allies
 - **Fear**: Shaken (-2), Frightened (flee), Panicked (drop items)
 - **Paralyzed**: Helpless, coup de grace possible
 
 **Status Effects:**
+
 - **Sickened**: -2 attack/damage/saves/skills
 - **Nauseated**: Move action only
 - **Exhausted**: -6 STR/DEX, half speed
@@ -581,21 +622,25 @@ Character positions affect combat capabilities:
 Combat modes are organized into exclusive groups:
 
 **Group 1 (Modify Attacks):**
+
 - **Power Attack**: Trade attack for damage
 - **Combat Expertise**: Trade attack for AC
 - **Spellbattle**: Caster combat mode
 - **Total Defense**: +4 AC, no attacks
 
 **Group 2 (Add Attacks):**
+
 - **Dual Wield**: Use two weapons
 - **Flurry of Blows**: Monk rapid attacks
 - **Rapid Shot**: Extra ranged attack
 
 **Group 3 (Modify Casting):**
+
 - **Counterspell**: Ready to counter
 - **Defensive Casting**: Avoid AoOs
 
 **No Group:**
+
 - **Whirlwind Attack**: Attack all adjacent
 - **Deadly Aim**: Ranged power attack
 
@@ -604,6 +649,7 @@ Combat modes are organized into exclusive groups:
 ### 1. Condensed Combat Mode
 
 Streamlines combat output for reduced spam:
+
 - Accumulates attack/damage info
 - Single-line combat summaries
 - Configurable via PRF_CONDENSED
@@ -612,7 +658,7 @@ Streamlines combat output for reduced spam:
 ### 2. Combat Optimizations
 
 - **Event-driven**: No pulse-based overhead
-- **Linked list**: Efficient combat_list management  
+- **Linked list**: Efficient combat_list management
 - **Cached values**: Reuse calculations
 - **Phase system**: Distributed action resolution
 - **Lazy evaluation**: On-demand computation
@@ -620,18 +666,21 @@ Streamlines combat output for reduced spam:
 ### 3. Balance Mechanisms
 
 **Action Economy:**
+
 - Standard/Move/Swift action system
 - Attack progression limits
 - Daily ability uses
 - Cooldown timers
 
 **Resource Management:**
+
 - Rage rounds
-- Ki points  
+- Ki points
 - Spell slots
 - Power points (psionics)
 
 **Risk vs Reward:**
+
 - Power Attack: -attack/+damage
 - Reckless Attack: enemies +4 to hit
 - Charge: +2 attack/-2 AC

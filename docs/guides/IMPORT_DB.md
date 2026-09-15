@@ -1,9 +1,11 @@
 # LuminariMUD Database Import Guide
 
 ## Overview
+
 This guide will help you import the LuminariMUD database from the SQL dump file. The database contains over 500,000 rows of game data including player characters, items, regions, and game world information.
 
 ## Prerequisites
+
 - MySQL or MariaDB installed and running
 - Access to MySQL root or admin user
 - The SQL dump file: `all_tables_and_data_luminari_mudprod.sql` (62MB)
@@ -35,6 +37,7 @@ SET GLOBAL max_allowed_packet = 1073741824;
 ```
 
 Run it:
+
 ```bash
 mysql -u root -p < import_config.sql
 ```
@@ -88,6 +91,7 @@ INSERT INTO region_data (vnum, zone_vnum, name, region_type, region_polygon, reg
 ```
 
 Run it:
+
 ```bash
 mysql -u luminari_mud -p'vZ$eO}fD-4%7' luminari_mudprod < fix_regions.sql
 ```
@@ -109,11 +113,13 @@ UNION SELECT 'house_data', COUNT(*) FROM house_data;
 ```
 
 Run it:
+
 ```bash
 mysql -u luminari_mud -p'vZ$eO}fD-4%7' < verify_import.sql
 ```
 
 Expected results:
+
 ```
 +-----------------+--------+
 | table_name      | rows   |
@@ -130,6 +136,7 @@ Expected results:
 ## Step 6: Final Configuration
 
 Re-enable foreign key checks:
+
 ```bash
 mysql -u luminari_mud -p'vZ$eO}fD-4%7' luminari_mudprod -e "SET FOREIGN_KEY_CHECKS = 1;"
 ```
@@ -137,18 +144,23 @@ mysql -u luminari_mud -p'vZ$eO}fD-4%7' luminari_mudprod -e "SET FOREIGN_KEY_CHEC
 ## Troubleshooting
 
 ### "region_data has 0 rows"
+
 This causes game crashes. Run the fix_regions.sql script from Step 4.
 
 ### "ERROR 1292: Incorrect datetime value"
+
 Replace '0000-00-00 00:00:00' with '2000-01-01 00:00:00' in your SQL files.
 
 ### "Cannot get geometry object from data"
+
 The spatial data is corrupted. Use the fix_regions.sql approach which inserts NULL for polygon data.
 
 ### "Access denied for user"
+
 Check your MySQL credentials in the mysql_config file.
 
 ### Import is very slow
+
 The dump is 62MB with 500,000+ rows. On a typical system it takes 5-10 minutes.
 
 ## Quick Import Script
@@ -212,6 +224,7 @@ echo -e "\nIf region_data shows 12 rows, the import was successful!"
 ```
 
 Make it executable and run:
+
 ```bash
 chmod +x import_all.sh
 ./import_all.sh
@@ -220,6 +233,7 @@ chmod +x import_all.sh
 ## Success Criteria
 
 The import is successful when:
+
 1. No error messages during import
 2. `region_data` table has exactly 12 rows (prevents game crashes)
 3. `player_data` has 6,309 rows

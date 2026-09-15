@@ -34,7 +34,7 @@ cooldown mechanics, typed-handler conversion, or general multiple-handler compos
 ## Phase Exit Criteria
 
 | Phase 00 Criterion | Implementation Evidence | Production-Linked Evidence |
-|--------------------|-------------------------|----------------------------|
+| -- | -- | -- |
 | Phase 00 is fully complete and verified. | The delivered control plane is identified below by production owner. | All 78 dedicated tests and every reproducible closeout gate passed on 2026-08-07. |
 | Every verified invocation category and registry compatibility behavior is characterized. | Existing callers in `src/core/interpreter.c`, `src/mob/mob_act.c`, `src/core/comm.c`, `src/combat/`, `src/obj/act.item.c`, shops, quests, and moving rooms remain unchanged. | `test_spec_registry_persistence.c` (10), `test_spec_command_pulse.c` (13), and `test_spec_combat_secondary.c` (14). |
 | Every definition has valid identity and complete metadata. | `src/spec/spec_registry.c` immutable definition table. | `Test_spec_registry_production_metadata_validates`, `Test_spec_registry_canonical_inventory_and_metadata`, and event/owner contract tests in `test_spec_registry_validation.c`. |
@@ -52,7 +52,7 @@ production-linked sources. The shared `test_spec_fixtures.c` supplies fixtures a
 a test owner.
 
 | Test Source | Tests | Contract Owner |
-|-------------|------:|----------------|
+| -- | -: | -- |
 | `unittests/CuTest/test_spec_registry_persistence.c` | 10 | Legacy name inventory, alias/reverse lookup, accessor bounds, world loaders, source inventory, and baseline OLC. |
 | `unittests/CuTest/test_spec_command_pulse.c` | 13 | Command traversal/stop, `no_specials`, mobile activity, object automatic-activity fallback, moving rooms, and heartbeat order. |
 | `unittests/CuTest/test_spec_combat_secondary.c` | 14 | Identification, hit/reaction/maneuver/charge tokens, ignored returns, combat schedule, and shop/quest nesting. |
@@ -79,7 +79,7 @@ inventory without adding builder-owned world files to source control.
 ### Phase 00 Coverage
 
 | Required Area | Exact Test Evidence |
-|---------------|---------------------|
+| -- | -- |
 | Canonical and alias uniqueness, case-insensitive lookup, and extreme bounds | `Test_spec_registry_current_name_inventory`, `Test_spec_registry_guild_alias_and_reverse_lookup`, `Test_spec_registry_legacy_accessor_boundaries`, registry collision and extreme-input tests. |
 | Definition validation before world parsing | `Test_spec_registry_production_metadata_validates`, every malformed-definition test, and `Test_spec_registry_boot_validation_precedes_world_parsing`. |
 | Owner, event, flag, and placement compatibility in all editors | All seven `test_spec_owner_aware_olc.c` tests. |
@@ -102,7 +102,7 @@ The master project matrix also contains requirements that Phase 00 deliberately 
 They remain mandatory when their owning implementation phase begins:
 
 | Deferred Area | Owning Phase |
-|---------------|--------------|
+| -- | -- |
 | Exact equipped-object pointer identity and explicit owner/actor/target invalidation | Phase 01 gateway compatibility and Phase 04 validation helpers. |
 | Target death, pending extraction, immediate owner extraction, and multi-target successor safety | Phase 01 gateways. |
 | Cooldown units, bounds, persistence, reboot, and spend timing | Phase 04 narrow shared mechanics. |
@@ -113,7 +113,7 @@ They remain mandatory when their owning implementation phase begins:
 ## Documentation Contract
 
 | Audience | Authority |
-|----------|-----------|
+| -- | -- |
 | Builder/staff workflow | `docs/guides/OLC_SpecProcs.md` and database tag `spec-proc` from `sql/components/help_specproc_entries.sql`. |
 | Developer API and extension rules | `docs/guides/DEVELOPER_GUIDE_AND_API.md`. |
 | Boot, state, ownership, and compatibility architecture | `docs/systems/CORE_SERVER_ARCHITECTURE.md`. |
@@ -143,7 +143,7 @@ prototype VNUMs, and synthetic test fixtures. Authored and effective binding dia
 player and account values.
 
 | Requirement | Status | Phase 00 evidence |
-|-------------|--------|-------------------|
+| -- | -- | -- |
 | Data collection has a documented purpose | N/A | No personal-data collection was added. |
 | Consent before data storage | N/A | No personal-data storage was added. |
 | Data minimization | N/A | Diagnostics contain only static world and binding metadata. |
@@ -160,7 +160,7 @@ skipped on the final push event; that skip is not evidence of a dependency scan 
 ### Resolved Findings
 
 | ID | Finding | Severity | Resolution |
-|----|---------|----------|------------|
+| -- | -- | -- | -- |
 | P00-S07 | Persisted procedure names allowed multiline output | Low | The persistence boundary rejects CR/LF and tests the single-line contract. |
 | P00-S08 | Structured diagnostic validation gaps | Medium | Added strict bounds, control-byte escaping, truncation failure, owner/source invariants, and stable paths. |
 | P00-S08B | Room conflict validation could occur after mutation | Medium | Whole-zone preflight rejects `M` plus `Z` before output creation or mover mutation. |

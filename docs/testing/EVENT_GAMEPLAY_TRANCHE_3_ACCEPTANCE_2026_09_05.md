@@ -14,7 +14,7 @@ Entry and door attacks use the same reservation and single-strike path.
 ## Requirement evidence
 
 | Requirement | Implementation and verification |
-| --- | --- |
+| -- | -- |
 | Typed start and stable identities | `domain_casting_started` carries caster, target, room and activity ID. Production casting tests verify one start per accepted cast and distinct IDs after recasting. |
 | One action paid at arming | All three attack triggers use `USE_STANDARD_ACTION`; execution bypasses command costs. Tests verify unavailable action after arming and no extension of cooldown at execution. |
 | Expire at next turn | Encounter turn entry calls `ready_action_on_semantic_turn` before budget recovery and dispatch. A test arms outside combat, joins three seconds later and verifies readiness survives the old wall deadline but expires before the next semantic turn's phase callback. |

@@ -45,7 +45,7 @@ that point (attack types, deferred cleanup); steps 2 and 3 below record where
 it landed.
 
 | Area | What exists at the end of step 1 |
-|------|-----------------|
+| -- | -- |
 | Constants | `WEAR_WIELD_3` 44 .. `WEAR_WRIST_L2` 50, `NUM_WEARS` 51, `FEAT_FOUR_ARMS` 1321, `FEAT_LAST_FEAT` 1322, `NUM_FEATS` 1323 (renumbered past the casting-speed and Minotaur feats when merged with master) in `src/core/structs.h`. Attack types THIRD/FOURTH are not added yet (step 3). |
 | Capability | `has_four_arms()`, `is_four_arm_wear_slot()`, `is_second_pair_wield_slot()`, `four_arm_slot_base()`, `second_pair_rejects_object()` in `src/core/utils.c`, declared in `src/core/utils.h`. Grant sources: mob feats (NPC, disguised wild shape), `HAS_REAL_FEAT`, `APPLY_FEAT` gear in ordinary slots only. |
 | Feat | `feato(FEAT_FOUR_ARMS, ...)` in `assign_feats()`: innate, in game, not learnable, not stackable. `test_racial_innate_feats.c` sentinel moved to `FEAT_FOUR_ARMS + 1`. |
@@ -75,7 +75,7 @@ Decisions taken in step 1 that Part 3 left open:
 ### Done: step 2 (loss handling, deferral, order-independent restoration)
 
 | Area | What exists now |
-|------|-----------------|
+| -- | -- |
 | Reconciliation | `four_arms_reconcile()` in `src/obj/act.item.c`, declared in `src/core/handler.h`. Runs at the end of `affect_total()` (every completed equipment, affect, feat or form change) and at the close of an affect batch. Re-entry guarded by `ch->four_arms_reconciling`; skipped for characters being extracted (`DEAD()`). |
 | Deferral | `four_arms_defer_begin()` / `four_arms_defer_end()` on a runtime counter `ch->four_arms_defer` in `struct char_data`; a loss noticed while deferred sets `four_arms_dirty` and is acted on when the outermost deferral ends. `save_char_checked()` in `src/player/players.c` brackets its unequip/re-equip cycle (no early returns exist between the two loops). |
 | Loss action | Order: WIELD_2H_2, WIELD_4, WIELD_3, WRIST_L2, WRIST_R2, HANDS_2, ARMS_2; then, only when the character had four arms at the last completed check (`four_arms_active`) and the old positions exceed the budget: HOLD_2H, HOLD_2, HOLD_1, WIELD_OFFHAND, SHIELD, WIELD_2H, WIELD_1 until it fits. Each displacement wraps a `domain_object_transfer_begin/finish` (`DOMAIN_TRANSFER_RESTORE`), runs `remove_otrigger()` for its side effects but ignores a veto, re-reads the slot in case the trigger moved or purged the object, then `obj_to_char(unequip_char())`: inventory, never the room, inventory limits bypassed. Message: "You can no longer keep hold of $p and tuck it into your inventory." (suppressed under `mute_equip_messages`). |
@@ -101,7 +101,7 @@ Decisions taken in step 2:
 ### Done: step 3 (combat routing and second-pair attacks)
 
 | Area | What exists now |
-|------|-----------------|
+| -- | -- |
 | Attack types | `ATTACK_TYPE_THIRD` 23, `ATTACK_TYPE_FOURTH` 24 in `src/core/structs.h`. |
 | Pair helpers | In `src/combat/fight.c`, declared in `fight.h`: `is_second_pair_attack()`, `attack_is_offhand_role()`, `attack_pair_two_hand_slot()`, `is_dual_wielding_second_pair()`, `second_pair_dual_wielding_penalty()` (shares `dual_wielding_penalty_for()` with the first pair); static `pair_two_hander()` and `spare_hand_for_attack()`. `is_using_double_weapon_at(ch, slot)` in `assign_wpn_armor.c`. |
 | Weapon lookup | `get_wielded()`: THIRD is WIELD_3 then WIELD_2H_2; FOURTH is the lower double weapon or WIELD_4. `skill_message()` picks the same weapon for THIRD/FOURTH messages. |
@@ -205,7 +205,7 @@ or archery combinations"; four wrist items, two sets of sleeves, two sets of
 gloves; no body armor, footwear, finger rings, or earrings.
 
 | Duris element | Where | Value |
-|---------------|-------|-------|
+| -- | -- | -- |
 | Stats (Str/Agi/Dex/Con/Pow/Int/Wis/Cha/Luck) | help entry | 115/130/125/105/70/65/65/75/90 |
 | Innates | `src/classes/innates.c:657` | Dayvision 1, Ultravision 1, Bite 11, Leap 21, Vulnerable to Cold 1 |
 | Psionic damage taken | `src/combat/dam_mods.c:336` | -0.3 multiplier adjustment under the `SPLDAM_PSI` predicate; this is not cold resistance |
@@ -223,6 +223,7 @@ gloves; no body armor, footwear, finger rings, or earrings.
 #define HAS_FOUR_HANDS(ch) \
     ((GET_RACE(ch) == RACE_THRIKREEN) || (IS_AFFECTED3((ch), AFF3_FOUR_ARMS)))
 ```
+
 (`src/core/utils.h:945`). `AFF3_FOUR_ARMS` is an equipment affect flag that
 item enhancement (`src/item/enhance.c:1381`) and auction search
 (`src/economy/auction_houses.c:3566`, "that grant the wearer four arms to
@@ -234,9 +235,9 @@ consumer tests the predicate, never the race, except the slot denials above.
 `src/core/defines.h`:
 
 | Position | Number | Note |
-|----------|--------|------|
-| `PRIMARY_WEAPON` / `WIELD` | 16 | |
-| `SECONDARY_WEAPON` / `WIELD2` | 17 | |
+| -- | -- | -- |
+| `PRIMARY_WEAPON` / `WIELD` | 16 |  |
+| `SECONDARY_WEAPON` / `WIELD2` | 17 |  |
 | `HOLD` | 18 | one held slot for everyone |
 | `THIRD_WEAPON` / `WIELD3` | 25 | four-hand only |
 | `FOURTH_WEAPON` / `WIELD4` | 26 | four-hand only |
@@ -284,7 +285,7 @@ Duris builds an array of weapon slots to swing this round with
 `ADD_ATTACK(slot)`. For the non-monk path:
 
 | Trigger | Base swing | Four-hand mirror | Chance |
-|---------|------------|------------------|--------|
+| -- | -- | -- | -- |
 | Every round (unless slowed) | PRIMARY | THIRD | dual wield skill / 2 + 50 percent |
 | Dual wield roll succeeds | SECONDARY | FOURTH | same |
 | Improved two-weapon roll | SECONDARY | FOURTH | same |
@@ -339,7 +340,7 @@ equipment. This selector is not a model for Luminari mob equipment.
 `src/core/structs.h:1738` defines 44 positions (`NUM_WEARS 44`). Hands are modeled
 as six slots: `WEAR_WIELD_1` 16, `WEAR_HOLD_1` 17, `WEAR_WIELD_OFFHAND` 18,
 `WEAR_HOLD_2` 19, `WEAR_WIELD_2H` 20, `WEAR_HOLD_2H` 21, plus `WEAR_SHIELD`
-11. Positions 28 to 31 and 42 are marked "currently unused; reserved for
+11\. Positions 28 to 31 and 42 are marked "currently unused; reserved for
 compatibility" but each already has a wear flag, a keyword, and a display
 string, so they are not free numbers; new positions append at 44.
 
@@ -454,7 +455,7 @@ whole race is what the hands can do.
 ### New wear positions (append; `NUM_WEARS` 44 to 51)
 
 | Constant | Number | Wear flag | Display (`wear_where`) | `equipment_types` |
-|----------|--------|-----------|------------------------|-------------------|
+| -- | -- | -- | -- | -- |
 | `WEAR_WIELD_3` | 44 | `ITEM_WEAR_WIELD` | `{Wielded Third}` | Wielded in third hand |
 | `WEAR_WIELD_4` | 45 | `ITEM_WEAR_WIELD` | `{Wielded Fourth}` | Wielded in fourth hand |
 | `WEAR_WIELD_2H_2` | 46 | `ITEM_WEAR_WIELD` | `{Wielded Twohanded 2}` | Wielded two-handed, second pair |
@@ -600,7 +601,7 @@ second-pair dual detection must honor the existing double-weapon size/type
 rule and form restrictions.
 
 | Consumer | Required extension |
-|----------|--------------------|
+| -- | -- |
 | `get_wielded()` | THIRD resolves WIELD_3 or WIELD_2H_2; FOURTH resolves WIELD_4 or the qualifying second-pair double weapon |
 | Attack bonus | Add both types to Strength/finesse and relevant weapon cases; select penalties/training from the attacking pair |
 | Damage bonus | Mirror primary/offhand rules, including half strength, conditional 1.5x two-hand strength, Agile, tinker bonuses and ranger perks |
@@ -725,7 +726,7 @@ wiring using the existing registration path. The mapping below is provisional;
 it is not a complete race registration patch.
 
 | Duris | Proposed Luminari mapping or unresolved difference |
-|-------|---------------------------------------------------|
+| -- | -- |
 | Stats 115/130/125/105/70/65/65/75/90 | Study proposal +2/+1/-4/-4/+3/-3 (Str/Con/Int/Wis/Dex/Cha); re-evaluate after correcting the psionic/cold interpretation |
 | Size Medium | `SIZE_MEDIUM` |
 | Four arms, four wrists, two sleeve and glove sets | `FEAT_FOUR_ARMS` at level 1 |
@@ -769,7 +770,7 @@ balanced progression across classes.
 ### Change inventory
 
 | Area | Files | Change |
-|------|-------|--------|
+| -- | -- | -- |
 | Constants | `src/core/structs.h` | Seven positions, `NUM_WEARS`, Four Arms feat and both feat bounds, two attack types; any scoped lifecycle state |
 | Slot tables and display | `src/core/constants.c`, `src/act/act.informative.c`, `src/obj/act.item.c` | Labels, ordering, messages, keywords, slot/size classification and proficiency output |
 | Feat and capability | `src/character/feats.c`, `src/core/utils.c`, `src/core/utils.h` | Registration, effective grant sources, pair-aware two-hand utility |

@@ -8,6 +8,7 @@ archetypes seen across tabletop and MMO implementations. Each tree has four
 tiers of progression, with capstones at Tier IV.
 
 **The Three Trees:**
+
 1. **Spellsinger** - Spellcasting, song power, control, and support
 2. **Warchanter** - Battle anthems, melee presence, and party-wide martial buffs
 3. **Swashbuckler** - Agile duelist, finesse weapons, ripostes, and mobility
@@ -36,7 +37,7 @@ performances affect the performer and grouped characters in the same room.
 Offensive performances use normal foe eligibility and engage valid targets.
 
 | Performance | Scope | Successful verse |
-|-------------|-------|------------------|
+| -- | -- | -- |
 | Song of Healing | Group | Restores hit points immediately and creates no marker affect. |
 | Dance of Protection | Group, visual | Grants AC, Will saves, and damage reduction. |
 | Song of Focused Mind | Group | Grants Intelligence, Wisdom, and Charisma and accelerates spell preparation while active. |
@@ -72,23 +73,27 @@ all active performances unless Harmonic Casting applies.
 ---
 
 ## TREE 1: SPELLSINGER
+
 *Amplify your magic and songs to control battle flow and empower allies.*
 
 ### TIER I - Cost: 1 point each
 
 #### Songweaver I
+
 - **Max Ranks:** 3
 - **Description:** Your bard songs gain +1 affect round and +1 effectiveness per rank.
 - **Effect Type:** Bardic performance scaling
 - **Prerequisites:** None
 
 #### Enchanter's Guile I
+
 - **Max Ranks:** 3
 - **Description:** +1 DC to Enchantment and Illusion spells per rank.
 - **Effect Type:** Spell DC bonus (school-specific)
 - **Prerequisites:** None
 
 #### Resonant Voice I
+
 - **Max Ranks:** 3
 - **Description:** Group members affected by your songs gain +1 competence to
   Will saves against mind-affecting effects per rank.
@@ -96,6 +101,7 @@ all active performances unless Harmonic Casting applies.
 - **Prerequisites:** None
 
 #### Harmonic Casting
+
 - **Max Ranks:** 1
 - **Description:** Casting a bard spell no longer interrupts your active performances.
 - **Effect Type:** Performance continuity
@@ -106,6 +112,7 @@ all active performances unless Harmonic Casting applies.
 ### TIER II - Cost: 2 points each
 
 #### Songweaver II
+
 - **Max Ranks:** 2
 - **Description:** Additional +1 affect round and +1 effectiveness per rank
   (stacks with Songweaver I).
@@ -113,12 +120,14 @@ all active performances unless Harmonic Casting applies.
 - **Prerequisites:** Songweaver I (2 ranks)
 
 #### Enchanter's Guile II
+
 - **Max Ranks:** 2
 - **Description:** Additional +1 DC to Enchantment and Illusion spells per rank.
 - **Effect Type:** Spell DC bonus
 - **Prerequisites:** Enchanter's Guile I (2 ranks)
 
 #### Crescendo
+
 - **Max Ranks:** 1
 - **Description:** The first Bard spell you cast while performing after starting
   a song gains +2 save DC and deals +1d6 sonic damage once to each target it
@@ -127,6 +136,7 @@ all active performances unless Harmonic Casting applies.
 - **Prerequisites:** Harmonic Casting
 
 #### Sustaining Melody
+
 - **Max Ranks:** 1
 - **Description:** While performing in combat, each five-second pulse has a 20%
   chance to recover one expended Bard spell slot.
@@ -138,12 +148,14 @@ all active performances unless Harmonic Casting applies.
 ### TIER III - Cost: 3 points each
 
 #### Master of Motifs
+
 - **Max Ranks:** 1
 - **Description:** Maintain up to two distinct bard songs simultaneously.
 - **Effect Type:** Performance utility
 - **Prerequisites:** Sustaining Melody
 
 #### Dirge of Dissonance
+
 - **Max Ranks:** 1
 - **Description:** While performing, enemies in the room suffer -2 to
   concentration checks and take 1d6 sonic damage on each eleven-second verse.
@@ -151,6 +163,7 @@ all active performances unless Harmonic Casting applies.
 - **Prerequisites:** Crescendo
 
 #### Heightened Harmony
+
 - **Max Ranks:** 1
 - **Description:** When you spend metamagic on a Bard spell, you gain +5 to your
   Perform skill for one minute.
@@ -158,6 +171,7 @@ all active performances unless Harmonic Casting applies.
 - **Prerequisites:** Enchanter's Guile II (1 rank)
 
 #### Protective Chorus
+
 - **Max Ranks:** 1
 - **Description:** While performing, you and grouped allies in the room gain +2
   to saves vs. spells and +2 AC vs. attacks of opportunity.
@@ -169,6 +183,7 @@ all active performances unless Harmonic Casting applies.
 ### TIER IV - Cost: 5 points each (CAPSTONE)
 
 #### Spellsong Maestra
+
 - **Max Ranks:** 1
 - **Description:** While performing, Bard spells gain +2 caster level and +2
   spell DC, and metamagic adds no spell-circle surcharge.
@@ -176,6 +191,7 @@ all active performances unless Harmonic Casting applies.
 - **Prerequisites:** Master of Motifs
 
 #### Aria of Stasis
+
 - **Max Ranks:** 1
 - **Description:** While performing, you and grouped allies in the room gain +4
   to all saves and immunity to slow; other creatures in the room suffer -2 to
@@ -184,6 +200,7 @@ all active performances unless Harmonic Casting applies.
 - **Prerequisites:** Protective Chorus
 
 #### Symphonic Resonance
+
 - **Max Ranks:** 1
 - **Description:** Each eleven-second verse while performing grants 1d6
   temporary HP, capped at 30 above maximum HP. After a successful Enchantment
@@ -193,6 +210,7 @@ all active performances unless Harmonic Casting applies.
 - **Prerequisites:** Crescendo
 
 #### Endless Refrain
+
 - **Max Ranks:** 1
 - **Description:** On each eleven-second verse while performing, recover one
   expended Bard spell slot.
@@ -202,23 +220,27 @@ all active performances unless Harmonic Casting applies.
 ---
 
 ## TREE 2: WARCHANTER
+
 *Rally your allies and dominate the melee with battle anthems and cold-iron resolve.*
 
 ### TIER I - Cost: 1 point each
 
 #### Battle Hymn I
+
 - **Max Ranks:** 3
 - **Description:** Song of Heroism grants +1 competence to damage per rank to its recipients.
 - **Effect Type:** Party damage support
 - **Prerequisites:** None
 
 #### Drummer's Rhythm I
+
 - **Max Ranks:** 3
 - **Description:** While performing, you gain +1 to hit in melee per rank.
 - **Effect Type:** Melee accuracy
 - **Prerequisites:** None
 
 #### Rallying Cry
+
 - **Max Ranks:** 1
 - **Description:** As a swift action, remove shaken from yourself and grouped
   allies in the room; you and those allies gain +1 to hit, +2 to Will saves,
@@ -227,6 +249,7 @@ all active performances unless Harmonic Casting applies.
 - **Prerequisites:** None
 
 #### Frostbite Refrain I
+
 - **Max Ranks:** 3
 - **Description:** While performing, your melee hits deal +1 cold damage per
   rank; a natural 20 gives the target -1 to attack for 1 round.
@@ -238,6 +261,7 @@ all active performances unless Harmonic Casting applies.
 ### TIER II - Cost: 2 points each
 
 #### Battle Hymn II
+
 - **Max Ranks:** 2
 - **Description:** Song of Heroism grants an additional +1 competence damage per
   rank to its recipients (stacks with Battle Hymn I).
@@ -245,6 +269,7 @@ all active performances unless Harmonic Casting applies.
 - **Prerequisites:** Battle Hymn I (2 ranks)
 
 #### Drummer's Rhythm II
+
 - **Max Ranks:** 2
 - **Description:** While performing, gain an additional +1 melee to-hit per rank
   (stacks with Drummer's Rhythm I).
@@ -252,6 +277,7 @@ all active performances unless Harmonic Casting applies.
 - **Prerequisites:** Drummer's Rhythm I (2 ranks)
 
 #### Warbeat
+
 - **Max Ranks:** 1
 - **Description:** While performing, make an extra melee attack at your highest
   bonus on your first turn in combat; on hit, you and grouped allies in the room
@@ -260,6 +286,7 @@ all active performances unless Harmonic Casting applies.
 - **Prerequisites:** Rallying Cry
 
 #### Frostbite Refrain II
+
 - **Max Ranks:** 2
 - **Description:** While performing, melee hits deal an additional +1 cold
   damage per rank; your natural 20 debuff becomes -2 to attack and -1 to AC for
@@ -272,6 +299,7 @@ all active performances unless Harmonic Casting applies.
 ### TIER III - Cost: 3 points each
 
 #### Anthem of Fortitude
+
 - **Max Ranks:** 1
 - **Description:** While performing, you and grouped allies in the room gain +10%
   maximum HP and +2 to Fortitude saves.
@@ -279,6 +307,7 @@ all active performances unless Harmonic Casting applies.
 - **Prerequisites:** Battle Hymn II (1 rank)
 
 #### Commanding Cadence
+
 - **Max Ranks:** 1
 - **Description:** While performing, enemies you hit in melee must make a Will
   save or be dazed for 1 round (once per target per 5 rounds).
@@ -286,12 +315,14 @@ all active performances unless Harmonic Casting applies.
 - **Prerequisites:** Warbeat
 
 #### Steel Serenade
+
 - **Max Ranks:** 1
 - **Description:** While performing, you gain +2 natural AC and 10% physical damage resistance.
 - **Effect Type:** Personal durability
 - **Prerequisites:** Drummer's Rhythm II (1 rank)
 
 #### Banner Verse
+
 - **Max Ranks:** 1
 - **Description:** While performing, you and grouped allies in the room gain +2
   to hit and +2 to all saves.
@@ -303,6 +334,7 @@ all active performances unless Harmonic Casting applies.
 ### TIER IV - Cost: 5 points each (CAPSTONE)
 
 #### Warchanter's Dominance
+
 - **Max Ranks:** 1
 - **Description:** Song of Heroism now also grants +1 attack and +1 AC; your
   Warbeat gives its recipients an additional +1d4 damage and +1 AC.
@@ -310,6 +342,7 @@ all active performances unless Harmonic Casting applies.
 - **Prerequisites:** Anthem of Fortitude
 
 #### Winter's War March
+
 - **Max Ranks:** 1
 - **Description:** On each eleven-second verse while performing, valid enemies
   in the room take 4d6 cold damage and are slowed for 3 rounds; a successful
@@ -320,29 +353,34 @@ all active performances unless Harmonic Casting applies.
 ---
 
 ## TREE 3: SWASHBUCKLER
+
 *Dance through combat with finesse, precision, and style.*
 
 ### TIER I - Cost: 1 point each
 
 #### Fencer's Footwork I
+
 - **Max Ranks:** 3
 - **Description:** +1 Dodge AC and +1 Reflex save per rank while wielding a finesse weapon or single one-handed weapon.
 - **Effect Type:** Mobility defense
 - **Prerequisites:** None
 
 #### Precise Strike I
+
 - **Max Ranks:** 3
 - **Description:** +1 precision damage per rank with finesse or one-handed piercing/slashing weapons (not multiplied on crits).
 - **Effect Type:** Precision damage
 - **Prerequisites:** None
 
 #### Riposte Training I
+
 - **Max Ranks:** 3
 - **Description:** 3% chance per rank to make an immediate counterattack after you successfully dodge or parry.
 - **Effect Type:** Reactive extra attack
 - **Prerequisites:** None
 
 #### Flourish
+
 - **Max Ranks:** 1
 - **Description:** Activate for +2 to hit and +2 AC for 2 rounds; ends if you are knocked prone or grappled. RerquireS and Uses a move action.
 - **Effect Type:** Short burst stance
@@ -353,24 +391,28 @@ all active performances unless Harmonic Casting applies.
 ### TIER II - Cost: 2 points each
 
 #### Fencer's Footwork II
+
 - **Max Ranks:** 2
 - **Description:** Additional +1 Dodge AC and +1 Reflex per rank while using a finesse/single weapon.
 - **Effect Type:** Mobility defense
 - **Prerequisites:** Fencer's Footwork I (2 ranks)
 
 #### Precise Strike II
+
 - **Max Ranks:** 2
 - **Description:** Additional +1 precision damage per rank (stacks with Precise Strike I).
 - **Effect Type:** Precision damage
 - **Prerequisites:** Precise Strike I (2 ranks)
 
 #### Duelist's Poise
+
 - **Max Ranks:** 1
 - **Description:** Gain +2 to critical confirmation and +1 critical threat range when using a finesse weapon.
 - **Effect Type:** Critical reliability
 - **Prerequisites:** Flourish
 
 #### Agile Disengage
+
 - **Max Ranks:** 1
 - **Description:** On a failed flee attempt, you gain +4 AC for 3 rounds. This bonus ends if you move out of the room you're in.
 - **Effect Type:** Skirmish utility
@@ -381,24 +423,28 @@ all active performances unless Harmonic Casting applies.
 ### TIER III - Cost: 3 points each
 
 #### Perfect Tempo
+
 - **Max Ranks:** 1
 - **Description:** If you avoid all melee hits for a full round, your next attack gains +4 to hit and +2d6 precision damage.
 - **Effect Type:** Payoff for clean positioning
 - **Prerequisites:** Duelist's Poise
 
 #### Showstopper
+
 - **Max Ranks:** 1
 - **Description:** On a confirmed crit, impose -2 to enemy AC and -2 to attack rolls for 2 rounds (once per target per 5 rounds).
 - **Effect Type:** Debuff on crit
 - **Prerequisites:** Precise Strike II (1 rank)
 
 #### Acrobatic Charge
+
 - **Max Ranks:** 1
 - **Description:** You can charge through difficult terrain and around allies; you gain +2 to hit on charges.
 - **Effect Type:** Mobility + accuracy
 - **Prerequisites:** Agile Disengage
 
 #### Feint and Finish
+
 - **Max Ranks:** 1
 - **Description:** After successfully feinting, your next attack deals +2d6 precision damage and gains +2 to confirm criticals.
 - **Effect Type:** Tactical precision combo
@@ -409,12 +455,14 @@ all active performances unless Harmonic Casting applies.
 ### TIER IV - Cost: 5 points each (CAPSTONE)
 
 #### Swashbuckler's Supreme Style
+
 - **Max Ranks:** 1
 - **Description:** While wielding a finesse or single one-handed weapon, you gain +2 to hit, +2 Dodge AC, +2 to critical confirmation, and +1 attack per 3 rounds (does not stack with other extra-attack capstones).
 - **Effect Type:** Comprehensive duelist capstone
 - **Prerequisites:** Perfect Tempo
 
 #### Curtain Call
+
 - **Max Ranks:** 1
 - **Description:** 1/5 minutes, unleash a dazzling flourish: make a free attack against up to three adjacent enemies, each struck takes +2d6 precision damage and must save or be disoriented (disadvantage on attacks) for 2 rounds.
 - **Effect Type:** Multi-target finisher
@@ -423,6 +471,7 @@ all active performances unless Harmonic Casting applies.
 ---
 
 ## Notes & Implementation Hints
+
 - Treat "precision damage" as non-multiplied damage that stacks with sneak-like sources where appropriate.
 - Performances are free and indefinite after their start action; there is no performance-round pool.
 - Song "effective level" can scale existing song formulas (duration, potency, save DC adjustments) without creating new song IDs.

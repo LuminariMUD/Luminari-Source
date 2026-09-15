@@ -1,4 +1,5 @@
 # Dynamic Descriptions & Wilderness Resource System
+
 ## Database Deployment Guide
 
 ## Quick Start
@@ -16,6 +17,7 @@ The easiest way to set up the database is using the automated deployment script:
 **Note:** World initialization is enabled by default. The server requires both database and world data to function properly.
 
 The deployment script automatically:
+
 - Creates the database and user (prompts for MariaDB root password)
 - Executes the in-engine database initializer so every wilderness/resource table exists; no external SQL files required
 - Applies fresh credentials to `lib/mysql_config` (mode 600)
@@ -25,27 +27,32 @@ The deployment script automatically:
 You can re-run the script at any time; it recreates credentials and reimports the schema without dropping existing data.
 
 ## Overview
+
 This deployment guide covers database setup for:
+
 - **Dynamic wilderness descriptions** with weather integration
-- **Complete wilderness resource system** with depletion tracking  
+- **Complete wilderness resource system** with depletion tracking
 - **Ecological interdependencies** and cascade effects
 - **Player conservation tracking** and environmental stewardship
 - **Regional effects system** for customizable area bonuses
 - **Material subtypes system** for detailed resource varieties
 
 ## Prerequisites
+
 - MySQL 5.7+ or MariaDB 10.2+ (REQUIRED)
 - Database user with CREATE, INSERT, UPDATE, DELETE privileges
 - Existing Luminari MUD database (or use deploy.sh to create one)
 - World data files (use `--init-world` flag or provide custom world)
 
 **CRITICAL REQUIREMENTS**:
+
 1. **Database**: REQUIRED for LuminariMUD to function properly. Many core features including player persistence, wilderness systems, resource management, and world state depend on the database.
 2. **World Data**: REQUIRED for the server to start. Use `--init-world` flag or provide your own custom world files.
 
 ## Installation Steps
 
 ### 1. Initialize via Admin Command
+
 - Start `./bin/luminari -d lib` and log in as an implementor (or use the staff console).
 - Run `database init` to execute the full initializer. To refresh only the wilderness stack you can use targeted commands such as:
 
@@ -61,11 +68,14 @@ them. Restore their definitions from `sql/master_schema.sql` only for archival
 recovery; do not drop production copies without a reviewed backup migration.
 
 ### 2. Verify Installation
+
 - Inside the MUD use `database verify` to run the integrity checks, or
 - From MariaDB run sanity queries such as `SHOW TABLES LIKE 'resource_%';` and `SELECT COUNT(*) FROM resource_types;`
 
 ### 3. Enable in Code
+
 Make sure your `src/config/campaign.h` includes:
+
 ```c
 #define ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS
 ```
@@ -73,41 +83,49 @@ Make sure your `src/config/campaign.h` includes:
 ## Database Tables Created
 
 ### Core Resource System
+
 - `resource_types` - Defines the 10 resource categories
 - `resource_depletion` - Tracks depletion at each coordinate
 - `player_conservation` - Player environmental stewardship scores
 - `resource_statistics` - Server-wide resource usage analytics
 
 ### Ecological Interdependencies
+
 - `resource_relationships` - How resources affect each other
 - `ecosystem_health` - Overall ecosystem status per location
 - `cascade_effects_log` - History of ecological cascade effects
 - `player_location_conservation` - Detailed per-location tracking
 
 ### Regional Effects
+
 - `region_effects` - Available effect types
 - `region_effect_assignments` - Which regions have which effects
 
 ### Spatial Path Network
+
 - `path_data` - Path definitions with linestring geometry
 - `path_index` - Spatial index supporting path queries
 - `path_types` - Glyph definitions and metadata for each path type (auto-seeded at startup)
 
 ### Weather & Descriptions
+
 - `weather_cache` - Performance optimization for weather
 - `room_description_settings` - Per-room customization options
 
 ### Material Subtypes
+
 - `material_categories` - Categories within resource types
 - `material_subtypes` - Specific materials (e.g., "oak wood", "iron ore")
 - `material_qualities` - Quality levels (poor, common, rare, etc.)
 
 ### Companion & Pet Data
+
 - `pet_data` - Persists charmed companions and summons for player accounts, including stats,
   descriptions, HP, timed affects, and runtime-only follower state
 - `pet_save_objs` - Stores equipment for saved pets tied to `pet_data` rows
 
 ### Analytics & Performance
+
 - `ecosystem_analysis` - View for ecosystem health analysis
 - `resource_availability_summary` - Resource scarcity overview
 - `player_conservation_ranking` - Player environmental ranking
@@ -115,23 +133,27 @@ Make sure your `src/config/campaign.h` includes:
 ## Key Features
 
 ### Resource Depletion
+
 - Resources decrease with harvesting
 - Natural regeneration over time
 - Cascade effects between resource types
 - Player conservation scores affect regeneration
 
 ### Weather Integration
+
 - Coordinate-based weather using Perlin noise
 - Weather-specific descriptions
 - Different systems for wilderness vs. non-wilderness
 
 ### Ecological Realism
+
 - 15 predefined ecological relationships
 - Resources affect each other when harvested
 - Ecosystem health tracking
 - Biodiversity and stability indexes
 
 ### Regional Customization
+
 - Apply effects to specific zones/regions
 - Resource bonuses/penalties
 - Weather pattern modifications
@@ -142,6 +164,7 @@ Make sure your `src/config/campaign.h` includes:
 Once deployed, use these admin commands for testing:
 
 ### Time Control
+
 ```
 settime 14          # Set to 2 PM
 settime 22 15       # Set to 10 PM on day 15
@@ -149,6 +172,7 @@ settime 6 1 0       # Set to 6 AM, day 1, month 0
 ```
 
 ### Weather Control
+
 ```
 setweather 0        # Clear weather
 setweather 2        # Rainy weather  
@@ -160,19 +184,24 @@ setweather 4        # Lightning storms
 ## Maintenance
 
 ### Automatic Cleanup
+
 The script includes a `CleanupOldLogs()` procedure that can be run periodically:
+
 ```sql
 CALL CleanupOldLogs();
 ```
 
 This removes:
+
 - Regeneration logs older than 30 days
-- Cascade effect logs older than 7 days  
+- Cascade effect logs older than 7 days
 - Expired weather cache entries
 - Updates resource statistics
 
 ### Performance Monitoring
+
 Use the analytics views to monitor system performance:
+
 ```sql
 SELECT * FROM ecosystem_analysis WHERE health_state = 'degraded';
 SELECT * FROM resource_availability_summary WHERE critical_locations > 0;
@@ -182,13 +211,17 @@ SELECT * FROM player_conservation_ranking LIMIT 10;
 ## Configuration Options
 
 ### Resource Regeneration Rates
+
 Modify in `resource_types` table:
+
 ```sql
 UPDATE resource_types SET regeneration_rate = 0.005 WHERE resource_name = 'vegetation';
 ```
 
 ### Ecological Relationships
+
 Add new relationships in `resource_relationships`:
+
 ```sql
 INSERT INTO resource_relationships
 (source_resource, target_resource, effect_type, effect_magnitude, description)
@@ -196,7 +229,9 @@ VALUES (1, 2, 'depletion', -0.040, 'Mining affects water quality');
 ```
 
 ### Regional Effects
+
 Create custom effects in `region_effects`:
+
 ```sql
 INSERT INTO region_effects (effect_name, effect_type, effect_description, effect_data)
 VALUES ('Ancient Forest', 'resource', 'Mystical wood bonuses',
@@ -206,12 +241,14 @@ VALUES ('Ancient Forest', 'resource', 'Mystical wood bonuses',
 ## Troubleshooting
 
 ### Common Issues
+
 1. **Foreign key errors**: Ensure you're using the correct database name
-2. **Permission errors**: Database user needs CREATE/ALTER privileges  
+2. **Permission errors**: Database user needs CREATE/ALTER privileges
 3. **JSON support**: Requires MySQL 5.7+ or MariaDB 10.2+
 4. **Partial index errors**: The script uses standard indexes compatible with MariaDB/MySQL (no WHERE clauses in CREATE INDEX)
 
 ### Verification Queries
+
 ```sql
 -- Check if all tables were created
 SHOW TABLES LIKE '%resource%';
@@ -227,6 +264,7 @@ SELECT * FROM region_effects WHERE effect_type = 'weather';
 ```
 
 ## Support
+
 - Check MUD logs for any database connection errors
 - Use `settime` and `setweather` commands to verify functionality
 - Monitor `resource_depletion` table for harvest tracking

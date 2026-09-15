@@ -43,7 +43,7 @@ handler.
 ## Acceptance Matrix
 
 | Exit Criterion | Evidence | Result |
-|----------------|----------|--------|
+| -- | -- | -- |
 | Extract general object procedures after gateway coverage. | Checkpoints 1-2 moved reusable objects and routed feature-specific objects to their true owners. | PASS |
 | Extract reusable mobile and room procedures. | Checkpoints 5-6 established general mobile, room, archetype, guild, clan, magic, and vendor owners. | PASS |
 | Split `zone_procs.c` by cohesive package. | Checkpoints 7-13 moved every package intact and retired all 4,202 baseline lines. | PASS |

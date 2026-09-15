@@ -139,17 +139,17 @@ The production inventory comes from the [conservative music
 checklist](../../ongoing-projects/audio-production-findings.md#songs-and-adaptive-music-packages).
 It contains exactly nine original instrumental compositions:
 
-| Package ID          | Composition       | Initial authoring direction                                                                 |
-| ------------------- | ----------------- | ------------------------------------------------------------------------------------------- |
-| `verdigris-shoals`  | Verdigris Shoals  | Buoyant tideglass exploration, hand-worked brass pulses, open celestial water, lucid warmth |
-| `chronometer-grave` | Chronometer Grave | Patient broken-clock motion, low porcelain resonance, suspended age, restrained unease      |
-| `tidal-run`         | Tidal Run         | Forward-flowing current, interlocking light percussion, navigational momentum               |
-| `kilnflare-reef`    | Kilnflare Reef    | Dry ceramic heat, pressure rhythm, ember-brass tension, controlled intensity                |
-| `moonveil-basin`    | Moonveil Basin    | Sparse refracted harmony, soft glass resonance, nocturnal depth, quiet uncertainty          |
-| `mercury-verge`     | Mercury Verge     | Quick liquid-metal figures, precise ticking motion, agile tension, clean negative space     |
-| `sunwake-expanse`   | Sunwake Expanse   | Broad solar lift, wind-driven rhythm, warm brass over open horizons                         |
-| `rimeglass-reach`   | Rimeglass Reach   | Brittle frozen-glass color, slow aurora movement, spacious cold, resilient pulse            |
-| `settlement`        | Settlement        | Sheltered workshop calm, cloth and brass warmth, conversational space, no combat insistence |
+| Package ID | Composition | Initial authoring direction |
+| -- | -- | -- |
+| `verdigris-shoals` | Verdigris Shoals | Buoyant tideglass exploration, hand-worked brass pulses, open celestial water, lucid warmth |
+| `chronometer-grave` | Chronometer Grave | Patient broken-clock motion, low porcelain resonance, suspended age, restrained unease |
+| `tidal-run` | Tidal Run | Forward-flowing current, interlocking light percussion, navigational momentum |
+| `kilnflare-reef` | Kilnflare Reef | Dry ceramic heat, pressure rhythm, ember-brass tension, controlled intensity |
+| `moonveil-basin` | Moonveil Basin | Sparse refracted harmony, soft glass resonance, nocturnal depth, quiet uncertainty |
+| `mercury-verge` | Mercury Verge | Quick liquid-metal figures, precise ticking motion, agile tension, clean negative space |
+| `sunwake-expanse` | Sunwake Expanse | Broad solar lift, wind-driven rhythm, warm brass over open horizons |
+| `rimeglass-reach` | Rimeglass Reach | Brittle frozen-glass color, slow aurora movement, spacious cold, resilient pulse |
+| `settlement` | Settlement | Sheltered workshop calm, cloth and brass warmth, conversational space, no combat insistence |
 
 These directions are bounded research briefs, not new product canon. They use
 the accepted Skyglass material language and may be revised during the Phase 05
@@ -177,14 +177,14 @@ originality, rights, browser-loop, mix, and in-engine evidence suite.
 The project uses the smallest provider surface that can create and retrieve an
 instrumental candidate. All requests require HTTPS and Bearer authentication.
 
-| Method | Endpoint                       | Project use                                                                 |
-| ------ | ------------------------------ | --------------------------------------------------------------------------- |
-| `GET`  | `/api/v1/get-credits`          | Optional preflight balance check; never record the account's full response  |
-| `POST` | `/api/v1/sonic/create`         | Submit one `create_music` instrumental task                                 |
-| `GET`  | `/api/v1/sonic/task/{task_id}` | Poll the accepted task until every returned clip is terminal                |
-| `POST` | `/api/v1/sonic/wav`            | Optional lossless-source request for a selected generated clip              |
-| `POST` | `/api/v1/sonic/stems/basic`    | Optional stem experiment for a selected clip; not an automatic package pass |
-| `POST` | `/api/v1/sonic/stems/full`     | Exceptional, high-cost stem experiment only when the configured cost policy passes |
+| Method | Endpoint | Project use |
+| -- | -- | -- |
+| `GET` | `/api/v1/get-credits` | Optional preflight balance check; never record the account's full response |
+| `POST` | `/api/v1/sonic/create` | Submit one `create_music` instrumental task |
+| `GET` | `/api/v1/sonic/task/{task_id}` | Poll the accepted task until every returned clip is terminal |
+| `POST` | `/api/v1/sonic/wav` | Optional lossless-source request for a selected generated clip |
+| `POST` | `/api/v1/sonic/stems/basic` | Optional stem experiment for a selected clip; not an automatic package pass |
+| `POST` | `/api/v1/sonic/stems/full` | Exceptional, high-cost stem experiment only when the configured cost policy passes |
 
 The project does not need multi-provider routing, automatic fallback, callbacks,
 remote workflow persistence, customer intake, album automation, publishing, or
@@ -238,18 +238,18 @@ attempt count and switches automatically to local derivation when exhausted.
 The project uses `create_music` in description mode with an explicit
 instrumental flag.
 
-| Field                    | Required here | Project value or rule                                                                                                     |
-| ------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `task_type`              | Yes           | `create_music`                                                                                                            |
-| `custom_mode`            | Yes           | `false`; use a bounded original description rather than lyrics                                                            |
-| `mv`                     | Yes           | Exact validated `MUSIC_MODEL_VERSION`; record both requested and returned values                                          |
-| `make_instrumental`      | Yes           | `true`; lexical lyric metadata rejects the clip, while a bracket-only marker still requires autonomous acoustic validation |
-| `gpt_description_prompt` | Yes           | Original package brief plus common constraints, at most 400 characters                                                    |
-| `title`                  | Yes           | Composition name plus a neutral candidate suffix; never treat provider title generation as product canon                  |
-| `tags`                   | Optional      | Original instrumentation, texture, pacing, and mix vocabulary only                                                        |
-| `negative_tags`          | Optional      | Vocals, words, choir, abrupt ending, clipping, and unwanted genre or mix traits                                           |
-| `style_weight`           | Optional      | Record when used; begin at a moderate value and compare candidates                                                        |
-| `weirdness_constraint`   | Optional      | Record when used; begin conservatively and change one variable per comparison                                             |
+| Field | Required here | Project value or rule |
+| -- | -- | -- |
+| `task_type` | Yes | `create_music` |
+| `custom_mode` | Yes | `false`; use a bounded original description rather than lyrics |
+| `mv` | Yes | Exact validated `MUSIC_MODEL_VERSION`; record both requested and returned values |
+| `make_instrumental` | Yes | `true`; lexical lyric metadata rejects the clip, while a bracket-only marker still requires autonomous acoustic validation |
+| `gpt_description_prompt` | Yes | Original package brief plus common constraints, at most 400 characters |
+| `title` | Yes | Composition name plus a neutral candidate suffix; never treat provider title generation as product canon |
+| `tags` | Optional | Original instrumentation, texture, pacing, and mix vocabulary only |
+| `negative_tags` | Optional | Vocals, words, choir, abrupt ending, clipping, and unwanted genre or mix traits |
+| `style_weight` | Optional | Record when used; begin at a moderate value and compare candidates |
+| `weirdness_constraint` | Optional | Record when used; begin conservatively and change one variable per comparison |
 
 Do not send `prompt`, `lyrics`, `auto_lyrics`, `vocal_gender`, `persona_id`,
 `continue_clip_id`, upload URLs, webhook fields, or third-party material in the
@@ -382,13 +382,13 @@ transitions.
 
 The task endpoint documents these states:
 
-| State       | Treatment                                                                                                |
-| ----------- | -------------------------------------------------------------------------------------------------------- |
-| `pending`   | Wait; do not resubmit or download a placeholder URL                                                      |
-| `running`   | Wait; progress is advisory                                                                               |
-| `succeeded` | Validate each returned clip and require a final HTTPS audio URL before downloading                       |
-| `failed`    | Record a sanitized failure and stop; do not promote bytes                                                |
-| Other       | Treat as an untrusted provider-schema change; stop safely without guessing or mutating accepted evidence |
+| State | Treatment |
+| -- | -- |
+| `pending` | Wait; do not resubmit or download a placeholder URL |
+| `running` | Wait; progress is advisory |
+| `succeeded` | Validate each returned clip and require a final HTTPS audio URL before downloading |
+| `failed` | Record a sanitized failure and stop; do not promote bytes |
+| Other | Treat as an untrusted provider-schema change; stop safely without guessing or mutating accepted evidence |
 
 The provider may return an initial `not_ready` object or a task `data` array.
 Parse from `unknown`, bound the body before JSON parsing, and validate every
@@ -404,18 +404,18 @@ final asset; success requires the clip state and a downloadable final URL.
 The paid 2026-07-15 pilot and completion batch produced these safe contract
 observations:
 
-| Stage or field      | Observed value and required handling                                                                       |
-| ------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Submit response     | HTTP 200 object with `message` and `task_id`; no `code`                                                    |
-| First task poll     | `type: not_ready` object with no `data` array                                                              |
-| Later task polls    | HTTP 200 object with numeric `code`, string `message`, and a two-element `data` array                      |
-| Clip state sequence | Both clips moved through `running` to `succeeded`; select only after all clips are terminal                |
-| `duration`          | Decimal string, not a number; parse to a finite positive number                                            |
-| `lyrics`            | A 14-character bracket-only instrumental marker, not an empty string; reject lexical text and still run acoustic validation |
-| `mv`                | Returned `sonic-v5-5`, matching the requested model                                                        |
-| `video_url`         | `null`; video is irrelevant to this workflow                                                               |
-| Final `audio_url`   | HTTPS `cdn1.suno.ai` MP3 URL; validate the allowlisted origin and response bytes                           |
-| Provider title      | `Verdigris Shoals`, not the submitted candidate suffix; never use provider title mutation as canon         |
+| Stage or field | Observed value and required handling |
+| -- | -- |
+| Submit response | HTTP 200 object with `message` and `task_id`; no `code` |
+| First task poll | `type: not_ready` object with no `data` array |
+| Later task polls | HTTP 200 object with numeric `code`, string `message`, and a two-element `data` array |
+| Clip state sequence | Both clips moved through `running` to `succeeded`; select only after all clips are terminal |
+| `duration` | Decimal string, not a number; parse to a finite positive number |
+| `lyrics` | A 14-character bracket-only instrumental marker, not an empty string; reject lexical text and still run acoustic validation |
+| `mv` | Returned `sonic-v5-5`, matching the requested model |
+| `video_url` | `null`; video is irrelevant to this workflow |
+| Final `audio_url` | HTTPS `cdn1.suno.ai` MP3 URL; validate the allowlisted origin and response bytes |
+| Provider title | `Verdigris Shoals`, not the submitted candidate suffix; never use provider title mutation as canon |
 
 Do not equate bracket-only lyric metadata with proof that the waveform contains
 no voice. It permits technical download; the autonomous unwanted-vocal suite
@@ -564,22 +564,22 @@ Every candidate and derived asset must have a safe record. The record must not
 contain credentials, full response payloads, secret-bearing URLs, personal data,
 or unrelated account information.
 
-| Field                        | Purpose                                                                                          |
-| ---------------------------- | ------------------------------------------------------------------------------------------------ |
-| Stable package and role IDs  | Decouple game-facing meaning from provider names, titles, clip IDs, and URLs                     |
-| Provider and endpoint        | Record MusicAPI.ai Sonic and the operation used                                                  |
-| Requested and returned model | Detect provider aliasing or model drift                                                          |
-| Generation timestamp         | Bind the output to the plan and terms captured at generation time                                |
-| Exact prompt and parameters  | Preserve the original authorized brief and generation settings                                   |
-| Task ID and clip ID          | Support bounded provider-side traceability without storing raw responses                         |
-| Plan-class state and cost    | Record confirmed entitlement or an explicit pending state plus cost without storing account data |
-| Terms evidence               | Store the official URL, checked date, hash, and retained snapshot location                       |
-| Original output metadata     | Record SHA-256, bytes, codec, sample rate, channels, duration, and measured audio properties     |
+| Field | Purpose |
+| -- | -- |
+| Stable package and role IDs | Decouple game-facing meaning from provider names, titles, clip IDs, and URLs |
+| Provider and endpoint | Record MusicAPI.ai Sonic and the operation used |
+| Requested and returned model | Detect provider aliasing or model drift |
+| Generation timestamp | Bind the output to the plan and terms captured at generation time |
+| Exact prompt and parameters | Preserve the original authorized brief and generation settings |
+| Task ID and clip ID | Support bounded provider-side traceability without storing raw responses |
+| Plan-class state and cost | Record confirmed entitlement or an explicit pending state plus cost without storing account data |
+| Terms evidence | Store the official URL, checked date, hash, and retained snapshot location |
+| Original output metadata | Record SHA-256, bytes, codec, sample rate, channels, duration, and measured audio properties |
 | Vocal and originality checks | Record validator versions, timestamps, scores, result, similarity evidence, and rejection reason |
-| Deterministic edits          | Record selection, arrangement, stem processing, trimming, looping, mixing, and mastering recipes |
-| Master and runtime hashes    | Identify each derived byte sequence and its deterministic export recipe                          |
-| Package mapping              | Map base, movement, threat, peak, transitions, and intentional-silence decisions                 |
-| Acceptance state             | Keep unknown, unchecked, rejected, or research-only output out of the production audio manifest  |
+| Deterministic edits | Record selection, arrangement, stem processing, trimming, looping, mixing, and mastering recipes |
+| Master and runtime hashes | Identify each derived byte sequence and its deterministic export recipe |
+| Package mapping | Map base, movement, threat, peak, transitions, and intentional-silence decisions |
+| Acceptance state | Keep unknown, unchecked, rejected, or research-only output out of the production audio manifest |
 
 The research manifest is
 [`skyglass-assets/manifest.md`](../../../skyglass-assets/manifest.md). The
@@ -630,32 +630,32 @@ credits do not replace the repository's provenance and originality checks.
 Before a live request:
 
 - [ ] The exact package, candidate suffix, brief, model, request count, and
-      maximum credit spend match the versioned batch configuration.
+  maximum credit spend match the versioned batch configuration.
 - [ ] The official create, task, credit, model, rate, output, and terms pages
-      have been rechecked.
+  have been rechecked.
 - [ ] `gpt_description_prompt` is present and no longer than 400 characters.
 - [ ] `.env` is ignored, the raw token is present, and no secret appears in the
-      request body, command arguments, source, logs, or evidence.
+  request body, command arguments, source, logs, or evidence.
 - [ ] The prompt contains only original Skyglass direction and excludes archive,
-      artist, franchise, song, vocal, and personal-data references.
+  artist, franchise, song, vocal, and personal-data references.
 - [ ] The unique scratch directory, atomic `.part` handling, cancellation, and
-      resume behavior are ready.
+  resume behavior are ready.
 
 Before retaining a technically validated research candidate:
 
 - [ ] The task succeeded and the selected clip has a final downloadable URL.
 - [ ] Instrumental lyric metadata is empty or bracket-only with no lexical
-      words; the acoustic suite still verifies that no voice is audible.
+  words; the acoustic suite still verifies that no voice is audible.
 - [ ] Original bytes pass bounded download, full decode, metadata, waveform,
-      SHA-256, and byte-count checks.
+  SHA-256, and byte-count checks.
 - [ ] Vocal metadata, transcription, waveform, similarity, originality, and mix
-      validators record passed or rejected outcomes; no check remains pending
-      on a retained candidate.
+  validators record passed or rejected outcomes; no check remains pending
+  on a retained candidate.
 - [ ] Prompt, parameters, model, task, clip, plan-class evidence state, terms
-      date, original hash, measurements, and disposition are recorded without
-      secrets; missing plan evidence quarantines the provider output.
+  date, original hash, measurements, and disposition are recorded without
+  secrets; missing plan evidence quarantines the provider output.
 - [ ] The exact bytes and safe provenance are moved to the unique
-      `skyglass-assets/music/` path and the research manifest is updated.
+  `skyglass-assets/music/` path and the research manifest is updated.
 
 A candidate with an incomplete autonomous check remains research-only. It may
 close an explicitly defined technical-inventory box, but it cannot enter the
@@ -664,11 +664,11 @@ production manifest.
 Before marking an adaptive package production-accepted:
 
 - [ ] Base, movement, threat, peak, transition, and intentional-silence roles
-      are fully resolved.
+  are fully resolved.
 - [ ] All layers are instrumental, vocally clean, synchronized, independently
-      mixable, loop-tested, and provenance-accepted.
+  mixable, loop-tested, and provenance-accepted.
 - [ ] Direction transitions, crossfades, mute, pause, visibility, restart,
-      recovery, completion, death, and audio-off equivalence pass in-engine.
+  recovery, completion, death, and audio-off equivalence pass in-engine.
 - [ ] Transfer, decoded memory, concurrency, and offline-package budgets pass.
 - [ ] Production manifest, rights, originality, acoustic, and in-engine checks
-      pass with machine-readable evidence.
+  pass with machine-readable evidence.

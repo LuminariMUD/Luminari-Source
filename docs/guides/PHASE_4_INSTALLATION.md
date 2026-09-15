@@ -29,6 +29,7 @@ db_init_system wilderness
 ## Testing Region Effects System
 
 ### 1. Effects Management
+
 ```
 # List all available region effects
 resourceadmin effects list
@@ -41,7 +42,9 @@ resourceadmin effects region 1001
 ```
 
 ### 2. Enhanced Debug Survey
+
 ### 2. Enhanced Debug Survey
+
 ```
 # The debug survey now shows region effects information
 resourceadmin debug
@@ -53,6 +56,7 @@ resourceadmin debug
 ```
 
 ### 3. Effect Assignment Commands
+
 ```
 # Assign effects to regions
 resourceadmin effects assign 1001 1 1.5    # Assign effect ID 1 to region 1001 with intensity 1.5
@@ -63,18 +67,21 @@ resourceadmin effects unassign 1001 1       # Remove effect ID 1 from region 100
 ```
 
 ### 4. JSON Effect Configuration Examples
+
 ```
 # Effects can have complex JSON parameters:
 # Forest Growth Effect: {"vegetation_multiplier": 1.5, "herb_multiplier": 1.8, "wood_multiplier": 2.0}
 # Seasonal Modifier: {"season": "spring", "growth_bonus": 0.3, "duration_days": 90}
 # Environmental Curse: {"all_resources_penalty": -0.5, "curse_type": "blight"}
 ```
+
 Resource Types for admin commands:
-0 = vegetation    5 = wood
-1 = minerals      6 = stone  
-2 = water         7 = crystal
-3 = herbs         8 = clay
-4 = game          9 = salt
+0 = vegetation 5 = wood
+1 = minerals 6 = stone\
+2 = water 7 = crystal
+3 = herbs 8 = clay
+4 = game 9 = salt
+
 ```
 
 ## Expected Changes
@@ -110,3 +117,4 @@ Phase 4 is now complete with the flexible Region Effects System! The next develo
 - Skill-based harvesting success rates and yields
 - Tool and equipment requirements for different resource types
 - Integration with existing crafting and economy systems
+```

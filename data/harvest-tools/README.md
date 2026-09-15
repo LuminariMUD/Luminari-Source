@@ -18,7 +18,7 @@ roll, while a Legendary floor makes every successful harvest top grade.
 The file contains exactly these five records followed by the `$~` terminator.
 
 | VNUM | Keywords | Short description | Material | Cost |
-| --- | --- | --- | --- | --- |
+| -- | -- | -- | -- | -- |
 | 1251 | poor harvest tool | a poor harvest tool | wood | 50 |
 | 1252 | common harvest tool | a common harvest tool | iron | 500 |
 | 1253 | uncommon harvest tool | an uncommon harvest tool | steel | 2500 |
