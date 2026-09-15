@@ -14,12 +14,28 @@ if ! command -v php >/dev/null 2>&1; then
   exit 1
 fi
 
-if [ ! -f "$phar" ]; then
-  mkdir -p "$cache"
-  curl -fsSL -o "$phar.tmp" \
+# php runs any file it is given and exits 0 when that file is not a phar, which
+# would pass the hook without formatting, so the phar must match the pinned
+# sha256 before every run. Runs sharing the cache take turns on its lock; php
+# inherits the lock, so no other run replaces the phar while it formats.
+phar_matches() {
+  [ -f "$phar" ] && [ "$(sha256sum <"$phar")" = "$sha256  -" ]
+}
+
+mkdir -p "$cache"
+exec 9>"$cache/php-cs-fixer.lock"
+flock 9
+if ! phar_matches; then
+  download="$(mktemp "$phar.XXXXXX")"
+  trap 'rm -f "$download"' EXIT
+  curl -fsSL -o "$download" \
     "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/releases/download/v$version/php-cs-fixer.phar"
-  echo "$sha256  $phar.tmp" | sha256sum --check --quiet
-  mv "$phar.tmp" "$phar"
+  mv -f "$download" "$phar"
+  if ! phar_matches; then
+    rm -f "$phar"
+    echo "php-cs-fixer hook: the downloaded phar does not match sha256 $sha256" >&2
+    exit 1
+  fi
 fi
 
 exec php "$phar" fix --config=.php-cs-fixer.dist.php --using-cache=no --quiet -- "$@"

@@ -100,6 +100,17 @@ Notes for whoever resumes:
   `verify_help_crafting_entries.sql`. Both parse under sqlfluff 4.3.0 with this
   `.sqlfluff`, so that branch can take the hooks through the rebase recipe in
   Step 0 without an exemption.
+- Review follow-up on PR #191: `format_php.sh` had downloaded to a fixed
+  `.tmp` path and trusted any cached file, and `php` exits 0 on a file that is
+  not a phar, so a corrupt cache passed the hook without formatting and a
+  `<?php` file there would run at commit. The wrapper now checks the phar's
+  sha256 before every run while holding a `flock` on the cache (see PHP under
+  Evidence and chosen settings). A scratch harness of 39 checks passes against
+  it, and 16 of them fail against the old wrapper: an empty cache downloads
+  once and a warm cache not at all; a `CORRUPT` or `<?php` blob in the cache
+  is replaced and never run; a mismatched or failed download exits non-zero
+  and leaves no phar or temporary file; three concurrent first runs format all
+  three files with one download; and `php` holds the lock while it runs.
 
 ## Verdict
 
@@ -400,13 +411,18 @@ Also verified to parse as written: `ADD COLUMN IF NOT EXISTS`,
   output is byte-identical between the `php:8.3-cli` image and Ubuntu 24.04's
   `php8.3-cli` (PHP 8.3.6).
 - Hook: a local `language: system` hook running
-  `scripts/development/format_php.sh`. The wrapper downloads the pinned phar
-  once into
+  `scripts/development/format_php.sh`. The wrapper keeps the pinned phar in
   `${LUMINARI_FORMATTER_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/luminari-formatters}`,
-  verifies its sha256
+  checks its sha256
   (`80cad475fc5112fdbfab8bd66e51665ed78c1b849b918dab81fb63b7a7003b41`, the
-  digest GitHub publishes for that release asset), and runs
+  digest GitHub publishes for that release asset) before every run, and runs
   `php <phar> fix --config=.php-cs-fixer.dist.php --using-cache=no --quiet -- <files>`.
+  A missing or mismatched phar is downloaded again to a unique temporary file
+  in the cache and moved into place, and a download that does not match is
+  deleted and fails with exit 1. All of it happens under a `flock` on the
+  cache, which `php` inherits, so runs from other checkouts or terminals wait.
+  The check runs every time because `php` exits 0 on a file that is not a
+  phar, which would pass the hook without formatting anything.
   php-cs-fixer needs `--config` whenever it gets more than one path. A
   committed phar would trip the 500 KB large-file hook, and composer would add
   a PHP dependency tree for one tool.
@@ -539,8 +555,14 @@ These hooks join the existing `repo: local` block, before the pre-push
         always_run: true
 ```
 
-`require_serial` keeps the two wrappers from racing to fill the tool cache on
-first use.
+`require_serial` runs each wrapper as one process over all of a run's files,
+instead of parallel batches that would each start a runtime. It does not
+coordinate separate runs that share the cache, from other checkouts or
+terminals: `format_php.sh` holds a `flock` on the cache and checks the phar
+before every run (see PHP above), and `Save-PSResource` saves PSScriptAnalyzer
+to a temporary directory and moves the finished module into the cache; two
+concurrent first runs of `format_powershell.ps1` on an empty cache passed in
+both trials.
 
 `ruff.toml`:
 
