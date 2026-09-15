@@ -76,7 +76,7 @@ DerivePointerAlignment: false
 # Comments
 ReflowComments: false
 AlignTrailingComments: true
-CommentPragmas: '^ (TODO|FIXME|NOTE|DEBUG):'
+CommentPragmas: "^ (TODO|FIXME|NOTE|DEBUG):"
 
 # Includes
 IncludeBlocks: Preserve

@@ -28,8 +28,8 @@ was verified before its commit.
 | 3 SQL | done | Format SQL with sqlfluff and keep new SQL under it | 106 files, +4,038/-2,755; token streams identical 106/106; no frozen file changed; the policy self-test rejects 10 bypasses and each of the six bypass trials fails the check; the hook trials behave as planned; the master schema and all 61 applied components load into MariaDB 10.11 as in `integration.yml`; rename static (through `make`), background help, and pubsub retirement checks pass |
 | Markdown prep | done | Prepare Markdown for mdformat | 33 documents and the 2 regenerated guides, +136/-129; mdformat on the result adds 69 escapes, all in prose: the 28 bracket pairs, 7 footnote asterisks in `gear_guide.md`, and 6 in `phase01_test_results.md` (footnote marks and the `A*` name); `wtool.py docs --check`, `generate-web-guides.sh --check`, `check-dg-docs.py`, and source hygiene pass |
 | 4 Markdown | done | Format Markdown with mdformat | 192 documents besides this plan, +6,172/-1,784, each byte-identical to a verification clone; guides regenerated, +1,517/-846; the only escapes added are the 69 accepted prose ones; `wtool.py docs --check`, `generate-web-guides.sh --check`, `check-dg-docs.py`, and source hygiene (1,693 files) pass; all 542 world-tool tests pass; the `CLAUDE.md` and `GEMINI.md` symlinks, the changelogs, and `lib/WILD_KB.md` untouched |
-| 5 prettier | next |  |  |
-| 6 CMake |  |  |  |
+| 5 prettier | done | Format YAML, JSON, HTML, CSS, and JavaScript with prettier | 32 of the 44 files in scope, +8,420/-4,024; `prettier --debug-check` passes on all 44 as they were; the parsed YAML or JSON of all 14 reformatted data files is unchanged; `clang-format --dump-config` and `clang-tidy --dump-config` print the same output (only quote style changed); `check-dg-docs.py`, `wtool.py constants sync --check`, `wtool.py docs --check`, the SQL format policy, and all 542 world-tool tests pass |
+| 6 CMake | next |  |  |
 | 7 PHP |  |  |  |
 | 8 PowerShell |  |  |  |
 | 9 CI, image, docs |  |  |  |
@@ -65,6 +65,11 @@ Notes for whoever resumes:
   bold text in `CLAUDE.example.md` had broken the emphasis; and two typos
   surfaced, a stray `]` in `LUMINARI_OVERVIEW.md` and an unclosed `*` in
   `INQUISITOR_PERKS.md`.
+- `docs/web/data/objects.json` stays formatted: `util/export_objectdb_to_json.py`
+  writes real data there, but the tracked file is hand-written demo data.
+  The ROL converter hashes its JSON inputs (`_CODE_EVIDENCE_PATHS` in
+  `rol_phase8.py`) only to compare them within one run, so reformatting them
+  breaks nothing.
 
 ## Verdict
 

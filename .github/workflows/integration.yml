@@ -5,11 +5,11 @@ on:
   pull_request:
     branches: [master, main]
     paths:
-      - 'src/**'
-      - 'sql/**'
-      - 'lib/world/**'
-      - 'scripts/**'
-      - '.github/workflows/integration.yml'
+      - "src/**"
+      - "sql/**"
+      - "lib/world/**"
+      - "scripts/**"
+      - ".github/workflows/integration.yml"
 
 jobs:
   database-migration:

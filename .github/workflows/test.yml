@@ -4,75 +4,75 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'src/**'
-      - 'unittests/**'
-      - 'scripts/world/**'
-      - 'scripts/ci/**'
-      - 'scripts/deployment/**'
-      - 'scripts/operations/**'
-      - 'scripts/development/generate-web-guides.sh'
-      - 'scripts/events/**'
-      - 'lib/world/validate-zone.sh'
-      - 'lib/world/artifacts/**'
-      - 'lib/world/minimal/**'
-      - 'docs/world_game-data/**'
-      - 'docs/world/STARTER_AREA.md'
-      - 'docs/systems/OLC_ONLINE_CREATION_SYSTEM.md'
-      - 'docs/guides/OLC_SpecProcs.md'
-      - 'docs/guides/TESTING_GUIDE.md'
-      - 'docs/utilities/**'
-      - 'docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md'
-      - 'docs/web/**'
-      - 'CMakeLists.txt'
-      - 'CMakePresets.json'
-      - 'cmake/**'
-      - 'configure.ac'
-      - 'Makefile.am'
-      - 'util/Makefile.am'
-      - '.gitignore'
-      - 'scripts/ci/check_source_hygiene.py'
-      - '.github/workflows/test.yml'
-      - '.github/actions/setup-build/**'
-      - 'scripts/autorun/**'
-      - 'scripts/process-memory/**'
-      - 'sql/**'
-      - 'lib/world/**'
+      - "src/**"
+      - "unittests/**"
+      - "scripts/world/**"
+      - "scripts/ci/**"
+      - "scripts/deployment/**"
+      - "scripts/operations/**"
+      - "scripts/development/generate-web-guides.sh"
+      - "scripts/events/**"
+      - "lib/world/validate-zone.sh"
+      - "lib/world/artifacts/**"
+      - "lib/world/minimal/**"
+      - "docs/world_game-data/**"
+      - "docs/world/STARTER_AREA.md"
+      - "docs/systems/OLC_ONLINE_CREATION_SYSTEM.md"
+      - "docs/guides/OLC_SpecProcs.md"
+      - "docs/guides/TESTING_GUIDE.md"
+      - "docs/utilities/**"
+      - "docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md"
+      - "docs/web/**"
+      - "CMakeLists.txt"
+      - "CMakePresets.json"
+      - "cmake/**"
+      - "configure.ac"
+      - "Makefile.am"
+      - "util/Makefile.am"
+      - ".gitignore"
+      - "scripts/ci/check_source_hygiene.py"
+      - ".github/workflows/test.yml"
+      - ".github/actions/setup-build/**"
+      - "scripts/autorun/**"
+      - "scripts/process-memory/**"
+      - "sql/**"
+      - "lib/world/**"
   pull_request:
     branches: [master, main]
     paths:
-      - 'src/**'
-      - 'unittests/**'
-      - 'scripts/world/**'
-      - 'scripts/ci/**'
-      - 'scripts/deployment/**'
-      - 'scripts/operations/**'
-      - 'scripts/development/generate-web-guides.sh'
-      - 'scripts/events/**'
-      - 'lib/world/validate-zone.sh'
-      - 'lib/world/artifacts/**'
-      - 'lib/world/minimal/**'
-      - 'docs/world_game-data/**'
-      - 'docs/world/STARTER_AREA.md'
-      - 'docs/systems/OLC_ONLINE_CREATION_SYSTEM.md'
-      - 'docs/guides/OLC_SpecProcs.md'
-      - 'docs/guides/TESTING_GUIDE.md'
-      - 'docs/utilities/**'
-      - 'docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md'
-      - 'docs/web/**'
-      - 'CMakeLists.txt'
-      - 'CMakePresets.json'
-      - 'cmake/**'
-      - 'configure.ac'
-      - 'Makefile.am'
-      - 'util/Makefile.am'
-      - '.gitignore'
-      - 'scripts/ci/check_source_hygiene.py'
-      - '.github/workflows/test.yml'
-      - '.github/actions/setup-build/**'
-      - 'scripts/autorun/**'
-      - 'scripts/process-memory/**'
-      - 'sql/**'
-      - 'lib/world/**'
+      - "src/**"
+      - "unittests/**"
+      - "scripts/world/**"
+      - "scripts/ci/**"
+      - "scripts/deployment/**"
+      - "scripts/operations/**"
+      - "scripts/development/generate-web-guides.sh"
+      - "scripts/events/**"
+      - "lib/world/validate-zone.sh"
+      - "lib/world/artifacts/**"
+      - "lib/world/minimal/**"
+      - "docs/world_game-data/**"
+      - "docs/world/STARTER_AREA.md"
+      - "docs/systems/OLC_ONLINE_CREATION_SYSTEM.md"
+      - "docs/guides/OLC_SpecProcs.md"
+      - "docs/guides/TESTING_GUIDE.md"
+      - "docs/utilities/**"
+      - "docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md"
+      - "docs/web/**"
+      - "CMakeLists.txt"
+      - "CMakePresets.json"
+      - "cmake/**"
+      - "configure.ac"
+      - "Makefile.am"
+      - "util/Makefile.am"
+      - ".gitignore"
+      - "scripts/ci/check_source_hygiene.py"
+      - ".github/workflows/test.yml"
+      - ".github/actions/setup-build/**"
+      - "scripts/autorun/**"
+      - "scripts/process-memory/**"
+      - "sql/**"
+      - "lib/world/**"
 
 permissions:
   contents: read
@@ -91,7 +91,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install documentation dependency
         run: |
@@ -147,7 +147,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Check that Makefile.am and CMakeLists.txt list the same sources
         run: python scripts/ci/check_build_parity.py
@@ -169,31 +169,31 @@ jobs:
             cc: gcc
             preset: ci-gcc
             packages: gcc
-            min_version: '13'
-            container: ''
+            min_version: "13"
+            container: ""
             db_host: 127.0.0.1
           - compiler: clang
             cc: clang
             preset: ci-clang
             packages: clang
-            min_version: '18'
-            container: ''
+            min_version: "18"
+            container: ""
             db_host: 127.0.0.1
           # Current supported compilers, pinned; see the compiler policy in
           # docs/guides/SETUP_AND_BUILD_GUIDE.md for the update cadence.
           - compiler: gcc-16
             cc: gcc
             preset: ci-gcc
-            packages: ''
-            min_version: '16.2'
+            packages: ""
+            min_version: "16.2"
             container: gcc:16.2
             db_host: mariadb
           - compiler: clang-22
             cc: clang-22
             preset: ci-clang
-            packages: ''
-            min_version: '22.1.8'
-            container: ''
+            packages: ""
+            min_version: "22.1.8"
+            container: ""
             db_host: 127.0.0.1
     services:
       mariadb:
@@ -211,12 +211,12 @@ jobs:
           --health-timeout=5s
           --health-retries=10
     env:
-      LUMINARI_TEST_MYSQL_ENABLE: '1'
+      LUMINARI_TEST_MYSQL_ENABLE: "1"
       LUMINARI_TEST_MYSQL_HOST: ${{ matrix.db_host }}
       LUMINARI_TEST_MYSQL_USER: luminari_test
       LUMINARI_TEST_MYSQL_PASSWORD: test_password
       LUMINARI_TEST_MYSQL_DATABASE: luminari_test
-      LUMINARI_TEST_MYSQL_PORT: '3306'
+      LUMINARI_TEST_MYSQL_PORT: "3306"
       LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
       LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
     steps:
@@ -233,7 +233,7 @@ jobs:
         if: matrix.container == ''
         uses: actions/setup-python@v7
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Set up build
         uses: ./.github/actions/setup-build
@@ -281,12 +281,12 @@ jobs:
         include:
           - compiler: gcc-16
             cc: gcc
-            min_version: '16.2'
+            min_version: "16.2"
             container: gcc:16.2
           - compiler: clang-22
             cc: clang-22
-            min_version: '22.1.8'
-            container: ''
+            min_version: "22.1.8"
+            container: ""
     steps:
       - name: Install container prerequisites
         if: matrix.container != ''
@@ -356,12 +356,12 @@ jobs:
           --health-timeout=5s
           --health-retries=10
     env:
-      LUMINARI_TEST_MYSQL_ENABLE: '1'
+      LUMINARI_TEST_MYSQL_ENABLE: "1"
       LUMINARI_TEST_MYSQL_HOST: 127.0.0.1
       LUMINARI_TEST_MYSQL_USER: luminari_test
       LUMINARI_TEST_MYSQL_PASSWORD: test_password
       LUMINARI_TEST_MYSQL_DATABASE: luminari_test
-      LUMINARI_TEST_MYSQL_PORT: '3306'
+      LUMINARI_TEST_MYSQL_PORT: "3306"
       LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
       LUMINARI_TEST_CONFIG_FILE: ${{ github.workspace }}/.ci-runtime/lib/etc/config
     steps:
@@ -371,7 +371,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Set up build
         uses: ./.github/actions/setup-build
@@ -408,16 +408,16 @@ jobs:
           --health-timeout=5s
           --health-retries=10
     env:
-      LUMINARI_TEST_MYSQL_ENABLE: '1'
+      LUMINARI_TEST_MYSQL_ENABLE: "1"
       LUMINARI_TEST_MYSQL_HOST: 127.0.0.1
       LUMINARI_TEST_MYSQL_USER: luminari_test
       LUMINARI_TEST_MYSQL_PASSWORD: test_password
       LUMINARI_TEST_MYSQL_DATABASE: luminari_test
-      LUMINARI_TEST_MYSQL_PORT: '3306'
+      LUMINARI_TEST_MYSQL_PORT: "3306"
       LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
       LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
       LUMINARI_IO_DRIVER: libevent
-      TERRAIN_API_PORT: '4182'
+      TERRAIN_API_PORT: "4182"
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -508,12 +508,12 @@ jobs:
           --health-retries=10
     env:
       CC: ${{ matrix.cc }}
-      LUMINARI_TEST_MYSQL_ENABLE: '1'
+      LUMINARI_TEST_MYSQL_ENABLE: "1"
       LUMINARI_TEST_MYSQL_HOST: 127.0.0.1
       LUMINARI_TEST_MYSQL_USER: luminari_test
       LUMINARI_TEST_MYSQL_PASSWORD: test_password
       LUMINARI_TEST_MYSQL_DATABASE: luminari_test
-      LUMINARI_TEST_MYSQL_PORT: '3306'
+      LUMINARI_TEST_MYSQL_PORT: "3306"
       LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
       LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
     steps:
@@ -578,7 +578,7 @@ jobs:
     name: ASan, UBSan, and protocol fuzzing
     runs-on: ubuntu-latest
     env:
-      LUMINARI_TEST_SKIP_SYNTAX_BOOT: '1'
+      LUMINARI_TEST_SKIP_SYNTAX_BOOT: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -614,7 +614,7 @@ jobs:
     name: Memory check
     runs-on: ubuntu-latest
     env:
-      LUMINARI_TEST_SKIP_SYNTAX_BOOT: '1'
+      LUMINARI_TEST_SKIP_SYNTAX_BOOT: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -663,12 +663,12 @@ jobs:
           --health-timeout=5s
           --health-retries=10
     env:
-      LUMINARI_TEST_MYSQL_ENABLE: '1'
+      LUMINARI_TEST_MYSQL_ENABLE: "1"
       LUMINARI_TEST_MYSQL_HOST: 127.0.0.1
       LUMINARI_TEST_MYSQL_USER: luminari_test
       LUMINARI_TEST_MYSQL_PASSWORD: test_password
       LUMINARI_TEST_MYSQL_DATABASE: luminari_test
-      LUMINARI_TEST_MYSQL_PORT: '3306'
+      LUMINARI_TEST_MYSQL_PORT: "3306"
       LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
       LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
     steps:
@@ -678,7 +678,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Set up build
         uses: ./.github/actions/setup-build

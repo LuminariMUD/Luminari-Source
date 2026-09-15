@@ -4,18 +4,18 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'src/**'
-      - '.github/workflows/security.yml'
-      - '.gitleaks.toml'
+      - "src/**"
+      - ".github/workflows/security.yml"
+      - ".gitleaks.toml"
   pull_request:
     branches: [master, main]
     paths:
-      - 'src/**'
-      - '.github/workflows/security.yml'
-      - '.gitleaks.toml'
+      - "src/**"
+      - ".github/workflows/security.yml"
+      - ".gitleaks.toml"
   schedule:
     # Run bi-weekly on 1st and 15th
-    - cron: '0 0 1,15 * *'
+    - cron: "0 0 1,15 * *"
 
 permissions:
   contents: read

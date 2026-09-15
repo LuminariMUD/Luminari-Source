@@ -1,406 +1,454 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LuminariMUD - Documentation Portal</title>
-    <meta name="description" content="LuminariMUD - A text-based Pathfinder/D&D 3.5e MMORPG. Browse spells, guides, and game documentation.">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <meta
+      name="description"
+      content="LuminariMUD - A text-based Pathfinder/D&D 3.5e MMORPG. Browse spells, guides, and game documentation."
+    />
+    <link rel="stylesheet" href="assets/css/style.css" />
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
-            min-height: 100vh;
-        }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #333;
+        min-height: 100vh;
+      }
 
-        .header {
-            background: rgba(0, 0, 0, 0.3);
-            color: white;
-            padding: 60px 20px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+      .header {
+        background: rgba(0, 0, 0, 0.3);
+        color: white;
+        padding: 60px 20px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
 
-        .header h1 {
-            margin: 0;
-            font-size: 3.5em;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
-        }
+      .header h1 {
+        margin: 0;
+        font-size: 3.5em;
+        text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+      }
 
-        .header .tagline {
-            font-size: 1.3em;
-            margin-top: 15px;
-            opacity: 0.9;
-        }
+      .header .tagline {
+        font-size: 1.3em;
+        margin-top: 15px;
+        opacity: 0.9;
+      }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
 
-        .section {
-            background: white;
-            margin: 30px 0;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
+      .section {
+        background: white;
+        margin: 30px 0;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        transition:
+          transform 0.3s,
+          box-shadow 0.3s;
+      }
 
-        .section:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-        }
+      .section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      }
 
-        .section h2 {
-            margin-top: 0;
-            color: #667eea;
-            font-size: 2em;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 15px;
-            margin-bottom: 25px;
-        }
+      .section h2 {
+        margin-top: 0;
+        color: #667eea;
+        font-size: 2em;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+      }
 
-        .section p {
-            line-height: 1.8;
-            font-size: 1.1em;
-            color: #555;
-        }
+      .section p {
+        line-height: 1.8;
+        font-size: 1.1em;
+        color: #555;
+      }
 
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
-        }
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+      }
 
-        .card {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 30px;
-            border-radius: 10px;
-            border-left: 5px solid #667eea;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: block;
-            color: inherit;
-        }
+      .card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 30px;
+        border-radius: 10px;
+        border-left: 5px solid #667eea;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: block;
+        color: inherit;
+      }
 
-        .card:hover {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            transform: translateX(10px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
+      .card:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transform: translateX(10px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      }
 
-        .card h3 {
-            margin-top: 0;
-            color: #667eea;
-            font-size: 1.6em;
-            transition: color 0.3s;
-        }
+      .card h3 {
+        margin-top: 0;
+        color: #667eea;
+        font-size: 1.6em;
+        transition: color 0.3s;
+      }
 
-        .card:hover h3 {
-            color: white;
-        }
+      .card:hover h3 {
+        color: white;
+      }
 
-        .card .description {
-            margin-top: 10px;
-            line-height: 1.6;
-        }
+      .card .description {
+        margin-top: 10px;
+        line-height: 1.6;
+      }
 
-        .badge {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            margin: 5px 5px 0 0;
-        }
+      .badge {
+        display: inline-block;
+        background: #667eea;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        margin: 5px 5px 0 0;
+      }
 
-        .footer {
-            text-align: center;
-            padding: 40px 20px;
-            color: white;
-            margin-top: 60px;
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-        }
+      .footer {
+        text-align: center;
+        padding: 40px 20px;
+        color: white;
+        margin-top: 60px;
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+      }
 
-        .footer a {
-            color: white;
-            text-decoration: none;
-            margin: 0 15px;
-            transition: opacity 0.3s;
-        }
+      .footer a {
+        color: white;
+        text-decoration: none;
+        margin: 0 15px;
+        transition: opacity 0.3s;
+      }
 
-        .footer a:hover {
-            opacity: 0.7;
-            text-decoration: underline;
-        }
+      .footer a:hover {
+        opacity: 0.7;
+        text-decoration: underline;
+      }
 
-        .coming-soon {
-            opacity: 0.6;
-            font-style: italic;
-        }
+      .coming-soon {
+        opacity: 0.6;
+        font-style: italic;
+      }
 
-        .main-site-banner {
-            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%);
-            margin: -20px auto 30px auto;
-            max-width: 600px;
-            padding: 20px 30px;
-            border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-            text-align: center;
-            border: 2px solid rgba(102, 126, 234, 0.3);
-        }
+      .main-site-banner {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.95) 0%,
+          rgba(248, 249, 250, 0.95) 100%
+        );
+        margin: -20px auto 30px auto;
+        max-width: 600px;
+        padding: 20px 30px;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        border: 2px solid rgba(102, 126, 234, 0.3);
+      }
 
-        .main-site-banner a {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            text-decoration: none;
-            color: #667eea;
-            font-size: 1.3em;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
+      .main-site-banner a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        text-decoration: none;
+        color: #667eea;
+        font-size: 1.3em;
+        font-weight: 600;
+        transition: all 0.3s;
+      }
 
-        .main-site-banner a:hover {
-            color: #764ba2;
-            transform: scale(1.02);
-        }
+      .main-site-banner a:hover {
+        color: #764ba2;
+        transform: scale(1.02);
+      }
 
-        .main-site-banner .arrow {
-            font-size: 1.2em;
-            transition: transform 0.3s;
-        }
+      .main-site-banner .arrow {
+        font-size: 1.2em;
+        transition: transform 0.3s;
+      }
 
-        .main-site-banner a:hover .arrow {
-            transform: translateX(5px);
-        }
+      .main-site-banner a:hover .arrow {
+        transform: translateX(5px);
+      }
 
-        .main-site-banner p {
-            margin: 8px 0 0 0;
-            font-size: 0.9em;
-            color: #6c757d;
-        }
+      .main-site-banner p {
+        margin: 8px 0 0 0;
+        font-size: 0.9em;
+        color: #6c757d;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="header">
-        <h1>🎲 LuminariMUD</h1>
-        <p class="tagline">Pathfinder/D&D 3.5e Text-Based MMORPG</p>
-        <p class="tagline" style="font-size: 1em; margin-top: 5px;">
-            Documentation Portal
-        </p>
+      <h1>🎲 LuminariMUD</h1>
+      <p class="tagline">Pathfinder/D&D 3.5e Text-Based MMORPG</p>
+      <p class="tagline" style="font-size: 1em; margin-top: 5px">Documentation Portal</p>
     </div>
 
     <div class="container">
-        <!-- Main Website Banner -->
-        <div class="main-site-banner">
-            <a href="https://luminarimud.com/" target="_blank">
-                <span>Visit LuminariMUD's Main Website</span>
-                <span class="arrow">→</span>
-            </a>
-            <p>Play the game, create an account, and join our community</p>
+      <!-- Main Website Banner -->
+      <div class="main-site-banner">
+        <a href="https://luminarimud.com/" target="_blank">
+          <span>Visit LuminariMUD's Main Website</span>
+          <span class="arrow">→</span>
+        </a>
+        <p>Play the game, create an account, and join our community</p>
+      </div>
+
+      <!-- Game Resources Section -->
+      <div class="section">
+        <h2>📚 Game Resources</h2>
+        <p>Browse comprehensive references for players and game masters.</p>
+
+        <div class="card-grid">
+          <a href="spells/by_class.html" class="card">
+            <h3>Spells by Class</h3>
+            <p class="description">
+              Interactive spell reference organized by class with collapsible sections. Perfect for
+              character planning and quick lookup during gameplay.
+            </p>
+            <span class="badge">2.5MB</span>
+            <span class="badge">Interactive</span>
+          </a>
+
+          <a href="spells/reference.html" class="card">
+            <h3>Complete Spell Reference</h3>
+            <p class="description">
+              Comprehensive database of all spells with detailed mechanics, components, and
+              descriptions.
+            </p>
+            <span class="badge">1.1MB</span>
+            <span class="badge">Database</span>
+          </a>
+
+          <a href="objects/" class="card">
+            <h3>Object Database</h3>
+            <p class="description">
+              Search and browse all weapons, armor, and equipment in LuminariMUD. Filter by type,
+              level, bonuses, and more.
+            </p>
+            <span class="badge">Interactive</span>
+            <span class="badge">Searchable</span>
+          </a>
         </div>
+      </div>
 
-        <!-- Game Resources Section -->
-        <div class="section">
-            <h2>📚 Game Resources</h2>
-            <p>Browse comprehensive references for players and game masters.</p>
+      <!-- Builder Guides Section -->
+      <div class="section">
+        <h2>🔨 Builder Guides</h2>
+        <p>Resources for world builders and content creators.</p>
 
-            <div class="card-grid">
-                <a href="spells/by_class.html" class="card">
-                    <h3>Spells by Class</h3>
-                    <p class="description">Interactive spell reference organized by class with collapsible sections. Perfect for character planning and quick lookup during gameplay.</p>
-                    <span class="badge">2.5MB</span>
-                    <span class="badge">Interactive</span>
-                </a>
+        <div class="card-grid">
+          <a href="guides/oedit.html" class="card">
+            <h3>OEDIT Guide</h3>
+            <p class="description">
+              Complete guide to the object editor with all 114 extra flags documented with
+              mechanical descriptions.
+            </p>
+            <span class="badge">HTML</span>
+            <span class="badge">Recently Updated</span>
+          </a>
 
-                <a href="spells/reference.html" class="card">
-                    <h3>Complete Spell Reference</h3>
-                    <p class="description">Comprehensive database of all spells with detailed mechanics, components, and descriptions.</p>
-                    <span class="badge">1.1MB</span>
-                    <span class="badge">Database</span>
-                </a>
+          <a href="guides/mob_flags.html" class="card">
+            <h3>MOB Flags Reference</h3>
+            <p class="description">
+              Complete reference for all 101 mobile behavior flags with mechanics, code references,
+              and usage examples.
+            </p>
+            <span class="badge">HTML</span>
+            <span class="badge">Recently Updated</span>
+          </a>
 
-                <a href="objects/" class="card">
-                    <h3>Object Database</h3>
-                    <p class="description">Search and browse all weapons, armor, and equipment in LuminariMUD. Filter by type, level, bonuses, and more.</p>
-                    <span class="badge">Interactive</span>
-                    <span class="badge">Searchable</span>
-                </a>
-            </div>
+          <a href="guides/room_flags.html" class="card">
+            <h3>Room Flags Reference</h3>
+            <p class="description">
+              Complete reference for all 42 room flags covering movement, magic, combat
+              restrictions, and environmental effects.
+            </p>
+            <span class="badge">HTML</span>
+            <span class="badge">Recently Updated</span>
+          </a>
+
+          <a href="../world_game-data/builder_manual.md" class="card">
+            <h3>Builder Manual</h3>
+            <p class="description">Comprehensive manual for world building and zone creation.</p>
+            <span class="badge">Markdown</span>
+          </a>
+
+          <a href="../world_game-data/ultimate-mud-writing-guide.md" class="card">
+            <h3>Ultimate MUD Writing Guide</h3>
+            <p class="description">
+              Best practices and techniques for creating immersive MUD content.
+            </p>
+            <span class="badge">Markdown</span>
+          </a>
         </div>
+      </div>
 
-        <!-- Builder Guides Section -->
-        <div class="section">
-            <h2>🔨 Builder Guides</h2>
-            <p>Resources for world builders and content creators.</p>
+      <!-- DG Scripts Section -->
+      <div class="section">
+        <h2>DG Scripts</h2>
+        <p>Documentation for the DG Scripts trigger and scripting system.</p>
 
-            <div class="card-grid">
-                <a href="guides/oedit.html" class="card">
-                    <h3>OEDIT Guide</h3>
-                    <p class="description">Complete guide to the object editor with all 114 extra flags documented with mechanical descriptions.</p>
-                    <span class="badge">HTML</span>
-                    <span class="badge">Recently Updated</span>
-                </a>
+        <div class="card-grid">
+          <a href="dg-scripts/" class="card">
+            <h3>DG Scripts Portal</h3>
+            <p class="description">
+              Code-backed guide to triggers, commands, variables, TRIGEDIT, testing, and runtime
+              architecture.
+            </p>
+            <span class="badge">HTML</span>
+            <span class="badge">Complete Guide</span>
+          </a>
 
-                <a href="guides/mob_flags.html" class="card">
-                    <h3>MOB Flags Reference</h3>
-                    <p class="description">Complete reference for all 101 mobile behavior flags with mechanics, code references, and usage examples.</p>
-                    <span class="badge">HTML</span>
-                    <span class="badge">Recently Updated</span>
-                </a>
+          <a href="dg-scripts/trigger-types.html" class="card">
+            <h3>Trigger Reference</h3>
+            <p class="description">
+              Complete mobile, object, and room event matrix with Numeric Arg semantics and injected
+              variables.
+            </p>
+            <span class="badge">Source-Backed</span>
+            <span class="badge">Searchable</span>
+          </a>
 
-                <a href="guides/room_flags.html" class="card">
-                    <h3>Room Flags Reference</h3>
-                    <p class="description">Complete reference for all 42 room flags covering movement, magic, combat restrictions, and environmental effects.</p>
-                    <span class="badge">HTML</span>
-                    <span class="badge">Recently Updated</span>
-                </a>
+          <a href="dg-scripts/staff-commands.html" class="card">
+            <h3>Staff Commands</h3>
+            <p class="description">
+              Exact levels and syntax for inspecting, copying, attaching, detaching, and repairing
+              DG state.
+            </p>
+            <span class="badge">HTML</span>
+            <span class="badge">Reference</span>
+          </a>
 
-                <a href="../world_game-data/builder_manual.md" class="card">
-                    <h3>Builder Manual</h3>
-                    <p class="description">Comprehensive manual for world building and zone creation.</p>
-                    <span class="badge">Markdown</span>
-                </a>
-
-                <a href="../world_game-data/ultimate-mud-writing-guide.md" class="card">
-                    <h3>Ultimate MUD Writing Guide</h3>
-                    <p class="description">Best practices and techniques for creating immersive MUD content.</p>
-                    <span class="badge">Markdown</span>
-                </a>
-            </div>
+          <a href="dg-scripts/dollhouse.html" class="card">
+            <h3>The Dollhouse Case Study</h3>
+            <p class="description">
+              Public production patterns from zone 118, including gateways, state handoffs, timers,
+              and progressive content.
+            </p>
+            <span class="badge">Live Examples</span>
+            <span class="badge">Zone 118</span>
+          </a>
         </div>
+      </div>
 
-        <!-- DG Scripts Section -->
-        <div class="section">
-            <h2>DG Scripts</h2>
-            <p>Documentation for the DG Scripts trigger and scripting system.</p>
+      <!-- Developer Documentation Section -->
+      <div class="section">
+        <h2>💻 Developer Documentation</h2>
+        <p>Technical documentation for developers contributing to LuminariMUD.</p>
 
-            <div class="card-grid">
-                <a href="dg-scripts/" class="card">
-                    <h3>DG Scripts Portal</h3>
-                    <p class="description">Code-backed guide to triggers, commands, variables, TRIGEDIT, testing, and runtime architecture.</p>
-                    <span class="badge">HTML</span>
-                    <span class="badge">Complete Guide</span>
-                </a>
+        <div class="card-grid">
+          <a href="../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md" class="card">
+            <h3>Technical Master Index</h3>
+            <p class="description">
+              Complete overview of all technical documentation and system architecture.
+            </p>
+            <span class="badge">Markdown</span>
+          </a>
 
-                <a href="dg-scripts/trigger-types.html" class="card">
-                    <h3>Trigger Reference</h3>
-                    <p class="description">Complete mobile, object, and room event matrix with Numeric Arg semantics and injected variables.</p>
-                    <span class="badge">Source-Backed</span>
-                    <span class="badge">Searchable</span>
-                </a>
+          <a href="../systems/CORE_SERVER_ARCHITECTURE.md" class="card">
+            <h3>Core Architecture</h3>
+            <p class="description">Server architecture and design documentation.</p>
+            <span class="badge">Markdown</span>
+          </a>
 
-                <a href="dg-scripts/staff-commands.html" class="card">
-                    <h3>Staff Commands</h3>
-                    <p class="description">Exact levels and syntax for inspecting, copying, attaching, detaching, and repairing DG state.</p>
-                    <span class="badge">HTML</span>
-                    <span class="badge">Reference</span>
-                </a>
+          <a href="../architecture-maps/index.html" class="card">
+            <h3>Architecture Atlas</h3>
+            <p class="description">
+              Interactive, source-verified maps of the runtime, event core, boot, copyover, and data
+              flows.
+            </p>
+            <span class="badge">Interactive</span>
+          </a>
 
-                <a href="dg-scripts/dollhouse.html" class="card">
-                    <h3>The Dollhouse Case Study</h3>
-                    <p class="description">Public production patterns from zone 118, including gateways, state handoffs, timers, and progressive content.</p>
-                    <span class="badge">Live Examples</span>
-                    <span class="badge">Zone 118</span>
-                </a>
-            </div>
+          <a href="../guides/DEVELOPER_GUIDE_AND_API.md" class="card">
+            <h3>Developer Guide & API</h3>
+            <p class="description">API reference and coding standards for contributors.</p>
+            <span class="badge">Markdown</span>
+          </a>
         </div>
+      </div>
 
-        <!-- Developer Documentation Section -->
-        <div class="section">
-            <h2>💻 Developer Documentation</h2>
-            <p>Technical documentation for developers contributing to LuminariMUD.</p>
+      <!-- Getting Started Section -->
+      <div class="section">
+        <h2>🚀 Getting Started</h2>
+        <p>New to LuminariMUD? Start here!</p>
 
-            <div class="card-grid">
-                <a href="../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md" class="card">
-                    <h3>Technical Master Index</h3>
-                    <p class="description">Complete overview of all technical documentation and system architecture.</p>
-                    <span class="badge">Markdown</span>
-                </a>
+        <div class="card-grid">
+          <a href="../README.md" class="card">
+            <h3>README</h3>
+            <p class="description">
+              Project overview, quick start guide, and essential information.
+            </p>
+            <span class="badge">Markdown</span>
+          </a>
 
-                <a href="../systems/CORE_SERVER_ARCHITECTURE.md" class="card">
-                    <h3>Core Architecture</h3>
-                    <p class="description">Server architecture and design documentation.</p>
-                    <span class="badge">Markdown</span>
-                </a>
+          <a href="../GETTING_STARTED.md" class="card">
+            <h3>Getting Started Guide</h3>
+            <p class="description">Step-by-step guide for new players and developers.</p>
+            <span class="badge">Markdown</span>
+          </a>
 
-                <a href="../architecture-maps/index.html" class="card">
-                    <h3>Architecture Atlas</h3>
-                    <p class="description">Interactive, source-verified maps of the runtime, event core, boot, copyover, and data flows.</p>
-                    <span class="badge">Interactive</span>
-                </a>
-
-                <a href="../guides/DEVELOPER_GUIDE_AND_API.md" class="card">
-                    <h3>Developer Guide & API</h3>
-                    <p class="description">API reference and coding standards for contributors.</p>
-                    <span class="badge">Markdown</span>
-                </a>
-            </div>
+          <a href="../guides/SETUP_AND_BUILD_GUIDE.md" class="card">
+            <h3>Setup & Build</h3>
+            <p class="description">Detailed instructions for building and deploying LuminariMUD.</p>
+            <span class="badge">Markdown</span>
+          </a>
         </div>
+      </div>
 
-        <!-- Getting Started Section -->
-        <div class="section">
-            <h2>🚀 Getting Started</h2>
-            <p>New to LuminariMUD? Start here!</p>
-
-            <div class="card-grid">
-                <a href="../README.md" class="card">
-                    <h3>README</h3>
-                    <p class="description">Project overview, quick start guide, and essential information.</p>
-                    <span class="badge">Markdown</span>
-                </a>
-
-                <a href="../GETTING_STARTED.md" class="card">
-                    <h3>Getting Started Guide</h3>
-                    <p class="description">Step-by-step guide for new players and developers.</p>
-                    <span class="badge">Markdown</span>
-                </a>
-
-                <a href="../guides/SETUP_AND_BUILD_GUIDE.md" class="card">
-                    <h3>Setup & Build</h3>
-                    <p class="description">Detailed instructions for building and deploying LuminariMUD.</p>
-                    <span class="badge">Markdown</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- Coming Soon Section -->
-        <div class="section coming-soon">
-            <h2>🔮 Coming Soon</h2>
-            <p>Future additions to the documentation portal:</p>
-            <ul style="line-height: 2; font-size: 1.1em;">
-                <li>Interactive Class Guide</li>
-                <li>Feat & Ability Reference</li>
-                <li>Crafting System Documentation</li>
-                <li>Search Functionality</li>
-                <li>Mobile-Optimized Views</li>
-            </ul>
-        </div>
+      <!-- Coming Soon Section -->
+      <div class="section coming-soon">
+        <h2>🔮 Coming Soon</h2>
+        <p>Future additions to the documentation portal:</p>
+        <ul style="line-height: 2; font-size: 1.1em">
+          <li>Interactive Class Guide</li>
+          <li>Feat & Ability Reference</li>
+          <li>Crafting System Documentation</li>
+          <li>Search Functionality</li>
+          <li>Mobile-Optimized Views</li>
+        </ul>
+      </div>
     </div>
 
     <div class="footer">
-        <p>
-            <a href="https://luminarimud.com/" target="_blank">Main Website</a> |
-            <a href="https://github.com/LuminariMUD/Luminari-Source" target="_blank">GitHub Repository</a> |
-            <a href="https://discord.gg/Me3Tuu4" target="_blank">Discord Community</a> |
-            <a href="../CONTRIBUTING.md">Contributing</a> |
-            <a href="../LICENSE.md">License</a>
-        </p>
-        <p style="margin-top: 20px; opacity: 0.8;">
-            &copy; 2025 LuminariMUD | Pathfinder/D&D 3.5e MUD
-        </p>
+      <p>
+        <a href="https://luminarimud.com/" target="_blank">Main Website</a> |
+        <a href="https://github.com/LuminariMUD/Luminari-Source" target="_blank"
+          >GitHub Repository</a
+        >
+        | <a href="https://discord.gg/Me3Tuu4" target="_blank">Discord Community</a> |
+        <a href="../CONTRIBUTING.md">Contributing</a> |
+        <a href="../LICENSE.md">License</a>
+      </p>
+      <p style="margin-top: 20px; opacity: 0.8">
+        &copy; 2025 LuminariMUD | Pathfinder/D&D 3.5e MUD
+      </p>
     </div>
-</body>
+  </body>
 </html>

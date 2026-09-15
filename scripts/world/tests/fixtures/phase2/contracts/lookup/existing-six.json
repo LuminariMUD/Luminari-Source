@@ -1,38 +1,20 @@
 {
   "mobile": {
-    "action_flags": [
-      "0",
-      "0",
-      "0",
-      "0"
-    ],
+    "action_flags": ["0", "0", "0", "0"],
     "affect2_flags": [],
-    "affect_flags": [
-      "0",
-      "0",
-      "0",
-      "0"
-    ],
+    "affect_flags": ["0", "0", "0", "0"],
     "aliases": "test mobile",
     "alignment": 0,
     "armor_class": 19,
     "attachments": [],
     "complete": true,
-    "damage_dice": [
-      1,
-      1,
-      0
-    ],
+    "damage_dice": [1, 1, 0],
     "default_position": 9,
     "description": "A test mobile.",
     "enhanced": {},
     "experience": 0,
     "gold": 0,
-    "hit_dice": [
-      1,
-      1,
-      0
-    ],
+    "hit_dice": [1, 1, 0],
     "hit_roll": 20,
     "legacy_affect_encoding": false,
     "level": 1,
@@ -55,18 +37,8 @@
   "object": {
     "action_description": "",
     "activated_spells": [],
-    "affect2_flags": [
-      "0",
-      "0",
-      "0",
-      "0"
-    ],
-    "affect_flags": [
-      "0",
-      "0",
-      "0",
-      "0"
-    ],
+    "affect2_flags": ["0", "0", "0", "0"],
+    "affect_flags": ["0", "0", "0", "0"],
     "affects": [],
     "aliases": "test key",
     "attachments": [],
@@ -74,12 +46,7 @@
     "cost": 1,
     "description": "A test key is here.",
     "extra_descriptions": [],
-    "extra_flags": [
-      "0",
-      "0",
-      "0",
-      "0"
-    ],
+    "extra_flags": ["0", "0", "0", "0"],
     "item_type": 18,
     "legacy_affect_encoding": false,
     "level": 1,
@@ -96,32 +63,10 @@
     "special_abilities": [],
     "spellbook": [],
     "timer": 0,
-    "values": [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
+    "values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     "vnum": 100,
     "weapon_spells": [],
-    "wear_flags": [
-      "1",
-      "0",
-      "0",
-      "0"
-    ],
+    "wear_flags": ["1", "0", "0", "0"],
     "weight": 1
   },
   "room": {
@@ -131,12 +76,7 @@
     "exits": [],
     "extra_descriptions": [],
     "file_zone": 1,
-    "flags": [
-      "0",
-      "0",
-      "0",
-      "0"
-    ],
+    "flags": ["0", "0", "0", "0"],
     "moving_connections": [],
     "rol_exit_traps": [],
     "maximum_level": -1,
@@ -177,15 +117,8 @@
       "%s sells for %d."
     ],
     "modern": true,
-    "open_hours": [
-      0,
-      28,
-      0,
-      28
-    ],
-    "product_vnums": [
-      100
-    ],
+    "open_hours": [0, 28, 0, 28],
+    "product_vnums": [100],
     "profit_buy": 1.0,
     "profit_sell": 1.0,
     "record_type": "shop",
@@ -222,9 +155,7 @@
         "target_vnum": 100
       }
     ],
-    "room_vnums": [
-      100
-    ],
+    "room_vnums": [100],
     "rol_cheat_restrictions": 0,
     "shop_flags": 0,
     "source_package": "1",
@@ -251,9 +182,7 @@
       "line": 1,
       "path": "trg/1.trg"
     },
-    "type_bits": [
-      0
-    ],
+    "type_bits": [0],
     "type_flags": "a",
     "vnum": 100
   },
@@ -264,12 +193,7 @@
     "commands": [],
     "complete": true,
     "faction": 0,
-    "flags": [
-      "0",
-      "0",
-      "0",
-      "0"
-    ],
+    "flags": ["0", "0", "0", "0"],
     "header_field_count": 4,
     "lifespan": 30,
     "max_level": -1,
