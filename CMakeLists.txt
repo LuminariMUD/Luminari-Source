@@ -415,7 +415,10 @@ target_include_directories(
 # Warning flags come from the shared, probed tier list above.
 target_compile_options(luminari_build INTERFACE ${LUMINARI_WARNING_CFLAGS_LIST})
 # GCC's analyzer needs more than 30 GiB for load_class_list, which registers
-# every class in one function, so class.c is compiled without it.
+# every class in one function, so class.c is compiled without it. Owner: class
+# registration in src/character/class.c. Expires when load_class_list is split
+# into functions the analyzer finishes within a CI runner's memory; remove the
+# matching exclusion in Makefile.am at the same time.
 if("-fanalyzer" IN_LIST LUMINARI_WARNING_CFLAGS_LIST)
     set_source_files_properties(src/character/class.c PROPERTIES COMPILE_OPTIONS -fno-analyzer)
 endif()

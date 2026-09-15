@@ -589,7 +589,10 @@ build_identity.h: FORCE_BUILD_IDENTITY scripts/deployment/generate_build_identit
 src/core/constants.$(OBJEXT) src/core/cutest-constants.$(OBJEXT): build_identity.h
 
 # GCC's analyzer needs more than 30 GiB for load_class_list, which registers
-# every class in one function, so class.c is compiled without it.
+# every class in one function, so class.c is compiled without it. Owner: class
+# registration in src/character/class.c. Expires when load_class_list is split
+# into functions the analyzer finishes within a CI runner's memory; remove the
+# matching exclusion in CMakeLists.txt at the same time.
 analyzer_exclude = $(if $(filter -fanalyzer,$(MYFLAGS)),-fno-analyzer)
 src/character/class.$(OBJEXT) src/character/cutest-class.$(OBJEXT): CFLAGS += $(analyzer_exclude)
 

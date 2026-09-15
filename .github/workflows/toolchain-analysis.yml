@@ -1,9 +1,12 @@
 name: Toolchain analysis
 
-# Scheduled, informational diagnostics on the current supported compilers:
-# the analysis warning tier (compiler-specific checks such as GCC's static
-# analyzer) and a report of how much the tree depends on GNU extensions.
-# Nothing here blocks a pull request; the blocking tiers live in test.yml.
+# Scheduled diagnostics on the current supported compilers: the analysis
+# warning tier (compiler-specific checks such as GCC's static analyzer) and a
+# report of how much the tree depends on GNU extensions. GCC's analyzer
+# findings are held by a budget that may only shrink, so a new one fails the
+# scheduled run; the other analysis-tier warnings and the extension report are
+# informational. Pull requests are gated by test.yml and by the clang-tidy
+# baseline in quality.yml, which runs the Clang static analyzer.
 
 on:
   workflow_dispatch:
@@ -72,7 +75,16 @@ jobs:
           python3 scripts/ci/check_warning_budget.py
           --compiler ${{ matrix.compiler }} --log build/analysis/build.log --report
 
+      # The build pipes through tee, so a compiler error surfaces here: the
+      # budget check refuses a log that contains one.
+      - name: Compare analyzer findings with the budget
+        if: matrix.compiler == 'gcc-16'
+        run: >-
+          python3 scripts/ci/check_warning_budget.py
+          --compiler gcc-16-analyzer --classes '^analyzer-' --log build/analysis/build.log
+
       - name: Upload the build log
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: analysis-${{ matrix.compiler }}
