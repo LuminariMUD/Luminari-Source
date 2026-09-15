@@ -142,7 +142,7 @@ example project snapshots rather than current project entry points.
 | Quick start | `README.md`, onboarding/build docs | `deploy.sh --help`; deploy build/database/world functions inspected | Updated |
 | Build/test commands | Development and contributing docs | `Makefile.am` test/test-all/install targets; dry-run target inspection | Verified |
 | CMake commands | Development/build docs | `CMakeLists.txt` `BUILD_TESTS` and install blocks | Verified |
-| Game port | README, getting started, environments, deployment | `src/config.c`, autorun default, systemd unit, deploy completion output | Local 4100; production 4100 |
+| Game port | README, getting started, environments, deployment | `src/config/config.c`, autorun default, systemd unit, deploy completion output | Local 4100; production 4100 |
 | Health API | API, deployment, environment, runbook docs | `terrain_bridge.c/.h`, healthcheck script, systemd unit, gameplay/shell regressions | Verified |
 | Operational commands | Deployment/runbook docs | Deploy, autorun, healthcheck, process-memory, and world-tool help surfaces | Verified |
 | CI/CD | `docs/deployment/DEPLOYMENT_GUIDE.md` | Six workflow trigger/job files plus `.github/dependabot.yml`; pipeline report | Verified |

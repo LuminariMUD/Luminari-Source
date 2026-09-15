@@ -21,7 +21,7 @@
 #include "core/comm.h"
 #include "domains_schools.h"
 #include "casting_visuals.h"
-#include "mud_options.h"
+#include "config/mud_options.h"
 
 /*
  * School-specific start messages.

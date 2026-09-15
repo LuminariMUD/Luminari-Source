@@ -4,7 +4,7 @@
 #include "core/utils.h"
 #include "core/comm.h"
 #include "core/db.h"
-#include "dotenv.h"
+#include "config/dotenv.h"
 #include "events/event_runtime.h"
 #include "vessel_periodic.h"
 #include "vessels.h"

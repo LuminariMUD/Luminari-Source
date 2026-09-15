@@ -59,9 +59,9 @@ if [[ -n ${LUMINARI_TEST_CONFIG_FILE:-} ]]; then
 fi
 
 cd "$work_dir"
-cp src/campaign.example.h src/campaign.h
-cp src/mud_options.example.h src/mud_options.h
-cp src/vnums.example.h src/vnums.h
+cp src/config/campaign.example.h src/config/campaign.h
+cp src/config/mud_options.example.h src/config/mud_options.h
+cp src/config/vnums.example.h src/config/vnums.h
 # Normalize debug paths so temporary archive directories can reuse compiler cache
 # entries without returning debug information that names a vanished checkout.
 cmake_cache_flags=()

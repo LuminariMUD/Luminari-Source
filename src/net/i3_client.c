@@ -15,7 +15,7 @@
 #include "core/screen.h"
 #include "act/act.h"
 #include "core/modify.h"
-#include "dotenv.h"
+#include "config/dotenv.h"
 
 #include "i3_client.h"
 /* Temporarily disabled for compilation

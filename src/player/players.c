@@ -25,7 +25,7 @@
 #include "core/interpreter.h"
 #include "database/mysql.h"
 #include "olc/genolc.h"          /* for strip_cr */
-#include "config.h"              /* for pclean_criteria[] */
+#include "config/config.h"       /* for pclean_criteria[] */
 #include "dgscript/dg_scripts.h" /* To enable saving of player variables to disk */
 #include "quest/quest.h"
 #include "magic/spells.h"

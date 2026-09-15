@@ -4,7 +4,9 @@
 Both build systems keep hand-maintained file lists. This check parses the
 variables that must stay equivalent, then reports entries that are missing
 from one side, duplicated within a list, or that name files absent from the
-tree (or untracked, when run inside a Git checkout).
+tree (or untracked, when run inside a Git checkout). It also rejects any
+listed or tracked .c or .h file directly under src/: every source file lives
+in a directory directly under src/.
 
 Usage: scripts/ci/check_build_parity.py [--root DIR]
 Exit status is 0 when every manifest pair matches, 1 otherwise.
@@ -238,6 +240,15 @@ def main() -> int:
             problems.append(f"  manifest entry does not exist: {entry}")
         elif tracked is not None and entry not in tracked:
             problems.append(f"  manifest entry is not tracked by Git: {entry}")
+
+    problems += report_list(
+        "source file directly under src/ (move it into a directory)",
+        sorted(
+            entry
+            for entry in referenced | (tracked or set())
+            if entry.startswith("src/") and entry.count("/") == 1 and entry.endswith((".c", ".h"))
+        ),
+    )
 
     if problems:
         print("Build manifest parity check failed:")

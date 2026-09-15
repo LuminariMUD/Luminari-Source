@@ -81,8 +81,8 @@ Production uses game port 4100 through `luminari.service`. Deployment also
 supports noninteractive and managed-service modes; inspect the options with
 `./scripts/deployment/deploy.sh --help`.
 
-Local headers and credentials are untracked: preserve existing `src/campaign.h`,
-`src/mud_options.h`, `src/vnums.h`, `lib/mysql_config`, and `lib/.env`.
+Local headers and credentials are untracked: preserve existing `src/config/campaign.h`,
+`src/config/mud_options.h`, `src/config/vnums.h`, `lib/mysql_config`, and `lib/.env`.
 Development tooling that checks the environment requires `APP_ENV=development`
 in `lib/.env`; the tracked [environment example](lib/.env_example) defaults to
 production and must be adapted for a local checkout. Ollama, InterMUD-3, and

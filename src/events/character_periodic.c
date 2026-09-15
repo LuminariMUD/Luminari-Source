@@ -5,7 +5,7 @@
 #include "combat/tactical_effects.h"
 #include "core/comm.h"
 #include "core/db.h"
-#include "dotenv.h"
+#include "config/dotenv.h"
 #include "act/act.h"
 #include "character/bardic_performance.h"
 #include "character_periodic.h"

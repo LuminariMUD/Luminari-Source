@@ -21,7 +21,7 @@
 #include "magic/spells.h"
 #include "act/act.h"
 #include "character/class.h"
-#include "config.h"
+#include "config/config.h"
 #include "core/modify.h"
 #include "olc/genolc.h" /* for strip_cr and sprintascii */
 #include "craft/craft.h"

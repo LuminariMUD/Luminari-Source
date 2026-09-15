@@ -13,7 +13,7 @@
 #include "conf.h"
 #include "core/sysdep.h"
 #include "core/structs.h"
-#include "campaign.h"
+#include "config/campaign.h"
 
 /* Wilderness-crafting integration */
 

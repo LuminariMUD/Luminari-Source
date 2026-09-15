@@ -26,19 +26,29 @@ SCRIPT_PATH="$(readlink -f -- "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 cd "$SCRIPT_DIR/../.."
 
+# The local configuration headers live in src/config/. Copying the examples while
+# a customized header still sits directly under src/ would build with the defaults.
+for header in campaign mud_options vnums; do
+    if [[ -e "src/$header.h" ]]; then
+        echo -e "${RED}src/$header.h must move to src/config/. From $(pwd), run:${NC}"
+        echo "  mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/"
+        exit 1
+    fi
+done
+
 # Step 1: Copy configuration files if they don't exist
 echo -e "\n${GREEN}Step 1: Setting up configuration files...${NC}"
-if [[ ! -f src/campaign.h ]]; then
-    cp src/campaign.example.h src/campaign.h
-    echo "  Created src/campaign.h"
+if [[ ! -f src/config/campaign.h ]]; then
+    cp src/config/campaign.example.h src/config/campaign.h
+    echo "  Created src/config/campaign.h"
 fi
-if [[ ! -f src/mud_options.h ]]; then
-    cp src/mud_options.example.h src/mud_options.h
-    echo "  Created src/mud_options.h"
+if [[ ! -f src/config/mud_options.h ]]; then
+    cp src/config/mud_options.example.h src/config/mud_options.h
+    echo "  Created src/config/mud_options.h"
 fi
-if [[ ! -f src/vnums.h ]]; then
-    cp src/vnums.example.h src/vnums.h
-    echo "  Created src/vnums.h"
+if [[ ! -f src/config/vnums.h ]]; then
+    cp src/config/vnums.example.h src/config/vnums.h
+    echo "  Created src/config/vnums.h"
 fi
 
 # Step 2: Build the game

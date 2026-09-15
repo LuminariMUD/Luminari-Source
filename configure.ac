@@ -10,6 +10,15 @@ AC_SUBST(CSTD_CFLAGS)
 
 AC_CONFIG_HEADERS([conf.h])
 
+dnl The local configuration headers live in src/config/.  One still directly
+dnl under src/ means this checkout has not moved them, and a script that copies
+dnl the examples would build with the defaults instead.
+for luminari_local_header in campaign mud_options vnums; do
+  if test -e "$srcdir/src/$luminari_local_header.h"; then
+    AC_MSG_ERROR([src/$luminari_local_header.h must move to src/config/; run: mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/])
+  fi
+done
+
 dnl Unknown configure options are fatal by default.  The production profile was
 dnl once requested through an option configure.ac never defined, and the build
 dnl silently used the default flags; a caller may still pass

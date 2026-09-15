@@ -8,7 +8,7 @@
 #include "active_world.h"
 #include "domain_event_types.h"
 #include "domain_event_world.h"
-#include "dotenv.h"
+#include "config/dotenv.h"
 #include "dgscript/dg_event.h"
 #include "event_runtime.h"
 #include "mob/mob_act.h"

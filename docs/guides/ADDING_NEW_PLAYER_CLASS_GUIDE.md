@@ -223,7 +223,7 @@ New feat IDs are permanent values in `src/core/structs.h`; register them with `f
 subsystem. Never recycle released IDs.
 
 If work adds or removes a C source file, update both `Makefile.am` and `CMakeLists.txt`. Do not edit
-`src/campaign.h`, `src/mud_options.h`, or `src/vnums.h`; change the corresponding example template
+`src/config/campaign.h`, `src/config/mud_options.h`, or `src/config/vnums.h`; change the corresponding example template
 when a shared configuration symbol is required.
 
 ## 5. Wire every player entry path

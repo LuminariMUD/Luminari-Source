@@ -10,7 +10,7 @@
 #include "core/structs.h"
 #include "core/utils.h"
 #include "core/db.h"
-#include "pet_vnums.h"
+#include "config/pet_vnums.h"
 
 #include "character/vampire_cloak.h"
 #include "comms/boards.h"

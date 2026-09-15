@@ -76,7 +76,7 @@
 #include "../../src/core/mudlim.h"
 #include "../../src/database/mysql.h"
 #include "../../src/dgscript/dg_event.h"
-#include "../../src/dotenv.h"
+#include "../../src/config/dotenv.h"
 
 #include <fcntl.h>
 #include <limits.h>
@@ -92,7 +92,7 @@
 #include "../../src/wilderness/resource_depletion.h"
 #include "../../src/wilderness/wilderness.h"
 #include "../../src/wilderness/perlin.h"
-#include "../../src/harvest_vnums.h"
+#include "../../src/config/harvest_vnums.h"
 
 /* Real player saves also write the index: keep every persistence fixture isolated. */
 static void enter_player_fixture(CuTest *tc, char *temporary_directory)

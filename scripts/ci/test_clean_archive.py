@@ -59,9 +59,9 @@ class CleanArchiveTest(unittest.TestCase):
         script = self.repo / "scripts/ci/check_clean_archive.sh"
         script.parent.mkdir(parents=True)
         shutil.copy2(ROOT / "scripts/ci/check_clean_archive.sh", script)
-        (self.repo / "src").mkdir()
+        (self.repo / "src" / "config").mkdir(parents=True)
         for name in ("campaign", "mud_options", "vnums"):
-            (self.repo / f"src/{name}.example.h").write_text("/* fixture */\n")
+            (self.repo / f"src/config/{name}.example.h").write_text("/* fixture */\n")
         self.git("init", "--quiet")
         self.git("add", ".")
         self.git("-c", "user.name=Test Fixture", "-c", "user.email=test@example.invalid",

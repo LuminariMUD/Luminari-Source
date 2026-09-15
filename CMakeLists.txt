@@ -100,15 +100,26 @@ if (GIT_HEAD_REFERENCE)
     endif()
 endif()
 
+# The local configuration headers live in src/config/. One still directly under
+# src/ means this checkout has not moved them, and a script that copies the
+# examples would build with the defaults instead.
+foreach(LUMINARI_LOCAL_HEADER campaign mud_options vnums)
+    if (EXISTS ${CMAKE_SOURCE_DIR}/src/${LUMINARI_LOCAL_HEADER}.h)
+        message(FATAL_ERROR
+            "src/${LUMINARI_LOCAL_HEADER}.h must move to src/config/; run: "
+            "mkdir -p src/config && mv -n src/{campaign,mud_options,vnums}.h src/config/")
+    endif()
+endforeach()
+
 # Check for required configuration headers
-if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/campaign.h)
-    message(FATAL_ERROR "campaign.h not found! Copy src/campaign.example.h to src/campaign.h and configure it.")
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/config/campaign.h)
+    message(FATAL_ERROR "campaign.h not found! Copy src/config/campaign.example.h to src/config/campaign.h and configure it.")
 endif()
-if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/mud_options.h)
-    message(FATAL_ERROR "mud_options.h not found! Copy src/mud_options.example.h to src/mud_options.h and configure it.")
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/config/mud_options.h)
+    message(FATAL_ERROR "mud_options.h not found! Copy src/config/mud_options.example.h to src/config/mud_options.h and configure it.")
 endif()
-if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/vnums.h)
-    message(FATAL_ERROR "vnums.h not found! Copy src/vnums.example.h to src/vnums.h and configure it.")
+if (NOT EXISTS ${CMAKE_SOURCE_DIR}/src/config/vnums.h)
+    message(FATAL_ERROR "vnums.h not found! Copy src/config/vnums.example.h to src/config/vnums.h and configure it.")
 endif()
 
 # ========== Dependencies ==========
@@ -397,7 +408,7 @@ set(SRC_C_FILES
     src/character/class.c
     src/combat/combat_modes.c
     src/core/comm.c
-    src/config.c
+    src/config/config.c
     src/core/constants.c
     src/core/copyover_diagnostic.c
     src/craft/craft.c
@@ -427,7 +438,7 @@ set(SRC_C_FILES
     src/dgscript/dg_wldcmd.c
     src/magic/domain_powers.c
     src/magic/domains_schools.c
-    src/dotenv.c
+    src/config/dotenv.c
     src/core/elf_build_id.c
     src/combat/encounters.c
     src/combat/combat_encounters.c
@@ -565,7 +576,7 @@ set(SRC_C_FILES
     src/wilderness/resource_system.c
     src/wilderness/harvest.c
     src/wilderness/harvest.h
-    src/harvest_vnums.h
+    src/config/harvest_vnums.h
     src/wilderness/resource_depletion.c
     src/wilderness/resource_descriptions.c
     src/wilderness/resource_regeneration.c
@@ -719,7 +730,7 @@ set(SRC_C_FILES
     src/net/i3_client.c
     src/net/i3_commands.c
     src/net/i3_utils.c
-    src/pet_vnums.h
+    src/config/pet_vnums.h
     src/core/elf_build_id.h
     src/player/player_rename.h
     src/combat/tactical_effects.h

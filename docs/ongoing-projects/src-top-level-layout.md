@@ -21,12 +21,16 @@ Every source file lives in one directory directly under `src/`. No behavior chan
 | 7 | into existing directories | done |
 | 8 | `events/` | done |
 | 9 | `core/` | done |
-| 10 | `config/`, local-header guard, regression guard | todo; needs the owner's header move |
+| 10 | `config/`, local-header guard, regression guard | committed, verified in a replica; checkouts move their headers |
 | 11 | rules text and remaining prose | todo |
 
 To resume: `git log --oneline origin/master..arch-n-worktree` lists the landed batches, one
 commit each. Follow [Per-batch steps](#per-batch-steps) for the next row and update this
 table in the same commit.
+
+Batches 10 and 11 stay local until the owner moves this checkout's headers: the pre-push
+hook runs `make`, which stops at the guard until then. After the move, run the final
+verification below, then push.
 
 Baseline on `ad8105421`: a clean Autotools build has no warnings, and `make -j16 test`
 passes (1,487 cutest tests); the clean build, tests, and install take about a minute.
@@ -175,8 +179,9 @@ runs `git mv`; for every file already moved it then:
   tracked files under `src/` share a basename, so resolution is unambiguous. Existing
   qualified same-directory includes to headers that do not move stay as they are.
 - rewrites `src/<name>` path references in tracked text files, including both manifests.
-  It skips the changelogs, `lib/rol-conversion/`, this document, itself, and any path
-  token containing `EXAMPLE/` (for example `EXAMPLE/RealmsOfLuminari/src/db.c`).
+  It skips the changelogs, `lib/rol-conversion/`, this document, itself,
+  `rol_special_reconciliation.py` (its `src/config.h` is the RoL build configuration), and any
+  path token containing `EXAMPLE/` (for example `EXAMPLE/RealmsOfLuminari/src/db.c`).
 - deletes the moved sources' orphaned `src/<stem>.o`, `src/*-<stem>.o`, and matching
   `src/.deps/*.Po` files (`make clean` does not remove objects of sources the Makefile no
   longer lists), and `src/.dirstamp` and `src/.deps/` once no `.c` file remains at the top.
@@ -279,6 +284,16 @@ Production runs it immediately before building the release that contains the bat
 Before then, check whether production's local headers include any other header by bare
 name; the development copies include nothing.
 
+Verifying the batch before the owner's move: this checkout's `make` stops at the guard, so
+the batch is built and tested in a `git archive` of the working tree (`git stash create`)
+holding copies of the local headers in `src/config/`, copies of `lib/{etc,misc,text,house,
+mudmail,world}`, and a symlink to `lib/mysql_config`. The replica runs the Autotools build,
+`make test`, `make check-world-docs`, `make test-world-tools`, the protocol and rename
+checks, a `ci-gcc` CMake build with `ctest`, and the four guards with a scratch
+`src/campaign.h`. Until the headers move, the two world-tool tests that compile sources
+(`test_spell_map_targets_registered_luminari_spells` and `ShopConverterTests`) fail in this
+checkout.
+
 ## Batches
 
 One commit per batch. Each commit builds, passes the tests, and leaves nothing at the top
@@ -337,7 +352,7 @@ The script rewrites every `src/<name>` spelling (with any prefix such as `../../
 | Includes | `src/`; `unittests/CuTest/*.c` (`../../src/` form); `util/*.c` (bare through `-I../src`, plus the `../src/` form in `spelllist_html.c`); `src/vessels/transport.c` (`../character_periodic.h`); `unittests/CuTest/Makefile` prerequisites |
 | Tests reading sources at run time | `unittests/CuTest/test_copyover_timer.c` (`act.wizard.c`); `test_perfmon_production.c` (`interpreter.c`, `db.c`, `structs.h`); `test_spec_combat_secondary.c`, `test_spec_effective_binding.c`, and `test_spec_registry_validation.c` (`db.c`); `test_spec_command_pulse.c` (`comm.c`, `character_periodic.c`, `handler.c`, `act.wizard.c`) |
 | Scripts reading sources | `scripts/events/test_native_event_architecture.sh`; `scripts/events/test_demand_driven_architecture.sh`; `scripts/events/test_pubsub_retirement.sh`; `scripts/autorun/test_autorun_supervision.sh` (`comm.h`); `scripts/character-rename/test_character_rename_static.sh`; `scripts/development/check_local_port_allocations.sh` (`config.c`); `scripts/development/dev_kohdee_login_smoke.sh`; `scripts/world/wtool_lib/constants.py` (`structs.h`, `constants.c`); `scripts/world/wtool_lib/docs_check.py` (`interpreter.c`) |
-| Manual | `events/`: the `/src/(game_scheduler\|event_runtime)` filter in `test_native_event_architecture.sh`. `core/`: the `$(OBJEXT)` rule in `Makefile.am`; the `.pre-commit-config.yaml` clang-format exclude `^src/(olc/genolc\.c\|utils\.h)$`; regenerate `scripts/world/wtool_constants.json` with `wtool.py constants sync`; `util/aider/aider_setup.md` (`/add src/*.c` finds nothing once the top is empty). `database/`: check `scripts/help-sync/tests/test_endpoint_integration.py` (`db_init.c`). `act/`, `core/`: check `scripts/development/check-dg-docs.py` (`interpreter.c`, `constants.c`). `config/`: `.github/actions/setup-build/action.yml` (`src/$header.h`) |
+| Manual | `events/`: the `/src/(game_scheduler\|event_runtime)` filter in `test_native_event_architecture.sh`. `core/`: the `$(OBJEXT)` rule in `Makefile.am`; the `.pre-commit-config.yaml` clang-format exclude `^src/(olc/genolc\.c\|utils\.h)$`; regenerate `scripts/world/wtool_constants.json` with `wtool.py constants sync`; `util/aider/aider_setup.md` (`/add src/*.c` finds nothing once the top is empty). `database/`: check `scripts/help-sync/tests/test_endpoint_integration.py` (`db_init.c`). `act/`, `core/`: check `scripts/development/check-dg-docs.py` (`interpreter.c`, `constants.c`). `config/`: `.github/actions/setup-build/action.yml` (`src/$header.h`), `scripts/ci/local/run.py` (`f'src/{header}.h'`), the `scripts/ci/test_clean_archive.py` fixture (`src/{name}.example.h`), and the guards |
 | Path-keyed baseline | `scripts/ci/sql_interpolation_baseline.txt` has 11 top-level keys; `--update` treats a new path as growth and refuses, so the script's textual rename is the right fix. |
 | Silent if missed | `.github/workflows/pages.yml` path triggers (`constants.c`, `interpreter.c`); `docs/CODEOWNERS` (7 entries) |
 | Comments | version comments in `configure.ac` and `CMakeLists.txt`; `scripts/autorun/autorun.sh`; `scripts/deployment/production_profile.sh`, `test_production_profile.sh`, `verify_hardened_binary.sh`; `sql/components/*.sql` headers |

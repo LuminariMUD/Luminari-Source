@@ -26,7 +26,7 @@
 #include "dgscript/dg_scripts.h"
 #include "events/mud_event.h"
 #include "events/actions.h"
-#include "config.h"
+#include "config/config.h"
 #include "combat/traps.h"
 #include "magic/psionics.h"
 #include "movement_doors.h"

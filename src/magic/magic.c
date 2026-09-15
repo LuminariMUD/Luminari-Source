@@ -28,7 +28,7 @@
 #include "events/mud_event.h"
 #include "act/act.h" /* perform_wildshapes */
 #include "events/actions.h"
-#include "pet_vnums.h"
+#include "config/pet_vnums.h"
 #include "core/mudlim.h"
 #include "character/rewards.h"
 #include "olc/oasis.h" // mob autoroller

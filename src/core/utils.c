@@ -14,7 +14,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
-#include "pet_vnums.h"
+#include "config/pet_vnums.h"
 #include "db.h"
 #include "comm.h"
 #include "modify.h"

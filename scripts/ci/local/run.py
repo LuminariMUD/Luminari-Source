@@ -110,9 +110,9 @@ def container_job():
             print(f"==> {step['name']}", flush=True)
             if step.get('setup'):
                 for header in ('campaign', 'mud_options', 'vnums'):
-                    target = Path(f'src/{header}.h')
+                    target = Path(f'src/config/{header}.h')
                     if not target.exists():
-                        target.write_bytes(Path(f'src/{header}.example.h').read_bytes())
+                        target.write_bytes(Path(f'src/config/{header}.example.h').read_bytes())
                 continue
             # Dependencies are installed in the image, including mixed install/test steps.
             command = '\n'.join(line for line in step['run'].splitlines()

@@ -28,7 +28,7 @@
 #include "quest/staff_events.h"
 #include "character/feats.h"
 #include "craft/crafting_new.h"
-#include "mud_options.h"
+#include "config/mud_options.h"
 
 extern int weighted_object_bonuses[NUM_ITEM_WEARS][NUM_APPLIES];
 

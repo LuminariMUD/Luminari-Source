@@ -17,7 +17,7 @@
 #include "../../src/core/mudlim.h"
 #include "../../src/events/mud_event.h"
 #include "../../src/events/domain_event_world.h"
-#include "../../src/pet_vnums.h"
+#include "../../src/config/pet_vnums.h"
 #include "../../src/magic/spells.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/events/event_runtime.h"

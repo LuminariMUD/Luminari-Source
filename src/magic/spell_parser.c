@@ -14,7 +14,7 @@
 #include "core/utils.h"
 #include "core/interpreter.h"
 #include "spells.h"
-#include "pet_vnums.h"
+#include "config/pet_vnums.h"
 #include "core/handler.h"
 #include "core/comm.h"
 #include "core/db.h"

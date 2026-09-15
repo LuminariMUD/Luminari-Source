@@ -4,7 +4,7 @@
 #include "core/utils.h"
 #include "core/comm.h"
 #include "core/db.h"
-#include "dotenv.h"
+#include "config/dotenv.h"
 #include "event_runtime.h"
 #include "periodic_owners.h"
 #include "dgscript/dg_scripts.h"

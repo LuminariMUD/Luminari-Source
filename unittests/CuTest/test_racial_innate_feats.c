@@ -29,7 +29,7 @@
 #include "../../src/core/mudlim.h"
 #include "../../src/net/protocol.h"
 #include "../../src/obj/shop.h"
-#include "../../src/pet_vnums.h"
+#include "../../src/config/pet_vnums.h"
 #include "../../src/vessels/vessels.h"
 #include "../../src/wilderness/resource_system.h"
 #include "../../src/wilderness/kdtree.h"

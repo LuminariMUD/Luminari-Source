@@ -46,7 +46,7 @@ The main integration points are:
 
 Artifact code uses zone 1699 and the range 169900-169999. The VNUM constants
 live in `src/obj/spec_artifacts.h`; do not add them to the local
-`src/vnums.h`.
+`src/config/vnums.h`.
 
 The provisioning source is expected at `lib/world/artifacts/`:
 

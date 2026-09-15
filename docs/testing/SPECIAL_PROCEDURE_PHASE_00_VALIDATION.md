@@ -263,7 +263,7 @@ against production.
 - Compare every `sql/components/*.sql` basename with `ci_schema_manifest.txt` exactly once.
 - Resolve every relative Markdown link changed in Session 09.
 - Scan changed text for non-ASCII and CR bytes and run `git diff --check`.
-- Confirm no diff in `src/campaign.h`, `src/mud_options.h`, `src/vnums.h`, `lib/.env`,
+- Confirm no diff in `src/config/campaign.h`, `src/config/mud_options.h`, `src/config/vnums.h`, `lib/.env`,
   `lib/mysql_config`, or `lib/world/`.
 - Confirm the checked-in world digest is unchanged, no validation sandbox remains, `bin/luminari` is
   executable, and root `luminari` is absent.

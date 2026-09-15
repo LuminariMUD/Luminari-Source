@@ -14,8 +14,8 @@
 #include "craft/craft.h"
 #include "core/db.h"
 #include "events/domain_event_world.h"
-#include "dotenv.h"
-#include "harvest_vnums.h"
+#include "config/dotenv.h"
+#include "config/harvest_vnums.h"
 #include "magic/spells.h"
 
 #include <limits.h>

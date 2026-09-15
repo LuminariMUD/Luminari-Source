@@ -23,17 +23,17 @@
 #include "lists.h"
 
 /* Local configuration copied from campaign.example.h. */
-#include "campaign.h"
+#include "config/campaign.h"
 
 /* You will need to add a mud_options.h file that contains the various
  * options which must be defined in the code to work properly. You can make a
  * copy of the mud_options.example.h file to get started. */
-#include "mud_options.h"
+#include "config/mud_options.h"
 
 // You will need to have a vnums.h file. You can make a copy of vnums.example.h
 // and change the vnums as needed. This ensures all of the vnums used by the
 // code are defined in one place, so you can review and change them easily.
-#include "vnums.h"
+#include "config/vnums.h"
 
 struct combat_encounter_data;
 struct combat_encounter_participant;

@@ -5,7 +5,7 @@
 #include "combat/tactical_effects.h"
 #include "core/comm.h"
 #include "core/db.h"
-#include "dotenv.h"
+#include "config/dotenv.h"
 #include "core/handler.h"
 #include "affected_owners.h"
 #include "event_runtime.h"

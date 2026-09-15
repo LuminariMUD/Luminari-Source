@@ -135,9 +135,9 @@ world-tool, sanitizer, Valgrind, and subsystem commands.
 On a fresh clone only, copy missing examples to their local paths:
 
 ```bash
-test -e src/campaign.h || cp src/campaign.example.h src/campaign.h
-test -e src/mud_options.h || cp src/mud_options.example.h src/mud_options.h
-test -e src/vnums.h || cp src/vnums.example.h src/vnums.h
+test -e src/config/campaign.h || cp src/config/campaign.example.h src/config/campaign.h
+test -e src/config/mud_options.h || cp src/config/mud_options.example.h src/config/mud_options.h
+test -e src/config/vnums.h || cp src/config/vnums.example.h src/config/vnums.h
 test -e lib/mysql_config || install -m 600 lib/mysql_config_example lib/mysql_config
 ```
 

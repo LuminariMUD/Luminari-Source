@@ -1,7 +1,7 @@
 #ifndef NEWCRAFT_H
 #define NEWCRAFT_H
 
-#include "pet_vnums.h"
+#include "config/pet_vnums.h"
 
 #include <stdbool.h>
 #include <time.h>         // For time_t type

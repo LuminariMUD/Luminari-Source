@@ -227,7 +227,7 @@ static const char *wildlife_active = ". Small creatures move through the %s unde
 
 ### Core Files
 - `src/wilderness/desc_engine.c` - Enhanced description generation
-- `src/campaign.h` - Local wilderness feature settings
+- `src/config/campaign.h` - Local wilderness feature settings
 - `src/act/act.informative.c` - Integration with look command
 - `src/wilderness/wilderness.c` - Wilderness room handling
 

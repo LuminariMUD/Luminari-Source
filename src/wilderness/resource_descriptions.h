@@ -10,7 +10,7 @@
 #ifndef RESOURCE_DESCRIPTIONS_H
 #define RESOURCE_DESCRIPTIONS_H
 
-#include "campaign.h"
+#include "config/campaign.h"
 
 /* Only compile if dynamic descriptions are enabled for this build. */
 #ifdef ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS

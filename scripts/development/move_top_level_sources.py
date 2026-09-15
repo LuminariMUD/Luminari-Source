@@ -121,6 +121,8 @@ SKIPPED_FILES = frozenset(
         "docs/CHANGELOG.md",
         "docs/ongoing-projects/src-top-level-layout.md",
         "scripts/development/move_top_level_sources.py",
+        # Its src/ paths, including src/config.h, name the RoL source tree.
+        "scripts/world/wtool_lib/rol_special_reconciliation.py",
     }
 )
 INCLUDE = re.compile(r'^([ \t]*#[ \t]*include[ \t]*")([^"\n]+)(")', re.M)
@@ -321,11 +323,12 @@ def main() -> int:
 
     products = stale_products(layout)
     if not args.dry_run:
-        for product in products:
+        # Files first: src/.deps/ may itself be one of the products.
+        for product in sorted(products, key=Path.is_dir):
             if product.is_dir():
                 shutil.rmtree(product)
             else:
-                product.unlink()
+                product.unlink(missing_ok=True)
 
     verb = "would" if args.dry_run else "did"
     print(f"batches: {', '.join(selected)}")

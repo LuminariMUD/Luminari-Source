@@ -43,7 +43,7 @@
 #ifndef FALSE
 #define FALSE 0
 #endif
-#include "vnums.h"
+#include "config/vnums.h"
 #include "crafting_recipes.h"
 
 

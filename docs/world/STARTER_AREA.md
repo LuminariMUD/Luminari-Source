@@ -2,7 +2,7 @@
 
 The minimal world bundle provides a sane three-room loop that lets fresh
 databases boot without importing the full production world. These rooms cover
-the default mortal and immortal start vnums defined in `src/config.c`.
+the default mortal and immortal start vnums defined in `src/config/config.c`.
 
 ## Where it lives
 

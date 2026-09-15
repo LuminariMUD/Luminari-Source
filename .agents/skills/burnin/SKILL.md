@@ -25,7 +25,7 @@ Updating this skill does not authorize executing it or resuming a paused burn-in
 - Follow the repository prohibition on production code changes. Production access in `lib/.env`
   does not authorize stopping production, migrating its database, or publishing local repairs.
   Do not change an environment marker to pass a development guard.
-- Preserve `src/campaign.h`, `src/mud_options.h`, `src/vnums.h`, `lib/mysql_config`, and `lib/.env`.
+- Preserve `src/config/campaign.h`, `src/config/mud_options.h`, `src/config/vnums.h`, `lib/mysql_config`, and `lib/.env`.
   Use their tracked examples only as permitted by `AGENTS.md`. Keep player files, world files,
   runtime databases, existing releases, and crash evidence intact.
 - Keep logs, test runtimes, and separate build trees in a unique ignored `.burnin-runtime*`

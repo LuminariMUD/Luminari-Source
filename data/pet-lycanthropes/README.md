@@ -26,6 +26,6 @@ potential hostility. See CALL-LYCANTHROPE/MOONCALL help for player rules.
 The same zone 195 mob file also carries the two prototypes loaded by the
 `summonwarg` and `summonhorde` racial innate feats: the snarling warg (19502,
 `PET_RACIAL_WARG`) and the orc warrior (19503, `PET_RACIAL_ORC_WARRIOR`) named
-in `src/pet_vnums.h`. They are code-loaded only; no zone reset places them.
+in `src/config/pet_vnums.h`. They are code-loaded only; no zone reset places them.
 The installer appends them to an existing 195.mob. See
 the Racial Innate Feats section of docs/systems/GAME_MECHANICS_SYSTEMS.md.

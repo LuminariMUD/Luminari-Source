@@ -609,7 +609,7 @@ stable coverage range increases, update the fixed floors in
 CI builds and runs the complete production-linked behavioral suite for the
 supported Luminari configuration. Retired compile-time campaign variants are
 not supported or tested. The build uses no campaign define, and validation
-must never modify the protected `src/campaign.h` configuration header.
+must never modify the protected `src/config/campaign.h` configuration header.
 
 ## Memory Checking
 

@@ -46,7 +46,7 @@
 #include "spec/spec_cooldown.h"
 #include "spec/spec_phrase.h"
 #include "events/point_update_periodic.h"
-#include "pet_vnums.h"
+#include "config/pet_vnums.h"
 
 /*****************************************/
 /****  object procs general functions ****/

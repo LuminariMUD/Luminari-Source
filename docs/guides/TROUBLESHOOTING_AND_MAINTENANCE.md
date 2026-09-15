@@ -37,9 +37,9 @@ autoreconf -fvi
 On a fresh clone only, create files that do not already exist:
 
 ```bash
-test -e src/campaign.h || cp src/campaign.example.h src/campaign.h
-test -e src/mud_options.h || cp src/mud_options.example.h src/mud_options.h
-test -e src/vnums.h || cp src/vnums.example.h src/vnums.h
+test -e src/config/campaign.h || cp src/config/campaign.example.h src/config/campaign.h
+test -e src/config/mud_options.h || cp src/config/mud_options.example.h src/config/mud_options.h
+test -e src/config/vnums.h || cp src/config/vnums.example.h src/config/vnums.h
 ```
 
 Never overwrite or commit those local headers.

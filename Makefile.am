@@ -23,7 +23,7 @@ bin_PROGRAMS = luminari
 
 # Source files for the main program
 luminari_SOURCES = \
-	src/pet_vnums.h \
+	src/config/pet_vnums.h \
 	src/player/account.c \
 	src/act/act.comm.c \
 	src/act/act.comm.do_spec_comm.c \
@@ -80,7 +80,7 @@ luminari_SOURCES = \
 	src/character/class.c \
 	src/combat/combat_modes.c \
 	src/core/comm.c \
-	src/config.c \
+	src/config/config.c \
 	src/core/constants.c \
 	src/core/copyover_diagnostic.c \
 	src/craft/craft.c \
@@ -110,7 +110,7 @@ luminari_SOURCES = \
 	src/dgscript/dg_wldcmd.c \
 	src/magic/domain_powers.c \
 	src/magic/domains_schools.c \
-	src/dotenv.c \
+	src/config/dotenv.c \
 	src/core/elf_build_id.c \
 	src/core/elf_build_id.h \
 	src/combat/encounters.c \
@@ -264,7 +264,7 @@ luminari_SOURCES = \
 	src/wilderness/resource_system.c \
 	src/wilderness/harvest.c \
 	src/wilderness/harvest.h \
-	src/harvest_vnums.h \
+	src/config/harvest_vnums.h \
 	src/wilderness/resource_depletion.c \
 	src/wilderness/resource_descriptions.c \
 	src/wilderness/resource_regeneration.c \

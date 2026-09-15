@@ -103,7 +103,7 @@ ownership evidence in the
 
 ## Local Configuration and Credentials
 
-- Never modify `src/campaign.h`, `src/mud_options.h`, or `src/vnums.h`; edit the matching
+- Never modify `src/config/campaign.h`, `src/config/mud_options.h`, or `src/config/vnums.h`; edit the matching
   `.example.h` template only when a shared template change is required.
 - Never modify credential-bearing `lib/.env` or `lib/mysql_config` without explicit permission;
   edit `lib/.env_example` or `lib/mysql_config_example` instead.

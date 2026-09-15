@@ -12,7 +12,7 @@
 #ifndef ENHANCED_CRAFTING_RECIPES_H
 #define ENHANCED_CRAFTING_RECIPES_H
 
-#include "campaign.h"
+#include "config/campaign.h"
 
 #ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
 

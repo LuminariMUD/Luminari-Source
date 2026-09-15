@@ -19,9 +19,9 @@ development state fail closed when the marker is absent or not `development`.
 
 | Local file | Tracked example | Purpose |
 |------------|-----------------|---------|
-| `src/campaign.h` | `src/campaign.example.h` | Local Luminari compile-time settings |
-| `src/mud_options.h` | `src/mud_options.example.h` | Compile-time game options |
-| `src/vnums.h` | `src/vnums.example.h` | Symbolic virtual-number configuration |
+| `src/config/campaign.h` | `src/config/campaign.example.h` | Local Luminari compile-time settings |
+| `src/config/mud_options.h` | `src/config/mud_options.example.h` | Compile-time game options |
+| `src/config/vnums.h` | `src/config/vnums.example.h` | Symbolic virtual-number configuration |
 | `lib/mysql_config` | `lib/mysql_config_example` | Required MariaDB/MySQL connection |
 | `lib/.env` | `lib/.env_example` | Environment marker and local script configuration |
 

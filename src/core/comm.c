@@ -111,7 +111,7 @@
 #include "events/character_periodic.h"
 #include "events/point_update_periodic.h"
 #include "events/periodic_owners.h"
-#include "dotenv.h"
+#include "config/dotenv.h"
 #include "elf_build_id.h"
 #include "database/mysql.h"
 #include "net/onboarding.h"

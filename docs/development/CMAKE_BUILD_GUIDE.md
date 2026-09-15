@@ -43,9 +43,9 @@ options) that need them.
 
 ```bash
 # Configure required headers (one-time setup on a fresh clone)
-cp src/campaign.example.h src/campaign.h
-cp src/mud_options.example.h src/mud_options.h
-cp src/vnums.example.h src/vnums.h
+cp src/config/campaign.example.h src/config/campaign.h
+cp src/config/mud_options.example.h src/config/mud_options.h
+cp src/config/vnums.example.h src/config/vnums.h
 
 cmake --preset dev
 cmake --build --preset dev -j"$(nproc)"

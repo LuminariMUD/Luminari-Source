@@ -13,7 +13,7 @@
 #include "wilderness_crafting_bridge.h"
 #include "resource_system.h"
 #include "craft/crafting_new.h"
-#include "campaign.h"
+#include "config/campaign.h"
 #include "core/utils.h"
 #include "core/comm.h"
 #include "core/constants.h"

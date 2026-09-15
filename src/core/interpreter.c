@@ -37,7 +37,7 @@
 #include "movement/graph.h"
 #include "olc/hedit.h"
 #include "obj/house.h"
-#include "config.h"
+#include "config/config.h"
 #include "modify.h" /* for do_skillset... */
 #include "perfmon.h"
 #include "events/event_debug.h"

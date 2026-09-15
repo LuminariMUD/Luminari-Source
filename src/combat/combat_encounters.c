@@ -5,7 +5,7 @@
 #include "core/utils.h"
 #include "tactical_effects.h"
 #include "core/comm.h"
-#include "dotenv.h"
+#include "config/dotenv.h"
 #include "events/actions.h"
 #include "combat/combat_encounters.h"
 #include "combat/fight.h"

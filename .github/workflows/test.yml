@@ -100,9 +100,9 @@ jobs:
 
       - name: Build mobile conversion calculator
         run: |
-          cp src/campaign.example.h src/campaign.h
-          cp src/mud_options.example.h src/mud_options.h
-          cp src/vnums.example.h src/vnums.h
+          cp src/config/campaign.example.h src/config/campaign.h
+          cp src/config/mud_options.example.h src/config/mud_options.h
+          cp src/config/vnums.example.h src/config/vnums.h
           autoreconf -fvi
           ./configure
           make -C util rol_mob_calculator

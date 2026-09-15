@@ -18,7 +18,7 @@
 #include "magic/buff_sequence.h"
 #include "movement/door_state.h"
 #include "core/utils.h"
-#include "pet_vnums.h"
+#include "config/pet_vnums.h"
 #include "core/comm.h"
 #include "core/interpreter.h"
 #include "net/protocol.h"

@@ -227,7 +227,7 @@ machine measured a 2x slowdown under load.
 
 The following real files are local and protected:
 
-- `src/campaign.h`, `src/mud_options.h`, and `src/vnums.h`
+- `src/config/campaign.h`, `src/config/mud_options.h`, and `src/config/vnums.h`
 - `lib/mysql_config` and `lib/.env`
 
 Their tracked examples are `src/*.example.h`, `lib/mysql_config_example`, and

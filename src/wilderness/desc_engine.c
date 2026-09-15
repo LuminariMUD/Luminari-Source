@@ -8,7 +8,7 @@
 #include "conf.h"
 #include "core/sysdep.h"
 #include "core/structs.h"
-#include "campaign.h"
+#include "config/campaign.h"
 #include "core/utils.h"
 #include "combat/fight.h"
 #include "core/comm.h"

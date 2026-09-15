@@ -33,7 +33,7 @@
 #include "core/interpreter.h"
 #include "ai_service.h"
 #include "events/domain_event_world.h"
-#include "dotenv.h"
+#include "config/dotenv.h"
 #include <curl/curl.h>
 #include <pthread.h>
 #include <stdatomic.h>

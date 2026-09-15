@@ -82,15 +82,15 @@ that root artifact.
 Only when the real local files do not exist, copy the tracked examples:
 
 ```bash
-test -e src/campaign.h || cp src/campaign.example.h src/campaign.h
-test -e src/mud_options.h || cp src/mud_options.example.h src/mud_options.h
-test -e src/vnums.h || cp src/vnums.example.h src/vnums.h
+test -e src/config/campaign.h || cp src/config/campaign.example.h src/config/campaign.h
+test -e src/config/mud_options.h || cp src/config/mud_options.example.h src/config/mud_options.h
+test -e src/config/vnums.h || cp src/config/vnums.example.h src/config/vnums.h
 test -e lib/mysql_config || install -m 600 lib/mysql_config_example lib/mysql_config
 test -e lib/.env || install -m 600 lib/.env_example lib/.env
 ```
 
 Edit local configuration without committing it. Never overwrite an existing
-`src/campaign.h`, `src/mud_options.h`, `src/vnums.h`, `lib/mysql_config`, or
+`src/config/campaign.h`, `src/config/mud_options.h`, `src/config/vnums.h`, `lib/mysql_config`, or
 `lib/.env`. Database initialization details are in the
 [deployment guide](../deployment/DEPLOYMENT_GUIDE.md) and
 [database initialization guide](DATABASE_INITIALIZATION_GUIDE.md).

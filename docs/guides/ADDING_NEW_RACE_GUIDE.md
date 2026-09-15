@@ -292,7 +292,7 @@ Do not:
 - assume `NUM_RACES`, `NUM_EXTENDED_PC_RACES`, and `NUM_EXTENDED_RACES` mean the
   same thing;
 - place a concrete player race in the `RACE_TYPE_*` namespace;
-- change `src/campaign.h`, `src/mud_options.h`, or `src/vnums.h` as part of the
+- change `src/config/campaign.h`, `src/config/mud_options.h`, or `src/config/vnums.h` as part of the
   race addition.
 
 Most playable races reuse an existing family such as
@@ -651,8 +651,8 @@ If the owner is a registered special procedure, add its registry entry and
 test its irreversible preflight and trigger semantics. Bind it to the intended
 world entities and update `docs/guides/OLC_SpecProcs.md`. Do not copy the RoL
 rite's locally hardcoded offering numbers: use existing symbolic VNUMs, or add
-new configuration symbols to `src/vnums.example.h`; never edit the local
-`src/vnums.h` while implementing the feature. If legacy high-level quest
+new configuration symbols to `src/config/vnums.example.h`; never edit the local
+`src/config/vnums.h` while implementing the feature. If legacy high-level quest
 compatibility is intentionally extended, update
 `docs/world_game-data/HLQUEST_FILE_FORMAT.md` and its validation too. Do not
 introduce another magic sentinel unless that legacy format is explicitly the

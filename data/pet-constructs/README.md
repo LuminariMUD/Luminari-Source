@@ -17,7 +17,7 @@ the zone and mobile files to their normal indexes. A
 second invocation leaves matching files unchanged. Reload the world through the
 normal development server restart to make newly installed prototypes available.
 
-`src/pet_vnums.h` defines the new recipe IDs. The customized `src/vnums.h` remains
+`src/config/pet_vnums.h` defines the new recipe IDs. The customized `src/config/vnums.h` remains
 unchanged. Legacy golem IDs are recognized for maintenance of existing pets, but
 new recipes use only the dedicated range. Do not overwrite the animals occupying
 the old 16500 range.

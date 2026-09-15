@@ -24,7 +24,7 @@
 #include "events/actions.h"
 #include "magic/spell_prep.h"
 #include "movement_position.h"
-#include "config.h"
+#include "config/config.h"
 #include "events/active_world.h"
 #include "events/character_periodic.h"
 
