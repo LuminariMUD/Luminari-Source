@@ -8174,40 +8174,50 @@ the details of the requirement-flags:
 #0
 ALCHEMICAL-SILVER BREW-POTION CRAFT-TOOLS CRAFT-WAND CRAFTING CRAFTING-CONVERT CRAFTING-SKILLS ENCHANTING ENHANCEMENT ENHANCEMENTS LUMINOUS-THREAD MAGIC-ITEMS QUICK-ALCHEMY SWIFT-ALCHEMY WEAPONTOUCH WILDERNESS-MAT
 
-The crafting system on Luminari is heavily influenced by d20MUD's system,
-it was re-written by Zusuk for TBA codebase and adapted to Luminari's
-game mechanics.
+The CRAFT command uses the crafting mode selected by server configuration.
+Commands from the other mode may not be available on this server.
 
-There are 3 primary elements to the crafting system:
-Creation
-Modification
-Auto-Crafting Quest
+MATERIALS AND MOTES MODE
+Build a persistent equipment project with these steps:
+  craft itemtype <weapon|armor|instrument|misc>
+  craft specifictype <type>
+  craft variant <variant>
+  craft materials add <material>
+  craft enhancement <amount>       (optional)
+  craft motes add <enhancement|bonus slot>  (when needed)
+  craft bonuses ...                (optional)
+  craft show
+  craft check
+  craft start
 
-Creation is done with the CREATE command.  In order to make an item, you
-need a MOLD, materials, optionally an enchantment crystal and money.
-You'll need to take these items and put them inside a -KIT and
-use the CREATE command to make the item.
+Use CRAFT with no argument for the complete command list. Recipes require
+specific material groups. Normal project admission checks the recipe,
+descriptions, stored resources and equipped crafting tool. Some workflows use
+a room station such as a forge, loom, tannery or carpentry table. MATERIALS and
+MOTES show stored balances. MATERIALS STORE <item>, HARVEST and SALVAGE <item>
+are among the ways resources enter those balances.
 
-Modification includes:  AUGMENT, CONVERT, RESTRING and RESIZE.  These
-crafting commands require you put the item you want to modify in the
-crafting kit to be used.  Refer to the respective help files for more
-details.
+Crafting is timed work. Moving, combat, damage or losing a required station or
+target can cancel the activity. Harvesting can also stop if its required tool is
+no longer valid. Offline time does not advance the timer; login can resume saved
+work. ACTIVITY shows or cancels current work. CRAFT RESET returns resources
+reserved by an equipment project. A natural 1 on the completion skill check
+loses reserved materials and motes, while an ordinary failure keeps the project
+available for another attempt.
 
-Auto-Crafting Quest represents local militias need for weapons, armor
-and other war supplies to supplement their battle against the growing
-monster presence in the world.  Refer to the SUPPLYORDER help file for
-more info.
+KIT AND BLUEPRINT MODE
+In the legacy mode, CRAFT lists known crafts and starts a named craft or
+blueprint when its object and room requirements are present. The CREATE,
+CRAFTING-KIT, MOLD and CRYSTAL topics describe related legacy workflows.
 
-To see your crafting proficiency, just type 	YPRAC	n
+Special thanks to Ellyanor for the original crafting help contribution.
 
-See Also:  AUGMENT CONVERT RESTRING SUPPLYORDER RESIZE CRAFTCHECK
-            CREATE -KIT AUTOCRAFT DISENCHANT
+Refining, resizing, supply orders, golems, potions, wands and scrolls have
+separate commands or subcommands. CRAFT SCORE shows crafting and harvesting
+skill progress in materials-and-motes mode.
 
-
-See Also:
-http://www.luminarimud.com/forums/topic/crafting-101-2018/
-
-Special thanks to the author, Ellyanor for the contribution!
+See Also: CRAFT-MATERIALS CRAFT-MOTES CRAFT-SHOW CRAFT-CHECK HARVEST REFINE
+          RESIZE SUPPLYORDER ACTIVITY CRAFTS CREATE CRAFTING-KIT
 #0
 CRAFTING-KIT CRAFTINGKIT
 

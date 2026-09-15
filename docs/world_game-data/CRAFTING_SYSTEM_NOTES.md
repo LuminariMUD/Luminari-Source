@@ -1,115 +1,214 @@
-# LuminariMUD Crafting System Notes
+# LuminariMUD Crafting System Reference
 
-> **Status: design notes, not a system reference.** This file records the
-> original design intent of the crafting system - the material/skill mapping,
-> the weapon resize ladder, and the command list. It is not a complete
-> description of current behavior, and it has never covered the newer crafting
-> paths (`ITEM_CRAFTING_TOOL` gear, the crafting station flags, or the harvest
-> ability set). Verify anything here against `src/craft/` before relying on it.
->
-> The skill numbers below were re-derived from `src/magic/spells.h` on
-> 2026-08-04. They previously listed the pre-`START_SKILLS` values (471-485),
-> which have not been correct since skills moved to the 2000 base.
+This document describes the crafting implementation in the current source tree.
+It covers the runtime selector, the legacy kit system, the newer materials-and-
+motes system, resource acquisition, activity lifecycle, and persistence. Server
+configuration determines which player-facing `craft` workflow is available;
+the repository default alone does not establish the production setting.
 
-## Overview
+## Runtime selection
 
-The LuminariMUD crafting system provides item creation and enhancement
-capabilities based on D&D 3.5/Pathfinder mechanics. Players gather materials,
-learn crafting skills, and create custom equipment.
+`do_craft()` dispatches according to `CONFIG_CRAFTING_SYSTEM`:
 
-## Known Gaps
+| Setting | Player-facing `craft` behavior |
+| --- | --- |
+| `CRAFTING_SYSTEM_KITS` | Uses the legacy craft/blueprint catalog. |
+| `CRAFTING_SYSTEM_MOTES` | Uses the project-based materials-and-motes system. |
+| Any other value | Reports that no crafting system is implemented. |
 
-* No complete documentation for all crafting commands.
-* No worked examples for each crafting skill.
-* Material acquisition methods are undocumented.
-* The crafting station flags (`ITEM_CRAFTING_FORGE`, `ITEM_CRAFTING_LOOM`, and
-  the rest - see the [OEDIT Guide](OEDIT_GUIDE.md)) are not covered here at all.
-* The nine crafting-tool wear slots are reserved but currently unused; no
-  active `ITEM_CRAFTING_TOOL` prototypes exist. See the
-  [OEDIT Guide](OEDIT_GUIDE.md#wear-flags-reference) for their assigned bits.
+The built-in default is `0`, and `crafting_system` can be loaded from the game
+configuration. Operators must inspect the deployed configuration before
+claiming that either workflow is active.
 
-## Weapon Resize Chart
+The implementations coexist; enabling one does not remove the data structures,
+commands, or help topics associated with the other.
 
-```
-F      D      T       S     M      L       H      G      C      ?      ??
-1d2 -> 1d3 -> 1d4 -> 1d6 -> 1d8 -> 2d6  -> 3d6 -> 4d6 -> 6d6 -> 8d6 -> 12d6
-1d1 -> 2d1 -> 2d3 -> 1d7 -> 2d4 -> 1d12 -> 4d4 -> 6d4 -> 5d8 -> 6d8 -> 8d10
-       3d1 -> 2d2 -> 3d2 -> 1d9 -> 1d10 -> 2d8 -> 3d8 -> 4d8 -> 8d7 -> 9d8
-```
+## Legacy kit and blueprint crafting
 
-## Materials and Skills
+The legacy path is implemented primarily in `src/craft/crafts.c` and
+`src/craft/craft.c`. Its recipes are `struct craft_data` records that can include:
 
-| Material class | Gathering skill |
-|----------------|-----------------|
-| Hard metal | Mining |
-| Leather | Hunting |
-| Wood | Foresting |
-| Cloth | Knitting |
-| Crystals / Essences | Chemistry |
+- a produced object;
+- a crafting skill and timer;
+- object requirements;
+- in-room requirements such as a forge;
+- flags controlling whether components survive failure or consumption; and
+- an optional `ITEM_BLUEPRINT` requirement.
 
-### Gathering Skills
+`craft` lists or starts the legacy crafts available to a character when
+`CRAFTING_SYSTEM_KITS` is selected. Related older commands and help topics,
+including `create`, crafting kits, molds, and crystals, describe separate
+legacy workflows and must not be used as documentation for the motes system.
 
-| Constant | Number | Purpose |
-|----------|--------|---------|
-| `SKILL_MINING` | 2071 | Acquiring hard metals |
-| `SKILL_HUNTING` | 2072 | Acquiring leather, dragonhide |
-| `SKILL_FORESTING` | 2073 | Acquiring wood, darkwood |
-| `SKILL_KNITTING` | 2074 | Acquiring cloth, creating cloth armor |
-| `SKILL_CHEMISTRY` | 2075 | Processing crystal, essences |
+## Materials-and-motes crafting
 
-### Production Skills
+The newer implementation is in `src/craft/crafting_new.c`, with public types and
+constants in `crafting_new.h`. `crafting_recipes.c` populates compiled C recipe
+tables declared in `crafting_recipes.h`; recipes are not loaded from external
+builder data.
 
-| Constant | Number | Purpose |
-|----------|--------|---------|
-| `SKILL_ARMOR_SMITHING` | 2076 | Creating metal armor |
-| `SKILL_WEAPON_SMITHING` | 2077 | Creating weapons |
-| `SKILL_JEWELRY_MAKING` | 2078 | Creating miscellaneous worn pieces |
-| `SKILL_LEATHER_WORKING` | 2079 | Creating non-metal armor |
-| `SKILL_FAST_CRAFTER` | 2080 | Increases speed of all crafting events |
+### Recipe model
 
-### Specialization Skills
+A `struct craft_recipe_data` identifies an item type and subtype. Each variant
+specifies:
 
-| Constant | Number | Purpose |
-|----------|--------|---------|
-| `SKILL_BONE_ARMOR` | 2081 | Create metal-equivalent armor using bone |
-| `SKILL_ELVEN_CRAFTING` | 2082 | Produce lighter armor |
-| `SKILL_MASTERWORK_CRAFTING` | 2083 | Higher chance to produce rare, legendary, or mythic results |
-| `SKILL_DRACONIC_CRAFTING` | 2084 | Higher bonus without affecting level (design intent; verify) |
-| `SKILL_DWARVEN_CRAFTING` | 2085 | Craft using rare heavy metals |
+- the crafting skill used;
+- up to three material requirements;
+- a description/keyword phrase; and
+- the practical output type, such as weapon type, armor type, instrument type,
+  or wear slot.
 
-## Material List
+Each material requirement is a material group plus a quantity. The groups are
+hard metals, soft metals, hides, wood, cloth, stone, refining, and resizing.
+The player allocates a concrete material from the required group. Material
+quality contributes to the resulting item level.
 
-**Hard metals:** bronze, iron, steel, cold iron, alchemical silver, mithril,
-adamantine
+This model has no generic field for a named, recipe-specific adventure
+component. Physical material objects deposited into the motes system become
+fungible material balances and no longer retain their original object identity.
 
-**Precious metals:** copper, brass, silver, gold, platinum
+### Project setup
 
-**Leathers:** leather, dragonhide
+With `CRAFTING_SYSTEM_MOTES` selected, `craft` exposes the project editor:
 
-**Woods:** wood, darkwood
+| Subcommand | Purpose |
+| --- | --- |
+| `itemtype` / `type` | Select weapon, armor, instrument, or miscellaneous gear. |
+| `specifictype` | Select the concrete weapon, armor piece, instrument, or wear slot. |
+| `variant` | Select the recipe variant and its material/skill rules. |
+| `materials` | Allocate or return the required mundane materials. |
+| `enhancement` and `motes` | Configure and fund magical enhancement. |
+| `bonuses` | Configure up to six object affects and their mote costs. |
+| `instrument` | Configure instrument quality, effectiveness, and breakability. |
+| `keywords`, `shortdesc`, `roomdesc`, `extradesc` | Configure descriptions. |
+| `leveladjust` | Adjust the requested output level within the allowed rules. |
+| `show` / `display` / `review` | Display the current project. |
+| `check` | Report whether the project is ready to start. |
+| `reset` | Reset all or part of the project and reimburse reserved resources. |
+| `start` / `begin` | Admit a valid project to the crafting activity. |
+| `score`, `equipment`, `tools` | Display crafting skills and equipped support gear. |
+| `golem` | Enter the golem-construction workflow. |
 
-**Cloth:** burlap, hemp, cotton, wool, velvet, satin, silk
+Related command handlers provide surveying, harvesting, refining, resizing, and
+quartermaster supply orders. Potion, wand, and scroll creation are adjacent
+crafting features but do not use the normal equipment recipe table.
 
-## Crafting Commands
+### Requirements and resolution
 
-All of the following are registered in `cmd_info[]` (`src/core/interpreter.c`).
+The player-facing `craft` command and related handlers are registered in
+`cmd_info[]` (`src/core/interpreter.c`).
 
-| Command | Effect |
-|---------|--------|
-| `create` | Create/craft an object using materials and skills |
-| `checkcraft` | Check the result the `create` command would produce |
-| `augment` | Combine essences to make them stronger |
-| `convert` | Convert ten of one material into something else |
-| `disenchant` | Create essence from magical items |
-| `resize` | Resize an object for a different character size |
-| `restring` | Rename an object (cosmetic only) |
-| `autocraft` | Crafting quest system; supply orders |
+Normal equipment admission validates the selected recipe, allocated materials
+and motes, descriptions, and required equipped crafting tool. The final skill,
+DC, and maximum-possible-check rejection are calculated when the activity
+completes rather than before its timer starts.
 
-### Usage Examples
+`begin_current_craft()` calls the room-station validator using the skill stored
+in the project. Normal recipe selection does not initialize that field, so the
+current source does not reliably enforce a station requirement before starting
+ordinary equipment. Other workflows populate their state differently. Station
+types represented by the system include the forge, loom, tannery, alchemy
+laboratory, jewelcrafting station, and carpentry table.
 
-```
-create sword steel
-augment essence fire essence ice
-resize sword large
-restring sword "a gleaming steel blade"
-```
+A normal item begins with a base duration of 60 seconds before applicable
+speed modifiers. Completion resolves a d20 skill check against the saved DC:
+
+- a character whose maximum possible check cannot meet the DC is rejected;
+- a natural 1 is a critical failure and loses reserved materials and motes;
+- a natural 20 succeeds and marks the result masterwork;
+- an ordinary failed check leaves the project available for another attempt;
+- success creates the configured object and clears the project; and
+- efficient-crafting effects can return saved materials after success.
+
+`craft reset` is the explicit resource-refund path. Callers that reset corrupted
+or invalid state can choose whether reimbursement is appropriate.
+
+## Activity lifecycle
+
+Motes-system creation, refining, resizing, golem work, surveying, node
+harvesting, and supply-order work use `PRIMARY_ACTIVITY_CRAFT` in the shared
+activity manager. Wilderness category harvesting uses
+`PRIMARY_ACTIVITY_HARVEST`. There is no crafting-only scheduler or descriptor
+scan.
+
+Craft work requires hands and attention. Committed movement, combat, damage,
+invalid targets, and a missing required station can cancel it. Harvesting also
+rechecks its harvesting tool. Ordinary equipment creation and refining require
+a crafting tool at admission but do not recheck that tool during the activity.
+Offline time does not advance the timer: disconnect retires the active event
+while the remaining duration stays in character state, and login/reconnection
+can resume it. See
+[`../systems/CRAFT_ACTIVITY_LIFECYCLE.md`](../systems/CRAFT_ACTIVITY_LIFECYCLE.md)
+for the activity-manager contract.
+
+Supply-order offers are different: their offer and cooldown timestamps use wall
+clock time and refresh lazily when queried.
+
+## Resource storage and acquisition
+
+### Character balances
+
+The motes system stores ordinary materials and elemental motes as character-
+owned integer balances accessed through `GET_CRAFT_MAT()` and
+`GET_CRAFT_MOTES()`. Allocating resources moves them into the current project;
+it does not require the ordinary inputs to remain as inventory objects.
+
+Material families include metals and alloys, precious metals, hides, woods,
+cloth, stone, bone, and dragon-derived materials. Motes cover air, dark, earth,
+fire, ice, light, lightning, and water.
+
+### Acquisition paths
+
+Current integrations include:
+
+- wilderness category harvesting, which can award compatible material or mote
+  balances through `src/wilderness/wilderness_crafting_bridge.c`;
+- older explicit room/node harvesting, including physical `ITEM_MATERIAL`
+  results;
+- `materials store <item>`, which deposits a physical material object into the
+  corresponding material balance;
+- `salvage <item>`, which dismantles eligible equipment for materials and
+  possible motes; and
+- authored hunt/content rewards, including dragon-derived resources.
+
+Wilderness harvesting is an exploration-based source of fungible resources. It
+is not a generic recipe-key-component system: the recipe table cannot currently
+require a named quest, boss, dungeon, or scripted reward while preserving that
+reward's identity.
+
+## Persistence
+
+`src/player/players.c` saves and loads the motes-system state with the
+character. This includes:
+
+- on-hand material and mote balances;
+- allocated project materials, motes, enhancement, and affects;
+- recipe, variant, item type, skill roll, DC, output level, and descriptions;
+- the remaining activity duration;
+- refining and resizing state;
+- supply-order state and cooldowns; and
+- instrument configuration.
+
+The remaining duration is the handoff between character persistence and the
+activity manager. Offline time does not count down ordinary craft work.
+
+## Source and validation map
+
+| Concern | Primary source or validation |
+| --- | --- |
+| Runtime dispatch and legacy recipes | `src/craft/crafts.c`, `src/craft/craft.c` |
+| Motes commands and lifecycle | `src/craft/crafting_new.c`, `crafting_new.h` |
+| Compiled recipe model | `src/craft/crafting_recipes.c`, `crafting_recipes.h` |
+| Material and mote names | `src/core/constants.c` |
+| Character persistence | `src/player/players.c` |
+| Wilderness resource bridge | `src/wilderness/harvest.c`, `wilderness_crafting_bridge.c` |
+| Hunt rewards | `src/quest/hunts.c` |
+| Player help mirror | `lib/text/help/help.hlp` |
+| Gameplay coverage | `unittests/CuTest/test_gameplay_e2e.c` |
+| Wilderness manual checks | `docs/testing/WILDERNESS_CRAFTING_INTEGRATION_TESTING.md` |
+
+Production-linked tests cover command abbreviation, crafting activity ownership
+and interruption, golem resource/lifecycle contracts, wilderness reward
+mapping, tool quality, delayed harvest completion, and consumption of harvested
+resources by existing crafting. They do not establish which crafting mode a
+particular deployment enables.
