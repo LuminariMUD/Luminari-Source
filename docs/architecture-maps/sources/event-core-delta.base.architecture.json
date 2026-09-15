@@ -1,0 +1,325 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Game Loop Before ADR 0002",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/LuminariMUD/Luminari-Source",
+      "revision": "fbe9366fbde8180b49a211cbcfdf2b2b531a15bd"
+    },
+    "views": [
+      {
+        "id": "pulse-path",
+        "label": "Pulse-driven work",
+        "focus": [
+          "loop",
+          "heartbeat",
+          "queue",
+          "scans",
+          "gamecode"
+        ],
+        "note": "Every 100 ms pulse called heartbeat(), which used pulse modulo checks to decide what to scan and run."
+      },
+      {
+        "id": "commands",
+        "label": "Commands",
+        "focus": [
+          "io",
+          "loop",
+          "interp",
+          "gamecode"
+        ],
+        "note": "Player commands already ran directly through the interpreter; this part is unchanged."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "io",
+      "type": "external",
+      "label": "Sockets + Pipes",
+      "sublabel": "clients, bridges",
+      "pos": [
+        20,
+        170
+      ],
+      "size": [
+        110,
+        56
+      ]
+    },
+    {
+      "id": "loop",
+      "type": "backend",
+      "label": "game_loop()",
+      "sublabel": "select() poll + sleep",
+      "pos": [
+        211,
+        170
+      ],
+      "size": [
+        170,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/comm.c",
+          "line": 1013,
+          "label": "game_loop()"
+        },
+        {
+          "path": "src/comm.c",
+          "line": 1282,
+          "label": "select() poll"
+        }
+      ]
+    },
+    {
+      "id": "interp",
+      "type": "backend",
+      "label": "Interpreter",
+      "sublabel": "commands run directly",
+      "pos": [
+        474,
+        170
+      ],
+      "size": [
+        150,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/interpreter.c",
+          "line": 5831,
+          "label": "command_interpreter()"
+        }
+      ]
+    },
+    {
+      "id": "gamecode",
+      "type": "backend",
+      "label": "Game Code",
+      "sublabel": "combat, magic, handler",
+      "pos": [
+        685,
+        170
+      ],
+      "size": [
+        160,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/combat/fight.c",
+          "line": 6664,
+          "label": "damage()"
+        },
+        {
+          "path": "src/magic/spell_parser.c",
+          "line": 566,
+          "label": "call_magic()"
+        },
+        {
+          "path": "src/handler.c",
+          "line": 3362,
+          "label": "extract_char()"
+        }
+      ]
+    },
+    {
+      "id": "heartbeat",
+      "type": "backend",
+      "label": "heartbeat()",
+      "sublabel": "pulse % cadence checks",
+      "pos": [
+        196,
+        300
+      ],
+      "size": [
+        200,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/comm.c",
+          "line": 1935,
+          "label": "heartbeat()"
+        }
+      ]
+    },
+    {
+      "id": "queue",
+      "type": "messagebus",
+      "label": "Legacy Event Queue",
+      "sublabel": "event_process()",
+      "pos": [
+        449,
+        300
+      ],
+      "size": [
+        200,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/dgscript/dg_event.c",
+          "line": 287,
+          "label": "event_process()"
+        }
+      ]
+    },
+    {
+      "id": "scans",
+      "type": "backend",
+      "label": "World Scans",
+      "sublabel": "mobiles, zones, affects",
+      "pos": [
+        196,
+        430
+      ],
+      "size": [
+        200,
+        56
+      ],
+      "sources": [
+        {
+          "path": "src/mob/mob_act.c",
+          "line": 621,
+          "label": "mobile_activity_pulse()"
+        },
+        {
+          "path": "src/db.c",
+          "line": 5257,
+          "label": "zone_update()"
+        },
+        {
+          "path": "src/magic/magic.c",
+          "line": 1385,
+          "label": "affect_update()"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "main thread - all gameplay mutation",
+      "wraps": [
+        "loop",
+        "interp",
+        "gamecode",
+        "heartbeat",
+        "queue",
+        "scans"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "readiness",
+      "from": "io",
+      "to": "loop",
+      "label": "readiness",
+      "variant": "emphasis"
+    },
+    {
+      "id": "input-lines",
+      "from": "loop",
+      "to": "interp",
+      "label": "input lines",
+      "variant": "emphasis"
+    },
+    {
+      "id": "acmd",
+      "from": "interp",
+      "to": "gamecode",
+      "label": "ACMD()",
+      "variant": "emphasis"
+    },
+    {
+      "id": "every-pulse",
+      "from": "loop",
+      "to": "heartbeat",
+      "label": "every pulse",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        296,
+        240
+      ]
+    },
+    {
+      "id": "event-process",
+      "from": "heartbeat",
+      "to": "queue",
+      "label": "each pulse",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        423,
+        370
+      ]
+    },
+    {
+      "id": "cadence-scans",
+      "from": "heartbeat",
+      "to": "scans",
+      "label": "pulse % N",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        296,
+        370
+      ]
+    },
+    {
+      "id": "event-callbacks",
+      "from": "queue",
+      "to": "gamecode",
+      "label": "callbacks",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "bottom"
+    },
+    {
+      "id": "scan-work",
+      "from": "scans",
+      "to": "gamecode",
+      "label": "whole-list loops",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "right"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "amber",
+      "title": "Pulse-driven",
+      "items": [
+        "heartbeat() ran every 100 ms pulse",
+        "pulse % N chose each cadence",
+        "Missed pulses replayed heartbeat()"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Whole-world work",
+      "items": [
+        "mobile_activity_pulse() each pulse",
+        "DG random triggers on a pulse",
+        "Pub/sub queue drained each second"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Evidence",
+      "items": [
+        "Snapshot: fbe9366 (2026-08-29)",
+        "src/comm.c: heartbeat() at 1935",
+        "src/comm.c: select() poll at 1282"
+      ]
+    }
+  ]
+}

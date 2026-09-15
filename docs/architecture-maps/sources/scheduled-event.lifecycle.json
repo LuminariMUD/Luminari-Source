@@ -1,0 +1,273 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "Scheduled Game Event Lifecycle",
+    "locale": "en",
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "one-shot",
+        "label": "One-shot event",
+        "focus": [
+          "created",
+          "queued",
+          "ready",
+          "dispatching",
+          "completed"
+        ],
+        "note": "An admitted event waits on the timing wheel, becomes ready at its deadline, runs once, and is finalized."
+      },
+      {
+        "id": "recurring",
+        "label": "Recurring work",
+        "focus": [
+          "queued",
+          "ready",
+          "dispatching"
+        ],
+        "note": "A callback that returns RESCHEDULE puts the same event back on the wheel instead of allocating a new one."
+      },
+      {
+        "id": "cancellation",
+        "label": "Cancellation",
+        "focus": [
+          "queued",
+          "dispatching",
+          "cancelpending",
+          "cancelled"
+        ],
+        "note": "Cancelling a queued event finalizes it at once; cancelling a running callback waits for it to return."
+      },
+      {
+        "id": "failure",
+        "label": "Failure",
+        "focus": [
+          "dispatching",
+          "failed"
+        ],
+        "note": "A FAILED result, or a reschedule the scheduler cannot place, finalizes the event as FAILED."
+      }
+    ],
+    "viewBox": [
+      1060,
+      650
+    ]
+  },
+  "lanes": [
+    {
+      "id": "main",
+      "label": "Event states"
+    },
+    {
+      "id": "interrupts",
+      "label": "Cancel during callback"
+    },
+    {
+      "id": "terminal",
+      "label": "Terminal outcomes"
+    }
+  ],
+  "states": [
+    {
+      "id": "created",
+      "type": "start",
+      "label": "Created",
+      "sublabel": "schedule_at / after",
+      "lane": "main",
+      "col": 0,
+      "step": "01"
+    },
+    {
+      "id": "queued",
+      "type": "waiting",
+      "label": "Queued",
+      "sublabel": "wheel or overflow",
+      "lane": "main",
+      "col": 1,
+      "step": "02"
+    },
+    {
+      "id": "ready",
+      "type": "active",
+      "label": "Ready",
+      "sublabel": "deadline reached",
+      "lane": "main",
+      "col": 2,
+      "step": "03"
+    },
+    {
+      "id": "dispatching",
+      "type": "decision",
+      "label": "Dispatching",
+      "sublabel": "callback runs",
+      "lane": "main",
+      "col": 3,
+      "step": "04"
+    },
+    {
+      "id": "completed",
+      "type": "success",
+      "label": "Completed",
+      "sublabel": "cleanup runs once",
+      "lane": "main",
+      "col": 4,
+      "step": "05"
+    },
+    {
+      "id": "failed",
+      "type": "failure",
+      "label": "Failed",
+      "sublabel": "RESULT_FAILED",
+      "lane": "terminal",
+      "col": 2
+    },
+    {
+      "id": "cancelpending",
+      "type": "waiting",
+      "label": "Cancel Pending",
+      "sublabel": "callback still running",
+      "lane": "interrupts",
+      "col": 0
+    },
+    {
+      "id": "cancelled",
+      "type": "failure",
+      "label": "Cancelled",
+      "sublabel": "finalized",
+      "lane": "terminal",
+      "col": 0
+    }
+  ],
+  "transitions": [
+    {
+      "id": "admit",
+      "from": "created",
+      "to": "queued",
+      "label": "admitted",
+      "labelAt": [
+        171,
+        122
+      ]
+    },
+    {
+      "id": "deadline-due",
+      "from": "queued",
+      "to": "ready",
+      "label": "deadline due",
+      "labelAt": [
+        325,
+        122
+      ]
+    },
+    {
+      "id": "dispatch-batch",
+      "from": "ready",
+      "to": "dispatching",
+      "label": "batch budget",
+      "labelAt": [
+        479,
+        122
+      ]
+    },
+    {
+      "id": "complete",
+      "from": "dispatching",
+      "to": "completed",
+      "label": "COMPLETE",
+      "variant": "emphasis",
+      "labelAt": [
+        633,
+        122
+      ]
+    },
+    {
+      "id": "reschedule",
+      "from": "dispatching",
+      "to": "queued",
+      "label": "RESCHEDULE",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "top",
+      "via": [
+        [
+          556,
+          70
+        ],
+        [
+          248,
+          70
+        ]
+      ]
+    },
+    {
+      "id": "callback-failed",
+      "from": "dispatching",
+      "to": "failed",
+      "label": "FAILED",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "left"
+    },
+    {
+      "id": "cancel-running",
+      "from": "dispatching",
+      "to": "cancelpending",
+      "label": "cancel()",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "right"
+    },
+    {
+      "id": "callback-returned",
+      "from": "cancelpending",
+      "to": "cancelled",
+      "label": "callback returns",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        402,
+        350
+      ]
+    },
+    {
+      "id": "cancel-queued",
+      "from": "queued",
+      "to": "cancelled",
+      "label": "cancel()",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "left"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Timing wheel",
+      "items": [
+        "5 levels x 64 slots, 100 ms ticks",
+        "Far deadlines wait in overflow heap",
+        "Due events go to the ready heap"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Safe cancellation",
+      "items": [
+        "Running callbacks get CANCEL_PENDING",
+        "Finalized once the callback returns",
+        "Owners carry kind, id, generation"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Evidence",
+      "items": [
+        "game_scheduler.h: states at line 65",
+        "game_scheduler.c: outcomes 1108-1139",
+        "dg_event.c: batch dispatch at 97"
+      ]
+    }
+  ]
+}

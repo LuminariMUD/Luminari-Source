@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LuminariMUD Architecture Atlas</title>
+<meta name="description" content="Interactive, source-verified architecture maps of the LuminariMUD server.">
+<meta name="color-scheme" content="light dark">
+<style>
+  :root {
+    --bg: #f4f6fa;
+    --grid: rgba(15, 23, 42, 0.045);
+    --panel: #ffffff;
+    --panel-2: #f8fafc;
+    --ink: #0b1220;
+    --muted: #4f5d73;
+    --faint: #7a869a;
+    --line: #dde3ec;
+    --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.06);
+    --shadow-hover: 0 2px 4px rgba(15, 23, 42, 0.08), 0 16px 40px rgba(15, 23, 42, 0.12);
+    --cyan: #0e7490;
+    --violet: #6d28d9;
+    --amber: #b45309;
+    --emerald: #047857;
+    --rose: #be123c;
+    --cyan-soft: rgba(14, 116, 144, 0.10);
+    --violet-soft: rgba(109, 40, 217, 0.10);
+    --amber-soft: rgba(180, 83, 9, 0.10);
+    --emerald-soft: rgba(4, 120, 87, 0.10);
+    --rose-soft: rgba(190, 18, 60, 0.10);
+    --mono: ui-monospace, "JetBrains Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #060a13;
+      --grid: rgba(148, 163, 184, 0.055);
+      --panel: #0c1322;
+      --panel-2: #0f1829;
+      --ink: #e6edf7;
+      --muted: #9aa8bd;
+      --faint: #6f7f96;
+      --line: #1d283b;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+      --shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.5), 0 18px 44px rgba(0, 0, 0, 0.5);
+      --cyan: #22d3ee;
+      --violet: #a78bfa;
+      --amber: #fbbf24;
+      --emerald: #34d399;
+      --rose: #fb7185;
+      --cyan-soft: rgba(34, 211, 238, 0.12);
+      --violet-soft: rgba(167, 139, 250, 0.13);
+      --amber-soft: rgba(251, 191, 36, 0.12);
+      --emerald-soft: rgba(52, 211, 153, 0.12);
+      --rose-soft: rgba(251, 113, 133, 0.12);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background-color: var(--bg);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 28px 28px;
+    color: var(--ink);
+    font: 16px/1.6 var(--sans);
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+  .skip {
+    position: absolute; left: -9999px; top: 8px; padding: 8px 12px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  }
+  .skip:focus { left: 16px; z-index: 10; }
+  :focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+
+  header.hero { padding: 72px 0 40px; }
+  .eyebrow {
+    font: 600 12px/1 var(--mono); letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--cyan); margin: 0 0 20px; display: flex; align-items: center; gap: 10px;
+  }
+  .eyebrow::before {
+    content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--cyan);
+    box-shadow: 0 0 0 4px var(--cyan-soft);
+  }
+  h1 {
+    font: 700 clamp(34px, 5.4vw, 64px)/1.04 var(--mono); letter-spacing: -0.03em;
+    margin: 0 0 22px; max-width: 24ch;
+  }
+  h1 .accent { color: var(--cyan); }
+  .lead { font-size: clamp(17px, 1.6vw, 20px); color: var(--muted); max-width: 64ch; margin: 0 0 30px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 44px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 10px;
+    font: 600 14px/1 var(--mono); text-decoration: none; border: 1px solid var(--line);
+    background: var(--panel); box-shadow: var(--shadow);
+  }
+  .btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-hover); }
+
+  .stats {
+    display: flex; flex-wrap: wrap; gap: 1px;
+    background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+    margin: 0;
+  }
+  .stats div { flex: 1 1 170px; background: var(--panel); padding: 18px 20px; }
+  .stats dt { font: 700 30px/1.1 var(--mono); letter-spacing: -0.02em; }
+  .stats dd { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+
+  section { padding: 34px 0; }
+  .section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-bottom: 18px; }
+  h2 { font: 700 22px/1.2 var(--mono); letter-spacing: -0.01em; margin: 0; }
+  .section-head p { margin: 0; color: var(--muted); font-size: 15px; }
+
+  ol.path {
+    list-style: none; margin: 0; padding: 0; display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); counter-reset: step;
+  }
+  ol.path li { counter-increment: step; }
+  ol.path a {
+    display: block; height: 100%; padding: 18px 18px 18px 64px; position: relative; text-decoration: none;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow);
+  }
+  ol.path a::before {
+    content: counter(step, decimal-leading-zero); position: absolute; left: 18px; top: 18px;
+    font: 700 13px/30px var(--mono); width: 32px; height: 30px; text-align: center; border-radius: 8px;
+    color: var(--cyan); background: var(--cyan-soft);
+  }
+  ol.path strong { display: block; font: 700 15px/1.3 var(--mono); margin-bottom: 4px; }
+  ol.path span { color: var(--muted); font-size: 14px; }
+  ol.path a:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+
+  .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); }
+  .card {
+    display: flex; flex-direction: column; text-decoration: none; overflow: hidden;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: var(--accent, var(--cyan)); }
+  .card.wide { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+  .shot { display: block; aspect-ratio: 8 / 5; background: var(--panel-2); border-bottom: 1px solid var(--line); overflow: hidden; }
+  .card.wide .shot { aspect-ratio: auto; border-bottom: 0; border-right: 1px solid var(--line); }
+  .shot img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center; }
+  .card.wide .shot img { object-fit: cover; object-position: top center; }
+  .body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .card.wide .body { padding: 26px 28px; justify-content: center; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .badge {
+    font: 600 11px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; padding: 6px 8px;
+    border-radius: 6px; color: var(--accent); background: var(--accent-soft);
+  }
+  .src { font: 600 11px/1 var(--mono); color: var(--faint); letter-spacing: 0.04em; }
+  h3 { font: 700 18px/1.25 var(--mono); margin: 0; letter-spacing: -0.01em; }
+  .card.wide h3 { font-size: 24px; }
+  .q { margin: 0; color: var(--muted); font-size: 15px; }
+  .facts { margin: auto 0 0; padding-top: 12px; border-top: 1px dashed var(--line); font: 12px/1.5 var(--mono); color: var(--faint); }
+  .open { font: 600 13px/1 var(--mono); color: var(--accent); }
+  .counters { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0; }
+  .counters span { font: 700 13px/1 var(--mono); padding: 9px 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); }
+  .counters b { font-size: 20px; margin-right: 6px; }
+  .add b { color: var(--emerald); }
+  .del b { color: var(--rose); }
+  .mod b { color: var(--amber); }
+
+  .t-arch { --accent: var(--cyan); --accent-soft: var(--cyan-soft); }
+  .t-seq { --accent: var(--violet); --accent-soft: var(--violet-soft); }
+  .t-life { --accent: var(--amber); --accent-soft: var(--amber-soft); }
+  .t-flow { --accent: var(--emerald); --accent-soft: var(--emerald-soft); }
+  .t-work { --accent: var(--rose); --accent-soft: var(--rose-soft); }
+
+  .keys {
+    display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: var(--shadow);
+  }
+  .keys div { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 14px; }
+  kbd {
+    min-width: 30px; text-align: center; font: 700 13px/1 var(--mono); color: var(--ink); padding: 7px 8px;
+    border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 7px; background: var(--panel-2);
+  }
+
+  .proof { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .proof article { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); }
+  .proof h3 { font-size: 15px; margin-bottom: 8px; }
+  .proof p { margin: 0; color: var(--muted); font-size: 14px; }
+  .proof code, .note code { font: 13px var(--mono); }
+
+  footer { padding: 36px 0 56px; color: var(--faint); font-size: 14px; }
+  footer .wrap { border-top: 1px solid var(--line); padding-top: 22px; display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: space-between; }
+  footer a { color: var(--muted); }
+  footer nav { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+
+  @media (max-width: 760px) {
+    header.hero { padding-top: 44px; }
+    .card.wide { grid-template-columns: 1fr; }
+    .card.wide .shot { border-right: 0; border-bottom: 1px solid var(--line); aspect-ratio: 8 / 5; }
+    .grid { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card, .btn, ol.path a { transition: none; }
+    .card:hover, .btn:hover, ol.path a:hover { transform: none; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#maps">Skip to the maps</a>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">LuminariMUD &middot; Architecture Atlas</p>
+    <h1>The server, <span class="accent">mapped from its source.</span></h1>
+    <p class="lead">Ten interactive maps of how LuminariMUD boots, turns a typed command into a
+      change in the world, schedules timed work, survives a hot reboot, and saves what matters.
+      Each one is compiled from a typed source, validated, and checked in a real browser.</p>
+    <div class="cta">
+      <a class="btn primary" href="server-runtime.html">Open the runtime map &rarr;</a>
+      <a class="btn" href="README.md">Method and receipts</a>
+    </div>
+    <dl class="stats">
+      <div><dt>10</dt><dd>interactive maps</dd></div>
+      <div><dt>5</dt><dd>diagram types</dd></div>
+      <div><dt>65</dt><dd>line references pinned to Git commits</dd></div>
+      <div><dt>0</dt><dd>validation errors or warnings</dd></div>
+      <div><dt>4</dt><dd>desktop sizes measured per map</dd></div>
+    </dl>
+  </div>
+</header>
+
+<main>
+  <section aria-labelledby="start">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="start">Start here</h2>
+        <p>From the whole process to the refactor that reshaped it.</p>
+      </div>
+      <ol class="path">
+        <li><a href="server-runtime.html"><strong>Server Runtime</strong><span>The whole process on one page, with every box linked to code.</span></a></li>
+        <li><a href="command-round-trip.html"><strong>Command Round Trip</strong><span>Follow one command from socket bytes to the next prompt.</span></a></li>
+        <li><a href="event-core.html"><strong>Event-Driven Core</strong><span>How the reactor, scheduler, and domain events split the work.</span></a></li>
+        <li><a href="event-core-delta.html"><strong>Event Core Delta</strong><span>What replaced the heartbeat, fact by fact.</span></a></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="maps" aria-labelledby="structure">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="structure">Structure</h2>
+        <p>Components, boundaries, and the code behind every box.</p>
+      </div>
+      <div class="grid">
+        <a class="card t-arch" href="server-runtime.html">
+          <span class="shot"><picture>
+            <source srcset="previews/server-runtime.dark.webp" media="(prefers-color-scheme: dark)">
+            <img src="previews/server-runtime.light.webp" width="800" height="500" loading="lazy" alt="Server runtime map: clients, descriptor I/O, game loop, interpreter, game systems, event runtime, scripts, MariaDB, and world files.">
+          </picture></span>
+          <span class="body">
+            <span class="tags"><span class="badge">Architecture</span><span class="src">30 SRC references</span></span>
+            <h3>Server Runtime</h3>
+            <p class="q">What runs inside bin/luminari, and where does state live?</p>
+            <span class="facts">12 components &middot; 13 relationships &middot; 5 guided views</span>
+          </span>
+        </a>
+        <a class="card t-arch" href="event-core.html">
+          <span class="shot"><picture>
+            <source srcset="previews/event-core.dark.webp" media="(prefers-color-scheme: dark)">
+            <img src="previews/event-core.light.webp" width="800" height="500" loading="lazy" alt="Event-driven core map: I/O reactor, game loop, game scheduler timing wheel, runtime services, owner events, domain event bus, and subscribers.">
+          </picture></span>
+          <span class="body">
+            <span class="tags"><span class="badge">Architecture</span><span class="src">24 SRC references</span></span>
+            <h3>Event-Driven Core</h3>
+            <p class="q">How do the reactor, scheduler, and domain events share the main thread?</p>
+            <span class="facts">10 components &middot; 11 relationships &middot; 4 guided views</span>
+          </span>
+        </a>
+        <a class="card t-arch wide" href="event-core-delta.html">
+          <span class="shot"><img src="previews/event-core-delta.webp" width="800" height="500" loading="lazy" alt="Architecture delta overlay: removed heartbeat, legacy event queue, and world scans in red; added reactor, scheduler, services, owner events, and domain event bus in green."></span>
+          <span class="body">
+            <span class="tags"><span class="badge">Architecture delta</span><span class="src">fbe9366 &rarr; 0bc67f2</span></span>
+            <h3>Event Core Delta</h3>
+            <p class="q">The pulse-driven heartbeat() loop of August 2026 compared with the event-driven
+              core that replaced it, as Before, Delta, and After views with a step-by-step review.</p>
+            <span class="counters"><span class="add"><b>14</b>added</span><span class="del"><b>8</b>removed</span><span class="mod"><b>4</b>changed</span></span>
+            <span class="open">Review the change &rarr;</span>
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="time">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="time">Behavior over time</h2>
+        <p>Who calls whom, in order, and what comes back.</p>
+      </div>
+      <div class="grid">
+        <a class="card t-seq" href="command-round-trip.html">
+          <span class="shot"><picture>
+            <source srcset="previews/command-round-trip.dark.webp" media="(prefers-color-scheme: dark)">
+            <img src="previews/command-round-trip.light.webp" width="800" height="500" loading="lazy" alt="Sequence diagram of one player command through the reactor, comm.c, protocol.c, the interpreter, DG triggers, the ACMD handler, and domain events.">
+          </picture></span>
+          <span class="body">
+            <span class="tags"><span class="badge">Sequence</span></span>
+            <h3>Player Command Round Trip</h3>
+            <p class="q">What happens between a typed command and the next prompt?</p>
+            <span class="facts">8 participants &middot; 14 messages &middot; 4 guided views</span>
+          </span>
+        </a>
+        <a class="card t-seq" href="boot-sequence.html">
+          <span class="shot"><picture>
+            <source srcset="previews/boot-sequence.dark.webp" media="(prefers-color-scheme: dark)">
+            <img src="previews/boot-sequence.light.webp" width="800" height="500" loading="lazy" alt="Sequence diagram of server startup: main, init_game, event runtimes, boot_db with MariaDB and world files, service admission, the game loop, and exit.">
+          </picture></span>
+          <span class="body">
+            <span class="tags"><span class="badge">Sequence</span></span>
+            <h3>Server Startup and World Boot</h3>
+            <p class="q">In what order does the server boot, and how does it exit or reboot?</p>
+            <span class="facts">8 participants &middot; 14 messages &middot; 4 guided views</span>
+          </span>
+        </a>
+        <a class="card t-seq" href="copyover.html">
+          <span class="shot"><picture>
+            <source srcset="previews/copyover.dark.webp" media="(prefers-color-scheme: dark)">
+            <img src="previews/copyover.light.webp" width="800" height="500" loading="lazy" alt="Sequence diagram of a copyover: saves, the copyover.dat handoff, execl of the new image, and recovery of every playing connection.">
+          </picture></span>
+          <span class="body">
+            <span class="tags"><span class="badge">Sequence</span></span>
+            <h3>Copyover Hot Reboot</h3>
+            <p class="q">How does the server replace its own binary without dropping players?</p>
+            <span class="facts">6 participants &middot; 13 messages &middot; 3 guided views</span>
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="states">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="states">State machines</h2>
+        <p>Every state, the transitions between them, and the ways out.</p>
+      </div>
+      <div class="grid">
+        <a class="card t-life" href="connection-lifecycle.html">
+          <span class="shot"><picture>
+            <source srcset="previews/connection-lifecycle.dark.webp" media="(prefers-color-scheme: dark)">
+            <img src="previews/connection-lifecycle.light.webp" width="800" height="500" loading="lazy" alt="Lifecycle of a player connection from protocol probe through account login and menus to playing, with character creation, link loss, and closed exits.">
+          </picture></span>
+          <span class="body">
+            <span class="tags"><span class="badge">Lifecycle</span></span>
+            <h3>Player Connection Lifecycle</h3>
+            <p class="q">Which connection states does a player pass through?</p>
+            <span class="facts">8 states &middot; 9 transitions &middot; 4 guided views</span>
+          </span>
+        </a>
+        <a class="card t-life" href="scheduled-event.html">
+          <span class="shot"><picture>
+            <source srcset="previews/scheduled-event.dark.webp" media="(prefers-color-scheme: dark)">
+            <img src="previews/scheduled-event.light.webp" width="800" height="500" loading="lazy" alt="Lifecycle of a scheduled game event: created, queued, ready, dispatching, and completed, with reschedule, cancel pending, cancelled, and failed paths.">
+          </picture></span>
+          <span class="body">
+            <span class="tags"><span class="badge">Lifecycle</span></span>
+            <h3>Scheduled Game Event Lifecycle</h3>
+            <p class="q">What happens to a timed event from scheduling to cleanup?</p>
+            <span class="facts">8 states &middot; 9 transitions &middot; 4 guided views</span>
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="data">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="data">Data and delivery</h2>
+        <p>Where state is written, and how a change reaches CI.</p>
+      </div>
+      <div class="grid">
+        <a class="card t-flow" href="save-and-reload.html">
+          <span class="shot"><picture>
+            <source srcset="previews/save-and-reload.dark.webp" media="(prefers-color-scheme: dark)">
+            <img src="previews/save-and-reload.light.webp" width="800" height="500" loading="lazy" alt="Data flow from live world and characters through OLC writers, the player saver, and SQL writers into lib/world, lib/plrfiles, and MariaDB, then back through loaders.">
+          </picture></span>
+          <span class="body">
+            <span class="tags"><span class="badge">Data flow</span></span>
+            <h3>Save and Reload Data Flow</h3>
+            <p class="q">Where are world and player state written, and how are they read back?</p>
+            <span class="facts">12 nodes &middot; 11 flows &middot; 3 guided views</span>
+          </span>
+        </a>
+        <a class="card t-work" href="change-to-merge.html">
+          <span class="shot"><picture>
+            <source srcset="previews/change-to-merge.dark.webp" media="(prefers-color-scheme: dark)">
+            <img src="previews/change-to-merge.light.webp" width="800" height="500" loading="lazy" alt="Workflow from editing src through build parity, make test, make install, git commit hooks, and GitHub Actions, with a fix and retry loop.">
+          </picture></span>
+          <span class="body">
+            <span class="tags"><span class="badge">Workflow</span></span>
+            <h3>Change to Merge Workflow</h3>
+            <p class="q">Which local gates and hooks does a change pass before CI?</p>
+            <span class="facts">8 steps &middot; 9 edges &middot; 3 guided views</span>
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="keys-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="keys-title">Inside every map</h2>
+        <p>Keyboard shortcuts work on every page.</p>
+      </div>
+      <div class="keys">
+        <div><kbd>?</kbd> Built-in guide</div>
+        <div><kbd>/</kbd> Find a node</div>
+        <div><kbd>P</kbd> Play the guided views</div>
+        <div><kbd>R</kbd> Probe a route</div>
+        <div><kbd>L</kbd> Compare roles</div>
+        <div><kbd>F</kbd> Present</div>
+        <div><kbd>T</kbd> Light or dark</div>
+        <div><kbd>E</kbd> Export PNG, SVG, WebM</div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="proof-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="proof-title">Why you can trust them</h2>
+        <p>Three separate checks, with receipts in the README.</p>
+      </div>
+      <div class="proof">
+        <article>
+          <h3>Pinned to real lines</h3>
+          <p>Architecture nodes cite files and line ranges at a fixed commit. Archify re-reads each
+            blob from Git before rendering, so a wrong path or line fails the build.</p>
+        </article>
+        <article>
+          <h3>Compiled, not drawn</h3>
+          <p>Each page comes from a JSON source in <code>sources/</code> and passed schema, routing,
+            label-clearance, and readability checks before it was written.</p>
+        </article>
+        <article>
+          <h3>Checked in a browser</h3>
+          <p>Headless Chromium measured every page at four desktop sizes in both themes, and the
+            screenshots were reviewed for crossings, masked labels, and balance.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Checked against master @ 0bc67f2 (2026-09-15) &middot; built with Archify 2.17.0-dev.1</span>
+    <nav aria-label="Related documentation">
+      <a href="README.md">Method and receipts</a>
+      <a href="sources/">JSON sources</a>
+      <a href="../adr/0002-event-driven-core-boundaries.md">ADR 0002</a>
+      <a href="../systems/ARCHITECTURE.md">Architecture overview</a>
+      <a href="../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md">Documentation index</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>

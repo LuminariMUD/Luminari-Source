@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "Player Connection Lifecycle",
+    "locale": "en",
+    "viewBox": [
+      1060,
+      650
+    ],
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "login-to-play",
+        "label": "Login to play",
+        "focus": [
+          "protocol",
+          "account",
+          "acctmenu",
+          "mainmenu",
+          "playing"
+        ],
+        "note": "A new socket negotiates protocols, authenticates an account, picks a character, and enters the world."
+      },
+      {
+        "id": "new-characters",
+        "label": "New characters",
+        "focus": [
+          "acctmenu",
+          "creation",
+          "mainmenu"
+        ],
+        "note": "Character creation is a chain of nanny() states that returns to the main menu when it finishes."
+      },
+      {
+        "id": "link-loss",
+        "label": "Link loss",
+        "focus": [
+          "playing",
+          "linkless"
+        ],
+        "note": "A dropped link saves the character and leaves it in the world until the player logs in again."
+      },
+      {
+        "id": "exits",
+        "label": "Exits",
+        "focus": [
+          "account",
+          "closed"
+        ],
+        "note": "Rejected logins end in CON_CLOSE and the socket is released."
+      }
+    ]
+  },
+  "lanes": [
+    {
+      "id": "main",
+      "label": "Connection phases"
+    },
+    {
+      "id": "side",
+      "label": "Creation + link loss"
+    },
+    {
+      "id": "terminal",
+      "label": "Terminal exit"
+    }
+  ],
+  "states": [
+    {
+      "id": "protocol",
+      "type": "start",
+      "label": "Protocol Probe",
+      "sublabel": "CON_GET_PROTOCOL",
+      "lane": "main",
+      "col": 0,
+      "step": "01"
+    },
+    {
+      "id": "account",
+      "type": "active",
+      "label": "Account Login",
+      "sublabel": "CON_ACCOUNT_NAME",
+      "lane": "main",
+      "col": 1,
+      "step": "02"
+    },
+    {
+      "id": "acctmenu",
+      "type": "decision",
+      "label": "Account Menu",
+      "sublabel": "CON_ACCOUNT_MENU",
+      "lane": "main",
+      "col": 2,
+      "step": "03"
+    },
+    {
+      "id": "mainmenu",
+      "type": "active",
+      "label": "Main Menu",
+      "sublabel": "CON_RMOTD, CON_MENU",
+      "lane": "main",
+      "col": 3,
+      "step": "04"
+    },
+    {
+      "id": "playing",
+      "type": "success",
+      "label": "Playing",
+      "sublabel": "CON_PLAYING",
+      "lane": "main",
+      "col": 4,
+      "step": "05"
+    },
+    {
+      "id": "creation",
+      "type": "active",
+      "label": "Character Creation",
+      "sublabel": "CON_QRACE .. CON_QALIGN",
+      "lane": "side",
+      "col": 0
+    },
+    {
+      "id": "linkless",
+      "type": "waiting",
+      "label": "Linkless",
+      "sublabel": "character, no descriptor",
+      "lane": "side",
+      "col": 2
+    },
+    {
+      "id": "closed",
+      "type": "failure",
+      "label": "Closed",
+      "sublabel": "CON_CLOSE",
+      "lane": "terminal",
+      "col": 0
+    }
+  ],
+  "transitions": [
+    {
+      "id": "protocols-detected",
+      "from": "protocol",
+      "to": "account",
+      "label": "negotiated",
+      "labelAt": [
+        171,
+        122
+      ]
+    },
+    {
+      "id": "password-ok",
+      "from": "account",
+      "to": "acctmenu",
+      "label": "password ok",
+      "variant": "security",
+      "labelAt": [
+        325,
+        122
+      ]
+    },
+    {
+      "id": "character-chosen",
+      "from": "acctmenu",
+      "to": "mainmenu",
+      "label": "load_char()",
+      "labelAt": [
+        479,
+        122
+      ]
+    },
+    {
+      "id": "enter-game",
+      "from": "mainmenu",
+      "to": "playing",
+      "label": "enter game",
+      "variant": "emphasis",
+      "labelAt": [
+        633,
+        122
+      ]
+    },
+    {
+      "id": "new-character",
+      "from": "acctmenu",
+      "to": "creation",
+      "label": "new character",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        402,
+        202
+      ]
+    },
+    {
+      "id": "creation-done",
+      "from": "creation",
+      "to": "mainmenu",
+      "label": "CON_MENU"
+    },
+    {
+      "id": "link-lost",
+      "from": "playing",
+      "to": "linkless",
+      "label": "close_socket()",
+      "variant": "security",
+      "fromSide": "bottom",
+      "labelAt": [
+        703,
+        202
+      ]
+    },
+    {
+      "id": "reconnect",
+      "from": "linkless",
+      "to": "playing",
+      "label": "RECON",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "right",
+      "route": "right-channel",
+      "channelX": 815
+    },
+    {
+      "id": "login-failed",
+      "from": "account",
+      "to": "closed",
+      "label": "bad password",
+      "variant": "security",
+      "fromSide": "bottom"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Main path",
+      "items": [
+        "Starts in CON_GET_PROTOCOL",
+        "nanny() owns all non-playing states",
+        "Main menu 1 enters CON_PLAYING"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Leaving and returning",
+      "items": [
+        "close_socket() leaves chars linkless",
+        "Relogin reattaches via RECON",
+        "Rejected logins end in CON_CLOSE"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Evidence",
+      "items": [
+        "structs.h: CON_* at 1629-1726",
+        "interpreter.c: nanny() at 7868",
+        "comm.c: close_socket() at 4331"
+      ]
+    }
+  ]
+}
