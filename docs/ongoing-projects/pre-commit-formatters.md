@@ -1,6 +1,7 @@
 # Pre-commit formatters for every maintained file type
 
-Status: in progress on `chore/pre-commit-clang-tidy`; Progress below is the
+Status: Steps 1 to 9 are done and verified on `chore/pre-commit-clang-tidy`;
+Step 0's host runtimes and Step 10 remain for the owner. Progress below is the
 resume point. The plan was written 2026-09-15 on the development host
 (`APP_ENV=development`) against `570193508`, the tip of `master`, and revised
 the same day with the owner's decisions: Python at 4-space indentation,
@@ -77,14 +78,28 @@ Notes for whoever resumes:
   formatter commits new SHAs, so `.git-blame-ignore-revs` can only list them
   after the merge, and this document is the reference until then. Its lasting
   content is already in the setup guide's Formatting section.
-- Final verification so far: `pre-commit run --all-files` passed twice on the
-  final tree on the host with no changes. The local CI container matrix runs
-  on the final commit; its result is recorded here when it finishes.
+- Final verification: `pre-commit run --all-files` passed twice on the final
+  tree on the host with no changes, and the local CI matrix
+  (`scripts/ci/local/run.py --jobs 4 --cpus 4` on a rebuilt
+  `luminari-ci:local-fast`) passed all 28 jobs on `b68b8c382` in 399 s: the 23
+  `test.yml` jobs (world tools, build parity, the eight CMake builds, warning
+  budgets, clean archives, unit tests, production profiles, sanitizers,
+  memory check, coverage), both `integration.yml` jobs (the master schema and
+  every applied component load into MariaDB), the `quality.yml` format check
+  with all 17 hooks, hygiene, and gitleaks.
 - The first container run of the quality job failed: `format_php.sh` had been
   committed as 100644. `core.fileMode` is false here, so `git add` ignores
   the exec bit of a new file, and the hook passed on this host only because
   the file on disk was executable. A follow-up commit sets 100755 with
   `git update-index --chmod=+x`; check new scripts with `git ls-files -s`.
+- GitHub's `test.yml` fails the `CMake gcc-16` Test step on this branch with
+  `autorun-supervision` and `vessel-memory-analyzer`. `master` fails the same
+  two tests at `570193508`, and both pass in the local `gcc:16.2` image, so the
+  failure predates this work.
+- PR #190 adds `sql/components/help_crafting_entries.sql` and
+  `verify_help_crafting_entries.sql`. Both parse under sqlfluff 4.3.0 with this
+  `.sqlfluff`, so that branch can take the hooks through the rebase recipe in
+  Step 0 without an exemption.
 
 ## Verdict
 
